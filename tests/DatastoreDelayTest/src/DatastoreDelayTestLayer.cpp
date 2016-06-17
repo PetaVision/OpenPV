@@ -70,8 +70,7 @@ int DatastoreDelayTestLayer::updateV_DatastoreDelayTestLayer(const PVLayerLoc * 
             MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
             if( rank == 0 ) {
-               fflush(stdout);
-               fprintf(stderr, "DatastoreDelayTestLayer: number of rows (%d) must be >= period (%d).  Exiting.\n", loc->ny, period);
+               pvErrorNoExit().printf("DatastoreDelayTestLayer: number of rows (%d) must be >= period (%d).  Exiting.\n", loc->ny, period);
             }
             abort();
          }

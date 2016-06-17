@@ -48,8 +48,7 @@ int NormalizeMax::normalizeWeights() {
    float scale_factor = 1.0f;
    if (normalizeFromPostPerspective) {
       if (conn0->usingSharedWeights()==false) {
-         fprintf(stderr, "NormalizeMax error for connection \"%s\": normalizeFromPostPerspective is true but connection does not use shared weights.\n", getName());
-         exit(EXIT_FAILURE);
+         pvError().printf("NormalizeMax error for connection \"%s\": normalizeFromPostPerspective is true but connection does not use shared weights.\n", getName());
       }
       scale_factor = ((float) conn0->postSynapticLayer()->getNumNeurons())/((float) conn0->preSynapticLayer()->getNumNeurons());
    }
@@ -73,7 +72,7 @@ int NormalizeMax::normalizeWeights() {
                accumulateMax(dataStartPatch, weights_per_patch, &max);
             }
             if (max <= minMaxTolerated) {
-               fprintf(stderr, "Warning for NormalizeMax \"%s\": max of weights in patch %d of arbor %d is within minMaxTolerated=%f of zero.  Weights in this patch unchanged.\n", getName(), patchindex, arborID, minMaxTolerated);
+               pvWarn().printf("for NormalizeMax \"%s\": max of weights in patch %d of arbor %d is within minMaxTolerated=%f of zero.  Weights in this patch unchanged.\n", getName(), patchindex, arborID, minMaxTolerated);
                break; // TODO: continue?
             }
             for (int c=0; c<numConnections; c++) {
@@ -103,7 +102,7 @@ int NormalizeMax::normalizeWeights() {
             }
          }
          if (max <= minMaxTolerated) {
-            fprintf(stderr, "Warning for NormalizeMax \"%s\": max of weights in patch %d is within minMaxTolerated=%f of zero. Weights in this patch unchanged.\n", getName(), patchindex, minMaxTolerated);
+            pvWarn().printf("for NormalizeMax \"%s\": max of weights in patch %d is within minMaxTolerated=%f of zero. Weights in this patch unchanged.\n", getName(), patchindex, minMaxTolerated);
             break; // TODO: continue?
          }
          for (int arborID = 0; arborID<nArbors; arborID++) {

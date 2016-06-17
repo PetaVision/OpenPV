@@ -60,7 +60,7 @@ void MaskLayer::ioParam_maskMethod(enum ParamsIOFlag ioFlag) {
    }
    else{
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: \"%s\" is not a valid maskMethod. Options are \"layer\", \"maskFeatures\", or \"noMaskFeatures\".\n",
+         pvErrorNoExit().printf("%s \"%s\": \"%s\" is not a valid maskMethod. Options are \"layer\", \"maskFeatures\", or \"noMaskFeatures\".\n",
                  getKeyword(), name, maskMethod);
       }
       exit(-1);
@@ -80,7 +80,7 @@ void MaskLayer::ioParam_featureIdxs(enum ParamsIOFlag ioFlag) {
       parent->ioParamArray(ioFlag, name, "featureIdxs", &features, &numSpecifiedFeatures);
       if(numSpecifiedFeatures == 0){
          if (parent->columnId()==0) {
-            fprintf(stderr, "%s \"%s\" error: MaskLayer must specify at least one feature for maskMethod \"%s\".\n",
+            pvErrorNoExit().printf("%s \"%s\": MaskLayer must specify at least one feature for maskMethod \"%s\".\n",
                     getKeyword(), name, maskMethod);
          }
          exit(-1);
@@ -94,7 +94,7 @@ int MaskLayer::communicateInitInfo() {
       maskLayer = parent->getLayerFromName(maskLayerName);
       if (maskLayer==NULL) {
          if (parent->columnId()==0) {
-            fprintf(stderr, "%s \"%s\" error: maskLayerName \"%s\" is not a layer in the HyPerCol.\n",
+            pvErrorNoExit().printf("%s \"%s\": maskLayerName \"%s\" is not a layer in the HyPerCol.\n",
                     getKeyword(), name, maskLayerName);
          }
          MPI_Barrier(parent->icCommunicator()->communicator());
@@ -106,9 +106,10 @@ int MaskLayer::communicateInitInfo() {
       assert(maskLoc != NULL && loc != NULL);
       if (maskLoc->nxGlobal != loc->nxGlobal || maskLoc->nyGlobal != loc->nyGlobal) {
          if (parent->columnId()==0) {
-            fprintf(stderr, "%s \"%s\" error: maskLayerName \"%s\" does not have the same x and y dimensions.\n",
+            pvErrorNoExit(errorMessage);
+            errorMessage.printf("%s \"%s\": maskLayerName \"%s\" does not have the same x and y dimensions.\n",
                     getKeyword(), name, maskLayerName);
-            fprintf(stderr, "    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
+            errorMessage.printf("    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
                     maskLoc->nxGlobal, maskLoc->nyGlobal, maskLoc->nf, loc->nxGlobal, loc->nyGlobal, loc->nf);
          }
          MPI_Barrier(parent->icCommunicator()->communicator());
@@ -117,9 +118,10 @@ int MaskLayer::communicateInitInfo() {
 
       if(maskLoc->nf != 1 && maskLoc->nf != loc->nf){
          if (parent->columnId()==0) {
-            fprintf(stderr, "%s \"%s\" error: maskLayerName \"%s\" must either have the same number of features as this layer, or one feature.\n",
+            pvErrorNoExit(errorMessage);
+            errorMessage.printf("%s \"%s\": maskLayerName \"%s\" must either have the same number of features as this layer, or one feature.\n",
                     getKeyword(), name, maskLayerName);
-            fprintf(stderr, "    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
+            errorMessage.printf("    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
                     maskLoc->nxGlobal, maskLoc->nyGlobal, maskLoc->nf, loc->nxGlobal, loc->nyGlobal, loc->nf);
          }
          MPI_Barrier(parent->icCommunicator()->communicator());
@@ -134,8 +136,7 @@ int MaskLayer::communicateInitInfo() {
       const PVLayerLoc * loc = getLayerLoc();
       for(int f = 0; f < numSpecifiedFeatures; f++){
          if(features[f] < 0 || features[f] >= loc->nf){
-            std::cout << "Specified feature " << features[f] << "out of bounds\n"; 
-            exit(-1);
+            pvError() << "Specified feature " << features[f] << "out of bounds\n";
          }
          
       }

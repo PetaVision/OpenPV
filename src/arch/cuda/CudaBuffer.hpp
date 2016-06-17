@@ -8,11 +8,11 @@
 #ifndef CUDABUFFER_HPP_
 #define CUDABUFFER_HPP_
 
+#include <cuda_runtime_api.h>
 
 ////////////////////////////////////////////////////////////////////////////////
 
 namespace PVCuda {
-#include <cuda_runtime_api.h>
 
 class CudaDevice;
 
@@ -76,8 +76,9 @@ private:
     * #return Returns PV_Success if successful
     */
    virtual int copyToDevice(const void * h_ptr, size_t in_size);
-};
+   void callCudaPermuteWeightsPVToCudnn(int gridSize, int blockSize, void* d_inPtr, int numArbors, int outFeatures, int ny, int nx, int inFeatures);
+}; // end class CudaBuffer
 
-} // namespace PV
+} // end namespace PVCuda
 
 #endif

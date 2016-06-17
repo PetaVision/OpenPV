@@ -37,8 +37,7 @@ int L2ConnProbe::outputState(double timed) {
    int numKern = getTargetHyPerConn()->getNumDataPatches();
 
    if( numKern != getTargetHyPerConn() -> preSynapticLayer()-> getLayerLoc() -> nf ) {
-      fprintf(stderr, "L2ConnProbe %s: L2ConnProbe only works for 1-to-many or 1-to-1 weights.\n", name);
-      exit(EXIT_FAILURE); 
+      pvError().printf("L2ConnProbe %s: L2ConnProbe only works for 1-to-many or 1-to-1 weights.\n", name);
    }
 
    #ifdef PV_USE_OPENMP_THREADS
@@ -64,7 +63,7 @@ int L2ConnProbe::outputState(double timed) {
             }
          }
       }
-      fprintf(outputstream->fp, "t=%f, f=%d, squaredL2=%f\n", timed, kernelIndex, sumsq);
+      output() << "t=" << timed << ", f=" << kernelIndex << ", squaredL2=" << sumsq << "\n";
    }
 
 

@@ -40,8 +40,7 @@ int StochasticReleaseTestProbe::communicateInitInfo() {
    long int num_steps = getParent()->getFinalStep() - getParent()->getInitialStep();
    pvalues = (double *) calloc(num_steps*getTargetLayer()->getLayerLoc()->nf, sizeof(double));
    if (pvalues == NULL) {
-      fprintf(stderr, "StochasticReleaseTestProbe error: unable to allocate memory for pvalues: %s\n", strerror(errno));
-      exit(EXIT_FAILURE);
+      pvError().printf("StochasticReleaseTestProbe error: unable to allocate memory for pvalues: %s\n", strerror(errno));
    }
    return status;
 }
@@ -97,7 +96,7 @@ int StochasticReleaseTestProbe::outputState(double timed) {
          }
          for (long int k=0; k<N; k++) {
             if (pvalues[k]*(N-k)<0.05) {
-               fprintf(stderr, "layer \"%s\" FAILED: p-value %ld out of %ld (ordered by size) with Holm-Bonferroni correction = %f\n", getTargetLayer()->getName(), k, N, pvalues[k]*(N-k));
+               pvErrorNoExit().printf("layer \"%s\" FAILED: p-value %ld out of %ld (ordered by size) with Holm-Bonferroni correction = %f\n", getTargetLayer()->getName(), k, N, pvalues[k]*(N-k));
                status = PV_FAILURE;
             }
          }
@@ -157,7 +156,7 @@ int StochasticReleaseTestProbe::computePValues(long int step, int f) {
       double stddev = sqrt(neuronsPerFeature*preact*(1-preact));
       double numdevs = (nnzf-mean)/stddev;
       pvalues[idx] = erfc(fabs(numdevs)/sqrt(2));
-      fprintf(outputstream->fp, "    Feature %d, nnz=%5d, expectation=%7.1f, std.dev.=%5.1f, discrepancy of %f deviations, p-value %f\n",
+      outputStream->printf("    Feature %d, nnz=%5d, expectation=%7.1f, std.dev.=%5.1f, discrepancy of %f deviations, p-value %f\n",
               f, nnzf, mean, stddev, numdevs, pvalues[idx]);
    }
    assert(status==PV_SUCCESS);

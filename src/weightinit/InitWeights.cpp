@@ -9,11 +9,11 @@
 
 #include <stdlib.h>
 
-#include "../include/default_params.h"
-#include "../io/io.h"
-#include "../io/fileio.hpp"
-#include "../utils/conversions.h"
-#include "../columns/InterColComm.hpp"
+#include "include/default_params.h"
+#include "io/io.hpp"
+#include "io/fileio.hpp"
+#include "utils/conversions.h"
+#include "columns/InterColComm.hpp"
 
 
 namespace PV {
@@ -36,12 +36,10 @@ InitWeights::~InitWeights()
 
 int InitWeights::initialize(char const * name, HyPerCol * hc) {
    if (name==NULL) {
-      fprintf(stderr, "InitWeights::initialize called with a name argument of null.\n");
-      exit(EXIT_FAILURE);
+      pvError().printf("InitWeights::initialize called with a name argument of null.\n");
    }
    if (hc==NULL) {
-      fprintf(stderr, "InitWeights::initialize called with a HyPerCol argument of null.\n");
-      exit(EXIT_FAILURE);
+      pvError().printf("InitWeights::initialize called with a HyPerCol argument of null.\n");
    }
    int status = BaseObject::initialize(name, hc);
    callingConn = NULL; // will be set during communicateInitInfo stage.
@@ -77,7 +75,7 @@ int InitWeights::communicateParamsInfo() {
       if (baseCallingConn==NULL) {
          status = PV_FAILURE;
          if (parent->columnId()==0) {
-            fprintf(stderr, "InitWeights error: \"%s\" is not a connection in the column.\n", name);
+            pvErrorNoExit().printf("InitWeights error: \"%s\" is not a connection in the column.\n", name);
          }
       }
       else {
@@ -85,7 +83,7 @@ int InitWeights::communicateParamsInfo() {
          if (callingConn==NULL) {
             status = PV_FAILURE;
             if (parent->columnId()==0) {
-               fprintf(stderr, "InitWeights error: \"%s\" is not a HyPerConn.\n", name);
+               pvErrorNoExit().printf("InitWeights error: \"%s\" is not a HyPerConn.\n", name);
             }
          }
       }
@@ -109,11 +107,11 @@ int InitWeights::initializeWeights(PVPatch *** patches, pvwdata_t ** dataStart,
    int numPatches = callingConn->getNumDataPatches();
    if (inputParams->present(callingConn->getName(), "initFromLastFlag")) {
       if (callingConn->getParent()->columnId()==0) {
-         fprintf(stderr, "Connection \"%s\": initFromLastFlag is obsolete.\n", callingConn->getName());
+         pvErrorNoExit().printf("Connection \"%s\": initFromLastFlag is obsolete.\n", callingConn->getName());
       }
       if (inputParams->value(callingConn->getName(), "initFromLastFlag")) {
          if (callingConn->getParent()->columnId()==0) {
-            fprintf(stderr, "Instead, use weightInitType=\"FileWeight\" or set HyPerCol initializeFromCheckpointDir and set initializeFromCheckpointFlag to true\n");
+            pvErrorNoExit().printf("Instead, use weightInitType=\"FileWeight\" or set HyPerCol initializeFromCheckpointDir and set initializeFromCheckpointFlag to true\n");
          }
          MPI_Barrier(callingConn->getParent()->icCommunicator()->communicator());
          exit(EXIT_FAILURE);
@@ -127,10 +125,9 @@ int InitWeights::initializeWeights(PVPatch *** patches, pvwdata_t ** dataStart,
    } // filename != null
    int successFlag = zeroWeightsOutsideShrunkenPatch(patches);
    if (successFlag != PV_SUCCESS) {
-      fprintf(stderr,
+      pvError().printf(
             "Failed to zero annulus around shrunken patch for %s! Exiting...\n",
             callingConn->getName());
-      exit(PV_FAILURE);
    }
    return PV_SUCCESS;
 }
@@ -235,10 +232,8 @@ int InitWeights::calcWeights() {
                callingConn->get_wDataHead(arbor, dataPatchIndex),
                dataPatchIndex, arbor);
          if (successFlag != PV_SUCCESS) {
-            fprintf(stderr,
-                  "Failed to create weights for %s! Exiting...\n",
+            pvError().printf("Failed to create weights for %s! Exiting...\n",
                   callingConn->getName());
-            exit(PV_FAILURE);
          }
       }
    }
@@ -278,8 +273,7 @@ int InitWeights::readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int nu
       status = PV::readWeights(patches, dataStart, numArbors, numPatches, nxp, nyp, nfp, filename, icComm, &timed, preLoc);
    }
    if (status != PV_SUCCESS) {
-      fprintf(stderr, "PV::readWeights: problem reading weight file %s for connection %s, SHUTTING DOWN\n", filename, callingConn->getName());
-      exit(EXIT_FAILURE);
+      pvError().printf("PV::readWeights: problem reading weight file %s for connection %s, SHUTTING DOWN\n", filename, callingConn->getName());
    }
    if( timeptr != NULL ) *timeptr = timed;
    return PV_SUCCESS;
@@ -301,14 +295,12 @@ int InitWeights::readListOfArborFiles(PVPatch *** patches, pvwdata_t ** dataStar
          if( fgetsstatus == NULL ) {
             bool endoffile = feof(arborstream->fp)!=0;
             if( endoffile ) {
-               fprintf(stderr, "File of arbor files \"%s\" reached end of file before all %d arbors were read.  Exiting.\n", listOfArborsFilename, numArbors);
-               exit(EXIT_FAILURE);
+               pvError().printf("File of arbor files \"%s\" reached end of file before all %d arbors were read.  Exiting.\n", listOfArborsFilename, numArbors);
             }
             else {
                int error = ferror(arborstream->fp);
                assert(error);
-               fprintf(stderr, "File of arbor files: error %d while reading.  Exiting.\n", error);
-               exit(error);
+               pvError().printf("File of arbor files: error %d while reading.  Exiting.\n", error);
             }
          }
          else {
@@ -333,8 +325,7 @@ int InitWeights::readListOfArborFiles(PVPatch *** patches, pvwdata_t ** dataStar
 
       int status = PV::readWeights(patches ? &patches[arbor] : NULL, &dataStart[arbor], numArbors-arbor, numPatches, nxp, nyp, nfp, arborfilename, icComm, &timed, preLoc);
       if (status != PV_SUCCESS) {
-         fprintf(stderr, "PV::InitWeights::readWeights: problem reading arbor file %s, SHUTTING DOWN\n", arborfilename);
-         exit(EXIT_FAILURE);
+         pvError().printf("PV::InitWeights::readWeights: problem reading arbor file %s, SHUTTING DOWN\n", arborfilename);
       }
       arbor += thisfilearbors;
    }  // while
@@ -353,9 +344,7 @@ int InitWeights::readCombinedWeightFiles(PVPatch *** patches, pvwdata_t ** dataS
    int file_count=0;
    PV_Stream * weightstream = pvp_open_read_file(fileOfWeightFiles, icComm);
    if ((weightstream == NULL) && (icComm->commRank() == rootproc) ){
-      fprintf(stderr, ""
-            "Cannot open file of weight files \"%s\".  Exiting.\n", fileOfWeightFiles);
-      exit(EXIT_FAILURE);
+      pvError().printf("Cannot open file of weight files \"%s\".  Exiting.\n", fileOfWeightFiles);
    }
 
    char weightsfilename[PV_PATH_MAX];
@@ -365,14 +354,12 @@ int InitWeights::readCombinedWeightFiles(PVPatch *** patches, pvwdata_t ** dataS
          if( fgetsstatus == NULL ) {
             bool endoffile = feof(weightstream->fp)!=0;
             if( endoffile ) {
-               fprintf(stderr, "File of weight files \"%s\" reached end of file before all %d weight files were read.  Exiting.\n", fileOfWeightFiles, num_weight_files);
-               exit(EXIT_FAILURE);
+               pvError().printf("File of weight files \"%s\" reached end of file before all %d weight files were read.  Exiting.\n", fileOfWeightFiles, num_weight_files);
             }
             else {
                int error = ferror(weightstream->fp);
                assert(error);
-               fprintf(stderr, "File of weight files: error %d while reading.  Exiting.\n", error);
-               exit(error);
+               pvError().printf("File of weight files: error %d while reading.  Exiting.\n", error);
             }
          }
          else {
@@ -395,8 +382,7 @@ int InitWeights::readCombinedWeightFiles(PVPatch *** patches, pvwdata_t ** dataS
       const int nfp = callingConn->fPatchSize();
       int status = PV::readWeights(patches, dataStart, numArbors, numPatches, nxp, nyp, nfp, weightsfilename, icComm, &timed, preLoc);
       if (status != PV_SUCCESS) {
-         fprintf(stderr, "PV::InitWeights::readWeights: problem reading arbor file %s, SHUTTING DOWN\n", weightsfilename);
-         exit(EXIT_FAILURE);
+         pvError().printf("PV::InitWeights::readWeights: problem reading arbor file %s, SHUTTING DOWN\n", weightsfilename);
       }
       file_count += 1;
    } // file_count < num_weight_files

@@ -41,16 +41,15 @@ int buildandrun(int argc, char * argv[],
 int buildandrun(PV_Init * initObj,
                 int (*custominit)(HyPerCol *, int, char **),
                 int (*customexit)(HyPerCol *, int, char **)) {
-   initObj->initialize();
    if(initObj->isExtraProc()){
       return 0;
    }
    PVParams * params = initObj->getParams();
    if (params==NULL) {
       if (initObj->getWorldRank()==0) {
-         char const * progName = initObj->getArguments()->getProgramName();
+         char const * progName = initObj->getProgramName();
          if (progName==NULL) { progName = "PetaVision"; }
-         fprintf(stderr, "%s was called without having set a params file\n", progName);
+         pvErrorNoExit().printf("%s was called without having set a params file\n", progName);
       }
       MPI_Barrier(initObj->getComm()->communicator());
       exit(EXIT_FAILURE);
@@ -62,7 +61,7 @@ int buildandrun(PV_Init * initObj,
    if (numParamSweepValues) {
       for (int k=0; k<numParamSweepValues; k++) {
          if (initObj->getWorldRank()==0) {
-            printf("Parameter sweep: starting run %d of %d\n", k+1, numParamSweepValues);
+            pvInfo().printf("Parameter sweep: starting run %d of %d\n", k+1, numParamSweepValues);
          }
          status = buildandrun1paramset(initObj, custominit, customexit, k) == PV_SUCCESS ? status : PV_FAILURE;
       }
@@ -97,30 +96,30 @@ int buildandrun1paramset(PV_Init * initObj,
    int argc = 0;
    char ** argv = NULL;
    if (custominit || customexit) {
-      argc = initObj->getArguments()->getNumArgs();
-      argv = initObj->getArguments()->getArgsCopy();
+      argc = initObj->getNumArgs();
+      argv = initObj->getArgsCopy();
    }
    if( custominit != NULL ) {
       status = (*custominit)(hc, argc, argv);
       if(status != PV_SUCCESS) {
-         fprintf(stderr, "custominit function failed with return value %d\n", status);
+         pvErrorNoExit().printf("custominit function failed with return value %d\n", status);
       }
    }
 
    if( status==PV_SUCCESS && hc->getInitialStep() < hc->getFinalStep() ) {
       status = hc->run();
       if( status != PV_SUCCESS ) {
-         fprintf(stderr, "HyPerCol::run() returned with error code %d\n", status);
+         pvErrorNoExit().printf("HyPerCol::run() returned with error code %d\n", status);
       }
    }
    if( status==PV_SUCCESS && customexit != NULL ) {
       status = (*customexit)(hc, argc, argv);
       if( status != PV_SUCCESS) {
-         fprintf(stderr, "customexit function failed with return value %d\n", status);
+         pvErrorNoExit().printf("customexit function failed with return value %d\n", status);
       }
    }
    if (custominit || customexit) {
-      initObj->getArguments()->freeArgs(argc, argv);
+      initObj->freeArgs(argc, argv);
    }
    delete hc; /* HyPerCol's destructor takes care of deleting layers and connections */
    return status;
@@ -136,7 +135,6 @@ int buildandrun(int argc, char * argv[],
       int (*customexit)(HyPerCol *, int, char **),
       void * (*customgroups)(const char *, const char *, HyPerCol *)) {
    PV_Init * initObj = new PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
-   initObj->initialize();
    initObj->printBuildAndRunDeprecationWarning("buildandrun", "argc, argv, custominit, customexit, customgroups");
    int status = rebuildandrun(initObj, custominit, customexit, customgroups);
    delete initObj;
@@ -149,7 +147,6 @@ int rebuildandrun(PV_Init* initObj,
       int (*customexit)(HyPerCol *, int, char **),
       void * (*customgroups)(const char *, const char *, HyPerCol *)) {
 
-   initObj->initialize();
    initObj->printBuildAndRunDeprecationWarning("rebuildandrun", "initObj, custominit, customexit, customgroups");
    if(initObj->isExtraProc()){
       return 0;
@@ -157,9 +154,9 @@ int rebuildandrun(PV_Init* initObj,
    PVParams * params = initObj->getParams();
    if (params==NULL) {
       if (initObj->getWorldRank()==0) {
-         char const * progName = initObj->getArguments()->getProgramName();
+         char const * progName = initObj->getProgramName();
          if (progName==NULL) { progName = "PetaVision"; }
-         fprintf(stderr, "%s was called without having set a params file\n", progName);
+         pvErrorNoExit().printf("%s was called without having set a params file\n", progName);
       }
       MPI_Barrier(initObj->getComm()->communicator());
       exit(EXIT_FAILURE);
@@ -171,7 +168,7 @@ int rebuildandrun(PV_Init* initObj,
    if (numParamSweepValues) {
       for (int k=0; k<numParamSweepValues; k++) {
          if (initObj->getWorldRank()==0) {
-            printf("Parameter sweep: starting run %d of %d\n", k+1, numParamSweepValues);
+            pvInfo().printf("Parameter sweep: starting run %d of %d\n", k+1, numParamSweepValues);
          }
          initObj->getParams()->setParameterSweepValues(k);
          status = buildandrun1paramset(initObj, custominit, customexit, customgroups) == PV_SUCCESS ? status : PV_FAILURE;
@@ -194,7 +191,6 @@ int buildandrun(int argc, char * argv[],
                 ParamGroupHandler ** groupHandlerList, int numGroupHandlers) {
 
    PV_Init * initObj = new PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
-   initObj->initialize();
    initObj->printBuildAndRunDeprecationWarning("buildandrun", "argc, argv, custominit, customexit, groupHandlerList, numGroupHandlers");
    int status = rebuildandrun(initObj, custominit, customexit, groupHandlerList, numGroupHandlers);
    delete initObj;
@@ -207,7 +203,6 @@ int rebuildandrun(PV_Init* initObj,
                 int (*customexit)(HyPerCol *, int, char **),
                 ParamGroupHandler ** groupHandlerList, int numGroupHandlers) {
 
-   initObj->initialize();
    initObj->printBuildAndRunDeprecationWarning("rebuildandrun", "initObj, custominit, customexit, groupHandlerList, numGroupHandlers");
    if(initObj->isExtraProc()){
       return 0;
@@ -215,9 +210,9 @@ int rebuildandrun(PV_Init* initObj,
    PVParams * params = initObj->getParams();
    if (params==NULL) {
       if (initObj->getWorldRank()==0) {
-         char const * progName = initObj->getArguments()->getProgramName();
+         char const * progName = initObj->getProgramName();
          if (progName==NULL) { progName = "PetaVision"; }
-         fprintf(stderr, "%s was called without having set a params file\n", progName);
+         pvErrorNoExit().printf("%s was called without having set a params file\n", progName);
       }
       MPI_Barrier(initObj->getComm()->communicator());
       exit(EXIT_FAILURE);
@@ -229,7 +224,7 @@ int rebuildandrun(PV_Init* initObj,
    if (numParamSweepValues) {
       for (int k=0; k<numParamSweepValues; k++) {
          if (initObj->getWorldRank()==0) {
-            printf("Parameter sweep: starting run %d of %d\n", k+1, numParamSweepValues);
+            pvInfo().printf("Parameter sweep: starting run %d of %d\n", k+1, numParamSweepValues);
          }
          initObj->getParams()->setParameterSweepValues(k);
          status = buildandrun1paramset(initObj, custominit, customexit, groupHandlerList, numGroupHandlers) == PV_SUCCESS ? status : PV_FAILURE;
@@ -260,30 +255,30 @@ int buildandrun1paramset(PV_Init* initObj,
    int argc = 0;
    char ** argv = NULL;
    if (custominit || customexit) {
-      argc = initObj->getArguments()->getNumArgs();
-      argv = initObj->getArguments()->getArgsCopy();
+      argc = initObj->getNumArgs();
+      argv = initObj->getArgsCopy();
    }
    if( custominit != NULL ) {
       status = (*custominit)(hc, argc, argv);
       if(status != PV_SUCCESS) {
-         fprintf(stderr, "custominit function failed with return value %d\n", status);
+         pvErrorNoExit().printf("custominit function failed with return value %d\n", status);
       }
    }
 
    if( status==PV_SUCCESS && hc->getInitialStep() < hc->getFinalStep() ) {
       status = hc->run();
       if( status != PV_SUCCESS ) {
-         fprintf(stderr, "HyPerCol::run() returned with error code %d\n", status);
+         pvErrorNoExit().printf("HyPerCol::run() returned with error code %d\n", status);
       }
    }
-   if( status==PV_SUCCESS && customexit != NULL && !initObj->getArguments()->getDryRunFlag()) {
+   if( status==PV_SUCCESS && customexit != NULL && !initObj->getDryRunFlag()) {
       status = (*customexit)(hc, argc, argv);
       if( status != PV_SUCCESS) {
-         fprintf(stderr, "customexit function failed with return value %d\n", status);
+         pvErrorNoExit().printf("customexit function failed with return value %d\n", status);
       }
    }
    if (custominit || customexit) {
-      initObj->getArguments()->freeArgs(argc, argv);
+      initObj->freeArgs(argc, argv);
    }
    delete hc; /* HyPerCol's destructor takes care of deleting layers and connections */
    return status;
@@ -295,7 +290,7 @@ HyPerCol * build(PV_Init* initObj,
    initObj->printBuildAndRunDeprecationWarning("build", "initObj, customgroups");
    HyPerCol * hc = new HyPerCol("column", initObj);
    if( hc == NULL ) {
-      fprintf(stderr, "Unable to create HyPerCol\n");
+      pvErrorNoExit().printf("Unable to create HyPerCol\n");
       return NULL;
    }
    PVParams * hcparams = hc->parameters();
@@ -303,7 +298,7 @@ HyPerCol * build(PV_Init* initObj,
 
    // Make sure first group defines a column
    if( strcmp(hcparams->groupKeywordFromIndex(0), "HyPerCol") ) {
-      fprintf(stderr, "First group of params file did not define a HyPerCol.\n");
+      pvErrorNoExit().printf("First group of params file did not define a HyPerCol.\n");
       delete hc;
       return NULL;
    }
@@ -342,7 +337,7 @@ HyPerCol * build(PV_Init* initObj,
       }
       if(addedObject == NULL) {
          if (hc->globalRank()==0) {
-            fprintf(stderr, "Parameter group \"%s\": %s could not be created.\n", name, kw);
+            pvErrorNoExit().printf("Parameter group \"%s\": %s could not be created.\n", name, kw);
          }
          MPI_Barrier(hc->icCommunicator()->globalCommunicator());
          exit(EXIT_FAILURE);
@@ -351,7 +346,7 @@ HyPerCol * build(PV_Init* initObj,
    delete handler;
 
    if( hc->numberOfLayers() == 0 ) {
-      fprintf(stderr, "HyPerCol \"%s\" does not have any layers.\n", hc->getName());
+      pvErrorNoExit().printf("HyPerCol \"%s\" does not have any layers.\n", hc->getName());
       delete hc;
       return NULL;
    }
@@ -370,30 +365,30 @@ int buildandrun1paramset(PV_Init * initObj,
    int argc = 0;
    char ** argv = NULL;
    if (custominit || customexit) {
-      argc = initObj->getArguments()->getNumArgs();
-      argv = initObj->getArguments()->getArgsCopy();
+      argc = initObj->getNumArgs();
+      argv = initObj->getArgsCopy();
    }
    if( custominit != NULL ) {
       status = (*custominit)(hc, argc, argv);
       if(status != PV_SUCCESS) {
-         fprintf(stderr, "custominit function failed with return value %d\n", status);
+         pvErrorNoExit().printf("custominit function failed with return value %d\n", status);
       }
    }
 
    if( status==PV_SUCCESS && hc->getInitialStep() < hc->getFinalStep() ) {
       status = hc->run();
       if( status != PV_SUCCESS ) {
-         fprintf(stderr, "HyPerCol::run() returned with error code %d\n", status);
+         pvErrorNoExit().printf("HyPerCol::run() returned with error code %d\n", status);
       }
    }
-   if( status==PV_SUCCESS && customexit != NULL && !initObj->getArguments()->getDryRunFlag() ) {
+   if( status==PV_SUCCESS && customexit != NULL && !initObj->getDryRunFlag() ) {
       status = (*customexit)(hc, argc, argv);
       if( status != PV_SUCCESS) {
-         fprintf(stderr, "customexit function failed with return value %d\n", status);
+         pvErrorNoExit().printf("customexit function failed with return value %d\n", status);
       }
    }
    if (custominit || customexit) {
-      initObj->getArguments()->freeArgs(argc, argv);
+      initObj->freeArgs(argc, argv);
    }
    delete hc; /* HyPerCol's destructor takes care of deleting layers and connections */
    return status;
@@ -401,9 +396,8 @@ int buildandrun1paramset(PV_Init * initObj,
 
 // Deprecated April 14, 2016.
 int outputParams(int argc, char * argv[], char const * path, ParamGroupHandler ** groupHandlerList, int numGroupHandlers) {
-   printf("\nWarning: outputParams is deprecated.  Instead use the -n option on the command line or the dryRunFlag in PV_Arguments.\n\n");
+   pvWarn().printf("outputParams is deprecated.  Instead use the -n option on the command line or the dryRunFlag in PV_Arguments.\n\n");
    PV::PV_Init * initObj = new PV::PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
-   initObj->initialize();
    if (initObj->isExtraProc()) { return EXIT_SUCCESS; }
    PV::HyPerCol * hc = build(initObj, groupHandlerList, numGroupHandlers);
 
@@ -417,7 +411,7 @@ int outputParams(int argc, char * argv[], char const * path, ParamGroupHandler *
 HyPerCol * build(PV_Init* initObj, ParamGroupHandler ** groupHandlerList, int numGroupHandlers) {
    HyPerCol * hc = new HyPerCol("column", initObj);
    if( hc == NULL ) {
-      fprintf(stderr, "Unable to create HyPerCol\n");
+      pvErrorNoExit().printf("Unable to create HyPerCol\n");
       return NULL;
    }
    PVParams * hcparams = hc->parameters();
@@ -425,7 +419,7 @@ HyPerCol * build(PV_Init* initObj, ParamGroupHandler ** groupHandlerList, int nu
 
    // Make sure first group defines a column
    if( strcmp(hcparams->groupKeywordFromIndex(0), "HyPerCol") ) {
-      fprintf(stderr, "First group of params file did not define a HyPerCol.\n");
+      pvErrorNoExit().printf("First group of params file did not define a HyPerCol.\n");
       delete hc;
       return NULL;
    }
@@ -439,7 +433,7 @@ HyPerCol * build(PV_Init* initObj, ParamGroupHandler ** groupHandlerList, int nu
       ParamGroupHandler * handler = getGroupHandlerFromList(kw, coreHandler, groupHandlerList, numGroupHandlers, &groupType);
       if (handler == NULL) {
          if (hc->globalRank()==0) {
-            fprintf(stderr, "Error: parameter group \"%s\": %s is not recognized by any known ParamGroupHandler.\n", name, kw);
+            pvErrorNoExit().printf("Error: parameter group \"%s\": %s is not recognized by any known ParamGroupHandler.\n", name, kw);
          }
          MPI_Barrier(hc->icCommunicator()->globalCommunicator());
          exit(EXIT_FAILURE);
@@ -474,7 +468,7 @@ HyPerCol * build(PV_Init* initObj, ParamGroupHandler ** groupHandlerList, int nu
       }
       if (addedObject==NULL) {
          if (hc->globalRank()==0) {
-            fprintf(stderr, "Error creating %s \"%s\".\n", kw, name);
+            pvErrorNoExit().printf("Error creating %s \"%s\".\n", kw, name);
          }
          MPI_Barrier(hc->icCommunicator()->globalCommunicator());
          exit(EXIT_FAILURE);
@@ -483,7 +477,7 @@ HyPerCol * build(PV_Init* initObj, ParamGroupHandler ** groupHandlerList, int nu
    delete coreHandler;
 
    if( hc->numberOfLayers() == 0 ) {
-      fprintf(stderr, "HyPerCol \"%s\" does not have any layers.\n", hc->getName());
+      pvErrorNoExit().printf("HyPerCol \"%s\" does not have any layers.\n", hc->getName());
       delete hc;
       return NULL;
    }
@@ -523,8 +517,7 @@ BaseConnection * createConnection(CoreParamGroupHandler * coreGroupHandler, Para
    if (weightInitStr!=NULL) {
       ParamGroupHandler * weightInitHandler = getGroupHandlerFromList(weightInitStr, coreGroupHandler, customHandlerList, numGroupHandlers, &groupType);
       if (weightInitHandler==NULL || groupType != WeightInitializerGroupType) {
-         fprintf(stderr, "Connection %s error: weightInitType \"%s\" is not recognized.\n", keyword, weightInitStr);
-         exit(EXIT_FAILURE);
+         pvError().printf("Connection %s error: weightInitType \"%s\" is not recognized.\n", keyword, weightInitStr);
       }
       weightInitializer = weightInitHandler->createWeightInitializer(weightInitStr, groupname, hc);
    }
@@ -533,15 +526,13 @@ BaseConnection * createConnection(CoreParamGroupHandler * coreGroupHandler, Para
    if (weightNormalizeStr!=NULL) {
       ParamGroupHandler * normalizeHandler = getGroupHandlerFromList(weightNormalizeStr, coreGroupHandler, customHandlerList, numGroupHandlers, &groupType);
       if (normalizeHandler==NULL || groupType != WeightNormalizerGroupType) {
-         fprintf(stderr, "Connection %s error: normalizeMethod \"%s\" is not recognized.\n", keyword, weightNormalizeStr);
-         exit(EXIT_FAILURE);
+         pvError().printf("Connection %s error: normalizeMethod \"%s\" is not recognized.\n", keyword, weightNormalizeStr);
       }
       weightNormalizer = normalizeHandler->createWeightNormalizer(weightNormalizeStr, groupname, hc);
    }
    ParamGroupHandler * connectionHandler = getGroupHandlerFromList(keyword, coreGroupHandler, customHandlerList, numGroupHandlers, &groupType);
    if (connectionHandler==NULL || groupType != ConnectionGroupType) {
-      fprintf(stderr, "Connection %s error: connection type \"%s\" is not recognized.\n", keyword, weightNormalizeStr);
-      exit(EXIT_FAILURE);
+      pvError().printf("Connection %s error: connection type \"%s\" is not recognized.\n", keyword, weightNormalizeStr);
    }
    BaseConnection * baseConn = connectionHandler->createConnection(keyword, groupname, hc, weightInitializer, weightNormalizer);
    return baseConn;
@@ -550,16 +541,15 @@ BaseConnection * createConnection(CoreParamGroupHandler * coreGroupHandler, Para
 int checknewobject(void * object, const char * kw, const char * name, HyPerCol * hc) {
    int status = PV_SUCCESS;
    if (hc==NULL) {
-      fprintf(stderr, "checknewobject error: HyPerCol argument must be set.\n");
-      exit(EXIT_FAILURE);
+      pvError().printf("checknewobject error: HyPerCol argument must be set.\n");
    }
    int rank = hc->globalRank();
    if( object == NULL ) {
-      fprintf(stderr, "Global Rank %d process: Group \"%s\" unable to add object of class %s\n", rank, name, kw);
+      pvErrorNoExit().printf("Global Rank %d process: Group \"%s\" unable to add object of class %s\n", rank, name, kw);
       status = PV_FAILURE;
    }
    else {
-      if( rank==0 ) printf("Added %s \"%s\"\n", kw, name);
+      if( rank==0 ) pvInfo().printf("Added %s \"%s\"\n", kw, name);
    }
    return status;
 }

@@ -44,8 +44,7 @@ int InitUniformRandomWeights::randomWeights(pvdata_t * patchDataStart, InitWeigh
    InitUniformRandomWeightsParams *weightParamPtr = dynamic_cast<InitUniformRandomWeightsParams*>(weightParams);
 
    if(weightParamPtr==NULL) {
-      fprintf(stderr, "Failed to recast pointer to weightsParam!  Exiting...");
-      exit(1);
+      pvError().printf("Failed to recast pointer to weightsParam!  Exiting...");
    }
 
    float minwgt = weightParamPtr->getWMin();
@@ -55,7 +54,7 @@ int InitUniformRandomWeights::randomWeights(pvdata_t * patchDataStart, InitWeigh
    double p;
    if( maxwgt <= minwgt ) {
       if( maxwgt < minwgt ) {
-         fprintf(stderr, "Warning: uniformWeights maximum less than minimum.  Changing max = %f to min value of %f\n", maxwgt, minwgt);
+         pvWarn().printf("uniformWeights maximum less than minimum.  Changing max = %f to min value of %f\n", maxwgt, minwgt);
          maxwgt = minwgt;
       }
       p = 0;

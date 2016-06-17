@@ -24,8 +24,7 @@ TestNotAlwaysAllZerosProbe::TestNotAlwaysAllZerosProbe(const char * probeName, H
 int TestNotAlwaysAllZerosProbe::outputState(double timed) {
    int status = StatsProbe::outputState(timed);
    if (status != PV_SUCCESS) {
-      fprintf(stderr, "!!Time %f: TestNotAlwaysAllZerosProbe::outputState failed for layer \"%s\"\n", timed, getTargetLayer()->getName());
-      exit(EXIT_FAILURE);
+      pvError().printf("!!Time %f: TestNotAlwaysAllZerosProbe::outputState failed for layer \"%s\"\n", timed, getTargetLayer()->getName());
    }
    for(int b = 0; b < parent->getNBatch(); b++){
       if (nnz[b] != 0) {

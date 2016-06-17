@@ -40,8 +40,7 @@ int LIFTestProbe::initLIFTestProbe(const char * probeName, HyPerCol * hc) {
    stddevs = (double *) calloc(LIFTESTPROBE_BINS, sizeof(double));
    counts = (int *) calloc(LIFTESTPROBE_BINS, sizeof(int));
    if (radii == NULL || rates == NULL || targetrates == NULL) {
-      fprintf(stderr, "LIFTestProbe::initLIFTestProbe error in probe \"%s\": unable to allocate memory for radii and rates.\n", getMessage());
-      abort();
+      pvError().printf("LIFTestProbe::initLIFTestProbe \"%s\": unable to allocate memory for radii and rates.\n", getName());
    }
    // Bin the LIFGap layer's activity into bins based on pixel position.  The pixels are assigned x- and y-coordinates in -31.5 to 31.5
    // and the distance r  to the origin of each pixel is calculated.  Bin 0 is 0 <= r < 10, bin 1 is 10 <= r < 15, and subsequent
@@ -95,12 +94,12 @@ int LIFTestProbe::communicateInitInfo() {
 int LIFTestProbe::allocateDataStructures() {
    int status = StatsProbe::allocateDataStructures();
    if (status == PV_SUCCESS && getParent()->columnId()==0) {
-      assert(outputstream);
-      fprintf(outputstream->fp, "%s Correct: ", getMessage());
+      pvAssert(outputStream);
+      outputStream->printf("%s Correct: ", getMessage());
       for (int k=0; k<LIFTESTPROBE_BINS; k++) {
-         fprintf(outputstream->fp, " %f", targetrates[k]);
+         outputStream->printf(" %f", targetrates[k]);
       }
-      fprintf(outputstream->fp, "\n");
+      outputStream->printf("\n");
    }
    return status;
 }
@@ -130,19 +129,20 @@ int LIFTestProbe::outputState(double timed) {
    InterColComm * icComm = l->getParent()->icCommunicator();
    if (icComm->commRank()==root_proc) {
       MPI_Reduce(MPI_IN_PLACE, rates, LIFTESTPROBE_BINS, MPI_DOUBLE, MPI_SUM, root_proc, icComm->communicator());
-      fprintf(outputstream->fp, "%s t=%f:", getMessage(), timed);
+      pvInfo(dumpRates);
+      dumpRates.printf("%s t=%f:", getMessage(), timed);
       for (int j=0; j<LIFTESTPROBE_BINS; j++) {
          rates[j] /= counts[j]*timed/1000.0;
-         fprintf(outputstream->fp, " %f", rates[j]);
+         dumpRates.printf(" %f", rates[j]);
       }
-      fprintf(outputstream->fp, "\n");
+      dumpRates.printf("\n");
       if (timed >= endingTime) {
          double stdfactor = sqrt(timed/2000.0); // Since the values of std are based on t=2000.
          for (int j=0; j<LIFTESTPROBE_BINS; j++) {
             double scaledstdev = stddevs[j]/stdfactor;
             double observed = (rates[j]-targetrates[j])/scaledstdev;
             if(fabs(observed)>tolerance) {
-               fprintf(stderr, "Bin number %d failed at time %f: %f standard deviations off, with tolerance %f.\n", j, timed, observed, tolerance);
+               pvErrorNoExit().printf("Bin number %d failed at time %f: %f standard deviations off, with tolerance %f.\n", j, timed, observed, tolerance);
                status = PV_FAILURE;
             }
          }

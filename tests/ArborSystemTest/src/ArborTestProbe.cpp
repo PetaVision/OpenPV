@@ -40,7 +40,7 @@ void ArborTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
          for (int c=0; c<(int) strlen(bufferlc); c++) { bufferlc[c] = tolower(bufferlc[c]); }
          if (strcmp(bufferlc, "a")!=0 && strcmp(bufferlc, "activity")!=0) {
             if (parent->columnId()==0) {
-               fprintf(stderr, "   Value \"%s\" is inconsistent with correct value \"a\" or \"activity\".  Exiting.\n", buffer);
+               pvErrorNoExit().printf("   Value \"%s\" is inconsistent with correct value \"a\" or \"activity\".  Exiting.\n", buffer);
             }
             MPI_Barrier(parent->icCommunicator()->communicator());
             exit(EXIT_FAILURE);

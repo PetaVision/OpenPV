@@ -47,7 +47,7 @@ int SumPoolTestLayer::updateState(double timef, double dt){
                  expectedvalue = iFeature * nxGlobal * nyGlobal + res_idx;
               }
               if(fabs(actualvalue - expectedvalue) >= 1e-4){
-                   std::cout << "Connection " << name << " Mismatch at (" << iX << "," << iY << ") : actual value: " << actualvalue << " Expected value: " << expectedvalue << ".  Discrepancy is a whopping " << actualvalue - expectedvalue << "!  Horrors!" << "\n";
+                   pvErrorNoExit() << "Connection " << name << " Mismatch at (" << iX << "," << iY << ") : actual value: " << actualvalue << " Expected value: " << expectedvalue << ".  Discrepancy is a whopping " << actualvalue - expectedvalue << "!  Horrors!" << "\n";
                    isCorrect = false;
               }
             }

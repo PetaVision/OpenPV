@@ -9,11 +9,11 @@
 
 #include "../../utils/Timer.hpp"
 #include <stdio.h>
+#include <cuda_runtime_api.h>
 
 ////////////////////////////////////////////////////////////////////////////////
 
 namespace PVCuda{
-#include <cuda_runtime_api.h>
    
    /**
     * A subclass of Timer to time Cuda gpu runs
@@ -40,7 +40,7 @@ namespace PVCuda{
        * @return Returns the accumulated time of this timer
        */
       double accumulateTime();
-      virtual int fprint_time(FILE * stream);
+      virtual int fprint_time(std::ostream& stream);
       /**
        * A setter function to set the stream to time
        */

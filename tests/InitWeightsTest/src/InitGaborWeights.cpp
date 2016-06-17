@@ -45,8 +45,7 @@ int InitGaborWeights::calcWeights(pvwdata_t * dataStart, int patchIndex, int arb
    InitGaborWeightsParams *weightParamPtr = dynamic_cast<InitGaborWeightsParams*>(weightParams);
 
    if(weightParamPtr==NULL) {
-      fprintf(stderr, "Failed to recast pointer to weightsParam!  Exiting...");
-      exit(1);
+      pvError().printf("Failed to recast pointer to weightsParam!  Exiting...");
    }
 
    weightParamPtr->calcOtherParams(patchIndex);

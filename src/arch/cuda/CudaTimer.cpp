@@ -4,6 +4,7 @@
  *  Sheng Lundquist
  */
 
+#include <ostream>
 #include "CudaTimer.hpp"
 #include "cuda_util.hpp"
 
@@ -15,6 +16,7 @@ CudaTimer::CudaTimer(double init_time):PV::Timer(init_time)
    handleError(cudaEventCreate(&startEvent), "Start event creation");
    handleError(cudaEventCreate(&stopEvent), "Stop event creation");
    time = 0;
+   stream = nullptr;
 }
 
 CudaTimer::CudaTimer(const char * timermessage, double init_time):PV::Timer(timermessage, init_time)
@@ -22,12 +24,14 @@ CudaTimer::CudaTimer(const char * timermessage, double init_time):PV::Timer(time
    handleError(cudaEventCreate(&startEvent), "Start event creation");
    handleError(cudaEventCreate(&stopEvent), "Stop event creation");
    time = 0;
+   stream = nullptr;
 }
 
 CudaTimer::CudaTimer(const char * objname, const char * objtype, const char * timertype, double init_time):PV::Timer(objname, objtype, timertype, init_time){
    handleError(cudaEventCreate(&startEvent), "Start event creation");
    handleError(cudaEventCreate(&stopEvent), "Stop event creation");
    time = 0;
+   stream = nullptr;
 }
 
 CudaTimer::~CudaTimer()
@@ -58,10 +62,9 @@ double CudaTimer::accumulateTime(){
    return (double) time;
 }
 
-int CudaTimer::fprint_time(FILE * stream) {
+int CudaTimer::fprint_time(std::ostream& stream) {
    if (rank == 0) {
-      fprintf(stream, "%sprocessor cycle time == %f\n", message, time);
-      fflush(stream);
+      stream << message << "processor cycle time == " << time << std::endl;
    }
    return 0;
 }

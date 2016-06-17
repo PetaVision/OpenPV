@@ -38,8 +38,7 @@ int MovieTestLayer::updateStateWrapper(double time, double dt)
 
          pvdata_t expectedVal = kIndex(kxGlobal, kyGlobal, kf, loc->nxGlobal, loc->nyGlobal, nf) + 10*frameIdx;
          if(fabs(checkVal - expectedVal) >= 1e-4){
-            std::cout << name << " time: " << time << " batch: " << b << " Expected: " << expectedVal << " Actual: " << checkVal << "\n";
-            exit(-1);
+            pvError() << name << " time: " << time << " batch: " << b << " Expected: " << expectedVal << " Actual: " << checkVal << "\n";
          }
       }
    }
@@ -48,7 +47,7 @@ int MovieTestLayer::updateStateWrapper(double time, double dt)
 #else // PV_USE_GDAL
 MovieTestLayer::MovieTestLayer(const char * name, HyPerCol * hc) {
    if (hc->columnId()==0) {
-      fprintf(stderr, "MovieTestLayer class requires compiling with PV_USE_GDAL set\n");
+      pvErrorNoExit().printf("MovieTestLayer class requires compiling with PV_USE_GDAL set\n");
    }
    MPI_Barrier(hc->icCommunicator()->communicator());
    exit(EXIT_FAILURE);

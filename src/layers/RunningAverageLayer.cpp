@@ -42,10 +42,7 @@ int RunningAverageLayer::initialize(const char * name, HyPerCol * hc) {
 
 int RunningAverageLayer::communicateInitInfo() {
    int status = CloneVLayer::communicateInitInfo();
-   originalLayer = parent->getLayerFromName(originalLayerName);
-   if (originalLayer==NULL) {
-      fprintf(stderr, "Group \"%s\": Original layer \"%s\" must be a HyPer layer\n", name, originalLayerName);
-   }
+   // CloneVLayer sets originalLayer and errors out if originalLayerName is not valid
    return status;
 }
 
@@ -63,8 +60,7 @@ int RunningAverageLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag){
    ioParam_numImagesToAverage(ioFlag);
 
    if(numImagesToAverage <= 0){
-      fprintf(stderr, "RunningAverageLayer: numImagesToAverage must be an integer greater than 0.\n");
-      exit(PV_FAILURE);
+      pvError().printf("RunningAverageLayer: numImagesToAverage must be an integer greater than 0.\n");
    }
    return PV_SUCCESS;
 

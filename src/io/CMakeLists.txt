@@ -3,13 +3,16 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/BaseConnectionProbe.cpp
    ${SUBDIR}/BaseHyPerConnProbe.cpp
    ${SUBDIR}/BaseProbe.cpp
+   ${SUBDIR}/Clock.cpp
    ${SUBDIR}/ColProbe.cpp
    ${SUBDIR}/ColumnEnergyProbe.cpp
    ${SUBDIR}/CoreParamGroupHandler.cpp
    ${SUBDIR}/fileio.cpp
+   ${SUBDIR}/FileStream.cpp
    ${SUBDIR}/FirmThresholdCostFnLCAProbe.cpp
    ${SUBDIR}/FirmThresholdCostFnProbe.cpp
    ${SUBDIR}/imageio.cpp
+   ${SUBDIR}/io.cpp
    ${SUBDIR}/KernelProbe.cpp
    ${SUBDIR}/L0NormLCAProbe.cpp
    ${SUBDIR}/L0NormProbe.cpp
@@ -32,13 +35,16 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/BaseConnectionProbe.hpp
    ${SUBDIR}/BaseHyPerConnProbe.hpp
    ${SUBDIR}/BaseProbe.hpp
+   ${SUBDIR}/Clock.hpp
    ${SUBDIR}/ColProbe.hpp
    ${SUBDIR}/ColumnEnergyProbe.hpp
    ${SUBDIR}/CoreParamGroupHandler.hpp
    ${SUBDIR}/fileio.hpp
+   ${SUBDIR}/FileStream.hpp
    ${SUBDIR}/FirmThresholdCostFnLCAProbe.hpp
    ${SUBDIR}/FirmThresholdCostFnProbe.hpp
    ${SUBDIR}/imageio.hpp
+   ${SUBDIR}/io.hpp
    ${SUBDIR}/KernelProbe.hpp
    ${SUBDIR}/L0NormLCAProbe.hpp
    ${SUBDIR}/L0NormProbe.hpp
@@ -55,14 +61,3 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/RequireAllZeroActivityProbe.hpp
    ${SUBDIR}/StatsProbe.hpp
 )
-
-set (PVLibSrcC ${PVLibSrcC}
-   ${SUBDIR}/clock.c
-   ${SUBDIR}/io.c
-)
-
-set (PVLibSrcH ${PVLibSrcH}
-   ${SUBDIR}/clock.h
-   ${SUBDIR}/io.h
-)
-

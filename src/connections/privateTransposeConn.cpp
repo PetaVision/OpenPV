@@ -59,17 +59,15 @@ int privateTransposeConn::initialize(const char * name, HyPerCol * hc, HyPerConn
 
 //Private transpose conn will have no parameters, will be set by parent connection
 int privateTransposeConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   std::cout << "Fatal Error, privateTransposeConn ioParamsFillGroup called\n";
-   exit(-1);
-   return PV_SUCCESS;
+   pvError() << "Fatal: privateTransposeConn ioParamsFillGroup called\n";
+   return PV_FAILURE; // never returns since pvError exits
 }
 
 
 int privateTransposeConn::communicateInitInfo() {
    //Should never be called
-   std::cout << "Fatal Error, privateTransposeConn communicate called\n";
-   exit(-1);
-   return PV_SUCCESS;
+   pvError() << "Fatal: privateTransposeConn communicate called\n";
+   return PV_FAILURE; // never returns since pvError exits
 }
 
 int privateTransposeConn::setPatchSize() {
@@ -267,13 +265,11 @@ int privateTransposeConn::transposeNonsharedWeights(int arborId) {
          mpiexchangesize(neighbor,  &size[neighbor], &startx[neighbor], &stopx[neighbor], &starty[neighbor], &stopy[neighbor], &blocksize[neighbor], &buffersize[neighbor]);
          sendbuf[neighbor] = (pvwdata_t *) malloc(buffersize[neighbor]);
          if (sendbuf[neighbor]==NULL) {
-            fprintf(stderr, "%s \"%s\": Rank %d process unable to allocate memory for Transpose send buffer: %s\n", this->getKeyword(), name, parent->columnId(), strerror(errno));
-            exit(EXIT_FAILURE);
+            pvError().printf("%s \"%s\": Rank %d process unable to allocate memory for Transpose send buffer: %s\n", this->getKeyword(), name, parent->columnId(), strerror(errno));
          }
          recvbuf[neighbor] = (pvwdata_t *) malloc(buffersize[neighbor]);
          if (recvbuf[neighbor]==NULL) {
-            fprintf(stderr, "%s \"%s\": Rank %d process unable to allocate memory for Transpose receive buffer: %s\n", this->getKeyword(), name, parent->columnId(), strerror(errno));
-            exit(EXIT_FAILURE);
+            pvError().printf("%s \"%s\": Rank %d process unable to allocate memory for Transpose receive buffer: %s\n", this->getKeyword(), name, parent->columnId(), strerror(errno));
          }
          request[neighbor] = NULL;
       }
@@ -293,9 +289,9 @@ int privateTransposeConn::transposeNonsharedWeights(int arborId) {
             int yGlobalExt = y+preLocOrig->ky0;
             int yGlobalRes = yGlobalExt-preLocOrig->halo.up;
             if (xGlobalRes >= preLocOrig->kx0 && xGlobalRes < preLocOrig->kx0+preLocOrig->nx && yGlobalRes >= preLocOrig->ky0 && yGlobalRes < preLocOrig->ky0+preLocOrig->ny) {
-               fprintf(stderr, "Rank %d, connection \"%s\", x=%d, y=%d, neighbor=%d: xGlobalRes = %d, preLocOrig->kx0 = %d, preLocOrig->nx = %d\n", parent->columnId(), name, x, y, neighbor, xGlobalRes, preLocOrig->kx0, preLocOrig->nx);
-               fprintf(stderr, "Rank %d, connection \"%s\", x=%d, y=%d, neighbor=%d: yGlobalRes = %d, preLocOrig->ky0 = %d, preLocOrig->ny = %d\n", parent->columnId(), name, x, y, neighbor, yGlobalRes, preLocOrig->ky0, preLocOrig->ny);
-               exit(EXIT_FAILURE);
+               pvError(errorMessage);
+               errorMessage.printf("Rank %d, connection \"%s\", x=%d, y=%d, neighbor=%d: xGlobalRes = %d, preLocOrig->kx0 = %d, preLocOrig->nx = %d\n", parent->columnId(), name, x, y, neighbor, xGlobalRes, preLocOrig->kx0, preLocOrig->nx);
+               errorMessage.printf("Rank %d, connection \"%s\", x=%d, y=%d, neighbor=%d: yGlobalRes = %d, preLocOrig->ky0 = %d, preLocOrig->ny = %d\n", parent->columnId(), name, x, y, neighbor, yGlobalRes, preLocOrig->ky0, preLocOrig->ny);
             }
             int idxGlobalRes = kIndex(xGlobalRes, yGlobalRes, 0, preLocOrig->nxGlobal, preLocOrig->nyGlobal, preLocOrig->nf);
             memcpy(b, &idxGlobalRes, sizeof(idxGlobalRes));
@@ -595,9 +591,8 @@ int privateTransposeConn::transposeSharedWeights(int arborId) {
       }
    }
    else {
-      fprintf(stderr,"xscalediff = %d, yscalediff = %d: the case of many-to-one in one dimension and one-to-many in the other"
+      pvError().printf("xscalediff = %d, yscalediff = %d: the case of many-to-one in one dimension and one-to-many in the other"
             "has not yet been implemented.\n", xscalediff, yscalediff);
-      exit(1);
    }
 
    return PV_SUCCESS;
@@ -611,8 +606,8 @@ int privateTransposeConn::reduceKernels(int arborID) {
 
 int privateTransposeConn::deliver() {
    //Sanity check, this should NEVER get called
-   std::cout << "Fatal error, privateTransposeConn deliver got called\n";
-   exit(-1);
+   pvError() << "Fatal: privateTransposeConn deliver got called\n";
+   return PV_FAILURE; // never returns since pvError exits
 }
 
 

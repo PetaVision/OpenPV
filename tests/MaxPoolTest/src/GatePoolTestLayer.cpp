@@ -29,7 +29,7 @@ int GatePoolTestLayer::updateState(double timef, double dt){
          if(GSynExt[k]){
             numActive++;
             if(GSynExt[k] != GSynInh[k]){
-                std::cout << "Connection " << name << " Mismatch at batch " << b << " neuron " << k << ": actual value: " << GSynExt[k] << " Expected value: " << GSynInh[k] << ".\n";
+                pvErrorNoExit() << "Connection " << name << " Mismatch at batch " << b << " neuron " << k << ": actual value: " << GSynExt[k] << " Expected value: " << GSynInh[k] << ".\n";
                 isCorrect = false;
             }
          }
@@ -38,7 +38,7 @@ int GatePoolTestLayer::updateState(double timef, double dt){
       //Must be 25% active
       float percentActive = (float)numActive/getNumNeurons();
       if(percentActive != .25){
-         std::cout << "Percent active for " << name << " is " << percentActive << ", where expected is .25 at timestep " << timef << " for batch " << b << "\n";
+         pvError() << "Percent active for " << name << " is " << percentActive << ", where expected is .25 at timestep " << timef << " for batch " << b << "\n";
       }
       assert(percentActive == .25);
    }

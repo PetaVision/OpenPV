@@ -112,7 +112,7 @@ int LCALIFLayer::initialize(const char * name, HyPerCol * hc, const char * kerne
    Vscale = defaultDynVthScale > 0 ? defaultDynVthScale : DEFAULT_DYNVTHSCALE;
    if (Vscale <= 0) {
       if (hc->columnId()==0) {
-         fprintf(stderr,"LCALIFLayer \"%s\": Vscale must be positive (value in params is %f).\n", name, Vscale);
+         pvErrorNoExit().printf("LCALIFLayer \"%s\": Vscale must be positive (value in params is %f).\n", name, Vscale);
       }
       abort();
    }
@@ -235,7 +235,7 @@ int LCALIFLayer::checkpointWrite(const char * cpDir) {
    int lenbase = snprintf(basepath, PV_PATH_MAX, "%s/%s", cpDir, name);
    if (lenbase+strlen("_integratedSpikeCount.pvp") >= PV_PATH_MAX) { // currently _integratedSpikeCount.pvp is the longest suffix needed
       if (icComm->commRank()==0) {
-         fprintf(stderr, "LCALIFLayer::checkpointWrite error in layer \"%s\".  Base pathname \"%s/%s_\" too long.\n", name, cpDir, name);
+         pvErrorNoExit().printf("LCALIFLayer::checkpointWrite error in layer \"%s\".  Base pathname \"%s/%s_\" too long.\n", name, cpDir, name);
       }
       abort();
    }

@@ -49,8 +49,7 @@ int InitGaussianRandomWeights::initRNGs(bool isKernel) {
    }
 
    if (gaussianRandState == NULL) {
-      fprintf(stderr, "InitRandomWeights error in rank %d process: unable to create object of class Random.\n", callingConn->getParent()->columnId());
-      exit(EXIT_FAILURE);
+      pvError().printf("InitRandomWeights error in rank %d process: unable to create object of class Random.\n", callingConn->getParent()->columnId());
    }
    randState = (Random *) gaussianRandState;
    return status;
@@ -64,8 +63,7 @@ int InitGaussianRandomWeights::randomWeights(pvdata_t * patchDataStart, InitWeig
    InitGaussianRandomWeightsParams *weightParamPtr = dynamic_cast<InitGaussianRandomWeightsParams*>(weightParams);
 
    if(weightParamPtr==NULL) {
-      fprintf(stderr, "Failed to recast pointer to weightsParam!  Exiting...");
-      exit(1);
+      pvError().printf("Failed to recast pointer to weightsParam!  Exiting...");
    }
 
    const float mean = weightParamPtr->getMean();

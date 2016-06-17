@@ -47,9 +47,9 @@ int ANNNormalizedErrorLayer::initialize(const char * name, HyPerCol * hc)
 {
    if (hc->columnId()==0) {
       // ANNNormalizedErrorLayer was deprecated on Feb 1, 2016.
-      fflush(stdout);
-      fprintf(stderr, "\n\nWarning: ANNNormalizedErrorLayer is deprecated.\n");
-      fprintf(stderr, "If you are using this class to control an adaptive timestep, define a dtAdaptControlProbe instead.\n\n\n");
+      pvWarn(warningMessage);
+      warningMessage.printf("ANNNormalizedErrorLayer is deprecated.\n");
+      warningMessage.printf("If you are using this class to control an adaptive timestep, define a dtAdaptControlProbe instead.\n\n\n");
    }
    int status = ANNErrorLayer::initialize(name, hc);
 
@@ -113,12 +113,10 @@ double ANNNormalizedErrorLayer::calcTimeScale(int batchIdx){
          inputMag += gSynExcBatch[ni] * gSynExcBatch[ni]; 
       }
       if (isnan(errorMag)) {
-         fprintf(stderr, "Layer \"%s\": errorMag on process %d is not a number.\n", getName(), getParent()->columnId());
-         exit(EXIT_FAILURE);
+         pvError().printf("Layer \"%s\": errorMag on process %d is not a number.\n", getName(), getParent()->columnId());
       }
       else if (errorMag < 0) {
-         fprintf(stderr, "Layer \"%s\": errorMag on process %d is negative.  This should absolutely never happen.\n", getName(), getParent()->columnId());
-         exit(EXIT_FAILURE);
+         pvError().printf("Layer \"%s\": errorMag on process %d is negative.  This should absolutely never happen.\n", getName(), getParent()->columnId());
       }
       //Sum all errMag across processors
       MPI_Allreduce(MPI_IN_PLACE, &errorMag, 1, MPI_DOUBLE, MPI_SUM, icComm->communicator());
@@ -126,7 +124,7 @@ double ANNNormalizedErrorLayer::calcTimeScale(int batchIdx){
       //errorMag /= num_neurons * num_procs;
       //inputMag /= num_neurons * num_procs;
       timeScale[batchIdx] = errorMag > 0 ? sqrt(inputMag / errorMag) : parent->getTimeScaleMin();
-      //fprintf(stdout, "timeScale: %f\n", timeScale);
+      //pvInfo().printf("timeScale: %f\n", timeScale);
       timescale_timer->stop();
       if (parent->getWriteTimescales() && parent->icCommunicator()->commRank()==0){
          timeScaleStream << "sim_time = " << parent->simulationTime() << ", " << "timeScale = " << timeScale[batchIdx] << std::endl; }
@@ -198,7 +196,7 @@ int ANNNormalizedErrorLayer::communicateInitInfo() {
       maskLayer = parent->getLayerFromName(maskLayerName);
       if (maskLayer==NULL) {
          if (parent->columnId()==0) {
-            fprintf(stderr, "%s \"%s\" error: maskLayerName \"%s\" is not a layer in the HyPerCol.\n",
+            pvErrorNoExit().printf("%s \"%s\": maskLayerName \"%s\" is not a layer in the HyPerCol.\n",
                     getKeyword(), name, maskLayerName);
          }
          MPI_Barrier(parent->icCommunicator()->communicator());
@@ -210,9 +208,10 @@ int ANNNormalizedErrorLayer::communicateInitInfo() {
       assert(maskLoc != NULL && loc != NULL);
       if (maskLoc->nxGlobal != loc->nxGlobal || maskLoc->nyGlobal != loc->nyGlobal) {
          if (parent->columnId()==0) {
-            fprintf(stderr, "%s \"%s\" error: maskLayerName \"%s\" does not have the same x and y dimensions.\n",
+            pvErrorNoExit(errorMessage);
+            errorMessage.printf("%s \"%s\": maskLayerName \"%s\" does not have the same x and y dimensions.\n",
                     getKeyword(), name, maskLayerName);
-            fprintf(stderr, "    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
+            errorMessage.printf("    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
                     maskLoc->nxGlobal, maskLoc->nyGlobal, maskLoc->nf, loc->nxGlobal, loc->nyGlobal, loc->nf);
          }
          MPI_Barrier(parent->icCommunicator()->communicator());
@@ -221,9 +220,10 @@ int ANNNormalizedErrorLayer::communicateInitInfo() {
 
       if(maskLoc->nf != 1 && maskLoc->nf != loc->nf){
          if (parent->columnId()==0) {
-            fprintf(stderr, "%s \"%s\" error: maskLayerName \"%s\" must either have the same number of features as this layer, or one feature.\n",
+            pvErrorNoExit(errorMessage);
+            errorMessage.printf("%s \"%s\": maskLayerName \"%s\" must either have the same number of features as this layer, or one feature.\n",
                     getKeyword(), name, maskLayerName);
-            fprintf(stderr, "    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
+            errorMessage.printf("    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
                     maskLoc->nxGlobal, maskLoc->nyGlobal, maskLoc->nf, loc->nxGlobal, loc->nyGlobal, loc->nf);
          }
          MPI_Barrier(parent->icCommunicator()->communicator());

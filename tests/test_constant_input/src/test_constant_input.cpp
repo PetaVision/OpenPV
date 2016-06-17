@@ -12,11 +12,11 @@
 
 #include "TestImage.hpp"
 
-#include <columns/HyPerCol.hpp>
-#include <connections/HyPerConn.hpp>
-#include <connections/IdentConn.hpp>
-#include <layers/Retina.hpp>
-#include <io/io.h>
+#include "columns/HyPerCol.hpp"
+#include "connections/HyPerConn.hpp"
+#include "connections/IdentConn.hpp"
+#include "layers/Retina.hpp"
+#include "io/io.hpp"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -39,7 +39,6 @@ int main(int argc, char* argv[])
    int status = 0;
 
    PV_Init* initObj = new PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
-   initObj->initialize();
 
    // create the managing hypercolumn
    //
@@ -70,46 +69,41 @@ int main(int argc, char* argv[])
 
    const int rank = hc->columnId();
 #ifdef DEBUG_OUTPUT
-   printf("[%d]: column: ", rank);
+   pvDebug().printf("[%d]: column: ", rank);
    printLoc(hc->getImageLoc());
-   printf("[%d]: image : ", rank);
+   pvDebug().printf("[%d]: image : ", rank);
    printLoc(image->getImageLoc());
-   printf("[%d]: retina: ", rank);
+   pvDebug().printf("[%d]: retina: ", rank);
    printLoc(*retina->getLayerLoc());
-   printf("[%d]: l1    : ", rank);
+   pvDebug().printf("[%d]: l1    : ", rank);
    printLoc(*l1->getLayerLoc());
 #endif
 
    status = checkLoc(hc, image->getLayerLoc());
    if (status != PV_SUCCESS) {
-      fprintf(stderr, "[%d]: test_constant_input: ERROR in image loc\n", rank);
-      exit(status);
+      pvError().printf("[%d]: test_constant_input: ERROR in image loc\n", rank);
    }
 
    status = checkLoc(hc, retina->getLayerLoc());
    if (status != PV_SUCCESS) {
-      fprintf(stderr, "[%d]: test_constant_input: ERROR in retina loc\n", rank);
-      exit(status);
+      pvError().printf("[%d]: test_constant_input: ERROR in retina loc\n", rank);
    }
 
    status = checkInput(image->getLayerLoc(), image->getActivity(), image->getConstantVal(), true);
    if (status != PV_SUCCESS) {
-      fprintf(stderr, "[%d]: test_constant_input: ERROR in image data\n", rank);
-      exit(status);
+      pvError().printf("[%d]: test_constant_input: ERROR in image data\n", rank);
    }
 
    float retinaVal = sumOfWeights * image->getConstantVal();
 
    status = checkInput(retina->getLayerLoc(), retina->getActivity(), retinaVal, false);
    if (status != 0) {
-      fprintf(stderr, "[%d]: test_constant_input: ERROR in retina data\n", rank);
-      exit(status);
+      pvError().printf("[%d]: test_constant_input: ERROR in retina data\n", rank);
    }
 
    status = checkInput(retina->getLayerLoc(), retina->getLayerData(), retinaVal, true);
    if (status != 0) {
-      fprintf(stderr, "[%d]: test_constant_input: ERROR in retina data\n", rank);
-      exit(status);
+      pvError().printf("[%d]: test_constant_input: ERROR in retina data\n", rank);
    }
 
    delete hc;
@@ -148,21 +142,21 @@ int createTestFile(const char* filename, int nTotal, float* buf)
     result = fwrite(buf, sizeof(float), nTotal, fd);
     fclose(fd);
     if ((int) result != nTotal) {
-       fprintf(stderr, "[ ]: createTestFile: ERROR writing to file %s\n", filename);
+       pvErrorNoExit().printf("[ ]: createTestFile: failure to write to file %s\n", filename);
     }
 
     fd = fopen(filename, "rb");
     result = fread(buf, sizeof(float), nTotal, fd);
     fclose(fd);
     if ((int) result != nTotal) {
-       fprintf(stderr, "[ ]: createTestFile: ERROR reading from file %s\n", filename);
+       pvErrorNoExit().printf("[ ]: createTestFile: unable to read from file %s\n", filename);
     }
 
     err = 0;
     for (i = 0; i < nTotal; i++) {
         if (buf[i] != (float) i) {
             err = 1;
-            fprintf(stderr, "%s file is incorrect at %d\n", filename, i);
+            pvErrorNoExit().printf("%s file is incorrect at %d\n", filename, i);
         }
     }
 
@@ -171,9 +165,9 @@ int createTestFile(const char* filename, int nTotal, float* buf)
 
 int printLoc(const PVLayerLoc * loc)
 {
-   printf("nxGlobal==%d nyGlobal==%d nx==%d ny==%d kx0==%d ky0==%d halo==(%d,%d,%d,%d) nf==%d\n",
+   pvInfo().printf("nxGlobal==%d nyGlobal==%d nx==%d ny==%d kx0==%d ky0==%d halo==(%d,%d,%d,%d) nf==%d\n",
      loc->nxGlobal, loc->nyGlobal, loc->nx, loc->ny, loc->kx0, loc->ky0, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, loc->nf);
-   fflush(stdout);
+   pvInfo().flush();
    return 0;
 }
 

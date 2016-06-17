@@ -5,19 +5,17 @@
  *      Author: Craig Rasmussen
  */
 
-#include "PVLayerCube.h"
+#include "PVLayerCube.hpp"
 
-#include "../io/io.h"
-#include "../include/default_params.h"
-#include "../utils/cl_random.h"
+#include "io/io.hpp"
+#include "include/default_params.h"
+#include "utils/cl_random.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+namespace PV {
 
 ///////////////////////////////////////////////////////
 // PVLayerCube interface implementation
@@ -59,6 +57,4 @@ int pvcube_setAddr(PVLayerCube * cube)
    return 0;
 }
 
-#ifdef __cplusplus
-}
-#endif
+}  // namespace PV

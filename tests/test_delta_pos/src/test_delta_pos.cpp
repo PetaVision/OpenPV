@@ -1,6 +1,7 @@
 #include <utils/conversions.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "utils/PVLog.hpp"
 
 int main(int argc, char* argv[])
 {
@@ -11,8 +12,7 @@ int main(int argc, char* argv[])
    for (kPre = 0; kPre < 7; kPre++) {
       dx = deltaPosLayers(kPre, scale);
       if (dx != 0.0) {
-         printf("FAILED:TEST_DELTA_POS: scale=%d, kPre=%d, dx=%f\n", scale, kPre, dx);
-         exit(1);
+         pvError().printf("FAILED:TEST_DELTA_POS: scale=%d, kPre=%d, dx=%f\n", scale, kPre, dx);
       }
    }
 
@@ -21,8 +21,7 @@ int main(int argc, char* argv[])
       dx = deltaPosLayers(kPre, scale);
       float val = (kPre % 2) ? -0.25 : 0.25;
       if (dx != val) {
-         printf("FAILED:TEST_DELTA_POS: scale=%d, kPre=%d, dx=%f\n", scale, kPre, dx);
-         exit(1);
+         pvError().printf("FAILED:TEST_DELTA_POS: scale=%d, kPre=%d, dx=%f\n", scale, kPre, dx);
       }
    }
 
@@ -35,8 +34,7 @@ int main(int argc, char* argv[])
       if (kPre % 4 == 2) val = -1.0 * val;
       if (kPre % 4 == 3) val = -3.0 * val;
       if (dx != val) {
-         printf("FAILED:TEST_DELTA_POS: scale=%d, kPre=%d, dx=%f\n", scale, kPre, dx);
-         exit(1);
+         pvError().printf("FAILED:TEST_DELTA_POS: scale=%d, kPre=%d, dx=%f\n", scale, kPre, dx);
       }
    }
 
@@ -45,8 +43,7 @@ int main(int argc, char* argv[])
       dx = deltaPosLayers(kPre, scale);
       float val = -0.5;
       if (dx != val) {
-         printf("FAILED:TEST_DELTA_POS: scale=%d, kPre=%d, dx=%f\n", scale, kPre, dx);
-         exit(1);
+         pvError().printf("FAILED:TEST_DELTA_POS: scale=%d, kPre=%d, dx=%f\n", scale, kPre, dx);
       }
    }
 
@@ -55,8 +52,7 @@ int main(int argc, char* argv[])
       dx = deltaPosLayers(kPre, scale);
       float val = -1.5;
       if (dx != val) {
-         printf("FAILED:TEST_DELTA_POS: scale=%d, kPre=%d, dx=%f\n", scale, kPre, dx);
-         exit(1);
+         pvError().printf("FAILED:TEST_DELTA_POS: scale=%d, kPre=%d, dx=%f\n", scale, kPre, dx);
       }
    }
 

@@ -8,17 +8,16 @@
 #ifndef INITV_HPP_
 #define INITV_HPP_
 
-#include "../columns/Random.hpp"
-#include "../columns/GaussianRandom.hpp"
-#include "../include/default_params.h"
-#include "../include/pv_types.h"
-#include "../include/pv_common.h"
-#include "../layers/HyPerLayer.hpp"
-#include "../io/fileio.hpp"
-#include "../io/imageio.hpp"
-#include "../io/io.h"
+#include "columns/Random.hpp"
+#include "columns/GaussianRandom.hpp"
+#include "include/default_params.h"
+#include "include/pv_types.h"
+#include "include/pv_common.h"
+#include "layers/HyPerLayer.hpp"
+#include "io/fileio.hpp"
+#include "io/imageio.hpp"
+#include "io/io.hpp"
 #include <stdarg.h>
-//#include "Image.hpp"
 
 namespace PV {
 
@@ -84,7 +83,6 @@ private:
    int calcVFromFile(pvdata_t * V, const PVLayerLoc * loc, InterColComm * icComm);
    int checkLoc(const PVLayerLoc * loc, int nx, int ny, int nf, int nxGlobal, int nyGlobal);
    int checkLocValue(int fromParams, int fromFile, const char * field);
-   int printerr(const char * fmtstring, ...);
 
    HyPerCol * parent;
    char * groupName;
@@ -97,7 +95,7 @@ private:
       // if valueIsBeingHeld is true, heldValue is normally distributed random number with mean meanV, st.dev. sigmaV
       // if valueIsBeingHeld is false, heldValue is undefined
    char * filename; // Defined only for initVTypeCode=InitVFromFile
-   bool useStderr; // If true, printerr passes message to stderr.  If false, printerr does nothing.
+   bool printErrors; // Currently true for the local root process and false for other processes.  Error messages are printed to the error stream only if this flag is true
 }; // end class InitV
 
 }  // end namespace PV

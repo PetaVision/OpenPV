@@ -7,9 +7,9 @@
 #undef DEBUG_PRINT
 
 #include "Example.hpp"
-#include <layers/HyPerLayer.hpp>
-#include <io/io.h>
-#include <columns/PV_Init.hpp>
+#include "layers/HyPerLayer.hpp"
+#include "io/io.hpp"
+#include "columns/PV_Init.hpp"
 
 
 //const int numFeatures = 1;
@@ -17,14 +17,12 @@
 int main(int argc, char * argv[])
 {
    PV::PV_Init* initObj = new PV::PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
-   initObj->initialize();
    PVLayerLoc sLoc, bLoc;
    PVLayerCube * sCube, * bCube;
 
    PV::HyPerCol * hc = new PV::HyPerCol("test_mirror_BCs column", initObj);
    PV::Example * l = new PV::Example("test_mirror_BCs layer", hc);
 
-   //FILE * fd = stdout;
    int nf = l->clayer->loc.nf;
    PVHalo const * halo = &l->clayer->loc.halo;
    int nS = l->clayer->loc.nx; // 8;
@@ -43,7 +41,7 @@ int main(int argc, char * argv[])
 
    bLoc = sLoc;
 
-   sCube = pvcube_new(&sLoc, (nS+halo->lt+halo->rt)*(nS+halo->dn+halo->up)*nf);
+   sCube = PV::pvcube_new(&sLoc, (nS+halo->lt+halo->rt)*(nS+halo->dn+halo->up)*nf);
    bCube = sCube;
 
    // fill interior with non-extended index of each neuron
@@ -59,7 +57,7 @@ int main(int argc, char * argv[])
             int k = (ky-kyFirst) * sy + (kx-kxFirst) * nf + kf;
             sCube->data[kex] = k;
 #ifdef DEBUG_PRINT
-            printf("sCube val = %5i:, kex = %5i:, k = %5i\n", (int) sCube->data[kex], kex, k);
+            pvDebug().printf("sCube val = %5i:, kex = %5i:, k = %5i\n", (int) sCube->data[kex], kex, k);
 #endif
         }
       }
@@ -71,11 +69,11 @@ int main(int argc, char * argv[])
       for (int ky = 0; ky < ny; ky++) {
          for (int kx = 0; kx < nx; kx++) {
             int kex = ky * syex + kx * nf + kf;
-            printf("%5i ", (int) sCube->data[kex]);
+            pvDebug().printf("%5i ", (int) sCube->data[kex]);
          }
-         printf("\n");
+         pvDebug().printf("\n");
       }
-      printf("\n");
+      pvDebug().printf("\n");
    }
 #endif
 
@@ -90,11 +88,11 @@ int main(int argc, char * argv[])
       for (int ky = 0; ky < ny; ky++) {
          for (int kx = 0; kx < nx; kx++) {
             int kex = ky * syex + kx * nf + kf;
-            printf("%5i ", (int) sCube->data[kex]);
+            pvDebug().printf("%5i ", (int) sCube->data[kex]);
          }
-         printf("\n");
+         pvDebug().printf("\n");
       }
-      printf("\n");
+      pvDebug().printf("\n");
    }
 #endif
 
@@ -112,8 +110,7 @@ int main(int argc, char * argv[])
             int kmirror = kymirror * syex + kxmirror * nf + kf;
             int mirrorVal = bCube->data[kmirror];
             if ( mirrorVal != k) {
-               printf("ERROR:northwest mirror value at %i from %i = %i, should be %i\n", kmirror, kex, mirrorVal, k);
-               exit(1);
+               pvError().printf("ERROR:northwest mirror value at %i from %i = %i, should be %i\n", kmirror, kex, mirrorVal, k);
             }
          }
       }
@@ -130,8 +127,7 @@ int main(int argc, char * argv[])
             int kmirror = kymirror * syex + kxmirror * nf + kf;
             int mirrorVal = bCube->data[kmirror];
             if ( mirrorVal != k) {
-               printf("ERROR:north mirror value at %i from %i = %i, should be %i\n", kmirror, kex, mirrorVal, k);
-               exit(1);
+               pvError().printf("ERROR:north mirror value at %i from %i = %i, should be %i\n", kmirror, kex, mirrorVal, k);
             }
          }
       }
@@ -148,8 +144,7 @@ int main(int argc, char * argv[])
             int kmirror = kymirror * syex + kxmirror * nf + kf;
             int mirrorVal = bCube->data[kmirror];
             if ( mirrorVal != k) {
-               printf("ERROR:northeast mirror value at %i from %i = %i, should be %i\n", kmirror, kex, mirrorVal, k);
-               exit(1);
+               pvError().printf("ERROR:northeast mirror value at %i from %i = %i, should be %i\n", kmirror, kex, mirrorVal, k);
             }
          }
       }
@@ -166,8 +161,7 @@ int main(int argc, char * argv[])
             int kmirror = kymirror * syex + kxmirror * nf + kf;
             int mirrorVal = bCube->data[kmirror];
             if ( mirrorVal != k) {
-               printf("ERROR:west mirror value at %i from %i = %i, should be %i\n", kmirror, kex, mirrorVal, k);
-               exit(1);
+               pvError().printf("ERROR:west mirror value at %i from %i = %i, should be %i\n", kmirror, kex, mirrorVal, k);
             }
          }
       }
@@ -185,8 +179,7 @@ int main(int argc, char * argv[])
             int kmirror = kymirror * syex + kxmirror * nf + kf;
             int mirrorVal = bCube->data[kmirror];
             if ( mirrorVal != k) {
-               printf("ERROR:east mirror value at %i from %i = %i, should be %i\n", kmirror, kex, mirrorVal, k);
-               exit(1);
+               pvError().printf("ERROR:east mirror value at %i from %i = %i, should be %i\n", kmirror, kex, mirrorVal, k);
             }
          }
       }
@@ -203,8 +196,7 @@ int main(int argc, char * argv[])
             int kmirror = kymirror * syex + kxmirror * nf + kf;
             int mirrorVal = bCube->data[kmirror];
             if ( mirrorVal != k) {
-               printf("ERROR:southwest mirror value at %i from %i = %i, should be %i\n", kmirror, kex, mirrorVal, k);
-               exit(1);
+               pvError().printf("ERROR:southwest mirror value at %i from %i = %i, should be %i\n", kmirror, kex, mirrorVal, k);
             }
          }
       }
@@ -221,8 +213,7 @@ int main(int argc, char * argv[])
             int kmirror = kymirror * syex + kxmirror * nf + kf;
             int mirrorVal = bCube->data[kmirror];
             if ( mirrorVal != k) {
-               printf("ERROR:south mirror value at %i from %i = %i, should be %i\n", kmirror, kex, mirrorVal, k);
-               exit(1);
+               pvError().printf("ERROR:south mirror value at %i from %i = %i, should be %i\n", kmirror, kex, mirrorVal, k);
             }
          }
       }
@@ -240,8 +231,7 @@ int main(int argc, char * argv[])
             int kmirror = kymirror * syex + kxmirror * nf + kf;
             int mirrorVal = bCube->data[kmirror];
             if ( mirrorVal != k) {
-               printf("ERROR:southeast mirror value at %i from %i = %i, should be %i\n", kmirror, kex, mirrorVal, k);
-               exit(1);
+               pvError().printf("ERROR:southeast mirror value at %i from %i = %i, should be %i\n", kmirror, kex, mirrorVal, k);
             }
          }
       }
@@ -249,7 +239,7 @@ int main(int argc, char * argv[])
 
 
 
-   pvcube_delete(sCube);
+   PV::pvcube_delete(sCube);
    sCube = bCube = NULL;
 
    delete hc;

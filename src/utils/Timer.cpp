@@ -8,6 +8,7 @@
  */
 
 #include "Timer.hpp"
+#include "utils/PVLog.hpp"
 #include <stdio.h>
 
 #ifdef __APPLE__
@@ -35,7 +36,7 @@ uint64_t get_cpu_time() {
    //   getrusage(RUSAGE_SELF, &ru);
    //   tim = ru.ru_utime;
    gettimeofday(&tim, NULL);
-   //printf("get_cpu_time: sec==%d usec==%d\n", tim.tv_sec, tim.tv_usec);
+   //pvInfo().printf("get_cpu_time: sec==%d usec==%d\n", tim.tv_sec, tim.tv_usec);
    return ((uint64_t) tim.tv_sec)*1000000 + (uint64_t) tim.tv_usec;
 #endif
 }
@@ -80,8 +81,7 @@ Timer::Timer(const char * objname, const char * objtype, const char * timertype,
    int charsneeded = snprintf(&dummy, 1, "%32s: total time in %6s %10s: ", objname, objtype, timertype);
    message = (char *) malloc(charsneeded+1);
    if (message==NULL) {
-      fprintf(stderr, "Timer::setMessage unable to allocate memory for Timer message: called with name=%s, objtype=%s, timertype=%s\n", objname, objtype, timertype);
-      exit(EXIT_FAILURE);
+      pvError().printf("Timer::setMessage unable to allocate memory for Timer message: called with name=%s, objtype=%s, timertype=%s\n", objname, objtype, timertype);
    }
    int chars_used = snprintf(message, charsneeded+1, "%32s: total time in %6s %10s: ", objname, objtype, timertype);
    assert(chars_used<=charsneeded);
@@ -116,10 +116,9 @@ double Timer::elapsed_time()
    return (double) time_elapsed;
 }
 
-int Timer::fprint_time(FILE * stream) {
-   if (rank == 0) {
-      fprintf(stream, "%sprocessor cycle time == %f\n", message, (float) cpu_time_to_sec(elapsed_time()));
-      fflush(stream);
+int Timer::fprint_time(std::ostream& stream) {
+   if (rank==0) {
+      stream << message << "processor cycle time == " << (float) cpu_time_to_sec(elapsed_time()) << std::endl;
    }
    return 0;
 }

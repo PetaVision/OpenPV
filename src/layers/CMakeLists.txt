@@ -34,6 +34,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/PoolingIndexLayer.cpp
    ${SUBDIR}/PtwiseLinearTransferLayer.cpp
    ${SUBDIR}/PtwiseProductLayer.cpp
+   ${SUBDIR}/PVLayerCube.cpp
    ${SUBDIR}/RescaleLayer.cpp
    ${SUBDIR}/Retina.cpp
    ${SUBDIR}/RunningAverageLayer.cpp
@@ -79,6 +80,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/PoolingIndexLayer.hpp
    ${SUBDIR}/PtwiseLinearTransferLayer.hpp
    ${SUBDIR}/PtwiseProductLayer.hpp
+   ${SUBDIR}/PVLayerCube.hpp
    ${SUBDIR}/RescaleLayer.hpp
    ${SUBDIR}/Retina.hpp
    ${SUBDIR}/RunningAverageLayer.hpp
@@ -91,12 +93,10 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
 
 set (PVLibSrcC ${PVLibSrcC}
    ${SUBDIR}/accumulate_functions.c
-   ${SUBDIR}/PVLayerCube.c
 )
 
 set (PVLibSrcH ${PVLibSrcH}
    ${SUBDIR}/accumulate_functions.h
-   ${SUBDIR}/PVLayerCube.h
    ${SUBDIR}/updateStateFunctions.h
 )
 

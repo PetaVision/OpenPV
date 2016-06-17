@@ -74,7 +74,7 @@ int TestLayer::updateState(double timef, double dt){
             }
 
             if(actualvalue != expectedvalue){
-               std::cout << "Connection " << name << " Mismatch at (" << xval << "," << yval << ") : actual value: " << actualvalue << " Expected value: " << expectedvalue << ".\n";
+               pvErrorNoExit() << "Connection " << name << " Mismatch at (" << xval << "," << yval << ") : actual value: " << actualvalue << " Expected value: " << expectedvalue << ".\n";
                isCorrect = false;
             }
          }

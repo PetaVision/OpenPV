@@ -37,7 +37,7 @@ int RescaleLayerTestProbe::communicateInitInfo() {
    RescaleLayer * targetRescaleLayer = dynamic_cast<RescaleLayer *>(getTargetLayer());
    if (targetRescaleLayer==NULL) {
       if (getParent()->columnId()==0) {
-         fprintf(stderr, "RescaleLayerTestProbe Error: targetLayer \"%s\" is not a RescaleLayer.\n", this->getTargetName());
+         pvErrorNoExit().printf("RescaleLayerTestProbe: targetLayer \"%s\" is not a RescaleLayer.\n", this->getTargetName());
       }
       MPI_Barrier(getParent()->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -57,7 +57,7 @@ int RescaleLayerTestProbe::outputState(double timed)
    assert(targetRescaleLayer);
 
    if (targetRescaleLayer->getRescaleMethod()==NULL) {
-      fprintf(stderr, "RescaleLayerTestProbe \"%s\": RescaleLayer \"%s\" does not have rescaleMethod set.  Exiting.\n", name, targetRescaleLayer->getName());
+      pvErrorNoExit().printf("RescaleLayerTestProbe \"%s\": RescaleLayer \"%s\" does not have rescaleMethod set.  Exiting.\n", name, targetRescaleLayer->getName());
       status = PV_FAILURE;
    }
    else if (!strcmp(targetRescaleLayer->getRescaleMethod(), "maxmin")) {
@@ -65,12 +65,12 @@ int RescaleLayerTestProbe::outputState(double timed)
       for(int b = 0; b < parent->getNBatch(); b++){
          float targetMax = targetRescaleLayer->getTargetMax();
          if (fabs(fMax[b]-targetMax)>tolerance) {
-            fprintf(stderr, "RescaleLayerTestProbe \"%s\": RescaleLayer \"%s\" has max %f instead of target max %f\n", getName(), targetRescaleLayer->getName(), fMax[b], targetMax);
+            pvErrorNoExit().printf("RescaleLayerTestProbe \"%s\": RescaleLayer \"%s\" has max %f instead of target max %f\n", getName(), targetRescaleLayer->getName(), fMax[b], targetMax);
             status = PV_FAILURE;
          }
          float targetMin = targetRescaleLayer->getTargetMin();
          if (fabs(fMin[b]-targetMin)>tolerance) {
-            fprintf(stderr, "RescaleLayerTestProbe \"%s\": RescaleLayer \"%s\" has min %f instead of target min %f\n", getName(), targetRescaleLayer->getName(), fMin[b], targetMin);
+            pvErrorNoExit().printf("RescaleLayerTestProbe \"%s\": RescaleLayer \"%s\" has min %f instead of target min %f\n", getName(), targetRescaleLayer->getName(), fMin[b], targetMin);
             status = PV_FAILURE;
          }
 
@@ -92,7 +92,7 @@ int RescaleLayerTestProbe::outputState(double timed)
 
          bool iscolinear = colinear(nk, ny, origStrideYExtended, rescaleStrideYExtended, origData, rescaledData, tolerance, NULL, NULL, NULL);
          if (!iscolinear) {
-            fprintf(stderr, "RescaleLayerTestProbe \"%s\": Rescale layer \"%s\" data is not a linear rescaling of original membrane potential.\n", getName(), targetRescaleLayer->getName());
+            pvErrorNoExit().printf("RescaleLayerTestProbe \"%s\": Rescale layer \"%s\" data is not a linear rescaling of original membrane potential.\n", getName(), targetRescaleLayer->getName());
             status = PV_FAILURE;
          }
       }
@@ -112,11 +112,11 @@ int RescaleLayerTestProbe::outputState(double timed)
          }
 
          if (fabs(avg[b]-targetMean)>tolerance) {
-            fprintf(stderr, "RescaleLayerTestProbe \"%s\": RescaleLayer \"%s\" has mean %f instead of target mean %f\n", getName(), targetRescaleLayer->getName(), (double)avg[b], targetMean);
+            pvErrorNoExit().printf("RescaleLayerTestProbe \"%s\": RescaleLayer \"%s\" has mean %f instead of target mean %f\n", getName(), targetRescaleLayer->getName(), (double)avg[b], targetMean);
             status = PV_FAILURE;
          }
          if (sigma[b]>tolerance && fabs(sigma[b]-targetStd)>tolerance) {
-            fprintf(stderr, "RescaleLayerTestProbe \"%s\": RescaleLayer \"%s\" has std.dev. %f instead of target std.dev. %f\n", getName(), targetRescaleLayer->getName(), (double)sigma[b], targetStd);
+            pvErrorNoExit().printf("RescaleLayerTestProbe \"%s\": RescaleLayer \"%s\" has std.dev. %f instead of target std.dev. %f\n", getName(), targetRescaleLayer->getName(), (double)sigma[b], targetStd);
             status = PV_FAILURE;
          }
 
@@ -138,7 +138,7 @@ int RescaleLayerTestProbe::outputState(double timed)
 
          bool iscolinear = colinear(nk, ny, origStrideYExtended, rescaleStrideYExtended, origData, rescaledData, tolerance, NULL, NULL, NULL);
          if (!iscolinear) {
-            fprintf(stderr, "RescaleLayerTestProbe \"%s\": Rescale layer \"%s\" data is not a linear rescaling of original membrane potential.\n", getName(), targetRescaleLayer->getName());
+            pvErrorNoExit().printf("RescaleLayerTestProbe \"%s\": Rescale layer \"%s\" data is not a linear rescaling of original membrane potential.\n", getName(), targetRescaleLayer->getName());
             status = PV_FAILURE;
          }
       }
@@ -169,18 +169,18 @@ int RescaleLayerTestProbe::outputState(double timed)
             pointstd /= nf;
             pointstd = sqrt(pointstd);
             if (fabs(pointmean-targetMean)>tolerance) {
-               fprintf(stderr, "RescaleLayerTestProbe \"%s\": RescaleLayer \"%s\", location in rank %d, starting at restricted neuron %d, has mean %f instead of target mean %f\n",
+               pvErrorNoExit().printf("RescaleLayerTestProbe \"%s\": RescaleLayer \"%s\", location in rank %d, starting at restricted neuron %d, has mean %f instead of target mean %f\n",
                      getName(), targetRescaleLayer->getName(), getParent()->columnId(), k, pointmean, targetMean);
                status = PV_FAILURE;
             }
             if (pointstd>tolerance && fabs(pointstd-targetStd)>tolerance) {
-               fprintf(stderr, "RescaleLayerTestProbe \"%s\": RescaleLayer \"%s\", location in rank %d, starting at restricted neuron %d, has std.dev. %f instead of target std.dev. %f\n",
+               pvErrorNoExit().printf("RescaleLayerTestProbe \"%s\": RescaleLayer \"%s\", location in rank %d, starting at restricted neuron %d, has std.dev. %f instead of target std.dev. %f\n",
                      getName(), targetRescaleLayer->getName(), getParent()->columnId(), k, pointstd, targetStd);
                status = PV_FAILURE;
             }
             bool iscolinear = colinear(nf, 1, 0, 0, &originalData[k], &rescaledData[kExtended], tolerance, NULL, NULL, NULL);
             if (!iscolinear) {
-               fprintf(stderr, "RescaleLayerTestProbe \"%s\": RescaleLayer \"%s\", location in rank %d, starting at restricted neuron %d, is not a linear rescaling.\n",
+               pvErrorNoExit().printf("RescaleLayerTestProbe \"%s\": RescaleLayer \"%s\", location in rank %d, starting at restricted neuron %d, is not a linear rescaling.\n",
                      getName(), targetRescaleLayer->getName(), parent->columnId(), k);
                status = PV_FAILURE;
             }
@@ -207,7 +207,7 @@ int RescaleLayerTestProbe::outputState(double timed)
             pvadata_t observedval = rescaledData[rescale_kExtended];
             pvpotentialdata_t correctval = originalData[orig_kExtended] ? observedval : -1.0;
             if (observedval != correctval) {
-               fprintf(stderr, "RescaleLayerTestProbe \"%s\": RescaleLayer \"%s\", rank %d, restricted neuron %d has value %f instead of expected %f\n.",
+               pvErrorNoExit().printf("RescaleLayerTestProbe \"%s\": RescaleLayer \"%s\", rank %d, restricted neuron %d has value %f instead of expected %f\n.",
                      this->getName(), targetRescaleLayer->getName(), parent->columnId(), k, observedval, correctval);
                status = PV_FAILURE;
             }

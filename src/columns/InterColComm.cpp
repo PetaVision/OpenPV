@@ -289,12 +289,12 @@ int Publisher::exchangeBorders(int neighbors[], int numNeighbors, const PVLayerL
          size_t recvOff = comm->recvOffset(n, &cube.loc);
          size_t sendOff = comm->sendOffset(n, &cube.loc);
          if( cube.loc.nb > 0 ) {
-            fprintf(stderr, "[%2d]: recv,send to %d, n=%d, delay=%d, recvOffset==%ld, sendOffset==%ld, numitems=%d, send[0]==%f\n", comm->commRank(), neighbors[n], n, delay, recvOff, sendOff, cube.numItems, sendBuf[0]);
+            pvInfo().printf("[%2d]: recv,send to %d, n=%d, delay=%d, recvOffset==%ld, sendOffset==%ld, numitems=%d, send[0]==%f\n", comm->commRank(), neighbors[n], n, delay, recvOff, sendOff, cube.numItems, sendBuf[0]);
          }
          else {
-            fprintf(stderr, "[%2d]: recv,send to %d, n=%d, delay=%d, recvOffset==%ld, sendOffset==%ld, numitems=%d\n", comm->commRank(), neighbors[n], n, delay, recvOff, sendOff, cube.numItems);
+            pvInfo().printf("[%2d]: recv,send to %d, n=%d, delay=%d, recvOffset==%ld, sendOffset==%ld, numitems=%d\n", comm->commRank(), neighbors[n], n, delay, recvOff, sendOff, cube.numItems);
          }
-         fflush(stdout);
+         pvInfo().flush();
 #endif //DEBUG_OUTPUT
 
          MPI_Irecv(recvBuf, 1, neighborDatatypes[n], neighbors[n], comm->getReverseTag(n), mpiComm,
@@ -318,7 +318,8 @@ int Publisher::wait()
 {
 #ifdef PV_USE_MPI
 # ifdef DEBUG_OUTPUT
-   fprintf(stderr, "[%2d]: waiting for data, num_requests==%d\n", comm->commRank(), numRemote); fflush(stdout);
+   pvInfo().printf("[%2d]: waiting for data, num_requests==%d\n", comm->commRank(), numRemote);
+   pvInfo().flush();
 # endif // DEBUG_OUTPUT
 
    if (numRequests != 0) {

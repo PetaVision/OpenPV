@@ -10,9 +10,8 @@ int customexit(HyPerCol * hc, int argc, char * argv[]);
 
 int main(int argc, char * argv[]) {
    PV_Init initObj(&argc, &argv, false/*allowUnrecognizedArguments*/);
-   PV_Arguments * arguments = initObj.getArguments();
-   if (arguments->getParamsFile() == NULL) {
-      arguments->setParamsFile("input/CloneVLayerTest.params");
+   if (initObj.getParamsFile() == NULL) {
+      initObj.setParams("input/CloneVLayerTest.params");
    }
 
    int status;
@@ -55,7 +54,7 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
    }
 
    if (hc->columnId()==0) {
-      printf("%s passed.\n", argv[0]);
+      pvInfo().printf("%s passed.\n", argv[0]);
    }
    return PV_SUCCESS;
 }

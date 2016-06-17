@@ -104,7 +104,7 @@ int SegmentifyTest::updateState(double timef, double dt){
                float targetVal = getTargetVal(yi+loc->ky0, xi+loc->kx0, fi);
                checkOutputVals(yi+loc->ky0, xi+loc->kx0, fi, targetVal, actualVal);
 
-               //std::cout << "Idx: (" << bi << "," << yi << "," << xi << "," << fi << ") Val: " << actualVal << " Target: " << targetVal << "\n";
+               //pvInfo() << "Idx: (" << bi << "," << yi << "," << xi << "," << fi << ") Val: " << actualVal << " Target: " << targetVal << "\n";
             }
          }
       }

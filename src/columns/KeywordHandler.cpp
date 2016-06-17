@@ -31,7 +31,7 @@ KeywordHandler& KeywordHandler::operator=(KeywordHandler const& orig) {
 int KeywordHandler::initialize(char const * kw, ObjectCreateFn creator) {
    keyword = strdup(kw);
    if (keyword == NULL) {
-      fprintf(stderr, "KeywordHandler unable to store type \"%s\": %s\n", keyword, strerror(errno));
+      pvError().printf("KeywordHandler unable to store type \"%s\": %s\n", keyword, strerror(errno));
    }
    this->creator = creator;
    return PV_SUCCESS;

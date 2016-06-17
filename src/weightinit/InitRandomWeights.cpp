@@ -45,8 +45,7 @@ int InitRandomWeights::initRNGs(bool isKernel) {
       randState = new Random(callingConn->getParent(), callingConn->preSynapticLayer()->getLayerLoc(), true/*isExtended*/);
    }
    if (randState == NULL) {
-      fprintf(stderr, "InitRandomWeights error in rank %d process: unable to create object of class Random.\n", callingConn->getParent()->columnId());
-      exit(EXIT_FAILURE);
+      pvError().printf("InitRandomWeights error in rank %d process: unable to create object of class Random.\n", callingConn->getParent()->columnId());
    }
    return status;
 }

@@ -28,7 +28,7 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
    int status = PV_SUCCESS;
    if (rsProbe->getProbeStatus()) {
       if (hc->columnId()==0) {
-         fprintf(stderr, "%s failed at time %f\n",
+         pvErrorNoExit().printf("%s failed at time %f\n",
                argv[0], rsProbe->getFirstFailureTime());
       }
       status = PV_FAILURE;

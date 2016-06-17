@@ -10,8 +10,8 @@
 // equal to their global position
 // ShrunkenPatchProbe checks whether he above suppositions are satisfied
 
-#include <columns/buildandrun.hpp>
-#include <io/io.h>
+#include "columns/buildandrun.hpp"
+#include "io/io.hpp"
 #include "ShrunkenPatchTestLayer.hpp"
 #include "ShrunkenPatchTestProbe.hpp"
 #include <assert.h>
@@ -22,7 +22,6 @@ int main(int argc, char * argv[]) {
    PV_Init initObj(&argc, &argv, false/*allowUnrecognizedArguments*/);
    initObj.registerKeyword("ShrunkenPatchTestLayer", createShrunkenPatchTestLayer);
    initObj.registerKeyword("ShrunkenPatchTestProbe", createShrunkenPatchTestProbe);
-   PV_Arguments * arguments = initObj.getArguments();
    if (initObj.getParams() == NULL) {
       initObj.setParams("input/ShrunkenPatchTest.params");
    }

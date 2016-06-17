@@ -125,7 +125,7 @@ private:
 
    double displayPeriod;   // length of time a frame is displayed
 
-   bool echoFramePathnameFlag; // if true, echo the frame pathname to stdout
+   bool echoFramePathnameFlag; // if true, echo the frame pathname to output stream
 
    int* startFrameIndex;
    int* skipFrameIndex;

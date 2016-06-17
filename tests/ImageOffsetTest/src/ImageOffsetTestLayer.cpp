@@ -111,12 +111,11 @@ int ImageOffsetTestLayer::updateState(double timef, double dt){
                   }
                }
                else{
-                  std::cout << "Layer name " << name << " not recoginzed\n";
-                  exit(-1);
+                  pvError() << "Layer name " << name << " not recoginzed\n";
                }
                float diff = fabs(actualvalue - expectedvalue);
                if(diff >= 1e-4){
-                  std::cout << "Connection " << name << " Mismatch at (" << ixGlobal << "," << iyGlobal << "," << iF << ") : actual value: " << actualvalue << " Expected value: " << expectedvalue << "\n";
+                  pvErrorNoExit() << "Connection " << name << " Mismatch at (" << ixGlobal << "," << iyGlobal << "," << iF << ") : actual value: " << actualvalue << " Expected value: " << expectedvalue << "\n";
                   isCorrect = false;
                }
             }
@@ -132,7 +131,7 @@ int ImageOffsetTestLayer::updateState(double timef, double dt){
 #else // PV_USE_GDAL
 ImageOffsetTestLayer::ImageOffsetTestLayer(const char * name, HyPerCol * hc) {
    if (hc->columnId()==0) {
-      fprintf(stderr, "ImageOffsetTestLayer class requires compiling with PV_USE_GDAL set\n");
+      pvErrorNoExit().printf("ImageOffsetTestLayer class requires compiling with PV_USE_GDAL set\n");
    }
    MPI_Barrier(hc->icCommunicator()->communicator());
    exit(EXIT_FAILURE);

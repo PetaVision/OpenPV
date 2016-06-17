@@ -8,14 +8,14 @@
 #ifndef CUDAUPDATESTATEFUNCTION_HPP_
 #define CUDAUPDATESTATEFUNCTION_HPP_
 
-#include "../arch/cuda/CudaKernel.hpp"
-#include "../arch/cuda/CudaBuffer.hpp"
+#include "arch/cuda/CudaKernel.hpp"
+#include "arch/cuda/CudaBuffer.hpp"
 #include <assert.h>
-
-namespace PVCuda{
 #include <builtin_types.h>
 
-   //Parameter structur
+namespace PVCuda{
+
+   //Parameter structure
    struct HyPerLCAParams{
       int nbatch;
       int numNeurons;
@@ -40,7 +40,7 @@ namespace PVCuda{
       float * activity;
    };
 
-   //Parameter structur
+   //Parameter structure
    struct MomentumLCAParams{
       int nbatch;
       int numNeurons;

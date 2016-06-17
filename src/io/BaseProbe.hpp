@@ -9,8 +9,10 @@
 
 #include <stdio.h>
 #include <vector>
-#include <columns/BaseObject.hpp>
-#include <io/fileio.hpp>
+#include "include/pv_common.h"
+#include "columns/BaseObject.hpp"
+#include "io/FileStream.hpp"
+#include "io/io.hpp"
 
 namespace PV {
 
@@ -79,7 +81,7 @@ public:
     * A pure virtual method for writing output to the output file.
     */
    virtual int outputState(double timef) = 0;
-   virtual int writeTimer(FILE* stream) {return PV_SUCCESS;}
+   virtual int writeTimer(std::ostream& stream) {return PV_SUCCESS;}
    
    /**
     * Returns the name of the targetName parameter for this probe.
@@ -156,7 +158,7 @@ protected:
    /**
     * @brief probeOutputFile: If textOutputFlag is true, probeOutputFile specifies
     * the name of the file that the outputState method writes to.
-    * If blank, the output is sent to stdout.
+    * If blank, the output is sent to the output stream.
     */
    virtual void ioParam_probeOutputFile(enum ParamsIOFlag ioFlag);
 
@@ -248,9 +250,14 @@ protected:
    virtual int initMessage(const char * msg);
    
    /**
-    * Returns a pointer to the PV_Stream used by outputState.
+    * Returns a pointer to the OutStream used by outputState.
     */
-   PV_Stream * getStream() {return outputstream;}
+   OutStream * getOutputStream() {return outputStream;}
+
+   /**
+    * Returns a reference to the ostream that outputState writes to.
+    */
+   std::ostream& output() { return outputStream->outStream(); }
    
    /**
     * initNumValues is called by initialize.
@@ -286,12 +293,18 @@ protected:
     */
    inline bool getTextOutputFlag() const { return textOutputFlag; }
 
+   /**
+    * Returns true if a probeOutputFile is being used.
+    * Otherwise, returns false (indicating output is going to getOutputStream().
+    */
+   inline bool isWritingToFile() const { return writingToFile; }
+
 private:
    int initialize_base();
 
 // Member variables
 protected:
-   PV_Stream * outputstream;
+   OutStream * outputStream;
    bool triggerFlag;
    char* triggerLayerName;
    HyPerLayer * triggerLayer;
@@ -308,6 +321,7 @@ private:
    double * probeValues;
    double lastUpdateTime; // The time of the last time calcValues was called.
    bool textOutputFlag;
+   bool writingToFile; // true outputStream is a FileStream
 };
 
 }

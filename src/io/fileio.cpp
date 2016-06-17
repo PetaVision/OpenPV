@@ -64,7 +64,7 @@ size_t pv_sizeof_patch(int count, int datatype)
 
 PV_Stream * PV_fopen(const char * path, const char * mode, bool verifyWrites) {
    if (mode==NULL) {
-      fprintf(stderr, "PV_fopen error for \"%s\": mode argument must be a string.\n", path);
+      pvErrorNoExit().printf("PV_fopen: mode argument must be a string (path was \"%s\").\n", path);
       errno = EINVAL;
       return NULL;
    }
@@ -80,7 +80,7 @@ PV_Stream * PV_fopen(const char * path, const char * mode, bool verifyWrites) {
          }
       }
       else if (errno != ENOENT) {
-         fprintf(stderr, "PV_fopen error for \"%s\" with mode \"%s\": stat error %s\n", path, mode, strerror(errno));
+         pvError().printf("PV_fopen: unable to stat \"%s\" with mode \"%s\": %s\n", path, mode, strerror(errno));
          abort();
       }
    }
@@ -92,7 +92,7 @@ PV_Stream * PV_fopen(const char * path, const char * mode, bool verifyWrites) {
       fp = fopen(path, mode);
       if (fp != NULL) break;
       fopencounts++;
-      fprintf(stderr, "fopen failure for \"%s\" on attempt %d: %s\n", path, fopencounts, strerror(errno));
+      pvWarn().printf("fopen failure for \"%s\" on attempt %d: %s\n", path, fopencounts, strerror(errno));
       if (fopencounts < MAX_FILESYSTEMCALL_TRIES) {
          sleep(1);
       }
@@ -101,11 +101,11 @@ PV_Stream * PV_fopen(const char * path, const char * mode, bool verifyWrites) {
       }
    }
    if (fp == NULL) {
-      fprintf(stderr, "PV_fopen error for \"%s\": MAX_FILESYSTEMCALL_TRIES = %d exceeded\n", path, MAX_FILESYSTEMCALL_TRIES);
+      pvErrorNoExit().printf("PV_fopen: exceeded MAX_FILESYSTEMCALL_TRIES = %d attempting to open \"%s\"\n", MAX_FILESYSTEMCALL_TRIES, path);
    }
    else {
       if (fopencounts>0) {
-         fprintf(stderr, "fopen succeeded for \"%s\" on attempt %d\n", path, fopencounts+1);
+         pvWarn().printf("fopen succeeded for \"%s\" on attempt %d\n", path, fopencounts+1);
       }
       streampointer = (PV_Stream *) calloc(1, sizeof(PV_Stream));
       if (streampointer != NULL) {
@@ -118,7 +118,7 @@ PV_Stream * PV_fopen(const char * path, const char * mode, bool verifyWrites) {
          streampointer->verifyWrites = verifyWrites;
       }
       else {
-         fprintf(stderr, "PV_fopen failure for \"%s\": %s\n", path, strerror(errno));
+         pvErrorNoExit().printf("PV_fopen failure for \"%s\": %s\n", path, strerror(errno));
          fclose(fp);
       }
    }
@@ -136,7 +136,7 @@ int PV_stat(const char * path, struct stat * buf) {
       retval = stat(path, buf);
       if (retval == 0) break;
       attempt++;
-      fprintf(stderr, "stat() failure for \"%s\" on attempt %d: %s\n", path, attempt, strerror(errno));
+      pvWarn().printf("stat() failure for \"%s\" on attempt %d: %s\n", path, attempt, strerror(errno));
       if (attempt < MAX_FILESYSTEMCALL_TRIES) {
          sleep(1);
       }
@@ -145,7 +145,7 @@ int PV_stat(const char * path, struct stat * buf) {
       }
    }
    if (retval != 0) {
-      fprintf(stderr, "PV_fopen error for \"%s\": MAX_FILESYSTEMCALL_TRIES = %d exceeded\n", path, MAX_FILESYSTEMCALL_TRIES);
+      pvErrorNoExit().printf("PV_stat exceeded MAX_FILESYSTEMCALL_TRIES = %d for \"%s\"\n", MAX_FILESYSTEMCALL_TRIES, path);
    }
    return retval;
 }
@@ -159,7 +159,7 @@ long int PV_ftell_primitive(PV_Stream * pvstream) {
       filepos = ftell(pvstream->fp);
       if (filepos >= 0) break;
       ftellcounts++;
-      fprintf(stderr, "ftell failure for \"%s\" on attempt %d: %s\n", pvstream->name, ftellcounts, strerror(errno));
+      pvWarn().printf("ftell failure for \"%s\" on attempt %d: %s\n", pvstream->name, ftellcounts, strerror(errno));
       if (ftellcounts < MAX_FILESYSTEMCALL_TRIES) {
          sleep(1);
       }
@@ -168,10 +168,10 @@ long int PV_ftell_primitive(PV_Stream * pvstream) {
       }
    }
    if (filepos<0) {
-      fprintf(stderr, "PV_ftell failure for \"%s\": MAX_FILESYSTEMCALL_TRIES = %d exceeded\n", pvstream->name, MAX_FILESYSTEMCALL_TRIES);
+      pvErrorNoExit().printf("PV_ftell failure for \"%s\": MAX_FILESYSTEMCALL_TRIES = %d exceeded\n", pvstream->name, MAX_FILESYSTEMCALL_TRIES);
    }
    else if (ftellcounts>0) {
-      fprintf(stderr, "PV_ftell succeeded for \"%s\" on attempt %d", pvstream->name, ftellcounts+1);
+      pvWarn().printf("PV_ftell succeeded for \"%s\" on attempt %d", pvstream->name, ftellcounts+1);
    }
    return filepos;
 }
@@ -191,7 +191,7 @@ long int PV_ftell(PV_Stream * pvstream) {
    long int filepos = PV_ftell_primitive(pvstream);
    if (pvstream->filepos != filepos)
    {
-      fprintf(stderr, "Warning: ftell for \"%s\" returned %ld instead of the expected %ld\n", pvstream->name, filepos, pvstream->filepos);
+      pvWarn().printf("ftell for \"%s\" returned %ld instead of the expected %ld\n", pvstream->name, filepos, pvstream->filepos);
    }
    return filepos;
 }
@@ -204,7 +204,7 @@ int PV_fseek(PV_Stream * pvstream, long offset, int whence) {
       fseekstatus = fseek(pvstream->fp, offset, whence);
       if (fseekstatus==0) break;
       fseekcounts++;
-      fprintf(stderr, "fseek failure for \"%s\" on attempt %d: %s\n", pvstream->name, fseekcounts, strerror(errno));
+      pvWarn().printf("fseek failure for \"%s\" on attempt %d: %s\n", pvstream->name, fseekcounts, strerror(errno));
       if (fseekcounts<MAX_FILESYSTEMCALL_TRIES) {
          sleep(1);
       }
@@ -213,10 +213,10 @@ int PV_fseek(PV_Stream * pvstream, long offset, int whence) {
       }
    }
    if (fseekstatus!=0) {
-      fprintf(stderr, "PV_fseek failure for \"%s\": MAX_FILESYSTEMCALL_TRIES = %d exceeded\n", pvstream->name, MAX_FILESYSTEMCALL_TRIES);
+      pvErrorNoExit().printf("PV_fseek failure for \"%s\": MAX_FILESYSTEMCALL_TRIES = %d exceeded\n", pvstream->name, MAX_FILESYSTEMCALL_TRIES);
    }
    else if (fseekcounts>0) {
-      fprintf(stderr, "PV_fseek succeeded for \"%s\" on attempt %d\n", pvstream->name, fseekcounts+1);
+      pvWarn().printf("PV_fseek succeeded for \"%s\" on attempt %d\n", pvstream->name, fseekcounts+1);
    }
    if (pvstream->mode[0] != 'a') {
       switch(whence) {
@@ -265,13 +265,11 @@ size_t PV_fwrite(const void * RESTRICT ptr, size_t size, size_t nitems, PV_Strea
    const char * RESTRICT curptr = (const char * RESTRICT) ptr;
    long int fpos = pvstream->filepos; // PV_ftell(pvstream);
    if (fpos<0) {
-      fprintf(stderr, "PV_fwrite error: unable to determine file position of \"%s\".  Fatal error\n", pvstream->name);
-      exit(EXIT_FAILURE);
+      pvError().printf("PV_fwrite error: unable to determine file position of \"%s\".  Fatal error\n", pvstream->name);
    }
    long int ftellresult = ftell(pvstream->fp);
    if(pvstream->isfile && fpos != ftellresult) {
-      fprintf(stderr, "PV_fwrite error for \"%s\": fpos = %ld but ftell() returned %ld\n", pvstream->name, fpos, ftellresult);
-      perror("ftell() error");
+      pvError().printf("PV_fwrite error for \"%s\": fpos = %ld but ftell() returned %ld\n", pvstream->name, fpos, ftellresult);
       exit(EXIT_FAILURE);
    }
    bool hasfailed = false;
@@ -280,32 +278,31 @@ size_t PV_fwrite(const void * RESTRICT ptr, size_t size, size_t nitems, PV_Strea
       if (charswritten == writesize) {
          if (hasfailed) {
             clearerr(pvstream->fp);
-            fprintf(stderr, "fwrite succeeded for \"%s\" on attempt %d.\n", pvstream->name, fwritecounts);
+            pvWarn().printf("fwrite succeeded for \"%s\" on attempt %d.\n", pvstream->name, fwritecounts);
          }
          break;
       }
       else {
          hasfailed = true;
-         fprintf(stderr, "fwrite failure for \"%s\" on attempt %d.  Return value %zu instead of %zu.  ", pvstream->name, fwritecounts, charswritten, writesize);
+         pvWarn(fwriteFailure);
+         fwriteFailure.printf("fwrite failure for \"%s\" on attempt %d.  Return value %zu instead of %zu.  ", pvstream->name, fwritecounts, charswritten, writesize);
          if (ferror(pvstream->fp)) {
-            fprintf(stderr, "   Error: %s\n", strerror(errno));
+            fwriteFailure.printf("   Error: %s\n", strerror(errno));
          }
          if (fwritecounts<MAX_FILESYSTEMCALL_TRIES) {
-            fprintf(stderr, "Retrying.\n");
+            fwriteFailure.printf("Retrying.\n");
             sleep(1);
             int fseekstatus = fseek(pvstream->fp, fpos, SEEK_SET);
             if (fseekstatus != 0) {
-               fprintf(stderr, "PV_fwrite error: Unable to reset file position of \"%s\".  Fatal error: %s\n", pvstream->name, strerror(errno));
-               exit(EXIT_FAILURE);
+               pvError().printf("PV_fwrite error: Unable to reset file position of \"%s\".  Fatal error: %s\n", pvstream->name, strerror(errno));
             }
             long int ftellreturn = ftell(pvstream->fp);
             if (fpos != ftellreturn) {
-               fprintf(stderr, "PV_fwrite error: attempted to reset file position of \"%s\" to %ld, but ftell() returned %ld.  Fatal error.\n", pvstream->name, fpos, ftellreturn);
-               exit(EXIT_FAILURE);
+               pvError().printf("PV_fwrite error: attempted to reset file position of \"%s\" to %ld, but ftell() returned %ld.  Fatal error.\n", pvstream->name, fpos, ftellreturn);
             }
          }
          else {
-            fprintf(stderr, "MAX_FILESYSTEMCALL_TRIES exceeded.\n");
+            pvErrorNoExit().printf("MAX_FILESYSTEMCALL_TRIES exceeded.\n");
             return (size_t) 0;
          }
       }
@@ -315,12 +312,12 @@ size_t PV_fwrite(const void * RESTRICT ptr, size_t size, size_t nitems, PV_Strea
       int status = PV_SUCCESS;
       PV_Stream * readStream = PV_fopen(pvstream->name, "r", false/*verifyWrites*/);
       if (readStream==NULL) {
-         fprintf(stderr, "PV_fwrite verification error: unable to open \"%s\" for reading: %s\n", pvstream->name, strerror(errno));
+         pvErrorNoExit().printf("PV_fwrite verification: unable to open \"%s\" for reading: %s\n", pvstream->name, strerror(errno));
          status = PV_FAILURE;
       }
       if (status == PV_SUCCESS) {
          if (fseek(readStream->fp, pvstream->filepos, SEEK_SET)!=0) {
-            fprintf(stderr, "PV_fwrite verificationerror: unable to verify \"%s\" write of %zu chars from position %ld: %s\n", pvstream->name, writesize, pvstream->filepos, strerror(errno));
+            pvErrorNoExit().printf("PV_fwrite verification: unable to verify \"%s\" write of %zu chars from position %ld: %s\n", pvstream->name, writesize, pvstream->filepos, strerror(errno));
             status = PV_FAILURE;
          }
       }
@@ -328,7 +325,7 @@ size_t PV_fwrite(const void * RESTRICT ptr, size_t size, size_t nitems, PV_Strea
       if (status == PV_SUCCESS) {
          read_buffer = (char *) malloc(writesize);
          if (read_buffer==NULL) {
-            fprintf(stderr, "PV_fwrite verification error: unable to create readback buffer of size %zu to verify \"%s\"\n", writesize, pvstream->name);
+            pvErrorNoExit().printf("PV_fwrite verification: unable to create readback buffer of size %zu to verify \"%s\"\n", writesize, pvstream->name);
             status = PV_FAILURE;
          }
       }
@@ -338,7 +335,7 @@ size_t PV_fwrite(const void * RESTRICT ptr, size_t size, size_t nitems, PV_Strea
       if (status == PV_SUCCESS) {
          size_t numread = fread(read_buffer, (size_t) 1, writesize, readStream->fp);
          if (numread != writesize) {
-            fprintf(stderr, "PV_fwrite verification error: unable to read into readback buffer for \"%s\": fread returned %zu instead of %zu\n", pvstream->name, numread, writesize);
+            pvErrorNoExit().printf("PV_fwrite verification: unable to read into readback buffer for \"%s\": fread returned %zu instead of %zu\n", pvstream->name, numread, writesize);
             status = PV_FAILURE;
          }
       }
@@ -347,7 +344,7 @@ size_t PV_fwrite(const void * RESTRICT ptr, size_t size, size_t nitems, PV_Strea
          if (status != PV_SUCCESS) {
             size_t badcount=0;
             for (size_t n=0; n<writesize; n++) { badcount += (((char *) ptr)[n]!=read_buffer[n]); }
-            fprintf(stderr, "PV_fwrite verification error: readback of %zu bytes from \"%s\" starting at position %zu failed: %zu bytes disagree.\n", writesize, pvstream->name, pvstream->filepos, badcount);
+            pvErrorNoExit().printf("PV_fwrite verification: readback of %zu bytes from \"%s\" starting at position %zu failed: %zu bytes disagree.\n", writesize, pvstream->name, pvstream->filepos, badcount);
          }
       }
       free(read_buffer);
@@ -369,8 +366,7 @@ size_t PV_fread(void * RESTRICT ptr, size_t size, size_t nitems, PV_Stream * RES
    long int fpos = pvstream->filepos; // PV_ftell(pvstream);
    clearerr(pvstream->fp);
    if (fpos<0) {
-      fprintf(stderr, "PV_fread error: unable to determine file position of \"%s\".  Fatal error\n", pvstream->name);
-      exit(EXIT_FAILURE);
+      pvError().printf("PV_fread error: unable to determine file position of \"%s\".  Fatal error\n", pvstream->name);
    }
    while (stilltoread != 0UL) {
       size_t charsread_thispass = fread(curptr, 1UL, stilltoread, pvstream->fp);
@@ -378,24 +374,24 @@ size_t PV_fread(void * RESTRICT ptr, size_t size, size_t nitems, PV_Stream * RES
       pvstream->filepos += charsread_thispass;
       if (stilltoread == 0UL) {
          if (freadcounts>0) {
-            fprintf(stderr, "fread succeeded for \"%s\" on attempt %d.\n", pvstream->name, freadcounts+1);
+            pvWarn().printf("fread succeeded for \"%s\" on attempt %d.\n", pvstream->name, freadcounts+1);
          }
          break;
       }
       else {
          if (feof(pvstream->fp)) {
-            fprintf(stderr, "fread failure for \"%s\": end of file reached with %lu characters still unread.\n", pvstream->name, stilltoread);
+            pvWarn().printf("fread failure for \"%s\": end of file reached with %lu characters still unread.\n", pvstream->name, stilltoread);
             break;
          }
       }
       curptr += charsread_thispass;
       freadcounts++;
       if (freadcounts<MAX_FILESYSTEMCALL_TRIES) {
-         fprintf(stderr, "fread failure for \"%s\" on attempt %d.  %lu bytes read; %lu bytes still to read so far.\n", pvstream->name, freadcounts, charsread_thispass, stilltoread);
+         pvWarn().printf("fread failure for \"%s\" on attempt %d.  %lu bytes read; %lu bytes still to read so far.\n", pvstream->name, freadcounts, charsread_thispass, stilltoread);
          sleep(1);
       }
       else {
-         fprintf(stderr, "PV_fread failure for \"%s\": MAX_FILESYSTEMCALL_TRIES = %d exceeded, and %lu bytes of %lu read.\n", pvstream->name, MAX_FILESYSTEMCALL_TRIES, readsize-stilltoread, readsize);
+         pvErrorNoExit().printf("PV_fread failure for \"%s\": MAX_FILESYSTEMCALL_TRIES = %d exceeded, and %lu bytes of %lu read.\n", pvstream->name, MAX_FILESYSTEMCALL_TRIES, readsize-stilltoread, readsize);
          break;
       }
    }
@@ -408,7 +404,7 @@ int PV_fclose(PV_Stream * pvstream) {
       if (pvstream->fp && pvstream->isfile) {
          status = fclose(pvstream->fp); pvstream->fp = NULL;
          if (status!=0) {
-            fprintf(stderr, "fclose failure for \"%s\": %s", pvstream->name, strerror(errno));
+            pvErrorNoExit().printf("fclose failure for \"%s\": %s", pvstream->name, strerror(errno));
          }
       }
       free(pvstream->name);
@@ -416,22 +412,6 @@ int PV_fclose(PV_Stream * pvstream) {
       free(pvstream); pvstream = NULL;
    }
    return status;
-}
-
-PV_Stream * PV_stdout() {
-   PV_Stream * pvstream = (PV_Stream *) calloc(1, sizeof(PV_Stream));
-   if (pvstream != NULL) {
-      pvstream->name = strdup("stdout");
-      pvstream->mode = strdup("w");
-      pvstream->fp = stdout;
-      pvstream->filepos = 0L;   // stdout doesn't have meaningful filepos or filelength, but the fields still exist.
-      pvstream->filelength = 0L;
-      pvstream->isfile = 0;
-   }
-   else {
-      fprintf(stderr, "PV_stdout failure: %s\n", strerror(errno));
-   }
-   return pvstream;
 }
 
 /**
@@ -564,7 +544,7 @@ PV_Stream * pvp_open_read_file(const char * filename, Communicator * comm)
    if (comm->commRank() == 0) {
       pvstream = PV_fopen(filename, "rb", false/*verifyWrites*/);
       if (pvstream==NULL) {
-        fprintf(stderr, "pvp_open_read_file failed for \"%s\": %s\n", filename, strerror(errno));
+        pvErrorNoExit().printf("pvp_open_read_file failed for \"%s\": %s\n", filename, strerror(errno));
       }
    }
    return pvstream;
@@ -585,25 +565,24 @@ PV_Stream * pvp_open_write_file(const char * filename, Communicator * comm, bool
          }
          else {
             if (errno==ENOENT) {
-               fprintf(stderr, "Warning: activity file \"%s\" does not exist.  File will be created\n", filename);
+               pvWarn().printf("activity file \"%s\" does not exist.  File will be created\n", filename);
                rwmode = false;
             }
             else {
-               fprintf(stderr, "Error opening activity file \"%s\": %s", filename, strerror(errno));
-               abort();
+               pvError().printf("Error opening activity file \"%s\": %s", filename, strerror(errno));
             }
          }
       }
       if (rwmode) {
          pvstream = PV_fopen(filename, "r+b", false/*verifyWrites*/);
          if (pvstream==NULL) {
-            fprintf(stderr, "pvp_open_write_file failed for \"%s\": %s\n", filename, strerror(errno));
+            pvErrorNoExit().printf("pvp_open_write_file failed for \"%s\": %s\n", filename, strerror(errno));
          }
       }
       else {
          pvstream = PV_fopen(filename, "wb", false/*verifyWrites*/);
          if (pvstream==NULL) {
-            fprintf(stderr, "pvp_open_write_file failed for \"%s\": %s\n", filename, strerror(errno));
+            pvErrorNoExit().printf("pvp_open_write_file failed for \"%s\": %s\n", filename, strerror(errno));
          }
       }
    }
@@ -630,20 +609,20 @@ int pvp_check_file_header(Communicator * comm, const PVLayerLoc * loc, int param
    if (params[INDEX_NX_PROCS] != 1) {
       status = PV_FAILURE;
       if (rank==0) {
-         fprintf(stderr, "params[%d] = %d, should be 1\n", INDEX_NX_PROCS, params[INDEX_NX_PROCS]);
+         pvErrorNoExit().printf("params[%d] = %d, should be 1\n", INDEX_NX_PROCS, params[INDEX_NX_PROCS]);
       }
    }
    if (params[INDEX_NY_PROCS] != 1) {
       status = PV_FAILURE;
       if (rank==0) {
-         fprintf(stderr, "params[%d] = %d, should be 1\n", INDEX_NY_PROCS, params[INDEX_NY_PROCS]);
+         pvErrorNoExit().printf("params[%d] = %d, should be 1\n", INDEX_NY_PROCS, params[INDEX_NY_PROCS]);
       }
    }
 
    if (numParams < NUM_WGT_PARAMS) {
       status = PV_FAILURE;
       if (rank==0) {
-         fprintf(stderr, "pvp_check_file_header called with %d params (requires at least %zu)\n", numParams, NUM_WGT_PARAMS);
+         pvErrorNoExit().printf("pvp_check_file_header called with %d params (requires at least %zu)\n", numParams, NUM_WGT_PARAMS);
       }
    }
    
@@ -657,12 +636,13 @@ int pvp_check_file_header(Communicator * comm, const PVLayerLoc * loc, int param
          if (patchesInFile != numGlobalRestricted && patchesInFile != numGlobalExtended) {
             status = PV_FAILURE;
             if (rank==0) {
-               fprintf(stderr, "params[%zu] = %d, should be ", NUM_BIN_PARAMS + INDEX_WGT_NUMPATCHES, params[NUM_BIN_PARAMS + INDEX_WGT_NUMPATCHES]);
+               pvErrorNoExit(badNumParams);
+               badNumParams.printf("params[%zu] = %d, should be ", NUM_BIN_PARAMS + INDEX_WGT_NUMPATCHES, params[NUM_BIN_PARAMS + INDEX_WGT_NUMPATCHES]);
                if (numGlobalExtended==numGlobalRestricted) {
-                  fprintf(stderr, "%d\n", numGlobalExtended);
+                  badNumParams.printf("%d\n", numGlobalExtended);
                }
                else {
-                  fprintf(stderr, "either %d (as post weights) or %d (as pre weights)\n",
+                  badNumParams.printf("either %d (as post weights) or %d (as pre weights)\n",
                         numGlobalRestricted, numGlobalExtended);
                }
             }
@@ -672,7 +652,7 @@ int pvp_check_file_header(Communicator * comm, const PVLayerLoc * loc, int param
          if (patchesInFile % loc->nf) { // Not enough information passed to function to get unit cell size
             status = PV_FAILURE;
             if (rank==0) {
-               fprintf(stderr, "params[%zu] = %d, should be a multiple of loc->nf=%d\n",
+               pvErrorNoExit().printf("params[%zu] = %d, should be a multiple of loc->nf=%d\n",
                      NUM_BIN_PARAMS + INDEX_WGT_NUMPATCHES, params[NUM_BIN_PARAMS + INDEX_WGT_NUMPATCHES], loc->nf);
             }
          }
@@ -685,7 +665,7 @@ int pvp_check_file_header(Communicator * comm, const PVLayerLoc * loc, int param
 
    if (status != 0) {
       for (int i = 0; i < numParams; i++) {
-         fprintf(stderr, "params[%2d]==%d\n", i, params[i]);
+         pvErrorNoExit().printf("params[%2d]==%d\n", i, params[i]);
       }
    }
 
@@ -704,8 +684,7 @@ int pvp_check_file_header_deprecated(Communicator * comm, const PVLayerLoc * loc
    if (loc->nx       != params[INDEX_NX])        {status = PV_FAILURE; tmp_status = INDEX_NX;}
    if (tmp_status == INDEX_NX) {
       if (params[INDEX_FILE_TYPE] != PVP_KERNEL_FILE_TYPE){
-         fprintf(stderr, "nx = %d != params[%d]==%d ", loc->nx, INDEX_NX, params[INDEX_NX]);
-         fprintf(stderr, "\n");
+         pvErrorNoExit().printf("nx = %d != params[%d]==%d \n", loc->nx, INDEX_NX, params[INDEX_NX]);
       }
       else {
          status = PV_SUCCESS; // kernels can be used regardless of layer size
@@ -714,8 +693,7 @@ int pvp_check_file_header_deprecated(Communicator * comm, const PVLayerLoc * loc
    if (loc->ny       != params[INDEX_NY])        {status = PV_FAILURE; tmp_status = INDEX_NY;}
    if (tmp_status == INDEX_NY) {
       if (params[INDEX_FILE_TYPE] != PVP_KERNEL_FILE_TYPE){
-         fprintf(stderr, "ny = %d != params[%d]==%d ", loc->ny, INDEX_NY, params[INDEX_NY]);
-         fprintf(stderr, "\n");
+         pvErrorNoExit().printf("ny = %d != params[%d]==%d \n", loc->ny, INDEX_NY, params[INDEX_NY]);
       }
       else {
          status = PV_SUCCESS; // kernels can be used regardless of layer size
@@ -724,14 +702,12 @@ int pvp_check_file_header_deprecated(Communicator * comm, const PVLayerLoc * loc
    // TODO: Fix the following check for the patch size.
    //if (loc->nf != params[INDEX_NF]) {status = PV_FAILURE; tmp_status = INDEX_NF;}
    //if (tmp_status == INDEX_NF) {
-   //      fprintf(stderr, "nBands = %d != params[%d]==%d ", loc->nf, INDEX_NF, params[INDEX_NF]);
-   //      fprintf(stderr, "\n");
+   //      pvErrorNoExit().printf("nBands = %d != params[%d]==%d \n", loc->nf, INDEX_NF, params[INDEX_NF]);
    //}
    if (loc->nxGlobal != params[INDEX_NX_GLOBAL]) {status = PV_FAILURE; tmp_status = INDEX_NX_GLOBAL;}
    if (tmp_status == INDEX_NX_GLOBAL) {
       if (params[INDEX_FILE_TYPE] != PVP_KERNEL_FILE_TYPE){
-         fprintf(stderr, "nxGlobal = %d != params[%d]==%d ", loc->nxGlobal, INDEX_NX_GLOBAL, params[INDEX_NX_GLOBAL]);
-         fprintf(stderr, "\n");
+         pvErrorNoExit().printf("nxGlobal = %d != params[%d]==%d \n", loc->nxGlobal, INDEX_NX_GLOBAL, params[INDEX_NX_GLOBAL]);
       }
       else {
          status = PV_SUCCESS; // kernels can be used regardless of layer size
@@ -740,8 +716,7 @@ int pvp_check_file_header_deprecated(Communicator * comm, const PVLayerLoc * loc
    if (loc->nyGlobal != params[INDEX_NY_GLOBAL]) {status = PV_FAILURE; tmp_status = INDEX_NY_GLOBAL;}
    if (tmp_status == INDEX_NY_GLOBAL) {
       if (params[INDEX_FILE_TYPE] != PVP_KERNEL_FILE_TYPE){
-         fprintf(stderr, "nyGlobal = %d != params[%d]==%d ", loc->nyGlobal, INDEX_NY_GLOBAL, params[INDEX_NY_GLOBAL]);
-         fprintf(stderr, "\n");
+         pvErrorNoExit().printf("nyGlobal = %d != params[%d]==%d \n", loc->nyGlobal, INDEX_NY_GLOBAL, params[INDEX_NY_GLOBAL]);
       }
       else {
          status = PV_SUCCESS; // kernels can be used regardless of layer size
@@ -750,8 +725,7 @@ int pvp_check_file_header_deprecated(Communicator * comm, const PVLayerLoc * loc
    if (nxProcs != params[INDEX_NX_PROCS]) {status = PV_FAILURE; tmp_status = INDEX_NX_PROCS;}
    if (tmp_status == INDEX_NX_PROCS) {
       if (params[INDEX_FILE_TYPE] != PVP_KERNEL_FILE_TYPE){
-         fprintf(stderr, "nxProcs = %d != params[%d]==%d ", nxProcs, INDEX_NX_PROCS, params[INDEX_NX_PROCS]);
-         fprintf(stderr, "\n");
+         pvErrorNoExit().printf("nxProcs = %d != params[%d]==%d \n", nxProcs, INDEX_NX_PROCS, params[INDEX_NX_PROCS]);
       }
       else {
          status = PV_SUCCESS; // kernels can be used regardless of num procs
@@ -760,8 +734,7 @@ int pvp_check_file_header_deprecated(Communicator * comm, const PVLayerLoc * loc
    if (nyProcs != params[INDEX_NY_PROCS]) {status = PV_FAILURE; tmp_status = INDEX_NY_PROCS;}
    if (tmp_status == INDEX_NY_PROCS) {
       if (params[INDEX_FILE_TYPE] != PVP_KERNEL_FILE_TYPE){
-         fprintf(stderr, "nyProcs = %d != params[%d]==%d ", nyProcs, INDEX_NY_PROCS, params[INDEX_NY_PROCS]);
-         fprintf(stderr, "\n");
+         pvErrorNoExit().printf("nyProcs = %d != params[%d]==%d \n", nyProcs, INDEX_NY_PROCS, params[INDEX_NY_PROCS]);
       }
       else {
          status = PV_SUCCESS; // kernels can be used regardless of num procs
@@ -770,8 +743,7 @@ int pvp_check_file_header_deprecated(Communicator * comm, const PVLayerLoc * loc
    // if (loc->nb != params[INDEX_NB]) {status = PV_FAILURE; tmp_status = INDEX_NB;}
    // if (tmp_status == INDEX_NB) {
    //    if (params[INDEX_FILE_TYPE] != PVP_KERNEL_FILE_TYPE){
-   //       fprintf(stderr, "nPad = %d != params[%d]==%d ", loc->nb, INDEX_NB, params[INDEX_NB]);
-   //       fprintf(stderr, "\n");
+   //       pvErrorNoExit().printf("nPad = %d != params[%d]==%d \n", loc->nb, INDEX_NB, params[INDEX_NB]);
    //    }
    //    else {
    //       status = PV_SUCCESS; // kernels can be used regardless of margin size
@@ -780,8 +752,7 @@ int pvp_check_file_header_deprecated(Communicator * comm, const PVLayerLoc * loc
    //TODO: remove? Duplicated check from above.
    //if (loc->nf != params[INDEX_NF]) {status = PV_FAILURE; tmp_status = INDEX_NF;}
    //if (tmp_status == INDEX_NF) {
-   //      fprintf(stderr, "nBands = %d != params[%d]==%d ", loc->nf, INDEX_NF, params[INDEX_NF]);
-   //   fprintf(stderr, "\n");
+   //      pvErrorNoExit().printf("nBands = %d != params[%d]==%d \n", loc->nf, INDEX_NF, params[INDEX_NF]);
    //}
 
    // (kx0,ky0) is for node 0 only (can be calculated otherwise)
@@ -790,10 +761,11 @@ int pvp_check_file_header_deprecated(Communicator * comm, const PVLayerLoc * loc
    //   if (loc->ky0      != params[INDEX_KY0])       status = -1;
 
    if (status != 0) {
+      pvErrorNoExit(paramsDump);
       for (int i = 0; i < numParams; i++) {
-         fprintf(stderr, "params[%d]==%d ", i, params[i]);
+         paramsDump.printf("params[%d]==%d ", i, params[i]);
       }
-      fprintf(stderr, "\n");
+      paramsDump.printf("\n");
    }
 
    return status;
@@ -815,7 +787,7 @@ int pvp_read_header(PV_Stream * pvstream, Communicator * comm, int * params, int
    // int mpi_buffer[*numParams+2]; // space for params to be MPI_Bcast, along with space for status and number of params read
    if (comm->commRank()==0) {
       if (pvstream==NULL) {
-         fprintf(stderr, "pvp_read_header error: pvstream==NULL for rank zero");
+         pvErrorNoExit().printf("pvp_read_header: pvstream==NULL for rank zero");
          status = PV_FAILURE;
       }
       if (*numParams < 2) {
@@ -876,23 +848,24 @@ int pvp_read_header(PV_Stream * pvstream, Communicator * comm, int * params, int
 
 void read_header_err(const char * filename, Communicator * comm, int returned_num_params, int * params) {
    if (comm->commRank() != 0) {
-      fprintf(stderr, "readBufferFile error while reading \"%s\"\n", filename);
+      pvErrorNoExit(header_error);
+      header_error.printf("readBufferFile error while reading \"%s\"\n", filename);
       switch(returned_num_params) {
       case 0:
-         fprintf(stderr, "   Called with fewer than 2 params (%d); at least two are required.\n", returned_num_params);
+         header_error.printf("   Called with fewer than 2 params (%d); at least two are required.\n", returned_num_params);
          break;
       case -1:
-         fprintf(stderr, "   Error reading first two params from file");
+         header_error.printf("   Error reading first two params from file");
          break;
       case -2:
-         fprintf(stderr, "   Header size %d and number of params %d in file are not compatible.\n", params[INDEX_HEADER_SIZE], params[INDEX_NUM_PARAMS]);
+         header_error.printf("   Header size %d and number of params %d in file are not compatible.\n", params[INDEX_HEADER_SIZE], params[INDEX_NUM_PARAMS]);
          break;
       default:
          if (returned_num_params < (int) NUM_BIN_PARAMS) {
-            fprintf(stderr, "   Called with %d params but only %d params could be read from file.\n", (int) NUM_BIN_PARAMS, returned_num_params);
+            header_error.printf("   Called with %d params but only %d params could be read from file.\n", (int) NUM_BIN_PARAMS, returned_num_params);
          }
          else {
-            fprintf(stderr, "   Called with %d params but file contains %d params.\n", (int) NUM_BIN_PARAMS, returned_num_params);
+            header_error.printf("   Called with %d params but file contains %d params.\n", (int) NUM_BIN_PARAMS, returned_num_params);
          }
          break;
       }
@@ -949,9 +922,8 @@ int pvp_read_header(const char * filename, Communicator * comm, double * time,
    if (icRank == 0) {
        PV_Stream * pvstream = pvp_open_read_file(filename, comm);
        if (pvstream == NULL) {
-          fprintf(stderr, "[%2d]: pvp_read_header: pvp_open_read_file failed to open file \"%s\"\n",
+          pvError().printf("[%2d]: pvp_read_header: pvp_open_read_file failed to open file \"%s\"\n",
                   comm->commRank(), filename);
-          exit(EXIT_FAILURE);
        }
 
        status = pvp_read_header(pvstream, time, filetype, datatype, params, numParams);
@@ -961,14 +933,14 @@ int pvp_read_header(const char * filename, Communicator * comm, double * time,
 
    const int icRoot = 0;
 #ifdef DEBUG_OUTPUT
-   fprintf(stderr, "[%2d]: pvp_read_header: will broadcast, numParams==%d\n",
+   pvDebug().printf("[%2d]: pvp_read_header: will broadcast, numParams==%d\n",
            comm->commRank(), *numParams);
 #endif // DEBUG_OUTPUT
 
    status = MPI_Bcast(params, *numParams, MPI_INT, icRoot, comm->communicator());
 
 #ifdef DEBUG_OUTPUT
-   fprintf(stderr, "[%2d]: pvp_read_header: broadcast completed, numParams==%d\n",
+   pvDebug().printf("[%2d]: pvp_read_header: broadcast completed, numParams==%d\n",
            comm->commRank(), *numParams);
 #endif // DEBUG_OUTPUT
 
@@ -1234,13 +1206,11 @@ int * pvp_set_nonspiking_sparse_act_params(Communicator * comm, double timed, co
 int * alloc_params(int numParams) {
    int * params = NULL;
    if (numParams<2) {
-      fprintf(stderr, "alloc_params must be called with at least two params (called with %d).\n", numParams);
-      abort();
+      pvError().printf("alloc_params must be called with at least two params (called with %d).\n", numParams);
    }
    params = (int *) calloc((size_t) numParams, sizeof(int));
    if (params == NULL) {
-      fprintf(stderr, "alloc_params unable to allocate %d params: %s\n", numParams, strerror(errno));
-      abort();
+      pvError().printf("alloc_params unable to allocate %d params: %s\n", numParams, strerror(errno));
    }
    params[INDEX_HEADER_SIZE] = sizeof(int)*numParams;
    params[INDEX_NUM_PARAMS] = numParams;
@@ -1279,7 +1249,7 @@ int pvp_read_time(PV_Stream * pvstream, Communicator * comm, int root_process, d
    struct timeandstatus mpi_data;
    if (comm->commRank()==root_process) {
       if (pvstream==NULL) {
-         fprintf(stderr, "pvp_read_time error: root process called with null stream argument.\n");
+         pvErrorNoExit().printf("pvp_read_time: root process called with null stream argument.\n");
          abort();
       }
       int numread = PV_fread(timed, sizeof(*timed), 1, pvstream);
@@ -1315,8 +1285,7 @@ int writeActivity(PV_Stream * pvstream, Communicator * comm, double timed, DataS
          // write time
          //
          if ( PV_fwrite(&timed, sizeof(double), 1, pvstream) != 1 ) {
-            fprintf(stderr,"fwrite of timestamp in PV::writeActivity failed in file \"%s\" at time %f\n", pvstream->name, timed);
-            abort();
+            pvError().printf("fwrite of timestamp in PV::writeActivity failed in file \"%s\" at time %f\n", pvstream->name, timed);
             return -1;
          }
       }
@@ -1358,7 +1327,7 @@ int writeActivitySparse(PV_Stream * pvstream, Communicator * comm, double timed,
 #ifdef PV_USE_MPI
          const int dest = icRoot;
 #ifdef DEBUG_OUTPUT
-         fprintf(stderr, "[%2d]: writeActivitySparseNonspiking: sent localActive value of %d to %d\n",
+         pvDebug().printf("[%2d]: writeActivitySparseNonspiking: sent localActive value of %d to %d\n",
                  comm->commRank, localActive, dest);
 #endif // DEBUG_OUTPUT
          void * data = NULL;
@@ -1367,7 +1336,7 @@ int writeActivitySparse(PV_Stream * pvstream, Communicator * comm, double timed,
          if (includeValues) {
             indexvaluepairs = (indexvaluepair *) malloc(localActive*sizeof(indexvaluepair));
             if (indexvaluepairs==NULL) {
-               fprintf(stderr, "writeActivitySparseNonspiking error: Rank %d process unable to allocate memory for indexvaluepairs: %s\n",
+               pvErrorNoExit().printf("writeActivitySparseNonspiking: Rank %d process unable to allocate memory for indexvaluepairs: %s\n",
                        icRank, strerror(errno));
                exit(EXIT_FAILURE);
             }
@@ -1408,9 +1377,10 @@ int writeActivitySparse(PV_Stream * pvstream, Communicator * comm, double timed,
          MPI_Ssend(data, localResActive*datasize, MPI_CHAR, dest, tag,mpi_comm);
 
 #ifdef DEBUG_OUTPUT
-         fprintf(stderr, "[%2d]: writeActivitySparse: sent to %d, localActive==%d\n",
+         pvDebug(debugWriteActivitySparseSent);
+         debugWriteActivitySparseSent.printf("[%2d]: writeActivitySparse: sent to %d, localActive==%d\n",
                  comm->commRank(), dest, localResActive);
-         fflush(stderr);
+         debugWriteActivitySparse.flush();
 #endif // DEBUG_OUTPUT
 #endif // PV_USE_MPI
 
@@ -1469,7 +1439,7 @@ int writeActivitySparse(PV_Stream * pvstream, Communicator * comm, double timed,
             // otherwise numActive is not used
             numActive = (unsigned int *) malloc(icSize*sizeof(unsigned int));
             if (numActive == NULL) {
-               fprintf(stderr, "writeActivitySparseNonspiking error: Root process unable to allocate memory for numActive array: %s\n",
+               pvErrorNoExit().printf("writeActivitySparseNonspiking: Root process unable to allocate memory for numActive array: %s\n",
                        strerror(errno));
                exit(EXIT_FAILURE);
             }
@@ -1477,7 +1447,7 @@ int writeActivitySparse(PV_Stream * pvstream, Communicator * comm, double timed,
 
          for (int p = 1; p < icSize; p++) {
 #ifdef DEBUG_OUTPUT
-            fprintf(stderr, "[%2d]: writeActivitySparseNonspiking: receiving numActive value from %d\n",
+            pvDebug().printf("[%2d]: writeActivitySparseNonspiking: receiving numActive value from %d\n",
                     comm->commRank(), p);
 #endif // DEBUG_OUTPUT
             MPI_Status mpi_status;
@@ -1501,7 +1471,7 @@ int writeActivitySparse(PV_Stream * pvstream, Communicator * comm, double timed,
                                       datatype, 1, extended, contiguous,
                                       numParams, (size_t) totalActive);
             if (status != 0) {
-               fprintf(stderr, "[%2d]: writeActivitySparse error: failed in pvp_write_header, numParams==%d, localActive==%d\n",
+               pvErrorNoExit().printf("[%2d]: writeActivitySparse: failed in pvp_write_header, numParams==%d, localActive==%d\n",
                        comm->commRank(), numParams, localActive);
                return status;
             }
@@ -1511,13 +1481,13 @@ int writeActivitySparse(PV_Stream * pvstream, Communicator * comm, double timed,
          //
          status = (PV_fwrite(&timed, sizeof(double), 1, pvstream) != 1 );
          if (status != 0) {
-            fprintf(stderr, "[%2d]: writeActivitySparse: failed in fwrite(&timed), time==%f\n",
+            pvErrorNoExit().printf("[%2d]: writeActivitySparse: failed in fwrite(&timed), time==%f\n",
                     comm->commRank(), timed);
             return status;
          }
          status = ( PV_fwrite(&totalActive, sizeof(unsigned int), 1, pvstream) != 1 );
          if (status != 0) {
-            fprintf(stderr, "[%2d]: writeActivitySparse: failed in fwrite(&totalActive), totalActive==%d\n",
+            pvErrorNoExit().printf("[%2d]: writeActivitySparse: failed in fwrite(&totalActive), totalActive==%d\n",
                     comm->commRank(), totalActive);
             return status;
          }
@@ -1528,7 +1498,7 @@ int writeActivitySparse(PV_Stream * pvstream, Communicator * comm, double timed,
          //fflush(posstream->fp);
          
          //if (status != 0) {
-         //   fprintf(stderr, "[%2d]: writeActivitySparse: failed in fwrite(&filepos), filepos==%ld\n",
+         //   pvErrorNoExit().printf("[%2d]: writeActivitySparse: failed in fwrite(&filepos), filepos==%ld\n",
          //           comm->commRank(), filepos);
          //   return status;
          //}
@@ -1541,7 +1511,7 @@ int writeActivitySparse(PV_Stream * pvstream, Communicator * comm, double timed,
                status = (PV_fwrite(globalResIndices, sizeof(unsigned int), localResActive, pvstream) != (size_t) localResActive);
             }
             if (status != 0) {
-               fprintf(stderr, "[%2d]: writeActivitySparse: failed in PV_fwrite(indices), localActive==%d\n",
+               pvErrorNoExit().printf("[%2d]: writeActivitySparse: failed in PV_fwrite(indices), localActive==%d\n",
                      comm->commRank(), localResActive);
                return status;
             }
@@ -1568,9 +1538,10 @@ int writeActivitySparse(PV_Stream * pvstream, Communicator * comm, double timed,
                data = (void *) globalResIndices;
             }
 #ifdef DEBUG_OUTPUT
-            fprintf(stderr, "[%2d]: writeActivitySparse: receiving from %d, numActive==%d\n",
+            pvDebug(debugWriteActivitySparseReceiving);
+            debugWriteActivitySparseReceiving.printf("[%2d]: writeActivitySparse: receiving from %d, numActive==%d\n",
                     comm->commRank(), p, numActive[p]);
-            fflush(stderr);
+            debugWriteActivitySparseReceiving.flush();
 #endif // DEBUG_OUTPUT
             
             MPI_Status mpi_status;
@@ -1578,7 +1549,7 @@ int writeActivitySparse(PV_Stream * pvstream, Communicator * comm, double timed,
 
             status = (PV_fwrite(data, datasize, numActive[p], pvstream) != numActive[p] );
             if (status != 0) {
-               fprintf(stderr, "[%2d]: writeActivitySparse: failed in PV_fwrite(indices), numActive[p]==%d, p=%d\n",
+               pvErrorNoExit().printf("[%2d]: writeActivitySparse: failed in PV_fwrite(indices), numActive[p]==%d, p=%d\n",
                        comm->commRank(), numActive[p], p);
                return status;
             }
@@ -1608,12 +1579,10 @@ int readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numArbors, int 
    // rank zero process broadcasts params to all processes, so it's enough for rank zero process to do the error checking
    if (comm->commRank()==0) {
       if (numParams != NUM_WGT_PARAMS) {
-         fprintf(stderr, "Reading weights file \"%s\": expected %zu parameters in header but received %d\n", filename, NUM_WGT_PARAMS, numParams);
-         exit(EXIT_FAILURE);
+         pvError().printf("Reading weights file \"%s\": expected %zu parameters in header but received %d\n", filename, NUM_WGT_PARAMS, numParams);
       }
       if (params[NUM_BIN_PARAMS+INDEX_WGT_NXP] != nxp || params[NUM_BIN_PARAMS+INDEX_WGT_NYP] != nyp) {
-         fprintf(stderr, "readWeights error: called with nxp=%d, nyp=%d, but \"%s\" has nxp=%d, nyp=%d\n", nxp, nyp, filename, params[NUM_BIN_PARAMS+INDEX_WGT_NXP], params[NUM_BIN_PARAMS+INDEX_WGT_NYP]);
-         exit(EXIT_FAILURE);
+         pvError().printf("readWeights error: called with nxp=%d, nyp=%d, but \"%s\" has nxp=%d, nyp=%d\n", nxp, nyp, filename, params[NUM_BIN_PARAMS+INDEX_WGT_NXP], params[NUM_BIN_PARAMS+INDEX_WGT_NYP]);
       }
    }
 
@@ -1628,13 +1597,13 @@ int readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numArbors, int 
    }
    
    if (status != 0) {
-      fprintf(stderr, "[%2d]: readWeights: failed in pvp_check_file_header, numParams==%d\n",
+      pvErrorNoExit().printf("[%2d]: readWeights: failed in pvp_check_file_header, numParams==%d\n",
               comm->commRank(), numParams);
       return status;
    }
    assert(params[INDEX_NX_PROCS]==1 && params[INDEX_NY_PROCS]==1);
    if( params[INDEX_NBANDS] > numArbors ) {
-      fprintf(stderr, "PV::readWeights: file \"%s\" has %d arbors, but readWeights was called with only %d arbors", filename, params[INDEX_NBANDS], numArbors);
+      pvErrorNoExit().printf("PV::readWeights: file \"%s\" has %d arbors, but readWeights was called with only %d arbors", filename, params[INDEX_NBANDS], numArbors);
       return -1;
    }
    
@@ -1655,9 +1624,9 @@ int readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numArbors, int 
    bool compress = header_data_type == PV_BYTE_TYPE;
    unsigned char * cbuf = (unsigned char *) malloc(localSize);
    if(cbuf == NULL) {
-      fprintf(stderr, "Rank %d: writeWeights unable to allocate memory to write to \"%s\": %s", icRank, filename, strerror(errno));
-      fprintf(stderr, "    (nxp=%d, nyp=%d, nfp=%d, numPatchItems=%d, writing weights as %s)\n", nxp, nyp, nfp, numPatchItems, compress ? "bytes" : "floats");
-      exit(EXIT_FAILURE);
+      pvError(errorMessage);
+      errorMessage.printf("Rank %d: writeWeights unable to allocate memory to write to \"%s\": %s", icRank, filename, strerror(errno));
+      errorMessage.printf("    (nxp=%d, nyp=%d, nfp=%d, numPatchItems=%d, writing weights as %s)\n", nxp, nyp, nfp, numPatchItems, compress ? "bytes" : "floats");
    }
 
    const int expected_file_type = patches == NULL ? PVP_KERNEL_FILE_TYPE : PVP_WGT_FILE_TYPE;
@@ -1670,7 +1639,7 @@ int readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numArbors, int 
    const int src = 0;
    if (expected_file_type != header_file_type) {
       if (icRank==0) {
-         fprintf(stderr, "readWeights: file \"%s\" has type %d but readWeights was called expecting type %d\n",
+         pvErrorNoExit().printf("readWeights: file \"%s\" has type %d but readWeights was called expecting type %d\n",
                filename, header_file_type, expected_file_type);
       }
 #ifdef PV_USE_MPI
@@ -1683,7 +1652,7 @@ int readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numArbors, int 
       for (int arbor=0; arbor<params[INDEX_NBANDS]; arbor++) {
          if (header_file_type == PVP_KERNEL_FILE_TYPE) {
 #ifdef DEBUG_OUTPUT
-            fprintf(stderr, "[%2d]: readWeights: bcast from %d, arbor %d, numPatchItems %d, numPatches==%d, localSize==%zu\n",
+            pvDebug().printf("[%2d]: readWeights: bcast from %d, arbor %d, numPatchItems %d, numPatches==%d, localSize==%zu\n",
                     comm->commRank(), src, arbor, numPatchItems, numPatches, localSize);
 #endif // DEBUG_OUTPUT
             MPI_Bcast(cbuf, localSize, MPI_BYTE, src, mpi_comm);
@@ -1691,7 +1660,7 @@ int readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numArbors, int 
          else {
             assert(header_file_type == PVP_WGT_FILE_TYPE);
 #ifdef DEBUG_OUTPUT
-            fprintf(stderr, "[%2d]: readWeights: recv from %d, arbor %d, numPatchItems %d, numPatches==%d, localSize==%zu\n",
+            pvDebug().printf("[%2d]: readWeights: recv from %d, arbor %d, numPatchItems %d, numPatches==%d, localSize==%zu\n",
                     comm->commRank(), src, arbor, numPatchItems, numPatches, localSize);
 #endif // DEBUG_OUTPUT
             MPI_Recv(cbuf, localSize, MPI_BYTE, src, tagbase+arbor, mpi_comm, MPI_STATUS_IGNORE);
@@ -1709,11 +1678,10 @@ int readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numArbors, int 
             PV_fseek(pvstream, arborStart, SEEK_SET);
             int numRead = PV_fread(cbuf, localSize, 1, pvstream);
             if (numRead != 1) {
-               fprintf(stderr, "readWeights error reading arbor %d of %zu bytes from position %ld of \"%s\".\n", arbor, localSize, arborStart, filename);
-               exit(EXIT_FAILURE);
+               pvError().printf("readWeights error reading arbor %d of %zu bytes from position %ld of \"%s\".\n", arbor, localSize, arborStart, filename);
             };
 #ifdef DEBUG_OUTPUT
-            fprintf(stderr, "[%2d]: readWeights: bcast from %d, arbor %d, numPatchItems %d, numPatches==%d, localSize==%zu\n",
+            pvDebug().printf("[%2d]: readWeights: bcast from %d, arbor %d, numPatchItems %d, numPatches==%d, localSize==%zu\n",
                     comm->commRank(), src, arbor, numPatchItems, numPatches, localSize);
 #endif // DEBUG_OUTPUT
             if(comm->commSize() > 1){
@@ -1744,14 +1712,13 @@ int readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numArbors, int 
                   PV_fseek(pvstream, arborStart+globalIndex*patchSize, SEEK_SET);
                   int numread = PV_fread(cbufpatch, patchSize, 1, pvstream);
                   if (numread != 1) {
-                     fprintf(stderr, "readWeights error reading arbor %d, patch %d of %zu bytes from position %ld of \"%s\".\n", arbor, k, patchSize, arborStart+globalIndex*patchSize, filename);
-                     exit(EXIT_FAILURE);
+                     pvError().printf("readWeights error reading arbor %d, patch %d of %zu bytes from position %ld of \"%s\".\n", arbor, k, patchSize, arborStart+globalIndex*patchSize, filename);
                   }
                } // Loop over patches
                if (proc != comm->commSize()) {
                   MPI_Send(cbuf, localSize, MPI_BYTE, proc, tagbase+arbor, mpi_comm);
 #ifdef DEBUG_OUTPUT
-                  fprintf(stderr, "[%2d]: readWeights: recv from %d, arbor %d, numPatchItems %d, numPatches==%d, localSize==%zu\n",
+                  pvDebug().printf("[%2d]: readWeights: recv from %d, arbor %d, numPatchItems %d, numPatches==%d, localSize==%zu\n",
                         comm->commRank(), src, arbor, numPatchItems, numPatches, localSize);
 #endif // DEBUG_OUTPUT
                }
@@ -1790,14 +1757,14 @@ int readWeightsDeprecated(PVPatch *** patches, pvwdata_t ** dataStart, int numAr
 
    status = pvp_read_header(filename, comm, timed, &header_file_type, &header_data_type, params, &numParams);
    if( status != PV_SUCCESS ) {
-      fprintf(stderr, "[%2d]: readWeightsDeprecated: failed in pvp_read_header, numParams==%d\n",
+      pvErrorNoExit().printf("[%2d]: readWeightsDeprecated: failed in pvp_read_header, numParams==%d\n",
               comm->commRank(), numParams);
       return status;
    }
 
    status = pvp_check_file_header_deprecated(comm, loc, params, numParams);
    if (status != 0) {
-      fprintf(stderr, "[%2d]: readWeightsDeprecated: failed in pvp_check_file_header_deprecated, numParams==%d\n",
+      pvErrorNoExit().printf("[%2d]: readWeightsDeprecated: failed in pvp_check_file_header_deprecated, numParams==%d\n",
               comm->commRank(), numParams);
       return status;
    }
@@ -1809,7 +1776,7 @@ int readWeightsDeprecated(PVPatch *** patches, pvwdata_t ** dataStart, int numAr
 
    if (nxp != wgtParams[INDEX_WGT_NXP] || nyp != wgtParams[INDEX_WGT_NYP] || nfp != wgtParams[INDEX_WGT_NFP]) {
       if (icRank==0) {
-         fprintf(stderr, "readWeightsDeprecated error: file \"%s\" patch dimensions (nxp=%d, nyp=%d, nfp=%d) do not agree with expected values (%d,%d,%d).\n",
+         pvErrorNoExit().printf("readWeightsDeprecated: file \"%s\" patch dimensions (nxp=%d, nyp=%d, nfp=%d) do not agree with expected values (%d,%d,%d).\n",
                filename, wgtParams[INDEX_WGT_NXP], wgtParams[INDEX_WGT_NYP], wgtParams[INDEX_WGT_NFP], nxp, nyp, nfp);
       }
       MPI_Barrier(comm->communicator());
@@ -1839,14 +1806,14 @@ int readWeightsDeprecated(PVPatch *** patches, pvwdata_t ** dataStart, int numAr
    //
    status = ( header_data_type != PV_BYTE_TYPE && header_data_type != PV_FLOAT_TYPE );
    if (status != 0) {
-      fprintf(stderr, "[%2d]: readWeightsDeprecated: failed in pvp_check_file_header, datatype==%d\n",
+      pvErrorNoExit().printf("[%2d]: readWeightsDeprecated: failed in pvp_check_file_header, datatype==%d\n",
               comm->commRank(), header_data_type);
       return status;
    }
    if (header_file_type != PVP_KERNEL_FILE_TYPE){
       status = (nxBlocks != nxFileBlocks || nyBlocks != nyFileBlocks);
       if (status != 0) {
-         fprintf(stderr, "[%2d]: readWeightsDeprecated: failed in pvp_check_file_header, "
+         pvErrorNoExit().printf("[%2d]: readWeightsDeprecated: failed in pvp_check_file_header, "
                "nxFileBlocks==%d, nyFileBlocks==%d\n, nxBlocks==%d, nyBlocks==%d\n",
                comm->commRank(), nxFileBlocks, nyFileBlocks, nxBlocks, nyBlocks);
          return status;
@@ -1859,7 +1826,7 @@ int readWeightsDeprecated(PVPatch *** patches, pvwdata_t ** dataStart, int numAr
       status = ((numPatches != wgtParams[INDEX_WGT_NUMPATCHES]));
    }
    if (status != 0) {
-      fprintf(stderr, "[%2d]: readWeightsDeprecated: failed in pvp_check_file_header, "
+      pvErrorNoExit().printf("[%2d]: readWeightsDeprecated: failed in pvp_check_file_header, "
             "numPatches==%d, nxProcs==%d\n, nyProcs==%d, wgtParams[INDEX_WGT_NUMPATCHES]==%d\n",
             comm->commRank(), numPatches, nxProcs, nyProcs, wgtParams[INDEX_WGT_NUMPATCHES]);
       return status;
@@ -1880,7 +1847,7 @@ int readWeightsDeprecated(PVPatch *** patches, pvwdata_t ** dataStart, int numAr
 
    // read weights and send using MPI
    if( params[INDEX_NBANDS] > numArbors ) {
-      fprintf(stderr, "PV::readWeightsDeprecated: file \"%s\" has %d arbors, but readWeightsDeprecated was called with only %d arbors", filename, params[INDEX_NBANDS], numArbors);
+      pvErrorNoExit().printf("PV::readWeightsDeprecated: file \"%s\" has %d arbors, but readWeightsDeprecated was called with only %d arbors", filename, params[INDEX_NBANDS], numArbors);
       return -1;
    }
    PV_Stream * pvstream = pvp_open_read_file(filename, comm);
@@ -1891,12 +1858,12 @@ int readWeightsDeprecated(PVPatch *** patches, pvwdata_t ** dataStart, int numAr
          const int src = 0;
 
 #ifdef DEBUG_OUTPUT
-         fprintf(stderr, "[%2d]: readWeightsDeprecated: recv from %d, nxBlocks==%d nyBlocks==%d numPatches==%d\n",
+         pvDebug().printf("[%2d]: readWeightsDeprecated: recv from %d, nxBlocks==%d nyBlocks==%d numPatches==%d\n",
                  comm->commRank(), src, nxBlocks, nyBlocks, numPatches);
 #endif // DEBUG_OUTPUT
          MPI_Recv(cbuf, localSize, MPI_BYTE, src, tag, mpi_comm, MPI_STATUS_IGNORE);
 #ifdef DEBUG_OUTPUT
-         fprintf(stderr, "[%2d]: readWeightsDeprecated: recv from %d completed\n",
+         pvDebug().printf("[%2d]: readWeightsDeprecated: recv from %d completed\n",
                  comm->commRank(), src);
 #endif // DEBUG_OUTPUT
 #endif // PV_USE_MPI
@@ -1906,7 +1873,7 @@ int readWeightsDeprecated(PVPatch *** patches, pvwdata_t ** dataStart, int numAr
          const int headerSize = numParams * sizeof(int);
 
          if (pvstream == NULL) {
-            fprintf(stderr, "PV::readWeightsDeprecated: ERROR opening file %s\n", filename);
+            pvErrorNoExit().printf("PV::readWeightsDeprecated: unable to open file %s\n", filename);
             return -1;
          }
 
@@ -1958,7 +1925,7 @@ int readWeightsDeprecated(PVPatch *** patches, pvwdata_t ** dataStart, int numAr
             PV_fseek(pvstream, offset, SEEK_SET);
             int numRead = PV_fread(cbuf, localSize, 1, pvstream);
             if  (numRead != 1) {
-               fprintf(stderr, "[%2d]: readWeightsDeprecated: failed in PV_fread, offset==%ld\n",
+               pvErrorNoExit().printf("[%2d]: readWeightsDeprecated: failed in PV_fread, offset==%ld\n",
                      comm->commRank(), offset);
             }
          }
@@ -1985,8 +1952,8 @@ int readWeightsDeprecated(PVPatch *** patches, pvwdata_t ** dataStart, int numAr
             if (offset != patch->offset ||
                 nx != patch->nx ||
                 ny != patch->ny) {
-               fprintf(stderr, "readWeightsDeprecated error: Rank %d process, patch %d: geometry from filename \"%s\" is not consistent with geometry from patches input argument: ", comm->commRank(), patchindex, filename);
-               fprintf(stderr, "filename has nx=%hu, ny=%hu, offset=%u; patches[%d] has nx=%hu, ny=%hu, offset=%u.\n", nx, ny, offset, patchindex, patch->nx, patch->ny, patch->offset);
+               pvErrorNoExit().printf("readWeightsDeprecated: Rank %d process, patch %d: geometry from filename \"%s\" is not consistent with geometry from patches input argument: ", comm->commRank(), patchindex, filename);
+               pvErrorNoExit().printf("filename has nx=%hu, ny=%hu, offset=%u; patches[%d] has nx=%hu, ny=%hu, offset=%u.\n", nx, ny, offset, patchindex, patch->nx, patch->ny, patch->offset);
                status = PV_FAILURE;
             }
             patchinfofromfile += (size_t) (nxp*nyp*nfp)*pv_sizeof(header_data_type);
@@ -1997,13 +1964,44 @@ int readWeightsDeprecated(PVPatch *** patches, pvwdata_t ** dataStart, int numAr
       }
       status = pvp_set_patches(cbuf, patches ? patches[arborId] : NULL, dataStart[arborId], numPatches, nxp, nyp, nfp, minVal, maxVal, compress);
       if (status != PV_SUCCESS) {
-         fprintf(stderr, "[%2d]: readWeightsDeprecated: failed in pvp_set_patches, numPatches==%d\n",
+         pvErrorNoExit().printf("[%2d]: readWeightsDeprecated: failed in pvp_set_patches, numPatches==%d\n",
                  comm->commRank(), numPatches);
       }
    } // loop over arborId
    free(cbuf);
    status = pvp_close_file(pvstream, comm)==PV_SUCCESS ? status : PV_FAILURE;
    return status;
+}
+
+/**
+ * @fd
+ * @patch
+ */
+int pv_text_write_patch(OutStream * outStream, PVPatch * patch, pvwdata_t * data, int nf, int sx, int sy, int sf)
+{
+   int f, i, j;
+
+   const int nx = (int) patch->nx;
+   const int ny = (int) patch->ny;
+   //const int nf = (int) patch->nf;
+
+   //const int sx = (int) patch->sx;  assert(sx == nf);
+   //const int sy = (int) patch->sy;  //assert(sy == nf*nx);
+   //const int sf = (int) patch->sf;  assert(sf == 1);
+
+   assert(outStream != NULL);
+
+   for (f = 0; f < nf; f++) {
+      for (j = 0; j < ny; j++) {
+         for (i = 0; i < nx; i++) {
+            outStream->printf("%7.5f ", data[i*sx + j*sy + f*sf]);
+         }
+         outStream->printf("\n");
+      }
+      outStream->printf("\n");
+   }
+
+   return 0;
 }
 
 int writeWeights(const char * filename, Communicator * comm, double timed, bool append,
@@ -2021,9 +2019,9 @@ int writeWeights(const char * filename, Communicator * comm, double timed, bool 
 
    unsigned char * cbuf = (unsigned char *) malloc(localSize);
    if(cbuf == NULL) {
-      fprintf(stderr, "Rank %d: writeWeights unable to allocate memory to write to \"%s\": %s", icRank, filename, strerror(errno));
-      fprintf(stderr, "    (nxp=%d, nyp=%d, nfp=%d, numPatchItems=%d, writing weights as %s)\n", nxp, nyp, nfp, numPatchItems, compress ? "bytes" : "floats");
-      exit(EXIT_FAILURE);
+      pvError(errorMessage);
+      errorMessage.printf("Rank %d: writeWeights unable to allocate memory to write to \"%s\": %s", icRank, filename, strerror(errno));
+      errorMessage.printf("    (nxp=%d, nyp=%d, nfp=%d, numPatchItems=%d, writing weights as %s)\n", nxp, nyp, nfp, numPatchItems, compress ? "bytes" : "floats");
    }
 
 #ifdef PV_USE_MPI
@@ -2038,7 +2036,7 @@ int writeWeights(const char * filename, Communicator * comm, double timed, bool 
             pvp_copy_patches(cbuf, patches[arbor], dataStart[arbor], numPatches, nxp, nyp, nfp, minVal, maxVal, compress);
             MPI_Send(cbuf, localSize, MPI_BYTE, dest, tagbase+arbor, mpi_comm);
 #ifdef DEBUG_OUTPUT
-            fprintf(stderr, "[%2d]: writeWeights: sent to 0, nxBlocks==%d nyBlocks==%d numPatches==%d\n",
+            pvDebug().printf("[%2d]: writeWeights: sent to 0, nxBlocks==%d nyBlocks==%d numPatches==%d\n",
                     comm->commRank(), nxBlocks, nyBlocks, numPatches);
 #endif // DEBUG_OUTPUT
          }
@@ -2048,8 +2046,7 @@ int writeWeights(const char * filename, Communicator * comm, double timed, bool 
    else /* icRank==0 */ {
       void * wgtExtraParams = calloc(NUM_WGT_EXTRA_PARAMS, sizeof(int));
       if (wgtExtraParams == NULL) {
-         fprintf(stderr, "writeWeights unable to allocate memory to write weight params to \"%s\": %s\n", filename, strerror(errno));
-         exit(EXIT_FAILURE);
+         pvError().printf("writeWeights unable to allocate memory to write weight params to \"%s\": %s\n", filename, strerror(errno));
       }
       int * wgtExtraIntParams = (int *) wgtExtraParams;
       float * wgtExtraFloatParams = (float *) wgtExtraParams;
@@ -2059,7 +2056,7 @@ int writeWeights(const char * filename, Communicator * comm, double timed, bool 
       PV_Stream * pvstream = pvp_open_write_file(filename, comm, append);
 
       if (pvstream == NULL) {
-         fprintf(stderr, "PV::writeWeights: ERROR opening file \"%s\"\n", filename);
+         pvErrorNoExit().printf("PV::writeWeights: unable to open file \"%s\"\n", filename);
          return -1;
       }
       if (append) PV_fseek(pvstream, 0L, SEEK_END); // If append is true we open in "r+" mode so we need to move to the end of the file.
@@ -2075,7 +2072,7 @@ int writeWeights(const char * filename, Communicator * comm, double timed, bool 
             asPostWeights = true;
          }
          else {
-            fprintf(stderr, "writeWeights error for \"%s\": numPatches %d is not compatible with layer dimensions nx=%d, ny=%d, nf=%d, halo=(%d,%d,%d,%d)\n",
+            pvErrorNoExit().printf("writeWeights: in file \"%s\", numPatches %d is not compatible with layer dimensions nx=%d, ny=%d, nf=%d, halo=(%d,%d,%d,%d)\n",
                   filename, numPatches, preLoc->nx, preLoc->ny, preLoc->nf, preLoc->halo.lt, preLoc->halo.rt, preLoc->halo.dn, preLoc->halo.up);
          }
          numGlobalPatches = getNumGlobalPatches(preLoc, asPostWeights);
@@ -2092,8 +2089,7 @@ int writeWeights(const char * filename, Communicator * comm, double timed, bool 
       status = pvp_write_header(pvstream, comm, timed, preLoc, file_type,
                                 datatype, numArbors, true/*extended*/, true/*contiguous*/, numParams, globalSize);
       if (status != PV_SUCCESS) {
-         fprintf(stderr, "Error writing writing weights header to \"%s\".\n", filename);
-         exit(EXIT_FAILURE);
+         pvError().printf("Error writing writing weights header to \"%s\".\n", filename);
       }
 
       // write extra weight parameters
@@ -2110,7 +2106,7 @@ int writeWeights(const char * filename, Communicator * comm, double timed, bool 
       unsigned int num_written = PV_fwrite(wgtExtraParams, sizeof(int), numParams, pvstream);
       free(wgtExtraParams); wgtExtraParams=NULL; wgtExtraIntParams=NULL; wgtExtraFloatParams=NULL;
       if ( num_written != (unsigned int) numParams ) {
-         fprintf(stderr, "PV::writeWeights: error writing weight header to file %s\n", filename);
+         pvErrorNoExit().printf("PV::writeWeights: unable to write weight header to file %s\n", filename);
          return -1;
       }
 
@@ -2120,7 +2116,7 @@ int writeWeights(const char * filename, Communicator * comm, double timed, bool 
             pvp_copy_patches(cbuf, arborPatches, dataStart[arbor], numPatches, nxp, nyp, nfp, minVal, maxVal, compress);
             size_t numfwritten = PV_fwrite(cbuf, localSize, 1, pvstream);
             if (numfwritten != 1) {
-               fprintf(stderr, "PV::writeWeights: error writing weight data to file %s\n", filename);
+               pvErrorNoExit().printf("PV::writeWeights: unable to write weight data to file %s\n", filename);
                return -1;
             }
          }
@@ -2201,7 +2197,7 @@ int writeRandState(const char * filename, Communicator * comm, taus_uint4 * rand
    if (rank == rootproc) {
       pvstream = PV_fopen(filename, "w", verifyWrites);
       if (pvstream==NULL) {
-         fprintf(stderr, "writeRandState error: unable to open path %s for writing.\n", filename);
+         pvErrorNoExit().printf("writeRandState: unable to open path %s for writing.\n", filename);
          abort();
       }
    }
@@ -2231,7 +2227,7 @@ int readRandState(const char * filename, Communicator * comm, taus_uint4 * randS
    if (rank == rootproc) {
       pvstream = PV_fopen(filename, "r", false/*verifyWrites*/);
       if (pvstream==NULL) {
-         fprintf(stderr, "readRandState error: unable to open path %s for reading.\n", filename);
+         pvErrorNoExit().printf("readRandState: unable to open path %s for reading.\n", filename);
          abort();
       }
    }
@@ -2279,39 +2275,34 @@ template <typename T> int gatherActivity(PV_Stream * pvstream, Communicator * co
    // read into a temporary buffer since buffer may be extended but the file only contains the restricted part.
    T * temp_buffer = (T *) calloc(numLocalNeurons, datasize);
    if (temp_buffer==NULL) {
-      fprintf(stderr, "gatherActivity unable to allocate memory for temp_buffer.\n");
       status = PV_FAILURE;
-      abort();
+      pvError().printf("gatherActivity unable to allocate memory for temp_buffer.\n");
    }
 
    int rank = comm->commRank();
    if (rank==rootproc) {
       if (pvstream == NULL) {
-         fprintf(stderr, "gatherActivity error: file pointer on root process is null.\n");
          status = PV_FAILURE;
-         abort();
+         pvError().printf("gatherActivity: file pointer on root process is null.\n");
       }
       long startpos = getPV_StreamFilepos(pvstream);
       if (startpos == -1) {
-         fprintf(stderr, "gatherActivity error when getting file position: %s\n", strerror(errno));
          status = PV_FAILURE;
-         abort();
+         pvErrorNoExit().printf("gatherActivity: failure getting file position: %s\n", strerror(errno));
       }
       // Write zeroes to make sure the file is big enough since we'll write nonsequentially under MPI.  This may not be necessary.
       int comm_size = comm->commSize();
       for (int r=0; r<comm_size; r++) {
          int numwritten = PV_fwrite(temp_buffer, datasize, numLocalNeurons, pvstream);
          if (numwritten != numLocalNeurons) {
-            fprintf(stderr, "gatherActivity error when writing: number of bytes attempted %d, number written %d\n", numwritten, numLocalNeurons);
             status = PV_FAILURE;
-            abort();
+            pvError().printf("gatherActivity error when writing: number of bytes attempted %d, number written %d\n", numwritten, numLocalNeurons);
          }
       }
       int fseekstatus = PV_fseek(pvstream, startpos, SEEK_SET);
       if (fseekstatus != 0) {
-         fprintf(stderr, "gatherActivity error when setting file position: %s\n", strerror(errno));
          status = PV_FAILURE;
-         abort();
+         pvError().printf("gatherActivity error when setting file position: %s\n", strerror(errno));
       }
 
       for (int r=0; r<comm_size; r++) {
@@ -2341,14 +2332,13 @@ template <typename T> int gatherActivity(PV_Stream * pvstream, Communicator * co
             if (fseekstatus == 0) {
                int numwritten = PV_fwrite(&temp_buffer[k_local], datasize, linesize, pvstream);
                if (numwritten != linesize) {
-                  fprintf(stderr, "gatherActivity error when writing to \"%s\": number of bytes attempted %zu, number written %d\n", pvstream->name, datasize*linesize, numwritten);
+                  pvErrorNoExit().printf("gatherActivity failure writing to \"%s\": number of bytes attempted %zu, number written %d\n", pvstream->name, datasize*linesize, numwritten);
                   status = PV_FAILURE;
                }
             }
             else {
-               fprintf(stderr, "gatherActivity error when setting file position: %s\n", strerror(errno));
                status = PV_FAILURE;
-               abort();
+               pvErrorNoExit().printf("gatherActivity failure setting file position: %s\n", strerror(errno));
             }
          }
       }
@@ -2417,9 +2407,8 @@ template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * c
       datasize = sizeof(T);
       TBuff =  (T *) calloc(numLocalNeurons, datasize);
       if (TBuff==NULL) {
-         fprintf(stderr, "scatterActivity unable to allocate memory for temp_buffer.\n");
          status = PV_FAILURE;
-         abort();
+         pvErrorNoExit().printf("scatterActivity unable to allocate memory for temp_buffer.\n");
       }
       break;
    case PVP_ACT_FILE_TYPE:
@@ -2427,9 +2416,8 @@ template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * c
       datasize = sizeof(pvdata_t);
       TBuff1 =  (pvdata_t *) calloc(numLocalNeurons, datasize);
       if (TBuff1==NULL) {
-         fprintf(stderr, "scatterActivity unable to allocate memory for temp_buffer.\n");
          status = PV_FAILURE;
-         abort();
+         pvError().printf("scatterActivity unable to allocate memory for temp_buffer.\n");
       }
       break;
    }
@@ -2437,20 +2425,17 @@ template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * c
    int rank = comm->commRank();
    if (rank==rootproc) {
       if (pvstream == NULL) {
-         fprintf(stderr, "scatterActivity error: file pointer on root process is null.\n");
          status = PV_FAILURE;
-         abort();
+         pvError().printf("scatterActivity: file pointer on root process is null.\n");
       }
       long startpos = getPV_StreamFilepos(pvstream);
       if (startpos == -1) {
-         fprintf(stderr, "scatterActivity error when getting file position: %s\n", strerror(errno));
          status = PV_FAILURE;
-         abort();
+         pvError().printf("scatterActivity unable to get file position: %s\n", strerror(errno));
       }
       if (fileLoc==NULL) fileLoc = layerLoc;
       if (fileLoc->nf != layerLoc->nf) {
-         fprintf(stderr, "scatterActivity error: layerLoc->nf and fileLoc->nf must be equal (they are %d and %d)\n", layerLoc->nf, fileLoc->nf);
-         abort();
+         pvError().printf("scatterActivity: layerLoc->nf and fileLoc->nf must be equal (they are %d and %d)\n", layerLoc->nf, fileLoc->nf);
       }
 
       int comm_size = comm->commSize();
@@ -2459,8 +2444,7 @@ template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * c
          //TODO for non-spiking
          if (offsetX < 0 || offsetX + layerLoc->nxGlobal > fileLoc->nxGlobal ||
                offsetY < 0 || offsetY + layerLoc->nyGlobal > fileLoc->nyGlobal) {
-            fprintf(stderr, "scatterActivity error: offset window does not completely fit inside frame defined by image file \"%s\". This case has not been implemented yet for nonspiking activity files.\n", pvstream->name);
-            exit(EXIT_FAILURE);
+            pvError().printf("scatterActivity error: offset window does not completely fit inside frame defined by image file \"%s\". This case has not been implemented yet for nonspiking activity files.\n", pvstream->name);
          }
 
          for (int r=0; r<comm_size; r++) {
@@ -2473,8 +2457,7 @@ template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * c
                PV_fseek(pvstream, startpos + k_infile*(long) datasize, SEEK_SET);
                int numread = PV_fread(&TBuff[k_inmemory], datasize, linesize, pvstream);
                if (numread != linesize) {
-                  fprintf(stderr, "scatterActivity error when reading: number of bytes attempted %d, number read %d\n", numread, numLocalNeurons);
-                  abort();
+                  pvError().printf("scatterActivity error when reading: number of bytes attempted %d, number read %d\n", numread, numLocalNeurons);
                }
             }
             MPI_Send(TBuff, numLocalNeurons*(int) datasize, MPI_BYTE, r, 171+r/*tag*/, comm->communicator());
@@ -2487,8 +2470,7 @@ template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * c
             PV_fseek(pvstream, startpos + k_infile*(long) datasize, SEEK_SET);
             int numread = PV_fread(&TBuff[k_inmemory], datasize, linesize, pvstream);
             if (numread != linesize) {
-               fprintf(stderr, "scatterActivity error when reading: number of bytes attempted %d, number written %d\n", linesize, numread);
-               abort();
+               pvError().printf("scatterActivity error when reading: number of bytes attempted %d, number written %d\n", linesize, numread);
             }
          }
          PV_fseek(pvstream, startpos+numLocalNeurons*datasize*comm_size, SEEK_SET);
@@ -2539,13 +2521,11 @@ template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * c
          //Read list of active neurons and their values
          activeNeurons = (int *) calloc(numActive,datasize);
          if (activeNeurons==NULL) {
-            fprintf(stderr, "scatterActivity error for \"%s\": unable to allocate buffer for active neuron locations: %s\n", pvstream->name, strerror(errno));
-            exit(EXIT_FAILURE);
+            pvError().printf("scatterActivity error for \"%s\": unable to allocate buffer for active neuron locations: %s\n", pvstream->name, strerror(errno));
          }
          pvdata_t * vals =  (pvdata_t *) calloc(numActive, datasize);
          if (activeNeurons==NULL) {
-            fprintf(stderr, "scatterActivity error for \"%s\": unable to allocate buffer for active neuron values: %s\n", pvstream->name, strerror(errno));
-            exit(EXIT_FAILURE);
+            pvError().printf("scatterActivity error for \"%s\": unable to allocate buffer for active neuron values: %s\n", pvstream->name, strerror(errno));
          }
          for (int i = 0; i < numActive; i++) {
             foo = PV_fread(&activeNeurons[i], datasize, 1, pvstream);

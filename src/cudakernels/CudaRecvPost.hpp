@@ -18,7 +18,7 @@
 namespace PVCuda{
 #include <builtin_types.h>
 
-//Parameter structur
+//Parameter structure
    struct recv_post_params{
       int nbatch;
       int nxRes; //num post neurons
@@ -156,9 +156,14 @@ protected:
    virtual int do_run();
 
 private:
+#ifdef PV_USE_CUDNN
+   void callPermuteDatastorePVToCudnnKernel(int gridSize, int blockSize, int nbatch, int ny, int nx, int nf);
+   void callPermuteGSynPVToCudnnKernel(int gridSize, int blockSize, float* gSynPatchHead, int nbatch, int ny, int nx, int nf);
+   void callPermuteGSynCudnnToPVKernel(int gridSize, int blockSize, float* gSynPatchHead, int nbatch, int ny, int nx, int nf);
+   #endif // PV_USE_CUDNN
    recv_post_params params;
-};
+}; // end class CudaRecvPost
 
-}
+}  // end namespace PV
 
 #endif /* CLKERNEL_HPP_ */

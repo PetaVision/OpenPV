@@ -105,18 +105,19 @@ void PoolingConn::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {
 
 void PoolingConn::unsetAccumulateType() {
    if (parent->columnId()==0) {
+      pvErrorNoExit(errorMessage);
       if (pvpatchAccumulateTypeString) {
-         pvLogError("%s \"%s\" error: pvpatchAccumulateType \"%s\" is unrecognized.",
+         errorMessage.printf("%s \"%s\": pvpatchAccumulateType \"%s\" is unrecognized.",
                getKeyword(), name, pvpatchAccumulateTypeString);
       }
       else {
-         pvLogError("%s \"%s\" error: pvpatchAccumulateType NULL is unrecognized.",
+         errorMessage.printf("%s \"%s\" error: pvpatchAccumulateType NULL is unrecognized.",
                getKeyword(), name);
       }
-      pvLogError("  Allowed values are \"maxpooling\", \"sumpooling\", or \"avgpooling\".");
+      errorMessage.printf("  Allowed values are \"maxpooling\", \"sumpooling\", or \"avgpooling\".");
    }
    MPI_Barrier(parent->icCommunicator()->communicator());
-   pvExitFailure("");
+   exit(EXIT_FAILURE);
 }
 
 void PoolingConn::ioParam_needPostIndexLayer(enum ParamsIOFlag ioFlag){
@@ -154,12 +155,10 @@ int PoolingConn::initialize(const char * name, HyPerCol * hc, InitWeights * weig
    switch (poolingType) {
 #ifdef OBSOLETE // Marked obsolete May 3, 2016.  HyPerConn defines HyPerConnAccumulateType and PoolingConn defines PoolingType
    case ACCUMULATE_CONVOLVE:
-      std::cout << "ACCUMULATE_CONVOLVE not allowed in pooling conn\n";
-      exit(-1);
+      pvError() << "ACCUMULATE_CONVOLVE not allowed in pooling conn\n";
       break;
    case ACCUMULATE_STOCHASTIC:
-      std::cout << "ACCUMULATE_STOCASTIC not allowed in pooling conn\n";
-      exit(-1);
+      pvError() << "ACCUMULATE_STOCASTIC not allowed in pooling conn\n";
       break;
 #endif // OBSOLETE // Marked obsolete May 3, 2016.  HyPerConn defines HyPerConnAccumulateType and PoolingConn defines PoolingType
    case MAX:
@@ -195,22 +194,20 @@ int PoolingConn::communicateInitInfo() {
    const PVLayerLoc * postLoc = post->getLayerLoc();
    
    if(preLoc->nf != postLoc->nf){
-      std::cout << "Pooling Layer " << name << " error:  preLayer " << pre->getName() << " nf of " << preLoc->nf << " does not match postLayer " << post->getName() << " nf of " << postLoc->nf << ". Features must match\n";
-      exit(-1);
+      pvError() << "Pooling Layer " << name << ":  preLayer " << pre->getName() << " nf of " << preLoc->nf << " does not match postLayer " << post->getName() << " nf of " << postLoc->nf << ". Features must match\n";
    }
 
    float preToPostScaleX = (float)preLoc->nx/postLoc->nx;
    float preToPostScaleY = (float)preLoc->ny/postLoc->ny;
    if(preToPostScaleX < 1 || preToPostScaleY < 1){
-      std::cout << "Pooling Layer " << name << " error:  preLayer to postLayer must be a many to one or one to one conection\n";
-      exit(-1);
+      pvError() << "Pooling Layer " << name << ":  preLayer to postLayer must be a many to one or one to one conection\n";
    }
 
    if(needPostIndexLayer){
       BaseLayer * basePostIndexLayer = parent->getLayerFromName(this->postIndexLayerName);
       if (basePostIndexLayer==NULL) {
          if (parent->columnId()==0) {
-            fprintf(stderr, "%s \"%s\" error: postIndexLayerName \"%s\" does not refer to any layer in the column.\n", this->getKeyword(), name, this->postIndexLayerName);
+            pvErrorNoExit().printf("%s \"%s\": postIndexLayerName \"%s\" does not refer to any layer in the column.\n", this->getKeyword(), name, this->postIndexLayerName);
          }
          MPI_Barrier(parent->icCommunicator()->communicator());
          exit(EXIT_FAILURE);
@@ -219,7 +216,7 @@ int PoolingConn::communicateInitInfo() {
       postIndexLayer = dynamic_cast<PoolingIndexLayer*>(basePostIndexLayer);
       if (postIndexLayer==NULL) {
          if (parent->columnId()==0) {
-            fprintf(stderr, "%s \"%s\" error: postIndexLayerName \"%s\" is not a PoolingIndexLayer.\n", this->getKeyword(), name, this->postIndexLayerName);
+            pvErrorNoExit().printf("%s \"%s\": postIndexLayerName \"%s\" is not a PoolingIndexLayer.\n", this->getKeyword(), name, this->postIndexLayerName);
          }
          MPI_Barrier(parent->icCommunicator()->communicator());
          exit(EXIT_FAILURE);
@@ -227,7 +224,7 @@ int PoolingConn::communicateInitInfo() {
 
       if(postIndexLayer->getDataType() != PV_INT){
          if (parent->columnId()==0) {
-            fprintf(stderr, "%s \"%s\" error: postIndexLayer \"%s\" must have data type of int. Specify parameter dataType in this layer to be \"int\".\n", this->getKeyword(), name, this->postIndexLayerName);
+            pvErrorNoExit().printf("%s \"%s\": postIndexLayer \"%s\" must have data type of int. Specify parameter dataType in this layer to be \"int\".\n", this->getKeyword(), name, this->postIndexLayerName);
          }
          MPI_Barrier(parent->icCommunicator()->communicator());
          exit(EXIT_FAILURE);
@@ -239,7 +236,7 @@ int PoolingConn::communicateInitInfo() {
       //(margins doesnt matter)
       if(idxLoc->nxGlobal != postLoc->nxGlobal || idxLoc->nyGlobal != postLoc->nyGlobal || idxLoc->nf != postLoc->nf){
          if (parent->columnId()==0) {
-            fprintf(stderr, "%s \"%s\" error: postIndexLayer \"%s\" must have the same dimensions as the post pooling layer \"%s\".", this->getKeyword(), name, this->postIndexLayerName, this->postLayerName);
+            pvErrorNoExit().printf("%s \"%s\": postIndexLayer \"%s\" must have the same dimensions as the post pooling layer \"%s\".", this->getKeyword(), name, this->postIndexLayerName, this->postLayerName);
          }
          MPI_Barrier(parent->icCommunicator()->communicator());
          exit(EXIT_FAILURE);
@@ -291,8 +288,7 @@ int PoolingConn::allocateDataStructures(){
             int* thread_buffer = (int*) malloc(sizeof(int) * post->getNumNeurons());
             //float* thread_buffer = (float*) malloc(sizeof(float) * post->getNumNeurons());
             if(!thread_buffer){
-               fprintf(stderr, "HyPerLayer \"%s\" error: rank %d unable to allocate %zu memory for thread_gateIdxBuffer: %s\n", name, parent->columnId(), sizeof(int) * post->getNumNeurons(), strerror(errno));
-               exit(EXIT_FAILURE);
+               pvError().printf("HyPerLayer \"%s\" error: rank %d unable to allocate %zu memory for thread_gateIdxBuffer: %s\n", name, parent->columnId(), sizeof(int) * post->getNumNeurons(), strerror(errno));
             }
             thread_gateIdxBuffer[i] = thread_buffer;
          }
@@ -649,8 +645,7 @@ int PoolingConn::deliverPostsynapticPerspective(PVLayerCube const * activity, in
 
    long * startSourceExtBuf = getPostToPreActivity();
    if(!startSourceExtBuf){
-      std::cout << "HyPerLayer::recvFromPost error getting preToPostActivity from connection. Is shrink_patches on?\n";
-      exit(EXIT_FAILURE);
+      pvError() << "HyPerLayer::recvFromPost unable to get preToPostActivity from connection. Is shrink_patches on?\n";
    }
 
    float resetVal = 0;

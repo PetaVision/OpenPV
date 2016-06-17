@@ -47,8 +47,7 @@ int NormalizeL2::normalizeWeights() {
    float scale_factor = 1.0f;
    if (normalizeFromPostPerspective) {
       if (conn0->usingSharedWeights()==false) {
-         fprintf(stderr, "NormalizeL2 error for connection \"%s\": normalizeFromPostPerspective is true but connection does not use shared weights.\n", conn0->getName());
-         exit(EXIT_FAILURE);
+         pvError().printf("NormalizeL2 error for connection \"%s\": normalizeFromPostPerspective is true but connection does not use shared weights.\n", conn0->getName());
       }
       scale_factor = ((float) conn0->postSynapticLayer()->getNumNeurons())/((float) conn0->preSynapticLayer()->getNumNeurons());
    }
@@ -73,7 +72,7 @@ int NormalizeL2::normalizeWeights() {
             }
             double l2norm = sqrt(sumsq);
             if (fabs(l2norm) <= minL2NormTolerated) {
-               fprintf(stderr, "Warning for NormalizeL2 \"%s\": sum of squares of weights in patch %d of arbor %d is within minL2NormTolerated=%f of zero.  Weights in this patch unchanged.\n", getName(), patchindex, arborID, minL2NormTolerated);
+               pvWarn().printf("for NormalizeL2 \"%s\": sum of squares of weights in patch %d of arbor %d is within minL2NormTolerated=%f of zero.  Weights in this patch unchanged.\n", getName(), patchindex, arborID, minL2NormTolerated);
                break;
             }
             for (int c=0; c<numConnections; c++) {
@@ -106,7 +105,7 @@ int NormalizeL2::normalizeWeights() {
          }
          double l2norm = sqrt(sumsq);
          if (fabs(sumsq) <= minL2NormTolerated) {
-            fprintf(stderr, "Warning for NormalizeL2 \"%s\": sum of squares of weights in patch %d is within minL2NormTolerated=%f of zero.  Weights in this patch unchanged.\n", getName(), patchindex, minL2NormTolerated);
+            pvWarn().printf("for NormalizeL2 \"%s\": sum of squares of weights in patch %d is within minL2NormTolerated=%f of zero.  Weights in this patch unchanged.\n", getName(), patchindex, minL2NormTolerated);
             break;
          }
          for (int arborID = 0; arborID<nArbors; arborID++) {

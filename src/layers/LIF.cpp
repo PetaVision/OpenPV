@@ -370,21 +370,20 @@ void LIF::ioParam_method(enum ParamsIOFlag ioFlag) {
       free(methodString);
       methodString = strdup(default_method);
       if (methodString==NULL) {
-         fprintf(stderr, "%s \"%s\" error: unable to set method string: %s\n", getKeyword(), name, strerror(errno));
-         exit(EXIT_FAILURE);
+         pvError().printf("%s \"%s\" error: unable to set method string: %s\n", getKeyword(), name, strerror(errno));
       }
    }
    method = methodString ? methodString[0] : 'a'; // Default is ARMA; 'beginning' and 'original' are deprecated.
    if (method != 'o' && method != 'b' && method != 'a') {
       if (getParent()->columnId()==0) {
-         fprintf(stderr, "LIF::setLIFParams error.  Layer \"%s\" has method \"%s\".  Allowable values are \"arma\", \"beginning\" and \"original\".", name, methodString);
+         pvErrorNoExit().printf("LIF::setLIFParams error.  Layer \"%s\" has method \"%s\".  Allowable values are \"arma\", \"beginning\" and \"original\".", name, methodString);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    if (method != 'a') {
       if (getParent()->columnId()==0) {
-         fprintf(stderr, "Warning: LIF layer \"%s\" integration method \"%s\" is deprecated.  Method \"arma\" is preferred.\n", name, methodString);
+         pvWarn().printf("LIF layer \"%s\" integration method \"%s\" is deprecated.  Method \"arma\" is preferred.\n", name, methodString);
       }
    }
 }
@@ -407,8 +406,7 @@ int LIF::allocateDataStructures() {
    // // a random state variable is needed for every neuron/clthread
    randState = new Random(parent, getLayerLoc(), false/*isExtended*/);
    if (randState == NULL) {
-      fprintf(stderr, "LIF::initialize error.  Layer \"%s\" unable to create object of Random class.\n", getName());
-      exit(EXIT_FAILURE);
+      pvError().printf("LIF::initialize error.  Layer \"%s\" unable to create object of Random class.\n", getName());
    }
 
    int numNeurons = getNumNeuronsAllBatches();
@@ -424,9 +422,8 @@ int LIF::allocateBuffers() {
    assert(status==PV_SUCCESS);
    Vth = (pvdata_t *) calloc((size_t) getNumNeuronsAllBatches(), sizeof(pvdata_t));
    if(Vth == NULL) {
-      fprintf(stderr, "LIF layer \"%s\" rank %d process unable to allocate memory for Vth: %s\n",
+      pvError().printf("LIF layer \"%s\" rank %d process unable to allocate memory for Vth: %s\n",
               name, parent->columnId(), strerror(errno));
-      exit(EXIT_FAILURE);
    }
    return HyPerLayer::allocateBuffers();
 }
@@ -436,9 +433,8 @@ int LIF::allocateConductances(int num_channels) {
    const int numNeurons = getNumNeuronsAllBatches();
    G_E = (pvdata_t *) calloc((size_t) (getNumNeuronsAllBatches()*numChannels), sizeof(pvdata_t));
    if(G_E == NULL) {
-      fprintf(stderr, "LIF layer \"%s\" rank %d process unable to allocate memory for %d conductances: %s\n",
+      pvError().printf("LIF layer \"%s\" rank %d process unable to allocate memory for %d conductances: %s\n",
               name, parent->columnId(), num_channels, strerror(errno));
-      exit(EXIT_FAILURE);
    }
 
    G_I  = G_E + 1*numNeurons;

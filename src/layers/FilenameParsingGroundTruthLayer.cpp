@@ -64,8 +64,7 @@ void FilenameParsingGroundTruthLayer::ioParam_classes(enum ParamsIOFlag ioFlag) 
    outPath = outPath + "/classes.txt";
    inputfile.open(outPath.c_str(), std::ifstream::in);
    if (!inputfile.is_open()){
-      std::cout << "Unable to open file " << outPath << "\n";
-      exit(EXIT_FAILURE);
+      pvError() << "Unable to open file " << outPath << "\n";
    }
    int i = 0;
    std::string line;
@@ -88,7 +87,7 @@ int FilenameParsingGroundTruthLayer::communicateInitInfo() {
    movieLayer = dynamic_cast<Movie *>(parent->getLayerFromName(movieLayerName));
    if(movieLayer==NULL) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: movieLayerName \"%s\" is not a layer in the HyPerCol.\n",
+         pvErrorNoExit().printf("%s \"%s\": movieLayerName \"%s\" is not a layer in the HyPerCol.\n",
             getKeyword(), name, movieLayerName); 
       }
       exit(EXIT_FAILURE);
@@ -111,8 +110,7 @@ int FilenameParsingGroundTruthLayer::updateState(double time, double dt)
    int num_neurons = getNumNeurons();
    if (num_neurons != numClasses)
    {
-      std::cout << "The number of neurons in " << getName() << " is not equal to the number of classes specified in " << parent->getOutputPath() << "/classes.txt\n";
-      exit(EXIT_FAILURE);
+      pvError() << "The number of neurons in " << getName() << " is not equal to the number of classes specified in " << parent->getOutputPath() << "/classes.txt\n";
    }   
 
    for(int b = 0; b < loc->nbatch; b++){
@@ -160,7 +158,7 @@ int FilenameParsingGroundTruthLayer::updateState(double time, double dt)
 FilenameParsingGroundTruthLayer::FilenameParsingGroundTruthLayer(const char * name, HyPerCol * hc)
 {
    if (hc->columnId()==0) {
-      fprintf(stderr, "FilenameParsingGroundTruthLayer \"%s\": FilenameParsingGroundTruthLayer class requires compiling with PV_USE_GDAL set\n", name);
+      pvErrorNoExit().printf("FilenameParsingGroundTruthLayer \"%s\": FilenameParsingGroundTruthLayer class requires compiling with PV_USE_GDAL set\n", name);
    }
    MPI_Barrier(hc->icCommunicator()->communicator());
    exit(EXIT_FAILURE);

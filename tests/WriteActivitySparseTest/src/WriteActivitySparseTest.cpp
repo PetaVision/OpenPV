@@ -21,8 +21,9 @@ int main(int argc, char * argv[]) {
    int status = PV_SUCCESS;
    if (initObj.getParams()!=NULL) {
       if (rank==0) {
-         fprintf(stderr, "%s should be run without the params file argument.\n", initObj.getArguments()->getProgramName());
-         fprintf(stderr, "This test uses two hard-coded params files, %s and %s. The first generates an output pvp file, and the second checks whether the output is consistent with the input.\n",
+         pvErrorNoExit(errorMessage);
+         errorMessage.printf("%s should be run without the params file argument.\n", initObj.getProgramName());
+         errorMessage.printf("This test uses two hard-coded params files, %s and %s. The first generates an output pvp file, and the second checks whether the output is consistent with the input.\n",
                paramFile1, paramFile2);
       }
       MPI_Barrier(MPI_COMM_WORLD);
@@ -33,8 +34,7 @@ int main(int argc, char * argv[]) {
       char const * rmcommand = "rm -rf outputGenerate outputTest";
       status = system(rmcommand);
       if (status != 0) {
-         fprintf(stderr, "deleting old output directories failed: \"%s\" returned %d\n", rmcommand, status);
-         exit(EXIT_FAILURE);
+         pvError().printf("deleting old output directories failed: \"%s\" returned %d\n", rmcommand, status);
       }
    }
 
@@ -44,15 +44,14 @@ int main(int argc, char * argv[]) {
    initObj.setParams(paramFile1);
    status = rebuildandrun(&initObj);
    if( status != PV_SUCCESS ) {
-      fprintf(stderr, "%s: rank %d running with params file %s returned error %d.\n", initObj.getArguments()->getProgramName(), rank, paramFile1, status);
-      exit(status);
+      pvError().printf("%s: rank %d running with params file %s returned error %d.\n", initObj.getProgramName(), rank, paramFile1, status);
    }
 
    initObj.setParams(paramFile2);
 
    status = rebuildandrun(&initObj, NULL, &checkProbesOnExit);
    if( status != PV_SUCCESS ) {
-      fprintf(stderr, "%s: rank %d running with params file %s returned error %d.\n", initObj.getArguments()->getProgramName(), rank, paramFile2, status);
+      pvErrorNoExit().printf("%s: rank %d running with params file %s returned status %d.\n", initObj.getProgramName(), rank, paramFile2, status);
    }
 
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;

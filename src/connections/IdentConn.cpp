@@ -34,7 +34,7 @@ int IdentConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 
    // April 15, 2016: Scale moved from IdentConn to RescaleConn.
    if (!strcmp(getKeyword(), "IdentConn") && parent->parameters()->present(name, "scale")) {
-      pvLogError("IdentConn \"%s\" error: IdentConn does not take a scale parameter.  Use RescaleConn instead.\n", name);
+      pvErrorNoExit().printf("IdentConn \"%s\": IdentConn does not take a scale parameter.  Use RescaleConn instead.\n", name);
    }
 
    return status;
@@ -106,7 +106,7 @@ void IdentConn::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
          parent->ioParamValue(ioFlag, name, "writeStep", &writeStep, -1.0/*default*/, false/*warnIfAbsent*/);
          if (writeStep>=0) {
             if (parent->columnId()==0) {
-               fprintf(stderr, "Error: %s \"%s\" does not use writeStep, but the parameters file sets it to %f.\n", getKeyword(), getName(), writeStep);
+               pvErrorNoExit().printf("%s \"%s\" does not use writeStep, but the parameters file sets it to %f.\n", getKeyword(), getName(), writeStep);
             }
             MPI_Barrier(parent->icCommunicator()->communicator());
             exit(EXIT_FAILURE);
@@ -214,8 +214,7 @@ void IdentConn::ioParam_updateGSynFromPostPerspective(enum ParamsIOFlag ioFlag){
 int IdentConn::setWeightInitializer() {
    weightInitializer = (InitWeights *) new InitIdentWeights(name, parent);
    if( weightInitializer == NULL ) {
-      fprintf(stderr, "IdentConn \"%s\": Rank %d process unable to create InitIdentWeights object.  Exiting.\n", name, parent->icCommunicator()->commRank());
-      exit(EXIT_FAILURE);
+      pvError().printf("IdentConn \"%s\": Rank %d process unable to create InitIdentWeights object.  Exiting.\n", name, parent->icCommunicator()->commRank());
    }
    return PV_SUCCESS;
 }
@@ -227,8 +226,7 @@ int IdentConn::communicateInitInfo() {
    const PVLayerLoc * postLoc = post->getLayerLoc();
    if( preLoc->nx != postLoc->nx || preLoc->ny != postLoc->ny || preLoc->nf != postLoc->nf ) {
       if (parent->columnId()==0) {
-         fprintf( stderr,
-                  "IdentConn \"%s\" Error: %s and %s do not have the same dimensions.\n Dims: %dx%dx%d vs. %dx%dx%d\n",
+         pvErrorNoExit().printf("IdentConn \"%s\" Error: %s and %s do not have the same dimensions.\n Dims: %dx%dx%d vs. %dx%dx%d\n",
                   name, preLayerName,postLayerName,preLoc->nx,preLoc->ny,preLoc->nf,postLoc->nx,postLoc->ny,postLoc->nf);
       }
       exit(EXIT_FAILURE);
@@ -297,9 +295,9 @@ int IdentConn::deliverPresynapticPerspective(PVLayerCube const * activity, int a
 #ifdef DEBUG_OUTPUT
    int rank;
    MPI_Comm_rank(parent->icCommunicator()->communicator(), &rank);
-   //printf("[%d]: HyPerLayr::recvSyn: neighbor=%d num=%d actv=%p this=%p conn=%p\n", rank, neighbor, numExtended, activity, this, conn);
-   printf("[%d]: HyPerLayr::recvSyn: neighbor=%d num=%d actv=%p this=%p conn=%p\n", rank, 0, numExtended, activity, this, conn);
-   fflush(stdout);
+   pvDebug(debugMessage);
+   debugMessage.printf("[%d]: HyPerLayr::recvSyn: neighbor=%d num=%d actv=%p this=%p conn=%p\n", rank, 0, numExtended, activity, this, conn);
+   debugMessage.flush();
 #endif // DEBUG_OUTPUT
 
    for(int b = 0; b < parent->getNBatch(); b++){

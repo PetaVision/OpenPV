@@ -71,7 +71,7 @@ int LocalizationProbe::initialize(const char * probeName, PV::HyPerCol * hc) {
    return status;
 }
 
-int LocalizationProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+int LocalizationProbe::ioParamsFillGroup(enum PV::ParamsIOFlag ioFlag) {
    int status = PV::LayerProbe::ioParamsFillGroup(ioFlag);
    ioParam_imageLayer(ioFlag);
    ioParam_reconLayer(ioFlag);
@@ -93,66 +93,66 @@ int LocalizationProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    return status;
 }
 
-void LocalizationProbe::ioParam_imageLayer(enum ParamsIOFlag ioFlag) {
+void LocalizationProbe::ioParam_imageLayer(enum PV::ParamsIOFlag ioFlag) {
    parent->ioParamStringRequired(ioFlag, name, "imageLayer", &imageLayerName);
 }
 
-void LocalizationProbe::ioParam_reconLayer(enum ParamsIOFlag ioFlag) {
+void LocalizationProbe::ioParam_reconLayer(enum PV::ParamsIOFlag ioFlag) {
    parent->ioParamStringRequired(ioFlag, name, "reconLayer", &reconLayerName);
 }
 
-void LocalizationProbe::ioParam_displayedCategories(enum ParamsIOFlag ioFlag) {
+void LocalizationProbe::ioParam_displayedCategories(enum PV::ParamsIOFlag ioFlag) {
    this->getParent()->ioParamArray(ioFlag, this->getName(), "displayedCategories", &displayedCategories, &numDisplayedCategories);
 }
 
-void LocalizationProbe::ioParam_displayCategoryIndexStart(enum ParamsIOFlag ioFlag) {
+void LocalizationProbe::ioParam_displayCategoryIndexStart(enum PV::ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "displayedCategories"));
    if (numDisplayedCategories==0) {
       this->getParent()->ioParamValue(ioFlag, this->getName(), "displayCategoryIndexStart", &displayCategoryIndexStart, -1, true/*warnIfAbsent*/);
    }
 }
 
-void LocalizationProbe::ioParam_displayCategoryIndexEnd(enum ParamsIOFlag ioFlag) {
+void LocalizationProbe::ioParam_displayCategoryIndexEnd(enum PV::ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "displayedCategories"));
    if (numDisplayedCategories==0) {
       this->getParent()->ioParamValue(ioFlag, this->getName(), "displayCategoryIndexEnd", &displayCategoryIndexEnd, -1, true/*warnIfAbsent*/);
    }
 }
 
-void LocalizationProbe::ioParam_detectionThreshold(enum ParamsIOFlag ioFlag) {
+void LocalizationProbe::ioParam_detectionThreshold(enum PV::ParamsIOFlag ioFlag) {
    parent->ioParamArray(ioFlag, name, "detectionThreshold", &detectionThreshold, &numDetectionThresholds);
 }
 
-void LocalizationProbe::ioParam_classNamesFile(enum ParamsIOFlag ioFlag) {
+void LocalizationProbe::ioParam_classNamesFile(enum PV::ParamsIOFlag ioFlag) {
    parent->ioParamString(ioFlag, name, "classNamesFile", &classNamesFile, "");
 }
 
-void LocalizationProbe::ioParam_outputPeriod(enum ParamsIOFlag ioFlag) {
+void LocalizationProbe::ioParam_outputPeriod(enum PV::ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "triggerLayer"));
    if (!triggerLayer) {
       this->getParent()->ioParamValue(ioFlag, this->getName(), "outputPeriod", &outputPeriod, outputPeriod, true/*warnIfAbsent*/);
    }
-   if (ioFlag==PARAMS_IO_READ) {
+   if (ioFlag==PV::PARAMS_IO_READ) {
       nextOutputTime = outputPeriod;
    }
 }
 
-void LocalizationProbe::ioParam_minBoundingBoxWidth(enum ParamsIOFlag ioFlag) {
+void LocalizationProbe::ioParam_minBoundingBoxWidth(enum PV::ParamsIOFlag ioFlag) {
    this->getParent()->ioParamValue(ioFlag, this->getName(), "minBoundingBoxWidth", &minBoundingBoxWidth, minBoundingBoxWidth, true/*warnIfAbsent*/);
 }
 
-void LocalizationProbe::ioParam_minBoundingBoxHeight(enum ParamsIOFlag ioFlag) {
+void LocalizationProbe::ioParam_minBoundingBoxHeight(enum PV::ParamsIOFlag ioFlag) {
    this->getParent()->ioParamValue(ioFlag, this->getName(), "minBoundingBoxHeight", &minBoundingBoxHeight, minBoundingBoxHeight, true/*warnIfAbsent*/);
 }
 
-void LocalizationProbe::ioParam_drawMontage(enum ParamsIOFlag ioFlag) {
+void LocalizationProbe::ioParam_drawMontage(enum PV::ParamsIOFlag ioFlag) {
    this->getParent()->ioParamValue(ioFlag, this->getName(), "drawMontage", &drawMontage, drawMontage, true/*warnIfAbsent*/);
 #ifdef PV_USE_GDAL
    GDALAllRegister();
 #else // PV_USE_GDAL
    if (ioFlag==PARAMS_IO_READ) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: PetaVision must be compiled with GDAL to use LocalizationProbe with drawMontage set.\n",
+         pvErrorNoExit().printf("%s \"%s\" error: PetaVision must be compiled with GDAL to use LocalizationProbe with drawMontage set.\n",
                getKeyword(), name);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
@@ -161,39 +161,39 @@ void LocalizationProbe::ioParam_drawMontage(enum ParamsIOFlag ioFlag) {
 #endif // PV_USE_GDAL
 }
 
-void LocalizationProbe::ioParam_heatMapMontageDir(enum ParamsIOFlag ioFlag) {
+void LocalizationProbe::ioParam_heatMapMontageDir(enum PV::ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "drawMontage"));
    if (drawMontage) {
       this->getParent()->ioParamStringRequired(ioFlag, this->getName(), "heatMapMontageDir", &heatMapMontageDir);
    }
 }
 
-void LocalizationProbe::ioParam_heatMapMaximum(enum ParamsIOFlag ioFlag) {
+void LocalizationProbe::ioParam_heatMapMaximum(enum PV::ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "drawMontage"));
    if (drawMontage) {
       parent->ioParamArray(ioFlag, name, "heatMapMaximum", &heatMapMaximum, &numHeatMapMaxima);
    }
 }
 
-void LocalizationProbe::ioParam_imageBlendCoeff(enum ParamsIOFlag ioFlag) {
+void LocalizationProbe::ioParam_imageBlendCoeff(enum PV::ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "drawMontage"));
    if (drawMontage) {
       this->getParent()->ioParamValue(ioFlag, this->getName(), "imageBlendCoeff", &imageBlendCoeff, imageBlendCoeff/*default value*/, true/*warnIfAbsent*/);
    }
 }
 
-void LocalizationProbe::ioParam_maxDetections(enum ParamsIOFlag ioFlag) {
+void LocalizationProbe::ioParam_maxDetections(enum PV::ParamsIOFlag ioFlag) {
    this->getParent()->ioParamValue(ioFlag, this->getName(), "maxDetections", &maxDetections, maxDetections, true/*warnIfAbsent*/);
 }
 
-void LocalizationProbe::ioParam_boundingBoxLineWidth(enum ParamsIOFlag ioFlag) {
+void LocalizationProbe::ioParam_boundingBoxLineWidth(enum PV::ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "drawMontage"));
    if (drawMontage) {
       this->getParent()->ioParamValue(ioFlag, this->getName(), "boundingBoxLineWidth", &boundingBoxLineWidth, boundingBoxLineWidth/*default value*/, true/*warnIfAbsent*/);
    }
 }
 
-void LocalizationProbe::ioParam_displayCommand(enum ParamsIOFlag ioFlag) {
+void LocalizationProbe::ioParam_displayCommand(enum PV::ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "drawMontage"));
    if (drawMontage) {
       this->getParent()->ioParamString(ioFlag, this->getName(), "displayCommand", &displayCommand, NULL, true/*warnIfAbsent*/);     
@@ -214,7 +214,7 @@ int LocalizationProbe::communicateInitInfo() {
    imageLayer = parent->getLayerFromName(imageLayerName);
    if (imageLayer==NULL) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: imageLayer \"%s\" does not refer to a layer in the column.\n",
+         pvErrorNoExit().printf("%s \"%s\" error: imageLayer \"%s\" does not refer to a layer in the column.\n",
                getKeyword(), name, imageLayerName);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
@@ -222,7 +222,7 @@ int LocalizationProbe::communicateInitInfo() {
    }
    if (drawMontage && imageLayer->getLayerLoc()->nf != 3) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: drawMontage requires the image layer have exactly three features.\n", getKeyword(), name);
+         pvErrorNoExit().printf("%s \"%s\" error: drawMontage requires the image layer have exactly three features.\n", getKeyword(), name);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -232,20 +232,20 @@ int LocalizationProbe::communicateInitInfo() {
       if (displayCategoryIndexStart <= 0) {
          displayCategoryIndexStart = 1;
          if (parent->globalRank()==0) {
-            printf("%s \"%s\": setting displayCategoryIndexStart to 1.\n",
+            pvInfo().printf("%s \"%s\": setting displayCategoryIndexStart to 1.\n",
                   getKeyword(), name);
          }
       }
       if (displayCategoryIndexEnd <= 0) {
          displayCategoryIndexEnd = nf;
          if (parent->globalRank()==0) {
-            printf("%s \"%s\": setting displayCategoryIndexEnd to nf=%d.\n",
+            pvInfo().printf("%s \"%s\": setting displayCategoryIndexEnd to nf=%d.\n",
                   getKeyword(), name, nf);
          }
       }
       if (displayCategoryIndexEnd > nf) {
          if (parent->globalRank()==0) {
-            fprintf(stderr, "%s \"%s\": displayCategoryIndexEnd=%d cannot be greater than nf=%d.\n",
+            pvErrorNoExit().printf("%s \"%s\": displayCategoryIndexEnd=%d cannot be greater than nf=%d.\n",
                   getKeyword(), name, displayCategoryIndexEnd, nf);
          }
          MPI_Barrier(parent->icCommunicator()->globalCommunicator());
@@ -253,14 +253,14 @@ int LocalizationProbe::communicateInitInfo() {
       }
       numDisplayedCategories = displayCategoryIndexEnd - displayCategoryIndexStart + 1;
       if (parent->globalRank()==0) {
-         fflush(stdout);
-         fprintf(stderr, "%s \"%s\": converting values of displayCategoryIndexStart and displayCategoryIndexEnd to a displayedCategories array.\n",
+         pvInfo().flush();
+         pvInfo().printf("%s \"%s\": converting values of displayCategoryIndexStart and displayCategoryIndexEnd to a displayedCategories array.\n",
                getKeyword(), name);
       }
 
       if (numDisplayedCategories <= 0) {
          if (parent->globalRank()==0) {
-            fprintf(stderr, "%s \"%s\" error: displayCategoryIndexStart (%d) cannot be greater than displayCategoryIndexEnd (%d).\n",
+            pvErrorNoExit().printf("%s \"%s\": displayCategoryIndexStart (%d) cannot be greater than displayCategoryIndexEnd (%d).\n",
                   getKeyword(), name, displayCategoryIndexStart, displayCategoryIndexEnd);
          }
          MPI_Barrier(getParent()->icCommunicator()->globalCommunicator());
@@ -276,9 +276,8 @@ int LocalizationProbe::communicateInitInfo() {
    if (numDetectionThresholds==0) {
       detectionThreshold = (float *) malloc(sizeof(*detectionThreshold)*(size_t) numDisplayedCategories);
       if (detectionThreshold==NULL) {
-         fprintf(stderr, "%s \"%s\": Unable to allocate memory for detectionThreshold array: %s\n",
+         pvError().printf("%s \"%s\": Unable to allocate memory for detectionThreshold array: %s\n",
                getKeyword(), name, strerror(errno));
-         exit(EXIT_FAILURE);
       }
       for (int k=0; k<numDisplayedCategories; k++) { detectionThreshold[0] = 0.0f; }
       numDetectionThresholds = numDisplayedCategories;
@@ -286,9 +285,8 @@ int LocalizationProbe::communicateInitInfo() {
    else if (numDetectionThresholds==1 && numDisplayedCategories>1) {
       detectionThreshold = (float *) realloc(detectionThreshold, sizeof(*detectionThreshold)*(size_t) numDisplayedCategories);
       if (detectionThreshold==NULL) {
-         fprintf(stderr, "%s \"%s\": Unable to allocate memory for detectionThreshold array: %s\n",
+         pvError().printf("%s \"%s\": Unable to allocate memory for detectionThreshold array: %s\n",
                getKeyword(), name, strerror(errno));
-         exit(EXIT_FAILURE);
       }
       float detThresh = detectionThreshold[0];
       for (int k=1; k<numDisplayedCategories; k++) { detectionThreshold[k] = detThresh; }
@@ -296,9 +294,8 @@ int LocalizationProbe::communicateInitInfo() {
    }
    else if (numDetectionThresholds != numDisplayedCategories) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: detectionThreshold array given %d entries, but number of displayed categories is %d.\n",
+         pvError().printf("%s \"%s\" error: detectionThreshold array given %d entries, but number of displayed categories is %d.\n",
                getKeyword(), name, numDetectionThresholds, numDisplayedCategories);
-         exit(EXIT_FAILURE);
       }
    }
    if (drawMontage) {
@@ -306,9 +303,8 @@ int LocalizationProbe::communicateInitInfo() {
       if (numHeatMapMaxima==0) {
          heatMapMaximum = (float *) malloc(sizeof(*detectionThreshold)*(size_t) numDisplayedCategories);
          if (heatMapMaximum==NULL) {
-            fprintf(stderr, "%s \"%s\": Unable to allocate memory for heatMapMaximum array: %s\n",
+            pvError().printf("%s \"%s\": Unable to allocate memory for heatMapMaximum array: %s\n",
                   getKeyword(), name, strerror(errno));
-            exit(EXIT_FAILURE);
          }
          for (int k=0; k<numDisplayedCategories; k++) { heatMapMaximum[k] = 1.0f; }
          numHeatMapMaxima = numDisplayedCategories;
@@ -316,9 +312,8 @@ int LocalizationProbe::communicateInitInfo() {
       else if (numHeatMapMaxima==1 && numDisplayedCategories>1) {
          heatMapMaximum = (float *) realloc(heatMapMaximum, sizeof(*heatMapMaximum)*(size_t) numDisplayedCategories);
          if (heatMapMaximum==NULL) {
-            fprintf(stderr, "%s \"%s\": Unable to allocate memory for heatMapMaximum array: %s\n",
+            pvError().printf("%s \"%s\": Unable to allocate memory for heatMapMaximum array: %s\n",
                   getKeyword(), name, strerror(errno));
-            exit(EXIT_FAILURE);
          }
          float heatMapMax = heatMapMaximum[0];
          for (int k=1; k<numDisplayedCategories; k++) { heatMapMaximum[k] = heatMapMax; }
@@ -326,9 +321,8 @@ int LocalizationProbe::communicateInitInfo() {
       }
       else if (numHeatMapMaxima != numDisplayedCategories) {
          if (parent->columnId()==0) {
-            fprintf(stderr, "%s \"%s\" error: detectionThreshold array given %d entries, but number of displayed categories is %d.\n",
+            pvError().printf("%s \"%s\" error: detectionThreshold array given %d entries, but number of displayed categories is %d.\n",
                   getKeyword(), name, numDetectionThresholds, numDisplayedCategories);
-            exit(EXIT_FAILURE);
          }
       }
       assert(status==PV_SUCCESS);
@@ -336,7 +330,7 @@ int LocalizationProbe::communicateInitInfo() {
          if (heatMapMaximum[k] < detectionThreshold[k]) {
             status = PV_FAILURE;
             if (parent->columnId()==0) {
-               fprintf(stderr, "%s \"%s\": heatMapMaximum entry %d (%f) cannot be less than corresponding detectionThreshold entry (%f).\n",
+               pvErrorNoExit().printf("%s \"%s\": heatMapMaximum entry %d (%f) cannot be less than corresponding detectionThreshold entry (%f).\n",
                      getKeyword(), name, k, heatMapMaximum[k], detectionThreshold[k]);
             }
          }
@@ -357,7 +351,7 @@ int LocalizationProbe::communicateInitInfo() {
    reconLayer = parent->getLayerFromName(reconLayerName);
    if (reconLayer==NULL) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: reconLayer \"%s\" does not refer to a layer in the column.\n",
+         pvErrorNoExit().printf("%s \"%s\" error: reconLayer \"%s\" does not refer to a layer in the column.\n",
                name, getKeyword(), reconLayerName);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
@@ -365,7 +359,7 @@ int LocalizationProbe::communicateInitInfo() {
    }
    if (drawMontage && reconLayer->getLayerLoc()->nf != 3) {
       if (parent->columnId()!=0) {
-         fprintf(stderr, "%s \"%s\" error: drawMontage requires the recon layer have exactly three features.\n", getKeyword(), name);
+         pvErrorNoExit().printf("%s \"%s\" error: drawMontage requires the recon layer have exactly three features.\n", getKeyword(), name);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -375,14 +369,12 @@ int LocalizationProbe::communicateInitInfo() {
    if (parent->columnId()==0) {
       classNames = (char **) malloc(nf * sizeof(char *));
       if (classNames == NULL) {
-         fprintf(stderr, "%s \"%s\" unable to allocate classNames: %s\n", getKeyword(), name, strerror(errno));
-         exit(EXIT_FAILURE);
+         pvError().printf("%s \"%s\" unable to allocate classNames: %s\n", getKeyword(), name, strerror(errno));
       }
       if (strcmp(classNamesFile,"")) {
          std::ifstream * classNamesStream = new std::ifstream(classNamesFile);
          if (classNamesStream->fail()) {
-            fprintf(stderr, "%s \"%s\": unable to open classNamesFile \"%s\".\n", getKeyword(), name, classNamesFile);
-            exit(EXIT_FAILURE);
+            pvError().printf("%s \"%s\": unable to open classNamesFile \"%s\".\n", getKeyword(), name, classNamesFile);
          }
          for (int k=0; k<nf; k++) {
             // Need to clean this section up: handle too-long lines, premature eof, other issues
@@ -390,21 +382,20 @@ int LocalizationProbe::communicateInitInfo() {
             classNamesStream->getline(oneclass, 1024);
             classNames[k] = strdup(oneclass);
             if (classNames[k] == NULL) {
-               fprintf(stderr, "%s \"%s\" unable to allocate class name %d from \"%s\": %s\n",
+               pvErrorNoExit().printf("%s \"%s\" unable to allocate class name %d from \"%s\": %s\n",
                      getKeyword(), name, k, classNamesFile, strerror(errno));
                exit(EXIT_FAILURE);
             }
          }
       }
       else {
-         printf("classNamesFile was not set in params file; Class names will be feature indices.\n");
+         pvWarn().printf("classNamesFile was not set in params file; Class names will be feature indices.\n");
          for (int k=0; k<nf; k++) {
             std::stringstream classNameString("");
             classNameString << "Feature " << k;
             classNames[k] = strdup(classNameString.str().c_str());
             if (classNames[k]==NULL) {
-               fprintf(stderr, "%s \"%s\": unable to allocate className %d: %s\n", getKeyword(), name, k, strerror(errno));
-               exit(EXIT_FAILURE);
+               pvError().printf("%s \"%s\": unable to allocate className %d: %s\n", getKeyword(), name, k, strerror(errno));
             }
          }
       }
@@ -419,9 +410,7 @@ int LocalizationProbe::communicateInitInfo() {
       // Make the heat map montage directory if it doesn't already exist
       status = parent->ensureDirExists(heatMapMontageDir);
       if (status!=PV_SUCCESS) {
-         fflush(stdout);
-         fprintf(stderr, "Error: Unable to make heat map montage directory \"%s\": %s\n", heatMapMontageDir, strerror(errno));
-         exit(EXIT_FAILURE);
+         pvError().printf("Error: Unable to make heat map montage directory \"%s\": %s\n", heatMapMontageDir, strerror(errno));
       }
 
       // Make the labels directory in heatMapMontageDir if it doesn't already exist
@@ -431,9 +420,7 @@ int LocalizationProbe::communicateInitInfo() {
       char * labelsDir = strdup(labelsdirss.str().c_str());
       status = parent->ensureDirExists(labelsDir);
       if (status!=PV_SUCCESS) {
-         fflush(stdout);
-         fprintf(stderr, "Error: Unable to make heat map montage labels directory: %s\n", strerror(errno));
-         exit(EXIT_FAILURE);
+         pvError().printf("Error: Unable to make heat map montage labels directory: %s\n", strerror(errno));
       }
       free(labelsDir);
 
@@ -445,9 +432,7 @@ int LocalizationProbe::communicateInitInfo() {
          originalLabelString += "/labels/original.tif";
          status = drawTextIntoFile(originalLabelString.c_str(), "black", "white", "original image", nxGlobal);
          if (status != 0) {
-            fflush(stdout);
-            fprintf(stderr, "%s \"%s\" error creating label file \"%s\".\n", getKeyword(), name, originalLabelString.c_str());
-            exit(EXIT_FAILURE);
+            pvError().printf("%s \"%s\" error creating label file \"%s\".\n", getKeyword(), name, originalLabelString.c_str());
          }
 
          std::string reconLabelString("");
@@ -455,9 +440,7 @@ int LocalizationProbe::communicateInitInfo() {
          reconLabelString += "/labels/reconstruction.tif";
          status = drawTextIntoFile(reconLabelString.c_str(), "black", "white", "reconstruction", nxGlobal);
          if (status != 0) {
-            fflush(stdout);
-            fprintf(stderr, "%s \"%s\" error creating label file \"%s\".\n", getKeyword(), name, reconLabelString.c_str());
-            exit(EXIT_FAILURE);
+            pvError().printf("%s \"%s\" error creating label file \"%s\".\n", getKeyword(), name, reconLabelString.c_str());
          }
 
          for (int idx=0; idx<numDisplayedCategories; idx++) {
@@ -467,15 +450,11 @@ int LocalizationProbe::communicateInitInfo() {
             int slen;
             slen = snprintf(labelFilename, PV_PATH_MAX, "%s/labels/gray%0*d.tif", heatMapMontageDir, featurefieldwidth, category);
             if (slen>=PV_PATH_MAX) {
-               fflush(stdout);
-               fprintf(stderr, "%s \"%s\" error: file name for label %d is too long (%d characters versus %d).\n", getKeyword(), name, category, slen, PV_PATH_MAX);
-               exit(EXIT_FAILURE);
+               pvError().printf("%s \"%s\" error: file name for label %d is too long (%d characters versus %d).\n", getKeyword(), name, category, slen, PV_PATH_MAX);
             }
             status = drawTextIntoFile(labelFilename, "white", "gray", classNames[f], nxGlobal);
             if (status != 0) {
-               fflush(stdout);
-               fprintf(stderr, "%s \"%s\" error creating label file \"%s\".\n", getKeyword(), name, labelFilename);
-               exit(EXIT_FAILURE);
+               pvError().printf("%s \"%s\" error creating label file \"%s\".\n", getKeyword(), name, labelFilename);
             }
          }
       } 
@@ -527,9 +506,7 @@ char const * LocalizationProbe::getClassName(int k) {
 int LocalizationProbe::allocateDataStructures() {
    int status = PV::LayerProbe::allocateDataStructures();
    if (status != PV_SUCCESS) {
-      fflush(stdout);
-      fprintf(stderr, "%s \"%s\": LocalizationProbe::allocateDataStructures failed.\n", getKeyword(), name);
-      exit(EXIT_FAILURE);
+      pvError().printf("%s \"%s\": LocalizationProbe::allocateDataStructures failed.\n", getKeyword(), name);
    }
    detections.reserve(maxDetections);
    if (drawMontage) {
@@ -539,21 +516,18 @@ int LocalizationProbe::allocateDataStructures() {
       int const ny = imageLoc->ny;
       grayScaleImage = (pvadata_t *) calloc(nx*ny, sizeof(pvadata_t));
       if (grayScaleImage==NULL) {
-         fprintf(stderr, "%s \"%s\" error allocating for montage background image: %s\n", getKeyword(), name, strerror(errno));
-         exit(EXIT_FAILURE);
+         pvError().printf("%s \"%s\" error allocating for montage background image: %s\n", getKeyword(), name, strerror(errno));
       }
 
       montageImageLocal = (unsigned char *) calloc(nx*ny*3, sizeof(unsigned char));
       if (montageImageLocal==NULL) {
-         fprintf(stderr, "%s \"%s\" error allocating for montage background image: %s\n", getKeyword(), name, strerror(errno));
-         exit(EXIT_FAILURE);
+         pvError().printf("%s \"%s\" error allocating for montage background image: %s\n", getKeyword(), name, strerror(errno));
       }
 
       if (parent->columnId()==0) {
          montageImageComm = (unsigned char *) calloc(nx * ny * 3, sizeof(unsigned char));
          if (montageImageComm==NULL) {
-            fprintf(stderr, "%s \"%s\" error allocating for MPI communication of heat map montage image: %s\n", getKeyword(), name, strerror(errno));
-            exit(EXIT_FAILURE);
+            pvError().printf("%s \"%s\" error allocating for MPI communication of heat map montage image: %s\n", getKeyword(), name, strerror(errno));
          }
 
          int const nxGlobal = imageLoc->nxGlobal;
@@ -562,8 +536,7 @@ int LocalizationProbe::allocateDataStructures() {
          montageDimY = (nyGlobal + 64 + 10) * numMontageRows + 32;
          montageImage = (unsigned char *) calloc(montageDimX * montageDimY * 3, sizeof(unsigned char));
          if (montageImage==NULL) {
-            fprintf(stderr, "%s \"%s\" error allocating for heat map montage image: %s\n", getKeyword(), name, strerror(errno));
-            exit(EXIT_FAILURE);
+            pvError().printf("%s \"%s\" error allocating for heat map montage image: %s\n", getKeyword(), name, strerror(errno));
          }
    
          int xStart = (2*numMontageColumns+1)*(nxGlobal+10)/2; // Integer division
@@ -573,9 +546,7 @@ int LocalizationProbe::allocateDataStructures() {
          originalFileName += "/labels/original.tif";
          status = insertFileIntoMontage(originalFileName.c_str(), xStart, yStart, nxGlobal, 32/*yExpectedSize*/);
          if (status != PV_SUCCESS) {
-            fflush(stdout);
-            fprintf(stderr, "%s \"%s\" error placing the \"original image\" label.\n", getKeyword(), name);
-            exit(EXIT_FAILURE);
+            pvError().printf("%s \"%s\" error placing the \"original image\" label.\n", getKeyword(), name);
          }
    
          // same xStart.
@@ -585,9 +556,7 @@ int LocalizationProbe::allocateDataStructures() {
          reconFileName += "/labels/reconstruction.tif";
          status = insertFileIntoMontage(reconFileName.c_str(), xStart, yStart, nxGlobal, 32/*yExpectedSize*/);
          if (status != PV_SUCCESS) {
-            fflush(stdout);
-            fprintf(stderr, "%s \"%s\" error placing the \"reconstruction\" label.\n", getKeyword(), name);
-            exit(EXIT_FAILURE);
+            pvError().printf("%s \"%s\" error placing the \"reconstruction\" label.\n", getKeyword(), name);
          }
    
          for (int idx=0; idx<numDisplayedCategories; idx++) {
@@ -600,27 +569,23 @@ int LocalizationProbe::allocateDataStructures() {
             char filename[PV_PATH_MAX];
             int slen = snprintf(filename, PV_PATH_MAX, "%s/labels/gray%0*d.tif", heatMapMontageDir, featurefieldwidth, category);
             if (slen >= PV_PATH_MAX) {
-               fflush(stdout);
-               fprintf(stderr, "%s \"%s\" allocateDataStructures error: path to label file for label %d is too large.\n",
+               pvError().printf("%s \"%s\" allocateDataStructures error: path to label file for label %d is too large.\n",
                      getKeyword(), name, category);
-               exit(EXIT_FAILURE);
             }
             status = insertFileIntoMontage(filename, xStart, yStart, nxGlobal, 32/*yExpectedSize*/);
             if (status != PV_SUCCESS) {
-               fflush(stdout);
-               fprintf(stderr, "%s \"%s\" error placing the label for feature %d.\n", getKeyword(), name, f);
-               exit(EXIT_FAILURE);
+               pvError().printf("%s \"%s\" error placing the label for feature %d.\n", getKeyword(), name, f);
             }
          }
       }
    }
    if (getTextOutputFlag()) {
-      if (outputstream) {
+      if (outputStream) {
          PVLayerLoc const * targetLoc = targetLayer->getLayerLoc();
-         fprintf(outputstream->fp, "Layer \"%s\", %dx%d with %d categories.\n",
+         outputStream->printf("Layer \"%s\", %dx%d with %d categories.\n",
                targetLayer->getName(), targetLoc->nxGlobal, targetLoc->nyGlobal, targetLoc->nf);
          PVLayerLoc const * imageLoc = imageLayer->getLayerLoc();
-         fprintf(outputstream->fp, "Image \"%s\", %dx%d with %d features.\n",
+         outputStream->printf("Image \"%s\", %dx%d with %d features.\n",
                imageLayer->getName(), imageLoc->nxGlobal, imageLoc->nyGlobal, imageLoc->nf);
       }
    }
@@ -631,18 +596,15 @@ int LocalizationProbe::drawTextOnMontage(char const * backgroundColor, char cons
    assert(parent->columnId()==0);
    char * tempfile = strdup("/tmp/Localization_XXXXXX.tif");
    if (tempfile == NULL) {
-      fprintf(stderr, "%s \"%s\": drawTextOnMontage failed to create temporary file for text\n", getKeyword(), name);
-      exit(EXIT_FAILURE);
+      pvError().printf("%s \"%s\": drawTextOnMontage failed to create temporary file for text\n", getKeyword(), name);
    }
    int tempfd = mkstemps(tempfile, 4/*suffixlen*/);
    if (tempfd < 0) {
-      fprintf(stderr, "%s \"%s\": drawTextOnMontage failed to create temporary file for writing\n", getKeyword(), name);
-      exit(EXIT_FAILURE);
+      pvError().printf("%s \"%s\": drawTextOnMontage failed to create temporary file for writing\n", getKeyword(), name);
    }
    int status = close(tempfd); //mkstemps opens the file to avoid race between finding unused filename and opening it, but we don't need the file descriptor.
    if (status != 0) {
-      fprintf(stderr, "%s \"%s\": drawTextOnMontage failed to close temporory file %s: %s\n", getKeyword(), name, tempfile, strerror(errno));
-      exit(EXIT_FAILURE);
+      pvError().printf("%s \"%s\": drawTextOnMontage failed to close temporory file %s: %s\n", getKeyword(), name, tempfile, strerror(errno));
    }
    status = drawTextIntoFile(tempfile, backgroundColor, textColor, labelText, width, height);
    if (status == 0) {
@@ -650,8 +612,7 @@ int LocalizationProbe::drawTextOnMontage(char const * backgroundColor, char cons
    }
    status = unlink(tempfile);
    if (status != 0) {
-      fprintf(stderr, "%s \"%s\": drawTextOnMontage failed to delete temporary file %s: %s\n", getKeyword(), name, tempfile, strerror(errno));
-      exit(EXIT_FAILURE);
+      pvError().printf("%s \"%s\": drawTextOnMontage failed to delete temporary file %s: %s\n", getKeyword(), name, tempfile, strerror(errno));
    }
    free(tempfile);
    return status;
@@ -663,9 +624,7 @@ int LocalizationProbe::drawTextIntoFile(char const * labelFilename, char const *
    convertCmd << "convert -depth 8 -background \"" << backgroundColor << "\" -fill \"" << textColor << "\" -size " << width << "x" << height << " -pointsize 24 -gravity center label:\"" << labelText << "\" \"" << labelFilename << "\"";
    int status = system(convertCmd.str().c_str());
    if (status != 0) {
-      fflush(stdout);
-      fprintf(stderr, "%s \"%s\" error creating label file \"%s\": ImageMagick convert returned %d.\n", getKeyword(), name, labelFilename, WEXITSTATUS(status));
-      exit(EXIT_FAILURE);
+      pvError().printf("%s \"%s\" error creating label file \"%s\": ImageMagick convert returned %d.\n", getKeyword(), name, labelFilename, WEXITSTATUS(status));
    }
    return status;
 }
@@ -678,18 +637,15 @@ int LocalizationProbe::insertFileIntoMontage(char const * labelFilename, int xOf
    int const nf = imageLoc->nf;
    GDALDataset * dataset = (GDALDataset *) GDALOpen(labelFilename, GA_ReadOnly);
    if (dataset==NULL) {
-      fflush(stdout);
-      fprintf(stderr, "%s \"%s\" error opening label file \"%s\" for reading.\n", getKeyword(), name, labelFilename);
+      pvErrorNoExit().printf("%s \"%s\" error opening label file \"%s\" for reading.\n", getKeyword(), name, labelFilename);
       return PV_FAILURE;
    }
    int xLabelSize = dataset->GetRasterXSize();
    int yLabelSize = dataset->GetRasterYSize();
    int labelBands = dataset->GetRasterCount();
    if (xLabelSize != xExpectedSize || yLabelSize != yExpectedSize) {
-      fflush(stdout);
-      fprintf(stderr, "%s \"%s\" error: label files \"%s\" has dimensions %dx%d (expected %dx%d)\n",
+      pvError().printf("%s \"%s\" error: label files \"%s\" has dimensions %dx%d (expected %dx%d)\n",
             getKeyword(), name, labelFilename, xLabelSize, yLabelSize, xExpectedSize, yExpectedSize);
-      exit(EXIT_FAILURE);
    }
    // same xStart.
    int offsetIdx = kIndex(xOffset, yOffset, 0, montageDimX, montageDimY, 3);
@@ -783,7 +739,7 @@ int LocalizationProbe::setOutputFilenameBase(char const * fn) {
    }
    if (fnString.empty()) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "LocalizationProbe::setOutputFilenameBase error: string \"%s\" is empty after removing directory and extension.\n", fn);
+         pvErrorNoExit().printf("LocalizationProbe::setOutputFilenameBase error: string \"%s\" is empty after removing directory and extension.\n", fn);
       }
       status = PV_FAILURE;
       outputFilenameBase = NULL;
@@ -791,8 +747,7 @@ int LocalizationProbe::setOutputFilenameBase(char const * fn) {
    else {
       outputFilenameBase = strdup(fnString.c_str());
       if (outputFilenameBase==NULL) {
-         fprintf(stderr, "LocalizationProbe::setOutputFilenameBase failed with filename \"%s\": %s\n", fn, strerror(errno));
-         exit(EXIT_FAILURE);
+         pvError().printf("LocalizationProbe::setOutputFilenameBase failed with filename \"%s\": %s\n", fn, strerror(errno));
       }
    }
    return status;
@@ -821,8 +776,7 @@ int LocalizationProbe::calcValues(double timevalue) {
    PVHalo const * halo = &loc->halo;
    float * targetRes = (float *) malloc(sizeof(float)*N);
    if (targetRes==NULL) {
-      fprintf(stderr, "%s \"%s\" unable to allocate buffer for calcValues\n", getKeyword(), name);
-      exit(EXIT_FAILURE);
+      pvError().printf("%s \"%s\" unable to allocate buffer for calcValues\n", getKeyword(), name);
    }
    for (int n=0; n<N; n++) {
       int nExt = kIndexExtended(n, loc->nx, loc->ny, loc->nf, halo->lt, halo->rt, halo->dn, halo->up);
@@ -994,19 +948,19 @@ int LocalizationProbe::outputStateWrapper(double timef, double dt){
 
 int LocalizationProbe::outputState(double timevalue) {
    int status = getValues(timevalue); // all processes must call getValues in parallel.
-   if (getTextOutputFlag() && outputstream && outputstream->fp) {
+   if (getTextOutputFlag() && outputStream) {
       assert(parent->columnId()==0);
       size_t numDetected = detections.size();
       assert(numDetected<maxDetections);
       if (numDetected==0) {
-         fprintf(outputstream->fp, "Time %f, no detections.\n", timevalue);
+         outputStream->printf("Time %f, no detections.\n", timevalue);
       }
       for (size_t d=0; d<numDetected; d++) {
          localization const * thisDetection = &detections.at(d);
          int winningFeature = thisDetection->feature;
          assert(winningFeature>=0 && winningFeature<targetLayer->getLayerLoc()->nf);
          double score = thisDetection->score;
-         fprintf(outputstream->fp, "Time %f, \"%s\", score %f, bounding box x=[%d,%d), y=[%d,%d)\n",
+         outputStream->printf("Time %f, \"%s\", score %f, bounding box x=[%d,%d), y=[%d,%d)\n",
                timevalue,
                getClassName(winningFeature),
                score,
@@ -1240,9 +1194,7 @@ int LocalizationProbe::drawHeatMaps() {
          if (maxConfByCategory[f]>0.0) {
             int slen = snprintf(confidenceText, 16, "%.1f", 100*maxConfByCategory[f]);
             if (slen >= 16) {
-               fflush(stdout);
-               fprintf(stderr, "Formatted text for confidence %f of category %d is too long.\n", maxConfByCategory[idx], f);
-               exit(EXIT_FAILURE);
+               pvError().printf("Formatted text for confidence %f of category %d is too long.\n", maxConfByCategory[idx], f);
             }
          }
          else {
@@ -1291,20 +1243,15 @@ int LocalizationProbe::writeMontage() {
    montagePathSStream << ".tif";
    char * montagePath = strdup(montagePathSStream.str().c_str()); // not sure why I have to strdup this
    if (montagePath==NULL) {
-      fflush(stdout);
-      fprintf(stderr, "%s \"%s\" error: unable to create montagePath\n", getKeyword(), name);
-      exit(EXIT_FAILURE);
+      pvError().printf("%s \"%s\" error: unable to create montagePath\n", getKeyword(), name);
    }
    GDALDriver * driver = GetGDALDriverManager()->GetDriverByName("GTiff");
    if (driver == NULL) {
-      fflush(stdout);
-      fprintf(stderr, "GetGDALDriverManager()->GetDriverByName(\"GTiff\") failed.");
-      exit(EXIT_FAILURE);
+      pvError().printf("GetGDALDriverManager()->GetDriverByName(\"GTiff\") failed.");
    }
    GDALDataset * dataset = driver->Create(montagePath, montageDimX, montageDimY, 3/*numBands*/, GDT_Byte, NULL);
    if (dataset == NULL) {
-      fprintf(stderr, "GDAL failed to open file \"%s\"\n", montagePath);
-      exit(EXIT_FAILURE);
+      pvError().printf("GDAL failed to open file \"%s\"\n", montagePath);
    }
    free(montagePath);
    dataset->RasterIO(GF_Write, 0, 0, montageDimX, montageDimY, montageImage, montageDimX, montageDimY, GDT_Byte, 3/*numBands*/, NULL, 3/*x-stride*/, 3*montageDimX/*y-stride*/, 1/*band-stride*/);

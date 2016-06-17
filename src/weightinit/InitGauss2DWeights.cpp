@@ -41,8 +41,7 @@ int InitGauss2DWeights::calcWeights(pvdata_t * dataStart, int dataPatchIndex, in
     InitGauss2DWeightsParams *weightParamPtr = dynamic_cast<InitGauss2DWeightsParams*> (weightParams);
 
     if(weightParamPtr==NULL) {
-       fprintf(stderr, "Failed to recast pointer to weightsParam!  Exiting...");
-       exit(PV_FAILURE);
+       pvError().printf("Failed to recast pointer to weightsParam!  Exiting...");
     }
 
     weightParamPtr->calcOtherParams(dataPatchIndex);

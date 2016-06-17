@@ -13,8 +13,8 @@
 //
 // The output layer should therefore be all zeros.
 
-#include <columns/buildandrun.hpp>
-#include <io/io.h>
+#include "columns/buildandrun.hpp"
+#include "io/io.hpp"
 #include "DatastoreDelayTestLayer.hpp"
 #include "DatastoreDelayTestProbe.hpp"
 #include <assert.h>
@@ -25,9 +25,8 @@ int main(int argc, char * argv[]) {
     PV_Init initObj(&argc, &argv, false/*allowUnrecognizedArguments*/);
     initObj.registerKeyword("DatastoreDelayTestLayer", createDatastoreDelayTestLayer);
     initObj.registerKeyword("DatastoreDelayTestProbe", createDatastoreDelayTestProbe);
-    PV_Arguments * arguments = initObj.getArguments();
-    if (arguments->getParamsFile()==NULL) {
-        arguments->setParamsFile("input/DatastoreDelayTest.params");
+    if (initObj.getParams()==nullptr) {
+        initObj.setParams("input/DatastoreDelayTest.params");
     }
     status = buildandrun(&initObj);
     return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;

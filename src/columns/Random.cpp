@@ -84,7 +84,7 @@ int Random::initializeFromLoc(HyPerCol* hc, const PVLayerLoc* locptr, bool isExt
    //Allocate buffer to store rngArraySize
    rngArray = (taus_uint4 *) malloc(rngArraySize*sizeof(taus_uint4));
    if (rngArray==NULL) {
-      fprintf(stderr, "Random::initialize error: rank %d process unable to allocate memory for %lu RNGs.\n", hc->columnId(), rngArraySize);
+      pvErrorNoExit().printf("Random::initialize error: rank %d process unable to allocate memory for %lu RNGs.\n", hc->columnId(), rngArraySize);
       status = PV_FAILURE;
    }
    if (status == PV_SUCCESS) {
@@ -122,7 +122,7 @@ int Random::initializeFromCount(HyPerCol* hc, int count){
    rngArraySize = count;
    rngArray = (taus_uint4 *) malloc(count*sizeof(taus_uint4));
    if (rngArray==NULL) {
-      fprintf(stderr, "Random::initialize error: rank %d process unable to allocate memory for %lu RNGs.\n", hc->columnId(), rngArraySize);
+      pvErrorNoExit().printf("Random::initialize error: rank %d process unable to allocate memory for %lu RNGs.\n", hc->columnId(), rngArraySize);
       status = PV_FAILURE;
    }
    if (status == PV_SUCCESS) {

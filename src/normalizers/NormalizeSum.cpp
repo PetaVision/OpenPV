@@ -48,8 +48,7 @@ int NormalizeSum::normalizeWeights() {
    float scale_factor = 1.0f;
    if (normalizeFromPostPerspective) {
       if (conn0->usingSharedWeights()==false) {
-         fprintf(stderr, "NormalizeSum error for connection \"%s\": normalizeFromPostPerspective is true but connection does not use shared weights.\n", getName());
-         exit(EXIT_FAILURE);
+         pvError().printf("NormalizeSum error for connection \"%s\": normalizeFromPostPerspective is true but connection does not use shared weights.\n", getName());
       }
       scale_factor = ((float) conn0->postSynapticLayer()->getNumNeurons())/((float) conn0->preSynapticLayer()->getNumNeurons());
    }
@@ -74,7 +73,7 @@ int NormalizeSum::normalizeWeights() {
                accumulateSum(dataStartPatch, weights_per_patch, &sum);
 			}
 			if (fabs(sum) <= minSumTolerated) {
-			   fprintf(stderr, "NormalizeSum warning for normalizer \"%s\": sum of weights in patch %d of arbor %d is within minSumTolerated=%f of zero. Weights in this patch unchanged.\n", getName(), patchindex, arborID, minSumTolerated);
+			   pvWarn().printf("NormalizeSum for connection \"%s\": sum of weights in patch %d of arbor %d is within minSumTolerated=%f of zero. Weights in this patch unchanged.\n", getName(), patchindex, arborID, minSumTolerated);
 			   break;
 			}
             for (int c=0; c<numConnections; c++) {
@@ -104,7 +103,7 @@ int NormalizeSum::normalizeWeights() {
             }
          }
          if (fabs(sum) <= minSumTolerated) {
-            fprintf(stderr, "NormalizeSum warning for connection \"%s\": sum of weights in patch %d is within minSumTolerated=%f of zero.  Weights in this patch unchanged.\n", getName(), patchindex, minSumTolerated);
+            pvWarn().printf("NormalizeSum for connection \"%s\": sum of weights in patch %d is within minSumTolerated=%f of zero.  Weights in this patch unchanged.\n", getName(), patchindex, minSumTolerated);
             break;
 
          }

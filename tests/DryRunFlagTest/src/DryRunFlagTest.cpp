@@ -23,20 +23,14 @@ int main(int argc, char * argv[]) {
 
    PV::PV_Init pv_obj(&argc, &argv, false/*allowUnrecognizedArguments*/);
 
-   status = pv_obj.initialize();
    if (status != PV_SUCCESS) {
-      fflush(stdout);
-      fprintf(stderr, "%s: PV_Init::initialize() failed on process with PID=%d\n", argv[0], getpid()); 
-      exit(EXIT_FAILURE);
+      pvError().printf("%s: PV_Init::initialize() failed on process with PID=%d\n", argv[0], getpid()); 
    }
 
-   PV::PV_Arguments * pv_arguments = pv_obj.getArguments();
+   pv_obj.setDryRunFlag(true);
 
-   pv_arguments->setDryRunFlag(true);
-
-   if (pv_arguments->getParamsFile()==NULL) {
-      pv_arguments->setParamsFile("input/DryRunFlagTest.params");
-      pv_obj.setParams(pv_arguments->getParamsFile());
+   if (pv_obj.getParamsFile()==NULL) {
+      pv_obj.setParams("input/DryRunFlagTest.params");
    }
 
    if (pv_obj.isExtraProc()) { return EXIT_SUCCESS; }
@@ -45,45 +39,35 @@ int main(int argc, char * argv[]) {
 
    status = deleteGeneratedFiles(&pv_obj);
    if (status!=PV_SUCCESS) {
-      fflush(stdout);
-      fprintf(stderr, "%s: error cleaning generated files from any previous run.\n", argv[0]);
-      exit(EXIT_FAILURE);
+      pvError().printf("%s: error cleaning generated files from any previous run.\n", argv[0]);
    }
 
    status = rebuildandrun(&pv_obj, NULL, checkDryRunSet);
 
    if (status!=PV_SUCCESS) {
-      fflush(stdout);
-      fprintf(stderr, "%s: running with dry-run flag set failed on process %d.\n", argv[0], rank);
-      exit(EXIT_FAILURE);
+      pvError().printf("%s: running with dry-run flag set failed on process %d.\n", argv[0], rank);
    }
 
    // Re-run, without the dry-run flag.
-   pv_arguments->setDryRunFlag(false);
-   pv_arguments->setOutputPath("output-generate");
+   pv_obj.setDryRunFlag(false);
+   pv_obj.setOutputPath("output-generate");
    status = rebuildandrun(&pv_obj, NULL, checkDryRunCleared);
    if (status != PV_SUCCESS) {
-      fflush(stdout);
-      fprintf(stderr, "%s: running with dry-run flag cleared failed on process %d\n", argv[0], rank);
-      exit(EXIT_FAILURE);
+      pvError().printf("%s: running with dry-run flag cleared failed on process %d\n", argv[0], rank);
    }
 
    // Run the column with the cleaned-up params file, sending output to directory "output-verify/"
-   pv_arguments->setOutputPath("output-verify");
-   pv_arguments->setParamsFile("output/pv.params");
+   pv_obj.setOutputPath("output-verify");
+   pv_obj.setParams("output/pv.params");
    status = rebuildandrun(&pv_obj, NULL, checkDryRunCleared);
    if (status != PV_SUCCESS) {
-      fflush(stdout);
-      fprintf(stderr, "%s: running with processed params file failed on process %d\n", argv[0], rank);
-      exit(EXIT_FAILURE);
+      pvError().printf("%s: running with processed params file failed on process %d\n", argv[0], rank);
    }
 
    if (rank==0) {
       status = compareOutputs();
       if (status != PV_SUCCESS) {
-         fflush(stdout);
-         fprintf(stderr, "%s: compareOutputs() failed with return code %d.\n", argv[0], status);
-         exit(EXIT_FAILURE);
+         pvError().printf("%s: compareOutputs() failed with return code %d.\n", argv[0], status);
       }
    }
 
@@ -119,8 +103,8 @@ int compareOutputs() {
    status = system(diffcmd);
    if (status != 0) {
       // If the diff command fails, it may be only that the file system hasn't caught up yet.  
-      printf("diff command returned %d: waiting 1 second and trying again...\n", WEXITSTATUS(status));
-      fflush(stdout);
+      pvWarn().printf("diff command returned %d: waiting 1 second and trying again...\n", WEXITSTATUS(status));
+      pvWarn().flush();
       sleep(1);
       status = system(diffcmd);
       if (status!=0) { status = WEXITSTATUS(status); }
@@ -138,8 +122,7 @@ int deleteFile(char const * path, PV::PV_Init * pv_obj) {
 
    int status = unlink(path);
    if (status != 0 && errno != ENOENT) {
-      fflush(stdout);
-      fprintf(stderr, "%s: error deleting %s: %s\n", pv_obj->getArguments()->getProgramName(), path, strerror(errno));
+      pvErrorNoExit().printf("%s: error deleting %s: %s\n", pv_obj->getProgramName(), path, strerror(errno));
       status = PV_FAILURE;
    }
    else {
@@ -153,7 +136,7 @@ int checkDryRunSet(HyPerCol * hc, int argc, char * argv[]) {
    int status = checkNumTimesteps(hc, argv[0]);
    if (hc->getCurrentStep() != hc->getInitialStep()) {
       if (hc->columnId()==0) {
-         fprintf(stderr, "%s failed: with dry-run flag set, initialStep was %ld but currentStep was %ld\n",
+         pvErrorNoExit().printf("%s failed: with dry-run flag set, initialStep was %ld but currentStep was %ld\n",
                  argv[0], hc->getInitialStep(), hc->getCurrentStep());
       }
       MPI_Barrier(hc->icCommunicator()->communicator());
@@ -167,7 +150,7 @@ int checkDryRunCleared(HyPerCol * hc, int argc, char * argv[]) {
    int status = checkNumTimesteps(hc, argv[0]);
    if (hc->getCurrentStep() != hc->getFinalStep()) {
       if (hc->columnId()==0) {
-         fprintf(stderr, "%s failed: with dry-run flag cleared, finalStep was %ld but currentStep was %ld\n",
+         pvErrorNoExit().printf("%s failed: with dry-run flag cleared, finalStep was %ld but currentStep was %ld\n",
                  argv[0], hc->getFinalStep(), hc->getCurrentStep());
       }
       MPI_Barrier(hc->icCommunicator()->communicator());
@@ -180,7 +163,7 @@ int checkNumTimesteps(HyPerCol * hc, char const * programName) {
    int status;
    if (hc->getInitialStep() == hc->getFinalStep()) {
       if (hc->columnId()==0) {
-         fprintf(stderr, "HyPerCol has same initial step and final step (%ld): unable to test dry-run flag.\n", hc->getInitialStep());
+         pvError().printf("HyPerCol has same initial step and final step (%ld): unable to test dry-run flag.\n", hc->getInitialStep());
       }
       status = PV_FAILURE;
    }

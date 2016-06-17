@@ -29,13 +29,13 @@ int ConvertFromTable::initialize(char const * name, PV::HyPerCol * hc) {
    return status;
 }
 
-int ConvertFromTable::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+int ConvertFromTable::ioParamsFillGroup(enum PV::ParamsIOFlag ioFlag) {
    int status = PV::CloneVLayer::ioParamsFillGroup(ioFlag);
    ioParam_dataFile(ioFlag);
    return status;
 }
 
-void ConvertFromTable::ioParam_dataFile(enum ParamsIOFlag ioFlag) {
+void ConvertFromTable::ioParam_dataFile(enum PV::ParamsIOFlag ioFlag) {
    parent->ioParamStringRequired(ioFlag, name, "dataFile", &dataFile);
 }
 
@@ -52,31 +52,26 @@ int ConvertFromTable::loadConversionTable() {
    if (parent->globalRank()==0) {
       FILE * conversionTableFP = fopen(dataFile, "r");
       if (conversionTableFP==NULL) {
-         fprintf(stderr, "%s \"%s\": error opening dataFile \"%s\": %s\n",
+         pvError().printf("%s \"%s\": error opening dataFile \"%s\": %s\n",
                getKeyword(), getName(), dataFile, strerror(errno));
-         exit(EXIT_FAILURE);
       }
       status = fseek(conversionTableFP, 0L, SEEK_END);
       if (status != 0) {
-         fprintf(stderr, "%s \"%s\": error seeking to end off dataFile \"%s\": %s\n",
+         pvError().printf("%s \"%s\": error seeking to end off dataFile \"%s\": %s\n",
                getKeyword(), getName(), dataFile, strerror(errno));
-         exit(EXIT_FAILURE);
       }
       long fileLength = ftell(conversionTableFP);
       if (fileLength<0) {
-         fprintf(stderr, "%s \"%s\": error getting length of dataFile \"%s\": %s\n",
+         pvError().printf("%s \"%s\": error getting length of dataFile \"%s\": %s\n",
                getKeyword(), getName(), dataFile, strerror(errno));
-         exit(EXIT_FAILURE);
       }
       if (fileLength==0) {
-         fprintf(stderr, "%s \"%s\": dataFile \"%s\" is empty.\n",
+         pvError().printf("%s \"%s\": dataFile \"%s\" is empty.\n",
                getName(), getKeyword(), dataFile);
-         exit(EXIT_FAILURE);
       }
       if (fileLength<CONVTABLEHEADERSIZE) {
-         fprintf(stderr, "%s \"%s\": dataFile \"%s\" is too small (%ld bytes; minimum is %zu bytes)\n",
+         pvError().printf("%s \"%s\": dataFile \"%s\" is too small (%ld bytes; minimum is %zu bytes)\n",
                getKeyword(), getName(), dataFile, fileLength, CONVTABLEHEADERSIZE);
-         exit(EXIT_FAILURE);
       }
       rewind(conversionTableFP);
       size_t numRead = (size_t) 0;
@@ -87,42 +82,36 @@ int ConvertFromTable::loadConversionTable() {
       numRead += fread(&convTable.minRecon, 1, sizeof(int), conversionTableFP);
       numRead += fread(&convTable.maxRecon, 1, sizeof(int), conversionTableFP);
       if(numRead != CONVTABLEHEADERSIZE) {
-         fprintf(stderr, "%s \"%s\": error reading header of dataFile \"%s\": expected %zu bytes; only read %zu\n",
+         pvError().printf("%s \"%s\": reading header of dataFile \"%s\": expected %zu bytes; only read %zu\n",
                getName(), getKeyword(), dataFile, CONVTABLEHEADERSIZE, numRead);
-         exit(EXIT_FAILURE);
       }
       if (memcmp(hdr, "convTabl", 8)) {
-         fprintf(stderr, "%s \"%s\": dataFile \"%s\" does not have the expected header.\n",
+         pvError().printf("%s \"%s\": dataFile \"%s\" does not have the expected header.\n",
                getKeyword(), getName(), dataFile);
-         exit(EXIT_FAILURE);
       }
       int correctFileSize = (int) (sizeof(float)*convTable.numPoints*convTable.numFeatures+CONVTABLEHEADERSIZE);
       if (correctFileSize != fileLength) {
-         fprintf(stderr, "%s \"%s\": dataFile \"%s\" has unexpected length (%d-by-%d %zu-byte data values with %zu-byte header, but file size is %ld\n",
+         pvError().printf("%s \"%s\": dataFile \"%s\" has unexpected length (%d-by-%d %zu-byte data values with %zu-byte header, but file size is %ld\n",
                getKeyword(), getName(), dataFile, convTable.numPoints, convTable.numFeatures, sizeof(float), CONVTABLEHEADERSIZE, fileLength);
-         exit(EXIT_FAILURE);
       }
       if (convTable.numFeatures != getLayerLoc()->nf) {
-         fprintf(stderr, "%s \"%s\" error: layer has %d features but dataFile \"%s\" has numFeatures=%d\n",
+         pvError().printf("%s \"%s\" error: layer has %d features but dataFile \"%s\" has numFeatures=%d\n",
                getKeyword(), getName(), getLayerLoc()->nf, dataFile, convTable.numFeatures);
-         exit(EXIT_FAILURE);
       }
       if (convTable.numFeatures < 2) {
-         fprintf(stderr, "%s \"%s\" error: dataFile \"%s\" has numPoints=%d but must be >= 2.\n",
+         pvError().printf("%s \"%s\" error: dataFile \"%s\" has numPoints=%d but must be >= 2.\n",
                getKeyword(), getName(), dataFile, convTable.numPoints);
-         exit(EXIT_FAILURE);
       }
       size_t numValues = (size_t) (convTable.numPoints * convTable.numFeatures);
       convData = (float *) malloc(sizeof(float)*numValues);
       if (convData==NULL) {
-         fprintf(stderr, "%s \"%s\": unable to allocate memory for loading dataFile \"%s\": %s.\n",
+         pvError().printf("%s \"%s\": unable to allocate memory for loading dataFile \"%s\": %s.\n",
                getKeyword(), getName(), dataFile, strerror(errno));
       }
       numRead = fread(convData, sizeof(float), numValues, conversionTableFP);
       if(numRead != numValues) {
-         fprintf(stderr, "%s \"%s\" error reading dataFile \"%s\": expecting %zu data values but only read %zu.\n",
+         pvError().printf("%s \"%s\" error reading dataFile \"%s\": expecting %zu data values but only read %zu.\n",
                getKeyword(), getName(), dataFile, numValues, numRead);
-         exit(EXIT_FAILURE);
       }
       fclose(conversionTableFP);
    }
@@ -132,7 +121,7 @@ int ConvertFromTable::loadConversionTable() {
    if (parent->globalRank()!=0) {
       convData = (float *) malloc(sizeof(float)*numValues);
       if (convData==NULL) {
-         fprintf(stderr, "%s \"%s\": unable to allocate memory for loading dataFile \"%s\": %s.\n",
+         pvError().printf("%s \"%s\": unable to allocate memory for loading dataFile \"%s\": %s.\n",
                getKeyword(), getName(), dataFile, strerror(errno));
       }
    }

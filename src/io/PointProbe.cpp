@@ -69,28 +69,6 @@ void PointProbe::ioParam_batchLoc(enum ParamsIOFlag ioFlag) {
    getParent()->ioParamValueRequired(ioFlag, getName(), "batchLoc", &batchLoc);
 }
 
-int PointProbe::initOutputStream(const char * filename) {
-   if(parent->columnId()==0){
-      // Called by LayerProbe::initLayerProbe, which is called near the end of PointProbe::initPointProbe
-      // So this->xLoc, yLoc, fLoc have been set.
-      if( filename != NULL ) {
-         char * outputdir = getParent()->getOutputPath();
-         char * path = (char *) malloc(strlen(outputdir)+1+strlen(filename)+1);
-         sprintf(path, "%s/%s", outputdir, filename);
-         outputstream = PV_fopen(path, "w", false/*verifyWrites*/);
-         if( !outputstream ) {
-            fprintf(stderr, "LayerProbe error opening \"%s\" for writing: %s\n", path, strerror(errno));
-            exit(EXIT_FAILURE);
-         }
-         free(path);
-      }
-      else {
-         outputstream = PV_stdout();
-      }
-   }
-   return PV_SUCCESS;
-}
-
 int PointProbe::initNumValues() {
    return setNumValues(2);
 }
@@ -101,19 +79,19 @@ int PointProbe::communicateInitInfo() {
    const PVLayerLoc * loc = getTargetLayer()->getLayerLoc();
    bool isRoot = getParent()->icCommunicator()->commRank()==0;
    if( (xLoc < 0 || xLoc > loc->nxGlobal) && isRoot ) {
-      fprintf(stderr, "PointProbe on layer %s: xLoc coordinate %d is out of bounds (layer has %d neurons in the x-direction.\n", getTargetLayer()->getName(), xLoc, loc->nxGlobal);
+      pvErrorNoExit().printf("PointProbe on layer %s: xLoc coordinate %d is out of bounds (layer has %d neurons in the x-direction.\n", getTargetLayer()->getName(), xLoc, loc->nxGlobal);
       status = PV_FAILURE;
    }
    if( (yLoc < 0 || yLoc > loc->nyGlobal) && isRoot ) {
-      fprintf(stderr, "PointProbe on layer %s: yLoc coordinate %d is out of bounds (layer has %d neurons in the y-direction.\n", getTargetLayer()->getName(), yLoc, loc->nyGlobal);
+      pvErrorNoExit().printf("PointProbe on layer %s: yLoc coordinate %d is out of bounds (layer has %d neurons in the y-direction.\n", getTargetLayer()->getName(), yLoc, loc->nyGlobal);
       status = PV_FAILURE;
    }
    if( (fLoc < 0 || fLoc > loc->nf) && isRoot ) {
-      fprintf(stderr, "PointProbe on layer %s: fLoc coordinate %d is out of bounds (layer has %d features.\n", getTargetLayer()->getName(), fLoc, loc->nf);
+      pvErrorNoExit().printf("PointProbe on layer %s: fLoc coordinate %d is out of bounds (layer has %d features.\n", getTargetLayer()->getName(), fLoc, loc->nf);
       status = PV_FAILURE;
    }
    if( (batchLoc < 0 || batchLoc > loc->nbatch) && isRoot ) {
-      fprintf(stderr, "PointProbe on layer %s: batchLoc coordinate %d is out of bounds (layer has %d batches.\n", getTargetLayer()->getName(), batchLoc, loc->nbatch);
+      pvErrorNoExit().printf("PointProbe on layer %s: batchLoc coordinate %d is out of bounds (layer has %d batches.\n", getTargetLayer()->getName(), batchLoc, loc->nbatch);
       status = PV_FAILURE;
    }
    if( status != PV_SUCCESS ) abort();
@@ -206,10 +184,9 @@ int PointProbe::calcValues(double timevalue) {
 int PointProbe::writeState(double timef) {
    double * valuesBuffer = this->getValuesBuffer();
    if(parent->columnId()==0){
-      assert(outputstream && outputstream->fp);
-
-      fprintf(outputstream->fp, "%s t=%.1f V=%6.5f a=%.5f\n", getMessage(), timef, getV(), getA());
-      fflush(outputstream->fp);
+      pvAssert(outputStream);
+      outputStream->printf("%s t=%.1f V=%6.5f a=%.5f", getMessage(), timef, getV(), getA());
+      output() << std::endl;
    }
    return PV_SUCCESS;
 }

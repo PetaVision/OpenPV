@@ -64,12 +64,10 @@ int TransposePoolingConn::initialize(const char * name, HyPerCol * hc) {
    switch (poolingType) {
 #ifdef OBSOLETE // Marked obsolete May 3, 2016.  HyPerConn defines HyPerConnAccumulateType and PoolingConn defines PoolingType
    case ACCUMULATE_CONVOLVE:
-      std::cout << "ACCUMULATE_CONVOLVE not allowed in TransposePoolingConn\n";
-      exit(-1);
+      pvError() << "ACCUMULATE_CONVOLVE not allowed in TransposePoolingConn\n";
       break;
    case ACCUMULATE_STOCHASTIC:
-      std::cout << "ACCUMULATE_STOCASTIC not allowed in TransposePoolingConn\n";
-      exit(-1);
+      pvError() << "ACCUMULATE_STOCASTIC not allowed in TransposePoolingConn\n";
       break;
 #endif // OBSOLETE // Marked obsolete May 3, 2016.  HyPerConn defines HyPerConnAccumulateType and PoolingConn defines PoolingType
    case PoolingConn::MAX:
@@ -194,18 +192,19 @@ void TransposePoolingConn::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFla
 
 void TransposePoolingConn::unsetAccumulateType() {
    if (parent->columnId()==0) {
+      pvErrorNoExit(errorMessage);
       if (pvpatchAccumulateTypeString) {
-         pvLogError("%s \"%s\" error: pvpatchAccumulateType \"%s\" is unrecognized.",
+         errorMessage.printf("%s \"%s\" error: pvpatchAccumulateType \"%s\" is unrecognized.",
                getKeyword(), name, pvpatchAccumulateTypeString);
       }
       else {
-         pvLogError("%s \"%s\" error: pvpatchAccumulateType NULL is unrecognized.",
+         errorMessage.printf("%s \"%s\" error: pvpatchAccumulateType NULL is unrecognized.",
                getKeyword(), name);
       }
-      pvLogError("  Allowed values are \"maxpooling\", \"sumpooling\", or \"avgpooling\".");
+      errorMessage.printf("  Allowed values are \"maxpooling\", \"sumpooling\", or \"avgpooling\".");
    }
    MPI_Barrier(parent->icCommunicator()->communicator());
-   pvExitFailure("");
+   exit(EXIT_FAILURE);
 }
 
 void TransposePoolingConn::ioParam_combine_dW_with_W_flag(enum ParamsIOFlag ioFlag) {
@@ -282,7 +281,7 @@ int TransposePoolingConn::communicateInitInfo() {
    BaseConnection * originalConnBase = parent->getConnFromName(this->originalConnName);
    if (originalConnBase==NULL) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: originalConnName \"%s\" does not refer to any connection in the column.\n", this->getKeyword(), name, this->originalConnName);
+         pvErrorNoExit().printf("%s \"%s\": originalConnName \"%s\" does not refer to any connection in the column.\n", this->getKeyword(), name, this->originalConnName);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -290,7 +289,7 @@ int TransposePoolingConn::communicateInitInfo() {
    originalConn = dynamic_cast<PoolingConn *>(originalConnBase);
    if (originalConn == NULL) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "TransposePoolingConn \"%s\" error: originalConnName \"%s\" is not a PoolingConn.\n", name, originalConnName);
+         pvErrorNoExit().printf("TransposePoolingConn \"%s\": originalConnName \"%s\" is not a PoolingConn.\n", name, originalConnName);
          status = PV_FAILURE;
       }
    }
@@ -299,7 +298,7 @@ int TransposePoolingConn::communicateInitInfo() {
    if (!originalConn->getInitInfoCommunicatedFlag()) {
       if (parent->columnId()==0) {
          const char * connectiontype = this->getKeyword();
-         printf("%s \"%s\" must wait until original connection \"%s\" has finished its communicateInitInfo stage.\n", connectiontype, name, originalConn->getName());
+         pvInfo().printf("%s \"%s\" must wait until original connection \"%s\" has finished its communicateInitInfo stage.\n", connectiontype, name, originalConn->getName());
       }
       return PV_POSTPONE;
    }
@@ -316,7 +315,7 @@ int TransposePoolingConn::communicateInitInfo() {
 
    if(originalConn->getShrinkPatches_flag()) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "TransposePoolingConn \"%s\" error: original conn \"%s\" has shrinkPatches set to true.  TransposePoolingConn has not been implemented for that case.\n", name, originalConn->getName());
+         pvErrorNoExit().printf("TransposePoolingConn \"%s\": original conn \"%s\" has shrinkPatches set to true.  TransposePoolingConn has not been implemented for that case.\n", name, originalConn->getName());
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -327,7 +326,7 @@ int TransposePoolingConn::communicateInitInfo() {
 
    if(!originalConn->needPostIndex() && poolingType == PoolingConn::MAX){
       if (parent->columnId()==0) {
-         fprintf(stderr, "TransposePoolingConn \"%s\" error: original pooling conn \"%s\" needs to have a postIndexLayer if unmax pooling.\n", name, originalConnName);
+         pvErrorNoExit().printf("TransposePoolingConn \"%s\": original pooling conn \"%s\" needs to have a postIndexLayer if unmax pooling.\n", name, originalConnName);
          status = PV_FAILURE;
       }
    }
@@ -335,20 +334,20 @@ int TransposePoolingConn::communicateInitInfo() {
 
    //Check post layer phases to make sure it matches
    if(originalConn->postSynapticLayer()->getPhase() >= post->getPhase()){
-      fprintf(stderr, "TransposePoolingConn \"%s\" warning: originalConn's post layer phase is greater or equal than this layer's post. Behavior undefined.\n", name);
+      pvWarn().printf("TransposePoolingConn \"%s\": originalConn's post layer phase is greater or equal than this layer's post. Behavior undefined.\n", name);
    }
 
    if(originalConn->getPoolingType() != poolingType){
-      fprintf(stderr, "TransposePoolingConn \"%s\" error: originalConn accumulateType does not match this layer's accumulate type.\n", name);
-      exit(EXIT_FAILURE);
+      pvError().printf("TransposePoolingConn \"%s\" error: originalConn accumulateType does not match this layer's accumulate type.\n", name);
    }
 
    const PVLayerLoc * preLoc = pre->getLayerLoc();
    const PVLayerLoc * origPostLoc = originalConn->postSynapticLayer()->getLayerLoc();
    if (preLoc->nx != origPostLoc->nx || preLoc->ny != origPostLoc->ny || preLoc->nf != origPostLoc->nf) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: transpose's pre layer and original connection's post layer must have the same dimensions.\n", this->getKeyword(), name);
-         fprintf(stderr, "    (x=%d, y=%d, f=%d) versus (x=%d, y=%d, f=%d).\n", preLoc->nx, preLoc->ny, preLoc->nf, origPostLoc->nx, origPostLoc->ny, origPostLoc->nf);
+         pvErrorNoExit(errorMessage);
+         errorMessage.printf("%s \"%s\": transpose's pre layer and original connection's post layer must have the same dimensions.\n", this->getKeyword(), name);
+         errorMessage.printf("    (x=%d, y=%d, f=%d) versus (x=%d, y=%d, f=%d).\n", preLoc->nx, preLoc->ny, preLoc->nf, origPostLoc->nx, origPostLoc->ny, origPostLoc->nf);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -357,8 +356,9 @@ int TransposePoolingConn::communicateInitInfo() {
    const PVLayerLoc * origPreLoc = originalConn->postSynapticLayer()->getLayerLoc();
    if (postLoc->nx != origPreLoc->nx || postLoc->ny != origPreLoc->ny || postLoc->nf != origPreLoc->nf) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: transpose's post layer and original connection's pre layer must have the same dimensions.\n", this->getKeyword(), name);
-         fprintf(stderr, "    (x=%d, y=%d, f=%d) versus (x=%d, y=%d, f=%d).\n", postLoc->nx, postLoc->ny, postLoc->nf, origPreLoc->nx, origPreLoc->ny, origPreLoc->nf);
+         pvErrorNoExit(errorMessage);
+         errorMessage.printf("%s \"%s\": transpose's post layer and original connection's pre layer must have the same dimensions.\n", this->getKeyword(), name);
+         errorMessage.printf("    (x=%d, y=%d, f=%d) versus (x=%d, y=%d, f=%d).\n", postLoc->nx, postLoc->ny, postLoc->nf, origPreLoc->nx, origPreLoc->ny, origPreLoc->nf);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -384,8 +384,7 @@ int TransposePoolingConn::communicateInitInfo() {
       int allowedDelay = originalConn->getPostIndexLayer()->increaseDelayLevels(getDelayArraySize());
       if( allowedDelay < getDelayArraySize()) {
          if( this->getParent()->columnId() == 0 ) {
-            fflush(stdout);
-            fprintf(stderr, "Connection \"%s\": attempt to set delay to %d, but the maximum allowed delay is %d.  Exiting\n", this->getName(), getDelayArraySize(), allowedDelay);
+            pvErrorNoExit().printf("Connection \"%s\": attempt to set delay to %d, but the maximum allowed delay is %d.  Exiting\n", this->getName(), getDelayArraySize(), allowedDelay);
          }
          exit(EXIT_FAILURE);
       }
@@ -441,7 +440,7 @@ int TransposePoolingConn::allocateDataStructures() {
    if (!originalConn->getDataStructuresAllocatedFlag()) {
       if (parent->columnId()==0) {
          const char * connectiontype = this->getKeyword();
-         printf("%s \"%s\" must wait until original connection \"%s\" has finished its allocateDataStructures stage.\n", connectiontype, name, originalConn->getName());
+         pvInfo().printf("%s \"%s\" must wait until original connection \"%s\" has finished its allocateDataStructures stage.\n", connectiontype, name, originalConn->getName());
       }
       return PV_POSTPONE;
    }
@@ -527,8 +526,8 @@ double TransposePoolingConn::computeNewWeightUpdateTime(double time, double curr
 }
 
 int TransposePoolingConn::deliverPostsynapticPerspective(PVLayerCube const * activity, int arborID) {
-   std::cout << "Delivering from PostSynapticPerspective for TransposePoolingConn not implented yet\n";
-   exit(-1);
+   pvError() << "Delivering from PostSynapticPerspective for TransposePoolingConn not implented yet\n";
+   return PV_FAILURE; // suppresses warning in compilers that don't recognize pvError always exits.
 }
 
 int TransposePoolingConn::deliverPresynapticPerspective(PVLayerCube const * activity, int arborID) {

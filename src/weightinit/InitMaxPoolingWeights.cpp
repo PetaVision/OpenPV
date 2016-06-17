@@ -43,8 +43,7 @@ int InitMaxPoolingWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStar
    InitMaxPoolingWeightsParams *weightParamPtr = dynamic_cast<InitMaxPoolingWeightsParams*>(weightParams);
 
    if(weightParamPtr==NULL) {
-      fprintf(stderr, "Failed to recast pointer to weightsParam!  Exiting...");
-      exit(1);
+      pvError().printf("Failed to recast pointer to weightsParam!  Exiting...");
    }
 
    return PV_SUCCESS; // return 1;

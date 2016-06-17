@@ -45,10 +45,7 @@ int RescaleLayer::initialize(const char * name, HyPerCol * hc) {
 
 int RescaleLayer::communicateInitInfo() {
    int status = CloneVLayer::communicateInitInfo();
-   originalLayer = parent->getLayerFromName(originalLayerName);
-   if (originalLayer==NULL) {
-      fprintf(stderr, "Group \"%s\": Original layer \"%s\" must be a HyPer layer\n", name, originalLayerName);
-   }
+   // CloneVLayer sets originalLayer and errors out if originalLayerName is not valid
    return status;
 }
 
@@ -90,9 +87,8 @@ int RescaleLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag){
    else if(strcmp(rescaleMethod, "logreg") == 0){
    }
    else{
-      fprintf(stderr, "RescaleLayer \"%s\": rescaleMethod does not exist. Current implemented methods are maxmin, meanstd, pointmeanstd, pointResponseNormalization, softmax, l2, l2NoMean, and logreg.\n",
+      pvError().printf("RescaleLayer \"%s\": rescaleMethod does not exist. Current implemented methods are maxmin, meanstd, pointmeanstd, pointResponseNormalization, softmax, l2, l2NoMean, and logreg.\n",
             name);
-      exit(PV_FAILURE);
    }
    return PV_SUCCESS;
 }
@@ -299,7 +295,7 @@ int RescaleLayer::updateState(double timef, double dt) {
              }
           }
           else {
-             std::cout << "Warining: std of layer " << originalLayer->getName() << " is 0, layer remains unchanged\n";
+             pvWarn() << "std of layer " << originalLayer->getName() << " is 0, layer remains unchanged\n";
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
@@ -341,7 +337,7 @@ int RescaleLayer::updateState(double timef, double dt) {
              }
           }
           else {
-             std::cout << "Warining: std of layer " << originalLayer->getName() << " is 0, layer remains unchanged\n";
+             pvWarn() << "std of layer " << originalLayer->getName() << " is 0, layer remains unchanged\n";
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
@@ -465,8 +461,8 @@ int RescaleLayer::updateState(double timef, double dt) {
                    int kext = kIndex(iX, iY, iF, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, nf);
                    ABatch[kext] = exp(originalABatch[kextOrig])/sumexpx;
                    //if(ABatch[kext] < 0 || ABatch[kext] > 1){
-                   //   std::cout << "ABatch[" << kext << "] = " << ABatch[kext] << " : " << originalABatch[kextOrig] << " - " << mean << " / " << sumexpx << "\n";
-                   //   std::cout << std::flush;
+                   //   pvInfo() << "ABatch[" << kext << "] = " << ABatch[kext] << " : " << originalABatch[kextOrig] << " - " << mean << " / " << sumexpx << "\n";
+                   //   pvInfo() << std::flush;
                    //}
                    assert(ABatch[kext] >= 0 && ABatch[kext] <= 1);
                 }

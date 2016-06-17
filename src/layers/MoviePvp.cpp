@@ -66,8 +66,7 @@ int MoviePvp::checkpointRead(const char * cpDir, double * timef){
       if (timestampFile) {
          assert(parent->columnId()==0);
          if (PV_fseek(timestampFile, timestampFilePos, SEEK_SET) != 0) {
-            fprintf(stderr, "MovieLayer::checkpointRead error: unable to recover initial file position in timestamp file for layer %s: %s\n", name, strerror(errno));
-            exit(EXIT_FAILURE);
+            pvError().printf("MovieLayer::checkpointRead error: unable to recover initial file position in timestamp file for layer %s: %s\n", name, strerror(errno));
          }
       }
    }
@@ -97,8 +96,7 @@ int MoviePvp::checkpointWrite(const char * cpDir){
 int MoviePvp::initialize(const char * name, HyPerCol * hc) {
    int status = ImagePvp::initialize(name, hc);
    if (status != PV_SUCCESS) {
-      fprintf(stderr, "Image::initialize failed on Movie layer \"%s\".  Exiting.\n", name);
-      exit(PV_FAILURE);
+      pvError().printf("Image::initialize failed on Movie layer \"%s\".  Exiting.\n", name);
    }
 
    //Update on first timestep
@@ -120,7 +118,7 @@ int MoviePvp::initialize(const char * name, HyPerCol * hc) {
           if(getParent()->getCheckpointReadFlag()){
              struct stat statbuf;
              if (PV_stat(timestampFilename.c_str(), &statbuf) != 0) {
-                fprintf(stderr, "%s \"%s\" warning: timestamp file \"%s\" unable to be found.  Creating new file.\n",
+                pvWarn().printf("%s \"%s\": timestamp file \"%s\" unable to be found.  Creating new file.\n",
                       getKeyword(), name, timestampFilename.c_str());
                 timestampFile = PV::PV_fopen(timestampFilename.c_str(), "w", parent->getVerifyWrites());
              }
@@ -172,8 +170,7 @@ void MoviePvp::ioParam_batchMethod(enum ParamsIOFlag ioFlag){
       //Correct
    }
    else{
-      std::cout << "Movie layer " << name << " batchMethod not recognized. Options are \"byImage\", \"byMovie\", and \"bySpecified\"\n";
-      exit(-1);
+      pvError() << "Movie layer " << name << " batchMethod not recognized. Options are \"byImage\", \"byMovie\", and \"bySpecified\"\n";
    }
 }
 
@@ -230,8 +227,7 @@ int MoviePvp::allocateDataStructures() {
    if(strcmp(batchMethod, "byImage") == 0){
       //No skip here allowed
       if(numSkipFrame != 0){
-         std::cout << "Movie layer " << name << " batchMethod of \"" << batchMethod << "\" sets skip_frame_index, do not specify.\n"; 
-         exit(-1);
+         pvError() << "Movie layer " << name << " batchMethod of \"" << batchMethod << "\" sets skip_frame_index, do not specify.\n";
       }
 
       int offset = 0;
@@ -243,8 +239,7 @@ int MoviePvp::allocateDataStructures() {
          offset = *paramsStartFrameIndex;
       }
       else{
-         std::cout << "Movie layer " << name << " batchMethod of \"" << batchMethod << "\" requires 0 or 1 start_frame_index values\n"; 
-         exit(-1);
+         pvError() << "Movie layer " << name << " batchMethod of \"" << batchMethod << "\" requires 0 or 1 start_frame_index values\n";
       }
       //Allocate and default
       //Not done in allocate, as Image Allocate needs this parameter to be set
@@ -258,8 +253,7 @@ int MoviePvp::allocateDataStructures() {
    else if (strcmp(batchMethod, "byMovie") == 0){
       //No skip here allowed
       if(numSkipFrame != 0){
-         std::cout << "Movie layer " << name << " batchMethod of \"byImage\" sets skip_frame_index, do not specify.\n"; 
-         exit(-1);
+         pvError() << "Movie layer " << name << " batchMethod of \"byImage\" sets skip_frame_index, do not specify.\n";
       }
       
       int offset = 0;
@@ -271,8 +265,7 @@ int MoviePvp::allocateDataStructures() {
          offset = *paramsStartFrameIndex;
       }
       else{
-         std::cout << "Movie layer " << name << " batchMethod of \"byMovie\" requires 0 or 1 start_frame_index values\n"; 
-         exit(-1);
+         pvError() << "Movie layer " << name << " batchMethod of \"byMovie\" requires 0 or 1 start_frame_index values\n";
       }
 
       int nbatchGlobal = getLayerLoc()->nbatchGlobal;
@@ -290,12 +283,10 @@ int MoviePvp::allocateDataStructures() {
    }
    else if(strcmp(batchMethod, "bySpecified") == 0){
       if(numStartFrame != nbatch && numStartFrame != 0){
-         std::cout << "Movie layer " << name << " batchMethod of \"bySpecified\" requires 0 or " << nbatch << " start_frame_index values\n"; 
-         exit(-1);
+         pvError() << "Movie layer " << name << " batchMethod of \"bySpecified\" requires 0 or " << nbatch << " start_frame_index values\n";
       }
       if(numSkipFrame != nbatch && numSkipFrame != 0){
-         std::cout << "Movie layer " << name << " batchMethod of \"bySpecified\" requires 0 or " << nbatch << " skip_frame_index values\n"; 
-         exit(-1);
+         pvError() << "Movie layer " << name << " batchMethod of \"bySpecified\" requires 0 or " << nbatch << " skip_frame_index values\n";
       }
       for(int b = 0; b < nbatch; b++){ 
          if(numStartFrame == 0){
@@ -404,8 +395,7 @@ bool MoviePvp::updateImage(double time, double dt)
             if(fabs(time - (parent->getStartTime() + parent->getDeltaTime())) > (parent->getDeltaTime()/2)){
                int status = getFrame(time, dt);
                if( status != PV_SUCCESS ) {
-                  fprintf(stderr, "Movie %s: Error reading file \"%s\"\n", name, inputPath);
-                  abort();
+                  pvError().printf("Movie %s: Error reading file \"%s\"\n", name, inputPath);
                }
             }
       if(writePosition && icComm->commRank()==0){
@@ -425,8 +415,7 @@ bool MoviePvp::updateImage(double time, double dt)
              size_t len = outStrStream.str().length();
              int status = PV_fwrite(outStrStream.str().c_str(), sizeof(char), len, timestampFile)==len ? PV_SUCCESS : PV_FAILURE;
              if (status != PV_SUCCESS) {
-                fprintf(stderr, "%s \"%s\" error: Movie::updateState failed to write to timestamp file.\n", getKeyword(), name);
-                exit(EXIT_FAILURE);
+                pvError().printf("%s \"%s\" error: Movie::updateState failed to write to timestamp file.\n", getKeyword(), name);
              }
              //Flush buffer
              fflush(timestampFile->fp);
@@ -475,7 +464,7 @@ int MoviePvp::updateFrameNum(int batchIdx) {
    //numFrames only set if pvp file
    if(frameNumbers[batchIdx] >= fileNumFrames){
       if(parent->columnId()==0){
-         fprintf(stderr, "Movie %s: EOF reached, rewinding file \"%s\"\n", name, inputPath );
+         pvInfo().printf("Movie %s: EOF reached, rewinding file \"%s\"\n", name, inputPath );
       }
       if(resetToStartOnLoop){
          frameNumbers[batchIdx] = startFrameIndex[batchIdx];

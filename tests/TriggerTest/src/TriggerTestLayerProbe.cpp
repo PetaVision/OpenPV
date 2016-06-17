@@ -34,7 +34,7 @@ int TriggerTestLayerProbe::outputStateWrapper(double time, double dt){
    getValues(time);
    assert(this->getNumValues()>0);
    int updateNeeded = (int) getValuesBuffer()[0];
-   fprintf(stderr, "%s: time=%f, dt=%f, needUpdate=%d\n", name, time, dt, updateNeeded);
+   pvInfo().printf("%s: time=%f, dt=%f, needUpdate=%d\n", name, time, dt, updateNeeded);
    if(strcmp(name, "notriggerlayerprobe") == 0){
       assert(updateNeeded == 1);
    }

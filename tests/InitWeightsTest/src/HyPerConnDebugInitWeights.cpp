@@ -60,9 +60,8 @@ int HyPerConnDebugInitWeights::communicateInitInfo() {
    BaseConnection * baseConn = parent->getConnFromName(otherConnName);
    otherConn = dynamic_cast<HyPerConn *>(baseConn);
    if (otherConn == NULL) {
-      fprintf(stderr, "HyPerConnDebugInitWeights \"%s\" error in rank %d process: copiedConn \"%s\" is not a connection in the column.\n",
+      pvError().printf("HyPerConnDebugInitWeights \"%s\" error in rank %d process: copiedConn \"%s\" is not a connection in the column.\n",
             name, parent->columnId(), otherConnName);
-      exit(EXIT_FAILURE);
    }
    return PV_SUCCESS;
 }
@@ -83,7 +82,7 @@ PVPatch *** HyPerConnDebugInitWeights::initializeWeights(PVPatch *** arbors, pvd
    int initFromLastFlag = inputParams->value(getName(), "initFromLastFlag", 0.0f, false) != 0;
 
    if (initFromLastFlag) {
-      fprintf(stderr, "This method is for testing weight initialization!  It does not support load from file!\n");
+      pvError().printf("This method is for testing weight initialization!  It does not support load from file!\n");
    }
    else {
       const char * weightInitTypeStr = inputParams->stringValue(name, "weightInitType");
@@ -118,7 +117,7 @@ PVPatch *** HyPerConnDebugInitWeights::initializeWeights(PVPatch *** arbors, pvd
          initializeGaussian2DWeights(patches, arborStart, numPatches);
       }
       else { //default is also Gauss2D
-         //fprintf(stderr, "weightInitType not set or unrecognized.  Using default (2D Gaussian).\n");
+         //pvWarn().printf("weightInitType not set or unrecognized.  Using default (2D Gaussian).\n");
          initializeGaussian2DWeights(patches, arborStart, numPatches);
       }
 
@@ -924,7 +923,7 @@ int HyPerConnDebugInitWeights::gaborWeights(PVPatch * wp, pvdata_t * dataStart, 
             float wt = factor * expf(-d2 / (2.0f*sigma*sigma));
 
 #ifdef DEBUG_OUTPUT
-            if (j == 0) printf("x=%f fac=%f w=%f\n", xp, factor, wt);
+            if (j == 0) pvInfo().printf("x=%f fac=%f w=%f\n", xp, factor, wt);
 #endif
             if (xp*xp + yp*yp > r2Max) {
                w[i*sx + j*sy + f*sf] = 0.0f;

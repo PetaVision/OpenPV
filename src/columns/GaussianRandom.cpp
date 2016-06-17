@@ -32,7 +32,7 @@ int GaussianRandom::initializeGaussian(){
    int status = PV_SUCCESS;
    heldValues = (struct box_muller_data *) malloc(rngArraySize*sizeof(taus_uint4));
    if (heldValues==NULL) {
-      fprintf(stderr, "GaussianRandom::initialize error: rank %d process unable to allocate memory for %zu Box-Muller held values.\n", parentHyPerCol->columnId(), rngArraySize);
+      pvErrorNoExit().printf("GaussianRandom::initialize: rank %d process unable to allocate memory for %zu Box-Muller held values.\n", parentHyPerCol->columnId(), rngArraySize);
       status = PV_FAILURE;
    }
    if (status == PV_SUCCESS) {

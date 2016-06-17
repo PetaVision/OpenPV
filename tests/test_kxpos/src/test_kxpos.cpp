@@ -1,6 +1,7 @@
 #include <utils/conversions.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "utils/PVLog.hpp"
 
 int main(int argc, char* argv[])
 {
@@ -26,8 +27,7 @@ int main(int argc, char* argv[])
       float kx = kxPos(kl, nxLocal, nyLocal, nf);
 
       if (kx != (float)kxx) {
-         printf("FAILED:TEST_KXPOS: (k,kx) = (%d,%f)\n", kl, kx);
-         exit(1);
+         pvError().printf("FAILED:TEST_KXPOS: (k,kx) = (%d,%f)\n", kl, kx);
       }
    }
 
@@ -49,8 +49,7 @@ int main(int argc, char* argv[])
       float kx = kxPos(kl, nxLocal, nyLocal, nf);
 
       if ((int)kx-kxx != 0) {
-         printf("FAILED:TEST_KXPOS: (k,kx) = (%d,%f)\n", kl, kx);
-         exit(1);
+         pvError().printf("FAILED:TEST_KXPOS: (k,kx) = (%d,%f)\n", kl, kx);
       }
    }
 
@@ -73,8 +72,7 @@ int main(int argc, char* argv[])
       float kx = kxPos(kl, nxLocal, nyLocal, nf);
 
       if ((int)kx-kxx != 0) {
-         printf("FAILED:TEST_KXPOS: (k,kx) = (%d,%f)\n", kl, kx);
-         exit(1);
+         pvError().printf("FAILED:TEST_KXPOS: (k,kx) = (%d,%f)\n", kl, kx);
       }
    }
 
@@ -98,8 +96,7 @@ int main(int argc, char* argv[])
       float kx = kxPos(kl, nxLocal, nyLocal, nf);
 
       if ((int)kx-kxx != 0) {
-         printf("FAILED:TEST_KXPOS: (k,kx) = (%d,%f)\n", kl, kx);
-         exit(1);
+         pvError().printf("FAILED:TEST_KXPOS: (k,kx) = (%d,%f)\n", kl, kx);
       }
    }
 

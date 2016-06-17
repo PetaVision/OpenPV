@@ -10,6 +10,7 @@
 #include <omp.h>
 #endif // PV_USE_OPENMP_THREADS
 #include "PV_Init.hpp"
+#include "utils/PVLog.hpp"
 #include "columns/HyPerCol.hpp"
 
 namespace PV {
@@ -23,8 +24,8 @@ PV_Init::PV_Init(int* argc, char ** argv[], bool allowUnrecognizedArguments){
    icComm = NULL;
    arguments = new PV_Arguments(*argc, *argv, allowUnrecognizedArguments);
    factory = new Factory();
-   initialized = false;
    buildandrunDeprecationWarning = true;
+   initialize();
 }
 
 PV_Init::~PV_Init(){
@@ -52,9 +53,9 @@ int PV_Init::initSignalHandler()
 }
 
 int PV_Init::initialize() {
+   initLogFile();
    delete icComm;
    icComm = new InterColComm(arguments);
-   initialized = true;
    int status = PV_SUCCESS;
    // It is okay to initialize without there being a params file.
    // setParams() can be called later.
@@ -62,6 +63,10 @@ int PV_Init::initialize() {
    if (arguments->getParamsFile()) {
       status = createParams();
    }
+   time_t currentTime = time(nullptr);
+   pvInfo() << "PetaVision initialized at " << ctime(&currentTime); // string returned by ctime contains a trailing \n.
+   pvInfo() << "Command line arguments are:\n";
+   arguments->printState();
    return status;
 }
 
@@ -84,33 +89,64 @@ int PV_Init::commInit(int* argc, char*** argv)
    // can run the second simulation, etc.
    MPI_Initialized(&mpiInit);
    if( !mpiInit) {
-      assert((*argv)[*argc]==NULL); // Open MPI 1.7 assumes this.
+      pvAssert((*argv)[*argc]==NULL); // Open MPI 1.7 assumes this.
       MPI_Init(argc, argv);
    }
    else{
-      std::cout << "Error: PV_Init communicator already initialized\n";
-      exit(-1);
+      pvError() << "PV_Init communicator already initialized\n";
    }
 
    return 0;
 }
 
+void PV_Init::initLogFile() {
+   // TODO: Under MPI, non-root processes should send messages to root process.
+   // Currently, if logFile is directory/filename.txt, the root process writes to that path,
+   // and nonroot processes write to directory/filename_<rank>.txt, where <rank> is replaced with the global rank.
+   // If filename does not have an extension, _<rank> is appended.
+   // Note that the global rank zero process does not insert _<rank>.  This is deliberate, as the nonzero ranks
+   // should be MPI-ing the data to the zero rank.
+   char const * logFile = arguments->getLogFile();
+   std::ios_base::openmode const mode = std::ios_base::out; // TODO: Provide control over whether to truncate or append
+   int const globalRootProcess = 0;
+   int globalRank;
+   MPI_Comm_rank(MPI_COMM_WORLD, &globalRank);
+   if (logFile && globalRank != globalRootProcess) {
+      // To prevent collisions caused by multiple processes opening the same file for logging,
+      // processes with global rank other than zero append the rank to the log filename.
+      // If the logfile has an extension (e.g. ".log", ".txt"), the rank is appended before the
+      // period separating the extension.
+      std::string logFileString(logFile);
+      size_t finalSlash = logFileString.rfind('/');
+      size_t finalDot = logFileString.rfind('.');
+      size_t insertionPoint;
+      if (finalDot == std::string::npos || (finalSlash!=std::string::npos && finalDot < finalSlash) ) {
+         insertionPoint = logFileString.length();
+      }
+      else {
+         insertionPoint = finalDot;
+      }
+      logFileString.insert(finalDot, std::to_string(globalRank)).insert(finalDot, "_");
+      PV::setLogFile(logFileString.c_str(), mode);
+   }
+   else {
+      PV::setLogFile(logFile, mode);
+   }
+}
+
 int PV_Init::setParams(char const * params_file) {
    if (params_file == NULL) { return PV_FAILURE; }
-   char const * newParamsFile = getArguments()->setParamsFile(params_file);
+   char const * newParamsFile = arguments->setParamsFile(params_file);
    if (newParamsFile==NULL) {
-      fflush(stdout);
-      fprintf(stderr, "PV_Init error setting new params file: %s\n", strerror(errno));
+      pvErrorNoExit().printf("PV_Init unable to set new params file: %s\n", strerror(errno));
       return PV_FAILURE;
    }
-   if (!initialized) { initialize(); }
+   initialize();
    return createParams();
-   return PV_SUCCESS;
 }
 
 int PV_Init::createParams() {
-   assert(initialized);
-   char const * params_file = getArguments()->getParamsFile();
+   char const * params_file = arguments->getParamsFile();
    if (params_file) {
       delete params;
       params = new PVParams(params_file, 2*(INITIAL_LAYER_ARRAY_SIZE+INITIAL_CONNECTION_ARRAY_SIZE), icComm);
@@ -121,12 +157,19 @@ int PV_Init::createParams() {
    }
 }
 
+int PV_Init::setMPIConfiguration(int rows, int columns, int batchWidth) {
+   if (rows >= 0) { arguments->setNumRows(rows); }
+   if (columns >= 0) { arguments->setNumColumns(columns); }
+   if (batchWidth >= 0) { arguments->setBatchWidth(batchWidth); }
+   initialize();
+   return PV_SUCCESS;
+}
+
 int PV_Init::registerKeyword(char const * keyword, ObjectCreateFn creator) {
    int status = factory->registerKeyword(keyword, creator);
    if (status != PV_SUCCESS) {
       if (getWorldRank()==0) {
-         fflush(stdout);
-         fprintf(stderr, "PV_Init error: keyword \"%s\" has already been registered.\n", keyword);
+         pvErrorNoExit().printf("PV_Init: keyword \"%s\" has already been registered.\n", keyword);
       }
    }
    return status;
@@ -136,8 +179,7 @@ BaseObject * PV_Init::create(char const * keyword, char const * name, HyPerCol *
    BaseObject * pvObject = factory->create(keyword, name, hc);
    if (pvObject == NULL) {
       if (getWorldRank()==0) {
-         fflush(stdout);
-         fprintf(stderr, "Unable to create %s \"%s\": keyword \"%s\" has not been registered.\n", keyword, name, keyword);
+         pvErrorNoExit().printf("Unable to create %s \"%s\": keyword \"%s\" has not been registered.\n", keyword, name, keyword);
       }
    }
    return pvObject;
@@ -146,7 +188,7 @@ BaseObject * PV_Init::create(char const * keyword, char const * name, HyPerCol *
 HyPerCol * PV_Init::build() {
    HyPerCol * hc = new HyPerCol("column", this);
    if( hc == NULL ) {
-      fprintf(stderr, "Unable to create HyPerCol\n");
+      pvErrorNoExit().printf("Unable to create HyPerCol\n");
       return NULL;
    }
    PVParams * hcparams = hc->parameters();
@@ -154,7 +196,7 @@ HyPerCol * PV_Init::build() {
 
    // Make sure first group defines a column
    if( strcmp(hcparams->groupKeywordFromIndex(0), "HyPerCol") ) {
-      fprintf(stderr, "First group in the params file did not define a HyPerCol.\n");
+      pvErrorNoExit().printf("First group in the params file did not define a HyPerCol.\n");
       delete hc;
       return NULL;
    }
@@ -166,8 +208,7 @@ HyPerCol * PV_Init::build() {
          if (k==0) { continue; }
          else {
             if (hc->columnId()==0) {
-               fflush(stdout);
-               fprintf(stderr, "Group %d in params file (\"%s\") is a HyPerCol; the HyPerCol must be the first group.\n",
+               pvErrorNoExit().printf("Group %d in params file (\"%s\") is a HyPerCol; the HyPerCol must be the first group.\n",
                        k+1, name);
             }
             delete hc;
@@ -178,8 +219,7 @@ HyPerCol * PV_Init::build() {
          BaseObject * addedObject = factory->create(kw, name, hc);
          if (addedObject==NULL) {
             if (hc->globalRank()==0) {
-               fflush(stdout);
-               fprintf(stderr, "Error creating %s \"%s\".\n", kw, name);
+               pvErrorNoExit().printf("Unable to create %s \"%s\".\n", kw, name);
             }
             delete hc;
             return NULL;
@@ -188,8 +228,7 @@ HyPerCol * PV_Init::build() {
    }
 
    if( hc->numberOfLayers() == 0 ) {
-      fflush(stdout);
-      fprintf(stderr, "HyPerCol \"%s\" does not have any layers.\n", hc->getName());
+      pvErrorNoExit().printf("HyPerCol \"%s\" does not have any layers.\n", hc->getName());
       delete hc;
       return NULL;
    }
@@ -205,7 +244,7 @@ int PV_Init::commFinalize()
 void PV_Init::printBuildAndRunDeprecationWarning(char const * functionName, char const * functionSignature) {
    if (buildandrunDeprecationWarning) {
       if (getWorldRank()==0) {
-         fprintf(stderr, "\nWarning: %s(%s) has been deprecated.  Use the Factory version of %s instead.\n\n",
+         pvWarn().printf("%s(%s) has been deprecated.  Use the Factory version of %s instead.\n\n",
                functionName, functionSignature, functionName);
       }
       clearBuildAndRunDeprecationWarning();

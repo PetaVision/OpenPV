@@ -54,7 +54,7 @@ DerivedLayer::initialize(arguments) {
 #define HYPERLAYER_HPP_
 
 #include <layers/accumulate_functions.h>
-#include <layers/PVLayerCube.h>
+#include <layers/PVLayerCube.hpp>
 #include <layers/BaseLayer.hpp>
 #include <columns/DataStore.hpp>
 #include <columns/HyPerCol.hpp>
@@ -453,7 +453,7 @@ public:
 
    virtual int checkpointRead(const char * cpDir, double * timeptr); // (const char * cpDir, double * timed);
    virtual int checkpointWrite(const char * cpDir);
-   virtual int writeTimers(FILE* stream);
+   virtual int writeTimers(std::ostream& stream);
    // TODO: readBufferFile and writeBufferFile have to take different types of buffers.  Can they be templated?
    template <typename T>
    static int readBufferFile(const char * filename, InterColComm * comm, double * timed, T ** buffers, int numbands, bool extended, const PVLayerLoc * loc);

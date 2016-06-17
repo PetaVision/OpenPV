@@ -49,7 +49,7 @@ int main(int argc, char* argv[])
          if (img_buffer_layer) {
             if (imageLayer!=NULL) {
                if (hc->columnId()==0) {
-                  fprintf(stderr, "%s error: More than one ImageFromMemoryBuffer (\"%s\" and \"%s\").\n",
+                  pvErrorNoExit().printf("%s: More than one ImageFromMemoryBuffer (\"%s\" and \"%s\").\n",
                         argv[0], imageLayer->getName(), img_buffer_layer->getName());
                }
                MPI_Barrier(hc->icCommunicator()->communicator());
@@ -68,7 +68,7 @@ int main(int argc, char* argv[])
          if (localization_probe) {
             if (localizationProbe != NULL) {
                if (hc->columnId()==0) {
-                  fprintf(stderr, "%s error: More than one LocalizationProbe (\"%s\" and \"%s\").\n",
+                  pvErrorNoExit().printf("%s: More than one LocalizationProbe (\"%s\" and \"%s\").\n",
                         argv[0], localizationProbe->getName(), localization_probe->getName());
                }
                MPI_Barrier(hc->icCommunicator()->communicator());
@@ -81,14 +81,14 @@ int main(int argc, char* argv[])
       }
       if (imageLayer==NULL) {
          if (hc->columnId()==0) {
-            fprintf(stderr, "%s error: params file must have exactly one ImageFromMemoryBuffer layer.\n",
+            pvErrorNoExit().printf("%s: params file must have exactly one ImageFromMemoryBuffer layer.\n",
                   argv[0]);
             status = PV_FAILURE;
          }
       }
       if (localizationProbe==NULL) {
          if (hc->columnId()==0) {
-            fprintf(stderr, "%s error: params file must have exactly one LocalizationProbe.\n",
+            pvErrorNoExit().printf("%s: params file must have exactly one LocalizationProbe.\n",
                   argv[0]);
             status = PV_FAILURE;
          }
@@ -129,8 +129,7 @@ int main(int argc, char* argv[])
          status = hc->run(startTime, stopTime, dt);
          if (status!=PV_SUCCESS) {
             if (hc->columnId()==0) {
-               fflush(stdout);
-               fprintf(stderr, "Run failed at t=%f.  Exiting.\n", startTime);
+               pvErrorNoExit().printf("Run failed at t=%f.  Exiting.\n", startTime);
             }
             break;
          }
@@ -159,7 +158,8 @@ char * getImageFileName(InterColComm * icComm)
       bool found = false;
       while(!found)
       {
-         printf("Enter filename: "); fflush(stdout);
+         fprintf(stdout, "Enter filename: ");
+         fflush(stdout);
          char * result = fgets(buffer, TEXTFILEBUFFERSIZE, stdin);
          if (result==NULL) { break; }
 
@@ -186,8 +186,7 @@ char * getImageFileName(InterColComm * icComm)
    char * filename = expandLeadingTilde(buffer);
    if (filename==NULL)
    {
-      fprintf(stderr, "Rank %d process unable to allocate space for line from listOfImageFiles file.\n", rank);
-      exit(EXIT_FAILURE);
+      pvError().printf("Rank %d process unable to allocate space for line from listOfImageFiles file.\n", rank);
    }
    return filename;
 }
@@ -209,7 +208,7 @@ int setImageLayerMemoryBuffer(InterColComm * icComm, char const * imageFile, Ima
       bool usingTempFile = false;
       char * path = NULL;
       if (strstr(imageFile, "://") != NULL) {
-         printf("Image from URL \"%s\"\n", imageFile);
+         pvInfo().printf("Image from URL \"%s\"\n", imageFile);
          usingTempFile = true;
          std::string pathstring = "/tmp/temp.XXXXXX";
          const char * ext = strrchr(imageFile, '.');
@@ -218,8 +217,7 @@ int setImageLayerMemoryBuffer(InterColComm * icComm, char const * imageFile, Ima
          int fid;
          fid=mkstemps(path, strlen(ext));
          if (fid<0) {
-            fprintf(stderr,"Cannot create temp image file for image \"%s\".\n", imageFile);
-            exit(EXIT_FAILURE);
+            pvError().printf("Cannot create temp image file for image \"%s\".\n", imageFile);
          }   
          close(fid);
          std::string systemstring;
@@ -242,11 +240,10 @@ int setImageLayerMemoryBuffer(InterColComm * icComm, char const * imageFile, Ima
             int status = system(systemstring.c_str());
             if(status != 0){ 
                if(attemptNum == numAttempts - 1){ 
-                  fprintf(stderr, "download command \"%s\" failed: %s.  Exiting\n", systemstring.c_str(), strerror(errno));
-                  exit(EXIT_FAILURE);
+                  pvError().printf("download command \"%s\" failed: %s.  Exiting\n", systemstring.c_str(), strerror(errno));
                }   
                else{
-                  fprintf(stderr, "download command \"%s\" failed: %s.  Retrying %d out of %d.\n", systemstring.c_str(), strerror(errno), attemptNum+1, numAttempts);
+                  pvWarn().printf("download command \"%s\" failed: %s.  Retrying %d out of %d.\n", systemstring.c_str(), strerror(errno), attemptNum+1, numAttempts);
                   sleep(1);
                }
             }
@@ -256,14 +253,13 @@ int setImageLayerMemoryBuffer(InterColComm * icComm, char const * imageFile, Ima
          }
       }
       else {
-         printf("Image from file \"%s\"\n", imageFile);
+         pvInfo().printf("Image from file \"%s\"\n", imageFile);
          path = strdup(imageFile);
       }
       GDALDataset * gdalDataset = PV_GDALOpen(path);
       if (gdalDataset==NULL)
       {
-         fprintf(stderr, "setImageLayerMemoryBuffer: GDALOpen failed for image \"%s\".\n", imageFile);
-         exit(EXIT_FAILURE);
+         pvError().printf("setImageLayerMemoryBuffer: GDALOpen failed for image \"%s\".\n", imageFile);
       }
       imageNx= gdalDataset->GetRasterXSize();
       imageNy = gdalDataset->GetRasterYSize();
@@ -277,9 +273,8 @@ int setImageLayerMemoryBuffer(InterColComm * icComm, char const * imageFile, Ima
          imageBuffer = (uint8_t *) realloc(imageBuffer, imageBufferSize*sizeof(uint8_t));
          if (imageBuffer==NULL)
          {
-            fprintf(stderr, "setImageLayerMemoryBuffer: Unable to create image buffer of size %d-by-%d-by-%d for image \"%s\": %s\n",
+            pvError().printf("setImageLayerMemoryBuffer: Unable to create image buffer of size %d-by-%d-by-%d for image \"%s\": %s\n",
                   imageNx, imageNy, imageNf, imageFile, strerror(errno));
-            exit(EXIT_FAILURE);
          }
       }
 
@@ -307,8 +302,7 @@ int setImageLayerMemoryBuffer(InterColComm * icComm, char const * imageFile, Ima
          GDALDataType dataType = gdalDataset->GetRasterBand(iBand+1)->GetRasterDataType(); // Why are we using both GDALGetRasterBand and GDALDataset::GetRasterBand?
          if (dataType != GDT_Byte)
          {
-            fprintf(stderr, "setImageLayerMemoryBuffer: Image file \"%s\", band %d, is not GDT_Byte type.\n", imageFile, iBand+1);
-            exit(EXIT_FAILURE);
+            pvError().printf("setImageLayerMemoryBuffer: Image file \"%s\", band %d, is not GDT_Byte type.\n", imageFile, iBand+1);
          }
       }
 
@@ -330,8 +324,7 @@ int setImageLayerMemoryBuffer(InterColComm * icComm, char const * imageFile, Ima
       if (usingTempFile) {
          int rmstatus = remove(path);
          if (rmstatus) {
-            fprintf(stderr, "remove(\"%s\") failed.  Exiting.\n", path);
-            exit(EXIT_FAILURE);
+            pvError().printf("remove(\"%s\") failed.  Exiting.\n", path);
          }    
       }
       free(path);

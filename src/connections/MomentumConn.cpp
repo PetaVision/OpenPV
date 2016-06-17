@@ -103,8 +103,7 @@ void MomentumConn::ioParam_momentumMethod(enum ParamsIOFlag ioFlag){
       if(strcmp(momentumMethod, "simple") != 0 &&
          strcmp(momentumMethod, "viscosity") != 0 &&
          strcmp(momentumMethod, "alex")){
-         std::cout << "MomentumConn " << name << ": momentumMethod of " << momentumMethod << " is not known, options are \"simple\", \"viscosity\", and \"alex\"\n";
-         exit(-1);
+         pvError() << "MomentumConn " << name << ": momentumMethod of " << momentumMethod << " is not known, options are \"simple\", \"viscosity\", and \"alex\"\n";
       }
    }
 }
@@ -113,8 +112,7 @@ void MomentumConn::ioParam_momentumDecay(enum ParamsIOFlag ioFlag){
    if(plasticityFlag){
       parent->ioParamValue(ioFlag, name, "momentumDecay", &momentumDecay, momentumDecay);
       if(momentumDecay < 0 || momentumDecay > 1){
-         std::cout << "MomentumConn " << name << ": momentumDecay must be between 0 and 1 inclusive\n";
-         exit(-1);
+         pvError() << "MomentumConn " << name << ": momentumDecay must be between 0 and 1 inclusive\n";
       }
    }
 }
@@ -129,8 +127,7 @@ void MomentumConn::ioParam_batchPeriod(enum ParamsIOFlag ioFlag) {
 
 ////Reduce kerenls should never be getting called except for checkpoint write, which is being overwritten.
 //int MomentumConn::reduceKernels(const int arborID){
-//   fprintf(stderr, "Error:  BatchConn calling reduceKernels\n");
-//   exit(1);
+//   pvError().printf(Error:  BatchConn calling reduceKernels\n");
 //}
 //
 ////No normalize reduction here, just summing up
@@ -400,7 +397,7 @@ int MomentumConn::applyMomentum(int arbor_ID){
       }
    }
    else{
-      std::cout << "Warning: Momentum not implemented for non-shared weights, not implementing momentum\n";
+      pvWarn() << "Momentum not implemented for non-shared weights, not implementing momentum\n";
    }
    return PV_SUCCESS;
 }
@@ -413,7 +410,7 @@ int MomentumConn::checkpointWrite(const char * cpDir) {
    int chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_prev_dW.pvp", cpDir, name);
    if(chars_needed >= PV_PATH_MAX) {
       if ( parent->icCommunicator()->commRank()==0 ) {
-         fprintf(stderr, "HyPerConn::checkpointFilename error: path \"%s/%s_W.pvp\" is too long.\n", cpDir, name);
+         pvErrorNoExit().printf("HyPerConn::checkpointFilename: path \"%s/%s_W.pvp\" is too long.\n", cpDir, name);
       }
       abort();
    }
@@ -432,7 +429,7 @@ int MomentumConn::checkpointRead(const char * cpDir, double * timeptr) {
    double filetime=0.0;
    int status = PV::readWeights(patches_arg, prev_dwDataStart, numberOfAxonalArborLists(), getNumDataPatches(), nxp, nyp, nfp, path, parent->icCommunicator(), &filetime, pre->getLayerLoc());
    if (parent->columnId()==0 && timeptr && *timeptr != filetime) {
-      fprintf(stderr, "Warning: \"%s\" checkpoint has timestamp %g instead of the expected value %g.\n", path, filetime, *timeptr);
+      pvWarn().printf("\"%s\" checkpoint has timestamp %g instead of the expected value %g.\n", path, filetime, *timeptr);
    }
    free(path);
    return status;

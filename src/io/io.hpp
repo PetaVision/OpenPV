@@ -1,17 +1,17 @@
 /*
- * io.h
+ * io.hpp
  *
  *  Created on: Oct 24, 2008
  *      Author: rasmussn
  */
 
-#ifndef IO_H_
-#define IO_H_
+#ifndef IO_HPP_
+#define IO_HPP_
 
 #include <stdbool.h>
-#include "../include/pv_types.h"
+#include "include/pv_types.h"
 
-#include "../arch/mpi/mpi.h"
+#include "arch/mpi/mpi.h"
 
 #define MIN_BIN_PARAMS  6
 #define NUM_BIN_PARAMS (18 + sizeof(double)/sizeof(int))
@@ -68,12 +68,9 @@
 #define INDEX_WGT_MAX        4
 #define INDEX_WGT_NUMPATCHES 5
 
-enum ParamsIOFlag { PARAMS_IO_READ, PARAMS_IO_WRITE };
+namespace PV {
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif // __cplusplus
+enum ParamsIOFlag { PARAMS_IO_READ, PARAMS_IO_WRITE };
 
 int pv_getopt(int argc, char * argv[], const char * opt, bool * paramusage);
 int pv_getopt_int(int argc, char * argv[], const char * opt, int *   iVal, bool * paramusage);
@@ -84,7 +81,6 @@ int pv_getopt_unsigned(int argc, char * argv[], const char * opt, unsigned int *
 
 int readFile(const char * filename, float * buf, int * nx, int * ny);
 
-int pv_text_write_patch(PV_Stream * pvstream, PVPatch * patch, pvwdata_t * data, int nf, int sx, int sy, int sf);
 int pv_center_image(float * V, int nx0, int ny0, int nx, int ny);
 
 int parse_options(int argc, char * argv[], bool * paramusage, bool * require_return,
@@ -104,8 +100,6 @@ int parse_options(int argc, char * argv[], bool * paramusage, bool * require_ret
  */
 char * expandLeadingTilde(char const * path);
 
-#ifdef __cplusplus
-}
-#endif // __cplusplus
+}  // end namespace PV
 
-#endif /* IO_H_ */
+#endif /* IO_HPP_ */

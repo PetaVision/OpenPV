@@ -108,7 +108,7 @@ void InitCocircWeightsParams::ioParam_numOrientationsPre(enum ParamsIOFlag ioFla
    if (ioFlag==PARAMS_IO_READ && parent->parameters()->present(name, "noPre")) {
       paramname = "noPre";
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" warning: noPre is deprecated.  Use numOrientationsPre instead.\n",
+         pvWarn().printf("%s \"%s\": noPre is deprecated.  Use numOrientationsPre instead.\n",
                parent->parameters()->groupKeywordFromName(name), name);
       }
    }
@@ -122,7 +122,7 @@ void InitCocircWeightsParams::ioParam_numOrientationsPost(enum ParamsIOFlag ioFl
    if (ioFlag==PARAMS_IO_READ && parent->parameters()->present(name, "noPost")) {
       paramname = "noPost";
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" warning: noPost is deprecated.  Use numOrientationsPost instead.\n",
+         pvWarn().printf("%s \"%s\": noPost is deprecated.  Use numOrientationsPost instead.\n",
                parent->parameters()->groupKeywordFromName(name), name);
       }
    }

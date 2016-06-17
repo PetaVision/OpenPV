@@ -48,8 +48,7 @@ ANNErrorLayer::ANNErrorLayer(const char * name, HyPerCol * hc)
    int status = initialize_base();
    if (status == PV_SUCCESS) { status = initialize(name, hc); }
    if (status != PV_SUCCESS) {
-      fprintf(stderr, "Creating ANNErrorLayer \"%s\" failed.\n", name);
-      exit(EXIT_FAILURE);
+      pvError().printf("Creating ANNErrorLayer \"%s\" failed.\n", name);
    }
 }
 
@@ -87,9 +86,8 @@ int ANNErrorLayer::setVertices() {
       verticesV = (pvpotentialdata_t *) malloc((size_t) numVertices * sizeof(*verticesV));
       verticesA = (pvadata_t *) malloc((size_t) numVertices * sizeof(*verticesA));
       if (verticesV==NULL || verticesA==NULL) {
-         fprintf(stderr, "%s \"%s\": unable to allocate memory for vertices: %s\n",
+         pvError().printf("%s \"%s\": unable to allocate memory for vertices: %s\n",
                getKeyword(), name, strerror(errno));
-         exit(EXIT_FAILURE);
       }
       verticesV[0] = -VThresh; verticesA[0] = -VThresh;
       verticesV[1] = -VThresh; verticesA[1] = 0.0;
@@ -102,9 +100,8 @@ int ANNErrorLayer::setVertices() {
       verticesV = (pvpotentialdata_t *) malloc((size_t) numVertices * sizeof(*verticesV));
       verticesA = (pvadata_t *) malloc((size_t) numVertices * sizeof(*verticesA));
       if (verticesV==NULL || verticesA==NULL) {
-         fprintf(stderr, "%s \"%s\": unable to allocate memory for vertices: %s\n",
+         pvError().printf("%s \"%s\": unable to allocate memory for vertices: %s\n",
                getKeyword(), name, strerror(errno));
-         exit(EXIT_FAILURE);
       }
       verticesV[0] = 0.0f; verticesA[0] = 0.0f;
    }
@@ -115,7 +112,7 @@ int ANNErrorLayer::checkVertices() {
    int status = PV_SUCCESS;
    if (VThresh < 0 && VThresh > -0.999*max_pvvdata_t) { // 0.999 is to allow for imprecision from params files using 3.40282e+38 instead of infinity
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: VThresh cannot be negative (value is %f).\n",
+         pvErrorNoExit().printf("%s \"%s\": VThresh cannot be negative (value is %f).\n",
                   this->getKeyword(), this->getName(), VThresh);
       }
       status = PV_FAILURE;

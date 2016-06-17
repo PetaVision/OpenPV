@@ -21,9 +21,7 @@ BaseProbe::BaseProbe()
 
 BaseProbe::~BaseProbe()
 {
-   if (outputstream != NULL) {
-      PV_fclose(outputstream); outputstream = NULL;
-   }
+   delete outputStream;
    free(targetName); targetName = NULL;
    free(msgparams); msgparams = NULL;
    free(msgstring); msgstring = NULL;
@@ -37,7 +35,7 @@ BaseProbe::~BaseProbe()
 }
 
 int BaseProbe::initialize_base() {
-   outputstream = NULL;
+   outputStream = NULL;
    targetName = NULL;
    msgparams = NULL;
    msgstring = NULL;
@@ -52,6 +50,7 @@ int BaseProbe::initialize_base() {
    numValues = 0;
    probeValues = NULL;
    lastUpdateTime = -DBL_MAX;
+   writingToFile = false;
    return PV_SUCCESS;
 }
 
@@ -138,26 +137,20 @@ void BaseProbe::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
 void BaseProbe::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
    if (ioFlag == PARAMS_IO_READ && parent->parameters()->present(name, "triggerFlag")) {
-      if (parent->columnId()==0) {
-         fprintf(stderr, "Layer \"%s\" Warning: triggerFlag has been deprecated.\n", name);
-      }
       bool flagFromParams = false;
       parent->ioParamValue(ioFlag, name, "triggerFlag", &flagFromParams, flagFromParams);
-      if (flagFromParams != triggerFlag) {
-         if (parent->columnId()==0) {
-            fprintf(stderr, "Layer \"%s\" Error: triggerLayerName=", name);
-            if (triggerLayerName) { fprintf(stderr, "\"%s\"", triggerLayerName); }
-            else { fprintf(stderr, "NULL"); }
-            fprintf(stderr, " implies triggerFlag=%s but triggerFlag was set in params to %s\n",
+      if (parent->columnId()==0) {
+         pvWarn(triggerFlagDeprecated);
+         triggerFlagDeprecated.printf("Layer \"%s\": triggerFlag has been deprecated.\n", name);
+         triggerFlagDeprecated.printf("   If triggerLayerName is a nonempty string, triggering will be on;\n");
+         triggerFlagDeprecated.printf("   if triggerLayerName is empty or null, triggering will be off.\n");
+         if (flagFromParams!=triggerFlag) {
+            pvErrorNoExit(triggerFlagError);
+            triggerFlagError.printf("Layer \"%s\" Error: triggerLayerName=", name);
+            if (triggerLayerName) { triggerFlagError.printf("\"%s\"", triggerLayerName); }
+            else { triggerFlagError.printf("NULL"); }
+            triggerFlagError.printf(" implies triggerFlag=%s but triggerFlag was set in params to %s\n",
                   triggerFlag ? "true" : "false", flagFromParams ? "true" : "false");
-         }
-         MPI_Barrier(parent->icCommunicator()->communicator());
-         exit(EXIT_FAILURE);
-      }
-      else {
-         if (parent->columnId()==0) {
-            fprintf(stderr, "   If triggerLayerName is a nonempty string, triggering will be on;\n");
-            fprintf(stderr, "   if triggerLayerName is empty or null, triggering will be off.\n");
          }
       }
    }
@@ -168,8 +161,7 @@ void BaseProbe::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
    if (triggerFlag) {
       parent->ioParamValue(ioFlag, name, "triggerOffset", &triggerOffset, triggerOffset);
       if(triggerOffset < 0){
-         fprintf(stderr, "%s \"%s\" error in rank %d process: TriggerOffset (%f) must be positive\n", parent->parameters()->groupKeywordFromName(name), name, parent->columnId(), triggerOffset);
-         exit(EXIT_FAILURE);
+         pvError().printf("%s \"%s\" error in rank %d process: TriggerOffset (%f) must be positive\n", parent->parameters()->groupKeywordFromName(name), name, parent->columnId(), triggerOffset);
       }
    }
 }
@@ -177,24 +169,26 @@ void BaseProbe::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
 int BaseProbe::initOutputStream(const char * filename) {
    if( parent->columnId()==0 ) {
       if( filename != NULL ) {
-         char * outputdir = parent->getOutputPath();
-         char * path = (char *) malloc(strlen(outputdir)+1+strlen(filename)+1);
-         sprintf(path, "%s/%s", outputdir, filename);
+         std::string path("");
+         if (filename[0]!='/') {
+            path += parent->getOutputPath();
+            path += "/";
+         }
+         path += filename;
          bool append = parent->getCheckpointReadFlag();
          const char * fopenstring = append ? "a" : "w";
-         outputstream = PV_fopen(path, fopenstring, parent->getVerifyWrites());
-         if( !outputstream ) {
-            fprintf(stderr, "BaseProbe error opening \"%s\" for writing: %s\n", path, strerror(errno));
-            exit(EXIT_FAILURE);
-         }
-         free(path);
+         std::ios_base::openmode mode = std::ios_base::out;
+         if (append) { mode |= std::ios_base::app; }
+         outputStream = new FileStream(path.c_str(), mode, parent->getVerifyWrites());
+         writingToFile = true;
       }
       else {
-         outputstream = PV_stdout();
+         outputStream = new OutStream(PV::getOutputStream());
+         writingToFile = false;
       }
    }
    else {
-      outputstream = NULL; // Only root process writes; if other processes need something written it should be sent to root.
+      outputStream = NULL; // Only root process writes; if other processes need something written it should be sent to root.
                            // Derived classes for which it makes sense for a different process to do the file i/o should override initOutputStream
    }
    return PV_SUCCESS;
@@ -233,7 +227,7 @@ int BaseProbe::communicateInitInfo() {
       triggerLayer = parent->getLayerFromName(triggerLayerName);
       if (triggerLayer==NULL) {
          if (parent->columnId()==0) {
-            fprintf(stderr, "%s \"%s\" error: triggerLayer \"%s\" is not a layer in the HyPerCol.\n",
+            pvErrorNoExit().printf("%s \"%s\": triggerLayer \"%s\" is not a layer in the HyPerCol.\n",
                   parent->parameters()->groupKeywordFromName(name), name, triggerLayerName);
          }
          MPI_Barrier(parent->icCommunicator()->communicator());
@@ -247,7 +241,7 @@ int BaseProbe::communicateInitInfo() {
       ColumnEnergyProbe * probe = dynamic_cast<ColumnEnergyProbe *>(baseprobe);
       if (probe==NULL) {
          if (getParent()->columnId()==0) {
-            fprintf(stderr, "%s \"%s\" error: energyProbe \"%s\" is not a ColumnEnergyProbe in the column.\n",
+            pvErrorNoExit().printf("%s \"%s\": energyProbe \"%s\" is not a ColumnEnergyProbe in the column.\n",
                   getParent()->parameters()->groupKeywordFromName(getName()), getName(), energyProbe);
          }
          MPI_Barrier(getParent()->icCommunicator()->communicator());
@@ -286,7 +280,7 @@ int BaseProbe::initMessage(const char * msg) {
       }
    }
    if( !this->msgstring ) {
-      fprintf(stderr, "%s \"%s\": Unable to allocate memory for probe's message.\n",
+      pvErrorNoExit().printf("%s \"%s\": Unable to allocate memory for probe's message.\n",
             parent->parameters()->groupKeywordFromName(name), name);
       status = PV_FAILURE;
    }

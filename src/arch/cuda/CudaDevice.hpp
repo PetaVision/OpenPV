@@ -10,10 +10,10 @@
 
 #include "../../include/pv_arch.h"
 #include "CudaBuffer.hpp"
-
-namespace PVCuda{
 #include <stdio.h>
 #include <cuda_runtime_api.h>
+
+namespace PVCuda{
    
 /**
  * A class to handle initialization of cuda devices

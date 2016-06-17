@@ -72,7 +72,7 @@ int KernelProbe::communicateInitInfo() {
    assert(targetHyPerConn);
    if(getTargetHyPerConn()->usingSharedWeights()==false) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "KernelProbe \"%s\": connection \"%s\" is not using shared weights.\n", name, targetConn->getName());
+         pvErrorNoExit().printf("KernelProbe \"%s\": connection \"%s\" is not using shared weights.\n", name, targetConn->getName());
       }
       status = PV_FAILURE;
    }
@@ -87,16 +87,14 @@ int KernelProbe::allocateDataStructures() {
    int status = BaseHyPerConnProbe::allocateDataStructures();
    assert(getTargetConn());
    if (getKernelIndex()<0 || getKernelIndex()>=getTargetHyPerConn()->getNumDataPatches()) {
-      fprintf(stderr, "KernelProbe \"%s\": kernelIndex %d is out of bounds.  (min 0, max %d)\n", name, getKernelIndex(), getTargetHyPerConn()->getNumDataPatches()-1);
-      exit(EXIT_FAILURE);
+      pvError().printf("KernelProbe \"%s\": kernelIndex %d is out of bounds.  (min 0, max %d)\n", name, getKernelIndex(), getTargetHyPerConn()->getNumDataPatches()-1);
    }
    if (getArbor()<0 || getArbor()>=getTargetConn()->numberOfAxonalArborLists()) {
-      fprintf(stderr, "KernelProbe \"%s\": arborId %d is out of bounds. (min 0, max %d)\n", name, getArbor(), getTargetConn()->numberOfAxonalArborLists()-1);
-      exit(EXIT_FAILURE);
+      pvError().printf("KernelProbe \"%s\": arborId %d is out of bounds. (min 0, max %d)\n", name, getArbor(), getTargetConn()->numberOfAxonalArborLists()-1);
    }
 
-   if(outputstream) {
-      fprintf(outputstream->fp, "Probe \"%s\", kernel index %d, arbor index %d.\n", name, getKernelIndex(), getArbor());
+   if(outputStream) {
+      outputStream->outStream() << "Probe \"" << name << "\", kernel index " << getKernelIndex() << ", arbor index " << getArbor() << ".\n";
    }
    if(getOutputPatchIndices()) {
       patchIndices(getTargetHyPerConn());
@@ -118,20 +116,19 @@ int KernelProbe::outputState(double timed) {
    const pvwdata_t * wdata = getTargetHyPerConn()->get_wDataStart(arborID)+patchSize*kernelIndex;
    const pvwdata_t * dwdata = outputPlasticIncr ?
          getTargetHyPerConn()->get_dwDataStart(arborID)+patchSize*kernelIndex : NULL;
-   fprintf(outputstream->fp, "Time %f, Conn \"%s\", nxp=%d, nyp=%d, nfp=%d\n",
-           timed, getTargetConn()->getName(),nxp, nyp, nfp);
+   output() << "Time " << timed << ", Conn \"" << getTargetConn()->getName() << ", nxp=" << nxp << ", nyp=" << nyp << ", nfp=" << nfp << "\n";
    for(int f=0; f<nfp; f++) {
       for(int y=0; y<nyp; y++) {
          for(int x=0; x<nxp; x++) {
             int k = kIndex(x,y,f,nxp,nyp,nfp);
-            fprintf(outputstream->fp, "    x=%d, y=%d, f=%d (index %d):", x, y, f, k);
-            if(getOutputWeights()) {
-               fprintf(outputstream->fp, "  weight=%f", (float)wdata[k]);
+            output() << "    x=" << x << ", y=" << y << ", f=" << f << " (index " << k << "):";
+            if (getOutputWeights()) {
+               output() << "  weight=" << wdata[k];
             }
-            if(getOutputPlasticIncr()) {
-               fprintf(outputstream->fp, "  dw=%f", (float)dwdata[k]);
+            if (getOutputPlasticIncr()) {
+               output() << "  dw=" << dwdata[k];
             }
-            fprintf(outputstream->fp,"\n");
+            output() << "\n";
          }
       }
    }
@@ -159,8 +156,10 @@ int KernelProbe::patchIndices(HyPerConn * conn) {
       int kxPre = kxPos(kPre,nxPreExt,nyPreExt,nfPre)-loc->halo.lt;
       int kyPre = kyPos(kPre,nxPreExt,nyPreExt,nfPre)-loc->halo.up;
       int kfPre = featureIndex(kPre,nxPreExt,nyPreExt,nfPre);
-      fprintf(outputstream->fp,"    presynaptic neuron %d (x=%d, y=%d, f=%d) uses kernel index %d, starting at x=%d, y=%d\n",
-            kPre, kxPre, kyPre, kfPre, conn->patchIndexToDataIndex(kPre), xOffset, yOffset);
+      output() << "    presynaptic neuron " << kPre;
+      output() << " (x=" << kxPre << ", y=" << kyPre << ", f=" << kfPre;
+      output() << ") uses kernel index " << conn->patchIndexToDataIndex(kPre);
+      output() << ", starting at x=" << xOffset << ", y=" << yOffset << "\n";
    }
    return PV_SUCCESS;
 }

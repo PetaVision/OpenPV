@@ -39,8 +39,8 @@ int ColumnEnergyProbe::initializeColumnEnergyProbe(const char * probename, HyPer
 }
 
 int ColumnEnergyProbe::outputHeader() {
-   if (outputstream) {
-      fprintf(outputstream->fp, "Probe_name,time,index,energy\n");
+   if (outputStream) {
+      output() << "Probe_name,time,index,energy\n";
    }
    return PV_SUCCESS;
 }
@@ -53,7 +53,7 @@ int ColumnEnergyProbe::addTerm(BaseProbe * probe) {
       if (newNumValues < 0) {
          status = PV_FAILURE;
          if (parent->columnId()==0) {
-            fprintf(stderr, "%s \"%s\" error: probe \"%s\" cannot be used as a term of the energy probe (getNumValue() returned a negative number).\n",
+            pvErrorNoExit().printf("%s \"%s\": probe \"%s\" cannot be used as a term of the energy probe (getNumValue() returned a negative number).\n",
                getKeyword(), getName(), probe->getName());
          }
          MPI_Barrier(parent->icCommunicator()->communicator());
@@ -62,7 +62,7 @@ int ColumnEnergyProbe::addTerm(BaseProbe * probe) {
       if (newNumValues != this->getNumValues()) {
          status = setNumValues(newNumValues);
          if (status != PV_SUCCESS) {
-            fprintf(stderr, "%s \"%s\" error: unable to allocate memory for %d probe values: %s\n",
+            pvErrorNoExit().printf("%s \"%s\": unable to allocate memory for %d probe values: %s\n",
                   this->getKeyword(), this->getName(), newNumValues, strerror(errno));
             exit(EXIT_FAILURE);
          }
@@ -71,7 +71,7 @@ int ColumnEnergyProbe::addTerm(BaseProbe * probe) {
    else {
       if (probe->getNumValues() != this->getNumValues()) {
          if (this->getParent()->columnId()==0) {
-            fprintf(stderr, "Error adding terms to %s \%s\":  new probe \"%s\" returns %d values, but previous probes return %d values\n",
+            pvErrorNoExit().printf("Failed to add terms to %s \%s\":  new probe \"%s\" returns %d values, but previous probes return %d values\n",
                   getKeyword(), getName(), probe->getName(), probe->getNumValues(), this->getNumValues());
          }
          MPI_Barrier(this->getParent()->icCommunicator()->communicator());
@@ -82,7 +82,7 @@ int ColumnEnergyProbe::addTerm(BaseProbe * probe) {
    int newNumTerms = numTerms+(size_t) 1;
    if (newNumTerms<=numTerms) {
       if (this->getParent()->columnId()==0) {
-         fprintf(stderr, "How did you manage to add %zu terms to %s \"%s\"?  Unable to add any more!\n",
+         pvErrorNoExit().printf("How did you manage to add %zu terms to %s \"%s\"?  Unable to add any more!\n",
                numTerms, getKeyword(), getName());
       }
       MPI_Barrier(this->getParent()->icCommunicator()->communicator());
@@ -90,7 +90,7 @@ int ColumnEnergyProbe::addTerm(BaseProbe * probe) {
    }
    BaseProbe ** newTermsArray = (BaseProbe **) realloc(terms, (numTerms+(size_t) 1)*sizeof(BaseProbe *));
    if (newTermsArray==NULL) {
-      fprintf(stderr, "%s \"%s\" error: unable to add term %zu (\"%s\"): %s\n",
+      pvErrorNoExit().printf("%s \"%s\": unable to add term %zu (\"%s\"): %s\n",
          getKeyword(), getName(), numTerms+(size_t) 1, probe->getName(),
          strerror(errno));
       exit(EXIT_FAILURE);
@@ -128,18 +128,18 @@ int ColumnEnergyProbe::calcValues(double timevalue) {
 int ColumnEnergyProbe::outputState(double timevalue) {
    getValues(timevalue);
    if( this->getParent()->icCommunicator()->commRank() != 0 ) return PV_SUCCESS;
+   pvAssert(outputStream); // Root process should have outputStream defined; non-root process should have outputStream==nullptr
    double * valuesBuffer = getValuesBuffer();
    int nbatch = this->getNumValues();
    for(int b = 0; b < nbatch; b++){
-      if (outputstream->fp == stdout || outputstream->fp == stderr) {
-         fprintf(outputstream->fp,"\"%s\",", name); // lack of \n is deliberate: fprintf immediately below completes the line
+      if (isWritingToFile()) {
+         output() << "\"" << "\","; // lack of \n is deliberate: line is completed immediately below.
       }
-      fprintf(outputstream->fp, "%f,%d,%f\n",
-            timevalue, b,valuesBuffer[b]);
+      output() << timevalue << "," << b << "," << valuesBuffer[b];
    }
-   fflush(outputstream->fp);
+   output().flush();
    return PV_SUCCESS;
-}  // end ColumnEnergyProbe::outputState(float, HyPerCol *)
+}  // end ColumnEnergyProbe::outputState(float)
 
 BaseObject * createColumnEnergyProbe(char const * name, HyPerCol * hc) {
    return hc ? new ColumnEnergyProbe(name, hc) : NULL;

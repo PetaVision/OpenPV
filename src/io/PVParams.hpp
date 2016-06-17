@@ -8,11 +8,11 @@
 #ifndef PVPARAMS_HPP_
 #define PVPARAMS_HPP_
 
-#include "../include/pv_common.h"
-//#include "../columns/HyPerCol.hpp"
-#include "../columns/InterColComm.hpp"
+#include "include/pv_common.h"
+//#include "columns/HyPerCol.hpp"
+#include "columns/InterColComm.hpp"
 #include "fileio.hpp"
-#include "io.h"
+#include "io.hpp"
 #include <stdio.h>
 #include <string.h>
 

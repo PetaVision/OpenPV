@@ -10,14 +10,14 @@
 // equal to thier global position
 // MPITestProbe checks whether he above suppositions are satisfied
 
-#include <columns/buildandrun.hpp>
-#include <io/io.h>
+#include "columns/buildandrun.hpp"
+#include "io/io.hpp"
 #include <assert.h>
 
 #define MAIN_USES_CUSTOM_GROUPS
 
 #ifdef MAIN_USES_CUSTOM_GROUPS
-#include <columns/PV_Init.hpp>
+#include "columns/PV_Init.hpp"
 #include "MPITestProbe.hpp"
 #include "MPITestLayer.hpp"
 #endif // MAIN_USES_CUSTOM_GROUPS

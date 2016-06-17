@@ -67,13 +67,13 @@ int ResetStateOnTriggerTestProbe::outputState(double timevalue) {
       int nBatch = getNumValues();
       if (nBatch==1) {
          int nnz = (int) nearbyint(getValuesBuffer()[0]);
-         fprintf(outputstream->fp, "%s t=%f, %d neuron%s the wrong value.\n",
+         outputStream->printf("%s t=%f, %d neuron%s the wrong value.\n",
                getMessage(), timevalue, nnz, nnz==1 ? " has" : "s have");
       }
       else {
          for (int k=0; k<nBatch; k++) {
             int nnz = (int) nearbyint(getValuesBuffer()[k]);
-            fprintf(outputstream->fp, "%s t=%f, batch element %d, %d neuron%s the wrong value.\n",
+            outputStream->printf("%s t=%f, batch element %d, %d neuron%s the wrong value.\n",
                   getMessage(), timevalue, k, nnz, nnz==1 ? " has" : "s have");
          }
       }

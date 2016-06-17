@@ -60,8 +60,7 @@ int RequireAllZeroActivityProbe::outputState(double timed) {
 RequireAllZeroActivityProbe::~RequireAllZeroActivityProbe() {
     //We check for exits on failure in destructor
     if(getNonzeroFound()){
-        fprintf(stderr, "%s \"%s\" error: Nonzero activity found\n", getKeyword(), name);
-        exit(EXIT_FAILURE);
+        pvError().printf("%s \"%s\" error: Nonzero activity found\n", getKeyword(), name);
     }
 }
 

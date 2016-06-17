@@ -30,12 +30,12 @@ public:
    virtual int deliverPostsynapticPerspective(PVLayerCube const * activity, int arborID);
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    virtual int deliverPresynapticPerspectiveGPU(PVLayerCube const * activity, int arborID) {
-      std::cout << "TransposePoolingConn not implemented on GPUs\n";
-      exit(-1);
+      pvError() << "TransposePoolingConn not implemented on GPUs\n";
+      return PV_FAILURE;
    }
    virtual int deliverPostsynapticPerspectiveGPU(PVLayerCube const * activity, int arborID) {
-      std::cout << "TransposePoolingConn not implemented on GPUs\n";
-      exit(-1);
+      pvError() << "TransposePoolingConn not implemented on GPUs\n";
+      return PV_FAILURE;
    }
 #endif
    virtual int checkpointRead(const char * cpDir, double * timeptr);

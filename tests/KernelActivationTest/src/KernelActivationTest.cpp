@@ -16,9 +16,9 @@
  * the full activations.
  */
 
-#include <columns/buildandrun.hpp>
-#include <io/io.h>
-#include <arch/mpi/mpi.h>
+#include "columns/buildandrun.hpp"
+#include "io/io.hpp"
+#include "arch/mpi/mpi.h"
 
 int dumpweights(HyPerCol * hc, int argc, char * argv[]);
 int dumponeweight(HyPerConn * conn);
@@ -26,12 +26,11 @@ int dumponeweight(HyPerConn * conn);
 int main(int argc, char * argv[]) {
    int status;
    PV_Init initObj(&argc, &argv, false/*allowUnrecognizedArguments*/);
-   PV_Arguments * arguments = initObj.getArguments();
    if (initObj.getParams()==NULL) {
       initObj.setParams("input/KernelActivationTest-fullData.params");
       status = buildandrun(&initObj);
       if (status==PV_SUCCESS) {
-         arguments->setParamsFile("input/KernelActivationTest-maskData.params");
+         initObj.setParams("input/KernelActivationTest-maskData.params");
          status = rebuildandrun(&initObj);
       }
    }
@@ -56,16 +55,17 @@ int dumpweights(HyPerCol * hc, int argc, char * argv[]) {
       }
    }
    if( existsgenconn && status != PV_SUCCESS ) {
-      for( int k=0; k<72; k++ ) { fprintf(stdout, "="); } fprintf(stdout,"\n");
+      for( int k=0; k<72; k++ ) { pvInfo().printf("="); }
+      pvInfo().printf("\n");
    }
    int rank = hc->icCommunicator()->commRank();
    char * paramsfilename;
    pv_getopt_str(argc, argv, "-p", &paramsfilename, NULL/*paramusage*/);
    if( status != PV_SUCCESS ) {
-      fprintf(stderr, "Rank %d: %s failed with return code %d.\n", rank, paramsfilename, status);
+      pvErrorNoExit().printf("Rank %d: %s failed with return code %d.\n", rank, paramsfilename, status);
    }
    else {
-      printf("Rank %d: %s succeeded.\n", rank, paramsfilename);
+      pvInfo().printf("Rank %d: %s succeeded.\n", rank, paramsfilename);
    }
    free(paramsfilename);
    return status;
@@ -107,12 +107,14 @@ int dumponeweight(HyPerConn * conn) {
                //Squared because both pre and post is grabbing it's activity from the image
                pvdata_t correct = usingMirrorBCs ? pow(float(127)/float(255),2) : (float(127)/float(255)) * .5;
                if( fabs(wgt-correct)>1.0e-5 ) {
+                  pvErrorNoExit(errorMessage);
                   if( errorfound == false ) {
                       errorfound = true;
-                      for( int k=0; k<72; k++ ) { fprintf(stdout, "="); } fprintf(stdout,"\n");
-                      printf("Rank %d, Connection \"%s\":\n",rank, conn->getName());
+                      for( int k=0; k<72; k++ ) { pvInfo().printf("="); }
+                      errorMessage.printf("\n");
+                      errorMessage.printf("Rank %d, Connection \"%s\":\n",rank, conn->getName());
                   }
-                  fprintf(stdout, "Rank %d, Patch %d, x=%d, y=%d, f=%d: weight=%f, correct=%f, off by a factor of %f\n", rank, p, x, y, f, wgt, correct, wgt/correct);
+                  errorMessage.printf("Rank %d, Patch %d, x=%d, y=%d, f=%d: weight=%f, correct=%f, off by a factor of %f\n", rank, p, x, y, f, wgt, correct, wgt/correct);
                   status = PV_FAILURE;
                }
             }
@@ -120,7 +122,7 @@ int dumponeweight(HyPerConn * conn) {
       }
    }
    if( status == PV_SUCCESS ) {
-      fprintf(stdout, "Rank %d, connection \"%s\": Weights are correct.\n", rank, conn->getName());
+      pvInfo().printf("Rank %d, connection \"%s\": Weights are correct.\n", rank, conn->getName());
    }
    return status;
 }

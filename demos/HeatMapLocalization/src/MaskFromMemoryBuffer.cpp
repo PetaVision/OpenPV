@@ -33,13 +33,13 @@ int MaskFromMemoryBuffer::initialize_base(){
    return PV_SUCCESS;
 }
 
-int MaskFromMemoryBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+int MaskFromMemoryBuffer::ioParamsFillGroup(enum PV::ParamsIOFlag ioFlag) {
    int status = ANNLayer::ioParamsFillGroup(ioFlag);
    ioParam_imageLayerName(ioFlag);
    return status;
 }
 
-void MaskFromMemoryBuffer::ioParam_imageLayerName(enum ParamsIOFlag ioFlag) {
+void MaskFromMemoryBuffer::ioParam_imageLayerName(enum PV::ParamsIOFlag ioFlag) {
    parent->ioParamStringRequired(ioFlag, name, "imageLayerName", &imageLayerName);
 }
 
@@ -48,8 +48,7 @@ int MaskFromMemoryBuffer::communicateInitInfo() {
    HyPerLayer * hyperLayer = parent->getLayerFromName(imageLayerName);
    if (hyperLayer==NULL) {
       if (parent->columnId()==0) {
-         fflush(stdout);
-         fprintf(stderr, "%s \"%s\" error: imageLayerName \"%s\" is not a layer in the HyPerCol.\n",
+         pvErrorNoExit().printf("%s \"%s\": imageLayerName \"%s\" is not a layer in the HyPerCol.\n",
                  getKeyword(), name, imageLayerName);
       }
       status = PV_FAILURE;
@@ -58,9 +57,8 @@ int MaskFromMemoryBuffer::communicateInitInfo() {
       imageLayer = dynamic_cast<PV::BaseInput *>(hyperLayer);
       if (imageLayer==NULL) {
          if (parent->columnId()==0) {
-         fflush(stdout);
-            fprintf(stderr, "%s \"%s\" error: imageLayerName \"%s\" is not an BaseInput-derived layer.\n",
-                    getKeyword(), name, imageLayerName);
+         pvErrorNoExit().printf("%s \"%s\": imageLayerName \"%s\" is not an BaseInput-derived layer.\n",
+               getKeyword(), name, imageLayerName);
          }
          status = PV_FAILURE;
       }
@@ -68,7 +66,7 @@ int MaskFromMemoryBuffer::communicateInitInfo() {
    MPI_Barrier(parent->icCommunicator()->communicator());
    if (!imageLayer->getInitInfoCommunicatedFlag()) {
       if (parent->columnId()==0) {
-         printf("%s \"%s\" must wait until imageLayer \"%s\" has finished its communicateInitInfo stage.\n", getKeyword(), name, imageLayerName);
+         pvInfo().printf("%s \"%s\" must wait until imageLayer \"%s\" has finished its communicateInitInfo stage.\n", getKeyword(), name, imageLayerName);
       }
       return PV_POSTPONE;
    }
@@ -76,8 +74,7 @@ int MaskFromMemoryBuffer::communicateInitInfo() {
    PVLayerLoc const * loc = getLayerLoc();
    if (imageLayerLoc->nx != loc->nx || imageLayerLoc->ny != loc->ny) {
       if (parent->columnId()==0) {
-         fflush(stdout);
-         fprintf(stderr, "%s \"%s\" error: dimensions (%d-by-%d) do not agree with dimensions of image layer \"%s\" (%d-by-%d)n", getKeyword(), name, loc->nx, loc->ny, imageLayerName, imageLayerLoc->nx, imageLayerLoc->ny);
+         pvErrorNoExit().printf("%s \"%s\": dimensions (%d-by-%d) do not agree with dimensions of image layer \"%s\" (%d-by-%d)n", getKeyword(), name, loc->nx, loc->ny, imageLayerName, imageLayerLoc->nx, imageLayerLoc->ny);
       }
       status = PV_FAILURE;
    }

@@ -316,7 +316,7 @@ private:
    virtual void ioParam_progressInterval(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief writeProgressToErr: Sepcifies if the run prints progress output to stderr
+    * @brief writeProgressToErr: Whether to print timestep progress to the error stream instead of the output stream
     */
    virtual void ioParam_writeProgressToErr(enum ParamsIOFlag ioFlag);
 
@@ -479,7 +479,7 @@ private:
 
    int checkpointRead();
    int checkpointWrite(const char * cpDir);
-   int writeTimers(FILE* stream);
+   int writeTimers(std::ostream& stream);
 
    int outputParams(char const * path);
    int outputParamsHeadComments(FILE* fp, char const * commentToken);
@@ -491,7 +491,7 @@ private:
    /**
     * Sets the numThreads member variable based on whether PV_USE_OPENMP is set
     * and the -t option in the PV_Arguments object.
-    * If printMessagesFlag is true, it may print to stdout and stderr.
+    * If printMessagesFlag is true, it may print to the output and/or error stream.
     * If printMessagesFlag is false, these messages are suppressed.
     */
    int setNumThreads(bool printMessagesFlag);

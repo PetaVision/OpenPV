@@ -61,7 +61,7 @@ int AbstractNormProbe::communicateInitInfo() {
       maskLayer = parent->getLayerFromName(maskLayerName);
       if (maskLayer==NULL) {
          if (parent->columnId()==0) {
-            fprintf(stderr, "%s \"%s\" error: maskLayerName \"%s\" is not a layer in the HyPerCol.\n",
+            pvErrorNoExit().printf("%s \"%s\": maskLayerName \"%s\" is not a layer in the HyPerCol.\n",
                     this->getKeyword(), name, maskLayerName);
          }
          MPI_Barrier(parent->icCommunicator()->communicator());
@@ -73,9 +73,10 @@ int AbstractNormProbe::communicateInitInfo() {
       assert(maskLoc != NULL && loc != NULL);
       if (maskLoc->nxGlobal != loc->nxGlobal || maskLoc->nyGlobal != loc->nyGlobal) {
          if (parent->columnId()==0) {
-            fprintf(stderr, "%s \"%s\" error: maskLayerName \"%s\" does not have the same x and y dimensions.\n",
+            pvErrorNoExit(maskLayerBadSize);
+            maskLayerBadSize.printf("%s \"%s\": maskLayerName \"%s\" does not have the same x and y dimensions.\n",
                     this->getKeyword(), name, maskLayerName);
-            fprintf(stderr, "    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
+            maskLayerBadSize.printf("    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
                     maskLoc->nxGlobal, maskLoc->nyGlobal, maskLoc->nf, loc->nxGlobal, loc->nyGlobal, loc->nf);
          }
          MPI_Barrier(parent->icCommunicator()->communicator());
@@ -84,9 +85,10 @@ int AbstractNormProbe::communicateInitInfo() {
 
       if(maskLoc->nf != 1 && maskLoc->nf != loc->nf){
          if (parent->columnId()==0) {
-            fprintf(stderr, "%s \"%s\" error: maskLayerName \"%s\" must either have the same number of features as this layer, or one feature.\n",
+            pvErrorNoExit(maskLayerBadSize);
+            maskLayerBadSize.printf("%s \"%s\": maskLayerName \"%s\" must either have the same number of features as this layer, or one feature.\n",
                     this->getKeyword(), name, maskLayerName);
-            fprintf(stderr, "    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
+            maskLayerBadSize.printf("    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
                     maskLoc->nxGlobal, maskLoc->nyGlobal, maskLoc->nf, loc->nxGlobal, loc->nyGlobal, loc->nf);
          }
          MPI_Barrier(parent->icCommunicator()->communicator());
@@ -119,14 +121,14 @@ int AbstractNormProbe::calcValues(double timeValue) {
 int AbstractNormProbe::outputState(double timevalue) {
    getValues(timevalue);
    double * valuesBuffer = this->getValuesBuffer();
-   if (outputstream!=NULL) {
+   if (outputStream!=NULL) {
       int nBatch = getNumValues();
       int nk = getTargetLayer()->getNumGlobalNeurons();
       for (int b=0; b<nBatch; b++) {
-         fprintf(outputstream->fp, "%st = %6.3f b = %d numNeurons = %8d %s = %f\n",
+         outputStream->printf("%st = %6.3f b = %d numNeurons = %8d %s = %f",
                getMessage(), timevalue, b, nk, getNormDescription(), valuesBuffer[b]);
+         output() << std::endl;
       }
-      fflush(outputstream->fp);
    }
    return PV_SUCCESS;
 }

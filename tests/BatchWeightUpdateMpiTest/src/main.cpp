@@ -17,53 +17,51 @@ int main(int argc, char * argv[]) {
    MPI_Comm_size(MPI_COMM_WORLD, &size);
 
    //if(size != 5){
-   //   std::cout << "BatchWeightUpdateMpiTest must be ran with 16 mpi processes\n";
-   //   exit(-1);
+   //   pvError() << "BatchWeightUpdateMpiTest must be ran with 16 mpi processes\n";
    //}
 
    char const * paramFile1 = "input/timeBatch.params";
    char const * paramFile2 = "input/dimBatch.params";
    int status = PV_SUCCESS;
-   PV_Arguments * arguments = initObj.getArguments();
-   if (arguments->getParamsFile()!=NULL) {
+   if (initObj.getParamsFile()!=NULL) {
       if (rank==0) {
-         fprintf(stderr, "%s should be run without the params file argument.\n", arguments->getProgramName());
+         pvErrorNoExit().printf("%s should be run without the params file argument.\n", initObj.getProgramName());
       }
       status = PV_FAILURE;
    }
-   if (arguments->getCheckpointReadDir()!=NULL) {
+   if (initObj.getCheckpointReadDir()!=NULL) {
       if (rank==0) {
-         fprintf(stderr, "%s should be run without the checkpoint directory argument.\n", arguments->getProgramName());
+         pvErrorNoExit().printf("%s should be run without the checkpoint directory argument.\n", initObj.getProgramName());
       }
       status = PV_FAILURE;
    }
-   if (arguments->getRestartFlag()) {
+   if (initObj.getRestartFlag()) {
       if (rank==0) {
-         fprintf(stderr, "%s should be run without the restart flag.\n", arguments->getProgramName());
+         pvErrorNoExit().printf("%s should be run without the restart flag.\n", initObj.getProgramName());
       }
       status = PV_FAILURE;
    }
-   if (arguments->getNumRows()!=0) {
+   if (initObj.getNumRows()!=0) {
       if (rank==0) {
-         fprintf(stderr, "%s should be run without the rows argument.\n", arguments->getProgramName());
+         pvErrorNoExit().printf("%s should be run without the rows argument.\n", initObj.getProgramName());
       }
       status = PV_FAILURE;
    }
-   if (arguments->getNumColumns()!=0) {
+   if (initObj.getNumColumns()!=0) {
       if (rank==0) {
-         fprintf(stderr, "%s should be run without the columns argument.\n", arguments->getProgramName());
+         pvErrorNoExit().printf("%s should be run without the columns argument.\n", initObj.getProgramName());
       }
       status = PV_FAILURE;
    }
-   if (arguments->getBatchWidth()!=0) {
+   if (initObj.getBatchWidth()!=0) {
       if (rank==0) {
-         fprintf(stderr, "%s should be run without the batchwidth argument.\n", arguments->getProgramName());
+         pvErrorNoExit().printf("%s should be run without the batchwidth argument.\n", initObj.getProgramName());
       }
       status = PV_FAILURE;
    }
    if (status != PV_SUCCESS) {
       if (rank==0) {
-         fprintf(stderr, "This test uses two hard-coded params files, %s and %s. The second run is started from a checkpoint from the first run, and the results of the two runs are compared.\n",
+         pvErrorNoExit().printf("This test uses two hard-coded params files, %s and %s. The second run is started from a checkpoint from the first run, and the results of the two runs are compared.\n",
                paramFile1, paramFile2);
       }
       MPI_Barrier(MPI_COMM_WORLD);
@@ -74,28 +72,24 @@ int main(int argc, char * argv[]) {
       char const * rmcommand = "rm -rf checkpoints1 checkpoints2 output";
       status = system(rmcommand);
       if (status != 0) {
-         fprintf(stderr, "deleting old checkpoints and output directories failed: \"%s\" returned %d\n", rmcommand, status);
-         exit(EXIT_FAILURE);
+         pvError().printf("deleting old checkpoints and output directories failed: \"%s\" returned %d\n", rmcommand, status);
       }
    }
 
-   arguments->setParamsFile(paramFile1);
-   arguments->setNumRows(1);
-   arguments->setNumColumns(2);
-   arguments->setBatchWidth(1);
+   initObj.setParams(paramFile1);
+   initObj.setMPIConfiguration(1/*numRows*/, 2/*numColumns*/, 1/*batchWidth*/);
 
    status = buildandrun(&initObj);
    if( status != PV_SUCCESS ) {
-      fprintf(stderr, "%s: rank %d running with params file %s returned error %d.\n", arguments->getProgramName(), rank, paramFile1, status);
-      exit(status);
+      pvError().printf("%s: rank %d running with params file %s returned status %d.\n", initObj.getProgramName(), rank, paramFile1, status);
    }
 
-   arguments->setParamsFile(paramFile2);
-   arguments->setBatchWidth(5);
+   initObj.setParams(paramFile2);
+   initObj.setMPIConfiguration(-1/*numRows unchanged*/, -1/*numColumns unchanged*/, 5/*batchWidth*/);
 
    status = buildandrun(&initObj);
    if( status != PV_SUCCESS ) {
-      fprintf(stderr, "%s: rank %d running with params file %s returned error %d.\n", arguments->getProgramName(), rank, paramFile2, status);
+      pvError().printf("%s: rank %d running with params file %s returned status %d.\n", initObj.getProgramName(), rank, paramFile2, status);
    }
 
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
@@ -103,25 +97,24 @@ int main(int argc, char * argv[]) {
 
 int compareFiles(const char* file1, const char* file2){
    if(file1 == NULL || file2 == NULL) {
-      fprintf(stderr, "Unable to allocate memory for names of checkpoint directories");
-      exit(EXIT_FAILURE);
+      pvError().printf("Unable to allocate memory for names of checkpoint directories");
    }
 
    FILE * fp1 = fopen(file1, "r");
    if(!fp1){
-      std::cout << "Unable to open file " << file1 << ": " << strerror(errno) << ". Retrying.\n";
+      pvWarn() << "Unable to open file " << file1 << ": " << strerror(errno) << ". Retrying.\n";
       fp1 = fopen(file1, "r");
       if (!fp1) {
          sleep(1U);
-         std::cout << "Still unable to open file " << file1 << ": " << strerror(errno) << ". Test failed.\n";
+         pvErrorNoExit() << "Still unable to open file " << file1 << ": " << strerror(errno) << ". Test failed.\n";
       }
    }
    FILE * fp2 = fopen(file2, "r");
    if(!fp2){
-      std::cout << "Unable to open file " << file2 << ": " << strerror(errno) << ". Retrying.\n";
+      pvWarn() << "Unable to open file " << file2 << ": " << strerror(errno) << ". Retrying.\n";
       if (!fp2) {
          sleep(1U);
-         std::cout << "Still unable to open file " << file2 << ": " << strerror(errno) << ". Test failed.\n";
+         pvErrorNoExit() << "Still unable to open file " << file2 << ": " << strerror(errno) << ". Test failed.\n";
       }
    }
    if (!fp1 || !fp2) {
@@ -143,12 +136,10 @@ int compareFiles(const char* file1, const char* file2){
          break;
       }
       if(check1 != 1){
-         std::cout << "Value returned from fread of file \"" << file1 << "\" is " << check1 << " as opposed to 1\n";
-         exit(-1);
+         pvError() << "Value returned from fread of file \"" << file1 << "\" is " << check1 << " as opposed to 1\n";
       }
       if(check2 != 1){
-         std::cout << "Value returned from fread of file \"" << file2 << "\" is " << check2 << " as opposed to 1\n";
-         exit(-1);
+         pvError() << "Value returned from fread of file \"" << file2 << "\" is " << check2 << " as opposed to 1\n";
       }
       //Floating piont comparison
       if(fabs(f1-f2) <= 1e-5){
@@ -157,8 +148,7 @@ int compareFiles(const char* file1, const char* file2){
       }
       //If characters do not match up
       else{
-         std::cout << "File " << file1 << " and " << file2 << " are different\n";
-         exit(-1);
+         pvError() << "File " << file1 << " and " << file2 << " are different\n";
       }
    }
    return PV_SUCCESS;

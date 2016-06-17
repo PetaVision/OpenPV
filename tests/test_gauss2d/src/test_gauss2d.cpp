@@ -7,9 +7,9 @@
 
 #undef DEBUG_PRINT
 
-#include <layers/HyPerLayer.hpp>
-#include <connections/HyPerConn.hpp>
-#include <io/io.h>
+#include "layers/HyPerLayer.hpp"
+#include "connections/HyPerConn.hpp"
+#include "io/io.hpp"
 #include <assert.h>
 
 #include "Example.hpp"
@@ -22,24 +22,22 @@ int check_kernel_vs_hyper(HyPerConn * cHyPer, HyPerConn * cKernel, int kPre,
 int main(int argc, char * argv[])
 {
    PV_Init* initObj = new PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
-   PV_Arguments * arguments = initObj->getArguments();
-   if (arguments->getParamsFile()==NULL) {
+   if (initObj->getParamsFile()==NULL) {
       int rank = 0;
       MPI_Comm_rank(MPI_COMM_WORLD, &rank);
       if (rank==0) {
-         fprintf(stderr, "%s does not take a -p argument; the necessary param file is hardcoded.\n", argv[0]);
+         pvErrorNoExit().printf("%s does not take a -p argument; the necessary param file is hardcoded.\n", argv[0]);
       }
       MPI_Barrier(MPI_COMM_WORLD);
       exit(EXIT_FAILURE);
    }
 
-   arguments->setParamsFile("input/test_gauss2d.params");
+   initObj->setParams("input/test_gauss2d.params");
    const char * pre_layer_name = "test_gauss2d pre";
    const char * post_layer_name = "test_gauss2d post";
    const char * pre2_layer_name = "test_gauss2d pre 2";
    const char * post2_layer_name = "test_gauss2d post 2";
 
-   initObj->initialize();
    PV::HyPerCol * hc = new PV::HyPerCol("test_gauss2d column", initObj);
    PV::Example * pre = new PV::Example(pre_layer_name, hc);
    assert(pre);
@@ -147,16 +145,16 @@ int check_kernel_vs_hyper(HyPerConn * cHyPer, HyPerConn * cKernel, int kPre, int
       for (int k = 0; k < nk; k++) {
          test_cond = kernelWeights[k] - hyperWeights[k];
          if (fabs(test_cond) > 0.001f) {
-            printf("y %d\n", y);
-            printf("k %d\n", k);
-            printf("kernelweight %f\n", kernelWeights[k]);
-            printf("hyperWeights %f\n", hyperWeights[k]);
+            pvError(errorMessage);
+            errorMessage.printf("y %d\n", y);
+            errorMessage.printf("k %d\n", k);
+            errorMessage.printf("kernelweight %f\n", kernelWeights[k]);
+            errorMessage.printf("hyperWeights %f\n", hyperWeights[k]);
             const char * cHyper_filename = "gauss2d_hyper.txt";
             cHyPer->writeTextWeights(cHyper_filename, kPre);
             const char * cKernel_filename = "gauss2d_kernel.txt";
             cKernel->writeTextWeights(cKernel_filename, kPre);
             status=1;
-            //exit(EXIT_FAILURE);
          }
       }
       // advance pointers in y

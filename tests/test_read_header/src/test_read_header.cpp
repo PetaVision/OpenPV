@@ -83,14 +83,14 @@ int main(int argc, char* argv[])
                             params, &numParams);
 
    if (numParams != write_num_params) {
-      fprintf(stderr, "numParams != write_num_params, %d %d\n",
+      pvErrorNoExit().printf("numParams != write_num_params, %d %d\n",
               numParams, write_num_params);
       status = -1;
    }
 
 #ifdef DEBUG_OUTPUT
    for (int i = 0; i < numParams - 2; i++) {
-      printf("params[%d] = %d\n", i, params[i]);
+      pvDebug().printf("params[%d] = %d\n", i, params[i]);
    }
 #endif
 
@@ -129,7 +129,7 @@ int main(int argc, char* argv[])
    if (params[INDEX_NBANDS]      != loc.nf)     status = -INDEX_NBANDS;;
 
    if (status != 0) {
-      fprintf(stderr, "ERROR in test_read_header, err==%d\n", status);
+      pvErrorNoExit().printf("test_read_header failed, error code==%d\n", status);
    }
 
    delete initObj;

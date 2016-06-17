@@ -30,8 +30,7 @@ int ImageTestLayer::updateStateWrapper(double time, double dt)
 
          pvdata_t expectedVal = kIndex(kxGlobal, kyGlobal, kf, loc->nxGlobal, loc->nyGlobal, nf);
          if(fabs(checkVal - expectedVal) >= 1e-5){
-            std::cout << "ImageFileIO test Expected: " << expectedVal << " Actual: " << checkVal << "\n";
-            exit(-1);
+            pvError() << "ImageFileIO test Expected: " << expectedVal << " Actual: " << checkVal << "\n";
          }
       }
    }
@@ -44,7 +43,7 @@ int ImageTestLayer::updateState(double time, double dt){
 #else // PV_USE_GDAL
 ImageTestLayer::ImageTestLayer(const char * name, HyPerCol * hc) {
    if (hc->columnId()==0) {
-      fprintf(stderr, "ImageTestLayer class requires compiling with PV_USE_GDAL set\n");
+      pvErrorNoExit().printf("ImageTestLayer class requires compiling with PV_USE_GDAL set\n");
    }
    MPI_Barrier(hc->icCommunicator()->communicator());
    exit(EXIT_FAILURE);

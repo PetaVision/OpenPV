@@ -35,7 +35,7 @@ public:
 
    int initialize(int device);
 
-   static void print_error_code(int code);
+   static void print_error_code(int code, char * buffer, int n);
 
    int id()  { return device_id; }
 

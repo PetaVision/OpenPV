@@ -241,7 +241,7 @@ HyPerCol * CoreParamGroupHandler::createHyPerCol(char const * keyword, char cons
       addedHyPerCol = hc;
       if (dynamic_cast<HyPerCol *>(hc)==NULL) {
          if (hc->columnId()==0) {
-            fprintf(stderr, "createHyPerCol error: unable to add %s\n", keyword);
+            pvErrorNoExit().printf("createHyPerCol: unable to add %s\n", keyword);
          }
          MPI_Barrier(hc->icCommunicator()->communicator());
          exit(EXIT_FAILURE);
@@ -257,7 +257,7 @@ HyPerLayer * CoreParamGroupHandler::createLayer(char const * keyword, char const
       addedLayer = NULL;
    }
    else if( !strcmp(keyword, "HyPerLayer") ) {
-      fprintf(stderr, "Group \"%s\": abstract class HyPerLayer cannot be instantiated.\n", name);
+      pvErrorNoExit().printf("Group \"%s\": abstract class HyPerLayer cannot be instantiated.\n", name);
       addedLayer = NULL;
    }
    else if( !strcmp(keyword, "ANNErrorLayer") ) {
@@ -276,9 +276,10 @@ HyPerLayer * CoreParamGroupHandler::createLayer(char const * keyword, char const
          // ANNTriggerUpdateOnNewImageLayer is obsolete as of April 23, 2014.  Leaving it in the code for a while for a useful error message.
          // Use ANNLayer with triggerFlag set to true and triggerLayerName for the triggering layer
          if (hc->columnId()==0) {
-            fprintf(stderr, "Error: ANNTriggerUpdateOnNewImageLayer is obsolete.\n");
-            fprintf(stderr, "    Use ANNLayer with parameter triggerFlag set to true\n");
-            fprintf(stderr, "    and triggerLayerName set to the triggering layer.\n");
+            pvErrorNoExit(errorMessage);
+            errorMessage.printf("ANNTriggerUpdateOnNewImageLayer is obsolete.\n");
+            errorMessage.printf("    Use ANNLayer with parameter triggerFlag set to true\n");
+            errorMessage.printf("    and triggerLayerName set to the triggering layer.\n");
          }
          MPI_Barrier(hc->icCommunicator()->communicator());
          exit(EXIT_FAILURE);
@@ -391,7 +392,7 @@ HyPerLayer * CoreParamGroupHandler::createLayer(char const * keyword, char const
 
    if (addedLayer==NULL && getGroupType(keyword)==LayerGroupType) {
       if (hc->columnId()==0) {
-         fprintf(stderr, "createLayer error: unable to add %s\n", keyword);
+         pvErrorNoExit().printf("createLayer: unable to add %s\n", keyword);
       }
       MPI_Barrier(hc->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -456,7 +457,7 @@ BaseConnection * CoreParamGroupHandler::createConnection(char const * keyword, c
 
    if (addedConnection==NULL &&getGroupType(keyword)==ConnectionGroupType) {
       if (hc->columnId()==0) {
-         fprintf(stderr, "createConnection error: unable to add %s\n", keyword);
+         pvErrorNoExit().printf("createConnection: unable to add %s\n", keyword);
       }
       MPI_Barrier(hc->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -480,7 +481,7 @@ ColProbe * CoreParamGroupHandler::createColProbe(char const * keyword, char cons
 
    if (addedColProbe==NULL && getGroupType(keyword)==ColProbeGroupType) {
       if (hc->columnId()==0) {
-         fprintf(stderr, "createColProbe error: unable to add %s\n", keyword);
+         pvErrorNoExit().printf("createColProbe: unable to add %s\n", keyword);
       }
       MPI_Barrier(hc->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -497,7 +498,7 @@ BaseProbe * CoreParamGroupHandler::createProbe(char const * keyword, char const 
       addedProbe = NULL;
    }
    else if( !strcmp(keyword, "LayerProbe") ) {
-      fprintf(stderr, "LayerProbe \"%s\": Abstract class LayerProbe cannot be instantiated.\n", name);
+      pvErrorNoExit().printf("LayerProbe \"%s\": Abstract class LayerProbe cannot be instantiated.\n", name);
       addedProbe = NULL;
    }
    else if( !strcmp(keyword, "FirmThresholdCostFnLCAProbe") ) {
@@ -541,7 +542,7 @@ BaseProbe * CoreParamGroupHandler::createProbe(char const * keyword, char const 
 
    if (addedProbe==NULL && getGroupType(keyword)==ProbeGroupType) {
          if (hc->columnId()==0) {
-            fprintf(stderr, "createProbe error: unable to add %s\n", keyword);
+            pvErrorNoExit().printf("createProbe: unable to add %s\n", keyword);
          }
          MPI_Barrier(hc->icCommunicator()->communicator());
          exit(EXIT_FAILURE);
@@ -595,7 +596,7 @@ InitWeights * CoreParamGroupHandler::createWeightInitializer(char const * keywor
 
    if (weightInitializer==NULL && getGroupType(keyword)==WeightInitializerGroupType) {
       if (hc->columnId()==0) {
-         fprintf(stderr, "createWeightInitializer error: unable to add %s\n", keyword);
+         pvErrorNoExit().printf("createWeightInitializer: unable to add %s\n", keyword);
       }
       MPI_Barrier(hc->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -639,7 +640,7 @@ NormalizeBase * CoreParamGroupHandler::createWeightNormalizer(char const * keywo
    if (weightNormalizer==NULL && newNormalizer) {
       assert(getGroupType(keyword)==WeightNormalizerGroupType);
       if (hc->columnId()==0) {
-         fprintf(stderr, "createWeightInitializer error: unable to add %s\n", keyword);
+         pvErrorNoExit().printf("createWeightInitializer: unable to add %s\n", keyword);
       }
       MPI_Barrier(hc->icCommunicator()->communicator());
       exit(EXIT_FAILURE);

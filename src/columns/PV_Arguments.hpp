@@ -88,8 +88,8 @@ public:
     * Note that getArgsConst()[i] and getArgsConst()[i][j] are both const;
     * this method does not provide a way to modify the args array.
     */
-
    char const * const * getArgsConst() const { return args; }
+
    /**
     * Returns a copy of the args array.  It uses malloc and strdup, so the caller
     * is responsible for freeing getArgs()[k] for each k and for freeing getArgs()
@@ -302,10 +302,11 @@ public:
    int resetState(int argc, char * argv[], bool allowUnrecognizedArguments);
 
    /**
-    * Resets all member variables to their state after the object was
+    * Resets all member variables to their state at the time the object was
     * instantiated. That is, the arguments in argv are parsed but the effect
-    * of any set-method is discarded.  Any previous pointers returned
-    * by get-methods, except for getArgsConst, getArgs, .
+    * of any set-method that had been called is discarded.  Any previous
+    * pointers returned by get-methods, except for getArgs or getArgsCopy
+    * are no longer valid.
     */
    int resetState();
 
@@ -313,7 +314,7 @@ public:
     * Prints the effective command line based on the argc/argv arguments used in instantiation,
     * and any set-methods used since then.
     */
-   int printState();
+   int printState() const;
 
 private:
    /**
@@ -351,25 +352,12 @@ private:
    char const * setString(char ** parameter, char const * string, char const * parameterName);
 
    /**
-    * errorSettingString() is used internally to provide a common interface for reporting an error encountered by setString.
-    * It uses the value of errno.
-    */
-   int errorSettingString(char const * parameterName, char const * attempted_value);
-
-   /**
     * clearState() frees all memory allocated for member variables except for the copy of argv, and resets
     * all member variables to their
     */
    int clearState();
 
    int setStateFromCmdLineArgs(bool allowUnrecognizedArguments);
-
-   /**
-    * prints a message to stderr and returns PV_FAILURE if any error in the state is detected;
-    * returns PV_SUCCESS otherwise.
-    * Currently, it only checks whether restartFlag and checkpointReadDir are not both set.
-    */
-   int errorChecking();
 
    // Member variables
 private:

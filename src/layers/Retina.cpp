@@ -7,9 +7,9 @@
 
 #include "HyPerLayer.hpp"
 #include "Retina.hpp"
-#include "../columns/Random.hpp"
-#include "../io/io.h"
-#include "../include/default_params.h"
+#include "columns/Random.hpp"
+#include "io/io.hpp"
+#include "include/default_params.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -148,7 +148,7 @@ int Retina::initialize(const char * name, HyPerCol * hc) {
 ////
 ////   initializeThreadBuffers(kernel_name);
 ////   initializeThreadKernels(kernel_name);
-//#endif
+//#endif // PV_USE_OPENCL
 
    return status;
 }
@@ -228,13 +228,12 @@ int Retina::initialize(const char * name, HyPerCol * hc) {
 //
 //   return status;
 //}
-//#endif
+//#endif // PV_USE_OPENCL
 
 int Retina::communicateInitInfo() {
    int status = HyPerLayer::communicateInitInfo();
    if(parent->getNBatch() != 1){
-      std::cout << "Retina does not support batches yet, TODO\n";
-      exit(-1);
+      pvError() << "Retina does not support batches yet, TODO\n";
    }
    return status;
 }
@@ -245,84 +244,13 @@ int Retina::allocateDataStructures() {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "spikingFlag"));
    if (spikingFlag) {
       // // a random state variable is needed for every neuron/clthread
-      //int numGlobalRNGs = getNumGlobalExtended();
-      //unsigned int seed = parent->getObjectSeed(numGlobalRNGs);
       const PVLayerLoc * loc = getLayerLoc();
       //Allocate extended loc
       randState = new Random(parent, loc, true); // (taus_uint4 *) malloc(count * sizeof(taus_uint4));
-
-      //unsigned int columnOffset = (unsigned int) kIndex(loc->kx0,loc->ky0,0,loc->nxGlobal,loc->nyGlobal,loc->nf);
-      //allocateRandStateRestricted(loc->nx, loc->ny, loc->nf, seed+columnOffset, loc->nxGlobal * loc->nf);
-      //int indexStride = (loc->nx+loc->halo.lt+loc->halo.rt)*loc->nf;
-      //int globalExtStride = (loc->nxGlobal+loc->halo.dn+loc->halo.up)*loc->nf;
-      //seed += getNumGlobalNeurons();
-      //int indexBase = 0;
-      //allocateRandStateBorder(NORTHWEST, loc->halo.lt, loc->halo.up, loc->nf, seed, globalExtStride, indexBase, indexStride);
-      //allocateRandStateBorder(NORTH, loc->nx, loc->halo.up, loc->nf, seed + loc->halo.lt + loc->kx0, globalExtStride, indexBase+loc->halo.lt, indexStride);
-      //allocateRandStateBorder(NORTHEAST, loc->halo.rt, loc->halo.up, loc->nf, seed + loc->halo.lt + loc->nxGlobal, globalExtStride, indexBase+loc->halo.lt+loc->nx, indexStride);
-      //seed += (loc->nxGlobal + loc->halo.lt + loc->halo.rt) * loc->halo.up * loc->nf;
-      //indexBase = kIndex(0, loc->halo.up, 0, loc->nx+loc->halo.lt+loc->halo.rt, loc->ny+loc->halo.dn+loc->halo.up, loc->nf);
-      //allocateRandStateBorder(WEST, loc->halo.lt, loc->ny, loc->nf, seed + loc->ky0*(loc->halo.lt+loc->halo.rt)*loc->nf, (loc->halo.lt+loc->halo.rt)*loc->nf, indexBase, indexStride);
-      //allocateRandStateBorder(EAST, loc->halo.rt, loc->ny, loc->nf, seed + loc->ky0*(loc->halo.lt+loc->halo.rt)*loc->nf, (loc->halo.lt+loc->halo.rt)*loc->nf, indexBase+loc->nx+loc->halo.lt, indexStride);
-      //seed += (loc->halo.lt+loc->halo.rt) * loc->nyGlobal * loc->nf;
-      //indexBase = kIndex(0, loc->halo.up+loc->ny, 0, loc->nx+loc->halo.lt+loc->halo.rt, loc->ny+loc->halo.dn+loc->halo.up, loc->nf);
-      //allocateRandStateBorder(SOUTHWEST, loc->halo.lt, loc->halo.dn, loc->nf, seed, globalExtStride, indexBase, indexStride);
-      //allocateRandStateBorder(SOUTH, loc->nx, loc->halo.dn, loc->nf, seed + loc->halo.lt + loc->kx0, globalExtStride, indexBase+loc->halo.lt, indexStride);
-      //allocateRandStateBorder(SOUTHEAST, loc->halo.rt, loc->halo.up, loc->nf, seed + loc->halo.lt + loc->nxGlobal, globalExtStride, indexBase+loc->halo.lt+loc->nx, indexStride);
    }
 
    return status;
 }
-
-//int Retina::allocateRandStateRestricted(size_t xCount, size_t yCount, size_t fCount, unsigned int seedStart, unsigned int seedStride) {
-//   int status = allocateRandState(0, xCount, yCount, fCount, seedStart, seedStride);
-//   return status;
-//}
-
-//int Retina::allocateRandStateBorder(int neighbor, size_t xCount, size_t yCount, size_t fCount, unsigned int seedStart, unsigned int seedStride, int indexStart, int indexStride) {
-//   assert(neighbor!=LOCAL && neighbor>=0 && neighbor<NUM_NEIGHBORHOOD);
-//   int status = PV_SUCCESS;
-//   if (!parent->icCommunicator()->hasNeighbor(neighbor)) {
-//      if (status == PV_SUCCESS) status = allocateRandState(neighbor, xCount, yCount, fCount, seedStart, seedStride);
-//      if (status == PV_SUCCESS) status = allocateBorderIndices(neighbor, xCount, yCount, fCount, indexStart, indexStride);
-//   }
-//   else {
-//      parent->getObjectSeed(xCount*yCount*fCount); // Keep parent's random-seed management in sync across processes.
-//   }
-//   return status;
-//}
-
-//int Retina::allocateRandState(int neighbor, size_t xCount, size_t yCount, size_t fCount, unsigned int seedStart, unsigned int seedStride) {
-//   assert(randState[neighbor]==NULL);
-//   size_t count = xCount * yCount * fCount;
-//   rand_state_size[neighbor] = count;
-//   randState[neighbor] = new Random(parent, count); // (taus_uint4 *) malloc(count * sizeof(taus_uint4));
-//   if (randState[neighbor]==NULL) {
-//      fprintf(stderr, "Retina::allocateRandState error in rank %d.  Layer \"%s\" unable to create object of class Random.\n", parent->columnId(), getName());
-//      exit(EXIT_FAILURE);
-//   }
-//
-//   return PV_SUCCESS;
-//}
-
-//int Retina::allocateBorderIndices(int neighbor, size_t xCount, size_t yCount, size_t fCount, int indexStart, int indexStride) {
-//   assert(neighbor!=LOCAL && neighbor>=0 && neighbor<NUM_NEIGHBORHOOD);
-//   border_indices[neighbor] = (int *) malloc(rand_state_size[neighbor]*sizeof(int));
-//   if (border_indices[neighbor]==NULL) {
-//      fprintf(stderr, "%s \"%s\" error in rank %d process: setBorderIndices unable to allocate memory for neighbor %d\n.", getKeyword(), name, parent->columnId(), neighbor);
-//      exit(EXIT_FAILURE);
-//   }
-//   int index = indexStart;
-//   size_t kCount = xCount*fCount;
-//   int j=0;
-//   for (size_t y=0; y<yCount; y++) {
-//      for (int k=0; k<kCount; k++) {
-//         border_indices[neighbor][j++] = index+k;
-//      }
-//      index += indexStride;
-//   }
-//   return PV_SUCCESS;
-//}
 
 int Retina::allocateV() {
    clayer->V = NULL;
@@ -368,14 +296,14 @@ void Retina::ioParam_foregroundRate(enum ParamsIOFlag ioFlag) {
       if (params->present(name, "noiseOnFreq")) {
          probStimParam = params->value(name, "noiseOnFreq");
          if (parent->columnId()==0) {
-            fprintf(stderr, "Warning: noiseOnFreq is deprecated.  Use foregroundRate instead.\n");
+            pvWarn().printf("noiseOnFreq is deprecated.  Use foregroundRate instead.\n");
          }
          return;
       }
       if (params->present(name, "poissonEdgeProb")) {
          probStimParam = params->value(name, "poissonEdgeProb");
          if (parent->columnId()==0) {
-            fprintf(stderr, "Warning: poissonEdgeProb is deprecated.  Use foregroundRate instead.\n");
+            pvWarn().printf("poissonEdgeProb is deprecated.  Use foregroundRate instead.\n");
          }
          return;
       }
@@ -391,14 +319,14 @@ void Retina::ioParam_backgroundRate(enum ParamsIOFlag ioFlag) {
       if (params->present(name, "noiseOffFreq")) {
          probBaseParam = params->value(name, "noiseOffFreq");
          if (parent->columnId()==0) {
-            fprintf(stderr, "Warning: noiseOffFreq is deprecated.  Use backgroundRate instead.\n");
+            pvWarn().printf("noiseOffFreq is deprecated.  Use backgroundRate instead.\n");
          }
          return;
       }
       if (params->present(name, "poissonBlankProb")) {
          probBaseParam = params->value(name, "poissonBlankProb");
          if (parent->columnId()==0) {
-            fprintf(stderr, "Warning: poissonEdgeProb is deprecated.  Use backgroundRate instead.\n");
+            pvWarn().printf("poissonEdgeProb is deprecated.  Use backgroundRate instead.\n");
          }
          return;
       }
@@ -409,7 +337,7 @@ void Retina::ioParam_backgroundRate(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ) {
       assert(!parent->parameters()->presentAndNotBeenRead(name, "foregroundRate"));
       if (probBaseParam > probStimParam) {
-         fprintf(stderr, "Error in %s \"%s\": backgroundRate cannot be greater than foregroundRate.\n",
+         pvError().printf("Error in %s \"%s\": backgroundRate cannot be greater than foregroundRate.\n",
                getKeyword(), name);
          exit(EXIT_FAILURE);
       }
@@ -494,7 +422,7 @@ int Retina::checkpointWrite(const char * cpDir) {
    int chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_rand_state.bin", cpDir, name);
    if(chars_needed >= PV_PATH_MAX) {
       if (parent->icCommunicator()->commRank()==0) {
-         fprintf(stderr, "HyPerLayer::checkpointWrite error in layer \"%s\".  Base pathname \"%s/%s_rand_state.bin\" too long.\n", name, cpDir, name);
+         pvErrorNoExit().printf("HyPerLayer::checkpointWrite for layer \"%s\":  base pathname \"%s/%s_rand_state.bin\" too long.\n", name, cpDir, name);
       }
       abort();
    }
@@ -584,7 +512,6 @@ int Retina::waitOnPublish(InterColComm* comm)
  */
 int Retina::updateState(double timed, double dt)
 {
-   //update_timer->start();
 //#ifdef PV_USE_OPENCL
 //   if((gpuAccelerateFlag)&&(true)) {
 //      updateStateOpenCL(timed, dt);
@@ -620,14 +547,14 @@ int Retina::updateState(double timed, double dt)
    sprintf(filename, "r_%d.tiff", (int)(2*timed));
    this->writeActivity(filename, timed);
 
-   printf("----------------\n");
+   pvDebug(debugRetina);
+   debugRetina().printf("----------------\n");
    for (int k = 0; k < 6; k++) {
-      printf("host:: k==%d h_exc==%f h_inh==%f\n", k, phiExc[k], phiInh[k]);
+      debugRetina().printf("host:: k==%d h_exc==%f h_inh==%f\n", k, phiExc[k], phiInh[k]);
    }
-   printf("----------------\n");
+   debugRetina().printf("----------------\n");
 
 #endif // DEBUG_PRINT
-   //update_timer->stop();
    return 0;
 }
 
@@ -636,14 +563,6 @@ int Retina::updateBorder(double time, double dt)
    // wait for OpenCL data transfers to finish
    HyPerLayer::updateBorder(time, dt);
 
-   //unsigned int probBaseUInt = (unsigned int) floor(rParams.probBase * (float) Random::randomUIntMax());
-   //for (int nbr=1; nbr<NUM_NEIGHBORHOOD; nbr++) {
-   //   size_t sz = rand_state_size[nbr];
-   //   assert(sz==0 || randState[nbr]!=NULL);
-   //   for (size_t n=0; n<sz; n++) {
-   //      getActivity()[border_indices[nbr][n]] = (randState[nbr]->randomUInt(n) < probBaseUInt) ? 1.0 : 0.0;
-   //   }
-   //}
    return PV_SUCCESS;
 }
 
@@ -672,14 +591,14 @@ extern "C" {
 #endif
 
 //#ifndef PV_USE_OPENCL
-//#  include "../kernels/Retina_update_state.cl"
-//#  include "../kernels/Retina_update_state.c"
+//#  include "kernels/Retina_update_state.cl"
+//#  include "kernels/Retina_update_state.c"
 //#endif
 #ifndef PV_USE_OPENCL
-#  include "../kernels/Retina_update_state.cl"
+#  include "kernels/Retina_update_state.cl"
 #else
 #  undef PV_USE_OPENCL
-#  include "../kernels/Retina_update_state.cl"
+#  include "kernels/Retina_update_state.cl"
 #  define PV_USE_OPENCL
 #endif
 

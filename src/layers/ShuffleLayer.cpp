@@ -119,8 +119,7 @@ void ShuffleLayer::ioParam_shuffleMethod(enum ParamsIOFlag ioFlag){
    if ((strcmp(shuffleMethod, "random") == 0 || strcmp(shuffleMethod, "rejection") == 0)){
    }
    else{
-      fprintf(stderr, "Shuffle Layer: Shuffle method not recognized. Options are \"random\" or \"rejection\".\n");
-      exit(PV_FAILURE);
+      pvError().printf("Shuffle Layer: Shuffle method not recognized. Options are \"random\" or \"rejection\".\n");
    }
 }
 
@@ -161,28 +160,24 @@ void ShuffleLayer::readFreq(){ // TODO: Add MPI Bcast so that only root proc doe
          for (int kf = 0; kf < nf; kf++){
             getline (freqFile,line);
             if (freqFile.fail()){
-               fprintf(stderr, "Shuffle Layer: Unable to read from frequency file %s\n",freqFilename);
-               exit(PV_FAILURE);
+               pvError().printf("Shuffle Layer: Unable to read from frequency file %s\n",freqFilename);
             }
             featureFreqCount[b][kf] = atol(line.c_str());
             if(featureFreqCount[b][kf] > maxCount[b]){
                maxCount[b] = featureFreqCount[b][kf];
             }
             if (freqFile.eof()){
-               fprintf(stderr, "Shuffle Layer: Invalid frequency file %s: EOF before %d nf, %d batches.\n ",freqFilename, nf, nbatch);
-               exit(PV_FAILURE);
+               pvError().printf("Shuffle Layer: Invalid frequency file %s: EOF before %d nf, %d batches.\n ",freqFilename, nf, nbatch);
             }
          }
          if (getline(freqFile, line)){
-               fprintf(stderr, "Shuffle Layer: Invalid frequency file: %s contains > %d nf, %d batches.\n ",freqFilename, nf, nbatch);
-               exit(PV_FAILURE);
+               pvError().printf("Shuffle Layer: Invalid frequency file: %s contains > %d nf, %d batches.\n ",freqFilename, nf, nbatch);
          }
       }
       freqFile.close();
    }
    else{
-      fprintf(stderr, "Shuffle Layer: Unable to open frequency file %s\n",freqFilename);
-      exit(PV_FAILURE);
+      pvError().printf("Shuffle Layer: Unable to open frequency file %s\n",freqFilename);
    }
 }
 

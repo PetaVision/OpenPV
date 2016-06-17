@@ -19,33 +19,28 @@ int main(int argc, char * argv[]) {
    int status = PV_SUCCESS;
    if (pv_getopt_str(argc, argv, "-p", NULL, NULL)==0) {
       if (rank==0) {
-         fprintf(stderr, "%s should be run without the params file argument, as it uses hard-coded params files.\n", argv[0]);
+         pvErrorNoExit().printf("%s should be run without the params file argument, as it uses hard-coded params files.\n", argv[0]);
       }
       MPI_Barrier(MPI_COMM_WORLD);
       exit(EXIT_FAILURE);
    }
 
-   PV_Arguments * arguments = initObj.getArguments();
-
-   arguments->setParamsFile(paramFile1);
+   initObj.setParams(paramFile1);
    status = rebuildandrun(&initObj, NULL, NULL, NULL, 0);
    if( status != PV_SUCCESS ) {
-      fprintf(stderr, "%s: rank %d running with params file %s returned error %d.\n", arguments->getProgramName(), rank, paramFile1, status);
-      exit(status);
+      pvError().printf("%s: rank %d running with params file %s returned error %d.\n", initObj.getProgramName(), rank, paramFile1, status);
    }
 
-   arguments->setParamsFile(paramFile2);
+   initObj.setParams(paramFile2);
    status = rebuildandrun(&initObj, NULL, NULL, NULL, 0);
    if( status != PV_SUCCESS ) {
-      fprintf(stderr, "%s: rank %d running with params file %s returned error %d.\n", arguments->getProgramName(), rank, paramFile2, status);
-      exit(status);
+      pvError().printf("%s: rank %d running with params file %s returned error %d.\n", initObj.getProgramName(), rank, paramFile2, status);
    }
 
-   arguments->setParamsFile(paramFileCompare);
+   initObj.setParams(paramFileCompare);
    status = rebuildandrun(&initObj, NULL, &assertAllZeroes, NULL, 0);
    if( status != PV_SUCCESS ) {
-      fprintf(stderr, "%s: rank %d running with params file %s returned error %d.\n", arguments->getProgramName(), rank, paramFileCompare, status);
-      exit(status);
+      pvError().printf("%s: rank %d running with params file %s returned error %d.\n", initObj.getProgramName(), rank, paramFileCompare, status);
    }
    
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
@@ -68,7 +63,7 @@ int assertAllZeroes(HyPerCol * hc, int argc, char * argv[]) {
    if (allzeroProbe->getNonzeroFound()) {
       if (hc->columnId()==0) {
          double t = allzeroProbe->getNonzeroTime();
-         fprintf(stderr, "%s \"%s\" had at least one nonzero activity value, beginning at time %f\n",
+         pvErrorNoExit().printf("%s \"%s\" had at least one nonzero activity value, beginning at time %f\n",
                layer->getKeyword(), targetLayerName, t);
       }
       MPI_Barrier(hc->icCommunicator()->communicator());

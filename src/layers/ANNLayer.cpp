@@ -62,7 +62,7 @@ void ANNLayer::ioParam_VThresh(enum ParamsIOFlag ioFlag) {
 void ANNLayer::ioParam_AMin(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ && parent->parameters()->present(name, "VMin")) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "Error: %s \"%s\" parameter \"VMin\" is obsolete.  Use AMin instead.\n",
+         pvErrorNoExit().printf("%s \"%s\" parameter \"VMin\" is obsolete.  Use AMin instead.\n",
                getKeyword(), name);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
@@ -76,7 +76,7 @@ void ANNLayer::ioParam_AMin(enum ParamsIOFlag ioFlag) {
 void ANNLayer::ioParam_AMax(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ && parent->parameters()->present(name, "VMax")) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "Error: %s \"%s\" parameter \"VMax\" is obsolete.  Use AMax instead.\n",
+         pvErrorNoExit().printf("%s \"%s\" parameter \"VMax\" is obsolete.  Use AMax instead.\n",
                getKeyword(), name);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
@@ -90,7 +90,7 @@ void ANNLayer::ioParam_AMax(enum ParamsIOFlag ioFlag) {
 void ANNLayer::ioParam_AShift(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ && parent->parameters()->present(name, "VShift")) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "Error: %s \"%s\" parameter \"VShift\" is obsolete.  Use AShift instead.\n",
+         pvErrorNoExit().printf("%s \"%s\" parameter \"VShift\" is obsolete.  Use AShift instead.\n",
                getKeyword(), name);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
@@ -109,7 +109,7 @@ int ANNLayer::setVertices() {
       VThresh += VWidth;
       VWidth = -VWidth;
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" warning: interpreting negative VWidth as setting VThresh=%f and VWidth=%f\n",
+         pvWarn().printf("%s \"%s\": interpreting negative VWidth as setting VThresh=%f and VWidth=%f\n",
                getKeyword(), name, VThresh, VWidth);
       }
    }
@@ -120,11 +120,11 @@ int ANNLayer::setVertices() {
    if (AMin > limfromright) {
       if (parent->columnId()==0) {
          if (VWidth==0) {
-            fprintf(stderr, "%s \"%s\" warning: nonmonotonic transfer function, jumping from %f to %f at Vthresh=%f\n",
+            pvWarn().printf("%s \"%s\": nonmonotonic transfer function, jumping from %f to %f at Vthresh=%f\n",
                   getKeyword(), name, AMin, limfromright, VThresh);
          }
          else {
-            fprintf(stderr, "%s \"%s\" warning: nonmonotonic transfer function, changing from %f to %f as V goes from VThresh=%f to VThresh+VWidth=%f\n",
+            pvWarn().printf("%s \"%s\": nonmonotonic transfer function, changing from %f to %f as V goes from VThresh=%f to VThresh+VWidth=%f\n",
                   getKeyword(), name, AMin, limfromright, VThresh, VThresh+VWidth);
          }
       }
@@ -217,7 +217,7 @@ int ANNLayer::setVertices() {
    verticesV = (pvpotentialdata_t *) malloc((size_t) numVertices * sizeof(*verticesV));
    verticesA = (pvadata_t *) malloc((size_t) numVertices * sizeof(*verticesA));
    if (verticesV==NULL || verticesA==NULL) {
-      fprintf(stderr, "%s \"%s\" error: unable to allocate memory for vertices:%s\n",
+      pvErrorNoExit().printf("%s \"%s\": unable to allocate memory for vertices:%s\n",
             getKeyword(), name, strerror(errno));
       exit(EXIT_FAILURE);
    }
@@ -233,7 +233,7 @@ int ANNLayer::checkVertices() {
    for (int v=1; v < numVertices; v++) { 
       if (verticesA[v] < verticesA[v-1]) {
          if (this->getParent()->columnId()==0) {
-            fprintf(stderr, "%s \"%s\" warning: vertices %d and %d: A-coordinates decrease from %f to %f.\n",
+            pvWarn().printf("%s \"%s\": vertices %d and %d: A-coordinates decrease from %f to %f.\n",
                   this->getKeyword(), this->getName(), v, v+1, verticesA[v-1], verticesA[v]);
          }
       }

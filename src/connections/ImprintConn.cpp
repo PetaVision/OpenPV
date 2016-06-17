@@ -68,7 +68,7 @@ void ImprintConn::ioParam_imprintTimeThresh(enum ParamsIOFlag ioFlag) {
          imprintTimeThresh = weightUpdateTime * 100; //Default value of 100 weight updates
       }
       else if(imprintTimeThresh <= weightUpdateTime && parent->columnId()==0){
-         fprintf(stderr, "Warning: ImprintConn's imprintTimeThresh is smaller than weightUpdateTime. The algorithm will imprint on every weight update\n");
+         pvWarn().printf("ImprintConn's imprintTimeThresh is smaller than weightUpdateTime. The algorithm will imprint on every weight update\n");
       }
    }
 }
@@ -80,7 +80,7 @@ void ImprintConn::ioParam_imprintTimeThresh(enum ParamsIOFlag ioFlag) {
 //         imprintTimeThresh = weightUpdateTime * 100; //Default value of 100 weight updates
 //      }
 //      else if(imprintTimeThresh <= weightUpdateTime && parent->columnId()==0){
-//         fprintf(stderr, "Warning: ImprintConn's imprintTimeThresh is smaller than weightUpdateTime. The algorithm will imprint on every weight update\n");
+//         pvWarn().printf("ImprintConn's imprintTimeThresh is smaller than weightUpdateTime. The algorithm will imprint on every weight update\n");
 //      }
 //   }
 //}
@@ -193,7 +193,7 @@ int ImprintConn::update_dW(int arbor_ID){
          if (parent->simulationTime() - lastActiveTime[arborStart + kernelIdx] > imprintTimeThresh){
             imprinted[arborStart + kernelIdx] = true;
             lastActiveTime[arborStart + kernelIdx] = parent->simulationTime();
-            std::cout << "Imprinted feature: Arbor " << arbor_ID << " kernel " << kernelIdx << "\n";
+            pvInfo() << "Imprinted feature: Arbor " << arbor_ID << " kernel " << kernelIdx << "\n";
          }
 
          //Loop over all cells in pre ext
@@ -276,8 +276,7 @@ int ImprintConn::checkpointRead(const char * cpDir, double * timeptr) {
          PV_fclose(pvstream);
       }
       else {
-         fprintf(stderr, "Unable to read from \"%s\"\n", filename);
-         exit(-1);
+         pvError().printf("Unable to read from \"%s\"\n", filename);
       }
       free(filename);
    }
@@ -298,19 +297,17 @@ int ImprintConn::checkpointWrite(const char * cpDir) {
       char * filename = (char *) malloc( filenamesize*sizeof(char) );
       assert(filename != NULL);
       sprintf(filename, "%s/%s_ImprintState.bin", cpDir, name);
-      std::cout << "filename: " << filename << "\n";
+      pvInfo() << "filename: " << filename << "\n";
       PV_Stream * pvstream = PV_fopen(filename, "w", parent->getVerifyWrites());
       if( pvstream != NULL ) {
          status = PV_fwrite(lastActiveTime, sizeof(double), numBuf, pvstream) == numBuf ? status : PV_FAILURE;
          PV_fclose(pvstream);
       }
       else {
-         fprintf(stderr, "Unable to write to \"%s\"\n", filename);
-         exit(-1);
+         pvError().printf("Unable to write to \"%s\"\n", filename);
       }
       if (status != PV_SUCCESS) {
-         fprintf(stderr, "Patterns::checkpointWrite error: %s \"%s\" failed writing to %s\n", this->getKeyword(), name, filename);
-         exit(EXIT_FAILURE);
+         pvError().printf("Patterns::checkpointWrite error: %s \"%s\" failed writing to %s\n", this->getKeyword(), name, filename);
       }
       free(filename); filename=NULL;
    }

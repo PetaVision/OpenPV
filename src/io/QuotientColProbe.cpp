@@ -43,8 +43,8 @@ int QuotientColProbe::initializeQuotientColProbe(const char * probename, HyPerCo
 }
 
 int QuotientColProbe::outputHeader() {
-   if (outputstream) {
-      fprintf(outputstream->fp, "Probe_name,time,index,%s\n", valueDescription);
+   if (outputStream) {
+      output() << "Probe_name,time,index," << valueDescription;
    }
    return PV_SUCCESS;
 }
@@ -77,10 +77,10 @@ int QuotientColProbe::communicateInitInfo() {
       status = PV_FAILURE;
       if (parent->columnId()==0) {
          if (numerProbe==NULL) {
-            fprintf(stderr, "%s \"%s\" error: numerator probe \"%s\" could not be found.\n", getKeyword(), getName(), numerator);
+            pvErrorNoExit().printf("%s \"%s\": numerator probe \"%s\" could not be found.\n", getKeyword(), getName(), numerator);
          }
          if (denomProbe==NULL) {
-            fprintf(stderr, "%s \"%s\" error: denominator probe \"%s\" could not be found.\n", getKeyword(), getName(), denominator);
+            pvErrorNoExit().printf("%s \"%s\": denominator probe \"%s\" could not be found.\n", getKeyword(), getName(), denominator);
          }
       }
    }
@@ -89,7 +89,7 @@ int QuotientColProbe::communicateInitInfo() {
       int dNumValues = denomProbe->getNumValues();
       if (nNumValues != dNumValues) {
          if (parent->columnId()==0) {
-            fprintf(stderr, "%s \"%s\" error: numerator probe \"%s\" and denominator probe \"%s\" have differing numbers of values (%d vs. %d)\n",
+            pvErrorNoExit().printf("%s \"%s\": numerator probe \"%s\" and denominator probe \"%s\" have differing numbers of values (%d vs. %d)\n",
                   getKeyword(), getName(), numerator, denominator, nNumValues, dNumValues);
          }
          MPI_Barrier(this->getParent()->icCommunicator()->communicator());
@@ -97,7 +97,7 @@ int QuotientColProbe::communicateInitInfo() {
       }
       status = setNumValues(nNumValues);
       if (status != PV_SUCCESS) {
-         fprintf(stderr, "%s \"%s\" error: unable to allocate memory for %d values: %s\n",
+         pvErrorNoExit().printf("%s \"%s\": unable to allocate memory for %d values: %s\n",
                this->getKeyword(), this->getName(), nNumValues, strerror(errno));
          exit(EXIT_FAILURE);
       }
@@ -147,13 +147,12 @@ int QuotientColProbe::outputState(double timevalue) {
    double * valuesBuffer = getValuesBuffer();
    int numValues = this->getNumValues();
    for(int b = 0; b < numValues; b++){
-      if (outputstream->fp == stdout || outputstream->fp == stderr) {
-         fprintf(outputstream->fp,"\"%s\",", this->valueDescription); // lack of \n is deliberate: fprintf immediately below completes the line
+      if (isWritingToFile()) {
+         output() << "\"" << valueDescription << "\",";
       }
-      fprintf(outputstream->fp, "%f,%d,%f\n",
-            timevalue, b, valuesBuffer[b]);
+      output() << timevalue << "," << b << "," << valuesBuffer[b] << "\n";
    }
-   fflush(outputstream->fp);
+   output().flush();
    return PV_SUCCESS;
 }  // end QuotientColProbe::outputState(float, HyPerCol *)
 

@@ -75,7 +75,7 @@ public:
 
    int getTag(int neighbor) { return tags[neighbor]; }
    int getReverseTag(int neighbor) { return tags[reverseDirection(localRank, neighbor)]; }
-   double fprintTime(FILE * fp) {return exchange_timer->fprint_time(fp);}
+   double fprintTime(std::ostream& st) {return exchange_timer->fprint_time(st);}
 
    bool isExtraProc(){return isExtra;}
 

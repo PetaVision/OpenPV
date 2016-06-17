@@ -96,8 +96,7 @@ int Image::retrieveData(double timef, double dt, int batchIndex)
    //Using member varibles here
    status = readImage(inputPath);
    if(status != PV_SUCCESS) {
-      fflush(stdout);
-      fprintf(stderr, "%s \"%s\": readImage failed at t=%f for batchIndex %d\n", getKeyword(), name, timef, batchIndex);
+      pvErrorNoExit().printf("%s \"%s\": readImage failed at t=%f for batchIndex %d\n", getKeyword(), name, timef, batchIndex);
    }
    return status;
 }
@@ -165,8 +164,7 @@ int Image::readImageFileGDAL(char const * filename, PVLayerLoc const * loc) {
          fac = 1.0f / 65535.0f;  // normalize to 1.0
       }
       else{
-         fprintf(stderr, "Image data type %s in file \"%s\" is not implemented.\n", GDALGetDataTypeName(dataType), filename);
-         exit(EXIT_FAILURE);
+         pvError().printf("Image data type %s in file \"%s\" is not implemented.\n", GDALGetDataTypeName(dataType), filename);
       }
       for( int n=0; n<numTotal; n++ ) {
          imageData[n] *= fac;
@@ -207,13 +205,13 @@ int Image::scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
       MPI_Bcast(&isBinary, 1, MPI_CHAR, 0, mpi_comm);
       MPI_Bcast(&numTotal, 1, MPI_INT, 0, mpi_comm);
 #ifdef DEBUG_OUTPUT
-      fprintf(stderr, "[%2d]: scatterImageFileGDAL: received from 0, total number of bytes in buffer is %d\n", numTotal);
+      pvDebug().printf("[%2d]: scatterImageFileGDAL: received from 0, total number of bytes in buffer is %d\n", numTotal);
 #endif // DEBUG_OUTPUT
       MPI_Recv(buf, numTotal, MPI_FLOAT, src, tag, mpi_comm, MPI_STATUS_IGNORE);
 #ifdef DEBUG_OUTPUT
       int nf=numTotal/(nx*ny);
       assert( nf*nx*ny == numTotal );
-      fprintf(stderr, "[%2d]: scatterImageFileGDAL: received from 0, nx==%d ny==%d nf==%d size==%d\n",
+      pvDebug().printf("[%2d]: scatterImageFileGDAL: received from 0, nx==%d ny==%d nf==%d size==%d\n",
               comm->commRank(), nx, ny, nf, numTotal);
 #endif // DEBUG_OUTPUT
 #endif // PV_USE_MPI
@@ -261,7 +259,7 @@ int Image::scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
       numTotal = nx * ny * bandsInFile;
 #ifdef PV_USE_MPI
 #ifdef DEBUG_OUTPUT
-      fprintf(stderr, "[%2d]: scatterImageFileGDAL: broadcast from 0, total number of bytes in buffer is %d\n", numTotal);
+      pvDebug().printf("[%2d]: scatterImageFileGDAL: broadcast from 0, total number of bytes in buffer is %d\n", numTotal);
 #endif // DEBUG_OUTPUT
       MPI_Bcast(&numTotal, 1, MPI_INT, 0, mpi_comm);
 #endif // PV_USE_MPI
@@ -284,8 +282,7 @@ int Image::scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
          padValue_conv = padValue * 65535.0f;
       }
       else{
-         std::cout << "Image data type " << GDALGetDataTypeName(dataType) << " not implemented for image rescaling\n";
-         exit(-1);
+         pvError() << "Image data type " << GDALGetDataTypeName(dataType) << " not implemented for image rescaling\n";
       }
 
       using std::min;
@@ -394,7 +391,7 @@ int Image::scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
 
          }
 #ifdef DEBUG_OUTPUT
-         fprintf(stderr, "[%2d]: scatterImageFileGDAL: sending to %d xSize==%d"
+         pvDebug().printf("[%2d]: scatterImageFileGDAL: sending to %d xSize==%d"
                " ySize==%d bandsInFile==%d size==%d total(over all procs)==%d\n",
                comm->commRank(), dest, nx, ny, bandsInFile, numTotal,
                nx*ny*comm->commSize());
@@ -410,8 +407,7 @@ int Image::scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
       GDALClose(dataset);
    }
 #else
-   fprintf(stderr, GDAL_CONFIG_ERR_STR);
-   exit(1);
+   pvError().printf(GDAL_CONFIG_ERR_STR);
 #endif // PV_USE_GDAL
 
    if (status == 0) {
@@ -424,8 +420,7 @@ int Image::scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
             fac = 1.0f / 65535.0f;  // normalize to 1.0
          }
          else{
-            std::cout << "Image data type " << GDALGetDataTypeName(dataType) << " not implemented for image rescaling\n";
-            exit(-1);
+            pvError() << "Image data type " << GDALGetDataTypeName(dataType) << " not implemented for image rescaling\n";
          }
          for( int n=0; n<numTotal; n++ ) {
             buf[n] *= fac;
@@ -440,8 +435,7 @@ int Image::communicateInitInfo() {
    int status = BaseInput::communicateInitInfo();
    int fileType = getFileType(inputPath);
    if(fileType == PVP_FILE_TYPE){
-      std::cout << "Image/Movie no longer reads PVP files. Use ImagePvp/MoviePvp layer instead.\n";
-      exit(EXIT_FAILURE);
+      pvError() << "Image/Movie no longer reads PVP files. Use ImagePvp/MoviePvp layer instead.\n";
    }
    return status;
 }
@@ -481,8 +475,7 @@ int Image::readImage(const char * filename)
       int fid;
       fid=mkstemps(path, strlen(ext));
       if (fid<0) {
-         fprintf(stderr,"Cannot create temp image file.\n");
-         exit(EXIT_FAILURE);
+         pvError().printf("Cannot create temp image file.\n");
       }
       close(fid);
       std::string systemstring;
@@ -505,11 +498,10 @@ int Image::readImage(const char * filename)
          int status = system(systemstring.c_str());
          if(status != 0){
             if(attemptNum == numAttempts - 1){
-               fprintf(stderr, "download command \"%s\" failed: %s.  Exiting\n", systemstring.c_str(), strerror(errno));
-               exit(EXIT_FAILURE);
+               pvError().printf("download command \"%s\" failed: %s.  Exiting\n", systemstring.c_str(), strerror(errno));
             }
             else{
-               fprintf(stderr, "download command \"%s\" failed: %s.  Retrying %d out of %d.\n", systemstring.c_str(), strerror(errno), attemptNum+1, numAttempts);
+               pvWarn().printf("download command \"%s\" failed: %s.  Retrying %d out of %d.\n", systemstring.c_str(), strerror(errno), attemptNum+1, numAttempts);
                sleep(1);
             }
          }
@@ -527,8 +519,7 @@ int Image::readImage(const char * filename)
    free(colorbandtypes); colorbandtypes = NULL;
 
    if(status != 0) {
-      fprintf(stderr, "Movie: Unable to get image info for \"%s\"\n", filename);
-      exit(EXIT_FAILURE);
+      pvError().printf("Movie: Unable to get image info for \"%s\"\n", filename);
    }
 
    delete[] imageData;
@@ -536,15 +527,13 @@ int Image::readImage(const char * filename)
 
    status = readImageFileGDAL(path, &imageLoc);
    if (status != PV_SUCCESS) {
-      fprintf(stderr, "Image::readImage failed for layer \"%s\"\n", getName());
-      exit(EXIT_FAILURE);
+      pvError().printf("Image::readImage failed for layer \"%s\"\n", getName());
    }
 
    if (usingTempFile) {
       int rmstatus = remove(path);
       if (rmstatus) {
-         fprintf(stderr, "remove(\"%s\") failed.  Exiting.\n", path);
-         exit(EXIT_FAILURE);
+         pvError().printf("remove(\"%s\") failed.  Exiting.\n", path);
       }
    }
    free(path);
@@ -577,7 +566,7 @@ int Image::calcColorType(int numBands, GDALColorInterp * colorbandtypes) {
 #else // PV_USE_GDAL
 Image::Image(const char * name, HyPerCol * hc) {
    if (hc->columnId()==0) {
-      fprintf(stderr, "Image \"%s\": Image class requires compiling with PV_USE_GDAL set\n", name);
+      pvErrorNoExit().printf("Image \"%s\": Image class requires compiling with PV_USE_GDAL set\n", name);
    }
    MPI_Barrier(hc->icCommunicator()->communicator());
    exit(EXIT_FAILURE);

@@ -12,8 +12,8 @@
 #include <assert.h>
 
 #include "TransposeConn.hpp"
-#include "../io/io.h"
-#include "../io/fileio.hpp"
+#include "io/io.hpp"
+#include "io/fileio.hpp"
 
 namespace PV {
 

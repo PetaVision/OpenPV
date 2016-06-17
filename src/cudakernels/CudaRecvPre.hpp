@@ -23,7 +23,7 @@ typedef struct PVPatch_ {
    unsigned short nx, ny;
 } PVPatch;
 
-//Parameter structur
+//Parameter structure
    struct recv_pre_params{
       int nbatch;
       int numPreExt;
@@ -91,10 +91,13 @@ protected:
    virtual int do_run();
 
 private:
+   void checkSharedMemSize(size_t sharedSize);
+
+private:
    recv_pre_params params;
    long * numActive;
-};
+}; // end class CudaRecvPre
 
-}
+}  // end namespace PVCuda
 
 #endif /* CLKERNEL_HPP_ */
