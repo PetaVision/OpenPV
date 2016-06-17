@@ -86,7 +86,6 @@ public:
       }
    }
    int isExtraProc(){return icComm->isExtraProc();}
-   int getInit(){return initialized;}
 
    /**
     * If using PV_USE_OPENMP_THREADS, returns the value returned by omp_get_max_threads() when the PV_Init object was instantiated.
@@ -183,7 +182,6 @@ private:
    int commFinalize();
    PVParams * params;
    PV_Arguments * arguments;
-   int initialized;
    int maxThreads;
    InterColComm * icComm;
    Factory * factory;

@@ -17,7 +17,6 @@
 int main(int argc, char * argv[])
 {
    PV::PV_Init* initObj = new PV::PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
-   initObj->initialize();
    PVLayerLoc sLoc, bLoc;
    PVLayerCube * sCube, * bCube;
 

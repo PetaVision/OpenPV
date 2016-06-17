@@ -59,12 +59,14 @@ int main(int argc, char * argv[]) {
    PV_Arguments * arguments = initObj.getArguments();
 
    arguments->setParamsFile(paramFile1);
+   initObj.initialize();
    status = rebuildandrun(&initObj);
    if( status != PV_SUCCESS ) {
       pvError().printf("%s: rank %d running with params file %s returned error %d.\n", arguments->getProgramName(), rank, paramFile1, status);
    }
 
    initObj.getArguments()->setParamsFile(paramFile2);
+   initObj.initialize();
    initObj.getArguments()->setCheckpointReadDir("checkpoints1/Checkpoint12");
 
    status = rebuildandrun(&initObj);

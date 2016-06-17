@@ -27,7 +27,6 @@ static int check_weights(HyPerConn * c, PVPatch ** postWeights, pvdata_t * dataS
 int main(int argc, char * argv[])
 {
    PV_Init* initObj = new PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
-   initObj->initialize();
    PVPatch ** postWeights;
 
    int status = 0;

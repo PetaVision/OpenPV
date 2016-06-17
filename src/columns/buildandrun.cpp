@@ -41,7 +41,6 @@ int buildandrun(int argc, char * argv[],
 int buildandrun(PV_Init * initObj,
                 int (*custominit)(HyPerCol *, int, char **),
                 int (*customexit)(HyPerCol *, int, char **)) {
-   initObj->initialize();
    if(initObj->isExtraProc()){
       return 0;
    }
@@ -136,7 +135,6 @@ int buildandrun(int argc, char * argv[],
       int (*customexit)(HyPerCol *, int, char **),
       void * (*customgroups)(const char *, const char *, HyPerCol *)) {
    PV_Init * initObj = new PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
-   initObj->initialize();
    initObj->printBuildAndRunDeprecationWarning("buildandrun", "argc, argv, custominit, customexit, customgroups");
    int status = rebuildandrun(initObj, custominit, customexit, customgroups);
    delete initObj;
@@ -194,7 +192,6 @@ int buildandrun(int argc, char * argv[],
                 ParamGroupHandler ** groupHandlerList, int numGroupHandlers) {
 
    PV_Init * initObj = new PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
-   initObj->initialize();
    initObj->printBuildAndRunDeprecationWarning("buildandrun", "argc, argv, custominit, customexit, groupHandlerList, numGroupHandlers");
    int status = rebuildandrun(initObj, custominit, customexit, groupHandlerList, numGroupHandlers);
    delete initObj;
@@ -403,7 +400,6 @@ int buildandrun1paramset(PV_Init * initObj,
 int outputParams(int argc, char * argv[], char const * path, ParamGroupHandler ** groupHandlerList, int numGroupHandlers) {
    pvWarn().printf("outputParams is deprecated.  Instead use the -n option on the command line or the dryRunFlag in PV_Arguments.\n\n");
    PV::PV_Init * initObj = new PV::PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
-   initObj->initialize();
    if (initObj->isExtraProc()) { return EXIT_SUCCESS; }
    PV::HyPerCol * hc = build(initObj, groupHandlerList, numGroupHandlers);
 

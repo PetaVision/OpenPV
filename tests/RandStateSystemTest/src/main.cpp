@@ -28,12 +28,14 @@ int main(int argc, char * argv[]) {
    }
 
    arguments->setParamsFile(paramfile1);
+   initObj.initialize();
    int status1 = rebuildandrun(&initObj, NULL, NULL);
    if (status1 != PV_SUCCESS) {
       pvError().printf("%s failed on param file %s with return code %d.\n", arguments->getProgramName(), paramfile1, status1);
    }
 
    arguments->setParamsFile(paramfile2);
+   initObj.initialize();
    int status2 = rebuildandrun(&initObj, NULL, &customexit);
    if (status2 != PV_SUCCESS) {
       pvErrorNoExit().printf("%s failed on param file %s.\n", arguments->getProgramName(), paramfile2);

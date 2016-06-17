@@ -39,7 +39,6 @@ int main(int argc, char* argv[])
    int status = 0;
 
    PV_Init* initObj = new PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
-   initObj->initialize();
 
    // create the managing hypercolumn
    //

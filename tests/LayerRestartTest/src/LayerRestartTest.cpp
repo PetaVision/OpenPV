@@ -47,6 +47,7 @@ int main(int argc, char * argv[]) {
    }
 
    arguments->setParamsFile("input/LayerRestartTest-Write.params");
+   initObj.initialize();
    status = rebuildandrun(&initObj);
    if( status == PV_SUCCESS ) {
       char const * checkParamsFile = "input/LayerRestartTest-Check.params";
@@ -54,6 +55,7 @@ int main(int argc, char * argv[]) {
          pvInfo().printf("*** %s: running params file %s\n", arguments->getProgramName(), checkParamsFile);
       }
       arguments->setParamsFile("input/LayerRestartTest-Check.params");
+      initObj.initialize();
       status = rebuildandrun(&initObj, NULL, &checkComparisonNonzero);
       if( status == PV_SUCCESS ) {
          char const * readParamsFile = "input/LayerRestartTest-Read.params";
@@ -61,6 +63,7 @@ int main(int argc, char * argv[]) {
             pvInfo().printf("*** %s: running params file %s\n", arguments->getProgramName(), checkParamsFile);
          }
          arguments->setParamsFile(readParamsFile);
+         initObj.initialize();
          status = rebuildandrun(&initObj, NULL, &checkComparisonZero);
       }
    }

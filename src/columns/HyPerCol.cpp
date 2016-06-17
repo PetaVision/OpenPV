@@ -267,9 +267,6 @@ int HyPerCol::initialize_base() {
 
 int HyPerCol::initialize(const char * name, PV_Init* initObj)
 {
-   if(!initObj->getInit()){
-      initObj->initialize();
-   }
    pv_initObj = initObj;
    this->icComm = pv_initObj->getComm();
    this->params = pv_initObj->getParams();

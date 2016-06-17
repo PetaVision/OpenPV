@@ -81,6 +81,7 @@ int main(int argc, char * argv[]) {
    arguments->setNumRows(1);
    arguments->setNumColumns(2);
    arguments->setBatchWidth(1);
+   initObj.initialize();
 
    status = buildandrun(&initObj);
    if( status != PV_SUCCESS ) {
@@ -89,6 +90,7 @@ int main(int argc, char * argv[]) {
 
    arguments->setParamsFile(paramFile2);
    arguments->setBatchWidth(5);
+   initObj.initialize();
 
    status = buildandrun(&initObj);
    if( status != PV_SUCCESS ) {

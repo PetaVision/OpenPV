@@ -24,8 +24,8 @@ PV_Init::PV_Init(int* argc, char ** argv[], bool allowUnrecognizedArguments){
    icComm = NULL;
    arguments = new PV_Arguments(*argc, *argv, allowUnrecognizedArguments);
    factory = new Factory();
-   initialized = false;
    buildandrunDeprecationWarning = true;
+   initialize();
 }
 
 PV_Init::~PV_Init(){
@@ -56,7 +56,6 @@ int PV_Init::initialize() {
    initLogFile();
    delete icComm;
    icComm = new InterColComm(arguments);
-   initialized = true;
    int status = PV_SUCCESS;
    // It is okay to initialize without there being a params file.
    // setParams() can be called later.
@@ -143,13 +142,12 @@ int PV_Init::setParams(char const * params_file) {
       pvErrorNoExit().printf("PV_Init unable to set new params file: %s\n", strerror(errno));
       return PV_FAILURE;
    }
-   if (!initialized) { initialize(); }
+   initialize();
    return createParams();
    return PV_SUCCESS;
 }
 
 int PV_Init::createParams() {
-   assert(initialized);
    char const * params_file = getArguments()->getParamsFile();
    if (params_file) {
       delete params;

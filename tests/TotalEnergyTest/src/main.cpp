@@ -214,7 +214,6 @@ int testioparams(PV_Init* initObj, int rank) {
    // Ignore -r and -c switches
    arguments->setRestartFlag(false);
    arguments->setCheckpointReadDir(NULL);
-   initObj->initialize();
    HyPerCol * hc = build(initObj, NULL, 0);
    if (hc == NULL) {
       pvError().printf("testioparams error: unable to build HyPerCol.\n");

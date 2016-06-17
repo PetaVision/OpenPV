@@ -58,6 +58,7 @@ int main(int argc, char * argv[]) {
 
    PV_Arguments * arguments = initObj.getArguments();
    arguments->setParamsFile(paramFile1);
+   initObj.initialize();
 
    status = rebuildandrun(&initObj);
    if( status != PV_SUCCESS ) {
@@ -65,6 +66,7 @@ int main(int argc, char * argv[]) {
    }
 
    arguments->setParamsFile(paramFile2);
+   initObj.initialize();
    arguments->setCheckpointReadDir("checkpoints1/Checkpoint12");
 
    status = rebuildandrun(&initObj);

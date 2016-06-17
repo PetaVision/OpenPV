@@ -23,7 +23,6 @@ int main(int argc, char * argv[]) {
 
    PV::PV_Init pv_obj(&argc, &argv, false/*allowUnrecognizedArguments*/);
 
-   status = pv_obj.initialize();
    if (status != PV_SUCCESS) {
       pvError().printf("%s: PV_Init::initialize() failed on process with PID=%d\n", argv[0], getpid()); 
    }

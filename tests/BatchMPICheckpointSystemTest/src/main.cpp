@@ -57,8 +57,9 @@ int main(int argc, char * argv[]) {
    initObj.registerKeyword("CPTestInputLayer", createCPTestInputLayer);
    initObj.registerKeyword("VaryingHyPerConn", createVaryingHyPerConn);
  
-   arguments->setParamsFile(paramFile1);
    arguments->setBatchWidth(2);
+   arguments->setParamsFile(paramFile1);
+   initObj.initialize();
 
    status = rebuildandrun(&initObj);
    if( status != PV_SUCCESS ) {
@@ -66,6 +67,7 @@ int main(int argc, char * argv[]) {
    }
 
    arguments->setParamsFile(paramFile2);
+   initObj.initialize();
    arguments->setCheckpointReadDir("checkpoints1/batchsweep_00/Checkpoint12:checkpoints1/batchsweep_01/Checkpoint12");
 
    status = rebuildandrun(&initObj);
