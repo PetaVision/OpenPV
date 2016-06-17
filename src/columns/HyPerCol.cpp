@@ -176,7 +176,8 @@ int HyPerCol::initialize_base() {
    nextCPWriteTime = 0.0;
    cpWriteClockInterval = -1.0;
    deleteOlderCheckpoints = false;
-   memset(lastCheckpointDir, 0, PV_PATH_MAX);
+   numCheckpointsKept = 2;
+   oldCheckpointDirectoriesIndex = 0;
    defaultInitializeFromCheckpointFlag = false;
    suppressLastOutput = false;
    suppressNonplasticCheckpoints = false;
@@ -590,6 +591,10 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
    ////At this point, threadBatch must be either true or false
    //assert(threadBatch == 0 || threadBatch == 1);
 
+   // If deleteOlderCheckpoints is true, set up a ring buffer of checkpoint directory names.
+   pvAssert(oldCheckpointDirectories.size()==0);
+   oldCheckpointDirectories.resize(numCheckpointsKept, "");
+   this->oldCheckpointDirectoriesIndex = 0;
 
 //   runDelegate = NULL;
 
@@ -655,6 +660,7 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_checkpointWriteClockInterval(ioFlag);
    ioParam_checkpointWriteClockUnit(ioFlag);
    ioParam_deleteOlderCheckpoints(ioFlag);
+   ioParam_numCheckpointsKept(ioFlag);
    ioParam_suppressLastOutput(ioFlag);
    ioParam_suppressNonplasticCheckpoints(ioFlag);
    ioParam_checkpointIndexWidth(ioFlag);
@@ -1202,6 +1208,23 @@ void HyPerCol::ioParam_deleteOlderCheckpoints(enum ParamsIOFlag ioFlag) {
    assert(!params->presentAndNotBeenRead(name, "checkpointWrite"));
    if (checkpointWriteFlag) {
       ioParamValue(ioFlag, name, "deleteOlderCheckpoints", &deleteOlderCheckpoints, false/*default value*/);
+   }
+}
+
+void HyPerCol::ioParam_numCheckpointsKept(enum ParamsIOFlag ioFlag) {
+   pvAssert(!params->presentAndNotBeenRead(name, "checkpointWrite"));
+   if (checkpointWriteFlag) {
+      pvAssert(!params->presentAndNotBeenRead(name, "deleteOlderCheckpoints"));
+      if (deleteOlderCheckpoints) {
+         ioParamValue(ioFlag, name, "numCheckpointsKept", &numCheckpointsKept, 1/*default value*/);
+         if (ioFlag==PARAMS_IO_READ && numCheckpointsKept <= 0) {
+            if (columnId()==0) {
+               pvErrorNoExit() << "HyPerCol \"" << name << "\": numCheckpointsKept must be positive (value was " << numCheckpointsKept << ")" << std::endl;
+            }
+            MPI_Barrier(icComm->communicator());
+            exit(EXIT_FAILURE);
+         }
+      }
    }
 }
 
@@ -2921,39 +2944,38 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
       fprintf(timestampfile->fp,"time = %g\n", simTime);
       fprintf(timestampfile->fp,"timestep = %ld\n", currentStep);
       PV_fclose(timestampfile);
+      sync();
    }
 
 
    if (deleteOlderCheckpoints) {
-      assert(checkpointWriteFlag); // checkpointWrite is called by exitRunLoop when checkpointWriteFlag is false; in this case deleteOlderCheckpoints should be false as well.
-      if (lastCheckpointDir[0]) {
+      pvAssert(checkpointWriteFlag); // checkpointWrite is called by exitRunLoop when checkpointWriteFlag is false; in this case deleteOlderCheckpoints should be false as well.
+      char const * oldestCheckpointDir = oldCheckpointDirectories[oldCheckpointDirectoriesIndex].c_str();
+      if (oldestCheckpointDir && oldestCheckpointDir[0]) {
          if (icComm->commRank()==0) {
             struct stat lcp_stat;
-            int statstatus = stat(lastCheckpointDir, &lcp_stat);
+            int statstatus = stat(oldestCheckpointDir, &lcp_stat);
             if ( statstatus!=0 || !(lcp_stat.st_mode & S_IFDIR) ) {
                if (statstatus==0) {
-                  pvErrorNoExit().printf("Failed to deletie older checkpoint: failed to stat \"%s\": %s.\n", lastCheckpointDir, strerror(errno));
+                  pvErrorNoExit().printf("Failed to delete older checkpoint: failed to stat \"%s\": %s.\n", oldestCheckpointDir, strerror(errno));
                }
                else {
-                  pvErrorNoExit().printf("Deleting older checkpoint: \"%s\" exists but is not a directory.\n", lastCheckpointDir);
+                  pvErrorNoExit().printf("Deleting older checkpoint: \"%s\" exists but is not a directory.\n", oldestCheckpointDir);
                }
             }
-#define RMRFSIZE (PV_PATH_MAX + 13)
-            char rmrf_string[RMRFSIZE];
-            int chars_needed = snprintf(rmrf_string, RMRFSIZE, "rm -r '%s'", lastCheckpointDir);
-            assert(chars_needed < RMRFSIZE);
-#undef RMRFSIZE
-            int rmrf_result = system(rmrf_string);
+            std::string rmrf_string("");
+            rmrf_string = rmrf_string + "rm -r '" + oldestCheckpointDir + "'";
+            int rmrf_result = system(rmrf_string.c_str());
             if (rmrf_result != 0) {
                pvWarn().printf("unable to delete older checkpoint \"%s\": rm command returned %d\n",
-                     lastCheckpointDir, rmrf_result);
+                     oldestCheckpointDir, WEXITSTATUS(rmrf_result));
             }
          }
       }
-      int chars_needed = snprintf(lastCheckpointDir, PV_PATH_MAX, "%s", cpDir);
-      assert(chars_needed < PV_PATH_MAX);
+      oldCheckpointDirectories[oldCheckpointDirectoriesIndex] = std::string(cpDir);
+      oldCheckpointDirectoriesIndex++;
+      if (oldCheckpointDirectoriesIndex==numCheckpointsKept) { oldCheckpointDirectoriesIndex = 0; }
    }
-
 
    if (icComm->commRank()==0) {
       pvInfo().printf("checkpointWrite complete. simTime = %f\n", simTime);
