@@ -435,6 +435,7 @@ double ParameterGroup::value(const char * name)
    }
    pvError().printf("PVParams::ParameterGroup::value: ERROR, couldn't find a value for %s"
                    " in group %s\n", name, groupName);
+   return PV_FAILURE; // suppresses warning in compilers that don't recognize pvError always exits.
 }
 
 bool ParameterGroup::arrayPresent(const char * name) {

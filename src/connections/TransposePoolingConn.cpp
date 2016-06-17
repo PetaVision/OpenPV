@@ -527,6 +527,7 @@ double TransposePoolingConn::computeNewWeightUpdateTime(double time, double curr
 
 int TransposePoolingConn::deliverPostsynapticPerspective(PVLayerCube const * activity, int arborID) {
    pvError() << "Delivering from PostSynapticPerspective for TransposePoolingConn not implented yet\n";
+   return PV_FAILURE; // suppresses warning in compilers that don't recognize pvError always exits.
 }
 
 int TransposePoolingConn::deliverPresynapticPerspective(PVLayerCube const * activity, int arborID) {
