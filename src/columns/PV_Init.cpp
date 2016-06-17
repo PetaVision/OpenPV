@@ -63,6 +63,10 @@ int PV_Init::initialize() {
    if (arguments->getParamsFile()) {
       status = createParams();
    }
+   time_t currentTime = time(nullptr);
+   pvInfo() << "PetaVision initialized at " << ctime(&currentTime); // string returned by ctime contains a trailing \n.
+   pvInfo() << "Command line arguments are:\n";
+   arguments->printState();
    return status;
 }
 
@@ -128,11 +132,6 @@ void PV_Init::initLogFile() {
    else {
       PV::setLogFile(logFile, mode);
    }
-   time_t currentTime = time(nullptr);
-   pvInfo() << "PetaVision started at " << ctime(&currentTime); // string returned by ctime contains a trailing \n.
-   pvInfo() << "Command line arguments are:\n";
-   arguments->printState();
-
 }
 
 int PV_Init::setParams(char const * params_file) {
