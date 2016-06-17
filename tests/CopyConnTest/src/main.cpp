@@ -48,8 +48,6 @@ int runparamsfile(PV_Init* initObj, char const * paramsfile) {
    int status = initObj->setParams(paramsfile);
    pvAssert(status==PV_SUCCESS);
 
-   initObj->initialize();
-
    HyPerCol * hc = build(initObj);
    if (hc != NULL) {
       status = hc->run();

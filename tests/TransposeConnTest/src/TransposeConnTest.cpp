@@ -42,8 +42,6 @@ int main(int argc, char * argv[]) {
 
    initObj->setParams("input/TransposeConnTest.params");
 
-   initObj->initialize();
-
    // Don't call buildandrun because it will delete hc before returning. (I could use the customexit hook)
    HyPerCol * hc = build(initObj);
    hc->run(); // Weight values are initialized when run calls allocateDataStructures

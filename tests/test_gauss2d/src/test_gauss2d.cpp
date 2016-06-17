@@ -38,7 +38,6 @@ int main(int argc, char * argv[])
    const char * pre2_layer_name = "test_gauss2d pre 2";
    const char * post2_layer_name = "test_gauss2d post 2";
 
-   initObj->initialize();
    PV::HyPerCol * hc = new PV::HyPerCol("test_gauss2d column", initObj);
    PV::Example * pre = new PV::Example(pre_layer_name, hc);
    assert(pre);

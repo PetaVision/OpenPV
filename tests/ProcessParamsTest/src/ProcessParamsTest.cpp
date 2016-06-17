@@ -24,7 +24,6 @@ int main(int argc, char * argv[]) {
       pv_obj.setParams("input/ProcessParamsTest.params");
    }
 
-   status = pv_obj.initialize();
    if (status != PV_SUCCESS) {
       pvError().printf("%s: PV_Init::initialize() failed on process with PID=%d\n", argv[0], getpid()); 
    }

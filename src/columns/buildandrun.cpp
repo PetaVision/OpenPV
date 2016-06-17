@@ -147,7 +147,6 @@ int rebuildandrun(PV_Init* initObj,
       int (*customexit)(HyPerCol *, int, char **),
       void * (*customgroups)(const char *, const char *, HyPerCol *)) {
 
-   initObj->initialize();
    initObj->printBuildAndRunDeprecationWarning("rebuildandrun", "initObj, custominit, customexit, customgroups");
    if(initObj->isExtraProc()){
       return 0;
@@ -204,7 +203,6 @@ int rebuildandrun(PV_Init* initObj,
                 int (*customexit)(HyPerCol *, int, char **),
                 ParamGroupHandler ** groupHandlerList, int numGroupHandlers) {
 
-   initObj->initialize();
    initObj->printBuildAndRunDeprecationWarning("rebuildandrun", "initObj, custominit, customexit, groupHandlerList, numGroupHandlers");
    if(initObj->isExtraProc()){
       return 0;

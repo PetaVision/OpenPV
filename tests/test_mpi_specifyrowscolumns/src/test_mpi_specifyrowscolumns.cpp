@@ -84,7 +84,6 @@ int main(int argc, char * argv[]) {
 }
 
 int buildandverify(PV::PV_Init* initObj) {
-   initObj->initialize();
    PV::HyPerCol * hc = new PV::HyPerCol("column", initObj);
    /* PV::ANNLayer * layer = */ new PV::ANNLayer("layer", hc);
    int rows = initObj->getNumRows();
