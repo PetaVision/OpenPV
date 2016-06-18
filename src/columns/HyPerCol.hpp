@@ -433,6 +433,13 @@ private:
    virtual void ioParam_deleteOlderCheckpoints(enum ParamsIOFlag ioFlag);
 
    /**
+    * @brief numCheckpointsKept: If deleteOlderCheckpoints is set,
+    * keep this many checkpoints before deleting the checkpoint.
+    * Default is 1 (delete a checkpoint when a newer checkpoint is written.)
+    */
+   virtual void ioParam_numCheckpointsKept(enum ParamsIOFlag ioFlag);
+
+   /**
     * @brief supressLastOutput: If checkpointWrite, specifies if the run should supress the final written checkpoint for the end of the run.
     */
    virtual void ioParam_suppressLastOutput(enum ParamsIOFlag ioFlag);
@@ -530,7 +537,9 @@ private:
 
    time_t nextCPWriteClock;
    bool deleteOlderCheckpoints; // If true, whenever a checkpoint other than the first is written, the preceding checkpoint is deleted. Default is false.
-   char lastCheckpointDir[PV_PATH_MAX]; // Holds the last checkpoint directory written; used if deleteOlderCheckpoints is true.
+   int numCheckpointsKept; // If deleteOlderCheckpoints is true, does not delete a checkpoint until the specified number of more recent checkpoints have been written.  Default is 2.
+   std::vector<std::string> oldCheckpointDirectories; // A ring buffer of existing checkpoints, used if deleteOlderCheckpoints is true.
+   int oldCheckpointDirectoriesIndex; // A pointer to the oldest checkpoint in the oldCheckpointDirectories vector.
 
    bool suppressLastOutput; // If checkpointWriteFlag is false and this flag is false, on exit a checkpoint is sent to the {outputPath}/Last directory.
                             // If checkpointWriteFlag is false and this flag is true, no checkpoint is done on exit.
