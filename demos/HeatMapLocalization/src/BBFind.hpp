@@ -31,9 +31,11 @@ class BBFind
       typedef vector< list<Rectangle> >         Rectangles; // [feature][rectangles]
    
       // Helper functions to pass in data from PetaVision
+      static Map3 bufferToMap3(const float *buffer, int nx, int ny, int nf, int const * displayedCategories, int numDisplayedCategories);
+      static Map3 extendedBufferToMap3(const float *buffer, int nx, int ny, int nf, int lt, int rt, int dn, int up, int const * displayedCategories, int numDisplayedCategories);
       static Map3 bufferToMap3(const float *buffer, int nx, int ny, int nf);
       static Map3 extendedBufferToMap3(const float *buffer, int nx, int ny, int nf, int lt, int rt, int dn, int up);
-      
+
    private:
 
       // The most recent and next most recent confidence maps handed to us.
@@ -56,7 +58,7 @@ class BBFind
       float mContrastStrength = 1.0f;
       float mPrevInfluence = 1.5f;
       float mAccumulateAmount = 0.05f;
-      float mPrevLeakTao = 16.0f;
+      float mPrevLeakTau = 16.0f;
 
       int mOriginalConfidenceWidth = -1;
       int mOriginalConfidenceHeight = -1;
@@ -127,6 +129,43 @@ class BBFind
       const Map3 getScaledConfMap() { return scale(mCurrentConfMap, mImageWidth, mImageHeight, true); }
       const Map3 getScaledDistMap() { return scale(mDistMap, mImageWidth, mImageHeight, true); }
       
+      //These return the maps scaled to the original size
+      const Map3 getOrigSizedConfMap() { return scale(mCurrentConfMap, mOriginalConfidenceWidth, mOriginalConfidenceHeight, true); }
+      const Map3 getOrigSizedDistMap() { return scale(mDistMap, mOriginalConfidenceWidth, mOriginalConfidenceHeight, true); }
+
+      // Getters (used by BBFindLayer)
+      int getFramesPerMap() const { return mFramesPerMap; }
+
+      float getThreshold() const { return mThreshold; }
+
+      float getContrast() const { return mContrast; }
+
+      float getContrastStrength() const { return mContrastStrength; }
+
+      float getPrevInfluence() const { return mPrevInfluence; }
+
+      float getAccumulateAmount() const { return mAccumulateAmount; }
+
+      float getPrevLeakTau() const { return mPrevLeakTau; }
+
+      int getMinBlobSize() const { return mMinBlobSize; }
+
+      int getBBGuessSize() const { return mBBGuessSize; }
+
+      int getSlidingAverageSize() const { return mSlidingAverageSize; }
+
+      int getMaxRectangleMemory() const { return mMaxRectangleMemory; }
+
+      int getDetectionWait() const { return mDetectionWait; }
+
+      int getInternalMapWidth() const { return mInternalConfidenceWidth; }
+
+      int getInternalMapHeight() const { return mInternalConfidenceHeight; }
+
+      int getImageWidth() const { return mImageWidth; }
+
+      int getImageHeight() const { return mImageHeight; }
+
       // Setters (are getters necessary?)
    
       // How many frames of video do we interpolate between before receiving
@@ -164,7 +203,7 @@ class BBFind
       // How quickly the previous buffer leaks its contents.
       // Larger values mean slower leaking.
       // Default is 16.0
-      void setPrevLeakTao(float prevLeakTao) { mPrevLeakTao = prevLeakTao; }
+      void setPrevLeakTau(float prevLeakTau) { mPrevLeakTau = prevLeakTau; }
       
       // A blob of confidences above threshold must be at least
       // this size to be a potential detection.

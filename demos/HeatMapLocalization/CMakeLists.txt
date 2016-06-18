@@ -5,8 +5,12 @@ get_filename_component(PV_PROJECT_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 #include_directories("${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 set(${PV_PROJECT_NAME}_SRCCPP
+  src/BBFind.cpp
+  src/BBFindConfRemapLayer.cpp
+  src/BBFindConfRemapProbe.cpp
   src/ConvertFromTable.cpp
   src/LocalizationProbe.cpp
+  src/LocalizationBBFindProbe.cpp
   src/MaskFromMemoryBuffer.cpp
   src/main.cpp
 )

@@ -717,9 +717,8 @@ int HyPerLayer::setInitialValues() {
 
 int HyPerLayer::initializeV() {
    int status = PV_SUCCESS;
-   if (initVObject != NULL) {
+   if (getV()!=NULL && initVObject != NULL) {
       status = initVObject->calcV(this);
-      setActivity();
    }
    return status;
 }

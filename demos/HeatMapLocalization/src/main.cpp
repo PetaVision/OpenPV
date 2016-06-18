@@ -1,15 +1,154 @@
 #include <stdio.h>
 #include <sys/time.h>
 #include <sys/wait.h>
-#include <columns/buildandrun.hpp>
-#include <layers/ImageFromMemoryBuffer.hpp>
+#include <dirent.h>
+#include <string>
+#include <list>
+#include <cerrno>
+#include <cstring>
+#include "columns/InterColComm.hpp"
+#include "columns/PV_Init.hpp"
+#include "layers/ImageFromMemoryBuffer.hpp"
+#include "utils/PVAlloc.hpp"
+#include "utils/PVAssert.hpp"
+#include "utils/PVLog.hpp"
+#include "BBFindConfRemapLayer.hpp"
+#include "BBFindConfRemapProbe.hpp"
 #include "ConvertFromTable.hpp"
 #include "LocalizationProbe.hpp"
+#include "LocalizationBBFindProbe.hpp"
 #include "MaskFromMemoryBuffer.hpp"
 #define TEXTFILEBUFFERSIZE 1024
 
-char * getImageFileName(InterColComm * icComm);
-int setImageLayerMemoryBuffer(InterColComm * icComm, char const * imageFile, ImageFromMemoryBuffer * imageLayer, uint8_t ** imageBufferPtr, size_t * imageBufferSizePtr);
+char * getImageFileName(PV::InterColComm * icComm);
+int setImageLayerMemoryBuffer(PV::InterColComm * icComm, char const * imageFile, PV::ImageFromMemoryBuffer * imageLayer, uint8_t ** imageBufferPtr, size_t * imageBufferSizePtr);
+int runWithHarness(PV::HyPerCol * hc, int frameInterval);
+int runWithoutHarness(PV::HyPerCol * hc);
+
+class FrameServer {
+public:
+   FrameServer() {
+      mTmpDir = strdup("/tmp/OpenPVFrameServer-XXXXXX");
+      if (mkdtemp(mTmpDir)==NULL) {
+         pvError() << "FrameServer unable to create temporary directory: " << strerror(errno);
+         pvExitFailure("");
+      }
+      mListOfFrames.clear();
+   }
+
+   void setFrameRate(int fr) { mFrameRate = fr; }
+
+   virtual ~FrameServer() {
+      clearFrames();
+      rmdir(mTmpDir);
+      free(mTmpDir);
+   }
+
+   size_t getNumFrames() const { return mListOfFrames.size(); }
+
+   char const * retrieveFrame() {
+      if (mCurrentFrame==mListOfFrames.end()) { return nullptr; }
+      std::string str = *mCurrentFrame;
+      char const * s = (*mCurrentFrame).c_str();
+      mCurrentFrame++;
+      return s;
+   }
+
+   void rewind() {
+      mCurrentFrame = mListOfFrames.begin();
+   }
+
+   void feedVideoToDragonsGapingMaw(char const * path) {
+      pvAssert(mTmpDir);
+      std::string cmdString("avconv -threads auto -r ");
+      cmdString += std::to_string(mFrameRate);
+      cmdString += " -i ";
+      cmdString += path;
+      cmdString += " -r 1 ";
+      cmdString += mTmpDir;
+      cmdString += "/";
+      cmdString += mFilenamePrefix;
+      cmdString += "%0";
+      cmdString += std::to_string(strlen(mFilenamePattern));
+      cmdString += "d";
+      cmdString += mFilenameSuffix;
+      int cmdStatus = system(cmdString.c_str());
+      if (cmdStatus) {
+         pvError() << "FrameServer: command \"" << cmdString << "\" returned " << WEXITSTATUS(cmdStatus) << "." << std::endl;
+         exit(EXIT_FAILURE);
+      }
+      DIR * dirPtr = opendir(mTmpDir);
+      if (dirPtr==NULL) {
+         pvError() << "FrameServer::feedVideoToDragonsGapingMaw unable to open directory \"" << mTmpDir << "\": "<< strerror(errno);
+         pvExitFailure("");
+      }
+      for (struct dirent * entry = readdir(dirPtr); entry; entry = readdir(dirPtr)) {
+         char * filename = entry->d_name;
+         if (isFrame(filename)) {
+            std::string s(mTmpDir);
+            s+="/";
+            s+=filename;
+            mListOfFrames.push_back(s);
+         }
+      }
+      mListOfFrames.sort();
+      mCurrentFrame = mListOfFrames.begin();
+   }
+
+   void clearFrames() {
+      for (std::list<std::string>::iterator it = mListOfFrames.begin(); it!=mListOfFrames.end(); it++) {
+         std::string& s = *it;
+         if (unlink(s.c_str())) {
+            pvError() << "FrameServer::clearFrames unable to delete \"" << s << "\": " << strerror(errno);
+            pvExitFailure("");
+         }
+      }
+      mListOfFrames.clear();
+      mCurrentFrame = mListOfFrames.begin();
+   }
+
+private:
+   bool isFrame(char const * dirEntry) {
+      size_t lenPrefix = strlen(mFilenamePrefix);
+      size_t lenPattern = strlen(mFilenamePattern);
+      size_t lenSuffix = strlen(mFilenameSuffix);
+      if (dirEntry==NULL) { return false; }
+      if (strlen(dirEntry)!=lenPrefix+lenPattern+lenSuffix) { return false; }
+      if (strncmp(dirEntry, mFilenamePrefix, lenPrefix)) { return false; }
+      bool alldigits=true;
+      for (size_t n=0; n<strlen(mFilenamePattern); n++) {
+         if (!isdigit(dirEntry[lenPrefix+n])) {
+            alldigits=false;
+            break;
+         }
+      }
+      if (!alldigits) { return false; }
+      if (strncmp(&dirEntry[lenPrefix+lenPattern], mFilenameSuffix, lenSuffix)) { return false; }
+      return true;
+   }
+
+// Member variables
+private:
+   bool mRunWithoutHarnessFlag = false;
+   int mFrameRate = 30;
+   char * mTmpDir = nullptr;
+   std::list<std::string> mListOfFrames;
+   std::list<std::string>::iterator mCurrentFrame = mListOfFrames.begin();
+   char const * mFilenamePrefix = "frame";
+   char const * mFilenamePattern = "XXXX";
+   char const * mFilenameSuffix = ".png";
+}; // end FrameServer
+
+// TODO: since this doesn't get attached to the HyPerCol, creating this via PV_Init::build provides no way to delete it when finished.
+class HarnessObject : public PV::BaseObject {
+public:
+   HarnessObject(char const * name, PV::HyPerCol * hc) { BaseObject::initialize(name, hc); }
+   ~HarnessObject() {}
+};
+
+PV::BaseObject * createHarnessObject(char const * name, PV::HyPerCol * hc) {
+   return hc ? new HarnessObject(name, hc) : nullptr;
+}
 
 int main(int argc, char* argv[])
 {
@@ -17,138 +156,188 @@ int main(int argc, char* argv[])
 
    PV::PV_Init pv_init(&argc, &argv, true/*allowUnrecognizedArguments*/);
    // Build the column from the params file
+   pv_init.registerKeyword("BBFindConfRemapLayer", createBBFindConfRemapLayer);
+   pv_init.registerKeyword("BBFindConfRemapProbe", createBBFindConfRemapProbe);
    pv_init.registerKeyword("ConvertFromTable", createConvertFromTable);
+   pv_init.registerKeyword("LocalizationBBFindProbe", createLocalizationBBFindProbe);
    pv_init.registerKeyword("LocalizationProbe", createLocalizationProbe);
    pv_init.registerKeyword("MaskFromMemoryBuffer", createMaskFromMemoryBuffer);
+   pv_init.registerKeyword("Harness", createHarnessObject);
    PV::HyPerCol * hc = pv_init.build();
-   assert(hc->getStartTime()==hc->simulationTime());
+   pvAssert(hc->getStartTime()==hc->simulationTime());
 
-   bool useHarness = true;
-   for (int arg=0; arg<argc; arg++) {
-      if (!strcmp(argv[arg], "--harness")) { useHarness = true; }
-      if (!strcmp(argv[arg], "--no-harness")) { useHarness = false; }
+   bool runWithoutHarnessFlag = true;
+   int frameInterval = 1;
+
+   PV::PVParams * params = hc->parameters();
+   int numGroups = params->numberOfGroups();
+   bool foundHarness = false;
+   for (int g=0; g<numGroups; g++) {
+      if (!strcmp(params->groupKeywordFromIndex(g), "Harness")) {
+         runWithoutHarnessFlag = params->value(params->groupNameFromIndex(g), "runWithoutHarness", runWithoutHarnessFlag)!=0;
+         if (!runWithoutHarnessFlag) {
+            frameInterval = params->valueInt(params->groupNameFromIndex(g), "frameInterval", frameInterval);
+         }
+         foundHarness = true;
+         break;
+      }
    }
-   if (useHarness) {
-      double startTime = hc->getStartTime();
-      double stopTime = hc->getStopTime();
-      double dt = hc->getDeltaTime();
-      double displayPeriod = stopTime - startTime;
-      const int rank = hc->columnId();
-      InterColComm * icComm = hc->icCommunicator();
-
-      int layerNx, layerNy, layerNf;
-      int imageNx, imageNy, imageNf;
-      int bufferNx, bufferNy, bufferNf;
-      size_t imageBufferSize;
-      uint8_t * imageBuffer;
-
-      PV::ImageFromMemoryBuffer * imageLayer = NULL;
-      for (int k=0; k<hc->numberOfLayers(); k++) {
-         PV::HyPerLayer * l = hc->getLayer(k);
-         PV::ImageFromMemoryBuffer * img_buffer_layer = dynamic_cast<PV::ImageFromMemoryBuffer *>(l);
-         if (img_buffer_layer) {
-            if (imageLayer!=NULL) {
-               if (hc->columnId()==0) {
-                  pvErrorNoExit().printf("%s: More than one ImageFromMemoryBuffer (\"%s\" and \"%s\").\n",
-                        argv[0], imageLayer->getName(), img_buffer_layer->getName());
-               }
-               MPI_Barrier(hc->icCommunicator()->communicator());
-               exit(EXIT_FAILURE);
-            }
-            else {
-               imageLayer = img_buffer_layer;
-            }
-         }
-      }
-      LocalizationProbe * localizationProbe = NULL; 
-      for (int k=0; k < hc->numberOfBaseProbes(); k++)
-      {
-         PV::BaseProbe * p = hc->getBaseProbe(k);
-         LocalizationProbe * localization_probe = dynamic_cast<LocalizationProbe *>(p);
-         if (localization_probe) {
-            if (localizationProbe != NULL) {
-               if (hc->columnId()==0) {
-                  pvErrorNoExit().printf("%s: More than one LocalizationProbe (\"%s\" and \"%s\").\n",
-                        argv[0], localizationProbe->getName(), localization_probe->getName());
-               }
-               MPI_Barrier(hc->icCommunicator()->communicator());
-               exit(EXIT_FAILURE);
-            }
-            else {
-               localizationProbe = localization_probe;
-            }
-         }
-      }
-      if (imageLayer==NULL) {
-         if (hc->columnId()==0) {
-            pvErrorNoExit().printf("%s: params file must have exactly one ImageFromMemoryBuffer layer.\n",
-                  argv[0]);
-            status = PV_FAILURE;
-         }
-      }
-      if (localizationProbe==NULL) {
-         if (hc->columnId()==0) {
-            pvErrorNoExit().printf("%s: params file must have exactly one LocalizationProbe.\n",
-                  argv[0]);
-            status = PV_FAILURE;
-         }
-      }
-      if (status != PV_SUCCESS) {
-         MPI_Barrier(hc->icCommunicator()->communicator());
-         exit(EXIT_FAILURE);
-      }
-
-      if (rank==0) {
-         if (status != PV_SUCCESS) { exit(EXIT_FAILURE); }
-
-         layerNx = imageLayer->getLayerLoc()->nxGlobal;
-         layerNy = imageLayer->getLayerLoc()->nyGlobal;
-         layerNf = imageLayer->getLayerLoc()->nf;
-
-         imageNx = layerNx;
-         imageNy = layerNy;
-         imageNf = 3;
-
-         bufferNx = layerNx;
-         bufferNy = layerNy;
-         bufferNf = imageNf;
-
-         imageBufferSize = (size_t)bufferNx*(size_t)bufferNy*(size_t)bufferNf;
-         imageBuffer = NULL;
-         GDALAllRegister();
-      }
-
-      // Main loop: get an image, load it into the image layer, do HyPerCol::run(), lather, rinse, repeat
-      char * imageFile = getImageFileName(icComm);
-      while(imageFile!=NULL && imageFile[0]!='\0')
-      {
-         startTime = hc->simulationTime();
-         stopTime = startTime + displayPeriod;
-         localizationProbe->setOutputFilenameBase(imageFile);
-         setImageLayerMemoryBuffer(hc->icCommunicator(), imageFile, imageLayer, &imageBuffer, &imageBufferSize);
-         status = hc->run(startTime, stopTime, dt);
-         if (status!=PV_SUCCESS) {
-            if (hc->columnId()==0) {
-               pvErrorNoExit().printf("Run failed at t=%f.  Exiting.\n", startTime);
-            }
-            break;
-         }
-
-         free(imageFile);
-         imageFile = getImageFileName(hc->icCommunicator());
-      }
-      free(imageFile);
+   if (!foundHarness && hc->columnId()==0) {
+      runWithoutHarnessFlag = false;
+      pvInfo() << "Params file does not have a group with keyword Harness.  PetaVision will run the params file as a normal run.\n";
    }
-   else {
-      assert(!useHarness); // else-clause of if(useHarness) statement
-      status = hc->run();
-   }
+
+   status = runWithoutHarnessFlag ? runWithoutHarness(hc) : runWithHarness(hc, frameInterval);
 
    delete hc;
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
-char * getImageFileName(InterColComm * icComm)
+int runWithHarness(PV::HyPerCol * hc, int frameInterval) {
+   char const * progName = hc->getPV_InitObj()->getProgramName();
+   double startTime = hc->getStartTime();
+   double stopTime = hc->getStopTime();
+   double dt = hc->getDeltaTime();
+   double displayPeriod = stopTime - startTime;
+   const int rank = hc->columnId();
+   PV::InterColComm * icComm = hc->icCommunicator();
+
+   int layerNx, layerNy, layerNf;
+   int imageNx, imageNy, imageNf;
+   int bufferNx, bufferNy, bufferNf;
+   size_t imageBufferSize;
+   uint8_t * imageBuffer;
+
+   PV::ImageFromMemoryBuffer * imageLayer = NULL;
+   for (int k=0; k<hc->numberOfLayers(); k++) {
+      PV::HyPerLayer * l = hc->getLayer(k);
+      PV::ImageFromMemoryBuffer * img_buffer_layer = dynamic_cast<PV::ImageFromMemoryBuffer *>(l);
+      if (img_buffer_layer) {
+         if (imageLayer!=NULL) {
+            if (hc->columnId()==0) {
+               pvErrorNoExit().printf("%s error: More than one ImageFromMemoryBuffer (\"%s\" and \"%s\").\n",
+                     progName, imageLayer->getName(), img_buffer_layer->getName());
+            }
+            MPI_Barrier(icComm->communicator());
+            exit(EXIT_FAILURE);
+         }
+         else {
+            imageLayer = img_buffer_layer;
+         }
+      }
+   }
+   LocalizationProbe * localizationProbe = NULL;
+   for (int k=0; k < hc->numberOfBaseProbes(); k++)
+   {
+      PV::BaseProbe * p = hc->getBaseProbe(k);
+      LocalizationProbe * localization_probe = dynamic_cast<LocalizationProbe *>(p);
+      if (localization_probe) {
+         if (localizationProbe != NULL) {
+            if (hc->columnId()==0) {
+               pvErrorNoExit().printf("%s error: More than one LocalizationProbe (\"%s\" and \"%s\").\n",
+                     progName, localizationProbe->getName(), localization_probe->getName());
+            }
+            MPI_Barrier(icComm->communicator());
+            exit(EXIT_FAILURE);
+         }
+         else {
+            localizationProbe = localization_probe;
+         }
+      }
+   }
+
+   int status = PV_SUCCESS;
+   if (rank==0) {
+      std::string errorString("");
+      if (imageLayer==NULL) {
+         errorString += progName;
+         errorString += " error: When running in the harness, params file must have exactly one ImageFromMemoryBuffer layer.";
+         status = PV_FAILURE;
+      }
+      if (localizationProbe==NULL) {
+         if (!errorString.empty()) { errorString += "\n"; }
+         errorString += progName;
+         errorString += " error: When running in the harness, params file must have exactly one LocalizationProbe.";
+         status = PV_FAILURE;
+      }
+      if (status!=PV_SUCCESS) {
+         pvExitFailure(errorString.c_str());
+      }
+   }
+   if (rank==0) {
+      layerNx = imageLayer->getLayerLoc()->nxGlobal;
+      layerNy = imageLayer->getLayerLoc()->nyGlobal;
+      layerNf = imageLayer->getLayerLoc()->nf;
+
+      imageNx = layerNx;
+      imageNy = layerNy;
+      imageNf = 3;
+
+      bufferNx = layerNx;
+      bufferNy = layerNy;
+      bufferNf = imageNf;
+
+      imageBufferSize = (size_t)(bufferNx*bufferNy*bufferNf);
+      imageBuffer = NULL;
+      GDALAllRegister();
+   }
+
+   FrameServer frameServer;
+   frameServer.setFrameRate(frameInterval);
+   char * videoFile = getImageFileName(icComm);
+   while(videoFile!=NULL && videoFile[0]!='\0') {
+      char frameNumberStr[5];
+      unsigned int numFrames = 0U;
+      if (rank==0) {
+         frameServer.feedVideoToDragonsGapingMaw(videoFile);
+         numFrames = frameServer.getNumFrames();
+      }
+      MPI_Bcast(&numFrames, 1, MPI_UNSIGNED, 0, icComm->communicator());
+      for (unsigned f=0; f<numFrames; f++) {
+         startTime = hc->simulationTime();
+         stopTime = startTime + displayPeriod;
+         localizationProbe->setOutputFilenameBase(videoFile);
+         std::string filenameBase(localizationProbe->getOutputFilenameBase());
+         filenameBase += "_frame";
+         int sizeCheck = snprintf(frameNumberStr, (size_t) 5, "%04u", f);
+         if (sizeCheck>=5) {
+            pvError() << "Number of frames exceeds 10000.  Exiting.";
+            pvExitFailure("");
+         }
+         filenameBase += frameNumberStr;
+         if (f==numFrames-1) {
+            filenameBase += "_last";
+         }
+         localizationProbe->setOutputFilenameBase(filenameBase.c_str());
+         char const * framePath;
+         if (rank==0) {
+            framePath = frameServer.retrieveFrame();
+            pvAssert(framePath);
+         }
+         setImageLayerMemoryBuffer(icComm, framePath, imageLayer, &imageBuffer, &imageBufferSize);
+         status = hc->run(startTime, stopTime, dt);
+         if (status != PV_SUCCESS) {
+            if (rank==0) {
+               pvError() << "Run failed at t=" << hc->simulationTime() <<
+                     " (startTime was " << startTime << "; stopTime was " << stopTime << ").";
+            }
+         }
+      }
+      free(videoFile);
+      if (rank==0) {
+         frameServer.clearFrames();
+      }
+      videoFile = getImageFileName(icComm);
+   }
+   free(videoFile);
+   return status;
+}
+
+int runWithoutHarness(PV::HyPerCol * hc) {
+   return hc->run();
+}
+
+char * getImageFileName(PV::InterColComm * icComm)
 {
    // All processes call this routine.  Calling routine is responsible for freeing the returned string.
    char buffer[TEXTFILEBUFFERSIZE];
@@ -180,10 +369,8 @@ char * getImageFileName(InterColComm * icComm)
          buffer[0] = '\0';
       }
    }
-#ifdef PV_USE_MPI
    MPI_Bcast(buffer, TEXTFILEBUFFERSIZE/*count*/, MPI_CHAR, 0/*rootprocess*/, icComm->communicator());
-#endif // PV_USE_MPI
-   char * filename = expandLeadingTilde(buffer);
+   char * filename = PV::expandLeadingTilde(buffer);
    if (filename==NULL)
    {
       pvError().printf("Rank %d process unable to allocate space for line from listOfImageFiles file.\n", rank);
@@ -191,10 +378,10 @@ char * getImageFileName(InterColComm * icComm)
    return filename;
 }
 
-int setImageLayerMemoryBuffer(InterColComm * icComm, char const * imageFile, ImageFromMemoryBuffer * imageLayer, uint8_t ** imageBufferPtr, size_t * imageBufferSizePtr)
+int setImageLayerMemoryBuffer(PV::InterColComm * icComm, char const * imageFile, PV::ImageFromMemoryBuffer * imageLayer, uint8_t ** imageBufferPtr, size_t * imageBufferSizePtr)
 {
    // Under MPI, only the root process (rank==0) uses imageFile, imageBufferPtr, or imageBufferSizePtr, but nonroot processes need to call it as well,
-   // because the imegeBuffer is scattered to all processes during the call to ImageFromMemoryBuffer::setMemoryBuffer().
+   // because the imageBuffer is scattered to all processes during the call to ImageFromMemoryBuffer::setMemoryBuffer().
    int layerNx = imageLayer->getLayerLoc()->nxGlobal;
    int layerNy = imageLayer->getLayerLoc()->nyGlobal;
    int layerNf = imageLayer->getLayerLoc()->nf;

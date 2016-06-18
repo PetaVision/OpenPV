@@ -10,22 +10,10 @@
 
 #include <unistd.h>
 #include <limits>
-#include <io/LayerProbe.hpp>
-#include <layers/ImageFromMemoryBuffer.hpp>
-#include <layers/HyPerLayer.hpp>
-
-/**
- * A struct to contain a bounding box, its feature, its displayed category index, and its score
- */
-struct localization {
-   int feature;
-   int displayedIndex;
-   double left;
-   double right;
-   double top;
-   double bottom;
-   double score;
-};
+#include "io/LayerProbe.hpp"
+#include "layers/ImageFromMemoryBuffer.hpp"
+#include "layers/HyPerLayer.hpp"
+#include "LocalizationData.hpp"
 
 /**
  * A probe to generate heat map montages.
@@ -60,12 +48,12 @@ public:
     * Throws an out_of_range exception if index is >= getNumDetections().
     * The bounding box values (left, right, top, bottom) are in imageLayer coordinates.
     */
-   inline localization const * getDetection(size_t index) { return &detections.at(index); }
+   inline LocalizationData const * getDetection(size_t index) { return &detections.at(index); }
 
    /**
     * Returns the vector of all detections that would be returned by getDetection(k)
     */
-   inline std::vector<localization> const * getDetections() { return &detections; }
+   inline std::vector<LocalizationData> const * getDetections() { return &detections; }
 
    /**
     * Sets the base of the output filename.  It takes everything after the
@@ -151,7 +139,7 @@ protected:
    int displayCategoryIndexStart;
    int displayCategoryIndexEnd;
    char * heatMapMontageDir;
-   std::vector<localization> detections;
+   std::vector<LocalizationData> detections;
    unsigned int maxDetections;
    int boundingBoxLineWidth;
    char * displayCommand;

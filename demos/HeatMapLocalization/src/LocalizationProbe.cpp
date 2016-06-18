@@ -152,11 +152,11 @@ void LocalizationProbe::ioParam_drawMontage(enum PV::ParamsIOFlag ioFlag) {
 #else // PV_USE_GDAL
    if (ioFlag==PARAMS_IO_READ) {
       if (parent->columnId()==0) {
-         pvErrorNoExit().printf("%s \"%s\" error: PetaVision must be compiled with GDAL to use LocalizationProbe with drawMontage set.\n",
+         pvErrorNoExit().printf("%s \"%s\" error: PetaVision must be compiled with GDAL to use drawMontage=true.\n",
                getKeyword(), name);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
-      return PV_FAILURE;
+      pvExitFailure("");
    }
 #endif // PV_USE_GDAL
 }
@@ -204,7 +204,7 @@ void LocalizationProbe::ioParam_displayCommand(enum PV::ParamsIOFlag ioFlag) {
 int LocalizationProbe::initNumValues() {
    return setNumValues(1);
    // numValues is the number of detections.  detections will be a vector of that length.
-   // If we add batching to localization probe, this should change to the batch size.
+   // If we add batching to LocalizationProbe, this should change to the batch size.
 }
 
 int LocalizationProbe::communicateInitInfo() {
@@ -298,6 +298,19 @@ int LocalizationProbe::communicateInitInfo() {
                getKeyword(), name, numDetectionThresholds, numDisplayedCategories);
       }
    }
+
+   for (int k=0; k<numDisplayedCategories; k++) {
+      int displayedCategory = displayedCategories[k];
+      if (displayedCategory<=0 || displayedCategory>nf) {
+         if (parent->columnId()==0) {
+            fprintf(stderr, "%s \"%s\" error: displayedCategories must be between 1 and nf=%d inclusive. (index %d is %d)\n",
+                  getKeyword(), name, nf, k+1, displayedCategory);
+         }
+         MPI_Barrier(parent->icCommunicator()->communicator());
+         exit(EXIT_FAILURE);
+      }
+   }
+
    if (drawMontage) {
       // TODO: abstract out similarities between expanding heatMapMaximum array and expanding detectionThreshold array, and perhaps other arrays in pv-core.
       if (numHeatMapMaxima==0) {
@@ -430,7 +443,7 @@ int LocalizationProbe::communicateInitInfo() {
          std::string originalLabelString("");
          originalLabelString += heatMapMontageDir;
          originalLabelString += "/labels/original.tif";
-         status = drawTextIntoFile(originalLabelString.c_str(), "black", "white", "original image", nxGlobal);
+         status = drawTextIntoFile(originalLabelString.c_str(), "black", "white", "Original Image", nxGlobal);
          if (status != 0) {
             pvError().printf("%s \"%s\" error creating label file \"%s\".\n", getKeyword(), name, originalLabelString.c_str());
          }
@@ -438,7 +451,7 @@ int LocalizationProbe::communicateInitInfo() {
          std::string reconLabelString("");
          reconLabelString += heatMapMontageDir;
          reconLabelString += "/labels/reconstruction.tif";
-         status = drawTextIntoFile(reconLabelString.c_str(), "black", "white", "reconstruction", nxGlobal);
+         status = drawTextIntoFile(reconLabelString.c_str(), "black", "white", "Reconstruction", nxGlobal);
          if (status != 0) {
             pvError().printf("%s \"%s\" error creating label file \"%s\".\n", getKeyword(), name, reconLabelString.c_str());
          }
@@ -506,7 +519,7 @@ char const * LocalizationProbe::getClassName(int k) {
 int LocalizationProbe::allocateDataStructures() {
    int status = PV::LayerProbe::allocateDataStructures();
    if (status != PV_SUCCESS) {
-      pvError().printf("%s \"%s\": LocalizationProbe::allocateDataStructures failed.\n", getKeyword(), name);
+      pvError().printf("%s \"%s\": allocateDataStructures failed.\n", getKeyword(), name);
    }
    detections.reserve(maxDetections);
    if (drawMontage) {
@@ -621,7 +634,7 @@ int LocalizationProbe::drawTextOnMontage(char const * backgroundColor, char cons
 int LocalizationProbe::drawTextIntoFile(char const * labelFilename, char const * backgroundColor, char const * textColor, char const * labelText, int width, int height) {
    assert(parent->columnId()==0);
    std::stringstream convertCmd("");
-   convertCmd << "convert -depth 8 -background \"" << backgroundColor << "\" -fill \"" << textColor << "\" -size " << width << "x" << height << " -pointsize 24 -gravity center label:\"" << labelText << "\" \"" << labelFilename << "\"";
+   convertCmd << "convert -depth 8 -background \"" << backgroundColor << "\" -fill \"" << textColor << "\" -size " << width << "x" << height << " -pointsize 18 -gravity center label:\"" << labelText << "\" \"" << labelFilename << "\"";
    int status = system(convertCmd.str().c_str());
    if (status != 0) {
       pvError().printf("%s \"%s\" error creating label file \"%s\": ImageMagick convert returned %d.\n", getKeyword(), name, labelFilename, WEXITSTATUS(status));
@@ -739,7 +752,7 @@ int LocalizationProbe::setOutputFilenameBase(char const * fn) {
    }
    if (fnString.empty()) {
       if (parent->columnId()==0) {
-         pvErrorNoExit().printf("LocalizationProbe::setOutputFilenameBase error: string \"%s\" is empty after removing directory and extension.\n", fn);
+         pvErrorNoExit().printf("%s \"%s\" setOutputFilenameBase error: string \"%s\" is empty after removing directory and extension.\n", getKeyword(), name, fn);
       }
       status = PV_FAILURE;
       outputFilenameBase = NULL;
@@ -747,7 +760,7 @@ int LocalizationProbe::setOutputFilenameBase(char const * fn) {
    else {
       outputFilenameBase = strdup(fnString.c_str());
       if (outputFilenameBase==NULL) {
-         pvError().printf("LocalizationProbe::setOutputFilenameBase failed with filename \"%s\": %s\n", fn, strerror(errno));
+         pvError().printf("%s \"%s\" setOutputFilenameBase failed for filename \"%s\": %s\n", getKeyword(), name, fn, strerror(errno));
       }
    }
    return status;
@@ -788,7 +801,8 @@ int LocalizationProbe::calcValues(double timevalue) {
       minDetectionThreshold = a < minDetectionThreshold ? a : minDetectionThreshold;
    }
    detections.clear();
-   size_t detectionIndex = 0;
+   unsigned detectionIndex = 0;
+
    while(detectionIndex<maxDetections) {
       int winningFeature, winningIndex, xLocation, yLocation;
       float activity;
@@ -817,13 +831,13 @@ int LocalizationProbe::calcValues(double timevalue) {
          MPI_Allreduce(MPI_IN_PLACE, &numpixels, 1, MPI_INT, MPI_SUM, parent->icCommunicator()->communicator());
          score = score/numpixels;
          if (boundingBox[1]-boundingBox[0]>=minBoundingBoxWidth && boundingBox[3]-boundingBox[2]>=minBoundingBoxHeight) {
-            localization newDetection;
+            LocalizationData newDetection;
             newDetection.feature = winningFeature;
             newDetection.displayedIndex = winningIndex;
-            newDetection.left = boundingBox[0] * imageDilationX;
-            newDetection.right = boundingBox[1] * imageDilationX;
-            newDetection.top = boundingBox[2] * imageDilationY;
-            newDetection.bottom = boundingBox[3] * imageDilationY;
+            newDetection.left = (int) nearbyint(boundingBox[0] * imageDilationX);
+            newDetection.right = (int) nearbyint(boundingBox[1] * imageDilationX);
+            newDetection.top = (int) nearbyint(boundingBox[2] * imageDilationY);
+            newDetection.bottom = (int) nearbyint(boundingBox[3] * imageDilationY);
             newDetection.score = score;
             detections.push_back(newDetection);
             detectionIndex++;
@@ -834,6 +848,7 @@ int LocalizationProbe::calcValues(double timevalue) {
          break;
       }
    }
+
    assert(getNumValues()==1);
    double * values = getValuesBuffer();
    *values = detectionIndex;
@@ -956,7 +971,7 @@ int LocalizationProbe::outputState(double timevalue) {
          outputStream->printf("Time %f, no detections.\n", timevalue);
       }
       for (size_t d=0; d<numDetected; d++) {
-         localization const * thisDetection = &detections.at(d);
+         LocalizationData const * thisDetection = &detections.at(d);
          int winningFeature = thisDetection->feature;
          assert(winningFeature>=0 && winningFeature<targetLayer->getLayerLoc()->nf);
          double score = thisDetection->score;
@@ -964,10 +979,10 @@ int LocalizationProbe::outputState(double timevalue) {
                timevalue,
                getClassName(winningFeature),
                score,
-               (int) thisDetection->left,
-               (int) thisDetection->right,
-               (int) thisDetection->top,
-               (int) thisDetection->bottom);
+               thisDetection->left,
+               thisDetection->right,
+               thisDetection->top,
+               thisDetection->bottom);
       }
    }
    if (drawMontage) {
@@ -1002,13 +1017,13 @@ int LocalizationProbe::makeMontage() {
    if (boundingBoxLineWidth > 0) {
       assert(getNumValues()==1);
       for (size_t d=0; d<detections.size(); d++) {
-         localization const * thisBoundingBox = &detections.at(d);
+         LocalizationData const * thisBoundingBox = &detections.at(d);
          int winningFeature = thisBoundingBox->feature;
          if (winningFeature<0) { continue; }
-         int left = (int) thisBoundingBox->left;
-         int right = (int) thisBoundingBox->right;
-         int top = (int) thisBoundingBox->top;
-         int bottom = (int) thisBoundingBox->bottom;
+         int left = thisBoundingBox->left;
+         int right = thisBoundingBox->right;
+         int top = thisBoundingBox->top;
+         int bottom = thisBoundingBox->bottom;
          int winningIndex = thisBoundingBox->displayedIndex;
          assert(winningIndex>=0);
          int montageColumn = kxPos(winningIndex, numMontageColumns, numMontageRows, 1);
@@ -1111,7 +1126,7 @@ int LocalizationProbe::drawHeatMaps() {
    int winningIndex[numDetections];
    double boxConfidence[numDetections];
    for (int d=0; d<numDetections; d++) {
-      localization const * box = &detections.at(d);
+      LocalizationData const * box = &detections.at(d);
       boxConfidence[d] = box->score;
       winningFeature[d] = box->feature;
       winningIndex[d] = box->displayedIndex;
@@ -1225,13 +1240,14 @@ int LocalizationProbe::drawProgressInformation() {
    double elapsed = parent->simulationTime() - parent->getStartTime();
    double finishTime = parent->getStopTime() - parent->getStartTime();
    bool isLastTimeStep = elapsed >= finishTime - parent->getDeltaTimeBase()/2;
-   if (!isLastTimeStep) {
+   //if (!isLastTimeStep) {
       int percentage = (int) nearbyintf(100.0 * elapsed / finishTime);
-      progress << "t = " << elapsed << ", finish time = " << finishTime << " (" << percentage << "%%)";
-   }
-   else {
-      progress << "t = " << elapsed << ", completed";
-   }
+      progress << "t = " << elapsed << "/" << finishTime << " (" << percentage << "%%)";
+   //   progress << "t = " << elapsed << ", finish time = " << finishTime << " (" << percentage << "%%)";
+   //}
+   //else {
+   //   progress << "t = " << elapsed << ", completed";
+   //}
    drawTextOnMontage("black", "white", progress.str().c_str(), 0, montageDimY-32, montageDimX, 32);
 }
 
