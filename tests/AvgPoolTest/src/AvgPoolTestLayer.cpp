@@ -1,12 +1,12 @@
-#include "GatePoolTestLayer.hpp"
+#include "AvgPoolTestLayer.hpp"
 
 namespace PV {
 
-GatePoolTestLayer::GatePoolTestLayer(const char * name, HyPerCol * hc){
+AvgPoolTestLayer::AvgPoolTestLayer(const char * name, HyPerCol * hc){
    ANNLayer::initialize(name, hc);
 }
 
-int GatePoolTestLayer::updateState(double timef, double dt){
+int AvgPoolTestLayer::updateState(double timef, double dt){
    //Do update state of ANN Layer first
    ANNLayer::updateState(timef, dt);
 
@@ -22,7 +22,7 @@ int GatePoolTestLayer::updateState(double timef, double dt){
 
    bool isCorrect = true;
    //Grab the activity layer of current layer
-   for(int b = 0; b < loc->nbatch; b++){
+   for(int b = 0; b < parent->getNBatch(); b++){
       const pvdata_t * A = getActivity() + b * getNumExtended();
       //We only care about restricted space, but iY and iX are extended
       for(int iY = loc->halo.up; iY < ny + loc->halo.up; iY++){
@@ -32,15 +32,20 @@ int GatePoolTestLayer::updateState(double timef, double dt){
 
               float actualvalue = A[ext_idx];
               
-              int xval = (iX + kx0 - loc->halo.lt)/2;
-              int yval = (iY + ky0 - loc->halo.up)/2;
+              int xval = iX + kx0 - loc->halo.lt;
+              int yval = iY + ky0 - loc->halo.up;
               assert(xval >= 0 && xval < loc->nxGlobal);
               assert(yval >= 0 && yval < loc->nxGlobal);
 
               float expectedvalue;
-              expectedvalue = iFeature * 64 + yval * 16 + xval * 2 + 4.5;
-              expectedvalue*=4;
-
+              if(nxScale == .5){
+                 expectedvalue = iFeature * 64 + yval * 16 + xval * 2 + 4.5;
+              }
+              else{
+                 int res_idx = kIndex(xval, yval, 0, nxGlobal, nyGlobal, 1);
+                 //TODO different features define different offsets into this index
+                 expectedvalue = iFeature * nxGlobal * nyGlobal + res_idx;
+              }
               if(fabs(actualvalue - expectedvalue) >= 1e-4){
                    pvErrorNoExit() << "Connection " << name << " Mismatch at (" << iX << "," << iY << ") : actual value: " << actualvalue << " Expected value: " << expectedvalue << ".  Discrepancy is a whopping " << actualvalue - expectedvalue << "!  Horrors!" << "\n";
                    isCorrect = false;
@@ -48,17 +53,17 @@ int GatePoolTestLayer::updateState(double timef, double dt){
             }
          }
       }
-   }
-   if(!isCorrect){
-      InterColComm * icComm = parent->icCommunicator();
-      MPI_Barrier(icComm->communicator()); // If there is an error, make sure that MPI doesn't kill the run before process 0 reports the error.
-      exit(-1);
+      if(!isCorrect){
+         InterColComm * icComm = parent->icCommunicator();
+         MPI_Barrier(icComm->communicator()); // If there is an error, make sure that MPI doesn't kill the run before process 0 reports the error.
+         exit(-1);
+      }
    }
    return PV_SUCCESS;
 }
 
-BaseObject * createGatePoolTestLayer(char const * name, HyPerCol * hc) {
-   return hc ? new GatePoolTestLayer(name, hc) : NULL;
+BaseObject * createAvgPoolTestLayer(char const * name, HyPerCol * hc) {
+   return hc ? new AvgPoolTestLayer(name, hc) : NULL;
 }
 
 } /* namespace PV */

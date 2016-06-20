@@ -22,6 +22,7 @@ endif("${PV_SYSTEM_TEST_THREADS}" MATCHES "^([0-9]+|)$")
 add_subdirectory(BasicSystemTest)
 add_subdirectory(AdjustAxonalArborsTest)
 add_subdirectory(ArborSystemTest)
+add_subdirectory(AvgPoolTest)
 add_subdirectory(BackgroundLayerTest)
 add_subdirectory(BatchCheckpointSystemTest)
 add_subdirectory(BatchMPICheckpointSystemTest)
@@ -86,7 +87,7 @@ add_subdirectory(ShrunkenPatchFlagTest)
 add_subdirectory(StochasticReleaseTest)
 
 #TODO reimplement sumpooltest
-#add_subdirectory(SumPoolTest)
+add_subdirectory(SumPoolTest)
 
 add_subdirectory(test_border_activity)
 add_subdirectory(test_cocirc)

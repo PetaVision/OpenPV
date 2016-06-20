@@ -37,14 +37,17 @@ int SumPoolTestLayer::updateState(double timef, double dt){
               assert(xval >= 0 && xval < loc->nxGlobal);
               assert(yval >= 0 && yval < loc->nxGlobal);
 
+              //expectedValue is set for avg pool, multiply by patch size for actual answer
               float expectedvalue;
               if(nxScale == .5){
                  expectedvalue = iFeature * 64 + yval * 16 + xval * 2 + 4.5;
+                 expectedvalue *= 4;
               }
               else{
                  int res_idx = kIndex(xval, yval, 0, nxGlobal, nyGlobal, 1);
                  //TODO different features define different offsets into this index
                  expectedvalue = iFeature * nxGlobal * nyGlobal + res_idx;
+                 expectedvalue *= 3*3;
               }
               if(fabs(actualvalue - expectedvalue) >= 1e-4){
                    pvErrorNoExit() << "Connection " << name << " Mismatch at (" << iX << "," << iY << ") : actual value: " << actualvalue << " Expected value: " << expectedvalue << ".  Discrepancy is a whopping " << actualvalue - expectedvalue << "!  Horrors!" << "\n";
