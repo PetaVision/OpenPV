@@ -102,6 +102,10 @@ if (PV_USE_MPI AND MPI_FOUND)
   include_directories(${MPI_CXX_INCLUDE_PATH})
 endif()
 
+if (PV_REORDER_HYPERCONN)
+  add_definitions("-DPV_REORDER_HYPERCONN=1")
+endif()
+
 if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "MinRelSize")
   list(APPEND CMAKE_CXX_FLAGS ${PV_COMPILE_FLAGS_RELEASE})
 else()
