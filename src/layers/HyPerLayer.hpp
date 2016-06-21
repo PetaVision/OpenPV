@@ -207,7 +207,7 @@ protected:
    // TODO: triggerOffset is measured in units of simulation time, not timesteps.  How does adaptTimeStep affect
    // the triggering time?
    /**
-    * @brief triggerOffset: If triggerLayer is set, triggers <triggerOffset> timesteps before target trigger
+    * @brief triggerOffset: If triggerLayer is set, triggers \<triggerOffset\> timesteps before target trigger
     * @details Defaults to 0
     */
    virtual void ioParam_triggerOffset(enum ParamsIOFlag ioFlag);

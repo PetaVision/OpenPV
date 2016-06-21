@@ -266,7 +266,7 @@ private:
    virtual void ioParam_dtAdaptTriggerLayerName(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief triggerOffset: If triggerLayer is set, triggers <triggerOffset> timesteps before target trigger
+    * @brief triggerOffset: If triggerLayer is set, triggers \<triggerOffset\> timesteps before target trigger
     * @details Defaults to 0
     */
    virtual void ioParam_dtAdaptTriggerOffset(enum ParamsIOFlag ioFlag);

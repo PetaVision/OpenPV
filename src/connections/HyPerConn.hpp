@@ -676,7 +676,7 @@ protected:
    virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief triggerOffset: If trigger flag is set, triggers <triggerOffset> timesteps before target trigger
+    * @brief triggerOffset: If trigger flag is set, triggers \<triggerOffset\> timesteps before target trigger
     * @details Defaults to 0.
     */
    virtual void ioParam_triggerOffset(enum ParamsIOFlag ioFlag);
