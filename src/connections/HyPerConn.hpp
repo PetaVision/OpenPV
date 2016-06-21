@@ -930,11 +930,28 @@ protected:
     */
    virtual int normalize_dW(int arbor_ID);
 
-   virtual int deliverPresynapticPerspective(PVLayerCube const * activity, int arborID);
-   virtual int deliverPostsynapticPerspective(PVLayerCube const * activity, int arborId){
-      return deliverPostsynapticPerspective(activity, arborId, NULL, NULL);
+   virtual int deliverPresynapticPerspectiveConvolve(PVLayerCube const * activity, int arborID);
+   virtual int deliverPresynapticPerspectiveStochastic(PVLayerCube const * activity, int arborID);
+   virtual int deliverPresynapticPerspective(PVLayerCube const * activity, int arborId){
+      int status = PV_SUCCESS;
+      switch(pvpatchAccumulateType) {
+      case CONVOLVE: status = deliverPresynapticPerspectiveConvolve(activity, arborId); break;
+      case STOCHASTIC: status = deliverPresynapticPerspectiveStochastic(activity, arborId); break;
+      default: pvAssert(0); status = PV_FAILURE; break;
+      }
+      return status;
    }
-   virtual int deliverPostsynapticPerspective(PVLayerCube const * activity, int arborID, int* numActive, int** activeList);
+   virtual int deliverPostsynapticPerspective(PVLayerCube const * activity, int arborID) {
+      int status = PV_SUCCESS;
+      switch(pvpatchAccumulateType) {
+      case CONVOLVE: status = deliverPostsynapticPerspectiveConvolve(activity, arborID, NULL, NULL); break;
+      case STOCHASTIC: status = deliverPostsynapticPerspectiveStochastic(activity, arborID, NULL, NULL); break;
+      default: pvAssert(0); status = PV_FAILURE; break;
+      }
+      return status;
+   }
+   virtual int deliverPostsynapticPerspectiveConvolve(PVLayerCube const * activity, int arborID, int* numActive, int** activeList);
+   virtual int deliverPostsynapticPerspectiveStochastic(PVLayerCube const * activity, int arborID, int* numActive, int** activeList);
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    virtual int deliverPresynapticPerspectiveGPU(PVLayerCube const * activity, int arborID);
    virtual int deliverPostsynapticPerspectiveGPU(PVLayerCube const * activity, int arborID);

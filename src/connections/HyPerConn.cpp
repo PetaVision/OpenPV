@@ -2903,7 +2903,7 @@ int HyPerConn::deliver() {
    return PV_SUCCESS;
 }
 
-int HyPerConn::deliverPresynapticPerspective(PVLayerCube const * activity, int arbor) {
+int HyPerConn::deliverPresynapticPerspectiveConvolve(PVLayerCube const * activity, int arbor) {
    //Check if we need to update based on connection's channel
    if(getChannel() == CHANNEL_NOUPDATE){
       return PV_SUCCESS;
@@ -3006,8 +3006,119 @@ int HyPerConn::deliverPresynapticPerspective(PVLayerCube const * activity, int a
    return PV_SUCCESS;
 }
 
+// TODO: Use templating to replace deliverPresynapticPerspectiveStochastic and
+// delivePresynapticPerspective.  These two functions differ only in the innermost
+// loop and some variable initializations the innermost loop uses.  We want to avoid
+// the inefficiency of an if-statement or dereferencing a function pointer in the
+// innermost loop.
+int HyPerConn::deliverPresynapticPerspectiveStochastic(PVLayerCube const * activity, int arbor) {
+   //Check if we need to update based on connection's channel
+   if(getChannel() == CHANNEL_NOUPDATE){
+      return PV_SUCCESS;
+   }
+   pvAssert(post->getChannel(getChannel()));
 
-int HyPerConn::deliverPostsynapticPerspective(PVLayerCube const * activity, int arbor, int* numActive, int** activeList) {
+   float dt_factor = getConvertToRateDeltaTimeFactor();
+   if (getPvpatchAccumulateType()==STOCHASTIC) {
+      dt_factor = getParent()->getDeltaTime();
+   }
+
+   if (_weightSparsity > 0.0f && !_sparseWeightsAllocated[arbor]) {
+      allocateSparseWeightsPre(activity, arbor);
+   }
+
+   const PVLayerLoc * preLoc = preSynapticLayer()->getLayerLoc();
+   const PVLayerLoc * postLoc = postSynapticLayer()->getLayerLoc();
+
+
+   pvAssert(arbor >= 0);
+   const int numExtended = activity->numItems;
+
+   int nbatch = parent->getNBatch();
+   const int sy  = getPostNonextStrides()->sy;       // stride in layer
+   const int syw = yPatchStride();                   // stride in patch
+
+   for(int b = 0; b < nbatch; b++){
+      size_t batchOffset = b * (preLoc->nx + preLoc->halo.rt + preLoc->halo.lt) * (preLoc->ny + preLoc->halo.up + preLoc->halo.dn) * preLoc->nf;
+      pvdata_t * activityBatch = activity->data + batchOffset;
+      pvdata_t * gSynPatchHeadBatch = post->getChannel(getChannel()) + b * postLoc->nx * postLoc->ny * postLoc->nf;
+      unsigned int * activeIndicesBatch = NULL;
+      if(activity->isSparse){
+         activeIndicesBatch = activity->activeIndices + batchOffset;
+      }
+
+      int numNeurons = activity->isSparse ? activity->numActive[b] : numExtended;
+
+#ifdef PV_USE_OPENMP_THREADS
+      //Clear all thread gsyn buffer
+      if (thread_gSyn) {
+         int numNeurons = post->getNumNeurons();
+#pragma omp parallel for
+         for(int i = 0; i < parent->getNumThreads() * numNeurons; i++){
+            int ti = i/numNeurons;
+            int ni = i % numNeurons;
+            thread_gSyn[ti][ni] = 0;
+         }
+      }
+
+#pragma omp parallel for schedule(static)
+#endif
+      for (int idx = 0; idx < numNeurons; idx++) {
+         int kPreExt = activity->isSparse ? activeIndicesBatch[idx] : idx;
+
+         // Activity
+         float a = activityBatch[kPreExt] * dt_factor;
+         if (a == 0.0f) continue;
+
+         // gSyn
+         pvdata_t * gSynPatchHead = gSynPatchHeadBatch;
+
+#ifdef PV_USE_OPENMP_THREADS
+         if(thread_gSyn) {
+            gSynPatchHead = thread_gSyn[omp_get_thread_num()];
+         }
+#endif // PV_USE_OPENMP_THREADS
+
+         pvgsyndata_t * postPatchStart = gSynPatchHead + getGSynPatchStart(kPreExt, arbor);
+
+         // Weight
+         PVPatch * weights = getWeights(kPreExt, arbor);
+         const int nk = weights->nx * fPatchSize();
+         const int ny = weights->ny;
+         pvwdata_t * weightDataStart = get_wData(arbor,kPreExt); // make this a pvwdata_t const *?
+         taus_uint4 * rng = randState->getRNG(kPreExt);
+         long along = (long) (a*cl_random_max());
+
+         for (int y = 0; y < ny; y++) {
+            float * v = postPatchStart + y * sy;
+            pvwdata_t * w = weightDataStart + y * syw;
+            for (int k = 0; k < nk; k++) {
+               *rng = cl_random_get(*rng);
+               v[k] += (rng->s0 < along)*w[k];
+            }
+         }
+      }
+
+#ifdef PV_USE_OPENMP_THREADS
+      //Accumulate back into gSyn // Should this be done in HyPerLayer where it can be done once, as opposed to once per connection?
+      if(thread_gSyn){
+         pvdata_t * gSynPatchHead = gSynPatchHeadBatch;
+         int numNeurons = post->getNumNeurons();
+         //Looping over neurons first to be thread safe
+#pragma omp parallel for
+         for(int ni = 0; ni < numNeurons; ni++){
+            for(int ti = 0; ti < parent->getNumThreads(); ti++){
+               gSynPatchHead[ni] += thread_gSyn[ti][ni];
+            }
+         }
+      }
+#endif // PV_USE_OPENMP_THREADS
+   }
+   return PV_SUCCESS;
+}
+
+
+int HyPerConn::deliverPostsynapticPerspectiveConvolve(PVLayerCube const * activity, int arbor, int* numActive, int** activeList) {
    //Make sure numActive and activeList are either both null or both valid pointers
    if(numActive){
       assert(activeList);
@@ -3135,6 +3246,157 @@ int HyPerConn::deliverPostsynapticPerspective(PVLayerCube const * activity, int 
                dv += a[k] * w[k];
             }
             *gSyn += dt_factor * dv;
+         }
+      }
+#endif
+   }
+
+   return PV_SUCCESS;
+}
+
+// TODO: Use templating to replace deliverPostsynapticPerspectiveStochastic and
+// delivePostsynapticPerspective.  These two functions differ only in the innermost
+// loop and some variable initializations the innermost loop uses.  We want to avoid
+// the inefficiency of an if-statement or dereferencing a function pointer in the
+// innermost loop.
+int HyPerConn::deliverPostsynapticPerspectiveStochastic(PVLayerCube const * activity, int arbor, int* numActive, int** activeList) {
+   //Make sure numActive and activeList are either both null or both valid pointers
+   if(numActive){
+      assert(activeList);
+   }
+   else{
+      assert(!activeList);
+   }
+
+   //Check channel number for noupdate
+   if(getChannel() == CHANNEL_NOUPDATE){
+      return PV_SUCCESS;
+   }
+   pvAssert(post->getChannel(getChannel()));
+
+   pvAssert(arbor >= 0);
+   //Get number of neurons restricted target
+   const int numPostRestricted = post->getNumNeurons();
+
+   float dt_factor = getConvertToRateDeltaTimeFactor();
+   if (getPvpatchAccumulateType()==STOCHASTIC) {
+      dt_factor = getParent()->getDeltaTime();
+   }
+
+   if (_weightSparsity > 0.0f && !_sparseWeightsAllocated[arbor]) {
+      allocateSparseWeightsPost(activity, arbor);
+   }
+
+   const PVLayerLoc * sourceLoc = preSynapticLayer()->getLayerLoc();
+   const PVLayerLoc * targetLoc = post->getLayerLoc();
+
+   const int sourceNx = sourceLoc->nx;
+   const int sourceNy = sourceLoc->ny;
+   const int sourceNf = sourceLoc->nf;
+   const int targetNx = targetLoc->nx;
+   const int targetNy = targetLoc->ny;
+   const int targetNf = targetLoc->nf;
+   const int nbatch = targetLoc->nbatch;
+
+   const PVHalo * sourceHalo = &sourceLoc->halo;
+   const PVHalo * targetHalo = &targetLoc->halo;
+
+   //get source layer's extended y stride
+   int sy  = (sourceNx+sourceHalo->lt+sourceHalo->rt)*sourceNf;
+
+   //The start of the gsyn buffer
+   pvdata_t * gSynPatchHead = post->getChannel(getChannel());
+
+   long * startSourceExtBuf = getPostToPreActivity();
+   if(!startSourceExtBuf){
+      pvError() << "HyPerLayer::recvFromPost: unable to get preToPostActivity from connection. Is shrink_patches on?\n";
+   }
+
+   //If numActive is a valid pointer, we're recv from post sparse
+   bool recvPostSparse = numActive;
+
+   // Get source layer's patch y stride
+   int syp = postConn->yPatchStride();
+   int yPatchSize = postConn->yPatchSize();
+   int numPerStride = postConn->xPatchSize() * postConn->fPatchSize();
+
+   for(int b = 0; b < nbatch; b++){
+      int numNeurons = recvPostSparse ? numActive[b] : numPostRestricted;
+
+      pvdata_t * activityBatch = activity->data + b * (sourceNx + sourceHalo->rt + sourceHalo->lt) * (sourceNy + sourceHalo->up + sourceHalo->dn) * sourceNf;
+      pvdata_t * gSynPatchHeadBatch = gSynPatchHead + b * targetNx * targetNy * targetNf;
+
+#ifdef PV_REORDER_HYPERCONN
+      // Iterate over each line in the y axis, the goal is to keep weights in the cache
+      for (int ky = 0; ky < yPatchSize; ky++) {
+         // Threading over feature was the important change that improved cache performance by
+         // 5-10x. dynamic scheduling also gave another performance increase over static.
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for schedule(dynamic)
+#endif
+         for (int feature = 0; feature < nfp; feature++) {
+            for (int idx = feature; idx < numNeurons; idx += nfp) {
+               int kTargetRes = recvPostSparse ? activeList[b][idx] : idx;
+
+               // gSyn
+               pvdata_t * gSyn = gSynPatchHeadBatch + kTargetRes;
+
+               // Activity
+               long startSourceExt = startSourceExtBuf[kTargetRes];
+               float* activityStartBuf = activityBatch + startSourceExt;
+               float * a = activityStartBuf + ky * sy;
+
+               // Weight
+               int kTargetExt = kIndexExtended(kTargetRes, targetNx, targetNy, targetNf, targetHalo->lt, targetHalo->rt, targetHalo->dn, targetHalo->up);
+               int kernelIndex = postConn->patchToDataLUT(kTargetExt);
+               pvwdata_t* weightStartBuf = postConn->get_wDataHead(arbor, kernelIndex);
+               pvwdata_t * w = weightStartBuf + ky * syp;
+
+               float dv = 0.0;
+               for (int k = 0; k < numPerStride; k++) {
+                  dv += a[k] * w[k];
+               }
+               *gSyn += dt_factor * dv;
+            }
+         }
+      }
+#else // Not reordered
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for schedule(static)
+#endif
+      for (int idx = 0; idx < numNeurons; idx++) {
+         int kTargetRes = recvPostSparse ? activeList[b][idx] : idx;
+
+         // gSyn
+         pvdata_t * gSyn = gSynPatchHeadBatch + kTargetRes;
+
+         // Activity
+         long startSourceExt = startSourceExtBuf[kTargetRes];
+         float* activityStartBuf = activityBatch + startSourceExt;
+
+         // Weight
+         int kTargetExt = kIndexExtended(kTargetRes, targetNx, targetNy, targetNf, targetHalo->lt, targetHalo->rt, targetHalo->dn, targetHalo->up);
+         int kernelIndex = postConn->patchToDataLUT(kTargetExt);
+         pvwdata_t* weightStartBuf = postConn->get_wDataHead(arbor, kernelIndex);
+         taus_uint4 * rng = randState->getRNG(kTargetRes);
+
+         for (int ky = 0; ky < yPatchSize; ky++){
+            float * a = activityStartBuf + ky * sy;
+            pvwdata_t * w = weightStartBuf + ky * syp;
+            float dv = 0.0;
+            for (int k = 0; k < numPerStride; k++) {
+               dv += a[k] * w[k];
+            }
+            *gSyn += dt_factor * dv;
+
+
+            float dv = 0.0f;
+            for (int k = 0; k < numPerStride; k++) {
+               *rng = cl_random_get(*rng);
+               double p = (double) rng->s0/cl_random_max(); // 0.0 < p < 1.0
+               dv += (p<a[k]*dt_factor)*w[k];
+            }
+            *gSyn += dv;
          }
       }
 #endif
