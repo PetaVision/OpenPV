@@ -2944,7 +2944,6 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
       fprintf(timestampfile->fp,"time = %g\n", simTime);
       fprintf(timestampfile->fp,"timestep = %ld\n", currentStep);
       PV_fclose(timestampfile);
-      sync();
    }
 
 
@@ -2963,6 +2962,7 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
                   pvErrorNoExit().printf("Deleting older checkpoint: \"%s\" exists but is not a directory.\n", oldestCheckpointDir);
                }
             }
+            sync();
             std::string rmrf_string("");
             rmrf_string = rmrf_string + "rm -r '" + oldestCheckpointDir + "'";
             int rmrf_result = system(rmrf_string.c_str());
