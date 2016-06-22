@@ -1,1 +1,1 @@
-pv_add_test()
+pv_add_test(PARAMS StochasticReleaseTestPre StochasticReleaseTestPost)

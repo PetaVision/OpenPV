@@ -4,21 +4,18 @@
 // created by peteschultz: Aug 26, 2013
 //
 
-// A test for stochastic release.
+// A test for stochastic release, delivering from the presynaptic perspective
 // There are six input layers, with constant values 0, 0.2, 0.4, 0.6, 0.8, 1.0
-// There are six output layers, one per input layer.  Each connection
-// is a one-to-one conn with strength 0.473, using stochastic release.
-// Hence an output layer should have only values 0.473 or zero, with probability
+// There are six output layers, one per input layer.  Each connection is a
+// one-to-one conn with strength 0.473, using stochastic release.
+// Hence an output layer should have only values 0.473 or 0, with probability
 // of 0.473*(input value) being the input value multiplied by the HyPerCol dt.
-//
-// The input layers are ANNLayers that use InitV to initialize, to maintain the
-// the values we have an IdentConn going from each layer to itself on channel 0.
 
 debugParsing = false;    // Debug the reading of this parameter file.
 
 HyPerCol "column" = {
-   nx = 256;   //size of the whole network
-   ny = 256;
+   nx = 64;   //size of the whole network
+   ny = 64;
    dt = 1.0;  //time step in ms.	  
    dtAdaptFlag = false;   
    randomSeed = 2717937891;
@@ -115,7 +112,7 @@ HyPerConn "InputToOutput" = {
 
     convertRateToSpikeCount = false;
     sharedWeights = true;
-    pvpatchAccumulateType = "Stochastic"; // "Convolve", "Stochastic", or "Maxpooling" (case-insensitive)
+    pvpatchAccumulateType = "Stochastic"; // "Convolve" or "Stochastic" (case-insensitive)
     shrinkPatches = false; //if only a small part of connections whose weights are non-zero, then we could shrink the whole networks
     updateGSynFromPostPerspective = false; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
 };
