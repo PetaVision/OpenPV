@@ -132,7 +132,6 @@ HyPerConn "origConn" = {
     nxp = 2; 
     nyp = 2; 
     numAxonalArbors = 1;
-    initFromLastFlag = 0;  // 1;  // restart
     writeStep = 1;
     initialWriteTime = 0.0;
     writeCompressedWeights = false;
