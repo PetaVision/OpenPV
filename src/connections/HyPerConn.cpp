@@ -3345,18 +3345,20 @@ int HyPerConn::deliverPostsynapticPerspectiveStochastic(PVLayerCube const * acti
                long startSourceExt = startSourceExtBuf[kTargetRes];
                float* activityStartBuf = activityBatch + startSourceExt;
                float * a = activityStartBuf + ky * sy;
+               taus_uint4 * rng = randState->getRNG(kTargetRes);
 
                // Weight
                int kTargetExt = kIndexExtended(kTargetRes, targetNx, targetNy, targetNf, targetHalo->lt, targetHalo->rt, targetHalo->dn, targetHalo->up);
                int kernelIndex = postConn->patchToDataLUT(kTargetExt);
                pvwdata_t* weightStartBuf = postConn->get_wDataHead(arbor, kernelIndex);
                pvwdata_t * w = weightStartBuf + ky * syp;
-
-               float dv = 0.0;
+               float dv = 0.0f;
                for (int k = 0; k < numPerStride; k++) {
-                  dv += a[k] * w[k];
+                  *rng = cl_random_get(*rng);
+                  double p = (double) rng->s0/cl_random_max(); // 0.0 < p < 1.0
+                  dv += (p<a[k]*dt_factor)*w[k];
                }
-               *gSyn += dt_factor * dv;
+               *gSyn += dv;
             }
          }
       }
@@ -3383,13 +3385,6 @@ int HyPerConn::deliverPostsynapticPerspectiveStochastic(PVLayerCube const * acti
          for (int ky = 0; ky < yPatchSize; ky++){
             float * a = activityStartBuf + ky * sy;
             pvwdata_t * w = weightStartBuf + ky * syp;
-            float dv = 0.0;
-            for (int k = 0; k < numPerStride; k++) {
-               dv += a[k] * w[k];
-            }
-            *gSyn += dt_factor * dv;
-
-
             float dv = 0.0f;
             for (int k = 0; k < numPerStride; k++) {
                *rng = cl_random_get(*rng);
