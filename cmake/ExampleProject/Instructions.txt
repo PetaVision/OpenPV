@@ -1,0 +1,61 @@
+ExampleProject serves as a starting point for using CMake to build an
+executable that uses OpenPV.  Because this is a starting point for other
+projects, we will start by copying the ExampleProject directory to a new
+location, outside of the OpenPV repository.  We will denote the location of
+the copy by $SOURCEDIR.
+
+    cp -r "$OPENPVDIR/cmake/ExampleProject" "$SOURCEDIR"
+
+We will also need to create a build directory to hold the executable binary,
+output files, etc, and run ccmake from within this directory.  We will denote
+the path to this directory by $BUILDDIR.
+
+    mkdir "$BUILDDIR"
+    cd "$BUILDDIR"
+    ccmake "$SOURCEDIR"
+
+Once ccmake starts, press [c] to configure.
+There will be an error message unless the default OpenPV directory location
+agrees with the location of OpenPV on your system.  If you get an error,
+press [e] to exit the error message screen.
+
+In the ccmake GUI, set the following variables:
+CMAKE_BUILD_TYPE: either Debug or Release
+CMAKE_INSTALL_PREFIX: leave as the default value
+PV_SOURCE_DIR: Change to the path to the OpenPV repository.
+
+Once you've changed the variables, press [c] to configure again.  All
+the CMake variables defined by OpenPV and the packages it uses will appear.
+Edit these variables as desired
+(see <https://github.com/PetaVision/OpenPV/wiki/PetaVision-CMake-Variables>
+for a description of the most important variables).
+
+You'll need to press [c] to configure a few times, until the option
+[g] to generate the makefile appears.  Then press [g] to generate and exit.
+Then, run the makefile:
+
+    make
+
+The OpenPV library is placed into $BUILDDIR/OpenPV/lib.  The system tests
+are installed into $BUILDDIR/OpenPV/tests (unless you turned
+PV_BUILD_TEST off).  If $SOURCEDIR/input exists, a symbolic link is created
+in $BUILDDIR/input.  The executable is in either the Debug or the Release
+directory, depending on how you set CMAKE_BUILD_TYPE, and has the same
+name as the basename of $SOURCEDIR.
+
+To run the executable (replace "Debug" with "Release", and ExampleProject
+with the name you chose, if needed):
+
+    Debug/ExampleProject -p input/ExampleProject.params -t 1
+
+The example params file has one input layer and one output layer, and
+writes the output to output/Output.pvp.  To load this file into python:
+
+    python
+    >>> import os, sys
+    >>> sys.path.append(os.path.abspath("/path/to/OpenPV/python"))
+    >>> import pvtools
+    >>> outdata = pvtools.readpvpfile("output/Output.pvp")
+
+See <view-source:https://github.com/PetaVision/OpenPV/wiki/Python-PV-Tools#readpvpfile>
+for a description of the format of outdata.
