@@ -74,7 +74,12 @@ public:
    enum AccumulateType {UNDEFINED, CONVOLVE, STOCHASTIC};
    // Subclasses that need different accumulate types should define their own enums
 
-   HyPerConn(const char * name, HyPerCol * hc, InitWeights * weightInitializer=NULL, NormalizeBase * weightNormalizer=NULL);
+   HyPerConn(const char * name, HyPerCol * hc);
+
+   /**
+    * Deprecated constructor.  Instead, call PV_Init::create("HyPerConn", name, hc), which calls HyPerConn(name, hc).
+    */
+   HyPerConn(const char * name, HyPerCol * hc, InitWeights * weightInitializer, NormalizeBase * weightNormalizer); // Deprecated June 22, 2016.
    virtual ~HyPerConn();
 //#ifdef PV_USE_OPENCL
 //   virtual int deliverOpenCL(Publisher * pub, const PVLayerCube * cube);
@@ -466,14 +471,6 @@ protected:
    bool selfFlag; // indicates that connection is from a layer to itself (even though pre and post may be separately instantiated)
    char * normalizeMethod;
    NormalizeBase * normalizer;
-   char * normalizeGroupName; // If normalizeMethod is normalizeGroup, holds the name of the group.  Otherwise null
-   // bool normalize_flag; // replaced by testing whether normalizer!=NULL
-   float normalize_strength;
-   bool normalizeArborsIndividually; // if true, each arbor is normalized individually, otherwise, arbors normalized together
-   bool normalize_max;
-   bool normalize_zero_offset;
-   bool normalize_RMS_amp;
-   float normalize_cutoff;
    bool shrinkPatches_flag;
    float shrinkPatchesThresh;
    //This object handles calculating weights.  All the initialize weights methods for all connection classes
@@ -583,7 +580,17 @@ protected:
    virtual int createArbors();
    void createArborsOutOfMemory();
    virtual int constructWeights();
-   int initialize(const char * name, HyPerCol * hc, InitWeights * weightInitializer, NormalizeBase * weightNormalizer);
+
+   /**
+    * Deprecated in favor of initialize(name, hc)
+    */
+   int initialize(const char * name, HyPerCol * hc, InitWeights * weightInitializer, NormalizeBase * weightNormalizer); // Deprecated June 22, 2016.
+
+   /**
+    * Initializes the connection.  This routine should be called by the initialize method of classes derived from HyPerConn.
+    * It is not called by the default HyPerConn constructor.
+    */
+   int initialize(char const * name, HyPerCol * hc);
    virtual int setWeightInitializer(); // Deprecated Feb 9, 2015; the preferred way of specifying the weight initialization is by passing an InitWeights argument to the constructor.
    virtual InitWeights * createInitWeightsObject(const char * weightInitTypeStr); // Deprecated Feb 9, 2015.
    int setWeightNormalizer(); // Included Feb 17, 2015 for backward compatibility only.  The preferred way of specifying the normalizer is by passing a NormalizeBase argument to the constructor.
@@ -799,11 +806,6 @@ protected:
     * Further parameters are needed depending on initialization type.
     */
    virtual void ioParam_normalizeMethod(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief groupNormalizerName: If normalizeMethod is set to "normalizeGroup", sets the name of the normalization group for this connection.
-    */
-   virtual void ioParam_normalizeGroupName(enum ParamsIOFlag ioFlag);
 
    /**
     * @brief keepKernelsSynchronized: If using sharedWeights and plasticityFlag, sets if kernels should be synchronized during the run.

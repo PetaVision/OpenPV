@@ -28,6 +28,14 @@ public:
    int addConnToList(HyPerConn * newConn);
 
    /**
+    * Called by HyPerConn::communicateInitInfo this virtual method is where
+    * settings that depend on other objects take place.
+    * In particular, NormalizeGroup calls its group head's addConnToList
+    * method from NormalizeGroup::communicateInitInfo method.
+    */
+   virtual void communicateInitInfo();
+
+   /**
     * The public interface for normalizing weights.
     * If normalizeOnInitialize is true and the simulation time is startTime(),
     * or if normalizeOnWeightUpdate is true and the simulation time is the conn's lastUpdateTime,
@@ -35,9 +43,11 @@ public:
     */
    int normalizeWeightsWrapper();
 
-   const float getStrength() {return strength;}
+   HyPerConn * getTargetConn();
+
+   float getStrength() const {return strength;}
    // normalizeFromPostPerspective,rMinX,rMinY,normalize_cutoff moved to NormalizeMultiply
-   const bool  getNormalizeArborsIndividuallyFlag() {return normalizeArborsIndividually;}
+   bool  getNormalizeArborsIndividuallyFlag() const {return normalizeArborsIndividually;}
 
 protected:
    NormalizeBase();

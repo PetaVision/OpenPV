@@ -1666,7 +1666,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
       free(layerStatus); layerStatus = NULL;
       free(connectionStatus); connectionStatus = NULL;
 
-      // Initial normalization moved here to facilitate normalizations of groups of HyPeConns
+      // Initial normalization moved here to facilitate normalizations of groups of HyPerConns
       normalizeWeights();
       for (int c = 0; c < numConnections; c++) {
          connections[c]->finalizeUpdate(simTime, deltaTimeBase);

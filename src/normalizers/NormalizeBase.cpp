@@ -72,22 +72,35 @@ void NormalizeBase::ioParam_normalizeOnWeightUpdate(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "normalizeOnWeightUpdate", &normalizeOnWeightUpdate, normalizeOnWeightUpdate);
 }
 
+void NormalizeBase::communicateInitInfo() {
+   addConnToList(getTargetConn());
+}
+
+HyPerConn * NormalizeBase::getTargetConn() {
+   BaseConnection * baseConn = parent->getConnFromName(name);
+   HyPerConn * targetConn = dynamic_cast<HyPerConn *>(baseConn);
+   pvAssertMessage(targetConn, "%s \"%s\": target connection \"%s\" is not a HyPerConn\n", getKeyword(), name, name);
+   return targetConn;
+}
 
 int NormalizeBase::normalizeWeightsWrapper() {
    int status = PV_SUCCESS;
-   HyPerConn * callingConn = connectionList[0];
-   // TODO: For groups, how should we enforce groups of connections, each with its own lastUpdateTime?
-   double simTime = callingConn->getParent()->simulationTime();
-   if ( (normalizeOnInitialize && simTime == callingConn->getParent()->getStartTime()) ||
-        (normalizeOnWeightUpdate && simTime == callingConn->getLastUpdateTime()) ) {
-      status = normalizeWeights();
+   double simTime = parent->simulationTime();
+   bool needUpdate = false;
+   if (normalizeOnInitialize && simTime == parent->getStartTime()) { needUpdate = true; }
+   else if (!normalizeOnWeightUpdate) { needUpdate = false; }
+   else {
+      for (int k=0; k < this->numConnections; k++) {
+         HyPerConn * callingConn = connectionList[k];
+         if (simTime == callingConn->getLastUpdateTime()) { needUpdate = true; }
+      }
    }
+   if (needUpdate) { status = normalizeWeights(); }
+   // Need to set each connection's last update time to simTime
    return status;
 }
 
 int NormalizeBase::normalizeWeights() {
-   assert((normalizeOnInitialize && connectionList[0]->getParent()->simulationTime() == connectionList[0]->getParent()->getStartTime()) ||
-          (normalizeOnWeightUpdate && connectionList[0]->getParent()->simulationTime() == connectionList[0]->getLastUpdateTime()));
    int status = PV_SUCCESS;
    for (int c=0; c<numConnections; c++) {
       HyPerConn * conn = connectionList[c];

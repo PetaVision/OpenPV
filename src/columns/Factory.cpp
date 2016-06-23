@@ -94,6 +94,7 @@
 
 #include <normalizers/NormalizeBase.hpp>
 #include <normalizers/NormalizeContrastZeroMean.hpp>
+#include <normalizers/NormalizeGroup.hpp>
 #include <normalizers/NormalizeL2.hpp>
 #include <normalizers/NormalizeMax.hpp>
 #include <normalizers/NormalizeSum.hpp>
@@ -204,9 +205,7 @@ int Factory::registerCoreKeywords() {
    registerKeyword("normalizeL2", createNormalizeL2);
    registerKeyword("normalizeMax", createNormalizeMax);
    registerKeyword("normalizeSum", createNormalizeSum);
-   registerKeyword("normalizeGroup", Factory::createNull);
-   registerKeyword("none", Factory::createNull);
-   registerKeyword("", Factory::createNull);
+   registerKeyword("normalizeGroup", createNormalizeGroup);
 
    return PV_SUCCESS;
 }

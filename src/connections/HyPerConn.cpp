@@ -36,6 +36,12 @@ HyPerConn::HyPerConn()
    initialize_base();
 }
 
+HyPerConn::HyPerConn(char const * name, HyPerCol * hc) {
+   initialize_base();
+   initialize(name, hc);
+}
+
+// Deprecated June 22, 2016.  Use PV_Init::create("HyPerConn", name, hc) instead, which calls the constructor taking (name, hc) as arguments.
 HyPerConn::HyPerConn(const char * name, HyPerCol * hc, InitWeights * weightInitializer, NormalizeBase * weightNormalizer) {
    initialize_base();
    initialize(name, hc, weightInitializer, weightNormalizer);
@@ -87,8 +93,6 @@ HyPerConn::~HyPerConn()
       free(triggerLayerName);
       triggerLayerName = NULL;
    }
-
-   free(normalizeGroupName);
 
    if(thread_gSyn){
       for(int i = 0; i < parent->getNumThreads(); i++){
@@ -159,16 +163,10 @@ int HyPerConn::initialize_base()
    selfFlag = false;  // specifies whether connection is from a layer to itself (i.e. a self-connection)
    combine_dW_with_W_flag = false;
    normalizeMethod = NULL;
-   normalizeGroupName = NULL;
    normalizer = NULL;
    plasticityFlag = false;
    shrinkPatches_flag = false; // default value, overridden by params file parameter "shrinkPatches" in readShrinkPatches()
    shrinkPatchesThresh = 0;
-   normalizeArborsIndividually = true;
-   normalize_max = false;
-   normalize_zero_offset = false;
-   normalize_cutoff = 0.0f;
-   normalize_RMS_amp = false;
    dWMax            = std::numeric_limits<float>::quiet_NaN();
    strengthParamHasBeenWritten = false;
 
@@ -391,16 +389,16 @@ int HyPerConn::shrinkPatch(int kExt, int arborId) {
 }
 
 
+// Deprecated June 22, 2016.  Use HyPerConn::initialize(name, hc) as arguments.  ioParamsFillGroup will create the InitWeights and WeightNormalizer object.
 int HyPerConn::initialize(const char * name, HyPerCol * hc, InitWeights * weightInitializer, NormalizeBase * weightNormalizer) {
-   // It is okay for either of weightInitializer or weightNormalizer to be null at this point, either because we're in a subclass that doesn't need it, or because we are allowing for
-   // backward compatibility.
-   // The two lines needs to be before the call to BaseConnection::initialize, because that function calls ioParamsFillGroup,
-   // which will call ioParam_weightInitType and ioParam_normalizeMethod, which for reasons of backward compatibility
-   // will create the initializer and normalizer if those member variables are null.
    this->weightInitializer = weightInitializer;
    normalizer = weightNormalizer;
 
-   int status = BaseConnection::initialize(name, hc); // BaseConnection should *NOT* take weightInitializer or weightNormalizer as arguments, as it does not know about InitWeights or NormalizeBase
+   return initialize(name, hc);
+}
+
+int HyPerConn::initialize(char const * name, HyPerCol * hc) {
+   int status = BaseConnection::initialize(name, hc);
 
    pvAssert(parent);
    PVParams * inputParams = parent->parameters();
@@ -459,10 +457,6 @@ int HyPerConn::setWeightInitializer() {
 /*
  * This method parses the weightInitType parameter and creates an
  * appropriate InitWeight object for the chosen weight initialization.
- * The preferred method is now (April 19, 2016) to have the create-function
- * (createHyPerConn, etc.) call getWeightInitializer() using the connection's
- * name and parent HyPerCol, and then pass the weight initializer in the
- * constructor.
  */
 InitWeights * HyPerConn::createInitWeightsObject(const char * weightInitTypeStr) {
    pvAssert(weightInitializer == NULL);
@@ -550,7 +544,7 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
    BaseConnection::ioParamsFillGroup(ioFlag);
    ioParam_sharedWeights(ioFlag);
    ioParam_weightInitType(ioFlag);
-   if (weightInitializer != NULL) {
+   if (weightInitializer != nullptr) {
       weightInitializer->ioParamsFillGroup(ioFlag);
    }
    ioParam_initializeFromCheckpointFlag(ioFlag);
@@ -574,10 +568,9 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
    ioParam_nfp(ioFlag);
    ioParam_shrinkPatches(ioFlag);
    ioParam_normalizeMethod(ioFlag);
-   if (normalizer != NULL && !strcmp(normalizer->getName(), getName())) {
+   if (normalizer != nullptr && !strcmp(normalizer->getName(), getName())) {
       normalizer->ioParamsFillGroup(ioFlag);
    }
-   ioParam_normalizeGroupName(ioFlag);
    ioParam_dWMax(ioFlag);
    ioParam_keepKernelsSynchronized(ioFlag);
 
@@ -712,6 +705,8 @@ void HyPerConn::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
 
 void HyPerConn::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
    parent->ioParamString(ioFlag, name, "weightInitType", &weightInitTypeString, NULL, true/*warnIfAbsent*/);
+   // The constructor that took a weightInitializer as an argument was deprecated June 22, 2022.
+   // Once that constructor is removed, the weightInitializer==NULL part of the if-statement below can be removed.
    if (ioFlag==PARAMS_IO_READ && weightInitializer==NULL) {
       int status = setWeightInitializer();
       pvAssertMessage(status == PV_SUCCESS, "%s \"%s\": Rank %d process unable to construct weightInitializer", getKeyword(), name, parent->columnId());
@@ -1034,14 +1029,13 @@ void HyPerConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
          free(normalizeMethod);
          normalizeMethod = strdup("none");
       }
-      if (normalizer==NULL) {
+      // The constructor that took a normalizer as an argument was deprecated June 22, 2022.
+      // Once that constructor is removed, the normalizer==NULL part of the if-statement below can be removed.
+      if (normalizer==nullptr && strcmp(normalizeMethod, "none")) {
          int status = setWeightNormalizer();
          if (status != PV_SUCCESS) {
             pvError().printf("%s \"%s\": Rank %d process unable to construct weight normalizer\n", getKeyword(), name, parent->columnId());
          }
-      }
-      if (normalizer!=NULL) {
-         normalizer->addConnToList(this);
       }
    }
 }
@@ -1051,22 +1045,27 @@ void HyPerConn::ioParam_weightSparsity(enum ParamsIOFlag ioFlag) {
 }
 
 int HyPerConn::setWeightNormalizer() {
-   pvAssert(normalizer==NULL);
-   pvAssert(normalizeMethod != NULL);
-   CoreParamGroupHandler * weightNormalizerHandler = new CoreParamGroupHandler();
-   normalizer = weightNormalizerHandler->createWeightNormalizer(normalizeMethod, name, parent);
-   delete weightNormalizerHandler;
-   int status = PV_SUCCESS;
-   return status;
-}
-
-void HyPerConn::ioParam_normalizeGroupName(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "normalizeMethod"));
-   // Note: subclasses may override ioParam_normalizeMethod so that it is possible for normalizeMethod to be NULL
-   // even though HyPerConn::ioParam_normalizeMethod itself always sets normalizeMethod
-   if (normalizeMethod && !strcmp(normalizeMethod, "normalizeGroup")) {
-      parent->ioParamStringRequired(ioFlag, name, "normalizeGroupName", &normalizeGroupName);
+   pvAssert(normalizer==nullptr);
+   pvAssert(normalizeMethod != nullptr);
+   pvAssertMessage(strcmp(normalizeMethod, "none"), "setWeightNormalizer() should not be called if normalizeMethod was \"none\"");
+   BaseObject * baseObj = parent->getPV_InitObj()->create(normalizeMethod, name, parent);
+   if (baseObj == nullptr) {
+      if (parent->columnId()==0) {
+         pvError() << getKeyword() << " \"" << name << "\": normalizeMethod \"" << normalizeMethod << "\" is not recognized." << std::endl;
+      }
+      MPI_Barrier(parent->icCommunicator()->communicator());
+      exit(EXIT_FAILURE);
    }
+   normalizer = dynamic_cast<NormalizeBase*>(baseObj);
+   if (normalizer == nullptr) {
+      pvAssert(baseObj);
+      if (parent->columnId()==0) {
+         pvError() << getKeyword() << " \"" << name << "\": normalizeMethod \"" << normalizeMethod << "\" is not a normalization method." << std::endl;
+      }
+      MPI_Barrier(parent->icCommunicator()->communicator());
+      exit(EXIT_FAILURE);
+   }
+   return PV_SUCCESS;
 }
 
 void HyPerConn::ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag) {
@@ -1298,7 +1297,7 @@ int HyPerConn::communicateInitInfo() {
       weightUpdatePeriod = triggerLayer->getDeltaUpdateTime();
       if(weightUpdatePeriod <= 0){
          if(plasticityFlag == true){
-            pvWarn() << "Connection " << name << "triggered layer " << triggerLayerName << " never updates, turning placisity flag off\n";
+            pvWarn() << "Connection " << name << "triggered layer " << triggerLayerName << " never updates, turning plasticity flag off\n";
             plasticityFlag = false;
          }
       }
@@ -1317,19 +1316,7 @@ int HyPerConn::communicateInitInfo() {
       fileType = PVP_WGT_FILE_TYPE;
    }
 
-   if (normalizeGroupName) {
-      pvAssert(!strcmp(normalizeMethod, "normalizeGroup"));
-      NormalizeBase * groupNormalizer = parent->getNormalizerFromName(normalizeGroupName);
-      if (groupNormalizer==NULL) {
-         if (parent->columnId()==0) {
-            pvErrorNoExit().printf("%s \"%s\" error: normalizeGroupName \"%s\" is not a recognized normalizer.\n",
-                  getKeyword(), name, normalizeGroupName);
-         }
-         MPI_Barrier(parent->icCommunicator()->communicator());
-         exit(EXIT_FAILURE);
-      }
-      groupNormalizer->addConnToList(this);
-   }
+   if (normalizer) { normalizer->communicateInitInfo(); }
 
    //Check if need transpose
    if(updateGSynFromPostPerspective) {
@@ -4739,12 +4726,10 @@ void HyPerConn::deliverOnePostNeuronActivitySparseWeights(int arborID, int kTarg
 }
 
 BaseObject * createHyPerConn(char const * name, HyPerCol * hc) {
-   if (hc==NULL) { return NULL; }
-   InitWeights * weightInitializer = getWeightInitializer(name, hc);
-   NormalizeBase * weightNormalizer = getWeightNormalizer(name, hc);
-   return new HyPerConn(name, hc, weightInitializer, weightNormalizer);
+   return hc==nullptr ? nullptr : new HyPerConn(name, hc);
 }
 
+// Deprecated June 22, 2016.  The weight initializer is created by HyPerConn::ioParam_weightInitType
 InitWeights * getWeightInitializer(char const * name, HyPerCol * hc) {
    if (hc==NULL) { return NULL; }
    InitWeights * weightInitializer = NULL;
@@ -4761,14 +4746,18 @@ InitWeights * getWeightInitializer(char const * name, HyPerCol * hc) {
    return weightInitializer;
 }
 
+// Deprecated June 22, 2016.  The weight normalizer is created by HyPerConn::ioParam_normalizeMethod
 NormalizeBase * getWeightNormalizer(char const * name, HyPerCol * hc) {
-   if (hc==NULL) { return NULL; }
-   NormalizeBase * weightNormalizer = NULL;
+   if (hc==nullptr) { return nullptr; }
    char const * weightNormalizerStr = hc->parameters()->stringValue(name, "normalizeMethod", false/*warnIfAbsent*/);
-   if (weightNormalizerStr!=NULL) {
+   if (weightNormalizerStr[0]=='\0' || !strcmp(weightNormalizerStr, "none")) {
+      return nullptr;
+   }
+   NormalizeBase * weightNormalizer = nullptr;
+   if (weightNormalizerStr!=nullptr) {
       BaseObject * baseObj = hc->getPV_InitObj()->create(weightNormalizerStr, name, hc);
       weightNormalizer = dynamic_cast<NormalizeBase*>(baseObj);
-      if (weightNormalizerStr==NULL) {
+      if (weightNormalizerStr==nullptr) {
          if (hc->columnId()==0) {
             pvError().printf("HyPerConn \"%s\" error: normalizeMethod \"%s\" is not recognized.\n", name, weightNormalizerStr);
          }
