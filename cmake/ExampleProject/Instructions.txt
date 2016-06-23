@@ -1,9 +1,3 @@
-# Projects
-
-The Projects repository at <https://github.com/PetaVision/Projects>
-contains projects that use the OpenPV library.  Each directory in the
-repository is an independent project. 
-
 ExampleProject serves as a starting point for using CMake to build an
 executable that uses OpenPV.  Because this is a starting point for other
 projects, we will start by copying the ExampleProject directory to a new
@@ -44,7 +38,8 @@ Then, run the makefile:
 
 The OpenPV library is placed into $BUILDDIR/OpenPV/lib.  The system tests
 are installed into $BUILDDIR/OpenPV/tests (unless you turned
-PV_BUILD_TEST off).  The executable is in either the Debug or the Release
+PV_BUILD_TEST off).  If $SOURCEDIR/input exists, a symbolic link is created
+in $BUILDDIR/input.  The executable is in either the Debug or the Release
 directory, depending on how you set CMAKE_BUILD_TYPE, and has the same
 name as the basename of $SOURCEDIR.
 
@@ -56,11 +51,11 @@ with the name you chose, if needed):
 The example params file has one input layer and one output layer, and
 writes the output to output/Output.pvp.  To load this file into python:
 
-python
->>> import os, sys
->>> sys.path.append(os.path.abspath("/path/to/OpenPV/python"))
->>> import pvtools
->>> outdata = pvtools.readpvpfile("output/Output.pvp")
+    python
+    >>> import os, sys
+    >>> sys.path.append(os.path.abspath("/path/to/OpenPV/python"))
+    >>> import pvtools
+    >>> outdata = pvtools.readpvpfile("output/Output.pvp")
 
 See <view-source:https://github.com/PetaVision/OpenPV/wiki/Python-PV-Tools#readpvpfile>
 for a description of the format of outdata.
