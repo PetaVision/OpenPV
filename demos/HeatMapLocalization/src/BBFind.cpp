@@ -556,7 +556,6 @@ BBFind::Map3 BBFind::increaseContrast(const Map3 fullMap, float contrast, float 
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-   FILE * devnull = fopen("/dev/null", "w");
    for(int c = 0; c < numCategories; c++)
    {
       for(int y = 0; y < mapHeight; y++)
@@ -567,13 +566,10 @@ BBFind::Map3 BBFind::increaseContrast(const Map3 fullMap, float contrast, float 
             // pass 1.0 at val = 0.9. How far it passes 1 depends
             // on contrast.
             float val = fullMap[c][y][x];
-            fprintf(devnull, "%f\n", val);
-            fprintf(devnull, "%f\n", contrast);
             resultMap[c][y][x] = val * (1.0f - strength) + pow(pow(50.0f, val) / 33.3f, contrast) * strength;
          }
       }
    }
-   fclose(devnull);
 
    return resultMap;
 }
