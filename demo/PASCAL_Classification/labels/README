@@ -1,3 +1,0 @@
-The labels in this directory were produced by the ImageMagick commands
-for k in background aeroplane bicycle bird boat bottle bus car cat chair cow diningtable dog horse motorbike person pottedplant sheep sofa train tvmonitor ; do convert -background white -fill black -size 256x64 -pointsize 24 -gravity center label:$k label${k}256.png ; echo $k ; done
-for k in background aeroplane bicycle bird boat bottle bus car cat chair cow diningtable dog horse motorbike person pottedplant sheep sofa train tvmonitor ; do convert -background white -fill black -size 192x64 -pointsize 24 -gravity center label:$k label${k}192.png ; echo $k ; done

@@ -57,7 +57,9 @@ macro(pv_config_project)
   set(PV_ADDRESS_SANITIZE_HELP "Add compiler flags for sanitizing addresses")
   set(PV_BUILD_SHARED_HELP "Build a shared library")
   set(PV_DEBUG_OUTPUT_HELP "Display output from logDebug() in Release builds")
-  
+  set(PV_BUILD_TEST_HELP "Build the OpenPV test suite")
+  set(PV_REORDER_HYPERCONN_HELP "Use the proposed cache friendly reordered inner loops in HyPerConn")
+
   ################################################################################
   # Detect the compiler and OpenMP capabilities
   ################################################################################
@@ -65,7 +67,8 @@ macro(pv_config_project)
   # Set defaults based on the detected compiler
   set(COMPILER_DETECTED OFF)
   set(INTEL_COMPILER_DETECTED OFF)
-  
+  set(XCODE_COMPILER_DETECTED OFF)
+
   if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
     # Intel compiler detected
     set(COMPILER_DETECTED ON)
@@ -95,8 +98,10 @@ macro(pv_config_project)
       # OpenMP will eventually fail when open source clang version numbers catch up
       # to Xcode version numbers
       set(COMPILER_DETECTED ON)
-      message(STATUS "Xcode clang compiler detected. No OpenMP support.")
+      set(XCODE_COMPILER_DETECTED ON)
+      message(STATUS "Xcode clang compiler detected. No OpenMP or CUDA support.")
       set(PV_USE_OPENMP OFF CACHE BOOL "${PV_USE_OPENMP_HELP}")
+      set(PV_USE_CUDA OFF CACHE BOOL "${PV_USE_CUDA_HELP}")
     else()
       # Open source clang detected
       set(COMPILER_DETECTED ON)
@@ -154,6 +159,8 @@ macro(pv_config_project)
   set(PV_ADDRESS_SANITIZE OFF CACHE BOOL "${PV_ADDRESS_SANITIZE_HELP}")
   set(PV_BUILD_SHARED OFF CACHE BOOL "${PV_BUILD_SHARED_HELP}")
   set(PV_DEBUG_OUTPUT OFF CACHE BOOL "${PV_DEBUG_OUTPUT_HELP}")
+  set(PV_BUILD_TEST ON CACHE BOOL "${PV_BUILD_TEST_HELP}")
+  set(PV_REORDER_HYPERCONN ON CACHE BOOL "${PV_REORDER_HYPERCONN_HELP}")
 
   ################################################################################
   # Set compiler flags
@@ -184,10 +191,10 @@ macro(pv_config_project)
   endif()
   
   # Set up PV_SOURCE and INCLUDE_DIR.
-  set(PV_SOURCE_DIR "${PV_DIR}/src")
-  set(PV_INCLUDE_DIR "${PV_DIR}/src")
+  set(PV_SOURCE_DIR ${PV_DIR})
+  set(PV_INCLUDE_DIR ${PV_DIR})
   
-  set(PV_LIBRARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/pv-core/lib")
+  set(PV_LIBRARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/lib")
   
   if (PV_BUILD_SHARED)
     if (APPLE)
@@ -207,6 +214,9 @@ macro(pv_config_project)
   if (PV_USE_CUDA)
     if(INTEL_COMPILER_DETECTED)
       message(WARNING "-- CUDA cannot be used with the Intel compiler. Disabling CUDA build")
+      set(PV_USE_CUDA OFF)
+    elseif(XCODE_COMPILER_DETECTED)
+      message(WARNING "-- CUDA cannot be used with the default Xcode compiler. Disabling CUDA build")
       set(PV_USE_CUDA OFF)
     else()
       if(APPLE)
