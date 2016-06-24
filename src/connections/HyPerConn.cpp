@@ -2952,34 +2952,38 @@ int HyPerConn::deliverPresynapticPerspectiveConvolve(PVLayerCube const * activit
             thread_gSyn[ti][ni] = 0;
          }
       }
+#endif
 
+      for (int y = 0; y < nyp; y++) {
+#ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(static)
 #endif
-      for (int idx = 0; idx < numNeurons; idx++) {
-         int kPreExt = activity->isSparse ? activeIndicesBatch[idx] : idx;
+         for (int idx = 0; idx < numNeurons; idx++) {
+            int kPreExt = activity->isSparse ? activeIndicesBatch[idx] : idx;
 
-         // Activity
-         float a = activityBatch[kPreExt] * dt_factor;
-         if (a == 0.0f) continue;
+            // Weight
+            PVPatch * weights = getWeights(kPreExt, arbor);
 
-         // gSyn
-         pvdata_t * gSynPatchHead = gSynPatchHeadBatch;
+            if(y >= weights->ny) continue;
+
+            // Activity
+            float a = activityBatch[kPreExt] * dt_factor;
+            if (a == 0.0f) continue;
+
+            // gSyn
+            pvdata_t * gSynPatchHead = gSynPatchHeadBatch;
 
 #ifdef PV_USE_OPENMP_THREADS
-         if(thread_gSyn) {
-            gSynPatchHead = thread_gSyn[omp_get_thread_num()];
-         }
+            if(thread_gSyn) {
+               gSynPatchHead = thread_gSyn[omp_get_thread_num()];
+            }
 #endif // PV_USE_OPENMP_THREADS
 
-         pvgsyndata_t * postPatchStart = gSynPatchHead + getGSynPatchStart(kPreExt, arbor);
+            pvgsyndata_t * postPatchStart = gSynPatchHead + getGSynPatchStart(kPreExt, arbor);
 
-         // Weight
-         PVPatch * weights = getWeights(kPreExt, arbor);
-         const int nk = weights->nx * fPatchSize();
-         const int ny = weights->ny;
-         pvwdata_t * weightDataStart = get_wData(arbor,kPreExt); // make this a pvwdata_t const *?
+            const int nk = weights->nx * fPatchSize();
+            pvwdata_t * weightDataStart = get_wData(arbor,kPreExt); // make this a pvwdata_t const *?
 
-         for (int y = 0; y < ny; y++) {
             float * v = postPatchStart + y * sy;
             pvwdata_t * w = weightDataStart + y * syw;
             for (int k = 0; k < nk; k++) {
