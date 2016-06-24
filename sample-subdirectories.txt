@@ -1,9 +1,0 @@
-# Sample subdirectories.txt file.
-# A file called subdirectories.txt is used by CMakeLists.txt to specify
-# the directories to pass to add_subdirectory commands.
-# 
-# Comments begin with '#'
-# Empty lines and lines containing only whitespace are ignored.
-# Leading and trailing whitespace is ignored
-
-tests  # comments can follow the subdirectory
