@@ -133,9 +133,9 @@ int ColumnEnergyProbe::outputState(double timevalue) {
    int nbatch = this->getNumValues();
    for(int b = 0; b < nbatch; b++){
       if (isWritingToFile()) {
-         output() << "\"" << "\","; // lack of \n is deliberate: line is completed immediately below.
+         output() << "\"" << name <<  "\","; // lack of \n is deliberate: line is completed immediately below.
       }
-      output() << timevalue << "," << b << "," << valuesBuffer[b];
+      output() << timevalue << "," << b << "," << valuesBuffer[b] << "\n";
    }
    output().flush();
    return PV_SUCCESS;
