@@ -941,7 +941,7 @@ int PVParams::parseFile(const char * filename) {
          pvError().printf("PVParams::parseFile: filename was null.\n");
       }
       struct stat filestatus;
-      if( stat(filename, &filestatus) ) {
+      if( PV_stat(filename, &filestatus) ) {
          pvError().printf("PVParams::parseFile ERROR getting status of file \"%s\": %s\n", filename, strerror(errno));
       }
       if( filestatus.st_mode & S_IFDIR ) {
@@ -2080,7 +2080,6 @@ void PVParams::action_parameter_filename_def(const char * id, const char * strin
    ParameterString * pstr = NULL;
    char * filename = NULL;
    if (param_value && param_value[0]=='~') {
-      filename = expandLeadingTilde(param_value);
       pstr = new ParameterString(id, filename);
       free(filename);
    }
@@ -2116,7 +2115,6 @@ void PVParams::action_parameter_filename_def_overwrite(const char * id, const ch
    assert(param_value);
    char * filename = NULL;
    if (param_value && param_value[0]=='~') {
-      filename = expandLeadingTilde(param_value);
       currParam->setValue(filename);
    }
    else {
@@ -2271,11 +2269,6 @@ void PVParams::action_parameter_sweep_values_filename(const char * stringval)
    }
    char * filename = stripQuotationMarks(stringval);
    assert(filename);
-   if (filename && filename[0]=='~') {
-      char * newfilename = expandLeadingTilde(filename);
-      free(filename);
-      filename = newfilename;
-   }
    activeParamSweep->pushStringValue(filename);
    free(filename);
 }
@@ -2290,11 +2283,6 @@ void PVParams::action_batch_sweep_values_filename(const char * stringval)
    }
    char * filename = stripQuotationMarks(stringval);
    assert(filename);
-   if (filename && filename[0]=='~') {
-      char * newfilename = expandLeadingTilde(filename);
-      free(filename);
-      filename = newfilename;
-   }
    activeBatchSweep->pushStringValue(filename);
    free(filename);
 }

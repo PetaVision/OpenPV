@@ -20,12 +20,12 @@ PV_Init::PV_Init(int* argc, char ** argv[], bool allowUnrecognizedArguments){
    initSignalHandler();
    commInit(argc, argv);
    initMaxThreads();
-   params = NULL;
-   icComm = NULL;
+   params = nullptr;
+   icComm = nullptr;
    arguments = new PV_Arguments(*argc, *argv, allowUnrecognizedArguments);
    factory = new Factory();
    buildandrunDeprecationWarning = true;
-   initialize();
+   initialize(); // must follow initialization of arguments data member.
 }
 
 PV_Init::~PV_Init(){
@@ -163,6 +163,10 @@ int PV_Init::setMPIConfiguration(int rows, int columns, int batchWidth) {
    if (batchWidth >= 0) { arguments->setBatchWidth(batchWidth); }
    initialize();
    return PV_SUCCESS;
+}
+
+int PV_Init::resetState() {
+   return arguments->resetState();
 }
 
 int PV_Init::registerKeyword(char const * keyword, ObjectCreateFn creator) {

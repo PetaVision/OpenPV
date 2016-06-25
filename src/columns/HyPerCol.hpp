@@ -385,7 +385,7 @@ private:
    virtual void ioParam_defaultInitializeFromCheckpointFlag(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief checkpointRead: Depreciated. Use <-c foo/Checkpoint100>
+    * @brief checkpointRead is obsolete.  Instead use -c foo/Checkpoint100 on the command line.
     */
    virtual void ioParam_checkpointRead(enum ParamsIOFlag ioFlag);
 

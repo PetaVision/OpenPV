@@ -14,6 +14,7 @@ extern "C" {
 #include "FileStream.hpp"
 #include "utils/PVLog.hpp"
 #include "utils/PVAssert.hpp"
+#include "io/io.hpp"
 
 namespace PV {
 
@@ -58,14 +59,15 @@ FileStream::~FileStream() {
 
 void FileStream::openFile(char const * path, std::ios_base::openmode mode) {
    pvAssert(mStrPtr==nullptr);
-   if (!path) { throw; }
+   mPath = expandLeadingTilde(path);
+   if (!mPath) { throw; }
    int attempts = 0;
    while (mStrPtr == nullptr) {
-      mStrPtr = new std::fstream(path, mode);
+      mStrPtr = new std::fstream(mPath, mode);
       if (!mStrPtr->fail()) { break; }
       delete mStrPtr; mStrPtr = nullptr;
       attempts++;
-      pvWarn() << "Failed to open \"" << path << "\" on attempt " << attempts << "\n";
+      pvWarn() << "Failed to open \"" << mPath << "\" on attempt " << attempts << "\n";
       if (attempts < mMaxAttempts) {
          sleep(1);
       }
@@ -74,12 +76,11 @@ void FileStream::openFile(char const * path, std::ios_base::openmode mode) {
       }
    }
    if (mStrPtr==nullptr) {
-      pvError() << "FileStream::openFile failure for \"" << path << "\": MAX_FILESYSTEMCALL_TRIES = " << mMaxAttempts << " exceeded.\n";
+      pvError() << "FileStream::openFile failure for \"" << mPath << "\": MAX_FILESYSTEMCALL_TRIES = " << mMaxAttempts << " exceeded.\n";
    }
    else if (attempts>0) {
-      pvWarn() << "FileStream::openFile succeeded for \"" << path << "\" on attempt " << attempts+1 << "\n";
+      pvWarn() << "FileStream::openFile succeeded for \"" << mPath << "\" on attempt " << attempts+1 << "\n";
    }
-   mPath = strdup(path);
    if (!mPath) { throw; }
    mMode = mode;
    std::streambuf::pos_type seekoffFailure = (std::streambuf::pos_type) -1;

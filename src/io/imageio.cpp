@@ -228,10 +228,11 @@ int gatherImageFilePVP(const char * filename,
 #ifdef PV_USE_GDAL
 GDALDataset * PV_GDALOpen(const char * filename)
 {
+   char * path = PV::expandLeadingTilde(filename);
    int gdalopencounts = 0;
    GDALDataset * dataset = NULL;
    while (dataset == NULL) {
-      dataset = (GDALDataset *) GDALOpen(filename, GA_ReadOnly);
+      dataset = (GDALDataset *) GDALOpen(path, GA_ReadOnly);
       if (dataset != NULL) break;
       gdalopencounts++;
       if (gdalopencounts < MAX_FILESYSTEMCALL_TRIES) {
@@ -245,6 +246,7 @@ GDALDataset * PV_GDALOpen(const char * filename)
       pvErrorNoExit().printf("getImageInfoGDAL unable to open \"%s\": %s\n", filename,
             strerror(errno));
    }
+   free(path);
    return dataset;
 }
 

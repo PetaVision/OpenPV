@@ -274,7 +274,7 @@ public:
     * for getArgs or getArgsCopy are no longer valid.
     * Always returns PV_SUCCESS.  If the routine fails, it exits with an error.
     */
-   int resetState() { arguments->resetState(); return PV_SUCCESS; }
+   int resetState();
 
    InterColComm * getComm(){return icComm;}
 

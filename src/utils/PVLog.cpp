@@ -4,6 +4,7 @@
 #include <libgen.h>
 #include <fstream>
 #include "utils/PVLog.hpp"
+#include "io/io.hpp" // expandLeadingTilde
 
 namespace PV {
 
@@ -19,8 +20,15 @@ public:
          delete mStream;
       }
       if (path) {
-         mStream = new std::basic_ofstream<T>(path, mode);
+         char * realPath = expandLeadingTilde(path);
+         if (realPath==nullptr) {
+            // Error message has to go to cerr and not pvError() because pvError uses LogFileStream.
+            std::cerr << "LogFileStream::setStream failed for \"" << realPath << "\"\n";
+            exit(EXIT_FAILURE);
+         }
+         mStream = new std::basic_ofstream<T>(realPath, mode);
          if (mStream->fail() || mStream->fail()) {
+            // Error message has to go to cerr and not pvError() because pvError uses setLogStream.
             std::cerr << "Unable to open logFile \"" << path << "\"." << std::endl;
             exit(EXIT_FAILURE);
          }
