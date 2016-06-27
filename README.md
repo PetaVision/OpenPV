@@ -1,15 +1,14 @@
-PetaVision is an open source, object oriented neural simulation toolbox
-optimized for high-performance multi-core, multi-node computer architectures.
+###PetaVision is an open source, object oriented neural simulation toolbox optimized for high-performance multi-core, multi-node computer architectures.
 
 Quick instructions for installing PetaVision and running the system tests:
 
-Required dependencies:
+####Required dependencies:
 * gcc/g++ (https://gcc.gnu.org/).
 * bison (https://www.gnu.org/software/bison/).
 * flex (https://www.gnu.org/software/flex/).
 * cmake (http://www.cmake.org)
 
-Optional (but strongly suggested) dependencies:
+####Optional (but strongly suggested) dependencies:
 * OpenMPI (http://www.open-mpi.org).  
  * You'll need mpicc, mpic++, and mpiexec.
 * OpenMP (http://openmp.org/wp/)
@@ -17,7 +16,7 @@ Optional (but strongly suggested) dependencies:
 * cuDNN (https://developer.nvidia.com/cudnn)
 * GDAL (http://www.gdal.org)
 
-Suggested additional tools:
+####Suggested additional tools:
 * lua (http://www.lua.org/) 
  * For designing parameter files for complex networks.
 * octave (https://www.gnu.org/software/octave/) 
@@ -27,7 +26,7 @@ Suggested additional tools:
 * mermaid (http://knsv.github.io/mermaid/) 
  * For generating graphical drawings of networks from parameter files. 
 
-Building:
+####Building:
 ~~~~~~~~~~~~~~~~~~~~{.sh}
 git clone http://github.com/PetaVision/OpenPV.git
 mkdir build
@@ -35,7 +34,7 @@ cd build
 cmake ../OpenPV
 make
 
-Other build options:
+####Other build options:
 ~~~~~~~~~~~~~~~~~~~~{.sh}
 # If CUDA is installed but you don't want CUDA support
 cmake -DPV_USE_CUDA:Bool=OFF ../OpenPV
@@ -46,12 +45,12 @@ cmake -DPV_ADDRESS_SANITIZE:Bool=ON ../OpenPV
 cmake -DCMAKE_BUILD_TYPE:String=Debug ../OpenPV
 ~~~~~~~~~~~~~~~~~~~~
 
-Running the system tests:
+####Running the system tests:
 ~~~~~~~~~~~~~~~~~~~~{.sh}
 cd tests
 ctest
 ~~~~~~~~~~~~~~~~~~~~
 
-Our webpage is <http://petavision.github.io/>.
-More detailed documentation is available at <http://petavision.github.io/doxygen>.
-For general questions and discussion, post to our Gitter page: <https://gitter.im/PetaVision/OpenPV>
+####Our webpage is <http://petavision.github.io/>.
+####More detailed documentation is available at <http://petavision.github.io/doxygen>.
+####For general questions and discussion, post to our Gitter page: <https://gitter.im/PetaVision/OpenPV>
