@@ -33,7 +33,7 @@ mkdir build
 cd build
 cmake ../OpenPV
 make
-
+~~~~~~~~~~~~~~~~~~~~
 ####Other build options:
 ~~~~~~~~~~~~~~~~~~~~{.sh}
 # If CUDA is installed but you don't want CUDA support
