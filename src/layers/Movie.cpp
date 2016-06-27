@@ -639,12 +639,6 @@ const char * Movie::advanceFileName(int batchIdx) {
       // assert(inputfile && strlen(inputfile)>(size_t) 0);
       // current version of clang generates a warning since inputfile is a member variable declared as an array and therefore always non-null.
       // Keeping the line in case inputfile is changed to be malloc'd instead of declared as an array.
-      char * expandedpath = expandLeadingTilde(inputfile);
-      if (strlen(expandedpath)>=PV_PATH_MAX) {
-         pvError().printf("Movie \"%s\": input line \"%s\" from imageListPath is too long.\n", name, expandedpath);
-      }
-      strncpy(inputfile, expandedpath, PV_PATH_MAX);
-      free(expandedpath);
    }
    //Save batch position
    batchPos[batchIdx] = getPV_StreamFilepos(filenamestream);

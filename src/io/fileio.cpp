@@ -68,11 +68,12 @@ PV_Stream * PV_fopen(const char * path, const char * mode, bool verifyWrites) {
       errno = EINVAL;
       return NULL;
    }
+   char * realPath = expandLeadingTilde(path);
    long filepos = 0L;
    long filelength = 0L;
    if (mode[0]=='r' || mode[0]=='a') {
       struct stat statbuf;
-      int statstatus = stat(path, &statbuf); // TODO : PV_stat?
+      int statstatus = stat(realPath, &statbuf);
       if (statstatus == 0) {
          filelength = (long) statbuf.st_size;
          if (mode[0]=='a') {
@@ -80,8 +81,7 @@ PV_Stream * PV_fopen(const char * path, const char * mode, bool verifyWrites) {
          }
       }
       else if (errno != ENOENT) {
-         pvError().printf("PV_fopen: unable to stat \"%s\" with mode \"%s\": %s\n", path, mode, strerror(errno));
-         abort();
+         pvError().printf("PV_fopen: unable to stat \"%s\" with mode \"%s\": %s\n", realPath, mode, strerror(errno));
       }
    }
    int fopencounts = 0;
@@ -89,10 +89,10 @@ PV_Stream * PV_fopen(const char * path, const char * mode, bool verifyWrites) {
    FILE * fp = NULL;
    while (fp == NULL) {
       errno = 0;
-      fp = fopen(path, mode);
+      fp = fopen(realPath, mode);
       if (fp != NULL) break;
       fopencounts++;
-      pvWarn().printf("fopen failure for \"%s\" on attempt %d: %s\n", path, fopencounts, strerror(errno));
+      pvWarn().printf("fopen failure for \"%s\" on attempt %d: %s\n", realPath, fopencounts, strerror(errno));
       if (fopencounts < MAX_FILESYSTEMCALL_TRIES) {
          sleep(1);
       }
@@ -101,15 +101,15 @@ PV_Stream * PV_fopen(const char * path, const char * mode, bool verifyWrites) {
       }
    }
    if (fp == NULL) {
-      pvErrorNoExit().printf("PV_fopen: exceeded MAX_FILESYSTEMCALL_TRIES = %d attempting to open \"%s\"\n", MAX_FILESYSTEMCALL_TRIES, path);
+      pvErrorNoExit().printf("PV_fopen: exceeded MAX_FILESYSTEMCALL_TRIES = %d attempting to open \"%s\"\n", MAX_FILESYSTEMCALL_TRIES, realPath);
    }
    else {
       if (fopencounts>0) {
-         pvWarn().printf("fopen succeeded for \"%s\" on attempt %d\n", path, fopencounts+1);
+         pvWarn().printf("fopen succeeded for \"%s\" on attempt %d\n", realPath, fopencounts+1);
       }
       streampointer = (PV_Stream *) calloc(1, sizeof(PV_Stream));
       if (streampointer != NULL) {
-         streampointer->name = strdup(path);
+         streampointer->name = strdup(realPath);
          streampointer->mode = strdup(mode);
          streampointer->fp = fp;
          streampointer->filepos = filepos;
@@ -118,10 +118,11 @@ PV_Stream * PV_fopen(const char * path, const char * mode, bool verifyWrites) {
          streampointer->verifyWrites = verifyWrites;
       }
       else {
-         pvErrorNoExit().printf("PV_fopen failure for \"%s\": %s\n", path, strerror(errno));
+         pvErrorNoExit().printf("PV_fopen failure for \"%s\": %s\n", realPath, strerror(errno));
          fclose(fp);
       }
    }
+   free(realPath);
    return streampointer;
 }
 
@@ -129,11 +130,12 @@ int PV_stat(const char * path, struct stat * buf) {
    // Call stat library function, trying up to MAX_FILESYSTEMCALL_TRIES times if an error is returned.
    // If an error results on all MAX_FILESYSTEMCALL_TRIES times, returns -1 (the error return value) for stat()
    // and errno is the error of the last attempt.
+   char * realPath = expandLeadingTilde(path);
    int attempt = 0;
    int retval = -1;
    while (retval != 0) {
       errno = 0;
-      retval = stat(path, buf);
+      retval = stat(realPath, buf);
       if (retval == 0) break;
       attempt++;
       pvWarn().printf("stat() failure for \"%s\" on attempt %d: %s\n", path, attempt, strerror(errno));
@@ -147,6 +149,7 @@ int PV_stat(const char * path, struct stat * buf) {
    if (retval != 0) {
       pvErrorNoExit().printf("PV_stat exceeded MAX_FILESYSTEMCALL_TRIES = %d for \"%s\"\n", MAX_FILESYSTEMCALL_TRIES, path);
    }
+   free(realPath);
    return retval;
 }
 
@@ -559,7 +562,9 @@ PV_Stream * pvp_open_write_file(const char * filename, Communicator * comm, bool
          // If the file exists, need to use read/write mode (r+) since we'll navigate back to the header to update nbands
          // If the file does not exist, mode r+ gives an error
          struct stat filestat;
-         int status = stat(filename, &filestat);
+         char * realPath = expandLeadingTilde(filename);
+         int status = stat(realPath, &filestat);
+         free(realPath);
          if (status==0) {
             rwmode = true;
          }

@@ -282,12 +282,8 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
    int rank = icComm->globalCommRank();
 
    char const * gpu_devices = pv_initObj->getGPUDevices();
-   char const * working_dir = pv_initObj->getWorkingDir();
+   char * working_dir = expandLeadingTilde(pv_initObj->getWorkingDir());
    warmStart = pv_initObj->getRestartFlag();
-   char const * checkpoint_read_dir = pv_initObj->getCheckpointReadDir();
-   if (checkpoint_read_dir) {
-      checkpointReadDir = strdup(pv_initObj->getCheckpointReadDir());
-   }
 
 #ifdef PVP_DEBUG
    if (pv_initObj->getRequireReturnFlag()) {
@@ -341,7 +337,7 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
          chdirMessage.printf("chdir error: %s\n", strerror(errno));
       }
    }
-   working_dir = NULL;
+   free(working_dir); working_dir = nullptr;
 
 
 #ifdef PV_USE_MPI // Fail if there was a parsing error, but make sure nonroot processes don't kill the root process before the root process reaches the syntax error
@@ -359,7 +355,7 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
    }
 
    if (pv_initObj->getOutputPath()) {
-      outputPath = strdup(pv_initObj->getOutputPath());
+      outputPath = expandLeadingTilde(pv_initObj->getOutputPath());
       if (outputPath==NULL) {pvError() << "HyPerCol::initialize unable to copy output path." << std::endl; }
    }
    random_seed = pv_initObj->getRandomSeed();
@@ -404,14 +400,11 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
    }
 
    //warmStart is set if command line sets the -r option.  PV_Arguments should prevent -r and -c from being both set.
-   assert(!warmStart || !checkpointReadDir);
+   char const * checkpoint_read_dir = pv_initObj->getCheckpointReadDir();
+   pvAssert(!(warmStart && checkpoint_read_dir));
    if (warmStart) {
-      // parse_options() and ioParams() must have both been called at this point, so that we have the correct outputPath and checkpointWriteFlag
-      assert(checkpointReadDir==NULL);
-      checkpointReadDir = (char *) calloc(PV_PATH_MAX, sizeof(char));
-      if(checkpointReadDir==NULL) {
-         pvError().printf("%s error: unable to allocate memory for path to checkpoint read directory.\n", programName);
-      }
+      checkpointReadDir = (char *) pvCallocError(PV_PATH_MAX, sizeof(char),
+            "%s error: unable to allocate memory for path to checkpoint read directory.\n", programName);
       if (columnId()==0) {
          struct stat statbuf;
          // Look for directory "Last" in outputPath directory
@@ -479,13 +472,12 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
       }
       MPI_Bcast(checkpointReadDir, PV_PATH_MAX, MPI_CHAR, 0, icComm->communicator());
    }
-   if (checkpointReadDir) {
-      char* origChkPtr = checkpointReadDir;
-      char** splitCheckpoint = (char**)calloc(icComm->numCommBatches(), sizeof(char*));
-      assert(splitCheckpoint);
+   if (checkpoint_read_dir) {
+      char * origChkPtr = strdup(pv_initObj->getCheckpointReadDir());
+      char** splitCheckpoint = (char**)pvCalloc(icComm->numCommBatches(), sizeof(char*));
       size_t count = 0;
       char * tmp = NULL;
-      tmp = strtok(checkpointReadDir, ":");
+      tmp = strtok(origChkPtr, ":");
       while(tmp != NULL){
          splitCheckpoint[count] = strdup(tmp);
          count++;
@@ -498,17 +490,17 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
       if(count != icComm->numCommBatches()){
          pvError().printf("Checkpoint read dir parsing error: Specified not enough colon seperated checkpoint read directories. Running with %d batch MPIs but only %zu colon seperated checkpoint directories.\n", icComm->numCommBatches(), count);
       }
-      
+
       //Grab this rank's actual checkpointReadDir and replace with checkpointReadDir
-      checkpointReadDir = strdup(splitCheckpoint[icComm->commBatch()]);
+      checkpointReadDir = expandLeadingTilde(splitCheckpoint[icComm->commBatch()]);
+      pvAssert(checkpointReadDir);
       //Free all tmp memories
-      free(origChkPtr);
       for(int i = 0; i < icComm->numCommBatches(); i++){
          free(splitCheckpoint[i]);
       }
       free(splitCheckpoint);
-      assert(checkpointReadDir);
-      
+      free(origChkPtr);
+
       checkpointReadFlag = true;
       pvInfo().printf("Global Rank %d process setting checkpointReadDir to %s.\n", globalRank(), checkpointReadDir);
    }
@@ -651,7 +643,7 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_filenamesContainConnectionNames(ioFlag);
    ioParam_initializeFromCheckpointDir(ioFlag);
    ioParam_defaultInitializeFromCheckpointFlag(ioFlag);
-   ioParam_checkpointRead(ioFlag);
+   ioParam_checkpointRead(ioFlag); // checkpointRead is obsolete as of June 27, 2016.
    ioParam_checkpointWrite(ioFlag);
    ioParam_checkpointWriteDir(ioFlag);
    ioParam_checkpointWriteTriggerMode(ioFlag);
@@ -1055,6 +1047,19 @@ void HyPerCol::ioParam_defaultInitializeFromCheckpointFlag(enum ParamsIOFlag ioF
 
 }
 
+// Error out if someone uses obsolete checkpointRead flag in params.
+// After a reasonable fade time, this function can be removed.
+void HyPerCol::ioParam_checkpointRead(enum ParamsIOFlag ioFlag) {
+   if (ioFlag==PARAMS_IO_READ && params->stringPresent(name, "checkpointRead")) {
+      if (columnId()==0) {
+         pvError() << "The checkpointRead params file parameter is obsolete." <<
+               "  Instead, set the checkpoint directory on the command line.\n";
+      }
+      MPI_Barrier(icCommunicator()->communicator());
+      exit(EXIT_FAILURE);
+   }
+}
+#ifdef OBSOLETE // Marked obsolete June 27, 2016.  Has been deprecated for over two years.
 void HyPerCol::ioParam_checkpointRead(enum ParamsIOFlag ioFlag) {
    // checkpointRead, checkpointReadDir, and checkpointReadDirIndex parameters were deprecated on Mar 27, 2014.
    // Instead of setting checkpointRead=true; checkpointReadDir="foo"; checkpointReadDirIndex=100,
@@ -1085,6 +1090,7 @@ void HyPerCol::ioParam_checkpointRead(enum ParamsIOFlag ioFlag) {
       }
    }
 }
+#endif // OBSOLETE // Marked obsolete June 27, 2016.  Has been deprecated for over two years.
 
 void HyPerCol::ioParam_checkpointWrite(enum ParamsIOFlag ioFlag) {
    ioParamValue(ioFlag, name, "checkpointWrite", &checkpointWriteFlag, false/*default value*/);
@@ -1345,7 +1351,9 @@ int HyPerCol::checkDirExists(const char * dirname, struct stat * pathstat) {
    int status;
    int errorcode;
    if( rank == 0 ) {
+      char * expandedDirName = expandLeadingTilde(dirname);
       status = stat(dirname, pathstat);
+      free(expandedDirName);
       if( status ) errorcode = errno;
    }
 #ifdef PV_USE_MPI
