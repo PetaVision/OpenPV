@@ -1,6 +1,6 @@
 ###PetaVision is an open source, object oriented neural simulation toolbox optimized for high-performance multi-core, multi-node computer architectures.
 
-Quick instructions for installing PetaVision and running the system tests:
+####Quick instructions for installing PetaVision and running the system tests:
 
 ####Required dependencies:
 * gcc/g++ (https://gcc.gnu.org/).
@@ -51,6 +51,6 @@ cd tests
 ctest
 ~~~~~~~~~~~~~~~~~~~~
 
-####Our webpage is <http://petavision.github.io/>.
-####More detailed documentation is available at <http://petavision.github.io/doxygen>.
-####For general questions and discussion, post to our Gitter page: <https://gitter.im/PetaVision/OpenPV>
+#####Our webpage is <http://petavision.github.io/>.
+#####More detailed documentation is available at <http://petavision.github.io/doxygen>.
+#####For general questions and discussion, post to our Gitter page: <https://gitter.im/PetaVision/OpenPV>
