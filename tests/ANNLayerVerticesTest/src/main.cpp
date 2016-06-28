@@ -28,7 +28,7 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
       float a = A[kExt];
       // Based on params file having verticesV = [0.5, 0.5]; verticesA = [0.0, 1.0]; slopeNegInf = 0.0; slopePosInf = 0.0;
       // i.e. indicator function of V>=0.5.
-      // TODO: Currently, PtwiseLinearTransferLayer does continuity from right at jumps.  Need to generalize.
+      // TODO: Currently, jumps in verticesV/verticesA are continuous from the right.  Need to generalize.
       if (v < 0.5) {
          assert(a==0.0);
       }
