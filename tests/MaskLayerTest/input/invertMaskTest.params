@@ -1,0 +1,150 @@
+debugParsing = false;
+
+HyPerCol "column" = {
+    nx = 8; //1242;  // KITTI synced value
+    ny = 8;  //218;
+    dt = 1.0;
+    dtAdaptFlag = false;
+    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+    startTime = 0.0;
+    stopTime = 100.0;       // Depends on number of VINE video frames
+    progressInterval = 1.0;
+    outputPath = "output/";
+    printParamsFilename = "pv.params";
+    filenamesContainLayerNames = true;
+    filenamesContainConnectionNames = true;
+    initializeFromCheckpointDir = "";
+    checkpointWrite = false;
+    // deleteOlderCheckpoints = false;
+    suppressLastOutput = false;
+    writeProgressToErr = true;
+    verifyWrites = false;
+    errorOnNotANumber = false;
+    nbatch = 2;
+};
+
+// this is a input layer
+ImagePvp "mask" = {
+    restart = 0;  // make only a certain layer restart
+    nxScale = 1;  // this must be 2^n, n = ...,-2,-1,0,1,2,... 
+    nyScale = 1;  // the scale is to decide how much area will be used as input. For exampel, nx * nxScale = 32. The size of input
+    	      	  // cannot be larger than the input image size.
+    inputPath = "input/mask.pvp"; // an 8x8x3 image in which each pixel is equal to the linear index with y axis spining first and color spining last
+    nf = 3; //number of features. For a grey image, it's 1. For a color image, it could be either 1 or 3.
+    phase = 0; //phase defines an order in which layers should be executed.
+    writeStep = 1;  //-1 means doesn't write for log
+    sparseLayer = false; //only write weights which are not 0
+    mirrorBCflag = false;    //border condition flag
+    valueBC = 0.0;
+    useImageBCflag = false;
+    inverseFlag = false; 
+    normalizeLuminanceFlag = false;
+    autoResizeFlag = false;
+    writeImages = false;
+    offsetAnchor = "tl";
+    offsetX = 0;  // offset for crop, when the input size is smaller than the size of image
+    offsetY = 0;
+    pvpFrameIdx = 0;
+    jitterFlag = false; // moving around like an eyeball. our eyeballs are not still even when we are gazing at something.
+    padValue = 0;
+};
+
+// value is equal to restricted index into extended layer (with negative values) index, with order [x, y, f] from fastest to slowest
+InputLayer "input" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    sparseLayer = 0;
+    //
+    InitVType = "ZeroV";
+    VThresh = -infinity;
+    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    AMin = -infinity; 
+    phase = 0; 
+};
+
+MaskLayer "maskOut" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    sparseLayer = 0;
+    //
+    InitVType = "ZeroV";
+    VThresh = -infinity;
+    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    AMin = -infinity; 
+    // 
+    phase = 1; 
+    triggerLayerName = NULL;
+    maskMethod = "invertLayer";
+    maskLayerName = "mask";
+};
+
+MaskTestLayer "test" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    writeStep = -1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    sparseLayer = 0;
+    //
+    InitVType = "ZeroV";
+    VThresh = -infinity;
+    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    AMin = -infinity; 
+    // 
+    phase = 2; 
+    maskMethod = "invertLayer";
+    triggerLayerName = NULL;
+};
+
+IdentConn "inputToMaskOut" = {
+   preLayerName                        = "input";
+   postLayerName                       = "maskOut";
+   channelCode                         = 0;
+   delay                               = [0.000000];
+   // initWeightsFile                     was set to (NULL);
+   writeStep                           = -1;
+};
+
+IdentConn "maskOutToTest" = {
+   preLayerName                        = "maskOut";
+   postLayerName                       = "test";
+   channelCode                         = 0;
+   delay                               = [0.000000];
+   // initWeightsFile                     was set to (NULL);
+   writeStep                           = -1;
+};
+
+IdentConn "inputToTest" = {
+   preLayerName                        = "input";
+   postLayerName                       = "test";
+   channelCode                         = 1;
+   delay                               = [0.000000];
+   // initWeightsFile                     was set to (NULL);
+   writeStep                           = -1;
+};
+
+IdentConn "maskToTest" = {
+   preLayerName                        = "mask";
+   postLayerName                       = "test";
+   channelCode                         = 2;
+   delay                               = [0.000000];
+   // initWeightsFile                     was set to (NULL);
+   writeStep                           = -1;
+};
+
+

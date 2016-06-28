@@ -23,13 +23,15 @@ void MaskTestLayer::ioParam_maskMethod(enum ParamsIOFlag ioFlag) {
    //Check valid methods
    if(strcmp(maskMethod, "layer") == 0){
    }
+   else if(strcmp(maskMethod, "invertLayer") == 0){
+   }
    else if(strcmp(maskMethod, "maskFeatures") == 0){
    }
    else if(strcmp(maskMethod, "noMaskFeatures") == 0){
    }
    else{
       if (parent->columnId()==0) {
-         pvErrorNoExit().printf("%s \"%s\" error: \"%s\" is not a valid maskMethod. Options are \"layer\", \"maskFeatures\", or \"noMaskFeatures\".\n",
+         pvErrorNoExit().printf("%s \"%s\" error: \"%s\" is not a valid maskMethod. Options are \"invertLayer\", \"maskFeatures\", or \"noMaskFeatures\".\n",
                  getKeyword(), name, maskMethod);
       }
       exit(-1);
@@ -59,6 +61,21 @@ int MaskTestLayer::updateState(double timef, double dt){
          if(strcmp(maskMethod, "layer") == 0){
          //pvErrorNoExit() << "Connection " << name << " Mismatch at " << k << ": actual value: " << GSynExt[k] << " Expected value: " << GSynInh[k] << ".\n";
             if(GSynInhB[k]){
+               if(GSynExt[k] != GSynInh[k]){
+                  pvErrorNoExit() << "Connection " << name << " Mismatch at " << k << ": actual value: " << GSynExt[k] << " Expected value: " << GSynInh[k] << ".\n";
+                  isCorrect = false;
+               }
+            }
+            else{
+               if(GSynExt[k] != 0){
+                  pvErrorNoExit() << "Connection " << name << " Mismatch at " << k << ": actual value: " << GSynExt[k] << " Expected value: 0.\n";
+                  isCorrect = false;
+               }
+            }
+         }
+         else if(strcmp(maskMethod, "invertLayer") == 0){
+         //pvErrorNoExit() << "Connection " << name << " Mismatch at " << k << ": actual value: " << GSynExt[k] << " Expected value: " << GSynInh[k] << ".\n";
+            if(!GSynInhB[k]){
                if(GSynExt[k] != GSynInh[k]){
                   pvErrorNoExit() << "Connection " << name << " Mismatch at " << k << ": actual value: " << GSynExt[k] << " Expected value: " << GSynInh[k] << ".\n";
                   isCorrect = false;

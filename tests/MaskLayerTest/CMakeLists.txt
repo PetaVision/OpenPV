@@ -1,1 +1,1 @@
-pv_add_test(PARAMS maskTest)
+pv_add_test(PARAMS maskTest invertMaskTest maskTestFeatures maskTestNoFeatures)

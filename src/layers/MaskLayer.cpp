@@ -54,13 +54,15 @@ void MaskLayer::ioParam_maskMethod(enum ParamsIOFlag ioFlag) {
    //Check valid methods
    if(strcmp(maskMethod, "layer") == 0){
    }
+   else if(strcmp(maskMethod, "invertLayer") == 0){
+   }
    else if(strcmp(maskMethod, "maskFeatures") == 0){
    }
    else if(strcmp(maskMethod, "noMaskFeatures") == 0){
    }
    else{
       if (parent->columnId()==0) {
-         pvErrorNoExit().printf("%s \"%s\": \"%s\" is not a valid maskMethod. Options are \"layer\", \"maskFeatures\", or \"noMaskFeatures\".\n",
+         pvErrorNoExit().printf("%s \"%s\": \"%s\" is not a valid maskMethod. Options are \"layer\", \"invertLayer\", \"maskFeatures\", or \"noMaskFeatures\".\n",
                  getKeyword(), name, maskMethod);
       }
       exit(-1);
@@ -69,7 +71,7 @@ void MaskLayer::ioParam_maskMethod(enum ParamsIOFlag ioFlag) {
 
 void MaskLayer::ioParam_maskLayerName(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "maskMethod"));
-   if(strcmp(maskMethod, "layer") == 0){
+   if(strcmp(maskMethod, "layer") == 0 || strcmp(maskMethod, "invertLayer") == 0){
       parent->ioParamStringRequired(ioFlag, name, "maskLayerName", &maskLayerName);
    }
 }
@@ -90,7 +92,7 @@ void MaskLayer::ioParam_featureIdxs(enum ParamsIOFlag ioFlag) {
 
 int MaskLayer::communicateInitInfo() {
    int status = ANNLayer::communicateInitInfo();
-   if(strcmp(maskMethod, "layer") == 0){
+   if(strcmp(maskMethod, "layer") == 0 || strcmp(maskMethod, "invertLayer") == 0){
       maskLayer = parent->getLayerFromName(maskLayerName);
       if (maskLayer==NULL) {
          if (parent->columnId()==0) {
@@ -179,6 +181,22 @@ int MaskLayer::updateState(double time, double dt)
             }
             int kMaskExt = kIndexExtended(kMaskRes, nx, ny, maskLoc->nf, maskLoc->halo.lt, maskLoc->halo.rt, maskLoc->halo.dn, maskLoc->halo.up);
             maskVal = maskActivityBatch[kMaskExt];
+         }
+         else if(strcmp(maskMethod, "invertLayer") == 0){
+            const PVLayerLoc * maskLoc = maskLayer->getLayerLoc();
+            pvdata_t * maskActivity = maskLayer->getActivity();
+            pvdata_t * maskActivityBatch = maskActivity + b * maskLayer->getNumExtended();
+            int kMaskRes;
+            if(maskLoc->nf == 1){
+               kMaskRes = ni/nf;
+            }
+            else{
+               kMaskRes = ni;
+            }
+            int kMaskExt = kIndexExtended(kMaskRes, nx, ny, maskLoc->nf, maskLoc->halo.lt, maskLoc->halo.rt, maskLoc->halo.dn, maskLoc->halo.up);
+            if(maskActivityBatch[kMaskExt]){
+                maskVal = 0;
+            }
          }
          else if(strcmp(maskMethod, "maskFeatures") == 0){
             //Calculate feature index of ni
