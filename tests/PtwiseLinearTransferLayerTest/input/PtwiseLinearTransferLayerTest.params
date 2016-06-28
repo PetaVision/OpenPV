@@ -64,7 +64,7 @@ Image "Input" = {
 };
 
 //an output layer
-PtwiseLinearTransferLayer "Output" = {
+ANNLayer "Output" = {
     nxScale = 1; 
     nyScale = 1;
     nf = 8; // 8 outputs 

@@ -8,7 +8,7 @@
 #ifndef ANNLAYER_HPP_
 #define ANNLAYER_HPP_
 
-#include "PtwiseLinearTransferLayer.hpp"
+#include "HyPerLayer.hpp"
 #include <limits>
 
 #define NUM_ANN_EVENTS   3
@@ -16,15 +16,43 @@
 
 namespace PV {
 
-class ANNLayer : public PtwiseLinearTransferLayer {
+class ANNLayer : public HyPerLayer {
 public:
    ANNLayer(const char* name, HyPerCol * hc);
    virtual ~ANNLayer();
-   pvdata_t getVThresh()        { return VThresh; }
-   pvdata_t getAMax()           { return AMax; }
-   pvdata_t getAMin()           { return AMin; }
-   pvdata_t getAShift()         { return AShift; }
-   pvdata_t getVWidth()         { return VWidth; }
+
+   /**
+    * Returns true if the params file specifies the transfer function using
+    * verticesV, verticesA, slopeNegInf, and slopePosInf.
+    * Returns false otherwise, in which case the above parameters are
+    * computed internally from VThresh, AMin, AMax, AShift, and VWidth.
+    */
+   bool layerListsVerticesInParams() const { return verticesListInParams; }
+
+   pvdata_t getVThresh()  const { return VThresh; }
+   pvdata_t getAMax()     const { return AMax; }
+   pvdata_t getAMin()     const { return AMin; }
+   pvdata_t getAShift()   const { return AShift; }
+   pvdata_t getVWidth()   const { return VWidth; }
+
+   /**
+    * Returns the number of points in verticesV and verticesA.
+    */
+   int getNumVertices()   const { return numVertices; }
+
+   /**
+    * Returns the V-coordinate of the the nth vertex (zero-indexed).
+    * If n is out of bounds, returns NaN.
+    */
+   pvdata_t getVertexV(int n) const { if (n>=0 && n<numVertices) { return verticesV[n]; } else { return nan(""); } }
+
+   /**
+    * Returns the V-coordinate of the the nth vertex (zero-indexed).
+    * If n is out of bounds, returns NaN.
+    */
+   pvdata_t getVertexA(int n) const { if (n>=0 && n<numVertices) { return verticesA[n]; } else { return nan(""); } }
+   pvdata_t getSlopeNegInf()  const { return slopeNegInf; }
+   pvdata_t getSlopePosInf()  const { return slopePosInf; }
 
    virtual bool activityIsSpiking() { return false; }
 protected:
@@ -43,74 +71,131 @@ protected:
     */
 
    /**
-    * @brief VThresh: The threshold value for the membrane potential.  Below this value, the
-    * output activity will be AMin.  Above, it will obey the transfer function specified by
-    * AMax, VWidth, and AShift.
+    * @brief verticesV: An array of membrane potentials at points where the transfer function jumps or changes slope.
+    * There must be the same number of elements in verticesV as verticesA, and the sequence of values must
+    * be nondecreasing.  If this parameter is absent, layerListsVerticesInParams() returns false
+    * and the vertices are computed internally from VThresh, AMin, AMax, AShift, and VWidth.
+    * If the parameter is present, layerListsVerticesInParams() returns true.
+    */
+   virtual void ioParam_verticesV(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief verticesA: An array of activities of points where the transfer function jumps or changes slope.
+    * There must be the same number of elements in verticesA as verticesV.
+    * Only read if verticesV is present; otherwise it is computed internally from VThresh, AMin, AMax, AShift, and VWidth.
+    */
+   virtual void ioParam_verticesA(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief slopeNegInf: The slope of the transfer function when x is less than the first element of verticesV.
+    * Thus, if V < Vfirst, the corresponding value of A is A = Afirst - slopeNegInf * (Vfirst - V)
+    * Only read if verticesV is present; otherwise it is computed internally from VThresh, AMin, AMax, AShift, and VWidth.
+    */
+   virtual void ioParam_slopeNegInf(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief slopePosInf: The slope of the transfer function when x is greater than the last element of verticesV.
+    * Thus, if V > Vlast, the corresponding value of A is A = Alast + slopePosInf * (V - Vlast)
+    * Only read if verticesV is present; otherwise it is computed internally from VThresh, AMin, AMax, AShift, and VWidth.
+    */
+   virtual void ioParam_slopePosInf(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief VThresh: Only read if verticesV is absent.
+    * The threshold value for the membrane potential.  Below this value, the
+    * output activity will be AMin.  Above, it will obey the transfer function
+    * as specified by AMax, VWidth, and AShift.  Default is -infinity.
     */
    virtual void ioParam_VThresh(enum ParamsIOFlag ioFlag);
    
    /**
-    * @brief AMin: When membrane potential V is below the threshold VThresh, activity takes the value AMin.
+    * @brief AMin: Only read if verticesV is absent.
+    * When membrane potential V is below the threshold VThresh, activity
+    * takes the value AMin.  Default is the value of VThresh.
     */
    virtual void ioParam_AMin(enum ParamsIOFlag ioFlag);
    
    /**
-    * @brief AMax: The maximum value of the output activity.
+    * @brief AMax: Only read if verticesV is absent.
+    * Activity that would otherwise be greater than AMax is truncated to AMax.
+    * Default is +infinity.
     */
    virtual void ioParam_AMax(enum ParamsIOFlag ioFlag);
    
    /**
-    * @brief AShift: When membrane potential V is above the threshold VThresh, activity is V-AShift
-    * (but see VWidth for making a gradual transition at VThresh)
+    * @brief AShift: Only read if verticesV is absent.
+    * When membrane potential V is above the threshold VThresh, activity is V-AShift
+    * (but see VWidth for making a gradual transition at VThresh).  Default is zero.
     */
    virtual void ioParam_AShift(enum ParamsIOFlag ioFlag);
    
    /**
-    * @brief VWidth: When the membrane potential is between VThresh and VThresh+VWidth, the activity changes linearly
+    * @brief VWidth: Only read if verticesV is absent.
+    * When the membrane potential is between VThresh and VThresh+VWidth, the activity changes linearly
     * between A=AMin when V=VThresh and A=VThresh+VWidth-AShift when V=VThresh+VWidth.
+    * Default is zero.
     */
    virtual void ioParam_VWidth(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief verticesV: ANNLayer does not read the verticesV parameter array, but sets it based on the value of VThresh, AMin, AMax, AShift, VWidth
+    * @brief clearGSynInterval: the time interval after which GSyn is reset to zero.
+    * @details Until this interval elapses, GSyn continues to accumulate from timestep to timestep.
+    * If clearGSynInterval is zero or negative, GSyn clears every timestep.
+    * If clearGSynInterval is infinite, the layer acts as an accumulator.
+    * Default is zero.
     */
-   virtual void ioParam_verticesV(enum ParamsIOFlag ioFlag) {}
-
-   /**
-    * @brief verticesV: ANNLayer does not read the verticesA parameter array, but sets it based on the value of VThresh, AMin, AMax, AShift, VWidth
-    */
-   virtual void ioParam_verticesA(enum ParamsIOFlag ioFlag) {}
-
-   /**
-    * @brief verticesV: ANNLayer does not read the slopeNegInf parameter, but sets it based on the value of VThresh, AMin, AMax, AShift, VWidth
-    */
-   virtual void ioParam_slopeNegInf(enum ParamsIOFlag ioFlag) {}
-
-   /**
-    * @brief verticesV: ANNLayer does not read the slopePosInf parameter, but sets it based on the value of VThresh, AMin, AMax, AShift, VWidth
-    */
-   virtual void ioParam_slopePosInf(enum ParamsIOFlag ioFlag) {}
+   virtual void ioParam_clearGSynInterval(enum ParamsIOFlag ioFlag);
    /** @} */
 
+   /**
+    * If the params file does not specify verticesV and verticesA explicitly,
+    * ANNLayer::initialize() calls this function to compute the vertices.
+    */
    virtual int setVertices();
    
-   virtual int checkVertices();
+   /**
+    * ANNLayer::initialize() calls this function to perform sanity checking
+    * on the vertices.  Returns PV_SUCCESS or PV_FAILURE to indicate whether
+    * the vertices are acceptable.
+    * For ANNLayer::checkVertices(), fails if the sequence of V vertices ever
+    * decreases.  If the sequence of A vertices ever decreases, outputs a warning
+    * but does not fail.
+    */
+   virtual int checkVertices() const;
+
+   /**
+    * ANNLayer::initialize() calls this function to compute the slopes between
+    * vertices.
+    */
+   void setSlopes();
 
    virtual int resetGSynBuffers(double timef, double dt);
 
    virtual int checkpointRead(const char * cpDir, double * timeptr); // (const char * cpDir, double * timed);
    virtual int checkpointWrite(const char * cpDir);
 
-   pvdata_t AMax;  // maximum membrane potential, larger values are set to AMax
-   pvdata_t AMin;  // minimum membrane potential, smaller values are set to AMin
-   pvdata_t VThresh;  // threshold potential, values smaller than VThresh are set to AMin
-   pvdata_t AShift;  // shift potential, values above VThresh are shifted downward by this amount
+// Data members, initialized to default values.
+   bool verticesListInParams = false; // True if verticesV/verticesA were specified in params explicitly; false otherwise
+   int numVertices = 0;
+   pvpotentialdata_t * verticesV = nullptr;
+   pvadata_t * verticesA = nullptr;
+   float * slopes = nullptr; // slopes[0]=slopeNegInf; slopes[numVertices]=slopePosInf; slopes[k]=slope from vertex k-1 to vertex k
+   float slopeNegInf = 1.0f;
+   float slopePosInf = 1.0f;
+
+   pvdata_t VThresh = -max_pvvdata_t;  // threshold potential, values smaller than VThresh are set to AMin
+   pvdata_t AMax = max_pvvdata_t;  // maximum membrane potential, larger values are set to AMax
+   pvdata_t AMin = -max_pvvdata_t;  // minimum membrane potential, smaller values are set to AMin
+   pvdata_t AShift = (pvdata_t) 0;  // shift potential, values above VThresh are shifted downward by this amount
                      // AShift == 0, hard threshold condition
                      // AShift == VThresh, soft threshold condition
-   pvdata_t VWidth;  // The thresholding occurs linearly over the region [VThresh,VThresh+VWidth].  VWidth=0,AShift=0 is standard hard-thresholding
+   pvdata_t VWidth = (pvdata_t) 0;  // The thresholding occurs linearly over the region [VThresh,VThresh+VWidth].  VWidth=0,AShift=0 is standard hard-thresholding
+
+   double clearGSynInterval = 0.0; // The interval between successive clears of GSyn
+   double nextGSynClearTime = 0.0; // The next time that the GSyn will be cleared.
 //#ifdef PV_USE_OPENCL
 //   virtual int getNumCLEvents() {return numEvents;}
-//   virtual const char * getKernelName() { return "ANNLayer_update_state"; }
+//   virtual const char * getKernelName() { return "ANNLayer_vertices_update_state"; }
 //   virtual int initializeThreadBuffers(const char * kernel_name);
 //   virtual int initializeThreadKernels(const char * kernel_name);
 //   //virtual int getEVActivity() {return EV_ANN_ACTIVITY;}

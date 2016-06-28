@@ -60,7 +60,7 @@ protected:
    /** @} */
 
    virtual int setVertices();
-   virtual int checkVertices();
+   virtual int checkVertices() const;
    virtual int doUpdateState(double time, double dt, const PVLayerLoc * loc, pvdata_t * A,
          pvdata_t * V, int num_channels, pvdata_t * gSynHead);
 private:
