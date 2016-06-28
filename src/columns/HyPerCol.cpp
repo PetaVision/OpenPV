@@ -208,7 +208,6 @@ int HyPerCol::initialize_base() {
    changeTimeScaleMax = 1.0;
    changeTimeScaleMin = 0.0;
    dtMinToleratedTimeScale = 1.0e-4;
-   // progressStep = 1L; // deprecated Dec 18, 2013
    progressInterval = 1.0;
    writeProgressToErr = false;
    origStdOut = -1;
@@ -902,13 +901,14 @@ void HyPerCol::ioParam_stopTime(enum ParamsIOFlag ioFlag) {
       long int numSteps = params->value(name, "numSteps");
       stopTime = startTime + numSteps * deltaTimeBase;
       if (globalRank()==0) {
-         pvWarn() << "numSteps is deprecated.  Use startTime, stopTime and dt instead.\n" <<
+         pvError() << "numSteps is obsolete.  Use startTime, stopTime and dt instead.\n" <<
                "    stopTime set to " << stopTime << "\n";
       }
-      return;
+      MPI_Barrier(icCommunicator()->communicator());
+      exit(EXIT_FAILURE);
    }
-   // numSteps was deprecated Dec 12, 2013
-   // When support for numSteps is removed entirely, remove the above if-statement and keep the ioParamValue call below.
+   // numSteps was deprecated Dec 12, 2013 and marked obsolete Jun 27, 2016
+   // After a reasonable fade time, remove the above if-statement and keep the ioParamValue call below.
    ioParamValue(ioFlag, name, "stopTime", &stopTime, stopTime);
 }
 
@@ -917,13 +917,13 @@ void HyPerCol::ioParam_progressInterval(enum ParamsIOFlag ioFlag) {
       long int progressStep = (long int) params->value(name, "progressStep");
       progressInterval = progressStep/deltaTimeBase;
       if (globalRank()==0) {
-         pvWarn() << "progressStep is deprecated.  Use progressInterval instead.\n" <<
-               "    progressInterval set to " << progressInterval << "\n";
+         pvError() << "progressStep is obsolete.  Use progressInterval instead.\n";
       }
-      return;
+      MPI_Barrier(icCommunicator()->communicator());
+      exit(EXIT_FAILURE);
    }
    // progressStep was deprecated Dec 18, 2013
-   // When support for progressStep is removed entirely, remove the above if-statement and keep the ioParamValue call below.
+   // After a reasonable fade time, remove the above if-statement and keep the ioParamValue call below.
    ioParamValue(ioFlag, name, "progressInterval", &progressInterval, progressInterval);
 }
 

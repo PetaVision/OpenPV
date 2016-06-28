@@ -2,9 +2,9 @@
 
 namespace PV {
 
-ImportParamsConn::ImportParamsConn(const char * name, HyPerCol * hc, InitWeights * weightInitializer, NormalizeBase * weightNormalizer){
+ImportParamsConn::ImportParamsConn(const char * name, HyPerCol * hc){
    initialize_base();
-   initialize(name, hc, weightInitializer, weightNormalizer);
+   initialize(name, hc);
 }
 
 int ImportParamsConn::initialize_base()
@@ -12,9 +12,9 @@ int ImportParamsConn::initialize_base()
    return PV_SUCCESS;
 }
 
-int ImportParamsConn::initialize(const char * name, HyPerCol * hc, InitWeights * weightInitializer, NormalizeBase * weightNormalizer)
+int ImportParamsConn::initialize(const char * name, HyPerCol * hc)
 {
-   KernelConn::initialize(name, hc, weightInitializer, weightNormalizer);
+   HyPerConn::initialize(name, hc);
 
    PVParams * params = parent->parameters();
    //Test grabbed array value
@@ -38,20 +38,18 @@ int ImportParamsConn::initialize(const char * name, HyPerCol * hc, InitWeights *
 }
 
 int ImportParamsConn::communicateInitInfo() {
-   int status = KernelConn::communicateInitInfo();
+   int status = HyPerConn::communicateInitInfo();
    return status;
 }
 
 int ImportParamsConn::allocateDataStructures() {
-   int status = KernelConn::allocateDataStructures();
+   int status = HyPerConn::allocateDataStructures();
    return status;
 }
 
 BaseObject * createImportParamsConn(const char * name, HyPerCol * hc) {
    if (hc==NULL) { return NULL; }
-   InitWeights * weightInitializer = getWeightInitializer(name, hc);
-   NormalizeBase * weightNormalizer = getWeightNormalizer(name, hc);
-   return new HyPerConn(name, hc, weightInitializer, weightNormalizer);
+   return new HyPerConn(name, hc);
 }
 
 

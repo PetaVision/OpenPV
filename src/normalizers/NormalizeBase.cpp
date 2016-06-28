@@ -53,14 +53,6 @@ void NormalizeBase::ioParam_strength(enum ParamsIOFlag ioFlag) {
 }
 
 void NormalizeBase::ioParam_normalizeArborsIndividually(enum ParamsIOFlag ioFlag) {
-   // normalize_arbors_individually as a parameter name was deprecated April 19, 2013 and marked obsolete October 24, 2014
-   if (ioFlag==PARAMS_IO_READ && !parent->parameters()->present(name, "normalizeArborsIndividually") && parent->parameters()->present(name, "normalize_arbors_individually")) {
-      if (parent->columnId()==0) {
-         pvErrorNoExit().printf("Normalizer \"%s\": parameter name normalize_arbors_individually is obsolete.  Use normalizeArborsIndividually.\n", name);
-      }
-      MPI_Barrier(parent->icCommunicator()->communicator());
-      exit(EXIT_FAILURE);
-   }
    parent->ioParamValue(ioFlag, name, "normalizeArborsIndividually", &normalizeArborsIndividually, false/*default*/, true/*warnIfAbsent*/);
 }
 

@@ -58,45 +58,15 @@ void ANNLayer::ioParam_VThresh(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "VThresh", &VThresh, -max_pvvdata_t);
 }
 
-// Parameter VMin was made obsolete in favor of AMin on July 24, 2015
 void ANNLayer::ioParam_AMin(enum ParamsIOFlag ioFlag) {
-   if (ioFlag==PARAMS_IO_READ && parent->parameters()->present(name, "VMin")) {
-      if (parent->columnId()==0) {
-         pvErrorNoExit().printf("%s \"%s\" parameter \"VMin\" is obsolete.  Use AMin instead.\n",
-               getKeyword(), name);
-      }
-      MPI_Barrier(parent->icCommunicator()->communicator());
-      exit(EXIT_FAILURE);
-      return;
-   }
    parent->ioParamValue(ioFlag, name, "AMin", &AMin, VThresh);
 }
 
-// Parameter VMax was made obsolete in favor of AShift on July 24, 2015
 void ANNLayer::ioParam_AMax(enum ParamsIOFlag ioFlag) {
-   if (ioFlag==PARAMS_IO_READ && parent->parameters()->present(name, "VMax")) {
-      if (parent->columnId()==0) {
-         pvErrorNoExit().printf("%s \"%s\" parameter \"VMax\" is obsolete.  Use AMax instead.\n",
-               getKeyword(), name);
-      }
-      MPI_Barrier(parent->icCommunicator()->communicator());
-      exit(EXIT_FAILURE);
-      return;
-   }
    parent->ioParamValue(ioFlag, name, "AMax", &AMax, max_pvvdata_t);
 }
 
-// Parameter VShift was made obsolete in favor of AShift on July 24, 2015
 void ANNLayer::ioParam_AShift(enum ParamsIOFlag ioFlag) {
-   if (ioFlag==PARAMS_IO_READ && parent->parameters()->present(name, "VShift")) {
-      if (parent->columnId()==0) {
-         pvErrorNoExit().printf("%s \"%s\" parameter \"VShift\" is obsolete.  Use AShift instead.\n",
-               getKeyword(), name);
-      }
-      MPI_Barrier(parent->icCommunicator()->communicator());
-      exit(EXIT_FAILURE);
-      return;
-   }
    parent->ioParamValue(ioFlag, name, "AShift", &AShift, (pvdata_t) 0);
 }
 

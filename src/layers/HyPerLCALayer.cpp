@@ -88,13 +88,15 @@ int HyPerLCALayer::allocateDataStructures(){
 
 int HyPerLCALayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = ANNLayer::ioParamsFillGroup(ioFlag);
+#ifdef OBSOLETE // Marked obsolete Jun 27, 2016.
    ioParam_numChannels(ioFlag);  // Deprecated Jul 9, 2015.  All ioParam_numChannels does is issue a warning that numChannels is no longer used.  Delete after a suitable fade time.
+#endif // OBSOLETE // Marked obsolete Jun 27, 2016.
    ioParam_timeConstantTau(ioFlag);
    ioParam_selfInteract(ioFlag);
    return status;
 }
 
-// After a suitable fade time, HyPerLCALayer::ioParam_numChannels() can be removed
+#ifdef OBSOLETE // Marked obsolete Jun 27, 2016.
 void HyPerLCALayer::ioParam_numChannels(enum ParamsIOFlag ioFlag) {
    if (parent->parameters()->present(name, "numChannels")) {
       if ( parent->columnId()==0) {
@@ -103,6 +105,7 @@ void HyPerLCALayer::ioParam_numChannels(enum ParamsIOFlag ioFlag) {
       parent->parameters()->value(name, "numChannels"); // mark the parameter as read
    }
 }
+#endif // OBSOLETE // Marked obsolete Jun 27, 2016.
 
 void HyPerLCALayer::ioParam_timeConstantTau(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "timeConstantTau", &timeConstantTau, timeConstantTau, true/*warnIfAbsent*/);

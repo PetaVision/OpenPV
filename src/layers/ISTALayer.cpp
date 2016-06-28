@@ -85,27 +85,10 @@ int ISTALayer::allocateDataStructures(){
 
 int ISTALayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = ANNLayer::ioParamsFillGroup(ioFlag);
-   ioParam_numChannels(ioFlag);  // Deprecated Jul 9, 2015.  All ioParam_numChannels does is issue a warning that numChannels is no longer used.  Delete after a suitable fade time.
    ioParam_timeConstantTau(ioFlag);
-#ifdef OBSOLETE // Marked obsolete Jul 9, 2015.  None of these member variables are being used.
-   ioParam_numWindowX(ioFlag);
-   ioParam_numWindowY(ioFlag);
-   ioParam_windowSymX(ioFlag);
-   ioParam_windowSymY(ioFlag);
-#endif // OBSOLETE // Marked obsolete Jul 9, 2015.  None of these member variables are being used.
 
    ioParam_selfInteract(ioFlag);
    return status;
-}
-
-// After a suitable fade time, ISTALayer::ioParam_numChannels() can be removed
-void ISTALayer::ioParam_numChannels(enum ParamsIOFlag ioFlag) {
-   if (parent->parameters()->present(name, "numChannels")) {
-      if ( parent->columnId()==0) {
-         pvWarn().printf("ISTALayer \"%s\": the parameter numChannels is no longer used; connections that connect to the layer create channels as needed.\n", name);
-      }
-      parent->parameters()->value(name, "numChannels"); // mark the parameter as read
-   }
 }
 
 void ISTALayer::ioParam_timeConstantTau(enum ParamsIOFlag ioFlag) {
