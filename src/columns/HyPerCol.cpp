@@ -3038,7 +3038,7 @@ int HyPerCol::outputParams(char const * path) {
       //Lua file output
       outputParamsHeadComments(luaPrintParamsStream->fp, "--");
       //Load util module based on PVPath
-      fprintf(luaPrintParamsStream->fp, "package.path = package.path .. \";\" .. \"" PV_DIR "/parameterWrapper/?.lua\"\n");
+      fprintf(luaPrintParamsStream->fp, "package.path = package.path .. \";\" .. \"" PV_DIR "/../parameterWrapper/?.lua\"\n");
       fprintf(luaPrintParamsStream->fp, "local pv = require \"PVModule\"\n\n");
       fprintf(luaPrintParamsStream->fp, "-- Base table variable to store\n"); 
       fprintf(luaPrintParamsStream->fp, "local pvParameters = {\n"); 
