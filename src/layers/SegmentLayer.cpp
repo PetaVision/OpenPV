@@ -159,10 +159,9 @@ int SegmentLayer::loadLabelBuf(){
    checkLabelBufSize(numLabels);
 
    int idx = 0;
-   for(std::map<int, int>::iterator it = maxX.begin();
-         it != maxX.end(); ++it){
-      labelBuf[idx] = it->first; //Store key in label
-      maxXBuf[idx] = it->second; //Store vale in maxXBuf
+   for(auto& m : maxX) {
+      labelBuf[idx] = m.first; //Store key in label
+      maxXBuf[idx] = m.second; //Store vale in maxXBuf
       idx++;
    }
    assert(idx == numLabels);
@@ -388,9 +387,8 @@ int SegmentLayer::updateState(double timef, double dt) {
 
          //Maps are now filled with all segments from the image
          //Fill centerIdx based on max/min
-         for(std::map<int, int>::iterator it = maxX.begin();
-               it != maxX.end(); ++it){
-            int label = it->first;
+         for(auto& m : maxX) {
+            int label = m.first;
             int centerX = minX.at(label) + (maxX.at(label) - minX.at(label))/2;
             int centerY = minY.at(label) + (maxY.at(label) - minY.at(label))/2;
             //Convert centerpoints (in global res idx) to linear idx (in global res space)
@@ -404,10 +402,9 @@ int SegmentLayer::updateState(double timef, double dt) {
          checkIdxBufSize(numCenterIdx);
 
          int idx = 0;
-         for(std::map<int, int>::iterator it = centerIdx[bi].begin(); 
-               it != centerIdx[bi].end(); ++it){
-            allLabelsBuf[idx] = it->first;
-            centerIdxBuf[idx] = it->second;
+         for(auto& ctr : centerIdx[bi]) {
+            allLabelsBuf[idx] = ctr.first;
+            centerIdxBuf[idx] = ctr.second;
             idx++;
          }
 

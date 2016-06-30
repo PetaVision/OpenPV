@@ -13,10 +13,9 @@ int SegmentTestLayer::updateState(double timef, double dt){
 
    for(int bi = 0; bi < loc->nbatch; bi++){
       std::map<int, int> idxMap = centerIdx[bi];
-      for(std::map<int, int>::iterator it = idxMap.begin();
-            it != idxMap.end(); ++it){
-         int label = it->first;
-         int idx = it->second;
+      for(auto& p : idxMap) {
+         int label = p.first;
+         int idx = p.second;
          //Translate idx (global res) into x and y
          int xIdx = idx % loc->nxGlobal;
          int yIdx = idx / loc->nxGlobal;

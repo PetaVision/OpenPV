@@ -2443,8 +2443,7 @@ int HyPerCol::advanceTime(double sim_time)
 
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
       //Run non gpu layers
-      for(std::vector<HyPerLayer*>::iterator it = recvLayerBuffer.begin(); it < recvLayerBuffer.end(); it++){
-         HyPerLayer * layer = *it;
+      for (auto& layer : recvLayerBuffer) {
          layer->resetGSynBuffers(simTime, deltaTimeBase);  // deltaTimeAdapt is not used 
          phaseRecvTimers[phase]->start();
          layer->recvAllSynapticInput();
@@ -2463,8 +2462,7 @@ int HyPerCol::advanceTime(double sim_time)
       getDevice()->syncDevice();
 
       //Update for non gpu recv and gpu update
-      for(std::vector<HyPerLayer*>::iterator it = updateLayerBufferGpu.begin(); it < updateLayerBufferGpu.end(); it++){
-         HyPerLayer * layer = *it;
+      for(auto& layer : updateLayerBufferGpu) {
          status = layer->updateStateWrapper(simTime, deltaTimeBase);
          if (!exitAfterUpdate) {
             exitAfterUpdate = status == PV_EXIT_NORMALLY;
@@ -2484,8 +2482,7 @@ int HyPerCol::advanceTime(double sim_time)
       }
 
       //Update for gpu recv and non gpu update
-      for(std::vector<HyPerLayer*>::iterator it = updateLayerBuffer.begin(); it < updateLayerBuffer.end(); it++){
-         HyPerLayer * layer = *it;
+      for (auto& layer : updateLayerBuffer) {
          status = layer->updateStateWrapper(simTime, deltaTimeBase);
          if (!exitAfterUpdate) {
             exitAfterUpdate = status == PV_EXIT_NORMALLY;
@@ -3228,9 +3225,8 @@ int HyPerCol::getAutoGPUDevice(){
       }
 
       //Determine what gpus to use per mpi
-      for(std::map<std::string, std::vector<int> >::const_iterator m_it = hostMap.begin();
-            m_it != hostMap.end(); ++m_it){
-         std::vector<int> rankVec = m_it->second;
+      for (auto& host : hostMap) {
+         std::vector<int> rankVec = host.second;
          int numRanksPerHost = rankVec.size();
          assert(numRanksPerHost > 0);
          //Grab maxGpus of current host
@@ -3238,7 +3234,7 @@ int HyPerCol::getAutoGPUDevice(){
          //Warnings for overloading/underloading gpus
          if(numRanksPerHost != maxGpus){
             pvWarn(assignGpuWarning);
-            assignGpuWarning.printf("HyPerCol::getAutoGPUDevice: Host \"%s\" (rank[s] ", m_it->first.c_str());
+            assignGpuWarning.printf("HyPerCol::getAutoGPUDevice: Host \"%s\" (rank[s] ", host.first.c_str());
             for(int v_i = 0; v_i < numRanksPerHost; v_i++){
                if(v_i != numRanksPerHost-1){
                   assignGpuWarning.printf("%d, ", rankVec[v_i]);
@@ -3305,9 +3301,9 @@ int HyPerCol::initializeThreads(char const * in_device)
       //Grabs strings from ss into item, seperated by commas
       while(std::getline(ss, stoken, ',')){
          //Convert stoken to integer
-         for(std::string::const_iterator k = stoken.begin(); k != stoken.end(); ++k){
-            if(!isdigit(*k)){
-               pvError().printf("Device specification error: %s contains unrecognized characters. Must be comma seperated integers greater or equal to 0 with no other characters allowed (including spaces).\n", in_device);
+         for(auto& ch : stoken) {
+            if(!isdigit(ch)) {
+               pvError().printf("Device specification error: %s contains unrecognized characters. Must be comma separated integers greater or equal to 0 with no other characters allowed (including spaces).\n", in_device);
             }
          }
          deviceVec.push_back(atoi(stoken.c_str()));

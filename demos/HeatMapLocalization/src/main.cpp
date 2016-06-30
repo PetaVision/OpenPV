@@ -96,11 +96,9 @@ public:
    }
 
    void clearFrames() {
-      for (std::list<std::string>::iterator it = mListOfFrames.begin(); it!=mListOfFrames.end(); it++) {
-         std::string& s = *it;
+      for (auto& s : mListOfFrames) {
          if (unlink(s.c_str())) {
             pvError() << "FrameServer::clearFrames unable to delete \"" << s << "\": " << strerror(errno);
-            pvExitFailure("");
          }
       }
       mListOfFrames.clear();
