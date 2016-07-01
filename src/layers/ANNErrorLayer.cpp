@@ -79,6 +79,7 @@ void ANNErrorLayer::ioParam_errScale(enum ParamsIOFlag ioFlag) {
 }
 
 int ANNErrorLayer::setVertices() {
+   pvAssert(!layerListsVerticesInParams());
    slopeNegInf = 1.0;
    slopePosInf = 1.0;
    if (VThresh > 0) {
@@ -108,7 +109,7 @@ int ANNErrorLayer::setVertices() {
    return PV_SUCCESS;
 }
 
-int ANNErrorLayer::checkVertices() {
+int ANNErrorLayer::checkVertices() const {
    int status = PV_SUCCESS;
    if (VThresh < 0 && VThresh > -0.999*max_pvvdata_t) { // 0.999 is to allow for imprecision from params files using 3.40282e+38 instead of infinity
       if (parent->columnId()==0) {
@@ -118,7 +119,7 @@ int ANNErrorLayer::checkVertices() {
       status = PV_FAILURE;
    }
    else {
-      assert(PtwiseLinearTransferLayer::checkVertices()==PV_SUCCESS);
+      pvAssert(ANNLayer::checkVertices()==PV_SUCCESS);
    }
    return status;
 }

@@ -677,6 +677,7 @@ int pvp_check_file_header(Communicator * comm, const PVLayerLoc * loc, int param
    return status;
 } // pvp_check_file_header
 
+#ifdef OBSOLETE // Marked obsolete June 27, 2016.
 // Deprecated Nov 20, 2014.  Use pvp_check_file_header
 int pvp_check_file_header_deprecated(Communicator * comm, const PVLayerLoc * loc, int params[], int numParams)
 {
@@ -775,8 +776,7 @@ int pvp_check_file_header_deprecated(Communicator * comm, const PVLayerLoc * loc
 
    return status;
 } // pvp_check_file_header_deprecated
-
-
+#endif // OBSOLETE // Marked obsolete June 27, 2016.
 
 
 int pvp_read_header(PV_Stream * pvstream, Communicator * comm, int * params, int * numParams) {
@@ -1596,11 +1596,13 @@ int readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numArbors, int 
    
    status = pvp_check_file_header(comm, loc, params, numParams);
    
+#ifdef OBSOLETE // readWeightsDeprecated was marked obsolete Jun 27, 2016.
    // If file header is not compatible, try the old MPI-dependent file format (deprecated on Nov 20, 2014).
    if (status != 0) {
       return readWeightsDeprecated(patches, dataStart, numArbors, numPatches, nxp, nyp, nfp, filename, comm, timed, loc);
    }
-   
+#endif // OBSOLETE // readWeightsDeprecated was marked obsolete Jun 27, 2016.
+
    if (status != 0) {
       pvErrorNoExit().printf("[%2d]: readWeights: failed in pvp_check_file_header, numParams==%d\n",
               comm->commRank(), numParams);
@@ -1740,6 +1742,7 @@ int readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numArbors, int 
    return status;
 }
 
+#ifdef OBSOLETE // Marked obsolete Jun 27, 2016.
 // readWeights was changed on Nov 20, 2014, to read weight files saved in an MPI-independent manner.
 // readWeightsDeprecated is the old version of the file
 int readWeightsDeprecated(PVPatch *** patches, pvwdata_t ** dataStart, int numArbors, int numPatches,
@@ -1977,7 +1980,7 @@ int readWeightsDeprecated(PVPatch *** patches, pvwdata_t ** dataStart, int numAr
    status = pvp_close_file(pvstream, comm)==PV_SUCCESS ? status : PV_FAILURE;
    return status;
 }
-
+#endif // OBSOLETE // Marked obsolete Jun 27, 2016.
 /**
  * @fd
  * @patch

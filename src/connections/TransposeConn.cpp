@@ -177,13 +177,6 @@ void TransposeConn::ioParam_originalConnName(enum ParamsIOFlag ioFlag) {
    parent->ioParamStringRequired(ioFlag, name, "originalConnName", &originalConnName);
 }
 
-#ifdef OBSOLETE // Marked obsolete Mar 20, 2015.  Not used since creating the InitWeights object was taken out of HyPerConn.
-InitWeights * TransposeConn::handleMissingInitWeights(PVParams * params) {
-   // TransposeConn doesn't use InitWeights; it initializes the weight by transposing the initial weights of originalConn
-   return NULL;
-}
-#endif // OBSOLETE // Marked obsolete Mar 20, 2015.  Not used since creating the InitWeights object was taken out of HyPerConn.
-
 int TransposeConn::communicateInitInfo() {
    int status = PV_SUCCESS;
    BaseConnection * originalConnBase = parent->getConnFromName(this->originalConnName);

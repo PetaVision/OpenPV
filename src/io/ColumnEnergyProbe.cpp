@@ -40,7 +40,10 @@ int ColumnEnergyProbe::initializeColumnEnergyProbe(const char * probename, HyPer
 
 int ColumnEnergyProbe::outputHeader() {
    if (outputStream) {
-      output() << "Probe_name,time,index,energy\n";
+      if (!isWritingToFile()) {
+         output() << "Probe_name,"; // lack of \n is deliberate: line is completed immediately below.
+      }
+      output() << "time,index,energy\n";
    }
    return PV_SUCCESS;
 }
@@ -127,16 +130,18 @@ int ColumnEnergyProbe::calcValues(double timevalue) {
 
 int ColumnEnergyProbe::outputState(double timevalue) {
    getValues(timevalue);
-   if( this->getParent()->icCommunicator()->commRank() != 0 ) return PV_SUCCESS;
+   if( this->getParent()->icCommunicator()->commRank() != 0 ) { return PV_SUCCESS; }
+   std::streamsize p_old = output().precision(9);
    pvAssert(outputStream); // Root process should have outputStream defined; non-root process should have outputStream==nullptr
    double * valuesBuffer = getValuesBuffer();
    int nbatch = this->getNumValues();
    for(int b = 0; b < nbatch; b++){
-      if (isWritingToFile()) {
+      if (!isWritingToFile()) {
          output() << "\"" << name <<  "\","; // lack of \n is deliberate: line is completed immediately below.
       }
       output() << timevalue << "," << b << "," << valuesBuffer[b] << "\n";
    }
+   output().precision(p_old);
    output().flush();
    return PV_SUCCESS;
 }  // end ColumnEnergyProbe::outputState(float)

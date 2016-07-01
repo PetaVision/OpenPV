@@ -78,9 +78,7 @@ int main(int argc, char * argv[])
 #endif
 
    // this is the function we're testing...
-   for (int borderId = 1; borderId < NUM_NEIGHBORHOOD; borderId++){
-      l->mirrorInteriorToBorder(borderId, sCube, bCube);
-   }
+   l->mirrorInteriorToBorder(sCube, bCube);
 
 #ifdef DEBUG_PRINT
    // write out extended cube values

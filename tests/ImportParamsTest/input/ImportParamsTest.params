@@ -92,6 +92,7 @@ ImportParamsConn "origConn" = {
     preLayerName = "orig";
     postLayerName = "output";
     channelCode = 0;
+    sharedWeights = true;
     nxp = 7;
     nyp = 7;
     nfp = 1; 

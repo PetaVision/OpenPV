@@ -211,8 +211,7 @@ int Factory::registerCoreKeywords() {
 }
 
 int Factory::copyKeywordHandlerList(std::vector<KeywordHandler*> const& orig) {
-   for (std::vector<KeywordHandler*>::const_iterator iter = orig.begin(); iter < orig.end(); iter++) {
-      KeywordHandler* kh = *iter;
+   for (auto& kh : orig) {
       registerKeyword(kh->getKeyword(), kh->getCreator());
    }
    return PV_SUCCESS;
@@ -234,8 +233,7 @@ BaseObject * Factory::create(char const * keyword, char const * name, HyPerCol *
 }
 
 KeywordHandler const * Factory::getKeywordHandler(char const * keyword) const {
-   for (std::vector<KeywordHandler*>::const_iterator iter = keywordHandlerList.begin(); iter < keywordHandlerList.end(); iter++) {
-      KeywordHandler * typeCreator = *iter;
+   for (auto& typeCreator : keywordHandlerList) {
       if (!strcmp(typeCreator->getKeyword(), keyword)) {
          return typeCreator;
       }
@@ -244,8 +242,8 @@ KeywordHandler const * Factory::getKeywordHandler(char const * keyword) const {
 }
 
 int Factory::clearKeywordHandlerList() {
-   for (std::vector<KeywordHandler*>::const_iterator iter = keywordHandlerList.begin(); iter < keywordHandlerList.end(); iter++) {
-      delete *iter;
+   for (auto& kh : keywordHandlerList) {
+      delete kh;
    }
    keywordHandlerList.clear();
    return PV_SUCCESS;

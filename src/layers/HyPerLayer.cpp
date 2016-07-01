@@ -1554,11 +1554,7 @@ const pvdata_t * HyPerLayer::getLayerData(int delay)
    return (pvdata_t *) store->buffer(0, delay);
 }
 
-/**
- * Copy cube data to the border region while applying boundary conditions
- *   - this implements mirror boundary conditions
- *   - assumes both input PVLayerCubes are of identical size and shape, typically the same struct
- */
+#ifdef OBSOLETE // Marked obsolete June 28, 2016.  When mirroring is done, all borders are mirrored.
 int HyPerLayer::mirrorInteriorToBorder(int whichBorder, PVLayerCube * cube, PVLayerCube * border)
 {
    assert( cube->numItems == border->numItems );
@@ -1588,6 +1584,7 @@ int HyPerLayer::mirrorInteriorToBorder(int whichBorder, PVLayerCube * cube, PVLa
    }
    return status;
 }
+#endif // OBSOLETE // Marked obsolete June 28, 2016.  When mirroring is done, all borders are mirrored.
 
 int HyPerLayer::mirrorInteriorToBorder(PVLayerCube * cube, PVLayerCube * border)
 {
@@ -1904,10 +1901,8 @@ int HyPerLayer::recvAllSynapticInput() {
       //Start CPU timer here
       recvsyn_timer->start();
 
-      for(std::vector<BaseConnection*>::iterator it = recvConns.begin(); it < recvConns.end(); it++){
-         BaseConnection * baseConn = *it;
-         HyPerConn * conn = dynamic_cast<HyPerConn *>(baseConn);
-         assert(conn != NULL);
+      for (auto& conn : recvConns) {
+         pvAssert(conn != NULL);
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
          //Check if it's done with cpu connections
          if(!switchGpu && conn->getReceiveGpu()){
@@ -2035,9 +2030,7 @@ int HyPerLayer::publish(InterColComm* comm, double time)
          (getLastUpdateTime() >= getParent()->simulationTime()) :
          false;
    if ( mirroring) {
-      for (int borderId = 1; borderId < NUM_NEIGHBORHOOD; borderId++){
-         mirrorInteriorToBorder(borderId, clayer->activity, clayer->activity);
-      }
+      mirrorInteriorToBorder(clayer->activity, clayer->activity);
    }
    
    int status = comm->publish(this, clayer->activity);

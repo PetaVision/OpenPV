@@ -78,6 +78,11 @@ protected:
     * and should be called by the initializer of any derived classes.
     */
    int initializeColumnEnergyProbe(const char * probename, HyPerCol * hc);
+
+   /**
+    * Prints column headings, "time,index,energy" to outputStream.
+    * If
+    */
    virtual int outputHeader();
 
    /**

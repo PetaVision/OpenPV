@@ -798,15 +798,6 @@ void HyPerConn::ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag) {
 
 void HyPerConn::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {
    PVParams * params = parent->parameters();
-   // stochasticReleaseFlag deprecated on Aug 22, 2013, and declared obsolete Apr 10, 2015.
-   if (ioFlag==PARAMS_IO_READ && params->present(name, "stochasticReleaseFlag")) {
-      if (parent->columnId()==0) {
-         pvErrorNoExit().printf(" error: parameter stochasticReleaseFlag is obsolete.  Instead, set pvpatchAccumulateType to either \"convolve\" (the default) or \"stochastic\".", getKeyword(), name);
-      }
-      MPI_Barrier(parent->icCommunicator()->communicator());
-      exit(EXIT_FAILURE);
-   }
-
    parent->ioParamString(ioFlag, name, "pvpatchAccumulateType", &pvpatchAccumulateTypeString, "convolve");
    if (ioFlag==PARAMS_IO_READ) {
       if (pvpatchAccumulateTypeString==NULL) {
@@ -932,27 +923,16 @@ void HyPerConn::ioParam_nyp(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "nyp", &nyp, 1);
 }
 
-// nxpShrunken and nypShrunken were deprecated Feb 2, 2015
+// nxpShrunken and nypShrunken were deprecated Feb 2, 2015 and marked obsolete Jun 27, 2016
 void HyPerConn::ioParam_nxpShrunken(enum ParamsIOFlag ioFlag) {
    pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "nxp"));
    if (ioFlag==PARAMS_IO_READ) {
       if (parent->parameters()->present(name, "nxpShrunken")) {
          int nxpShrunken;
          parent->ioParamValue(ioFlag, name, "nxpShrunken", &nxpShrunken, nxp);
-         if (nxpShrunken <= nxp) {
-            nxp = nxpShrunken;
-            if (parent->columnId()==0) {
-               pvWarn().printf("%s \"%s\": nxpShrunken is deprecated, as nxp can now take any of the values nxpShrunken could take before.  nxp will be set to %d and nxpShrunken will not be used.",
-                     getKeyword(), name, nxp);
-            }
-         }
-         else {
-            if (parent->columnId()==0) {
-               pvErrorNoExit(nxpShrunkenError);
-               nxpShrunkenError.printf("%s \"%s\": nxpShrunken is deprecated.  Instead, nxp can take any of the values nxpShrunken could take before.",
-                     getKeyword(), name);
-               nxpShrunkenError.printf("However, setting nxp to %d and nxpShrunken to the larger value %d is probably not what you meant.  Exiting.", nxp, nxpShrunken);
-            }
+         if (parent->columnId()==0) {
+            pvError().printf("%s \"%s\": nxpShrunken is obsolete, as nxp can now take any of the values nxpShrunken could take before.  nxp will be set to %d and nxpShrunken will not be used.",
+                  getKeyword(), name, nxp);
             MPI_Barrier(parent->icCommunicator()->communicator());
             exit(EXIT_FAILURE);
          }
@@ -966,23 +946,12 @@ void HyPerConn::ioParam_nypShrunken(enum ParamsIOFlag ioFlag) {
       if (parent->parameters()->present(name, "nypShrunken")) {
          int nypShrunken;
          parent->ioParamValue(ioFlag, name, "nypShrunken", &nypShrunken, nyp);
-         if (nypShrunken <= nyp) {
-            nyp = nypShrunken;
-            if (parent->columnId()==0) {
-               pvWarn().printf("%s \"%s\": nypShrunken is deprecated, as nyp can now take any of the values nypShrunken could take before.  nyp will be set to %d and nypShrunken will not be used.",
-                     getKeyword(), name, nyp);
-            }
+         if (parent->columnId()==0) {
+            pvWarn().printf("%s \"%s\": nypShrunken is deprecated, as nyp can now take any of the values nypShrunken could take before.  nyp will be set to %d and nypShrunken will not be used.",
+                  getKeyword(), name, nyp);
          }
-         else {
-            if (parent->columnId()==0) {
-               pvErrorNoExit(nypShrunkenError);
-               nypShrunkenError.printf("%s \"%s\": nypShrunken is deprecated.  Instead, nyp can take any of the values nypShrunken could take before.",
-                     getKeyword(), name);
-               nypShrunkenError.printf("However, setting nyp to %d and nypShrunken to the larger value %d is probably not what you meant.  Exiting.", nyp, nypShrunken);
-            }
-            MPI_Barrier(parent->icCommunicator()->communicator());
-            exit(EXIT_FAILURE);
-         }
+         MPI_Barrier(parent->icCommunicator()->communicator());
+         exit(EXIT_FAILURE);
       }
    }
 }

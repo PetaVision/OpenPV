@@ -18,39 +18,6 @@
 
 #undef DEBUG_OUTPUT
 
-// Are copy{To,From}LocBuffer necessary?  Can't we MPI_Bcast loc with count sizeof(locSize) and type MPI_CHAR?
-static void copyToLocBuffer(int buf[], PVLayerLoc * loc)
-{
-   buf[0] = loc->nx;
-   buf[1] = loc->ny;
-   buf[2] = loc->nf;
-   buf[3] = loc->nbatch;
-   buf[4] = loc->nxGlobal;
-   buf[5] = loc->nyGlobal;
-   buf[6] = loc->kx0;
-   buf[7] = loc->ky0;
-   buf[8] = loc->halo.lt;
-   buf[9] = loc->halo.rt;
-   buf[10] = loc->halo.dn;
-   buf[11] = loc->halo.up;
-}
-
-static void copyFromLocBuffer(int buf[], PVLayerLoc * loc)
-{
-   loc->nx       = buf[0];
-   loc->ny       = buf[1];
-   loc->nf       = buf[2];
-   loc->nbatch = buf[3];
-   loc->nxGlobal = buf[4];
-   loc->nyGlobal = buf[5];
-   loc->kx0      = buf[6];
-   loc->ky0      = buf[7];
-   loc->halo.lt  = buf[8];
-   loc->halo.rt  = buf[9];
-   loc->halo.dn  = buf[10];
-   loc->halo.up  = buf[11];
-}
-
 int getFileType(const char * filename)
 {
    const char * ext = strrchr(filename, '.');
@@ -86,12 +53,7 @@ int getFileType(const char * filename)
 
 int getImageInfoPVP(const char * filename, PV::Communicator * comm, PVLayerLoc * loc)
 {
-   // const int locSize = sizeof(PVLayerLoc) / sizeof(int);
-   // int locBuf[locSize];
    int status = 0;
-
-   // LayerLoc should contain 12 ints
-   //assert(sizeof(PVLayerLoc) / sizeof(int) == 12);
 
    const int icCol = comm->commColumn();
    const int icRow = comm->commRow();
@@ -111,12 +73,9 @@ int getImageInfoPVP(const char * filename, PV::Communicator * comm, PVLayerLoc *
    PV::PV_fclose(pvstream); pvstream = NULL;
 
    assert(numParams == NUM_PAR_BYTE_PARAMS);
-   //assert(params[INDEX_FILE_TYPE] == PVP_NONSPIKING_ACT_FILE_TYPE);
 
    const int dataSize = params[INDEX_DATA_SIZE];
    const int dataType = params[INDEX_DATA_TYPE];
-
-   //assert( (dataType == PV_BYTE_TYPE && dataSize == 1) || (dataType == PV_FLOAT_TYPE && dataSize == 4));
 
    loc->nx       = params[INDEX_NX];
    loc->ny       = params[INDEX_NY];
@@ -124,7 +83,6 @@ int getImageInfoPVP(const char * filename, PV::Communicator * comm, PVLayerLoc *
    loc->nyGlobal = params[INDEX_NY_GLOBAL];
    loc->kx0      = params[INDEX_KX0];
    loc->ky0      = params[INDEX_KY0];
-   //loc->nb       = params[INDEX_NB];
    loc->nf       = params[INDEX_NF];
 
    loc->kx0 = loc->nx * icCol;

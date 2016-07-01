@@ -6,7 +6,7 @@
  */
 
 #include "Patterns.hpp"
-#include "../include/pv_common.h"  // for PI
+#include "include/pv_common.h"  // for PI
 
 #define PATTERNS_MAXVAL  1.0f
 #define PATTERNS_MINVAL  0.0f
@@ -791,8 +791,8 @@ int Patterns::drawDrops() {
    //Max radius at corner of screen
    float max_radius = sqrt(nxgl * nxgl + nygl * nygl);
 
-   //Using iterators to iterate while removing from loop
-   for(std::vector<Drop>::iterator dropIt = vDrops.begin(); dropIt < vDrops.end(); dropIt++){
+   //Upate radius, removing from loop if radius goes out of range.
+   for(auto dropIt = vDrops.begin(); dropIt < vDrops.end(); dropIt++){
       //Update radius
       dropIt->radius += dropIt->speed;
       //If no longer in the frame either in or out
@@ -800,6 +800,7 @@ int Patterns::drawDrops() {
 
          //Erase from vector, erase returns next iterator object
          dropIt = vDrops.erase(dropIt);
+         dropIt--; // Otherwise, the increment in for-statement would skip over next element
       }
    }
 
@@ -873,15 +874,15 @@ int Patterns::drawDrops() {
    }
 
    //Draw circle
-   for(int i = 0; i < (int)vDrops.size(); i++){
-      double delta_theta = fabs(atan(0.1/(double) vDrops[i].radius));
+   for (auto& drop : vDrops) {
+      double delta_theta = fabs(atan(0.1/(double) drop.radius));
       for (double theta = 0; theta < 2*PI; theta += delta_theta){
-         int ix = (int)(round(getOffsetX(this->offsetAnchor, this->offsets[0]) + vDrops[i].centerX + vDrops[i].radius * cos(theta)));
-         int iy = (int)(round(getOffsetY(this->offsetAnchor, this->offsets[1]) + vDrops[i].centerY + vDrops[i].radius * sin(theta)));
+         int ix = (int)(round(getOffsetX(this->offsetAnchor, this->offsets[0]) + drop.centerX + drop.radius * cos(theta)));
+         int iy = (int)(round(getOffsetY(this->offsetAnchor, this->offsets[1]) + drop.centerY + drop.radius * sin(theta)));
          //Check edge bounds based on nx/ny size
          if(ix < nx + kx0 && iy < ny + ky0 && ix >= kx0 && iy >= ky0){
             //Random either on circle or off circle
-            if(vDrops[i].on){
+            if(drop.on){
                data[(ix - kx0) * sx + (iy - ky0) * sy] = maxVal;
             }
             else{
@@ -889,7 +890,7 @@ int Patterns::drawDrops() {
             }
          }
       }
-   }//End radius for loop
+   }//End vDrops for loop
    return status;
 }
 
@@ -1168,8 +1169,8 @@ int Patterns::checkpointWrite(const char * cpDir) {
          status = PV_fwrite(&xPos, sizeof(int), 1, pvstream) == 1 ? status : PV_FAILURE;
          status = PV_fwrite(&yPos, sizeof(int), 1, pvstream) == 1 ? status : PV_FAILURE;
          status = PV_fwrite(&size, sizeof(int), 1, pvstream) == 1 ? status : PV_FAILURE;
-         for (int k=0; k<size; k++) {
-            status = PV_fwrite(&vDrops[k], sizeof(Drop), 1, pvstream) == 1 ? status : PV_FAILURE;
+         for (auto& drop : vDrops) {
+            status = PV_fwrite(&drop, sizeof(Drop), 1, pvstream) == 1 ? status : PV_FAILURE;
          }
          PV_fclose(pvstream);
       }

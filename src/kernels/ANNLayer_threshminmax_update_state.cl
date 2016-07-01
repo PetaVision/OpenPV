@@ -1,5 +1,9 @@
-#include <layers/updateStateFunctions.h>
-#include "CPTest_updateStateFunctions.h"
+/* ANNLayer_threshminmax_update_state.cl
+ * Created on: Jun 28, 2016
+ *    Author: pschultz
+ */
+ 
+#include "layers/updateStateFunctions.h"
 
 #ifndef PV_USE_OPENCL
 #  define CL_KERNEL
@@ -14,15 +18,16 @@
 //#  include "conversions.hcl"
 #endif
 
+
 //
-// update the state of a CPTestInputLayer
+// update the state of an ANN layer
 //
 // To allow porting to GPUs, functions called from this function must be
 // static inline functions.  If a subclass needs new behavior, it needs to
 // have its own static inline function.
 //
 CL_KERNEL
-void CPTestInputLayer_update_state(
+void ANNLayer_threshminmax_update_state(
     const int nbatch,
     const int numNeurons,
     const int nx,
@@ -34,15 +39,14 @@ void CPTestInputLayer_update_state(
     const int up,
 
     CL_MEM_GLOBAL float * V,
-    const float Vth,
-    const float AMin,
-    const float AMax,
+    float VThresh,
+    float AMin,
+    float AMax,
+    float AShift,
+    float VWidth,
+    int num_channels,
     CL_MEM_GLOBAL float * GSynHead,
-//    CL_MEM_GLOBAL float * GSynExc,
-//    CL_MEM_GLOBAL float * GSynInh,
     CL_MEM_GLOBAL float * activity)
 {
-   updateV_CPTestInputLayer(nbatch, numNeurons, V);
-   setActivity_HyPerLayer(nbatch, numNeurons, activity, V, nx, ny, nf, lt, rt, dn, up);
-   resetGSynBuffers_HyPerLayer(nbatch, numNeurons, 2, GSynHead);
+   updateV_ANNLayer_threshminmax(nbatch, numNeurons, V, num_channels, GSynHead, activity, VThresh, AMin, AMax, AShift, VWidth, nx, ny, nf, lt, rt, dn, up);
 }

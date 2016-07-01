@@ -272,18 +272,6 @@ HyPerLayer * CoreParamGroupHandler::createLayer(char const * keyword, char const
    else if( !strcmp(keyword, "ANNSquaredLayer") ) {
       addedLayer = new ANNSquaredLayer(name, hc);
    }
-      if( !strcmp(keyword, "ANNTriggerUpdateOnNewImageLayer") ) {
-         // ANNTriggerUpdateOnNewImageLayer is obsolete as of April 23, 2014.  Leaving it in the code for a while for a useful error message.
-         // Use ANNLayer with triggerFlag set to true and triggerLayerName for the triggering layer
-         if (hc->columnId()==0) {
-            pvErrorNoExit(errorMessage);
-            errorMessage.printf("ANNTriggerUpdateOnNewImageLayer is obsolete.\n");
-            errorMessage.printf("    Use ANNLayer with parameter triggerFlag set to true\n");
-            errorMessage.printf("    and triggerLayerName set to the triggering layer.\n");
-         }
-         MPI_Barrier(hc->icCommunicator()->communicator());
-         exit(EXIT_FAILURE);
-      }
    else if( !strcmp(keyword, "ANNWhitenedLayer") ) {
       addedLayer = new ANNWhitenedLayer(name, hc);
    }
@@ -414,7 +402,7 @@ BaseConnection * CoreParamGroupHandler::createConnection(char const * keyword, c
       addedConnection = new CloneConn(name, hc);
    }
    else if( !strcmp(keyword, "CloneKernelConn") ) {
-      // Deprecated as of June 6, 2014.  Use CloneConn with sharedWeight = true
+      // Deprecated as of June 6, 2014 and obsolete as of June 27, 2016.  Use CloneConn with sharedWeight = true
       addedConnection = new CloneKernelConn(name, hc);
    }
    else if( !strcmp(keyword, "CopyConn") ) {
@@ -433,7 +421,7 @@ BaseConnection * CoreParamGroupHandler::createConnection(char const * keyword, c
       addedConnection = new ImprintConn(name, hc, weightInitializer, weightNormalizer);
    }
    else if( !strcmp(keyword, "KernelConn") ) {
-      // Deprecated as of June 5, 2014.  Use HyPerConn with sharedWeight = true
+      // Deprecated as of June 5, 2014 and obsolete as of June 27, 2016.  Use HyPerConn with sharedWeight = true
       addedConnection = new KernelConn(name, hc, weightInitializer, weightNormalizer);
    }
    else if( !strcmp(keyword, "MomentumConn") ) {

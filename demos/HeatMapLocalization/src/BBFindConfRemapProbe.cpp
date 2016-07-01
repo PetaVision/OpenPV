@@ -348,8 +348,7 @@ int BBFindConfRemapProbe::outputState(double timevalue) {
          if (nbatch>1) {
             getOutputStream()->printf("  Batch element %d\n", b);
          }
-         for(std::vector<LocalizationData>::iterator it = detectionS[b].begin(); it < detectionS[b].end(); it++){
-            LocalizationData const& L = *it;
+         for (auto const& L : detectionS[b]) {
             getOutputStream()->printf("Time %f, ", timevalue);
             if (nbatch>1) { getOutputStream()->printf("batch element %d, ", b); }
             getOutputStream()->printf("\"%s\", score %f, bounding box x=[%d,%d), y=[%d,%d)\n",

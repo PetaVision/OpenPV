@@ -17,7 +17,6 @@ class CloneKernelConn : public CloneConn {
 public:
    CloneKernelConn(const char * name, HyPerCol * hc);
    virtual ~CloneKernelConn();
-   virtual int communicateInitInfo();
 
 protected:
    CloneKernelConn();

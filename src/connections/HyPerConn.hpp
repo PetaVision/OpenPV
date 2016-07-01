@@ -591,9 +591,9 @@ protected:
     * It is not called by the default HyPerConn constructor.
     */
    int initialize(char const * name, HyPerCol * hc);
-   virtual int setWeightInitializer(); // Deprecated Feb 9, 2015; the preferred way of specifying the weight initialization is by passing an InitWeights argument to the constructor.
-   virtual InitWeights * createInitWeightsObject(const char * weightInitTypeStr); // Deprecated Feb 9, 2015.
-   int setWeightNormalizer(); // Included Feb 17, 2015 for backward compatibility only.  The preferred way of specifying the normalizer is by passing a NormalizeBase argument to the constructor.
+   virtual int setWeightInitializer(); // Note: no longer deprecated.
+   virtual InitWeights * createInitWeightsObject(const char * weightInitTypeStr);
+   int setWeightNormalizer(); // Note: no longer deprecated.
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
    /** 
@@ -753,14 +753,14 @@ protected:
    virtual void ioParam_nyp(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief nxpShrunken: Specifies a shrunken patch size (deprecated)
+    * @brief nxpShrunken: Specifies a shrunken patch size (obsolete)
     */
-   virtual void ioParam_nxpShrunken(enum ParamsIOFlag ioFlag); // Deprecated Feb 2, 2015
+   virtual void ioParam_nxpShrunken(enum ParamsIOFlag ioFlag); // Marked obsolete Jun 27, 2016
 
    /**
-    * @brief nypShrunken: Specifies a shrunken patch size (deprecated)
+    * @brief nypShrunken: Specifies a shrunken patch size (obsolete)
     */
-   virtual void ioParam_nypShrunken(enum ParamsIOFlag ioFlag); // Deprecated Feb 2, 2015
+   virtual void ioParam_nypShrunken(enum ParamsIOFlag ioFlag); // Marked obsolete Jun 27, 2016
 
    /**
     * @brief nfp: Specifies the post feature patch size
@@ -884,9 +884,6 @@ protected:
    virtual void handleDefaultSelfFlag(); // If selfFlag was not set in params, set it in this function.
    virtual PVPatch*** initializeWeights(PVPatch*** arbors, pvwdata_t** dataStart);
    virtual InitWeights* getDefaultInitWeightsMethod(const char* keyword);
-#ifdef OBSOLETE // Marked obsolete Mar 20, 2015.  Not used since creating the InitWeights object was taken out of HyPerConn.
-   virtual InitWeights* handleMissingInitWeights(PVParams* params);
-#endif // OBSOLETE // Marked obsolete Mar 20, 2015.  Not used since creating the InitWeights object was taken out of HyPerConn.
    virtual int createWeights(PVPatch*** patches, int nWeightPatches, int nDataPatches, int nxPatch,
          int nyPatch, int nfPatch, int arborId);
    int createWeights(PVPatch*** patches, int arborId);

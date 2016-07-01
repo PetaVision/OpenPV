@@ -89,9 +89,6 @@ protected:
     virtual void ioParam_originalConnName(enum ParamsIOFlag ioFlag);
     virtual int setPatchSize();
     virtual int setNeededRNGSeeds() {return 0;}
-#ifdef OBSOLETE // Marked obsolete Mar 20, 2015.  Not used since creating the InitWeights object was taken out of HyPerConn.
-    virtual InitWeights * handleMissingInitWeights(PVParams * params);
-#endif // OBSOLETE // Marked obsolete Mar 20, 2015.  Not used since creating the InitWeights object was taken out of HyPerConn.
     virtual int setInitialValues();
     virtual PVPatch *** initializeWeights(PVPatch *** arbors, pvwdata_t ** dataStart);
     //int transpose(int arborId);

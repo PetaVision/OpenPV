@@ -208,7 +208,6 @@ int HyPerCol::initialize_base() {
    changeTimeScaleMax = 1.0;
    changeTimeScaleMin = 0.0;
    dtMinToleratedTimeScale = 1.0e-4;
-   // progressStep = 1L; // deprecated Dec 18, 2013
    progressInterval = 1.0;
    writeProgressToErr = false;
    origStdOut = -1;
@@ -902,13 +901,14 @@ void HyPerCol::ioParam_stopTime(enum ParamsIOFlag ioFlag) {
       long int numSteps = params->value(name, "numSteps");
       stopTime = startTime + numSteps * deltaTimeBase;
       if (globalRank()==0) {
-         pvWarn() << "numSteps is deprecated.  Use startTime, stopTime and dt instead.\n" <<
+         pvError() << "numSteps is obsolete.  Use startTime, stopTime and dt instead.\n" <<
                "    stopTime set to " << stopTime << "\n";
       }
-      return;
+      MPI_Barrier(icCommunicator()->communicator());
+      exit(EXIT_FAILURE);
    }
-   // numSteps was deprecated Dec 12, 2013
-   // When support for numSteps is removed entirely, remove the above if-statement and keep the ioParamValue call below.
+   // numSteps was deprecated Dec 12, 2013 and marked obsolete Jun 27, 2016
+   // After a reasonable fade time, remove the above if-statement and keep the ioParamValue call below.
    ioParamValue(ioFlag, name, "stopTime", &stopTime, stopTime);
 }
 
@@ -917,13 +917,13 @@ void HyPerCol::ioParam_progressInterval(enum ParamsIOFlag ioFlag) {
       long int progressStep = (long int) params->value(name, "progressStep");
       progressInterval = progressStep/deltaTimeBase;
       if (globalRank()==0) {
-         pvWarn() << "progressStep is deprecated.  Use progressInterval instead.\n" <<
-               "    progressInterval set to " << progressInterval << "\n";
+         pvError() << "progressStep is obsolete.  Use progressInterval instead.\n";
       }
-      return;
+      MPI_Barrier(icCommunicator()->communicator());
+      exit(EXIT_FAILURE);
    }
    // progressStep was deprecated Dec 18, 2013
-   // When support for progressStep is removed entirely, remove the above if-statement and keep the ioParamValue call below.
+   // After a reasonable fade time, remove the above if-statement and keep the ioParamValue call below.
    ioParamValue(ioFlag, name, "progressInterval", &progressInterval, progressInterval);
 }
 
@@ -2443,8 +2443,7 @@ int HyPerCol::advanceTime(double sim_time)
 
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
       //Run non gpu layers
-      for(std::vector<HyPerLayer*>::iterator it = recvLayerBuffer.begin(); it < recvLayerBuffer.end(); it++){
-         HyPerLayer * layer = *it;
+      for (auto& layer : recvLayerBuffer) {
          layer->resetGSynBuffers(simTime, deltaTimeBase);  // deltaTimeAdapt is not used 
          phaseRecvTimers[phase]->start();
          layer->recvAllSynapticInput();
@@ -2463,8 +2462,7 @@ int HyPerCol::advanceTime(double sim_time)
       getDevice()->syncDevice();
 
       //Update for non gpu recv and gpu update
-      for(std::vector<HyPerLayer*>::iterator it = updateLayerBufferGpu.begin(); it < updateLayerBufferGpu.end(); it++){
-         HyPerLayer * layer = *it;
+      for(auto& layer : updateLayerBufferGpu) {
          status = layer->updateStateWrapper(simTime, deltaTimeBase);
          if (!exitAfterUpdate) {
             exitAfterUpdate = status == PV_EXIT_NORMALLY;
@@ -2484,8 +2482,7 @@ int HyPerCol::advanceTime(double sim_time)
       }
 
       //Update for gpu recv and non gpu update
-      for(std::vector<HyPerLayer*>::iterator it = updateLayerBuffer.begin(); it < updateLayerBuffer.end(); it++){
-         HyPerLayer * layer = *it;
+      for (auto& layer : updateLayerBuffer) {
          status = layer->updateStateWrapper(simTime, deltaTimeBase);
          if (!exitAfterUpdate) {
             exitAfterUpdate = status == PV_EXIT_NORMALLY;
@@ -3038,7 +3035,7 @@ int HyPerCol::outputParams(char const * path) {
       //Lua file output
       outputParamsHeadComments(luaPrintParamsStream->fp, "--");
       //Load util module based on PVPath
-      fprintf(luaPrintParamsStream->fp, "package.path = package.path .. \";\" .. \"" PV_DIR "/parameterWrapper/?.lua\"\n");
+      fprintf(luaPrintParamsStream->fp, "package.path = package.path .. \";\" .. \"" PV_DIR "/../parameterWrapper/?.lua\"\n");
       fprintf(luaPrintParamsStream->fp, "local pv = require \"PVModule\"\n\n");
       fprintf(luaPrintParamsStream->fp, "-- Base table variable to store\n"); 
       fprintf(luaPrintParamsStream->fp, "local pvParameters = {\n"); 
@@ -3228,9 +3225,8 @@ int HyPerCol::getAutoGPUDevice(){
       }
 
       //Determine what gpus to use per mpi
-      for(std::map<std::string, std::vector<int> >::const_iterator m_it = hostMap.begin();
-            m_it != hostMap.end(); ++m_it){
-         std::vector<int> rankVec = m_it->second;
+      for (auto& host : hostMap) {
+         std::vector<int> rankVec = host.second;
          int numRanksPerHost = rankVec.size();
          assert(numRanksPerHost > 0);
          //Grab maxGpus of current host
@@ -3238,7 +3234,7 @@ int HyPerCol::getAutoGPUDevice(){
          //Warnings for overloading/underloading gpus
          if(numRanksPerHost != maxGpus){
             pvWarn(assignGpuWarning);
-            assignGpuWarning.printf("HyPerCol::getAutoGPUDevice: Host \"%s\" (rank[s] ", m_it->first.c_str());
+            assignGpuWarning.printf("HyPerCol::getAutoGPUDevice: Host \"%s\" (rank[s] ", host.first.c_str());
             for(int v_i = 0; v_i < numRanksPerHost; v_i++){
                if(v_i != numRanksPerHost-1){
                   assignGpuWarning.printf("%d, ", rankVec[v_i]);
@@ -3305,9 +3301,9 @@ int HyPerCol::initializeThreads(char const * in_device)
       //Grabs strings from ss into item, seperated by commas
       while(std::getline(ss, stoken, ',')){
          //Convert stoken to integer
-         for(std::string::const_iterator k = stoken.begin(); k != stoken.end(); ++k){
-            if(!isdigit(*k)){
-               pvError().printf("Device specification error: %s contains unrecognized characters. Must be comma seperated integers greater or equal to 0 with no other characters allowed (including spaces).\n", in_device);
+         for(auto& ch : stoken) {
+            if(!isdigit(ch)) {
+               pvError().printf("Device specification error: %s contains unrecognized characters. Must be comma separated integers greater or equal to 0 with no other characters allowed (including spaces).\n", in_device);
             }
          }
          deviceVec.push_back(atoi(stoken.c_str()));

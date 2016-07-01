@@ -448,7 +448,9 @@ public:
    int resetBuffer(pvdata_t * buf, int numItems);
 
    static bool localDimensionsEqual(PVLayerLoc const * loc1, PVLayerLoc const * loc2);
+#ifdef OBSOLETE // Marked obsolete June 28, 2016.  When mirroring is done, all borders are mirrored.
    int mirrorInteriorToBorder(int whichBorder, PVLayerCube * cube, PVLayerCube * borderCube);
+#endif // OBSOLETE // Marked obsolete June 28, 2016.  When mirroring is done, all borders are mirrored.
    int mirrorInteriorToBorder(PVLayerCube * cube, PVLayerCube * borderCube);
 
    virtual int checkpointRead(const char * cpDir, double * timeptr); // (const char * cpDir, double * timed);
