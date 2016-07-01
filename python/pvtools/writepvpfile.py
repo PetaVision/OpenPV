@@ -223,13 +223,21 @@ def writepvpfile(filename, data, shape=None, useExistingHeader=False):
                 #Write time first, followed by count, followed by values
                 stream.write(data["time"][dataFrame])
                 stream.write(np.uint32(count))
-                for i in range(count):
-                    stream.write(np.uint32(index[i]))
-                    stream.write(np.float32(value[i]))
+                npOut = np.zeros((count, 2)).astype(np.uint32)
+                npOut[:, 0] = np.uint32(index)
+                npOut[:, 1] = np.float32(value).view(np.uint32)
+                stream.write(npOut.flatten())
+
+                #for i in range(count):
+                #    stream.write(np.uint32(index[i]))
+                #    stream.write(np.float32(value[i]))
 
 if __name__ == "__main__":
     data = {}
-    values = np.ones((2, 10))
+    values = np.zeros((2, 10))
+    values[1, 3] = .2312
+    values[0, 5] = .5342
+    print values
     data["values"] = sp.coo_matrix(values)
     data["time"] = range(2)
     writepvpfile("test.pvp", data, shape=(2, 5, 1))
