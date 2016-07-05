@@ -4,3 +4,4 @@ from .readpvpheader import readpvpheader
 from .writepvpfile import writepvpfile
 #from .pv_object import PV_Object
 from .display import view
+from .pvpFile import pvpOpen
