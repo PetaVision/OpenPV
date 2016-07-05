@@ -8,9 +8,9 @@ MovieTestLayer::MovieTestLayer(const char * name, HyPerCol * hc) {
    Movie::initialize(name, hc);
 }
 
-int MovieTestLayer::updateStateWrapper(double time, double dt)
+int MovieTestLayer::callUpdateState(double time, double dt)
 {
-   Movie::updateStateWrapper(time, dt);
+   Movie::callUpdateState(time, dt);
    const PVLayerLoc * loc = getLayerLoc();
    int nx = loc->nx;
    int ny = loc->ny;

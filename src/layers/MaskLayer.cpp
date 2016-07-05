@@ -150,8 +150,12 @@ int MaskLayer::communicateInitInfo() {
 int MaskLayer::updateState(double time, double dt)
 {
    ANNLayer::updateState(time, dt);
-   const PVLayerLoc * loc = getLayerLoc();
-   pvdata_t * A = getActivity();
+
+   pvdata_t * A = getCLayer()->activity->data;
+   pvdata_t * V = getV();
+   int num_channels = getNumChannels();
+   pvdata_t * gSynHead = GSyn == NULL ? NULL : GSyn[0];
+   const PVLayerLoc *loc = getLayerLoc();
 
    int nx = loc->nx;
    int ny = loc->ny;
@@ -195,9 +199,9 @@ int MaskLayer::updateState(double time, double dt)
                   kMaskRes = ni;
                }
                int kMaskExt = kIndexExtended(kMaskRes, nx, ny, maskLoc->nf, maskLoc->halo.lt, maskLoc->halo.rt, maskLoc->halo.dn, maskLoc->halo.up);
-               maskVal = maskActivityBatch[kMaskExt];
-               break;
+               maskVal = maskActivityBatch[kMaskExt]; 
             }
+            break;
             case METHOD_INVERT_LAYER:
             {
                const PVLayerLoc * maskLoc = maskLayer->getLayerLoc();
@@ -214,8 +218,8 @@ int MaskLayer::updateState(double time, double dt)
                if(maskActivityBatch[kMaskExt]){
                    maskVal = 0;
                }
-               break;
             }
+            break;
             case METHOD_FEATURES:
             {
                //Calculate feature index of ni
@@ -227,8 +231,8 @@ int MaskLayer::updateState(double time, double dt)
                      break;
                   }
                }
-               break;
             }
+            break;
             case METHOD_INVERT_FEATURES: 
             {
                //Calculate feature index of ni
@@ -240,8 +244,9 @@ int MaskLayer::updateState(double time, double dt)
                      break;
                   }
                }
-               break;
             }
+            break;
+            default: break;
          }
 
          //Set value to 0, otherwise, updateState from ANNLayer should have taken care of it

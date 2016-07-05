@@ -6,9 +6,9 @@ MoviePvpTestLayer::MoviePvpTestLayer(const char * name, HyPerCol * hc) {
    MoviePvp::initialize(name, hc);
 }
 
-int MoviePvpTestLayer::updateStateWrapper(double time, double dt)
+int MoviePvpTestLayer::callUpdateState(double time, double dt)
 {
-   MoviePvp::updateStateWrapper(time, dt);
+   MoviePvp::callUpdateState(time, dt);
    const PVLayerLoc * loc = getLayerLoc();
    int nx = loc->nx;
    int ny = loc->ny;

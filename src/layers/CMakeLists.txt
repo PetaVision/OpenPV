@@ -1,7 +1,6 @@
 set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/ANNErrorLayer.cpp
    ${SUBDIR}/ANNLayer.cpp
-   ${SUBDIR}/ANNNormalizedErrorLayer.cpp
    ${SUBDIR}/ANNSquaredLayer.cpp
    ${SUBDIR}/ANNWhitenedLayer.cpp
    ${SUBDIR}/BackgroundLayer.cpp
@@ -48,7 +47,6 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
 set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/ANNErrorLayer.hpp
    ${SUBDIR}/ANNLayer.hpp
-   ${SUBDIR}/ANNNormalizedErrorLayer.hpp
    ${SUBDIR}/ANNSquaredLayer.hpp
    ${SUBDIR}/ANNWhitenedLayer.hpp
    ${SUBDIR}/BackgroundLayer.hpp

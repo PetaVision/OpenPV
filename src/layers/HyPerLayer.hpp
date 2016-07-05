@@ -312,7 +312,7 @@ protected:
     * (as opposed to being triggered when triggerBehavior is resetStateOnTrigger).
     * It calls either updateState or updateStateGPU.  It also starts and stops the update timer.
     */
-   virtual int callUpdateState(double timed, double dt);
+   //virtual int callUpdateState(double timed, double dt);
    
    /**
     * Returns true if the trigger behavior is resetStateOnTrigger and the layer was triggered.
@@ -397,11 +397,11 @@ public:
    virtual int recvAllSynapticInput(); // Calls recvSynapticInput for each conn and each arborID
 
    //An updateState wrapper that determines if updateState needs to be called
-   virtual int updateStateWrapper (double time, double dt);
-   virtual int updateState (double time, double dt);
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
-   virtual int updateStateGpu (double time, double dt);
-#endif
+   int callUpdateState(double time, double dt);
+   //virtual int updateState (double time, double dt);
+//#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+   //virtual int updateStateGpu (double time, double dt);
+//#endif
    /**
     * A virtual function to determine if callUpdateState method needs to be called
     * Default behavior is dependent on the triggering method.
@@ -540,11 +540,9 @@ protected:
 
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    virtual int runUpdateKernel();
-   virtual int doUpdateStateGpu(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A,
-         pvdata_t * V, int num_channels, pvdata_t * GSynHead);
+   virtual int updateStateGpu(double timef, double dt);
 #endif
-   virtual int doUpdateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A,
-         pvdata_t * V, int num_channels, pvdata_t * GSynHead);
+   virtual int updateState(double timef, double dt);
    virtual int setActivity();
    void freeChannels();
 

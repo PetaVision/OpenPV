@@ -12,7 +12,6 @@
 
 #include <layers/ANNErrorLayer.hpp>
 #include <layers/ANNLayer.hpp>
-#include <layers/ANNNormalizedErrorLayer.hpp>
 #include <layers/ANNSquaredLayer.hpp>
 #include <layers/ANNWhitenedLayer.hpp>
 #include <layers/BackgroundLayer.hpp>
@@ -121,7 +120,6 @@ int Factory::registerCoreKeywords() {
 
    registerKeyword("ANNErrorLayer", createANNErrorLayer);
    registerKeyword("ANNLayer", createANNLayer);
-   registerKeyword("ANNNormalizedErrorLayer", createANNNormalizedErrorLayer);
    registerKeyword("ANNSquaredLayer", createANNSquaredLayer);
    registerKeyword("ANNWhitenedLayer", createANNWhitenedLayer);
    registerKeyword("BackgroundLayer", createBackgroundLayer);
