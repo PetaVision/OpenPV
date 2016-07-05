@@ -59,19 +59,29 @@ int applyGSyn_HyPerLayer(int nbatch, int numNeurons,
 KERNEL
 int applyGSyn_LabelErrorLayer(int nbatch, int numNeurons,
       MEM_GLOBAL pvdata_t * V, MEM_GLOBAL pvdata_t * GSynHead, int nx, int ny, int nf, int lt, int rt, int dn, int up, int isBinary);
+
 KERNEL
-int updateV_PtwiseLinearTransferLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
+int updateV_ANNLayer_vertices(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
       int num_channels, MEM_GLOBAL pvdata_t * GSynHead, MEM_GLOBAL pvdata_t * activity,
       int numVertices, float * verticesV, float * verticesA, float * slopes,
       int nx, int ny, int nf, int lt, int rt, int dn, int up);
 
-#ifdef OBSOLETE // Marked obsolete July 27, 2015.  Use updateV_PtwiseLinearTransferLayer() instead.
+// updateV_PtwiseLinearTransferLayer was deprecated Jun 28, 2016, along with the PtwiseLinearTransferLayer class.
+// Use ANNLayer with verticesA/verticesV/slopeNegInf/slopePosInf, and updateV_ANNLayer_vertices instead.
 KERNEL
-int updateV_ANNLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
+int updateV_PtwiseLinearTransferLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
+      int num_channels, MEM_GLOBAL pvdata_t * GSynHead, MEM_GLOBAL pvdata_t * activity,
+      int numVertices, float * verticesV, float * verticesA, float * slopes,
+      int nx, int ny, int nf, int lt, int rt, int dn, int up) {
+   return updateV_ANNLayer_vertices(nbatch, numNeurons, V, num_channels,
+         GSynHead, activity, numVertices, verticesV, verticesA, slopes, nx, ny, nf, lt, rt, dn, up);
+}
+
+KERNEL
+int updateV_ANNLayer_threshminmax(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
       int num_channels, MEM_GLOBAL pvdata_t * GSynHead, MEM_GLOBAL float * activity,
-      pvdata_t AMax, pvdata_t AMin, pvdata_t VThresh, pvdata_t AShift, pvdata_t VWidth, int nx,
+      pvdata_t VThresh, pvdata_t AMin, pvdata_t AMax, pvdata_t AShift, pvdata_t VWidth, int nx,
       int ny, int nf, int lt, int rt, int dn, int up);
-#endif // OBSOLETE // Marked obsolete July 27, 2015.  Use updateV_PtwiseLinearTransferLayer() instead.
 KERNEL
 int updateV_ANNErrorLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
       MEM_GLOBAL pvdata_t * GSynHead, MEM_GLOBAL pvdata_t * activity,
@@ -156,17 +166,15 @@ KERNEL
 int updateV_GapLayer();
 KERNEL
 int updateV_SigmoidLayer();
-#ifdef OBSOLETE // Marked obsolete July 28, 2015.  Use setActivity_PtwiseLinearTransferLayer instead of applyVThresh_ANNLayer and applyVMax_ANNLayer
 KERNEL
-int applyVMax_ANNLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
+int applyVMax_ANNLayer_threshminmax(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
       pvdata_t AMax, MEM_GLOBAL pvdata_t * activity, int nx, int ny,
       int nf, int lt, int rt, int dn, int up);
 KERNEL
-int applyVThresh_ANNLayer(int nbatch, int numNeurons,
+int applyVThresh_ANNLayer_threshminmax(int nbatch, int numNeurons,
       MEM_GLOBAL pvdata_t * V, pvdata_t AMin, pvdata_t VThresh,
       pvdata_t AShift, pvdata_t VWidth, MEM_GLOBAL pvdata_t * activity, int nx, int ny,
       int nf, int lt, int rt, int dn, int up);
-#endif // OBSOLETE // Marked obsolete July 28, 2015.  Use setActivity_PtwiseLinearTransferLayer instead of applyVThresh_ANNLayer and applyVMax_ANNLayer
 KERNEL
 int applyVThresh_ANNErrorLayer(int nbatch, int numNeurons,
       MEM_GLOBAL pvdata_t * V, pvdata_t AMin, pvdata_t VThresh,
@@ -623,7 +631,7 @@ int applyGSyn_ANNWhitenedLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t *
 }
 
 KERNEL
-int updateV_PtwiseLinearTransferLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
+int updateV_ANNLayer_vertices(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
         int num_channels, MEM_GLOBAL pvdata_t * GSynHead, MEM_GLOBAL pvdata_t * activity,
         int numVertices, float * verticesV, float * verticesA, float * slopes,
         int nx, int ny, int nf, int lt, int rt, int dn, int up)
@@ -641,26 +649,22 @@ int updateV_PtwiseLinearTransferLayer(int nbatch, int numNeurons, MEM_GLOBAL pvd
    return status;
 }
 
-#ifdef OBSOLETE // Marked obsolete July 27, 2015.  Use updateV_PtwiseLinearTransferLayer() instead.
 KERNEL
-int updateV_ANNLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
+int updateV_ANNLayer_threshminmax(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
         int num_channels, MEM_GLOBAL pvdata_t * GSynHead, MEM_GLOBAL float * activity,
-        pvdata_t AMax, pvdata_t AMin, pvdata_t VThresh, pvdata_t AShift, pvdata_t VWidth, int nx,
+        pvdata_t VThresh, pvdata_t AMin, pvdata_t AMax, pvdata_t AShift, pvdata_t VWidth, int nx,
         int ny, int nf, int lt, int rt, int dn, int up) {
-   int status;
    if (num_channels==1) {
-      status = applyGSyn_HyPerLayer1Channel(nbatch, numNeurons, V, GSynHead);
+      applyGSyn_HyPerLayer1Channel(nbatch, numNeurons, V, GSynHead);
    }
    else {
-      status = applyGSyn_HyPerLayer(nbatch, numNeurons, V, GSynHead);
+      applyGSyn_HyPerLayer(nbatch, numNeurons, V, GSynHead);
    }
-   if(status == PV_SUCCESS) status = setActivity_HyPerLayer(nbatch, numNeurons, activity, V, nx, ny, nf, lt, rt, dn, up);
-   if( status == PV_SUCCESS ) status =
-           applyVThresh_ANNLayer(nbatch, numNeurons, V, AMin, VThresh, AShift, VWidth, activity, nx, ny, nf, lt, rt, dn, up);
-   if( status == PV_SUCCESS ) status = applyVMax_ANNLayer(nbatch, numNeurons, V, AMax, activity, nx, ny, nf, lt, rt, dn, up);
-   return status;
+   setActivity_HyPerLayer(nbatch, numNeurons, activity, V, nx, ny, nf, lt, rt, dn, up);
+   applyVThresh_ANNLayer_threshminmax(nbatch, numNeurons, V, VThresh, AMin, AShift, VWidth, activity, nx, ny, nf, lt, rt, dn, up);
+   applyVMax_ANNLayer_threshminmax(nbatch, numNeurons, V, AMax, activity, nx, ny, nf, lt, rt, dn, up);
+   return PV_SUCCESS;
 }
-#endif // OBSOLETE // Marked obsolete July 27, 2015.  Use updateV_PtwiseLinearTransferLayer() instead.
 
 
 KERNEL
@@ -891,9 +895,8 @@ int updateV_SigmoidLayer() {
    return PV_SUCCESS; // sourcelayer is responsible for updating V.
 }
 
-#ifdef OBSOLETE // Marked obsolete July 28, 2015.  Use setActivity_PtwiseLinearTransferLayer instead of applyVThresh_ANNLayer and applyVMax_ANNLayer
 KERNEL
-int applyVMax_ANNLayer(int numNeurons, MEM_GLOBAL pvdata_t * V,
+int applyVMax_ANNLayer_threshminmax(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
       pvdata_t AMax, MEM_GLOBAL pvdata_t * activity, int nx, int ny,
       int nf, int lt, int rt, int dn, int up) {
    if (AMax < max_pvadata_t) {
@@ -919,8 +922,8 @@ int applyVMax_ANNLayer(int numNeurons, MEM_GLOBAL pvdata_t * V,
 }
 
 KERNEL
-int applyVThresh_ANNLayer(int nbatch, int numNeurons,
-      MEM_GLOBAL pvdata_t * V, pvdata_t AMin, pvdata_t VThresh,
+int applyVThresh_ANNLayer_threshminmax(int nbatch, int numNeurons,
+      MEM_GLOBAL pvdata_t * V, pvdata_t VThresh, pvdata_t AMin,
       pvdata_t AShift, pvdata_t VWidth, MEM_GLOBAL pvdata_t * activity, int nx, int ny,
       int nf, int lt, int rt, int dn, int up) {
    if (VThresh > -max_pvvdata_t) {
@@ -949,7 +952,6 @@ int applyVThresh_ANNLayer(int nbatch, int numNeurons,
    }
    return PV_SUCCESS;
 }
-#endif // OBSOLETE // Marked obsolete July 28, 2015.  Use setActivity_PtwiseLinearTransferLayer instead of applyVThresh_ANNLayer and applyVMax_ANNLayer
 
 KERNEL
 int applyVThresh_ANNErrorLayer(int nbatch, int numNeurons,

@@ -239,8 +239,8 @@ int Segmentify::buildLabelToIdx(int batchIdx){
       checkLabelValBuf(numLabels);
       //Fill buffer
       int l = 0;
-      for(std::map<int, int>::iterator it = segMap.begin(); it != segMap.end(); ++it){
-         labelIdxBuf[l] = it->first; //Store key
+      for (auto& seg : segMap) {
+         labelIdxBuf[l] = seg.first;
          l++;
       }
    }
@@ -382,9 +382,9 @@ int Segmentify::setOutputVals(int batchIdx){
    if(strcmp(outputMethod, "centroid") == 0){
       std::map<int, int> segMap = segmentLayer->getCenterIdxBuf(batchIdx);
       //Centroids are stored in global restricted space, with respect to the segment layer
-      for(std::map<int, int>::iterator it = segMap.begin(); it != segMap.end(); ++it){
-         int label = it->first;
-         int segGlobalResIdx = it->second;
+      for(auto& seg : segMap) {
+         int label = seg.first;
+         int segGlobalResIdx = seg.second;
          //Convert to restrictd x and y coords wrt segment layer
          int segGlobalResX = segGlobalResIdx % (segLoc->nxGlobal);
          int segGlobalResY = segGlobalResIdx / (segLoc->nyGlobal);

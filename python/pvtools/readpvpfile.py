@@ -16,7 +16,7 @@ Returns a dictionary with 3 keys: values, time, header
 Values can be:
    4D dense numpy array of size [numFrames, ny, nx, nf] for reading dense activity files
    6D dense numpy array of size [numFrames, numArbors, numKernels, ny, nx, nf] for reading weights
-   2D coo_sparse array of size [numFrames, ny*nx*nf] for reading sparse activity files
+   2D csr_sparse array of size [numFrames, ny*nx*nf] for reading sparse activity files
 Time is a 1D numpy array of size [numFrame] that correspond to the simulation time of the frame
 Header is a dictionary of key value pairs corresponding to the header of the pvp file.
 
@@ -94,10 +94,10 @@ def readpvpfile(filename,
                         if not frame % progressPeriod and frame:
                             print("File "+filename+": frame "+str(frame)+" of "+str(lastFrame))
 
-            #Make coosparsematrix
+            #Make csrsparsematrix
             data["time"] = np.array(timeList)
             #Values for sparse matrix are all 1's
-            data["values"] = sp.coo_matrix((np.ones((len(framesList))), (framesList, idxList)), shape=(frameNum, header["nx"]*header["ny"]*header["nf"]))
+            data["values"] = sp.csr_matrix((np.ones((len(framesList))), (framesList, idxList)), shape=(frameNum, header["nx"]*header["ny"]*header["nf"]))
 
             return data
 
@@ -228,8 +228,8 @@ def readpvpfile(filename,
                     if frame in range(startFrame, lastFrame, progressPeriod):
                         print("File "+filename+": frame "+str(frame)+" of "+str(lastFrame))
 
-            #Make coosparsematrix
+            #Make csrsparsematrix
             data["time"] = np.array(timeList)
-            data["values"] = sp.coo_matrix((valuesList, (framesList, idxList)), shape=(frameNum, header["nx"]*header["ny"]*header["nf"]))
+            data["values"] = sp.csr_matrix((valuesList, (framesList, idxList)), shape=(frameNum, header["nx"]*header["ny"]*header["nf"]))
 
             return data

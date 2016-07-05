@@ -6,8 +6,57 @@
  */
 
 #include "ANNLayer.hpp"
-#include "../layers/updateStateFunctions.h"
+#include "layers/updateStateFunctions.h"
 #include <limits>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void ANNLayer_vertices_update_state(
+    const int nbatch,
+    const int numNeurons,
+    const int nx,
+    const int ny,
+    const int nf,
+    const int lt,
+    const int rt,
+    const int dn,
+    const int up,
+
+    float * V,
+    int numVertices,
+    float * verticesV,
+    float * verticesA,
+    float * slopes,
+    int num_channels,
+    float * GSynHead,
+    float * activity);
+
+void ANNLayer_threshminmax_update_state(
+    const int nbatch,
+    const int numNeurons,
+    const int nx,
+    const int ny,
+    const int nf,
+    const int lt,
+    const int rt,
+    const int dn,
+    const int up,
+
+    float * V,
+    float VThresh,
+    float AMin,
+    float AMax,
+    float AShift,
+    float VWidth,
+    int num_channels,
+    float * GSynHead,
+    float * activity);
+
+#ifdef __cplusplus
+}
+#endif
 
 namespace PV {
 
@@ -27,11 +76,17 @@ ANNLayer::ANNLayer(const char * name, HyPerCol * hc) {
 ANNLayer::~ANNLayer() {}
 
 int ANNLayer::initialize_base() {
+   // Data members were initialized in the class member-declarations
    return PV_SUCCESS;
 }
 
 int ANNLayer::initialize(const char * name, HyPerCol * hc) {
-   int status = PtwiseLinearTransferLayer::initialize(name, hc);
+   int status = HyPerLayer::initialize(name, hc);
+   if (!this->layerListsVerticesInParams()) {
+      if (status==PV_SUCCESS) { status = setVertices(); }
+   }
+   if (status==PV_SUCCESS) { status = checkVertices(); }
+   if (status==PV_SUCCESS) { setSlopes(); }
 
 //#ifdef PV_USE_OPENCL
 //   numEvents=NUM_ANN_EVENTS;
@@ -41,40 +96,124 @@ int ANNLayer::initialize(const char * name, HyPerCol * hc) {
 
 int ANNLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = HyPerLayer::ioParamsFillGroup(ioFlag);
-   ioParam_VThresh(ioFlag);
-   ioParam_AMin(ioFlag);
-   ioParam_AMax(ioFlag);
-   ioParam_AShift(ioFlag);
-   ioParam_VWidth(ioFlag);
-   
-   // Set verticesV, verticesA, slopeNegInf, slopeNegPos based on VThresh, AMin, AMax, AShift, VWidth
-   if (ioFlag == PARAMS_IO_READ && setVertices()!=PV_SUCCESS) { status = PV_FAILURE; }
+
+   if (parent->parameters()->arrayPresent(name, "verticesV")) {
+      verticesListInParams = true;
+      ioParam_verticesV(ioFlag);
+      ioParam_verticesA(ioFlag);
+      ioParam_slopeNegInf(ioFlag);
+      ioParam_slopePosInf(ioFlag);
+   }
+   else {
+      verticesListInParams = false;
+      ioParam_VThresh(ioFlag);
+      ioParam_AMin(ioFlag);
+      ioParam_AMax(ioFlag);
+      ioParam_AShift(ioFlag);
+      ioParam_VWidth(ioFlag);
+   }
 
    ioParam_clearGSynInterval(ioFlag);
    return status;
 }
 
+void ANNLayer::ioParam_verticesV(enum ParamsIOFlag ioFlag) {
+   pvAssert(verticesListInParams);
+   int numVerticesTmp = numVertices;
+   this->getParent()->ioParamArray(ioFlag, this->getName(), "verticesV", &verticesV, &numVerticesTmp);
+   if (ioFlag==PARAMS_IO_READ) {
+      if (numVerticesTmp==0) {
+         if (this->getParent()->columnId()==0) {
+            pvErrorNoExit().printf("%s \"%s\" error: verticesV cannot be empty\n",
+                  this->getKeyword(), this->getName());
+         }
+         MPI_Barrier(this->getParent()->icCommunicator()->communicator());
+         exit(EXIT_FAILURE);
+      }
+      if (numVertices !=0 && numVerticesTmp != numVertices) {
+         if (this->getParent()->columnId()==0) {
+            pvErrorNoExit().printf("%s \"%s\" error: verticesV (%d elements) and verticesA (%d elements) must have the same lengths.\n",
+                  this->getKeyword(), this->getName(), numVerticesTmp, numVertices);
+         }
+         MPI_Barrier(this->getParent()->icCommunicator()->communicator());
+         exit(EXIT_FAILURE);
+      }
+      assert(numVertices==0 || numVertices==numVerticesTmp);
+      numVertices = numVerticesTmp;
+   }
+}
+
+void ANNLayer::ioParam_verticesA(enum ParamsIOFlag ioFlag) {
+   pvAssert(verticesListInParams);
+   int numVerticesA;
+   this->getParent()->ioParamArray(ioFlag, this->getName(), "verticesA", &verticesA, &numVerticesA);
+   if (ioFlag==PARAMS_IO_READ) {
+      if (numVerticesA==0) {
+         if (this->getParent()->columnId()==0) {
+            pvErrorNoExit().printf("%s \"%s\" error: verticesA cannot be empty\n",
+                  this->getKeyword(), this->getName());
+         }
+         MPI_Barrier(this->getParent()->icCommunicator()->communicator());
+         exit(EXIT_FAILURE);
+      }
+      if (numVertices !=0 && numVerticesA != numVertices) {
+         if (this->getParent()->columnId()==0) {
+            pvErrorNoExit().printf("%s \"%s\" error: verticesV (%d elements) and verticesA (%d elements) must have the same lengths.\n",
+                  this->getKeyword(), this->getName(), numVertices, numVerticesA);
+         }
+         MPI_Barrier(this->getParent()->icCommunicator()->communicator());
+         exit(EXIT_FAILURE);
+      }
+      assert(numVertices==0 || numVertices==numVerticesA);
+      numVertices = numVerticesA;
+   }
+}
+
+void ANNLayer::ioParam_slopeNegInf(enum ParamsIOFlag ioFlag) {
+   pvAssert(verticesListInParams);
+   parent->ioParamValue(ioFlag, name, "slopeNegInf", &slopeNegInf, slopeNegInf/*default*/, true/*warnIfAbsent*/);
+}
+
+void ANNLayer::ioParam_slopePosInf(enum ParamsIOFlag ioFlag) {
+   pvAssert(verticesListInParams);
+   parent->ioParamValue(ioFlag, name, "slopePosInf", &slopePosInf, slopePosInf/*default*/, true/*warnIfAbsent*/);
+}
+
 void ANNLayer::ioParam_VThresh(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "VThresh", &VThresh, -max_pvvdata_t);
+   pvAssert(!verticesListInParams);
+   parent->ioParamValue(ioFlag, name, "VThresh", &VThresh, VThresh);
 }
 
 void ANNLayer::ioParam_AMin(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "AMin", &AMin, VThresh);
+   pvAssert(!verticesListInParams);
+   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "VThresh"));
+   parent->ioParamValue(ioFlag, name, "AMin", &AMin, VThresh); // defaults to the value of VThresh, which was read earlier.
 }
 
 void ANNLayer::ioParam_AMax(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "AMax", &AMax, max_pvvdata_t);
+   pvAssert(!verticesListInParams);
+   parent->ioParamValue(ioFlag, name, "AMax", &AMax, AMax);
 }
 
 void ANNLayer::ioParam_AShift(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "AShift", &AShift, (pvdata_t) 0);
+   pvAssert(!verticesListInParams);
+   parent->ioParamValue(ioFlag, name, "AShift", &AShift, AShift);
 }
 
 void ANNLayer::ioParam_VWidth(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "VWidth", &VWidth, (pvdata_t) 0);
+   pvAssert(!verticesListInParams);
+   parent->ioParamValue(ioFlag, name, "VWidth", &VWidth, VWidth);
+}
+
+void ANNLayer::ioParam_clearGSynInterval(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "clearGSynInterval", &clearGSynInterval, clearGSynInterval);
+   if (ioFlag==PARAMS_IO_READ) {
+      nextGSynClearTime = parent->getStartTime();
+   }
 }
 
 int ANNLayer::setVertices() {
+   pvAssert(!layerListsVerticesInParams());
    if (VWidth<0) {
       VThresh += VWidth;
       VWidth = -VWidth;
@@ -197,10 +336,39 @@ int ANNLayer::setVertices() {
    return PV_SUCCESS;
 }
 
-int ANNLayer::checkVertices() {
-   int status = PtwiseLinearTransferLayer::checkVertices(); // checks that the V-coordinates are nondecreasing.
-   // TODO: Warn if A is nondecreasing?
-   for (int v=1; v < numVertices; v++) { 
+void ANNLayer::setSlopes() {
+   pvAssert(numVertices>0);
+   pvAssert(verticesA!=nullptr);
+   pvAssert(verticesV!=nullptr);
+   slopes = (float *) pvMallocError((size_t)(numVertices+1)*sizeof(*slopes),
+         "%s \"%s\": unable to allocate memory for transfer function slopes: %s\n",
+         this->getKeyword(), name, strerror(errno));
+   slopes[0] = slopeNegInf;
+   for (int k=1; k<numVertices; k++) {
+      float V1 = verticesV[k-1];
+      float V2 = verticesV[k];
+      if (V1!=V2) {
+         slopes[k] = (verticesA[k]-verticesA[k-1])/(V2-V1);
+      }
+      else {
+         slopes[k] = verticesA[k]>verticesA[k-1] ? std::numeric_limits<float>::infinity() :
+                     verticesA[k]<verticesA[k-1] ? -std::numeric_limits<float>::infinity() :
+                     std::numeric_limits<float>::quiet_NaN();
+      }
+   }
+   slopes[numVertices] = slopePosInf;
+}
+
+int ANNLayer::checkVertices() const {
+   int status = PV_SUCCESS;
+   for (int v=1; v < numVertices; v++) {
+      if (verticesV[v] < verticesV[v-1]) {
+         status = PV_FAILURE;
+         if (this->getParent()->columnId()==0) {
+            pvErrorNoExit().printf("%s \"%s\": vertices %d and %d: V-coordinates decrease from %f to %f.\n",
+                  this->getKeyword(), this->getName(), v, v+1, verticesV[v-1], verticesV[v]);
+         }
+      }
       if (verticesA[v] < verticesA[v-1]) {
          if (this->getParent()->columnId()==0) {
             pvWarn().printf("%s \"%s\": vertices %d and %d: A-coordinates decrease from %f to %f.\n",
@@ -227,7 +395,29 @@ int ANNLayer::resetGSynBuffers(double timef, double dt) {
 int ANNLayer::doUpdateState(double time, double dt, const PVLayerLoc * loc, pvdata_t * A,
       pvdata_t * V, int num_channels, pvdata_t * gSynHead)
 {
-   return PtwiseLinearTransferLayer::doUpdateState(time, dt, loc, A, V, num_channels, gSynHead);
+   //#ifdef PV_USE_OPENCL
+   //   if(gpuAccelerateFlag) {
+   //      updateStateOpenCL(time, dt);
+   //   }
+   //   else {
+   //#endif
+         int nx = loc->nx;
+         int ny = loc->ny;
+         int nf = loc->nf;
+         int num_neurons = nx*ny*nf;
+         int nbatch = loc->nbatch;
+         if (layerListsVerticesInParams()) {
+            ANNLayer_vertices_update_state(nbatch, num_neurons, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, V, numVertices, verticesV, verticesA, slopes, num_channels, gSynHead, A);
+         }
+         else {
+            ANNLayer_threshminmax_update_state(nbatch, num_neurons, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, V, VThresh, AMin, AMax, AShift, VWidth, num_channels, gSynHead, A);
+         }
+
+   //#ifdef PV_USE_OPENCL
+   //   }
+   //#endif
+
+      return PV_SUCCESS;
 }
 
 int ANNLayer::setActivity() {
@@ -264,3 +454,27 @@ BaseObject * createANNLayer(char const * name, HyPerCol * hc) {
 }
 
 }  // end namespace PV
+
+///////////////////////////////////////////////////////
+//
+// implementation of ANNLayer kernels
+//
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#ifndef PV_USE_OPENCL
+#  include "kernels/ANNLayer_vertices_update_state.cl"
+#  include "kernels/ANNLayer_threshminmax_update_state.cl"
+#else
+#  undef PV_USE_OPENCL
+#  include "kernels/ANNLayer_vertices_update_state.cl"
+#  include "kernels/ANNLayer_threshminmax_update_state.cl"
+#  define PV_USE_OPENCL
+#endif
+
+#ifdef __cplusplus
+}
+#endif
+

@@ -1901,10 +1901,8 @@ int HyPerLayer::recvAllSynapticInput() {
       //Start CPU timer here
       recvsyn_timer->start();
 
-      for(std::vector<BaseConnection*>::iterator it = recvConns.begin(); it < recvConns.end(); it++){
-         BaseConnection * baseConn = *it;
-         HyPerConn * conn = dynamic_cast<HyPerConn *>(baseConn);
-         assert(conn != NULL);
+      for (auto& conn : recvConns) {
+         pvAssert(conn != NULL);
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
          //Check if it's done with cpu connections
          if(!switchGpu && conn->getReceiveGpu()){

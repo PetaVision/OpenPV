@@ -28,7 +28,7 @@ protected:
 
 protected:
    //virtual int getNumCLEvents() {return numEvents;}
-   virtual const char * getKernelName() { return "ANNLayer_update_state"; }
+   virtual const char * getKernelName() { return "ANNLayer_vertices_update_state"; }
    //virtual int initializeThreadBuffers(const char * kernel_name);
    //virtual int initializeThreadKernels(const char * kernel_name);
    int updateStateOpenCL(double timed, double dt);

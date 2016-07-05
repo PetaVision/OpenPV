@@ -69,6 +69,11 @@ int PtwiseLinearTransferLayer::initialize_base() {
 }
 
 int PtwiseLinearTransferLayer::initialize(const char * name, HyPerCol * hc) {
+   // PtwiseLinearTransferLayer was deprecated June 28, 2016.
+   pvWarn() << "PtwiseLinearTransferLayer is deprecated.\n";
+   pvWarn() << "ANNLayer now has the option of specifying either\n";
+   pvWarn() << "verticesV/verticesA/slopeNegInf/slopePosInf\n";
+   pvWarn() << "or VThresh/AMin/AMax/AShift/VWidth.\n";
    int status = HyPerLayer::initialize(name, hc);
    assert(status == PV_SUCCESS);
 

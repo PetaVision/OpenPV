@@ -31,6 +31,14 @@ int L0NormLCAProbe::communicateInitInfo() {
       MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
+   if (targetLCALayer->layerListsVerticesInParams()==true) {
+      if (parent->columnId()==0) {
+         pvErrorNoExit().printf("%s \"%s\": LCAProbes require targetLayer \"%s\" to use VThresh etc. instead of verticesV/verticesV.\n",
+               getKeyword(), getName(), getTargetName());
+      }
+      MPI_Barrier(parent->icCommunicator()->communicator());
+      exit(EXIT_FAILURE);
+   }
    if (status == PV_SUCCESS) {
       pvdata_t vThresh= targetLCALayer->getVThresh();
       coefficient = vThresh*vThresh/2.0f;
