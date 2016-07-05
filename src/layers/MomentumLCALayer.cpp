@@ -189,7 +189,7 @@ int MomentumLCALayer::allocateUpdateKernel(){
 //
 //
 #ifdef PV_USE_CUDA
-int MomentumLCALayer::doUpdateStateGpu(double time, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead){
+int MomentumLCALayer::updateStateGpu(double time, double dt){
    if(triggerLayer != NULL){
       pvError().printf("HyPerLayer::Trigger reset of V does not work on GPUs\n");
    }
@@ -210,9 +210,13 @@ int MomentumLCALayer::doUpdateStateGpu(double time, double dt, const PVLayerLoc 
 }
 #endif
 
-int MomentumLCALayer::doUpdateState(double time, double dt, const PVLayerLoc * loc, pvdata_t * A,
-      pvdata_t * V, int num_channels, pvdata_t * gSynHead)
+int MomentumLCALayer::updateState(double time, double dt)
 {
+   const PVLayerLoc * loc = getLayerLoc();
+   pvdata_t * A = clayer->activity->data;
+   pvdata_t * V = getV();
+   int num_channels = getNumChannels();
+   pvdata_t * gSynHead = GSyn == NULL ? NULL : GSyn[0];
    //update_timer->start();
 //#ifdef PV_USE_OPENCL
 //   if(gpuAccelerateFlag) {

@@ -30,7 +30,7 @@ protected:
    PtwiseProductLayer();
    int initialize(const char * name, HyPerCol * hc);
 
-   /* static */ int doUpdateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead);
+   /* static */ int updateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead);
 
 private:
    int initialize_base();

@@ -19,8 +19,7 @@ public:
 protected:
    LabelErrorLayer();
    int initialize(const char * name, HyPerCol * hc);
-   virtual int doUpdateState(double time, double dt, const PVLayerLoc * loc, pvdata_t * A,
-         pvdata_t * V, int num_channels, pvdata_t * gSynHead);
+   virtual int updateState(double time, double dt);
    void ioParam_errScale(enum ParamsIOFlag ioFlag);
    void ioParam_isBinary(enum ParamsIOFlag ioFlag);
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);

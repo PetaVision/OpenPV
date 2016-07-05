@@ -183,7 +183,7 @@ int ISTALayer::allocateUpdateKernel(){
 #endif
 
 #ifdef PV_USE_CUDA
-int ISTALayer::doUpdateStateGpu(double time, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead){
+int ISTALayer::updateStateGpu(double time, double dt){
    if(triggerLayer != NULL){
       pvError().printf("HyPerLayer::Trigger reset of V does not work on GPUs\n");
    }
@@ -201,9 +201,13 @@ double ISTALayer::getDeltaUpdateTime(){
    return parent->getDeltaTime();
 }
 
-int ISTALayer::doUpdateState(double time, double dt, const PVLayerLoc * loc, pvdata_t * A,
-      pvdata_t * V, int num_channels, pvdata_t * gSynHead)
+int ISTALayer::updateState(double time, double dt)
 {
+   const PVLayerLoc * loc = getLayerLoc();
+   pvdata_t * A = clayer->activity->data;
+   pvdata_t * V = getV();
+   int num_channels = getNumChannels();
+   pvdata_t * gSynHead = GSyn == NULL ? NULL : GSyn[0];
    //update_timer->start();
 //#ifdef PV_USE_OPENCL
 //   if(gpuAccelerateFlag) {

@@ -42,8 +42,14 @@ namespace PV
         return PV_SUCCESS;
     }
 
-    int KmeansLayer::doUpdateState(double time, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead)
+    int KmeansLayer::updateState(double time, double dt)
     {
+        const PVLayerLoc * loc = getLayerLoc();
+        pvdata_t * A = clayer->activity->data;
+        pvdata_t * V = getV();
+        int num_channels = getNumChannels();
+        
+        pvdata_t * gSynHead = GSyn == NULL ? NULL : GSyn[0];
         int nx = loc->nx;
         int ny = loc->ny;
         int nf = loc->nf;

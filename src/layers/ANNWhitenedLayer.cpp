@@ -64,9 +64,13 @@ int ANNWhitenedLayer::initialize(const char * name, HyPerCol * hc)
    return PV_SUCCESS;
 }
 
-int ANNWhitenedLayer::doUpdateState(double time, double dt, const PVLayerLoc * loc, pvdata_t * A,
-      pvdata_t * V, int num_channels, pvdata_t * gSynHead)
+int ANNWhitenedLayer::updateState(double time, double dt)
 {
+   const PVLayerLoc * loc = getLayerLoc();
+   pvdata_t * A = clayer->activity->data;
+   pvdata_t * V = getV();
+   int num_channels = getNumChannels();
+   pvdata_t * gSynHead = GSyn == NULL ? NULL : GSyn[0];
    //update_timer->start();
 //#ifdef PV_USE_OPENCL
 //   if(gpuAccelerateFlag) {

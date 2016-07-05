@@ -1720,19 +1720,6 @@ int HyPerLayer::callUpdateState(double timef, double dt){
    return status;
 }
 
-//#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
-//Multiple entry points into doUpdateStateGpu in case a layer overwrites updateState
-//int HyPerLayer::updateStateGpu(double timef, double dt){
-//   int status;
-//  return status;
-//}
-//#endif
-
-//int HyPerLayer::updateState(double timef, double dt) {
-//   int status;
-//   return status;
-//}
-
 int HyPerLayer::resetStateOnTrigger() {
    assert(triggerResetLayer != NULL);
    pvpotentialdata_t * V = getV();
