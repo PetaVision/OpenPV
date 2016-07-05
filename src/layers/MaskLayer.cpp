@@ -159,6 +159,17 @@ int MaskLayer::updateState(double time, double dt)
    int num_neurons = nx*ny*nf;
    int nbatch = loc->nbatch;
 
+   int method = -1;
+   const int METHOD_LAYER = 0;
+   const int METHOD_INVERT_LAYER = 1;
+   const int METHOD_FEATURES = 2;
+   const int METHOD_INVERT_FEATURES = 3;
+
+   if(strcmp(maskMethod, "layer") == 0) { method = METHOD_LAYER; }
+   else if(strcmp(maskMethod, "invertLayer") == 0) { method = METHOD_INVERT_LAYER; }
+   else if(strcmp(maskMethod, "maskFeatures") == 0) { method = METHOD_FEATURES; }
+   else if(strcmp(maskMethod, "noMaskFeatures") == 0) { method = METHOD_INVERT_FEATURES; }
+
    for(int b = 0; b < nbatch; b++){
       pvdata_t * ABatch = A + b * getNumExtended();
 #ifdef PV_USE_OPENMP_THREADS
@@ -168,56 +179,68 @@ int MaskLayer::updateState(double time, double dt)
          int kThisRes = ni;
          int kThisExt = kIndexExtended(ni, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
          float maskVal = 1;
-         if(strcmp(maskMethod, "layer") == 0){
-            const PVLayerLoc * maskLoc = maskLayer->getLayerLoc();
-            pvdata_t * maskActivity = maskLayer->getActivity();
-            pvdata_t * maskActivityBatch = maskActivity + b * maskLayer->getNumExtended();
-            int kMaskRes;
-            if(maskLoc->nf == 1){
-               kMaskRes = ni/nf;
-            }
-            else{
-               kMaskRes = ni;
-            }
-            int kMaskExt = kIndexExtended(kMaskRes, nx, ny, maskLoc->nf, maskLoc->halo.lt, maskLoc->halo.rt, maskLoc->halo.dn, maskLoc->halo.up);
-            maskVal = maskActivityBatch[kMaskExt];
-         }
-         else if(strcmp(maskMethod, "invertLayer") == 0){
-            const PVLayerLoc * maskLoc = maskLayer->getLayerLoc();
-            pvdata_t * maskActivity = maskLayer->getActivity();
-            pvdata_t * maskActivityBatch = maskActivity + b * maskLayer->getNumExtended();
-            int kMaskRes;
-            if(maskLoc->nf == 1){
-               kMaskRes = ni/nf;
-            }
-            else{
-               kMaskRes = ni;
-            }
-            int kMaskExt = kIndexExtended(kMaskRes, nx, ny, maskLoc->nf, maskLoc->halo.lt, maskLoc->halo.rt, maskLoc->halo.dn, maskLoc->halo.up);
-            if(maskActivityBatch[kMaskExt]){
-                maskVal = 0;
-            }
-         }
-         else if(strcmp(maskMethod, "maskFeatures") == 0){
-            //Calculate feature index of ni
-            int featureNum = featureIndex(ni, nx, ny, nf);
-            maskVal = 1; //If nothing specified, copy everything
-            for(int specF = 0; specF < numSpecifiedFeatures; specF++){ 
-               if(featureNum == features[specF]){
-                  maskVal = 0;
-                  break;
+         
+         switch(method)
+         {
+            case METHOD_LAYER:
+            {
+               const PVLayerLoc * maskLoc = maskLayer->getLayerLoc();
+               pvdata_t * maskActivity = maskLayer->getActivity();
+               pvdata_t * maskActivityBatch = maskActivity + b * maskLayer->getNumExtended();
+               int kMaskRes;
+               if(maskLoc->nf == 1){
+                  kMaskRes = ni/nf;
                }
-            }
-         }
-         else if(strcmp(maskMethod, "noMaskFeatures") == 0){
-            //Calculate feature index of ni
-            int featureNum = featureIndex(ni, nx, ny, nf);
-            maskVal = 0; //If nothing specified, copy nothing 
-            for(int specF = 0; specF < numSpecifiedFeatures; specF++){ 
-               if(featureNum == features[specF]){
-                  maskVal = 1;
-                  break;
+               else{
+                  kMaskRes = ni;
                }
+               int kMaskExt = kIndexExtended(kMaskRes, nx, ny, maskLoc->nf, maskLoc->halo.lt, maskLoc->halo.rt, maskLoc->halo.dn, maskLoc->halo.up);
+               maskVal = maskActivityBatch[kMaskExt];
+               break;
+            }
+            case METHOD_INVERT_LAYER:
+            {
+               const PVLayerLoc * maskLoc = maskLayer->getLayerLoc();
+               pvdata_t * maskActivity = maskLayer->getActivity();
+               pvdata_t * maskActivityBatch = maskActivity + b * maskLayer->getNumExtended();
+               int kMaskRes;
+               if(maskLoc->nf == 1){
+                  kMaskRes = ni/nf;
+               }  
+               else{
+                  kMaskRes = ni;
+               }
+               int kMaskExt = kIndexExtended(kMaskRes, nx, ny, maskLoc->nf, maskLoc->halo.lt, maskLoc->halo.rt, maskLoc->halo.dn, maskLoc->halo.up);
+               if(maskActivityBatch[kMaskExt]){
+                   maskVal = 0;
+               }
+               break;
+            }
+            case METHOD_FEATURES:
+            {
+               //Calculate feature index of ni
+               int featureNum = featureIndex(ni, nx, ny, nf);
+               maskVal = 1; //If nothing specified, copy everything
+               for(int specF = 0; specF < numSpecifiedFeatures; specF++){ 
+                  if(featureNum == features[specF]){
+                     maskVal = 0;
+                     break;
+                  }
+               }
+               break;
+            }
+            case METHOD_INVERT_FEATURES: 
+            {
+               //Calculate feature index of ni
+               int featureNum = featureIndex(ni, nx, ny, nf);
+               maskVal = 0; //If nothing specified, copy nothing 
+               for(int specF = 0; specF < numSpecifiedFeatures; specF++){ 
+                  if(featureNum == features[specF]){
+                     maskVal = 1;
+                     break;
+                  }
+               }
+               break;
             }
          }
 
