@@ -6,7 +6,6 @@ def readpvpfile(filename,
                 lastFrame=-1,
                 startFrame=0,
                 skipFrames=1):
-
     f = pvpOpen(filename, 'r')
     out = f.read(startFrame, lastFrame, skipFrames, progressPeriod)
     f.close()

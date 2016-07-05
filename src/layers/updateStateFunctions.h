@@ -155,6 +155,9 @@ int updateV_PoolingANNLayer(int nbatch, int numNeurons,
 KERNEL
 int updateV_PtwiseProductLayer(int nbatch, int numNeurons,
       MEM_GLOBAL pvdata_t * V, MEM_GLOBAL pvdata_t * GSynHead);
+KERNEL
+int updateV_PtwiseQuotientLayer(int nbatch, int numNeurons,
+      MEM_GLOBAL pvdata_t * V, MEM_GLOBAL pvdata_t * GSynHead);
 //KERNEL
 //int updateV_TrainingLayer(int nbatch, int numNeurons,
 //      MEM_GLOBAL pvdata_t * V, int numTrainingLabels, int * trainingLabels,
@@ -856,6 +859,25 @@ int updateV_PtwiseProductLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t *
 #endif // PV_USE_OPENCL
    {
       V[k] = GSynExc[k] * GSynInh[k];
+   }
+   return PV_SUCCESS;
+}
+
+KERNEL
+int updateV_PtwiseQuotientLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V, MEM_GLOBAL pvdata_t * GSynHead) {
+   int k;
+   MEM_GLOBAL pvdata_t * GSynExc = &GSynHead[CHANNEL_EXC*nbatch*numNeurons];
+   MEM_GLOBAL pvdata_t * GSynInh = &GSynHead[CHANNEL_INH*nbatch*numNeurons];
+#if !defined(PV_USE_OPENCL) && !defined(PV_USE_CUDA)
+   #ifdef PV_USE_OPENMP_THREADS
+   #pragma omp parallel for schedule(static)
+   #endif
+   for( k=0; k<numNeurons*nbatch; k++ )
+#else
+      k = getIndex();
+#endif // PV_USE_OPENCL
+   {
+      V[k] = GSynExc[k] / GSynInh[k];
    }
    return PV_SUCCESS;
 }
