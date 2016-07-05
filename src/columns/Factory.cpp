@@ -41,6 +41,7 @@
 #include <layers/PoolingIndexLayer.hpp>
 #include <layers/PtwiseLinearTransferLayer.hpp>
 #include <layers/PtwiseProductLayer.hpp>
+#include <layers/PtwiseQuotientLayer.hpp>
 #include <layers/RescaleLayer.hpp>
 #include <layers/RunningAverageLayer.hpp>
 #include <layers/Retina.hpp>
@@ -150,6 +151,7 @@ int Factory::registerCoreKeywords() {
    registerKeyword("PoolingIndexLayer", createPoolingIndexLayer);
    registerKeyword("PtwiseLinearTransferLayer", createPtwiseLinearTransferLayer);
    registerKeyword("PtwiseProductLayer", createPtwiseProductLayer);
+   registerKeyword("PtwiseQuotientLayer", createPtwiseQuotientLayer);
    registerKeyword("RescaleLayer", createRescaleLayer);
    registerKeyword("RunningAverageLayer", createRunningAverageLayer);
    registerKeyword("Retina", createRetina);

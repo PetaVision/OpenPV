@@ -34,6 +34,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/PoolingIndexLayer.cpp
    ${SUBDIR}/PtwiseLinearTransferLayer.cpp
    ${SUBDIR}/PtwiseProductLayer.cpp
+   ${SUBDIR}/PtwiseQuotientLayer.cpp
    ${SUBDIR}/PVLayerCube.cpp
    ${SUBDIR}/RescaleLayer.cpp
    ${SUBDIR}/Retina.cpp
