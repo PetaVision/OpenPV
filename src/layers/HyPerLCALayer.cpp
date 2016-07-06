@@ -214,8 +214,9 @@ int HyPerLCALayer::allocateUpdateKernel(){
 
 
 #ifdef PV_USE_CUDA
-int HyPerLCALayer::doUpdateStateGpu(double time, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead){
-   //this is a change
+int HyPerLCALayer::updateStateGpu(double time, double dt)
+{
+  //this is a change
    //Copy over d_dtAdapt
    d_dtAdapt->copyToDevice(parent->getTimeScale());
    //Change dt to match what is passed in
@@ -230,9 +231,14 @@ double HyPerLCALayer::getDeltaUpdateTime(){
    return parent->getDeltaTime();
 }
 
-int HyPerLCALayer::doUpdateState(double time, double dt, const PVLayerLoc * loc, pvdata_t * A,
-      pvdata_t * V, int num_channels, pvdata_t * gSynHead)
+int HyPerLCALayer::updateState(double time, double dt)
 {
+   const PVLayerLoc * loc = getLayerLoc();
+   pvdata_t * A = clayer->activity->data;
+   pvdata_t * V = getV();
+   int num_channels = getNumChannels();
+   pvdata_t * gSynHead = GSyn == NULL ? NULL : GSyn[0];
+
    //update_timer->start();
 //#ifdef PV_USE_OPENCL
 //   if(gpuAccelerateFlag) {

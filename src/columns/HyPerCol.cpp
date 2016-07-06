@@ -2428,7 +2428,7 @@ int HyPerCol::advanceTime(double sim_time)
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
          if(layers[l]->getUpdateGpu()){
 #endif
-            status = layers[l]->updateStateWrapper(simTime, deltaTimeBase);
+            status = layers[l]->callUpdateState(simTime, deltaTimeBase);
             if (!exitAfterUpdate) {
                exitAfterUpdate = status == PV_EXIT_NORMALLY;
             }
@@ -2453,7 +2453,7 @@ int HyPerCol::advanceTime(double sim_time)
          }
          //Update for non gpu recv and non gpu update
          else{
-            status = layer->updateStateWrapper(simTime, deltaTimeBase);
+            status = layer->callUpdateState(simTime, deltaTimeBase);
             if (!exitAfterUpdate) {
                exitAfterUpdate = status == PV_EXIT_NORMALLY;
             }
@@ -2463,7 +2463,7 @@ int HyPerCol::advanceTime(double sim_time)
 
       //Update for non gpu recv and gpu update
       for(auto& layer : updateLayerBufferGpu) {
-         status = layer->updateStateWrapper(simTime, deltaTimeBase);
+         status = layer->callUpdateState(simTime, deltaTimeBase);
          if (!exitAfterUpdate) {
             exitAfterUpdate = status == PV_EXIT_NORMALLY;
          }
@@ -2483,7 +2483,7 @@ int HyPerCol::advanceTime(double sim_time)
 
       //Update for gpu recv and non gpu update
       for (auto& layer : updateLayerBuffer) {
-         status = layer->updateStateWrapper(simTime, deltaTimeBase);
+         status = layer->callUpdateState(simTime, deltaTimeBase);
          if (!exitAfterUpdate) {
             exitAfterUpdate = status == PV_EXIT_NORMALLY;
          }

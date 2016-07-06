@@ -42,12 +42,11 @@ int PtwiseProductLayer::allocateDataStructures() {
 }
 
 int PtwiseProductLayer::updateState(double timef, double dt) {
-   int status;
-   status = doUpdateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(), getNumChannels(), GSyn[0]);
-   return status;
-}
-
-int PtwiseProductLayer::doUpdateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead) {
+   const PVLayerLoc * loc = getLayerLoc();
+   pvdata_t * A = clayer->activity->data;
+   pvdata_t * V = getV();
+   int num_channels = getNumChannels();
+   pvdata_t * gSynHead = GSyn == NULL ? NULL : GSyn[0];
    int nx = loc->nx;
    int ny = loc->ny;
    int nf = loc->nf;

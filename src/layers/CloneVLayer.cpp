@@ -138,8 +138,12 @@ int CloneVLayer::checkpointWrite(const char * cpDir) {
    return status;
 }
 
-int CloneVLayer::doUpdateState(double timed, double dt, const PVLayerLoc * loc, pvdata_t * A,
-         pvdata_t * V, int num_channels, pvdata_t * GSynHead){
+int CloneVLayer::updateState(double timed, double dt){
+      const PVLayerLoc * loc = getLayerLoc();
+   pvdata_t * A = clayer->activity->data;
+   pvdata_t * V = getV();
+   int num_channels = getNumChannels();
+   pvdata_t * gSynHead = GSyn == NULL ? NULL : GSyn[0];
    //update_timer->start();
    int nx = loc->nx;
    int ny = loc->ny;

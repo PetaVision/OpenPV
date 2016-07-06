@@ -392,9 +392,13 @@ int ANNLayer::resetGSynBuffers(double timef, double dt) {
    return status;
 }
 
-int ANNLayer::doUpdateState(double time, double dt, const PVLayerLoc * loc, pvdata_t * A,
-      pvdata_t * V, int num_channels, pvdata_t * gSynHead)
+int ANNLayer::updateState(double time, double dt)
 {
+      const PVLayerLoc * loc = getLayerLoc();
+   pvdata_t * A = clayer->activity->data;
+   pvdata_t * V = getV();
+   int num_channels = getNumChannels();
+   pvdata_t * gSynHead = GSyn == NULL ? NULL : GSyn[0];
    //#ifdef PV_USE_OPENCL
    //   if(gpuAccelerateFlag) {
    //      updateStateOpenCL(time, dt);

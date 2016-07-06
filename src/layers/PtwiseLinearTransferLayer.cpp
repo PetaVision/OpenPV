@@ -313,9 +313,13 @@ int PtwiseLinearTransferLayer::resetGSynBuffers(double timef, double dt) {
  *        applyGSyn_HyPerLayer (sets V = GSynExc - GSynInh)
  *        setActivity_PtwiseLinearTransferLayer (computes A from V)
  */
-int PtwiseLinearTransferLayer::doUpdateState(double time, double dt, const PVLayerLoc * loc, pvdata_t * A,
-      pvdata_t * V, int num_channels, pvdata_t * gSynHead)
+int PtwiseLinearTransferLayer::updateState(double time, double dt)
 {
+   const PVLayerLoc * loc = getLayerLoc();
+   pvdata_t * A = clayer->activity->data;
+   pvdata_t * V = getV();
+   int num_channels = getNumChannels();
+   pvdata_t * gSynHead = GSyn == NULL ? NULL : GSyn[0];
 //#ifdef PV_USE_OPENCL
 //   if(gpuAccelerateFlag) {
 //      updateStateOpenCL(time, dt);

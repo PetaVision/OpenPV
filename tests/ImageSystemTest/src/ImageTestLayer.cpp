@@ -8,9 +8,9 @@ ImageTestLayer::ImageTestLayer(const char * name, HyPerCol * hc) {
    Image::initialize(name, hc);
 }
 
-int ImageTestLayer::updateStateWrapper(double time, double dt)
+int ImageTestLayer::callUpdateState(double time, double dt)
 {
-   Image::updateStateWrapper(time, dt);
+   Image::callUpdateState(time, dt);
    const PVLayerLoc * loc = getLayerLoc();
    int nx = loc->nx;
    int ny = loc->ny;

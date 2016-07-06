@@ -84,9 +84,13 @@ void LabelErrorLayer::ioParam_isBinary(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "isBinary", &isBinary, isBinary);
 }
 
-int LabelErrorLayer::doUpdateState(double time, double dt, const PVLayerLoc * loc, pvdata_t * A,
-      pvdata_t * V, int num_channels, pvdata_t * gSynHead)
+int LabelErrorLayer::updateState(double time, double dt)
 {
+   const PVLayerLoc * loc = getLayerLoc();
+   pvdata_t * A = clayer->activity->data;
+   pvdata_t * V = getV();
+   int num_channels = getNumChannels();
+   pvdata_t * gSynHead = GSyn == NULL ? NULL : GSyn[0];
    int nx = loc->nx;
    int ny = loc->ny;
    int nf = loc->nf;

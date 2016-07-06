@@ -1668,76 +1668,55 @@ bool HyPerLayer::needReset(double timed, double dt) {
    return resetNeeded;
 }
 
-int HyPerLayer::updateStateWrapper(double timef, double dt){
+int HyPerLayer::callUpdateState(double timef, double dt){
    int status = PV_SUCCESS;
    if(needUpdate(timef, parent->getDeltaTime())){
       if (needReset(timef, dt)) {
          status = resetStateOnTrigger();
          updateNextTriggerTime();
       }
-      status = callUpdateState(timef, dt);
+      //status = callUpdateState(timef, dt);
+
+      //callUpdateState contents begin
+
+#ifdef PV_USE_OPENCL
+      //If this current layer's gsyn is on the gpu, only move it back when doing update state or output state
+      this->clFinishGSyn();
+#endif
+      update_timer->start();
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+      if(updateGpu)
+      {
+         gpu_update_timer->start();
+         //status = updateStateGpu(timed, dt);
+         //updateStateGpu contents begin
+         pvdata_t * gSynHead = GSyn==NULL ? NULL : GSyn[0];
+         assert(updateGpu);
+         status = updateStateGpu(timef, dt);
+         //updateStateGpu contents end
+         gpu_update_timer->stop();
+      }
+      else
+      {
+#endif
+         //status = updateState(timed, dt);
+         //updateState contents begin
+         status = updateState(timef, dt);
+         //updateState contents end
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+      }
+      //Activity updated, set flag to true
+      updatedDeviceActivity = true;
+      updatedDeviceDatastore = true;
+#endif
+      update_timer->stop();
+ 
+      //callUpdateState contents end
+
       lastUpdateTime = parent->simulationTime();
    }
    //Because of the triggerOffset, we need to check if we need to update nextUpdateTime every time
    updateNextUpdateTime();
-   return status;
-}
-
-int HyPerLayer::callUpdateState(double timed, double dt) {
-   int status = PV_SUCCESS;
-#ifdef PV_USE_OPENCL
-   //If this current layer's gsyn is on the gpu, only move it back when doing update state or output state
-   this->clFinishGSyn();
-#endif
-   update_timer->start();
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
-   if(updateGpu){
-      gpu_update_timer->start();
-      status = updateStateGpu(timed, dt);
-      gpu_update_timer->stop();
-   }
-   else{
-#endif
-      status = updateState(timed, dt);
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
-   }
-   //Activity updated, set flag to true
-   updatedDeviceActivity = true;
-   updatedDeviceDatastore = true;
-#endif
-   update_timer->stop();
-   return status;
-}
-
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
-//Multiple entry points into doUpdateStateGpu in case a layer overwrites updateState
-int HyPerLayer::updateStateGpu(double timef, double dt){
-   int status;
-   pvdata_t * gSynHead = GSyn==NULL ? NULL : GSyn[0];
-   assert(updateGpu);
-   status = doUpdateStateGpu(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(),
-         getNumChannels(), gSynHead);
-   return status;
-}
-#endif
-
-int HyPerLayer::updateState(double timef, double dt) {
-   int status;
-   pvdata_t * gSynHead = GSyn==NULL ? NULL : GSyn[0];
-
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
-   if(updateGpu){
-      status = doUpdateStateGpu(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(),
-            getNumChannels(), gSynHead);
-   }
-   else{
-#endif
-      status = doUpdateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(),
-            getNumChannels(), gSynHead);
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
-   }
-#endif
-
    return status;
 }
 
@@ -1829,19 +1808,23 @@ int HyPerLayer::runUpdateKernel(){
    return PV_SUCCESS;
 }
 
-int HyPerLayer::doUpdateStateGpu(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A,
-      pvdata_t * V, int num_channels, pvdata_t * gSynHead)
+int HyPerLayer::updateStateGpu(double timef, double dt)
 {
    pvError() << "Update state for layer " << name << " is not implemented\n";
    return -1;
 }
 #endif
 
-int HyPerLayer::doUpdateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A,
-      pvdata_t * V, int num_channels, pvdata_t * gSynHead)
+int HyPerLayer::updateState(double timef, double dt)
 {
    // just copy accumulation buffer to membrane potential
    // and activity buffer (nonspiking)
+
+   const PVLayerLoc * loc = getLayerLoc();
+   pvdata_t *A = getCLayer()->activity->data;
+   pvdata_t *V = getV();
+   int num_channels = getNumChannels(); 
+   pvdata_t * gSynHead = GSyn == NULL ? NULL : GSyn[0];
 
    int nx = loc->nx;
    int ny = loc->ny;

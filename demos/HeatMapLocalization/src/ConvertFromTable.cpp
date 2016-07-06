@@ -129,9 +129,14 @@ int ConvertFromTable::loadConversionTable() {
    return status;
 }
 
-int ConvertFromTable::doUpdateState(double timed, double dt,
-      const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels,
-      pvdata_t * GSynHead) {
+int ConvertFromTable::updateState(double timed, double dt)
+{
+   const PVLayerLoc * loc = getLayerLoc();
+   pvdata_t * A = clayer->activity->data;
+   pvdata_t * V = getV();
+   int num_channels = getNumChannels();
+   pvdata_t * GSynHead = GSyn == NULL ? NULL : GSyn[0];
+   
    PVHalo const * halo = &loc->halo;
    float max = convTable.maxRecon;
    float min = convTable.minRecon;

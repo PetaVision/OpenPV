@@ -12,7 +12,7 @@ namespace PV{
 class ImagePvpTestLayer : public PV::ImagePvp{
 public:
    ImagePvpTestLayer(const char * name, HyPerCol * hc);
-   virtual int updateStateWrapper(double time, double dt);
+   virtual int callUpdateState(double time, double dt);
 };
 
 BaseObject * createImagePvpTestLayer(char const * name, HyPerCol * hc);

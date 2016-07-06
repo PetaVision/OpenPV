@@ -23,8 +23,7 @@ namespace PV {
     virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
     virtual void ioParam_errScale(enum ParamsIOFlag ioFlag);
     virtual void ioParam_errWeightsFileName(enum ParamsIOFlag ioFlag);
-    virtual int doUpdateState(double time, double dt, const PVLayerLoc * loc, pvdata_t * A,
-			      pvdata_t * V, int num_channels, pvdata_t * gSynHead);
+    virtual int updateState(double time, double dt);
   private:
     int initialize_base();
     float errScale;

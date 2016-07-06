@@ -34,8 +34,7 @@ protected:
    virtual int initializeV();
    virtual int readVFromCheckpoint(const char * cpDir, double * timeptr);
    virtual int checkpointWrite(const char * cpDir);
-   virtual int doUpdateState(double timed, double dt, const PVLayerLoc * loc, pvdata_t * A,
-         pvdata_t * V, int num_channels, pvdata_t * GSynHead);
+   virtual int updateState(double timed, double dt);
    //virtual double getDeltaUpdateTime();
 
 private:

@@ -16,7 +16,6 @@
 #include <stdio.h>
 #include "../layers/ANNErrorLayer.hpp"
 #include "../layers/ANNLayer.hpp"
-#include "../layers/ANNNormalizedErrorLayer.hpp"
 #include "../layers/ANNSquaredLayer.hpp"
 #include "../layers/ANNWhitenedLayer.hpp"
 #include "../layers/BackgroundLayer.hpp"
@@ -121,7 +120,6 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
          {"HyPerLayer", LayerGroupType},
          {"ANNErrorLayer", LayerGroupType},
          {"ANNLayer", LayerGroupType},
-         {"ANNNormalizedErrorLayer", LayerGroupType},
          {"ANNSquaredLayer", LayerGroupType},
          {"ANNTriggerUpdateOnNewImageLayer", LayerGroupType},
          {"ANNWhitenedLayer", LayerGroupType},
@@ -265,9 +263,6 @@ HyPerLayer * CoreParamGroupHandler::createLayer(char const * keyword, char const
    }
    else if( !strcmp(keyword, "ANNLayer") ) {
       addedLayer = new ANNLayer(name, hc);
-   }
-   else if( !strcmp(keyword, "ANNNormalizedErrorLayer") ) {
-      addedLayer = new ANNNormalizedErrorLayer(name, hc);
    }
    else if( !strcmp(keyword, "ANNSquaredLayer") ) {
       addedLayer = new ANNSquaredLayer(name, hc);
