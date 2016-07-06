@@ -352,7 +352,7 @@ public:
    pvdata_t * getActivity()          {return clayer->activity->data;} // TODO: access to clayer->activity->data should not be public
    virtual double calcTimeScale(int batchIdx)          {return -1.0;};
    virtual double getTimeScale(int batchIdx)      {return -1.0;};
-   virtual bool activityIsSpiking() = 0; // Pure virtual method so that subclasses are forced to implement it.
+   virtual bool activityIsSpiking() { return false; }
    PVDataType getDataType()          {return dataType;}
 protected:
 
@@ -367,7 +367,7 @@ protected:
 
 public:
 
-   virtual ~HyPerLayer() = 0;
+   virtual ~HyPerLayer();
    int initializeState(); // Not virtual since all layers should respond to initializeFromCheckpointFlag and (deprecated) restartFlag in the same way.
                           // initializeState calls the virtual methods readStateFromCheckpoint(), and setInitialValues().
 
