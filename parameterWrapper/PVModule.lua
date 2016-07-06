@@ -1,115 +1,109 @@
 local PVModule = {}
 
--- PVModule.utils = require "utils"
-
 --Global variable infinity declaration
 infinity = math.huge
 INFINITY = math.huge
 
+local function appendString(table, str)
+   assert(type(table)=="table")
+   assert(type(str)=="string")
+   table[#table+1] = str
+end
+
 --Prints a single parameter value to string for parameters in a group
-local function valToString(val)
+local function valToString(paramStringTable, val)
    --NULL value
    if(val == nil) then
-      io.write("NULL")
+      appendString(paramStringTable, "NULL")
    --Param sweep option
    elseif(type(val) == "table") then
-      io.write("[")
+      appendString(paramStringTable, "[")
       for i = 1, #val do
-         valToString(val[i])
+         valToString(paramStringTable, val[i])
          if(i ~= #val) then
-            io.write(", ")
+            appendString(paramStringTable, ", ")
          end
       end
-      io.write("]")
+      appendString(paramStringTable, "]")
    --strings
    elseif(type(val) == "string") then
-      io.write("\"", val, "\"")
+      appendString(paramStringTable, "\"")
+      appendString(paramStringTable, val)
+      appendString(paramStringTable, "\"")
    --boolean
    elseif(type(val) == "boolean") then
       if(val) then
-         io.write("true")
+         appendString(paramStringTable, "true")
       else
-         io.write("false")
+         appendString(paramStringTable, "false")
       end
    --infinity
    elseif(val == math.huge) then
-      io.write("infinity")
+      appendString(paramStringTable, "infinity")
    elseif(val == -math.huge) then
-      io.write("-infinity")
+      appendString(paramStringTable, "-infinity")
    --numerical values
    else
-      io.write(val)
+      appendString(paramStringTable, tostring(val))
    end
 end
       
 -- Prints a key/value pair for a parameter within a group
-local function printKeyValue(key, val)
-   io.write(key ," = ")
-   valToString(val)
-   io.write(";\n")
+local function printKeyValue(paramStringTable, key, val)
+   appendString(paramStringTable, key)
+   appendString(paramStringTable, " = ")
+   valToString(paramStringTable, val)
+   appendString(paramStringTable, ";\n")
 end
 
 --Prints an entire group, with groupType and Name specified
-local function printGroup(key, group)
+local function printGroup(paramStringTable, key, group)
    assert(group["groupType"] ~= nil)
    assert(type(group) == "table")
 
    if group["groupType"] == "BatchSweep" or group["groupType"] == "ParameterSweep" then
 
-      io.write(group["groupType"], " ", key, " ", " = {\n")
+      appendString(paramStringTable, group["groupType"])
+      appendString(paramStringTable, " ")
+      appendString(paramStringTable, key)
+      appendString(paramStringTable, " ")
+      appendString(paramStringTable, " = {\n")
 
       for k,v in pairs(group) do
          if(k ~= "groupType") then
-            io.write("    ");
-            valToString(v
-            );
-            io.write(";\n");
+            appendString(paramStringTable, "    ");
+            valToString(paramStringTable, v);
+            appendString(paramStringTable, ";\n");
          end
       end
 
    else
 
-      io.write(group["groupType"], " \"", key, "\" = {\n")
+      appendString(paramStringTable, group["groupType"])
+      appendString(paramStringTable, " \"")
+      appendString(paramStringTable, key)
+      appendString(paramStringTable, "\" = {\n")
       for k,v in pairs(group) do
          if(k ~= "groupType") then
-            io.write("    ")
-            printKeyValue(k, v)
+            appendString(paramStringTable, "    ")
+            printKeyValue(paramStringTable, k, v)
          end
       end
 
    end
-   io.write("};\n\n") --endOfGroup
+   appendString(paramStringTable, "};\n\n") --endOfGroup
 end
 
+--Converts parameterTable into a string suitable as a params file
+function PVModule.createParamsFileString(parameterTable)
+   paramStringTable = {}
 
---local function validateVal(group)
---
---end
---
---local function validateGroup(group)
---
---end
---
-----Validates syntax of parameterTable
---function PVModule.validate(parameterTable)
---   --Parameter table must be a continuous array, 1 to numGroups
---   if(~isArray(group)) then
---      print("Group specified not an array")
---      os.exit()
---   end
---end
-
---Prints parameterTable table out to the console in a PV friendly way
-function PVModule.printConsole(parameterTable)
-   --Validate before print
-   --PVModule.validate(parameterTable)
-   
    --First value to print out is always debugParams
    if(debugParsing == nil) then
       --Default to true
-      printKeyValue("debugParsing", true)
+      printKeyValue(paramStringTable, "debugParsing", true)
    else
-      printKeyValue("debugParsing", debugParsing)
+      printKeyValue(paramStringTable, "debugParsing", debugParsing)
    end
 
    --First group must be HyPerCol, TODO, change this
@@ -120,7 +114,7 @@ function PVModule.printConsole(parameterTable)
             os.exit()
          end
          if(v["groupType"] == "HyPerCol") then
-            printGroup(k, v)
+            printGroup(paramStringTable, k, v)
             break
          end
       --TODO explict check for disable
@@ -137,7 +131,7 @@ function PVModule.printConsole(parameterTable)
       if(type(v) == "table") then
          assert(v["groupType"] ~= nil)
          if(v["groupType"] ~= "HyPerCol") then
-            printGroup(k, v)
+            printGroup(paramStringTable, k, v)
          end
       --TODO explict check for disable
       else
@@ -146,6 +140,8 @@ function PVModule.printConsole(parameterTable)
          os.exit()
       end
    end
+   paramsFile = table.concat(paramStringTable)
+   return paramsFile
 end
 
 --Adds a collection of groups by copying.
@@ -194,23 +190,6 @@ function PVModule.addGroup(parameterTable, newKey, group, overwrites)
    parameterTable[newKey] = newGroup;
 end
 
---Deprecated in favor of accessing by parameterTable["name"]
-
-----Returns the REFERENCE of the object with the groupName of "name" from the parameterTable
---function PVModule.getGroupFromName(parameterTable, name)
---   assert(type(parameterTable) == "table")
---   assert(type(name) == "string")
---   for k,v in pairs(parameterTable) do
---      --Here, parameterTable is a list, k is an integer
---      assert(type(v) == "table")
---      assert(v["groupName"])
---      if(v["groupName"] == name) then
---         return parameterTable[k]
---      end
---   end
---   return nil
---end
-
 --Function make a deep copy of obj and return new object
 --Call function with only 1 parameter
 --newTable = PVModule.deepCopy(sourceTable)
@@ -255,6 +234,11 @@ function PVModule.paramSweep(pvParams, group, param, values)
    PVModule.addGroup(pvParams, key, sweep);
 end
 
+--Prints parameterTable table out to the console in a PV friendly way
+function PVModule.printConsole(parameterTable)
+   paramsFile = PVModule.createParamsFileString(parameterTable)
+   io.write(paramsFile)
+end
 
 
 return PVModule

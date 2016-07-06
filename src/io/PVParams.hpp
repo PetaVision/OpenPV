@@ -329,6 +329,7 @@ private:
 
    int initialize(size_t initialSize);
    int parseFile(const char * filename);
+   void loadParamBuffer(char const * filename, std::string& paramsFileString);
    int parseBuffer(const char * buffer, long int bufferLength);
    int setParameterSweepSize();
    int setBatchSweepSize();

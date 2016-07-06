@@ -8,6 +8,7 @@
 #include "PVParams.hpp"
 #include "include/pv_common.h"
 #include "utils/PVLog.hpp"
+#include "utils/PVAlloc.hpp"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,6 +16,9 @@
 #include <iostream>
 #include <cmath> // nearbyint()
 #include <climits> // INT_MIN
+#ifdef PV_USE_LUA
+#include <lua.hpp>
+#endif // PV_USE_LUA
 
 #define PARAMETERARRAY_INITIALSIZE 8
 #define PARAMETERARRAYSTACK_INITIALCOUNT 5
@@ -934,36 +938,17 @@ int PVParams::newActiveBatchSweep() {
 
 int PVParams::parseFile(const char * filename) {
    int rootproc = 0;
-   char * paramBuffer = NULL;
+   char * paramBuffer = nullptr;
    size_t bufferlen;
    if( worldRank == rootproc ) {
-      if( filename == NULL ) {
-         pvError().printf("PVParams::parseFile: filename was null.\n");
-      }
-      struct stat filestatus;
-      if( PV_stat(filename, &filestatus) ) {
-         pvError().printf("PVParams::parseFile ERROR getting status of file \"%s\": %s\n", filename, strerror(errno));
-      }
-      if( filestatus.st_mode & S_IFDIR ) {
-         pvError().printf("PVParams::parseFile ERROR: specified file \"%s\" is a directory.\n", filename);
-      }
-      PV_Stream * paramstream = PV_fopen(filename, "r", false/*verifyWrites*/);
-      if( paramstream == NULL ) {
-         pvError().printf("PVParams::parseFile ERROR opening file \"%s\": %s\n", filename, strerror(errno));
-      }
-      if( PV_fseek(paramstream, 0, SEEK_END) != 0 ) {
-         pvError().printf("PVParams::parseFile ERROR seeking end of file \"%s\": %s\n", filename, strerror(errno));
-      }
-      bufferlen = (size_t) getPV_StreamFilepos(paramstream);
-      paramBuffer = (char *) malloc(bufferlen);
-      if( paramBuffer == NULL ) {
-         pvError().printf("PVParams::parseFile: Rank %d process unable to allocate memory for params buffer\n", rootproc);
-      }
-      PV_fseek(paramstream, 0L, SEEK_SET);
-      if( PV_fread(paramBuffer,1, (unsigned long int) bufferlen, paramstream) != bufferlen) {
-         pvError().printf("PVParams::parseFile: ERROR reading params file \"%s\"", filename);
-      }
-      PV_fclose(paramstream);
+      std::string paramBufferString("");
+      loadParamBuffer(filename, paramBufferString);
+      bufferlen = paramBufferString.size();
+      // Older versions of MPI_Send require void*, not void const*
+      paramBuffer = (char *) pvMalloc(bufferlen+1);
+      memcpy(paramBuffer, paramBufferString.c_str(), bufferlen);
+      paramBuffer[bufferlen] = '\0';
+
 #ifdef PV_USE_MPI
       int sz = worldSize;
       for( int i=0; i<sz; i++ ) {
@@ -991,6 +976,60 @@ int PVParams::parseFile(const char * filename) {
    int status = parseBuffer(paramBuffer, bufferlen);
    free(paramBuffer);
    return status;
+}
+
+void PVParams::loadParamBuffer(char const * filename, std::string& paramsFileString) {
+   if (filename==nullptr) {
+      pvError() << "PVParams::loadParamBuffer: filename is null\n";
+   }
+   struct stat filestatus;
+   if( PV_stat(filename, &filestatus) ) {
+      pvError().printf("PVParams::parseFile unable to get status of file \"%s\": %s\n", filename, strerror(errno));
+   }
+   if( filestatus.st_mode & S_IFDIR ) {
+      pvError().printf("PVParams::parseFile: specified file \"%s\" is a directory.\n", filename);
+   }
+
+#ifdef PV_USE_LUA
+   char const * luaext = ".params.lua";
+   size_t fnlen = strlen(filename);
+   size_t luaextlen = strlen(luaext);
+   bool useLua = fnlen>=luaextlen && !strcmp(&filename[fnlen-luaextlen], luaext);
+#else // PV_USE_LUA
+   bool const useLua = false;
+#endif // PV_USE_LUA
+
+   if (useLua) {
+#ifdef PV_USE_LUA
+      pvInfo() << "Running lua program \"" << filename << "\".\n";
+      lua_State * lua_state = luaL_newstate();
+      luaL_openlibs(lua_state);
+      int result = luaL_dofile(lua_state, filename);
+      if (result != LUA_OK) {
+         char const * errorMessage = lua_tostring(lua_state, -1);
+         lua_pop(lua_state, 1);
+         pvError() << errorMessage;
+      }
+      lua_getglobal(lua_state, "paramsFileString");
+      char const * lstring = lua_tolstring(lua_state, -1, nullptr);
+      if (lstring==nullptr) {
+         pvError() << "Lua program \"" << filename << "\" does not create a string variable \"paramsFileString\".\n";
+      }
+      size_t llength;
+      char const * lstring = lua_tolstring(lua_state, -1, &llength);
+      paramsFileString.insert(paramsFileString.end(), lstring, &lstring[llength]);
+      lua_pop(lua_state, 1);
+      lua_close(lua_state);
+      pvInfo() << "Retrieved paramsFileString, with length " << llength << ".\n";
+#endif // PV_USE_LUA
+   }
+   else {
+      off_t sz = filestatus.st_size;
+      std::ifstream paramsStream(filename, std::ios_base::in);
+      if (paramsStream.fail()) { throw; } // TODO: provide a helpful strerror(errno)-like message
+      paramsFileString.resize(sz);
+      paramsStream.read(&paramsFileString[0], sz);
+   }
 }
 
 bool PVParams::hasSweepValue(const char* inParamName){

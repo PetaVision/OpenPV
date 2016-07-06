@@ -14,7 +14,11 @@
 # MPI_FOUND, MPI_CXX_INCLUDE_PATH and MPI_CXX_LIBRARIES. Can be set with find_package(MPI)
 # CUDA_FOUND. Can be set with find_package(CUDA). Requires CUDNN
 # CUDNN_FOUND, CUDNN_INCLUDE_DIR, CUDNN_LIBRARIES. Can be set with find_package(CUDNN).
-#  FindCUDNN.cmake is provided in ${PV_SOURCE_DIR}/OpenPV/cmake
+#  FindCUDNN.cmake is provided in ${PV_SOURCE_DIR}/cmake
+# LUA_FOUND, LUA_INCLUDE_DIR, LUA_LIBRARIES.  These can be set with find_package(Lua).
+#  FindLua.cmake is a standard CMake module from version 3 on.  To accommodate older
+#  versions of CMake, the FindLua.cmake from CMake 3.5.2 has been copied into
+#  ${PV_SOURCE_DIR}/cmake.
 #
 
 macro(pv_add_library TARGET)
@@ -52,6 +56,10 @@ macro(pv_add_library TARGET)
 
   if (PV_USE_MPI AND MPI_FOUND)
     include_directories(${MPI_CXX_INCLUDE_PATH})
+  endif()
+
+  if (PV_USE_LUA AND LUA_FOUND)
+    include_directories(${LUA_INCLUDE_DIR})
   endif()
 
   if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "MinRelSize")

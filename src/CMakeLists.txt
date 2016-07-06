@@ -102,6 +102,10 @@ if (PV_USE_MPI AND MPI_FOUND)
   include_directories(${MPI_CXX_INCLUDE_PATH})
 endif()
 
+if (PV_USE_GDAL AND GDAL_FOUND)
+  include_directories(${LUA_INCLUDE_DIR})
+endif()
+
 if (PV_REORDER_HYPERCONN)
   add_definitions("-DPV_REORDER_HYPERCONN=1")
 endif()
