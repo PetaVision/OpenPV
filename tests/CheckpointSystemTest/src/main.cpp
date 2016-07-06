@@ -32,7 +32,7 @@ int main(int argc, char * argv[]) {
    }
    if (pv_getopt(argc, argv, "-r", NULL)==0) {
       if (rank==0) {
-         pvErrorNoExit().printf("%s should be run without the checkpoint directory argument.\n", argv[0]);
+         pvErrorNoExit().printf("%s should be run without the restart flag.\n", argv[0]);
       }
       status = PV_FAILURE;
    }
