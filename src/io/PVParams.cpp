@@ -991,10 +991,10 @@ void PVParams::loadParamBuffer(char const * filename, std::string& paramsFileStr
    }
 
 #ifdef PV_USE_LUA
-   char const * luaext = ".params.lua";
-   size_t fnlen = strlen(filename);
-   size_t luaextlen = strlen(luaext);
-   bool useLua = fnlen>=luaextlen && !strcmp(&filename[fnlen-luaextlen], luaext);
+   char const * const luaext = ".lua";
+   size_t const luaextlen = strlen(luaext);
+   size_t const fnlen = strlen(filename);
+   bool const useLua = fnlen>=luaextlen && !strcmp(&filename[fnlen-luaextlen], luaext);
 #else // PV_USE_LUA
    bool const useLua = false;
 #endif // PV_USE_LUA
@@ -1011,12 +1011,11 @@ void PVParams::loadParamBuffer(char const * filename, std::string& paramsFileStr
          pvError() << errorMessage;
       }
       lua_getglobal(lua_state, "paramsFileString");
-      char const * lstring = lua_tolstring(lua_state, -1, nullptr);
+      size_t llength;
+      char const * lstring = lua_tolstring(lua_state, -1, &llength);
       if (lstring==nullptr) {
          pvError() << "Lua program \"" << filename << "\" does not create a string variable \"paramsFileString\".\n";
       }
-      size_t llength;
-      char const * lstring = lua_tolstring(lua_state, -1, &llength);
       paramsFileString.insert(paramsFileString.end(), lstring, &lstring[llength]);
       lua_pop(lua_state, 1);
       lua_close(lua_state);
