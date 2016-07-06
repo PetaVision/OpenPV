@@ -51,7 +51,7 @@ int main(int argc, char * argv[]) {
    }
 
    std::string paramsfile("input/ParamsLuaTest.params");
-   std::string paramsluafile("input/ParamsLuaTest.params.lua");
+   std::string paramsluafile("output/pv.params.lua");
    pv_initObj.setParams(paramsfile.c_str());
    PV::HyPerCol * hc1 = pv_initObj.build();
    if (hc1==nullptr) { pvError() << "setParams(\"" << paramsfile << "\") failed.\n"; }

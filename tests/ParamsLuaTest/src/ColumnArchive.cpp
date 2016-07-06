@@ -156,7 +156,7 @@ void ColumnArchive::addConn(PV::HyPerConn * conn, pvwdata_t connTolerance) {
 void ColumnArchive::addCol(PV::HyPerCol * hc, pvdata_t layerTolerance, pvwdata_t connTolerance) {
    int const nl = hc->numberOfLayers();
    m_layerdata.reserve(nl);
-   for (int l; l<nl; l++) {
+   for (int l=0; l<nl; l++) {
       PV::HyPerLayer * layer = hc->getLayer(l);
       if (layer==nullptr) {
          pvError() << "Layer with index " << l << " is null.\n";
@@ -166,7 +166,7 @@ void ColumnArchive::addCol(PV::HyPerCol * hc, pvdata_t layerTolerance, pvwdata_t
 
    int const nc = hc->numberOfConnections();
    m_conndata.reserve(nc);
-   for (int c; c<nc; c++) {
+   for (int c=0; c<nc; c++) {
       PV::BaseConnection * baseConn = hc->getConnection(c);
       if (baseConn==nullptr) { pvError() << "Connection with index " << c << " is null.\n"; }
       PV::HyPerConn * conn = dynamic_cast<PV::HyPerConn*>(baseConn);
