@@ -2161,7 +2161,7 @@ double * HyPerCol::adaptTimeScaleExp1stOrder(){
      //   timeScaleMax2[b] = (1 + changeTimeScaleMin) * timeScaleMax2[b];
      // }
        
-     double E_dt  =  timeScaleTrue[b]; 
+     double E_dt  =  timeScaleTrue[b];
      double E_0   =  oldTimeScaleTrue[b];
      double dE_dt = (E_0 - E_dt)  /  deltaTimeAdapt[b];
 
@@ -2404,7 +2404,7 @@ int HyPerCol::advanceTime(double sim_time)
       updateLayerBufferGpu.clear();
 #endif
 
-      //Ordering needs to go recvGpu, if(recvGpu and upGpu)update, recvNoGpu, update rest 
+      //Ordering needs to go recvGpu, if(recvGpu and upGpu)update, recvNoGpu, update rest
 
       //Time recv for each phase
       // clear GSyn buffers
@@ -2418,7 +2418,7 @@ int HyPerCol::advanceTime(double sim_time)
          }
 #endif
          //Recv GPU
-         layers[l]->resetGSynBuffers(simTime, deltaTimeBase);  // deltaTimeAdapt is not used 
+         layers[l]->resetGSynBuffers(simTime, deltaTimeBase);  // deltaTimeAdapt is not used
          phaseRecvTimers[phase]->start();
          layers[l]->recvAllSynapticInput();
          phaseRecvTimers[phase]->stop();
@@ -2444,7 +2444,7 @@ int HyPerCol::advanceTime(double sim_time)
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
       //Run non gpu layers
       for (auto& layer : recvLayerBuffer) {
-         layer->resetGSynBuffers(simTime, deltaTimeBase);  // deltaTimeAdapt is not used 
+         layer->resetGSynBuffers(simTime, deltaTimeBase);  // deltaTimeAdapt is not used
          phaseRecvTimers[phase]->start();
          layer->recvAllSynapticInput();
          phaseRecvTimers[phase]->stop();
@@ -3037,8 +3037,8 @@ int HyPerCol::outputParams(char const * path) {
       //Load util module based on PVPath
       fprintf(luaPrintParamsStream->fp, "package.path = package.path .. \";\" .. \"" PV_DIR "/../parameterWrapper/?.lua\"\n");
       fprintf(luaPrintParamsStream->fp, "local pv = require \"PVModule\"\n\n");
-      fprintf(luaPrintParamsStream->fp, "-- Base table variable to store\n"); 
-      fprintf(luaPrintParamsStream->fp, "local pvParameters = {\n"); 
+      fprintf(luaPrintParamsStream->fp, "-- Base table variable to store\n");
+      fprintf(luaPrintParamsStream->fp, "local pvParameters = {\n");
    }
 
    // Parent HyPerCol params
@@ -3083,9 +3083,10 @@ int HyPerCol::outputParams(char const * path) {
    }
 
    if(rank == 0){
-      fprintf(luaPrintParamsStream->fp, "} --End of pvParameters\n"); 
-      fprintf(luaPrintParamsStream->fp, "\n-- Print out PetaVision approved parameter file to the console\n"); 
-      fprintf(luaPrintParamsStream->fp, "pv.printConsole(pvParameters)\n"); 
+      fprintf(luaPrintParamsStream->fp, "} --End of pvParameters\n");
+      fprintf(luaPrintParamsStream->fp, "\n-- Print out PetaVision approved parameter file to the console\n");
+      fprintf(luaPrintParamsStream->fp, "paramsFileString = pv.createParamsFileString(pvParameters)\n");
+      fprintf(luaPrintParamsStream->fp, "io.write(paramsFileString)\n");
    }
 
    if (printParamsStream) {
@@ -3358,7 +3359,7 @@ void HyPerCol::addGpuGroup(BaseConnection* conn, int gpuGroupIdx){
    if(gpuGroupIdx >= numGpuGroup){
       int oldNumGpuGroup = numGpuGroup;
       numGpuGroup = gpuGroupIdx + 1;
-      gpuGroupConns = (BaseConnection**) realloc(gpuGroupConns, numGpuGroup * sizeof(BaseConnection*)); 
+      gpuGroupConns = (BaseConnection**) realloc(gpuGroupConns, numGpuGroup * sizeof(BaseConnection*));
       //Initialize newly allocated part to NULL
       for(int i = oldNumGpuGroup; i < numGpuGroup; i++){
          gpuGroupConns[i] = NULL;
