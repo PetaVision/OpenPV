@@ -187,8 +187,8 @@ void BaseInput::ioParam_interpolationMethod(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "autoResizeFlag"));
    if (autoResizeFlag) {
       char * interpolationMethodString = NULL;
-      parent->ioParamString(ioFlag, name, "interpolationMethod", &interpolationMethodString, "bicubic", true/*warn if absent*/);
       if (ioFlag == PARAMS_IO_READ) {
+         parent->ioParamString(ioFlag, name, "interpolationMethod", &interpolationMethodString, "bicubic", true/*warn if absent*/);
          assert(interpolationMethodString);
          for (char * c = interpolationMethodString; *c; c++) { *c = tolower(*c); }
          if (!strncmp(interpolationMethodString, "bicubic", strlen("bicubic"))) {
@@ -218,8 +218,8 @@ void BaseInput::ioParam_interpolationMethod(enum ParamsIOFlag ioFlag) {
          default:
             assert(0); // interpolationMethod should be one of the above two categories.
          }
+         parent->ioParamString(ioFlag, name, "interpolationMethod", &interpolationMethodString, "bicubic", true/*warn if absent*/);
       }
-      parent->ioParamString(ioFlag, name, "interpolationMethod", &interpolationMethodString, "bicubic", true/*warn if absent*/);
       free(interpolationMethodString);
    }
 }
