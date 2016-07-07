@@ -1,7 +1,7 @@
 import pdb
 import numpy as np
 import scipy.sparse as sp
-from readpvpheader import readpvpheader,extendedHeaderPattern
+from readpvpheader import readpvpheader,headerPattern,extendedHeaderPattern
 import os
 
 """
@@ -410,7 +410,7 @@ class pvpOpen(object):
         if(self.header["filetype"] != 5):
             #Write out header
             for headerEntry in hPattern:
-                stream.write(headerEntry[1](self.header[headerEntry[0]]))
+                self.pvpFile.write(headerEntry[1](self.header[headerEntry[0]]))
 
     def updateHeader(self, data):
         #Only update if filetype is not 5
