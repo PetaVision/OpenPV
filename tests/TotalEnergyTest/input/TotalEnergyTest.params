@@ -15,6 +15,7 @@ HyPerCol "column" = {
    ny = 60;
    dt = 1.0;
    dtAdaptController = "TimeScale";
+   useAdaptMethodExp1stOrder = false;
    dtScaleMax = 5;
    dtScaleMin = 0.125;
    dtChangeMax = 0.05;

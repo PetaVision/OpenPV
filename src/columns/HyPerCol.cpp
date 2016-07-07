@@ -187,7 +187,6 @@ int HyPerCol::initialize_base() {
    stopTime = 0.0;
    deltaTime = DEFAULT_DELTA_T;
    writeTimeScaleFieldnames = true;
-   useAdaptMethodExp1stOrder = false;
    dtAdaptController = NULL;
    dtAdaptControlProbe = NULL;
    dtAdaptTriggerLayerName = NULL;
@@ -862,7 +861,12 @@ void HyPerCol::ioParam_writeTimeScaleFieldnames(enum ParamsIOFlag ioFlag) {
 void HyPerCol::ioParam_useAdaptMethodExp1stOrder(enum ParamsIOFlag ioFlag) {
    pvAssert(!params->presentAndNotBeenRead(name, "dtAdaptController"));
    if (dtAdaptController!=nullptr) {
-     ioParamValue(ioFlag, name, "useAdaptMethodExp1stOrder", &useAdaptMethodExp1stOrder, useAdaptMethodExp1stOrder);
+     ioParamValue(ioFlag, name, "useAdaptMethodExp1stOrder", &useAdaptMethodExp1stOrder, useAdaptMethodExp1stOrder, false/*don't warn if absent*/);
+     if (ioFlag==PARAMS_IO_READ && !useAdaptMethodExp1stOrder) {
+        if (columnId()==0) {
+           pvWarn() << "Setting useAdaptMethodExp1stOrder to false is deprecated.\n";
+        }
+     }
    }
 }
 

@@ -557,7 +557,7 @@ private:
    double simTime;          // current time in milliseconds
    double stopTime;         // time to stop time
    double deltaTime;        // time step interval
-   bool useAdaptMethodExp1stOrder; // specifies whether exponential approximation to energy function decay is used to adapt time scale, requires dtAdaptControlProbe != NULL
+   bool useAdaptMethodExp1stOrder = true; // specifies whether exponential approximation to energy function decay is used to adapt time scale, requires dtAdaptControlProbe != NULL
    char * dtAdaptController;       // If nonblank, the name of a ColProbe whose getValues() method is called to control timeScale
    ColProbe * dtAdaptControlProbe; // The probe pointed to by dtAdaptController, dtAdaptControlProbe->getValues() is used to control timeScale.  If blank, use the original method
    char * dtAdaptTriggerLayerName;
