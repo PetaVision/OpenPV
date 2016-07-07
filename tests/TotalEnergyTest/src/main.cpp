@@ -133,7 +133,7 @@ int generate(PV_Init* initObj, int rank) {
       }
       PV_fclose(emptyinfile);
    }
-   int status = rebuildandrun(initObj, NULL, &copyCorrectOutput, NULL, 0);
+   int status = rebuildandrun(initObj, NULL, &copyCorrectOutput);
    return status;
 }
 
@@ -181,7 +181,7 @@ int testrun(PV_Init * initObj, int rank) {
       pvInfo().printf("Running --testrun with effective command line");
       initObj->printState();
    }
-   int status = rebuildandrun(initObj, NULL, &assertAllZeroes, NULL, 0);
+   int status = rebuildandrun(initObj, NULL, &assertAllZeroes);
    return status;
 }
 
@@ -200,7 +200,7 @@ int testcheckpoint(PV_Init * initObj, int rank) {
       pvInfo().printf("Running --testcheckpoint with effective command line");
       initObj->printState();
    }
-   int status = rebuildandrun(initObj, NULL, &assertAllZeroes, NULL, 0);
+   int status = rebuildandrun(initObj, NULL, &assertAllZeroes);
    return status;
 }
 
@@ -231,7 +231,7 @@ int testioparams(PV_Init* initObj, int rank) {
       pvInfo().printf("Running --testioparams with effective command line");
       initObj->printState();
    }
-   status = rebuildandrun(initObj, NULL, &assertAllZeroes, NULL, 0);
+   status = rebuildandrun(initObj, NULL, &assertAllZeroes);
    return status;
 }
 
