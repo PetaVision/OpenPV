@@ -191,13 +191,13 @@ public:
    int setParams(char const * paramsFile);
 
    /**
-    * Sets the log file.  If the argument is null, logging returns to the
+    * Sets the log file.  If the string argument is null, logging returns to the
     * default streams (probably cout and cerr).  The previous log file,
     * if any, is closed; and the new file is opened in write mode.
     * Return value is PV_SUCCESS or PV_FAILURE.
     * If the routine fails, the logging streams remain unchanged.
     */
-   int setLogFile(char const * val);
+   int setLogFile(char const * val, bool appendFlag=false);
 
    /**
     * Sets the value of the gpu devices string to a copy of the input argument.
@@ -379,7 +379,7 @@ private:
     * to pvInfo() and calls PV_Arguments::printState(), which writes the effective
     * command line to pvInfo().
     */
-   void initLogFile();
+   void initLogFile(bool appendFlag);
 
    /**
     * A method used internally by initialize() and setParams() to create the PVParams object
@@ -388,6 +388,12 @@ private:
     * otherwise it returns failure and leaves the value of the params data member unchanged.
     */
    int createParams();
+
+   /**
+    * Sends a timestamp and the effective command line to the pvInfo stream.
+    * The effective command line is based on the current state of the arguments data member.
+    */
+   void printInitMessage();
 
    int commFinalize();
    PVParams * params;

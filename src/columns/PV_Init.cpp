@@ -25,6 +25,7 @@ PV_Init::PV_Init(int* argc, char ** argv[], bool allowUnrecognizedArguments){
    arguments = new PV_Arguments(*argc, *argv, allowUnrecognizedArguments);
    factory = new Factory();
    buildandrunDeprecationWarning = true;
+   initLogFile(false/*appendFlag*/);
    initialize(); // must follow initialization of arguments data member.
 }
 
@@ -53,7 +54,6 @@ int PV_Init::initSignalHandler()
 }
 
 int PV_Init::initialize() {
-   initLogFile();
    delete icComm;
    icComm = new InterColComm(arguments);
    int status = PV_SUCCESS;
@@ -63,10 +63,7 @@ int PV_Init::initialize() {
    if (arguments->getParamsFile()) {
       status = createParams();
    }
-   time_t currentTime = time(nullptr);
-   pvInfo() << "PetaVision initialized at " << ctime(&currentTime); // string returned by ctime contains a trailing \n.
-   pvInfo() << "Command line arguments are:\n";
-   arguments->printState();
+   printInitMessage();
    return status;
 }
 
@@ -99,7 +96,7 @@ int PV_Init::commInit(int* argc, char*** argv)
    return 0;
 }
 
-void PV_Init::initLogFile() {
+void PV_Init::initLogFile(bool appendFlag) {
    // TODO: Under MPI, non-root processes should send messages to root process.
    // Currently, if logFile is directory/filename.txt, the root process writes to that path,
    // and nonroot processes write to directory/filename_<rank>.txt, where <rank> is replaced with the global rank.
@@ -107,10 +104,10 @@ void PV_Init::initLogFile() {
    // Note that the global rank zero process does not insert _<rank>.  This is deliberate, as the nonzero ranks
    // should be MPI-ing the data to the zero rank.
    char const * logFile = arguments->getLogFile();
-   std::ios_base::openmode const mode = std::ios_base::out; // TODO: Provide control over whether to truncate or append
    int const globalRootProcess = 0;
    int globalRank;
    MPI_Comm_rank(MPI_COMM_WORLD, &globalRank);
+   std::ios_base::openmode mode = appendFlag ? std::ios_base::out | std::ios_base::app : std::ios_base::out;
    if (logFile && globalRank != globalRootProcess) {
       // To prevent collisions caused by multiple processes opening the same file for logging,
       // processes with global rank other than zero append the rank to the log filename.
@@ -157,12 +154,25 @@ int PV_Init::createParams() {
    }
 }
 
+int PV_Init::setLogFile(char const * log_file, bool appendFlag) {
+   arguments->setLogFile(log_file);
+   initLogFile(appendFlag);
+   printInitMessage();
+}
+
 int PV_Init::setMPIConfiguration(int rows, int columns, int batchWidth) {
    if (rows >= 0) { arguments->setNumRows(rows); }
    if (columns >= 0) { arguments->setNumColumns(columns); }
    if (batchWidth >= 0) { arguments->setBatchWidth(batchWidth); }
    initialize();
    return PV_SUCCESS;
+}
+
+void PV_Init::printInitMessage() {
+   time_t currentTime = time(nullptr);
+   pvInfo() << "PetaVision initialized at " << ctime(&currentTime); // string returned by ctime contains a trailing \n.
+   pvInfo() << "Command line arguments are:\n";
+   printState();
 }
 
 int PV_Init::resetState() {
