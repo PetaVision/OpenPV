@@ -349,6 +349,7 @@ protected:
    int freeExtendedBuffer(pvdata_t ** buf);
 
 public:
+   HyPerLayer(const char * name, HyPerCol * hc);
    pvdata_t * getActivity()          {return clayer->activity->data;} // TODO: access to clayer->activity->data should not be public
    virtual double calcTimeScale(int batchIdx)          {return -1.0;};
    virtual double getTimeScale(int batchIdx)      {return -1.0;};
@@ -858,6 +859,7 @@ protected:
 //   CLKernel * krUpdate;        // CL kernel for update state call
 };
 
+BaseObject * createHyPerLayer(char const * name, HyPerCol * hc);
 } // namespace PV
 
 #endif /* HYPERLAYER_HPP_ */

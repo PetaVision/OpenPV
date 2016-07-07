@@ -20,6 +20,7 @@
 #include <layers/ConstantLayer.hpp>
 #include <layers/FilenameParsingGroundTruthLayer.hpp>
 #include <layers/GapLayer.hpp>
+#include <layers/HyPerLayer.hpp>
 #include <layers/HyPerLCALayer.hpp>
 #include <layers/ISTALayer.hpp>
 #include <layers/Image.hpp>
@@ -128,7 +129,8 @@ int Factory::registerCoreKeywords() {
    registerKeyword("CloneVLayer", createCloneVLayer);
    registerKeyword("ConstantLayer", createConstantLayer);
    registerKeyword("FilenameParsingGroundTruthLayer", createFilenameParsingGroundTruthLayer);
-   registerKeyword("GapLayer", createGapLayer);
+   registerKeyword("GapLayer", createGapLayer); 
+   registerKeyword("HyPerLayer", createHyPerLayer);
    registerKeyword("HyPerLCALayer", createHyPerLCALayer);
    registerKeyword("ISTALayer", createISTALayer);
    registerKeyword("Image", createImage);
