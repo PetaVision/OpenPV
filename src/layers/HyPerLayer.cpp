@@ -125,6 +125,12 @@ HyPerLayer::HyPerLayer() {
    initialize_base();
 }
 
+HyPerLayer::HyPerLayer(const char * name, HyPerCol * hc)
+{
+    initialize_base();
+    initialize(name, hc);
+}
+
 ///////
 // initialize_base should be called only by constructors.  It should not
 // call any virtual methods, because polymorphism is not available when
@@ -2954,6 +2960,10 @@ int HyPerLayer::mirrorToSouthEast(PVLayerCube* dest, PVLayerCube* src)
 ////}
 //
 //#endif // PV_USE_OPENCL
+
+BaseObject * createHyPerLayer(char const * name, HyPerCol * hc) { 
+    return hc ? new HyPerLayer(name, hc) : NULL; 
+}
 
 
 } // end of PV namespace
