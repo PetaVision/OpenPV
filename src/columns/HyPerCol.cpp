@@ -121,7 +121,7 @@ HyPerCol::~HyPerCol()
       free(checkpointReadDir); checkpointReadDir = NULL;
       free(checkpointReadDirBase); checkpointReadDirBase = NULL;
    }
-   if (dtAdaptFlag && writeTimescales){
+   if (dtAdaptControlProbe && writeTimescales){
       timeScaleStream.close();
    }
 
@@ -186,9 +186,7 @@ int HyPerCol::initialize_base() {
    startTime = 0.0;
    stopTime = 0.0;
    deltaTime = DEFAULT_DELTA_T;
-   dtAdaptFlag = false;
    writeTimeScaleFieldnames = true;
-   useAdaptMethodExp1stOrder = false;
    dtAdaptController = NULL;
    dtAdaptControlProbe = NULL;
    dtAdaptTriggerLayerName = NULL;
@@ -617,10 +615,10 @@ int HyPerCol::ioParamsStartGroup(enum ParamsIOFlag ioFlag, const char * group_na
 int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_startTime(ioFlag);
    ioParam_dt(ioFlag);
-   ioParam_dtAdaptFlag(ioFlag);
-   ioParam_writeTimeScaleFieldnames(ioFlag);
-   ioParam_useAdaptMethodExp1stOrder(ioFlag);
    ioParam_dtAdaptController(ioFlag);
+   ioParam_dtAdaptFlag(ioFlag);
+   ioParam_useAdaptMethodExp1stOrder(ioFlag);
+   ioParam_writeTimeScaleFieldnames(ioFlag);
    ioParam_dtAdaptTriggerLayerName(ioFlag);
    ioParam_dtAdaptTriggerOffset(ioFlag);
    ioParam_dtScaleMax(ioFlag);
@@ -816,80 +814,114 @@ void HyPerCol::ioParam_dt(enum ParamsIOFlag ioFlag) {
    deltaTimeBase = deltaTime;  // use param value as base
 }
 
+void HyPerCol::ioParam_dtAdaptController(enum ParamsIOFlag ioFlag) {
+   ioParamString(ioFlag, name, "dtAdaptController", &dtAdaptController, NULL);
+}
+
 void HyPerCol::ioParam_dtAdaptFlag(enum ParamsIOFlag ioFlag) {
-   ioParamValue(ioFlag, name, "dtAdaptFlag", &dtAdaptFlag, dtAdaptFlag);
+   // dtAdaptFlag was deprecated Feb 1, 2016.
+   if (ioFlag==PARAMS_IO_READ) {
+      assert(!params->presentAndNotBeenRead(name, "dtAdaptController"));
+      bool dt_adapt_flag = (dtAdaptController!=nullptr);
+      if (params->present(name, "dtAdaptFlag")) {
+         if (columnId()==0) { pvWarn() << "HyPerCol parameter dtAdaptFlag is deprecated.  Value of dtAdaptController implies the value of dtAdaptFlag.\n"; }
+         ioParamValue(ioFlag, name, "dtAdaptFlag", &dt_adapt_flag, dt_adapt_flag);
+         if (dt_adapt_flag != (dtAdaptController!=nullptr)) {
+            if (columnId()==0) {
+               pvError(dtAdaptFlagError);
+               dtAdaptFlagError << "HyPerCol " << name << ": dtAdaptController is ";
+               if (dtAdaptController) {
+                  dtAdaptFlagError << "\"" << dtAdaptController << "\"; therefore dtAdaptFlag can only be set to true.\n";
+               }
+               else {
+                  dtAdaptFlagError << "null; therefore dtAdaptFlag can only be set to false.\n";
+               }
+            }
+            MPI_Barrier(icCommunicator()->communicator());
+            exit(EXIT_FAILURE);
+         }
+      }
+   }
+}
+
+void HyPerCol::ioParam_writeTimescales(enum ParamsIOFlag ioFlag) {
+   pvAssert(!params->presentAndNotBeenRead(name, "dtAdaptController"));
+   if (dtAdaptController!=nullptr) {
+      ioParamValue(ioFlag, name, "writeTimescales", &writeTimescales, writeTimescales);
+   }
 }
 
 void HyPerCol::ioParam_writeTimeScaleFieldnames(enum ParamsIOFlag ioFlag) {
-   assert(!params->presentAndNotBeenRead(name, "dtAdaptFlag"));
-   if (dtAdaptFlag) {
+   pvAssert(!params->presentAndNotBeenRead(name, "dtAdaptController"));
+   if (dtAdaptController!=nullptr) {
      ioParamValue(ioFlag, name, "writeTimeScaleFieldnames", &writeTimeScaleFieldnames, writeTimeScaleFieldnames);
    }
 }
 
 void HyPerCol::ioParam_useAdaptMethodExp1stOrder(enum ParamsIOFlag ioFlag) {
-   assert(!params->presentAndNotBeenRead(name, "dtAdaptFlag"));
-   if (dtAdaptFlag) {
-     ioParamValue(ioFlag, name, "useAdaptMethodExp1stOrder", &useAdaptMethodExp1stOrder, useAdaptMethodExp1stOrder);
+   pvAssert(!params->presentAndNotBeenRead(name, "dtAdaptController"));
+   if (dtAdaptController!=nullptr) {
+     ioParamValue(ioFlag, name, "useAdaptMethodExp1stOrder", &useAdaptMethodExp1stOrder, useAdaptMethodExp1stOrder, false/*don't warn if absent*/);
+     if (ioFlag==PARAMS_IO_READ && !useAdaptMethodExp1stOrder) {
+        if (columnId()==0) {
+           pvWarn() << "Setting useAdaptMethodExp1stOrder to false is deprecated.\n";
+        }
+     }
    }
 }
 
-void HyPerCol::ioParam_dtAdaptController(enum ParamsIOFlag ioFlag) {
-   ioParamString(ioFlag, name, "dtAdaptController", &dtAdaptController, NULL);
-}
-
 void HyPerCol::ioParam_dtAdaptTriggerLayerName(enum ParamsIOFlag ioFlag) {
-   assert(!params->presentAndNotBeenRead(name, "dtAdaptController"));
+   pvAssert(!params->presentAndNotBeenRead(name, "dtAdaptController"));
    if (dtAdaptController && dtAdaptController[0]) {
       ioParamString(ioFlag, name, "dtAdaptTriggerLayerName", &dtAdaptTriggerLayerName, NULL);
    }
 }
 
 void HyPerCol::ioParam_dtAdaptTriggerOffset(enum ParamsIOFlag ioFlag) {
-   assert(!params->presentAndNotBeenRead(name, "dtAdaptTriggerLayer"));
+   pvAssert(!params->presentAndNotBeenRead(name, "dtAdaptTriggerLayerName"));
    if (dtAdaptTriggerLayerName && dtAdaptTriggerLayerName[0]) {
       ioParamValue(ioFlag, name, "dtAdaptTriggerOffset", &dtAdaptTriggerOffset, dtAdaptTriggerOffset);
    }
 }
 
 void HyPerCol::ioParam_dtScaleMax(enum ParamsIOFlag ioFlag) {
-   assert(!params->presentAndNotBeenRead(name, "dtAdaptFlag"));
-   if (dtAdaptFlag) {
+   pvAssert(!params->presentAndNotBeenRead(name, "dtAdaptController"));
+   if (dtAdaptController!=nullptr) {
      ioParamValue(ioFlag, name, "dtScaleMax", &timeScaleMaxBase, timeScaleMaxBase);
    }
 }
 
 void HyPerCol::ioParam_dtScaleMax2(enum ParamsIOFlag ioFlag) {
-   assert(!params->presentAndNotBeenRead(name, "dtAdaptFlag"));
-   if (dtAdaptFlag) {
+   pvAssert(!params->presentAndNotBeenRead(name, "dtAdaptController"));
+   if (dtAdaptController!=nullptr) {
      ioParamValue(ioFlag, name, "dtScaleMax2", &timeScaleMax2Base, timeScaleMax2Base);
    }
 }
 
 void HyPerCol::ioParam_dtScaleMin(enum ParamsIOFlag ioFlag) {
-   assert(!params->presentAndNotBeenRead(name, "dtAdaptFlag"));
-   if (dtAdaptFlag) {
+   pvAssert(!params->presentAndNotBeenRead(name, "dtAdaptController"));
+   if (dtAdaptController!=nullptr) {
      ioParamValue(ioFlag, name, "dtScaleMin", &timeScaleMin, timeScaleMin);
    }
 }
 
 void HyPerCol::ioParam_dtMinToleratedTimeScale(enum ParamsIOFlag ioFlag) {
-   assert(!params->presentAndNotBeenRead(name, "dtAdaptFlag"));
-   if (dtAdaptFlag) {
+   pvAssert(!params->presentAndNotBeenRead(name, "dtAdaptController"));
+   if (dtAdaptController!=nullptr) {
       ioParamValue(ioFlag, name, "dtMinToleratedTimeScale", &dtMinToleratedTimeScale, dtMinToleratedTimeScale);
    }
 }
 
 void HyPerCol::ioParam_dtChangeMax(enum ParamsIOFlag ioFlag) {
-   assert(!params->presentAndNotBeenRead(name, "dtAdaptFlag"));
-   if (dtAdaptFlag) {
+   pvAssert(!params->presentAndNotBeenRead(name, "dtAdaptController"));
+   if (dtAdaptController!=nullptr) {
      ioParamValue(ioFlag, name, "dtChangeMax", &changeTimeScaleMax, changeTimeScaleMax);
    }
 }
 
 void HyPerCol::ioParam_dtChangeMin(enum ParamsIOFlag ioFlag) {
-   assert(!params->presentAndNotBeenRead(name, "dtAdaptFlag"));
-   if (dtAdaptFlag) {
+   pvAssert(!params->presentAndNotBeenRead(name, "dtAdaptController"));
+   if (dtAdaptController!=nullptr) {
      ioParamValue(ioFlag, name, "dtChangeMin", &changeTimeScaleMin, changeTimeScaleMin);
    }
 }
@@ -1255,12 +1287,6 @@ void HyPerCol::ioParam_checkpointIndexWidth(enum ParamsIOFlag ioFlag) {
    }
 }
 
-void HyPerCol::ioParam_writeTimescales(enum ParamsIOFlag ioFlag) {
-   assert(!params->presentAndNotBeenRead(name, "dtAdaptFlag"));
-   if (dtAdaptFlag) {
-      ioParamValue(ioFlag, name, "writeTimescales", &writeTimescales, writeTimescales);
-   }
-}
 void HyPerCol::ioParam_errorOnNotANumber(enum ParamsIOFlag ioFlag) {
    ioParamValue(ioFlag, name, "errorOnNotANumber", &errorOnNotANumber, errorOnNotANumber);
 }
@@ -1580,16 +1606,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
 
    int status = PV_SUCCESS;
    if (!readyFlag) {
-      ensureDirExists(outputPath);
-      if (columnId()==0 && dtAdaptFlag && writeTimescales){
-         size_t timeScaleFileNameLen = strlen(outputPath) + strlen("/HyPerCol_timescales.txt");
-         char timeScaleFileName[timeScaleFileNameLen+1];
-         int charsneeded = snprintf(timeScaleFileName, timeScaleFileNameLen+1, "%s/HyPerCol_timescales.txt", outputPath);
-         assert(charsneeded<=timeScaleFileNameLen);
-         timeScaleStream.open(timeScaleFileName);
-         timeScaleStream.precision(17);
-      }
-      assert(printParamsFilename && printParamsFilename[0]);
+      pvAssert(printParamsFilename && printParamsFilename[0]);
       std::string printParamsFileString("");
       if (printParamsFilename[0] != '/') {
          printParamsFileString += outputPath;
@@ -1621,6 +1638,8 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
       assert(numThreads>0); // setNumThreads should fail if it sets numThreads less than or equal to zero
       omp_set_num_threads(numThreads);
 #endif // PV_USE_OPENMP_THREADS
+
+      initDtAdaptControlProbe();
 
       int (HyPerCol::*layerInitializationStage)(int) = NULL;
       int (HyPerCol::*connInitializationStage)(int) = NULL;
@@ -1788,6 +1807,40 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
    return status;
 }
 
+void HyPerCol::initDtAdaptControlProbe() {
+   // add the dtAdaptController, if there is one.
+   if (dtAdaptController && dtAdaptController[0]) {
+      dtAdaptControlProbe = getColProbeFromName(dtAdaptController);
+      if (dtAdaptControlProbe==nullptr) {
+         if (globalRank()==0) {
+            pvError().printf("HyPerCol \"%s\": dtAdaptController \"%s\" does not refer to a ColProbe in the HyPerCol.\n",
+                  this->getName(), dtAdaptController);
+         }
+      }
+
+      // add the dtAdaptTriggerLayer, if there is one.
+      if (dtAdaptTriggerLayerName && dtAdaptTriggerLayerName[0]) {
+         dtAdaptTriggerLayer = getLayerFromName(dtAdaptTriggerLayerName);
+         if (dtAdaptTriggerLayer==nullptr) {
+            if (globalRank()==0) {
+               pvError().printf("HyPerCol \"%s\": dtAdaptTriggerLayerName \"%s\" does not refer to layer in the column.\n", this->getName(), dtAdaptTriggerLayerName);
+            }
+         }
+      }
+   }
+   ensureDirExists(outputPath);
+   if (columnId()==0 && dtAdaptControlProbe && writeTimescales){
+      size_t timeScaleFileNameLen = strlen(outputPath) + strlen("/HyPerCol_timescales.txt");
+      std::string timeScaleFilename(outputPath);
+      timeScaleFilename += "/" "HyPerCol_timescales.txt";
+      timeScaleStream.open(timeScaleFilename.c_str());
+      if (timeScaleStream.fail()) {
+         pvError() << "HyPerCol \"" << name << "\": Unable to open \"" << timeScaleFilename << "\".\n";
+      }
+      timeScaleStream.precision(17);
+   }
+}
+
 // This routine sets the numThreads member variable.  It should only be called by the run() method,
 // and only inside the !ready if-statement.
 int HyPerCol::setNumThreads(bool printMessagesFlag) {
@@ -1886,29 +1939,6 @@ int HyPerCol::processParams(char const * path) {
             // A more detailed error message should be printed by probe's communicateInitInfo function.
             pvErrorNoExit().printf("Probe \"%s\" communicateInitInfo failed.\n", p->getName());
             return PV_FAILURE;
-         }
-      }
-   
-      // add the dtAdaptController, if there is one.
-      if (dtAdaptController && dtAdaptController[0]) {
-         dtAdaptControlProbe = getColProbeFromName(dtAdaptController);
-         if (dtAdaptControlProbe==NULL) {
-            if (globalRank()==0) {
-               pvErrorNoExit().printf("HyPerCol \"%s\": dtAdaptController \"%s\" does not refer to a ColProbe in the HyPerCol.\n",
-                     this->getName(), dtAdaptController);
-            }
-            return PV_FAILURE;
-         }
-   
-         // add the dtAdaptTriggerLayer, if there is one.
-         if (dtAdaptTriggerLayerName && dtAdaptTriggerLayerName[0]) {
-            dtAdaptTriggerLayer = getLayerFromName(dtAdaptTriggerLayerName);
-            if (dtAdaptTriggerLayer==NULL) {
-               if (globalRank()==0) {
-                  pvErrorNoExit().printf("HyPerCol \"%s\": dtAdaptTriggerLayerName \"%s\" does not refer to layer in the column.\n", this->getName(), dtAdaptTriggerLayerName);
-               }
-               return PV_FAILURE;
-            }
          }
       }
    }
@@ -2207,8 +2237,9 @@ double * HyPerCol::adaptTimeScaleExp1stOrder(){
 }
 
 int HyPerCol::calcTimeScaleTrue() {
+   pvAssert(dtAdaptControlProbe);
+#ifdef OBSOLETE // Marked obsolete Jul 7, 2016.  calcTimeScaleTrue should not be called if dtAdaptControlProbe is null.
    if (!dtAdaptControlProbe) {
-      // Using dtAdaptFlag w/o dtAdaptControlProbe was deprecated Feb 1, 2016.
       if (columnId()==0) {
          getOutputStream().flush();
          pvWarn().printf("Setting dtAdaptFlag without defining a dtAdaptControlProbe is deprecated.\n\n\n");
@@ -2287,6 +2318,37 @@ int HyPerCol::calcTimeScaleTrue() {
          timeScaleTrue[b] =  timeScaleProbe;
       }
    }
+#endif // OBSOLETE // Marked obsolete Jul 7, 2016.  calcTimeScaleTrue should not be called if dtAdaptControlProbe is null.
+   // The code below is the else-clause of the obsolete code block above.
+   std::vector<double> colProbeValues;
+   bool triggersNow = false;
+   if (dtAdaptTriggerLayer) {
+      double triggerTime = dtAdaptTriggerLayer->getNextUpdateTime() - dtAdaptTriggerOffset;
+      triggersNow = fabs(simTime - triggerTime) < (deltaTimeBase/2);
+   }
+   if (triggersNow) {
+      colProbeValues.assign(nbatch, -1.0);
+   }
+   else {
+      dtAdaptControlProbe->getValues(simTime, &colProbeValues);
+   }
+   assert(colProbeValues.size()==nbatch); // getValues sets dtAdaptControlProbe->vectorSize to be equal to nbatch
+   for (int b=0; b<nbatch; b++) {
+      double timeScaleProbe = colProbeValues.at(b);
+      if (timeScaleProbe > 0 && timeScaleProbe < dtMinToleratedTimeScale) {
+         if (globalRank()==0) {
+            if (nbatch==1) {
+               pvErrorNoExit().printf("Probe \"%s\" has time scale %g, less than dtMinToleratedTimeScale=%g.\n", dtAdaptControlProbe->getName(), timeScaleProbe, dtMinToleratedTimeScale);
+            }
+            else {
+               pvErrorNoExit().printf("Layer \"%s\", batch element %d, has time scale %g, less than dtMinToleratedTimeScale=%g.\n", dtAdaptControlProbe->getName(), b, timeScaleProbe, dtMinToleratedTimeScale);
+            }
+         }
+         MPI_Barrier(icComm->globalCommunicator());
+         exit(EXIT_FAILURE);
+      }
+      timeScaleTrue[b] =  timeScaleProbe;
+   }
    return PV_SUCCESS;
 }
 
@@ -2312,7 +2374,7 @@ int HyPerCol::advanceTime(double sim_time)
    currentStep++;
 
    deltaTime = deltaTimeBase;
-   if (dtAdaptFlag){ // adapt deltaTime
+   if (dtAdaptControlProbe!=nullptr){ // adapt deltaTime
      // hack code to test new adapt time scale method using exponential approx to energy
      //bool useAdaptMethodExp1stOrder = false; //true;
      if (useAdaptMethodExp1stOrder){
@@ -2350,7 +2412,7 @@ int HyPerCol::advanceTime(double sim_time)
          }
          timeScaleStream.flush();
      }
-   } // dtAdaptFlag
+   } // dtAdaptControlProbe!=nullptr
 
    // At this point all activity from the previous time step has
    // been delivered to the data store.
@@ -2665,7 +2727,7 @@ int HyPerCol::checkpointRead() {
       t += deltaTimeBase;
    }
 
-   if (dtAdaptFlag == true) {
+   if (dtAdaptControlProbe!=nullptr) {
       struct timescalemax_struct {
          double timeScale; // timeScale factor for increasing/decreasing dt
          double timeScaleTrue; // true timeScale as returned by HyPerLayer::getTimeScaleTrue() typically computed by an adaptTimeScaleController (ColProbe)
@@ -2762,7 +2824,7 @@ int HyPerCol::checkpointRead() {
             deltaTimeAdapt[b] = timescale[b].deltaTimeAdapt;
          }
       }
-   }
+   } // dtAdaptControlProbe!=nullptr
 
    if(checkpointWriteFlag) {
       char nextCheckpointPath[PV_PATH_MAX];
@@ -2864,8 +2926,8 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
       //PV_fclose(timercsvstream); timercsvstream = NULL;
    }
 
-   // write adaptive time step info if dtAdaptFlag == true
-   if( columnId()==0 && dtAdaptFlag == true) {
+   // write adaptive time step info if using dtAdaptControlProbe
+   if( columnId()==0 && dtAdaptControlProbe!=nullptr) {
       char timescalepath[PV_PATH_MAX];
       int chars_needed = snprintf(timescalepath, PV_PATH_MAX, "%s/timescaleinfo.bin", cpDir);
       assert(chars_needed < PV_PATH_MAX);
