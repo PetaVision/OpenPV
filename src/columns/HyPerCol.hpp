@@ -104,61 +104,63 @@ public:
    PVCuda::CudaDevice * getDevice()   {return cudaDevice;}
 #endif
 
-   InterColComm * icCommunicator()        {return icComm;}
+   InterColComm * icCommunicator()     const {return icComm;}
 
-   PV_Stream * getPrintParamsStream()     {return printParamsStream;}
+   PV_Stream * getPrintParamsStream()  const {return printParamsStream;}
 
-   PVParams * parameters()                {return params;}
+   PVParams * parameters()             const {return params;}
 
-   bool  warmStartup()                    {return warmStart;}
+   bool  warmStartup()                 const {return warmStart;}
 
-   double getDeltaTime()                  {return deltaTime;}
-   bool  getDtAdaptFlag()                 {return dtAdaptFlag;}
-   bool getUseAdaptMethodExp1stOrder()    {return useAdaptMethodExp1stOrder;}
-   double getDeltaTimeBase()              {return deltaTimeBase;}
-   double* getTimeScale()                 {return timeScale;}
-   double getTimeScale(int batch)         {assert(batch >= 0 && batch < nbatch); return timeScale[batch];}
-   double* getTimeScaleMaxPtr()           {return timeScaleMax;}
-   double getTimeScaleMax(int batch)      {assert(batch >= 0 && batch < nbatch); return timeScaleMax[batch];}
-   double getTimeScaleMax()               {return timeScaleMaxBase;}
-   double* getTimeScaleMax2Ptr()          {return timeScaleMax2;}
-   double getTimeScaleMax2(int batch)     {assert(batch >= 0 && batch < nbatch); return timeScaleMax2[batch];}
-   double getTimeScaleMax2()              {return timeScaleMax2Base;}
-   double getTimeScaleMin()               {return timeScaleMin;}
-   double getChangeTimeScaleMax()         {return changeTimeScaleMax;}
-   double getChangeTimeScaleMin()         {return changeTimeScaleMin;}
+   double getDeltaTime()               const {return deltaTime;}
+   bool  getDtAdaptFlag()              const {pvWarn() << "getDtAdaptFlag() is deprecated.\n" ; return usingAdaptiveTimeScale();}
+   // getDtAdaptFlag() was deprecated Jul 7, 2016, in favor if usingAdaptiveTimeScale().
+   bool usingAdaptiveTimeScale()       const {return dtAdaptController!=nullptr;}
+   bool getUseAdaptMethodExp1stOrder() const {return useAdaptMethodExp1stOrder;}
+   double getDeltaTimeBase()           const {return deltaTimeBase;}
+   double* getTimeScale()              const {return timeScale;}
+   double getTimeScale(int batch)      const {assert(batch >= 0 && batch < nbatch); return timeScale[batch];}
+   double* getTimeScaleMaxPtr()        const {return timeScaleMax;}
+   double getTimeScaleMax(int batch)   const {assert(batch >= 0 && batch < nbatch); return timeScaleMax[batch];}
+   double getTimeScaleMax()            const {return timeScaleMaxBase;}
+   double* getTimeScaleMax2Ptr()       const {return timeScaleMax2;}
+   double getTimeScaleMax2(int batch)  const {assert(batch >= 0 && batch < nbatch); return timeScaleMax2[batch];}
+   double getTimeScaleMax2()           const {return timeScaleMax2Base;}
+   double getTimeScaleMin()            const {return timeScaleMin;}
+   double getChangeTimeScaleMax()      const {return changeTimeScaleMax;}
+   double getChangeTimeScaleMin()      const {return changeTimeScaleMin;}
 
-   double simulationTime()                {return simTime;}
-   double getStartTime()                  {return startTime;}
-   double getStopTime()                   {return stopTime;}
-   long int getInitialStep()              {return initialStep;}
-   long int getFinalStep()                {return finalStep;}
-   long int getCurrentStep()              {return currentStep;}
-   const char * getInitializeFromCheckpointDir() { return initializeFromCheckpointDir; }
-   bool getDefaultInitializeFromCheckpointFlag() { return defaultInitializeFromCheckpointFlag; }
-   bool getCheckpointReadFlag()           {return checkpointReadFlag;}
-   const char * getCheckpointReadDir()    {return checkpointReadDir;}
-   bool getCheckpointWriteFlag()          {return checkpointWriteFlag;}
-   bool getSuppressLastOutputFlag()        {return suppressLastOutput;}
-   bool getSuppressNonplasticCheckpoints() {return suppressNonplasticCheckpoints;}
-   const char * getPrintParamsFilename()  {return printParamsFilename;}
-   int getNumThreads()                    {return numThreads;}
-   bool getWriteTimescales()              {return writeTimescales;}
-   int includeLayerName()                 {return filenamesContainLayerNames;}
-   int includeConnectionName()            {return filenamesContainConnectionNames;}
+   double simulationTime()             const {return simTime;}
+   double getStartTime()               const {return startTime;}
+   double getStopTime()                const {return stopTime;}
+   long int getInitialStep()           const {return initialStep;}
+   long int getFinalStep()             const {return finalStep;}
+   long int getCurrentStep()           const {return currentStep;}
+   const char * getInitializeFromCheckpointDir() const {return initializeFromCheckpointDir;}
+   bool getDefaultInitializeFromCheckpointFlag() {return defaultInitializeFromCheckpointFlag;}
+   bool getCheckpointReadFlag()        const {return checkpointReadFlag;}
+   const char * getCheckpointReadDir() const {return checkpointReadDir;}
+   bool getCheckpointWriteFlag()       const {return checkpointWriteFlag;}
+   bool getSuppressLastOutputFlag()     const {return suppressLastOutput;}
+   bool getSuppressNonplasticCheckpoints() const {return suppressNonplasticCheckpoints;}
+   const char * getPrintParamsFilename() const {return printParamsFilename;}
+   int getNumThreads()                 const {return numThreads;}
+   bool getWriteTimescales()           const {return writeTimescales;}
+   int includeLayerName()              const {return filenamesContainLayerNames;}
+   int includeConnectionName()         const {return filenamesContainConnectionNames;}
 
-   const char * inputFile()               {return image_file;}
+   const char * inputFile()            const {return image_file;}
 
-   PV_Init * getPV_InitObj()             {return pv_initObj;}
+   PV_Init * getPV_InitObj()           const {return pv_initObj;}
 
-   int numberOfLayers()                   {return numLayers;}
-   int numberOfConnections()              {return numConnections;}
-   int numberOfNormalizers()              {return numNormalizers;}
-   int numberOfProbes()                   {return numColProbes;}
-   int numberOfBaseProbes()               {return numBaseProbes;}
+   int numberOfLayers()                const {return numLayers;}
+   int numberOfConnections()           const {return numConnections;}
+   int numberOfNormalizers()           const {return numNormalizers;}
+   int numberOfProbes()                const {return numColProbes;}
+   int numberOfBaseProbes()            const {return numBaseProbes;}
 
    /** returns the number of border regions, either an actual image border or a neighbor **/
-   int numberOfBorderRegions()            {return MAX_NEIGHBORS;}
+   int numberOfBorderRegions()         const {return MAX_NEIGHBORS;}
 
    int numberOfColumns();
    int numberOfGlobalColumns();
@@ -247,21 +249,22 @@ private:
     */
    virtual void ioParam_dt(enum ParamsIOFlag ioFlag);
    /**
-    * @brief dtAdaptFlag: A flag to determine if the run is using an adaptive timestep
-    */
-   virtual void ioParam_dtAdaptFlag(enum ParamsIOFlag ioFlag);
-   /**
-    * @brief : determines whether a time step adaptation method based on an expotential approximation of the energy is used, requires a dtAdaptController
-    */
-   virtual void ioParam_useAdaptMethodExp1stOrder(enum ParamsIOFlag ioFlag);
-   /**
     * @brief dtAdaptController: The name of a ColProbe to use for controlling the adaptive timestep.
     * The ColProbe's vectorSize (returned by getVectorSize()) must be the same as the HyPerCol's nBatch parameter.
     */
    virtual void ioParam_dtAdaptController(enum ParamsIOFlag ioFlag);
-
    /**
-    * @brief triggerLayer: The name of a HyPerLayer that resets the adaptive time step scheme when it triggers.
+     * @brief dtAdaptFlag: Deprecated.  If dtAdaptController is set to a ColProbe, then dtAdaptFlag is implied to be true.
+     * If dtAdaptController is null, dtAdaptFlag is implied to be false.
+     * It is an error for dtAdaptFlag to be inconsistent with dtAdaptController.
+     */
+    virtual void ioParam_dtAdaptFlag(enum ParamsIOFlag ioFlag);
+    /**
+    * @brief : determines whether a time step adaptation method based on an expotential approximation of the energy is used, requires a dtAdaptController
+    */
+   virtual void ioParam_useAdaptMethodExp1stOrder(enum ParamsIOFlag ioFlag);
+   /**
+    * @brief dtAdaptTriggerLayerName: The name of a HyPerLayer that resets the adaptive time step scheme when it triggers.
     */
    virtual void ioParam_dtAdaptTriggerLayerName(enum ParamsIOFlag ioFlag);
 
@@ -272,34 +275,34 @@ private:
    virtual void ioParam_dtAdaptTriggerOffset(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief dtScaleMax: If dtAdaptFlag is set, specifies the maximum timescale allowed
+    * @brief dtScaleMax: If dtAdaptController is set, specifies the maximum timescale allowed
     */
    virtual void ioParam_dtScaleMax(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief dtScaleMax2: If dtAdaptFlag is set, specifies the maximum dtScaleMax allowed (this is a 2nd maximum that adapts much more slowly)
+    * @brief dtScaleMax2: If dtAdaptController is set, specifies the maximum dtScaleMax allowed (this is a 2nd maximum that adapts much more slowly)
     */
    virtual void ioParam_dtScaleMax2(enum ParamsIOFlag ioFlag);
 
   /**
-    * @brief dtScaleMin: If dtAdaptFlag is set, specifies the default timescale
+    * @brief dtScaleMin: If dtAdaptController is set, specifies the default timescale
     * @details The parameter name is misleading, since dtAdapt can drop below timescale min
     */
    virtual void ioParam_dtScaleMin(enum ParamsIOFlag ioFlag);
    /**
-    * @brief dtChangeMax: If dtAdaptFlag is set, specifies the upper limit of adaptive dt based on error
+    * @brief dtChangeMax: If dtAdaptController is set, specifies the upper limit of adaptive dt based on error
     * @details dt will only adapt if the percent change in error is between dtChangeMin and dtChangeMax
     */
    virtual void ioParam_dtChangeMax(enum ParamsIOFlag ioFlag);
    /**
-    * @brief dtChangeMin: If dtAdaptFlag is set, specifies the lower limit of adaptive dt based on error
+    * @brief dtChangeMin: If dtAdaptController is set, specifies the lower limit of adaptive dt based on error
     * @details dt will only adapt if the percent change in error is between dtChangeMin and dtChangeMax.
     * Defaults to 0
     */
    virtual void ioParam_dtChangeMin(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief dtMinToleratedTimeScale: If dtAdaptFlag, specifies the minimum value dt can drop to before exiting
+    * @brief dtMinToleratedTimeScale: If dtAdaptController is set, specifies the minimum value dt can drop to before exiting
     * @details Program will exit if timeScale drops below this value
     */
    virtual void ioParam_dtMinToleratedTimeScale(enum ParamsIOFlag ioFlag);
@@ -459,7 +462,7 @@ private:
    virtual void ioParam_checkpointIndexWidth(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief writeTimescales: If dtAdaptFlag, specifies if the timescales should be written
+    * @brief writeTimescales: If dtAdaptController is set, specifies if the timescales should be written
     * @details The timescales get written to outputPath/HyPerCol_timescales.txt.
     */
    virtual void ioParam_writeTimescales(enum ParamsIOFlag ioFlag); 
@@ -494,6 +497,8 @@ private:
    double* adaptTimeScale();
    double* adaptTimeScaleExp1stOrder();
    int calcTimeScaleTrue();
+
+   void initDtAdaptControlProbe();
 
    /**
     * Sets the numThreads member variable based on whether PV_USE_OPENMP is set
@@ -552,15 +557,14 @@ private:
    double simTime;          // current time in milliseconds
    double stopTime;         // time to stop time
    double deltaTime;        // time step interval
-   bool   dtAdaptFlag;      // turns adaptive time step on/off
    bool useAdaptMethodExp1stOrder; // specifies whether exponential approximation to energy function decay is used to adapt time scale, requires dtAdaptControlProbe != NULL
    char * dtAdaptController;       // If nonblank, the name of a ColProbe whose getValues() method is called to control timeScale
-   ColProbe * dtAdaptControlProbe; // If dtAdaptFlag is on, dtAdaptControlProbe->getValues() is used to control timeScale.  If blank, use the original method
+   ColProbe * dtAdaptControlProbe; // The probe pointed to by dtAdaptController, dtAdaptControlProbe->getValues() is used to control timeScale.  If blank, use the original method
    char * dtAdaptTriggerLayerName;
    HyPerLayer * dtAdaptTriggerLayer;
    double dtAdaptTriggerOffset;
    
-   double deltaTimeBase;    // base time step interval if dtAdaptFlag == true, timeScale is applied to this value
+   double deltaTimeBase;    // base time step interval if dtAdaptController is used; timeScale is applied to this value
    double * timeScale;        // scale factor for deltaTimeBase, deltaTime = timeScale*deltaTimeBase
    double * timeScaleTrue;    // true timeScale returned by min(HyPerLayer::getTimeScale) before MIN/MAX/CHANGE constraints applied
    double * oldTimeScale;        // old value of timeScale
