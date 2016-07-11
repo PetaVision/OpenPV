@@ -52,6 +52,13 @@
 }
 
 {
+   <invalid_read_MPI_Init>
+   Memcheck:Addr4
+   ...
+   fun:PMPI_Init
+}
+
+{
    <suppress_leak_yyparse>
    Memcheck:Leak
    ...
