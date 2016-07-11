@@ -152,8 +152,8 @@ int ImagePvp::readPvp(const char * filename, int frameNumber) {
 
    int bufferSize = fileloc.nx*fileloc.ny*fileloc.nf;
    if (bufferSize != imageLoc.nxGlobal*imageLoc.nyGlobal*imageLoc.nf) {
-      free(imageData);
-      imageData = (pvadata_t *) malloc(bufferSize*sizeof(pvadata_t));
+      delete[] imageData;
+      imageData = new pvadata_t[bufferSize];
    }
    imageLoc.nxGlobal = fileloc.nx;
    imageLoc.nyGlobal = fileloc.ny;
