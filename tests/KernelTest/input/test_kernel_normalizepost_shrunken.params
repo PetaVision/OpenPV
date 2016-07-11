@@ -46,7 +46,6 @@ ConstantLayer "Retina" = {
     sparseLayer = false;
     InitVType = "ConstantV";
     valueV    = 1;
-    VThresh = -infinity;   
     phase = 0;
 };
 

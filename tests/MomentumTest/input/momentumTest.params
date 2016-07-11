@@ -59,13 +59,7 @@ ConstantLayer "post" = {
     InitVType = "ConstantV";
     valueV = 1.0;
 
-    VThresh = -infinity;
-    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
-    AMin = -infinity; 
-    AShift = 0;
-    // 
     phase = 1; 
-    triggerLayerName = NULL;
 };
 
 MomentumConn "preToPost" = {

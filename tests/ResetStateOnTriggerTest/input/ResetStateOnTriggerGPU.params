@@ -78,7 +78,6 @@ ConstantLayer "onesLayer" = {
     writeSparseActivity = false;
     InitVType = "ConstantV";
     valueV    = .5;
-    VThresh = -infinity;   
     phase = 0;
 };
 

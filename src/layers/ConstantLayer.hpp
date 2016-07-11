@@ -8,11 +8,11 @@
 #ifndef CONSTANTLAYER_HPP_
 #define CONSTANTLAYER_HPP_
 
-#include "ANNLayer.hpp"
+#include "HyPerLayer.hpp"
 
 namespace PV {
 
-class ConstantLayer: public PV::ANNLayer {
+class ConstantLayer: public PV::HyPerLayer {
 public:
    ConstantLayer(const char * name, HyPerCol * hc);
    //virtual int recvAllSynapticInput();

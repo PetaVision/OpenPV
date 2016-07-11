@@ -32,13 +32,7 @@ ConstantLayer "input" = {
     InitVType = "UniformRandomV";
     minV = 0;
     maxV = 1;
-    AMax = 1;
-    AMin = 0;
-    VThresh = .99; //.99 makes 1% active
-    AShift = 0;
-    // 
     phase = 1; 
-    triggerLayerName = NULL;
 };
 
 ANNLayer "outputRecv" = {

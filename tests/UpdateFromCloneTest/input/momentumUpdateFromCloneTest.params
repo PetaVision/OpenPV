@@ -98,12 +98,6 @@ ConstantLayer "origPost" = {
     valueV = 1;
     // 
     phase = 1; 
-    VThresh = -infinity;
-    AMin = -infinity;
-    AMax = infinity;
-    AShift = 0.0;
-    VWidth = 0.0;
-    clearGSynInterval = 0.0;
 };
 
 ConstantLayer "clonePost" = {
@@ -120,12 +114,6 @@ ConstantLayer "clonePost" = {
     valueV = 1;
     // 
     phase = 1; 
-    VThresh = -infinity;
-    AMin = -infinity;
-    AMax = infinity;
-    AShift = 0.0;
-    VWidth = 0.0;
-    clearGSynInterval = 0.0;
 };
 
 MomentumConn "origConn" = {

@@ -32,7 +32,7 @@ int ConstantLayer::initialize_base()
 
 int ConstantLayer::initialize(const char * name, HyPerCol * hc)
 {
-   int status = ANNLayer::initialize(name, hc);
+   int status = HyPerLayer::initialize(name, hc);
    return status;
 }
 
@@ -46,8 +46,7 @@ void ConstantLayer::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
 }
 
 int ConstantLayer::communicateInitInfo() {
-   int status = ANNLayer::communicateInitInfo();
-   //Set the triggerLayer needed by HyPerLayer::needUpdate()
+   int status = HyPerLayer::communicateInitInfo();
    return status;
 }
 

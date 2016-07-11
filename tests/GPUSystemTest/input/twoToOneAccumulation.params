@@ -32,13 +32,7 @@ ConstantLayer "input1" = {
     minV = -1;
     maxV = 1;
 
-    VThresh = -infinity;
-    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
-    AMin = -infinity; 
-    AShift = 0;
-    // 
     phase = 1; 
-    triggerLayerName = NULL;
 };
 
 ConstantLayer "input2" = {
@@ -55,13 +49,7 @@ ConstantLayer "input2" = {
     minV = -1;
     maxV = 1;
 
-    VThresh = -infinity;
-    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
-    AMin = -infinity; 
-    AShift = 0;
-    // 
     phase = 1; 
-    triggerLayerName = NULL;
 };
 
 ANNLayer "outputRecv" = {

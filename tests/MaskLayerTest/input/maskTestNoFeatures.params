@@ -63,9 +63,6 @@ ConstantLayer "input" = {
     InitVType = "UniformRandomV";
     minV = 0;
     maxV = 1;
-    VThresh = -infinity;
-    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
-    AMin = -infinity; 
     phase = 0; 
 };
 

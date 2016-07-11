@@ -124,10 +124,6 @@ ConstantLayer "Pre16x16Singleband" = {
     
     InitVType = "ConstantV";
     valueV = .5;
-    AMax = infinity;
-    VThresh = -infinity;
-    AMin = -infinity;
-    AShift = 0.0;
 };
 
 ConstantLayer "Pre16x16Multiband" = {
@@ -144,10 +140,6 @@ ConstantLayer "Pre16x16Multiband" = {
     
     InitVType = "ConstantV";
     valueV = .5;
-    AMax = infinity;
-    VThresh = -infinity;
-    AMin = -infinity;
-    AShift = 0.0;
 };
 
 ANNLayer "Post8x8Singleband" = {

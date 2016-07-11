@@ -95,18 +95,11 @@ ConstantLayer "InputLayer" = {
     valueBC                             = 0;
     InitVType                           = "InitVFromFile";
     Vfilename                           = "input/inputLayer.pvp";
-    triggerLayerName                    = NULL;
     writeStep                           = 1;
     initialWriteTime                    = 100;
     sparseLayer                         = false;
     updateGpu                           = false;
     dataType                            = NULL;
-    VThresh                             = -infinity;
-    AMin                                = -infinity;
-    AMax                                = infinity;
-    AShift                              = 0;
-    VWidth                              = 0;
-    clearGSynInterval                   = 0;
 };
 
 Movie "ResetLayer" = {
