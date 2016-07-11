@@ -41,6 +41,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/Segmentify.cpp
    ${SUBDIR}/SegmentLayer.cpp
    ${SUBDIR}/ShuffleLayer.cpp
+   ${SUBDIR}/SpikingLCALayer.cpp
    ${SUBDIR}/SigmoidLayer.cpp
    ${SUBDIR}/WTALayer.cpp
 )
@@ -86,6 +87,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/Segmentify.hpp
    ${SUBDIR}/SegmentLayer.hpp
    ${SUBDIR}/ShuffleLayer.hpp
+   ${SUBDIR}/SpikingLCALayer.hpp
    ${SUBDIR}/SigmoidLayer.hpp
    ${SUBDIR}/WTALayer.hpp
 )

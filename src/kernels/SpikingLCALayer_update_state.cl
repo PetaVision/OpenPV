@@ -1,4 +1,5 @@
 #include "../layers/updateStateFunctions.h"
+#include <stdbool.h>
 
 
 #ifndef PV_USE_OPENCL
@@ -16,14 +17,14 @@
 
 
 //
-// update the state of an ANN layer
+// update the state of a SpikingLCALayer
 //
 // To allow porting to GPUs, functions called from this function must be
 // static inline functions.  If a subclass needs new behavior, it needs to
 // have its own static inline function.
 //
 CL_KERNEL
-void PtwiseLinearTransferLayer_update_state(
+void SpikingLCALayer_update_state(
     const int nbatch,
     const int numNeurons,
     const int nx,
@@ -33,15 +34,19 @@ void PtwiseLinearTransferLayer_update_state(
     const int rt,
     const int dn,
     const int up,
+    const int numChannels,
 
     CL_MEM_GLOBAL float * V,
     int numVertices,
     float * verticesV,
     float * verticesA,
     float * slopes,
-    int num_channels,
+    const float refactoryScale,
+    CL_MEM_GLOBAL double* dtAdapt,
+    const float tau,
     CL_MEM_GLOBAL float * GSynHead,
     CL_MEM_GLOBAL float * activity)
 {
-   updateV_PtwiseLinearTransferLayer(nbatch, numNeurons, V, num_channels, GSynHead, activity, numVertices, verticesV, verticesA, slopes, nx, ny, nf, lt, rt, dn, up);
+   updateV_HyPerLCALayer(nbatch, numNeurons, numChannels, V, GSynHead, activity,
+		   numVertices, verticesV, verticesA, slopes, dtAdapt, tau, refactoryScale, nx, ny, nf, lt, rt, dn, up);
 }

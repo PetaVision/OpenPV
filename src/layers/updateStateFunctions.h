@@ -93,6 +93,11 @@ int updateV_LabelErrorLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
       int numVertices, float * verticesV, float * verticesA, float * slopes,
       int nx, int ny, int nf, int lt, int rt, int dn, int up, float errScale, int isBinary);
 KERNEL
+int applyGSyn_SpikingLCALayer(int nbatch, int numNeurons,
+      MEM_GLOBAL pvdata_t * V, MEM_GLOBAL pvdata_t * GSynHead,
+      MEM_GLOBAL pvdata_t * activity, pvdata_t dt_tau, pvdata_t refactoryScale, 
+      int nx, int ny, int nf, int lt, int rt, int dn, int up);
+KERNEL
 int applyGSyn_HyPerLCALayer(int nbatch, int numNeurons,
       MEM_GLOBAL pvdata_t * V, MEM_GLOBAL pvdata_t * GSynHead,
       MEM_GLOBAL pvdata_t * activity, pvdata_t dt_tau, pvdata_t selfInteract, 
@@ -115,6 +120,14 @@ int applyGSyn_ISTALayer2(int nbatch, int numNeurons,
 KERNEL
 int applyGSyn_ANNWhitenedLayer(int nbatch, int numNeurons,
       MEM_GLOBAL pvdata_t * V, MEM_GLOBAL pvdata_t * GSynHead);
+
+KERNEL
+int updateV_SpikingLCALayer(int nbatch, int numNeurons, int numChannels, MEM_GLOBAL pvdata_t * V,
+      MEM_GLOBAL pvdata_t * GSynHead, MEM_GLOBAL float * activity,
+      int numVertices, pvpotentialdata_t * verticesV, pvadata_t * verticesA, float * slopes,
+      double * dtAdapt, float tau, pvdata_t refactoryScale,
+      int nx, int ny, int nf, int lt, int rt, int dn, int up);
+
 
 KERNEL
 int updateV_HyPerLCALayer(int nbatch, int numNeurons, int numChannels, MEM_GLOBAL pvdata_t * V,
@@ -398,6 +411,41 @@ int applyGSyn_LabelErrorLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * 
 //}
 
 KERNEL
+int applyGSyn_SpikingLCALayer(int nbatch, int numNeurons,
+      MEM_GLOBAL pvdata_t * V, MEM_GLOBAL pvdata_t * GSynHead,
+      MEM_GLOBAL pvdata_t * activity, double* dtAdapt, pvdata_t tau, pvdata_t refactoryScale, 
+      int nx, int ny, int nf, int lt, int rt, int dn, int up) {
+   int kbatch;
+   MEM_GLOBAL pvdata_t * GSynError = &GSynHead[0 * nbatch * numNeurons]; // weighted input
+#if !defined(PV_USE_OPENCL) && !defined(PV_USE_CUDA)
+   #ifdef PV_USE_OPENMP_THREADS
+   #pragma omp parallel for schedule(static)
+   #endif
+   for (kbatch = 0; kbatch < numNeurons*nbatch; kbatch++)
+#else
+   kbatch = getIndex();
+#endif // PV_USE_OPENCL
+   {
+      int b = kbatch / numNeurons;
+      int k = kbatch % numNeurons;
+      float exp_tau = exp(-dtAdapt[b]/tau);
+      MEM_GLOBAL pvdata_t* VBatch = V + b*numNeurons;
+      MEM_GLOBAL pvdata_t* GSynErrorBatch = GSynError + b*numNeurons;
+      //Activity extended
+      MEM_GLOBAL pvdata_t* activityBatch = activity + b*(nx+rt+lt)*(ny+up+dn)*nf;
+      int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
+      float v = VBatch[k];
+      float attenuation = 1.0f;
+      if(v < 0) v *= exp(v);
+      VBatch[k] = exp_tau * v //Leak previous potential
+                  + attenuation * (1 - exp_tau) * GSynErrorBatch[k] //Attenuate input when V < 0
+                  - activityBatch[kex] * refactoryScale; //Reset after activity spikes
+   }
+   return PV_SUCCESS;
+}
+
+
+KERNEL
 int applyGSyn_HyPerLCALayer(int nbatch, int numNeurons,
       MEM_GLOBAL pvdata_t * V, MEM_GLOBAL pvdata_t * GSynHead,
       MEM_GLOBAL pvdata_t * activity, double* dtAdapt, pvdata_t tau, pvdata_t selfInteract, 
@@ -421,7 +469,7 @@ int applyGSyn_HyPerLCALayer(int nbatch, int numNeurons,
       //Activity extended
       MEM_GLOBAL pvdata_t* activityBatch = activity + b*(nx+rt+lt)*(ny+up+dn)*nf;
       int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
-         VBatch[k] = exp_tau * VBatch[k] + (1 - exp_tau) * (GSynErrorBatch[k] + selfInteract * activityBatch[kex]);
+      VBatch[k] = exp_tau * VBatch[k] + (1 - exp_tau) * (GSynErrorBatch[k] + selfInteract * activityBatch[kex]);
    }
    return PV_SUCCESS;
 }
@@ -665,6 +713,23 @@ int updateV_ANNLayer_threshminmax(int nbatch, int numNeurons, MEM_GLOBAL pvdata_
    applyVMax_ANNLayer_threshminmax(nbatch, numNeurons, V, AMax, activity, nx, ny, nf, lt, rt, dn, up);
    return PV_SUCCESS;
 }
+
+KERNEL
+int updateV_SpikingLCALayer(int nbatch, int numNeurons, int numChannels, MEM_GLOBAL pvdata_t * V,
+      MEM_GLOBAL pvdata_t * GSynHead, MEM_GLOBAL float * activity,
+      int numVertices, pvpotentialdata_t * verticesV, pvadata_t * verticesA, float * slopes,
+      double * dtAdapt, float tau, pvdata_t refactoryScale,
+      int nx, int ny, int nf, int lt, int rt, int dn, int up)
+{
+   int status = PV_SUCCESS;
+   status = applyGSyn_SpikingLCALayer(nbatch, numNeurons, V, GSynHead, activity, dtAdapt, tau,
+         refactoryScale, nx, ny, nf, lt, rt, dn, up);
+   if (status==PV_SUCCESS) {
+      status = setActivity_PtwiseLinearTransferLayer(nbatch, numNeurons, activity, V, nx, ny, nf, lt, rt, dn, up, numVertices, verticesV, verticesA, slopes);
+   }
+   return status;
+}
+
 
 
 KERNEL

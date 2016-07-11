@@ -1,5 +1,5 @@
 /*
- * RecvPost.cu
+ * CudaUpdateStateFunctions.cpp
  *
  *  Created on: Aug 5, 2014
  *      Author: Sheng Lundquist
@@ -16,6 +16,32 @@
 namespace PVCuda{
 
    //Parameter structure
+   struct SpikingLCAParams{
+      int nbatch;
+      int numNeurons;
+      int nx;
+      int ny;
+      int nf;
+      int lt;
+      int rt;
+      int dn;
+      int up;
+      int numChannels;
+
+      float * V;
+      int numVertices;
+      float * verticesV;
+      float * verticesA;
+      float * slopes;
+      float refactoryScale;
+      double * dtAdapt;
+      float tau;
+      float * GSynHead;
+      float * activity;
+   };
+
+
+    //Parameter structure
    struct HyPerLCAParams{
       int nbatch;
       int numNeurons;
@@ -40,7 +66,7 @@ namespace PVCuda{
       float * activity;
    };
 
-   //Parameter structure
+  //Parameter structure
    struct MomentumLCAParams{
       int nbatch;
       int numNeurons;
@@ -132,6 +158,47 @@ protected:
 private:
    HyPerLCAParams params;
 };
+
+class CudaUpdateSpikingLCALayer : public CudaKernel {
+public:
+   CudaUpdateSpikingLCALayer(CudaDevice* inDevice);
+   
+   virtual ~CudaUpdateSpikingLCALayer();
+
+   void setArgs(
+      const int nbatch,
+      const int numNeurons,
+      const int nx,
+      const int ny,
+      const int nf,
+      const int lt,
+      const int rt,
+      const int dn,
+      const int up,
+      const int numChannels,
+
+      /* float* */ CudaBuffer* V,
+
+      const int numVertices,
+      /* float* */ CudaBuffer* verticesV,
+      /* float* */ CudaBuffer* verticesA,
+      /* float* */ CudaBuffer* slopes,
+      const float refactoryScale,
+      /* double* */ CudaBuffer* dtAdapt,
+      const float tau,
+
+      /* float* */ CudaBuffer* GSynHead,
+      /* float* */ CudaBuffer* activity
+   );
+
+protected:
+   //This is the function that should be overwritten in child classes
+   virtual int do_run();
+
+private:
+   SpikingLCAParams params;
+};
+
 
 class CudaUpdateMomentumLCALayer : public CudaKernel {
 public:

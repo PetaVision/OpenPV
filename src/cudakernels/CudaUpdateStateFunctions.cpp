@@ -10,6 +10,13 @@ CudaUpdateHyPerLCALayer::CudaUpdateHyPerLCALayer(CudaDevice* inDevice):CudaKerne
 CudaUpdateHyPerLCALayer::~CudaUpdateHyPerLCALayer(){
 }
 
+CudaUpdateSpikingLCALayer::CudaUpdateSpikingLCALayer(CudaDevice* inDevice):CudaKernel(inDevice){
+   kernelName = "SpikingLCALayer";
+}
+  
+CudaUpdateSpikingLCALayer::~CudaUpdateSpikingLCALayer(){
+}
+
 CudaUpdateMomentumLCALayer::CudaUpdateMomentumLCALayer(CudaDevice* inDevice):CudaKernel(inDevice){
    kernelName = "MomentumLCALayer";
 }
@@ -67,6 +74,58 @@ void CudaUpdateHyPerLCALayer::setArgs(
    params.verticesA = (float*) verticesA->getPointer();
    params.slopes = (float*) slopes->getPointer();
    params.selfInteract = selfInteract;
+   params.dtAdapt = (double*) dtAdapt->getPointer();
+   params.tau = tau;
+
+   params.GSynHead = (float*) GSynHead->getPointer();
+   params.activity = (float*) activity->getPointer();
+
+   setArgsFlag();
+}
+
+void CudaUpdateSpikingLCALayer::setArgs(
+				      const int nbatch,
+				      const int numNeurons,
+				      const int nx,
+				      const int ny,
+				      const int nf,
+				      const int lt,
+				      const int rt,
+				      const int dn,
+				      const int up,
+				      const int numChannels,
+				      
+				      /* float* */ CudaBuffer* V,
+				      
+				      const int numVertices,
+				      /* float* */ CudaBuffer* verticesV,
+				      /* float* */ CudaBuffer* verticesA,
+				      /* float* */ CudaBuffer* slopes,
+				      const float refactoryScale,
+				      /* double* */ CudaBuffer* dtAdapt,
+				      const float tau,
+				      
+				      /* float* */ CudaBuffer* GSynHead,
+				      /* float* */ CudaBuffer* activity
+				      ){
+   params.nbatch = nbatch;
+   params.numNeurons = numNeurons;
+   params.nx = nx;
+   params.ny = ny;
+   params.nf = nf;
+   params.lt = lt;
+   params.rt = rt;
+   params.dn = dn;
+   params.up = up;
+   params.numChannels = numChannels;
+
+   params.V = (float*) V->getPointer();
+
+   params.numVertices = numVertices;
+   params.verticesV = (float*) verticesV->getPointer();
+   params.verticesA = (float*) verticesA->getPointer();
+   params.slopes = (float*) slopes->getPointer();
+   params.refactoryScale = refactoryScale;
    params.dtAdapt = (double*) dtAdapt->getPointer();
    params.tau = tau;
 

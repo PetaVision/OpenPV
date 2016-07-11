@@ -57,6 +57,57 @@ void HyPerLCALayer_update_state(
    }
 }
 
+//The actual wrapper kernel code thats calling updatestatefunctions
+__global__
+void SpikingLCALayer_update_state(
+				const int nbatch,
+				const int numNeurons,
+				const int nx,
+				const int ny,
+				const int nf,
+				const int lt,
+				const int rt,
+				const int dn,
+				const int up,
+				const int numChannels,
+				float * V,
+				const int numVertices,
+				float * verticesV,
+				float * verticesA,
+				float * slopes,
+				const float refactoryScale,
+				double * dtAdapt,
+				const float tau,
+				float * GSynHead,
+				float * activity)
+{
+
+   if((blockIdx.x * blockDim.x) + threadIdx.x < numNeurons*nbatch){
+      updateV_SpikingLCALayer(
+			    nbatch,
+			    numNeurons,
+			    numChannels,
+			    V,
+			    GSynHead,
+			    activity,
+			    numVertices,
+			    verticesV,
+			    verticesA,
+			    slopes,
+			    dtAdapt,
+			    tau,
+			    refactoryScale,
+			    nx,
+			    ny,
+			    nf,
+			    lt,
+			    rt,
+			    dn,
+			    up);
+   }
+}
+
+
 __global__
 void MomentumLCALayer_update_state(
 				const int nbatch,
@@ -181,6 +232,34 @@ int CudaUpdateHyPerLCALayer::do_run(){
    return 0;
 }
 
+int CudaUpdateSpikingLCALayer::do_run(){
+   int currBlockSize = device->get_max_threads();
+   //Ceil to get all weights
+   int currGridSize = ceil(((float)params.numNeurons * params.nbatch)/currBlockSize);
+   //Call function
+   SpikingLCALayer_update_state<<<currGridSize, currBlockSize, 0, device->getStream()>>>(
+   params.nbatch,
+   params.numNeurons,
+   params.nx,
+   params.ny,
+   params.nf,
+   params.lt,
+   params.rt,
+   params.dn,
+   params.up,
+   params.numChannels,
+   params.V,
+   params.numVertices,
+   params.verticesV,
+   params.verticesA,
+   params.slopes,
+   params.refactoryScale,
+   params.dtAdapt,
+   params.tau,
+   params.GSynHead,
+   params.activity);
+   return 0;
+}
 
 int CudaUpdateMomentumLCALayer::do_run(){
    int currBlockSize = device->get_max_threads();
