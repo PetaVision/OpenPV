@@ -1372,7 +1372,7 @@ int HyPerLayer::allocateDataStructures()
                clayer->activity->data[idx] = getValueBC();
                idx++;
             }
-            idx += nx;
+            idx += nx*nf;
             for(int k=0; k<halo->rt*nf; k++) {
                clayer->activity->data[idx] = getValueBC();
                idx++;
