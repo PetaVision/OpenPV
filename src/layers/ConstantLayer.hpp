@@ -21,7 +21,19 @@ public:
 protected:
    ConstantLayer();
    int initialize(const char * name, HyPerCol * hc);
-   virtual void ioParam_triggerFlag(enum ParamsIOFlag ioFlag);
+
+   /** 
+    * List of parameters needed from the ConstantLayer class
+    * @name HyPerLayer Parameters
+    * @{
+    */
+
+   /**
+    * @brief ConstantLayer does not use triggerLayerName.
+    */
+   virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag);
+   /** @} */ // End list of ConstantLayer parameters
+
    virtual int communicateInitInfo();
 
 private:

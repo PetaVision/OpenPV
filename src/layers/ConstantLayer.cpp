@@ -36,11 +36,12 @@ int ConstantLayer::initialize(const char * name, HyPerCol * hc)
    return status;
 }
 
-void ConstantLayer::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
-   //This layer is a never a trigger layer, so set flag to false
+void ConstantLayer::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
+   //This layer is a never a trigger layer, so set to null
    if (ioFlag==PARAMS_IO_READ) {
+      triggerLayerName = nullptr;
       triggerFlag = false;
-      parent->parameters()->handleUnnecessaryParameter(name, "triggerFlag", false);
+      parent->parameters()->handleUnnecessaryStringParameter(name, "triggerLayerName", nullptr);
    }
 }
 
