@@ -271,6 +271,7 @@ IdentConn "V1GpuToComparison" = {
 RequireAllZeroActivityProbe "ComparisonTest" = {
     targetLayer = "Comparison";
     exitOnFailure = true;
+    immediateExitOnFailure = true;
     nnzThreshold = 1e-6;
 };
 

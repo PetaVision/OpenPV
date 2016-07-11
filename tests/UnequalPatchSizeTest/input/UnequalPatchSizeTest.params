@@ -169,6 +169,7 @@ RequireAllZeroActivityProbe "check_output" = {
     targetName = "compare";
     triggerLayerName = NULL;
     nnzThreshold = 0.0;
+    exitOnFailure = false; // exit-hook function will test for failures in source code
 };
 
 ParameterSweep "output":nxScale = {

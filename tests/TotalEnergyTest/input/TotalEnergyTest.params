@@ -340,4 +340,5 @@ RequireAllZeroActivityProbe "ComparisonTest" = {
     targetLayer = "comparison";
     probeOutputFile = "comparison_test.txt";
     nnzThreshold = 1e-6;
+    exitOnFailure = false; // exit-hook function will test for failures in source code
 };

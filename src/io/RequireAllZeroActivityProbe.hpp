@@ -36,15 +36,39 @@ protected:
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    int initRequireAllZeroActivityProbe(const char * probeName, HyPerCol * hc);
    virtual void ioParam_buffer(enum ParamsIOFlag ioFlag);
+
+
+   /**
+    * List of parameters needed from the RequireAllZeroActivityProbe class
+    * @name RequireAllZeroActivityProbe Parameters
+    * @{
+    */
+   /**
+    * @brief exitOnFailure: If true, will error out if a nonzero value is encountered.  Default is true.
+    * To control when the error is thrown, see immediateExitOnFailure.
+    * If set to false, the presense of a nonzero value can still be retrieved with the getNonzeroFound() method,
+    * and the earliest time at which a nonzero value appears is available through getNonzeroTime().
+    */
    virtual void ioParam_exitOnFailure(enum ParamsIOFlag ioFlag);
+   /**
+    * @brief immediateExitOnFailure: determines when finding a nonzero value causes an exit with an error.
+    * If true, outputState will exit on the timestep a nonzero value is detected.  If false,
+    * will not error out until the probe is deleted (which usually happens when the HyPerCol is deleted).
+    * Parameter is only read if exitOnFailure is true.  Default is true.
+    */
+   virtual void ioParam_immediateExitOnFailure(enum ParamsIOFlag ioFlag);
+   /** @} */ // End of list of RequireAllZeroActivityProbe parameters.
 
 private:
    int initialize_base();
 
+   void nonzeroFoundMessage(double badTime, bool isRoot, bool fatalError);
+
 protected:
-   bool nonzeroFound;
-   bool exitOnFailure;
-   double nonzeroTime;
+   bool nonzeroFound = false;
+   bool exitOnFailure = true;
+   bool immediateExitOnFailure = true;
+   double nonzeroTime = 0.0;
 }; // end class RequireAllZeroActivityProbe
 
 BaseObject * createRequireAllZeroActivityProbe(char const * name, HyPerCol * hc);

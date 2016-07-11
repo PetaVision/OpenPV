@@ -223,4 +223,5 @@ RequireAllZeroActivityProbe "comparison_test" = {
     probeOutputFile = "comparison_test.txt";
     triggerLayerName = NULL;
     nnzThreshold = 1e-6;
+    exitOnFailure = false; // exit-hook function will test for failures in source code
 };
