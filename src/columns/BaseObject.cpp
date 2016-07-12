@@ -31,7 +31,8 @@ int BaseObject::initialize_base() {
 
 int BaseObject::initialize(const char * name, HyPerCol * hc) {
    int status = setName(name);
-   if (status==PV_SUCCESS) { setParent(hc); }
+   if (status==PV_SUCCESS) { status = setParent(hc); }
+   if (status==PV_SUCCESS) { status = setDescription(); }
    return status;
 }
 
@@ -58,6 +59,15 @@ int BaseObject::setParent(HyPerCol * hc) {
       parent = parentCol;
    }
    return status;
+}
+
+int BaseObject::setDescription() {
+   description.clear();
+   description.append(getKeyword());
+   description.append(" \"");
+   description.append(getName());
+   description.append("\"");
+   return PV_SUCCESS;
 }
 
 BaseObject::~BaseObject() {

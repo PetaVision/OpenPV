@@ -106,7 +106,7 @@ void IdentConn::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
          parent->ioParamValue(ioFlag, name, "writeStep", &writeStep, -1.0/*default*/, false/*warnIfAbsent*/);
          if (writeStep>=0) {
             if (parent->columnId()==0) {
-               pvErrorNoExit().printf("%s \"%s\" does not use writeStep, but the parameters file sets it to %f.\n", getKeyword(), getName(), writeStep);
+               pvErrorNoExit().printf("%s does not use writeStep, but the parameters file sets it to %f.\n", getDescription_c(), writeStep);
             }
             MPI_Barrier(parent->icCommunicator()->communicator());
             exit(EXIT_FAILURE);

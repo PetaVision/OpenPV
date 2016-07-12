@@ -602,7 +602,7 @@ int HyPerLayer::setLayerLoc(PVLayerLoc * layerLoc, float nxScale, float nyScale,
    MPI_Barrier(icComm->communicator()); // If there is an error, make sure that MPI doesn't kill the run before process 0 reports the error.
    if (status != PV_SUCCESS) {
       if (parent->columnId()==0) {
-         pvErrorNoExit().printf("setLayerLoc failed for %s \"%s\".\n", getKeyword(), getName());
+         pvErrorNoExit().printf("setLayerLoc failed for %s.\n", getDescription_c());
       }
       exit(EXIT_FAILURE);
    }

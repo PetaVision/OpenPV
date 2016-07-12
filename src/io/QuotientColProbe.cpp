@@ -77,10 +77,10 @@ int QuotientColProbe::communicateInitInfo() {
       status = PV_FAILURE;
       if (parent->columnId()==0) {
          if (numerProbe==NULL) {
-            pvErrorNoExit().printf("%s \"%s\": numerator probe \"%s\" could not be found.\n", getKeyword(), getName(), numerator);
+            pvErrorNoExit().printf("%s: numerator probe \"%s\" could not be found.\n", getDescription_c(), numerator);
          }
          if (denomProbe==NULL) {
-            pvErrorNoExit().printf("%s \"%s\": denominator probe \"%s\" could not be found.\n", getKeyword(), getName(), denominator);
+            pvErrorNoExit().printf("%s: denominator probe \"%s\" could not be found.\n", getDescription_c(), denominator);
          }
       }
    }

@@ -240,7 +240,7 @@ int LIFGap::calcGapStrength() {
       HyPerConn * conn = dynamic_cast<HyPerConn *>(parent->getConnection(c));
       if (conn->postSynapticLayer() != this || conn->getChannel() != CHANNEL_GAP) { continue; }
       if (conn->getPlasticityFlag() && parent->columnId()==0) {
-         pvWarn().printf("%s \"%s\": connection \"%s\" on CHANNEL_GAP has plasticity flag set to true\n", getKeyword(), getName(), conn->getName());
+         pvWarn().printf("%s: connection \"%s\" on CHANNEL_GAP has plasticity flag set to true\n", getDescription_c(), conn->getName());
       }
       HyPerLayer * pre = conn->preSynapticLayer();
       const int sy = conn->getPostNonextStrides()->sy;

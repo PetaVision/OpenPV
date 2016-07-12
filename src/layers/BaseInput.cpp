@@ -141,7 +141,7 @@ void BaseInput::ioParam_offsetAnchor(enum ParamsIOFlag ioFlag){
       int status = checkValidAnchorString();
       if (status != PV_SUCCESS) {
          if (parent->columnId()==0) {
-            pvErrorNoExit().printf("%s \"%s\": offsetAnchor must be a two-letter string.  The first character must be \"t\", \"c\", or \"b\" (for top, center or bottom); and the second character must be \"l\", \"c\", or \"r\" (for left, center or right).\n", getKeyword(), getName());
+            pvErrorNoExit().printf("%s: offsetAnchor must be a two-letter string.  The first character must be \"t\", \"c\", or \"b\" (for top, center or bottom); and the second character must be \"l\", \"c\", or \"r\" (for left, center or right).\n", getDescription_c());
          }
          MPI_Barrier(parent->icCommunicator()->communicator());
          exit(EXIT_FAILURE);

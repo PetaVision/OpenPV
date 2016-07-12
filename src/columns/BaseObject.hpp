@@ -35,19 +35,24 @@ class BaseObject {
 public:
    inline char const * getName() const { return name; }
    inline HyPerCol * getParent() const { return parent; }
+   inline char const * getDescription_c() const { return description.c_str(); }
+   inline std::string const& getDescription() const { return description; }
    char const * getKeyword() const;
    virtual ~BaseObject();
+
 
 protected:
    BaseObject();
    int initialize(char const * name, HyPerCol * hc);
    int setName(char const * name);
    int setParent(HyPerCol * hc);
+   int setDescription();
 
 // Member variable
 protected:
-   char * name;
-   HyPerCol * parent;
+   char * name = nullptr;
+   HyPerCol * parent = nullptr;
+   std::string description;
 
 private:
    int initialize_base();
