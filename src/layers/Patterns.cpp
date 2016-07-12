@@ -90,7 +90,7 @@ int Patterns::initialize(const char * name, HyPerCol * hc) {
          pvInfo().printf("write position to %s\n",file_name);
          patternsFile = PV_fopen(file_name,"a",parent->getVerifyWrites());
          if(patternsFile == NULL) {
-            pvError().printf("Patterns layer \"%s\" unable to open \"%s\" for writing: error %s\n", name, file_name, strerror(errno));
+            pvError().printf("%s unable to open \"%s\" for writing: error %s\n", getDescription_c(), file_name, strerror(errno));
          }
       }
       else {
@@ -1178,7 +1178,7 @@ int Patterns::checkpointWrite(const char * cpDir) {
          pvErrorNoExit().printf("Unable to write to \"%s\"\n", filename);
       }
       if (status != PV_SUCCESS) {
-         pvError().printf("Patterns::checkpointWrite: %s \"%s\" failed writing to %s\n", getKeyword(), name, pvstream->name);
+         pvError().printf("Patterns::checkpointWrite: %s failed writing to %s\n", getDescription_c(), pvstream->name);
       }
       sprintf(filename, "%s/%s_PatternState.txt", cpDir, name);
       pvstream = PV_fopen(filename, "w", parent->getVerifyWrites());

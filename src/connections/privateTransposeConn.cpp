@@ -18,6 +18,7 @@ privateTransposeConn::~privateTransposeConn() {
 
 //privateTransposeConn initialize will be called during parentConn's communicate
 int privateTransposeConn::initialize(const char * name, HyPerCol * hc, HyPerConn * parentConn, bool needWeights) {
+   postConn = parentConn; // needs to precede BaseObject::initialize because setDescription uses it.
    int status = BaseObject::initialize(name, hc); // Don't call HyPerConn::initialize
    assert(status == PV_SUCCESS);
 
@@ -27,7 +28,6 @@ int privateTransposeConn::initialize(const char * name, HyPerCol * hc, HyPerConn
    this->io_timer     = new Timer(getName(), "postConn", "io     ");
    this->update_timer = new Timer(getName(), "postConn", "update ");
 
-   postConn = parentConn;
 
    //Pre/post is swapped from orig conn
    pre = postConn->getPost();
@@ -55,6 +55,12 @@ int privateTransposeConn::initialize(const char * name, HyPerCol * hc, HyPerConn
 
    //Set parentConn's pre and post connections
    return status;
+}
+
+int privateTransposeConn::setDescription() {
+   description.clear();
+   description.append("privateTransposeConn for \"").append(postConn->getName()).append("\"");
+   return PV_SUCCESS;
 }
 
 //Private transpose conn will have no parameters, will be set by parent connection
@@ -265,11 +271,11 @@ int privateTransposeConn::transposeNonsharedWeights(int arborId) {
          mpiexchangesize(neighbor,  &size[neighbor], &startx[neighbor], &stopx[neighbor], &starty[neighbor], &stopy[neighbor], &blocksize[neighbor], &buffersize[neighbor]);
          sendbuf[neighbor] = (pvwdata_t *) malloc(buffersize[neighbor]);
          if (sendbuf[neighbor]==NULL) {
-            pvError().printf("%s \"%s\": Rank %d process unable to allocate memory for Transpose send buffer: %s\n", this->getKeyword(), name, parent->columnId(), strerror(errno));
+            pvError().printf("%s: Rank %d process unable to allocate memory for Transpose send buffer: %s\n", getDescription_c(), parent->columnId(), strerror(errno));
          }
          recvbuf[neighbor] = (pvwdata_t *) malloc(buffersize[neighbor]);
          if (recvbuf[neighbor]==NULL) {
-            pvError().printf("%s \"%s\": Rank %d process unable to allocate memory for Transpose receive buffer: %s\n", this->getKeyword(), name, parent->columnId(), strerror(errno));
+            pvError().printf("%s: Rank %d process unable to allocate memory for Transpose receive buffer: %s\n", getDescription_c(), parent->columnId(), strerror(errno));
          }
          request[neighbor] = NULL;
       }
@@ -290,8 +296,8 @@ int privateTransposeConn::transposeNonsharedWeights(int arborId) {
             int yGlobalRes = yGlobalExt-preLocOrig->halo.up;
             if (xGlobalRes >= preLocOrig->kx0 && xGlobalRes < preLocOrig->kx0+preLocOrig->nx && yGlobalRes >= preLocOrig->ky0 && yGlobalRes < preLocOrig->ky0+preLocOrig->ny) {
                pvError(errorMessage);
-               errorMessage.printf("Rank %d, connection \"%s\", x=%d, y=%d, neighbor=%d: xGlobalRes = %d, preLocOrig->kx0 = %d, preLocOrig->nx = %d\n", parent->columnId(), name, x, y, neighbor, xGlobalRes, preLocOrig->kx0, preLocOrig->nx);
-               errorMessage.printf("Rank %d, connection \"%s\", x=%d, y=%d, neighbor=%d: yGlobalRes = %d, preLocOrig->ky0 = %d, preLocOrig->ny = %d\n", parent->columnId(), name, x, y, neighbor, yGlobalRes, preLocOrig->ky0, preLocOrig->ny);
+               errorMessage.printf("Rank %d, %s, x=%d, y=%d, neighbor=%d: xGlobalRes = %d, preLocOrig->kx0 = %d, preLocOrig->nx = %d\n", parent->columnId(), getDescription_c(), x, y, neighbor, xGlobalRes, preLocOrig->kx0, preLocOrig->nx);
+               errorMessage.printf("Rank %d, %s, x=%d, y=%d, neighbor=%d: yGlobalRes = %d, preLocOrig->ky0 = %d, preLocOrig->ny = %d\n", parent->columnId(), getDescription_c(), x, y, neighbor, yGlobalRes, preLocOrig->ky0, preLocOrig->ny);
             }
             int idxGlobalRes = kIndex(xGlobalRes, yGlobalRes, 0, preLocOrig->nxGlobal, preLocOrig->nyGlobal, preLocOrig->nf);
             memcpy(b, &idxGlobalRes, sizeof(idxGlobalRes));

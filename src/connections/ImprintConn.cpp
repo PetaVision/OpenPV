@@ -307,7 +307,7 @@ int ImprintConn::checkpointWrite(const char * cpDir) {
          pvError().printf("Unable to write to \"%s\"\n", filename);
       }
       if (status != PV_SUCCESS) {
-         pvError().printf("Patterns::checkpointWrite error: %s \"%s\" failed writing to %s\n", this->getKeyword(), name, filename);
+         pvError().printf("Patterns::checkpointWrite error: %s failed writing to %s\n", getDescription_c(), filename);
       }
       free(filename); filename=NULL;
    }

@@ -89,16 +89,16 @@ int QuotientColProbe::communicateInitInfo() {
       int dNumValues = denomProbe->getNumValues();
       if (nNumValues != dNumValues) {
          if (parent->columnId()==0) {
-            pvErrorNoExit().printf("%s \"%s\": numerator probe \"%s\" and denominator probe \"%s\" have differing numbers of values (%d vs. %d)\n",
-                  getKeyword(), getName(), numerator, denominator, nNumValues, dNumValues);
+            pvErrorNoExit().printf("%s: numerator probe \"%s\" and denominator probe \"%s\" have differing numbers of values (%d vs. %d)\n",
+                  getDescription_c(), numerator, denominator, nNumValues, dNumValues);
          }
          MPI_Barrier(this->getParent()->icCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
       status = setNumValues(nNumValues);
       if (status != PV_SUCCESS) {
-         pvErrorNoExit().printf("%s \"%s\": unable to allocate memory for %d values: %s\n",
-               this->getKeyword(), this->getName(), nNumValues, strerror(errno));
+         pvErrorNoExit().printf("%s: unable to allocate memory for %d values: %s\n",
+               this->getDescription_c(), nNumValues, strerror(errno));
          exit(EXIT_FAILURE);
       }
    }

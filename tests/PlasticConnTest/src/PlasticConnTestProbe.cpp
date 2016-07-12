@@ -37,11 +37,11 @@ int PlasticConnTestProbe::outputState(double timed) {
       return PV_SUCCESS;
    }
    assert(getTargetConn()!=NULL);
-   outputStream->printf("    Time %f, connection \"%s\":\n", timed, getTargetName());
+   outputStream->printf("    Time %f, %s:\n", timed, getTargetConn()->getDescription_c());
    const pvwdata_t * w = c->get_wDataHead(getArbor(), getKernelIndex());
    const pvdata_t * dw = c->get_dwDataHead(getArbor(), getKernelIndex());
    if( getOutputPlasticIncr() && dw == NULL ) {
-      pvError().printf("PlasticConnTestProbe \"%s\": connection \"%s\" has dKernelData(%d,%d) set to null.\n", getName(), getTargetName(), getKernelIndex(), getArbor());
+      pvError().printf("%s: %s has dKernelData(%d,%d) set to null.\n", getDescription_c(), getTargetConn()->getDescription_c(), getKernelIndex(), getArbor());
    }
    int nxp = c->xPatchSize();
    int nyp = c->yPatchSize();

@@ -141,12 +141,12 @@ void BaseProbe::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
       parent->ioParamValue(ioFlag, name, "triggerFlag", &flagFromParams, flagFromParams);
       if (parent->columnId()==0) {
          pvWarn(triggerFlagDeprecated);
-         triggerFlagDeprecated.printf("Layer \"%s\": triggerFlag has been deprecated.\n", name);
+         triggerFlagDeprecated.printf("%s: triggerFlag has been deprecated.\n", getDescription_c());
          triggerFlagDeprecated.printf("   If triggerLayerName is a nonempty string, triggering will be on;\n");
          triggerFlagDeprecated.printf("   if triggerLayerName is empty or null, triggering will be off.\n");
          if (flagFromParams!=triggerFlag) {
             pvErrorNoExit(triggerFlagError);
-            triggerFlagError.printf("Layer \"%s\" Error: triggerLayerName=", name);
+            triggerFlagError.printf("%s: triggerLayerName=", getDescription_c());
             if (triggerLayerName) { triggerFlagError.printf("\"%s\"", triggerLayerName); }
             else { triggerFlagError.printf("NULL"); }
             triggerFlagError.printf(" implies triggerFlag=%s but triggerFlag was set in params to %s\n",

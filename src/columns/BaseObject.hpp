@@ -46,7 +46,7 @@ protected:
    int initialize(char const * name, HyPerCol * hc);
    int setName(char const * name);
    int setParent(HyPerCol * hc);
-   int setDescription();
+   virtual int setDescription();
 
 // Member variable
 protected:

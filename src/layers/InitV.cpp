@@ -106,8 +106,8 @@ int InitV::calcV(HyPerLayer * layer) {
    const PVLayerLoc * loc = layer->getLayerLoc();
    pvdata_t * V = layer->getV();
    if (V == NULL) {
-      pvErrorNoExit().printf("%s \"%s\": InitV called but membrane potential V is null.\n",
-            layer->getKeyword(), layer->getName());
+      pvErrorNoExit().printf("%s: InitV called but membrane potential V is null.\n",
+            layer->getDescription_c());
       exit(EXIT_FAILURE);
    }
    switch(initVTypeCode) {

@@ -47,6 +47,19 @@ int InitWeights::initialize(char const * name, HyPerCol * hc) {
    return PV_SUCCESS;
 }
 
+int InitWeights::setDescription() {
+   description.clear();
+   char const * initType = parent->parameters()->stringValue(name, "weightInitType", false/*do not warn if absent*/);
+   if (initType==nullptr) {
+      description.append("weight initializer ");
+   }
+   else {
+      description.append(initType);
+   }
+   description.append(" \"").append(name).append("\"");
+   return PV_SUCCESS;
+}
+
 int InitWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    // Read/write any params from the params file, typically
    // parent->ioParamValue(ioFlag, name, "param_name", &param, default_value);
@@ -107,7 +120,7 @@ int InitWeights::initializeWeights(PVPatch *** patches, pvwdata_t ** dataStart,
    int numPatches = callingConn->getNumDataPatches();
    if (inputParams->present(callingConn->getName(), "initFromLastFlag")) {
       if (callingConn->getParent()->columnId()==0) {
-         pvErrorNoExit().printf("Connection \"%s\": initFromLastFlag is obsolete.\n", callingConn->getName());
+         pvErrorNoExit().printf("%s: initFromLastFlag is obsolete.\n", callingConn->getDescription_c());
       }
       if (inputParams->value(callingConn->getName(), "initFromLastFlag")) {
          if (callingConn->getParent()->columnId()==0) {

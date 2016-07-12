@@ -19,7 +19,7 @@ TestAllZerosProbe::TestAllZerosProbe(const char * probeName, HyPerCol * hc) {
 int TestAllZerosProbe::outputState(double timed) {
    int status = StatsProbe::outputState(timed);
    if (status != PV_SUCCESS) {
-      pvError().printf("!!Time %f: TestAllZerosProbe::outputState failed for layer \"%s\"\n", timed, getTargetLayer()->getName());
+      pvError().printf("!!Time %f: TestAllZerosProbe::outputState failed for %s\n", timed, getTargetLayer()->getDescription_c());
    }
    InterColComm * icComm = getTargetLayer()->getParent()->icCommunicator();
    const int rcvProc = 0;
@@ -28,7 +28,7 @@ int TestAllZerosProbe::outputState(double timed) {
    }
    for(int b = 0; b < parent->getNBatch(); b++){
       if (nnz[b] != 0) {
-         pvError().printf("!!Time %f batch %d: layer \"%s\" is not all zeroes.\n", timed, b, getTargetLayer()->getName());
+         pvError().printf("!!Time %f batch %d: %s is not all zeroes.\n", timed, b, getTargetLayer()->getDescription_c());
       }
    }
    return status;

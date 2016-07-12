@@ -37,7 +37,7 @@ int FeedbackConn::setPreAndPostLayerNames() {
    PVParams * params = parent->parameters();
    if (params->stringPresent(name, "preLayerName") || params->stringPresent(name, "postLayerName")) {
       if (parent->columnId()==0) {
-         pvErrorNoExit().printf("%s \"%s\": FeedbackConn does not use preLayerName or postLayerName.\n", this->getKeyword(), name);
+         pvErrorNoExit().printf("%s: FeedbackConn does not use preLayerName or postLayerName.\n", getDescription_c());
       }
       status = PV_FAILURE;
    }
@@ -52,7 +52,7 @@ int FeedbackConn::handleMissingPreAndPostLayerNames() {
    preLayerName = strdup(originalConn->getPostLayerName());
    postLayerName = strdup(originalConn->getPreLayerName());
    if (preLayerName==NULL || postLayerName==NULL) {
-      pvError().printf("Error in rank %d process: FeedbackConn \"%s\" unable to allocate memory for pre and post layer names: %s", parent->columnId(), name, strerror(errno));
+      pvError().printf("%s: Rank %d process unable to allocate memory for pre and post layer names: %s", getDescription_c(), parent->columnId(), strerror(errno));
    }
    return PV_SUCCESS;
 }

@@ -56,8 +56,8 @@ int ColumnEnergyProbe::addTerm(BaseProbe * probe) {
       if (newNumValues < 0) {
          status = PV_FAILURE;
          if (parent->columnId()==0) {
-            pvErrorNoExit().printf("%s \"%s\": probe \"%s\" cannot be used as a term of the energy probe (getNumValue() returned a negative number).\n",
-               getKeyword(), getName(), probe->getName());
+            pvErrorNoExit().printf("%s: %s cannot be used as a term of the energy probe (getNumValue() returned a negative number).\n",
+                  getDescription_c(), probe->getDescription_c());
          }
          MPI_Barrier(parent->icCommunicator()->communicator());
          exit(EXIT_FAILURE);
@@ -65,8 +65,8 @@ int ColumnEnergyProbe::addTerm(BaseProbe * probe) {
       if (newNumValues != this->getNumValues()) {
          status = setNumValues(newNumValues);
          if (status != PV_SUCCESS) {
-            pvErrorNoExit().printf("%s \"%s\": unable to allocate memory for %d probe values: %s\n",
-                  this->getKeyword(), this->getName(), newNumValues, strerror(errno));
+            pvErrorNoExit().printf("%s: unable to allocate memory for %d probe values: %s\n",
+                  getDescription_c(), newNumValues, strerror(errno));
             exit(EXIT_FAILURE);
          }
       }
@@ -74,8 +74,8 @@ int ColumnEnergyProbe::addTerm(BaseProbe * probe) {
    else {
       if (probe->getNumValues() != this->getNumValues()) {
          if (this->getParent()->columnId()==0) {
-            pvErrorNoExit().printf("Failed to add terms to %s \%s\":  new probe \"%s\" returns %d values, but previous probes return %d values\n",
-                  getKeyword(), getName(), probe->getName(), probe->getNumValues(), this->getNumValues());
+            pvErrorNoExit().printf("Failed to add terms to %s:  new probe \"%s\" returns %d values, but previous probes return %d values\n",
+                  getDescription_c(), probe->getName(), probe->getNumValues(), this->getNumValues());
          }
          MPI_Barrier(this->getParent()->icCommunicator()->communicator());
          exit(EXIT_FAILURE);
@@ -85,16 +85,16 @@ int ColumnEnergyProbe::addTerm(BaseProbe * probe) {
    int newNumTerms = numTerms+(size_t) 1;
    if (newNumTerms<=numTerms) {
       if (this->getParent()->columnId()==0) {
-         pvErrorNoExit().printf("How did you manage to add %zu terms to %s \"%s\"?  Unable to add any more!\n",
-               numTerms, getKeyword(), getName());
+         pvErrorNoExit().printf("How did you manage to add %zu terms to %s?  Unable to add any more!\n",
+               numTerms, getDescription_c());
       }
       MPI_Barrier(this->getParent()->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    BaseProbe ** newTermsArray = (BaseProbe **) realloc(terms, (numTerms+(size_t) 1)*sizeof(BaseProbe *));
    if (newTermsArray==NULL) {
-      pvErrorNoExit().printf("%s \"%s\": unable to add term %zu (\"%s\"): %s\n",
-         getKeyword(), getName(), numTerms+(size_t) 1, probe->getName(),
+      pvErrorNoExit().printf("%s: unable to add term %zu (\"%s\"): %s\n",
+            getDescription_c(), numTerms+(size_t) 1, probe->getName(),
          strerror(errno));
       exit(EXIT_FAILURE);
    }

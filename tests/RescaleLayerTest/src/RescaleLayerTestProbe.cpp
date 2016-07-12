@@ -92,7 +92,7 @@ int RescaleLayerTestProbe::outputState(double timed)
 
          bool iscolinear = colinear(nk, ny, origStrideYExtended, rescaleStrideYExtended, origData, rescaledData, tolerance, NULL, NULL, NULL);
          if (!iscolinear) {
-            pvErrorNoExit().printf("RescaleLayerTestProbe \"%s\": Rescale layer \"%s\" data is not a linear rescaling of original membrane potential.\n", getName(), targetRescaleLayer->getName());
+            pvErrorNoExit().printf("%s: %s data is not a linear rescaling of original membrane potential.\n", getDescription_c(), targetRescaleLayer->getDescription_c());
             status = PV_FAILURE;
          }
       }
@@ -112,11 +112,11 @@ int RescaleLayerTestProbe::outputState(double timed)
          }
 
          if (fabs(avg[b]-targetMean)>tolerance) {
-            pvErrorNoExit().printf("RescaleLayerTestProbe \"%s\": RescaleLayer \"%s\" has mean %f instead of target mean %f\n", getName(), targetRescaleLayer->getName(), (double)avg[b], targetMean);
+            pvErrorNoExit().printf("%s: %s has mean %f instead of target mean %f\n", getDescription_c(), targetRescaleLayer->getDescription_c(), (double)avg[b], targetMean);
             status = PV_FAILURE;
          }
          if (sigma[b]>tolerance && fabs(sigma[b]-targetStd)>tolerance) {
-            pvErrorNoExit().printf("RescaleLayerTestProbe \"%s\": RescaleLayer \"%s\" has std.dev. %f instead of target std.dev. %f\n", getName(), targetRescaleLayer->getName(), (double)sigma[b], targetStd);
+            pvErrorNoExit().printf("%s: %s has std.dev. %f instead of target std.dev. %f\n", getDescription_c(), targetRescaleLayer->getDescription_c(), (double)sigma[b], targetStd);
             status = PV_FAILURE;
          }
 
@@ -138,7 +138,7 @@ int RescaleLayerTestProbe::outputState(double timed)
 
          bool iscolinear = colinear(nk, ny, origStrideYExtended, rescaleStrideYExtended, origData, rescaledData, tolerance, NULL, NULL, NULL);
          if (!iscolinear) {
-            pvErrorNoExit().printf("RescaleLayerTestProbe \"%s\": Rescale layer \"%s\" data is not a linear rescaling of original membrane potential.\n", getName(), targetRescaleLayer->getName());
+            pvErrorNoExit().printf("%s: %s data is not a linear rescaling of original membrane potential.\n", getDescription_c(), targetRescaleLayer->getDescription_c());
             status = PV_FAILURE;
          }
       }

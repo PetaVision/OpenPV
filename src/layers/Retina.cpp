@@ -336,13 +336,14 @@ void Retina::ioParam_backgroundRate(enum ParamsIOFlag ioFlag) {
       }
    }
    // noiseOffFreq and poissonBlankProb was deprecated Jan 24, 2013 and marked obsolete Jun 27, 2016.
-   // After a reasonable fade time, remove the above if-statement and keep the ioParamValue call below.
+   // After a reasonable fade time, remove the above if-statement and keep the ioParamValue call below
+   // and the sanity check following it.
    parent->ioParamValue(ioFlag, name, "backgroundRate", &probBaseParam, 0.0f);
    if (ioFlag==PARAMS_IO_READ) {
       assert(!parent->parameters()->presentAndNotBeenRead(name, "foregroundRate"));
       if (probBaseParam > probStimParam) {
-         pvError().printf("Error in %s \"%s\": backgroundRate cannot be greater than foregroundRate.\n",
-               getKeyword(), name);
+         pvError().printf("%s: backgroundRate cannot be greater than foregroundRate.\n",
+               getDescription_c());
          exit(EXIT_FAILURE);
       }
    }
@@ -426,7 +427,7 @@ int Retina::checkpointWrite(const char * cpDir) {
    int chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_rand_state.bin", cpDir, name);
    if(chars_needed >= PV_PATH_MAX) {
       if (parent->icCommunicator()->commRank()==0) {
-         pvErrorNoExit().printf("HyPerLayer::checkpointWrite for layer \"%s\":  base pathname \"%s/%s_rand_state.bin\" too long.\n", name, cpDir, name);
+         pvErrorNoExit().printf("HyPerLayer::checkpointWrite for %s:  base pathname \"%s/%s_rand_state.bin\" too long.\n", getDescription_c(), cpDir, name);
       }
       abort();
    }

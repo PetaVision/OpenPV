@@ -70,7 +70,7 @@ int RequireAllZeroActivityProbe::outputState(double timed) {
 void RequireAllZeroActivityProbe::nonzeroFoundMessage(double badTime, bool isRoot, bool fatalError) {
    if (isRoot) {
       std::stringstream message("");
-      message << getKeyword() << " \"" << name << "\": Nonzero activity found at time " << badTime << "\n";
+      message << getDescription_c() << ": Nonzero activity found at time " << badTime << "\n";
       if (fatalError) {
          pvError() << message.str();
       }

@@ -59,15 +59,15 @@ int NormalizeContrastZeroMean::normalizeWeights() {
       HyPerConn * conn = connectionList[c];
       if (conn->numberOfAxonalArborLists() != conn0->numberOfAxonalArborLists()) {
          if (parent->columnId() == 0) {
-            pvErrorNoExit().printf("Normalizer %s: All connections in the normalization group must have the same number of arbors (Connection \"%s\" has %d; connection \"%s\" has %d).\n",
-                  this->getName(), conn0->getName(), conn0->numberOfAxonalArborLists(), conn->getName(), conn->numberOfAxonalArborLists());
+            pvErrorNoExit().printf("%s: All connections in the normalization group must have the same number of arbors (%s has %d; %s has %d).\n",
+                  getDescription_c(), conn0->getDescription_c(), conn0->numberOfAxonalArborLists(), conn->getDescription_c(), conn->numberOfAxonalArborLists());
          }
          status = PV_FAILURE;
       }
       if (conn->getNumDataPatches() != conn0->getNumDataPatches()) {
          if (parent->columnId() == 0) {
-            pvErrorNoExit().printf("Normalizer %s: All connections in the normalization group must have the same number of data patches (Connection \"%s\" has %d; connection \"%s\" has %d).\n",
-                  this->getName(), conn0->getName(), conn0->getNumDataPatches(), conn->getName(), conn->getNumDataPatches());
+            pvErrorNoExit().printf("%s: All connections in the normalization group must have the same number of data patches (%s has %d; %s has %d).\n",
+                  getDescription_c(), conn0->getDescription_c(), conn0->getNumDataPatches(), conn->getDescription_c(), conn->getNumDataPatches());
          }
          status = PV_FAILURE;
       }

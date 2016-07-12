@@ -68,8 +68,8 @@ int LayerProbe::setTargetLayer(const char * layerName) {
    targetLayer = parent->getLayerFromName(layerName);
    if (targetLayer==NULL) {
       if (parent->columnId()==0) {
-         pvErrorNoExit().printf("%s \"%s\": targetLayer \"%s\" is not a layer in the column.\n",
-               this->getKeyword(), name, layerName);
+         pvErrorNoExit().printf("%s: targetLayer \"%s\" is not a layer in the column.\n",
+               getDescription_c(), layerName);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);

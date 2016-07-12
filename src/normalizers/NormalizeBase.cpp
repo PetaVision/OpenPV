@@ -40,6 +40,19 @@ int NormalizeBase::initialize(const char * name, HyPerCol * hc) {
    return status;
 }
 
+int NormalizeBase::setDescription() {
+   description.clear();
+   char const * method = parent->parameters()->stringValue(name, "normalizeMethod", false/*do not warn if absent*/);
+   if (method==nullptr) {
+      description.append("weight normalizer ");
+   }
+   else {
+      description.append(method);
+   }
+   description.append(" \"").append(name).append("\"");
+   return PV_SUCCESS;
+}
+
 int NormalizeBase::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_strength(ioFlag);
    ioParam_normalizeArborsIndividually(ioFlag);
@@ -71,7 +84,7 @@ void NormalizeBase::communicateInitInfo() {
 HyPerConn * NormalizeBase::getTargetConn() {
    BaseConnection * baseConn = parent->getConnFromName(name);
    HyPerConn * targetConn = dynamic_cast<HyPerConn *>(baseConn);
-   pvAssertMessage(targetConn, "%s \"%s\": target connection \"%s\" is not a HyPerConn\n", getKeyword(), name, name);
+   pvAssertMessage(targetConn, "%s: target connection \"%s\" is not a HyPerConn\n", getDescription_c(), name);
    return targetConn;
 }
 
@@ -198,13 +211,13 @@ int NormalizeBase::addConnToList(HyPerConn * newConn) {
       newList = (HyPerConn **) malloc(sizeof(*connectionList)*(numConnections+1));
    }
    if (newList==NULL) {
-      pvError().printf("Normalizer \"%s\" unable to add connection \"%s\" as connection number %d : %s\n", name, newConn->getName(), numConnections+1, strerror(errno));
+      pvError().printf("%s unable to add %s as connection number %d : %s\n", getDescription_c(), newConn->getDescription_c(), numConnections+1, strerror(errno));
    }
    connectionList = newList;
    connectionList[numConnections] = newConn;
    numConnections++;
    if (parent->columnId()==0) {
-      pvInfo().printf("Adding connection \"%s\" to normalizer group \"%s\".\n", newConn->getName(), this->getName());
+      pvInfo().printf("Adding %s to normalizer group \"%s\".\n", newConn->getDescription_c(), this->getName());
    }
    return PV_SUCCESS;
 }

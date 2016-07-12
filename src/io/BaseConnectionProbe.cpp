@@ -52,8 +52,8 @@ int BaseConnectionProbe::setTargetConn(const char * connName) {
    int status = PV_SUCCESS;
    targetConn = getParent()->getConnFromName(connName);
    if (targetConn==NULL) {
-      pvErrorNoExit().printf("BaseConnectionProbe \"%s\", rank %d process: targetConnection \"%s\" is not a connection in the HyPerCol.\n",
-            name, getParent()->columnId(), connName);
+      pvErrorNoExit().printf("%s, rank %d process: targetConnection \"%s\" is not a connection in the HyPerCol.\n",
+            getDescription_c(), getParent()->columnId(), connName);
       status = PV_FAILURE;
    }
    MPI_Barrier(getParent()->icCommunicator()->communicator());

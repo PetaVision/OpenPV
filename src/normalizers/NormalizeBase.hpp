@@ -52,6 +52,7 @@ public:
 protected:
    NormalizeBase();
    int initialize(const char * name, HyPerCol * hc);
+   virtual int setDescription();
 
    virtual void ioParam_strength(enum ParamsIOFlag ioFlag);
    virtual void ioParam_normalizeArborsIndividually(enum ParamsIOFlag ioFlag);

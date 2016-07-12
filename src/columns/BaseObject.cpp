@@ -63,10 +63,7 @@ int BaseObject::setParent(HyPerCol * hc) {
 
 int BaseObject::setDescription() {
    description.clear();
-   description.append(getKeyword());
-   description.append(" \"");
-   description.append(getName());
-   description.append("\"");
+   description.append(getKeyword()).append(" \"").append(getName()).append("\"");
    return PV_SUCCESS;
 }
 

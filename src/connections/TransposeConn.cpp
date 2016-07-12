@@ -182,7 +182,7 @@ int TransposeConn::communicateInitInfo() {
    BaseConnection * originalConnBase = parent->getConnFromName(this->originalConnName);
    if (originalConnBase==NULL) {
       if (parent->columnId()==0) {
-         pvErrorNoExit().printf("%s \"%s\": originalConnName \"%s\" does not refer to any connection in the column.\n", this->getKeyword(), name, this->originalConnName);
+         pvErrorNoExit().printf("%s: originalConnName \"%s\" does not refer to any connection in the column.\n", getDescription_c(), this->originalConnName);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -190,7 +190,7 @@ int TransposeConn::communicateInitInfo() {
    this->originalConn = dynamic_cast<HyPerConn *>(originalConnBase);
    if (originalConn == NULL) {
       if (parent->columnId()==0) {
-         pvErrorNoExit().printf("TransposeConn \"%s\": originalConnName \"%s\" is not an existing connection.\n", name, originalConnName);
+         pvErrorNoExit().printf("%s: originalConnName \"%s\" is not an existing connection.\n", getDescription_c(), originalConnName);
          status = PV_FAILURE;
       }
    }
@@ -198,8 +198,7 @@ int TransposeConn::communicateInitInfo() {
 
    if (!originalConn->getInitInfoCommunicatedFlag()) {
       if (parent->columnId()==0) {
-         const char * connectiontype = this->getKeyword();
-         pvInfo().printf("%s \"%s\" must wait until original connection \"%s\" has finished its communicateInitInfo stage.\n", connectiontype, name, originalConn->getName());
+         pvInfo().printf("%s must wait until original connection \"%s\" has finished its communicateInitInfo stage.\n", getDescription_c(), originalConn->getName());
       }
       return PV_POSTPONE;
    }
@@ -229,7 +228,7 @@ int TransposeConn::communicateInitInfo() {
    if (preLoc->nx != origPostLoc->nx || preLoc->ny != origPostLoc->ny || preLoc->nf != origPostLoc->nf) {
       if (parent->columnId()==0) {
          pvErrorNoExit(errorMessage);
-         errorMessage.printf("%s \"%s\": transpose's pre layer and original connection's post layer must have the same dimensions.\n", this->getKeyword(), name);
+         errorMessage.printf("%s: transpose's pre layer and original connection's post layer must have the same dimensions.\n", getDescription_c());
          errorMessage.printf("    (x=%d, y=%d, f=%d) versus (x=%d, y=%d, f=%d).\n", preLoc->nx, preLoc->ny, preLoc->nf, origPostLoc->nx, origPostLoc->ny, origPostLoc->nf);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
@@ -240,7 +239,7 @@ int TransposeConn::communicateInitInfo() {
    if (postLoc->nx != origPreLoc->nx || postLoc->ny != origPreLoc->ny || postLoc->nf != origPreLoc->nf) {
       if (parent->columnId()==0) {
          pvErrorNoExit(errorMessage);
-         errorMessage.printf("%s \"%s\": transpose's post layer and original connection's pre layer must have the same dimensions.\n", this->getKeyword(), name);
+         errorMessage.printf("%s: transpose's post layer and original connection's pre layer must have the same dimensions.\n", getDescription_c());
          errorMessage.printf("    (x=%d, y=%d, f=%d) versus (x=%d, y=%d, f=%d).\n", postLoc->nx, postLoc->ny, postLoc->nf, origPreLoc->nx, origPreLoc->ny, origPreLoc->nf);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
@@ -331,8 +330,7 @@ int TransposeConn::allocatePostConn(){
 int TransposeConn::allocateDataStructures() {
    if (!originalConn->getDataStructuresAllocatedFlag()) {
       if (parent->columnId()==0) {
-         const char * connectiontype = this->getKeyword();
-         pvInfo().printf("%s \"%s\" must wait until original connection \"%s\" has finished its allocateDataStructures stage.\n", connectiontype, name, originalConn->getName());
+         pvInfo().printf("%s must wait until original connection \"%s\" has finished its allocateDataStructures stage.\n", getDescription_c(), originalConn->getName());
       }
       return PV_POSTPONE;
    }
@@ -486,8 +484,8 @@ int TransposeConn::finalizeUpdate(double timed, double dt){
 //            int yGlobalRes = yGlobalExt-preLocOrig->halo.up;
 //            if (xGlobalRes >= preLocOrig->kx0 && xGlobalRes < preLocOrig->kx0+preLocOrig->nx && yGlobalRes >= preLocOrig->ky0 && yGlobalRes < preLocOrig->ky0+preLocOrig->ny) {
 //               pvError(errorMessage);
-//               errorMessage.printf("Rank %d, connection \"%s\", x=%d, y=%d, neighbor=%d: xGlobalRes = %d, preLocOrig->kx0 = %d, preLocOrig->nx = %d\n", parent->columnId(), name, x, y, neighbor, xGlobalRes, preLocOrig->kx0, preLocOrig->nx);
-//               errorMessage.printf("Rank %d, connection \"%s\", x=%d, y=%d, neighbor=%d: yGlobalRes = %d, preLocOrig->ky0 = %d, preLocOrig->ny = %d\n", parent->columnId(), name, x, y, neighbor, yGlobalRes, preLocOrig->ky0, preLocOrig->ny);
+//               errorMessage.printf("Rank %d, %s, x=%d, y=%d, neighbor=%d: xGlobalRes = %d, preLocOrig->kx0 = %d, preLocOrig->nx = %d\n", parent->columnId(), getDescription_c(), x, y, neighbor, xGlobalRes, preLocOrig->kx0, preLocOrig->nx);
+//               errorMessage.printf("Rank %d, %s, x=%d, y=%d, neighbor=%d: yGlobalRes = %d, preLocOrig->ky0 = %d, preLocOrig->ny = %d\n", parent->columnId(), getDescription_c(), x, y, neighbor, yGlobalRes, preLocOrig->ky0, preLocOrig->ny);
 //            }
 //            int idxGlobalRes = kIndex(xGlobalRes, yGlobalRes, 0, preLocOrig->nxGlobal, preLocOrig->nyGlobal, preLocOrig->nf);
 //            memcpy(b, &idxGlobalRes, sizeof(idxGlobalRes));

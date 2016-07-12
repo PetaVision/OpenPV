@@ -252,8 +252,8 @@ int assertAllZeroes(HyPerCol * hc, int argc, char * argv[]) {
    if (allzeroProbe->getNonzeroFound()) {
       if (hc->columnId()==0) {
          double t = allzeroProbe->getNonzeroTime();
-         pvErrorNoExit().printf("%s \"%s\" had at least one nonzero activity value, beginning at time %f\n",
-               layer->getKeyword(), targetLayerName, t);
+         pvErrorNoExit().printf("%s had at least one nonzero activity value, beginning at time %f\n",
+               layer->getDescription_c(), t);
       }
       MPI_Barrier(hc->icCommunicator()->communicator());
       exit(EXIT_FAILURE);

@@ -52,8 +52,8 @@ void SegmentLayer::ioParam_segmentMethod(enum ParamsIOFlag ioFlag) {
    //How do we segment across MPI margins?
    else{
       if (parent->columnId()==0) {
-         pvErrorNoExit().printf("%s \"%s\": segmentMethod %s not recognized. Current options are \"none\".\n",
-                 getKeyword(), name, segmentMethod);
+         pvErrorNoExit().printf("%s: segmentMethod %s not recognized. Current options are \"none\".\n",
+                 getDescription_c(), segmentMethod);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -65,8 +65,8 @@ void SegmentLayer::ioParam_originalLayerName(enum ParamsIOFlag ioFlag) {
    assert(originalLayerName);
    if (ioFlag==PARAMS_IO_READ && originalLayerName[0]=='\0') {
       if (parent->columnId()==0) {
-         pvErrorNoExit().printf("%s \"%s\": originalLayerName must be set.\n",
-                 getKeyword(), name);
+         pvErrorNoExit().printf("%s: originalLayerName must be set.\n",
+                 getDescription_c());
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -79,8 +79,8 @@ int SegmentLayer::communicateInitInfo() {
    originalLayer = parent->getLayerFromName(originalLayerName);
    if (originalLayer==NULL) {
       if (parent->columnId()==0) {
-         pvErrorNoExit().printf("%s \"%s\": originalLayerName \"%s\" is not a layer in the HyPerCol.\n",
-                 getKeyword(), name, originalLayerName);
+         pvErrorNoExit().printf("%s: originalLayerName \"%s\" is not a layer in the HyPerCol.\n",
+                 getDescription_c(), originalLayerName);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -101,8 +101,8 @@ int SegmentLayer::communicateInitInfo() {
    if (srcLoc->nxGlobal != thisLoc->nxGlobal || srcLoc->nyGlobal != thisLoc->nyGlobal) {
       if (parent->columnId()==0) {
          pvErrorNoExit(errorMessage);
-         errorMessage.printf("%s \"%s\": originalLayer \"%s\" does not have the same x and y dimensions as this layer.\n",
-                 getKeyword(), name, originalLayerName);
+         errorMessage.printf("%s: originalLayer \"%s\" does not have the same x and y dimensions as this layer.\n",
+                 getDescription_c(), originalLayerName);
          errorMessage.printf("    original (nx=%d, ny=%d) versus (nx=%d, ny=%d)\n",
                  srcLoc->nxGlobal, srcLoc->nyGlobal, thisLoc->nxGlobal, thisLoc->nyGlobal);
       }
@@ -113,8 +113,8 @@ int SegmentLayer::communicateInitInfo() {
    //This layer must have only 1 feature
    if(thisLoc->nf != 1){
       if (parent->columnId()==0) {
-         pvErrorNoExit().printf("%s \"%s\": SegmentLayer must have 1 feature.\n",
-                 getKeyword(), name);
+         pvErrorNoExit().printf("%s: SegmentLayer must have 1 feature.\n",
+                 getDescription_c());
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -123,8 +123,8 @@ int SegmentLayer::communicateInitInfo() {
    //If segmentMethod is none, we also need to make sure the srcLayer also has nf == 1
    if(strcmp(segmentMethod, "none") == 0 && srcLoc->nf != 1){
       if (parent->columnId()==0) {
-         pvErrorNoExit().printf("%s \"%s\": Source layer must have 1 feature with segmentation method \"none\".\n",
-                 getKeyword(), name);
+         pvErrorNoExit().printf("%s: Source layer must have 1 feature with segmentation method \"none\".\n",
+                 getDescription_c());
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);

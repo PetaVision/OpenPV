@@ -136,7 +136,7 @@ int BBFindConfRemapLayer::communicateInitInfo() {
       imageLayer = parent->getLayerFromName(imageLayerName);
       if (imageLayer==nullptr) {
          if (parent->columnId()==0) {
-            pvError() << getKeyword() << " \"" << name << "\" error: imageLayer \"" << imageLayerName << "\" does not refer to a layer in the column." << std::endl;
+            pvError() << getDescription_c() << ": imageLayer \"" << imageLayerName << "\" does not refer to a layer in the column." << std::endl;
          }
          MPI_Barrier(parent->icCommunicator()->communicator());
          pvExitFailure("");
@@ -152,8 +152,8 @@ int BBFindConfRemapLayer::communicateInitInfo() {
    if (numDisplayedCategories==0) {
       assert(displayedCategories==nullptr);
       numDisplayedCategories = getLayerLoc()->nf;
-      displayedCategories = (int *) pvMallocError(sizeof(*displayedCategories)*(size_t) numDisplayedCategories, "%s \"%s\" error: unable to allocate %d values for displayedCategories array",
-            getKeyword(), name, numDisplayedCategories);
+      displayedCategories = (int *) pvMallocError(sizeof(*displayedCategories)*(size_t) numDisplayedCategories, "%s: unable to allocate %d values for displayedCategories array",
+            getDescription_c(), numDisplayedCategories);
       for (int k=0; k<numDisplayedCategories; k++) { displayedCategories[k] = k+1; }
    }
    else {
@@ -161,7 +161,7 @@ int BBFindConfRemapLayer::communicateInitInfo() {
          int cat = displayedCategories[k];
          if (cat <=0 || cat > getLayerLoc()->nf) {
             if (parent->columnId()==0) {
-               pvError() << getKeyword() << " \"" << name << "\" error: displayedCategories element " << k+1 << " is " << cat << ", outside the range [1," << getLayerLoc()->nf << "]." << std::endl;
+               pvError() << getDescription_c() << ": displayedCategories element " << k+1 << " is " << cat << ", outside the range [1," << getLayerLoc()->nf << "]." << std::endl;
             }
             MPI_Barrier(parent->icCommunicator()->communicator());
             pvExitFailure("");

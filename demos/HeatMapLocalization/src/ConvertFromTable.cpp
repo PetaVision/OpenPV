@@ -52,26 +52,26 @@ int ConvertFromTable::loadConversionTable() {
    if (parent->globalRank()==0) {
       FILE * conversionTableFP = fopen(dataFile, "r");
       if (conversionTableFP==NULL) {
-         pvError().printf("%s \"%s\": error opening dataFile \"%s\": %s\n",
-               getKeyword(), getName(), dataFile, strerror(errno));
+         pvError().printf("%s: unable to open dataFile \"%s\": %s\n",
+               getDescription_c(), dataFile, strerror(errno));
       }
       status = fseek(conversionTableFP, 0L, SEEK_END);
       if (status != 0) {
-         pvError().printf("%s \"%s\": error seeking to end off dataFile \"%s\": %s\n",
-               getKeyword(), getName(), dataFile, strerror(errno));
+         pvError().printf("%s: unable to seek to end off dataFile \"%s\": %s\n",
+               getDescription_c(), dataFile, strerror(errno));
       }
       long fileLength = ftell(conversionTableFP);
       if (fileLength<0) {
-         pvError().printf("%s \"%s\": error getting length of dataFile \"%s\": %s\n",
-               getKeyword(), getName(), dataFile, strerror(errno));
+         pvError().printf("%s: unable to get length of dataFile \"%s\": %s\n",
+               getDescription_c(), dataFile, strerror(errno));
       }
       if (fileLength==0) {
-         pvError().printf("%s \"%s\": dataFile \"%s\" is empty.\n",
-               getName(), getKeyword(), dataFile);
+         pvError().printf("%s: dataFile \"%s\" is empty.\n",
+               getDescription_c(), dataFile);
       }
       if (fileLength<CONVTABLEHEADERSIZE) {
          pvError().printf("%s \"%s\": dataFile \"%s\" is too small (%ld bytes; minimum is %zu bytes)\n",
-               getKeyword(), getName(), dataFile, fileLength, CONVTABLEHEADERSIZE);
+               getDescription_c(), dataFile, fileLength, CONVTABLEHEADERSIZE);
       }
       rewind(conversionTableFP);
       size_t numRead = (size_t) 0;
@@ -83,35 +83,35 @@ int ConvertFromTable::loadConversionTable() {
       numRead += fread(&convTable.maxRecon, 1, sizeof(int), conversionTableFP);
       if(numRead != CONVTABLEHEADERSIZE) {
          pvError().printf("%s \"%s\": reading header of dataFile \"%s\": expected %zu bytes; only read %zu\n",
-               getName(), getKeyword(), dataFile, CONVTABLEHEADERSIZE, numRead);
+               getDescription_c(), dataFile, CONVTABLEHEADERSIZE, numRead);
       }
       if (memcmp(hdr, "convTabl", 8)) {
          pvError().printf("%s \"%s\": dataFile \"%s\" does not have the expected header.\n",
-               getKeyword(), getName(), dataFile);
+               getDescription_c(), dataFile);
       }
       int correctFileSize = (int) (sizeof(float)*convTable.numPoints*convTable.numFeatures+CONVTABLEHEADERSIZE);
       if (correctFileSize != fileLength) {
-         pvError().printf("%s \"%s\": dataFile \"%s\" has unexpected length (%d-by-%d %zu-byte data values with %zu-byte header, but file size is %ld\n",
-               getKeyword(), getName(), dataFile, convTable.numPoints, convTable.numFeatures, sizeof(float), CONVTABLEHEADERSIZE, fileLength);
+         pvError().printf("%s: dataFile \"%s\" has unexpected length (%d-by-%d %zu-byte data values with %zu-byte header, but file size is %ld\n",
+               getDescription_c(), dataFile, convTable.numPoints, convTable.numFeatures, sizeof(float), CONVTABLEHEADERSIZE, fileLength);
       }
       if (convTable.numFeatures != getLayerLoc()->nf) {
-         pvError().printf("%s \"%s\" error: layer has %d features but dataFile \"%s\" has numFeatures=%d\n",
-               getKeyword(), getName(), getLayerLoc()->nf, dataFile, convTable.numFeatures);
+         pvError().printf("%s: layer has %d features but dataFile \"%s\" has numFeatures=%d\n",
+               getDescription_c(), getLayerLoc()->nf, dataFile, convTable.numFeatures);
       }
       if (convTable.numFeatures < 2) {
-         pvError().printf("%s \"%s\" error: dataFile \"%s\" has numPoints=%d but must be >= 2.\n",
-               getKeyword(), getName(), dataFile, convTable.numPoints);
+         pvError().printf("%s: dataFile \"%s\" has numPoints=%d but must be >= 2.\n",
+               getDescription_c(), dataFile, convTable.numPoints);
       }
       size_t numValues = (size_t) (convTable.numPoints * convTable.numFeatures);
       convData = (float *) malloc(sizeof(float)*numValues);
       if (convData==NULL) {
-         pvError().printf("%s \"%s\": unable to allocate memory for loading dataFile \"%s\": %s.\n",
-               getKeyword(), getName(), dataFile, strerror(errno));
+         pvError().printf("%s: unable to allocate memory for loading dataFile \"%s\": %s.\n",
+               getDescription_c(), dataFile, strerror(errno));
       }
       numRead = fread(convData, sizeof(float), numValues, conversionTableFP);
       if(numRead != numValues) {
-         pvError().printf("%s \"%s\" error reading dataFile \"%s\": expecting %zu data values but only read %zu.\n",
-               getKeyword(), getName(), dataFile, numValues, numRead);
+         pvError().printf("%s: unable to read dataFile \"%s\": expecting %zu data values but only read %zu.\n",
+               getDescription_c(), dataFile, numValues, numRead);
       }
       fclose(conversionTableFP);
    }
@@ -121,8 +121,8 @@ int ConvertFromTable::loadConversionTable() {
    if (parent->globalRank()!=0) {
       convData = (float *) malloc(sizeof(float)*numValues);
       if (convData==NULL) {
-         pvError().printf("%s \"%s\": unable to allocate memory for loading dataFile \"%s\": %s.\n",
-               getKeyword(), getName(), dataFile, strerror(errno));
+         pvError().printf("%s: unable to allocate memory for loading dataFile \"%s\": %s.\n",
+               getDescription_c(), dataFile, strerror(errno));
       }
    }
    MPI_Bcast(convData, numValues, MPI_FLOAT, 0, parent->icCommunicator()->communicator());

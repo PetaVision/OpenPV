@@ -107,16 +107,16 @@ void PtwiseLinearTransferLayer::ioParam_verticesV(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ) {
       if (numVerticesTmp==0) {
          if (this->getParent()->columnId()==0) {
-            pvErrorNoExit().printf("%s \"%s\" error: verticesV cannot be empty\n",
-                  this->getKeyword(), this->getName());
+            pvErrorNoExit().printf("%s: verticesV cannot be empty\n",
+                  getDescription_c());
          }
          MPI_Barrier(this->getParent()->icCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
       if (numVertices !=0 && numVerticesTmp != numVertices) {
          if (this->getParent()->columnId()==0) {
-            pvErrorNoExit().printf("%s \"%s\" error: verticesV (%d elements) and verticesA (%d elements) must have the same lengths.\n",
-                  this->getKeyword(), this->getName(), numVerticesTmp, numVertices);
+            pvErrorNoExit().printf("%s: verticesV (%d elements) and verticesA (%d elements) must have the same lengths.\n",
+                  getDescription_c(), numVerticesTmp, numVertices);
          }
          MPI_Barrier(this->getParent()->icCommunicator()->communicator());
          exit(EXIT_FAILURE);
@@ -132,16 +132,16 @@ void PtwiseLinearTransferLayer::ioParam_verticesA(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ) {
       if (numVerticesA==0) {
          if (this->getParent()->columnId()==0) {
-            pvErrorNoExit().printf("%s \"%s\" error: verticesA cannot be empty\n",
-                  this->getKeyword(), this->getName());
+            pvErrorNoExit().printf("%s: verticesA cannot be empty\n",
+                  getDescription_c());
          }
          MPI_Barrier(this->getParent()->icCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
       if (numVertices !=0 && numVerticesA != numVertices) {
          if (this->getParent()->columnId()==0) {
-            pvErrorNoExit().printf("%s \"%s\" error: verticesV (%d elements) and verticesA (%d elements) must have the same lengths.\n",
-                  this->getKeyword(), this->getName(), numVertices, numVerticesA);
+            pvErrorNoExit().printf("%s: verticesV (%d elements) and verticesA (%d elements) must have the same lengths.\n",
+                  getDescription_c(), numVertices, numVerticesA);
          }
          MPI_Barrier(this->getParent()->icCommunicator()->communicator());
          exit(EXIT_FAILURE);
@@ -255,8 +255,8 @@ int PtwiseLinearTransferLayer::checkVertices() {
       if (verticesV[v] < verticesV[v-1]) {
          status = PV_FAILURE;
          if (this->getParent()->columnId()==0) {
-            pvErrorNoExit().printf("%s \"%s\": vertices %d and %d: V-coordinates decrease from %f to %f.\n",
-                  this->getKeyword(), this->getName(), v, v+1, verticesV[v-1], verticesV[v]);
+            pvErrorNoExit().printf("%s: vertices %d and %d: V-coordinates decrease from %f to %f.\n",
+                  getDescription_c(), v, v+1, verticesV[v-1], verticesV[v]);
          }
       }
    }
@@ -269,8 +269,8 @@ int PtwiseLinearTransferLayer::setSlopes() {
    assert(verticesV!=NULL);
    slopes = (float *) malloc((size_t)(numVertices+1)*sizeof(*slopes));
    if (slopes == NULL) {
-      pvErrorNoExit().printf("%s \"%s\": unable to allocate memory for transfer function slopes: %s\n",
-            this->getKeyword(), name, strerror(errno));
+      pvErrorNoExit().printf("%s: unable to allocate memory for transfer function slopes: %s\n",
+            getDescription_c(), strerror(errno));
       exit(EXIT_FAILURE);
       
    }

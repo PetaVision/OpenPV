@@ -96,7 +96,7 @@ int MoviePvp::checkpointWrite(const char * cpDir){
 int MoviePvp::initialize(const char * name, HyPerCol * hc) {
    int status = ImagePvp::initialize(name, hc);
    if (status != PV_SUCCESS) {
-      pvError().printf("Image::initialize failed on Movie layer \"%s\".  Exiting.\n", name);
+      pvError().printf("Image::initialize failed on %s.  Exiting.\n", getDescription_c());
    }
 
    //Update on first timestep
@@ -118,8 +118,8 @@ int MoviePvp::initialize(const char * name, HyPerCol * hc) {
           if(getParent()->getCheckpointReadFlag()){
              struct stat statbuf;
              if (PV_stat(timestampFilename.c_str(), &statbuf) != 0) {
-                pvWarn().printf("%s \"%s\": timestamp file \"%s\" unable to be found.  Creating new file.\n",
-                      getKeyword(), name, timestampFilename.c_str());
+                pvWarn().printf("%s: timestamp file \"%s\" unable to be found.  Creating new file.\n",
+                      getDescription_c(), timestampFilename.c_str());
                 timestampFile = PV::PV_fopen(timestampFilename.c_str(), "w", parent->getVerifyWrites());
              }
              else {
@@ -415,7 +415,7 @@ bool MoviePvp::updateImage(double time, double dt)
              size_t len = outStrStream.str().length();
              int status = PV_fwrite(outStrStream.str().c_str(), sizeof(char), len, timestampFile)==len ? PV_SUCCESS : PV_FAILURE;
              if (status != PV_SUCCESS) {
-                pvError().printf("%s \"%s\" error: Movie::updateState failed to write to timestamp file.\n", getKeyword(), name);
+                pvError().printf("%s: Movie::updateState failed to write to timestamp file.\n", getDescription_c());
              }
              //Flush buffer
              fflush(timestampFile->fp);

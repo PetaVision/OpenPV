@@ -47,7 +47,7 @@ int NormalizeL2::normalizeWeights() {
    float scale_factor = 1.0f;
    if (normalizeFromPostPerspective) {
       if (conn0->usingSharedWeights()==false) {
-         pvError().printf("NormalizeL2 error for connection \"%s\": normalizeFromPostPerspective is true but connection does not use shared weights.\n", conn0->getName());
+         pvError().printf("NormalizeL2 error for %s: normalizeFromPostPerspective is true but connection does not use shared weights.\n", conn0->getDescription_c());
       }
       scale_factor = ((float) conn0->postSynapticLayer()->getNumNeurons())/((float) conn0->preSynapticLayer()->getNumNeurons());
    }

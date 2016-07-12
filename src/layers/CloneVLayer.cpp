@@ -52,8 +52,8 @@ int CloneVLayer::communicateInitInfo() {
    originalLayer = parent->getLayerFromName(originalLayerName);
    if (originalLayer==NULL) {
       if (parent->columnId()==0) {
-         pvErrorNoExit().printf("%s \"%s\": originalLayerName \"%s\" is not a layer in the HyPerCol.\n",
-                 getKeyword(), name, originalLayerName);
+         pvErrorNoExit().printf("%s: originalLayerName \"%s\" is not a layer in the HyPerCol.\n",
+               getDescription_c(), originalLayerName);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -65,8 +65,8 @@ int CloneVLayer::communicateInitInfo() {
    if (srcLoc->nxGlobal != loc->nxGlobal || srcLoc->nyGlobal != loc->nyGlobal || srcLoc->nf != loc->nf) {
       if (parent->columnId()==0) {
          pvErrorNoExit(errorMessage);
-         errorMessage.printf("%s \"%s\": originalLayerName \"%s\" does not have the same dimensions.\n",
-                 getKeyword(), name, originalLayerName);
+         errorMessage.printf("%s: originalLayerName \"%s\" does not have the same dimensions.\n",
+               getDescription_c(), originalLayerName);
          errorMessage.printf("    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
                  srcLoc->nxGlobal, srcLoc->nyGlobal, srcLoc->nf, loc->nxGlobal, loc->nyGlobal, loc->nf);
       }
@@ -103,15 +103,15 @@ int CloneVLayer::allocateV() {
    assert(originalLayer && originalLayer->getCLayer());
    clayer->V = originalLayer->getV();
    if (getV()==NULL) {
-      pvError().printf("%s \"%s\": originalLayer \"%s\" has a null V buffer in rank %d process.\n",
-              getKeyword(), name, originalLayerName, parent->columnId());
+      pvError().printf("%s: originalLayer \"%s\" has a null V buffer in rank %d process.\n",
+            getDescription_c(), originalLayerName, parent->columnId());
    }
    return PV_SUCCESS;
 }
 
 int CloneVLayer::requireChannel(int channelNeeded, int * numChannelsResult) {
    if (parent->columnId()==0) {
-      pvErrorNoExit().printf("%s \"%s\": layers derived from CloneVLayer do not have GSyn channels (requireChannel called with channel %d)\n", getKeyword(), name, channelNeeded);
+      pvErrorNoExit().printf("%s: layers derived from CloneVLayer do not have GSyn channels (requireChannel called with channel %d)\n", getDescription_c(), channelNeeded);
    }
    return PV_FAILURE;
 }
