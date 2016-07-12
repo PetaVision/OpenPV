@@ -370,7 +370,7 @@ void LIF::ioParam_method(enum ParamsIOFlag ioFlag) {
       free(methodString);
       methodString = strdup(default_method);
       if (methodString==NULL) {
-         pvError().printf("%s \"%s\" error: unable to set method string: %s\n", getKeyword(), name, strerror(errno));
+         pvError().printf("%s: unable to set method string: %s\n", getDescription_c(), strerror(errno));
       }
    }
    method = methodString ? methodString[0] : 'a'; // Default is ARMA; 'beginning' and 'original' are deprecated.
@@ -406,7 +406,7 @@ int LIF::allocateDataStructures() {
    // // a random state variable is needed for every neuron/clthread
    randState = new Random(parent, getLayerLoc(), false/*isExtended*/);
    if (randState == NULL) {
-      pvError().printf("LIF::initialize error.  Layer \"%s\" unable to create object of Random class.\n", getName());
+      pvError().printf("LIF::initialize:  %s unable to create object of Random class.\n", getDescription_c());
    }
 
    int numNeurons = getNumNeuronsAllBatches();
@@ -422,8 +422,8 @@ int LIF::allocateBuffers() {
    assert(status==PV_SUCCESS);
    Vth = (pvdata_t *) calloc((size_t) getNumNeuronsAllBatches(), sizeof(pvdata_t));
    if(Vth == NULL) {
-      pvError().printf("LIF layer \"%s\" rank %d process unable to allocate memory for Vth: %s\n",
-              name, parent->columnId(), strerror(errno));
+      pvError().printf("%s: rank %d process unable to allocate memory for Vth: %s\n",
+            getDescription_c(), parent->columnId(), strerror(errno));
    }
    return HyPerLayer::allocateBuffers();
 }
@@ -433,8 +433,8 @@ int LIF::allocateConductances(int num_channels) {
    const int numNeurons = getNumNeuronsAllBatches();
    G_E = (pvdata_t *) calloc((size_t) (getNumNeuronsAllBatches()*numChannels), sizeof(pvdata_t));
    if(G_E == NULL) {
-      pvError().printf("LIF layer \"%s\" rank %d process unable to allocate memory for %d conductances: %s\n",
-              name, parent->columnId(), num_channels, strerror(errno));
+      pvError().printf("%s: rank %d process unable to allocate memory for %d conductances: %s\n",
+            getDescription_c(), parent->columnId(), num_channels, strerror(errno));
    }
 
    G_I  = G_E + 1*numNeurons;

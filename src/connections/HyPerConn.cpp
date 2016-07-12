@@ -270,7 +270,7 @@ int HyPerConn::createArbors() {
 }
 
 void HyPerConn::createArborsOutOfMemory() {
-   pvError().printf("Out of memory error in HyPerConn::createArbors() for connection \"%s\"\n", name);
+   pvError().printf("Out of memory error in HyPerConn::createArbors() for %s\n", getDescription_c());
 }
 
 
@@ -472,7 +472,7 @@ int HyPerConn::setPreLayerName(const char * pre_name) {
 
    if (pre_name != NULL) {
       preLayerName = strdup(pre_name);
-      pvAssertMessage(preLayerName != NULL, "Connection \"%s\" error in rank %d process: unable to allocate memory for name of presynaptic layer \"%s\": %s", name, parent->columnId(), pre_name);
+      pvAssertMessage(preLayerName != NULL, "%s: rank %d process unable to allocate memory for name of presynaptic layer \"%s\": %s", getDescription_c(), parent->columnId(), pre_name);
    }
    return PV_SUCCESS;
 }
@@ -481,7 +481,7 @@ int HyPerConn::setPostLayerName(const char * post_name) {
    pvAssert(postLayerName==NULL);
    if (post_name != NULL) {
       postLayerName = strdup(post_name);
-      pvAssertMessage(postLayerName != NULL, "Connection \"%s\" error in rank %d process: unable to allocate memory for name of postsynaptic layer \"%s\": %s", name, parent->columnId(), post_name, strerror(errno));
+      pvAssertMessage(postLayerName != NULL, "%s: unable to allocate memory for name of postsynaptic layer \"%s\": %s", getDescription_c(), parent->columnId(), post_name, strerror(errno));
    }
    return PV_SUCCESS;
 }
@@ -684,7 +684,7 @@ void HyPerConn::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
       int status = decodeChannel(ch, &channel);
       if (status != PV_SUCCESS) {
          if (parent->columnId()==0) {
-            pvErrorNoExit().printf("%s \"%s\": channelCode %d is not a valid channel.\n", getKeyword(), name,  ch);
+            pvErrorNoExit().printf("%s: channelCode %d is not a valid channel.\n", getDescription_c(),  ch);
          }
          MPI_Barrier(parent->icCommunicator()->communicator());
          pvAssert(0);
@@ -709,7 +709,7 @@ void HyPerConn::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
    // Once that constructor is removed, the weightInitializer==NULL part of the if-statement below can be removed.
    if (ioFlag==PARAMS_IO_READ && weightInitializer==NULL) {
       int status = setWeightInitializer();
-      pvAssertMessage(status == PV_SUCCESS, "%s \"%s\": Rank %d process unable to construct weightInitializer", getKeyword(), name, parent->columnId());
+      pvAssertMessage(status == PV_SUCCESS, "%s: Rank %d process unable to construct weightInitializer", getDescription_c(), parent->columnId());
    }
 }
 
@@ -737,7 +737,7 @@ void HyPerConn::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
          parent->ioParamValue(ioFlag, name, "triggerFlag", &flagFromParams, flagFromParams);
          if (parent->columnId()==0) {
             pvWarn(triggerFlagMessage);
-            triggerFlagMessage.printf("Layer \"%s\": triggerFlag has been deprecated.\n", name);
+            triggerFlagMessage.printf("%s: triggerFlag has been deprecated.\n", getDescription_c());
             triggerFlagMessage.printf("   If triggerLayerName is a nonempty string, triggering will be on;\n");
             triggerFlagMessage.printf("   if triggerLayerName is empty or null, triggering will be off.\n");
             if (parent->columnId()==0) {
@@ -766,7 +766,7 @@ void HyPerConn::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
       if (triggerFlag) {
          parent->ioParamValue(ioFlag, name, "triggerOffset", &triggerOffset, triggerOffset);
          if(triggerOffset < 0){
-            pvError().printf("%s \"%s\" error in rank %d process: TriggerOffset (%f) must be positive", getKeyword(), name, parent->columnId(), triggerOffset);
+            pvError().printf("%s error in rank %d process: TriggerOffset (%f) must be positive", getDescription_c(), parent->columnId(), triggerOffset);
          }
       }
    }
@@ -841,12 +841,12 @@ void HyPerConn::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {
 void HyPerConn::unsetAccumulateType() {
    if (parent->columnId()==0) {
       if (pvpatchAccumulateTypeString) {
-         pvErrorNoExit().printf("%s \"%s\" error: pvpatchAccumulateType \"%s\" is unrecognized.",
-               getKeyword(), name, pvpatchAccumulateTypeString);
+         pvErrorNoExit().printf("%s error: pvpatchAccumulateType \"%s\" is unrecognized.",
+               getDescription_c(), pvpatchAccumulateTypeString);
       }
       else {
-         pvErrorNoExit().printf("%s \"%s\" error: pvpatchAccumulateType NULL is unrecognized.",
-               getKeyword(), name);
+         pvErrorNoExit().printf("%s error: pvpatchAccumulateType NULL is unrecognized.",
+               getDescription_c());
       }
       pvErrorNoExit().printf("  Allowed values are \"convolve\" or \"stochastic\".");
    }
@@ -868,16 +868,16 @@ void HyPerConn::ioParam_initialWriteTime(enum ParamsIOFlag ioFlag) {
          if (writeStep>0 && initialWriteTime < start_time) {
             if (parent->columnId()==0) {
                pvWarn(adjustInitialWriteTime);
-               adjustInitialWriteTime.printf("%s \"%s\": initialWriteTime %f earlier than starting time %f.  Adjusting initialWriteTime:\n",
-                     getKeyword(), name, initialWriteTime, start_time);
+               adjustInitialWriteTime.printf("%s: initialWriteTime %f earlier than starting time %f.  Adjusting initialWriteTime:\n",
+                     getDescription_c(), initialWriteTime, start_time);
                adjustInitialWriteTime.flush();
             }
             while (initialWriteTime < start_time) {
                initialWriteTime += writeStep;
             }
             if (parent->columnId()==0) {
-               pvInfo().printf("%s \"%s\": initialWriteTime adjusted to %f\n",
-                     getKeyword(), name, initialWriteTime);
+               pvInfo().printf("%s: initialWriteTime adjusted to %f\n",
+                     getDescription_c(), initialWriteTime);
             }
          }
          writeTime = initialWriteTime;
@@ -931,8 +931,8 @@ void HyPerConn::ioParam_nxpShrunken(enum ParamsIOFlag ioFlag) {
          int nxpShrunken;
          parent->ioParamValue(ioFlag, name, "nxpShrunken", &nxpShrunken, nxp);
          if (parent->columnId()==0) {
-            pvError().printf("%s \"%s\": nxpShrunken is obsolete, as nxp can now take any of the values nxpShrunken could take before.  nxp will be set to %d and nxpShrunken will not be used.",
-                  getKeyword(), name, nxp);
+            pvError().printf("%s: nxpShrunken is obsolete, as nxp can now take any of the values nxpShrunken could take before.  nxp will be set to %d and nxpShrunken will not be used.",
+                  getDescription_c(), nxp);
             MPI_Barrier(parent->icCommunicator()->communicator());
             exit(EXIT_FAILURE);
          }
@@ -947,8 +947,8 @@ void HyPerConn::ioParam_nypShrunken(enum ParamsIOFlag ioFlag) {
          int nypShrunken;
          parent->ioParamValue(ioFlag, name, "nypShrunken", &nypShrunken, nyp);
          if (parent->columnId()==0) {
-            pvWarn().printf("%s \"%s\": nypShrunken is deprecated, as nyp can now take any of the values nypShrunken could take before.  nyp will be set to %d and nypShrunken will not be used.",
-                  getKeyword(), name, nyp);
+            pvWarn().printf("%s: nypShrunken is deprecated, as nyp can now take any of the values nypShrunken could take before.  nyp will be set to %d and nypShrunken will not be used.",
+                  getDescription_c(), nyp);
          }
          MPI_Barrier(parent->icCommunicator()->communicator());
          exit(EXIT_FAILURE);
@@ -959,8 +959,8 @@ void HyPerConn::ioParam_nypShrunken(enum ParamsIOFlag ioFlag) {
 void HyPerConn::ioParam_nfp(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "nfp", &nfp, -1, false);
    if (ioFlag==PARAMS_IO_READ && nfp==-1 && !parent->parameters()->present(name, "nfp") && parent->columnId()==0) {
-      pvInfo().printf("%s \"%s\": nfp will be set in the communicateInitInfo() stage.\n",
-            getKeyword(), name);
+      pvInfo().printf("%s: nfp will be set in the communicateInitInfo() stage.\n",
+            getDescription_c());
    }
 }
 
@@ -991,7 +991,7 @@ void HyPerConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ) {
       if (normalizeMethod==NULL) {
          if (parent->columnId()==0) {
-            pvError().printf("%s \"%s\": specifying a normalizeMethod string is required.\n", getKeyword(), name);
+            pvError().printf("%s: specifying a normalizeMethod string is required.\n", getDescription_c());
          }
       }
       if (!strcmp(normalizeMethod, "")) {
@@ -1003,7 +1003,7 @@ void HyPerConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
       if (normalizer==nullptr && strcmp(normalizeMethod, "none")) {
          int status = setWeightNormalizer();
          if (status != PV_SUCCESS) {
-            pvError().printf("%s \"%s\": Rank %d process unable to construct weight normalizer\n", getKeyword(), name, parent->columnId());
+            pvError().printf("%s: Rank %d process unable to construct weight normalizer\n", getDescription_c(), parent->columnId());
          }
       }
    }
@@ -1020,7 +1020,7 @@ int HyPerConn::setWeightNormalizer() {
    BaseObject * baseObj = parent->getPV_InitObj()->create(normalizeMethod, name, parent);
    if (baseObj == nullptr) {
       if (parent->columnId()==0) {
-         pvError() << getKeyword() << " \"" << name << "\": normalizeMethod \"" << normalizeMethod << "\" is not recognized." << std::endl;
+         pvError() << getDescription_c() << ": normalizeMethod \"" << normalizeMethod << "\" is not recognized." << std::endl;
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -1029,7 +1029,7 @@ int HyPerConn::setWeightNormalizer() {
    if (normalizer == nullptr) {
       pvAssert(baseObj);
       if (parent->columnId()==0) {
-         pvError() << getKeyword() << " \"" << name << "\": normalizeMethod \"" << normalizeMethod << "\" is not a normalization method." << std::endl;
+         pvError() << getDescription_c() << ": normalizeMethod \"" << normalizeMethod << "\" is not a normalization method." << std::endl;
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -1145,7 +1145,7 @@ int HyPerConn::communicateInitInfo() {
    int status = BaseConnection::communicateInitInfo();
    if (status != PV_SUCCESS) {
       if (parent->columnId()==0) {
-         pvErrorNoExit().printf("%s \"%s\": communicateInitInfo failed.\n", getKeyword(), name);
+         pvErrorNoExit().printf("%s: communicateInitInfo failed.\n", getDescription_c());
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -1157,7 +1157,7 @@ int HyPerConn::communicateInitInfo() {
       mask = getParent()->getLayerFromName(maskLayerName);
       if (mask == NULL) {
          if (getParent()->columnId()==0) {
-            pvErrorNoExit().printf("Connection \"%s\": maskLayerName \"%s\" does not correspond to a layer in the column.\n", getName(), maskLayerName);
+            pvErrorNoExit().printf("%s: maskLayerName \"%s\" does not correspond to a layer in the column.\n", getDescription_c(), maskLayerName);
          }
          status = PV_FAILURE;
          exit(-1);
@@ -1167,14 +1167,14 @@ int HyPerConn::communicateInitInfo() {
       const PVLayerLoc * postLoc = post->getLayerLoc();
       if(postLoc->nx != maskLoc->nx || postLoc->ny != maskLoc->ny){
          if (getParent()->columnId()==0) {
-            pvErrorNoExit().printf("Connection \"%s\": Mask \"%s\" (%d, %d, %d) must have the same x and y size as post layer \"%s\" (%d, %d, %d).\n", getName(), maskLayerName, maskLoc->nx, maskLoc->ny, maskLoc->nf, post->getName(), postLoc->nx, postLoc->ny, postLoc->nf);
+            pvErrorNoExit().printf("%s: Mask \"%s\" (%d, %d, %d) must have the same x and y size as post layer \"%s\" (%d, %d, %d).\n", getDescription_c(), maskLayerName, maskLoc->nx, maskLoc->ny, maskLoc->nf, post->getName(), postLoc->nx, postLoc->ny, postLoc->nf);
          }
          status = PV_FAILURE;
          exit(-1);
       }
       //Make sure maskFeatureIdx is within bounds
       if(maskFeatureIdx >= maskLoc->nf || maskFeatureIdx < -1){
-         pvErrorNoExit().printf("Connection \"%s\": maskFeatureIdx must be between -1 (inclusive) and mask layer \"%s\" (%d, %d, %d) nf dimension (exclusive)\n", getName(), maskLayerName, maskLoc->nx, maskLoc->ny, maskLoc->nf);
+         pvErrorNoExit().printf("%s: maskFeatureIdx must be between -1 (inclusive) and mask layer \"%s\" (%d, %d, %d) nf dimension (exclusive)\n", getDescription_c(), maskLayerName, maskLoc->nx, maskLoc->ny, maskLoc->nf);
          status = PV_FAILURE;
          exit(-1);
       }
@@ -1183,7 +1183,7 @@ int HyPerConn::communicateInitInfo() {
       if(maskFeatureIdx == -1){
          if(postLoc->nf != maskLoc->nf && maskLoc->nf != 1){
             if (getParent()->columnId()==0) {
-               pvErrorNoExit().printf("Connection \"%s\": Mask \"%s\" (%d, %d, %d) nf dimension must be either the same as post layer \"%s\" (%d, %d, %d) or 1\n", getName(), maskLayerName, maskLoc->nx, maskLoc->ny, maskLoc->nf, post->getName(), postLoc->nx, postLoc->ny, postLoc->nf);
+               pvErrorNoExit().printf("%s: Mask \"%s\" (%d, %d, %d) nf dimension must be either the same as post layer \"%s\" (%d, %d, %d) or 1\n", getDescription_c(), maskLayerName, maskLoc->nx, maskLoc->ny, maskLoc->nf, post->getName(), postLoc->nx, postLoc->ny, postLoc->nf);
             }
             status = PV_FAILURE;
             exit(-1);
@@ -1195,7 +1195,7 @@ int HyPerConn::communicateInitInfo() {
    if (getPvpatchAccumulateType()==STOCHASTIC && (getConvertRateToSpikeCount() || pre->activityIsSpiking())) {
       if (parent->columnId()==0) {
          pvErrorNoExit(errorMessage);
-         errorMessage.printf("Connection \"%s\": stochastic accumulation function is not consistent with ", getName());
+         errorMessage.printf("%s: stochastic accumulation function is not consistent with ", getDescription_c());
          if (getConvertRateToSpikeCount()) {
             errorMessage.printf("setting convertRateToSpikeCount to true.\n");
          }
@@ -1215,13 +1215,13 @@ int HyPerConn::communicateInitInfo() {
    if (nfp == -1) {
       nfp = post->getCLayer()->loc.nf;
       if (warnDefaultNfp && parent->columnId()==0) {
-         pvInfo().printf("Connection \"%s\" setting nfp to number of postsynaptic features = %d.\n", name, nfp);
+         pvInfo().printf("%s setting nfp to number of postsynaptic features = %d.\n", getDescription_c(), nfp);
       }
    }
    if (nfp != post->getCLayer()->loc.nf) {
       if (parent->columnId()==0) {
          pvErrorNoExit(errorMessage);
-         errorMessage.printf("Params file specifies %d features for connection \"%s\",\n", nfp, name );
+         errorMessage.printf("Params file specifies %d features for %s,\n", nfp, getDescription_c() );
          errorMessage.printf("but %d features for post-synaptic layer %s\n", post->getCLayer()->loc.nf, post->getName() );
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
@@ -1237,13 +1237,13 @@ int HyPerConn::communicateInitInfo() {
    int receivedxmargin = 0;
    int statusx = pre->requireMarginWidth(xmargin, &receivedxmargin, 'x');
    if (statusx != PV_SUCCESS) {
-      pvErrorNoExit().printf("Margin Failure for layer %s.  Received x-margin is %d, but connection \"%s\" requires margin of at least %d\n", pre->getName(),receivedxmargin, name, xmargin);
+      pvErrorNoExit().printf("Margin Failure for layer %s.  Received x-margin is %d, but %s requires margin of at least %d\n", pre->getDescription_c(), receivedxmargin, name, xmargin);
       status = PV_MARGINWIDTH_FAILURE;
    }
    int receivedymargin = 0;
    int statusy = pre->requireMarginWidth(ymargin, &receivedymargin, 'y');
    if (statusy != PV_SUCCESS) {
-      pvErrorNoExit().printf("Margin Failure for layer %s.  Received y-margin is %d, but connection \"%s\" requires margin of at least %d\n", pre->getName(),receivedymargin, name, ymargin);
+      pvErrorNoExit().printf("Margin Failure for layer %s.  Received y-margin is %d, but %s requires margin of at least %d\n", pre->getDescription_c(), receivedymargin, name, ymargin);
       status = PV_MARGINWIDTH_FAILURE;
    }
 
@@ -1254,8 +1254,8 @@ int HyPerConn::communicateInitInfo() {
       triggerLayer = parent->getLayerFromName(triggerLayerName);
       if (triggerLayer==NULL) {
          if (parent->columnId()==0) {
-            pvErrorNoExit().printf("%s \"%s\" error: triggerLayer \"%s\" is not a layer in the HyPerCol.\n",
-                    getKeyword(), name, triggerLayerName);
+            pvErrorNoExit().printf("%s error: triggerLayer \"%s\" is not a layer in the HyPerCol.\n",
+                    getDescription_c(), triggerLayerName);
          }
          MPI_Barrier(parent->icCommunicator()->communicator());
          exit(EXIT_FAILURE);
@@ -1271,7 +1271,7 @@ int HyPerConn::communicateInitInfo() {
          }
       }
       if(weightUpdatePeriod != -1 && triggerOffset >= weightUpdatePeriod){
-         pvError().printf("%s \"%s\", rank %d process: TriggerOffset (%f) must be lower than the change in update time (%f) of the attached trigger layer\n", getKeyword(), name, parent->columnId(), triggerOffset, weightUpdatePeriod);
+         pvError().printf("%s, rank %d process: TriggerOffset (%f) must be lower than the change in update time (%f) of the attached trigger layer\n", getDescription_c(), parent->columnId(), triggerOffset, weightUpdatePeriod);
       }
       weightUpdateTime = parent->getDeltaTime();
    }
@@ -1319,8 +1319,8 @@ int HyPerConn::communicateInitInfo() {
    //No batches with non-shared weights
    if(parent->getNBatch() > 1 && !sharedWeights){
       if (parent->columnId()==0) {
-         pvErrorNoExit().printf("%s \"%s\" error: Non-shared weights with batches not implemented yet.\n",
-               getKeyword(), name);
+         pvErrorNoExit().printf("%s error: Non-shared weights with batches not implemented yet.\n",
+               getDescription_c());
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -1439,8 +1439,7 @@ int HyPerConn::allocateDataStructures() {
 #if defined(PV_USE_CUDA)
    if (!pre->getDataStructuresAllocatedFlag()) {
       if (parent->columnId()==0) {
-         const char * connectiontype = this->getKeyword();
-         pvInfo().printf("%s \"%s\" must wait until pre-synaptic layer \"%s\" has finished its allocateDataStructures stage.\n", connectiontype, name, pre->getName());
+         pvInfo().printf("%s must wait until pre-synaptic layer \"%s\" has finished its allocateDataStructures stage.\n", getDescription_c(), pre->getName());
       }
       return PV_POSTPONE;
    }
@@ -1467,8 +1466,8 @@ int HyPerConn::allocateDataStructures() {
       if (parent->getCheckpointReadFlag()==false && weightUpdateTime < parent->simulationTime()) {
          while(weightUpdateTime <= parent->simulationTime()) {weightUpdateTime += weightUpdatePeriod;}
          if (parent->columnId()==0) {
-            pvWarn().printf("initialWeightUpdateTime of %s \"%s\" less than simulation start time.  Adjusting weightUpdateTime to %f\n",
-                  getKeyword(), name, weightUpdateTime);
+            pvWarn().printf("initialWeightUpdateTime of %s less than simulation start time.  Adjusting weightUpdateTime to %f\n",
+                  getDescription_c(), weightUpdateTime);
          }
       }
       lastUpdateTime = weightUpdateTime - parent->getDeltaTime();
@@ -1492,7 +1491,7 @@ int HyPerConn::allocateDataStructures() {
       status = PV_SUCCESS;
    }
    else{
-      pvError().printf("Connection \"%s\" unable to allocate device memory in rank %d process: %s\n", getName(), getParent()->columnId(), strerror(errno));
+      pvError().printf("%s: unable to allocate device memory in rank %d process: %s\n", getDescription_c(), getParent()->columnId(), strerror(errno));
    }
 #endif
 
@@ -1504,12 +1503,12 @@ int HyPerConn::allocateDataStructures() {
 
       //Assign thread_gSyn to different points of tempMem
       for(int i = 0; i < parent->getNumThreads(); i++){
-         thread_gSyn[i] = (pvdata_t*) pvMallocError(sizeof(pvdata_t) * post->getNumNeurons(), "HyPerLayer \"%s\" error: rank %d unable to allocate %zu memory for thread_gSyn", name, parent->columnId(), sizeof(pvdata_t) * post->getNumNeurons());
+         thread_gSyn[i] = (pvdata_t*) pvMallocError(sizeof(pvdata_t) * post->getNumNeurons(), "%s: rank %d unable to allocate %zu memory for thread_gSyn", getDescription_c(), parent->columnId(), sizeof(pvdata_t) * post->getNumNeurons());
       }
    }
 
    //Allocate batchSkip buffer
-   batchSkip = (bool*) pvMallocError(parent->getNBatch() * sizeof(bool), "HyPerLayer \"%s\" error: rank %d unable to allocate %zu memory for batchSkip", name, parent->columnId(), sizeof(bool) * parent->getNBatch());
+   batchSkip = (bool*) pvMallocError(parent->getNBatch() * sizeof(bool), "%s: rank %d unable to allocate %zu memory for batchSkip", getDescription_c(), parent->columnId(), sizeof(bool) * parent->getNBatch());
 
    for(int i = 0; i < parent->getNBatch(); i++){
       batchSkip[i] = false;
@@ -1544,7 +1543,7 @@ taus_uint4 * HyPerConn::getRandState(int index) {
 
 InitWeights * HyPerConn::getDefaultInitWeightsMethod(const char * keyword) {
    if (parent->columnId()==0) {
-      pvErrorNoExit().printf("Connection \"%s\": weightInitType \"%s\" not recognized.  Exiting\n", name, weightInitTypeString);
+      pvErrorNoExit().printf("%s: weightInitType \"%s\" not recognized.  Exiting\n", getDescription_c(), weightInitTypeString);
    }
    MPI_Barrier(parent->icCommunicator()->communicator());
    exit(EXIT_FAILURE);
@@ -2021,7 +2020,7 @@ int HyPerConn::writeWeights(PVPatch *** patches, pvwdata_t ** dataStart, int num
       chars_needed = snprintf(path, PV_PATH_MAX, "%s", filename);
    }
    if (chars_needed >= PV_PATH_MAX) {
-      pvError().printf("HyPerConn::writeWeights in connection \"%s\": path is too long (it would be cut off as \"%s\")\n", name, path);
+      pvError().printf("HyPerConn::writeWeights in %s: path is too long (it would be cut off as \"%s\")\n", getDescription_c(), path);
    }
 
    Communicator * comm = parent->icCommunicator();
@@ -2032,7 +2031,7 @@ int HyPerConn::writeWeights(PVPatch *** patches, pvwdata_t ** dataStart, int num
          nfp, minVal, maxVal, patches, dataStart, numPatches,
          numberOfAxonalArborLists(), compressWeights, fileType);
    if(status != PV_SUCCESS) {
-      pvError().printf("%s \"%s\" error in writing weights.\n", getKeyword(), name);
+      pvError().printf("%s error in writing weights.\n", getDescription_c());
    }
 
    return status;
@@ -2041,7 +2040,7 @@ int HyPerConn::writeWeights(PVPatch *** patches, pvwdata_t ** dataStart, int num
 int HyPerConn::writeTextWeights(const char * filename, int k)
 {
    if (parent->icCommunicator()->commSize()>1) {
-      pvError().printf("writeTextWeights error for connection \"%s\": writeTextWeights is not compatible with MPI", name);
+      pvError().printf("writeTextWeights error for %s: writeTextWeights is not compatible with MPI", getDescription_c());
       // NOTE : if run under MPI when more than one process sees the same file system, the contending processes will clobber each other.
    }
    OutStream * outStream = nullptr;
@@ -2059,7 +2058,7 @@ int HyPerConn::writeTextWeights(const char * filename, int k)
      return PV_FAILURE;
    }
 
-   outStream->printf("Weights for connection \"%s\", neuron %d\n", name, k);
+   outStream->printf("Weights for %s, neuron %d\n", getDescription_c(), k);
    outStream->printf("   (kxPre,kyPre,kfPre)   = (%i,%i,%i)\n",
            kxPos(k,pre->getLayerLoc()->nx + pre->getLayerLoc()->halo.lt + pre->getLayerLoc()->halo.rt,
                  pre->getLayerLoc()->ny + pre->getLayerLoc()->halo.dn + pre->getLayerLoc()->halo.up, pre->getLayerLoc()->nf),
@@ -2123,8 +2122,8 @@ int HyPerConn::checkpointRead(const char * cpDir, double * timeptr) {
          pvAssert(status == PV_SUCCESS);
          while(weightUpdateTime <= parent->simulationTime()) {weightUpdateTime += weightUpdatePeriod;}
          if (parent->columnId()==0) {
-            pvWarn().printf("initialWeightUpdateTime of %s \"%s\" less than simulation start time.  Adjusting weightUpdateTime to %f\n",
-                  getKeyword(), name, weightUpdateTime);
+            pvWarn().printf("initialWeightUpdateTime of %s less than simulation start time.  Adjusting weightUpdateTime to %f\n",
+                  getDescription_c(), weightUpdateTime);
          }
       }
    }
@@ -2359,19 +2358,19 @@ int HyPerConn::updateState(double time, double dt){
          //This is implemented as an optimization so weights don't change dramatically as ANNNormalizedErrorLayer values get large.
          if (preTimeScale > 0 && preTimeScale < timeScaleMin) { 
             if (parent->icCommunicator()->commRank()==0) {
-               pvInfo().printf("TimeScale = %f for layer %s batch %d, which is less than your specified dtScaleMin, %f. updateState won't be called for connection \"%s\" this timestep.\n", preTimeScale, pre->getName(), b, timeScaleMin, getName());
+               pvInfo().printf("TimeScale = %f for %s batch %d, which is less than your specified dtScaleMin, %f. updateState won't be called for %s this timestep.\n", preTimeScale, pre->getDescription_c(), b, timeScaleMin, getDescription_c());
             }
             skip = true;
          }
          else if (postTimeScale > 0 && postTimeScale < timeScaleMin) { 
             if (parent->icCommunicator()->commRank()==0) {
-               pvInfo().printf("TimeScale = %f for layer %s batch %d, which is less than your specified dtScaleMin, %f. updateState won't be called for connection \"%s\" this timestep.\n", postTimeScale, post->getName(), b, timeScaleMin, getName());
+               pvInfo().printf("TimeScale = %f for %s batch %d, which is less than your specified dtScaleMin, %f. updateState won't be called for %s this timestep.\n", postTimeScale, post->getDescription_c(), b, timeScaleMin, getDescription_c());
             }
             skip = true;
          }
          else if (colTimeScale > 0 && colTimeScale < timeScaleMin) { 
             if (parent->icCommunicator()->commRank()==0) {
-               pvInfo().printf("TimeScale = %f for column %s batch %d, which is less than your specified dtScaleMin, %f. updateState won't be called for connection \"%s\" this timestep.\n", colTimeScale, parent->getName(), b, timeScaleMin, getName());
+               pvInfo().printf("TimeScale = %f for column %s batch %d, which is less than your specified dtScaleMin, %f. updateState won't be called for %s this timestep.\n", colTimeScale, parent->getName(), b, timeScaleMin, getDescription_c());
             }
             skip = true;
          }
@@ -4296,7 +4295,7 @@ int HyPerConn::writePostSynapticWeights(double timef, bool last) {
         writeCompressedWeights, fileType);
 
    if(status != PV_SUCCESS) {
-      pvError().printf("Connection \"%s\": writePostSynapticWeights failed at time %f.  Exiting.\n", name, timef);
+      pvError().printf("%s: writePostSynapticWeights failed at time %f.  Exiting.\n", getDescription_c(), timef);
    }
 
    return PV_SUCCESS;
@@ -4415,11 +4414,11 @@ pvwdata_t * HyPerConn::allocWeights(int nPatches, int nxPatch, int nyPatch, int 
    if (arborSize / dataSize != numberOfAxonalArborLists()) { overflow = true; }
 
    if (overflow) {
-      pvError().printf("Connection \"%s\" is too big (%d patches of size nxPatch=%d by nyPatch=%d by nfPatch=%d; %d arbors, weight size=%zu bytes).  Exiting.\n",
-            getName(), nPatches, nxPatch, nyPatch, nfPatch, numberOfAxonalArborLists(), sizeof(pvwdata_t));
+      pvError().printf("%s is too big (%d patches of size nxPatch=%d by nyPatch=%d by nfPatch=%d; %d arbors, weight size=%zu bytes).  Exiting.\n",
+            getDescription_c(), nPatches, nxPatch, nyPatch, nfPatch, numberOfAxonalArborLists(), sizeof(pvwdata_t));
    }
 
-   return (pvwdata_t *)pvCallocError(arborSize, sizeof(char), "Error allocating weights for connection \"%s\"", getName());
+   return (pvwdata_t *)pvCallocError(arborSize, sizeof(char), "Error allocating weights for %s", getDescription_c());
 }
 
 int HyPerConn::patchToDataLUT(int patchIndex) {

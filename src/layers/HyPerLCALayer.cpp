@@ -114,7 +114,7 @@ void HyPerLCALayer::ioParam_timeConstantTau(enum ParamsIOFlag ioFlag) {
 void HyPerLCALayer::ioParam_selfInteract(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "selfInteract", &selfInteract, selfInteract);
    if (ioFlag==PARAMS_IO_READ && parent->columnId() == 0) {
-      pvInfo() << getKeyword() << "\"" << name << "\"" << ": selfInteract flag is " << (selfInteract ? "true" : "false") << std::endl;
+      pvInfo() << getDescription() << ": selfInteract flag is " << (selfInteract ? "true" : "false") << std::endl;
    }   
 }
 

@@ -112,7 +112,7 @@ int dumponeweight(HyPerConn * conn) {
                       errorfound = true;
                       for( int k=0; k<72; k++ ) { pvInfo().printf("="); }
                       errorMessage.printf("\n");
-                      errorMessage.printf("Rank %d, Connection \"%s\":\n",rank, conn->getName());
+                      errorMessage.printf("Rank %d, %s:\n",rank, conn->getDescription_c());
                   }
                   errorMessage.printf("Rank %d, Patch %d, x=%d, y=%d, f=%d: weight=%f, correct=%f, off by a factor of %f\n", rank, p, x, y, f, wgt, correct, wgt/correct);
                   status = PV_FAILURE;
@@ -122,7 +122,7 @@ int dumponeweight(HyPerConn * conn) {
       }
    }
    if( status == PV_SUCCESS ) {
-      pvInfo().printf("Rank %d, connection \"%s\": Weights are correct.\n", rank, conn->getName());
+      pvInfo().printf("Rank %d, %s: Weights are correct.\n", rank, conn->getDescription_c());
    }
    return status;
 }

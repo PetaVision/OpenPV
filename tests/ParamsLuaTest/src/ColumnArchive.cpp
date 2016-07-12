@@ -171,7 +171,7 @@ void ColumnArchive::addCol(PV::HyPerCol * hc, pvdata_t layerTolerance, pvwdata_t
       if (baseConn==nullptr) { pvError() << "Connection with index " << c << " is null.\n"; }
       PV::HyPerConn * conn = dynamic_cast<PV::HyPerConn*>(baseConn);
       if (conn==nullptr) {
-         pvError() << baseConn->getKeyword() << "\"" << baseConn->getName() << "\" is not a HyPerConn.\n";
+         pvError() << baseConn->getDescription() << " is not a HyPerConn.\n";
       }
       addConn(conn, connTolerance);
    }

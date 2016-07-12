@@ -42,8 +42,8 @@ int BackgroundLayer::communicateInitInfo() {
    originalLayer = parent->getLayerFromName(originalLayerName);
    if (originalLayer==NULL) {
       if (parent->columnId()==0) {
-         pvErrorNoExit().printf("%s \"%s\": originalLayerName \"%s\" is not a layer in the HyPerCol.\n",
-                 getKeyword(), name, originalLayerName);
+         pvErrorNoExit().printf("%s: originalLayerName \"%s\" is not a layer in the HyPerCol.\n",
+               getDescription_c(), originalLayerName);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -55,8 +55,8 @@ int BackgroundLayer::communicateInitInfo() {
    if (srcLoc->nxGlobal != loc->nxGlobal || srcLoc->nyGlobal != loc->nyGlobal) {
       if (parent->columnId()==0) {
          pvErrorNoExit(errorMessage);
-         errorMessage.printf("%s \"%s\": originalLayerName \"%s\" does not have the same X/Y dimensions.\n",
-                 getKeyword(), name, originalLayerName);
+         errorMessage.printf("%s: originalLayerName \"%s\" does not have the same X/Y dimensions.\n",
+               getDescription_c(), originalLayerName);
          errorMessage.printf("    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
                  srcLoc->nxGlobal, srcLoc->nyGlobal, srcLoc->nf, loc->nxGlobal, loc->nyGlobal, loc->nf);
       }
@@ -66,8 +66,8 @@ int BackgroundLayer::communicateInitInfo() {
    if ((srcLoc->nf + 1)*repFeatureNum != loc->nf) {
       if (parent->columnId()==0) {
          pvErrorNoExit(errorMessage);
-         errorMessage.printf("%s \"%s\": nf must have (n+1)*repFeatureNum (%d) features in BackgroundLayer \"%s\", where n is the orig layer number of features.\n",
-                 getKeyword(), name, (srcLoc->nf+1)*repFeatureNum, originalLayerName);
+         errorMessage.printf("%s: nf must have (n+1)*repFeatureNum (%d) features in BackgroundLayer \"%s\", where n is the orig layer number of features.\n",
+               getDescription_c(), (srcLoc->nf+1)*repFeatureNum, originalLayerName);
          errorMessage.printf("    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
                  srcLoc->nxGlobal, srcLoc->nyGlobal, srcLoc->nf, loc->nxGlobal, loc->nyGlobal, loc->nf);
       }

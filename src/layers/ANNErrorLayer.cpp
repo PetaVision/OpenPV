@@ -87,8 +87,8 @@ int ANNErrorLayer::setVertices() {
       verticesV = (pvpotentialdata_t *) malloc((size_t) numVertices * sizeof(*verticesV));
       verticesA = (pvadata_t *) malloc((size_t) numVertices * sizeof(*verticesA));
       if (verticesV==NULL || verticesA==NULL) {
-         pvError().printf("%s \"%s\": unable to allocate memory for vertices: %s\n",
-               getKeyword(), name, strerror(errno));
+         pvError().printf("%s: unable to allocate memory for vertices: %s\n",
+               getDescription_c(), strerror(errno));
       }
       verticesV[0] = -VThresh; verticesA[0] = -VThresh;
       verticesV[1] = -VThresh; verticesA[1] = 0.0;
@@ -101,8 +101,8 @@ int ANNErrorLayer::setVertices() {
       verticesV = (pvpotentialdata_t *) malloc((size_t) numVertices * sizeof(*verticesV));
       verticesA = (pvadata_t *) malloc((size_t) numVertices * sizeof(*verticesA));
       if (verticesV==NULL || verticesA==NULL) {
-         pvError().printf("%s \"%s\": unable to allocate memory for vertices: %s\n",
-               getKeyword(), name, strerror(errno));
+         pvError().printf("%s: unable to allocate memory for vertices: %s\n",
+               getDescription_c(), strerror(errno));
       }
       verticesV[0] = 0.0f; verticesA[0] = 0.0f;
    }
@@ -113,8 +113,8 @@ int ANNErrorLayer::checkVertices() const {
    int status = PV_SUCCESS;
    if (VThresh < 0 && VThresh > -0.999*max_pvvdata_t) { // 0.999 is to allow for imprecision from params files using 3.40282e+38 instead of infinity
       if (parent->columnId()==0) {
-         pvErrorNoExit().printf("%s \"%s\": VThresh cannot be negative (value is %f).\n",
-                  this->getKeyword(), this->getName(), VThresh);
+         pvErrorNoExit().printf("%s: VThresh cannot be negative (value is %f).\n",
+               getDescription_c(), VThresh);
       }
       status = PV_FAILURE;
    }

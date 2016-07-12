@@ -148,7 +148,8 @@ int Movie::checkpointWrite(const char * cpDir){
  * Notes:
  * - writeImages, offsetX, offsetY are initialized by Image::initialize()
  */
-int Movie::initialize(const char * name, HyPerCol * hc) { int status = Image::initialize(name, hc);
+int Movie::initialize(const char * name, HyPerCol * hc) {
+   int status = Image::initialize(name, hc);
    if (status != PV_SUCCESS) {
       pvError().printf("Image::initialize failed on Movie layer \"%s\".  Exiting.\n", name);
    }
@@ -183,8 +184,8 @@ int Movie::initialize(const char * name, HyPerCol * hc) { int status = Image::in
           if(getParent()->getCheckpointReadFlag()){
              struct stat statbuf;
              if (PV_stat(timestampFilename.c_str(), &statbuf) != 0) {
-                pvWarn().printf("%s \"%s\": timestamp file \"%s\" unable to be found.  Creating new file.\n",
-                      getKeyword(), name, timestampFilename.c_str());
+                pvWarn().printf("%s: timestamp file \"%s\" unable to be found.  Creating new file.\n",
+                      getDescription_c(), timestampFilename.c_str());
                 timestampFile = PV::PV_fopen(timestampFilename.c_str(), "w", parent->getVerifyWrites());
              }
              else {
@@ -281,16 +282,16 @@ int Movie::allocateDataStructures() {
    
    batchPos = (long*) malloc(parent->getNBatch() * sizeof(long));
    if(batchPos==NULL) {
-      pvError().printf("%s \"%s\" error allocating memory for batchPos (batch size %d): %s\n",
-            name, getKeyword(), parent->getNBatch(), strerror(errno));
+      pvError().printf("%s: unable to allocate memory for batchPos (batch size %d): %s\n",
+            getDescription_c(), parent->getNBatch(), strerror(errno));
    }
    for(int b = 0; b < parent->getNBatch(); b++){
       batchPos[b] = 0L;
    }
    frameNumbers = (int*) calloc(parent->getNBatch(), sizeof(int));
    if (frameNumbers==NULL) {
-      pvError().printf("%s \"%s\" error allocating memory for frameNumbers (batch size %d): %s\n",
-            name, getKeyword(), parent->getNBatch(), strerror(errno));
+      pvError().printf("%s: unable to allocate memory for frameNumbers (batch size %d): %s\n",
+            getDescription_c(), parent->getNBatch(), strerror(errno));
    }
 
    //Calculate file positions for beginning of each frame
@@ -517,7 +518,7 @@ bool Movie::updateImage(double time, double dt)
             size_t len = outStrStream.str().length();
             int status = PV_fwrite(outStrStream.str().c_str(), sizeof(char), len, timestampFile)==len ? PV_SUCCESS : PV_FAILURE;
             if (status != PV_SUCCESS) {
-               pvError().printf("%s \"%s\" error: Movie::updateState failed to write to timestamp file.\n", getKeyword(), name);
+               pvError().printf("%s: Movie::updateState failed to write to timestamp file.\n", getDescription_c());
             }
             //Flush buffer
             fflush(timestampFile->fp);
@@ -554,7 +555,7 @@ const char * Movie::getNextFileName(int n_skip, int batchIdx) {
       outFilename = advanceFileName(batchIdx);
    }
    if (echoFramePathnameFlag){
-      pvInfo().printf("%s \"%s\": t=%f, batch element %d: loading %s\n", getKeyword(), name, parent->simulationTime(), batchIdx, outFilename);
+      pvInfo().printf("%s: t=%f, batch element %d: loading %s\n", getDescription_c(), parent->simulationTime(), batchIdx, outFilename);
    }
    return outFilename;
 }

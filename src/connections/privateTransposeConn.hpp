@@ -29,6 +29,7 @@ public:
 
 protected:
     int initialize(const char * name, HyPerCol * hc, HyPerConn * parentConn, bool needWeights);
+    virtual int setDescription();
     virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
     virtual int setPatchSize();
     virtual int setNeededRNGSeeds() {return 0;}

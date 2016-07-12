@@ -141,7 +141,7 @@ void BaseInput::ioParam_offsetAnchor(enum ParamsIOFlag ioFlag){
       int status = checkValidAnchorString();
       if (status != PV_SUCCESS) {
          if (parent->columnId()==0) {
-            pvErrorNoExit().printf("%s \"%s\": offsetAnchor must be a two-letter string.  The first character must be \"t\", \"c\", or \"b\" (for top, center or bottom); and the second character must be \"l\", \"c\", or \"r\" (for left, center or right).\n", getKeyword(), getName());
+            pvErrorNoExit().printf("%s: offsetAnchor must be a two-letter string.  The first character must be \"t\", \"c\", or \"b\" (for top, center or bottom); and the second character must be \"l\", \"c\", or \"r\" (for left, center or right).\n", getDescription_c());
          }
          MPI_Barrier(parent->icCommunicator()->communicator());
          exit(EXIT_FAILURE);
@@ -174,8 +174,8 @@ void BaseInput::ioParam_aspectRatioAdjustment(enum ParamsIOFlag ioFlag) {
       }
       if (strcmp(aspectRatioAdjustment, "crop") && strcmp(aspectRatioAdjustment, "pad")) {
          if (parent->columnId()==0) {
-            pvErrorNoExit().printf("%s \"%s\": aspectRatioAdjustment must be either \"crop\" or \"pad\".\n",
-                  getKeyword(), name);
+            pvErrorNoExit().printf("%s: aspectRatioAdjustment must be either \"crop\" or \"pad\".\n",
+                  getDescription_c());
          }
          MPI_Barrier(parent->icCommunicator()->communicator());
          exit(EXIT_FAILURE);
@@ -199,8 +199,8 @@ void BaseInput::ioParam_interpolationMethod(enum ParamsIOFlag ioFlag) {
          }
          else {
             if (parent->columnId()==0) {
-               pvErrorNoExit().printf("%s \"%s\": interpolationMethod must be either \"bicubic\" or \"nearestNeighbor\".\n",
-                     getKeyword(), name);
+               pvErrorNoExit().printf("%s: interpolationMethod must be either \"bicubic\" or \"nearestNeighbor\".\n",
+                     getDescription_c());
             }
             MPI_Barrier(parent->icCommunicator()->communicator());
             exit(EXIT_FAILURE);
@@ -300,8 +300,8 @@ void BaseInput::ioParam_biasConstraintMethod(enum ParamsIOFlag ioFlag) {
    if (jitterFlag) {
       parent->ioParamValue(ioFlag, name, "biasConstraintMethod", &biasConstraintMethod, biasConstraintMethod);
       if (ioFlag == PARAMS_IO_READ && (biasConstraintMethod <0 || biasConstraintMethod >3)) {
-         pvError().printf("%s \"%s\": biasConstraintMethod allowed values are 0 (ignore), 1 (mirror BC), 2 (threshold), 3 (circular BC)\n",
-               getKeyword(), getName());
+         pvError().printf("%s: biasConstraintMethod allowed values are 0 (ignore), 1 (mirror BC), 2 (threshold), 3 (circular BC)\n",
+               getDescription_c());
       }
    }
 }
@@ -311,7 +311,7 @@ void BaseInput::ioParam_offsetConstraintMethod(enum ParamsIOFlag ioFlag) {
    if (jitterFlag) {
       parent->ioParamValue(ioFlag, name, "offsetConstraintMethod", &offsetConstraintMethod, 0/*default*/);
       if (ioFlag == PARAMS_IO_READ && (offsetConstraintMethod <0 || offsetConstraintMethod >3) ) {
-         pvError().printf("Image layer \"%s\": offsetConstraintMethod allowed values are 0 (ignore), 1 (mirror BC), 2 (threshold), 3 (circular BC)\n", getName());
+         pvError().printf("%s: offsetConstraintMethod allowed values are 0 (ignore), 1 (mirror BC), 2 (threshold), 3 (circular BC)\n", getDescription_c());
       }
    }
 }
@@ -384,12 +384,12 @@ int BaseInput::allocateDataStructures() {
          if (nchars >= PV_PATH_MAX) {
             pvError().printf("Path for jitter positions \"%s/%s_jitter.txt is too long.\n", parent->getOutputPath(), getName());
          }
-         pvInfo().printf("Image layer \"%s\" will write jitter positions to %s\n",getName(), file_name);
+         pvInfo().printf("%s will write jitter positions to %s\n", getDescription_c(), file_name);
          fp_pos = PV_fopen(file_name,"w",parent->getVerifyWrites());
          if(fp_pos == NULL) {
-            pvError().printf("Image \"%s\" unable to open file \"%s\" for writing jitter positions.\n", getName(), file_name);
+            pvError().printf("%s unable to open file \"%s\" for writing jitter positions.\n", getDescription_c(), file_name);
          }
-         fprintf(fp_pos->fp,"Layer \"%s\", t=%f, bias x=%d y=%d, offset x=%d y=%d\n",getName(),parent->simulationTime(),biases[0],biases[1],
+         fprintf(fp_pos->fp,"%s, t=%f, bias x=%d y=%d, offset x=%d y=%d\n",getDescription_c(),parent->simulationTime(),biases[0],biases[1],
                getOffsetX(this->offsetAnchor, this->offsets[0]),getOffsetY(this->offsetAnchor, this->offsets[1]));
       }
    }
@@ -440,8 +440,8 @@ int BaseInput::scatterInput(int batchIndex) {
          imageColorType = COLORTYPE_GRAYSCALE;
       }
       if (imageLoc.nf != nf) {
-         pvError().printf("%s \"%s\": imageLoc has %d features but layer has %d features.\n",
-               getKeyword(), name, imageLoc.nf, nf);
+         pvError().printf("%s: imageLoc has %d features but layer has %d features.\n",
+               getDescription_c(), imageLoc.nf, nf);
       }
 
       resizeInput();
@@ -1124,8 +1124,8 @@ bool BaseInput::constrainOffsets() {
 
 int BaseInput::requireChannel(int channelNeeded, int * numChannelsResult) {
    if (parent->columnId()==0) {
-      pvErrorNoExit().printf("%s \"%s\" cannot be a post-synaptic layer.\n",
-            getKeyword(), name);
+      pvErrorNoExit().printf("%s cannot be a post-synaptic layer.\n",
+            getDescription_c());
    }
    *numChannelsResult = 0;
    return PV_FAILURE;
@@ -1135,7 +1135,7 @@ int BaseInput::initRandState() {
    assert(randState==NULL);
    randState = new Random(parent, 1);
    if (randState==NULL) {
-      pvError().printf("%s \"%s\" error in rank %d process: unable to create object of class Random.\n", getKeyword(), name, parent->columnId());
+      pvError().printf("%s: rank %d process unable to create object of class Random.\n", getDescription_c(), parent->columnId());
    }
    return PV_SUCCESS;
 }

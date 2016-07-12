@@ -96,7 +96,7 @@ int StochasticReleaseTestProbe::outputState(double timed) {
          }
          for (long int k=0; k<N; k++) {
             if (pvalues[k]*(N-k)<0.05) {
-               pvErrorNoExit().printf("layer \"%s\" FAILED: p-value %ld out of %ld (ordered by size) with Holm-Bonferroni correction = %f\n", getTargetLayer()->getName(), k, N, pvalues[k]*(N-k));
+               pvErrorNoExit().printf("%s: p-value %ld out of %ld (ordered by size) with Holm-Bonferroni correction = %f\n", getTargetLayer()->getDescription_c(), k, N, pvalues[k]*(N-k));
                status = PV_FAILURE;
             }
          }

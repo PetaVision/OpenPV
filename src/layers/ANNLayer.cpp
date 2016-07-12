@@ -124,16 +124,16 @@ void ANNLayer::ioParam_verticesV(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ) {
       if (numVerticesTmp==0) {
          if (this->getParent()->columnId()==0) {
-            pvErrorNoExit().printf("%s \"%s\" error: verticesV cannot be empty\n",
-                  this->getKeyword(), this->getName());
+            pvErrorNoExit().printf("%s: verticesV cannot be empty\n",
+                  getDescription_c());
          }
          MPI_Barrier(this->getParent()->icCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
       if (numVertices !=0 && numVerticesTmp != numVertices) {
          if (this->getParent()->columnId()==0) {
-            pvErrorNoExit().printf("%s \"%s\" error: verticesV (%d elements) and verticesA (%d elements) must have the same lengths.\n",
-                  this->getKeyword(), this->getName(), numVerticesTmp, numVertices);
+            pvErrorNoExit().printf("%s: verticesV (%d elements) and verticesA (%d elements) must have the same lengths.\n",
+                  getDescription_c(), numVerticesTmp, numVertices);
          }
          MPI_Barrier(this->getParent()->icCommunicator()->communicator());
          exit(EXIT_FAILURE);
@@ -150,16 +150,16 @@ void ANNLayer::ioParam_verticesA(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ) {
       if (numVerticesA==0) {
          if (this->getParent()->columnId()==0) {
-            pvErrorNoExit().printf("%s \"%s\" error: verticesA cannot be empty\n",
-                  this->getKeyword(), this->getName());
+            pvErrorNoExit().printf("%s: verticesA cannot be empty\n",
+                  getDescription_c());
          }
          MPI_Barrier(this->getParent()->icCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
       if (numVertices !=0 && numVerticesA != numVertices) {
          if (this->getParent()->columnId()==0) {
-            pvErrorNoExit().printf("%s \"%s\" error: verticesV (%d elements) and verticesA (%d elements) must have the same lengths.\n",
-                  this->getKeyword(), this->getName(), numVertices, numVerticesA);
+            pvErrorNoExit().printf("%s: verticesV (%d elements) and verticesA (%d elements) must have the same lengths.\n",
+                  getDescription_c(), numVertices, numVerticesA);
          }
          MPI_Barrier(this->getParent()->icCommunicator()->communicator());
          exit(EXIT_FAILURE);
@@ -218,8 +218,8 @@ int ANNLayer::setVertices() {
       VThresh += VWidth;
       VWidth = -VWidth;
       if (parent->columnId()==0) {
-         pvWarn().printf("%s \"%s\": interpreting negative VWidth as setting VThresh=%f and VWidth=%f\n",
-               getKeyword(), name, VThresh, VWidth);
+         pvWarn().printf("%s: interpreting negative VWidth as setting VThresh=%f and VWidth=%f\n",
+               getDescription_c(), VThresh, VWidth);
       }
    }
 
@@ -229,12 +229,12 @@ int ANNLayer::setVertices() {
    if (AMin > limfromright) {
       if (parent->columnId()==0) {
          if (VWidth==0) {
-            pvWarn().printf("%s \"%s\": nonmonotonic transfer function, jumping from %f to %f at Vthresh=%f\n",
-                  getKeyword(), name, AMin, limfromright, VThresh);
+            pvWarn().printf("%s: nonmonotonic transfer function, jumping from %f to %f at Vthresh=%f\n",
+                  getDescription_c(), AMin, limfromright, VThresh);
          }
          else {
-            pvWarn().printf("%s \"%s\": nonmonotonic transfer function, changing from %f to %f as V goes from VThresh=%f to VThresh+VWidth=%f\n",
-                  getKeyword(), name, AMin, limfromright, VThresh, VThresh+VWidth);
+            pvWarn().printf("%s: nonmonotonic transfer function, changing from %f to %f as V goes from VThresh=%f to VThresh+VWidth=%f\n",
+                  getDescription_c(), AMin, limfromright, VThresh, VThresh+VWidth);
          }
       }
    }
@@ -326,8 +326,8 @@ int ANNLayer::setVertices() {
    verticesV = (pvpotentialdata_t *) malloc((size_t) numVertices * sizeof(*verticesV));
    verticesA = (pvadata_t *) malloc((size_t) numVertices * sizeof(*verticesA));
    if (verticesV==NULL || verticesA==NULL) {
-      pvErrorNoExit().printf("%s \"%s\": unable to allocate memory for vertices:%s\n",
-            getKeyword(), name, strerror(errno));
+      pvErrorNoExit().printf("%s: unable to allocate memory for vertices:%s\n",
+            getDescription_c(), strerror(errno));
       exit(EXIT_FAILURE);
    }
    memcpy(verticesV, &vectorV[0], numVertices * sizeof(*verticesV));
@@ -341,8 +341,8 @@ void ANNLayer::setSlopes() {
    pvAssert(verticesA!=nullptr);
    pvAssert(verticesV!=nullptr);
    slopes = (float *) pvMallocError((size_t)(numVertices+1)*sizeof(*slopes),
-         "%s \"%s\": unable to allocate memory for transfer function slopes: %s\n",
-         this->getKeyword(), name, strerror(errno));
+         "%s: unable to allocate memory for transfer function slopes: %s\n",
+         getDescription_c(), strerror(errno));
    slopes[0] = slopeNegInf;
    for (int k=1; k<numVertices; k++) {
       float V1 = verticesV[k-1];
@@ -365,14 +365,14 @@ int ANNLayer::checkVertices() const {
       if (verticesV[v] < verticesV[v-1]) {
          status = PV_FAILURE;
          if (this->getParent()->columnId()==0) {
-            pvErrorNoExit().printf("%s \"%s\": vertices %d and %d: V-coordinates decrease from %f to %f.\n",
-                  this->getKeyword(), this->getName(), v, v+1, verticesV[v-1], verticesV[v]);
+            pvErrorNoExit().printf("%s: vertices %d and %d: V-coordinates decrease from %f to %f.\n",
+                  getDescription_c(), v, v+1, verticesV[v-1], verticesV[v]);
          }
       }
       if (verticesA[v] < verticesA[v-1]) {
          if (this->getParent()->columnId()==0) {
-            pvWarn().printf("%s \"%s\": vertices %d and %d: A-coordinates decrease from %f to %f.\n",
-                  this->getKeyword(), this->getName(), v, v+1, verticesA[v-1], verticesA[v]);
+            pvWarn().printf("%s: vertices %d and %d: A-coordinates decrease from %f to %f.\n",
+                  getDescription_c(), v, v+1, verticesA[v-1], verticesA[v]);
          }
       }
    }

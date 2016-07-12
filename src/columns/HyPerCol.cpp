@@ -1654,7 +1654,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
          BaseProbe * p = baseProbes[i];
          int pstatus = p->allocateDataStructures();
          if (pstatus==PV_SUCCESS) {
-            if (globalRank()==0) { pvInfo().printf("Probe \"%s\" allocateDataStructures completed.\n", p->getName()); }
+            if (globalRank()==0) { pvInfo().printf("%s allocateDataStructures completed.\n", p->getDescription_c()); }
          }
          else {
             assert(pstatus == PV_FAILURE); // PV_POSTPONE etc. hasn't been implemented for probes yet.
@@ -1932,12 +1932,12 @@ int HyPerCol::processParams(char const * path) {
          BaseProbe * p = baseProbes[i];
          int pstatus = p->communicateInitInfo();
          if (pstatus==PV_SUCCESS) {
-            if (globalRank()==0) pvInfo().printf("Probe \"%s\" communicateInitInfo completed.\n", p->getName());
+            if (globalRank()==0) pvInfo().printf("%s communicateInitInfo completed.\n", p->getDescription_c());
          }
          else {
             assert(pstatus == PV_FAILURE); // PV_POSTPONE etc. hasn't been implemented for probes yet.
             // A more detailed error message should be printed by probe's communicateInitInfo function.
-            pvErrorNoExit().printf("Probe \"%s\" communicateInitInfo failed.\n", p->getName());
+            pvErrorNoExit().printf("%s communicateInitInfo failed.\n", p->getDescription_c());
             return PV_FAILURE;
          }
       }
@@ -1981,10 +1981,10 @@ int HyPerCol::doInitializationStage(int (HyPerCol::*layerInitializationStage)(in
                layerStatus[l] = PV_SUCCESS;
                numPostponedLayers--;
                assert(numPostponedLayers>=0);
-               if (globalRank()==0) pvInfo().printf("Layer \"%s\" %s completed.\n", layers[l]->getName(), stageName);
+               if (globalRank()==0) pvInfo().printf("%s: %s completed.\n", layers[l]->getDescription_c(), stageName);
                break;
             case PV_POSTPONE:
-               if (globalRank()==0) pvInfo().printf("Layer \"%s\": %s postponed.\n", layers[l]->getName(), stageName);
+               if (globalRank()==0) pvInfo().printf("%s: %s postponed.\n", layers[l]->getDescription_c(), stageName);
                break;
             case PV_FAILURE:
                exit(EXIT_FAILURE); // Any error message should be printed by layerInitializationStage function.
@@ -2002,10 +2002,10 @@ int HyPerCol::doInitializationStage(int (HyPerCol::*layerInitializationStage)(in
                connectionStatus[c] = PV_SUCCESS;
                numPostponedConns--;
                assert(numPostponedConns>=0);
-               if (globalRank()==0) pvInfo().printf("Connection \"%s\" %s completed.\n", connections[c]->getName(), stageName);
+               if (globalRank()==0) pvInfo().printf("%s %s completed.\n", connections[c]->getDescription_c(), stageName);
                break;
             case PV_POSTPONE:
-               if (globalRank()==0) pvInfo().printf("Connection \"%s\" %s postponed.\n", connections[c]->getName(), stageName);
+               if (globalRank()==0) pvInfo().printf("%s %s postponed.\n", connections[c]->getDescription_c(), stageName);
                break;
             case PV_FAILURE:
                exit(EXIT_FAILURE); // Error message should be printed in connection's communicateInitInfo().
@@ -2023,12 +2023,12 @@ int HyPerCol::doInitializationStage(int (HyPerCol::*layerInitializationStage)(in
       errorMessage.printf("%s loop has hung on global rank %d process.\n", stageName, globalRank());
       for (int l=0; l<numLayers; l++) {
          if (layerStatus[l]==PV_POSTPONE) {
-            errorMessage.printf("Layer \"%s\" on global rank %d is still postponed.\n", layers[l]->getName(), globalRank());
+            errorMessage.printf("%s on global rank %d is still postponed.\n", layers[l]->getDescription_c(), globalRank());
          }
       }
       for (int c=0; c<numConnections; c++) {
          if (layerStatus[c]==PV_POSTPONE) {
-            errorMessage.printf("Connection \"%s\" on global rank %d is still postponed.\n", connections[c]->getName(), globalRank());
+            errorMessage.printf("%s on global rank %d is still postponed.\n", connections[c]->getDescription_c(), globalRank());
          }
       }
       exit(EXIT_FAILURE);
@@ -2264,10 +2264,10 @@ int HyPerCol::calcTimeScaleTrue() {
                if (timeScaleTmp < dtMinToleratedTimeScale) {
                   if (globalRank()==0) {
                      if (nbatch==1) {
-                        pvErrorNoExit().printf("Layer \"%s\" returned time scale %g, less than dtMinToleratedTimeScale=%g.\n", layers[l]->getName(), timeScaleTmp, dtMinToleratedTimeScale);
+                        pvErrorNoExit().printf("%s returned time scale %g, less than dtMinToleratedTimeScale=%g.\n", layers[l]->getDescription_c(), timeScaleTmp, dtMinToleratedTimeScale);
                      }
                      else {
-                        pvErrorNoExit().printf("Layer \"%s\", batch element %d, returned time scale %g, less than dtMinToleratedTimeScale=%g.\n", layers[l]->getName(), b, timeScaleTmp, dtMinToleratedTimeScale);
+                        pvErrorNoExit().printf("%s, batch element %d, returned time scale %g, less than dtMinToleratedTimeScale=%g.\n", layers[l]->getDescription_c(), b, timeScaleTmp, dtMinToleratedTimeScale);
                      }
                   }
                   MPI_Barrier(icComm->globalCommunicator());
@@ -2306,10 +2306,10 @@ int HyPerCol::calcTimeScaleTrue() {
          if (timeScaleProbe > 0 && timeScaleProbe < dtMinToleratedTimeScale) {
             if (globalRank()==0) {
                if (nbatch==1) {
-                  pvErrorNoExit().printf("Probe \"%s\" has time scale %g, less than dtMinToleratedTimeScale=%g.\n", dtAdaptControlProbe->getName(), timeScaleProbe, dtMinToleratedTimeScale);
+                  pvErrorNoExit().printf("%s has time scale %g, less than dtMinToleratedTimeScale=%g.\n", dtAdaptControlProbe->getDescription_c(), timeScaleProbe, dtMinToleratedTimeScale);
                }
                else {
-                  pvErrorNoExit().printf("Layer \"%s\", batch element %d, has time scale %g, less than dtMinToleratedTimeScale=%g.\n", dtAdaptControlProbe->getName(), b, timeScaleProbe, dtMinToleratedTimeScale);
+                  pvErrorNoExit().printf("%s, batch element %d, has time scale %g, less than dtMinToleratedTimeScale=%g.\n", dtAdaptControlProbe->getDescription_c(), b, timeScaleProbe, dtMinToleratedTimeScale);
                }
             }
             MPI_Barrier(icComm->globalCommunicator());
@@ -2626,7 +2626,7 @@ int HyPerCol::advanceTime(double sim_time)
       if (status==PV_FAILURE) {
          for (int l=0; l<numLayers;l++) {
             if (brokenlayers[l]) {
-               pvErrorNoExit().printf("Layer \"%s\" has not-a-number values in the activity buffer.  Exiting.\n", layers[l]->getName());
+               pvErrorNoExit().printf("%s has not-a-number values in the activity buffer.  Exiting.\n", layers[l]->getDescription_c());
             }
          }
          exit(EXIT_FAILURE);

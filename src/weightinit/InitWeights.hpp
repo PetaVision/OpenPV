@@ -55,6 +55,7 @@ public:
 protected:
    InitWeights();
    int initialize(const char * name, HyPerCol * hc);
+   virtual int setDescription();
    virtual int initRNGs(bool isKernel) { return PV_SUCCESS; }
    virtual int zeroWeightsOutsideShrunkenPatch(PVPatch *** patches);
    virtual int readListOfArborFiles(PVPatch *** patches, pvwdata_t ** dataStart,int numPatches,

@@ -213,8 +213,8 @@ int LIFGap::allocateConductances(int num_channels) {
    int status = LIF::allocateConductances(num_channels-1); // CHANNEL_GAP doesn't have a conductance per se.
    gapStrength = (pvgsyndata_t *) calloc((size_t) getNumNeuronsAllBatches(), sizeof(*gapStrength));
    if(gapStrength == NULL) {
-      pvError().printf("%s layer \"%s\": rank %d process unable to allocate memory for gapStrength: %s\n",
-              getKeyword(), getName(), parent->columnId(), strerror(errno));
+      pvError().printf("%s: rank %d process unable to allocate memory for gapStrength: %s\n",
+            getDescription_c(), parent->columnId(), strerror(errno));
    }
    return status;
 }
@@ -240,7 +240,7 @@ int LIFGap::calcGapStrength() {
       HyPerConn * conn = dynamic_cast<HyPerConn *>(parent->getConnection(c));
       if (conn->postSynapticLayer() != this || conn->getChannel() != CHANNEL_GAP) { continue; }
       if (conn->getPlasticityFlag() && parent->columnId()==0) {
-         pvWarn().printf("%s \"%s\": connection \"%s\" on CHANNEL_GAP has plasticity flag set to true\n", getKeyword(), getName(), conn->getName());
+         pvWarn().printf("%s: %s on CHANNEL_GAP has plasticity flag set to true\n", getDescription_c(), conn->getDescription_c());
       }
       HyPerLayer * pre = conn->preSynapticLayer();
       const int sy = conn->getPostNonextStrides()->sy;

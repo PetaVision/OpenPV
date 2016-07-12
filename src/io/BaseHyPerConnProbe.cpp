@@ -33,8 +33,8 @@ int BaseHyPerConnProbe::communicateInitInfo() {
    targetHyPerConn = dynamic_cast<HyPerConn *>(targetConn);
    if (targetHyPerConn==NULL) {
       if (parent->columnId()==0) {
-         pvErrorNoExit().printf("%s \"%s\": targetConn \"%s\" must be a HyPerConn or HyPerConn-derived class.\n",
-               this->getKeyword(), this->getName(), targetConn->getName());
+         pvErrorNoExit().printf("%s: targetConn \"%s\" must be a HyPerConn or HyPerConn-derived class.\n",
+               getDescription_c(), targetConn->getName());
       }
       status = PV_FAILURE;
    }

@@ -194,12 +194,12 @@ void TransposePoolingConn::unsetAccumulateType() {
    if (parent->columnId()==0) {
       pvErrorNoExit(errorMessage);
       if (pvpatchAccumulateTypeString) {
-         errorMessage.printf("%s \"%s\" error: pvpatchAccumulateType \"%s\" is unrecognized.",
-               getKeyword(), name, pvpatchAccumulateTypeString);
+         errorMessage.printf("%s: pvpatchAccumulateType \"%s\" is unrecognized.",
+               getDescription_c(), pvpatchAccumulateTypeString);
       }
       else {
-         errorMessage.printf("%s \"%s\" error: pvpatchAccumulateType NULL is unrecognized.",
-               getKeyword(), name);
+         errorMessage.printf("%s: pvpatchAccumulateType NULL is unrecognized.",
+               getDescription_c());
       }
       errorMessage.printf("  Allowed values are \"maxpooling\", \"sumpooling\", or \"avgpooling\".");
    }
@@ -281,7 +281,7 @@ int TransposePoolingConn::communicateInitInfo() {
    BaseConnection * originalConnBase = parent->getConnFromName(this->originalConnName);
    if (originalConnBase==NULL) {
       if (parent->columnId()==0) {
-         pvErrorNoExit().printf("%s \"%s\": originalConnName \"%s\" does not refer to any connection in the column.\n", this->getKeyword(), name, this->originalConnName);
+         pvErrorNoExit().printf("%s: originalConnName \"%s\" does not refer to any connection in the column.\n", getDescription_c(), this->originalConnName);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -289,7 +289,7 @@ int TransposePoolingConn::communicateInitInfo() {
    originalConn = dynamic_cast<PoolingConn *>(originalConnBase);
    if (originalConn == NULL) {
       if (parent->columnId()==0) {
-         pvErrorNoExit().printf("TransposePoolingConn \"%s\": originalConnName \"%s\" is not a PoolingConn.\n", name, originalConnName);
+         pvErrorNoExit().printf("%s: originalConnName \"%s\" is not a PoolingConn.\n", getDescription_c(), originalConnName);
          status = PV_FAILURE;
       }
    }
@@ -297,8 +297,7 @@ int TransposePoolingConn::communicateInitInfo() {
 
    if (!originalConn->getInitInfoCommunicatedFlag()) {
       if (parent->columnId()==0) {
-         const char * connectiontype = this->getKeyword();
-         pvInfo().printf("%s \"%s\" must wait until original connection \"%s\" has finished its communicateInitInfo stage.\n", connectiontype, name, originalConn->getName());
+         pvInfo().printf("%s must wait until original connection \"%s\" has finished its communicateInitInfo stage.\n", getDescription_c(), originalConn->getName());
       }
       return PV_POSTPONE;
    }
@@ -346,7 +345,7 @@ int TransposePoolingConn::communicateInitInfo() {
    if (preLoc->nx != origPostLoc->nx || preLoc->ny != origPostLoc->ny || preLoc->nf != origPostLoc->nf) {
       if (parent->columnId()==0) {
          pvErrorNoExit(errorMessage);
-         errorMessage.printf("%s \"%s\": transpose's pre layer and original connection's post layer must have the same dimensions.\n", this->getKeyword(), name);
+         errorMessage.printf("%s: transpose's pre layer and original connection's post layer must have the same dimensions.\n", getDescription_c());
          errorMessage.printf("    (x=%d, y=%d, f=%d) versus (x=%d, y=%d, f=%d).\n", preLoc->nx, preLoc->ny, preLoc->nf, origPostLoc->nx, origPostLoc->ny, origPostLoc->nf);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
@@ -357,7 +356,7 @@ int TransposePoolingConn::communicateInitInfo() {
    if (postLoc->nx != origPreLoc->nx || postLoc->ny != origPreLoc->ny || postLoc->nf != origPreLoc->nf) {
       if (parent->columnId()==0) {
          pvErrorNoExit(errorMessage);
-         errorMessage.printf("%s \"%s\": transpose's post layer and original connection's pre layer must have the same dimensions.\n", this->getKeyword(), name);
+         errorMessage.printf("%s: transpose's post layer and original connection's pre layer must have the same dimensions.\n", getDescription_c());
          errorMessage.printf("    (x=%d, y=%d, f=%d) versus (x=%d, y=%d, f=%d).\n", postLoc->nx, postLoc->ny, postLoc->nf, origPreLoc->nx, origPreLoc->ny, origPreLoc->nf);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
@@ -384,7 +383,7 @@ int TransposePoolingConn::communicateInitInfo() {
       int allowedDelay = originalConn->getPostIndexLayer()->increaseDelayLevels(getDelayArraySize());
       if( allowedDelay < getDelayArraySize()) {
          if( this->getParent()->columnId() == 0 ) {
-            pvErrorNoExit().printf("Connection \"%s\": attempt to set delay to %d, but the maximum allowed delay is %d.  Exiting\n", this->getName(), getDelayArraySize(), allowedDelay);
+            pvErrorNoExit().printf("%s: attempt to set delay to %d, but the maximum allowed delay is %d.  Exiting\n", this->getDescription_c(), getDelayArraySize(), allowedDelay);
          }
          exit(EXIT_FAILURE);
       }
@@ -439,8 +438,7 @@ int TransposePoolingConn::setPatchSize() {
 int TransposePoolingConn::allocateDataStructures() {
    if (!originalConn->getDataStructuresAllocatedFlag()) {
       if (parent->columnId()==0) {
-         const char * connectiontype = this->getKeyword();
-         pvInfo().printf("%s \"%s\" must wait until original connection \"%s\" has finished its allocateDataStructures stage.\n", connectiontype, name, originalConn->getName());
+         pvInfo().printf("%s must wait until original connection \"%s\" has finished its allocateDataStructures stage.\n", getDescription_c(), originalConn->getName());
       }
       return PV_POSTPONE;
    }

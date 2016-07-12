@@ -84,7 +84,7 @@ int ShrunkenPatchTestProbe::outputState(double timed) {
       int xScaleLog2 = getTargetLayer()->getCLayer()->xScale;
 
       if (xScaleLog2>=0) {
-         pvError().printf("ShrunkenPatchTestProbe \"%s\" error: layer \"%s\" must have nxScale > 1.\n", probeName, l->getName());
+         pvError().printf("%s: layer \"%s\" must have nxScale > 1.\n", getDescription_c(), l->getName());
       }
       int cell_size = (int) nearbyintf(powf(2.0f, -xScaleLog2));
       int kx0 = (loc->kx0)/cell_size;
@@ -123,8 +123,8 @@ int ShrunkenPatchTestProbe::outputState(double timed) {
          if (fabs(buf[kex]-correctValues[x])>tol) {
             int y = kyPos(k,loc->nx, loc->ny, loc->nf);
             int f = featureIndex(k,loc->nx,loc->ny,loc->nf);
-            pvError().printf("Layer \"%s\": Incorrect value %f (should be %f) in process %d, x=%d, y=%d, f=%d\n",
-                  l->getName(), buf[kex], correctValues[x], getTargetLayer()->getParent()->columnId(), x, y, f);
+            pvError().printf("%s: Incorrect value %f (should be %f) in process %d, x=%d, y=%d, f=%d\n",
+                  l->getDescription_c(), buf[kex], correctValues[x], getTargetLayer()->getParent()->columnId(), x, y, f);
          }
       }
    }

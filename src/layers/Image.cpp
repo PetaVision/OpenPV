@@ -96,7 +96,7 @@ int Image::retrieveData(double timef, double dt, int batchIndex)
    //Using member varibles here
    status = readImage(inputPath);
    if(status != PV_SUCCESS) {
-      pvErrorNoExit().printf("%s \"%s\": readImage failed at t=%f for batchIndex %d\n", getKeyword(), name, timef, batchIndex);
+      pvErrorNoExit().printf("%s: readImage failed at t=%f for batchIndex %d\n", getDescription_c(), timef, batchIndex);
    }
    return status;
 }
@@ -527,7 +527,7 @@ int Image::readImage(const char * filename)
 
    status = readImageFileGDAL(path, &imageLoc);
    if (status != PV_SUCCESS) {
-      pvError().printf("Image::readImage failed for layer \"%s\"\n", getName());
+      pvError().printf("Image::readImage failed for %s\n", getDescription_c());
    }
 
    if (usingTempFile) {

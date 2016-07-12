@@ -32,7 +32,7 @@ int ImageFromMemoryBuffer::initialize(char const * name, HyPerCol * hc) {
    return BaseInput::initialize(name, hc);
    if (useImageBCflag && autoResizeFlag) {
       if (parent->columnId()==0) {
-         pvErrorNoExit().printf("%s \"%s\": setting both useImageBCflag and autoResizeFlag has not yet been implemented.\n", getKeyword(), name);
+         pvErrorNoExit().printf("%s: setting both useImageBCflag and autoResizeFlag has not yet been implemented.\n", getDescription_c());
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -106,8 +106,8 @@ int ImageFromMemoryBuffer::setMemoryBuffer(pixeltype const * externalBuffer, int
    this->offsetAnchor = strdup(offsetAnchor);
    if (checkValidAnchorString()!=PV_SUCCESS) {
       if (parent->columnId()==0) {
-         pvErrorNoExit().printf("%s \"%s\": setMemoryBuffer called with invalid anchor string \"%s\"",
-               getKeyword(), name, offsetAnchor);
+         pvErrorNoExit().printf("%s: setMemoryBuffer called with invalid anchor string \"%s\"",
+               getDescription_c(), offsetAnchor);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);

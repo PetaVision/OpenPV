@@ -50,8 +50,8 @@ void NormalizeGroup::communicateInitInfo() {
    groupHead = parent->getNormalizerFromName(normalizeGroupName);
    if (groupHead==nullptr) {
       if (parent->columnId()==0) {
-         pvErrorNoExit().printf("%s \"%s\" error: normalizeGroupName \"%s\" is not a recognized normalizer.\n",
-               getKeyword(), name, normalizeGroupName);
+         pvErrorNoExit().printf("%s: normalizeGroupName \"%s\" is not a recognized normalizer.\n",
+               getDescription_c(), normalizeGroupName);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);

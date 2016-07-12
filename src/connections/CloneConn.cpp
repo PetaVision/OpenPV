@@ -186,8 +186,8 @@ int CloneConn::communicateInitInfo() {
    BaseConnection * originalConnBase = parent->getConnFromName(originalConnName);
    if (originalConnBase == NULL) {
       if (parent->columnId()==0) {
-         pvErrorNoExit().printf("CloneConn \"%s\": originalConnName \"%s\" is not a connection in the column.\n",
-               name, originalConnName);
+         pvErrorNoExit().printf("%s: originalConnName \"%s\" is not a connection in the column.\n",
+               getDescription_c(), originalConnName);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -195,14 +195,13 @@ int CloneConn::communicateInitInfo() {
    originalConn = dynamic_cast<HyPerConn *>(originalConnBase);
    if (originalConn == NULL) {
       if (parent->columnId()==0) {
-         pvErrorNoExit().printf("CloneConn \"%s\": originalConnName \"%s\" is not a HyPerConn or HyPerConn-derived class.\n",
-               name, originalConnName);
+         pvErrorNoExit().printf("%s: originalConnName \"%s\" is not a HyPerConn or HyPerConn-derived class.\n",
+               getDescription_c(), originalConnName);
       }
    }
    if (!originalConn->getInitInfoCommunicatedFlag()) {
       if (parent->columnId()==0) {
-         const char * connectiontype = this->getKeyword();
-         pvInfo().printf("%s \"%s\" must wait until original connection \"%s\" has finished its communicateInitInfo stage.\n", connectiontype, name, originalConn->getName());
+         pvInfo().printf("%s must wait until original connection \"%s\" has finished its communicateInitInfo stage.\n", getDescription_c(), originalConn->getName());
       }
       return PV_POSTPONE;
    }
@@ -236,13 +235,13 @@ int CloneConn::communicateInitInfo() {
 
    if (preLoc->nx != origPreLoc->nx || preLoc->ny != origPreLoc->ny || preLoc->nf != origPreLoc->nf ) {
       if (parent->icCommunicator()->commRank()==0) {
-         const char * classname = this->getKeyword();
          pvErrorNoExit(errorMessage);
-         errorMessage.printf("%s \"%s\" error in rank %d process: CloneConn and originalConn \"%s\" must have presynaptic layers with the same nx,ny,nf.\n",
-               classname, name, parent->columnId(), originalConn->getName());
+         errorMessage.printf("%s: CloneConn and originalConn \"%s\" must have presynaptic layers with the same nx,ny,nf.\n",
+               getDescription_c(), parent->columnId(), originalConn->getName());
          errorMessage.printf("{nx=%d, ny=%d, nf=%d} versus {nx=%d, ny=%d, nf=%d}\n",
                  preLoc->nx, preLoc->ny, preLoc->nf, origPreLoc->nx, origPreLoc->ny, origPreLoc->nf);
       }
+      MPI_Barrier(parent->icCommunicator()->communicator());
       abort();
    }
 
@@ -278,8 +277,7 @@ int CloneConn::allocatePostConn(){
 int CloneConn::allocateDataStructures() {
    if (!originalConn->getDataStructuresAllocatedFlag()) {
       if (parent->columnId()==0) {
-         const char * connectiontype = this->getKeyword();
-         pvInfo().printf("%s \"%s\" must wait until original connection \"%s\" has finished its communicateInitInfo stage.\n", connectiontype, name, originalConn->getName());
+         pvInfo().printf("%s must wait until original connection \"%s\" has finished its communicateInitInfo stage.\n", getDescription_c(), originalConn->getName());
       }
       return PV_POSTPONE;
    }

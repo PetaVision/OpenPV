@@ -75,8 +75,8 @@ void BBFindConfRemapProbe::ioParam_drawMontage(enum PV::ParamsIOFlag ioFlag) {
 #else // PV_USE_GDAL
    if (ioFlag==PARAMS_IO_READ) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: PetaVision must be compiled with GDAL to use BBFindConfRemapProbe with drawMontage set.\n",
-               getKeyword(), name);
+         fprintf(stderr, "%s error: PetaVision must be compiled with GDAL to use BBFindConfRemapProbe with drawMontage set.\n",
+               getDescription_c());
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
       return PV_FAILURE;
@@ -162,8 +162,8 @@ int BBFindConfRemapProbe::communicateInitInfo() {
    targetBBFindConfRemapLayer = dynamic_cast<BBFindConfRemapLayer*>(targetLayer);
    if (targetBBFindConfRemapLayer==NULL) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: targetLayer \"%s\" must be a BBFindLayer.\n",
-               getKeyword(), name, this->targetName);
+         fprintf(stderr, "%s error: targetLayer \"%s\" must be a BBFindLayer.\n",
+               getDescription_c(), this->targetName);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -182,13 +182,13 @@ int BBFindConfRemapProbe::communicateInitInfo() {
       int const nf = targetLayer->getLayerLoc()->nf;
       classNames = (char **) malloc(nf * sizeof(char *));
       if (classNames == NULL) {
-         fprintf(stderr, "%s \"%s\" unable to allocate classNames: %s\n", getKeyword(), name, strerror(errno));
+         fprintf(stderr, "%s unable to allocate classNames: %s\n", getDescription_c(), strerror(errno));
          exit(EXIT_FAILURE);
       }
       if (strcmp(classNamesFile,"")) {
          std::ifstream * classNamesStream = new std::ifstream(classNamesFile);
          if (classNamesStream->fail()) {
-            fprintf(stderr, "%s \"%s\": unable to open classNamesFile \"%s\".\n", getKeyword(), name, classNamesFile);
+            fprintf(stderr, "%s: unable to open classNamesFile \"%s\".\n", getDescription_c(), classNamesFile);
             exit(EXIT_FAILURE);
          }
          for (int k=0; k<nf; k++) {
@@ -197,8 +197,8 @@ int BBFindConfRemapProbe::communicateInitInfo() {
             classNamesStream->getline(oneclass, 1024);
             classNames[k] = strdup(oneclass);
             if (classNames[k] == NULL) {
-               fprintf(stderr, "%s \"%s\" unable to allocate class name %d from \"%s\": %s\n",
-                     getKeyword(), name, k, classNamesFile, strerror(errno));
+               fprintf(stderr, "%s unable to allocate class name %d from \"%s\": %s\n",
+                     getDescription_c(), k, classNamesFile, strerror(errno));
                exit(EXIT_FAILURE);
             }
          }
@@ -210,7 +210,7 @@ int BBFindConfRemapProbe::communicateInitInfo() {
             classNameString << "Feature " << k+1;
             classNames[k] = strdup(classNameString.str().c_str());
             if (classNames[k]==NULL) {
-               fprintf(stderr, "%s \"%s\": unable to allocate className %d: %s\n", getKeyword(), name, k, strerror(errno));
+               fprintf(stderr, "%s: unable to allocate className %d: %s\n", getDescription_c(), k, strerror(errno));
                exit(EXIT_FAILURE);
             }
          }
@@ -226,8 +226,8 @@ void BBFindConfRemapProbe::setLayerFromParam(PV::HyPerLayer ** layer, char const
    PV::HyPerLayer * l = parent->getLayerFromName(layerName);
    if (l==NULL) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: %s \"%s\" does not refer to a layer in the column.\n",
-               getKeyword(), name, layerType, layerName);
+         fprintf(stderr, "%s error: %s \"%s\" does not refer to a layer in the column.\n",
+               getDescription_c(), layerType, layerName);
       }
       throw std::invalid_argument("setLayerFromParam:bad layer name");
    }
@@ -235,8 +235,8 @@ void BBFindConfRemapProbe::setLayerFromParam(PV::HyPerLayer ** layer, char const
    int const nf = l->getLayerLoc()->nf;
    if (drawMontage && nf != 3) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: If the drawMontage flag is set, the %s must have exactly three features (\"%s\" has %d).\n",
-               getKeyword(), name, layerType, layerName, nf);
+         fprintf(stderr, "%s error: If the drawMontage flag is set, the %s must have exactly three features (\"%s\" has %d).\n",
+               getDescription_c(), layerType, layerName, nf);
       }
       throw std::invalid_argument("setLayerFromParam:not three features");
    }
@@ -291,14 +291,14 @@ int BBFindConfRemapProbe::allocateDataStructures() {
    int const imageMontageSize = montageDimX * montageDimY * 3;
    if (parent->columnId()==0 && drawMontage) {
       montageImage = (unsigned char *) pvCallocError(imageMontageSize, sizeof(*montageImage),
-            "%s \"%s\" allocation for heat map montage image\n", getKeyword(), name);
+            "%s allocation for heat map montage image\n", getDescription_c());
       montageImageComm = (unsigned char *) pvCallocError(imageLocalSize, sizeof(*montageImageComm),
-            "%s \"%s\" allocation for MPI communication of heat map montage image\n", getKeyword(), name);
+            "%s allocation for MPI communication of heat map montage image\n", getDescription_c());
    }
    montageImageLocal = (unsigned char *) pvCallocError(imageLocalSize, sizeof(*montageImageLocal),
-         "%s \"%s\" allocation for heat map image in rank %d\n", getKeyword(), name, parent->columnId());
+         "%s allocation for heat map image in rank %d\n", getDescription_c(), parent->columnId());
    grayScaleImage = (pvadata_t *) pvCallocError(imageLoc->nx*imageLoc->ny, sizeof(pvadata_t),
-         "%s \"%s\" allocation for background image in rank %d\n", getKeyword(), name, parent->columnId());
+         "%s allocation for background image in rank %d\n", getDescription_c(), parent->columnId());
    return PV_SUCCESS;
 }
 
@@ -627,24 +627,24 @@ void BBFindConfRemapProbe::drawTextOnMontage(char const * backgroundColor, char 
    assert(parent->columnId()==0);
    char * tempfile = strdup("/tmp/Localization_XXXXXX.tif");
    if (tempfile == NULL) {
-      fprintf(stderr, "%s \"%s\": drawTextOnMontage failed to create temporary file for text\n", getKeyword(), name);
+      fprintf(stderr, "%s: drawTextOnMontage failed to create temporary file for text\n", getDescription_c());
       exit(EXIT_FAILURE);
    }
    int tempfd = mkstemps(tempfile, 4/*suffixlen*/);
    if (tempfd < 0) {
-      fprintf(stderr, "%s \"%s\": drawTextOnMontage failed to create temporary file for writing\n", getKeyword(), name);
+      fprintf(stderr, "%s: drawTextOnMontage failed to create temporary file for writing\n", getDescription_c());
       exit(EXIT_FAILURE);
    }
    int status = close(tempfd); //mkstemps opens the file to avoid race between finding unused filename and opening it, but we don't need the file descriptor.
    if (status != 0) {
-      fprintf(stderr, "%s \"%s\": drawTextOnMontage failed to close temporory file %s: %s\n", getKeyword(), name, tempfile, strerror(errno));
+      fprintf(stderr, "%s: drawTextOnMontage failed to close temporory file %s: %s\n", getDescription_c(), tempfile, strerror(errno));
       exit(EXIT_FAILURE);
    }
    drawTextIntoFile(tempfile, backgroundColor, textColor, labelText, width, height);
    insertFileIntoMontage(tempfile, xOffset, yOffset, width, height);
    status = unlink(tempfile);
    if (status != 0) {
-      fprintf(stderr, "%s \"%s\": drawTextOnMontage failed to delete temporary file %s: %s\n", getKeyword(), name, tempfile, strerror(errno));
+      fprintf(stderr, "%s: drawTextOnMontage failed to delete temporary file %s: %s\n", getDescription_c(), tempfile, strerror(errno));
       exit(EXIT_FAILURE);
    }
    free(tempfile);
@@ -657,7 +657,7 @@ void BBFindConfRemapProbe::drawTextIntoFile(char const * labelFilename, char con
    int status = system(convertCmd.str().c_str());
    if (status != 0) {
       fflush(stdout);
-      fprintf(stderr, "%s \"%s\" error creating label file \"%s\": ImageMagick convert returned %d.\n", getKeyword(), name, labelFilename, WEXITSTATUS(status));
+      fprintf(stderr, "%s error creating label file \"%s\": ImageMagick convert returned %d.\n", getDescription_c(), labelFilename, WEXITSTATUS(status));
       exit(EXIT_FAILURE);
    }
 }
@@ -671,7 +671,7 @@ void BBFindConfRemapProbe::insertFileIntoMontage(char const * labelFilename, int
    GDALDataset * dataset = (GDALDataset *) GDALOpen(labelFilename, GA_ReadOnly);
    if (dataset==NULL) {
       fflush(stdout);
-      fprintf(stderr, "%s \"%s\" error opening label file \"%s\" for reading.\n", getKeyword(), name, labelFilename);
+      fprintf(stderr, "%s error opening label file \"%s\" for reading.\n", getDescription_c(), labelFilename);
       exit(EXIT_FAILURE);
    }
    int xLabelSize = dataset->GetRasterXSize();
@@ -679,8 +679,8 @@ void BBFindConfRemapProbe::insertFileIntoMontage(char const * labelFilename, int
    int labelBands = dataset->GetRasterCount();
    if (xLabelSize != xExpectedSize || yLabelSize != yExpectedSize) {
       fflush(stdout);
-      fprintf(stderr, "%s \"%s\" error: label files \"%s\" has dimensions %dx%d (expected %dx%d)\n",
-            getKeyword(), name, labelFilename, xLabelSize, yLabelSize, xExpectedSize, yExpectedSize);
+      fprintf(stderr, "%s error: label files \"%s\" has dimensions %dx%d (expected %dx%d)\n",
+            getDescription_c(), labelFilename, xLabelSize, yLabelSize, xExpectedSize, yExpectedSize);
       exit(EXIT_FAILURE);
    }
    // same xStart.
@@ -767,7 +767,7 @@ void BBFindConfRemapProbe::writeMontage() {
    char * montagePath = strdup(montagePathSStream.str().c_str()); // not sure why I have to strdup this
    if (montagePath==NULL) {
       fflush(stdout);
-      fprintf(stderr, "%s \"%s\" error: unable to create montagePath\n", getKeyword(), name);
+      fprintf(stderr, "%s error: unable to create montagePath\n", getDescription_c());
       exit(EXIT_FAILURE);
    }
    GDALDriver * driver = GetGDALDriverManager()->GetDriverByName("GTiff");
