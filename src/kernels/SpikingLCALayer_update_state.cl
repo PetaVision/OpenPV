@@ -47,6 +47,6 @@ void SpikingLCALayer_update_state(
     CL_MEM_GLOBAL float * GSynHead,
     CL_MEM_GLOBAL float * activity)
 {
-   updateV_HyPerLCALayer(nbatch, numNeurons, numChannels, V, GSynHead, activity,
+   updateV_SpikingLCALayer(nbatch, numNeurons, numChannels, V, GSynHead, activity,
 		   numVertices, verticesV, verticesA, slopes, dtAdapt, tau, refactoryScale, nx, ny, nf, lt, rt, dn, up);
 }
