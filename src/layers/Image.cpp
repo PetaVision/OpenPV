@@ -572,7 +572,7 @@ Image::Image(const char * name, HyPerCol * hc) {
    exit(EXIT_FAILURE);
 }
 Image::Image() {}
-int Image::retrieveData(double timef, double dt) { return PV_FAILURE; }
+int Image::retrieveData(double timef, double dt, int batchIndex) { return PV_FAILURE; }
 #endif // PV_USE_GDAL
 
 BaseObject * createImage(char const * name, HyPerCol * hc) {

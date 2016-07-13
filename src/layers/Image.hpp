@@ -67,7 +67,7 @@ public:
    Image(char const * name, HyPerCol * hc);
 protected:
    Image();
-   int retrieveData(double timef, double dt);
+   virtual int retrieveData(double timef, double dt, int batchIndex);
 #endif // PV_USE_GDAL
 
 }; // class Image
