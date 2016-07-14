@@ -375,7 +375,7 @@ private:
    
    long * postToPreActivity;
 
-   bool needPost;
+   bool needPost; // needPost is set during the communicate stage.  During the allocate stage, the value is used to decide whether to create postConn.
 
    // All weights that are above the threshold
    typedef pvwdata_t WeightType;

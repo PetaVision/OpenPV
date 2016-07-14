@@ -2175,7 +2175,7 @@ int HyPerConn::writeTimers(std::ostream& stream){
       for (int p=0; p<numProbes; p++){
          probes[p]->writeTimer(stream);
       }
-      if(needPost){
+      if(needPost && postConn){
          postConn->writeTimers(stream);
       }
    }
@@ -2448,7 +2448,7 @@ int HyPerConn::finalizeUpdate(double timed, double dt){
 #endif
 
    //Update postConn if needed
-   if(needPost){
+   if(needPost && postConn){
       int status = postConn->finalizeUpdate(timed, dt);
       pvAssert(status == PV_SUCCESS);
    }
