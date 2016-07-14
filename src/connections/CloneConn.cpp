@@ -251,8 +251,8 @@ int CloneConn::communicateInitInfo() {
    pre->synchronizeMarginWidth(originalConn->preSynapticLayer());
 
    //// Make sure the original's and the clone's margin widths stay equal
-   //originalConn->postSynapticLayer()->synchronizeMarginWidth(post);
-   //post->synchronizeMarginWidth(originalConn->postSynapticLayer());
+   originalConn->postSynapticLayer()->synchronizeMarginWidth(post);
+   post->synchronizeMarginWidth(originalConn->postSynapticLayer());
 
    //Redudant read in case it's a clone of a clone
 
