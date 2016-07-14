@@ -102,7 +102,7 @@ if (PV_USE_MPI AND MPI_FOUND)
   include_directories(${MPI_CXX_INCLUDE_PATH})
 endif()
 
-if (PV_USE_GDAL AND GDAL_FOUND)
+if (PV_USE_LUA AND LUA_FOUND)
   include_directories(${LUA_INCLUDE_DIR})
 endif()
 
