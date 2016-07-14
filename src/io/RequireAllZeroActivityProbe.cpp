@@ -56,7 +56,6 @@ int RequireAllZeroActivityProbe::outputState(double timed) {
    int status = StatsProbe::outputState(timed);
    for(int b = 0; b < getParent()->getNBatch(); b++){
       if (nnz[b]!=0) {
-         pvAssert(immediateExitOnFailure);
          if (!nonzeroFound) {
             nonzeroTime = timed;
          }
