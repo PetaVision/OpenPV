@@ -20,8 +20,8 @@ HyPerCol "column" = {
     suppressLastOutput = false;
 };
 
-Movie "8x8Images" = {
-    inputPath = "./input/image08x08sequence_mask.txt";
+MoviePvp "8x8Images" = {
+    inputPath = "./input/image08x08sequence_mask.pvp";
     start_frame_index = 0;
     skip_frame_index = 0;
     echoFramePathnameFlag = false;
@@ -50,8 +50,8 @@ Movie "8x8Images" = {
     readPvpFile = false;
 };
 
-Movie "16x16Images" = {
-    inputPath = "./input/image16x16sequence_mask.txt";
+MoviePvp "16x16Images" = {
+    inputPath = "./input/image16x16sequence_mask.pvp";
     start_frame_index = 0;
     skip_frame_index = 0;
     echoFramePathnameFlag = false;
@@ -80,8 +80,8 @@ Movie "16x16Images" = {
     readPvpFile = false;
 };
 
-Movie "32x32Images" = {
-    inputPath = "./input/image32x32sequence_mask.txt";
+MoviePvp "32x32Images" = {
+    inputPath = "./input/image32x32sequence_mask.pvp";
     start_frame_index = 0;
     skip_frame_index = 0;
     echoFramePathnameFlag = false;

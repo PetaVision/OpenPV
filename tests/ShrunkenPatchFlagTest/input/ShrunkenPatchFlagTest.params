@@ -27,11 +27,11 @@ HyPerCol "column" = {
 // layers
 //
 
-Movie "input" = {
+MoviePvp "input" = {
     restart                          = false;
     nxScale                          = 1;
     nyScale                          = 1;
-    inputPath                        = "input/dot.txt";
+    inputPath                        = "input/dotmovie.pvp";
     echoFramePathnameFlag            = true;
     nf                               = 1;
     phase                            = 0;

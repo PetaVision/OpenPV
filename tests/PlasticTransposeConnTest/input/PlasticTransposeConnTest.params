@@ -45,7 +45,7 @@ HyPerCol "column" = {
 // layers
 //
 
-Image "pre" = {
+ImagePvp "pre" = {
     // nxScale is set in parameter sweep
     // nyScale is set in parameter sweep
     // imagePath is set in parameter sweep
@@ -66,7 +66,7 @@ Image "pre" = {
     jitterFlag = false;
 };
 
-Image "post" = {
+ImagePvp "post" = {
     // nxScale is set in parameter sweep
     // nyScale is set in parameter sweep
     // imagePath is set in parameter sweep
@@ -222,12 +222,12 @@ ParameterSweep "pre":nyScale = {
 };
 
 ParameterSweep "pre":inputPath= {
-    "input/8x8image.png";
-    "input/8x8image.png";
-    "input/16x16image.png";
-    "input/16x16image.png";
-    "input/8x8image.png";
-    "input/8x8image.png";
+    "input/8x8image.pvp";
+    "input/8x8image.pvp";
+    "input/16x16image.pvp";
+    "input/16x16image.pvp";
+    "input/8x8image.pvp";
+    "input/8x8image.pvp";
 };
 
 ParameterSweep "post":nxScale = {
@@ -239,12 +239,12 @@ ParameterSweep "post":nyScale = {
 };
 
 ParameterSweep "post":inputPath= {
-    "input/8x8image.png";
-    "input/8x8image.png";
-    "input/8x8image.png";
-    "input/8x8image.png";
-    "input/16x16image.png";
-    "input/16x16image.png";
+    "input/8x8image.pvp";
+    "input/8x8image.pvp";
+    "input/8x8image.pvp";
+    "input/8x8image.pvp";
+    "input/16x16image.pvp";
+    "input/16x16image.pvp";
 };
 
 ParameterSweep "comparison":nxScale = {

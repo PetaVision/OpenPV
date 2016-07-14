@@ -36,10 +36,10 @@ HyPerCol "column" = {
 // Layers
 //
 
-Movie "inputmovie" = {
+MoviePvp "inputmovie" = {
    nxScale = 1.0;
    nyScale = 1.0;
-   inputPath = "input/filenames.txt";
+   inputPath = "input/testmovie.pvp";
    nf = 1;
    phase = 0;
    writeStep = -1;

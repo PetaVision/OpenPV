@@ -50,13 +50,13 @@ HyPerCol "column" = {
 // layers
 //
 
-Image "Input" = {
+ImagePvp "Input" = {
     nxScale = 1;
     nyScale = 1;
-    inputPath = "input/FD404DD0-7F94-4F59-84F2-E694FBB3D9E2-5807-00000415624C9C17_1.0-0003.png";
+    inputPath = "input/testimage.pvp";
     nf = 1;
     phase = 0;
-    writeStep = -1;
+    writeStep = 1;
     sparseLayer = false;
     updateGpu = false;
     mirrorBCflag = false;

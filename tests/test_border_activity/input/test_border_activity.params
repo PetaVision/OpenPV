@@ -16,7 +16,7 @@ HyPerCol "column" = {
    suppressLastOutput = false;
 };
 
-Image "test_border_activity image" = {
+ImagePvp "test_border_activity image" = {
    nxScale = 1;
    nyScale = 1;
    nf = 1;
@@ -29,7 +29,7 @@ Image "test_border_activity image" = {
    writeImages = false;
    restart = false;
 
-   inputPath = "input/const_one_64x64.tif";
+   inputPath = "input/const_one_64x64.pvp";
    offsetX = 0;
    offsetY = 0;
    useImageBCflag = false;

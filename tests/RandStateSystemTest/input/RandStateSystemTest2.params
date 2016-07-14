@@ -34,11 +34,11 @@ HyPerCol "column" = {
 // layers
 //
 
-Image "Input" = {
+ImagePvp "Input" = {
     restart                     = 0;
     nxScale                     = 4;
     nyScale                     = 4;
-    inputPath                   = "input/sampleimage.png";
+    inputPath                   = "input/sampleimage.pvp";
     nf                          = 1;
     phase                       = 0;
     writeStep                   = -1;

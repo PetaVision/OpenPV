@@ -19,11 +19,11 @@ HyPerCol "column" = {
 };
 
 //This layer must have .5 activity for one timestep
-Movie "origPre" = {
+MoviePvp "origPre" = {
     restart                          = false;
     nxScale                          = 1;
     nyScale                          = 1;
-    inputPath                        = "input/origList.txt";
+    inputPath                        = "input/origList.pvp";
     echoFramePathnameFlag            = true;
     nf                               = 1;
     phase                            = 0;
@@ -52,11 +52,11 @@ Movie "origPre" = {
 };
 
 //This layer must have .25 activity for one timestep
-Movie "clonePre" = {
+MoviePvp "clonePre" = {
     restart                          = false;
     nxScale                          = 1;
     nyScale                          = 1;
-    inputPath                        = "input/cloneList.txt";
+    inputPath                        = "input/cloneList.pvp";
     echoFramePathnameFlag            = true;
     nf                               = 1;
     phase                            = 0;

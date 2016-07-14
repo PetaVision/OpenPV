@@ -30,11 +30,11 @@ HyPerCol "column" = {
 //  0 Image
 //  1 Copy
 
-Image "Image" = {
+ImagePvp "Image" = {
     initializeFromCheckpointFlag = false;
     nxScale = 1;
     nyScale = 1;
-    inputPath = "input/F_N160050.jpg";
+    inputPath = "input/F_N160050.pvp";
     nf = 3;
     phase = 0;
     writeStep = -1;
