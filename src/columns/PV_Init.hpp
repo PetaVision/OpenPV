@@ -194,8 +194,10 @@ public:
     * Sets the log file.  If the string argument is null, logging returns to the
     * default streams (probably cout and cerr).  The previous log file,
     * if any, is closed; and the new file is opened in write mode.
+    * Return value is PV_SUCCESS or PV_FAILURE.
+    * If the routine fails, the logging streams remain unchanged.
     */
-   void setLogFile(char const * val, bool appendFlag=false);
+   int setLogFile(char const * val, bool appendFlag=false);
 
    /**
     * Sets the value of the gpu devices string to a copy of the input argument.
