@@ -55,6 +55,7 @@ macro(pv_add_executable TARGET)
   else()
     list(APPEND CMAKE_CXX_FLAGS ${PV_COMPILE_FLAGS_DEBUG})
   endif()
+  list(APPEND CMAKE_CXX_FLAGS ${PV_COMPILE_OPTIONS_EXTRA})
 
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${PV_CPP_11X_FLAGS}")
 
