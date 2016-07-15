@@ -45,6 +45,7 @@
 #include <layers/RescaleLayer.hpp>
 #include <layers/RunningAverageLayer.hpp>
 #include <layers/Retina.hpp>
+#include <layers/SpikingLCALayer.hpp>
 #include <layers/ShuffleLayer.hpp>
 #include <layers/SigmoidLayer.hpp>
 #include <layers/WTALayer.hpp>
@@ -62,6 +63,7 @@
 #include <connections/PlasticCloneConn.hpp>
 #include <connections/PoolingConn.hpp>
 #include <connections/RescaleConn.hpp>
+#include <connections/STDPConn.hpp>
 #include <connections/TransposeConn.hpp>
 #include <connections/TransposePoolingConn.hpp>
 
@@ -156,6 +158,7 @@ int Factory::registerCoreKeywords() {
    registerKeyword("RunningAverageLayer", createRunningAverageLayer);
    registerKeyword("Retina", createRetina);
    registerKeyword("ShuffleLayer", createShuffleLayer);
+   registerKeyword("SpikingLCALayer", createSpikingLCALayer);
    registerKeyword("SigmoidLayer", createSigmoidLayer);
    registerKeyword("WTALayer", createWTALayer);
 
@@ -172,6 +175,7 @@ int Factory::registerCoreKeywords() {
    registerKeyword("PlasticCloneConn", createPlasticCloneConn);
    registerKeyword("PoolingConn", createPoolingConn);
    registerKeyword("RescaleConn", createRescaleConn);
+   registerKeyword("STDPConn", createSTDPConn);
    registerKeyword("TransposeConn", createTransposeConn);
    registerKeyword("TransposePoolingConn", createTransposePoolingConn);
 
