@@ -101,7 +101,7 @@ ConstantLayer "InputLayer" = {
     dataType                            = NULL;
 };
 
-Movie "ResetLayer" = {
+MoviePvp "ResetLayer" = {
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 1;
@@ -113,7 +113,7 @@ Movie "ResetLayer" = {
     sparseLayer                         = false;
     updateGpu                           = false;
     dataType                            = NULL;
-    inputPath                           = "input/dot.txt";
+    inputPath                           = "input/dotmovie.pvp";
     offsetAnchor                        = "tl";
     offsetX                             = 0;
     offsetY                             = 0;

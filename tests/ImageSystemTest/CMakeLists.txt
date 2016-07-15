@@ -1,1 +1,5 @@
-pv_add_test(PARAMS ImageFileIO ImagePvpFileIO ImagePvpFileIOSparse MovieFileIO MoviePvpFileIO)
+if (PV_USE_GDAL)
+   pv_add_test(PARAMS ImageFileIO ImagePvpFileIO ImagePvpFileIOSparse MovieFileIO MoviePvpFileIO)
+else (PV_USE_GDAL)
+   pv_add_test(PARAMS ImagePvpFileIO ImagePvpFileIOSparse MoviePvpFileIO)
+endif (PV_USE_GDAL)

@@ -10,7 +10,7 @@
  */
 
 #include <columns/HyPerCol.hpp>
-#include <layers/Image.hpp>
+#include <layers/ImagePvp.hpp>
 #include <layers/Retina.hpp>
 #include <connections/HyPerConn.hpp>
 #include <layers/ANNLayer.hpp>
@@ -33,8 +33,6 @@ int check_activity(HyPerLayer * l);
 int main(int argc, char * argv[])
 {
 
-#ifdef PV_USE_GDAL
-
    int status = 0;
 
    int rank=0;
@@ -56,7 +54,7 @@ int main(int argc, char * argv[])
    const char * retinaLayerName = "test_border_activity retina";
    const char * l1LayerName = "test_border_activity layer";
 
-   Image * image   = new Image(imageLayerName, hc); assert(image);
+   ImagePvp * image   = new ImagePvp(imageLayerName, hc); assert(image);
    Retina * retina = new Retina(retinaLayerName, hc);           assert(retina);
    ANNLayer * l1     = new ANNLayer(l1LayerName, hc);           assert(l1);
 
@@ -83,10 +81,6 @@ int main(int argc, char * argv[])
 
    return status;
 
-#else // PV_USE_GDAL
-   pvErrorNoExit().printf("%s requires PV_USE_GDAL to be set.\n", argv[0]);
-   return EXIT_FAILURE;
-#endif // PV_USE_GDAL
 }
 
 int check_activity(HyPerLayer * l)

@@ -58,10 +58,10 @@ HyPerCol "column" = {
 // layers
 //
 
-Image "input" = {
+ImagePvp "input" = {
     nxScale = 1;
     nyScale = 1;
-    inputPath = "input/ones.png";
+    inputPath = "input/ones.pvp";
     nf = 3;
     phase = 0;
     writeStep = -1;

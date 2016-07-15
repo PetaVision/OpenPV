@@ -1,5 +1,0 @@
-input/zeros32x32.png
-input/mask32x32.png
-input/zeros32x32.png
-input/zeros32x32.png
-input/zeros32x32.png

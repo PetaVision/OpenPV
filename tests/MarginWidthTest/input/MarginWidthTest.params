@@ -32,10 +32,10 @@ HyPerCol "column" = {
 // layers
 //
 
-Image "MarginsEqualImage" = {
+ImagePvp "MarginsEqualImage" = {
     nxScale = 1;
     nyScale = 1;
-    inputPath = "input/testimage.jpg";
+    inputPath = "input/testimage.pvp";
     nf = 1;
     phase = 0;
     writeStep = -1;
@@ -72,10 +72,10 @@ ANNLayer "MarginsEqualResult" = {
     VWidth = 0.0;
 };
 
-Image "XMarginLargerImage" = {
+ImagePvp "XMarginLargerImage" = {
     nxScale = 1;
     nyScale = 1;
-    inputPath = "input/testimage.jpg";
+    inputPath = "input/testimage.pvp";
     nf = 1;
     phase = 0;
     writeStep = -1;
@@ -112,10 +112,10 @@ ANNLayer "XMarginLargerResult" = {
     VWidth = 0.0;
 };
 
-Image "YMarginLargerImage" = {
+ImagePvp "YMarginLargerImage" = {
     nxScale = 1;
     nyScale = 1;
-    inputPath = "input/testimage.jpg";
+    inputPath = "input/testimage.pvp";
     nf = 1;
     phase = 0;
     writeStep = -1;
@@ -152,10 +152,10 @@ ANNLayer "YMarginLargerResult" = {
     VWidth = 0.0;
 };
 
-Image "MultipleConnImage" = {
+ImagePvp "MultipleConnImage" = {
     nxScale = 1;
     nyScale = 1;
-    inputPath = "input/testimage.jpg";
+    inputPath = "input/testimage.pvp";
     nf = 1;
     phase = 0;
     writeStep = -1;

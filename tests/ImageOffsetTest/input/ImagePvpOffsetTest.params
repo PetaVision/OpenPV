@@ -1,0 +1,106 @@
+debugParsing = false;
+
+HyPerCol "column" = {
+    nx = 16; //1242;  // KITTI synced value
+    ny = 16;  //218;
+    dt = 1.0;
+    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+    startTime = 0.0;
+    stopTime = 10.0;       // Depends on number of VINE video frames
+    progressInterval = 1.0;
+    //Change this
+    outputPath = "output/";
+    filenamesContainLayerNames = true;
+    filenamesContainConnectionNames = true;
+    checkpointWrite = false;
+    // deleteOlderCheckpoints = false;
+    suppressLastOutput = true;
+    writeProgressToErr = true;
+    nbatch = 2;
+};
+
+// this is a input layer
+ImagePvpOffsetTestLayer "crop" = {
+    nxScale = .5;
+    nyScale = .5;
+    inputPath = "input/input.pvp";
+    nf = 3;
+    phase = 0;
+    writeStep = -1;
+    sparseLayer = false;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    useImageBCflag = false;
+    inverseFlag = false; 
+    normalizeLuminanceFlag = false;
+    autoResizeFlag = false;
+    writeImages = false;
+    offsetAnchor = "cc";
+    offsetX = 0;  // offset for crop, when the input size is smaller than the size of image
+    offsetY = 0;
+    jitterFlag = false; // moving around like an eyeball. our eyeballs are not still even when we are gazing at something.
+};
+
+ImagePvpOffsetTestLayer "pad" = {
+   #include "crop";
+   @nxScale = 2;
+   @nyScale = 2;
+};
+
+ImagePvpOffsetTestLayer "TLCorner" = {
+   #include "crop";
+   @nxScale = 1;
+   @nyScale = 1;
+   @offsetAnchor = "tl";
+   @offsetX = 14;
+   @offsetY = 14;
+};
+
+ImagePvpOffsetTestLayer "TRCorner" = {
+   #include "TLCorner";
+   @offsetAnchor = "tr";
+   @offsetX = -14;
+   @offsetY = 14;
+};
+
+ImagePvpOffsetTestLayer "BLCorner" = {
+   #include "TLCorner";
+   @offsetAnchor = "bl";
+   @offsetX = 14;
+   @offsetY = -14;
+};
+
+ImagePvpOffsetTestLayer "BRCorner" = {
+   #include "TLCorner";
+   @offsetAnchor = "br";
+   @offsetX = -14;
+   @offsetY = -14;
+};
+
+ImagePvpOffsetTestLayer "TLOver" = {
+   #include "TLCorner";
+   @offsetAnchor = "tl";
+   @offsetX = 2;
+   @offsetY = 2;
+};
+
+ImagePvpOffsetTestLayer "TROver" = {
+   #include "TLCorner";
+   @offsetAnchor = "tr";
+   @offsetX = -2;
+   @offsetY = 2;
+};
+
+ImagePvpOffsetTestLayer "BLOver" = {
+   #include "TLCorner";
+   @offsetAnchor = "bl";
+   @offsetX = 2;
+   @offsetY = -2;
+};
+
+ImagePvpOffsetTestLayer "BROver" = {
+   #include "TLCorner";
+   @offsetAnchor = "br";
+   @offsetX = -2;
+   @offsetY = -2;
+};

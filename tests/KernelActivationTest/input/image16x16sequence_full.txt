@@ -1,5 +1,0 @@
-input/zeros16x16.png
-input/gray16x16.png
-input/zeros16x16.png
-input/zeros16x16.png
-input/zeros16x16.png

@@ -1,0 +1,218 @@
+//
+// MovieSystemTest.params
+//
+// created by peteschultz: Dec 5, 2013
+//
+// A short params file to test border exchange in the Movie class.
+//
+// There are two input movies of 8x8 images, with 64 distinct images
+// and a display period of 5.
+//
+// One movie, "input" reads dot??.png files, where a single pixel is activated,
+// and the pixel moves over the 64 sites as the movie runs from frame to frame.
+//
+// This movie is passed through a 3x3 connection with uniform weights of 1.
+// The output is therefore usually a 3x3 patch of active pixels, although the
+// picture is different at the edges.  The movie has mirror BCs on.
+//
+// The other movie, "correctoutput" reads out??.png files, that contain the
+// correct result of the 3x3 convolution.
+//
+// The output of the first movie is compared with the second movie in the
+// layer "comparison".  TestAllZerosProbe reports an error if there is ever
+// a nonzero activity in the comparison layer.
+
+debugParsing = false;    // If true, debug the reading of this parameter file.
+
+HyPerCol "column" = {
+   nx                               = 8;
+   ny                               = 8;
+   dt                               = 1.0;
+   dtAdaptController                = NULL;
+   randomSeed                       = 1234567890;
+   startTime                        = 0.0;
+   stopTime                         = 320;
+   progressInterval                 = 1000;
+   writeProgressToErr               = false;
+   verifyWrites                     = true;
+   outputPath                       = "output/";
+   printParamsFilename              = "pv.params";
+   filenamesContainLayerNames       = 2;
+   filenamesContainConnectionNames  = 2;
+   initializeFromCheckpointDir      = "";
+   checkpointWrite                  = false;
+   // checkpointWriteDir               = "output/checkpoints";
+   // checkpointWriteStepInterval      = 10000;
+   // deleteOlderCheckpoints           = true;
+   suppressLastOutput               = false;
+   errorOnNotANumber                = false;
+};
+
+//
+// layers
+//
+
+MoviePvp "input" = {
+    restart                          = false;
+    nxScale                          = 1;
+    nyScale                          = 1;
+    inputPath                        = "input/dot.pvp";
+    echoFramePathnameFlag            = true;
+    nf                               = 1;
+    phase                            = 0;
+    writeStep                        = -1;
+    // initialWriteTime
+    sparseLayer                      = false;
+    updateGpu                        = false;
+    mirrorBCflag                     = true;
+    useImageBCflag                   = false;
+    inverseFlag                      = false;
+    normalizeLuminanceFlag           = false;
+    autoResizeFlag                   = false;
+    writeImages                      = false;
+    offsetAnchor                     = "tl";
+    offsetX                          = 0;
+    offsetY                          = 0;
+    jitterFlag                       = false;
+    padValue                         = 0;
+    randomMovie                      = false;
+    displayPeriod                    = 5;
+    start_frame_index                = 1;
+    skip_frame_index                 = 0;
+    writeFrameToTimestamp            = true;
+    flipOnTimescaleError             = true;
+    resetToStartOnLoop               = false;
+};
+
+ANNLayer "ganglion" = {
+    restart                          = false;
+    nxScale                          = 1;
+    nyScale                          = 1;
+    nf                               = 1;
+    phase                            = 1;
+    writeStep                        = -1;
+    // initialWriteTime
+    mirrorBCflag                     = true;
+    sparseLayer                      = false;
+    updateGpu                        = false;
+    triggerLayerName                 = NULL;
+
+    InitVType                        = "ZeroV";
+
+    VThresh                          = -infinity;
+    AMax                             = infinity;
+    AMin                             = -infinity;
+    AShift                           = 0.0;
+    VWidth                           = 0.0;
+    clearGSynInterval                = 0.0;
+};
+
+MoviePvp "correctoutput" = {
+    restart                          = false;
+    nxScale                          = 1;
+    nyScale                          = 1;
+    inputPath                        = "input/out.pvp";
+    echoFramePathnameFlag            = true;
+    nf                               = 1;
+    phase                            = 0;
+    writeStep                        = -1;
+    // initialWriteTime
+    sparseLayer                      = false;
+    updateGpu                        = false;
+    mirrorBCflag                     = true;
+    useImageBCflag                   = false;
+    inverseFlag                      = false;
+    normalizeLuminanceFlag           = false;
+    autoResizeFlag                   = false;
+    writeImages                      = false;
+    offsetAnchor                     = "tl";
+    offsetX                          = 0;
+    offsetY                          = 0;
+    jitterFlag                       = false;
+    padValue                         = 0;
+    randomMovie                      = false;
+    displayPeriod                    = 5;
+    start_frame_index                = 1;
+    skip_frame_index                 = 0;
+    writeFrameToTimestamp            = true;
+    flipOnTimescaleError             = true;
+    resetToStartOnLoop               = false;
+};
+
+ANNLayer "comparison" = {
+    restart                          = false;
+    nxScale                          = 1;
+    nyScale                          = 1;
+    nf                               = 1;
+    phase                            = 2;
+    writeStep                        = -1;
+    // initialWriteTime
+    mirrorBCflag                     = true;
+    sparseLayer                      = false;
+    updateGpu                        = false;
+    triggerLayerName                 = NULL;
+
+    InitVType                        = "ZeroV";
+
+    VThresh                          = -infinity;
+    AMax                             = infinity;
+    AMin                             = -infinity;
+    AShift                           = 0.0;
+    VWidth                           = 0.0;
+    clearGSynInterval                = 0.0;
+};
+
+HyPerConn "input_to_ganglion" = {
+    preLayerName                     = "input";
+    postLayerName                    = "ganglion";
+    channelCode                      = 0;
+
+    sharedWeights                    = false;
+    nxp                              = 3;
+    nyp                              = 3;
+    nfp                              = 1;
+    numAxonalArbors                  = 1;
+    writeStep                        = -1;
+    
+    weightInitType                   = "UniformWeight";
+    weightInit                       = 1.0;
+    connectOnlySameFeatures          = false;
+    
+    normalizeMethod                  = "none";
+
+    writeCompressedCheckpoints       = false;
+    plasticityFlag                   = false;
+    selfFlag                         = false;
+
+    delay                            = 0;
+
+    pvpatchAccumulateType            = "Convolve";
+    shrinkPatches                    = false;
+    updateGSynFromPostPerspective    = false;
+    convertRateToSpikeCount          = false;
+    receiveGpu                       = false;
+};
+
+IdentConn "ganglion_to_comparison" = {
+    preLayerName                     = "ganglion";
+    postLayerName                    = "comparison";
+    channelCode                      = 0;
+    delay                            = 0;
+    writeStep                        = -1;
+};
+
+IdentConn "correctoutput_to_comparison" = {
+    preLayerName                     = "correctoutput";
+    postLayerName                    = "comparison";
+    channelCode                      = 1;
+    delay                            = 0;
+    writeStep                        = -1;
+};
+
+TestAllZerosProbe "comparison probe" = {
+    targetLayer = "comparison";
+    message = "comparison                    ";
+    probeOutputFile = NULL;
+    triggerLayerName = NULL;
+    nnzThreshold = 0;
+};
