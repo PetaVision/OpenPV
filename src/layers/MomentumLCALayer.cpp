@@ -14,9 +14,6 @@
 
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 void MomentumLCALayer_update_state(
     const int nbatch,
@@ -42,9 +39,6 @@ void MomentumLCALayer_update_state(
     float * activity,
     float * prevDrive);
 
-#ifdef __cplusplus
-}
-#endif
 
 namespace PV {
 

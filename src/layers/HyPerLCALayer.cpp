@@ -14,9 +14,6 @@
 
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 void HyPerLCALayer_update_state(
     const int nbatch,
@@ -40,9 +37,6 @@ void HyPerLCALayer_update_state(
     float * GSynHead,
     float * activity);
 
-#ifdef __cplusplus
-}
-#endif
 
 namespace PV {
 

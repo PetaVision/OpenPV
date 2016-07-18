@@ -14,9 +14,6 @@
 
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 void ISTALayer_update_state(
     const int nbatch,
@@ -37,9 +34,6 @@ void ISTALayer_update_state(
     float * GSynHead,
     float * activity);
 
-#ifdef __cplusplus
-}
-#endif
 
 namespace PV {
 

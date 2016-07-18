@@ -7,10 +7,6 @@
 
 #include "ANNSquaredLayer.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 void ANNSquaredLayer_update_state(
     const int nbatch,
     const int numNeurons,
@@ -26,9 +22,6 @@ void ANNSquaredLayer_update_state(
     float * GSynHead,
     float * activity);
 
-#ifdef __cplusplus
-}
-#endif
 
 namespace PV {
 

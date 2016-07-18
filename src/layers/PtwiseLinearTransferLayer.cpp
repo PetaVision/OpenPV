@@ -9,9 +9,6 @@
 #include "updateStateFunctions.h"
 #include <limits>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 void PtwiseLinearTransferLayer_update_state(
     const int nbatch,
@@ -32,10 +29,6 @@ void PtwiseLinearTransferLayer_update_state(
     int num_channels,
     float * GSynHead,
     float * activity);
-
-#ifdef __cplusplus
-}
-#endif
 
 namespace PV {
 

@@ -18,9 +18,6 @@
 #include <string.h>
 #include <math.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 void Retina_spiking_update_state (
     const int nbatch,
@@ -60,9 +57,6 @@ void Retina_nonspiking_update_state (
 //    float * phiInh,
     float * activity);
 
-#ifdef __cplusplus
-}
-#endif
 
 
 namespace PV {

@@ -21,9 +21,6 @@
 #include <string.h>
 
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 void LIFGap_update_state_original(
     const int nbatch,
@@ -110,9 +107,6 @@ void LIFGap_update_state_arma(
 );
 
 
-#ifdef __cplusplus
-}
-#endif
 
 
 namespace PV {

@@ -7,9 +7,6 @@
 
 #include "ANNErrorLayer.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 void ANNErrorLayer_update_state(
     const int nbatch, 
@@ -32,9 +29,6 @@ void ANNErrorLayer_update_state(
     const float errScale);
 
 
-#ifdef __cplusplus
-}
-#endif
 
 namespace PV {
 
