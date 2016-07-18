@@ -1,0 +1,199 @@
+// ConstantLayerTest
+// created by peteschultz: Jul 18, 2016
+//
+// The test compares a ConstantLayer initialized with ConstantV and valueV=10
+// with an ImagePvp layer that loads a pvp file with all values 10.
+//
+// It also compares a ConstantLayer initialized with InitVFromFile and
+// an ImagePvp layer, where the two layers are initialized from the same
+// pvp file.
+//
+// RequireAllZeroActivityProbes verify that the difference between each pair
+// is zero.
+
+
+HyPerCol "column" = {
+    startTime                           = 0;
+    dt                                  = 1;
+    dtAdaptFlag                         = false;
+    dtAdaptController                   = NULL;
+    stopTime                            = 10;
+    progressInterval                    = 10;
+    writeProgressToErr                  = false;
+    verifyWrites                        = false;
+    outputPath                          = "output/";
+    printParamsFilename                 = "pv.params";
+    randomSeed                          = 369969020;
+    nx                                  = 16;
+    ny                                  = 16;
+    nbatch                              = 1;
+    filenamesContainLayerNames          = 1;
+    filenamesContainConnectionNames     = 1;
+    initializeFromCheckpointDir         = "";
+    checkpointWrite                     = false;
+    suppressLastOutput                  = false;
+    errorOnNotANumber                   = false;
+};
+
+ConstantLayer "ConstantV" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 3;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    InitVType                           = "ConstantV";
+    valueV                              = 10;
+    writeStep                           = -1;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+};
+
+ImagePvp "ConstantVCheck" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 3;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    writeStep                           = -1;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+    inputPath                           = "input/initialVConstant.pvp";
+    offsetAnchor                        = "tl";
+    offsetX                             = 0;
+    offsetY                             = 0;
+    writeImages                         = 0;
+    autoResizeFlag                      = false;
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = false;
+    jitterFlag                          = 0;
+    useImageBCflag                      = false;
+    padValue                            = 0;
+    pvpFrameIdx                         = 0;
+};
+
+HyPerLayer "ConstantVCompare" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 3;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 1;
+    InitVType                           = "ZeroV";
+    writeStep                           = -1;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+};
+
+IdentConn "ConstantVToConstantVCompare" = {
+    preLayerName                        = "ConstantV";
+    postLayerName                       = "ConstantVCompare";
+    channelCode                         = 0;
+    delay                               = [0.000000];
+    numAxonalArbors                     = 1;
+};
+
+IdentConn "ConstantVCheckToConstantVCompare" = {
+    preLayerName                        = "ConstantVCheck";
+    postLayerName                       = "ConstantVCompare";
+    channelCode                         = 1;
+    delay                               = [0.000000];
+    numAxonalArbors                     = 1;
+};
+
+RequireAllZeroActivityProbe "ConstantVCompareProbe" = {
+    targetLayer                         = "ConstantVCompare";
+    message                             = NULL;
+    textOutputFlag                      = true;
+    probeOutputFile                     = "ConstantVCompare.txt";
+    triggerLayerName                    = NULL;
+    energyProbe                         = NULL;
+    nnzThreshold                        = 1e-06;
+    exitOnFailure                       = true;
+};
+
+ConstantLayer "InitVFromFile" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 3;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    InitVType                           = "InitVFromFile";
+    Vfilename                           = "input/initialVFile.pvp";
+    valueV                              = 10;
+    writeStep                           = -1;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+};
+
+ImagePvp "InitVFromFileCheck" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 3;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    writeStep                           = -1;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+    inputPath                           = "input/initialVFile.pvp";
+    offsetAnchor                        = "tl";
+    offsetX                             = 0;
+    offsetY                             = 0;
+    writeImages                         = 0;
+    autoResizeFlag                      = false;
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = false;
+    jitterFlag                          = 0;
+    useImageBCflag                      = false;
+    padValue                            = 0;
+    pvpFrameIdx                         = 0;
+};
+
+HyPerLayer "InitVFromFileCompare" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 3;
+    phase                               = 1;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    InitVType                           = "ZeroV";
+    writeStep                           = -1;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+};
+
+IdentConn "InitVFromFileToInitVFromFileCompare" = {
+    preLayerName                        = "InitVFromFile";
+    postLayerName                       = "InitVFromFileCompare";
+    channelCode                         = 0;
+    delay                               = [0.000000];
+    numAxonalArbors                     = 1;
+};
+
+IdentConn "InitVFromFileCheckToInitVFromFileCompare" = {
+    preLayerName                        = "InitVFromFileCheck";
+    postLayerName                       = "InitVFromFileCompare";
+    channelCode                         = 1;
+    delay                               = [0.000000];
+    numAxonalArbors                     = 1;
+};
+
+RequireAllZeroActivityProbe "InitVFromFileCompareProbe" = {
+    targetLayer                         = "InitVFromFileCompare";
+    message                             = NULL;
+    textOutputFlag                      = true;
+    probeOutputFile                     = "InitVFromFileCompare.txt";
+    triggerLayerName                    = NULL;
+    energyProbe                         = NULL;
+    nnzThreshold                        = 0.0;
+    exitOnFailure                       = true;
+};
