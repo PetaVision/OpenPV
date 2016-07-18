@@ -16,17 +16,6 @@ Example::Example(const char * name, HyPerCol * hc)
    initialize(name, hc);
 }
 
-#ifdef PV_USE_OPENCL
-int Example::initializeThreadBuffers(const char * kernelName)
-{
-   return 0;
-}
-
-int Example::initializeThreadKernels(const char * kernelName)
-{
-   return 0;
-}
-#endif
 
 int Example::updateState(double time, double dt)
 {

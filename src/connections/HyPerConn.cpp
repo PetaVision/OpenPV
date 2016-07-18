@@ -4736,12 +4736,4 @@ NormalizeBase * getWeightNormalizer(char const * name, HyPerCol * hc) {
 
 } // namespace PV
 
-#ifdef __cplusplus
-extern "C" {
-#endif // __cplusplus
 
-#include "kernels/HyPerLayer_recv_synaptic_input.cl"
-   
-#ifdef __cplusplus
-}
-#endif // __cplusplus

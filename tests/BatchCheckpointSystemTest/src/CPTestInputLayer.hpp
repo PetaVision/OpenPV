@@ -24,17 +24,6 @@ protected:
    int initialize(const char * name, HyPerCol * hc);
    virtual int initializeV();
 
-#ifdef PV_USE_OPENCL
-
-protected:
-   //virtual int getNumCLEvents() {return numEvents;}
-   virtual const char * getKernelName() { return "ANNLayer_vertices_update_state"; }
-   //virtual int initializeThreadBuffers(const char * kernel_name);
-   //virtual int initializeThreadKernels(const char * kernel_name);
-   int updateStateOpenCL(double timed, double dt);
-
-#endif // PV_USE_OPENCL
-
 }; // end class CPTestInputLayer
 
 BaseObject * createCPTestInputLayer(char const * name, HyPerCol * hc);
