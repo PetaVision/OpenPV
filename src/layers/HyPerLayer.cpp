@@ -684,6 +684,9 @@ int HyPerLayer::initializeState() {
       if (initializeFromCheckpointFlag) {
          status = readStateFromCheckpoint(parent->getInitializeFromCheckpointDir(), NULL);
       }
+      else {
+         status = setInitialValues();
+      }
    }
    else {
       status = setInitialValues();
