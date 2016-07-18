@@ -1072,8 +1072,7 @@ void HyPerCol::ioParam_initializeFromCheckpointDir(enum ParamsIOFlag ioFlag) {
 
 void HyPerCol::ioParam_defaultInitializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
    assert(!params->presentAndNotBeenRead(name, "initializeFromCheckpointDir"));
-   assert(initializeFromCheckpointDir); // Should never be null after ioParam_initializeFromCheckpoint is called: an empty string serves as turning the feature off
-   if (initializeFromCheckpointDir[0] != '\0') {
+   if (initializeFromCheckpointDir != nullptr && initializeFromCheckpointDir[0] != '\0') {
       ioParamValue(ioFlag, name, "defaultInitializeFromCheckpointFlag", &defaultInitializeFromCheckpointFlag, defaultInitializeFromCheckpointFlag, true/*warn if absent*/);
    }
 
