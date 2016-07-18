@@ -250,10 +250,9 @@ int LIFGap::updateState(double time, double dt)
             G_I, G_IB, GSynHead, activity, gapStrength);
       break;
    default:
-      assert(0);
       break;
-      return status;
    }
+   return status; 
 }
 
 BaseObject * createLIFGap(char const * name, HyPerCol * hc) {
