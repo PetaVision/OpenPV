@@ -7,9 +7,6 @@
 
 #include "LabelErrorLayer.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 void LabelErrorLayer_update_state(
     const int nbatch,
@@ -33,9 +30,6 @@ void LabelErrorLayer_update_state(
     int isBinary);
 
 
-#ifdef __cplusplus
-}
-#endif
 
 namespace PV {
 
@@ -108,19 +102,27 @@ BaseObject * createLabelErrorLayer(char const * name, HyPerCol * hc) {
 
 } /* namespace PV */
 
+//Kernel
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+void LabelErrorLayer_update_state(
+    const int nbatch,
+    const int numNeurons,
+    const int nx,
+    const int ny,
+    const int nf,
+    const int lt,
+    const int rt,
+    const int dn,
+    const int up,
 
-#ifndef PV_USE_OPENCL
-#  include "../kernels/LabelErrorLayer_update_state.cl"
-#else
-#  undef PV_USE_OPENCL
-#  include "../kernels/LabelErrorLayer_update_state.cl"
-#  define PV_USE_OPENCL
-#endif
-
-#ifdef __cplusplus
+    float * V,
+    int numVertices,
+    float * verticesV,
+    float * verticesA,
+    float * slopes,
+    float * GSynHead,
+    float * activity,
+    const float errScale, const int isBinary)
+{
+  updateV_LabelErrorLayer(nbatch, numNeurons, V, GSynHead, activity, numVertices, verticesV, verticesA, slopes, nx, ny, nf, lt, rt, dn, up, errScale, isBinary);
 }
-#endif

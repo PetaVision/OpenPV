@@ -40,7 +40,7 @@ int IdentConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    return status;
 }
 
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#ifdef PV_USE_CUDA
 void IdentConn::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
    //Never receive from gpu
    receiveGpu = false;
@@ -48,7 +48,7 @@ void IdentConn::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
       parent->parameters()->handleUnnecessaryParameter(name, "receiveGpu", false/*correctValue*/);
    }
 }
-#endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#endif // PV_USE_CUDA
 
 
 // Note this is one of the subclasses of the former kernelconn where it doesn't make sense to allow sharedWeights to be false
@@ -238,42 +238,6 @@ int IdentConn::communicateInitInfo() {
 void IdentConn::handleDefaultSelfFlag() {
    assert(selfFlag==false);
 }
-
-//This deliver only differs from HyPerConn's deliver through if statements checking for recv GPU and recv from post. Since these flags are hard coded in IdentConn, calling HyPerConn's deliver should be okay. This is to make deliver a non-virtual method, as HyPerConn's methods sets flags for GPU updates of GSyn, a source of errors when a subclass overwrites deliver.
-//int IdentConn::deliver() {
-//   int status = PV_SUCCESS;
-//
-//   //Check if updating from post perspective
-//   HyPerLayer * pre = preSynapticLayer();
-//   PVLayerCube cube;
-//   memcpy(&cube.loc, pre->getLayerLoc(), sizeof(PVLayerLoc));
-//   cube.numItems = pre->getNumExtended();
-//   cube.size = sizeof(PVLayerCube);
-//
-//   DataStore * store = parent->icCommunicator()->publisherStore(pre->getLayerId());
-//   assert(numberOfAxonalArborLists()==1);
-//   int arbor = 0;
-//
-//   int delay = getDelay(arbor);
-//   cube.data = (pvdata_t *) store->buffer(LOCAL, delay);
-//   assert(getUpdateGSynFromPostPerspective()==false);
-//#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
-//   assert(getReceiveGpu()==false);
-//#endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
-//
-//   cube.isSparse = store->isSparse();
-//   if(cube.isSparse){
-//      cube.numActive = store->numActiveBuffer(LOCAL, delay);
-//      cube.activeIndices = store->activeIndicesBuffer(LOCAL, delay);
-//   }
-//
-//   status = this->deliverPresynapticPerspective(&cube, arbor);
-//   //IdentConns never deliver from gpu, so always set this flag to true
-//   post->setUpdatedDeviceGSynFlag(true);
-//
-//   assert(status == PV_SUCCESS);
-//   return PV_SUCCESS;
-//}
 
 int IdentConn::deliverPresynapticPerspective(PVLayerCube const * activity, int arborID) {
 

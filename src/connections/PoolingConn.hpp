@@ -49,7 +49,7 @@ protected:
    //gSynPatchPos, float dt_factor, taus_uint4 * rngPtr);
    void clearGateIdxBuffer();
 
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#ifdef PV_USE_CUDA
    int deliverPresynapticPerspectiveGPU(PVLayerCube const * activity, int arborID){
       pvError() << "Pooling Conn does not allow GPU deliver\n";
       return PV_FAILURE; // prevents "control reaches end of non-void function" warning
@@ -58,8 +58,7 @@ protected:
       pvError() << "Pooling Conn does not allow GPU deliver\n";
       return PV_FAILURE; // prevents "control reaches end of non-void function" warning
    }
-#endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
-
+#endif // PV_USE_CUDA 
 
 private:
    int initialize_base();

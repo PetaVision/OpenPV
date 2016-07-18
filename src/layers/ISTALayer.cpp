@@ -112,24 +112,8 @@ int ISTALayer::requireChannel(int channelNeeded, int * numChannelsResult) {
 }
 
 
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
-int ISTALayer::allocateUpdateKernel(){
-//#ifdef PV_USE_OPENCL
-//   //Not done: what's kernel name for ISTALayer for opencl?
-//   int status = CL_SUCCESS;
-//   const char* kernel_name = "HyPerLayer_recv_post";
-//   char kernelPath[PV_PATH_MAX+128];
-//   char kernelFlags[PV_PATH_MAX+128];
-//
-//   CLDevice * device = parent->getCLDevice();
-//
-//   sprintf(kernelPath, "%s/../src/kernels/%s.cl", parent->getSrcPath(), kernel_name);
-//   sprintf(kernelFlags, "-D PV_USE_OPENCL -cl-fast-relaxed-math -I %s/../src/kernels/", parent->getSrcPath());
-//
-//   // create kernels
-//   krRecvPost = device->createKernel(kernelPath, kernel_name, kernelFlags);
-//#endif
 #ifdef PV_USE_CUDA
+int ISTALayer::allocateUpdateKernel(){
    PVCuda::CudaDevice * device = parent->getDevice();
    //Set to temp pointer of the subclass
    PVCuda::CudaUpdateISTALayer * updateKernel = new PVCuda::CudaUpdateISTALayer(device);
@@ -173,16 +157,10 @@ int ISTALayer::allocateUpdateKernel(){
       tau,
       d_GSyn, d_activity);
 
-   //Update d_V for V initialization
-
-   //set updateKernel to krUpdate
    krUpdate = updateKernel;
-#endif
    return PV_SUCCESS;
 }
-#endif
 
-#ifdef PV_USE_CUDA
 int ISTALayer::updateStateGpu(double time, double dt){
    if(triggerLayer != NULL){
       pvError().printf("HyPerLayer::Trigger reset of V does not work on GPUs\n");
@@ -208,38 +186,23 @@ int ISTALayer::updateState(double time, double dt)
    pvdata_t * V = getV();
    int num_channels = getNumChannels();
    pvdata_t * gSynHead = GSyn == NULL ? NULL : GSyn[0];
-   //update_timer->start();
-//#ifdef PV_USE_OPENCL
-//   if(gpuAccelerateFlag) {
-//      updateStateOpenCL(time, dt);
-//      //HyPerLayer::updateState(time, dt);
-//   }
-//   else {
-//#endif
-   {
-      int nx = loc->nx;
-      int ny = loc->ny;
-      int nf = loc->nf;
-      int num_neurons = nx*ny*nf;
-      int nbatch = loc->nbatch;
-      //Only update when the probe updates
+   int nx = loc->nx;
+   int ny = loc->ny;
+   int nf = loc->nf;
+   int num_neurons = nx*ny*nf;
+   int nbatch = loc->nbatch;
+   //Only update when the probe updates
 
-      if (triggerLayer != NULL && triggerLayer->needUpdate(time, parent->getDeltaTime())){
-         for (int i = 0; i<num_neurons*nbatch; i++){
-            V[i]=0.0;
-         }
+   if (triggerLayer != NULL && triggerLayer->needUpdate(time, parent->getDeltaTime())){
+      for (int i = 0; i<num_neurons*nbatch; i++){
+         V[i]=0.0;
       }
-      
-      double * deltaTimeAdapt = parent->getTimeScale();
-
-      ISTALayer_update_state(nbatch, num_neurons, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, numChannels,
-            V, VThresh, deltaTimeAdapt, timeConstantTau, gSynHead, A);
-      //if (this->writeSparseActivity){
-      //   updateActiveIndices();  // added by GTK to allow for sparse output, can this be made an inline function???
-      //}
    }
+   
+   double * deltaTimeAdapt = parent->getTimeScale();
 
-   //update_timer->stop();
+   ISTALayer_update_state(nbatch, num_neurons, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, numChannels,
+         V, VThresh, deltaTimeAdapt, timeConstantTau, gSynHead, A);
    return PV_SUCCESS;
 }
 
@@ -250,20 +213,25 @@ BaseObject * createISTALayer(char const * name, HyPerCol * hc) {
 } /* namespace PV */
 
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+void ISTALayer_update_state(
+    const int nbatch,
+    const int numNeurons,
+    const int nx,
+    const int ny,
+    const int nf,
+    const int lt,
+    const int rt,
+    const int dn,
+    const int up,
+    const int numChannels,
 
-#ifndef PV_USE_OPENCL
-#  include "../kernels/ISTALayer_update_state.cl"
-#else
-#  undef PV_USE_OPENCL
-#  include "../kernels/ISTALayer_update_state.cl"
-#  define PV_USE_OPENCL
-#endif
-
-#ifdef __cplusplus
+    float * V,
+    const float Vth,
+    double* dtAdapt,
+    const float tau,
+    float * GSynHead,
+    float * activity)
+{
+   updateV_ISTALayer(nbatch, numNeurons, V, GSynHead, activity,
+		   Vth, dtAdapt, tau, nx, ny, nf, lt, rt, dn, up, numChannels);
 }
-#endif
-
-

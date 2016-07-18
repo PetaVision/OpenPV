@@ -66,7 +66,7 @@ int CudaDevice::initialize(int device)
    handleError(cudaGetDeviceProperties(&device_props, device), "Getting device properties");
 
    status = 0;
-#endif // PV_USE_OPENCL
+#endif // PV_USE_CUDA
    
 #ifdef PV_USE_CUDNN
    //Testing cudnn here

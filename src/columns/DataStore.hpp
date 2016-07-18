@@ -11,11 +11,6 @@
 #include "../include/pv_arch.h"
 #include <stdlib.h>
 
-#ifdef PV_USE_OPENCL
-#include "../arch/opencl/CLBuffer.hpp"
-#include "../arch/opencl/CLDevice.hpp"
-#endif
-
 namespace PV
 {
 class HyPerCol;
@@ -23,11 +18,7 @@ class HyPerCol;
 class DataStore
 {
 public:
-//#ifdef PV_USE_OPENCL
-//   DataStore(HyPerCol * hc, int numBuffers, size_t size, int numLevels, bool copydstoreflag);
-//#else
    DataStore(HyPerCol * hc, int numBuffers, int numItems, size_t dataSize, int numLevels, bool isSparse);
-//#endif
 
    virtual ~DataStore();
 
@@ -94,17 +85,6 @@ private:
    long *   numActive;
    bool  isSparse_flag;
    double * lastUpdateTimes; // A ring buffer for the getLastUpdateTime() function.
-
-//#ifdef PV_USE_OPENCL
-//   CLBuffer * clRecvBuffers;
-//   cl_event   evCopyDataStore;
-//   int numWait;
-//public:
-//   int initializeThreadBuffers(HyPerCol * hc);
-//   int copyBufferToDevice();
-//   int waitForCopy();
-//   CLBuffer * getCLBuffer() {return clRecvBuffers;}
-//#endif
 };
 
 } // NAMESPACE

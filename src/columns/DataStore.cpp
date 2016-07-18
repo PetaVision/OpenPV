@@ -21,11 +21,7 @@ namespace PV
  * @bufSize
  * @numLevels
  */
-//#ifdef PV_USE_OPENCL
-//DataStore::DataStore(HyPerCol * hc, int numBuffers, size_t bufSize, int numLevels, bool copydstoreflag)
-//#else
 DataStore::DataStore(HyPerCol * hc, int numBuffers, int numItems, size_t dataSize, int numLevels, bool isSparse_flag)
-//#endif // PV_USE_OPENCL
 {
    assert(numLevels > 0 && numBuffers > 0);
    this->curLevel = numLevels - 1;  // start at bottom, work up
@@ -62,47 +58,14 @@ DataStore::DataStore(HyPerCol * hc, int numBuffers, int numItems, size_t dataSiz
       this->activeIndices = NULL;
       this->numActive = NULL;
    }
-
-   //#ifdef PV_USE_OPENCL
-   //   if(copydstoreflag) initializeThreadBuffers(hc);
-   //   else clRecvBuffers=NULL;
-   //#endif // PV_USE_OPENCL
 }
 
 DataStore::~DataStore()
 {
-   //#ifdef PV_USE_OPENCL
-   //   if (clRecvBuffers != NULL) delete clRecvBuffers;
-   //   clRecvBuffers=NULL;
-   //#endif // PV_USE_OPENCL
-
    free(recvBuffers);
    free(activeIndices);
    free(numActive);
    free(lastUpdateTimes);
 }
-
-//#ifdef PV_USE_OPENCL
-//int DataStore::initializeThreadBuffers(HyPerCol * hc)
-//{
-//   const size_t size = numBuffers * numLevels * bufSize * sizeof(char);
-//   clRecvBuffers = hc->getCLDevice()->createBuffer(CL_MEM_COPY_HOST_PTR, size, recvBuffers);
-//   numWait=0;
-//   return PV_SUCCESS;
-//}
-//int DataStore::copyBufferToDevice() {
-//   numWait++;
-//   return clRecvBuffers->copyToDevice(&evCopyDataStore);
-//}
-//int DataStore::waitForCopy() {
-//   int status=PV_SUCCESS;
-//   if(numWait>0) {
-//      status |= clWaitForEvents(numWait, &evCopyDataStore);
-//      clReleaseEvent(evCopyDataStore);
-//      numWait=0;
-//   }
-//   return status;
-//}
-//#endif // PV_USE_OPENCL
 
 }

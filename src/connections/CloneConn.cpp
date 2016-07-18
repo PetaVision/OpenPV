@@ -215,11 +215,11 @@ int CloneConn::communicateInitInfo() {
    if (status != PV_SUCCESS) return status;
 
    //Don't allocate post, just grab in allocate from orig
+#ifdef PV_USE_CUDA
    if(needPost){
       originalConn->setNeedPost(true);
    }
 
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    if((updateGSynFromPostPerspective && receiveGpu) || allocPostDeviceWeights){
       originalConn->setAllocPostDeviceWeights();
    }
@@ -258,14 +258,6 @@ int CloneConn::communicateInitInfo() {
    return status;
 }
 
-//#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
-//void CloneConn::setAllocDeviceWeights(){
-//   originalConn->setAllocDeviceWeights();
-//   cloneNeedDeviceWeights = true;
-//   allocDeviceWeights = false;
-//}
-//#endif
-
 
 //Overwriting HyPerConn's allocate, since it needs to just grab postConn and preToPostActivity from orig conn
 int CloneConn::allocatePostConn(){
@@ -286,7 +278,7 @@ int CloneConn::allocateDataStructures() {
 }
 
 
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#ifdef PV_USE_CUDA
 //Device buffers live in origConn
 int CloneConn::allocateDeviceWeights(){
    return PV_SUCCESS;

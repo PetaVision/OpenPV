@@ -26,7 +26,7 @@ public:
    virtual double computeNewWeightUpdateTime(double time, double currentUpdateTime);
    virtual int finalizeUpdate(double time, double dt);
 
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#ifdef PV_USE_CUDA
    //If this layer needs to allocate device weights, set orig conn's alloc post weights
    virtual void setAllocDeviceWeights(){
       originalConn->setAllocPostDeviceWeights();
@@ -35,32 +35,27 @@ public:
    virtual void setAllocPostDeviceWeights(){
       originalConn->setAllocDeviceWeights();
    }
-#endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#endif // PV_USE_CUDA
 
    virtual long * getPostToPreActivity(){
       return originalConn->postConn->getPostToPreActivity();
    }
 
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
-#ifdef PV_USE_OPENCL
-   virtual CLBuffer * getDeviceWData(){
-#endif
 #ifdef PV_USE_CUDA
    virtual PVCuda::CudaBuffer * getDeviceWData(){
-#endif
       return originalConn->postConn->getDeviceWData();
    }
+#endif
 
 #if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
    virtual PVCuda::CudaBuffer * getCudnnWData(){
       return originalConn->postConn->getCudnnWData();
    }
 #endif
-#endif
 
 protected:
 
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#ifdef PV_USE_CUDA
    virtual int allocatePostDeviceWeights();
    virtual int allocateDeviceWeights();
 #endif

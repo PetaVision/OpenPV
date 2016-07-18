@@ -592,7 +592,7 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
    return PV_SUCCESS;
 }
 
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#ifdef PV_USE_CUDA
 
 void HyPerConn::ioParam_gpuGroupIdx(enum ParamsIOFlag ioFlag) {
    pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
@@ -652,7 +652,7 @@ void HyPerConn::ioParam_numFLocal(enum ParamsIOFlag ioFlag) {
 #endif
    }
 }
-#else // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#else // PV_USE_CUDA
 // Some dummy ioParam_ functions to read GPU-specific params, without generating a warning if
 // they are present, or generating a warning if they are absent.
 void HyPerConn::ioParam_gpuGroupIdx(enum ParamsIOFlag ioFlag) {
@@ -675,7 +675,7 @@ void HyPerConn::ioParam_numFLocal(enum ParamsIOFlag ioFlag) {
    int dummyVar = 0;
    parent->ioParamValue(ioFlag, name, "numFLocal", &dummyVar, dummyVar/*default*/, false/*warnIfAbsent*/);
 }
-#endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#endif // PV_USE_CUDA
 
 void HyPerConn::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ) {
@@ -3590,7 +3590,7 @@ int HyPerConn::deliverPostsynapticPerspectiveGPU(PVLayerCube const * activity, i
 
    return PV_SUCCESS;
 }
-#endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#endif // PV_USE_CUDA 
 
 
 void HyPerConn::deliverOnePostNeuronActivity(int arborID, int kTargetExt, int inSy, float* activityStartBuf, pvdata_t* gSynPatchPos, float dt_factor, taus_uint4 * rngPtr){
@@ -4740,14 +4740,8 @@ NormalizeBase * getWeightNormalizer(char const * name, HyPerCol * hc) {
 extern "C" {
 #endif // __cplusplus
 
-#ifndef PV_USE_OPENCL
-#  include "kernels/HyPerLayer_recv_synaptic_input.cl"
-#else
-#  undef PV_USE_OPENCL
-#  include "kernels/HyPerLayer_recv_synaptic_input.cl"
-#  define PV_USE_OPENCL
-#endif
-
+#include "kernels/HyPerLayer_recv_synaptic_input.cl"
+   
 #ifdef __cplusplus
 }
 #endif // __cplusplus

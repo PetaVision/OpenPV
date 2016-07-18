@@ -113,9 +113,8 @@ void MomentumLCALayer::ioParam_LCAMomentumRate(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "LCAMomentumRate", &LCAMomentumRate, LCAMomentumRate, true/*warnIfAbsent*/);
 }
 
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
-int MomentumLCALayer::allocateUpdateKernel(){
 #ifdef PV_USE_CUDA
+int MomentumLCALayer::allocateUpdateKernel(){
    PVCuda::CudaDevice * device = parent->getDevice();
    d_prevDrive = device->createBuffer(getNumNeuronsAllBatches() * sizeof(float));
    //Set to temp pointer of the subclass
@@ -182,13 +181,9 @@ int MomentumLCALayer::allocateUpdateKernel(){
 
    //set updateKernel to krUpdate
    krUpdate = updateKernel;
-#endif
    return PV_SUCCESS;
 }
-#endif
-//
-//
-#ifdef PV_USE_CUDA
+
 int MomentumLCALayer::updateStateGpu(double time, double dt){
    if(triggerLayer != NULL){
       pvError().printf("HyPerLayer::Trigger reset of V does not work on GPUs\n");
@@ -217,33 +212,18 @@ int MomentumLCALayer::updateState(double time, double dt)
    pvdata_t * V = getV();
    int num_channels = getNumChannels();
    pvdata_t * gSynHead = GSyn == NULL ? NULL : GSyn[0];
-   //update_timer->start();
-//#ifdef PV_USE_OPENCL
-//   if(gpuAccelerateFlag) {
-//      updateStateOpenCL(time, dt);
-//      //HyPerLayer::updateState(time, dt);
-//   }
-//   else {
-//#endif
-   {
-      int nx = loc->nx;
-      int ny = loc->ny;
-      int nf = loc->nf;
-      int num_neurons = nx*ny*nf;
-      int nbatch = loc->nbatch;
-      //Only update when the probe updates
-      
-      double * deltaTimeAdapt = parent->getTimeScale();
+   int nx = loc->nx;
+   int ny = loc->ny;
+   int nf = loc->nf;
+   int num_neurons = nx*ny*nf;
+   int nbatch = loc->nbatch;
+   //Only update when the probe updates
+   
+   double * deltaTimeAdapt = parent->getTimeScale();
 
-      MomentumLCALayer_update_state(nbatch, num_neurons, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, numChannels,
-            V, numVertices, verticesV, verticesA, slopes,
-            selfInteract, deltaTimeAdapt, timeConstantTau, LCAMomentumRate, gSynHead, A, prevDrive);
-      //if (this->writeSparseActivity){
-      //   updateActiveIndices();  // added by GTK to allow for sparse output, can this be made an inline function???
-      //}
-   }
-
-   //update_timer->stop();
+   MomentumLCALayer_update_state(nbatch, num_neurons, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, numChannels,
+         V, numVertices, verticesV, verticesA, slopes,
+         selfInteract, deltaTimeAdapt, timeConstantTau, LCAMomentumRate, gSynHead, A, prevDrive);
    return PV_SUCCESS;
 }
 
@@ -294,21 +274,33 @@ BaseObject * createMomentumLCALayer(char const * name, HyPerCol * hc) {
 
 }
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+void MomentumLCALayer_update_state(
+    const int nbatch,
+    const int numNeurons,
+    const int nx,
+    const int ny,
+    const int nf,
+    const int lt,
+    const int rt,
+    const int dn,
+    const int up,
+    const int numChannels,
 
-#ifndef PV_USE_OPENCL
-#  include "../kernels/MomentumLCALayer_update_state.cl"
-#else
-#  undef PV_USE_OPENCL
-#  include "../kernels/MomentumLCALayer_update_state.cl"
-#  define PV_USE_OPENCL
-#endif
-
-#ifdef __cplusplus
+    float * V,
+    int numVertices,
+    float * verticesV,
+    float * verticesA,
+    float * slopes,
+    const bool selfInteract,
+    double* dtAdapt,
+    const float tau,
+    const float LCAMomentumRate,
+    float * GSynHead,
+    float * activity,
+    float * prevDrive)
+{
+   updateV_MomentumLCALayer(nbatch, numNeurons, numChannels, V, GSynHead, activity, prevDrive,
+		   numVertices, verticesV, verticesA, slopes, dtAdapt, tau, LCAMomentumRate, selfInteract, nx, ny, nf, lt, rt, dn, up);
 }
-#endif
-
 
 

@@ -30,9 +30,9 @@ protected:
    int initialize(const char * name, HyPerCol *hc);
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#ifdef PV_USE_CUDA
    virtual void ioParam_receiveGpu(enum ParamsIOFlag ioFlag);
-#endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#endif // PV_USE_CUDA 
    virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag);
    virtual void ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag);
    virtual void ioParam_weightInitType(enum ParamsIOFlag ioFlag);

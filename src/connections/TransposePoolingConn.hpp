@@ -28,7 +28,7 @@ public:
    virtual double computeNewWeightUpdateTime(double time, double currentUpdateTime);
    virtual int deliverPresynapticPerspective(PVLayerCube const * activity, int arborID);
    virtual int deliverPostsynapticPerspective(PVLayerCube const * activity, int arborID);
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#ifdef PV_USE_CUDA
    virtual int deliverPresynapticPerspectiveGPU(PVLayerCube const * activity, int arborID) {
       pvError() << "TransposePoolingConn not implemented on GPUs\n";
       return PV_FAILURE;

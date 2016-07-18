@@ -33,9 +33,9 @@ int BaseConnection::initialize_base() {
    this->delays = NULL;
    numAxonalArborLists = 1;
    convertRateToSpikeCount = false;
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#ifdef PV_USE_CUDA
    receiveGpu = false;
-#endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#endif //  PV_USE_CUDA
    this->initializeFromCheckpointFlag = false;
    this->probes = NULL;
    this->numProbes = 0;
@@ -345,7 +345,7 @@ void BaseConnection::ioParam_convertRateToSpikeCount(enum ParamsIOFlag ioFlag) {
 }
 
 void BaseConnection::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#ifdef PV_USE_CUDA
    parent->ioParamValue(ioFlag, name, "receiveGpu", &receiveGpu, false/*default*/, true/*warn if absent*/);
 #else
    bool receiveGpu = false;
@@ -358,7 +358,7 @@ void BaseConnection::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
       MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
-#endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#endif // PV_USE_CUDA
 }
 
 

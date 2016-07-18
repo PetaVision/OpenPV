@@ -26,11 +26,7 @@ class BaseConnection;
 class Publisher {
 
 public:
-//#ifdef PV_USE_OPENCL
-//   Publisher(int pubId, HyPerCol * hc, int numItems, PVLayerLoc loc, int numLevels, bool copydstoreflag);
-//#else
    Publisher(int pubId, HyPerCol * hc, int numItems, PVLayerLoc loc, int numLevels, bool isSparse);
-//#endif
    virtual ~Publisher();
    int readData(int delay);
    int publish(HyPerLayer * pub, int neighbors[], int numNeighbors,

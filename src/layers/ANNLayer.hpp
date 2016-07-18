@@ -192,22 +192,6 @@ protected:
 
    double clearGSynInterval = 0.0; // The interval between successive clears of GSyn
    double nextGSynClearTime = 0.0; // The next time that the GSyn will be cleared.
-//#ifdef PV_USE_OPENCL
-//   virtual int getNumCLEvents() {return numEvents;}
-//   virtual const char * getKernelName() { return "ANNLayer_vertices_update_state"; }
-//   virtual int initializeThreadBuffers(const char * kernel_name);
-//   virtual int initializeThreadKernels(const char * kernel_name);
-//   //virtual int getEVActivity() {return EV_ANN_ACTIVITY;}
-//   int updateStateOpenCL(double time, double dt);
-//   //temporary method for debuging recievesynapticinput
-//public:
-////   virtual void copyChannelExcFromDevice() {
-////      getChannelCLBuffer(CHANNEL_EXC)->copyFromDevice(&evList[getEVGSynE()]);
-////      clWaitForEvents(1, &evList[getEVGSynE()]);
-////      clReleaseEvent(evList[getEVGSynE()]);
-////   }
-//protected:
-//#endif // PV_USE_OPENCL
 
 private:
    int initialize_base();

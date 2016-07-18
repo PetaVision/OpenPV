@@ -39,13 +39,8 @@ public:
       return originalConn->getPostToPreActivity();
    }
 
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
-#ifdef PV_USE_OPENCL
-   virtual CLBuffer * getDeviceWData(){
-#endif
 #ifdef PV_USE_CUDA
    virtual PVCuda::CudaBuffer * getDeviceWData(){
-#endif
       return originalConn->getDeviceWData();
    }
 
@@ -63,11 +58,11 @@ public:
    virtual void setAllocPostDeviceWeights(){
       originalConn->setAllocPostDeviceWeights();
    }
-#endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#endif // PV_USE_CUDA 
 
 protected:
 
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#ifdef PV_USE_CUDA
    virtual int allocatePostDeviceWeights();
    virtual int allocateDeviceWeights();
 #endif

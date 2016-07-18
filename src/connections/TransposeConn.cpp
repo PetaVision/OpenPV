@@ -248,7 +248,7 @@ int TransposeConn::communicateInitInfo() {
 
    originalConn->setNeedPost(true);
 
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#ifdef PV_USE_CUDA
    if((updateGSynFromPostPerspective && receiveGpu) || allocPostDeviceWeights){
       originalConn->setAllocDeviceWeights();
    }
@@ -310,7 +310,7 @@ int TransposeConn::setPatchSize() {
    return PV_SUCCESS;
 }
 
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#ifdef PV_USE_CUDA
 //Device buffers live in origConn
 int TransposeConn::allocateDeviceWeights(){
    return PV_SUCCESS;

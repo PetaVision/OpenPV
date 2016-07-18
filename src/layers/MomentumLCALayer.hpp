@@ -39,9 +39,6 @@ protected:
 
 #ifdef PV_USE_CUDA
    virtual int updateStateGpu(double time, double dt);
-#endif
-
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    virtual int allocateUpdateKernel();
 #endif
 
