@@ -8,20 +8,18 @@
 #include "Publisher.hpp"
 #include "utils/PVAssert.hpp"
 #include "include/pv_common.h"
-#include "columns/Communicator.hpp"
-#include "columns/HyPerCol.hpp"
 #include "connections/BaseConnection.hpp"
 #include "layers/HyPerLayer.hpp"
 
 namespace PV {
 
-Publisher::Publisher(int pubId, HyPerCol * hc, int numItems, PVLayerLoc loc, int numLevels, bool isSparse)
+Publisher::Publisher(Communicator * comm, int numItems, PVLayerLoc loc, int numLevels, bool isSparse)
 {
    //size_t dataSize  = numItems * sizeof(float);
    size_t dataSize  = sizeof(float);
 
    this->pubId = pubId;
-   this->comm  = hc->icCommunicator();
+   this->mComm  = comm;
    this->numSubscribers = 0;
 
    cube.data = nullptr;
@@ -155,39 +153,39 @@ int Publisher::exchangeBorders(int neighbors[], int numNeighbors, const PVLayerL
 
 #ifdef PV_USE_MPI
    //Using local ranks and communicators for border exchange
-   int icRank = comm->commRank();
-   MPI_Comm mpiComm = comm->communicator();
+   int icRank = mComm->commRank();
+   MPI_Comm mpiComm = mComm->communicator();
 
    //Loop through batches
    for(int b = 0; b < loc->nbatch; b++){
       // don't send interior
-      pvAssert(numRequests == b * (comm->numberOfNeighbors()-1));
+      pvAssert(numRequests == b * (mComm->numberOfNeighbors()-1));
       for (int n = 1; n < NUM_NEIGHBORHOOD; n++) {
          if (neighbors[n] == icRank) continue;  // don't send interior to self
-         pvdata_t * recvBuf = recvBuffer(b, delay) + comm->recvOffset(n, loc);
+         pvdata_t * recvBuf = recvBuffer(b, delay) + mComm->recvOffset(n, loc);
          // sendBuf = cube->data + Communicator::sendOffset(n, &cube->loc);
-         pvdata_t * sendBuf = recvBuffer(b, delay) + comm->sendOffset(n, loc);
+         pvdata_t * sendBuf = recvBuffer(b, delay) + mComm->sendOffset(n, loc);
 
 
 #ifdef DEBUG_OUTPUT
-         size_t recvOff = comm->recvOffset(n, &cube.loc);
-         size_t sendOff = comm->sendOffset(n, &cube.loc);
+         size_t recvOff = mComm->recvOffset(n, &cube.loc);
+         size_t sendOff = mComm->sendOffset(n, &cube.loc);
          if( cube.loc.nb > 0 ) {
-            pvInfo().printf("[%2d]: recv,send to %d, n=%d, delay=%d, recvOffset==%ld, sendOffset==%ld, numitems=%d, send[0]==%f\n", comm->commRank(), neighbors[n], n, delay, recvOff, sendOff, cube.numItems, sendBuf[0]);
+            pvInfo().printf("[%2d]: recv,send to %d, n=%d, delay=%d, recvOffset==%ld, sendOffset==%ld, numitems=%d, send[0]==%f\n", mComm->commRank(), neighbors[n], n, delay, recvOff, sendOff, cube.numItems, sendBuf[0]);
          }
          else {
-            pvInfo().printf("[%2d]: recv,send to %d, n=%d, delay=%d, recvOffset==%ld, sendOffset==%ld, numitems=%d\n", comm->commRank(), neighbors[n], n, delay, recvOff, sendOff, cube.numItems);
+            pvInfo().printf("[%2d]: recv,send to %d, n=%d, delay=%d, recvOffset==%ld, sendOffset==%ld, numitems=%d\n", mComm->commRank(), neighbors[n], n, delay, recvOff, sendOff, cube.numItems);
          }
          pvInfo().flush();
 #endif //DEBUG_OUTPUT
 
-         MPI_Irecv(recvBuf, 1, neighborDatatypes[n], neighbors[n], comm->getReverseTag(n), mpiComm,
+         MPI_Irecv(recvBuf, 1, neighborDatatypes[n], neighbors[n], mComm->getReverseTag(n), mpiComm,
                    &requests[numRequests++]);
-         int status = MPI_Send( sendBuf, 1, neighborDatatypes[n], neighbors[n], comm->getTag(n), mpiComm);
+         int status = MPI_Send( sendBuf, 1, neighborDatatypes[n], neighbors[n], mComm->getTag(n), mpiComm);
          pvAssert(status==0);
 
       }
-      pvAssert(numRequests == (b+1) * (comm->numberOfNeighbors()-1));
+      pvAssert(numRequests == (b+1) * (mComm->numberOfNeighbors()-1));
    }
 
 #endif // PV_USE_MPI
@@ -202,7 +200,7 @@ int Publisher::wait()
 {
 #ifdef PV_USE_MPI
 # ifdef DEBUG_OUTPUT
-   pvInfo().printf("[%2d]: waiting for data, num_requests==%d\n", comm->commRank(), numRemote);
+   pvInfo().printf("[%2d]: waiting for data, num_requests==%d\n", mComm->commRank(), numRemote);
    pvInfo().flush();
 # endif // DEBUG_OUTPUT
 

@@ -41,7 +41,7 @@ int InterColComm::addPublisher(HyPerLayer* pub)
       int status = resizePublishersArray(pubId+1);
       assert(status == EXIT_SUCCESS);
    }
-   publishers[pubId] = new Publisher(pubId, pub->getParent(), numItems, pub->clayer->loc, numLevels, isSparse);
+   publishers[pubId] = new Publisher(pub->getParent()->icCommunicator(), numItems, pub->clayer->loc, numLevels, isSparse);
    numPublishers += 1;
 
    return pubId;

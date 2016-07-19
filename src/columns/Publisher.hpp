@@ -12,19 +12,18 @@
 #include "include/pv_types.h"
 #include "include/PVLayerLoc.h"
 #include "arch/mpi/mpi.h"
+#include "columns/Communicator.hpp"
 #include "columns/DataStore.hpp"
 
 namespace PV {
 
-class HyPerCol;
 class HyPerLayer;
 class BaseConnection;
-class Communicator;
 
 class Publisher {
 
 public:
-   Publisher(int pubId, HyPerCol * hc, int numItems, PVLayerLoc loc, int numLevels, bool isSparse);
+   Publisher(Communicator * comm, int numItems, PVLayerLoc loc, int numLevels, bool isSparse);
    virtual ~Publisher();
    int readData(int delay);
    int publish(HyPerLayer * pub, int neighbors[], int numNeighbors,
@@ -75,7 +74,7 @@ private:
 
    PVLayerCube cube;
 
-   Communicator * comm;
+   Communicator * mComm;
 
    int            numRequests;
    MPI_Request *  requests;
