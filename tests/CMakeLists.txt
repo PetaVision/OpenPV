@@ -49,9 +49,9 @@ add_subdirectory(DelaysToFeaturesTest)
 add_subdirectory(DryRunFlagTest)
 add_subdirectory(GenericSystemTest)
 
-if (PV_USE_CUDA OR PV_USE_OPENCL)
+if (PV_USE_CUDA)
    add_subdirectory(GPUSystemTest)
-endif (PV_USE_CUDA OR PV_USE_OPENCL)
+endif (PV_USE_CUDA)
 
 add_subdirectory(GroupNormalizationTest)
 add_subdirectory(ImageSystemTest)

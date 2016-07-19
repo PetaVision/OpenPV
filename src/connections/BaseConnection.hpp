@@ -241,9 +241,9 @@ public:
    inline int getDelay(int arbor) { return (arbor >= 0 && arbor < this->numberOfAxonalArborLists()) ? delays[arbor] : -1; }
 
    inline bool getConvertRateToSpikeCount() { return convertRateToSpikeCount; }
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#ifdef PV_USE_CUDA
    inline bool getReceiveGpu() { return receiveGpu; }
-#endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#endif // PV_USE_CUDA 
 
    /**
     * Returns the number of probes that have been attached to this connection
@@ -334,9 +334,9 @@ protected:
    //  */
    // void setPreActivityIsNotRate(bool preActivityIsNotRate);
    void setConvertRateToSpikeCount(bool convertRateToSpikeCountFlag);
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#ifdef PV_USE_CUDA
    void setReceiveGpu();
-#endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#endif // PV_USE_CUDA
 
    /**
     * Called by BaseConnection::communicateInitInfo of the params did not set pre- and post- layers.
@@ -540,9 +540,9 @@ protected:
    bool plasticityFlag;
    // bool preActivityIsNotRate; // preActivityIsNotRate was replaced with convertRateToSpikeCount on Dec 31, 2014.
    bool convertRateToSpikeCount; // Whether to check if pre-layer is spiking and, if it is not, scale activity by dt to convert it to a spike count
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#ifdef PV_USE_CUDA
    bool receiveGpu; // Whether to use GPU acceleration in updating post's GSyn
-#endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#endif // PV_USE_CUDA
    bool initializeFromCheckpointFlag;
 
    BaseConnectionProbe** probes; // probes used to output data

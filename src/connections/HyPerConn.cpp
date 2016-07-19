@@ -54,7 +54,7 @@ HyPerConn::~HyPerConn()
 
    free(pvpatchAccumulateTypeString);
 
-#if defined(PV_USE_CUDA)
+#ifdef PV_USE_CUDA
    pvDelete(d_WData);
    pvDelete(d_Patches);
    pvDelete(d_GSynPatchStart);
@@ -63,10 +63,9 @@ HyPerConn::~HyPerConn()
    pvDelete(krRecvPost);
    pvDelete(krRecvPre);
 
-#if defined(PV_USE_CUDNN)
+#  ifdef PV_USE_CUDNN
    pvDelete(cudnn_WData);
-#endif
-
+#  endif
 #endif // PV_USE_CUDA
 
    deleteWeights();
@@ -210,7 +209,7 @@ int HyPerConn::initialize_base()
 
    batchSkip = NULL;
 
-#if defined(PV_USE_CUDA)
+#ifdef PV_USE_CUDA
    receiveGpu = false;
    allocDeviceWeights = false;
    allocPostDeviceWeights = false;
@@ -227,9 +226,9 @@ int HyPerConn::initialize_base()
    numFLocal = 1;
    preDataLocal = true;
    gpuGroupIdx = -1;
-#if defined(PV_USE_CUDNN)
+# ifdef PV_USE_CUDNN
    cudnn_WData = NULL;
-#endif
+# endif
 #endif
 
    return PV_SUCCESS;
@@ -592,7 +591,7 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
    return PV_SUCCESS;
 }
 
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#ifdef PV_USE_CUDA
 
 void HyPerConn::ioParam_gpuGroupIdx(enum ParamsIOFlag ioFlag) {
    pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
@@ -603,11 +602,11 @@ void HyPerConn::ioParam_gpuGroupIdx(enum ParamsIOFlag ioFlag) {
 
 void HyPerConn::ioParam_preDataLocal(enum ParamsIOFlag ioFlag) {
    pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
-#ifndef PV_USE_CUDNN
+# ifndef PV_USE_CUDNN
    if(receiveGpu){
       parent->ioParamValue(ioFlag, name, "preDataLocal", &preDataLocal, true/*default*/, false/*warn if absent*/);
    }
-#endif
+# endif
 }
 
 void HyPerConn::ioParam_numXLocal(enum ParamsIOFlag ioFlag) {
@@ -615,13 +614,13 @@ void HyPerConn::ioParam_numXLocal(enum ParamsIOFlag ioFlag) {
    pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "updateGSynFromPostPerspective"));
    if(receiveGpu){
       //If we're using cudnn and updating from post, we don't need numX, Y, and F local
-#ifdef PV_USE_CUDNN
+# ifdef PV_USE_CUDNN
       if(!updateGSynFromPostPerspective){
          parent->ioParamValue(ioFlag, name, "numXLocal", &numXLocal, 1, true);
       }
-#else
+# else
       parent->ioParamValue(ioFlag, name, "numXLocal", &numXLocal, 1, true);
-#endif
+# endif
    }
 }
 
@@ -629,13 +628,13 @@ void HyPerConn::ioParam_numYLocal(enum ParamsIOFlag ioFlag) {
    pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
    pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "updateGSynFromPostPerspective"));
    if(receiveGpu){
-#ifdef PV_USE_CUDNN
+# ifdef PV_USE_CUDNN
       if(!updateGSynFromPostPerspective){
          parent->ioParamValue(ioFlag, name, "numYLocal", &numYLocal, 1, true);
       }
-#else
+# else
       parent->ioParamValue(ioFlag, name, "numYLocal", &numYLocal, 1, true);
-#endif
+# endif
    }
 }
 
@@ -643,16 +642,17 @@ void HyPerConn::ioParam_numFLocal(enum ParamsIOFlag ioFlag) {
    pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
    pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "updateGSynFromPostPerspective"));
    if(receiveGpu){
-#ifdef PV_USE_CUDNN
+# ifdef PV_USE_CUDNN
       if(!updateGSynFromPostPerspective){
          parent->ioParamValue(ioFlag, name, "numFLocal", &numFLocal, 1, true);
       }
-#else
+# else
       parent->ioParamValue(ioFlag, name, "numFLocal", &numFLocal, 1, true);
-#endif
+# endif
    }
 }
-#else // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+
+#else // PV_USE_CUDA
 // Some dummy ioParam_ functions to read GPU-specific params, without generating a warning if
 // they are present, or generating a warning if they are absent.
 void HyPerConn::ioParam_gpuGroupIdx(enum ParamsIOFlag ioFlag) {
@@ -675,7 +675,7 @@ void HyPerConn::ioParam_numFLocal(enum ParamsIOFlag ioFlag) {
    int dummyVar = 0;
    parent->ioParamValue(ioFlag, name, "numFLocal", &dummyVar, dummyVar/*default*/, false/*warnIfAbsent*/);
 }
-#endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#endif // PV_USE_CUDA
 
 void HyPerConn::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ) {
@@ -1293,7 +1293,7 @@ int HyPerConn::communicateInitInfo() {
    }
 
 //GPU stuff
-#if defined(PV_USE_CUDA)
+#ifdef PV_USE_CUDA
    //Here, the connection tells all participating recev layers to allocate memory on gpu
    //if receive from gpu is set. These buffers should be set in allocate
    if(receiveGpu){
@@ -1436,7 +1436,7 @@ int HyPerConn::allocatePostConn(){
 
 
 int HyPerConn::allocateDataStructures() {
-#if defined(PV_USE_CUDA)
+#ifdef PV_USE_CUDA
    if (!pre->getDataStructuresAllocatedFlag()) {
       if (parent->columnId()==0) {
          pvInfo().printf("%s must wait until pre-synaptic layer \"%s\" has finished its allocateDataStructures stage.\n", getDescription_c(), pre->getName());
@@ -1477,7 +1477,7 @@ int HyPerConn::allocateDataStructures() {
 
    allocatePostConn();
 
-#if defined(PV_USE_CUDA)
+#ifdef PV_USE_CUDA
    status = allocateDeviceBuffers();
    if(receiveGpu){
       if(updateGSynFromPostPerspective){
@@ -1549,7 +1549,7 @@ InitWeights * HyPerConn::getDefaultInitWeightsMethod(const char * keyword) {
    exit(EXIT_FAILURE);
 }
 
-#if defined(PV_USE_CUDA)
+#ifdef PV_USE_CUDA
 
 int HyPerConn::allocatePostDeviceWeights(){
    pvAssert(postConn);
@@ -1558,34 +1558,25 @@ int HyPerConn::allocatePostDeviceWeights(){
 }
 
 int HyPerConn::allocateDeviceWeights(){
-#ifdef PV_USE_CUDA
    PVCuda::CudaDevice * device = parent->getDevice();
-#endif
    const size_t size = numberOfAxonalArborLists() * getNumDataPatches() * xPatchSize() * yPatchSize() * fPatchSize() * sizeof(pvwdata_t);
-#ifdef PV_USE_CUDA
    d_WData = device->createBuffer(size);
    pvAssert(d_WData);
-#ifdef PV_USE_CUDNN
+# ifdef PV_USE_CUDNN
    cudnn_WData = device->createBuffer(size);
-#endif
-#endif
-
+# endif
    return PV_SUCCESS;
-
 }
 
 int HyPerConn::allocateDeviceBuffers()
 {
    int status = 0;
 
-#ifdef PV_USE_CUDA
    PVCuda::CudaDevice * device = parent->getDevice();
-#endif
 
    bool needAlloc = true;
    if(allocDeviceWeights || allocPostDeviceWeights){
       //Check group here
-#ifdef PV_USE_CUDA
       if(gpuGroupIdx >= 0){
          //Add to group if set
          parent->addGpuGroup(this, gpuGroupIdx);
@@ -1623,14 +1614,13 @@ int HyPerConn::allocateDeviceBuffers()
             //set d_WData to the group's d_WData
             d_WData = group_conn->getDeviceWData();
             pvAssert(d_WData);
-#ifdef PV_USE_CUDNN
+# ifdef PV_USE_CUDNN
             cudnn_WData = group_conn->getCudnnWData();
             pvAssert(cudnn_WData);
-#endif
+# endif
             needAlloc = false;
          }
       }
-#endif // PV_USE_CUDA
 
       if(needAlloc){
          if(allocPostDeviceWeights){
@@ -1645,15 +1635,10 @@ int HyPerConn::allocateDeviceBuffers()
    if(receiveGpu){
       if(updateGSynFromPostPerspective){
          int numPostRes = post->getNumNeurons();
-#ifdef PV_USE_CUDA
          d_PostToPreActivity = device->createBuffer(numPostRes*sizeof(long)); 
-#endif
-
          if(sharedWeights){
             int numWeightPatches = postConn->getNumWeightPatches();
-#ifdef PV_USE_CUDA
             d_Patch2DataLookupTable = device->createBuffer(numWeightPatches * sizeof(int));  
-#endif
          }
       }
       else{
@@ -1675,38 +1660,26 @@ int HyPerConn::allocateDeviceBuffers()
 
          int numWeightPatches = pre->getNumExtended() ;
          int patchSize = numWeightPatches * sizeof(PVPatch);
-
-#ifdef PV_USE_CUDA
          d_Patches = device->createBuffer(patchSize); 
-#endif
 
          //Need a buffer for gsynpatch start for one arbor
          int gsynPatchStartIndexSize = numWeightPatches * sizeof(size_t);
-#ifdef PV_USE_CUDA
          d_GSynPatchStart = device->createBuffer(gsynPatchStartIndexSize); 
-#endif
 
          if(numberOfAxonalArborLists() == 1){
             PVPatch* h_patches = weights(0)[0]; //0 beacuse it's one block of memory
-#ifdef PV_USE_CUDA
             PVCuda::CudaBuffer * d_patches = getDevicePatches();
-#endif
             pvAssert(d_patches);
             d_patches->copyToDevice(h_patches);
-
             size_t* h_GSynPatchStart = getGSynPatchStart()[0];
-#ifdef PV_USE_CUDA
             PVCuda::CudaBuffer * d_GSynPatchStart = getDeviceGSynPatchStart();
-#endif
             pvAssert(d_GSynPatchStart);
             d_GSynPatchStart->copyToDevice(h_GSynPatchStart);
          }
 
          if(sharedWeights){
             int numWeightPatches = getNumWeightPatches();
-#ifdef PV_USE_CUDA
             d_Patch2DataLookupTable = device->createBuffer(numWeightPatches * sizeof(int));  
-#endif
          }
       }
    }
@@ -1715,21 +1688,17 @@ int HyPerConn::allocateDeviceBuffers()
 
 int HyPerConn::allocateReceivePreKernel()
 {
-#ifdef PV_USE_CUDA
    int status = 0;
    PVCuda::CudaDevice * device = parent->getDevice();
    krRecvPre = new PVCuda::CudaRecvPre(device);
-#endif
 
    const PVLayerLoc * preLoc = pre->getLayerLoc();
    const PVLayerLoc * postLoc = post->getLayerLoc();
    const PVHalo * preHalo = &pre->getLayerLoc()->halo;
    const PVHalo * postHalo = &post->getLayerLoc()->halo;
 
-#ifdef PV_USE_CUDA
    PVCuda::CudaBuffer* d_PreData = pre->getDeviceDatastore();
    PVCuda::CudaBuffer* d_PostGSyn = post->getDeviceGSyn();
-#endif
 
    pvAssert(d_PreData);
    pvAssert(d_PostGSyn);
@@ -1755,10 +1724,8 @@ int HyPerConn::allocateReceivePreKernel()
    int nbatch = postLoc->nbatch;
 
 
-#ifdef PV_USE_CUDA
-      PVCuda::CudaBuffer* d_activeIndices = NULL;
-      PVCuda::CudaBuffer* d_numActive = NULL;
-#endif
+   PVCuda::CudaBuffer* d_activeIndices = NULL;
+   PVCuda::CudaBuffer* d_numActive = NULL;
    if(isSparse){
       d_numActive = pre->getDeviceNumActive();
       pvAssert(d_numActive);
@@ -1775,7 +1742,6 @@ int HyPerConn::allocateReceivePreKernel()
    //CLBuffer * d_patches = getClPatches();
    //
 
-#ifdef PV_USE_CUDA
    krRecvPre->setArgs(
       nbatch,
       numPreExt,
@@ -1800,39 +1766,34 @@ int HyPerConn::allocateReceivePreKernel()
       d_numActive,
       d_activeIndices
    );
-#endif
    return status;
 }
 
 int HyPerConn::allocateReceivePostKernel()
 {
    pvInfo() << name << " setting up post kernel\n";
-#ifdef PV_USE_CUDA
    int status = 0;
    PVCuda::CudaDevice * device = parent->getDevice();
    krRecvPost = new PVCuda::CudaRecvPost(device);
-#endif // PV_USE_CUDA
 
    const PVLayerLoc * preLoc = pre->getLayerLoc();
    const PVLayerLoc * postLoc = post->getLayerLoc();
    const PVHalo* preHalo = &pre->getLayerLoc()->halo;
    const PVHalo* postHalo = &post->getLayerLoc()->halo;
 
-#ifdef PV_USE_CUDA
    PVCuda::CudaBuffer* d_PreData = pre->getDeviceDatastore();
    PVCuda::CudaBuffer* d_PostGSyn = post->getDeviceGSyn();
    PVCuda::CudaBuffer* d_origWData = postConn->getDeviceWData();
 
-#ifdef PV_USE_CUDNN
+# ifdef PV_USE_CUDNN
    PVCuda::CudaBuffer * cudnn_preData = pre->getCudnnDatastore();
    PVCuda::CudaBuffer * cudnn_gSyn = post->getCudnnGSyn();
    PVCuda::CudaBuffer * cudnn_origWData = postConn->getCudnnWData();
    pvAssert(cudnn_preData);
    pvAssert(cudnn_gSyn);
    pvAssert(cudnn_origWData);
-#endif
+# endif
 
-#endif // PV_USE_CUDA
 
    pvAssert(d_PreData);
    pvAssert(d_PostGSyn);
@@ -1916,7 +1877,6 @@ int HyPerConn::allocateReceivePostKernel()
       pvInfo() << "local sizes: (" << localBufSizeX << "," << localBufSizeY << ")\n";
    }
    
-#ifdef PV_USE_CUDA
    krRecvPost->setArgs(
       nbatch,
       postNx, //num post neurons
@@ -1955,19 +1915,17 @@ int HyPerConn::allocateReceivePostKernel()
       d_PreData,
       d_origWData,
       d_PostGSyn,
-#ifdef PV_USE_CUDNN
+# ifdef PV_USE_CUDNN
       cudnn_preData,
       cudnn_origWData,
       cudnn_gSyn,
-#endif
+# endif
       d_Patch2DataLookupTable,
 
       preDataLocal
    );
-#endif
    return status;
 }
-
 #endif
 
 int HyPerConn::writeWeights(double timed, bool last)
@@ -2817,7 +2775,7 @@ int HyPerConn::deliver() {
             cube.numActive = store->numActiveBuffer(0, delay);
             cube.activeIndices = store->activeIndicesBuffer(0, delay);
          }
-#if defined(PV_USE_CUDA)
+#ifdef PV_USE_CUDA
          if(getReceiveGpu()){
             status = deliverPresynapticPerspectiveGPU(&cube, arbor);
             //No need to update GSyn since it's already living on gpu
@@ -2827,14 +2785,14 @@ int HyPerConn::deliver() {
 #endif
          {
             status = deliverPresynapticPerspective(&cube, arbor);
-#if defined(PV_USE_CUDA)
+#ifdef PV_USE_CUDA
             //CPU updated gsyn, need to update gsyn
             post->setUpdatedDeviceGSynFlag(true);
 #endif
          }
       }
       else{
-#if defined(PV_USE_CUDA)
+#ifdef PV_USE_CUDA
          if(getReceiveGpu()){
             status = deliverPostsynapticPerspectiveGPU(&cube, arbor);
             //GSyn already living on GPU
@@ -2844,7 +2802,7 @@ int HyPerConn::deliver() {
 #endif
          {
             status = deliverPostsynapticPerspective(&cube, arbor);
-#if defined(PV_USE_CUDA)
+#ifdef PV_USE_CUDA
             //CPU updated gsyn, need to update on GPU
             post->setUpdatedDeviceGSynFlag(true);
 #endif
@@ -3144,41 +3102,6 @@ int HyPerConn::deliverPostsynapticPerspectiveConvolve(PVLayerCube const * activi
       pvdata_t * activityBatch = activity->data + b * (sourceNx + sourceHalo->rt + sourceHalo->lt) * (sourceNy + sourceHalo->up + sourceHalo->dn) * sourceNf;
       pvdata_t * gSynPatchHeadBatch = gSynPatchHead + b * targetNx * targetNy * targetNf;
 
-#ifdef PV_REORDER_HYPERCONN
-      // Iterate over each line in the y axis, the goal is to keep weights in the cache
-      for (int ky = 0; ky < yPatchSize; ky++) {
-         // Threading over feature was the important change that improved cache performance by
-         // 5-10x. dynamic scheduling also gave another performance increase over static.
-#ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for schedule(dynamic)
-#endif
-         for (int feature = 0; feature < nfp; feature++) {
-            for (int idx = feature; idx < numNeurons; idx += nfp) {
-               int kTargetRes = recvPostSparse ? activeList[b][idx] : idx;
-
-               // gSyn
-               pvdata_t * gSyn = gSynPatchHeadBatch + kTargetRes;
-
-               // Activity
-               long startSourceExt = startSourceExtBuf[kTargetRes];
-               float* activityStartBuf = activityBatch + startSourceExt;
-               float * a = activityStartBuf + ky * sy;
-
-               // Weight
-               int kTargetExt = kIndexExtended(kTargetRes, targetNx, targetNy, targetNf, targetHalo->lt, targetHalo->rt, targetHalo->dn, targetHalo->up);
-               int kernelIndex = postConn->patchToDataLUT(kTargetExt);
-               pvwdata_t* weightStartBuf = postConn->get_wDataHead(arbor, kernelIndex);
-               pvwdata_t * w = weightStartBuf + ky * syp;
-
-               float dv = 0.0;
-               for (int k = 0; k < numPerStride; k++) {
-                  dv += a[k] * w[k];
-               }
-               *gSyn += dt_factor * dv;
-            }
-         }
-      }
-#else // Not reordered
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(static)
 #endif
@@ -3207,7 +3130,6 @@ int HyPerConn::deliverPostsynapticPerspectiveConvolve(PVLayerCube const * activi
             *gSyn += dt_factor * dv;
          }
       }
-#endif
    }
 
    return PV_SUCCESS;
@@ -3285,7 +3207,6 @@ int HyPerConn::deliverPostsynapticPerspectiveStochastic(PVLayerCube const * acti
       pvdata_t * activityBatch = activity->data + b * (sourceNx + sourceHalo->rt + sourceHalo->lt) * (sourceNy + sourceHalo->up + sourceHalo->dn) * sourceNf;
       pvdata_t * gSynPatchHeadBatch = gSynPatchHead + b * targetNx * targetNy * targetNf;
 
-#ifdef PV_REORDER_HYPERCONN
       // Iterate over each line in the y axis, the goal is to keep weights in the cache
       for (int ky = 0; ky < yPatchSize; ky++) {
          // Threading over feature was the important change that improved cache performance by
@@ -3321,58 +3242,23 @@ int HyPerConn::deliverPostsynapticPerspectiveStochastic(PVLayerCube const * acti
             }
          }
       }
-#else // Not reordered
-#ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for schedule(static)
-#endif
-      for (int idx = 0; idx < numNeurons; idx++) {
-         int kTargetRes = recvPostSparse ? activeList[b][idx] : idx;
-
-         // gSyn
-         pvdata_t * gSyn = gSynPatchHeadBatch + kTargetRes;
-
-         // Activity
-         long startSourceExt = startSourceExtBuf[kTargetRes];
-         float* activityStartBuf = activityBatch + startSourceExt;
-
-         // Weight
-         int kTargetExt = kIndexExtended(kTargetRes, targetNx, targetNy, targetNf, targetHalo->lt, targetHalo->rt, targetHalo->dn, targetHalo->up);
-         int kernelIndex = postConn->patchToDataLUT(kTargetExt);
-         pvwdata_t* weightStartBuf = postConn->get_wDataHead(arbor, kernelIndex);
-         taus_uint4 * rng = randState->getRNG(kTargetRes);
-
-         for (int ky = 0; ky < yPatchSize; ky++){
-            float * a = activityStartBuf + ky * sy;
-            pvwdata_t * w = weightStartBuf + ky * syp;
-            float dv = 0.0f;
-            for (int k = 0; k < numPerStride; k++) {
-               *rng = cl_random_get(*rng);
-               double p = (double) rng->s0/cl_random_max(); // 0.0 < p < 1.0
-               dv += (p<a[k]*dt_factor)*w[k];
-            }
-            *gSyn += dv;
-         }
-      }
-#endif
    }
 
    return PV_SUCCESS;
 }
 
-#if defined(PV_USE_CUDA)
+#ifdef PV_USE_CUDA
 void HyPerConn::updateDeviceWeights(){
    //wDataStart is one big buffer, so this should grab everything
    float * h_weights = get_wDataStart(0);
-#ifdef PV_USE_CUDA
    PVCuda::CudaBuffer * d_weights = getDeviceWData();
-#endif
    pvAssert(d_weights);
    d_weights->copyToDevice(h_weights);
 
    //Need barrier here?
    parent->getDevice()->syncDevice();
 
-#if defined(PV_USE_CUDNN)
+# ifdef PV_USE_CUDNN
    //Set local sizes here
    const PVLayerLoc * preLoc = pre->getLayerLoc();
    const PVLayerLoc * postLoc = post->getLayerLoc();
@@ -3383,7 +3269,7 @@ void HyPerConn::updateDeviceWeights(){
 
    pvAssert(cudnn_WData);
    cudnn_WData->permuteWeightsPVToCudnn(d_weights->getPointer(), numberOfAxonalArborLists(), getNumDataPatches(), nxp, nyp, nfp);
-#endif
+# endif
 }
 
 int HyPerConn::deliverPresynapticPerspectiveGPU(PVLayerCube const * activity, int arborID) {
@@ -3405,9 +3291,7 @@ int HyPerConn::deliverPresynapticPerspectiveGPU(PVLayerCube const * activity, in
       pvError() << "Pooling accumulate not implemented for GPUs";
    }
 
-#ifdef PV_USE_CUDA
    krRecvPre->set_dt_factor(dt_factor);
-#endif // PV_USE_CUDA
 
    //Post layer receives synaptic input
    //Only with respect to post layer
@@ -3423,17 +3307,13 @@ int HyPerConn::deliverPresynapticPerspectiveGPU(PVLayerCube const * activity, in
    //If one arbor, done in allocatePreKernel in HyPerConn
    if(numberOfAxonalArborLists() > 1){
       PVPatch* h_patches = weights(arborID)[0]; //0 because it's one block of memory
-#ifdef PV_USE_CUDA
       PVCuda::CudaBuffer * d_patches = getDevicePatches();
-#endif
       pvAssert(d_patches);
 
       d_patches->copyToDevice(h_patches);
 
       size_t* h_GSynPatchStart = getGSynPatchStart()[arborID];
-#ifdef PV_USE_CUDA
       PVCuda::CudaBuffer * d_GSynPatchStart = getDeviceGSynPatchStart();
-#endif
       pvAssert(d_GSynPatchStart);
       d_GSynPatchStart->copyToDevice(h_GSynPatchStart);
    }
@@ -3442,18 +3322,14 @@ int HyPerConn::deliverPresynapticPerspectiveGPU(PVLayerCube const * activity, in
    //Only if their updated
    if(preSynapticLayer()->getUpdatedDeviceDatastoreFlag()){
       float * h_preDatastore= activity->data;
-#ifdef PV_USE_CUDA
       PVCuda::CudaBuffer * d_preDatastore = preSynapticLayer()->getDeviceDatastore();
-#endif
       pvAssert(d_preDatastore);
       d_preDatastore->copyToDevice(h_preDatastore);
 
       //Copy active indices and num active if needed
       if(activity->isSparse){
-#ifdef PV_USE_CUDA
          PVCuda::CudaBuffer * d_ActiveIndices;
          PVCuda::CudaBuffer * d_numActive;
-#endif
          d_ActiveIndices = preSynapticLayer()->getDeviceActiveIndices();
          d_numActive = preSynapticLayer()->getDeviceNumActive();
          pvAssert(d_ActiveIndices);
@@ -3487,14 +3363,12 @@ int HyPerConn::deliverPresynapticPerspectiveGPU(PVLayerCube const * activity, in
 
    long totThreads = maxTotalActiveNeuron * totPatchSize;
 
-#ifdef PV_USE_CUDA
    //krRecvPre->set_numActive(totActiveNeuron);
 
    int maxThreads = parent->getDevice()->get_max_threads();
    int numLocalThreads = totPatchSize < maxThreads ? totPatchSize : maxThreads;
 
    krRecvPre->run_nocheck(totThreads, numLocalThreads);
-#endif
 
    return PV_SUCCESS;
 }
@@ -3523,9 +3397,7 @@ int HyPerConn::deliverPostsynapticPerspectiveGPU(PVLayerCube const * activity, i
    }
 
    pvAssert(krRecvPost);
-#ifdef PV_USE_CUDA
    krRecvPost->set_dt_factor(dt_factor);
-#endif // PV_USE_CUDA
 
    const PVLayerLoc * sourceLoc = pre->getLayerLoc();
    const PVLayerLoc * targetLoc = post->getLayerLoc();
@@ -3555,9 +3427,7 @@ int HyPerConn::deliverPostsynapticPerspectiveGPU(PVLayerCube const * activity, i
    //Only if they're updated
    if(pre->getUpdatedDeviceDatastoreFlag()){
       float * h_preDatastore = activity->data;
-#ifdef PV_USE_CUDA
       PVCuda::CudaBuffer* d_preDatastore = pre->getDeviceDatastore();
-#endif
       pvAssert(d_preDatastore);
       d_preDatastore->copyToDevice(h_preDatastore);
       //Device now has updated
@@ -3565,7 +3435,7 @@ int HyPerConn::deliverPostsynapticPerspectiveGPU(PVLayerCube const * activity, i
       updatePreAct = true;
    }
 
-#if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
+# ifdef PV_USE_CUDNN
    //Permutation buffer is local to the kernel, NOT the layer
    //Therefore, we must permute Datastore every time
    krRecvPost->permuteDatastorePVToCudnn();
@@ -3573,24 +3443,21 @@ int HyPerConn::deliverPostsynapticPerspectiveGPU(PVLayerCube const * activity, i
    
    //Permute GSyn
    krRecvPost->permuteGSynPVToCudnn(getChannel());
-#endif // defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
-//#endif // PV_USE_CUDA
+# endif // defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
 
    int totF = targetNf;
    int totX = targetNx;
    int totY = targetNy;
    //Make sure local sizes are divisible by f, x, and y
-#ifdef PV_USE_CUDA
    krRecvPost->run(totX, totY, totF, getNumXLocal(), getNumYLocal(), getNumFLocal());
-#endif
 
-#if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
+# ifdef PV_USE_CUDNN
    krRecvPost->permuteGSynCudnnToPV(getChannel());
-#endif
+# endif
 
    return PV_SUCCESS;
 }
-#endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#endif // PV_USE_CUDA 
 
 
 void HyPerConn::deliverOnePostNeuronActivity(int arborID, int kTargetExt, int inSy, float* activityStartBuf, pvdata_t* gSynPatchPos, float dt_factor, taus_uint4 * rngPtr){
@@ -4736,18 +4603,4 @@ NormalizeBase * getWeightNormalizer(char const * name, HyPerCol * hc) {
 
 } // namespace PV
 
-#ifdef __cplusplus
-extern "C" {
-#endif // __cplusplus
 
-#ifndef PV_USE_OPENCL
-#  include "kernels/HyPerLayer_recv_synaptic_input.cl"
-#else
-#  undef PV_USE_OPENCL
-#  include "kernels/HyPerLayer_recv_synaptic_input.cl"
-#  define PV_USE_OPENCL
-#endif
-
-#ifdef __cplusplus
-}
-#endif // __cplusplus

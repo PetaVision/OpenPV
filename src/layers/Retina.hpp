@@ -9,20 +9,29 @@
 #define RETINA_HPP_
 
 #include "HyPerLayer.hpp"
-#include "../kernels/Retina_params.h"
+//#include "../kernels/Retina_params.h"
 #include "../io/fileio.hpp"
-#include "../arch/opencl/pv_opencl.h"
 #include "../include/pv_types.h"
-
-#ifdef PV_USE_OPENCL
-#include "../arch/opencl/CLBuffer.hpp"
-#endif
 
 #define NUM_RETINA_CHANNELS 2
 #define NUM_RETINA_EVENTS   3
 //#define EV_R_PHI_E    0
 //#define EV_R_PHI_I    1
 //#define EV_R_ACTIVITY 2
+
+struct Retina_params {
+      float probStim;
+      float probBase;
+      double beginStim;
+      double endStim;
+      float burstFreq;          // frequency of bursts
+      float burstDuration;      // duration of each burst, <=0 -> sinusoidal
+
+      float refractory_period;
+      float abs_refractory_period;
+   };
+
+
 
 namespace PV
 {
@@ -42,7 +51,6 @@ public:
 
    virtual int updateState(double time, double dt);
    virtual int outputState(double time, bool last);
-   virtual int updateStateOpenCL(double time, double dt);
    virtual int updateBorder(double time, double dt);
    virtual int waitOnPublish(InterColComm* comm);
    virtual int checkpointWrite(const char * cpDir);
@@ -64,34 +72,14 @@ protected:
    virtual void ioParam_refractoryPeriod(enum ParamsIOFlag ioFlag);
    virtual void ioParam_absRefractoryPeriod(enum ParamsIOFlag ioFlag);
    virtual int allocateV();
-   //int allocateRandStateRestricted(size_t xCount, size_t yCount, size_t fCount, unsigned int seedStart, unsigned int seedStride);
-   //int allocateRandStateBorder(int neighbor, size_t xCount, size_t yCount, size_t fCount, unsigned int seedStart, unsigned int seedStride, int indexStart, int indexStride);
-   //int allocateRandState(int neighbor, size_t xCount, size_t yCount, size_t fCount, unsigned int seedStart, unsigned int seedStride);
-   //int allocateBorderIndices(int neighbor, size_t xCount, size_t yCount, size_t fCount, int indexStart, int indexStride);
    virtual int initializeV();
    virtual int initializeActivity();
-//#ifdef PV_USE_OPENCL
-//   //int initializeGPU();  //right now there's no use for a Retina specific version
-//   virtual int getNumCLEvents() {return numEvents;}
-//   virtual const char * getKernelName() {
-//      return spikingFlag ? "Retina_spiking_update_state" : "Retina_nonspiking_update_state";
-//   }
-//   virtual int initializeThreadBuffers(const char * kernel_name);
-//   virtual int initializeThreadKernels(const char * kernel_name);
-//   //virtual int getEVActivity() {return EV_R_ACTIVITY;}
-//
-//   CLBuffer * clRand;
-//#endif // PV_USE_OPENCL
    virtual int readStateFromCheckpoint(const char * cpDir, double * timeptr);
    virtual int readRandStateFromCheckpoint(const char * cpDir);
 
    bool spikingFlag;        // specifies that layer is spiking
    Retina_params rParams;   // used in update state
    Random * randState;
-//#ifdef PV_USE_OPENCL
-//   //TODO-Rasmussen-2014.5.24 - need to figure out interaction between Random class and rand_state
-//   taus_uint4 * rand_state[NUM_NEIGHBORHOOD];      // state for random numbers // rand_state[0] for the restricted region; rand_state[1] for northwest corner for background activity, etc.
-//#endif // PV_USE_OPENCL
    float probStimParam;
    float probBaseParam;
 
@@ -118,5 +106,6 @@ private:
 BaseObject * createRetina(char const * name, HyPerCol * hc);
 
 } // namespace PV
+
 
 #endif /* RETINA_HPP_ */

@@ -1154,31 +1154,6 @@ int BaseInput::initializeActivity() {
    return PV_SUCCESS;
 }
 
-#ifdef PV_USE_OPENCL
-// no need for threads for now for image
-//
-int BaseInput::initializeThreadBuffers(const char * kernelName)
-{
-   return CL_SUCCESS;
-}
-
-// no need for threads for now for image
-//
-int BaseInput::initializeThreadKernels(const char * kernelName)
-{
-   return CL_SUCCESS;
-}
-#endif
-
-///**
-// * return some useful information about the image
-// */
-//int BaseInput::tag()
-//{
-//   return 0;
-//}
-
-
 int BaseInput::checkpointRead(const char * cpDir, double * timeptr){
    PVParams * params = parent->parameters();
    if (parent->columnId()==0) {

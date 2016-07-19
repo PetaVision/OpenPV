@@ -41,13 +41,7 @@ int InterColComm::addPublisher(HyPerLayer* pub)
       int status = resizePublishersArray(pubId+1);
       assert(status == EXIT_SUCCESS);
    }
-
-//#ifdef PV_USE_OPENCL
-//   bool copydstoreflag=pub->getCopyDataStoreFlag();
-//   publishers[pubId] = new Publisher(pubId, pub->getParent(), numItems, pub->getCLayer()->loc, numLevels, copydstoreflag);
-//#else
    publishers[pubId] = new Publisher(pubId, pub->getParent(), numItems, pub->clayer->loc, numLevels, isSparse);
-//#endif
    numPublishers += 1;
 
    return pubId;
@@ -122,12 +116,7 @@ int InterColComm::wait(int pubId)
 {
    return publishers[pubId]->wait();
 }
-
-//#ifdef PV_USE_OPENCL
-//Publisher::Publisher(int pubId, HyPerCol * hc, int numItems, PVLayerLoc loc, int numLevels, bool copydstoreflag)
-//#else
 Publisher::Publisher(int pubId, HyPerCol * hc, int numItems, PVLayerLoc loc, int numLevels, bool isSparse)
-//#endif
 {
    //size_t dataSize  = numItems * sizeof(float);
    size_t dataSize  = sizeof(float);
@@ -146,11 +135,7 @@ Publisher::Publisher(int pubId, HyPerCol * hc, int numItems, PVLayerLoc loc, int
    // to provide cube information for data from store
    cube.size = numBuffers * numItems * dataSize + sizeof(PVLayerCube);
 
-//#ifdef PV_USE_OPENCL
-//   store = new DataStore(hc, numBuffers, dataSize, numLevels, copydstoreflag);
-//#else
    store = new DataStore(hc, numBuffers, numItems, dataSize, numLevels, isSparse);
-//#endif
 
    //DONE: check for memory leak here, method flagged by valgrind
    this->neighborDatatypes = Communicator::newDatatypes(&loc);

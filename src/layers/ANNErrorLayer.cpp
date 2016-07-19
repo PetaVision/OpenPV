@@ -7,9 +7,6 @@
 
 #include "ANNErrorLayer.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 void ANNErrorLayer_update_state(
     const int nbatch, 
@@ -32,9 +29,6 @@ void ANNErrorLayer_update_state(
     const float errScale);
 
 
-#ifdef __cplusplus
-}
-#endif
 
 namespace PV {
 
@@ -131,13 +125,6 @@ int ANNErrorLayer::updateState(double time, double dt)
    pvdata_t * V = getV();
    int num_channels = getNumChannels();
    pvdata_t * gSynHead = GSyn == NULL ? NULL : GSyn[0];
-//#ifdef PV_USE_OPENCL
-//   if(gpuAccelerateFlag) {
-//      updateStateOpenCL(time, dt);
-//      //HyPerLayer::updateState(time, dt);
-//   }
-//   else {
-//#endif
    int nx = loc->nx;
    int ny = loc->ny;
    int nf = loc->nf;
@@ -145,9 +132,6 @@ int ANNErrorLayer::updateState(double time, double dt)
    int nbatch = loc->nbatch;
    ANNErrorLayer_update_state(nbatch, num_neurons, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up,
          V, numVertices, verticesV, verticesA, slopes, gSynHead, A, errScale);
-//#ifdef PV_USE_OPENCL
-//   }
-//#endif
    return PV_SUCCESS;
 }
 
@@ -157,19 +141,26 @@ BaseObject * createANNErrorLayer(char const * name, HyPerCol * hc) {
 
 } /* namespace PV */
 
+void ANNErrorLayer_update_state(
+    const int nbatch, 
+    const int numNeurons,
+    const int nx,
+    const int ny,
+    const int nf,
+    const int lt,
+    const int rt,
+    const int dn,
+    const int up,
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#ifndef PV_USE_OPENCL
-#  include "../kernels/ANNErrorLayer_update_state.cl"
-#else
-#  undef PV_USE_OPENCL
-#  include "../kernels/ANNErrorLayer_update_state.cl"
-#  define PV_USE_OPENCL
-#endif
-
-#ifdef __cplusplus
+    float * V,
+    int numVertices,
+    float * verticesV,
+    float * verticesA,
+    float * slopes,
+    float * GSynHead,
+    float * activity,
+    const float errScale
+    )
+{
+   updateV_ANNErrorLayer(nbatch, numNeurons, V, GSynHead, activity, numVertices, verticesV, verticesA, slopes, nx, ny, nf, lt, rt, dn, up, errScale);
 }
-#endif

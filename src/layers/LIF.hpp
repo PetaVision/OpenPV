@@ -11,17 +11,39 @@
 
 #include "HyPerLayer.hpp"
 #include "../columns/Random.hpp"
-#include "../kernels/LIF_params.h"
-
-//#ifdef PV_USE_OPENCL
-//#include "../arch/opencl/CLBuffer.hpp"
-//#endif
+//#include "../kernels/LIF_params.h"
 
 #define NUM_LIF_EVENTS   4
 //#define EV_LIF_GSYN_E     0
 //#define EV_LIF_GSYN_I     1
 #define EV_LIF_GSYN_IB    2
 //#define EV_LIF_ACTIVITY  3
+#define pvconductance_t float
+
+struct LIF_params {
+   float Vrest;
+   float Vexc;
+   float Vinh;
+   float VinhB;
+
+   float tau;
+   float tauE;
+   float tauI;
+   float tauIB;
+
+   float VthRest;
+   float tauVth;
+   float deltaVth;
+   float deltaGIB;
+
+   float noiseFreqE;
+   float noiseAmpE;
+   float noiseFreqI;
+   float noiseAmpI;
+   float noiseFreqIB;
+   float noiseAmpIB;
+};
+
 
 namespace PV
 {
@@ -41,7 +63,6 @@ public:
    virtual int allocateDataStructures();
 
    virtual int updateState(double time, double dt);
-   virtual int updateStateOpenCL(double time, double dt);
    virtual int waitOnPublish(InterColComm* comm);
    virtual int setActivity();
    
@@ -51,16 +72,7 @@ public:
    virtual pvconductance_t * getConductance(ChannelType ch) {
          return ch < this->numChannels ? G_E + ch*getNumNeurons() : NULL;
       }
-/*
-     pvdata_t * conductance = NULL;
-      switch (ch) {
-         case CHANNEL_EXC:  conductance = G_E; break;
-         case CHANNEL_INH:  conductance = G_I; break;
-         case CHANNEL_INHB: conductance = G_IB; break;
-      }
-      return conductance;
-   }
-*/
+
    virtual float getChannelTimeConst(enum ChannelType channel_type);
 
    virtual LIF_params * getLIFParams() {return &lParams;};
@@ -71,11 +83,6 @@ public:
 protected:
    LIF_params lParams;
    Random * randState;
-//#ifdef PV_USE_OPENCL
-//   //TODO-Rasmussen-2014.5.24 - need to figure out interaction between Random class and rand_state
-//   taus_uint4 * rand_state;  // state for random numbers
-//#endif
-
    pvdata_t * Vth;      // threshold potential
    pvconductance_t * G_E;      // excitatory conductance
    pvconductance_t * G_I;      // inhibitory conductance
@@ -83,30 +90,6 @@ protected:
 
    char * methodString; // 'arma', 'before', or 'original'
    char method;         // 'a', 'b', or 'o', the first character of methodString
-
-//#ifdef PV_USE_OPENCL
-//   virtual int initializeThreadBuffers(const char * kernelName);
-//   virtual int initializeThreadKernels(const char * kernelName);
-//
-//   virtual int getNumCLEvents() {return NUM_LIF_EVENTS;}
-//   virtual const char * getKernelName() {return "LIF_update_state";}
-//
-//   virtual int getEVGSynIB() {return EV_LIF_GSYN_IB;}
-//   //virtual int getEVActivity() {return EV_LIF_ACTIVITY;}
-//   virtual inline int getGSynEvent(ChannelType ch) {
-//      if(HyPerLayer::getGSynEvent(ch)>=0) return HyPerLayer::getGSynEvent(ch);
-//      if(ch==CHANNEL_INHB) return getEVGSynIB();
-//      return -1;
-//   }
-//
-//   // OpenCL buffers
-//   //
-//   CLBuffer * clRand;
-//   CLBuffer * clVth;
-//   CLBuffer * clG_E;
-//   CLBuffer * clG_I;
-//   CLBuffer * clG_IB;
-//#endif
 
 protected:
    LIF();

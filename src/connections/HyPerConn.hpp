@@ -24,9 +24,6 @@
 #include <set>
 #include <map>
 
-#ifdef PV_USE_OPENCL
-#include "../arch/opencl/CLKernel.hpp"
-#endif
 #ifdef PV_USE_CUDA
 #include "../cudakernels/CudaRecvPost.hpp"
 #include "../cudakernels/CudaRecvPre.hpp"
@@ -81,10 +78,6 @@ public:
     */
    HyPerConn(const char * name, HyPerCol * hc, InitWeights * weightInitializer, NormalizeBase * weightNormalizer); // Deprecated June 22, 2016.
    virtual ~HyPerConn();
-//#ifdef PV_USE_OPENCL
-//   virtual int deliverOpenCL(Publisher * pub, const PVLayerCube * cube);
-//#endif
-
    virtual int communicateInitInfo();
    virtual int allocateDataStructures();
 
@@ -951,15 +944,15 @@ protected:
    }
    virtual int deliverPostsynapticPerspectiveConvolve(PVLayerCube const * activity, int arborID, int* numActive, int** activeList);
    virtual int deliverPostsynapticPerspectiveStochastic(PVLayerCube const * activity, int arborID, int* numActive, int** activeList);
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#ifdef PV_USE_CUDA
    virtual int deliverPresynapticPerspectiveGPU(PVLayerCube const * activity, int arborID);
    virtual int deliverPostsynapticPerspectiveGPU(PVLayerCube const * activity, int arborID);
-#endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#endif // PV_USE_CUDA
 
    float getConvertToRateDeltaTimeFactor();
 
 //GPU variables
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#ifdef PV_USE_CUDA
 public:
    bool getAllocDeviceWeights(){
       return allocDeviceWeights;
@@ -974,33 +967,21 @@ public:
    virtual void setAllocPostDeviceWeights(){
       allocPostDeviceWeights = true;
    }
-#ifdef PV_USE_OPENCL
-   virtual CLBuffer * getDeviceWData(){
-#endif
 #ifdef PV_USE_CUDA
    virtual PVCuda::CudaBuffer * getDeviceWData(){
 #endif
       return d_WData;
    }
-#ifdef PV_USE_OPENCL
-   CLBuffer * getDevicePatches(){
-#endif
 #ifdef PV_USE_CUDA
    PVCuda::CudaBuffer * getDevicePatches(){
 #endif
       return d_Patches;
    }
-#ifdef PV_USE_OPENCL
-   CLBuffer * getDeviceGSynPatchStart(){
-#endif
 #ifdef PV_USE_CUDA
    PVCuda::CudaBuffer * getDeviceGSynPatchStart(){
 #endif
       return d_GSynPatchStart;
    }
-#ifdef PV_USE_OPENCL
-   void setDeviceWData(CLBuffer* inBuf){
-#endif
 #ifdef PV_USE_CUDA
    void setDeviceWData(PVCuda::CudaBuffer* inBuf){
 #endif
@@ -1016,20 +997,8 @@ public:
    }
 #endif
 
-#ifdef PV_USE_OPENCL
-   void clFinishW(){ 
-      if(allocDeviceWeights&& d_WData){
-         d_WData->finish();
-      }
-   }
-#endif
-
    bool getPreDataLocal(){return preDataLocal;}
 
-#ifdef PV_USE_OPENCL
-   CLKernel * getKrRecvPost(){return krRecvPost;}
-   CLKernel * getKrRecvPre(){return krRecvPre;}
-#endif
 #ifdef PV_USE_CUDA
    PVCuda::CudaRecvPost * getKrRecvPost(){return krRecvPost;}
    PVCuda::CudaRecvPre * getKrRecvPre(){return krRecvPre;}
@@ -1052,15 +1021,6 @@ protected:
    //bool updatedDeviceWeights;
    
 
-#ifdef PV_USE_OPENCL
-   CLBuffer * d_WData;
-   CLBuffer * d_Patches;
-   CLBuffer * d_GSynPatchStart;
-   CLBuffer * d_PostToPreActivity;
-   CLBuffer * d_Patch2DataLookupTable;
-   CLKernel * krRecvPost;        // CL kernel for update state call
-   CLKernel * krRecvPre;        // CL kernel for update state call
-#endif
 #ifdef PV_USE_CUDA
    PVCuda::CudaBuffer * d_WData;
 #ifdef PV_USE_CUDNN
@@ -1079,35 +1039,7 @@ protected:
    int numYLocal;
    int numFLocal;
 
-//   bool gpuAccelerateFlag; // Whether to accelerate the connection on a GPU
-//   bool ignoreGPUflag;     // Don't use GPU (overrides gpuAccelerateFlag)
-//   virtual void initIgnoreGPUFlag(); // sets the ignoreGPUFlag parameter.  virtual so that a class can make it always false or always true
-//   int initializeGPU(); //this method sets up GPU stuff...
-//   virtual int initializeThreadKernels(const char * kernelName);
-//   virtual int initializeThreadBuffers(const char * kernelName);
-//
-//   CLKernel * krRecvSyn;        // CL kernel for layer recvSynapticInput call
-//   cl_event   evRecvSyn;
-//   cl_event * evRecvSynWaitList;
-//   int numWait;  //number of receive synaptic runs to wait for (=numarbors)
-//   //cl_event   evCopyDataStore;
-//
-//   size_t nxl;
-//   size_t nyl;
-//
-//   // OpenCL buffers
-//   CLBuffer *  clGSyn;
-//   CLBuffer *  clPatch2DataLookUpTable;
-//   CLBuffer *  clActivity;
-//   CLBuffer ** clWeights;
-
-//
-//   // ids of OpenCL arguments that change
-//   //
-//   int clArgIdOffset;
-//   int clArgIdWeights;
-//   int clArgIdDataStore;
-#endif // PV_USE_OPENCL
+#endif // PV_USE_CUDA
 
 private:
    int clearWeights(pvwdata_t* arborDataStart, int numPatches, int nx, int ny,

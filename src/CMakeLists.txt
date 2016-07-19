@@ -46,7 +46,6 @@ set(SRC_SUBDIRS
   cudakernels
   include
   io
-  kernels
   layers
   normalizers
   utils

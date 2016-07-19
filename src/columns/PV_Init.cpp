@@ -154,7 +154,7 @@ int PV_Init::createParams() {
    }
 }
 
-void PV_Init::setLogFile(char const * log_file, bool appendFlag) {
+int PV_Init::setLogFile(char const * log_file, bool appendFlag) {
    arguments->setLogFile(log_file);
    initLogFile(appendFlag);
    printInitMessage();

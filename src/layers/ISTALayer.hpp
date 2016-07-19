@@ -50,7 +50,7 @@ protected:
 
    virtual float getChannelTimeConst(enum ChannelType channel_type){return timeConstantTau;};
 
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#ifdef PV_USE_CUDA
    virtual int allocateUpdateKernel();
 #endif
 

@@ -57,6 +57,7 @@ int cl_random_init(taus_uint4 * state, size_t count, unsigned int seed)
    return 0;
 }
 
+
 static void
 taus_set (taus_state_t * state, unsigned int s)
 {

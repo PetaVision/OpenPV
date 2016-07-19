@@ -32,9 +32,9 @@
 #include <csignal>
 #include <limits>
 #include <libgen.h>
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#ifdef PV_USE_CUDA
 #include <map>
-#endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#endif // PV_USE_CUDA
 
 namespace PV {
 
@@ -47,9 +47,9 @@ HyPerCol::~HyPerCol()
 {
    int n;
 
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#ifdef PV_USE_CUDA
    finalizeThreads();
-#endif // PV_USE_OPENCL || PV_USE_CUDA
+#endif // PV_USE_CUDA
 
    //Print all timers
    writeTimers(getOutputStream());
@@ -211,9 +211,6 @@ int HyPerCol::initialize_base() {
    origStdOut = -1;
    origStdErr = -1;
 
-#ifdef PV_USE_OPENCL
-   clDevice = NULL;
-#endif
 #ifdef PV_USE_CUDA
    cudaDevice = NULL;
    gpuGroupConns = NULL;
@@ -304,22 +301,6 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
    connections = (BaseConnection **) malloc(connectionArraySize * sizeof(BaseConnection *));
    normalizers = (NormalizeBase **) malloc(normalizerArraySize * sizeof(NormalizeBase *));
 
-//Either opencl or cuda, not both
-#if defined(PV_USE_OPENCL) && defined(PV_USE_CUDA)
-   pvError() << "HyPerCol::initialize: Can use either OpenCL or CUDA, not both\n";
-#endif
-
-#ifdef PV_USE_OPENCL
-   //Make sure the directive set in CMake is set here
-#ifndef PV_DIR
-#error PV_DIR macro must be set if using OpenCL
-#endif
-   srcPath = (char *) calloc(PV_PATH_MAX, sizeof(char));
-   strcat(srcPath, PV_DIR);
-   strcat(srcPath, "/src");
-   pvInfo().printf("============================= srcPath is %s\n", srcPath);
-#endif
-
    // numThreads will not be set, or used until HyPerCol::run.
    // This means that threading cannot happen in the initialization or communicateInitInfo stages,
    // but that should not be a problem.
@@ -359,11 +340,6 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
    ioParams(PARAMS_IO_READ);
 
    checkpointSignal = 0;
-
-#ifdef PV_USE_OPENCL
-   ensureDirExists(srcPath);
-#endif
-
 
    simTime = startTime;
    initialStep = (long int) nearbyint(startTime/deltaTimeBase);
@@ -503,7 +479,7 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
    }
 
    // run only on GPU for now
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#ifdef PV_USE_CUDA
    //Default to auto assign gpus
    initializeThreads(gpu_devices);
 #endif
@@ -511,9 +487,6 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
 
    //Only print rank for comm rank 0
    if(globalRank() == 0){
-#ifdef PV_USE_OPENCL
-      clDevice->query_device_info();
-#endif
 #ifdef PV_USE_CUDA
       cudaDevice->query_device_info();
 #endif
@@ -2458,7 +2431,7 @@ int HyPerCol::advanceTime(double sim_time)
 
    // Each layer's phase establishes a priority for updating
    for (int phase=0; phase<numPhases; phase++) {
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#ifdef PV_USE_CUDA
       //Clear layer buffer
       recvLayerBuffer.clear();
       updateLayerBuffer.clear();
@@ -2471,7 +2444,7 @@ int HyPerCol::advanceTime(double sim_time)
       // clear GSyn buffers
       for(int l = 0; l < numLayers; l++) {
          if (layers[l]->getPhase() != phase) continue;
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#ifdef PV_USE_CUDA
          //Save non gpu layer recv for later
          if(!layers[l]->getRecvGpu()){
             recvLayerBuffer.push_back(layers[l]);
@@ -2486,14 +2459,14 @@ int HyPerCol::advanceTime(double sim_time)
          //if(recvGpu and upGpu)
 
          //Update for gpu recv and gpu update
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#ifdef PV_USE_CUDA
          if(layers[l]->getUpdateGpu()){
 #endif
             status = layers[l]->callUpdateState(simTime, deltaTimeBase);
             if (!exitAfterUpdate) {
                exitAfterUpdate = status == PV_EXIT_NORMALLY;
             }
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#ifdef PV_USE_CUDA
          }
          //If not updating on gpu, save for later
          else{
@@ -2502,7 +2475,7 @@ int HyPerCol::advanceTime(double sim_time)
 #endif
       }
 
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#ifdef PV_USE_CUDA
       //Run non gpu layers
       for (auto& layer : recvLayerBuffer) {
          layer->resetGSynBuffers(simTime, deltaTimeBase);  // deltaTimeAdapt is not used
@@ -3170,11 +3143,6 @@ int HyPerCol::outputParamsHeadComments(FILE* fp, char const * commentToken) {
 #else // PV_USE_MPI
    fprintf(fp, "%s Compiled without MPI.\n", commentToken);
 #endif // PV_USE_MPI
-#ifdef PV_USE_OPENCL
-   fprintf(fp, "%s Compiled with OpenCL.\n", commentToken);
-#else
-   fprintf(fp, "%s Compiled without OpenCL.\n", commentToken);
-#endif // PV_USE_OPENCL
 #ifdef PV_USE_CUDA
    fprintf(fp, "%s Compiled with CUDA.\n", commentToken);
 #else
@@ -3248,7 +3216,7 @@ int HyPerCol::exitRunLoop(bool exitOnFinish)
 
 int HyPerCol::getAutoGPUDevice(){
    int returnGpuIdx = -1;
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#ifdef PV_USE_CUDA
    int mpiRank = icComm->globalCommRank();
    int numMpi = icComm->globalCommSize();
    char hostNameStr[PV_PATH_MAX];
@@ -3384,33 +3352,22 @@ int HyPerCol::initializeThreads(char const * in_device)
       pvInfo() << "Global MPI Process " << icComm->globalCommRank() << " using device " << device << "\n";
    }
 
-#ifdef PV_USE_OPENCL
-   clDevice = new CLDevice(device);
-#endif
 #ifdef PV_USE_CUDA
    cudaDevice = new PVCuda::CudaDevice(device);
 #endif
    return 0;
 }
 
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#ifdef PV_USE_CUDA
 int HyPerCol::finalizeThreads()
 {
-#ifdef PV_USE_OPENCL
-   delete clDevice;
-#endif
-#ifdef PV_USE_CUDA
    delete cudaDevice;
    if(gpuGroupConns){
       free(gpuGroupConns);
    }
-#endif
    return 0;
 }
-#endif // PV_USE_OPENCL
 
-
-#ifdef PV_USE_CUDA
 void HyPerCol::addGpuGroup(BaseConnection* conn, int gpuGroupIdx){
    //default gpuGroupIdx is -1, so do nothing if this is the case
    if(gpuGroupIdx < 0){
@@ -3438,7 +3395,7 @@ void HyPerCol::addGpuGroup(BaseConnection* conn, int gpuGroupIdx){
 BaseConnection* HyPerCol::getGpuGroupConn(int gpuGroupIdx){
    return gpuGroupConns[gpuGroupIdx];
 }
-#endif
+#endif //PV_USE_CUDA
 
 
 

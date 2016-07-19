@@ -9,9 +9,6 @@
 #include "updateStateFunctions.h"
 #include <limits>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 void PtwiseLinearTransferLayer_update_state(
     const int nbatch,
@@ -33,10 +30,6 @@ void PtwiseLinearTransferLayer_update_state(
     float * GSynHead,
     float * activity);
 
-#ifdef __cplusplus
-}
-#endif
-
 namespace PV {
 
 PtwiseLinearTransferLayer::PtwiseLinearTransferLayer() {
@@ -46,11 +39,7 @@ PtwiseLinearTransferLayer::PtwiseLinearTransferLayer() {
 PtwiseLinearTransferLayer::PtwiseLinearTransferLayer(const char * name, HyPerCol * hc) {
    initialize_base();
    initialize(name, hc);
-//#ifdef PV_USE_OPENCL
-//   if(gpuAccelerateFlag)
-//      initializeGPU();
-//#endif
-}  // end PtwiseLinearTransferLayer::PtwiseLinearTransferLayer(const char *, HyPerCol *)
+}
 
 PtwiseLinearTransferLayer::~PtwiseLinearTransferLayer() {
    free(verticesV); verticesV = NULL;
@@ -79,9 +68,6 @@ int PtwiseLinearTransferLayer::initialize(const char * name, HyPerCol * hc) {
 
    status |= checkVertices();
    status |= setSlopes();
-//#ifdef PV_USE_OPENCL
-//   numEvents=NUM_ANN_EVENTS;
-//#endif
    return status;
 }
 
@@ -165,89 +151,6 @@ void PtwiseLinearTransferLayer::ioParam_clearGSynInterval(enum ParamsIOFlag ioFl
       nextGSynClearTime = parent->getStartTime();
    }
 }
-
-//#ifdef PV_USE_OPENCL
-///**
-// * Initialize OpenCL buffers.  This must be called after PVLayer data have
-// * been allocated.
-// */
-//int PtwiseLinearTransferLayer::allocateThreadBuffers(const char * kernel_name)
-//{
-//   int status = HyPerLayer::allocateThreadBuffers(kernel_name);
-//
-//   //right now there are no PtwiseLinearTransferLayer-specific buffers...
-//   return status;
-//}
-//
-//int PtwiseLinearTransferLayer::initializeThreadKernels(const char * kernel_name)
-//{
-//   char kernelPath[256];
-//   char kernelFlags[256];
-//
-//   int status = CL_SUCCESS;
-//   CLDevice * device = parent->getCLDevice();
-//
-//   const char * pvRelPath = "../PetaVision";
-//   sprintf(kernelPath, "%s/%s/src/kernels/%s.cl", parent->getSrcPath(), pvRelPath, kernel_name);
-//   sprintf(kernelFlags, "-D PV_USE_OPENCL -cl-fast-relaxed-math -I %s/%s/src/kernels/", parent->getSrcPath(), pvRelPath);
-//
-//   // create kernels
-//   //
-//   krUpdate = device->createKernel(kernelPath, kernel_name, kernelFlags);
-////kernel name should already be set correctly!
-////   if (spikingFlag) {
-////      krUpdate = device->createKernel(kernelPath, kernel_name, kernelFlags);
-////   }
-////   else {
-////      krUpdate = device->createKernel(kernelPath, "Retina_nonspiking_update_state", kernelFlags);
-////   }
-//
-//   int argid = 0;
-//
-//   status |= krUpdate->setKernelArg(argid++, getNumNeurons());
-//   status |= krUpdate->setKernelArg(argid++, clayer->loc.nx);
-//   status |= krUpdate->setKernelArg(argid++, clayer->loc.ny);
-//   status |= krUpdate->setKernelArg(argid++, clayer->loc.nf);
-//   status |= krUpdate->setKernelArg(argid++, clayer->loc.nb);
-//
-//
-//   status |= krUpdate->setKernelArg(argid++, clV);
-//   status |= krUpdate->setKernelArg(argid++, VThresh);
-//   status |= krUpdate->setKernelArg(argid++, AMax);
-//   status |= krUpdate->setKernelArg(argid++, AMin);
-//   status |= krUpdate->setKernelArg(argid++, AShift);
-//   status |= krUpdate->setKernelArg(argid++, getChannelCLBuffer());
-////   status |= krUpdate->setKernelArg(argid++, getChannelCLBuffer(CHANNEL_EXC));
-////   status |= krUpdate->setKernelArg(argid++, getChannelCLBuffer(CHANNEL_INH));
-//   status |= krUpdate->setKernelArg(argid++, clActivity);
-//
-//   return status;
-//}
-//int PtwiseLinearTransferLayer::updateStateOpenCL(double time, double dt)
-//{
-//   int status = CL_SUCCESS;
-//
-//   // wait for memory to be copied to device
-//   if (numWait > 0) {
-//       status |= clWaitForEvents(numWait, evList);
-//   }
-//   for (int i = 0; i < numWait; i++) {
-//      clReleaseEvent(evList[i]);
-//   }
-//   numWait = 0;
-//
-//   status |= krUpdate->run(getNumNeurons(), nxl*nyl, 0, NULL, &evUpdate);
-//   krUpdate->finish();
-//
-//   status |= getChannelCLBuffer()->copyFromDevice(1, &evUpdate, &evList[getEVGSyn()]);
-//   status |= clActivity->copyFromDevice(1, &evUpdate, &evList[getEVActivity()]);
-//   numWait += 2; //3;
-//
-//
-//   return status;
-//}
-//#endif
-
 int PtwiseLinearTransferLayer::checkVertices() {
    assert(numVertices>0);
    int status = PV_SUCCESS;
@@ -320,22 +223,12 @@ int PtwiseLinearTransferLayer::updateState(double time, double dt)
    pvdata_t * V = getV();
    int num_channels = getNumChannels();
    pvdata_t * gSynHead = GSyn == NULL ? NULL : GSyn[0];
-//#ifdef PV_USE_OPENCL
-//   if(gpuAccelerateFlag) {
-//      updateStateOpenCL(time, dt);
-//   }
-//   else {
-//#endif
-      int nx = loc->nx;
-      int ny = loc->ny;
-      int nf = loc->nf;
-      int num_neurons = nx*ny*nf;
-      int nbatch = loc->nbatch;
-      PtwiseLinearTransferLayer_update_state(nbatch, num_neurons, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, V, numVertices, verticesV, verticesA, slopes, num_channels, gSynHead, A);
-
-//#ifdef PV_USE_OPENCL
-//   }
-//#endif
+   int nx = loc->nx;
+   int ny = loc->ny;
+   int nf = loc->nf;
+   int num_neurons = nx*ny*nf;
+   int nbatch = loc->nbatch;
+   PtwiseLinearTransferLayer_update_state(nbatch, num_neurons, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, V, numVertices, verticesV, verticesA, slopes, num_channels, gSynHead, A);
 
    return PV_SUCCESS;
 }
@@ -378,19 +271,25 @@ BaseObject * createPtwiseLinearTransferLayer(char const * name, HyPerCol * hc) {
 // implementation of PtwiseLinearTransferLayer kernels
 //
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+void PtwiseLinearTransferLayer_update_state(
+    const int nbatch,
+    const int numNeurons,
+    const int nx,
+    const int ny,
+    const int nf,
+    const int lt,
+    const int rt,
+    const int dn,
+    const int up,
 
-#ifndef PV_USE_OPENCL
-#  include "../kernels/PtwiseLinearTransferLayer_update_state.cl"
-#else
-#  undef PV_USE_OPENCL
-#  include "../kernels/PtwiseLinearTransferLayer_update_state.cl"
-#  define PV_USE_OPENCL
-#endif
-
-#ifdef __cplusplus
+    float * V,
+    int numVertices,
+    float * verticesV,
+    float * verticesA,
+    float * slopes,
+    int num_channels,
+    float * GSynHead,
+    float * activity)
+{
+   updateV_PtwiseLinearTransferLayer(nbatch, numNeurons, V, num_channels, GSynHead, activity, numVertices, verticesV, verticesA, slopes, nx, ny, nf, lt, rt, dn, up);
 }
-#endif
-

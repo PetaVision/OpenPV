@@ -215,7 +215,7 @@ int privateTransposeConn::finalizeUpdate(double time, double dt) {
       assert(status==PV_SUCCESS);
    }
 
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#ifdef PV_USE_CUDA
    if(postConn->getAllocPostDeviceWeights()){
       updateDeviceWeights();
    }

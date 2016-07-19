@@ -22,9 +22,6 @@
 #include <fstream>
 #include <string>
 #include <sstream>
-#ifdef PV_USE_OPENCL
-#include <arch/opencl/CLDevice.hpp>
-#endif
 #ifdef PV_USE_CUDA
 #include <arch/cuda/CudaDevice.hpp>
 #endif
@@ -50,9 +47,9 @@ public:
    HyPerCol(const char * name, PV_Init* initObj);
    virtual ~HyPerCol();
 
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#ifdef PV_USE_CUDA
    int finalizeThreads();
-#endif //PV_USE_OPENCL
+#endif //PV_USE_CUDA
 
    int run()  {return run(startTime, stopTime, deltaTimeBase);}
    int run(double startTime, double stopTime, double dt);
@@ -96,10 +93,7 @@ public:
    int getNBatch()                        {return nbatch;}
    int getNBatchGlobal()                  {return nbatchGlobal;}
    //int getThreadBatch()                   {return threadBatch;}
-
-#ifdef PV_USE_OPENCL
-   CLDevice * getDevice()               {return clDevice;}
-#endif
+   
 #ifdef PV_USE_CUDA
    PVCuda::CudaDevice * getDevice()   {return cudaDevice;}
 #endif
@@ -587,12 +581,6 @@ private:
    //The list of GPU group showing which connection's buffer to use
    BaseConnection** gpuGroupConns;
    int numGpuGroup;
-#endif
-
-#ifdef PV_USE_OPENCL
-   CLDevice * clDevice;    // object for running kernels on OpenCL device
-#endif
-#ifdef PV_USE_CUDA
    PVCuda::CudaDevice * cudaDevice;    // object for running kernels on OpenCL device
 #endif
 

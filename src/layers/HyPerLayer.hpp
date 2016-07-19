@@ -6,48 +6,6 @@
  *
  *  The top of the hierarchy for layer classes.
  *
- *  To make it easy to subclass from classes in the HyPerLayer hierarchy,
- *  please follow the guidelines below when adding subclasses to the HyPerLayer hierarchy:
- *
- *  For a class named DerivedLayer that is derived from a class named BaseLayer,
- *  the .hpp file should have
-namespace PV {
-class DerivedLayer : public BaseLayer {
-public:
-  DerivedLayer(arguments); // The constructor called by
-  // other methods
-protected:
-  DerivedLayer();
-  int initialize(arguments);
-  // other methods and member variables
-private:
-  int initialize_base();
-  // other methods and member variables
-};
-}
- *
- * The .cpp file should have
-namespace PV {
-DerivedLayer::DerivedLayer() {
-  initialize_base();
-  // initialize(arguments) should *not* be called by the protected constructor.
-}
-DerivedLayer::DerivedLayer(arguments, generally includes the layer's name and the parent HyPerCol) {
-  initialize_base();
-  initialize(arguments);
-}
-DerivedLayer::initialize_base() {
-  // the most basic initializations.  Don't call any virtual methods,
-  // or methods that call virtual methods, etc. from initialize_base();
-}
-DerivedLayer::initialize(arguments) {
-  // DerivedLayer-specific initializations that need to precede BaseClass initialization, if any
-  BaseClass::initialize(BaseClass initialization arguments);
-  // DerivedLayer-specific initializations
-}
-
-  // other DerivedLayer methods
-}
  */
 
 #ifndef HYPERLAYER_HPP_
@@ -71,38 +29,19 @@ DerivedLayer::initialize(arguments) {
 #  undef PV_USE_CUDA
 #  include <layers/updateStateFunctions.h>
 #  define PV_USE_CUDA
-#elif defined(PV_USE_OPENCL)
-#  undef PV_USE_OPENCL
-#  include <layers/updateStateFunctions.h>
-#  define PV_USE_OPENCL
 #else
 #  include <layers/updateStateFunctions.h>
-#endif //PV_USE_OPENCL
+#endif //PV_USE_CUDA
 
 #ifdef PV_USE_OPENMP_THREADS
 #include <omp.h>
 #endif //PV_USE_OPENMP_THREADS
-
-
-#ifdef PV_USE_OPENCL
-#define PV_CL_COPY_BUFFERS 0
-#define PV_CL_EVENTS 1
-#include <arch/opencl/CLKernel.hpp>
-#define EV_GSYN 0
-#define EV_ACTIVITY 1
-#define EV_HPL_PHI_E 0
-#define EV_HPL_PHI_I 1
-#endif //PV_USE_OPENCL
 
 #ifdef PV_USE_CUDA
 #include <arch/cuda/CudaKernel.hpp>
 #include <arch/cuda/CudaBuffer.hpp>
 #include <arch/cuda/CudaTimer.hpp>
 #endif //PV_USE_CUDA
-
-#ifdef PV_USE_OPENCL
-#include <arch/opencl/CLTimer.hpp>
-#endif //PV_USE_OPENCL
 
 #include <vector>
 
@@ -399,11 +338,7 @@ public:
 
    //An updateState wrapper that determines if updateState needs to be called
    int callUpdateState(double time, double dt);
-   //virtual int updateState (double time, double dt);
-//#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
-   //virtual int updateStateGpu (double time, double dt);
-//#endif
-   /**
+  /**
     * A virtual function to determine if callUpdateState method needs to be called
     * Default behavior is dependent on the triggering method.
     * If there is no triggering, always returns true.
@@ -539,7 +474,7 @@ protected:
    int openOutputStateFile();
    /* static methods called by updateState({long_argument_list})*/
 
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#ifdef PV_USE_CUDA
    virtual int runUpdateKernel();
    virtual int updateStateGpu(double timef, double dt);
 #endif
@@ -616,8 +551,8 @@ protected:
    pvdata_t ** thread_gSyn; //Accumulate buffer for each thread, only used if numThreads > 1
    std::vector<BaseConnection *> recvConns;
 
-   // OpenCL variables
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+   // GPU variables
+#ifdef PV_USE_CUDA
 public:
 
    virtual void syncGpu();
@@ -627,23 +562,10 @@ public:
    void copyAllGSynFromDevice();
    void copyAllVFromDevice();
    void copyAllActivityFromDevice();
-
-#ifdef PV_USE_OPENCL
-   CLBuffer * getDeviceV(){
-#endif
-
-#ifdef PV_USE_CUDA
    PVCuda::CudaBuffer * getDeviceV(){
-#endif
       return d_V;
    }
-
-#ifdef PV_USE_OPENCL
-   CLBuffer * getDeviceGSyn() {
-#endif
-#ifdef PV_USE_CUDA
    PVCuda::CudaBuffer * getDeviceGSyn() {
-#endif
       return d_GSyn;
    }
 
@@ -652,40 +574,19 @@ public:
       return cudnn_GSyn;
    }
 #endif
-
-#ifdef PV_USE_OPENCL
-   CLBuffer * getDeviceActivity(){
-#endif
-#ifdef PV_USE_CUDA
    PVCuda::CudaBuffer * getDeviceActivity(){
-#endif
       return d_Activity;
    }
 
-#ifdef PV_USE_OPENCL
-   CLBuffer * getDeviceDatastore(){
-#endif
-#ifdef PV_USE_CUDA
-   PVCuda::CudaBuffer * getDeviceDatastore(){
-#endif
+  PVCuda::CudaBuffer * getDeviceDatastore(){
       return d_Datastore;
    }
 
-#ifdef PV_USE_OPENCL
-   CLBuffer * getDeviceActiveIndices(){
-#endif
-#ifdef PV_USE_CUDA
-   PVCuda::CudaBuffer * getDeviceActiveIndices(){
-#endif
+  PVCuda::CudaBuffer * getDeviceActiveIndices(){
       return d_ActiveIndices;
    }
 
-#ifdef PV_USE_OPENCL
-   CLBuffer * getDeviceNumActive(){
-#endif
-#ifdef PV_USE_CUDA
    PVCuda::CudaBuffer * getDeviceNumActive(){
-#endif
       return d_numActive;
    }
 
@@ -745,21 +646,6 @@ public:
    bool getUpdateGpu(){
       return updateGpu;
    }
-
-#ifdef PV_USE_OPENCL
-   void clFinishGSyn(){
-      if(allocDeviceGSyn && d_GSyn){
-         d_GSyn->finish(); //This should take care of every command in the queue
-      }
-   }
-   void clFinishActivity(){
-      if(allocDeviceActivity){
-         d_Activity->finish();
-      }
-   }
-   cl_event * getRecvSynStartEvent() { return gpu_recvsyn_timer->getStartEvent(); }
-#endif // PV_USE_OPENCL
-
 protected:
 
    virtual int allocateUpdateKernel();
@@ -778,17 +664,6 @@ protected:
    bool recvGpu;
    bool updateGpu;
 
-#ifdef PV_USE_OPENCL
-   CLBuffer * d_V;
-   CLBuffer * d_GSyn;         
-   CLBuffer * d_Activity;
-   CLBuffer * d_Datastore;
-   CLBuffer * d_numActive;
-   CLBuffer * d_ActiveIndices;
-   CLKernel * krUpdate;
-#endif
-
-#ifdef PV_USE_CUDA
    PVCuda::CudaBuffer * d_V;
    PVCuda::CudaBuffer * d_GSyn;      
    PVCuda::CudaBuffer * d_Activity;
@@ -797,12 +672,10 @@ protected:
    PVCuda::CudaBuffer * d_ActiveIndices;
    PVCuda::CudaKernel * krUpdate;
 #ifdef PV_USE_CUDNN
-   PVCuda::CudaBuffer * cudnn_GSyn; 
+   PVCuda::CudaBuffer * cudnn_GSyn;
    PVCuda::CudaBuffer * cudnn_Datastore;
 #endif //PV_USE_CUDNN
 #endif //PV_USE_CUDA
-
-#endif //PV_USE_CUDA || PV_USE_OPENCL
 
 protected:
    Timer * update_timer;
@@ -816,47 +689,6 @@ protected:
    PVCuda::CudaTimer * gpu_recvsyn_timer;
    PVCuda::CudaTimer * gpu_update_timer;
 #endif
-
-#ifdef PV_USE_OPENCL
-   CLTimer * gpu_recvsyn_timer;
-   CLTimer * gpu_update_timer;
-#endif
-
-//Removed fields
-
-//#ifdef PV_USE_CUDNN
-   //PVCuda::CudaTimer * permute_weights_timer;
-   //PVCuda::CudaTimer * permute_preData_timer;
-   //PVCuda::CudaTimer * permute_postGSyn_timer;
-//#endif
-   //virtual int allocateActiveIndices();
-   //static int copyToBuffer(pvdata_t * buf, const pvdata_t * data,
-   //                        const PVLayerLoc * loc, bool extended, float scale);
-   //static int copyToBuffer(unsigned char * buf, const pvdata_t * data,
-   //                        const PVLayerLoc * loc, bool extended, float scale);
-
-   //template <typename T>
-   //static int copyFromBuffer(const T * buf, T * data,
-   //                          const PVLayerLoc * loc, bool extended, T scale);
-
-   //static int copyFromBuffer(const unsigned char * buf, pvdata_t * data,
-   //                          const PVLayerLoc * loc, bool extended, float scale);
-   ///** returns the number of neurons in layer (for borderId=0) or a border region **/
-   //virtual int numberOfNeurons(int borderId);
-   //virtual int gatherToInteriorBuffer(unsigned char * buf);
-
-   //Labels deprecated 6/16/15
-   //virtual int label(int k);
-   //virtual int * getMarginIndices();
-   //virtual int getNumMargin();
-
-//   int getFeedbackDelay(){return feedbackDelay;};
-//   int getFeedforwardDelay(){return feedforwardDelay;};
-   //Labels deprecated 6/16/15
-   //int * labels;                // label for the feature a neuron is tuned to
-   //virtual int allocateReceivePostKernel();
-
-//   CLKernel * krUpdate;        // CL kernel for update state call
 };
 
 BaseObject * createHyPerLayer(char const * name, HyPerCol * hc);

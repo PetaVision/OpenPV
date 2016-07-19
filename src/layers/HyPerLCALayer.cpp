@@ -14,9 +14,6 @@
 
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 void HyPerLCALayer_update_state(
     const int nbatch,
@@ -40,9 +37,6 @@ void HyPerLCALayer_update_state(
     float * GSynHead,
     float * activity);
 
-#ifdef __cplusplus
-}
-#endif
 
 namespace PV {
 
@@ -127,24 +121,8 @@ int HyPerLCALayer::requireChannel(int channelNeeded, int * numChannelsResult) {
 }
 
 
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
-int HyPerLCALayer::allocateUpdateKernel(){
-//#ifdef PV_USE_OPENCL
-//   //Not done: what's kernel name for HyPerLCALayer for opencl?
-//   int status = CL_SUCCESS;
-//   const char* kernel_name = "HyPerLayer_recv_post";
-//   char kernelPath[PV_PATH_MAX+128];
-//   char kernelFlags[PV_PATH_MAX+128];
-//
-//   CLDevice * device = parent->getCLDevice();
-//
-//   sprintf(kernelPath, "%s/../src/kernels/%s.cl", parent->getSrcPath(), kernel_name);
-//   sprintf(kernelFlags, "-D PV_USE_OPENCL -cl-fast-relaxed-math -I %s/../src/kernels/", parent->getSrcPath());
-//
-//   // create kernels
-//   krRecvPost = device->createKernel(kernelPath, kernel_name, kernelFlags);
-//#endif
 #ifdef PV_USE_CUDA
+int HyPerLCALayer::allocateUpdateKernel(){
    PVCuda::CudaDevice * device = parent->getDevice();
    //Set to temp pointer of the subclass
    PVCuda::CudaUpdateHyPerLCALayer * updateKernel = new PVCuda::CudaUpdateHyPerLCALayer(device);
@@ -207,7 +185,6 @@ int HyPerLCALayer::allocateUpdateKernel(){
 
    //set updateKernel to krUpdate
    krUpdate = updateKernel;
-#endif
    return PV_SUCCESS;
 }
 #endif
@@ -238,15 +215,6 @@ int HyPerLCALayer::updateState(double time, double dt)
    pvdata_t * V = getV();
    int num_channels = getNumChannels();
    pvdata_t * gSynHead = GSyn == NULL ? NULL : GSyn[0];
-
-   //update_timer->start();
-//#ifdef PV_USE_OPENCL
-//   if(gpuAccelerateFlag) {
-//      updateStateOpenCL(time, dt);
-//      //HyPerLayer::updateState(time, dt);
-//   }
-//   else {
-//#endif
    {
       int nx = loc->nx;
       int ny = loc->ny;
@@ -260,12 +228,8 @@ int HyPerLCALayer::updateState(double time, double dt)
       HyPerLCALayer_update_state(nbatch, num_neurons, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, numChannels,
             V, numVertices, verticesV, verticesA, slopes,
             selfInteract, deltaTimeAdapt, timeConstantTau, gSynHead, A);
-      //if (this->writeSparseActivity){
-      //   updateActiveIndices();  // added by GTK to allow for sparse output, can this be made an inline function???
-      //}
    }
 
-   //update_timer->stop();
    return PV_SUCCESS;
 }
 
@@ -275,21 +239,29 @@ BaseObject * createHyPerLCALayer(char const * name, HyPerCol * hc) {
 
 } /* namespace PV */
 
+void HyPerLCALayer_update_state(
+    const int nbatch,
+    const int numNeurons,
+    const int nx,
+    const int ny,
+    const int nf,
+    const int lt,
+    const int rt,
+    const int dn,
+    const int up,
+    const int numChannels,
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#ifndef PV_USE_OPENCL
-#  include "../kernels/HyPerLCALayer_update_state.cl"
-#else
-#  undef PV_USE_OPENCL
-#  include "../kernels/HyPerLCALayer_update_state.cl"
-#  define PV_USE_OPENCL
-#endif
-
-#ifdef __cplusplus
+    float * V,
+    int numVertices,
+    float * verticesV,
+    float * verticesA,
+    float * slopes,
+    const bool selfInteract,
+    double* dtAdapt,
+    const float tau,
+    float * GSynHead,
+    float * activity)
+{
+   updateV_HyPerLCALayer(nbatch, numNeurons, numChannels, V, GSynHead, activity,
+		   numVertices, verticesV, verticesA, slopes, dtAdapt, tau, selfInteract, nx, ny, nf, lt, rt, dn, up);
 }
-#endif
-
-

@@ -19,9 +19,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 void LIF_update_state_arma(
     const int nbatch,
@@ -98,9 +95,6 @@ void LIF_update_state_original(
     float * GSynHead,
     float * activity);
 
-#ifdef __cplusplus
-}
-#endif
 
 namespace PV
 {
@@ -114,10 +108,6 @@ LIF::LIF() {
 LIF::LIF(const char * name, HyPerCol * hc) {
    initialize_base();
    initialize(name, hc, "LIF_update_state");
-//#ifdef PV_USE_OPENCL
-//   if(gpuAccelerateFlag)
-//      initializeGPU();
-//#endif
 }
 
 LIF::~LIF() {
@@ -128,23 +118,6 @@ LIF::~LIF() {
    free(Vth);
    delete randState;
    free(methodString);
-
-//#ifdef PV_USE_OPENCL
-////hyperlayer is destroying these:
-////   delete krUpdate;
-////
-////   free(evList);
-////
-////   delete clParams;
-//   if(gpuAccelerateFlag) {
-//      delete clRand;
-//      delete clVth;
-//      delete clG_E;
-//      delete clG_I;
-//      delete clG_IB;
-//   }
-//#endif
-
 }
 
 int LIF::initialize_base() {
@@ -156,14 +129,6 @@ int LIF::initialize_base() {
    G_IB = NULL;
    methodString = NULL;
 
-//#ifdef PV_USE_OPENCL
-//   clRand = NULL;
-//   clVth = NULL;
-//   clG_E = NULL;
-//   clG_I = NULL;
-//   clG_IB = NULL;
-//#endif // PV_USE_OPEN_CL
-
    return PV_SUCCESS;
 }
 
@@ -172,122 +137,14 @@ int LIF::initialize(const char * name, HyPerCol * hc, const char * kernel_name) 
    HyPerLayer::initialize(name, hc);
    clayer->params = &lParams;
 
-//   // initialize OpenCL parameters
-//   //
-//   //This stuff is commented out for now, but will be used later and added to
-//   //its own initializeGPU method
-//#ifdef PV_USE_OPENCL
-//   numEvents=NUM_LIF_EVENTS;
-////   CLDevice * device = parent->getCLDevice();
-////
-////   // TODO - fix to use device and layer parameters
-////   if (device->id() == 1) {
-////      nxl = 1;  nyl = 1;
-////   }
-////   else {
-////      nxl = 16; nyl = 8;
-////   }
-////
-////   numWait = 0;
-////   numEvents = getNumCLEvents(); //NUM_LIF_EVENTS;
-////   evList = (cl_event *) malloc(numEvents*sizeof(cl_event));
-////   assert(evList != NULL);
-////
-////   numKernelArgs = 0;
-////   initializeThreadBuffers(kernel_name);
-////   initializeThreadKernels(kernel_name);
-////
-////   DataStore * store = parent->icCommunicator()->publisherStore(getLayerId());
-////   store->initializeThreadBuffers(parent);
-//#endif
-
    return PV_SUCCESS;
 }
-
-//#ifdef PV_USE_OPENCL
-///**
-// * Initialize OpenCL buffers.  This must be called after PVLayer data have
-// * been allocated.
-// */
-//int LIF::initializeThreadBuffers(const char * kernel_name)
-//{
-//   int status = HyPerLayer::initializeThreadBuffers(kernel_name);
-//
-//   const size_t size    = getNumNeurons()  * sizeof(pvdata_t);
-//
-//   CLDevice * device = parent->getCLDevice();
-//
-//   // these buffers are shared between host and device
-//   //
-//
-//   clParams = device->createBuffer(CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(lParams), &lParams);
-////   clParams->copyToDevice(&evUpdate);
-////   status |= clWaitForEvents(1, &evUpdate);
-////   clReleaseEvent(evUpdate);
-//
-//   clRand = device->createBuffer(CL_MEM_COPY_HOST_PTR, getNumNeurons()*sizeof(taus_uint4), rand_state);
-//   clVth  = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, Vth);
-//   clG_E  = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, G_E);
-//   clG_I  = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, G_I);
-//   clG_IB = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, G_IB);
-//
-//   return status;
-//}
-//
-//int LIF::initializeThreadKernels(const char * kernel_name)
-//{
-//   char kernelPath[PV_PATH_MAX+128];
-//   char kernelFlags[PV_PATH_MAX+128];
-//
-//   int status = CL_SUCCESS;
-//   CLDevice * device = parent->getCLDevice();
-//
-//   const char * pvRelPath = "../PetaVision";
-//   sprintf(kernelPath, "%s/%s/src/kernels/%s.cl", parent->getSrcPath(), pvRelPath, kernel_name);
-//   sprintf(kernelFlags, "-D PV_USE_OPENCL -D USE_CLRANDOM -cl-fast-relaxed-math -I %s/%s/src/kernels/", parent->getSrcPath(), pvRelPath);
-//
-//   // create kernels
-//   //
-//   krUpdate = device->createKernel(kernelPath, kernel_name, kernelFlags);
-//
-//   int argid = 0;
-//
-//   status |= krUpdate->setKernelArg(argid++, getNumNeurons());
-//   status |= krUpdate->setKernelArg(argid++, parent->simulationTime());
-//   status |= krUpdate->setKernelArg(argid++, parent->getDeltaTime());
-//
-//   status |= krUpdate->setKernelArg(argid++, clayer->loc.nx);
-//   status |= krUpdate->setKernelArg(argid++, clayer->loc.ny);
-//   status |= krUpdate->setKernelArg(argid++, clayer->loc.nf);
-//   status |= krUpdate->setKernelArg(argid++, clayer->loc.nb);
-//
-//   status |= krUpdate->setKernelArg(argid++, clParams);
-//   status |= krUpdate->setKernelArg(argid++, clRand);
-//
-//   status |= krUpdate->setKernelArg(argid++, clV);
-//   status |= krUpdate->setKernelArg(argid++, clVth);
-//   status |= krUpdate->setKernelArg(argid++, clG_E);
-//   status |= krUpdate->setKernelArg(argid++, clG_I);
-//   status |= krUpdate->setKernelArg(argid++, clG_IB);
-////   for (int i = 0; i < getNumChannels(); i++) {
-////      status |= krUpdate->setKernelArg(argid++, clGSyn[i]);
-////   }
-//   status |= krUpdate->setKernelArg(argid++, clGSyn);
-//   status |= krUpdate->setKernelArg(argid++, clActivity);
-//   numKernelArgs = argid;
-//
-//   return status;
-//}
-//#endif
-
 // Set Parameters
 //
 
 int LIF::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
 {
    HyPerLayer::ioParamsFillGroup(ioFlag);
-
-   // clayer->params = &lParams; // Moved to initialize, after HyPerLayer::initialize call, since clayer isn't initialized until after ioParams is called.
 
    ioParam_Vrest(ioFlag);
    ioParam_Vexc(ioFlag);
@@ -527,60 +384,9 @@ int LIF::checkpointWrite(const char * cpDir) {
    return PV_SUCCESS;
 }
 
-int LIF::updateStateOpenCL(double time, double dt)
-{
-   int status = 0;
-
-//#ifdef PV_USE_OPENCL
-//   // wait for memory to be copied to device
-//   if (numWait > 0) {
-//       status |= clWaitForEvents(numWait, evList);
-//   }
-//   for (int i = 0; i < numWait; i++) {
-//      clReleaseEvent(evList[i]);
-//   }
-//   numWait = 0;
-//
-//   status |= krUpdate->setKernelArg(1, time);
-//   status |= krUpdate->setKernelArg(2, dt);
-//   status |= krUpdate->run(getNumNeurons(), nxl*nyl, 0, NULL, &evUpdate);
-//   krUpdate->finish();
-//
-//   status |= getChannelCLBuffer()->copyFromDevice(1, &evUpdate, &evList[getEVGSyn()]);
-////   status |= getChannelCLBuffer(CHANNEL_EXC)->copyFromDevice(1, &evUpdate, &evList[getEVGSynE()]);
-////   status |= getChannelCLBuffer(CHANNEL_INH)->copyFromDevice(1, &evUpdate, &evList[getEVGSynI()]);
-////   status |= getChannelCLBuffer(CHANNEL_INHB)->copyFromDevice(1, &evUpdate, &evList[getEVGSynIB()]);
-//   status |= clActivity->copyFromDevice(1, &evUpdate, &evList[getEVActivity()]);
-//   numWait += 2;
-//
-//#if PV_CL_COPY_BUFFERS
-//   status |= clGSynE    ->copyFromDevice(1, &evUpdate, &evList[EV_LIF_GSyn_E]);
-//   status |= clGSynI    ->copyFromDevice(1, &evUpdate, &evList[EV_LIF_GSyn_I]);
-//   status |= clGSynIB   ->copyFromDevice(1, &evUpdate, &evList[EV_LIF_GSyn_IB]);
-//   status |= clActivity ->copyFromDevice(1, &evUpdate, &evList[EV_LIF_ACTIVITY]);
-//   numWait += 4;
-//#endif // PV_CL_COPY_BUFFERS
-//#endif // PV_USE_OPENCL
-
-   return status;
-}
-
 int LIF::waitOnPublish(InterColComm* comm)
 {
    int status = HyPerLayer::waitOnPublish(comm);
-
-   // copy activity to device
-   //
-//#ifdef PV_USE_OPENCL
-//#if PV_CL_COPY_BUFFERS
-//   publish_timer->start();
-//
-//   status |= clActivity->copyToDevice(&evList[EV_LIF_ACTIVITY]);
-//   numWait += 1;
-//
-//   publish_timer->stop();
-//#endif
-//#endif
 
    return status;
 }
@@ -590,42 +396,32 @@ int LIF::updateState(double time, double dt)
    int status = 0;
    update_timer->start();
 
-//#ifdef PV_USE_OPENCL
-//   if((gpuAccelerateFlag)&&(true)) {
-//      updateStateOpenCL(time, dt);
-//   }
-//   else {
-//#endif
-      const int nx = clayer->loc.nx;
-      const int ny = clayer->loc.ny;
-      const int nf = clayer->loc.nf;
-      const PVHalo * halo = &clayer->loc.halo;
-      const int nbatch = clayer->loc.nbatch;
+   const int nx = clayer->loc.nx;
+   const int ny = clayer->loc.ny;
+   const int nf = clayer->loc.nf;
+   const PVHalo * halo = &clayer->loc.halo;
+   const int nbatch = clayer->loc.nbatch;
 
-      pvdata_t * GSynHead   = GSyn[0];
-      pvdata_t * activity = clayer->activity->data;
+   pvdata_t * GSynHead   = GSyn[0];
+   pvdata_t * activity = clayer->activity->data;
 
-      switch (method) {
-      case 'a':
-         LIF_update_state_arma(nbatch, getNumNeurons(), time, dt, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up, &lParams, randState->getRNG(0), clayer->V, Vth,
-               G_E, G_I, G_IB, GSynHead, activity);
-         break;
-      case 'b':
-         LIF_update_state_beginning(nbatch, getNumNeurons(), time, dt, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up, &lParams, randState->getRNG(0), clayer->V, Vth,
-               G_E, G_I, G_IB, GSynHead, activity);
-         break;
-      case 'o':
-         LIF_update_state_original(nbatch, getNumNeurons(), time, dt, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up, &lParams, randState->getRNG(0), clayer->V, Vth,
-               G_E, G_I, G_IB, GSynHead, activity);
-         break;
-      default:
-         assert(0);
-         break;
-      }
-//#ifdef PV_USE_OPENCL
-//   }
-//#endif
-
+   switch (method) {
+   case 'a':
+      LIF_update_state_arma(nbatch, getNumNeurons(), time, dt, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up, &lParams, randState->getRNG(0), clayer->V, Vth,
+            G_E, G_I, G_IB, GSynHead, activity);
+      break;
+   case 'b':
+      LIF_update_state_beginning(nbatch, getNumNeurons(), time, dt, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up, &lParams, randState->getRNG(0), clayer->V, Vth,
+            G_E, G_I, G_IB, GSynHead, activity);
+      break;
+   case 'o':
+      LIF_update_state_original(nbatch, getNumNeurons(), time, dt, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up, &lParams, randState->getRNG(0), clayer->V, Vth,
+            G_E, G_I, G_IB, GSynHead, activity);
+      break;
+   default:
+      assert(0);
+      break;
+   }
    update_timer->stop();
    return status;
 }
@@ -674,18 +470,529 @@ BaseObject * createLIF(char const * name, HyPerCol * hc) {
 // implementation of LIF kernels
 //
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#ifndef PV_USE_OPENCL
-#  include "../kernels/LIF_update_state.cl"
-#else
-#  undef PV_USE_OPENCL
-#  include "../kernels/LIF_update_state.cl"
-#  define PV_USE_OPENCL
-#endif
-
-#ifdef __cplusplus
+inline
+float LIF_Vmem_derivative(
+      const float Vmem,
+      const float G_E,
+      const float G_I,
+      const float G_IB,
+      const float V_E,
+      const float V_I,
+      const float V_IB,
+      const float Vrest,
+      const float tau) {
+   float totalconductance = 1.0 + G_E + G_I + G_IB;
+   float Vmeminf = (Vrest + V_E*G_E + V_I*G_I + V_IB*G_IB)/totalconductance;
+   return totalconductance*(Vmeminf-Vmem)/tau;
 }
-#endif
+//
+// update the state of a retinal layer (spiking)
+//
+//    assume called with 1D kernel
+//
+// LIF_update_state_original uses an Euler scheme for V where the conductances over the entire timestep are taken to be the values calculated at the end of the timestep
+// LIF_update_state_beginning uses a Heun scheme for V, using values of the conductances at both the beginning and end of the timestep.  Spikes in the input are applied at the beginning of the timestep.
+// LIF_update_state_arma uses an auto-regressive moving average filter for V, applying the GSyn at the start of the timestep and assuming that tau_inf and V_inf vary linearly over the timestep.  See van Hateren, Journal of Vision (2005), p. 331.
+//
+void LIF_update_state_original(
+    const int nbatch,
+    const int numNeurons,
+    const float time, 
+    const float dt,
+
+    const int nx,
+    const int ny,
+    const int nf,
+    const int lt,
+    const int rt,
+    const int dn,
+    const int up,
+
+    LIF_params * params,
+    taus_uint4 * rnd,
+    float * V,
+    float * Vth,
+    float * G_E,
+    float * G_I,
+    float * G_IB,
+    float * GSynHead,
+    float * activity)
+{
+   int k;
+
+   const float exp_tauE    = expf(-dt/params->tauE);
+   const float exp_tauI    = expf(-dt/params->tauI);
+   const float exp_tauIB   = expf(-dt/params->tauIB);
+   const float exp_tauVth  = expf(-dt/params->tauVth);
+
+   const float dt_sec = .001 * dt;   // convert to seconds
+
+
+   for (k = 0; k < nx*ny*nf*nbatch; k++) {
+      int kex = kIndexExtendedBatch(k, nbatch, nx, ny, nf, lt, rt, dn, up);
+
+      //
+      // kernel (nonheader part) begins here
+      //
+
+      // local param variables
+      float tau, Vrest, VthRest, Vexc, Vinh, VinhB, deltaVth, deltaGIB;
+
+      const float GMAX = 10.0;
+
+      // local variables
+      float l_activ;
+
+      taus_uint4 l_rnd = rnd[k];
+
+      float l_V   = V[k];
+      float l_Vth = Vth[k];
+
+      float l_G_E  = G_E[k];
+      float l_G_I  = G_I[k];
+      float l_G_IB = G_IB[k];
+
+      float * GSynExc = &GSynHead[CHANNEL_EXC*nbatch*numNeurons];
+      float * GSynInh = &GSynHead[CHANNEL_INH*nbatch*numNeurons];
+      float * GSynInhB = &GSynHead[CHANNEL_INHB*nbatch*numNeurons];
+      float l_GSynExc  = GSynExc[k];
+      float l_GSynInh  = GSynInh[k];
+      float l_GSynInhB = GSynInhB[k];
+      
+      // temporary arrays
+      float tauInf, VmemInf;
+
+      //
+      // start of LIF2_update_exact_linear
+      //
+
+      // define local param variables
+      //
+      tau   = params->tau;
+      Vexc  = params->Vexc;
+      Vinh  = params->Vinh;
+      VinhB = params->VinhB;
+      Vrest = params->Vrest;
+
+      VthRest  = params->VthRest;
+      deltaVth = params->deltaVth;
+      deltaGIB = params->deltaGIB;
+
+      // add noise
+      //
+
+      l_rnd = cl_random_get(l_rnd);
+      if (cl_random_prob(l_rnd) < dt_sec*params->noiseFreqE) {
+         l_rnd = cl_random_get(l_rnd);
+         l_GSynExc = l_GSynExc + params->noiseAmpE*cl_random_prob(l_rnd);
+      }
+
+      l_rnd = cl_random_get(l_rnd);
+      if (cl_random_prob(l_rnd) < dt_sec*params->noiseFreqI) {
+         l_rnd = cl_random_get(l_rnd);
+         l_GSynInh = l_GSynInh + params->noiseAmpI*cl_random_prob(l_rnd);
+      }
+
+      l_rnd = cl_random_get(l_rnd);
+      if (cl_random_prob(l_rnd) < dt_sec*params->noiseFreqIB) {
+         l_rnd = cl_random_get(l_rnd);
+         l_GSynInhB = l_GSynInhB + params->noiseAmpIB*cl_random_prob(l_rnd);
+      }
+
+      l_G_E  = l_GSynExc  + l_G_E *exp_tauE;
+      l_G_I  = l_GSynInh  + l_G_I *exp_tauI;
+      l_G_IB = l_GSynInhB + l_G_IB*exp_tauIB;
+      
+      l_G_E  = (l_G_E  > GMAX) ? GMAX : l_G_E;
+      l_G_I  = (l_G_I  > GMAX) ? GMAX : l_G_I;
+      l_G_IB = (l_G_IB > GMAX) ? GMAX : l_G_IB;
+
+      tauInf  = (dt/tau) * (1.0 + l_G_E + l_G_I + l_G_IB);
+      VmemInf = (Vrest + l_G_E*Vexc + l_G_I*Vinh + l_G_IB*VinhB)
+              / (1.0 + l_G_E + l_G_I + l_G_IB);
+
+      l_V = VmemInf + (l_V - VmemInf)*expf(-tauInf);
+
+      //
+      // start of LIF2_update_finish
+      //
+
+      l_Vth = VthRest + (l_Vth - VthRest)*exp_tauVth;
+
+      //
+      // start of update_f
+      //
+
+      bool fired_flag = (l_V > l_Vth);
+
+      l_activ = fired_flag ? 1.0f                 : 0.0f;
+      l_V     = fired_flag ? Vrest                : l_V;
+      l_Vth   = fired_flag ? l_Vth + deltaVth     : l_Vth;
+      l_G_IB  = fired_flag ? l_G_IB + deltaGIB    : l_G_IB;
+
+      //
+      // These actions must be done outside of kernel
+      //    1. set activity to 0 in boundary (if needed)
+      //    2. update active indices
+      //
+
+      // store local variables back to global memory
+      //
+      rnd[k] = l_rnd;
+
+      activity[kex] = l_activ;
+      
+      V[k]   = l_V;
+      Vth[k] = l_Vth;
+
+      G_E[k]  = l_G_E;
+      G_I[k]  = l_G_I;
+      G_IB[k] = l_G_IB;
+
+      GSynExc[k]  = 0.0f;
+      GSynInh[k]  = 0.0f;
+      GSynInhB[k] = 0.0f;
+
+   } // loop over k
+}
+
+void LIF_update_state_beginning(
+    const int nbatch,
+    const int numNeurons,
+    const float time,
+    const float dt,
+
+    const int nx,
+    const int ny,
+    const int nf,
+    const int lt,
+    const int rt,
+    const int dn,
+    const int up,
+
+    LIF_params * params,
+    taus_uint4 * rnd,
+    float * V,
+    float * Vth,
+    float * G_E,
+    float * G_I,
+    float * G_IB,
+    float * GSynHead,
+//    float * GSynExc,
+//    float * GSynInh,
+//    float * GSynInhB,
+    float * activity)
+{
+   int k;
+
+   const float exp_tauE    = expf(-dt/params->tauE);
+   const float exp_tauI    = expf(-dt/params->tauI);
+   const float exp_tauIB   = expf(-dt/params->tauIB);
+   const float exp_tauVth  = expf(-dt/params->tauVth);
+
+   const float dt_sec = .001 * dt;   // convert to seconds
+
+
+   for (k = 0; k < nx*ny*nf*nbatch; k++) {
+
+      int kex = kIndexExtendedBatch(k, nbatch, nx, ny, nf, lt, rt, dn, up);
+
+      //
+      // kernel (nonheader part) begins here
+      //
+
+      // local param variables
+      float tau, Vrest, VthRest, Vexc, Vinh, VinhB, deltaVth, deltaGIB;
+
+      const float GMAX = 10.0;
+
+      // local variables
+      float l_activ;
+
+      taus_uint4 l_rnd = rnd[k];
+
+      float l_V   = V[k];
+      float l_Vth = Vth[k];
+
+      // The correction factors to the conductances are so that if l_GSyn_* is the same every timestep,
+      // then the asymptotic value of l_G_* will be l_GSyn_*
+      float l_G_E  = G_E[k];
+      float l_G_I  = G_I[k];
+      float l_G_IB = G_IB[k];
+
+      float * GSynExc = &GSynHead[CHANNEL_EXC*nbatch*numNeurons];
+      float * GSynInh = &GSynHead[CHANNEL_INH*nbatch*numNeurons];
+      float * GSynInhB = &GSynHead[CHANNEL_INHB*nbatch*numNeurons];
+      float l_GSynExc  = GSynExc[k];
+      float l_GSynInh  = GSynInh[k];
+      float l_GSynInhB = GSynInhB[k];
+
+      //
+      // start of LIF2_update_exact_linear
+      //
+
+      // define local param variables
+      //
+      tau   = params->tau;
+      Vexc  = params->Vexc;
+      Vinh  = params->Vinh;
+      VinhB = params->VinhB;
+      Vrest = params->Vrest;
+
+      VthRest  = params->VthRest;
+      deltaVth = params->deltaVth;
+      deltaGIB = params->deltaGIB;
+
+      // add noise
+      //
+
+      l_rnd = cl_random_get(l_rnd);
+      if (cl_random_prob(l_rnd) < dt_sec*params->noiseFreqE) {
+         l_rnd = cl_random_get(l_rnd);
+         l_GSynExc = l_GSynExc + params->noiseAmpE*cl_random_prob(l_rnd);
+      }
+
+      l_rnd = cl_random_get(l_rnd);
+      if (cl_random_prob(l_rnd) < dt_sec*params->noiseFreqI) {
+         l_rnd = cl_random_get(l_rnd);
+         l_GSynInh = l_GSynInh + params->noiseAmpI*cl_random_prob(l_rnd);
+      }
+
+      l_rnd = cl_random_get(l_rnd);
+      if (cl_random_prob(l_rnd) < dt_sec*params->noiseFreqIB) {
+         l_rnd = cl_random_get(l_rnd);
+         l_GSynInhB = l_GSynInhB + params->noiseAmpIB*cl_random_prob(l_rnd);
+      }
+
+      // The portion of code below uses the newer method of calculating l_V.
+      float G_E_initial, G_I_initial, G_IB_initial, G_E_final, G_I_final, G_IB_final;
+      float dV1, dV2, dV;
+
+      G_E_initial = l_G_E + l_GSynExc;
+      G_I_initial = l_G_I + l_GSynInh;
+      G_IB_initial = l_G_IB + l_GSynInhB;
+
+      G_E_initial  = (G_E_initial  > GMAX) ? GMAX : G_E_initial;
+      G_I_initial  = (G_I_initial  > GMAX) ? GMAX : G_I_initial;
+      G_IB_initial = (G_IB_initial > GMAX) ? GMAX : G_IB_initial;
+
+      G_E_final = G_E_initial*exp_tauE;
+      G_I_final = G_I_initial*exp_tauI;
+      G_IB_final = G_IB_initial*exp_tauIB;
+
+      dV1 = LIF_Vmem_derivative(l_V, G_E_initial, G_I_initial, G_IB_initial, Vexc, Vinh, VinhB, Vrest, tau);
+      dV2 = LIF_Vmem_derivative(l_V+dt*dV1, G_E_final, G_I_final, G_IB_final, Vexc, Vinh, VinhB, Vrest, tau);
+      dV = (dV1+dV2)*0.5;
+      l_V = l_V + dt*dV;
+
+      l_G_E = G_E_final;
+      l_G_I = G_I_final;
+      l_G_IB = G_IB_final;
+
+      l_Vth = VthRest + (l_Vth - VthRest)*exp_tauVth;
+      // End of code unique to newer method.
+
+      //
+      // start of update_f
+      //
+
+      bool fired_flag = (l_V > l_Vth);
+
+      l_activ = fired_flag ? 1.0f                 : 0.0f;
+      l_V     = fired_flag ? Vrest                : l_V;
+      l_Vth   = fired_flag ? l_Vth + deltaVth     : l_Vth;
+      l_G_IB  = fired_flag ? l_G_IB + deltaGIB    : l_G_IB;
+
+      //
+      // These actions must be done outside of kernel
+      //    1. set activity to 0 in boundary (if needed)
+      //    2. update active indices
+      //
+
+      // store local variables back to global memory
+      //
+      rnd[k] = l_rnd;
+
+      activity[kex] = l_activ;
+
+      V[k]   = l_V;
+      Vth[k] = l_Vth;
+
+      G_E[k]  = l_G_E;
+      G_I[k]  = l_G_I;
+      G_IB[k] = l_G_IB;
+
+   } // loop over k
+}
+
+void LIF_update_state_arma(
+    const int nbatch,
+    const int numNeurons,
+    const float time,
+    const float dt,
+
+    const int nx,
+    const int ny,
+    const int nf,
+    const int lt,
+    const int rt,
+    const int dn,
+    const int up,
+
+    LIF_params * params,
+    taus_uint4 * rnd,
+    float * V,
+    float * Vth,
+    float * G_E,
+    float * G_I,
+    float * G_IB,
+    float * GSynHead,
+    float * activity)
+{
+   int k;
+
+   const float exp_tauE    = expf(-dt/params->tauE);
+   const float exp_tauI    = expf(-dt/params->tauI);
+   const float exp_tauIB   = expf(-dt/params->tauIB);
+   const float exp_tauVth  = expf(-dt/params->tauVth);
+
+   const float dt_sec = .001 * dt;   // convert to seconds
+
+
+   for (k = 0; k < nx*ny*nf*nbatch; k++) {
+      int kex = kIndexExtendedBatch(k, nbatch, nx, ny, nf, lt, rt, dn, up);
+
+      //
+      // kernel (nonheader part) begins here
+      //
+
+      // local param variables
+      float tau, Vrest, VthRest, Vexc, Vinh, VinhB, deltaVth, deltaGIB;
+
+      const float GMAX = 10.0;
+
+      // local variables
+      float l_activ;
+
+      taus_uint4 l_rnd = rnd[k];
+
+      float l_V   = V[k];
+      float l_Vth = Vth[k];
+
+      // The correction factors to the conductances are so that if l_GSyn_* is the same every timestep,
+      // then the asymptotic value of l_G_* will be l_GSyn_*
+      float l_G_E  = G_E[k];
+      float l_G_I  = G_I[k];
+      float l_G_IB = G_IB[k];
+
+      float * GSynExc = &GSynHead[CHANNEL_EXC*nbatch*numNeurons];
+      float * GSynInh = &GSynHead[CHANNEL_INH*nbatch*numNeurons];
+      float * GSynInhB = &GSynHead[CHANNEL_INHB*nbatch*numNeurons];
+      float l_GSynExc  = GSynExc[k];
+      float l_GSynInh  = GSynInh[k];
+      float l_GSynInhB = GSynInhB[k];
+
+      //
+      // start of LIF2_update_exact_linear
+      //
+
+      // define local param variables
+      //
+      tau   = params->tau;
+      Vexc  = params->Vexc;
+      Vinh  = params->Vinh;
+      VinhB = params->VinhB;
+      Vrest = params->Vrest;
+
+      VthRest  = params->VthRest;
+      deltaVth = params->deltaVth;
+      deltaGIB = params->deltaGIB;
+
+      // add noise
+      //
+
+      l_rnd = cl_random_get(l_rnd);
+      if (cl_random_prob(l_rnd) < dt_sec*params->noiseFreqE) {
+         l_rnd = cl_random_get(l_rnd);
+         l_GSynExc = l_GSynExc + params->noiseAmpE*cl_random_prob(l_rnd);
+      }
+
+      l_rnd = cl_random_get(l_rnd);
+      if (cl_random_prob(l_rnd) < dt_sec*params->noiseFreqI) {
+         l_rnd = cl_random_get(l_rnd);
+         l_GSynInh = l_GSynInh + params->noiseAmpI*cl_random_prob(l_rnd);
+      }
+
+      l_rnd = cl_random_get(l_rnd);
+      if (cl_random_prob(l_rnd) < dt_sec*params->noiseFreqIB) {
+         l_rnd = cl_random_get(l_rnd);
+         l_GSynInhB = l_GSynInhB + params->noiseAmpIB*cl_random_prob(l_rnd);
+      }
+
+      // The portion of code below uses the newer method of calculating l_V.
+      float G_E_initial, G_I_initial, G_IB_initial, G_E_final, G_I_final, G_IB_final;
+      float tau_inf_initial, tau_inf_final, V_inf_initial, V_inf_final;
+
+      G_E_initial = l_G_E + l_GSynExc;
+      G_I_initial = l_G_I + l_GSynInh;
+      G_IB_initial = l_G_IB + l_GSynInhB;
+      tau_inf_initial = tau/(1+G_E_initial+G_I_initial+G_IB_initial);
+      V_inf_initial = (Vrest+Vexc*G_E_initial+Vinh*G_I_initial+VinhB*G_IB_initial)/(1+G_E_initial+G_I_initial+G_IB_initial);
+
+      G_E_initial  = (G_E_initial  > GMAX) ? GMAX : G_E_initial;
+      G_I_initial  = (G_I_initial  > GMAX) ? GMAX : G_I_initial;
+      G_IB_initial = (G_IB_initial > GMAX) ? GMAX : G_IB_initial;
+
+      G_E_final = G_E_initial*exp_tauE;
+      G_I_final = G_I_initial*exp_tauI;
+      G_IB_final = G_IB_initial*exp_tauIB;
+
+      tau_inf_final = tau/(1+G_E_final+G_I_final+G_IB_initial);
+      V_inf_final = (Vrest+Vexc*G_E_final+Vinh*G_I_final+VinhB*G_IB_final)/(1+G_E_final+G_I_final+G_IB_final);
+
+      float tau_slope = (tau_inf_final-tau_inf_initial)/dt;
+      float f1 = tau_slope==0.0f ? expf(-dt/tau_inf_initial) : powf(tau_inf_final/tau_inf_initial, -1/tau_slope);
+      float f2 = tau_slope==-1.0f ? tau_inf_initial/dt*logf(tau_inf_final/tau_inf_initial+1.0f) :
+                                    (1-tau_inf_initial/dt*(1-f1))/(1+tau_slope);
+      float f3 = 1.0f - f1 - f2;
+      l_V = f1*l_V + f2*V_inf_initial + f3*V_inf_final;
+
+      l_G_E = G_E_final;
+      l_G_I = G_I_final;
+      l_G_IB = G_IB_final;
+
+      l_Vth = VthRest + (l_Vth - VthRest)*exp_tauVth;
+      // End of code unique to newer method.
+
+      //
+      // start of update_f
+      //
+
+      bool fired_flag = (l_V > l_Vth);
+
+      l_activ = fired_flag ? 1.0f                 : 0.0f;
+      l_V     = fired_flag ? Vrest                : l_V;
+      l_Vth   = fired_flag ? l_Vth + deltaVth     : l_Vth;
+      l_G_IB  = fired_flag ? l_G_IB + deltaGIB    : l_G_IB;
+
+      //
+      // These actions must be done outside of kernel
+      //    1. set activity to 0 in boundary (if needed)
+      //    2. update active indices
+      //
+
+      // store local variables back to global memory
+      //
+      rnd[k] = l_rnd;
+
+      activity[kex] = l_activ;
+
+      V[k]   = l_V;
+      Vth[k] = l_Vth;
+
+      G_E[k]  = l_G_E;
+      G_I[k]  = l_G_I;
+      G_IB[k] = l_G_IB;
+   }
+
+}

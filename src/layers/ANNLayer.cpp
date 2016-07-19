@@ -9,10 +9,6 @@
 #include "layers/updateStateFunctions.h"
 #include <limits>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 void ANNLayer_vertices_update_state(
     const int nbatch,
     const int numNeurons,
@@ -54,10 +50,6 @@ void ANNLayer_threshminmax_update_state(
     float * GSynHead,
     float * activity);
 
-#ifdef __cplusplus
-}
-#endif
-
 namespace PV {
 
 ANNLayer::ANNLayer() {
@@ -67,11 +59,7 @@ ANNLayer::ANNLayer() {
 ANNLayer::ANNLayer(const char * name, HyPerCol * hc) {
    initialize_base();
    initialize(name, hc);
-//#ifdef PV_USE_OPENCL
-//   if(gpuAccelerateFlag)
-//      initializeGPU();
-//#endif
-}  // end ANNLayer::ANNLayer(const char *, HyPerCol *)
+}
 
 ANNLayer::~ANNLayer() {}
 
@@ -87,10 +75,6 @@ int ANNLayer::initialize(const char * name, HyPerCol * hc) {
    }
    if (status==PV_SUCCESS) { status = checkVertices(); }
    if (status==PV_SUCCESS) { setSlopes(); }
-
-//#ifdef PV_USE_OPENCL
-//   numEvents=NUM_ANN_EVENTS;
-//#endif
    return status;
 }
 
@@ -399,29 +383,18 @@ int ANNLayer::updateState(double time, double dt)
    pvdata_t * V = getV();
    int num_channels = getNumChannels();
    pvdata_t * gSynHead = GSyn == NULL ? NULL : GSyn[0];
-   //#ifdef PV_USE_OPENCL
-   //   if(gpuAccelerateFlag) {
-   //      updateStateOpenCL(time, dt);
-   //   }
-   //   else {
-   //#endif
-         int nx = loc->nx;
-         int ny = loc->ny;
-         int nf = loc->nf;
-         int num_neurons = nx*ny*nf;
-         int nbatch = loc->nbatch;
-         if (layerListsVerticesInParams()) {
-            ANNLayer_vertices_update_state(nbatch, num_neurons, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, V, numVertices, verticesV, verticesA, slopes, num_channels, gSynHead, A);
-         }
-         else {
-            ANNLayer_threshminmax_update_state(nbatch, num_neurons, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, V, VThresh, AMin, AMax, AShift, VWidth, num_channels, gSynHead, A);
-         }
-
-   //#ifdef PV_USE_OPENCL
-   //   }
-   //#endif
-
-      return PV_SUCCESS;
+   int nx = loc->nx;
+   int ny = loc->ny;
+   int nf = loc->nf;
+   int num_neurons = nx*ny*nf;
+   int nbatch = loc->nbatch;
+   if (layerListsVerticesInParams()) {
+      ANNLayer_vertices_update_state(nbatch, num_neurons, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, V, numVertices, verticesV, verticesA, slopes, num_channels, gSynHead, A);
+   }
+   else {
+      ANNLayer_threshminmax_update_state(nbatch, num_neurons, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, V, VThresh, AMin, AMax, AShift, VWidth, num_channels, gSynHead, A);
+   }
+   return PV_SUCCESS;
 }
 
 int ANNLayer::setActivity() {
@@ -464,21 +437,49 @@ BaseObject * createANNLayer(char const * name, HyPerCol * hc) {
 // implementation of ANNLayer kernels
 //
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+void ANNLayer_vertices_update_state(
+    const int nbatch,
+    const int numNeurons,
+    const int nx,
+    const int ny,
+    const int nf,
+    const int lt,
+    const int rt,
+    const int dn,
+    const int up,
 
-#ifndef PV_USE_OPENCL
-#  include "kernels/ANNLayer_vertices_update_state.cl"
-#  include "kernels/ANNLayer_threshminmax_update_state.cl"
-#else
-#  undef PV_USE_OPENCL
-#  include "kernels/ANNLayer_vertices_update_state.cl"
-#  include "kernels/ANNLayer_threshminmax_update_state.cl"
-#  define PV_USE_OPENCL
-#endif
-
-#ifdef __cplusplus
+    float * V,
+    int numVertices,
+    float * verticesV,
+    float * verticesA,
+    float * slopes,
+    int num_channels,
+    float * GSynHead,
+    float * activity)
+{
+   updateV_PtwiseLinearTransferLayer(nbatch, numNeurons, V, num_channels, GSynHead, activity, numVertices, verticesV, verticesA, slopes, nx, ny, nf, lt, rt, dn, up);
 }
-#endif
 
+void ANNLayer_threshminmax_update_state(
+    const int nbatch,
+    const int numNeurons,
+    const int nx,
+    const int ny,
+    const int nf,
+    const int lt,
+    const int rt,
+    const int dn,
+    const int up,
+
+    float * V,
+    float VThresh,
+    float AMin,
+    float AMax,
+    float AShift,
+    float VWidth,
+    int num_channels,
+    float * GSynHead,
+    float * activity)
+{
+   updateV_ANNLayer_threshminmax(nbatch, numNeurons, V, num_channels, GSynHead, activity, VThresh, AMin, AMax, AShift, VWidth, nx, ny, nf, lt, rt, dn, up);
+}
