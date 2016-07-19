@@ -215,11 +215,11 @@ int CloneConn::communicateInitInfo() {
    if (status != PV_SUCCESS) return status;
 
    //Don't allocate post, just grab in allocate from orig
-#ifdef PV_USE_CUDA
    if(needPost){
       originalConn->setNeedPost(true);
    }
 
+#ifdef PV_USE_CUDA
    if((updateGSynFromPostPerspective && receiveGpu) || allocPostDeviceWeights){
       originalConn->setAllocPostDeviceWeights();
    }
