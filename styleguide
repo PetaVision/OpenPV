@@ -1,0 +1,89 @@
+//********************************
+// PetaVision style guide
+//********************************
+
+// Variable names are camelCase
+// Class, Struct, and Enum type names are PascalCase
+// Primitive type names are lowercase
+// Enum values are ALL_CAPS
+
+// Descriptive variable names are preferred to shorthand.
+// Avoid using one letter abbreviations anywhere other than for loop indices.
+
+//    Good:
+   int xIndex = 0;
+
+//    Acceptable:
+   int xInd = 0;
+
+//    Bad:
+   int xi = 0;
+
+// Member variables start with a lowercase m.
+   char* mFileName = nullptr;
+
+// Use C++11 standards wherever applicable.
+// Favor standard containers over malloc or new.
+
+//    Recommended:
+   std::vector<float> _buffer;
+   _buffer.reserve(_numNeurons);
+
+   HyPerLayer* mPostLayer = nullptr;
+   
+   int value = static_cast<int>(1.5f);
+
+//    Not recommended:
+   float* _buffer = calloc(mNumNeurons, sizeof(float));
+
+   HyPerLayer* mPostLayer = NULL;
+   
+   int value = (int)1.5f;
+
+// One-line getters and setters live in .hpp files.
+// Getters and setters should always be named getVariableName() and setVariableName().
+
+// Functions should appear in the cpp file in the same order as the hpp file
+
+// .hpp files should be ordered in the following manner
+
+//    Parameter Functions
+
+//    Constructors / Destructor
+
+//    Public Functions
+//    Protected Functions
+//    Private Functions
+
+//    Public Variables (these should be very rare, if any)
+//    Protected Variables
+//    Private Variables
+
+//    Getters and Setters
+
+//    Factory Function
+
+// Within these sections, members should be ordered alphabetically by type.  
+// Reference types come after value types.
+
+// Any variables or functions that require the same preprocessor directive,
+// such as PV_USE_CUDA, should appear after the functions or variables that
+// do not require it. Each section listed above should only have one ifdef
+// for any given flag.
+
+// All whitespace should be spaces (no tabs).
+// New scope should be indented by 3 spaces.
+// The opening brace for a new scope should be on the same line as the previous statement.
+// If the contained statement is small enough to fit on the same line along with the closing
+// bracket, it can be on the same line.
+
+// Nested #ifdefs should use spaces to indent between the # and the ifdef.
+#ifdef PV_USE_CUDA
+   // Do something
+#  ifdef PV_USE_CUDNN
+   // Do something else
+#  else
+   // Do another thing
+#  endif
+#endif
+

@@ -8,6 +8,7 @@
 #define TIMER_ON
 #define DEFAULT_OUTPUT_PATH "output/"
 #define DEFAULT_DELTA_T 1.0 //time step size (msec)
+#define DEFAULT_NUMSTEPS 1
 
 #include "HyPerCol.hpp"
 #include "columns/InterColComm.hpp"
@@ -38,123 +39,72 @@
 
 namespace PV {
 
-HyPerCol::HyPerCol(const char * name, PV_Init * initObj) {
+HyPerCol::HyPerCol(const char * mName, PV_Init * initObj) {
    initialize_base();
-   initialize(name, initObj);
+   initialize(mName, initObj);
 }
 
-HyPerCol::~HyPerCol()
-{
-   int n;
-
+HyPerCol::~HyPerCol() {
 #ifdef PV_USE_CUDA
    finalizeThreads();
 #endif // PV_USE_CUDA
-
-   //Print all timers
    writeTimers(getOutputStream());
 
-   if (image_file != NULL) free(image_file);
-
-   for (n = 0; n < numConnections; n++) {
-      delete connections[n];
-   }
-   free(connections);
-   for (n = 0; n < numNormalizers; n++) {
-      delete normalizers[n];
-   }
+   for (int n = 0; n < numConnections; n++) { delete mConnections[n]; }
+   for (int n = 0; n < numNormalizers; n++) { delete normalizers[n]; }
+   free(mConnections);
    free(normalizers);
 
    int rank = globalRank(); // Need to save so that we know whether we're the process that does I/O, even after deleting icComm.
 
    if (phaseRecvTimers) {
       for (int phase=0; phase<numPhases; phase++) {
-         if(phaseRecvTimers[phase]){
-            delete phaseRecvTimers[phase];
-         }
+         if(phaseRecvTimers[phase]) { delete phaseRecvTimers[phase]; }
       }
       free(phaseRecvTimers);
    }
 
-   for (n = 0; n < numLayers; n++) {
-      if (layers[n] != NULL) {
-         delete layers[n];
-      }
+   for (int n = 0; n < numLayers; n++) {
+      if (layers[n] != NULL) { delete layers[n]; }
    }
    free(layers);
-
-   //if (ownsParams) delete params;
-   //delete icComm;
-
-   //if (ownsInterColComm) {
-   //}
-   //else {
-   //}
    icComm->clearPublishers();
-
    delete runTimer;
    delete checkpointTimer;
-
-   free(dtAdaptController);
-
-   // colProbes[i] should not be deleted; it points to an entry in baseProbes and will
-   // be deleted when baseProbes is deleted, below.
+   free(mDtAdaptController);
+   // colProbes[i] should not be deleted; it points to an entry in mBaseProbes and will
+   // be deleted when mBaseProbes is deleted, below.
    free(colProbes);
-
-   for (int k=0; k<numBaseProbes; k++) {
-      delete baseProbes[k];
-   }
-   free(baseProbes);
-
+   for (int k=0; k<numBaseProbes; k++) { delete mBaseProbes[k]; }
+   free(mBaseProbes);
    free(printParamsFilename);
-   // free(outputNamesOfLayersAndConns);
    free(outputPath);
-   if (srcPath) {
-      free(srcPath);
-   }
+   if (srcPath) { free(srcPath); }
    free(initializeFromCheckpointDir);
-   if (checkpointWriteFlag) {
-      free(checkpointWriteDir); checkpointWriteDir = NULL;
-      free(checkpointWriteTriggerModeString); checkpointWriteTriggerModeString = NULL;
+   if (mCheckpointWriteFlag) {
+      free(mCheckpointWriteDir); mCheckpointWriteDir = NULL;
+      free(mCheckpointWriteTriggerModeString); mCheckpointWriteTriggerModeString = NULL;
    }
-   if (checkpointReadFlag) {
-      free(checkpointReadDir); checkpointReadDir = NULL;
-      free(checkpointReadDirBase); checkpointReadDirBase = NULL;
+   if (mCheckpointReadFlag) {
+      free(mCheckpointReadDir); mCheckpointReadDir = NULL;
+      free(mCheckpointReadDirBase); mCheckpointReadDirBase = NULL;
    }
-   if (dtAdaptControlProbe && writeTimescales){
-      timeScaleStream.close();
-   }
-
-   if(timeScale){
-      free(timeScale);
-   }
-   if(timeScaleMax){
-      free(timeScaleMax);
-   }
-   if(timeScaleMax2){
-      free(timeScaleMax2);
-   }
-   if(timeScaleTrue){
-      free(timeScaleTrue);
-   }
-   if(oldTimeScale){
-      free(oldTimeScale);
-   }
-   if(oldTimeScaleTrue){
-      free(oldTimeScaleTrue);
-   }
-   if(deltaTimeAdapt){
-      free(deltaTimeAdapt);
-   }
+   if (dtAdaptControlProbe && mWriteTimescales) { timeScaleStream.close(); }
+   if(timeScale) { free(timeScale); }
+   if(timeScaleMax) { free(timeScaleMax); }
+   if(timeScaleMax2) { free(timeScaleMax2); }
+   if(timeScaleTrue) { free(timeScaleTrue); }
+   if(oldTimeScale) { free(oldTimeScale); }
+   if(oldTimeScaleTrue) { free(oldTimeScaleTrue); }
+   if(deltaTimeAdapt) { free(deltaTimeAdapt); }
 }
 
 
-#define DEFAULT_NUMSTEPS 1
 int HyPerCol::initialize_base() {
    // Initialize all member variables to safe values.  They will be set to their actual values in initialize()
-   warmStart = false;
-   readyFlag = false;
-   paramsProcessedFlag = false;
+   mWarmStart = false;
+   mReadyFlag = false;
+   mParamsProcessedFlag = false;
    currentStep = 0;
    layerArraySize = INITIAL_LAYER_ARRAY_SIZE;
    numLayers = 0;
@@ -163,31 +113,31 @@ int HyPerCol::initialize_base() {
    numConnections = 0;
    normalizerArraySize = INITIAL_CONNECTION_ARRAY_SIZE;
    numNormalizers = 0;
-   checkpointReadFlag = false;
-   checkpointWriteFlag = false;
-   checkpointReadDir = NULL;
-   checkpointReadDirBase = NULL;
+   mCheckpointReadFlag = false;
+   mCheckpointWriteFlag = false;
+   mCheckpointReadDir = NULL;
+   mCheckpointReadDirBase = NULL;
    cpReadDirIndex = -1L;
-   checkpointWriteDir = NULL;
+   mCheckpointWriteDir = NULL;
    checkpointWriteTriggerMode = CPWRITE_TRIGGER_STEP;
    cpWriteStepInterval = -1L;
    nextCPWriteStep = 0L;
    cpWriteTimeInterval = -1.0;
    nextCPWriteTime = 0.0;
    cpWriteClockInterval = -1.0;
-   deleteOlderCheckpoints = false;
+   mDeleteOlderCheckpoints = false;
    numCheckpointsKept = 2;
    oldCheckpointDirectoriesIndex = 0;
-   defaultInitializeFromCheckpointFlag = false;
-   suppressLastOutput = false;
-   suppressNonplasticCheckpoints = false;
+   mDefaultInitializeFromCheckpointFlag = false;
+   mSuppressLastOutput = false;
+   mSuppressNonplasticCheckpoints = false;
    checkpointIndexWidth = -1; // defaults to automatically determine index width
    simTime = 0.0;
    startTime = 0.0;
    stopTime = 0.0;
    deltaTime = DEFAULT_DELTA_T;
-   writeTimeScaleFieldnames = true;
-   dtAdaptController = NULL;
+   mWriteTimeScaleFieldnames = true;
+   mDtAdaptController = NULL;
    dtAdaptControlProbe = NULL;
    dtAdaptTriggerLayerName = NULL;
    dtAdaptTriggerLayer = NULL;
@@ -207,56 +157,48 @@ int HyPerCol::initialize_base() {
    changeTimeScaleMin = 0.0;
    dtMinToleratedTimeScale = 1.0e-4;
    progressInterval = 1.0;
-   writeProgressToErr = false;
+   mWriteProgressToError = false;
    origStdOut = -1;
    origStdErr = -1;
-
-#ifdef PV_USE_CUDA
-   cudaDevice = NULL;
-   gpuGroupConns = NULL;
-   numGpuGroup = 0;
-#endif
-
    layers = NULL;
-   connections = NULL;
+   mConnections = NULL;
    normalizers = NULL;
    layerStatus = NULL;
    connectionStatus = NULL;
    srcPath = NULL;
    outputPath = NULL;
-   // outputNamesOfLayersAndConns = NULL;
    printParamsFilename = NULL;
    printParamsStream = NULL;
    luaPrintParamsStream = NULL;
-   image_file = NULL;
    nxGlobal = 0;
    nyGlobal = 0;
    nbatch = 1;
    nbatchGlobal = 1;
-   ownsParams = true;
-   ownsInterColComm = true;
+   mOwnsParams = true;
+   mOwnsInterColComm = true;
    params = NULL;
    icComm = NULL;
-//   runDelegate = NULL;
    runTimer = NULL;
    checkpointTimer = NULL;
    phaseRecvTimers = NULL;
    numColProbes = 0;
    colProbes = NULL;
    numBaseProbes = 0;
-   baseProbes = NULL;
-   // numConnProbes = 0;
-   // connProbes = NULL;
+   mBaseProbes = NULL;
    filenamesContainLayerNames = 0;
    filenamesContainConnectionNames = 0;
    random_seed = 0U;
    random_seed_obj = 0U;
-   writeTimescales = true; //Defaults to true
-   errorOnNotANumber = false;
+   mWriteTimescales = true; //Defaults to true
+   mErrorOnNotANumber = false;
    numThreads = 1;
    recvLayerBuffer.clear();
-   verifyWrites = true; // Default for reading back and verifying when calling PV_fwrite
-
+   mVerifyWrites = true; // Default for reading back and verifying when calling PV_fwrite
+#ifdef PV_USE_CUDA
+   cudaDevice = NULL;
+   gpuGroupConns = NULL;
+   numGpuGroup = 0;
+#endif
    return PV_SUCCESS;
 }
 
@@ -272,12 +214,10 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
       }
       exit(EXIT_FAILURE);
    }
-
    int rank = icComm->globalCommRank();
-
    char const * gpu_devices = pv_initObj->getGPUDevices();
    char * working_dir = expandLeadingTilde(pv_initObj->getWorkingDir());
-   warmStart = pv_initObj->getRestartFlag();
+   mWarmStart = pv_initObj->getRestartFlag();
 
 #ifdef PVP_DEBUG
    if (pv_initObj->getRequireReturnFlag()) {
@@ -293,18 +233,16 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
    }
 #endif // PVP_DEBUG
 
-   this->name = strdup(name);
-   this->runTimer = new Timer(name, "column", "run    ");
-   this->checkpointTimer = new Timer(name, "column", "checkpoint ");
-
+   this->mName = strdup(name);
+   runTimer = new Timer(mName, "column", "run    ");
+   checkpointTimer = new Timer(mName, "column", "checkpoint ");
    layers = (HyPerLayer **) malloc(layerArraySize * sizeof(HyPerLayer *));
-   connections = (BaseConnection **) malloc(connectionArraySize * sizeof(BaseConnection *));
+   mConnections = (BaseConnection **) malloc(connectionArraySize * sizeof(BaseConnection *));
    normalizers = (NormalizeBase **) malloc(normalizerArraySize * sizeof(NormalizeBase *));
 
    // numThreads will not be set, or used until HyPerCol::run.
    // This means that threading cannot happen in the initialization or communicateInitInfo stages,
    // but that should not be a problem.
-
    char const * programName = pv_initObj->getProgramName();
 
    if(working_dir && columnId()==0) {
@@ -317,37 +255,31 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
    }
    free(working_dir); working_dir = nullptr;
 
-
 #ifdef PV_USE_MPI // Fail if there was a parsing error, but make sure nonroot processes don't kill the root process before the root process reaches the syntax error
    int parsedStatus;
    int rootproc = 0;
-   if( globalRank() == rootproc ) {
-      parsedStatus = this->params->getParseStatus();
-   }
+   if( globalRank() == rootproc ) { parsedStatus = this->params->getParseStatus(); }
    MPI_Bcast(&parsedStatus, 1, MPI_INT, rootproc, icCommunicator()->globalCommunicator());
 #else
    int parsedStatus = this->params->getParseStatus();
 #endif
-   if( parsedStatus != 0 ) {
-      exit(parsedStatus);
-   }
+   if( parsedStatus != 0 ) { exit(parsedStatus); }
 
    if (pv_initObj->getOutputPath()) {
       outputPath = expandLeadingTilde(pv_initObj->getOutputPath());
       if (outputPath==NULL) {pvError() << "HyPerCol::initialize unable to copy output path." << std::endl; }
    }
+
    random_seed = pv_initObj->getRandomSeed();
    ioParams(PARAMS_IO_READ);
-
    checkpointSignal = 0;
-
    simTime = startTime;
    initialStep = (long int) nearbyint(startTime/deltaTimeBase);
    currentStep = initialStep;
    finalStep = (long int) nearbyint(stopTime/deltaTimeBase);
    nextProgressTime = startTime + progressInterval;
 
-   if(checkpointWriteFlag) {
+   if(mCheckpointWriteFlag) {
       switch (checkpointWriteTriggerMode) {
       case CPWRITE_TRIGGER_STEP:
          nextCPWriteStep = initialStep;
@@ -372,11 +304,11 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
       }
    }
 
-   //warmStart is set if command line sets the -r option.  PV_Arguments should prevent -r and -c from being both set.
+   //mWarmStart is set if command line sets the -r option.  PV_Arguments should prevent -r and -c from being both set.
    char const * checkpoint_read_dir = pv_initObj->getCheckpointReadDir();
-   pvAssert(!(warmStart && checkpoint_read_dir));
-   if (warmStart) {
-      checkpointReadDir = (char *) pvCallocError(PV_PATH_MAX, sizeof(char),
+   pvAssert(!(mWarmStart && checkpoint_read_dir));
+   if (mWarmStart) {
+      mCheckpointReadDir = (char *) pvCallocError(PV_PATH_MAX, sizeof(char),
             "%s error: unable to allocate memory for path to checkpoint read directory.\n", programName);
       if (columnId()==0) {
          struct stat statbuf;
@@ -386,8 +318,8 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
          cpDirString += "Last";
          if (PV_stat(cpDirString.c_str(), &statbuf)==0) {
             if (statbuf.st_mode & S_IFDIR) {
-               strncpy(checkpointReadDir, cpDirString.c_str(), PV_PATH_MAX);
-               if (checkpointReadDir[PV_PATH_MAX-1]) {
+               strncpy(mCheckpointReadDir, cpDirString.c_str(), PV_PATH_MAX);
+               if (mCheckpointReadDir[PV_PATH_MAX-1]) {
                   pvError().printf("%s error: checkpoint read directory \"%s\" too long.\n", programName, cpDirString.c_str());
                }
             }
@@ -395,17 +327,17 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
                pvError().printf("%s error: checkpoint read directory \"%s\" is not a directory.\n", programName, cpDirString.c_str());
             }
          }
-         else if (checkpointWriteFlag) {
-            // Last directory didn't exist; now look for checkpointWriteDir
-            assert(checkpointWriteDir);
-            cpDirString = checkpointWriteDir;
+         else if (mCheckpointWriteFlag) {
+            // Last directory didn't exist; now look for mCheckpointWriteDir
+            assert(mCheckpointWriteDir);
+            cpDirString = mCheckpointWriteDir;
             if (cpDirString.c_str()[cpDirString.length()-1] != '/') {
                cpDirString += "/";
             }
             int statstatus = PV_stat(cpDirString.c_str(), &statbuf);
             if (statstatus==0) {
                if (statbuf.st_mode & S_IFDIR) {
-                  char *dirs[] = {checkpointWriteDir, NULL};
+                  char *dirs[] = {mCheckpointWriteDir, NULL};
                   FTS * fts = fts_open(dirs, FTS_LOGICAL, NULL);
                   FTSENT * ftsent = fts_read(fts);
                   bool found = false;
@@ -421,29 +353,29 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
                      }
                   }
                   if (!found) {
-                     pvError().printf("%s: restarting but Last directory does not exist and checkpointWriteDir directory \"%s\" does not have any checkpoints\n",
-                           programName, checkpointWriteDir);
+                     pvError().printf("%s: restarting but Last directory does not exist and mCheckpointWriteDir directory \"%s\" does not have any checkpoints\n",
+                           programName, mCheckpointWriteDir);
                   }
-                  int pathlen=snprintf(checkpointReadDir, PV_PATH_MAX, "%sCheckpoint%ld", cpDirString.c_str(), cp_index);
+                  int pathlen=snprintf(mCheckpointReadDir, PV_PATH_MAX, "%sCheckpoint%ld", cpDirString.c_str(), cp_index);
                   if (pathlen>PV_PATH_MAX) {
                      pvError().printf("%s error: checkpoint read directory \"%s\" too long.\n", programName, cpDirString.c_str());
                   }
 
                }
                else {
-                  pvError().printf("%s error: checkpoint read directory \"%s\" is not a directory.\n", programName, checkpointWriteDir);
+                  pvError().printf("%s error: checkpoint read directory \"%s\" is not a directory.\n", programName, mCheckpointWriteDir);
                }
             }
             else if (errno == ENOENT) {
-               pvError().printf("%s error: restarting but neither Last nor checkpointWriteDir directory \"%s\" exists.\n", programName, checkpointWriteDir);
+               pvError().printf("%s error: restarting but neither Last nor mCheckpointWriteDir directory \"%s\" exists.\n", programName, mCheckpointWriteDir);
             }
          }
          else {
-            pvError().printf("%s: restarting but Last directory does not exist and checkpointWriteDir is not defined (checkpointWrite=false)\n", programName);
+            pvError().printf("%s: restarting but Last directory does not exist and mCheckpointWriteDir is not defined (checkpointWrite=false)\n", programName);
          }
 
       }
-      MPI_Bcast(checkpointReadDir, PV_PATH_MAX, MPI_CHAR, 0, icComm->communicator());
+      MPI_Bcast(mCheckpointReadDir, PV_PATH_MAX, MPI_CHAR, 0, icComm->communicator());
    }
    if (checkpoint_read_dir) {
       char * origChkPtr = strdup(pv_initObj->getCheckpointReadDir());
@@ -464,9 +396,9 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
          pvError().printf("Checkpoint read dir parsing error: Specified not enough colon seperated checkpoint read directories. Running with %d batch MPIs but only %zu colon seperated checkpoint directories.\n", icComm->numCommBatches(), count);
       }
 
-      //Grab this rank's actual checkpointReadDir and replace with checkpointReadDir
-      checkpointReadDir = expandLeadingTilde(splitCheckpoint[icComm->commBatch()]);
-      pvAssert(checkpointReadDir);
+      //Grab this rank's actual mCheckpointReadDir and replace with mCheckpointReadDir
+      mCheckpointReadDir = expandLeadingTilde(splitCheckpoint[icComm->commBatch()]);
+      pvAssert(mCheckpointReadDir);
       //Free all tmp memories
       for(int i = 0; i < icComm->numCommBatches(); i++){
          free(splitCheckpoint[i]);
@@ -474,8 +406,8 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
       free(splitCheckpoint);
       free(origChkPtr);
 
-      checkpointReadFlag = true;
-      pvInfo().printf("Global Rank %d process setting checkpointReadDir to %s.\n", globalRank(), checkpointReadDir);
+      mCheckpointReadFlag = true;
+      pvInfo().printf("Global Rank %d process setting mCheckpointReadDir to %s.\n", globalRank(), mCheckpointReadDir);
    }
 
    // run only on GPU for now
@@ -553,7 +485,7 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
    ////At this point, threadBatch must be either true or false
    //assert(threadBatch == 0 || threadBatch == 1);
 
-   // If deleteOlderCheckpoints is true, set up a ring buffer of checkpoint directory names.
+   // If mDeleteOlderCheckpoints is true, set up a ring buffer of checkpoint directory names.
    pvAssert(oldCheckpointDirectories.size()==0);
    oldCheckpointDirectories.resize(numCheckpointsKept, "");
    this->oldCheckpointDirectoriesIndex = 0;
@@ -564,7 +496,7 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
 }
 
 int HyPerCol::ioParams(enum ParamsIOFlag ioFlag) {
-   ioParamsStartGroup(ioFlag, name);
+   ioParamsStartGroup(ioFlag, mName);
    ioParamsFillGroup(ioFlag);
    ioParamsFinishGroup(ioFlag);
 
@@ -758,7 +690,7 @@ void HyPerCol::ioParamArray(enum ParamsIOFlag ioFlag, const char * group_name, c
           *value = (T *) calloc((size_t) *arraysize, sizeof(T));
           if (*value==NULL) {
              pvErrorNoExit().printf("%s \"%s\": global rank %d process unable to copy array parameter %s: %s\n",
-                   parameters()->groupKeywordFromName(name), name, globalRank(), param_name, strerror(errno));
+                   parameters()->groupKeywordFromName(mName), mName, globalRank(), param_name, strerror(errno));
           }
           for (int k=0; k<*arraysize; k++) {
              (*value)[k] = (T) param_array[k];
@@ -779,32 +711,32 @@ template void HyPerCol::ioParamArray<float>(enum ParamsIOFlag ioFlag, const char
 template void HyPerCol::ioParamArray<int>(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, int ** value, int * arraysize);
 
 void HyPerCol::ioParam_startTime(enum ParamsIOFlag ioFlag) {
-   ioParamValue(ioFlag, name, "startTime", &startTime, startTime);
+   ioParamValue(ioFlag, mName, "startTime", &startTime, startTime);
 }
 
 void HyPerCol::ioParam_dt(enum ParamsIOFlag ioFlag) {
-   ioParamValue(ioFlag, name, "dt", &deltaTime, deltaTime);
+   ioParamValue(ioFlag, mName, "dt", &deltaTime, deltaTime);
    deltaTimeBase = deltaTime;  // use param value as base
 }
 
 void HyPerCol::ioParam_dtAdaptController(enum ParamsIOFlag ioFlag) {
-   ioParamString(ioFlag, name, "dtAdaptController", &dtAdaptController, NULL);
+   ioParamString(ioFlag, mName, "mDtAdaptController", &mDtAdaptController, NULL);
 }
 
 void HyPerCol::ioParam_dtAdaptFlag(enum ParamsIOFlag ioFlag) {
    // dtAdaptFlag was deprecated Feb 1, 2016.
    if (ioFlag==PARAMS_IO_READ) {
-      assert(!params->presentAndNotBeenRead(name, "dtAdaptController"));
-      bool dt_adapt_flag = (dtAdaptController!=nullptr);
-      if (params->present(name, "dtAdaptFlag")) {
-         if (columnId()==0) { pvWarn() << "HyPerCol parameter dtAdaptFlag is deprecated.  Value of dtAdaptController implies the value of dtAdaptFlag.\n"; }
-         ioParamValue(ioFlag, name, "dtAdaptFlag", &dt_adapt_flag, dt_adapt_flag);
-         if (dt_adapt_flag != (dtAdaptController!=nullptr)) {
+      assert(!params->presentAndNotBeenRead(mName, "mDtAdaptController"));
+      bool dt_adapt_flag = (mDtAdaptController!=nullptr);
+      if (params->present(mName, "dtAdaptFlag")) {
+         if (columnId()==0) { pvWarn() << "HyPerCol parameter dtAdaptFlag is deprecated.  Value of mDtAdaptController implies the value of dtAdaptFlag.\n"; }
+         ioParamValue(ioFlag, mName, "dtAdaptFlag", &dt_adapt_flag, dt_adapt_flag);
+         if (dt_adapt_flag != (mDtAdaptController!=nullptr)) {
             if (columnId()==0) {
                pvError(dtAdaptFlagError);
-               dtAdaptFlagError << "HyPerCol " << name << ": dtAdaptController is ";
-               if (dtAdaptController) {
-                  dtAdaptFlagError << "\"" << dtAdaptController << "\"; therefore dtAdaptFlag can only be set to true.\n";
+               dtAdaptFlagError << "HyPerCol " << mName << ": mDtAdaptController is ";
+               if (mDtAdaptController) {
+                  dtAdaptFlagError << "\"" << mDtAdaptController << "\"; therefore dtAdaptFlag can only be set to true.\n";
                }
                else {
                   dtAdaptFlagError << "null; therefore dtAdaptFlag can only be set to false.\n";
@@ -818,92 +750,92 @@ void HyPerCol::ioParam_dtAdaptFlag(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerCol::ioParam_writeTimescales(enum ParamsIOFlag ioFlag) {
-   pvAssert(!params->presentAndNotBeenRead(name, "dtAdaptController"));
-   if (dtAdaptController!=nullptr) {
-      ioParamValue(ioFlag, name, "writeTimescales", &writeTimescales, writeTimescales);
+   pvAssert(!params->presentAndNotBeenRead(mName, "mDtAdaptController"));
+   if (mDtAdaptController!=nullptr) {
+      ioParamValue(ioFlag, mName, "mWriteTimescales", &mWriteTimescales, mWriteTimescales);
    }
 }
 
 void HyPerCol::ioParam_writeTimeScaleFieldnames(enum ParamsIOFlag ioFlag) {
-   pvAssert(!params->presentAndNotBeenRead(name, "dtAdaptController"));
-   if (dtAdaptController!=nullptr) {
-     ioParamValue(ioFlag, name, "writeTimeScaleFieldnames", &writeTimeScaleFieldnames, writeTimeScaleFieldnames);
+   pvAssert(!params->presentAndNotBeenRead(mName, "mDtAdaptController"));
+   if (mDtAdaptController!=nullptr) {
+     ioParamValue(ioFlag, mName, "mWriteTimeScaleFieldnames", &mWriteTimeScaleFieldnames, mWriteTimeScaleFieldnames);
    }
 }
 
 void HyPerCol::ioParam_useAdaptMethodExp1stOrder(enum ParamsIOFlag ioFlag) {
-   pvAssert(!params->presentAndNotBeenRead(name, "dtAdaptController"));
-   if (dtAdaptController!=nullptr) {
-     ioParamValue(ioFlag, name, "useAdaptMethodExp1stOrder", &useAdaptMethodExp1stOrder, useAdaptMethodExp1stOrder, false/*don't warn if absent*/);
-     if (ioFlag==PARAMS_IO_READ && !useAdaptMethodExp1stOrder) {
+   pvAssert(!params->presentAndNotBeenRead(mName, "mDtAdaptController"));
+   if (mDtAdaptController!=nullptr) {
+     ioParamValue(ioFlag, mName, "mUseAdaptMethodExp1stOrder", &mUseAdaptMethodExp1stOrder, mUseAdaptMethodExp1stOrder, false/*don't warn if absent*/);
+     if (ioFlag==PARAMS_IO_READ && !mUseAdaptMethodExp1stOrder) {
         if (columnId()==0) {
-           pvWarn() << "Setting useAdaptMethodExp1stOrder to false is deprecated.\n";
+           pvWarn() << "Setting mUseAdaptMethodExp1stOrder to false is deprecated.\n";
         }
      }
    }
 }
 
 void HyPerCol::ioParam_dtAdaptTriggerLayerName(enum ParamsIOFlag ioFlag) {
-   pvAssert(!params->presentAndNotBeenRead(name, "dtAdaptController"));
-   if (dtAdaptController && dtAdaptController[0]) {
-      ioParamString(ioFlag, name, "dtAdaptTriggerLayerName", &dtAdaptTriggerLayerName, NULL);
+   pvAssert(!params->presentAndNotBeenRead(mName, "mDtAdaptController"));
+   if (mDtAdaptController && mDtAdaptController[0]) {
+      ioParamString(ioFlag, mName, "dtAdaptTriggerLayerName", &dtAdaptTriggerLayerName, NULL);
    }
 }
 
 void HyPerCol::ioParam_dtAdaptTriggerOffset(enum ParamsIOFlag ioFlag) {
-   pvAssert(!params->presentAndNotBeenRead(name, "dtAdaptTriggerLayerName"));
+   pvAssert(!params->presentAndNotBeenRead(mName, "dtAdaptTriggerLayerName"));
    if (dtAdaptTriggerLayerName && dtAdaptTriggerLayerName[0]) {
-      ioParamValue(ioFlag, name, "dtAdaptTriggerOffset", &dtAdaptTriggerOffset, dtAdaptTriggerOffset);
+      ioParamValue(ioFlag, mName, "dtAdaptTriggerOffset", &dtAdaptTriggerOffset, dtAdaptTriggerOffset);
    }
 }
 
 void HyPerCol::ioParam_dtScaleMax(enum ParamsIOFlag ioFlag) {
-   pvAssert(!params->presentAndNotBeenRead(name, "dtAdaptController"));
-   if (dtAdaptController!=nullptr) {
-     ioParamValue(ioFlag, name, "dtScaleMax", &timeScaleMaxBase, timeScaleMaxBase);
+   pvAssert(!params->presentAndNotBeenRead(mName, "mDtAdaptController"));
+   if (mDtAdaptController!=nullptr) {
+     ioParamValue(ioFlag, mName, "dtScaleMax", &timeScaleMaxBase, timeScaleMaxBase);
    }
 }
 
 void HyPerCol::ioParam_dtScaleMax2(enum ParamsIOFlag ioFlag) {
-   pvAssert(!params->presentAndNotBeenRead(name, "dtAdaptController"));
-   if (dtAdaptController!=nullptr) {
-     ioParamValue(ioFlag, name, "dtScaleMax2", &timeScaleMax2Base, timeScaleMax2Base);
+   pvAssert(!params->presentAndNotBeenRead(mName, "mDtAdaptController"));
+   if (mDtAdaptController!=nullptr) {
+     ioParamValue(ioFlag, mName, "dtScaleMax2", &timeScaleMax2Base, timeScaleMax2Base);
    }
 }
 
 void HyPerCol::ioParam_dtScaleMin(enum ParamsIOFlag ioFlag) {
-   pvAssert(!params->presentAndNotBeenRead(name, "dtAdaptController"));
-   if (dtAdaptController!=nullptr) {
-     ioParamValue(ioFlag, name, "dtScaleMin", &timeScaleMin, timeScaleMin);
+   pvAssert(!params->presentAndNotBeenRead(mName, "mDtAdaptController"));
+   if (mDtAdaptController!=nullptr) {
+     ioParamValue(ioFlag, mName, "dtScaleMin", &timeScaleMin, timeScaleMin);
    }
 }
 
 void HyPerCol::ioParam_dtMinToleratedTimeScale(enum ParamsIOFlag ioFlag) {
-   pvAssert(!params->presentAndNotBeenRead(name, "dtAdaptController"));
-   if (dtAdaptController!=nullptr) {
-      ioParamValue(ioFlag, name, "dtMinToleratedTimeScale", &dtMinToleratedTimeScale, dtMinToleratedTimeScale);
+   pvAssert(!params->presentAndNotBeenRead(mName, "mDtAdaptController"));
+   if (mDtAdaptController!=nullptr) {
+      ioParamValue(ioFlag, mName, "dtMinToleratedTimeScale", &dtMinToleratedTimeScale, dtMinToleratedTimeScale);
    }
 }
 
 void HyPerCol::ioParam_dtChangeMax(enum ParamsIOFlag ioFlag) {
-   pvAssert(!params->presentAndNotBeenRead(name, "dtAdaptController"));
-   if (dtAdaptController!=nullptr) {
-     ioParamValue(ioFlag, name, "dtChangeMax", &changeTimeScaleMax, changeTimeScaleMax);
+   pvAssert(!params->presentAndNotBeenRead(mName, "mDtAdaptController"));
+   if (mDtAdaptController!=nullptr) {
+     ioParamValue(ioFlag, mName, "dtChangeMax", &changeTimeScaleMax, changeTimeScaleMax);
    }
 }
 
 void HyPerCol::ioParam_dtChangeMin(enum ParamsIOFlag ioFlag) {
-   pvAssert(!params->presentAndNotBeenRead(name, "dtAdaptController"));
-   if (dtAdaptController!=nullptr) {
-     ioParamValue(ioFlag, name, "dtChangeMin", &changeTimeScaleMin, changeTimeScaleMin);
+   pvAssert(!params->presentAndNotBeenRead(mName, "mDtAdaptController"));
+   if (mDtAdaptController!=nullptr) {
+     ioParamValue(ioFlag, mName, "dtChangeMin", &changeTimeScaleMin, changeTimeScaleMin);
    }
 }
 
 void HyPerCol::ioParam_stopTime(enum ParamsIOFlag ioFlag) {
-   if (ioFlag==PARAMS_IO_READ && !params->present(name, "stopTime") && params->present(name, "numSteps")) {
-      assert(!params->presentAndNotBeenRead(name, "startTime"));
-      assert(!params->presentAndNotBeenRead(name, "dt"));
-      long int numSteps = params->value(name, "numSteps");
+   if (ioFlag==PARAMS_IO_READ && !params->present(mName, "stopTime") && params->present(mName, "numSteps")) {
+      assert(!params->presentAndNotBeenRead(mName, "startTime"));
+      assert(!params->presentAndNotBeenRead(mName, "dt"));
+      long int numSteps = params->value(mName, "numSteps");
       stopTime = startTime + numSteps * deltaTimeBase;
       if (globalRank()==0) {
          pvError() << "numSteps is obsolete.  Use startTime, stopTime and dt instead.\n" <<
@@ -914,12 +846,12 @@ void HyPerCol::ioParam_stopTime(enum ParamsIOFlag ioFlag) {
    }
    // numSteps was deprecated Dec 12, 2013 and marked obsolete Jun 27, 2016
    // After a reasonable fade time, remove the above if-statement and keep the ioParamValue call below.
-   ioParamValue(ioFlag, name, "stopTime", &stopTime, stopTime);
+   ioParamValue(ioFlag, mName, "stopTime", &stopTime, stopTime);
 }
 
 void HyPerCol::ioParam_progressInterval(enum ParamsIOFlag ioFlag) {
-   if (ioFlag==PARAMS_IO_READ && !params->present(name, "progressInterval") && params->present(name, "progressStep")) {
-      long int progressStep = (long int) params->value(name, "progressStep");
+   if (ioFlag==PARAMS_IO_READ && !params->present(mName, "progressInterval") && params->present(mName, "progressStep")) {
+      long int progressStep = (long int) params->value(mName, "progressStep");
       progressInterval = progressStep/deltaTimeBase;
       if (globalRank()==0) {
          pvError() << "progressStep is obsolete.  Use progressInterval instead.\n";
@@ -929,15 +861,15 @@ void HyPerCol::ioParam_progressInterval(enum ParamsIOFlag ioFlag) {
    }
    // progressStep was deprecated Dec 18, 2013
    // After a reasonable fade time, remove the above if-statement and keep the ioParamValue call below.
-   ioParamValue(ioFlag, name, "progressInterval", &progressInterval, progressInterval);
+   ioParamValue(ioFlag, mName, "progressInterval", &progressInterval, progressInterval);
 }
 
 void HyPerCol::ioParam_writeProgressToErr(enum ParamsIOFlag ioFlag) {
-   ioParamValue(ioFlag, name, "writeProgressToErr", &writeProgressToErr, writeProgressToErr);
+   ioParamValue(ioFlag, mName, "mWriteProgressToError", &mWriteProgressToError, mWriteProgressToError);
 }
 
 void HyPerCol::ioParam_verifyWrites(enum ParamsIOFlag ioFlag) {
-   ioParamValue(ioFlag, name, "verifyWrites", &verifyWrites, verifyWrites);
+   ioParamValue(ioFlag, mName, "mVerifyWrites", &mVerifyWrites, mVerifyWrites);
 }
 
 void HyPerCol::ioParam_outputPath(enum ParamsIOFlag ioFlag) {
@@ -945,8 +877,8 @@ void HyPerCol::ioParam_outputPath(enum ParamsIOFlag ioFlag) {
    switch(ioFlag) {
    case PARAMS_IO_READ:
       if (outputPath==NULL) {
-         if( params->stringPresent(name, "outputPath") ) {
-            const char* strval = params->stringValue(name, "outputPath");
+         if( params->stringPresent(mName, "outputPath") ) {
+            const char* strval = params->stringValue(mName, "outputPath");
             assert(strval);
             outputPath = strdup(strval);
             assert(outputPath != NULL);
@@ -969,7 +901,7 @@ void HyPerCol::ioParam_outputPath(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerCol::ioParam_printParamsFilename(enum ParamsIOFlag ioFlag) {
-   ioParamString(ioFlag, name, "printParamsFilename", &printParamsFilename, "pv.params");
+   ioParamString(ioFlag, mName, "printParamsFilename", &printParamsFilename, "pv.params");
    if (printParamsFilename==NULL || printParamsFilename[0]=='\0') {
       if (columnId()==0) {
          pvErrorNoExit().printf("printParamsFilename cannot be null or the empty string.\n");
@@ -986,8 +918,8 @@ void HyPerCol::ioParam_randomSeed(enum ParamsIOFlag ioFlag) {
       // set random seed if it wasn't set in the command line
       // bool seedfromclock = false;
       if( !random_seed ) {
-         if( params->present(name, "randomSeed") ) {
-            random_seed = (unsigned long) params->value(name, "randomSeed");
+         if( params->present(mName, "randomSeed") ) {
+            random_seed = (unsigned long) params->value(mName, "randomSeed");
          }
          else {
             random_seed = getRandomSeed();
@@ -1009,15 +941,15 @@ void HyPerCol::ioParam_randomSeed(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerCol::ioParam_nx(enum ParamsIOFlag ioFlag) {
-   ioParamValueRequired(ioFlag, name, "nx", &nxGlobal);
+   ioParamValueRequired(ioFlag, mName, "nx", &nxGlobal);
 }
 
 void HyPerCol::ioParam_ny(enum ParamsIOFlag ioFlag) {
-   ioParamValueRequired(ioFlag, name, "ny", &nyGlobal);
+   ioParamValueRequired(ioFlag, mName, "ny", &nyGlobal);
 }
 
 void HyPerCol::ioParam_nBatch(enum ParamsIOFlag ioFlag) {
-   ioParamValue(ioFlag, name, "nbatch", &nbatchGlobal, nbatchGlobal);
+   ioParamValue(ioFlag, mName, "nbatch", &nbatchGlobal, nbatchGlobal);
    //Make sure numCommBatches is a multiple of nbatch specified in the params file
    if(nbatchGlobal % icComm->numCommBatches() != 0){
       pvError() << "The total number of batches (" << nbatchGlobal << ") must be a multiple of the batch width (" << icComm->numCommBatches() << ")\n";
@@ -1026,27 +958,27 @@ void HyPerCol::ioParam_nBatch(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerCol::ioParam_filenamesContainLayerNames(enum ParamsIOFlag ioFlag) {
-   ioParamValue(ioFlag, name, "filenamesContainLayerNames", &filenamesContainLayerNames, 0);
+   ioParamValue(ioFlag, mName, "filenamesContainLayerNames", &filenamesContainLayerNames, 0);
    if(filenamesContainLayerNames < 0 || filenamesContainLayerNames > 2) {
-      pvError().printf("HyPerCol %s: filenamesContainLayerNames must have the value 0, 1, or 2.\n", name);
+      pvError().printf("HyPerCol %s: filenamesContainLayerNames must have the value 0, 1, or 2.\n", mName);
    }
 }
 
 void HyPerCol::ioParam_filenamesContainConnectionNames(enum ParamsIOFlag ioFlag) {
-   ioParamValue(ioFlag, name, "filenamesContainConnectionNames", &filenamesContainConnectionNames, 0);
+   ioParamValue(ioFlag, mName, "filenamesContainConnectionNames", &filenamesContainConnectionNames, 0);
    if(filenamesContainConnectionNames < 0 || filenamesContainConnectionNames > 2) {
-      pvError().printf("HyPerCol %s: filenamesContainConnectionNames must have the value 0, 1, or 2.\n", name);
+      pvError().printf("HyPerCol %s: filenamesContainConnectionNames must have the value 0, 1, or 2.\n", mName);
    }
 }
 
 void HyPerCol::ioParam_initializeFromCheckpointDir(enum ParamsIOFlag ioFlag) {
-   ioParamString(ioFlag, name, "initializeFromCheckpointDir", &initializeFromCheckpointDir, "", true/*warnIfAbsent*/);
+   ioParamString(ioFlag, mName, "initializeFromCheckpointDir", &initializeFromCheckpointDir, "", true/*warnIfAbsent*/);
 }
 
 void HyPerCol::ioParam_defaultInitializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
-   assert(!params->presentAndNotBeenRead(name, "initializeFromCheckpointDir"));
+   assert(!params->presentAndNotBeenRead(mName, "initializeFromCheckpointDir"));
    if (initializeFromCheckpointDir != nullptr && initializeFromCheckpointDir[0] != '\0') {
-      ioParamValue(ioFlag, name, "defaultInitializeFromCheckpointFlag", &defaultInitializeFromCheckpointFlag, defaultInitializeFromCheckpointFlag, true/*warn if absent*/);
+      ioParamValue(ioFlag, mName, "mDefaultInitializeFromCheckpointFlag", &mDefaultInitializeFromCheckpointFlag, mDefaultInitializeFromCheckpointFlag, true/*warn if absent*/);
    }
 
 }
@@ -1054,7 +986,7 @@ void HyPerCol::ioParam_defaultInitializeFromCheckpointFlag(enum ParamsIOFlag ioF
 // Error out if someone uses obsolete checkpointRead flag in params.
 // After a reasonable fade time, this function can be removed.
 void HyPerCol::ioParam_checkpointRead(enum ParamsIOFlag ioFlag) {
-   if (ioFlag==PARAMS_IO_READ && params->stringPresent(name, "checkpointRead")) {
+   if (ioFlag==PARAMS_IO_READ && params->stringPresent(mName, "checkpointRead")) {
       if (columnId()==0) {
          pvError() << "The checkpointRead params file parameter is obsolete." <<
                "  Instead, set the checkpoint directory on the command line.\n";
@@ -1065,31 +997,31 @@ void HyPerCol::ioParam_checkpointRead(enum ParamsIOFlag ioFlag) {
 }
 #ifdef OBSOLETE // Marked obsolete June 27, 2016.  Has been deprecated for over two years.
 void HyPerCol::ioParam_checkpointRead(enum ParamsIOFlag ioFlag) {
-   // checkpointRead, checkpointReadDir, and checkpointReadDirIndex parameters were deprecated on Mar 27, 2014.
-   // Instead of setting checkpointRead=true; checkpointReadDir="foo"; checkpointReadDirIndex=100,
+   // checkpointRead, mCheckpointReadDir, and checkpointReadDirIndex parameters were deprecated on Mar 27, 2014.
+   // Instead of setting checkpointRead=true; mCheckpointReadDir="foo"; checkpointReadDirIndex=100,
    // pass the option <-c foo/Checkpoint100> on the command line.
-   // If "-c" was passed then checkpointReadDir will have been set by HyPerCol::initialize's call to parse_options.
+   // If "-c" was passed then mCheckpointReadDir will have been set by HyPerCol::initialize's call to parse_options.
    // If "-r" was passed then restartFromCheckpoint will  have been set.
-   if (ioFlag==PARAMS_IO_READ && !checkpointReadDir && !warmStart) {
-      ioParamValue(ioFlag, name, "checkpointRead", &checkpointReadFlag, false/*default value*/, false/*warnIfAbsent*/);
-      if (checkpointReadFlag) {
-         ioParamStringRequired(ioFlag, name, "checkpointReadDir", &checkpointReadDirBase);
-         ioParamValueRequired(ioFlag, name, "checkpointReadDirIndex", &cpReadDirIndex);
+   if (ioFlag==PARAMS_IO_READ && !mCheckpointReadDir && !mWarmStart) {
+      ioParamValue(ioFlag, mName, "checkpointRead", &mCheckpointReadFlag, false/*default value*/, false/*warnIfAbsent*/);
+      if (mCheckpointReadFlag) {
+         ioParamStringRequired(ioFlag, mName, "mCheckpointReadDir", &mCheckpointReadDirBase);
+         ioParamValueRequired(ioFlag, mName, "checkpointReadDirIndex", &cpReadDirIndex);
          if (ioFlag==PARAMS_IO_READ) {
-            int str_len = snprintf(NULL, 0, "%s/Checkpoint%ld", checkpointReadDirBase, cpReadDirIndex);
+            int str_len = snprintf(NULL, 0, "%s/Checkpoint%ld", mCheckpointReadDirBase, cpReadDirIndex);
             size_t str_size = (size_t) (str_len+1);
-            checkpointReadDir = (char *) malloc( str_size*sizeof(char) );
-            snprintf(checkpointReadDir, str_size, "%s/Checkpoint%ld", checkpointReadDirBase, cpReadDirIndex);
+            mCheckpointReadDir = (char *) malloc( str_size*sizeof(char) );
+            snprintf(mCheckpointReadDir, str_size, "%s/Checkpoint%ld", mCheckpointReadDirBase, cpReadDirIndex);
          }
       }
       else {
-         checkpointReadDirBase = NULL;
+         mCheckpointReadDirBase = NULL;
       }
-      if (ioFlag==PARAMS_IO_READ && globalRank()==0 && params->present(name, "checkpointRead")) {
+      if (ioFlag==PARAMS_IO_READ && globalRank()==0 && params->present(mName, "checkpointRead")) {
          pvWarn().printf("%s \"%s\" checkpointRead parameter is deprecated.\n",
                params->groupKeywordFromName(name), name);
-         if (params->value(name, "checkpointRead")!=0) {
-            pvWarn().printf("    Instead, pass the option on the command line:  -c \"%s\".\n", checkpointReadDir);
+         if (params->value(mName, "checkpointRead")!=0) {
+            pvWarn().printf("    Instead, pass the option on the command line:  -c \"%s\".\n", mCheckpointReadDir);
          }
       }
    }
@@ -1097,37 +1029,37 @@ void HyPerCol::ioParam_checkpointRead(enum ParamsIOFlag ioFlag) {
 #endif // OBSOLETE // Marked obsolete June 27, 2016.  Has been deprecated for over two years.
 
 void HyPerCol::ioParam_checkpointWrite(enum ParamsIOFlag ioFlag) {
-   ioParamValue(ioFlag, name, "checkpointWrite", &checkpointWriteFlag, false/*default value*/);
+   ioParamValue(ioFlag, mName, "checkpointWrite", &mCheckpointWriteFlag, false/*default value*/);
 }
 
 void HyPerCol::ioParam_checkpointWriteDir(enum ParamsIOFlag ioFlag) {
-   assert(!params->presentAndNotBeenRead(name, "checkpointWrite"));
-   if (checkpointWriteFlag) {
-      ioParamStringRequired(ioFlag, name, "checkpointWriteDir", &checkpointWriteDir);
+   assert(!params->presentAndNotBeenRead(mName, "checkpointWrite"));
+   if (mCheckpointWriteFlag) {
+      ioParamStringRequired(ioFlag, mName, "mCheckpointWriteDir", &mCheckpointWriteDir);
    }
    else {
-      checkpointWriteDir = NULL;
+      mCheckpointWriteDir = NULL;
    }
 }
 
 void HyPerCol::ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag ) {
-   assert(!params->presentAndNotBeenRead(name, "checkpointWrite"));
-   if (checkpointWriteFlag) {
-      ioParamString(ioFlag, name, "checkpointWriteTriggerMode", &checkpointWriteTriggerModeString, "step");
+   assert(!params->presentAndNotBeenRead(mName, "checkpointWrite"));
+   if (mCheckpointWriteFlag) {
+      ioParamString(ioFlag, mName, "checkpointWriteTriggerMode", &mCheckpointWriteTriggerModeString, "step");
       if (ioFlag==PARAMS_IO_READ) {
-         assert(checkpointWriteTriggerModeString);
-         if (!strcmp(checkpointWriteTriggerModeString, "step") || !strcmp(checkpointWriteTriggerModeString, "Step") || !strcmp(checkpointWriteTriggerModeString, "STEP")) {
+         assert(mCheckpointWriteTriggerModeString);
+         if (!strcmp(mCheckpointWriteTriggerModeString, "step") || !strcmp(mCheckpointWriteTriggerModeString, "Step") || !strcmp(mCheckpointWriteTriggerModeString, "STEP")) {
             checkpointWriteTriggerMode = CPWRITE_TRIGGER_STEP;
          }
-         else if (!strcmp(checkpointWriteTriggerModeString, "time") || !strcmp(checkpointWriteTriggerModeString, "Time") || !strcmp(checkpointWriteTriggerModeString, "TIME")) {
+         else if (!strcmp(mCheckpointWriteTriggerModeString, "time") || !strcmp(mCheckpointWriteTriggerModeString, "Time") || !strcmp(mCheckpointWriteTriggerModeString, "TIME")) {
             checkpointWriteTriggerMode = CPWRITE_TRIGGER_TIME;
          }
-         else if (!strcmp(checkpointWriteTriggerModeString, "clock") || !strcmp(checkpointWriteTriggerModeString, "Clock") || !strcmp(checkpointWriteTriggerModeString, "CLOCK")) {
+         else if (!strcmp(mCheckpointWriteTriggerModeString, "clock") || !strcmp(mCheckpointWriteTriggerModeString, "Clock") || !strcmp(mCheckpointWriteTriggerModeString, "CLOCK")) {
             checkpointWriteTriggerMode = CPWRITE_TRIGGER_CLOCK;
          }
          else {
             if (globalRank()==0) {
-               pvErrorNoExit().printf("HyPerCol \"%s\": checkpointWriteTriggerMode \"%s\" is not recognized.\n", name, checkpointWriteTriggerModeString);
+               pvErrorNoExit().printf("HyPerCol \"%s\": checkpointWriteTriggerMode \"%s\" is not recognized.\n", mName, mCheckpointWriteTriggerModeString);
             }
             MPI_Barrier(icCommunicator()->globalCommunicator());
             exit(EXIT_FAILURE);
@@ -1137,76 +1069,76 @@ void HyPerCol::ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag ) {
 }
 
 void HyPerCol::ioParam_checkpointWriteStepInterval(enum ParamsIOFlag ioFlag) {
-   assert(!params->presentAndNotBeenRead(name, "checkpointWrite"));
-   if (checkpointWriteFlag) {
-	   assert(!params->presentAndNotBeenRead(name, "checkpointWriteTriggerMode"));
+   assert(!params->presentAndNotBeenRead(mName, "checkpointWrite"));
+   if (mCheckpointWriteFlag) {
+	   assert(!params->presentAndNotBeenRead(mName, "checkpointWriteTriggerMode"));
 	   if(checkpointWriteTriggerMode == CPWRITE_TRIGGER_STEP) {
-	      ioParamValue(ioFlag, name, "checkpointWriteStepInterval", &cpWriteStepInterval, 1L);
+	      ioParamValue(ioFlag, mName, "checkpointWriteStepInterval", &cpWriteStepInterval, 1L);
 	   }
    }
 }
 
 void HyPerCol::ioParam_checkpointWriteTimeInterval(enum ParamsIOFlag ioFlag) {
-   assert(!params->presentAndNotBeenRead(name, "checkpointWrite"));
-   if (checkpointWriteFlag) {
-	   assert(!params->presentAndNotBeenRead(name, "checkpointWriteTriggerMode"));
+   assert(!params->presentAndNotBeenRead(mName, "checkpointWrite"));
+   if (mCheckpointWriteFlag) {
+	   assert(!params->presentAndNotBeenRead(mName, "checkpointWriteTriggerMode"));
 	   if(checkpointWriteTriggerMode == CPWRITE_TRIGGER_TIME) {
-	      ioParamValue(ioFlag, name, "checkpointWriteTimeInterval", &cpWriteTimeInterval, deltaTimeBase);
+	      ioParamValue(ioFlag, mName, "checkpointWriteTimeInterval", &cpWriteTimeInterval, deltaTimeBase);
 	   }
    }
 }
 
 void HyPerCol::ioParam_checkpointWriteClockInterval(enum ParamsIOFlag ioFlag) {
-   assert(!params->presentAndNotBeenRead(name, "checkpointWrite"));
-   if (checkpointWriteFlag) {
-      assert(!params->presentAndNotBeenRead(name, "checkpointWriteTriggerMode"));
+   assert(!params->presentAndNotBeenRead(mName, "checkpointWrite"));
+   if (mCheckpointWriteFlag) {
+      assert(!params->presentAndNotBeenRead(mName, "checkpointWriteTriggerMode"));
       if(checkpointWriteTriggerMode == CPWRITE_TRIGGER_CLOCK) {
-         ioParamValueRequired(ioFlag, name, "checkpointWriteClockInterval", &cpWriteClockInterval);
+         ioParamValueRequired(ioFlag, mName, "checkpointWriteClockInterval", &cpWriteClockInterval);
       }
    }
 }
 
 void HyPerCol::ioParam_checkpointWriteClockUnit(enum ParamsIOFlag ioFlag) {
-   assert(!params->presentAndNotBeenRead(name, "checkpointWrite"));
-   if (checkpointWriteFlag) {
-      assert(!params->presentAndNotBeenRead(name, "checkpointWriteTriggerMode"));
+   assert(!params->presentAndNotBeenRead(mName, "checkpointWrite"));
+   if (mCheckpointWriteFlag) {
+      assert(!params->presentAndNotBeenRead(mName, "checkpointWriteTriggerMode"));
       if(checkpointWriteTriggerMode == CPWRITE_TRIGGER_CLOCK) {
-         assert(!params->presentAndNotBeenRead(name, "checkpointWriteTriggerClockInterval"));
-         ioParamString(ioFlag, name, "checkpointWriteClockUnit", &cpWriteClockUnitString, "seconds");
+         assert(!params->presentAndNotBeenRead(mName, "checkpointWriteTriggerClockInterval"));
+         ioParamString(ioFlag, mName, "checkpointWriteClockUnit", &mCheckpointWriteClockUnit, "seconds");
          if (ioFlag==PARAMS_IO_READ) {
-            assert(cpWriteClockUnitString);
-            for (size_t n=0; n<strlen(cpWriteClockUnitString); n++) {
-               cpWriteClockUnitString[n] = tolower(cpWriteClockUnitString[n]);
+            assert(mCheckpointWriteClockUnit);
+            for (size_t n=0; n<strlen(mCheckpointWriteClockUnit); n++) {
+               mCheckpointWriteClockUnit[n] = tolower(mCheckpointWriteClockUnit[n]);
             }
-            if (!strcmp(cpWriteClockUnitString, "second") || !strcmp(cpWriteClockUnitString, "seconds") || !strcmp(cpWriteClockUnitString, "sec") || !strcmp(cpWriteClockUnitString, "s")) {
-               free(cpWriteClockUnitString);
-               cpWriteClockUnitString=strdup("seconds");
+            if (!strcmp(mCheckpointWriteClockUnit, "second") || !strcmp(mCheckpointWriteClockUnit, "seconds") || !strcmp(mCheckpointWriteClockUnit, "sec") || !strcmp(mCheckpointWriteClockUnit, "s")) {
+               free(mCheckpointWriteClockUnit);
+               mCheckpointWriteClockUnit=strdup("seconds");
                cpWriteClockSeconds = (time_t) cpWriteClockInterval;
             }
-            else if (!strcmp(cpWriteClockUnitString, "minute") || !strcmp(cpWriteClockUnitString, "minutes") || !strcmp(cpWriteClockUnitString, "min") || !strcmp(cpWriteClockUnitString, "m")) {
-               free(cpWriteClockUnitString);
-               cpWriteClockUnitString=strdup("minutes");
+            else if (!strcmp(mCheckpointWriteClockUnit, "minute") || !strcmp(mCheckpointWriteClockUnit, "minutes") || !strcmp(mCheckpointWriteClockUnit, "min") || !strcmp(mCheckpointWriteClockUnit, "m")) {
+               free(mCheckpointWriteClockUnit);
+               mCheckpointWriteClockUnit=strdup("minutes");
                cpWriteClockSeconds = (time_t) (60.0 * cpWriteTimeInterval);
             }
-            else if (!strcmp(cpWriteClockUnitString, "hour") || !strcmp(cpWriteClockUnitString, "hours") || !strcmp(cpWriteClockUnitString, "hr") || !strcmp(cpWriteClockUnitString, "h")) {
-               free(cpWriteClockUnitString);
-               cpWriteClockUnitString=strdup("hours");
+            else if (!strcmp(mCheckpointWriteClockUnit, "hour") || !strcmp(mCheckpointWriteClockUnit, "hours") || !strcmp(mCheckpointWriteClockUnit, "hr") || !strcmp(mCheckpointWriteClockUnit, "h")) {
+               free(mCheckpointWriteClockUnit);
+               mCheckpointWriteClockUnit=strdup("hours");
                cpWriteClockSeconds = (time_t) (3600.0 * cpWriteTimeInterval);
             }
-            else if (!strcmp(cpWriteClockUnitString, "day") || !strcmp(cpWriteClockUnitString, "days")) {
-               free(cpWriteClockUnitString);
-               cpWriteClockUnitString=strdup("days");
+            else if (!strcmp(mCheckpointWriteClockUnit, "day") || !strcmp(mCheckpointWriteClockUnit, "days")) {
+               free(mCheckpointWriteClockUnit);
+               mCheckpointWriteClockUnit=strdup("days");
                cpWriteClockSeconds = (time_t) (86400.0 * cpWriteTimeInterval);
             }
             else {
                if (globalRank()==0) {
-                  pvErrorNoExit().printf("checkpointWriteClockUnit \"%s\" is unrecognized.  Use \"seconds\", \"minutes\", \"hours\", or \"days\".\n", cpWriteClockUnitString);
+                  pvErrorNoExit().printf("checkpointWriteClockUnit \"%s\" is unrecognized.  Use \"seconds\", \"minutes\", \"hours\", or \"days\".\n", mCheckpointWriteClockUnit);
                }
                MPI_Barrier(icCommunicator()->globalCommunicator());
                exit(EXIT_FAILURE);
             }
-            if (cpWriteClockUnitString==NULL) {
-               // would get executed if a strdup(cpWriteClockUnitString) statement fails.
+            if (mCheckpointWriteClockUnit==NULL) {
+               // would get executed if a strdup(mCheckpointWriteClockUnit) statement fails.
                pvError().printf("Error in global rank %d process converting checkpointWriteClockUnit: %s\n", globalRank(), strerror(errno));
             }
          }
@@ -1215,21 +1147,21 @@ void HyPerCol::ioParam_checkpointWriteClockUnit(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerCol::ioParam_deleteOlderCheckpoints(enum ParamsIOFlag ioFlag) {
-   assert(!params->presentAndNotBeenRead(name, "checkpointWrite"));
-   if (checkpointWriteFlag) {
-      ioParamValue(ioFlag, name, "deleteOlderCheckpoints", &deleteOlderCheckpoints, false/*default value*/);
+   assert(!params->presentAndNotBeenRead(mName, "checkpointWrite"));
+   if (mCheckpointWriteFlag) {
+      ioParamValue(ioFlag, mName, "mDeleteOlderCheckpoints", &mDeleteOlderCheckpoints, false/*default value*/);
    }
 }
 
 void HyPerCol::ioParam_numCheckpointsKept(enum ParamsIOFlag ioFlag) {
-   pvAssert(!params->presentAndNotBeenRead(name, "checkpointWrite"));
-   if (checkpointWriteFlag) {
-      pvAssert(!params->presentAndNotBeenRead(name, "deleteOlderCheckpoints"));
-      if (deleteOlderCheckpoints) {
-         ioParamValue(ioFlag, name, "numCheckpointsKept", &numCheckpointsKept, 1/*default value*/);
+   pvAssert(!params->presentAndNotBeenRead(mName, "checkpointWrite"));
+   if (mCheckpointWriteFlag) {
+      pvAssert(!params->presentAndNotBeenRead(mName, "mDeleteOlderCheckpoints"));
+      if (mDeleteOlderCheckpoints) {
+         ioParamValue(ioFlag, mName, "numCheckpointsKept", &numCheckpointsKept, 1/*default value*/);
          if (ioFlag==PARAMS_IO_READ && numCheckpointsKept <= 0) {
             if (columnId()==0) {
-               pvErrorNoExit() << "HyPerCol \"" << name << "\": numCheckpointsKept must be positive (value was " << numCheckpointsKept << ")" << std::endl;
+               pvErrorNoExit() << "HyPerCol \"" << mName << "\": numCheckpointsKept must be positive (value was " << numCheckpointsKept << ")" << std::endl;
             }
             MPI_Barrier(icComm->communicator());
             exit(EXIT_FAILURE);
@@ -1239,28 +1171,28 @@ void HyPerCol::ioParam_numCheckpointsKept(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerCol::ioParam_suppressLastOutput(enum ParamsIOFlag ioFlag) {
-   assert(!params->presentAndNotBeenRead(name, "checkpointWrite"));
-   if (!checkpointWriteFlag) {
-      ioParamValue(ioFlag, name, "suppressLastOutput", &suppressLastOutput, false/*default value*/);
+   assert(!params->presentAndNotBeenRead(mName, "checkpointWrite"));
+   if (!mCheckpointWriteFlag) {
+      ioParamValue(ioFlag, mName, "mSuppressLastOutput", &mSuppressLastOutput, false/*default value*/);
    }
 }
 
 void HyPerCol::ioParam_suppressNonplasticCheckpoints(enum ParamsIOFlag ioFlag) {
-   assert(!params->presentAndNotBeenRead(name, "checkpointWrite"));
-   if (checkpointWriteFlag) {
-      ioParamValue(ioFlag, name, "suppressNonplasticCheckpoints", &suppressNonplasticCheckpoints, suppressNonplasticCheckpoints);
+   assert(!params->presentAndNotBeenRead(mName, "checkpointWrite"));
+   if (mCheckpointWriteFlag) {
+      ioParamValue(ioFlag, mName, "mSuppressNonplasticCheckpoints", &mSuppressNonplasticCheckpoints, mSuppressNonplasticCheckpoints);
    }
 }
 
 void HyPerCol::ioParam_checkpointIndexWidth(enum ParamsIOFlag ioFlag) {
-   assert(!params->presentAndNotBeenRead(name, "checkpointWrite"));
-   if (checkpointWriteFlag) {
-      ioParamValue(ioFlag, name, "checkpointIndexWidth", &checkpointIndexWidth, checkpointIndexWidth);
+   assert(!params->presentAndNotBeenRead(mName, "checkpointWrite"));
+   if (mCheckpointWriteFlag) {
+      ioParamValue(ioFlag, mName, "checkpointIndexWidth", &checkpointIndexWidth, checkpointIndexWidth);
    }
 }
 
 void HyPerCol::ioParam_errorOnNotANumber(enum ParamsIOFlag ioFlag) {
-   ioParamValue(ioFlag, name, "errorOnNotANumber", &errorOnNotANumber, errorOnNotANumber);
+   ioParamValue(ioFlag, mName, "mErrorOnNotANumber", &mErrorOnNotANumber, mErrorOnNotANumber);
 }
 
 
@@ -1442,56 +1374,6 @@ int HyPerCol::ensureDirExists(const char * dirname) {
    return PV_SUCCESS;
 }
 
-int HyPerCol::globalRank()
-{
-   return icComm->globalCommRank();
-}
-
-int HyPerCol::columnId()
-{
-   return icComm->commRank();
-}
-
-int HyPerCol::numberOfColumns()
-{
-   return icComm->commSize();
-}
-
-int HyPerCol::numberOfGlobalColumns()
-{
-   return icComm->globalCommSize();
-}
-
-int HyPerCol::commColumn()
-{
-   return icComm->commColumn();
-}
-
-int HyPerCol::commRow()
-{
-   return icComm->commRow();
-}
-
-int HyPerCol::commBatch()
-{
-   return icComm->commBatch();
-}
-
-int HyPerCol::numCommColumns()
-{
-   return icComm->numCommColumns();
-}
-
-int HyPerCol::numCommRows()
-{
-   return icComm->numCommRows();
-}
-
-int HyPerCol::numCommBatches()
-{
-   return icComm->numCommBatches();
-}
-
 int HyPerCol::addLayer(HyPerLayer * l)
 {
    assert((size_t) numLayers <= layerArraySize);
@@ -1531,7 +1413,7 @@ int HyPerCol::addConnection(BaseConnection * conn)
    assert((size_t) numConnections <= connectionArraySize);
    // Check for duplicate connection names (currently breaks InitWeightsTest, so commented out)
    // for(int k=0; k<numConnections; k++) {
-   //    if( !strcmp(conn->getName(), connections[k]->getName())) {
+   //    if( !strcmp(conn->getName(), mConnections[k]->getName())) {
    //       pvError().printf("Error: Layers %d and %d have the same name \"%s\".\n", k, numLayers, conn->getName());
    //    }
    // }
@@ -1540,17 +1422,17 @@ int HyPerCol::addConnection(BaseConnection * conn)
       BaseConnection ** newConnections = (BaseConnection **) malloc( connectionArraySize * sizeof(BaseConnection *) );
       assert(newConnections);
       for(int k=0; k<numConnections; k++) {
-         newConnections[k] = connections[k];
+         newConnections[k] = mConnections[k];
       }
-      free(connections);
-      connections = newConnections;
+      free(mConnections);
+      mConnections = newConnections;
    }
 
    // numConnections is the ID of this connection
    // subscribe call moved to HyPerCol::initPublishers, since it needs to be after the publishers are initialized.
    // icComm->subscribe(conn);
 
-   connections[numConnections++] = conn;
+   mConnections[numConnections++] = conn;
 
    return connId;
 }
@@ -1561,7 +1443,7 @@ int HyPerCol::addNormalizer(NormalizeBase * normalizer) {
       normalizerArraySize += RESIZE_ARRAY_INCR;
       NormalizeBase ** newNormalizers = (NormalizeBase **) realloc(normalizers, normalizerArraySize*sizeof(NormalizeBase *));
       if(newNormalizers==NULL) {
-         pvError().printf("HyPerCol \"%s\" on global rank %d unable to resize normalizers array to size %zu\n", name, globalRank(), normalizerArraySize);
+         pvError().printf("HyPerCol \"%s\" on global rank %d unable to resize normalizers array to size %zu\n", mName, globalRank(), normalizerArraySize);
       }
       normalizers = newNormalizers;
    }
@@ -1577,7 +1459,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
    deltaTime = dt;
 
    int status = PV_SUCCESS;
-   if (!readyFlag) {
+   if (!mReadyFlag) {
       pvAssert(printParamsFilename && printParamsFilename[0]);
       std::string printParamsFileString("");
       if (printParamsFilename[0] != '/') {
@@ -1596,7 +1478,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
       status = processParams(printParamsFileString.c_str());
       MPI_Barrier(icCommunicator()->communicator());
       if (status != PV_SUCCESS) {
-         pvError().printf("HyPerCol \"%s\" failed to run.\n", name);
+         pvError().printf("HyPerCol \"%s\" failed to run.\n", mName);
       }
       if (pv_initObj->getDryRunFlag()) { return PV_SUCCESS; }
 
@@ -1623,7 +1505,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
 
       // do allocation stage for probes
       for (int i=0; i<numBaseProbes; i++) {
-         BaseProbe * p = baseProbes[i];
+         BaseProbe * p = mBaseProbes[i];
          int pstatus = p->allocateDataStructures();
          if (pstatus==PV_SUCCESS) {
             if (globalRank()==0) { pvInfo().printf("%s allocateDataStructures completed.\n", p->getDescription_c()); }
@@ -1639,7 +1521,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
       for(int phase = 0; phase < numPhases; phase++){
          char tmpStr[10];
          sprintf(tmpStr, "phRecv%d", phase);
-         phaseRecvTimers[phase] = new Timer(name, "column", tmpStr);
+         phaseRecvTimers[phase] = new Timer(mName, "column", tmpStr);
       }
 
       initPublishers(); // create the publishers and their data stores
@@ -1654,11 +1536,11 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
       // Initialize either by loading from checkpoint, or calling initializeState
       // This needs to happen after initPublishers so that we can initialize the values in the data stores,
       // and before the layers' publish calls so that the data in border regions gets copied correctly.
-      if ( checkpointReadFlag ) {
+      if ( mCheckpointReadFlag ) {
          checkpointRead();
       }
 
-      // setInitialValues stage sets the initial values of layers and connections, either from params or from checkpoint
+      // setInitialValues stage sets the initial values of layers and mConnections, either from params or from checkpoint
       layerInitializationStage = &HyPerCol::layerSetInitialValues;
       connInitializationStage = &HyPerCol::connSetInitialValues;
       doInitializationStage(layerInitializationStage, connInitializationStage, "setInitialValues");
@@ -1668,7 +1550,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
       // Initial normalization moved here to facilitate normalizations of groups of HyPerConns
       normalizeWeights();
       for (int c = 0; c < numConnections; c++) {
-         connections[c]->finalizeUpdate(simTime, deltaTimeBase);
+         mConnections[c]->finalizeUpdate(simTime, deltaTimeBase);
       }
 
       // publish initial conditions
@@ -1686,16 +1568,16 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
       }
 
       // output initial conditions
-      if (!checkpointReadFlag) {
+      if (!mCheckpointReadFlag) {
          for (int c = 0; c < numConnections; c++) {
-            connections[c]->outputState(simTime);
+            mConnections[c]->outputState(simTime);
          }
          for (int l = 0; l < numLayers; l++) {
             layers[l]->outputState(simTime);
          }
       }
 
-      readyFlag = true;
+      mReadyFlag = true;
    }
 
 
@@ -1717,7 +1599,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
       // Should we move the if statement below into advanceTime()?
       // That way, the routine that polls for SIGUSR1 and sets checkpointSignal is the same
       // as the routine that acts on checkpointSignal and clears it, which seems clearer.  --pete July 7, 2015
-      if( checkpointWriteFlag && (advanceCPWriteTime() || checkpointSignal) ) {
+      if( mCheckpointWriteFlag && (advanceCPWriteTime() || checkpointSignal) ) {
          // the order should be advanceCPWriteTime() || checkpointSignal so that advanceCPWriteTime() is called even if checkpointSignal is true.
          // that way advanceCPWriteTime's calculation of the next checkpoint time won't be thrown off.
          char cpDir[PV_PATH_MAX];
@@ -1728,13 +1610,13 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
          else {
             stepFieldWidth = (int) floor(log10((stopTime - startTime)/deltaTime))+1;
          }
-         int chars_printed = snprintf(cpDir, PV_PATH_MAX, "%s/Checkpoint%0*ld", checkpointWriteDir, stepFieldWidth, currentStep);
+         int chars_printed = snprintf(cpDir, PV_PATH_MAX, "%s/Checkpoint%0*ld", mCheckpointWriteDir, stepFieldWidth, currentStep);
          if(chars_printed >= PV_PATH_MAX) {
             if (globalRank()==0) {
-               pvError().printf("HyPerCol::run error.  Checkpoint directory \"%s/Checkpoint%ld\" is too long.\n", checkpointWriteDir, currentStep);
+               pvError().printf("HyPerCol::run error.  Checkpoint directory \"%s/Checkpoint%ld\" is too long.\n", mCheckpointWriteDir, currentStep);
             }
          }
-         if ( !checkpointReadFlag || strcmp(checkpointReadDir, cpDir) ) {
+         if ( !mCheckpointReadFlag || strcmp(mCheckpointReadDir, cpDir) ) {
             /* Note: the strcmp isn't perfect, since there are multiple ways to specify a path that points to the same directory */
             if (globalRank()==0) {
                pvInfo().printf("Checkpointing, simTime = %f\n", simulationTime());
@@ -1780,13 +1662,13 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
 }
 
 void HyPerCol::initDtAdaptControlProbe() {
-   // add the dtAdaptController, if there is one.
-   if (dtAdaptController && dtAdaptController[0]) {
-      dtAdaptControlProbe = getColProbeFromName(dtAdaptController);
+   // add the mDtAdaptController, if there is one.
+   if (mDtAdaptController && mDtAdaptController[0]) {
+      dtAdaptControlProbe = getColProbeFromName(mDtAdaptController);
       if (dtAdaptControlProbe==nullptr) {
          if (globalRank()==0) {
-            pvError().printf("HyPerCol \"%s\": dtAdaptController \"%s\" does not refer to a ColProbe in the HyPerCol.\n",
-                  this->getName(), dtAdaptController);
+            pvError().printf("HyPerCol \"%s\": mDtAdaptController \"%s\" does not refer to a ColProbe in the HyPerCol.\n",
+                  this->getName(), mDtAdaptController);
          }
       }
 
@@ -1801,13 +1683,13 @@ void HyPerCol::initDtAdaptControlProbe() {
       }
    }
    ensureDirExists(outputPath);
-   if (columnId()==0 && dtAdaptControlProbe && writeTimescales){
+   if (columnId()==0 && dtAdaptControlProbe && mWriteTimescales){
       size_t timeScaleFileNameLen = strlen(outputPath) + strlen("/HyPerCol_timescales.txt");
       std::string timeScaleFilename(outputPath);
       timeScaleFilename += "/" "HyPerCol_timescales.txt";
       timeScaleStream.open(timeScaleFilename.c_str());
       if (timeScaleStream.fail()) {
-         pvError() << "HyPerCol \"" << name << "\": Unable to open \"" << timeScaleFilename << "\".\n";
+         pvError() << "HyPerCol \"" << mName << "\": Unable to open \"" << timeScaleFilename << "\".\n";
       }
       timeScaleStream.precision(17);
    }
@@ -1880,28 +1762,28 @@ int HyPerCol::setNumThreads(bool printMessagesFlag) {
 }
 
 int HyPerCol::processParams(char const * path) {
-   if (!paramsProcessedFlag) {
+   if (!mParamsProcessedFlag) {
       layerStatus = (int *) calloc((size_t) numLayers, sizeof(int));
       if (layerStatus==NULL) {
          pvError().printf("Global rank %d process unable to allocate memory for status of %zu layers: %s\n", globalRank(), (size_t) numLayers, strerror(errno));
       }
       connectionStatus = (int *) calloc((size_t) numConnections, sizeof(int));
       if (connectionStatus==NULL) {
-         pvError().printf("Global rank %d process unable to allocate memory for status of %zu connections: %s\n", globalRank(), (size_t) numConnections, strerror(errno));
+         pvError().printf("Global rank %d process unable to allocate memory for status of %zu mConnections: %s\n", globalRank(), (size_t) numConnections, strerror(errno));
       }
    
       int (HyPerCol::*layerInitializationStage)(int) = NULL;
       int (HyPerCol::*connInitializationStage)(int) = NULL;
    
-      // do communication step for layers and connections
+      // do communication step for layers and mConnections
       layerInitializationStage = &HyPerCol::layerCommunicateInitInfo;
       connInitializationStage = &HyPerCol::connCommunicateInitInfo;
       doInitializationStage(layerInitializationStage, connInitializationStage, "communicateInitInfo");
    
       // do communication step for probes
-      // This is where probes are added to their respective target layers and connections
+      // This is where probes are added to their respective target layers and mConnections
       for (int i=0; i<numBaseProbes; i++) {
-         BaseProbe * p = baseProbes[i];
+         BaseProbe * p = mBaseProbes[i];
          int pstatus = p->communicateInitInfo();
          if (pstatus==PV_SUCCESS) {
             if (globalRank()==0) pvInfo().printf("%s communicateInitInfo completed.\n", p->getDescription_c());
@@ -1923,10 +1805,10 @@ int HyPerCol::processParams(char const * path) {
    }
    else {
       if (globalRank()==0) {
-         pvInfo().printf("HyPerCol \"%s\": path for printing parameters file was empty or null.\n", name);
+         pvInfo().printf("HyPerCol \"%s\": path for printing parameters file was empty or null.\n", mName);
       }
    }
-   paramsProcessedFlag = true;
+   mParamsProcessedFlag = true;
    return PV_SUCCESS;
 }
 
@@ -1974,10 +1856,10 @@ int HyPerCol::doInitializationStage(int (HyPerCol::*layerInitializationStage)(in
                connectionStatus[c] = PV_SUCCESS;
                numPostponedConns--;
                assert(numPostponedConns>=0);
-               if (globalRank()==0) pvInfo().printf("%s %s completed.\n", connections[c]->getDescription_c(), stageName);
+               if (globalRank()==0) pvInfo().printf("%s %s completed.\n", mConnections[c]->getDescription_c(), stageName);
                break;
             case PV_POSTPONE:
-               if (globalRank()==0) pvInfo().printf("%s %s postponed.\n", connections[c]->getDescription_c(), stageName);
+               if (globalRank()==0) pvInfo().printf("%s %s postponed.\n", mConnections[c]->getDescription_c(), stageName);
                break;
             case PV_FAILURE:
                exit(EXIT_FAILURE); // Error message should be printed in connection's communicateInitInfo().
@@ -2000,7 +1882,7 @@ int HyPerCol::doInitializationStage(int (HyPerCol::*layerInitializationStage)(in
       }
       for (int c=0; c<numConnections; c++) {
          if (layerStatus[c]==PV_POSTPONE) {
-            errorMessage.printf("%s on global rank %d is still postponed.\n", connections[c]->getDescription_c(), globalRank());
+            errorMessage.printf("%s on global rank %d is still postponed.\n", mConnections[c]->getDescription_c(), globalRank());
          }
       }
       exit(EXIT_FAILURE);
@@ -2017,7 +1899,7 @@ int HyPerCol::layerCommunicateInitInfo(int l) {
 }
 
 int HyPerCol::connCommunicateInitInfo(int c) {
-   BaseConnection * conn = connections[c];
+   BaseConnection * conn = mConnections[c];
    assert(c>=0 && c<numConnections && conn->getInitInfoCommunicatedFlag()==false);
    int status = conn->communicateInitInfo();
    if (status==PV_SUCCESS) conn->setInitInfoCommunicatedFlag();
@@ -2034,7 +1916,7 @@ int HyPerCol::layerAllocateDataStructures(int l) {
 
 int HyPerCol::connAllocateDataStructures(int c) {
    assert(c>=0 && c<numConnections);
-   BaseConnection * conn = connections[c];
+   BaseConnection * conn = mConnections[c];
    assert(conn->getDataStructuresAllocatedFlag()==false);
    int status = conn->allocateDataStructures();
    if (status==PV_SUCCESS) conn->setDataStructuresAllocatedFlag();
@@ -2050,7 +1932,7 @@ int HyPerCol::layerSetInitialValues(int l) {
 }
 
 int HyPerCol::connSetInitialValues(int c) {
-   BaseConnection * conn = connections[c];
+   BaseConnection * conn = mConnections[c];
    assert(c>=0 && c<numConnections && conn->getInitialValuesSetFlag()==false);
    int status = conn->initializeState();
    if (status==PV_SUCCESS) conn->setInitialValuesSetFlag();
@@ -2075,7 +1957,7 @@ int HyPerCol::initPublishers() {
       icComm->addPublisher(layers[l]);
    }
    for( int c=0; c<numConnections; c++ ) {
-      icComm->subscribe(connections[c]);
+      icComm->subscribe(mConnections[c]);
    }
 
    return PV_SUCCESS;
@@ -2329,7 +2211,7 @@ int HyPerCol::advanceTime(double sim_time)
    if (simTime >= nextProgressTime) {
       nextProgressTime += progressInterval;
       if (columnId() == 0) {
-         std::ostream& progressStream = writeProgressToErr ? getErrorStream() : getOutputStream();
+         std::ostream& progressStream = mWriteProgressToError ? getErrorStream() : getOutputStream();
          time_t current_time;
          time(&current_time);
          progressStream << "   time==" << sim_time << "  " << ctime(&current_time); // ctime outputs an newline
@@ -2348,28 +2230,28 @@ int HyPerCol::advanceTime(double sim_time)
    deltaTime = deltaTimeBase;
    if (dtAdaptControlProbe!=nullptr){ // adapt deltaTime
      // hack code to test new adapt time scale method using exponential approx to energy
-     //bool useAdaptMethodExp1stOrder = false; //true;
-     if (useAdaptMethodExp1stOrder){
+     //bool mUseAdaptMethodExp1stOrder = false; //true;
+     if (mUseAdaptMethodExp1stOrder){
        adaptTimeScaleExp1stOrder();}
      else{
        adaptTimeScale();
      }
-     if(writeTimescales && columnId() == 0) {
-       if (writeTimeScaleFieldnames) {
+     if(mWriteTimescales && columnId() == 0) {
+       if (mWriteTimeScaleFieldnames) {
          timeScaleStream << "sim_time = " << sim_time << "\n";
        }
        else {
          timeScaleStream << sim_time << ", ";
        }
          for(int b = 0; b < nbatch; b++){
-	   if (writeTimeScaleFieldnames) {
+	   if (mWriteTimeScaleFieldnames) {
 	     timeScaleStream << "\tbatch = " << b << ", timeScale = " << timeScale[b] << ", " << "timeScaleTrue = " << timeScaleTrue[b];
 	   }
 	   else {
 	     timeScaleStream << b << ", " << timeScale[b] << ", " << timeScaleTrue[b];
 	   }
-	   if (useAdaptMethodExp1stOrder) {
-	     if (writeTimeScaleFieldnames) {
+	   if (mUseAdaptMethodExp1stOrder) {
+	     if (mWriteTimeScaleFieldnames) {
 	       timeScaleStream <<  ", " << "timeScaleMax = " << timeScaleMax[b] << std::endl;
 	       // timeScaleStream <<  ", " << "timeScaleMax = " << timeScaleMax[b] <<  ", " << "timeScaleMax2 = " << timeScaleMax2[b] << std::endl;
 	     }
@@ -2393,18 +2275,18 @@ int HyPerCol::advanceTime(double sim_time)
    int status = PV_SUCCESS;
    bool exitAfterUpdate = false;
 
-   // update the connections (weights)
+   // update the mConnections (weights)
    //
    for (int c = 0; c < numConnections; c++) {
-      status = connections[c]->updateState(simTime, deltaTimeBase);
+      status = mConnections[c]->updateState(simTime, deltaTimeBase);
       if (!exitAfterUpdate) {
          exitAfterUpdate = status == PV_EXIT_NORMALLY;
       }
    }
    normalizeWeights();
    for (int c = 0; c < numConnections; c++) {
-      connections[c]->finalizeUpdate(simTime, deltaTimeBase);
-      connections[c]->outputState(simTime);
+      mConnections[c]->finalizeUpdate(simTime, deltaTimeBase);
+      mConnections[c]->outputState(simTime);
    }
 
 
@@ -2585,7 +2467,7 @@ int HyPerCol::advanceTime(double sim_time)
          //
          //    // also calls layer probes
          layers[l]->outputState(simTime); // also calls layer probes' outputState
-         if (errorOnNotANumber) {
+         if (mErrorOnNotANumber) {
             for (int n=0; n<layers[l]->getNumExtended(); n++) {
                pvadata_t a = layers[l]->getLayerData()[n];
                if (a!=a) {
@@ -2673,11 +2555,11 @@ int HyPerCol::checkpointRead() {
    assert(sizeof(struct timestamp_struct) == sizeof(long int) + sizeof(double));
    if( columnId()==0 ) {
       char timestamppath[PV_PATH_MAX];
-      int chars_needed = snprintf(timestamppath, PV_PATH_MAX, "%s/timeinfo.bin", checkpointReadDir);
+      int chars_needed = snprintf(timestamppath, PV_PATH_MAX, "%s/timeinfo.bin", mCheckpointReadDir);
       if (chars_needed >= PV_PATH_MAX) {
-         pvError().printf("HyPerCol::checkpointRead error: path \"%s/timeinfo.bin\" is too long.\n", checkpointReadDir);
+         pvError().printf("HyPerCol::checkpointRead error: path \"%s/timeinfo.bin\" is too long.\n", mCheckpointReadDir);
       }
-      PV_Stream * timestampfile = PV_fopen(timestamppath,"r",false/*verifyWrites*/);
+      PV_Stream * timestampfile = PV_fopen(timestamppath,"r",false/*mVerifyWrites*/);
       if (timestampfile == NULL) {
          pvError().printf("HyPerCol::checkpointRead error: unable to open \"%s\" for reading.\n", timestamppath);
       }
@@ -2714,7 +2596,7 @@ int HyPerCol::checkpointRead() {
       };
       struct timescalemax_struct timescalemax[nbatch];
       struct timescale_struct timescale[nbatch];
-      if (useAdaptMethodExp1stOrder) {
+      if (mUseAdaptMethodExp1stOrder) {
          for(int b = 0; b < nbatch; b++){
             timescalemax[b].timeScale = 1;
             timescalemax[b].timeScaleTrue = 1;
@@ -2733,7 +2615,7 @@ int HyPerCol::checkpointRead() {
       }
       size_t timescale_size = sizeof(struct timescale_struct);
       size_t timescalemax_size = sizeof(struct timescalemax_struct);
-      if (useAdaptMethodExp1stOrder) {
+      if (mUseAdaptMethodExp1stOrder) {
          assert(sizeof(struct timescalemax_struct) == sizeof(double) + sizeof(double) + sizeof(double) + sizeof(double) + sizeof(double));
       }
       else {
@@ -2742,15 +2624,15 @@ int HyPerCol::checkpointRead() {
       // read timeScale info
       if(columnId()==0 ) {
          char timescalepath[PV_PATH_MAX];
-         int chars_needed = snprintf(timescalepath, PV_PATH_MAX, "%s/timescaleinfo.bin", checkpointReadDir);
+         int chars_needed = snprintf(timescalepath, PV_PATH_MAX, "%s/timescaleinfo.bin", mCheckpointReadDir);
          if (chars_needed >= PV_PATH_MAX) {
-            pvError().printf("HyPerCol::checkpointRead error: path \"%s/timescaleinfo.bin\" is too long.\n", checkpointReadDir);
+            pvError().printf("HyPerCol::checkpointRead error: path \"%s/timescaleinfo.bin\" is too long.\n", mCheckpointReadDir);
          }
-         PV_Stream * timescalefile = PV_fopen(timescalepath,"r",false/*verifyWrites*/);
+         PV_Stream * timescalefile = PV_fopen(timescalepath,"r",false/*mVerifyWrites*/);
          if (timescalefile == NULL) {
             pvWarn(errorMessage);
             errorMessage.printf("HyPerCol::checkpointRead: unable to open \"%s\" for reading: %s.\n", timescalepath, strerror(errno));
-            if (useAdaptMethodExp1stOrder) {
+            if (mUseAdaptMethodExp1stOrder) {
                errorMessage.printf("    will use default value of timeScale=%f, timeScaleTrue=%f, timeScaleMax=%f, timeScaleMax2=%f\n", 1.0, 1.0, 1.0, 1.0);
             }
             else {
@@ -2760,14 +2642,14 @@ int HyPerCol::checkpointRead() {
          else {
             for(int b = 0; b < nbatch; b++){
                long int startpos = getPV_StreamFilepos(timescalefile);
-               if (useAdaptMethodExp1stOrder) {
+               if (mUseAdaptMethodExp1stOrder) {
                   PV_fread(&timescalemax[b],1,timescalemax_size,timescalefile);
                }
                else {
                   PV_fread(&timescale[b],1,timescale_size,timescalefile);
                }
                long int endpos = getPV_StreamFilepos(timescalefile);
-               if (useAdaptMethodExp1stOrder) {
+               if (mUseAdaptMethodExp1stOrder) {
                   assert(endpos-startpos==(int)sizeof(struct timescalemax_struct));
                }
                else {
@@ -2778,7 +2660,7 @@ int HyPerCol::checkpointRead() {
          }
       }
       //Grab only the necessary part based on comm batch id
-      if (useAdaptMethodExp1stOrder) {
+      if (mUseAdaptMethodExp1stOrder) {
          MPI_Bcast(&timescalemax,(int) timescalemax_size*nbatch,MPI_CHAR,0,icCommunicator()->communicator());
          for (int b = 0; b < nbatch; b++){
             timeScale[b] = timescalemax[b].timeScale;
@@ -2798,16 +2680,16 @@ int HyPerCol::checkpointRead() {
       }
    } // dtAdaptControlProbe!=nullptr
 
-   if(checkpointWriteFlag) {
+   if(mCheckpointWriteFlag) {
       char nextCheckpointPath[PV_PATH_MAX];
       int chars_needed;
       PV_Stream * nextCheckpointFile = NULL;
       switch(checkpointWriteTriggerMode) {
       case CPWRITE_TRIGGER_STEP:
-         readScalarFromFile(checkpointReadDir, name, "nextCheckpointStep", &nextCPWriteStep, currentStep+cpWriteStepInterval);
+         readScalarFromFile(mCheckpointReadDir, mName, "nextCheckpointStep", &nextCPWriteStep, currentStep+cpWriteStepInterval);
          break;
       case CPWRITE_TRIGGER_TIME:
-         readScalarFromFile(checkpointReadDir, name, "nextCheckpointTime", &nextCPWriteTime, simTime+cpWriteTimeInterval);
+         readScalarFromFile(mCheckpointReadDir, mName, "nextCheckpointTime", &nextCPWriteTime, simTime+cpWriteTimeInterval);
          break;
       case CPWRITE_TRIGGER_CLOCK:
          // Nothing to do in this case
@@ -2827,7 +2709,7 @@ int HyPerCol::writeTimers(std::ostream& stream){
       checkpointTimer->fprint_time(stream);
       icCommunicator()->fprintTime(stream);
       for (int c=0; c<numConnections; c++) {
-         connections[c]->writeTimers(stream);
+         mConnections[c]->writeTimers(stream);
       }
       for (int phase=0; phase<numPhases; phase++) {
          if (phaseRecvTimers && phaseRecvTimers[phase]) { phaseRecvTimers[phase]->fprint_time(stream); }
@@ -2867,7 +2749,7 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
       layers[l]->checkpointWrite(cpDir);
    }
    for( int c=0; c<numConnections; c++ ) {
-      if (connections[c]->getPlasticityFlag() || !suppressNonplasticCheckpoints) { connections[c]->checkpointWrite(cpDir); }
+      if (mConnections[c]->getPlasticityFlag() || !mSuppressNonplasticCheckpoints) { mConnections[c]->checkpointWrite(cpDir); }
    }
 
    // Timers
@@ -2912,12 +2794,12 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
          if (PV_fwrite(&timeScaleTrue[b],1,sizeof(double),timescalefile) != sizeof(double)) {
             pvError().printf("HyPerCol::checkpointWrite error writing timeScaleTrue to %s\n", timescalefile->name);
          }
-         if (useAdaptMethodExp1stOrder) {
+         if (mUseAdaptMethodExp1stOrder) {
             if (PV_fwrite(&timeScaleMax[b],1,sizeof(double),timescalefile) != sizeof(double)) {
                pvError().printf("HyPerCol::checkpointWrite error writing timeScaleMax to %s\n", timescalefile->name);
             }
          }
-         if (useAdaptMethodExp1stOrder) {
+         if (mUseAdaptMethodExp1stOrder) {
             if (PV_fwrite(&timeScaleMax2[b],1,sizeof(double),timescalefile) != sizeof(double)) {
                pvError().printf("HyPerCol::checkpointWrite error writing timeScaleMax2 to %s\n", timescalefile->name);
             }
@@ -2945,16 +2827,16 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
    checkpointedParamsFile += "pv.params";
    this->outputParams(checkpointedParamsFile.c_str());
 
-   if (checkpointWriteFlag) {
+   if (mCheckpointWriteFlag) {
       char nextCheckpointPath[PV_PATH_MAX];
       int chars_needed;
       PV_Stream * nextCheckpointFile = NULL;
       switch(checkpointWriteTriggerMode) {
       case CPWRITE_TRIGGER_STEP:
-         writeScalarToFile(cpDir, name, "nextCheckpointStep", nextCPWriteStep);
+         writeScalarToFile(cpDir, mName, "nextCheckpointStep", nextCPWriteStep);
          break;
       case CPWRITE_TRIGGER_TIME:
-         writeScalarToFile(cpDir, name, "nextCheckpointTime", nextCPWriteTime);
+         writeScalarToFile(cpDir, mName, "nextCheckpointTime", nextCPWriteTime);
          break;
       case CPWRITE_TRIGGER_CLOCK:
          // Nothing to do in this case
@@ -2986,8 +2868,8 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
    }
 
 
-   if (deleteOlderCheckpoints) {
-      pvAssert(checkpointWriteFlag); // checkpointWrite is called by exitRunLoop when checkpointWriteFlag is false; in this case deleteOlderCheckpoints should be false as well.
+   if (mDeleteOlderCheckpoints) {
+      pvAssert(mCheckpointWriteFlag); // checkpointWrite is called by exitRunLoop when mCheckpointWriteFlag is false; in this case mDeleteOlderCheckpoints should be false as well.
       char const * oldestCheckpointDir = oldCheckpointDirectories[oldCheckpointDirectoriesIndex].c_str();
       if (oldestCheckpointDir && oldestCheckpointDir[0]) {
          if (icComm->commRank()==0) {
@@ -3092,7 +2974,7 @@ int HyPerCol::outputParams(char const * path) {
 
    // BaseConnection params
    for (int c=0; c<numConnections; c++) {
-      BaseConnection * connection = connections[c];
+      BaseConnection * connection = mConnections[c];
       status = connection->ioParams(PARAMS_IO_WRITE);
       if( status != PV_SUCCESS ) {
          pvError().printf("outputParams: Error copying params to \"%s\"\n", printParamsPath);
@@ -3113,7 +2995,7 @@ int HyPerCol::outputParams(char const * path) {
 
    // BaseConnectionProbes
    for (int c=0; c<numConnections; c++) {
-      connections[c]->outputProbeParams();
+      mConnections[c]->outputProbeParams();
    }
 
    if(rank == 0){
@@ -3159,8 +3041,8 @@ int HyPerCol::outputParamsHeadComments(FILE* fp, char const * commentToken) {
    else if (numThreads==0) { fprintf(fp, " but number of threads was set to zero (error).\n"); }
    else { fprintf(fp, " but number of threads specified was %d instead of 1. (error).\n", numThreads); }
 #endif // PV_USE_OPENMP_THREADS
-   if (checkpointReadFlag) {
-      fprintf(fp, "%s Started from checkpoint \"%s\"\n", commentToken, checkpointReadDir);
+   if (mCheckpointReadFlag) {
+      fprintf(fp, "%s Started from checkpoint \"%s\"\n", commentToken, mCheckpointReadDir);
    }
    return PV_SUCCESS;
 }
@@ -3185,22 +3067,21 @@ int HyPerCol::exitRunLoop(bool exitOnFinish)
 {
    int status = 0;
 
-   // output final state of layers and connections
-   //
+   // output final state of layers and mConnections
 
    char cpDir[PV_PATH_MAX];
-   if (checkpointWriteFlag || !suppressLastOutput) {
+   if (mCheckpointWriteFlag || !mSuppressLastOutput) {
       int chars_printed;
-      if (checkpointWriteFlag) {
-         chars_printed = snprintf(cpDir, PV_PATH_MAX, "%s/Checkpoint%ld", checkpointWriteDir, currentStep);
+      if (mCheckpointWriteFlag) {
+         chars_printed = snprintf(cpDir, PV_PATH_MAX, "%s/Checkpoint%ld", mCheckpointWriteDir, currentStep);
       }
       else {
-         assert(!suppressLastOutput);
+         assert(!mSuppressLastOutput);
          chars_printed = snprintf(cpDir, PV_PATH_MAX, "%s/Last", outputPath);
       }
       if(chars_printed >= PV_PATH_MAX) {
          if (icComm->commRank()==0) {
-            pvError().printf("HyPerCol::run error.  Checkpoint directory \"%s/Checkpoint%ld\" is too long.\n", checkpointWriteDir, currentStep);
+            pvError().printf("HyPerCol::run error.  Checkpoint directory \"%s/Checkpoint%ld\" is too long.\n", mCheckpointWriteDir, currentStep);
          }
       }
       checkpointWrite(cpDir);
@@ -3428,11 +3309,11 @@ int HyPerCol::addBaseProbe(BaseProbe * p) {
    assert(newprobes != NULL);
 
    for (int i=0; i<numBaseProbes; i++) {
-      newprobes[i] = baseProbes[i];
+      newprobes[i] = mBaseProbes[i];
    }
-   free(baseProbes);
-   baseProbes = newprobes;
-   baseProbes[numBaseProbes] = p;
+   free(mBaseProbes);
+   mBaseProbes = newprobes;
+   mBaseProbes[numBaseProbes] = p;
 
    return ++numBaseProbes;
 }
