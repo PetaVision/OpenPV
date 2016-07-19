@@ -34,7 +34,7 @@ Publisher::Publisher(int pubId, HyPerCol * hc, int numItems, PVLayerLoc loc, int
    // to provide cube information for data from store
    cube.size = numBuffers * numItems * dataSize + sizeof(PVLayerCube);
 
-   store = new DataStore(hc, numBuffers, numItems, dataSize, numLevels, isSparse);
+   store = new DataStore(numBuffers, numItems, dataSize, numLevels, isSparse);
 
    //DONE: check for memory leak here, method flagged by valgrind
    this->neighborDatatypes = Communicator::newDatatypes(&loc);

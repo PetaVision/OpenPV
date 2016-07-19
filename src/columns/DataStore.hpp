@@ -13,12 +13,11 @@
 
 namespace PV
 {
-class HyPerCol;
 
 class DataStore
 {
 public:
-   DataStore(HyPerCol * hc, int numBuffers, int numItems, size_t dataSize, int numLevels, bool isSparse);
+   DataStore(int numBuffers, int numItems, size_t dataSize, int numLevels, bool isSparse);
 
    virtual ~DataStore();
 
