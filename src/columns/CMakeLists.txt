@@ -6,6 +6,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/GaussianRandom.cpp
    ${SUBDIR}/HyPerCol.cpp
    ${SUBDIR}/InterColComm.cpp
+   ${SUBDIR}/Publisher.cpp
    ${SUBDIR}/PV_Arguments.cpp
    ${SUBDIR}/Factory.cpp
    ${SUBDIR}/PV_Init.cpp
@@ -21,6 +22,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/GaussianRandom.hpp
    ${SUBDIR}/HyPerCol.hpp
    ${SUBDIR}/InterColComm.hpp
+   ${SUBDIR}/Publisher.hpp
    ${SUBDIR}/PV_Arguments.hpp
    ${SUBDIR}/Factory.hpp
    ${SUBDIR}/PV_Init.hpp

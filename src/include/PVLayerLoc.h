@@ -5,9 +5,6 @@
 #ifndef PVLAYERLOC_H_
 #define PVLAYERLOC_H_
 
-/* The common type for data */
-#define pvdata_t float
-
 /**
  * PVHalo describes the padding for a layer.  Padding must
  * be at least the number of boundary cells, nb, but may be
