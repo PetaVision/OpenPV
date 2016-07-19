@@ -249,10 +249,13 @@ int CloneConn::communicateInitInfo() {
    originalConn->preSynapticLayer()->synchronizeMarginWidth(pre);
    pre->synchronizeMarginWidth(originalConn->preSynapticLayer());
 
-   //// Make sure the original's and the clone's margin widths stay equal
-   //originalConn->postSynapticLayer()->synchronizeMarginWidth(post);
-   //post->synchronizeMarginWidth(originalConn->postSynapticLayer());
-
+   // Make sure the original's and the clone's margin widths stay equal
+   // Only if this layer receives from post for patch to data LUT
+   if(getUpdateGSynFromPostPerspective())
+   {
+      originalConn->postSynapticLayer()->synchronizeMarginWidth(post);
+      post->synchronizeMarginWidth(originalConn->postSynapticLayer());
+   }
    //Redudant read in case it's a clone of a clone
 
    return status;
