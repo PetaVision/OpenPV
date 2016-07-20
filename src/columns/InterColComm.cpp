@@ -11,7 +11,7 @@
 #include <string.h>
 
 #include "InterColComm.hpp"
-#include "HyPerCol.hpp"
+#include "layers/HyPerLayer.hpp"
 
 namespace PV {
 
