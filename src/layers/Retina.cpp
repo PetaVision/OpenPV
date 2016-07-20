@@ -7,7 +7,6 @@
 
 #include "HyPerLayer.hpp"
 #include "Retina.hpp"
-#include "columns/Random.hpp"
 #include "io/io.hpp"
 #include "include/default_params.h"
 #include "utils/cl_random.h"
@@ -120,7 +119,7 @@ int Retina::allocateDataStructures() {
       // // a random state variable is needed for every neuron/clthread
       const PVLayerLoc * loc = getLayerLoc();
       //Allocate extended loc
-      randState = new Random(parent, loc, true); // (taus_uint4 *) malloc(count * sizeof(taus_uint4));
+      randState = new Random(parent, loc, true);
    }
 
    return status;

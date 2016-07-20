@@ -15,7 +15,6 @@
 #include <include/pv_common.h>
 
 #include <columns/HyPerCol.hpp>
-#include <columns/Factory.hpp>
 
 #include <weightinit/InitWeights.hpp>
 #include <normalizers/NormalizeBase.hpp>

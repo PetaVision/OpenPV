@@ -17,7 +17,6 @@
 #include <columns/DataStore.hpp>
 #include <columns/HyPerCol.hpp>
 #include <columns/InterColComm.hpp>
-#include <columns/Random.hpp>
 #include <io/LayerProbe.hpp>
 #include <io/fileio.hpp>
 #include <include/pv_common.h>

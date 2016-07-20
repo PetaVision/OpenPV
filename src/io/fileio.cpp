@@ -6,8 +6,9 @@
  */
 
 #include "fileio.hpp"
-#include "../connections/weight_conversions.hpp"
-#include "../layers/HyPerLayer.hpp"
+#include "connections/weight_conversions.hpp"
+#include "utils/conversions.h"
+#include "utils/PVLog.hpp"
 
 #include <assert.h>
 #include <iostream>

@@ -12,6 +12,7 @@
 //#include "../kernels/Retina_params.h"
 #include "../io/fileio.hpp"
 #include "../include/pv_types.h"
+#include "columns/Random.hpp"
 
 #define NUM_RETINA_CHANNELS 2
 #define NUM_RETINA_EVENTS   3
