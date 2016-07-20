@@ -50,9 +50,8 @@ HyPerCol::~HyPerCol() {
 #endif // PV_USE_CUDA
    writeTimers(getOutputStream());
 
-   for (int n = 0; n < numConnections; n++) { delete mConnections[n]; }
+   for (auto c : mConnections) { delete c; } mConnections.clear();
    for (int n = 0; n < numNormalizers; n++) { delete normalizers[n]; }
-   free(mConnections);
    free(normalizers);
 
    int rank = globalRank(); // Need to save so that we know whether we're the process that does I/O, even after deleting icComm.
@@ -161,7 +160,6 @@ int HyPerCol::initialize_base() {
    origStdOut = -1;
    origStdErr = -1;
    layers = NULL;
-   mConnections = NULL;
    normalizers = NULL;
    layerStatus = NULL;
    connectionStatus = NULL;
@@ -237,7 +235,7 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
    runTimer = new Timer(mName, "column", "run    ");
    checkpointTimer = new Timer(mName, "column", "checkpoint ");
    layers = (HyPerLayer **) malloc(layerArraySize * sizeof(HyPerLayer *));
-   mConnections = (BaseConnection **) malloc(connectionArraySize * sizeof(BaseConnection *));
+   mConnections.reserve(connectionArraySize);
    normalizers = (NormalizeBase **) malloc(normalizerArraySize * sizeof(NormalizeBase *));
 
    // numThreads will not be set, or used until HyPerCol::run.
@@ -1410,29 +1408,22 @@ int HyPerCol::addConnection(BaseConnection * conn)
 {
    int connId = numConnections;
 
-   assert((size_t) numConnections <= connectionArraySize);
    // Check for duplicate connection names (currently breaks InitWeightsTest, so commented out)
-   // for(int k=0; k<numConnections; k++) {
+   // for(int k=0; k<mConnections.size(); k++) {
    //    if( !strcmp(conn->getName(), mConnections[k]->getName())) {
-   //       pvError().printf("Error: Layers %d and %d have the same name \"%s\".\n", k, numLayers, conn->getName());
+   //       pvError().printf("Error: Connections %d and %d have the same name \"%s\".\n", k, numLayers, conn->getName());
    //    }
    // }
-   if( (size_t) numConnections == connectionArraySize ) {
-      connectionArraySize += RESIZE_ARRAY_INCR;
-      BaseConnection ** newConnections = (BaseConnection **) malloc( connectionArraySize * sizeof(BaseConnection *) );
-      assert(newConnections);
-      for(int k=0; k<numConnections; k++) {
-         newConnections[k] = mConnections[k];
-      }
-      free(mConnections);
-      mConnections = newConnections;
+   if (mConnections.size() == mConnections.capacity()) {
+      mConnections.reserve(mConnections.capacity()+RESIZE_ARRAY_INCR);
    }
 
    // numConnections is the ID of this connection
    // subscribe call moved to HyPerCol::initPublishers, since it needs to be after the publishers are initialized.
    // icComm->subscribe(conn);
 
-   mConnections[numConnections++] = conn;
+   mConnections.emplace_back(conn);
+   numConnections++;
 
    return connId;
 }
@@ -1540,7 +1531,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
          checkpointRead();
       }
 
-      // setInitialValues stage sets the initial values of layers and mConnections, either from params or from checkpoint
+      // setInitialValues stage sets the initial values of layers and connections, either from params or from checkpoint
       layerInitializationStage = &HyPerCol::layerSetInitialValues;
       connInitializationStage = &HyPerCol::connSetInitialValues;
       doInitializationStage(layerInitializationStage, connInitializationStage, "setInitialValues");
@@ -1549,8 +1540,8 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
 
       // Initial normalization moved here to facilitate normalizations of groups of HyPerConns
       normalizeWeights();
-      for (int c = 0; c < numConnections; c++) {
-         mConnections[c]->finalizeUpdate(simTime, deltaTimeBase);
+      for (auto c : mConnections) {
+         c->finalizeUpdate(simTime, deltaTimeBase);
       }
 
       // publish initial conditions
@@ -1569,8 +1560,8 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
 
       // output initial conditions
       if (!mCheckpointReadFlag) {
-         for (int c = 0; c < numConnections; c++) {
-            mConnections[c]->outputState(simTime);
+         for (auto c : mConnections) {
+            c->outputState(simTime);
          }
          for (int l = 0; l < numLayers; l++) {
             layers[l]->outputState(simTime);
@@ -1769,19 +1760,19 @@ int HyPerCol::processParams(char const * path) {
       }
       connectionStatus = (int *) calloc((size_t) numConnections, sizeof(int));
       if (connectionStatus==NULL) {
-         pvError().printf("Global rank %d process unable to allocate memory for status of %zu mConnections: %s\n", globalRank(), (size_t) numConnections, strerror(errno));
+         pvError().printf("Global rank %d process unable to allocate memory for status of %zu connections: %s\n", globalRank(), (size_t) numConnections, strerror(errno));
       }
    
       int (HyPerCol::*layerInitializationStage)(int) = NULL;
       int (HyPerCol::*connInitializationStage)(int) = NULL;
    
-      // do communication step for layers and mConnections
+      // do communication step for layers and connections
       layerInitializationStage = &HyPerCol::layerCommunicateInitInfo;
       connInitializationStage = &HyPerCol::connCommunicateInitInfo;
       doInitializationStage(layerInitializationStage, connInitializationStage, "communicateInitInfo");
    
       // do communication step for probes
-      // This is where probes are added to their respective target layers and mConnections
+      // This is where probes are added to their respective target layers and connections
       for (int i=0; i<numBaseProbes; i++) {
          BaseProbe * p = mBaseProbes[i];
          int pstatus = p->communicateInitInfo();
@@ -1881,7 +1872,7 @@ int HyPerCol::doInitializationStage(int (HyPerCol::*layerInitializationStage)(in
          }
       }
       for (int c=0; c<numConnections; c++) {
-         if (layerStatus[c]==PV_POSTPONE) {
+         if (connectionStatus[c]==PV_POSTPONE) {
             errorMessage.printf("%s on global rank %d is still postponed.\n", mConnections[c]->getDescription_c(), globalRank());
          }
       }
@@ -1956,8 +1947,8 @@ int HyPerCol::initPublishers() {
       // PVLayer * clayer = layers[l]->getCLayer();
       icComm->addPublisher(layers[l]);
    }
-   for( int c=0; c<numConnections; c++ ) {
-      icComm->subscribe(mConnections[c]);
+   for(auto c : mConnections) {
+      icComm->subscribe(c);
    }
 
    return PV_SUCCESS;
@@ -2275,18 +2266,18 @@ int HyPerCol::advanceTime(double sim_time)
    int status = PV_SUCCESS;
    bool exitAfterUpdate = false;
 
-   // update the mConnections (weights)
+   // update the connections (weights)
    //
-   for (int c = 0; c < numConnections; c++) {
-      status = mConnections[c]->updateState(simTime, deltaTimeBase);
+   for (auto c : mConnections) {
+      status = c->updateState(simTime, deltaTimeBase);
       if (!exitAfterUpdate) {
          exitAfterUpdate = status == PV_EXIT_NORMALLY;
       }
    }
    normalizeWeights();
-   for (int c = 0; c < numConnections; c++) {
-      mConnections[c]->finalizeUpdate(simTime, deltaTimeBase);
-      mConnections[c]->outputState(simTime);
+   for (auto c : mConnections) {
+      c->finalizeUpdate(simTime, deltaTimeBase);
+      c->outputState(simTime);
    }
 
 
@@ -2708,8 +2699,8 @@ int HyPerCol::writeTimers(std::ostream& stream){
       runTimer->fprint_time(stream);
       checkpointTimer->fprint_time(stream);
       icCommunicator()->fprintTime(stream);
-      for (int c=0; c<numConnections; c++) {
-         mConnections[c]->writeTimers(stream);
+      for (auto c : mConnections) {
+         c->writeTimers(stream);
       }
       for (int phase=0; phase<numPhases; phase++) {
          if (phaseRecvTimers && phaseRecvTimers[phase]) { phaseRecvTimers[phase]->fprint_time(stream); }
@@ -2748,8 +2739,8 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
    for( int l=0; l<numLayers; l++ ) {
       layers[l]->checkpointWrite(cpDir);
    }
-   for( int c=0; c<numConnections; c++ ) {
-      if (mConnections[c]->getPlasticityFlag() || !mSuppressNonplasticCheckpoints) { mConnections[c]->checkpointWrite(cpDir); }
+   for( auto c : mConnections ) {
+      if (c->getPlasticityFlag() || !mSuppressNonplasticCheckpoints) { c->checkpointWrite(cpDir); }
    }
 
    // Timers
@@ -2973,9 +2964,8 @@ int HyPerCol::outputParams(char const * path) {
    }
 
    // BaseConnection params
-   for (int c=0; c<numConnections; c++) {
-      BaseConnection * connection = mConnections[c];
-      status = connection->ioParams(PARAMS_IO_WRITE);
+   for (auto c : mConnections) {
+      status = c->ioParams(PARAMS_IO_WRITE);
       if( status != PV_SUCCESS ) {
          pvError().printf("outputParams: Error copying params to \"%s\"\n", printParamsPath);
       }
@@ -2994,8 +2984,8 @@ int HyPerCol::outputParams(char const * path) {
    }
 
    // BaseConnectionProbes
-   for (int c=0; c<numConnections; c++) {
-      mConnections[c]->outputProbeParams();
+   for (auto c : mConnections) {
+      c->outputProbeParams();
    }
 
    if(rank == 0){
@@ -3067,7 +3057,7 @@ int HyPerCol::exitRunLoop(bool exitOnFinish)
 {
    int status = 0;
 
-   // output final state of layers and mConnections
+   // output final state of layers and connections
 
    char cpDir[PV_PATH_MAX];
    if (mCheckpointWriteFlag || !mSuppressLastOutput) {

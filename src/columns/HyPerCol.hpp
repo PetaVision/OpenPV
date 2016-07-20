@@ -485,7 +485,7 @@ private:
 
 private:
 
-   BaseConnection  ** mConnections;
+   std::vector<BaseConnection *> mConnections;
    BaseProbe ** mBaseProbes;
    bool mErrorOnNotANumber;        // If true, check each layer's activity buffer for not-a-numbers and exit with an error if any appear
    bool mDefaultInitializeFromCheckpointFlag ; // Each Layer and connection can individually set its own initializeFromCheckpointFlag.  This sets the default value for those flags.
