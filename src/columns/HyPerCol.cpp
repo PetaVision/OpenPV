@@ -3490,5 +3490,51 @@ template int HyPerCol::readArrayFromFile<long>(char const * cpDir, const char * 
 template int HyPerCol::readArrayFromFile<float>(char const * cpDir, const char * group_name, char const * val_name, float * val, size_t count, float default_value);
 template int HyPerCol::readArrayFromFile<double>(char const * cpDir, const char * group_name, char const * val_name, double * val, size_t count, double default_value);
 
+HyPerCol * createHyPerCol(PV_Init * pv_initObj) {
+   PVParams * params = pv_initObj->getParams();
+   if (params==nullptr) {
+      pvErrorNoExit() << "createHyPerCol called without having set params.\n";
+      return nullptr;
+   }
+   int numGroups = params->numberOfGroups();
+   if (numGroups==0) {
+      pvErrorNoExit() << "Params \"" << pv_initObj->getParamsFile() << "\" does not define any groups.\n";
+      return nullptr;
+   }
+   if( strcmp(params->groupKeywordFromIndex(0), "HyPerCol") ) {
+      pvErrorNoExit() << "First group in the params \"" << pv_initObj->getParamsFile() << "\" does not define a HyPerCol.\n";
+      return nullptr;
+   }
+   char const * colName = params->groupNameFromIndex(0);
+
+   HyPerCol * hc = new HyPerCol(colName, pv_initObj);
+   for (int k=0; k<numGroups; k++) {
+      const char * kw = params->groupKeywordFromIndex(k);
+      const char * name = params->groupNameFromIndex(k);
+      if (!strcmp(kw, "HyPerCol")) {
+         if (k==0) { continue; }
+         else {
+            if (hc->columnId()==0) {
+               pvErrorNoExit() << "Group " << k+1 << " in params file (\"" << pv_initObj->getParamsFile() << "\") is a HyPerCol; only the first group can be a HyPercol.\n";
+            }
+            delete hc;
+            return nullptr;
+         }
+      }
+      else {
+         BaseObject * addedObject = pv_initObj->create(kw, name, hc);
+         if (addedObject==nullptr) {
+            if (hc->globalRank()==0) {
+               pvErrorNoExit().printf("Unable to create %s \"%s\".\n", kw, name);
+            }
+            delete hc;
+            return nullptr;
+         }
+      }
+   }
+
+   return hc;
+}
+
 } // PV namespace
 

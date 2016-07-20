@@ -161,7 +161,7 @@ int main(int argc, char* argv[])
    pv_init.registerKeyword("LocalizationProbe", createLocalizationProbe);
    pv_init.registerKeyword("MaskFromMemoryBuffer", createMaskFromMemoryBuffer);
    pv_init.registerKeyword("Harness", createHarnessObject);
-   PV::HyPerCol * hc = pv_init.build();
+   PV::HyPerCol * hc = createHyPerCol(&pv_init);
    pvAssert(hc->getStartTime()==hc->simulationTime());
 
    bool runWithoutHarnessFlag = true;

@@ -607,8 +607,9 @@ private:
    PVCuda::CudaDevice * cudaDevice;    // object for running kernels on OpenCL device
 #endif
 
-
 }; // class HyPerCol
+
+HyPerCol * createHyPerCol(PV_Init * pv_initObj);
 
 } // namespace PV
 

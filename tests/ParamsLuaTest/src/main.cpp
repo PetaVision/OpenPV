@@ -53,14 +53,14 @@ int main(int argc, char * argv[]) {
    std::string paramsfile("input/ParamsLuaTest.params");
    std::string paramsluafile("output/pv.params.lua");
    pv_initObj.setParams(paramsfile.c_str());
-   PV::HyPerCol * hc1 = pv_initObj.build();
+   PV::HyPerCol * hc1 = createHyPerCol(&pv_initObj);
    if (hc1==nullptr) { pvError() << "setParams(\"" << paramsfile << "\") failed.\n"; }
    status = hc1->run();
    if (status != PV_SUCCESS) { pvError() << "Running with \"" << paramsfile << "\" failed.\n"; }
    ColumnArchive columnArchive1(hc1, tolerance, tolerance); // Archive the layer and connection data since changing the params file is destructive.
 
    pv_initObj.setParams(paramsluafile.c_str());
-   PV::HyPerCol * hc2 = pv_initObj.build();
+   PV::HyPerCol * hc2 = createHyPerCol(&pv_initObj);
    if (hc2==nullptr) { pvError() << "setParams(\"" << paramsluafile << "\") failed.\n"; }
    status = hc2->run();
    if (status != PV_SUCCESS) { pvError() << "Running with \"" << paramsluafile << "\" failed.\n"; }

@@ -199,6 +199,7 @@ BaseObject * PV_Init::create(char const * keyword, char const * name, HyPerCol *
    return pvObject;
 }
 
+#ifdef OBSOLETE // Marked obsolete Jul 19, 2016.  Use hc=createHyPerCol(pv_init_ptr) instead of hc=pv_init_ptr->build().
 HyPerCol * PV_Init::build() {
    HyPerCol * hc = new HyPerCol("column", this);
    if( hc == NULL ) {
@@ -248,6 +249,7 @@ HyPerCol * PV_Init::build() {
    }
    return hc;
 }
+#endif // OBSOLETE // Marked obsolete Jul 19, 2016.  Use hc=createHyPerCol(pv_init_ptr) instead of hc=pv_init_ptr->build().
 
 int PV_Init::commFinalize()
 {
