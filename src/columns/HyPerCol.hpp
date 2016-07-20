@@ -413,7 +413,7 @@ public:
    int includeLayerName() const { return filenamesContainLayerNames;}
    int includeConnectionName() const { return filenamesContainConnectionNames;}
    int numberOfLayers() const { return numLayers;}
-   int numberOfConnections() const { return numConnections;}
+   int numberOfConnections() const { return mConnections.size();}
    int numberOfNormalizers() const { return numNormalizers;}
    int numberOfProbes() const {return numColProbes;}
    int numberOfBaseProbes() const {return numBaseProbes;}
@@ -549,7 +549,6 @@ private:
    HyPerLayer ** layers;
    int numLayers;
    int numPhases;
-   int numConnections;
    int numNormalizers;
    int checkpointSignal;      // whether the process should checkpoint in response to an external signal
    int numCheckpointsKept; // If mDeleteOlderCheckpoints is true, does not delete a checkpoint until the specified number of more recent checkpoints have been written.  Default is 2.

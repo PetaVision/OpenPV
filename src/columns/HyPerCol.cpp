@@ -109,7 +109,6 @@ int HyPerCol::initialize_base() {
    numLayers = 0;
    numPhases = 0;
    connectionArraySize = INITIAL_CONNECTION_ARRAY_SIZE;
-   numConnections = 0;
    normalizerArraySize = INITIAL_CONNECTION_ARRAY_SIZE;
    numNormalizers = 0;
    mCheckpointReadFlag = false;
@@ -1406,7 +1405,7 @@ int HyPerCol::addLayer(HyPerLayer * l)
 
 int HyPerCol::addConnection(BaseConnection * conn)
 {
-   int connId = numConnections;
+   int connId = numberOfConnections();
 
    // Check for duplicate connection names (currently breaks InitWeightsTest, so commented out)
    // for(int k=0; k<mConnections.size(); k++) {
@@ -1418,12 +1417,7 @@ int HyPerCol::addConnection(BaseConnection * conn)
       mConnections.reserve(mConnections.capacity()+RESIZE_ARRAY_INCR);
    }
 
-   // numConnections is the ID of this connection
-   // subscribe call moved to HyPerCol::initPublishers, since it needs to be after the publishers are initialized.
-   // icComm->subscribe(conn);
-
    mConnections.emplace_back(conn);
-   numConnections++;
 
    return connId;
 }
@@ -1758,9 +1752,9 @@ int HyPerCol::processParams(char const * path) {
       if (layerStatus==NULL) {
          pvError().printf("Global rank %d process unable to allocate memory for status of %zu layers: %s\n", globalRank(), (size_t) numLayers, strerror(errno));
       }
-      connectionStatus = (int *) calloc((size_t) numConnections, sizeof(int));
+      connectionStatus = (int *) calloc(numberOfConnections(), sizeof(int));
       if (connectionStatus==NULL) {
-         pvError().printf("Global rank %d process unable to allocate memory for status of %zu connections: %s\n", globalRank(), (size_t) numConnections, strerror(errno));
+         pvError().printf("Global rank %d process unable to allocate memory for status of %zu connections: %s\n", globalRank(), numberOfConnections(), strerror(errno));
       }
    
       int (HyPerCol::*layerInitializationStage)(int) = NULL;
@@ -1808,11 +1802,11 @@ int HyPerCol::doInitializationStage(int (HyPerCol::*layerInitializationStage)(in
    for (int l=0; l<numLayers; l++) {
       layerStatus[l]=PV_POSTPONE;
    }
-   for (int c=0; c<numConnections; c++) {
+   for (int c=0; c<numberOfConnections(); c++) {
       connectionStatus[c]=PV_POSTPONE;
    }
    int numPostponedLayers = numLayers;
-   int numPostponedConns = numConnections;
+   int numPostponedConns = numberOfConnections();
    int prevNumPostponedLayers;
    int prevNumPostponedConns;
    do {
@@ -1839,7 +1833,7 @@ int HyPerCol::doInitializationStage(int (HyPerCol::*layerInitializationStage)(in
             }
          }
       }
-      for (int c=0; c<numConnections; c++) {
+      for (int c=0; c<numberOfConnections(); c++) {
          if (connectionStatus[c]==PV_POSTPONE) {
             int status = (this->*connInitializationStage)(c);
             switch (status) {
@@ -1871,7 +1865,7 @@ int HyPerCol::doInitializationStage(int (HyPerCol::*layerInitializationStage)(in
             errorMessage.printf("%s on global rank %d is still postponed.\n", layers[l]->getDescription_c(), globalRank());
          }
       }
-      for (int c=0; c<numConnections; c++) {
+      for (int c=0; c<numberOfConnections(); c++) {
          if (connectionStatus[c]==PV_POSTPONE) {
             errorMessage.printf("%s on global rank %d is still postponed.\n", mConnections[c]->getDescription_c(), globalRank());
          }
@@ -1890,8 +1884,9 @@ int HyPerCol::layerCommunicateInitInfo(int l) {
 }
 
 int HyPerCol::connCommunicateInitInfo(int c) {
+   pvAssert(c>=0 && c<numberOfConnections());
    BaseConnection * conn = mConnections[c];
-   assert(c>=0 && c<numConnections && conn->getInitInfoCommunicatedFlag()==false);
+   pvAssert(conn->getInitInfoCommunicatedFlag()==false);
    int status = conn->communicateInitInfo();
    if (status==PV_SUCCESS) conn->setInitInfoCommunicatedFlag();
    return status;
@@ -1906,7 +1901,7 @@ int HyPerCol::layerAllocateDataStructures(int l) {
 }
 
 int HyPerCol::connAllocateDataStructures(int c) {
-   assert(c>=0 && c<numConnections);
+   assert(c>=0 && c<numberOfConnections());
    BaseConnection * conn = mConnections[c];
    assert(conn->getDataStructuresAllocatedFlag()==false);
    int status = conn->allocateDataStructures();
@@ -1923,8 +1918,9 @@ int HyPerCol::layerSetInitialValues(int l) {
 }
 
 int HyPerCol::connSetInitialValues(int c) {
+   pvAssert(c>=0 && c<numberOfConnections());
    BaseConnection * conn = mConnections[c];
-   assert(c>=0 && c<numConnections && conn->getInitialValuesSetFlag()==false);
+   pvAssert(conn->getInitialValuesSetFlag()==false);
    int status = conn->initializeState();
    if (status==PV_SUCCESS) conn->setInitialValuesSetFlag();
    return status;
