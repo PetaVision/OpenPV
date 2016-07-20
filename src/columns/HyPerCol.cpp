@@ -720,13 +720,13 @@ void HyPerCol::ioParam_dt(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerCol::ioParam_dtAdaptController(enum ParamsIOFlag ioFlag) {
-   ioParamString(ioFlag, mName, "mDtAdaptController", &mDtAdaptController, NULL);
+   ioParamString(ioFlag, mName, "dtAdaptController", &mDtAdaptController, NULL);
 }
 
 void HyPerCol::ioParam_dtAdaptFlag(enum ParamsIOFlag ioFlag) {
    // dtAdaptFlag was deprecated Feb 1, 2016.
    if (ioFlag==PARAMS_IO_READ) {
-      assert(!params->presentAndNotBeenRead(mName, "mDtAdaptController"));
+      assert(!params->presentAndNotBeenRead(mName, "dtAdaptController"));
       bool dt_adapt_flag = (mDtAdaptController!=nullptr);
       if (params->present(mName, "dtAdaptFlag")) {
          if (columnId()==0) { pvWarn() << "HyPerCol parameter dtAdaptFlag is deprecated.  Value of mDtAdaptController implies the value of dtAdaptFlag.\n"; }
@@ -750,33 +750,33 @@ void HyPerCol::ioParam_dtAdaptFlag(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerCol::ioParam_writeTimescales(enum ParamsIOFlag ioFlag) {
-   pvAssert(!params->presentAndNotBeenRead(mName, "mDtAdaptController"));
+   pvAssert(!params->presentAndNotBeenRead(mName, "dtAdaptController"));
    if (mDtAdaptController!=nullptr) {
-      ioParamValue(ioFlag, mName, "mWriteTimescales", &mWriteTimescales, mWriteTimescales);
+      ioParamValue(ioFlag, mName, "writeTimescales", &mWriteTimescales, mWriteTimescales);
    }
 }
 
 void HyPerCol::ioParam_writeTimeScaleFieldnames(enum ParamsIOFlag ioFlag) {
-   pvAssert(!params->presentAndNotBeenRead(mName, "mDtAdaptController"));
+   pvAssert(!params->presentAndNotBeenRead(mName, "dtAdaptController"));
    if (mDtAdaptController!=nullptr) {
-     ioParamValue(ioFlag, mName, "mWriteTimeScaleFieldnames", &mWriteTimeScaleFieldnames, mWriteTimeScaleFieldnames);
+     ioParamValue(ioFlag, mName, "writeTimeScaleFieldnames", &mWriteTimeScaleFieldnames, mWriteTimeScaleFieldnames);
    }
 }
 
 void HyPerCol::ioParam_useAdaptMethodExp1stOrder(enum ParamsIOFlag ioFlag) {
-   pvAssert(!params->presentAndNotBeenRead(mName, "mDtAdaptController"));
+   pvAssert(!params->presentAndNotBeenRead(mName, "dtAdaptController"));
    if (mDtAdaptController!=nullptr) {
-     ioParamValue(ioFlag, mName, "mUseAdaptMethodExp1stOrder", &mUseAdaptMethodExp1stOrder, mUseAdaptMethodExp1stOrder, false/*don't warn if absent*/);
+     ioParamValue(ioFlag, mName, "useAdaptMethodExp1stOrder", &mUseAdaptMethodExp1stOrder, mUseAdaptMethodExp1stOrder, false/*don't warn if absent*/);
      if (ioFlag==PARAMS_IO_READ && !mUseAdaptMethodExp1stOrder) {
         if (columnId()==0) {
-           pvWarn() << "Setting mUseAdaptMethodExp1stOrder to false is deprecated.\n";
+           pvWarn() << "Setting useAdaptMethodExp1stOrder to false is deprecated.\n";
         }
      }
    }
 }
 
 void HyPerCol::ioParam_dtAdaptTriggerLayerName(enum ParamsIOFlag ioFlag) {
-   pvAssert(!params->presentAndNotBeenRead(mName, "mDtAdaptController"));
+   pvAssert(!params->presentAndNotBeenRead(mName, "dtAdaptController"));
    if (mDtAdaptController && mDtAdaptController[0]) {
       ioParamString(ioFlag, mName, "dtAdaptTriggerLayerName", &dtAdaptTriggerLayerName, NULL);
    }
@@ -790,42 +790,42 @@ void HyPerCol::ioParam_dtAdaptTriggerOffset(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerCol::ioParam_dtScaleMax(enum ParamsIOFlag ioFlag) {
-   pvAssert(!params->presentAndNotBeenRead(mName, "mDtAdaptController"));
+   pvAssert(!params->presentAndNotBeenRead(mName, "dtAdaptController"));
    if (mDtAdaptController!=nullptr) {
      ioParamValue(ioFlag, mName, "dtScaleMax", &timeScaleMaxBase, timeScaleMaxBase);
    }
 }
 
 void HyPerCol::ioParam_dtScaleMax2(enum ParamsIOFlag ioFlag) {
-   pvAssert(!params->presentAndNotBeenRead(mName, "mDtAdaptController"));
+   pvAssert(!params->presentAndNotBeenRead(mName, "dtAdaptController"));
    if (mDtAdaptController!=nullptr) {
      ioParamValue(ioFlag, mName, "dtScaleMax2", &timeScaleMax2Base, timeScaleMax2Base);
    }
 }
 
 void HyPerCol::ioParam_dtScaleMin(enum ParamsIOFlag ioFlag) {
-   pvAssert(!params->presentAndNotBeenRead(mName, "mDtAdaptController"));
+   pvAssert(!params->presentAndNotBeenRead(mName, "dtAdaptController"));
    if (mDtAdaptController!=nullptr) {
      ioParamValue(ioFlag, mName, "dtScaleMin", &timeScaleMin, timeScaleMin);
    }
 }
 
 void HyPerCol::ioParam_dtMinToleratedTimeScale(enum ParamsIOFlag ioFlag) {
-   pvAssert(!params->presentAndNotBeenRead(mName, "mDtAdaptController"));
+   pvAssert(!params->presentAndNotBeenRead(mName, "dtAdaptController"));
    if (mDtAdaptController!=nullptr) {
       ioParamValue(ioFlag, mName, "dtMinToleratedTimeScale", &dtMinToleratedTimeScale, dtMinToleratedTimeScale);
    }
 }
 
 void HyPerCol::ioParam_dtChangeMax(enum ParamsIOFlag ioFlag) {
-   pvAssert(!params->presentAndNotBeenRead(mName, "mDtAdaptController"));
+   pvAssert(!params->presentAndNotBeenRead(mName, "dtAdaptController"));
    if (mDtAdaptController!=nullptr) {
      ioParamValue(ioFlag, mName, "dtChangeMax", &changeTimeScaleMax, changeTimeScaleMax);
    }
 }
 
 void HyPerCol::ioParam_dtChangeMin(enum ParamsIOFlag ioFlag) {
-   pvAssert(!params->presentAndNotBeenRead(mName, "mDtAdaptController"));
+   pvAssert(!params->presentAndNotBeenRead(mName, "dtAdaptController"));
    if (mDtAdaptController!=nullptr) {
      ioParamValue(ioFlag, mName, "dtChangeMin", &changeTimeScaleMin, changeTimeScaleMin);
    }
@@ -865,11 +865,11 @@ void HyPerCol::ioParam_progressInterval(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerCol::ioParam_writeProgressToErr(enum ParamsIOFlag ioFlag) {
-   ioParamValue(ioFlag, mName, "mWriteProgressToError", &mWriteProgressToError, mWriteProgressToError);
+   ioParamValue(ioFlag, mName, "writeProgressToError", &mWriteProgressToError, mWriteProgressToError);
 }
 
 void HyPerCol::ioParam_verifyWrites(enum ParamsIOFlag ioFlag) {
-   ioParamValue(ioFlag, mName, "mVerifyWrites", &mVerifyWrites, mVerifyWrites);
+   ioParamValue(ioFlag, mName, "verifyWrites", &mVerifyWrites, mVerifyWrites);
 }
 
 void HyPerCol::ioParam_outputPath(enum ParamsIOFlag ioFlag) {
@@ -978,7 +978,7 @@ void HyPerCol::ioParam_initializeFromCheckpointDir(enum ParamsIOFlag ioFlag) {
 void HyPerCol::ioParam_defaultInitializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
    assert(!params->presentAndNotBeenRead(mName, "initializeFromCheckpointDir"));
    if (initializeFromCheckpointDir != nullptr && initializeFromCheckpointDir[0] != '\0') {
-      ioParamValue(ioFlag, mName, "mDefaultInitializeFromCheckpointFlag", &mDefaultInitializeFromCheckpointFlag, mDefaultInitializeFromCheckpointFlag, true/*warn if absent*/);
+      ioParamValue(ioFlag, mName, "defaultInitializeFromCheckpointFlag", &mDefaultInitializeFromCheckpointFlag, mDefaultInitializeFromCheckpointFlag, true/*warn if absent*/);
    }
 
 }
@@ -1005,7 +1005,7 @@ void HyPerCol::ioParam_checkpointRead(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ && !mCheckpointReadDir && !mWarmStart) {
       ioParamValue(ioFlag, mName, "checkpointRead", &mCheckpointReadFlag, false/*default value*/, false/*warnIfAbsent*/);
       if (mCheckpointReadFlag) {
-         ioParamStringRequired(ioFlag, mName, "mCheckpointReadDir", &mCheckpointReadDirBase);
+         ioParamStringRequired(ioFlag, mName, "checkpointReadDir", &mCheckpointReadDirBase);
          ioParamValueRequired(ioFlag, mName, "checkpointReadDirIndex", &cpReadDirIndex);
          if (ioFlag==PARAMS_IO_READ) {
             int str_len = snprintf(NULL, 0, "%s/Checkpoint%ld", mCheckpointReadDirBase, cpReadDirIndex);
@@ -1035,7 +1035,7 @@ void HyPerCol::ioParam_checkpointWrite(enum ParamsIOFlag ioFlag) {
 void HyPerCol::ioParam_checkpointWriteDir(enum ParamsIOFlag ioFlag) {
    assert(!params->presentAndNotBeenRead(mName, "checkpointWrite"));
    if (mCheckpointWriteFlag) {
-      ioParamStringRequired(ioFlag, mName, "mCheckpointWriteDir", &mCheckpointWriteDir);
+      ioParamStringRequired(ioFlag, mName, "checkpointWriteDir", &mCheckpointWriteDir);
    }
    else {
       mCheckpointWriteDir = NULL;
@@ -1149,7 +1149,7 @@ void HyPerCol::ioParam_checkpointWriteClockUnit(enum ParamsIOFlag ioFlag) {
 void HyPerCol::ioParam_deleteOlderCheckpoints(enum ParamsIOFlag ioFlag) {
    assert(!params->presentAndNotBeenRead(mName, "checkpointWrite"));
    if (mCheckpointWriteFlag) {
-      ioParamValue(ioFlag, mName, "mDeleteOlderCheckpoints", &mDeleteOlderCheckpoints, false/*default value*/);
+      ioParamValue(ioFlag, mName, "deleteOlderCheckpoints", &mDeleteOlderCheckpoints, false/*default value*/);
    }
 }
 
@@ -1173,14 +1173,14 @@ void HyPerCol::ioParam_numCheckpointsKept(enum ParamsIOFlag ioFlag) {
 void HyPerCol::ioParam_suppressLastOutput(enum ParamsIOFlag ioFlag) {
    assert(!params->presentAndNotBeenRead(mName, "checkpointWrite"));
    if (!mCheckpointWriteFlag) {
-      ioParamValue(ioFlag, mName, "mSuppressLastOutput", &mSuppressLastOutput, false/*default value*/);
+      ioParamValue(ioFlag, mName, "suppressLastOutput", &mSuppressLastOutput, false/*default value*/);
    }
 }
 
 void HyPerCol::ioParam_suppressNonplasticCheckpoints(enum ParamsIOFlag ioFlag) {
    assert(!params->presentAndNotBeenRead(mName, "checkpointWrite"));
    if (mCheckpointWriteFlag) {
-      ioParamValue(ioFlag, mName, "mSuppressNonplasticCheckpoints", &mSuppressNonplasticCheckpoints, mSuppressNonplasticCheckpoints);
+      ioParamValue(ioFlag, mName, "suppressNonplasticCheckpoints", &mSuppressNonplasticCheckpoints, mSuppressNonplasticCheckpoints);
    }
 }
 
@@ -1192,7 +1192,7 @@ void HyPerCol::ioParam_checkpointIndexWidth(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerCol::ioParam_errorOnNotANumber(enum ParamsIOFlag ioFlag) {
-   ioParamValue(ioFlag, mName, "mErrorOnNotANumber", &mErrorOnNotANumber, mErrorOnNotANumber);
+   ioParamValue(ioFlag, mName, "errorOnNotANumber", &mErrorOnNotANumber, mErrorOnNotANumber);
 }
 
 
