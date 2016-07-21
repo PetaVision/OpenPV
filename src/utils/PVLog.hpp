@@ -42,6 +42,9 @@
 // pvErrorNoExit() << "Print an error" << std::endl;
 // pvDebug() << "Some" << "stuff" << "to log" << std::endl;
 //
+// pvErrorIf uses printf style formatting:
+// pvErrorIf(condition == true, "Condition %s was true.\n", conditionName);
+//
 // These macros create objects that send to the stream returned one of by PV::getOutputStream() or PV::getErrorStream().
 // pvInfo() sends its output to the output stream.
 // pvWarn() prepends its output with "WARN " and sends to the error stream.
@@ -64,6 +67,7 @@
 #define pvErrorNoExit(...) PV::_ErrorNoExit __VA_ARGS__(__FILE__, __LINE__)
 #define pvDebug(...) PV::_Debug __VA_ARGS__(__FILE__, __LINE__)
 #define pvStackTrace(...) PV::_StackTrace __VA_ARGS__(__FILE__, __LINE__)
+#define pvErrorIf(x, ...) if(x){ pvError().printf(__VA_ARGS__); }
 #endif // __GNUC__
 
 namespace PV {
