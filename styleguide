@@ -19,7 +19,7 @@
 //    Bad:
    int xi = 0;
 
-// Member variables start with a lowercase m.
+// Member variables start with a lowercase m and are PascalCase afterward.
    char* mFileName = nullptr;
 
 // Use C++11 standards wherever applicable.
