@@ -6,8 +6,8 @@
  */
 
 #include "DataStore.hpp"
-#include "HyPerCol.hpp"
-#include "../include/pv_common.h"
+#include "include/pv_common.h"
+#include "utils/PVLog.hpp"
 
 #include <assert.h>
 #include <stdlib.h>
@@ -21,7 +21,7 @@ namespace PV
  * @bufSize
  * @numLevels
  */
-DataStore::DataStore(HyPerCol * hc, int numBuffers, int numItems, size_t dataSize, int numLevels, bool isSparse_flag)
+DataStore::DataStore(int numBuffers, int numItems, size_t dataSize, int numLevels, bool isSparse_flag)
 {
    assert(numLevels > 0 && numBuffers > 0);
    this->curLevel = numLevels - 1;  // start at bottom, work up

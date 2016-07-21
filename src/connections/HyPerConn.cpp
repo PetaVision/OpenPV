@@ -26,7 +26,6 @@
 #include "privateTransposeConn.hpp"
 #include "PlasticCloneConn.hpp"
 #include "io/CoreParamGroupHandler.hpp"
-#include "columns/Factory.hpp"
 #include "io/FileStream.hpp"
 
 namespace PV {

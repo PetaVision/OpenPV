@@ -112,10 +112,7 @@ int HyPerCol::initialize_base() {
    mReadyFlag = false;
    mParamsProcessedFlag = false;
    mCurrentStep = 0;
-   mLayerArraySize = INITIAL_LAYER_ARRAY_SIZE;
    mNumPhases = 0;
-   mConnectionArraySize = INITIAL_CONNECTION_ARRAY_SIZE;
-   mNormalizerArraySize = INITIAL_CONNECTION_ARRAY_SIZE;
    mCheckpointReadFlag = false;
    mCheckpointWriteFlag = false;
    mCheckpointReadDir = nullptr;
@@ -163,9 +160,6 @@ int HyPerCol::initialize_base() {
    mWriteProgressToError = false;
    mOrigStdOut = -1;
    mOrigStdErr = -1;
-   //mLayers = nullptr;
-   //mConnections = nullptr;
-   //mNormalizers = nullptr;
    mLayers.clear();
    mConnections.clear();
    mNormalizers.clear(); //Pretty sure these aren't necessary
@@ -179,6 +173,21 @@ int HyPerCol::initialize_base() {
    mNumYGlobal = 0;
    mNumBatch = 1;
    mNumBatchGlobal = 1;
+   origStdOut = -1;
+   origStdErr = -1;
+   layers = NULL;
+   normalizers = NULL;
+   layerStatus = NULL;
+   connectionStatus = NULL;
+   srcPath = NULL;
+   outputPath = NULL;
+   printParamsFilename = NULL;
+   printParamsStream = NULL;
+   luaPrintParamsStream = NULL;
+   nxGlobal = 0;
+   nyGlobal = 0;
+   nbatch = 1;
+   nbatchGlobal = 1;
    mOwnsParams = true;
    mOwnsInterColComm = true;
    mParams = nullptr;
@@ -240,7 +249,6 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
    mName = strdup(name);
    mRunTimer = new Timer(mName, "column", "run    ");
    mCheckpointTimer = new Timer(mName, "column", "checkpoint ");
-
    // Commented out in conversion to std::vector
    //mLayers = (HyPerLayer **) malloc(mLayerArraySize * sizeof(HyPerLayer *));
    //mConnections = (BaseConnection **) malloc(mConnectionArraySize * sizeof(BaseConnection *));
@@ -662,7 +670,7 @@ void HyPerCol::ioParam_dtAdaptController(enum ParamsIOFlag ioFlag) {
 void HyPerCol::ioParam_dtAdaptFlag(enum ParamsIOFlag ioFlag) {
    // dtAdaptFlag was deprecated Feb 1, 2016.
    if (ioFlag==PARAMS_IO_READ) {
-      assert(!mParams->presentAndNotBeenRead(mName, "dtAdaptController"));
+      pvAssert(!mParams->presentAndNotBeenRead(mName, "dtAdaptController"));
       bool dt_adapt_flag = (mDtAdaptController!=nullptr);
       if (mParams->present(mName, "dtAdaptFlag")) {
          if (columnId()==0) { pvWarn() << "HyPerCol parameter dtAdaptFlag is deprecated.  Value of mDtAdaptController implies the value of dtAdaptFlag.\n"; }
@@ -933,8 +941,12 @@ void HyPerCol::ioParam_checkpointWrite(enum ParamsIOFlag ioFlag) {
 
 void HyPerCol::ioParam_checkpointWriteDir(enum ParamsIOFlag ioFlag) {
    pvAssert(!mParams->presentAndNotBeenRead(mName, "checkpointWrite"));
-   if (mCheckpointWriteFlag) { ioParamStringRequired(ioFlag, mName, "checkpointWriteDir", &mCheckpointWriteDir); }
-   else { mCheckpointWriteDir = nullptr; }
+   if (mCheckpointWriteFlag) {
+      ioParamStringRequired(ioFlag, mName, "checkpointWriteDir", &mCheckpointWriteDir); 
+   }
+   else { 
+      mCheckpointWriteDir = nullptr; 
+   }
 }
 
 void HyPerCol::ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag ) {
@@ -1041,7 +1053,7 @@ void HyPerCol::ioParam_checkpointWriteClockUnit(enum ParamsIOFlag ioFlag) {
 void HyPerCol::ioParam_deleteOlderCheckpoints(enum ParamsIOFlag ioFlag) {
    assert(!mParams->presentAndNotBeenRead(mName, "checkpointWrite"));
    if (mCheckpointWriteFlag) {
-      ioParamValue(ioFlag, mName, "deleteOlderCheckpoints", &mDeleteOlderCheckpoints, false);
+      ioParamValue(ioFlag, mName, "deleteOlderCheckpoints", &mDeleteOlderCheckpoints, false/*default value*/);
    }
 }
 
@@ -1065,7 +1077,7 @@ void HyPerCol::ioParam_numCheckpointsKept(enum ParamsIOFlag ioFlag) {
 void HyPerCol::ioParam_suppressLastOutput(enum ParamsIOFlag ioFlag) {
    assert(!mParams->presentAndNotBeenRead(mName, "checkpointWrite"));
    if (!mCheckpointWriteFlag) {
-      ioParamValue(ioFlag, mName, "suppressLastOutput", &mSuppressLastOutput, false);
+      ioParamValue(ioFlag, mName, "suppressLastOutput", &mSuppressLastOutput, false/*default value*/);
    }
 }
 
@@ -1368,7 +1380,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
          checkpointRead();
       }
 
-      // setInitialValues stage sets the initial values of mLayers and mConnections, either from params or from checkpoint
+      // setInitialValues stage sets the initial values of layers and connections, either from params or from checkpoint
       layerInitializationStage = &HyPerCol::layerSetInitialValues;
       connInitializationStage = &HyPerCol::connSetInitialValues;
       doInitializationStage(layerInitializationStage, connInitializationStage, "setInitialValues");
@@ -1397,8 +1409,8 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
 
       // output initial conditions
       if (!mCheckpointReadFlag) {
-         for (int c = 0; c < mConnections.size(); c++) {
-            mConnections.at(c)->outputState(mSimTime);
+         for (auto c : mConnections) {
+            c->outputState(simTime);
          }
          for (int l = 0; l < mLayers.size(); l++) {
             mLayers.at(l)->outputState(mSimTime);
@@ -1584,13 +1596,13 @@ int HyPerCol::processParams(char const * path) {
       }
       mConnectionStatus = (int *) calloc((size_t) mConnections.size(), sizeof(int));
       if (mConnectionStatus==nullptr) {
-         pvError().printf("Global rank %d process unable to allocate memory for status of %zu mConnections: %s\n", globalRank(), (size_t) mLayers.size(), strerror(errno));
+         pvError().printf("Global rank %d process unable to allocate memory for status of %zu mConnections: %s\n", globalRank(), (size_t) mConnections.size(), strerror(errno));
       }
    
       int (HyPerCol::*layerInitializationStage)(int) = nullptr;
       int (HyPerCol::*connInitializationStage)(int) = nullptr;
    
-      // do communication step for mLayers and mConnections
+      // do communication step for layers and connections
       layerInitializationStage = &HyPerCol::layerCommunicateInitInfo;
       connInitializationStage = &HyPerCol::connCommunicateInitInfo;
       doInitializationStage(layerInitializationStage, connInitializationStage, "communicateInitInfo");
@@ -1782,7 +1794,7 @@ int HyPerCol::initPublishers() {
       // PVLayer * clayer = mLayers[l]->getCLayer();
       mInterColComm->addPublisher(mLayers.at(l));
    }
-   for( int c=0; c<mConnections.size(); c++ ) {
+   for(auto c : mConnections) {
       mInterColComm->subscribe(mConnections.at(c));
    }
 
@@ -2101,18 +2113,18 @@ int HyPerCol::advanceTime(double sim_time)
    int status = PV_SUCCESS;
    bool exitAfterUpdate = false;
 
-   // update the mConnections (weights)
+   // update the connections (weights)
    //
-   for (int c = 0; c < mConnections.size(); c++) {
-      status = mConnections.at(c)->updateState(mSimTime, mDeltaTimeBase);
+   for (auto c : mConnections) {
+      status = c->updateState(mSimTime, mDeltaTimeBase);
       if (!exitAfterUpdate) {
          exitAfterUpdate = status == PV_EXIT_NORMALLY;
       }
    }
    normalizeWeights();
-   for (int c = 0; c < mConnections.size(); c++) {
-      mConnections.at(c)->finalizeUpdate(mSimTime, mDeltaTimeBase);
-      mConnections.at(c)->outputState(mSimTime);
+   for (auto c : mConnections) {
+      c->finalizeUpdate(mSimTime, mDeltaTimeBase);
+      c->outputState(simTime);
    }
 
    if (globalRank()==0) {
@@ -2533,8 +2545,8 @@ int HyPerCol::writeTimers(std::ostream& stream){
       mRunTimer->fprint_time(stream);
       mCheckpointTimer->fprint_time(stream);
       icCommunicator()->fprintTime(stream);
-      for (int c=0; c<mConnections.size(); c++) {
-         mConnections.at(c)->writeTimers(stream);
+      for (auto c : mConnections) {
+         c->writeTimers(stream);
       }
       for (int phase=0; phase<mNumPhases; phase++) {
          if(mPhaseRecvTimers.at(phase)) { mPhaseRecvTimers.at(phase)->fprint_time(stream); }
@@ -2573,8 +2585,8 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
    for( int l=0; l<mLayers.size(); l++ ) {
       mLayers.at(l)->checkpointWrite(cpDir);
    }
-   for( int c=0; c<mConnections.size(); c++ ) {
-      if (mConnections.at(c)->getPlasticityFlag() || !mSuppressNonplasticCheckpoints) { mConnections.at(c)->checkpointWrite(cpDir); }
+   for( auto c : mConnections ) {
+      if (c->getPlasticityFlag() || !mSuppressNonplasticCheckpoints) { c->checkpointWrite(cpDir); }
    }
 
    // Timers
@@ -2797,10 +2809,9 @@ int HyPerCol::outputParams(char const * path) {
       }
    }
 
-   // BaseConnection mParams
-   for (int c=0; c<mConnections.size(); c++) {
-      BaseConnection * connection = mConnections.at(c);
-      status = connection->ioParams(PARAMS_IO_WRITE);
+   // BaseConnection params
+   for (auto c : mConnections) {
+      status = c->ioParams(PARAMS_IO_WRITE);
       if( status != PV_SUCCESS ) {
          pvError().printf("outputParams: Error copying mParams to \"%s\"\n", printParamsPath);
       }
@@ -2819,8 +2830,8 @@ int HyPerCol::outputParams(char const * path) {
    }
 
    // BaseConnectionProbes
-   for (int c=0; c<mConnections.size(); c++) {
-      mConnections.at(c)->outputProbeParams();
+   for (auto c : mConnections) {
+      c->outputProbeParams();
    }
 
    if(rank == 0){
@@ -2892,7 +2903,7 @@ int HyPerCol::exitRunLoop(bool exitOnFinish)
 {
    int status = 0;
 
-   // output final state of mLayers and mConnections
+   // output final state of layers and connections
 
    char cpDir[PV_PATH_MAX];
    if (mCheckpointWriteFlag || !mSuppressLastOutput) {
@@ -3330,6 +3341,52 @@ template int HyPerCol::readArrayFromFile<int>(char const * cpDir, const char * g
 template int HyPerCol::readArrayFromFile<long>(char const * cpDir, const char * group_name, char const * val_name, long * val, size_t count, long default_value);
 template int HyPerCol::readArrayFromFile<float>(char const * cpDir, const char * group_name, char const * val_name, float * val, size_t count, float default_value);
 template int HyPerCol::readArrayFromFile<double>(char const * cpDir, const char * group_name, char const * val_name, double * val, size_t count, double default_value);
+
+HyPerCol * createHyPerCol(PV_Init * pv_initObj) {
+   PVParams * params = pv_initObj->getParams();
+   if (params==nullptr) {
+      pvErrorNoExit() << "createHyPerCol called without having set params.\n";
+      return nullptr;
+   }
+   int numGroups = params->numberOfGroups();
+   if (numGroups==0) {
+      pvErrorNoExit() << "Params \"" << pv_initObj->getParamsFile() << "\" does not define any groups.\n";
+      return nullptr;
+   }
+   if( strcmp(params->groupKeywordFromIndex(0), "HyPerCol") ) {
+      pvErrorNoExit() << "First group in the params \"" << pv_initObj->getParamsFile() << "\" does not define a HyPerCol.\n";
+      return nullptr;
+   }
+   char const * colName = params->groupNameFromIndex(0);
+
+   HyPerCol * hc = new HyPerCol(colName, pv_initObj);
+   for (int k=0; k<numGroups; k++) {
+      const char * kw = params->groupKeywordFromIndex(k);
+      const char * name = params->groupNameFromIndex(k);
+      if (!strcmp(kw, "HyPerCol")) {
+         if (k==0) { continue; }
+         else {
+            if (hc->columnId()==0) {
+               pvErrorNoExit() << "Group " << k+1 << " in params file (\"" << pv_initObj->getParamsFile() << "\") is a HyPerCol; only the first group can be a HyPercol.\n";
+            }
+            delete hc;
+            return nullptr;
+         }
+      }
+      else {
+         BaseObject * addedObject = pv_initObj->create(kw, name, hc);
+         if (addedObject==nullptr) {
+            if (hc->globalRank()==0) {
+               pvErrorNoExit().printf("Unable to create %s \"%s\".\n", kw, name);
+            }
+            delete hc;
+            return nullptr;
+         }
+      }
+   }
+
+   return hc;
+}
 
 } // PV namespace
 

@@ -22,7 +22,6 @@
  */
 
 #include "buildandrun.hpp"
-#include <columns/BaseObject.hpp>
 
 using namespace PV;
 
@@ -89,8 +88,8 @@ int buildandrun1paramset(PV_Init * initObj,
                          int (*customexit)(HyPerCol *, int, char **),
                          int sweepindex) {
    if (sweepindex>=0) { initObj->getParams()->setParameterSweepValues(sweepindex); }
-   HyPerCol * hc = initObj->build();
-   if( hc == NULL ) return PV_FAILURE;  // build() prints error message
+   HyPerCol * hc = createHyPerCol(initObj);
+   if( hc == nullptr ) return PV_FAILURE;  // createHyPerCol() prints any error message
 
    int status = PV_SUCCESS;
    int argc = 0;
@@ -126,7 +125,7 @@ int buildandrun1paramset(PV_Init * initObj,
 }
 
 HyPerCol * build(PV_Init* initObj) {
-   return initObj ? initObj->build() : NULL;
+   return initObj ? createHyPerCol(initObj) : nullptr;
 }
 
 // This version of buildandrun was deprecated March 24, 2016 in favor of the Factory version.

@@ -77,8 +77,8 @@ private:
    virtual void ioParam_dt(enum ParamsIOFlag ioFlag);
    
    /**
-    * @brief mDtAdaptController: The name of a ColProbe to use for controlling the adaptive timestep.
-    * The ColProbe's vectorSize (returned by getVectorSize()) must be the same as the HyPerCol's mNumBatch parameter.
+    * @brief dtAdaptController: The name of a ColProbe to use for controlling the adaptive timestep.
+    * The ColProbe's vectorSize (returned by getVectorSize()) must be the same as the HyPerCol's nBatch parameter.
     */
    virtual void ioParam_dtAdaptController(enum ParamsIOFlag ioFlag);
    
@@ -141,7 +141,7 @@ private:
    virtual void ioParam_dtMinToleratedTimeScale(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief mWriteTimeScaleFieldnames: A flag to determine if fieldnames are written to the HyPerCol_timescales file, if false, file is written as comma separated list
+    * @brief writeTimeScaleFieldnames: A flag to determine if fieldnames are written to the HyPerCol_timescales file, if false, file is written as comma separated list
     */
    virtual void ioParam_writeTimeScaleFieldnames(enum ParamsIOFlag ioFlag);
 
@@ -152,12 +152,12 @@ private:
    virtual void ioParam_progressInterval(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief mWriteProgressToError: Whether to print timestep progress to the error stream instead of the output stream
+    * @brief writeProgressToError: Whether to print timestep progress to the error stream instead of the output stream
     */
    virtual void ioParam_writeProgressToErr(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief mVerifyWrites: If true, calls to PV_fwrite are checked by opening the file in read mode
+    * @brief verifyWrites: If true, calls to PV_fwrite are checked by opening the file in read mode
     * and reading back the data and comparing it to the data just written.
     */
    virtual void ioParam_verifyWrites(enum ParamsIOFlag ioFlag);
@@ -196,18 +196,18 @@ private:
    /**
     * @brief mFilenamesContainLayerNames: Specifies if layer names gets printed out to output connection pvp files
     * @details Options are 0, 1, or 2.
-    * - 0: mConnections have form a5.pvp
-    * - 1: mLayers have form a5_NameOfLayer.pvp
-    * - 2: mLayers have form NameOfLayer.pvp
+    * - 0: filenames have form a5.pvp
+    * - 1: filenames form a5_NameOfLayer.pvp
+    * - 2: filenames form NameOfLayer.pvp
     */
    virtual void ioParam_filenamesContainLayerNames(enum ParamsIOFlag ioFlag);
    
    /**
     * @brief mFilenamesContainConnectionNames: Specifies if connection names gets printed out to output connection pvp files
     * @details Options are 0, 1, or 2.
-    * - 0: mConnections have form w5.pvp
-    * - 1: mLayers have form w5_NameOfConnection.pvp
-    * - 2: mLayers have form NameOfConnection.pvp
+    * - 0: filenames have form w5.pvp
+    * - 1: filenames have form w5_NameOfConnection.pvp
+    * - 2: filenames have form NameOfConnection.pvp
     */
    virtual void ioParam_filenamesContainConnectionNames(enum ParamsIOFlag ioFlag);
    
@@ -217,9 +217,9 @@ private:
    virtual void ioParam_initializeFromCheckpointDir(enum ParamsIOFlag ioFlag);
    
    /**
-    * @brief mDefaultInitializeFromCheckpointFlag: Flag to set the default for mLayers and mConnections.
-    * @details Sets the default for mLayers and mConnections to use for initialize from checkpoint
-    * based off of mInitializeFromCheckpointDir. Only used if mInitializeFromCheckpointDir is set.
+    * @brief defaultInitializeFromCheckpointFlag: Flag to set the default for layers and connections.
+    * @details Sets the default for layers and connections to use for initialize from checkpoint
+    * based off of initializeFromCheckpointDir. Only used if initializeFromCheckpointDir is set.
     */
    virtual void ioParam_defaultInitializeFromCheckpointFlag(enum ParamsIOFlag ioFlag);
 
@@ -234,7 +234,7 @@ private:
    virtual void ioParam_checkpointWrite(enum ParamsIOFlag ioFlag);
    
    /**
-    * @brief mCheckpointWriteDir: If checkpointWrite is set, specifies the output checkpoint directory.
+    * @brief checkpointWriteDir: If checkpointWrite is set, specifies the output checkpoint directory.
     */
    virtual void ioParam_checkpointWriteDir(enum ParamsIOFlag ioFlag);
    
@@ -268,7 +268,7 @@ private:
    virtual void ioParam_checkpointWriteClockUnit(enum ParamsIOFlag ioFlag);
    
    /**
-    * @brief mDeleteOlderCheckpoints: If checkpointWrite, specifies if the run should delete older checkpoints when writing new ones.
+    * @brief deleteOlderCheckpoints: If checkpointWrite, specifies if the run should delete older checkpoints when writing new ones.
     */
    virtual void ioParam_deleteOlderCheckpoints(enum ParamsIOFlag ioFlag);
 
@@ -285,27 +285,27 @@ private:
    virtual void ioParam_suppressLastOutput(enum ParamsIOFlag ioFlag);
 
    /**
-    * If mCheckpointWriteFlag is true and this flag is true, mConnections' checkpointWrite method will only be called for mConnections with plasticityFlag=false.
+    * If checkpointWrite is true and this flag is true, connections' checkpointWrite method will only be called for connections with plasticityFlag=false.
     */
    virtual void ioParam_suppressNonplasticCheckpoints(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief If mCheckpointWriteFlag is true, mCheckpointIndexWidth specifies the minimum width for the step number appearing in the checkpoint directory.
-    * @details If the step number needs fewer digits than mCheckpointIndexWidth, it is padded with zeroes.  If the step number needs more, the full
-    * step number is still printed.  Hence, setting mCheckpointWriteFlag to zero means that there are never any padded zeroes.
-    * If set to a negative number, the width will be inferred from mStartTime, mStopTime and dt.
+    * @brief If checkpointWrite is true, checkpointIndexWidth specifies the minimum width for the step number appearing in the checkpoint directory.
+    * @details If the step number needs fewer digits than checkpointIndexWidth, it is padded with zeroes.  If the step number needs more, the full
+    * step number is still printed.  Hence, setting checkpointWrite to zero means that there are never any padded zeroes.
+    * If set to a negative number, the width will be inferred from startTime, stopTime and dt.
     * The default value is -1 (infer the width).
     */
    virtual void ioParam_checkpointIndexWidth(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief mWriteTimescales: If mDtAdaptController is set, specifies if the timescales should be written
-    * @details The timescales get written to mOutputPath/HyPerCol_timescales.txt.
+    * @brief writeTimescales: If mDtAdaptController is set, specifies if the timescales should be written
+    * @details The timescales get written to outputPath/HyPerCol_timescales.txt.
     */
    virtual void ioParam_writeTimescales(enum ParamsIOFlag ioFlag); 
 
    /**
-    * @brief mErrorOnNotANumber: Specifies if the run should check on each timestep for nans in activity.
+    * @brief errorOnNotANumber: Specifies if the run should check on each timestep for nans in activity.
     */
    virtual void ioParam_errorOnNotANumber(enum ParamsIOFlag ioFlag);
    /** @} */
@@ -601,8 +601,9 @@ private:
    PVCuda::CudaDevice * mCudaDevice;    // object for running kernels on OpenCL device
 #endif
 
-
 }; // class HyPerCol
+
+HyPerCol * createHyPerCol(PV_Init * pv_initObj);
 
 } // namespace PV
 

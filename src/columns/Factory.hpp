@@ -68,14 +68,7 @@ class BaseObject;
  * call the registerKeyword method calling before one of the buildandrun functions.
  */
 class Factory {
-   friend class PV_Init;
-
-public:
-   /**
-    * A function pointer that can be used in a registerKeyword call, that always returns the
-    * null object.  The "normalizeGroup", "none", and "" keywords all use the createNull function pointer.
-    */
-   static BaseObject * createNull(char const * name, HyPerCol * hc) {return NULL;}
+   friend class PV_Init; // PV_Init provides the only public access to Factory
 
 private:
    /**

@@ -17,6 +17,8 @@
 
 namespace PV {
 
+class HyPerCol; // Included only to allow obsolete (as of Jul 19, 2016) HyPerCol* PV_Init::build() method to print an error message.
+
 /**
  * PV_Init is an object that initializes MPI and parameters to pass to the HyPerCol
  */
@@ -324,12 +326,15 @@ public:
     */
    BaseObject * create(char const * keyword, char const * name, HyPerCol * hc) const;
 
+
    /**
-    * Forms a HyPerCol, and adds layers, probes, and connections to it based on the PV_Init
-    * object's current params.  If any of the groups in params fails to build, the HyPerCol
-    * is deleted and build() returns NULL.  An error message indicates which params group failed.
+    * Obsolete.  Use createHyPerCol defined in HyPerCol.cpp instead.
     */
-   HyPerCol * build();
+   HyPerCol * build() {
+      pvError() << "PV_Init::build is obsolete.  " // marked obsolete July 19, 2016.
+            << "Use hc=createHyPerCol(pv_init_ptr) instead of hc=pv_init_ptr->build()\n";
+      return nullptr;
+   }
 
    /**
     * This function turns the buildandrunDeprecationWarning flag on.
