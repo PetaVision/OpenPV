@@ -263,7 +263,7 @@ int buildandrun1paramset(PV_Init* initObj,
          pvErrorNoExit().printf("custominit function failed with return value %d\n", status);
       }
    }
-
+   pvDebug() << "BUILDANDRUN1PARAMSET" << std::endl;
    if( status==PV_SUCCESS && hc->getInitialStep() < hc->getFinalStep() ) {
       status = hc->run();
       if( status != PV_SUCCESS ) {

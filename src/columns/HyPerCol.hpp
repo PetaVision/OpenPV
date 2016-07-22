@@ -421,9 +421,9 @@ public:
    int commColumn() { return mInterColComm->commColumn(); }
    int commRow() { return mInterColComm->commRow(); }
    int commBatch() { return mInterColComm->commBatch(); }
-   int numCommColumns() { return numCommColumns(); }
-   int numCommRows() { return numCommRows(); }
-   int numCommBatches() { return numCommBatches(); }
+   int numCommColumns() { return mInterColComm->numCommColumns(); }
+   int numCommRows() { return mInterColComm->numCommRows(); }
+   int numCommBatches() { return mInterColComm->numCommBatches(); }
    InterColComm * icCommunicator() const { return mInterColComm; }
    NormalizeBase * getNormalizer(int which) { return mNormalizers.at(which); }
    PV_Init * getPV_InitObj() const { return mPVInitObj; }

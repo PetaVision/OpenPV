@@ -173,32 +173,25 @@ int HyPerCol::initialize_base() {
    mNumYGlobal = 0;
    mNumBatch = 1;
    mNumBatchGlobal = 1;
-   origStdOut = -1;
-   origStdErr = -1;
-   layers = NULL;
-   normalizers = NULL;
-   layerStatus = NULL;
-   connectionStatus = NULL;
-   srcPath = NULL;
-   outputPath = NULL;
-   printParamsFilename = NULL;
-   printParamsStream = NULL;
-   luaPrintParamsStream = NULL;
-   nxGlobal = 0;
-   nyGlobal = 0;
-   nbatch = 1;
-   nbatchGlobal = 1;
+   mOrigStdOut = -1;
+   mOrigStdErr = -1;
+   mConnectionStatus = NULL;
+   mOutputPath = NULL;
+   mPrintParamsFilename = NULL;
+   mPrintParamsStream = NULL;
+   mLuaPrintParamsStream = NULL;
+   mNumXGlobal = 0;
+   mNumYGlobal = 0;
+   mNumBatch = 1;
+   mNumBatchGlobal = 1;
    mOwnsParams = true;
    mOwnsInterColComm = true;
    mParams = nullptr;
    mInterColComm = nullptr;
    mRunTimer = nullptr;
    mCheckpointTimer = nullptr;
-//mPhaseRecvTimers = nullptr;
    mPhaseRecvTimers.clear();
-//   mColProbes = nullptr;
    mColProbes.clear();
-//   mBaseProbes = nullptr;
    mBaseProbes.clear();
    mFilenamesContainLayerNames = 0;
    mFilenamesContainConnectionNames = 0;
@@ -790,7 +783,7 @@ void HyPerCol::ioParam_stopTime(enum ParamsIOFlag ioFlag) {
    }
    // numSteps was deprecated Dec 12, 2013 and marked obsolete Jun 27, 2016
    // After a reasonable fade time, remove the above if-statement and keep the ioParamValue call below.
-   ioParamValue(ioFlag, mName, "mStopTime", &mStopTime, mStopTime);
+   ioParamValue(ioFlag, mName, "stopTime", &mStopTime, mStopTime);
 }
 
 void HyPerCol::ioParam_progressInterval(enum ParamsIOFlag ioFlag) {
@@ -889,7 +882,7 @@ void HyPerCol::ioParam_ny(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerCol::ioParam_nBatch(enum ParamsIOFlag ioFlag) {
-   ioParamValue(ioFlag, mName, "numBatch", &mNumBatchGlobal, mNumBatchGlobal);
+   ioParamValue(ioFlag, mName, "nbatch", &mNumBatchGlobal, mNumBatchGlobal);
    //Make sure numCommBatches is a multiple of mNumBatch specified in the mParams file
    pvErrorIf(mNumBatchGlobal % mInterColComm->numCommBatches() != 0, 
          "The total number of batches (%d) must be a multiple of the batch width (%d)\n", mNumBatchGlobal, mInterColComm->numCommBatches());
@@ -1144,7 +1137,7 @@ void HyPerCol::writeParamString(const char * param_name, const char * svalue) {
          fprintf(mLuaPrintParamsStream->fp, "    %-35s = \"%s\";\n", param_name, svalue);
       }
       else {
-         fprintf(mPrintParamsStream->fp, "    %-35s = nullptr;\n", param_name);
+         fprintf(mPrintParamsStream->fp, "    %-35s = NULL;\n", param_name);
          fprintf(mLuaPrintParamsStream->fp, "    %-35s = nil;\n", param_name);
       }
    }
@@ -1354,14 +1347,11 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
          }
       }
 
-      //Allocate all mPhaseRecvTimers
-//      mPhaseRecvTimers = (Timer**) malloc(mNumPhases * sizeof(Timer*));
-      mPhaseRecvTimers.resize(mNumPhases, nullptr);
-      for(int phase = 0; phase < mNumPhases; phase++){
+      mPhaseRecvTimers.clear();
+      for(int phase = 0; phase < mNumPhases; phase++) {
          char tmpStr[10];
          sprintf(tmpStr, "phRecv%d", phase);
-//         mPhaseRecvTimers[phase] = new Timer(mName, "column", tmpStr);
-         mPhaseRecvTimers.at(phase) = new Timer(mName, "column", tmpStr);
+         mPhaseRecvTimers.push_back(new Timer(mName, "column", tmpStr));
       }
 
       initPublishers(); // create the publishers and their data stores
@@ -1410,7 +1400,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
       // output initial conditions
       if (!mCheckpointReadFlag) {
          for (auto c : mConnections) {
-            c->outputState(simTime);
+            c->outputState(mSimTime);
          }
          for (int l = 0; l < mLayers.size(); l++) {
             mLayers.at(l)->outputState(mSimTime);
@@ -1795,7 +1785,7 @@ int HyPerCol::initPublishers() {
       mInterColComm->addPublisher(mLayers.at(l));
    }
    for(auto c : mConnections) {
-      mInterColComm->subscribe(mConnections.at(c));
+      mInterColComm->subscribe(c);
    }
 
    return PV_SUCCESS;
@@ -2124,7 +2114,7 @@ int HyPerCol::advanceTime(double sim_time)
    normalizeWeights();
    for (auto c : mConnections) {
       c->finalizeUpdate(mSimTime, mDeltaTimeBase);
-      c->outputState(simTime);
+      c->outputState(mSimTime);
    }
 
    if (globalRank()==0) {
@@ -2172,9 +2162,9 @@ int HyPerCol::advanceTime(double sim_time)
 #endif
          //Recv GPU
          mLayers.at(l)->resetGSynBuffers(mSimTime, mDeltaTimeBase);  // mDeltaTimeAdapt is not used
-         mPhaseRecvTimers[phase]->start();
+         mPhaseRecvTimers.at(phase)->start();
          mLayers.at(l)->recvAllSynapticInput();
-         mPhaseRecvTimers[phase]->stop();
+         mPhaseRecvTimers.at(phase)->stop();
          //if(recvGpu and upGpu)
 
          //Update for gpu recv and gpu update
@@ -2548,7 +2538,7 @@ int HyPerCol::writeTimers(std::ostream& stream){
       for (auto c : mConnections) {
          c->writeTimers(stream);
       }
-      for (int phase=0; phase<mNumPhases; phase++) {
+      for (int phase=0; phase < mPhaseRecvTimers.size(); phase++) {
          if(mPhaseRecvTimers.at(phase)) { mPhaseRecvTimers.at(phase)->fprint_time(stream); }
          for (int n = 0; n < mLayers.size(); n++) {
             if (mLayers.at(n) != nullptr) { //How would mLayers ever contain a null pointer?
