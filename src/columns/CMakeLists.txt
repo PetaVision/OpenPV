@@ -6,11 +6,12 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/GaussianRandom.cpp
    ${SUBDIR}/HyPerCol.cpp
    ${SUBDIR}/InterColComm.cpp
+   ${SUBDIR}/KeywordHandler.cpp
    ${SUBDIR}/Publisher.cpp
    ${SUBDIR}/PV_Arguments.cpp
    ${SUBDIR}/Factory.cpp
    ${SUBDIR}/PV_Init.cpp
-   ${SUBDIR}/KeywordHandler.cpp
+   ${SUBDIR}/ObjectHierarchy.cpp
    ${SUBDIR}/Random.cpp
 )
 
@@ -22,12 +23,13 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/GaussianRandom.hpp
    ${SUBDIR}/HyPerCol.hpp
    ${SUBDIR}/InterColComm.hpp
+   ${SUBDIR}/KeywordHandler.hpp
    ${SUBDIR}/Messages.hpp
    ${SUBDIR}/Publisher.hpp
    ${SUBDIR}/PV_Arguments.hpp
    ${SUBDIR}/Factory.hpp
+   ${SUBDIR}/ObjectHierarchy.cpp
    ${SUBDIR}/PV_Init.hpp
-   ${SUBDIR}/KeywordHandler.hpp
    ${SUBDIR}/Random.hpp
 )
 

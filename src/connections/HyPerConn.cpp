@@ -194,7 +194,8 @@ int HyPerConn::initialize_base()
    needFinalize = true;
    needAllocPostWeights = true;
 
-   lastUpdateTime = 0.f;
+   lastUpdateTime = 0.0;
+   lastTimeUpdateCalled = 0.0;
    symmetrizeWeightsFlag = false;
    patch2datalookuptable = NULL;
    numKernelActivations = NULL;
@@ -1471,6 +1472,7 @@ int HyPerConn::allocateDataStructures() {
       }
       lastUpdateTime = weightUpdateTime - parent->getDeltaTime();
    }
+   lastTimeUpdateCalled = parent->simulationTime();
 
    status = constructWeights();
 

@@ -11,6 +11,7 @@
 #include <columns/InterColComm.hpp>
 #include <columns/BaseObject.hpp>
 #include <columns/Messages.hpp>
+#include <columns/ObjectHierarchy.hpp>
 #include <layers/HyPerLayer.hpp>
 #include <connections/BaseConnection.hpp>
 #include <io/PVParams.hpp>
@@ -323,7 +324,13 @@ public:
    ColProbe* getColProbeFromName(const char* probeName);
    HyPerLayer* getLayerFromName(const char* layerName);
 
-   void addObject(BaseObject * obj) { mObjectHierarchy.emplace_back(obj); } // void addObject(BaseObject * obj) { auto p = std::make_pair(std::string(obj->getName()), obj); mObjectHierarchy.insert(p); }
+   /**
+    * Adds an object (layer, connection, etc.) to the hierarchy.
+    * Return value is true if the object was successfully added, and false otherwise.
+    * The usual reason for failing to add the object is that the name is the same
+    * as that of an earlier added object.
+    */
+   bool addObject(BaseObject * obj) { return mObjectHierarchy.addObject(obj); }
    int addBaseProbe(BaseProbe* p);
    int addConnection(BaseConnection* conn);
    int addNormalizer(NormalizeBase* normalizer);
@@ -489,8 +496,8 @@ private:
    // Private variables
 
 private:
-   std::vector<BaseObject*> mObjectHierarchy; // std::map<std::string, BaseObject*> mObjectHierarchy;
-   std::vector<BaseConnection *> mConnections;
+   ObjectHierarchy mObjectHierarchy;
+    std::vector<BaseConnection *> mConnections;
    BaseProbe ** mBaseProbes;
    bool mErrorOnNotANumber;        // If true, check each layer's activity buffer for not-a-numbers and exit with an error if any appear
    bool mDefaultInitializeFromCheckpointFlag ; // Each Layer and connection can individually set its own initializeFromCheckpointFlag.  This sets the default value for those flags.

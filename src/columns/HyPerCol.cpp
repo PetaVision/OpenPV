@@ -1798,13 +1798,13 @@ int HyPerCol::processParams(char const * path) {
 }
 
 void HyPerCol::notify(BaseMessage const * message) {
-   auto needsUpdate = mObjectHierarchy;
+   auto needsUpdate = mObjectHierarchy.getObjectVector();
    auto numNeedsUpdate = needsUpdate.size();
    while(numNeedsUpdate>0) {
       auto oldNumNeedsUpdate = numNeedsUpdate;
       auto iter=needsUpdate.begin();
       while (iter!=needsUpdate.end()) {
-         auto obj = *iter;
+         auto obj = (*iter);
          int status = obj->respond(message);
          switch(status) {
          case PV_SUCCESS:
@@ -1824,6 +1824,10 @@ void HyPerCol::notify(BaseMessage const * message) {
          }
       }
       numNeedsUpdate = needsUpdate.size();
+      if (numNeedsUpdate == oldNumNeedsUpdate) {
+         pvError() << message->getMessageType() << " hung with " << numNeedsUpdate << " objects still postponed.\n";
+         break;
+      }
    }
 }
 
@@ -3546,7 +3550,14 @@ HyPerCol * createHyPerCol(PV_Init * pv_initObj) {
             delete hc;
             return nullptr;
          }
-         hc->addObject(addedObject);
+         bool addSucceeded = hc->addObject(addedObject);
+         if (!addSucceeded) {
+            if (hc->columnId()==0) {
+               pvError() << "";
+            }
+            MPI_Barrier(hc->icCommunicator()->communicator());
+            exit(PV_FAILURE);
+         }
       }
    }
 
