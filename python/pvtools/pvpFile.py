@@ -145,7 +145,7 @@ class pvpOpen(object):
 
                 if progress:
                     if frame % progress == 0:
-                        print("File "+filename+": frame "+str(frame)+" of "+str(frameRange[-1]))
+                        print("File "+self.filename+": frame "+str(frame)+" of "+str(frameRange[-1]))
 
             #Make csrsparsematrix
             data["time"] = np.array(timeList)
@@ -172,7 +172,7 @@ class pvpOpen(object):
 
                  if progress:
                      if frameNum % progress == 0:
-                         print("File "+filename+": frame "+str(frame)+" of "+str(frameRange[-1]))
+                         print("File "+self.filename+": frame "+str(frame)+" of "+str(frameRange[-1]))
 
 
         # KERNEL WEIGHT FILE
@@ -200,7 +200,7 @@ class pvpOpen(object):
 
                  if progress:
                      if frameNum % progress == 0:
-                         print("File "+filename+": frame "+str(frame)+" of "+str(frameRange[-1]))
+                         print("File "+self.filename+": frame "+str(frame)+" of "+str(frameRange[-1]))
 
         # SPARSE ACTIVITY FILE
         elif self.header['filetype'] == 6:
@@ -225,7 +225,7 @@ class pvpOpen(object):
 
                 if progress:
                     if frameNum % progress == 0:
-                        print("File "+filename+": frame "+str(frame)+" of "+str(frameRange[-1]))
+                        print("File "+self.filename+": frame "+str(frame)+" of "+str(frameRange[-1]))
 
             #Make csrsparsematrix
             data["time"] = np.array(timeList)
