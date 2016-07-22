@@ -74,6 +74,9 @@ int BaseObject::respond(BaseMessage const * message) {
    else if (ConnectionUpdateMessage const * castMessage = dynamic_cast<ConnectionUpdateMessage const*>(message)) {
       status = respondConnectionUpdate(castMessage);
    }
+   else if (ConnectionFinalizeUpdateMessage const * castMessage = dynamic_cast<ConnectionFinalizeUpdateMessage const*>(message)) {
+      status = respondConnectionFinalizeUpdate(castMessage);
+   }
    else if (ConnectionOutputMessage const * castMessage = dynamic_cast<ConnectionOutputMessage const*>(message)) {
       status = respondConnectionOutput(castMessage);
    }

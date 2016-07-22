@@ -66,6 +66,24 @@ protected:
    void initMessageType() { setMessageType("ConnectionUpdate"); }
 };
 
+class ConnectionFinalizeUpdateMessage : public BaseMessage {
+public:
+   ConnectionFinalizeUpdateMessage(double simTime, double deltaTime) {
+      initMessageType();
+      mTime = simTime;
+      mDeltaT = deltaTime;
+   }
+   ConnectionFinalizeUpdateMessage() {
+      initMessageType();
+      mTime = 0.0;
+      mDeltaT = 0.0;
+   }
+   double mTime;
+   double mDeltaT; // TODO: this should be the nbatch-sized vector of adaptive timesteps
+protected:
+   void initMessageType() { setMessageType("ConnectionFinalizeUpdate"); }
+};
+
 class ConnectionOutputMessage : public BaseMessage {
 public:
    ConnectionOutputMessage(double simTime) {

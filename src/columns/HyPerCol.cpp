@@ -1797,7 +1797,7 @@ int HyPerCol::processParams(char const * path) {
    return PV_SUCCESS;
 }
 
-void HyPerCol::notify(BaseMessage const * message) {
+void HyPerCol::notify(BaseMessage const & message) {
    auto needsUpdate = mObjectHierarchy.getObjectVector();
    auto numNeedsUpdate = needsUpdate.size();
    while(numNeedsUpdate>0) {
@@ -1805,18 +1805,18 @@ void HyPerCol::notify(BaseMessage const * message) {
       auto iter=needsUpdate.begin();
       while (iter!=needsUpdate.end()) {
          auto obj = (*iter);
-         int status = obj->respond(message);
+         int status = obj->respond(&message);
          switch(status) {
          case PV_SUCCESS:
          case PV_BREAK: // fallthrough is deliberate.  Can we get rid of PV_BREAK as a possible return value of connections' updateState?
             iter = needsUpdate.erase(iter);
             break;
          case PV_POSTPONE:
-            pvInfo() << obj->getDescription() << ": " << message->getMessageType() << " postponed.\n";
+            pvInfo() << obj->getDescription() << ": " << message.getMessageType() << " postponed.\n";
             iter++;
             break;
          case PV_FAILURE:
-            pvError() << obj->getDescription() << " failed " << message->getMessageType() << ".\n";
+            pvError() << obj->getDescription() << " failed " << message.getMessageType() << ".\n";
             break;
          default:
             pvError() << obj->getDescription() << " returned unrecognized return code " << status << ".\n";
@@ -1825,7 +1825,7 @@ void HyPerCol::notify(BaseMessage const * message) {
       }
       numNeedsUpdate = needsUpdate.size();
       if (numNeedsUpdate == oldNumNeedsUpdate) {
-         pvError() << message->getMessageType() << " hung with " << numNeedsUpdate << " objects still postponed.\n";
+         pvError() << message.getMessageType() << " hung with " << numNeedsUpdate << " objects still postponed.\n";
          break;
       }
    }
@@ -2297,20 +2297,10 @@ int HyPerCol::advanceTime(double sim_time)
 
    // update the connections (weights)
    //
-   if(1) {
-      ConnectionUpdateMessage connUpdate; connUpdate.mTime = simTime; connUpdate.mDeltaT = deltaTimeBase;
-      notify(&connUpdate);
-   }
-   else {
-      for (auto c : mConnections) {
-         status = c->updateState(simTime, deltaTimeBase);
-      }
-   }
+   notify(ConnectionUpdateMessage(simTime, deltaTimeBase));
    normalizeWeights();
-   for (auto c : mConnections) {
-      c->finalizeUpdate(simTime, deltaTimeBase);
-      c->outputState(simTime);
-   }
+   notify(ConnectionFinalizeUpdateMessage(simTime, deltaTimeBase));
+   notify(ConnectionOutputMessage(simTime));
 
 
    if (globalRank()==0) {

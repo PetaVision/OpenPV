@@ -52,6 +52,7 @@ protected:
    virtual int setDescription();
 
    virtual int respondConnectionUpdate(ConnectionUpdateMessage const * message) { return PV_SUCCESS; }
+   virtual int respondConnectionFinalizeUpdate(ConnectionFinalizeUpdateMessage const * message) { return PV_SUCCESS; }
    virtual int respondConnectionOutput(ConnectionOutputMessage const * message) { return PV_SUCCESS; }
 
 // Member variable

@@ -468,7 +468,7 @@ private:
    int ioParams(enum ParamsIOFlag ioFlag);
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    int checkDirExists(const char * dirname, struct stat * pathstat);
-   void notify(BaseMessage const * message);
+   void notify(BaseMessage const & message);
    int doInitializationStage(int (HyPerCol::*layerInitializationStage)(int), int (HyPerCol::*connInitializationStage)(int), const char * stageName);
    int layerCommunicateInitInfo(int l);
    int connCommunicateInitInfo(int c);
