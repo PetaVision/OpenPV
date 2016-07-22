@@ -199,6 +199,7 @@ int privateTransposeConn::updateState(double time, double dt) {
    assert(plasticityFlag && postConn->getLastUpdateTime() > lastUpdateTime); // should only be called if needUpdate returned true this timestep
    // privateTransposeConn must wait until finalizeUpdate, after normalizers are called,
    // so that it will see the correct weights when it calls transpose.
+   lastTimeUpdateCalled = time;
    return PV_SUCCESS;
 }
 

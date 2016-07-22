@@ -23,7 +23,8 @@
 #ifndef BASEOBJECT_HPP_
 #define BASEOBJECT_HPP_
 
-#include <columns/Messages.hpp>
+#include "columns/Messages.hpp"
+#include "include/pv_common.h"
 #include "utils/PVLog.hpp"
 #include "utils/PVAssert.hpp"
 #include "utils/PVAlloc.hpp"
@@ -39,7 +40,7 @@ public:
    inline char const * getDescription_c() const { return description.c_str(); }
    inline std::string const& getDescription() const { return description; }
    char const * getKeyword() const;
-   void respond(BaseMessage const * message);
+   int respond(BaseMessage const * message); // TODO: should return enum with values corresponding to PV_SUCCESS, PV_FAILURE, PV_POSTPONE
    virtual ~BaseObject();
 
 
@@ -50,8 +51,8 @@ protected:
    int setParent(HyPerCol * hc);
    virtual int setDescription();
 
-   virtual void respondConnectionUpdate(ConnectionUpdateMessage const * message) {}
-   virtual void respondConnectionOutput(ConnectionOutputMessage const * message) {}
+   virtual int respondConnectionUpdate(ConnectionUpdateMessage const * message) { return PV_SUCCESS; }
+   virtual int respondConnectionOutput(ConnectionOutputMessage const * message) { return PV_SUCCESS; }
 
 // Member variable
 protected:

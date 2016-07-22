@@ -1798,8 +1798,32 @@ int HyPerCol::processParams(char const * path) {
 }
 
 void HyPerCol::notify(BaseMessage const * message) {
-   for (auto& obj : mObjectHierarchy) {
-      obj->respond(message); // obj.second->respond(message);
+   auto needsUpdate = mObjectHierarchy;
+   auto numNeedsUpdate = needsUpdate.size();
+   while(numNeedsUpdate>0) {
+      auto oldNumNeedsUpdate = numNeedsUpdate;
+      auto iter=needsUpdate.begin();
+      while (iter!=needsUpdate.end()) {
+         auto obj = *iter;
+         int status = obj->respond(message);
+         switch(status) {
+         case PV_SUCCESS:
+         case PV_BREAK: // fallthrough is deliberate.  Can we get rid of PV_BREAK as a possible return value of connections' updateState?
+            iter = needsUpdate.erase(iter);
+            break;
+         case PV_POSTPONE:
+            pvInfo() << obj->getDescription() << ": " << message->getMessageType() << " postponed.\n";
+            iter++;
+            break;
+         case PV_FAILURE:
+            pvError() << obj->getDescription() << " failed " << message->getMessageType() << ".\n";
+            break;
+         default:
+            pvError() << obj->getDescription() << " returned unrecognized return code " << status << ".\n";
+            break;
+         }
+      }
+      numNeedsUpdate = needsUpdate.size();
    }
 }
 

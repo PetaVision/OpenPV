@@ -11,7 +11,6 @@
 #include <cstring>
 #include <cerrno>
 #include "BaseObject.hpp"
-#include "include/pv_common.h"
 #include "columns/HyPerCol.hpp"
 
 namespace PV {
@@ -67,19 +66,22 @@ int BaseObject::setDescription() {
    return PV_SUCCESS;
 }
 
-void BaseObject::respond(BaseMessage const * message) {
+int BaseObject::respond(BaseMessage const * message) {
+   int status = PV_SUCCESS; // TODO: convert to enum
    if (message==nullptr) {
-      return;
+      return PV_SUCCESS;
    }
    else if (ConnectionUpdateMessage const * castMessage = dynamic_cast<ConnectionUpdateMessage const*>(message)) {
-      respondConnectionUpdate(castMessage);
+      status = respondConnectionUpdate(castMessage);
    }
    else if (ConnectionOutputMessage const * castMessage = dynamic_cast<ConnectionOutputMessage const*>(message)) {
-      respondConnectionOutput(castMessage);
+      status = respondConnectionOutput(castMessage);
    }
    else {
       pvError() << "Unrecognized message type\n";
+      status = PV_FAILURE;
    }
+   return status;
 }
 
 BaseObject::~BaseObject() {

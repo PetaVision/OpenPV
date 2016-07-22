@@ -208,6 +208,12 @@ bool CopyConn::needUpdate(double time, double dt) {
    return plasticityFlag && originalConn->getLastUpdateTime() > lastUpdateTime;
 }
 
+int CopyConn::updateState(double time, double dt){
+   return originalConn->getLastTimeUpdateCalled() < time ?
+         PV_POSTPONE :
+         HyPerConn::updateState(time, dt);
+}
+
 int CopyConn::updateWeights(int axonID) {
    assert(originalConn->getLastUpdateTime() > lastUpdateTime);
    int status;

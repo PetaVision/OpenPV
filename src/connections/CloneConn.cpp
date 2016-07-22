@@ -325,6 +325,7 @@ int CloneConn::updateState(double time, double dt) {
    lastUpdateTime = originalConn->getLastUpdateTime();
 
    update_timer->stop();
+   lastTimeUpdateCalled = time;
    return PV_SUCCESS;
 }
 

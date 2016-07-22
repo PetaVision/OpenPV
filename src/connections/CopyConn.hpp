@@ -18,7 +18,7 @@ public:
    virtual ~CopyConn();
    virtual int communicateInitInfo();
    virtual bool needUpdate(double time, double dt);
-
+   virtual int updateState(double time, double dt);
    char const * getOriginalConnName() { return originalConnName; }
    HyPerConn * getOriginalConn() { return originalConn; }
 

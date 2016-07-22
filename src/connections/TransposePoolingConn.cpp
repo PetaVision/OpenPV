@@ -516,6 +516,7 @@ bool TransposePoolingConn::needUpdate(double timed, double dt) {
 }
 
 int TransposePoolingConn::updateState(double time, double dt) {
+   lastTimeUpdateCalled = time;
    return PV_SUCCESS;
 }
 

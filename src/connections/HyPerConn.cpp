@@ -2297,7 +2297,7 @@ bool HyPerConn::needUpdate(double time, double dt){
 
 int HyPerConn::updateState(double time, double dt){
    int status = PV_SUCCESS;
-   if( !plasticityFlag ){return status;}
+   if( !plasticityFlag ){lastTimeUpdateCalled = time; return status;}
 
    update_timer->start();
    if(needUpdate(time, dt)){
@@ -2347,6 +2347,7 @@ int HyPerConn::updateState(double time, double dt){
       needFinalize = true;
    }
    update_timer->stop();
+   lastTimeUpdateCalled = time;
    return status;
 }
 

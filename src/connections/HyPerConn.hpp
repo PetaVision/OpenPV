@@ -117,7 +117,18 @@ public:
 
    double getWeightUpdatePeriod() {return weightUpdatePeriod;}
    double getWeightUpdateTime() {return weightUpdateTime;}
+
+   /**
+    * Returns the last time that weights were updated.
+    */
    double getLastUpdateTime() {return lastUpdateTime;}
+
+   /**
+    * Returns the last time that the connection's updateState function was called.
+    * Provided so that connections that depend on other connections (e.g. CopyConn)
+    * can postpone their update until the connection they depend has processed its updateState call.
+    */
+   double getLastTimeUpdateCalled() {return lastTimeUpdateCalled;}
 
    // TODO make a get-method to return this.
    virtual PVLayerCube* getPlasticityDecrement() {
@@ -486,6 +497,7 @@ protected:
    double weightUpdateTime;
    double initialWeightUpdateTime;
    double lastUpdateTime;
+   double lastTimeUpdateCalled;
 
    bool symmetrizeWeightsFlag;
    long ** numKernelActivations;
