@@ -67,6 +67,21 @@ int BaseObject::setDescription() {
    return PV_SUCCESS;
 }
 
+void BaseObject::respond(BaseMessage const * message) {
+   if (message==nullptr) {
+      return;
+   }
+   else if (ConnectionUpdateMessage const * castMessage = dynamic_cast<ConnectionUpdateMessage const*>(message)) {
+      respondConnectionUpdate(castMessage);
+   }
+   else if (ConnectionOutputMessage const * castMessage = dynamic_cast<ConnectionOutputMessage const*>(message)) {
+      respondConnectionOutput(castMessage);
+   }
+   else {
+      pvError() << "Unrecognized message type\n";
+   }
+}
+
 BaseObject::~BaseObject() {
    free(name);
 }

@@ -9,6 +9,8 @@
 #define HYPERCOL_HPP_
 
 #include <columns/InterColComm.hpp>
+#include <columns/BaseObject.hpp>
+#include <columns/Messages.hpp>
 #include <layers/HyPerLayer.hpp>
 #include <connections/BaseConnection.hpp>
 #include <io/PVParams.hpp>
@@ -320,6 +322,8 @@ public:
    char* pathInCheckpoint(const char* cpDir, const char* objectName, const char* suffix);
    ColProbe* getColProbeFromName(const char* probeName);
    HyPerLayer* getLayerFromName(const char* layerName);
+
+   void addObject(BaseObject * obj) { mObjectHierarchy.emplace_back(obj); } // void addObject(BaseObject * obj) { auto p = std::make_pair(std::string(obj->getName()), obj); mObjectHierarchy.insert(p); }
    int addBaseProbe(BaseProbe* p);
    int addConnection(BaseConnection* conn);
    int addNormalizer(NormalizeBase* normalizer);
@@ -457,6 +461,7 @@ private:
    int ioParams(enum ParamsIOFlag ioFlag);
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    int checkDirExists(const char * dirname, struct stat * pathstat);
+   void notify(BaseMessage const * message);
    int doInitializationStage(int (HyPerCol::*layerInitializationStage)(int), int (HyPerCol::*connInitializationStage)(int), const char * stageName);
    int layerCommunicateInitInfo(int l);
    int connCommunicateInitInfo(int c);
@@ -484,7 +489,7 @@ private:
    // Private variables
 
 private:
-
+   std::vector<BaseObject*> mObjectHierarchy; // std::map<std::string, BaseObject*> mObjectHierarchy;
    std::vector<BaseConnection *> mConnections;
    BaseProbe ** mBaseProbes;
    bool mErrorOnNotANumber;        // If true, check each layer's activity buffer for not-a-numbers and exit with an error if any appear

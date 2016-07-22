@@ -1068,20 +1068,20 @@ void HyPerCol::ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag ) {
 void HyPerCol::ioParam_checkpointWriteStepInterval(enum ParamsIOFlag ioFlag) {
    assert(!params->presentAndNotBeenRead(mName, "checkpointWrite"));
    if (mCheckpointWriteFlag) {
-	   assert(!params->presentAndNotBeenRead(mName, "checkpointWriteTriggerMode"));
-	   if(checkpointWriteTriggerMode == CPWRITE_TRIGGER_STEP) {
-	      ioParamValue(ioFlag, mName, "checkpointWriteStepInterval", &cpWriteStepInterval, 1L);
-	   }
+      assert(!params->presentAndNotBeenRead(mName, "checkpointWriteTriggerMode"));
+      if(checkpointWriteTriggerMode == CPWRITE_TRIGGER_STEP) {
+         ioParamValue(ioFlag, mName, "checkpointWriteStepInterval", &cpWriteStepInterval, 1L);
+      }
    }
 }
 
 void HyPerCol::ioParam_checkpointWriteTimeInterval(enum ParamsIOFlag ioFlag) {
    assert(!params->presentAndNotBeenRead(mName, "checkpointWrite"));
    if (mCheckpointWriteFlag) {
-	   assert(!params->presentAndNotBeenRead(mName, "checkpointWriteTriggerMode"));
-	   if(checkpointWriteTriggerMode == CPWRITE_TRIGGER_TIME) {
-	      ioParamValue(ioFlag, mName, "checkpointWriteTimeInterval", &cpWriteTimeInterval, deltaTimeBase);
-	   }
+      assert(!params->presentAndNotBeenRead(mName, "checkpointWriteTriggerMode"));
+      if(checkpointWriteTriggerMode == CPWRITE_TRIGGER_TIME) {
+         ioParamValue(ioFlag, mName, "checkpointWriteTimeInterval", &cpWriteTimeInterval, deltaTimeBase);
+      }
    }
 }
 
@@ -1580,7 +1580,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
    //
    long int step = 0;
    assert(status == PV_SUCCESS);
-   while (simTime < stopTime - deltaTime/2.0 && status != PV_EXIT_NORMALLY) {
+   while (simTime < stopTime - deltaTime/2.0) {
       // Should we move the if statement below into advanceTime()?
       // That way, the routine that polls for SIGUSR1 and sets checkpointSignal is the same
       // as the routine that acts on checkpointSignal and clears it, which seems clearer.  --pete July 7, 2015
@@ -1795,6 +1795,12 @@ int HyPerCol::processParams(char const * path) {
    }
    mParamsProcessedFlag = true;
    return PV_SUCCESS;
+}
+
+void HyPerCol::notify(BaseMessage const * message) {
+   for (auto& obj : mObjectHierarchy) {
+      obj->respond(message); // obj.second->respond(message);
+   }
 }
 
 int HyPerCol::doInitializationStage(int (HyPerCol::*layerInitializationStage)(int), int (HyPerCol::*connInitializationStage)(int), const char * stageName) {
@@ -2231,25 +2237,25 @@ int HyPerCol::advanceTime(double sim_time)
          timeScaleStream << sim_time << ", ";
        }
          for(int b = 0; b < nbatch; b++){
-	   if (mWriteTimeScaleFieldnames) {
-	     timeScaleStream << "\tbatch = " << b << ", timeScale = " << timeScale[b] << ", " << "timeScaleTrue = " << timeScaleTrue[b];
-	   }
-	   else {
-	     timeScaleStream << b << ", " << timeScale[b] << ", " << timeScaleTrue[b];
-	   }
-	   if (mUseAdaptMethodExp1stOrder) {
-	     if (mWriteTimeScaleFieldnames) {
-	       timeScaleStream <<  ", " << "timeScaleMax = " << timeScaleMax[b] << std::endl;
-	       // timeScaleStream <<  ", " << "timeScaleMax = " << timeScaleMax[b] <<  ", " << "timeScaleMax2 = " << timeScaleMax2[b] << std::endl;
-	     }
-	     else {
-	       // timeScaleStream <<  ", " << timeScaleMax[b] <<  ", " << timeScaleMax2[b] << std::endl;
-	       timeScaleStream <<  ", " << timeScaleMax[b] << std::endl;
-	     }
-	   }
-	   else {
-	     timeScaleStream << std::endl;
-	   }
+            if (mWriteTimeScaleFieldnames) {
+               timeScaleStream << "\tbatch = " << b << ", timeScale = " << timeScale[b] << ", " << "timeScaleTrue = " << timeScaleTrue[b];
+            }
+            else {
+               timeScaleStream << b << ", " << timeScale[b] << ", " << timeScaleTrue[b];
+            }
+            if (mUseAdaptMethodExp1stOrder) {
+               if (mWriteTimeScaleFieldnames) {
+                  timeScaleStream <<  ", " << "timeScaleMax = " << timeScaleMax[b] << std::endl;
+                  // timeScaleStream <<  ", " << "timeScaleMax = " << timeScaleMax[b] <<  ", " << "timeScaleMax2 = " << timeScaleMax2[b] << std::endl;
+               }
+               else {
+                  // timeScaleStream <<  ", " << timeScaleMax[b] <<  ", " << timeScaleMax2[b] << std::endl;
+                  timeScaleStream <<  ", " << timeScaleMax[b] << std::endl;
+               }
+            }
+            else {
+               timeScaleStream << std::endl;
+            }
          }
          timeScaleStream.flush();
      }
@@ -2260,14 +2266,16 @@ int HyPerCol::advanceTime(double sim_time)
    //
 
    int status = PV_SUCCESS;
-   bool exitAfterUpdate = false;
 
    // update the connections (weights)
    //
-   for (auto c : mConnections) {
-      status = c->updateState(simTime, deltaTimeBase);
-      if (!exitAfterUpdate) {
-         exitAfterUpdate = status == PV_EXIT_NORMALLY;
+   if(1) {
+      ConnectionUpdateMessage connUpdate; connUpdate.mTime = simTime; connUpdate.mDeltaT = deltaTimeBase;
+      notify(&connUpdate);
+   }
+   else {
+      for (auto c : mConnections) {
+         status = c->updateState(simTime, deltaTimeBase);
       }
    }
    normalizeWeights();
@@ -2332,9 +2340,6 @@ int HyPerCol::advanceTime(double sim_time)
          if(layers[l]->getUpdateGpu()){
 #endif
             status = layers[l]->callUpdateState(simTime, deltaTimeBase);
-            if (!exitAfterUpdate) {
-               exitAfterUpdate = status == PV_EXIT_NORMALLY;
-            }
 #ifdef PV_USE_CUDA
          }
          //If not updating on gpu, save for later
@@ -2357,9 +2362,6 @@ int HyPerCol::advanceTime(double sim_time)
          //Update for non gpu recv and non gpu update
          else{
             status = layer->callUpdateState(simTime, deltaTimeBase);
-            if (!exitAfterUpdate) {
-               exitAfterUpdate = status == PV_EXIT_NORMALLY;
-            }
          }
       }
       getDevice()->syncDevice();
@@ -2367,9 +2369,6 @@ int HyPerCol::advanceTime(double sim_time)
       //Update for non gpu recv and gpu update
       for(auto& layer : updateLayerBufferGpu) {
          status = layer->callUpdateState(simTime, deltaTimeBase);
-         if (!exitAfterUpdate) {
-            exitAfterUpdate = status == PV_EXIT_NORMALLY;
-         }
       }
 
       getDevice()->syncDevice();
@@ -2387,9 +2386,6 @@ int HyPerCol::advanceTime(double sim_time)
       //Update for gpu recv and non gpu update
       for (auto& layer : updateLayerBuffer) {
          status = layer->callUpdateState(simTime, deltaTimeBase);
-         if (!exitAfterUpdate) {
-            exitAfterUpdate = status == PV_EXIT_NORMALLY;
-         }
       }
 
       //Clear all buffers
@@ -2483,10 +2479,6 @@ int HyPerCol::advanceTime(double sim_time)
    runTimer->stop();
 
    outputState(simTime);
-
-   if (exitAfterUpdate) {
-      status = PV_EXIT_NORMALLY;
-   }
 
 
    return status;
@@ -3530,6 +3522,7 @@ HyPerCol * createHyPerCol(PV_Init * pv_initObj) {
             delete hc;
             return nullptr;
          }
+         hc->addObject(addedObject);
       }
    }
 

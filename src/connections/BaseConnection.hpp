@@ -463,6 +463,10 @@ protected:
     */
    virtual int setInitialValues() = 0;
 
+   virtual void respondConnectionUpdate(ConnectionUpdateMessage const * message) { updateState(message->mTime, message->mDeltaT);  }
+
+   virtual void respondConnectionOutput(ConnectionOutputMessage const * message) { outputState(message->mTime);  }
+
    /**
     * A pure virtual method whose implementation returns true
     * if an the weights should update on the given timestep

@@ -22,6 +22,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/GaussianRandom.hpp
    ${SUBDIR}/HyPerCol.hpp
    ${SUBDIR}/InterColComm.hpp
+   ${SUBDIR}/Messages.hpp
    ${SUBDIR}/Publisher.hpp
    ${SUBDIR}/PV_Arguments.hpp
    ${SUBDIR}/Factory.hpp

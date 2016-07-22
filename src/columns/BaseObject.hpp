@@ -23,6 +23,7 @@
 #ifndef BASEOBJECT_HPP_
 #define BASEOBJECT_HPP_
 
+#include <columns/Messages.hpp>
 #include "utils/PVLog.hpp"
 #include "utils/PVAssert.hpp"
 #include "utils/PVAlloc.hpp"
@@ -38,6 +39,7 @@ public:
    inline char const * getDescription_c() const { return description.c_str(); }
    inline std::string const& getDescription() const { return description; }
    char const * getKeyword() const;
+   void respond(BaseMessage const * message);
    virtual ~BaseObject();
 
 
@@ -47,6 +49,9 @@ protected:
    int setName(char const * name);
    int setParent(HyPerCol * hc);
    virtual int setDescription();
+
+   virtual void respondConnectionUpdate(ConnectionUpdateMessage const * message) {}
+   virtual void respondConnectionOutput(ConnectionOutputMessage const * message) {}
 
 // Member variable
 protected:
