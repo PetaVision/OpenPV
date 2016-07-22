@@ -2412,44 +2412,19 @@ int HyPerCol::advanceTime(double sim_time)
       updateLayerBufferGpu.clear();
 #endif
 
-
-      //    for (int l = 0; l < numLayers; l++) {
-      //       // deliver new synaptic activity to any
-      //       // postsynaptic layers for which this
-      //       // layer is presynaptic.
-      //       layers[l]->triggerReceive(icComm);
-      //    }
-
-      //// Update the layers (activity)
-      //// We don't put updateState in the same loop over layers as recvAllSynapticInput
-      //// because we plan to have updateState update the datastore directly, and
-      //// recvSynapticInput uses the datastore to compute GSyn.
-      //for(int l = 0; l < numLayers; l++) {
-      //   if (layers[l]->getPhase() != phase) continue;
-      //   status = layers[l]->updateStateWrapper(simTime, deltaTimeAdapt);
-      //   if (!exitAfterUpdate) {
-      //      exitAfterUpdate = status == PV_EXIT_NORMALLY;
-      //   }
-      //}
-
-      // This loop separate from the update layer loop above
-      // to provide time for layer data to be copied from
-      // the OpenCL device.
-      //
       for (int l = 0; l < numLayers; l++) {
          if (layers[l]->getPhase() != phase) continue;
          // after updateBorder completes all necessary data has been
          // copied from the device (GPU) to the host (CPU)
          layers[l]->updateBorder(simTime, deltaTimeBase); // TODO rename updateBorder?  deltaTimeAdapt not used here
 
-         // TODO - move this to layer
          // Advance time level so we have a new place in data store
          // to copy the data.  This should be done immediately before
          // publish so there is a place to publish and deliver the data to.
          // No one can access the data store (except to publish) until
          // wait has been called.  This should be fixed so that publish goes
          // to last time level and level is advanced only after wait.
-         icComm->increaseTimeLevel(layers[l]->getLayerId());
+         layers[l]->getParent()->icCommunicator()->publisherStore(layers[l]->getLayerId())->newLevelIndex();
 
          layers[l]->publish(icComm, simTime);
       }
