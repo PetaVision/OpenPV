@@ -2430,7 +2430,7 @@ int HyPerCol::advanceTime(double sim_time)
       }
 
       if (mErrorOnNotANumber) {
-         notify(LayerCheckNotANumber(phase));
+         notify(LayerCheckNotANumberMessage(phase));
       }
    }
 
