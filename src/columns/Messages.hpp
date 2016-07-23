@@ -27,12 +27,9 @@ private:
 template <typename T>
 class CommunicateInitInfoMessage : public BaseMessage {
 public:
-   CommunicateInitInfoMessage(std::vector<T> hierarchy) {
+   CommunicateInitInfoMessage(std::vector<T> hierarchy=std::vector<T>()) {
       initMessageType();
       mHierarchy = hierarchy;
-   }
-   CommunicateInitInfoMessage() {
-      initMessageType();
    }
    std::vector<T> mHierarchy;
 protected:
@@ -50,15 +47,10 @@ protected:
 
 class ConnectionUpdateMessage : public BaseMessage {
 public:
-   ConnectionUpdateMessage(double simTime, double deltaTime) {
+   ConnectionUpdateMessage(double simTime=0.0, double deltaTime=0.0) {
       initMessageType();
       mTime = simTime;
       mDeltaT = deltaTime;
-   }
-   ConnectionUpdateMessage() {
-      initMessageType();
-      mTime = 0.0;
-      mDeltaT = 0.0;
    }
    double mTime;
    double mDeltaT; // TODO: this should be the nbatch-sized vector of adaptive timesteps
@@ -68,15 +60,10 @@ protected:
 
 class ConnectionFinalizeUpdateMessage : public BaseMessage {
 public:
-   ConnectionFinalizeUpdateMessage(double simTime, double deltaTime) {
+   ConnectionFinalizeUpdateMessage(double simTime=0.0, double deltaTime=0.0) {
       initMessageType();
       mTime = simTime;
       mDeltaT = deltaTime;
-   }
-   ConnectionFinalizeUpdateMessage() {
-      initMessageType();
-      mTime = 0.0;
-      mDeltaT = 0.0;
    }
    double mTime;
    double mDeltaT; // TODO: this should be the nbatch-sized vector of adaptive timesteps
@@ -86,17 +73,36 @@ protected:
 
 class ConnectionOutputMessage : public BaseMessage {
 public:
-   ConnectionOutputMessage(double simTime) {
+   ConnectionOutputMessage(double simTime=0.0) {
       initMessageType();
       mTime = simTime;
-   }
-   ConnectionOutputMessage() {
-      initMessageType();
-      mTime = 0.0;
    }
    double mTime;
 protected:
    void initMessageType() { setMessageType("ConnectionOutput"); }
+};
+
+class LayerPublishMessage : public BaseMessage {
+public:
+   LayerPublishMessage(int phase=0, double simTime=0.0) {
+      initMessageType();
+      mPhase = phase;
+      mTime = simTime;
+   }
+   int mPhase;
+   double mTime;
+protected:
+   void initMessageType() { setMessageType("LayerPublish"); }
+};
+
+class LayerCheckNotANumber : public BaseMessage {
+   LayerCheckNotANumber(int phase=0) {
+      initMessageType();
+      mPhase = phase;
+   }
+   int mPhase;
+protected:
+   void initMessageType() { setMessageType("LayerCheckNotANumber"); }
 };
 
 } /* namespace PV */

@@ -369,14 +369,13 @@ public:
     * A function to update the time that the next trigger is expected to occur.
     */
    virtual int updateNextTriggerTime();
+   virtual int respondLayerPublish(LayerPublishMessage const * message);
    virtual int publish(InterColComm * comm, double time);
    virtual int resetGSynBuffers(double timef, double dt);
    // ************************************************************************************//
 
    // mpi public wait method to ensure all targets have received synaptic input before proceeding to next time step
    virtual int waitOnPublish(InterColComm * comm);
-
-   virtual int updateBorder(double time, double dt);
 
    virtual int updateAllActiveIndices();
    virtual int updateActiveIndices();

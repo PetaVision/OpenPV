@@ -1681,12 +1681,6 @@ int HyPerLayer::setActivity() {
    return setActivity_HyPerLayer(loc->nbatch, getNumNeurons(), clayer->activity->data, getV(), loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
 }
 
-int HyPerLayer::updateBorder(double time, double dt)
-{
-   int status = PV_SUCCESS;
-   return status;
-}
-
 //Updates active indices for all levels (delays) here
 int HyPerLayer::updateAllActiveIndices() {
    return parent->icCommunicator()->updateAllActiveIndices(this->getLayerId());
@@ -1793,6 +1787,14 @@ void HyPerLayer::copyAllActivityFromDevice(){
 }
 
 #endif
+
+int HyPerLayer::respondLayerPublish(LayerPublishMessage const * message) {
+   int status = PV_SUCCESS;
+   if (message->mPhase != getPhase()) { return status; }
+   getParent()->icCommunicator()->publisherStore(getLayerId())->newLevelIndex();
+   publish(getParent()->icCommunicator(), message->mTime);
+   return status;
+}
 
 int HyPerLayer::publish(InterColComm* comm, double time)
 {

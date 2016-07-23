@@ -2412,28 +2412,12 @@ int HyPerCol::advanceTime(double sim_time)
       updateLayerBufferGpu.clear();
 #endif
 
-      for (int l = 0; l < numLayers; l++) {
-         if (layers[l]->getPhase() != phase) continue;
-         // after updateBorder completes all necessary data has been
-         // copied from the device (GPU) to the host (CPU)
-         layers[l]->updateBorder(simTime, deltaTimeBase); // TODO rename updateBorder?  deltaTimeAdapt not used here
-
-         // Advance time level so we have a new place in data store
-         // to copy the data.  This should be done immediately before
-         // publish so there is a place to publish and deliver the data to.
-         // No one can access the data store (except to publish) until
-         // wait has been called.  This should be fixed so that publish goes
-         // to last time level and level is advanced only after wait.
-         layers[l]->getParent()->icCommunicator()->publisherStore(layers[l]->getLayerId())->newLevelIndex();
-
-         layers[l]->publish(icComm, simTime);
-      }
+      // Rotate DataStore ring buffers, copy activity buffer to DataStore, and do MPI exchange.
+      notify(LayerPublishMessage(phase, simTime));
 
 
       // wait for all published data to arrive
       //
-      char brokenlayers[numLayers];
-      memset(brokenlayers, 0, (size_t) numLayers);
       for (int l = 0; l < numLayers; l++) {
          if (layers[l]->getPhase() != phase) continue;
          layers[l]->waitOnPublish(icComm);
@@ -2443,7 +2427,13 @@ int HyPerCol::advanceTime(double sim_time)
          //
          //    // also calls layer probes
          layers[l]->outputState(simTime); // also calls layer probes' outputState
-         if (mErrorOnNotANumber) {
+      }
+
+      if (mErrorOnNotANumber) {
+         char brokenlayers[numLayers];
+         memset(brokenlayers, 0, (size_t) numLayers);
+         for (int l = 0; l < numLayers; l++) {
+            if (layers[l]->getPhase() != phase) continue;
             for (int n=0; n<layers[l]->getNumExtended(); n++) {
                pvadata_t a = layers[l]->getLayerData()[n];
                if (a!=a) {
@@ -2452,16 +2442,15 @@ int HyPerCol::advanceTime(double sim_time)
                }
             }
          }
-      }
-      if (status==PV_FAILURE) {
-         for (int l=0; l<numLayers;l++) {
-            if (brokenlayers[l]) {
-               pvErrorNoExit().printf("%s has not-a-number values in the activity buffer.  Exiting.\n", layers[l]->getDescription_c());
+         if (status==PV_FAILURE) {
+            for (int l=0; l<numLayers;l++) {
+               if (brokenlayers[l]) {
+                  pvErrorNoExit().printf("%s has not-a-number values in the activity buffer.  Exiting.\n", layers[l]->getDescription_c());
+               }
             }
+            exit(EXIT_FAILURE);
          }
-         exit(EXIT_FAILURE);
       }
-
    }
 
    // Balancing MPI_Send is before the for-loop over phases.  Is this better than MPI_Bcast?

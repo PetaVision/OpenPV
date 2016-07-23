@@ -80,6 +80,9 @@ int BaseObject::respond(BaseMessage const * message) {
    else if (ConnectionOutputMessage const * castMessage = dynamic_cast<ConnectionOutputMessage const*>(message)) {
       status = respondConnectionOutput(castMessage);
    }
+   else if (LayerPublishMessage const * castMessage = dynamic_cast<LayerPublishMessage const*>(message)) {
+      status = respondLayerPublish(castMessage);
+   }
    else {
       pvError() << "Unrecognized message type\n";
       status = PV_FAILURE;

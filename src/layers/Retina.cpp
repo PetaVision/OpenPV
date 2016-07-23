@@ -378,14 +378,6 @@ int Retina::updateState(double timed, double dt)
    return 0;
 }
 
-int Retina::updateBorder(double time, double dt)
-{
-   // wait for OpenCL data transfers to finish
-   HyPerLayer::updateBorder(time, dt);
-
-   return PV_SUCCESS;
-}
-
 int Retina::outputState(double time, bool last)
 {
    // HyPerLayer::outputState already has an io timer so don't duplicate
