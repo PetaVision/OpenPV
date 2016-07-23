@@ -1788,6 +1788,41 @@ void HyPerLayer::copyAllActivityFromDevice(){
 
 #endif
 
+int HyPerLayer::respondLayerReceiveAndUpdate(LayerReceiveAndUpdateMessage const * message) {
+   int status = PV_SUCCESS;
+   if (message->mPhase != getPhase()) { return status; }
+   if (message->mRecvOnGpuFlag != getRecvGpu()) { return status; }
+   resetGSynBuffers(message->mTime, message->mDeltaT);  // deltaTimeAdapt is not used
+   message->mTimer->start();
+   recvAllSynapticInput();
+   message->mTimer->stop();
+   if (message->mUpdateOnGpuFlag == getUpdateGpu()) {
+      status = callUpdateState(message->mTime, message->mDeltaT);
+   }
+   return status;
+}
+
+int HyPerLayer::respondLayerUpdateState(LayerUpdateStateMessage const * message) {
+   int status = PV_SUCCESS;
+   if (message->mPhase != getPhase()) { return status; }
+   if (message->mRecvOnGpuFlag != getRecvGpu()) { return status; }
+   if (message->mUpdateOnGpuFlag != getUpdateGpu()) { return status; }
+   status = callUpdateState(message->mTime, message->mDeltaT);
+   return status;
+}
+
+int HyPerLayer::respondLayerCopyFromGpu(LayerCopyFromGpuMessage const * message) {
+   int status = PV_SUCCESS;
+   if (message->mPhase != getPhase()) { return status; }
+   message->mTimer->start();
+   copyAllActivityFromDevice();
+   copyAllVFromDevice();
+   copyAllGSynFromDevice();
+   addGpuTimers();
+   message->mTimer->stop();
+   return status;
+}
+
 int HyPerLayer::respondLayerPublish(LayerPublishMessage const * message) {
    int status = PV_SUCCESS;
    if (message->mPhase != getPhase()) { return status; }
@@ -1796,7 +1831,7 @@ int HyPerLayer::respondLayerPublish(LayerPublishMessage const * message) {
    return status;
 }
 
-int HyPerLayer::respondCheckNotANumber(LayerCheckNotANumberMessage const * message) {
+int HyPerLayer::respondLayerCheckNotANumber(LayerCheckNotANumberMessage const * message) {
    int status = PV_SUCCESS;
    if (message->mPhase != getPhase()) { return status; }
    auto layerData = getLayerData();
@@ -1814,6 +1849,15 @@ int HyPerLayer::respondCheckNotANumber(LayerCheckNotANumberMessage const * messa
       MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
+   return status;
+}
+
+int HyPerLayer::respondLayerOutputState(LayerOutputStateMessage const * message) {
+   int status = PV_SUCCESS;
+   if (message->mPhase != getPhase()) { return status; }
+   waitOnPublish(getParent()->icCommunicator());
+   updateActiveIndices();
+   outputState(message->mTime); // also calls layer probes' outputState
    return status;
 }
 

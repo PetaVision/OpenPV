@@ -189,7 +189,6 @@ int HyPerCol::initialize_base() {
    mWriteTimescales = true; //Defaults to true
    mErrorOnNotANumber = false;
    numThreads = 1;
-   recvLayerBuffer.clear();
    mVerifyWrites = true; // Default for reading back and verifying when calling PV_fwrite
 #ifdef PV_USE_CUDA
    cudaDevice = NULL;
@@ -2227,8 +2226,7 @@ int HyPerCol::calcTimeScaleTrue() {
    return PV_SUCCESS;
 }
 
-int HyPerCol::advanceTime(double sim_time)
-{
+int HyPerCol::advanceTime(double sim_time) {
    if (simTime >= nextProgressTime) {
       nextProgressTime += progressInterval;
       if (columnId() == 0) {
@@ -2328,106 +2326,31 @@ int HyPerCol::advanceTime(double sim_time)
    for (int phase=0; phase<numPhases; phase++) {
 #ifdef PV_USE_CUDA
       //Clear layer buffer
-      recvLayerBuffer.clear();
-      updateLayerBuffer.clear();
-      updateLayerBufferGpu.clear();
 #endif
 
       //Ordering needs to go recvGpu, if(recvGpu and upGpu)update, recvNoGpu, update rest
 
-      //Time recv for each phase
-      // clear GSyn buffers
-      for(int l = 0; l < numLayers; l++) {
-         if (layers[l]->getPhase() != phase) continue;
-#ifdef PV_USE_CUDA
-         //Save non gpu layer recv for later
-         if(!layers[l]->getRecvGpu()){
-            recvLayerBuffer.push_back(layers[l]);
-            continue;
-         }
-#endif
-         //Recv GPU
-         layers[l]->resetGSynBuffers(simTime, deltaTimeBase);  // deltaTimeAdapt is not used
-         phaseRecvTimers[phase]->start();
-         layers[l]->recvAllSynapticInput();
-         phaseRecvTimers[phase]->stop();
-         //if(recvGpu and upGpu)
+      notify(LayerReceiveAndUpdateMessage(phase, phaseRecvTimers[phase], true/*recvGpuFlag*/, true/*updateGpuFlag*/, simTime, deltaTimeBase));
 
-         //Update for gpu recv and gpu update
+      notify(LayerReceiveAndUpdateMessage(phase, phaseRecvTimers[phase], false/*recvGpuFlag*/, false/*updateGpuFlag*/, simTime, deltaTimeBase));
 #ifdef PV_USE_CUDA
-         if(layers[l]->getUpdateGpu()){
-#endif
-            status = layers[l]->callUpdateState(simTime, deltaTimeBase);
-#ifdef PV_USE_CUDA
-         }
-         //If not updating on gpu, save for later
-         else{
-            updateLayerBuffer.push_back(layers[l]);
-         }
-#endif
-      }
-
-#ifdef PV_USE_CUDA
-      //Run non gpu layers
-      for (auto& layer : recvLayerBuffer) {
-         layer->resetGSynBuffers(simTime, deltaTimeBase);  // deltaTimeAdapt is not used
-         phaseRecvTimers[phase]->start();
-         layer->recvAllSynapticInput();
-         phaseRecvTimers[phase]->stop();
-         if(layer->getUpdateGpu()){
-            updateLayerBufferGpu.push_back(layer);
-         }
-         //Update for non gpu recv and non gpu update
-         else{
-            status = layer->callUpdateState(simTime, deltaTimeBase);
-         }
-      }
       getDevice()->syncDevice();
 
-      //Update for non gpu recv and gpu update
-      for(auto& layer : updateLayerBufferGpu) {
-         status = layer->callUpdateState(simTime, deltaTimeBase);
-      }
+      //Update for receiving on cpu and updating on gpu
+      notify(LayerUpdateStateMessage(phase, false/*recvOnGpuFlag*/, true/*updateOnGpuFlag*/, simTime, deltaTimeBase));
 
       getDevice()->syncDevice();
-      //Barriers for all gpus, and copy back all data structures
-      for(int l = 0; l < numLayers; l++) {
-         if (layers[l]->getPhase() != phase) continue;
-         phaseRecvTimers[phase]->start();
-         layers[l]->copyAllActivityFromDevice();
-         layers[l]->copyAllVFromDevice();
-         layers[l]->copyAllGSynFromDevice();
-         layers[l]->addGpuTimers();
-         phaseRecvTimers[phase]->stop();
-      }
+      notify(LayerCopyFromGpuMessage(phase, phaseRecvTimers[phase]));
 
       //Update for gpu recv and non gpu update
-      for (auto& layer : updateLayerBuffer) {
-         status = layer->callUpdateState(simTime, deltaTimeBase);
-      }
-
-      //Clear all buffers
-      recvLayerBuffer.clear();
-      updateLayerBuffer.clear();
-      updateLayerBufferGpu.clear();
+      notify(LayerUpdateStateMessage(phase, true/*recvOnGpuFlag*/, false/*updateOnGpuFlag*/, simTime, deltaTimeBase));
 #endif
 
       // Rotate DataStore ring buffers, copy activity buffer to DataStore, and do MPI exchange.
       notify(LayerPublishMessage(phase, simTime));
 
-
       // wait for all published data to arrive and call layer's outputState
-      //
-      for (int l = 0; l < numLayers; l++) {
-         if (layers[l]->getPhase() != phase) continue;
-         layers[l]->waitOnPublish(icComm);
-         //Update active indices
-         layers[l]->updateActiveIndices();
-
-         //
-         //    // also calls layer probes
-         layers[l]->outputState(simTime); // also calls layer probes' outputState
-      }
+      notify(LayerOutputStateMessage(phase, simTime));
 
       if (mErrorOnNotANumber) {
          notify(LayerCheckNotANumberMessage(phase));

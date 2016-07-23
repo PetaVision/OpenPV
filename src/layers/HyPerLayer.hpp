@@ -369,8 +369,12 @@ public:
     * A function to update the time that the next trigger is expected to occur.
     */
    virtual int updateNextTriggerTime();
+   virtual int respondLayerReceiveAndUpdate(LayerReceiveAndUpdateMessage const * message);
+   virtual int respondLayerUpdateState(LayerUpdateStateMessage const * message);
+   virtual int respondLayerCopyFromGpu(LayerCopyFromGpuMessage const * message);
    virtual int respondLayerPublish(LayerPublishMessage const * message);
-   virtual int respondCheckNotANumber(LayerCheckNotANumberMessage const * message);
+   virtual int respondLayerCheckNotANumber(LayerCheckNotANumberMessage const * message);
+   virtual int respondLayerOutputState(LayerOutputStateMessage const * message);
    virtual int publish(InterColComm * comm, double time);
    virtual int resetGSynBuffers(double timef, double dt);
    // ************************************************************************************//

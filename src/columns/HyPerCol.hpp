@@ -599,9 +599,6 @@ private:
    size_t normalizerArraySize;
    std::vector<std::string> oldCheckpointDirectories; // A ring buffer of existing checkpoints, used if mDeleteOlderCheckpoints is true.
    std::ofstream timeScaleStream;
-   std::vector<HyPerLayer*> recvLayerBuffer;
-   std::vector<HyPerLayer*> updateLayerBufferGpu;
-   std::vector<HyPerLayer*> updateLayerBuffer;
    Timer * runTimer;
    Timer * checkpointTimer;
    Timer ** phaseRecvTimers;

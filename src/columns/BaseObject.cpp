@@ -80,11 +80,23 @@ int BaseObject::respond(BaseMessage const * message) {
    else if (ConnectionOutputMessage const * castMessage = dynamic_cast<ConnectionOutputMessage const*>(message)) {
       status = respondConnectionOutput(castMessage);
    }
+   else if (LayerReceiveAndUpdateMessage const * castMessage = dynamic_cast<LayerReceiveAndUpdateMessage const*>(message)) {
+      status = respondLayerReceiveAndUpdate(castMessage);
+   }
+   else if (LayerUpdateStateMessage const * castMessage = dynamic_cast<LayerUpdateStateMessage const*>(message)) {
+      status = respondLayerUpdateState(castMessage);
+   }
+   else if (LayerCopyFromGpuMessage const * castMessage = dynamic_cast<LayerCopyFromGpuMessage const*>(message)) {
+      status = respondLayerCopyFromGpu(castMessage);
+   }
    else if (LayerPublishMessage const * castMessage = dynamic_cast<LayerPublishMessage const*>(message)) {
       status = respondLayerPublish(castMessage);
    }
+   else if (LayerOutputStateMessage const * castMessage = dynamic_cast<LayerOutputStateMessage const*>(message)) {
+      status = respondLayerOutputState(castMessage);
+   }
    else if (LayerCheckNotANumberMessage const * castMessage = dynamic_cast<LayerCheckNotANumberMessage const*>(message)) {
-      status = respondCheckNotANumber(castMessage);
+      status = respondLayerCheckNotANumber(castMessage);
    }
    else {
       pvError() << "Unrecognized message type\n";
