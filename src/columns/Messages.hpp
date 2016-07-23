@@ -9,6 +9,7 @@
 #define BASEMESSAGE_HPP_
 
 #include "utils/Timer.hpp"
+#include "cMakeHeader.h"
 #include <vector> // #include <map>
 #include <string>
 
@@ -19,8 +20,8 @@ public:
    virtual ~BaseMessage() {}
    inline std::string const& getMessageType() const { return mMessageType; }
 protected:
-   inline void setMessageType(std::string const& messageType) { mMessageType.clear(); mMessageType += messageType;}
-   inline void setMessageType(char const * messageType) { mMessageType.clear(); mMessageType += messageType;}
+   inline void setMessageType(std::string const& messageType) { mMessageType = messageType;}
+   inline void setMessageType(char const * messageType) { mMessageType = messageType;}
 private:
    std::string mMessageType="";
 };
@@ -44,7 +45,7 @@ public:
 
 class ConnectionUpdateMessage : public BaseMessage {
 public:
-   ConnectionUpdateMessage(double simTime=0.0, double deltaTime=0.0) {
+   ConnectionUpdateMessage(double simTime, double deltaTime) {
       setMessageType("ConnectionUpdate");
       mTime = simTime;
       mDeltaT = deltaTime;
@@ -55,7 +56,7 @@ public:
 
 class ConnectionFinalizeUpdateMessage : public BaseMessage {
 public:
-   ConnectionFinalizeUpdateMessage(double simTime=0.0, double deltaTime=0.0) {
+   ConnectionFinalizeUpdateMessage(double simTime, double deltaTime) {
       setMessageType("ConnectionFinalizeUpdate");
       mTime = simTime;
       mDeltaT = deltaTime;
@@ -66,7 +67,7 @@ public:
 
 class ConnectionOutputMessage : public BaseMessage {
 public:
-   ConnectionOutputMessage(double simTime=0.0) {
+   ConnectionOutputMessage(double simTime) {
       setMessageType("ConnectionOutput");
       mTime = simTime;
    }
@@ -75,43 +76,60 @@ public:
 
 class LayerReceiveAndUpdateMessage : public BaseMessage {
 public:
-   LayerReceiveAndUpdateMessage(int phase=0, Timer * timer=nullptr, bool recvOnGpuFlag=false, bool updateOnGpuFlag=false, double simTime=0.0, double deltaTime=0.0) {
+   LayerReceiveAndUpdateMessage(int phase, Timer * timer,
+#ifdef PV_USE_CUDA
+         bool recvOnGpuFlag, bool updateOnGpuFlag,
+#endif // PV_USE_CUDA
+         double simTime, double deltaTime) {
       setMessageType("LayerReceiveAndUpdate");
       mPhase = phase;
       mTimer = timer;
+#ifdef PV_USE_CUDA
       mRecvOnGpuFlag = recvOnGpuFlag;
       mUpdateOnGpuFlag = updateOnGpuFlag;
+#endif // PV_USE_CUDA
       mTime = simTime;
       mDeltaT = deltaTime;
    }
    int mPhase = 0;
    Timer * mTimer = nullptr;
+#ifdef PV_USE_CUDA
    bool mRecvOnGpuFlag;
    bool mUpdateOnGpuFlag;
+#endif // PV_USE_CUDA
    float mTime;
    float mDeltaT; // TODO: this should be the nbatch-sized vector of adaptive timesteps
 };
 
 class LayerUpdateStateMessage : public BaseMessage {
 public:
-   LayerUpdateStateMessage(int phase=0, bool recvOnGpuFlag=false, bool updateOnGpuFlag=false, double simTime=0.0, double deltaTime=0.0) {
+   LayerUpdateStateMessage(int phase,
+#ifdef PV_USE_CUDA
+         bool recvOnGpuFlag, bool updateOnGpuFlag,
+#endif // PV_USE_CUDA
+         double simTime, double deltaTime) {
       setMessageType("LayerUpdateState");
       mPhase = phase;
+#ifdef PV_USE_CUDA
       mRecvOnGpuFlag = recvOnGpuFlag;
       mUpdateOnGpuFlag = updateOnGpuFlag;
+#endif // PV_USE_CUDA
       mTime = simTime;
       mDeltaT = deltaTime;
    }
    int mPhase;
+#ifdef PV_USE_CUDA
    bool mRecvOnGpuFlag;
    bool mUpdateOnGpuFlag;
+#endif // PV_USE_CUDA
    float mTime;
    float mDeltaT; // TODO: this should be the nbatch-sized vector of adaptive timesteps
 };
 
+#ifdef PV_USE_CUDA
 class LayerCopyFromGpuMessage : public BaseMessage {
 public:
-   LayerCopyFromGpuMessage(int phase=0, Timer* timer=nullptr) {
+   LayerCopyFromGpuMessage(int phase, Timer* timer) {
       setMessageType("LayerCopyFromGpu");
       mPhase = phase;
       mTimer = timer;
@@ -119,10 +137,11 @@ public:
    int mPhase;
    Timer * mTimer;
 };
+#endif // PV_USE_CUDA
 
 class LayerPublishMessage : public BaseMessage {
 public:
-   LayerPublishMessage(int phase=0, double simTime=0.0) {
+   LayerPublishMessage(int phase, double simTime) {
       setMessageType("LayerPublish");
       mPhase = phase;
       mTime = simTime;
@@ -133,7 +152,7 @@ public:
 
 class LayerOutputStateMessage : public BaseMessage {
 public:
-   LayerOutputStateMessage(int phase=0, double simTime=0.0) {
+   LayerOutputStateMessage(int phase, double simTime) {
       setMessageType("LayerOutputState");
       mPhase = phase;
       mTime = simTime;
@@ -144,7 +163,7 @@ public:
 
 class LayerCheckNotANumberMessage : public BaseMessage {
 public:
-   LayerCheckNotANumberMessage(int phase=0) {
+   LayerCheckNotANumberMessage(int phase) {
       setMessageType("LayerCheckNotANumber");
       mPhase = phase;
    }

@@ -2324,15 +2324,16 @@ int HyPerCol::advanceTime(double sim_time) {
 
    // Each layer's phase establishes a priority for updating
    for (int phase=0; phase<numPhases; phase++) {
-#ifdef PV_USE_CUDA
-      //Clear layer buffer
-#endif
 
       //Ordering needs to go recvGpu, if(recvGpu and upGpu)update, recvNoGpu, update rest
-
+#ifdef PV_USE_CUDA
       notify(LayerReceiveAndUpdateMessage(phase, phaseRecvTimers[phase], true/*recvGpuFlag*/, true/*updateGpuFlag*/, simTime, deltaTimeBase));
-
       notify(LayerReceiveAndUpdateMessage(phase, phaseRecvTimers[phase], false/*recvGpuFlag*/, false/*updateGpuFlag*/, simTime, deltaTimeBase));
+#else
+      notify(LayerReceiveAndUpdateMessage(phase, phaseRecvTimers[phase], simTime, deltaTimeBase));
+#endif
+
+
 #ifdef PV_USE_CUDA
       getDevice()->syncDevice();
 

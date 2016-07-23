@@ -86,9 +86,11 @@ int BaseObject::respond(BaseMessage const * message) {
    else if (LayerUpdateStateMessage const * castMessage = dynamic_cast<LayerUpdateStateMessage const*>(message)) {
       status = respondLayerUpdateState(castMessage);
    }
+#ifdef PV_USE_CUDA
    else if (LayerCopyFromGpuMessage const * castMessage = dynamic_cast<LayerCopyFromGpuMessage const*>(message)) {
       status = respondLayerCopyFromGpu(castMessage);
    }
+#endif // PV_USE_CUDA
    else if (LayerPublishMessage const * castMessage = dynamic_cast<LayerPublishMessage const*>(message)) {
       status = respondLayerPublish(castMessage);
    }

@@ -56,7 +56,9 @@ protected:
    virtual int respondConnectionOutput(ConnectionOutputMessage const * message) { return PV_SUCCESS; }
    virtual int respondLayerReceiveAndUpdate(LayerReceiveAndUpdateMessage const * message) { return PV_SUCCESS; }
    virtual int respondLayerUpdateState(LayerUpdateStateMessage const * message) { return PV_SUCCESS; }
+#ifdef PV_USE_CUDA
    virtual int respondLayerCopyFromGpu(LayerCopyFromGpuMessage const * message) { return PV_SUCCESS; }
+#endif // PV_USE_CUDA
    virtual int respondLayerPublish(LayerPublishMessage const * message) { return PV_SUCCESS; }
    virtual int respondLayerOutputState(LayerOutputStateMessage const * message) { return PV_SUCCESS; }
    virtual int respondLayerCheckNotANumber(LayerCheckNotANumberMessage const * message) { return PV_SUCCESS; }

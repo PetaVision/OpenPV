@@ -371,7 +371,9 @@ public:
    virtual int updateNextTriggerTime();
    virtual int respondLayerReceiveAndUpdate(LayerReceiveAndUpdateMessage const * message);
    virtual int respondLayerUpdateState(LayerUpdateStateMessage const * message);
+#ifdef PV_USE_CUDA
    virtual int respondLayerCopyFromGpu(LayerCopyFromGpuMessage const * message);
+#endif // PV_USE_CUDA
    virtual int respondLayerPublish(LayerPublishMessage const * message);
    virtual int respondLayerCheckNotANumber(LayerCheckNotANumberMessage const * message);
    virtual int respondLayerOutputState(LayerOutputStateMessage const * message);

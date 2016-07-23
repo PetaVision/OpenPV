@@ -1791,12 +1791,19 @@ void HyPerLayer::copyAllActivityFromDevice(){
 int HyPerLayer::respondLayerReceiveAndUpdate(LayerReceiveAndUpdateMessage const * message) {
    int status = PV_SUCCESS;
    if (message->mPhase != getPhase()) { return status; }
-   if (message->mRecvOnGpuFlag != getRecvGpu()) { return status; }
+#ifdef PV_USE_CUDA
+   bool synapticInputNeeded = message->mRecvOnGpuFlag==getRecvGpu();
+   bool callUpdateStateNeeded = message->mUpdateOnGpuFlag==getUpdateGpu();
+#else // PV_USE_CUDA
+   bool synapticInputNeeded = true;
+   bool callUpdateStateNeeded = true;
+#endif // PV_USE_CUDA
+   if (!synapticInputNeeded) { return status; }
    resetGSynBuffers(message->mTime, message->mDeltaT);  // deltaTimeAdapt is not used
    message->mTimer->start();
    recvAllSynapticInput();
    message->mTimer->stop();
-   if (message->mUpdateOnGpuFlag == getUpdateGpu()) {
+   if (callUpdateStateNeeded) {
       status = callUpdateState(message->mTime, message->mDeltaT);
    }
    return status;
@@ -1805,12 +1812,15 @@ int HyPerLayer::respondLayerReceiveAndUpdate(LayerReceiveAndUpdateMessage const 
 int HyPerLayer::respondLayerUpdateState(LayerUpdateStateMessage const * message) {
    int status = PV_SUCCESS;
    if (message->mPhase != getPhase()) { return status; }
+#ifdef PV_USE_CUDA
    if (message->mRecvOnGpuFlag != getRecvGpu()) { return status; }
    if (message->mUpdateOnGpuFlag != getUpdateGpu()) { return status; }
+#endif // PV_USE_CUDA
    status = callUpdateState(message->mTime, message->mDeltaT);
    return status;
 }
 
+#ifdef PV_USE_CUDA
 int HyPerLayer::respondLayerCopyFromGpu(LayerCopyFromGpuMessage const * message) {
    int status = PV_SUCCESS;
    if (message->mPhase != getPhase()) { return status; }
@@ -1822,6 +1832,7 @@ int HyPerLayer::respondLayerCopyFromGpu(LayerCopyFromGpuMessage const * message)
    message->mTimer->stop();
    return status;
 }
+#endif // PV_USE_CUDA
 
 int HyPerLayer::respondLayerPublish(LayerPublishMessage const * message) {
    int status = PV_SUCCESS;
