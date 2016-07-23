@@ -67,7 +67,7 @@ int BaseObject::setDescription() {
 }
 
 int BaseObject::respond(BaseMessage const * message) {
-   int status = PV_SUCCESS; // TODO: convert to enum
+   int status = PV_SUCCESS; // TODO: convert PV_SUCCESS, PV_FAILURE, etc. to enum
    if (message==nullptr) {
       return PV_SUCCESS;
    }
@@ -82,6 +82,9 @@ int BaseObject::respond(BaseMessage const * message) {
    }
    else if (LayerPublishMessage const * castMessage = dynamic_cast<LayerPublishMessage const*>(message)) {
       status = respondLayerPublish(castMessage);
+   }
+   else if (LayerCheckNotANumberMessage const * castMessage = dynamic_cast<LayerCheckNotANumberMessage const*>(message)) {
+      status = respondCheckNotANumber(castMessage);
    }
    else {
       pvError() << "Unrecognized message type\n";

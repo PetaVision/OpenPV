@@ -1796,6 +1796,27 @@ int HyPerLayer::respondLayerPublish(LayerPublishMessage const * message) {
    return status;
 }
 
+int HyPerLayer::respondCheckNotANumber(LayerCheckNotANumberMessage const * message) {
+   int status = PV_SUCCESS;
+   if (message->mPhase != getPhase()) { return status; }
+   auto layerData = getLayerData();
+   int const N = getNumExtended();
+   for (int n=0; n<N; n++) {
+      pvadata_t a = layerData[n];
+      if (a!=a) {
+         status = PV_FAILURE;
+      }
+   }
+   if (status != PV_SUCCESS) {
+      if (parent->columnId()==0) {
+         pvErrorNoExit() << getDescription() << " has not-a-number values in the activity buffer.  Exiting.\n";
+      }
+      MPI_Barrier(parent->icCommunicator()->communicator());
+      exit(EXIT_FAILURE);
+   }
+   return status;
+}
+
 int HyPerLayer::publish(InterColComm* comm, double time)
 {
    publish_timer->start();

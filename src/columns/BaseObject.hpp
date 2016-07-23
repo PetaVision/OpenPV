@@ -55,7 +55,7 @@ protected:
    virtual int respondConnectionFinalizeUpdate(ConnectionFinalizeUpdateMessage const * message) { return PV_SUCCESS; }
    virtual int respondConnectionOutput(ConnectionOutputMessage const * message) { return PV_SUCCESS; }
    virtual int respondLayerPublish(LayerPublishMessage const * message) { return PV_SUCCESS; }
-
+   virtual int respondCheckNotANumber(LayerCheckNotANumberMessage const * message) { return PV_SUCCESS; }
 // Member variable
 protected:
    char * name = nullptr;

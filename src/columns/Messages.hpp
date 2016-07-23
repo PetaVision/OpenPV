@@ -27,7 +27,7 @@ private:
 template <typename T>
 class CommunicateInitInfoMessage : public BaseMessage {
 public:
-   CommunicateInitInfoMessage(std::vector<T> hierarchy=std::vector<T>()) {
+   CommunicateInitInfoMessage(std::vector<T> hierarchy) {
       initMessageType();
       mHierarchy = hierarchy;
    }
@@ -95,8 +95,9 @@ protected:
    void initMessageType() { setMessageType("LayerPublish"); }
 };
 
-class LayerCheckNotANumber : public BaseMessage {
-   LayerCheckNotANumber(int phase=0) {
+class LayerCheckNotANumberMessage : public BaseMessage {
+public:
+   LayerCheckNotANumberMessage(int phase=0) {
       initMessageType();
       mPhase = phase;
    }

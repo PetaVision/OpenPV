@@ -370,6 +370,7 @@ public:
     */
    virtual int updateNextTriggerTime();
    virtual int respondLayerPublish(LayerPublishMessage const * message);
+   virtual int respondCheckNotANumber(LayerCheckNotANumberMessage const * message);
    virtual int publish(InterColComm * comm, double time);
    virtual int resetGSynBuffers(double timef, double dt);
    // ************************************************************************************//

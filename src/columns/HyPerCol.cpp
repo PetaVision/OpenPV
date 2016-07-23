@@ -2416,7 +2416,7 @@ int HyPerCol::advanceTime(double sim_time)
       notify(LayerPublishMessage(phase, simTime));
 
 
-      // wait for all published data to arrive
+      // wait for all published data to arrive and call layer's outputState
       //
       for (int l = 0; l < numLayers; l++) {
          if (layers[l]->getPhase() != phase) continue;
@@ -2430,26 +2430,7 @@ int HyPerCol::advanceTime(double sim_time)
       }
 
       if (mErrorOnNotANumber) {
-         char brokenlayers[numLayers];
-         memset(brokenlayers, 0, (size_t) numLayers);
-         for (int l = 0; l < numLayers; l++) {
-            if (layers[l]->getPhase() != phase) continue;
-            for (int n=0; n<layers[l]->getNumExtended(); n++) {
-               pvadata_t a = layers[l]->getLayerData()[n];
-               if (a!=a) {
-                  status = PV_FAILURE;
-                  brokenlayers[l] = 1;
-               }
-            }
-         }
-         if (status==PV_FAILURE) {
-            for (int l=0; l<numLayers;l++) {
-               if (brokenlayers[l]) {
-                  pvErrorNoExit().printf("%s has not-a-number values in the activity buffer.  Exiting.\n", layers[l]->getDescription_c());
-               }
-            }
-            exit(EXIT_FAILURE);
-         }
+         notify(LayerCheckNotANumber(phase));
       }
    }
 
