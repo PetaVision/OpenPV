@@ -24,7 +24,7 @@ namespace PV
 DataStore::DataStore(int numBuffers, int numItems, size_t dataSize, int numLevels, bool isSparse_flag)
 {
    assert(numLevels > 0 && numBuffers > 0);
-   this->curLevel = numLevels - 1;  // start at bottom, work up
+   this->curLevel = 0; // Publisher::publish decrements levels when writing, so first level written to is numLevels - 1;
    this->numItems = numItems;
    this->dataSize = dataSize;
    this->bufSize = numItems * dataSize;

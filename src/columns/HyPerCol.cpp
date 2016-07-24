@@ -1510,10 +1510,8 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
       notify(ConnectionFinalizeUpdateMessage(simTime, deltaTimeBase));
 
       // publish initial conditions
-      //
-      for (int l = 0; l < numLayers; l++) {
-         layers[l]->publish(icComm, simTime);
-         //layers[l]->updateActiveIndices();
+      for(int phase = 0; phase < numPhases; phase++){
+         notify(LayerPublishMessage(phase, simTime));
       }
 
       // wait for all published data to arrive and update active indices;
