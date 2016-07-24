@@ -1926,23 +1926,6 @@ int HyPerCol::connCommunicateInitInfo(int c) {
    return status;
 }
 
-int HyPerCol::layerAllocateDataStructures(int l) {
-   HyPerLayer * layer = layers[l];
-   assert(l>=0 && l<numLayers && layer->getDataStructuresAllocatedFlag()==false);
-   int status = layer->allocateDataStructures();
-   if (status==PV_SUCCESS) layer->setDataStructuresAllocatedFlag();
-   return status;
-}
-
-int HyPerCol::connAllocateDataStructures(int c) {
-   assert(c>=0 && c<numberOfConnections());
-   BaseConnection * conn = mConnections[c];
-   assert(conn->getDataStructuresAllocatedFlag()==false);
-   int status = conn->allocateDataStructures();
-   if (status==PV_SUCCESS) conn->setDataStructuresAllocatedFlag();
-   return status;
-}
-
 int HyPerCol::layerSetInitialValues(int l) {
    HyPerLayer * layer = layers[l];
    assert(l>=0 && l<numLayers && layer->getInitialValuesSetFlag()==false);

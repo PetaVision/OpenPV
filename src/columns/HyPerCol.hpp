@@ -472,8 +472,6 @@ private:
    int doInitializationStage(int (HyPerCol::*layerInitializationStage)(int), int (HyPerCol::*connInitializationStage)(int), const char * stageName);
    int layerCommunicateInitInfo(int l);
    int connCommunicateInitInfo(int c);
-   int layerAllocateDataStructures(int l);
-   int connAllocateDataStructures(int c);
    int layerSetInitialValues(int l);
    int connSetInitialValues(int c);
    int normalizeWeights();
