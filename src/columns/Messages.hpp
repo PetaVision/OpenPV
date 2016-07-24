@@ -10,7 +10,7 @@
 
 #include "utils/Timer.hpp"
 #include "cMakeHeader.h"
-#include <vector> // #include <map>
+#include <map>
 #include <string>
 
 namespace PV {
@@ -29,11 +29,11 @@ private:
 template <typename T>
 class CommunicateInitInfoMessage : public BaseMessage {
 public:
-   CommunicateInitInfoMessage(std::vector<T> hierarchy) {
+   CommunicateInitInfoMessage(std::map<std::string, T> const& hierarchy) {
       setMessageType("CommunicateInitInfo");
       mHierarchy = hierarchy;
    }
-   std::vector<T> mHierarchy;
+   std::map<std::string, T> mHierarchy;
 };
 
 class AllocateDataMessage : public BaseMessage {

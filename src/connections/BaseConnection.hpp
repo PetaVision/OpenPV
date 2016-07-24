@@ -463,6 +463,8 @@ protected:
     */
    virtual int setInitialValues() = 0;
 
+   virtual int respondCommunicateInitInfo(CommunicateInitInfoMessage<BaseObject*> const * message);
+
    virtual int respondAllocateData(AllocateDataMessage const * message);
 
    virtual int respondInitializeState(InitializeStateMessage const * message);

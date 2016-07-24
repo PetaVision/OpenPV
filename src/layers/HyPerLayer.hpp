@@ -369,6 +369,7 @@ public:
     * A function to update the time that the next trigger is expected to occur.
     */
    virtual int updateNextTriggerTime();
+   virtual int respondCommunicateInitInfo(CommunicateInitInfoMessage<BaseObject*> const * message);
    virtual int respondAllocateData(AllocateDataMessage const * message);
    virtual int respondInitializeState(InitializeStateMessage const * message);
    virtual int respondLayerReceiveAndUpdate(LayerReceiveAndUpdateMessage const * message);

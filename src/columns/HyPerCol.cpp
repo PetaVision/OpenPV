@@ -1479,9 +1479,6 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
 
       initDtAdaptControlProbe();
 
-      int (HyPerCol::*layerInitializationStage)(int) = NULL;
-      int (HyPerCol::*connInitializationStage)(int) = NULL;
-
       notify(AllocateDataMessage());
 
       // do allocation stage for probes
@@ -1750,14 +1747,9 @@ int HyPerCol::processParams(char const * path) {
       if (connectionStatus==NULL) {
          pvError().printf("Global rank %d process unable to allocate memory for status of %zu connections: %s\n", globalRank(), numberOfConnections(), strerror(errno));
       }
-   
-      int (HyPerCol::*layerInitializationStage)(int) = NULL;
-      int (HyPerCol::*connInitializationStage)(int) = NULL;
-   
-      // do communication step for layers and connections
-      layerInitializationStage = &HyPerCol::layerCommunicateInitInfo;
-      connInitializationStage = &HyPerCol::connCommunicateInitInfo;
-      doInitializationStage(layerInitializationStage, connInitializationStage, "communicateInitInfo");
+
+      auto const& objectMap = mObjectHierarchy.getObjectMap();
+      notify(CommunicateInitInfoMessage<BaseObject*>(objectMap));
    
       // do communication step for probes
       // This is where probes are added to their respective target layers and connections
@@ -1827,118 +1819,6 @@ void HyPerCol::notify(BaseMessage const & message) {
          break;
       }
    }
-}
-
-int HyPerCol::doInitializationStage(int (HyPerCol::*layerInitializationStage)(int), int (HyPerCol::*connInitializationStage)(int), const char * stageName) {
-   int status = PV_SUCCESS;
-   for (int l=0; l<numLayers; l++) {
-      layerStatus[l]=PV_POSTPONE;
-   }
-   for (int c=0; c<numberOfConnections(); c++) {
-      connectionStatus[c]=PV_POSTPONE;
-   }
-   int numPostponedLayers = numLayers;
-   int numPostponedConns = numberOfConnections();
-   int prevNumPostponedLayers;
-   int prevNumPostponedConns;
-   do {
-      prevNumPostponedLayers = numPostponedLayers;
-      prevNumPostponedConns = numPostponedConns;
-      for (int l=0; l<numLayers; l++) {
-         if (layerStatus[l]==PV_POSTPONE) {
-            int status = (this->*layerInitializationStage)(l);
-            switch (status) {
-            case PV_SUCCESS:
-               layerStatus[l] = PV_SUCCESS;
-               numPostponedLayers--;
-               assert(numPostponedLayers>=0);
-               if (globalRank()==0) pvInfo().printf("%s: %s completed.\n", layers[l]->getDescription_c(), stageName);
-               break;
-            case PV_POSTPONE:
-               if (globalRank()==0) pvInfo().printf("%s: %s postponed.\n", layers[l]->getDescription_c(), stageName);
-               break;
-            case PV_FAILURE:
-               exit(EXIT_FAILURE); // Any error message should be printed by layerInitializationStage function.
-               break;
-            default:
-               assert(0); // This shouldn't be possible
-            }
-         }
-      }
-      for (int c=0; c<numberOfConnections(); c++) {
-         if (connectionStatus[c]==PV_POSTPONE) {
-            int status = (this->*connInitializationStage)(c);
-            switch (status) {
-            case PV_SUCCESS:
-               connectionStatus[c] = PV_SUCCESS;
-               numPostponedConns--;
-               assert(numPostponedConns>=0);
-               if (globalRank()==0) pvInfo().printf("%s %s completed.\n", mConnections[c]->getDescription_c(), stageName);
-               break;
-            case PV_POSTPONE:
-               if (globalRank()==0) pvInfo().printf("%s %s postponed.\n", mConnections[c]->getDescription_c(), stageName);
-               break;
-            case PV_FAILURE:
-               exit(EXIT_FAILURE); // Error message should be printed in connection's communicateInitInfo().
-               break;
-            default:
-               assert(0); // This shouldn't be possible
-            }
-         }
-      }
-   }
-   while (numPostponedLayers < prevNumPostponedLayers || numPostponedConns < prevNumPostponedConns);
-
-   if (numPostponedLayers != 0 || numPostponedConns != 0) {
-      pvErrorNoExit(errorMessage);
-      errorMessage.printf("%s loop has hung on global rank %d process.\n", stageName, globalRank());
-      for (int l=0; l<numLayers; l++) {
-         if (layerStatus[l]==PV_POSTPONE) {
-            errorMessage.printf("%s on global rank %d is still postponed.\n", layers[l]->getDescription_c(), globalRank());
-         }
-      }
-      for (int c=0; c<numberOfConnections(); c++) {
-         if (connectionStatus[c]==PV_POSTPONE) {
-            errorMessage.printf("%s on global rank %d is still postponed.\n", mConnections[c]->getDescription_c(), globalRank());
-         }
-      }
-      exit(EXIT_FAILURE);
-   }
-   return status;
-}
-
-int HyPerCol::layerCommunicateInitInfo(int l) {
-   HyPerLayer * layer = layers[l];
-   assert(l>=0 && l<numLayers && layer->getInitInfoCommunicatedFlag()==false);
-   int status = layer->communicateInitInfo();
-   if (status==PV_SUCCESS) layer->setInitInfoCommunicatedFlag();
-   return status;
-}
-
-int HyPerCol::connCommunicateInitInfo(int c) {
-   pvAssert(c>=0 && c<numberOfConnections());
-   BaseConnection * conn = mConnections[c];
-   pvAssert(conn->getInitInfoCommunicatedFlag()==false);
-   int status = conn->communicateInitInfo();
-   if (status==PV_SUCCESS) conn->setInitInfoCommunicatedFlag();
-   return status;
-}
-
-int HyPerCol::layerSetInitialValues(int l) {
-   HyPerLayer * layer = layers[l];
-   assert(l>=0 && l<numLayers && layer->getInitialValuesSetFlag()==false);
-   int status = layer->initializeState();
-   if (status==PV_SUCCESS) layer->setInitialValuesSetFlag();
-   return status;
-}
-
-int HyPerCol::connSetInitialValues(int c) {
-   pvAssert(c>=0 && c<numberOfConnections());
-   BaseConnection * conn = mConnections[c];
-   pvAssert(conn->getInitialValuesSetFlag()==false);
-   int status = conn->initializeState();
-   if (status==PV_SUCCESS) conn->setInitialValuesSetFlag();
-   return status;
 }
 
 int HyPerCol::normalizeWeights() {

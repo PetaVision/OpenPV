@@ -71,6 +71,9 @@ int BaseObject::respond(BaseMessage const * message) {
    if (message==nullptr) {
       return PV_SUCCESS;
    }
+   else if (CommunicateInitInfoMessage<BaseObject*> const * castMessage = dynamic_cast<CommunicateInitInfoMessage<BaseObject*> const*>(message)) {
+      status = respondCommunicateInitInfo(castMessage);
+   }
    else if (AllocateDataMessage const * castMessage = dynamic_cast<AllocateDataMessage const*>(message)) {
       status = respondAllocateData(castMessage);
    }

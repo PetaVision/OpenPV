@@ -1788,6 +1788,14 @@ void HyPerLayer::copyAllActivityFromDevice(){
 
 #endif
 
+int HyPerLayer::respondCommunicateInitInfo(CommunicateInitInfoMessage<BaseObject*> const * message) {
+   int status = PV_SUCCESS;
+   if (getInitInfoCommunicatedFlag()) { return status; }
+   status = communicateInitInfo();
+   if (status==PV_SUCCESS) { setInitInfoCommunicatedFlag(); }
+   return status;
+}
+
 int HyPerLayer::respondAllocateData(AllocateDataMessage const * message) {
    int status = PV_SUCCESS;
    if (getDataStructuresAllocatedFlag()) { return status; }

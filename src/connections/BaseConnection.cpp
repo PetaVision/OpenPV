@@ -397,6 +397,14 @@ int BaseConnection::insertProbe(BaseConnectionProbe * p)
    return ++numProbes;
 }
 
+int BaseConnection::respondCommunicateInitInfo(CommunicateInitInfoMessage<BaseObject*> const * message) {
+   int status = PV_SUCCESS;
+   if (getInitInfoCommunicatedFlag()) { return status; }
+   status = communicateInitInfo();
+   if (status==PV_SUCCESS) { setInitInfoCommunicatedFlag(); }
+   return status;
+}
+
 int BaseConnection::respondAllocateData(AllocateDataMessage const * message) {
    int status = PV_SUCCESS;
    if (getDataStructuresAllocatedFlag()) { return status; }
