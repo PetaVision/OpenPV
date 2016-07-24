@@ -1507,9 +1507,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
 
       // Initial normalization moved here to facilitate normalizations of groups of HyPerConns
       normalizeWeights();
-      for (auto c : mConnections) {
-         c->finalizeUpdate(simTime, deltaTimeBase);
-      }
+      notify(ConnectionFinalizeUpdateMessage(simTime, deltaTimeBase));
 
       // publish initial conditions
       //
