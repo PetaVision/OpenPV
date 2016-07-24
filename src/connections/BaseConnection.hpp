@@ -463,6 +463,8 @@ protected:
     */
    virtual int setInitialValues() = 0;
 
+   virtual int respondAllocateData(AllocateDataMessage const * message);
+
    virtual int respondConnectionUpdate(ConnectionUpdateMessage const * message) { return updateState(message->mTime, message->mDeltaT);  }
 
    virtual int respondConnectionOutput(ConnectionOutputMessage const * message) { return outputState(message->mTime);  }

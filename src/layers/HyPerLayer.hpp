@@ -369,6 +369,7 @@ public:
     * A function to update the time that the next trigger is expected to occur.
     */
    virtual int updateNextTriggerTime();
+   virtual int respondAllocateData(AllocateDataMessage const * message);
    virtual int respondLayerReceiveAndUpdate(LayerReceiveAndUpdateMessage const * message);
    virtual int respondLayerUpdateState(LayerUpdateStateMessage const * message);
 #ifdef PV_USE_CUDA

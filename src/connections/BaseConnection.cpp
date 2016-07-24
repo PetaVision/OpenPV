@@ -397,6 +397,14 @@ int BaseConnection::insertProbe(BaseConnectionProbe * p)
    return ++numProbes;
 }
 
+int BaseConnection::respondAllocateData(AllocateDataMessage const * message) {
+   int status = PV_SUCCESS;
+   if (getDataStructuresAllocatedFlag()) { return status; }
+   status = allocateDataStructures();
+   if (status==PV_SUCCESS) { setDataStructuresAllocatedFlag(); }
+   return status;
+}
+
 int BaseConnection::outputProbeParams() {
    int status = PV_SUCCESS;
    for (int p=0; p<numProbes; p++) {

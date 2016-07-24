@@ -1482,10 +1482,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
       int (HyPerCol::*layerInitializationStage)(int) = NULL;
       int (HyPerCol::*connInitializationStage)(int) = NULL;
 
-      // allocateDataStructures stage
-      layerInitializationStage = &HyPerCol::layerAllocateDataStructures;
-      connInitializationStage = &HyPerCol::connAllocateDataStructures;
-      doInitializationStage(layerInitializationStage, connInitializationStage, "allocateDataStructures");
+      notify(AllocateDataMessage());
 
       // do allocation stage for probes
       for (int i=0; i<numBaseProbes; i++) {
@@ -1824,7 +1821,11 @@ void HyPerCol::notify(BaseMessage const & message) {
       }
       numNeedsUpdate = needsUpdate.size();
       if (numNeedsUpdate == oldNumNeedsUpdate) {
-         pvError() << message.getMessageType() << " hung with " << numNeedsUpdate << " objects still postponed.\n";
+         pvErrorNoExit() << message.getMessageType() << " hung with " << numNeedsUpdate << " objects still postponed.\n";
+         for (auto& obj : needsUpdate) {
+            pvErrorNoExit() << obj->getDescription() << " is still postponed.\n";
+         }
+         exit(EXIT_FAILURE);
          break;
       }
    }

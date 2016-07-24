@@ -1788,6 +1788,14 @@ void HyPerLayer::copyAllActivityFromDevice(){
 
 #endif
 
+int HyPerLayer::respondAllocateData(AllocateDataMessage const * message) {
+   int status = PV_SUCCESS;
+   if (getDataStructuresAllocatedFlag()) { return status; }
+   allocateDataStructures();
+   if (status==PV_SUCCESS) setDataStructuresAllocatedFlag();
+   return status;
+}
+
 int HyPerLayer::respondLayerReceiveAndUpdate(LayerReceiveAndUpdateMessage const * message) {
    int status = PV_SUCCESS;
    if (message->mPhase != getPhase()) { return status; }

@@ -51,6 +51,7 @@ protected:
    int setParent(HyPerCol * hc);
    virtual int setDescription();
 
+   virtual int respondAllocateData(AllocateDataMessage const * message) { return PV_SUCCESS; }
    virtual int respondConnectionUpdate(ConnectionUpdateMessage const * message) { return PV_SUCCESS; }
    virtual int respondConnectionFinalizeUpdate(ConnectionFinalizeUpdateMessage const * message) { return PV_SUCCESS; }
    virtual int respondConnectionOutput(ConnectionOutputMessage const * message) { return PV_SUCCESS; }
