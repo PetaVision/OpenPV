@@ -405,6 +405,14 @@ int BaseConnection::respondAllocateData(AllocateDataMessage const * message) {
    return status;
 }
 
+int BaseConnection::respondInitializeState(InitializeStateMessage const * message) {
+   int status = PV_SUCCESS;
+   if (getInitialValuesSetFlag()) { return status; }
+   status = initializeState();
+   if (status==PV_SUCCESS) { setInitialValuesSetFlag(); }
+   return status;
+}
+
 int BaseConnection::outputProbeParams() {
    int status = PV_SUCCESS;
    for (int p=0; p<numProbes; p++) {

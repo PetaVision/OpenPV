@@ -1791,8 +1791,16 @@ void HyPerLayer::copyAllActivityFromDevice(){
 int HyPerLayer::respondAllocateData(AllocateDataMessage const * message) {
    int status = PV_SUCCESS;
    if (getDataStructuresAllocatedFlag()) { return status; }
-   allocateDataStructures();
-   if (status==PV_SUCCESS) setDataStructuresAllocatedFlag();
+   status = allocateDataStructures();
+   if (status==PV_SUCCESS) { setDataStructuresAllocatedFlag(); }
+   return status;
+}
+
+int HyPerLayer::respondInitializeState(InitializeStateMessage const * message) {
+   int status = PV_SUCCESS;
+   if (getInitialValuesSetFlag()) { return status; }
+   status = initializeState();
+   if (status==PV_SUCCESS) { setInitialValuesSetFlag(); }
    return status;
 }
 

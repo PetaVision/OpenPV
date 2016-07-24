@@ -52,6 +52,7 @@ protected:
    virtual int setDescription();
 
    virtual int respondAllocateData(AllocateDataMessage const * message) { return PV_SUCCESS; }
+   virtual int respondInitializeState(InitializeStateMessage const * message) { return PV_SUCCESS; }
    virtual int respondConnectionUpdate(ConnectionUpdateMessage const * message) { return PV_SUCCESS; }
    virtual int respondConnectionFinalizeUpdate(ConnectionFinalizeUpdateMessage const * message) { return PV_SUCCESS; }
    virtual int respondConnectionOutput(ConnectionOutputMessage const * message) { return PV_SUCCESS; }

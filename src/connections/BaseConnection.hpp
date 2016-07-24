@@ -465,6 +465,8 @@ protected:
 
    virtual int respondAllocateData(AllocateDataMessage const * message);
 
+   virtual int respondInitializeState(InitializeStateMessage const * message);
+
    virtual int respondConnectionUpdate(ConnectionUpdateMessage const * message) { return updateState(message->mTime, message->mDeltaT);  }
 
    virtual int respondConnectionOutput(ConnectionOutputMessage const * message) { return outputState(message->mTime);  }

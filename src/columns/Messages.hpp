@@ -43,6 +43,13 @@ public:
    }
 };
 
+class InitializeStateMessage : public BaseMessage {
+public:
+   InitializeStateMessage() {
+      setMessageType("InitializeState");
+   }
+};
+
 class ConnectionUpdateMessage : public BaseMessage {
 public:
    ConnectionUpdateMessage(double simTime, double deltaTime) {

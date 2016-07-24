@@ -74,6 +74,9 @@ int BaseObject::respond(BaseMessage const * message) {
    else if (AllocateDataMessage const * castMessage = dynamic_cast<AllocateDataMessage const*>(message)) {
       status = respondAllocateData(castMessage);
    }
+   else if (InitializeStateMessage const * castMessage = dynamic_cast<InitializeStateMessage const*>(message)) {
+      status = respondInitializeState(castMessage);
+   }
    else if (ConnectionUpdateMessage const * castMessage = dynamic_cast<ConnectionUpdateMessage const*>(message)) {
       status = respondConnectionUpdate(castMessage);
    }

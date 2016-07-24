@@ -1521,10 +1521,8 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
          checkpointRead();
       }
 
-      // setInitialValues stage sets the initial values of layers and connections, either from params or from checkpoint
-      layerInitializationStage = &HyPerCol::layerSetInitialValues;
-      connInitializationStage = &HyPerCol::connSetInitialValues;
-      doInitializationStage(layerInitializationStage, connInitializationStage, "setInitialValues");
+      notify(InitializeStateMessage());
+
       free(layerStatus); layerStatus = NULL;
       free(connectionStatus); connectionStatus = NULL;
 
