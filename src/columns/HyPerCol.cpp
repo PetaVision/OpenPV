@@ -1525,9 +1525,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
 
       // output initial conditions
       if (!mCheckpointReadFlag) {
-         for (auto c : mConnections) {
-            c->outputState(simTime);
-         }
+         notify(ConnectionOutputMessage(simTime));
          for (int l = 0; l < numLayers; l++) {
             layers[l]->outputState(simTime);
          }
@@ -1535,13 +1533,6 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
 
       mReadyFlag = true;
    }
-
-
-//   if (runDelegate) {
-//      // let delegate advance the time
-//      //
-//      runDelegate->run(simTime, stopTime);
-//   }
 
 #ifdef TIMER_ON
    Clock runClock;
