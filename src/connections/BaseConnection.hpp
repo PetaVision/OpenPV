@@ -471,6 +471,8 @@ protected:
 
    virtual int respondConnectionUpdate(ConnectionUpdateMessage const * message) { return updateState(message->mTime, message->mDeltaT);  }
 
+   virtual int respondConnectionFinalizeUpdate(ConnectionFinalizeUpdateMessage const * message) { return finalizeUpdate(message->mTime, message->mDeltaT);  }
+
    virtual int respondConnectionOutput(ConnectionOutputMessage const * message) { return outputState(message->mTime);  }
 
    /**
