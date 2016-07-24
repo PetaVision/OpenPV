@@ -160,8 +160,6 @@ int HyPerCol::initialize_base() {
    origStdErr = -1;
    layers = NULL;
    normalizers = NULL;
-   layerStatus = NULL;
-   connectionStatus = NULL;
    srcPath = NULL;
    outputPath = NULL;
    printParamsFilename = NULL;
@@ -1481,19 +1479,6 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
 
       notify(AllocateDataMessage());
 
-      // do allocation stage for probes
-      for (int i=0; i<numBaseProbes; i++) {
-         BaseProbe * p = mBaseProbes[i];
-         int pstatus = p->allocateDataStructures();
-         if (pstatus==PV_SUCCESS) {
-            if (globalRank()==0) { pvInfo().printf("%s allocateDataStructures completed.\n", p->getDescription_c()); }
-         }
-         else {
-            assert(pstatus == PV_FAILURE); // PV_POSTPONE etc. hasn't been implemented for probes yet.
-            exit(EXIT_FAILURE); // Any error message should be printed by probe's allocateDataStructures function
-         }
-      }
-
       //Allocate all phaseRecvTimers
       phaseRecvTimers = (Timer**) malloc(numPhases * sizeof(Timer*));
       for(int phase = 0; phase < numPhases; phase++){
@@ -1519,9 +1504,6 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
       }
 
       notify(InitializeStateMessage());
-
-      free(layerStatus); layerStatus = NULL;
-      free(connectionStatus); connectionStatus = NULL;
 
       // Initial normalization moved here to facilitate normalizations of groups of HyPerConns
       normalizeWeights();
@@ -1739,33 +1721,8 @@ int HyPerCol::setNumThreads(bool printMessagesFlag) {
 
 int HyPerCol::processParams(char const * path) {
    if (!mParamsProcessedFlag) {
-      layerStatus = (int *) calloc((size_t) numLayers, sizeof(int));
-      if (layerStatus==NULL) {
-         pvError().printf("Global rank %d process unable to allocate memory for status of %zu layers: %s\n", globalRank(), (size_t) numLayers, strerror(errno));
-      }
-      connectionStatus = (int *) calloc(numberOfConnections(), sizeof(int));
-      if (connectionStatus==NULL) {
-         pvError().printf("Global rank %d process unable to allocate memory for status of %zu connections: %s\n", globalRank(), numberOfConnections(), strerror(errno));
-      }
-
       auto const& objectMap = mObjectHierarchy.getObjectMap();
       notify(CommunicateInitInfoMessage<BaseObject*>(objectMap));
-   
-      // do communication step for probes
-      // This is where probes are added to their respective target layers and connections
-      for (int i=0; i<numBaseProbes; i++) {
-         BaseProbe * p = mBaseProbes[i];
-         int pstatus = p->communicateInitInfo();
-         if (pstatus==PV_SUCCESS) {
-            if (globalRank()==0) pvInfo().printf("%s communicateInitInfo completed.\n", p->getDescription_c());
-         }
-         else {
-            assert(pstatus == PV_FAILURE); // PV_POSTPONE etc. hasn't been implemented for probes yet.
-            // A more detailed error message should be printed by probe's communicateInitInfo function.
-            pvErrorNoExit().printf("%s communicateInitInfo failed.\n", p->getDescription_c());
-            return PV_FAILURE;
-         }
-      }
    }
 
    // Print a cleaned up version of params to the file given by printParamsFilename

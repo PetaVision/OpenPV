@@ -166,6 +166,22 @@ void BaseProbe::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
    }
 }
 
+int BaseProbe::respondCommunicateInitInfo(CommunicateInitInfoMessage<BaseObject*> const * message) {
+   int status = PV_SUCCESS;
+   if (getInitInfoCommunicatedFlag()) { return status; }
+   status = communicateInitInfo();
+   if (status==PV_SUCCESS) { setInitInfoCommunicatedFlag(); }
+   return status;
+}
+
+int BaseProbe::respondAllocateData(AllocateDataMessage const * message) {
+   int status = PV_SUCCESS;
+   if (getDataStructuresAllocatedFlag()) { return status; }
+   status = allocateDataStructures();
+   if (status==PV_SUCCESS) { setDataStructuresAllocatedFlag(); }
+   return status;
+}
+
 int BaseProbe::initOutputStream(const char * filename) {
    if( parent->columnId()==0 ) {
       if( filename != NULL ) {

@@ -573,8 +573,6 @@ private:
    int origStdOut;
    int origStdErr;
    int numThreads;
-   int * layerStatus;
-   int * connectionStatus;
    InterColComm * icComm; // manages communication between HyPerColumns};
    long int cpReadDirIndex;  // checkpoint number within mCheckpointReadDir to read
    long int cpWriteStepInterval;

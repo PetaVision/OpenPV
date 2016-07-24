@@ -198,6 +198,14 @@ protected:
    virtual void ioParam_coefficient(enum ParamsIOFlag ioFlag);
    /** @} */
 
+   virtual int respondCommunicateInitInfo(CommunicateInitInfoMessage<BaseObject*> const * message);
+   bool getInitInfoCommunicatedFlag() { return mInitInfoCommunicatedFlag; }
+   void setInitInfoCommunicatedFlag() { mInitInfoCommunicatedFlag = true; }
+
+   virtual int respondAllocateData(AllocateDataMessage const * message);
+   bool getDataStructuresAllocatedFlag() { return mDataStructuresAllocatedFlag; }
+   void setDataStructuresAllocatedFlag() { mDataStructuresAllocatedFlag = true; }
+
    virtual int initOutputStream(const char * filename);
 
    /**
@@ -322,6 +330,8 @@ private:
    double lastUpdateTime; // The time of the last time calcValues was called.
    bool textOutputFlag;
    bool writingToFile; // true outputStream is a FileStream
+   bool mInitInfoCommunicatedFlag = false;
+   bool mDataStructuresAllocatedFlag = false;
 };
 
 }
