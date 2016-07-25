@@ -468,6 +468,7 @@ private:
    int ioParams(enum ParamsIOFlag ioFlag);
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    int checkDirExists(const char * dirname, struct stat * pathstat);
+   void notify(std::vector<BaseMessage const *> messages);
    void notify(BaseMessage const & message);
    int normalizeWeights();
    int initPublishers();
