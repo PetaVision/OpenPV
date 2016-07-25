@@ -8,9 +8,9 @@ ImageTestLayer::ImageTestLayer(const char * name, HyPerCol * hc) {
    Image::initialize(name, hc);
 }
 
-int ImageTestLayer::callUpdateState(double time, double dt)
+int ImageTestLayer::updateState(double time, double dt)
 {
-   Image::callUpdateState(time, dt);
+   Image::updateState(time, dt);
    const PVLayerLoc * loc = getLayerLoc();
    int nx = loc->nx;
    int ny = loc->ny;
@@ -37,9 +37,6 @@ int ImageTestLayer::callUpdateState(double time, double dt)
    return PV_SUCCESS;
 }
 
-int ImageTestLayer::updateState(double time, double dt){
-   return Image::updateState(time, dt);
-}
 #else // PV_USE_GDAL
 ImageTestLayer::ImageTestLayer(const char * name, HyPerCol * hc) {
    if (hc->columnId()==0) {

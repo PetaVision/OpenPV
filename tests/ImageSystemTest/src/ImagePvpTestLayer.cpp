@@ -6,9 +6,9 @@ ImagePvpTestLayer::ImagePvpTestLayer(const char * name, HyPerCol * hc) {
    ImagePvp::initialize(name, hc);
 }
 
-int ImagePvpTestLayer::callUpdateState(double time, double dt)
+int ImagePvpTestLayer::updateState(double time, double dt)
 {
-   ImagePvp::callUpdateState(time, dt);
+   ImagePvp::updateState(time, dt);
    const PVLayerLoc * loc = getLayerLoc();
    int nx = loc->nx;
    int ny = loc->ny;
