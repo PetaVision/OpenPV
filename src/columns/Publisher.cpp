@@ -8,8 +8,6 @@
 #include "Publisher.hpp"
 #include "utils/PVAssert.hpp"
 #include "include/pv_common.h"
-#include "connections/BaseConnection.hpp"
-#include "layers/HyPerLayer.hpp"
 
 namespace PV {
 
@@ -97,7 +95,7 @@ int Publisher::calcActiveIndices() {
    return PV_SUCCESS;
 }
 
-int Publisher::publish(HyPerLayer* pub, int neighbors[], int numNeighbors,
+int Publisher::publish(double currentTime, double lastUpdateTime, int neighbors[], int numNeighbors,
                        PVLayerCube* cube)
 {
    //
@@ -113,12 +111,12 @@ int Publisher::publish(HyPerLayer* pub, int neighbors[], int numNeighbors,
 
    bool isSparse = store->isSparse();
 
-   if (pub->getLastUpdateTime() >= pub->getParent()->simulationTime()) {
+   if (lastUpdateTime >= currentTime) {
       // copy entire layer and let neighbors overwrite
       //Only need to exchange borders if layer was updated this timestep
       memcpy(recvBuf, sendBuf, dataSize);
       exchangeBorders(neighbors, numNeighbors, &cube->loc, 0);
-      store->setLastUpdateTime(LOCAL/*bufferId*/, pub->getLastUpdateTime());
+      store->setLastUpdateTime(LOCAL/*bufferId*/, lastUpdateTime);
 
       //Updating active indices is done after MPI wait in HyPerCol
       //to avoid race condition because exchangeBorders mpi is async
@@ -127,7 +125,7 @@ int Publisher::publish(HyPerLayer* pub, int neighbors[], int numNeighbors,
       // If there are delays, copy last level's data to this level.
       // TODO: we could use pointer indirection to cut down on the number of memcpy calls required, if this turns out to be an expensive step
       memcpy(recvBuf, recvBuffer(LOCAL/*bufferId*/,1), dataSize);
-      store->setLastUpdateTime(LOCAL/*bufferId*/, pub->getLastUpdateTime());
+      store->setLastUpdateTime(LOCAL/*bufferId*/, lastUpdateTime);
    }
 
    return PV_SUCCESS;

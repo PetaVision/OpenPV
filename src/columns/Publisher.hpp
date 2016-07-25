@@ -17,15 +17,12 @@
 
 namespace PV {
 
-class HyPerLayer;
-class BaseConnection;
-
 class Publisher {
 
 public:
    Publisher(Communicator * comm, int numItems, PVLayerLoc loc, int numLevels, bool isSparse);
    virtual ~Publisher();
-   int publish(HyPerLayer * pub, int neighbors[], int numNeighbors,
+   int publish(double currentTime, double lastUpdateTime, int neighbors[], int numNeighbors,
                PVLayerCube * data);
    int exchangeBorders(int neighbors[], int numNeighbors, const PVLayerLoc * loc, int delay=0);
    int wait();

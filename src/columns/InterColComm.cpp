@@ -91,7 +91,7 @@ int InterColComm::subscribe(BaseConnection* conn)
 int InterColComm::publish(HyPerLayer* pub, PVLayerCube* cube)
 {
    int pubId = pub->getLayerId();
-   return publishers[pubId]->publish(pub, neighbors, numNeighbors, cube);
+   return publishers[pubId]->publish(pub->getParent()->simulationTime(), pub->getLastUpdateTime(), neighbors, numNeighbors, cube);
 }
 
 int InterColComm::exchangeBorders(int pubId, const PVLayerLoc * loc, int delay/*default=0*/) {
