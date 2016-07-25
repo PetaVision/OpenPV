@@ -12,6 +12,7 @@
 #include "columns/DataStore.hpp"
 #include "columns/Publisher.hpp"
 #include "include/pv_common.h"
+#include <vector>
 
 // maximum number of messages (each layer publishes to all neighbors)
 #define MAX_MESSAGES    MAX_NEIGHBORS
@@ -43,10 +44,7 @@ public:
 
 private:
 
-   int numPublishers;
-   int publisherArraySize;
-   Publisher ** publishers;
-   int resizePublishersArray(int newSize);
+   std::vector<Publisher*> publishers;
 };
 
 } // namespace PV
