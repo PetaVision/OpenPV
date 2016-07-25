@@ -81,13 +81,6 @@ int InterColComm::resizePublishersArray(int newSize) {
    return PV_SUCCESS;
 }
 
-int InterColComm::subscribe(BaseConnection* conn)
-{
-   int pubId = conn->preSynapticLayer()->getLayerId();
-   assert( pubId < publisherArraySize && pubId >= 0);
-   return 0;
-}
-
 int InterColComm::publish(HyPerLayer* pub, PVLayerCube* cube)
 {
    int pubId = pub->getLayerId();

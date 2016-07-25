@@ -1798,9 +1798,6 @@ int HyPerCol::initPublishers() {
       // PVLayer * clayer = layers[l]->getCLayer();
       icComm->addPublisher(layers[l]);
    }
-   for(auto c : mConnections) {
-      icComm->subscribe(c);
-   }
 
    return PV_SUCCESS;
 }

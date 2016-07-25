@@ -32,7 +32,6 @@ public:
    int addPublisher(HyPerLayer * pub);
    int clearPublishers();
    int publish(HyPerLayer * pub, PVLayerCube * cube);
-   int subscribe(BaseConnection * conn);
    int exchangeBorders(int pubId, const PVLayerLoc * loc, int delay=0);
    int updateAllActiveIndices(int pubId);
    int updateActiveIndices(int pubId);
