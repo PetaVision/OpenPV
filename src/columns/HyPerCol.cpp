@@ -1515,10 +1515,8 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
       }
 
       // wait for all published data to arrive and update active indices;
-      //
-      for (int l = 0; l < numLayers; l++) {
-         icComm->wait(layers[l]->getLayerId());
-         layers[l]->updateActiveIndices();
+      for (int phase=0; phase<numPhases; phase++) {
+         notify(LayerUpdateActiveIndicesMessage(phase));
       }
 
       // output initial conditions
