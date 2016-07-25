@@ -364,19 +364,15 @@ int Movie::allocateDataStructures() {
       }
    }
    else if(strcmp(batchMethod, "bySpecified") == 0){
-      //We read start and skip frame index globally, and communicate to other processes
       int nbatchGlobal = parent->getNBatchGlobal();
-      int gStartFrameIndex[nbatchGlobal];
-      int gSkipFrameIndex[nbatchGlobal];
-      int globalRank = parent->globalRank();
       int commBatch = parent->commBatch();
       int numBatchPerProc = parent->numCommBatches();
 
       if(numStartFrame != nbatchGlobal && numStartFrame != 0){
-         pvError() << "Movie layer " << name << " batchMethod of \"bySpecified\" requires " << nbatchGlobal << " start_frame_index values\n";
+         pvError() << "Movie layer " << name << " batchMethod of \"bySpecified\" requires 0 or " << nbatchGlobal << " start_frame_index values\n";
       }
       if(numSkipFrame != nbatchGlobal && numSkipFrame != 0){
-         pvError() << "Movie layer " << name << " batchMethod of \"bySpecified\" requires " << nbatchGlobal << " skip_frame_index values\n";
+         pvError() << "Movie layer " << name << " batchMethod of \"bySpecified\" requires 0 or " << nbatchGlobal << " skip_frame_index values\n";
       }
 
       //Each process grabs it's own set of start/skipFrameIndex from the parameters
