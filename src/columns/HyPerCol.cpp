@@ -2151,14 +2151,16 @@ int HyPerCol::advanceTime(double sim_time) {
 
       //Ordering needs to go recvGpu, if(recvGpu and upGpu)update, recvNoGpu, update rest
 #ifdef PV_USE_CUDA
-      notify(LayerReceiveAndUpdateMessage(phase, phaseRecvTimers[phase], true/*recvGpuFlag*/, true/*updateGpuFlag*/, simTime, deltaTimeBase));
-      notify(LayerReceiveAndUpdateMessage(phase, phaseRecvTimers[phase], false/*recvGpuFlag*/, false/*updateGpuFlag*/, simTime, deltaTimeBase));
-#else
-      notify(LayerReceiveAndUpdateMessage(phase, phaseRecvTimers[phase], simTime, deltaTimeBase));
-#endif
+      std::vector<BaseMessage const*> v;
+      v.emplace_back(new LayerRecvSynapticInputMessage(phase, phaseRecvTimers[phase], true/*recvGpuFlag*/, simTime, deltaTimeBase));
+      v.emplace_back(new LayerUpdateStateMessage(phase, true/*recvGpuFlag*/, true/*updateGpuFlag*/, simTime, deltaTimeBase));
+      notify(v);
+      for (auto msg : v) { delete msg; } v.clear();
+      v.emplace_back(new LayerRecvSynapticInputMessage(phase, phaseRecvTimers[phase], false/*recvGpuFlag*/, simTime, deltaTimeBase));
+      v.emplace_back(new LayerUpdateStateMessage(phase, false/*recvGpuFlag*/, false/*updateGpuFlag*/, simTime, deltaTimeBase));
+      notify(v);
+      for (auto msg : v) { delete msg; } v.clear();
 
-
-#ifdef PV_USE_CUDA
       getDevice()->syncDevice();
 
       //Update for receiving on cpu and updating on gpu
@@ -2169,6 +2171,12 @@ int HyPerCol::advanceTime(double sim_time) {
 
       //Update for gpu recv and non gpu update
       notify(LayerUpdateStateMessage(phase, true/*recvOnGpuFlag*/, false/*updateOnGpuFlag*/, simTime, deltaTimeBase));
+#else
+      std::vector<BaseMessage const*> v;
+      v.emplace_back(new LayerRecvSynapticInputMessage(phase, phaseRecvTimers[phase], simTime, deltaTimeBase));
+      v.emplace_back(new LayerUpdateStateMessage(phase, simTime, deltaTimeBase));
+      notify(v);
+      for (auto msg : v) { delete msg; } v.clear();
 #endif
 
       // Rotate DataStore ring buffers, copy activity buffer to DataStore, and do MPI exchange.

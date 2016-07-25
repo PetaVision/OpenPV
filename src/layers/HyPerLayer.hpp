@@ -372,7 +372,7 @@ public:
    virtual int respondCommunicateInitInfo(CommunicateInitInfoMessage<BaseObject*> const * message);
    virtual int respondAllocateData(AllocateDataMessage const * message);
    virtual int respondInitializeState(InitializeStateMessage const * message);
-   virtual int respondLayerReceiveAndUpdate(LayerReceiveAndUpdateMessage const * message);
+   virtual int respondLayerRecvSynapticInput(LayerRecvSynapticInputMessage const * message);
    virtual int respondLayerUpdateState(LayerUpdateStateMessage const * message);
 #ifdef PV_USE_CUDA
    virtual int respondLayerCopyFromGpu(LayerCopyFromGpuMessage const * message);

@@ -1812,24 +1812,16 @@ int HyPerLayer::respondInitializeState(InitializeStateMessage const * message) {
    return status;
 }
 
-int HyPerLayer::respondLayerReceiveAndUpdate(LayerReceiveAndUpdateMessage const * message) {
+int HyPerLayer::respondLayerRecvSynapticInput(LayerRecvSynapticInputMessage const * message) {
    int status = PV_SUCCESS;
    if (message->mPhase != getPhase()) { return status; }
 #ifdef PV_USE_CUDA
-   bool synapticInputNeeded = message->mRecvOnGpuFlag==getRecvGpu();
-   bool callUpdateStateNeeded = message->mUpdateOnGpuFlag==getUpdateGpu();
-#else // PV_USE_CUDA
-   bool synapticInputNeeded = true;
-   bool callUpdateStateNeeded = true;
+   if (message->mRecvOnGpuFlag != getRecvGpu()) { return status; }
 #endif // PV_USE_CUDA
-   if (!synapticInputNeeded) { return status; }
    resetGSynBuffers(message->mTime, message->mDeltaT);  // deltaTimeAdapt is not used
    message->mTimer->start();
    recvAllSynapticInput();
    message->mTimer->stop();
-   if (callUpdateStateNeeded) {
-      status = callUpdateState(message->mTime, message->mDeltaT);
-   }
    return status;
 }
 

@@ -57,7 +57,7 @@ protected:
    virtual int respondConnectionUpdate(ConnectionUpdateMessage const * message) { return PV_SUCCESS; }
    virtual int respondConnectionFinalizeUpdate(ConnectionFinalizeUpdateMessage const * message) { return PV_SUCCESS; }
    virtual int respondConnectionOutput(ConnectionOutputMessage const * message) { return PV_SUCCESS; }
-   virtual int respondLayerReceiveAndUpdate(LayerReceiveAndUpdateMessage const * message) { return PV_SUCCESS; }
+   virtual int respondLayerRecvSynapticInput(LayerRecvSynapticInputMessage const * message) { return PV_SUCCESS; }
    virtual int respondLayerUpdateState(LayerUpdateStateMessage const * message) { return PV_SUCCESS; }
 #ifdef PV_USE_CUDA
    virtual int respondLayerCopyFromGpu(LayerCopyFromGpuMessage const * message) { return PV_SUCCESS; }

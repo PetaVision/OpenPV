@@ -89,11 +89,11 @@ int BaseObject::respond(BaseMessage const * message) {
    else if (ConnectionOutputMessage const * castMessage = dynamic_cast<ConnectionOutputMessage const*>(message)) {
       status = respondConnectionOutput(castMessage);
    }
-   else if (LayerReceiveAndUpdateMessage const * castMessage = dynamic_cast<LayerReceiveAndUpdateMessage const*>(message)) {
-      status = respondLayerReceiveAndUpdate(castMessage);
-   }
    else if (LayerUpdateStateMessage const * castMessage = dynamic_cast<LayerUpdateStateMessage const*>(message)) {
       status = respondLayerUpdateState(castMessage);
+   }
+   else if (LayerRecvSynapticInputMessage const * castMessage = dynamic_cast<LayerRecvSynapticInputMessage const*>(message)) {
+      status = respondLayerRecvSynapticInput(castMessage);
    }
 #ifdef PV_USE_CUDA
    else if (LayerCopyFromGpuMessage const * castMessage = dynamic_cast<LayerCopyFromGpuMessage const*>(message)) {
