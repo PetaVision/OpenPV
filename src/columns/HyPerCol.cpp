@@ -2180,12 +2180,11 @@ int HyPerCol::advanceTime(double sim_time) {
 
       messageVector.emplace_back(new LayerUpdateActiveIndicesMessage(phase));
       messageVector.emplace_back(new LayerOutputStateMessage(phase, simTime));
+      if (mErrorOnNotANumber) {
+         messageVector.emplace_back(new LayerCheckNotANumberMessage(phase));
+      }
       notify(messageVector);
       for (auto msg : messageVector) { delete msg; } messageVector.clear();
-
-      if (mErrorOnNotANumber) {
-         notify(LayerCheckNotANumberMessage(phase));
-      }
    }
 
    // Balancing MPI_Send is before the for-loop over phases.  Is this better than MPI_Bcast?
