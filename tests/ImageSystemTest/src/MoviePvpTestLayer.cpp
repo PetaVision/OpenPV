@@ -9,7 +9,6 @@ MoviePvpTestLayer::MoviePvpTestLayer(const char * name, HyPerCol * hc) {
 int MoviePvpTestLayer::updateState(double time, double dt)
 {
    MoviePvp::updateState(time, dt);
-   std::cout << "Here\n";
    const PVLayerLoc * loc = getLayerLoc();
    int nx = loc->nx;
    int ny = loc->ny;
@@ -24,7 +23,6 @@ int MoviePvpTestLayer::updateState(double time, double dt)
       int frameIdx;
       if(strcmp(getBatchMethod(), "byImage") == 0 || strcmp(getBatchMethod(), "bySpecified") == 0){
          frameIdx = (time-1) * nbatchGlobal + commBatch*numBatchPerProc + b;
-         std::cout << "frameIdx:" << frameIdx << ", nbatchGlobal:" << nbatchGlobal << ", commBatch:"<< commBatch << ", numBatchPerProc:" << numBatchPerProc << ", b:" << b << "\n"; 
       }
       else if(strcmp(getBatchMethod(), "byMovie") == 0){
          frameIdx = b * 2 + (time-1);
