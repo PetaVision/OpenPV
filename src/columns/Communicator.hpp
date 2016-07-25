@@ -42,7 +42,6 @@ public:
    MPI_Comm globalCommunicator()      { return globalIcComm; }
 
    int numberOfNeighbors(); // includes interior (self) as a neighbor
-   int numberOfBorders()        {return numBorders;}
 
    bool hasNeighbor(int neighborId);
    int neighborIndex(int commId, int index);
@@ -73,12 +72,10 @@ protected:
    int commIdFromRowColumn(int commRow, int commColumn);
 
    int numNeighbors;  // # of remote neighbors plus local
-   int numBorders;    // # of border regions (no communicating neighbor)
 
    int isExtra; //Defines if the process is an extra process
 
    //TODO - can this be cleaned up?
-   int borders[NUM_NEIGHBORHOOD-1];
    int neighbors[NUM_NEIGHBORHOOD];        // [0] is interior (local)
    int remoteNeighbors[NUM_NEIGHBORHOOD];
    int tags[NUM_NEIGHBORHOOD];             // diagonal communication needs a different tag from left/right or up/down communication.

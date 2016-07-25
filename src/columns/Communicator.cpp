@@ -164,7 +164,6 @@ int Communicator::neighborInit()
    // (local borders and remote neighbors form the complete neighborhood)
 
    this->numNeighbors = numberOfNeighbors();
-   this->numBorders   = NUM_NEIGHBORHOOD - this->numNeighbors;
    int tags[9] = {0, 33, 34, 35, 34, 34, 35, 34, 33};
    // NW and SE corners have tag 33; edges have tag 34; NE and SW corners have tag 35.
    // In the top row of processes in the hypercolumn, a process is both the
@@ -185,7 +184,6 @@ int Communicator::neighborInit()
                 localRank, num_neighbors - 1, this->numNeighbors, n, i, neighbors[i]);
 #endif // DEBUG_OUTPUT
       } else {
-         borders[num_borders++] = -n;
 #ifdef DEBUG_OUTPUT
          pvDebug().printf("[%2d]: neighborInit: i=%d, neighbor=%d\n", localRank, i, neighbors[i]);
 #endif // DEBUG_OUTPUT
@@ -193,7 +191,6 @@ int Communicator::neighborInit()
       this->tags[i] = tags[i];
    }
    assert(this->numNeighbors == num_neighbors);
-   assert(this->numBorders   == num_borders);
 
    return 0;
 }

@@ -25,15 +25,10 @@ class Publisher {
 public:
    Publisher(Communicator * comm, int numItems, PVLayerLoc loc, int numLevels, bool isSparse);
    virtual ~Publisher();
-   int readData(int delay);
    int publish(HyPerLayer * pub, int neighbors[], int numNeighbors,
-               int borders[], int numBorders, PVLayerCube * data,
-               int delay=0);
-   int subscribe(BaseConnection * conn);
+               PVLayerCube * data);
    int exchangeBorders(int neighbors[], int numNeighbors, const PVLayerLoc * loc, int delay=0);
    int wait();
-
-   static int borderStoreIndex(int i, int numNeighbors)  {return i+numNeighbors;}
 
    int increaseTimeLevel()   {return store->newLevelIndex();}
 
@@ -66,10 +61,6 @@ private:
    int calcAllActiveIndices();
    int calcActiveIndices();
 
-   int pubId;
-   int numSubscribers;
-   int subscriberArraySize;
-   BaseConnection ** connection;
    DataStore * store;
 
    PVLayerCube cube;

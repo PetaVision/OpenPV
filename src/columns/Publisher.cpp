@@ -18,9 +18,7 @@ Publisher::Publisher(Communicator * comm, int numItems, PVLayerLoc loc, int numL
    //size_t dataSize  = numItems * sizeof(float);
    size_t dataSize  = sizeof(float);
 
-   this->pubId = pubId;
    this->mComm  = comm;
-   this->numSubscribers = 0;
 
    cube.data = nullptr;
    cube.loc = loc;
@@ -37,12 +35,6 @@ Publisher::Publisher(Communicator * comm, int numItems, PVLayerLoc loc, int numL
    //DONE: check for memory leak here, method flagged by valgrind
    this->neighborDatatypes = Communicator::newDatatypes(&loc);
 
-   this->subscriberArraySize = INITIAL_SUBSCRIBER_ARRAY_SIZE;
-   this->connection = (BaseConnection **) malloc( subscriberArraySize * sizeof(BaseConnection *) );
-   pvAssert(this->connection);
-   for (int i = 0; i < subscriberArraySize; i++) {
-      this->connection[i] = nullptr;
-   }
    numRequests = 0;
    requests = (MPI_Request *) calloc((NUM_NEIGHBORHOOD-1) * loc.nbatch, sizeof(MPI_Request));
    pvAssert(requests);
@@ -52,7 +44,6 @@ Publisher::~Publisher()
 {
    delete store;
    Communicator::freeDatatypes(neighborDatatypes); neighborDatatypes = nullptr;
-   free(connection);
    free(requests);
 }
 
@@ -106,11 +97,8 @@ int Publisher::calcActiveIndices() {
    return PV_SUCCESS;
 }
 
-int Publisher::publish(HyPerLayer* pub,
-                       int neighbors[], int numNeighbors,
-                       int borders[], int numBorders,
-                       PVLayerCube* cube,
-                       int delay/*default=0*/)
+int Publisher::publish(HyPerLayer* pub, int neighbors[], int numNeighbors,
+                       PVLayerCube* cube)
 {
    //
    // Everyone publishes border region to neighbors even if no subscribers.
@@ -209,36 +197,6 @@ int Publisher::wait()
       numRequests = 0;
    }
 #endif // PV_USE_MPI
-
-   return 0;
-}
-
-//Not used?
-//int Publisher::readData(int delay) {
-//   if (delay > 0) {
-//      cube.data = recvBuffer(LOCAL, delay);
-//   }
-//   else {
-//      cube.data = recvBuffer(LOCAL);
-//   }
-//   return 0;
-//}
-
-int Publisher::subscribe(BaseConnection* conn)
-{
-   pvAssert(numSubscribers <= subscriberArraySize);
-   if( numSubscribers == subscriberArraySize ) {
-      subscriberArraySize += RESIZE_ARRAY_INCR;
-      BaseConnection ** newConnection = (BaseConnection **) malloc( subscriberArraySize * sizeof(BaseConnection *) );
-      pvAssert(newConnection);
-      for( int k=0; k<numSubscribers; k++ ) {
-         newConnection[k] = connection[k];
-      }
-      free(connection);
-      connection = newConnection;
-   }
-   connection[numSubscribers] = conn;
-   numSubscribers += 1;
 
    return 0;
 }

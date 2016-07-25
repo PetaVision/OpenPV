@@ -85,13 +85,13 @@ int InterColComm::subscribe(BaseConnection* conn)
 {
    int pubId = conn->preSynapticLayer()->getLayerId();
    assert( pubId < publisherArraySize && pubId >= 0);
-   return publishers[pubId]->subscribe(conn);
+   return 0;
 }
 
 int InterColComm::publish(HyPerLayer* pub, PVLayerCube* cube)
 {
    int pubId = pub->getLayerId();
-   return publishers[pubId]->publish(pub, neighbors, numNeighbors, borders, numBorders, cube);
+   return publishers[pubId]->publish(pub, neighbors, numNeighbors, cube);
 }
 
 int InterColComm::exchangeBorders(int pubId, const PVLayerLoc * loc, int delay/*default=0*/) {
