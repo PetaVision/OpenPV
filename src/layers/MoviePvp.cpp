@@ -282,27 +282,39 @@ int MoviePvp::allocateDataStructures() {
       }
    }
    else if(strcmp(batchMethod, "bySpecified") == 0){
-      if(numStartFrame != nbatch && numStartFrame != 0){
-         pvError() << "Movie layer " << name << " batchMethod of \"bySpecified\" requires 0 or " << nbatch << " start_frame_index values\n";
+      int nbatchGlobal = parent->getNBatchGlobal();
+      int commBatch = parent->commBatch();
+      int numBatchPerProc = parent->numCommBatches();
+
+      if(numStartFrame != nbatchGlobal && numStartFrame != 0){
+         pvError() << "Movie layer " << name << " batchMethod of \"bySpecified\" requires 0 or " << nbatchGlobal << " start_frame_index values\n";
       }
-      if(numSkipFrame != nbatch && numSkipFrame != 0){
-         pvError() << "Movie layer " << name << " batchMethod of \"bySpecified\" requires 0 or " << nbatch << " skip_frame_index values\n";
+      if(numSkipFrame != nbatchGlobal && numSkipFrame != 0){
+         pvError() << "Movie layer " << name << " batchMethod of \"bySpecified\" requires 0 or " << nbatchGlobal << " skip_frame_index values\n";
       }
-      for(int b = 0; b < nbatch; b++){ 
+
+      //Each process grabs it's own set of start/skipFrameIndex from the parameters
+      int startCommIdx = commBatch*numBatchPerProc;
+      int endCommIdx = startCommIdx + nbatch;
+      int b = 0;
+      for(int pb = startCommIdx; pb < endCommIdx; pb++){ 
          if(numStartFrame == 0){
             //+1 for 1 indexed
             startFrameIndex[b] = 0;
          }
          else{
-            startFrameIndex[b] = paramsStartFrameIndex[b];
+            startFrameIndex[b] = paramsStartFrameIndex[pb];
          }
          if(numSkipFrame == 0){
             skipFrameIndex[b] = 1;
          }
          else{
-            skipFrameIndex[b] = paramsSkipFrameIndex[b];
+            skipFrameIndex[b] = paramsSkipFrameIndex[pb];
          }
+         b++;
       }
+      //Sanity check
+      assert(b == nbatch);
    }
    else{
       //This should never excute, as this check was done in the reading of this parameter

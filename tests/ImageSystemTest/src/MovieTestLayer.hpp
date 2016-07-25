@@ -13,7 +13,7 @@ class MovieTestLayer : public PV::Movie{
 public:
    MovieTestLayer(const char * name, HyPerCol * hc);
 #ifdef PV_USE_GDAL
-   virtual int callUpdateState(double time, double dt);
+   virtual int updateState(double time, double dt);
 #endif // PV_USE_GDAL
 };
 

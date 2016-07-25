@@ -12,7 +12,7 @@ TriggerTestLayer::TriggerTestLayer(const char * name, HyPerCol * hc)
    HyPerLayer::initialize(name, hc);
 }
 
-int TriggerTestLayer::callUpdateState(double time, double dt){
+int TriggerTestLayer::updateState(double time, double dt){
    //4 different layers
    //No trigger, always update
    pvInfo().printf("%s: time=%f, dt=%f, needUpdate=%d\n", name, time, dt, needUpdate(time, dt));
@@ -46,7 +46,7 @@ int TriggerTestLayer::callUpdateState(double time, double dt){
          assert(needUpdate(time, dt) == false);
       }
    }
-   return HyPerLayer::callUpdateState(time, dt);
+   return HyPerLayer::updateState(time, dt);
 }
 
 BaseObject * createTriggerTestLayer(char const * name, HyPerCol * hc) {

@@ -13,7 +13,7 @@ class TriggerTestLayer : public PV::HyPerLayer{
 public:
    TriggerTestLayer(const char * name, HyPerCol * hc);
    virtual bool activityIsSpiking() { return false; }
-   int virtual callUpdateState (double time, double dt);
+   int virtual updateState (double time, double dt);
 };
 
 BaseObject * createTriggerTestLayer(char const * name, HyPerCol * hc);
