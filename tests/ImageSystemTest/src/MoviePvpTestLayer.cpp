@@ -6,20 +6,25 @@ MoviePvpTestLayer::MoviePvpTestLayer(const char * name, HyPerCol * hc) {
    MoviePvp::initialize(name, hc);
 }
 
-int MoviePvpTestLayer::callUpdateState(double time, double dt)
+int MoviePvpTestLayer::updateState(double time, double dt)
 {
-   MoviePvp::callUpdateState(time, dt);
+   MoviePvp::updateState(time, dt);
+   std::cout << "Here\n";
    const PVLayerLoc * loc = getLayerLoc();
    int nx = loc->nx;
    int ny = loc->ny;
    int nf = loc->nf;
    int nbatch = loc->nbatch;
+   int nbatchGlobal = loc->nbatchGlobal;
+   int commBatch = parent->commBatch();
+   int numBatchPerProc = parent->numCommBatches();
 
    for(int b = 0; b < nbatch; b++){
       pvdata_t * dataBatch = data + b * getNumExtended();
       int frameIdx;
-      if(strcmp(getBatchMethod(), "byImage") == 0){
-         frameIdx = (time-1) * nbatch + b;
+      if(strcmp(getBatchMethod(), "byImage") == 0 || strcmp(getBatchMethod(), "bySpecified") == 0){
+         frameIdx = (time-1) * nbatchGlobal + commBatch*numBatchPerProc + b;
+         std::cout << "frameIdx:" << frameIdx << ", nbatchGlobal:" << nbatchGlobal << ", commBatch:"<< commBatch << ", numBatchPerProc:" << numBatchPerProc << ", b:" << b << "\n"; 
       }
       else if(strcmp(getBatchMethod(), "byMovie") == 0){
          frameIdx = b * 2 + (time-1);
