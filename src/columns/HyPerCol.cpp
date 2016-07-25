@@ -1522,8 +1522,8 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
       // output initial conditions
       if (!mCheckpointReadFlag) {
          notify(ConnectionOutputMessage(simTime));
-         for (int l = 0; l < numLayers; l++) {
-            layers[l]->outputState(simTime);
+         for (int phase=0; phase<numPhases; phase++) {
+            notify(LayerOutputStateMessage(phase, simTime));
          }
       }
 
