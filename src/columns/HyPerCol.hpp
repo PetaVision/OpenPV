@@ -471,7 +471,6 @@ private:
    void notify(std::vector<BaseMessage const *> messages);
    void notify(BaseMessage const & message);
    int normalizeWeights();
-   int initPublishers();
    int checkpointRead();
    int checkpointWrite(const char * cpDir);
    int writeTimers(std::ostream& stream);

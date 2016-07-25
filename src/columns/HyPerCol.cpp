@@ -67,7 +67,6 @@ HyPerCol::~HyPerCol() {
       if (layers[n] != NULL) { delete layers[n]; }
    }
    free(layers);
-   icComm->clearPublishers();
    delete runTimer;
    delete checkpointTimer;
    free(mDtAdaptController);
@@ -1487,8 +1486,6 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
          phaseRecvTimers[phase] = new Timer(mName, "column", tmpStr);
       }
 
-      initPublishers(); // create the publishers and their data stores
-
    #ifdef DEBUG_OUTPUT
       if (columnId() == 0) {
          pvInfo().printf("[0]: HyPerCol: running...\n");
@@ -1791,15 +1788,6 @@ int HyPerCol::normalizeWeights() {
       }
    }
    return status;
-}
-
-int HyPerCol::initPublishers() {
-   for( int l=0; l<numLayers; l++ ) {
-      // PVLayer * clayer = layers[l]->getCLayer();
-      icComm->addPublisher(layers[l]);
-   }
-
-   return PV_SUCCESS;
 }
 
 double * HyPerCol::adaptTimeScale(){

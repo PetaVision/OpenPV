@@ -206,6 +206,7 @@ protected:
    int setLayerLoc(PVLayerLoc * layerLoc, float nxScale, float nyScale, int nf, int numBatches);
    virtual int allocateBuffers();
    virtual int allocateGSyn();
+   void addPublisher();
 
    /*
     * Allocates a buffer of the given length.  The membrane potential and activity buffer, among others, are created using allocateBuffer.
@@ -495,6 +496,7 @@ protected:
 
    int numChannels;             // number of channels
    pvdata_t ** GSyn;            // of dynamic length numChannels
+   Publisher * publisher = nullptr;
 
    float nxScale, nyScale;        // Size of layer relative to column
    int numFeatures;

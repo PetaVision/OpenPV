@@ -295,6 +295,10 @@ HyPerLayer::~HyPerLayer()
       free(thread_gSyn);
       thread_gSyn = NULL;
    }
+   if (publisher) {
+      parent->icCommunicator()->removePublisher(publisher);
+      delete publisher;
+   }
 
 }
 
@@ -528,6 +532,12 @@ int HyPerLayer::allocateGSyn() {
    }
 
    return status;
+}
+
+void HyPerLayer::addPublisher() {
+   InterColComm * icComm = parent->icCommunicator();
+   publisher = new Publisher(icComm, getNumExtended(), clayer->loc, getNumDelayLevels(), getSparseFlag());
+   icComm->addPublisher(publisher);
 }
 
 int HyPerLayer::initializeState() {
@@ -1295,6 +1305,8 @@ int HyPerLayer::allocateDataStructures()
    if (status == PV_SUCCESS) {
       status = openOutputStateFile();
    }
+
+   addPublisher();
 
    return status;
 }

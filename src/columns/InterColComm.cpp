@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <algorithm>
 
 #include "InterColComm.hpp"
 #include "layers/HyPerLayer.hpp"
@@ -25,20 +26,19 @@ InterColComm::~InterColComm()
    clearPublishers();
 }
 
-int InterColComm::addPublisher(HyPerLayer* pub)
+void InterColComm::addPublisher(Publisher * pub)
 {
-   Communicator * icComm = pub->getParent()->icCommunicator();
-   int numItems = pub->getNumExtended();
-   int numLevels = pub->getNumDelayLevels();
-   int isSparse = pub->getSparseFlag();
-   int pubId = pub->getLayerId();
-   publishers.emplace_back(new Publisher(icComm, numItems, pub->clayer->loc, numLevels, isSparse));
+   publishers.emplace_back(pub);
+}
 
-   return pubId;
+void InterColComm::removePublisher(Publisher * pub) {
+   if (publishers.size()>0) {
+   publishers.erase(std::remove(publishers.begin(), publishers.end(), pub));
+   }
 }
 
 int InterColComm::clearPublishers() {
-   for (auto& p : publishers) { delete p; } publishers.clear();
+   publishers.clear();
    return PV_SUCCESS;
 }
 

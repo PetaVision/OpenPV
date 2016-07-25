@@ -30,7 +30,8 @@ public:
    InterColComm(PV_Arguments * argumentList);
    virtual ~InterColComm();
 
-   int addPublisher(HyPerLayer * pub);
+   void addPublisher(Publisher * pub);
+   void removePublisher(Publisher * pub);
    int clearPublishers();
    int publish(HyPerLayer * pub, PVLayerCube * cube);
    int exchangeBorders(int pubId, const PVLayerLoc * loc, int delay=0);
