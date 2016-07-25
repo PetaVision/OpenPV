@@ -2150,16 +2150,16 @@ int HyPerCol::advanceTime(double sim_time) {
    for (int phase=0; phase<numPhases; phase++) {
 
       //Ordering needs to go recvGpu, if(recvGpu and upGpu)update, recvNoGpu, update rest
+      std::vector<BaseMessage const*> messageVector;
 #ifdef PV_USE_CUDA
-      std::vector<BaseMessage const*> v;
-      v.emplace_back(new LayerRecvSynapticInputMessage(phase, phaseRecvTimers[phase], true/*recvGpuFlag*/, simTime, deltaTimeBase));
-      v.emplace_back(new LayerUpdateStateMessage(phase, true/*recvGpuFlag*/, true/*updateGpuFlag*/, simTime, deltaTimeBase));
-      notify(v);
-      for (auto msg : v) { delete msg; } v.clear();
-      v.emplace_back(new LayerRecvSynapticInputMessage(phase, phaseRecvTimers[phase], false/*recvGpuFlag*/, simTime, deltaTimeBase));
-      v.emplace_back(new LayerUpdateStateMessage(phase, false/*recvGpuFlag*/, false/*updateGpuFlag*/, simTime, deltaTimeBase));
-      notify(v);
-      for (auto msg : v) { delete msg; } v.clear();
+      messageVector.emplace_back(new LayerRecvSynapticInputMessage(phase, phaseRecvTimers[phase], true/*recvGpuFlag*/, simTime, deltaTimeBase));
+      messageVector.emplace_back(new LayerUpdateStateMessage(phase, true/*recvGpuFlag*/, true/*updateGpuFlag*/, simTime, deltaTimeBase));
+      notify(messageVector);
+      for (auto msg : messageVector) { delete msg; } messageVector.clear();
+      messageVector.emplace_back(new LayerRecvSynapticInputMessage(phase, phaseRecvTimers[phase], false/*recvGpuFlag*/, simTime, deltaTimeBase));
+      messageVector.emplace_back(new LayerUpdateStateMessage(phase, false/*recvGpuFlag*/, false/*updateGpuFlag*/, simTime, deltaTimeBase));
+      notify(messageVector);
+      for (auto msg : messageVector) { delete msg; } messageVector.clear();
 
       getDevice()->syncDevice();
 
@@ -2172,18 +2172,21 @@ int HyPerCol::advanceTime(double sim_time) {
       //Update for gpu recv and non gpu update
       notify(LayerUpdateStateMessage(phase, true/*recvOnGpuFlag*/, false/*updateOnGpuFlag*/, simTime, deltaTimeBase));
 #else
-      std::vector<BaseMessage const*> v;
-      v.emplace_back(new LayerRecvSynapticInputMessage(phase, phaseRecvTimers[phase], simTime, deltaTimeBase));
-      v.emplace_back(new LayerUpdateStateMessage(phase, simTime, deltaTimeBase));
-      notify(v);
-      for (auto msg : v) { delete msg; } v.clear();
+      messageVector.emplace_back(new LayerRecvSynapticInputMessage(phase, phaseRecvTimers[phase], simTime, deltaTimeBase));
+      messageVector.emplace_back(new LayerUpdateStateMessage(phase, simTime, deltaTimeBase));
+      notify(messageVector);
+      for (auto msg : messageVector) { delete msg; } messageVector.clear();
 #endif
 
       // Rotate DataStore ring buffers, copy activity buffer to DataStore, and do MPI exchange.
       notify(LayerPublishMessage(phase, simTime));
 
       // wait for all published data to arrive and call layer's outputState
-      notify(LayerOutputStateMessage(phase, simTime));
+
+      messageVector.emplace_back(new LayerUpdateActiveIndicesMessage(phase));
+      messageVector.emplace_back(new LayerOutputStateMessage(phase, simTime));
+      notify(messageVector);
+      for (auto msg : messageVector) { delete msg; } messageVector.clear();
 
       if (mErrorOnNotANumber) {
          notify(LayerCheckNotANumberMessage(phase));

@@ -63,6 +63,7 @@ protected:
    virtual int respondLayerCopyFromGpu(LayerCopyFromGpuMessage const * message) { return PV_SUCCESS; }
 #endif // PV_USE_CUDA
    virtual int respondLayerPublish(LayerPublishMessage const * message) { return PV_SUCCESS; }
+   virtual int respondLayerUpdateActiveIndices(LayerUpdateActiveIndicesMessage const * message) { return PV_SUCCESS; }
    virtual int respondLayerOutputState(LayerOutputStateMessage const * message) { return PV_SUCCESS; }
    virtual int respondLayerCheckNotANumber(LayerCheckNotANumberMessage const * message) { return PV_SUCCESS; }
 // Member variable

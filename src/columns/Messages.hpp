@@ -182,6 +182,15 @@ public:
    double mTime;
 };
 
+class LayerUpdateActiveIndicesMessage : public BaseMessage {
+public:
+   LayerUpdateActiveIndicesMessage(int phase) {
+      setMessageType("LayerUpdateActiveIndices");
+      mPhase = phase;
+   }
+   int mPhase;
+};
+
 class LayerOutputStateMessage : public BaseMessage {
 public:
    LayerOutputStateMessage(int phase, double simTime) {

@@ -103,6 +103,9 @@ int BaseObject::respond(BaseMessage const * message) {
    else if (LayerPublishMessage const * castMessage = dynamic_cast<LayerPublishMessage const*>(message)) {
       status = respondLayerPublish(castMessage);
    }
+   else if (LayerUpdateActiveIndicesMessage const * castMessage = dynamic_cast<LayerUpdateActiveIndicesMessage const*>(message)) {
+      status = respondLayerUpdateActiveIndices(castMessage);
+   }
    else if (LayerOutputStateMessage const * castMessage = dynamic_cast<LayerOutputStateMessage const*>(message)) {
       status = respondLayerOutputState(castMessage);
    }

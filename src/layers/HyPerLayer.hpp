@@ -379,6 +379,7 @@ public:
 #endif // PV_USE_CUDA
    virtual int respondLayerPublish(LayerPublishMessage const * message);
    virtual int respondLayerCheckNotANumber(LayerCheckNotANumberMessage const * message);
+   virtual int respondLayerUpdateActiveIndices(LayerUpdateActiveIndicesMessage const * message);
    virtual int respondLayerOutputState(LayerOutputStateMessage const * message);
    virtual int publish(InterColComm * comm, double time);
    virtual int resetGSynBuffers(double timef, double dt);

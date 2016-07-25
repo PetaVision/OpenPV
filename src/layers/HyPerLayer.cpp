@@ -1879,12 +1879,18 @@ int HyPerLayer::respondLayerCheckNotANumber(LayerCheckNotANumberMessage const * 
    return status;
 }
 
-int HyPerLayer::respondLayerOutputState(LayerOutputStateMessage const * message) {
+int HyPerLayer::respondLayerUpdateActiveIndices(LayerUpdateActiveIndicesMessage const * message) {
    int status = PV_SUCCESS;
    if (message->mPhase != getPhase()) { return status; }
    waitOnPublish(getParent()->icCommunicator());
-   updateActiveIndices();
-   outputState(message->mTime); // also calls layer probes' outputState
+   status = updateActiveIndices();
+   return status;
+}
+
+int HyPerLayer::respondLayerOutputState(LayerOutputStateMessage const * message) {
+   int status = PV_SUCCESS;
+   if (message->mPhase != getPhase()) { return status; }
+   status = outputState(message->mTime); // also calls layer probes' outputState
    return status;
 }
 
