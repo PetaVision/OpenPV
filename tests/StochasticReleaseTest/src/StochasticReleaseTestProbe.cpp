@@ -149,7 +149,7 @@ int StochasticReleaseTestProbe::computePValues(long int step, int f) {
    }
    HyPerLayer * l = getTargetLayer();
    HyPerCol * hc = l->getParent();
-   MPI_Allreduce(MPI_IN_PLACE, &nnzf, 1, MPI_INT, MPI_SUM, hc->icCommunicator()->communicator());
+   MPI_Allreduce(MPI_IN_PLACE, &nnzf, 1, MPI_INT, MPI_SUM, hc->getCommunicator()->communicator());
    if (hc->columnId()==0) {
       const int neuronsPerFeature = l->getNumGlobalNeurons()/nf;
       double mean = preact * neuronsPerFeature;

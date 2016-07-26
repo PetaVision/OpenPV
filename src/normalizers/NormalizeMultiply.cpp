@@ -99,7 +99,7 @@ int NormalizeMultiply::normalizeWeights() {
          status = PV_FAILURE;
       }
       if (status==PV_FAILURE) {
-         MPI_Barrier(parent->icCommunicator()->communicator());
+         MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
    }

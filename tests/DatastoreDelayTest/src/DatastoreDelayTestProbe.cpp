@@ -39,7 +39,7 @@ void DatastoreDelayTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
  */
 int DatastoreDelayTestProbe::outputState(double timed) {
    HyPerLayer * l = getTargetLayer();
-   InterColComm * icComm = l->getParent()->icCommunicator();
+   Communicator * icComm = l->getParent()->getCommunicator();
    const int rcvProc = 0;
    if( icComm->commRank() != rcvProc ) {
       return PV_SUCCESS;

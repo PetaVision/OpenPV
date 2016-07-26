@@ -11,7 +11,7 @@
 #define DEFAULT_NUMSTEPS 1
 
 #include "HyPerCol.hpp"
-#include "columns/InterColComm.hpp"
+#include "columns/Communicator.hpp"
 #include "normalizers/NormalizeBase.hpp"
 #include "io/Clock.hpp"
 #include "io/io.hpp"
@@ -169,9 +169,9 @@ int HyPerCol::initialize_base() {
    nbatch = 1;
    nbatchGlobal = 1;
    mOwnsParams = true;
-   mOwnsInterColComm = true;
+   mOwnsCommunicator = true;
    params = NULL;
-   icComm = NULL;
+   mCommunicator = NULL;
    runTimer = NULL;
    checkpointTimer = NULL;
    phaseRecvTimers = NULL;
@@ -198,16 +198,16 @@ int HyPerCol::initialize_base() {
 int HyPerCol::initialize(const char * name, PV_Init* initObj)
 {
    pv_initObj = initObj;
-   this->icComm = pv_initObj->getComm();
+   this->mCommunicator = pv_initObj->getCommunicator();
    this->params = pv_initObj->getParams();
    if(this->params == NULL) {
-      if (icComm->globalCommRank()==0) {
+      if (mCommunicator->globalCommRank()==0) {
          pvErrorNoExit() << "HyPerCol::initialize: params have not been set." << std::endl;
-         MPI_Barrier(icComm->communicator());
+         MPI_Barrier(mCommunicator->communicator());
       }
       exit(EXIT_FAILURE);
    }
-   int rank = icComm->globalCommRank();
+   int rank = mCommunicator->globalCommRank();
    char const * gpu_devices = pv_initObj->getGPUDevices();
    char * working_dir = expandLeadingTilde(pv_initObj->getWorkingDir());
    mWarmStart = pv_initObj->getRestartFlag();
@@ -222,7 +222,7 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
             charhit = getc(stdin);
          }
       }
-      MPI_Barrier(icComm->globalCommunicator());
+      MPI_Barrier(mCommunicator->globalCommunicator());
    }
 #endif // PVP_DEBUG
 
@@ -252,7 +252,7 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
    int parsedStatus;
    int rootproc = 0;
    if( globalRank() == rootproc ) { parsedStatus = this->params->getParseStatus(); }
-   MPI_Bcast(&parsedStatus, 1, MPI_INT, rootproc, icCommunicator()->globalCommunicator());
+   MPI_Bcast(&parsedStatus, 1, MPI_INT, rootproc, getCommunicator()->globalCommunicator());
 #else
    int parsedStatus = this->params->getParseStatus();
 #endif
@@ -368,32 +368,32 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
          }
 
       }
-      MPI_Bcast(mCheckpointReadDir, PV_PATH_MAX, MPI_CHAR, 0, icComm->communicator());
+      MPI_Bcast(mCheckpointReadDir, PV_PATH_MAX, MPI_CHAR, 0, mCommunicator->communicator());
    }
    if (checkpoint_read_dir) {
       char * origChkPtr = strdup(pv_initObj->getCheckpointReadDir());
-      char** splitCheckpoint = (char**)pvCalloc(icComm->numCommBatches(), sizeof(char*));
+      char** splitCheckpoint = (char**)pvCalloc(mCommunicator->numCommBatches(), sizeof(char*));
       size_t count = 0;
       char * tmp = NULL;
       tmp = strtok(origChkPtr, ":");
       while(tmp != NULL){
          splitCheckpoint[count] = strdup(tmp);
          count++;
-         if(count > icComm->numCommBatches()){
-            pvError().printf("Checkpoint read dir parsing error: Specified too many colon seperated checkpoint read directories. Only specify %d checkpoint directories.\n", icComm->numCommBatches());
+         if(count > mCommunicator->numCommBatches()){
+            pvError().printf("Checkpoint read dir parsing error: Specified too many colon seperated checkpoint read directories. Only specify %d checkpoint directories.\n", mCommunicator->numCommBatches());
          }
          tmp = strtok(NULL, ":");
       }
       //Make sure number matches up
-      if(count != icComm->numCommBatches()){
-         pvError().printf("Checkpoint read dir parsing error: Specified not enough colon seperated checkpoint read directories. Running with %d batch MPIs but only %zu colon seperated checkpoint directories.\n", icComm->numCommBatches(), count);
+      if(count != mCommunicator->numCommBatches()){
+         pvError().printf("Checkpoint read dir parsing error: Specified not enough colon seperated checkpoint read directories. Running with %d batch MPIs but only %zu colon seperated checkpoint directories.\n", mCommunicator->numCommBatches(), count);
       }
 
       //Grab this rank's actual mCheckpointReadDir and replace with mCheckpointReadDir
-      mCheckpointReadDir = expandLeadingTilde(splitCheckpoint[icComm->commBatch()]);
+      mCheckpointReadDir = expandLeadingTilde(splitCheckpoint[mCommunicator->commBatch()]);
       pvAssert(mCheckpointReadDir);
       //Free all tmp memories
-      for(int i = 0; i < icComm->numCommBatches(); i++){
+      for(int i = 0; i < mCommunicator->numCommBatches(); i++){
          free(splitCheckpoint[i]);
       }
       free(splitCheckpoint);
@@ -664,7 +664,7 @@ void HyPerCol::ioParamStringRequired(enum ParamsIOFlag ioFlag, const char * grou
             pvErrorNoExit().printf("%s \"%s\": string parameter \"%s\" is required.\n",
                             params->groupKeywordFromName(group_name), group_name, param_name);
          }
-         MPI_Barrier(icComm->globalCommunicator());
+         MPI_Barrier(mCommunicator->globalCommunicator());
          exit(EXIT_FAILURE);
       }
       break;
@@ -735,7 +735,7 @@ void HyPerCol::ioParam_dtAdaptFlag(enum ParamsIOFlag ioFlag) {
                   dtAdaptFlagError << "null; therefore dtAdaptFlag can only be set to false.\n";
                }
             }
-            MPI_Barrier(icCommunicator()->communicator());
+            MPI_Barrier(getCommunicator()->communicator());
             exit(EXIT_FAILURE);
          }
       }
@@ -834,7 +834,7 @@ void HyPerCol::ioParam_stopTime(enum ParamsIOFlag ioFlag) {
          pvError() << "numSteps is obsolete.  Use startTime, stopTime and dt instead.\n" <<
                "    stopTime set to " << stopTime << "\n";
       }
-      MPI_Barrier(icCommunicator()->communicator());
+      MPI_Barrier(getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    // numSteps was deprecated Dec 12, 2013 and marked obsolete Jun 27, 2016
@@ -849,7 +849,7 @@ void HyPerCol::ioParam_progressInterval(enum ParamsIOFlag ioFlag) {
       if (globalRank()==0) {
          pvError() << "progressStep is obsolete.  Use progressInterval instead.\n";
       }
-      MPI_Barrier(icCommunicator()->communicator());
+      MPI_Barrier(getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    // progressStep was deprecated Dec 18, 2013
@@ -899,7 +899,7 @@ void HyPerCol::ioParam_printParamsFilename(enum ParamsIOFlag ioFlag) {
       if (columnId()==0) {
          pvErrorNoExit().printf("printParamsFilename cannot be null or the empty string.\n");
       }
-      MPI_Barrier(icCommunicator()->communicator());
+      MPI_Barrier(getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
 }
@@ -944,10 +944,10 @@ void HyPerCol::ioParam_ny(enum ParamsIOFlag ioFlag) {
 void HyPerCol::ioParam_nBatch(enum ParamsIOFlag ioFlag) {
    ioParamValue(ioFlag, mName, "nbatch", &nbatchGlobal, nbatchGlobal);
    //Make sure numCommBatches is a multiple of nbatch specified in the params file
-   if(nbatchGlobal % icComm->numCommBatches() != 0){
-      pvError() << "The total number of batches (" << nbatchGlobal << ") must be a multiple of the batch width (" << icComm->numCommBatches() << ")\n";
+   if(nbatchGlobal % mCommunicator->numCommBatches() != 0){
+      pvError() << "The total number of batches (" << nbatchGlobal << ") must be a multiple of the batch width (" << mCommunicator->numCommBatches() << ")\n";
    }
-   nbatch = nbatchGlobal/icComm->numCommBatches();
+   nbatch = nbatchGlobal/mCommunicator->numCommBatches();
 }
 
 void HyPerCol::ioParam_filenamesContainLayerNames(enum ParamsIOFlag ioFlag) {
@@ -984,7 +984,7 @@ void HyPerCol::ioParam_checkpointRead(enum ParamsIOFlag ioFlag) {
          pvError() << "The checkpointRead params file parameter is obsolete." <<
                "  Instead, set the checkpoint directory on the command line.\n";
       }
-      MPI_Barrier(icCommunicator()->communicator());
+      MPI_Barrier(getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
 }
@@ -1054,7 +1054,7 @@ void HyPerCol::ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag ) {
             if (globalRank()==0) {
                pvErrorNoExit().printf("HyPerCol \"%s\": checkpointWriteTriggerMode \"%s\" is not recognized.\n", mName, mCheckpointWriteTriggerModeString);
             }
-            MPI_Barrier(icCommunicator()->globalCommunicator());
+            MPI_Barrier(getCommunicator()->globalCommunicator());
             exit(EXIT_FAILURE);
          }
       }
@@ -1127,7 +1127,7 @@ void HyPerCol::ioParam_checkpointWriteClockUnit(enum ParamsIOFlag ioFlag) {
                if (globalRank()==0) {
                   pvErrorNoExit().printf("checkpointWriteClockUnit \"%s\" is unrecognized.  Use \"seconds\", \"minutes\", \"hours\", or \"days\".\n", mCheckpointWriteClockUnit);
                }
-               MPI_Barrier(icCommunicator()->globalCommunicator());
+               MPI_Barrier(getCommunicator()->globalCommunicator());
                exit(EXIT_FAILURE);
             }
             if (mCheckpointWriteClockUnit==NULL) {
@@ -1156,7 +1156,7 @@ void HyPerCol::ioParam_numCheckpointsKept(enum ParamsIOFlag ioFlag) {
             if (columnId()==0) {
                pvErrorNoExit() << "HyPerCol \"" << mName << "\": numCheckpointsKept must be positive (value was " << numCheckpointsKept << ")" << std::endl;
             }
-            MPI_Barrier(icComm->communicator());
+            MPI_Barrier(mCommunicator->communicator());
             exit(EXIT_FAILURE);
          }
       }
@@ -1280,11 +1280,11 @@ int HyPerCol::checkDirExists(const char * dirname, struct stat * pathstat) {
       if( status ) errorcode = errno;
    }
 #ifdef PV_USE_MPI
-   MPI_Bcast(&status, 1, MPI_INT, 0, icCommunicator()->communicator());
+   MPI_Bcast(&status, 1, MPI_INT, 0, getCommunicator()->communicator());
    if( status ) {
-      MPI_Bcast(&errorcode, 1, MPI_INT, 0, icCommunicator()->communicator());
+      MPI_Bcast(&errorcode, 1, MPI_INT, 0, getCommunicator()->communicator());
    }
-   MPI_Bcast(pathstat, sizeof(struct stat), MPI_CHAR, 0, icCommunicator()->communicator());
+   MPI_Bcast(pathstat, sizeof(struct stat), MPI_CHAR, 0, getCommunicator()->communicator());
 #endif // PV_USE_MPI
    return status ? errorcode : 0;
 }
@@ -1457,14 +1457,14 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
 
       // processParams function does communicateInitInfo stage, sets up adaptive time step, and prints params
       status = processParams(printParamsFileString.c_str());
-      MPI_Barrier(icCommunicator()->communicator());
+      MPI_Barrier(getCommunicator()->communicator());
       if (status != PV_SUCCESS) {
          pvError().printf("HyPerCol \"%s\" failed to run.\n", mName);
       }
       if (pv_initObj->getDryRunFlag()) { return PV_SUCCESS; }
 
       int thread_status = setNumThreads(true/*now, print messages related to setting number of threads*/);
-      MPI_Barrier(icComm->globalCommunicator());
+      MPI_Barrier(mCommunicator->globalCommunicator());
       if (thread_status !=PV_SUCCESS) {
          exit(EXIT_FAILURE);
       }
@@ -1643,7 +1643,7 @@ int HyPerCol::setNumThreads(bool printMessagesFlag) {
    int num_threads = 0;
 #ifdef PV_USE_OPENMP_THREADS
    int max_threads = pv_initObj->getMaxThreads();
-   int comm_size = icComm->globalCommSize();
+   int comm_size = mCommunicator->globalCommSize();
    if (printMsgs0) {
       pvInfo().printf("Maximum number of OpenMP threads%s is %d\nNumber of MPI processes is %d.\n",
             comm_size==1 ? "" : " (over all processes)", max_threads, comm_size);
@@ -1951,7 +1951,7 @@ int HyPerCol::calcTimeScaleTrue() {
                         pvErrorNoExit().printf("%s, batch element %d, returned time scale %g, less than dtMinToleratedTimeScale=%g.\n", layers[l]->getDescription_c(), b, timeScaleTmp, dtMinToleratedTimeScale);
                      }
                   }
-                  MPI_Barrier(icComm->globalCommunicator());
+                  MPI_Barrier(mCommunicator->globalCommunicator());
                   exit(EXIT_FAILURE);
                }
                //Grabbing lowest timeScaleTmp
@@ -1993,7 +1993,7 @@ int HyPerCol::calcTimeScaleTrue() {
                   pvErrorNoExit().printf("%s, batch element %d, has time scale %g, less than dtMinToleratedTimeScale=%g.\n", dtAdaptControlProbe->getDescription_c(), b, timeScaleProbe, dtMinToleratedTimeScale);
                }
             }
-            MPI_Barrier(icComm->globalCommunicator());
+            MPI_Barrier(mCommunicator->globalCommunicator());
             exit(EXIT_FAILURE);
          }
          timeScaleTrue[b] =  timeScaleProbe;
@@ -2025,7 +2025,7 @@ int HyPerCol::calcTimeScaleTrue() {
                pvErrorNoExit().printf("Layer \"%s\", batch element %d, has time scale %g, less than dtMinToleratedTimeScale=%g.\n", dtAdaptControlProbe->getName(), b, timeScaleProbe, dtMinToleratedTimeScale);
             }
          }
-         MPI_Barrier(icComm->globalCommunicator());
+         MPI_Barrier(mCommunicator->globalCommunicator());
          exit(EXIT_FAILURE);
       }
       timeScaleTrue[b] =  timeScaleProbe;
@@ -2125,7 +2125,7 @@ int HyPerCol::advanceTime(double sim_time) {
    // Balancing MPI_Recv is after the for-loop over phases.  Is this better than MPI_Bcast?  Should it be MPI_Isend?
    if (globalRank()==0) {
       for (int k=1; k<numberOfGlobalColumns(); k++) {
-         MPI_Send(&checkpointSignal, 1/*count*/, MPI_INT, k/*destination*/, 99/*tag*/, icComm->globalCommunicator());
+         MPI_Send(&checkpointSignal, 1/*count*/, MPI_INT, k/*destination*/, 99/*tag*/, mCommunicator->globalCommunicator());
       }
    }
 
@@ -2177,7 +2177,7 @@ int HyPerCol::advanceTime(double sim_time) {
 
    // Balancing MPI_Send is before the for-loop over phases.  Is this better than MPI_Bcast?
    if (globalRank()!=0) {
-      MPI_Recv(&checkpointSignal, 1/*count*/, MPI_INT, 0/*source*/, 99/*tag*/, icCommunicator()->globalCommunicator(), MPI_STATUS_IGNORE);
+      MPI_Recv(&checkpointSignal, 1/*count*/, MPI_INT, 0/*source*/, 99/*tag*/, getCommunicator()->globalCommunicator(), MPI_STATUS_IGNORE);
    }
 
    runTimer->stop();
@@ -2252,7 +2252,7 @@ int HyPerCol::checkpointRead() {
       assert(endpos-startpos==(int)timestamp_size);
       PV_fclose(timestampfile);
    }
-   MPI_Bcast(&timestamp,(int) timestamp_size,MPI_CHAR,0,icCommunicator()->communicator());
+   MPI_Bcast(&timestamp,(int) timestamp_size,MPI_CHAR,0,getCommunicator()->communicator());
    simTime = timestamp.time;
    currentStep = timestamp.step;
 
@@ -2344,7 +2344,7 @@ int HyPerCol::checkpointRead() {
       }
       //Grab only the necessary part based on comm batch id
       if (mUseAdaptMethodExp1stOrder) {
-         MPI_Bcast(&timescalemax,(int) timescalemax_size*nbatch,MPI_CHAR,0,icCommunicator()->communicator());
+         MPI_Bcast(&timescalemax,(int) timescalemax_size*nbatch,MPI_CHAR,0,getCommunicator()->communicator());
          for (int b = 0; b < nbatch; b++){
             timeScale[b] = timescalemax[b].timeScale;
             timeScaleTrue[b] = timescalemax[b].timeScaleTrue;
@@ -2354,7 +2354,7 @@ int HyPerCol::checkpointRead() {
          }
       }
       else {
-         MPI_Bcast(&timescale,(int) timescale_size*nbatch,MPI_CHAR,0,icCommunicator()->communicator());
+         MPI_Bcast(&timescale,(int) timescale_size*nbatch,MPI_CHAR,0,getCommunicator()->communicator());
          for (int b = 0; b < nbatch; b++){
             timeScale[b] = timescale[b].timeScale;
             timeScaleTrue[b] = timescale[b].timeScaleTrue;
@@ -2554,7 +2554,7 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
       pvAssert(mCheckpointWriteFlag); // checkpointWrite is called by exitRunLoop when mCheckpointWriteFlag is false; in this case mDeleteOlderCheckpoints should be false as well.
       char const * oldestCheckpointDir = oldCheckpointDirectories[oldCheckpointDirectoriesIndex].c_str();
       if (oldestCheckpointDir && oldestCheckpointDir[0]) {
-         if (icComm->commRank()==0) {
+         if (mCommunicator->commRank()==0) {
             struct stat lcp_stat;
             int statstatus = stat(oldestCheckpointDir, &lcp_stat);
             if ( statstatus!=0 || !(lcp_stat.st_mode & S_IFDIR) ) {
@@ -2580,7 +2580,7 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
       if (oldCheckpointDirectoriesIndex==numCheckpointsKept) { oldCheckpointDirectoriesIndex = 0; }
    }
 
-   if (icComm->commRank()==0) {
+   if (mCommunicator->commRank()==0) {
       pvInfo().printf("checkpointWrite complete. simTime = %f\n", simTime);
    }
    checkpointTimer->stop();
@@ -2590,7 +2590,7 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
 int HyPerCol::outputParams(char const * path) {
    assert(path!=NULL && path[0]!='\0');
    int status = PV_SUCCESS;
-   int rank=icComm->commRank();
+   int rank=mCommunicator->commRank();
    assert(printParamsStream==NULL);
    char printParamsPath[PV_PATH_MAX];
    char * tmp = strdup(path); // duplicate string since dirname() is allowed to modify its argument
@@ -2702,7 +2702,7 @@ int HyPerCol::outputParamsHeadComments(FILE* fp, char const * commentToken) {
    fprintf(fp, "%s PetaVision, " PV_REVISION "\n", commentToken);
    fprintf(fp, "%s Run time %s", commentToken, ctime(&t)); // newline is included in output of ctime
 #ifdef PV_USE_MPI
-   fprintf(fp, "%s Compiled with MPI and run using %d rows and %d columns.\n", commentToken, icComm->numCommRows(), icComm->numCommColumns());
+   fprintf(fp, "%s Compiled with MPI and run using %d rows and %d columns.\n", commentToken, mCommunicator->numCommRows(), mCommunicator->numCommColumns());
 #else // PV_USE_MPI
    fprintf(fp, "%s Compiled without MPI.\n", commentToken);
 #endif // PV_USE_MPI
@@ -2761,7 +2761,7 @@ int HyPerCol::exitRunLoop(bool exitOnFinish)
          chars_printed = snprintf(cpDir, PV_PATH_MAX, "%s/Last", outputPath);
       }
       if(chars_printed >= PV_PATH_MAX) {
-         if (icComm->commRank()==0) {
+         if (mCommunicator->commRank()==0) {
             pvError().printf("HyPerCol::run error.  Checkpoint directory \"%s/Checkpoint%ld\" is too long.\n", mCheckpointWriteDir, currentStep);
          }
       }
@@ -2779,8 +2779,8 @@ int HyPerCol::exitRunLoop(bool exitOnFinish)
 int HyPerCol::getAutoGPUDevice(){
    int returnGpuIdx = -1;
 #ifdef PV_USE_CUDA
-   int mpiRank = icComm->globalCommRank();
-   int numMpi = icComm->globalCommSize();
+   int mpiRank = mCommunicator->globalCommRank();
+   int numMpi = mCommunicator->globalCommSize();
    char hostNameStr[PV_PATH_MAX];
    gethostname(hostNameStr, PV_PATH_MAX);
    size_t hostNameLen = strlen(hostNameStr) + 1; //+1 for null terminator
@@ -2803,8 +2803,8 @@ int HyPerCol::getAutoGPUDevice(){
             rankToMaxGpu[rank] = PVCuda::CudaDevice::getNumDevices();
          }
          else{
-            MPI_Recv(rankToHost[rank], PV_PATH_MAX, MPI_CHAR, rank, 0, icComm->globalCommunicator(), MPI_STATUS_IGNORE);
-            MPI_Recv(&(rankToMaxGpu[rank]), 1, MPI_INT, rank, 0, icComm->globalCommunicator(), MPI_STATUS_IGNORE);
+            MPI_Recv(rankToHost[rank], PV_PATH_MAX, MPI_CHAR, rank, 0, mCommunicator->globalCommunicator(), MPI_STATUS_IGNORE);
+            MPI_Recv(&(rankToMaxGpu[rank]), 1, MPI_INT, rank, 0, mCommunicator->globalCommunicator(), MPI_STATUS_IGNORE);
          }
       }
 
@@ -2854,19 +2854,19 @@ int HyPerCol::getAutoGPUDevice(){
             returnGpuIdx = rankToGpu[rank];
          }
          else{
-            MPI_Send(&(rankToGpu[rank]), 1, MPI_INT, rank, 0, icComm->globalCommunicator());
+            MPI_Send(&(rankToGpu[rank]), 1, MPI_INT, rank, 0, mCommunicator->globalCommunicator());
          }
       }
    }
    //Non root process
    else{
       //Send host name
-      MPI_Send(hostNameStr, hostNameLen, MPI_CHAR, 0, 0, icComm->globalCommunicator());
+      MPI_Send(hostNameStr, hostNameLen, MPI_CHAR, 0, 0, mCommunicator->globalCommunicator());
       //Send max gpus for that host
       int maxGpu = PVCuda::CudaDevice::getNumDevices();
-      MPI_Send(&maxGpu, 1, MPI_INT, 0, 0, icComm->globalCommunicator());
+      MPI_Send(&maxGpu, 1, MPI_INT, 0, 0, mCommunicator->globalCommunicator());
       //Recv gpu idx
-      MPI_Recv(&(returnGpuIdx), 1, MPI_INT, 0, 0, icComm->globalCommunicator(), MPI_STATUS_IGNORE);
+      MPI_Recv(&(returnGpuIdx), 1, MPI_INT, 0, 0, mCommunicator->globalCommunicator(), MPI_STATUS_IGNORE);
    }
    assert(returnGpuIdx >= 0 && returnGpuIdx < PVCuda::CudaDevice::getNumDevices());
 #else
@@ -2878,7 +2878,7 @@ int HyPerCol::getAutoGPUDevice(){
 
 int HyPerCol::initializeThreads(char const * in_device)
 {
-   int numMpi = icComm->globalCommSize();
+   int numMpi = mCommunicator->globalCommSize();
    int device;
 
    //default value
@@ -2906,12 +2906,12 @@ int HyPerCol::initializeThreads(char const * in_device)
          device = deviceVec[0];
       }
       else if(deviceVec.size() >= numMpi){
-         device = deviceVec[icComm->globalCommRank()];
+         device = deviceVec[mCommunicator->globalCommRank()];
       }
       else{
          pvError().printf("Device specification error: Number of devices specified (%zu) must be either 1 or >= than number of mpi processes (%d).\n", deviceVec.size(), numMpi);
       }
-      pvInfo() << "Global MPI Process " << icComm->globalCommRank() << " using device " << device << "\n";
+      pvInfo() << "Global MPI Process " << mCommunicator->globalCommRank() << " using device " << device << "\n";
    }
 
 #ifdef PV_USE_CUDA
@@ -3085,7 +3085,7 @@ unsigned int HyPerCol::getRandomSeed() {
    if (columnId()==rootproc) {
        t = time((time_t *) NULL);
    }
-   MPI_Bcast(&t, 1, MPI_UNSIGNED, rootproc, icComm->communicator());
+   MPI_Bcast(&t, 1, MPI_UNSIGNED, rootproc, mCommunicator->communicator());
    return t;
 }
 
@@ -3175,7 +3175,7 @@ int HyPerCol::readArrayFromFile(const char * cp_dir, const char * group_name, co
          PV_fclose(pvstream);
       }
    }
-   MPI_Bcast(val, sizeof(T)*count, MPI_CHAR, 0, icCommunicator()->communicator());
+   MPI_Bcast(val, sizeof(T)*count, MPI_CHAR, 0, getCommunicator()->communicator());
 
    return status;
 }
@@ -3230,7 +3230,7 @@ HyPerCol * createHyPerCol(PV_Init * pv_initObj) {
             if (hc->columnId()==0) {
                pvError() << "";
             }
-            MPI_Barrier(hc->icCommunicator()->communicator());
+            MPI_Barrier(hc->getCommunicator()->communicator());
             exit(PV_FAILURE);
          }
       }

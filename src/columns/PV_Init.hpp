@@ -27,7 +27,7 @@ public:
    /**
     * The constructor creates a PV_Arguments object from the input arguments
     * and if MPI has not already been initialized, calls MPI_Init.
-    * Note that it does not call initialize, so the PVParams and InterColComm
+    * Note that it does not call initialize, so the PVParams and Communicator
     * objects are not initialized on instantiation.
     * On instantiation, the create() method will recognize all core PetaVision
     * groups (ANNLayer, HyPerConn, etc.).  To add additional known groups,
@@ -40,14 +40,14 @@ public:
    virtual ~PV_Init();
 
    /**
-    * initialize(void) creates the PVParams and InterColComm objects from
+    * initialize(void) creates the PVParams and Communicator objects from
     * the existing arguments.  If the paramsFile (-p) argument is not set,
     * params is kept at null, and the params file can be set later using the
     * setParams() method.
     *
     * initialize() is called by the PV_Init constructor, but it is
     * also permissible to call initialize again, in which case the
-    * PVParams and InterColComm objects are deleted and recreated,
+    * PVParams and Communicator objects are deleted and recreated,
     * based on the current state of the arguments.
     */
    int initialize();
@@ -256,7 +256,7 @@ public:
     * from the other values (as if the relevant command line option was absent.)
     * If any of the arguments are negative, the corresponding values are
     * left unchanged.
-    * initialize() is called, which deletes the existing InterColComm
+    * initialize() is called, which deletes the existing Communicator
     * and creates a new one.
     * Returns PV_SUCCESS if successful; exits on an error if it fails.
     */
@@ -278,11 +278,11 @@ public:
     */
    int resetState();
 
-   InterColComm * getComm(){return icComm;}
+   Communicator * getCommunicator(){return mCommunicator;}
 
    int getWorldRank() const {
-      if(icComm){
-         return icComm->globalCommRank();
+      if(mCommunicator){
+         return mCommunicator->globalCommRank();
       }
       else{
          int rank = 0;
@@ -292,8 +292,8 @@ public:
    }
 
    int getWorldSize(){
-      if(icComm){
-         return icComm->globalCommSize();
+      if(mCommunicator){
+         return mCommunicator->globalCommSize();
       }
       else{
          int size = 0;
@@ -302,7 +302,7 @@ public:
       }
    }
 
-   int isExtraProc(){return icComm->isExtraProc();}
+   int isExtraProc(){return mCommunicator->isExtraProc();}
 
    /**
     * If using PV_USE_OPENMP_THREADS, returns the value returned by omp_get_max_threads() when the PV_Init object was instantiated.
@@ -404,7 +404,7 @@ private:
    PVParams * params;
    PV_Arguments * arguments;
    int maxThreads;
-   InterColComm * icComm;
+   Communicator * mCommunicator;
    Factory * factory;
    bool buildandrunDeprecationWarning;
 };

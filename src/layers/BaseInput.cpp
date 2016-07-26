@@ -17,7 +17,7 @@ BaseInput::~BaseInput() {
    free(aspectRatioAdjustment);
 
    if(writePosition){
-      if (getParent()->icCommunicator()->commRank()==0 && fp_pos != NULL && fp_pos->isfile) {
+      if (getParent()->getCommunicator()->commRank()==0 && fp_pos != NULL && fp_pos->isfile) {
          PV_fclose(fp_pos);
       }
    }
@@ -143,7 +143,7 @@ void BaseInput::ioParam_offsetAnchor(enum ParamsIOFlag ioFlag){
          if (parent->columnId()==0) {
             pvErrorNoExit().printf("%s: offsetAnchor must be a two-letter string.  The first character must be \"t\", \"c\", or \"b\" (for top, center or bottom); and the second character must be \"l\", \"c\", or \"r\" (for left, center or right).\n", getDescription_c());
          }
-         MPI_Barrier(parent->icCommunicator()->communicator());
+         MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
    }
@@ -177,7 +177,7 @@ void BaseInput::ioParam_aspectRatioAdjustment(enum ParamsIOFlag ioFlag) {
             pvErrorNoExit().printf("%s: aspectRatioAdjustment must be either \"crop\" or \"pad\".\n",
                   getDescription_c());
          }
-         MPI_Barrier(parent->icCommunicator()->communicator());
+         MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
    }
@@ -202,7 +202,7 @@ void BaseInput::ioParam_interpolationMethod(enum ParamsIOFlag ioFlag) {
                pvErrorNoExit().printf("%s: interpolationMethod must be either \"bicubic\" or \"nearestNeighbor\".\n",
                      getDescription_c());
             }
-            MPI_Barrier(parent->icCommunicator()->communicator());
+            MPI_Barrier(parent->getCommunicator()->communicator());
             exit(EXIT_FAILURE);
          }
       }
@@ -377,7 +377,7 @@ int BaseInput::allocateDataStructures() {
       // Therefore, the other ranks do not need to have their offsets stored.
       // In fact, it would be reasonable for the nonzero ranks not to compute biases and offsets at all,
       // but I chose not to fill the code with even more if(rank==0) statements.
-      if( parent->icCommunicator()->commRank()==0 ) {
+      if( parent->getCommunicator()->commRank()==0 ) {
          char file_name[PV_PATH_MAX];
 
          int nchars = snprintf(file_name, PV_PATH_MAX, "%s/%s_jitter.txt", parent->getOutputPath(), getName());
@@ -419,7 +419,7 @@ int BaseInput::getFrame(double timef, double dt) {
 
 int BaseInput::scatterInput(int batchIndex) {
    int const rank = parent->columnId();
-   MPI_Comm mpi_comm = parent->icCommunicator()->communicator();
+   MPI_Comm mpi_comm = parent->getCommunicator()->communicator();
    int const rootproc = 0;
    pvadata_t * A = data + batchIndex * getNumExtended();
    if (rank == rootproc) {
@@ -447,7 +447,7 @@ int BaseInput::scatterInput(int batchIndex) {
       resizeInput();
       int dims[2] = {imageLoc.nxGlobal, imageLoc.nyGlobal};
       MPI_Bcast(dims, 2, MPI_INT, rootproc, mpi_comm);
-      for (int r=0; r<parent->icCommunicator()->commSize(); r++) {
+      for (int r=0; r<parent->getCommunicator()->commSize(); r++) {
          if (r==rootproc) { continue; } // Do root process last so that we don't clobber root process data by using the data buffer to send.
          for (int n=0; n<getNumExtended(); n++) { A[n] = padValue; }
          int dataLeft, dataTop, imageLeft, imageTop, width, height;
@@ -630,7 +630,7 @@ int BaseInput::bicubicInterp(pvadata_t const * bufferIn, int widthIn, int height
 }
 
 int BaseInput::calcLocalBox(int rank, int * dataLeft, int * dataTop, int * imageLeft, int * imageTop, int * width, int * height) {
-   Communicator * icComm = parent->icCommunicator();
+   Communicator * icComm = parent->getCommunicator();
    PVLayerLoc const * loc = getLayerLoc();
    PVHalo const * halo = &loc->halo;
    int column = columnFromRank(rank, icComm->numCommRows(), icComm->numCommColumns());
@@ -795,10 +795,10 @@ int BaseInput::postProcess(double timef, double dt){
             double image_ave = image_sum / numExtended;
             double image_ave2 = image_sum2 / numExtended;
 #ifdef PV_USE_MPI
-            MPI_Allreduce(MPI_IN_PLACE, &image_ave, 1, MPI_DOUBLE, MPI_SUM, parent->icCommunicator()->communicator());
-            image_ave /= parent->icCommunicator()->commSize();
-            MPI_Allreduce(MPI_IN_PLACE, &image_ave2, 1, MPI_DOUBLE, MPI_SUM, parent->icCommunicator()->communicator());
-            image_ave2 /= parent->icCommunicator()->commSize();
+            MPI_Allreduce(MPI_IN_PLACE, &image_ave, 1, MPI_DOUBLE, MPI_SUM, parent->getCommunicator()->communicator());
+            image_ave /= parent->getCommunicator()->commSize();
+            MPI_Allreduce(MPI_IN_PLACE, &image_ave2, 1, MPI_DOUBLE, MPI_SUM, parent->getCommunicator()->communicator());
+            image_ave2 /= parent->getCommunicator()->commSize();
 #endif // PV_USE_MPI
             // set mean to zero
             for (int k=0; k<numExtended; k++) {
@@ -824,8 +824,8 @@ int BaseInput::postProcess(double timef, double dt){
                image_max = buf[k] > image_max ? buf[k] : image_max;
                image_min = buf[k] < image_min ? buf[k] : image_min;
             }
-            MPI_Allreduce(MPI_IN_PLACE, &image_max, 1, MPI_FLOAT, MPI_MAX, parent->icCommunicator()->communicator());
-            MPI_Allreduce(MPI_IN_PLACE, &image_min, 1, MPI_FLOAT, MPI_MIN, parent->icCommunicator()->communicator());
+            MPI_Allreduce(MPI_IN_PLACE, &image_max, 1, MPI_FLOAT, MPI_MAX, parent->getCommunicator()->communicator());
+            MPI_Allreduce(MPI_IN_PLACE, &image_min, 1, MPI_FLOAT, MPI_MIN, parent->getCommunicator()->communicator());
             if (image_max > image_min){
                float image_stretch = 1.0f / (image_max - image_min);
                for (int k=0; k<numExtended; k++) {
@@ -853,8 +853,8 @@ int BaseInput::exchange()
 {
    std::vector<MPI_Request> req{};
    for (int b=0; b<getLayerLoc()->nbatch; b++) {
-      parent->icCommunicator()->exchange(data+b*getNumExtended(), mpi_datatypes, getLayerLoc(), req);
-      parent->icCommunicator()->wait(req);
+      parent->getCommunicator()->exchange(data+b*getNumExtended(), mpi_datatypes, getLayerLoc(), req);
+      parent->getCommunicator()->wait(req);
       pvAssert(req.empty());
    }
    return PV_SUCCESS;
@@ -923,7 +923,7 @@ bool BaseInput::jitter() {
    bool needNewImage = calcNewOffsets(stepSize);
    constrainOffsets();
 
-   if(writePosition && parent->icCommunicator()->commRank()==0){
+   if(writePosition && parent->getCommunicator()->commRank()==0){
       fprintf(fp_pos->fp,"t=%f, bias x=%d, y=%d, offset x=%d y=%d\n",timed,biases[0],biases[1],getOffsetX(this->offsetAnchor, offsets[0]), getOffsetY(this->offsetAnchor, offsets[1]));
    }
    lastUpdateTime = timed;
@@ -1194,7 +1194,7 @@ int BaseInput::writeImage(const char * filename, int batchIdx)
    status = copyToInteriorBuffer(buf, batchIdx, 255.0);
 
    // gather the local portions and write the image
-   status = gatherImageFile(filename, parent->icCommunicator(), loc, buf, parent->getVerifyWrites());
+   status = gatherImageFile(filename, parent->getCommunicator(), loc, buf, parent->getVerifyWrites());
 
    delete[] buf;
 

@@ -16,7 +16,7 @@
 #include <layers/BaseLayer.hpp>
 #include <columns/DataStore.hpp>
 #include <columns/HyPerCol.hpp>
-#include <columns/InterColComm.hpp>
+#include <columns/Communicator.hpp>
 #include <columns/Publisher.hpp>
 #include <io/LayerProbe.hpp>
 #include <io/fileio.hpp>
@@ -241,9 +241,9 @@ protected:
    virtual int copyInitialStateToGPU();
 #endif // PV_USE_CUDA
    char * pathInCheckpoint(const char * cpDir, const char * suffix);
-   int readDataStoreFromFile(const char * filename, InterColComm * comm, double * timed);
+   int readDataStoreFromFile(const char * filename, Communicator * comm, double * timed);
    int incrementNBands(int * numCalls);
-   int writeDataStoreToFile(const char * filename, InterColComm * comm, double dtime);
+   int writeDataStoreToFile(const char * filename, Communicator * comm, double dtime);
    //virtual int calcActiveIndices();
    void calcNumExtended();
    
@@ -383,12 +383,12 @@ public:
    virtual int respondLayerCheckNotANumber(LayerCheckNotANumberMessage const * message);
    virtual int respondLayerUpdateActiveIndices(LayerUpdateActiveIndicesMessage const * message);
    virtual int respondLayerOutputState(LayerOutputStateMessage const * message);
-   virtual int publish(InterColComm * comm, double time);
+   virtual int publish(Communicator * comm, double time);
    virtual int resetGSynBuffers(double timef, double dt);
    // ************************************************************************************//
 
    // mpi public wait method to ensure all targets have received synaptic input before proceeding to next time step
-   virtual int waitOnPublish(InterColComm * comm);
+   virtual int waitOnPublish(Communicator * comm);
 
    virtual int updateAllActiveIndices();
    virtual int updateActiveIndices();
@@ -405,9 +405,9 @@ public:
    virtual int writeTimers(std::ostream& stream);
    // TODO: readBufferFile and writeBufferFile have to take different types of buffers.  Can they be templated?
    template <typename T>
-   static int readBufferFile(const char * filename, InterColComm * comm, double * timed, T ** buffers, int numbands, bool extended, const PVLayerLoc * loc);
+   static int readBufferFile(const char * filename, Communicator * comm, double * timed, T ** buffers, int numbands, bool extended, const PVLayerLoc * loc);
    template <typename T>
-   static int writeBufferFile(const char * filename, InterColComm * comm, double dtime, T ** buffers, int numbands, bool extended, const PVLayerLoc * loc);
+   static int writeBufferFile(const char * filename, Communicator * comm, double dtime, T ** buffers, int numbands, bool extended, const PVLayerLoc * loc);
 
    virtual int outputState(double timef, bool last=false);
    virtual int writeActivity(double timed);

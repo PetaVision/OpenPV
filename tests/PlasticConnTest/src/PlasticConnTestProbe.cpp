@@ -31,7 +31,7 @@ int PlasticConnTestProbe::initialize(const char * probename, HyPerCol * hc) {
  */
 int PlasticConnTestProbe::outputState(double timed) {
    HyPerConn * c = getTargetHyPerConn();
-   InterColComm * icComm = c->getParent()->icCommunicator();
+   Communicator * icComm = c->getParent()->getCommunicator();
    const int rcvProc = 0;
    if( icComm->commRank() != rcvProc ) {
       return PV_SUCCESS;
@@ -82,7 +82,7 @@ int PlasticConnTestProbe::outputState(double timed) {
 }
 
 PlasticConnTestProbe::~PlasticConnTestProbe() {
-   InterColComm * icComm = getParent()->icCommunicator();
+   Communicator * icComm = getParent()->getCommunicator();
    if( icComm->commRank() == 0) {
       if( !errorPresent ) {
          outputStream->printf("No errors detected\n");

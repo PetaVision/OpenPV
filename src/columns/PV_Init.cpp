@@ -21,7 +21,7 @@ PV_Init::PV_Init(int* argc, char ** argv[], bool allowUnrecognizedArguments){
    commInit(argc, argv);
    initMaxThreads();
    params = nullptr;
-   icComm = nullptr;
+   mCommunicator = nullptr;
    arguments = new PV_Arguments(*argc, *argv, allowUnrecognizedArguments);
    factory = new Factory();
    buildandrunDeprecationWarning = true;
@@ -31,7 +31,7 @@ PV_Init::PV_Init(int* argc, char ** argv[], bool allowUnrecognizedArguments){
 
 PV_Init::~PV_Init(){
    delete params;
-   delete icComm;
+   delete mCommunicator;
    delete arguments;
    delete factory;
    commFinalize();
@@ -54,8 +54,8 @@ int PV_Init::initSignalHandler()
 }
 
 int PV_Init::initialize() {
-   delete icComm;
-   icComm = new InterColComm(arguments);
+   delete mCommunicator;
+   mCommunicator = new Communicator(arguments);
    int status = PV_SUCCESS;
    // It is okay to initialize without there being a params file.
    // setParams() can be called later.
@@ -146,7 +146,7 @@ int PV_Init::createParams() {
    char const * params_file = arguments->getParamsFile();
    if (params_file) {
       delete params;
-      params = new PVParams(params_file, 2*(INITIAL_LAYER_ARRAY_SIZE+INITIAL_CONNECTION_ARRAY_SIZE), icComm);
+      params = new PVParams(params_file, 2*(INITIAL_LAYER_ARRAY_SIZE+INITIAL_CONNECTION_ARRAY_SIZE), mCommunicator);
       return PV_SUCCESS;
    }
    else {

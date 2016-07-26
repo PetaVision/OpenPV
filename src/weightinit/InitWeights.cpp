@@ -13,7 +13,7 @@
 #include "io/io.hpp"
 #include "io/fileio.hpp"
 #include "utils/conversions.h"
-#include "columns/InterColComm.hpp"
+#include "columns/Communicator.hpp"
 
 
 namespace PV {
@@ -101,7 +101,7 @@ int InitWeights::communicateParamsInfo() {
          }
       }
    }
-   MPI_Barrier(parent->icCommunicator()->communicator());
+   MPI_Barrier(parent->getCommunicator()->communicator());
    if (status == PV_FAILURE) {
       exit(EXIT_FAILURE);
    }
@@ -126,7 +126,7 @@ int InitWeights::initializeWeights(PVPatch *** patches, pvwdata_t ** dataStart,
          if (callingConn->getParent()->columnId()==0) {
             pvErrorNoExit().printf("Instead, use weightInitType=\"FileWeight\" or set HyPerCol initializeFromCheckpointDir and set initializeFromCheckpointFlag to true\n");
          }
-         MPI_Barrier(callingConn->getParent()->icCommunicator()->communicator());
+         MPI_Barrier(callingConn->getParent()->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
    }
@@ -268,7 +268,7 @@ int InitWeights::readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int nu
    if (callingConn==NULL) {
       callingConn = dynamic_cast<HyPerConn *>(parent->getConnFromName(name));
    }
-   InterColComm *icComm = callingConn->getParent()->icCommunicator();
+   Communicator *icComm = callingConn->getParent()->getCommunicator();
    int numArbors = callingConn->numberOfAxonalArborLists();
    const PVLayerLoc *preLoc = callingConn->preSynapticLayer()->getLayerLoc();
    double timed;
@@ -294,7 +294,7 @@ int InitWeights::readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int nu
 
 int InitWeights::readListOfArborFiles(PVPatch *** patches, pvwdata_t ** dataStart, int numPatches, const char * listOfArborsFilename, double * timef) {
    int arbor=0;
-   InterColComm *icComm = callingConn->getParent()->icCommunicator();
+   Communicator *icComm = callingConn->getParent()->getCommunicator();
    int numArbors = callingConn->numberOfAxonalArborLists();
    const PVLayerLoc *preLoc = callingConn->preSynapticLayer()->getLayerLoc();
    double timed;
@@ -347,7 +347,7 @@ int InitWeights::readListOfArborFiles(PVPatch *** patches, pvwdata_t ** dataStar
 }
 
 int InitWeights::readCombinedWeightFiles(PVPatch *** patches, pvwdata_t ** dataStart,int numPatches, const char * fileOfWeightFiles, double * timef) {
-   InterColComm *icComm = callingConn->getParent()->icCommunicator();
+   Communicator *icComm = callingConn->getParent()->getCommunicator();
    int numArbors = callingConn->numberOfAxonalArborLists();
    const PVLayerLoc *preLoc = callingConn->preSynapticLayer()->getLayerLoc();
    double timed;

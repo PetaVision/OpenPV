@@ -235,7 +235,7 @@ void LIF::ioParam_method(enum ParamsIOFlag ioFlag) {
       if (getParent()->columnId()==0) {
          pvErrorNoExit().printf("LIF::setLIFParams error.  Layer \"%s\" has method \"%s\".  Allowable values are \"arma\", \"beginning\" and \"original\".", name, methodString);
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    if (method != 'a') {
@@ -312,7 +312,7 @@ int LIF::readStateFromCheckpoint(const char * cpDir, double * timeptr) {
 
 int LIF::readVthFromCheckpoint(const char * cpDir, double * timeptr) {
    char * filename = parent->pathInCheckpoint(cpDir, getName(), "_Vth.pvp");
-   int status = readBufferFile(filename, parent->icCommunicator(), timeptr, &Vth, 1, /*extended*/true, getLayerLoc());
+   int status = readBufferFile(filename, parent->getCommunicator(), timeptr, &Vth, 1, /*extended*/true, getLayerLoc());
    assert(status==PV_SUCCESS);
    free(filename);
    return status;
@@ -320,7 +320,7 @@ int LIF::readVthFromCheckpoint(const char * cpDir, double * timeptr) {
 
 int LIF::readG_EFromCheckpoint(const char * cpDir, double * timeptr) {
    char * filename = parent->pathInCheckpoint(cpDir, getName(), "_G_E.pvp");
-   int status = readBufferFile(filename, parent->icCommunicator(), timeptr, &G_E, 1, /*extended*/true, getLayerLoc());
+   int status = readBufferFile(filename, parent->getCommunicator(), timeptr, &G_E, 1, /*extended*/true, getLayerLoc());
    assert(status==PV_SUCCESS);
    free(filename);
    return status;
@@ -328,7 +328,7 @@ int LIF::readG_EFromCheckpoint(const char * cpDir, double * timeptr) {
 
 int LIF::readG_IFromCheckpoint(const char * cpDir, double * timeptr) {
    char * filename = parent->pathInCheckpoint(cpDir, getName(), "_G_I.pvp");
-   int status = readBufferFile(filename, parent->icCommunicator(), timeptr, &G_I, 1, /*extended*/true, getLayerLoc());
+   int status = readBufferFile(filename, parent->getCommunicator(), timeptr, &G_I, 1, /*extended*/true, getLayerLoc());
    assert(status==PV_SUCCESS);
    free(filename);
    return status;
@@ -336,7 +336,7 @@ int LIF::readG_IFromCheckpoint(const char * cpDir, double * timeptr) {
 
 int LIF::readG_IBFromCheckpoint(const char * cpDir, double * timeptr) {
    char * filename = parent->pathInCheckpoint(cpDir, getName(), "_G_IB.pvp");
-   int status = readBufferFile(filename, parent->icCommunicator(), timeptr, &G_IB, 1, /*extended*/true, getLayerLoc());
+   int status = readBufferFile(filename, parent->getCommunicator(), timeptr, &G_IB, 1, /*extended*/true, getLayerLoc());
    assert(status==PV_SUCCESS);
    free(filename);
    return status;
@@ -344,7 +344,7 @@ int LIF::readG_IBFromCheckpoint(const char * cpDir, double * timeptr) {
 
 int LIF::readRandStateFromCheckpoint(const char * cpDir, double * timeptr) {
    char * filename = parent->pathInCheckpoint(cpDir, getName(), "_rand_state.bin");
-   int status = readRandState(filename, parent->icCommunicator(), randState->getRNG(0), getLayerLoc(), false /*extended*/); // TODO Make a method in Random class
+   int status = readRandState(filename, parent->getCommunicator(), randState->getRNG(0), getLayerLoc(), false /*extended*/); // TODO Make a method in Random class
    assert(status==PV_SUCCESS);
    free(filename);
    return status;
@@ -352,7 +352,7 @@ int LIF::readRandStateFromCheckpoint(const char * cpDir, double * timeptr) {
 
 int LIF::checkpointWrite(const char * cpDir) {
    HyPerLayer::checkpointWrite(cpDir);
-   InterColComm * icComm = parent->icCommunicator();
+   Communicator * icComm = parent->getCommunicator();
    double timed = (double) parent->simulationTime();
    int filenamesize = strlen(cpDir)+1+strlen(name)+16;
    // The +1 is for the slash between cpDir and name; the +16 needs to be large enough to hold the suffix (e.g. _rand_state.bin) plus the null terminator
@@ -378,7 +378,7 @@ int LIF::checkpointWrite(const char * cpDir) {
 
    chars_needed = snprintf(filename, filenamesize, "%s/%s_rand_state.bin", cpDir, name);
    assert(chars_needed < filenamesize);
-   writeRandState(filename, parent->icCommunicator(), randState->getRNG(0), getLayerLoc(), false /*extended*/, parent->getVerifyWrites()); // TODO Make a method in Random class
+   writeRandState(filename, parent->getCommunicator(), randState->getRNG(0), getLayerLoc(), false /*extended*/, parent->getVerifyWrites()); // TODO Make a method in Random class
 
    free(filename);
    return PV_SUCCESS;

@@ -8,16 +8,16 @@
 #ifndef INTERCOLCOMM_HPP_
 #define INTERCOLCOMM_HPP_
 
-#include "Communicator.hpp"
 #include "include/pv_common.h"
+#include "columns/PV_Arguments.hpp"
 
 namespace PV {
 
-class InterColComm : public Communicator {
+// InterColComm is obsolete as of Jul 26, 2016.
+class InterColComm {
 
 public:
    InterColComm(PV_Arguments * argumentList);
-   virtual ~InterColComm();
 };
 
 } // namespace PV

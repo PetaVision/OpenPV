@@ -78,7 +78,7 @@ void RequireAllZeroActivityProbe::nonzeroFoundMessage(double badTime, bool isRoo
       }
    }
    if (fatalError) {
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
 }

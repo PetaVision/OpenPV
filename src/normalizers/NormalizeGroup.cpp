@@ -53,7 +53,7 @@ void NormalizeGroup::communicateInitInfo() {
          pvErrorNoExit().printf("%s: normalizeGroupName \"%s\" is not a recognized normalizer.\n",
                getDescription_c(), normalizeGroupName);
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    HyPerConn * conn = getTargetConn();

@@ -113,7 +113,7 @@ int MoviePvp::initialize(const char * name, HyPerCol * hc) {
       parent->ensureDirExists(timestampFilename.c_str());
       timestampFilename += name;
       timestampFilename += ".txt";
-      if(getParent()->icCommunicator()->commRank()==0){
+      if(getParent()->getCommunicator()->commRank()==0){
           //If checkpoint read is set, append, otherwise, clobber
           if(getParent()->getCheckpointReadFlag()){
              struct stat statbuf;
@@ -199,7 +199,7 @@ void MoviePvp::ioParam_resetToStartOnLoop(enum ParamsIOFlag ioFlag) {
 
 MoviePvp::~MoviePvp()
 {
-   if (getParent()->icCommunicator()->commRank()==0 && timestampFile != NULL && timestampFile->isfile) {
+   if (getParent()->getCommunicator()->commRank()==0 && timestampFile != NULL && timestampFile->isfile) {
        PV_fclose(timestampFile);
    }
    free(movieOutputPath);
@@ -214,7 +214,7 @@ MoviePvp::~MoviePvp()
 int MoviePvp::allocateDataStructures() {
 
    //Get file information
-   Communicator* comm = parent->icCommunicator();
+   Communicator* comm = parent->getCommunicator();
 
    startFrameIndex = (int*)calloc(parent->getNBatch(), sizeof(int));
    assert(startFrameIndex);
@@ -402,7 +402,7 @@ int MoviePvp::retrieveData(double timef, double dt, int batchIndex)
  */
 bool MoviePvp::updateImage(double time, double dt)
 {
-   InterColComm * icComm = getParent()->icCommunicator();
+   Communicator * icComm = getParent()->getCommunicator();
 
             if(fabs(time - (parent->getStartTime() + parent->getDeltaTime())) > (parent->getDeltaTime()/2)){
                int status = getFrame(time, dt);
@@ -460,7 +460,7 @@ int MoviePvp::outputState(double timed, bool last)
 //This function takes care of rewinding for pvp files
 int MoviePvp::updateFrameNum(int n_skip, int batchIdx){
    //assert(readPvpFile);
-   InterColComm * icComm = getParent()->icCommunicator();
+   Communicator * icComm = getParent()->getCommunicator();
    int numskip = n_skip < 1 ? 1 : n_skip;
    for(int i_skip = 0; i_skip < numskip; i_skip++){
       int status = updateFrameNum(batchIdx);

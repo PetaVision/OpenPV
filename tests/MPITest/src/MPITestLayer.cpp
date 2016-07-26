@@ -85,7 +85,7 @@ int MPITestLayer::updateState(double timed, double dt)
    return PV_SUCCESS;
 }
 
-int MPITestLayer::publish(InterColComm* comm, double timed)
+int MPITestLayer::publish(Communicator* comm, double timed)
 {
    setActivitytoGlobalPos();
    int status = publisher->publish(timed, lastUpdateTime, clayer->activity);

@@ -189,7 +189,7 @@ int CloneConn::communicateInitInfo() {
          pvErrorNoExit().printf("%s: originalConnName \"%s\" is not a connection in the column.\n",
                getDescription_c(), originalConnName);
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    originalConn = dynamic_cast<HyPerConn *>(originalConnBase);
@@ -234,14 +234,14 @@ int CloneConn::communicateInitInfo() {
    const PVLayerLoc * origPreLoc = originalConn->preSynapticLayer()->getLayerLoc();
 
    if (preLoc->nx != origPreLoc->nx || preLoc->ny != origPreLoc->ny || preLoc->nf != origPreLoc->nf ) {
-      if (parent->icCommunicator()->commRank()==0) {
+      if (parent->getCommunicator()->commRank()==0) {
          pvErrorNoExit(errorMessage);
          errorMessage.printf("%s: CloneConn and originalConn \"%s\" must have presynaptic layers with the same nx,ny,nf.\n",
                getDescription_c(), parent->columnId(), originalConn->getName());
          errorMessage.printf("{nx=%d, ny=%d, nf=%d} versus {nx=%d, ny=%d, nf=%d}\n",
                  preLoc->nx, preLoc->ny, preLoc->nf, origPreLoc->nx, origPreLoc->ny, origPreLoc->nf);
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       abort();
    }
 

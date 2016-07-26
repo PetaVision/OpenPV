@@ -686,7 +686,7 @@ void HyPerConn::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
          if (parent->columnId()==0) {
             pvErrorNoExit().printf("%s: channelCode %d is not a valid channel.\n", getDescription_c(),  ch);
          }
-         MPI_Barrier(parent->icCommunicator()->communicator());
+         MPI_Barrier(parent->getCommunicator()->communicator());
          pvAssert(0);
       }
    }
@@ -752,7 +752,7 @@ void HyPerConn::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
             }
          }
          if (flagFromParams != triggerFlag) {
-            MPI_Barrier(parent->icCommunicator()->communicator());
+            MPI_Barrier(parent->getCommunicator()->communicator());
             exit(EXIT_FAILURE);
          }
       }
@@ -850,7 +850,7 @@ void HyPerConn::unsetAccumulateType() {
       }
       pvErrorNoExit().printf("  Allowed values are \"convolve\" or \"stochastic\".");
    }
-   MPI_Barrier(parent->icCommunicator()->communicator());
+   MPI_Barrier(parent->getCommunicator()->communicator());
    exit(EXIT_FAILURE);
 }
 
@@ -933,7 +933,7 @@ void HyPerConn::ioParam_nxpShrunken(enum ParamsIOFlag ioFlag) {
          if (parent->columnId()==0) {
             pvError().printf("%s: nxpShrunken is obsolete, as nxp can now take any of the values nxpShrunken could take before.  nxp will be set to %d and nxpShrunken will not be used.",
                   getDescription_c(), nxp);
-            MPI_Barrier(parent->icCommunicator()->communicator());
+            MPI_Barrier(parent->getCommunicator()->communicator());
             exit(EXIT_FAILURE);
          }
       }
@@ -950,7 +950,7 @@ void HyPerConn::ioParam_nypShrunken(enum ParamsIOFlag ioFlag) {
             pvWarn().printf("%s: nypShrunken is deprecated, as nyp can now take any of the values nypShrunken could take before.  nyp will be set to %d and nypShrunken will not be used.",
                   getDescription_c(), nyp);
          }
-         MPI_Barrier(parent->icCommunicator()->communicator());
+         MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
    }
@@ -1022,7 +1022,7 @@ int HyPerConn::setWeightNormalizer() {
       if (parent->columnId()==0) {
          pvError() << getDescription_c() << ": normalizeMethod \"" << normalizeMethod << "\" is not recognized." << std::endl;
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    normalizer = dynamic_cast<NormalizeBase*>(baseObj);
@@ -1031,7 +1031,7 @@ int HyPerConn::setWeightNormalizer() {
       if (parent->columnId()==0) {
          pvError() << getDescription_c() << ": normalizeMethod \"" << normalizeMethod << "\" is not a normalization method." << std::endl;
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    return PV_SUCCESS;
@@ -1147,7 +1147,7 @@ int HyPerConn::communicateInitInfo() {
       if (parent->columnId()==0) {
          pvErrorNoExit().printf("%s: communicateInitInfo failed.\n", getDescription_c());
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    pvAssert(preSynapticLayer()!=NULL && postSynapticLayer()!=NULL);
@@ -1204,7 +1204,7 @@ int HyPerConn::communicateInitInfo() {
             errorMessage.printf("a spiking presynaptic layer \"%s\".\n", pre->getName());
          }
       }
-      MPI_Barrier(getParent()->icCommunicator()->communicator());
+      MPI_Barrier(getParent()->getCommunicator()->communicator());
       status = PV_FAILURE;
       exit(-1);
    }
@@ -1224,7 +1224,7 @@ int HyPerConn::communicateInitInfo() {
          errorMessage.printf("Params file specifies %d features for %s,\n", nfp, getDescription_c() );
          errorMessage.printf("but %d features for post-synaptic layer %s\n", post->getCLayer()->loc.nf, post->getName() );
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(PV_FAILURE);
    }
    // Currently, the only acceptable number for nfp is the number of post-synaptic features.
@@ -1257,7 +1257,7 @@ int HyPerConn::communicateInitInfo() {
             pvErrorNoExit().printf("%s error: triggerLayer \"%s\" is not a layer in the HyPerCol.\n",
                     getDescription_c(), triggerLayerName);
          }
-         MPI_Barrier(parent->icCommunicator()->communicator());
+         MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
 
@@ -1322,7 +1322,7 @@ int HyPerConn::communicateInitInfo() {
          pvErrorNoExit().printf("%s error: Non-shared weights with batches not implemented yet.\n",
                getDescription_c());
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
 
@@ -1546,7 +1546,7 @@ InitWeights * HyPerConn::getDefaultInitWeightsMethod(const char * keyword) {
    if (parent->columnId()==0) {
       pvErrorNoExit().printf("%s: weightInitType \"%s\" not recognized.  Exiting\n", getDescription_c(), weightInitTypeString);
    }
-   MPI_Barrier(parent->icCommunicator()->communicator());
+   MPI_Barrier(parent->getCommunicator()->communicator());
    exit(EXIT_FAILURE);
 }
 
@@ -1982,7 +1982,7 @@ int HyPerConn::writeWeights(PVPatch *** patches, pvwdata_t ** dataStart, int num
       pvError().printf("HyPerConn::writeWeights in %s: path is too long (it would be cut off as \"%s\")\n", getDescription_c(), path);
    }
 
-   Communicator * comm = parent->icCommunicator();
+   Communicator * comm = parent->getCommunicator();
 
    bool append = last ? false : ioAppend;
 
@@ -1998,7 +1998,7 @@ int HyPerConn::writeWeights(PVPatch *** patches, pvwdata_t ** dataStart, int num
 
 int HyPerConn::writeTextWeights(const char * filename, int k)
 {
-   if (parent->icCommunicator()->commSize()>1) {
+   if (parent->getCommunicator()->commSize()>1) {
       pvError().printf("writeTextWeights error for %s: writeTextWeights is not compatible with MPI", getDescription_c());
       // NOTE : if run under MPI when more than one process sees the same file system, the contending processes will clobber each other.
    }
@@ -2059,7 +2059,7 @@ int HyPerConn::readWeightsFromCheckpoint(const char * cpDir, double * timeptr) {
    char * path = parent->pathInCheckpoint(cpDir, getName(), "_W.pvp");
    PVPatch *** patches_arg = sharedWeights ? NULL : wPatches;
    double filetime=0.0;
-   int status = PV::readWeights(patches_arg, get_wDataStart(), numberOfAxonalArborLists(), getNumDataPatches(), nxp, nyp, nfp, path, parent->icCommunicator(), &filetime, pre->getLayerLoc());
+   int status = PV::readWeights(patches_arg, get_wDataStart(), numberOfAxonalArborLists(), getNumDataPatches(), nxp, nyp, nfp, path, parent->getCommunicator(), &filetime, pre->getLayerLoc());
    if (parent->columnId()==0 && timeptr && *timeptr != filetime) {
       pvWarn().printf("\"%s\" checkpoint has timestamp %g instead of the expected value %g.\n", path, filetime, *timeptr);
    }
@@ -2119,7 +2119,7 @@ int HyPerConn::checkpointWrite(const char * cpDir) {
 int HyPerConn::checkpointFilename(char * cpFilename, int size, const char * cpDir) {
    int chars_needed = snprintf(cpFilename, size, "%s/%s_W.pvp", cpDir, name);
    if(chars_needed >= PV_PATH_MAX) {
-      if ( parent->icCommunicator()->commRank()==0 ) {
+      if ( parent->getCommunicator()->commRank()==0 ) {
          pvErrorNoExit().printf("HyPerConn::checkpointFilename path \"%s/%s_W.pvp\" is too long.\n", cpDir, name);
       }
       abort();
@@ -2128,7 +2128,7 @@ int HyPerConn::checkpointFilename(char * cpFilename, int size, const char * cpDi
 }
 
 int HyPerConn::writeTimers(std::ostream& stream){
-   if (parent->icCommunicator()->commRank()==0) {
+   if (parent->getCommunicator()->commRank()==0) {
       io_timer->fprint_time(stream);
       update_timer->fprint_time(stream);
       for (int p=0; p<numProbes; p++){
@@ -2316,19 +2316,19 @@ int HyPerConn::updateState(double time, double dt){
          //If timeScale is less than the value for dtScaleMin specified in the params but not -1, don't updateState.
          //This is implemented as an optimization so weights don't change dramatically as ANNNormalizedErrorLayer values get large.
          if (preTimeScale > 0 && preTimeScale < timeScaleMin) { 
-            if (parent->icCommunicator()->commRank()==0) {
+            if (parent->getCommunicator()->commRank()==0) {
                pvInfo().printf("TimeScale = %f for %s batch %d, which is less than your specified dtScaleMin, %f. updateState won't be called for %s this timestep.\n", preTimeScale, pre->getDescription_c(), b, timeScaleMin, getDescription_c());
             }
             skip = true;
          }
          else if (postTimeScale > 0 && postTimeScale < timeScaleMin) { 
-            if (parent->icCommunicator()->commRank()==0) {
+            if (parent->getCommunicator()->commRank()==0) {
                pvInfo().printf("TimeScale = %f for %s batch %d, which is less than your specified dtScaleMin, %f. updateState won't be called for %s this timestep.\n", postTimeScale, post->getDescription_c(), b, timeScaleMin, getDescription_c());
             }
             skip = true;
          }
          else if (colTimeScale > 0 && colTimeScale < timeScaleMin) { 
-            if (parent->icCommunicator()->commRank()==0) {
+            if (parent->getCommunicator()->commRank()==0) {
                pvInfo().printf("TimeScale = %f for column %s batch %d, which is less than your specified dtScaleMin, %f. updateState won't be called for %s this timestep.\n", colTimeScale, parent->getName(), b, timeScaleMin, getDescription_c());
             }
             skip = true;
@@ -2431,7 +2431,7 @@ int HyPerConn::reduce_dW(int arborId){
 
 int HyPerConn::reduceActivations(int arborID){
    pvAssert(sharedWeights && plasticityFlag);
-   Communicator * comm = parent->icCommunicator();
+   Communicator * comm = parent->getCommunicator();
    const int nxProcs = comm->numCommColumns();
    const int nyProcs = comm->numCommRows();
    const int nbProcs = comm->numCommBatches();
@@ -2451,7 +2451,7 @@ int HyPerConn::reduceActivations(int arborID){
 
 int HyPerConn::reduceKernels(int arborID) {
    pvAssert(sharedWeights && plasticityFlag);
-   Communicator * comm = parent->icCommunicator();
+   Communicator * comm = parent->getCommunicator();
    const int nxProcs = comm->numCommColumns();
    const int nyProcs = comm->numCommRows();
    const int nbProcs = comm->numCommBatches();
@@ -4154,7 +4154,7 @@ int HyPerConn::writePostSynapticWeights(double timef, bool last) {
    }
 
    const PVLayerLoc * postLoc = post->getLayerLoc();
-   Communicator * comm = parent->icCommunicator();
+   Communicator * comm = parent->getCommunicator();
 
    bool append = (last) ? false : ioAppend;
 

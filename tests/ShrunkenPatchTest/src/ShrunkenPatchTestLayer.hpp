@@ -17,7 +17,7 @@ public:
    ShrunkenPatchTestLayer(const char* name, HyPerCol * hc);
    virtual int allocateDataStructures();
    virtual int updateState(double time, double dt);
-   virtual int publish(InterColComm * comm, double timed);
+   virtual int publish(Communicator * comm, double timed);
    int setVtoGlobalPos();
    int setActivitytoGlobalPos();
 

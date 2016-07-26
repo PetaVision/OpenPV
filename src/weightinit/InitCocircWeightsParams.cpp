@@ -112,7 +112,7 @@ void InitCocircWeightsParams::ioParam_numOrientationsPre(enum ParamsIOFlag ioFla
          pvError().printf("%s \"%s\": noPre is deprecated.  Use numOrientationsPre instead.\n",
                parent->parameters()->groupKeywordFromName(name), name);
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    parent->ioParamValue(ioFlag, name, paramname, &numOrientationsPre, pre->getLayerLoc()->nf);
@@ -129,7 +129,7 @@ void InitCocircWeightsParams::ioParam_numOrientationsPost(enum ParamsIOFlag ioFl
          pvError().printf("%s \"%s\": noPost is deprecated.  Use numOrientationsPost instead.\n",
                parent->parameters()->groupKeywordFromName(name), name);
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    parent->ioParamValue(ioFlag, name, paramname, &numOrientationsPost, post->getLayerLoc()->nf);

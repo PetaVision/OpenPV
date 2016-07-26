@@ -80,7 +80,7 @@ private:
    int calcConstantV(pvdata_t * V, int numNeurons);
    int calcGaussianRandomV(pvdata_t * V, const PVLayerLoc * loc, HyPerCol * hc);
    int calcUniformRandomV(pvdata_t * V, const PVLayerLoc * loc, HyPerCol * hc);
-   int calcVFromFile(pvdata_t * V, const PVLayerLoc * loc, InterColComm * icComm);
+   int calcVFromFile(pvdata_t * V, const PVLayerLoc * loc, Communicator * icComm);
    int checkLoc(const PVLayerLoc * loc, int nx, int ny, int nf, int nxGlobal, int nyGlobal);
    int checkLocValue(int fromParams, int fromFile, const char * field);
 

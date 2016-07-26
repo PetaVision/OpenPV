@@ -59,7 +59,7 @@ int ColumnEnergyProbe::addTerm(BaseProbe * probe) {
             pvErrorNoExit().printf("%s: %s cannot be used as a term of the energy probe (getNumValue() returned a negative number).\n",
                   getDescription_c(), probe->getDescription_c());
          }
-         MPI_Barrier(parent->icCommunicator()->communicator());
+         MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
       if (newNumValues != this->getNumValues()) {
@@ -77,7 +77,7 @@ int ColumnEnergyProbe::addTerm(BaseProbe * probe) {
             pvErrorNoExit().printf("Failed to add terms to %s:  new probe \"%s\" returns %d values, but previous probes return %d values\n",
                   getDescription_c(), probe->getName(), probe->getNumValues(), this->getNumValues());
          }
-         MPI_Barrier(this->getParent()->icCommunicator()->communicator());
+         MPI_Barrier(this->getParent()->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
    }
@@ -88,7 +88,7 @@ int ColumnEnergyProbe::addTerm(BaseProbe * probe) {
          pvErrorNoExit().printf("How did you manage to add %zu terms to %s?  Unable to add any more!\n",
                numTerms, getDescription_c());
       }
-      MPI_Barrier(this->getParent()->icCommunicator()->communicator());
+      MPI_Barrier(this->getParent()->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    BaseProbe ** newTermsArray = (BaseProbe **) realloc(terms, (numTerms+(size_t) 1)*sizeof(BaseProbe *));
@@ -130,7 +130,7 @@ int ColumnEnergyProbe::calcValues(double timevalue) {
 
 int ColumnEnergyProbe::outputState(double timevalue) {
    getValues(timevalue);
-   if( this->getParent()->icCommunicator()->commRank() != 0 ) { return PV_SUCCESS; }
+   if( this->getParent()->getCommunicator()->commRank() != 0 ) { return PV_SUCCESS; }
    std::streamsize p_old = output().precision(9);
    pvAssert(outputStream); // Root process should have outputStream defined; non-root process should have outputStream==nullptr
    double * valuesBuffer = getValuesBuffer();

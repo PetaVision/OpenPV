@@ -8,7 +8,7 @@
 #ifndef HYPERCOL_HPP_
 #define HYPERCOL_HPP_
 
-#include <columns/InterColComm.hpp>
+#include <columns/Communicator.hpp>
 #include <columns/BaseObject.hpp>
 #include <columns/Messages.hpp>
 #include <columns/ObjectHierarchy.hpp>
@@ -414,8 +414,8 @@ public:
    double* getTimeScaleMaxPtr() const { return timeScaleMax; }
    double* getTimeScaleMax2Ptr() const { return timeScaleMax2; }
    HyPerLayer * getLayer(int which)       {return layers[which];}
-   int globalRank() { return icComm->globalCommRank(); }
-   int columnId() { return icComm->commRank(); }
+   int globalRank() { return mCommunicator->globalCommRank(); }
+   int columnId() { return mCommunicator->commRank(); }
    int getNxGlobal() { return nxGlobal; }
    int getNyGlobal() { return nyGlobal; }
    int getNBatch() { return nbatch; }
@@ -429,15 +429,15 @@ public:
    int numberOfProbes() const {return numColProbes;}
    int numberOfBaseProbes() const {return numBaseProbes;}
    int numberOfBorderRegions() const {return MAX_NEIGHBORS;}
-   int numberOfColumns() { return icComm->commSize(); }
-   int numberOfGlobalColumns() { return icComm->globalCommSize(); }
-   int commColumn() { return icComm->commColumn(); }
-   int commRow() { return icComm->commRow(); }
-   int commBatch() { return icComm->commBatch(); }
-   int numCommColumns() { return icComm->numCommColumns(); }
-   int numCommRows() { return icComm->numCommRows(); }
-   int numCommBatches() { return icComm->numCommBatches(); }
-   InterColComm * icCommunicator() const { return icComm; }
+   int numberOfColumns() { return mCommunicator->commSize(); }
+   int numberOfGlobalColumns() { return mCommunicator->globalCommSize(); }
+   int commColumn() { return mCommunicator->commColumn(); }
+   int commRow() { return mCommunicator->commRow(); }
+   int commBatch() { return mCommunicator->commBatch(); }
+   int numCommColumns() { return mCommunicator->numCommColumns(); }
+   int numCommRows() { return mCommunicator->numCommRows(); }
+   int numCommBatches() { return mCommunicator->numCommBatches(); }
+   Communicator * getCommunicator() const { return mCommunicator; }
    NormalizeBase * getNormalizer(int which) { return normalizers[which]; }
    PV_Init * getPV_InitObj() const { return pv_initObj; }
    PV_Stream * getPrintParamsStream() const { return printParamsStream; }
@@ -509,7 +509,7 @@ private:
    bool mWriteProgressToError;// Whether to write progress step to standard error (True) or standard output (False) (default is output)
    bool mVerifyWrites;     // Flag to indicate whether calls to PV_fwrite do a readback check
    bool mOwnsParams; // True if params was created from params file by initialize, false if params was passed in the constructor
-   bool mOwnsInterColComm; // True if icComm was created by initialize, false if passed in the constructor
+   bool mOwnsCommunicator; // True if icComm was created by initialize, false if passed in the constructor
    bool mWriteTimescales;
    char* mCheckpointReadDir;   // name of the directory to read an initializing checkpoint from
    char* mCheckpointReadDirBase;   // name of the directory containing checkpoint read from (used by deprecated params-based method for loading from checkpoint)
@@ -573,7 +573,7 @@ private:
    int origStdOut;
    int origStdErr;
    int numThreads;
-   InterColComm * icComm; // manages communication between HyPerColumns};
+   Communicator * mCommunicator; // manages communication between HyPerColumns};
    long int cpReadDirIndex;  // checkpoint number within mCheckpointReadDir to read
    long int cpWriteStepInterval;
    long int nextCPWriteStep;

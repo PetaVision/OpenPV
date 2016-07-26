@@ -13,7 +13,7 @@ KernelConn::KernelConn(const char * name, HyPerCol * hc, InitWeights * weightIni
    if (hc->columnId()==0) {
       pvError().printf("KernelConn \"%s\": class KernelConn is obsolete.  Instead use HyPerConn with parameter sharedWeights set to true.\n", name);
    }
-   MPI_Barrier(hc->icCommunicator()->communicator());
+   MPI_Barrier(hc->getCommunicator()->communicator());
    exit(EXIT_FAILURE);
 }
 

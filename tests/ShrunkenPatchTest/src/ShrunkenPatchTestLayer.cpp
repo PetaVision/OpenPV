@@ -81,7 +81,7 @@ int ShrunkenPatchTestLayer::updateState(double timed, double dt)
    return PV_SUCCESS;
 }
 
-int ShrunkenPatchTestLayer::publish(InterColComm* comm, double timed)
+int ShrunkenPatchTestLayer::publish(Communicator* comm, double timed)
 {
    setActivitytoGlobalPos();
    int status = publisher->publish(timed, lastUpdateTime, clayer->activity);

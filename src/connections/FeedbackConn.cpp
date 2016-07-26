@@ -41,7 +41,7 @@ int FeedbackConn::setPreAndPostLayerNames() {
       }
       status = PV_FAILURE;
    }
-   MPI_Barrier(parent->icCommunicator()->communicator());
+   MPI_Barrier(parent->getCommunicator()->communicator());
    if (status != PV_SUCCESS) exit(EXIT_FAILURE);
    return status;
 }

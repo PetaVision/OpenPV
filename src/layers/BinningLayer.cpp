@@ -51,7 +51,7 @@ void BinningLayer::ioParam_originalLayerName(enum ParamsIOFlag ioFlag) {
          pvErrorNoExit().printf("%s: originalLayerName must be set.\n",
                getDescription_c());
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
 }
@@ -64,7 +64,7 @@ void BinningLayer::ioParam_binMaxMin(enum ParamsIOFlag ioFlag) {
          pvErrorNoExit().printf("%s: binMax (%f) must be greater than binMin (%f).\n",
                getDescription_c(), binMax, binMin);
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
 }
@@ -99,7 +99,7 @@ int BinningLayer::communicateInitInfo() {
          pvErrorNoExit().printf("%s: originalLayerName \"%s\" is not a layer in the HyPerCol.\n",
                getDescription_c(), originalLayerName);
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    if (originalLayer->getInitInfoCommunicatedFlag()==false) {
@@ -118,7 +118,7 @@ int BinningLayer::communicateInitInfo() {
          errorMessage.printf("    original (nx=%d, ny=%d) versus (nx=%d, ny=%d)\n",
                  srcLoc->nxGlobal, srcLoc->nyGlobal, loc->nxGlobal, loc->nyGlobal);
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    if(srcLoc->nf != 1){

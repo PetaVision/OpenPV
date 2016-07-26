@@ -140,7 +140,7 @@ int CopyConn::communicateInitInfo() {
       if (parent->columnId()==0) {
          pvErrorNoExit().printf("%s: originalConnName \"%s\" does not refer to any connection in the column.\n", getDescription_c(), this->originalConnName);
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    this->originalConn = dynamic_cast<HyPerConn *>(originalConnBase);

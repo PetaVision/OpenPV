@@ -57,7 +57,7 @@ int SumPoolTestLayer::updateState(double timef, double dt){
          }
       }
       if(!isCorrect){
-         InterColComm * icComm = parent->icCommunicator();
+         Communicator * icComm = parent->getCommunicator();
          MPI_Barrier(icComm->communicator()); // If there is an error, make sure that MPI doesn't kill the run before process 0 reports the error.
          exit(-1);
       }

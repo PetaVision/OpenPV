@@ -55,7 +55,7 @@ void SegmentLayer::ioParam_segmentMethod(enum ParamsIOFlag ioFlag) {
          pvErrorNoExit().printf("%s: segmentMethod %s not recognized. Current options are \"none\".\n",
                  getDescription_c(), segmentMethod);
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
 }
@@ -68,7 +68,7 @@ void SegmentLayer::ioParam_originalLayerName(enum ParamsIOFlag ioFlag) {
          pvErrorNoExit().printf("%s: originalLayerName must be set.\n",
                  getDescription_c());
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
 }
@@ -82,7 +82,7 @@ int SegmentLayer::communicateInitInfo() {
          pvErrorNoExit().printf("%s: originalLayerName \"%s\" is not a layer in the HyPerCol.\n",
                  getDescription_c(), originalLayerName);
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    if (originalLayer->getInitInfoCommunicatedFlag()==false) {
@@ -106,7 +106,7 @@ int SegmentLayer::communicateInitInfo() {
          errorMessage.printf("    original (nx=%d, ny=%d) versus (nx=%d, ny=%d)\n",
                  srcLoc->nxGlobal, srcLoc->nyGlobal, thisLoc->nxGlobal, thisLoc->nyGlobal);
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
 
@@ -116,7 +116,7 @@ int SegmentLayer::communicateInitInfo() {
          pvErrorNoExit().printf("%s: SegmentLayer must have 1 feature.\n",
                  getDescription_c());
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
 
@@ -126,7 +126,7 @@ int SegmentLayer::communicateInitInfo() {
          pvErrorNoExit().printf("%s: Source layer must have 1 feature with segmentation method \"none\".\n",
                  getDescription_c());
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
 
@@ -313,7 +313,7 @@ int SegmentLayer::updateState(double timef, double dt) {
       }
 
       //We need to mpi across processors in case a segment crosses an mpi boundary
-      InterColComm * icComm = parent->icCommunicator();
+      Communicator * icComm = parent->getCommunicator();
       int numMpi = icComm->commSize();
       int rank = icComm->commRank();
 

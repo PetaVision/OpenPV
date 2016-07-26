@@ -26,7 +26,7 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
    HyPerLayer * spikecount = hc->getLayerFromName("LIFGapTestSpikeCounter");
    int status = spikecount != NULL ? PV_SUCCESS : PV_FAILURE;
    if (status != PV_SUCCESS) {
-      if (hc->icCommunicator()->commRank()==0) {
+      if (hc->getCommunicator()->commRank()==0) {
          pvError().printf("Error:  No layer named \"LIFGapTestSpikeCounter\"");
       }
    }

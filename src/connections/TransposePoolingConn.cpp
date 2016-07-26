@@ -203,7 +203,7 @@ void TransposePoolingConn::unsetAccumulateType() {
       }
       errorMessage.printf("  Allowed values are \"maxpooling\", \"sumpooling\", or \"avgpooling\".");
    }
-   MPI_Barrier(parent->icCommunicator()->communicator());
+   MPI_Barrier(parent->getCommunicator()->communicator());
    exit(EXIT_FAILURE);
 }
 
@@ -283,7 +283,7 @@ int TransposePoolingConn::communicateInitInfo() {
       if (parent->columnId()==0) {
          pvErrorNoExit().printf("%s: originalConnName \"%s\" does not refer to any connection in the column.\n", getDescription_c(), this->originalConnName);
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    originalConn = dynamic_cast<PoolingConn *>(originalConnBase);
@@ -316,7 +316,7 @@ int TransposePoolingConn::communicateInitInfo() {
       if (parent->columnId()==0) {
          pvErrorNoExit().printf("TransposePoolingConn \"%s\": original conn \"%s\" has shrinkPatches set to true.  TransposePoolingConn has not been implemented for that case.\n", name, originalConn->getName());
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
 
@@ -348,7 +348,7 @@ int TransposePoolingConn::communicateInitInfo() {
          errorMessage.printf("%s: transpose's pre layer and original connection's post layer must have the same dimensions.\n", getDescription_c());
          errorMessage.printf("    (x=%d, y=%d, f=%d) versus (x=%d, y=%d, f=%d).\n", preLoc->nx, preLoc->ny, preLoc->nf, origPostLoc->nx, origPostLoc->ny, origPostLoc->nf);
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    const PVLayerLoc * postLoc = pre->getLayerLoc();
@@ -359,7 +359,7 @@ int TransposePoolingConn::communicateInitInfo() {
          errorMessage.printf("%s: transpose's post layer and original connection's pre layer must have the same dimensions.\n", getDescription_c());
          errorMessage.printf("    (x=%d, y=%d, f=%d) versus (x=%d, y=%d, f=%d).\n", postLoc->nx, postLoc->ny, postLoc->nf, origPreLoc->nx, origPreLoc->ny, origPreLoc->nf);
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
 

@@ -85,7 +85,7 @@ int GapConn::allocateDataStructures() {
          pvErrorNoExit().printf("%s: postsynaptic layer must be a LIFGap or LIFGap-derived layer.\n",
                getDescription_c());
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    int status = HyPerConn::allocateDataStructures();

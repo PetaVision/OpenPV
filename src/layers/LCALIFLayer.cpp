@@ -198,7 +198,7 @@ int LCALIFLayer::readStateFromCheckpoint(const char * cpDir, double * timeptr) {
 
 int LCALIFLayer::read_integratedSpikeCountFromCheckpoint(const char * cpDir, double * timeptr) {
    char * filename = parent->pathInCheckpoint(cpDir, getName(), "_integratedSpikeCount.pvp");
-   int status = readBufferFile(filename, parent->icCommunicator(), timeptr, &Vth, 1, /*extended*/true, getLayerLoc());
+   int status = readBufferFile(filename, parent->getCommunicator(), timeptr, &Vth, 1, /*extended*/true, getLayerLoc());
    assert(status==PV_SUCCESS);
    free(filename);
    return status;
@@ -206,7 +206,7 @@ int LCALIFLayer::read_integratedSpikeCountFromCheckpoint(const char * cpDir, dou
 
 int LCALIFLayer::readVadptFromCheckpoint(const char * cpDir, double * timeptr) {
    char * filename = parent->pathInCheckpoint(cpDir, getName(), "_Vadpt.pvp");
-   int status = readBufferFile(filename, parent->icCommunicator(), timeptr, &Vth, 1, /*extended*/true, getLayerLoc());
+   int status = readBufferFile(filename, parent->getCommunicator(), timeptr, &Vth, 1, /*extended*/true, getLayerLoc());
    assert(status==PV_SUCCESS);
    free(filename);
    return status;
@@ -214,7 +214,7 @@ int LCALIFLayer::readVadptFromCheckpoint(const char * cpDir, double * timeptr) {
 
 int LCALIFLayer::checkpointWrite(const char * cpDir) {
    int status = LIFGap::checkpointWrite(cpDir);
-   InterColComm * icComm = parent->icCommunicator();
+   Communicator * icComm = parent->getCommunicator();
    char basepath[PV_PATH_MAX];
    char filename[PV_PATH_MAX];
    int lenbase = snprintf(basepath, PV_PATH_MAX, "%s/%s", cpDir, name);
@@ -222,7 +222,7 @@ int LCALIFLayer::checkpointWrite(const char * cpDir) {
       if (icComm->commRank()==0) {
          pvError().printf("LCALIFLayer::checkpointWrite error in getDescription_c.  Base pathname \"%s/%s_\" too long.\n", getDescription_c(), cpDir, name);
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    double timed = (double) parent->simulationTime();

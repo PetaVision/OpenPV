@@ -111,7 +111,7 @@ void ANNLayer::ioParam_verticesV(enum ParamsIOFlag ioFlag) {
             pvErrorNoExit().printf("%s: verticesV cannot be empty\n",
                   getDescription_c());
          }
-         MPI_Barrier(this->getParent()->icCommunicator()->communicator());
+         MPI_Barrier(this->getParent()->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
       if (numVertices !=0 && numVerticesTmp != numVertices) {
@@ -119,7 +119,7 @@ void ANNLayer::ioParam_verticesV(enum ParamsIOFlag ioFlag) {
             pvErrorNoExit().printf("%s: verticesV (%d elements) and verticesA (%d elements) must have the same lengths.\n",
                   getDescription_c(), numVerticesTmp, numVertices);
          }
-         MPI_Barrier(this->getParent()->icCommunicator()->communicator());
+         MPI_Barrier(this->getParent()->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
       assert(numVertices==0 || numVertices==numVerticesTmp);
@@ -137,7 +137,7 @@ void ANNLayer::ioParam_verticesA(enum ParamsIOFlag ioFlag) {
             pvErrorNoExit().printf("%s: verticesA cannot be empty\n",
                   getDescription_c());
          }
-         MPI_Barrier(this->getParent()->icCommunicator()->communicator());
+         MPI_Barrier(this->getParent()->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
       if (numVertices !=0 && numVerticesA != numVertices) {
@@ -145,7 +145,7 @@ void ANNLayer::ioParam_verticesA(enum ParamsIOFlag ioFlag) {
             pvErrorNoExit().printf("%s: verticesV (%d elements) and verticesA (%d elements) must have the same lengths.\n",
                   getDescription_c(), numVertices, numVerticesA);
          }
-         MPI_Barrier(this->getParent()->icCommunicator()->communicator());
+         MPI_Barrier(this->getParent()->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
       assert(numVertices==0 || numVertices==numVerticesA);

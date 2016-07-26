@@ -29,7 +29,7 @@ int dumpWeights(HyPerConn * conn);
 
 int main(int argc, char * argv[]) {
    PV_Init* initObj = new PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
-   InterColComm * icComm = initObj->getComm();
+   Communicator * icComm = initObj->getCommunicator();
 
    if (initObj->getParamsFile() != NULL) {
       int rank = icComm->globalCommRank();

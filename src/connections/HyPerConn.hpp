@@ -9,7 +9,7 @@
 #define HYPERCONN_HPP_
 
 #include "BaseConnection.hpp"
-#include "../columns/InterColComm.hpp"
+#include "../columns/Communicator.hpp"
 #include "../columns/HyPerCol.hpp"
 #include "../columns/Random.hpp"
 #include "../include/pv_common.h"

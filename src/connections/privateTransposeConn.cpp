@@ -238,7 +238,7 @@ int privateTransposeConn::transposeNonsharedWeights(int arborId) {
    const PVLayerLoc * preLocTranspose = preSynapticLayer()->getLayerLoc();
    const PVLayerLoc * postLocTranspose = postSynapticLayer()->getLayerLoc();
 #ifdef PV_USE_MPI
-   InterColComm * icComm = parent->icCommunicator();
+   Communicator * icComm = parent->getCommunicator();
    pvwdata_t * sendbuf[NUM_NEIGHBORHOOD];
    pvwdata_t * recvbuf[NUM_NEIGHBORHOOD];
    int size[NUM_NEIGHBORHOOD];

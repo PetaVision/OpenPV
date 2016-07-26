@@ -171,7 +171,7 @@ void Retina::ioParam_foregroundRate(enum ParamsIOFlag ioFlag) {
          if (parent->columnId()==0) {
             pvError().printf("noiseOnFreq is obsolete.  Use foregroundRate instead.\n");
          }
-         MPI_Barrier(parent->icCommunicator()->communicator());
+         MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
       if (params->present(name, "poissonEdgeProb")) {
@@ -179,7 +179,7 @@ void Retina::ioParam_foregroundRate(enum ParamsIOFlag ioFlag) {
          if (parent->columnId()==0) {
             pvError().printf("poissonEdgeProb is deprecated.  Use foregroundRate instead.\n");
          }
-         MPI_Barrier(parent->icCommunicator()->communicator());
+         MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
    }
@@ -196,7 +196,7 @@ void Retina::ioParam_backgroundRate(enum ParamsIOFlag ioFlag) {
          if (parent->columnId()==0) {
             pvWarn().printf("noiseOffFreq is deprecated.  Use backgroundRate instead.\n");
          }
-         MPI_Barrier(parent->icCommunicator()->communicator());
+         MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
       if (params->present(name, "poissonBlankProb")) {
@@ -204,7 +204,7 @@ void Retina::ioParam_backgroundRate(enum ParamsIOFlag ioFlag) {
          if (parent->columnId()==0) {
             pvWarn().printf("poissonEdgeProb is deprecated.  Use backgroundRate instead.\n");
          }
-         MPI_Barrier(parent->icCommunicator()->communicator());
+         MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
    }
@@ -286,7 +286,7 @@ int Retina::readRandStateFromCheckpoint(const char * cpDir) {
    int status = PV_SUCCESS;
    if (spikingFlag) {
       char * filename = parent->pathInCheckpoint(cpDir, getName(), "_rand_state.bin");
-      status = readRandState(filename, parent->icCommunicator(), randState->getRNG(0), getLayerLoc(), true /*isExtended*/);
+      status = readRandState(filename, parent->getCommunicator(), randState->getRNG(0), getLayerLoc(), true /*isExtended*/);
       free(filename);
    }
    return status;
@@ -299,13 +299,13 @@ int Retina::checkpointWrite(const char * cpDir) {
    char filename[PV_PATH_MAX];
    int chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_rand_state.bin", cpDir, name);
    if(chars_needed >= PV_PATH_MAX) {
-      if (parent->icCommunicator()->commRank()==0) {
+      if (parent->getCommunicator()->commRank()==0) {
          pvErrorNoExit().printf("HyPerLayer::checkpointWrite for %s:  base pathname \"%s/%s_rand_state.bin\" too long.\n", getDescription_c(), cpDir, name);
       }
       abort();
    }
    if (spikingFlag) {
-      int rand_state_status = writeRandState(filename, parent->icCommunicator(), randState->getRNG(0), getLayerLoc(), true /*isExtended*/, parent->getVerifyWrites());
+      int rand_state_status = writeRandState(filename, parent->getCommunicator(), randState->getRNG(0), getLayerLoc(), true /*isExtended*/, parent->getVerifyWrites());
       if (rand_state_status != PV_SUCCESS) status = rand_state_status;
    }
    return status;

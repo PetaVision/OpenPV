@@ -37,7 +37,7 @@ Image::~Image() {
    delete randState; randState = NULL;
 
    if(writePosition){
-      if (getParent()->icCommunicator()->commRank()==0 && fp_pos != NULL && fp_pos->isfile) {
+      if (getParent()->getCommunicator()->commRank()==0 && fp_pos != NULL && fp_pos->isfile) {
          PV_fclose(fp_pos);
       }
    }
@@ -566,7 +566,7 @@ Image::Image(const char * name, HyPerCol * hc) {
    if (hc->columnId()==0) {
       pvErrorNoExit().printf("Image \"%s\": Image class requires compiling with PV_USE_GDAL set\n", name);
    }
-   MPI_Barrier(hc->icCommunicator()->communicator());
+   MPI_Barrier(hc->getCommunicator()->communicator());
    exit(EXIT_FAILURE);
 }
 Image::Image() {}

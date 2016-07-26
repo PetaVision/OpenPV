@@ -30,7 +30,7 @@ int customexit(HyPerCol * hc, int argc, char ** argv) {
    int status = PV_SUCCESS;
 
    int numExtended = inputlayer->getNumExtended();
-   InterColComm * icComm = hc->icCommunicator();
+   Communicator * icComm = hc->getCommunicator();
    pvadata_t const * layerData = inputlayer->getLayerData();
    int rootproc = 0;
    if (icComm->commRank()==rootproc) {

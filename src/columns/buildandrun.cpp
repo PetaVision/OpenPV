@@ -50,7 +50,7 @@ int buildandrun(PV_Init * initObj,
          if (progName==NULL) { progName = "PetaVision"; }
          pvErrorNoExit().printf("%s was called without having set a params file\n", progName);
       }
-      MPI_Barrier(initObj->getComm()->communicator());
+      MPI_Barrier(initObj->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
 
@@ -66,7 +66,7 @@ int buildandrun(PV_Init * initObj,
       }
    }
    else{
-      if(initObj->getComm()->numCommBatches() > 1){
+      if(initObj->getCommunicator()->numCommBatches() > 1){
          initObj->getParams()->setBatchSweepValues();
       }
       status = buildandrun1paramset(initObj, custominit, customexit) == PV_SUCCESS ? status : PV_FAILURE;
@@ -157,7 +157,7 @@ int rebuildandrun(PV_Init* initObj,
          if (progName==NULL) { progName = "PetaVision"; }
          pvErrorNoExit().printf("%s was called without having set a params file\n", progName);
       }
-      MPI_Barrier(initObj->getComm()->communicator());
+      MPI_Barrier(initObj->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
 
@@ -174,7 +174,7 @@ int rebuildandrun(PV_Init* initObj,
       }
    }
    else{
-      if(initObj->getComm()->numCommBatches() > 1){
+      if(initObj->getCommunicator()->numCommBatches() > 1){
          initObj->getParams()->setBatchSweepValues();
       }
       status = buildandrun1paramset(initObj, custominit, customexit, customgroups) == PV_SUCCESS ? status : PV_FAILURE;
@@ -213,7 +213,7 @@ int rebuildandrun(PV_Init* initObj,
          if (progName==NULL) { progName = "PetaVision"; }
          pvErrorNoExit().printf("%s was called without having set a params file\n", progName);
       }
-      MPI_Barrier(initObj->getComm()->communicator());
+      MPI_Barrier(initObj->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
 
@@ -230,7 +230,7 @@ int rebuildandrun(PV_Init* initObj,
       }
    }
    else{
-      if(initObj->getComm()->numCommBatches() > 1){
+      if(initObj->getCommunicator()->numCommBatches() > 1){
          initObj->getParams()->setBatchSweepValues();
       }
       status = buildandrun1paramset(initObj, custominit, customexit, groupHandlerList, numGroupHandlers) == PV_SUCCESS ? status : PV_FAILURE;
@@ -338,7 +338,7 @@ HyPerCol * build(PV_Init* initObj,
          if (hc->globalRank()==0) {
             pvErrorNoExit().printf("Parameter group \"%s\": %s could not be created.\n", name, kw);
          }
-         MPI_Barrier(hc->icCommunicator()->globalCommunicator());
+         MPI_Barrier(hc->getCommunicator()->globalCommunicator());
          exit(EXIT_FAILURE);
       }
    }
@@ -434,7 +434,7 @@ HyPerCol * build(PV_Init* initObj, ParamGroupHandler ** groupHandlerList, int nu
          if (hc->globalRank()==0) {
             pvErrorNoExit().printf("Error: parameter group \"%s\": %s is not recognized by any known ParamGroupHandler.\n", name, kw);
          }
-         MPI_Barrier(hc->icCommunicator()->globalCommunicator());
+         MPI_Barrier(hc->getCommunicator()->globalCommunicator());
          exit(EXIT_FAILURE);
       }
       switch (groupType) {
@@ -469,7 +469,7 @@ HyPerCol * build(PV_Init* initObj, ParamGroupHandler ** groupHandlerList, int nu
          if (hc->globalRank()==0) {
             pvErrorNoExit().printf("Error creating %s \"%s\".\n", kw, name);
          }
-         MPI_Barrier(hc->icCommunicator()->globalCommunicator());
+         MPI_Barrier(hc->getCommunicator()->globalCommunicator());
          exit(EXIT_FAILURE);
       }
    }

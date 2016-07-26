@@ -20,7 +20,7 @@ int CloneKernelConn::initialize(const char * name, HyPerCol * hc) {
    if (hc->columnId()==0) {
       pvError().printf("%s: CloneKernelConn is obsolete.  Use CloneConn with sharedWeights=true.\n", getDescription_c());
    }
-   MPI_Barrier(parent->icCommunicator()->communicator());
+   MPI_Barrier(parent->getCommunicator()->communicator());
    exit(EXIT_FAILURE);
    return status;
 }

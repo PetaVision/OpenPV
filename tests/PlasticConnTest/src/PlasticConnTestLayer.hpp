@@ -17,7 +17,7 @@ public:
    PlasticConnTestLayer(const char* name, HyPerCol * hc);
    virtual int allocateDataStructures();
    virtual int updateState(double timef, double dt);
-   virtual int publish(InterColComm * comm, double timef);
+   virtual int publish(Communicator * comm, double timef);
 protected:
    int copyAtoV();
    int setActivitytoGlobalPos();

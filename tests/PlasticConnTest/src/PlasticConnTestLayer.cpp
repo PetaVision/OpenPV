@@ -67,7 +67,7 @@ int PlasticConnTestLayer::updateState(double timef, double dt)
    return PV_SUCCESS;
 }
 
-int PlasticConnTestLayer::publish(InterColComm* comm, double timef)
+int PlasticConnTestLayer::publish(Communicator* comm, double timef)
 {
    setActivitytoGlobalPos();
    int status = publisher->publish(timef, lastUpdateTime, clayer->activity);

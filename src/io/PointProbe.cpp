@@ -77,7 +77,7 @@ int PointProbe::communicateInitInfo() {
    int status = LayerProbe::communicateInitInfo();
    assert(getTargetLayer());
    const PVLayerLoc * loc = getTargetLayer()->getLayerLoc();
-   bool isRoot = getParent()->icCommunicator()->commRank()==0;
+   bool isRoot = getParent()->getCommunicator()->commRank()==0;
    if( (xLoc < 0 || xLoc > loc->nxGlobal) && isRoot ) {
       pvErrorNoExit().printf("PointProbe on layer %s: xLoc coordinate %d is out of bounds (layer has %d neurons in the x-direction.\n", getTargetLayer()->getName(), xLoc, loc->nxGlobal);
       status = PV_FAILURE;
@@ -160,7 +160,7 @@ int PointProbe::calcValues(double timevalue) {
       }
       //If not in root process, send to root process
       if(parent->columnId()!=0){
-         MPI_Send(valuesBuffer, 2, MPI_DOUBLE, 0, 0, parent->icCommunicator()->communicator());
+         MPI_Send(valuesBuffer, 2, MPI_DOUBLE, 0, 0, parent->getCommunicator()->communicator());
       }
    }
 
@@ -171,11 +171,11 @@ int PointProbe::calcValues(double timevalue) {
       int xRank = xLoc/nx;
       int yRank = yLoc/ny;
 
-      int srcRank = rankFromRowAndColumn(yRank, xRank, parent->icCommunicator()->numCommRows(), parent->icCommunicator()->numCommColumns());
+      int srcRank = rankFromRowAndColumn(yRank, xRank, parent->getCommunicator()->numCommRows(), parent->getCommunicator()->numCommColumns());
 
       //If srcRank is not root process, MPI_Recv from that rank
       if(srcRank != 0){
-         MPI_Recv(valuesBuffer, 2, MPI_DOUBLE, srcRank, 0, parent->icCommunicator()->communicator(), MPI_STATUS_IGNORE);
+         MPI_Recv(valuesBuffer, 2, MPI_DOUBLE, srcRank, 0, parent->getCommunicator()->communicator(), MPI_STATUS_IGNORE);
       }
    }
    return PV_SUCCESS;

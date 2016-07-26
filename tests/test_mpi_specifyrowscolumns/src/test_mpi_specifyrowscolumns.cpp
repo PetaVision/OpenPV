@@ -98,9 +98,9 @@ int verifyLoc(PV::HyPerCol * hc, int rows, int columns) {
    int status = PV_SUCCESS;
    int testpassed;
    const PVLayerLoc * loc = hc->getLayer(0)->getLayerLoc();
-   int rank = hc->icCommunicator()->commRank();
-   assert(rows == hc->icCommunicator()->numCommRows());
-   assert(columns == hc->icCommunicator()->numCommColumns());
+   int rank = hc->getCommunicator()->commRank();
+   assert(rows == hc->getCommunicator()->numCommRows());
+   assert(columns == hc->getCommunicator()->numCommColumns());
    PVParams * params = hc->parameters();
    int nxGlobFromParams = params->value("column", "nx");
    int nyGlobFromParams = params->value("column", "ny");
@@ -124,14 +124,14 @@ int verifyLoc(PV::HyPerCol * hc, int rows, int columns) {
          status = PV_FAILURE;
       }
       // Receive each process's testpassed value and output it.
-      for( int src=1; src<hc->icCommunicator()->commSize(); src++) {
+      for( int src=1; src<hc->getCommunicator()->commSize(); src++) {
          int remotepassed;
-         MPI_Recv(&remotepassed, 1, MPI_INT, src, 10, hc->icCommunicator()->communicator(), MPI_STATUS_IGNORE);
+         MPI_Recv(&remotepassed, 1, MPI_INT, src, 10, hc->getCommunicator()->communicator(), MPI_STATUS_IGNORE);
          if( remotepassed ) {
             pvInfo().printf("Rank %d passed.\n", src);
          }
          else {
-            MPI_Recv(&mpiLoc, sizeof(PVLayerLoc), MPI_CHAR, src, 20, hc->icCommunicator()->communicator(), MPI_STATUS_IGNORE);
+            MPI_Recv(&mpiLoc, sizeof(PVLayerLoc), MPI_CHAR, src, 20, hc->getCommunicator()->communicator(), MPI_STATUS_IGNORE);
             dumpLoc(&mpiLoc, src);
             pvErrorNoExit().printf("Rank %d FAILED\n", src);
             status = PV_FAILURE;
@@ -140,10 +140,10 @@ int verifyLoc(PV::HyPerCol * hc, int rows, int columns) {
    }
    else {
       // Send each process's testpassed value to root process.
-      MPI_Send(&testpassed, 1, MPI_INT, 0, 10, hc->icCommunicator()->communicator());
+      MPI_Send(&testpassed, 1, MPI_INT, 0, 10, hc->getCommunicator()->communicator());
       if( !testpassed ) {
          memcpy(&mpiLoc, loc, sizeof(PVLayerLoc));
-         MPI_Send(&mpiLoc, sizeof(PVLayerLoc), MPI_CHAR, 0, 20, hc->icCommunicator()->communicator());
+         MPI_Send(&mpiLoc, sizeof(PVLayerLoc), MPI_CHAR, 0, 20, hc->getCommunicator()->communicator());
       }
    }
    assert(status == PV_SUCCESS);

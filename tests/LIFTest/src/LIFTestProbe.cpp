@@ -126,7 +126,7 @@ int LIFTestProbe::outputState(double timed) {
       }
    }
    int root_proc = 0;
-   InterColComm * icComm = l->getParent()->icCommunicator();
+   Communicator * icComm = l->getParent()->getCommunicator();
    if (icComm->commRank()==root_proc) {
       MPI_Reduce(MPI_IN_PLACE, rates, LIFTESTPROBE_BINS, MPI_DOUBLE, MPI_SUM, root_proc, icComm->communicator());
       pvInfo(dumpRates);

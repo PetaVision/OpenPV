@@ -150,7 +150,7 @@ int LocalizationBBFindProbe::calcValues(double timevalue) {
 
    // Gather the confidence layers into root process for BBFind
    pvadata_t confidenceLocal[targetLayer->getNumExtended()];
-   PV::InterColComm * icComm = parent->icCommunicator();
+   PV::Communicator * icComm = parent->getCommunicator();
    int const rootProcess = 0;
    if (parent->columnId()==rootProcess) {
       PVLayerLoc const * loc = targetLayer->getLayerLoc();

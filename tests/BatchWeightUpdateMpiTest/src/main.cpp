@@ -156,7 +156,7 @@ int compareFiles(const char* file1, const char* file2){
 
 int customexit(HyPerCol * hc, int argc, char * argv[]) {
    int status = PV_SUCCESS;
-   int rank = hc->icCommunicator()->globalCommRank();
+   int rank = hc->getCommunicator()->globalCommRank();
    int rootproc = 0;
    if( rank == rootproc ) {
       int index = hc->getFinalStep()-hc->getInitialStep();
@@ -172,6 +172,6 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
       status = compareFiles(filetime, filebatch3);
       status = compareFiles(filetime, filebatch4);
    }
-   MPI_Bcast(&status, 1, MPI_INT, rootproc, hc->icCommunicator()->communicator());
+   MPI_Bcast(&status, 1, MPI_INT, rootproc, hc->getCommunicator()->communicator());
    return status;
 }

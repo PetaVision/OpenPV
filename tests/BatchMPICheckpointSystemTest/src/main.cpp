@@ -98,7 +98,7 @@ int diffDirs(const char* cpdir1, const char* cpdir2, int index){
 }
 
 int customexit(HyPerCol * hc, int argc, char * argv[]) {
-   int rank = hc->icCommunicator()->commRank();
+   int rank = hc->getCommunicator()->commRank();
    int rootproc = 0;
    int status = PV_SUCCESS;
    if( rank == rootproc ) {
@@ -107,7 +107,7 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
       const char * cpdir2 = "checkpoints2/batchsweep_00";
       status = diffDirs(cpdir1, cpdir2, index);
    }
-   MPI_Bcast(&status, 1, MPI_INT, rootproc, hc->icCommunicator()->communicator());
+   MPI_Bcast(&status, 1, MPI_INT, rootproc, hc->getCommunicator()->communicator());
    assert(status == PV_SUCCESS);
    if( rank == rootproc ) {
       int index = hc->getFinalStep()-hc->getInitialStep();
@@ -115,7 +115,7 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
       const char * cpdir2 = "checkpoints2/batchsweep_01";
       status = diffDirs(cpdir1, cpdir2, index);
    }
-   MPI_Bcast(&status, 1, MPI_INT, rootproc, hc->icCommunicator()->communicator());
+   MPI_Bcast(&status, 1, MPI_INT, rootproc, hc->getCommunicator()->communicator());
    assert(status == PV_SUCCESS);
    return status;
 }

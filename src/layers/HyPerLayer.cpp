@@ -242,7 +242,7 @@ HyPerLayer::~HyPerLayer()
    delete gpu_update_timer; gpu_update_timer = NULL;
 #endif
 
-   if (outputStateStream) { pvp_close_file(outputStateStream, parent->icCommunicator()); }
+   if (outputStateStream) { pvp_close_file(outputStateStream, parent->getCommunicator()); }
 
    delete initVObject; initVObject = NULL;
    freeClayer();
@@ -412,7 +412,7 @@ int HyPerLayer::setLayerLoc(PVLayerLoc * layerLoc, float nxScale, float nyScale,
 {
    int status = PV_SUCCESS;
 
-   InterColComm * icComm = parent->icCommunicator();
+   Communicator * icComm = parent->getCommunicator();
 
    float nxglobalfloat = nxScale * parent->getNxGlobal();
    layerLoc->nxGlobal = (int) nearbyintf(nxglobalfloat);
@@ -531,7 +531,7 @@ int HyPerLayer::allocateGSyn() {
 }
 
 void HyPerLayer::addPublisher() {
-   InterColComm * icComm = parent->icCommunicator();
+   Communicator * icComm = parent->getCommunicator();
    publisher = new Publisher(icComm, getNumExtended(), clayer->loc, getNumDelayLevels(), getSparseFlag());
 }
 
@@ -669,7 +669,7 @@ void HyPerLayer::ioParam_updateGpu(enum ParamsIOFlag ioFlag) {
          pvErrorNoExit().printf("%s: updateGpu is set to true, but PetaVision was compiled without GPU acceleration.\n",
                getDescription_c());
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
 #endif //PV_USE_CUDA
@@ -733,7 +733,7 @@ void HyPerLayer::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
             pvErrorNoExit().printf("%s: triggerLayerName cannot be the same as the name of the layer itself.\n",
                   getDescription_c());
          }
-         MPI_Barrier(parent->icCommunicator()->communicator());
+         MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
       triggerFlag = (triggerLayerName!=NULL && triggerLayerName[0]!='\0');
@@ -767,7 +767,7 @@ void HyPerLayer::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
          }
       }
       if (flagFromParams != triggerFlag) {
-         MPI_Barrier(parent->icCommunicator()->communicator());
+         MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
    }
@@ -807,7 +807,7 @@ void HyPerLayer::ioParam_triggerBehavior(enum ParamsIOFlag ioFlag) {
             pvErrorNoExit().printf("%s: triggerBehavior=\"%s\" is unrecognized.\n",
                   getDescription_c(), triggerBehavior);
          }
-         MPI_Barrier(parent->icCommunicator()->communicator());
+         MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
    }
@@ -955,7 +955,7 @@ int HyPerLayer::communicateInitInfo()
             pvErrorNoExit().printf("%s: triggerLayerName \"%s\" is not a layer in the HyPerCol.\n",
                   getDescription_c(), triggerLayerName);
          }
-         MPI_Barrier(parent->icCommunicator()->communicator());
+         MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
       nextTriggerTime = triggerLayer->getNextUpdateTime();
@@ -973,7 +973,7 @@ int HyPerLayer::communicateInitInfo()
                   pvErrorNoExit().printf("%s: triggerResetLayerName \"%s\" is not a layer in the HyPerCol.\n",
                         getDescription_c(), triggerResetLayerName);
                }
-               MPI_Barrier(parent->icCommunicator()->communicator());
+               MPI_Barrier(parent->getCommunicator()->communicator());
                exit(EXIT_FAILURE);
             }
          }
@@ -1032,7 +1032,7 @@ int HyPerLayer::openOutputStateFile() {
    // To prevent filename collisions, the global rank is inserted into the filename, just before the ".pvp" extension.
    // If the batchwidth is one, however, there is no need to insert the global rank.
    char appendCommBatchIdx[32];
-   int numCommBatches = parent->icCommunicator()->numCommBatches();
+   int numCommBatches = parent->getCommunicator()->numCommBatches();
    if (numCommBatches != 1) {
       int sz = snprintf(appendCommBatchIdx, 32, "_%d", parent->commBatch());
       if (sz >= 32) {
@@ -1106,7 +1106,7 @@ int HyPerLayer::openOutputStateFile() {
          ioAppend = false;
       }
    }
-   InterColComm * icComm = parent->icCommunicator();
+   Communicator * icComm = parent->getCommunicator();
    MPI_Bcast(&ioAppend, 1, MPI_INT, 0/*root*/, icComm->communicator());
    outputStateStream = pvp_open_write_file(filename, icComm, ioAppend);
    return PV_SUCCESS;
@@ -1569,7 +1569,7 @@ int HyPerLayer::resetStateOnTrigger() {
          pvErrorNoExit().printf("%s: triggerBehavior is \"resetStateOnTrigger\" but layer does not have a membrane potential.\n",
                getDescription_c());
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    pvpotentialdata_t const * resetV = triggerResetLayer->getV();
@@ -1861,7 +1861,7 @@ int HyPerLayer::respondLayerPublish(LayerPublishMessage const * message) {
    int status = PV_SUCCESS;
    if (message->mPhase != getPhase()) { return status; }
    publisher->increaseTimeLevel();
-   publish(getParent()->icCommunicator(), message->mTime);
+   publish(getParent()->getCommunicator(), message->mTime);
    return status;
 }
 
@@ -1880,7 +1880,7 @@ int HyPerLayer::respondLayerCheckNotANumber(LayerCheckNotANumberMessage const * 
       if (parent->columnId()==0) {
          pvErrorNoExit() << getDescription() << " has not-a-number values in the activity buffer.  Exiting.\n";
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    return status;
@@ -1889,7 +1889,7 @@ int HyPerLayer::respondLayerCheckNotANumber(LayerCheckNotANumberMessage const * 
 int HyPerLayer::respondLayerUpdateActiveIndices(LayerUpdateActiveIndicesMessage const * message) {
    int status = PV_SUCCESS;
    if (message->mPhase != getPhase()) { return status; }
-   waitOnPublish(getParent()->icCommunicator());
+   waitOnPublish(getParent()->getCommunicator());
    status = updateActiveIndices();
    return status;
 }
@@ -1901,7 +1901,7 @@ int HyPerLayer::respondLayerOutputState(LayerOutputStateMessage const * message)
    return status;
 }
 
-int HyPerLayer::publish(InterColComm* comm, double time)
+int HyPerLayer::publish(Communicator* comm, double time)
 {
    publish_timer->start();
 
@@ -1918,7 +1918,7 @@ int HyPerLayer::publish(InterColComm* comm, double time)
    return status;
 }
 
-int HyPerLayer::waitOnPublish(InterColComm* comm)
+int HyPerLayer::waitOnPublish(Communicator* comm)
 {
    publish_timer->start();
 
@@ -2017,7 +2017,7 @@ int HyPerLayer::readStateFromCheckpoint(const char * cpDir, double * timeptr) {
 
 int HyPerLayer::readActivityFromCheckpoint(const char * cpDir, double * timeptr) {
    char * filename = parent->pathInCheckpoint(cpDir, getName(), "_A.pvp");
-   int status = readBufferFile(filename, parent->icCommunicator(), timeptr, &clayer->activity->data, 1, /*extended*/true, getLayerLoc());
+   int status = readBufferFile(filename, parent->getCommunicator(), timeptr, &clayer->activity->data, 1, /*extended*/true, getLayerLoc());
    assert(status==PV_SUCCESS);
    free(filename);
    assert(status==PV_SUCCESS);
@@ -2029,7 +2029,7 @@ int HyPerLayer::readVFromCheckpoint(const char * cpDir, double * timeptr) {
    if (getV() != NULL) {
       char * filename = parent->pathInCheckpoint(cpDir, getName(), "_V.pvp");
       pvdata_t * V = getV();
-      status = readBufferFile(filename, parent->icCommunicator(), timeptr, &V, 1, /*extended*/false, getLayerLoc());
+      status = readBufferFile(filename, parent->getCommunicator(), timeptr, &V, 1, /*extended*/false, getLayerLoc());
       assert(status == PV_SUCCESS);
       free(filename);
    }
@@ -2038,7 +2038,7 @@ int HyPerLayer::readVFromCheckpoint(const char * cpDir, double * timeptr) {
 
 int HyPerLayer::readDelaysFromCheckpoint(const char * cpDir, double * timeptr) {
    char * filename = parent->pathInCheckpoint(cpDir, getName(), "_Delays.pvp");
-   int status = readDataStoreFromFile(filename, parent->icCommunicator(), timeptr);
+   int status = readDataStoreFromFile(filename, parent->getCommunicator(), timeptr);
    assert(status == PV_SUCCESS);
    free(filename);
    return status;
@@ -2049,7 +2049,7 @@ int HyPerLayer::checkpointRead(const char * cpDir, double * timeptr) {
    if (status != PV_SUCCESS) {
       pvError().printf("%s: rank %d process failed to read state from checkpoint directory \"%s\"\n", getDescription_c(), parent->columnId(), cpDir);
    }
-   InterColComm * icComm = parent->icCommunicator();
+   Communicator * icComm = parent->getCommunicator();
    parent->readScalarFromFile(cpDir, getName(), "lastUpdateTime", &lastUpdateTime, parent->simulationTime()-parent->getDeltaTime());
    parent->readScalarFromFile(cpDir, getName(), "nextUpdateTime", &nextUpdateTime, parent->simulationTime()+parent->getDeltaTime());
    parent->readScalarFromFile(cpDir, getName(), "nextWrite", &writeTime, writeTime);
@@ -2086,7 +2086,7 @@ int HyPerLayer::checkpointRead(const char * cpDir, double * timeptr) {
 }
 
 template<class T>
-int HyPerLayer::readBufferFile(const char * filename, InterColComm * comm, double * timeptr, T ** buffers, int numbands, bool extended, const PVLayerLoc * loc) {
+int HyPerLayer::readBufferFile(const char * filename, Communicator * comm, double * timeptr, T ** buffers, int numbands, bool extended, const PVLayerLoc * loc) {
    PV_Stream * readFile = pvp_open_read_file(filename, comm);
    int rank = comm->commRank();
    assert( (readFile != NULL && rank == 0) || (readFile == NULL && rank != 0) );
@@ -2163,9 +2163,9 @@ int HyPerLayer::readBufferFile(const char * filename, InterColComm * comm, doubl
 }
 // Declare the instantiations of readScalarToFile that occur in other .cpp files; otherwise you'll get linker errors.
 // template void HyPerCol::ioParamValueRequired<pvdata_t>(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, pvdata_t * value);
-template int HyPerLayer::readBufferFile<float>(const char * filename, InterColComm * comm, double * timeptr, float ** buffers, int numbands, bool extended, const PVLayerLoc * loc);
+template int HyPerLayer::readBufferFile<float>(const char * filename, Communicator * comm, double * timeptr, float ** buffers, int numbands, bool extended, const PVLayerLoc * loc);
 
-int HyPerLayer::readDataStoreFromFile(const char * filename, InterColComm * comm, double * timeptr) {
+int HyPerLayer::readDataStoreFromFile(const char * filename, Communicator * comm, double * timeptr) {
    PV_Stream * readFile = pvp_open_read_file(filename, comm);
    assert( (readFile != NULL && comm->commRank() == 0) || (readFile == NULL && comm->commRank() != 0) );
    int numParams = NUM_BIN_PARAMS;
@@ -2203,7 +2203,7 @@ int HyPerLayer::readDataStoreFromFile(const char * filename, InterColComm * comm
 
 int HyPerLayer::checkpointWrite(const char * cpDir) {
    // Writes checkpoint files for V, A, and datastore to files in working directory
-   InterColComm * icComm = parent->icCommunicator();
+   Communicator * icComm = parent->getCommunicator();
    double timed = (double) parent->simulationTime();
 
    char * filename = NULL;
@@ -2245,7 +2245,7 @@ int HyPerLayer::checkpointWrite(const char * cpDir) {
 }
 
 template <typename T>
-int HyPerLayer::writeBufferFile(const char * filename, InterColComm * comm, double timed, T ** buffers, int numbands, bool extended, const PVLayerLoc * loc) {
+int HyPerLayer::writeBufferFile(const char * filename, Communicator * comm, double timed, T ** buffers, int numbands, bool extended, const PVLayerLoc * loc) {
    PV_Stream * writeFile = pvp_open_write_file(filename, comm, /*append*/false);
    assert( (writeFile != NULL && comm->commRank() == 0) || (writeFile == NULL && comm->commRank() != 0) );
 
@@ -2283,9 +2283,9 @@ int HyPerLayer::writeBufferFile(const char * filename, InterColComm * comm, doub
 }
 // Declare the instantiations of readScalarToFile that occur in other .cpp files; otherwise you'll get linker errors.
 // template void HyPerCol::ioParamValueRequired<pvdata_t>(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, pvdata_t * value);
-template int HyPerLayer::writeBufferFile<float>(const char * filename, InterColComm * comm, double timed, float ** buffers, int numbands, bool extended, const PVLayerLoc * loc);
+template int HyPerLayer::writeBufferFile<float>(const char * filename, Communicator * comm, double timed, float ** buffers, int numbands, bool extended, const PVLayerLoc * loc);
 
-int HyPerLayer::writeDataStoreToFile(const char * filename, InterColComm * comm, double timed) {
+int HyPerLayer::writeDataStoreToFile(const char * filename, Communicator * comm, double timed) {
    PV_Stream * writeFile = pvp_open_write_file(filename, comm, /*append*/false);
    assert( (writeFile != NULL && comm->commRank() == 0) || (writeFile == NULL && comm->commRank() != 0) );
    int numlevels = publisher->dataStore()->numberOfLevels();
@@ -2320,7 +2320,7 @@ int HyPerLayer::writeDataStoreToFile(const char * filename, InterColComm * comm,
 }
 
 int HyPerLayer::writeTimers(std::ostream& stream){
-   if (parent->icCommunicator()->commRank()==0) {
+   if (parent->getCommunicator()->commRank()==0) {
       recvsyn_timer->fprint_time(stream);
       update_timer->fprint_time(stream);
 #ifdef PV_USE_CUDA
@@ -2340,7 +2340,7 @@ int HyPerLayer::writeTimers(std::ostream& stream){
 int HyPerLayer::writeActivitySparse(double timed, bool includeValues)
 {
    DataStore * store = publisher->dataStore();
-   int status = PV::writeActivitySparse(outputStateStream, parent->icCommunicator(), timed, store, getLayerLoc(), includeValues);
+   int status = PV::writeActivitySparse(outputStateStream, parent->getCommunicator(), timed, store, getLayerLoc(), includeValues);
 
    if (status == PV_SUCCESS) {
       status = incrementNBands(&writeActivitySparseCalls);
@@ -2352,7 +2352,7 @@ int HyPerLayer::writeActivitySparse(double timed, bool includeValues)
 int HyPerLayer::writeActivity(double timed)
 {
    DataStore * store = publisher->dataStore();
-   int status = PV::writeActivity(outputStateStream, parent->icCommunicator(), timed, store, getLayerLoc());
+   int status = PV::writeActivity(outputStateStream, parent->getCommunicator(), timed, store, getLayerLoc());
 
    if (status == PV_SUCCESS) {
       status = incrementNBands(&writeActivityCalls);
@@ -2364,7 +2364,7 @@ int HyPerLayer::incrementNBands(int * numCalls) {
    // Only the root process needs to maintain INDEX_NBANDS, so only the root process modifies numCalls
    // This way, writeActivityCalls does not need to be coordinated across MPI
    int status;
-   if( parent->icCommunicator()->commRank() == 0 ) {
+   if( parent->getCommunicator()->commRank() == 0 ) {
       assert(outputStateStream!=NULL);
       (*numCalls) = (*numCalls) + parent->getNBatch();
       long int fpos = getPV_StreamFilepos(outputStateStream);

@@ -65,7 +65,7 @@ int LocalizationProbe::initialize_base() {
 int LocalizationProbe::initialize(const char * probeName, PV::HyPerCol * hc) {
    outputPeriod = hc->getDeltaTimeBase(); // default outputPeriod is every timestep
    int status = PV::LayerProbe::initialize(probeName, hc);
-   PV::InterColComm * icComm = parent->icCommunicator();
+   PV::Communicator * icComm = parent->getCommunicator();
    if (status != PV_SUCCESS) { exit(EXIT_FAILURE); }
    outputFilenameBase = strdup("out"); // Default file base name for every image.
    return status;
@@ -155,7 +155,7 @@ void LocalizationProbe::ioParam_drawMontage(enum PV::ParamsIOFlag ioFlag) {
          pvErrorNoExit().printf("%s: PetaVision must be compiled with GDAL to use drawMontage=true.\n",
                getDescription_c());
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       pvExitFailure("");
    }
 #endif // PV_USE_GDAL
@@ -217,14 +217,14 @@ int LocalizationProbe::communicateInitInfo() {
          pvErrorNoExit().printf("%s: imageLayer \"%s\" does not refer to a layer in the column.\n",
                getDescription_c(), imageLayerName);
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    if (drawMontage && imageLayer->getLayerLoc()->nf != 3) {
       if (parent->columnId()==0) {
          pvErrorNoExit().printf("%s: drawMontage requires the image layer have exactly three features.\n", getDescription_c());
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
 
@@ -248,7 +248,7 @@ int LocalizationProbe::communicateInitInfo() {
             pvErrorNoExit().printf("%s: displayCategoryIndexEnd=%d cannot be greater than nf=%d.\n",
                   getDescription_c(), displayCategoryIndexEnd, nf);
          }
-         MPI_Barrier(parent->icCommunicator()->globalCommunicator());
+         MPI_Barrier(parent->getCommunicator()->globalCommunicator());
          exit(EXIT_FAILURE);
       }
       numDisplayedCategories = displayCategoryIndexEnd - displayCategoryIndexStart + 1;
@@ -263,7 +263,7 @@ int LocalizationProbe::communicateInitInfo() {
             pvErrorNoExit().printf("%s: displayCategoryIndexStart (%d) cannot be greater than displayCategoryIndexEnd (%d).\n",
                   getDescription_c(), displayCategoryIndexStart, displayCategoryIndexEnd);
          }
-         MPI_Barrier(getParent()->icCommunicator()->globalCommunicator());
+         MPI_Barrier(getParent()->getCommunicator()->globalCommunicator());
          exit(EXIT_FAILURE);
       }
       displayedCategories = (int *) malloc(numDisplayedCategories*sizeof(int));
@@ -306,7 +306,7 @@ int LocalizationProbe::communicateInitInfo() {
             fprintf(stderr, "%s: displayedCategories must be between 1 and nf=%d inclusive. (index %d is %d)\n",
                   getDescription_c(), nf, k+1, displayedCategory);
          }
-         MPI_Barrier(parent->icCommunicator()->communicator());
+         MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
    }
@@ -349,7 +349,7 @@ int LocalizationProbe::communicateInitInfo() {
          }
       }
       if (status != PV_SUCCESS) {
-         MPI_Barrier(parent->icCommunicator()->communicator());
+         MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
    }
@@ -367,14 +367,14 @@ int LocalizationProbe::communicateInitInfo() {
          pvErrorNoExit().printf("%s: reconLayer \"%s\" does not refer to a layer in the column.\n",
                getDescription_c(), reconLayerName);
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    if (drawMontage && reconLayer->getLayerLoc()->nf != 3) {
       if (parent->columnId()!=0) {
          pvErrorNoExit().printf("%s: drawMontage requires the recon layer have exactly three features.\n", getDescription_c());
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
 
@@ -690,8 +690,8 @@ int LocalizationProbe::insertImageIntoMontage(int xStart, int yStart, pvadata_t 
          maxValue = a > maxValue ? a : maxValue;
       }
    }
-   MPI_Allreduce(MPI_IN_PLACE, &minValue, 1, MPI_FLOAT, MPI_MIN, parent->icCommunicator()->communicator());
-   MPI_Allreduce(MPI_IN_PLACE, &maxValue, 1, MPI_FLOAT, MPI_MAX, parent->icCommunicator()->communicator());
+   MPI_Allreduce(MPI_IN_PLACE, &minValue, 1, MPI_FLOAT, MPI_MIN, parent->getCommunicator()->communicator());
+   MPI_Allreduce(MPI_IN_PLACE, &maxValue, 1, MPI_FLOAT, MPI_MAX, parent->getCommunicator()->communicator());
    if (minValue==maxValue) {
       for (int y=0; y<ny; y++) {
          int lineStart = kIndex(0, y, 0, nx, ny, nf);
@@ -713,18 +713,18 @@ int LocalizationProbe::insertImageIntoMontage(int xStart, int yStart, pvadata_t 
       }
    }
    if (parent->columnId()!=0) {
-      MPI_Send(montageImageLocal, nx*ny*3, MPI_UNSIGNED_CHAR, 0, 111, parent->icCommunicator()->communicator());
+      MPI_Send(montageImageLocal, nx*ny*3, MPI_UNSIGNED_CHAR, 0, 111, parent->getCommunicator()->communicator());
    }
    else {
       for (int rank=0; rank<parent->numberOfColumns(); rank++) {
          if (rank!=0) {
-            MPI_Recv(montageImageComm, nx*ny*3, MPI_UNSIGNED_CHAR, rank, 111, parent->icCommunicator()->communicator(), MPI_STATUS_IGNORE);
+            MPI_Recv(montageImageComm, nx*ny*3, MPI_UNSIGNED_CHAR, rank, 111, parent->getCommunicator()->communicator(), MPI_STATUS_IGNORE);
          }
          else {
             memcpy(montageImageComm, montageImageLocal, nx*ny*3);
          }
-         int const numCommRows = parent->icCommunicator()->numCommRows();
-         int const numCommCols = parent->icCommunicator()->numCommColumns();
+         int const numCommRows = parent->getCommunicator()->numCommRows();
+         int const numCommCols = parent->getCommunicator()->numCommColumns();
          int const commRow = rowFromRank(rank, numCommRows, numCommCols);
          int const commCol = columnFromRank(rank, numCommRows, numCommCols);
          for (int y=0; y<ny; y++) {
@@ -827,8 +827,8 @@ int LocalizationProbe::calcValues(double timevalue) {
                }
             }
          }
-         MPI_Allreduce(MPI_IN_PLACE, &score, 1, MPI_DOUBLE, MPI_SUM, parent->icCommunicator()->communicator());
-         MPI_Allreduce(MPI_IN_PLACE, &numpixels, 1, MPI_INT, MPI_SUM, parent->icCommunicator()->communicator());
+         MPI_Allreduce(MPI_IN_PLACE, &score, 1, MPI_DOUBLE, MPI_SUM, parent->getCommunicator()->communicator());
+         MPI_Allreduce(MPI_IN_PLACE, &numpixels, 1, MPI_INT, MPI_SUM, parent->getCommunicator()->communicator());
          score = score/numpixels;
          if (boundingBox[1]-boundingBox[0]>=minBoundingBoxWidth && boundingBox[3]-boundingBox[2]>=minBoundingBoxHeight) {
             LocalizationData newDetection;
@@ -873,7 +873,7 @@ int LocalizationProbe::findMaxLocation(int * winningFeature, int * winningIndex,
       }
    }
 
-   MPI_Comm comm = parent->icCommunicator()->communicator();
+   MPI_Comm comm = parent->getCommunicator()->communicator();
 
    pvadata_t maxValGlobal;
    MPI_Allreduce(&maxVal, &maxValGlobal, 1, MPI_FLOAT, MPI_MAX, comm);
@@ -942,7 +942,7 @@ int LocalizationProbe::findBoundingBox(int winningFeature, int winningIndex, int
       boundingBox[1] = rt+1;
       boundingBox[2] = -up;
       boundingBox[3] = dn+1;
-      MPI_Comm comm = parent->icCommunicator()->communicator();
+      MPI_Comm comm = parent->getCommunicator()->communicator();
       MPI_Allreduce(MPI_IN_PLACE, boundingBox, 4, MPI_INT, MPI_MAX, comm);
       boundingBox[0] = -boundingBox[0];
       boundingBox[2] = -boundingBox[2];
@@ -1096,8 +1096,8 @@ int LocalizationProbe::makeGrayScaleImage() {
       if (a < minValue) { minValue = a; }
       if (a > maxValue) { maxValue = a; }
    }
-   MPI_Allreduce(MPI_IN_PLACE, &minValue, 1, MPI_FLOAT, MPI_MIN, parent->icCommunicator()->communicator());
-   MPI_Allreduce(MPI_IN_PLACE, &maxValue, 1, MPI_FLOAT, MPI_MAX, parent->icCommunicator()->communicator());
+   MPI_Allreduce(MPI_IN_PLACE, &minValue, 1, MPI_FLOAT, MPI_MIN, parent->getCommunicator()->communicator());
+   MPI_Allreduce(MPI_IN_PLACE, &maxValue, 1, MPI_FLOAT, MPI_MAX, parent->getCommunicator()->communicator());
    // Scale grayScaleImage to be between 0 and 1.
    // If maxValue==minValue, make grayScaleImage have a constant 0.5.
    if (maxValue==minValue) {
@@ -1179,21 +1179,21 @@ int LocalizationProbe::drawHeatMaps() {
          }
       }
       if (parent->columnId()!=0) {
-         MPI_Send(montageImageLocal, nx*ny*3, MPI_UNSIGNED_CHAR, 0, 111, parent->icCommunicator()->communicator());
+         MPI_Send(montageImageLocal, nx*ny*3, MPI_UNSIGNED_CHAR, 0, 111, parent->getCommunicator()->communicator());
       }
       else {
          int montageCol = idx % numMontageColumns;
          int montageRow = (idx - montageCol) / numMontageColumns; // Integer arithmetic
          int xStartInMontage = (imageLoc->nxGlobal + 10)*montageCol + 5;
          int yStartInMontage = (imageLoc->nyGlobal + 64 + 10)*montageRow + 64 + 5;
-         int const numCommRows = parent->icCommunicator()->numCommRows();
-         int const numCommCols = parent->icCommunicator()->numCommColumns();
+         int const numCommRows = parent->getCommunicator()->numCommRows();
+         int const numCommCols = parent->getCommunicator()->numCommColumns();
          for (int rank=0; rank<parent->numberOfColumns(); rank++) {
             if (rank==0) {
                memcpy(montageImageComm, montageImageLocal, nx*ny*3);
             }
             else {
-               MPI_Recv(montageImageComm, nx*ny*3, MPI_UNSIGNED_CHAR, rank, 111, parent->icCommunicator()->communicator(), MPI_STATUS_IGNORE);
+               MPI_Recv(montageImageComm, nx*ny*3, MPI_UNSIGNED_CHAR, rank, 111, parent->getCommunicator()->communicator(), MPI_STATUS_IGNORE);
             }
             int const commRow = rowFromRank(rank, numCommRows, numCommCols);
             int const commCol = columnFromRank(rank, numCommRows, numCommCols);

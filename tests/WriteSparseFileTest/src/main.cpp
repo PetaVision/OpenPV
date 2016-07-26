@@ -151,7 +151,7 @@ int copyCorrectOutput(HyPerCol * hc, int argc, char * argv[]) {
       if (hc->columnId()==0) {
          pvErrorNoExit().printf("Running --generate: This system test assumes that the layer \"correct\" is a Movie layer with imageListPath ending in \".pvp\".\n", argv[0]);
       }
-      MPI_Barrier(hc->icCommunicator()->communicator());
+      MPI_Barrier(hc->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    if (hc->columnId()==0) {
@@ -257,7 +257,7 @@ int assertAllZeroes(HyPerCol * hc, int argc, char * argv[]) {
          pvErrorNoExit().printf("%s had at least one nonzero activity value, beginning at time %f\n",
                layer->getDescription_c(), t);
       }
-      MPI_Barrier(hc->icCommunicator()->communicator());
+      MPI_Barrier(hc->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    return PV_SUCCESS;

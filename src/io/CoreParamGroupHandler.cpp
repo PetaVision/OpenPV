@@ -241,7 +241,7 @@ HyPerCol * CoreParamGroupHandler::createHyPerCol(char const * keyword, char cons
          if (hc->columnId()==0) {
             pvErrorNoExit().printf("createHyPerCol: unable to add %s\n", keyword);
          }
-         MPI_Barrier(hc->icCommunicator()->communicator());
+         MPI_Barrier(hc->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
    }
@@ -377,7 +377,7 @@ HyPerLayer * CoreParamGroupHandler::createLayer(char const * keyword, char const
       if (hc->columnId()==0) {
          pvErrorNoExit().printf("createLayer: unable to add %s\n", keyword);
       }
-      MPI_Barrier(hc->icCommunicator()->communicator());
+      MPI_Barrier(hc->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
 
@@ -442,7 +442,7 @@ BaseConnection * CoreParamGroupHandler::createConnection(char const * keyword, c
       if (hc->columnId()==0) {
          pvErrorNoExit().printf("createConnection: unable to add %s\n", keyword);
       }
-      MPI_Barrier(hc->icCommunicator()->communicator());
+      MPI_Barrier(hc->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
 
@@ -466,7 +466,7 @@ ColProbe * CoreParamGroupHandler::createColProbe(char const * keyword, char cons
       if (hc->columnId()==0) {
          pvErrorNoExit().printf("createColProbe: unable to add %s\n", keyword);
       }
-      MPI_Barrier(hc->icCommunicator()->communicator());
+      MPI_Barrier(hc->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
 
@@ -527,7 +527,7 @@ BaseProbe * CoreParamGroupHandler::createProbe(char const * keyword, char const 
          if (hc->columnId()==0) {
             pvErrorNoExit().printf("createProbe: unable to add %s\n", keyword);
          }
-         MPI_Barrier(hc->icCommunicator()->communicator());
+         MPI_Barrier(hc->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
    }
 
@@ -581,7 +581,7 @@ InitWeights * CoreParamGroupHandler::createWeightInitializer(char const * keywor
       if (hc->columnId()==0) {
          pvErrorNoExit().printf("createWeightInitializer: unable to add %s\n", keyword);
       }
-      MPI_Barrier(hc->icCommunicator()->communicator());
+      MPI_Barrier(hc->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
 
@@ -625,7 +625,7 @@ NormalizeBase * CoreParamGroupHandler::createWeightNormalizer(char const * keywo
       if (hc->columnId()==0) {
          pvErrorNoExit().printf("createWeightInitializer: unable to add %s\n", keyword);
       }
-      MPI_Barrier(hc->icCommunicator()->communicator());
+      MPI_Barrier(hc->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
 

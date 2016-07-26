@@ -29,7 +29,7 @@ int CloneKernelConnTestProbe::initCloneKernelConnTestProbe(const char * probeNam
 int CloneKernelConnTestProbe::outputState(double timed)
 {
    int status = StatsProbe::outputState(timed);
-   InterColComm * icComm = getTargetLayer()->getParent()->icCommunicator();
+   Communicator * icComm = getTargetLayer()->getParent()->getCommunicator();
    const int rcvProc = 0;
    if( icComm->commRank() != rcvProc ) {
       return 0;
