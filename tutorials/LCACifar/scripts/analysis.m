@@ -302,4 +302,4 @@ if plot_weights
       end %% i_checkpoint
    end %% i_weights
 end  %% plot_weights
-printf("THE END\n");
+printf("Finished\n");
