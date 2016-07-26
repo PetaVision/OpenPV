@@ -384,13 +384,6 @@ int LIF::checkpointWrite(const char * cpDir) {
    return PV_SUCCESS;
 }
 
-int LIF::waitOnPublish(InterColComm* comm)
-{
-   int status = HyPerLayer::waitOnPublish(comm);
-
-   return status;
-}
-
 int LIF::updateState(double time, double dt)
 {
    int status = 0;

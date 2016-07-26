@@ -34,7 +34,6 @@ Image::Image(const char * name, HyPerCol * hc) {
 }
 
 Image::~Image() {
-   Communicator::freeDatatypes(mpi_datatypes); mpi_datatypes = NULL;
    delete randState; randState = NULL;
 
    if(writePosition){
@@ -47,7 +46,6 @@ Image::~Image() {
 
 int Image::initialize_base() {
    numChannels = 0;
-   mpi_datatypes = NULL;
    data = NULL;
    useImageBCflag = false;
    autoResizeFlag = false;

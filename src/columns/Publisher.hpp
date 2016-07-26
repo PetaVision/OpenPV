@@ -22,9 +22,8 @@ class Publisher {
 public:
    Publisher(Communicator * comm, int numItems, PVLayerLoc loc, int numLevels, bool isSparse);
    virtual ~Publisher();
-   int publish(double currentTime, double lastUpdateTime, int neighbors[], int numNeighbors,
-               PVLayerCube * data);
-   int exchangeBorders(int neighbors[], int numNeighbors, const PVLayerLoc * loc, int delay=0);
+   int publish(double currentTime, double lastUpdateTime, PVLayerCube * data);
+   int exchangeBorders(const PVLayerLoc * loc, int delay=0);
    int wait();
 
    int increaseTimeLevel()   {return store->newLevelIndex();}
@@ -64,8 +63,7 @@ private:
 
    Communicator * mComm;
 
-   int            numRequests;
-   MPI_Request *  requests;
+   std::vector<MPI_Request>  requests;
    MPI_Datatype * neighborDatatypes;
 };
 

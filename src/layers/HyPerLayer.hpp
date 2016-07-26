@@ -17,6 +17,7 @@
 #include <columns/DataStore.hpp>
 #include <columns/HyPerCol.hpp>
 #include <columns/InterColComm.hpp>
+#include <columns/Publisher.hpp>
 #include <io/LayerProbe.hpp>
 #include <io/fileio.hpp>
 #include <include/pv_common.h>
@@ -478,6 +479,8 @@ public:
    double getNextUpdateTime() { return nextUpdateTime; }
 
    float getMaxRate() {return maxRate;}
+
+   Publisher * getPublisher() { return publisher; }
 
 protected:
 

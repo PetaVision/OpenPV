@@ -9,41 +9,15 @@
 #define INTERCOLCOMM_HPP_
 
 #include "Communicator.hpp"
-#include "columns/DataStore.hpp"
-#include "columns/Publisher.hpp"
 #include "include/pv_common.h"
-#include <vector>
-
-// maximum number of messages (each layer publishes to all neighbors)
-#define MAX_MESSAGES    MAX_NEIGHBORS
-// #define MAX_PUBLISHERS  MAX_LAYERS
-// #define MAX_SUBSCRIBERS MAX_LAYERS
 
 namespace PV {
-
-class HyPerLayer;
-class BaseConnection;
 
 class InterColComm : public Communicator {
 
 public:
    InterColComm(PV_Arguments * argumentList);
    virtual ~InterColComm();
-
-   void addPublisher(Publisher * pub);
-   void removePublisher(Publisher * pub);
-   int clearPublishers();
-   int publish(HyPerLayer * pub, PVLayerCube * cube);
-   int exchangeBorders(int pubId, const PVLayerLoc * loc, int delay=0);
-   int updateAllActiveIndices(int pubId);
-   int updateActiveIndices(int pubId);
-   int wait(int pubId);
-
-   DataStore * publisherStore(int pubId)   {return publishers[pubId]->dataStore();}
-
-private:
-
-   std::vector<Publisher*> publishers;
 };
 
 } // namespace PV

@@ -312,14 +312,6 @@ int Retina::checkpointWrite(const char * cpDir) {
 }
 
 
-int Retina::waitOnPublish(InterColComm* comm)
-{
-   // HyPerLayer::waitOnPublish already has a publish timer so don't duplicate
-   int status = HyPerLayer::waitOnPublish(comm);
-
-   return status;
-}
-
 //! Updates the state of the Retina
 /*!
  * REMARKS:

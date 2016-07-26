@@ -84,7 +84,7 @@ int ShrunkenPatchTestLayer::updateState(double timed, double dt)
 int ShrunkenPatchTestLayer::publish(InterColComm* comm, double timed)
 {
    setActivitytoGlobalPos();
-   int status = comm->publish(this, clayer->activity);
+   int status = publisher->publish(timed, lastUpdateTime, clayer->activity);
    return status;
 
    //return HyPerLayer::publish(comm, time);

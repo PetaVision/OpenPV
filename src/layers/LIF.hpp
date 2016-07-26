@@ -63,7 +63,6 @@ public:
    virtual int allocateDataStructures();
 
    virtual int updateState(double time, double dt);
-   virtual int waitOnPublish(InterColComm* comm);
    virtual int setActivity();
    
    virtual int checkpointWrite(const char * cpDir);

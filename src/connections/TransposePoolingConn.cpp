@@ -549,7 +549,7 @@ int TransposePoolingConn::deliverPresynapticPerspective(PVLayerCube const * acti
       assert(postIndexLayer);
       //Make sure this layer is an integer layer
       assert(postIndexLayer->getDataType() == PV_INT);
-      DataStore * store = parent->icCommunicator()->publisherStore(postIndexLayer->getLayerId());
+      DataStore * store = postIndexLayer->getPublisher()->dataStore();
       int delay = getDelay(arborID);
 
       //TODO this is currently a hack, need to properly implement data types.

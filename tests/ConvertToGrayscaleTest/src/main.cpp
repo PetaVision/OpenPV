@@ -31,7 +31,7 @@ int customexit(HyPerCol * hc, int argc, char ** argv) {
 
    int numExtended = inputlayer->getNumExtended();
    InterColComm * icComm = hc->icCommunicator();
-   pvadata_t * layerData = (pvadata_t *) icComm->publisherStore(inputlayer->getLayerId())->buffer(LOCAL);
+   pvadata_t const * layerData = inputlayer->getLayerData();
    int rootproc = 0;
    if (icComm->commRank()==rootproc) {
       pvadata_t * databuffer = (pvadata_t *) malloc(numExtended*sizeof(pvadata_t));
@@ -63,7 +63,8 @@ int customexit(HyPerCol * hc, int argc, char ** argv) {
       }
    }
    else {
-      MPI_Send(layerData,numExtended*sizeof(pvadata_t),MPI_BYTE,rootproc,15,icComm->communicator());
+      // const_cast necessary because older versions of MPI define MPI_Send with first arg as void*, not void const*.
+      MPI_Send(const_cast<pvadata_t*>(layerData),numExtended*sizeof(pvadata_t),MPI_BYTE,rootproc,15,icComm->communicator());
    }
    MPI_Barrier(icComm->communicator());
    return status;

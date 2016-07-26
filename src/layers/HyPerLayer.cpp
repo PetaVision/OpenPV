@@ -295,11 +295,7 @@ HyPerLayer::~HyPerLayer()
       free(thread_gSyn);
       thread_gSyn = NULL;
    }
-   if (publisher) {
-      parent->icCommunicator()->removePublisher(publisher);
-      delete publisher;
-   }
-
+   delete publisher;
 }
 
 template <typename T>
@@ -537,7 +533,6 @@ int HyPerLayer::allocateGSyn() {
 void HyPerLayer::addPublisher() {
    InterColComm * icComm = parent->icCommunicator();
    publisher = new Publisher(icComm, getNumExtended(), clayer->loc, getNumDelayLevels(), getSparseFlag());
-   icComm->addPublisher(publisher);
 }
 
 int HyPerLayer::initializeState() {
@@ -1401,7 +1396,7 @@ int HyPerLayer::requireChannel(int channelNeeded, int * numChannelsResult) {
  */
 const pvdata_t * HyPerLayer::getLayerData(int delay)
 {
-   DataStore * store = parent->icCommunicator()->publisherStore(getLayerId());
+   DataStore * store = publisher->dataStore();
    return (pvdata_t *) store->buffer(0, delay);
 }
 
@@ -1695,10 +1690,10 @@ int HyPerLayer::setActivity() {
 
 //Updates active indices for all levels (delays) here
 int HyPerLayer::updateAllActiveIndices() {
-   return parent->icCommunicator()->updateAllActiveIndices(this->getLayerId());
+   return publisher->updateAllActiveIndices();
 }
 int HyPerLayer::updateActiveIndices() {
-   return parent->icCommunicator()->updateActiveIndices(this->getLayerId());
+   return publisher->updateActiveIndices();
 }
 
 int HyPerLayer::recvAllSynapticInput() {
@@ -1865,7 +1860,7 @@ int HyPerLayer::respondLayerCopyFromGpu(LayerCopyFromGpuMessage const * message)
 int HyPerLayer::respondLayerPublish(LayerPublishMessage const * message) {
    int status = PV_SUCCESS;
    if (message->mPhase != getPhase()) { return status; }
-   getParent()->icCommunicator()->publisherStore(getLayerId())->newLevelIndex();
+   publisher->increaseTimeLevel();
    publish(getParent()->icCommunicator(), message->mTime);
    return status;
 }
@@ -1918,7 +1913,7 @@ int HyPerLayer::publish(InterColComm* comm, double time)
       mirrorInteriorToBorder(clayer->activity, clayer->activity);
    }
    
-   int status = comm->publish(this, clayer->activity);
+   int status = publisher->publish(time, lastUpdateTime, clayer->activity);
    publish_timer->stop();
    return status;
 }
@@ -1929,7 +1924,7 @@ int HyPerLayer::waitOnPublish(InterColComm* comm)
 
    // wait for MPI border transfers to complete
    //
-   int status = comm->wait(getLayerId());
+   int status = publisher->wait();
 
    publish_timer->stop();
    return status;
@@ -2081,8 +2076,8 @@ int HyPerLayer::checkpointRead(const char * cpDir, double * timeptr) {
       parent->readScalarFromFile(cpDir, getName(), nfname, num_calls_ptr, 0);
    }
    //Need to exchange border information since lastUpdateTime is being read from checkpoint, so no guarentee that publish will call exchange
-   status = icComm->exchangeBorders(this->getLayerId(), this->getLayerLoc());
-   status |= icComm->wait(this->getLayerId());
+   status = publisher->exchangeBorders(getLayerLoc());
+   status |= publisher->wait();
    assert(status == PV_SUCCESS);
    //Update sparse indices here
    status = updateAllActiveIndices();
@@ -2185,12 +2180,12 @@ int HyPerLayer::readDataStoreFromFile(const char * filename, InterColComm * comm
       }
       abort();
    }
-   int numlevels = comm->publisherStore(getLayerId())->numberOfLevels();
-   int numbuffers = comm->publisherStore(getLayerId())->numberOfBuffers();
+   DataStore * datastore = publisher->dataStore();
+   int numlevels = datastore->numberOfLevels();
+   int numbuffers = datastore->numberOfBuffers();
    if (params[INDEX_NBANDS] != numlevels*numbuffers) {
       pvError().printf("readDataStoreFromFile error reading \"%s\": number of delays + batches in file is %d, but number of delays + batches in layer is %d\n", filename, params[INDEX_NBANDS], numlevels*numbuffers);
    }
-   DataStore * datastore = comm->publisherStore(getLayerId());
    for (int b = 0; b < numbuffers; b++){
       for (int l=0; l<numlevels; l++) {
          double tlevel;
@@ -2293,8 +2288,8 @@ template int HyPerLayer::writeBufferFile<float>(const char * filename, InterColC
 int HyPerLayer::writeDataStoreToFile(const char * filename, InterColComm * comm, double timed) {
    PV_Stream * writeFile = pvp_open_write_file(filename, comm, /*append*/false);
    assert( (writeFile != NULL && comm->commRank() == 0) || (writeFile == NULL && comm->commRank() != 0) );
-   int numlevels = comm->publisherStore(getLayerId())->numberOfLevels();
-   int numbuffers = comm->publisherStore(getLayerId())->numberOfBuffers();
+   int numlevels = publisher->dataStore()->numberOfLevels();
+   int numbuffers = publisher->dataStore()->numberOfBuffers();
    assert(numlevels == getNumDelayLevels());
    int * params = pvp_set_nonspiking_act_params(comm, timed, getLayerLoc(), PV_FLOAT_TYPE, numlevels);
    assert(params && params[1]==NUM_BIN_PARAMS);
@@ -2303,7 +2298,7 @@ int HyPerLayer::writeDataStoreToFile(const char * filename, InterColComm * comm,
       pvError().printf("HyPerLayer::writeBufferFile error writing \"%s\"\n", filename);
    }
    free(params);
-   DataStore * datastore = comm->publisherStore(getLayerId());
+   DataStore * datastore = publisher->dataStore();
    for(int b = 0; b < numbuffers; b++){
       for (int l=0; l<numlevels; l++) {
          if (writeFile != NULL) { // Root process has writeFile set to non-null; other processes to NULL.
@@ -2344,7 +2339,7 @@ int HyPerLayer::writeTimers(std::ostream& stream){
 
 int HyPerLayer::writeActivitySparse(double timed, bool includeValues)
 {
-   DataStore * store = parent->icCommunicator()->publisherStore(getLayerId());
+   DataStore * store = publisher->dataStore();
    int status = PV::writeActivitySparse(outputStateStream, parent->icCommunicator(), timed, store, getLayerLoc(), includeValues);
 
    if (status == PV_SUCCESS) {
@@ -2356,7 +2351,7 @@ int HyPerLayer::writeActivitySparse(double timed, bool includeValues)
 // write non-spiking activity
 int HyPerLayer::writeActivity(double timed)
 {
-   DataStore * store = parent->icCommunicator()->publisherStore(getLayerId());
+   DataStore * store = publisher->dataStore();
    int status = PV::writeActivity(outputStateStream, parent->icCommunicator(), timed, store, getLayerLoc());
 
    if (status == PV_SUCCESS) {

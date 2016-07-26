@@ -33,16 +33,14 @@ Publisher::Publisher(Communicator * comm, int numItems, PVLayerLoc loc, int numL
    //DONE: check for memory leak here, method flagged by valgrind
    this->neighborDatatypes = Communicator::newDatatypes(&loc);
 
-   numRequests = 0;
-   requests = (MPI_Request *) calloc((NUM_NEIGHBORHOOD-1) * loc.nbatch, sizeof(MPI_Request));
-   pvAssert(requests);
+   requests.clear();
+   requests.reserve((NUM_NEIGHBORHOOD-1) * loc.nbatch);
 }
 
 Publisher::~Publisher()
 {
    delete store;
    Communicator::freeDatatypes(neighborDatatypes); neighborDatatypes = nullptr;
-   free(requests);
 }
 
 
@@ -95,7 +93,7 @@ int Publisher::calcActiveIndices() {
    return PV_SUCCESS;
 }
 
-int Publisher::publish(double currentTime, double lastUpdateTime, int neighbors[], int numNeighbors,
+int Publisher::publish(double currentTime, double lastUpdateTime,
                        PVLayerCube* cube)
 {
    //
@@ -115,7 +113,7 @@ int Publisher::publish(double currentTime, double lastUpdateTime, int neighbors[
       // copy entire layer and let neighbors overwrite
       //Only need to exchange borders if layer was updated this timestep
       memcpy(recvBuf, sendBuf, dataSize);
-      exchangeBorders(neighbors, numNeighbors, &cube->loc, 0);
+      exchangeBorders(&cube->loc, 0);
       store->setLastUpdateTime(LOCAL/*bufferId*/, lastUpdateTime);
 
       //Updating active indices is done after MPI wait in HyPerCol
@@ -131,48 +129,33 @@ int Publisher::publish(double currentTime, double lastUpdateTime, int neighbors[
    return PV_SUCCESS;
 }
 
-int Publisher::exchangeBorders(int neighbors[], int numNeighbors, const PVLayerLoc * loc, int delay/*default 0*/) {
-   // Code duplication with Communicator::exchange.  Consolidate?
+int Publisher::exchangeBorders(const PVLayerLoc * loc, int delay/*default 0*/) {
    PVHalo const * halo = &loc->halo;
    if (halo->lt==0 && halo->rt==0 && halo->dn==0 && halo->up==0) { return PV_SUCCESS; }
    int status = PV_SUCCESS;
 
 #ifdef PV_USE_MPI
+   pvAssert(requests.empty());
    //Using local ranks and communicators for border exchange
    int icRank = mComm->commRank();
    MPI_Comm mpiComm = mComm->communicator();
 
-   //Loop through batches
+   //Loop through batch.
+   //The loop over batch elements probably belongs inside
+   //Communicator::exchange(), but for this to happen, exchange() would need
+   //to know how its data argument is organized with respect to batching.
    for(int b = 0; b < loc->nbatch; b++){
       // don't send interior
-      pvAssert(numRequests == b * (mComm->numberOfNeighbors()-1));
-      for (int n = 1; n < NUM_NEIGHBORHOOD; n++) {
-         if (neighbors[n] == icRank) continue;  // don't send interior to self
-         pvdata_t * recvBuf = recvBuffer(b, delay) + mComm->recvOffset(n, loc);
-         // sendBuf = cube->data + Communicator::sendOffset(n, &cube->loc);
-         pvdata_t * sendBuf = recvBuffer(b, delay) + mComm->sendOffset(n, loc);
+      pvAssert(requests.size() == b * (mComm->numberOfNeighbors()-1));
 
-
-#ifdef DEBUG_OUTPUT
-         size_t recvOff = mComm->recvOffset(n, &cube.loc);
-         size_t sendOff = mComm->sendOffset(n, &cube.loc);
-         if( cube.loc.nb > 0 ) {
-            pvInfo().printf("[%2d]: recv,send to %d, n=%d, delay=%d, recvOffset==%ld, sendOffset==%ld, numitems=%d, send[0]==%f\n", mComm->commRank(), neighbors[n], n, delay, recvOff, sendOff, cube.numItems, sendBuf[0]);
-         }
-         else {
-            pvInfo().printf("[%2d]: recv,send to %d, n=%d, delay=%d, recvOffset==%ld, sendOffset==%ld, numitems=%d\n", mComm->commRank(), neighbors[n], n, delay, recvOff, sendOff, cube.numItems);
-         }
-         pvInfo().flush();
-#endif //DEBUG_OUTPUT
-
-         MPI_Irecv(recvBuf, 1, neighborDatatypes[n], neighbors[n], mComm->getReverseTag(n), mpiComm,
-                   &requests[numRequests++]);
-         int status = MPI_Send( sendBuf, 1, neighborDatatypes[n], neighbors[n], mComm->getTag(n), mpiComm);
-         pvAssert(status==0);
-
-      }
-      pvAssert(numRequests == (b+1) * (mComm->numberOfNeighbors()-1));
+      pvdata_t * data = recvBuffer(b, delay);
+      std::vector<MPI_Request> batchElementMPIRequest{};
+      mComm->exchange(data, neighborDatatypes, loc, batchElementMPIRequest);
+      pvAssert(batchElementMPIRequest.size()==mComm->numberOfNeighbors()-1);
+      requests.insert(requests.end(), batchElementMPIRequest.begin(), batchElementMPIRequest.end());
+      pvAssert(requests.size() == (b+1) * (mComm->numberOfNeighbors()-1));
    }
+   pvAssert(requests.size() == loc->nbatch * (mComm->numberOfNeighbors()-1));
 
 #endif // PV_USE_MPI
 
@@ -190,9 +173,8 @@ int Publisher::wait()
    pvInfo().flush();
 # endif // DEBUG_OUTPUT
 
-   if (numRequests != 0) {
-      MPI_Waitall(numRequests, requests, MPI_STATUSES_IGNORE);
-      numRequests = 0;
+   if (!requests.empty()) {
+      mComm->wait(requests);
    }
 #endif // PV_USE_MPI
 

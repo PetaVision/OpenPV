@@ -2765,7 +2765,7 @@ int HyPerConn::deliver() {
    cube.numItems = pre->getNumExtended();
    cube.size = sizeof(PVLayerCube);
 
-   DataStore * store = parent->icCommunicator()->publisherStore(pre->getLayerId());
+   DataStore * store = pre->getPublisher()->dataStore();
    int numArbors = numberOfAxonalArborLists();
 
    for (int arbor=0; arbor<numArbors; arbor++) {

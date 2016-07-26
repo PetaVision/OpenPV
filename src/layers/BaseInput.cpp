@@ -851,7 +851,13 @@ int BaseInput::postProcess(double timef, double dt){
 
 int BaseInput::exchange()
 {
-   return parent->icCommunicator()->exchange(data, mpi_datatypes, getLayerLoc());
+   std::vector<MPI_Request> req{};
+   for (int b=0; b<getLayerLoc()->nbatch; b++) {
+      parent->icCommunicator()->exchange(data+b*getNumExtended(), mpi_datatypes, getLayerLoc(), req);
+      parent->icCommunicator()->wait(req);
+      pvAssert(req.empty());
+   }
+   return PV_SUCCESS;
 }
 
 //Offsets based on an anchor point, so calculate offsets based off a given anchor point

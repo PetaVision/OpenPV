@@ -52,7 +52,6 @@ public:
 
    virtual int updateState(double time, double dt);
    virtual int outputState(double time, bool last);
-   virtual int waitOnPublish(InterColComm* comm);
    virtual int checkpointWrite(const char * cpDir);
 
    virtual bool activityIsSpiking() { return spikingFlag; }

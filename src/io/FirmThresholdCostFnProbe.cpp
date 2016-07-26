@@ -140,7 +140,7 @@ double FirmThresholdCostFnProbe::getValueInternal(double timevalue, int index) {
    }
    else {
       if (getTargetLayer()->getSparseFlag()) {
-         DataStore * store = parent->icCommunicator()->publisherStore(getTargetLayer()->getLayerId());
+         DataStore * store = getTargetLayer()->getPublisher()->dataStore();
          int numActive = (int) store->numActiveBuffer(index)[0];
          unsigned int const * activeList = store->activeIndicesBuffer(index);
 #ifdef PV_USE_OPENMP_THREADS

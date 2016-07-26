@@ -86,10 +86,17 @@ int main(int argc, char * argv[])
    }
 
    // send and recv the "image"
+   std::vector<MPI_Request> req;
    if (err==0) {
-      err = comm->exchange(image, datatypes, &loc);
+      err = comm->exchange(image, datatypes, &loc, req);
       if (err != 0) {
          pvErrorNoExit().printf("[%d]: Communicator::exchange failed\n", comm->commRank());
+      }
+   }
+   if (err==0) {
+      err = comm->wait(req);
+      if (err != 0) {
+         pvErrorNoExit().printf("[%d]: Communicator::waitForExchange failed\n", comm->commRank());
       }
    }
 

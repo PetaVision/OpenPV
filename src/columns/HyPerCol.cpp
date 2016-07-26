@@ -2390,7 +2390,6 @@ int HyPerCol::writeTimers(std::ostream& stream){
    if (rank==0) {
       runTimer->fprint_time(stream);
       checkpointTimer->fprint_time(stream);
-      icCommunicator()->fprintTime(stream);
       for (auto c : mConnections) {
          c->writeTimers(stream);
       }
