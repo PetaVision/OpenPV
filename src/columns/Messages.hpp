@@ -17,6 +17,7 @@ namespace PV {
 
 class BaseMessage {
 public:
+   BaseMessage() { }
    virtual ~BaseMessage() {}
    inline std::string const& getMessageType() const { return mMessageType; }
 protected:

@@ -25,6 +25,7 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <memory>
 
 #ifdef PV_USE_CUDA
 #  include <arch/cuda/CudaDevice.hpp>
@@ -468,8 +469,8 @@ private:
    int ioParams(enum ParamsIOFlag ioFlag);
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    int checkDirExists(const char * dirname, struct stat * pathstat);
-   void notify(std::vector<BaseMessage> messages);
-   inline void notify(BaseMessage message) { notify(std::vector<BaseMessage>{message});}
+   void notify(std::vector<std::shared_ptr<BaseMessage> > messages);
+   inline void notify(std::shared_ptr<BaseMessage> message) { notify(std::vector<std::shared_ptr<BaseMessage> >{message});}
    int normalizeWeights();
    int checkpointRead();
    int checkpointWrite(const char * cpDir);

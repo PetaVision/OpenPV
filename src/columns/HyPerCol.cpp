@@ -1476,7 +1476,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
 
       initDtAdaptControlProbe();
 
-      notify(AllocateDataMessage());
+      notify(std::make_shared<AllocateDataMessage>());
 
       //Allocate all phaseRecvTimers
       phaseRecvTimers = (Timer**) malloc(numPhases * sizeof(Timer*));
@@ -1500,27 +1500,27 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
          checkpointRead();
       }
 
-      notify(InitializeStateMessage());
+      notify(std::make_shared<InitializeStateMessage>());
 
       // Initial normalization moved here to facilitate normalizations of groups of HyPerConns
       normalizeWeights();
-      notify(ConnectionFinalizeUpdateMessage(simTime, deltaTimeBase));
+      notify(std::make_shared<ConnectionFinalizeUpdateMessage>(simTime, deltaTimeBase));
 
       // publish initial conditions
       for(int phase = 0; phase < numPhases; phase++){
-         notify(LayerPublishMessage(phase, simTime));
+         notify(std::make_shared<LayerPublishMessage>(phase, simTime));
       }
 
       // wait for all published data to arrive and update active indices;
       for (int phase=0; phase<numPhases; phase++) {
-         notify(LayerUpdateActiveIndicesMessage(phase));
+         notify(std::make_shared<LayerUpdateActiveIndicesMessage>(phase));
       }
 
       // output initial conditions
       if (!mCheckpointReadFlag) {
-         notify(ConnectionOutputMessage(simTime));
+         notify(std::make_shared<ConnectionOutputMessage>(simTime));
          for (int phase=0; phase<numPhases; phase++) {
-            notify(LayerOutputStateMessage(phase, simTime));
+            notify(std::make_shared<LayerOutputStateMessage>(phase, simTime));
          }
       }
 
@@ -1704,7 +1704,7 @@ int HyPerCol::setNumThreads(bool printMessagesFlag) {
 int HyPerCol::processParams(char const * path) {
    if (!mParamsProcessedFlag) {
       auto const& objectMap = mObjectHierarchy.getObjectMap();
-      notify(CommunicateInitInfoMessage<BaseObject*>(objectMap));
+      notify(std::make_shared<CommunicateInitInfoMessage<BaseObject*> >(objectMap));
    }
 
    // Print a cleaned up version of params to the file given by printParamsFilename
@@ -1722,7 +1722,7 @@ int HyPerCol::processParams(char const * path) {
    return PV_SUCCESS;
 }
 
-void HyPerCol::notify(std::vector<BaseMessage> messages) {
+void HyPerCol::notify(std::vector<std::shared_ptr<BaseMessage> > messages) {
    auto needsUpdate = mObjectHierarchy.getObjectVector();
    auto numNeedsUpdate = needsUpdate.size();
    while(numNeedsUpdate>0) {
@@ -1732,17 +1732,17 @@ void HyPerCol::notify(std::vector<BaseMessage> messages) {
          auto obj = (*iter);
          int status = PV_SUCCESS;
          for (auto msg : messages) {
-            status = obj->respond(&msg);
+            status = obj->respond(msg);
             if (status == PV_BREAK) { status = PV_SUCCESS; } // Can we get rid of PV_BREAK as a possible return value of connections' updateState?
             switch(status) {
             case PV_SUCCESS:
                continue;
                break;
             case PV_POSTPONE:
-               pvInfo() << obj->getDescription() << ": " << msg.getMessageType() << " postponed.\n";
+               pvInfo() << obj->getDescription() << ": " << msg->getMessageType() << " postponed.\n";
                break;
             case PV_FAILURE:
-               pvError() << obj->getDescription() << " failed " << msg.getMessageType() << ".\n";
+               pvError() << obj->getDescription() << " failed " << msg->getMessageType() << ".\n";
                break;
             default:
                pvError() << obj->getDescription() << " returned unrecognized return code " << status << ".\n";
@@ -2097,10 +2097,10 @@ int HyPerCol::advanceTime(double sim_time) {
 
    // update the connections (weights)
    //
-   notify(ConnectionUpdateMessage(simTime, deltaTimeBase));
+   notify(std::make_shared<ConnectionUpdateMessage>(simTime, deltaTimeBase));
    normalizeWeights();
-   notify(ConnectionFinalizeUpdateMessage(simTime, deltaTimeBase));
-   notify(ConnectionOutputMessage(simTime));
+   notify(std::make_shared<ConnectionFinalizeUpdateMessage>(simTime, deltaTimeBase));
+   notify(std::make_shared<ConnectionOutputMessage>(simTime));
 
 
    if (globalRank()==0) {
@@ -2130,44 +2130,44 @@ int HyPerCol::advanceTime(double sim_time) {
       //Ordering needs to go recvGpu, if(recvGpu and upGpu)update, recvNoGpu, update rest
 #ifdef PV_USE_CUDA
       notify({
-         LayerRecvSynapticInputMessage(phase, phaseRecvTimers[phase], true/*recvGpuFlag*/, simTime, deltaTimeBase),
-         LayerUpdateStateMessage(phase, true/*recvGpuFlag*/, true/*updateGpuFlag*/, simTime, deltaTimeBase)
+         std::make_shared<LayerRecvSynapticInputMessage>(phase, phaseRecvTimers[phase], true/*recvGpuFlag*/, simTime, deltaTimeBase),
+         std::make_shared<LayerUpdateStateMessage>(phase, true/*recvGpuFlag*/, true/*updateGpuFlag*/, simTime, deltaTimeBase)
       });
 
       notify({
-         LayerRecvSynapticInputMessage(phase, phaseRecvTimers[phase], false/*recvGpuFlag*/, simTime, deltaTimeBase),
-         LayerUpdateStateMessage(phase, false/*recvGpuFlag*/, false/*updateGpuFlag*/, simTime, deltaTimeBase)
+         std::make_shared<LayerRecvSynapticInputMessage>(phase, phaseRecvTimers[phase], false/*recvGpuFlag*/, simTime, deltaTimeBase),
+         std::make_shared<LayerUpdateStateMessage>(phase, false/*recvGpuFlag*/, false/*updateGpuFlag*/, simTime, deltaTimeBase)
 
       });
 
       getDevice()->syncDevice();
 
       //Update for receiving on cpu and updating on gpu
-      notify(LayerUpdateStateMessage(phase, false/*recvOnGpuFlag*/, true/*updateOnGpuFlag*/, simTime, deltaTimeBase));
+      notify(std::make_shared<LayerUpdateStateMessage>(phase, false/*recvOnGpuFlag*/, true/*updateOnGpuFlag*/, simTime, deltaTimeBase));
 
       getDevice()->syncDevice();
-      notify(LayerCopyFromGpuMessage(phase, phaseRecvTimers[phase]));
+      notify(std::make_shared<LayerCopyFromGpuMessage>(phase, phaseRecvTimers[phase]));
 
       //Update for gpu recv and non gpu update
-      notify(LayerUpdateStateMessage(phase, true/*recvOnGpuFlag*/, false/*updateOnGpuFlag*/, simTime, deltaTimeBase));
+      notify(std::make_shared<LayerUpdateStateMessage>(phase, true/*recvOnGpuFlag*/, false/*updateOnGpuFlag*/, simTime, deltaTimeBase));
 #else
       notify({
-         LayerRecvSynapticInputMessage(phase, phaseRecvTimers[phase], simTime, deltaTimeBase),
-         LayerUpdateStateMessage(phase, simTime, deltaTimeBase)
+         std::make_shared<LayerRecvSynapticInputMessage>(phase, phaseRecvTimers[phase], simTime, deltaTimeBase),
+         std::make_shared<LayerUpdateStateMessage>(phase, simTime, deltaTimeBase)
       });
 #endif
 
       // Rotate DataStore ring buffers, copy activity buffer to DataStore, and do MPI exchange.
-      notify(LayerPublishMessage(phase, simTime));
+      notify(std::make_shared<LayerPublishMessage>(phase, simTime));
 
       // wait for all published data to arrive and call layer's outputState
 
-      std::vector<BaseMessage> messageVector = {
-         LayerUpdateActiveIndicesMessage(phase),
-         LayerOutputStateMessage(phase, simTime)
+      std::vector<std::shared_ptr<BaseMessage>> messageVector = {
+         std::make_shared<LayerUpdateActiveIndicesMessage>(phase),
+         std::make_shared<LayerOutputStateMessage>(phase, simTime)
       };
       if (mErrorOnNotANumber) {
-         messageVector.emplace_back(LayerCheckNotANumberMessage(phase));
+         messageVector.push_back(std::make_shared<LayerCheckNotANumberMessage>(phase));
       }
       notify(messageVector);
    }

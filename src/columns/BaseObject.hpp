@@ -28,6 +28,7 @@
 #include "utils/PVLog.hpp"
 #include "utils/PVAssert.hpp"
 #include "utils/PVAlloc.hpp"
+#include <memory>
 
 namespace PV {
 
@@ -40,7 +41,7 @@ public:
    inline char const * getDescription_c() const { return description.c_str(); }
    inline std::string const& getDescription() const { return description; }
    char const * getKeyword() const;
-   int respond(BaseMessage const * message); // TODO: should return enum with values corresponding to PV_SUCCESS, PV_FAILURE, PV_POSTPONE
+   int respond(std::shared_ptr<BaseMessage> message); // TODO: should return enum with values corresponding to PV_SUCCESS, PV_FAILURE, PV_POSTPONE
    virtual ~BaseObject();
 
 
