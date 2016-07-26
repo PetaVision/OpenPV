@@ -1,12 +1,11 @@
-
 clear all;
 close all;
 %setenv('GNUTERM','X11')
-addpath('~/workspace/OpenPV/pv-core/mlab/HyPerLCA');
+addpath('../../../mlab/util/');
 
-workspace_path = '~/workspace/OpenPV/';
-output_dir = '~/workspace/OpenPV/demo/LCACifarDemo/output/batchsweep_00/';
-checkpoint_dir = '~/workspace/OpenPV/demo/LCACifarDemo/output/Checkpoints/batchsweep_00/';
+workspace_path = '../../../';
+output_dir = '../output/batchsweep_00/';
+checkpoint_dir = '../output/Checkpoints/batchsweep_00/';
 
 max_history = 100000000;
 numarbors = 1;
@@ -15,9 +14,9 @@ numarbors = 1;
 analyze_Recon_flag = true;
 if analyze_Recon_flag
    Input_list = ...
-   {['InputScaled']};
+   {['Input_0']};
    Recon_list = ...
-   {['InputRecon_V1']};
+   {['InputRecon_0']};
 
    frameSkip = 10; %Print every 10th frame
 
@@ -53,7 +52,7 @@ plot_flag = 1;
 analyze_Sparse_flag = true;
 if analyze_Sparse_flag
     Sparse_list = ...
-       {[''], ['V1']; ...
+       {[''], ['V1_0']; ...
         };
 
     load_Sparse_flag = 0;
@@ -88,13 +87,13 @@ end
 analyze_nonSparse_flag = true;
 if analyze_nonSparse_flag
     nonSparse_list = ...
-        {[''], ['InputError_V1']; ...
+        {[''], ['InputError_0']; ...
          };
     num_nonSparse_list = size(nonSparse_list,1);
     nonSparse_skip = repmat(10, num_nonSparse_list, 1);
     nonSparse_norm_list = ...
         {...
-         [''], ['InputScaled']; ...
+         [''], ['Input_0']; ...
          }; ...
     nonSparse_norm_strength = [1 1];
     Sparse_std_ndx = [0 0];
@@ -135,7 +134,7 @@ plot_weights = true;
 if plot_weights
    weights_list = ...
    { ...
-   ['V1ToInputError_V1_W']; ...
+   ['V1ToError_W']; ...
    };
    pre_list = ...
    { ...
@@ -303,4 +302,4 @@ if plot_weights
       end %% i_checkpoint
    end %% i_weights
 end  %% plot_weights
-
+printf("THE END\n");
