@@ -1722,7 +1722,7 @@ int HyPerCol::processParams(char const * path) {
    return PV_SUCCESS;
 }
 
-void HyPerCol::notify(std::vector<BaseMessage const*> messages) {
+void HyPerCol::notify(std::vector<BaseMessage> messages) {
    auto needsUpdate = mObjectHierarchy.getObjectVector();
    auto numNeedsUpdate = needsUpdate.size();
    while(numNeedsUpdate>0) {
@@ -1732,17 +1732,17 @@ void HyPerCol::notify(std::vector<BaseMessage const*> messages) {
          auto obj = (*iter);
          int status = PV_SUCCESS;
          for (auto msg : messages) {
-            status = obj->respond(msg);
+            status = obj->respond(&msg);
             if (status == PV_BREAK) { status = PV_SUCCESS; } // Can we get rid of PV_BREAK as a possible return value of connections' updateState?
             switch(status) {
             case PV_SUCCESS:
                continue;
                break;
             case PV_POSTPONE:
-               pvInfo() << obj->getDescription() << ": " << msg->getMessageType() << " postponed.\n";
+               pvInfo() << obj->getDescription() << ": " << msg.getMessageType() << " postponed.\n";
                break;
             case PV_FAILURE:
-               pvError() << obj->getDescription() << " failed " << msg->getMessageType() << ".\n";
+               pvError() << obj->getDescription() << " failed " << msg.getMessageType() << ".\n";
                break;
             default:
                pvError() << obj->getDescription() << " returned unrecognized return code " << status << ".\n";
@@ -1771,11 +1771,6 @@ void HyPerCol::notify(std::vector<BaseMessage const*> messages) {
          break;
       }
    }
-}
-
-void HyPerCol::notify(BaseMessage const & message) {
-   std::vector<BaseMessage const*> v{&message};
-   notify(v);
 }
 
 int HyPerCol::normalizeWeights() {
@@ -2133,16 +2128,17 @@ int HyPerCol::advanceTime(double sim_time) {
    for (int phase=0; phase<numPhases; phase++) {
 
       //Ordering needs to go recvGpu, if(recvGpu and upGpu)update, recvNoGpu, update rest
-      std::vector<BaseMessage const*> messageVector;
 #ifdef PV_USE_CUDA
-      messageVector.emplace_back(new LayerRecvSynapticInputMessage(phase, phaseRecvTimers[phase], true/*recvGpuFlag*/, simTime, deltaTimeBase));
-      messageVector.emplace_back(new LayerUpdateStateMessage(phase, true/*recvGpuFlag*/, true/*updateGpuFlag*/, simTime, deltaTimeBase));
-      notify(messageVector);
-      for (auto msg : messageVector) { delete msg; } messageVector.clear();
-      messageVector.emplace_back(new LayerRecvSynapticInputMessage(phase, phaseRecvTimers[phase], false/*recvGpuFlag*/, simTime, deltaTimeBase));
-      messageVector.emplace_back(new LayerUpdateStateMessage(phase, false/*recvGpuFlag*/, false/*updateGpuFlag*/, simTime, deltaTimeBase));
-      notify(messageVector);
-      for (auto msg : messageVector) { delete msg; } messageVector.clear();
+      notify({
+         LayerRecvSynapticInputMessage(phase, phaseRecvTimers[phase], true/*recvGpuFlag*/, simTime, deltaTimeBase),
+         LayerUpdateStateMessage(phase, true/*recvGpuFlag*/, true/*updateGpuFlag*/, simTime, deltaTimeBase)
+      });
+
+      notify({
+         LayerRecvSynapticInputMessage(phase, phaseRecvTimers[phase], false/*recvGpuFlag*/, simTime, deltaTimeBase),
+         LayerUpdateStateMessage(phase, false/*recvGpuFlag*/, false/*updateGpuFlag*/, simTime, deltaTimeBase)
+
+      });
 
       getDevice()->syncDevice();
 
@@ -2155,10 +2151,10 @@ int HyPerCol::advanceTime(double sim_time) {
       //Update for gpu recv and non gpu update
       notify(LayerUpdateStateMessage(phase, true/*recvOnGpuFlag*/, false/*updateOnGpuFlag*/, simTime, deltaTimeBase));
 #else
-      messageVector.emplace_back(new LayerRecvSynapticInputMessage(phase, phaseRecvTimers[phase], simTime, deltaTimeBase));
-      messageVector.emplace_back(new LayerUpdateStateMessage(phase, simTime, deltaTimeBase));
-      notify(messageVector);
-      for (auto msg : messageVector) { delete msg; } messageVector.clear();
+      notify({
+         LayerRecvSynapticInputMessage(phase, phaseRecvTimers[phase], simTime, deltaTimeBase),
+         LayerUpdateStateMessage(phase, simTime, deltaTimeBase)
+      });
 #endif
 
       // Rotate DataStore ring buffers, copy activity buffer to DataStore, and do MPI exchange.
@@ -2166,13 +2162,14 @@ int HyPerCol::advanceTime(double sim_time) {
 
       // wait for all published data to arrive and call layer's outputState
 
-      messageVector.emplace_back(new LayerUpdateActiveIndicesMessage(phase));
-      messageVector.emplace_back(new LayerOutputStateMessage(phase, simTime));
+      std::vector<BaseMessage> messageVector = {
+         LayerUpdateActiveIndicesMessage(phase),
+         LayerOutputStateMessage(phase, simTime)
+      };
       if (mErrorOnNotANumber) {
-         messageVector.emplace_back(new LayerCheckNotANumberMessage(phase));
+         messageVector.emplace_back(LayerCheckNotANumberMessage(phase));
       }
       notify(messageVector);
-      for (auto msg : messageVector) { delete msg; } messageVector.clear();
    }
 
    // Balancing MPI_Send is before the for-loop over phases.  Is this better than MPI_Bcast?
