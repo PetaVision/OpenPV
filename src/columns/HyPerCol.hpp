@@ -401,8 +401,8 @@ public:
    double* getTimeScaleMaxPtr() const { return mTimeScaleMax; }
    double* getTimeScaleMax2Ptr() const { return mTimeScaleMax2; }
    HyPerLayer * getLayer(int which)       {return mLayers.at(which);}
-   int globalRank() { return mInterColComm->globalCommRank(); }
-   int columnId() { return mInterColComm->commRank(); }
+   int globalRank() { return mCommunicator->globalCommRank(); }
+   int columnId() { return mCommunicator->commRank(); }
    int getNxGlobal() { return mNumXGlobal; }
    int getNyGlobal() { return mNumYGlobal; }
    int getNBatch() { return mNumBatch; }
@@ -416,15 +416,15 @@ public:
    int numberOfProbes() const {return mColProbes.size();}
    int numberOfBaseProbes() const {return mBaseProbes.size();}
    int numberOfBorderRegions() const {return MAX_NEIGHBORS;}
-   int numberOfColumns() { return mInterColComm->commSize(); }
-   int numberOfGlobalColumns() { return mInterColComm->globalCommSize(); }
-   int commColumn() { return mInterColComm->commColumn(); }
-   int commRow() { return mInterColComm->commRow(); }
-   int commBatch() { return mInterColComm->commBatch(); }
-   int numCommColumns() { return mInterColComm->numCommColumns(); }
-   int numCommRows() { return mInterColComm->numCommRows(); }
-   int numCommBatches() { return mInterColComm->numCommBatches(); }
-   InterColComm * icCommunicator() const { return mInterColComm; }
+   int numberOfColumns() { return mCommunicator->commSize(); }
+   int numberOfGlobalColumns() { return mCommunicator->globalCommSize(); }
+   int commColumn() { return mCommunicator->commColumn(); }
+   int commRow() { return mCommunicator->commRow(); }
+   int commBatch() { return mCommunicator->commBatch(); }
+   int numCommColumns() { return mCommunicator->numCommColumns(); }
+   int numCommRows() { return mCommunicator->numCommRows(); }
+   int numCommBatches() { return mCommunicator->numCommBatches(); }
+   InterColComm * icCommunicator() const { return mCommunicator; }
    NormalizeBase * getNormalizer(int which) { return mNormalizers.at(which); }
    PV_Init * getPV_InitObj() const { return mPVInitObj; }
    PV_Stream * getPrintParamsStream() const { return mPrintParamsStream; }
@@ -503,7 +503,7 @@ private:
    bool mWriteProgressToError;// Whether to write progress step to standard error (True) or standard output (False) (default is output)
    bool mVerifyWrites;     // Flag to indicate whether calls to PV_fwrite do a readback check
    bool mOwnsParams; // True if mParams was created from mParams file by initialize, false if mParams was passed in the constructor
-   bool mOwnsInterColComm; // True if mInterColComm was created by initialize, false if passed in the constructor
+   bool mOwnsInterColComm; // True if mCommunicator was created by initialize, false if passed in the constructor
    bool mWriteTimescales;
    char* mCheckpointReadDir;   // name of the directory to read an initializing checkpoint from
    char* mCheckpointReadDirBase;   // name of the directory containing checkpoint read from (used by deprecated mParams-based method for loading from checkpoint)
@@ -564,7 +564,7 @@ private:
    int mNumThreads;
    int * mLayerStatus;
    int * mConnectionStatus;
-   InterColComm * mInterColComm; // manages communication between HyPerColumns};
+   InterColComm * mCommunicator; // manages communication between HyPerColumns};
    long int mCpReadDirIndex;  // checkpoint number within mCheckpointReadDir to read
    long int mCpWriteStepInterval;
    long int mNextCpWriteStep;
@@ -572,10 +572,10 @@ private:
    long int mInitialStep;
    long int mFinalStep;
    std::vector<NormalizeBase*> mNormalizers; //NormalizeBase ** mNormalizers; // Objects for normalizing mConnections or groups of mConnections
-   PV_Init * mPVInitObj;
-   PV_Stream * mPrintParamsStream; // file pointer associated with mPrintParamsFilename
-   PV_Stream * mLuaPrintParamsStream; // file pointer associated with the output lua file
-   PVParams     * mParams; // manages input parameters
+   PV_Init* mPVInitObj;
+   PV_Stream* mPrintParamsStream; // file pointer associated with mPrintParamsFilename
+   PV_Stream* mLuaPrintParamsStream; // file pointer associated with the output lua file
+   PVParams* mParams; // manages input parameters
    size_t mLayerArraySize;
    size_t mConnectionArraySize;
    size_t mNormalizerArraySize;
