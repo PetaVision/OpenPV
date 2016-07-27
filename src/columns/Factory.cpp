@@ -105,17 +105,6 @@ Factory::Factory() {
    registerCoreKeywords();
 }
 
-Factory::Factory(Factory const& orig) {
-   copyKeywordHandlerList(orig.keywordHandlerList);
-}
-
-Factory& Factory::operator=(Factory const& orig) {
-   clearKeywordHandlerList();
-   copyKeywordHandlerList(orig.keywordHandlerList);
-   return *this;
-}
-
-
 int Factory::registerCoreKeywords() {
    keywordHandlerList = std::vector<KeywordHandler*>();
 
@@ -220,7 +209,7 @@ int Factory::copyKeywordHandlerList(std::vector<KeywordHandler*> const& orig) {
 
 int Factory::registerKeyword(char const * keyword, ObjectCreateFn creator) {
    KeywordHandler const * keywordHandler = getKeywordHandler(keyword);
-   if (keywordHandler != NULL) {
+   if (keywordHandler != nullptr) {
       return PV_FAILURE;
    }
    KeywordHandler * newKeyword = new KeywordHandler(keyword, creator);
@@ -230,7 +219,11 @@ int Factory::registerKeyword(char const * keyword, ObjectCreateFn creator) {
 
 BaseObject * Factory::create(char const * keyword, char const * name, HyPerCol * hc) const {
    KeywordHandler const * keywordHandler = getKeywordHandler(keyword);
-   return keywordHandler ? keywordHandler->create(name, hc) : NULL;
+   if (keywordHandler == nullptr) {
+      auto errorString = std::string("Unrecognized keyword ").append(keyword);
+      throw std::invalid_argument(errorString);
+   }
+   return keywordHandler ? keywordHandler->create(name, hc) : nullptr;
 }
 
 KeywordHandler const * Factory::getKeywordHandler(char const * keyword) const {
@@ -239,7 +232,7 @@ KeywordHandler const * Factory::getKeywordHandler(char const * keyword) const {
          return typeCreator;
       }
    }
-   return NULL;
+   return nullptr;
 }
 
 int Factory::clearKeywordHandlerList() {

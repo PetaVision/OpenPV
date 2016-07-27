@@ -11,6 +11,7 @@
 #define DEFAULT_NUMSTEPS 1
 
 #include "HyPerCol.hpp"
+#include "columns/Factory.hpp"
 #include "columns/Communicator.hpp"
 #include "normalizers/NormalizeBase.hpp"
 #include "io/Clock.hpp"
@@ -3214,7 +3215,7 @@ HyPerCol * createHyPerCol(PV_Init * pv_initObj) {
          }
       }
       else {
-         BaseObject * addedObject = pv_initObj->create(kw, name, hc);
+         BaseObject * addedObject = Factory::instance()->create(kw, name, hc);
          if (addedObject==nullptr) {
             if (hc->globalRank()==0) {
                pvErrorNoExit().printf("Unable to create %s \"%s\".\n", kw, name);

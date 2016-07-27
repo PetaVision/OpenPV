@@ -23,7 +23,6 @@ PV_Init::PV_Init(int* argc, char ** argv[], bool allowUnrecognizedArguments){
    params = nullptr;
    mCommunicator = nullptr;
    arguments = new PV_Arguments(*argc, *argv, allowUnrecognizedArguments);
-   factory = new Factory();
    initLogFile(false/*appendFlag*/);
    initialize(); // must follow initialization of arguments data member.
 }
@@ -32,7 +31,6 @@ PV_Init::~PV_Init(){
    delete params;
    delete mCommunicator;
    delete arguments;
-   delete factory;
    commFinalize();
 }
 
@@ -179,23 +177,13 @@ int PV_Init::resetState() {
 }
 
 int PV_Init::registerKeyword(char const * keyword, ObjectCreateFn creator) {
-   int status = factory->registerKeyword(keyword, creator);
+   int status = Factory::instance()->registerKeyword(keyword, creator);
    if (status != PV_SUCCESS) {
       if (getWorldRank()==0) {
          pvErrorNoExit().printf("PV_Init: keyword \"%s\" has already been registered.\n", keyword);
       }
    }
    return status;
-}
-
-BaseObject * PV_Init::create(char const * keyword, char const * name, HyPerCol * hc) const {
-   BaseObject * pvObject = factory->create(keyword, name, hc);
-   if (pvObject == NULL) {
-      if (getWorldRank()==0) {
-         pvErrorNoExit().printf("Unable to create %s \"%s\": keyword \"%s\" has not been registered.\n", keyword, name, keyword);
-      }
-   }
-   return pvObject;
 }
 
 #ifdef OBSOLETE // Marked obsolete Jul 19, 2016.  Use hc=createHyPerCol(pv_init_ptr) instead of hc=pv_init_ptr->build().

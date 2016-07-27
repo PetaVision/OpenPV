@@ -375,7 +375,6 @@ private:
    PV_Arguments * arguments;
    int maxThreads;
    Communicator * mCommunicator;
-   Factory * factory;
 };
 
 }
