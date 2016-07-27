@@ -34,7 +34,6 @@ private:
     float expectedMin, expectedMax;
 };
 
-BaseObject * createBatchSweepTestProbe(char const * name, HyPerCol * hc);
 
 } /* namespace PV */
 #endif /* PARAMETERSWEEPTESTPROBE_HPP_ */

@@ -88,9 +88,5 @@ int DatastoreDelayTestLayer::updateV_DatastoreDelayTestLayer(const PVLayerLoc * 
    return PV_SUCCESS;
 }
 
-BaseObject * createDatastoreDelayTestLayer(char const * name, HyPerCol * hc) {
-   return hc ? new DatastoreDelayTestLayer(name, hc) : NULL;
-}
-
 }  // end of namespace PV block
 

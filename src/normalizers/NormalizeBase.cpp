@@ -226,12 +226,4 @@ void NormalizeBase::normalizePatch(pvwdata_t * dataStartPatch, int weights_per_p
    for (int k=0; k<weights_per_patch; k++) dataStartPatch[k] *= multiplier;
 }
 
-BaseObject * createNormalizeBase(char const * name, HyPerCol * hc) {
-   if (hc==NULL || hc->columnId()==0) {
-      pvErrorNoExit().printf("NormalizeBase cannot be instantiated itself.  Only derived classes of NormalizeBase can be instantiated.\n");
-   }
-   return NULL;
-}
-
 } // end namespace PV
-

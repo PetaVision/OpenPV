@@ -45,8 +45,4 @@ int FirmThresholdCostFnLCAProbe::communicateInitInfo() {
    return status;
 }
 
-BaseObject * createFirmThresholdCostFnLCAProbe(char const * name, HyPerCol * hc) {
-   return hc ? new FirmThresholdCostFnLCAProbe(name, hc) : nullptr;
-}
-
 } /* namespace PV */

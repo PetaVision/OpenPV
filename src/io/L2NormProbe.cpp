@@ -157,8 +157,4 @@ int L2NormProbe::calcValues(double timevalue) {
    return PV_SUCCESS;
 }
 
-BaseObject * createL2NormProbe(char const * name, HyPerCol * hc) {
-   return hc ? new L2NormProbe(name, hc) : NULL;
-}
-
 }  // end namespace PV

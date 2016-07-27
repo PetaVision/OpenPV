@@ -17,10 +17,5 @@ KernelConn::KernelConn(const char * name, HyPerCol * hc, InitWeights * weightIni
    exit(EXIT_FAILURE);
 }
 
-BaseObject * createKernelConn(char const * name, HyPerCol * hc) {
-   if (hc==NULL) { return NULL; }
-   return new KernelConn(name, hc, nullptr, nullptr);
-}
-
 } // namespace PV
 

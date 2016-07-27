@@ -77,8 +77,6 @@ private:
    int initialize_base();
 }; // class BaseObject
 
-BaseObject * createBasePVObject(char const * name, HyPerCol * hc);
-
 }  // namespace PV
 
 #endif /* BASEOBJECT_HPP_ */

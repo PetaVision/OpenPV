@@ -489,8 +489,4 @@ int MoviePvp::updateFrameNum(int batchIdx) {
    return PV_SUCCESS;
 }
 
-BaseObject * createMoviePvp(char const * name, HyPerCol * hc) {
-   return hc ? new MoviePvp(name, hc) : NULL;
-}
-
 }

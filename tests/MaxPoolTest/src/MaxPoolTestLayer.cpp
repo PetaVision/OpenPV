@@ -60,8 +60,4 @@ int MaxPoolTestLayer::updateState(double timef, double dt){
    return PV_SUCCESS;
 }
 
-BaseObject * createMaxPoolTestLayer(char const * name, HyPerCol * hc) {
-   return hc ? new MaxPoolTestLayer(name, hc) : NULL;
-}  
-
 } /* namespace PV */

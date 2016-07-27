@@ -705,7 +705,6 @@ protected:
 #endif
 };
 
-BaseObject * createHyPerLayer(char const * name, HyPerCol * hc);
 } // namespace PV
 
 #endif /* HYPERLAYER_HPP_ */

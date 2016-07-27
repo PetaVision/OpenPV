@@ -40,7 +40,5 @@ private:
    int initialize_base();
 }; // class ConstantLayer
 
-BaseObject * createConstantLayer(char const * name, HyPerCol * hc);
-
 } /* namespace PV */
 #endif

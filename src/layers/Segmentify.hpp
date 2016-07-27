@@ -61,7 +61,5 @@ protected:
 
 }; // class Segmentify
 
-BaseObject * createSegmentify(char const * name, HyPerCol * hc);
-
 } /* namespace PV */
 #endif 

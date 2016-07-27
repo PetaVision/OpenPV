@@ -26,7 +26,6 @@ private:
 
 }; // end class ShrunkenPatchTestLayer
 
-BaseObject * createShrunkenPatchTestLayer(char const * name, HyPerCol * hc);
 
 } /* namespace PV */
 #endif /* SHRUNKENPATCHTESTLAYER_HPP_ */

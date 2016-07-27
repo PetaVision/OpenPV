@@ -39,7 +39,6 @@ protected:
    double * pvalues;      // The two-tailed p-value of the nnz value of each timestep.
 }; // end class StochasticReleaseTestProbe
 
-BaseObject * createStochasticReleaseTestProbe(const char * name, HyPerCol * hc);
 
 } /* namespace PV */
 #endif /* STOCHASTICRELEASETESTPROBE_HPP_ */

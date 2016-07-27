@@ -33,7 +33,5 @@ protected:
    pvdata_t integrationTime;
 }; // class LeakyIntegrator
 
-BaseObject * createLeakyIntegrator(char const * name, HyPerCol * hc);
-
 } /* namespace PV */
 #endif /* LEAKYINTEGRATOR_HPP_ */

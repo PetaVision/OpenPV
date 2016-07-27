@@ -66,8 +66,4 @@ int DatastoreDelayTestProbe::outputState(double timed) {
 DatastoreDelayTestProbe::~DatastoreDelayTestProbe() {
 }
 
-BaseObject * createDatastoreDelayTestProbe(char const * probeName, HyPerCol * hc) {
-   return hc ? new DatastoreDelayTestProbe(probeName, hc) : NULL;
-}
-
 }  // end of namespace PV block

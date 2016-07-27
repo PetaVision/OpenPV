@@ -403,8 +403,4 @@ int InitWeights::readCombinedWeightFiles(PVPatch *** patches, pvwdata_t ** dataS
    return PV_SUCCESS;
 }
 
-BaseObject * createInitWeights(char const * name, HyPerCol * hc) {
-   return hc ? new InitWeights(name, hc) : NULL;
-}
-
 } /* namespace PV */

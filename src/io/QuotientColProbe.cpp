@@ -156,8 +156,4 @@ int QuotientColProbe::outputState(double timevalue) {
    return PV_SUCCESS;
 }  // end QuotientColProbe::outputState(float, HyPerCol *)
 
-BaseObject * createQuotientColProbe(char const * name, HyPerCol * hc) {
-   return hc ? new QuotientColProbe(name, hc) : NULL;
-}
-
 }  // end namespace PV

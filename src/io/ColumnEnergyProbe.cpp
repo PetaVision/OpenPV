@@ -146,8 +146,4 @@ int ColumnEnergyProbe::outputState(double timevalue) {
    return PV_SUCCESS;
 }  // end ColumnEnergyProbe::outputState(float)
 
-BaseObject * createColumnEnergyProbe(char const * name, HyPerCol * hc) {
-   return hc ? new ColumnEnergyProbe(name, hc) : NULL;
-}
-
 }  // end namespace PV

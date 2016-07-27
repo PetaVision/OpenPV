@@ -79,8 +79,4 @@ int InitUniformRandomWeights::randomWeights(pvdata_t * patchDataStart, InitWeigh
    return PV_SUCCESS;
 }
 
-BaseObject * createInitUniformRandomWeights(char const * name, HyPerCol * hc) {
-   return hc ? new InitUniformRandomWeights(name, hc) : NULL;
-}
-
 } /* namespace PV */

@@ -81,8 +81,4 @@ int InitGaussianRandomWeights::randomWeights(pvdata_t * patchDataStart, InitWeig
    return 0;
 }
 
-BaseObject * createInitGaussianRandomWeights(char const * name, HyPerCol * hc) {
-   return hc ? new InitGaussianRandomWeights(name, hc) : NULL;
-}
-
 } /* namespace PV */

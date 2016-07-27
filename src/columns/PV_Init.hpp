@@ -336,36 +336,6 @@ public:
       return nullptr;
    }
 
-   /**
-    * This function turns the buildandrunDeprecationWarning flag on.
-    * It is used by the deprecated functions in buildandrun.cpp to
-    * manage printing the deprecation warning once but not more than
-    * once if a deprecated function calls another deprecated function.
-    * When the deprecated buildandrun functions (which were deprecated Mar 24, 2016)
-    * become obsolete, this and related PV_Init functions can be removed.
-    */
-   void setBuildAndRunDeprecationWarning() { buildandrunDeprecationWarning = true; }
-
-   /**
-    * This function turns the buildandrunDeprecationWarning flag off.
-    * It is used by the deprecated functions in buildandrun.cpp to
-    * manage printing the deprecation warning once but not more than
-    * once if a deprecated function calls another deprecated function.
-    * When the deprecated buildandrun functions (which were deprecated Mar 24, 2016)
-    * become obsolete, this and related PV_Init functions can be removed.
-    */
-   void clearBuildAndRunDeprecationWarning() { buildandrunDeprecationWarning = false; }
-
-   /**
-    * This function prints a warning if the buildandrunDeprecationWarning is on.
-    * It is used by the deprecated functions in buildandrun.cpp to
-    * manage printing the deprecation warning once but not more than
-    * once if a deprecated function calls another deprecated function.
-    * When the deprecated buildandrun functions (which were deprecated Mar 24, 2016)
-    * become obsolete, this and related PV_Init functions can be removed.
-    */
-   void printBuildAndRunDeprecationWarning(char const * functionName, char const * functionSignature);
-
 private:
    int initSignalHandler();
    int initMaxThreads();
@@ -406,7 +376,6 @@ private:
    int maxThreads;
    Communicator * mCommunicator;
    Factory * factory;
-   bool buildandrunDeprecationWarning;
 };
 
 }

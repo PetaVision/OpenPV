@@ -123,9 +123,4 @@ BaseObject::~BaseObject() {
    free(name);
 }
 
-BaseObject * createBasePVObject(char const * name, HyPerCol * hc) {
-   pvErrorNoExit().printf("BaseObject should not be instantiated itself, only derived classes of BaseObject.\n");
-   return NULL;
-}
-
 } /* namespace PV */

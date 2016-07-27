@@ -33,8 +33,6 @@ private:
    int repFeatureNum;
 }; // class BackgroundLayer
 
-BaseObject * createBackgroundLayer(char const * name, HyPerCol * hc);
-
 }  // namespace PV
 
 #endif /* CLONELAYER_HPP_ */

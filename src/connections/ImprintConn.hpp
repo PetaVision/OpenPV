@@ -44,8 +44,6 @@ private:
 
 }; // end class ImprintConn
 
-BaseObject * createImprintConn(char const * name, HyPerCol * hc);
-
 }  // end namespace PV
 
 #endif /* CLONEKERNELCONN_HPP_ */

@@ -167,9 +167,5 @@ int BackgroundLayer::updateState(double timef, double dt) {
    return status;
 }
 
-BaseObject * createBackgroundLayer(char const * name, HyPerCol * hc) {
-   return hc ? new BackgroundLayer(name, hc) : NULL;
-}
-
 } // end namespace PV
 

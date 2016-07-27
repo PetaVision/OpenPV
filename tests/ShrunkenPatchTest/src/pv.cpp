@@ -20,8 +20,8 @@ int main(int argc, char * argv[]) {
 
    int status;
    PV_Init initObj(&argc, &argv, false/*allowUnrecognizedArguments*/);
-   initObj.registerKeyword("ShrunkenPatchTestLayer", createShrunkenPatchTestLayer);
-   initObj.registerKeyword("ShrunkenPatchTestProbe", createShrunkenPatchTestProbe);
+   initObj.registerKeyword("ShrunkenPatchTestLayer", Factory::standardCreate<ShrunkenPatchTestLayer>);
+   initObj.registerKeyword("ShrunkenPatchTestProbe", Factory::standardCreate<ShrunkenPatchTestProbe>);
    if (initObj.getParams() == NULL) {
       initObj.setParams("input/ShrunkenPatchTest.params");
    }

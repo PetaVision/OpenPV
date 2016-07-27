@@ -81,8 +81,4 @@ int InitOneToOneWeights::createOneToOneConnection(pvdata_t * dataStart, int data
 
 }
 
-BaseObject * createInitOneToOneWeights(char const * name, HyPerCol * hc) {
-   return hc ? new InitOneToOneWeights(name, hc) : NULL;
-}
-
 } /* namespace PV */

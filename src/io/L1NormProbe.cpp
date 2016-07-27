@@ -114,8 +114,4 @@ int L1NormProbe::setNormDescription() {
    return setNormDescriptionToString("L1-norm");
 }
 
-BaseObject * createL1NormProbe(char const * name, HyPerCol * hc) {
-   return hc ? new L1NormProbe(name, hc) : NULL;
-}
-
 }  // end namespace PV

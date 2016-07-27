@@ -112,8 +112,6 @@ protected:
     HyPerConn * originalConn;
 }; // end class TransposeConn
 
-BaseObject * createTransposeConn(char const * name, HyPerCol * hc);
-
 }  // end namespace PV
 
 #endif /* TRANSPOSECONN_HPP_ */

@@ -62,9 +62,5 @@ bool ConstantLayer::needUpdate(double time, double dt) {
    }
 }
 
-BaseObject * createConstantLayer(char const * name, HyPerCol * hc) {
-   return hc ? new ConstantLayer(name, hc) : NULL;
-}
-
 } /* namespace PV */
 

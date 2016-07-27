@@ -86,8 +86,6 @@ protected:
    bool normalizeOnWeightUpdate;      // Whether to normalize weights when the weights have been updated
 }; // end of class NormalizeBase
 
-BaseObject * createNormalizeBase(char const * name, HyPerCol * hc);
-
 } // end namespace PV
 
 #endif /* NORMALIZEBASE_HPP_ */

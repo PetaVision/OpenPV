@@ -63,8 +63,6 @@ private:
    void resetStats();
 }; // end class StatsProbe
 
-BaseObject * createStatsProbe(char const * name, HyPerCol * hc);
-
 }
 
 #endif /* STATSPROBE_HPP_ */

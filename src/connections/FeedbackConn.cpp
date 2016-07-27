@@ -57,9 +57,5 @@ int FeedbackConn::handleMissingPreAndPostLayerNames() {
    return PV_SUCCESS;
 }
 
-BaseObject * createFeedbackConn(char const * name, HyPerCol * hc) {
-   return hc ? new FeedbackConn(name, hc) : NULL;
-}
-
 }  // end of namespace PV block
 

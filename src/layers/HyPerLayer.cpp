@@ -2674,10 +2674,6 @@ int HyPerLayer::mirrorToSouthEast(PVLayerCube* dest, PVLayerCube* src)
    return 0;
 }
 
-BaseObject * createHyPerLayer(char const * name, HyPerCol * hc) { 
-    return hc ? new HyPerLayer(name, hc) : NULL; 
-}
-
 
 } // end of PV namespace
 

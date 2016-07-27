@@ -13,7 +13,7 @@ int customexit(HyPerCol * hc, int argc, char * argv[]);
 
 int main(int argc, char * argv[]) {
    PV_Init pv_initObj(&argc, &argv, false/*do not allow unrecognized arguments*/);
-   pv_initObj.registerKeyword("normalizeL3", createNormalizeL3);
+   pv_initObj.registerKeyword("normalizeL3", Factory::standardCreate<NormalizeL3>);
    int status = buildandrun(&pv_initObj, NULL, customexit);
    return status;
 }

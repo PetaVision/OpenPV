@@ -452,10 +452,6 @@ int LIF::findPostSynaptic(int dim, int maxSize, int col,
    return 0;
 }
 
-BaseObject * createLIF(char const * name, HyPerCol * hc) {
-   return hc ? new LIF(name, hc) : NULL;
-}
-
 } // namespace PV
 
 ///////////////////////////////////////////////////////

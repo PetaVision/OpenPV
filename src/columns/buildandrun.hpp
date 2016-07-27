@@ -20,15 +20,10 @@
 #include <normalizers/NormalizeBase.hpp>
 #include <columns/PV_Init.hpp>
 
-#include <io/ParamGroupHandler.hpp>
-#include <io/CoreParamGroupHandler.hpp>
-
 using namespace PV;
 
-// The buildandrun, rebuildandrun, buildandrun1paramset, and build functions
-// below are the preferred version, which use the Factory class.
-// Older versions follow, and are kept for backwards compatibility, but are
-// deprecated.
+
+// Deprecated versions of buildandrun, etc. were removed July 27, 2016.
 
 /**
  * The most basic function for creating and running a column from command line settings.
@@ -135,93 +130,5 @@ int outputParams(int argc, char * argv[], char const * path);
  * arguments.  The PV_Init object is not modified or deleted during the call.
  */
 int outputParams(PV_Init * initObj, char const * path);
-
-/**
- * Deprecated version of outputParams
- */
-int outputParams(int argc, char * argv[], char const * path, ParamGroupHandler ** groupHandlerList, int numGroupHandlers);
-
-// The oldest versions of build, buildandrun1paramset, and buildandrun.  They use customgroups function pointers
-// to manage groups not in pv-core.  They are deprecated.
-
-/**
- * Deprecated version of buildandrun
- */
-int buildandrun(int argc, char * argv[],
-                int (*custominit)(HyPerCol *, int, char **),
-                int (*customexit)(HyPerCol *, int, char **),
-                void * (*customgroups)(const char *, const char *, HyPerCol *));
-
-/**
- * Deprecated version of rebuildandrun
- */
-int rebuildandrun(PV_Init * initObj,
-                int (*custominit)(HyPerCol *, int, char **),
-                int (*customexit)(HyPerCol *, int, char **),
-                void * (*customgroups)(const char *, const char *, HyPerCol *));
-
-
-/**
- * Deprecated version of buildandrun1paramset
- */
-int buildandrun1paramset(PV_Init* initObj,
-                         int (*custominit)(HyPerCol *, int, char **),
-                         int (*customexit)(HyPerCol *, int, char **),
-                         void * (*customgroups)(const char *, const char *, HyPerCol *));
-
-
-/**
- * Deprecated version of build
- */
-HyPerCol * build(PV_Init* initObj,
-      void * (*customgroups)(const char *, const char *, HyPerCol *));
-
-// These buildandrun, rebuildandrun, buildandrun1paramset, and build functions use the ParamGroupHandler class for handling custom groups.  They are deprecated.
-
-/**
- * Deprecated version of buildandrun
- */
-int buildandrun(int argc, char * argv[],
-                int (*custominit)(HyPerCol *, int, char **),
-                int (*customexit)(HyPerCol *, int, char **),
-                ParamGroupHandler ** groupHandlerList, int numGroupHandlers);
-
-
-/**
- * Deprecated version of rebuildandrun
- */
-int rebuildandrun(PV_Init * initObj,
-                int (*custominit)(HyPerCol *, int, char **),
-                int (*customexit)(HyPerCol *, int, char **),
-                ParamGroupHandler ** groupHandlerList, int numGroupHandlers);
-
-/**
- * Deprecated version of buildandrun1paramset
- */
-int buildandrun1paramset(PV_Init* initObj,
-                         int (*custominit)(HyPerCol *, int, char **),
-                         int (*customexit)(HyPerCol *, int, char **),
-                         ParamGroupHandler ** groupHandlerList, int numGroupHandlers);
-
-// Deprecated April 14, 2016, in favor of using the dryRunFlag in PV_Arguments and the -n flag on the command line.
-int outputParams(int argc, char * argv[], char const * path, ParamGroupHandler ** groupHandlerList, int numGroupHandlers);
-
-/**
- * Deprecated version of build
- */
-HyPerCol * build(PV_Init * initObj,
-                 ParamGroupHandler ** groupHandlerList,
-                 int numGroupHandlers);
-
-/**
- * Deprecated.  Used by the ParamGroupHandler version of build()
- */
-ParamGroupHandler * getGroupHandlerFromList(char const * keyword, CoreParamGroupHandler * coreHandler, ParamGroupHandler ** groupHandlerList, int numGroupHandlers, ParamGroupType * foundGroupType);
-BaseConnection * createConnection(CoreParamGroupHandler * coreGroupHandler, ParamGroupHandler ** customHandlerList, int numGroupHandlers, char const * keyword, char const * groupname, HyPerCol * hc);
-
-/**
- * Deprecated.  If object is null, the function prints an error message to the global communicator's root process and returns nonzero (i.e., fails).  Otherwise, prints a message that the object was added and returns zero (i.e. succeeds).  Was intended to be called by customgroups functions used by now-deprecated buildandrun functions.
- */
-int checknewobject(void * object, const char * kw, const char * name, HyPerCol * hc);
 
 #endif /* BUILDANDRUN_HPP_ */

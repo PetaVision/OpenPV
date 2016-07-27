@@ -72,8 +72,6 @@ protected:
 
 }; // class Image
 
-BaseObject * createImage(char const * name, HyPerCol * hc);
-
 }  // namespace PV
 
 #endif /* IMAGE_HPP_ */

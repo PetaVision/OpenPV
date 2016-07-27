@@ -14,7 +14,7 @@ namespace PV {
 
 class CopyConn: public HyPerConn {
 public:
-   CopyConn(char const * name, HyPerCol * hc, NormalizeBase * weightNormalizer=NULL);
+   CopyConn(char const * name, HyPerCol * hc);
    virtual ~CopyConn();
    virtual int communicateInitInfo();
    virtual bool needUpdate(double time, double dt);
@@ -24,7 +24,7 @@ public:
 
 protected:
    CopyConn();
-   int initialize(char const * name, HyPerCol * hc, NormalizeBase * weightNormalizer=NULL);
+   int initialize(char const * name, HyPerCol * hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    /**
     * List of parameters needed from the CopyConn class
@@ -127,8 +127,6 @@ protected:
 private:
    int initialize_base();
 }; // end class CopyConn
-
-BaseObject * createCopyConn(char const * name, HyPerCol * hc);
 
 } /* namespace PV */
 

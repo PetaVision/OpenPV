@@ -573,8 +573,4 @@ Image::Image() {}
 int Image::retrieveData(double timef, double dt, int batchIndex) { return PV_FAILURE; }
 #endif // PV_USE_GDAL
 
-BaseObject * createImage(char const * name, HyPerCol * hc) {
-   return hc ? new Image(name, hc) : NULL;
-}
-
 } // namespace PV

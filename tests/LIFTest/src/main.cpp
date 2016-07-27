@@ -16,8 +16,8 @@ int main(int argc, char * argv[]) {
 
    int status;
    PV_Init pv_initObj(&argc, &argv, false/*do not allow unrecognized arguments*/);
-   pv_initObj.registerKeyword("AverageRateConn", createAverageRateConn);
-   pv_initObj.registerKeyword("LIFTestProbe", createLIFTestProbe);
+   pv_initObj.registerKeyword("AverageRateConn", Factory::standardCreate<AverageRateConn>);
+   pv_initObj.registerKeyword("LIFTestProbe", Factory::standardCreate<LIFTestProbe>);
    status = buildandrun(&pv_initObj, NULL/*custominit*/, &customexit);
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }

@@ -38,8 +38,6 @@ private:
    int initialize_base();
 };  // end class PtwiseQuotientLayer
 
-BaseObject * createPtwiseQuotientLayer(char const * name, HyPerCol * hc);
-
 }  // end namespace PV
 
 #endif /* PTWISEQUOTIENTLAYER_HPP_ */

@@ -928,8 +928,4 @@ int KernelConnDebugInitWeights::gaborWeights(pvdata_t * dataStart, int xScale, i
    return 0;
 }
 
-BaseObject * createKernelConnDebugInitWeights(char const * name, HyPerCol * hc) {
-   return hc ? new KernelConnDebugInitWeights(name, hc) : NULL;
-}
-
 } /* namespace PV */

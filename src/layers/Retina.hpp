@@ -102,8 +102,6 @@ private:
 
 }; // class Retina
 
-BaseObject * createRetina(char const * name, HyPerCol * hc);
-
 } // namespace PV
 
 

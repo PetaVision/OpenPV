@@ -150,8 +150,4 @@ int ImageFromMemoryBuffer::outputState(double time, bool last) {
 ImageFromMemoryBuffer::~ImageFromMemoryBuffer() {
 }
 
-BaseObject * createImageFromMemoryBuffer(char const * name, HyPerCol * hc) {
-   return hc ? new ImageFromMemoryBuffer(name, hc) : NULL;
-}
-
 }  // namespace PV

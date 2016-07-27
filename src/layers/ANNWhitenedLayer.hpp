@@ -24,7 +24,5 @@ private:
    int initialize_base();
 }; // class ANNWhitenedLayer
 
-BaseObject * createANNWhitenedLayer(char const * name, HyPerCol * hc);
-
 } /* namespace PV */
 #endif /* ANNWHITENEDLAYER_HPP_ */

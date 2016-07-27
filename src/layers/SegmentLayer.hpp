@@ -67,7 +67,5 @@ protected:
    
 }; // class SegmentLayer
 
-BaseObject * createSegmentLayer(char const * name, HyPerCol * hc);
-
 } /* namespace PV */
 #endif 

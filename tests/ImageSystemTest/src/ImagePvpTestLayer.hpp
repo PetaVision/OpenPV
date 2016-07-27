@@ -15,7 +15,6 @@ public:
    virtual int updateState(double time, double dt);
 };
 
-BaseObject * createImagePvpTestLayer(char const * name, HyPerCol * hc);
 
 }
 #endif /* PVPTESTLAYER_HPP */

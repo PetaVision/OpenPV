@@ -61,8 +61,4 @@ int BatchSweepTestProbe::outputState(double timed) {
    return status;
 }
 
-BaseObject * createBatchSweepTestProbe(char const * name, HyPerCol * hc) {
-   return hc ? new BatchSweepTestProbe(name, hc) : NULL;
-}
-
 } /* namespace PV */

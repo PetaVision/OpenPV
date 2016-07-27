@@ -70,6 +70,12 @@ class BaseObject;
 class Factory {
    friend class PV_Init; // PV_Init provides the only public access to Factory
 
+public:
+   template <typename T>
+   static BaseObject * standardCreate(char const * name, HyPerCol * hc) {
+      return hc==nullptr ? nullptr : new T(name, hc);
+   }
+
 private:
    /**
     * The constructor for Factory.  It initializes the list of known keywords to the core PetaVision keywords.

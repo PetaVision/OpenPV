@@ -61,8 +61,4 @@ int ParameterSweepTestProbe::outputState(double timed) {
    return status;
 }
 
-BaseObject * createParameterSweepTestProbe(char const * name, HyPerCol * hc) {
-   return hc ? new ParameterSweepTestProbe(name, hc) : NULL;
-}
-
 } /* namespace PV */

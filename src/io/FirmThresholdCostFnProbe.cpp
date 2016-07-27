@@ -179,8 +179,4 @@ double FirmThresholdCostFnProbe::getValueInternal(double timevalue, int index) {
    return sum;
 }
 
-BaseObject * createFirmThresholdCostFnProbe(char const * name, HyPerCol * hc) {
-   return hc ? new FirmThresholdCostFnProbe(name, hc) : NULL;
-}
-
 }  // end namespace PV

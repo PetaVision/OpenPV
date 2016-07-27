@@ -79,8 +79,4 @@ int ArborTestProbe::outputState(double timed)
 	return status;
 }
 
-BaseObject * createArborTestProbe(char const * name, HyPerCol * hc) {
-   return hc ? new ArborTestProbe(name, hc) : NULL;
-}
-
 } /* namespace PV */

@@ -17,7 +17,6 @@ private:
    int checkOutputVals(int yi, int xi, int fi, float targetVal, float actualVal);
 };
 
-BaseObject * createSegmentifyTest(char const * name, HyPerCol * hc);
 
 } /* namespace PV */
 #endif

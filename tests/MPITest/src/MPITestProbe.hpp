@@ -25,7 +25,6 @@ private:
    int initMPITestProbe_base();
 }; // end class MPITestProbe
 
-BaseObject * createMPITestProbe(char const * name, HyPerCol * hc);
 
 }  // end namespace PV
 

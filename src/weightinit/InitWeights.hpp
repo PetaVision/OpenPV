@@ -72,7 +72,5 @@ protected:
 
 }; // class InitWeights
 
-BaseObject * createInitWeights(char const * name, HyPerCol * hc);
-
 } /* namespace PV */
 #endif /* INITWEIGHTS_HPP_ */

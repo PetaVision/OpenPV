@@ -77,7 +77,5 @@ private:
    int initialize_base();
 }; // class HyPerLCALayer
 
-BaseObject * createHyPerLCALayer(char const * name, HyPerCol * hc);
-
 } /* namespace PV */
 #endif /* HYPERLCALAYER_HPP_ */

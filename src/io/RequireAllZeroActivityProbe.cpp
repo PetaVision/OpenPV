@@ -90,8 +90,4 @@ RequireAllZeroActivityProbe::~RequireAllZeroActivityProbe() {
    }
 }
 
-BaseObject * createRequireAllZeroActivityProbe(char const * name, HyPerCol * hc) {
-   return hc ? new RequireAllZeroActivityProbe(name, hc) : nullptr;
-}
-
 } /* namespace PV */

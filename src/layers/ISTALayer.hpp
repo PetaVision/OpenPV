@@ -65,7 +65,5 @@ private:
 #endif
 }; // class ISTALayer
 
-BaseObject * createISTALayer(char const * name, HyPerCol * hc);
-
 } /* namespace PV */
 #endif /* ISTALAYER_HPP_ */

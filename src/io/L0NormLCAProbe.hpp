@@ -37,8 +37,6 @@ private:
    int initialize_base() { return PV_SUCCESS; }
 }; // end class L0NormLCAProbe
 
-BaseObject * createL0NormLCAProbe(char const * name, HyPerCol * hc);
-
 } /* namespace PV */
 
 #endif /* L0NORMLCAPROBE_HPP_ */

@@ -170,8 +170,4 @@ int NormalizeContrastZeroMean::accumulateSumAndSumSquared(pvwdata_t * dataPatchS
 NormalizeContrastZeroMean::~NormalizeContrastZeroMean() {
 }
 
-BaseObject * createNormalizeContrastZeroMean(char const * name, HyPerCol * hc) {
-   return hc ? new NormalizeContrastZeroMean(name, hc) : NULL;
-}
-
 } /* namespace PV */

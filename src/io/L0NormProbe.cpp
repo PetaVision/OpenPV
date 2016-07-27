@@ -125,8 +125,4 @@ int L0NormProbe::setNormDescription() {
    return setNormDescriptionToString("L0-norm");
 }
 
-BaseObject * createL0NormProbe(char const * name, HyPerCol * hc) {
-   return hc ? new L0NormProbe(name, hc) : NULL;
-}
-
 }  // end namespace PV

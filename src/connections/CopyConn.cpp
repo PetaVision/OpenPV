@@ -13,9 +13,9 @@ CopyConn::CopyConn() {
    initialize_base();
 }
 
-CopyConn::CopyConn(char const * name, HyPerCol * hc, NormalizeBase * weightNormalizer) {
+CopyConn::CopyConn(char const * name, HyPerCol * hc) {
    initialize_base();
-   initialize(name, hc, weightNormalizer);
+   initialize(name, hc);
 }
 
 int CopyConn::initialize_base() {
@@ -24,8 +24,8 @@ int CopyConn::initialize_base() {
    return PV_SUCCESS;
 }
 
-int CopyConn::initialize(char const * name, HyPerCol * hc, NormalizeBase * weightNormalizer) {
-   return HyPerConn::initialize(name, hc, NULL, weightNormalizer);
+int CopyConn::initialize(char const * name, HyPerCol * hc) {
+   return HyPerConn::initialize(name, hc);
 }
 
 int CopyConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -235,12 +235,6 @@ int CopyConn::copy(int arborId) {
 
 CopyConn::~CopyConn() {
    free(originalConnName);
-}
-
-BaseObject * createCopyConn(char const * name, HyPerCol * hc) {
-   if (hc==NULL) { return NULL; }
-   NormalizeBase * weightNormalizer = getWeightNormalizer(name, hc);
-   return new CopyConn(name, hc, weightNormalizer);
 }
 
 } /* namespace PV */

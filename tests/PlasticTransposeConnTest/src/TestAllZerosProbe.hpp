@@ -22,7 +22,6 @@ private:
 
 }; // end class TestAllZerosProbe
 
-BaseObject * createTestAllZerosProbe(char const * name, HyPerCol * hc);
 
 }  // end namespace PV
 

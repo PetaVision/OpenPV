@@ -90,8 +90,4 @@ int ShrunkenPatchTestLayer::publish(Communicator* comm, double timed)
    //return HyPerLayer::publish(comm, time);
 }
 
-BaseObject * createShrunkenPatchTestLayer(char const * name, HyPerCol * hc) {
-   return hc ? new ShrunkenPatchTestLayer(name, hc) : NULL;
-}
-
 } /* namespace PV */

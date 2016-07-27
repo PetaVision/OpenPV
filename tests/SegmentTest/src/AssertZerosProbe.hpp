@@ -24,7 +24,6 @@ private:
 
 }; // end class AssertZerosProbe
 
-BaseObject * createAssertZerosProbe(char const * name, HyPerCol * hc);
 
 }  // end namespace PV
 #endif 

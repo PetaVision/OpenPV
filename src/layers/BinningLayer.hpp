@@ -49,7 +49,5 @@ protected:
    HyPerLayer * originalLayer;
 }; // class BinningLayer
 
-BaseObject * createBinningLayer(char const * name, HyPerCol * hc);
-
 } /* namespace PV */
 #endif 

@@ -1243,8 +1243,4 @@ int Patterns::checkpointWrite(const char * cpDir) {
    return PV_SUCCESS;
 }
 
-BaseObject * createPatterns(char const * name, HyPerCol * hc) {
-   return hc ? new Patterns(name, hc) : NULL;
-}
-
 } // namespace PV

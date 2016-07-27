@@ -25,7 +25,6 @@
 #include "normalizers/NormalizeBase.hpp"
 #include "privateTransposeConn.hpp"
 #include "PlasticCloneConn.hpp"
-#include "io/CoreParamGroupHandler.hpp"
 #include "io/FileStream.hpp"
 
 namespace PV {
@@ -4560,10 +4559,6 @@ void HyPerConn::deliverOnePostNeuronActivitySparseWeights(int arborID, int kTarg
       }
       *gSynPatchPos += dt_factor * dv;
    }
-}
-
-BaseObject * createHyPerConn(char const * name, HyPerCol * hc) {
-   return hc==nullptr ? nullptr : new HyPerConn(name, hc);
 }
 
 // Deprecated June 22, 2016.  The weight initializer is created by HyPerConn::ioParam_weightInitType

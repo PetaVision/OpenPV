@@ -53,8 +53,8 @@ int main(int argc, char * argv[]) {
       }
    }
 
-   initObj.registerKeyword("CPTestInputLayer", createCPTestInputLayer);
-   initObj.registerKeyword("VaryingHyPerConn", createVaryingHyPerConn);
+   initObj.registerKeyword("CPTestInputLayer", Factory::standardCreate<CPTestInputLayer>);
+   initObj.registerKeyword("VaryingHyPerConn", Factory::standardCreate<VaryingHyPerConn>);
  
    initObj.setParams(paramFile1);
    status = rebuildandrun(&initObj);

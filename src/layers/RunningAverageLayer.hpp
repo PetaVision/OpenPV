@@ -40,8 +40,6 @@ protected:
    int numUpdateTimes;
 }; // class RunningAverageLayer
 
-BaseObject * createRunningAverageLayer(char const * name, HyPerCol * hc);
-
 }  // namespace PV
 
 #endif /* CLONELAYER_HPP_ */

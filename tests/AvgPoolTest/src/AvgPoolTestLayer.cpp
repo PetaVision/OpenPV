@@ -62,8 +62,4 @@ int AvgPoolTestLayer::updateState(double timef, double dt){
    return PV_SUCCESS;
 }
 
-BaseObject * createAvgPoolTestLayer(char const * name, HyPerCol * hc) {
-   return hc ? new AvgPoolTestLayer(name, hc) : NULL;
-}
-
 } /* namespace PV */

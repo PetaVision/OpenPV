@@ -41,7 +41,6 @@ private:
 
 }; // end of class TestConnProbe
 
-BaseObject * createTestConnProbe(char const * name, HyPerCol * hc);
 
 }  // end of namespace PV block
 

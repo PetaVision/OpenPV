@@ -48,8 +48,4 @@ void NormalizeGap::ioParam_normalizeFromPostPerspective(enum ParamsIOFlag ioFlag
    parent->ioParamValue(ioFlag, name, "normalizeFromPostPerspective", &normalizeFromPostPerspective, true/*default*/, true/*warnIfAbsent*/);
 }
 
-BaseObject * createNormalizeGap(char const * name, HyPerCol * hc) {
-   return hc ? new NormalizeGap(name, hc) : NULL;
-}
-
 } /* namespace PV */

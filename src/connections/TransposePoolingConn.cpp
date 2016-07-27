@@ -731,8 +731,4 @@ int TransposePoolingConn::checkpointWrite(const char * cpDir) {
    return PV_SUCCESS;
 }
 
-BaseObject * createTransposePoolingConn(char const * name, HyPerCol * hc) {
-   return hc ? new TransposePoolingConn(name, hc) : NULL;
-}
-
 } // end namespace PV

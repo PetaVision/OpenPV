@@ -269,10 +269,6 @@ int LCALIFLayer::checkpointWrite(const char * cpDir) {
    return status;
 }
 
-BaseObject * createLCALIFLayer(char const * name, HyPerCol * hc) {
-   return hc ? new LCALIFLayer(name, hc) : NULL;
-}
-
 }  // namespace PV
 
 //Kernels

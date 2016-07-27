@@ -67,8 +67,6 @@ private:
    NormalizeBase * groupHead = nullptr;
 }; // class NormalizeGroup
 
-BaseObject * createNormalizeGroup(char const * name, HyPerCol * hc);
-
 } /* namespace PV */
 
 #endif /* NORMALIZEGROUP_HPP_ */

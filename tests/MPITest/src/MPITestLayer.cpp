@@ -94,8 +94,4 @@ int MPITestLayer::publish(Communicator* comm, double timed)
    //return HyPerLayer::publish(comm, time);
 }
 
-BaseObject * createMPITestLayer(char const * name, HyPerCol * hc) {
-   return hc ? new MPITestLayer(name, hc) : NULL;
-}
-
 } /* namespace PV */

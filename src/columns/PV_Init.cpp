@@ -24,7 +24,6 @@ PV_Init::PV_Init(int* argc, char ** argv[], bool allowUnrecognizedArguments){
    mCommunicator = nullptr;
    arguments = new PV_Arguments(*argc, *argv, allowUnrecognizedArguments);
    factory = new Factory();
-   buildandrunDeprecationWarning = true;
    initLogFile(false/*appendFlag*/);
    initialize(); // must follow initialization of arguments data member.
 }
@@ -255,16 +254,6 @@ int PV_Init::commFinalize()
 {
    MPI_Finalize();
    return 0;
-}
-
-void PV_Init::printBuildAndRunDeprecationWarning(char const * functionName, char const * functionSignature) {
-   if (buildandrunDeprecationWarning) {
-      if (getWorldRank()==0) {
-         pvWarn().printf("%s(%s) has been deprecated.  Use the Factory version of %s instead.\n\n",
-               functionName, functionSignature, functionName);
-      }
-      clearBuildAndRunDeprecationWarning();
-   }
 }
 
 } // namespace PV

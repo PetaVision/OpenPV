@@ -64,8 +64,4 @@ int NormalizeGroup::normalizeWeights() {
    return PV_SUCCESS;
 }
 
-BaseObject * createNormalizeGroup(char const * name, HyPerCol * hc) {
-   return hc==nullptr ? nullptr : new NormalizeGroup(name, hc);
-}
-
 } /* namespace PV */

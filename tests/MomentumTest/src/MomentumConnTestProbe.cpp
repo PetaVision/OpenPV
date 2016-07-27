@@ -88,8 +88,4 @@ int MomentumConnTestProbe::outputState(double timed) {
    return PV_SUCCESS;
 }
 
-BaseObject * createMomentumConnTestProbe(char const * name, HyPerCol * hc) {
-   return hc ? new MomentumConnTestProbe(name, hc) : NULL;
-}
-
 }  // end of namespace PV block

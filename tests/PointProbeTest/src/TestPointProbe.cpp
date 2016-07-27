@@ -39,8 +39,4 @@ int TestPointProbe::point_writeState(double timef, float outVVal, float outAVal)
    return PV_SUCCESS;
 }
 
-BaseObject * createTestPointProbe(char const * name, HyPerCol * hc) {
-   return hc ? new TestPointProbe(name, hc) : NULL;
-}
-
 } // namespace PV

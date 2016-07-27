@@ -213,8 +213,4 @@ int NormalizeMultiply::applyRMin(pvwdata_t * dataPatchStart, float rMinX, float 
 NormalizeMultiply::~NormalizeMultiply() {
 }
 
-BaseObject * createNormalizeMultiply(char const * name, HyPerCol * hc) {
-   return hc ? new NormalizeMultiply(name, hc) : NULL;
-}
-
 } /* namespace PV */

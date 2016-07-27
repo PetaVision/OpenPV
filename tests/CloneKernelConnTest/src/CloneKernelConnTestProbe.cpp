@@ -46,8 +46,4 @@ int CloneKernelConnTestProbe::outputState(double timed)
    return status;
 }
 
-BaseObject * createCloneKernelConnTestProbe(char const * name, HyPerCol * hc) {
-   return hc ? new CloneKernelConnTestProbe(name, hc) : NULL;
-}
-
 } /* namespace PV */

@@ -135,8 +135,6 @@ private:
    int* nNeurons, int nConnectedNeurons[], float *vPos);
 }; // class LIF
 
-BaseObject * createLIF(char const * name, HyPerCol * hc);
-
 } // namespace PV
 
 #endif /* LIF_HPP_ */

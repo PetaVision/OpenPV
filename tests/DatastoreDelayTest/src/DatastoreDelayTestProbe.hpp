@@ -28,7 +28,6 @@ protected:
 
 };
 
-BaseObject * createDatastoreDelayTestProbe(const char * probename, HyPerCol * hc);
 
 }
 

@@ -67,7 +67,5 @@ private:
    float errScale;
 }; // class ANNErrorLayer
 
-BaseObject * createANNErrorLayer(char const * name, HyPerCol * hc);
-
 } /* namespace PV */
 #endif /* ANNERRORLAYER_HPP_ */

@@ -130,8 +130,4 @@ int MaskTestLayer::updateState(double timef, double dt){
    return PV_SUCCESS;
 }
 
-BaseObject * createMaskTestLayer(char const * name, HyPerCol * hc) {
-   return hc ? new MaskTestLayer(name, hc) : NULL;
-}
-
 } /* namespace PV */

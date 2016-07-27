@@ -127,8 +127,4 @@ int NormalizeL2::normalizeWeights() {
 NormalizeL2::~NormalizeL2() {
 }
 
-BaseObject * createNormalizeL2(char const * name, HyPerCol * hc) {
-   return hc ? new NormalizeL2(name, hc) : NULL;
-}
-
 } /* namespace PV */

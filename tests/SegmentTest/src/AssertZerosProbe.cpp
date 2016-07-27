@@ -72,8 +72,4 @@ int AssertZerosProbe::outputState(double timed){
    return status;
 }
 
-BaseObject * createAssertZerosProbe(char const * name, HyPerCol * hc) {
-   return hc ? new AssertZerosProbe(name, hc) : NULL;
-}
-
 } // end namespace PV

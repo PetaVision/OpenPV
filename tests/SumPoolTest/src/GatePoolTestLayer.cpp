@@ -57,8 +57,4 @@ int GatePoolTestLayer::updateState(double timef, double dt){
    return PV_SUCCESS;
 }
 
-BaseObject * createGatePoolTestLayer(char const * name, HyPerCol * hc) {
-   return hc ? new GatePoolTestLayer(name, hc) : NULL;
-}
-
 } /* namespace PV */

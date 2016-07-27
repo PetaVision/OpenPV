@@ -31,7 +31,6 @@ protected:
    float minL3NormTolerated; // Error if sqrt(sum(|weights|^3)) in any patch is less than this amount.
 }; // end class NormalizeL3
 
-BaseObject * createNormalizeL3(char const * name, HyPerCol * hc);
 
 }  // end namespace PV
 

@@ -122,8 +122,6 @@ protected:
    double nextGSynClearTime; // The next time that the GSyn will be cleared.
 }; // end of class PtwiseLinearTransferLayer
 
-BaseObject * createPtwiseLinearTransferLayer(char const * name, HyPerCol * hc);
-
 }  // end namespace PV
 
 #endif /* PTWISELINEARTRANSFERLAYER_HPP_ */

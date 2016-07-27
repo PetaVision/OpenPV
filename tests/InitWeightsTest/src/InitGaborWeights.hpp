@@ -35,7 +35,6 @@ private:
    int gaborWeights(pvwdata_t * dataStart, InitGaborWeightsParams * weightParamPtr);
 };
 
-BaseObject * createInitGaborWeights(char const * name, HyPerCol * hc);
 
 } /* namespace PV */
 #endif /* INITGABORWEIGHTS_HPP_ */

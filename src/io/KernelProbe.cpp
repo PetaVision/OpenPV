@@ -164,8 +164,4 @@ int KernelProbe::patchIndices(HyPerConn * conn) {
    return PV_SUCCESS;
 }
 
-BaseObject * createKernelProbe(char const * name, HyPerCol * hc) {
-   return hc ? new KernelProbe(name, hc) : NULL;
-}
-
 }  // end of namespace PV block

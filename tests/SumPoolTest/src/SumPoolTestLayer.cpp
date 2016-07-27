@@ -65,8 +65,4 @@ int SumPoolTestLayer::updateState(double timef, double dt){
    return PV_SUCCESS;
 }
 
-BaseObject * createSumPoolTestLayer(char const * name, HyPerCol * hc) {
-   return hc ? new SumPoolTestLayer(name, hc) : NULL;
-}
-
 } /* namespace PV */
