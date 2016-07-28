@@ -12,6 +12,7 @@
 
 #include "HyPerCol.hpp"
 #include "columns/Factory.hpp"
+#include "columns/RandomSeed.hpp"
 #include "columns/Communicator.hpp"
 #include "normalizers/NormalizeBase.hpp"
 #include "io/Clock.hpp"
@@ -182,8 +183,7 @@ int HyPerCol::initialize_base() {
    mBaseProbes = NULL;
    filenamesContainLayerNames = 0;
    filenamesContainConnectionNames = 0;
-   random_seed = 0U;
-   random_seed_obj = 0U;
+   mRandomSeed = 0U;
    mWriteTimescales = true; //Defaults to true
    mErrorOnNotANumber = false;
    numThreads = 1;
@@ -264,7 +264,7 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
       if (outputPath==NULL) {pvError() << "HyPerCol::initialize unable to copy output path." << std::endl; }
    }
 
-   random_seed = pv_initObj->getRandomSeed();
+   mRandomSeed = pv_initObj->getRandomSeed();
    ioParams(PARAMS_IO_READ);
    checkpointSignal = 0;
    simTime = startTime;
@@ -272,6 +272,8 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
    currentStep = initialStep;
    finalStep = (long int) nearbyint(stopTime/deltaTimeBase);
    nextProgressTime = startTime + progressInterval;
+
+   RandomSeed::instance()->initialize(mRandomSeed);
 
    if(mCheckpointWriteFlag) {
       switch (checkpointWriteTriggerMode) {
@@ -911,22 +913,20 @@ void HyPerCol::ioParam_randomSeed(enum ParamsIOFlag ioFlag) {
    case PARAMS_IO_READ:
       // set random seed if it wasn't set in the command line
       // bool seedfromclock = false;
-      if( !random_seed ) {
+      if( !mRandomSeed ) {
          if( params->present(mName, "randomSeed") ) {
-            random_seed = (unsigned long) params->value(mName, "randomSeed");
+            mRandomSeed = (unsigned long) params->value(mName, "randomSeed");
          }
          else {
-            random_seed = getRandomSeed();
+            mRandomSeed = seedRandomFromWallClock();
          }
       }
-      if (random_seed < 10000000) {
-         pvError().printf("Error: random seed %u is too small. Use a seed of at least 10000000.\n", random_seed);
+      if (mRandomSeed < RandomSeed::minSeed) {
+         pvError().printf("Error: random seed %u is too small. Use a seed of at least 10000000.\n", mRandomSeed);
       }
-
-      random_seed_obj = random_seed;
       break;
    case PARAMS_IO_WRITE:
-      writeParam("randomSeed", random_seed);
+      writeParam("randomSeed", mRandomSeed);
       break;
    default:
       assert(0);
@@ -3077,7 +3077,7 @@ BaseProbe * HyPerCol::getBaseProbeFromName(const char * probeName) {
    return p;
 }
 
-unsigned int HyPerCol::getRandomSeed() {
+unsigned int HyPerCol::seedRandomFromWallClock() {
    unsigned long t = 0UL;
    int rootproc = 0;
    if (columnId()==rootproc) {

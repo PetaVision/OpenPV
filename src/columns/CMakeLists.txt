@@ -3,16 +3,17 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/buildandrun.cpp
    ${SUBDIR}/Communicator.cpp
    ${SUBDIR}/DataStore.cpp
+   ${SUBDIR}/Factory.cpp
    ${SUBDIR}/GaussianRandom.cpp
    ${SUBDIR}/HyPerCol.cpp
    ${SUBDIR}/InterColComm.cpp
    ${SUBDIR}/KeywordHandler.cpp
+   ${SUBDIR}/ObjectHierarchy.cpp
    ${SUBDIR}/Publisher.cpp
    ${SUBDIR}/PV_Arguments.cpp
-   ${SUBDIR}/Factory.cpp
    ${SUBDIR}/PV_Init.cpp
-   ${SUBDIR}/ObjectHierarchy.cpp
    ${SUBDIR}/Random.cpp
+   ${SUBDIR}/RandomSeed.cpp
 )
 
 set (PVLibSrcHpp ${PVLibSrcHpp}
@@ -20,6 +21,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/buildandrun.hpp
    ${SUBDIR}/Communicator.hpp
    ${SUBDIR}/DataStore.hpp
+   ${SUBDIR}/Factory.hpp
    ${SUBDIR}/GaussianRandom.hpp
    ${SUBDIR}/HyPerCol.hpp
    ${SUBDIR}/InterColComm.hpp
@@ -27,9 +29,10 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/Messages.hpp
    ${SUBDIR}/Publisher.hpp
    ${SUBDIR}/PV_Arguments.hpp
-   ${SUBDIR}/Factory.hpp
    ${SUBDIR}/ObjectHierarchy.cpp
+   ${SUBDIR}/PV_Arguments.hpp
    ${SUBDIR}/PV_Init.hpp
    ${SUBDIR}/Random.hpp
+   ${SUBDIR}/RandomSeed.hpp
 )
 

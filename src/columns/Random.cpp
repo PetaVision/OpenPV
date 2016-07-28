@@ -6,6 +6,7 @@
  */
 
 #include "Random.hpp"
+#include "columns/RandomSeed.hpp"
 
 namespace PV {
 
@@ -39,18 +40,11 @@ Random::Random(HyPerCol * hc, int count) {
 // random number does not depend on the MPI configuration.
 Random::Random(HyPerCol * hc, const PVLayerLoc * locptr, bool isExtended) {
    initialize_base();
-   //unsigned int numBlocks, blockLength, numGlobalBlocks, nxGlobal, globalBlockLength, startIndex;
-   //defineBlocksFromPVLayerLoc(locptr, isExtended, &numBlocks, &blockLength, &numGlobalBlocks, &globalBlockLength, &startIndex);
    initializeFromLoc(hc, locptr, isExtended);
 }
 
 int Random::initialize_base() {
    parentHyPerCol = NULL;
-   //numBlocks = 0U;
-   //blockLength = 0U;
-   //numGlobalBlocks = 0U;
-   //globalBlockLength = 0U;
-   //startIndex = 0U;
    rngArray = NULL;
    rngArraySize = 0UL;
    return PV_SUCCESS;
@@ -80,7 +74,6 @@ int Random::initializeFromLoc(HyPerCol* hc, const PVLayerLoc* locptr, bool isExt
    int nxGlobalExt = locptr->nxGlobal + halo.lt + halo.rt;
    int nyGlobalExt = locptr->nyGlobal + halo.up + halo.dn;
    int nbatchGlobal = locptr->nbatchGlobal;
-   int numTotalSeeds = nxGlobalExt * nyGlobalExt * nf * nbatchGlobal;
    //Allocate buffer to store rngArraySize
    rngArray = (taus_uint4 *) malloc(rngArraySize*sizeof(taus_uint4));
    if (rngArray==NULL) {
@@ -88,7 +81,8 @@ int Random::initializeFromLoc(HyPerCol* hc, const PVLayerLoc* locptr, bool isExt
       status = PV_FAILURE;
    }
    if (status == PV_SUCCESS) {
-      unsigned int seedBase = hc->getObjectSeed(numTotalSeeds);
+      int numTotalSeeds = nxGlobalExt * nyGlobalExt * nf * nbatchGlobal;
+      unsigned int seedBase = RandomSeed::instance()->allocate(numTotalSeeds);
       int sb = nxExt * nyExt * nf;
       int sy = nxExt * nf;
       int sbGlobal = nxGlobalExt * nyGlobalExt * nf;
@@ -101,8 +95,6 @@ int Random::initializeFromLoc(HyPerCol* hc, const PVLayerLoc* locptr, bool isExt
             int localExtStart = kb * sb + ky * sy;
             //Calculate offset of the seedBase
             int globalExtStart = (kb + locptr->kb0) * sbGlobal + (ky + locptr->ky0) * syGlobal + locptr->kx0;
-            //Testing: this line should break
-            //int globalExtStart = (kb ) * sbGlobal + (ky ) * syGlobal;
             size_t count = nxExt * nf;
             cl_random_init(&(rngArray[localExtStart]), count, seedBase + globalExtStart);
          }
@@ -114,11 +106,6 @@ int Random::initializeFromLoc(HyPerCol* hc, const PVLayerLoc* locptr, bool isExt
 int Random::initializeFromCount(HyPerCol* hc, int count){ 
    int status = PV_SUCCESS;
    parentHyPerCol = hc;
-   //this->numBlocks = 1;
-   //this->blockLength = count;
-   //this->numGlobalBlocks = 1;
-   //this->globalBlockLength = count;
-   //this->startIndex = startIndex;
    rngArraySize = count;
    rngArray = (taus_uint4 *) malloc(count*sizeof(taus_uint4));
    if (rngArray==NULL) {
@@ -126,31 +113,11 @@ int Random::initializeFromCount(HyPerCol* hc, int count){
       status = PV_FAILURE;
    }
    if (status == PV_SUCCESS) {
-      unsigned int seedBase = hc->getObjectSeed(count);
+      unsigned int seedBase = RandomSeed::instance()->allocate(count);
       cl_random_init(rngArray, (size_t)count, seedBase);
    }
    return status;
 }
-
-//int Random::defineBlocksFromPVLayerLoc(PVLayerLoc const * loc, bool isExtended, unsigned int * numBlocks, unsigned int * blockLength, unsigned int * numGlobalBlocks, unsigned int * globalBlockLength, unsigned int * startIndex) {
-//   PVHalo halo;
-//   if (isExtended) {
-//      memcpy(&halo, &(loc->halo), sizeof(halo));
-//   }
-//   else {
-//      halo.lt = 0;
-//      halo.rt = 0;
-//      halo.dn = 0;
-//      halo.up = 0;
-//   }
-//   *numBlocks = loc->ny+halo.dn + halo.up;
-//   *blockLength =  (loc->nx+halo.lt+halo.rt)*loc->nf;
-//   *numGlobalBlocks = loc->nyGlobal+halo.dn+halo.up;
-//   int nxGlobal = loc->nxGlobal+halo.lt+halo.rt;
-//   *globalBlockLength = nxGlobal*loc->nf;
-//   *startIndex = kIndex(loc->kx0, loc->ky0, 0, nxGlobal, (int) *numGlobalBlocks, loc->nf);
-//   return PV_SUCCESS;
-//}
 
 float Random::uniformRandom(int localIndex) {
    rngArray[localIndex] = cl_random_get(rngArray[localIndex]);

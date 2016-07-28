@@ -446,9 +446,8 @@ public:
    long int getInitialStep() const { return initialStep; }
    long int getFinalStep() const { return finalStep; }
    long int getCurrentStep() const { return currentStep; }
-   unsigned int getSeed() { return random_seed; }
-   unsigned int getObjectSeed(int count) { unsigned long seed = random_seed_obj; random_seed_obj += count; return seed; }
-   unsigned int getRandomSeed();
+   unsigned int getRandomSeed() { return mRandomSeed; }
+   unsigned int seedRandomFromWallClock();
 private:
    int getAutoGPUDevice();
 
@@ -596,11 +595,7 @@ private:
    Timer ** phaseRecvTimers;
    time_t cpWriteClockSeconds; // If checkpoint mode is clock, the clock time between checkpoints, in seconds
    time_t nextCPWriteClock;
-   unsigned int random_seed;
-   unsigned int random_seed_obj;  // Objects that need to generate random numbers should request a seed from
-                                  // the HyPerCol, saying how many they need (across all processes in an MPI run).
-                                  // random_seed_obj is incremented by the number requested, so that everything
-                                  // that needs a random seed gets a unique seed, and things are reproducible.
+   unsigned int mRandomSeed;
 #ifdef PV_USE_CUDA
    //The list of GPU group showing which connection's buffer to use
    BaseConnection** gpuGroupConns;
