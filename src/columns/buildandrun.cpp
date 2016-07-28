@@ -25,10 +25,15 @@
 
 using namespace PV;
 
-// The buildandrun, rebuildandrun, and buildandrun1paramset functions below,
-// which use the Factory class, are the preferred versions of these
-// functions.  Older versions follow, and are kept for backwards
-// compatibility, but are deprecated as of March 24, 2016.
+// The buildandrun, rebuildandrun, and buildandrun1paramset functions below
+// automate creating the HyPerCol, filling it with layers, connections, etc.,
+// and running it.  To add custom groups, instantiate a PV_Init object
+// and call PV_Init::registerKeyword with the create function (in most cases,
+// the static function template PV::Factory::create<CustomClass>.
+//
+// Older versions of buildandrun, that used the now-obsolete customgroups function
+// pointer system or the now-obsolete ParamGroupHandler class, were removed
+// July 27, 2016.
 int buildandrun(int argc, char * argv[],
                 int (*custominit)(HyPerCol *, int, char **),
                 int (*customexit)(HyPerCol *, int, char **)) {
