@@ -261,7 +261,7 @@ int LIF::allocateDataStructures() {
    int status = HyPerLayer::allocateDataStructures();
 
    // // a random state variable is needed for every neuron/clthread
-   randState = new Random(parent, getLayerLoc(), false/*isExtended*/);
+   randState = new Random(getLayerLoc(), false/*isExtended*/);
    if (randState == NULL) {
       pvError().printf("LIF::initialize:  %s unable to create object of Random class.\n", getDescription_c());
    }

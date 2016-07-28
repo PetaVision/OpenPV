@@ -482,7 +482,7 @@ void Patterns::ioParam_displayPeriod(enum ParamsIOFlag ioFlag) {
 int Patterns::communicateInitInfo() {
    int status = BaseInput::communicateInitInfo();
 
-   patternRandState = new Random(parent, 1);
+   patternRandState = new Random(1);
 #ifndef NDEBUG
    // This should put the RNG into the same state across MPI, but let's check.
    taus_uint4 * state = patternRandState->getRNG(0);

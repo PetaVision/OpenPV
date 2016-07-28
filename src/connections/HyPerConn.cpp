@@ -1452,10 +1452,10 @@ int HyPerConn::allocateDataStructures() {
    if (pvpatchAccumulateType == STOCHASTIC) {
       bool from_post = getUpdateGSynFromPostPerspective();
       if (from_post) {
-         randState = new Random(parent, postSynapticLayer()->getLayerLoc(), false/*isExtended*/);
+         randState = new Random(postSynapticLayer()->getLayerLoc(), false/*isExtended*/);
       }
       else {
-         randState = new Random(parent, preSynapticLayer()->getLayerLoc(), true/*isExtended*/);
+         randState = new Random(preSynapticLayer()->getLayerLoc(), true/*isExtended*/);
       }
    }
 

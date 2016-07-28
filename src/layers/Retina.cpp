@@ -119,7 +119,7 @@ int Retina::allocateDataStructures() {
       // // a random state variable is needed for every neuron/clthread
       const PVLayerLoc * loc = getLayerLoc();
       //Allocate extended loc
-      randState = new Random(parent, loc, true);
+      randState = new Random(loc, true);
    }
 
    return status;

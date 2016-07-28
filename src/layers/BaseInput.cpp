@@ -1139,7 +1139,7 @@ int BaseInput::requireChannel(int channelNeeded, int * numChannelsResult) {
 
 int BaseInput::initRandState() {
    assert(randState==NULL);
-   randState = new Random(parent, 1);
+   randState = new Random(1);
    if (randState==NULL) {
       pvError().printf("%s: rank %d process unable to create object of class Random.\n", getDescription_c(), parent->columnId());
    }

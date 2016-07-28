@@ -147,7 +147,7 @@ int InitV::calcGaussianRandomV(pvdata_t * V, const PVLayerLoc * loc, HyPerCol * 
    PVLayerLoc flatLoc;
    memcpy(&flatLoc, loc, sizeof(PVLayerLoc));
    flatLoc.nf = 1;
-   GaussianRandom * randState = new GaussianRandom(hc, &flatLoc, false/*isExtended*/);
+   GaussianRandom * randState = new GaussianRandom(&flatLoc, false/*isExtended*/);
    const int nxny = flatLoc.nx*flatLoc.ny;
    for(int b = 0; b < loc->nbatch; b++){
       pvdata_t * VBatch = V + b * loc->nx * loc->ny * loc->nf;
@@ -171,7 +171,7 @@ int InitV::calcUniformRandomV(pvdata_t * V, const PVLayerLoc * loc, HyPerCol * h
    PVLayerLoc flatLoc;
    memcpy(&flatLoc, loc, sizeof(PVLayerLoc));
    flatLoc.nf = 1;
-   Random * randState = new Random(hc, &flatLoc, false/*isExtended*/);
+   Random * randState = new Random(&flatLoc, false/*isExtended*/);
    const int nxny = flatLoc.nx*flatLoc.ny;
    //int index = 0;
    for(int b = 0; b < loc->nbatch; b++){

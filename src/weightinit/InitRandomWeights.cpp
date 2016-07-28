@@ -39,10 +39,10 @@ int InitRandomWeights::initRNGs(bool isKernel) {
    assert(randState==NULL);
    int status = PV_SUCCESS;
    if (isKernel) {
-      randState = new Random(callingConn->getParent(), callingConn->getNumDataPatches());
+      randState = new Random(callingConn->getNumDataPatches());
    }
    else {
-      randState = new Random(callingConn->getParent(), callingConn->preSynapticLayer()->getLayerLoc(), true/*isExtended*/);
+      randState = new Random(callingConn->preSynapticLayer()->getLayerLoc(), true/*isExtended*/);
    }
    if (randState == NULL) {
       pvError().printf("InitRandomWeights error in rank %d process: unable to create object of class Random.\n", callingConn->getParent()->columnId());

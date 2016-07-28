@@ -42,10 +42,10 @@ int InitGaussianRandomWeights::initRNGs(bool isKernel) {
    assert(randState==NULL && gaussianRandState==NULL);
    int status = PV_SUCCESS;
    if (isKernel) {
-      gaussianRandState = new GaussianRandom(callingConn->getParent(), callingConn->getNumDataPatches());
+      gaussianRandState = new GaussianRandom(callingConn->getNumDataPatches());
    }
    else {
-      gaussianRandState = new GaussianRandom(callingConn->getParent(), callingConn->preSynapticLayer()->getLayerLoc(), true/*isExtended*/);
+      gaussianRandState = new GaussianRandom(callingConn->preSynapticLayer()->getLayerLoc(), true/*isExtended*/);
    }
 
    if (gaussianRandState == NULL) {
