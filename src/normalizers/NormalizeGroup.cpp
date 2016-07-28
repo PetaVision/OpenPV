@@ -46,7 +46,7 @@ void NormalizeGroup::ioParam_normalizeGroupName(enum ParamsIOFlag ioFlag) {
    parent->ioParamStringRequired(ioFlag, name, "normalizeGroupName", &normalizeGroupName);
 }
 
-void NormalizeGroup::communicateInitInfo() {
+int NormalizeGroup::communicateInitInfo() {
    groupHead = parent->getNormalizerFromName(normalizeGroupName);
    if (groupHead==nullptr) {
       if (parent->columnId()==0) {
@@ -57,7 +57,7 @@ void NormalizeGroup::communicateInitInfo() {
       exit(EXIT_FAILURE);
    }
    HyPerConn * conn = getTargetConn();
-   groupHead->addConnToList(conn);
+   return groupHead->addConnToList(conn);
 }
 
 int NormalizeGroup::normalizeWeights() {

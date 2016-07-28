@@ -77,8 +77,8 @@ void NormalizeBase::ioParam_normalizeOnWeightUpdate(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "normalizeOnWeightUpdate", &normalizeOnWeightUpdate, normalizeOnWeightUpdate);
 }
 
-void NormalizeBase::communicateInitInfo() {
-   addConnToList(getTargetConn());
+int NormalizeBase::communicateInitInfo() {
+   return addConnToList(getTargetConn());
 }
 
 HyPerConn * NormalizeBase::getTargetConn() {

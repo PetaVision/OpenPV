@@ -33,7 +33,7 @@ public:
     * In particular, NormalizeGroup calls its group head's addConnToList
     * method from NormalizeGroup::communicateInitInfo method.
     */
-   virtual void communicateInitInfo();
+   virtual int communicateInitInfo();
 
    /**
     * The public interface for normalizing weights.

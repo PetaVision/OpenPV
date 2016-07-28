@@ -295,6 +295,7 @@ public:
    virtual double getTimeScale(int batchIdx)      {return -1.0;};
    virtual bool activityIsSpiking() { return false; }
    PVDataType getDataType()          {return dataType;}
+   virtual int respond(std::shared_ptr<BaseMessage> message) override;
 protected:
 
    /**
@@ -309,22 +310,8 @@ protected:
 public:
 
    virtual ~HyPerLayer();
-   int initializeState(); // Not virtual since all layers should respond to initializeFromCheckpointFlag and (deprecated) restartFlag in the same way.
-                          // initializeState calls the virtual methods readStateFromCheckpoint(), and setInitialValues().
-
-   virtual int communicateInitInfo();
-   virtual int allocateDataStructures();
 
    void synchronizeMarginWidth(HyPerLayer * layer);
-
-   // TODO The three routines below shouldn't be public, but HyPerCol needs to call them, so for now they are.
-   void setInitInfoCommunicatedFlag() {initInfoCommunicatedFlag = true;}
-   void setDataStructuresAllocatedFlag() {dataStructuresAllocatedFlag = true;}
-   void setInitialValuesSetFlag() {initialValuesSetFlag = true;}
-
-   bool getInitInfoCommunicatedFlag() {return initInfoCommunicatedFlag;}
-   bool getDataStructuresAllocatedFlag() {return dataStructuresAllocatedFlag;}
-   bool getInitialValuesSetFlag() {return initialValuesSetFlag;}
 
    int ioParams(enum ParamsIOFlag ioFlag);
 
@@ -371,9 +358,6 @@ public:
     * A function to update the time that the next trigger is expected to occur.
     */
    virtual int updateNextTriggerTime();
-   virtual int respondCommunicateInitInfo(CommunicateInitInfoMessage<BaseObject*> const * message);
-   virtual int respondAllocateData(AllocateDataMessage const * message);
-   virtual int respondInitializeState(InitializeStateMessage const * message);
    virtual int respondLayerRecvSynapticInput(LayerRecvSynapticInputMessage const * message);
    virtual int respondLayerUpdateState(LayerUpdateStateMessage const * message);
 #ifdef PV_USE_CUDA
@@ -483,6 +467,10 @@ public:
    Publisher * getPublisher() { return publisher; }
 
 protected:
+   virtual int communicateInitInfo() override;
+   virtual int allocateDataStructures() override;
+   virtual int initializeState() final; // Not overridable since all layers should respond to initializeFromCheckpointFlag and (deprecated) restartFlag in the same way.
+                          // initializeState calls the virtual methods readStateFromCheckpoint(), and setInitialValues().
 
    int openOutputStateFile();
    /* static methods called by updateState({long_argument_list})*/
@@ -533,10 +521,6 @@ protected:
    float maxRate;         // Maximum rate of activity.  HyPerLayer sets to 1/dt during initialize(); derived classes should override in their own initialize method after calling HyPerLayer's, if needed.
 
    unsigned int rngSeedBase; // The starting seed for rng.  The parent HyPerCol reserves {rngSeedbase, rngSeedbase+1,...rngSeedbase+neededRNGSeeds-1} for use by this layer
-
-   bool initInfoCommunicatedFlag;
-   bool dataStructuresAllocatedFlag;
-   bool initialValuesSetFlag;
 
    InitV * initVObject;
 

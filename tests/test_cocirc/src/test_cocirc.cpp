@@ -52,31 +52,31 @@ int main(int argc, char * argv[])
 
    hc->ensureDirExists(hc->getOutputPath());
    
+   auto objectMap = hc->copyObjectMap();
+   auto commMessagePtr = std::make_shared<CommunicateInitInfoMessage<BaseObject*> >(*objectMap);
    for (int l=0; l<hc->numberOfLayers(); l++) {
       HyPerLayer * layer = hc->getLayer(l);
-      int status = layer->communicateInitInfo();
+      int status = layer->respond(commMessagePtr);
       assert(status==PV_SUCCESS);
-      layer->setInitInfoCommunicatedFlag();
-   }   
+   }
    for (int c=0; c<hc->numberOfConnections(); c++) {
       BaseConnection * conn = hc->getConnection(c);
-      int status = conn->communicateInitInfo();
+      int status = conn->respond(commMessagePtr);
       assert(status==PV_SUCCESS);
-      conn->setInitInfoCommunicatedFlag();
    }
+   delete objectMap;
    
+   auto allocateMessagePtr = std::make_shared<AllocateDataMessage>();
    for (int l=0; l<hc->numberOfLayers(); l++) {
       HyPerLayer * layer = hc->getLayer(l);
-      int status = layer->allocateDataStructures();
+      int status = layer->respond(allocateMessagePtr);
       assert(status==PV_SUCCESS);
-      layer->setDataStructuresAllocatedFlag();
    }
    
    for (int c=0; c<hc->numberOfConnections(); c++) {
       BaseConnection * conn = hc->getConnection(c);
-      int status = conn->allocateDataStructures();
+      int status = conn->respond(allocateMessagePtr);
       assert(status==PV_SUCCESS);
-      conn->setDataStructuresAllocatedFlag();
    }
 
    const int axonID = 0;

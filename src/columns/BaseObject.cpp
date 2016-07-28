@@ -67,55 +67,45 @@ int BaseObject::setDescription() {
 }
 
 int BaseObject::respond(std::shared_ptr<BaseMessage> message) {
-   int status = PV_SUCCESS; // TODO: convert PV_SUCCESS, PV_FAILURE, etc. to enum
+   // TODO: convert PV_SUCCESS, PV_FAILURE, etc. to enum
    if (message==nullptr) {
       return PV_SUCCESS;
    }
    else if (CommunicateInitInfoMessage<BaseObject*> const * castMessage = dynamic_cast<CommunicateInitInfoMessage<BaseObject*> const*>(message.get())) {
-      status = respondCommunicateInitInfo(castMessage);
+      return respondCommunicateInitInfo(castMessage);
    }
    else if (AllocateDataMessage const * castMessage = dynamic_cast<AllocateDataMessage const*>(message.get())) {
-      status = respondAllocateData(castMessage);
+      return respondAllocateData(castMessage);
    }
    else if (InitializeStateMessage const * castMessage = dynamic_cast<InitializeStateMessage const*>(message.get())) {
-      status = respondInitializeState(castMessage);
-   }
-   else if (ConnectionUpdateMessage const * castMessage = dynamic_cast<ConnectionUpdateMessage const*>(message.get())) {
-      status = respondConnectionUpdate(castMessage);
-   }
-   else if (ConnectionFinalizeUpdateMessage const * castMessage = dynamic_cast<ConnectionFinalizeUpdateMessage const*>(message.get())) {
-      status = respondConnectionFinalizeUpdate(castMessage);
-   }
-   else if (ConnectionOutputMessage const * castMessage = dynamic_cast<ConnectionOutputMessage const*>(message.get())) {
-      status = respondConnectionOutput(castMessage);
-   }
-   else if (LayerUpdateStateMessage const * castMessage = dynamic_cast<LayerUpdateStateMessage const*>(message.get())) {
-      status = respondLayerUpdateState(castMessage);
-   }
-   else if (LayerRecvSynapticInputMessage const * castMessage = dynamic_cast<LayerRecvSynapticInputMessage const*>(message.get())) {
-      status = respondLayerRecvSynapticInput(castMessage);
-   }
-#ifdef PV_USE_CUDA
-   else if (LayerCopyFromGpuMessage const * castMessage = dynamic_cast<LayerCopyFromGpuMessage const*>(message.get())) {
-      status = respondLayerCopyFromGpu(castMessage);
-   }
-#endif // PV_USE_CUDA
-   else if (LayerPublishMessage const * castMessage = dynamic_cast<LayerPublishMessage const*>(message.get())) {
-      status = respondLayerPublish(castMessage);
-   }
-   else if (LayerUpdateActiveIndicesMessage const * castMessage = dynamic_cast<LayerUpdateActiveIndicesMessage const*>(message.get())) {
-      status = respondLayerUpdateActiveIndices(castMessage);
-   }
-   else if (LayerOutputStateMessage const * castMessage = dynamic_cast<LayerOutputStateMessage const*>(message.get())) {
-      status = respondLayerOutputState(castMessage);
-   }
-   else if (LayerCheckNotANumberMessage const * castMessage = dynamic_cast<LayerCheckNotANumberMessage const*>(message.get())) {
-      status = respondLayerCheckNotANumber(castMessage);
+      return respondInitializeState(castMessage);
    }
    else {
-      pvError() << "Unrecognized message type\n";
-      status = PV_FAILURE;
+      return PV_SUCCESS;
    }
+}
+
+int BaseObject::respondCommunicateInitInfo(CommunicateInitInfoMessage<BaseObject*> const * message) {
+   int status = PV_SUCCESS;
+   if (getInitInfoCommunicatedFlag()) { return status; }
+   status = communicateInitInfo();
+   if (status==PV_SUCCESS) { setInitInfoCommunicatedFlag(); }
+   return status;
+}
+
+int BaseObject::respondAllocateData(AllocateDataMessage const * message) {
+   int status = PV_SUCCESS;
+   if (getDataStructuresAllocatedFlag()) { return status; }
+   status = allocateDataStructures();
+   if (status==PV_SUCCESS) { setDataStructuresAllocatedFlag(); }
+   return status;
+}
+
+int BaseObject::respondInitializeState(InitializeStateMessage const * message) {
+   int status = PV_SUCCESS;
+   if (getInitialValuesSetFlag()) { return status; }
+   status = initializeState();
+   if (status==PV_SUCCESS) { setInitialValuesSetFlag(); }
    return status;
 }
 

@@ -19,7 +19,7 @@ public:
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
-   virtual void communicateInitInfo();
+   virtual int communicateInitInfo();
 
 protected:
    NormalizeGroup();

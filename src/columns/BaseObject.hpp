@@ -41,9 +41,26 @@ public:
    inline char const * getDescription_c() const { return description.c_str(); }
    inline std::string const& getDescription() const { return description; }
    char const * getKeyword() const;
-   int respond(std::shared_ptr<BaseMessage> message); // TODO: should return enum with values corresponding to PV_SUCCESS, PV_FAILURE, PV_POSTPONE
+   virtual int respond(std::shared_ptr<BaseMessage> message); // TODO: should return enum with values corresponding to PV_SUCCESS, PV_FAILURE, PV_POSTPONE
    virtual ~BaseObject();
 
+   /**
+    * Get-method for mInitInfoCommunicatedFlag, which is false on initialization and
+    * then becomes true once setInitInfoCommunicatedFlag() is called.
+    */
+   bool getInitInfoCommunicatedFlag() {return mInitInfoCommunicatedFlag;}
+
+   /**
+    * Get-method for mDataStructuresAllocatedFlag, which is false on initialization and
+    * then becomes true once setDataStructuresAllocatedFlag() is called.
+    */
+   bool getDataStructuresAllocatedFlag() {return mDataStructuresAllocatedFlag;}
+
+   /**
+    * Get-method for mInitialValuesSetFlag, which is false on initialization and
+    * then becomes true once setInitialValuesSetFlag() is called.
+    */
+   bool getInitialValuesSetFlag() {return mInitialValuesSetFlag;}
 
 protected:
    BaseObject();
@@ -52,26 +69,37 @@ protected:
    int setParent(HyPerCol * hc);
    virtual int setDescription();
 
-   virtual int respondCommunicateInitInfo(CommunicateInitInfoMessage<BaseObject*> const * message) { return PV_SUCCESS; }
-   virtual int respondAllocateData(AllocateDataMessage const * message) { return PV_SUCCESS; }
-   virtual int respondInitializeState(InitializeStateMessage const * message) { return PV_SUCCESS; }
-   virtual int respondConnectionUpdate(ConnectionUpdateMessage const * message) { return PV_SUCCESS; }
-   virtual int respondConnectionFinalizeUpdate(ConnectionFinalizeUpdateMessage const * message) { return PV_SUCCESS; }
-   virtual int respondConnectionOutput(ConnectionOutputMessage const * message) { return PV_SUCCESS; }
-   virtual int respondLayerRecvSynapticInput(LayerRecvSynapticInputMessage const * message) { return PV_SUCCESS; }
-   virtual int respondLayerUpdateState(LayerUpdateStateMessage const * message) { return PV_SUCCESS; }
-#ifdef PV_USE_CUDA
-   virtual int respondLayerCopyFromGpu(LayerCopyFromGpuMessage const * message) { return PV_SUCCESS; }
-#endif // PV_USE_CUDA
-   virtual int respondLayerPublish(LayerPublishMessage const * message) { return PV_SUCCESS; }
-   virtual int respondLayerUpdateActiveIndices(LayerUpdateActiveIndicesMessage const * message) { return PV_SUCCESS; }
-   virtual int respondLayerOutputState(LayerOutputStateMessage const * message) { return PV_SUCCESS; }
-   virtual int respondLayerCheckNotANumber(LayerCheckNotANumberMessage const * message) { return PV_SUCCESS; }
-// Member variable
+   int respondCommunicateInitInfo(CommunicateInitInfoMessage<BaseObject*> const * message);
+   int respondAllocateData(AllocateDataMessage const * message);
+   int respondInitializeState(InitializeStateMessage const * message);
+
+   virtual int communicateInitInfo() { return PV_SUCCESS; }
+   virtual int allocateDataStructures() { return PV_SUCCESS; }
+   virtual int initializeState() { return PV_SUCCESS; }
+
+   /**
+    * This method sets mInitInfoCommunicatedFlag to true.
+    */
+   void setInitInfoCommunicatedFlag() {mInitInfoCommunicatedFlag = true;}
+
+   /**
+    * This method sets mDataStructuresAllocatedFlag to true.
+    */
+   void setDataStructuresAllocatedFlag() {mDataStructuresAllocatedFlag = true;}
+
+   /**
+    * This method sets the flag returned by getInitialValuesSetFlag to true.
+    */
+   void setInitialValuesSetFlag() {mInitialValuesSetFlag = true;}
+
+// Data members
 protected:
    char * name = nullptr;
-   HyPerCol * parent = nullptr;
+   HyPerCol * parent = nullptr; // TODO: eliminate HyPerCol argument to constructor in favor of PVParams argument
    std::string description;
+   bool mInitInfoCommunicatedFlag = false;
+   bool mDataStructuresAllocatedFlag = false;
+   bool mInitialValuesSetFlag = false;
 
 private:
    int initialize_base();

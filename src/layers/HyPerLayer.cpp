@@ -83,10 +83,6 @@ int HyPerLayer::initialize_base() {
    
    this->lastUpdateTime = 0.0;
    this->phase = 0;
-
-   this->initInfoCommunicatedFlag = false;
-   this->dataStructuresAllocatedFlag = false;
-   this->initialValuesSetFlag = false;
    
    this->numSynchronizedMarginWidthLayers = 0;
    this->synchronizedMarginWidthLayers = NULL;
@@ -871,6 +867,121 @@ void HyPerLayer::ioParam_writeSparseValues(enum ParamsIOFlag ioFlag) {
    }
    if (sparseLayer)
       parent->ioParamValue(ioFlag, name, "writeSparseValues", &writeSparseValues, true/*default value*/);
+}
+
+int HyPerLayer::respond(std::shared_ptr<BaseMessage> message) {
+   int status = BaseLayer::respond(message);
+   if (status != PV_SUCCESS) {
+      return status;
+   }
+   else if (LayerUpdateStateMessage const * castMessage = dynamic_cast<LayerUpdateStateMessage const*>(message.get())) {
+      return respondLayerUpdateState(castMessage);
+   }
+   else if (LayerRecvSynapticInputMessage const * castMessage = dynamic_cast<LayerRecvSynapticInputMessage const*>(message.get())) {
+      return respondLayerRecvSynapticInput(castMessage);
+   }
+#ifdef PV_USE_CUDA
+   else if (LayerCopyFromGpuMessage const * castMessage = dynamic_cast<LayerCopyFromGpuMessage const*>(message.get())) {
+      return respondLayerCopyFromGpu(castMessage);
+   }
+#endif // PV_USE_CUDA
+   else if (LayerPublishMessage const * castMessage = dynamic_cast<LayerPublishMessage const*>(message.get())) {
+      return respondLayerPublish(castMessage);
+   }
+   else if (LayerUpdateActiveIndicesMessage const * castMessage = dynamic_cast<LayerUpdateActiveIndicesMessage const*>(message.get())) {
+      return respondLayerUpdateActiveIndices(castMessage);
+   }
+   else if (LayerOutputStateMessage const * castMessage = dynamic_cast<LayerOutputStateMessage const*>(message.get())) {
+      return respondLayerOutputState(castMessage);
+   }
+   else if (LayerCheckNotANumberMessage const * castMessage = dynamic_cast<LayerCheckNotANumberMessage const*>(message.get())) {
+      return respondLayerCheckNotANumber(castMessage);
+   }
+   else {
+      return status;
+   }
+}
+
+int HyPerLayer::respondLayerRecvSynapticInput(LayerRecvSynapticInputMessage const * message) {
+   int status = PV_SUCCESS;
+   if (message->mPhase != getPhase()) { return status; }
+#ifdef PV_USE_CUDA
+   if (message->mRecvOnGpuFlag != getRecvGpu()) { return status; }
+#endif // PV_USE_CUDA
+   resetGSynBuffers(message->mTime, message->mDeltaT);  // deltaTimeAdapt is not used
+   message->mTimer->start();
+   recvAllSynapticInput();
+   message->mTimer->stop();
+   return status;
+}
+
+int HyPerLayer::respondLayerUpdateState(LayerUpdateStateMessage const * message) {
+   int status = PV_SUCCESS;
+   if (message->mPhase != getPhase()) { return status; }
+#ifdef PV_USE_CUDA
+   if (message->mRecvOnGpuFlag != getRecvGpu()) { return status; }
+   if (message->mUpdateOnGpuFlag != getUpdateGpu()) { return status; }
+#endif // PV_USE_CUDA
+   status = callUpdateState(message->mTime, message->mDeltaT);
+   return status;
+}
+
+#ifdef PV_USE_CUDA
+int HyPerLayer::respondLayerCopyFromGpu(LayerCopyFromGpuMessage const * message) {
+   int status = PV_SUCCESS;
+   if (message->mPhase != getPhase()) { return status; }
+   message->mTimer->start();
+   copyAllActivityFromDevice();
+   copyAllVFromDevice();
+   copyAllGSynFromDevice();
+   addGpuTimers();
+   message->mTimer->stop();
+   return status;
+}
+#endif // PV_USE_CUDA
+
+int HyPerLayer::respondLayerPublish(LayerPublishMessage const * message) {
+   int status = PV_SUCCESS;
+   if (message->mPhase != getPhase()) { return status; }
+   publisher->increaseTimeLevel();
+   publish(getParent()->getCommunicator(), message->mTime);
+   return status;
+}
+
+int HyPerLayer::respondLayerCheckNotANumber(LayerCheckNotANumberMessage const * message) {
+   int status = PV_SUCCESS;
+   if (message->mPhase != getPhase()) { return status; }
+   auto layerData = getLayerData();
+   int const N = getNumExtended();
+   for (int n=0; n<N; n++) {
+      pvadata_t a = layerData[n];
+      if (a!=a) {
+         status = PV_FAILURE;
+      }
+   }
+   if (status != PV_SUCCESS) {
+      if (parent->columnId()==0) {
+         pvErrorNoExit() << getDescription() << " has not-a-number values in the activity buffer.  Exiting.\n";
+      }
+      MPI_Barrier(parent->getCommunicator()->communicator());
+      exit(EXIT_FAILURE);
+   }
+   return status;
+}
+
+int HyPerLayer::respondLayerUpdateActiveIndices(LayerUpdateActiveIndicesMessage const * message) {
+   int status = PV_SUCCESS;
+   if (message->mPhase != getPhase()) { return status; }
+   waitOnPublish(getParent()->getCommunicator());
+   status = updateActiveIndices();
+   return status;
+}
+
+int HyPerLayer::respondLayerOutputState(LayerOutputStateMessage const * message) {
+   int status = PV_SUCCESS;
+   if (message->mPhase != getPhase()) { return status; }
+   status = outputState(message->mTime); // also calls layer probes' outputState
+   return status;
 }
 
 #ifdef PV_USE_CUDA
@@ -1794,112 +1905,6 @@ void HyPerLayer::copyAllActivityFromDevice(){
 }
 
 #endif
-
-int HyPerLayer::respondCommunicateInitInfo(CommunicateInitInfoMessage<BaseObject*> const * message) {
-   int status = PV_SUCCESS;
-   if (getInitInfoCommunicatedFlag()) { return status; }
-   status = communicateInitInfo();
-   if (status==PV_SUCCESS) { setInitInfoCommunicatedFlag(); }
-   return status;
-}
-
-int HyPerLayer::respondAllocateData(AllocateDataMessage const * message) {
-   int status = PV_SUCCESS;
-   if (getDataStructuresAllocatedFlag()) { return status; }
-   status = allocateDataStructures();
-   if (status==PV_SUCCESS) { setDataStructuresAllocatedFlag(); }
-   return status;
-}
-
-int HyPerLayer::respondInitializeState(InitializeStateMessage const * message) {
-   int status = PV_SUCCESS;
-   if (getInitialValuesSetFlag()) { return status; }
-   status = initializeState();
-   if (status==PV_SUCCESS) { setInitialValuesSetFlag(); }
-   return status;
-}
-
-int HyPerLayer::respondLayerRecvSynapticInput(LayerRecvSynapticInputMessage const * message) {
-   int status = PV_SUCCESS;
-   if (message->mPhase != getPhase()) { return status; }
-#ifdef PV_USE_CUDA
-   if (message->mRecvOnGpuFlag != getRecvGpu()) { return status; }
-#endif // PV_USE_CUDA
-   resetGSynBuffers(message->mTime, message->mDeltaT);  // deltaTimeAdapt is not used
-   message->mTimer->start();
-   recvAllSynapticInput();
-   message->mTimer->stop();
-   return status;
-}
-
-int HyPerLayer::respondLayerUpdateState(LayerUpdateStateMessage const * message) {
-   int status = PV_SUCCESS;
-   if (message->mPhase != getPhase()) { return status; }
-#ifdef PV_USE_CUDA
-   if (message->mRecvOnGpuFlag != getRecvGpu()) { return status; }
-   if (message->mUpdateOnGpuFlag != getUpdateGpu()) { return status; }
-#endif // PV_USE_CUDA
-   status = callUpdateState(message->mTime, message->mDeltaT);
-   return status;
-}
-
-#ifdef PV_USE_CUDA
-int HyPerLayer::respondLayerCopyFromGpu(LayerCopyFromGpuMessage const * message) {
-   int status = PV_SUCCESS;
-   if (message->mPhase != getPhase()) { return status; }
-   message->mTimer->start();
-   copyAllActivityFromDevice();
-   copyAllVFromDevice();
-   copyAllGSynFromDevice();
-   addGpuTimers();
-   message->mTimer->stop();
-   return status;
-}
-#endif // PV_USE_CUDA
-
-int HyPerLayer::respondLayerPublish(LayerPublishMessage const * message) {
-   int status = PV_SUCCESS;
-   if (message->mPhase != getPhase()) { return status; }
-   publisher->increaseTimeLevel();
-   publish(getParent()->getCommunicator(), message->mTime);
-   return status;
-}
-
-int HyPerLayer::respondLayerCheckNotANumber(LayerCheckNotANumberMessage const * message) {
-   int status = PV_SUCCESS;
-   if (message->mPhase != getPhase()) { return status; }
-   auto layerData = getLayerData();
-   int const N = getNumExtended();
-   for (int n=0; n<N; n++) {
-      pvadata_t a = layerData[n];
-      if (a!=a) {
-         status = PV_FAILURE;
-      }
-   }
-   if (status != PV_SUCCESS) {
-      if (parent->columnId()==0) {
-         pvErrorNoExit() << getDescription() << " has not-a-number values in the activity buffer.  Exiting.\n";
-      }
-      MPI_Barrier(parent->getCommunicator()->communicator());
-      exit(EXIT_FAILURE);
-   }
-   return status;
-}
-
-int HyPerLayer::respondLayerUpdateActiveIndices(LayerUpdateActiveIndicesMessage const * message) {
-   int status = PV_SUCCESS;
-   if (message->mPhase != getPhase()) { return status; }
-   waitOnPublish(getParent()->getCommunicator());
-   status = updateActiveIndices();
-   return status;
-}
-
-int HyPerLayer::respondLayerOutputState(LayerOutputStateMessage const * message) {
-   int status = PV_SUCCESS;
-   if (message->mPhase != getPhase()) { return status; }
-   status = outputState(message->mTime); // also calls layer probes' outputState
-   return status;
-}
 
 int HyPerLayer::publish(Communicator* comm, double time)
 {

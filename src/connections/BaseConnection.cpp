@@ -396,29 +396,23 @@ int BaseConnection::insertProbe(BaseConnectionProbe * p)
 
    return ++numProbes;
 }
-
-int BaseConnection::respondCommunicateInitInfo(CommunicateInitInfoMessage<BaseObject*> const * message) {
-   int status = PV_SUCCESS;
-   if (getInitInfoCommunicatedFlag()) { return status; }
-   status = communicateInitInfo();
-   if (status==PV_SUCCESS) { setInitInfoCommunicatedFlag(); }
-   return status;
-}
-
-int BaseConnection::respondAllocateData(AllocateDataMessage const * message) {
-   int status = PV_SUCCESS;
-   if (getDataStructuresAllocatedFlag()) { return status; }
-   status = allocateDataStructures();
-   if (status==PV_SUCCESS) { setDataStructuresAllocatedFlag(); }
-   return status;
-}
-
-int BaseConnection::respondInitializeState(InitializeStateMessage const * message) {
-   int status = PV_SUCCESS;
-   if (getInitialValuesSetFlag()) { return status; }
-   status = initializeState();
-   if (status==PV_SUCCESS) { setInitialValuesSetFlag(); }
-   return status;
+int BaseConnection::respond(std::shared_ptr<BaseMessage> message) {
+   int status = BaseObject::respond(message);
+   if (status != PV_SUCCESS) {
+      return status;
+   }
+   else if (ConnectionUpdateMessage const * castMessage = dynamic_cast<ConnectionUpdateMessage const*>(message.get())) {
+      return respondConnectionUpdate(castMessage);
+   }
+   else if (ConnectionFinalizeUpdateMessage const * castMessage = dynamic_cast<ConnectionFinalizeUpdateMessage const*>(message.get())) {
+      return respondConnectionFinalizeUpdate(castMessage);
+   }
+   else if (ConnectionOutputMessage const * castMessage = dynamic_cast<ConnectionOutputMessage const*>(message.get())) {
+      return respondConnectionOutput(castMessage);
+   }
+   else {
+      return status;
+   }
 }
 
 int BaseConnection::outputProbeParams() {

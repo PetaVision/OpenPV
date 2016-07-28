@@ -448,6 +448,13 @@ public:
    long int getCurrentStep() const { return currentStep; }
    unsigned int getRandomSeed() { return mRandomSeed; }
    unsigned int seedRandomFromWallClock();
+
+   // A hack to allow test_cocirc, test_gauss2d, and test_post_weights to send a CommunicateInitInfoMessage.
+   std::map<std::string, BaseObject*> * copyObjectMap() {
+      auto objectMap = new std::map<std::string, BaseObject*>;
+      *objectMap = mObjectHierarchy.getObjectMap();
+      return objectMap;
+   }
 private:
    int getAutoGPUDevice();
 
