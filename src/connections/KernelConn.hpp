@@ -18,8 +18,6 @@ public:
    KernelConn(const char * name, HyPerCol * hc, InitWeights * weightInitializer=NULL, NormalizeBase * weightNormalizer=NULL);
 }; // class KernelConn
 
-BaseObject * createKernelConn(char const * name, HyPerCol * hc);
-
 } // namespace PV
 
 #endif /* KERNELCONN_HPP_ */

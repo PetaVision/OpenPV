@@ -63,8 +63,6 @@ private:
   // other methods and member variables
 }; // class LCALIFLayer
 
-BaseObject * createLCALIFLayer(char const * name, HyPerCol * hc);
-
 }  // namespace PV
 
 

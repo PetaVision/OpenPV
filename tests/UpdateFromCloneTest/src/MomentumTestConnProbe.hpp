@@ -41,7 +41,6 @@ private:
 
 }; // end of class MomentumTestConnProbe
 
-BaseObject * createMomentumTestConnProbe(char const * name, HyPerCol * hc);
 
 }  // end of namespace PV block
 

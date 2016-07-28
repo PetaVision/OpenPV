@@ -46,8 +46,4 @@ int InputLayer::updateState(double timef, double dt){
    return PV_SUCCESS;
 }
 
-BaseObject * createInputLayer(char const * name, HyPerCol * hc) {
-   return hc ? new InputLayer(name, hc) : NULL;
-}
-
 } /* namespace PV */

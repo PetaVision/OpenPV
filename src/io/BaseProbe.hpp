@@ -322,6 +322,8 @@ private:
    double lastUpdateTime; // The time of the last time calcValues was called.
    bool textOutputFlag;
    bool writingToFile; // true outputStream is a FileStream
+   bool mInitInfoCommunicatedFlag = false;
+   bool mDataStructuresAllocatedFlag = false;
 };
 
 }

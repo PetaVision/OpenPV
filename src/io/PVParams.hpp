@@ -10,7 +10,7 @@
 
 #include "include/pv_common.h"
 //#include "columns/HyPerCol.hpp"
-#include "columns/InterColComm.hpp"
+#include "columns/Communicator.hpp"
 #include "fileio.hpp"
 #include "io.hpp"
 #include <stdio.h>
@@ -22,8 +22,6 @@
 #undef HAS_MAIN   // define if provides a main function
 
 namespace PV {
-
-class InterColComm;
 
 class Parameter {
 public:
@@ -215,9 +213,9 @@ private:
 
 class PVParams {
 public:
-   PVParams(size_t initialSize, InterColComm* inIcComm);
-   PVParams(const char * filename, size_t initialSize, InterColComm* inIcComm);
-   PVParams(const char * buffer, long int bufferLength, size_t initialSize, InterColComm* inIcComm);
+   PVParams(size_t initialSize, Communicator* inIcComm);
+   PVParams(const char * filename, size_t initialSize, Communicator* inIcComm);
+   PVParams(const char * buffer, long int bufferLength, size_t initialSize, Communicator* inIcComm);
    virtual ~PVParams();
 
 #ifdef OBSOLETE // Marked obsolete Aug 30, 2015. Never gets called anywhere in the OpenPV repository, and undocumented.
@@ -305,7 +303,7 @@ private:
    ParameterStringStack * stringStack;
    bool debugParsing;
    bool disable;
-   InterColComm * icComm;
+   Communicator * icComm;
    int worldRank;
    int worldSize;
 

@@ -35,8 +35,4 @@ int ComparisonLayer::updateState(double timef, double dt){
    return PV_SUCCESS;
 }
 
-BaseObject * createComparisonLayer(char const * name, HyPerCol * hc) {
-   return hc ? new ComparisonLayer(name, hc) : NULL;
-}
-
 } /* namespace PV */

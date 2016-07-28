@@ -71,7 +71,7 @@ void InitV::ioParamGroup_InitVFromFile(enum ParamsIOFlag ioFlag){
 
 int InitV::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = PV_SUCCESS;
-   printErrors = parent->icCommunicator()->commRank()==0;
+   printErrors = parent->getCommunicator()->commRank()==0;
    parent->ioParamString(ioFlag, groupName, "InitVType", &initVTypeString, "ConstantV", true/*warnIfAbsent*/);
    if( !strcmp(initVTypeString, "ConstantV") ) {
       initVTypeCode = ConstantV;
@@ -125,7 +125,7 @@ int InitV::calcV(HyPerLayer * layer) {
       status = calcGaussianRandomV(V, loc, layer->getParent());
       break;
    case InitVFromFile:
-      status = calcVFromFile(V, layer->getLayerLoc(), layer->getParent()->icCommunicator());
+      status = calcVFromFile(V, layer->getLayerLoc(), layer->getParent()->getCommunicator());
       break;
    default:
       status = PV_FAILURE;
@@ -147,7 +147,7 @@ int InitV::calcGaussianRandomV(pvdata_t * V, const PVLayerLoc * loc, HyPerCol * 
    PVLayerLoc flatLoc;
    memcpy(&flatLoc, loc, sizeof(PVLayerLoc));
    flatLoc.nf = 1;
-   GaussianRandom * randState = new GaussianRandom(hc, &flatLoc, false/*isExtended*/);
+   GaussianRandom * randState = new GaussianRandom(&flatLoc, false/*isExtended*/);
    const int nxny = flatLoc.nx*flatLoc.ny;
    for(int b = 0; b < loc->nbatch; b++){
       pvdata_t * VBatch = V + b * loc->nx * loc->ny * loc->nf;
@@ -171,7 +171,7 @@ int InitV::calcUniformRandomV(pvdata_t * V, const PVLayerLoc * loc, HyPerCol * h
    PVLayerLoc flatLoc;
    memcpy(&flatLoc, loc, sizeof(PVLayerLoc));
    flatLoc.nf = 1;
-   Random * randState = new Random(hc, &flatLoc, false/*isExtended*/);
+   Random * randState = new Random(&flatLoc, false/*isExtended*/);
    const int nxny = flatLoc.nx*flatLoc.ny;
    //int index = 0;
    for(int b = 0; b < loc->nbatch; b++){
@@ -191,7 +191,7 @@ int InitV::calcUniformRandomV(pvdata_t * V, const PVLayerLoc * loc, HyPerCol * h
    return PV_SUCCESS;
 }
 
-int InitV::calcVFromFile(pvdata_t * V, const PVLayerLoc * loc, InterColComm * icComm) {
+int InitV::calcVFromFile(pvdata_t * V, const PVLayerLoc * loc, Communicator * icComm) {
    int status = PV_SUCCESS;
    PVLayerLoc fileLoc;
    int filetype = getFileType(filename);

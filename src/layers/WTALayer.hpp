@@ -34,7 +34,5 @@ protected:
 
 }; // class WTALayer
 
-BaseObject * createWTALayer(char const * name, HyPerCol * hc);
-
 }  // namespace PV
 #endif 

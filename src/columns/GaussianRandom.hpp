@@ -9,6 +9,7 @@
 #define GAUSSIANRANDOM_HPP_
 
 #include "Random.hpp"
+#include <vector>
 
 struct box_muller_data {bool hasHeldValue; float heldValue;};
 
@@ -16,8 +17,8 @@ namespace PV {
 
 class GaussianRandom: public PV::Random {
 public:
-   GaussianRandom(HyPerCol * hc, int count);
-   GaussianRandom(HyPerCol * hc, const PVLayerLoc * locptr, bool isExtended);
+   GaussianRandom(int count);
+   GaussianRandom(const PVLayerLoc * locptr, bool isExtended);
    virtual ~GaussianRandom();
 
    float gaussianDist(int localIndex=0);
@@ -27,8 +28,8 @@ public:
 
 protected:
    GaussianRandom();
-   int initializeFromCount(HyPerCol * hc, unsigned int count);
-   int initializeFromLoc(HyPerCol* hc, const PVLayerLoc* locptr, bool isExtended);
+   int initializeFromCount(unsigned int count);
+   int initializeFromLoc(const PVLayerLoc* locptr, bool isExtended);
    int initializeGaussian();
 
 private:
@@ -36,7 +37,7 @@ private:
 
 // Member variables
 protected:
-   struct box_muller_data * heldValues;
+   std::vector<box_muller_data> heldValues;
 };
 
 } /* namespace PV */

@@ -35,8 +35,8 @@ int checkoutput(HyPerCol * hc, int argc, char ** argv) {
           inLayer->getNumGlobalExtended()==16);
    
    pvInfo().flush();
-   MPI_Barrier(hc->icCommunicator()->communicator());
-   for (int r=0; r<hc->icCommunicator()->commSize(); r++) {
+   MPI_Barrier(hc->getCommunicator()->communicator());
+   for (int r=0; r<hc->getCommunicator()->commSize(); r++) {
       if (r==hc->columnId()) {
          pvInfo().printf("Rank %d, Input layer activity\n",r);
          for (int k=0; k<inLayer->getNumExtended(); k++) {
@@ -56,7 +56,7 @@ int checkoutput(HyPerCol * hc, int argc, char ** argv) {
             }
          }
       }
-      MPI_Barrier(hc->icCommunicator()->communicator());
+      MPI_Barrier(hc->getCommunicator()->communicator());
    }
 
    // Connection should be a 3x3 kernel with values 0 through 8 in the weights
@@ -67,7 +67,7 @@ int checkoutput(HyPerCol * hc, int argc, char ** argv) {
    assert(conn->numberOfAxonalArborLists()==1);
    assert(conn->getNumDataPatches()==1);
    pvwdata_t * w = conn->get_wDataHead(0,0);
-   for (int r=0; r<hc->icCommunicator()->commSize(); r++) {
+   for (int r=0; r<hc->getCommunicator()->commSize(); r++) {
       if (r==hc->columnId()) {
          pvInfo().printf("Rank %d, Weight values\n", r);
          for (int k=0; k<patchSize; k++) {
@@ -78,7 +78,7 @@ int checkoutput(HyPerCol * hc, int argc, char ** argv) {
             }
          }
       }
-      MPI_Barrier(hc->icCommunicator()->communicator());
+      MPI_Barrier(hc->getCommunicator()->communicator());
    }
    for (int k=0; k<patchSize; k++) {
       assert(w[k]==(pvdata_t) k);
@@ -95,7 +95,7 @@ int checkoutput(HyPerCol * hc, int argc, char ** argv) {
           outLayer->getNumGlobalExtended()==4);
    const pvdata_t correct[4] = {13.0f, 23.0f, 43.0f, 53.0f};
    
-   for (int r=0; r<hc->icCommunicator()->commSize(); r++) {
+   for (int r=0; r<hc->getCommunicator()->commSize(); r++) {
       if (r==hc->columnId()) {
          pvInfo().printf("Rank %d, Output layer V\n",r);
          for (int k=0; k<outLayer->getNumNeurons(); k++) {
@@ -114,7 +114,7 @@ int checkoutput(HyPerCol * hc, int argc, char ** argv) {
             }
          }
       }
-      MPI_Barrier(hc->icCommunicator()->communicator());
+      MPI_Barrier(hc->getCommunicator()->communicator());
    }
 
    return status;

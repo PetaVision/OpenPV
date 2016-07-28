@@ -157,8 +157,6 @@ protected:
 #endif // PV_USE_GDAL
 }; // class Movie
 
-BaseObject * createMovie(char const * name, HyPerCol * hc);
-
 }  // namespace PV
 
 #endif /* MOVIE_HPP_ */

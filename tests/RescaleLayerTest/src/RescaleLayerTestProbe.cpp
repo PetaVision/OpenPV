@@ -39,7 +39,7 @@ int RescaleLayerTestProbe::communicateInitInfo() {
       if (getParent()->columnId()==0) {
          pvErrorNoExit().printf("RescaleLayerTestProbe: targetLayer \"%s\" is not a RescaleLayer.\n", this->getTargetName());
       }
-      MPI_Barrier(getParent()->icCommunicator()->communicator());
+      MPI_Barrier(getParent()->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    return status;
@@ -50,7 +50,7 @@ int RescaleLayerTestProbe::outputState(double timed)
    int status = StatsProbe::outputState(timed);
    if (timed==getParent()->getStartTime()) { return PV_SUCCESS; }
    float tolerance = 2.0e-5f;
-   InterColComm * icComm = getTargetLayer()->getParent()->icCommunicator();
+   Communicator * icComm = getTargetLayer()->getParent()->getCommunicator();
    bool isRoot = icComm->commRank() == 0;
 
    RescaleLayer * targetRescaleLayer = dynamic_cast<RescaleLayer *>(getTargetLayer());
@@ -258,10 +258,6 @@ bool RescaleLayerTestProbe::colinear(int nx, int ny, int ystrideA, int ystrideB,
    if (stdA) {*stdA = astd;}
    if (stdB) {*stdB = bstd;}
    return fabs(covariance - astd*bstd) <= tolerance;
-}
-
-BaseObject * createRescaleLayerTestProbe(char const * name, HyPerCol * hc) { 
-   return hc ? new RescaleLayerTestProbe(name, hc) : NULL;
 }
 
 } /* namespace PV */

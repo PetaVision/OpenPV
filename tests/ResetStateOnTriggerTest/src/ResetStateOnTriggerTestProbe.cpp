@@ -42,7 +42,7 @@ int ResetStateOnTriggerTestProbe::calcValues(double timevalue) {
          }
          getValuesBuffer()[b] = (double) numDiscreps;
       }
-      MPI_Allreduce(MPI_IN_PLACE, getValuesBuffer(), nBatch, MPI_DOUBLE, MPI_SUM, parent->icCommunicator()->communicator());
+      MPI_Allreduce(MPI_IN_PLACE, getValuesBuffer(), nBatch, MPI_DOUBLE, MPI_SUM, parent->getCommunicator()->communicator());
       if (probeStatus==0) {
          for (int k=0; k<nBatch; k++) {
             if (getValuesBuffer()[k]) {

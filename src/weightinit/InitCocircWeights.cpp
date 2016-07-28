@@ -180,8 +180,4 @@ bool InitCocircWeights::calcDistChordCocircKurvePreNKurvePost(
    return false;
 }
 
-BaseObject * createInitCocircWeights(char const * name, HyPerCol * hc) {
-   return hc ? new InitCocircWeights(name, hc) : NULL;
-}
-
 } /* namespace PV */

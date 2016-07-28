@@ -6,7 +6,7 @@
 #include <list>
 #include <cerrno>
 #include <cstring>
-#include "columns/InterColComm.hpp"
+#include "columns/Communicator.hpp"
 #include "columns/PV_Init.hpp"
 #include "layers/ImageFromMemoryBuffer.hpp"
 #include "utils/PVAlloc.hpp"
@@ -20,8 +20,8 @@
 #include "MaskFromMemoryBuffer.hpp"
 #define TEXTFILEBUFFERSIZE 1024
 
-char * getImageFileName(PV::InterColComm * icComm);
-int setImageLayerMemoryBuffer(PV::InterColComm * icComm, char const * imageFile, PV::ImageFromMemoryBuffer * imageLayer, uint8_t ** imageBufferPtr, size_t * imageBufferSizePtr);
+char * getImageFileName(PV::Communicator * icComm);
+int setImageLayerMemoryBuffer(PV::Communicator * icComm, char const * imageFile, PV::ImageFromMemoryBuffer * imageLayer, uint8_t ** imageBufferPtr, size_t * imageBufferSizePtr);
 int runWithHarness(PV::HyPerCol * hc, int frameInterval);
 int runWithoutHarness(PV::HyPerCol * hc);
 
@@ -154,14 +154,14 @@ int main(int argc, char* argv[])
 
    PV::PV_Init pv_init(&argc, &argv, true/*allowUnrecognizedArguments*/);
    // Build the column from the params file
-   pv_init.registerKeyword("BBFindConfRemapLayer", createBBFindConfRemapLayer);
-   pv_init.registerKeyword("BBFindConfRemapProbe", createBBFindConfRemapProbe);
-   pv_init.registerKeyword("ConvertFromTable", createConvertFromTable);
-   pv_init.registerKeyword("LocalizationBBFindProbe", createLocalizationBBFindProbe);
-   pv_init.registerKeyword("LocalizationProbe", createLocalizationProbe);
-   pv_init.registerKeyword("MaskFromMemoryBuffer", createMaskFromMemoryBuffer);
-   pv_init.registerKeyword("Harness", createHarnessObject);
-   PV::HyPerCol * hc = pv_init.build();
+   pv_init.registerKeyword("BBFindConfRemapLayer", PV::Factory::create<BBFindConfRemapLayer>);
+   pv_init.registerKeyword("BBFindConfRemapProbe", PV::Factory::create<BBFindConfRemapProbe>);
+   pv_init.registerKeyword("ConvertFromTable", PV::Factory::create<ConvertFromTable>);
+   pv_init.registerKeyword("LocalizationBBFindProbe", PV::Factory::create<LocalizationBBFindProbe>);
+   pv_init.registerKeyword("LocalizationProbe", PV::Factory::create<LocalizationProbe>);
+   pv_init.registerKeyword("MaskFromMemoryBuffer", PV::Factory::create<MaskFromMemoryBuffer>);
+   pv_init.registerKeyword("Harness", PV::Factory::create<HarnessObject>);
+   PV::HyPerCol * hc = createHyPerCol(&pv_init);
    pvAssert(hc->getStartTime()==hc->simulationTime());
 
    bool runWithoutHarnessFlag = true;
@@ -198,7 +198,7 @@ int runWithHarness(PV::HyPerCol * hc, int frameInterval) {
    double dt = hc->getDeltaTime();
    double displayPeriod = stopTime - startTime;
    const int rank = hc->columnId();
-   PV::InterColComm * icComm = hc->icCommunicator();
+   PV::Communicator * icComm = hc->getCommunicator();
 
    int layerNx, layerNy, layerNf;
    int imageNx, imageNy, imageNf;
@@ -335,7 +335,7 @@ int runWithoutHarness(PV::HyPerCol * hc) {
    return hc->run();
 }
 
-char * getImageFileName(PV::InterColComm * icComm)
+char * getImageFileName(PV::Communicator * icComm)
 {
    // All processes call this routine.  Calling routine is responsible for freeing the returned string.
    char buffer[TEXTFILEBUFFERSIZE];
@@ -376,7 +376,7 @@ char * getImageFileName(PV::InterColComm * icComm)
    return filename;
 }
 
-int setImageLayerMemoryBuffer(PV::InterColComm * icComm, char const * imageFile, PV::ImageFromMemoryBuffer * imageLayer, uint8_t ** imageBufferPtr, size_t * imageBufferSizePtr)
+int setImageLayerMemoryBuffer(PV::Communicator * icComm, char const * imageFile, PV::ImageFromMemoryBuffer * imageLayer, uint8_t ** imageBufferPtr, size_t * imageBufferSizePtr)
 {
    // Under MPI, only the root process (rank==0) uses imageFile, imageBufferPtr, or imageBufferSizePtr, but nonroot processes need to call it as well,
    // because the imageBuffer is scattered to all processes during the call to ImageFromMemoryBuffer::setMemoryBuffer().

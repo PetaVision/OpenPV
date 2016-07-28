@@ -57,8 +57,4 @@ int PtwiseProductLayer::updateState(double timef, double dt) {
    return PV_SUCCESS;
 }
 
-BaseObject * createPtwiseProductLayer(char const * name, HyPerCol * hc) {
-   return hc ? new PtwiseProductLayer(name, hc) : NULL;
-}
-
 }  // end namespace PV

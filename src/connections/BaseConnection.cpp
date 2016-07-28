@@ -89,7 +89,7 @@ void BaseConnection::setPreSynapticLayer(HyPerLayer * pre) {
       if (parent->columnId()==0) {
          pvErrorNoExit().printf("%s: pre layer \"%s\" does not exist in the params file.\n", this->getDescription_c(), this->preLayerName);
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
 }
@@ -103,7 +103,7 @@ void BaseConnection::setPostSynapticLayer(HyPerLayer * post) {
       if (parent->columnId()==0) {
          pvErrorNoExit().printf("%s: post layer \"%s\" does not exist in the params file.\n", this->getDescription_c(), this->postLayerName);
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
 }
@@ -195,26 +195,26 @@ int BaseConnection::getPreAndPostLayerNames(const char * name, char ** preLayerN
    *preLayerNamePtr = NULL;
    *postLayerNamePtr = NULL;
    if (preLayerName == NULL && postLayerName == NULL) {
-      if (parent->icCommunicator()->commRank()==0) {
+      if (parent->getCommunicator()->commRank()==0) {
          pvInfo().printf("%s: preLayerName and postLayerName will be inferred in the communicateInitInfo stage.\n", getDescription_c());
       }
    }
    else if (preLayerName==NULL && postLayerName!=NULL) {
       status = PV_FAILURE;
-      if (parent->icCommunicator()->commRank()==0) {
+      if (parent->getCommunicator()->commRank()==0) {
          pvErrorNoExit().printf("%s: if postLayerName is specified, preLayerName must be specified as well.\n", getDescription_c());
       }
    }
    else if (preLayerName!=NULL && postLayerName==NULL) {
       status = PV_FAILURE;
-      if (parent->icCommunicator()->commRank()==0) {
+      if (parent->getCommunicator()->commRank()==0) {
          pvErrorNoExit().printf("%s: if preLayerName is specified, postLayerName must be specified as well.\n", getDescription_c());
       }
    }
    else {
       assert(preLayerName!=NULL && postLayerName!=NULL);
    }
-   MPI_Barrier(parent->icCommunicator()->communicator());
+   MPI_Barrier(parent->getCommunicator()->communicator());
    if (status != PV_SUCCESS) {
       exit(EXIT_FAILURE);
    }
@@ -267,7 +267,7 @@ void BaseConnection::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
             pvErrorNoExit().printf("%s: channelCode %d is not a valid channel.\n",
                   this->getDescription_c(),  ch);
          }
-         MPI_Barrier(this->getParent()->icCommunicator()->communicator());
+         MPI_Barrier(this->getParent()->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
    }
@@ -337,7 +337,7 @@ void BaseConnection::ioParam_convertRateToSpikeCount(enum ParamsIOFlag ioFlag) {
                pvWarn() << errorMessage.str();
             }
          }
-         MPI_Barrier(this->getParent()->icCommunicator()->communicator());
+         MPI_Barrier(this->getParent()->getCommunicator()->communicator());
          if (preActivityIsNotRateValue) { exit(EXIT_FAILURE); }
       }
    }
@@ -355,7 +355,7 @@ void BaseConnection::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
          pvErrorNoExit().printf("%s: receiveGpu is set to true, but PetaVision was compiled without GPU acceleration.\n",
                this->getDescription_c());
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
 #endif // PV_USE_CUDA
@@ -396,6 +396,24 @@ int BaseConnection::insertProbe(BaseConnectionProbe * p)
 
    return ++numProbes;
 }
+int BaseConnection::respond(std::shared_ptr<BaseMessage> message) {
+   int status = BaseObject::respond(message);
+   if (status != PV_SUCCESS) {
+      return status;
+   }
+   else if (ConnectionUpdateMessage const * castMessage = dynamic_cast<ConnectionUpdateMessage const*>(message.get())) {
+      return respondConnectionUpdate(castMessage);
+   }
+   else if (ConnectionFinalizeUpdateMessage const * castMessage = dynamic_cast<ConnectionFinalizeUpdateMessage const*>(message.get())) {
+      return respondConnectionFinalizeUpdate(castMessage);
+   }
+   else if (ConnectionOutputMessage const * castMessage = dynamic_cast<ConnectionOutputMessage const*>(message.get())) {
+      return respondConnectionOutput(castMessage);
+   }
+   else {
+      return status;
+   }
+}
 
 int BaseConnection::outputProbeParams() {
    int status = PV_SUCCESS;
@@ -413,7 +431,7 @@ int BaseConnection::communicateInitInfo() {
       assert(this->getPostLayerName()==NULL);
       status = handleMissingPreAndPostLayerNames();
    }
-   MPI_Barrier(this->getParent()->icCommunicator()->communicator());
+   MPI_Barrier(this->getParent()->getCommunicator()->communicator());
    if (status != PV_SUCCESS) {
       assert(this->getPreLayerName()==NULL && this->getPostLayerName()==NULL);
       if (this->getParent()->columnId()==0) {
@@ -435,7 +453,7 @@ int BaseConnection::communicateInitInfo() {
       }
       status = PV_FAILURE;
    }
-   MPI_Barrier(this->getParent()->icCommunicator()->communicator());
+   MPI_Barrier(this->getParent()->getCommunicator()->communicator());
    if (status != PV_SUCCESS) {
       exit(EXIT_FAILURE);
    }

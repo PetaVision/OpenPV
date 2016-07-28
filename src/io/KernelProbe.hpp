@@ -55,8 +55,6 @@ private:
 
 }; // end of class KernelProbe block
 
-BaseObject * createKernelProbe(char const * name, HyPerCol * hc);
-
 }  // end of namespace PV block
 
 

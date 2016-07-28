@@ -49,8 +49,4 @@ int TriggerTestLayer::updateState(double time, double dt){
    return HyPerLayer::updateState(time, dt);
 }
 
-BaseObject * createTriggerTestLayer(char const * name, HyPerCol * hc) {
-   return hc ? new TriggerTestLayer(name, hc) : NULL;
-}
-
 }

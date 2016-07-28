@@ -149,7 +149,7 @@ int StochasticReleaseTestProbe::computePValues(long int step, int f) {
    }
    HyPerLayer * l = getTargetLayer();
    HyPerCol * hc = l->getParent();
-   MPI_Allreduce(MPI_IN_PLACE, &nnzf, 1, MPI_INT, MPI_SUM, hc->icCommunicator()->communicator());
+   MPI_Allreduce(MPI_IN_PLACE, &nnzf, 1, MPI_INT, MPI_SUM, hc->getCommunicator()->communicator());
    if (hc->columnId()==0) {
       const int neuronsPerFeature = l->getNumGlobalNeurons()/nf;
       double mean = preact * neuronsPerFeature;
@@ -165,10 +165,6 @@ int StochasticReleaseTestProbe::computePValues(long int step, int f) {
 
 StochasticReleaseTestProbe::~StochasticReleaseTestProbe() {
    free(pvalues);
-}
-
-BaseObject * createStochasticReleaseTestProbe(char const * name, HyPerCol * hc) {
-   return hc ? new StochasticReleaseTestProbe(name, hc) : NULL;
 }
 
 } /* namespace PV */

@@ -81,8 +81,6 @@ protected:
     PoolingConn::AccumulateType poolingType;
 }; // end class TransposePoolingConn
 
-BaseObject * createTransposePoolingConn(char const * name, HyPerCol * hc);
-
 }  // end namespace PV
 
 #endif /* TRANSPOSECONN_HPP_ */

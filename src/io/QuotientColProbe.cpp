@@ -92,7 +92,7 @@ int QuotientColProbe::communicateInitInfo() {
             pvErrorNoExit().printf("%s: numerator probe \"%s\" and denominator probe \"%s\" have differing numbers of values (%d vs. %d)\n",
                   getDescription_c(), numerator, denominator, nNumValues, dNumValues);
          }
-         MPI_Barrier(this->getParent()->icCommunicator()->communicator());
+         MPI_Barrier(this->getParent()->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
       status = setNumValues(nNumValues);
@@ -103,7 +103,7 @@ int QuotientColProbe::communicateInitInfo() {
       }
    }
    if (status != PV_SUCCESS) {
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    return status;
@@ -143,7 +143,7 @@ double QuotientColProbe::referenceUpdateTime() const {
 
 int QuotientColProbe::outputState(double timevalue) {
    getValues(timevalue);
-   if( this->getParent()->icCommunicator()->commRank() != 0 ) return PV_SUCCESS;
+   if( this->getParent()->getCommunicator()->commRank() != 0 ) return PV_SUCCESS;
    double * valuesBuffer = getValuesBuffer();
    int numValues = this->getNumValues();
    for(int b = 0; b < numValues; b++){
@@ -155,9 +155,5 @@ int QuotientColProbe::outputState(double timevalue) {
    output().flush();
    return PV_SUCCESS;
 }  // end QuotientColProbe::outputState(float, HyPerCol *)
-
-BaseObject * createQuotientColProbe(char const * name, HyPerCol * hc) {
-   return hc ? new QuotientColProbe(name, hc) : NULL;
-}
 
 }  // end namespace PV

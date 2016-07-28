@@ -65,8 +65,6 @@ protected:
 
 }; // class LabelLayer
 
-BaseObject * createLabelLayer(char const * name, HyPerCol * hc);
-
 }  // namespace PV
 
 #endif /* LABELLAYER_HPP_ */

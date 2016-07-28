@@ -51,8 +51,4 @@ int AllConstantValueProbe::outputState(double timed) {
 AllConstantValueProbe::~AllConstantValueProbe() {
 }
 
-BaseObject * createAllConstantValueProbe(char const * probeName, HyPerCol * hc) {
-   return hc ? new AllConstantValueProbe(probeName, hc) : NULL;
-}
-
 } // namespace PV

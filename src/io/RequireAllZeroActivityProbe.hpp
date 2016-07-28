@@ -71,7 +71,5 @@ protected:
    double nonzeroTime = 0.0;
 }; // end class RequireAllZeroActivityProbe
 
-BaseObject * createRequireAllZeroActivityProbe(char const * name, HyPerCol * hc);
-
 } /* namespace PV */
 #endif /* REQUIREALLZEROACTIVITYPROBE_HPP_ */

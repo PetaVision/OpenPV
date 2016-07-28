@@ -63,7 +63,7 @@ int MaskFromMemoryBuffer::communicateInitInfo() {
          status = PV_FAILURE;
       }
    }
-   MPI_Barrier(parent->icCommunicator()->communicator());
+   MPI_Barrier(parent->getCommunicator()->communicator());
    if (!imageLayer->getInitInfoCommunicatedFlag()) {
       if (parent->columnId()==0) {
          pvInfo().printf("%s must wait until imageLayer \"%s\" has finished its communicateInitInfo stage.\n", getDescription_c(), imageLayerName);
@@ -78,7 +78,7 @@ int MaskFromMemoryBuffer::communicateInitInfo() {
       }
       status = PV_FAILURE;
    }
-   MPI_Barrier(parent->icCommunicator()->communicator());
+   MPI_Barrier(parent->getCommunicator()->communicator());
    if (status==PV_FAILURE) {
       exit(EXIT_FAILURE);
    }

@@ -30,7 +30,6 @@ protected:
 
 }; // end class ReceiveFromPostProbe
 
-BaseObject * createReceiveFromPostProbe(char const * name, HyPerCol * hc);
 
 }  // end namespcae PV
 

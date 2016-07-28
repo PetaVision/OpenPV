@@ -7,7 +7,6 @@
 
 #include "HyPerLayer.hpp"
 #include "Retina.hpp"
-#include "columns/Random.hpp"
 #include "io/io.hpp"
 #include "include/default_params.h"
 #include "utils/cl_random.h"
@@ -120,7 +119,7 @@ int Retina::allocateDataStructures() {
       // // a random state variable is needed for every neuron/clthread
       const PVLayerLoc * loc = getLayerLoc();
       //Allocate extended loc
-      randState = new Random(parent, loc, true); // (taus_uint4 *) malloc(count * sizeof(taus_uint4));
+      randState = new Random(loc, true);
    }
 
    return status;
@@ -172,7 +171,7 @@ void Retina::ioParam_foregroundRate(enum ParamsIOFlag ioFlag) {
          if (parent->columnId()==0) {
             pvError().printf("noiseOnFreq is obsolete.  Use foregroundRate instead.\n");
          }
-         MPI_Barrier(parent->icCommunicator()->communicator());
+         MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
       if (params->present(name, "poissonEdgeProb")) {
@@ -180,7 +179,7 @@ void Retina::ioParam_foregroundRate(enum ParamsIOFlag ioFlag) {
          if (parent->columnId()==0) {
             pvError().printf("poissonEdgeProb is deprecated.  Use foregroundRate instead.\n");
          }
-         MPI_Barrier(parent->icCommunicator()->communicator());
+         MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
    }
@@ -197,7 +196,7 @@ void Retina::ioParam_backgroundRate(enum ParamsIOFlag ioFlag) {
          if (parent->columnId()==0) {
             pvWarn().printf("noiseOffFreq is deprecated.  Use backgroundRate instead.\n");
          }
-         MPI_Barrier(parent->icCommunicator()->communicator());
+         MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
       if (params->present(name, "poissonBlankProb")) {
@@ -205,7 +204,7 @@ void Retina::ioParam_backgroundRate(enum ParamsIOFlag ioFlag) {
          if (parent->columnId()==0) {
             pvWarn().printf("poissonEdgeProb is deprecated.  Use backgroundRate instead.\n");
          }
-         MPI_Barrier(parent->icCommunicator()->communicator());
+         MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
    }
@@ -287,7 +286,7 @@ int Retina::readRandStateFromCheckpoint(const char * cpDir) {
    int status = PV_SUCCESS;
    if (spikingFlag) {
       char * filename = parent->pathInCheckpoint(cpDir, getName(), "_rand_state.bin");
-      status = readRandState(filename, parent->icCommunicator(), randState->getRNG(0), getLayerLoc(), true /*isExtended*/);
+      status = readRandState(filename, parent->getCommunicator(), randState->getRNG(0), getLayerLoc(), true /*isExtended*/);
       free(filename);
    }
    return status;
@@ -300,26 +299,18 @@ int Retina::checkpointWrite(const char * cpDir) {
    char filename[PV_PATH_MAX];
    int chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_rand_state.bin", cpDir, name);
    if(chars_needed >= PV_PATH_MAX) {
-      if (parent->icCommunicator()->commRank()==0) {
+      if (parent->getCommunicator()->commRank()==0) {
          pvErrorNoExit().printf("HyPerLayer::checkpointWrite for %s:  base pathname \"%s/%s_rand_state.bin\" too long.\n", getDescription_c(), cpDir, name);
       }
       abort();
    }
    if (spikingFlag) {
-      int rand_state_status = writeRandState(filename, parent->icCommunicator(), randState->getRNG(0), getLayerLoc(), true /*isExtended*/, parent->getVerifyWrites());
+      int rand_state_status = writeRandState(filename, parent->getCommunicator(), randState->getRNG(0), getLayerLoc(), true /*isExtended*/, parent->getVerifyWrites());
       if (rand_state_status != PV_SUCCESS) status = rand_state_status;
    }
    return status;
 }
 
-
-int Retina::waitOnPublish(InterColComm* comm)
-{
-   // HyPerLayer::waitOnPublish already has a publish timer so don't duplicate
-   int status = HyPerLayer::waitOnPublish(comm);
-
-   return status;
-}
 
 //! Updates the state of the Retina
 /*!
@@ -379,22 +370,10 @@ int Retina::updateState(double timed, double dt)
    return 0;
 }
 
-int Retina::updateBorder(double time, double dt)
-{
-   // wait for OpenCL data transfers to finish
-   HyPerLayer::updateBorder(time, dt);
-
-   return PV_SUCCESS;
-}
-
 int Retina::outputState(double time, bool last)
 {
    // HyPerLayer::outputState already has an io timer so don't duplicate
    return HyPerLayer::outputState(time, last);
-}
-
-BaseObject * createRetina(char const * name, HyPerCol * hc) {
-   return hc ? new Retina(name, hc) : NULL;
 }
 
 } // namespace PV

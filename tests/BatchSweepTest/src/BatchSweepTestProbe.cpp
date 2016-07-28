@@ -46,7 +46,7 @@ void BatchSweepTestProbe::ioParam_expectedMax(enum ParamsIOFlag ioFlag) {
 
 int BatchSweepTestProbe::outputState(double timed) {
    int status = StatsProbe::outputState(timed);
-   InterColComm * icComm = getTargetLayer()->getParent()->icCommunicator();
+   Communicator * icComm = getTargetLayer()->getParent()->getCommunicator();
    const int rcvProc = 0;
    if( icComm->commRank() != rcvProc ) {
       return 0;
@@ -59,10 +59,6 @@ int BatchSweepTestProbe::outputState(double timed) {
       }
    }
    return status;
-}
-
-BaseObject * createBatchSweepTestProbe(char const * name, HyPerCol * hc) {
-   return hc ? new BatchSweepTestProbe(name, hc) : NULL;
 }
 
 } /* namespace PV */

@@ -31,7 +31,6 @@ protected:
 
 }; // end of class DatastoreDelayTestLayer block
 
-BaseObject * createDatastoreDelayTestLayer(const char * name, HyPerCol * hc);
 
 }  // end of namespace PV block
 

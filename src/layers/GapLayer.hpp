@@ -47,8 +47,6 @@ private:
 
 }; // class GapLayer
 
-BaseObject * createGapLayer(char const * name, HyPerCol * hc);
-
 }  // namespace PV
 
 #endif /* GAPLAYER_HPP_ */

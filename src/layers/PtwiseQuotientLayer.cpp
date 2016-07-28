@@ -58,8 +58,4 @@ int PtwiseQuotientLayer::doUpdateState(double timef, double dt, const PVLayerLoc
    return PV_SUCCESS;
 }
 
-BaseObject * createPtwiseQuotientLayer(char const * name, HyPerCol * hc) {
-   return hc ? new PtwiseQuotientLayer(name, hc) : NULL;
-}
-
 }  // end namespace PV

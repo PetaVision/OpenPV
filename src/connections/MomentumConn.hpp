@@ -49,8 +49,6 @@ private:
 
 }; // end class MomentumConn
 
-BaseObject * createMomentumConn(char const * name, HyPerCol * hc);
-
 }  // end namespace PV
 
 #endif /* CLONEKERNELCONN_HPP_ */

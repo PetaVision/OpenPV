@@ -24,7 +24,7 @@ int L2ConnProbe::initialize_base() {
 }
 
 int L2ConnProbe::outputState(double timed) {
-   InterColComm * icComm = parent->icCommunicator();
+   Communicator * icComm = parent->getCommunicator();
    const int rank = icComm->commRank();
    if( rank != 0 ) return PV_SUCCESS;
    assert(getTargetConn()!=NULL);

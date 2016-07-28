@@ -24,7 +24,6 @@ protected:
    int isViscosity;
 }; // end class MomentumConnTestProbe
 
-BaseObject * createMomentumConnTestProbe(char const * name, HyPerCol * hc);
 
 }  // end namespace PV
 

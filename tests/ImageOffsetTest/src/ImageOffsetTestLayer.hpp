@@ -19,7 +19,6 @@ protected:
 private:
 };
 
-BaseObject * createImageOffsetTestLayer(const char * name, HyPerCol * hc);
 
 } /* namespace PV */
 #endif // IMAGEOFFSETTESTLAYER_HPP_

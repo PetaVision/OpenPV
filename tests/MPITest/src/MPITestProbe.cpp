@@ -35,7 +35,7 @@ int MPITestProbe::initMPITestProbe(const char * probeName, HyPerCol * hc) {
  */
 int MPITestProbe::outputState(double timed) {
 	int status = StatsProbe::outputState(timed);
-	InterColComm * icComm = getTargetLayer()->getParent()->icCommunicator();
+	Communicator * icComm = getTargetLayer()->getParent()->getCommunicator();
 	const int rcvProc = 0;
 	if( icComm->commRank() != rcvProc ) {
 		return status;
@@ -75,10 +75,6 @@ int MPITestProbe::outputState(double timed) {
    }
 
 	return status;
-}
-
-BaseObject * createMPITestProbe(char const * name, HyPerCol * hc) {
-   return hc ? new MPITestProbe(name, hc) : NULL;
 }
 
 }

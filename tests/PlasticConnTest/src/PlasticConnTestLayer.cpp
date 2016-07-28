@@ -67,17 +67,13 @@ int PlasticConnTestLayer::updateState(double timef, double dt)
    return PV_SUCCESS;
 }
 
-int PlasticConnTestLayer::publish(InterColComm* comm, double timef)
+int PlasticConnTestLayer::publish(Communicator* comm, double timef)
 {
    setActivitytoGlobalPos();
-   int status = comm->publish(this, clayer->activity);
+   int status = publisher->publish(timef, lastUpdateTime, clayer->activity);
    return status;
 
    //return HyPerLayer::publish(comm, time);
-}
-
-BaseObject * createPlasticConnTestLayer(char const * name, HyPerCol * hc) {
-   return hc ? new PlasticConnTestLayer(name, hc) : NULL;
 }
 
 } /* namespace PV */

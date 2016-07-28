@@ -80,8 +80,6 @@ protected:
 #endif // PV_USE_GDAL
 }; // class FilenameParsingGroundTruthLayer
 
-BaseObject * createFilenameParsingGroundTruthLayer(char const * name, HyPerCol * hc);
-
 } /* namespace PV */
 
 #endif /* FILENAMEPARSINGGROUNDTRUTHLAYER_HPP_ */

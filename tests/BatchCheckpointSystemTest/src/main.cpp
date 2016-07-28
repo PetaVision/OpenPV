@@ -53,8 +53,8 @@ int main(int argc, char * argv[]) {
       }
    }
 
-   initObj.registerKeyword("CPTestInputLayer", createCPTestInputLayer);
-   initObj.registerKeyword("VaryingHyPerConn", createVaryingHyPerConn);
+   initObj.registerKeyword("CPTestInputLayer", Factory::create<CPTestInputLayer>);
+   initObj.registerKeyword("VaryingHyPerConn", Factory::create<VaryingHyPerConn>);
  
    initObj.setParams(paramFile1);
    status = rebuildandrun(&initObj);
@@ -75,7 +75,7 @@ int main(int argc, char * argv[]) {
 
 int customexit(HyPerCol * hc, int argc, char * argv[]) {
    int status = PV_SUCCESS;
-   int rank = hc->icCommunicator()->commRank();
+   int rank = hc->getCommunicator()->commRank();
    int rootproc = 0;
    if( rank == rootproc ) {
       int index = hc->getFinalStep()-hc->getInitialStep();
@@ -94,6 +94,6 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
          status = PV_FAILURE;
       }
    }
-   MPI_Bcast(&status, 1, MPI_INT, rootproc, hc->icCommunicator()->communicator());
+   MPI_Bcast(&status, 1, MPI_INT, rootproc, hc->getCommunicator()->communicator());
    return status;
 }

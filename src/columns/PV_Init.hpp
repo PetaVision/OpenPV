@@ -17,6 +17,8 @@
 
 namespace PV {
 
+class HyPerCol; // Included only to allow obsolete (as of Jul 19, 2016) HyPerCol* PV_Init::build() method to print an error message.
+
 /**
  * PV_Init is an object that initializes MPI and parameters to pass to the HyPerCol
  */
@@ -25,7 +27,7 @@ public:
    /**
     * The constructor creates a PV_Arguments object from the input arguments
     * and if MPI has not already been initialized, calls MPI_Init.
-    * Note that it does not call initialize, so the PVParams and InterColComm
+    * Note that it does not call initialize, so the PVParams and Communicator
     * objects are not initialized on instantiation.
     * On instantiation, the create() method will recognize all core PetaVision
     * groups (ANNLayer, HyPerConn, etc.).  To add additional known groups,
@@ -38,14 +40,14 @@ public:
    virtual ~PV_Init();
 
    /**
-    * initialize(void) creates the PVParams and InterColComm objects from
+    * initialize(void) creates the PVParams and Communicator objects from
     * the existing arguments.  If the paramsFile (-p) argument is not set,
     * params is kept at null, and the params file can be set later using the
     * setParams() method.
     *
     * initialize() is called by the PV_Init constructor, but it is
     * also permissible to call initialize again, in which case the
-    * PVParams and InterColComm objects are deleted and recreated,
+    * PVParams and Communicator objects are deleted and recreated,
     * based on the current state of the arguments.
     */
    int initialize();
@@ -254,7 +256,7 @@ public:
     * from the other values (as if the relevant command line option was absent.)
     * If any of the arguments are negative, the corresponding values are
     * left unchanged.
-    * initialize() is called, which deletes the existing InterColComm
+    * initialize() is called, which deletes the existing Communicator
     * and creates a new one.
     * Returns PV_SUCCESS if successful; exits on an error if it fails.
     */
@@ -276,11 +278,11 @@ public:
     */
    int resetState();
 
-   InterColComm * getComm(){return icComm;}
+   Communicator * getCommunicator(){return mCommunicator;}
 
    int getWorldRank() const {
-      if(icComm){
-         return icComm->globalCommRank();
+      if(mCommunicator){
+         return mCommunicator->globalCommRank();
       }
       else{
          int rank = 0;
@@ -290,8 +292,8 @@ public:
    }
 
    int getWorldSize(){
-      if(icComm){
-         return icComm->globalCommSize();
+      if(mCommunicator){
+         return mCommunicator->globalCommSize();
       }
       else{
          int size = 0;
@@ -300,7 +302,7 @@ public:
       }
    }
 
-   int isExtraProc(){return icComm->isExtraProc();}
+   int isExtraProc(){return mCommunicator->isExtraProc();}
 
    /**
     * If using PV_USE_OPENMP_THREADS, returns the value returned by omp_get_max_threads() when the PV_Init object was instantiated.
@@ -324,42 +326,15 @@ public:
     */
    BaseObject * create(char const * keyword, char const * name, HyPerCol * hc) const;
 
-   /**
-    * Forms a HyPerCol, and adds layers, probes, and connections to it based on the PV_Init
-    * object's current params.  If any of the groups in params fails to build, the HyPerCol
-    * is deleted and build() returns NULL.  An error message indicates which params group failed.
-    */
-   HyPerCol * build();
 
    /**
-    * This function turns the buildandrunDeprecationWarning flag on.
-    * It is used by the deprecated functions in buildandrun.cpp to
-    * manage printing the deprecation warning once but not more than
-    * once if a deprecated function calls another deprecated function.
-    * When the deprecated buildandrun functions (which were deprecated Mar 24, 2016)
-    * become obsolete, this and related PV_Init functions can be removed.
+    * Obsolete.  Use createHyPerCol defined in HyPerCol.cpp instead.
     */
-   void setBuildAndRunDeprecationWarning() { buildandrunDeprecationWarning = true; }
-
-   /**
-    * This function turns the buildandrunDeprecationWarning flag off.
-    * It is used by the deprecated functions in buildandrun.cpp to
-    * manage printing the deprecation warning once but not more than
-    * once if a deprecated function calls another deprecated function.
-    * When the deprecated buildandrun functions (which were deprecated Mar 24, 2016)
-    * become obsolete, this and related PV_Init functions can be removed.
-    */
-   void clearBuildAndRunDeprecationWarning() { buildandrunDeprecationWarning = false; }
-
-   /**
-    * This function prints a warning if the buildandrunDeprecationWarning is on.
-    * It is used by the deprecated functions in buildandrun.cpp to
-    * manage printing the deprecation warning once but not more than
-    * once if a deprecated function calls another deprecated function.
-    * When the deprecated buildandrun functions (which were deprecated Mar 24, 2016)
-    * become obsolete, this and related PV_Init functions can be removed.
-    */
-   void printBuildAndRunDeprecationWarning(char const * functionName, char const * functionSignature);
+   HyPerCol * build() {
+      pvError() << "PV_Init::build is obsolete.  " // marked obsolete July 19, 2016.
+            << "Use hc=createHyPerCol(pv_init_ptr) instead of hc=pv_init_ptr->build()\n";
+      return nullptr;
+   }
 
 private:
    int initSignalHandler();
@@ -399,9 +374,7 @@ private:
    PVParams * params;
    PV_Arguments * arguments;
    int maxThreads;
-   InterColComm * icComm;
-   Factory * factory;
-   bool buildandrunDeprecationWarning;
+   Communicator * mCommunicator;
 };
 
 }

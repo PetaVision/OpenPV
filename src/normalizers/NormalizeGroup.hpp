@@ -19,7 +19,7 @@ public:
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
-   virtual void communicateInitInfo();
+   virtual int communicateInitInfo();
 
 protected:
    NormalizeGroup();
@@ -66,8 +66,6 @@ private:
    char * normalizeGroupName = nullptr;
    NormalizeBase * groupHead = nullptr;
 }; // class NormalizeGroup
-
-BaseObject * createNormalizeGroup(char const * name, HyPerCol * hc);
 
 } /* namespace PV */
 

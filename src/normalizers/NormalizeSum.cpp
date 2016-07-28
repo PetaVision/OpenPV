@@ -126,8 +126,4 @@ int NormalizeSum::normalizeWeights() {
 NormalizeSum::~NormalizeSum() {
 }
 
-BaseObject * createNormalizeSum(char const * name, HyPerCol * hc) {
-   return hc ? new NormalizeSum(name, hc) : NULL;
-}
-
 } /* namespace PV */

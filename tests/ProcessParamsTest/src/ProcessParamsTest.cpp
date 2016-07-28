@@ -30,7 +30,7 @@ int main(int argc, char * argv[]) {
 
    if (pv_obj.isExtraProc()) { return EXIT_SUCCESS; }
 
-   int rank = pv_obj.getComm()->globalCommRank();
+   int rank = pv_obj.getCommunicator()->globalCommRank();
 
    status = deleteGeneratedFiles(&pv_obj);
    if (status!=PV_SUCCESS) {
@@ -76,7 +76,7 @@ int main(int argc, char * argv[]) {
 int deleteGeneratedFiles(PV::PV_Init * pv_obj) {
 
    int status = PV_SUCCESS;
-   if (pv_obj->getComm()->globalCommRank()==0) {
+   if (pv_obj->getCommunicator()->globalCommRank()==0) {
       char const * filename = NULL;
 
       if (deleteFile(PROCESSED_PARAMS, pv_obj) != PV_SUCCESS) { status = PV_FAILURE; }
@@ -84,7 +84,7 @@ int deleteGeneratedFiles(PV::PV_Init * pv_obj) {
       if (system("rm -rf output-generate") != PV_SUCCESS) { status = PV_FAILURE; }
       if (system("rm -rf output-verify") != PV_SUCCESS) { status = PV_FAILURE; }
    }
-   MPI_Bcast(&status, 1, MPI_INT, 0, pv_obj->getComm()->communicator());
+   MPI_Bcast(&status, 1, MPI_INT, 0, pv_obj->getCommunicator()->communicator());
    return status;
 }
 

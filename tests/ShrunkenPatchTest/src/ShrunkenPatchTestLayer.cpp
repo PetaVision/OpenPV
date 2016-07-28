@@ -81,17 +81,13 @@ int ShrunkenPatchTestLayer::updateState(double timed, double dt)
    return PV_SUCCESS;
 }
 
-int ShrunkenPatchTestLayer::publish(InterColComm* comm, double timed)
+int ShrunkenPatchTestLayer::publish(Communicator* comm, double timed)
 {
    setActivitytoGlobalPos();
-   int status = comm->publish(this, clayer->activity);
+   int status = publisher->publish(timed, lastUpdateTime, clayer->activity);
    return status;
 
    //return HyPerLayer::publish(comm, time);
-}
-
-BaseObject * createShrunkenPatchTestLayer(char const * name, HyPerCol * hc) {
-   return hc ? new ShrunkenPatchTestLayer(name, hc) : NULL;
 }
 
 } /* namespace PV */

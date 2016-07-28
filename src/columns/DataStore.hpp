@@ -8,17 +8,17 @@
 #ifndef DATASTORE_HPP_
 #define DATASTORE_HPP_
 
-#include "../include/pv_arch.h"
-#include <stdlib.h>
+#include "include/pv_arch.h"
+#include <cstdlib>
+#include <cstring>
 
 namespace PV
 {
-class HyPerCol;
 
 class DataStore
 {
 public:
-   DataStore(HyPerCol * hc, int numBuffers, int numItems, size_t dataSize, int numLevels, bool isSparse);
+   DataStore(int numBuffers, int numItems, size_t dataSize, int numLevels, bool isSparse);
 
    virtual ~DataStore();
 

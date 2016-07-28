@@ -13,7 +13,7 @@
 #include "io/io.hpp"
 #include "io/fileio.hpp"
 #include "utils/conversions.h"
-#include "columns/InterColComm.hpp"
+#include "columns/Communicator.hpp"
 
 namespace PV {
 

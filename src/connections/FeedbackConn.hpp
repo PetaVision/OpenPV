@@ -32,8 +32,6 @@ protected:
     virtual int handleMissingPreAndPostLayerNames();
 }; // end class FeedbackConn
 
-BaseObject * createFeedbackConn(char const * name, HyPerCol * hc);
-
 }  // end of block for namespace PV
 
 #endif /* FEEDBACKCONN_HPP_ */

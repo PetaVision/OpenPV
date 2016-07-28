@@ -208,7 +208,7 @@ void ShuffleLayer::collectFreq(const pvdata_t * sourceData){
       }
 
       //Collect over mpi
-      MPI_Allreduce(MPI_IN_PLACE, currFeatureFreqCount[b], nf, MPI_LONG, MPI_SUM, parent->icCommunicator()->communicator());
+      MPI_Allreduce(MPI_IN_PLACE, currFeatureFreqCount[b], nf, MPI_LONG, MPI_SUM, parent->getCommunicator()->communicator());
       
       for (int kf = 0; kf < nf; kf++){
          featureFreqCount[b][kf] += currFeatureFreqCount[b][kf];
@@ -344,10 +344,6 @@ int ShuffleLayer::updateState(double timef, double dt) {
    }
 
    return status;
-}
-
-BaseObject * createShuffleLayer(char const * name, HyPerCol * hc) {
-   return hc ? new ShuffleLayer(name, hc) : NULL;
 }
 
 } // end namespace PV

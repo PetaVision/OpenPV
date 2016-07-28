@@ -15,7 +15,6 @@ public:
    int virtual updateState (double time, double dt);
 }; // end class TriggerTestConn
 
-BaseObject * createTriggerTestConn(char const * name, HyPerCol * hc);
 
 }  // end namespace PV
 #endif /* IMAGETESTPROBE_HPP */

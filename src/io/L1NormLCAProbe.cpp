@@ -28,7 +28,7 @@ int L1NormLCAProbe::communicateInitInfo() {
          pvErrorNoExit().printf("%s: targetLayer \"%s\" is not an LCA layer.\n",
                getDescription_c(), getTargetName());
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    if (targetLCALayer->layerListsVerticesInParams()==true) {
@@ -36,17 +36,13 @@ int L1NormLCAProbe::communicateInitInfo() {
          pvErrorNoExit().printf("%s: LCAProbes require targetLayer \"%s\" to use VThresh etc. instead of verticesV/verticesV.\n",
                getDescription_c(), getTargetName());
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    if (status == PV_SUCCESS) {
       coefficient = targetLCALayer->getVThresh();
    }
    return status;
-}
-
-BaseObject * createL1NormLCAProbe(char const * name, HyPerCol * hc) {
-   return hc ? new L1NormLCAProbe(name, hc) : NULL;
 }
 
 } /* namespace PV */

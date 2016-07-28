@@ -29,7 +29,6 @@ private:
 
 }; // end class RescaleLayerTestProbe
 
-BaseObject * createRescaleLayerTestProbe(char const * name, HyPerCol * hc);
 
 }  // end namespace PV
 #endif /* RESCALELAYERTESTPROBE_HPP_ */

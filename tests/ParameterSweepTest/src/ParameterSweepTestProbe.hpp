@@ -34,7 +34,6 @@ private:
     float expectedMin, expectedMax;
 }; // end class ParameterSweepTestProbe
 
-BaseObject * createParameterSweepTestProbe(char const * name, HyPerCol * hc);
 
 } // end namespace PV
 #endif /* PARAMETERSWEEPTESTPROBE_HPP_ */

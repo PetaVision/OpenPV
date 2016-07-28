@@ -29,10 +29,10 @@ Movie::Movie(const char * name, HyPerCol * hc) {
 
 Movie::~Movie()
 {
-   if (getParent()->icCommunicator()->commRank()==0 && filenamestream != NULL && filenamestream->isfile) {
+   if (getParent()->getCommunicator()->commRank()==0 && filenamestream != NULL && filenamestream->isfile) {
       PV_fclose(filenamestream);
    }
-   if (getParent()->icCommunicator()->commRank()==0 && timestampFile != NULL && timestampFile->isfile) {
+   if (getParent()->getCommunicator()->commRank()==0 && timestampFile != NULL && timestampFile->isfile) {
        PV_fclose(timestampFile);
    }
    if(movieOutputPath){
@@ -179,7 +179,7 @@ int Movie::initialize(const char * name, HyPerCol * hc) {
       parent->ensureDirExists(timestampFilename.c_str());
       timestampFilename += name;
       timestampFilename += ".txt";
-      if(getParent()->icCommunicator()->commRank()==0){
+      if(getParent()->getCommunicator()->commRank()==0){
           //If checkpoint read is set, append, otherwise, clobber
           if(getParent()->getCheckpointReadFlag()){
              struct stat statbuf;
@@ -272,7 +272,7 @@ int Movie::allocateDataStructures() {
 
    //Allocate framePaths here before image, since allocate call will call getFrame
 
-   if(parent->icCommunicator()->commRank()==0){
+   if(parent->getCommunicator()->commRank()==0){
       framePath = (char**) malloc(parent->getNBatch() * sizeof(char*));
       assert(framePath);
       for(int b = 0; b < parent->getNBatch(); b++){
@@ -489,7 +489,7 @@ bool Movie::updateImage(double time, double dt)
       jitter();
    } // jitterFlag
 
-   InterColComm * icComm = getParent()->icCommunicator();
+   Communicator * icComm = getParent()->getCommunicator();
 
    //TODO: Fix movie layer to take with batches. This is commented out for compile
    //if(!flipOnTimescaleError && (parent->getTimeScale() > 0 && parent->getTimeScale() < parent->getTimeScaleMin())){
@@ -559,7 +559,7 @@ int Movie::outputState(double timed, bool last)
 
 // advance by n_skip lines through file of filenames, always advancing at least one line
 const char * Movie::getNextFileName(int n_skip, int batchIdx) {
-   InterColComm * icComm = getParent()->icCommunicator();
+   Communicator * icComm = getParent()->getCommunicator();
    assert(icComm->commRank() == 0);
    const char* outFilename = NULL;
    int numskip = n_skip < 1 ? 1 : n_skip;
@@ -588,7 +588,7 @@ int Movie::getNumFrames(){
       batchPos[0] = 0L;
       frameNumbers[0] = -1;
    }
-   MPI_Bcast(&count, 1, MPI_INT, 0, parent->icCommunicator()->communicator());
+   MPI_Bcast(&count, 1, MPI_INT, 0, parent->getCommunicator()->communicator());
    return count;
 }
 
@@ -663,14 +663,10 @@ Movie::Movie(const char * name, HyPerCol * hc) {
    if (hc->columnId()==0) {
       pvErrorNoExit().printf("Movie \"%s\": Movie class requires compiling with PV_USE_GDAL set\n", name);
    }
-   MPI_Barrier(hc->icCommunicator()->communicator());
+   MPI_Barrier(hc->getCommunicator()->communicator());
    exit(EXIT_FAILURE);
 }
 Movie::Movie() {}
 #endif // PV_USE_GDAL
-
-BaseObject * createMovie(char const * name, HyPerCol * hc) {
-   return hc ? new Movie(name, hc) : NULL;
-}
 
 } // ends namespace PV block

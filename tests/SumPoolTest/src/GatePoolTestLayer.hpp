@@ -17,7 +17,6 @@ protected:
 private:
 }; // end class GatePoolTestLayer
 
-BaseObject * createGatePoolTestLayer(char const * name, HyPerCol * hc);
 
 } /* namespace PV */
 #endif

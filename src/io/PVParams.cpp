@@ -830,7 +830,7 @@ const char * ParameterSweep::getStringValue(int n) {
  * @initialSize
  * @icComm
  */
-PVParams::PVParams(const char * filename, size_t initialSize, InterColComm* inIcComm)
+PVParams::PVParams(const char * filename, size_t initialSize, Communicator* inIcComm)
 {
    this->icComm = inIcComm;
    initialize(initialSize);
@@ -841,7 +841,7 @@ PVParams::PVParams(const char * filename, size_t initialSize, InterColComm* inIc
  * @initialSize
  * @icComm
  */
-PVParams::PVParams(size_t initialSize, InterColComm* inIcComm)
+PVParams::PVParams(size_t initialSize, Communicator* inIcComm)
 {
    this->icComm = inIcComm;
    initialize(initialSize);
@@ -853,7 +853,7 @@ PVParams::PVParams(size_t initialSize, InterColComm* inIcComm)
  * @initialSize
  * @icComm
  */
-PVParams::PVParams(const char * buffer, long int bufferLength, size_t initialSize, InterColComm* inIcComm)
+PVParams::PVParams(const char * buffer, long int bufferLength, size_t initialSize, Communicator* inIcComm)
 {
    this->icComm = inIcComm;
    initialize(initialSize);

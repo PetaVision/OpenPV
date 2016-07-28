@@ -30,7 +30,5 @@ private:
 
 }; // class InitUniformRandomWeights
 
-BaseObject * createInitUniformRandomWeights(char const * name, HyPerCol * hc);
-
 } /* namespace PV */
 #endif /* INITUNIFORMRANDOMWEIGHTS_HPP_ */

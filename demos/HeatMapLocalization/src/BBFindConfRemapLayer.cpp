@@ -138,7 +138,7 @@ int BBFindConfRemapLayer::communicateInitInfo() {
          if (parent->columnId()==0) {
             pvError() << getDescription_c() << ": imageLayer \"" << imageLayerName << "\" does not refer to a layer in the column." << std::endl;
          }
-         MPI_Barrier(parent->icCommunicator()->communicator());
+         MPI_Barrier(parent->getCommunicator()->communicator());
          pvExitFailure("");
       }
       imageWidth = imageLayer->getLayerLoc()->nxGlobal;
@@ -163,7 +163,7 @@ int BBFindConfRemapLayer::communicateInitInfo() {
             if (parent->columnId()==0) {
                pvError() << getDescription_c() << ": displayedCategories element " << k+1 << " is " << cat << ", outside the range [1," << getLayerLoc()->nf << "]." << std::endl;
             }
-            MPI_Barrier(parent->icCommunicator()->communicator());
+            MPI_Barrier(parent->getCommunicator()->communicator());
             pvExitFailure("");
          }
       }
@@ -221,7 +221,7 @@ int BBFindConfRemapLayer::updateState(double t, double dt) {
 
    // Gather the V buffers into root process for BBFind, then scatter the activity.
    pvadata_t confidenceLocal[getNumNeurons()];
-   PV::InterColComm * icComm = parent->icCommunicator();
+   PV::Communicator * icComm = parent->getCommunicator();
    PVLayerLoc const * loc = getLayerLoc();
    PVHalo const * halo = &loc->halo;
    int const nx = loc->nx;

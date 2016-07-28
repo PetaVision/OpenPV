@@ -15,7 +15,6 @@ protected:
 private:
 };
 
-BaseObject * createBinningTestLayer(char const * name, HyPerCol * hc);
 
 } /* namespace PV */
 #endif

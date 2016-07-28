@@ -108,7 +108,7 @@ void IdentConn::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
             if (parent->columnId()==0) {
                pvErrorNoExit().printf("%s does not use writeStep, but the parameters file sets it to %f.\n", getDescription_c(), writeStep);
             }
-            MPI_Barrier(parent->icCommunicator()->communicator());
+            MPI_Barrier(parent->getCommunicator()->communicator());
             exit(EXIT_FAILURE);
          }
       }
@@ -214,7 +214,7 @@ void IdentConn::ioParam_updateGSynFromPostPerspective(enum ParamsIOFlag ioFlag){
 int IdentConn::setWeightInitializer() {
    weightInitializer = (InitWeights *) new InitIdentWeights(name, parent);
    if( weightInitializer == NULL ) {
-      pvError().printf("IdentConn \"%s\": Rank %d process unable to create InitIdentWeights object.  Exiting.\n", name, parent->icCommunicator()->commRank());
+      pvError().printf("IdentConn \"%s\": Rank %d process unable to create InitIdentWeights object.  Exiting.\n", name, parent->getCommunicator()->commRank());
    }
    return PV_SUCCESS;
 }
@@ -258,7 +258,7 @@ int IdentConn::deliverPresynapticPerspective(PVLayerCube const * activity, int a
 
 #ifdef DEBUG_OUTPUT
    int rank;
-   MPI_Comm_rank(parent->icCommunicator()->communicator(), &rank);
+   MPI_Comm_rank(parent->getCommunicator()->communicator(), &rank);
    pvDebug(debugMessage);
    debugMessage.printf("[%d]: HyPerLayr::recvSyn: neighbor=%d num=%d actv=%p this=%p conn=%p\n", rank, 0, numExtended, activity, this, conn);
    debugMessage.flush();
@@ -318,10 +318,6 @@ int IdentConn::deliverPresynapticPerspective(PVLayerCube const * activity, int a
       }
    }
    return PV_SUCCESS;
-}
-
-BaseObject * createIdentConn(char const * name, HyPerCol * hc) {
-   return hc ? new IdentConn(name, hc) : NULL;
 }
 
 }  // end of namespace PV block

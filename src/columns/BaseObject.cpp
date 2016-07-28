@@ -11,7 +11,6 @@
 #include <cstring>
 #include <cerrno>
 #include "BaseObject.hpp"
-#include "include/pv_common.h"
 #include "columns/HyPerCol.hpp"
 
 namespace PV {
@@ -67,13 +66,51 @@ int BaseObject::setDescription() {
    return PV_SUCCESS;
 }
 
-BaseObject::~BaseObject() {
-   free(name);
+int BaseObject::respond(std::shared_ptr<BaseMessage> message) {
+   // TODO: convert PV_SUCCESS, PV_FAILURE, etc. to enum
+   if (message==nullptr) {
+      return PV_SUCCESS;
+   }
+   else if (CommunicateInitInfoMessage<BaseObject*> const * castMessage = dynamic_cast<CommunicateInitInfoMessage<BaseObject*> const*>(message.get())) {
+      return respondCommunicateInitInfo(castMessage);
+   }
+   else if (AllocateDataMessage const * castMessage = dynamic_cast<AllocateDataMessage const*>(message.get())) {
+      return respondAllocateData(castMessage);
+   }
+   else if (InitializeStateMessage const * castMessage = dynamic_cast<InitializeStateMessage const*>(message.get())) {
+      return respondInitializeState(castMessage);
+   }
+   else {
+      return PV_SUCCESS;
+   }
 }
 
-BaseObject * createBasePVObject(char const * name, HyPerCol * hc) {
-   pvErrorNoExit().printf("BaseObject should not be instantiated itself, only derived classes of BaseObject.\n");
-   return NULL;
+int BaseObject::respondCommunicateInitInfo(CommunicateInitInfoMessage<BaseObject*> const * message) {
+   int status = PV_SUCCESS;
+   if (getInitInfoCommunicatedFlag()) { return status; }
+   status = communicateInitInfo();
+   if (status==PV_SUCCESS) { setInitInfoCommunicatedFlag(); }
+   return status;
+}
+
+int BaseObject::respondAllocateData(AllocateDataMessage const * message) {
+   int status = PV_SUCCESS;
+   if (getDataStructuresAllocatedFlag()) { return status; }
+   status = allocateDataStructures();
+   if (status==PV_SUCCESS) { setDataStructuresAllocatedFlag(); }
+   return status;
+}
+
+int BaseObject::respondInitializeState(InitializeStateMessage const * message) {
+   int status = PV_SUCCESS;
+   if (getInitialValuesSetFlag()) { return status; }
+   status = initializeState();
+   if (status==PV_SUCCESS) { setInitialValuesSetFlag(); }
+   return status;
+}
+
+BaseObject::~BaseObject() {
+   free(name);
 }
 
 } /* namespace PV */

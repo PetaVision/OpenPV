@@ -124,9 +124,6 @@ Communicator::Communicator(PV_Arguments * argumentList)
    }
 
    MPI_Barrier(globalIcComm);
-
-   // install timers
-   this->exchange_timer = new Timer("Communicator", " comm", "exchng ");
 }
 
 Communicator::~Communicator()
@@ -140,16 +137,6 @@ Communicator::~Communicator()
       MPI_Comm_free(&globalIcComm);
    }
 #endif
-
-   // delete timers
-   //
-   if (globalCommRank() == 0) {
-      exchange_timer->fprint_time(getOutputStream());
-      getOutputStream().flush();
-   }
-   if(!isExtra){
-      delete exchange_timer; exchange_timer = NULL;
-   }
 }
 
 /**
@@ -164,7 +151,6 @@ int Communicator::neighborInit()
    // (local borders and remote neighbors form the complete neighborhood)
 
    this->numNeighbors = numberOfNeighbors();
-   this->numBorders   = NUM_NEIGHBORHOOD - this->numNeighbors;
    int tags[9] = {0, 33, 34, 35, 34, 34, 35, 34, 33};
    // NW and SE corners have tag 33; edges have tag 34; NE and SW corners have tag 35.
    // In the top row of processes in the hypercolumn, a process is both the
@@ -185,7 +171,6 @@ int Communicator::neighborInit()
                 localRank, num_neighbors - 1, this->numNeighbors, n, i, neighbors[i]);
 #endif // DEBUG_OUTPUT
       } else {
-         borders[num_borders++] = -n;
 #ifdef DEBUG_OUTPUT
          pvDebug().printf("[%2d]: neighborInit: i=%d, neighbor=%d\n", localRank, i, neighbors[i]);
 #endif // DEBUG_OUTPUT
@@ -193,7 +178,6 @@ int Communicator::neighborInit()
       this->tags[i] = tags[i];
    }
    assert(this->numNeighbors == num_neighbors);
-   assert(this->numBorders   == num_borders);
 
    return 0;
 }
@@ -736,15 +720,14 @@ int Communicator::freeDatatypes(MPI_Datatype * mpi_datatypes) {
  */
 int Communicator::exchange(pvdata_t * data,
                            const MPI_Datatype neighborDatatypes [],
-                           const PVLayerLoc * loc)
+                           const PVLayerLoc * loc, std::vector<MPI_Request> & req)
 {
 #ifdef PV_USE_MPI
    PVHalo const * halo = &loc->halo;
    if (halo->lt==0 && halo->rt==0 && halo->dn==0 && halo->up==0) { return PV_SUCCESS; }
-   exchange_timer->start();
 
+   req.clear();
    // don't send interior
-   int nreq = 0;
    for (int n = 1; n < NUM_NEIGHBORHOOD; n++) {
       if (neighbors[n] == localRank) continue;  // don't send interior/self
       pvdata_t * recvBuf = data + recvOffset(n, loc);
@@ -753,23 +736,29 @@ int Communicator::exchange(pvdata_t * data,
       pvInfo().printf("[%2d]: recv,send to %d, n=%d recvOffset==%ld sendOffset==%ld send[0]==%f\n", localRank, neighbors[n], n, recvOffset(n,loc), sendOffset(n,loc), sendBuf[0]);
       pvInfo().flush();
 #endif // DEBUG_OUTPUT
+      auto sz = req.size();
+      req.resize(sz+1);
       MPI_Irecv(recvBuf, 1, neighborDatatypes[n], neighbors[n], getReverseTag(n), localIcComm,
-                &requests[nreq++]);
+                &(req.data())[sz]);
       MPI_Send( sendBuf, 1, neighborDatatypes[n], neighbors[n], getTag(n), localIcComm);
    }
+   assert(req.size()==numberOfNeighbors()-1);
 
    // don't recv interior
-   int count = numberOfNeighbors() - 1;
 #ifdef DEBUG_OUTPUT
-   pvInfo().printf("[%2d]: waiting for data, count==%d\n", localRank, count);
+   pvInfo().printf("[%2d]: waiting for data, count==%d\n", localRank, nreq);
    pvInfo().flush();
 #endif // DEBUG_OUTPUT
-   MPI_Waitall(count, requests, MPI_STATUSES_IGNORE);
 
-   exchange_timer->stop();
 #endif // PV_USE_MPI
 
    return PV_SUCCESS;
+}
+
+int Communicator::wait(std::vector<MPI_Request> & req) {
+   int status = MPI_Waitall(req.size(), req.data(), MPI_STATUSES_IGNORE);
+   req.clear();
+   return status;
 }
 
 } // end namespace PV

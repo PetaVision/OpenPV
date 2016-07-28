@@ -20,9 +20,9 @@ GapConn::GapConn()
    initialize_base();
 }
 
-GapConn::GapConn(const char * name, HyPerCol * hc, InitWeights * weightInitializer, NormalizeBase * weightNormalizer) {
+GapConn::GapConn(const char * name, HyPerCol * hc) {
    initialize_base();
-   GapConn::initialize(name, hc, weightInitializer, weightNormalizer);
+   GapConn::initialize(name, hc);
 }
 
 GapConn::~GapConn()
@@ -34,8 +34,8 @@ int GapConn::initialize_base(){
    return PV_SUCCESS;
 }
 
-int GapConn::initialize(const char * name, HyPerCol * hc, InitWeights * weightInitializer, NormalizeBase * weightNormalizer) {
-   int status = HyPerConn::initialize(name, hc, weightInitializer, weightNormalizer);
+int GapConn::initialize(const char * name, HyPerCol * hc) {
+   int status = HyPerConn::initialize(name, hc);
    return status;
 }
 
@@ -85,7 +85,7 @@ int GapConn::allocateDataStructures() {
          pvErrorNoExit().printf("%s: postsynaptic layer must be a LIFGap or LIFGap-derived layer.\n",
                getDescription_c());
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    int status = HyPerConn::allocateDataStructures();
@@ -96,13 +96,6 @@ int GapConn::allocateDataStructures() {
    // postLIFGap->addGapStrength(gap_strength);
 
    return status;
-}
-
-BaseObject * createGapConn(char const * name, HyPerCol * hc) {
-   if (hc==NULL) { return NULL; }
-   InitWeights * weightInitializer = getWeightInitializer(name, hc);
-   NormalizeBase * weightNormalizer = getWeightNormalizer(name, hc);
-   return new GapConn(name, hc, weightInitializer, weightNormalizer);
 }
 
 } /* namespace PV */

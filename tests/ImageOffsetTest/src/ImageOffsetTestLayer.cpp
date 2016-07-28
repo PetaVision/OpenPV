@@ -138,8 +138,4 @@ ImageOffsetTestLayer::ImageOffsetTestLayer(const char * name, HyPerCol * hc) {
 }
 #endif // PV_USE_GDAL
 
-BaseObject * createImageOffsetTestLayer(const char * name, HyPerCol * hc) {
-   return hc ? new ImageOffsetTestLayer(name, hc) : NULL;
-}
-
 } /* namespace PV */

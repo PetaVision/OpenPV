@@ -93,7 +93,6 @@
 #include <weightinit/InitUniformRandomWeights.hpp>
 #include <weightinit/InitUniformWeights.hpp>
 
-#include <normalizers/NormalizeBase.hpp>
 #include <normalizers/NormalizeContrastZeroMean.hpp>
 #include <normalizers/NormalizeGroup.hpp>
 #include <normalizers/NormalizeL2.hpp>
@@ -106,108 +105,97 @@ Factory::Factory() {
    registerCoreKeywords();
 }
 
-Factory::Factory(Factory const& orig) {
-   copyKeywordHandlerList(orig.keywordHandlerList);
-}
-
-Factory& Factory::operator=(Factory const& orig) {
-   clearKeywordHandlerList();
-   copyKeywordHandlerList(orig.keywordHandlerList);
-   return *this;
-}
-
-
 int Factory::registerCoreKeywords() {
    keywordHandlerList = std::vector<KeywordHandler*>();
 
-   registerKeyword("ANNErrorLayer", createANNErrorLayer);
-   registerKeyword("ANNLayer", createANNLayer);
-   registerKeyword("ANNSquaredLayer", createANNSquaredLayer);
-   registerKeyword("ANNWhitenedLayer", createANNWhitenedLayer);
-   registerKeyword("BackgroundLayer", createBackgroundLayer);
-   registerKeyword("BinningLayer", createBinningLayer);
-   registerKeyword("CloneVLayer", createCloneVLayer);
-   registerKeyword("ConstantLayer", createConstantLayer);
-   registerKeyword("FilenameParsingGroundTruthLayer", createFilenameParsingGroundTruthLayer);
-   registerKeyword("GapLayer", createGapLayer); 
-   registerKeyword("HyPerLayer", createHyPerLayer);
-   registerKeyword("HyPerLCALayer", createHyPerLCALayer);
-   registerKeyword("ISTALayer", createISTALayer);
-   registerKeyword("Image", createImage);
-   registerKeyword("ImagePvp", createImagePvp);
-   registerKeyword("ImageFromMemoryBuffer", createImageFromMemoryBuffer);
-   registerKeyword("KmeansLayer", createKmeansLayer);
-   registerKeyword("LCALIFLayer", createLCALIFLayer);
-   registerKeyword("LIF", createLIF);
-   registerKeyword("LIFGap", createLIFGap);
-   registerKeyword("LabelErrorLayer", createLabelErrorLayer);
-   registerKeyword("LabelLayer", createLabelLayer);
-   registerKeyword("LeakyIntegrator", createLeakyIntegrator);
-   registerKeyword("MaskLayer", createMaskLayer);
-   registerKeyword("MomentumLCALayer", createMomentumLCALayer);
-   registerKeyword("Movie", createMovie);
-   registerKeyword("MoviePvp", createMoviePvp);
-   registerKeyword("Patterns", createPatterns);
-   registerKeyword("PoolingIndexLayer", createPoolingIndexLayer);
-   registerKeyword("PtwiseLinearTransferLayer", createPtwiseLinearTransferLayer);
-   registerKeyword("PtwiseProductLayer", createPtwiseProductLayer);
-   registerKeyword("PtwiseQuotientLayer", createPtwiseQuotientLayer);
-   registerKeyword("RescaleLayer", createRescaleLayer);
-   registerKeyword("RunningAverageLayer", createRunningAverageLayer);
-   registerKeyword("Retina", createRetina);
-   registerKeyword("ShuffleLayer", createShuffleLayer);
-   registerKeyword("SigmoidLayer", createSigmoidLayer);
-   registerKeyword("WTALayer", createWTALayer);
+   registerKeyword("ANNErrorLayer", Factory::create<ANNErrorLayer>);
+   registerKeyword("ANNLayer", Factory::create<ANNLayer>);
+   registerKeyword("ANNSquaredLayer", Factory::create<ANNSquaredLayer>);
+   registerKeyword("ANNWhitenedLayer", Factory::create<ANNWhitenedLayer>);
+   registerKeyword("BackgroundLayer", Factory::create<BackgroundLayer>);
+   registerKeyword("BinningLayer", Factory::create<BinningLayer>);
+   registerKeyword("CloneVLayer", Factory::create<CloneVLayer>);
+   registerKeyword("ConstantLayer", Factory::create<ConstantLayer>);
+   registerKeyword("FilenameParsingGroundTruthLayer", Factory::create<FilenameParsingGroundTruthLayer>);
+   registerKeyword("GapLayer", Factory::create<GapLayer>);
+   registerKeyword("HyPerLayer", Factory::create<HyPerLayer>);
+   registerKeyword("HyPerLCALayer", Factory::create<HyPerLCALayer>);
+   registerKeyword("ISTALayer", Factory::create<ISTALayer>);
+   registerKeyword("Image", Factory::create<Image>);
+   registerKeyword("ImagePvp", Factory::create<ImagePvp>);
+   registerKeyword("ImageFromMemoryBuffer", Factory::create<ImageFromMemoryBuffer>);
+   registerKeyword("KmeansLayer", Factory::create<KmeansLayer>);
+   registerKeyword("LCALIFLayer", Factory::create<LCALIFLayer>);
+   registerKeyword("LIF", Factory::create<LIF>);
+   registerKeyword("LIFGap", Factory::create<LIFGap>);
+   registerKeyword("LabelErrorLayer", Factory::create<LabelErrorLayer>);
+   registerKeyword("LabelLayer", Factory::create<LabelLayer>);
+   registerKeyword("LeakyIntegrator", Factory::create<LeakyIntegrator>);
+   registerKeyword("MaskLayer", Factory::create<MaskLayer>);
+   registerKeyword("MomentumLCALayer", Factory::create<MomentumLCALayer>);
+   registerKeyword("Movie", Factory::create<Movie>);
+   registerKeyword("MoviePvp", Factory::create<MoviePvp>);
+   registerKeyword("Patterns", Factory::create<Patterns>);
+   registerKeyword("PoolingIndexLayer", Factory::create<PoolingIndexLayer>);
+   registerKeyword("PtwiseLinearTransferLayer", Factory::create<PtwiseLinearTransferLayer>);
+   registerKeyword("PtwiseProductLayer", Factory::create<PtwiseProductLayer>);
+   registerKeyword("PtwiseQuotientLayer", Factory::create<PtwiseQuotientLayer>);
+   registerKeyword("RescaleLayer", Factory::create<RescaleLayer>);
+   registerKeyword("RunningAverageLayer", Factory::create<RunningAverageLayer>);
+   registerKeyword("Retina", Factory::create<Retina>);
+   registerKeyword("ShuffleLayer", Factory::create<ShuffleLayer>);
+   registerKeyword("SigmoidLayer", Factory::create<SigmoidLayer>);
+   registerKeyword("WTALayer", Factory::create<WTALayer>);
 
-   registerKeyword("HyPerConn", createHyPerConn);
-   registerKeyword("CloneConn", createCloneConn);
-   registerKeyword("CloneKernelConn", createCloneKernelConn);
-   registerKeyword("CopyConn", createCopyConn);
-   registerKeyword("FeedbackConn", createFeedbackConn);
-   registerKeyword("GapConn", createGapConn);
-   registerKeyword("IdentConn", createIdentConn);
-   registerKeyword("ImprintConn", createImprintConn);
-   registerKeyword("KernelConn", createKernelConn);
-   registerKeyword("MomentumConn", createMomentumConn);
-   registerKeyword("PlasticCloneConn", createPlasticCloneConn);
-   registerKeyword("PoolingConn", createPoolingConn);
-   registerKeyword("RescaleConn", createRescaleConn);
-   registerKeyword("TransposeConn", createTransposeConn);
-   registerKeyword("TransposePoolingConn", createTransposePoolingConn);
+   registerKeyword("HyPerConn", Factory::create<HyPerConn>);
+   registerKeyword("CloneConn", Factory::create<CloneConn>);
+   registerKeyword("CloneKernelConn", Factory::create<CloneKernelConn>);
+   registerKeyword("CopyConn", Factory::create<CopyConn>);
+   registerKeyword("FeedbackConn", Factory::create<FeedbackConn>);
+   registerKeyword("GapConn", Factory::create<GapConn>);
+   registerKeyword("IdentConn", Factory::create<IdentConn>);
+   registerKeyword("ImprintConn", Factory::create<ImprintConn>);
+   registerKeyword("KernelConn", Factory::create<KernelConn>);
+   registerKeyword("MomentumConn", Factory::create<MomentumConn>);
+   registerKeyword("PlasticCloneConn", Factory::create<PlasticCloneConn>);
+   registerKeyword("PoolingConn", Factory::create<PoolingConn>);
+   registerKeyword("RescaleConn", Factory::create<RescaleConn>);
+   registerKeyword("TransposeConn", Factory::create<TransposeConn>);
+   registerKeyword("TransposePoolingConn", Factory::create<TransposePoolingConn>);
 
-   registerKeyword("ColumnEnergyProbe", createColumnEnergyProbe);
-   registerKeyword("FirmThresholdCostFnLCAProbe", createFirmThresholdCostFnLCAProbe);
-   registerKeyword("FirmThresholdCostFnProbe", createFirmThresholdCostFnProbe);
-   registerKeyword("KernelProbe", createKernelProbe);
-   registerKeyword("L0NormLCAProbe", createL0NormLCAProbe);
-   registerKeyword("L0NormProbe", createL0NormProbe);
-   registerKeyword("L1NormLCAProbe", createL1NormLCAProbe);
-   registerKeyword("L1NormProbe", createL1NormProbe);
-   registerKeyword("L2NormProbe", createL2NormProbe);
-   registerKeyword("PointLIFProbe", createPointLIFProbe);
-   registerKeyword("PointProbe", createPointProbe);
-   registerKeyword("QuotientColProbe", createQuotientColProbe);
-   registerKeyword("RequireAllZeroActivityProbe", createRequireAllZeroActivityProbe);
-   registerKeyword("StatsProbe", createStatsProbe);
+   registerKeyword("ColumnEnergyProbe", Factory::create<ColumnEnergyProbe>);
+   registerKeyword("FirmThresholdCostFnLCAProbe", Factory::create<FirmThresholdCostFnLCAProbe>);
+   registerKeyword("FirmThresholdCostFnProbe", Factory::create<FirmThresholdCostFnProbe>);
+   registerKeyword("KernelProbe", Factory::create<KernelProbe>);
+   registerKeyword("L0NormLCAProbe", Factory::create<L0NormLCAProbe>);
+   registerKeyword("L0NormProbe", Factory::create<L0NormProbe>);
+   registerKeyword("L1NormLCAProbe", Factory::create<L1NormLCAProbe>);
+   registerKeyword("L1NormProbe", Factory::create<L1NormProbe>);
+   registerKeyword("L2NormProbe", Factory::create<L2NormProbe>);
+   registerKeyword("PointLIFProbe", Factory::create<PointLIFProbe>);
+   registerKeyword("PointProbe", Factory::create<PointProbe>);
+   registerKeyword("QuotientColProbe", Factory::create<QuotientColProbe>);
+   registerKeyword("RequireAllZeroActivityProbe", Factory::create<RequireAllZeroActivityProbe>);
+   registerKeyword("StatsProbe", Factory::create<StatsProbe>);
 
-   registerKeyword("Gauss2DWeight", createInitGauss2DWeights);
-   registerKeyword("CoCircWeight", createInitCocircWeights);
-   registerKeyword("UniformWeight", createInitUniformWeights);
-   registerKeyword("SmartWeight", createInitSmartWeights);
-   registerKeyword("UniformRandomWeight", createInitUniformRandomWeights);
-   registerKeyword("GaussianRandomWeight", createInitGaussianRandomWeights);
-   registerKeyword("IdentWeight", createInitIdentWeights);
-   registerKeyword("OneToOneWeights", createInitOneToOneWeights);
-   registerKeyword("OneToOneWeightsWithDelays", createInitOneToOneWeightsWithDelays);
-   registerKeyword("SpreadOverArborsWeight", createInitSpreadOverArborsWeights);
-   registerKeyword("MaxPoolingWeight", createInitMaxPoolingWeights);
-   registerKeyword("FileWeight", createInitWeights);
+   registerKeyword("Gauss2DWeight", Factory::create<InitGauss2DWeights>);
+   registerKeyword("CoCircWeight", Factory::create<InitCocircWeights>);
+   registerKeyword("UniformWeight", Factory::create<InitUniformWeights>);
+   registerKeyword("SmartWeight", Factory::create<InitSmartWeights>);
+   registerKeyword("UniformRandomWeight", Factory::create<InitUniformRandomWeights>);
+   registerKeyword("GaussianRandomWeight", Factory::create<InitGaussianRandomWeights>);
+   registerKeyword("IdentWeight", Factory::create<InitIdentWeights>);
+   registerKeyword("OneToOneWeights", Factory::create<InitOneToOneWeights>);
+   registerKeyword("OneToOneWeightsWithDelays", Factory::create<InitOneToOneWeightsWithDelays>);
+   registerKeyword("SpreadOverArborsWeight", Factory::create<InitSpreadOverArborsWeights>);
+   registerKeyword("MaxPoolingWeight", Factory::create<InitMaxPoolingWeights>);
+   registerKeyword("FileWeight", Factory::create<InitWeights>);
 
-   registerKeyword("normalizeContrastZeroMean", createNormalizeContrastZeroMean);
-   registerKeyword("normalizeL2", createNormalizeL2);
-   registerKeyword("normalizeMax", createNormalizeMax);
-   registerKeyword("normalizeSum", createNormalizeSum);
-   registerKeyword("normalizeGroup", createNormalizeGroup);
+   registerKeyword("normalizeContrastZeroMean", Factory::create<NormalizeContrastZeroMean>);
+   registerKeyword("normalizeL2", Factory::create<NormalizeL2>);
+   registerKeyword("normalizeMax", Factory::create<NormalizeMax>);
+   registerKeyword("normalizeSum", Factory::create<NormalizeSum>);
+   registerKeyword("normalizeGroup", Factory::create<NormalizeGroup>);
 
    return PV_SUCCESS;
 }
@@ -221,7 +209,7 @@ int Factory::copyKeywordHandlerList(std::vector<KeywordHandler*> const& orig) {
 
 int Factory::registerKeyword(char const * keyword, ObjectCreateFn creator) {
    KeywordHandler const * keywordHandler = getKeywordHandler(keyword);
-   if (keywordHandler != NULL) {
+   if (keywordHandler != nullptr) {
       return PV_FAILURE;
    }
    KeywordHandler * newKeyword = new KeywordHandler(keyword, creator);
@@ -229,9 +217,13 @@ int Factory::registerKeyword(char const * keyword, ObjectCreateFn creator) {
    return PV_SUCCESS;
 }
 
-BaseObject * Factory::create(char const * keyword, char const * name, HyPerCol * hc) const {
+BaseObject * Factory::createByKeyword(char const * keyword, char const * name, HyPerCol * hc) const {
    KeywordHandler const * keywordHandler = getKeywordHandler(keyword);
-   return keywordHandler ? keywordHandler->create(name, hc) : NULL;
+   if (keywordHandler == nullptr) {
+      auto errorString = std::string("Unrecognized keyword ").append(keyword);
+      throw std::invalid_argument(errorString);
+   }
+   return keywordHandler ? keywordHandler->create(name, hc) : nullptr;
 }
 
 KeywordHandler const * Factory::getKeywordHandler(char const * keyword) const {
@@ -240,7 +232,7 @@ KeywordHandler const * Factory::getKeywordHandler(char const * keyword) const {
          return typeCreator;
       }
    }
-   return NULL;
+   return nullptr;
 }
 
 int Factory::clearKeywordHandlerList() {

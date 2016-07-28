@@ -23,9 +23,12 @@
 #ifndef BASEOBJECT_HPP_
 #define BASEOBJECT_HPP_
 
+#include "columns/Messages.hpp"
+#include "include/pv_common.h"
 #include "utils/PVLog.hpp"
 #include "utils/PVAssert.hpp"
 #include "utils/PVAlloc.hpp"
+#include <memory>
 
 namespace PV {
 
@@ -38,8 +41,26 @@ public:
    inline char const * getDescription_c() const { return description.c_str(); }
    inline std::string const& getDescription() const { return description; }
    char const * getKeyword() const;
+   virtual int respond(std::shared_ptr<BaseMessage> message); // TODO: should return enum with values corresponding to PV_SUCCESS, PV_FAILURE, PV_POSTPONE
    virtual ~BaseObject();
 
+   /**
+    * Get-method for mInitInfoCommunicatedFlag, which is false on initialization and
+    * then becomes true once setInitInfoCommunicatedFlag() is called.
+    */
+   bool getInitInfoCommunicatedFlag() {return mInitInfoCommunicatedFlag;}
+
+   /**
+    * Get-method for mDataStructuresAllocatedFlag, which is false on initialization and
+    * then becomes true once setDataStructuresAllocatedFlag() is called.
+    */
+   bool getDataStructuresAllocatedFlag() {return mDataStructuresAllocatedFlag;}
+
+   /**
+    * Get-method for mInitialValuesSetFlag, which is false on initialization and
+    * then becomes true once setInitialValuesSetFlag() is called.
+    */
+   bool getInitialValuesSetFlag() {return mInitialValuesSetFlag;}
 
 protected:
    BaseObject();
@@ -48,17 +69,41 @@ protected:
    int setParent(HyPerCol * hc);
    virtual int setDescription();
 
-// Member variable
+   int respondCommunicateInitInfo(CommunicateInitInfoMessage<BaseObject*> const * message);
+   int respondAllocateData(AllocateDataMessage const * message);
+   int respondInitializeState(InitializeStateMessage const * message);
+
+   virtual int communicateInitInfo() { return PV_SUCCESS; }
+   virtual int allocateDataStructures() { return PV_SUCCESS; }
+   virtual int initializeState() { return PV_SUCCESS; }
+
+   /**
+    * This method sets mInitInfoCommunicatedFlag to true.
+    */
+   void setInitInfoCommunicatedFlag() {mInitInfoCommunicatedFlag = true;}
+
+   /**
+    * This method sets mDataStructuresAllocatedFlag to true.
+    */
+   void setDataStructuresAllocatedFlag() {mDataStructuresAllocatedFlag = true;}
+
+   /**
+    * This method sets the flag returned by getInitialValuesSetFlag to true.
+    */
+   void setInitialValuesSetFlag() {mInitialValuesSetFlag = true;}
+
+// Data members
 protected:
    char * name = nullptr;
-   HyPerCol * parent = nullptr;
+   HyPerCol * parent = nullptr; // TODO: eliminate HyPerCol argument to constructor in favor of PVParams argument
    std::string description;
+   bool mInitInfoCommunicatedFlag = false;
+   bool mDataStructuresAllocatedFlag = false;
+   bool mInitialValuesSetFlag = false;
 
 private:
    int initialize_base();
 }; // class BaseObject
-
-BaseObject * createBasePVObject(char const * name, HyPerCol * hc);
 
 }  // namespace PV
 

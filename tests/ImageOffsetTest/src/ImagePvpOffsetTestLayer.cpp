@@ -126,8 +126,4 @@ int ImagePvpOffsetTestLayer::updateState(double timef, double dt){
    return PV_SUCCESS;
 }
 
-BaseObject * createImagePvpOffsetTestLayer(const char * name, HyPerCol * hc) {
-   return hc ? new ImagePvpOffsetTestLayer(name, hc) : NULL;
-}
-
 } /* namespace PV */

@@ -126,7 +126,7 @@ int LIFTestProbe::outputState(double timed) {
       }
    }
    int root_proc = 0;
-   InterColComm * icComm = l->getParent()->icCommunicator();
+   Communicator * icComm = l->getParent()->getCommunicator();
    if (icComm->commRank()==root_proc) {
       MPI_Reduce(MPI_IN_PLACE, rates, LIFTESTPROBE_BINS, MPI_DOUBLE, MPI_SUM, root_proc, icComm->communicator());
       pvInfo(dumpRates);
@@ -154,10 +154,6 @@ int LIFTestProbe::outputState(double timed) {
    }
    if (status!=PV_SUCCESS) abort();
    return status;
-}
-
-BaseObject * createLIFTestProbe(char const * name, HyPerCol * hc) {
-   return hc ? new LIFTestProbe(name, hc) : NULL;
 }
 
 } /* namespace PV */

@@ -58,7 +58,7 @@ int dumpweights(HyPerCol * hc, int argc, char * argv[]) {
       for( int k=0; k<72; k++ ) { pvInfo().printf("="); }
       pvInfo().printf("\n");
    }
-   int rank = hc->icCommunicator()->commRank();
+   int rank = hc->getCommunicator()->commRank();
    char * paramsfilename;
    pv_getopt_str(argc, argv, "-p", &paramsfilename, NULL/*paramusage*/);
    if( status != PV_SUCCESS ) {
@@ -74,7 +74,7 @@ int dumpweights(HyPerCol * hc, int argc, char * argv[]) {
 int dumponeweight(HyPerConn * conn) {
    int status = PV_SUCCESS;
    bool errorfound = false;
-   int rank = conn->getParent()->icCommunicator()->commRank();
+   int rank = conn->getParent()->getCommunicator()->commRank();
    int nxp = conn->xPatchSize();
    int nyp = conn->yPatchSize();
    int nfp = conn->fPatchSize();

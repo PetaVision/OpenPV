@@ -34,7 +34,7 @@ int ImageFromMemoryBuffer::initialize(char const * name, HyPerCol * hc) {
       if (parent->columnId()==0) {
          pvErrorNoExit().printf("%s: setting both useImageBCflag and autoResizeFlag has not yet been implemented.\n", getDescription_c());
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
 }
@@ -109,7 +109,7 @@ int ImageFromMemoryBuffer::setMemoryBuffer(pixeltype const * externalBuffer, int
          pvErrorNoExit().printf("%s: setMemoryBuffer called with invalid anchor string \"%s\"",
                getDescription_c(), offsetAnchor);
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    return setMemoryBuffer(externalBuffer, height, width, numbands, xstride, ystride, bandstride, zeroval, oneval);
@@ -148,10 +148,6 @@ int ImageFromMemoryBuffer::outputState(double time, bool last) {
 
 
 ImageFromMemoryBuffer::~ImageFromMemoryBuffer() {
-}
-
-BaseObject * createImageFromMemoryBuffer(char const * name, HyPerCol * hc) {
-   return hc ? new ImageFromMemoryBuffer(name, hc) : NULL;
 }
 
 }  // namespace PV

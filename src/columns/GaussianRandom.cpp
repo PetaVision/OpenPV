@@ -9,14 +9,14 @@
 
 namespace PV {
 
-GaussianRandom::GaussianRandom(HyPerCol * hc, int count) {
+GaussianRandom::GaussianRandom(int count) {
    initialize_base();
-   initializeFromCount(hc, (unsigned int) count);
+   initializeFromCount((unsigned int) count);
 }
 
-GaussianRandom::GaussianRandom(HyPerCol * hc, const PVLayerLoc * locptr, bool isExtended) {
+GaussianRandom::GaussianRandom(const PVLayerLoc * locptr, bool isExtended) {
    initialize_base();
-   initializeFromLoc(hc, locptr, isExtended);
+   initializeFromLoc(locptr, isExtended);
 }
 
 GaussianRandom::GaussianRandom() {
@@ -24,36 +24,25 @@ GaussianRandom::GaussianRandom() {
 }
 
 int GaussianRandom::initialize_base() {
-   heldValues = NULL;
    return PV_SUCCESS;
 }
 
 int GaussianRandom::initializeGaussian(){
    int status = PV_SUCCESS;
-   heldValues = (struct box_muller_data *) malloc(rngArraySize*sizeof(taus_uint4));
-   if (heldValues==NULL) {
-      pvErrorNoExit().printf("GaussianRandom::initialize: rank %d process unable to allocate memory for %zu Box-Muller held values.\n", parentHyPerCol->columnId(), rngArraySize);
-      status = PV_FAILURE;
-   }
-   if (status == PV_SUCCESS) {
-      for (size_t k=0; k<rngArraySize; k++) {
-         heldValues[k].hasHeldValue = false;
-         // heldValues[k].heldValue undefined if hasHeldValue false
-      }
-   }
+   heldValues.assign(rngArray.size(), {false, 0.0});
    return status;
 }
 
-int GaussianRandom::initializeFromCount(HyPerCol * hc, unsigned int count) {
-   int status = Random::initializeFromCount(hc, count);
+int GaussianRandom::initializeFromCount(unsigned int count) {
+   int status = Random::initializeFromCount(count);
    if (status == PV_SUCCESS) {
       status = initializeGaussian();
    }
    return status;
 }
 
-int GaussianRandom::initializeFromLoc(HyPerCol* hc, const PVLayerLoc* locptr, bool isExtended) {
-   int status = Random::initializeFromLoc(hc, locptr, isExtended);
+int GaussianRandom::initializeFromLoc(const PVLayerLoc* locptr, bool isExtended) {
+   int status = Random::initializeFromLoc(locptr, isExtended);
    if(status == PV_SUCCESS){
       status = initializeGaussian();
    }

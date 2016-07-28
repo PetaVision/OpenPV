@@ -177,7 +177,7 @@ void StatsProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
             pvErrorNoExit().printf("%s: buffer \"%s\" is not recognized.\n",
                   getDescription_c(), bufnameinparams);
          }
-         MPI_Barrier(getParent()->icCommunicator()->communicator());
+         MPI_Barrier(getParent()->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
    }
@@ -199,7 +199,7 @@ int StatsProbe::initNumValues() {
 int StatsProbe::outputState(double timed)
 {
 #ifdef PV_USE_MPI
-   InterColComm * icComm = getTargetLayer()->getParent()->icCommunicator();
+   Communicator * icComm = getTargetLayer()->getParent()->getCommunicator();
    MPI_Comm comm = icComm->communicator();
    int rank = icComm->commRank();
    const int rcvProc = 0;
@@ -318,10 +318,6 @@ int StatsProbe::checkpointTimers(OutStream& timerstream) {
    mpitimer->fprint_time(timerstream.outStream());
    comptimer->fprint_time(timerstream.outStream());
    return PV_SUCCESS;
-}
-
-BaseObject * createStatsProbe(char const * name, HyPerCol * hc) {
-   return hc ? new StatsProbe(name, hc) : NULL;
 }
 
 }

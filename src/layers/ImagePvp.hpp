@@ -59,8 +59,6 @@ private:
    
 }; // class ImagePvp
 
-BaseObject * createImagePvp(char const * name, HyPerCol * hc);
-
 } // namespace PV
 
 #endif

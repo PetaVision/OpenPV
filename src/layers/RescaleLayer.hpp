@@ -53,8 +53,6 @@ protected:
    int patchSize;
 }; // class RescaleLayer
 
-BaseObject * createRescaleLayer(char const * name, HyPerCol * hc);
-
 }  // namespace PV
 
 #endif /* CLONELAYER_HPP_ */

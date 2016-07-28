@@ -63,7 +63,6 @@ public:
    virtual int allocateDataStructures();
 
    virtual int updateState(double time, double dt);
-   virtual int waitOnPublish(InterColComm* comm);
    virtual int setActivity();
    
    virtual int checkpointWrite(const char * cpDir);
@@ -135,8 +134,6 @@ private:
    // an array with their feature vectors.
    int* nNeurons, int nConnectedNeurons[], float *vPos);
 }; // class LIF
-
-BaseObject * createLIF(char const * name, HyPerCol * hc);
 
 } // namespace PV
 

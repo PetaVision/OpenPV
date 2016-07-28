@@ -43,8 +43,4 @@ int ImportParamsLayer::allocateDataStructures() {
    return status;
 }
 
-BaseObject * createImportParamsLayer(char const * name, HyPerCol * hc) {
-   return hc ? new ImportParamsLayer(name, hc) : NULL;
-}
-
 } /* namespace PV */

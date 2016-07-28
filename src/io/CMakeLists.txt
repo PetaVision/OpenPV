@@ -6,7 +6,6 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/Clock.cpp
    ${SUBDIR}/ColProbe.cpp
    ${SUBDIR}/ColumnEnergyProbe.cpp
-   ${SUBDIR}/CoreParamGroupHandler.cpp
    ${SUBDIR}/fileio.cpp
    ${SUBDIR}/FileStream.cpp
    ${SUBDIR}/FirmThresholdCostFnLCAProbe.cpp
@@ -21,7 +20,6 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/L2ConnProbe.cpp
    ${SUBDIR}/L2NormProbe.cpp
    ${SUBDIR}/LayerProbe.cpp
-   ${SUBDIR}/ParamGroupHandler.cpp
    ${SUBDIR}/PointLIFProbe.cpp
    ${SUBDIR}/PointProbe.cpp
    ${SUBDIR}/PVParams.cpp
@@ -38,7 +36,6 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/Clock.hpp
    ${SUBDIR}/ColProbe.hpp
    ${SUBDIR}/ColumnEnergyProbe.hpp
-   ${SUBDIR}/CoreParamGroupHandler.hpp
    ${SUBDIR}/fileio.hpp
    ${SUBDIR}/FileStream.hpp
    ${SUBDIR}/FirmThresholdCostFnLCAProbe.hpp
@@ -53,7 +50,6 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/L2ConnProbe.hpp
    ${SUBDIR}/L2NormProbe.hpp
    ${SUBDIR}/LayerProbe.hpp
-   ${SUBDIR}/ParamGroupHandler.hpp
    ${SUBDIR}/PointLIFProbe.hpp
    ${SUBDIR}/PointProbe.hpp
    ${SUBDIR}/PVParams.hpp

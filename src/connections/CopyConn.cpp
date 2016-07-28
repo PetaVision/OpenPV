@@ -13,9 +13,9 @@ CopyConn::CopyConn() {
    initialize_base();
 }
 
-CopyConn::CopyConn(char const * name, HyPerCol * hc, NormalizeBase * weightNormalizer) {
+CopyConn::CopyConn(char const * name, HyPerCol * hc) {
    initialize_base();
-   initialize(name, hc, weightNormalizer);
+   initialize(name, hc);
 }
 
 int CopyConn::initialize_base() {
@@ -24,8 +24,8 @@ int CopyConn::initialize_base() {
    return PV_SUCCESS;
 }
 
-int CopyConn::initialize(char const * name, HyPerCol * hc, NormalizeBase * weightNormalizer) {
-   return HyPerConn::initialize(name, hc, NULL, weightNormalizer);
+int CopyConn::initialize(char const * name, HyPerCol * hc) {
+   return HyPerConn::initialize(name, hc);
 }
 
 int CopyConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -140,7 +140,7 @@ int CopyConn::communicateInitInfo() {
       if (parent->columnId()==0) {
          pvErrorNoExit().printf("%s: originalConnName \"%s\" does not refer to any connection in the column.\n", getDescription_c(), this->originalConnName);
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    this->originalConn = dynamic_cast<HyPerConn *>(originalConnBase);
@@ -208,6 +208,12 @@ bool CopyConn::needUpdate(double time, double dt) {
    return plasticityFlag && originalConn->getLastUpdateTime() > lastUpdateTime;
 }
 
+int CopyConn::updateState(double time, double dt){
+   return originalConn->getLastTimeUpdateCalled() < time ?
+         PV_POSTPONE :
+         HyPerConn::updateState(time, dt);
+}
+
 int CopyConn::updateWeights(int axonID) {
    assert(originalConn->getLastUpdateTime() > lastUpdateTime);
    int status;
@@ -229,12 +235,6 @@ int CopyConn::copy(int arborId) {
 
 CopyConn::~CopyConn() {
    free(originalConnName);
-}
-
-BaseObject * createCopyConn(char const * name, HyPerCol * hc) {
-   if (hc==NULL) { return NULL; }
-   NormalizeBase * weightNormalizer = getWeightNormalizer(name, hc);
-   return new CopyConn(name, hc, weightNormalizer);
 }
 
 } /* namespace PV */
