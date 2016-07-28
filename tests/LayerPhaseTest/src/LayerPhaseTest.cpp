@@ -25,13 +25,13 @@ int main(int argc, char * argv[]) {
    PV_Init pv_initObj(&argc, &argv, false/*do not allow unrecognized arguments*/);
    //
    // If you create a new class that buildandrun needs to know about, you need to register the keyword
-   // with the PV_Init object.  Generally, this can be done with the Factory::standardCreate function template:
+   // with the PV_Init object.  Generally, this can be done with the Factory::create function template:
    //
-   // pv_initObj.registerKeyword("CustomClass1", Factory::standardCreate<CustomClass1>);
-   // pv_initObj.registerKeyword("CustomClass2", Factory::standardCreate<CustomClass2>);
+   // pv_initObj.registerKeyword("CustomClass1", Factory::create<CustomClass1>);
+   // pv_initObj.registerKeyword("CustomClass2", Factory::create<CustomClass2>);
    // etc.
    //
-   pv_initObj.registerKeyword("LayerPhaseTestProbe", Factory::standardCreate<LayerPhaseTestProbe>);
+   pv_initObj.registerKeyword("LayerPhaseTestProbe", Factory::create<LayerPhaseTestProbe>);
    int status = buildandrun(&pv_initObj, NULL, NULL);
 #endif // MAIN_USES_CUSTOM_GROUPS
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;

@@ -53,8 +53,8 @@ int main(int argc, char * argv[]) {
       }
    }
 
-   initObj.registerKeyword("CPTestInputLayer", Factory::standardCreate<CPTestInputLayer>);
-   initObj.registerKeyword("VaryingHyPerConn", Factory::standardCreate<VaryingHyPerConn>);
+   initObj.registerKeyword("CPTestInputLayer", Factory::create<CPTestInputLayer>);
+   initObj.registerKeyword("VaryingHyPerConn", Factory::create<VaryingHyPerConn>);
  
    initObj.setMPIConfiguration(0/*numRows unspecified*/, 0/*numColumns unspecified*/, 2/*batchWidth*/);
    initObj.setParams(paramFile1);

@@ -15,8 +15,8 @@ int main(int argc, char * argv[]) {
 
 #ifdef MAIN_USES_CUSTOMGROUPS
    PV_Init pv_initObj(&argc, &argv, false/*do not allow unrecognized arguments*/);
-   pv_initObj.registerKeyword("InputLayer", Factory::standardCreate<InputLayer>);
-   pv_initObj.registerKeyword("MaskTestLayer", Factory::standardCreate<MaskTestLayer>);
+   pv_initObj.registerKeyword("InputLayer", Factory::create<InputLayer>);
+   pv_initObj.registerKeyword("MaskTestLayer", Factory::create<MaskTestLayer>);
    int status = buildandrun(&pv_initObj, NULL, NULL);
 #else // MAIN_USES_CUSTOMGROUPS
    int status = buildandrun(argc, argv, NULL, NULL);

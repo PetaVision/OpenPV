@@ -30,7 +30,7 @@ class BaseObject;
  * If you have a custom class, you need to register it with the Factory
  * object by associating its keyword with a function instantiates a new
  * object of that class, and returns it as a pointer of type BaseObject
- * In most cases, the template Factory::standardCreate is sufficient
+ * In most cases, the template Factory::create is sufficient
  * as the instantiator function.
  *
  * For example:
@@ -41,14 +41,14 @@ class BaseObject;
  * ...
  * PV_Init pv_init(&argc, &argv, false);
  * HyPerCol * hc = new HyPerCol("column", &pv_init);
- * pv_init.registerKeyword("CustomLayerType", Factory::standardCreate<CustomLayerType>);
+ * pv_init.registerKeyword("CustomLayerType", Factory::create<CustomLayerType>);
  * Factory::instance()->create("customLayerType", hc);
  * ...
  * Note that buildandrun() automates the task of calling the create() method;
  * in practice, you only need to specify the instantiator function, and
  * call the registerKeyword method calling before one of the buildandrun functions.
  *
- * It is possible to use a custom instantiator function instead of standardCreate.
+ * It is possible to use a custom instantiator function instead of create.
  * The function must take two arguments, the name as a C-style constant string and
  * a pointer to a HyPerCol.
  *
@@ -76,7 +76,7 @@ public:
     * with two arguments, the name and a pointer to the HyPerCol.
     */
    template <typename T>
-   static BaseObject * standardCreate(char const * name, HyPerCol * hc) {
+   static BaseObject * create(char const * name, HyPerCol * hc) {
       return hc==nullptr ? nullptr : new T(name, hc);
    }
 
@@ -94,7 +94,7 @@ public:
     * and parent HyPerCol.  It calls the function associated with the keyword by the
     * registerKeyword pointer.
     */
-   BaseObject * create(char const * keyword, char const * name, HyPerCol * hc) const;
+   BaseObject * createByKeyword(char const * keyword, char const * name, HyPerCol * hc) const;
 
 private:
    /**

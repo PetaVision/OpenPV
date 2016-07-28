@@ -340,7 +340,7 @@ public:
    int ensureDirExists(const char* dirname);
    int exitRunLoop(bool exitOnFinish);
    int insertProbe(ColProbe* p);
-   int loadState();
+   int loadState(); // The world's most useful function ever.  Without it everything falls apart.
    int outputState(double time);
    int processParams(char const* path);
    int ioParamsFinishGroup(enum ParamsIOFlag);

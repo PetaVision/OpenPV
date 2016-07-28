@@ -459,7 +459,7 @@ int HyPerConn::setWeightInitializer() {
  */
 InitWeights * HyPerConn::createInitWeightsObject(const char * weightInitTypeStr) {
    pvAssert(weightInitializer == NULL);
-   BaseObject * baseObject = Factory::instance()->create(weightInitTypeStr, name, parent);
+   BaseObject * baseObject = Factory::instance()->createByKeyword(weightInitTypeStr, name, parent);
    weightInitializer = dynamic_cast<InitWeights*>(baseObject);
    return weightInitializer;
 }
@@ -1016,7 +1016,7 @@ int HyPerConn::setWeightNormalizer() {
    pvAssert(normalizer==nullptr);
    pvAssert(normalizeMethod != nullptr);
    pvAssertMessage(strcmp(normalizeMethod, "none"), "setWeightNormalizer() should not be called if normalizeMethod was \"none\"");
-   BaseObject * baseObj = Factory::instance()->create(normalizeMethod, name, parent);
+   BaseObject * baseObj = Factory::instance()->createByKeyword(normalizeMethod, name, parent);
    if (baseObj == nullptr) {
       if (parent->columnId()==0) {
          pvError() << getDescription_c() << ": normalizeMethod \"" << normalizeMethod << "\" is not recognized." << std::endl;
@@ -4567,7 +4567,7 @@ InitWeights * getWeightInitializer(char const * name, HyPerCol * hc) {
    InitWeights * weightInitializer = NULL;
    char const * weightInitStr = hc->parameters()->stringValue(name, "weightInitType", false/*warnIfAbsent*/);
    if (weightInitStr!=NULL) {
-      BaseObject * baseObj = Factory::instance()->create(weightInitStr, name, hc);
+      BaseObject * baseObj = Factory::instance()->createByKeyword(weightInitStr, name, hc);
       weightInitializer = dynamic_cast<InitWeights*>(baseObj);
       if (weightInitializer==NULL) {
          if (hc->columnId()==0) {
@@ -4587,7 +4587,7 @@ NormalizeBase * getWeightNormalizer(char const * name, HyPerCol * hc) {
    }
    NormalizeBase * weightNormalizer = nullptr;
    if (weightNormalizerStr!=nullptr) {
-      BaseObject * baseObj = Factory::instance()->create(weightNormalizerStr, name, hc);
+      BaseObject * baseObj = Factory::instance()->createByKeyword(weightNormalizerStr, name, hc);
       weightNormalizer = dynamic_cast<NormalizeBase*>(baseObj);
       if (weightNormalizerStr==nullptr) {
          if (hc->columnId()==0) {

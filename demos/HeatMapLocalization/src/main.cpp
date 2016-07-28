@@ -154,13 +154,13 @@ int main(int argc, char* argv[])
 
    PV::PV_Init pv_init(&argc, &argv, true/*allowUnrecognizedArguments*/);
    // Build the column from the params file
-   pv_init.registerKeyword("BBFindConfRemapLayer", PV::Factory::standardCreate<BBFindConfRemapLayer>);
-   pv_init.registerKeyword("BBFindConfRemapProbe", PV::Factory::standardCreate<BBFindConfRemapProbe>);
-   pv_init.registerKeyword("ConvertFromTable", PV::Factory::standardCreate<ConvertFromTable>);
-   pv_init.registerKeyword("LocalizationBBFindProbe", PV::Factory::standardCreate<LocalizationBBFindProbe>);
-   pv_init.registerKeyword("LocalizationProbe", PV::Factory::standardCreate<LocalizationProbe>);
-   pv_init.registerKeyword("MaskFromMemoryBuffer", PV::Factory::standardCreate<MaskFromMemoryBuffer>);
-   pv_init.registerKeyword("Harness", PV::Factory::standardCreate<HarnessObject>);
+   pv_init.registerKeyword("BBFindConfRemapLayer", PV::Factory::create<BBFindConfRemapLayer>);
+   pv_init.registerKeyword("BBFindConfRemapProbe", PV::Factory::create<BBFindConfRemapProbe>);
+   pv_init.registerKeyword("ConvertFromTable", PV::Factory::create<ConvertFromTable>);
+   pv_init.registerKeyword("LocalizationBBFindProbe", PV::Factory::create<LocalizationBBFindProbe>);
+   pv_init.registerKeyword("LocalizationProbe", PV::Factory::create<LocalizationProbe>);
+   pv_init.registerKeyword("MaskFromMemoryBuffer", PV::Factory::create<MaskFromMemoryBuffer>);
+   pv_init.registerKeyword("Harness", PV::Factory::create<HarnessObject>);
    PV::HyPerCol * hc = createHyPerCol(&pv_init);
    pvAssert(hc->getStartTime()==hc->simulationTime());
 

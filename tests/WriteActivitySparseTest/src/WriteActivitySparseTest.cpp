@@ -38,8 +38,8 @@ int main(int argc, char * argv[]) {
       }
    }
 
-   initObj.registerKeyword("TestNotAlwaysAllZerosProbe", Factory::standardCreate<TestNotAlwaysAllZerosProbe>);
-   initObj.registerKeyword("TestAllZerosProbe", Factory::standardCreate<TestAllZerosProbe>);
+   initObj.registerKeyword("TestNotAlwaysAllZerosProbe", Factory::create<TestNotAlwaysAllZerosProbe>);
+   initObj.registerKeyword("TestAllZerosProbe", Factory::create<TestAllZerosProbe>);
 
    initObj.setParams(paramFile1);
    status = rebuildandrun(&initObj);

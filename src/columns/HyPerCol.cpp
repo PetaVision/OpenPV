@@ -3215,7 +3215,7 @@ HyPerCol * createHyPerCol(PV_Init * pv_initObj) {
          }
       }
       else {
-         BaseObject * addedObject = Factory::instance()->create(kw, name, hc);
+         BaseObject * addedObject = Factory::instance()->createByKeyword(kw, name, hc);
          if (addedObject==nullptr) {
             if (hc->globalRank()==0) {
                pvErrorNoExit().printf("Unable to create %s \"%s\".\n", kw, name);
