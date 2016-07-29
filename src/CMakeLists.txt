@@ -119,6 +119,7 @@ list(APPEND CMAKE_CXX_FLAGS ${PV_COMPILE_OPTIONS_EXTRA})
 if(PV_USE_CUDA AND CUDA_FOUND AND CUDNN_FOUND)
   list(APPEND CMAKE_CXX_FLAGS ${PV_NVCC_FLAGS})
   STRING(REGEX REPLACE ";" " " CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+	list(APPEND CUDA_NVCC_FLAGS "-std=c++11;-expt-extended-lambda")
   cuda_compile(CUBIN ${PVLibSrcCu})
   # Adding c++11 flags must come after cuda_compile
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${PV_CPP_11X_FLAGS}")

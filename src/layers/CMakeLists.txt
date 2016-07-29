@@ -1,6 +1,7 @@
 set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/ANNErrorLayer.cpp
    ${SUBDIR}/ANNLayer.cpp
+	 ${SUBDIR}/ANNLayerGPU.cpp
    ${SUBDIR}/ANNSquaredLayer.cpp
    ${SUBDIR}/ANNWhitenedLayer.cpp
    ${SUBDIR}/BackgroundLayer.cpp
@@ -13,6 +14,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/GapLayer.cpp
    ${SUBDIR}/HyPerLayer.cpp
    ${SUBDIR}/HyPerLCALayer.cpp
+	 ${SUBDIR}/HyPerGPULCALayer.cpp
    ${SUBDIR}/MomentumLCALayer.cpp
    ${SUBDIR}/Image.cpp
    ${SUBDIR}/ImageFromMemoryBuffer.cpp
@@ -48,6 +50,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
 set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/ANNErrorLayer.hpp
    ${SUBDIR}/ANNLayer.hpp
+	 ${SUBDIR}/ANNLayerGPU.hpp
    ${SUBDIR}/ANNSquaredLayer.hpp
    ${SUBDIR}/ANNWhitenedLayer.hpp
    ${SUBDIR}/BackgroundLayer.hpp
@@ -60,6 +63,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/GapLayer.hpp
    ${SUBDIR}/HyPerLayer.hpp
    ${SUBDIR}/HyPerLCALayer.hpp
+	 ${SUBDIR}/HyPerGPULCALayer.hpp
    ${SUBDIR}/Image.hpp
    ${SUBDIR}/ImageFromMemoryBuffer.hpp
    ${SUBDIR}/ImagePvp.hpp

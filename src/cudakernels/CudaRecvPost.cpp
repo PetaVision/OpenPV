@@ -236,7 +236,7 @@ void CudaRecvPost::setArgs(
    cudnnFilterDescriptor_t filterDescriptor;
    status = cudnnCreateFilterDescriptor(&filterDescriptor);
    cudnnHandleError(status, "Create filter tensor descriptor");
-   status = cudnnSetFilter4dDescriptor(filterDescriptor, CUDNN_DATA_FLOAT,
+   status = cudnnSetFilter4dDescriptor_v3(filterDescriptor, CUDNN_DATA_FLOAT,
       params.nf * params.manyScaleX * params.manyScaleY, //Number of output feature maps. For one to many, output feature maps are repeated for each kernel
       params.nfp, //Number of input feature maps
       params.nyp, //Height of each filter

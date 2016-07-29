@@ -5,6 +5,9 @@ if(PV_USE_CUDA)
      ${SUBDIR}/CudaDevice.hpp
      ${SUBDIR}/CudaKernel.hpp
      ${SUBDIR}/CudaTimer.hpp
+		 ${SUBDIR}/CudaVector.hpp
+		 ${SUBDIR}/CudaMatrix.hpp
+		 ${SUBDIR}/CudaUtility.hpp
   )
   
   set (PVLibSrcCpp ${PVLibSrcCpp}
@@ -15,6 +18,7 @@ if(PV_USE_CUDA)
   )
   
   set (PVLibSrcCu ${PVLibSrcCu}
-     ${SUBDIR}/CudaBuffer.cu
+    ${SUBDIR}/CudaBuffer.cu
+		${SUBDIR}/CudaUtility.cu
   )
 endif(PV_USE_CUDA)

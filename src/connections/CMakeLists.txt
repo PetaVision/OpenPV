@@ -6,6 +6,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/FeedbackConn.cpp
    ${SUBDIR}/GapConn.cpp
    ${SUBDIR}/HyPerConn.cpp
+	 ${SUBDIR}/HyPerConnGPU.cpp
    ${SUBDIR}/IdentConn.cpp
    ${SUBDIR}/ImprintConn.cpp
    ${SUBDIR}/KernelConn.cpp
@@ -26,6 +27,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/FeedbackConn.hpp
    ${SUBDIR}/GapConn.hpp
    ${SUBDIR}/HyPerConn.hpp
+	 ${SUBDIR}/HyPerConnGPU.hpp
    ${SUBDIR}/IdentConn.hpp
    ${SUBDIR}/ImprintConn.hpp
    ${SUBDIR}/KernelConn.hpp
