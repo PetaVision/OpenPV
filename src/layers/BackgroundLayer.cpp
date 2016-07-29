@@ -45,7 +45,7 @@ int BackgroundLayer::communicateInitInfo() {
          pvErrorNoExit().printf("%s: originalLayerName \"%s\" is not a layer in the HyPerCol.\n",
                getDescription_c(), originalLayerName);
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    //originalLayer->synchronizeMarginWidth(this);
@@ -60,7 +60,7 @@ int BackgroundLayer::communicateInitInfo() {
          errorMessage.printf("    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
                  srcLoc->nxGlobal, srcLoc->nyGlobal, srcLoc->nf, loc->nxGlobal, loc->nyGlobal, loc->nf);
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    if ((srcLoc->nf + 1)*repFeatureNum != loc->nf) {
@@ -71,7 +71,7 @@ int BackgroundLayer::communicateInitInfo() {
          errorMessage.printf("    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
                  srcLoc->nxGlobal, srcLoc->nyGlobal, srcLoc->nf, loc->nxGlobal, loc->nyGlobal, loc->nf);
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    assert(srcLoc->nx==loc->nx && srcLoc->ny==loc->ny);
@@ -165,10 +165,6 @@ int BackgroundLayer::updateState(double timef, double dt) {
       }
    }
    return status;
-}
-
-BaseObject * createBackgroundLayer(char const * name, HyPerCol * hc) {
-   return hc ? new BackgroundLayer(name, hc) : NULL;
 }
 
 } // end namespace PV

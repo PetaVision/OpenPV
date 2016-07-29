@@ -82,7 +82,7 @@ double L1NormProbe::getValueInternal(double timevalue, int index) {
    }
    else {
       if (getTargetLayer()->getSparseFlag()) {
-         DataStore * store = parent->icCommunicator()->publisherStore(getTargetLayer()->getLayerId());
+         DataStore * store = getTargetLayer()->getPublisher()->dataStore();
          int numActive = (int) store->numActiveBuffer(index)[0];
          unsigned int const * activeList = store->activeIndicesBuffer(index);
 #ifdef PV_USE_OPENMP_THREADS
@@ -112,10 +112,6 @@ double L1NormProbe::getValueInternal(double timevalue, int index) {
 
 int L1NormProbe::setNormDescription() {
    return setNormDescriptionToString("L1-norm");
-}
-
-BaseObject * createL1NormProbe(char const * name, HyPerCol * hc) {
-   return hc ? new L1NormProbe(name, hc) : NULL;
 }
 
 }  // end namespace PV

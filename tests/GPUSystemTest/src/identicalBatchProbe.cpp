@@ -47,8 +47,4 @@ int identicalBatchProbe::outputState(double timed){
    return status;
 }
 
-BaseObject * create_identicalBatchProbe(char const * probeName, HyPerCol * hc) {
-   return hc ? new identicalBatchProbe(probeName, hc): NULL;
-}
-
 } // end namespace PV

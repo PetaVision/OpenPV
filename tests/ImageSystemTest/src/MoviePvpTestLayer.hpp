@@ -15,7 +15,6 @@ public:
    virtual int updateState(double time, double dt);
 };
 
-BaseObject * createMoviePvpTestLayer(char const * name, HyPerCol * hc);
 
 }  // end namespace PV
 #endif /* PVPTESTLAYER_HPP */

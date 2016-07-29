@@ -11,7 +11,9 @@
 #define DEFAULT_NUMSTEPS 1
 
 #include "HyPerCol.hpp"
-#include "columns/InterColComm.hpp"
+#include "columns/Factory.hpp"
+#include "columns/RandomSeed.hpp"
+#include "columns/Communicator.hpp"
 #include "normalizers/NormalizeBase.hpp"
 #include "io/Clock.hpp"
 #include "io/io.hpp"
@@ -289,6 +291,8 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
    mCurrentStep = mInitialStep;
    mFinalStep = (long int) nearbyint(mStopTime/mDeltaTimeBase);
    mNextProgressTime = mStartTime + mProgressInterval;
+
+   RandomSeed::instance()->initialize(mRandomSeed);
 
    if(mCheckpointWriteFlag) {
       switch (mCheckpointWriteTriggerMode) {
@@ -679,7 +683,7 @@ void HyPerCol::ioParam_dtAdaptFlag(enum ParamsIOFlag ioFlag) {
                   dtAdaptFlagError << "null; therefore dtAdaptFlag can only be set to false.\n";
                }
             }
-            MPI_Barrier(icCommunicator()->communicator());
+            MPI_Barrier(getCommunicator()->communicator());
             exit(EXIT_FAILURE);
          }
       }
@@ -778,7 +782,7 @@ void HyPerCol::ioParam_stopTime(enum ParamsIOFlag ioFlag) {
          pvError() << "numSteps is obsolete.  Use startTime, stopTime and dt instead.\n" <<
                "    stopTime set to " << mStopTime << "\n";
       }
-      MPI_Barrier(icCommunicator()->communicator());
+      MPI_Barrier(getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    // numSteps was deprecated Dec 12, 2013 and marked obsolete Jun 27, 2016
@@ -793,7 +797,7 @@ void HyPerCol::ioParam_progressInterval(enum ParamsIOFlag ioFlag) {
       if (globalRank()==0) {
          pvErrorNoExit() << "progressStep is obsolete.  Use progressInterval instead.\n";
       }
-      MPI_Barrier(icCommunicator()->communicator());
+      MPI_Barrier(getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    // progressStep was deprecated Dec 18, 2013
@@ -841,7 +845,7 @@ void HyPerCol::ioParam_printParamsFilename(enum ParamsIOFlag ioFlag) {
       if (columnId()==0) {
          pvErrorNoExit().printf("printParamsFilename cannot be null or the empty string.\n");
       }
-      MPI_Barrier(icCommunicator()->communicator());
+      MPI_Barrier(getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
 }
@@ -853,16 +857,16 @@ void HyPerCol::ioParam_randomSeed(enum ParamsIOFlag ioFlag) {
       // set random seed if it wasn't set in the command line
       // bool seedfromclock = false;
       if( !mRandomSeed ) {
-         if( mParams->present(mName, "randomSeed") ) {
-            mRandomSeed = (unsigned long) mParams->value(mName, "randomSeed");
+         if( params->present(mName, "randomSeed") ) {
+            mRandomSeed = (unsigned long) params->value(mName, "randomSeed");
          }
          else {
-            mRandomSeed = getRandomSeed();
+            mRandomSeed = seedRandomFromWallClock();
          }
       }
-      pvErrorIf(mRandomSeed < 10000000, "Error: random seed %u is too small. Use a seed of at least 10000000.\n", mRandomSeed);
-
-      mRandomSeedObj = mRandomSeed;
+      if (mRandomSeed < RandomSeed::minSeed) {
+         pvError().printf("Error: random seed %u is too small. Use a seed of at least 10000000.\n", mRandomSeed);
+      }
       break;
    case PARAMS_IO_WRITE:
       writeParam("randomSeed", mRandomSeed);
@@ -920,7 +924,7 @@ void HyPerCol::ioParam_checkpointRead(enum ParamsIOFlag ioFlag) {
          pvErrorNoExit() << "The checkpointRead params file parameter is obsolete." <<
                "  Instead, set the checkpoint directory on the command line.\n";
       }
-      MPI_Barrier(icCommunicator()->communicator());
+      MPI_Barrier(getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
 }
@@ -961,7 +965,7 @@ void HyPerCol::ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag ) {
             if (globalRank()==0) {
                pvErrorNoExit().printf("HyPerCol \"%s\": checkpointWriteTriggerMode \"%s\" is not recognized.\n", mName, mCheckpointWriteTriggerModeString);
             }
-            MPI_Barrier(icCommunicator()->globalCommunicator());
+            MPI_Barrier(getCommunicator()->globalCommunicator());
             exit(EXIT_FAILURE);
          }
       }
@@ -981,7 +985,7 @@ void HyPerCol::ioParam_checkpointWriteStepInterval(enum ParamsIOFlag ioFlag) {
 void HyPerCol::ioParam_checkpointWriteTimeInterval(enum ParamsIOFlag ioFlag) {
    assert(!mParams->presentAndNotBeenRead(mName, "checkpointWrite"));
    if (mCheckpointWriteFlag) {
-      assert(!mParams->presentAndNotBeenRead(mName, "checkpointWriteTriggerMode"));
+      pvAssert(!mParams->presentAndNotBeenRead(mName, "checkpointWriteTriggerMode"));
       if(mCheckpointWriteTriggerMode == CPWRITE_TRIGGER_TIME) {
          ioParamValue(ioFlag, mName, "checkpointWriteTimeInterval", &mCpWriteTimeInterval, mDeltaTimeBase);
       }
@@ -991,7 +995,7 @@ void HyPerCol::ioParam_checkpointWriteTimeInterval(enum ParamsIOFlag ioFlag) {
 void HyPerCol::ioParam_checkpointWriteClockInterval(enum ParamsIOFlag ioFlag) {
    assert(!mParams->presentAndNotBeenRead(mName, "checkpointWrite"));
    if (mCheckpointWriteFlag) {
-      assert(!mParams->presentAndNotBeenRead(mName, "checkpointWriteTriggerMode"));
+      pvAssert(!mParams->presentAndNotBeenRead(mName, "checkpointWriteTriggerMode"));
       if(mCheckpointWriteTriggerMode == CPWRITE_TRIGGER_CLOCK) {
          ioParamValueRequired(ioFlag, mName, "checkpointWriteClockInterval", &mCpWriteClockInterval);
       }
@@ -999,14 +1003,14 @@ void HyPerCol::ioParam_checkpointWriteClockInterval(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerCol::ioParam_checkpointWriteClockUnit(enum ParamsIOFlag ioFlag) {
-   assert(!mParams->presentAndNotBeenRead(mName, "checkpointWrite"));
+   pvAssert(!mParams->presentAndNotBeenRead(mName, "checkpointWrite"));
    if (mCheckpointWriteFlag) {
-      assert(!mParams->presentAndNotBeenRead(mName, "checkpointWriteTriggerMode"));
+      pvAssert(!mParams->presentAndNotBeenRead(mName, "checkpointWriteTriggerMode"));
       if(mCheckpointWriteTriggerMode == CPWRITE_TRIGGER_CLOCK) {
          assert(!mParams->presentAndNotBeenRead(mName, "checkpointWriteTriggerClockInterval"));
          ioParamString(ioFlag, mName, "checkpointWriteClockUnit", &mCheckpointWriteClockUnit, "seconds");
          if (ioFlag==PARAMS_IO_READ) {
-            assert(mCheckpointWriteClockUnit);
+            pvAssert(mCheckpointWriteClockUnit);
             for (size_t n=0; n<strlen(mCheckpointWriteClockUnit); n++) {
                mCheckpointWriteClockUnit[n] = tolower(mCheckpointWriteClockUnit[n]);
             }
@@ -1034,7 +1038,7 @@ void HyPerCol::ioParam_checkpointWriteClockUnit(enum ParamsIOFlag ioFlag) {
                if (globalRank()==0) {
                   pvErrorNoExit().printf("checkpointWriteClockUnit \"%s\" is unrecognized.  Use \"seconds\", \"minutes\", \"hours\", or \"days\".\n", mCheckpointWriteClockUnit);
                }
-               MPI_Barrier(icCommunicator()->globalCommunicator());
+               MPI_Barrier(getCommunicator()->globalCommunicator());
                exit(EXIT_FAILURE);
             }
             pvErrorIf(mCheckpointWriteClockUnit == nullptr, "Error in global rank %d process converting checkpointWriteClockUnit: %s\n", globalRank(), strerror(errno));
@@ -1184,11 +1188,11 @@ int HyPerCol::checkDirExists(const char * dirname, struct stat * pathstat) {
       if( status ) errorcode = errno;
    }
 #ifdef PV_USE_MPI
-   MPI_Bcast(&status, 1, MPI_INT, 0, icCommunicator()->communicator());
+   MPI_Bcast(&status, 1, MPI_INT, 0, getCommunicator()->communicator());
    if( status ) {
-      MPI_Bcast(&errorcode, 1, MPI_INT, 0, icCommunicator()->communicator());
+      MPI_Bcast(&errorcode, 1, MPI_INT, 0, getCommunicator()->communicator());
    }
-   MPI_Bcast(pathstat, sizeof(struct stat), MPI_CHAR, 0, icCommunicator()->communicator());
+   MPI_Bcast(pathstat, sizeof(struct stat), MPI_CHAR, 0, getCommunicator()->communicator());
 #endif // PV_USE_MPI
    return status ? errorcode : 0;
 }
@@ -1310,7 +1314,6 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
       
       pvErrorIf(status != PV_SUCCESS,  "HyPerCol \"%s\" failed to run.\n", mName); 
       if (mPVInitObj->getDryRunFlag()) { return PV_SUCCESS; }
-
       int thread_status = setNumThreads(true/*now, print messages related to setting number of threads*/);
       MPI_Barrier(mCommunicator->globalCommunicator());
       if (thread_status !=PV_SUCCESS) {
@@ -1324,28 +1327,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
 
       initDtAdaptControlProbe();
 
-      int (HyPerCol::*layerInitializationStage)(int) = nullptr;
-      int (HyPerCol::*connInitializationStage)(int) = nullptr;
-
-      // allocateDataStructures stage
-      layerInitializationStage = &HyPerCol::layerAllocateDataStructures;
-      connInitializationStage = &HyPerCol::connAllocateDataStructures;
-      doInitializationStage(layerInitializationStage, connInitializationStage, "allocateDataStructures");
-
-      // do allocation stage for probes
-      for (int i=0; i<mBaseProbes.size(); i++) {
-         BaseProbe * p = mBaseProbes.at(i);
-         int pstatus = p->allocateDataStructures();
-         if (pstatus==PV_SUCCESS) {
-            if (globalRank()==0) { 
-               pvInfo().printf("%s allocateDataStructures completed.\n", p->getDescription_c()); 
-            }
-         }
-         else {
-            pvAssert(pstatus == PV_FAILURE); // PV_POSTPONE etc. hasn't been implemented for probes yet.
-            exit(EXIT_FAILURE); // Any error message should be printed by probe's allocateDataStructures function
-         }
-      }
+      notify(std::make_shared<AllocateDataMessage>());
 
       mPhaseRecvTimers.clear();
       for(int phase = 0; phase < mNumPhases; phase++) {
@@ -1353,8 +1335,6 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
          sprintf(tmpStr, "phRecv%d", phase);
          mPhaseRecvTimers.push_back(new Timer(mName, "column", tmpStr));
       }
-
-      initPublishers(); // create the publishers and their data stores
 
    #ifdef DEBUG_OUTPUT
       if (columnId() == 0) {
@@ -1370,40 +1350,27 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
          checkpointRead();
       }
 
-      // setInitialValues stage sets the initial values of layers and connections, either from params or from checkpoint
-      layerInitializationStage = &HyPerCol::layerSetInitialValues;
-      connInitializationStage = &HyPerCol::connSetInitialValues;
-      doInitializationStage(layerInitializationStage, connInitializationStage, "setInitialValues");
-      free(mLayerStatus); mLayerStatus = nullptr;
-      free(mConnectionStatus); mConnectionStatus = nullptr;
+      notify(std::make_shared<InitializeStateMessage>());
 
       // Initial normalization moved here to facilitate normalizations of groups of HyPerConns
       normalizeWeights();
-      for (int c = 0; c < mConnections.size(); c++) {
-         mConnections.at(c)->finalizeUpdate(mSimTime, mDeltaTimeBase);
-      }
+      notify(std::make_shared<ConnectionFinalizeUpdateMessage>(simTime, deltaTimeBase));
 
       // publish initial conditions
-      //
-      for (int l = 0; l < mLayers.size(); l++) {
-         mLayers.at(l)->publish(mCommunicator, mSimTime);
-         //mLayers[l]->updateActiveIndices();
+      for(int phase = 0; phase < numPhases; phase++){
+         notify(std::make_shared<LayerPublishMessage>(phase, simTime));
       }
 
       // wait for all published data to arrive and update active indices;
-      //
-      for (int l = 0; l < mLayers.size(); l++) {
-         mCommunicator->wait(mLayers.at(l)->getLayerId());
-         mLayers.at(l)->updateActiveIndices();
+      for (int phase=0; phase<numPhases; phase++) {
+         notify(std::make_shared<LayerUpdateActiveIndicesMessage>(phase));
       }
 
       // output initial conditions
       if (!mCheckpointReadFlag) {
-         for (auto c : mConnections) {
-            c->outputState(mSimTime);
-         }
-         for (int l = 0; l < mLayers.size(); l++) {
-            mLayers.at(l)->outputState(mSimTime);
+         notify(std::make_shared<ConnectionOutputMessage>(simTime));
+         for (int phase=0; phase<numPhases; phase++) {
+            notify(std::make_shared<LayerOutputStateMessage>(phase, simTime));
          }
       }
       mReadyFlag = true;
@@ -1417,7 +1384,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
    //
    long int step = 0;
    pvAssert(status == PV_SUCCESS);
-   while (mSimTime < mStopTime - mDeltaTime/2.0 && status != PV_EXIT_NORMALLY) {
+   while (mSimTime < mStopTime - mDeltaTime/2.0) {
       // Should we move the if statement below into advanceTime()?
       // That way, the routine that polls for SIGUSR1 and sets mCheckpointSignal is the same
       // as the routine that acts on mCheckpointSignal and clears it, which seems clearer.  --pete July 7, 2015
@@ -1580,40 +1547,8 @@ int HyPerCol::setNumThreads(bool printMessagesFlag) {
 
 int HyPerCol::processParams(char const * path) {
    if (!mParamsProcessedFlag) {
-      mLayerStatus = (int *) calloc((size_t)mLayers.size(), sizeof(int));
-      if (mLayerStatus==nullptr) {
-         pvError().printf("Global rank %d process unable to allocate memory for status of %zu layers: %s\n", globalRank(), (size_t) mLayers.size(), strerror(errno));
-      }
-      mConnectionStatus = (int *) calloc((size_t) mConnections.size(), sizeof(int));
-      if (mConnectionStatus==nullptr) {
-         pvError().printf("Global rank %d process unable to allocate memory for status of %zu connections: %s\n", globalRank(), (size_t) mConnections.size(), strerror(errno));
-      }
-   
-      int (HyPerCol::*layerInitializationStage)(int) = nullptr;
-      int (HyPerCol::*connInitializationStage)(int) = nullptr;
-   
-      // do communication step for layers and connections
-      layerInitializationStage = &HyPerCol::layerCommunicateInitInfo;
-      connInitializationStage = &HyPerCol::connCommunicateInitInfo;
-      doInitializationStage(layerInitializationStage, connInitializationStage, "communicateInitInfo");
-   
-      // do communication step for probes
-      // This is where probes are added to their respective target mLayers and mConnections
-      for (int i=0; i<mBaseProbes.size(); i++) {
-         BaseProbe * p = mBaseProbes.at(i);
-         int pstatus = p->communicateInitInfo();
-         if (pstatus==PV_SUCCESS) {
-            if (globalRank()==0) {
-               pvInfo().printf("%s communicateInitInfo completed.\n", p->getDescription_c());
-            }
-         }
-         else {
-            assert(pstatus == PV_FAILURE); // PV_POSTPONE etc. hasn't been implemented for probes yet.
-            // A more detailed error message should be printed by probe's communicateInitInfo function.
-            pvErrorNoExit().printf("%s communicateInitInfo failed.\n", p->getDescription_c());
-            return PV_FAILURE;
-         }
-      }
+      auto const& objectMap = mObjectHierarchy.getObjectMap();
+      notify(std::make_shared<CommunicateInitInfoMessage<BaseObject*> >(objectMap));
    }
 
    // Print a cleaned up version of params to the file given by printParamsFilename
@@ -1631,140 +1566,55 @@ int HyPerCol::processParams(char const * path) {
    return PV_SUCCESS;
 }
 
-int HyPerCol::doInitializationStage(int (HyPerCol::*layerInitializationStage)(int), int (HyPerCol::*connInitializationStage)(int), const char * stageName) {
-   int status = PV_SUCCESS;
-   for (int l=0; l<mLayers.size(); l++) {
-      mLayerStatus[l]=PV_POSTPONE;
-   }
-   for (int c=0; c<mConnections.size(); c++) {
-      mConnectionStatus[c]=PV_POSTPONE;
-   }
-   int numPostponedLayers = mLayers.size();
-   int numPostponedConns = mConnections.size();
-   int prevNumPostponedLayers;
-   int prevNumPostponedConns;
-   do {
-      prevNumPostponedLayers = numPostponedLayers;
-      prevNumPostponedConns = numPostponedConns;
-      for (int l=0; l<mLayers.size(); l++) {
-         if (mLayerStatus[l]==PV_POSTPONE) {
-            int status = (this->*layerInitializationStage)(l);
-            switch (status) {
+void HyPerCol::notify(std::vector<std::shared_ptr<BaseMessage> > messages) {
+   auto needsUpdate = mObjectHierarchy.getObjectVector();
+   auto numNeedsUpdate = needsUpdate.size();
+   while(numNeedsUpdate>0) {
+      auto oldNumNeedsUpdate = numNeedsUpdate;
+      auto iter=needsUpdate.begin();
+      while (iter!=needsUpdate.end()) {
+         auto obj = (*iter);
+         int status = PV_SUCCESS;
+         for (auto msg : messages) {
+            status = obj->respond(msg);
+            if (status == PV_BREAK) { status = PV_SUCCESS; } // Can we get rid of PV_BREAK as a possible return value of connections' updateState?
+            switch(status) {
             case PV_SUCCESS:
-               mLayerStatus[l] = PV_SUCCESS;
-               numPostponedLayers--;
-               pvAssert(numPostponedLayers>=0);
-               if (globalRank()==0) {
-                  pvInfo().printf("%s: %s completed.\n", mLayers.at(l)->getDescription_c(), stageName);
-               }
+               continue;
                break;
             case PV_POSTPONE:
-               if (globalRank()==0) {
-                  pvInfo().printf("%s: %s postponed.\n", mLayers.at(l)->getDescription_c(), stageName);
-               }
+               pvInfo() << obj->getDescription() << ": " << msg->getMessageType() << " postponed.\n";
                break;
             case PV_FAILURE:
-               exit(EXIT_FAILURE); // Any error message should be printed by layerInitializationStage function.
+               pvError() << obj->getDescription() << " failed " << msg->getMessageType() << ".\n";
                break;
             default:
+               pvError() << obj->getDescription() << " returned unrecognized return code " << status << ".\n";
                break;
             }
          }
-      }
-      for (int c=0; c < mConnections.size(); c++) {
-         if (mConnectionStatus[c]==PV_POSTPONE) {
-            int status = (this->*connInitializationStage)(c);
-            switch (status) {
-            case PV_SUCCESS:
-               mConnectionStatus[c] = PV_SUCCESS;
-               numPostponedConns--;
-               assert(numPostponedConns>=0);
-               if (globalRank()==0) pvInfo().printf("%s %s completed.\n", mConnections.at(c)->getDescription_c(), stageName);
-               break;
-            case PV_POSTPONE:
-               if (globalRank()==0) pvInfo().printf("%s %s postponed.\n", mConnections.at(c)->getDescription_c(), stageName);
-               break;
-            case PV_FAILURE:
-               exit(EXIT_FAILURE); // Error message should be printed in connection's communicateInitInfo().
-               break;
-            default:
-               assert(0); // This shouldn't be possible
-            }
+         switch(status) {
+         case PV_SUCCESS:
+            iter = needsUpdate.erase(iter);
+            break;
+         case PV_POSTPONE:
+            iter++;
+            break;
+         default:
+            pvAssert(0);
+            break;
          }
+      }
+      numNeedsUpdate = needsUpdate.size();
+      if (numNeedsUpdate == oldNumNeedsUpdate) {
+         pvErrorNoExit() << "HyPerCol::notify has hung with " << numNeedsUpdate << " objects still postponed.\n";
+         for (auto& obj : needsUpdate) {
+            pvErrorNoExit() << obj->getDescription() << " is still postponed.\n";
+         }
+         exit(EXIT_FAILURE);
+         break;
       }
    }
-   while (numPostponedLayers < prevNumPostponedLayers || numPostponedConns < prevNumPostponedConns);
-
-   if (numPostponedLayers != 0 || numPostponedConns != 0) {
-      pvErrorNoExit(errorMessage);
-      errorMessage.printf("%s loop has hung on global rank %d process.\n", stageName, globalRank());
-      for (int l=0; l<mLayers.size(); l++) {
-         if (mLayerStatus[l]==PV_POSTPONE) {
-            errorMessage.printf("%s on global rank %d is still postponed.\n", mLayers.at(l)->getDescription_c(), globalRank());
-         }
-      }
-      for (int c=0; c<mConnections.size(); c++) {
-         if (mLayerStatus[c]==PV_POSTPONE) {
-            errorMessage.printf("%s on global rank %d is still postponed.\n", mConnections.at(c)->getDescription_c(), globalRank());
-         }
-      }
-      exit(EXIT_FAILURE);
-   }
-   return status;
-}
-
-int HyPerCol::layerCommunicateInitInfo(int l) {
-   pvAssert(l >= 0 && l < mLayers.size());
-   HyPerLayer * layer = mLayers.at(l);
-   pvAssert(!layer->getInitInfoCommunicatedFlag());
-   int status = layer->communicateInitInfo();
-   if (status==PV_SUCCESS) layer->setInitInfoCommunicatedFlag();
-   return status;
-}
-
-int HyPerCol::connCommunicateInitInfo(int c) {
-   pvAssert(c >= 0 && c < mConnections.size());
-   BaseConnection * conn = mConnections.at(c);
-   pvAssert(!conn->getInitInfoCommunicatedFlag());
-   int status = conn->communicateInitInfo();
-   if (status==PV_SUCCESS) conn->setInitInfoCommunicatedFlag();
-   return status;
-}
-
-int HyPerCol::layerAllocateDataStructures(int l) {
-   pvAssert(l >= 0 && l < mLayers.size());
-   HyPerLayer * layer = mLayers.at(l);
-   pvAssert(!layer->getDataStructuresAllocatedFlag());
-   int status = layer->allocateDataStructures();
-   if (status==PV_SUCCESS) layer->setDataStructuresAllocatedFlag();
-   return status;
-}
-
-int HyPerCol::connAllocateDataStructures(int c) {
-   pvAssert(c >= 0 && c < mConnections.size());
-   BaseConnection * conn = mConnections.at(c);
-   pvAssert(!conn->getDataStructuresAllocatedFlag());
-   int status = conn->allocateDataStructures();
-   if (status==PV_SUCCESS) conn->setDataStructuresAllocatedFlag();
-   return status;
-}
-
-int HyPerCol::layerSetInitialValues(int l) {
-   pvAssert(l >= 0 && l < mLayers.size());
-   HyPerLayer * layer = mLayers.at(l);
-   pvAssert(!layer->getInitialValuesSetFlag());
-   int status = layer->initializeState();
-   if (status==PV_SUCCESS) layer->setInitialValuesSetFlag();
-   return status;
-}
-
-int HyPerCol::connSetInitialValues(int c) {
-   pvAssert(c >= 0 && c < mConnections.size());
-   BaseConnection * conn = mConnections.at(c);
-   assert(!conn->getInitialValuesSetFlag());
-   int status = conn->initializeState();
-   if (status==PV_SUCCESS) conn->setInitialValuesSetFlag();
-   return status;
 }
 
 int HyPerCol::normalizeWeights() {
@@ -1777,18 +1627,6 @@ int HyPerCol::normalizeWeights() {
       }
    }
    return status;
-}
-
-int HyPerCol::initPublishers() {
-   for( int l=0; l<mLayers.size(); l++ ) {
-      // PVLayer * clayer = mLayers[l]->getCLayer();
-      mCommunicator->addPublisher(mLayers.at(l));
-   }
-   for(auto c : mConnections) {
-      mCommunicator->subscribe(c);
-   }
-
-   return PV_SUCCESS;
 }
 
 double * HyPerCol::adaptTimeScale(){
@@ -2101,21 +1939,12 @@ int HyPerCol::advanceTime(double sim_time)
    //
 
    int status = PV_SUCCESS;
-   bool exitAfterUpdate = false;
 
    // update the connections (weights)
    //
-   for (auto c : mConnections) {
-      status = c->updateState(mSimTime, mDeltaTimeBase);
-      if (!exitAfterUpdate) {
-         exitAfterUpdate = status == PV_EXIT_NORMALLY;
-      }
-   }
    normalizeWeights();
-   for (auto c : mConnections) {
-      c->finalizeUpdate(mSimTime, mDeltaTimeBase);
-      c->outputState(mSimTime);
-   }
+   notify(std::make_shared<ConnectionFinalizeUpdateMessage>(mSimTime, mDeltaTimeBase));
+   notify(std::make_shared<ConnectionOutputMessage>(mSimTime));
 
    if (globalRank()==0) {
       int sigstatus = PV_SUCCESS;
@@ -2139,194 +1968,61 @@ int HyPerCol::advanceTime(double sim_time)
    }
 
    // Each layer's phase establishes a priority for updating
-   for (int phase=0; phase<mNumPhases; phase++) {
-#ifdef PV_USE_CUDA
-      //Clear layer buffer
-      mRecvLayerBuffer.clear();
-      mUpdateLayerBuffer.clear();
-      mUpdateLayerBufferGpu.clear();
-#endif
+   for (int phase=0; phase<numPhases; phase++) {
 
       //Ordering needs to go recvGpu, if(recvGpu and upGpu)update, recvNoGpu, update rest
+#ifdef PV_USE_CUDA
+      notify({
+         std::make_shared<LayerRecvSynapticInputMessage>(phase, mPhaseRecvTimers.at(phase), true/*recvGpuFlag*/, mSimTime, mDeltaTimeBase),
+         std::make_shared<LayerUpdateStateMessage>(phase, true/*recvGpuFlag*/, true/*updateGpuFlag*/, mSimTime, mDeltaTimeBase)
+      });
 
-      //Time recv for each phase
-      // clear GSyn buffers
-      for(int l = 0; l < mLayers.size(); l++) {
-         if (mLayers.at(l)->getPhase() != phase) continue;
-#ifdef PV_USE_CUDA
-         //Save non gpu layer recv for later
-         if(!mLayers.at(l)->getRecvGpu()){
-            mRecvLayerBuffer.push_back(mLayers.at(l));
-            continue;
-         }
-#endif
-         //Recv GPU
-         mLayers.at(l)->resetGSynBuffers(mSimTime, mDeltaTimeBase);  // mDeltaTimeAdapt is not used
-         mPhaseRecvTimers.at(phase)->start();
-         mLayers.at(l)->recvAllSynapticInput();
-         mPhaseRecvTimers.at(phase)->stop();
-         //if(recvGpu and upGpu)
+      notify({
+         std::make_shared<LayerRecvSynapticInputMessage>(phase, mPhaseRecvTimers.at(phase), false/*recvGpuFlag*/, mSimTime, mDeltaTimeBase),
+         std::make_shared<LayerUpdateStateMessage>(phase, false/*recvGpuFlag*/, false/*updateGpuFlag*/, mSimTime, mDeltaTimeBase)
 
-         //Update for gpu recv and gpu update
-#ifdef PV_USE_CUDA
-         if(mLayers.at(l)->getUpdateGpu()){
-#endif
-            status = mLayers.at(l)->callUpdateState(mSimTime, mDeltaTimeBase);
-            if (!exitAfterUpdate) {
-               exitAfterUpdate = status == PV_EXIT_NORMALLY;
-            }
-#ifdef PV_USE_CUDA
-         }
-         //If not updating on gpu, save for later
-         else{
-            mUpdateLayerBuffer.push_back(mLayers.at(l));
-         }
-#endif
-      }
+      });
 
-#ifdef PV_USE_CUDA
-      //Run non gpu mLayers
-      for (auto& layer : mRecvLayerBuffer) {
-         layer->resetGSynBuffers(mSimTime, mDeltaTimeBase);  // mDeltaTimeAdapt is not used
-         mPhaseRecvTimers.at(phase)->start();
-         layer->recvAllSynapticInput();
-         mPhaseRecvTimers.at(phase)->stop();
-         if(layer->getUpdateGpu()){
-            mUpdateLayerBufferGpu.push_back(layer);
-         }
-         //Update for non gpu recv and non gpu update
-         else{
-            status = layer->callUpdateState(mSimTime, mDeltaTimeBase);
-            if (!exitAfterUpdate) {
-               exitAfterUpdate = status == PV_EXIT_NORMALLY;
-            }
-         }
-      }
       getDevice()->syncDevice();
 
-      //Update for non gpu recv and gpu update
-      for(auto& layer : mUpdateLayerBufferGpu) {
-         status = layer->callUpdateState(mSimTime, mDeltaTimeBase);
-         if (!exitAfterUpdate) {
-            exitAfterUpdate = status == PV_EXIT_NORMALLY;
-         }
-      }
+      //Update for receiving on cpu and updating on gpu
+      notify(std::make_shared<LayerUpdateStateMessage>(phase, false/*recvOnGpuFlag*/, true/*updateOnGpuFlag*/, mSimTime, mDeltaTimeBase));
 
       getDevice()->syncDevice();
-      //Barriers for all gpus, and copy back all data structures
-      for(int l = 0; l < mLayers.size(); l++) {
-         if (mLayers.at(l)->getPhase() != phase) continue;
-         mPhaseRecvTimers.at(phase)->start();
-         mLayers.at(l)->copyAllActivityFromDevice();
-         mLayers.at(l)->copyAllVFromDevice();
-         mLayers.at(l)->copyAllGSynFromDevice();
-         mLayers.at(l)->addGpuTimers();
-         mPhaseRecvTimers.at(phase)->stop();
-      }
+      notify(std::make_shared<LayerCopyFromGpuMessage>(phase, mPhaseRecvTimers.at(phase)));
 
       //Update for gpu recv and non gpu update
-      for (auto& layer : mUpdateLayerBuffer) {
-         status = layer->callUpdateState(mSimTime, mDeltaTimeBase);
-         if (!exitAfterUpdate) {
-            exitAfterUpdate = status == PV_EXIT_NORMALLY;
-         }
-      }
-
-      //Clear all buffers
-      mRecvLayerBuffer.clear();
-      mUpdateLayerBuffer.clear();
-      mUpdateLayerBufferGpu.clear();
+      notify(std::make_shared<LayerUpdateStateMessage>(phase, true/*recvOnGpuFlag*/, false/*updateOnGpuFlag*/, mSimTime, mDeltaTimeBase));
+#else
+      notify({
+         std::make_shared<LayerRecvSynapticInputMessage>(phase, mPhaseRecvTimers.at(phase), mSimTime, mDeltaTimeBase),
+         std::make_shared<LayerUpdateStateMessage>(phase, mSimTime, mDeltaTimeBase)
+      });
 #endif
 
+      // Rotate DataStore ring buffers, copy activity buffer to DataStore, and do MPI exchange.
+      notify(std::make_shared<LayerPublishMessage>(phase, mSimTime));
 
-      //    for (int l = 0; l < mNumLayers; l++) {
-      //       // deliver new synaptic activity to any
-      //       // postsynaptic mLayers for which this
-      //       // layer is presynaptic.
-      //       mLayers[l]->triggerReceive(mCommunicator);
-      //    }
+      // wait for all published data to arrive and call layer's outputState
 
-      //// Update the mLayers (activity)
-      //// We don't put updateState in the same loop over mLayers as recvAllSynapticInput
-      //// because we plan to have updateState update the datastore directly, and
-      //// recvSynapticInput uses the datastore to compute GSyn.
-      //for(int l = 0; l < mNumLayers; l++) {
-      //   if (mLayers[l]->getPhase() != phase) continue;
-      //   status = mLayers[l]->updateStateWrapper(mSimTime, mDeltaTimeAdapt);
-      //   if (!exitAfterUpdate) {
-      //      exitAfterUpdate = status == PV_EXIT_NORMALLY;
-      //   }
-      //}
-
-      // This loop separate from the update layer loop above
-      // to provide time for layer data to be copied from
-      // the OpenCL device.
-      //
-      for (int l = 0; l < mLayers.size(); l++) {
-         if (mLayers.at(l)->getPhase() != phase) continue;
-         // after updateBorder completes all necessary data has been
-         // copied from the device (GPU) to the host (CPU)
-         mLayers.at(l)->updateBorder(mSimTime, mDeltaTimeBase); // TODO rename updateBorder?  mDeltaTimeAdapt not used here
-
-         // TODO - move this to layer
-         // Advance time level so we have a new place in data store
-         // to copy the data.  This should be done immediately before
-         // publish so there is a place to publish and deliver the data to.
-         // No one can access the data store (except to publish) until
-         // wait has been called.  This should be fixed so that publish goes
-         // to last time level and level is advanced only after wait.
-         mCommunicator->increaseTimeLevel(mLayers.at(l)->getLayerId());
-
-         mLayers.at(l)->publish(mCommunicator, mSimTime);
+      std::vector<std::shared_ptr<BaseMessage>> messageVector = {
+         std::make_shared<LayerUpdateActiveIndicesMessage>(phase),
+         std::make_shared<LayerOutputStateMessage>(phase, mSimTime)
+      };
+      if (mErrorOnNotANumber) {
+         messageVector.push_back(std::make_shared<LayerCheckNotANumberMessage>(phase));
       }
-
-
-      // wait for all published data to arrive
-      //
-      char brokenlayers[mLayers.size()];
-      memset(brokenlayers, 0, (size_t) mLayers.size());
-      for (int l = 0; l < mLayers.size(); l++) {
-         if (mLayers.at(l)->getPhase() != phase) continue;
-         mLayers.at(l)->waitOnPublish(mCommunicator);
-         //Update active indices
-         mLayers.at(l)->updateActiveIndices();
-
-         //
-         //    // also calls layer probes
-         mLayers.at(l)->outputState(mSimTime); // also calls layer probes' outputState
-         if (mErrorOnNotANumber) {
-            for (int n=0; n<mLayers.at(l)->getNumExtended(); n++) {
-               pvadata_t a = mLayers.at(l)->getLayerData()[n];
-               if (a!=a) {
-                  status = PV_FAILURE;
-                  brokenlayers[l] = 1;
-               }
-            }
-         }
-      }
-      if (status==PV_FAILURE) {
-         for (int l=0; l<mLayers.size();l++) {
-            if (brokenlayers[l]) {
-               pvErrorNoExit().printf("%s has not-a-number values in the activity buffer.  Exiting.\n", mLayers.at(l)->getDescription_c());
-            }
-         }
-         exit(EXIT_FAILURE);
-      }
-
+      notify(messageVector);
    }
 
    // Balancing MPI_Send is before the for-loop over phases.  Is this better than MPI_Bcast?
    if (globalRank()!=0) {
-      MPI_Recv(&mCheckpointSignal, 1/*count*/, MPI_INT, 0/*source*/, 99/*tag*/, icCommunicator()->globalCommunicator(), MPI_STATUS_IGNORE);
+      MPI_Recv(&mCheckpointSignal, 1/*count*/, MPI_INT, 0/*source*/, 99/*tag*/, getCommunicator()->globalCommunicator(), MPI_STATUS_IGNORE);
    }
 
    mRunTimer->stop();
 
    outputState(mSimTime);
-
-   if (exitAfterUpdate) {
-      status = PV_EXIT_NORMALLY;
-   }
 
 
    return status;
@@ -2396,7 +2092,7 @@ int HyPerCol::checkpointRead() {
       assert(endpos-startpos==(int)timestamp_size);
       PV_fclose(timestampfile);
    }
-   MPI_Bcast(&timestamp,(int) timestamp_size,MPI_CHAR,0,icCommunicator()->communicator());
+   MPI_Bcast(&timestamp,(int) timestamp_size,MPI_CHAR,0,getCommunicator()->communicator());
    mSimTime = timestamp.time;
    mCurrentStep = timestamp.step;
 
@@ -2534,7 +2230,6 @@ int HyPerCol::writeTimers(std::ostream& stream){
    if (rank==0) {
       mRunTimer->fprint_time(stream);
       mCheckpointTimer->fprint_time(stream);
-      icCommunicator()->fprintTime(stream);
       for (auto c : mConnections) {
          c->writeTimers(stream);
       }
@@ -2737,6 +2432,9 @@ int HyPerCol::outputParams(char const * path) {
    int status = PV_SUCCESS;
    int rank=mCommunicator->commRank();
    assert(mPrintParamsStream==nullptr);
+=======
+   assert(printParamsStream==NULL);
+>>>>>>> develop
    char printParamsPath[PV_PATH_MAX];
    char * tmp = strdup(path); // duplicate string since dirname() is allowed to modify its argument
    if (tmp==nullptr) {
@@ -3226,7 +2924,7 @@ BaseProbe * HyPerCol::getBaseProbeFromName(const char * probeName) {
    return p;
 }
 
-unsigned int HyPerCol::getRandomSeed() {
+unsigned int HyPerCol::seedRandomFromWallClock() {
    unsigned long t = 0UL;
    int rootproc = 0;
    if (columnId()==rootproc) {
@@ -3322,7 +3020,7 @@ int HyPerCol::readArrayFromFile(const char * cp_dir, const char * group_name, co
          PV_fclose(pvstream);
       }
    }
-   MPI_Bcast(val, sizeof(T)*count, MPI_CHAR, 0, icCommunicator()->communicator());
+   MPI_Bcast(val, sizeof(T)*count, MPI_CHAR, 0, getCommunicator()->communicator());
 
    return status;
 }
@@ -3364,13 +3062,21 @@ HyPerCol * createHyPerCol(PV_Init * pv_initObj) {
          }
       }
       else {
-         BaseObject * addedObject = pv_initObj->create(kw, name, hc);
+         BaseObject * addedObject = Factory::instance()->createByKeyword(kw, name, hc);
          if (addedObject==nullptr) {
             if (hc->globalRank()==0) {
                pvErrorNoExit().printf("Unable to create %s \"%s\".\n", kw, name);
             }
             delete hc;
             return nullptr;
+         }
+         bool addSucceeded = hc->addObject(addedObject);
+         if (!addSucceeded) {
+            if (hc->columnId()==0) {
+               pvError() << "";
+            }
+            MPI_Barrier(hc->getCommunicator()->communicator());
+            exit(PV_FAILURE);
          }
       }
    }

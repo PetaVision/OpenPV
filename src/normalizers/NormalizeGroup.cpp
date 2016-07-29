@@ -46,26 +46,22 @@ void NormalizeGroup::ioParam_normalizeGroupName(enum ParamsIOFlag ioFlag) {
    parent->ioParamStringRequired(ioFlag, name, "normalizeGroupName", &normalizeGroupName);
 }
 
-void NormalizeGroup::communicateInitInfo() {
+int NormalizeGroup::communicateInitInfo() {
    groupHead = parent->getNormalizerFromName(normalizeGroupName);
    if (groupHead==nullptr) {
       if (parent->columnId()==0) {
          pvErrorNoExit().printf("%s: normalizeGroupName \"%s\" is not a recognized normalizer.\n",
                getDescription_c(), normalizeGroupName);
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    HyPerConn * conn = getTargetConn();
-   groupHead->addConnToList(conn);
+   return groupHead->addConnToList(conn);
 }
 
 int NormalizeGroup::normalizeWeights() {
    return PV_SUCCESS;
-}
-
-BaseObject * createNormalizeGroup(char const * name, HyPerCol * hc) {
-   return hc==nullptr ? nullptr : new NormalizeGroup(name, hc);
 }
 
 } /* namespace PV */

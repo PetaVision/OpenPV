@@ -99,7 +99,7 @@ int NormalizeMultiply::normalizeWeights() {
          status = PV_FAILURE;
       }
       if (status==PV_FAILURE) {
-         MPI_Barrier(parent->icCommunicator()->communicator());
+         MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
    }
@@ -211,10 +211,6 @@ int NormalizeMultiply::applyRMin(pvwdata_t * dataPatchStart, float rMinX, float 
 }
 
 NormalizeMultiply::~NormalizeMultiply() {
-}
-
-BaseObject * createNormalizeMultiply(char const * name, HyPerCol * hc) {
-   return hc ? new NormalizeMultiply(name, hc) : NULL;
 }
 
 } /* namespace PV */

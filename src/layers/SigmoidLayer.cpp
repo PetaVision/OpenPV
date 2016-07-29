@@ -47,7 +47,7 @@ int SigmoidLayer::initialize(const char * name, HyPerCol * hc) {
       if (parent->columnId()==0) {
          pvErrorNoExit().printf("%s: SigmoidAlpha cannot be negative or greater than 1.\n", getDescription_c());
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
 
@@ -116,10 +116,6 @@ int SigmoidLayer::updateState(double timef, double dt, const PVLayerLoc * loc, p
    setActivity_SigmoidLayer(nbatch, num_neurons, A, V, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, Vth, V0, sigmoid_alpha, sigmoid_flag, inverse_flag, dt);
    // resetGSynBuffers(); // Since sourceLayer updates V, this->GSyn is not used
    return PV_SUCCESS;
-}
-
-BaseObject * createSigmoidLayer(char const * name, HyPerCol * hc) {
-   return hc ? new SigmoidLayer(name, hc) : NULL;
 }
 
 } // end namespace PV

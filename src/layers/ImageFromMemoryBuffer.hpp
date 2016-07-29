@@ -106,8 +106,6 @@ protected:
    bool hasNewImageFlag; // set to true by setMemoryBuffer; cleared to false by initializeActivity();
 }; // class ImageFromMemoryBuffer
 
-BaseObject * createImageFromMemoryBuffer(char const * name, HyPerCol * hc);
-
 }  // namespace PV
 
 #endif // IMAGEFROMMEMORYBUFFER_HPP_

@@ -99,7 +99,7 @@ int MaskLayer::communicateInitInfo() {
             pvErrorNoExit().printf("%s: maskLayerName \"%s\" is not a layer in the HyPerCol.\n",
                   getDescription_c(), maskLayerName);
          }
-         MPI_Barrier(parent->icCommunicator()->communicator());
+         MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
 
@@ -114,7 +114,7 @@ int MaskLayer::communicateInitInfo() {
             errorMessage.printf("    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
                     maskLoc->nxGlobal, maskLoc->nyGlobal, maskLoc->nf, loc->nxGlobal, loc->nyGlobal, loc->nf);
          }
-         MPI_Barrier(parent->icCommunicator()->communicator());
+         MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
 
@@ -126,7 +126,7 @@ int MaskLayer::communicateInitInfo() {
             errorMessage.printf("    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
                     maskLoc->nxGlobal, maskLoc->nyGlobal, maskLoc->nf, loc->nxGlobal, loc->nyGlobal, loc->nf);
          }
-         MPI_Barrier(parent->icCommunicator()->communicator());
+         MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
 
@@ -256,10 +256,6 @@ int MaskLayer::updateState(double time, double dt)
       }
    }
    return PV_SUCCESS;
-}
-
-BaseObject * createMaskLayer(char const * name, HyPerCol * hc) {
-   return hc ? new MaskLayer(name, hc) : NULL;
 }
 
 } /* namespace PV */

@@ -17,23 +17,14 @@
 
 namespace PV {
 
-class HyPerLayer;
-class BaseConnection;
-
 class Publisher {
 
 public:
    Publisher(Communicator * comm, int numItems, PVLayerLoc loc, int numLevels, bool isSparse);
    virtual ~Publisher();
-   int readData(int delay);
-   int publish(HyPerLayer * pub, int neighbors[], int numNeighbors,
-               int borders[], int numBorders, PVLayerCube * data,
-               int delay=0);
-   int subscribe(BaseConnection * conn);
-   int exchangeBorders(int neighbors[], int numNeighbors, const PVLayerLoc * loc, int delay=0);
+   int publish(double currentTime, double lastUpdateTime, PVLayerCube * data);
+   int exchangeBorders(const PVLayerLoc * loc, int delay=0);
    int wait();
-
-   static int borderStoreIndex(int i, int numNeighbors)  {return i+numNeighbors;}
 
    int increaseTimeLevel()   {return store->newLevelIndex();}
 
@@ -66,18 +57,13 @@ private:
    int calcAllActiveIndices();
    int calcActiveIndices();
 
-   int pubId;
-   int numSubscribers;
-   int subscriberArraySize;
-   BaseConnection ** connection;
    DataStore * store;
 
    PVLayerCube cube;
 
    Communicator * mComm;
 
-   int            numRequests;
-   MPI_Request *  requests;
+   std::vector<MPI_Request>  requests;
    MPI_Datatype * neighborDatatypes;
 };
 

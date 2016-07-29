@@ -42,7 +42,7 @@ void ArborTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
             if (parent->columnId()==0) {
                pvErrorNoExit().printf("   Value \"%s\" is inconsistent with correct value \"a\" or \"activity\".  Exiting.\n", buffer);
             }
-            MPI_Barrier(parent->icCommunicator()->communicator());
+            MPI_Barrier(parent->getCommunicator()->communicator());
             exit(EXIT_FAILURE);
          }
          free(bufferlc);
@@ -54,7 +54,7 @@ void ArborTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
 int ArborTestProbe::outputState(double timed)
 {
    int status = StatsProbe::outputState(timed);
-   InterColComm * icComm = getTargetLayer()->getParent()->icCommunicator();
+   Communicator * icComm = getTargetLayer()->getParent()->getCommunicator();
    const int rcvProc = 0;
    if( icComm->commRank() != rcvProc ) {
       return 0;
@@ -77,10 +77,6 @@ int ArborTestProbe::outputState(double timed)
    }
 
 	return status;
-}
-
-BaseObject * createArborTestProbe(char const * name, HyPerCol * hc) {
-   return hc ? new ArborTestProbe(name, hc) : NULL;
 }
 
 } /* namespace PV */

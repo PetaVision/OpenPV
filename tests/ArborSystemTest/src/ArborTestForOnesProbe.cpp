@@ -31,7 +31,7 @@ int ArborTestForOnesProbe::initArborTestForOnesProbe(const char * probeName, HyP
 int ArborTestForOnesProbe::outputState(double timed)
 {
    int status = StatsProbe::outputState(timed);
-   InterColComm * icComm = getTargetLayer()->getParent()->icCommunicator();
+   Communicator * icComm = getTargetLayer()->getParent()->getCommunicator();
    const int rcvProc = 0;
    if( icComm->commRank() != rcvProc ) {
       return 0;
@@ -45,10 +45,6 @@ int ArborTestForOnesProbe::outputState(double timed)
    }
 
    return status;
-}
-
-BaseObject * createArborTestForOnesProbe(char const * name, HyPerCol * hc) {
-   return hc ? new ArborTestForOnesProbe(name, hc) : NULL;
 }
 
 } /* namespace PV */

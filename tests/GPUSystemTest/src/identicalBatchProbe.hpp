@@ -24,7 +24,6 @@ private:
 
 };
 
-BaseObject * create_identicalBatchProbe(char const * probeName, HyPerCol * hc);
 
 }
 #endif 

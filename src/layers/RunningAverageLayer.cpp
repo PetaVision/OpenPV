@@ -128,9 +128,5 @@ int RunningAverageLayer::updateState(double timef, double dt) {
    return status;
 }
 
-BaseObject * createRunningAverageLayer(char const * name, HyPerCol * hc) {
-   return hc ? new RunningAverageLayer(name, hc) : NULL;
-}
-
 } // end namespace PV
 

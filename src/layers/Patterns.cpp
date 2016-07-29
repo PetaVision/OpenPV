@@ -176,7 +176,7 @@ void Patterns::ioParam_patternType(enum ParamsIOFlag ioFlag) {
          if (parent->columnId()==0) {
             pvErrorNoExit().printf("Group \"%s\": Pattern type \"%s\" not recognized.\n", name, typeString);
          }
-         MPI_Barrier(parent->icCommunicator()->communicator());
+         MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
    }
@@ -202,7 +202,7 @@ void Patterns::ioParam_orientation(enum ParamsIOFlag ioFlag) {
       if (parent->columnId()==0) {
          pvErrorNoExit().printf("Group \"%s\": Orientation mode \"%s\" not recognized.\n", name, orientationString);
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    setOrientation((OrientationMode) match);
@@ -258,7 +258,7 @@ void Patterns::ioParam_movementType(enum ParamsIOFlag ioFlag) {
          if (parent->columnId()==0) {
             pvErrorNoExit().printf("Group \"%s\": movementType \"%s\" not recognized.\n", name, movementTypeString);
          }
-         MPI_Barrier(parent->icCommunicator()->communicator());
+         MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
       movementType = (MovementType) match;
@@ -482,13 +482,13 @@ void Patterns::ioParam_displayPeriod(enum ParamsIOFlag ioFlag) {
 int Patterns::communicateInitInfo() {
    int status = BaseInput::communicateInitInfo();
 
-   patternRandState = new Random(parent, 1);
+   patternRandState = new Random(1);
 #ifndef NDEBUG
    // This should put the RNG into the same state across MPI, but let's check.
    taus_uint4 * state = patternRandState->getRNG(0);
    taus_uint4 checkState;
    memcpy(&checkState, state, sizeof(taus_uint4));
-   MPI_Bcast(&checkState, sizeof(taus_uint4), MPI_CHAR, 0, parent->icCommunicator()->communicator());
+   MPI_Bcast(&checkState, sizeof(taus_uint4), MPI_CHAR, 0, parent->getCommunicator()->communicator());
    assert(!memcmp(state, &checkState, sizeof(taus_uint4)));
 #endif // NDEBUG
 
@@ -507,7 +507,7 @@ int Patterns::communicateInitInfo() {
       xPos = (int)floor(loc->nxGlobal * patternRandState->uniformRandom());
       yPos = (int)floor(loc->nyGlobal * patternRandState->uniformRandom());
    }
-   MPI_Bcast(&nextDropFrame, 1, MPI_DOUBLE, 0, parent->icCommunicator()->communicator());
+   MPI_Bcast(&nextDropFrame, 1, MPI_DOUBLE, 0, parent->getCommunicator()->communicator());
 
    return status;
 }
@@ -575,8 +575,8 @@ int Patterns::drawPattern(float val)
       }
       double image_ave = image_sum / n;
 #ifdef PV_USE_MPI
-      MPI_Allreduce(MPI_IN_PLACE, &image_ave, 1, MPI_DOUBLE, MPI_SUM, parent->icCommunicator()->communicator());
-      image_ave /= parent->icCommunicator()->commSize();
+      MPI_Allreduce(MPI_IN_PLACE, &image_ave, 1, MPI_DOUBLE, MPI_SUM, parent->getCommunicator()->communicator());
+      image_ave /= parent->getCommunicator()->commSize();
 #endif // PV_USE_MPI
       float image_shift = 0.5f - image_ave;
       for (int k=0; k<n; k++) {
@@ -868,8 +868,8 @@ int Patterns::drawDrops() {
       }
 
       //Communicate to rest of processors
-      MPI_Bcast(&nextDropFrame, 1, MPI_DOUBLE, 0, parent->icCommunicator()->communicator());
-      MPI_Bcast(&newDrop, sizeof(Drop), MPI_BYTE, 0, parent->icCommunicator()->communicator());
+      MPI_Bcast(&nextDropFrame, 1, MPI_DOUBLE, 0, parent->getCommunicator()->communicator());
+      MPI_Bcast(&newDrop, sizeof(Drop), MPI_BYTE, 0, parent->getCommunicator()->communicator());
       vDrops.push_back(newDrop);
    }
 
@@ -1086,10 +1086,10 @@ int Patterns::readPatternStateFromCheckpoint(const char * cpDir) {
    // TODO improve and polish the way the code handles file I/O and the MPI data buffer.
    // This will get bad if the number of member variables that need to be saved keeps increasing.
 #ifdef PV_USE_MPI
-   if (parent->icCommunicator()->commSize()>1) {
+   if (parent->getCommunicator()->commSize()>1) {
       int bufsize = (int) (sizeof(PatternType) + sizeof(taus_uint4) + sizeof(OrientationMode) + 1*sizeof(float) + 2*sizeof(double) + 4*sizeof(int) + vDrops.size()*sizeof(Drop));
       //Communicate buffer size to rest of processes
-      MPI_Bcast(&bufsize, 1, MPI_INT, 0, parent->icCommunicator()->communicator());
+      MPI_Bcast(&bufsize, 1, MPI_INT, 0, parent->getCommunicator()->communicator());
       char tempbuf[bufsize];
       PatternType * savedtype = (PatternType *) (tempbuf+0);
       taus_uint4 * rstate = (taus_uint4 *) (tempbuf+sizeof(PatternType));
@@ -1115,10 +1115,10 @@ int Patterns::readPatternStateFromCheckpoint(const char * cpDir) {
          for (int k=0; k<numdrops; k++) {
             memcpy(&(drops[k]), &(vDrops[k]), sizeof(Drop));
          }
-         MPI_Bcast(tempbuf, bufsize, MPI_CHAR, 0, parent->icCommunicator()->communicator());
+         MPI_Bcast(tempbuf, bufsize, MPI_CHAR, 0, parent->getCommunicator()->communicator());
       }
       else {
-         MPI_Bcast(tempbuf, bufsize, MPI_CHAR, 0, parent->icCommunicator()->communicator());
+         MPI_Bcast(tempbuf, bufsize, MPI_CHAR, 0, parent->getCommunicator()->communicator());
          type = *savedtype;
          memcpy(patternRandState->getRNG(0), rstate, sizeof(taus_uint4));
          orientation = *om;
@@ -1145,7 +1145,7 @@ int Patterns::readPatternStateFromCheckpoint(const char * cpDir) {
 
 int Patterns::checkpointWrite(const char * cpDir) {
    int status = HyPerLayer::checkpointWrite(cpDir);
-   InterColComm * icComm = parent->icCommunicator();
+   Communicator * icComm = parent->getCommunicator();
    int filenamesize = strlen(cpDir)+1+strlen(name)+18;
    // The +1 is for the slash between cpDir and name; the +18 needs to be large enough to hold the suffix _PatternState.{bin,txt} plus the null terminator
    char * filename = (char *) malloc( filenamesize*sizeof(char) );
@@ -1241,10 +1241,6 @@ int Patterns::checkpointWrite(const char * cpDir) {
    }
    free(filename); filename=NULL;
    return PV_SUCCESS;
-}
-
-BaseObject * createPatterns(char const * name, HyPerCol * hc) {
-   return hc ? new Patterns(name, hc) : NULL;
 }
 
 } // namespace PV

@@ -39,7 +39,5 @@ protected:
    float minSumTolerated; // Error if abs(sum(weights)) in any patch is less than this amount.
 }; // class NormalizeContrastZeroMean
 
-BaseObject * createNormalizeContrastZeroMean(char const * name, HyPerCol * hc);
-
 } /* namespace PV */
 #endif /* NORMALIZECONTRASTZEROMEAN_HPP_ */

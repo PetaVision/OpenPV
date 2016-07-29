@@ -47,10 +47,5 @@ int ImportParamsConn::allocateDataStructures() {
    return status;
 }
 
-BaseObject * createImportParamsConn(const char * name, HyPerCol * hc) {
-   if (hc==NULL) { return NULL; }
-   return new HyPerConn(name, hc);
-}
-
 
 } /* namespace PV */

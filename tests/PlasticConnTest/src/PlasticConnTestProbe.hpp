@@ -27,7 +27,6 @@ protected:
    bool errorPresent;
 }; // end class PlasticConnTestProbe
 
-BaseObject * createPlasticConnTestProbe(char const * name, HyPerCol * hc);
 
 }  // end namespace PV
 

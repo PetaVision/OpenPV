@@ -54,7 +54,7 @@ void Segmentify::ioParam_inputMethod(enum ParamsIOFlag ioFlag) {
          pvErrorNoExit().printf("%s: inputMethod must be \"average\", \"sum\", or \"max\".\n",
                  getDescription_c());
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
 }
@@ -70,7 +70,7 @@ void Segmentify::ioParam_outputMethod(enum ParamsIOFlag ioFlag) {
          pvErrorNoExit().printf("%s: outputMethod must be \"centriod\" or \"fill\".\n",
                  getDescription_c());
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
 }
@@ -83,7 +83,7 @@ void Segmentify::ioParam_originalLayerName(enum ParamsIOFlag ioFlag) {
          pvErrorNoExit().printf("%s: originalLayerName must be set.\n",
                  getDescription_c());
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
 }
@@ -96,7 +96,7 @@ void Segmentify::ioParam_segmentLayerName(enum ParamsIOFlag ioFlag) {
          pvErrorNoExit().printf("%s: segmentLayerName must be set.\n",
                  getDescription_c());
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
 }
@@ -111,7 +111,7 @@ int Segmentify::communicateInitInfo() {
          pvErrorNoExit().printf("%s: originalLayerName \"%s\" is not a layer in the HyPerCol.\n",
                  getDescription_c(), originalLayerName);
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    if (originalLayer->getInitInfoCommunicatedFlag()==false) {
@@ -125,7 +125,7 @@ int Segmentify::communicateInitInfo() {
          pvErrorNoExit().printf("%s: segmentLayerName \"%s\" is not a layer in the HyPerCol.\n",
                  getDescription_c(), segmentLayerName);
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    segmentLayer = dynamic_cast <SegmentLayer*>(tmpLayer);
@@ -134,7 +134,7 @@ int Segmentify::communicateInitInfo() {
          pvErrorNoExit().printf("%s: segmentLayerName \"%s\" is not a SegmentLayer.\n",
                  getDescription_c(), segmentLayerName);
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
 
@@ -161,7 +161,7 @@ int Segmentify::communicateInitInfo() {
          errorMessage.printf("    original (nf=%d) versus (nf=%d)\n",
                  srcLoc->nf, thisLoc->nf);
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
 
@@ -171,7 +171,7 @@ int Segmentify::communicateInitInfo() {
          pvErrorNoExit().printf("%s: segmentLayer \"%s\" can only have 1 feature.\n",
          getDescription_c(), segmentLayerName);
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
 
@@ -223,7 +223,7 @@ int Segmentify::initializeActivity() {
 }
 
 int Segmentify::buildLabelToIdx(int batchIdx){
-   InterColComm * icComm = parent->icCommunicator();
+   Communicator * icComm = parent->getCommunicator();
    int numMpi = icComm->commSize();
    int rank = icComm->commRank();
 
@@ -274,7 +274,7 @@ int Segmentify::buildLabelToIdx(int batchIdx){
 }
 
 int Segmentify::calculateLabelVals(int batchIdx){
-   InterColComm * icComm = parent->icCommunicator();
+   Communicator * icComm = parent->getCommunicator();
 
    const PVLayerLoc * srcLoc = originalLayer->getLayerLoc();
    const PVLayerLoc * segLoc = segmentLayer->getLayerLoc();
@@ -447,10 +447,6 @@ int Segmentify::updateState(double timef, double dt) {
 Segmentify::~Segmentify() {
    free(originalLayerName);
    clayer->V = NULL;
-}
-
-BaseObject * createSegmentify(char const * name, HyPerCol * hc) {
-   return hc ? new Segmentify(name, hc) : NULL;
 }
 
 } /* namespace PV */

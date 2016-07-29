@@ -39,6 +39,8 @@ public:
     */
    int ioParams(enum ParamsIOFlag ioFlag);
 
+   virtual int respond(std::shared_ptr<BaseMessage> message) override;
+
    // manage the communicateInitInfo, allocateDataStructures, and initializeState stages.
    /**
     * communicateInitInfo is used to allow connections and layers to set params and related member variables based on what other
@@ -52,22 +54,10 @@ public:
     *
     *    PV_SUCCESS and PV_FAILURE have their usual meanings.
     *
-    * communicateInitInfo() is typically called by the parent HyPerCol's run() method.
+    * communicateInitInfo() is called by passing a CommunicateInitInfoMessage to respond(), which is
+    * usually done in HyPerCol::run.
     */
-   virtual int communicateInitInfo();
-
-   /**
-    * This method sets the flag returned by getInitInfoCommunicatedFlag() to true.
-    * It is public so that the parent HyPerCol's run method can set it after receiving a successful communicateInitInfo command
-    * (this behavior should probably be changed so that BaseConnection::communicateInitInfoWrapper, not the calling routine,
-    * is responsible for setting the flag).
-    */
-   void setInitInfoCommunicatedFlag() { initInfoCommunicatedFlag = true; }// should be called only by HyPerCol::run
-
-   /**
-    * Returns true or false, depending on whether communicateInitInfo() has been called successfully.
-    */
-   bool getInitInfoCommunicatedFlag() { return initInfoCommunicatedFlag; }
+   virtual int communicateInitInfo() override;
 
    /**
     * allocateDataStructures is used to allocate blocks of memory whose size and arrangement depend on parameters.
@@ -81,22 +71,10 @@ public:
     *
     *    PV_SUCCESS and PV_FAILURE have their usual meanings.
     *
-    * allocateDataStructures() is typically called by the parent HyPerCol's run() method.
+    * allocateDataStructures() is called by passing an AllocateDataMessage to respond(), which is
+    * usually done in HyPerCol::run.
     */
-   virtual int allocateDataStructures();// should be called only by HyPerCol::run
-
-   /**
-    * This method sets the flag returned by getDataStructuresAllocatedFlag() to true.
-    * It is public so that the parent HyPerCol's run method can set it after receiving a successful allocateDataStructures command
-    * (this behavior should probably be changed so that BaseConnection::allocateDataStructuresWrapper, not the calling routine,
-    * is responsible for setting the flag).
-    */
-   void setDataStructuresAllocatedFlag() { dataStructuresAllocatedFlag = true; }// should be called only by HyPerCol::run
-
-   /**
-    * Returns true or false, depending on whether communicateInitInfo() has been called successfully.
-    */
-   bool getDataStructuresAllocatedFlag() { return dataStructuresAllocatedFlag; }
+   virtual int allocateDataStructures() override;
 
    /**
     * initializeState is used to set the initial values of the connection.
@@ -114,22 +92,12 @@ public:
     *
     *    PV_SUCCESS and PV_FAILURE have their usual meanings.
     *
-    * initializeState() is typically called by the parent HyPerCol's run() method.
+    * initializeState() is typically called by passing an InitializeStateMessage to respond(), which is
+    * usually done in HyPerCol::run.
     */
-   int initializeState();
-
-   /**
-    * This method sets the flag returned by getInitialValuesSetFlag() to true.
-    * It is public so that the parent HyPerCol's run method can set it after receiving a successful initializeState command
-    * (this behavior should probably be changed so that BaseConnection::allocateDataStructuresWrapper, not the calling routine,
-    * is responsible for setting the flag).
-    */
-   void setInitialValuesSetFlag() {initialValuesSetFlag = true;}// should be called only by HyPerCol::run
-
-   /**
-    * Returns true or false, depending on whether initializeState() has been called successfully.
-    */
-   bool getInitialValuesSetFlag() {return initialValuesSetFlag;}
+   virtual int initializeState() override final; // Not overridable because all connections should
+   // initializeState in the same way.  BaseConnection::initializeState() calls
+   // either checkpointRead() or setInitialValues(), both of which are virtual.
 
    /**
     * A pure virtual function for writing the state of the connection to file(s) in the output directory.
@@ -462,6 +430,12 @@ protected:
     * (e.g. TransposeConn has to wait for original conn)
     */
    virtual int setInitialValues() = 0;
+
+   virtual int respondConnectionUpdate(ConnectionUpdateMessage const * message) { return updateState(message->mTime, message->mDeltaT);  }
+
+   virtual int respondConnectionFinalizeUpdate(ConnectionFinalizeUpdateMessage const * message) { return finalizeUpdate(message->mTime, message->mDeltaT);  }
+
+   virtual int respondConnectionOutput(ConnectionOutputMessage const * message) { return outputState(message->mTime);  }
 
    /**
     * A pure virtual method whose implementation returns true

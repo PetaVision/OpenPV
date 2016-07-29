@@ -40,7 +40,6 @@ protected:
    pvdata_t * correctValues;
 }; // end class ShrunkenPatchTestProbe
 
-BaseObject * createShrunkenPatchTestProbe(char const * name, HyPerCol * hc);
 
 }  // end namespace PV
 

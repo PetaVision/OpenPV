@@ -64,8 +64,6 @@ private:
    inline double getA();
 }; // end class PointProbe
 
-BaseObject * createPointProbe(char const * name, HyPerCol * hc);
-
 }
 
 #endif /* POINTPROBE_HPP_ */

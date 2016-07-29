@@ -17,74 +17,68 @@ namespace PV {
 class BaseObject;
 
 /**
- * The class to manage adding layers, connections, etc. to a HyPerCol.
- * The function build() in buildandrun.cpp (which is the basis of all the
+ * The class to generate layers, connections, etc. for adding to a HyPerCol.
+ * The function build() in buildandrun.cpp (which underlies all the
  * functions in buildandrun.cpp) uses Factory to build the HyPerCol.
+ * Factory is a singleton which is retrieved using the static method
+ * Factory::instance().
  *
- * This class is accessible only by the PV_Init class, which has the
- * factory member variable.
+ * The standard Factory constructor already registers the objects in the
+ * PetaVision core.  For example, calling Factory::instance()->create()
+ * method with keyword "ANNLayer" returns a new ANNLayer.
  *
- * The standard Factory constructor already registers the objects
- * in the PetaVision core.  For example, calling the Factory::create()
- * method with keyword "ANNLayer" calls the createANNLayer() object
- * creator function in layers/ANNLayer.cpp.  In practice, the
- * Factory::create() method is called by the PV_Init::create() method,
- * which passes the arguments to the Factory:
+ * If you have a custom class, you need to register it with the Factory
+ * object by associating its keyword with a function instantiates a new
+ * object of that class, and returns it as a pointer of type BaseObject
+ * In most cases, the template Factory::create is sufficient
+ * as the instantiator function.
  *
- * PV_Init pv_init(&argc, &argv, false); // 3rd argument is whether to allow command-line arguments that PV doesn't recognize
- * HyPerCol * hc = new HyPerCol("column", pv_init);
- * pv_init.create("ANNLayer", "layer", hc);
- *
- * (note that the functions in buildandrun.cpp and the PV_Init::build() method
- * automate the task of calling the create() method for the groups in the
- * params file).
- *
- * If you have a custom object, you need to register it with the Factory
- * object by associating its keyword with a function pointer that takes
- * two arguments: a C-style string giving the name of the individual layer,
- * and pointer to a HyPerCol.  This function should instantiate the new object
- * with the new operator, and return it as a pointer of type BaseObject
- * the base class for layers, connections, etc.)  In practice, the
- * Factory::registerKeyword() method is called by the PV_registerKeyword()
- * method, which again passes its arguments to the Factory.
  * For example:
  *
  * class CustomLayerType : public HyPerLayer {
  * ...
  * };
  * ...
+ * PV_Init pv_init(&argc, &argv, false);
+ * HyPerCol * hc = new HyPerCol("column", &pv_init);
+ * pv_init.registerKeyword("CustomLayerType", Factory::create<CustomLayerType>);
+ * Factory::instance()->create("customLayerType", hc);
+ * ...
+ * Note that buildandrun() automates the task of calling the create() method;
+ * in practice, you only need to specify the instantiator function, and
+ * call the registerKeyword method calling before one of the buildandrun functions.
+ *
+ * It is possible to use a custom instantiator function instead of create.
+ * The function must take two arguments, the name as a C-style constant string and
+ * a pointer to a HyPerCol.
+ *
+ * For example:
+ * ...
  * BaseObject * createCustomLayerType(char const * name, HyPerCol * hc) {
  *    return new CustomLayerType(name, hc);
  * }
  * ...
- * PV_Init pv_init(&argc, &argv, false);
- * HyPerCol * hc = new HyPerCol("column", &pv_init);
- * pv_init.registerKeyword("customLayerType", createCustomLayerType);
- * pv_init.create("customLayerType", hc)
+ * pv_init.registerKeyword("CustomLayerType", createCustomLayerType);
  * ...
- *
- * Again, the functions in buildandrun.cpp automate the task of calling the create() method;
- * in practice, you only need define the creator function createCustomLayerType, and
- * call the registerKeyword method calling before one of the buildandrun functions.
  */
 class Factory {
-   friend class PV_Init; // PV_Init provides the only public access to Factory
+public:
 
-private:
-   /**
-    * The constructor for Factory.  It initializes the list of known keywords to the core PetaVision keywords.
-    */
-   Factory();
-
-   /**
-    * The copy constructor for Factory
-    */
-   Factory(Factory const& orig);
+   static Factory * instance() {
+      static Factory * singleton = new Factory();
+      return singleton;
+   }
 
    /**
-    * The copy assignment operator for Factory
+    * A function template that can be used to register most subclasses of
+    * BaseObject in the factory using the registerKeyword function.  The
+    * requirements on the BaseObject subclass is that it have a constructor
+    * with two arguments, the name and a pointer to the HyPerCol.
     */
-   Factory& operator=(Factory const& orig);
+   template <typename T>
+   static BaseObject * create(char const * name, HyPerCol * hc) {
+      return hc==nullptr ? nullptr : new T(name, hc);
+   }
 
    /**
     * The method to add a new object type to the Factory.
@@ -100,7 +94,13 @@ private:
     * and parent HyPerCol.  It calls the function associated with the keyword by the
     * registerKeyword pointer.
     */
-   BaseObject * create(char const * keyword, char const * name, HyPerCol * hc) const;
+   BaseObject * createByKeyword(char const * keyword, char const * name, HyPerCol * hc) const;
+
+private:
+   /**
+    * The constructor for Factory.  It initializes the list of known keywords to the core PetaVision keywords.
+    */
+   Factory();
 
    /**
     * The destructor for Factory

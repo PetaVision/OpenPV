@@ -115,7 +115,7 @@ int ConvertFromTable::loadConversionTable() {
       }
       fclose(conversionTableFP);
    }
-   MPI_Bcast(&convTable, sizeof(convTableStruct), MPI_CHAR, 0, parent->icCommunicator()->communicator());
+   MPI_Bcast(&convTable, sizeof(convTableStruct), MPI_CHAR, 0, parent->getCommunicator()->communicator());
    assert(convTable.numFeatures == getLayerLoc()->nf);
    int numValues = convTable.numPoints * convTable.numFeatures;
    if (parent->globalRank()!=0) {
@@ -125,7 +125,7 @@ int ConvertFromTable::loadConversionTable() {
                getDescription_c(), dataFile, strerror(errno));
       }
    }
-   MPI_Bcast(convData, numValues, MPI_FLOAT, 0, parent->icCommunicator()->communicator());
+   MPI_Bcast(convData, numValues, MPI_FLOAT, 0, parent->getCommunicator()->communicator());
    return status;
 }
 

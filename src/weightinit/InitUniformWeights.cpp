@@ -89,8 +89,4 @@ int InitUniformWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, 
    return PV_SUCCESS;
 }
 
-BaseObject * createInitUniformWeights(char const * name, HyPerCol * hc) {
-   return hc ? new InitUniformWeights(name, hc) : NULL;
-}
-
 } /* namespace PV */

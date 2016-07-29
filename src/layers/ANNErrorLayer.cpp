@@ -135,10 +135,6 @@ int ANNErrorLayer::updateState(double time, double dt)
    return PV_SUCCESS;
 }
 
-BaseObject * createANNErrorLayer(char const * name, HyPerCol * hc) {
-   return hc ? new ANNErrorLayer(name, hc) : NULL;
-}
-
 } /* namespace PV */
 
 void ANNErrorLayer_update_state(

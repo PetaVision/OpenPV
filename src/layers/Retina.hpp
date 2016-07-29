@@ -52,8 +52,6 @@ public:
 
    virtual int updateState(double time, double dt);
    virtual int outputState(double time, bool last);
-   virtual int updateBorder(double time, double dt);
-   virtual int waitOnPublish(InterColComm* comm);
    virtual int checkpointWrite(const char * cpDir);
 
    virtual bool activityIsSpiking() { return spikingFlag; }
@@ -103,8 +101,6 @@ private:
    int calculateWeights(HyPerLayer * lSource, float * pos, float * vPos, float * vfWeights );
 
 }; // class Retina
-
-BaseObject * createRetina(char const * name, HyPerCol * hc);
 
 } // namespace PV
 

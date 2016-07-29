@@ -1,5 +1,5 @@
 /*
-q * GPUSystemTest
+ * GPUSystemTest
  *
  *
  */
@@ -28,8 +28,8 @@ int main(int argc, char * argv[]) {
    int status;
 #ifdef MAIN_USES_CUSTOM_GROUPS
    PV_Init pv_initObj(&argc, &argv, false/*do not allow unrecognized arguments*/);
-   pv_initObj.registerKeyword("GPUSystemTestProbe", createGPUSystemTestProbe);
-   pv_initObj.registerKeyword("identicalBatchProbe", create_identicalBatchProbe);
+   pv_initObj.registerKeyword("GPUSystemTestProbe", Factory::create<GPUSystemTestProbe>);
+   pv_initObj.registerKeyword("identicalBatchProbe", Factory::create<identicalBatchProbe>);
    status = buildandrun(&pv_initObj);
 #else
    status = buildandrun(argc, argv);

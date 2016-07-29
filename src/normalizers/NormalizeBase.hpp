@@ -33,7 +33,7 @@ public:
     * In particular, NormalizeGroup calls its group head's addConnToList
     * method from NormalizeGroup::communicateInitInfo method.
     */
-   virtual void communicateInitInfo();
+   virtual int communicateInitInfo();
 
    /**
     * The public interface for normalizing weights.
@@ -85,8 +85,6 @@ protected:
    bool normalizeOnInitialize;        // Whether to normalize weights when setting the weights' initial values
    bool normalizeOnWeightUpdate;      // Whether to normalize weights when the weights have been updated
 }; // end of class NormalizeBase
-
-BaseObject * createNormalizeBase(char const * name, HyPerCol * hc);
 
 } // end namespace PV
 

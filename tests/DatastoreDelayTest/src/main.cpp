@@ -23,8 +23,8 @@ int main(int argc, char * argv[]) {
 
     int status;
     PV_Init initObj(&argc, &argv, false/*allowUnrecognizedArguments*/);
-    initObj.registerKeyword("DatastoreDelayTestLayer", createDatastoreDelayTestLayer);
-    initObj.registerKeyword("DatastoreDelayTestProbe", createDatastoreDelayTestProbe);
+    initObj.registerKeyword("DatastoreDelayTestLayer", Factory::create<DatastoreDelayTestLayer>);
+    initObj.registerKeyword("DatastoreDelayTestProbe", Factory::create<DatastoreDelayTestProbe>);
     if (initObj.getParams()==nullptr) {
         initObj.setParams("input/DatastoreDelayTest.params");
     }

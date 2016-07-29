@@ -105,7 +105,7 @@ int PointLIFProbe::calcValues(double timevalue) {
       valuesBuffer[5] = activity[kex + nbatchLocal * getTargetLayer()->getNumExtended()];
       //If not in root process, send to root process
       if(parent->columnId()!=0){
-         MPI_Send(valuesBuffer, NUMBER_OF_VALUES, MPI_DOUBLE, 0, 0, parent->icCommunicator()->communicator());
+         MPI_Send(valuesBuffer, NUMBER_OF_VALUES, MPI_DOUBLE, 0, 0, parent->getCommunicator()->communicator());
       }
    }
 
@@ -116,11 +116,11 @@ int PointLIFProbe::calcValues(double timevalue) {
       int xRank = xLoc/nx;
       int yRank = yLoc/ny;
 
-      int srcRank = rankFromRowAndColumn(yRank, xRank, parent->icCommunicator()->numCommRows(), parent->icCommunicator()->numCommColumns());
+      int srcRank = rankFromRowAndColumn(yRank, xRank, parent->getCommunicator()->numCommRows(), parent->getCommunicator()->numCommColumns());
 
       //If srcRank is not root process, MPI_Recv from that rank
       if(srcRank != 0){
-         MPI_Recv(valuesBuffer, NUMBER_OF_VALUES, MPI_DOUBLE, srcRank, 0, parent->icCommunicator()->communicator(), MPI_STATUS_IGNORE);
+         MPI_Recv(valuesBuffer, NUMBER_OF_VALUES, MPI_DOUBLE, srcRank, 0, parent->getCommunicator()->communicator(), MPI_STATUS_IGNORE);
       }
    }
    return PV_SUCCESS;
@@ -158,10 +158,6 @@ int PointLIFProbe::writeState(double timed)
       output() << std::endl;
    }
    return PV_SUCCESS;
-}
-
-BaseObject * createPointLIFProbe(char const * name, HyPerCol * hc) {
-   return hc ? new PointLIFProbe(name, hc) : NULL;
 }
 
 } // namespace PV

@@ -70,7 +70,7 @@ int main(int argc, char * argv[]) {
 
 int customexit(HyPerCol * hc, int argc, char * argv[]) {
    int status = PV_SUCCESS;
-   int rank = hc->icCommunicator()->globalCommRank();
+   int rank = hc->getCommunicator()->globalCommRank();
    int rootproc = 0;
    if( rank == rootproc ) {
       int index = hc->getFinalStep()-hc->getInitialStep();
@@ -100,6 +100,6 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
          }
       }
    }
-   MPI_Bcast(&status, 1, MPI_INT, rootproc, hc->icCommunicator()->globalCommunicator());
+   MPI_Bcast(&status, 1, MPI_INT, rootproc, hc->getCommunicator()->globalCommunicator());
    return status;
 }

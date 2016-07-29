@@ -69,8 +69,4 @@ int BinningTestLayer::updateState(double timef, double dt){
    return PV_SUCCESS;
 }
 
-BaseObject * createBinningTestLayer(char const * name, HyPerCol * hc) {
-   return hc ? new BinningTestLayer(name, hc) : NULL;
-}
-
 } /* namespace PV */

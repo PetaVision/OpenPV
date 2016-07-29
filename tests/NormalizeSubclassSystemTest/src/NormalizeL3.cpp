@@ -133,8 +133,4 @@ int NormalizeL3::normalizeWeights() {
 NormalizeL3::~NormalizeL3() {
 }
 
-BaseObject * createNormalizeL3(char const * name, HyPerCol * hc) {
-   return hc ? new NormalizeL3(name, hc) : NULL;
-}
-
 } // namespace PV

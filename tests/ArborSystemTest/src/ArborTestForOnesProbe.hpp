@@ -26,7 +26,6 @@ private:
    int initArborTestForOnesProbe_base();
 };
 
-BaseObject * createArborTestForOnesProbe(char const * name, HyPerCol * hc);
 
 } /* namespace PV */
 #endif /* ArborTestForOnesProbe_HPP_ */

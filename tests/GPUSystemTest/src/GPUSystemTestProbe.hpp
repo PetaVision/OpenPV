@@ -24,7 +24,6 @@ private:
 
 };
 
-BaseObject * createGPUSystemTestProbe(char const * probeName, HyPerCol * hc);
 
 }
 #endif 

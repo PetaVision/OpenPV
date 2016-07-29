@@ -37,8 +37,6 @@ private:
    int initialize_base() { return PV_SUCCESS; }
 }; // class FirmThresholdCostFnLCAProbe
 
-BaseObject * createFirmThresholdCostFnLCAProbe(char const * name, HyPerCol * hc);
-
 } /* namespace PV */
 
 #endif /* FIRMTHRESHOLDCOSTFNLCAPROBE_HPP_ */

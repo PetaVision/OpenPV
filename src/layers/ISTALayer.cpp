@@ -200,10 +200,6 @@ int ISTALayer::updateState(double time, double dt)
    return PV_SUCCESS;
 }
 
-BaseObject * createISTALayer(char const * name, HyPerCol * hc) {
-   return hc ? new ISTALayer(name, hc) : NULL;
-}
-
 } /* namespace PV */
 
 

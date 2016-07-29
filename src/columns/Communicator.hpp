@@ -5,7 +5,8 @@
 #ifndef COMMUNICATOR_HPP_
 #define COMMUNICATOR_HPP_
 
-#include <stdio.h>
+#include <cstdio>
+#include <vector>
 #include "PV_Arguments.hpp"
 #include "../include/pv_arch.h"
 #include "../include/pv_types.h"
@@ -42,7 +43,6 @@ public:
    MPI_Comm globalCommunicator()      { return globalIcComm; }
 
    int numberOfNeighbors(); // includes interior (self) as a neighbor
-   int numberOfBorders()        {return numBorders;}
 
    bool hasNeighbor(int neighborId);
    int neighborIndex(int commId, int index);
@@ -57,11 +57,11 @@ public:
 
    int exchange(pvdata_t * data,
                 const MPI_Datatype neighborDatatypes [],
-                const PVLayerLoc * loc);
+                const PVLayerLoc * loc, std::vector<MPI_Request> & req);
+   int wait(std::vector<MPI_Request> & req);
 
    int getTag(int neighbor) { return tags[neighbor]; }
    int getReverseTag(int neighbor) { return tags[reverseDirection(localRank, neighbor)]; }
-   double fprintTime(std::ostream& st) {return exchange_timer->fprint_time(st);}
 
    bool isExtraProc(){return isExtra;}
 
@@ -72,13 +72,10 @@ protected:
    int commBatch(int commId);
    int commIdFromRowColumn(int commRow, int commColumn);
 
-   int numNeighbors;  // # of remote neighbors plus local
-   int numBorders;    // # of border regions (no communicating neighbor)
+   int numNeighbors;  // # of remote neighbors plus local.  NOT the size of the neighbors array, which uses negative values to mark directions where there is no remote neighbor.
 
    int isExtra; //Defines if the process is an extra process
 
-   //TODO - can this be cleaned up?
-   int borders[NUM_NEIGHBORHOOD-1];
    int neighbors[NUM_NEIGHBORHOOD];        // [0] is interior (local)
    int remoteNeighbors[NUM_NEIGHBORHOOD];
    int tags[NUM_NEIGHBORHOOD];             // diagonal communication needs a different tag from left/right or up/down communication.
@@ -100,9 +97,6 @@ private:
 
    MPI_Comm    localIcComm;
    MPI_Comm    globalIcComm;
-   MPI_Request requests[NUM_NEIGHBORHOOD-1];
-
-   Timer * exchange_timer;
 
    // These methods are private for now, move to public as needed
 

@@ -41,7 +41,7 @@ void MomentumConnTestProbe::ioParam_isViscosity(enum ParamsIOFlag ioFlag) {
  */
 int MomentumConnTestProbe::outputState(double timed) {
    HyPerConn * c = getTargetHyPerConn();
-   InterColComm * icComm = c->getParent()->icCommunicator();
+   Communicator * icComm = c->getParent()->getCommunicator();
    const int rcvProc = 0;
    if( icComm->commRank() != rcvProc ) {
       return PV_SUCCESS;
@@ -86,10 +86,6 @@ int MomentumConnTestProbe::outputState(double timed) {
    }
 
    return PV_SUCCESS;
-}
-
-BaseObject * createMomentumConnTestProbe(char const * name, HyPerCol * hc) {
-   return hc ? new MomentumConnTestProbe(name, hc) : NULL;
 }
 
 }  // end of namespace PV block

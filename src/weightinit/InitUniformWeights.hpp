@@ -31,7 +31,5 @@ private:
 
 }; // class InitUniformWeights
 
-BaseObject * createInitUniformWeights(char const * name, HyPerCol * hc);
-
 } /* namespace PV */
 #endif /* INITUNIFORMWEIGHTS_HPP_ */

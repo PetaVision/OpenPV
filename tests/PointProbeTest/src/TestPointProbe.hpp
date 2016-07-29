@@ -20,7 +20,6 @@ protected:
    virtual int point_writeState(double timef, float outVVal, float outAVal);
 }; // end class TestPointProbe
 
-BaseObject * createTestPointProbe(char const * name, HyPerCol * hc);
 
 }  // end namespace PV
 

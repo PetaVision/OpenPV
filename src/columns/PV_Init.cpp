@@ -21,19 +21,16 @@ PV_Init::PV_Init(int* argc, char ** argv[], bool allowUnrecognizedArguments){
    commInit(argc, argv);
    initMaxThreads();
    params = nullptr;
-   icComm = nullptr;
+   mCommunicator = nullptr;
    arguments = new PV_Arguments(*argc, *argv, allowUnrecognizedArguments);
-   factory = new Factory();
-   buildandrunDeprecationWarning = true;
    initLogFile(false/*appendFlag*/);
    initialize(); // must follow initialization of arguments data member.
 }
 
 PV_Init::~PV_Init(){
    delete params;
-   delete icComm;
+   delete mCommunicator;
    delete arguments;
-   delete factory;
    commFinalize();
 }
 
@@ -54,8 +51,8 @@ int PV_Init::initSignalHandler()
 }
 
 int PV_Init::initialize() {
-   delete icComm;
-   icComm = new InterColComm(arguments);
+   delete mCommunicator;
+   mCommunicator = new Communicator(arguments);
    int status = PV_SUCCESS;
    // It is okay to initialize without there being a params file.
    // setParams() can be called later.
@@ -146,7 +143,7 @@ int PV_Init::createParams() {
    char const * params_file = arguments->getParamsFile();
    if (params_file) {
       delete params;
-      params = new PVParams(params_file, 2*(INITIAL_LAYER_ARRAY_SIZE+INITIAL_CONNECTION_ARRAY_SIZE), icComm);
+      params = new PVParams(params_file, 2*(INITIAL_LAYER_ARRAY_SIZE+INITIAL_CONNECTION_ARRAY_SIZE), mCommunicator);
       return PV_SUCCESS;
    }
    else {
@@ -180,23 +177,13 @@ int PV_Init::resetState() {
 }
 
 int PV_Init::registerKeyword(char const * keyword, ObjectCreateFn creator) {
-   int status = factory->registerKeyword(keyword, creator);
+   int status = Factory::instance()->registerKeyword(keyword, creator);
    if (status != PV_SUCCESS) {
       if (getWorldRank()==0) {
          pvErrorNoExit().printf("PV_Init: keyword \"%s\" has already been registered.\n", keyword);
       }
    }
    return status;
-}
-
-BaseObject * PV_Init::create(char const * keyword, char const * name, HyPerCol * hc) const {
-   BaseObject * pvObject = factory->create(keyword, name, hc);
-   if (pvObject == NULL) {
-      if (getWorldRank()==0) {
-         pvErrorNoExit().printf("Unable to create %s \"%s\": keyword \"%s\" has not been registered.\n", keyword, name, keyword);
-      }
-   }
-   return pvObject;
 }
 
 #ifdef OBSOLETE // Marked obsolete Jul 19, 2016.  Use hc=createHyPerCol(pv_init_ptr) instead of hc=pv_init_ptr->build().
@@ -255,16 +242,6 @@ int PV_Init::commFinalize()
 {
    MPI_Finalize();
    return 0;
-}
-
-void PV_Init::printBuildAndRunDeprecationWarning(char const * functionName, char const * functionSignature) {
-   if (buildandrunDeprecationWarning) {
-      if (getWorldRank()==0) {
-         pvWarn().printf("%s(%s) has been deprecated.  Use the Factory version of %s instead.\n\n",
-               functionName, functionSignature, functionName);
-      }
-      clearBuildAndRunDeprecationWarning();
-   }
 }
 
 } // namespace PV

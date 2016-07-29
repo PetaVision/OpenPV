@@ -32,8 +32,6 @@ private:
    int initialize_base();
 }; // end of class PoolingIndexLayer
 
-BaseObject * createPoolingIndexLayer(char const * name, HyPerCol * hc);
-
 }  // end namespace PV
 
 #endif /* ANNLAYER_HPP_ */

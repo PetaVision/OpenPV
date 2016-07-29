@@ -117,21 +117,21 @@ int FilenameParsingGroundTruthLayer::updateState(double time, double dt)
       char * currentFilename = NULL;
       int filenameLen = 0;
       //TODO depending on speed of this layer, more efficient way would be to preallocate currentFilename buffer
-      if(parent->icCommunicator()->commRank()==0){
+      if(parent->getCommunicator()->commRank()==0){
          currentFilename = strdup(movieLayer->getFilename(b));
          //Get length of currentFilename and broadcast
          int filenameLen = (int) strlen(currentFilename) + 1; //+1 for the null terminator
          //Using local communicator, as each batch MPI will handle it's own run
-         MPI_Bcast(&filenameLen, 1, MPI_INT, 0, parent->icCommunicator()->communicator());
+         MPI_Bcast(&filenameLen, 1, MPI_INT, 0, parent->getCommunicator()->communicator());
          //Braodcast filename to all other local processes
-         MPI_Bcast(currentFilename, filenameLen, MPI_CHAR, 0, parent->icCommunicator()->communicator());
+         MPI_Bcast(currentFilename, filenameLen, MPI_CHAR, 0, parent->getCommunicator()->communicator());
       }
       else{
          //Receive broadcast about length of filename
-         MPI_Bcast(&filenameLen, 1, MPI_INT, 0, parent->icCommunicator()->communicator());
+         MPI_Bcast(&filenameLen, 1, MPI_INT, 0, parent->getCommunicator()->communicator());
          currentFilename = (char*)calloc(sizeof(char), filenameLen);
          //Receive filename
-         MPI_Bcast(currentFilename, filenameLen, MPI_CHAR, 0, parent->icCommunicator()->communicator());
+         MPI_Bcast(currentFilename, filenameLen, MPI_CHAR, 0, parent->getCommunicator()->communicator());
       }
 
       std::string fil = currentFilename;
@@ -160,14 +160,10 @@ FilenameParsingGroundTruthLayer::FilenameParsingGroundTruthLayer(const char * na
    if (hc->columnId()==0) {
       pvErrorNoExit().printf("FilenameParsingGroundTruthLayer \"%s\": FilenameParsingGroundTruthLayer class requires compiling with PV_USE_GDAL set\n", name);
    }
-   MPI_Barrier(hc->icCommunicator()->communicator());
+   MPI_Barrier(hc->getCommunicator()->communicator());
    exit(EXIT_FAILURE);
 }
 FilenameParsingGroundTruthLayer::FilenameParsingGroundTruthLayer() {}
 #endif // PV_USE_GDAL
-
-BaseObject * createFilenameParsingGroundTruthLayer(char const * name, HyPerCol * hc) {
-   return hc ? new FilenameParsingGroundTruthLayer(name, hc) : NULL;
-}
 
 } /* namespace PV */

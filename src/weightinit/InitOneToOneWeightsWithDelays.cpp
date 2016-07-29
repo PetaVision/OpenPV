@@ -82,8 +82,4 @@ int InitOneToOneWeightsWithDelays::createOneToOneConnectionWithDelays(pvdata_t *
 
 }
 
-BaseObject * createInitOneToOneWeightsWithDelays(char const * name, HyPerCol * hc) {
-   return hc ? new InitOneToOneWeightsWithDelays(name, hc) : NULL;
-}
-
 } /* namespace PV */

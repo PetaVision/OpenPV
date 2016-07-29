@@ -16,7 +16,8 @@
 #include <layers/BaseLayer.hpp>
 #include <columns/DataStore.hpp>
 #include <columns/HyPerCol.hpp>
-#include <columns/InterColComm.hpp>
+#include <columns/Communicator.hpp>
+#include <columns/Publisher.hpp>
 #include <io/LayerProbe.hpp>
 #include <io/fileio.hpp>
 #include <include/pv_common.h>
@@ -206,6 +207,7 @@ protected:
    int setLayerLoc(PVLayerLoc * layerLoc, float nxScale, float nyScale, int nf, int numBatches);
    virtual int allocateBuffers();
    virtual int allocateGSyn();
+   void addPublisher();
 
    /*
     * Allocates a buffer of the given length.  The membrane potential and activity buffer, among others, are created using allocateBuffer.
@@ -239,9 +241,9 @@ protected:
    virtual int copyInitialStateToGPU();
 #endif // PV_USE_CUDA
    char * pathInCheckpoint(const char * cpDir, const char * suffix);
-   int readDataStoreFromFile(const char * filename, InterColComm * comm, double * timed);
+   int readDataStoreFromFile(const char * filename, Communicator * comm, double * timed);
    int incrementNBands(int * numCalls);
-   int writeDataStoreToFile(const char * filename, InterColComm * comm, double dtime);
+   int writeDataStoreToFile(const char * filename, Communicator * comm, double dtime);
    //virtual int calcActiveIndices();
    void calcNumExtended();
    
@@ -293,6 +295,7 @@ public:
    virtual double getTimeScale(int batchIdx)      {return -1.0;};
    virtual bool activityIsSpiking() { return false; }
    PVDataType getDataType()          {return dataType;}
+   virtual int respond(std::shared_ptr<BaseMessage> message) override;
 protected:
 
    /**
@@ -307,22 +310,8 @@ protected:
 public:
 
    virtual ~HyPerLayer();
-   int initializeState(); // Not virtual since all layers should respond to initializeFromCheckpointFlag and (deprecated) restartFlag in the same way.
-                          // initializeState calls the virtual methods readStateFromCheckpoint(), and setInitialValues().
-
-   virtual int communicateInitInfo();
-   virtual int allocateDataStructures();
 
    void synchronizeMarginWidth(HyPerLayer * layer);
-
-   // TODO The three routines below shouldn't be public, but HyPerCol needs to call them, so for now they are.
-   void setInitInfoCommunicatedFlag() {initInfoCommunicatedFlag = true;}
-   void setDataStructuresAllocatedFlag() {dataStructuresAllocatedFlag = true;}
-   void setInitialValuesSetFlag() {initialValuesSetFlag = true;}
-
-   bool getInitInfoCommunicatedFlag() {return initInfoCommunicatedFlag;}
-   bool getDataStructuresAllocatedFlag() {return dataStructuresAllocatedFlag;}
-   bool getInitialValuesSetFlag() {return initialValuesSetFlag;}
 
    int ioParams(enum ParamsIOFlag ioFlag);
 
@@ -369,14 +358,21 @@ public:
     * A function to update the time that the next trigger is expected to occur.
     */
    virtual int updateNextTriggerTime();
-   virtual int publish(InterColComm * comm, double time);
+   virtual int respondLayerRecvSynapticInput(LayerRecvSynapticInputMessage const * message);
+   virtual int respondLayerUpdateState(LayerUpdateStateMessage const * message);
+#ifdef PV_USE_CUDA
+   virtual int respondLayerCopyFromGpu(LayerCopyFromGpuMessage const * message);
+#endif // PV_USE_CUDA
+   virtual int respondLayerPublish(LayerPublishMessage const * message);
+   virtual int respondLayerCheckNotANumber(LayerCheckNotANumberMessage const * message);
+   virtual int respondLayerUpdateActiveIndices(LayerUpdateActiveIndicesMessage const * message);
+   virtual int respondLayerOutputState(LayerOutputStateMessage const * message);
+   virtual int publish(Communicator * comm, double time);
    virtual int resetGSynBuffers(double timef, double dt);
    // ************************************************************************************//
 
    // mpi public wait method to ensure all targets have received synaptic input before proceeding to next time step
-   virtual int waitOnPublish(InterColComm * comm);
-
-   virtual int updateBorder(double time, double dt);
+   virtual int waitOnPublish(Communicator * comm);
 
    virtual int updateAllActiveIndices();
    virtual int updateActiveIndices();
@@ -393,9 +389,9 @@ public:
    virtual int writeTimers(std::ostream& stream);
    // TODO: readBufferFile and writeBufferFile have to take different types of buffers.  Can they be templated?
    template <typename T>
-   static int readBufferFile(const char * filename, InterColComm * comm, double * timed, T ** buffers, int numbands, bool extended, const PVLayerLoc * loc);
+   static int readBufferFile(const char * filename, Communicator * comm, double * timed, T ** buffers, int numbands, bool extended, const PVLayerLoc * loc);
    template <typename T>
-   static int writeBufferFile(const char * filename, InterColComm * comm, double dtime, T ** buffers, int numbands, bool extended, const PVLayerLoc * loc);
+   static int writeBufferFile(const char * filename, Communicator * comm, double dtime, T ** buffers, int numbands, bool extended, const PVLayerLoc * loc);
 
    virtual int outputState(double timef, bool last=false);
    virtual int writeActivity(double timed);
@@ -468,7 +464,13 @@ public:
 
    float getMaxRate() {return maxRate;}
 
+   Publisher * getPublisher() { return publisher; }
+
 protected:
+   virtual int communicateInitInfo() override;
+   virtual int allocateDataStructures() override;
+   virtual int initializeState() final; // Not overridable since all layers should respond to initializeFromCheckpointFlag and (deprecated) restartFlag in the same way.
+                          // initializeState calls the virtual methods readStateFromCheckpoint(), and setInitialValues().
 
    int openOutputStateFile();
    /* static methods called by updateState({long_argument_list})*/
@@ -485,6 +487,7 @@ protected:
 
    int numChannels;             // number of channels
    pvdata_t ** GSyn;            // of dynamic length numChannels
+   Publisher * publisher = nullptr;
 
    float nxScale, nyScale;        // Size of layer relative to column
    int numFeatures;
@@ -518,10 +521,6 @@ protected:
    float maxRate;         // Maximum rate of activity.  HyPerLayer sets to 1/dt during initialize(); derived classes should override in their own initialize method after calling HyPerLayer's, if needed.
 
    unsigned int rngSeedBase; // The starting seed for rng.  The parent HyPerCol reserves {rngSeedbase, rngSeedbase+1,...rngSeedbase+neededRNGSeeds-1} for use by this layer
-
-   bool initInfoCommunicatedFlag;
-   bool dataStructuresAllocatedFlag;
-   bool initialValuesSetFlag;
 
    InitV * initVObject;
 
@@ -690,7 +689,6 @@ protected:
 #endif
 };
 
-BaseObject * createHyPerLayer(char const * name, HyPerCol * hc);
 } // namespace PV
 
 #endif /* HYPERLAYER_HPP_ */

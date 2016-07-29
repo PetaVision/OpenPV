@@ -34,7 +34,5 @@ private:
          InitSpreadOverArborsWeightsParams * weightParamPtr);
 };
 
-BaseObject * createInitSpreadOverArborsWeights(char const * name, HyPerCol * hc);
-
 } /* namespace PV */
 #endif /* INITSPREADOVERARBORSWEIGHTS_HPP_ */

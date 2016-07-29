@@ -409,7 +409,7 @@ int MomentumConn::checkpointWrite(const char * cpDir) {
    char filename[PV_PATH_MAX];
    int chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_prev_dW.pvp", cpDir, name);
    if(chars_needed >= PV_PATH_MAX) {
-      if ( parent->icCommunicator()->commRank()==0 ) {
+      if ( parent->getCommunicator()->commRank()==0 ) {
          pvErrorNoExit().printf("HyPerConn::checkpointFilename: path \"%s/%s_W.pvp\" is too long.\n", cpDir, name);
       }
       abort();
@@ -427,19 +427,12 @@ int MomentumConn::checkpointRead(const char * cpDir, double * timeptr) {
    char * path = parent->pathInCheckpoint(cpDir, getName(), "_prev_dW.pvp");
    PVPatch *** patches_arg = sharedWeights ? NULL : get_wPatches();
    double filetime=0.0;
-   int status = PV::readWeights(patches_arg, prev_dwDataStart, numberOfAxonalArborLists(), getNumDataPatches(), nxp, nyp, nfp, path, parent->icCommunicator(), &filetime, pre->getLayerLoc());
+   int status = PV::readWeights(patches_arg, prev_dwDataStart, numberOfAxonalArborLists(), getNumDataPatches(), nxp, nyp, nfp, path, parent->getCommunicator(), &filetime, pre->getLayerLoc());
    if (parent->columnId()==0 && timeptr && *timeptr != filetime) {
       pvWarn().printf("\"%s\" checkpoint has timestamp %g instead of the expected value %g.\n", path, filetime, *timeptr);
    }
    free(path);
    return status;
-}
-
-BaseObject * createMomentumConn(char const * name, HyPerCol * hc) {
-   if (hc==NULL) { return NULL; }
-   InitWeights * weightInitializer = getWeightInitializer(name, hc);
-   NormalizeBase * weightNormalizer = getWeightNormalizer(name, hc);
-   return new MomentumConn(name, hc, weightInitializer, weightNormalizer);
 }
 
 } // end namespace PV

@@ -29,7 +29,5 @@ private:
 
 }; // class ANNSquaredLayer
 
-BaseObject * createANNSquaredLayer(char const * name, HyPerCol * hc);
-
 } /* namespace PV */
 #endif /* ANNSQUAREDLAYER_HPP_ */

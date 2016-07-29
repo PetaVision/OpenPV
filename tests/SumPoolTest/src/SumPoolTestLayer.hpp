@@ -18,7 +18,6 @@ private:
 }; // end class SumPoolTestLayer
 
 
-BaseObject * createSumPoolTestLayer(char const * name, HyPerCol * hc);
 
 } /* namespace PV */
 #endif

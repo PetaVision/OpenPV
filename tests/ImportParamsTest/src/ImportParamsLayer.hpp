@@ -16,7 +16,6 @@ private:
     int initialize_base();
 };
 
-BaseObject * createImportParamsLayer(char const * name, HyPerCol * hc);
 
 } /* namespace PV */
 #endif

@@ -8,7 +8,10 @@
 #ifndef HYPERCOL_HPP_
 #define HYPERCOL_HPP_
 
-#include <columns/InterColComm.hpp>
+#include <columns/Communicator.hpp>
+#include <columns/BaseObject.hpp>
+#include <columns/Messages.hpp>
+#include <columns/ObjectHierarchy.hpp>
 #include <layers/HyPerLayer.hpp>
 #include <connections/BaseConnection.hpp>
 #include <io/PVParams.hpp>
@@ -23,6 +26,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <memory>
 
 #ifdef PV_USE_CUDA
 #  include <arch/cuda/CudaDevice.hpp>
@@ -321,6 +325,14 @@ public:
    char* pathInCheckpoint(const char* cpDir, const char* objectName, const char* suffix);
    ColProbe* getColProbeFromName(const char* probeName);
    HyPerLayer* getLayerFromName(const char* layerName);
+
+   /**
+    * Adds an object (layer, connection, etc.) to the hierarchy.
+    * Return value is true if the object was successfully added, and false otherwise.
+    * The usual reason for failing to add the object is that the name is the same
+    * as that of an earlier added object.
+    */
+   bool addObject(BaseObject * obj) { return mObjectHierarchy.addObject(obj); }
    int addBaseProbe(BaseProbe* p);
    int addConnection(BaseConnection* conn);
    int addNormalizer(NormalizeBase* normalizer);
@@ -424,7 +436,7 @@ public:
    int numCommColumns() { return mCommunicator->numCommColumns(); }
    int numCommRows() { return mCommunicator->numCommRows(); }
    int numCommBatches() { return mCommunicator->numCommBatches(); }
-   InterColComm * icCommunicator() const { return mCommunicator; }
+   InterColComm * getCommunicator() const { return mCommunicator; }
    NormalizeBase * getNormalizer(int which) { return mNormalizers.at(which); }
    PV_Init * getPV_InitObj() const { return mPVInitObj; }
    PV_Stream * getPrintParamsStream() const { return mPrintParamsStream; }
@@ -432,9 +444,15 @@ public:
    long int getInitialStep() const { return mInitialStep; }
    long int getFinalStep() const { return mFinalStep; }
    long int getCurrentStep() const { return mCurrentStep; }
-   unsigned int getSeed() { return mRandomSeed; }
-   unsigned int getObjectSeed(int count) { unsigned long seed = mRandomSeedObj; mRandomSeedObj += count; return seed; }
-   unsigned int getRandomSeed();
+   unsigned int getRandomSeed() { return mRandomSeed; }
+   unsigned int seedRandomFromWallClock();
+
+   // A hack to allow test_cocirc, test_gauss2d, and test_post_weights to send a CommunicateInitInfoMessage.
+   std::map<std::string, BaseObject*> * copyObjectMap() {
+      auto objectMap = new std::map<std::string, BaseObject*>;
+      *objectMap = mObjectHierarchy.getObjectMap();
+      return objectMap;
+   }
 private:
    int getAutoGPUDevice();
 
@@ -456,15 +474,9 @@ private:
    int ioParams(enum ParamsIOFlag ioFlag);
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    int checkDirExists(const char * dirname, struct stat * pathstat);
-   int doInitializationStage(int (HyPerCol::*layerInitializationStage)(int), int (HyPerCol::*connInitializationStage)(int), const char * stageName);
-   int layerCommunicateInitInfo(int l);
-   int connCommunicateInitInfo(int c);
-   int layerAllocateDataStructures(int l);
-   int connAllocateDataStructures(int c);
-   int layerSetInitialValues(int l);
-   int connSetInitialValues(int c);
+   void notify(std::vector<std::shared_ptr<BaseMessage> > messages);
+   inline void notify(std::shared_ptr<BaseMessage> message) { notify(std::vector<std::shared_ptr<BaseMessage> >{message});}
    int normalizeWeights();
-   int initPublishers();
    int checkpointRead();
    int checkpointWrite(const char * cpDir);
    int writeTimers(std::ostream& stream);
@@ -486,6 +498,7 @@ private:
 
    std::vector<BaseConnection*> mConnections; //BaseConnection  ** mConnections;
    std::vector<BaseProbe*> mBaseProbes; //Why is this Base and not just mProbes? //BaseProbe ** mBaseProbes;
+   ObjectHierarchy mObjectHierarchy;
    bool mErrorOnNotANumber;        // If true, check each layer's activity buffer for not-a-numbers and exit with an error if any appear
    bool mDefaultInitializeFromCheckpointFlag ; // Each Layer and connection can individually set its own initializeFromCheckpointFlag.  This sets the default value for those flags.
    bool mWarmStart;             // whether to start from a checkpoint
@@ -502,8 +515,7 @@ private:
    bool mWriteTimeScaleFieldnames;      // determines whether fieldnames are written to HyPerCol_timescales file
    bool mWriteProgressToError;// Whether to write progress step to standard error (True) or standard output (False) (default is output)
    bool mVerifyWrites;     // Flag to indicate whether calls to PV_fwrite do a readback check
-   bool mOwnsParams; // True if mParams was created from mParams file by initialize, false if mParams was passed in the constructor
-   bool mOwnsInterColComm; // True if mCommunicator was created by initialize, false if passed in the constructor
+   bool mOwnsCommunicator; // True if icComm was created by initialize, false if passed in the constructor
    bool mWriteTimescales;
    char* mCheckpointReadDir;   // name of the directory to read an initializing checkpoint from
    char* mCheckpointReadDirBase;   // name of the directory containing checkpoint read from (used by deprecated mParams-based method for loading from checkpoint)
@@ -590,10 +602,6 @@ private:
    time_t mCpWriteClockSeconds; // If checkpoint mode is clock, the clock time between checkpoints, in seconds
    time_t mNextCpWriteClock;
    unsigned int mRandomSeed;
-   unsigned int mRandomSeedObj;  // Objects that need to generate random numbers should request a seed from
-                                  // the HyPerCol, saying how many they need (across all processes in an MPI run).
-                                  // mRandomSeedObj is incremented by the number requested, so that everything
-                                  // that needs a random seed gets a unique seed, and things are reproducible.
 #ifdef PV_USE_CUDA
    //The list of GPU group showing which connection's buffer to use
    std::vector<BaseConnection*> mGpuGroupConns; //BaseConnection** mGpuGroupConns;

@@ -54,8 +54,6 @@ protected:
    pvadata_t nnzThreshold;
 }; // end class L0NormProbe
 
-BaseObject * createL0NormProbe(char const * name, HyPerCol * hc);
-
 }  // end namespace PV
 
 #endif /* L0NORMPROBE_HPP_ */

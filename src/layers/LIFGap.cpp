@@ -192,7 +192,7 @@ int LIFGap::checkpointWrite(const char * cpDir) {
    int status = LIF::checkpointWrite(cpDir);
 
    // checkpoint gapStrength buffer
-   InterColComm * icComm = parent->icCommunicator();
+   Communicator * icComm = parent->getCommunicator();
    double timed = (double) parent->simulationTime();
    int filenamesize = strlen(cpDir)+(size_t) 1+strlen(name)+strlen("_gapStrength.pvp")+(size_t) 1;
    // The +1's are for the slash between cpDir and name, and for the null terminator
@@ -215,7 +215,7 @@ int LIFGap::readStateFromCheckpoint(const char * cpDir, double * timeptr) {
 
 int LIFGap::readGapStrengthFromCheckpoint(const char * cpDir, double * timeptr) {
    char * filename = parent->pathInCheckpoint(cpDir, getName(), "_gapStrength.pvp");
-   int status = readBufferFile(filename, parent->icCommunicator(), timeptr, &gapStrength, 1, /*extended*/false, getLayerLoc());
+   int status = readBufferFile(filename, parent->getCommunicator(), timeptr, &gapStrength, 1, /*extended*/false, getLayerLoc());
    assert(status==PV_SUCCESS);
    free(filename);
    gapStrengthInitialized = true;
@@ -253,10 +253,6 @@ int LIFGap::updateState(double time, double dt)
       break;
    }
    return status; 
-}
-
-BaseObject * createLIFGap(char const * name, HyPerCol * hc) {
-   return hc ? new LIFGap(name, hc) : NULL;
 }
 
 } // namespace PV

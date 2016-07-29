@@ -21,7 +21,7 @@ int TestAllZerosProbe::outputState(double timed) {
    if (status != PV_SUCCESS) {
       pvError().printf("!!Time %f: TestAllZerosProbe::outputState failed for %s\n", timed, getTargetLayer()->getDescription_c());
    }
-   InterColComm * icComm = getTargetLayer()->getParent()->icCommunicator();
+   Communicator * icComm = getTargetLayer()->getParent()->getCommunicator();
    const int rcvProc = 0;
    if( icComm->commRank() != rcvProc ) {
       return 0;
@@ -40,10 +40,6 @@ int TestAllZerosProbe::initTestAllZerosProbe(const char * probeName, HyPerCol * 
 
 void TestAllZerosProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
    requireType(BufActivity);
-}
-
-BaseObject * createTestAllZerosProbe(char const * name, HyPerCol * hc) {
-   return hc ? new TestAllZerosProbe(name, hc) : NULL;
 }
 
 }; // namespace PV

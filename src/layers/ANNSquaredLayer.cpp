@@ -64,10 +64,6 @@ int ANNSquaredLayer::updateState(double time, double dt)
    return PV_SUCCESS;
 }
 
-BaseObject * createANNSquaredLayer(char const * name, HyPerCol * hc) {
-   return hc ? new ANNSquaredLayer(name, hc) : NULL;
-}
-
 } /* namespace PV */
 
 ///////////////////////////////////////////////////////

@@ -16,10 +16,10 @@ HyPerConnDebugInitWeights::HyPerConnDebugInitWeights()
    initialize_base();
 }
 
-HyPerConnDebugInitWeights::HyPerConnDebugInitWeights(const char * name, HyPerCol * hc, InitWeights * weightInitializer, NormalizeBase * weightNormalizer) : HyPerConn()
+HyPerConnDebugInitWeights::HyPerConnDebugInitWeights(const char * name, HyPerCol * hc) : HyPerConn()
 {
    initialize_base();
-   HyPerConnDebugInitWeights::initialize(name, hc, weightInitializer, weightNormalizer);
+   HyPerConnDebugInitWeights::initialize(name, hc);
 }
 
 HyPerConnDebugInitWeights::~HyPerConnDebugInitWeights()
@@ -27,8 +27,8 @@ HyPerConnDebugInitWeights::~HyPerConnDebugInitWeights()
    free(otherConnName);
 }
 
-int HyPerConnDebugInitWeights::initialize(const char * name, HyPerCol * hc, InitWeights * weightInitializer, NormalizeBase * weightNormalizer) {
-   HyPerConn::initialize(name, hc, weightInitializer, weightNormalizer);
+int HyPerConnDebugInitWeights::initialize(const char * name, HyPerCol * hc) {
+   HyPerConn::initialize(name, hc);
    return PV_SUCCESS;
 }
 
@@ -939,13 +939,6 @@ int HyPerConnDebugInitWeights::gaborWeights(PVPatch * wp, pvdata_t * dataStart, 
 
 
    return 0;
-}
-
-BaseObject * createHyPerConnDebugInitWeights(char const * name, HyPerCol * hc) {
-   if (hc==NULL) { return NULL; }
-   InitWeights * weightInitializer = getWeightInitializer(name, hc);
-   NormalizeBase * weightNormalizer = getWeightNormalizer(name, hc);
-   return new HyPerConnDebugInitWeights(name, hc, weightInitializer, weightNormalizer);
 }
 
 } /* namespace PV */

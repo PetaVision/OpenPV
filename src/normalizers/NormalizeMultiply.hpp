@@ -88,8 +88,6 @@ protected:
                                       // Only meaningful (at least for now) for KernelConns using sum of weights or sum of squares normalization methods.
 }; // class NormalizeMultiply
 
-BaseObject * createNormalizeMultiply(char const * name, HyPerCol * hc);
-
 } /* namespace PV */
 
 #endif /* NORMALIZEMULTIPLY_HPP_ */

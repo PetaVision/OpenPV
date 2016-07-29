@@ -78,7 +78,7 @@ void BBFindConfRemapProbe::ioParam_drawMontage(enum PV::ParamsIOFlag ioFlag) {
          fprintf(stderr, "%s error: PetaVision must be compiled with GDAL to use BBFindConfRemapProbe with drawMontage set.\n",
                getDescription_c());
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       return PV_FAILURE;
    }
 #endif // PV_USE_GDAL
@@ -165,7 +165,7 @@ int BBFindConfRemapProbe::communicateInitInfo() {
          fprintf(stderr, "%s error: targetLayer \"%s\" must be a BBFindLayer.\n",
                getDescription_c(), this->targetName);
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
 
@@ -173,7 +173,7 @@ int BBFindConfRemapProbe::communicateInitInfo() {
    setLayerFromParam(&reconLayer, "reconLayer", reconLayerName);
    if (status != PV_SUCCESS) {
       // error messages get printed by setLayerFromParam
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
 
@@ -467,8 +467,8 @@ void BBFindConfRemapProbe::makeGrayScaleImage(int b) {
       if (a < minValue) { minValue = a; }
       if (a > maxValue) { maxValue = a; }
    }
-   MPI_Allreduce(MPI_IN_PLACE, &minValue, 1, MPI_FLOAT, MPI_MIN, parent->icCommunicator()->communicator());
-   MPI_Allreduce(MPI_IN_PLACE, &maxValue, 1, MPI_FLOAT, MPI_MAX, parent->icCommunicator()->communicator());
+   MPI_Allreduce(MPI_IN_PLACE, &minValue, 1, MPI_FLOAT, MPI_MIN, parent->getCommunicator()->communicator());
+   MPI_Allreduce(MPI_IN_PLACE, &maxValue, 1, MPI_FLOAT, MPI_MAX, parent->getCommunicator()->communicator());
    // Scale grayScaleImage to be between 0 and 1.
    // If maxValue==minValue, make grayScaleImage have a constant 0.5.
    if (maxValue==minValue) {
@@ -551,21 +551,21 @@ void BBFindConfRemapProbe::drawHeatMaps(int b) {
          }
       }
       if (parent->columnId()!=0) {
-         MPI_Send(montageImageLocal, nx*ny*3, MPI_UNSIGNED_CHAR, 0, 111, parent->icCommunicator()->communicator());
+         MPI_Send(montageImageLocal, nx*ny*3, MPI_UNSIGNED_CHAR, 0, 111, parent->getCommunicator()->communicator());
       }
       else {
          int montageCol = idx % numMontageColumns;
          int montageRow = (idx - montageCol) / numMontageColumns; // Integer arithmetic
          int xStartInMontage = (imageLoc->nxGlobal + 10)*montageCol + 5;
          int yStartInMontage = (imageLoc->nyGlobal + 64 + 10)*montageRow + 64 + 5;
-         int const numCommRows = parent->icCommunicator()->numCommRows();
-         int const numCommCols = parent->icCommunicator()->numCommColumns();
+         int const numCommRows = parent->getCommunicator()->numCommRows();
+         int const numCommCols = parent->getCommunicator()->numCommColumns();
          for (int rank=0; rank<parent->numberOfColumns(); rank++) {
             if (rank==0) {
                memcpy(montageImageComm, montageImageLocal, nx*ny*3);
             }
             else {
-               MPI_Recv(montageImageComm, nx*ny*3, MPI_UNSIGNED_CHAR, rank, 111, parent->icCommunicator()->communicator(), MPI_STATUS_IGNORE);
+               MPI_Recv(montageImageComm, nx*ny*3, MPI_UNSIGNED_CHAR, rank, 111, parent->getCommunicator()->communicator(), MPI_STATUS_IGNORE);
             }
             int const commRow = rowFromRank(rank, numCommRows, numCommCols);
             int const commCol = columnFromRank(rank, numCommRows, numCommCols);
@@ -712,8 +712,8 @@ void BBFindConfRemapProbe::insertImageIntoMontage(int xStart, int yStart, pvadat
          maxValue = a > maxValue ? a : maxValue;
       }
    }
-   MPI_Allreduce(MPI_IN_PLACE, &minValue, 1, MPI_FLOAT, MPI_MIN, parent->icCommunicator()->communicator());
-   MPI_Allreduce(MPI_IN_PLACE, &maxValue, 1, MPI_FLOAT, MPI_MAX, parent->icCommunicator()->communicator());
+   MPI_Allreduce(MPI_IN_PLACE, &minValue, 1, MPI_FLOAT, MPI_MIN, parent->getCommunicator()->communicator());
+   MPI_Allreduce(MPI_IN_PLACE, &maxValue, 1, MPI_FLOAT, MPI_MAX, parent->getCommunicator()->communicator());
    if (minValue==maxValue) {
       for (int y=0; y<ny; y++) {
          int lineStart = kIndex(0, y, 0, nx, ny, nf);
@@ -735,18 +735,18 @@ void BBFindConfRemapProbe::insertImageIntoMontage(int xStart, int yStart, pvadat
       }
    }
    if (parent->columnId()!=0) {
-      MPI_Send(montageImageLocal, nx*ny*3, MPI_UNSIGNED_CHAR, 0, 111, parent->icCommunicator()->communicator());
+      MPI_Send(montageImageLocal, nx*ny*3, MPI_UNSIGNED_CHAR, 0, 111, parent->getCommunicator()->communicator());
    }
    else {
       for (int rank=0; rank<parent->numberOfColumns(); rank++) {
          if (rank!=0) {
-            MPI_Recv(montageImageComm, nx*ny*3, MPI_UNSIGNED_CHAR, rank, 111, parent->icCommunicator()->communicator(), MPI_STATUS_IGNORE);
+            MPI_Recv(montageImageComm, nx*ny*3, MPI_UNSIGNED_CHAR, rank, 111, parent->getCommunicator()->communicator(), MPI_STATUS_IGNORE);
          }
          else {
             memcpy(montageImageComm, montageImageLocal, nx*ny*3);
          }
-         int const numCommRows = parent->icCommunicator()->numCommRows();
-         int const numCommCols = parent->icCommunicator()->numCommColumns();
+         int const numCommRows = parent->getCommunicator()->numCommRows();
+         int const numCommCols = parent->getCommunicator()->numCommColumns();
          int const commRow = rowFromRank(rank, numCommRows, numCommCols);
          int const commCol = columnFromRank(rank, numCommRows, numCommCols);
          for (int y=0; y<ny; y++) {

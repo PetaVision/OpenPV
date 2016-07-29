@@ -118,8 +118,4 @@ int InitGauss2DWeights::gauss2DCalcWeights(pvdata_t * dataStart, InitGauss2DWeig
    return PV_SUCCESS;
 }
 
-BaseObject * createInitGauss2DWeights(char const * name, HyPerCol * hc) {
-   return hc ? new InitGauss2DWeights(name, hc) : NULL;
-}
-
 } /* namespace PV */

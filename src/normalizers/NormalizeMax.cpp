@@ -124,8 +124,4 @@ int NormalizeMax::normalizeWeights() {
 NormalizeMax::~NormalizeMax() {
 }
 
-BaseObject * createNormalizeMax(char const * name, HyPerCol * hc) {
-   return hc ? new NormalizeMax(name, hc) : NULL;
-}
-
 } /* namespace PV */

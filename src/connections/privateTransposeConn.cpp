@@ -199,6 +199,7 @@ int privateTransposeConn::updateState(double time, double dt) {
    assert(plasticityFlag && postConn->getLastUpdateTime() > lastUpdateTime); // should only be called if needUpdate returned true this timestep
    // privateTransposeConn must wait until finalizeUpdate, after normalizers are called,
    // so that it will see the correct weights when it calls transpose.
+   lastTimeUpdateCalled = time;
    return PV_SUCCESS;
 }
 
@@ -237,7 +238,7 @@ int privateTransposeConn::transposeNonsharedWeights(int arborId) {
    const PVLayerLoc * preLocTranspose = preSynapticLayer()->getLayerLoc();
    const PVLayerLoc * postLocTranspose = postSynapticLayer()->getLayerLoc();
 #ifdef PV_USE_MPI
-   InterColComm * icComm = parent->icCommunicator();
+   Communicator * icComm = parent->getCommunicator();
    pvwdata_t * sendbuf[NUM_NEIGHBORHOOD];
    pvwdata_t * recvbuf[NUM_NEIGHBORHOOD];
    int size[NUM_NEIGHBORHOOD];

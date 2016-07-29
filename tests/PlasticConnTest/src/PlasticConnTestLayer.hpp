@@ -17,14 +17,13 @@ public:
    PlasticConnTestLayer(const char* name, HyPerCol * hc);
    virtual int allocateDataStructures();
    virtual int updateState(double timef, double dt);
-   virtual int publish(InterColComm * comm, double timef);
+   virtual int publish(Communicator * comm, double timef);
 protected:
    int copyAtoV();
    int setActivitytoGlobalPos();
    int initialize(const char * name, HyPerCol * hc);
 }; // end class PlasticConnTestLayer
 
-BaseObject * createPlasticConnTestLayer(char const * name, HyPerCol * hc);
 
 } // end namespace PV
 #endif /* PLASTICCONNTESTLAYER_HPP_ */

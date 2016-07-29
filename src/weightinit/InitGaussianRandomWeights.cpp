@@ -42,10 +42,10 @@ int InitGaussianRandomWeights::initRNGs(bool isKernel) {
    assert(randState==NULL && gaussianRandState==NULL);
    int status = PV_SUCCESS;
    if (isKernel) {
-      gaussianRandState = new GaussianRandom(callingConn->getParent(), callingConn->getNumDataPatches());
+      gaussianRandState = new GaussianRandom(callingConn->getNumDataPatches());
    }
    else {
-      gaussianRandState = new GaussianRandom(callingConn->getParent(), callingConn->preSynapticLayer()->getLayerLoc(), true/*isExtended*/);
+      gaussianRandState = new GaussianRandom(callingConn->preSynapticLayer()->getLayerLoc(), true/*isExtended*/);
    }
 
    if (gaussianRandState == NULL) {
@@ -79,10 +79,6 @@ int InitGaussianRandomWeights::randomWeights(pvdata_t * patchDataStart, InitWeig
    }
 
    return 0;
-}
-
-BaseObject * createInitGaussianRandomWeights(char const * name, HyPerCol * hc) {
-   return hc ? new InitGaussianRandomWeights(name, hc) : NULL;
 }
 
 } /* namespace PV */

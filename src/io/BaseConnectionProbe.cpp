@@ -56,7 +56,7 @@ int BaseConnectionProbe::setTargetConn(const char * connName) {
             getDescription_c(), getParent()->columnId(), connName);
       status = PV_FAILURE;
    }
-   MPI_Barrier(getParent()->icCommunicator()->communicator());
+   MPI_Barrier(getParent()->getCommunicator()->communicator());
    if (status != PV_SUCCESS) {
       exit(EXIT_FAILURE);
    }

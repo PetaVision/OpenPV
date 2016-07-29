@@ -85,17 +85,13 @@ int MPITestLayer::updateState(double timed, double dt)
    return PV_SUCCESS;
 }
 
-int MPITestLayer::publish(InterColComm* comm, double timed)
+int MPITestLayer::publish(Communicator* comm, double timed)
 {
    setActivitytoGlobalPos();
-   int status = comm->publish(this, clayer->activity);
+   int status = publisher->publish(timed, lastUpdateTime, clayer->activity);
    return status;
 
    //return HyPerLayer::publish(comm, time);
-}
-
-BaseObject * createMPITestLayer(char const * name, HyPerCol * hc) {
-   return hc ? new MPITestLayer(name, hc) : NULL;
 }
 
 } /* namespace PV */

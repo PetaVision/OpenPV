@@ -128,8 +128,6 @@ protected:
 
 }; // end class QuotientColProbe
 
-BaseObject * createQuotientColProbe(char const * name, HyPerCol * hc);
-
 }  // end namespace PV
 
 #endif /* QUOTIENTCOLPROBE_HPP_ */

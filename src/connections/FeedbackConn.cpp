@@ -41,7 +41,7 @@ int FeedbackConn::setPreAndPostLayerNames() {
       }
       status = PV_FAILURE;
    }
-   MPI_Barrier(parent->icCommunicator()->communicator());
+   MPI_Barrier(parent->getCommunicator()->communicator());
    if (status != PV_SUCCESS) exit(EXIT_FAILURE);
    return status;
 }
@@ -55,10 +55,6 @@ int FeedbackConn::handleMissingPreAndPostLayerNames() {
       pvError().printf("%s: Rank %d process unable to allocate memory for pre and post layer names: %s", getDescription_c(), parent->columnId(), strerror(errno));
    }
    return PV_SUCCESS;
-}
-
-BaseObject * createFeedbackConn(char const * name, HyPerCol * hc) {
-   return hc ? new FeedbackConn(name, hc) : NULL;
 }
 
 }  // end of namespace PV block

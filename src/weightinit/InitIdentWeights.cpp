@@ -55,8 +55,4 @@ int InitIdentWeights::calcWeights(pvdata_t * dataStart, int patchIndex, int arbo
    return createOneToOneConnection(dataStart, patchIndex, 1, weightParamPtr);
 }
 
-BaseObject * createInitIdentWeights(char const * name, HyPerCol * hc) {
-   return hc ? new InitIdentWeights(name, hc) : NULL;
-}
-
 } /* namespace PV */

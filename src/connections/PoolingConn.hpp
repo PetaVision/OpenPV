@@ -70,8 +70,6 @@ private:
    AccumulateType poolingType;
 }; // end class PoolingConn
 
-BaseObject * createPoolingConn(char const * name, HyPerCol * hc);
-
 }  // end namespace PV
 
 #endif /* CLONEKERNELCONN_HPP_ */

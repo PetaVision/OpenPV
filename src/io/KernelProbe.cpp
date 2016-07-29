@@ -76,7 +76,7 @@ int KernelProbe::communicateInitInfo() {
       }
       status = PV_FAILURE;
    }
-   MPI_Barrier(parent->icCommunicator()->communicator());
+   MPI_Barrier(parent->getCommunicator()->communicator());
    if (status != PV_SUCCESS) {
       exit(EXIT_FAILURE);
    }
@@ -104,7 +104,7 @@ int KernelProbe::allocateDataStructures() {
 }
 
 int KernelProbe::outputState(double timed) {
-   InterColComm * icComm = parent->icCommunicator();
+   Communicator * icComm = parent->getCommunicator();
    const int rank = icComm->commRank();
    if( rank != 0 ) return PV_SUCCESS;
    assert(getTargetConn()!=NULL);
@@ -162,10 +162,6 @@ int KernelProbe::patchIndices(HyPerConn * conn) {
       output() << ", starting at x=" << xOffset << ", y=" << yOffset << "\n";
    }
    return PV_SUCCESS;
-}
-
-BaseObject * createKernelProbe(char const * name, HyPerCol * hc) {
-   return hc ? new KernelProbe(name, hc) : NULL;
 }
 
 }  // end of namespace PV block

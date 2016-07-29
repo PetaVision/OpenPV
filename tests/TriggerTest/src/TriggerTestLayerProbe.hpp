@@ -34,7 +34,6 @@ protected:
    virtual int calcValues(double timevalue);
 }; // end TriggerTestLayer
 
-BaseObject * createTriggerTestLayerProbe(char const * name, HyPerCol * hc);
 
 }  // end namespacePV
 #endif /* IMAGETESTPROBE_HPP */

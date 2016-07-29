@@ -116,7 +116,7 @@ void PoolingConn::unsetAccumulateType() {
       }
       errorMessage.printf("  Allowed values are \"maxpooling\", \"sumpooling\", or \"avgpooling\".");
    }
-   MPI_Barrier(parent->icCommunicator()->communicator());
+   MPI_Barrier(parent->getCommunicator()->communicator());
    exit(EXIT_FAILURE);
 }
 
@@ -209,7 +209,7 @@ int PoolingConn::communicateInitInfo() {
          if (parent->columnId()==0) {
             pvErrorNoExit().printf("%s: postIndexLayerName \"%s\" does not refer to any layer in the column.\n", getDescription_c(), this->postIndexLayerName);
          }
-         MPI_Barrier(parent->icCommunicator()->communicator());
+         MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
 
@@ -218,7 +218,7 @@ int PoolingConn::communicateInitInfo() {
          if (parent->columnId()==0) {
             pvErrorNoExit().printf("%s: postIndexLayerName \"%s\" is not a PoolingIndexLayer.\n", getDescription_c(), this->postIndexLayerName);
          }
-         MPI_Barrier(parent->icCommunicator()->communicator());
+         MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
 
@@ -226,7 +226,7 @@ int PoolingConn::communicateInitInfo() {
          if (parent->columnId()==0) {
             pvErrorNoExit().printf("%s: postIndexLayer \"%s\" must have data type of int. Specify parameter dataType in this layer to be \"int\".\n", getDescription_c(), this->postIndexLayerName);
          }
-         MPI_Barrier(parent->icCommunicator()->communicator());
+         MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
          
       }
@@ -238,7 +238,7 @@ int PoolingConn::communicateInitInfo() {
          if (parent->columnId()==0) {
             pvErrorNoExit().printf("%s: postIndexLayer \"%s\" must have the same dimensions as the post pooling layer \"%s\".", getDescription_c(), this->postIndexLayerName, this->postLayerName);
          }
-         MPI_Barrier(parent->icCommunicator()->communicator());
+         MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
 
@@ -717,10 +717,6 @@ int PoolingConn::deliverPostsynapticPerspective(PVLayerCube const * activity, in
       }
    }
    return PV_SUCCESS;
-}
-
-BaseObject * createPoolingConn(char const * name, HyPerCol * hc) {
-   return hc ? new PoolingConn(name, hc) : NULL;
 }
 
 } // end namespace PV

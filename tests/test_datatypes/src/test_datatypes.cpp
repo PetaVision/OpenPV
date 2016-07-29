@@ -27,7 +27,7 @@ static int check_borders(pvdata_t * buf, PV::Communicator * comm, PVLayerLoc loc
 int main(int argc, char * argv[])
 {
    PV::PV_Init* initObj = new PV::PV_Init(&argc, &argv, true/*allowUnrecognizedArguments*/);
-   PV::Communicator * comm = initObj->getComm();
+   PV::Communicator * comm = initObj->getCommunicator();
    
    // Handling of requireReturn copied from HyPerCol::initialize, since this test doesn't create a HyPerCol.
    if (initObj->getRequireReturnFlag()) {
@@ -86,10 +86,17 @@ int main(int argc, char * argv[])
    }
 
    // send and recv the "image"
+   std::vector<MPI_Request> req;
    if (err==0) {
-      err = comm->exchange(image, datatypes, &loc);
+      err = comm->exchange(image, datatypes, &loc, req);
       if (err != 0) {
          pvErrorNoExit().printf("[%d]: Communicator::exchange failed\n", comm->commRank());
+      }
+   }
+   if (err==0) {
+      err = comm->wait(req);
+      if (err != 0) {
+         pvErrorNoExit().printf("[%d]: Communicator::waitForExchange failed\n", comm->commRank());
       }
    }
 

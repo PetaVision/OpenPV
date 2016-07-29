@@ -69,10 +69,6 @@ int InitSmartWeights::smartWeights(/* PVPatch * wp */ pvdata_t * dataStart, int 
    return 0;
 }
 
-BaseObject * createInitSmartWeights(char const * name, HyPerCol * hc) {
-   return hc ? new InitSmartWeights(name, hc) : NULL;
-}
-
 } /* namespace PV */
 
 

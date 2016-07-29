@@ -45,8 +45,6 @@ protected:
 
 }; // end class PointLIFProbe
 
-BaseObject * createPointLIFProbe(char const * name, HyPerCol * hc);
-
 }
 
 #endif /* POINTLIFPROBE_HPP_ */

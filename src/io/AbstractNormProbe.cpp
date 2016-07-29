@@ -64,7 +64,7 @@ int AbstractNormProbe::communicateInitInfo() {
             pvErrorNoExit().printf("%s: maskLayerName \"%s\" is not a layer in the HyPerCol.\n",
                   getDescription_c(), maskLayerName);
          }
-         MPI_Barrier(parent->icCommunicator()->communicator());
+         MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
 
@@ -79,7 +79,7 @@ int AbstractNormProbe::communicateInitInfo() {
             maskLayerBadSize.printf("    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
                     maskLoc->nxGlobal, maskLoc->nyGlobal, maskLoc->nf, loc->nxGlobal, loc->nyGlobal, loc->nf);
          }
-         MPI_Barrier(parent->icCommunicator()->communicator());
+         MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
 
@@ -91,7 +91,7 @@ int AbstractNormProbe::communicateInitInfo() {
             maskLayerBadSize.printf("    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
                     maskLoc->nxGlobal, maskLoc->nyGlobal, maskLoc->nf, loc->nxGlobal, loc->nyGlobal, loc->nf);
          }
-         MPI_Barrier(parent->icCommunicator()->communicator());
+         MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
       assert(maskLoc->nx==loc->nx && maskLoc->ny==loc->ny);
@@ -114,7 +114,7 @@ int AbstractNormProbe::calcValues(double timeValue) {
    for (int b=0; b<this->getNumValues(); b++) {
       valuesBuffer[b] = getValueInternal(timeValue, b);
    }
-   MPI_Allreduce(MPI_IN_PLACE, valuesBuffer, getNumValues(), MPI_DOUBLE, MPI_SUM, parent->icCommunicator()->communicator());
+   MPI_Allreduce(MPI_IN_PLACE, valuesBuffer, getNumValues(), MPI_DOUBLE, MPI_SUM, parent->getCommunicator()->communicator());
    return PV_SUCCESS;
 }
 

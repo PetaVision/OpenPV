@@ -35,7 +35,7 @@ int main(int argc, char * argv[]) {
 
    if (pv_obj.isExtraProc()) { return EXIT_SUCCESS; }
 
-   int rank = pv_obj.getComm()->globalCommRank();
+   int rank = pv_obj.getCommunicator()->globalCommRank();
 
    status = deleteGeneratedFiles(&pv_obj);
    if (status!=PV_SUCCESS) {
@@ -77,7 +77,7 @@ int main(int argc, char * argv[]) {
 int deleteGeneratedFiles(PV::PV_Init * pv_obj) {
 
    int status = PV_SUCCESS;
-   if (pv_obj->getComm()->globalCommRank()==0) {
+   if (pv_obj->getCommunicator()->globalCommRank()==0) {
       char const * filename = NULL;
 
       if (deleteFile(PROCESSED_PARAMS, pv_obj) != PV_SUCCESS) { status = PV_FAILURE; }
@@ -86,7 +86,7 @@ int deleteGeneratedFiles(PV::PV_Init * pv_obj) {
       if (system("rm -rf output-generate") != PV_SUCCESS) { status = PV_FAILURE; }
       if (system("rm -rf output-verify") != PV_SUCCESS) { status = PV_FAILURE; }
    }
-   MPI_Bcast(&status, 1, MPI_INT, 0, pv_obj->getComm()->communicator());
+   MPI_Bcast(&status, 1, MPI_INT, 0, pv_obj->getCommunicator()->communicator());
    return status;
 }
 
@@ -139,7 +139,7 @@ int checkDryRunSet(HyPerCol * hc, int argc, char * argv[]) {
          pvErrorNoExit().printf("%s failed: with dry-run flag set, initialStep was %ld but currentStep was %ld\n",
                  argv[0], hc->getInitialStep(), hc->getCurrentStep());
       }
-      MPI_Barrier(hc->icCommunicator()->communicator());
+      MPI_Barrier(hc->getCommunicator()->communicator());
       status = PV_FAILURE;
    }
    return status;
@@ -153,7 +153,7 @@ int checkDryRunCleared(HyPerCol * hc, int argc, char * argv[]) {
          pvErrorNoExit().printf("%s failed: with dry-run flag cleared, finalStep was %ld but currentStep was %ld\n",
                  argv[0], hc->getFinalStep(), hc->getCurrentStep());
       }
-      MPI_Barrier(hc->icCommunicator()->communicator());
+      MPI_Barrier(hc->getCommunicator()->communicator());
       status = PV_FAILURE;
    }
    return status;

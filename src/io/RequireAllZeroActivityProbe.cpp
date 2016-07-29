@@ -78,7 +78,7 @@ void RequireAllZeroActivityProbe::nonzeroFoundMessage(double badTime, bool isRoo
       }
    }
    if (fatalError) {
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
 }
@@ -88,10 +88,6 @@ RequireAllZeroActivityProbe::~RequireAllZeroActivityProbe() {
    if(exitOnFailure && getNonzeroFound()) {
       nonzeroFoundMessage(nonzeroTime, parent->columnId()==0, true/*fatalError*/);
    }
-}
-
-BaseObject * createRequireAllZeroActivityProbe(char const * name, HyPerCol * hc) {
-   return hc ? new RequireAllZeroActivityProbe(name, hc) : nullptr;
 }
 
 } /* namespace PV */

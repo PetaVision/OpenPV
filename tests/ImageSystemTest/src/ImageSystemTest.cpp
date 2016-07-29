@@ -20,10 +20,10 @@ int main(int argc, char * argv[]) {
    int status;
 #ifdef MAIN_USES_CUSTOM_GROUPS
    PV_Init pv_initObj(&argc, &argv, false/*do not allow unrecognized arguments*/);
-   pv_initObj.registerKeyword("ImageTestLayer", createImageTestLayer);
-   pv_initObj.registerKeyword("ImagePvpTestLayer", createImagePvpTestLayer);
-   pv_initObj.registerKeyword("MovieTestLayer", createMovieTestLayer);
-   pv_initObj.registerKeyword("MoviePvpTestLayer", createMoviePvpTestLayer);
+   pv_initObj.registerKeyword("ImageTestLayer", Factory::create<ImageTestLayer>);
+   pv_initObj.registerKeyword("ImagePvpTestLayer", Factory::create<ImagePvpTestLayer>);
+   pv_initObj.registerKeyword("MovieTestLayer", Factory::create<MovieTestLayer>);
+   pv_initObj.registerKeyword("MoviePvpTestLayer", Factory::create<MoviePvpTestLayer>);
    status = buildandrun(&pv_initObj);
 #else
    status = buildandrun(argc, argv);

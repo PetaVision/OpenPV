@@ -129,8 +129,4 @@ int InitSpreadOverArborsWeights::spreadOverArborsWeights(/* PVPatch * patch */ p
    return PV_SUCCESS;
 }
 
-BaseObject * createInitSpreadOverArborsWeights(char const * name, HyPerCol * hc) {
-   return hc ? new InitSpreadOverArborsWeights(name, hc) : NULL;
-}
-
 } /* namespace PV */

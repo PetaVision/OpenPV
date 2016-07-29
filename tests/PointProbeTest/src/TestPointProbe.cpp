@@ -32,15 +32,11 @@ int TestPointProbe::point_writeState(double timef, float outVVal, float outAVal)
       float expectedVal = fLoc * 64 + xLoc * 8 + yLoc;
       if(outAVal != expectedVal){
          pvErrorNoExit() << "Connection " << name << " Mismatch: actual value: " << outAVal << " Expected value: " << expectedVal << ".\n";
-         MPI_Barrier(parent->icCommunicator()->communicator());
+         MPI_Barrier(parent->getCommunicator()->communicator());
          exit(-1);
       }
    }
    return PV_SUCCESS;
-}
-
-BaseObject * createTestPointProbe(char const * name, HyPerCol * hc) {
-   return hc ? new TestPointProbe(name, hc) : NULL;
 }
 
 } // namespace PV
