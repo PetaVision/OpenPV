@@ -436,7 +436,7 @@ public:
    int numCommColumns() { return mCommunicator->numCommColumns(); }
    int numCommRows() { return mCommunicator->numCommRows(); }
    int numCommBatches() { return mCommunicator->numCommBatches(); }
-   InterColComm * getCommunicator() const { return mCommunicator; }
+   Communicator * getCommunicator() const { return mCommunicator; }
    NormalizeBase * getNormalizer(int which) { return mNormalizers.at(which); }
    PV_Init * getPV_InitObj() const { return mPVInitObj; }
    PV_Stream * getPrintParamsStream() const { return mPrintParamsStream; }
@@ -576,7 +576,7 @@ private:
    int mNumThreads;
    int * mLayerStatus;
    int * mConnectionStatus;
-   InterColComm * mCommunicator; // manages communication between HyPerColumns};
+   Communicator * mCommunicator; // manages communication between HyPerColumns};
    long int mCpReadDirIndex;  // checkpoint number within mCheckpointReadDir to read
    long int mCpWriteStepInterval;
    long int mNextCpWriteStep;

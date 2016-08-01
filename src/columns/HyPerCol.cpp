@@ -78,7 +78,7 @@ HyPerCol::~HyPerCol() {
    }
    mColProbes.clear();
    
-   mCommunicator->clearPublishers();
+   //mCommunicator->clearPublishers();
    delete mRunTimer;
    delete mCheckpointTimer;
    //TODO: Change these old C strings into std::string
@@ -186,8 +186,8 @@ int HyPerCol::initialize_base() {
    mNumYGlobal = 0;
    mNumBatch = 1;
    mNumBatchGlobal = 1;
-   mOwnsParams = true;
-   mOwnsInterColComm = true;
+   //mOwnsParams = true;
+   mOwnsCommunicator = true;
    mParams = nullptr;
    mCommunicator = nullptr;
    mRunTimer = nullptr;
@@ -198,7 +198,7 @@ int HyPerCol::initialize_base() {
    mFilenamesContainLayerNames = 0;
    mFilenamesContainConnectionNames = 0;
    mRandomSeed = 0U;
-   mRandomSeedObj = 0U;
+   //mRandomSeedObj = 0U;
    mWriteTimescales = true; //Defaults to true
    mErrorOnNotANumber = false;
    mNumThreads = 1;
@@ -215,7 +215,7 @@ int HyPerCol::initialize_base() {
 int HyPerCol::initialize(const char * name, PV_Init* initObj)
 {
    mPVInitObj = initObj;
-   mCommunicator = mPVInitObj->getComm();
+   mCommunicator = mPVInitObj->getCommunicator();
    mParams = mPVInitObj->getParams();
    if(mParams == nullptr) {
       if (mCommunicator->globalCommRank()==0) {
@@ -270,7 +270,7 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
    if( globalRank() == rootproc ) { 
       parsedStatus = this->mParams->getParseStatus();
    }
-   MPI_Bcast(&parsedStatus, 1, MPI_INT, rootproc, icCommunicator()->globalCommunicator());
+   MPI_Bcast(&parsedStatus, 1, MPI_INT, rootproc, getCommunicator()->globalCommunicator());
 #else
    int parsedStatus = this->mParams->getParseStatus();
 #endif
@@ -857,8 +857,8 @@ void HyPerCol::ioParam_randomSeed(enum ParamsIOFlag ioFlag) {
       // set random seed if it wasn't set in the command line
       // bool seedfromclock = false;
       if( !mRandomSeed ) {
-         if( params->present(mName, "randomSeed") ) {
-            mRandomSeed = (unsigned long) params->value(mName, "randomSeed");
+         if( mParams->present(mName, "randomSeed") ) {
+            mRandomSeed = (unsigned long) mParams->value(mName, "randomSeed");
          }
          else {
             mRandomSeed = seedRandomFromWallClock();
@@ -1310,7 +1310,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
 
       // processParams function does communicateInitInfo stage, sets up adaptive time step, and prints params
       status = processParams(printParamsFileString.c_str());
-      MPI_Barrier(icCommunicator()->communicator());
+      MPI_Barrier(getCommunicator()->communicator());
       
       pvErrorIf(status != PV_SUCCESS,  "HyPerCol \"%s\" failed to run.\n", mName); 
       if (mPVInitObj->getDryRunFlag()) { return PV_SUCCESS; }
@@ -1354,23 +1354,23 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
 
       // Initial normalization moved here to facilitate normalizations of groups of HyPerConns
       normalizeWeights();
-      notify(std::make_shared<ConnectionFinalizeUpdateMessage>(simTime, deltaTimeBase));
+      notify(std::make_shared<ConnectionFinalizeUpdateMessage>(mSimTime, mDeltaTimeBase));
 
       // publish initial conditions
-      for(int phase = 0; phase < numPhases; phase++){
-         notify(std::make_shared<LayerPublishMessage>(phase, simTime));
+      for(int phase = 0; phase < mNumPhases; phase++){
+         notify(std::make_shared<LayerPublishMessage>(phase, mSimTime));
       }
 
       // wait for all published data to arrive and update active indices;
-      for (int phase=0; phase<numPhases; phase++) {
+      for (int phase=0; phase<mNumPhases; phase++) {
          notify(std::make_shared<LayerUpdateActiveIndicesMessage>(phase));
       }
 
       // output initial conditions
       if (!mCheckpointReadFlag) {
-         notify(std::make_shared<ConnectionOutputMessage>(simTime));
-         for (int phase=0; phase<numPhases; phase++) {
-            notify(std::make_shared<LayerOutputStateMessage>(phase, simTime));
+         notify(std::make_shared<ConnectionOutputMessage>(mSimTime));
+         for (int phase=0; phase<mNumPhases; phase++) {
+            notify(std::make_shared<LayerOutputStateMessage>(phase, mSimTime));
          }
       }
       mReadyFlag = true;
@@ -1942,6 +1942,7 @@ int HyPerCol::advanceTime(double sim_time)
 
    // update the connections (weights)
    //
+   notify(std::make_shared<ConnectionUpdateMessage>(mSimTime, mDeltaTimeBase));
    normalizeWeights();
    notify(std::make_shared<ConnectionFinalizeUpdateMessage>(mSimTime, mDeltaTimeBase));
    notify(std::make_shared<ConnectionOutputMessage>(mSimTime));
@@ -1968,7 +1969,7 @@ int HyPerCol::advanceTime(double sim_time)
    }
 
    // Each layer's phase establishes a priority for updating
-   for (int phase=0; phase<numPhases; phase++) {
+   for (int phase=0; phase<mNumPhases; phase++) {
 
       //Ordering needs to go recvGpu, if(recvGpu and upGpu)update, recvNoGpu, update rest
 #ifdef PV_USE_CUDA
@@ -2184,7 +2185,7 @@ int HyPerCol::checkpointRead() {
       }
       //Grab only the necessary part based on comm batch id
       if (mUseAdaptMethodExp1stOrder) {
-         MPI_Bcast(&timescalemax,(int) timescalemax_size*mNumBatch,MPI_CHAR,0,icCommunicator()->communicator());
+         MPI_Bcast(&timescalemax,(int) timescalemax_size*mNumBatch,MPI_CHAR,0,getCommunicator()->communicator());
          for (int b = 0; b < mNumBatch; b++){
             mTimeScale[b] = timescalemax[b].mTimeScale;
             mTimeScaleTrue[b] = timescalemax[b].mTimeScaleTrue;
@@ -2194,7 +2195,7 @@ int HyPerCol::checkpointRead() {
          }
       }
       else {
-         MPI_Bcast(&timescale,(int) timescale_size*mNumBatch,MPI_CHAR,0,icCommunicator()->communicator());
+         MPI_Bcast(&timescale,(int) timescale_size*mNumBatch,MPI_CHAR,0,getCommunicator()->communicator());
          for (int b = 0; b < mNumBatch; b++){
             mTimeScale[b] = timescale[b].mTimeScale;
             mTimeScaleTrue[b] = timescale[b].mTimeScaleTrue;
@@ -2432,9 +2433,6 @@ int HyPerCol::outputParams(char const * path) {
    int status = PV_SUCCESS;
    int rank=mCommunicator->commRank();
    assert(mPrintParamsStream==nullptr);
-=======
-   assert(printParamsStream==NULL);
->>>>>>> develop
    char printParamsPath[PV_PATH_MAX];
    char * tmp = strdup(path); // duplicate string since dirname() is allowed to modify its argument
    if (tmp==nullptr) {
