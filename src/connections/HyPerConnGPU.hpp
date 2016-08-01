@@ -8,7 +8,7 @@
 
 namespace GPULCA {
 
-class HyPerConnGPU : PV::HyPerConn {
+class HyPerConnGPU : public PV::HyPerConn {
  public:
   HyPerConnGPU();
   HyPerConnGPU(const char* name, PV::HyPerCol* hc);
@@ -31,12 +31,21 @@ class HyPerConnGPU : PV::HyPerConn {
   }
 
   /*  get private variables */
-  const PVCudaWrapper<pvwdata_t>& getW() const { return W; }
+  const std::vector<PVCudaWrapper<pvwdata_t>>& getW() const { return W; }
+  std::vector<PVCudaWrapper<pvwdata_t>>& getW() { return W; }
+	const std::vector<PVCudaWrapper<pvwdata_t>>& getWT() const { return WT; }
+  std::vector<PVCudaWrapper<pvwdata_t>>& getWT() { return WT; }
+  const PVCudaWrapper<pvwdata_t>& getW(int arborId) const {
+    return W.at(arborId);
+  }
+  PVCudaWrapper<pvwdata_t>& getW(int arborId) { return W.at(arborId); }
   bool getIsPreGPULayerFlag() const { return isPreGPULayer; }
   bool getIsWeightSparseFlag() const { return isWeightSparse; }
 
  protected:
-  int findCudnnAlgo();
+  virtual int findCudnnAlgo();
+  virtual int update_dW(int arborId);
+  virtual int updateWeights(int arborId = 0);
 
  private:
   void initialize_base();
@@ -44,10 +53,15 @@ class HyPerConnGPU : PV::HyPerConn {
   virtual int ioParamsFillGroup(enum PV::ParamsIOFlag ioFlag);
   virtual void ioParam_isPreGPULayer(enum PV::ParamsIOFlag ioFlag);
   virtual void ioParam_isWeightSparse(enum PV::ParamsIOFlag ioFlag);
+	int computeTransposeMap();
+	int transposeWeight();
 
  private:
-  PVCudaWrapper<pvwdata_t>* PreNHWC, *Pre, W;
+  PVCudaWrapper<pvwdata_t>* PreNHWC, *Pre;
+  std::vector<PVCudaWrapper<pvwdata_t>> W, WT;  // W: KCHW
+                                                // WT:CKHW
   bool isPreGPULayer, isWeightSparse;
+	DenseMatrix<int> map;
 
   /*  CUDA handle */
   cudnnHandle_t cudnnHandle;

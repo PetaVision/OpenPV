@@ -17,6 +17,10 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/privateTransposeConn.cpp
    ${SUBDIR}/TransposeConn.cpp
    ${SUBDIR}/TransposePoolingConn.cpp
+	 ${SUBDIR}/TransposeConnGPU.cpp
+	 ${SUBDIR}/CloneConnGPU.cpp
+	 ${SUBDIR}/IdentConnGPU.cpp
+	 ${SUBDIR}/LateralInteractionConnGPU.cpp
 )
 
 set (PVLibSrcHpp ${PVLibSrcHpp}
@@ -39,5 +43,9 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/TransposeConn.hpp
    ${SUBDIR}/TransposePoolingConn.hpp
    ${SUBDIR}/weight_conversions.hpp
+	 ${SUBDIR}/TransposeConnGPU.hpp
+	 ${SUBDIR}/CloneConnGPU.hpp
+	 ${SUBDIR}/IdentConnGPU.hpp
+	 ${SUBDIR}/LateralInteractionConnGPU.hpp
 )
 
