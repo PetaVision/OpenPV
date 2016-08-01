@@ -87,3 +87,7 @@
 #  endif
 #endif
 
+// No inactive code. If a block of code needs to be commented out or marked #ifdef OBSOLETE,
+// it should be removed with a comment indicating the date of removal and the reason. If
+// this code needs to be referred to in the future it can be found in the appropriate commit
+// based on the date of removal.

@@ -132,3 +132,4 @@ int buildandrun1paramset(PV_Init * initObj,
 HyPerCol * build(PV_Init* initObj) {
    return initObj ? createHyPerCol(initObj) : nullptr;
 }
+

@@ -25,6 +25,7 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <vector>
 #include <memory>
 
 #ifdef PV_USE_CUDA
@@ -64,12 +65,12 @@ private:
     */
 
    /**
-    * @brief startTime: The set starting time for the run
+    * @brief mStartTime: The set starting time for the run
     */
    virtual void ioParam_startTime(enum ParamsIOFlag ioFlag);
    
    /**
-    * @brief stopTime: The set stopping time for the run
+    * @brief mStopTime: The set stopping time for the run
     */
    virtual void ioParam_stopTime(enum ParamsIOFlag ioFlag);
    
@@ -98,7 +99,7 @@ private:
    virtual void ioParam_useAdaptMethodExp1stOrder(enum ParamsIOFlag ioFlag);
    
    /**
-    * @brief dtAdaptTriggerLayerName: The name of a HyPerLayer that resets the adaptive time step scheme when it triggers.
+    * @brief mDtAdaptTriggerLayerName: The name of a HyPerLayer that resets the adaptive time step scheme when it triggers.
     */
    virtual void ioParam_dtAdaptTriggerLayerName(enum ParamsIOFlag ioFlag);
    
@@ -138,8 +139,8 @@ private:
    virtual void ioParam_dtChangeMin(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief dtMinToleratedTimeScale: If mDtAdaptController is set, specifies the minimum value dt can drop to before exiting
-    * @details Program will exit if timeScale drops below this value
+    * @brief mDtMinToleratedTimeScale: If mDtAdaptController is set, specifies the minimum value dt can drop to before exiting
+    * @details Program will exit if mTimeScale drops below this value
     */
    virtual void ioParam_dtMinToleratedTimeScale(enum ParamsIOFlag ioFlag);
 
@@ -149,7 +150,7 @@ private:
    virtual void ioParam_writeTimeScaleFieldnames(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief progressInterval: Specifies how often a progress report prints out
+    * @brief mProgressInterval: Specifies how often a progress report prints out
     * @details Units of dt
     */
    virtual void ioParam_progressInterval(enum ParamsIOFlag ioFlag);
@@ -166,13 +167,13 @@ private:
    virtual void ioParam_verifyWrites(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief outputPath: Specifies the absolute or relative output path of the run
+    * @brief mOutputPath: Specifies the absolute or relative output path of the run
     */
    virtual void ioParam_outputPath(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief printParamsFilename: Specifies the output params filename.
-    * @details Defaults to pv.params. The output params file will be put into outputPath.
+    * @brief mPrintParamsFilename: Specifies the output mParams filename.
+    * @details Defaults to pv.mParams. The output mParams file will be put into mOutputPath.
     */
    virtual void ioParam_printParamsFilename(enum ParamsIOFlag ioFlag);
 
@@ -197,7 +198,7 @@ private:
    virtual void ioParam_nBatch(enum ParamsIOFlag ioFlag);
    
    /**
-    * @brief filenamesContainLayerNames: Specifies if layer names gets printed out to output connection pvp files
+    * @brief mFilenamesContainLayerNames: Specifies if layer names gets printed out to output connection pvp files
     * @details Options are 0, 1, or 2.
     * - 0: filenames have form a5.pvp
     * - 1: filenames form a5_NameOfLayer.pvp
@@ -206,7 +207,7 @@ private:
    virtual void ioParam_filenamesContainLayerNames(enum ParamsIOFlag ioFlag);
    
    /**
-    * @brief filenamesContainConnectionNames: Specifies if connection names gets printed out to output connection pvp files
+    * @brief mFilenamesContainConnectionNames: Specifies if connection names gets printed out to output connection pvp files
     * @details Options are 0, 1, or 2.
     * - 0: filenames have form w5.pvp
     * - 1: filenames have form w5_NameOfConnection.pvp
@@ -215,7 +216,7 @@ private:
    virtual void ioParam_filenamesContainConnectionNames(enum ParamsIOFlag ioFlag);
    
    /**
-    * @brief initializeFromChckpointDir: Sets directory for layers and connection to initialize from.
+    * @brief initializeFromChckpointDir: Sets directory for mLayers and connection to initialize from.
     */
    virtual void ioParam_initializeFromCheckpointDir(enum ParamsIOFlag ioFlag);
    
@@ -242,7 +243,7 @@ private:
    virtual void ioParam_checkpointWriteDir(enum ParamsIOFlag ioFlag);
    
    /**
-    * @brief checkpointWriteTriggerMode: If checkpointWrite is set, specifies the method to checkpoint. 
+    * @brief mCheckpointWriteTriggerMode: If checkpointWrite is set, specifies the method to checkpoint. 
     * @details Possible choices include
     * - step: Checkpoint off of timesteps
     * - time: Checkpoint off of simulation time
@@ -276,7 +277,7 @@ private:
    virtual void ioParam_deleteOlderCheckpoints(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief numCheckpointsKept: If mDeleteOlderCheckpoints is set,
+    * @brief mNumCheckpointsKept: If mDeleteOlderCheckpoints is set,
     * keep this many checkpoints before deleting the checkpoint.
     * Default is 1 (delete a checkpoint when a newer checkpoint is written.)
     */
@@ -340,7 +341,6 @@ public:
    int ensureDirExists(const char* dirname);
    int exitRunLoop(bool exitOnFinish);
    int insertProbe(ColProbe* p);
-   int loadState(); // The world's most useful function ever.  Without it everything falls apart.
    int outputState(double time);
    int processParams(char const* path);
    int ioParamsFinishGroup(enum ParamsIOFlag);
@@ -349,8 +349,8 @@ public:
    int readArrayFromFile(const char* cp_dir, const char* group_name, const char* val_name, T* val, size_t count, T default_value=(T) 0);
    template <typename T>
    int readScalarFromFile(const char* cp_dir, const char* group_name, const char* val_name, T* val, T default_value=(T) 0);
-   int run() { return run(startTime, stopTime, deltaTimeBase); }
-   int run(double startTime, double stopTime, double dt);
+   int run() { return run(mStartTime, mStopTime, mDeltaTimeBase); }
+   int run(double mStartTime, double mStopTime, double dt);
    template <typename T>
    int writeArrayToFile(const char* cp_dir, const char* group_name, const char* val_name, T*  val, size_t count);
    template <typename T>
@@ -371,15 +371,14 @@ public:
    void writeParamString(const char* param_name, const char* svalue);
 
 #ifdef PV_USE_CUDA
-   BaseConnection* getGpuGroupConn(int gpuGroupIdx);
    int finalizeThreads();
    void addGpuGroup(BaseConnection* conn, int gpuGroupIdx);
 #endif //PV_USE_CUDA
 
    // Getters and setters
 
-   BaseConnection* getConnection(int which)  { return mConnections[which]; }
-   BaseProbe* getBaseProbe(int which) { return mBaseProbes[which]; }
+   BaseConnection* getConnection(int which)  { return mConnections.at(which); }
+   BaseProbe* getBaseProbe(int which) { return mBaseProbes.at(which); }
    bool getDtAdaptFlag() const { pvWarn() << "getDtAdaptFlag() is deprecated.\n" ; return usingAdaptiveTimeScale(); }  // getDtAdaptFlag() was deprecated Jul 7, 2016, in favor if usingAdaptiveTimeScale().
    bool getVerifyWrites() { return mVerifyWrites; }
    bool warmStartup() const { return mWarmStart; }
@@ -392,43 +391,42 @@ public:
    bool getSuppressNonplasticCheckpoints() const { return mSuppressNonplasticCheckpoints; }
    bool getWriteTimescales() const { return mWriteTimescales; }
    const char * getName() { return mName; }
-   const char * getSrcPath() { return srcPath; }
-   const char * getOutputPath() { return outputPath; }
-   const char * getInitializeFromCheckpointDir() const { return initializeFromCheckpointDir; }
+   const char * getOutputPath() { return mOutputPath; }
+   const char * getInitializeFromCheckpointDir() const { return mInitializeFromCheckpointDir; }
    const char * getCheckpointReadDir() const { return mCheckpointReadDir; }
-   const char * getPrintParamsFilename() const { return printParamsFilename; }
-   ColProbe * getColProbe(int which) { return colProbes[which]; }
-   double getDeltaTime() const { return deltaTime; }
-   double getDeltaTimeBase() const { return deltaTimeBase; }
-   double getTimeScale(int batch) const { pvAssert(batch >= 0 && batch < nbatch); return timeScale[batch]; }
-   double getTimeScaleMax(int batch) const { pvAssert(batch >= 0 && batch < nbatch); return timeScaleMax[batch]; }
-   double getTimeScaleMax() const { return timeScaleMaxBase; }
-   double getTimeScaleMax2(int batch) const { assert(batch >= 0 && batch < nbatch); return timeScaleMax2[batch]; }
-   double getTimeScaleMax2() const { return timeScaleMax2Base; }
-   double getTimeScaleMin() const { return timeScaleMin; }
-   double getChangeTimeScaleMax() const { return changeTimeScaleMax; }
-   double getChangeTimeScaleMin() const { return changeTimeScaleMin; }
-   double simulationTime() const { return simTime; }
-   double getStartTime() const { return startTime; }
-   double getStopTime() const { return stopTime; }
-   double* getTimeScale() const { return timeScale; }
-   double* getTimeScaleMaxPtr() const { return timeScaleMax; }
-   double* getTimeScaleMax2Ptr() const { return timeScaleMax2; }
-   HyPerLayer * getLayer(int which)       {return layers[which];}
+   const char * getPrintParamsFilename() const { return mPrintParamsFilename; }
+   ColProbe * getColProbe(int which) { return mColProbes.at(which); }
+   double getDeltaTime() const { return mDeltaTime; }
+   double getDeltaTimeBase() const { return mDeltaTimeBase; }
+   double getTimeScale(int batch) const { pvAssert(batch >= 0 && batch < mNumBatch); return mTimeScale[batch]; }
+   double getTimeScaleMax(int batch) const { pvAssert(batch >= 0 && batch < mNumBatch); return mTimeScaleMax[batch]; }
+   double getTimeScaleMax() const { return mTimeScaleMaxBase; }
+   double getTimeScaleMax2(int batch) const { assert(batch >= 0 && batch < mNumBatch); return mTimeScaleMax2[batch]; }
+   double getTimeScaleMax2() const { return mTimeScaleMax2Base; }
+   double getTimeScaleMin() const { return mTimeScaleMin; }
+   double getChangeTimeScaleMax() const { return mChangeTimeScaleMax; }
+   double getChangeTimeScaleMin() const { return mChangeTimeScaleMin; }
+   double simulationTime() const { return mSimTime; }
+   double getStartTime() const { return mStartTime; }
+   double getStopTime() const { return mStopTime; }
+   double* getTimeScale() const { return mTimeScale; }
+   double* getTimeScaleMaxPtr() const { return mTimeScaleMax; }
+   double* getTimeScaleMax2Ptr() const { return mTimeScaleMax2; }
+   HyPerLayer * getLayer(int which)       {return mLayers.at(which);}
    int globalRank() { return mCommunicator->globalCommRank(); }
    int columnId() { return mCommunicator->commRank(); }
-   int getNxGlobal() { return nxGlobal; }
-   int getNyGlobal() { return nyGlobal; }
-   int getNBatch() { return nbatch; }
-   int getNBatchGlobal() { return nbatchGlobal; }
-   int getNumThreads() const { return numThreads;}
-   int includeLayerName() const { return filenamesContainLayerNames;}
-   int includeConnectionName() const { return filenamesContainConnectionNames;}
-   int numberOfLayers() const { return numLayers;}
+   int getNxGlobal() { return mNumXGlobal; }
+   int getNyGlobal() { return mNumYGlobal; }
+   int getNBatch() { return mNumBatch; }
+   int getNBatchGlobal() { return mNumBatchGlobal; }
+   int getNumThreads() const { return mNumThreads;}
+   int includeLayerName() const { return mFilenamesContainLayerNames;}
+   int includeConnectionName() const { return mFilenamesContainConnectionNames;}
+   int numberOfLayers() const { return mLayers.size();}
    int numberOfConnections() const { return mConnections.size();}
-   int numberOfNormalizers() const { return numNormalizers;}
-   int numberOfProbes() const {return numColProbes;}
-   int numberOfBaseProbes() const {return numBaseProbes;}
+   int numberOfNormalizers() const { return mNormalizers.size();}
+   int numberOfProbes() const {return mColProbes.size();}
+   int numberOfBaseProbes() const {return mBaseProbes.size();}
    int numberOfBorderRegions() const {return MAX_NEIGHBORS;}
    int numberOfColumns() { return mCommunicator->commSize(); }
    int numberOfGlobalColumns() { return mCommunicator->globalCommSize(); }
@@ -439,13 +437,13 @@ public:
    int numCommRows() { return mCommunicator->numCommRows(); }
    int numCommBatches() { return mCommunicator->numCommBatches(); }
    Communicator * getCommunicator() const { return mCommunicator; }
-   NormalizeBase * getNormalizer(int which) { return normalizers[which]; }
-   PV_Init * getPV_InitObj() const { return pv_initObj; }
-   PV_Stream * getPrintParamsStream() const { return printParamsStream; }
-   PVParams * parameters() const { return params; }
-   long int getInitialStep() const { return initialStep; }
-   long int getFinalStep() const { return finalStep; }
-   long int getCurrentStep() const { return currentStep; }
+   NormalizeBase * getNormalizer(int which) { return mNormalizers.at(which); }
+   PV_Init * getPV_InitObj() const { return mPVInitObj; }
+   PV_Stream * getPrintParamsStream() const { return mPrintParamsStream; }
+   PVParams * parameters() const { return mParams; }
+   long int getInitialStep() const { return mInitialStep; }
+   long int getFinalStep() const { return mFinalStep; }
+   long int getCurrentStep() const { return mCurrentStep; }
    unsigned int getRandomSeed() { return mRandomSeed; }
    unsigned int seedRandomFromWallClock();
 
@@ -460,7 +458,8 @@ private:
 
 #ifdef PV_USE_CUDA
 public:
-   PVCuda::CudaDevice * getDevice() { return cudaDevice; }
+   BaseConnection* getGpuGroupConn(int gpuGroupIdx) { return mGpuGroupConns.at(gpuGroupIdx); }
+   PVCuda::CudaDevice * getDevice() { return mCudaDevice; }
 #endif
 
    // Private functions
@@ -485,7 +484,7 @@ private:
    int outputParamsHeadComments(FILE* fp, char const * commentToken);
    int calcTimeScaleTrue();
    /**
-    * Sets the numThreads member variable based on whether PV_USE_OPENMP is set
+    * Sets the mNumThreads member variable based on whether PV_USE_OPENMP is set
     * and the -t option in the PV_Arguments object.
     * If printMessagesFlag is true, it may print to the output and/or error stream.
     * If printMessagesFlag is false, these messages are suppressed.
@@ -496,118 +495,118 @@ private:
    // Private variables
 
 private:
+
+   std::vector<BaseConnection*> mConnections; //BaseConnection  ** mConnections;
+   std::vector<BaseProbe*> mBaseProbes; //Why is this Base and not just mProbes? //BaseProbe ** mBaseProbes;
    ObjectHierarchy mObjectHierarchy;
-    std::vector<BaseConnection *> mConnections;
-   BaseProbe ** mBaseProbes;
    bool mErrorOnNotANumber;        // If true, check each layer's activity buffer for not-a-numbers and exit with an error if any appear
    bool mDefaultInitializeFromCheckpointFlag ; // Each Layer and connection can individually set its own initializeFromCheckpointFlag.  This sets the default value for those flags.
    bool mWarmStart;             // whether to start from a checkpoint
    bool mCheckpointReadFlag;    // whether to load from a checkpoint directory
    bool mCheckpointWriteFlag;   // whether to write from a checkpoint directory
    bool mDeleteOlderCheckpoints; // If true, whenever a checkpoint other than the first is written, the preceding checkpoint is deleted. Default is false.
-   bool mSuppressLastOutput; // If mCheckpointWriteFlag is false and this flag is false, on exit a checkpoint is sent to the {outputPath}/Last directory.
+   bool mSuppressLastOutput; // If mCheckpointWriteFlag is false and this flag is false, on exit a checkpoint is sent to the {mOutputPath}/Last directory.
                             // If mCheckpointWriteFlag is false and this flag is true, no checkpoint is done on exit.
                             // The flag has no effect if mCheckpointWriteFlag is true (in which case a checkpoint is written on exit to the next directory in mCheckpointWriteDir
    bool mSuppressNonplasticCheckpoints; // If mSuppressNonplasticCheckpoints is true, only weights with plasticityFlag true will be checkpointed.  If false, all weights will be checkpointed.
    bool mReadyFlag;          // Initially false; set to true when communicateInitInfo, allocateDataStructures, and setInitialValues stages are completed
    bool mParamsProcessedFlag; // Initially false; set to true when processParams is called.
-   bool mUseAdaptMethodExp1stOrder = true; // specifies whether exponential approximation to energy function decay is used to adapt time scale, requires dtAdaptControlProbe != NULL
+   bool mUseAdaptMethodExp1stOrder = true; // specifies whether exponential approximation to energy function decay is used to adapt time scale, requires mDtAdaptControlProbe != NULL
    bool mWriteTimeScaleFieldnames;      // determines whether fieldnames are written to HyPerCol_timescales file
    bool mWriteProgressToError;// Whether to write progress step to standard error (True) or standard output (False) (default is output)
    bool mVerifyWrites;     // Flag to indicate whether calls to PV_fwrite do a readback check
-   bool mOwnsParams; // True if params was created from params file by initialize, false if params was passed in the constructor
    bool mOwnsCommunicator; // True if icComm was created by initialize, false if passed in the constructor
    bool mWriteTimescales;
    char* mCheckpointReadDir;   // name of the directory to read an initializing checkpoint from
-   char* mCheckpointReadDirBase;   // name of the directory containing checkpoint read from (used by deprecated params-based method for loading from checkpoint)
+   char* mCheckpointReadDirBase;   // name of the directory containing checkpoint read from (used by deprecated mParams-based method for loading from checkpoint)
    char* mCheckpointWriteDir; // name of the directory to write checkpoints to
    char* mCheckpointWriteTriggerModeString;
    char* mCheckpointWriteClockUnit; // If checkpoint mode is clock, the string that specifies the units.  "seconds", "minutes", "hours", or "days".
-   char* mDtAdaptController;       // If nonblank, the name of a ColProbe whose getValues() method is called to control timeScale
+   char* mDtAdaptController;       // If nonblank, the name of a ColProbe whose getValues() method is called to control mTimeScale
    char* mName;
-   char* srcPath;        // path to PetaVision src directory (used to compile OpenCL kernels)
-   char* outputPath;     // path to output file directory
-   char* printParamsFilename; // filename for outputting the params, including defaults and excluding unread params
-   char* dtAdaptTriggerLayerName;
-   char * initializeFromCheckpointDir; // If nonempty, layers and connections can load from this directory as in checkpointRead, by setting their initializeFromCheckpointFlag parameter, but the run still starts at simTime=startTime
-   ColProbe * dtAdaptControlProbe; // The probe pointed to by mDtAdaptController, dtAdaptControlProbe->getValues() is used to control timeScale.  If blank, use the original method
-   ColProbe ** colProbes;
-   double startTime;
-   double simTime;          // current time in milliseconds
-   double stopTime;         // time to stop time
-   double deltaTime;        // time step interval
-   double cpWriteTimeInterval;
-   double nextCPWriteTime;
-   double cpWriteClockInterval; // If checkpoint mode is clock, the clock time between checkpoints, in the units specified by checkpointWriteClockUnit
-   double dtAdaptTriggerOffset;
-   double deltaTimeBase;    // base time step interval if mDtAdaptController is used; timeScale is applied to this value
-   double timeScaleMaxBase;     // default value of maximum value of timeScale 
-   double timeScaleMax2Base;     // default value of maximum value of timeScaleMax 
-   double timeScaleMin;     // minimum value of timeScale (not really a minimum, actually sets starting/iniital value of deltaTime)
-   double changeTimeScaleMax;     // maximum change in value of timeScale (prevents deltaTime from growing too quickly)
-   double changeTimeScaleMin;     // typically 0 or negative, maximum DECREASE in timeScale allowed before resetting timeScale -> timeScaleMin
-   double dtMinToleratedTimeScale;// Exits with an error if any layer returns a timeScale between zero and this amount
-   double progressInterval; // Output progress after simTime increases by this amount.
-   double nextProgressTime; // Next time to output a progress message
-   double* timeScale;        // scale factor for deltaTimeBase, deltaTime = timeScale*deltaTimeBase
-   double* timeScaleTrue;    // true timeScale returned by min(HyPerLayer::getTimeScale) before MIN/MAX/CHANGE constraints applied
-   double* oldTimeScale;        // old value of timeScale
-   double* oldTimeScaleTrue;    // old value of timeScaleTrue
-   double* deltaTimeAdapt;    // Actual deltaTimeAdapt buffer passed to updateState
-   double* timeScaleMax;     // maximum value of timeScale (prevents deltaTime from growing too large)
-   double* timeScaleMax2;     // maximum value of timeScaleMax (prevents timeScaleMax from growing too large)
-   enum CheckpointWriteTriggerMode checkpointWriteTriggerMode;
-   HyPerLayer * dtAdaptTriggerLayer;
-   HyPerLayer ** layers;
-   int numLayers;
-   int numPhases;
-   int numNormalizers;
-   int checkpointSignal;      // whether the process should checkpoint in response to an external signal
-   int numCheckpointsKept; // If mDeleteOlderCheckpoints is true, does not delete a checkpoint until the specified number of more recent checkpoints have been written.  Default is 2.
-   int oldCheckpointDirectoriesIndex; // A pointer to the oldest checkpoint in the oldCheckpointDirectories vector.
-   int checkpointIndexWidth; // minimum width of the step number field in the name of a checkpoint directory; if needed the step number is padded with zeros.
-   int nxGlobal;
-   int nyGlobal;
-   int nbatch;
-   int nbatchGlobal;
-   int numColProbes;
-   int numBaseProbes;
-   int filenamesContainLayerNames; // Controls the form of layers' clayer->activeFP
-                                   // Value 0: layers have form a5.pvp
-                                   // Value 1: layers have form a5_NameOfLayer.pvp
-                                   // Value 2: layers have form NameOfLayer.pvp
-   int filenamesContainConnectionNames; // Similar to filenamesContainLayerNames, but for connections
-   int origStdOut;
-   int origStdErr;
-   int numThreads;
+   char* mOutputPath;     // path to output file directory
+   char* mPrintParamsFilename; // filename for outputting the mParams, including defaults and excluding unread mParams
+   char* mDtAdaptTriggerLayerName;
+   char * mInitializeFromCheckpointDir; // If nonempty, mLayers and mConnections can load from this directory as in checkpointRead, by setting their initializeFromCheckpointFlag parameter, but the run still starts at mSimTime=mStartTime
+   ColProbe * mDtAdaptControlProbe; // The probe pointed to by mDtAdaptController, mDtAdaptControlProbe->getValues() is used to control mTimeScale.  If blank, use the original method
+   std::vector<ColProbe*> mColProbes; //ColProbe ** mColProbes;
+   double mStartTime;
+   double mSimTime;          // current time in milliseconds
+   double mStopTime;         // time to stop time
+   double mDeltaTime;        // time step interval
+   double mCpWriteTimeInterval;
+   double mNextCpWriteTime;
+   double mCpWriteClockInterval; // If checkpoint mode is clock, the clock time between checkpoints, in the units specified by checkpointWriteClockUnit
+   double mDtAdaptTriggerOffset;
+   double mDeltaTimeBase;    // base time step interval if mDtAdaptController is used; mTimeScale is applied to this value
+   double mTimeScaleMaxBase;     // default value of maximum value of mTimeScale 
+   double mTimeScaleMax2Base;     // default value of maximum value of mTimeScaleMax 
+   double mTimeScaleMin;     // minimum value of mTimeScale (not really a minimum, actually sets starting/iniital value of mDeltaTime)
+   double mChangeTimeScaleMax;     // maximum change in value of mTimeScale (prevents mDeltaTime from growing too quickly)
+   double mChangeTimeScaleMin;     // typically 0 or negative, maximum DECREASE in mTimeScale allowed before resetting mTimeScale -> mTimeScaleMin
+   double mDtMinToleratedTimeScale;// Exits with an error if any layer returns a mTimeScale between zero and this amount
+   double mProgressInterval; // Output progress after mSimTime increases by this amount.
+   double mNextProgressTime; // Next time to output a progress message
+   double* mTimeScale;        // scale factor for mDeltaTimeBase, mDeltaTime = mTimeScale*mDeltaTimeBase
+   double* mTimeScaleTrue;    // true mTimeScale returned by min(HyPerLayer::getTimeScale) before MIN/MAX/CHANGE constraints applied
+   double* mOldTimeScale;        // old value of mTimeScale
+   double* mOldTimeScaleTrue;    // old value of mTimeScaleTrue
+   double* mDeltaTimeAdapt;    // Actual mDeltaTimeAdapt buffer passed to updateState
+   double* mTimeScaleMax;     // maximum value of mTimeScale (prevents mDeltaTime from growing too large)
+   double* mTimeScaleMax2;     // maximum value of mTimeScaleMax (prevents mTimeScaleMax from growing too large)
+   enum CheckpointWriteTriggerMode mCheckpointWriteTriggerMode;
+   HyPerLayer * mDtAdaptTriggerLayer;
+   std::vector<HyPerLayer*> mLayers; //HyPerLayer ** mLayers;
+   int mNumPhases;
+   int mCheckpointSignal;      // whether the process should checkpoint in response to an external signal
+   int mNumCheckpointsKept; // If mDeleteOlderCheckpoints is true, does not delete a checkpoint until the specified number of more recent checkpoints have been written.  Default is 2.
+   int mOldCheckpointDirectoriesIndex; // A pointer to the oldest checkpoint in the mOldCheckpointDirectories vector.
+   int mCheckpointIndexWidth; // minimum width of the step number field in the name of a checkpoint directory; if needed the step number is padded with zeros.
+   int mNumXGlobal;
+   int mNumYGlobal;
+   int mNumBatch;
+   int mNumBatchGlobal;
+   int mFilenamesContainLayerNames; // Controls the form of mLayers' clayer->activeFP
+                                   // Value 0: mLayers have form a5.pvp
+                                   // Value 1: mLayers have form a5_NameOfLayer.pvp
+                                   // Value 2: mLayers have form NameOfLayer.pvp
+   int mFilenamesContainConnectionNames; // Similar to mFilenamesContainLayerNames, but for mConnections
+   int mOrigStdOut;
+   int mOrigStdErr;
+   int mNumThreads;
+   int * mLayerStatus;
+   int * mConnectionStatus;
    Communicator * mCommunicator; // manages communication between HyPerColumns};
-   long int cpReadDirIndex;  // checkpoint number within mCheckpointReadDir to read
-   long int cpWriteStepInterval;
-   long int nextCPWriteStep;
-   long int currentStep;
-   long int initialStep;
-   long int finalStep;
-   NormalizeBase ** normalizers; // Objects for normalizing connections or groups of connections
-   PV_Init * pv_initObj;
-   PV_Stream * printParamsStream; // file pointer associated with printParamsFilename
-   PV_Stream * luaPrintParamsStream; // file pointer associated with the output lua file
-   PVParams     * params; // manages input parameters
-   size_t layerArraySize;
-   size_t connectionArraySize;
-   size_t normalizerArraySize;
-   std::vector<std::string> oldCheckpointDirectories; // A ring buffer of existing checkpoints, used if mDeleteOlderCheckpoints is true.
-   std::ofstream timeScaleStream;
-   Timer * runTimer;
-   Timer * checkpointTimer;
-   Timer ** phaseRecvTimers;
-   time_t cpWriteClockSeconds; // If checkpoint mode is clock, the clock time between checkpoints, in seconds
-   time_t nextCPWriteClock;
+   long int mCpReadDirIndex;  // checkpoint number within mCheckpointReadDir to read
+   long int mCpWriteStepInterval;
+   long int mNextCpWriteStep;
+   long int mCurrentStep;
+   long int mInitialStep;
+   long int mFinalStep;
+   std::vector<NormalizeBase*> mNormalizers; //NormalizeBase ** mNormalizers; // Objects for normalizing mConnections or groups of mConnections
+   PV_Init* mPVInitObj;
+   PV_Stream* mPrintParamsStream; // file pointer associated with mPrintParamsFilename
+   PV_Stream* mLuaPrintParamsStream; // file pointer associated with the output lua file
+   PVParams* mParams; // manages input parameters
+   size_t mLayerArraySize;
+   size_t mConnectionArraySize;
+   size_t mNormalizerArraySize;
+   std::vector<std::string> mOldCheckpointDirectories; // A ring buffer of existing checkpoints, used if mDeleteOlderCheckpoints is true.
+   std::ofstream mTimeScaleStream;
+   std::vector<HyPerLayer*> mRecvLayerBuffer;
+   std::vector<HyPerLayer*> mUpdateLayerBufferGpu;
+   std::vector<HyPerLayer*> mUpdateLayerBuffer;
+   Timer * mRunTimer;
+   Timer * mCheckpointTimer;
+   std::vector<Timer*> mPhaseRecvTimers; //Timer ** mPhaseRecvTimers;
+   time_t mCpWriteClockSeconds; // If checkpoint mode is clock, the clock time between checkpoints, in seconds
+   time_t mNextCpWriteClock;
    unsigned int mRandomSeed;
 #ifdef PV_USE_CUDA
    //The list of GPU group showing which connection's buffer to use
-   BaseConnection** gpuGroupConns;
-   int numGpuGroup;
-   PVCuda::CudaDevice * cudaDevice;    // object for running kernels on OpenCL device
+   std::vector<BaseConnection*> mGpuGroupConns; //BaseConnection** mGpuGroupConns;
+   int mNumGpuGroup;
+   PVCuda::CudaDevice * mCudaDevice;    // object for running kernels on OpenCL device
 #endif
 
 }; // class HyPerCol
