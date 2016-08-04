@@ -1,6 +1,11 @@
 #include "PVImg.hpp"
 #include "PVLog.hpp"
 
+# ifndef STB_IMAGE_IMPLEMENTATION
+#  define STB_IMAGE_IMPLEMENTATION 
+#  include "stb_image.h"
+# endif
+
 namespace PV {
 
    PVImg::PVImg(std::string filename) {

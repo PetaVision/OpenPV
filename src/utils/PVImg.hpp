@@ -4,11 +4,6 @@
 #ifndef __PVIMG_HPP__
 #define __PVIMG_HPP__
 
-# ifndef STB_IMAGE_IMPLEMENTATION
-#  define STB_IMAGE_IMPLEMENTATION 
-#  include "stb_image.h"
-# endif
-
 #include <string>
 #include <vector>
 
