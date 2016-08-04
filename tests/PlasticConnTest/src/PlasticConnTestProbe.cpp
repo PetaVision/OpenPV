@@ -7,7 +7,7 @@
 
 #include "PlasticConnTestProbe.hpp"
 #include <string.h>
-#include <assert.h>
+#include <utils/PVLog.hpp>
 
 namespace PV {
 
@@ -36,7 +36,7 @@ int PlasticConnTestProbe::outputState(double timed) {
    if( icComm->commRank() != rcvProc ) {
       return PV_SUCCESS;
    }
-   assert(getTargetConn()!=NULL);
+   pvErrorIf(!(getTargetConn()!=NULL), "Test failed.\n");
    outputStream->printf("    Time %f, %s:\n", timed, getTargetConn()->getDescription_c());
    const pvwdata_t * w = c->get_wDataHead(getArbor(), getKernelIndex());
    const pvdata_t * dw = c->get_dwDataHead(getArbor(), getKernelIndex());
@@ -69,7 +69,7 @@ int PlasticConnTestProbe::outputState(double timed) {
          }
       }
    }
-   assert(status==PV_SUCCESS);
+   pvErrorIf(!(status==PV_SUCCESS), "Test failed.\n");
    if( status == PV_SUCCESS ) {
       if (getOutputWeights())     { outputStream->printf("        All weights are correct.\n"); }
       if (getOutputPlasticIncr()) { outputStream->printf("        All plastic increments are correct.\n"); }

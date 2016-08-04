@@ -5,7 +5,7 @@ namespace PV {
 TestConnProbe::TestConnProbe(const char * probename, HyPerCol * hc) {
    initialize_base();
    int status = initialize(probename, hc);
-   assert(status == PV_SUCCESS);
+   pvErrorIf(!(status == PV_SUCCESS), "Test failed.\n");
 }
 
 TestConnProbe::TestConnProbe() {
@@ -42,13 +42,13 @@ int TestConnProbe::outputState(double timed){
                if(fabs(dataYStart[k] - 1) > .01){
                   pvError() << "dataYStart[k]: " << dataYStart[k] << "\n";
                }
-               assert(fabs(dataYStart[k] - 1) <= .01);
+               pvErrorIf(!(fabs(dataYStart[k] - 1) <= .01), "Test failed.\n");
             }
             else if(fabs(timed - 1) < (parent->getDeltaTime()/2)){
                if(fabs(dataYStart[k] - 1.375) > .01){
                   pvError() << "dataYStart[k]: " << dataYStart[k] << "\n";
                }
-               assert(fabs(dataYStart[k] - 1.375) <= .01);
+               pvErrorIf(!(fabs(dataYStart[k] - 1.375) <= .01), "Test failed.\n");
             }
 
          }

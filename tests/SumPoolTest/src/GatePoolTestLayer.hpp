@@ -7,9 +7,7 @@ namespace PV {
 
 class GatePoolTestLayer: public PV::ANNLayer{
 public:
-	GatePoolTestLayer(const char* name, HyPerCol * hc);
-   //virtual int checkpointRead(const char * cpDir, double* timef);
-   //virtual int checkpointWrite(const char * cpDir);
+   GatePoolTestLayer(const char* name, HyPerCol * hc);
 
 protected:
    int updateState(double timef, double dt);

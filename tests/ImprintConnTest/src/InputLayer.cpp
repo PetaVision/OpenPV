@@ -18,8 +18,8 @@ int InputLayer::updateState(double timef, double dt){
    int kx0 = loc->kx0;
    int ky0 = loc->ky0;
 
-   assert(nf == 4);
-   assert(loc->nxGlobal == 2 && loc->nyGlobal == 2);
+   pvErrorIf(!(nf == 4), "Test failed.\n");
+   pvErrorIf(!(loc->nxGlobal == 2 && loc->nyGlobal == 2), "Test failed.\n");
 
    //We only care about restricted space
    for(int iY = loc->halo.up; iY < ny + loc->halo.up; iY++){

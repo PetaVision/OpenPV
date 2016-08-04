@@ -17,7 +17,7 @@
 #include <connections/HyPerConn.hpp>
 #include <weightinit/InitUniformWeights.hpp>
 
-#include <assert.h>
+#include <utils/PVLog.hpp>
 
 using namespace PV;
 
@@ -35,21 +35,21 @@ int main(int argc, char * argv[])
    const char * l2name = "test_post_weights L2";
    const char * l3name = "test_post_weights L3";
    HyPerCol  * hc = new HyPerCol("column", initObj);
-   Example   * l1 = new Example(l1name, hc); assert(l1);
-   Example   * l2 = new Example(l2name, hc); assert(l2);
-   Example   * l3 = new Example(l3name, hc); assert(l3);
+   Example   * l1 = new Example(l1name, hc); pvErrorIf(!(l1), "Test failed.\n");
+   Example   * l2 = new Example(l2name, hc); pvErrorIf(!(l2), "Test failed.\n");
+   Example   * l3 = new Example(l3name, hc); pvErrorIf(!(l3), "Test failed.\n");
 
    HyPerConn * c1 = new HyPerConn("test_post_weights L1 to L1", hc);
-   assert(c1);
-   assert(c1->numberOfAxonalArborLists() == 1);
+   pvErrorIf(!(c1), "Test failed.\n");
+   pvErrorIf(!(c1->numberOfAxonalArborLists() == 1), "Test failed.\n");
 
    HyPerConn * c2 = new HyPerConn("test_post_weights L2 to L3", hc);
-   assert(c2);
-   assert(c2->numberOfAxonalArborLists() == 1);
+   pvErrorIf(!(c2), "Test failed.\n");
+   pvErrorIf(!(c2->numberOfAxonalArborLists() == 1), "Test failed.\n");
 
    HyPerConn * c3 = new HyPerConn("test_post_weights L3 to L2", hc);
-   assert(c3);
-   assert(c3->numberOfAxonalArborLists() == 1);
+   pvErrorIf(!(c3), "Test failed.\n");
+   pvErrorIf(!(c3->numberOfAxonalArborLists() == 1), "Test failed.\n");
    
    // We're not calling hc->run() because we don't execute any timesteps.
    // But we still need to allocate the weights, so we call the
@@ -62,12 +62,12 @@ int main(int argc, char * argv[])
    for (int l=0; l<hc->numberOfLayers(); l++) {
       HyPerLayer * layer = hc->getLayer(l);
       int status = layer->respond(commMessagePtr);
-      assert(status==PV_SUCCESS);
+      pvErrorIf(!(status==PV_SUCCESS), "Test failed.\n");
    }
    for (int c=0; c<hc->numberOfConnections(); c++) {
       BaseConnection * conn = hc->getConnection(c);
       int status = conn->respond(commMessagePtr);
-      assert(status==PV_SUCCESS);
+      pvErrorIf(!(status==PV_SUCCESS), "Test failed.\n");
    }
    delete objectMap;
 
@@ -75,13 +75,13 @@ int main(int argc, char * argv[])
    for (int l=0; l<hc->numberOfLayers(); l++) {
       HyPerLayer * layer = hc->getLayer(l);
       int status = layer->respond(allocateMessagePtr);
-      assert(status==PV_SUCCESS);
+      pvErrorIf(!(status==PV_SUCCESS), "Test failed.\n");
    }
 
    for (int c=0; c<hc->numberOfConnections(); c++) {
       BaseConnection * conn = hc->getConnection(c);
       int status = conn->respond(allocateMessagePtr);
-      assert(status==PV_SUCCESS);
+      pvErrorIf(!(status==PV_SUCCESS), "Test failed.\n");
    }
 
    // Don't need to call initializeState methods:
@@ -219,7 +219,7 @@ static int set_weights_to_source_index(HyPerConn * c)
    int status = 0;
    int arbor = 0;
 
-   assert(sizeof(short) == 2);
+   pvErrorIf(!(sizeof(short) == 2), "Test failed.\n");
 
    const PVLayer * lPost = c->postSynapticLayer()->clayer;
 
@@ -242,9 +242,9 @@ static int set_weights_to_source_index(HyPerConn * c)
 
       const int nfp = c->fPatchSize(); // p->nf;
 
-      assert(nxp == p->nx);
-      assert(nyp == p->ny);
-      assert(nfp == lPost->loc.nf);
+      pvErrorIf(!(nxp == p->nx), "Test failed.\n");
+      pvErrorIf(!(nyp == p->ny), "Test failed.\n");
+      pvErrorIf(!(nfp == lPost->loc.nf), "Test failed.\n");
 
       const int sxp = c->xPatchStride(); // p->sx;
       const int syp = c->yPatchStride(); // p->sy;

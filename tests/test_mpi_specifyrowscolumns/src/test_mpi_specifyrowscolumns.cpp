@@ -88,7 +88,7 @@ int buildandverify(PV::PV_Init* initObj) {
    /* PV::ANNLayer * layer = */ new PV::ANNLayer("layer", hc);
    int rows = initObj->getNumRows();
    int columns = initObj->getNumColumns();
-   assert(rows > 0 && columns > 0);
+   pvErrorIf(!(rows > 0 && columns > 0), "Test failed.\n");
    int status = verifyLoc(hc, rows, columns);
    delete hc;
    return status;
@@ -99,8 +99,8 @@ int verifyLoc(PV::HyPerCol * hc, int rows, int columns) {
    int testpassed;
    const PVLayerLoc * loc = hc->getLayer(0)->getLayerLoc();
    int rank = hc->getCommunicator()->commRank();
-   assert(rows == hc->getCommunicator()->numCommRows());
-   assert(columns == hc->getCommunicator()->numCommColumns());
+   pvErrorIf(!(rows == hc->getCommunicator()->numCommRows()), "Test failed.\n");
+   pvErrorIf(!(columns == hc->getCommunicator()->numCommColumns()), "Test failed.\n");
    PVParams * params = hc->parameters();
    int nxGlobFromParams = params->value("column", "nx");
    int nyGlobFromParams = params->value("column", "ny");
@@ -146,7 +146,7 @@ int verifyLoc(PV::HyPerCol * hc, int rows, int columns) {
          MPI_Send(&mpiLoc, sizeof(PVLayerLoc), MPI_CHAR, 0, 20, hc->getCommunicator()->communicator());
       }
    }
-   assert(status == PV_SUCCESS);
+   pvErrorIf(!(status == PV_SUCCESS), "Test failed.\n");
    return status;
 }
 

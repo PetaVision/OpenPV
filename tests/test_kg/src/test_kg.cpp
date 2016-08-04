@@ -1,5 +1,5 @@
 #include <utils/conversions.h>
-#include <assert.h>
+#include <utils/PVLog.hpp>
 #include <stdio.h>
 #include <stdlib.h>
 #include "utils/PVLog.hpp"
@@ -83,9 +83,9 @@ int main(int argc, char* argv[])
      kyg = kyPos(kg, loc.nxGlobal, loc.nyGlobal, nf);
      kfg = featureIndex(kg, loc.nxGlobal, loc.nyGlobal, nf);
 
-     assert(loc.kx0+kx == kxg);
-     assert(ky == kyg);
-     assert(kf == kfg);
+     pvErrorIf(!(loc.kx0+kx == kxg), "Test failed.\n");
+     pvErrorIf(!(ky == kyg), "Test failed.\n");
+     pvErrorIf(!(kf == kfg), "Test failed.\n");
 
      if ((kg-kl) != loc.kx0*nf*(1+ky)) {
         pvError().printf("FAILED:TEST_KG: right (kl,kg) = (%d,%d)\n", kl, kg);
@@ -133,9 +133,9 @@ int main(int argc, char* argv[])
      kyg = kyPos(kg, loc.nxGlobal, loc.nyGlobal, nf);
      kfg = featureIndex(kg, loc.nxGlobal, loc.nyGlobal, nf);
 
-     assert(loc.kx0+kx == kxg);
-     assert(loc.ky0+ky == kyg);
-     assert(kf == kfg);
+     pvErrorIf(!(loc.kx0+kx == kxg), "Test failed.\n");
+     pvErrorIf(!(loc.ky0+ky == kyg), "Test failed.\n");
+     pvErrorIf(!(kf == kfg), "Test failed.\n");
 
      if ((kg-kl) != loc.ky0*nf*nx) {
         pvError().printf("FAILED:TEST_KG: bottom (kl,kg) = (%d,%d)\n", kl, kg);

@@ -37,7 +37,7 @@ void NormalizeL3::ioParam_minL3NormTolerated(enum ParamsIOFlag ioFlag) {
 int NormalizeL3::normalizeWeights() {
    int status = PV_SUCCESS;
 
-   assert(numConnections >= 1);
+   pvErrorIf(!(numConnections >= 1), "Test failed.\n");
 
    // All connections in the group must have the same values of sharedWeights, numArbors, and numDataPatches
    HyPerConn * conn0 = connectionList[0];

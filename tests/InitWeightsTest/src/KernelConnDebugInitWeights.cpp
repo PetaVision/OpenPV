@@ -195,13 +195,13 @@ PVPatch ** KernelConnDebugInitWeights::initializeCocircWeights(PVPatch ** patche
 
    int noPre = pre->getLayerLoc()->nf;
    noPre = (int) params->value(name, "noPre", noPre);
-   assert(noPre > 0);
-   assert(noPre <= pre->getLayerLoc()->nf);
+   pvErrorIf(!(noPre > 0), "Test failed.\n");
+   pvErrorIf(!(noPre <= pre->getLayerLoc()->nf), "Test failed.\n");
 
    int noPost = post->getLayerLoc()->nf;
    noPost = (int) params->value(name, "noPost", noPost);
-   assert(noPost > 0);
-   assert(noPost <= post->getLayerLoc()->nf);
+   pvErrorIf(!(noPost > 0), "Test failed.\n");
+   pvErrorIf(!(noPost <= post->getLayerLoc()->nf), "Test failed.\n");
 
    float sigma_cocirc = PI / 2.0;
    sigma_cocirc = params->value(name, "sigmaCocirc", sigma_cocirc);
@@ -254,10 +254,10 @@ int KernelConnDebugInitWeights::cocircCalcWeights(pvdata_t * dataStart, int data
 
            // get strides of (potentially shrunken) patch
            const int sx = xPatchStride();
-           assert(sx == nfPatch);
+           pvErrorIf(!(sx == nfPatch), "Test failed.\n");
            // const int sy = yPatchStride(); // no assert here because patch may be shrunken
            const int sf = fPatchStride();
-           assert(sf == 1);
+           pvErrorIf(!(sf == 1), "Test failed.\n");
 
            // make full sized temporary patch, positioned around center of unit cell
            // PVPatch * wp_tmp;
@@ -278,11 +278,11 @@ int KernelConnDebugInitWeights::cocircCalcWeights(pvdata_t * dataStart, int data
            const int kyPre_tmp = kyKerneIndex;
            //   const int kfPre_tmp = kfKernelIndex;
            const int sx_tmp = xPatchStride();
-           assert(sx_tmp == fPatchSize());
+           pvErrorIf(!(sx_tmp == fPatchSize()), "Test failed.\n");
            const int sy_tmp = yPatchStride();
-           assert(sy_tmp == fPatchSize() * nxPatch_tmp);
+           pvErrorIf(!(sy_tmp == fPatchSize() * nxPatch_tmp), "Test failed.\n");
            const int sf_tmp = fPatchStride();
-           assert(sf_tmp == 1);
+           pvErrorIf(!(sf_tmp == 1), "Test failed.\n");
 
            // get distances to nearest neighbor in post synaptic layer
            float xDistNNPreUnits;
@@ -347,10 +347,10 @@ int KernelConnDebugInitWeights::cocircCalcWeights(pvdata_t * dataStart, int data
            float kurvePre = (radKurvPre != 0.0f) ? 1 / radKurvPre : 1.0f;
            int iKvPreAdj = iKvPre;
            if (POS_KURVE_FLAG) {
-              assert(nKurvePre >= 2);
+              pvErrorIf(!(nKurvePre >= 2), "Test failed.\n");
               iPosKurvePre = iKvPre >= (int) (nKurvePre / 2);
               if (SADDLE_FLAG) {
-                 assert(nKurvePre >= 4);
+                 pvErrorIf(!(nKurvePre >= 4), "Test failed.\n");
                  iSaddlePre = (iKvPre % 2 == 0) ? 0 : 1;
                  iKvPreAdj = ((iKvPre % (nKurvePre / 2)) / 2);}
               else { // SADDLE_FLAG
@@ -379,10 +379,10 @@ int KernelConnDebugInitWeights::cocircCalcWeights(pvdata_t * dataStart, int data
               float kurvePost = (radKurvPost != 0.0f) ? 1 / radKurvPost : 1.0f;
               int iKvPostAdj = iKvPost;
               if (POS_KURVE_FLAG) {
-                 assert(nKurvePost >= 2);
+                 pvErrorIf(!(nKurvePost >= 2), "Test failed.\n");
                  iPosKurvePost = iKvPost >= (int) (nKurvePost / 2);
                  if (SADDLE_FLAG) {
-                    assert(nKurvePost >= 4);
+                    pvErrorIf(!(nKurvePost >= 4), "Test failed.\n");
                     iSaddlePost = (iKvPost % 2 == 0) ? 0 : 1;
                     iKvPostAdj = ((iKvPost % (nKurvePost / 2)) / 2);
                  }
@@ -663,10 +663,10 @@ int KernelConnDebugInitWeights::gauss2DCalcWeights(pvdata_t * dataStart, int dat
 
    // get strides of (potentially shrunken) patch
    const int sx = xPatchStride();
-   assert(sx == nfPatch);
+   pvErrorIf(!(sx == nfPatch), "Test failed.\n");
    // const int sy = yPatchStride(); // no assert here because patch may be shrunken
    const int sf = fPatchStride();
-   assert(sf == 1);
+   pvErrorIf(!(sf == 1), "Test failed.\n");
 
    // make full sized temporary patch, positioned around center of unit cell
    // PVPatch * wp_tmp;
@@ -687,11 +687,11 @@ int KernelConnDebugInitWeights::gauss2DCalcWeights(pvdata_t * dataStart, int dat
    const int kyPre_tmp = kyKernelIndex;
    const int kfPre_tmp = kfKernelIndex;
    const int sx_tmp = xPatchStride();
-   assert(sx_tmp == fPatchSize());
+   pvErrorIf(!(sx_tmp == fPatchSize()), "Test failed.\n");
    const int sy_tmp = yPatchStride();
-   assert(sy_tmp == fPatchSize() * nxPatch_tmp);
+   pvErrorIf(!(sy_tmp == fPatchSize() * nxPatch_tmp), "Test failed.\n");
    const int sf_tmp = fPatchStride();
-   assert(sf_tmp == 1);
+   pvErrorIf(!(sf_tmp == 1), "Test failed.\n");
 
    // get distances to nearest neighbor in post synaptic layer (measured relative to pre-synaptic cell)
    float xDistNNPreUnits;
@@ -745,7 +745,7 @@ int KernelConnDebugInitWeights::gauss2DCalcWeights(pvdata_t * dataStart, int dat
    const float dthPre = PI*thetaMax / (float) noPre;
    const float th0Pre = rotate * dthPre / 2.0f;
    const int fPre = dataPatchIndex % pre->getLayerLoc()->nf;
-   assert(fPre == kfPre_tmp);
+   pvErrorIf(!(fPre == kfPre_tmp), "Test failed.\n");
    const int iThPre = dataPatchIndex % noPre;
    const float thPre = th0Pre + iThPre * dthPre;
 
@@ -873,9 +873,9 @@ int KernelConnDebugInitWeights::gaborWeights(pvdata_t * dataStart, int xScale, i
    const int ny = yPatchSize(); //(int) wp->ny;
    const int nf = fPatchSize();
 
-   const int sx = xPatchStride();  //assert(sx == nf);
-   const int sy = yPatchStride();  //assert(sy == nf*nx);
-   const int sf = fPatchStride();  //assert(sf == 1);
+   const int sx = xPatchStride();  //pvErrorIf(!(sx == nf), "Test failed.\n");
+   const int sy = yPatchStride();  //pvErrorIf(!(sy == nf*nx), "Test failed.\n");
+   const int sf = fPatchStride();  //pvErrorIf(!(sf == 1), "Test failed.\n");
 
    const float dx = powf(2, xScale);
    const float dy = powf(2, yScale);

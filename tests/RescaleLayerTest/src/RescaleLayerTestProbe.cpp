@@ -10,7 +10,7 @@
 #include <layers/HyPerLayer.hpp>
 #include <layers/RescaleLayer.hpp>
 #include <string.h>
-#include <assert.h>
+#include <utils/PVLog.hpp>
 
 namespace PV {
 
@@ -33,7 +33,7 @@ void RescaleLayerTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
 
 int RescaleLayerTestProbe::communicateInitInfo() {
    int status = StatsProbe::communicateInitInfo();
-   assert(getTargetLayer());
+   pvErrorIf(!(getTargetLayer()), "Test failed.\n");
    RescaleLayer * targetRescaleLayer = dynamic_cast<RescaleLayer *>(getTargetLayer());
    if (targetRescaleLayer==NULL) {
       if (getParent()->columnId()==0) {
@@ -54,7 +54,7 @@ int RescaleLayerTestProbe::outputState(double timed)
    bool isRoot = icComm->commRank() == 0;
 
    RescaleLayer * targetRescaleLayer = dynamic_cast<RescaleLayer *>(getTargetLayer());
-   assert(targetRescaleLayer);
+   pvErrorIf(!(targetRescaleLayer), "Test failed.\n");
 
    if (targetRescaleLayer->getRescaleMethod()==NULL) {
       pvErrorNoExit().printf("RescaleLayerTestProbe \"%s\": RescaleLayer \"%s\" does not have rescaleMethod set.  Exiting.\n", name, targetRescaleLayer->getName());
@@ -84,8 +84,8 @@ int RescaleLayerTestProbe::outputState(double timed)
          pvadata_t const * rescaledData = targetRescaleLayer->getLayerData() + b * targetRescaleLayer->getNumExtended() + rescaleExtendedOffset;
          PVLayerLoc const * origLoc = targetRescaleLayer->getOriginalLayer()->getLayerLoc();
          PVHalo const * origHalo = &origLoc->halo;
-         assert(nk == origLoc->nx * origLoc->nf);
-         assert(ny == origLoc->ny);
+         pvErrorIf(!(nk == origLoc->nx * origLoc->nf), "Test failed.\n");
+         pvErrorIf(!(ny == origLoc->ny), "Test failed.\n");
          int origStrideYExtended = (origLoc->nx + origHalo->lt + origHalo->rt) * origLoc->nf;
          int origExtendedOffset = kIndexExtended(0, rescaleLoc->nx, rescaleLoc->ny, rescaleLoc->nf, rescaleHalo->lt, rescaleHalo->rt, rescaleHalo->dn, rescaleHalo->up);
          pvadata_t const * origData = targetRescaleLayer->getOriginalLayer()->getLayerData() + b * targetRescaleLayer->getOriginalLayer()->getNumExtended() + origExtendedOffset;
@@ -130,8 +130,8 @@ int RescaleLayerTestProbe::outputState(double timed)
          pvadata_t const * rescaledData = targetRescaleLayer->getLayerData() + b*targetRescaleLayer->getNumExtended() + rescaleExtendedOffset;
          PVLayerLoc const * origLoc = targetRescaleLayer->getOriginalLayer()->getLayerLoc();
          PVHalo const * origHalo = &origLoc->halo;
-         assert(nk == origLoc->nx * origLoc->nf);
-         assert(ny == origLoc->ny);
+         pvErrorIf(!(nk == origLoc->nx * origLoc->nf), "Test failed.\n");
+         pvErrorIf(!(ny == origLoc->ny), "Test failed.\n");
          int origStrideYExtended = (origLoc->nx + origHalo->lt + origHalo->rt) * origLoc->nf;
          int origExtendedOffset = kIndexExtended(0, rescaleLoc->nx, rescaleLoc->ny, rescaleLoc->nf, rescaleHalo->lt, rescaleHalo->rt, rescaleHalo->dn, rescaleHalo->up);
          pvadata_t const * origData = targetRescaleLayer->getOriginalLayer()->getLayerData() + b*targetRescaleLayer->getOriginalLayer()->getNumExtended() + origExtendedOffset;
@@ -189,14 +189,14 @@ int RescaleLayerTestProbe::outputState(double timed)
    }
    else if (!strcmp(targetRescaleLayer->getRescaleMethod(), "zerotonegative")) {
       int numNeurons = targetRescaleLayer->getNumNeurons();
-      assert(numNeurons == targetRescaleLayer->getOriginalLayer()->getNumNeurons());
+      pvErrorIf(!(numNeurons == targetRescaleLayer->getOriginalLayer()->getNumNeurons()), "Test failed.\n");
       PVLayerLoc const * rescaleLoc = targetRescaleLayer->getLayerLoc();
       PVHalo const * rescaleHalo = &rescaleLoc->halo;
       int nf = rescaleLoc->nf;
       HyPerLayer * originalLayer = targetRescaleLayer->getOriginalLayer();
       PVLayerLoc const * origLoc = originalLayer->getLayerLoc();
       PVHalo const * origHalo = &origLoc->halo;
-      assert(origLoc->nf == nf);
+      pvErrorIf(!(origLoc->nf == nf), "Test failed.\n");
 
       for(int b = 0; b < parent->getNBatch(); b++){
          pvadata_t const * rescaledData = targetRescaleLayer->getLayerData() + b * targetRescaleLayer->getNumExtended();
@@ -215,7 +215,7 @@ int RescaleLayerTestProbe::outputState(double timed)
       }
    }
    else {
-      assert(0);  // All allowable rescaleMethod values are handled above.
+      pvErrorIf(!(0), "Test failed.\n");  // All allowable rescaleMethod values are handled above.
    }
    if (status == PV_FAILURE) {
       exit(EXIT_FAILURE);

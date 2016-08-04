@@ -46,7 +46,7 @@ int runparamsfile(PV_Init* initObj, char const * paramsfile) {
    int rank = 0;
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
    int status = initObj->setParams(paramsfile);
-   pvAssert(status==PV_SUCCESS);
+   pvErrorIf(status!=PV_SUCCESS, "Test failed.\n");
 
    HyPerCol * hc = build(initObj);
    if (hc != NULL) {
@@ -87,28 +87,28 @@ int runparamsfile(PV_Init* initObj, char const * paramsfile) {
    }
 
    NormalizeBase * origNormalizer = origConn->getNormalizer();
-   assert(origNormalizer);
+   pvErrorIf(!(origNormalizer), "Test failed.\n");
    float origStrength = origNormalizer->getStrength();
 
    NormalizeBase * copyNormalizer = copyConn->getNormalizer();
-   assert(copyNormalizer);
+   pvErrorIf(!(copyNormalizer), "Test failed.\n");
    float copyStrength = copyNormalizer->getStrength();
 
    int origNumPatches = origConn->getNumDataPatches();
    int copyNumPatches = copyConn->getNumDataPatches();
-   assert(origNumPatches==copyNumPatches);
+   pvErrorIf(!(origNumPatches==copyNumPatches), "Test failed.\n");
    int origNxp = origConn->xPatchSize();
    int copyNxp = copyConn->xPatchSize();
-   assert(origNxp==copyNxp);
+   pvErrorIf(!(origNxp==copyNxp), "Test failed.\n");
    int origNyp = origConn->yPatchSize();
    int copyNyp = copyConn->yPatchSize();
-   assert(origNyp==copyNyp);
+   pvErrorIf(!(origNyp==copyNyp), "Test failed.\n");
    int origNfp = origConn->fPatchSize();
    int copyNfp = copyConn->fPatchSize();
-   assert(origNfp==copyNfp);
+   pvErrorIf(!(origNfp==copyNfp), "Test failed.\n");
    int origNumArbors = origConn->numberOfAxonalArborLists();
    int copyNumArbors = copyConn->numberOfAxonalArborLists();
-   assert(origNumArbors==copyNumArbors);
+   pvErrorIf(!(origNumArbors==copyNumArbors), "Test failed.\n");
 
    for (int arbor=0; arbor<origNumArbors; arbor++) {
       for (int patchindex=0; patchindex<origNumPatches; patchindex++) {

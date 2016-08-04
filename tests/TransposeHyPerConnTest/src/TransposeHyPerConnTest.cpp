@@ -55,42 +55,42 @@ int main(int argc, char * argv[]) {
    BaseConnection * baseConn;
    baseConn = hc->getConnFromName("Original Map for One to One Test");
    originalMap = dynamic_cast<HyPerConn *>(baseConn);
-   //assert(originalMap->usingSharedWeights());
+   //pvErrorIf(!(originalMap->usingSharedWeights()), "Test failed.\n");
    transpose = dynamic_cast<TransposeConn *>(hc->getConnFromName("Transpose for One to One Test of TransposeConn"));
    transposeOfTranspose = dynamic_cast<TransposeConn *>(hc->getConnFromName("Transpose of Transpose for One to One Test of TransposeConn"));
    status = testTransposeOfTransposeWeights(originalMap, transpose, transposeOfTranspose, "One-to-one case, TransposeConn");
 
    baseConn = hc->getConnFromName("Original Map for Many to One Test");
    originalMap = dynamic_cast<HyPerConn *>(baseConn);
-   //assert(originalMap->usingSharedWeights());
+   //pvErrorIf(!(originalMap->usingSharedWeights()), "Test failed.\n");
    transpose = dynamic_cast<TransposeConn *>(hc->getConnFromName("Transpose for Many to One Test of TransposeConn"));
    transposeOfTranspose = dynamic_cast<TransposeConn *>(hc->getConnFromName("Transpose of Transpose for Many to One Test of TransposeConn"));
    status = testTransposeOfTransposeWeights(originalMap, transpose, transposeOfTranspose, "Many-to-one case, TransposeConn");
 
    baseConn = hc->getConnFromName("Original Map for One to Many Test");
    originalMap = dynamic_cast<HyPerConn *>(baseConn);
-   //assert(originalMap->usingSharedWeights());
+   //pvErrorIf(!(originalMap->usingSharedWeights()), "Test failed.\n");
    transpose = dynamic_cast<TransposeConn *>(hc->getConnFromName("Transpose for One to Many Test of TransposeConn"));
    transposeOfTranspose = dynamic_cast<TransposeConn *>(hc->getConnFromName("Transpose of Transpose for One to Many Test of TransposeConn"));
    status = testTransposeOfTransposeWeights(originalMap, transpose, transposeOfTranspose, "One-to-many case, TransposeConn");
 
    baseConn = hc->getConnFromName("Original Map for One to One Test");
    originalMap = dynamic_cast<HyPerConn *>(baseConn);
-   //assert(originalMap->usingSharedWeights());
+   //pvErrorIf(!(originalMap->usingSharedWeights()), "Test failed.\n");
    transpose = dynamic_cast<TransposeConn *>(hc->getConnFromName("Transpose for One to One Test of FeedbackConn"));
    transposeOfTranspose = dynamic_cast<TransposeConn *>(hc->getConnFromName("Transpose of Transpose for One to One Test of FeedbackConn"));
    status = testTransposeOfTransposeWeights(originalMap, transpose, transposeOfTranspose, "One-to-one case, FeedbackConn");
 
    baseConn = hc->getConnFromName("Original Map for Many to One Test");
    originalMap = dynamic_cast<HyPerConn *>(baseConn);
-   //assert(originalMap->usingSharedWeights());
+   //pvErrorIf(!(originalMap->usingSharedWeights()), "Test failed.\n");
    transpose = dynamic_cast<TransposeConn *>(hc->getConnFromName("Transpose for Many to One Test of FeedbackConn"));
    transposeOfTranspose = dynamic_cast<TransposeConn *>(hc->getConnFromName("Transpose of Transpose for Many to One Test of FeedbackConn"));
    status = testTransposeOfTransposeWeights(originalMap, transpose, transposeOfTranspose, "Many-to-one case, FeedbackConn");
 
    baseConn = hc->getConnFromName("Original Map for One to Many Test");
    originalMap = dynamic_cast<HyPerConn *>(baseConn);
-   //assert(originalMap->usingSharedWeights());
+   //pvErrorIf(!(originalMap->usingSharedWeights()), "Test failed.\n");
    transpose = dynamic_cast<TransposeConn *>(hc->getConnFromName("Transpose for One to Many Test of FeedbackConn"));
    transposeOfTranspose = dynamic_cast<TransposeConn *>(hc->getConnFromName("Transpose of Transpose for One to Many Test of FeedbackConn"));
    status = testTransposeOfTransposeWeights(originalMap, transpose, transposeOfTranspose, "One-to-many case, FeedbackConn");
@@ -112,19 +112,19 @@ int main(int argc, char * argv[]) {
 //   const char * transposeOfTransposeConnName = "Many to one double transpose";
 //
 //   ANNLayer * layerA = new ANNLayer(layerAname, hc);
-//   assert(layerA);
+//   pvErrorIf(!(layerA), "Test failed.\n");
 //   ANNLayer * layerB_ManyTo1 = new ANNLayer(layerB_ManyTo1Name, hc);
-//   assert(layerB_ManyTo1);
+//   pvErrorIf(!(layerB_ManyTo1), "Test failed.\n");
 //   new ANNLayer(layerB1to1name, hc); // This layer and the next are unused in this test, but get created anyway
 //   new ANNLayer(layerB1toManyName, hc); // to cause the params to be read, so we don't get unused-parameter warnings.
 //
 //   // Connections
 //   HyPerConn * originalMapManyto1 = new HyPerConn(originalConnName, hc);
-//   assert(originalMapManyto1);
+//   pvErrorIf(!(originalMapManyto1), "Test failed.\n");
 //   TransposeConn * transposeManyto1 = new TransposeConn(transposeConnName, hc);
-//   assert(transposeManyto1);
+//   pvErrorIf(!(transposeManyto1), "Test failed.\n");
 //   TransposeConn * transposeOfTransposeManyto1 = new TransposeConn(transposeOfTransposeConnName, hc);
-//   assert(transposeOfTransposeManyto1);
+//   pvErrorIf(!(transposeOfTransposeManyto1), "Test failed.\n");
 //
 //   hc->run(); // Weight values are initialized when run calls allocateDataStructures
 //
@@ -160,7 +160,7 @@ int testWeightsEqual(HyPerConn * conn1, HyPerConn * conn2) {
    if (status != PV_SUCCESS) return status;
 
    int numWeightPatches = conn1->getNumWeightPatches();
-   assert(numWeightPatches == conn2->getNumWeightPatches());
+   pvErrorIf(!(numWeightPatches == conn2->getNumWeightPatches()), "Test failed.\n");
    for( int patchindex = 0; patchindex < numWeightPatches; patchindex++ ) {
       int status1 = testPatchesEqual( conn1->getWeights(patchindex, LOCAL), conn2->getWeights(patchindex, LOCAL), patchindex, conn1->getName(), conn2->getName());
       if( status1 != PV_SUCCESS ) {
@@ -172,11 +172,11 @@ int testWeightsEqual(HyPerConn * conn1, HyPerConn * conn2) {
    if (status != PV_SUCCESS) return status;
 
    int numArbors = conn1->numberOfAxonalArborLists();
-   assert(numArbors == conn2->numberOfAxonalArborLists());
+   pvErrorIf(!(numArbors == conn2->numberOfAxonalArborLists()), "Test failed.\n");
    int numDataPatches = conn1->getNumDataPatches();
-   assert(numDataPatches == conn2->getNumDataPatches());
+   pvErrorIf(!(numDataPatches == conn2->getNumDataPatches()), "Test failed.\n");
    int patchSize = conn1->xPatchSize()*conn1->yPatchSize()*conn1->fPatchSize();
-   assert(patchSize == conn2->xPatchSize()*conn2->yPatchSize()*conn2->fPatchSize());
+   pvErrorIf(!(patchSize == conn2->xPatchSize()*conn2->yPatchSize()*conn2->fPatchSize()), "Test failed.\n");
    for (int arbor=0; arbor<numArbors; arbor++) {
       for (int dataindex = 0; dataindex < numDataPatches; dataindex++) {
          pvwdata_t * w1 = conn1->get_wDataStart(arbor)+patchSize*dataindex;
@@ -210,7 +210,7 @@ int testDataPatchEqual(pvdata_t * wgts1, pvdata_t * wgts2, int patchSize, const 
    int status_out = status_in;
    for (int w=0; w<patchSize; w++) {
       pvdata_t w1 = wgts1[w];
-      assert(w1); // All original weights should be in the range [1,2] (values of wMinInit and wMaxInit)
+      pvErrorIf(!(w1), "Test failed.\n"); // All original weights should be in the range [1,2] (values of wMinInit and wMaxInit)
       pvdata_t w2 = wgts2[w];
       // w2 will be either 0 or in the range [1,2].  It's nonzero iff the weight has any pre-neurons in restricted space.
       if (w2 && w1!=w2) { // If the weight is from an extended neuron, and sharedWeights is off, the transpose will be zero.

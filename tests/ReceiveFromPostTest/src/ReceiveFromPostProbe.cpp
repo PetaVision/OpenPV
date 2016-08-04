@@ -6,7 +6,7 @@
 #include "ReceiveFromPostProbe.hpp"
 #include <include/pv_arch.h>
 #include <layers/HyPerLayer.hpp>
-#include <assert.h>
+#include <utils/PVLog.hpp>
 #include <string.h>
 
 namespace PV {

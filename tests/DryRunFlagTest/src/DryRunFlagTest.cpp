@@ -95,7 +95,7 @@ int compareOutputs() {
 #ifndef NDEBUG
    int rank;
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-   assert(rank==0);
+   pvErrorIf(!(rank==0), "Test failed.\n");
 #endif // NDEBUG
 
    int status = PV_SUCCESS;
@@ -117,7 +117,7 @@ int deleteFile(char const * path, PV::PV_Init * pv_obj) {
 #ifndef NDEBUG
    int rank;
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-   assert(rank==0);
+   pvErrorIf(!(rank==0), "Test failed.\n");
 #endif // NDEBUG
 
    int status = unlink(path);
@@ -132,7 +132,7 @@ int deleteFile(char const * path, PV::PV_Init * pv_obj) {
 }
 
 int checkDryRunSet(HyPerCol * hc, int argc, char * argv[]) {
-   assert(argc>=1);
+   pvErrorIf(!(argc>=1), "Test failed.\n");
    int status = checkNumTimesteps(hc, argv[0]);
    if (hc->getCurrentStep() != hc->getInitialStep()) {
       if (hc->columnId()==0) {
@@ -146,7 +146,7 @@ int checkDryRunSet(HyPerCol * hc, int argc, char * argv[]) {
 }
 
 int checkDryRunCleared(HyPerCol * hc, int argc, char * argv[]) {
-   assert(argc>=1);
+   pvErrorIf(!(argc>=1), "Test failed.\n");
    int status = checkNumTimesteps(hc, argv[0]);
    if (hc->getCurrentStep() != hc->getFinalStep()) {
       if (hc->columnId()==0) {

@@ -7,7 +7,7 @@ namespace PV {
 
 class TestLayer: public PV::ANNLayer{
 public:
-	TestLayer(const char* name, HyPerCol * hc);
+   TestLayer(const char* name, HyPerCol * hc);
 
 protected:
    int updateState(double timef, double dt);

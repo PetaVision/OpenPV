@@ -17,9 +17,9 @@ int TestLayer::updateState(double timef, double dt){
    int nf = loc->nf;
    int kx0 = loc->kx0;
    int ky0 = loc->ky0;
-   assert(nf == 3);
-   assert(loc->nxGlobal == 8);
-   assert(loc->nyGlobal == 8);
+   pvErrorIf(!(nf == 3), "Test failed.\n");
+   pvErrorIf(!(loc->nxGlobal == 8), "Test failed.\n");
+   pvErrorIf(!(loc->nyGlobal == 8), "Test failed.\n");
 
    bool isCorrect = true;
    //Grab the activity layer of current layer
