@@ -133,12 +133,6 @@ namespace PV {
           *  to a file.  The file is placed in a directory "timestamps" in the outputPath directory, and the filename is the layer name appended with ".txt".
           */
          virtual void ioParam_writeFrameToTimestamp(enum ParamsIOFlag ioFlag);
-
-         /**
-          * @brief flipOnTimescaleError: determines whether to change images at the end of the display period if the HyPerCol's timescale is less than the HyPerCol's timeScaleMin (defaults to true)
-          */
-         virtual void ioParam_flipOnTimescaleError(enum ParamsIOFlag ioFlag);
-
          /**
           * @brief resetToStartOnLoop: If false, then when the end of file for the imageListPath file is reached, it rewinds to the beginning of the file.
           * If true, it resets to the location given by start_frame_index.
@@ -233,6 +227,7 @@ namespace PV {
           */
          virtual int resizeInput();
 
+         virtual bool readyForNextFile();
 
       public:
          BaseInput(const char * name, HyPerCol * hc);
@@ -279,8 +274,8 @@ namespace PV {
          Buffer mInputData; //Raw data read from disk. 
          bool mAutoResizeFlag;
          char * mAspectRatioAdjustment;
+         Buffer::RescaleMethod mRescaleMethod; //TODO: Replace mAspectRatioAdjustment with this
          Buffer::InterpolationMethod mInterpolationMethod;
-         float mResizeFactor;
          bool mInverseFlag;
          bool mNormalizeLuminanceFlag; // if true, normalize the input image as specified by normalizeStdDev
          bool mNormalizeStdDev;        // if true and normalizeLuminanceFlag == true, normalize the standard deviation to 1 and mean = 0
@@ -291,12 +286,15 @@ namespace PV {
          int mOffsets[2];        // offsets array points to [offsetX, offsetY]
          char* mOffsetAnchor;
 
+         //TODO: I don't think these need to be member variables
          int mLayerLeft; // The left edge of valid image data in the local activity buffer.  Can be positive if there is padding.  Can be negative if the data extends into the border region.
          int mLayerTop; // The top edge of valid image data in the local activity buffer.  Can be positive if there is padding.  Can be negative if the data extends into the border region.
          int mInputLeft; // The x-coordinate in image coordinates corresponding to a value of dataLeft in layer coordinates.
          int mInputTop; // The y-coordinate in image coordinates corresponding to a value of dataTop in layer coordinates.
          int mInputWidth; // The width of valid image data in local activity buffer.
          int mInputHeight; // The height of valid image data in the local activity buffer.
+
+         
          float mPadValue;
          bool mUseInputBCflag;
 
@@ -311,20 +309,17 @@ namespace PV {
          bool mResetToStartOnLoop;
 
          std::vector<int> mStartFrameIndex;
-         std::vector<int> mSkipFrameIndex;
-         std::string mInputFile;  // current input file name
+         std::vector<int> mSkipFrameIndex; //TODO: This doesn't appear to be included in the file index calculation
 
          int mNumFiles; //Number of frames
-         std::vector<std::string> mFilePaths;
+         std::vector<std::string> mFileList;
          BatchMethod mBatchMethod;
 
-         PV_Stream *mFilenameStream;
-         
-         std::vector<int> mFileNumbers; // Index inside the list of files that each batch is at
+         std::vector<int> mFileIndices; // Index inside the list of files that each batch is at
 
          bool mWriteFileToTimestamp;
 
-         bool mFlipOnTimescaleError;
+         bool mUsingFileList; //Automatically set if the inputPath ends in .txt 
 
    }; // class BaseInput
 }  // namespace PV

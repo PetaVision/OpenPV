@@ -36,7 +36,6 @@ namespace PV {
       mEchoFramePathnameFlag = false;
       mDisplayPeriod = 1;
       mWriteFileToTimestamp = true;
-      mFlipOnTimescaleError = true;
       mResetToStartOnLoop = true;
       return PV_SUCCESS;
    }
@@ -47,12 +46,6 @@ namespace PV {
       PVParams * params = hc->parameters(); //What is the point of this?
       //Update on first timestep
       setNextUpdateTime(parent->simulationTime() + hc->getDeltaTime());
-
-      //If not pvp file, open fileOfFileNames 
-      if (hc->columnId()==0) {
-         mFilenameStream = PV_fopen(mInputPath.c_str(), "r", false/*verifyWrites*/);
-         pvErrorIf(mFilenameStream == nullptr, "%s::initialize error opening inpuPath: %s\n",getName(), strerror(errno));
-      }
 
       if(mWriteFileToTimestamp){
          std::string timestampFilename = std::string(parent->getOutputPath()) + std::string("/timestamps/");
@@ -100,7 +93,6 @@ namespace PV {
       ioParam_start_frame_index(ioFlag);
       ioParam_skip_frame_index(ioFlag);
       ioParam_writeFrameToTimestamp(ioFlag);
-      ioParam_flipOnTimescaleError(ioFlag);
       ioParam_resetToStartOnLoop(ioFlag);
       return status;
    }
@@ -109,10 +101,10 @@ namespace PV {
    int BaseInput::readStateFromCheckpoint(const char * cpDir, double * timeptr) {
       int *frameNumbers;
       parent->readArrayFromFile(cpDir, getName(), "FrameNumbers", frameNumbers, parent->getNBatch());
-      mFileNumbers.clear();
-      mFileNumbers.resize(parent->getNBatch());
-      for(int n = 0; n < mFileNumbers.size(); ++n) {
-         mFileNumbers.at(n) = frameNumbers[n];
+      mFileIndices.clear();
+      mFileIndices.resize(parent->getNBatch());
+      for(int n = 0; n < mFileIndices.size(); ++n) {
+         mFileIndices.at(n) = frameNumbers[n];
       }
       free(frameNumbers);
       return PV_SUCCESS;
@@ -132,7 +124,7 @@ namespace PV {
    }
 
    int BaseInput::checkpointWrite(const char * cpDir){
-      parent->writeArrayToFile(cpDir, getName(), "FrameNumbers", &mFileNumbers[0], parent->getNBatch());
+      parent->writeArrayToFile(cpDir, getName(), "FrameNumbers", &mFileIndices[0], parent->getNBatch());
 
       //Only do a checkpoint TimestampState if there exists a timestamp file
       if (mTimestampFile) {
@@ -146,8 +138,13 @@ namespace PV {
       char *tempString;
       parent->ioParamStringRequired(ioFlag, name, "inputPath", &tempString); //TODO: These should really use std::string, we probably have tons of leaks
       mInputPath = std::string(tempString);
-      //TODO: Enable file list advancing if the inputPath extension is ".txt"
       free(tempString);
+
+      // Check if the input path ends in ".txt" and enable the file list if so
+      std::string txt = ".txt";
+      if(mInputPath.compare(mInputPath.size() - txt.size(), txt.size(), txt) == 0) {
+         mUsingFileList = true; //TODO: Add a flag to override this value even when the input path ends in ".txt"
+      }
    }
 
    void BaseInput::ioParam_useInputBCflag(enum ParamsIOFlag ioFlag) { //TODO: Change to useInputBCFlag, add deprecated warning
@@ -184,6 +181,7 @@ namespace PV {
       if (mAutoResizeFlag) {
          parent->ioParamString(ioFlag, name, "aspectRatioAdjustment", &mAspectRatioAdjustment, "crop"/*default*/);
          if (ioFlag == PARAMS_IO_READ) {
+            // Check if the input path ends in ".txt" and enable the file list if so
             assert(mAspectRatioAdjustment);
             for (char * c = mAspectRatioAdjustment; *c; c++) { *c = tolower(*c); }
          }
@@ -298,10 +296,6 @@ namespace PV {
       return status;
    }
 
-   void BaseInput::ioParam_flipOnTimescaleError(enum ParamsIOFlag ioFlag) {
-      parent->ioParamValue(ioFlag, name, "flipOnTimescaleError", &mFlipOnTimescaleError, mFlipOnTimescaleError);
-   }
-
    void BaseInput::ioParam_displayPeriod(enum ParamsIOFlag ioFlag) {
       parent->ioParamValue(ioFlag, name, "displayPeriod", &mDisplayPeriod, mDisplayPeriod);
    }
@@ -369,14 +363,14 @@ namespace PV {
       int numBatch = parent->getNBatch();
  
       if(parent->getCommunicator()->commRank()==0){
-         mFilePaths.resize(numBatch);
+         mFileList.resize(numBatch);
       }
       
-      mFileNumbers.resize(numBatch);
+      mFileIndices.resize(numBatch);
       
       //Calculate file positions for beginning of each frame
       populateFileList();
-      pvInfo() << "File " << mInputPath << " contains " << mFilePaths.size() << " frames\n";
+      pvInfo() << "File " << mInputPath << " contains " << mFileList.size() << " frames\n";
 
       mStartFrameIndex.resize(numBatch);
       mSkipFrameIndex.resize(numBatch);
@@ -408,7 +402,7 @@ namespace PV {
                offset = mStartFrameIndex.at(0);
             }
             pvErrorIf(mStartFrameIndex.size() > 1, "%s: batchMethod of \"byList\" requires 0 or 1 start_frame_index values\n", getName());
-            framesPerBatch = floor(mFilePaths.size()/numBatchGlobal);
+            framesPerBatch = floor(mFileList.size()/numBatchGlobal);
             if(framesPerBatch < 1) {
                framesPerBatch = 1;
             }
@@ -435,7 +429,7 @@ namespace PV {
 
       if (parent->columnId() == 0) {
          for (int b = 0; b < numBatch; ++b) {
-            mFileNumbers.at(b) = -1;
+            mFileIndices.at(b) = -1;
          }
       }
 
@@ -458,31 +452,44 @@ namespace PV {
       }
    }
 
+   // Virtual method used to spend multiple display periods on one file.
+   // Can be used to implement lists of collections or modifications to
+   // the loaded file, such as streaming audio or video.
+   bool BaseInput::readyForNextFile() { 
+      return true;
+   }
+
+   //TODO: This doesn't appear to be using mDisplayPeriod?
    int BaseInput::updateState(double time, double dt)
    {
+      if(!mUsingFileList) {
+         return PV_SUCCESS;
+      }
+
       Communicator * icComm = getParent()->getCommunicator();
       //Only do this if it's not the first update timestep
       //The timestep number is (time - startTime)/(width of timestep), with allowance for roundoff.
       //But if we're using adaptive timesteps, the dt passed as a function argument is not the correct (width of timestep).
       if(fabs(time - (parent->getStartTime() + parent->getDeltaTime())) > (parent->getDeltaTime()/2)) {
-         nextInput(time, dt);
-      }
-      //Write to timestamp file 
-      if(icComm->commRank() == 0) {
-         if(mTimestampFile) {
-            std::ostringstream outStrStream;
-            outStrStream.precision(15);
-            int kb0 = getLayerLoc()->kb0;
-            for(int b = 0; b < parent->getNBatch(); ++b) {
-               outStrStream << time << "," << b+kb0 << "," << mFileNumbers.at(b) << "," << mFilePaths.at(b) << "\n";
+         if(readyForNextFile()) {
+            nextInput(time, dt);
+            //Write to timestamp file 
+            if(icComm->commRank() == 0) {
+               if(mTimestampFile) {
+                  std::ostringstream outStrStream;
+                  outStrStream.precision(15);
+                  int kb0 = getLayerLoc()->kb0;
+                  for(int b = 0; b < parent->getNBatch(); ++b) {
+                     outStrStream << time << "," << b+kb0 << "," << mFileIndices.at(b) << "," << mFileList.at(b) << "\n";
+                  }
+                  size_t len = outStrStream.str().length();
+                  int status = PV_fwrite(outStrStream.str().c_str(), sizeof(char), len, mTimestampFile) == len ? PV_SUCCESS : PV_FAILURE;
+                  pvErrorIf(status != PV_SUCCESS, "%s: Movie::updateState failed to write to timestamp file.\n", getDescription_c());
+                  fflush(mTimestampFile->fp);
+               }
             }
-            size_t len = outStrStream.str().length();
-            int status = PV_fwrite(outStrStream.str().c_str(), sizeof(char), len, mTimestampFile) == len ? PV_SUCCESS : PV_FAILURE;
-            pvErrorIf(status != PV_SUCCESS, "%s: Movie::updateState failed to write to timestamp file.\n", getDescription_c());
-            fflush(mTimestampFile->fp);
          }
-      }
-
+      } 
       return PV_SUCCESS;
    }
 
@@ -570,7 +577,6 @@ namespace PV {
       pvAssert(parent->columnId() == 0); // Should only be called by root process.
 
       if (!mAutoResizeFlag) {
-         mResizeFactor = 1.0f;
          return PV_SUCCESS;
       }
       
@@ -950,41 +956,41 @@ namespace PV {
       int count = 0;
       if(parent->columnId() == 0) {
          std::string line;
-         mFilePaths.clear();
+         mFileList.clear();
          std::ifstream infile(mInputPath, std::ios_base::in);
          while(getline(infile, line, '\n')) {
             std::string noWhiteSpace = line;
             noWhiteSpace.erase(std::remove_if(noWhiteSpace.begin(), noWhiteSpace.end(), ::isspace), noWhiteSpace.end());
             if(!noWhiteSpace.empty()) {
-               mFilePaths.push_back(line);
+               mFileList.push_back(line);
             }
          }
-         mFileNumbers.at(0) = -1;;
-         count = mFilePaths.size();
+         mFileIndices.at(0) = -1;;
+         count = mFileList.size();
       }
       
       MPI_Bcast(&count, 1, MPI_INT, 0, parent->getCommunicator()->communicator());
 
       // Maintain the file count on child processes
       if(parent->columnId() != 0) {
-         mFilePaths.clear();
-         mFilePaths.resize(count);
+         mFileList.clear();
+         mFileList.resize(count);
       }
       return count;
    }
 
    std::string BaseInput::advanceFilename(int batchIndex) {
       pvAssert(parent->columnId() == 0);
-      if(++mFileNumbers.at(batchIndex) >= mFilePaths.size()) {
+      if(++mFileIndices.at(batchIndex) >= mFileList.size()) {
          pvInfo() << getName() << ": End of file list reached. Rewinding." << std::endl;
          if(mResetToStartOnLoop) {
-            mFileNumbers.at(batchIndex) = mStartFrameIndex.at(batchIndex);
+            mFileIndices.at(batchIndex) = mStartFrameIndex.at(batchIndex);
          }
          else {
-            mFileNumbers.at(batchIndex) = 0;
+            mFileIndices.at(batchIndex) = 0;
          }
       }
-      return mFilePaths.at(mFileNumbers.at(batchIndex));
+      return mFileList.at(mFileIndices.at(batchIndex));
    }
 } 
 
