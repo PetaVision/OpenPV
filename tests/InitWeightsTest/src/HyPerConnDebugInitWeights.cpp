@@ -75,9 +75,6 @@ PVPatch *** HyPerConnDebugInitWeights::initializeWeights(PVPatch *** arbors, pvd
    PVPatch ** patches = arbors[0];
    pvdata_t * arborStart = dataStart[0];
    numPatches=getNumDataPatches();
-   //PVPatch ** kpatches = kernelPatches;
-   //int arbor = 0;
-   //int numKernelPatches = numDataPatches(arbor);
 
    int initFromLastFlag = inputParams->value(getName(), "initFromLastFlag", 0.0f, false) != 0;
 
@@ -92,32 +89,13 @@ PVPatch *** HyPerConnDebugInitWeights::initializeWeights(PVPatch *** arbors, pvd
       else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "SmartWeight"))) {
          initializeSmartWeights(patches, arborStart, numPatches);
       }
-      //	   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "UniformRandomWeight"))) {
-      //	      weightInitializer = new InitUniformRandomWeights();
-      //	   }
-      //	   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "GaussianRandomWeight"))) {
-      //	      weightInitializer = new InitGaussianRandomWeights();
-      //	   }
       else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "GaborWeight"))) {
          initializeGaborWeights(patches, arborStart, numPatches);
       }
-      //	   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "PoolWeight"))) {
-      //	      weightInitializer = new InitPoolWeights();
-      //	   }
-      //	   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "RuleWeight"))) {
-      //	      weightInitializer = new InitRuleWeights();
-      //	   }
-      //	   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "SubUnitWeight"))) {
-      //	      weightInitializer = new InitSubUnitWeights();
-      //	   }
-      //	   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "InitIdentWeight"))) {
-      //	      weightInitializer = new InitIdentWeights();
-      //	   }
       else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "Gauss2DWeight"))) {
          initializeGaussian2DWeights(patches, arborStart, numPatches);
       }
       else { //default is also Gauss2D
-         //pvWarn().printf("weightInitType not set or unrecognized.  Using default (2D Gaussian).\n");
          initializeGaussian2DWeights(patches, arborStart, numPatches);
       }
 

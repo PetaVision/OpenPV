@@ -14,16 +14,16 @@ namespace PV {
 
 class InitWeightTestProbe: public PV::StatsProbe {
 public:
-	InitWeightTestProbe(const char * probeName, HyPerCol * hc);
+   InitWeightTestProbe(const char * probeName, HyPerCol * hc);
 
-	virtual int outputState(double timef);
+   virtual int outputState(double timef);
 
 protected:
-	int initInitWeightTestProbe(const char * probeName, HyPerCol * hc);
-	virtual void ioParam_buffer(enum ParamsIOFlag ioFlag);
+   int initInitWeightTestProbe(const char * probeName, HyPerCol * hc);
+   virtual void ioParam_buffer(enum ParamsIOFlag ioFlag);
 
 private:
-	int initInitWeightTestProbe_base();
+   int initInitWeightTestProbe_base();
 };
 
 

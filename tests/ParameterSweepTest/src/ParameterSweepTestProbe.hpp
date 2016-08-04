@@ -17,21 +17,21 @@ namespace PV {
 
 class ParameterSweepTestProbe : public StatsProbe {
 public:
-	ParameterSweepTestProbe(const char * probeName, HyPerCol * hc);
-	virtual ~ParameterSweepTestProbe();
+   ParameterSweepTestProbe(const char * probeName, HyPerCol * hc);
+   virtual ~ParameterSweepTestProbe();
 
-	virtual int outputState(double timed);
+   virtual int outputState(double timed);
 protected:
-    int initParameterSweepTestProbe(const char * probeName, HyPerCol * hc);
-    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-    virtual void ioParam_buffer(enum ParamsIOFlag ioFlag);
-    virtual void ioParam_expectedSum(enum ParamsIOFlag ioFlag);
-    virtual void ioParam_expectedMin(enum ParamsIOFlag ioFlag);
-    virtual void ioParam_expectedMax(enum ParamsIOFlag ioFlag);
+   int initParameterSweepTestProbe(const char * probeName, HyPerCol * hc);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_buffer(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_expectedSum(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_expectedMin(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_expectedMax(enum ParamsIOFlag ioFlag);
 
 private:
-    double expectedSum;
-    float expectedMin, expectedMax;
+   double expectedSum;
+   float expectedMin, expectedMax;
 }; // end class ParameterSweepTestProbe
 
 

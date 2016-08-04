@@ -7,7 +7,7 @@ namespace PV {
 
 class MaxPoolTestLayer: public PV::ANNLayer{
 public:
-	MaxPoolTestLayer(const char* name, HyPerCol * hc);
+   MaxPoolTestLayer(const char* name, HyPerCol * hc);
 
 protected:
    int updateState(double timef, double dt);

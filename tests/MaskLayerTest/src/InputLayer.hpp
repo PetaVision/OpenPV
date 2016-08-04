@@ -7,7 +7,7 @@ namespace PV {
 
 class InputLayer: public PV::ANNLayer{
 public:
-	InputLayer(const char* name, HyPerCol * hc);
+   InputLayer(const char* name, HyPerCol * hc);
 protected:
    virtual int updateState(double timef, double dt);
 

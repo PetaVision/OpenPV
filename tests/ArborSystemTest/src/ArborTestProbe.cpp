@@ -76,7 +76,7 @@ int ArborTestProbe::outputState(double timed)
       }
    }
 
-	return status;
+   return status;
 }
 
 } /* namespace PV */

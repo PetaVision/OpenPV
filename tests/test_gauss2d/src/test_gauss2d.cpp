@@ -17,7 +17,7 @@
 using namespace PV;
 
 int check_kernel_vs_hyper(HyPerConn * cHyPer, HyPerConn * cKernel, int kPre,
-		int axonID);
+      int axonID);
 
 int main(int argc, char * argv[])
 {

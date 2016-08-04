@@ -18,7 +18,7 @@ using namespace PV;
 // First argument to check_cocirc_vs_hyper should have sharedWeights = false
 // Second argument should have sharedWeights = true
 int check_cocirc_vs_hyper(HyPerConn * cHyPer, HyPerConn * cKernel, int kPre,
-		int axonID);
+      int axonID);
 
 int main(int argc, char * argv[])
 {

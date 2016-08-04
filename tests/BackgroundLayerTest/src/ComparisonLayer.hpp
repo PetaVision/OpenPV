@@ -7,7 +7,7 @@ namespace PV {
 
 class ComparisonLayer: public PV::ANNLayer{
 public:
-	ComparisonLayer(const char* name, HyPerCol * hc);
+   ComparisonLayer(const char* name, HyPerCol * hc);
 
 protected:
    int updateState(double timef, double dt);
