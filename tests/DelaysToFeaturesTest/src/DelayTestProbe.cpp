@@ -9,7 +9,7 @@
 #include <include/pv_arch.h> 
 #include <layers/HyPerLayer.hpp>
 #include <string.h>
-#include <assert.h>
+#include <utils/PVLog.hpp>
 
 namespace PV {
 
@@ -46,10 +46,10 @@ int DelayTestProbe::outputState(double timed)
 
    for(int b = 0; b < loc->nbatch; b++){
       if (timed==0) {
-         assert((avg[b] == (timed)/nf)&&(avg[b] == double(nnz[b])/((nx*rows)*(ny*cols)*nf)));
+         pvErrorIf(!((avg[b] == (timed)/nf)&&(avg[b] == double(nnz[b])/((nx*rows)*(ny*cols)*nf))), "Test failed.\n");
       }
       else {
-         assert((avg[b] == (timed-1)/nf)&&(avg[b] == double(nnz[b])/((nx*rows)*(ny*cols)*nf)));
+         pvErrorIf(!((avg[b] == (timed-1)/nf)&&(avg[b] == double(nnz[b])/((nx*rows)*(ny*cols)*nf))), "Test failed.\n");
       }
    }
    return status;

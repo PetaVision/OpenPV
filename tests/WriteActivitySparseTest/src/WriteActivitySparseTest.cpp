@@ -69,15 +69,15 @@ int main(int argc, char * argv[]) {
 // nonzero input is best left for a different test.
 int checkProbesOnExit(HyPerCol * hc, int argc, char * argv[]) {
    BaseLayer * layer = hc->getLayerFromName("OriginalMovie");
-   assert(layer);
+   pvErrorIf(!(layer), "Test failed.\n");
    HyPerLayer * originalMovieLayer = dynamic_cast<HyPerLayer *>(layer);
-   assert(originalMovieLayer);
+   pvErrorIf(!(originalMovieLayer), "Test failed.\n");
    int numProbes = originalMovieLayer->getNumProbes();
-   assert(numProbes==1);
+   pvErrorIf(!(numProbes==1), "Test failed.\n");
    LayerProbe * originalMovieProbe = originalMovieLayer->getProbe(0);
-   assert(originalMovieProbe);
+   pvErrorIf(!(originalMovieProbe), "Test failed.\n");
    TestNotAlwaysAllZerosProbe * testNonzero = dynamic_cast<TestNotAlwaysAllZerosProbe *>(originalMovieProbe);
-   assert(testNonzero->nonzeroValueHasOccurred());
+   pvErrorIf(!(testNonzero->nonzeroValueHasOccurred()), "Test failed.\n");
 
    return PV_SUCCESS;
 }

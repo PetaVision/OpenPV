@@ -16,7 +16,7 @@ int main(int argc, char * argv[]) {
 
 int customexit(HyPerCol * hc, int argc, char * argv[]) {
    HyPerLayer * outputLayer = hc->getLayer(1);
-   assert(!strcmp(outputLayer->getName(), "Output"));
+   pvErrorIf(!(!strcmp(outputLayer->getName(), "Output")), "Test failed.\n");
    float const * V = outputLayer->getV();
    float const * A = outputLayer->getLayerData();
    PVLayerLoc const * loc = outputLayer->getLayerLoc();
@@ -30,10 +30,10 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
       // i.e. indicator function of V>=0.5.
       // TODO: Currently, jumps in verticesV/verticesA are continuous from the right.  Need to generalize.
       if (v < 0.5) {
-         assert(a==0.0);
+         pvErrorIf(!(a==0.0), "Test failed.\n");
       }
       else {
-         assert(a==1.0);
+         pvErrorIf(!(a==1.0), "Test failed.\n");
       }
    }
    return PV_SUCCESS;

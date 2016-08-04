@@ -10,7 +10,7 @@
 
 #include <io/StatsProbe.hpp>
 #include <layers/HyPerLayer.hpp>
-#include <assert.h>
+#include <utils/PVLog.hpp>
 #include <math.h>
 
 namespace PV {

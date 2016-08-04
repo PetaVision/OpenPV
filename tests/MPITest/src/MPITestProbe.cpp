@@ -9,7 +9,7 @@
 #include <include/pv_arch.h>
 #include <layers/HyPerLayer.hpp>
 #include <string.h>
-#include <assert.h>
+#include <utils/PVLog.hpp>
 
 namespace PV {
 
@@ -68,9 +68,9 @@ int MPITestProbe::outputState(double timed) {
    output() << std::endl;
    for(int b = 0; b < parent->getNBatch(); b++){
       if (timed > 3.0f) {
-         assert((fMin[b]/min_global_xpos > (1 - tol)) && (fMin[b]/min_global_xpos < (1 + tol)));
-         assert((fMax[b]/max_global_xpos > (1 - tol)) && (fMax[b]/max_global_xpos < (1 + tol)));
-         assert((avg[b]/ave_global_xpos > (1 - tol)) && (avg[b]/ave_global_xpos < (1 + tol)));
+         pvErrorIf(!((fMin[b]/min_global_xpos > (1 - tol)) && (fMin[b]/min_global_xpos < (1 + tol))), "Test failed.\n");
+         pvErrorIf(!((fMax[b]/max_global_xpos > (1 - tol)) && (fMax[b]/max_global_xpos < (1 + tol))), "Test failed.\n");
+         pvErrorIf(!((avg[b]/ave_global_xpos > (1 - tol)) && (avg[b]/ave_global_xpos < (1 + tol))), "Test failed.\n");
       }
    }
 

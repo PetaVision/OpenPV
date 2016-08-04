@@ -9,7 +9,7 @@
 #include <include/pv_arch.h>
 #include <layers/HyPerLayer.hpp>
 #include <string.h>
-#include <assert.h>
+#include <utils/PVLog.hpp>
 
 namespace PV {
 
@@ -36,9 +36,9 @@ int CloneHyPerConnTestProbe::outputState(double timed)
    }
    for(int b = 0; b < getParent()->getNBatch(); b++){
       if(timed>2.0f){
-         assert(fabs(fMin[b]) < 1e-6);
-         assert(fabs(fMax[b]) < 1e-6);
-         assert(fabs(avg[b]) < 1e-6);
+         pvErrorIf(!(fabs(fMin[b]) < 1e-6), "Test failed.\n");
+         pvErrorIf(!(fabs(fMax[b]) < 1e-6), "Test failed.\n");
+         pvErrorIf(!(fabs(avg[b]) < 1e-6), "Test failed.\n");
       }
    }
 

@@ -34,8 +34,8 @@ int SumPoolTestLayer::updateState(double timef, double dt){
               
               int xval = iX + kx0 - loc->halo.lt;
               int yval = iY + ky0 - loc->halo.up;
-              assert(xval >= 0 && xval < loc->nxGlobal);
-              assert(yval >= 0 && yval < loc->nxGlobal);
+              pvErrorIf(!(xval >= 0 && xval < loc->nxGlobal), "Test failed.\n");
+              pvErrorIf(!(yval >= 0 && yval < loc->nxGlobal), "Test failed.\n");
 
               //expectedValue is set for avg pool, multiply by patch size for actual answer
               float expectedvalue;

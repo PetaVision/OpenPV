@@ -41,7 +41,7 @@ float SegmentifyTest::getTargetVal(int yi, int xi, int fi){
    }
    else{
       //Should never get here
-      assert(0);
+      pvErrorIf(!(0), "Test failed.\n");
    }
    return returnLabel;
 }
@@ -75,14 +75,14 @@ int SegmentifyTest::checkOutputVals(int yi, int xi, int fi, float targetVal, flo
       }
 
       if(xi == centX && yi == centY){
-         assert(actualVal == targetVal);
+         pvErrorIf(!(actualVal == targetVal), "Test failed.\n");
       }
       else{
-         assert(actualVal == 0);
+         pvErrorIf(!(actualVal == 0), "Test failed.\n");
       }
    }
    else if(strcmp(outputMethod, "fill") == 0){
-      assert(actualVal == targetVal);
+      pvErrorIf(!(actualVal == targetVal), "Test failed.\n");
    }
    return PV_SUCCESS;
 }
@@ -92,7 +92,7 @@ int SegmentifyTest::updateState(double timef, double dt){
    Segmentify::updateState(timef, dt);
    const PVLayerLoc * loc = getLayerLoc();
    pvdata_t * A = getActivity();
-   assert(A);
+   pvErrorIf(!(A), "Test failed.\n");
 
    for(int bi = 0; bi < loc->nbatch; bi++){
       pvdata_t * batchA = A + bi * getNumExtended();

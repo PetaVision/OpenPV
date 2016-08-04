@@ -7,7 +7,7 @@
 
 #include "DatastoreDelayTestProbe.hpp"
 #include <string.h>
-#include <assert.h>
+#include <utils/PVLog.hpp>
 
 namespace PV {
 
@@ -59,7 +59,7 @@ int DatastoreDelayTestProbe::outputState(double timed) {
          outputStream->printf("%s: timef = %f, all neurons have correct value %d\n", l->getDescription_c(), timed, (int) correctValue);
       }
    }
-   assert(status == PV_SUCCESS);
+   pvErrorIf(!(status == PV_SUCCESS), "Test failed.\n");
    return PV_SUCCESS;
 }
 

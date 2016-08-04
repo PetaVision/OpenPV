@@ -18,7 +18,7 @@ int ImagePvpOffsetTestLayer::updateState(double timef, double dt){
    int nf = loc->nf;
    int kx0 = loc->kx0;
    int ky0 = loc->ky0;
-   assert(loc->halo.up == 0 && loc->halo.lt==0 && loc->halo.rt == 0 && loc->halo.dn == 0);
+   pvErrorIf(!(loc->halo.up == 0 && loc->halo.lt==0 && loc->halo.rt == 0 && loc->halo.dn == 0), "Test failed.\n");
 
    bool isCorrect = true;
    //Grab the activity layer of current layer

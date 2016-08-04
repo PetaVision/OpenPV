@@ -10,7 +10,7 @@
 #include <layers/HyPerLayer.hpp>
 #include <io/PVParams.hpp>
 #include <string.h>
-#include <assert.h>
+#include <utils/PVLog.hpp>
 
 namespace PV {
 
@@ -88,11 +88,11 @@ int ShrunkenPatchTestProbe::outputState(double timed) {
       }
       int cell_size = (int) nearbyintf(powf(2.0f, -xScaleLog2));
       int kx0 = (loc->kx0)/cell_size;
-      assert(kx0*cell_size == loc->kx0);
+      pvErrorIf(!(kx0*cell_size == loc->kx0), "Test failed.\n");
       int half_cell_size = cell_size/2;
-      assert(half_cell_size*2==cell_size);
+      pvErrorIf(!(half_cell_size*2==cell_size), "Test failed.\n");
       int num_half_cells = nx/half_cell_size;
-      assert(num_half_cells*half_cell_size==nx);
+      pvErrorIf(!(num_half_cells*half_cell_size==nx), "Test failed.\n");
       int cells_in_patch = nxpShrunken/cell_size;
       if (nxpShrunken != cells_in_patch*cell_size) {
          pvError().printf("ShrunkenPatchTestProbe \"%s\" error: nxpShrunken must be an integer multiple of layer \"%s\" nxScale=%d.\n", probeName, l->getName(), cell_size);
@@ -107,9 +107,9 @@ int ShrunkenPatchTestProbe::outputState(double timed) {
             correctValues[idx++] = correct_value;
          }
       }
-      assert(idx==nx);
+      pvErrorIf(!(idx==nx), "Test failed.\n");
    }
-   assert(correctValues!=NULL);
+   pvErrorIf(!(correctValues!=NULL), "Test failed.\n");
 
    int status = StatsProbe::outputState(timed);
    double tol = 1e-4f;

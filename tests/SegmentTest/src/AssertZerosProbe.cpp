@@ -6,7 +6,7 @@
 #include "AssertZerosProbe.hpp"
 #include <include/pv_arch.h>
 #include <layers/HyPerLayer.hpp>
-#include <assert.h>
+#include <utils/PVLog.hpp>
 #include <string.h>
 
 namespace PV {
@@ -48,7 +48,7 @@ int AssertZerosProbe::outputState(double timed){
       //   pvInfo() << "[" << xpos << "," << ypos << "," << fpos << "] = " << std::fixed << A[i] << "\n";
       //}
       //For max difference roundoff errors
-      assert(fabs(A[i]) < 5e-4);
+      pvErrorIf(!(fabs(A[i]) < 5e-4), "Test failed.\n");
    }
 
    if(timed > 0){
@@ -60,13 +60,13 @@ int AssertZerosProbe::outputState(double timed){
          sum_I += GSyn_I[i];
       }
 
-      assert(sum_E != 0);
-      assert(sum_I != 0);
+      pvErrorIf(!(sum_E != 0), "Test failed.\n");
+      pvErrorIf(!(sum_I != 0), "Test failed.\n");
    }
 
    for(int b = 0; b < loc->nbatch; b++){
       //For max std of 5e-5
-      assert(sigma[b] <= 5e-5);
+      pvErrorIf(!(sigma[b] <= 5e-5), "Test failed.\n");
    }
 
    return status;

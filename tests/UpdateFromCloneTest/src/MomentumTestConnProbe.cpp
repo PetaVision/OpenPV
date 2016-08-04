@@ -5,7 +5,7 @@ namespace PV {
 MomentumTestConnProbe::MomentumTestConnProbe(const char * probename, HyPerCol * hc) {
    initialize_base();
    int status = initialize(probename, hc);
-   assert(status == PV_SUCCESS);
+   pvErrorIf(!(status == PV_SUCCESS), "Test failed.\n");
 }
 
 MomentumTestConnProbe::MomentumTestConnProbe() {
@@ -49,7 +49,7 @@ int MomentumTestConnProbe::outputState(double timed){
                   wCorrect += .376471 * exp(-(2*(i+1)));
                }
             }
-            assert(fabs(wObserved - wCorrect) <= 1e-4);
+            pvErrorIf(!(fabs(wObserved - wCorrect) <= 1e-4), "Test failed.\n");
          }
       }
    }

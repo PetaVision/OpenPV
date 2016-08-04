@@ -52,9 +52,9 @@ int LayerPhaseTestProbe::outputState(double timed)
    for(int b = 0; b < parent->getNBatch(); b++){
       if (timed>=equilibriumTime) {
          double tol = 1e-6;
-         assert(fabs(fMin[b]-equilibriumValue) < tol);
-         assert(fabs(fMax[b]-equilibriumValue) < tol);
-         assert(fabs(avg[b]-equilibriumValue) < tol);
+         pvErrorIf(!(fabs(fMin[b]-equilibriumValue) < tol), "Test failed.\n");
+         pvErrorIf(!(fabs(fMax[b]-equilibriumValue) < tol), "Test failed.\n");
+         pvErrorIf(!(fabs(avg[b]-equilibriumValue) < tol), "Test failed.\n");
       }
    }
 

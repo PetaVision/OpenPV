@@ -22,11 +22,11 @@ int customexit(HyPerCol * hc, int argc, char ** argv) {
       pvInfo().printf("Checking whether input layer has all values equal to %f ...\n", correctvalue);
    }
    HyPerLayer * inputlayer = hc->getLayerFromName("input");
-   assert(inputlayer);
+   pvErrorIf(!(inputlayer), "Test failed.\n");
    PVLayerLoc const * loc = inputlayer->getLayerLoc();
-   assert(loc->nf==1);
+   pvErrorIf(!(loc->nf==1), "Test failed.\n");
    const int numNeurons = inputlayer->getNumNeurons();
-   assert(numNeurons>0);
+   pvErrorIf(!(numNeurons>0), "Test failed.\n");
    int status = PV_SUCCESS;
 
    int numExtended = inputlayer->getNumExtended();
@@ -35,7 +35,7 @@ int customexit(HyPerCol * hc, int argc, char ** argv) {
    int rootproc = 0;
    if (icComm->commRank()==rootproc) {
       pvadata_t * databuffer = (pvadata_t *) malloc(numExtended*sizeof(pvadata_t));
-      assert(databuffer);
+      pvErrorIf(!(databuffer), "Test failed.\n");
       for (int proc=0; proc<icComm->commSize(); proc++) {
          if (proc==rootproc) {
             memcpy(databuffer, layerData, numExtended*sizeof(pvadata_t));

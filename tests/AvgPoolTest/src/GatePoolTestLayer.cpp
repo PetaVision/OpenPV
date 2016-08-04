@@ -34,8 +34,8 @@ int GatePoolTestLayer::updateState(double timef, double dt){
               
               int xval = (iX + kx0 - loc->halo.lt)/2;
               int yval = (iY + ky0 - loc->halo.up)/2;
-              assert(xval >= 0 && xval < loc->nxGlobal);
-              assert(yval >= 0 && yval < loc->nxGlobal);
+              pvErrorIf(!(xval >= 0 && xval < loc->nxGlobal), "Test failed.\n");
+              pvErrorIf(!(yval >= 0 && yval < loc->nxGlobal), "Test failed.\n");
 
               float expectedvalue;
               expectedvalue = iFeature * 64 + yval * 16 + xval * 2 + 4.5;

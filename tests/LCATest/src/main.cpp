@@ -75,7 +75,7 @@ int main(int argc, char * argv[]) {
       MPI_Barrier(MPI_COMM_WORLD); // Make sure no child processes take down the MPI environment before root process prints error message.
       exit(EXIT_FAILURE);
    }
-   assert(generateFlag||testrunFlag||testcheckpointFlag||testioparamsFlag);
+   pvErrorIf(!(generateFlag||testrunFlag||testcheckpointFlag||testioparamsFlag), "Test failed.\n");
 
    int status = PV_SUCCESS;
    if (status==PV_SUCCESS && generateFlag) {
@@ -143,7 +143,7 @@ int copyCorrectOutput(HyPerCol * hc, int argc, char * argv[]) {
    sourcePathString += "/" "a3_Reconstruction.pvp";
    const char * sourcePath = sourcePathString.c_str();
    MoviePvp * correctLayer = dynamic_cast<MoviePvp *>(hc->getLayerFromName("Correct"));
-   assert(correctLayer);
+   pvErrorIf(!(correctLayer), "Test failed.\n");
    const char * destPath = correctLayer->getInputPath();
    if (strcmp(&destPath[strlen(destPath)-4], ".pvp")!=0) {
       if (hc->columnId()==0) {
@@ -154,18 +154,18 @@ int copyCorrectOutput(HyPerCol * hc, int argc, char * argv[]) {
    }
    if (hc->columnId()==0) {
       PV_Stream * infile = PV_fopen(sourcePath, "r", false/*verifyWrites*/);
-      assert(infile);
+      pvErrorIf(!(infile), "Test failed.\n");
       PV_fseek(infile, 0L, SEEK_END);
       long int filelength = PV_ftell(infile);
       PV_fseek(infile, 0L, SEEK_SET);
       char * buf = (char *) malloc((size_t) filelength);
       size_t charsread = PV_fread(buf, sizeof(char), (size_t) filelength, infile);
-      assert(charsread == (size_t) filelength);
+      pvErrorIf(!(charsread == (size_t) filelength), "Test failed.\n");
       PV_fclose(infile); infile = NULL;
       PV_Stream * outfile = PV_fopen(destPath, "w", false/*verifyWrites*/);
-      assert(outfile);
+      pvErrorIf(!(outfile), "Test failed.\n");
       size_t charswritten = PV_fwrite(buf, sizeof(char), (size_t) filelength, outfile);
-      assert(charswritten == (size_t) filelength);
+      pvErrorIf(!(charswritten == (size_t) filelength), "Test failed.\n");
       PV_fclose(outfile); outfile = NULL;
       free(buf); buf = NULL;
    }
@@ -238,7 +238,7 @@ int testioparams(PV_Init* initObj, int rank) {
 int assertAllZeroes(HyPerCol * hc, int argc, char * argv[]) {
    const char * targetLayerName = "Comparison";
    HyPerLayer * layer = hc->getLayerFromName(targetLayerName);
-   assert(layer);
+   pvErrorIf(!(layer), "Test failed.\n");
    LayerProbe * probe = NULL;
    int np = layer->getNumProbes();
    for (int p=0; p<np; p++) {
@@ -248,7 +248,7 @@ int assertAllZeroes(HyPerCol * hc, int argc, char * argv[]) {
       }
    }
    RequireAllZeroActivityProbe * allzeroProbe = dynamic_cast<RequireAllZeroActivityProbe *>(probe);
-   assert(allzeroProbe);
+   pvErrorIf(!(allzeroProbe), "Test failed.\n");
    if (allzeroProbe->getNonzeroFound()) {
       if (hc->columnId()==0) {
          double t = allzeroProbe->getNonzeroTime();

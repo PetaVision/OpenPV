@@ -40,7 +40,7 @@ int GatePoolTestLayer::updateState(double timef, double dt){
       if(percentActive != .25){
          pvError() << "Percent active for " << name << " is " << percentActive << ", where expected is .25 at timestep " << timef << " for batch " << b << "\n";
       }
-      assert(percentActive == .25);
+      pvErrorIf(!(percentActive == .25), "Test failed.\n");
    }
 
    if(!isCorrect){

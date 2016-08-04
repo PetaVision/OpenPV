@@ -9,7 +9,7 @@
 #include <include/pv_arch.h>
 #include <layers/HyPerLayer.hpp>
 #include <string.h>
-#include <assert.h>
+#include <utils/PVLog.hpp>
 
 namespace PV {
 
@@ -40,9 +40,9 @@ int InitWeightTestProbe::outputState(double timed)
    }
    for(int b = 0; b < parent->getNBatch(); b++){
       if(timed>2.0f){
-         assert((fMin[b]>-0.001)&&(fMin[b]<0.001));
-         assert((fMax[b]>-0.001)&&(fMax[b]<0.001));
-         assert((avg[b]>-0.001)&&(avg[b]<0.001));
+         pvErrorIf(!((fMin[b]>-0.001)&&(fMin[b]<0.001)), "Test failed.\n");
+         pvErrorIf(!((fMax[b]>-0.001)&&(fMax[b]<0.001)), "Test failed.\n");
+         pvErrorIf(!((avg[b]>-0.001)&&(avg[b]<0.001)), "Test failed.\n");
       }
    }
 

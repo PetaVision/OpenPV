@@ -26,18 +26,18 @@ int main(int argc, char * argv[]) {
 
 int custominit(HyPerCol * hc, int argc, char ** argv) {
    PVHalo check;
-   assert(checkHalo(&hc->getLayerFromName("MarginsEqualImage")->getLayerLoc()->halo, 0, 0, 0, 0));
-   assert(checkHalo(&hc->getLayerFromName("XMarginLargerImage")->getLayerLoc()->halo, 0, 0, 0, 0));
-   assert(checkHalo(&hc->getLayerFromName("YMarginLargerImage")->getLayerLoc()->halo, 0, 0, 0, 0));
-   assert(checkHalo(&hc->getLayerFromName("MultipleConnImage")->getLayerLoc()->halo, 0, 0, 0, 0));
+   pvErrorIf(!(checkHalo(&hc->getLayerFromName("MarginsEqualImage")->getLayerLoc()->halo, 0, 0, 0, 0)), "Test failed.\n");
+   pvErrorIf(!(checkHalo(&hc->getLayerFromName("XMarginLargerImage")->getLayerLoc()->halo, 0, 0, 0, 0)), "Test failed.\n");
+   pvErrorIf(!(checkHalo(&hc->getLayerFromName("YMarginLargerImage")->getLayerLoc()->halo, 0, 0, 0, 0)), "Test failed.\n");
+   pvErrorIf(!(checkHalo(&hc->getLayerFromName("MultipleConnImage")->getLayerLoc()->halo, 0, 0, 0, 0)), "Test failed.\n");
    return PV_SUCCESS;
 }
 
 int customexit(HyPerCol * hc, int argc, char ** argv) {
-   assert(checkHalo(&hc->getLayerFromName("MarginsEqualImage")->getLayerLoc()->halo, 2, 2, 2, 2));
-   assert(checkHalo(&hc->getLayerFromName("XMarginLargerImage")->getLayerLoc()->halo,3, 3, 1, 1));
-   assert(checkHalo(&hc->getLayerFromName("YMarginLargerImage")->getLayerLoc()->halo,1, 1, 3, 3));
-   assert(checkHalo(&hc->getLayerFromName("MultipleConnImage")->getLayerLoc()->halo,3, 3, 3, 3));
+   pvErrorIf(!(checkHalo(&hc->getLayerFromName("MarginsEqualImage")->getLayerLoc()->halo, 2, 2, 2, 2)), "Test failed.\n");
+   pvErrorIf(!(checkHalo(&hc->getLayerFromName("XMarginLargerImage")->getLayerLoc()->halo,3, 3, 1, 1)), "Test failed.\n");
+   pvErrorIf(!(checkHalo(&hc->getLayerFromName("YMarginLargerImage")->getLayerLoc()->halo,1, 1, 3, 3)), "Test failed.\n");
+   pvErrorIf(!(checkHalo(&hc->getLayerFromName("MultipleConnImage")->getLayerLoc()->halo,3, 3, 3, 3)), "Test failed.\n");
    return PV_SUCCESS;
 }
 

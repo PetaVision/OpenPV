@@ -14,7 +14,7 @@
 #include "io/io.hpp"
 #include "ShrunkenPatchTestLayer.hpp"
 #include "ShrunkenPatchTestProbe.hpp"
-#include <assert.h>
+#include <utils/PVLog.hpp>
 
 int main(int argc, char * argv[]) {
 
