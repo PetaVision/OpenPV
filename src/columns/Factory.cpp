@@ -18,26 +18,25 @@
 #include <layers/BinningLayer.hpp>
 #include <layers/CloneVLayer.hpp>
 #include <layers/ConstantLayer.hpp>
-#include <layers/FilenameParsingGroundTruthLayer.hpp>
+//#include <layers/FilenameParsingGroundTruthLayer.hpp>
 #include <layers/GapLayer.hpp>
 #include <layers/HyPerLayer.hpp>
 #include <layers/HyPerLCALayer.hpp>
 #include <layers/ISTALayer.hpp>
 #include <layers/Image.hpp>
-#include <layers/ImagePvp.hpp>
+//#include <layers/ImagePvp.hpp>
 #include <layers/ImageFromMemoryBuffer.hpp>
 #include <layers/KmeansLayer.hpp>
 #include <layers/LCALIFLayer.hpp>
 #include <layers/LIF.hpp>
 #include <layers/LIFGap.hpp>
 #include <layers/LabelErrorLayer.hpp>
-#include <layers/LabelLayer.hpp>
+//#include <layers/LabelLayer.hpp>
 #include <layers/LeakyIntegrator.hpp>
 #include <layers/MaskLayer.hpp>
 #include <layers/MomentumLCALayer.hpp>
-#include <layers/Movie.hpp>
-#include <layers/MoviePvp.hpp>
-#include <layers/Patterns.hpp>
+//#include <layers/Movie.hpp>
+//#include <layers/MoviePvp.hpp>
 #include <layers/PoolingIndexLayer.hpp>
 #include <layers/PtwiseLinearTransferLayer.hpp>
 #include <layers/PtwiseProductLayer.hpp>
@@ -116,26 +115,25 @@ int Factory::registerCoreKeywords() {
    registerKeyword("BinningLayer", Factory::create<BinningLayer>);
    registerKeyword("CloneVLayer", Factory::create<CloneVLayer>);
    registerKeyword("ConstantLayer", Factory::create<ConstantLayer>);
-   registerKeyword("FilenameParsingGroundTruthLayer", Factory::create<FilenameParsingGroundTruthLayer>);
+ //  registerKeyword("FilenameParsingGroundTruthLayer", Factory::create<FilenameParsingGroundTruthLayer>);
    registerKeyword("GapLayer", Factory::create<GapLayer>);
    registerKeyword("HyPerLayer", Factory::create<HyPerLayer>);
    registerKeyword("HyPerLCALayer", Factory::create<HyPerLCALayer>);
    registerKeyword("ISTALayer", Factory::create<ISTALayer>);
    registerKeyword("Image", Factory::create<Image>);
-   registerKeyword("ImagePvp", Factory::create<ImagePvp>);
-   registerKeyword("ImageFromMemoryBuffer", Factory::create<ImageFromMemoryBuffer>);
+//   registerKeyword("ImagePvp", Factory::create<ImagePvp>);
+//   registerKeyword("ImageFromMemoryBuffer", Factory::create<ImageFromMemoryBuffer>);
    registerKeyword("KmeansLayer", Factory::create<KmeansLayer>);
    registerKeyword("LCALIFLayer", Factory::create<LCALIFLayer>);
    registerKeyword("LIF", Factory::create<LIF>);
    registerKeyword("LIFGap", Factory::create<LIFGap>);
    registerKeyword("LabelErrorLayer", Factory::create<LabelErrorLayer>);
-   registerKeyword("LabelLayer", Factory::create<LabelLayer>);
+//   registerKeyword("LabelLayer", Factory::create<LabelLayer>);
    registerKeyword("LeakyIntegrator", Factory::create<LeakyIntegrator>);
    registerKeyword("MaskLayer", Factory::create<MaskLayer>);
    registerKeyword("MomentumLCALayer", Factory::create<MomentumLCALayer>);
-   registerKeyword("Movie", Factory::create<Movie>);
-   registerKeyword("MoviePvp", Factory::create<MoviePvp>);
-   registerKeyword("Patterns", Factory::create<Patterns>);
+//   registerKeyword("Movie", Factory::create<Movie>);
+//   registerKeyword("MoviePvp", Factory::create<MoviePvp>);
    registerKeyword("PoolingIndexLayer", Factory::create<PoolingIndexLayer>);
    registerKeyword("PtwiseLinearTransferLayer", Factory::create<PtwiseLinearTransferLayer>);
    registerKeyword("PtwiseProductLayer", Factory::create<PtwiseProductLayer>);

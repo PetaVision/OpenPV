@@ -9,68 +9,81 @@
 #ifndef IMAGE_HPP_
 #define IMAGE_HPP_
 
+#include "utils/PVImg.hpp"
 #include "BaseInput.hpp"
+
 #include <cMakeHeader.h>
 
 namespace PV {
 
-class Image : public BaseInput{
+   class Image : public BaseInput {
 
-#ifdef PV_USE_GDAL
+   protected:
+      /** 
+       * List of parameters needed from the Image class
+       * @name Image Parameters
+       * @{
+       */
+      /**
+       * @brief writeStep: The Image class changes the default of writeStep to -1 (i.e. never write to the output pvp file).
+       */
+      virtual void ioParam_writeStep(enum ParamsIOFlag ioFlag);
+      /** @} */
 
-protected:
-   /** 
-    * List of parameters needed from the Image class
-    * @name Image Parameters
-    * @{
-    */
+   protected:
+      Image();
+      int initialize(const char * name, HyPerCol * hc);
+      virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+      virtual int retrieveData(double timef, double dt, int batchIndex);
+      virtual void readImage(std::string filename);
+      virtual int postProcess(double timef, double dt);
 
-   /**
-    * @brief writeStep: The Image class changes the default of writeStep to -1 (i.e. never write to the output pvp file).
-    */
-   virtual void ioParam_writeStep(enum ParamsIOFlag ioFlag);
+      /**
+       * Converts a grayscale buffer to a multiband buffer, by replicating the buffer in each band.
+       * On entry, *buffer points to an nx-by-ny-by-1 buffer that must have been created with the new[] operator.
+       * On exit, *buffer points to an nx-by-ny-by-numBands buffer that was created with the new[] operator.
+       */
+//      static int convertGrayScaleToMultiBand(float ** buffer, int nx, int ny, int numBands);
 
-   /** @} */
-   
-protected:
-   Image();
-   int initialize(const char * name, HyPerCol * hc);
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+      /**
+       * Converts a multiband buffer to a grayscale buffer, using the colorType to weight the bands.
+       * On entry, *buffer points to an nx-by-ny-by-numBands buffer that must have been created with the new[] operator.
+       * On exit, *buffer points to an nx-by-ny-by-1 buffer that was created with the new[] operator.
+       */
+//      static int convertToGrayScale(float ** buffer, int nx, int ny, int numBands, InputColorType colorType);
 
-public:
-   Image(const char * name, HyPerCol * hc);
-   virtual ~Image();
-   virtual int communicateInitInfo();
+      /**
+       * Based on the value of colorType, fills the bandweights buffer with weights to assign to each band
+       * of a multiband buffer when converting to grayscale.
+       */
+//      static int calcBandWeights(int numBands, float * bandweights, InputColorType colorType);
 
-   // primary layer interface
-   //
-   virtual double getDeltaUpdateTime();
-   virtual int updateState(double time, double dt);
+      /**
+       * Called by calcBandWeights when the color type is unrecognized; it fills each bandweights entry
+       * with 1/numBands.
+       */
+/*      static inline void equalBandWeights(int numBands, float * bandweights) {
+         float w = 1.0/(float) numBands;
+         for( int b=0; b<numBands; b++ ) bandweights[b] = w;
+      }
+*/
 
-private:
-   int initialize_base();
+   public:
+      Image(const char * name, HyPerCol * hc);
+      virtual ~Image();
+      virtual int communicateInitInfo();
+      virtual double getDeltaUpdateTime();
+      virtual int updateState(double time, double dt);
 
-protected:
-   virtual int readImageFileGDAL(char const * filename, PVLayerLoc const * loc);
-#ifdef INACTIVE // Commented out April 19, 2016.  Might prove useful to restore the option to resize using GDAL.
-   virtual int scatterImageFileGDAL(const char * filename, int xOffset, int yOffset, PV::Communicator * comm, const PVLayerLoc * loc, float * buf, bool autoResizeFlag);
-#endif // INACTIVE // Commented out April 19, 2016.  Might prove useful to restore the option to resize using GDAL.
+   private:
+      int initialize_base();
 
-   virtual int retrieveData(double timef, double dt, int batchIndex);
+   protected:
+      std::unique_ptr<PVImg> mImage;
 
-   //Virtual function to define how readImage specifies batches
-   virtual int readImage(const char * filename);
-   int calcColorType(int numBands, GDALColorInterp * colorbandtypes);
+   }; // class Image
 
-#else // PV_USE_GDAL
-public:
-   Image(char const * name, HyPerCol * hc);
-protected:
-   Image();
-   virtual int retrieveData(double timef, double dt, int batchIndex);
-#endif // PV_USE_GDAL
-
-}; // class Image
+   BaseObject * createImage(char const * name, HyPerCol * hc);
 
 }  // namespace PV
 

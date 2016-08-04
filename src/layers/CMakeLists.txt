@@ -9,27 +9,22 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/BinningLayer.cpp
    ${SUBDIR}/CloneVLayer.cpp
    ${SUBDIR}/ConstantLayer.cpp
-   ${SUBDIR}/FilenameParsingGroundTruthLayer.cpp
+#   ${SUBDIR}/FilenameParsingGroundTruthLayer.cpp
    ${SUBDIR}/GapLayer.cpp
    ${SUBDIR}/HyPerLayer.cpp
    ${SUBDIR}/HyPerLCALayer.cpp
    ${SUBDIR}/MomentumLCALayer.cpp
    ${SUBDIR}/Image.cpp
    ${SUBDIR}/ImageFromMemoryBuffer.cpp
-   ${SUBDIR}/ImagePvp.cpp
    ${SUBDIR}/InitV.cpp
    ${SUBDIR}/ISTALayer.cpp
    ${SUBDIR}/KmeansLayer.cpp
    ${SUBDIR}/LabelErrorLayer.cpp
-   ${SUBDIR}/LabelLayer.cpp
    ${SUBDIR}/LCALIFLayer.cpp
    ${SUBDIR}/LeakyIntegrator.cpp
    ${SUBDIR}/LIF.cpp
    ${SUBDIR}/LIFGap.cpp
    ${SUBDIR}/MaskLayer.cpp
-   ${SUBDIR}/Movie.cpp
-   ${SUBDIR}/MoviePvp.cpp
-   ${SUBDIR}/Patterns.cpp
    ${SUBDIR}/PoolingIndexLayer.cpp
    ${SUBDIR}/PtwiseLinearTransferLayer.cpp
    ${SUBDIR}/PtwiseProductLayer.cpp
@@ -56,26 +51,21 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/BinningLayer.hpp
    ${SUBDIR}/CloneVLayer.hpp
    ${SUBDIR}/ConstantLayer.hpp
-   ${SUBDIR}/FilenameParsingGroundTruthLayer.hpp
+#   ${SUBDIR}/FilenameParsingGroundTruthLayer.hpp
    ${SUBDIR}/GapLayer.hpp
    ${SUBDIR}/HyPerLayer.hpp
    ${SUBDIR}/HyPerLCALayer.hpp
    ${SUBDIR}/Image.hpp
    ${SUBDIR}/ImageFromMemoryBuffer.hpp
-   ${SUBDIR}/ImagePvp.hpp
    ${SUBDIR}/InitV.hpp
    ${SUBDIR}/ISTALayer.hpp
    ${SUBDIR}/KmeansLayer.hpp
    ${SUBDIR}/LabelErrorLayer.hpp
-   ${SUBDIR}/LabelLayer.hpp
    ${SUBDIR}/LCALIFLayer.hpp
    ${SUBDIR}/LeakyIntegrator.hpp
    ${SUBDIR}/LIF.hpp
    ${SUBDIR}/LIFGap.hpp
    ${SUBDIR}/MaskLayer.hpp
-   ${SUBDIR}/Movie.hpp
-   ${SUBDIR}/MoviePvp.hpp
-   ${SUBDIR}/Patterns.hpp
    ${SUBDIR}/PoolingIndexLayer.hpp
    ${SUBDIR}/PtwiseLinearTransferLayer.hpp
    ${SUBDIR}/PtwiseProductLayer.hpp
