@@ -7,6 +7,7 @@ HyPerCol "column" = {
     dt = 1.0;
     stopTime = 1.0;
     progressInterval = 1.0;
+    writeProgressToErr = false;
     randomSeed = 1602099332;
     nx = 60; // The test will split into 2x3 and 3x2 subcolumns,
     ny = 60; // so nx and ny must be divisible by 6.

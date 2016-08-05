@@ -159,7 +159,7 @@ int HyPerCol::initialize_base() {
    mChangeTimeScaleMin = 0.0;
    mDtMinToleratedTimeScale = 1.0e-4;
    mProgressInterval = 1.0;
-   mWriteProgressToError = false;
+   mWriteProgressToErr = false;
    mOrigStdOut = -1;
    mOrigStdErr = -1;
    mLayers.clear();
@@ -806,7 +806,7 @@ void HyPerCol::ioParam_progressInterval(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerCol::ioParam_writeProgressToErr(enum ParamsIOFlag ioFlag) {
-   ioParamValue(ioFlag, mName, "writeProgressToError", &mWriteProgressToError, mWriteProgressToError);
+   ioParamValue(ioFlag, mName, "writeProgressToErr", &mWriteProgressToErr, mWriteProgressToErr);
 }
 
 void HyPerCol::ioParam_verifyWrites(enum ParamsIOFlag ioFlag) {
@@ -1877,7 +1877,7 @@ int HyPerCol::advanceTime(double sim_time)
    if (mSimTime >= mNextProgressTime) {
       mNextProgressTime += mProgressInterval;
       if (columnId() == 0) {
-         std::ostream& progressStream = mWriteProgressToError ? getErrorStream() : getOutputStream();
+         std::ostream& progressStream = mWriteProgressToErr ? getErrorStream() : getOutputStream();
          time_t current_time;
          time(&current_time);
          progressStream << "   time==" << sim_time << "  " << ctime(&current_time); // ctime outputs an newline

@@ -156,7 +156,7 @@ private:
    virtual void ioParam_progressInterval(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief writeProgressToError: Whether to print timestep progress to the error stream instead of the output stream
+    * @brief writeProgressToErr: Whether to print timestep progress to the error stream instead of the output stream
     */
    virtual void ioParam_writeProgressToErr(enum ParamsIOFlag ioFlag);
 
@@ -513,7 +513,7 @@ private:
    bool mParamsProcessedFlag; // Initially false; set to true when processParams is called.
    bool mUseAdaptMethodExp1stOrder = true; // specifies whether exponential approximation to energy function decay is used to adapt time scale, requires mDtAdaptControlProbe != NULL
    bool mWriteTimeScaleFieldnames;      // determines whether fieldnames are written to HyPerCol_timescales file
-   bool mWriteProgressToError;// Whether to write progress step to standard error (True) or standard output (False) (default is output)
+   bool mWriteProgressToErr;// Whether to write progress step to standard error (True) or standard output (False) (default is output)
    bool mVerifyWrites;     // Flag to indicate whether calls to PV_fwrite do a readback check
    bool mOwnsCommunicator; // True if icComm was created by initialize, false if passed in the constructor
    bool mWriteTimescales;
