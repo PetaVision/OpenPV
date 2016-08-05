@@ -131,7 +131,7 @@ HyPerConn "origConn" = {
      
     delay = 0;
      
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
     selfFlag = false;
 
     updateGSynFromPostPerspective = false;
@@ -145,7 +145,7 @@ TransposeConn "preTransposeConn" = {
     channelCode = 0; //Does nothing to the input layer
     originalConnName = "origConn";
     selfFlag = false;
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
     writeStep = -1;
     delay = 0;
     pvpatchAccumulateType = "convolve";
@@ -158,7 +158,7 @@ TransposeConn "postTransposeConn" = {
     channelCode = 0;
     originalConnName = "origConn";
     selfFlag = false;
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
     writeStep = -1.0;
     delay = 0;
     pvpatchAccumulateType = "convolve";

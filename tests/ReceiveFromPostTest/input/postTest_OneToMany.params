@@ -125,7 +125,7 @@ HyPerConn "origConn" = {
      
     delay = 0;
      
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
     selfFlag = false;
     shmget_flag = false;
 
@@ -138,7 +138,7 @@ TransposeConn "preTransposeConn" = {
     channelCode = 0; //Does nothing to the input layer
     originalConnName = "origConn";
     selfFlag = false;
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
     writeStep = -1;
     writeCompressedCheckpoints = false;
     shmget_flag = false;
@@ -154,7 +154,7 @@ TransposeConn "postTransposeConn" = {
     channelCode = 0;
     originalConnName = "origConn";
     selfFlag = false;
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
     writeStep = 1.0;
     initialWriteTime = 0.0;
     writeCompressedWeights = false;

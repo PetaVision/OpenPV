@@ -100,7 +100,7 @@ PlasticTestConn "PreToPost" = {
 
     pvpatchAccumulateType = "convolve";
     shrinkPatches = false;
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
     selfFlag = false;
     combine_dW_with_W_flag = false;
     dWMax = 1.0;

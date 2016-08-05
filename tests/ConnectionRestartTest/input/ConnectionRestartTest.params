@@ -126,7 +126,7 @@ HyPerConn "initializeFromInitWeights" = {
     delay = 0;
 
     pvpatchAccumulateType = "Convolve";
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
     shrinkPatches = false; 
     updateGSynFromPostPerspective = false; 
 };
@@ -156,7 +156,7 @@ HyPerConn "initializeFromCheckpoint" = {
     delay = 0;
 
     pvpatchAccumulateType = "Convolve";
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
     shrinkPatches = false; 
     updateGSynFromPostPerspective = false; 
 };

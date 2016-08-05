@@ -156,7 +156,7 @@ HyPerConn "delayArbor" = {
     selfFlag               = false;
     shrinkPatches          = false;
     updateGSynFromPostPerspective = false;
-    preActivityIsNotRate   = false;
+    convertRateToSpikeCount   = false;
 };
 
 DatastoreDelayTestProbe "probe" = {

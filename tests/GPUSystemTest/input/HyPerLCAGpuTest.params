@@ -160,7 +160,7 @@ ANNLayer "outputTest" = {
 //     
 //    delay = 0;
 //     
-//    preActivityIsNotRate = false;
+//    convertRateToSpikeCount = false;
 //    selfFlag = false;
 //
 //    updateGSynFromPostPerspective = false;
@@ -206,7 +206,7 @@ HyPerConn "origConn" = {
      
     delay = 0;
      
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
     selfFlag = false;
 
     updateGSynFromPostPerspective = false;
@@ -220,7 +220,7 @@ TransposeConn "TransposeConn" = {
     channelCode = 0; 
     originalConnName = "origConn";
     selfFlag = false;
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
     writeStep = -1;
     delay = 0;
     pvpatchAccumulateType = "convolve";
@@ -234,7 +234,7 @@ TransposeConn "gpuTransposeConn" = {
     channelCode = 0;
     originalConnName = "origConn";
     selfFlag = false;
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
     writeStep = -1.0;
     delay = 0;
     pvpatchAccumulateType = "convolve";

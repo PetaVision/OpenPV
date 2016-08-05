@@ -287,7 +287,7 @@ ANNLayer "Post32x32Multiband" = {
 //
 //    shrinkPatches = false;
 //    selfFlag = false;
-//    preActivityIsNotRate = false;
+//    convertRateToSpikeCount = false;
 //    
 //};
 
@@ -322,7 +322,7 @@ HyPerConn "8x8ImagesToPost8x8Multiband" = {
     
     shrinkPatches = false;
     selfFlag = false;
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
 };
 
 IdentConn "16x16ImagesToPost16x16Singleband" = {
@@ -356,7 +356,7 @@ HyPerConn "16x16ImagesToPost16x16Multiband" = {
     
     shrinkPatches = false;
     selfFlag = false;
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
 };
 
 IdentConn "32x32ImagesToPost32x32Singleband" = {
@@ -390,7 +390,7 @@ HyPerConn "32x32ImagesToPost32x32Multiband" = {
 
     shrinkPatches = false;
     selfFlag = false;
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
 };
 
 //Feed post to mask as well
@@ -422,7 +422,7 @@ HyPerConn "Pre16x16SinglebandToPost16x16Singleband" = {
     keepKernelsSynchronized = true;
     selfFlag = false;
     combine_dW_with_W_flag = false;
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
     
     initialWeightUpdateTime = 0.0;
     weightUpdatePeriod = 1.0;
@@ -459,7 +459,7 @@ HyPerConn "Pre16x16SinglebandToPost16x16Multiband" = {
     keepKernelsSynchronized = true;
     selfFlag = false;
     combine_dW_with_W_flag = false;
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
 
     relaxation = 1.0;
     nonnegConstraintFlag = false;
@@ -497,7 +497,7 @@ HyPerConn "Pre16x16MultibandToPost16x16Singleband" = {
     keepKernelsSynchronized = true;
     selfFlag = false;
     combine_dW_with_W_flag = false;
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
 };
 
 HyPerConn "Pre16x16MultibandToPost16x16Multiband" = {
@@ -530,7 +530,7 @@ HyPerConn "Pre16x16MultibandToPost16x16Multiband" = {
     keepKernelsSynchronized = true;
     selfFlag = false;
     combine_dW_with_W_flag = false;
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
 };
 
 HyPerConn "Pre16x16SinglebandToPost8x8Singleband" = {
@@ -564,7 +564,7 @@ HyPerConn "Pre16x16SinglebandToPost8x8Singleband" = {
     
     relaxation = 1.0;
     nonnegConstraintFlag = false;
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
     imprintingFlag = false;
     weightDecayFlag = false;
 };
@@ -723,7 +723,7 @@ HyPerConn "Pre16x16SinglebandToPost32x32Multiband" = {
     
     relaxation = 1.0;
     nonnegConstraintFlag = false;
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
     imprintingFlag = false;
     weightDecayFlag = false;
 };

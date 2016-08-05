@@ -154,7 +154,7 @@ MomentumConn "origConn" = {
      
     delay = 0;
      
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
     selfFlag = false;
 
     updateGSynFromPostPerspective = false;
@@ -168,7 +168,7 @@ PlasticCloneConn "cloneConn" = {
     originalConnName = "origConn";
     selfFlag = false;
     delay = 0;
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
     updateGSynFromPostPerspective = false;
     pvpatchAccumulateType = "convolve";
 };

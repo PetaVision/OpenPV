@@ -231,7 +231,7 @@ HyPerConn "InputToOutput" = {
     rMinY = 0;
     nonnegativeConstraintFlag = false;
     normalize_cutoff = 0;
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
     minSumTolerated = 0.0;
     normalizeFromPostPerspective = false;
     writeCompressedCheckpoints = false;
@@ -272,7 +272,7 @@ HyPerConn "OutputToDuplicateSigmoid" = {
     convertRateToSpikeCount = false;
     receiveGpu = false;
     selfFlag = false;  // conntect to itself
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
 
     delay = 0;
 

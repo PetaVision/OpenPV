@@ -103,7 +103,7 @@ MomentumConn "preToPost" = {
      
     delay = 0;
      
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
     selfFlag = false;
 
     updateGSynFromPostPerspective = false;

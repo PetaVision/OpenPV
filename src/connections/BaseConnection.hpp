@@ -295,12 +295,6 @@ protected:
     */
    void setNumberOfAxonalArborLists(int numArbors);
 
-   // preActivityIsNotRate was replaced with convertRateToSpikeCount on Dec 31, 2014.
-   // /**
-   //  * Sets the preActivityIsNotRate flag to the indicated argument.  It is an error to try to change
-   //  * preActivityIsNotRate after communicateInitInfo() has completed successfully.
-   //  */
-   // void setPreActivityIsNotRate(bool preActivityIsNotRate);
    void setConvertRateToSpikeCount(bool convertRateToSpikeCountFlag);
 #ifdef PV_USE_CUDA
    void setReceiveGpu();
@@ -387,12 +381,8 @@ protected:
    virtual void ioParam_plasticityFlag(enum ParamsIOFlag ioFlag);
 
    // preActivityIsNotRate was replaced with convertRateToSpikeCount on Dec 31, 2014.
-   // /**
-   //  * @brief preActivityIsNotRate: If true, pre activity is spike rate. If false, pre activity is value
-   //  * @details The post synaptic layer needs to interpret pre synaptic activity as a spike rate
-   //  * Other situations interpret as a value. This flag sets either one or the other.
-   //  */
-   // virtual void ioParam_preActivityIsNotRate(enum ParamsIOFlag ioFlag);
+   // The warning issued if the params file contained preActivityIsNotRate was removed Aug 5, 2016.
+
    /**
     * @brief convertRateToSpikeCount: If true, presynaptic activity should be converted from a rate to a count.
     * @details If this flag is true and the presynaptic layer is not spiking, the activity will be interpreted
@@ -512,7 +502,6 @@ protected:
    ChannelType channel;
    int numAxonalArborLists; // number of axonal arbors from presynaptic layer
    bool plasticityFlag;
-   // bool preActivityIsNotRate; // preActivityIsNotRate was replaced with convertRateToSpikeCount on Dec 31, 2014.
    bool convertRateToSpikeCount; // Whether to check if pre-layer is spiking and, if it is not, scale activity by dt to convert it to a spike count
 #ifdef PV_USE_CUDA
    bool receiveGpu; // Whether to use GPU acceleration in updating post's GSyn

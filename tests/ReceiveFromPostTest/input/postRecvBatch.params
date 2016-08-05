@@ -152,7 +152,7 @@ HyPerConn "conn" = {
      
     delay = 0;
      
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
     selfFlag = false;
 
     keepKernelsSynchronized             = true;
