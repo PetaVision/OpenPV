@@ -149,9 +149,6 @@ PoolingConn "input2avgPoolPre" = {
     nxp = 1; 
     nyp = 1; 
     numAxonalArbors = 1;
-    writeStep = -1;
-    // initialWriteTime = 0.0;
-    writeCompressedWeights = false;
     
     normalizeMethod                     = "none";
     //strength                            = 1;
@@ -160,8 +157,6 @@ PoolingConn "input2avgPoolPre" = {
     //normalize_cutoff                    = 0;
     
     shrinkPatches = false;
-    //writeCompressedWeights = 0.0;
-    writeCompressedCheckpoints = false;
     plasticityFlag = 0;
     pvpatchAccumulateType = "avgpooling";
      

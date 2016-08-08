@@ -38,6 +38,19 @@ protected:
    void ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag);
    void ioParam_needPostIndexLayer(enum ParamsIOFlag ioFlag);
    void ioParam_postIndexLayerName(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief PoolingConn does not have weights to write, and does not use writeStep
+    */
+   void ioParam_writeStep(enum ParamsIOFlag ioFlag);
+   /**
+    * @brief PoolingConn does not have weights to write, and does not use writeCompressedCheckpoints
+    */
+   void ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief PoolingConn does not have weights to normalize, and does not use normalizeMethod
+    */
    void ioParam_normalizeMethod(enum ParamsIOFlag ioFlag);
    virtual int setInitialValues();
    virtual int constructWeights();

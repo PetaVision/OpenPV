@@ -130,6 +130,20 @@ void PoolingConn::ioParam_postIndexLayerName(enum ParamsIOFlag ioFlag) {
    }
 }
 
+void PoolingConn::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
+   if (ioFlag==PARAMS_IO_READ) {
+      writeStep = -1;
+      parent->parameters()->handleUnnecessaryParameter(name, "writeStep");
+   }
+}
+
+void PoolingConn::ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFlag) {
+   if (ioFlag==PARAMS_IO_READ) {
+      writeCompressedCheckpoints = false;
+      parent->parameters()->handleUnnecessaryParameter(name, "writeCompressedCheckpoints", writeCompressedCheckpoints/*correct value*/);
+   }
+}
+
 void PoolingConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ) {
       parent->parameters()->handleUnnecessaryStringParameter(name, "normalizeMethod", "none", false/*case_insensitive*/);

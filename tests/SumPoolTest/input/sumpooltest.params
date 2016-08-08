@@ -102,13 +102,8 @@ PoolingConn "input2sumPoolPre" = {
     nxp = 3; 
     nyp = 3; 
     numAxonalArbors = 1;
-    writeStep = -1;
-    // initialWriteTime = 0.0;
-    writeCompressedWeights = false;
     
     shrinkPatches = false;
-    //writeCompressedWeights = 0.0;
-    writeCompressedCheckpoints = false;
     pvpatchAccumulateType = "sumpooling";
      
     delay = 0;

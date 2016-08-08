@@ -30,7 +30,6 @@ InputLayer "input" = {
     nxScale = 1;
     nyScale = 1;
     nf = 3;
-    writeStep = -1.0;
     // initialWriteTime = 0.0;
     mirrorBCflag = false;
     valueBC = 0.0;
@@ -102,13 +101,8 @@ PoolingConn "input2avgPoolPre" = {
     nxp = 3; 
     nyp = 3; 
     numAxonalArbors = 1;
-    writeStep = -1;
-    // initialWriteTime = 0.0;
-    writeCompressedWeights = false;
     
     shrinkPatches = false;
-    //writeCompressedWeights = 0.0;
-    writeCompressedCheckpoints = false;
     pvpatchAccumulateType = "avgpooling";
      
     delay = 0;

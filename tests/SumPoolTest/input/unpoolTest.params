@@ -149,8 +149,6 @@ PoolingConn "input2sumPoolPre" = {
     nxp = 1; 
     nyp = 1; 
     numAxonalArbors = 1;
-    writeStep = -1;
-    // initialWriteTime = 0.0;
     writeCompressedWeights = false;
     
     normalizeMethod                     = "none";
@@ -160,8 +158,6 @@ PoolingConn "input2sumPoolPre" = {
     //normalize_cutoff                    = 0;
     
     shrinkPatches = false;
-    //writeCompressedWeights = 0.0;
-    writeCompressedCheckpoints = false;
     plasticityFlag = 0;
     pvpatchAccumulateType = "sumpooling";
      
