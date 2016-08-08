@@ -146,13 +146,11 @@ namespace PV {
           * bySpecified: User specified start_frame_index and skip_frame_index, one for each batch
           */
          virtual void ioParam_batchMethod(enum ParamsIOFlag ioFlag);
+         
          /**
           * @brief useImageBCFlag: Specifies if the Image layer should use the image to fill margins 
           */
          virtual void ioParam_useInputBCflag(enum ParamsIOFlag ioFlag);
-         /**
-          * @}
-          */
 
       protected:
          enum BatchMethod {
@@ -163,52 +161,6 @@ namespace PV {
 
          BaseInput();
          int initialize(const char * name, HyPerCol * hc);
-         virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-
-         int initRandState();
-
-         virtual int allocateV();
-         virtual int initializeV();
-         virtual int initializeActivity();
-         static bool constrainPoint(int * point, int min_x, int max_x, int min_y, int max_y, int method);
-         virtual bool constrainOffsets();
-         virtual int readStateFromCheckpoint(const char *cpDir, double *timeptr);
-                  /**
-          * This is the interface for loading a new "frame" (which can be either pvp, image, etc)
-          * into the activity buffer. This function calls retrieveData, scatterInput, and postProcess.
-          */
-         void nextInput(double timef, double dt);
-
-         /**
-          * This pure virtual function gets called from getFrame by the root process only.
-          * Derived classes should set the nxGlobal, nyGlobal, and nf fields of imageLoc.
-          * If the product of nxGlobal, nyGlobal, and nf changes, retrieveData should
-          * free imageData with delete[] and reallocate imageData with new[], to prevent
-          * memory leaks.  retrieveData should also set the imageColorType data member.
-          */
-         virtual int retrieveData(double timef, double dt, int batchIndex) = 0;
-
-         /**
-          * This function scatters the imageData buffer to the activity buffers of the several MPI processes.
-          */
-         virtual int scatterInput(int batchIndex);
-
-         /**
-          * Calculates the intersection of the given rank's local extended region
-          * with the imageData, based on the offsetX, offsetY, and offsetAnchor
-          * parameters.
-          * Used in scatterInput by the root process to determine what part of the
-          * imageData buffer to scatter to the other processes.
-          * Return value is zero if width and height are both positive, and nonzero
-          * if either is negative (i.e. the local layer and image do not intersect).
-          */
-         int calcLocalBox(int rank, int &dataLeft, int &dataTop, int &imageLeft, int &imageTop, int &width, int &height);
-
-         /**
-          * This function achieves post processing of the activity buffer after a frame is loaded.
-          */
-         virtual int postProcess(double timef, double dt);
-
          /**
           * Returns PV_SUCCESS if offsetAnchor is a valid anchor string
           * (two characters long; first characters one of 't', 'c', or 'b'; second characters one of 'l', 'c', or 'r')
@@ -216,8 +168,26 @@ namespace PV {
           */
          int checkValidAnchorString();
 
-         int copyFromInteriorBuffer(float * buf, int batchIdx, float fac);
-         int copyToInteriorBuffer(unsigned char * buf, int batchIdx, float fac);
+         virtual int allocateV();
+         virtual int initializeV();
+         virtual int initializeActivity();
+         virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+         virtual int readStateFromCheckpoint(const char *cpDir, double *timeptr);
+         /**
+          * This pure virtual function gets called from nextInput by the root process only.
+          * Load the input file from disk in this method.
+          */
+         virtual Buffer retrieveData(std::string filename) = 0;
+
+         /**
+          * This method scatters the mInputData buffer to the activity buffers of the several MPI processes.
+          */
+         virtual int scatterInput(int batchIndex);
+
+         /**
+          * This method post processes the activity buffer after a file is loaded and scattered.
+          */
+         virtual int postProcess(double timef, double dt);
 
          /**
           * This method is called during scatterInput, by the root process only.
@@ -225,9 +195,14 @@ namespace PV {
           * to resize the imageData buffer.  It also updates the nxGlobal, nyGlobal, and nf
           * fields of imageLoc, and the resizeFactor data member.
           */
-         virtual int resizeInput();
-
+         void fitBufferToLayer(Buffer &buffer);
+ 
          virtual bool readyForNextFile();
+         /**
+          * This is the method for loading a new file (which can be either pvp, image, etc)
+          * into the activity buffer. This function calls retrieveData, scatterInput, and postProcess.
+          */
+         void nextInput(double timef, double dt);
 
       public:
          BaseInput(const char * name, HyPerCol * hc);
@@ -238,22 +213,9 @@ namespace PV {
          virtual int checkpointRead(const char * cpDir, double * timeptr);
          virtual int checkpointWrite(const char *cpDir);
          virtual double calcTimeScale(int batchIndex);
-
          virtual bool activityIsSpiking() {return false;}
          void exchange();
-
-         int getOffsetX(const char* offsetAnchor, int offsetX);
-         int getOffsetY(const char* offsetAnchor, int offsetY);
-         /**
-          * getImageStartX() returns the x-coordinate in the original input corresponding to x=0 in layer coordinates.
-          */
-         int getImageStartX() { return getOffsetX(mOffsetAnchor, mOffsets[0]); }
-
-         /**
-          * getImageStartY() returns the y-coordinate in the original input corresponding to y=0 in the layer coordinates.
-          */
-         int getImageStartY() { return getOffsetX(mOffsetAnchor, mOffsets[0]); }
-         
+        
          // These get-methods are needed for masking
          int getDataLeft() { return mLayerLeft; }
          int getDataTop() { return mLayerTop; }
@@ -261,66 +223,76 @@ namespace PV {
          int getImageTop() { return mInputTop; }
          int getDataWidth() { return mInputWidth; }
          int getDataHeight() { return mInputHeight; }
+         const std::string getInputPath() { return mInputPath; }
 
       private:
          int initialize_base();
          int populateFileList();
+         /**
+          * Calculates the intersection of the given rank's local extended region
+          * with the imageData, based on the offsetX, offsetY, and offsetAnchor
+          * parameters.
+          * Used in scatterInput by the root process to determine what part of the
+          * imageData buffer to scatter to the other processes.
+          * Return value is zero if width and height are both positive, and nonzero
+          * if either is negative (i.e. the local layer and image do not intersect).
+          */
+//         int calcLocalBox(int rank, int &dataLeft, int &dataTop, int &imageLeft, int &imageTop, int &width, int &height);
          std::string getNextFilename(int filesToSkip, int batchIndex);
          std::string advanceFilename(int batchIndex);
 
       protected:
-         MPI_Datatype * mDatatypes;  // MPI datatypes for boundary exchange
-
-         Buffer mInputData; //Raw data read from disk. 
-         bool mAutoResizeFlag;
-         char * mAspectRatioAdjustment;
-         Buffer::RescaleMethod mRescaleMethod; //TODO: Replace mAspectRatioAdjustment with this
+         // Raw data read from disk, one per batch
+         std::vector<Buffer> mInputData;
+         Buffer::RescaleMethod mRescaleMethod;
          Buffer::InterpolationMethod mInterpolationMethod;
+         // If offsets escape the bounding box, the method to coerce them into the bounding box.
+         Buffer::PointConstraintMethod mPointConstraintMethod;
+         Buffer::OffsetAnchor mOffsetAnchor;
+         bool mAutoResizeFlag;
          bool mInverseFlag;
-         bool mNormalizeLuminanceFlag; // if true, normalize the input image as specified by normalizeStdDev
-         bool mNormalizeStdDev;        // if true and normalizeLuminanceFlag == true, normalize the standard deviation to 1 and mean = 0
-                                      // if false and normalizeLuminanceFlag == true, nomalize max = 1, min = 0
-                                      //
-         int mOffsetConstraintMethod; // If offsets escape the bounding box, the method to coerce them into the bounding box.
-                                // The constraint method codes are 0=ignore, 1=mirror boundary conditions, 2=thresholding, 3=circular boundary conditions
-         int mOffsets[2];        // offsets array points to [offsetX, offsetY]
-         char* mOffsetAnchor;
-
-         //TODO: I don't think these need to be member variables
-         int mLayerLeft; // The left edge of valid image data in the local activity buffer.  Can be positive if there is padding.  Can be negative if the data extends into the border region.
-         int mLayerTop; // The top edge of valid image data in the local activity buffer.  Can be positive if there is padding.  Can be negative if the data extends into the border region.
-         int mInputLeft; // The x-coordinate in image coordinates corresponding to a value of dataLeft in layer coordinates.
-         int mInputTop; // The y-coordinate in image coordinates corresponding to a value of dataTop in layer coordinates.
-         int mInputWidth; // The width of valid image data in local activity buffer.
-         int mInputHeight; // The height of valid image data in the local activity buffer.
-
-         
-         float mPadValue;
          bool mUseInputBCflag;
-
-         std::string mInputPath;
-
-         PV_Stream *mTimestampFile;
-
+         // Whether to normalize the input as specified by normalizeStdDev
+         bool mNormalizeLuminanceFlag;
+         // if true and normalizeLuminanceFlag == true, normalize the standard deviation to 1 and mean = 0
+         // if false and normalizeLuminanceFlag == true, nomalize max = 1, min = 0
+         bool mNormalizeStdDev;
+         // The constraint method codes are 0=ignore, 1=mirror boundary conditions, 2=thresholding, 3=circular boundary conditions
+         // offsets array points to [offsetX, offsetY]
+         int mOffsetX;
+         int mOffsetY;
       private:
+         // MPI datatypes for boundary exchange
+         MPI_Datatype * mDatatypes;
+// The left edge of valid image data in the local activity buffer.  Can be positive if there is padding.  Can be negative if the data extends into the border region.i
+         int mLayerLeft; 
+         // The top edge of valid image data in the local activity buffer.  Can be positive if there is padding.  Can be negative if the data extends into the border region.
+         int mLayerTop;
+         // The x-coordinate in image coordinates corresponding to a value of dataLeft in layer coordinates.
+         int mInputLeft;
+         // The y-coordinate in image coordinates corresponding to a value of dataTop in layer coordinates.
+         int mInputTop;
+         // The width of valid image data in local activity buffer.
+         int mInputWidth;
+          // The height of valid image data in the local activity buffer.
+         int mInputHeight;
+         float mPadValue;
+         std::string mInputPath;
+         PV_Stream *mTimestampFile;
          double mDisplayPeriod;   // length of time a frame is displayed
-
-         bool mEchoFramePathnameFlag; // if true, echo the frame pathname to output stream
+         // Automatically set if the inputPath ends in .txt. Determines whether this layer represents a collection of files.
+         bool mUsingFileList; 
+         // if true, echo the frame pathname to output stream
+         bool mEchoFramePathnameFlag;          
+         // When reaching the end of the file list, do we reset to 0 or to start_index?
          bool mResetToStartOnLoop;
-
+         bool mWriteFileToTimestamp;
          std::vector<int> mStartFrameIndex;
          std::vector<int> mSkipFrameIndex; //TODO: This doesn't appear to be included in the file index calculation
-
-         int mNumFiles; //Number of frames
+         // Index of each batch's file path inside the list of files
+         std::vector<int> mFileIndices;
          std::vector<std::string> mFileList;
          BatchMethod mBatchMethod;
-
-         std::vector<int> mFileIndices; // Index inside the list of files that each batch is at
-
-         bool mWriteFileToTimestamp;
-
-         bool mUsingFileList; //Automatically set if the inputPath ends in .txt 
-
    }; // class BaseInput
 }  // namespace PV
 

@@ -44,43 +44,23 @@ namespace PV {
    //Image readImage reads the same thing to every batch
    //This call is here since this is the entry point called from allocate
    //Movie overwrites this function to define how it wants to load into batches
-   int Image::retrieveData(double timef, double dt, int batchIndex)
+   Buffer Image::retrieveData(std::string filename)
    {
-      readImage(mInputPath);
-      mInputData.resize(mImage->getHeight(), mImage->getWidth(), getLayerLoc()->nf);
-      mInputData.set(mImage->serialize(getLayerLoc()->nf));
-      return PV_SUCCESS;
-   }
-
-   double Image::getDeltaUpdateTime(){
-         return -1; //Never update
+      readImage(filename);
+      Buffer result(mImage->getHeight(), mImage->getWidth(), getLayerLoc()->nf);
+      result.set(mImage->serialize(getLayerLoc()->nf));
+      result.rescale(getLayerLoc()->ny, getLayerLoc()->nx, mRescaleMethod, mInterpolationMethod);
+      return result;
    }
 
    int Image::communicateInitInfo() {
       int status = BaseInput::communicateInitInfo();
-      int fileType = getFileType(mInputPath.c_str());
-      if(fileType == PVP_FILE_TYPE){
-         pvError() << "Image/Movie no longer reads PVP files. Use ImagePvp/MoviePvp layer instead.\n";
-      }
       return status;
-   }
-
-   /**
-    * update the image buffers
-    */
-   int Image::updateState(double time, double dt)
-   {
-      return 0;
-   }
-
-   void Image::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
-      //Default to -1 in Image
-      parent->ioParamValue(ioFlag, name, "writeStep", &writeStep, -1.0);
    }
 
    void Image::readImage(std::string filename)
    {
-      assert(parent->columnId()==0); // readImage is called by retrieveData, which only the root process calls.  BaseInput::scatterInput does the scattering.
+      pvAssert(parent->columnId() == 0); // readImage is called by retrieveData, which only the root process calls.
       const PVLayerLoc *loc = getLayerLoc();
       bool usingTempFile = false;
 
@@ -227,9 +207,4 @@ namespace PV {
       return PV_SUCCESS;
    }
 */
-
-   BaseObject * createImage(char const * name, HyPerCol * hc) {
-      return hc ? new Image(name, hc) : NULL;
-   }
-
 } // namespace PV

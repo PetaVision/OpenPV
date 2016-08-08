@@ -48,21 +48,138 @@ namespace PV {
       return result;
    }
 
+   // Resizing a Buffer will clear its contents. Use rescale or crop to preserve values.
    void Buffer::resize(int rows, int columns, int features) {
       mData.resize(rows);
       for(auto& row : mData) {
          row.resize(columns);
          for(auto& column : row) {
+            column.clear();
             column.resize(features, 0.0f);
          }
       }
+   }
+
+   //Offsets based on an anchor point, so calculate offsets based off a given anchor point
+   int Buffer::getOffsetX(enum OffsetAnchor offsetAnchor, int offsetX, int newWidth) {
+      switch(offsetAnchor) {
+         case NORTHWEST:
+         case WEST:
+         case SOUTHWEST:
+            return offsetX;
+         case NORTH:
+         case CENTER:
+         case SOUTH:
+            return getColumns()/2 - newWidth/2 + offsetX;
+         case NORTHEAST:
+         case EAST:
+         case SOUTHEAST:
+            return offsetX + getColumns() - newWidth;
+      }
+      return 0;
+   }
+
+   int Buffer::getOffsetY(enum OffsetAnchor offsetAnchor, int offsetY, int newHeight) {
+      switch(offsetAnchor) {
+         case NORTHWEST:
+         case NORTH:
+         case NORTHEAST:
+            return offsetY;
+         case WEST:
+         case CENTER:
+         case EAST:
+            return getRows()/2 - newHeight/2 + offsetY;
+         case SOUTHWEST:
+         case SOUTH:
+         case SOUTHEAST:
+         return offsetY + getRows() - newHeight;
+      }
+      return 0;
+   }
+
+   //TODO: Some of these methods could be moved to a BufferManipulaton class
+   bool Buffer::constrainPoint(int &x, int &y, int minX, int maxX, int minY, int maxY, enum PointConstraintMethod method) {
+      bool moved_x = x < minX || y > maxX;
+      bool moved_y = y < minY || y > maxY;
+      if (moved_x) {
+         pvAssert(minX <= maxX);
+         int sizeX = maxX-minX;
+         int newX = x; 
+         switch (method) {
+            case MIRROR:
+               newX -= minX;
+               newX %= (2 * (sizeX + 1));
+               if (newX < 0) ++newX;
+               newX = abs(newX);
+               if (newX > sizeX) newX = 2*sizeX + 1 - newX;
+               newX += minX;
+               break;
+            case CLAMP:
+               if (newX < minX) newX = minX;
+               if (newX > maxX) newX = maxX;
+               break;
+            case WRAP:
+               newX -= minX;
+               newX %= sizeX + 1;
+               if (newX < 0) newX += sizeX + 1;
+               newX += minX;
+               break;
+         }
+         pvAssert(newX >= minX && newX <= maxX);
+         x = newX;
+      }
+      if (moved_y) {
+         pvAssert(minY <= maxY);
+         int sizeY = maxY - minY;
+         int newY = y;
+         switch (method) {
+         case MIRROR:
+            newY -= minY;
+            newY %= (2 * (sizeY + 1));
+            if (newY < 0) ++newY;
+            newY = abs(newY);
+            if (newY > sizeY) newY = 2*sizeY + 1 - newY;
+            newY += minY;
+            break;
+         case CLAMP:
+            if (newY < minY) newY = minY;
+            if (newY > maxY) newY = maxY;
+            break;
+         case WRAP:
+            newY -= minY;
+            newY %= sizeY + 1;
+            if (newY < 0) newY += sizeY + 1;
+            newY += minY;
+            break;
+         }
+         pvAssert(newY >= minY && newY <= maxY);
+         y = newY;
+      }
+      return moved_x || moved_y;
+   }
+
+   void Buffer::crop(int targetRows, int targetColumns, enum OffsetAnchor offsetAnchor, int offsetX, int offsetY) {
+      offsetX = getOffsetX(offsetAnchor, offsetX, targetColumns);
+      offsetY = getOffsetY(offsetAnchor, offsetY, targetRows);
+      Buffer cropped(targetRows, targetColumns, getFeatures());
+      for(int r = 0; r < targetRows; ++r) {
+         for(int c = 0; c < targetColumns; ++c) {
+            for(int f = 0; f < getFeatures(); ++f) {
+               int x = c + offsetX, y = r + offsetY;
+               constrainPoint(x, y, 0, getColumns(), 0, getRows(), CLAMP);
+               cropped.set(r, c, f, get(y, x, f));
+            }
+         }
+      }
+      set(cropped.asVector());
    }
 
    void Buffer::rescale(int targetRows, int targetColumns, enum RescaleMethod rescaleMethod, enum InterpolationMethod interpMethod) {
       float xRatio = static_cast<float>(targetColumns) / getColumns();
       float yRatio = static_cast<float>(targetRows) / getRows();
 
-      int resizedRows, resizedColumns;
+      int resizedRows = targetRows;
+      int resizedColumns = targetColumns;
       float resizeFactor = 1.0f;
 
       if (rescaleMethod == CROP) {
@@ -79,21 +196,16 @@ namespace PV {
          resizedColumns = (int) nearbyintf(resizeFactor * getColumns()); 
          resizedRows = (int) nearbyintf(resizeFactor * getRows());
       }
-      else {
-         throw;
-      }
+
       std::vector<float> rawInput = asVector();
       std::vector<float> scaledInput(rawInput.size());
       switch(interpMethod) {
-      case BICUBIC:
-         bicubicInterp(&rawInput[0], getColumns(), getRows(), getFeatures(), getFeatures(), getFeatures() * getColumns(), 1, &scaledInput[0], resizedColumns, resizedRows);
-         break;
-      case NEAREST:
-         nearestNeighborInterp(&rawInput[0], getColumns(), getRows(), getFeatures(), getFeatures(), getFeatures() * getColumns(), 1, &scaledInput[0], resizedColumns, resizedRows);
-         break;
-      default:
-         throw;
-         break;
+         case BICUBIC:
+            bicubicInterp(&rawInput[0], getColumns(), getRows(), getFeatures(), getFeatures(), getFeatures() * getColumns(), 1, &scaledInput[0], resizedColumns, resizedRows);
+            break;
+         case NEAREST:
+            nearestNeighborInterp(&rawInput[0], getColumns(), getRows(), getFeatures(), getFeatures(), getFeatures() * getColumns(), 1, &scaledInput[0], resizedColumns, resizedRows);
+            break;
       }
       resize(resizedRows, resizedColumns, getFeatures());
       set(scaledInput);
@@ -180,6 +292,4 @@ namespace PV {
          }
       }
    }
-
-
 }

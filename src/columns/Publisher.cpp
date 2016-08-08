@@ -114,7 +114,7 @@ int Publisher::publish(double currentTime, double lastUpdateTime,
       //Only need to exchange borders if layer was updated this timestep
       memcpy(recvBuf, sendBuf, dataSize);
       exchangeBorders(&cube->loc, 0);
-      store->setLastUpdateTime(LOCAL/*bufferId*/, lastUpdateTime);
+      store->setLastUpdateTime(Communicator::LOCAL/*bufferId*/, lastUpdateTime);
 
       //Updating active indices is done after MPI wait in HyPerCol
       //to avoid race condition because exchangeBorders mpi is async
@@ -122,8 +122,8 @@ int Publisher::publish(double currentTime, double lastUpdateTime,
    else if (store->numberOfLevels()>1){
       // If there are delays, copy last level's data to this level.
       // TODO: we could use pointer indirection to cut down on the number of memcpy calls required, if this turns out to be an expensive step
-      memcpy(recvBuf, recvBuffer(LOCAL/*bufferId*/,1), dataSize);
-      store->setLastUpdateTime(LOCAL/*bufferId*/, lastUpdateTime);
+      memcpy(recvBuf, recvBuffer(Communicator::LOCAL/*bufferId*/,1), dataSize);
+      store->setLastUpdateTime(Communicator::LOCAL/*bufferId*/, lastUpdateTime);
    }
 
    return PV_SUCCESS;

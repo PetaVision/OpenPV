@@ -553,7 +553,7 @@ int TransposePoolingConn::deliverPresynapticPerspective(PVLayerCube const * acti
       int delay = getDelay(arborID);
 
       //TODO this is currently a hack, need to properly implement data types.
-      postIdxData = (int*) store->buffer(LOCAL, delay);
+      postIdxData = (int*) store->buffer(Communicator::LOCAL, delay);
    }
 
    for(int b = 0; b < parent->getNBatch(); b++){

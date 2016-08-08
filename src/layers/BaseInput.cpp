@@ -14,24 +14,19 @@ namespace PV {
 
    BaseInput::~BaseInput() {
       Communicator::freeDatatypes(mDatatypes);
-      free(mAspectRatioAdjustment);
-      if(mOffsetAnchor){
-         free(mOffsetAnchor);
-      }
    }
 
    int BaseInput::initialize_base() {
       mDatatypes = nullptr;
       mUseInputBCflag = false;
       mAutoResizeFlag = false;
-      mAspectRatioAdjustment = nullptr;
       mInterpolationMethod = Buffer::BICUBIC;
       mInverseFlag = false;
       mNormalizeLuminanceFlag = false;
       mNormalizeStdDev = true;
-      mOffsets[0] = 0;
-      mOffsets[1] = 0;
-      mOffsetAnchor = nullptr;
+      mOffsetX = 0;
+      mOffsetY = 0;
+      mOffsetAnchor = Buffer::CENTER;
       mPadValue = 0;
       mEchoFramePathnameFlag = false;
       mDisplayPeriod = 1;
@@ -84,7 +79,7 @@ namespace PV {
       ioParam_inverseFlag(ioFlag);
       ioParam_normalizeLuminanceFlag(ioFlag);
       ioParam_normalizeStdDev(ioFlag);
-      ioParam_offsetConstraintMethod(ioFlag);
+      //ioParam_offsetConstraintMethod(ioFlag); //TODO: Reimplement this
       ioParam_useInputBCflag(ioFlag);
       ioParam_padValue(ioFlag);
       ioParam_displayPeriod(ioFlag);
@@ -152,23 +147,92 @@ namespace PV {
    }
 
    int BaseInput::ioParam_offsets(enum ParamsIOFlag ioFlag) {
-      parent->ioParamValue(ioFlag, name, "offsetX", &mOffsets[0], mOffsets[0]);
-      parent->ioParamValue(ioFlag, name, "offsetY", &mOffsets[1], mOffsets[1]);
+      parent->ioParamValue(ioFlag, name, "offsetX", &mOffsetX, mOffsetX);
+      parent->ioParamValue(ioFlag, name, "offsetY", &mOffsetY, mOffsetY);
 
       return PV_SUCCESS;
    }
 
    void BaseInput::ioParam_offsetAnchor(enum ParamsIOFlag ioFlag){
-      parent->ioParamString(ioFlag, name, "offsetAnchor", &mOffsetAnchor, "tl");
       if (ioFlag==PARAMS_IO_READ) {
-         int status = checkValidAnchorString();
-         if (status != PV_SUCCESS) {
+         char *offsetAnchor = nullptr;
+         parent->ioParamString(ioFlag, name, "offsetAnchor", &offsetAnchor, "tl");
+         if(strcmp(offsetAnchor, "tl") == 0) {
+            mOffsetAnchor = Buffer::NORTHWEST;
+         }
+         else if(strcmp(offsetAnchor, "tc") == 0) {
+            mOffsetAnchor = Buffer::NORTH;
+         }
+         else if(strcmp(offsetAnchor, "tr") == 0) {
+            mOffsetAnchor = Buffer::NORTHEAST;
+         }
+         else if(strcmp(offsetAnchor, "cl") == 0) {
+            mOffsetAnchor = Buffer::WEST;
+         }
+         else if(strcmp(offsetAnchor, "cc") == 0) {
+            mOffsetAnchor = Buffer::CENTER;
+         }
+         else if(strcmp(offsetAnchor, "cr") == 0) {
+            mOffsetAnchor = Buffer::EAST;
+         }
+         else if(strcmp(offsetAnchor, "bl") == 0) { 
+            mOffsetAnchor = Buffer::SOUTHWEST;
+         }
+         else if(strcmp(offsetAnchor, "bc") == 0) {
+            mOffsetAnchor = Buffer::SOUTH;
+         }
+         else if(strcmp(offsetAnchor, "br") == 0) {
+            mOffsetAnchor = Buffer::SOUTHEAST;
+         }
+         else {
             if (parent->columnId()==0) {
                pvErrorNoExit().printf("%s: offsetAnchor must be a two-letter string.  The first character must be \"t\", \"c\", or \"b\" (for top, center or bottom); and the second character must be \"l\", \"c\", or \"r\" (for left, center or right).\n", getDescription_c());
             }
             MPI_Barrier(parent->getCommunicator()->communicator());
             exit(EXIT_FAILURE);
          }
+         free(offsetAnchor);
+      }
+      else { //Writing
+         //The opposite of above. Find a better way to do this that isn't so gross
+         char *offsetAnchor = (char*)calloc(3, sizeof(char));
+         offsetAnchor[2] = '\0';
+         switch(mOffsetAnchor) {
+            case Buffer::NORTH:
+            case Buffer::NORTHWEST:
+            case Buffer::NORTHEAST:
+               offsetAnchor[0] = 't';
+               break;
+            case Buffer::WEST:
+            case Buffer::CENTER:
+            case Buffer::EAST:
+               offsetAnchor[0] = 'c';
+               break;
+            case Buffer::SOUTHWEST:
+            case Buffer::SOUTH:
+            case Buffer::SOUTHEAST:
+               offsetAnchor[0] = 'b';
+               break;
+         }
+         switch(mOffsetAnchor) {
+            case Buffer::NORTH:
+            case Buffer::CENTER:
+            case Buffer::SOUTH:
+               offsetAnchor[1] = 'c';
+               break;
+            case Buffer::EAST:
+            case Buffer::NORTHEAST:
+            case Buffer::SOUTHEAST:
+               offsetAnchor[1] = 'l';
+               break;
+            case Buffer::WEST:
+            case Buffer::NORTHWEST:
+            case Buffer::SOUTHWEST:
+               offsetAnchor[1] = 'r';
+               break;
+         }
+         parent->ioParamString(ioFlag, name, "offsetAnchor", &offsetAnchor, "tl");
+         free(offsetAnchor);
       }
    }
 
@@ -179,13 +243,19 @@ namespace PV {
    void BaseInput::ioParam_aspectRatioAdjustment(enum ParamsIOFlag ioFlag) {
       assert(!parent->parameters()->presentAndNotBeenRead(name, "autoResizeFlag"));
       if (mAutoResizeFlag) {
-         parent->ioParamString(ioFlag, name, "aspectRatioAdjustment", &mAspectRatioAdjustment, "crop"/*default*/);
+         char *aspectRatioAdjustment;
+         parent->ioParamString(ioFlag, name, "aspectRatioAdjustment", &aspectRatioAdjustment, "crop"/*default*/);
          if (ioFlag == PARAMS_IO_READ) {
-            // Check if the input path ends in ".txt" and enable the file list if so
-            assert(mAspectRatioAdjustment);
-            for (char * c = mAspectRatioAdjustment; *c; c++) { *c = tolower(*c); }
+            assert(aspectRatioAdjustment);
+            for (char * c = aspectRatioAdjustment; *c; c++) { *c = tolower(*c); }
          }
-         if (strcmp(mAspectRatioAdjustment, "crop") && strcmp(mAspectRatioAdjustment, "pad")) {
+         if(strcmp(aspectRatioAdjustment, "crop") == 0) {
+            mRescaleMethod = Buffer::CROP;
+         }
+         else if(strcmp(aspectRatioAdjustment, "pad") == 0) {
+            mRescaleMethod = Buffer::PAD;
+         }
+         else {
             if (parent->columnId()==0) {
                pvErrorNoExit().printf("%s: aspectRatioAdjustment must be either \"crop\" or \"pad\".\n",
                      getDescription_c());
@@ -193,6 +263,7 @@ namespace PV {
             MPI_Barrier(parent->getCommunicator()->communicator());
             exit(EXIT_FAILURE);
          }
+         free(aspectRatioAdjustment);
       }
    }
 
@@ -254,16 +325,16 @@ namespace PV {
    void BaseInput::ioParam_padValue(enum ParamsIOFlag ioFlag) {
       parent->ioParamValue(ioFlag, name, "padValue", &mPadValue, mPadValue);
    }
-
-   void BaseInput::ioParam_offsetConstraintMethod(enum ParamsIOFlag ioFlag) {
-   //   assert(!parent->parameters()->presentAndNotBeenRead(name, "jitterFlag"));
-   //   if (mJitterFlag) {
-         parent->ioParamValue(ioFlag, name, "offsetConstraintMethod", &mOffsetConstraintMethod, 0/*default*/);
-         if (ioFlag == PARAMS_IO_READ && (mOffsetConstraintMethod <0 || mOffsetConstraintMethod >3) ) {
-            pvError().printf("%s: offsetConstraintMethod allowed values are 0 (ignore), 1 (mirror BC), 2 (threshold), 3 (circular BC)\n", getDescription_c());
-         }
-   //   }
-   }
+   
+//   void BaseInput::ioParam_offsetConstraintMethod(enum ParamsIOFlag ioFlag) {
+//   //   assert(!parent->parameters()->presentAndNotBeenRead(name, "jitterFlag"));
+//   //   if (mJitterFlag) {
+//         parent->ioParamValue(ioFlag, name, "offsetConstraintMethod", &mOffsetConstraintMethod, 0/*default*/);
+//         if (ioFlag == PARAMS_IO_READ && (mOffsetConstraintMethod <0 || mOffsetConstraintMethod >3) ) {
+//            pvError().printf("%s: offsetConstraintMethod allowed values are 0 (ignore), 1 (mirror BC), 2 (threshold), 3 (circular BC)\n", getDescription_c());
+//         }
+//   //   }
+//   }
 
    void BaseInput::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
       assert(this->initVObject == NULL);
@@ -276,24 +347,6 @@ namespace PV {
          triggerFlag = false;
          parent->parameters()->handleUnnecessaryStringParameter(name, "triggerLayerName", NULL/*correct value*/);
       }
-   }
-
-   int BaseInput::checkValidAnchorString() {
-      int status = PV_SUCCESS;
-      if (mOffsetAnchor==NULL || strlen(mOffsetAnchor) != (size_t) 2) {
-         status = PV_FAILURE;
-      }
-      else {
-         char xOffsetAnchor = mOffsetAnchor[1];
-         if (xOffsetAnchor != 'l' && xOffsetAnchor != 'c' && xOffsetAnchor != 'r') {
-            status = PV_FAILURE;
-         }
-         char yOffsetAnchor = mOffsetAnchor[0];
-         if (yOffsetAnchor != 't' && yOffsetAnchor != 'c' && yOffsetAnchor != 'b') {
-            status = PV_FAILURE;
-         }
-      }
-      return status;
    }
 
    void BaseInput::ioParam_displayPeriod(enum ParamsIOFlag ioFlag) {
@@ -434,7 +487,10 @@ namespace PV {
       }
 
       int status = HyPerLayer::allocateDataStructures();
-      mInputData.resize(getLayerLoc()->ny, getLayerLoc()->nx, getLayerLoc()->nf);
+      mInputData.resize(numBatch);
+      for(int b = 0; b < numBatch; ++b) {
+         mInputData.at(b).resize(getLayerLoc()->ny, getLayerLoc()->nx, getLayerLoc()->nf);
+      }
       nextInput(parent->simulationTime(), parent->getDeltaTimeBase());
       // create mpi_datatypes for border transfer
       mDatatypes = Communicator::newDatatypes(getLayerLoc());
@@ -493,11 +549,10 @@ namespace PV {
       return PV_SUCCESS;
    }
 
-   //This function is only being called here from allocate. Subclasses will call this function when a new frame is nessessary
    void BaseInput::nextInput(double timef, double dt) {
       for(int b = 0; b < parent->getNBatch(); b++) {
          if (parent->columnId() == 0) {
-            retrieveData(timef, dt, b);
+            mInputData.at(b) = retrieveData(getNextFilename(mSkipFrameIndex.at(b), b));
          }
          scatterInput(b);
       }
@@ -509,42 +564,87 @@ namespace PV {
       const int rootProc = 0;
       MPI_Comm mpiComm = parent->getCommunicator()->communicator();
       pvadata_t *activityBuffer = getActivity() + batchIndex * getNumExtended();
+      const PVLayerLoc *loc = getLayerLoc();
+      const PVHalo *halo = &loc->halo;
+      const int numFeatures = loc->nf;
+      int activityWidth = loc->nx + (mUseInputBCflag ? halo->lt + halo->rt : 0);
+      int activityHeight = loc->ny + (mUseInputBCflag ? halo->up + halo->dn : 0);
+      int numElements = activityHeight * activityWidth * numFeatures;
 
+      // Defining this outside of the loop lets it contain the correct
+      // data for the root process at the end
+      Buffer croppedBuffer;
+      
       if (rank == rootProc) {
-         const PVLayerLoc *loc = getLayerLoc();
-         const PVHalo *halo = &loc->halo;
-         const int numXExtended = loc->nx + halo->lt + halo->rt;
-         const int numYExtended = loc->ny + halo->dn + halo->up;
-         const int numFeatures = loc->nf;
 
-         resizeInput();
+         // Loop through each rank, ending on the root process.
+         // Uses Buffer.crop and MPI_Send to give each process the correct slice
+         // of input data. Once a process has the data, it slices it up row by row
+         // as is needed by mUseInputBCflag
+         for (int rank = parent->getCommunicator()->commSize()-1; rank >= 0; --rank) {
+            
+            // Copy the input data to a temporary buffer. This gets cropped to the layer size below.
+            croppedBuffer = mInputData.at(batchIndex);
+            int cropLeft = columnFromRank(rank, icComm->nummCommRows(), icComm->numComColumns()) * loc->nx;
+            int cropTop = rowFromRank(rank, icComm->numCommRows(), icComm->numComColumns()) * loc->ny;
 
-         int dims[2] = { mInputData.getColumns(), mInputData.getRows() };
-         std::vector<float> rawInput = mInputData.asVector();
+            // If we're sending the extended region as well, shift our origin by the appropriate amount
+            // TODO: This is going to give negative indices for some slices. What's the correct approach here?
+            // E: Pretty sure this resolves itself, making this unneccessary. Uncomment and investigate further if not.
+            // if(mUseInputBCflag) {
+            //    cropLeft -= halo->lt;
+            //    cropTop -= halo->up;
+            // }
 
-         MPI_Bcast(dims, 2, MPI_INT, rootProc, mpiComm);
-         
-         for (int rank = 0; rank < parent->getCommunicator()->commSize(); ++rank) {
-            if (rank == rootProc) {  // Do root process last so that we don't clobber root process data by using the data buffer to send.
-               continue;
+            // Crop the input data to the size of one process.
+            // Assumes rank 0 will have the top left portion
+            // and increments left to right, top to bottom.
+            croppedBuffer.crop(activityHeight, activityWidth, Buffer::NORTHWEST, cropLeft, cropTop);
+            
+            // If this isn't the root process, ship it off to the appropriate process.
+            if(rank != rootProc) {
+               MPI_Send(&croppedBuffer.asVector()[0], numElements, MPI_FLOAT, rank, 31, mpiComm);
             }
-            for (int n = 0; n < getNumExtended(); ++n) {
-               activityBuffer[n] = mPadValue;
-            }
-            int layerLeft, layerTop, inputLeft, inputTop, width, height;
-            int status = calcLocalBox(rank, layerLeft, layerTop, inputLeft, inputTop, width, height);
-            if (status == PV_SUCCESS) {
-               pvAssert(width > 0 && height > 0);
-               for (int y = 0; y < height; ++y) {
-                  int inputIdx = kIndex(inputLeft, inputTop + y, 0, mInputData.getColumns(), mInputData.getRows(), numFeatures);
-                  int layerIdx = kIndex(layerLeft, layerTop + y, 0, numXExtended, numYExtended, numFeatures);
-                  memcpy(&activityBuffer[layerIdx], &rawInput[inputIdx], sizeof(pvadata_t) * width * numFeatures);
+         }
+      }
+      else {
+
+         // Create a temporary array to receive from MPI, move the values into
+         // a vector, and then create a Buffer out of that vector. A little
+         // redundant, but it works. This could be done with a for loop and
+         // some indexing math, but it's safer to let Buffer handle this
+         // internally.
+         float *tempBuffer[numElements];
+         MPI_Recv(&tempBuffer, numElements, MPI_FLOAT, rootProc, 31, mpiComm, MPI_STATUS_IGNORE);
+         std::vector<float> bufferData(numElements);
+         for(int i = 0; i < numElements; ++i) {
+            bufferData.at(i) = tempBuffer[i];
+         }
+         croppedBuffer.resize(acivityHeight, activityWidth, numFeatures);
+         croppedBuffer.set(bufferData);
+      }
+      
+      // At this point, croppedBuffer has the correct data for this
+      // process, regardless of if we are root or not. Clear the current
+      // activity buffer, then copy the input data over row by row.
+      for (int n = 0; n < getNumExtended(); ++n) {
+         activityBuffer[n] = mPadValue;
+      }
+
+
+      //TODO: Actually copy croppedBuffer into activity
+
+
+      return PV_SUCCESS;
+   }
+/*            else {
+               for (int n = 0; n < getNumExtended(); n++) {
+                  activityBuffer[n] = mPadValue;
                }
+               
+               int layerIdx = kIndex(mUseInputBCflag ? 0 : halo->lt, mUseInputBCflag ? 0 : halo->up, 0, numXExtended, numYExtended, numFeatures);
+               memcpy(&activityBuffer[
             }
-            else {
-               pvAssert(width == 0 || height == 0);
-            }
-            MPI_Send(activityBuffer, getNumExtended(), MPI_FLOAT, rank, 31, mpiComm);
          }
          // Finally, do root process.
          for (int n = 0; n < getNumExtended(); n++) {
@@ -554,9 +654,9 @@ namespace PV {
          if (status == PV_SUCCESS) {
             pvAssert(mInputWidth > 0 && mInputHeight > 0);
             for(int y = 0; y < mInputHeight; ++y) {
-               int inputIdx = kIndex(mInputLeft, mInputTop + y, 0, mInputData.getColumns(), mInputData.getRows(), numFeatures);
+               int inputIdx = kIndex(mInputLeft, mInputTop + y, 0, inputWidth, inputHeight, numFeatures);
                int layerIdx = kIndex(mLayerLeft, mLayerTop + y, 0, numXExtended, numYExtended, numFeatures);
-               assert(inputIdx >= 0 && inputIdx < mInputData.getColumns() * mInputData.getRows() * numFeatures);
+               assert(inputIdx >= 0 && inputIdx < inputWidth * inputHeight * numFeatures);
                assert(layerIdx >= 0 && layerIdx < getNumExtended());
                memcpy(&activityBuffer[layerIdx], &rawInput[inputIdx], sizeof(pvadata_t) * mInputWidth * numFeatures);
             }
@@ -564,48 +664,41 @@ namespace PV {
          else { assert(mInputWidth == 0 || mInputHeight == 0); }
       }
       else {
-         int dims[2];
-         MPI_Bcast(dims, 2, MPI_INT, rootProc, mpiComm);
+         //int dims[2];
+         //MPI_Bcast(dims, 2, MPI_INT, rootProc, mpiComm);
          MPI_Recv(activityBuffer, getNumExtended(), MPI_FLOAT, rootProc, 31, mpiComm, MPI_STATUS_IGNORE);
          calcLocalBox(rank, mLayerLeft, mLayerTop, mInputLeft, mInputTop, mInputWidth, mInputHeight);
-         mInputData.resize(dims[1], dims[0], getLayerLoc()->nf); 
+        // mInputData.resize(dims[1], dims[0], getLayerLoc()->nf); 
       }
+   
       return PV_SUCCESS;
    }
-
-   int BaseInput::resizeInput() {
+*/
+   void BaseInput::fitBufferToLayer(Buffer &buffer) {
       pvAssert(parent->columnId() == 0); // Should only be called by root process.
 
-      if (!mAutoResizeFlag) {
-         return PV_SUCCESS;
-      }
-      
       const PVLayerLoc *loc = getLayerLoc();
       const PVHalo *halo = &loc->halo;
       const int targetWidth = loc->nxGlobal + (mUseInputBCflag ? (halo->lt + halo->rt) : 0);
       const int targetHeight = loc->nyGlobal + (mUseInputBCflag ? (halo->dn + halo->up) : 0);
-
-      Buffer::RescaleMethod rescaleMethod = Buffer::CROP;
-      if(!strcmp(mAspectRatioAdjustment, "pad")) {
-         rescaleMethod = Buffer::PAD;
+ 
+      if(mAutoResizeFlag) {
+         buffer.rescale(targetHeight, targetWidth, mRescaleMethod, mInterpolationMethod); 
       }
-
-      mInputData.rescale(targetHeight, targetWidth, rescaleMethod, mInterpolationMethod);
-      
-      return PV_SUCCESS;
-   }
-
+      buffer.crop(targetHeight, targetWidth, mOffsetAnchor, mOffsetX, mOffsetY); 
+   }     
+/*
    int BaseInput::calcLocalBox(int rank, int &layerLeft, int &layerTop, int &inputLeft, int &inputTop, int &width, int &height) {
       Communicator *icComm = parent->getCommunicator();
       const PVLayerLoc *loc = getLayerLoc();
       const PVHalo *halo = &loc->halo;
       int column = columnFromRank(rank, icComm->numCommRows(), icComm->numCommColumns());
-      int boxInInputLeft = getOffsetX(mOffsetAnchor, mOffsets[0]) + column * getLayerLoc()->nx;
+      int boxInInputLeft = Buffer::getOffsetX(mOffsetAnchor, mOffsetX, getLayerLoc()->nx) + column * getLayerLoc()->nx;
       int boxInInputRight = boxInInputLeft + loc->nx;
       int boxInLayerLeft = halo->lt;
       int boxInLayerRight = boxInLayerLeft + loc->nx;
       int row = rowFromRank(rank, icComm->numCommRows(), icComm->numCommColumns());
-      int boxInInputTop = getOffsetY(mOffsetAnchor, mOffsets[1]) + row * getLayerLoc()->ny;
+      int boxInInputTop = Buffer::getOffsetY(mOffsetAnchor, mOffsetY, getLayerLoc()->ny) + row * getLayerLoc()->ny;
       int boxInInputBottom = boxInInputTop + loc->ny;
       int boxInLayerTop = halo->up;
       int boxInLayerBottom = boxInLayerTop + loc->ny;
@@ -623,8 +716,8 @@ namespace PV {
       }
 
       int status = PV_SUCCESS;
-      if (boxInInputLeft > mInputData.getColumns() || boxInInputRight < 0 ||
-          boxInInputTop > mInputData.getRows() || boxInInputBottom < 0 ||
+      if (boxInInputLeft > mInputData.at(batch).getColumns() || boxInInputRight < 0 ||
+          boxInInputTop > mInputData.at(batch).getRows() || boxInInputBottom < 0 ||
           boxInLayerLeft > loc->nx+halo->lt+halo->rt || boxInLayerRight < 0 ||
           boxInLayerTop > loc->ny+halo->dn+halo->up || boxInLayerBottom < 0) {
          width = 0;
@@ -643,8 +736,8 @@ namespace PV {
             boxInInputLeft += discrepancy;
          }
 
-         if (boxInInputRight > mInputData.getColumns()) {
-            int discrepancy = boxInInputRight - mInputData.getColumns();
+         if (boxInInputRight > mInputData.at(batch).getColumns()) {
+            int discrepancy = boxInInputRight - mInputData.at(batch).getColumns();
             boxInLayerRight -= discrepancy;
             boxInInputRight -= discrepancy;
          }
@@ -665,8 +758,8 @@ namespace PV {
             boxInInputTop += discrepancy;
          }
 
-         if (boxInInputBottom > mInputData.getRows()) {
-            int discrepancy = boxInInputBottom - mInputData.getRows();
+         if (boxInInputBottom > mInputData.at(batch).getRows()) {
+            int discrepancy = boxInInputBottom - mInputData.at(batch).getRows();
             boxInLayerBottom -= discrepancy;
             boxInInputBottom -= discrepancy;
          }
@@ -683,8 +776,8 @@ namespace PV {
          pvAssert(boxWidth == boxInLayerRight - boxInLayerLeft);
          pvAssert(boxHeight == boxInLayerBottom - boxInLayerTop);
          // coordinates can be outside of the imageLoc limits, as long as the box has zero area
-         pvAssert(boxInInputLeft >= 0 && boxInInputRight <= mInputData.getColumns());
-         pvAssert(boxInInputTop >= 0 && boxInInputBottom <= mInputData.getRows());
+         pvAssert(boxInInputLeft >= 0 && boxInInputRight <= mInputData.at(batch).getColumns());
+         pvAssert(boxInInputTop >= 0 && boxInInputBottom <= mInputData.at(batch).getRows());
          pvAssert(boxInLayerLeft >= 0 && boxInLayerRight <= loc->nx+halo->lt+halo->rt);
          pvAssert(boxInLayerTop >= 0 && boxInLayerBottom <= loc->ny+halo->dn+halo->up);
 
@@ -697,7 +790,7 @@ namespace PV {
       }
       return status;
    }
-
+*/
    //Apply normalizeLuminanceFlag, normalizeStdDev, and inverseFlag, which can be done pixel-by-pixel
    //after scattering.
    int BaseInput::postProcess(double timef, double dt){
@@ -774,134 +867,6 @@ namespace PV {
       return PV_SUCCESS;
    }
 
-
-   //Offsets based on an anchor point, so calculate offsets based off a given anchor point
-   //Note: imageLoc must be updated before calling this function
-   int BaseInput::getOffsetX(const char* offsetAnchor, int offsetX){
-      if(!strcmp(offsetAnchor, "tl") || !strcmp(offsetAnchor, "cl") || !strcmp(offsetAnchor, "bl")){
-         return offsetX;
-      }
-      //Offset in center
-      else if(!strcmp(offsetAnchor, "tc") || !strcmp(offsetAnchor, "cc") || !strcmp(offsetAnchor, "bc")){
-         int layerSizeX = getLayerLoc()->nxGlobal;
-         return ((mInputData.getColumns()/2)-(layerSizeX/2)) + offsetX;
-      }
-      //Offset on bottom
-      else if(!strcmp(offsetAnchor, "tr") || !strcmp(offsetAnchor, "cr") || !strcmp(offsetAnchor, "br")){
-         int layerSizeX = getLayerLoc()->nxGlobal;
-         return (mInputData.getColumns() - layerSizeX) + offsetX;
-      }
-      assert(0); // All possible cases should be covered above
-      return -1; // Eliminates no-return warning
-   }
-
-   int BaseInput::getOffsetY(const char* offsetAnchor, int offsetY){
-      //Offset on top
-      if(!strcmp(offsetAnchor, "tl") || !strcmp(offsetAnchor, "tc") || !strcmp(offsetAnchor, "tr")){
-         return offsetY;
-      }
-      //Offset in center
-      else if(!strcmp(offsetAnchor, "cl") || !strcmp(offsetAnchor, "cc") || !strcmp(offsetAnchor, "cr")){
-         int layerSizeY = getLayerLoc()->nyGlobal;
-         return ((mInputData.getRows()/2)-(layerSizeY/2)) + offsetY;
-      }
-      //Offset on bottom
-      else if(!strcmp(offsetAnchor, "bl") || !strcmp(offsetAnchor, "bc") || !strcmp(offsetAnchor, "br")){
-         int layerSizeY = getLayerLoc()->nyGlobal;
-         return (mInputData.getRows()-layerSizeY) + offsetY;
-      }
-      assert(0); // All possible cases should be covered above
-      return -1; // Eliminates no-return warning
-   }
-
-
-   bool BaseInput::constrainPoint(int * point, int min_x, int max_x, int min_y, int max_y, int method) {
-      bool moved_x = point[0] < min_x || point[0] > max_x;
-      bool moved_y = point[1] < min_y || point[1] > max_y;
-      if (moved_x) {
-         if (min_x > max_x) {
-            pvError().printf("Image::constrainPoint error.  min_x=%d is greater than max_x= %d\n", min_x, max_x);
-         }
-         int size_x = max_x-min_x;
-         int new_x = point[0];
-         switch (method) {
-         case 0: // Ignore
-            break;
-         case 1: // Mirror
-            new_x -= min_x;
-            new_x %= (2*(size_x+1));
-            if (new_x<0) new_x++;
-            new_x = abs(new_x);
-            if (new_x>size_x) new_x = 2*size_x+1-new_x;
-            new_x += min_x;
-            break;
-         case 2: // Stick to wall
-            if (new_x<min_x) new_x = min_x;
-            if (new_x>max_x) new_x = max_x;
-            break;
-         case 3: // Circular
-            new_x -= min_x;
-            new_x %= size_x+1;
-            if (new_x<0) new_x += size_x+1;
-            new_x += min_x;
-            break;
-         default:
-            pvAssertMessage(0, "Method type \"%d\" not understood\n", method);
-            break;
-         }
-         assert(new_x >= min_x && new_x <= max_x);
-         point[0] = new_x;
-      }
-      if (moved_y) {
-         if (min_y > max_y) {
-            pvError().printf("Image::constrainPoint error.  min_y=%d is greater than max_y=%d\n", min_y, max_y);
-         }
-         int size_y = max_y-min_y;
-         int new_y = point[1];
-         switch (method) {
-         case 0: // Ignore
-            break;
-         case 1: // Mirror
-            new_y -= min_y;
-            new_y %= (2*(size_y+1));
-            if (new_y<0) new_y++;
-            new_y = abs(new_y);
-            if (new_y>size_y) new_y = 2*size_y+1-new_y;
-            new_y += min_y;
-            break;
-         case 2: // Stick to wall
-            if (new_y<min_y) new_y = min_y;
-            if (new_y>max_y) new_y = max_y;
-            break;
-         case 3: // Circular
-            new_y -= min_y;
-            new_y %= size_y+1;
-            if (new_y<0) new_y += size_y+1;
-            new_y += min_y;
-            break;
-         default:
-            assert(0);
-            break;
-         }
-         assert(new_y >= min_y && new_y <= max_y);
-         point[1] = new_y;
-      }
-      return moved_x || moved_y;
-   }
-   bool BaseInput::constrainOffsets() {
-      int newOffsets[2];
-      int oldOffsetX = getOffsetX(mOffsetAnchor, mOffsets[0]);
-      int oldOffsetY = getOffsetY(mOffsetAnchor, mOffsets[1]);
-      newOffsets[0] = oldOffsetX; 
-      newOffsets[1] = oldOffsetY; 
-      bool status = constrainPoint(newOffsets, 0, mInputData.getColumns() - getLayerLoc()->nxGlobal, 0, mInputData.getRows() - getLayerLoc()->nyGlobal, mOffsetConstraintMethod);
-      int diffx = newOffsets[0] - oldOffsetX;
-      int diffy = newOffsets[1] - oldOffsetY;
-      mOffsets[0] = mOffsets[0] + diffx;
-      mOffsets[1] = mOffsets[1] + diffy;
-      return status;
-   }
-
    void BaseInput::exchange() {
       std::vector<MPI_Request> req{};
       for (int b=0; b<getLayerLoc()->nbatch; ++b) {
@@ -924,9 +889,7 @@ namespace PV {
       clayer->V = NULL;
       return PV_SUCCESS;
    }
-
-   int BaseInput::initializeV() {
-      assert(getV()==NULL);
+     assert(getV()==NULL);
       return PV_SUCCESS;
    }
 

@@ -34,7 +34,7 @@ namespace PV {
       Image();
       int initialize(const char * name, HyPerCol * hc);
       virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-      virtual int retrieveData(double timef, double dt, int batchIndex);
+      virtual Buffer retrieveData(std::string filename);
       virtual void readImage(std::string filename);
       virtual int postProcess(double timef, double dt);
 
@@ -82,9 +82,6 @@ namespace PV {
       std::unique_ptr<PVImg> mImage;
 
    }; // class Image
-
-   BaseObject * createImage(char const * name, HyPerCol * hc);
-
 }  // namespace PV
 
 #endif /* IMAGE_HPP_ */
