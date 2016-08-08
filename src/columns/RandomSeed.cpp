@@ -17,7 +17,7 @@ RandomSeed * RandomSeed::instance() {
 
 RandomSeed::RandomSeed() {
    if (sizeof(unsigned int) < (size_t) 4) {
-      pvError() << "Unsigned int must have a size of at least 4 bytes.";
+      pvError() << "Unsigned int must have a size of at least 4 bytes.\n";
    }
 }
 
@@ -30,7 +30,7 @@ void RandomSeed::initialize(unsigned int initialSeed) {
    mInitialized = true;
    mNextSeed = initialSeed;
    if (mInitialized) {
-      pvInfo() << "RandomSeed initialized to " << mNextSeed;
+      pvInfo() << "RandomSeed initialized to " << mNextSeed << ".\n";
    }
 }
 
