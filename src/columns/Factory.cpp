@@ -23,7 +23,7 @@
 #include <layers/HyPerLayer.hpp>
 #include <layers/HyPerLCALayer.hpp>
 #include <layers/ISTALayer.hpp>
-#include <layers/Image.hpp>
+#include <layers/ImageLayer.hpp>
 //#include <layers/ImagePvp.hpp>
 #include <layers/ImageFromMemoryBuffer.hpp>
 #include <layers/KmeansLayer.hpp>
@@ -120,7 +120,7 @@ int Factory::registerCoreKeywords() {
    registerKeyword("HyPerLayer", Factory::create<HyPerLayer>);
    registerKeyword("HyPerLCALayer", Factory::create<HyPerLCALayer>);
    registerKeyword("ISTALayer", Factory::create<ISTALayer>);
-   registerKeyword("Image", Factory::create<Image>);
+   registerKeyword("ImageLayer", Factory::create<ImageLayer>);
 //   registerKeyword("ImagePvp", Factory::create<ImagePvp>);
 //   registerKeyword("ImageFromMemoryBuffer", Factory::create<ImageFromMemoryBuffer>);
    registerKeyword("KmeansLayer", Factory::create<KmeansLayer>);

@@ -14,11 +14,11 @@
 #ifndef IMAGEFROMMEMORYBUFFER_HPP_
 #define IMAGEFROMMEMORYBUFFER_HPP_
 
-#include "Image.hpp"
+#include "ImageLayer.hpp"
 
 namespace PV {
 
-   class ImageFromMemoryBuffer : public Image {
+   class ImageFromMemoryBuffer : public ImageLayer {
 
       public:
          ImageFromMemoryBuffer(char const * name, HyPerCol * hc);

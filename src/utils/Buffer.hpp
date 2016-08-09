@@ -52,8 +52,8 @@ namespace PV {
          int getColumns() { return mData.at(0).size(); }
          int getFeatures() { return mData.at(0).at(0).size(); }
         
-         static int getOffsetX(enum OffsetAnchor offsetAnchor, int offsetX, int newWidth);
-         static int getOffsetY(enum OffsetAnchor offsetAnchor, int offsetY, int newHeight);
+         static int getOffsetX(enum OffsetAnchor offsetAnchor, int offsetX, int newWidth, int currentWidth);
+         static int getOffsetY(enum OffsetAnchor offsetAnchor, int offsetY, int newHeight, int currentHeight);
          static bool constrainPoint(int &x, int &y, int minX, int maxX, int minY, int maxY, enum PointConstraintMethod method);
          static void nearestNeighborInterp(float const * bufferIn, int widthIn, int heightIn, int numBands, int xStrideIn, int yStrideIn, int bandStrideIn, float * bufferOut, int widthOut, int heightOut);
          static void bicubicInterp(float const * bufferIn, int widthIn, int heightIn, int numBands, int xStrideIn, int yStrideIn, int bandStrideIn, float * bufferOut, int widthOut, int heightOut);

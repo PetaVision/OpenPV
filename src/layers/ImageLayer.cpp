@@ -1,50 +1,35 @@
-/*
- * Image.cpp
- *
- *  Created on: Sep 8, 2009
- *      Author: rasmussn
- */
-
-#include "Image.hpp"
-
+#include "ImageLayer.hpp"
 #include "utils/PVImg.hpp"
 #include "../arch/mpi/mpi.h"
+
 #include <assert.h>
 #include <string.h>
 #include <iostream>
 
 namespace PV {
 
-   Image::Image() {
+   ImageLayer::ImageLayer() {
       initialize_base();
    }
 
-   Image::Image(const char * name, HyPerCol * hc) {
+   ImageLayer::ImageLayer(const char * name, HyPerCol * hc) {
       initialize_base();
       initialize(name, hc);
    }
 
-   Image::~Image() {
-   }
+   ImageLayer::~ImageLayer() {
+   }   
 
-   int Image::initialize_base() {
+   int ImageLayer::initialize_base() {
          return PV_SUCCESS;
    }
 
-   int Image::initialize(const char * name, HyPerCol * hc) {
-      int status = BaseInput::initialize(name, hc);
+   int ImageLayer::initialize(const char * name, HyPerCol * hc) {
+      int status = InputLayer::initialize(name, hc);
       return status;
    }
 
-   int Image::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-      int status = BaseInput::ioParamsFillGroup(ioFlag);
-      return status;
-   }
-
-   //Image readImage reads the same thing to every batch
-   //This call is here since this is the entry point called from allocate
-   //Movie overwrites this function to define how it wants to load into batches
-   Buffer Image::retrieveData(std::string filename)
+   Buffer ImageLayer::retrieveData(std::string filename)
    {
       readImage(filename);
       Buffer result(mImage->getHeight(), mImage->getWidth(), getLayerLoc()->nf);
@@ -53,12 +38,11 @@ namespace PV {
       return result;
    }
 
-   int Image::communicateInitInfo() {
-      int status = BaseInput::communicateInitInfo();
-      return status;
+   bool ImageLayer::readyForNextFile() {
+      return true;
    }
 
-   void Image::readImage(std::string filename)
+   void ImageLayer::readImage(std::string filename)
    {
       pvAssert(parent->columnId() == 0); // readImage is called by retrieveData, which only the root process calls.
       const PVLayerLoc *loc = getLayerLoc();
@@ -109,14 +93,14 @@ namespace PV {
       }
    }
 
-   int Image::postProcess(double timef, double dt) {
+   int ImageLayer::postProcess(double timef, double dt) {
 
       //TODO: Grayscale conversion stuff here
-      return BaseInput::postProcess(timef, dt);
+      return InputLayer::postProcess(timef, dt);
    }
 
 /*
-   int Image::convertToGrayScale(float ** buffer, int nx, int ny, int numBands, InputColorType colorType)
+   int ImageLayer::convertToGrayScale(float ** buffer, int nx, int ny, int numBands, InputColorType colorType)
    {
       // even though the numBands argument goes last, the routine assumes that
       // the organization of buf is, bands vary fastest, then x, then y.
@@ -150,7 +134,7 @@ namespace PV {
       return PV_SUCCESS;
    }
 
-   int Image::convertGrayScaleToMultiBand(float ** buffer, int nx, int ny, int numBands)
+   int ImageLayer::convertGrayScaleToMultiBand(float ** buffer, int nx, int ny, int numBands)
    {
       const int sxcolor = numBands;
       const int sycolor = numBands*nx;
@@ -178,7 +162,7 @@ namespace PV {
       return PV_SUCCESS;
    }
 
-   int Image::calcBandWeights(int numBands, float * bandweight, InputColorType colorType) {
+   int ImageLayer::calcBandWeights(int numBands, float * bandweight, InputColorType colorType) {
       const float grayalphaweights[2] = {1.0, 0.0};
       const float rgbaweights[4] = {0.30f, 0.59f, 0.11f, 0.0f}; // RGB weights from <https://en.wikipedia.org/wiki/Grayscale>, citing Pratt, Digital Image Processing
       switch (colorType) {

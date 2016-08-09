@@ -1,5 +1,6 @@
 #include "Buffer.hpp"
-#include "utils/conversions.h"
+#include "conversions.h"
+#include "PVLog.hpp"
 
 #include <cstring>
 #include <cmath>
@@ -27,9 +28,14 @@ namespace PV {
       int cols = getColumns();
       int features = getFeatures();
 
+      pvStackTrace();
+      pvErrorIf(vector.size() != rows * cols * features,
+            "Invalid vector size: Expected %d elements, vector contained %d elements. Did you remember to call resize() before set()?\n",
+            rows * cols * features, vector.size());
+
       for(int v = 0; v < vector.size(); ++v) {
          int r = v / (cols * features);
-         int c = v % (cols * features);
+         int c = (v / features) % cols;
          int f = v % features;
          set(r, c, f, vector.at(v));
       }
@@ -51,17 +57,17 @@ namespace PV {
    // Resizing a Buffer will clear its contents. Use rescale or crop to preserve values.
    void Buffer::resize(int rows, int columns, int features) {
       mData.resize(rows);
-      for(auto& row : mData) {
-         row.resize(columns);
-         for(auto& column : row) {
-            column.clear();
-            column.resize(features, 0.0f);
+      for(int r = 0; r < rows; ++r) {
+         mData.at(r).resize(columns);
+         for(int c = 0; c < columns; ++c) {
+            mData.at(r).at(c).clear();
+            mData.at(r).at(c).resize(features, 0.0f);
          }
       }
    }
 
    //Offsets based on an anchor point, so calculate offsets based off a given anchor point
-   int Buffer::getOffsetX(enum OffsetAnchor offsetAnchor, int offsetX, int newWidth) {
+   int Buffer::getOffsetX(enum OffsetAnchor offsetAnchor, int offsetX, int newWidth, int currentWidth) {
       switch(offsetAnchor) {
          case NORTHWEST:
          case WEST:
@@ -70,16 +76,16 @@ namespace PV {
          case NORTH:
          case CENTER:
          case SOUTH:
-            return getColumns()/2 - newWidth/2 + offsetX;
+            return currentWidth/2 - newWidth/2 + offsetX;
          case NORTHEAST:
          case EAST:
          case SOUTHEAST:
-            return offsetX + getColumns() - newWidth;
+            return offsetX + currentWidth - newWidth;
       }
       return 0;
    }
 
-   int Buffer::getOffsetY(enum OffsetAnchor offsetAnchor, int offsetY, int newHeight) {
+   int Buffer::getOffsetY(enum OffsetAnchor offsetAnchor, int offsetY, int newHeight, int currentHeight) {
       switch(offsetAnchor) {
          case NORTHWEST:
          case NORTH:
@@ -88,11 +94,11 @@ namespace PV {
          case WEST:
          case CENTER:
          case EAST:
-            return getRows()/2 - newHeight/2 + offsetY;
+            return currentHeight/2 - newHeight/2 + offsetY;
          case SOUTHWEST:
          case SOUTH:
          case SOUTHEAST:
-         return offsetY + getRows() - newHeight;
+         return offsetY + currentHeight - newHeight;
       }
       return 0;
    }
@@ -102,7 +108,7 @@ namespace PV {
       bool moved_x = x < minX || y > maxX;
       bool moved_y = y < minY || y > maxY;
       if (moved_x) {
-         pvAssert(minX <= maxX);
+         assert(minX <= maxX);
          int sizeX = maxX-minX;
          int newX = x; 
          switch (method) {
@@ -125,11 +131,11 @@ namespace PV {
                newX += minX;
                break;
          }
-         pvAssert(newX >= minX && newX <= maxX);
+         assert(newX >= minX && newX <= maxX);
          x = newX;
       }
       if (moved_y) {
-         pvAssert(minY <= maxY);
+         assert(minY <= maxY);
          int sizeY = maxY - minY;
          int newY = y;
          switch (method) {
@@ -152,25 +158,26 @@ namespace PV {
             newY += minY;
             break;
          }
-         pvAssert(newY >= minY && newY <= maxY);
+         assert(newY >= minY && newY <= maxY);
          y = newY;
       }
       return moved_x || moved_y;
    }
 
    void Buffer::crop(int targetRows, int targetColumns, enum OffsetAnchor offsetAnchor, int offsetX, int offsetY) {
-      offsetX = getOffsetX(offsetAnchor, offsetX, targetColumns);
-      offsetY = getOffsetY(offsetAnchor, offsetY, targetRows);
+      offsetX = getOffsetX(offsetAnchor, offsetX, targetColumns, getColumns());
+      offsetY = getOffsetY(offsetAnchor, offsetY, targetRows, getRows());
       Buffer cropped(targetRows, targetColumns, getFeatures());
       for(int r = 0; r < targetRows; ++r) {
          for(int c = 0; c < targetColumns; ++c) {
             for(int f = 0; f < getFeatures(); ++f) {
                int x = c + offsetX, y = r + offsetY;
                constrainPoint(x, y, 0, getColumns(), 0, getRows(), CLAMP);
-               cropped.set(r, c, f, get(y, x, f));
+               cropped.set(r, c, f, at(y, x, f));
             }
          }
       }
+      resize(targetRows, targetColumns, getFeatures());
       set(cropped.asVector());
    }
 

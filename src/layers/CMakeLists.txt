@@ -4,7 +4,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/ANNSquaredLayer.cpp
    ${SUBDIR}/ANNWhitenedLayer.cpp
    ${SUBDIR}/BackgroundLayer.cpp
-   ${SUBDIR}/BaseInput.cpp
+   ${SUBDIR}/InputLayer.cpp
    ${SUBDIR}/BaseLayer.cpp
    ${SUBDIR}/BinningLayer.cpp
    ${SUBDIR}/CloneVLayer.cpp
@@ -14,7 +14,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/HyPerLayer.cpp
    ${SUBDIR}/HyPerLCALayer.cpp
    ${SUBDIR}/MomentumLCALayer.cpp
-   ${SUBDIR}/Image.cpp
+   ${SUBDIR}/ImageLayer.cpp
    ${SUBDIR}/ImageFromMemoryBuffer.cpp
    ${SUBDIR}/InitV.cpp
    ${SUBDIR}/ISTALayer.cpp
@@ -46,7 +46,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/ANNSquaredLayer.hpp
    ${SUBDIR}/ANNWhitenedLayer.hpp
    ${SUBDIR}/BackgroundLayer.hpp
-   ${SUBDIR}/BaseInput.hpp
+   ${SUBDIR}/InputLayer.hpp
    ${SUBDIR}/BaseLayer.hpp
    ${SUBDIR}/BinningLayer.hpp
    ${SUBDIR}/CloneVLayer.hpp
@@ -55,7 +55,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/GapLayer.hpp
    ${SUBDIR}/HyPerLayer.hpp
    ${SUBDIR}/HyPerLCALayer.hpp
-   ${SUBDIR}/Image.hpp
+   ${SUBDIR}/ImageLayer.hpp
    ${SUBDIR}/ImageFromMemoryBuffer.hpp
    ${SUBDIR}/InitV.hpp
    ${SUBDIR}/ISTALayer.hpp

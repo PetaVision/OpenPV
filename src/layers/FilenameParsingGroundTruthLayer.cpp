@@ -6,6 +6,7 @@
  */
 
 #include "FilenameParsingGroundTruthLayer.hpp"
+#include "InputLayer.hpp"
 
 #include <fstream>
 #include <iostream>
@@ -55,6 +56,7 @@ void FilenameParsingGroundTruthLayer::ioParam_gtClassFalseValue(enum ParamsIOFla
       parent->ioParamValue(ioFlag, name, "gtClassFalseValue", &gtClassFalseValue, -1.0f, false);
 }
 
+//TODO: This just needs an InputLayer name, change the parameter to match
 void FilenameParsingGroundTruthLayer::ioParam_movieLayerName(enum ParamsIOFlag ioFlag) {
       parent->ioParamStringRequired(ioFlag, name, "movieLayerName", &movieLayerName);
 }
@@ -83,9 +85,10 @@ void FilenameParsingGroundTruthLayer::ioParam_classes(enum ParamsIOFlag ioFlag) 
    inputfile.close();
 }
 
+
 int FilenameParsingGroundTruthLayer::communicateInitInfo() {
-   movieLayer = dynamic_cast<Movie *>(parent->getLayerFromName(movieLayerName));
-   if(movieLayer==NULL) {
+   movieLayer = dynamic_cast<InputLayer*>(parent->getLayerFromName(movieLayerName));
+   if(movieLayer == NULL) {
       if (parent->columnId()==0) {
          pvErrorNoExit().printf("%s: movieLayerName \"%s\" is not a layer in the HyPerCol.\n",
                getDescription_c(), movieLayerName);

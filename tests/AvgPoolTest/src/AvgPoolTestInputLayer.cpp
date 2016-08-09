@@ -1,13 +1,13 @@
-#include "InputLayer.hpp"
+#include "AvgPoolTestInputLayer.hpp"
 
 namespace PV {
 
-InputLayer::InputLayer(const char * name, HyPerCol * hc){
+AvgPoolTestInputLayer::AvgPoolTestInputLayer(const char * name, HyPerCol * hc){
    ANNLayer::initialize(name, hc);
 }
 
 //Makes a layer such that the restricted space is the index, but with spinning order be [x, y, f] as opposed to [f, x, y]
-int InputLayer::updateState(double timef, double dt){
+int AvgPoolTestInputLayer::updateState(double timef, double dt){
    //Grab layer size
    const PVLayerLoc* loc = getLayerLoc();
    int nx = loc->nx;

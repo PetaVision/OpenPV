@@ -25,12 +25,11 @@ namespace PV {
    int ImageFromMemoryBuffer::initialize_base() {
       hasNewImageFlag = false;
       mAutoResizeFlag = false;
-      mAspectRatioAdjustment = NULL;
       return PV_SUCCESS;
    }
 
    int ImageFromMemoryBuffer::initialize(char const * name, HyPerCol * hc) {
-      return BaseInput::initialize(name, hc);
+      return ImageLayer::initialize(name, hc);
       if (mUseInputBCflag && mAutoResizeFlag) {
          if (parent->columnId()==0) {
             pvErrorNoExit().printf("%s: setting both useImageBCflag and autoResizeFlag has not yet been implemented.\n", getDescription_c());
@@ -41,7 +40,7 @@ namespace PV {
    }
 
    int ImageFromMemoryBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-      int status = BaseInput::ioParamsFillGroup(ioFlag);
+      int status = ImageLayer::ioParamsFillGroup(ioFlag);
       ioParam_autoResizeFlag(ioFlag);
       ioParam_aspectRatioAdjustment(ioFlag);
       return status;
@@ -81,10 +80,11 @@ namespace PV {
 
    template <typename pixeltype>
    int ImageFromMemoryBuffer::setMemoryBuffer(pixeltype const * externalBuffer, int height, int width, int numbands, int xstride, int ystride, int bandstride, pixeltype zeroval, pixeltype oneval, int offsetX, int offsetY, char const * offsetAnchor) {
-      mOffsets[0] = offsetX;
-      mOffsets[1] = offsetY;
-      free(mOffsetAnchor);
-      mOffsetAnchor = strdup(offsetAnchor);
+      mOffsetX = offsetX;
+      mOffsetY = offsetY;
+      //free(mOffsetAnchor);
+      // TODO: Change the argument type to an enum, this is a quick hack to compile
+      mOffsetAnchor = Buffer::CENTER;//strdup(offsetAnchor);
       if (checkValidAnchorString()!=PV_SUCCESS) {
          if (parent->columnId()==0) {
             pvErrorNoExit().printf("%s: setMemoryBuffer called with invalid anchor string \"%s\"",

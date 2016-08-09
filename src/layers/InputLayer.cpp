@@ -1,22 +1,28 @@
 /*
- * BaseInput.cpp
+ * InputLayer.cpp
+ * Formerly InputLayer.cpp
  */
 
-#include "BaseInput.hpp"
+#include "InputLayer.hpp"
 
 #include <algorithm>
 
 namespace PV {
 
-   BaseInput::BaseInput() {
+   InputLayer::InputLayer() {
       initialize_base();
    }
 
-   BaseInput::~BaseInput() {
+   InputLayer::InputLayer(const char *name, HyPerCol *hc) {
+      initialize_base();
+      initialize(name, hc);
+   }
+
+   InputLayer::~InputLayer() {
       Communicator::freeDatatypes(mDatatypes);
    }
 
-   int BaseInput::initialize_base() {
+   int InputLayer::initialize_base() {
       mDatatypes = nullptr;
       mUseInputBCflag = false;
       mAutoResizeFlag = false;
@@ -35,7 +41,7 @@ namespace PV {
       return PV_SUCCESS;
    }
 
-   int BaseInput::initialize(const char * name, HyPerCol * hc) {
+   int InputLayer::initialize(const char * name, HyPerCol * hc) {
       int status = HyPerLayer::initialize(name, hc);
       this->lastUpdateTime = parent->getStartTime();
       PVParams * params = hc->parameters(); //What is the point of this?
@@ -68,7 +74,7 @@ namespace PV {
       return status;
    }
 
-   int BaseInput::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int InputLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
       int status = HyPerLayer::ioParamsFillGroup(ioFlag);
       ioParam_inputPath(ioFlag);
       ioParam_offsetAnchor(ioFlag);
@@ -93,7 +99,7 @@ namespace PV {
    }
 
    //What's the difference between this and checkpointRead?
-   int BaseInput::readStateFromCheckpoint(const char * cpDir, double * timeptr) {
+   int InputLayer::readStateFromCheckpoint(const char * cpDir, double * timeptr) {
       int *frameNumbers;
       parent->readArrayFromFile(cpDir, getName(), "FrameNumbers", frameNumbers, parent->getNBatch());
       mFileIndices.clear();
@@ -105,7 +111,7 @@ namespace PV {
       return PV_SUCCESS;
    }
 
-   int BaseInput::checkpointRead(const char * cpDir, double * timef) {
+   int InputLayer::checkpointRead(const char * cpDir, double * timef) {
       // should this be moved to readStateFromCheckpoint?
       if (mWriteFileToTimestamp) {
          long timestampFilePos = 0L;
@@ -118,7 +124,7 @@ namespace PV {
       return HyPerLayer::checkpointRead(cpDir, timef);
    }
 
-   int BaseInput::checkpointWrite(const char * cpDir){
+   int InputLayer::checkpointWrite(const char * cpDir){
       parent->writeArrayToFile(cpDir, getName(), "FrameNumbers", &mFileIndices[0], parent->getNBatch());
 
       //Only do a checkpoint TimestampState if there exists a timestamp file
@@ -129,7 +135,7 @@ namespace PV {
       return HyPerLayer::checkpointWrite(cpDir);
    }
 
-   void BaseInput::ioParam_inputPath(enum ParamsIOFlag ioFlag) {
+   void InputLayer::ioParam_inputPath(enum ParamsIOFlag ioFlag) {
       char *tempString;
       parent->ioParamStringRequired(ioFlag, name, "inputPath", &tempString); //TODO: These should really use std::string, we probably have tons of leaks
       mInputPath = std::string(tempString);
@@ -142,18 +148,18 @@ namespace PV {
       }
    }
 
-   void BaseInput::ioParam_useInputBCflag(enum ParamsIOFlag ioFlag) { //TODO: Change to useInputBCFlag, add deprecated warning
+   void InputLayer::ioParam_useInputBCflag(enum ParamsIOFlag ioFlag) { //TODO: Change to useInputBCFlag, add deprecated warning
       parent->ioParamValue(ioFlag, name, "useImageBCflag", &mUseInputBCflag, mUseInputBCflag);
    }
 
-   int BaseInput::ioParam_offsets(enum ParamsIOFlag ioFlag) {
+   int InputLayer::ioParam_offsets(enum ParamsIOFlag ioFlag) {
       parent->ioParamValue(ioFlag, name, "offsetX", &mOffsetX, mOffsetX);
       parent->ioParamValue(ioFlag, name, "offsetY", &mOffsetY, mOffsetY);
 
       return PV_SUCCESS;
    }
 
-   void BaseInput::ioParam_offsetAnchor(enum ParamsIOFlag ioFlag){
+   void InputLayer::ioParam_offsetAnchor(enum ParamsIOFlag ioFlag){
       if (ioFlag==PARAMS_IO_READ) {
          char *offsetAnchor = nullptr;
          parent->ioParamString(ioFlag, name, "offsetAnchor", &offsetAnchor, "tl");
@@ -236,11 +242,11 @@ namespace PV {
       }
    }
 
-   void BaseInput::ioParam_autoResizeFlag(enum ParamsIOFlag ioFlag) {
+   void InputLayer::ioParam_autoResizeFlag(enum ParamsIOFlag ioFlag) {
       parent->ioParamValue(ioFlag, name, "autoResizeFlag", &mAutoResizeFlag, mAutoResizeFlag);
    }
 
-   void BaseInput::ioParam_aspectRatioAdjustment(enum ParamsIOFlag ioFlag) {
+   void InputLayer::ioParam_aspectRatioAdjustment(enum ParamsIOFlag ioFlag) {
       assert(!parent->parameters()->presentAndNotBeenRead(name, "autoResizeFlag"));
       if (mAutoResizeFlag) {
          char *aspectRatioAdjustment;
@@ -267,7 +273,7 @@ namespace PV {
       }
    }
 
-   void BaseInput::ioParam_interpolationMethod(enum ParamsIOFlag ioFlag) {
+   void InputLayer::ioParam_interpolationMethod(enum ParamsIOFlag ioFlag) {
       assert(!parent->parameters()->presentAndNotBeenRead(name, "autoResizeFlag"));
       if (mAutoResizeFlag) {
          char * interpolationMethodString = NULL;
@@ -308,25 +314,25 @@ namespace PV {
       }
    }
 
-   void BaseInput::ioParam_inverseFlag(enum ParamsIOFlag ioFlag) {
+   void InputLayer::ioParam_inverseFlag(enum ParamsIOFlag ioFlag) {
       parent->ioParamValue(ioFlag, name, "inverseFlag", &mInverseFlag, mInverseFlag);
    }
 
-   void BaseInput::ioParam_normalizeLuminanceFlag(enum ParamsIOFlag ioFlag) {
+   void InputLayer::ioParam_normalizeLuminanceFlag(enum ParamsIOFlag ioFlag) {
       parent->ioParamValue(ioFlag, name, "normalizeLuminanceFlag", &mNormalizeLuminanceFlag, mNormalizeLuminanceFlag);
    }
 
-   void BaseInput::ioParam_normalizeStdDev(enum ParamsIOFlag ioFlag) {
+   void InputLayer::ioParam_normalizeStdDev(enum ParamsIOFlag ioFlag) {
       assert(!parent->parameters()->presentAndNotBeenRead(name, "normalizeLuminanceFlag"));
       if (mNormalizeLuminanceFlag) {
         parent->ioParamValue(ioFlag, name, "normalizeStdDev", &mNormalizeStdDev, mNormalizeStdDev);
       }
    }
-   void BaseInput::ioParam_padValue(enum ParamsIOFlag ioFlag) {
+   void InputLayer::ioParam_padValue(enum ParamsIOFlag ioFlag) {
       parent->ioParamValue(ioFlag, name, "padValue", &mPadValue, mPadValue);
    }
    
-//   void BaseInput::ioParam_offsetConstraintMethod(enum ParamsIOFlag ioFlag) {
+//   void InputLayer::ioParam_offsetConstraintMethod(enum ParamsIOFlag ioFlag) {
 //   //   assert(!parent->parameters()->presentAndNotBeenRead(name, "jitterFlag"));
 //   //   if (mJitterFlag) {
 //         parent->ioParamValue(ioFlag, name, "offsetConstraintMethod", &mOffsetConstraintMethod, 0/*default*/);
@@ -336,12 +342,12 @@ namespace PV {
 //   //   }
 //   }
 
-   void BaseInput::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
+   void InputLayer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
       assert(this->initVObject == NULL);
       return;
    }
 
-   void BaseInput::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
+   void InputLayer::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
       if (ioFlag == PARAMS_IO_READ) {
          triggerLayerName = NULL;
          triggerFlag = false;
@@ -349,15 +355,15 @@ namespace PV {
       }
    }
 
-   void BaseInput::ioParam_displayPeriod(enum ParamsIOFlag ioFlag) {
+   void InputLayer::ioParam_displayPeriod(enum ParamsIOFlag ioFlag) {
       parent->ioParamValue(ioFlag, name, "displayPeriod", &mDisplayPeriod, mDisplayPeriod);
    }
 
-   void BaseInput::ioParam_echoFramePathnameFlag(enum ParamsIOFlag ioFlag) {
+   void InputLayer::ioParam_echoFramePathnameFlag(enum ParamsIOFlag ioFlag) {
       parent->ioParamValue(ioFlag, name, "echoFramePathnameFlag", &mEchoFramePathnameFlag, false/*default value*/);
    }
 
-   void BaseInput::ioParam_batchMethod(enum ParamsIOFlag ioFlag) {
+   void InputLayer::ioParam_batchMethod(enum ParamsIOFlag ioFlag) {
       char *batchMethod;
       parent->ioParamString(ioFlag, name, "batchMethod", &batchMethod, "bySpecified");
       if(strcmp(batchMethod, "byImage") == 0 || strcmp(batchMethod, "byFile") == 0) {
@@ -374,7 +380,7 @@ namespace PV {
       }
    }
 
-   void BaseInput::ioParam_start_frame_index(enum ParamsIOFlag ioFlag) {
+   void InputLayer::ioParam_start_frame_index(enum ParamsIOFlag ioFlag) {
       int *paramsStartFrameIndex;
       int length = -1;
       this->getParent()->ioParamArray(ioFlag, this->getName(), "start_frame_index", &paramsStartFrameIndex, &length);
@@ -388,7 +394,7 @@ namespace PV {
       free(paramsStartFrameIndex);
    }
 
-   void BaseInput::ioParam_skip_frame_index(enum ParamsIOFlag ioFlag) {
+   void InputLayer::ioParam_skip_frame_index(enum ParamsIOFlag ioFlag) {
       int *paramsSkipFrameIndex;
       int length = -1;
       this->getParent()->ioParamArray(ioFlag, this->getName(), "skip_frame_index", &paramsSkipFrameIndex, &length);
@@ -402,15 +408,15 @@ namespace PV {
       free(paramsSkipFrameIndex);
    }
 
-   void BaseInput::ioParam_writeFrameToTimestamp(enum ParamsIOFlag ioFlag) {
+   void InputLayer::ioParam_writeFrameToTimestamp(enum ParamsIOFlag ioFlag) {
       parent->ioParamValue(ioFlag, name, "writeFrameToTimestamp", &mWriteFileToTimestamp, mWriteFileToTimestamp);
    }
 
-   void BaseInput::ioParam_resetToStartOnLoop(enum ParamsIOFlag ioFlag) {
+   void InputLayer::ioParam_resetToStartOnLoop(enum ParamsIOFlag ioFlag) {
       parent->ioParamValue(ioFlag, name, "resetToStartOnLoop", &mResetToStartOnLoop, mResetToStartOnLoop);
    }
 
-   int BaseInput::allocateDataStructures() {
+   int InputLayer::allocateDataStructures() {
 
       //Allocate framePaths here before image, since allocate call will call getFrame
       int numBatch = parent->getNBatch();
@@ -499,7 +505,7 @@ namespace PV {
    }
 
 
-   double BaseInput::calcTimeScale(int batchIdx) {
+   double InputLayer::calcTimeScale(int batchIdx) {
       if(needUpdate(parent->simulationTime(), parent->getDeltaTime())) {
          return parent->getTimeScaleMin(); 
       }
@@ -511,12 +517,12 @@ namespace PV {
    // Virtual method used to spend multiple display periods on one file.
    // Can be used to implement lists of collections or modifications to
    // the loaded file, such as streaming audio or video.
-   bool BaseInput::readyForNextFile() { 
+   bool InputLayer::readyForNextFile() { 
       return true;
    }
 
    //TODO: This doesn't appear to be using mDisplayPeriod?
-   int BaseInput::updateState(double time, double dt)
+   int InputLayer::updateState(double time, double dt)
    {
       if(!mUsingFileList) {
          return PV_SUCCESS;
@@ -549,7 +555,7 @@ namespace PV {
       return PV_SUCCESS;
    }
 
-   void BaseInput::nextInput(double timef, double dt) {
+   void InputLayer::nextInput(double timef, double dt) {
       for(int b = 0; b < parent->getNBatch(); b++) {
          if (parent->columnId() == 0) {
             mInputData.at(b) = retrieveData(getNextFilename(mSkipFrameIndex.at(b), b));
@@ -559,7 +565,8 @@ namespace PV {
       postProcess(timef, dt);
    }
 
-   int BaseInput::scatterInput(int batchIndex) {
+   int InputLayer::scatterInput(int batchIndex) {
+      Communicator *icComm = parent->getCommunicator();
       const int rank = parent->columnId();
       const int rootProc = 0;
       MPI_Comm mpiComm = parent->getCommunicator()->communicator();
@@ -578,15 +585,15 @@ namespace PV {
       if (rank == rootProc) {
 
          // Loop through each rank, ending on the root process.
-         // Uses Buffer.crop and MPI_Send to give each process the correct slice
+         // Uses Buffer::crop and MPI_Send to give each process the correct slice
          // of input data. Once a process has the data, it slices it up row by row
          // as is needed by mUseInputBCflag
-         for (int rank = parent->getCommunicator()->commSize()-1; rank >= 0; --rank) {
+         for (int rank = icComm->commSize()-1; rank >= 0; --rank) {
             
             // Copy the input data to a temporary buffer. This gets cropped to the layer size below.
             croppedBuffer = mInputData.at(batchIndex);
-            int cropLeft = columnFromRank(rank, icComm->nummCommRows(), icComm->numComColumns()) * loc->nx;
-            int cropTop = rowFromRank(rank, icComm->numCommRows(), icComm->numComColumns()) * loc->ny;
+            int cropLeft = columnFromRank(rank, icComm->numCommRows(), icComm->numCommColumns()) * loc->nx;
+            int cropTop = rowFromRank(rank, icComm->numCommRows(), icComm->numCommColumns()) * loc->ny;
 
             // If we're sending the extended region as well, shift our origin by the appropriate amount
             // TODO: This is going to give negative indices for some slices. What's the correct approach here?
@@ -614,13 +621,13 @@ namespace PV {
          // redundant, but it works. This could be done with a for loop and
          // some indexing math, but it's safer to let Buffer handle this
          // internally.
-         float *tempBuffer[numElements];
+         float tempBuffer[numElements];
          MPI_Recv(&tempBuffer, numElements, MPI_FLOAT, rootProc, 31, mpiComm, MPI_STATUS_IGNORE);
          std::vector<float> bufferData(numElements);
          for(int i = 0; i < numElements; ++i) {
             bufferData.at(i) = tempBuffer[i];
          }
-         croppedBuffer.resize(acivityHeight, activityWidth, numFeatures);
+         croppedBuffer.resize(activityHeight, activityWidth, numFeatures);
          croppedBuffer.set(bufferData);
       }
       
@@ -631,50 +638,23 @@ namespace PV {
          activityBuffer[n] = mPadValue;
       }
 
+      int dataRowLength = activityWidth * numFeatures;
+      int activityBufferStart = mUseInputBCflag ? 0 : halo->lt;
+      int activityRowIncrement = loc->nx + halo->lt + halo->rt;
+      for(int y = 0; y < activityHeight; ++y) {
+         int sourceStart = y * dataRowLength;
+         int destStart = activityBufferStart + activityRowIncrement * y;
+         memcpy(&activityBuffer[destStart], &croppedBuffer.asVector().data()[sourceStart], dataRowLength * sizeof(float)); //TODO: Verify this memcpy and see if there's a C++11 alternative
+      }
 
-      //TODO: Actually copy croppedBuffer into activity
-
+      // TODO:
+      // Do I need to store any info about the image now? I don't belive so,
+      // since it's the same size as the layer now, but verify
 
       return PV_SUCCESS;
    }
-/*            else {
-               for (int n = 0; n < getNumExtended(); n++) {
-                  activityBuffer[n] = mPadValue;
-               }
-               
-               int layerIdx = kIndex(mUseInputBCflag ? 0 : halo->lt, mUseInputBCflag ? 0 : halo->up, 0, numXExtended, numYExtended, numFeatures);
-               memcpy(&activityBuffer[
-            }
-         }
-         // Finally, do root process.
-         for (int n = 0; n < getNumExtended(); n++) {
-            activityBuffer[n] = mPadValue;
-         }
-         int status = calcLocalBox(rootProc, mLayerLeft, mLayerTop, mInputLeft, mInputTop, mInputWidth, mInputHeight);
-         if (status == PV_SUCCESS) {
-            pvAssert(mInputWidth > 0 && mInputHeight > 0);
-            for(int y = 0; y < mInputHeight; ++y) {
-               int inputIdx = kIndex(mInputLeft, mInputTop + y, 0, inputWidth, inputHeight, numFeatures);
-               int layerIdx = kIndex(mLayerLeft, mLayerTop + y, 0, numXExtended, numYExtended, numFeatures);
-               assert(inputIdx >= 0 && inputIdx < inputWidth * inputHeight * numFeatures);
-               assert(layerIdx >= 0 && layerIdx < getNumExtended());
-               memcpy(&activityBuffer[layerIdx], &rawInput[inputIdx], sizeof(pvadata_t) * mInputWidth * numFeatures);
-            }
-         }
-         else { assert(mInputWidth == 0 || mInputHeight == 0); }
-      }
-      else {
-         //int dims[2];
-         //MPI_Bcast(dims, 2, MPI_INT, rootProc, mpiComm);
-         MPI_Recv(activityBuffer, getNumExtended(), MPI_FLOAT, rootProc, 31, mpiComm, MPI_STATUS_IGNORE);
-         calcLocalBox(rank, mLayerLeft, mLayerTop, mInputLeft, mInputTop, mInputWidth, mInputHeight);
-        // mInputData.resize(dims[1], dims[0], getLayerLoc()->nf); 
-      }
-   
-      return PV_SUCCESS;
-   }
-*/
-   void BaseInput::fitBufferToLayer(Buffer &buffer) {
+
+   void InputLayer::fitBufferToLayer(Buffer &buffer) {
       pvAssert(parent->columnId() == 0); // Should only be called by root process.
 
       const PVLayerLoc *loc = getLayerLoc();
@@ -687,113 +667,10 @@ namespace PV {
       }
       buffer.crop(targetHeight, targetWidth, mOffsetAnchor, mOffsetX, mOffsetY); 
    }     
-/*
-   int BaseInput::calcLocalBox(int rank, int &layerLeft, int &layerTop, int &inputLeft, int &inputTop, int &width, int &height) {
-      Communicator *icComm = parent->getCommunicator();
-      const PVLayerLoc *loc = getLayerLoc();
-      const PVHalo *halo = &loc->halo;
-      int column = columnFromRank(rank, icComm->numCommRows(), icComm->numCommColumns());
-      int boxInInputLeft = Buffer::getOffsetX(mOffsetAnchor, mOffsetX, getLayerLoc()->nx) + column * getLayerLoc()->nx;
-      int boxInInputRight = boxInInputLeft + loc->nx;
-      int boxInLayerLeft = halo->lt;
-      int boxInLayerRight = boxInLayerLeft + loc->nx;
-      int row = rowFromRank(rank, icComm->numCommRows(), icComm->numCommColumns());
-      int boxInInputTop = Buffer::getOffsetY(mOffsetAnchor, mOffsetY, getLayerLoc()->ny) + row * getLayerLoc()->ny;
-      int boxInInputBottom = boxInInputTop + loc->ny;
-      int boxInLayerTop = halo->up;
-      int boxInLayerBottom = boxInLayerTop + loc->ny;
 
-      if (mUseInputBCflag) {
-         boxInLayerLeft -= halo->lt;
-         boxInLayerRight += halo->rt;
-         boxInInputLeft -= halo->lt;
-         boxInInputRight += halo->rt;
-
-         boxInLayerTop -= halo->up;
-         boxInLayerBottom += halo->dn;
-         boxInInputTop -= halo->up;
-         boxInInputBottom += halo->dn;
-      }
-
-      int status = PV_SUCCESS;
-      if (boxInInputLeft > mInputData.at(batch).getColumns() || boxInInputRight < 0 ||
-          boxInInputTop > mInputData.at(batch).getRows() || boxInInputBottom < 0 ||
-          boxInLayerLeft > loc->nx+halo->lt+halo->rt || boxInLayerRight < 0 ||
-          boxInLayerTop > loc->ny+halo->dn+halo->up || boxInLayerBottom < 0) {
-         width = 0;
-         height = 0;
-         status = PV_FAILURE;
-      }
-      else {
-         if (boxInInputLeft < 0) {
-            int discrepancy = -boxInInputLeft;
-            boxInLayerLeft += discrepancy;
-            boxInInputLeft += discrepancy;
-         }
-         if (boxInLayerLeft < 0) {
-            int discrepancy = -boxInLayerLeft;
-            boxInLayerLeft += discrepancy;
-            boxInInputLeft += discrepancy;
-         }
-
-         if (boxInInputRight > mInputData.at(batch).getColumns()) {
-            int discrepancy = boxInInputRight - mInputData.at(batch).getColumns();
-            boxInLayerRight -= discrepancy;
-            boxInInputRight -= discrepancy;
-         }
-         if (boxInLayerRight > loc->nx+halo->lt+halo->rt) {
-            int discrepancy = boxInLayerRight - (loc->nx+halo->lt+halo->rt);
-            boxInLayerRight -= discrepancy;
-            boxInInputRight -= discrepancy;
-         }
-
-         if (boxInInputTop < 0) {
-            int discrepancy = -boxInInputTop;
-            boxInLayerTop += discrepancy;
-            boxInInputTop += discrepancy;
-         }
-         if (boxInLayerTop < 0) {
-            int discrepancy = -boxInLayerTop;
-            boxInLayerTop += discrepancy;
-            boxInInputTop += discrepancy;
-         }
-
-         if (boxInInputBottom > mInputData.at(batch).getRows()) {
-            int discrepancy = boxInInputBottom - mInputData.at(batch).getRows();
-            boxInLayerBottom -= discrepancy;
-            boxInInputBottom -= discrepancy;
-         }
-         if (boxInLayerBottom > loc->ny+halo->dn+halo->up) {
-            int discrepancy = boxInLayerRight - (loc->ny+halo->dn+halo->up);
-            boxInLayerBottom -= discrepancy;
-            boxInInputBottom -= discrepancy;
-         }
-
-         int boxWidth = boxInInputRight-boxInInputLeft;
-         int boxHeight = boxInInputBottom-boxInInputTop;
-         pvAssert(boxWidth >= 0);
-         pvAssert(boxHeight >= 0);
-         pvAssert(boxWidth == boxInLayerRight - boxInLayerLeft);
-         pvAssert(boxHeight == boxInLayerBottom - boxInLayerTop);
-         // coordinates can be outside of the imageLoc limits, as long as the box has zero area
-         pvAssert(boxInInputLeft >= 0 && boxInInputRight <= mInputData.at(batch).getColumns());
-         pvAssert(boxInInputTop >= 0 && boxInInputBottom <= mInputData.at(batch).getRows());
-         pvAssert(boxInLayerLeft >= 0 && boxInLayerRight <= loc->nx+halo->lt+halo->rt);
-         pvAssert(boxInLayerTop >= 0 && boxInLayerBottom <= loc->ny+halo->dn+halo->up);
-
-         layerLeft = boxInLayerLeft;
-         layerTop = boxInLayerTop;
-         inputLeft = boxInInputLeft;
-         inputTop = boxInInputTop;
-         width = boxWidth;
-         height = boxHeight;
-      }
-      return status;
-   }
-*/
    //Apply normalizeLuminanceFlag, normalizeStdDev, and inverseFlag, which can be done pixel-by-pixel
    //after scattering.
-   int BaseInput::postProcess(double timef, double dt){
+   int InputLayer::postProcess(double timef, double dt){
       int numExtended = getNumExtended();
 
       // if normalizeLuminanceFlag == true:
@@ -867,7 +744,7 @@ namespace PV {
       return PV_SUCCESS;
    }
 
-   void BaseInput::exchange() {
+   void InputLayer::exchange() {
       std::vector<MPI_Request> req{};
       for (int b=0; b<getLayerLoc()->nbatch; ++b) {
          parent->getCommunicator()->exchange(getActivity()+b*getNumExtended(), mDatatypes, getLayerLoc(), req);
@@ -876,7 +753,7 @@ namespace PV {
       }
    }
 
-   int BaseInput::requireChannel(int channelNeeded, int * numChannelsResult) {
+   int InputLayer::requireChannel(int channelNeeded, int * numChannelsResult) {
       if (parent->columnId()==0) {
          pvErrorNoExit().printf("%s cannot be a post-synaptic layer.\n",
                getDescription_c());
@@ -885,20 +762,22 @@ namespace PV {
       return PV_FAILURE;
    }
 
-   int BaseInput::allocateV() {
+   int InputLayer::allocateV() {
       clayer->V = NULL;
       return PV_SUCCESS;
    }
-     assert(getV()==NULL);
+
+   int InputLayer::initializeV() {
+      pvAssert(getV()==NULL);
       return PV_SUCCESS;
    }
 
-   int BaseInput::initializeActivity() {
+   int InputLayer::initializeActivity() {
       return PV_SUCCESS;
    }
 
    // advance by n_skip lines through file of filenames, always advancing at least one line
-   std::string BaseInput::getNextFilename(int filesToSkip, int batchIdx) {
+   std::string InputLayer::getNextFilename(int filesToSkip, int batchIdx) {
       Communicator * icComm = getParent()->getCommunicator();
       pvAssert(icComm->commRank() == 0);
       std::string outFilename;
@@ -915,7 +794,7 @@ namespace PV {
    }
 
    //This function will reset the file position of the open file
-   int BaseInput::populateFileList() {
+   int InputLayer::populateFileList() {
       int count = 0;
       if(parent->columnId() == 0) {
          std::string line;
@@ -942,7 +821,7 @@ namespace PV {
       return count;
    }
 
-   std::string BaseInput::advanceFilename(int batchIndex) {
+   std::string InputLayer::advanceFilename(int batchIndex) {
       pvAssert(parent->columnId() == 0);
       if(++mFileIndices.at(batchIndex) >= mFileList.size()) {
          pvInfo() << getName() << ": End of file list reached. Rewinding." << std::endl;

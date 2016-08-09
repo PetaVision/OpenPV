@@ -9,9 +9,8 @@
 #define FILENAMEPARSINGGROUNDTRUTHLAYER_HPP_
 
 #include <cMakeHeader.h>
-#include "ANNLayer.hpp"
 #include <string>
-#include "Movie.hpp"
+
 namespace PV {
 
 class FilenameParsingGroundTruthLayer: public PV::ANNLayer {

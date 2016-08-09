@@ -1,42 +1,31 @@
 /*
- * Image.hpp
+ * ImageLayer.hpp
  *
- *  Created on: Sep 8, 2009
- *      Author: rasmussn
+ *    Layer that represents an image or list of images
+ *    loaded from disk. Supports .jpg, .png, and .bmp
+ *    formats, or a .txt list of files in those formats.
  */
 
 
-#ifndef IMAGE_HPP_
-#define IMAGE_HPP_
+#ifndef IMAGELAYER_HPP_
+#define IMAGELAYER_HPP_
 
 #include "utils/PVImg.hpp"
-#include "BaseInput.hpp"
+#include "InputLayer.hpp"
 
 #include <cMakeHeader.h>
 
 namespace PV {
 
-   class Image : public BaseInput {
+   class ImageLayer : public InputLayer {
 
    protected:
-      /** 
-       * List of parameters needed from the Image class
-       * @name Image Parameters
-       * @{
-       */
-      /**
-       * @brief writeStep: The Image class changes the default of writeStep to -1 (i.e. never write to the output pvp file).
-       */
-      virtual void ioParam_writeStep(enum ParamsIOFlag ioFlag);
-      /** @} */
-
-   protected:
-      Image();
+      ImageLayer();
       int initialize(const char * name, HyPerCol * hc);
-      virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
       virtual Buffer retrieveData(std::string filename);
       virtual void readImage(std::string filename);
       virtual int postProcess(double timef, double dt);
+      virtual bool readyForNextFile();
 
       /**
        * Converts a grayscale buffer to a multiband buffer, by replicating the buffer in each band.
@@ -69,11 +58,8 @@ namespace PV {
 */
 
    public:
-      Image(const char * name, HyPerCol * hc);
-      virtual ~Image();
-      virtual int communicateInitInfo();
-      virtual double getDeltaUpdateTime();
-      virtual int updateState(double time, double dt);
+      ImageLayer(const char * name, HyPerCol * hc);
+      virtual ~ImageLayer();
 
    private:
       int initialize_base();
@@ -81,7 +67,7 @@ namespace PV {
    protected:
       std::unique_ptr<PVImg> mImage;
 
-   }; // class Image
-}  // namespace PV
+   };
+}
 
-#endif /* IMAGE_HPP_ */
+#endif 

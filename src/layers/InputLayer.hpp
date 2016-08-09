@@ -1,24 +1,22 @@
 /**
  * Base Input class for reading images, movies, pvp files, as well as creating patterns and loading from memory buffer.
  */
-#ifndef BASEINPUT_HPP_
-#define BASEINPUT_HPP_
+#ifndef INPUTLAYER_HPP
+#define INPUTLAYER_HPP
 
 #include "HyPerLayer.hpp"
 #include "columns/HyPerCol.hpp"
-#include "columns/Random.hpp"
-#include "io/imageio.hpp"
 #include "utils/Buffer.hpp"
 
 #include <memory>
 
 namespace PV {
 
-   class BaseInput: public HyPerLayer{
+   class InputLayer: public HyPerLayer {
       protected:
          /** 
-          * List of parameters needed from the BaseInput class
-          * @name BaseInput Parameters
+          * List of parameters needed from the InputLayer class
+          * @name InputLayer Parameters
           * @{
           */
 
@@ -48,7 +46,7 @@ namespace PV {
           * @details If set to true, image will be resized to the
           * smallest size with the same aspect ratio that completely covers the
           * layer size, and then cropped according to the offsets and offsetAnchor
-          * parameters inherited from BaseInput.
+          * parameters inherited from InputLayer.
           */
          virtual void ioParam_autoResizeFlag(enum ParamsIOFlag ioFlag);
 
@@ -93,14 +91,14 @@ namespace PV {
           * @brief offsetConstraintMethod: If jitter flag is set, defines the method to coerce into bounding box
           * @details Can be 0 (ignore), 1 (mirror BC), 2 (threshold), or 3 (circular BC)
           */
-         virtual void ioParam_offsetConstraintMethod(enum ParamsIOFlag ioFlag);
+//         virtual void ioParam_offsetConstraintMethod(enum ParamsIOFlag ioFlag);
          /**
           * @brief initVType: Image does not have a V, do not set
           */
          virtual void ioParam_InitVType(enum ParamsIOFlag ioFlag);
 
          /**
-          * @brief triggerLayerName: BaseInput and derived classes do not use triggering, and always set triggerLayerName to NULL.
+          * @brief triggerLayerName: InputLayer and derived classes do not use triggering, and always set triggerLayerName to NULL.
           */
          virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag);
 
@@ -159,7 +157,7 @@ namespace PV {
             BYSPECIFIED
          };
 
-         BaseInput();
+         InputLayer();
          int initialize(const char * name, HyPerCol * hc);
          /**
           * Returns PV_SUCCESS if offsetAnchor is a valid anchor string
@@ -205,8 +203,8 @@ namespace PV {
          void nextInput(double timef, double dt);
 
       public:
-         BaseInput(const char * name, HyPerCol * hc);
-         virtual ~BaseInput();
+         InputLayer(const char * name, HyPerCol * hc);
+         virtual ~InputLayer();
          virtual int requireChannel(int channelNeeded, int * numChannelsResult);
          virtual int allocateDataStructures();
          virtual int updateState(double time, double dt);
@@ -293,8 +291,8 @@ namespace PV {
          std::vector<int> mFileIndices;
          std::vector<std::string> mFileList;
          BatchMethod mBatchMethod;
-   }; // class BaseInput
+   }; // class InputLayer
 }  // namespace PV
 
-#endif // BASEINPUT_HPP_
+#endif
 
