@@ -1,19 +1,19 @@
 // Wrapper class for stb_image.h
 // athresher, Jul 27 2016
 
-#ifndef __PVIMG_HPP__
-#define __PVIMG_HPP__
+#ifndef IMAGE_HPP__
+#define IMAGE_HPP__
 
 #include <string>
 #include <vector>
 
 namespace PV {
 
-   class PVImg {
+   class Image { // TODO: This should probably be a subclass of Buffer
 
       public:
-         PVImg(std::string filename);
-         PVImg(const std::vector<float> &data, int width, int height, int channels);
+         Image(std::string filename);
+         Image(const std::vector<float> &data, int width, int height, int channels);
 
          void setPixel(int x, int y, float r, float g, float b);
          void setPixel(int x, int y, float r, float g, float b, float a);

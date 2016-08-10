@@ -1,4 +1,4 @@
-#include "PVImg.hpp"
+#include "Image.hpp"
 #include "PVLog.hpp"
 
 # ifndef STB_IMAGE_IMPLEMENTATION
@@ -8,7 +8,7 @@
 
 namespace PV {
 
-   PVImg::PVImg(std::string filename) {
+   Image::Image(std::string filename) {
       int channels = 0;
       // Passing 4 ensures our data structure is padded for 4 channels,
       // even if that data was not present in the file. &c is filled
@@ -61,22 +61,22 @@ namespace PV {
       stbi_image_free(data);
    }
 
-   PVImg::PVImg(const std::vector<float> &data, int width, int height, int channels) {
+   Image::Image(const std::vector<float> &data, int width, int height, int channels) {
       deserialize(data, width, height, channels);
    }
 
-   void PVImg::setPixel(int x, int y, float r, float g, float b) {
+   void Image::setPixel(int x, int y, float r, float g, float b) {
       setPixel(x, y, r, g, b, 1.0f);
    }
 
-   void PVImg::setPixel(int x, int y, float r, float g, float b, float a) {
+   void Image::setPixel(int x, int y, float r, float g, float b, float a) {
       mData.at(y).at(x).at(0) = r;
       mData.at(y).at(x).at(1) = g;
       mData.at(y).at(x).at(2) = b;
       mData.at(y).at(x).at(3) = a;
    }
 
-   std::vector<float> PVImg::serialize(int channels) {
+   std::vector<float> Image::serialize(int channels) {
 
       std::vector<int> channelIndices;
 
@@ -109,7 +109,7 @@ namespace PV {
       return result;
    }
 
-   void PVImg::deserialize(const std::vector<float> &data, int width, int height, int channels) {
+   void Image::deserialize(const std::vector<float> &data, int width, int height, int channels) {
       mHeight = height;
       mWidth = width;
       std::vector<int> channelIndices;

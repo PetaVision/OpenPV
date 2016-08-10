@@ -10,7 +10,7 @@
 #ifndef IMAGELAYER_HPP_
 #define IMAGELAYER_HPP_
 
-#include "utils/PVImg.hpp"
+#include "utils/Image.hpp"
 #include "InputLayer.hpp"
 
 #include <cMakeHeader.h>
@@ -65,7 +65,7 @@ namespace PV {
       int initialize_base();
 
    protected:
-      std::unique_ptr<PVImg> mImage;
+      std::unique_ptr<Image> mImage;
 
    };
 }

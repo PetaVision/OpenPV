@@ -70,7 +70,7 @@ namespace PV {
             int externalIndex = x*xstride + y*ystride + f*bandstride;
             newData.at(k) = pixelTypeConvert(externalBuffer[externalIndex], zeroval, oneval);
          }
-         mImage = std::unique_ptr<PVImg>(new PVImg(newData, width, height, numbands));
+         mImage = std::unique_ptr<Image>(new Image(newData, width, height, numbands));
       }
       hasNewImageFlag = true;
 

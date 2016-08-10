@@ -1,5 +1,5 @@
 #include "ImageLayer.hpp"
-#include "utils/PVImg.hpp"
+#include "utils/Image.hpp"
 #include "../arch/mpi/mpi.h"
 
 #include <assert.h>
@@ -83,7 +83,7 @@ namespace PV {
          }
       }
 
-      mImage = std::unique_ptr<PVImg>(new PVImg(std::string(filename)));
+      mImage = std::unique_ptr<Image>(new Image(std::string(filename)));
 
       if (usingTempFile) {
          int rmstatus = remove(filename.c_str());

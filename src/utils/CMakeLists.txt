@@ -3,7 +3,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/PVAssert.cpp
    ${SUBDIR}/PVAlloc.cpp
    ${SUBDIR}/PVLog.cpp
-   ${SUBDIR}/PVImg.cpp
+   ${SUBDIR}/Image.cpp
    ${SUBDIR}/Buffer.cpp
 )
 
@@ -12,7 +12,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/PVAssert.hpp
    ${SUBDIR}/PVAlloc.hpp
    ${SUBDIR}/PVLog.hpp
-   ${SUBDIR}/PVImg.hpp
+   ${SUBDIR}/Image.hpp
    ${SUBDIR}/Buffer.hpp
 )
 
