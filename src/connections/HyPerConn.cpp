@@ -2769,7 +2769,7 @@ int HyPerConn::deliver() {
 
    for (int arbor=0; arbor<numArbors; arbor++) {
       int delay = getDelay(arbor);
-      cube.data = (pvdata_t *) store->buffer(0, delay); //First element is batch, but since it's a continuous buffer, 0 here is alright
+      cube.data = store->buffer(0, delay); //First element is batch, but since it's a continuous buffer, 0 here is alright
       if(!getUpdateGSynFromPostPerspective()){
          cube.isSparse = store->isSparse();
          if(cube.isSparse){

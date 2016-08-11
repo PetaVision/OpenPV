@@ -1508,7 +1508,7 @@ int HyPerLayer::requireChannel(int channelNeeded, int * numChannelsResult) {
 const pvdata_t * HyPerLayer::getLayerData(int delay)
 {
    DataStore * store = publisher->dataStore();
-   return (pvdata_t *) store->buffer(0, delay);
+   return store->buffer(0, delay);
 }
 
 #ifdef OBSOLETE // Marked obsolete June 28, 2016.  When mirroring is done, all borders are mirrored.
@@ -2196,7 +2196,7 @@ int HyPerLayer::readDataStoreFromFile(const char * filename, Communicator * comm
          double tlevel;
          pvp_read_time(readFile, comm, 0/*root process*/, &tlevel);
          datastore->setLastUpdateTime(b/*bufferId*/, l, tlevel);
-         pvdata_t * buffer = (pvdata_t *) datastore->buffer(b, l);
+         pvdata_t * buffer = datastore->buffer(b, l);
          int status1 = scatterActivity(readFile, comm, 0/*root process*/, buffer, getLayerLoc(), true, NULL, 0, 0, PVP_NONSPIKING_ACT_FILE_TYPE, 0);
          if (status1 != PV_SUCCESS) status = PV_FAILURE;
       }
@@ -2313,7 +2313,7 @@ int HyPerLayer::writeDataStoreToFile(const char * filename, Communicator * comm,
                pvError().printf("HyPerLayer::writeBufferFile error writing timestamp to \"%s\"\n", filename);
             }
          }
-         pvdata_t * buffer = (pvdata_t *) datastore->buffer(b, l);
+         pvdata_t * buffer = datastore->buffer(b, l);
          int status1 = gatherActivity(writeFile, comm, 0, buffer, getLayerLoc(), true/*extended*/);
          if (status1 != PV_SUCCESS) status = PV_FAILURE;
       }

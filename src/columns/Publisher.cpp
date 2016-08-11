@@ -13,15 +13,13 @@ namespace PV {
 
 Publisher::Publisher(Communicator * comm, PVLayerCube * cube, int numLevels, bool isSparse)
 {
-   size_t dataSize  = sizeof(float);
-
    this->mLayerCube = cube;
    this->mComm  = comm;
 
    int const numBuffers = cube->loc.nbatch;
    int const numItems = cube->numItems/numBuffers; // number of items in one batch element.
 
-   store = new DataStore(numBuffers, numItems, dataSize, numLevels, isSparse);
+   store = new DataStore(numBuffers, numItems, numLevels, isSparse);
 
    this->neighborDatatypes = Communicator::newDatatypes(&cube->loc);
 
@@ -49,7 +47,7 @@ int Publisher::calcAllActiveIndices() {
       for(int b = 0; b < store->numberOfBuffers(); b++){
          //Active indicies stored as local ext values
          int numActive = 0;
-         pvdata_t * activity = (pvdata_t*) store->buffer(b, l);;
+         pvdata_t * activity = store->buffer(b, l);;
          unsigned int * activeIndices = store->activeIndicesBuffer(b, l);
          long * numActiveBuf = store->numActiveBuffer(b, l);
 
@@ -70,7 +68,7 @@ int Publisher::calcActiveIndices() {
    for(int b = 0; b < store->numberOfBuffers(); b++){
       //Active indicies stored as local ext values
       int numActive = 0;
-      pvdata_t * activity = (pvdata_t*) store->buffer(b);;
+      pvdata_t * activity = store->buffer(b);;
       unsigned int * activeIndices = store->activeIndicesBuffer(b);
       long * numActiveBuf = store->numActiveBuffer(b);
       for (int kex = 0; kex < store->getNumItems(); kex++) {
@@ -93,7 +91,6 @@ int Publisher::publish(double currentTime, double lastUpdateTime)
    //
 
    size_t dataSize = mLayerCube->numItems * sizeof(pvdata_t);
-   pvAssert(dataSize == (store->size() * store->numberOfBuffers()));
 
    pvdata_t const * sendBuf = mLayerCube->data;
    pvdata_t * recvBuf = recvBuffer(0); //Grab all of the buffer, allocated continuously

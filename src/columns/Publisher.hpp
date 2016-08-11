@@ -36,9 +36,9 @@ public:
 private:
 
    pvdata_t * recvBuffer(int bufferId)
-         {return (pvdata_t *) store->buffer(bufferId);}
+         {return store->buffer(bufferId);}
    pvdata_t * recvBuffer(int bufferId, int delay)
-         {return (pvdata_t *) store->buffer(bufferId, delay);}
+         {return store->buffer(bufferId, delay);}
 
    long * recvNumActiveBuffer(int bufferId){
       return store->numActiveBuffer(bufferId);

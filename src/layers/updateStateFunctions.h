@@ -207,7 +207,7 @@ int setActivity_GapLayer(int nbatch, int numNeurons,
 KERNEL
 int resetGSynBuffers_HyPerLayer(int nbatch, int numNeurons, int num_channels, MEM_GLOBAL pvdata_t * GSynHead);
 KERNEL
-int resetGSynBuffers_PoolingIndexLayer(int nbatch, int numNeurons, int num_channels, MEM_GLOBAL float * GSynHead);
+int resetGSynBuffers_PoolingIndexLayer(int nbatch, int numNeurons, int num_channels, MEM_GLOBAL pvdata_t * GSynHead);
 KERNEL
 int resetGSynBuffers_SigmoidLayer();
 
@@ -1186,9 +1186,9 @@ int resetGSynBuffers_HyPerLayer(int nbatch, int numNeurons, int num_channels, ME
 
 //TODO merge this with resetGSynBuffers_HyPerLayer with a template
 KERNEL
-int resetGSynBuffers_PoolingIndexLayer(int nbatch, int numNeurons, int num_channels, MEM_GLOBAL int * GSynHead) {
+int resetGSynBuffers_PoolingIndexLayer(int nbatch, int numNeurons, int num_channels, MEM_GLOBAL pvdata_t * GSynHead) {
    for( int ch = 0; ch < num_channels; ch ++ ) {
-      MEM_GLOBAL int * channelStart = &GSynHead[ch*nbatch*numNeurons];
+      MEM_GLOBAL pvdata_t * channelStart = &GSynHead[ch*nbatch*numNeurons];
       int k;
 #ifndef PV_USE_CUDA
    #ifdef PV_USE_OPENMP_THREADS
@@ -1199,7 +1199,7 @@ int resetGSynBuffers_PoolingIndexLayer(int nbatch, int numNeurons, int num_chann
       k = getIndex();
 #endif // PV_USE_CUDA
       {
-         channelStart[k] = -1;
+         channelStart[k] = (pvdata_t) -1;
       }
    }
    return PV_SUCCESS;

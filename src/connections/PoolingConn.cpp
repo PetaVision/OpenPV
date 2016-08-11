@@ -294,13 +294,11 @@ int PoolingConn::allocateDataStructures(){
    if(needPostIndexLayer){
       //Allocate temp buffers if needed, 1 for each thread
       if(parent->getNumThreads() > 1){
-         thread_gateIdxBuffer= (int**) malloc(sizeof(int*) * parent->getNumThreads());
-         //thread_gateIdxBuffer= (float**) malloc(sizeof(float*) * parent->getNumThreads());
+         thread_gateIdxBuffer= (pvdata_t **) malloc(sizeof(int*) * parent->getNumThreads());
          assert(thread_gateIdxBuffer);
          //Assign thread_gSyn to different points of tempMem
          for(int i = 0; i < parent->getNumThreads(); i++){
-            int* thread_buffer = (int*) malloc(sizeof(int) * post->getNumNeurons());
-            //float* thread_buffer = (float*) malloc(sizeof(float) * post->getNumNeurons());
+            pvdata_t * thread_buffer = (pvdata_t *) malloc(sizeof(pvdata_t) * post->getNumNeurons());
             if(!thread_buffer){
                pvError().printf("HyPerLayer \"%s\" error: rank %d unable to allocate %zu memory for thread_gateIdxBuffer: %s\n", name, parent->columnId(), sizeof(int) * post->getNumNeurons(), strerror(errno));
             }
@@ -448,7 +446,7 @@ int PoolingConn::deliverPresynapticPerspective(PVLayerCube const * activity, int
    for(int b = 0; b < parent->getNBatch(); b++){
       pvdata_t * activityBatch = activity->data + b * (preLoc->nx + preLoc->halo.rt + preLoc->halo.lt) * (preLoc->ny + preLoc->halo.up + preLoc->halo.dn) * preLoc->nf;
       pvdata_t * gSynPatchHeadBatch = post->getChannel(getChannel()) + b * postLoc->nx * postLoc->ny * postLoc->nf;
-      int* gatePatchHeadBatch = NULL;
+      pvdata_t * gatePatchHeadBatch = NULL;
       if(needPostIndexLayer){
          gatePatchHeadBatch = postIndexLayer->getChannel(CHANNEL_EXC) + b * postIndexLayer->getNumNeurons();
       }
@@ -509,7 +507,7 @@ int PoolingConn::deliverPresynapticPerspective(PVLayerCube const * activity, int
          //If we're using thread_gSyn, set this here
          pvdata_t * gSynPatchHead;
          //float * gatePatchHead = NULL;
-         int * gatePatchHead = NULL;
+         pvdata_t * gatePatchHead = NULL;
 #ifdef PV_USE_OPENMP_THREADS
          if(thread_gSyn){
             int ti = omp_get_thread_num();
@@ -542,8 +540,7 @@ int PoolingConn::deliverPresynapticPerspective(PVLayerCube const * activity, int
          const int sy  = getPostNonextStrides()->sy;       // stride in layer
          pvwdata_t * weightDataStart = NULL; 
          pvgsyndata_t * postPatchStart = gSynPatchHead + getGSynPatchStart(kPreExt, arborID);
-         int* postGatePatchStart = gatePatchHead + getGSynPatchStart(kPreExt, arborID);
-         //float* postGatePatchStart = gatePatchHead + getGSynPatchStart(kPreExt, arborID);
+         pvdata_t * postGatePatchStart = gatePatchHead + getGSynPatchStart(kPreExt, arborID);
 
          const int kxPreExt = kxPos(kPreExt, preLoc->nx + preLoc->halo.lt + preLoc->halo.rt, preLoc->ny + preLoc->halo.dn + preLoc->halo.up, preLoc->nf);
          const int kyPreExt = kyPos(kPreExt, preLoc->nx + preLoc->halo.lt + preLoc->halo.rt, preLoc->ny + preLoc->halo.dn + preLoc->halo.up, preLoc->nf);
@@ -565,10 +562,10 @@ int PoolingConn::deliverPresynapticPerspective(PVLayerCube const * activity, int
            float relative_YScale = pow(2, (post->getYScale() - pre->getYScale()));
            w = 1.0/(nxp*nyp*relative_XScale*relative_YScale);
          }
-         void* auxPtr = NULL;
+         void* auxPtr = nullptr;
          for (int y = 0; y < ny; y++) {
             if(needPostIndexLayer){
-               auxPtr = (postGatePatchStart+ y*sy + offset);
+               auxPtr = &postGatePatchStart[y*sy + offset];
             }
             (accumulateFunctionPointer)(kPreGlobalExt, nk, postPatchStart + y*sy + offset, a, &w, auxPtr, sf);
          }
@@ -577,8 +574,7 @@ int PoolingConn::deliverPresynapticPerspective(PVLayerCube const * activity, int
       //Accumulate back into gSyn // Should this be done in HyPerLayer where it can be done once, as opposed to once per connection?
       if(thread_gSyn){
          pvdata_t * gSynPatchHead = gSynPatchHeadBatch;
-         //float* gateIdxBuffer = postIndexLayer->getChannel(CHANNEL_EXC);
-         int * gateIdxBuffer = NULL;
+         pvdata_t * gateIdxBuffer = nullptr;
          if(needPostIndexLayer && thread_gateIdxBuffer){
             gateIdxBuffer = gatePatchHeadBatch;
          }
@@ -651,7 +647,7 @@ int PoolingConn::deliverPostsynapticPerspective(PVLayerCube const * activity, in
    pvdata_t * gSynPatchHead = post->getChannel(this->getChannel());
 
    clearGateIdxBuffer();
-   int* gatePatchHead = NULL;
+   pvdata_t * gatePatchHead = nullptr;
    if(needPostIndexLayer){
       gatePatchHead = postIndexLayer->getChannel(CHANNEL_EXC);
    }
@@ -687,11 +683,11 @@ int PoolingConn::deliverPostsynapticPerspective(PVLayerCube const * activity, in
          //Initialize patch as a huge negative number
          *gSynPatchPos = resetVal;
 
-         int* gatePatchPos = NULL;
+         pvdata_t * gatePatchPos = nullptr;
          if(needPostIndexLayer){
             gatePatchPos = gatePatchHead + b * postIndexLayer->getNumNeurons() + kTargetRes;
             //Initialize gatePatchPos as a negative number
-            *gatePatchPos = -1;
+            *gatePatchPos = (pvdata_t) -1;
          }
 
          float* activityStartBuf = &(activityBatch[startSourceExt]); 

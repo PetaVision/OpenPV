@@ -16,10 +16,6 @@ class PoolingIndexLayer : public HyPerLayer {
 public:
    PoolingIndexLayer(const char* name, HyPerCol * hc);
    virtual ~PoolingIndexLayer();
-   virtual int * getActivity(){return (int*)(clayer->activity->data);} // TODO: access to clayer->activity->data should not be public
-   virtual int* getChannel(ChannelType ch) {                         // name query
-       return (ch < this->numChannels && ch >= 0) ? (int*)GSyn[ch] : NULL;
-   }
    bool activityIsSpiking() { return false; }
    virtual int requireChannel(int channelNeeded, int * numChannelsResult);
 protected:

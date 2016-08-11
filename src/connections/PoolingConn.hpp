@@ -76,7 +76,7 @@ protected:
 private:
    int initialize_base();
    void unsetAccumulateType();
-   int ** thread_gateIdxBuffer;
+   pvdata_t ** thread_gateIdxBuffer;
    bool needPostIndexLayer;
    char* postIndexLayerName;
    PoolingIndexLayer* postIndexLayer;
