@@ -73,21 +73,13 @@ int ShrunkenPatchTestLayer::allocateDataStructures() {
 
 int ShrunkenPatchTestLayer::updateState(double timed, double dt)
 {
-   //updateV();
-   //setActivity();
-   //resetGSynBuffers();
-   //updateActiveIndices();
-
    return PV_SUCCESS;
 }
 
 int ShrunkenPatchTestLayer::publish(Communicator* comm, double timed)
 {
    setActivitytoGlobalPos();
-   int status = publisher->publish(timed, lastUpdateTime, clayer->activity);
-   return status;
-
-   //return HyPerLayer::publish(comm, time);
+   return HyPerLayer::publish(comm, timed);
 }
 
 } /* namespace PV */
