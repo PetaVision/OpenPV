@@ -223,10 +223,89 @@ void testCrop() {
 
 // Buffer::rescale(int targetRows, int targetColumns, enum RescaleMethod rescaleMethod, enum InterpolationMethod interpMethod)
 void testRescale() {
-   //TODO: Figure out how to test rescaling
-   pvErrorIf(true, "Not implemented.\n");
-}
 
+   std::vector<float> testData = {
+      1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
+      1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
+      1.0f, 1.0f, 5.0f, 5.0f, 5.0f, 5.0f, 1.0f, 1.0f,
+      1.0f, 1.0f, 5.0f, 5.0f, 5.0f, 5.0f, 1.0f, 1.0f,
+      1.0f, 1.0f, 5.0f, 5.0f, 5.0f, 5.0f, 1.0f, 1.0f,
+      1.0f, 1.0f, 5.0f, 5.0f, 5.0f, 5.0f, 1.0f, 1.0f,
+      1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
+      1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f
+   };
+
+   std::vector<float> answerNearest = {
+      1.0f, 1.0f, 1.0f, 1.0f,
+      1.0f, 5.0f, 5.0f, 1.0f,
+      1.0f, 5.0f, 5.0f, 1.0f,
+      1.0f, 1.0f, 1.0f, 1.0f
+   };
+
+   std::vector<float> answerCrop = {
+      1.0f, 1.0f, 5.0f, 5.0f, 5.0f, 5.0f, 1.0f, 1.0f,
+      1.0f, 1.0f, 5.0f, 5.0f, 5.0f, 5.0f, 1.0f, 1.0f,
+      1.0f, 1.0f, 5.0f, 5.0f, 5.0f, 5.0f, 1.0f, 1.0f,
+      1.0f, 1.0f, 5.0f, 5.0f, 5.0f, 5.0f, 1.0f, 1.0f,
+   };
+
+   std::vector<float> answerPad = {
+      0.0f, 0.0f, 0.0f, 0.0f,
+      0.0f, 0.0f, 0.0f, 0.0f,
+      1.0f, 1.0f, 1.0f, 1.0f,
+      1.0f, 5.0f, 5.0f, 1.0f,
+      1.0f, 5.0f, 5.0f, 1.0f,
+      1.0f, 1.0f, 1.0f, 1.0f,
+      0.0f, 0.0f, 0.0f, 0.0f,
+      0.0f, 0.0f, 0.0f, 0.0f
+   };
+
+
+   Buffer testBuffer(8, 8, 1);
+   testBuffer.set(testData);
+
+   // Test nearest neighbor scaling. Rescale method will not be
+   // used here because the aspect ratio is the same.
+   testBuffer.rescale(4, 4, Buffer::PAD, Buffer::NEAREST);
+   std::vector<float> nearest = testBuffer.asVector();
+
+   pvErrorIf(nearest.size() != answerNearest.size(),
+         "Failed (Size). Expected %d elements, found %d.\n",
+         answerNearest.size(), nearest.size());
+   for(int i = 0; i < nearest.size(); ++i) {
+      pvErrorIf(nearest.at(i) != answerNearest.at(i),
+         "Failed (Nearest). Expected %f at index %d, found %f.\n",
+         answerNearest.at(i), i, nearest.at(i));
+   }
+ 
+   // Test Buffer::CROP resizeMethod
+   testBuffer.resize(8, 8, 1);
+   testBuffer.set(testData);
+   testBuffer.rescale(4, 8, Buffer::CROP, Buffer::NEAREST);
+   std::vector<float> cropped = testBuffer.asVector();
+   pvErrorIf(cropped.size() != answerCrop.size(),
+         "Failed (Size). Expected %d elements, found %d.\n",
+         answerCrop.size(), cropped.size());
+   for(int i = 0; i < cropped.size(); ++i) {
+      pvErrorIf(cropped.at(i) != answerCrop.at(i),
+         "Failed (Crop). Expected %f at index %d, found %f.\n",
+         answerCrop.at(i), i, cropped.at(i));
+   }
+   
+   // Test Buffer::PAD resizeMethod
+   testBuffer.resize(8, 8, 1);
+   testBuffer.set(testData);
+   testBuffer.rescale(8, 4, Buffer::PAD, Buffer::NEAREST);
+   std::vector<float> padded = testBuffer.asVector();
+   pvErrorIf(padded.size() != answerPad.size(),
+         "Failed (Size). Expected %d elements, found %d.\n",
+         answerPad.size(), padded.size());
+  for(int i = 0; i < padded.size(); ++i) {
+      pvErrorIf(padded.at(i) != answerPad.at(i),
+         "Failed (Pad). Expected %f at index %d, found %f.\n",
+         answerPad.at(i), i, padded.at(i));
+   }
+}
 
 int main(int argc, char** argv) {
    pvInfo() << "Testing Buffer::at(): ";

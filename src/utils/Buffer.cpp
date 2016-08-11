@@ -28,7 +28,6 @@ namespace PV {
       int cols = getColumns();
       int features = getFeatures();
 
-      pvStackTrace();
       pvErrorIf(vector.size() != rows * cols * features,
             "Invalid vector size: Expected %d elements, vector contained %d elements. Did you remember to call resize() before set()?\n",
             rows * cols * features, vector.size());
@@ -165,15 +164,31 @@ namespace PV {
    }
 
    void Buffer::crop(int targetRows, int targetColumns, enum OffsetAnchor offsetAnchor, int offsetX, int offsetY) {
-      offsetX = getOffsetX(offsetAnchor, offsetX, targetColumns, getColumns());
-      offsetY = getOffsetY(offsetAnchor, offsetY, targetRows, getRows());
-      Buffer cropped(targetRows, targetColumns, getFeatures());
-      for(int r = 0; r < targetRows; ++r) {
-         for(int c = 0; c < targetColumns; ++c) {
+      int smallerRows = targetRows < getRows() ? targetRows : getRows();
+      int smallerCols = targetColumns < getColumns() ? targetColumns : getColumns();
+      int biggerRows = targetRows > getRows() ? targetRows : getRows();
+      int biggerCols = targetColumns > getColumns() ? targetColumns : getColumns();
+      int originX = 0;
+      int originY = 0;
+       // If we're "cropping" to a larger canvas, place the original in the center
+      if(targetRows > getRows()) {
+         originY = (targetRows - getRows()) / 2;
+      }
+      if(targetColumns > getColumns()) {
+         originX = (targetColumns - getColumns()) / 2;
+      }
+ 
+
+     offsetX = getOffsetX(offsetAnchor, offsetX-originX, smallerCols, biggerCols);
+     offsetY = getOffsetY(offsetAnchor, offsetY-originY, smallerRows, biggerRows);
+     Buffer cropped(targetRows, targetColumns, getFeatures());
+
+     for(int r = 0; r < smallerRows; ++r) {
+         for(int c = 0; c < smallerCols; ++c) {
             for(int f = 0; f < getFeatures(); ++f) {
                int x = c + offsetX, y = r + offsetY;
-               constrainPoint(x, y, 0, getColumns(), 0, getRows(), CLAMP);
-               cropped.set(r, c, f, at(y, x, f));
+               constrainPoint(x, y, 0, getColumns()-1, 0, getRows()-1, CLAMP);
+               cropped.set(r+originY, c+originX, f, at(y, x, f));
             }
          }
       }
@@ -200,22 +215,28 @@ namespace PV {
          resizeFactor = xRatio < yRatio ? xRatio : yRatio;
          // resizeFactor * width should be <= getLayerLoc()->nx; resizeFactor * height should be <= getLayerLoc()->ny,
          // and one of these relations should be == (up to floating-point roundoff).
-         resizedColumns = (int) nearbyintf(resizeFactor * getColumns()); 
-         resizedRows = (int) nearbyintf(resizeFactor * getRows());
+         resizedColumns = static_cast<int>(nearbyintf(resizeFactor * getColumns()));
+         resizedRows = static_cast<int>(nearbyintf(resizeFactor * getRows()));
       }
 
       std::vector<float> rawInput = asVector();
-      std::vector<float> scaledInput(rawInput.size());
+      std::vector<float> scaledInput(resizedRows * resizedColumns * getFeatures());
       switch(interpMethod) {
          case BICUBIC:
-            bicubicInterp(&rawInput[0], getColumns(), getRows(), getFeatures(), getFeatures(), getFeatures() * getColumns(), 1, &scaledInput[0], resizedColumns, resizedRows);
+            bicubicInterp(rawInput.data(), getColumns(), getRows(), getFeatures(), getFeatures(), getFeatures() * getColumns(), 1, scaledInput.data(), resizedColumns, resizedRows);
             break;
          case NEAREST:
-            nearestNeighborInterp(&rawInput[0], getColumns(), getRows(), getFeatures(), getFeatures(), getFeatures() * getColumns(), 1, &scaledInput[0], resizedColumns, resizedRows);
+            nearestNeighborInterp(rawInput.data(), getColumns(), getRows(), getFeatures(), getFeatures(), getFeatures() * getColumns(), 1, scaledInput.data(), resizedColumns, resizedRows);
             break;
       }
       resize(resizedRows, resizedColumns, getFeatures());
       set(scaledInput);
+
+      // This final call to crop resizes the buffer to our specified
+      // targetRows and targetColumns. If our rescaleMethod was PAD,
+      // this actually grows the buffer to include the padded region.
+      // TODO: Accept offsetAnchor as an argument to use here
+      crop(targetRows, targetColumns, CENTER, 0, 0);
    }
 
 

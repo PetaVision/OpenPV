@@ -8,6 +8,7 @@
 
 namespace PV {
 
+   // TODO: Image should probably have Image::load(filename) and this constructor should call it
    Image::Image(std::string filename) {
       int width = 0, height = 0, channels = 0;
       uint8_t* data = stbi_load(filename.c_str(), &width, &height, &channels, 0);
@@ -17,8 +18,8 @@ namespace PV {
       for(int row = 0; row < height; ++row) {
          for(int col = 0; col < width; ++col) {
             for(int f = 0; f < channels; ++f) {
-               float value = static_cast<float>(data[(row * width + col) * channels + f]);
-               set(col, row, f, value);
+               float value = static_cast<float>(data[(row * width + col) * channels + f]) / 255.0f;
+               set(row, col, f, value);
             }
          }
       }
@@ -99,10 +100,11 @@ namespace PV {
             set(grayScale.asVector());
             return;
          }
-
+      }
+      else {
          // We're currently RGB or RGBA and need to be Grayscale or Grayscale + Alpha
          // RGB weights from <https://en.wikipedia.org/wiki/Grayscale>, citing Pratt, Digital Image Processing
-         const float rgbWeights[3] = {0.30f, 0.59f, 0.11f};
+         const float rgbWeights[3] = { mRToGray, mGToGray, mBToGray };//{0.30f, 0.59f, 0.11f};
          Buffer grayScale(getRows(), getColumns(), alphaChannel ? 2 : 1);
 
          for(int r = 0; r < getRows(); ++r) {
@@ -114,10 +116,10 @@ namespace PV {
                grayScale.set(r, c, 0, sum);
                if(alphaChannel) {
                   if(getFeatures() > 3) {
-                     grayScale.set(r, c, 3, at(r, c, 3));
+                     grayScale.set(r, c, 1, at(r, c, 3));
                   }
                   else {
-                     grayScale.set(r, c, 3, 1.0f);
+                     grayScale.set(r, c, 1, 1.0f);
                   }
                }
             }

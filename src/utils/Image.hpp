@@ -25,6 +25,10 @@ namespace PV {
          void convertToColor(bool alphaChannel);
          void convertToGray(bool alphaChannel);
 
+         static constexpr const float mRToGray = 0.30f;
+         static constexpr const float mGToGray = 0.59f;
+         static constexpr const float mBToGray = 0.11f;
+
       protected:
          // These only line up for RGB and RGBA. Should that change?
          const int mRPos = 0;

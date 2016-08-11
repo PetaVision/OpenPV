@@ -21,6 +21,7 @@ endif("${PV_SYSTEM_TEST_THREADS}" MATCHES "^([0-9]+|)$")
 
 add_subdirectory(BasicSystemTest)
 add_subdirectory(BufferTest)
+add_subdirectory(ImageTest)
 add_subdirectory(AdjustAxonalArborsTest)
 add_subdirectory(ANNLayerVerticesTest)
 add_subdirectory(ArborSystemTest)
