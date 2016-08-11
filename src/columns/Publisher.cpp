@@ -30,7 +30,6 @@ Publisher::Publisher(Communicator * comm, int numItems, PVLayerLoc loc, int numL
 
    store = new DataStore(numBuffers, numItems, dataSize, numLevels, isSparse);
 
-   //DONE: check for memory leak here, method flagged by valgrind
    this->neighborDatatypes = Communicator::newDatatypes(&loc);
 
    requests.clear();
@@ -106,8 +105,6 @@ int Publisher::publish(double currentTime, double lastUpdateTime,
 
    pvdata_t * sendBuf = cube->data;
    pvdata_t * recvBuf = recvBuffer(0); //Grab all of the buffer, allocated continuously
-
-   bool isSparse = store->isSparse();
 
    if (lastUpdateTime >= currentTime) {
       // copy entire layer and let neighbors overwrite
