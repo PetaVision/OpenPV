@@ -54,6 +54,7 @@ namespace PV {
    }
 
    // Resizing a Buffer will clear its contents. Use rescale or crop to preserve values.
+   // Is there a better name for this? clearAndResize()?
    void Buffer::resize(int rows, int columns, int features) {
       mData.resize(rows);
       for(int r = 0; r < rows; ++r) {
@@ -65,7 +66,6 @@ namespace PV {
       }
    }
 
-   //Offsets based on an anchor point, so calculate offsets based off a given anchor point
    int Buffer::getOffsetX(enum OffsetAnchor offsetAnchor, int offsetX, int newWidth, int currentWidth) {
       switch(offsetAnchor) {
          case NORTHWEST:
@@ -102,7 +102,8 @@ namespace PV {
       return 0;
    }
 
-   //TODO: Some of these methods could be moved to a BufferManipulaton class
+   // TODO: Some of these methods could be moved to a BufferManipulaton class, or maybe
+   // a TransformableBuffer subclass? RescaleableBuffer? MalleableBuffer?
    bool Buffer::constrainPoint(int &x, int &y, int minX, int maxX, int minY, int maxY, enum PointConstraintMethod method) {
       bool moved_x = x < minX || y > maxX;
       bool moved_y = y < minY || y > maxY;
