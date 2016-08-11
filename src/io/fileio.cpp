@@ -1276,7 +1276,7 @@ int writeActivity(PV_Stream * pvstream, Communicator * comm, double timed, DataS
    int rank = comm->commRank();
 
    for(int b = 0; b < loc->nbatch; b++){
-      pvadata_t * data = (pvadata_t*) store->buffer(b);
+      pvadata_t * data = store->buffer(b);
       if( rank == 0 ) {
          long fpos = getPV_StreamFilepos(pvstream);
          if (fpos == 0L) {
@@ -1316,7 +1316,7 @@ int writeActivitySparse(PV_Stream * pvstream, Communicator * comm, double timed,
 
       int localActive = *(store->numActiveBuffer(b));
       unsigned int * indices = store->activeIndicesBuffer(b);
-      pvadata_t * valueData = (pvadata_t*) store->buffer(b);
+      pvadata_t * valueData = store->buffer(b);
 
       indexvaluepair * indexvaluepairs = NULL;
       unsigned int * globalResIndices = NULL;

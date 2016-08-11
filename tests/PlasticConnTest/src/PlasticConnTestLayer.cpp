@@ -59,21 +59,13 @@ int PlasticConnTestLayer::allocateDataStructures() {
 
 int PlasticConnTestLayer::updateState(double timef, double dt)
 {
-   //updateV();
-   //setActivity();
-   //resetGSynBuffers();
-   //updateActiveIndices();
-
    return PV_SUCCESS;
 }
 
 int PlasticConnTestLayer::publish(Communicator* comm, double timef)
 {
    setActivitytoGlobalPos();
-   int status = publisher->publish(timef, lastUpdateTime, clayer->activity);
-   return status;
-
-   //return HyPerLayer::publish(comm, time);
+   return HyPerLayer::publish(comm, timef);
 }
 
 } /* namespace PV */

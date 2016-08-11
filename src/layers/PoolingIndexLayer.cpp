@@ -48,7 +48,7 @@ void PoolingIndexLayer::ioParam_dataType(enum ParamsIOFlag ioFlag) {
 
 //This function should never be called, since this layer should never be a post layer and only accessed from PoolingConn.
 int PoolingIndexLayer::requireChannel(int channelNeeded, int * numChannelsResult) {
-   pvError() << "Error, PoolingIndexLayer cannot be a post layer\n";
+   pvError() << "PoolingIndexLayer cannot be a post layer\n";
    return PV_SUCCESS;
 }
 

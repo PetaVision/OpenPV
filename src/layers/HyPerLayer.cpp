@@ -528,7 +528,7 @@ int HyPerLayer::allocateGSyn() {
 
 void HyPerLayer::addPublisher() {
    Communicator * icComm = parent->getCommunicator();
-   publisher = new Publisher(icComm, getNumExtended(), clayer->loc, getNumDelayLevels(), getSparseFlag());
+   publisher = new Publisher(icComm, clayer->activity, getNumDelayLevels(), getSparseFlag());
 }
 
 int HyPerLayer::initializeState() {
@@ -1508,7 +1508,7 @@ int HyPerLayer::requireChannel(int channelNeeded, int * numChannelsResult) {
 const pvdata_t * HyPerLayer::getLayerData(int delay)
 {
    DataStore * store = publisher->dataStore();
-   return (pvdata_t *) store->buffer(0, delay);
+   return store->buffer(0, delay);
 }
 
 #ifdef OBSOLETE // Marked obsolete June 28, 2016.  When mirroring is done, all borders are mirrored.
@@ -1918,7 +1918,7 @@ int HyPerLayer::publish(Communicator* comm, double time)
       mirrorInteriorToBorder(clayer->activity, clayer->activity);
    }
    
-   int status = publisher->publish(time, lastUpdateTime, clayer->activity);
+   int status = publisher->publish(time, lastUpdateTime);
    publish_timer->stop();
    return status;
 }
@@ -2186,8 +2186,8 @@ int HyPerLayer::readDataStoreFromFile(const char * filename, Communicator * comm
       abort();
    }
    DataStore * datastore = publisher->dataStore();
-   int numlevels = datastore->numberOfLevels();
-   int numbuffers = datastore->numberOfBuffers();
+   int numlevels = datastore->getNumLevels();
+   int numbuffers = datastore->getNumBuffers();
    if (params[INDEX_NBANDS] != numlevels*numbuffers) {
       pvError().printf("readDataStoreFromFile error reading \"%s\": number of delays + batches in file is %d, but number of delays + batches in layer is %d\n", filename, params[INDEX_NBANDS], numlevels*numbuffers);
    }
@@ -2196,7 +2196,7 @@ int HyPerLayer::readDataStoreFromFile(const char * filename, Communicator * comm
          double tlevel;
          pvp_read_time(readFile, comm, 0/*root process*/, &tlevel);
          datastore->setLastUpdateTime(b/*bufferId*/, l, tlevel);
-         pvdata_t * buffer = (pvdata_t *) datastore->buffer(b, l);
+         pvdata_t * buffer = datastore->buffer(b, l);
          int status1 = scatterActivity(readFile, comm, 0/*root process*/, buffer, getLayerLoc(), true, NULL, 0, 0, PVP_NONSPIKING_ACT_FILE_TYPE, 0);
          if (status1 != PV_SUCCESS) status = PV_FAILURE;
       }
@@ -2293,8 +2293,8 @@ template int HyPerLayer::writeBufferFile<float>(const char * filename, Communica
 int HyPerLayer::writeDataStoreToFile(const char * filename, Communicator * comm, double timed) {
    PV_Stream * writeFile = pvp_open_write_file(filename, comm, /*append*/false);
    assert( (writeFile != NULL && comm->commRank() == 0) || (writeFile == NULL && comm->commRank() != 0) );
-   int numlevels = publisher->dataStore()->numberOfLevels();
-   int numbuffers = publisher->dataStore()->numberOfBuffers();
+   int numlevels = publisher->dataStore()->getNumLevels();
+   int numbuffers = publisher->dataStore()->getNumBuffers();
    assert(numlevels == getNumDelayLevels());
    int * params = pvp_set_nonspiking_act_params(comm, timed, getLayerLoc(), PV_FLOAT_TYPE, numlevels);
    assert(params && params[1]==NUM_BIN_PARAMS);
@@ -2313,7 +2313,7 @@ int HyPerLayer::writeDataStoreToFile(const char * filename, Communicator * comm,
                pvError().printf("HyPerLayer::writeBufferFile error writing timestamp to \"%s\"\n", filename);
             }
          }
-         pvdata_t * buffer = (pvdata_t *) datastore->buffer(b, l);
+         pvdata_t * buffer = datastore->buffer(b, l);
          int status1 = gatherActivity(writeFile, comm, 0, buffer, getLayerLoc(), true/*extended*/);
          if (status1 != PV_SUCCESS) status = PV_FAILURE;
       }

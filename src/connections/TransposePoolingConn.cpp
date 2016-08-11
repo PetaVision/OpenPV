@@ -543,7 +543,7 @@ int TransposePoolingConn::deliverPresynapticPerspective(PVLayerCube const * acti
    const int numExtended = activity->numItems;
 
    //Grab postIdxLayer's data
-   int* postIdxData = NULL;
+   pvdata_t * postIdxData = nullptr;
    if(poolingType == PoolingConn::MAX){
       PoolingIndexLayer* postIndexLayer = originalConn->getPostIndexLayer();
       assert(postIndexLayer);
@@ -552,14 +552,13 @@ int TransposePoolingConn::deliverPresynapticPerspective(PVLayerCube const * acti
       DataStore * store = postIndexLayer->getPublisher()->dataStore();
       int delay = getDelay(arborID);
 
-      //TODO this is currently a hack, need to properly implement data types.
-      postIdxData = (int*) store->buffer(LOCAL, delay);
+      postIdxData = store->buffer(LOCAL, delay);
    }
 
    for(int b = 0; b < parent->getNBatch(); b++){
       pvdata_t * activityBatch = activity->data + b * (preLoc->nx + preLoc->halo.rt + preLoc->halo.lt) * (preLoc->ny + preLoc->halo.up + preLoc->halo.dn) * preLoc->nf;
       pvdata_t * gSynPatchHeadBatch = post->getChannel(getChannel()) + b * postLoc->nx * postLoc->ny * postLoc->nf;
-      int * postIdxDataBatch = NULL;
+      pvdata_t * postIdxDataBatch = nullptr;
       if(poolingType == PoolingConn::MAX){
          postIdxDataBatch = postIdxData + b * originalConn->getPostIndexLayer()->getNumExtended();
       }
@@ -635,7 +634,7 @@ int TransposePoolingConn::deliverPresynapticPerspective(PVLayerCube const * acti
             }
 
             //Convert stored global extended index into local extended index
-            int postGlobalExtIdx = postIdxDataBatch[kPreExt];
+            int postGlobalExtIdx = (int) postIdxDataBatch[kPreExt];
 
             // If all inputs are zero and input layer is sparse, postGlobalExtIdx will still be -1.
             if(postGlobalExtIdx == -1) { continue; }

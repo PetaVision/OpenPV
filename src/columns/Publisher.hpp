@@ -20,9 +20,9 @@ namespace PV {
 class Publisher {
 
 public:
-   Publisher(Communicator * comm, int numItems, PVLayerLoc loc, int numLevels, bool isSparse);
+   Publisher(Communicator * comm, PVLayerCube * cube, int numLevels, bool isSparse);
    virtual ~Publisher();
-   int publish(double currentTime, double lastUpdateTime, PVLayerCube * data);
+   int publish(double currentTime, double lastUpdateTime);
    int exchangeBorders(const PVLayerLoc * loc, int delay=0);
    int wait();
 
@@ -36,9 +36,9 @@ public:
 private:
 
    pvdata_t * recvBuffer(int bufferId)
-         {return (pvdata_t *) store->buffer(bufferId);}
+         {return store->buffer(bufferId);}
    pvdata_t * recvBuffer(int bufferId, int delay)
-         {return (pvdata_t *) store->buffer(bufferId, delay);}
+         {return store->buffer(bufferId, delay);}
 
    long * recvNumActiveBuffer(int bufferId){
       return store->numActiveBuffer(bufferId);
@@ -59,7 +59,7 @@ private:
 
    DataStore * store;
 
-   PVLayerCube cube;
+   PVLayerCube * mLayerCube;
 
    Communicator * mComm;
 

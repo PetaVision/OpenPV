@@ -77,21 +77,13 @@ int MPITestLayer::allocateDataStructures() {
 
 int MPITestLayer::updateState(double timed, double dt)
 {
-   //updateV();
-   //setActivity();
-   //resetGSynBuffers();
-   //updateActiveIndices();
-
    return PV_SUCCESS;
 }
 
 int MPITestLayer::publish(Communicator* comm, double timed)
 {
    setActivitytoGlobalPos();
-   int status = publisher->publish(timed, lastUpdateTime, clayer->activity);
-   return status;
-
-   //return HyPerLayer::publish(comm, time);
+   return HyPerLayer::publish(comm, timed);
 }
 
 } /* namespace PV */

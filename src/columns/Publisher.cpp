@@ -11,30 +11,20 @@
 
 namespace PV {
 
-Publisher::Publisher(Communicator * comm, int numItems, PVLayerLoc loc, int numLevels, bool isSparse)
+Publisher::Publisher(Communicator * comm, PVLayerCube * cube, int numLevels, bool isSparse)
 {
-   //size_t dataSize  = numItems * sizeof(float);
-   size_t dataSize  = sizeof(float);
-
+   this->mLayerCube = cube;
    this->mComm  = comm;
 
-   cube.data = nullptr;
-   cube.loc = loc;
-   cube.numItems = numItems;
+   int const numBuffers = cube->loc.nbatch;
+   int const numItems = cube->numItems/numBuffers; // number of items in one batch element.
 
-   const int numBuffers = loc.nbatch;
+   store = new DataStore(numBuffers, numItems, numLevels, isSparse);
 
-   // not really inplace but ok as is only used to deliver
-   // to provide cube information for data from store
-   cube.size = numBuffers * numItems * dataSize + sizeof(PVLayerCube);
-
-   store = new DataStore(numBuffers, numItems, dataSize, numLevels, isSparse);
-
-   //DONE: check for memory leak here, method flagged by valgrind
-   this->neighborDatatypes = Communicator::newDatatypes(&loc);
+   this->neighborDatatypes = Communicator::newDatatypes(&cube->loc);
 
    requests.clear();
-   requests.reserve((NUM_NEIGHBORHOOD-1) * loc.nbatch);
+   requests.reserve((NUM_NEIGHBORHOOD-1) * numBuffers);
 }
 
 Publisher::~Publisher()
@@ -53,11 +43,11 @@ int Publisher::updateActiveIndices() {
 }
 
 int Publisher::calcAllActiveIndices() {
-   for(int l = 0; l < store->numberOfLevels(); l++){
-      for(int b = 0; b < store->numberOfBuffers(); b++){
+   for(int l = 0; l < store->getNumLevels(); l++){
+      for(int b = 0; b < store->getNumBuffers(); b++){
          //Active indicies stored as local ext values
          int numActive = 0;
-         pvdata_t * activity = (pvdata_t*) store->buffer(b, l);;
+         pvdata_t * activity = store->buffer(b, l);;
          unsigned int * activeIndices = store->activeIndicesBuffer(b, l);
          long * numActiveBuf = store->numActiveBuffer(b, l);
 
@@ -75,10 +65,10 @@ int Publisher::calcAllActiveIndices() {
 }
 
 int Publisher::calcActiveIndices() {
-   for(int b = 0; b < store->numberOfBuffers(); b++){
+   for(int b = 0; b < store->getNumBuffers(); b++){
       //Active indicies stored as local ext values
       int numActive = 0;
-      pvdata_t * activity = (pvdata_t*) store->buffer(b);;
+      pvdata_t * activity = store->buffer(b);;
       unsigned int * activeIndices = store->activeIndicesBuffer(b);
       long * numActiveBuf = store->numActiveBuffer(b);
       for (int kex = 0; kex < store->getNumItems(); kex++) {
@@ -93,33 +83,29 @@ int Publisher::calcActiveIndices() {
    return PV_SUCCESS;
 }
 
-int Publisher::publish(double currentTime, double lastUpdateTime,
-                       PVLayerCube* cube)
+int Publisher::publish(double currentTime, double lastUpdateTime)
 {
    //
    // Everyone publishes border region to neighbors even if no subscribers.
    // This means that everyone should wait as well.
    //
 
-   size_t dataSize = cube->numItems * sizeof(pvdata_t);
-   pvAssert(dataSize == (store->size() * store->numberOfBuffers()));
+   size_t dataSize = mLayerCube->numItems * sizeof(pvdata_t);
 
-   pvdata_t * sendBuf = cube->data;
+   pvdata_t const * sendBuf = mLayerCube->data;
    pvdata_t * recvBuf = recvBuffer(0); //Grab all of the buffer, allocated continuously
-
-   bool isSparse = store->isSparse();
 
    if (lastUpdateTime >= currentTime) {
       // copy entire layer and let neighbors overwrite
       //Only need to exchange borders if layer was updated this timestep
       memcpy(recvBuf, sendBuf, dataSize);
-      exchangeBorders(&cube->loc, 0);
+      exchangeBorders(&mLayerCube->loc, 0);
       store->setLastUpdateTime(LOCAL/*bufferId*/, lastUpdateTime);
 
       //Updating active indices is done after MPI wait in HyPerCol
       //to avoid race condition because exchangeBorders mpi is async
    }
-   else if (store->numberOfLevels()>1){
+   else if (store->getNumLevels()>1){
       // If there are delays, copy last level's data to this level.
       // TODO: we could use pointer indirection to cut down on the number of memcpy calls required, if this turns out to be an expensive step
       memcpy(recvBuf, recvBuffer(LOCAL/*bufferId*/,1), dataSize);
