@@ -33,49 +33,49 @@ public:
    //Level (delay) spins slower than bufferId (batch element)
 
    pvdata_t * buffer(int bufferId, int level) {
-      return mBuffer[levelIndex(level)].data()+bufferId*numItems;
+      return &mBuffer[levelIndex(level)].at(bufferId*numItems);
    }
 
    pvdata_t * buffer(int bufferId) {
-      return mBuffer[curLevel].data()+bufferId*numItems;
+      return &mBuffer[curLevel].at(bufferId*numItems);
    }
 
    double getLastUpdateTime(int bufferId, int level) {
-      return mLastUpdateTimes[levelIndex(level)][bufferId];
+      return mLastUpdateTimes[levelIndex(level)].at(bufferId);
    }
 
    double getLastUpdateTime(int bufferId) {
-      return mLastUpdateTimes[levelIndex(0)][bufferId];
+      return mLastUpdateTimes[levelIndex(0)].at(bufferId);
    }
 
    void setLastUpdateTime(int bufferId, int level, double t) {
-      mLastUpdateTimes[levelIndex(level)][bufferId] = t;
+      mLastUpdateTimes[levelIndex(level)].at(bufferId) = t;
    }
 
    void setLastUpdateTime(int bufferId, double t) {
-      mLastUpdateTimes[curLevel][bufferId] = t;
+      mLastUpdateTimes[curLevel].at(bufferId) = t;
    }
 
    bool isSparse() {return isSparse_flag;}
 
    unsigned int* activeIndicesBuffer(int bufferId, int level) {
-      return mActiveIndices[levelIndex(level)].data()+bufferId*numItems;
+      return &mActiveIndices[levelIndex(level)].at(bufferId*numItems);
    }
 
    unsigned int* activeIndicesBuffer(int bufferId) {
-      return mActiveIndices[curLevel].data()+bufferId*numItems;
+      return &mActiveIndices[curLevel].at(bufferId*numItems);
    }
 
    void setNumActive(int bufferId, long numActive) {
-      mNumActive[curLevel][bufferId] = numActive;
+      mNumActive[curLevel].at(bufferId) = numActive;
    }
 
    long * numActiveBuffer(int bufferId, int level){
-      return mNumActive[levelIndex(level)].data()+bufferId;
+      return &mNumActive[levelIndex(level)].at(bufferId);
    }
 
    long * numActiveBuffer(int bufferId){
-      return mNumActive[curLevel].data()+bufferId;
+      return &mNumActive[curLevel].at(bufferId);
    }
 
    int getNumItems(){ return numItems;}
