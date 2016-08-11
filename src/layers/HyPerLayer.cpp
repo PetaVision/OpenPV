@@ -528,7 +528,7 @@ int HyPerLayer::allocateGSyn() {
 
 void HyPerLayer::addPublisher() {
    Communicator * icComm = parent->getCommunicator();
-   publisher = new Publisher(icComm, getNumExtended(), clayer->loc, getNumDelayLevels(), getSparseFlag());
+   publisher = new Publisher(icComm, clayer->activity, getNumDelayLevels(), getSparseFlag());
 }
 
 int HyPerLayer::initializeState() {
@@ -1918,7 +1918,7 @@ int HyPerLayer::publish(Communicator* comm, double time)
       mirrorInteriorToBorder(clayer->activity, clayer->activity);
    }
    
-   int status = publisher->publish(time, lastUpdateTime, clayer->activity);
+   int status = publisher->publish(time, lastUpdateTime);
    publish_timer->stop();
    return status;
 }

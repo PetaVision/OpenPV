@@ -11,29 +11,22 @@
 
 namespace PV {
 
-Publisher::Publisher(Communicator * comm, int numItems, PVLayerLoc loc, int numLevels, bool isSparse)
+Publisher::Publisher(Communicator * comm, PVLayerCube * cube, int numLevels, bool isSparse)
 {
-   //size_t dataSize  = numItems * sizeof(float);
    size_t dataSize  = sizeof(float);
 
+   this->mLayerCube = cube;
    this->mComm  = comm;
 
-   cube.data = nullptr;
-   cube.loc = loc;
-   cube.numItems = numItems;
-
-   const int numBuffers = loc.nbatch;
-
-   // not really inplace but ok as is only used to deliver
-   // to provide cube information for data from store
-   cube.size = numBuffers * numItems * dataSize + sizeof(PVLayerCube);
+   int const numBuffers = cube->loc.nbatch;
+   int const numItems = cube->numItems/numBuffers; // number of items in one batch element.
 
    store = new DataStore(numBuffers, numItems, dataSize, numLevels, isSparse);
 
-   this->neighborDatatypes = Communicator::newDatatypes(&loc);
+   this->neighborDatatypes = Communicator::newDatatypes(&cube->loc);
 
    requests.clear();
-   requests.reserve((NUM_NEIGHBORHOOD-1) * loc.nbatch);
+   requests.reserve((NUM_NEIGHBORHOOD-1) * numBuffers);
 }
 
 Publisher::~Publisher()
@@ -92,25 +85,24 @@ int Publisher::calcActiveIndices() {
    return PV_SUCCESS;
 }
 
-int Publisher::publish(double currentTime, double lastUpdateTime,
-                       PVLayerCube* cube)
+int Publisher::publish(double currentTime, double lastUpdateTime)
 {
    //
    // Everyone publishes border region to neighbors even if no subscribers.
    // This means that everyone should wait as well.
    //
 
-   size_t dataSize = cube->numItems * sizeof(pvdata_t);
+   size_t dataSize = mLayerCube->numItems * sizeof(pvdata_t);
    pvAssert(dataSize == (store->size() * store->numberOfBuffers()));
 
-   pvdata_t * sendBuf = cube->data;
+   pvdata_t const * sendBuf = mLayerCube->data;
    pvdata_t * recvBuf = recvBuffer(0); //Grab all of the buffer, allocated continuously
 
    if (lastUpdateTime >= currentTime) {
       // copy entire layer and let neighbors overwrite
       //Only need to exchange borders if layer was updated this timestep
       memcpy(recvBuf, sendBuf, dataSize);
-      exchangeBorders(&cube->loc, 0);
+      exchangeBorders(&mLayerCube->loc, 0);
       store->setLastUpdateTime(LOCAL/*bufferId*/, lastUpdateTime);
 
       //Updating active indices is done after MPI wait in HyPerCol
