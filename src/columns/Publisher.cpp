@@ -43,8 +43,8 @@ int Publisher::updateActiveIndices() {
 }
 
 int Publisher::calcAllActiveIndices() {
-   for(int l = 0; l < store->numberOfLevels(); l++){
-      for(int b = 0; b < store->numberOfBuffers(); b++){
+   for(int l = 0; l < store->getNumLevels(); l++){
+      for(int b = 0; b < store->getNumBuffers(); b++){
          //Active indicies stored as local ext values
          int numActive = 0;
          pvdata_t * activity = store->buffer(b, l);;
@@ -65,7 +65,7 @@ int Publisher::calcAllActiveIndices() {
 }
 
 int Publisher::calcActiveIndices() {
-   for(int b = 0; b < store->numberOfBuffers(); b++){
+   for(int b = 0; b < store->getNumBuffers(); b++){
       //Active indicies stored as local ext values
       int numActive = 0;
       pvdata_t * activity = store->buffer(b);;
@@ -105,7 +105,7 @@ int Publisher::publish(double currentTime, double lastUpdateTime)
       //Updating active indices is done after MPI wait in HyPerCol
       //to avoid race condition because exchangeBorders mpi is async
    }
-   else if (store->numberOfLevels()>1){
+   else if (store->getNumLevels()>1){
       // If there are delays, copy last level's data to this level.
       // TODO: we could use pointer indirection to cut down on the number of memcpy calls required, if this turns out to be an expensive step
       memcpy(recvBuf, recvBuffer(LOCAL/*bufferId*/,1), dataSize);

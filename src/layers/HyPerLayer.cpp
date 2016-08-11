@@ -2186,8 +2186,8 @@ int HyPerLayer::readDataStoreFromFile(const char * filename, Communicator * comm
       abort();
    }
    DataStore * datastore = publisher->dataStore();
-   int numlevels = datastore->numberOfLevels();
-   int numbuffers = datastore->numberOfBuffers();
+   int numlevels = datastore->getNumLevels();
+   int numbuffers = datastore->getNumBuffers();
    if (params[INDEX_NBANDS] != numlevels*numbuffers) {
       pvError().printf("readDataStoreFromFile error reading \"%s\": number of delays + batches in file is %d, but number of delays + batches in layer is %d\n", filename, params[INDEX_NBANDS], numlevels*numbuffers);
    }
@@ -2293,8 +2293,8 @@ template int HyPerLayer::writeBufferFile<float>(const char * filename, Communica
 int HyPerLayer::writeDataStoreToFile(const char * filename, Communicator * comm, double timed) {
    PV_Stream * writeFile = pvp_open_write_file(filename, comm, /*append*/false);
    assert( (writeFile != NULL && comm->commRank() == 0) || (writeFile == NULL && comm->commRank() != 0) );
-   int numlevels = publisher->dataStore()->numberOfLevels();
-   int numbuffers = publisher->dataStore()->numberOfBuffers();
+   int numlevels = publisher->dataStore()->getNumLevels();
+   int numbuffers = publisher->dataStore()->getNumBuffers();
    assert(numlevels == getNumDelayLevels());
    int * params = pvp_set_nonspiking_act_params(comm, timed, getLayerLoc(), PV_FLOAT_TYPE, numlevels);
    assert(params && params[1]==NUM_BIN_PARAMS);

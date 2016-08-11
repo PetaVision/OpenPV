@@ -19,10 +19,10 @@ namespace PV
 DataStore::DataStore(int numBuffers, int numItems, int numLevels, bool isSparse_flag)
 {
    assert(numLevels > 0 && numBuffers > 0);
-   this->curLevel = 0; // Publisher::publish decrements levels when writing, so first level written to is numLevels - 1;
-   this->numItems = numItems;
-   this->numLevels = numLevels;
-   this->numBuffers = numBuffers;
+   this->mCurrentLevel = 0; // Publisher::publish decrements levels when writing, so first level written to is numLevels - 1;
+   this->mNumItems = numItems;
+   this->mNumLevels = numLevels;
+   this->mNumBuffers = numBuffers;
 
    //Level (delay) spins slower than bufferId (batch element)
    mBuffer.resize(numLevels);
@@ -33,8 +33,8 @@ DataStore::DataStore(int numBuffers, int numItems, int numLevels, bool isSparse_
    for(auto& v : mLastUpdateTimes) {
       v.resize(numBuffers, -std::numeric_limits<double>::infinity());
    }
-   this->isSparse_flag = isSparse_flag;
-   if(this->isSparse_flag) {
+   this->mSparseFlag = isSparse_flag;
+   if(this->mSparseFlag) {
       mActiveIndices.resize(numLevels);
       for(auto& v : mActiveIndices) {
          v.resize(numBuffers*numItems);

@@ -24,27 +24,27 @@ public:
 
    virtual ~DataStore() {}
 
-   int numberOfLevels()  {return numLevels;}
-   int numberOfBuffers() {return numBuffers;}
+   int getNumLevels() const {return mNumLevels;}
+   int getNumBuffers() const {return mNumBuffers;}
    int newLevelIndex() {
-      return (curLevel = (numLevels + curLevel - 1) % numLevels);
+      return (mCurrentLevel = (mNumLevels + mCurrentLevel - 1) % mNumLevels);
    }
 
    //Level (delay) spins slower than bufferId (batch element)
 
    pvdata_t * buffer(int bufferId, int level) {
-      return &mBuffer[levelIndex(level)].at(bufferId*numItems);
+      return &mBuffer[levelIndex(level)].at(bufferId*mNumItems);
    }
 
    pvdata_t * buffer(int bufferId) {
-      return &mBuffer[curLevel].at(bufferId*numItems);
+      return &mBuffer[mCurrentLevel].at(bufferId*mNumItems);
    }
 
-   double getLastUpdateTime(int bufferId, int level) {
+   double getLastUpdateTime(int bufferId, int level) const {
       return mLastUpdateTimes[levelIndex(level)].at(bufferId);
    }
 
-   double getLastUpdateTime(int bufferId) {
+   double getLastUpdateTime(int bufferId) const {
       return mLastUpdateTimes[levelIndex(0)].at(bufferId);
    }
 
@@ -53,47 +53,47 @@ public:
    }
 
    void setLastUpdateTime(int bufferId, double t) {
-      mLastUpdateTimes[curLevel].at(bufferId) = t;
+      mLastUpdateTimes[mCurrentLevel].at(bufferId) = t;
    }
 
-   bool isSparse() {return isSparse_flag;}
+   bool isSparse() const {return mSparseFlag;}
 
    unsigned int* activeIndicesBuffer(int bufferId, int level) {
-      return &mActiveIndices[levelIndex(level)].at(bufferId*numItems);
+      return &mActiveIndices[levelIndex(level)].at(bufferId*mNumItems);
    }
 
    unsigned int* activeIndicesBuffer(int bufferId) {
-      return &mActiveIndices[curLevel].at(bufferId*numItems);
+      return &mActiveIndices[mCurrentLevel].at(bufferId*mNumItems);
    }
 
    void setNumActive(int bufferId, long numActive) {
-      mNumActive[curLevel].at(bufferId) = numActive;
+      mNumActive[mCurrentLevel].at(bufferId) = numActive;
    }
 
-   long * numActiveBuffer(int bufferId, int level){
+   long * numActiveBuffer(int bufferId, int level) {
       return &mNumActive[levelIndex(level)].at(bufferId);
    }
 
-   long * numActiveBuffer(int bufferId){
-      return &mNumActive[curLevel].at(bufferId);
+   long * numActiveBuffer(int bufferId) {
+      return &mNumActive[mCurrentLevel].at(bufferId);
    }
 
-   int getNumItems(){ return numItems;}
+   int getNumItems() const { return mNumItems;}
 
 private:
-   int levelIndex(int level) { return ((level + curLevel) % numLevels); }
+   int levelIndex(int level) const { return ((level + mCurrentLevel) % mNumLevels); }
 
 private:
-   int   numItems;
-   int   curLevel;
-   int   numLevels;
-   int   numBuffers;
-   bool  isSparse_flag;
+   int   mNumItems;
+   int   mCurrentLevel;
+   int   mNumLevels;
+   int   mNumBuffers;
+   bool  mSparseFlag;
 
-   std::vector<std::vector<pvdata_t> > mBuffer;
-   std::vector<std::vector<long> > mNumActive;
+   std::vector<std::vector<pvdata_t> >     mBuffer;
+   std::vector<std::vector<long> >         mNumActive;
    std::vector<std::vector<unsigned int> > mActiveIndices;
-   std::vector<std::vector<double> > mLastUpdateTimes;
+   std::vector<std::vector<double> >       mLastUpdateTimes;
 };
 
 } // NAMESPACE
