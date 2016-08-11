@@ -32,8 +32,28 @@ namespace PV {
    Buffer ImageLayer::retrieveData(std::string filename)
    {
       readImage(filename);
-      Buffer result(mImage->getHeight(), mImage->getWidth(), getLayerLoc()->nf);
-      result.set(mImage->serialize(getLayerLoc()->nf));
+      Buffer result(mImage->getRows(), mImage->getColumns(), getLayerLoc()->nf);
+      if(mImage->getFeatures() != getLayerLoc()->nf) {
+         switch(getLayerLoc()->nf) {
+            case 1: // Grayscale
+               mImage->convertToGray(false);
+               break;
+            case 2: // Grayscale + Alpha
+               mImage->convertToGray(true);
+               break;
+            case 3: // RGB
+               mImage->convertToColor(false);
+               break;
+            case 4: // RGBA
+               mImage->convertToColor(true);
+               break;
+            default:
+               pvError() << "Failed to read " << filename << ": Could not convert " << mImage->getFeatures() << " channels to " << getLayerLoc()->nf << std::endl;
+               break;
+
+         }
+      }
+      result.set(mImage->asVector());
       result.rescale(getLayerLoc()->ny, getLayerLoc()->nx, mRescaleMethod, mInterpolationMethod);
       return result;
    }
@@ -99,96 +119,4 @@ namespace PV {
       return InputLayer::postProcess(timef, dt);
    }
 
-/*
-   int ImageLayer::convertToGrayScale(float ** buffer, int nx, int ny, int numBands, InputColorType colorType)
-   {
-      // even though the numBands argument goes last, the routine assumes that
-      // the organization of buf is, bands vary fastest, then x, then y.
-      if (numBands < 2) {return PV_SUCCESS;}
-
-      const int sxcolor = numBands;
-      const int sycolor = numBands*nx;
-      const int sb = 1;
-
-      const int sxgray = 1;
-      const int sygray = nx;
-
-      float * graybuf = new float[nx*ny];
-      float * colorbuf = *buffer;
-
-      float bandweight[numBands];
-      calcBandWeights(numBands, bandweight, colorType);
-
-      for (int j = 0; j < ny; j++) {
-         for (int i = 0; i < nx; i++) {
-            float val = 0;
-            for (int b = 0; b < numBands; b++) {
-               float d = colorbuf[i*sxcolor + j*sycolor + b*sb];
-               val += d*bandweight[b];
-            }
-            graybuf[i*sxgray + j*sygray] = val;
-         }
-      }
-      delete[] *buffer;
-      *buffer = graybuf;
-      return PV_SUCCESS;
-   }
-
-   int ImageLayer::convertGrayScaleToMultiBand(float ** buffer, int nx, int ny, int numBands)
-   {
-      const int sxcolor = numBands;
-      const int sycolor = numBands*nx;
-      const int sb = 1;
-
-      const int sxgray = 1;
-      const int sygray = nx;
-
-      float * multiBandsBuf = new float[nx*ny*numBands];
-      float * graybuf = *buffer;
-
-      for (int j = 0; j < ny; j++)
-      {
-         for (int i = 0; i < nx; i++)
-         {
-            for (int b = 0; b < numBands; b++)
-            {
-               multiBandsBuf[i*sxcolor + j*sycolor + b*sb] = graybuf[i*sxgray + j*sygray];
-            }
-
-         }
-      }
-      delete[] *buffer;
-      *buffer = multiBandsBuf;
-      return PV_SUCCESS;
-   }
-
-   int ImageLayer::calcBandWeights(int numBands, float * bandweight, InputColorType colorType) {
-      const float grayalphaweights[2] = {1.0, 0.0};
-      const float rgbaweights[4] = {0.30f, 0.59f, 0.11f, 0.0f}; // RGB weights from <https://en.wikipedia.org/wiki/Grayscale>, citing Pratt, Digital Image Processing
-      switch (colorType) {
-      case COLORTYPE_UNRECOGNIZED:
-         equalBandWeights(numBands, bandweight);
-         break;
-      case COLORTYPE_GRAYSCALE:
-         if (numBands==1 || numBands==2) {
-            memcpy(bandweight, grayalphaweights, numBands*sizeof(*bandweight));
-         }
-         else {
-            pvAssert(0);
-         }
-         break;
-      case COLORTYPE_RGB:
-         if (numBands==3 || numBands==4) {
-            memcpy(bandweight, rgbaweights, numBands*sizeof(*bandweight));
-         }
-         else {
-            pvAssert(0);
-         }
-         break;
-      default:
-         pvAssert(0);
-      }
-      return PV_SUCCESS;
-   }
-*/
 } // namespace PV

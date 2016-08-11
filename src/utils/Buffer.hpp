@@ -36,7 +36,7 @@ namespace PV {
             MIRROR,
             WRAP
          };
-
+      public:
          Buffer(int rows, int columns, int features); 
          Buffer();
          //TODO: Do I need a copy constructor?
@@ -62,10 +62,9 @@ namespace PV {
          Vec3 mData;
          
 
-      inline static float bicubic(float x) {
-            float const absx = fabsf(x); // assumes float is float ; ideally should generalize
+         inline static float bicubic(float x) {
+            float const absx = fabsf(x);
             return absx < 1 ? 1 + absx*absx*(-2 + absx) : absx < 2 ? 4 + absx*(-8 + absx*(5-absx)) : 0;
-
          }
 
 

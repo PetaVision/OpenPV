@@ -224,6 +224,7 @@ void testCrop() {
 // Buffer::rescale(int targetRows, int targetColumns, enum RescaleMethod rescaleMethod, enum InterpolationMethod interpMethod)
 void testRescale() {
    //TODO: Figure out how to test rescaling
+   pvErrorIf(true, "Not implemented.\n");
 }
 
 
