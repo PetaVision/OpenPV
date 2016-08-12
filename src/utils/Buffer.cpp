@@ -7,41 +7,41 @@
 
 namespace PV {
 
-   Buffer::Buffer(int rows, int columns, int features) {
-      resize(rows, columns, features);
+   Buffer::Buffer(int width, int height, int features) {
+      resize(width, height, features);
    }
 
    Buffer::Buffer() {
       resize(1,1,1);
    }
 
-   float Buffer::at(int row, int column, int feature) {
-      return mData.at(row).at(column).at(feature);
+   float Buffer::at(int x, int y, int feature) {
+      return mData.at(y).at(x).at(feature);
    }
 
-   void Buffer::set(int row, int column, int feature, float value) {
-      mData.at(row).at(column).at(feature) = value;
+   void Buffer::set(int x, int y, int feature, float value) {
+      mData.at(y).at(x).at(feature) = value;
    }
 
    void Buffer::set(const std::vector<float> &vector) {
-      int rows = getRows();
-      int cols = getColumns();
-      int features = getFeatures();
+      int height     = getHeight();
+      int width      = getWidth();
+      int features   = getFeatures();
 
-      pvErrorIf(vector.size() != rows * cols * features,
+      pvErrorIf(vector.size() != width * height * features,
             "Invalid vector size: Expected %d elements, vector contained %d elements. Did you remember to call resize() before set()?\n",
-            rows * cols * features, vector.size());
+            width * height * features, vector.size());
 
       for(int v = 0; v < vector.size(); ++v) {
-         int r = v / (cols * features);
-         int c = (v / features) % cols;
+         int y = v / (width * features);
+         int x = (v / features) % width;
          int f = v % features;
-         set(r, c, f, vector.at(v));
+         set(x, y, f, vector.at(v));
       }
    }
 
    std::vector<float> Buffer::asVector() {
-      std::vector<float> result(getRows()*getColumns()*getFeatures());
+      std::vector<float> result(getWidth()*getHeight()*getFeatures());
       int v = 0;
       for(auto row : mData) {
          for(auto col : row) {
@@ -55,13 +55,13 @@ namespace PV {
 
    // Resizing a Buffer will clear its contents. Use rescale or crop to preserve values.
    // Is there a better name for this? clearAndResize()?
-   void Buffer::resize(int rows, int columns, int features) {
-      mData.resize(rows);
-      for(int r = 0; r < rows; ++r) {
-         mData.at(r).resize(columns);
-         for(int c = 0; c < columns; ++c) {
-            mData.at(r).at(c).clear();
-            mData.at(r).at(c).resize(features, 0.0f);
+   void Buffer::resize(int width, int height, int features) {
+      mData.resize(height);
+      for(int y = 0; y < height; ++y) {
+         mData.at(y).resize(width);
+         for(int x = 0; x < width; ++x) {
+            mData.at(y).at(x).clear();
+            mData.at(y).at(x).resize(features, 0.0f);
          }
       }
    }
@@ -164,80 +164,78 @@ namespace PV {
       return moved_x || moved_y;
    }
 
-   void Buffer::crop(int targetRows, int targetColumns, enum OffsetAnchor offsetAnchor, int offsetX, int offsetY) {
-      int smallerRows = targetRows < getRows() ? targetRows : getRows();
-      int smallerCols = targetColumns < getColumns() ? targetColumns : getColumns();
-      int biggerRows = targetRows > getRows() ? targetRows : getRows();
-      int biggerCols = targetColumns > getColumns() ? targetColumns : getColumns();
+   // Crops a buffer down to the specified size, OR grows the canvas keeping the original in the middle (how does this interact with offset?)
+   void Buffer::crop(int targetWidth, int targetHeight, enum OffsetAnchor offsetAnchor, int offsetX, int offsetY) {
+      int smallerWidth  = targetWidth  < getWidth()  ? targetWidth  : getWidth();
+      int smallerHeight = targetHeight < getHeight() ? targetHeight : getHeight();
+      int biggerWidth   = targetWidth  > getWidth()  ? targetWidth  : getWidth();
+      int biggerHeight  = targetHeight > getHeight() ? targetHeight : getHeight();
       int originX = 0;
       int originY = 0;
        // If we're "cropping" to a larger canvas, place the original in the center
-      if(targetRows > getRows()) {
-         originY = (targetRows - getRows()) / 2;
+      if(targetHeight > getHeight()) {
+         originY = (targetHeight - getHeight()) / 2;
       }
-      if(targetColumns > getColumns()) {
-         originX = (targetColumns - getColumns()) / 2;
+      if(targetWidth > getWidth()) {
+         originX = (targetWidth - getWidth()) / 2;
       }
  
 
-     offsetX = getOffsetX(offsetAnchor, offsetX-originX, smallerCols, biggerCols);
-     offsetY = getOffsetY(offsetAnchor, offsetY-originY, smallerRows, biggerRows);
-     Buffer cropped(targetRows, targetColumns, getFeatures());
+     offsetX = getOffsetX(offsetAnchor, offsetX-originX, smallerWidth,  biggerWidth);
+     offsetY = getOffsetY(offsetAnchor, offsetY-originY, smallerHeight, biggerHeight);
+     Buffer cropped(targetWidth, targetHeight, getFeatures());
 
-     for(int r = 0; r < smallerRows; ++r) {
-         for(int c = 0; c < smallerCols; ++c) {
+     for(int smallY = 0; smallY < smallerHeight; ++smallY) {
+         for(int smallX = 0; smallX < smallerWidth; ++smallX) {
             for(int f = 0; f < getFeatures(); ++f) {
-               int x = c + offsetX, y = r + offsetY;
-               constrainPoint(x, y, 0, getColumns()-1, 0, getRows()-1, CLAMP);
-               cropped.set(r+originY, c+originX, f, at(y, x, f));
+               int x = smallX + offsetX, y = smallY + offsetY;
+               constrainPoint(x, y, 0, getWidth()-1, 0, getHeight()-1, CLAMP);
+               cropped.set(smallX+originX, smallY+originY, f, at(x, y, f));
             }
          }
       }
-      resize(targetRows, targetColumns, getFeatures());
+      resize(targetWidth, targetHeight, getFeatures());
       set(cropped.asVector());
    }
 
-   void Buffer::rescale(int targetRows, int targetColumns, enum RescaleMethod rescaleMethod, enum InterpolationMethod interpMethod) {
-      float xRatio = static_cast<float>(targetColumns) / getColumns();
-      float yRatio = static_cast<float>(targetRows) / getRows();
+   void Buffer::rescale(int targetWidth, int targetHeight, enum RescaleMethod rescaleMethod, enum InterpolationMethod interpMethod) {
+      float xRatio = static_cast<float>(targetWidth) / getWidth();
+      float yRatio = static_cast<float>(targetHeight) / getHeight();
 
-      int resizedRows = targetRows;
-      int resizedColumns = targetColumns;
+      int resizedWidth = targetWidth;
+      int resizedHeight = targetHeight;
       float resizeFactor = 1.0f;
 
-      if (rescaleMethod == CROP) {
-         resizeFactor = xRatio < yRatio ? yRatio : xRatio;
-         // resizeFactor * width should be >= getLayerLoc()->nx; resizeFactor * height should be >= getLayerLoc()->ny,
-         // and one of these relations should be == (up to floating-point roundoff).
-         resizedColumns = static_cast<int>(nearbyintf(resizeFactor * getColumns()));
-         resizedRows = static_cast<int>(nearbyintf(resizeFactor * getRows()));
-      }
-      else if (rescaleMethod == PAD) {
-         resizeFactor = xRatio < yRatio ? xRatio : yRatio;
-         // resizeFactor * width should be <= getLayerLoc()->nx; resizeFactor * height should be <= getLayerLoc()->ny,
-         // and one of these relations should be == (up to floating-point roundoff).
-         resizedColumns = static_cast<int>(nearbyintf(resizeFactor * getColumns()));
-         resizedRows = static_cast<int>(nearbyintf(resizeFactor * getRows()));
+      switch(rescaleMethod) {
+         case CROP:
+            resizeFactor = xRatio < yRatio ? yRatio : xRatio;
+            break;
+         case PAD:
+            resizeFactor = xRatio < yRatio ? xRatio : yRatio;
+            break;
       }
 
+      resizedWidth   = static_cast<int>(nearbyintf(resizeFactor * getWidth()));
+      resizedHeight  = static_cast<int>(nearbyintf(resizeFactor * getHeight()));
+ 
       std::vector<float> rawInput = asVector();
-      std::vector<float> scaledInput(resizedRows * resizedColumns * getFeatures());
+      std::vector<float> scaledInput(resizedWidth * resizedHeight * getFeatures());
       switch(interpMethod) {
          case BICUBIC:
-            bicubicInterp(rawInput.data(), getColumns(), getRows(), getFeatures(), getFeatures(), getFeatures() * getColumns(), 1, scaledInput.data(), resizedColumns, resizedRows);
+            bicubicInterp(rawInput.data(), getWidth(), getHeight(), getFeatures(), getFeatures(), getFeatures() * getWidth(), 1, scaledInput.data(), resizedWidth, resizedHeight);
             break;
          case NEAREST:
-            nearestNeighborInterp(rawInput.data(), getColumns(), getRows(), getFeatures(), getFeatures(), getFeatures() * getColumns(), 1, scaledInput.data(), resizedColumns, resizedRows);
+            nearestNeighborInterp(rawInput.data(), getWidth(), getHeight(), getFeatures(), getFeatures(), getFeatures() * getWidth(), 1, scaledInput.data(), resizedWidth, resizedHeight);
             break;
       }
-      resize(resizedRows, resizedColumns, getFeatures());
+      resize(resizedWidth, resizedHeight, getFeatures());
       set(scaledInput);
 
       // This final call to crop resizes the buffer to our specified
-      // targetRows and targetColumns. If our rescaleMethod was PAD,
+      // targetWidth and targetHeight. If our rescaleMethod was PAD,
       // this actually grows the buffer to include the padded region.
-      // TODO: Accept offsetAnchor as an argument to use here
-      crop(targetRows, targetColumns, CENTER, 0, 0);
+      // TODO: Accept offsetAnchor as an argument to use here?
+      crop(targetWidth, targetHeight, CENTER, 0, 0);
    }
 
 

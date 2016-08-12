@@ -15,11 +15,11 @@ namespace PV {
       pvErrorIf(data == nullptr, " File not found: %s\n", filename.c_str());
       resize(height, width, channels);
 
-      for(int row = 0; row < height; ++row) {
-         for(int col = 0; col < width; ++col) {
+      for(int y = 0; y < height; ++y) {
+         for(int x = 0; x < width; ++x) {
             for(int f = 0; f < channels; ++f) {
-               float value = static_cast<float>(data[(row * width + col) * channels + f]) / 255.0f;
-               set(row, col, f, value);
+               float value = static_cast<float>(data[(y * width + x) * channels + f]) / 255.0f;
+               set(x, y, f, value);
             }
          }
       }
@@ -28,53 +28,53 @@ namespace PV {
    }
 
    Image::Image(const std::vector<float> &data, int width, int height, int channels) {
-      resize(height, width, channels);
+      resize(width, height, channels);
       set(data);
    }
 
    void Image::setPixel(int x, int y, float r, float g, float b) {
       if(getFeatures() > mRPos) {
-         set(y, x, mRPos, r);
+         set(x, y, mRPos, r);
       }
       if(getFeatures() > mGPos) {
-         set(y, x, mGPos, g);
+         set(x, y, mGPos, g);
       }
       if(getFeatures() > mBPos) {
-         set(y, x, mBPos, b);
+         set(x, y, mBPos, b);
       }
    }
 
    void Image::setPixel(int x, int y, float r, float g, float b, float a) {
       setPixel(x, y, r, g, b);
-      set(y, x, mAPos, a);
+      set(x, y, mAPos, a);
    }
 
    float Image::getPixelR(int x, int y) {
       if(getFeatures() <= mRPos) {
          return 0.0f;
       }
-      return at(y, x, mRPos); 
+      return at(x, y, mRPos); 
    }
 
    float Image::getPixelG(int x, int y) {
       if(getFeatures() <= mGPos) {
          return 0.0f;
       }
-      return at(y, x, mGPos); 
+      return at(x, y, mGPos); 
    }
    
    float Image::getPixelB(int x, int y) {
       if(getFeatures() <= mBPos) {
          return 0.0f;
       }
-      return at(y, x, mBPos); 
+      return at(x, y, mBPos); 
    }
 
    float Image::getPixelA(int x, int y) {
       if(getFeatures() <= mAPos) {
          return 1.0f;
       }
-      return at(y, x, mAPos);
+      return at(x, y, mAPos);
    }
 
    void Image::convertToGray(bool alphaChannel) {
@@ -85,18 +85,18 @@ namespace PV {
          }
          else {
            // We are already grayscale, but we're adding or removing an alpha channel
-           Buffer grayScale(getRows(), getColumns(), alphaChannel ? 2 : 1);
+           Buffer grayScale(getWidth(), getHeight(), alphaChannel ? 2 : 1);
 
-            for(int r = 0; r < getRows(); ++r) {
-               for(int c = 0; c < getColumns(); ++c) {
-                  grayScale.set(r, c, 0, at(r, c, 0));
+            for(int y = 0; y < getHeight(); ++y) {
+               for(int x = 0; x < getWidth(); ++x) {
+                  grayScale.set(x, y, 0, at(x, y, 0));
                   if(alphaChannel) {
-                     grayScale.set(r, c, 1, 1.0f);
+                     grayScale.set(x, y, 1, 1.0f);
                   }
                }
             }
 
-            resize(getRows(), getColumns(), alphaChannel ? 2 : 1);
+            resize(getWidth(), getHeight(), alphaChannel ? 2 : 1);
             set(grayScale.asVector());
             return;
          }
@@ -105,27 +105,27 @@ namespace PV {
          // We're currently RGB or RGBA and need to be Grayscale or Grayscale + Alpha
          // RGB weights from <https://en.wikipedia.org/wiki/Grayscale>, citing Pratt, Digital Image Processing
          const float rgbWeights[3] = { mRToGray, mGToGray, mBToGray };//{0.30f, 0.59f, 0.11f};
-         Buffer grayScale(getRows(), getColumns(), alphaChannel ? 2 : 1);
+         Buffer grayScale(getWidth(), getHeight(), alphaChannel ? 2 : 1);
 
-         for(int r = 0; r < getRows(); ++r) {
-            for(int c = 0; c < getColumns(); ++c) {
+         for(int y = 0; y < getHeight(); ++y) {
+            for(int x = 0; x < getWidth(); ++x) {
                float sum = 0.0f;
                for(int f = 0; f < 3; ++f) {
-                  sum += at(r, c, f) * rgbWeights[f];
+                  sum += at(x, y, f) * rgbWeights[f];
                }
-               grayScale.set(r, c, 0, sum);
+               grayScale.set(x, y, 0, sum);
                if(alphaChannel) {
                   if(getFeatures() > 3) {
-                     grayScale.set(r, c, 1, at(r, c, 3));
+                     grayScale.set(x, y, 1, at(x, y, 3));
                   }
                   else {
-                     grayScale.set(r, c, 1, 1.0f);
+                     grayScale.set(x, y, 1, 1.0f);
                   }
                }
             }
          }
 
-         resize(getRows(), getColumns(), alphaChannel ? 2 : 1);
+         resize(getWidth(), getHeight(), alphaChannel ? 2 : 1);
          set(grayScale.asVector());
       }
    }
@@ -139,41 +139,41 @@ namespace PV {
          }
          else {
             // We're already color, but we're adding or removing an alpha channel
-            Buffer color(getRows(), getColumns(), alphaChannel ? 4 : 3);
-            for(int r = 0; r < getRows(); ++r) {
-               for(int c = 0; c < getColumns(); ++c) {
-                  color.set(r, c, mRPos, at(r, c, mRPos));
-                  color.set(r, c, mGPos, at(r, c, mGPos));
-                  color.set(r, c, mBPos, at(r, c, mBPos));
+            Buffer color(getWidth(), getHeight(), alphaChannel ? 4 : 3);
+            for(int y = 0; y < getHeight(); ++y) {
+               for(int x = 0; x < getWidth(); ++x) {
+                  color.set(x, y, mRPos, at(x, y, mRPos));
+                  color.set(x, y, mGPos, at(x, y, mGPos));
+                  color.set(x, y, mBPos, at(x, y, mBPos));
                   if(alphaChannel) { 
-                     color.set(r, c, mAPos, 1.0f);
+                     color.set(x, y, mAPos, 1.0f);
                   }
                }
             }
-            resize(getRows(), getColumns(), alphaChannel ? 4 : 3);
+            resize(getWidth(), getHeight(), alphaChannel ? 4 : 3);
             set(color.asVector());
          }
       }
       else {
          // We're converting a grayscale image to color
-         Buffer color(getRows(), getColumns(), alphaChannel ? 4 : 3);
-         for(int r = 0; r < getRows(); ++r) {
-            for(int c = 0; c < getColumns(); ++c) {
-               float val = at(r, c, 0);
-               color.set(r, c, mRPos, val);
-               color.set(r, c, mGPos, val);
-               color.set(r, c, mBPos, val);
+         Buffer color(getWidth(), getHeight(), alphaChannel ? 4 : 3);
+         for(int y = 0; y < getHeight(); ++y) {
+            for(int x = 0; x < getWidth(); ++x) {
+               float val = at(x, y, 0);
+               color.set(x, y, mRPos, val);
+               color.set(x, y, mGPos, val);
+               color.set(x, y, mBPos, val);
                if(alphaChannel) { 
                   if(getFeatures() == 2) {
-                     color.set(r, c, mAPos, at(r, c, 1));
+                     color.set(x, y, mAPos, at(x, y, 1));
                   }
                   else {
-                     color.set(r, c, mAPos, 1.0f);
+                     color.set(x, y, mAPos, 1.0f);
                   }
                }
             }
          }
-         resize(getRows(), getColumns(), alphaChannel ? 4 : 3);
+         resize(getWidth(), getHeight(), alphaChannel ? 4 : 3);
          set(color.asVector());
       }
    }

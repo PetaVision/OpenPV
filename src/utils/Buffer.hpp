@@ -5,8 +5,6 @@
 
 namespace PV {
 
-   // TODO: Change everything from rows / cols / features to x / y / feature. Whee.
-
    class Buffer {
       public:
          typedef std::vector< std::vector< std::vector<float> > > Vec3;
@@ -43,18 +41,17 @@ namespace PV {
          Buffer();
          // TODO: Add a constructor that calls resize() and then set(vector)
          // TODO: Use that constructor to implement a copy constructor as well
-         float at(int row, int column, int feature); 
-         void set(int row, int column, int feature, float value);
+         float at(int x, int y, int feature); 
+         void set(int x, int y, int feature, float value);
          void set(const std::vector<float> &vector);
-         void resize(int rows, int columns, int features);
-         void crop(int targetRows, int targetColumns, enum OffsetAnchor offsetAnchor, int offsetX, int offsetY);
-         void rescale(int targetRows, int targetColumns, enum RescaleMethod rescaleMethod, enum InterpolationMethod interpMethod);
+         void resize(int width, int height, int features);
+         void crop(int targetWidth, int targetHeight, enum OffsetAnchor offsetAnchor, int offsetX, int offsetY);
+         void rescale(int targetWidth, int targetHeight, enum RescaleMethod rescaleMethod, enum InterpolationMethod interpMethod);
          std::vector<float> asVector();
 
-         int getRows() { return mData.size(); }
-         int getColumns() { return mData.at(0).size(); }
+         int getHeight()   { return mData.size(); }
+         int getWidth()    { return mData.at(0).size(); }
          int getFeatures() { return mData.at(0).at(0).size(); }
-
 
          // TODO: Can these be protected?
          static int getOffsetX(enum OffsetAnchor offsetAnchor, int offsetX, int newWidth, int currentWidth);

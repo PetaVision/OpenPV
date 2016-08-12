@@ -32,7 +32,7 @@ namespace PV {
    Buffer ImageLayer::retrieveData(std::string filename)
    {
       readImage(filename);
-      Buffer result(mImage->getRows(), mImage->getColumns(), getLayerLoc()->nf);
+      Buffer result(mImage->getWidth(), mImage->getHeight(), getLayerLoc()->nf);
       if(mImage->getFeatures() != getLayerLoc()->nf) {
          switch(getLayerLoc()->nf) {
             case 1: // Grayscale
@@ -54,7 +54,7 @@ namespace PV {
          }
       }
       result.set(mImage->asVector());
-      result.rescale(getLayerLoc()->ny, getLayerLoc()->nx, mRescaleMethod, mInterpolationMethod);
+      result.rescale(getLayerLoc()->nx, getLayerLoc()->ny, mRescaleMethod, mInterpolationMethod);
       return result;
    }
 

@@ -5,24 +5,24 @@
 
 using PV::Buffer;
 
-// Buffer::at(int row, int column, int feature)
-// Buffer::set(int row, int column, int feature, float value)
+// Buffer::at(int x, int y, int feature)
+// Buffer::set(int x, int y, int feature, float value)
 void testAtSet() {
-   Buffer testBuffer(2, 3, 4);
+   Buffer testBuffer(3, 2, 4);
    pvErrorIf(testBuffer.at(1, 1, 1) != 0.0f, "Failed.\n");
 
    float v = 0;
-   for(int r = 0; r < 2; ++r) {
-      for(int c = 0; c < 3; ++c) {
+   for(int y = 0; y < 2; ++y) {
+      for(int x = 0; x < 3; ++x) {
          for(int f = 0; f < 4; ++f) {
-            testBuffer.set(r, c, f, v++);
+            testBuffer.set(x, y, f, v++);
          }
       }
    }
 
    pvErrorIf(testBuffer.at(0, 0, 0) != 0.0f, "Failed.\n");
-   pvErrorIf(testBuffer.at(0, 2, 0) != 8.0f, "Failed.\n");
-   pvErrorIf(testBuffer.at(1, 2, 3) != 23.0f,"Failed.\n");
+   pvErrorIf(testBuffer.at(2, 0, 0) != 8.0f, "Failed.\n");
+   pvErrorIf(testBuffer.at(2, 1, 3) != 23.0f,"Failed.\n");
 }
 
 // Buffer::set(const std::vector<float> &vector)
@@ -37,11 +37,11 @@ void testSetVector() {
    testBuffer.set(testVector);
 
    float v = 0;
-   for(int r = 0; r < 2; ++r) {
-      for(int c = 0; c < 2; ++c) {
+   for(int y = 0; y < 2; ++y) {
+      for(int x = 0; x < 2; ++x) {
          for(int f = 0; f < 2; ++f) {
-            pvErrorIf(testBuffer.at(r, c, f) != v++,
-                  "Failed. Expected %d, found %d instead.\n", v-1, testBuffer.at(r, c, f));
+            pvErrorIf(testBuffer.at(x, y, f) != v++,
+                  "Failed. Expected %d, found %d instead.\n", v-1, testBuffer.at(x, y, f));
          }
       }
    }
@@ -49,15 +49,15 @@ void testSetVector() {
 
 // Buffer::asVector()
 void testAsVector() {
-   Buffer testBuffer(4, 3, 2);
+   Buffer testBuffer(3, 4, 2);
    std::vector<float> testVector;
    
    float v = 1.0f;
-   for(int r = 0; r < 4; ++r) {
-      for(int c = 0; c < 3; ++c) {
+   for(int y = 0; y < 4; ++y) {
+      for(int x = 0; x < 3; ++x) {
          for(int f = 0; f < 2; ++f) {
             testVector.push_back(v);
-            testBuffer.set(r, c, f, v++);
+            testBuffer.set(x, y, f, v++);
          }
       }
    }
@@ -74,41 +74,41 @@ void testAsVector() {
    }
 }
 
-// Buffer::resize(int rows, int columns, int features)
+// Buffer::resize(int width, int height, int features)
 void testResize() {
-   Buffer testBuffer(4, 3, 2);
-   pvErrorIf(testBuffer.getRows() != 4,
-         "Failed: expected 4, found %d instead.\n", testBuffer.getRows());
-   pvErrorIf(testBuffer.getColumns() != 3,
-         "Failed: expected 3, found %d instead.\n", testBuffer.getColumns());
+   Buffer testBuffer(3, 4, 2);
+   pvErrorIf(testBuffer.getHeight() != 4,
+         "Failed (height): expected 4, found %d instead.\n", testBuffer.getHeight());
+   pvErrorIf(testBuffer.getWidth() != 3,
+         "Failed (width): expected 3, found %d instead.\n", testBuffer.getWidth());
    pvErrorIf(testBuffer.getFeatures() != 2,
-         "Failed: expected 2, found %d instead.\n", testBuffer.getFeatures());
+         "Failed (features): expected 2, found %d instead.\n", testBuffer.getFeatures());
 
    // Fill the Buffer with values, then resize.
    // Test the dimensions and make sure the resize
    // cleared all values.
    float v = 0.0f;
-   for(int r = 0; r < 4; ++r) {
-      for(int c = 0; c < 3; ++c) {
+   for(int y = 0; y < 4; ++y) {
+      for(int x = 0; x < 3; ++x) {
          for(int f = 0; f < 2; ++f) {
-            testBuffer.set(r, c, f, v++);
+            testBuffer.set(x, y, f, v++);
          }
       }
    }
-   testBuffer.resize(5, 4, 3);
+   testBuffer.resize(4, 5, 3);
 
-   pvErrorIf(testBuffer.getRows() != 5,
-         "Failed (rows): expected 5, found %d instead.\n", testBuffer.getRows());
-   pvErrorIf(testBuffer.getColumns() != 4,
-         "Failed (columns): expected 4, found %d instead.\n", testBuffer.getColumns());
+   pvErrorIf(testBuffer.getHeight() != 5,
+         "Failed (height): expected 5, found %d instead.\n", testBuffer.getHeight());
+   pvErrorIf(testBuffer.getWidth() != 4,
+         "Failed (width): expected 4, found %d instead.\n", testBuffer.getWidth());
    pvErrorIf(testBuffer.getFeatures() != 3,
          "Failed (features): expected 3, found %d instead.\n", testBuffer.getFeatures());
 
    v = 0.0f;
-   for(int r = 0; r < 5; ++r) {
-      for(int c = 0; c < 4; ++c) {
+   for(int y = 0; y < 5; ++y) {
+      for(int x = 0; x < 4; ++x) {
          for(int f = 0; f < 3; ++f) {
-            v += testBuffer.at(r, c, f);
+            v += testBuffer.at(x, y, f);
          }
       }
    }
@@ -116,7 +116,7 @@ void testResize() {
    pvErrorIf(v != 0.0f, "Failed: Found non-zero value after resizing.\n");
 }
 
-// Buffer::crop(int targetRows, int targetColumns, enum OffsetAnchor offsetAnchor, int offsetX, int offsetY)
+// Buffer::crop(int targetWidth, int targetHeight, enum OffsetAnchor offsetAnchor, int offsetX, int offsetY)
 void testCrop() {
    std::vector<float> bufferContents = {
          1.0f,  2.0f,  3.0f,  4.0f,
@@ -131,7 +131,7 @@ void testCrop() {
    testBuffer.set(bufferContents);
    testBuffer.crop(2, 2, Buffer::NORTH, 0, 0);
    pvErrorIf(
-         testBuffer.at(0, 0, 0) != 2.0f || testBuffer.at(0, 1, 0) != 3.0f,
+         testBuffer.at(0, 0, 0) != 2.0f || testBuffer.at(1, 0, 0) != 3.0f,
          "Failed (north).\n");
 
    testBuffer.resize(4, 4, 1);
@@ -145,21 +145,21 @@ void testCrop() {
    testBuffer.set(bufferContents);
    testBuffer.crop(2, 2, Buffer::EAST, 0, 0);
    pvErrorIf(
-         testBuffer.at(0, 1, 0) != 8.0f || testBuffer.at(1, 1, 0) != 12.0f,
+         testBuffer.at(1, 0, 0) != 8.0f || testBuffer.at(1, 1, 0) != 12.0f,
          "Failed (east).\n");
 
    testBuffer.resize(4, 4, 1);
    testBuffer.set(bufferContents);
    testBuffer.crop(2, 2, Buffer::SOUTHEAST, 0, 0);
    pvErrorIf(
-         testBuffer.at(0, 1, 0) != 12.0f || testBuffer.at(1, 0, 0) != 15.0f,
+         testBuffer.at(1, 0, 0) != 12.0f || testBuffer.at(0, 1, 0) != 15.0f,
          "Failed (southeast).\n");
    
    testBuffer.resize(4, 4, 1);
    testBuffer.set(bufferContents);
    testBuffer.crop(2, 2, Buffer::SOUTH, 0, 0);
    pvErrorIf(
-         testBuffer.at(1, 0, 0) != 14.0f || testBuffer.at(1, 1, 0) != 15.0f,
+         testBuffer.at(0, 1, 0) != 14.0f || testBuffer.at(1, 1, 0) != 15.0f,
          "Failed (south).\n");
 
    testBuffer.resize(4, 4, 1);
@@ -173,14 +173,14 @@ void testCrop() {
    testBuffer.set(bufferContents);
    testBuffer.crop(2, 2, Buffer::WEST, 0, 0);
    pvErrorIf(
-         testBuffer.at(0, 0, 0) != 5.0f || testBuffer.at(1, 0, 0) != 9.0f,
+         testBuffer.at(0, 0, 0) != 5.0f || testBuffer.at(0, 1, 0) != 9.0f,
          "Failed (west).\n");
 
    testBuffer.resize(4, 4, 1);
    testBuffer.set(bufferContents);
    testBuffer.crop(2, 2, Buffer::NORTHWEST, 0, 0);
    pvErrorIf(
-         testBuffer.at(1, 0, 0) != 5.0f || testBuffer.at(0, 1, 0) != 2.0f,
+         testBuffer.at(0, 1, 0) != 5.0f || testBuffer.at(1, 0, 0) != 2.0f,
          "Failed (northwest).\n");
    
    testBuffer.resize(4, 4, 1);
@@ -281,7 +281,7 @@ void testRescale() {
    // Test Buffer::CROP resizeMethod
    testBuffer.resize(8, 8, 1);
    testBuffer.set(testData);
-   testBuffer.rescale(4, 8, Buffer::CROP, Buffer::NEAREST);
+   testBuffer.rescale(8, 4, Buffer::CROP, Buffer::NEAREST);
    std::vector<float> cropped = testBuffer.asVector();
    pvErrorIf(cropped.size() != answerCrop.size(),
          "Failed (Size). Expected %d elements, found %d.\n",
@@ -295,7 +295,7 @@ void testRescale() {
    // Test Buffer::PAD resizeMethod
    testBuffer.resize(8, 8, 1);
    testBuffer.set(testData);
-   testBuffer.rescale(8, 4, Buffer::PAD, Buffer::NEAREST);
+   testBuffer.rescale(4, 8, Buffer::PAD, Buffer::NEAREST);
    std::vector<float> padded = testBuffer.asVector();
    pvErrorIf(padded.size() != answerPad.size(),
          "Failed (Size). Expected %d elements, found %d.\n",
