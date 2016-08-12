@@ -425,8 +425,6 @@ public:
    int getNumGlobalExtended()        {const PVLayerLoc * loc = getLayerLoc(); return (loc->nxGlobal+loc->halo.lt+loc->halo.rt)*(loc->nyGlobal+loc->halo.dn+loc->halo.up)*loc->nf;}
    int getNumDelayLevels()           {return numDelayLevels;}
 
-   int  getLayerId()                 {return layerId;}
-   void setLayerId(int id)           {layerId = id;}
    int increaseDelayLevels(int neededDelay);
    virtual int requireMarginWidth(int marginWidthNeeded, int * marginWidthResult, char axis);
    virtual int requireChannel(int channelNeeded, int * numChannelsResult);
@@ -483,7 +481,7 @@ protected:
    virtual int setActivity();
    void freeChannels();
 
-   int layerId;                 // unique ID that identifies layer in its parent HyPerCol
+   // layerId was removed Aug 12, 2016.
 
    int numChannels;             // number of channels
    pvdata_t ** GSyn;            // of dynamic length numChannels

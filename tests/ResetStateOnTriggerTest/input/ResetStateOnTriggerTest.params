@@ -44,8 +44,6 @@ HyPerCol "column" = {
     nx                                  = 8;
     ny                                  = 8;
     nbatch                              = 1;
-    filenamesContainLayerNames          = 2;
-    filenamesContainConnectionNames     = 2;
     initializeFromCheckpointDir         = "";
     checkpointWrite                     = false;
     // checkpointWriteDir

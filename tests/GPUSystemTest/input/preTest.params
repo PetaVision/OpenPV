@@ -10,8 +10,6 @@ HyPerCol "column" = {
     progressInterval = 1;
     //Change this
     outputPath = "output/preTest";
-    filenamesContainLayerNames = true;
-    filenamesContainConnectionNames = true;
     checkpointWrite = false;
     // deleteOlderCheckpoints = false;
     suppressLastOutput = true;

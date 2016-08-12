@@ -23,8 +23,6 @@ HyPerCol "column" = {
    progressInterval = 1.0; //Program will output its progress at each progressInterval
    writeProgressToErr = false;  
    outputPath = "output/";
-   filenamesContainLayerNames = false;  
-   filenamesContainConnectionNames = false;
    checkpointWrite = false;
    suppressLastOutput = false; //Save the last output as checkpoint.
 };

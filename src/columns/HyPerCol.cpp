@@ -195,8 +195,6 @@ int HyPerCol::initialize_base() {
    mPhaseRecvTimers.clear();
    mColProbes.clear();
    mBaseProbes.clear();
-   mFilenamesContainLayerNames = 0;
-   mFilenamesContainConnectionNames = 0;
    mRandomSeed = 0U;
    //mRandomSeedObj = 0U;
    mWriteTimescales = true; //Defaults to true
@@ -894,15 +892,25 @@ void HyPerCol::ioParam_nBatch(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerCol::ioParam_filenamesContainLayerNames(enum ParamsIOFlag ioFlag) {
-   ioParamValue(ioFlag, mName, "filenamesContainLayerNames", &mFilenamesContainLayerNames, 0);
-   pvErrorIf(mFilenamesContainLayerNames < 0 || mFilenamesContainLayerNames > 2,
-      "HyPerCol %s: filenamesContainLayerNames must have the value 0, 1, or 2.\n", mName);
+   //filenamesContainConnectionNames was marked obsolete Aug 12, 2016.
+   if (parameters()->present(mName, "filenamesContainLayerNames")) {
+      double fccnValue = parameters()->value(mName, "filenamesContainLayerNames");
+      std::string msg("The HyPerCol parameter \"filenamesContainLayerNames\" is obsolete.\n");
+      msg.append("Layer output pvp files have the format \"NameOfConnection.pvp\"\n");
+      msg.append("(corresponding to filenamesContainLayerNames=2).\n");
+      if (fccnValue==2) { pvWarn() << msg; } else { pvError() << msg; }
+   }
 }
 
 void HyPerCol::ioParam_filenamesContainConnectionNames(enum ParamsIOFlag ioFlag) {
-   ioParamValue(ioFlag, mName, "filenamesContainConnectionNames", &mFilenamesContainConnectionNames, 0);
-   pvErrorIf(mFilenamesContainConnectionNames < 0 || mFilenamesContainConnectionNames > 2,
-      "HyPerCol %s: filenamesContainConnectionNames must have the value 0, 1, or 2.\n", mName);
+   //filenamesContainConnectionNames was marked obsolete Aug 12, 2016.
+   if (parameters()->present(mName, "filenamesContainConnectionNames")) {
+      double fccnValue = parameters()->value(mName, "filenamesContainConnectionNames");
+      std::string msg("The HyPerCol parameter \"filenamesContainConnectionNames\" is obsolete.\n");
+      msg.append("Connection output pvp files have the format \"NameOfConnection.pvp\"\n");
+      msg.append("(corresponding to filenamesContainConnectionNames=2).\n");
+      if (fccnValue==2) { pvWarn() << msg; } else { pvError() << msg; }
+   }
 }
 
 void HyPerCol::ioParam_initializeFromCheckpointDir(enum ParamsIOFlag ioFlag) {

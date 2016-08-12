@@ -22,8 +22,6 @@ HyPerCol "column" = {
    progressInterval = 10.0;
    writeProgressToErr = false;
    outputPath = "output";
-   filenamesContainLayerNames = 2;
-   filenamesContainConnectionNames = 2;
    checkpointWrite = false;
    suppressLastOutput = false;
 };

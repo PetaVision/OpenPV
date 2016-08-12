@@ -23,8 +23,6 @@ HyPerCol "column" = {
    writeProgressToErr = false;  
    // outputPath set in parameter sweep
    printParamsFilename = "pv.params";
-   filenamesContainLayerNames = true;  
-   filenamesContainConnectionNames = true;
    initializeFromCheckpointDir = "";
    checkpointWrite = false;
    suppressLastOutput = false;
