@@ -20,8 +20,6 @@ HyPerCol "column" = {
    writeProgressToErr = false;  
    nbatch = 2;
    outputPath = "output/";
-   filenamesContainLayerNames = 2;  
-   filenamesContainConnectionNames = 2;
    checkpointWrite = false;
    suppressLastOutput = false; //Save the last output as checkpoint.
 };

@@ -22,7 +22,6 @@ BaseConnection::BaseConnection() {
 }
 
 int BaseConnection::initialize_base() {
-   connId = -1;
    preLayerName = NULL;
    postLayerName = NULL;
    pre = NULL;
@@ -48,7 +47,7 @@ int BaseConnection::initialize_base() {
 int BaseConnection::initialize(const char * name, HyPerCol * hc) {
    int status = BaseObject::initialize(name, hc);
 
-   this->connId = this->getParent()->addConnection(this);
+   this->getParent()->addConnection(this);
    if (status == PV_SUCCESS) status = ioParams(PARAMS_IO_READ);
    return status;
 }

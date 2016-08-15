@@ -207,16 +207,14 @@ private:
    virtual void ioParam_filenamesContainLayerNames(enum ParamsIOFlag ioFlag);
    
    /**
-    * @brief mFilenamesContainConnectionNames: Specifies if connection names gets printed out to output connection pvp files
-    * @details Options are 0, 1, or 2.
-    * - 0: filenames have form w5.pvp
-    * - 1: filenames have form w5_NameOfConnection.pvp
-    * - 2: filenames have form NameOfConnection.pvp
+    * @brief mFilenamesContainConnectionNames is obsolete.
+    * The file produced by outputState has the form NameOfConnection.pvp
     */
    virtual void ioParam_filenamesContainConnectionNames(enum ParamsIOFlag ioFlag);
    
    /**
-    * @brief initializeFromChckpointDir: Sets directory for mLayers and connection to initialize from.
+    * @brief mFilenamesContainLayerNames is obsolete.
+    * The file produced by outputState has the form NameOfLayer.pvp
     */
    virtual void ioParam_initializeFromCheckpointDir(enum ParamsIOFlag ioFlag);
    
@@ -420,8 +418,6 @@ public:
    int getNBatch() { return mNumBatch; }
    int getNBatchGlobal() { return mNumBatchGlobal; }
    int getNumThreads() const { return mNumThreads;}
-   int includeLayerName() const { return mFilenamesContainLayerNames;}
-   int includeConnectionName() const { return mFilenamesContainConnectionNames;}
    int numberOfLayers() const { return mLayers.size();}
    int numberOfConnections() const { return mConnections.size();}
    int numberOfNormalizers() const { return mNormalizers.size();}
@@ -566,11 +562,7 @@ private:
    int mNumYGlobal;
    int mNumBatch;
    int mNumBatchGlobal;
-   int mFilenamesContainLayerNames; // Controls the form of mLayers' clayer->activeFP
-                                   // Value 0: mLayers have form a5.pvp
-                                   // Value 1: mLayers have form a5_NameOfLayer.pvp
-                                   // Value 2: mLayers have form NameOfLayer.pvp
-   int mFilenamesContainConnectionNames; // Similar to mFilenamesContainLayerNames, but for mConnections
+   // mFilenamesContainLayerNames and mFilenamesContainConnectionNames were removed Aug 12, 2016.
    int mOrigStdOut;
    int mOrigStdErr;
    int mNumThreads;

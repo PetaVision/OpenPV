@@ -11,7 +11,6 @@ HyPerCol "test_mirror_BCs column" = {
    outputPath = "output/";
    nx = 8;
    ny = 8;
-   filenamesContainLayerNames = false;
 };
 
 HyPerLayer "test_mirror_BCs layer" = {

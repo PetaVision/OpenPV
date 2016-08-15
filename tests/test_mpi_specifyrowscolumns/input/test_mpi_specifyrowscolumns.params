@@ -12,7 +12,6 @@ HyPerCol "column" = {
     nx = 60; // The test will split into 2x3 and 3x2 subcolumns,
     ny = 60; // so nx and ny must be divisible by 6.
     outputPath = "./output/";
-    filenamesContainLayerNames = false;
     checkpointWrite = false;
 };
 

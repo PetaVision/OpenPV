@@ -10,8 +10,6 @@ HyPerCol "column" = {
    writeProgressToErr = false;
    outputPath = "output/test_border_activity/";
    printParamsFilename = "pv.params";
-   filenamesContainLayerNames = false;
-   filenamesContainConnectionNames = false;
    checkpointWrite = false;
    suppressLastOutput = false;
 };

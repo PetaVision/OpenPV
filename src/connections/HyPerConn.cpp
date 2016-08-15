@@ -1958,21 +1958,7 @@ int HyPerConn::writeWeights(PVPatch *** patches, pvwdata_t ** dataStart, int num
 
    int chars_needed = 0;
    if (filename == NULL) {
-      pvAssert(parent->includeConnectionName()<=2 && parent->includeConnectionName()>=0);
-      switch(parent->includeConnectionName()) {
-      case 0:
-         chars_needed = snprintf(path, PV_PATH_MAX, "%s/w%d.pvp", parent->getOutputPath(), getConnectionId());
-         break;
-      case 1:
-         chars_needed = snprintf(path, PV_PATH_MAX, "%s/w%d_%s.pvp", parent->getOutputPath(), getConnectionId(), name);
-         break;
-      case 2:
-         chars_needed = snprintf(path, PV_PATH_MAX, "%s/%s.pvp", parent->getOutputPath(), name);
-         break;
-      default:
-         pvAssert(0);
-         break;
-      }
+      chars_needed = snprintf(path, PV_PATH_MAX, "%s/%s.pvp", parent->getOutputPath(), name);
    }
    else {
       chars_needed = snprintf(path, PV_PATH_MAX, "%s", filename);
@@ -4135,22 +4121,7 @@ int HyPerConn::writePostSynapticWeights(double timef, bool last) {
 
    const char * last_str = (last) ? "_last" : "";
 
-   int chars_needed = 0;
-   pvAssert(parent->includeConnectionName()<=2 && parent->includeConnectionName()>=0);
-   switch(parent->includeConnectionName()) {
-   case 0:
-      chars_needed = snprintf(path, PV_PATH_MAX-1, "%s/w%d_post%s.pvp", parent->getOutputPath(), getConnectionId(), last_str);
-      break;
-   case 1:
-      chars_needed = snprintf(path, PV_PATH_MAX-1, "%s/w%d_%s_post%s.pvp", parent->getOutputPath(), getConnectionId(), name, last_str);
-      break;
-   case 2:
-      chars_needed = snprintf(path, PV_PATH_MAX-1, "%s/%s_post%s.pvp", parent->getOutputPath(), name, last_str);
-      break;
-   default:
-      pvAssert(0);
-      break;
-   }
+   int chars_needed = snprintf(path, PV_PATH_MAX-1, "%s/%s_post%s.pvp", parent->getOutputPath(), name, last_str);
 
    const PVLayerLoc * postLoc = post->getLayerLoc();
    Communicator * comm = parent->getCommunicator();

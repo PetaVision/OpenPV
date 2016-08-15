@@ -187,7 +187,7 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc) {
    // must set ioAppend before addLayer is called (addLayer causes activity file to be opened using layerid)
    ioAppend = parent->getCheckpointReadFlag() ? 1 : 0;
 
-   layerId = parent->addLayer(this);
+   parent->addLayer(this);
 
    lastUpdateTime = parent->simulationTime();
    nextUpdateTime = lastUpdateTime + parent->getDeltaTime();
@@ -1156,21 +1156,7 @@ int HyPerLayer::openOutputStateFile() {
    }
    char filename[PV_PATH_MAX];
    char posFilename[PV_PATH_MAX];
-   int sz;
-   switch( parent->includeLayerName() ) {
-   case 0:
-      sz = snprintf(filename, PV_PATH_MAX, "%s/a%d%s.pvp", parent->getOutputPath(), layerId, appendCommBatchIdx);
-      break;
-   case 1:
-      sz = snprintf(filename, PV_PATH_MAX, "%s/a%d_%s%s.pvp", parent->getOutputPath(), layerId, name, appendCommBatchIdx);
-      break;
-   case 2:
-      sz = snprintf(filename, PV_PATH_MAX, "%s/%s%s.pvp", parent->getOutputPath(), name, appendCommBatchIdx);
-      break;
-   default:
-      assert(0);
-      break;
-   }
+   int sz = snprintf(filename, PV_PATH_MAX, "%s/%s%s.pvp", parent->getOutputPath(), name, appendCommBatchIdx);
    if (sz >= PV_PATH_MAX) {
       pvError().printf("%s: Unable to create file name for outputState file: file name with comm batch index %d is too long.\n",
             getDescription_c(), parent->commBatch());
