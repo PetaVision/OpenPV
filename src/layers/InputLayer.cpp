@@ -24,6 +24,7 @@ namespace PV {
 
    int InputLayer::initialize_base() {
       mDatatypes = nullptr;
+      mTimestampFile = nullptr;
       mUseInputBCflag = false;
       mAutoResizeFlag = false;
       mInterpolationMethod = Buffer::BICUBIC;
@@ -76,6 +77,7 @@ namespace PV {
 
    int InputLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
       int status = HyPerLayer::ioParamsFillGroup(ioFlag);
+      pvDebug() << "IOPARAMS ON RANK " << parent->getCommunicator()->commRank() << "\n";
       ioParam_inputPath(ioFlag);
       ioParam_offsetAnchor(ioFlag);
       ioParam_offsets(ioFlag);
@@ -136,16 +138,25 @@ namespace PV {
    }
 
    void InputLayer::ioParam_inputPath(enum ParamsIOFlag ioFlag) {
-      char *tempString;
-      parent->ioParamStringRequired(ioFlag, name, "inputPath", &tempString); //TODO: These should really use std::string, we probably have tons of leaks
-      mInputPath = std::string(tempString);
-      free(tempString);
-
-      // Check if the input path ends in ".txt" and enable the file list if so
-      std::string txt = ".txt";
-      if(mInputPath.compare(mInputPath.size() - txt.size(), txt.size(), txt) == 0) {
-         mUsingFileList = true; //TODO: Add a flag to override this value even when the input path ends in ".txt"
+      // TODO: Make sure other string params are handled correctly
+      char *tempString = nullptr;
+      if(ioFlag == PARAMS_IO_WRITE) {
+         tempString = (char*)calloc(mInputPath.size() + 1, sizeof(char));
+         tempString = strcpy(tempString, mInputPath.c_str());
       }
+      parent->ioParamStringRequired(ioFlag, name, "inputPath", &tempString);
+      if(ioFlag == PARAMS_IO_READ) { 
+         mInputPath = std::string(tempString);
+         // Check if the input path ends in ".txt" and enable the file list if so
+         std::string txt = ".txt";
+         if(mInputPath.size() > txt.size() && mInputPath.compare(mInputPath.size() - txt.size(), txt.size(), txt) == 0) {
+            mUsingFileList = true; //TODO: Add a flag to override this value even when the input path ends in ".txt"
+         }
+         else {
+            mUsingFileList = false;
+         }
+      }
+      free(tempString);
    }
 
    void InputLayer::ioParam_useInputBCflag(enum ParamsIOFlag ioFlag) { //TODO: Change to useInputBCFlag, add deprecated warning
@@ -364,8 +375,11 @@ namespace PV {
    }
 
    void InputLayer::ioParam_batchMethod(enum ParamsIOFlag ioFlag) {
-      char *batchMethod;
-      parent->ioParamString(ioFlag, name, "batchMethod", &batchMethod, "bySpecified");
+      if(!mUsingFileList) {
+         return;
+      }
+      char *batchMethod = (char*)calloc(sizeof(char), 256);
+      parent->ioParamString(ioFlag, name, "batchMethod", &batchMethod, "byFile");
       if(strcmp(batchMethod, "byImage") == 0 || strcmp(batchMethod, "byFile") == 0) {
          mBatchMethod = BYFILE;
       }
@@ -376,36 +390,41 @@ namespace PV {
          mBatchMethod = BYSPECIFIED;
       }
       else{
-         pvError() << "Input layer " << name << " batchMethod not recognized. Options are \"byFile\", \"byList\", and \"bySpecified\"\n";
+         pvError() << "WARNING: Input layer " << name << " batchMethod not recognized. Options are \"byFile\", \"byList\", and \"bySpecified\"\n.";
       }
+      free(batchMethod);
    }
 
    void InputLayer::ioParam_start_frame_index(enum ParamsIOFlag ioFlag) {
-      int *paramsStartFrameIndex;
-      int length = -1;
-      this->getParent()->ioParamArray(ioFlag, this->getName(), "start_frame_index", &paramsStartFrameIndex, &length);
-      mStartFrameIndex.clear();
-      if(length > 0) {
-         mStartFrameIndex.resize(length);
-         for(int i = 0; i < length; ++i) {
-            mStartFrameIndex.at(i) = paramsStartFrameIndex[i];
+      if(ioFlag == PARAMS_IO_READ) { // TODO: Fix writing out arrays
+         int *paramsStartFrameIndex;
+         int length = -1;
+         this->getParent()->ioParamArray(ioFlag, this->getName(), "start_frame_index", &paramsStartFrameIndex, &length);
+         mStartFrameIndex.clear();
+         if(length > 0) {
+            mStartFrameIndex.resize(length);
+            for(int i = 0; i < length; ++i) {
+               mStartFrameIndex.at(i) = paramsStartFrameIndex[i];
+            }
          }
+         free(paramsStartFrameIndex);
       }
-      free(paramsStartFrameIndex);
    }
 
    void InputLayer::ioParam_skip_frame_index(enum ParamsIOFlag ioFlag) {
-      int *paramsSkipFrameIndex;
-      int length = -1;
-      this->getParent()->ioParamArray(ioFlag, this->getName(), "skip_frame_index", &paramsSkipFrameIndex, &length);
-      mSkipFrameIndex.clear();
-      if(length > 0) {
-         mSkipFrameIndex.resize(length);
-         for(int i = 0; i < length; ++i) {
-            mSkipFrameIndex.at(i) = paramsSkipFrameIndex[i];
+      if(ioFlag == PARAMS_IO_READ) { // TODO: Same as above
+         int *paramsSkipFrameIndex;
+         int length = -1;
+         this->getParent()->ioParamArray(ioFlag, this->getName(), "skip_frame_index", &paramsSkipFrameIndex, &length);
+         mSkipFrameIndex.clear();
+         if(length > 0) {
+            mSkipFrameIndex.resize(length);
+            for(int i = 0; i < length; ++i) {
+               mSkipFrameIndex.at(i) = paramsSkipFrameIndex[i];
+            }
          }
+         free(paramsSkipFrameIndex);
       }
-      free(paramsSkipFrameIndex);
    }
 
    void InputLayer::ioParam_writeFrameToTimestamp(enum ParamsIOFlag ioFlag) {
@@ -417,7 +436,12 @@ namespace PV {
    }
 
    int InputLayer::allocateDataStructures() {
+      int status = HyPerLayer::allocateDataStructures();
+      if(status != PV_SUCCESS) {
+         return status;
+      }
 
+      pvDebug() << "ALLOCATE STARTING RANK " << parent->getCommunicator()->commRank() << "\n";
       //Allocate framePaths here before image, since allocate call will call getFrame
       int numBatch = parent->getNBatch();
  
@@ -428,8 +452,10 @@ namespace PV {
       mFileIndices.resize(numBatch);
       
       //Calculate file positions for beginning of each frame
-      populateFileList();
-      pvInfo() << "File " << mInputPath << " contains " << mFileList.size() << " frames\n";
+      if(mUsingFileList) {
+         populateFileList();
+         pvInfo() << "File " << mInputPath << " contains " << mFileList.size() << " frames\n";
+      }
 
       mStartFrameIndex.resize(numBatch);
       mSkipFrameIndex.resize(numBatch);
@@ -438,11 +464,12 @@ namespace PV {
       int kb0 = getLayerLoc()->kb0;
       int offset = 0;
       int framesPerBatch = 0;
-
+      
+      // TODO: Abstract out all batching logic to its own class so that subclasses can reuse it (like PvpLayer)
       switch(mBatchMethod) {
          case BYFILE:
             //No skip here allowed
-            pvErrorIf(mSkipFrameIndex.size() != 0, "%s: batchMethod of \"byFile\" sets skip_frame_index, do not specify.\n", getName());
+            pvErrorIf(mSkipFrameIndex.size() != 1 && mSkipFrameIndex.at(0) == 0, "%s: batchMethod of \"byFile\" sets skip_frame_index, do not specify.\n", getName());
             //Default value
             if(mStartFrameIndex.size() == 1) {
                offset = mStartFrameIndex.at(0);
@@ -456,7 +483,7 @@ namespace PV {
             break;
 
          case BYLIST:
-            pvErrorIf(mSkipFrameIndex.size() != 0, "%s: batchMethod of \"byImage\" sets skip_frame_index, do not specify.\n", getName());
+            pvErrorIf(mSkipFrameIndex.size() != 1 && mSkipFrameIndex.at(0) == 0, "%s: batchMethod of \"byImage\" sets skip_frame_index, do not specify.\n", getName());
             if(mStartFrameIndex.size() == 1) {
                offset = mStartFrameIndex.at(0);
             }
@@ -492,15 +519,17 @@ namespace PV {
          }
       }
 
-      int status = HyPerLayer::allocateDataStructures();
       mInputData.resize(numBatch);
       for(int b = 0; b < numBatch; ++b) {
          mInputData.at(b).resize(getLayerLoc()->ny, getLayerLoc()->nx, getLayerLoc()->nf);
       }
       nextInput(parent->simulationTime(), parent->getDeltaTimeBase());
+      pvDebug() << "ALLOCATE ENDING RANK " << parent->getCommunicator()->commRank() << ", " << getName() << "\n";
+      
       // create mpi_datatypes for border transfer
       mDatatypes = Communicator::newDatatypes(getLayerLoc());
       exchange();
+      pvDebug() << "EXCHANGE COMPLETED RANK " << parent->getCommunicator()->commRank() << ", " << getName() << "\n";
       return status;
    }
 
@@ -524,6 +553,9 @@ namespace PV {
    //TODO: This doesn't appear to be using mDisplayPeriod?
    int InputLayer::updateState(double time, double dt)
    {
+      pvDebug() << "UPDATE STATE CALLED BY RANK " << parent->getCommunicator()->commRank() << ", " << getName() << "\n";
+      // TODO: We might still want to update the state on a single file, like a MoviePvp.
+      // Figure out the best way to accomplish this
       if(!mUsingFileList) {
          return PV_SUCCESS;
       }
@@ -556,13 +588,18 @@ namespace PV {
    }
 
    void InputLayer::nextInput(double timef, double dt) {
+      pvDebug() << "NEXTINPUT CALLED BY RANK " << parent->getCommunicator()->commRank() << ", " << getName() << "\n";
       for(int b = 0; b < parent->getNBatch(); b++) {
          if (parent->columnId() == 0) {
-            mInputData.at(b) = retrieveData(getNextFilename(mSkipFrameIndex.at(b), b));
+            std::string fileName = mInputPath;
+            if(mUsingFileList) {
+               fileName = getNextFilename(mSkipFrameIndex.at(b), b);
+            }
+            mInputData.at(b) = retrieveData(fileName);
          }
          scatterInput(b);
       }
-      postProcess(timef, dt);
+      //postProcess(timef, dt);
    }
 
    int InputLayer::scatterInput(int batchIndex) {
@@ -581,7 +618,7 @@ namespace PV {
       // Defining this outside of the loop lets it contain the correct
       // data for the root process at the end
       Buffer croppedBuffer;
-      
+      pvDebug() << "BEGINNING SCATTER ON RANK " << rank << "\n";      
       if (rank == rootProc) {
 
          // Loop through each rank, ending on the root process.
@@ -610,12 +647,15 @@ namespace PV {
             
             // If this isn't the root process, ship it off to the appropriate process.
             if(rank != rootProc) {
-               MPI_Send(&croppedBuffer.asVector()[0], numElements, MPI_FLOAT, rank, 31, mpiComm);
+               // This is required because croppedBuffer.asVector() returns a const vector<>
+               std::vector<float> bufferData = croppedBuffer.asVector();
+               pvDebug() << "SCATTERING FROM RANK 0 TO RANK " << rank << ", " << numElements << " ELEMENTS\n";
+               MPI_Send(bufferData.data(), numElements, MPI_FLOAT, rank, 31, mpiComm);
             }
          }
       }
       else {
-
+         pvDebug() << "RECEIVING ON RANK " << parent->getCommunicator()->commRank() << "\n";
          // Create a temporary array to receive from MPI, move the values into
          // a vector, and then create a Buffer out of that vector. A little
          // redundant, but it works. This could be done with a for loop and
@@ -627,10 +667,10 @@ namespace PV {
          for(int i = 0; i < numElements; ++i) {
             bufferData.at(i) = tempBuffer[i];
          }
-         croppedBuffer.resize(activityHeight, activityWidth, numFeatures);
-         croppedBuffer.set(bufferData);
+         croppedBuffer.set(bufferData, activityHeight, activityWidth, numFeatures);
       }
       
+      pvDebug() << "COPYING DATA TO ACTIVITY ON RANK " << parent->getCommunicator()->commRank() << "\n";
       // At this point, croppedBuffer has the correct data for this
       // process, regardless of if we are root or not. Clear the current
       // activity buffer, then copy the input data over row by row.
@@ -651,6 +691,7 @@ namespace PV {
       // Do I need to store any info about the image now? I don't belive so,
       // since it's the same size as the layer now, but verify
 
+      pvDebug() << "SCATTER COMPLETED ON RANK " << rank << "\n";
       return PV_SUCCESS;
    }
 
@@ -795,22 +836,28 @@ namespace PV {
 
    //This function will reset the file position of the open file
    int InputLayer::populateFileList() {
+      if(!mUsingFileList) {
+         return 0;
+      }
       int count = 0;
       if(parent->columnId() == 0) {
          std::string line;
          mFileList.clear();
+         pvInfo() << "Reading list: " << mInputPath << "\n";
          std::ifstream infile(mInputPath, std::ios_base::in);
          while(getline(infile, line, '\n')) {
             std::string noWhiteSpace = line;
+            pvInfo() << "Before whitespace removal: " << noWhiteSpace;
             noWhiteSpace.erase(std::remove_if(noWhiteSpace.begin(), noWhiteSpace.end(), ::isspace), noWhiteSpace.end());
             if(!noWhiteSpace.empty()) {
-               mFileList.push_back(line);
+               pvInfo() << noWhiteSpace << "\n";
+               mFileList.push_back(noWhiteSpace);
             }
          }
          mFileIndices.at(0) = -1;;
          count = mFileList.size();
       }
-      
+       
       MPI_Bcast(&count, 1, MPI_INT, 0, parent->getCommunicator()->communicator());
 
       // Maintain the file count on child processes

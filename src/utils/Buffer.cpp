@@ -15,55 +15,40 @@ namespace PV {
       resize(1,1,1);
    }
 
+   Buffer::Buffer(const std::vector<float> &data, int width, int height, int features) {
+      set(data, width, height, features);
+   }
+
    float Buffer::at(int x, int y, int feature) {
-      return mData.at(y).at(x).at(feature);
+      return mData.at(index(x, y, feature));
    }
 
    void Buffer::set(int x, int y, int feature, float value) {
-      mData.at(y).at(x).at(feature) = value;
+      mData.at(index(x, y, feature)) = value;
    }
 
-   void Buffer::set(const std::vector<float> &vector) {
-      int height     = getHeight();
-      int width      = getWidth();
-      int features   = getFeatures();
-
+   void Buffer::set(const std::vector<float> &vector, int width, int height, int features) {
       pvErrorIf(vector.size() != width * height * features,
-            "Invalid vector size: Expected %d elements, vector contained %d elements. Did you remember to call resize() before set()?\n",
+            "Invalid vector size: Expected %d elements, vector contained %d elements.\n",
             width * height * features, vector.size());
-
-      for(int v = 0; v < vector.size(); ++v) {
-         int y = v / (width * features);
-         int x = (v / features) % width;
-         int f = v % features;
-         set(x, y, f, vector.at(v));
-      }
+      mData = vector;
+      mWidth = width;
+      mHeight = height;
+      mFeatures = features;
    }
 
-   std::vector<float> Buffer::asVector() {
-      std::vector<float> result(getWidth()*getHeight()*getFeatures());
-      int v = 0;
-      for(auto row : mData) {
-         for(auto col : row) {
-            for(auto feature : col) {
-               result.at(v++) = feature;
-            }
-         }
-      }
-      return result;
+   const std::vector<float> Buffer::asVector() {
+       return mData;
    }
 
    // Resizing a Buffer will clear its contents. Use rescale or crop to preserve values.
    // Is there a better name for this? clearAndResize()?
    void Buffer::resize(int width, int height, int features) {
-      mData.resize(height);
-      for(int y = 0; y < height; ++y) {
-         mData.at(y).resize(width);
-         for(int x = 0; x < width; ++x) {
-            mData.at(y).at(x).clear();
-            mData.at(y).at(x).resize(features, 0.0f);
-         }
-      }
+      mData.clear();
+      mData.resize(height * width * features);
+      mWidth = width;
+      mHeight = height;
+      mFeatures = features;
    }
 
    int Buffer::getOffsetX(enum OffsetAnchor offsetAnchor, int offsetX, int newWidth, int currentWidth) {
@@ -194,8 +179,7 @@ namespace PV {
             }
          }
       }
-      resize(targetWidth, targetHeight, getFeatures());
-      set(cropped.asVector());
+      set(cropped.asVector(), targetWidth, targetHeight, getFeatures());
    }
 
    void Buffer::rescale(int targetWidth, int targetHeight, enum RescaleMethod rescaleMethod, enum InterpolationMethod interpMethod) {
@@ -228,8 +212,7 @@ namespace PV {
             nearestNeighborInterp(rawInput.data(), getWidth(), getHeight(), getFeatures(), getFeatures(), getFeatures() * getWidth(), 1, scaledInput.data(), resizedWidth, resizedHeight);
             break;
       }
-      resize(resizedWidth, resizedHeight, getFeatures());
-      set(scaledInput);
+      set(scaledInput, resizedWidth, resizedHeight, getFeatures());
 
       // This final call to crop resizes the buffer to our specified
       // targetWidth and targetHeight. If our rescaleMethod was PAD,

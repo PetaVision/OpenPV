@@ -28,8 +28,7 @@ namespace PV {
    }
 
    Image::Image(const std::vector<float> &data, int width, int height, int channels) {
-      resize(width, height, channels);
-      set(data);
+      set(data, width, height, channels);
    }
 
    void Image::setPixel(int x, int y, float r, float g, float b) {
@@ -84,9 +83,8 @@ namespace PV {
             return;
          }
          else {
-           // We are already grayscale, but we're adding or removing an alpha channel
-           Buffer grayScale(getWidth(), getHeight(), alphaChannel ? 2 : 1);
-
+            // We are already grayscale, but we're adding or removing an alpha channel
+            Buffer grayScale(getWidth(), getHeight(), alphaChannel ? 2 : 1);
             for(int y = 0; y < getHeight(); ++y) {
                for(int x = 0; x < getWidth(); ++x) {
                   grayScale.set(x, y, 0, at(x, y, 0));
@@ -95,9 +93,7 @@ namespace PV {
                   }
                }
             }
-
-            resize(getWidth(), getHeight(), alphaChannel ? 2 : 1);
-            set(grayScale.asVector());
+            set(grayScale.asVector(), getWidth(), getHeight(), alphaChannel ? 2 : 1);
             return;
          }
       }
@@ -124,9 +120,7 @@ namespace PV {
                }
             }
          }
-
-         resize(getWidth(), getHeight(), alphaChannel ? 2 : 1);
-         set(grayScale.asVector());
+         set(grayScale.asVector(), getWidth(), getHeight(), alphaChannel ? 2 : 1);
       }
    }
 
@@ -150,8 +144,7 @@ namespace PV {
                   }
                }
             }
-            resize(getWidth(), getHeight(), alphaChannel ? 4 : 3);
-            set(color.asVector());
+            set(color.asVector(), getWidth(), getHeight(), alphaChannel ? 4 : 3);
          }
       }
       else {
@@ -173,8 +166,7 @@ namespace PV {
                }
             }
          }
-         resize(getWidth(), getHeight(), alphaChannel ? 4 : 3);
-         set(color.asVector());
+         set(color.asVector(), getWidth(), getHeight(), alphaChannel ? 4 : 3);
       }
    }
 }

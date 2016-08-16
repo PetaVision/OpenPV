@@ -30,6 +30,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/PtwiseProductLayer.cpp
    ${SUBDIR}/PtwiseQuotientLayer.cpp
    ${SUBDIR}/PVLayerCube.cpp
+   ${SUBDIR}/PvpLayer.cpp
    ${SUBDIR}/RescaleLayer.cpp
    ${SUBDIR}/Retina.cpp
    ${SUBDIR}/RunningAverageLayer.cpp
@@ -70,6 +71,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/PtwiseLinearTransferLayer.hpp
    ${SUBDIR}/PtwiseProductLayer.hpp
    ${SUBDIR}/PVLayerCube.hpp
+   ${SUBDIR}/PvpLayer.hpp
    ${SUBDIR}/RescaleLayer.hpp
    ${SUBDIR}/Retina.hpp
    ${SUBDIR}/RunningAverageLayer.hpp

@@ -27,15 +27,13 @@ void testAtSet() {
 
 // Buffer::set(const std::vector<float> &vector)
 void testSetVector() {
-   Buffer testBuffer(2, 2, 2);
    std::vector<float> testVector = { 
          0.0f, 1.0f,
          2.0f, 3.0f,
          4.0f, 5.0f,
          6.0f, 7.0f
       };
-   testBuffer.set(testVector);
-
+   Buffer testBuffer(testVector, 2, 2, 2);
    float v = 0;
    for(int y = 0; y < 2; ++y) {
       for(int x = 0; x < 2; ++x) {
@@ -127,64 +125,55 @@ void testCrop() {
 
    // Test each offset anchor
 
-   Buffer testBuffer(4, 4, 1);
-   testBuffer.set(bufferContents);
+   Buffer testBuffer(bufferContents, 4, 4, 1);
    testBuffer.crop(2, 2, Buffer::NORTH, 0, 0);
    pvErrorIf(
          testBuffer.at(0, 0, 0) != 2.0f || testBuffer.at(1, 0, 0) != 3.0f,
          "Failed (north).\n");
 
-   testBuffer.resize(4, 4, 1);
-   testBuffer.set(bufferContents);
+   testBuffer.set(bufferContents, 4, 4, 1);
    testBuffer.crop(2, 2, Buffer::NORTHEAST, 0, 0);
    pvErrorIf(
          testBuffer.at(0, 0, 0) != 3.0f || testBuffer.at(1, 1, 0) != 8.0f,
          "Failed (northeast).\n");
 
-   testBuffer.resize(4, 4, 1);
-   testBuffer.set(bufferContents);
+   testBuffer.set(bufferContents, 4, 4, 1);
    testBuffer.crop(2, 2, Buffer::EAST, 0, 0);
    pvErrorIf(
          testBuffer.at(1, 0, 0) != 8.0f || testBuffer.at(1, 1, 0) != 12.0f,
          "Failed (east).\n");
 
-   testBuffer.resize(4, 4, 1);
-   testBuffer.set(bufferContents);
+   testBuffer.set(bufferContents, 4, 4, 1);
    testBuffer.crop(2, 2, Buffer::SOUTHEAST, 0, 0);
    pvErrorIf(
          testBuffer.at(1, 0, 0) != 12.0f || testBuffer.at(0, 1, 0) != 15.0f,
          "Failed (southeast).\n");
    
-   testBuffer.resize(4, 4, 1);
-   testBuffer.set(bufferContents);
+   testBuffer.set(bufferContents, 4, 4, 1);
    testBuffer.crop(2, 2, Buffer::SOUTH, 0, 0);
    pvErrorIf(
          testBuffer.at(0, 1, 0) != 14.0f || testBuffer.at(1, 1, 0) != 15.0f,
          "Failed (south).\n");
 
-   testBuffer.resize(4, 4, 1);
-   testBuffer.set(bufferContents);
+   testBuffer.set(bufferContents, 4, 4, 1);
    testBuffer.crop(2, 2, Buffer::SOUTHWEST, 0, 0);
    pvErrorIf(
          testBuffer.at(0, 0, 0) != 9.0f || testBuffer.at(1, 1, 0) != 14.0f,
          "Failed (southwest).\n");
 
-   testBuffer.resize(4, 4, 1);
-   testBuffer.set(bufferContents);
+   testBuffer.set(bufferContents, 4, 4, 1);
    testBuffer.crop(2, 2, Buffer::WEST, 0, 0);
    pvErrorIf(
          testBuffer.at(0, 0, 0) != 5.0f || testBuffer.at(0, 1, 0) != 9.0f,
          "Failed (west).\n");
 
-   testBuffer.resize(4, 4, 1);
-   testBuffer.set(bufferContents);
+   testBuffer.set(bufferContents, 4, 4, 1);
    testBuffer.crop(2, 2, Buffer::NORTHWEST, 0, 0);
    pvErrorIf(
          testBuffer.at(0, 1, 0) != 5.0f || testBuffer.at(1, 0, 0) != 2.0f,
          "Failed (northwest).\n");
    
-   testBuffer.resize(4, 4, 1);
-   testBuffer.set(bufferContents);
+   testBuffer.set(bufferContents, 4, 4, 1);
    testBuffer.crop(2, 2, Buffer::CENTER, 0, 0);
    pvErrorIf(
          testBuffer.at(0, 0, 0) != 6.0f || testBuffer.at(1, 1, 0) != 11.0f,
@@ -192,29 +181,25 @@ void testCrop() {
 
    // Test offsetX and offsetY
  
-   testBuffer.resize(4, 4, 1);
-   testBuffer.set(bufferContents);
+   testBuffer.set(bufferContents, 4, 4, 1);
    testBuffer.crop(2, 2, Buffer::CENTER, 1, 0);
    pvErrorIf(
          testBuffer.at(0, 0, 0) != 7.0f || testBuffer.at(1, 1, 0) != 12.0f,
          "Failed (offsetX = 1).\n");
 
-   testBuffer.resize(4, 4, 1);
-   testBuffer.set(bufferContents);
+   testBuffer.set(bufferContents, 4, 4, 1);
    testBuffer.crop(2, 2, Buffer::EAST, -1, 0);
    pvErrorIf(
          testBuffer.at(0, 0, 0) != 6.0f || testBuffer.at(1, 1, 0) != 11.0f,
          "Failed (offsetX = -1).\n");
 
-   testBuffer.resize(4, 4, 1);
-   testBuffer.set(bufferContents);
+   testBuffer.set(bufferContents, 4, 4, 1);
    testBuffer.crop(2, 2, Buffer::NORTHWEST, 0, 1);
    pvErrorIf(
          testBuffer.at(0, 0, 0) != 5.0f || testBuffer.at(1, 1, 0) != 10.0f,
          "Failed (offsetY = 1).\n");
  
-   testBuffer.resize(4, 4, 1);
-   testBuffer.set(bufferContents);
+   testBuffer.set(bufferContents, 4, 4, 1);
    testBuffer.crop(2, 2, Buffer::SOUTH, 0, -1);
    pvErrorIf(
          testBuffer.at(0, 0, 0) != 6.0f || testBuffer.at(1, 1, 0) != 11.0f,
@@ -261,8 +246,7 @@ void testRescale() {
    };
 
 
-   Buffer testBuffer(8, 8, 1);
-   testBuffer.set(testData);
+   Buffer testBuffer(testData, 8, 8, 1);
 
    // Test nearest neighbor scaling. Rescale method will not be
    // used here because the aspect ratio is the same.
@@ -279,8 +263,7 @@ void testRescale() {
    }
  
    // Test Buffer::CROP resizeMethod
-   testBuffer.resize(8, 8, 1);
-   testBuffer.set(testData);
+   testBuffer.set(testData, 8, 8, 1);
    testBuffer.rescale(8, 4, Buffer::CROP, Buffer::NEAREST);
    std::vector<float> cropped = testBuffer.asVector();
    pvErrorIf(cropped.size() != answerCrop.size(),
@@ -293,8 +276,7 @@ void testRescale() {
    }
    
    // Test Buffer::PAD resizeMethod
-   testBuffer.resize(8, 8, 1);
-   testBuffer.set(testData);
+   testBuffer.set(testData, 8, 8, 1);
    testBuffer.rescale(4, 8, Buffer::PAD, Buffer::NEAREST);
    std::vector<float> padded = testBuffer.asVector();
    pvErrorIf(padded.size() != answerPad.size(),

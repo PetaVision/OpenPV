@@ -1343,12 +1343,14 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
       }
    #endif
 
+      pvDebug() << "BEGINNING CHECKPOINT READ RANK " << getCommunicator()->commRank() << "\n";
       // Initialize either by loading from checkpoint, or calling initializeState
       // This needs to happen after initPublishers so that we can initialize the values in the data stores,
       // and before the mLayers' publish calls so that the data in border regions gets copied correctly.
       if ( mCheckpointReadFlag ) {
          checkpointRead();
       }
+      pvDebug() << "END CHECKPOINT READ RANK " << getCommunicator()->commRank() << "\n";
 
       notify(std::make_shared<InitializeStateMessage>());
 

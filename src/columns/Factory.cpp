@@ -41,6 +41,7 @@
 #include <layers/PtwiseLinearTransferLayer.hpp>
 #include <layers/PtwiseProductLayer.hpp>
 #include <layers/PtwiseQuotientLayer.hpp>
+#include <layers/PvpLayer.hpp>
 #include <layers/RescaleLayer.hpp>
 #include <layers/RunningAverageLayer.hpp>
 #include <layers/Retina.hpp>
@@ -120,7 +121,16 @@ int Factory::registerCoreKeywords() {
    registerKeyword("HyPerLayer", Factory::create<HyPerLayer>);
    registerKeyword("HyPerLCALayer", Factory::create<HyPerLCALayer>);
    registerKeyword("ISTALayer", Factory::create<ISTALayer>);
+   
+   // Leaving these in for backwards compatibility.
+   // Remove after a short fade time. 8-12-16
+   registerKeyword("Image", Factory::create<ImageLayer>); 
+   registerKeyword("Movie", Factory::create<ImageLayer>);
+   registerKeyword("ImagePvp", Factory::create<PvpLayer>);
+   registerKeyword("MoviePvp", Factory::create<PvpLayer>);
+
    registerKeyword("ImageLayer", Factory::create<ImageLayer>);
+   registerKeyword("PvpLayer", Factory::create<PvpLayer>);
 //   registerKeyword("ImagePvp", Factory::create<ImagePvp>);
 //   registerKeyword("ImageFromMemoryBuffer", Factory::create<ImageFromMemoryBuffer>);
    registerKeyword("KmeansLayer", Factory::create<KmeansLayer>);
@@ -132,7 +142,6 @@ int Factory::registerCoreKeywords() {
    registerKeyword("LeakyIntegrator", Factory::create<LeakyIntegrator>);
    registerKeyword("MaskLayer", Factory::create<MaskLayer>);
    registerKeyword("MomentumLCALayer", Factory::create<MomentumLCALayer>);
-//   registerKeyword("Movie", Factory::create<Movie>);
 //   registerKeyword("MoviePvp", Factory::create<MoviePvp>);
    registerKeyword("PoolingIndexLayer", Factory::create<PoolingIndexLayer>);
    registerKeyword("PtwiseLinearTransferLayer", Factory::create<PtwiseLinearTransferLayer>);
