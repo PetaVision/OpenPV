@@ -8,8 +8,10 @@
 #ifndef POOLINGCONN_HPP_
 #define POOLINGCONN_HPP_
 
+#include <cudakernels/CudaPoolingDeliverKernel.hpp>
 #include "HyPerConn.hpp"
-#include "../layers/PoolingIndexLayer.hpp"
+#include "layers/PoolingIndexLayer.hpp"
+
 namespace PV {
 
 class PoolingConn: public HyPerConn {
@@ -52,26 +54,19 @@ protected:
     * @brief PoolingConn does not have weights to normalize, and does not use normalizeMethod
     */
    void ioParam_normalizeMethod(enum ParamsIOFlag ioFlag);
+   virtual int allocateReceivePostKernel() override;
+   virtual int allocateReceivePreKernel() override;
+   int allocatePoolingDeliverKernel();
    virtual int setInitialValues();
    virtual int constructWeights();
 
-   virtual int deliverPresynapticPerspective(PVLayerCube const * activity, int arborID);
-   virtual int deliverPostsynapticPerspective(PVLayerCube const * activity, int arborID);
-   //virtual void deliverOnePreNeuronActivity(int kPreExt, int arbor, pvadata_t a, pvgsyndata_t * postBufferStart, void * auxPtr);
-   //virtual void deliverOnePostNeuronActivity(int arborID, int kTargetExt, int inSy, float* activityStartBuf, pvdata_t*
-   //gSynPatchPos, float dt_factor, taus_uint4 * rngPtr);
-   void clearGateIdxBuffer();
+   virtual int deliverPresynapticPerspective(PVLayerCube const * activity, int arborID) override;
+   virtual int deliverPresynapticPerspectiveGPU(PVLayerCube const * activity, int arborID) override;
+   virtual int deliverPostsynapticPerspective(PVLayerCube const * activity, int arborID) override;
+   virtual int deliverPostsynapticPerspectiveGPU(PVLayerCube const * activity, int arborID) override;
 
-#ifdef PV_USE_CUDA
-   int deliverPresynapticPerspectiveGPU(PVLayerCube const * activity, int arborID){
-      pvError() << "Pooling Conn does not allow GPU deliver\n";
-      return PV_FAILURE; // prevents "control reaches end of non-void function" warning
-   }
-   int deliverPostsynapticPerspectiveGPU(PVLayerCube const * activity, int arborID){
-      pvError() << "Pooling Conn does not allow GPU deliver\n";
-      return PV_FAILURE; // prevents "control reaches end of non-void function" warning
-   }
-#endif // PV_USE_CUDA 
+   int deliverGPU(PVLayerCube const * activity, int arborID);
+   void clearGateIdxBuffer();
 
 private:
    int initialize_base();
@@ -81,6 +76,7 @@ private:
    char* postIndexLayerName;
    PoolingIndexLayer* postIndexLayer;
    AccumulateType poolingType;
+   PVCuda::CudaPoolingDeliverKernel* krPoolingDeliver = nullptr; // Cuda kernel for update state call
 }; // end class PoolingConn
 
 }  // end namespace PV

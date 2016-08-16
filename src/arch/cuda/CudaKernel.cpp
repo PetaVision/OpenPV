@@ -147,4 +147,11 @@ void CudaKernel::setDims(long gWorkSizeX, long gWorkSizeY, long gWorkSizeZ, long
    dimsSet = true;
 }
 
+void CudaKernel::cudnnHandleError(cudnnStatus_t status, const char* errStr){
+   if(status != CUDNN_STATUS_SUCCESS) {
+      pvError() << "CUDNN " << errStr << ": " << cudnnGetErrorString(status) << "\n";
+      return;
+   }
 }
+
+}  // end namespace PVCuda

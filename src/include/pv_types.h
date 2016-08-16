@@ -11,11 +11,8 @@
 #include "pv_common.h"
 #include "pv_datatypes.h"
 #include "PVLayerLoc.h"
-#ifndef CL_KERNEL_INCLUDE
-#include <stdlib.h>   /* for size_t */
-#include <stdio.h>    /* for FILE */
 #include <float.h>
-#endif
+#include <stdio.h>
 
 // PV_ON and PV_OFF are never used.  Uncomment this if they become necessary again.
 //#define PV_ON  1

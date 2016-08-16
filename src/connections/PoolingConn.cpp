@@ -325,6 +325,52 @@ int PoolingConn::allocateDataStructures(){
    return PV_SUCCESS;
 }
 
+// On the GPU, pooling uses cudnnPoolingForward, so pre and post do the same thing.
+
+int PoolingConn::allocateReceivePostKernel() {
+   return allocatePoolingDeliverKernel();
+}
+
+int PoolingConn::allocateReceivePreKernel() {
+   return allocatePoolingDeliverKernel();
+}
+
+int PoolingConn::allocatePoolingDeliverKernel() {
+   PVCuda::CudaDevice * device = parent->getDevice();
+   PVCuda::CudaBuffer * d_preDatastore = pre->getDeviceDatastore();
+   PVCuda::CudaBuffer* d_postGSyn = post->getDeviceGSyn();
+   cudnnPoolingMode_t poolingMode;
+   int multiplier = 1;
+   switch(poolingType) {
+   case MAX:
+      poolingMode = CUDNN_POOLING_MAX;
+      break;
+   case SUM:
+      poolingMode = CUDNN_POOLING_AVERAGE_COUNT_INCLUDE_PADDING;
+      multiplier = nxpPost * nypPost;
+      break;
+   case AVG:
+      poolingMode = CUDNN_POOLING_AVERAGE_COUNT_INCLUDE_PADDING;
+      break;
+   default:
+      pvAssert(0);
+      break;
+   }
+   krPoolingDeliver = new PVCuda::CudaPoolingDeliverKernel(device);
+   krPoolingDeliver->setArgs(
+         pre->getLayerLoc(),
+         post->getLayerLoc(),
+         nxpPost,
+         nypPost,
+         poolingMode,
+         multiplier,
+         d_preDatastore,
+         d_postGSyn,
+         (int) channel
+   );
+   return PV_SUCCESS;
+}
+
 int PoolingConn::setInitialValues() {
    //Doing nothing
    return PV_SUCCESS;
@@ -532,7 +578,6 @@ int PoolingConn::deliverPresynapticPerspective(PVLayerCube const * activity, int
             gatePatchHead = gatePatchHeadBatch;
          }
 #endif // PV_USE_OPENMP_THREADS
-         //deliverOnePreNeuronActivity(kPreExt, arborID, a, gSynPatchHead, gatePatchHead);
          
          PVPatch * weights = getWeights(kPreExt, arborID);
          const int nk = weights->nx * fPatchSize();
@@ -612,6 +657,10 @@ int PoolingConn::deliverPresynapticPerspective(PVLayerCube const * activity, int
       }
    }
    return PV_SUCCESS;
+}
+
+int PoolingConn::deliverPresynapticPerspectiveGPU(PVLayerCube const * activity, int arborID) {
+   return deliverGPU(activity, arborID);
 }
 
 int PoolingConn::deliverPostsynapticPerspective(PVLayerCube const * activity, int arborID) {
@@ -726,6 +775,30 @@ int PoolingConn::deliverPostsynapticPerspective(PVLayerCube const * activity, in
          }
       }
    }
+   return PV_SUCCESS;
+}
+
+int PoolingConn::deliverPostsynapticPerspectiveGPU(PVLayerCube const * activity, int arborID) {
+   return deliverPresynapticPerspectiveGPU(activity, arborID);
+}
+
+int PoolingConn::deliverGPU(PVLayerCube const * activity, int arborID) {
+   //Check channel number for noupdate
+   if(getChannel() == CHANNEL_NOUPDATE){
+      return PV_SUCCESS;
+   }
+   pvAssert(post->getChannel(getChannel()));
+
+   if(pre->getUpdatedDeviceDatastoreFlag()){
+      float * h_preDatastore = activity->data;
+      PVCuda::CudaBuffer* d_preDatastore = pre->getDeviceDatastore();
+      pvAssert(d_preDatastore);
+      d_preDatastore->copyToDevice(h_preDatastore);
+      //Device now has updated
+      pre->setUpdatedDeviceDatastoreFlag(false);
+   }
+
+   krPoolingDeliver->run();
    return PV_SUCCESS;
 }
 

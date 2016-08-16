@@ -1,5 +1,5 @@
 /*
- * RecvPost.cu
+ * CudaRecvPost.cu
  *
  *  Created on: Aug 5, 2014
  *      Author: Sheng Lundquist
@@ -8,12 +8,8 @@
 #ifndef CUDARECVPOST_HPP_
 #define CUDARECVPOST_HPP_
 
-#include "../arch/cuda/CudaKernel.hpp"
-#include "../arch/cuda/CudaBuffer.hpp"
-#include <assert.h>
-//#include "../arch/cuda/Cuda3dFloatTextureBuffer.hpp"
-//#include "../utils/conversions.h"
-//#include "../layers/accumulate_functions.h"
+#include "arch/cuda/CudaKernel.hpp"
+#include "arch/cuda/CudaBuffer.hpp"
 
 namespace PVCuda{
 #include <builtin_types.h>
@@ -156,11 +152,6 @@ protected:
    virtual int do_run();
 
 private:
-#ifdef PV_USE_CUDNN
-   void callPermuteDatastorePVToCudnnKernel(int gridSize, int blockSize, int nbatch, int ny, int nx, int nf);
-   void callPermuteGSynPVToCudnnKernel(int gridSize, int blockSize, float* gSynPatchHead, int nbatch, int ny, int nx, int nf);
-   void callPermuteGSynCudnnToPVKernel(int gridSize, int blockSize, float* gSynPatchHead, int nbatch, int ny, int nx, int nf);
-   #endif // PV_USE_CUDNN
    recv_post_params params;
 }; // end class CudaRecvPost
 

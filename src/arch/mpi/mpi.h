@@ -27,6 +27,7 @@ typedef void * voidptr;
 #define MPI_FLOAT          (sizeof(float))
 #define MPI_DOUBLE         (sizeof(double))
 #define MPI_STATUS_IGNORE  0
+#define MPI_STATUSES_IGNORE NULL
 #define MPI_IN_PLACE       ((voidptr) 1)
 #define MPI_MAX            0
 #define MPI_MIN            1

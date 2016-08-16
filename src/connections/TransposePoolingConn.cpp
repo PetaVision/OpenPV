@@ -36,9 +36,6 @@ int TransposePoolingConn::initialize_base() {
    // TransposePoolingConn::initialize_base() gets called after
    // HyPerConn::initialize_base() so these default values override
    // those in HyPerConn::initialize_base().
-   // TransposePoolingConn::initialize_base() gets called before
-   // HyPerConn::initialize(), so these values still get overridden
-   // by the params file values.
 
    originalConnName = NULL;
    originalConn = NULL;
