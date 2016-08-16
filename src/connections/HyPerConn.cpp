@@ -21,7 +21,6 @@
 #include <algorithm>
 
 #include "columns/Factory.hpp"
-#include "layers/accumulate_functions.h"
 #include "weightinit/InitWeights.hpp"
 #include "normalizers/NormalizeBase.hpp"
 #include "privateTransposeConn.hpp"

@@ -1,8 +1,4 @@
-#include "accumulate_functions.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <connections/accumulate_functions.hpp>
 
 #ifdef COMPRESS_PHI
 void pvpatch_accumulate(int kPreExt, int nk, float* restrict v, float a, pvwdata_t* restrict w,
@@ -121,7 +117,7 @@ int pvpatch_max_pooling_from_post(int kPreGlobalExt, int nk, float * RESTRICT v,
       gateMax = (int) *gate;
    }
    for (k = 0; k < nk; k+=sf) {
-      float checkVal = a[k]*w[0];
+      float checkVal = a[k];
       if(vmax <= checkVal){
          vmax = checkVal;
          if(gate){
@@ -129,7 +125,7 @@ int pvpatch_max_pooling_from_post(int kPreGlobalExt, int nk, float * RESTRICT v,
          }
       }
    }
-   *v = vmax;
+   *v = vmax*w[0];
    if(gate){
       *gate = (float) gateMax;
    }
@@ -153,14 +149,8 @@ int pvpatch_sumpooling_from_post(int kPreExt, int nk, float * RESTRICT v, float 
    int k;
    float dv = 0.0f;
    for (k = 0; k < nk; k+=sf) {
-      dv += a[k]*w[0];
+      dv += a[k];
    }
-   *v += dt_factor*dv;
+   *v += dt_factor*dv*w[0];
    return status;
 }
-
-
-
-#ifdef __cplusplus
-}
-#endif

@@ -90,12 +90,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/WTALayer.hpp
 )
 
-set (PVLibSrcC ${PVLibSrcC}
-   ${SUBDIR}/accumulate_functions.c
-)
-
 set (PVLibSrcH ${PVLibSrcH}
-   ${SUBDIR}/accumulate_functions.h
    ${SUBDIR}/updateStateFunctions.h
 )
 

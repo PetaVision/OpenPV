@@ -1862,9 +1862,10 @@ void HyPerLayer::copyAllGSynFromDevice(){
    if(recvGpu){
       //Allocated as a big chunk, this should work
       float * h_postGSyn = GSyn[0];
-     PVCuda::CudaBuffer * d_postGSyn = this->getDeviceGSyn();
+      PVCuda::CudaBuffer * d_postGSyn = this->getDeviceGSyn();
       assert(d_postGSyn);
       d_postGSyn->copyFromDevice(h_postGSyn);
+      std::cout << "GSyn[0] = " << GSyn[0][0] << std::endl;
    }
 }
 
