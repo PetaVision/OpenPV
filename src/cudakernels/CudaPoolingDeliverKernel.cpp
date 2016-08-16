@@ -17,12 +17,9 @@ CudaPoolingDeliverKernel::CudaPoolingDeliverKernel(CudaDevice* inDevice) : CudaK
 }
 
 CudaPoolingDeliverKernel::~CudaPoolingDeliverKernel() {
-   cudnnDestroyPoolingDescriptor((cudnnPoolingDescriptor_t) params.poolingDescriptor);
-   params.poolingDescriptor = nullptr;
-   cudnnDestroyTensorDescriptor((cudnnTensorDescriptor_t) params.dataStoreDescriptor);
-   params.dataStoreDescriptor = nullptr;
-   cudnnDestroyTensorDescriptor((cudnnTensorDescriptor_t) params.gSynDescriptor);
-   params.gSynDescriptor = nullptr;
+   cudnnDestroyPoolingDescriptor(mPoolingDescriptor);
+   cudnnDestroyTensorDescriptor((cudnnTensorDescriptor_t) mDataStoreDescriptor);
+   cudnnDestroyTensorDescriptor((cudnnTensorDescriptor_t) mGSynDescriptor);
 }
 
 void CudaPoolingDeliverKernel::setArgs(
@@ -52,19 +49,18 @@ void CudaPoolingDeliverKernel::setArgs(
 
    cudnnStatus_t status;
 
-   params.preLoc = preLoc;
-   params.postLoc = postLoc;
-   params.poolingMode = poolingMode;
-   params.multiplier = (float) multiplier;
+   mPreLoc = preLoc;
+   mPostLoc = postLoc;
+   mPoolingMode = poolingMode;
+   mMultiplier = (float) multiplier;
 
    int strideX = calcStride(preLoc->nx, postLoc->nx);
    int strideY = calcStride(preLoc->ny, postLoc->ny);
 
-   cudnnPoolingDescriptor_t poolingDescriptor;
-   status = cudnnCreatePoolingDescriptor(&poolingDescriptor);
+   status = cudnnCreatePoolingDescriptor(&mPoolingDescriptor);
    cudnnHandleError(status, "Create pooling descriptor");
    status = cudnnSetPooling2dDescriptor(
-         poolingDescriptor,
+         mPoolingDescriptor,
          poolingMode,
          nypPost,
          nxpPost,
@@ -73,32 +69,27 @@ void CudaPoolingDeliverKernel::setArgs(
          strideY,
          strideX
    );
-   params.poolingDescriptor = (void*) poolingDescriptor;
 
    const PVHalo* preHalo = &preLoc->halo;
-   params.diffX = calcBorderExcess(preLoc->nx, postLoc->nx, preHalo->lt, nxpPost);
-   params.diffY = calcBorderExcess(preLoc->ny, postLoc->ny, preHalo->up, nypPost);
-   cudnnTensorDescriptor_t dataStoreDescriptor;
-   status = cudnnCreateTensorDescriptor(&dataStoreDescriptor);
+   mBorderExcessX = calcBorderExcess(preLoc->nx, postLoc->nx, preHalo->lt, nxpPost);
+   mBorderExcessY = calcBorderExcess(preLoc->ny, postLoc->ny, preHalo->up, nypPost);
+   status = cudnnCreateTensorDescriptor(&mDataStoreDescriptor);
    cudnnHandleError(status, "Create input tensor descriptor");
    status = cudnnSetTensor4dDescriptor(
-         dataStoreDescriptor,
+         mDataStoreDescriptor,
          CUDNN_TENSOR_NCHW, // PetaVision arrays are ordered NHWC; they will be permuted to NCHW inside do_run()
          CUDNN_DATA_FLOAT,
          preLoc->nbatch, //Number of images
          preLoc->nf, //Number of feature maps per image
-         preLoc->ny + preHalo->up + preHalo->dn - 2*params.diffY, //Height of each feature map
-         preLoc->nx + preHalo->lt + preHalo->rt - 2*params.diffX
+         preLoc->ny + preHalo->up + preHalo->dn - 2*mBorderExcessX, //Height of each feature map
+         preLoc->nx + preHalo->lt + preHalo->rt - 2*mBorderExcessX
          ); //Width of each feature map
-   params.dataStoreDescriptor = (void*) dataStoreDescriptor;
+   mDataStore = (float*) dataStoreBuffer->getPointer();
 
-   params.dataStore = (float*) dataStoreBuffer->getPointer();
-
-   cudnnTensorDescriptor_t gSynDescriptor;
-   status = cudnnCreateTensorDescriptor(&gSynDescriptor);
+   status = cudnnCreateTensorDescriptor(&mGSynDescriptor);
    cudnnHandleError(status, "Create input tensor descriptor");
    status = cudnnSetTensor4dDescriptor(
-         gSynDescriptor,
+         mGSynDescriptor,
          CUDNN_TENSOR_NCHW, // PetaVision arrays are ordered NHWC; they will be permuted to NCHW inside do_run()
          CUDNN_DATA_FLOAT,
          preLoc->nbatch, //Number of images
@@ -107,17 +98,16 @@ void CudaPoolingDeliverKernel::setArgs(
          postLoc->nx
    ); //nx restricted
    cudnnHandleError(status, "Set output tensor descriptor");
-   params.gSynDescriptor = (void*) gSynDescriptor;
 
    int numNeuronsAcrossBatch = postLoc->nf*postLoc->ny*postLoc->nx*postLoc->nbatch;
    float * gSynHead = (float*) gSynBuffer->getPointer();
-   params.gSyn = &gSynHead[channel*numNeuronsAcrossBatch];
+   mGSyn = &gSynHead[channel*numNeuronsAcrossBatch];
 
-   cudnnDataStore = device->createBuffer(dataStoreBuffer->getSize());
+   mCudnnDataStore = device->createBuffer(dataStoreBuffer->getSize());
 
    size_t gSynSize = gSynBuffer->getSize();
    int numGSynNeurons = postLoc->nf*postLoc->ny*postLoc->nf*postLoc->nbatch;
-   cudnnGSyn = device->createBuffer(numGSynNeurons);
+   mCudnnGSyn = device->createBuffer(numGSynNeurons);
 }
 
 int CudaPoolingDeliverKernel::calcBorderExcess(int preRestricted, int postRestricted, int border, int patchSizePostPerspective) {
@@ -140,29 +130,28 @@ int CudaPoolingDeliverKernel::do_run() {
    int const blockSize = device->get_max_threads();
 
    // Permute PV-organized DataStore to CUDNN organization.
-   PVLayerLoc const * preLoc = params.preLoc;
-   PVHalo const * halo = &preLoc->halo;
-   int const nxPreExt =preLoc->nx + halo->lt + halo->rt;
-   int const nyPreExt = preLoc->ny + halo->dn + halo->up;
-   int const nf = preLoc->nf;
-   int const nbatch = params.preLoc->nbatch;
+   PVHalo const * halo = &mPreLoc->halo;
+   int const nxPreExt = mPreLoc->nx + halo->lt + halo->rt;
+   int const nyPreExt = mPreLoc->ny + halo->dn + halo->up;
+   int const nf = mPreLoc->nf;
+   int const nbatch = mPreLoc->nbatch;
    //Calculate grid and work size
    int numNeurons = nbatch * nyPreExt * nxPreExt * nf;
    //Ceil to get all neurons
    int const gridSizePre = std::ceil((float)numNeurons/blockSize);
-   float * cudnnDataStorePointer = (float*) cudnnDataStore->getPointer();
-   callPermuteDatastorePVToCudnnKernel(gridSizePre, blockSize, params.dataStore, cudnnDataStorePointer, nbatch, nyPreExt, nxPreExt, nf, params.diffX, params.diffY);
+   float * cudnnDataStorePointer = (float*) mCudnnDataStore->getPointer();
+   callPermuteDatastorePVToCudnnKernel(gridSizePre, blockSize, mDataStore, cudnnDataStorePointer, nbatch, nyPreExt, nxPreExt, nf, mBorderExcessX, mBorderExcessY);
    handleCallError("Permute DataStore PV to CUDNN");
 
    // Permute the PV-ordered GSyn channel to CUDNN ordering.
-   int const nxPost = params.postLoc->nx;
-   int const nyPost = params.postLoc->ny;
-   int const nfPost = params.postLoc->nf;
-   pvAssert(params.postLoc->nbatch == params.preLoc->nbatch);
+   int const nxPost = mPostLoc->nx;
+   int const nyPost = mPostLoc->ny;
+   int const nfPost = mPostLoc->nf;
+   pvAssert(mPostLoc->nbatch == mPreLoc->nbatch);
    //Calculate grid and work size
    numNeurons = nbatch * nxPost * nyPost * nf;
-   float* gSynPatchHead = params.gSyn;
-   float * cudnnGSynPointer = (float*) cudnnGSyn->getPointer();
+   float* gSynPatchHead = mGSyn;
+   float * cudnnGSynPointer = (float*) mCudnnGSyn->getPointer();
    //Ceil to get all neurons
    int const gridSizePost = std::ceil((float)numNeurons/(float)blockSize);
    callPermuteGSynPVToCudnnKernel(gridSizePost, blockSize, gSynPatchHead, cudnnGSynPointer, nbatch, nyPost, nxPost, nf, 1, 1);
@@ -170,19 +159,17 @@ int CudaPoolingDeliverKernel::do_run() {
 
    cudnnPoolingMode_t checkMode;
    int h,w,vPad,hPad,vStride,hStride;
-   cudnnGetPooling2dDescriptor((cudnnPoolingDescriptor_t) params.poolingDescriptor,
+   cudnnGetPooling2dDescriptor((cudnnPoolingDescriptor_t) mPoolingDescriptor,
    &checkMode, &h, &w, &vPad, &hPad, &vStride, &hStride);
 
    // Do the pooling
    cudnnStatus_t status = cudnnPoolingForward(
          (cudnnHandle_t) device->getCudnnHandle(),
-         (cudnnPoolingDescriptor_t) params.poolingDescriptor,
-         &params.multiplier,
-         (cudnnTensorDescriptor_t) params.dataStoreDescriptor,
-         cudnnDataStorePointer,
+         mPoolingDescriptor,
+         &mMultiplier,
+         mDataStoreDescriptor, cudnnDataStorePointer,
          &scalingFactor,
-         (cudnnTensorDescriptor_t) params.gSynDescriptor,
-         cudnnGSynPointer
+         mGSynDescriptor, cudnnGSynPointer
    );
    cudnnHandleError(status, "Forward pooling run");
 

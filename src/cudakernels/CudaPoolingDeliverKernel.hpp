@@ -49,9 +49,19 @@ protected:
    int calcStride(int preRestricted, int postRestricted);
 
 protected:
-   Params params;
-   CudaBuffer * cudnnDataStore = nullptr;
-   CudaBuffer * cudnnGSyn = nullptr;
+   PVLayerLoc const * mPreLoc = nullptr;
+   PVLayerLoc const * mPostLoc = nullptr;
+   int mBorderExcessX = 0;
+   int mBorderExcessY = 0;
+   cudnnPoolingMode_t mPoolingMode = CUDNN_POOLING_MAX;
+   float mMultiplier = 1.0f;
+   cudnnPoolingDescriptor_t mPoolingDescriptor = nullptr;
+   cudnnTensorDescriptor_t mDataStoreDescriptor = nullptr;
+   float * mDataStore = nullptr;
+   cudnnTensorDescriptor_t mGSynDescriptor = nullptr;
+   float * mGSyn = nullptr;
+   CudaBuffer * mCudnnDataStore = nullptr;
+   CudaBuffer * mCudnnGSyn = nullptr;
 };
 
 } /* namespace PVCuda */
