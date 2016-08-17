@@ -23,11 +23,11 @@ public:
    virtual ~PoolingConn();
    virtual int communicateInitInfo();
    virtual int allocateDataStructures();
-   virtual int checkpointRead(const char * cpDir, double* timef);
-   virtual int checkpointWrite(const char * cpDir);
+   virtual int checkpointRead(const char * cpDir, double* timef) override { return PV_SUCCESS; }
+   virtual int checkpointWrite(const char * cpDir) override { return PV_SUCCESS; }
    virtual float minWeight(int arborId = 0);
    virtual float maxWeight(int arborId = 0);
-   virtual int finalizeUpdate(double time, double dt);
+   virtual int finalizeUpdate(double time, double dt) override { return PV_SUCCESS; }
    PoolingIndexLayer* getPostIndexLayer(){return postIndexLayer;}
    bool needPostIndex(){return needPostIndexLayer;}
    inline AccumulateType getPoolingType() const { return poolingType; }
@@ -57,15 +57,17 @@ protected:
    virtual int allocateReceivePostKernel() override;
    virtual int allocateReceivePreKernel() override;
    int allocatePoolingDeliverKernel();
-   virtual int setInitialValues();
+   virtual int setInitialValues() override { return PV_SUCCESS; }
    virtual int constructWeights();
 
    virtual int deliverPresynapticPerspective(PVLayerCube const * activity, int arborID) override;
-   virtual int deliverPresynapticPerspectiveGPU(PVLayerCube const * activity, int arborID) override;
    virtual int deliverPostsynapticPerspective(PVLayerCube const * activity, int arborID) override;
+#ifdef PV_USE_CUDA
+   virtual int deliverPresynapticPerspectiveGPU(PVLayerCube const * activity, int arborID) override;
    virtual int deliverPostsynapticPerspectiveGPU(PVLayerCube const * activity, int arborID) override;
-
    int deliverGPU(PVLayerCube const * activity, int arborID);
+#endif // PV_USE_CUDA
+
    void clearGateIdxBuffer();
 
 private:

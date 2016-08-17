@@ -275,10 +275,6 @@ int PoolingConn::communicateInitInfo() {
    return status;
 }
 
-int PoolingConn::finalizeUpdate(double time, double dt) {
-   return PV_SUCCESS;
-}
-
 void PoolingConn::clearGateIdxBuffer(){
    if(needPostIndexLayer){
       //Reset postIndexLayer's gsyn
@@ -371,11 +367,6 @@ int PoolingConn::allocatePoolingDeliverKernel() {
    return PV_SUCCESS;
 }
 
-int PoolingConn::setInitialValues() {
-   //Doing nothing
-   return PV_SUCCESS;
-}
-
 int PoolingConn::constructWeights(){
    int sx = nfp;
    int sy = sx * nxp;
@@ -412,14 +403,6 @@ int PoolingConn::constructWeights(){
 
 }
 
-int PoolingConn::checkpointRead(const char * cpDir, double * timeptr) {
-   return PV_SUCCESS;
-}
-
-int PoolingConn::checkpointWrite(const char * cpDir) {
-   return PV_SUCCESS;
-}
-
 float PoolingConn::minWeight(int arborId){
    if(getPoolingType() == MAX){
      return 1.0;
@@ -433,8 +416,8 @@ float PoolingConn::minWeight(int arborId){
      return (1.0/(nxp*nyp*relative_XScale*relative_YScale));
    }
    else {
-       assert(0); // only possibilities are ACCUMULATE_MAXPOOLING, ACCUMULATE_SUMPOOLING, ACCUMULATe_AVGPOOLING
-       return 0.0; // gets rid of a compile warning
+       assert(0); // only possibilities are PoolingConn::MAX, PoolingConn::SUM, PoolingConn::AVG
+       return 0.0f; // gets rid of a compile warning
     }
 }
 
@@ -451,8 +434,8 @@ float PoolingConn::maxWeight(int arborId){
      return (1.0/(nxp*nyp*relative_XScale*relative_YScale));
    }
    else {
-       assert(0); // only possibilities are ACCUMULATE_MAXPOOLING and ACCUMULATE_SUMPOOLING
-       return 0.0; // gets rid of a compile warning
+       assert(0); // only possibilities are PoolingConn::MAX, PoolingConn::SUM, PoolingConn::AVG
+       return 0.0f; // gets rid of a compile warning
     }
 }
 
