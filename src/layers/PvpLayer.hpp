@@ -12,8 +12,6 @@ namespace PV {
       PvpLayer();
       int initialize(const char * name, HyPerCol * hc);
       virtual Buffer retrieveData(std::string filename, int batchIndex);
-      virtual int postProcess(double timef, double dt);
-      virtual bool readyForNextFile();
 
    public:
       PvpLayer(const char * name, HyPerCol * hc);

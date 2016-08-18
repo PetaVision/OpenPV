@@ -104,14 +104,6 @@ namespace PV {
       return result;
    }
 
-   bool PvpLayer::readyForNextFile() {
-      return true;
-   }
-
-   int PvpLayer::postProcess(double timef, double dt) {
-      return InputLayer::postProcess(timef, dt);
-   }
-
    Buffer PvpLayer::readSparseBinaryActivityFrame(int numParams, int * params, PV_Stream * pvstream, int frameNumber) {
       // Allocate the byte positions in file where each frame's data starts and the number of active neurons in each frame
       // Only need to do this once

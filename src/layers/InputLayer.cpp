@@ -6,6 +6,7 @@
 #include "InputLayer.hpp"
 
 #include <algorithm>
+#include <cfloat>
 
 namespace PV {
 
@@ -36,7 +37,7 @@ namespace PV {
       mOffsetAnchor = Buffer::CENTER;
       mPadValue = 0;
       mEchoFramePathnameFlag = false;
-      mDisplayPeriod = 1;
+      mDisplayPeriod = -1;
       mWriteFileToTimestamp = true;
       mResetToStartOnLoop = true;
       return PV_SUCCESS;
@@ -143,7 +144,7 @@ int InputLayer::checkpointWrite(const char * cpDir){
    }
 
    double InputLayer::getDeltaUpdateTime() { 
-      return mDisplayPeriod;
+      return mDisplayPeriod > 0 ? mDisplayPeriod : DBL_MAX;
    }
 
    void InputLayer::ioParam_inputPath(enum ParamsIOFlag ioFlag) {
@@ -505,7 +506,8 @@ int InputLayer::checkpointWrite(const char * cpDir){
    // Can be used to implement lists of collections or modifications to
    // the loaded file, such as streaming audio or video.
    bool InputLayer::readyForNextFile() { 
-      return true;
+      // A display period <= 0 means we never change files
+      return mDisplayPeriod > 0;
    }
 
    int InputLayer::updateState(double time, double dt)  {
@@ -553,7 +555,7 @@ int InputLayer::checkpointWrite(const char * cpDir){
                //fileName = getNextFilename(mSkipFrameIndex.at(b), b);
             }
             mInputData.at(b) = retrieveData(fileName, b);
-         }
+         } 
          scatterInput(b);
       }
       //postProcess(timef, dt);
@@ -575,7 +577,7 @@ int InputLayer::checkpointWrite(const char * cpDir){
       // Defining this outside of the loop lets it contain the correct
       // data for the root process at the end
       Buffer croppedBuffer;
-      pvDebug() << "BEGINNING SCATTER ON RANK " << rank << "\n";      
+      pvDebug() << "BEGINNING SCATTER ON RANK " << rank << " AWIDTH=" << activityWidth << " AHEIGHT=" << activityHeight << "\n";      
       if (rank == rootProc) {
 
          // Loop through each rank, ending on the root process.
@@ -598,10 +600,8 @@ int InputLayer::checkpointWrite(const char * cpDir){
             // }
 
             // Crop the input data to the size of one process.
-            // Assumes rank 0 will have the top left portion
-            // and increments left to right, top to bottom.
             croppedBuffer.crop(activityWidth, activityHeight, Buffer::NORTHWEST, cropLeft, cropTop);
-            
+
             // If this isn't the root process, ship it off to the appropriate process.
             if(rank != rootProc) {
                // This is required because croppedBuffer.asVector() returns a const vector<>
@@ -635,16 +635,23 @@ int InputLayer::checkpointWrite(const char * cpDir){
       for (int n = 0; n < getNumExtended(); ++n) {
          activityBuffer[n] = mPadValue;
       }
-
-      int dataRowLength = activityWidth * numFeatures;
-      int activityRowIncrement = loc->nx + halo->lt + halo->rt;
-      // Start at the top left of the restricted buffer if we aren't scattering what's in the extended
-      int activityBufferStart = mUseInputBCflag ? 0 : halo->lt + activityRowIncrement * halo->up; 
       for(int y = 0; y < activityHeight; ++y) {
-         int sourceStart = y * dataRowLength;
-         int destStart = activityBufferStart + activityRowIncrement * y;
-         memcpy(&activityBuffer[destStart], &croppedBuffer.asVector().data()[sourceStart], dataRowLength * sizeof(float)); //TODO: Verify this memcpy and see if there's a C++11 alternative
+         for(int x = 0; x < activityWidth; ++x) {
+            for(int f = 0; f < numFeatures; ++f) {
+               int activityIndex = kIndex(
+                           halo->lt + x,
+                           halo->up + y, 
+                           f,
+                           loc->nx+halo->lt+halo->rt,
+                           loc->ny+halo->up+halo->dn,
+                           numFeatures
+                           );
+               activityBuffer[activityIndex] = croppedBuffer.at(x, y, f);
+            }
+         }
       }
+//         memcpy(&activityBuffer[destStart], &croppedBuffer.asVector().data()[sourceStart], 2 * sizeof(float)); //TODO: Verify this memcpy and see if there's a C++11 alternative
+      
 
       // TODO:
       // Do I need to store any info about the image now? I don't belive so,
