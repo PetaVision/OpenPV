@@ -161,20 +161,20 @@ int PoolingConn::initialize(const char * name, HyPerCol * hc, InitWeights * weig
 
    int status = BaseConnection::initialize(name, hc); // BaseConnection should *NOT* take weightInitializer or weightNormalizer as arguments, as it does not know about InitWeights or NormalizeBase
 
+   if (needPostIndexLayer && receiveGpu) {
+      if (parent->getCommunicator()->commRank()==0) {
+         pvError() << getDescription() << ": receiveGpu and needPostIndexLayer both set.  The GPU version does not currently compute the post index layer.";
+      }
+      MPI_Barrier(parent->getCommunicator()->communicator());
+      exit(EXIT_FAILURE);
+   }
+
    assert(parent);
    PVParams * inputParams = parent->parameters();
 
    //set accumulateFunctionPointer
    assert(!inputParams->presentAndNotBeenRead(name, "pvpatchAccumulateType"));
    switch (poolingType) {
-#ifdef OBSOLETE // Marked obsolete May 3, 2016.  HyPerConn defines HyPerConnAccumulateType and PoolingConn defines PoolingType
-   case ACCUMULATE_CONVOLVE:
-      pvError() << "ACCUMULATE_CONVOLVE not allowed in pooling conn\n";
-      break;
-   case ACCUMULATE_STOCHASTIC:
-      pvError() << "ACCUMULATE_STOCASTIC not allowed in pooling conn\n";
-      break;
-#endif // OBSOLETE // Marked obsolete May 3, 2016.  HyPerConn defines HyPerConnAccumulateType and PoolingConn defines PoolingType
    case MAX:
       accumulateFunctionPointer = &pvpatch_max_pooling;
       accumulateFunctionFromPostPointer = &pvpatch_max_pooling_from_post;
@@ -250,7 +250,7 @@ int PoolingConn::communicateInitInfo() {
       //(margins doesnt matter)
       if(idxLoc->nxGlobal != postLoc->nxGlobal || idxLoc->nyGlobal != postLoc->nyGlobal || idxLoc->nf != postLoc->nf){
          if (parent->columnId()==0) {
-            pvErrorNoExit().printf("%s: postIndexLayer \"%s\" must have the same dimensions as the post pooling layer \"%s\".", getDescription_c(), this->postIndexLayerName, this->postLayerName);
+            pvErrorNoExit().printf("%s: postIndexLayer \"%s\" must have the same dimensions as the post pooling layer \"%s\".\n", getDescription_c(), this->postIndexLayerName, this->postLayerName);
          }
          MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
@@ -283,6 +283,12 @@ void PoolingConn::clearGateIdxBuffer(){
 }
 
 int PoolingConn::allocateDataStructures(){
+   if (postIndexLayer && postIndexLayer->getDataStructuresAllocatedFlag()==false) {
+      if (parent->columnId()==0) {
+         pvInfo().printf("%s must wait until postIndexLayer layer \"%s\" has finished its allocateDataStructures stage.\n", getDescription_c(), postIndexLayer->getName());
+      }
+      return PV_POSTPONE;
+   }
    int status = HyPerConn::allocateDataStructures();
    if (status == PV_POSTPONE) { return status; }
    assert(status == PV_SUCCESS);

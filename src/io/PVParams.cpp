@@ -1767,7 +1767,7 @@ void PVParams::handleUnnecessaryParameter(const char * group_name, const char * 
       if (worldRank==0) {
          const char * class_name = groupKeywordFromName(group_name);
          pvWarn().printf("%s \"%s\" does not use parameter %s, but it is present in the parameters file.\n",
-               group_name, class_name, param_name);
+               class_name, group_name, param_name);
       }
       T params_value = (T) value(group_name, param_name); // marks param as read so that presentAndNotBeenRead doesn't trip up
       if (params_value != correct_value) {

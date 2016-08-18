@@ -58,9 +58,10 @@ protected:
    cudnnPoolingDescriptor_t mPoolingDescriptor = nullptr;
    cudnnTensorDescriptor_t mDataStoreDescriptor = nullptr;
    float * mDataStore = nullptr;
+   CudaBuffer * mCudnnDataStore = nullptr;
+
    cudnnTensorDescriptor_t mGSynDescriptor = nullptr;
    float * mGSyn = nullptr;
-   CudaBuffer * mCudnnDataStore = nullptr;
    CudaBuffer * mCudnnGSyn = nullptr;
 };
 

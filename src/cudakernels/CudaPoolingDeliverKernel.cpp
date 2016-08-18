@@ -47,8 +47,6 @@ void CudaPoolingDeliverKernel::setArgs(
          "Pooling is not defined for one-to-many connections (pre->ny=%d, post->ny=%d\n",
          preLoc->ny, postLoc->ny);
 
-   cudnnStatus_t status;
-
    mPreLoc = preLoc;
    mPostLoc = postLoc;
    mPoolingMode = poolingMode;
@@ -57,6 +55,7 @@ void CudaPoolingDeliverKernel::setArgs(
    int strideX = calcStride(preLoc->nx, postLoc->nx);
    int strideY = calcStride(preLoc->ny, postLoc->ny);
 
+   cudnnStatus_t status;
    status = cudnnCreatePoolingDescriptor(&mPoolingDescriptor);
    cudnnHandleError(status, "Create pooling descriptor");
    status = cudnnSetPooling2dDescriptor(
@@ -81,7 +80,7 @@ void CudaPoolingDeliverKernel::setArgs(
          CUDNN_DATA_FLOAT,
          preLoc->nbatch, //Number of images
          preLoc->nf, //Number of feature maps per image
-         preLoc->ny + preHalo->up + preHalo->dn - 2*mBorderExcessX, //Height of each feature map
+         preLoc->ny + preHalo->up + preHalo->dn - 2*mBorderExcessY, //Height of each feature map
          preLoc->nx + preHalo->lt + preHalo->rt - 2*mBorderExcessX
          ); //Width of each feature map
    mDataStore = (float*) dataStoreBuffer->getPointer();
@@ -99,15 +98,14 @@ void CudaPoolingDeliverKernel::setArgs(
    ); //nx restricted
    cudnnHandleError(status, "Set output tensor descriptor");
 
-   int numNeuronsAcrossBatch = postLoc->nf*postLoc->ny*postLoc->nx*postLoc->nbatch;
-   float * gSynHead = (float*) gSynBuffer->getPointer();
-   mGSyn = &gSynHead[channel*numNeuronsAcrossBatch];
-
    mCudnnDataStore = device->createBuffer(dataStoreBuffer->getSize());
 
+   int numGSynNeuronsAcrossBatch = postLoc->nf*postLoc->ny*postLoc->nf*postLoc->nbatch;
+   float * gSynHead = (float*) gSynBuffer->getPointer();
+   mGSyn = &gSynHead[channel*numGSynNeuronsAcrossBatch];
+
    size_t gSynSize = gSynBuffer->getSize();
-   int numGSynNeurons = postLoc->nf*postLoc->ny*postLoc->nf*postLoc->nbatch;
-   mCudnnGSyn = device->createBuffer(numGSynNeurons);
+   mCudnnGSyn = device->createBuffer(numGSynNeuronsAcrossBatch);
 }
 
 int CudaPoolingDeliverKernel::calcBorderExcess(int preRestricted, int postRestricted, int border, int patchSizePostPerspective) {
@@ -150,11 +148,10 @@ int CudaPoolingDeliverKernel::do_run() {
    pvAssert(mPostLoc->nbatch == mPreLoc->nbatch);
    //Calculate grid and work size
    numNeurons = nbatch * nxPost * nyPost * nf;
-   float* gSynPatchHead = mGSyn;
    float * cudnnGSynPointer = (float*) mCudnnGSyn->getPointer();
    //Ceil to get all neurons
    int const gridSizePost = std::ceil((float)numNeurons/(float)blockSize);
-   callPermuteGSynPVToCudnnKernel(gridSizePost, blockSize, gSynPatchHead, cudnnGSynPointer, nbatch, nyPost, nxPost, nf, 1, 1);
+   callPermuteGSynPVToCudnnKernel(gridSizePost, blockSize, mGSyn, cudnnGSynPointer, nbatch, nyPost, nxPost, nf, 1, 1);
    handleCallError("Permute GSyn PV to CUDNN");
 
    cudnnPoolingMode_t checkMode;
@@ -174,7 +171,7 @@ int CudaPoolingDeliverKernel::do_run() {
    cudnnHandleError(status, "Forward pooling run");
 
    // Permute the CUDNN-ordering GSyn back to PV ordering
-   callPermuteGSynCudnnToPVKernel(gridSizePost, blockSize, gSynPatchHead, cudnnGSynPointer, nbatch, nyPost, nxPost, nf, 1, 1);
+   callPermuteGSynCudnnToPVKernel(gridSizePost, blockSize, mGSyn, cudnnGSynPointer, nbatch, nyPost, nxPost, nf, 1, 1);
    handleCallError("Permute GSyn CUDNN back to PV");
    return 0;
 }

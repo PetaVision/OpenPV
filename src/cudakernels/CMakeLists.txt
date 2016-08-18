@@ -3,6 +3,7 @@ if(PV_USE_CUDA)
      ${SUBDIR}/CudaPoolingDeliverKernel.hpp
      ${SUBDIR}/CudaRecvPost.hpp
      ${SUBDIR}/CudaRecvPre.hpp
+     ${SUBDIR}/CudaTransposePoolingDeliverKernel.hpp
      ${SUBDIR}/CudaUpdateStateFunctions.hpp
   )
   
@@ -10,6 +11,7 @@ if(PV_USE_CUDA)
      ${SUBDIR}/CudaPoolingDeliverKernel.cpp
      ${SUBDIR}/CudaRecvPost.cpp
      ${SUBDIR}/CudaRecvPre.cpp
+     ${SUBDIR}/CudaTransposePoolingDeliverKernel.cpp
      ${SUBDIR}/CudaUpdateStateFunctions.cpp
   )
   
