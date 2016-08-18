@@ -7,6 +7,7 @@
 #include "HyPerLayer.hpp"
 #include "columns/HyPerCol.hpp"
 #include "utils/Buffer.hpp"
+#include "utils/BatchIndexer.hpp"
 
 #include <memory>
 
@@ -175,7 +176,7 @@ namespace PV {
           * This pure virtual function gets called from nextInput by the root process only.
           * Load the input file from disk in this method.
           */
-         virtual Buffer retrieveData(std::string filename) = 0;
+         virtual Buffer retrieveData(std::string filename, int batchIndex) = 0;
 
          /**
           * This method scatters the mInputData buffer to the activity buffers of the several MPI processes.
@@ -201,7 +202,8 @@ namespace PV {
           * into the activity buffer. This function calls retrieveData, scatterInput, and postProcess.
           */
          void nextInput(double timef, double dt);
-
+         void initializeBatchIndexer(int fileCount);
+         virtual double getDeltaUpdateTime(); 
       public:
          InputLayer(const char * name, HyPerCol * hc);
          virtual ~InputLayer();
@@ -225,19 +227,7 @@ namespace PV {
 
       private:
          int initialize_base();
-         int populateFileList();
-         /**
-          * Calculates the intersection of the given rank's local extended region
-          * with the imageData, based on the offsetX, offsetY, and offsetAnchor
-          * parameters.
-          * Used in scatterInput by the root process to determine what part of the
-          * imageData buffer to scatter to the other processes.
-          * Return value is zero if width and height are both positive, and nonzero
-          * if either is negative (i.e. the local layer and image do not intersect).
-          */
-//         int calcLocalBox(int rank, int &dataLeft, int &dataTop, int &imageLeft, int &imageTop, int &width, int &height);
-         std::string getNextFilename(int filesToSkip, int batchIndex);
-         std::string advanceFilename(int batchIndex);
+         void populateFileList();
 
       protected:
          // Raw data read from disk, one per batch
@@ -259,6 +249,10 @@ namespace PV {
          // offsets array points to [offsetX, offsetY]
          int mOffsetX;
          int mOffsetY;
+         
+         std::unique_ptr<BatchIndexer> mBatchIndexer;
+         BatchIndexer::BatchMethod mBatchMethod;
+
       private:
          // MPI datatypes for boundary exchange
          MPI_Datatype * mDatatypes;
@@ -286,11 +280,9 @@ namespace PV {
          bool mResetToStartOnLoop;
          bool mWriteFileToTimestamp;
          std::vector<int> mStartFrameIndex;
-         std::vector<int> mSkipFrameIndex; //TODO: This doesn't appear to be included in the file index calculation
+         std::vector<int> mSkipFrameIndex;
          // Index of each batch's file path inside the list of files
-         std::vector<int> mFileIndices;
          std::vector<std::string> mFileList;
-         BatchMethod mBatchMethod;
    }; // class InputLayer
 }  // namespace PV
 

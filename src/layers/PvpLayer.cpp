@@ -29,7 +29,7 @@ namespace PV {
       return status;
    }
 
-   Buffer PvpLayer::retrieveData(std::string filename)
+   Buffer PvpLayer::retrieveData(std::string filename, int batchIndex)
    {
       pvDebug() << "RETRIEVEDATA FOR: " << filename << " ON RANK " << parent->getCommunicator()->commRank() << "\n";
       // Do I need to do anything to ensure this is rank 0?
@@ -69,6 +69,15 @@ namespace PV {
 
       pvErrorIf(invalidFile,
             "File \"%s\" appears to be an obsolete version of the .pvp format.\n", filename.c_str());
+
+      if(parent->columnId() == 0 && !mInitializedBatchIndexer) {
+         mInitializedBatchIndexer = true;
+         initializeBatchIndexer(params[INDEX_NBANDS]);
+      }
+
+      int frameNumber = mBatchIndexer->nextIndex(batchIndex);
+
+      pvDebug() << "READING FRAME " << frameNumber << " FROM " << filename << "\n";
       
       int fileType = params[INDEX_FILE_TYPE];
       
@@ -76,13 +85,13 @@ namespace PV {
 
       switch(fileType) {
          case PVP_ACT_FILE_TYPE:
-            result = readSparseBinaryActivityFrame(numParams, params, pvpFile, mFrameNumber);
+            result = readSparseBinaryActivityFrame(numParams, params, pvpFile, frameNumber);
             break;
          case PVP_ACT_SPARSEVALUES_FILE_TYPE:
-            result = readSparseValuesActivityFrame(numParams, params, pvpFile, mFrameNumber);
+            result = readSparseValuesActivityFrame(numParams, params, pvpFile, frameNumber);
             break;
          case PVP_NONSPIKING_ACT_FILE_TYPE:
-            result = readNonspikingActivityFrame(numParams, params, pvpFile, mFrameNumber);
+            result = readNonspikingActivityFrame(numParams, params, pvpFile, frameNumber);
             break;
          default:
             pvp_close_file(pvpFile, parent->getCommunicator());
@@ -107,7 +116,7 @@ namespace PV {
       // Allocate the byte positions in file where each frame's data starts and the number of active neurons in each frame
       // Only need to do this once
       int status = PV_SUCCESS;
-      if (mNeedFrameSizesForSpiking) { // TODO: Where does this variable come from?
+      if (mNeedFrameSizesForSpiking) { 
          pvInfo() << "Calculating file positions\n";
          mFrameStartBuffer.clear();
          mFrameStartBuffer.resize(params[INDEX_NBANDS]);

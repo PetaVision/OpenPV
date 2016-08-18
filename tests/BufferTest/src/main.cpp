@@ -123,9 +123,30 @@ void testCrop() {
          13.0f, 14.0f, 15.0f, 16.0f
       };
 
-   // Test each offset anchor
+   std::vector<Buffer::OffsetAnchor> anchors = {
+         Buffer::NORTH, Buffer::SOUTH,
+         Buffer::EAST, Buffer::WEST,
+         Buffer::NORTHEAST, Buffer::NORTHWEST,
+         Buffer::SOUTHEAST, Buffer::SOUTHWEST,
+         Buffer::CENTER 
+      };
 
+   // Test cropping to the same size
    Buffer testBuffer(bufferContents, 4, 4, 1);
+   
+   for(auto anchor : anchors) {
+      testBuffer.set(bufferContents, 4, 4, 1);
+      testBuffer.crop(4, 4, anchor, 0, 0);
+      std::vector<float> contents = testBuffer.asVector();
+      for(int i = 0; i < contents.size(); ++i) {
+         pvErrorIf(contents.at(i) != bufferContents.at(i),
+               "Failed (same size crop).");
+      }
+   }
+
+
+   // Test each offset anchor
+   testBuffer.set(bufferContents, 4, 4, 1);
    testBuffer.crop(2, 2, Buffer::NORTH, 0, 0);
    pvErrorIf(
          testBuffer.at(0, 0, 0) != 2.0f || testBuffer.at(1, 0, 0) != 3.0f,

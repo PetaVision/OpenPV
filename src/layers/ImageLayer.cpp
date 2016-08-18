@@ -29,7 +29,7 @@ namespace PV {
       return status;
    }
 
-   Buffer ImageLayer::retrieveData(std::string filename)
+   Buffer ImageLayer::retrieveData(std::string filename, int batchIndex)
    {
       readImage(filename);
       if(mImage->getFeatures() != getLayerLoc()->nf) {

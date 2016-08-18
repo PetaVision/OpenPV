@@ -11,7 +11,7 @@ namespace PV {
    protected:
       PvpLayer();
       int initialize(const char * name, HyPerCol * hc);
-      virtual Buffer retrieveData(std::string filename);
+      virtual Buffer retrieveData(std::string filename, int batchIndex);
       virtual int postProcess(double timef, double dt);
       virtual bool readyForNextFile();
 
@@ -24,7 +24,7 @@ namespace PV {
       Buffer readSparseValuesActivityFrame(int numParams, int *params, PV_Stream *pvstream, int frameNumber);
       Buffer readNonspikingActivityFrame(int numParams, int *params, PV_Stream *pvstream, int frameNumber);
       int initialize_base();
-      int mFrameNumber = 0;
+      bool mInitializedBatchIndexer = false;
       bool mNeedFrameSizesForSpiking = true;
       std::vector<long> mFrameStartBuffer; // What are these used for?
       std::vector<int> mCountBuffer;

@@ -102,14 +102,18 @@ namespace PV {
 
    //What's the difference between this and checkpointRead?
    int InputLayer::readStateFromCheckpoint(const char * cpDir, double * timeptr) {
-      int *frameNumbers;
-      parent->readArrayFromFile(cpDir, getName(), "FrameNumbers", frameNumbers, parent->getNBatch());
-      mFileIndices.clear();
-      mFileIndices.resize(parent->getNBatch());
-      for(int n = 0; n < mFileIndices.size(); ++n) {
-         mFileIndices.at(n) = frameNumbers[n];
+      if(parent->columnId() == 0) {
+         int *frameNumbers;
+         parent->readArrayFromFile(cpDir, getName(), "FrameNumbers", frameNumbers, parent->getNBatch());  
+         std::vector<int> indices;
+         indices.resize(parent->getNBatch());
+         for(int n = 0; n < indices.size(); ++n) {
+            indices.at(n) = frameNumbers[n];
+         }
+         mBatchIndexer->setIndices(indices);
+         free(frameNumbers);
       }
-      free(frameNumbers);
+
       return PV_SUCCESS;
    }
 
@@ -125,16 +129,21 @@ namespace PV {
       }
       return HyPerLayer::checkpointRead(cpDir, timef);
    }
+int InputLayer::checkpointWrite(const char * cpDir){
+      if(parent->columnId() == 0) {
 
-   int InputLayer::checkpointWrite(const char * cpDir){
-      parent->writeArrayToFile(cpDir, getName(), "FrameNumbers", &mFileIndices[0], parent->getNBatch());
-
+         parent->writeArrayToFile(cpDir, getName(), "FrameNumbers", static_cast<int*>(mBatchIndexer->getIndices().data()), parent->getNBatch());
+      }
       //Only do a checkpoint TimestampState if there exists a timestamp file
       if (mTimestampFile) {
          long timestampFilePos = getPV_StreamFilepos(mTimestampFile);
          parent->writeScalarToFile(cpDir, getName(), "TimestampState", timestampFilePos);
       }
       return HyPerLayer::checkpointWrite(cpDir);
+   }
+
+   double InputLayer::getDeltaUpdateTime() { 
+      return mDisplayPeriod;
    }
 
    void InputLayer::ioParam_inputPath(enum ParamsIOFlag ioFlag) {
@@ -381,13 +390,13 @@ namespace PV {
       char *batchMethod = (char*)calloc(sizeof(char), 256);
       parent->ioParamString(ioFlag, name, "batchMethod", &batchMethod, "byFile");
       if(strcmp(batchMethod, "byImage") == 0 || strcmp(batchMethod, "byFile") == 0) {
-         mBatchMethod = BYFILE;
+         mBatchMethod = BatchIndexer::BYFILE;
       }
       else if(strcmp(batchMethod, "byMovie") == 0 || strcmp(batchMethod, "byList") == 0) {
-         mBatchMethod = BYLIST;  
+         mBatchMethod = BatchIndexer::BYLIST;
       } 
       else if(strcmp(batchMethod, "bySpecified") == 0) {
-         mBatchMethod = BYSPECIFIED;
+         mBatchMethod = BatchIndexer::BYSPECIFIED;
       }
       else{
          pvError() << "WARNING: Input layer " << name << " batchMethod not recognized. Options are \"byFile\", \"byList\", and \"bySpecified\"\n.";
@@ -401,8 +410,8 @@ namespace PV {
          int length = -1;
          this->getParent()->ioParamArray(ioFlag, this->getName(), "start_frame_index", &paramsStartFrameIndex, &length);
          mStartFrameIndex.clear();
+         mStartFrameIndex.resize(parent->getNBatch());
          if(length > 0) {
-            mStartFrameIndex.resize(length);
             for(int i = 0; i < length; ++i) {
                mStartFrameIndex.at(i) = paramsStartFrameIndex[i];
             }
@@ -417,8 +426,8 @@ namespace PV {
          int length = -1;
          this->getParent()->ioParamArray(ioFlag, this->getName(), "skip_frame_index", &paramsSkipFrameIndex, &length);
          mSkipFrameIndex.clear();
+         mSkipFrameIndex.resize(parent->getNBatch());
          if(length > 0) {
-            mSkipFrameIndex.resize(length);
             for(int i = 0; i < length; ++i) {
                mSkipFrameIndex.at(i) = paramsSkipFrameIndex[i];
             }
@@ -440,85 +449,21 @@ namespace PV {
       if(status != PV_SUCCESS) {
          return status;
       }
-
       pvDebug() << "ALLOCATE STARTING RANK " << parent->getCommunicator()->commRank() << "\n";
-      //Allocate framePaths here before image, since allocate call will call getFrame
       int numBatch = parent->getNBatch();
  
-      if(parent->getCommunicator()->commRank()==0){
-         mFileList.resize(numBatch);
-      }
-      
-      mFileIndices.resize(numBatch);
-      
       //Calculate file positions for beginning of each frame
       if(mUsingFileList) {
          populateFileList();
          pvInfo() << "File " << mInputPath << " contains " << mFileList.size() << " frames\n";
+
       }
 
-      mStartFrameIndex.resize(numBatch);
-      mSkipFrameIndex.resize(numBatch);
-
-      int numBatchGlobal = getLayerLoc()->nbatchGlobal;
-      int kb0 = getLayerLoc()->kb0;
-      int offset = 0;
-      int framesPerBatch = 0;
-      
-      // TODO: Abstract out all batching logic to its own class so that subclasses can reuse it (like PvpLayer)
-      switch(mBatchMethod) {
-         case BYFILE:
-            //No skip here allowed
-            pvErrorIf(mSkipFrameIndex.size() != 1 && mSkipFrameIndex.at(0) == 0, "%s: batchMethod of \"byFile\" sets skip_frame_index, do not specify.\n", getName());
-            //Default value
-            if(mStartFrameIndex.size() == 1) {
-               offset = mStartFrameIndex.at(0);
-            }
-            pvErrorIf(mStartFrameIndex.size() > 1, "%s: batchMethod of \"byFile\" requires 0 or 1 start_frame_index values\n", getName());
-            //Allocate and default
-            for(int b = 0; b < numBatch; ++b) {
-               mStartFrameIndex.at(b) = offset + kb0 + b;
-               mSkipFrameIndex.at(b) = numBatchGlobal;
-            }
-            break;
-
-         case BYLIST:
-            pvErrorIf(mSkipFrameIndex.size() != 1 && mSkipFrameIndex.at(0) == 0, "%s: batchMethod of \"byImage\" sets skip_frame_index, do not specify.\n", getName());
-            if(mStartFrameIndex.size() == 1) {
-               offset = mStartFrameIndex.at(0);
-            }
-            pvErrorIf(mStartFrameIndex.size() > 1, "%s: batchMethod of \"byList\" requires 0 or 1 start_frame_index values\n", getName());
-            framesPerBatch = floor(mFileList.size()/numBatchGlobal);
-            if(framesPerBatch < 1) {
-               framesPerBatch = 1;
-            }
-            for(int b = 0; b < numBatch; ++b) { 
-               mStartFrameIndex.at(b) = offset + ((b+kb0)*framesPerBatch);
-               mSkipFrameIndex.at(b) = 1;
-            }
-            break;
-
-         case BYSPECIFIED:
-            pvErrorIf(mStartFrameIndex.size() != numBatchGlobal && mStartFrameIndex.size() != 0,
-               "%s: batchMethod of \"bySpecified\" requires 0 or %d start_frame_index values\n", getName(), numBatchGlobal);
-            pvErrorIf(mSkipFrameIndex.size() != numBatchGlobal && mSkipFrameIndex.size() != 0,
-               "%s batchMethod of \"bySpecified\" requires 0 or %d skip_frame_index values\n", getName(), numBatchGlobal);
-            // Use default values if none were given, otherwise this was handleded when loading the params
-            if(mStartFrameIndex.size() == 0) {
-               mStartFrameIndex.push_back(0);
-            }
-            if(mSkipFrameIndex.size() == 0) {
-               mSkipFrameIndex.push_back(1);
-            }
-            break;
+      if(parent->columnId() == 0) {
+         initializeBatchIndexer(mFileList.size());
       }
 
-      if (parent->columnId() == 0) {
-         for (int b = 0; b < numBatch; ++b) {
-            mFileIndices.at(b) = -1;
-         }
-      }
-
+      // TODO: Should this only happen on root?
       mInputData.resize(numBatch);
       for(int b = 0; b < numBatch; ++b) {
          mInputData.at(b).resize(getLayerLoc()->ny, getLayerLoc()->nx, getLayerLoc()->nf);
@@ -533,6 +478,19 @@ namespace PV {
       return status;
    }
 
+   void InputLayer::initializeBatchIndexer(int fileCount) {
+      pvDebug() << "INIT BATCH WITH COUNT " << fileCount << "\n";
+      mBatchIndexer = std::unique_ptr<BatchIndexer>(new BatchIndexer(
+               parent->getNBatchGlobal(),
+               parent->commBatch() * parent->getNBatch(),
+               parent->numCommBatches(),
+               fileCount,
+               mBatchMethod));
+      for(int b = 0; b < parent->getNBatch(); ++b) {
+         mBatchIndexer->specifyBatching(b, mStartFrameIndex.at(b), mSkipFrameIndex.at(b));
+         mBatchIndexer->initializeBatch(b);
+      }
+   }
 
    double InputLayer::calcTimeScale(int batchIdx) {
       if(needUpdate(parent->simulationTime(), parent->getDeltaTime())) {
@@ -550,21 +508,19 @@ namespace PV {
       return true;
    }
 
-   //TODO: This doesn't appear to be using mDisplayPeriod?
-   int InputLayer::updateState(double time, double dt)
-   {
-      pvDebug() << "UPDATE STATE CALLED BY RANK " << parent->getCommunicator()->commRank() << ", " << getName() << "\n";
+   int InputLayer::updateState(double time, double dt)  {
       // TODO: We might still want to update the state on a single file, like a MoviePvp.
       // Figure out the best way to accomplish this
-      if(!mUsingFileList) {
-         return PV_SUCCESS;
-      }
+      //if(!mUsingFileList) {
+      //   return PV_SUCCESS;
+      //}
 
       Communicator * icComm = getParent()->getCommunicator();
       //Only do this if it's not the first update timestep
       //The timestep number is (time - startTime)/(width of timestep), with allowance for roundoff.
       //But if we're using adaptive timesteps, the dt passed as a function argument is not the correct (width of timestep).
-      if(fabs(time - (parent->getStartTime() + parent->getDeltaTime())) > (parent->getDeltaTime()/2)) {
+//      if(fabs(time - (parent->getStartTime() + parent->getDeltaTime())) > (parent->getDeltaTime()/2)) {
+         pvDebug() << "UPDATE STATE CALLED BY RANK " << parent->getCommunicator()->commRank() << ", " << getName() << "\n";
          if(readyForNextFile()) {
             nextInput(time, dt);
             //Write to timestamp file 
@@ -574,7 +530,7 @@ namespace PV {
                   outStrStream.precision(15);
                   int kb0 = getLayerLoc()->kb0;
                   for(int b = 0; b < parent->getNBatch(); ++b) {
-                     outStrStream << time << "," << b+kb0 << "," << mFileIndices.at(b) << "," << mFileList.at(b) << "\n";
+//                     outStrStream << time << "," << b+kb0 << "," << mFileIndices.at(b) << "," << mFileList.at(b) << "\n";
                   }
                   size_t len = outStrStream.str().length();
                   int status = PV_fwrite(outStrStream.str().c_str(), sizeof(char), len, mTimestampFile) == len ? PV_SUCCESS : PV_FAILURE;
@@ -583,7 +539,6 @@ namespace PV {
                }
             }
          }
-      } 
       return PV_SUCCESS;
    }
 
@@ -593,9 +548,11 @@ namespace PV {
          if (parent->columnId() == 0) {
             std::string fileName = mInputPath;
             if(mUsingFileList) {
-               fileName = getNextFilename(mSkipFrameIndex.at(b), b);
+               // TODO: This needs to use global batch index, not local. Fix it
+               fileName = mFileList.at(mBatchIndexer->nextIndex(b));
+               //fileName = getNextFilename(mSkipFrameIndex.at(b), b);
             }
-            mInputData.at(b) = retrieveData(fileName);
+            mInputData.at(b) = retrieveData(fileName, b);
          }
          scatterInput(b);
       }
@@ -643,7 +600,7 @@ namespace PV {
             // Crop the input data to the size of one process.
             // Assumes rank 0 will have the top left portion
             // and increments left to right, top to bottom.
-            croppedBuffer.crop(activityHeight, activityWidth, Buffer::NORTHWEST, cropLeft, cropTop);
+            croppedBuffer.crop(activityWidth, activityHeight, Buffer::NORTHWEST, cropLeft, cropTop);
             
             // If this isn't the root process, ship it off to the appropriate process.
             if(rank != rootProc) {
@@ -667,10 +624,11 @@ namespace PV {
          for(int i = 0; i < numElements; ++i) {
             bufferData.at(i) = tempBuffer[i];
          }
-         croppedBuffer.set(bufferData, activityHeight, activityWidth, numFeatures);
+         croppedBuffer.set(bufferData, activityWidth, activityHeight, numFeatures);
       }
       
       pvDebug() << "COPYING DATA TO ACTIVITY ON RANK " << parent->getCommunicator()->commRank() << "\n";
+
       // At this point, croppedBuffer has the correct data for this
       // process, regardless of if we are root or not. Clear the current
       // activity buffer, then copy the input data over row by row.
@@ -679,8 +637,9 @@ namespace PV {
       }
 
       int dataRowLength = activityWidth * numFeatures;
-      int activityBufferStart = mUseInputBCflag ? 0 : halo->lt;
       int activityRowIncrement = loc->nx + halo->lt + halo->rt;
+      // Start at the top left of the restricted buffer if we aren't scattering what's in the extended
+      int activityBufferStart = mUseInputBCflag ? 0 : halo->lt + activityRowIncrement * halo->up; 
       for(int y = 0; y < activityHeight; ++y) {
          int sourceStart = y * dataRowLength;
          int destStart = activityBufferStart + activityRowIncrement * y;
@@ -704,9 +663,9 @@ namespace PV {
       const int targetHeight = loc->nyGlobal + (mUseInputBCflag ? (halo->dn + halo->up) : 0);
  
       if(mAutoResizeFlag) {
-         buffer.rescale(targetHeight, targetWidth, mRescaleMethod, mInterpolationMethod); 
+         buffer.rescale(targetWidth, targetHeight, mRescaleMethod, mInterpolationMethod); 
       }
-      buffer.crop(targetHeight, targetWidth, mOffsetAnchor, mOffsetX, mOffsetY); 
+      buffer.crop(targetWidth, targetHeight, mOffsetAnchor, mOffsetX, mOffsetY); 
    }     
 
    //Apply normalizeLuminanceFlag, normalizeStdDev, and inverseFlag, which can be done pixel-by-pixel
@@ -804,12 +763,12 @@ namespace PV {
    }
 
    int InputLayer::allocateV() {
-      clayer->V = NULL;
+      clayer->V = nullptr;
       return PV_SUCCESS;
    }
 
    int InputLayer::initializeV() {
-      pvAssert(getV()==NULL);
+      pvAssert(getV() == nullptr);
       return PV_SUCCESS;
    }
 
@@ -817,69 +776,21 @@ namespace PV {
       return PV_SUCCESS;
    }
 
-   // advance by n_skip lines through file of filenames, always advancing at least one line
-   std::string InputLayer::getNextFilename(int filesToSkip, int batchIdx) {
-      Communicator * icComm = getParent()->getCommunicator();
-      pvAssert(icComm->commRank() == 0);
-      std::string outFilename;
-      if(filesToSkip < 1) {
-         filesToSkip = 1;
-      }
-      for (int skipIndex = 0; skipIndex < filesToSkip; ++skipIndex) {
-         outFilename = advanceFilename(batchIdx);
-      }
-      if (mEchoFramePathnameFlag) {
-         pvInfo().printf("%s: t=%f, batch element %d: loading %s\n", getDescription_c(), parent->simulationTime(), batchIdx, outFilename.c_str());
-      }
-      return outFilename;
-   }
-
-   //This function will reset the file position of the open file
-   int InputLayer::populateFileList() {
-      if(!mUsingFileList) {
-         return 0;
-      }
-      int count = 0;
-      if(parent->columnId() == 0) {
+   void InputLayer::populateFileList() {
+      if(mUsingFileList && parent->columnId() == 0) {
          std::string line;
          mFileList.clear();
          pvInfo() << "Reading list: " << mInputPath << "\n";
          std::ifstream infile(mInputPath, std::ios_base::in);
          while(getline(infile, line, '\n')) {
             std::string noWhiteSpace = line;
-            pvInfo() << "Before whitespace removal: " << noWhiteSpace;
             noWhiteSpace.erase(std::remove_if(noWhiteSpace.begin(), noWhiteSpace.end(), ::isspace), noWhiteSpace.end());
             if(!noWhiteSpace.empty()) {
                pvInfo() << noWhiteSpace << "\n";
                mFileList.push_back(noWhiteSpace);
             }
          }
-         mFileIndices.at(0) = -1;;
-         count = mFileList.size();
       }
-       
-      MPI_Bcast(&count, 1, MPI_INT, 0, parent->getCommunicator()->communicator());
-
-      // Maintain the file count on child processes
-      if(parent->columnId() != 0) {
-         mFileList.clear();
-         mFileList.resize(count);
-      }
-      return count;
-   }
-
-   std::string InputLayer::advanceFilename(int batchIndex) {
-      pvAssert(parent->columnId() == 0);
-      if(++mFileIndices.at(batchIndex) >= mFileList.size()) {
-         pvInfo() << getName() << ": End of file list reached. Rewinding." << std::endl;
-         if(mResetToStartOnLoop) {
-            mFileIndices.at(batchIndex) = mStartFrameIndex.at(batchIndex);
-         }
-         else {
-            mFileIndices.at(batchIndex) = 0;
-         }
-      }
-      return mFileList.at(mFileIndices.at(batchIndex));
    }
 } 
 

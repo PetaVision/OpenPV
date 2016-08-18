@@ -22,7 +22,7 @@ namespace PV {
    protected:
       ImageLayer();
       int initialize(const char * name, HyPerCol * hc);
-      virtual Buffer retrieveData(std::string filename);
+      virtual Buffer retrieveData(std::string filename, int batchIndex);
       virtual void readImage(std::string filename);
       virtual int postProcess(double timef, double dt);
       virtual bool readyForNextFile();
