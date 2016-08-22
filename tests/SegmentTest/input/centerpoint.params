@@ -20,11 +20,10 @@ HyPerCol "column" = {
     writeProgressToErr = true;
     verifyWrites = false;
     errorOnNotANumber = false;
-    batchMethod = "byImage";
     nbatch = 2;
 };
 
-MoviePvp "Input" = {
+PvpLayer "Input" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
@@ -34,7 +33,7 @@ MoviePvp "Input" = {
     writeStep = -1;
     sparseLayer = false;
     writeSparseValues = true;
-    displayPeriod = 1;
+    displayPeriod = 0;
     //start_frame_index = 0; //Start at frame 1
     //skip_frame_index = 1;
     echoFramePathnameFlag = true;
@@ -50,6 +49,7 @@ MoviePvp "Input" = {
     randomMovie = 0;
     phase = 0;
     //useParamsImage = true;
+    batchMethod = "byFile";
 };
 
 SegmentTestLayer "testLayer" = {

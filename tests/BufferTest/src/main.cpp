@@ -227,7 +227,7 @@ void testCrop() {
          "Failed (offsetY = -1).\n");
 }
 
-// Buffer::rescale(int targetRows, int targetColumns, enum RescaleMethod rescaleMethod, enum InterpolationMethod interpMethod)
+// Buffer::rescale(int targetRows, int targetColumns, enum RescaleMethod rescaleMethod, enum InterpolationMethod interpMethod, enum OffsetAnchor offsetAnchor)
 void testRescale() {
 
    std::vector<float> testData = {
@@ -271,7 +271,7 @@ void testRescale() {
 
    // Test nearest neighbor scaling. Rescale method will not be
    // used here because the aspect ratio is the same.
-   testBuffer.rescale(4, 4, Buffer::PAD, Buffer::NEAREST);
+   testBuffer.rescale(4, 4, Buffer::PAD, Buffer::NEAREST, Buffer::CENTER);
    std::vector<float> nearest = testBuffer.asVector();
 
    pvErrorIf(nearest.size() != answerNearest.size(),
@@ -285,7 +285,7 @@ void testRescale() {
  
    // Test Buffer::CROP resizeMethod
    testBuffer.set(testData, 8, 8, 1);
-   testBuffer.rescale(8, 4, Buffer::CROP, Buffer::NEAREST);
+   testBuffer.rescale(8, 4, Buffer::CROP, Buffer::NEAREST, Buffer::CENTER);
    std::vector<float> cropped = testBuffer.asVector();
    pvErrorIf(cropped.size() != answerCrop.size(),
          "Failed (Size). Expected %d elements, found %d.\n",
@@ -298,7 +298,7 @@ void testRescale() {
    
    // Test Buffer::PAD resizeMethod
    testBuffer.set(testData, 8, 8, 1);
-   testBuffer.rescale(4, 8, Buffer::PAD, Buffer::NEAREST);
+   testBuffer.rescale(4, 8, Buffer::PAD, Buffer::NEAREST, Buffer::CENTER);
    std::vector<float> padded = testBuffer.asVector();
    pvErrorIf(padded.size() != answerPad.size(),
          "Failed (Size). Expected %d elements, found %d.\n",

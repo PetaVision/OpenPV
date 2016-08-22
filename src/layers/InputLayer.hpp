@@ -171,7 +171,7 @@ namespace PV {
          virtual int initializeV();
          virtual int initializeActivity();
          virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-         virtual int readStateFromCheckpoint(const char *cpDir, double *timeptr);
+
          /**
           * This pure virtual function gets called from nextInput by the root process only.
           * Load the input file from disk in this method.
@@ -204,18 +204,23 @@ namespace PV {
          void nextInput(double timef, double dt);
          void initializeBatchIndexer(int fileCount);
          virtual double getDeltaUpdateTime(); 
+         virtual int readStateFromCheckpoint(const char* cpDir, double* timeptr);
+
       public:
          InputLayer(const char * name, HyPerCol * hc);
          virtual ~InputLayer();
          virtual int requireChannel(int channelNeeded, int * numChannelsResult);
          virtual int allocateDataStructures();
          virtual int updateState(double time, double dt);
-         virtual int checkpointRead(const char * cpDir, double * timeptr);
+         virtual int checkpointRead(const char * cpDir, double * timef);
          virtual int checkpointWrite(const char *cpDir);
          virtual double calcTimeScale(int batchIndex);
          virtual bool activityIsSpiking() {return false;}
          void exchange();
-        
+       
+         int getDisplayPeriod() { return mDisplayPeriod; }
+         int getStartIndex(int batchIndex) { return mStartFrameIndex.at(batchIndex); }
+         int getSkipIndex(int batchIndex) { return mSkipFrameIndex.at(batchIndex); }
          // These get-methods are needed for masking
          int getDataLeft() { return mLayerLeft; }
          int getDataTop() { return mLayerTop; }
@@ -247,38 +252,38 @@ namespace PV {
          bool mNormalizeStdDev;
          // The constraint method codes are 0=ignore, 1=mirror boundary conditions, 2=thresholding, 3=circular boundary conditions
          // offsets array points to [offsetX, offsetY]
-         int mOffsetX;
-         int mOffsetY;
+         int mOffsetX = 0;
+         int mOffsetY = 0;
          
          std::unique_ptr<BatchIndexer> mBatchIndexer;
          BatchIndexer::BatchMethod mBatchMethod;
 
       private:
          // MPI datatypes for boundary exchange
-         MPI_Datatype * mDatatypes;
+         MPI_Datatype* mDatatypes = nullptr;
 // The left edge of valid image data in the local activity buffer.  Can be positive if there is padding.  Can be negative if the data extends into the border region.i
-         int mLayerLeft; 
+         int mLayerLeft = 0; 
          // The top edge of valid image data in the local activity buffer.  Can be positive if there is padding.  Can be negative if the data extends into the border region.
-         int mLayerTop;
+         int mLayerTop = 0;
          // The x-coordinate in image coordinates corresponding to a value of dataLeft in layer coordinates.
-         int mInputLeft;
+         int mInputLeft = 0;
          // The y-coordinate in image coordinates corresponding to a value of dataTop in layer coordinates.
-         int mInputTop;
+         int mInputTop = 0;
          // The width of valid image data in local activity buffer.
-         int mInputWidth;
+         int mInputWidth = 0;
           // The height of valid image data in the local activity buffer.
-         int mInputHeight;
-         float mPadValue;
+         int mInputHeight = 0;
+         float mPadValue = 0.0f;
          std::string mInputPath;
-         PV_Stream *mTimestampFile;
-         double mDisplayPeriod;   // length of time a frame is displayed
+         PV_Stream* mTimestampFile = nullptr;
+         double mDisplayPeriod = 0.0f;   // length of time a frame is displayed
          // Automatically set if the inputPath ends in .txt. Determines whether this layer represents a collection of files.
-         bool mUsingFileList; 
+         bool mUsingFileList = false;
          // if true, echo the frame pathname to output stream
-         bool mEchoFramePathnameFlag;          
+         bool mEchoFramePathnameFlag = false;          
          // When reaching the end of the file list, do we reset to 0 or to start_index?
-         bool mResetToStartOnLoop;
-         bool mWriteFileToTimestamp;
+         bool mResetToStartOnLoop = false;
+         bool mWriteFileToTimestamp = false;
          std::vector<int> mStartFrameIndex;
          std::vector<int> mSkipFrameIndex;
          // Index of each batch's file path inside the list of files

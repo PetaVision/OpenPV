@@ -68,7 +68,7 @@ int main(int argc, char * argv[]) {
 // The problem of what to do if comparison reports zero when given
 // nonzero input is best left for a different test.
 int checkProbesOnExit(HyPerCol * hc, int argc, char * argv[]) {
-   BaseLayer * layer = hc->getLayerFromName("OriginalInputLayer");
+   BaseLayer * layer = hc->getLayerFromName("OriginalMovie");
    assert(layer);
    HyPerLayer * originalInputLayerLayer = dynamic_cast<HyPerLayer *>(layer);
    assert(originalInputLayerLayer);

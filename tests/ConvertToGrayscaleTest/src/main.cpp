@@ -16,7 +16,7 @@ int main(int argc, char * argv[]) {
 
 int customexit(HyPerCol * hc, int argc, char ** argv) {
    pvadata_t correctvalue = 0.5f;
-   pvadata_t tolerance = 1.0e-7f;
+   pvadata_t tolerance = 1.0e-3f;
 
    if (hc->columnId()==0) {
       pvInfo().printf("Checking whether input layer has all values equal to %f ...\n", correctvalue);

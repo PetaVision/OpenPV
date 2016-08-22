@@ -53,7 +53,7 @@ namespace PV {
          }
       }
       Buffer result(mImage->asVector(), mImage->getWidth(), mImage->getHeight(), getLayerLoc()->nf);
-      result.rescale(getLayerLoc()->nx, getLayerLoc()->ny, mRescaleMethod, mInterpolationMethod);
+      result.rescale(getLayerLoc()->nx, getLayerLoc()->ny, mRescaleMethod, mInterpolationMethod, mOffsetAnchor);
       return result;
    }
 

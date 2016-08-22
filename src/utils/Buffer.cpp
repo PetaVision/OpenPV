@@ -89,6 +89,8 @@ namespace PV {
 
    // TODO: Some of these methods could be moved to a BufferManipulaton class, or maybe
    // a TransformableBuffer subclass? RescaleableBuffer? MalleableBuffer?
+
+   // TODO: This method needs a unit test
    bool Buffer::constrainPoint(int &x, int &y, int minX, int maxX, int minY, int maxY, enum PointConstraintMethod method) {
       bool moved_x = x < minX || y > maxX;
       bool moved_y = y < minY || y > maxY;
@@ -149,9 +151,28 @@ namespace PV {
       return moved_x || moved_y;
    }
 
+   // Grows a buffer with the original in the center.
+   void Buffer::grow(int newWidth, int newHeight) {
+      if(newWidth < getWidth() || newHeight < getHeight()) {
+         return;
+      }
+      int originX = newWidth  / 2 - getWidth()  / 2;
+      int originY = newHeight / 2 - getHeight() / 2;
+      
+      Buffer bigger(newWidth, newHeight, getFeatures());
+      for(int y = 0; y < getHeight(); ++y) {
+         for(int x = 0; x < getWidth(); ++x) {
+            for(int f = 0; f < getFeatures(); ++f) {
+               bigger.set(x + originX, y + originY, f, at(x, y, f));
+            }
+         }
+      }
+      set(bigger.asVector(), newWidth, newHeight, getFeatures());
+   }
+
    // Crops a buffer down to the specified size, OR grows the canvas keeping the original in the middle (how does this interact with offset?)
    void Buffer::crop(int targetWidth, int targetHeight, enum OffsetAnchor offsetAnchor, int offsetX, int offsetY) {
-      int smallerWidth  = targetWidth  < getWidth()  ? targetWidth  : getWidth();
+/*      int smallerWidth  = targetWidth  < getWidth()  ? targetWidth  : getWidth();
       int smallerHeight = targetHeight < getHeight() ? targetHeight : getHeight();
       int biggerWidth   = targetWidth  > getWidth()  ? targetWidth  : getWidth();
       int biggerHeight  = targetHeight > getHeight() ? targetHeight : getHeight();
@@ -170,19 +191,51 @@ namespace PV {
      offsetY = getOffsetY(offsetAnchor, offsetY-originY, smallerHeight, biggerHeight);
      Buffer cropped(targetWidth, targetHeight, getFeatures());
 
+     pvDebug() << "CROP: W = " << getWidth() << " H = " << getHeight() << "\n";
+
      for(int smallY = 0; smallY < smallerHeight; ++smallY) {
          for(int smallX = 0; smallX < smallerWidth; ++smallX) {
             for(int f = 0; f < getFeatures(); ++f) {
                int x = smallX + offsetX, y = smallY + offsetY;
-               constrainPoint(x, y, 0, getWidth()-1, 0, getHeight()-1, CLAMP);
+//               constrainPoint(x, y, 0, getWidth()-1, 0, getHeight()-1, CLAMP);
+               x = x < 0 ? 0 :
+                   x > getWidth() - 1 ? getWidth() -1 :
+                   x;
+               y = y < 0 ? 0 :
+                   y > getHeight() - 1 ? getHeight() -1 :
+                   y;
+
                cropped.set(smallX+originX, smallY+originY, f, at(x, y, f));
+            }
+         }
+      }
+*/
+      if(targetWidth >= getWidth() && targetHeight >= getHeight()) {
+         return;
+      }
+
+      offsetX = getOffsetX(offsetAnchor, offsetX, targetWidth,  getWidth());
+      offsetY = getOffsetY(offsetAnchor, offsetY, targetHeight, getHeight());
+      Buffer cropped(targetWidth, targetHeight, getFeatures());
+
+      for(int smallY = 0; smallY < targetHeight; ++smallY) {
+         for(int smallX = 0; smallX < targetWidth; ++smallX) {
+            for(int f = 0; f < getFeatures(); ++f) {
+               int x = smallX + offsetX, y = smallY + offsetY;
+               x = x < 0 ? 0 :
+                   x > getWidth() - 1 ? getWidth() -1 :
+                   x;
+               y = y < 0 ? 0 :
+                   y > getHeight() - 1 ? getHeight() -1 :
+                   y;
+               cropped.set(smallX, smallY, f, at(x, y, f));
             }
          }
       }
       set(cropped.asVector(), targetWidth, targetHeight, getFeatures());
    }
 
-   void Buffer::rescale(int targetWidth, int targetHeight, enum RescaleMethod rescaleMethod, enum InterpolationMethod interpMethod) {
+   void Buffer::rescale(int targetWidth, int targetHeight, enum RescaleMethod rescaleMethod, enum InterpolationMethod interpMethod, enum OffsetAnchor offsetAnchor) {
       float xRatio = static_cast<float>(targetWidth) / getWidth();
       float yRatio = static_cast<float>(targetHeight) / getHeight();
 
@@ -214,11 +267,17 @@ namespace PV {
       }
       set(scaledInput, resizedWidth, resizedHeight, getFeatures());
 
-      // This final call to crop resizes the buffer to our specified
+      // This final call resizes the buffer to our specified
       // targetWidth and targetHeight. If our rescaleMethod was PAD,
       // this actually grows the buffer to include the padded region.
-      // TODO: Accept offsetAnchor as an argument to use here?
-      crop(targetWidth, targetHeight, CENTER, 0, 0);
+      switch(rescaleMethod) {
+         case CROP:
+            crop(targetWidth, targetHeight, offsetAnchor, 0, 0);
+            break;
+         case PAD:
+            grow(targetWidth, targetHeight); // TODO: Does this need offsetAnchor support as well?
+            break;
+      }
    }
 
 

@@ -101,46 +101,55 @@ namespace PV {
       return status;
    }
 
-   //What's the difference between this and checkpointRead?
-   int InputLayer::readStateFromCheckpoint(const char * cpDir, double * timeptr) {
+   int InputLayer::readStateFromCheckpoint(const char* cpDir, double* timeptr) {
+      HyPerLayer::readStateFromCheckpoint(cpDir, timeptr);
+      // Input layers have no buffers to read from checkpoint
+      return PV_SUCCESS;
+   }
+   int InputLayer::checkpointRead(const char * cpDir, double * timef) {
+      int status = HyPerLayer::checkpointRead(cpDir, timef);
+      pvDebug() << "CHECKPOINT READ RANK " << parent->columnId() << "\n";
+      int *frameNumbers = static_cast<int*>(calloc(parent->getNBatch(), sizeof(int)));
+      parent->readArrayFromFile(cpDir, getName(), "FrameNumbers", frameNumbers, parent->getNBatch());  
+      // We have to read this even on non-root processes to get MPI to line up.
+      // TODO: Fix MPI's tendrils extending to every region of the codebase, starting with file IO
       if(parent->columnId() == 0) {
-         int *frameNumbers;
-         parent->readArrayFromFile(cpDir, getName(), "FrameNumbers", frameNumbers, parent->getNBatch());  
          std::vector<int> indices;
          indices.resize(parent->getNBatch());
          for(int n = 0; n < indices.size(); ++n) {
             indices.at(n) = frameNumbers[n];
          }
          mBatchIndexer->setIndices(indices);
-         free(frameNumbers);
       }
-
-      return PV_SUCCESS;
-   }
-
-   int InputLayer::checkpointRead(const char * cpDir, double * timef) {
-      // should this be moved to readStateFromCheckpoint?
+      free(frameNumbers);
       if (mWriteFileToTimestamp) {
          long timestampFilePos = 0L;
          parent->readScalarFromFile(cpDir, getName(), "TimestampState", &timestampFilePos, timestampFilePos);
          if (mTimestampFile) {
-            assert(parent->columnId() == 0);
             pvErrorIf(PV_fseek(mTimestampFile, timestampFilePos, SEEK_SET) != 0, "MovieLayer::checkpointRead error: unable to recover initial file position in timestamp file for layer %s: %s\n", name, strerror(errno));
          }
       }
-      return HyPerLayer::checkpointRead(cpDir, timef);
+      return status; 
    }
-int InputLayer::checkpointWrite(const char * cpDir){
+   
+   int InputLayer::checkpointWrite(const char * cpDir) {
+      int status = HyPerLayer::checkpointWrite(cpDir);
+      pvDebug() << "CHECKPOINT WRITE RANK" << parent->columnId() << "\n";
       if(parent->columnId() == 0) {
-
          parent->writeArrayToFile(cpDir, getName(), "FrameNumbers", static_cast<int*>(mBatchIndexer->getIndices().data()), parent->getNBatch());
       }
+      else {
+         // This is just to line up MPI calls
+         int *garbage = static_cast<int*>(calloc(parent->getNBatch(), sizeof(int)));
+         parent->writeArrayToFile(cpDir, getName(), "FrameNumbers", garbage, parent->getNBatch());
+         free(garbage);
+      }
       //Only do a checkpoint TimestampState if there exists a timestamp file
-      if (mTimestampFile) {
+      if (mWriteFileToTimestamp && mTimestampFile) {
          long timestampFilePos = getPV_StreamFilepos(mTimestampFile);
          parent->writeScalarToFile(cpDir, getName(), "TimestampState", timestampFilePos);
       }
-      return HyPerLayer::checkpointWrite(cpDir);
+      return status; 
    }
 
    double InputLayer::getDeltaUpdateTime() { 
@@ -148,11 +157,9 @@ int InputLayer::checkpointWrite(const char * cpDir){
    }
 
    void InputLayer::ioParam_inputPath(enum ParamsIOFlag ioFlag) {
-      // TODO: Make sure other string params are handled correctly
       char *tempString = nullptr;
       if(ioFlag == PARAMS_IO_WRITE) {
-         tempString = (char*)calloc(mInputPath.size() + 1, sizeof(char));
-         tempString = strcpy(tempString, mInputPath.c_str());
+         tempString = strdup(mInputPath.c_str());
       }
       parent->ioParamStringRequired(ioFlag, name, "inputPath", &tempString);
       if(ioFlag == PARAMS_IO_READ) { 
@@ -270,8 +277,18 @@ int InputLayer::checkpointWrite(const char * cpDir){
    void InputLayer::ioParam_aspectRatioAdjustment(enum ParamsIOFlag ioFlag) {
       assert(!parent->parameters()->presentAndNotBeenRead(name, "autoResizeFlag"));
       if (mAutoResizeFlag) {
-         char *aspectRatioAdjustment;
-         parent->ioParamString(ioFlag, name, "aspectRatioAdjustment", &aspectRatioAdjustment, "crop"/*default*/);
+         char *aspectRatioAdjustment = nullptr;
+         if(ioFlag == PARAMS_IO_WRITE) {
+            switch(mRescaleMethod) {
+               case Buffer::CROP:
+                  aspectRatioAdjustment = strdup("crop");
+                  break;
+               case Buffer::PAD:
+                  aspectRatioAdjustment = strdup("pad");
+                  break;
+            }
+         }
+         parent->ioParamString(ioFlag, name, "aspectRatioAdjustment", &aspectRatioAdjustment, "crop");
          if (ioFlag == PARAMS_IO_READ) {
             assert(aspectRatioAdjustment);
             for (char * c = aspectRatioAdjustment; *c; c++) { *c = tolower(*c); }
@@ -297,7 +314,7 @@ int InputLayer::checkpointWrite(const char * cpDir){
    void InputLayer::ioParam_interpolationMethod(enum ParamsIOFlag ioFlag) {
       assert(!parent->parameters()->presentAndNotBeenRead(name, "autoResizeFlag"));
       if (mAutoResizeFlag) {
-         char * interpolationMethodString = NULL;
+         char * interpolationMethodString = nullptr;
          if (ioFlag == PARAMS_IO_READ) {
             parent->ioParamString(ioFlag, name, "interpolationMethod", &interpolationMethodString, "bicubic", true/*warn if absent*/);
             assert(interpolationMethodString);
@@ -385,10 +402,20 @@ int InputLayer::checkpointWrite(const char * cpDir){
    }
 
    void InputLayer::ioParam_batchMethod(enum ParamsIOFlag ioFlag) {
-      if(!mUsingFileList) {
-         return;
+      char *batchMethod = nullptr;
+      if(ioFlag == PARAMS_IO_WRITE) {
+         switch(mBatchMethod) {
+            case BatchIndexer::BYFILE:
+               batchMethod = strdup("byFile");
+               break;
+            case BatchIndexer::BYLIST:
+               batchMethod = strdup("byList");
+               break;
+            case BatchIndexer::BYSPECIFIED:
+               batchMethod = strdup("bySpecified");
+               break;
+         }
       }
-      char *batchMethod = (char*)calloc(sizeof(char), 256);
       parent->ioParamString(ioFlag, name, "batchMethod", &batchMethod, "byFile");
       if(strcmp(batchMethod, "byImage") == 0 || strcmp(batchMethod, "byFile") == 0) {
          mBatchMethod = BatchIndexer::BYFILE;
@@ -406,35 +433,45 @@ int InputLayer::checkpointWrite(const char * cpDir){
    }
 
    void InputLayer::ioParam_start_frame_index(enum ParamsIOFlag ioFlag) {
-      if(ioFlag == PARAMS_IO_READ) { // TODO: Fix writing out arrays
-         int *paramsStartFrameIndex;
-         int length = -1;
-         this->getParent()->ioParamArray(ioFlag, this->getName(), "start_frame_index", &paramsStartFrameIndex, &length);
-         mStartFrameIndex.clear();
-         mStartFrameIndex.resize(parent->getNBatch());
-         if(length > 0) {
-            for(int i = 0; i < length; ++i) {
-               mStartFrameIndex.at(i) = paramsStartFrameIndex[i];
-            }
+      int *paramsStartFrameIndex;
+      int length = -1;
+      if(ioFlag == PARAMS_IO_WRITE) {
+         length = mStartFrameIndex.size();
+         paramsStartFrameIndex = static_cast<int*>(calloc(length, sizeof(int)));
+         for(int i = 0; i < length; ++i) {
+            paramsStartFrameIndex[i] = mStartFrameIndex.at(i);
          }
-         free(paramsStartFrameIndex);
       }
+      this->getParent()->ioParamArray(ioFlag, this->getName(), "start_frame_index", &paramsStartFrameIndex, &length);
+      mStartFrameIndex.clear();
+      mStartFrameIndex.resize(parent->getNBatch());
+      if(length > 0) {
+         for(int i = 0; i < length; ++i) {
+            mStartFrameIndex.at(i) = paramsStartFrameIndex[i];
+         }
+      }
+      free(paramsStartFrameIndex);
    }
 
    void InputLayer::ioParam_skip_frame_index(enum ParamsIOFlag ioFlag) {
-      if(ioFlag == PARAMS_IO_READ) { // TODO: Same as above
-         int *paramsSkipFrameIndex;
-         int length = -1;
-         this->getParent()->ioParamArray(ioFlag, this->getName(), "skip_frame_index", &paramsSkipFrameIndex, &length);
-         mSkipFrameIndex.clear();
-         mSkipFrameIndex.resize(parent->getNBatch());
-         if(length > 0) {
-            for(int i = 0; i < length; ++i) {
-               mSkipFrameIndex.at(i) = paramsSkipFrameIndex[i];
-            }
+      int *paramsSkipFrameIndex;
+      int length = -1;
+      if(ioFlag == PARAMS_IO_WRITE) {
+         length = mSkipFrameIndex.size();
+         paramsSkipFrameIndex = static_cast<int*>(calloc(length, sizeof(int)));
+         for(int i = 0; i < length; ++i) {
+            paramsSkipFrameIndex[i] = mSkipFrameIndex.at(i);
          }
-         free(paramsSkipFrameIndex);
       }
+      this->getParent()->ioParamArray(ioFlag, this->getName(), "skip_frame_index", &paramsSkipFrameIndex, &length);
+      mSkipFrameIndex.clear();
+      mSkipFrameIndex.resize(parent->getNBatch());
+      if(length > 0) {
+         for(int i = 0; i < length; ++i) {
+            mSkipFrameIndex.at(i) = paramsSkipFrameIndex[i];
+         }
+      }
+      free(paramsSkipFrameIndex);
    }
 
    void InputLayer::ioParam_writeFrameToTimestamp(enum ParamsIOFlag ioFlag) {
@@ -460,16 +497,23 @@ int InputLayer::checkpointWrite(const char * cpDir){
 
       }
 
-      if(parent->columnId() == 0) {
-         initializeBatchIndexer(mFileList.size());
-      }
-
-      // TODO: Should this only happen on root?
+      // TODO: Does it make sense for non-root processes to do this?
       mInputData.resize(numBatch);
       for(int b = 0; b < numBatch; ++b) {
          mInputData.at(b).resize(getLayerLoc()->ny, getLayerLoc()->nx, getLayerLoc()->nf);
       }
-      nextInput(parent->simulationTime(), parent->getDeltaTimeBase());
+
+      if(parent->columnId() == 0) {
+         initializeBatchIndexer(mFileList.size());
+         // We want to fill the activity buffer with the initial data without actually advancing
+         // our indices, so this is a quick hack to "rewind" after the initial nextInput()
+         std::vector<int> tempIndices = mBatchIndexer->getIndices();
+         nextInput(parent->simulationTime(), parent->getDeltaTimeBase());
+         mBatchIndexer->setIndices(tempIndices);
+      }
+      else {
+         nextInput(parent->simulationTime(), parent->getDeltaTimeBase());
+      }
       pvDebug() << "ALLOCATE ENDING RANK " << parent->getCommunicator()->commRank() << ", " << getName() << "\n";
       
       // create mpi_datatypes for border transfer
@@ -581,23 +625,14 @@ int InputLayer::checkpointWrite(const char * cpDir){
       if (rank == rootProc) {
 
          // Loop through each rank, ending on the root process.
-         // Uses Buffer::crop and MPI_Send to give each process the correct slice
-         // of input data. Once a process has the data, it slices it up row by row
-         // as is needed by mUseInputBCflag
+         // Uses Buffer::crop and MPI_Send to give each process
+         // the correct slice of input data.
          for (int rank = icComm->commSize()-1; rank >= 0; --rank) {
             
             // Copy the input data to a temporary buffer. This gets cropped to the layer size below.
             croppedBuffer = mInputData.at(batchIndex);
             int cropLeft = columnFromRank(rank, icComm->numCommRows(), icComm->numCommColumns()) * loc->nx;
             int cropTop = rowFromRank(rank, icComm->numCommRows(), icComm->numCommColumns()) * loc->ny;
-
-            // If we're sending the extended region as well, shift our origin by the appropriate amount
-            // TODO: This is going to give negative indices for some slices. What's the correct approach here?
-            // E: Pretty sure this resolves itself, making this unneccessary. Uncomment and investigate further if not.
-            // if(mUseInputBCflag) {
-            //    cropLeft -= halo->lt;
-            //    cropTop -= halo->up;
-            // }
 
             // Crop the input data to the size of one process.
             croppedBuffer.crop(activityWidth, activityHeight, Buffer::NORTHWEST, cropLeft, cropTop);
@@ -650,13 +685,9 @@ int InputLayer::checkpointWrite(const char * cpDir){
             }
          }
       }
-//         memcpy(&activityBuffer[destStart], &croppedBuffer.asVector().data()[sourceStart], 2 * sizeof(float)); //TODO: Verify this memcpy and see if there's a C++11 alternative
-      
-
       // TODO:
       // Do I need to store any info about the image now? I don't belive so,
       // since it's the same size as the layer now, but verify
-
       pvDebug() << "SCATTER COMPLETED ON RANK " << rank << "\n";
       return PV_SUCCESS;
    }
@@ -670,9 +701,10 @@ int InputLayer::checkpointWrite(const char * cpDir){
       const int targetHeight = loc->nyGlobal + (mUseInputBCflag ? (halo->dn + halo->up) : 0);
  
       if(mAutoResizeFlag) {
-         buffer.rescale(targetWidth, targetHeight, mRescaleMethod, mInterpolationMethod); 
+         buffer.rescale(targetWidth, targetHeight, mRescaleMethod, mInterpolationMethod, mOffsetAnchor); 
       }
-      buffer.crop(targetWidth, targetHeight, mOffsetAnchor, mOffsetX, mOffsetY); 
+      buffer.crop(targetWidth, targetHeight, mOffsetAnchor, mOffsetX, mOffsetY);
+      buffer.grow(targetWidth, targetHeight);
    }     
 
    //Apply normalizeLuminanceFlag, normalizeStdDev, and inverseFlag, which can be done pixel-by-pixel

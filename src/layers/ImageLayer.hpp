@@ -35,7 +35,7 @@ namespace PV {
       int initialize_base();
 
    protected:
-      std::unique_ptr<Image> mImage;
+      std::unique_ptr<Image> mImage = nullptr;
 
    };
 }

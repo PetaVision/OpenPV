@@ -70,12 +70,20 @@ namespace PV {
       pvErrorIf(invalidFile,
             "File \"%s\" appears to be an obsolete version of the .pvp format.\n", filename.c_str());
 
-      if(parent->columnId() == 0 && !mInitializedBatchIndexer) {
-         mInitializedBatchIndexer = true;
-         initializeBatchIndexer(params[INDEX_NBANDS]);
+      int frameNumber = 0;
+      // If we're playing through the pvp file like a movie, use
+      // BatchIndexer to get the frame number. Otherwise, just use
+      // the start_frame_index value for this batch.
+      if(getDisplayPeriod() > 0) {
+         if(parent->columnId() == 0 && !mInitializedBatchIndexer) {
+            mInitializedBatchIndexer = true;
+            initializeBatchIndexer(params[INDEX_NBANDS]);
+         }
+         frameNumber = mBatchIndexer->nextIndex(batchIndex);
       }
-
-      int frameNumber = mBatchIndexer->nextIndex(batchIndex);
+      else {
+         frameNumber = getStartIndex(batchIndex);
+      }
 
       pvDebug() << "READING FRAME " << frameNumber << " FROM " << filename << "\n";
       
@@ -241,7 +249,7 @@ namespace PV {
          pvErrorNoExit().printf("scatterImageFilePVP: Unable to seek to start of frame %d in \"%s\": %s\n", frameNumber, pvstream->name, strerror(errno));
          status = PV_FAILURE;
       }
-      if (status == PV_SUCCESS) {
+      else { 
          float pvpFileTime = 0;
          size_t numread = PV::PV_fread(&pvpFileTime, sizeof(double), (size_t) 1, pvstream);
          if (numread != (size_t) 1) {
