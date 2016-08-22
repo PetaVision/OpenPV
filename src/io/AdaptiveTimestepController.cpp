@@ -142,7 +142,7 @@ int AdaptiveTimestepController::checkpointWrite(const char * cpDir) {
          }
       }
       PV_fclose(timescalefile);
-      chars_needed = snprintf(timescalepath, PV_PATH_MAX, "%s/timescaleinfo.txt", cpDir);
+      chars_needed = snprintf(timescalepath, PV_PATH_MAX, "%s/%s_timescaleinfo.txt", cpDir, mName);
       assert(chars_needed < PV_PATH_MAX);
       timescalefile = PV_fopen(timescalepath,"w", mVerifyWrites);
       assert(timescalefile);
