@@ -61,7 +61,6 @@ protected:
    std::vector<double> mTimeScaleTrue;
    std::vector<double> mOldTimeScale;
    std::vector<double> mOldTimeScaleTrue;
-   std::vector<double> mDeltaTimeAdapt;
 };
 
 } /* namespace PV */
