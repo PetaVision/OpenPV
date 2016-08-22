@@ -10,7 +10,7 @@
 
 #ifdef PV_USE_CUDA
 
-#include "../cudakernels/CudaUpdateStateFunctions.hpp"
+#include "cudakernels/CudaUpdateStateFunctions.hpp"
 
 #endif
 
@@ -51,21 +51,15 @@ HyPerLCALayer::HyPerLCALayer(const char * name, HyPerCol * hc)
    initialize(name, hc);
 }
 
-HyPerLCALayer::~HyPerLCALayer()
-{
+HyPerLCALayer::~HyPerLCALayer() {
+   free(mAdaptiveTimestepProbeName);
 }
 
 int HyPerLCALayer::initialize_base()
 {
    numChannels = 1; // If a connection connects to this layer on inhibitory channel, HyPerLayer::requireChannel will add necessary channel
    timeConstantTau = 1.0;
-   //Locality in conn
-   //numWindowX = 1;
-   //numWindowY = 1;
-   //windowSymX = false;
-   //windowSymY = false;
    selfInteract = true;
-   //sparseProbe = NULL;
    return PV_SUCCESS;
 }
 
@@ -76,7 +70,9 @@ int HyPerLCALayer::initialize(const char * name, HyPerCol * hc)
 }
 
 int HyPerLCALayer::allocateDataStructures(){
-   int status = ANNLayer::allocateDataStructures();
+   int status = ANNLayer::allocateDataStructures(); // Calls allocateUpdateKernel()
+   pvAssert(mAdaptiveTimestepProbe==nullptr || getLayerLoc()->nbatch==mAdaptiveTimestepProbe->getNumValues());
+   mDeltaTimes.resize(getLayerLoc()->nbatch);
    return status;
 }
 
@@ -87,6 +83,7 @@ int HyPerLCALayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 #endif // OBSOLETE // Marked obsolete Jun 27, 2016.
    ioParam_timeConstantTau(ioFlag);
    ioParam_selfInteract(ioFlag);
+   ioParam_adaptiveTimestepProbe(ioFlag);
    return status;
 }
 
@@ -112,6 +109,10 @@ void HyPerLCALayer::ioParam_selfInteract(enum ParamsIOFlag ioFlag) {
    }   
 }
 
+void HyPerLCALayer::ioParam_adaptiveTimestepProbe(enum ParamsIOFlag ioFlag) {
+   parent->ioParamString(ioFlag, name, "adaptiveTimestepProbe", &mAdaptiveTimestepProbeName, nullptr/*default*/, true/*warn if absent*/);
+}
+
 int HyPerLCALayer::requireChannel(int channelNeeded, int * numChannelsResult) {
    int status = HyPerLayer::requireChannel(channelNeeded, numChannelsResult);
    if (channelNeeded>=2 && parent->columnId()==0) {
@@ -120,6 +121,20 @@ int HyPerLCALayer::requireChannel(int channelNeeded, int * numChannelsResult) {
    return status;
 }
 
+int HyPerLCALayer::communicateInitInfo() {
+   if (mAdaptiveTimestepProbeName) {
+      mAdaptiveTimestepProbe = dynamic_cast<AdaptiveTimestepProbe*>(parent->getColProbeFromName(mAdaptiveTimestepProbeName));
+      if (mAdaptiveTimestepProbe==nullptr) {
+         if (parent->getCommunicator()->commRank()==0) {
+            pvErrorNoExit() << description << ": adaptiveTimestepProbe \"" <<
+                  mAdaptiveTimestepProbeName << "\" is not in the column.\n";
+         }
+         MPI_Barrier(parent->getCommunicator()->communicator());
+         exit(EXIT_FAILURE);
+      }
+   }
+   return ANNLayer::communicateInitInfo();
+}
 
 #ifdef PV_USE_CUDA
 int HyPerLCALayer::allocateUpdateKernel(){
@@ -191,11 +206,9 @@ int HyPerLCALayer::allocateUpdateKernel(){
 
 
 #ifdef PV_USE_CUDA
-int HyPerLCALayer::updateStateGpu(double time, double dt)
-{
-  //this is a change
+int HyPerLCALayer::updateStateGpu(double time, double dt) {
    //Copy over d_dtAdapt
-   d_dtAdapt->copyToDevice(parent->getTimeScale());
+   d_dtAdapt->copyToDevice(deltaTimes());
    //Change dt to match what is passed in
    PVCuda::CudaUpdateHyPerLCALayer* updateKernel = dynamic_cast<PVCuda::CudaUpdateHyPerLCALayer*>(krUpdate);
    assert(updateKernel);
@@ -208,8 +221,7 @@ double HyPerLCALayer::getDeltaUpdateTime(){
    return parent->getDeltaTime();
 }
 
-int HyPerLCALayer::updateState(double time, double dt)
-{
+int HyPerLCALayer::updateState(double time, double dt) {
    const PVLayerLoc * loc = getLayerLoc();
    pvdata_t * A = clayer->activity->data;
    pvdata_t * V = getV();
@@ -223,14 +235,22 @@ int HyPerLCALayer::updateState(double time, double dt)
       int nbatch = loc->nbatch;
       //Only update when the probe updates
       
-      double * deltaTimeAdapt = parent->getTimeScale();
-
       HyPerLCALayer_update_state(nbatch, num_neurons, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, numChannels,
             V, numVertices, verticesV, verticesA, slopes,
-            selfInteract, deltaTimeAdapt, timeConstantTau, gSynHead, A);
+            selfInteract, deltaTimes(), timeConstantTau, gSynHead, A);
    }
 
    return PV_SUCCESS;
+}
+
+double * HyPerLCALayer::deltaTimes() {
+   if (mAdaptiveTimestepProbe) {
+      mAdaptiveTimestepProbe->getValues(parent->simulationTime(), &mDeltaTimes);
+   }
+   else {
+      mDeltaTimes.assign(getLayerLoc()->nbatch, parent->getDeltaTime());
+   }
+   return mDeltaTimes.data();
 }
 
 } /* namespace PV */
@@ -253,7 +273,7 @@ void HyPerLCALayer_update_state(
     float * verticesA,
     float * slopes,
     const bool selfInteract,
-    double* dtAdapt,
+    double * dtAdapt,
     const float tau,
     float * GSynHead,
     float * activity)

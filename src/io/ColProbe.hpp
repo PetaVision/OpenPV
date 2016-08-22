@@ -48,6 +48,9 @@ public:
     */
    virtual int communicateInitInfo();
    
+   virtual int checkpointRead(const char * cpDir, double * timeptr) { return PV_SUCCESS; }
+   virtual int checkpointWrite(const char * cpDir) { return PV_SUCCESS; }
+
    /**
     * The virtual method for outputting the quantities measured by the ColProbe.
     * Derived classes should override this method.  Typically, outputState

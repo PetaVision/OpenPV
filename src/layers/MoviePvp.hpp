@@ -26,7 +26,7 @@ public:
    virtual int checkpointWrite(const char * cpDir);
    virtual int outputState(double time, bool last=false);
    virtual double getDeltaUpdateTime();
-   virtual double calcTimeScale(int batchIdx);
+   // virtual double calcTimeScale(int batchIdx); // Marked obsolete Aug 18, 2016.
    virtual int updateState(double time, double dt);
    virtual bool updateImage(double time, double dt);
    const char * getCurrentImage();

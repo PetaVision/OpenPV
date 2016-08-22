@@ -2291,6 +2291,7 @@ int HyPerConn::updateState(double time, double dt){
       //Need to finish command queue of pre and post activity
       //Doing both in case of multiple gpus running
 
+#ifdef OBSOLETE // Marked obsolete Aug 18, 2016.   Should not skip images when learning, and timescale adaptation has been moved out of HyPerCol.
       //TODO: commented out to compile, but we'll want to average across only batches where timeScale >= timeScaleMin.
       for(int b = 0; b < parent->getNBatch(); b++){
          double preTimeScale = pre->getTimeScale(b); 
@@ -2320,6 +2321,7 @@ int HyPerConn::updateState(double time, double dt){
          }
          batchSkip[b] = skip;
       }
+#endif // OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to ColumnEnergyProbe.
 
       status = calc_dW();        // Calculate changes in weights
 

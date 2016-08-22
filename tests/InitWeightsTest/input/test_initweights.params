@@ -13,7 +13,6 @@ HyPerCol "column" = {
    nx = 32;   
    ny = 32;
    dt = 1.0;
-   dtAdaptController = NULL;
    randomSeed = 977074598;  // if not set here,  clock time is used to generate seed
    startTime = 0.0;
    stopTime = 4.0;

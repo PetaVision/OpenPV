@@ -183,7 +183,7 @@ int MomentumLCALayer::updateStateGpu(double time, double dt){
       pvError().printf("HyPerLayer::Trigger reset of V does not work on GPUs\n");
    }
    //Copy over d_dtAdapt
-   d_dtAdapt->copyToDevice(parent->getTimeScale());
+   d_dtAdapt->copyToDevice(deltaTimes());
 
    //Don't need to copy as prevDrive buffer is only needed for checkpointing
    //d_prevDrive->copyToDevice(prevDrive);
@@ -213,11 +213,9 @@ int MomentumLCALayer::updateState(double time, double dt)
    int nbatch = loc->nbatch;
    //Only update when the probe updates
    
-   double * deltaTimeAdapt = parent->getTimeScale();
-
    MomentumLCALayer_update_state(nbatch, num_neurons, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, numChannels,
          V, numVertices, verticesV, verticesA, slopes,
-         selfInteract, deltaTimeAdapt, timeConstantTau, LCAMomentumRate, gSynHead, A, prevDrive);
+         selfInteract, deltaTimes(), timeConstantTau, LCAMomentumRate, gSynHead, A, prevDrive);
    return PV_SUCCESS;
 }
 
