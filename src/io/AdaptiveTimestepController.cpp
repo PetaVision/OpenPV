@@ -16,8 +16,8 @@ namespace PV {
 AdaptiveTimestepController::AdaptiveTimestepController(
       char const * name,
       int batchWidth,
-      double maxBase,
-      double timeScaleMin,
+      double baseMax,
+      double baseMin,
       double changeTimeScaleMax,
       double changeTimeScaleMin,
       bool writeTimescales,
@@ -26,8 +26,8 @@ AdaptiveTimestepController::AdaptiveTimestepController(
       bool verifyWrites) {
    mName = strdup(name);
    mBatchWidth = batchWidth;
-   mMaxBase = maxBase;
-   mTimeScaleMin = timeScaleMin;
+   mBaseMax = baseMax;
+   mBaseMin = baseMin;
    mChangeTimeScaleMax = changeTimeScaleMax;
    mChangeTimeScaleMin = changeTimeScaleMin;
    mWriteTimescales = writeTimescales;
@@ -35,10 +35,10 @@ AdaptiveTimestepController::AdaptiveTimestepController(
    mCommunicator = communicator;
    mVerifyWrites = verifyWrites;
 
-   mTimeScale.assign(mBatchWidth, mTimeScaleMin);
-   mTimeScaleMax.assign(mBatchWidth, mMaxBase);
+   mTimeScale.assign(mBatchWidth, mBaseMin);
+   mTimeScaleMax.assign(mBatchWidth, mBaseMax);
    mTimeScaleTrue.assign(mBatchWidth, -1.0);
-   mOldTimeScale.assign(mBatchWidth, mTimeScaleMin);
+   mOldTimeScale.assign(mBatchWidth, mBaseMin);
    mOldTimeScaleTrue.assign(mBatchWidth, -1.0);
 }
 
@@ -140,8 +140,8 @@ std::vector<double> const& AdaptiveTimestepController::calcTimesteps(double time
       double dE_dt_scaled = (E_0 - E_dt) / mTimeScale[b];
 
       if ( (dE_dt_scaled <= 0.0) || (E_0 <= 0) || (E_dt <= 0) ) {
-         mTimeScale[b]      = mTimeScaleMin;
-         mTimeScaleMax[b]   = mMaxBase;
+         mTimeScale[b]      = mBaseMin;
+         mTimeScaleMax[b]   = mBaseMax;
       }
       else {
          double tau_eff_scaled = E_0 / dE_dt_scaled;
@@ -149,7 +149,7 @@ std::vector<double> const& AdaptiveTimestepController::calcTimesteps(double time
          // dt := mTimeScaleMaxBase * tau_eff
          mTimeScale[b] = mChangeTimeScaleMax * tau_eff_scaled;
          mTimeScale[b] = (mTimeScale[b] <= mTimeScaleMax[b]) ? mTimeScale[b] : mTimeScaleMax[b];
-         mTimeScale[b] = (mTimeScale[b] <  mTimeScaleMin) ? mTimeScaleMin : mTimeScale[b];
+         mTimeScale[b] = (mTimeScale[b] <  mBaseMin) ? mBaseMin : mTimeScale[b];
 
          if (mTimeScale[b] == mTimeScaleMax[b]) {
             mTimeScaleMax[b] = (1 + mChangeTimeScaleMin) * mTimeScaleMax[b];

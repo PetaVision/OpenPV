@@ -40,8 +40,8 @@ private:
 protected:
    char * mName;
    int mBatchWidth;
-   double mMaxBase;
-   double mTimeScaleMin;
+   double mBaseMax;
+   double mBaseMin;
    double mChangeTimeScaleMax;
    double mChangeTimeScaleMin;
    bool   mWriteTimescales;

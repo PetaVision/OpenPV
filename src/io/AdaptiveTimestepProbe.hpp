@@ -36,15 +36,16 @@ protected:
    virtual void ioParam_targetName(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief baseMax: If mDtAdaptController is set, specifies the maximum timescale allowed
+    * @brief baseMax: Specifies the initial maximum timescale allowed.
+    * The maximum timescale is allowed to increase at a rate specified
+    * by the growthFactor parameter.
     */
    virtual void ioParam_baseMax(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief dtScaleMin: If mDtAdaptController is set, specifies the default timescale
-    * @details The parameter name is misleading, since dtAdapt can drop below timescale min
+    * @brief baseMin: Specifies the minimum timescale allowed.
     */
-   virtual void ioParam_dtScaleMin(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_baseMin(enum ParamsIOFlag ioFlag);
 
    /**
     * @brief dtChangeMax: If mDtAdaptController is set, specifies the upper limit of adaptive dt based on error
@@ -98,7 +99,7 @@ protected:
 
 protected:
    double mBaseMax                  = 1.0;
-   double mTimeScaleMin             = 1.0;
+   double mBaseMin                  = 1.0;
    double mDtMinToleratedTimeScale  = 1.0e-4;
    double mChangeTimeScaleMax       = 1.0;
    double mChangeTimeScaleMin       = 1.0;

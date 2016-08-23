@@ -29,7 +29,7 @@ int AdaptiveTimestepProbe::initialize(char const * name, HyPerCol * hc) {
 int AdaptiveTimestepProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = ColProbe::ioParamsFillGroup(ioFlag);
    ioParam_baseMax(ioFlag);
-   ioParam_dtScaleMin(ioFlag);
+   ioParam_baseMin(ioFlag);
    ioParam_dtChangeMax(ioFlag);
    ioParam_dtChangeMin(ioFlag);
    ioParam_dtMinToleratedTimeScale(ioFlag);
@@ -46,8 +46,8 @@ void AdaptiveTimestepProbe::ioParam_baseMax(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "baseMax", &mBaseMax, mBaseMax);
 }
 
-void AdaptiveTimestepProbe::ioParam_dtScaleMin(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "dtScaleMin", &mTimeScaleMin, mTimeScaleMin);
+void AdaptiveTimestepProbe::ioParam_baseMin(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "baseMin", &mBaseMin, mBaseMin);
 }
 
 void AdaptiveTimestepProbe::ioParam_dtMinToleratedTimeScale(enum ParamsIOFlag ioFlag) {
@@ -103,7 +103,7 @@ int AdaptiveTimestepProbe::allocateDataStructures() {
          getName(),
          getNumValues(),
          mBaseMax,
-         mTimeScaleMin,
+         mBaseMin,
          mChangeTimeScaleMax,
          mChangeTimeScaleMin,
          mWriteTimescales,
