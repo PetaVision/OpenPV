@@ -111,7 +111,7 @@ private:
    virtual void ioParam_dtScaleMax(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief dtScaleMax2: Obsolete.  This parameter is now handled by AdaptiveTimestepProbe.
+    * @brief dtScaleMax2: Obsolete.  This parameter has been eliminated.
     */
    virtual void ioParam_dtScaleMax2(enum ParamsIOFlag ioFlag);
 

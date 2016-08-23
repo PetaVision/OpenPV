@@ -21,7 +21,6 @@ public:
          int batchWidth,
          double deltaTimeBase,
          double timeScaleMaxBase,
-         double timeScaleMax2Base,
          double timeScaleMin,
          double dtMinToleratedTimeScale,
          double changeTimeScaleMax,
@@ -45,7 +44,6 @@ protected:
    int mBatchWidth;
    double mDeltaTimeBase;
    double mTimeScaleMaxBase;
-   double mTimeScaleMax2Base;
    double mTimeScaleMin;
    double mDtMinToleratedTimeScale;
    double mChangeTimeScaleMax;
@@ -57,7 +55,6 @@ protected:
 
    std::vector<double> mTimeScale;
    std::vector<double> mTimeScaleMax;
-   std::vector<double> mTimeScaleMax2;
    std::vector<double> mTimeScaleTrue;
    std::vector<double> mOldTimeScale;
    std::vector<double> mOldTimeScaleTrue;

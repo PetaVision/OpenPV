@@ -745,7 +745,12 @@ void HyPerCol::ioParam_dtScaleMax(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerCol::ioParam_dtScaleMax2(enum ParamsIOFlag ioFlag) {
-   paramMovedToColumnEnergyProbe(ioFlag, "dtScaleMax2");
+   if (ioFlag==PARAMS_IO_READ && mParams->present(mName, "dtAdaptTriggerOffset")) {
+      if (columnId()==0) {
+         pvErrorNoExit() << "The dtScaleMax2 parameter has been removed.\n";
+      }
+      mObsoleteParameterFound = true;
+   }
 }
 
 void HyPerCol::ioParam_dtScaleMin(enum ParamsIOFlag ioFlag) {

@@ -41,11 +41,6 @@ protected:
    virtual void ioParam_dtScaleMax(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief dtScaleMax2: If mDtAdaptController is set, specifies the maximum dtScaleMax allowed (this is a 2nd maximum that adapts much more slowly)
-    */
-   virtual void ioParam_dtScaleMax2(enum ParamsIOFlag ioFlag);
-
-   /**
     * @brief dtScaleMin: If mDtAdaptController is set, specifies the default timescale
     * @details The parameter name is misleading, since dtAdapt can drop below timescale min
     */
@@ -103,7 +98,6 @@ protected:
 
 protected:
    double mTimeScaleMaxBase         = 1.0;
-   double mTimeScaleMax2Base        = 1.0;
    double mTimeScaleMin             = 1.0;
    double mDtMinToleratedTimeScale  = 1.0e-4;
    double mChangeTimeScaleMax       = 1.0;

@@ -18,7 +18,6 @@ AdaptiveTimestepController::AdaptiveTimestepController(
       int batchWidth,
       double deltaTimeBase,
       double timeScaleMaxBase,
-      double timeScaleMax2Base,
       double timeScaleMin,
       double dtMinToleratedTimeScale,
       double changeTimeScaleMax,
@@ -31,7 +30,6 @@ AdaptiveTimestepController::AdaptiveTimestepController(
    mBatchWidth = batchWidth;
    mDeltaTimeBase = deltaTimeBase;
    mTimeScaleMaxBase = timeScaleMaxBase;
-   mTimeScaleMax2Base = timeScaleMax2Base;
    mTimeScaleMin = timeScaleMin;
    mDtMinToleratedTimeScale = dtMinToleratedTimeScale;
    mChangeTimeScaleMax = changeTimeScaleMax;
@@ -43,7 +41,6 @@ AdaptiveTimestepController::AdaptiveTimestepController(
 
    mTimeScale.assign(mBatchWidth, mTimeScaleMin);
    mTimeScaleMax.assign(mBatchWidth, mTimeScaleMaxBase);
-   mTimeScaleMax2.assign(mBatchWidth, mTimeScaleMax2Base);
    mTimeScaleTrue.assign(mBatchWidth, -1.0);
    mOldTimeScale.assign(mBatchWidth, mTimeScaleMin);
    mOldTimeScaleTrue.assign(mBatchWidth, -1.0);
@@ -59,7 +56,6 @@ int AdaptiveTimestepController::checkpointRead(const char * cpDir, double * time
       double mTimeScale; // mTimeScale factor for increasing/decreasing dt
       double mTimeScaleTrue; // true mTimeScale as returned by HyPerLayer::getTimeScaleTrue() typically computed by an adaptTimeScaleController (ColProbe)
       double mTimeScaleMax; //  current maximum allowed value of mTimeScale as returned by HyPerLayer::getTimeScaleMaxPtr()
-      double mTimeScaleMax2; //  current maximum allowed value of mTimeScale as returned by HyPerLayer::getTimeScaleMax2Ptr()
    };
    struct timescalemax_struct timescalemax[mBatchWidth];
 
@@ -67,10 +63,9 @@ int AdaptiveTimestepController::checkpointRead(const char * cpDir, double * time
       timescalemax[b].mTimeScale = 1;
       timescalemax[b].mTimeScaleTrue = 1;
       timescalemax[b].mTimeScaleMax = 1;
-      timescalemax[b].mTimeScaleMax2 = 1;
    }
    size_t timescalemax_size = sizeof(struct timescalemax_struct);
-   assert(sizeof(struct timescalemax_struct) == sizeof(double) + sizeof(double) + sizeof(double) + sizeof(double));
+   assert(sizeof(struct timescalemax_struct) == sizeof(double) + sizeof(double) + sizeof(double));
    // read mTimeScale info
    if(mCommunicator->commRank()==0 ) {
       char timescalepath[PV_PATH_MAX];
@@ -101,7 +96,6 @@ int AdaptiveTimestepController::checkpointRead(const char * cpDir, double * time
       mTimeScale[b] = timescalemax[b].mTimeScale;
       mTimeScaleTrue[b] = timescalemax[b].mTimeScaleTrue;
       mTimeScaleMax[b] = timescalemax[b].mTimeScaleMax;
-      mTimeScaleMax2[b] = timescalemax[b].mTimeScaleMax2;
    }
    return PV_SUCCESS;
 }
@@ -122,9 +116,6 @@ int AdaptiveTimestepController::checkpointWrite(const char * cpDir) {
          }
          if (PV_fwrite(&mTimeScaleMax[b],1,sizeof(double),timescalefile) != sizeof(double)) {
             pvError().printf("HyPerCol::checkpointWrite error writing timeScaleMax to %s\n", timescalefile->name);
-         }
-         if (PV_fwrite(&mTimeScaleMax2[b],1,sizeof(double),timescalefile) != sizeof(double)) {
-            pvError().printf("HyPerCol::checkpointWrite error writing timeScaleMax2 to %s\n", timescalefile->name);
          }
       }
       PV_fclose(timescalefile);
@@ -148,11 +139,6 @@ std::vector<double> const& AdaptiveTimestepController::calcTimesteps(double time
    mOldTimeScale = mTimeScale;
    mTimeScaleTrue = rawTimeScales;
    for(int b = 0; b < mBatchWidth; b++){
-
-      // if ((mTimeScale[b] == mTimeScaleMin) && (mOldTimeScale[b] == mTimeScaleMax2[b])) {
-      //   mTimeScaleMax2[b] = (1 + mChangeTimeScaleMin) * mTimeScaleMax2[b];
-      // }
-
       double E_dt  =  mTimeScaleTrue[b];
       double E_0   =  mOldTimeScaleTrue[b];
       double dE_dt_scaled = (E_0 - E_dt) / mTimeScale[b];
@@ -160,14 +146,12 @@ std::vector<double> const& AdaptiveTimestepController::calcTimesteps(double time
       if ( (dE_dt_scaled <= 0.0) || (E_0 <= 0) || (E_dt <= 0) ) {
          mTimeScale[b]      = mTimeScaleMin;
          mTimeScaleMax[b]   = mTimeScaleMaxBase;
-         //mTimeScaleMax2[b]  = mOldTimeScale[b]; // set Max2 to value of time scale at which instability appeared
       }
       else {
          double tau_eff_scaled = E_0 / dE_dt_scaled;
 
          // dt := mTimeScaleMaxBase * tau_eff
          mTimeScale[b] = mChangeTimeScaleMax * tau_eff_scaled;
-         //mTimeScale[b] = (mTimeScale[b] <= mTimeScaleMax2[b]) ? mTimeScale[b] : mTimeScaleMax2[b];
          mTimeScale[b] = (mTimeScale[b] <= mTimeScaleMax[b]) ? mTimeScale[b] : mTimeScaleMax[b];
          mTimeScale[b] = (mTimeScale[b] <  mTimeScaleMin) ? mTimeScaleMin : mTimeScale[b];
 
