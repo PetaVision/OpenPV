@@ -27,8 +27,8 @@ class HyPerCol;
  * of the batch.  The getValues() method would compute the energy for each element of the
  * batch.  The getValue() method returns the energy for a single batch element.
  *
- * A HyPerCol object with dtAdaptFlag set to true and dtAdaptController set to a ColProbe
- * uses a ColProbe::getValues() call to compute the timeScaleTrue buffer.
+ * An AdaptiveTimeScaleProbe with targetName set to a ColProbe
+ * uses a ColProbe::getValues() call to compute the timeScaleTrue vector.
  */
 class ColProbe : public BaseProbe {
 public:

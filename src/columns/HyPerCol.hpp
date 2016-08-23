@@ -116,17 +116,17 @@ private:
    virtual void ioParam_dtScaleMax2(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief dtScaleMin: Obsolete.  This parameter is now handled by AdaptiveTimeScaleProbe.
+    * @brief dtScaleMin: Obsolete.  This parameter is now handled by AdaptiveTimeScaleProbe, as baseMin.
     */
    virtual void ioParam_dtScaleMin(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief dtChangeMax: Obsolete.  This parameter is now handled by AdaptiveTimeScaleProbe.
+    * @brief dtChangeMax: Obsolete.  This parameter is now handled by AdaptiveTimeScaleProbe, as tauFactor.
     */
    virtual void ioParam_dtChangeMax(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief dtChangeMin: Obsolete.  This parameter is now handled by AdaptiveTimeScaleProbe.
+    * @brief dtChangeMin: Obsolete.  This parameter is now handled by AdaptiveTimeScaleProbe, as growthFactor.
     */
    virtual void ioParam_dtChangeMin(enum ParamsIOFlag ioFlag);
 
@@ -292,7 +292,7 @@ private:
    virtual void ioParam_checkpointIndexWidth(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief writeTimescales:  Obsolete.  This parameter is now handled by AdaptiveTimeScaleProbe.
+    * @brief writeTimescales:  Obsolete.  This parameter is now handled by AdaptiveTimeScaleProbe, as writeTimeScales.
     */
    virtual void ioParam_writeTimescales(enum ParamsIOFlag ioFlag); 
 

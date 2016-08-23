@@ -67,7 +67,7 @@ void AdaptiveTimeScaleProbe::ioParam_writeTimeScales(enum ParamsIOFlag ioFlag) {
 }
 
 void AdaptiveTimeScaleProbe::ioParam_writeTimeScaleFieldnames(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "writeTimescales"));
+   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "writeTimeScales"));
    if (mWriteTimeScales) {
      parent->ioParamValue(ioFlag, name, "writeTimeScaleFieldnames", &mWriteTimeScaleFieldnames, mWriteTimeScaleFieldnames);
    }

@@ -161,6 +161,7 @@ int HyPerCol::initialize_base() {
    mChangeTimeScaleMax = 1.0;
    mChangeTimeScaleMin = 0.0;
    mDtMinToleratedTimeScale = 1.0e-4;
+   mWriteTimescales = true; //Defaults to true
 #endif // OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
    mProgressInterval = 1.0;
    mWriteProgressToErr = false;
@@ -201,7 +202,6 @@ int HyPerCol::initialize_base() {
    mBaseProbes.clear();
    mRandomSeed = 0U;
    //mRandomSeedObj = 0U;
-   mWriteTimescales = true; //Defaults to true
    mErrorOnNotANumber = false;
    mNumThreads = 1;
    mRecvLayerBuffer.clear();
@@ -679,7 +679,7 @@ void HyPerCol::ioParam_dt(enum ParamsIOFlag ioFlag) {
 void HyPerCol::ioParam_dtAdaptController(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ && mParams->stringPresent(mName, "dtAdaptController")) {
       if (columnId()==0) {
-         pvErrorNoExit() << "The dtAdaptController parameter is obsolete.  Adaptive timestep parameters have been moved to AdaptiveTimeScaleProbe.\n";
+         pvErrorNoExit() << "The dtAdaptController parameter is obsolete.  Use the AdaptiveTimeScaleProbe targetName parameter.\n";
       }
       mObsoleteParameterFound = true;
    }
