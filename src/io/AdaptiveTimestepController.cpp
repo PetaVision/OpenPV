@@ -73,7 +73,7 @@ int AdaptiveTimestepController::checkpointRead(const char * cpDir, double * time
       if (timescalefile == nullptr) {
          pvWarn(errorMessage);
          errorMessage.printf("HyPerCol::checkpointRead: unable to open \"%s\" for reading: %s.\n", timescalepath, strerror(errno));
-         errorMessage.printf("    will use default value of mTimeScale=%f, mTimeScaleTrue=%f, mTimeScaleMax=%f, mTimeScaleMax2=%f\n", 1.0, 1.0, 1.0, 1.0);
+         errorMessage.printf("    will use default value of mTimeScale=%f, mTimeScaleTrue=%f, mTimeScaleMax=%f\n", 1.0, 1.0, 1.0);
       }
       else {
          for(int b = 0; b < mBatchWidth; b++){
