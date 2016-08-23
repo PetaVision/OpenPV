@@ -161,8 +161,7 @@ int HyPerLCALayer::allocateUpdateKernel(){
    const float AShift = this->AShift;
    const float VWidth = this->VWidth;
    const bool selfInteract = this->selfInteract;
-   //This value is being updated every timestep, so we need to update it on the gpu
-   const float tau = timeConstantTau; //dt/timeConstantTau;
+   const float tau = timeConstantTau/parent->getDeltaTime(); // TODO: eliminate need to call parent method
    PVCuda::CudaBuffer* d_GSyn = getDeviceGSyn();
    PVCuda::CudaBuffer* d_activity = getDeviceActivity();
 
@@ -237,7 +236,7 @@ int HyPerLCALayer::updateState(double time, double dt) {
       
       HyPerLCALayer_update_state(nbatch, num_neurons, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, numChannels,
             V, numVertices, verticesV, verticesA, slopes,
-            selfInteract, deltaTimes(), timeConstantTau, gSynHead, A);
+            selfInteract, deltaTimes(), timeConstantTau/dt, gSynHead, A);
    }
 
    return PV_SUCCESS;
