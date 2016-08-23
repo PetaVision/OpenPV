@@ -66,10 +66,10 @@ protected:
    virtual void ioParam_dtMinToleratedTimeScale(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief writeTimescales: If mDtAdaptController is set, specifies if the timescales should be written
-    * @details The timescales get written to outputPath/HyPerCol_timescales.txt.
+    * @brief writeTimeScales: Specifies if the timescales should be written
+    * @details The timescales get written to outputPath/[name_of_probe]_timescales.txt.
     */
-   virtual void ioParam_writeTimescales(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_writeTimeScales(enum ParamsIOFlag ioFlag);
 
    /**
     * @brief writeTimeScaleFieldnames: A flag to determine if fieldnames are written to the HyPerCol_timescales file, if false, file is written as comma separated list
@@ -102,7 +102,7 @@ protected:
    double mDtMinToleratedTimeScale  = 1.0e-4;
    double tauFactor                 = 1.0;
    double mGrowthFactor             = 1.0;
-   bool   mWriteTimescales          = true;
+   bool   mWriteTimeScales          = true;
    bool   mWriteTimeScaleFieldnames = true;
 
    BaseProbe * mTargetProbe = nullptr;

@@ -23,7 +23,7 @@ public:
          double baseMin,
          double tauFactor,
          double growthFactor,
-         bool writeTimescales,
+         bool writeTimeScales,
          bool writeTimeScaleFieldnames,
          Communicator * comm,
          bool verifyWrites);
@@ -44,7 +44,7 @@ protected:
    double mBaseMin;
    double mTauFactor;
    double mGrowthFactor;
-   bool   mWriteTimescales;
+   bool   mWriteTimeScales;
    bool   mWriteTimeScaleFieldnames;
    Communicator * mCommunicator;
    bool mVerifyWrites;

@@ -19,8 +19,8 @@ AdaptiveTimestepController::AdaptiveTimestepController(
       double baseMax,
       double baseMin,
       double tauFactor,
-      double changeTimeScaleMin,
-      bool writeTimescales,
+      double growthFactor,
+      bool writeTimeScales,
       bool writeTimeScaleFieldnames,
       Communicator * communicator,
       bool verifyWrites) {
@@ -29,8 +29,8 @@ AdaptiveTimestepController::AdaptiveTimestepController(
    mBaseMax = baseMax;
    mBaseMin = baseMin;
    mTauFactor = tauFactor;
-   mGrowthFactor = changeTimeScaleMin;
-   mWriteTimescales = writeTimescales;
+   mGrowthFactor = growthFactor;
+   mWriteTimeScales = writeTimeScales;
    mWriteTimeScaleFieldnames = writeTimeScaleFieldnames;
    mCommunicator = communicator;
    mVerifyWrites = verifyWrites;

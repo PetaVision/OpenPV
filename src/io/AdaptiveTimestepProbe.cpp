@@ -33,7 +33,7 @@ int AdaptiveTimestepProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_tauFactor(ioFlag);
    ioParam_growthFactor(ioFlag);
    ioParam_dtMinToleratedTimeScale(ioFlag);
-   ioParam_writeTimescales(ioFlag);
+   ioParam_writeTimeScales(ioFlag);
    ioParam_writeTimeScaleFieldnames(ioFlag);
    return status;
 }
@@ -62,13 +62,13 @@ void AdaptiveTimestepProbe::ioParam_growthFactor(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "growthFactor", &mGrowthFactor, mGrowthFactor);
 }
 
-void AdaptiveTimestepProbe::ioParam_writeTimescales(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "writeTimescales", &mWriteTimescales, mWriteTimescales);
+void AdaptiveTimestepProbe::ioParam_writeTimeScales(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "writeTimeScales", &mWriteTimeScales, mWriteTimeScales);
 }
 
 void AdaptiveTimestepProbe::ioParam_writeTimeScaleFieldnames(enum ParamsIOFlag ioFlag) {
    pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "writeTimescales"));
-   if (mWriteTimescales) {
+   if (mWriteTimeScales) {
      parent->ioParamValue(ioFlag, name, "writeTimeScaleFieldnames", &mWriteTimeScaleFieldnames, mWriteTimeScaleFieldnames);
    }
 }
@@ -106,7 +106,7 @@ int AdaptiveTimestepProbe::allocateDataStructures() {
          mBaseMin,
          tauFactor,
          mGrowthFactor,
-         mWriteTimescales,
+         mWriteTimeScales,
          mWriteTimeScaleFieldnames,
          parent->getCommunicator(),
          parent->getVerifyWrites()

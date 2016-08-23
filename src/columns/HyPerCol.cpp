@@ -706,7 +706,12 @@ void HyPerCol::paramMovedToColumnEnergyProbe(enum ParamsIOFlag ioFlag, char cons
 }
 
 void HyPerCol::ioParam_writeTimescales(enum ParamsIOFlag ioFlag) {
-   paramMovedToColumnEnergyProbe(ioFlag, "writeTimescales");
+   if (ioFlag==PARAMS_IO_READ && mParams->present(mName, "dtAdaptTriggerOffset")) {
+      if (columnId()==0) {
+         pvErrorNoExit() << "The dtAdaptTriggerOffset parameter is obsolete.  Use the AdaptiveTimestepProbe writeTimeScales parameter (note capital S).\n";
+      }
+      mObsoleteParameterFound = true;
+   }
 }
 
 void HyPerCol::ioParam_writeTimeScaleFieldnames(enum ParamsIOFlag ioFlag) {
