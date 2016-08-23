@@ -1,9 +1,9 @@
 //
-// MovieSystemTest.params
+// ImageLayerSystemTest.params
 //
 // created by peteschultz: Dec 5, 2013
 //
-// A short params file to test border exchange in the Movie class.
+// A short params file to test border exchange in the ImageLayer class.
 //
 // There are two input movies of 8x8 images, with 64 distinct images
 // and a display period of 5.
@@ -52,7 +52,7 @@ HyPerCol "column" = {
 // layers
 //
 
-Movie "input" = {
+ImageLayer "input" = {
     restart                          = false;
     nxScale                          = 1;
     nyScale                          = 1;
@@ -107,7 +107,7 @@ ANNLayer "ganglion" = {
     clearGSynInterval                = 0.0;
 };
 
-Movie "correctoutput" = {
+ImageLayer "correctoutput" = {
     restart                          = false;
     nxScale                          = 1;
     nyScale                          = 1;

@@ -78,7 +78,7 @@ namespace PV {
 
    int InputLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
       int status = HyPerLayer::ioParamsFillGroup(ioFlag);
-      pvDebug() << "IOPARAMS ON RANK " << parent->getCommunicator()->commRank() << "\n";
+      ioParam_displayPeriod(ioFlag);
       ioParam_inputPath(ioFlag);
       ioParam_offsetAnchor(ioFlag);
       ioParam_offsets(ioFlag);
@@ -90,7 +90,6 @@ namespace PV {
       ioParam_normalizeStdDev(ioFlag);
       ioParam_useInputBCflag(ioFlag);
       ioParam_padValue(ioFlag);
-      ioParam_displayPeriod(ioFlag);
       ioParam_echoFramePathnameFlag(ioFlag);
       ioParam_batchMethod(ioFlag);
       ioParam_start_frame_index(ioFlag);
@@ -480,13 +479,13 @@ namespace PV {
       }
       int numBatch = parent->getNBatch();
  
-      //Calculate file positions for beginning of each frame
-      if(mUsingFileList) {
-         populateFileList();
-         pvInfo() << "File " << mInputPath << " contains " << mFileList.size() << " frames\n";
-      }
-
       if(parent->columnId() == 0) {
+         //Calculate file positions for beginning of each frame
+         if(mUsingFileList) {
+            populateFileList();
+            pvInfo() << "File " << mInputPath << " contains " << mFileList.size() << " frames\n";
+         }
+
          mInputData.resize(numBatch);
          for(int b = 0; b < numBatch; ++b) {
             mInputData.at(b).resize(getLayerLoc()->ny, getLayerLoc()->nx, getLayerLoc()->nf);
