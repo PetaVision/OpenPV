@@ -123,7 +123,7 @@ int QuotientColProbe::calcValues(double timeValue) {
    double * valuesBuffer = getValuesBuffer();
    if (parent->simulationTime()==parent->getStartTime()) {
       for (int b=0; b<numValues; b++) {
-         valuesBuffer[b] = parent->getTimeScaleMin();
+         valuesBuffer[b] = 1.0;
       }
       return PV_SUCCESS;
    }

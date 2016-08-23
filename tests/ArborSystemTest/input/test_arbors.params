@@ -13,7 +13,6 @@ HyPerCol "column" = {
    nx = 32;   
    ny = 32;
    dt = 1.0;
-   dtAdaptController = NULL;
    randomSeed = 17406293508;  // if not set here,  clock time is used to generate seed
    startTime = 0.0;
    stopTime = 10;  // num images plus (num layers + 1) * delay

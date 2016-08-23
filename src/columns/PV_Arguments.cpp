@@ -115,8 +115,8 @@ char const * PV_Arguments::setWorkingDir(char const * val) {
    return setString(&workingDir, val, "working directory");
 }
 bool PV_Arguments::setRestartFlag(bool val) {
-   requireReturnFlag = val;
-   return requireReturnFlag;
+   restartFlag = val;
+   return restartFlag;
 }
 char const * PV_Arguments::setCheckpointReadDir(char const * val) {
    return setString(&checkpointReadDir, val, "checkpointRead directory");

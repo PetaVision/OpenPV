@@ -63,7 +63,7 @@ int LocalizationProbe::initialize_base() {
 }
 
 int LocalizationProbe::initialize(const char * probeName, PV::HyPerCol * hc) {
-   outputPeriod = hc->getDeltaTimeBase(); // default outputPeriod is every timestep
+   outputPeriod = hc->getDeltaTime(); // default outputPeriod is every timestep
    int status = PV::LayerProbe::initialize(probeName, hc);
    PV::Communicator * icComm = parent->getCommunicator();
    if (status != PV_SUCCESS) { exit(EXIT_FAILURE); }
@@ -1239,7 +1239,7 @@ int LocalizationProbe::drawProgressInformation() {
    std::stringstream progress("");
    double elapsed = parent->simulationTime() - parent->getStartTime();
    double finishTime = parent->getStopTime() - parent->getStartTime();
-   bool isLastTimeStep = elapsed >= finishTime - parent->getDeltaTimeBase()/2;
+   bool isLastTimeStep = elapsed >= finishTime - parent->getDeltaTime()/2;
    //if (!isLastTimeStep) {
       int percentage = (int) nearbyintf(100.0 * elapsed / finishTime);
       progress << "t = " << elapsed << "/" << finishTime << " (" << percentage << "%%)";
@@ -1254,7 +1254,7 @@ int LocalizationProbe::drawProgressInformation() {
 int LocalizationProbe::writeMontage() {
    std::stringstream montagePathSStream("");
    montagePathSStream << heatMapMontageDir << "/" << outputFilenameBase << "_" << parent->getCurrentStep();
-   bool isLastTimeStep = parent->simulationTime() >= parent->getStopTime() - parent->getDeltaTimeBase()/2;
+   bool isLastTimeStep = parent->simulationTime() >= parent->getStopTime() - parent->getDeltaTime()/2;
    if (isLastTimeStep) { montagePathSStream << "_final"; }
    montagePathSStream << ".tif";
    char * montagePath = strdup(montagePathSStream.str().c_str()); // not sure why I have to strdup this

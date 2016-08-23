@@ -8,7 +8,6 @@ HyPerCol "column" = {
     startTime                           = 0.0;
     stopTime                            = 1.0;
     dt                                  = 1.0;
-    dtAdaptController                   = NULL;
     randomSeed                          = 570934122;
     progressInterval                    = 1.0;
     writeProgressToErr                  = false;

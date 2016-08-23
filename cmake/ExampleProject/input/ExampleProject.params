@@ -4,8 +4,6 @@
 HyPerCol "column" = {
     startTime                           = 0;
     dt                                  = 1;
-    dtAdaptFlag                         = false;
-    dtAdaptController                   = NULL;
     stopTime                            = 10;
     progressInterval                    = 10;
     writeProgressToErr                  = false;
