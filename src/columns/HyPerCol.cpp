@@ -96,7 +96,7 @@ HyPerCol::~HyPerCol() {
       mCheckpointReadDir = nullptr;
       free(mCheckpointReadDirBase); mCheckpointReadDirBase = nullptr;
    }
-#ifdef OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimestepProbe.
+#ifdef OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
    if (mDtAdaptControlProbe && mWriteTimescales) { mTimeScaleStream.close(); }
    free(mDtAdaptController);
    if(mTimeScale) { free(mTimeScale); }
@@ -106,7 +106,7 @@ HyPerCol::~HyPerCol() {
    if(mOldTimeScale) { free(mOldTimeScale); }
    if(mOldTimeScaleTrue) { free(mOldTimeScaleTrue); }
    if(mDeltaTimeAdapt) { free(mDeltaTimeAdapt); }
-#endif // OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimestepProbe.
+#endif // OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
 }
 
 
@@ -141,7 +141,7 @@ int HyPerCol::initialize_base() {
    mStopTime = 0.0;
    mDeltaTime = DEFAULT_DELTA_T;
    mWriteTimeScaleFieldnames = true;
-#ifdef OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimestepProbe.
+#ifdef OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
    mDtAdaptController = nullptr;
    mDtAdaptControlProbe = nullptr;
    mDtAdaptTriggerLayerName = nullptr;
@@ -161,7 +161,7 @@ int HyPerCol::initialize_base() {
    mChangeTimeScaleMax = 1.0;
    mChangeTimeScaleMin = 0.0;
    mDtMinToleratedTimeScale = 1.0e-4;
-#endif // OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimestepProbe.
+#endif // OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
    mProgressInterval = 1.0;
    mWriteProgressToErr = false;
    mOrigStdOut = -1;
@@ -428,7 +428,7 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
 #endif
    }
 
-#ifdef OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimestepProbe.
+#ifdef OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
    //Allocate timescales for batches
    //TODO: Make these std::vector
    mTimeScale        = static_cast<double*>(pvCallocError(mNumBatch, sizeof(double), "%s error: unable to allocate memory for TimeScale buffer.\n", programName));
@@ -449,7 +449,7 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
       mOldTimeScale[b]        = mTimeScaleMin;
       mDeltaTimeAdapt[b]      = mDeltaTimeBase;
    }
-#endif // OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimestepProbe.
+#endif // OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
 
    // If mDeleteOlderCheckpoints is true, set up a ring buffer of checkpoint directory names.
    pvAssert(mOldCheckpointDirectories.size() == 0);
@@ -522,7 +522,7 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_writeTimescales(ioFlag);
    ioParam_errorOnNotANumber(ioFlag);
 
-   // Aug 18, 2016.  Several HyPerCol parameters have moved to AdaptiveTimestepProbe.
+   // Aug 18, 2016.  Several HyPerCol parameters have moved to AdaptiveTimeScaleProbe.
    // The ioParam_* method for those parameters sets the mObsoleteParameterFound flag
    // if the parameter is present in the HyPerCol group.  Exit with an error here
    // if any of those parameters were found.
@@ -679,7 +679,7 @@ void HyPerCol::ioParam_dt(enum ParamsIOFlag ioFlag) {
 void HyPerCol::ioParam_dtAdaptController(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ && mParams->stringPresent(mName, "dtAdaptController")) {
       if (columnId()==0) {
-         pvErrorNoExit() << "The dtAdaptController parameter is obsolete.  Adaptive timestep parameters have been moved to AdaptiveTimestepProbe.\n";
+         pvErrorNoExit() << "The dtAdaptController parameter is obsolete.  Adaptive timestep parameters have been moved to AdaptiveTimeScaleProbe.\n";
       }
       mObsoleteParameterFound = true;
    }
@@ -689,17 +689,17 @@ void HyPerCol::ioParam_dtAdaptFlag(enum ParamsIOFlag ioFlag) {
    // dtAdaptFlag was deprecated Feb 1, 2016 and marked obsolete Aug 18, 2016.
    if (ioFlag==PARAMS_IO_READ && mParams->present(mName, "dtAdaptFlag")) {
       if (columnId()==0) {
-         pvErrorNoExit() << "The dtAdaptFlag parameter is obsolete.  Define an AdaptiveTimestepProbe\n";
+         pvErrorNoExit() << "The dtAdaptFlag parameter is obsolete.  Define an AdaptiveTimeScaleProbe\n";
       }
    mObsoleteParameterFound = true;
    }
 }
 
-// Several HyPerCol parameters were moved to AdaptiveTimestepProbe and are therefore obsolete as HyPerCol Parameters, Aug 18, 2016.
+// Several HyPerCol parameters were moved to AdaptiveTimeScaleProbe and are therefore obsolete as HyPerCol Parameters, Aug 18, 2016.
 void HyPerCol::paramMovedToColumnEnergyProbe(enum ParamsIOFlag ioFlag, char const * paramName) {
    if (ioFlag==PARAMS_IO_READ && mParams->present(mName, paramName)) {
       if (columnId()==0) {
-         pvErrorNoExit() << "The " << paramName << " parameter is now part of AdaptiveTimestepProbe.\n";
+         pvErrorNoExit() << "The " << paramName << " parameter is now part of AdaptiveTimeScaleProbe.\n";
       }
       mObsoleteParameterFound = true;
    }
@@ -708,7 +708,7 @@ void HyPerCol::paramMovedToColumnEnergyProbe(enum ParamsIOFlag ioFlag, char cons
 void HyPerCol::ioParam_writeTimescales(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ && mParams->present(mName, "dtAdaptTriggerOffset")) {
       if (columnId()==0) {
-         pvErrorNoExit() << "The dtAdaptTriggerOffset parameter is obsolete.  Use the AdaptiveTimestepProbe writeTimeScales parameter (note capital S).\n";
+         pvErrorNoExit() << "The dtAdaptTriggerOffset parameter is obsolete.  Use the AdaptiveTimeScaleProbe writeTimeScales parameter (note capital S).\n";
       }
       mObsoleteParameterFound = true;
    }
@@ -730,7 +730,7 @@ void HyPerCol::ioParam_useAdaptMethodExp1stOrder(enum ParamsIOFlag ioFlag) {
 void HyPerCol::ioParam_dtAdaptTriggerLayerName(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ && mParams->stringPresent(mName, "dtAdaptTriggerLayerName")) {
       if (columnId()==0) {
-         pvErrorNoExit() << "The dtAdaptTriggerLayerName parameter obsolete.  Use the AdaptiveTimestepProbe triggerLayerName parameter.\n";
+         pvErrorNoExit() << "The dtAdaptTriggerLayerName parameter obsolete.  Use the AdaptiveTimeScaleProbe triggerLayerName parameter.\n";
       }
       mObsoleteParameterFound = true;
    }
@@ -739,7 +739,7 @@ void HyPerCol::ioParam_dtAdaptTriggerLayerName(enum ParamsIOFlag ioFlag) {
 void HyPerCol::ioParam_dtAdaptTriggerOffset(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ && mParams->present(mName, "dtAdaptTriggerOffset")) {
       if (columnId()==0) {
-         pvErrorNoExit() << "The dtAdaptTriggerOffset parameter is obsolete.  Use the AdaptiveTimestepProbe triggerOffset parameter\n";
+         pvErrorNoExit() << "The dtAdaptTriggerOffset parameter is obsolete.  Use the AdaptiveTimeScaleProbe triggerOffset parameter\n";
       }
       mObsoleteParameterFound = true;
    }
@@ -748,7 +748,7 @@ void HyPerCol::ioParam_dtAdaptTriggerOffset(enum ParamsIOFlag ioFlag) {
 void HyPerCol::ioParam_dtScaleMax(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ && mParams->present(mName, "dtScaleMax")) {
       if (columnId()==0) {
-         pvErrorNoExit() << "The dtScaleMax parameter is obsolete.  Use the AdaptiveTimestepProbe baseMax parameter\n";
+         pvErrorNoExit() << "The dtScaleMax parameter is obsolete.  Use the AdaptiveTimeScaleProbe baseMax parameter\n";
       }
       mObsoleteParameterFound = true;
    }
@@ -766,7 +766,7 @@ void HyPerCol::ioParam_dtScaleMax2(enum ParamsIOFlag ioFlag) {
 void HyPerCol::ioParam_dtScaleMin(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ && mParams->present(mName, "dtScaleMin")) {
       if (columnId()==0) {
-         pvErrorNoExit() << "The dtScaleMin parameter is obsolete.  Use the AdaptiveTimestepProbe baseMin parameter\n";
+         pvErrorNoExit() << "The dtScaleMin parameter is obsolete.  Use the AdaptiveTimeScaleProbe baseMin parameter\n";
       }
       mObsoleteParameterFound = true;
    }
@@ -779,7 +779,7 @@ void HyPerCol::ioParam_dtMinToleratedTimeScale(enum ParamsIOFlag ioFlag) {
 void HyPerCol::ioParam_dtChangeMax(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ && mParams->present(mName, "dtChangeMax")) {
       if (columnId()==0) {
-         pvErrorNoExit() << "The dtChangeMax parameter is obsolete.  Use the AdaptiveTimestepProbe tauFactor parameter\n";
+         pvErrorNoExit() << "The dtChangeMax parameter is obsolete.  Use the AdaptiveTimeScaleProbe tauFactor parameter\n";
       }
       mObsoleteParameterFound = true;
    }
@@ -788,7 +788,7 @@ void HyPerCol::ioParam_dtChangeMax(enum ParamsIOFlag ioFlag) {
 void HyPerCol::ioParam_dtChangeMin(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ && mParams->present(mName, "dtChangeMax")) {
       if (columnId()==0) {
-         pvErrorNoExit() << "The dtChangeMin parameter is obsolete.  Use the AdaptiveTimestepProbe growthFactor parameter\n";
+         pvErrorNoExit() << "The dtChangeMin parameter is obsolete.  Use the AdaptiveTimeScaleProbe growthFactor parameter\n";
       }
       mObsoleteParameterFound = true;
    }
@@ -1357,7 +1357,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
       omp_set_num_threads(mNumThreads);
 #endif // PV_USE_OPENMP_THREADS
 
-      // initDtAdaptControlProbe(); // Handling adaptive timesteps moved to AdaptiveTimestepProbe Aug 18, 2016.
+      // initDtAdaptControlProbe(); // Handling adaptive timesteps moved to AdaptiveTimeScaleProbe Aug 18, 2016.
 
       notify(std::make_shared<AllocateDataMessage>());
 
@@ -1475,7 +1475,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
    return status;
 }
 
-#ifdef OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimestepProbe.
+#ifdef OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
 void HyPerCol::initDtAdaptControlProbe() {
    // add the mDtAdaptController, if there is one.
    if (mDtAdaptController && mDtAdaptController[0]) {
@@ -1507,7 +1507,7 @@ void HyPerCol::initDtAdaptControlProbe() {
       mTimeScaleStream.precision(17);
    }
 }
-#endif // OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimestepProbe.
+#endif // OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
 
 // This routine sets the mNumThreads member variable.  It should only be called by the run() method,
 // and only inside the !ready if-statement.
@@ -1663,7 +1663,7 @@ int HyPerCol::normalizeWeights() {
    return status;
 }
 
-#ifdef OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimestepProbe.
+#ifdef OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
 double * HyPerCol::adaptTimeScale(){
    for (int b=0; b<mNumBatch; b++) {
       mOldTimeScaleTrue[b] = mTimeScaleTrue[b];
@@ -1825,7 +1825,7 @@ int HyPerCol::calcTimeScaleTrue() {
    }
    return PV_SUCCESS;
 }
-#endif // OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimestepProbe.
+#endif // OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
 
 int HyPerCol::advanceTime(double sim_time)
 {
@@ -1849,7 +1849,7 @@ int HyPerCol::advanceTime(double sim_time)
    mCurrentStep++;
 
    notify(std::make_shared<AdaptTimestepMessage>());
-#ifdef OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimestepProbe.
+#ifdef OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
    mDeltaTime = mDeltaTimeBase;
    if (mDtAdaptControlProbe!=nullptr){ // adapt mDeltaTime
      // hack code to test new adapt time scale method using exponential approx to energy
@@ -1890,7 +1890,7 @@ int HyPerCol::advanceTime(double sim_time)
          mTimeScaleStream.flush();
      }
    } // mDtAdaptControlProbe!=nullptr
-#endif // OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimestepProbe.
+#endif // OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
 
    // At this point all activity from the previous time step has
    // been delivered to the data store.
@@ -2067,7 +2067,7 @@ int HyPerCol::checkpointRead() {
    for (auto& p : mColProbes) {
       p->checkpointRead(mCheckpointReadDir, &checkTime);
    }
-#ifdef OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimestepProbe.
+#ifdef OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
    if (mDtAdaptControlProbe!=nullptr) {
       struct timescalemax_struct {
          double mTimeScale; // mTimeScale factor for increasing/decreasing dt
@@ -2166,7 +2166,7 @@ int HyPerCol::checkpointRead() {
          }
       }
    } // mDtAdaptControlProbe!=nullptr
-#endif // OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimestepProbe.
+#endif // OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
 
    if(mCheckpointWriteFlag) {
       char nextCheckpointPath[PV_PATH_MAX];
@@ -2270,7 +2270,7 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
    for (auto& p : mColProbes) {
       p->checkpointWrite(cpDir);
    }
-#ifdef OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimestepProbe.
+#ifdef OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
    // write adaptive time step info if using mDtAdaptControlProbe
    if( columnId()==0 && mDtAdaptControlProbe!=nullptr) {
       char timescalepath[PV_PATH_MAX];
@@ -2312,7 +2312,7 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
       }
       PV_fclose(timescalefile);
    }
-#endif // OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimestepProbe.
+#endif // OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
 
    std::string checkpointedParamsFile = cpDir;
    checkpointedParamsFile += "/";

@@ -1,12 +1,12 @@
 /*
- * AdaptiveTimestepController.hpp
+ * AdaptiveTimeScaleController.hpp
  *
  *  Created on: Aug 18, 2016
  *      Author: pschultz
  */
 
-#ifndef ADAPTIVETIMESTEPCONTROLLER_HPP_
-#define ADAPTIVETIMESTEPCONTROLLER_HPP_
+#ifndef ADAPTIVETIMESCALECONTROLLER_HPP_
+#define ADAPTIVETIMESCALECONTROLLER_HPP_
 
 #include "columns/Communicator.hpp"
 #include <ostream>
@@ -14,9 +14,9 @@
 
 namespace PV {
 
-class AdaptiveTimestepController {
+class AdaptiveTimeScaleController {
 public:
-   AdaptiveTimestepController(
+   AdaptiveTimeScaleController(
          char const * name,
          int batchWidth,
          double baseMax,
@@ -27,7 +27,7 @@ public:
          bool writeTimeScaleFieldnames,
          Communicator * comm,
          bool verifyWrites);
-   virtual ~AdaptiveTimestepController();
+   virtual ~AdaptiveTimeScaleController();
    virtual int checkpointRead(const char * cpDir, double * timeptr);
    virtual int checkpointWrite(const char * cpDir);
    std::vector<double> const& calcTimesteps(double timeValue, std::vector<double> const& rawTimeScales);
@@ -58,4 +58,4 @@ protected:
 
 } /* namespace PV */
 
-#endif /* ADAPTIVETIMESTEPCONTROLLER_HPP_ */
+#endif /* ADAPTIVETIMESCALECONTROLLER_HPP_ */

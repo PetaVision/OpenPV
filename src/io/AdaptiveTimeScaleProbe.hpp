@@ -1,31 +1,31 @@
 /*
- * AdaptiveTimestepProbe.hpp
+ * AdaptiveTimeScaleProbe.hpp
  *
  *  Created on: Aug 18, 2016
  *      Author: pschultz
  */
 
-#ifndef ADAPTIVETIMESTEPPROBE_HPP_
-#define ADAPTIVETIMESTEPPROBE_HPP_
+#ifndef ADAPTIVETIMESCALEPROBE_HPP_
+#define ADAPTIVETIMESCALEPROBE_HPP_
 
 #include "io/ColProbe.hpp"
-#include "io/AdaptiveTimestepController.hpp"
+#include "io/AdaptiveTimeScaleController.hpp"
 #include "io/BaseProbe.hpp"
 #include "layers/HyPerLayer.hpp"
 
 namespace PV {
 
-// AdaptiveTimestepProbe to be a subclass of ColProbe since it doesn't belong
+// AdaptiveTimeScaleProbe to be a subclass of ColProbe since it doesn't belong
 // to a layer or connection, and the HyPerCol has to know of its existence to
 // call various methods. It doesn't use any ColProbe-specific behavior other
 // than ColProbe inserting the probe into the HyPerCol's list of ColProbes.
 // Once the observer pattern is more fully implemented, it could probably
 // derive straight from BaseProbe.
-class AdaptiveTimestepProbe: public ColProbe {
+class AdaptiveTimeScaleProbe: public ColProbe {
 protected:
    /**
-    * List of parameters needed from the AdaptiveTimestepProbe class
-    * @name AdaptiveTimestepProbe Parameters
+    * List of parameters needed from the AdaptiveTimeScaleProbe class
+    * @name AdaptiveTimeScaleProbe Parameters
     * @{
     */
 
@@ -78,8 +78,8 @@ protected:
    /** @} */
 
 public:
-   AdaptiveTimestepProbe(char const * name, HyPerCol * hc);
-   virtual ~AdaptiveTimestepProbe();
+   AdaptiveTimeScaleProbe(char const * name, HyPerCol * hc);
+   virtual ~AdaptiveTimeScaleProbe();
    virtual int respond(std::shared_ptr<BaseMessage> const message) override;
    virtual int communicateInitInfo() override;
    virtual int allocateDataStructures() override;
@@ -88,7 +88,7 @@ public:
    virtual int outputState(double timeValue) override;
 
 protected:
-   AdaptiveTimestepProbe();
+   AdaptiveTimeScaleProbe();
    int initialize(char const * name, HyPerCol * hc);
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    int respondAdaptTimestep(AdaptTimestepMessage const * message);
@@ -106,9 +106,9 @@ protected:
    bool   mWriteTimeScaleFieldnames = true;
 
    BaseProbe * mTargetProbe = nullptr;
-   AdaptiveTimestepController * mAdaptiveTimestepController = nullptr;
+   AdaptiveTimeScaleController * mAdaptiveTimeScaleController = nullptr;
 };
 
 } /* namespace PV */
 
-#endif /* ADAPTIVETIMESTEPPROBE_HPP_ */
+#endif /* ADAPTIVETIMESCALEPROBE_HPP_ */

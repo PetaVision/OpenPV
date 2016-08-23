@@ -52,7 +52,7 @@ HyPerLCALayer::HyPerLCALayer(const char * name, HyPerCol * hc)
 }
 
 HyPerLCALayer::~HyPerLCALayer() {
-   free(mAdaptiveTimestepProbeName);
+   free(mAdaptiveTimeScaleProbeName);
 }
 
 int HyPerLCALayer::initialize_base()
@@ -71,7 +71,7 @@ int HyPerLCALayer::initialize(const char * name, HyPerCol * hc)
 
 int HyPerLCALayer::allocateDataStructures(){
    int status = ANNLayer::allocateDataStructures(); // Calls allocateUpdateKernel()
-   pvAssert(mAdaptiveTimestepProbe==nullptr || getLayerLoc()->nbatch==mAdaptiveTimestepProbe->getNumValues());
+   pvAssert(mAdaptiveTimeScaleProbe==nullptr || getLayerLoc()->nbatch==mAdaptiveTimeScaleProbe->getNumValues());
    mDeltaTimes.resize(getLayerLoc()->nbatch);
    return status;
 }
@@ -83,7 +83,7 @@ int HyPerLCALayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 #endif // OBSOLETE // Marked obsolete Jun 27, 2016.
    ioParam_timeConstantTau(ioFlag);
    ioParam_selfInteract(ioFlag);
-   ioParam_adaptiveTimestepProbe(ioFlag);
+   ioParam_adaptiveTimeScaleProbe(ioFlag);
    return status;
 }
 
@@ -109,8 +109,8 @@ void HyPerLCALayer::ioParam_selfInteract(enum ParamsIOFlag ioFlag) {
    }   
 }
 
-void HyPerLCALayer::ioParam_adaptiveTimestepProbe(enum ParamsIOFlag ioFlag) {
-   parent->ioParamString(ioFlag, name, "adaptiveTimestepProbe", &mAdaptiveTimestepProbeName, nullptr/*default*/, true/*warn if absent*/);
+void HyPerLCALayer::ioParam_adaptiveTimeScaleProbe(enum ParamsIOFlag ioFlag) {
+   parent->ioParamString(ioFlag, name, "adaptiveTimeScaleProbe", &mAdaptiveTimeScaleProbeName, nullptr/*default*/, true/*warn if absent*/);
 }
 
 int HyPerLCALayer::requireChannel(int channelNeeded, int * numChannelsResult) {
@@ -122,12 +122,12 @@ int HyPerLCALayer::requireChannel(int channelNeeded, int * numChannelsResult) {
 }
 
 int HyPerLCALayer::communicateInitInfo() {
-   if (mAdaptiveTimestepProbeName) {
-      mAdaptiveTimestepProbe = dynamic_cast<AdaptiveTimestepProbe*>(parent->getColProbeFromName(mAdaptiveTimestepProbeName));
-      if (mAdaptiveTimestepProbe==nullptr) {
+   if (mAdaptiveTimeScaleProbeName) {
+      mAdaptiveTimeScaleProbe = dynamic_cast<AdaptiveTimeScaleProbe*>(parent->getColProbeFromName(mAdaptiveTimeScaleProbeName));
+      if (mAdaptiveTimeScaleProbe==nullptr) {
          if (parent->getCommunicator()->commRank()==0) {
-            pvErrorNoExit() << description << ": adaptiveTimestepProbe \"" <<
-                  mAdaptiveTimestepProbeName << "\" is not in the column.\n";
+            pvErrorNoExit() << description << ": adaptiveTimeScaleProbe \"" <<
+                  mAdaptiveTimeScaleProbeName << "\" is not in the column.\n";
          }
          MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
@@ -244,8 +244,8 @@ int HyPerLCALayer::updateState(double time, double dt) {
 }
 
 double * HyPerLCALayer::deltaTimes() {
-   if (mAdaptiveTimestepProbe) {
-      mAdaptiveTimestepProbe->getValues(parent->simulationTime(), &mDeltaTimes);
+   if (mAdaptiveTimeScaleProbe) {
+      mAdaptiveTimeScaleProbe->getValues(parent->simulationTime(), &mDeltaTimes);
    }
    else {
       mDeltaTimes.assign(getLayerLoc()->nbatch, parent->getDeltaTime());

@@ -81,12 +81,12 @@ private:
    virtual void ioParam_dt(enum ParamsIOFlag ioFlag);
    
    /**
-    * @brief dtAdaptController: Obsolete.  Adaptive timescale parameters have moved to AdaptiveTimestepProbe.
+    * @brief dtAdaptController: Obsolete.  Adaptive timescale parameters have moved to AdaptiveTimeScaleProbe.
     */
    virtual void ioParam_dtAdaptController(enum ParamsIOFlag ioFlag);
    
    /**
-     * @brief dtAdaptFlag: Obsolete.  Set the AdaptiveTimestepProbe useAdaptiveTimesteps parameter instead.
+     * @brief dtAdaptFlag: Obsolete.  Set the AdaptiveTimeScaleProbe useAdaptiveTimeScales parameter instead.
      */
    virtual void ioParam_dtAdaptFlag(enum ParamsIOFlag ioFlag);
    
@@ -96,17 +96,17 @@ private:
    virtual void ioParam_useAdaptMethodExp1stOrder(enum ParamsIOFlag ioFlag);
    
    /**
-    * @brief mDtAdaptTriggerLayerName: Obsolete.  This parameter is now handled by AdaptiveTimestepProbe.
+    * @brief mDtAdaptTriggerLayerName: Obsolete.  This parameter is now handled by AdaptiveTimeScaleProbe.
     */
    virtual void ioParam_dtAdaptTriggerLayerName(enum ParamsIOFlag ioFlag);
    
    /**
-    * @brief triggerOffset: Obsolete.  This parameter is now handled by AdaptiveTimestepProbe.
+    * @brief triggerOffset: Obsolete.  This parameter is now handled by AdaptiveTimeScaleProbe.
     */
    virtual void ioParam_dtAdaptTriggerOffset(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief dtScaleMax: Obsolete.  This parameter is now in AdaptiveTimestepProbe, as baseMax.
+    * @brief dtScaleMax: Obsolete.  This parameter is now in AdaptiveTimeScaleProbe, as baseMax.
     */
    virtual void ioParam_dtScaleMax(enum ParamsIOFlag ioFlag);
 
@@ -116,27 +116,27 @@ private:
    virtual void ioParam_dtScaleMax2(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief dtScaleMin: Obsolete.  This parameter is now handled by AdaptiveTimestepProbe.
+    * @brief dtScaleMin: Obsolete.  This parameter is now handled by AdaptiveTimeScaleProbe.
     */
    virtual void ioParam_dtScaleMin(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief dtChangeMax: Obsolete.  This parameter is now handled by AdaptiveTimestepProbe.
+    * @brief dtChangeMax: Obsolete.  This parameter is now handled by AdaptiveTimeScaleProbe.
     */
    virtual void ioParam_dtChangeMax(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief dtChangeMin: Obsolete.  This parameter is now handled by AdaptiveTimestepProbe.
+    * @brief dtChangeMin: Obsolete.  This parameter is now handled by AdaptiveTimeScaleProbe.
     */
    virtual void ioParam_dtChangeMin(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief mDtMinToleratedTimeScale: Obsolete.  This parameter is now handled by AdaptiveTimestepProbe.
+    * @brief mDtMinToleratedTimeScale: Obsolete.  This parameter is now handled by AdaptiveTimeScaleProbe.
     */
    virtual void ioParam_dtMinToleratedTimeScale(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief writeTimeScaleFieldnames: Obsolete.  This parameter is now handled by AdaptiveTimestepProbe.
+    * @brief writeTimeScaleFieldnames: Obsolete.  This parameter is now handled by AdaptiveTimeScaleProbe.
     */
    virtual void ioParam_writeTimeScaleFieldnames(enum ParamsIOFlag ioFlag);
 
@@ -292,7 +292,7 @@ private:
    virtual void ioParam_checkpointIndexWidth(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief writeTimescales:  Obsolete.  This parameter is now handled by AdaptiveTimestepProbe.
+    * @brief writeTimescales:  Obsolete.  This parameter is now handled by AdaptiveTimeScaleProbe.
     */
    virtual void ioParam_writeTimescales(enum ParamsIOFlag ioFlag); 
 
@@ -382,7 +382,7 @@ public:
    const char * getPrintParamsFilename() const { return mPrintParamsFilename; }
    ColProbe * getColProbe(int which) { return mColProbes.at(which); }
    double getDeltaTime() const { return mDeltaTime; }
-#ifdef OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimestepProbe.
+#ifdef OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
    bool usingAdaptiveTimeScale() const { return mDtAdaptController != nullptr; }
    bool getDtAdaptFlag() const { pvWarn() << "getDtAdaptFlag() is deprecated.\n" ; return usingAdaptiveTimeScale(); }  // getDtAdaptFlag() was deprecated Jul 7, 2016, in favor of usingAdaptiveTimeScale().
    bool getUseAdaptMethodExp1stOrder() const { return mUseAdaptMethodExp1stOrder; }
@@ -398,7 +398,7 @@ public:
    double* getTimeScale() const { return mTimeScale; }
    double* getTimeScaleMaxPtr() const { return mTimeScaleMax; }
    double* getTimeScaleMax2Ptr() const { return mTimeScaleMax2; }
-#endif // OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimestepProbe.
+#endif // OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
    double simulationTime() const { return mSimTime; }
    double getStartTime() const { return mStartTime; }
    double getStopTime() const { return mStopTime; }
@@ -454,11 +454,11 @@ public:
  
 private:
    bool advanceCPWriteTime();
-#ifdef OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimestepProbe.
+#ifdef OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
    double* adaptTimeScale();
    double* adaptTimeScaleExp1stOrder();
    void initDtAdaptControlProbe();
-#endif // OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimestepProbe.
+#endif // OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
    int initializeThreads(char const * in_device);
    int initialize_base();
    int initialize(const char * name, PV_Init* initObj);
@@ -526,7 +526,7 @@ private:
    double mCpWriteClockInterval; // If checkpoint mode is clock, the clock time between checkpoints, in the units specified by checkpointWriteClockUnit
    double mProgressInterval; // Output progress after mSimTime increases by this amount.
    double mNextProgressTime; // Next time to output a progress message
-#ifdef OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimestepProbe.
+#ifdef OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
    char* mDtAdaptController;       // If nonblank, the name of a ColProbe whose getValues() method is called to control mTimeScale
    ColProbe * mDtAdaptControlProbe; // The probe pointed to by mDtAdaptController, mDtAdaptControlProbe->getValues() is used to control mTimeScale.  If blank, use the original method
    char* mDtAdaptTriggerLayerName;
@@ -547,7 +547,7 @@ private:
    double* mDeltaTimeAdapt;    // Actual mDeltaTimeAdapt buffer passed to updateState
    double* mTimeScaleMax;     // maximum value of mTimeScale (prevents mDeltaTime from growing too large)
    double* mTimeScaleMax2;     // maximum value of mTimeScaleMax (prevents mTimeScaleMax from growing too large)
-#endif // OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimestepProbe.
+#endif // OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
    enum CheckpointWriteTriggerMode mCheckpointWriteTriggerMode;
    std::vector<HyPerLayer*> mLayers; //HyPerLayer ** mLayers;
    int mNumPhases;

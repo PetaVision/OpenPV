@@ -1,11 +1,11 @@
 /*
- * AdaptiveTimestepController.cpp
+ * AdaptiveTimeScaleController.cpp
  *
  *  Created on: Aug 18, 2016
  *      Author: pschultz
  */
 
-#include "io/AdaptiveTimestepController.hpp"
+#include "io/AdaptiveTimeScaleController.hpp"
 #include "include/pv_common.h"
 #include "io/fileio.hpp"
 #include "utils/PVLog.hpp"
@@ -13,7 +13,7 @@
 
 namespace PV {
 
-AdaptiveTimestepController::AdaptiveTimestepController(
+AdaptiveTimeScaleController::AdaptiveTimeScaleController(
       char const * name,
       int batchWidth,
       double baseMax,
@@ -42,11 +42,11 @@ AdaptiveTimestepController::AdaptiveTimestepController(
    mOldTimeScaleTrue.assign(mBatchWidth, -1.0);
 }
 
-AdaptiveTimestepController::~AdaptiveTimestepController() {
+AdaptiveTimeScaleController::~AdaptiveTimeScaleController() {
    free(mName);
 }
 
-int AdaptiveTimestepController::checkpointRead(const char * cpDir, double * timeptr) {
+int AdaptiveTimeScaleController::checkpointRead(const char * cpDir, double * timeptr) {
 
    struct timescalemax_struct {
       double mTimeScale; // mTimeScale factor for increasing/decreasing dt
@@ -96,7 +96,7 @@ int AdaptiveTimestepController::checkpointRead(const char * cpDir, double * time
    return PV_SUCCESS;
 }
 
-int AdaptiveTimestepController::checkpointWrite(const char * cpDir) {
+int AdaptiveTimeScaleController::checkpointWrite(const char * cpDir) {
    if( mCommunicator->commRank()==0) {
       char timescalepath[PV_PATH_MAX];
       int chars_needed = snprintf(timescalepath, PV_PATH_MAX, "%s/%s_timescaleinfo.bin", cpDir, mName);
@@ -130,7 +130,7 @@ int AdaptiveTimestepController::checkpointWrite(const char * cpDir) {
    return PV_SUCCESS;
 }
 
-std::vector<double> const& AdaptiveTimestepController::calcTimesteps(double timeValue, std::vector<double> const& rawTimeScales) {
+std::vector<double> const& AdaptiveTimeScaleController::calcTimesteps(double timeValue, std::vector<double> const& rawTimeScales) {
    mOldTimeScaleTrue = mTimeScaleTrue;
    mOldTimeScale = mTimeScale;
    mTimeScaleTrue = rawTimeScales;
@@ -159,7 +159,7 @@ std::vector<double> const& AdaptiveTimestepController::calcTimesteps(double time
    return mTimeScale;
 }
 
-void AdaptiveTimestepController::writeTimestepInfo(double timeValue, std::ostream& stream) {
+void AdaptiveTimeScaleController::writeTimestepInfo(double timeValue, std::ostream& stream) {
 
    if (mWriteTimeScaleFieldnames) {
       stream << "sim_time = " << timeValue << "\n";

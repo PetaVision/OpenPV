@@ -65,7 +65,7 @@
 #include <connections/TransposeConn.hpp>
 #include <connections/TransposePoolingConn.hpp>
 
-#include <io/AdaptiveTimestepProbe.hpp>
+#include <io/AdaptiveTimeScaleProbe.hpp>
 #include <io/ColumnEnergyProbe.hpp>
 #include <io/QuotientColProbe.hpp>
 #include <io/FirmThresholdCostFnLCAProbe.hpp>
@@ -163,7 +163,7 @@ int Factory::registerCoreKeywords() {
    registerKeyword("RescaleConn", Factory::create<RescaleConn>);
    registerKeyword("TransposeConn", Factory::create<TransposeConn>);
    registerKeyword("TransposePoolingConn", Factory::create<TransposePoolingConn>);
-   registerKeyword("AdaptiveTimestepProbe", Factory::create<AdaptiveTimestepProbe>);
+   registerKeyword("AdaptiveTimeScaleProbe", Factory::create<AdaptiveTimeScaleProbe>);
    registerKeyword("ColumnEnergyProbe", Factory::create<ColumnEnergyProbe>);
    registerKeyword("FirmThresholdCostFnLCAProbe", Factory::create<FirmThresholdCostFnLCAProbe>);
    registerKeyword("FirmThresholdCostFnProbe", Factory::create<FirmThresholdCostFnProbe>);

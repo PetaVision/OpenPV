@@ -8,7 +8,7 @@
 #ifndef HYPERLCALAYER_HPP_
 #define HYPERLCALAYER_HPP_
 
-#include <io/AdaptiveTimestepProbe.hpp>
+#include <io/AdaptiveTimeScaleProbe.hpp>
 #include "ANNLayer.hpp"
 
 namespace PV {
@@ -51,9 +51,9 @@ protected:
    virtual void ioParam_selfInteract(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief adaptiveTimestepProbe: If using adaptive timesteps, the name of the AdaptiveTimestepProbe that will compute the dt values.
+    * @brief adaptiveTimeScaleProbe: If using adaptive timesteps, the name of the AdaptiveTimeScaleProbe that will compute the dt values.
     */
-   virtual void ioParam_adaptiveTimestepProbe(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_adaptiveTimeScaleProbe(enum ParamsIOFlag ioFlag);
    /** @} */
 
    virtual int updateState(double time, double dt);
@@ -78,8 +78,8 @@ private:
 protected:
    pvdata_t timeConstantTau;
    bool selfInteract;
-   char * mAdaptiveTimestepProbeName = nullptr;
-   AdaptiveTimestepProbe * mAdaptiveTimestepProbe = nullptr;
+   char * mAdaptiveTimeScaleProbeName = nullptr;
+   AdaptiveTimeScaleProbe * mAdaptiveTimeScaleProbe = nullptr;
    std::vector<double> mDeltaTimes;
 
 #ifdef PV_USE_CUDA

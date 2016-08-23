@@ -32,11 +32,11 @@ HyPerCol "column" = {
    checkpointIndexWidth = -1;
 };
 
-AdaptiveTimestepProbe "AdaptiveTimesteps" = {
+AdaptiveTimeScaleProbe "AdaptiveTimeScales" = {
    targetName = "TimeScale";
    message = NULL;
    textOutputFlag = true;
-   probeOutputFile = "AdaptiveTimesteps.txt";
+   probeOutputFile = "AdaptiveTimeScales.txt";
    triggerLayerName = NULL;
    baseMax = 5;
    baseMin = 0.125;
@@ -126,7 +126,7 @@ HyPerLCALayer "V1" = {
     slopeErrorStd                       = 0.01;
     selfInteract                        = true;
     dVThresh                            = 0;
-    adaptiveTimestepProbe              = "AdaptiveTimesteps";
+    adaptiveTimeScaleProbe              = "AdaptiveTimeScales";
 };
 
 ANNLayer "reconstruction" = {

@@ -1,7 +1,7 @@
 set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/AbstractNormProbe.cpp
-   ${SUBDIR}/AdaptiveTimestepProbe.cpp
-   ${SUBDIR}/AdaptiveTimestepController.cpp
+   ${SUBDIR}/AdaptiveTimeScaleProbe.cpp
+   ${SUBDIR}/AdaptiveTimeScaleController.cpp
    ${SUBDIR}/BaseConnectionProbe.cpp
    ${SUBDIR}/BaseHyPerConnProbe.cpp
    ${SUBDIR}/BaseProbe.cpp
@@ -32,8 +32,8 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
 
 set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/AbstractNormProbe.hpp
-   ${SUBDIR}/AdaptiveTimestepProbe.hpp
-   ${SUBDIR}/AdaptiveTimestepController.hpp
+   ${SUBDIR}/AdaptiveTimeScaleProbe.hpp
+   ${SUBDIR}/AdaptiveTimeScaleController.hpp
    ${SUBDIR}/BaseConnectionProbe.hpp
    ${SUBDIR}/BaseHyPerConnProbe.hpp
    ${SUBDIR}/BaseProbe.hpp

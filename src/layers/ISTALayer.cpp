@@ -97,6 +97,10 @@ void ISTALayer::ioParam_selfInteract(enum ParamsIOFlag ioFlag) {
    }   
 }
 
+void ISTALayer::ioParam_adaptiveTimeScaleProbe(enum ParamsIOFlag ioFlag) {
+   parent->ioParamString(ioFlag, name, "adaptiveTimeScaleProbe", &mAdaptiveTimeScaleProbeName, nullptr/*default*/, true/*warn if absent*/);
+}
+
 int ISTALayer::requireChannel(int channelNeeded, int * numChannelsResult) {
    int status = HyPerLayer::requireChannel(channelNeeded, numChannelsResult);
    if (channelNeeded>=2 && parent->columnId()==0) {
@@ -199,8 +203,8 @@ int ISTALayer::updateState(double time, double dt)
 }
 
 double * ISTALayer::deltaTimes() {
-   if (mAdaptiveTimestepProbe) {
-      mAdaptiveTimestepProbe->getValues(parent->simulationTime(), &mDeltaTimes);
+   if (mAdaptiveTimeScaleProbe) {
+      mAdaptiveTimeScaleProbe->getValues(parent->simulationTime(), &mDeltaTimes);
    }
    else {
       mDeltaTimes.assign(getLayerLoc()->nbatch, parent->getDeltaTime());
