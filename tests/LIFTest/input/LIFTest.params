@@ -42,7 +42,7 @@ HyPerCol "column" = {
 // layers
 //
 
-ImagePvp "Input" = {
+PvpLayer "Input" = {
     nxScale                         = 1;
     nyScale                         = 1;
     inputPath                       = "input/inputimage.pvp";

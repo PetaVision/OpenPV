@@ -37,7 +37,7 @@ HyPerCol "column" = {
 //
 
 
-MoviePvp "Input" = {
+PvpLayer "Input" = {
     nxScale = 1;
     nyScale = 1;
     inputPath = "input/input.pvp";

@@ -27,7 +27,7 @@ HyPerCol "column" = {
 // layers
 //
 
-MoviePvp "input" = {
+PvpLayer "input" = {
     restart                          = false;
     nxScale                          = 1;
     nyScale                          = 1;

@@ -45,7 +45,7 @@ HyPerCol "column" = {
 // layers
 //
 
-ImagePvp "input" = {
+PvpLayer "input" = {
     nxScale = 1;
     nyScale = 1;
     inputPath = "input/testimage.pvp";
@@ -220,7 +220,7 @@ CloneConn "V1_to_reconstruction" = {
 
 // Compare reconstruction to what it should be
 
-MoviePvp "correct" = {
+PvpLayer "correct" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;

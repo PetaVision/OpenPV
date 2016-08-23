@@ -22,7 +22,7 @@ HyPerCol "column" = {
     suppressLastOutput = false;
 };
 
-MoviePvp "8x8Images" = {
+PvpLayer "8x8Images" = {
     inputPath = "./input/image08x08sequence_full.pvp";
     start_frame_index = 0;
     skip_frame_index = 0;
@@ -52,7 +52,7 @@ MoviePvp "8x8Images" = {
     readPvpFile = false;
 };
 
-MoviePvp "16x16Images" = {
+PvpLayer "16x16Images" = {
     inputPath = "./input/image16x16sequence_full.pvp";
     start_frame_index = 0;
     skip_frame_index = 0;
@@ -82,7 +82,7 @@ MoviePvp "16x16Images" = {
     readPvpFile = false;
 };
 
-MoviePvp "32x32Images" = {
+PvpLayer "32x32Images" = {
     inputPath = "./input/image32x32sequence_full.pvp";
     start_frame_index = 0;
     skip_frame_index = 0;

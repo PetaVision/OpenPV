@@ -22,7 +22,7 @@ HyPerCol "column" = {
     errorOnNotANumber = false;
 };
 
-MoviePvp "Input" = {
+PvpLayer "Input" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;

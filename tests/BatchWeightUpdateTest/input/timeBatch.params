@@ -24,7 +24,7 @@ HyPerCol "column" = {
     nbatch = 1; 
 };
 
-MoviePvp "pre" = {
+PvpLayer "pre" = {
     restart = 0;  // make only a certain layer restart
     nxScale = 1;  // this must be 2^n, n = ...,-2,-1,0,1,2,... 
     nyScale = 1;  // the scale is to decide how much area will be used as input. For exampel, nx * nxScale = 32. The size of input
@@ -48,7 +48,7 @@ MoviePvp "pre" = {
     displayPeriod = 1;
 };
 
-MoviePvp "post" = {
+PvpLayer "post" = {
     restart = 0;  // make only a certain layer restart
     nxScale = .5;  // this must be 2^n, n = ...,-2,-1,0,1,2,... 
     nyScale = .5;  // the scale is to decide how much area will be used as input. For exampel, nx * nxScale = 32. The size of input

@@ -46,7 +46,7 @@ ImprintConnTestInputLayer "input" = {
     triggerLayerName = NULL;
 };
 
-MoviePvp "errInput" = {
+PvpLayer "errInput" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;

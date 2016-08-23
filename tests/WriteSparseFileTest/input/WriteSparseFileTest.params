@@ -44,7 +44,7 @@ HyPerCol "column" = {
 
 
 // this is an input layer
-MoviePvp "input" = {
+PvpLayer "input" = {
     nxScale = 1;  // this must be 2^n, n = ...,-2,-1,0,1,2,... 
     nyScale = 1;  // the scale is to decide how much area will be used as input. For exampel, nx * nxScale = 32. The size of input
     	      	  // cannot be larger than the input image size.
@@ -97,7 +97,7 @@ ANNLayer "output" = {
     VWidth = 0.0;
 };
 
-MoviePvp "correct" = {
+PvpLayer "correct" = {
     nxScale = 1;
     nyScale = 1;
     nf = 8;

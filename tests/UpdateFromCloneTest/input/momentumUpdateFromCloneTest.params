@@ -19,7 +19,7 @@ HyPerCol "column" = {
 };
 
 //This layer must have .5 activity for one timestep
-MoviePvp "origPre" = {
+PvpLayer "origPre" = {
     restart                          = false;
     nxScale                          = 1;
     nyScale                          = 1;
@@ -52,7 +52,7 @@ MoviePvp "origPre" = {
 };
 
 //This layer must have .25 activity for one timestep
-MoviePvp "clonePre" = {
+PvpLayer "clonePre" = {
     restart                          = false;
     nxScale                          = 1;
     nyScale                          = 1;

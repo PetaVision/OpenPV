@@ -55,7 +55,7 @@ HyPerCol "column" = {
     errorOnNotANumber                   = true;
 };
 
-MoviePvp "TriggeringLayer" = {
+PvpLayer "TriggeringLayer" = {
     nxScale                             = 0.25;
     nyScale                             = 0.25;
     nf                                  = 1;
@@ -101,7 +101,7 @@ ConstantLayer "InputLayer" = {
     dataType                            = NULL;
 };
 
-MoviePvp "ResetLayer" = {
+PvpLayer "ResetLayer" = {
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 1;

@@ -20,7 +20,7 @@ HyPerCol "column" = {
     writeProgressToErr = true;
 };
 
-MoviePvp "pre" = {
+PvpLayer "pre" = {
     restart                          = false;
     nxScale                          = 1;
     nyScale                          = 1;
