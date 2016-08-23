@@ -3,33 +3,30 @@
 
 namespace PV {
    
+   // This takes in the global batch index of local batch 0 for the second argument. Should this be the value of commBatch() instead?
    BatchIndexer::BatchIndexer(int globalBatchCount, int globalBatchIndex, int batchWidth, int fileCount, enum BatchMethod batchMethod) {
       mGlobalBatchCount = globalBatchCount;
       mBatchMethod = batchMethod;
       mFileCount = fileCount;
-      mBatchWidth = batchWidth;
-      mBatchWidthIndex = globalBatchIndex / batchWidth;
-
-      mIndices.resize(mGlobalBatchCount);
-      mStartIndices.resize(mGlobalBatchCount);
-      mSkipAmounts.resize(mGlobalBatchCount);
+      mBatchWidth = batchWidth > 0 ? batchWidth : 1;
+      mBatchWidthIndex = globalBatchIndex / mBatchWidth;
+      mIndices.resize(mGlobalBatchCount / mBatchWidth);
+      mStartIndices.resize(mGlobalBatchCount / mBatchWidth);
+      mSkipAmounts.resize(mGlobalBatchCount / mBatchWidth);
    }
 
    int BatchIndexer::nextIndex(int localBatchIndex) {
       int currentIndex = mIndices.at(localBatchIndex);
       int newIndex = currentIndex + mSkipAmounts.at(localBatchIndex);
-
-      pvDebug() << "CURRENT: " << currentIndex << ", NEW: " << newIndex << "\n";
-
       if(newIndex >= mFileCount) {
-         pvDebug() << " REWINDING, EXCEEDED FILECOUNT = " << mFileCount << "\n";
-         newIndex %= mFileCount;
          if(mWrapToStartIndex) {
-            newIndex += mStartIndices.at(localBatchIndex);
+            newIndex = mStartIndices.at(localBatchIndex);
+         }
+         else {
+            newIndex %= mFileCount;
          }
       }
       mIndices.at(localBatchIndex) = newIndex;
-      
       return currentIndex;
    }
 
@@ -39,12 +36,13 @@ namespace PV {
    }
     
    void BatchIndexer::initializeBatch(int localBatchIndex) {
+      int globalBatchIndex = mBatchWidthIndex * mBatchWidth + localBatchIndex;
       switch (mBatchMethod) {
          case BYFILE:
-            specifyBatching(localBatchIndex, mStartIndices.at(localBatchIndex) + mBatchWidth * mBatchWidthIndex + localBatchIndex, mGlobalBatchCount);
+            specifyBatching(localBatchIndex, mStartIndices.at(localBatchIndex) + globalBatchIndex, mGlobalBatchCount);
             break;
          case BYLIST:
-            specifyBatching(localBatchIndex, mStartIndices.at(localBatchIndex) + (mBatchWidth * mBatchWidthIndex + localBatchIndex) * (mFileCount / mGlobalBatchCount), 1); 
+            specifyBatching(localBatchIndex, mStartIndices.at(localBatchIndex) + globalBatchIndex * (mFileCount / mGlobalBatchCount), 1); 
             break;
          case BYSPECIFIED:
             pvErrorIf(mSkipAmounts.at(localBatchIndex) < 1, "BatchIndexer batchMethod was set to BYSPECIFIED, but no values were specified.\n");

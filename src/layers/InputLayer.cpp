@@ -555,36 +555,31 @@ namespace PV {
    }
 
    int InputLayer::updateState(double time, double dt)  {
-      // TODO: We might still want to update the state on a single file, like a MoviePvp.
-      // Figure out the best way to accomplish this
-      //if(!mUsingFileList) {
-      //   return PV_SUCCESS;
-      //}
-
       Communicator * icComm = getParent()->getCommunicator();
-      //Only do this if it's not the first update timestep
-      //The timestep number is (time - startTime)/(width of timestep), with allowance for roundoff.
-      //But if we're using adaptive timesteps, the dt passed as a function argument is not the correct (width of timestep).
-//      if(fabs(time - (parent->getStartTime() + parent->getDeltaTime())) > (parent->getDeltaTime()/2)) {
-         pvDebug() << "UPDATE STATE CALLED BY RANK " << parent->getCommunicator()->commRank() << ", " << getName() << "\n";
-         if(readyForNextFile()) {
-            nextInput(time, dt);
-            //Write to timestamp file 
-            if(icComm->commRank() == 0) {
-               if(mTimestampFile) {
-                  std::ostringstream outStrStream;
-                  outStrStream.precision(15);
-                  int kb0 = getLayerLoc()->kb0;
+      pvDebug() << "UPDATE STATE CALLED BY RANK " << parent->getCommunicator()->commRank() << ", " << getName() << "\n";
+      if(readyForNextFile()) {
+        // Write file path to timestamp file
+         if(icComm->commRank() == 0) {
+            if(mTimestampFile) {
+               std::ostringstream outStrStream;
+               outStrStream.precision(15);
+               int kb0 = getLayerLoc()->kb0;
+               if(mUsingFileList) {
+                  std::vector<int> batchIndices = mBatchIndexer->getIndices();
                   for(int b = 0; b < parent->getNBatch(); ++b) {
-//                     outStrStream << time << "," << b+kb0 << "," << mFileIndices.at(b) << "," << mFileList.at(b) << "\n";
+                     outStrStream << time << "," << b+kb0 << "," << batchIndices.at(b) << "," << mFileList.at(batchIndices.at(b)) << "\n";
                   }
-                  size_t len = outStrStream.str().length();
-                  int status = PV_fwrite(outStrStream.str().c_str(), sizeof(char), len, mTimestampFile) == len ? PV_SUCCESS : PV_FAILURE;
-                  pvErrorIf(status != PV_SUCCESS, "%s: Movie::updateState failed to write to timestamp file.\n", getDescription_c());
-                  fflush(mTimestampFile->fp);
                }
+               size_t len = outStrStream.str().length();
+               int status = PV_fwrite(outStrStream.str().c_str(), sizeof(char), len, mTimestampFile) == len ? PV_SUCCESS : PV_FAILURE;
+               pvErrorIf(status != PV_SUCCESS, "%s: Movie::updateState failed to write to timestamp file.\n", getDescription_c());
+               fflush(mTimestampFile->fp);
             }
          }
+
+         // Read in the next file
+         nextInput(time, dt);               
+      }
       return PV_SUCCESS;
    }
 
@@ -594,15 +589,13 @@ namespace PV {
          if (parent->columnId() == 0) {
             std::string fileName = mInputPath;
             if(mUsingFileList) {
-               // TODO: This needs to use global batch index, not local. Fix it
                fileName = mFileList.at(mBatchIndexer->nextIndex(b));
-               //fileName = getNextFilename(mSkipFrameIndex.at(b), b);
             }
             mInputData.at(b) = retrieveData(fileName, b);
          } 
          scatterInput(b);
       }
-      //postProcess(timef, dt);
+      postProcess(timef, dt);
    }
 
    int InputLayer::scatterInput(int batchIndex) {
@@ -728,12 +721,10 @@ namespace PV {
                }
                double image_ave = image_sum / numExtended;
                double image_ave2 = image_sum2 / numExtended;
-#ifdef PV_USE_MPI
                MPI_Allreduce(MPI_IN_PLACE, &image_ave, 1, MPI_DOUBLE, MPI_SUM, parent->getCommunicator()->communicator());
                image_ave /= parent->getCommunicator()->commSize();
                MPI_Allreduce(MPI_IN_PLACE, &image_ave2, 1, MPI_DOUBLE, MPI_SUM, parent->getCommunicator()->communicator());
                image_ave2 /= parent->getCommunicator()->commSize();
-#endif // PV_USE_MPI
                // set mean to zero
                for (int k=0; k<numExtended; k++) {
                   buf[k] -= image_ave;

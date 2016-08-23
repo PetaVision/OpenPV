@@ -17,8 +17,11 @@ namespace PV {
          int nextIndex(int localBatchIndex);
          void specifyBatching(int localBatchIndex, int startIndex, int skipAmount);
          void initializeBatch(int localBatchIndex);
-         std::vector<int> getIndices() { return mIndices; }
          void setIndices(const std::vector<int> &indices) { mIndices = indices; }
+         void setWrapToStartIndex(bool value) { mWrapToStartIndex = value; }
+         bool getWrapToStartIndex() { return mWrapToStartIndex; }
+         std::vector<int> getIndices() { return mIndices; }
+
       private:
          int mGlobalBatchCount;
          int mFileCount;
