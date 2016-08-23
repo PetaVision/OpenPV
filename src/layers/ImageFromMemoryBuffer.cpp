@@ -62,7 +62,7 @@ namespace PV {
          std::vector<float> newData(newSize);
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
-#endif // PV_USE_OPENMP_THREADS
+#endif
          for (int k=0; k<newSize; k++) {
             int x=kxPos(k, width, height, numbands);
             int y=kyPos(k, width, height, numbands);
@@ -82,9 +82,7 @@ namespace PV {
    int ImageFromMemoryBuffer::setMemoryBuffer(pixeltype const * externalBuffer, int height, int width, int numbands, int xstride, int ystride, int bandstride, pixeltype zeroval, pixeltype oneval, int offsetX, int offsetY, char const * offsetAnchor) {
       mOffsetX = offsetX;
       mOffsetY = offsetY;
-      //free(mOffsetAnchor);
-      // TODO: Change the argument type to an enum, this is a quick hack to compile
-      mOffsetAnchor = Buffer::CENTER;//strdup(offsetAnchor);
+      mOffsetAnchor = Buffer::CENTER;
       if (checkValidAnchorString()!=PV_SUCCESS) {
          if (parent->columnId()==0) {
             pvErrorNoExit().printf("%s: setMemoryBuffer called with invalid anchor string \"%s\"",

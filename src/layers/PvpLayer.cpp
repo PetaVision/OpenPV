@@ -2,8 +2,7 @@
 #include "io/fileio.hpp"
 #include "arch/mpi/mpi.h"
 
-#include <assert.h>
-#include <string.h>
+#include <cstring>
 #include <iostream>
 
 namespace PV {
@@ -31,21 +30,15 @@ namespace PV {
 
    Buffer PvpLayer::retrieveData(std::string filename, int batchIndex)
    {
-      pvDebug() << "RETRIEVEDATA FOR: " << filename << " ON RANK " << parent->getCommunicator()->commRank() << "\n";
-      // Do I need to do anything to ensure this is rank 0?
-
       PV_Stream *pvpFile = pvp_open_read_file(filename.c_str(), parent->getCommunicator()); 
 
-      // TODO: Replace this #define with a static const
       int numParams = NUM_BIN_PARAMS; 
       int params[numParams];
       double time;
       int filetype, datatype;
       pvp_read_header(pvpFile, &time, &filetype, &datatype, params, &numParams);
-//      pvp_read_header(pvpFile, parent->getCommunicator(), params, &numParams);
 
       // TODO: All of this pvp loading code should live somewhere else, maybe as file i/o for Buffer?
-
       PVLayerLoc pvpInfo;
       
       pvpInfo.nx = params[INDEX_NX];
@@ -71,6 +64,7 @@ namespace PV {
             "File \"%s\" appears to be an obsolete version of the .pvp format.\n", filename.c_str());
 
       int frameNumber = 0;
+
       // If we're playing through the pvp file like a movie, use
       // BatchIndexer to get the frame number. Otherwise, just use
       // the start_frame_index value for this batch.
@@ -85,12 +79,8 @@ namespace PV {
          frameNumber = getStartIndex(batchIndex);
       }
 
-      pvDebug() << "READING FRAME " << frameNumber << " FROM " << filename << "\n";
-      
       int fileType = params[INDEX_FILE_TYPE];
-      
       Buffer result;
-
       switch(fileType) {
          case PVP_ACT_FILE_TYPE:
             result = readSparseBinaryActivityFrame(numParams, params, pvpFile, frameNumber);
@@ -122,6 +112,7 @@ namespace PV {
          mFrameStartBuffer.resize(params[INDEX_NBANDS]);
          mCountBuffer.clear();
          mCountBuffer.resize(params[INDEX_NBANDS]);
+
          // fseek past the header and first timestamp
          PV_fseek(pvstream, (long)8 + (long)params[INDEX_HEADER_SIZE], SEEK_SET);
          int percent = 0;
@@ -146,11 +137,12 @@ namespace PV {
          }
          pvInfo() << "\r" << percent << "% Done\n";
          pvInfo().flush();
+
          // We still need the last count
          PV_fread(&mCountBuffer[(params[INDEX_NBANDS])-1], sizeof(int), 1, pvstream);
-         // So we don't have to calculate frameStart and count again
          mNeedFrameSizesForSpiking = false;
       }
+
       long framepos = (long)mFrameStartBuffer[frameNumber];
       unsigned int length = mCountBuffer[frameNumber];
       float pvpFileTime = 0;
@@ -158,10 +150,9 @@ namespace PV {
       PV_fread(&pvpFileTime, sizeof(double), 1, pvstream);
       unsigned int dropLength;
       PV_fread(&dropLength, sizeof(unsigned int), 1, pvstream);
-      assert(dropLength == length);
+      pvAssert(dropLength == length);
       int locations[length];
       PV_fread(locations, sizeof(int), length, pvstream);
-   
       int width      = params[INDEX_NX];
       int height     = params[INDEX_NY];
       int features   = params[INDEX_NF];
@@ -173,6 +164,7 @@ namespace PV {
    }
 
    Buffer PvpLayer::readSparseValuesActivityFrame(int numParams, int * params, PV_Stream * pvstream, int frameNumber) {
+      
       // Allocate the byte positions in file where each frame's data starts and the number of active neurons in each frame
       // Only need to do this once
       if (mNeedFrameSizesForSpiking) {
@@ -181,6 +173,7 @@ namespace PV {
          mFrameStartBuffer.resize(params[INDEX_NBANDS]);
          mCountBuffer.clear();   
          mCountBuffer.resize(params[INDEX_NBANDS]);
+
          // Fseek past the header and first timestamp
          PV_fseek(pvstream, (long)8 + (long)params[INDEX_HEADER_SIZE], SEEK_SET);
          int percent = 0;
@@ -191,6 +184,7 @@ namespace PV {
                pvInfo() << "\r" << percent << "\% Done";
                pvInfo().flush();
             }
+
             // First byte position should always be 92
             if(f == 0) {
                mFrameStartBuffer[f] = (long)92;
@@ -204,8 +198,10 @@ namespace PV {
          }
          pvInfo() << "\r" << percent << "% Done\n";
          pvInfo().flush();
+
          // We still need the last count
          PV_fread(&mCountBuffer[(params[INDEX_NBANDS])-1], sizeof(int), 1, pvstream);
+
          // So we don't have to calculate frameStart and count again
          mNeedFrameSizesForSpiking = false;
       }
@@ -215,12 +211,9 @@ namespace PV {
       float pvpFileTime = 0;
       PV_fseek(pvstream, framepos-sizeof(double)-sizeof(unsigned int), SEEK_SET);
       PV_fread(&pvpFileTime, sizeof(double), 1, pvstream);
-      // TODO: Does this scope change do anything meaningful? 
-      {
-         unsigned int dropLength;
-         PV::PV_fread(&dropLength, sizeof(unsigned int), 1, pvstream);
-         assert(dropLength == length);
-      }
+      unsigned int dropLength;
+      PV::PV_fread(&dropLength, sizeof(unsigned int), 1, pvstream);
+      assert(dropLength == length);
       struct locvalue {
          int location;
          float value;
@@ -273,5 +266,4 @@ namespace PV {
       PV_fread(data.data(), sizeof(float), (size_t) (width * height * features), pvstream);
       return Buffer(data, width, height, features);
    }
-
-} // namespace PV
+}

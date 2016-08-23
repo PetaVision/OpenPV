@@ -1,8 +1,6 @@
-#ifndef PVPLAYER_HPP_
-#define PVPLAYER_HPP_
+#pragma once
 
 #include "InputLayer.hpp"
-
 
 namespace PV {
 
@@ -24,9 +22,7 @@ namespace PV {
       int initialize_base();
       bool mInitializedBatchIndexer = false;
       bool mNeedFrameSizesForSpiking = true;
-      std::vector<long> mFrameStartBuffer; // What are these used for?
+      std::vector<long> mFrameStartBuffer;
       std::vector<int> mCountBuffer;
    };
 }
-
-#endif 

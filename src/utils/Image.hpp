@@ -24,6 +24,7 @@ namespace PV {
          float getPixelA(int x, int y);
          void convertToColor(bool alphaChannel);
          void convertToGray(bool alphaChannel);
+         void load(std::string filename);
 
          static constexpr const float mRToGray = 0.30f;
          static constexpr const float mGToGray = 0.59f;

@@ -29,8 +29,8 @@ namespace PV {
 
    void Buffer::set(const std::vector<float> &vector, int width, int height, int features) {
       pvErrorIf(vector.size() != width * height * features,
-            "Invalid vector size: Expected %d elements, vector contained %d elements.\n",
-            width * height * features, vector.size());
+         "Invalid vector size: Expected %d elements, vector contained %d elements.\n",
+         width * height * features, vector.size());
       mData = vector;
       mWidth = width;
       mHeight = height;
@@ -42,7 +42,6 @@ namespace PV {
    }
 
    // Resizing a Buffer will clear its contents. Use rescale or crop to preserve values.
-   // Is there a better name for this? clearAndResize()?
    void Buffer::resize(int width, int height, int features) {
       mData.clear();
       mData.resize(height * width * features);
@@ -86,71 +85,7 @@ namespace PV {
       }
       return 0;
    }
-
-   // TODO: Some of these methods could be moved to a BufferManipulaton class, or maybe
-   // a TransformableBuffer subclass? RescaleableBuffer? MalleableBuffer?
-
-   // TODO: This method needs a unit test
-   bool Buffer::constrainPoint(int &x, int &y, int minX, int maxX, int minY, int maxY, enum PointConstraintMethod method) {
-      bool moved_x = x < minX || y > maxX;
-      bool moved_y = y < minY || y > maxY;
-      if (moved_x) {
-         assert(minX <= maxX);
-         int sizeX = maxX-minX;
-         int newX = x; 
-         switch (method) {
-            case MIRROR:
-               newX -= minX;
-               newX %= (2 * (sizeX + 1));
-               if (newX < 0) ++newX;
-               newX = abs(newX);
-               if (newX > sizeX) newX = 2*sizeX + 1 - newX;
-               newX += minX;
-               break;
-            case CLAMP:
-               if (newX < minX) newX = minX;
-               if (newX > maxX) newX = maxX;
-               break;
-            case WRAP:
-               newX -= minX;
-               newX %= sizeX + 1;
-               if (newX < 0) newX += sizeX + 1;
-               newX += minX;
-               break;
-         }
-         assert(newX >= minX && newX <= maxX);
-         x = newX;
-      }
-      if (moved_y) {
-         assert(minY <= maxY);
-         int sizeY = maxY - minY;
-         int newY = y;
-         switch (method) {
-         case MIRROR:
-            newY -= minY;
-            newY %= (2 * (sizeY + 1));
-            if (newY < 0) ++newY;
-            newY = abs(newY);
-            if (newY > sizeY) newY = 2*sizeY + 1 - newY;
-            newY += minY;
-            break;
-         case CLAMP:
-            if (newY < minY) newY = minY;
-            if (newY > maxY) newY = maxY;
-            break;
-         case WRAP:
-            newY -= minY;
-            newY %= sizeY + 1;
-            if (newY < 0) newY += sizeY + 1;
-            newY += minY;
-            break;
-         }
-         assert(newY >= minY && newY <= maxY);
-         y = newY;
-      }
-      return moved_x || moved_y;
-   }
-
+  
    // Grows a buffer with the original in the center.
    void Buffer::grow(int newWidth, int newHeight) {
       if(newWidth < getWidth() || newHeight < getHeight()) {
@@ -172,44 +107,6 @@ namespace PV {
 
    // Crops a buffer down to the specified size, OR grows the canvas keeping the original in the middle (how does this interact with offset?)
    void Buffer::crop(int targetWidth, int targetHeight, enum OffsetAnchor offsetAnchor, int offsetX, int offsetY) {
-/*      int smallerWidth  = targetWidth  < getWidth()  ? targetWidth  : getWidth();
-      int smallerHeight = targetHeight < getHeight() ? targetHeight : getHeight();
-      int biggerWidth   = targetWidth  > getWidth()  ? targetWidth  : getWidth();
-      int biggerHeight  = targetHeight > getHeight() ? targetHeight : getHeight();
-      int originX = 0;
-      int originY = 0;
-       // If we're "cropping" to a larger canvas, place the original in the center
-      if(targetHeight > getHeight()) {
-         originY = (targetHeight - getHeight()) / 2;
-      }
-      if(targetWidth > getWidth()) {
-         originX = (targetWidth - getWidth()) / 2;
-      }
- 
-
-     offsetX = getOffsetX(offsetAnchor, offsetX-originX, smallerWidth,  biggerWidth);
-     offsetY = getOffsetY(offsetAnchor, offsetY-originY, smallerHeight, biggerHeight);
-     Buffer cropped(targetWidth, targetHeight, getFeatures());
-
-     pvDebug() << "CROP: W = " << getWidth() << " H = " << getHeight() << "\n";
-
-     for(int smallY = 0; smallY < smallerHeight; ++smallY) {
-         for(int smallX = 0; smallX < smallerWidth; ++smallX) {
-            for(int f = 0; f < getFeatures(); ++f) {
-               int x = smallX + offsetX, y = smallY + offsetY;
-//               constrainPoint(x, y, 0, getWidth()-1, 0, getHeight()-1, CLAMP);
-               x = x < 0 ? 0 :
-                   x > getWidth() - 1 ? getWidth() -1 :
-                   x;
-               y = y < 0 ? 0 :
-                   y > getHeight() - 1 ? getHeight() -1 :
-                   y;
-
-               cropped.set(smallX+originX, smallY+originY, f, at(x, y, f));
-            }
-         }
-      }
-*/
       if(targetWidth >= getWidth() && targetHeight >= getHeight()) {
          return;
       }
@@ -238,7 +135,6 @@ namespace PV {
    void Buffer::rescale(int targetWidth, int targetHeight, enum RescaleMethod rescaleMethod, enum InterpolationMethod interpMethod, enum OffsetAnchor offsetAnchor) {
       float xRatio = static_cast<float>(targetWidth) / getWidth();
       float yRatio = static_cast<float>(targetHeight) / getHeight();
-
       int resizedWidth = targetWidth;
       int resizedHeight = targetHeight;
       float resizeFactor = 1.0f;

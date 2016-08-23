@@ -8,23 +8,8 @@
 
 namespace PV {
 
-   // TODO: Image should probably have Image::load(filename) and this constructor should call it
    Image::Image(std::string filename) {
-      int width = 0, height = 0, channels = 0;
-      uint8_t* data = stbi_load(filename.c_str(), &width, &height, &channels, 0);
-      pvErrorIf(data == nullptr, " File not found: %s\n", filename.c_str());
-      resize(height, width, channels);
-
-      for(int y = 0; y < height; ++y) {
-         for(int x = 0; x < width; ++x) {
-            for(int f = 0; f < channels; ++f) {
-               float value = static_cast<float>(data[(y * width + x) * channels + f]) / 255.0f;
-               set(x, y, f, value);
-            }
-         }
-      }
-      
-      stbi_image_free(data);
+      load(filename);
    }
 
    Image::Image(const std::vector<float> &data, int width, int height, int channels) {
@@ -169,4 +154,24 @@ namespace PV {
          set(color.asVector(), getWidth(), getHeight(), alphaChannel ? 4 : 3);
       }
    }
+
+   void Image::load(std::string filename) {
+      int width = 0, height = 0, channels = 0;
+      uint8_t* data = stbi_load(filename.c_str(), &width, &height, &channels, 0);
+      pvErrorIf(data == nullptr, " File not found: %s\n", filename.c_str());
+      resize(height, width, channels);
+
+      for(int y = 0; y < height; ++y) {
+         for(int x = 0; x < width; ++x) {
+            for(int f = 0; f < channels; ++f) {
+               float value = static_cast<float>(data[(y * width + x) * channels + f]) / 255.0f;
+               set(x, y, f, value);
+            }
+         }
+      }
+      
+      stbi_image_free(data);
+   }
+
+ 
 }

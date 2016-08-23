@@ -88,7 +88,6 @@ namespace PV {
       ioParam_inverseFlag(ioFlag);
       ioParam_normalizeLuminanceFlag(ioFlag);
       ioParam_normalizeStdDev(ioFlag);
-      //ioParam_offsetConstraintMethod(ioFlag); //TODO: Reimplement this
       ioParam_useInputBCflag(ioFlag);
       ioParam_padValue(ioFlag);
       ioParam_displayPeriod(ioFlag);
@@ -108,9 +107,9 @@ namespace PV {
    }
    int InputLayer::checkpointRead(const char * cpDir, double * timef) {
       int status = HyPerLayer::checkpointRead(cpDir, timef);
-      pvDebug() << "CHECKPOINT READ RANK " << parent->columnId() << "\n";
       int *frameNumbers = static_cast<int*>(calloc(parent->getNBatch(), sizeof(int)));
       parent->readArrayFromFile(cpDir, getName(), "FrameNumbers", frameNumbers, parent->getNBatch());  
+      
       // We have to read this even on non-root processes to get MPI to line up.
       // TODO: Fix MPI's tendrils extending to every region of the codebase, starting with file IO
       if(parent->columnId() == 0) {
@@ -122,11 +121,13 @@ namespace PV {
          mBatchIndexer->setIndices(indices);
       }
       free(frameNumbers);
+      
       if (mWriteFileToTimestamp) {
          long timestampFilePos = 0L;
          parent->readScalarFromFile(cpDir, getName(), "TimestampState", &timestampFilePos, timestampFilePos);
          if (mTimestampFile) {
-            pvErrorIf(PV_fseek(mTimestampFile, timestampFilePos, SEEK_SET) != 0, "MovieLayer::checkpointRead error: unable to recover initial file position in timestamp file for layer %s: %s\n", name, strerror(errno));
+            pvErrorIf(PV_fseek(mTimestampFile, timestampFilePos, SEEK_SET) != 0,
+               "MovieLayer::checkpointRead error: unable to recover initial file position in timestamp file for layer %s: %s\n", name, strerror(errno));
          }
       }
       return status; 
@@ -134,7 +135,6 @@ namespace PV {
    
    int InputLayer::checkpointWrite(const char * cpDir) {
       int status = HyPerLayer::checkpointWrite(cpDir);
-      pvDebug() << "CHECKPOINT WRITE RANK" << parent->columnId() << "\n";
       if(parent->columnId() == 0) {
          parent->writeArrayToFile(cpDir, getName(), "FrameNumbers", static_cast<int*>(mBatchIndexer->getIndices().data()), parent->getNBatch());
       }
@@ -144,6 +144,7 @@ namespace PV {
          parent->writeArrayToFile(cpDir, getName(), "FrameNumbers", garbage, parent->getNBatch());
          free(garbage);
       }
+      
       //Only do a checkpoint TimestampState if there exists a timestamp file
       if (mWriteFileToTimestamp && mTimestampFile) {
          long timestampFilePos = getPV_StreamFilepos(mTimestampFile);
@@ -166,8 +167,8 @@ namespace PV {
          mInputPath = std::string(tempString);
          // Check if the input path ends in ".txt" and enable the file list if so
          std::string txt = ".txt";
-         if(mInputPath.size() > txt.size() && mInputPath.compare(mInputPath.size() - txt.size(), txt.size(), txt) == 0) {
-            mUsingFileList = true; //TODO: Add a flag to override this value even when the input path ends in ".txt"
+         if(mDisplayPeriod > 0 && mInputPath.size() > txt.size() && mInputPath.compare(mInputPath.size() - txt.size(), txt.size(), txt) == 0) {
+            mUsingFileList = true; 
          }
          else {
             mUsingFileList = false;
@@ -176,14 +177,14 @@ namespace PV {
       free(tempString);
    }
 
-   void InputLayer::ioParam_useInputBCflag(enum ParamsIOFlag ioFlag) { //TODO: Change to useInputBCFlag, add deprecated warning
+   // TODO: Change to useInputBCFlag, add deprecated warning
+   void InputLayer::ioParam_useInputBCflag(enum ParamsIOFlag ioFlag) { 
       parent->ioParamValue(ioFlag, name, "useImageBCflag", &mUseInputBCflag, mUseInputBCflag);
    }
 
    int InputLayer::ioParam_offsets(enum ParamsIOFlag ioFlag) {
       parent->ioParamValue(ioFlag, name, "offsetX", &mOffsetX, mOffsetX);
       parent->ioParamValue(ioFlag, name, "offsetY", &mOffsetY, mOffsetY);
-
       return PV_SUCCESS;
    }
 
@@ -312,7 +313,7 @@ namespace PV {
    }
 
    void InputLayer::ioParam_interpolationMethod(enum ParamsIOFlag ioFlag) {
-      assert(!parent->parameters()->presentAndNotBeenRead(name, "autoResizeFlag"));
+      pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "autoResizeFlag"));
       if (mAutoResizeFlag) {
          char * interpolationMethodString = nullptr;
          if (ioFlag == PARAMS_IO_READ) {
@@ -369,17 +370,7 @@ namespace PV {
    void InputLayer::ioParam_padValue(enum ParamsIOFlag ioFlag) {
       parent->ioParamValue(ioFlag, name, "padValue", &mPadValue, mPadValue);
    }
-   
-//   void InputLayer::ioParam_offsetConstraintMethod(enum ParamsIOFlag ioFlag) {
-//   //   assert(!parent->parameters()->presentAndNotBeenRead(name, "jitterFlag"));
-//   //   if (mJitterFlag) {
-//         parent->ioParamValue(ioFlag, name, "offsetConstraintMethod", &mOffsetConstraintMethod, 0/*default*/);
-//         if (ioFlag == PARAMS_IO_READ && (mOffsetConstraintMethod <0 || mOffsetConstraintMethod >3) ) {
-//            pvError().printf("%s: offsetConstraintMethod allowed values are 0 (ignore), 1 (mirror BC), 2 (threshold), 3 (circular BC)\n", getDescription_c());
-//         }
-//   //   }
-//   }
-
+  
    void InputLayer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
       assert(this->initVObject == NULL);
       return;
@@ -487,24 +478,21 @@ namespace PV {
       if(status != PV_SUCCESS) {
          return status;
       }
-      pvDebug() << "ALLOCATE STARTING RANK " << parent->getCommunicator()->commRank() << "\n";
       int numBatch = parent->getNBatch();
  
       //Calculate file positions for beginning of each frame
       if(mUsingFileList) {
          populateFileList();
          pvInfo() << "File " << mInputPath << " contains " << mFileList.size() << " frames\n";
-
-      }
-
-      // TODO: Does it make sense for non-root processes to do this?
-      mInputData.resize(numBatch);
-      for(int b = 0; b < numBatch; ++b) {
-         mInputData.at(b).resize(getLayerLoc()->ny, getLayerLoc()->nx, getLayerLoc()->nf);
       }
 
       if(parent->columnId() == 0) {
+         mInputData.resize(numBatch);
+         for(int b = 0; b < numBatch; ++b) {
+            mInputData.at(b).resize(getLayerLoc()->ny, getLayerLoc()->nx, getLayerLoc()->nf);
+         }
          initializeBatchIndexer(mFileList.size());
+
          // We want to fill the activity buffer with the initial data without actually advancing
          // our indices, so this is a quick hack to "rewind" after the initial nextInput()
          std::vector<int> tempIndices = mBatchIndexer->getIndices();
@@ -514,17 +502,14 @@ namespace PV {
       else {
          nextInput(parent->simulationTime(), parent->getDeltaTimeBase());
       }
-      pvDebug() << "ALLOCATE ENDING RANK " << parent->getCommunicator()->commRank() << ", " << getName() << "\n";
       
       // create mpi_datatypes for border transfer
       mDatatypes = Communicator::newDatatypes(getLayerLoc());
       exchange();
-      pvDebug() << "EXCHANGE COMPLETED RANK " << parent->getCommunicator()->commRank() << ", " << getName() << "\n";
       return status;
    }
 
    void InputLayer::initializeBatchIndexer(int fileCount) {
-      pvDebug() << "INIT BATCH WITH COUNT " << fileCount << "\n";
       mBatchIndexer = std::unique_ptr<BatchIndexer>(new BatchIndexer(
                parent->getNBatchGlobal(),
                parent->commBatch() * parent->getNBatch(),
@@ -556,7 +541,6 @@ namespace PV {
 
    int InputLayer::updateState(double time, double dt)  {
       Communicator * icComm = getParent()->getCommunicator();
-      pvDebug() << "UPDATE STATE CALLED BY RANK " << parent->getCommunicator()->commRank() << ", " << getName() << "\n";
       if(readyForNextFile()) {
         // Write file path to timestamp file
          if(icComm->commRank() == 0) {
@@ -584,7 +568,6 @@ namespace PV {
    }
 
    void InputLayer::nextInput(double timef, double dt) {
-      pvDebug() << "NEXTINPUT CALLED BY RANK " << parent->getCommunicator()->commRank() << ", " << getName() << "\n";
       for(int b = 0; b < parent->getNBatch(); b++) {
          if (parent->columnId() == 0) {
             std::string fileName = mInputPath;
@@ -614,7 +597,6 @@ namespace PV {
       // Defining this outside of the loop lets it contain the correct
       // data for the root process at the end
       Buffer croppedBuffer;
-      pvDebug() << "BEGINNING SCATTER ON RANK " << rank << " AWIDTH=" << activityWidth << " AHEIGHT=" << activityHeight << "\n";      
       if (rank == rootProc) {
 
          // Loop through each rank, ending on the root process.
@@ -634,18 +616,14 @@ namespace PV {
             if(rank != rootProc) {
                // This is required because croppedBuffer.asVector() returns a const vector<>
                std::vector<float> bufferData = croppedBuffer.asVector();
-               pvDebug() << "SCATTERING FROM RANK 0 TO RANK " << rank << ", " << numElements << " ELEMENTS\n";
                MPI_Send(bufferData.data(), numElements, MPI_FLOAT, rank, 31, mpiComm);
             }
          }
       }
       else {
-         pvDebug() << "RECEIVING ON RANK " << parent->getCommunicator()->commRank() << "\n";
+         
          // Create a temporary array to receive from MPI, move the values into
-         // a vector, and then create a Buffer out of that vector. A little
-         // redundant, but it works. This could be done with a for loop and
-         // some indexing math, but it's safer to let Buffer handle this
-         // internally.
+         // a vector, and then create a Buffer out of that vector.
          float tempBuffer[numElements];
          MPI_Recv(&tempBuffer, numElements, MPI_FLOAT, rootProc, 31, mpiComm, MPI_STATUS_IGNORE);
          std::vector<float> bufferData(numElements);
@@ -654,8 +632,6 @@ namespace PV {
          }
          croppedBuffer.set(bufferData, activityWidth, activityHeight, numFeatures);
       }
-      
-      pvDebug() << "COPYING DATA TO ACTIVITY ON RANK " << parent->getCommunicator()->commRank() << "\n";
 
       // At this point, croppedBuffer has the correct data for this
       // process, regardless of if we are root or not. Clear the current
@@ -663,31 +639,28 @@ namespace PV {
       for (int n = 0; n < getNumExtended(); ++n) {
          activityBuffer[n] = mPadValue;
       }
+
       for(int y = 0; y < activityHeight; ++y) {
          for(int x = 0; x < activityWidth; ++x) {
             for(int f = 0; f < numFeatures; ++f) {
                int activityIndex = kIndex(
-                           halo->lt + x,
-                           halo->up + y, 
-                           f,
-                           loc->nx+halo->lt+halo->rt,
-                           loc->ny+halo->up+halo->dn,
-                           numFeatures
-                           );
+                  halo->lt + x,
+                  halo->up + y, 
+                  f,
+                  loc->nx+halo->lt+halo->rt,
+                  loc->ny+halo->up+halo->dn,
+                  numFeatures
+                  );
                activityBuffer[activityIndex] = croppedBuffer.at(x, y, f);
             }
          }
       }
-      // TODO:
-      // Do I need to store any info about the image now? I don't belive so,
-      // since it's the same size as the layer now, but verify
-      pvDebug() << "SCATTER COMPLETED ON RANK " << rank << "\n";
+
       return PV_SUCCESS;
    }
 
    void InputLayer::fitBufferToLayer(Buffer &buffer) {
-      pvAssert(parent->columnId() == 0); // Should only be called by root process.
-
+      pvAssert(parent->columnId() == 0);
       const PVLayerLoc *loc = getLayerLoc();
       const PVHalo *halo = &loc->halo;
       const int targetWidth = loc->nxGlobal + (mUseInputBCflag ? (halo->lt + halo->rt) : 0);

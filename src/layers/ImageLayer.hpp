@@ -1,19 +1,7 @@
-/*
- * ImageLayer.hpp
- *
- *    Layer that represents an image or list of images
- *    loaded from disk. Supports .jpg, .png, and .bmp
- *    formats, or a .txt list of files in those formats.
- */
-
-
-#ifndef IMAGELAYER_HPP_
-#define IMAGELAYER_HPP_
+#pragma once
 
 #include "utils/Image.hpp"
 #include "InputLayer.hpp"
-
-#include <cMakeHeader.h>
 
 namespace PV {
 
@@ -39,5 +27,3 @@ namespace PV {
 
    };
 }
-
-#endif 
