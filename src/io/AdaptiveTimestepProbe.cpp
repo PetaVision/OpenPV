@@ -30,8 +30,8 @@ int AdaptiveTimestepProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = ColProbe::ioParamsFillGroup(ioFlag);
    ioParam_baseMax(ioFlag);
    ioParam_baseMin(ioFlag);
-   ioParam_dtChangeMax(ioFlag);
-   ioParam_dtChangeMin(ioFlag);
+   ioParam_tauFactor(ioFlag);
+   ioParam_growthFactor(ioFlag);
    ioParam_dtMinToleratedTimeScale(ioFlag);
    ioParam_writeTimescales(ioFlag);
    ioParam_writeTimeScaleFieldnames(ioFlag);
@@ -54,12 +54,12 @@ void AdaptiveTimestepProbe::ioParam_dtMinToleratedTimeScale(enum ParamsIOFlag io
    parent->ioParamValue(ioFlag, name, "dtMinToleratedTimeScale", &mDtMinToleratedTimeScale, mDtMinToleratedTimeScale);
 }
 
-void AdaptiveTimestepProbe::ioParam_dtChangeMax(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "dtChangeMax", &mChangeTimeScaleMax, mChangeTimeScaleMax);
+void AdaptiveTimestepProbe::ioParam_tauFactor(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "tauFactor", &tauFactor, tauFactor);
 }
 
-void AdaptiveTimestepProbe::ioParam_dtChangeMin(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "dtChangeMin", &mChangeTimeScaleMin, mChangeTimeScaleMin);
+void AdaptiveTimestepProbe::ioParam_growthFactor(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "growthFactor", &mGrowthFactor, mGrowthFactor);
 }
 
 void AdaptiveTimestepProbe::ioParam_writeTimescales(enum ParamsIOFlag ioFlag) {
@@ -104,8 +104,8 @@ int AdaptiveTimestepProbe::allocateDataStructures() {
          getNumValues(),
          mBaseMax,
          mBaseMin,
-         mChangeTimeScaleMax,
-         mChangeTimeScaleMin,
+         tauFactor,
+         mGrowthFactor,
          mWriteTimescales,
          mWriteTimeScaleFieldnames,
          parent->getCommunicator(),

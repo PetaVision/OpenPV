@@ -759,7 +759,7 @@ void HyPerCol::ioParam_dtScaleMax2(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerCol::ioParam_dtScaleMin(enum ParamsIOFlag ioFlag) {
-   if (ioFlag==PARAMS_IO_READ && mParams->present(mName, "dtScaleMax")) {
+   if (ioFlag==PARAMS_IO_READ && mParams->present(mName, "dtScaleMin")) {
       if (columnId()==0) {
          pvErrorNoExit() << "The dtScaleMin parameter is obsolete.  Use the AdaptiveTimestepProbe baseMin parameter\n";
       }
@@ -772,11 +772,21 @@ void HyPerCol::ioParam_dtMinToleratedTimeScale(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerCol::ioParam_dtChangeMax(enum ParamsIOFlag ioFlag) {
-   paramMovedToColumnEnergyProbe(ioFlag, "dtChangeMax");
+   if (ioFlag==PARAMS_IO_READ && mParams->present(mName, "dtChangeMax")) {
+      if (columnId()==0) {
+         pvErrorNoExit() << "The dtChangeMax parameter is obsolete.  Use the AdaptiveTimestepProbe tauFactor parameter\n";
+      }
+      mObsoleteParameterFound = true;
+   }
 }
 
 void HyPerCol::ioParam_dtChangeMin(enum ParamsIOFlag ioFlag) {
-   paramMovedToColumnEnergyProbe(ioFlag, "dtChangeMin");
+   if (ioFlag==PARAMS_IO_READ && mParams->present(mName, "dtChangeMax")) {
+      if (columnId()==0) {
+         pvErrorNoExit() << "The dtChangeMin parameter is obsolete.  Use the AdaptiveTimestepProbe growthFactor parameter\n";
+      }
+      mObsoleteParameterFound = true;
+   }
 }
 
 void HyPerCol::ioParam_stopTime(enum ParamsIOFlag ioFlag) {

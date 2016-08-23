@@ -48,17 +48,16 @@ protected:
    virtual void ioParam_baseMin(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief dtChangeMax: If mDtAdaptController is set, specifies the upper limit of adaptive dt based on error
-    * @details dt will only adapt if the percent change in error is between dtChangeMin and dtChangeMax
+    * @brief tauFactor: If Specifies the coefficient on the effective decay rate used to compute
+    * the timescale.
     */
-   virtual void ioParam_dtChangeMax(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_tauFactor(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief dtChangeMin: If mDtAdaptController is set, specifies the lower limit of adaptive dt based on error
-    * @details dt will only adapt if the percent change in error is between dtChangeMin and dtChangeMax.
-    * Defaults to 0
+    * @brief dtChangeMin: Specifies the percentage by which the maximum timescale increases
+    * when the timescale reaches the maximum.
     */
-   virtual void ioParam_dtChangeMin(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_growthFactor(enum ParamsIOFlag ioFlag);
 
    /**
     * @brief mDtMinToleratedTimeScale: If mDtAdaptController is set, specifies the minimum value dt can drop to before exiting
@@ -101,8 +100,8 @@ protected:
    double mBaseMax                  = 1.0;
    double mBaseMin                  = 1.0;
    double mDtMinToleratedTimeScale  = 1.0e-4;
-   double mChangeTimeScaleMax       = 1.0;
-   double mChangeTimeScaleMin       = 1.0;
+   double tauFactor                 = 1.0;
+   double mGrowthFactor             = 1.0;
    bool   mWriteTimescales          = true;
    bool   mWriteTimeScaleFieldnames = true;
 

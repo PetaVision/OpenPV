@@ -18,7 +18,7 @@ AdaptiveTimestepController::AdaptiveTimestepController(
       int batchWidth,
       double baseMax,
       double baseMin,
-      double changeTimeScaleMax,
+      double tauFactor,
       double changeTimeScaleMin,
       bool writeTimescales,
       bool writeTimeScaleFieldnames,
@@ -28,8 +28,8 @@ AdaptiveTimestepController::AdaptiveTimestepController(
    mBatchWidth = batchWidth;
    mBaseMax = baseMax;
    mBaseMin = baseMin;
-   mChangeTimeScaleMax = changeTimeScaleMax;
-   mChangeTimeScaleMin = changeTimeScaleMin;
+   mTauFactor = tauFactor;
+   mGrowthFactor = changeTimeScaleMin;
    mWriteTimescales = writeTimescales;
    mWriteTimeScaleFieldnames = writeTimeScaleFieldnames;
    mCommunicator = communicator;
@@ -147,12 +147,12 @@ std::vector<double> const& AdaptiveTimestepController::calcTimesteps(double time
          double tau_eff_scaled = E_0 / dE_dt_scaled;
 
          // dt := mTimeScaleMaxBase * tau_eff
-         mTimeScale[b] = mChangeTimeScaleMax * tau_eff_scaled;
+         mTimeScale[b] = mTauFactor * tau_eff_scaled;
          mTimeScale[b] = (mTimeScale[b] <= mTimeScaleMax[b]) ? mTimeScale[b] : mTimeScaleMax[b];
          mTimeScale[b] = (mTimeScale[b] <  mBaseMin) ? mBaseMin : mTimeScale[b];
 
          if (mTimeScale[b] == mTimeScaleMax[b]) {
-            mTimeScaleMax[b] = (1 + mChangeTimeScaleMin) * mTimeScaleMax[b];
+            mTimeScaleMax[b] = (1 + mGrowthFactor) * mTimeScaleMax[b];
          }
       }
    }

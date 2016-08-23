@@ -19,10 +19,10 @@ public:
    AdaptiveTimestepController(
          char const * name,
          int batchWidth,
-         double timeScaleMaxBase,
-         double timeScaleMin,
-         double changeTimeScaleMax,
-         double changeTimeScaleMin,
+         double baseMax,
+         double baseMin,
+         double tauFactor,
+         double growthFactor,
          bool writeTimescales,
          bool writeTimeScaleFieldnames,
          Communicator * comm,
@@ -42,8 +42,8 @@ protected:
    int mBatchWidth;
    double mBaseMax;
    double mBaseMin;
-   double mChangeTimeScaleMax;
-   double mChangeTimeScaleMin;
+   double mTauFactor;
+   double mGrowthFactor;
    bool   mWriteTimescales;
    bool   mWriteTimeScaleFieldnames;
    Communicator * mCommunicator;
