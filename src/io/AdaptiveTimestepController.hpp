@@ -19,7 +19,6 @@ public:
    AdaptiveTimestepController(
          char const * name,
          int batchWidth,
-         double deltaTimeBase,
          double timeScaleMaxBase,
          double timeScaleMin,
          double changeTimeScaleMax,
@@ -41,7 +40,6 @@ private:
 protected:
    char * mName;
    int mBatchWidth;
-   double mDeltaTimeBase;
    double mMaxBase;
    double mTimeScaleMin;
    double mChangeTimeScaleMax;

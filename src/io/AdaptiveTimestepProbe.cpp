@@ -102,7 +102,6 @@ int AdaptiveTimestepProbe::allocateDataStructures() {
    mAdaptiveTimestepController = new AdaptiveTimestepController(
          getName(),
          getNumValues(),
-         parent->getDeltaTime(),
          mBaseMax,
          mTimeScaleMin,
          mChangeTimeScaleMax,

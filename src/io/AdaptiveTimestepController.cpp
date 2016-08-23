@@ -16,7 +16,6 @@ namespace PV {
 AdaptiveTimestepController::AdaptiveTimestepController(
       char const * name,
       int batchWidth,
-      double deltaTimeBase,
       double maxBase,
       double timeScaleMin,
       double changeTimeScaleMax,
@@ -27,7 +26,6 @@ AdaptiveTimestepController::AdaptiveTimestepController(
       bool verifyWrites) {
    mName = strdup(name);
    mBatchWidth = batchWidth;
-   mDeltaTimeBase = deltaTimeBase;
    mMaxBase = maxBase;
    mTimeScaleMin = timeScaleMin;
    mChangeTimeScaleMax = changeTimeScaleMax;
