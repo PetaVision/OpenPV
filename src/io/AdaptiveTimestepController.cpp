@@ -19,7 +19,6 @@ AdaptiveTimestepController::AdaptiveTimestepController(
       double deltaTimeBase,
       double timeScaleMaxBase,
       double timeScaleMin,
-      double dtMinToleratedTimeScale,
       double changeTimeScaleMax,
       double changeTimeScaleMin,
       bool writeTimescales,
@@ -31,7 +30,6 @@ AdaptiveTimestepController::AdaptiveTimestepController(
    mDeltaTimeBase = deltaTimeBase;
    mTimeScaleMaxBase = timeScaleMaxBase;
    mTimeScaleMin = timeScaleMin;
-   mDtMinToleratedTimeScale = dtMinToleratedTimeScale;
    mChangeTimeScaleMax = changeTimeScaleMax;
    mChangeTimeScaleMin = changeTimeScaleMin;
    mWriteTimescales = writeTimescales;

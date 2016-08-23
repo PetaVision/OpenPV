@@ -105,7 +105,6 @@ int AdaptiveTimestepProbe::allocateDataStructures() {
          parent->getDeltaTime(),
          mTimeScaleMaxBase,
          mTimeScaleMin,
-         mDtMinToleratedTimeScale,
          mChangeTimeScaleMax,
          mChangeTimeScaleMin,
          mWriteTimescales,

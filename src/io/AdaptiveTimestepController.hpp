@@ -22,7 +22,6 @@ public:
          double deltaTimeBase,
          double timeScaleMaxBase,
          double timeScaleMin,
-         double dtMinToleratedTimeScale,
          double changeTimeScaleMax,
          double changeTimeScaleMin,
          bool writeTimescales,
@@ -45,7 +44,6 @@ protected:
    double mDeltaTimeBase;
    double mTimeScaleMaxBase;
    double mTimeScaleMin;
-   double mDtMinToleratedTimeScale;
    double mChangeTimeScaleMax;
    double mChangeTimeScaleMin;
    bool   mWriteTimescales;
