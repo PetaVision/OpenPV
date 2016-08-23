@@ -106,7 +106,7 @@ private:
    virtual void ioParam_dtAdaptTriggerOffset(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief dtScaleMax: Obsolete.  This parameter is now handled by AdaptiveTimestepProbe.
+    * @brief dtScaleMax: Obsolete.  This parameter is now in AdaptiveTimestepProbe, as baseMax.
     */
    virtual void ioParam_dtScaleMax(enum ParamsIOFlag ioFlag);
 

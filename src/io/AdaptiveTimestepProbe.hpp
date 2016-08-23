@@ -36,9 +36,9 @@ protected:
    virtual void ioParam_targetName(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief dtScaleMax: If mDtAdaptController is set, specifies the maximum timescale allowed
+    * @brief baseMax: If mDtAdaptController is set, specifies the maximum timescale allowed
     */
-   virtual void ioParam_dtScaleMax(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_baseMax(enum ParamsIOFlag ioFlag);
 
    /**
     * @brief dtScaleMin: If mDtAdaptController is set, specifies the default timescale
@@ -97,7 +97,7 @@ protected:
    int calcValues(double timeValue);
 
 protected:
-   double mTimeScaleMaxBase         = 1.0;
+   double mBaseMax                  = 1.0;
    double mTimeScaleMin             = 1.0;
    double mDtMinToleratedTimeScale  = 1.0e-4;
    double mChangeTimeScaleMax       = 1.0;

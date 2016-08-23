@@ -17,7 +17,7 @@ AdaptiveTimestepController::AdaptiveTimestepController(
       char const * name,
       int batchWidth,
       double deltaTimeBase,
-      double timeScaleMaxBase,
+      double maxBase,
       double timeScaleMin,
       double changeTimeScaleMax,
       double changeTimeScaleMin,
@@ -28,7 +28,7 @@ AdaptiveTimestepController::AdaptiveTimestepController(
    mName = strdup(name);
    mBatchWidth = batchWidth;
    mDeltaTimeBase = deltaTimeBase;
-   mTimeScaleMaxBase = timeScaleMaxBase;
+   mMaxBase = maxBase;
    mTimeScaleMin = timeScaleMin;
    mChangeTimeScaleMax = changeTimeScaleMax;
    mChangeTimeScaleMin = changeTimeScaleMin;
@@ -38,7 +38,7 @@ AdaptiveTimestepController::AdaptiveTimestepController(
    mVerifyWrites = verifyWrites;
 
    mTimeScale.assign(mBatchWidth, mTimeScaleMin);
-   mTimeScaleMax.assign(mBatchWidth, mTimeScaleMaxBase);
+   mTimeScaleMax.assign(mBatchWidth, mMaxBase);
    mTimeScaleTrue.assign(mBatchWidth, -1.0);
    mOldTimeScale.assign(mBatchWidth, mTimeScaleMin);
    mOldTimeScaleTrue.assign(mBatchWidth, -1.0);
@@ -143,7 +143,7 @@ std::vector<double> const& AdaptiveTimestepController::calcTimesteps(double time
 
       if ( (dE_dt_scaled <= 0.0) || (E_0 <= 0) || (E_dt <= 0) ) {
          mTimeScale[b]      = mTimeScaleMin;
-         mTimeScaleMax[b]   = mTimeScaleMaxBase;
+         mTimeScaleMax[b]   = mMaxBase;
       }
       else {
          double tau_eff_scaled = E_0 / dE_dt_scaled;

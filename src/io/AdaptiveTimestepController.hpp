@@ -42,7 +42,7 @@ protected:
    char * mName;
    int mBatchWidth;
    double mDeltaTimeBase;
-   double mTimeScaleMaxBase;
+   double mMaxBase;
    double mTimeScaleMin;
    double mChangeTimeScaleMax;
    double mChangeTimeScaleMin;

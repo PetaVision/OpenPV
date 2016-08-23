@@ -741,7 +741,12 @@ void HyPerCol::ioParam_dtAdaptTriggerOffset(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerCol::ioParam_dtScaleMax(enum ParamsIOFlag ioFlag) {
-   paramMovedToColumnEnergyProbe(ioFlag, "dtScaleMax");
+   if (ioFlag==PARAMS_IO_READ && mParams->present(mName, "dtScaleMax")) {
+      if (columnId()==0) {
+         pvErrorNoExit() << "The dtScaleMax parameter is obsolete.  Use the AdaptiveTimestepProbe baseMax parameter\n";
+      }
+      mObsoleteParameterFound = true;
+   }
 }
 
 void HyPerCol::ioParam_dtScaleMax2(enum ParamsIOFlag ioFlag) {
