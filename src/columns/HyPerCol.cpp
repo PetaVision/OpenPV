@@ -1954,8 +1954,8 @@ int HyPerCol::advanceTime(double sim_time)
       notify(std::make_shared<LayerUpdateStateMessage>(phase, true/*recvOnGpuFlag*/, false/*updateOnGpuFlag*/, mSimTime, mDeltaTime));
 #else
       notify({
-         std::make_shared<LayerRecvSynapticInputMessage>(phase, mPhaseRecvTimers.at(phase), mSimTime, mDeltaTimeBase),
-         std::make_shared<LayerUpdateStateMessage>(phase, mSimTime, mDeltaTimeBase)
+         std::make_shared<LayerRecvSynapticInputMessage>(phase, mPhaseRecvTimers.at(phase), mSimTime, mDeltaTime),
+         std::make_shared<LayerUpdateStateMessage>(phase, mSimTime, mDeltaTime)
       });
 #endif
 
