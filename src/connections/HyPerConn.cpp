@@ -3091,36 +3091,37 @@ int HyPerConn::deliverPostsynapticPerspectiveConvolve(PVLayerCube const * activi
       pvdata_t * activityBatch = activity->data + b * (sourceNx + sourceHalo->rt + sourceHalo->lt) * (sourceNy + sourceHalo->up + sourceHalo->dn) * sourceNf;
       pvdata_t * gSynPatchHeadBatch = gSynPatchHead + b * targetNx * targetNy * targetNf;
 
+      // Iterate over each line in the y axis, the goal is to keep weights in the cache
+      for(int ky = 0; ky < yPatchSize; ky++) {
+         // Threading over feature was the important change that improved cache performance by
+         // 5-10x. dynamic scheduling also gave another performance increase over static.
 #ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for schedule(static)
+#pragma omp parallel for schedule(dynamic)
 #endif
-      for (int idx = 0; idx < numNeurons; idx++) {
-         int kTargetRes = recvPostSparse ? activeList[b][idx] : idx;
+         for (int feature = 0; feature < nfp; feature++) {
+            for (int idx = feature; idx < numNeurons; idx += nfp) {
+               int kTargetRes = recvPostSparse ? activeList[b][idx] : idx;
+               // gSyn
+               pvdata_t * gSyn = gSynPatchHeadBatch + kTargetRes;
 
-         // gSyn
-         pvdata_t * gSyn = gSynPatchHeadBatch + kTargetRes;
+               // Activity
+               float * a = activityBatch + startSourceExtBuf[kTargetRes] + ky * sy;
 
-         // Activity
-         long startSourceExt = startSourceExtBuf[kTargetRes];
-         float* activityStartBuf = activityBatch + startSourceExt;
+               // Weight
+               int kTargetExt = kIndexExtended(kTargetRes, targetNx, targetNy, targetNf, targetHalo->lt, targetHalo->rt, targetHalo->dn, targetHalo->up);
+               int kernelIndex = postConn->patchToDataLUT(kTargetExt);
+               pvwdata_t* weightStartBuf = postConn->get_wDataHead(arbor, kernelIndex);
+               pvwdata_t * w = weightStartBuf + ky * syp;
 
-         // Weight
-         int kTargetExt = kIndexExtended(kTargetRes, targetNx, targetNy, targetNf, targetHalo->lt, targetHalo->rt, targetHalo->dn, targetHalo->up);
-         int kernelIndex = postConn->patchToDataLUT(kTargetExt);
-         pvwdata_t* weightStartBuf = postConn->get_wDataHead(arbor, kernelIndex);
-
-         for (int ky = 0; ky < yPatchSize; ky++){
-            float * a = activityStartBuf + ky * sy;
-            pvwdata_t * w = weightStartBuf + ky * syp;
-            float dv = 0.0;
-            for (int k = 0; k < numPerStride; k++) {
-               dv += a[k] * w[k];
+               float dv = 0.0;
+               for (int k = 0; k < numPerStride; k++) {
+                  dv += a[k] * w[k];
+               }
+               *gSyn += dt_factor * dv;
             }
-            *gSyn += dt_factor * dv;
          }
       }
    }
-
    return PV_SUCCESS;
 }
 
