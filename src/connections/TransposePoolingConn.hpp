@@ -17,24 +17,25 @@ namespace PV {
 
 class TransposePoolingConn: public HyPerConn {
 protected:
-   virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_weightInitType(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_plasticityFlag(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_writeStep(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_combine_dW_with_W_flag(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_nxp(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_nyp(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_nfp(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_dWMax(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_weightUpdatePeriod(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_shrinkPatches(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_normalizeMethod(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_receiveGpu(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_weightInitType(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_writeStep(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_combine_dW_with_W_flag(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_nxp(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_nyp(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_nfp(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_dWMax(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_weightUpdatePeriod(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_shrinkPatches(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_originalConnName(enum ParamsIOFlag ioFlag);
 
 public:

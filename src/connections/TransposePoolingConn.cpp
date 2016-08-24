@@ -101,8 +101,12 @@ int TransposePoolingConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 // the parameter some way other than reading its own parameter
 // group's param directly.
 
+void TransposePoolingConn::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
+   // During the communication phase, receiveGpu will be copied from mOriginalConn
+}
+
 void TransposePoolingConn::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
-   // During the communication phase, numAxonalArbors will be copied from mOriginalConn
+   // During the communication phase, sharedWeights will be copied from mOriginalConn
    if (ioFlag==PARAMS_IO_READ) {
       parent->parameters()->handleUnnecessaryStringParameter(name, "sharedWeights");
    }
@@ -252,6 +256,8 @@ int TransposePoolingConn::communicateInitInfo() {
       return PV_POSTPONE;
    }
 
+   receiveGpu = mOriginalConn->getReceiveGpu();
+   parent->parameters()->handleUnnecessaryParameter(name, "receiveGpu", receiveGpu);
 
    sharedWeights = mOriginalConn->usingSharedWeights();
    parent->parameters()->handleUnnecessaryParameter(name, "sharedWeights", sharedWeights);
