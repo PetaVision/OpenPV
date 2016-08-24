@@ -60,23 +60,6 @@ public:
    virtual int communicateInitInfo() override;
 
    /**
-    * allocateDataStructures is used to allocate blocks of memory whose size and arrangement depend on parameters.
-    * (For example, HyPerConn allocates weight patches and data patches).
-    * After a connection is constructed, it is not properly initialized until communicateInitInfo(), allocateDataStructures(), and
-    * initializeState() have been called.
-    *
-    * Return values:
-    *    PV_POSTPONE means that allocateDataStructures() cannot be run until other layers'/connections' own allocateDataStructures()
-    *    have been run successfully.
-    *
-    *    PV_SUCCESS and PV_FAILURE have their usual meanings.
-    *
-    * allocateDataStructures() is called by passing an AllocateDataMessage to respond(), which is
-    * usually done in HyPerCol::run.
-    */
-   virtual int allocateDataStructures() override;
-
-   /**
     * initializeState is used to set the initial values of the connection.
     * If the parent HyPerCol's checkpointReadFlag is set, it calls checkpointRead()
     * If not, but the connection's initializeFromCheckpointFlag is set, it calls readStateFromCheckpoint().
@@ -439,6 +422,11 @@ protected:
     * If size is any other value, it is an error.
     */
    virtual int initializeDelays(const float * fDelayArray, int size);
+
+   /**
+    * Returns the maximum value of the delay array, as a number of timesteps
+    */
+   int maxDelaySteps();
    
 private:
    /**
