@@ -123,7 +123,7 @@ void testCrop() {
          13.0f, 14.0f, 15.0f, 16.0f
       };
 
-   std::vector<Buffer::OffsetAnchor> anchors = {
+   std::vector<Buffer::Anchor> anchors = {
          Buffer::NORTH, Buffer::SOUTH,
          Buffer::EAST, Buffer::WEST,
          Buffer::NORTHEAST, Buffer::NORTHWEST,

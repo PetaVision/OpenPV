@@ -147,42 +147,75 @@ namespace PV {
       protected:
          // Raw data read from disk, one per batch
          std::vector<Buffer> mInputData;
-         // Enums that specify how fitBufferToLayer does its job
+
+         // If mAutoResizeFlag is enabled, do we crop the edges or pad the edges with mPadValue?
          Buffer::RescaleMethod mRescaleMethod;
+
+         // If mAutoResizeFlag is enabled, do we rescale with bicubic or nearest neighbor filtering?
          Buffer::InterpolationMethod mInterpolationMethod;
-         Buffer::OffsetAnchor mOffsetAnchor;
+
+         // When cropping or resizing, which side of the canvas is the origin?
+         Buffer::Anchor mAnchor;
+
+         // Flag that enables rescaling input buffer to layer dimensions instead of just cropping
          bool mAutoResizeFlag;
+
+         // Flag that inverts input buffer during post process step
          bool mInverseFlag;
+
+         // Flag that enables scaling input buffer to extended region instead of restricted region
          bool mUseInputBCflag;
+         
+         // Flag enabling normalization in the post process step
          bool mNormalizeLuminanceFlag;
-         // if true and normalizeLuminanceFlag == true, normalize the standard deviation to 1 and mean = 0
-         // if false and normalizeLuminanceFlag == true, nomalize max = 1, min = 0
+         
+         // If true and normalizeLuminanceFlag == true, normalize the standard deviation to 1 and mean = 0
+         // If false and normalizeLuminanceFlag == true, nomalize max = 1, min = 0
          bool mNormalizeStdDev;
+        
+         // Amount to translate input buffer before scattering but after rescaling
          int mOffsetX = 0;
          int mOffsetY = 0;
+  
          // Object to handle batch indexing. 
          std::unique_ptr<BatchIndexer> mBatchIndexer;
          BatchIndexer::BatchMethod mBatchMethod;
 
       private:
+         
          // MPI datatypes for boundary exchange
          MPI_Datatype* mDatatypes = nullptr;
+
+         // Value to fill empty region with when using padding
          float mPadValue = 0.0f;
+
+         // Path to input file or list of input files
          std::string mInputPath;
+
+         // Filepointer to output file used when mEchoFramePathnameFlag == true
          PV_Stream* mTimestampFile = nullptr;
+         
          // Number of timesteps an input file is displayed before advancing the file list. If <= 0, the file never changes.
          int mDisplayPeriod = 0;
+         
          // Automatically set if the inputPath ends in .txt. Determines whether this layer represents a collection of files.
          bool mUsingFileList = false;
+         
          // if true, echo the frame pathname to output stream
          bool mEchoFramePathnameFlag = false;          
+         
          // When reaching the end of the file list, do we reset to 0 or to start_index?
          bool mResetToStartOnLoop = false;
+
+         // Flag to write filenames and batch indices to disk as they are loaded
          bool mWriteFileToTimestamp = false;
+
          // An array of starting file list indices, one per batch
          std::vector<int> mStartFrameIndex;
+
          // An array indicating how far to advance each index, one per batch
          std::vector<int> mSkipFrameIndex;
+
          // List of filenames to iterate over
          std::vector<std::string> mFileList;
    };

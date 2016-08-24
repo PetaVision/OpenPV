@@ -37,10 +37,6 @@ namespace PV {
       mFeatures = features;
    }
 
-   const std::vector<float> Buffer::asVector() {
-       return mData;
-   }
-
    // Resizing a Buffer will clear its contents. Use rescale, crop, or grow to preserve values.
    void Buffer::resize(int width, int height, int features) {
       mData.clear();
@@ -50,65 +46,13 @@ namespace PV {
       mFeatures = features;
    }
 
-   int Buffer::getOffsetX(enum OffsetAnchor offsetAnchor, int offsetX, int newWidth, int currentWidth) {
-      switch(offsetAnchor) {
-         case NORTHWEST:
-         case WEST:
-         case SOUTHWEST:
-            return offsetX;
-         case NORTH:
-         case CENTER:
-         case SOUTH:
-            return currentWidth/2 - newWidth/2 + offsetX;
-         case NORTHEAST:
-         case EAST:
-         case SOUTHEAST:
-            return offsetX + currentWidth - newWidth;
-      }
-      return 0;
-   }
-
-   int Buffer::getOffsetY(enum OffsetAnchor offsetAnchor, int offsetY, int smallerHeight, int biggerHeight) {
-      switch(offsetAnchor) {
-         case NORTHWEST:
-         case NORTH:
-         case NORTHEAST:
-            return offsetY;
-         case WEST:
-         case CENTER:
-         case EAST:
-            return biggerHeight/2 - smallerHeight/2 + offsetY;
-         case SOUTHWEST:
-         case SOUTH:
-         case SOUTHEAST:
-         return offsetY + biggerHeight - smallerHeight;
-      }
-      return 0;
-   }
-
-   void Buffer::translate(int offsetX, int offsetY) {
-      Buffer result(getWidth(), getHeight(), getFeatures());
-      for(int y = 0; y < getHeight(); ++y) {
-         for(int x = 0; x < getWidth(); ++x) {
-            for(int f = 0; f < getFeatures(); ++f) {
-               int destX = x + offsetX;
-               int destY = y + offsetY;
-               if(destX < 0 || destX >= getWidth())  continue;
-               if(destY < 0 || destY >= getHeight()) continue;
-               result.set(destX, destY, f, at(x, y, f));
-            }
-         }
-      }
-      set(result.asVector(), getWidth(), getHeight(), getFeatures());
-   }
-  
-   // Grows a buffer
-   void Buffer::grow(int newWidth, int newHeight, enum OffsetAnchor offsetAnchor) {
+      // Grows a buffer
+   void Buffer::grow(int newWidth, int newHeight, enum Anchor anchor) {
       if(newWidth < getWidth() && newHeight < getHeight()) {
          return;
       }
-      int offsetX = getOffsetX(offsetAnchor, 0, getWidth(),  newWidth);
-      int offsetY = getOffsetY(offsetAnchor, 0, getHeight(), newHeight);
+      int offsetX = getAnchorX(anchor, getWidth(),  newWidth);
+      int offsetY = getAnchorY(anchor, getHeight(), newHeight);
       Buffer bigger(newWidth, newHeight, getFeatures());
 
       for(int y = 0; y < getHeight(); ++y) {
@@ -126,16 +70,16 @@ namespace PV {
    }
 
    // Crops a buffer down to the specified size
-   void Buffer::crop(int targetWidth, int targetHeight, enum OffsetAnchor offsetAnchor) {
-      if(targetWidth >= getWidth() && targetHeight >= getHeight()) {
+   void Buffer::crop(int newWidth, int newHeight, enum Anchor anchor) {
+      if(newWidth >= getWidth() && newHeight >= getHeight()) {
          return;
       }
-      int offsetX = getOffsetX(offsetAnchor, 0, targetWidth,  getWidth());
-      int offsetY = getOffsetY(offsetAnchor, 0, targetHeight, getHeight());
-      Buffer cropped(targetWidth, targetHeight, getFeatures());
+      int offsetX = getAnchorX(anchor, newWidth,  getWidth());
+      int offsetY = getAnchorY(anchor, newHeight, getHeight());
+      Buffer cropped(newWidth, newHeight, getFeatures());
 
-      for(int destY = 0; destY < targetHeight; ++destY) {
-         for(int destX = 0; destX < targetWidth; ++destX) {
+      for(int destY = 0; destY < newHeight; ++destY) {
+         for(int destX = 0; destX < newWidth; ++destX) {
             for(int f = 0; f < getFeatures(); ++f) {
                int sourceX = destX + offsetX;
                int sourceY = destY + offsetY;
@@ -145,14 +89,18 @@ namespace PV {
             }
          }
       }
-      set(cropped.asVector(), targetWidth, targetHeight, getFeatures());
+      set(cropped.asVector(), newWidth, newHeight, getFeatures());
    }
 
-   void Buffer::rescale(int targetWidth, int targetHeight, enum RescaleMethod rescaleMethod, enum InterpolationMethod interpMethod, enum OffsetAnchor offsetAnchor) {
-      float xRatio = static_cast<float>(targetWidth)  / getWidth();
-      float yRatio = static_cast<float>(targetHeight) / getHeight();
-      int resizedWidth = targetWidth;
-      int resizedHeight = targetHeight;
+   // Rescale a buffer, preserving aspect ratio
+   void Buffer::rescale(int newWidth, int newHeight,
+         enum RescaleMethod rescaleMethod,
+         enum InterpolationMethod interpMethod,
+         enum Anchor anchor) {
+      float xRatio = static_cast<float>(newWidth)  / getWidth();
+      float yRatio = static_cast<float>(newHeight) / getHeight();
+      int resizedWidth = newWidth;
+      int resizedHeight = newHeight;
       float resizeFactor = 1.0f;
 
       switch(rescaleMethod) {
@@ -171,32 +119,96 @@ namespace PV {
       std::vector<float> scaledInput(resizedWidth * resizedHeight * getFeatures());
       switch(interpMethod) {
          case BICUBIC:
-            bicubicInterp(rawInput.data(), getWidth(), getHeight(), getFeatures(), getFeatures(), getFeatures() * getWidth(), 1, scaledInput.data(), resizedWidth, resizedHeight);
+            bicubicInterp(rawInput.data(),                        // Input data
+                  getWidth(),    getHeight(), getFeatures(),      // Input dimensions
+                  getFeatures(), getFeatures() * getWidth(), 1,   // Strides
+                  scaledInput.data(),                             // Output data
+                  resizedWidth,  resizedHeight);                  // Target dimensions
             break;
          case NEAREST:
-            nearestNeighborInterp(rawInput.data(), getWidth(), getHeight(), getFeatures(), getFeatures(), getFeatures() * getWidth(), 1, scaledInput.data(), resizedWidth, resizedHeight);
+            nearestNeighborInterp(rawInput.data(),                // Input data
+                  getWidth(),    getHeight(), getFeatures(),      // Input dimensions
+                  getFeatures(), getFeatures() * getWidth(), 1,   // Strides
+                  scaledInput.data(),                             // Output data
+                  resizedWidth,  resizedHeight);                  // Target dimensions
             break;
       }
       set(scaledInput, resizedWidth, resizedHeight, getFeatures());
 
       // This final call resizes the buffer to our specified
-      // targetWidth and targetHeight. If our rescaleMethod was PAD,
+      // newWidth and newHeight. If our rescaleMethod was PAD,
       // this actually grows the buffer to include the padded region.
       switch(rescaleMethod) {
          case CROP:
-            crop(targetWidth, targetHeight, offsetAnchor);
+            crop(newWidth, newHeight, anchor);
             break;
          case PAD:
-            grow(targetWidth, targetHeight, offsetAnchor);
+            grow(newWidth, newHeight, anchor);
             break;
       }
    }
+   
+   // Shift a buffer, clipping any values that land out of bounds
+   void Buffer::translate(int xShift, int yShift) {
+      Buffer result(getWidth(), getHeight(), getFeatures());
+      for(int y = 0; y < getHeight(); ++y) {
+         for(int x = 0; x < getWidth(); ++x) {
+            for(int f = 0; f < getFeatures(); ++f) {
+               int destX = x + xShift;
+               int destY = y + yShift;
+               if(destX < 0 || destX >= getWidth())  continue;
+               if(destY < 0 || destY >= getHeight()) continue;
+               result.set(destX, destY, f, at(x, y, f));
+            }
+         }
+      }
+      set(result.asVector(), getWidth(), getHeight(), getFeatures());
+   }
 
+   int Buffer::getAnchorX(enum Anchor anchor, int smallerWidth, int biggerWidth) {
+      switch(anchor) {
+         case NORTHWEST:
+         case WEST:
+         case SOUTHWEST:
+            return 0;
+         case NORTH:
+         case CENTER:
+         case SOUTH:
+            return biggerWidth/2 - smallerWidth/2;
+         case NORTHEAST:
+         case EAST:
+         case SOUTHEAST:
+            return biggerWidth - smallerWidth;
+      }
+   }
 
-   void Buffer::nearestNeighborInterp(float const * bufferIn, int widthIn, int heightIn, int numBands, int xStrideIn, int yStrideIn, int bandStrideIn, float * bufferOut, int widthOut, int heightOut) {
+   int Buffer::getAnchorY(enum Anchor anchor, int smallerHeight, int biggerHeight) {
+      switch(anchor) {
+         case NORTHWEST:
+         case NORTH:
+         case NORTHEAST:
+            return 0;
+         case WEST:
+         case CENTER:
+         case EAST:
+            return biggerHeight/2 - smallerHeight/2;
+         case SOUTHWEST:
+         case SOUTH:
+         case SOUTHEAST:
+            return biggerHeight - smallerHeight;
+      }
+   }
+
+   void Buffer::nearestNeighborInterp(float const * bufferIn,
+         int widthIn,   int heightIn,  int numBands,
+         int xStrideIn, int yStrideIn, int bandStrideIn,
+         float * bufferOut,
+         int widthOut,  int heightOut) {
+
       /* Interpolation using nearest neighbor interpolation */
       int xinteger[widthOut];
       float dx = (float) (widthIn-1)/(float) (widthOut-1);
+
       for (int kx=0; kx<widthOut; kx++) {
          float x = dx * (float) kx;
          xinteger[kx] = (int) nearbyintf(x);
@@ -204,6 +216,7 @@ namespace PV {
 
       int yinteger[heightOut];
       float dy = (float) (heightIn-1)/(float) (heightOut-1);
+      
       for (int ky=0; ky<heightOut; ky++) {
          float y = dy * (float) ky;
          yinteger[ky] = (int) nearbyintf(y);
@@ -222,12 +235,18 @@ namespace PV {
       }
    }
 
-   void Buffer::bicubicInterp(float const * bufferIn, int widthIn, int heightIn, int numBands, int xStrideIn, int yStrideIn, int bandStrideIn, float * bufferOut, int widthOut, int heightOut) {
+   void Buffer::bicubicInterp(float const * bufferIn,
+         int widthIn,   int heightIn,  int numBands,
+         int xStrideIn, int yStrideIn, int bandStrideIn,
+         float * bufferOut,
+         int widthOut,  int heightOut) {
+
       /* Interpolation using bicubic convolution with a=-1 (following Octave image toolbox's imremap function -- change this?). */
       float xinterp[widthOut];
       int xinteger[widthOut];
       float xfrac[widthOut];
       float dx = (float) (widthIn-1)/(float) (widthOut-1);
+
       for (int kx=0; kx<widthOut; kx++) {
          float x = dx * (float) kx;
          xinterp[kx] = x;
@@ -240,6 +259,7 @@ namespace PV {
       int yinteger[heightOut];
       float yfrac[heightOut];
       float dy = (float) (heightIn-1)/(float) (heightOut-1);
+
       for (int ky=0; ky<heightOut; ky++) {
          float y = dy * (float) ky;
          yinterp[ky] = y;
@@ -249,19 +269,25 @@ namespace PV {
       }
 
       memset(bufferOut, 0, sizeof(*bufferOut)*size_t(widthOut*heightOut*numBands));
+
       for (int xOff = 2; xOff > -2; xOff--) {
          for (int yOff = 2; yOff > -2; yOff--) {
             for (int ky=0; ky<heightOut; ky++) {
                float ycoeff = bicubic(yfrac[ky]-(float) yOff);
                int yfetch = yinteger[ky]+yOff;
+               
                if (yfetch < 0) yfetch = -yfetch;
                if (yfetch >= heightIn) yfetch = heightIn - (yfetch - heightIn) - 1;
+
                for (int kx=0; kx<widthOut; kx++) {
                   float xcoeff = bicubic(xfrac[kx]-(float) xOff);
                   int xfetch = xinteger[kx]+xOff;
+
                   if (xfetch < 0) xfetch = -xfetch;
                   if (xfetch >= widthIn) xfetch = widthIn - (xfetch - widthIn) - 1;
+
                   assert(xfetch >= 0 && xfetch < widthIn && yfetch >= 0 && yfetch < heightIn);
+
                   for (int f=0; f<numBands; f++) {
                      int fetchIdx = yfetch * yStrideIn + xfetch * xStrideIn + f * bandStrideIn;
                      float p = bufferIn[fetchIdx];

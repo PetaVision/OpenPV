@@ -34,7 +34,7 @@ namespace PV {
       mNormalizeStdDev = true;
       mOffsetX = 0;
       mOffsetY = 0;
-      mOffsetAnchor = Buffer::CENTER;
+      mAnchor = Buffer::CENTER;
       mPadValue = 0;
       mEchoFramePathnameFlag = false;
       mDisplayPeriod = -1;
@@ -192,31 +192,31 @@ namespace PV {
          char *offsetAnchor = nullptr;
          parent->ioParamString(ioFlag, name, "offsetAnchor", &offsetAnchor, "tl");
          if(strcmp(offsetAnchor, "tl") == 0) {
-            mOffsetAnchor = Buffer::NORTHWEST;
+            mAnchor = Buffer::NORTHWEST;
          }
          else if(strcmp(offsetAnchor, "tc") == 0) {
-            mOffsetAnchor = Buffer::NORTH;
+            mAnchor = Buffer::NORTH;
          }
          else if(strcmp(offsetAnchor, "tr") == 0) {
-            mOffsetAnchor = Buffer::NORTHEAST;
+            mAnchor = Buffer::NORTHEAST;
          }
          else if(strcmp(offsetAnchor, "cl") == 0) {
-            mOffsetAnchor = Buffer::WEST;
+            mAnchor = Buffer::WEST;
          }
          else if(strcmp(offsetAnchor, "cc") == 0) {
-            mOffsetAnchor = Buffer::CENTER;
+            mAnchor = Buffer::CENTER;
          }
          else if(strcmp(offsetAnchor, "cr") == 0) {
-            mOffsetAnchor = Buffer::EAST;
+            mAnchor = Buffer::EAST;
          }
          else if(strcmp(offsetAnchor, "bl") == 0) { 
-            mOffsetAnchor = Buffer::SOUTHWEST;
+            mAnchor = Buffer::SOUTHWEST;
          }
          else if(strcmp(offsetAnchor, "bc") == 0) {
-            mOffsetAnchor = Buffer::SOUTH;
+            mAnchor = Buffer::SOUTH;
          }
          else if(strcmp(offsetAnchor, "br") == 0) {
-            mOffsetAnchor = Buffer::SOUTHEAST;
+            mAnchor = Buffer::SOUTHEAST;
          }
          else {
             if (parent->columnId()==0) {
@@ -231,7 +231,7 @@ namespace PV {
          //The opposite of above. Find a better way to do this that isn't so gross
          char *offsetAnchor = (char*)calloc(3, sizeof(char));
          offsetAnchor[2] = '\0';
-         switch(mOffsetAnchor) {
+         switch(mAnchor) {
             case Buffer::NORTH:
             case Buffer::NORTHWEST:
             case Buffer::NORTHEAST:
@@ -248,7 +248,7 @@ namespace PV {
                offsetAnchor[0] = 'b';
                break;
          }
-         switch(mOffsetAnchor) {
+         switch(mAnchor) {
             case Buffer::NORTH:
             case Buffer::CENTER:
             case Buffer::SOUTH:
@@ -671,13 +671,13 @@ namespace PV {
       const int targetHeight = loc->nyGlobal + (mUseInputBCflag ? (halo->dn + halo->up) : 0);
 
       if(mAutoResizeFlag) {
-         buffer.rescale(targetWidth, targetHeight, mRescaleMethod, mInterpolationMethod, mOffsetAnchor); 
+         buffer.rescale(targetWidth, targetHeight, mRescaleMethod, mInterpolationMethod, mAnchor); 
          buffer.translate(-mOffsetX, -mOffsetY);
       }
       else {
-         buffer.grow(targetWidth, targetHeight, mOffsetAnchor);
+         buffer.grow(targetWidth, targetHeight, mAnchor);
          buffer.translate(-mOffsetX, -mOffsetY);
-         buffer.crop(targetWidth, targetHeight, mOffsetAnchor);
+         buffer.crop(targetWidth, targetHeight, mAnchor);
       }
    }     
 
