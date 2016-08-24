@@ -1,24 +1,17 @@
-#ifndef IMAGEOFFSETTESTLAYER_HPP_ 
-#define IMAGEOFFSETTESTLAYER_HPP_
+#pragma once
 
-#include <layers/Image.hpp>
-#include <cMakeHeader.h>
+#include <layers/ImageLayer.hpp>
 
 namespace PV {
+   class ImageOffsetTestLayer: public PV::ImageLayer {
+      public:
+         ImageOffsetTestLayer(const char* name, HyPerCol * hc);
+         virtual double getDeltaUpdateTime();
 
-class ImageOffsetTestLayer: public PV::Image{
-public:
-   ImageOffsetTestLayer(const char* name, HyPerCol * hc);
-#ifdef PV_USE_GDAL
-   virtual double getDeltaUpdateTime();
-
-protected:
-   int updateState(double timef, double dt);
-#endif // PV_USE_GDAL
-
-private:
+      protected:
+         int updateState(double timef, double dt);
+         bool readyForNextFile();
 };
 
 
 } /* namespace PV */
-#endif // IMAGEOFFSETTESTLAYER_HPP_

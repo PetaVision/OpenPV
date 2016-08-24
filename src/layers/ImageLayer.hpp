@@ -13,7 +13,6 @@ namespace PV {
       virtual Buffer retrieveData(std::string filename, int batchIndex);
       virtual void readImage(std::string filename);
       virtual int postProcess(double timef, double dt);
-      virtual bool readyForNextFile();
 
    public:
       ImageLayer(const char * name, HyPerCol * hc);

@@ -38,8 +38,9 @@ namespace PV {
          void set(int x, int y, int feature, float value);
          void set(const std::vector<float> &vector, int width, int height, int features);
          void resize(int width, int height, int features);
-         void crop(int targetWidth, int targetHeight, enum OffsetAnchor offsetAnchor, int offsetX, int offsetY);
-         void grow(int newWidth, int newHeight);
+         void crop(int targetWidth, int targetHeight, enum OffsetAnchor offsetAnchor);
+         void grow(int newWidth, int newHeight, enum OffsetAnchor offsetAnchor);
+         void translate(int offsetX, int offsetY);
          void rescale(int targetWidth, int targetHeight, enum RescaleMethod rescaleMethod, enum InterpolationMethod interpMethod, enum OffsetAnchor offsetAnchor);
          const std::vector<float> asVector();
          int getHeight()   { return mHeight; }

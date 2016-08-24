@@ -136,7 +136,7 @@ void testCrop() {
    
    for(auto anchor : anchors) {
       testBuffer.set(bufferContents, 4, 4, 1);
-      testBuffer.crop(4, 4, anchor, 0, 0);
+      testBuffer.crop(4, 4, anchor);
       std::vector<float> contents = testBuffer.asVector();
       for(int i = 0; i < contents.size(); ++i) {
          pvErrorIf(contents.at(i) != bufferContents.at(i),
@@ -147,55 +147,55 @@ void testCrop() {
 
    // Test each offset anchor
    testBuffer.set(bufferContents, 4, 4, 1);
-   testBuffer.crop(2, 2, Buffer::NORTH, 0, 0);
+   testBuffer.crop(2, 2, Buffer::NORTH);
    pvErrorIf(
          testBuffer.at(0, 0, 0) != 2.0f || testBuffer.at(1, 0, 0) != 3.0f,
          "Failed (north).\n");
 
    testBuffer.set(bufferContents, 4, 4, 1);
-   testBuffer.crop(2, 2, Buffer::NORTHEAST, 0, 0);
+   testBuffer.crop(2, 2, Buffer::NORTHEAST);
    pvErrorIf(
          testBuffer.at(0, 0, 0) != 3.0f || testBuffer.at(1, 1, 0) != 8.0f,
          "Failed (northeast).\n");
 
    testBuffer.set(bufferContents, 4, 4, 1);
-   testBuffer.crop(2, 2, Buffer::EAST, 0, 0);
+   testBuffer.crop(2, 2, Buffer::EAST);
    pvErrorIf(
          testBuffer.at(1, 0, 0) != 8.0f || testBuffer.at(1, 1, 0) != 12.0f,
          "Failed (east).\n");
 
    testBuffer.set(bufferContents, 4, 4, 1);
-   testBuffer.crop(2, 2, Buffer::SOUTHEAST, 0, 0);
+   testBuffer.crop(2, 2, Buffer::SOUTHEAST);
    pvErrorIf(
          testBuffer.at(1, 0, 0) != 12.0f || testBuffer.at(0, 1, 0) != 15.0f,
          "Failed (southeast).\n");
    
    testBuffer.set(bufferContents, 4, 4, 1);
-   testBuffer.crop(2, 2, Buffer::SOUTH, 0, 0);
+   testBuffer.crop(2, 2, Buffer::SOUTH);
    pvErrorIf(
          testBuffer.at(0, 1, 0) != 14.0f || testBuffer.at(1, 1, 0) != 15.0f,
          "Failed (south).\n");
 
    testBuffer.set(bufferContents, 4, 4, 1);
-   testBuffer.crop(2, 2, Buffer::SOUTHWEST, 0, 0);
+   testBuffer.crop(2, 2, Buffer::SOUTHWEST);
    pvErrorIf(
          testBuffer.at(0, 0, 0) != 9.0f || testBuffer.at(1, 1, 0) != 14.0f,
          "Failed (southwest).\n");
 
    testBuffer.set(bufferContents, 4, 4, 1);
-   testBuffer.crop(2, 2, Buffer::WEST, 0, 0);
+   testBuffer.crop(2, 2, Buffer::WEST);
    pvErrorIf(
          testBuffer.at(0, 0, 0) != 5.0f || testBuffer.at(0, 1, 0) != 9.0f,
          "Failed (west).\n");
 
    testBuffer.set(bufferContents, 4, 4, 1);
-   testBuffer.crop(2, 2, Buffer::NORTHWEST, 0, 0);
+   testBuffer.crop(2, 2, Buffer::NORTHWEST);
    pvErrorIf(
          testBuffer.at(0, 1, 0) != 5.0f || testBuffer.at(1, 0, 0) != 2.0f,
          "Failed (northwest).\n");
    
    testBuffer.set(bufferContents, 4, 4, 1);
-   testBuffer.crop(2, 2, Buffer::CENTER, 0, 0);
+   testBuffer.crop(2, 2, Buffer::CENTER);
    pvErrorIf(
          testBuffer.at(0, 0, 0) != 6.0f || testBuffer.at(1, 1, 0) != 11.0f,
          "Failed (center).\n");
@@ -203,25 +203,29 @@ void testCrop() {
    // Test offsetX and offsetY
  
    testBuffer.set(bufferContents, 4, 4, 1);
-   testBuffer.crop(2, 2, Buffer::CENTER, 1, 0);
+   testBuffer.translate(-1, 0);
+   testBuffer.crop(2, 2, Buffer::CENTER);
    pvErrorIf(
          testBuffer.at(0, 0, 0) != 7.0f || testBuffer.at(1, 1, 0) != 12.0f,
          "Failed (offsetX = 1).\n");
 
    testBuffer.set(bufferContents, 4, 4, 1);
-   testBuffer.crop(2, 2, Buffer::EAST, -1, 0);
+   testBuffer.translate(1, 0);
+   testBuffer.crop(2, 2, Buffer::EAST);
    pvErrorIf(
          testBuffer.at(0, 0, 0) != 6.0f || testBuffer.at(1, 1, 0) != 11.0f,
          "Failed (offsetX = -1).\n");
 
    testBuffer.set(bufferContents, 4, 4, 1);
-   testBuffer.crop(2, 2, Buffer::NORTHWEST, 0, 1);
+   testBuffer.translate(0, -1);
+   testBuffer.crop(2, 2, Buffer::NORTHWEST);
    pvErrorIf(
          testBuffer.at(0, 0, 0) != 5.0f || testBuffer.at(1, 1, 0) != 10.0f,
          "Failed (offsetY = 1).\n");
  
    testBuffer.set(bufferContents, 4, 4, 1);
-   testBuffer.crop(2, 2, Buffer::SOUTH, 0, -1);
+   testBuffer.translate(0, 1);
+   testBuffer.crop(2, 2, Buffer::SOUTH);
    pvErrorIf(
          testBuffer.at(0, 0, 0) != 6.0f || testBuffer.at(1, 1, 0) != 11.0f,
          "Failed (offsetY = -1).\n");

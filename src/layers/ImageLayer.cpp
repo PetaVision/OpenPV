@@ -53,12 +53,7 @@ namespace PV {
          }
       }
       Buffer result(mImage->asVector(), mImage->getWidth(), mImage->getHeight(), getLayerLoc()->nf);
-      result.rescale(getLayerLoc()->nx, getLayerLoc()->ny, mRescaleMethod, mInterpolationMethod, mOffsetAnchor);
       return result;
-   }
-
-   bool ImageLayer::readyForNextFile() {
-      return true;
    }
 
    void ImageLayer::readImage(std::string filename)

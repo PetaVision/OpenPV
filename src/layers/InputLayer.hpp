@@ -119,7 +119,6 @@ namespace PV {
          // This pure virtual function gets called from nextInput by the root process only.
          // Load the input file from disk in this method.
          virtual Buffer retrieveData(std::string filename, int batchIndex) = 0;
-         void fitBufferToLayer(Buffer &buffer);
          void nextInput(double timef, double dt);
          void initializeBatchIndexer(int fileCount);
 
@@ -143,6 +142,7 @@ namespace PV {
       private:
          int initialize_base();
          void populateFileList();
+         void fitBufferToLayer(Buffer &buffer);
 
       protected:
          // Raw data read from disk, one per batch

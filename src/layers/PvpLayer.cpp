@@ -98,7 +98,6 @@ namespace PV {
       }
 
       pvp_close_file(pvpFile, parent->getCommunicator());
-      fitBufferToLayer(result);
       return result;
    }
 

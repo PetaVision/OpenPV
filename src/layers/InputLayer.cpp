@@ -166,7 +166,7 @@ namespace PV {
          mInputPath = std::string(tempString);
          // Check if the input path ends in ".txt" and enable the file list if so
          std::string txt = ".txt";
-         if(mDisplayPeriod > 0 && mInputPath.size() > txt.size() && mInputPath.compare(mInputPath.size() - txt.size(), txt.size(), txt) == 0) {
+         if(mInputPath.size() > txt.size() && mInputPath.compare(mInputPath.size() - txt.size(), txt.size(), txt) == 0) {
             mUsingFileList = true; 
          }
          else {
@@ -574,6 +574,7 @@ namespace PV {
                fileName = mFileList.at(mBatchIndexer->nextIndex(b));
             }
             mInputData.at(b) = retrieveData(fileName, b);
+            fitBufferToLayer(mInputData.at(b));
          } 
          scatterInput(b);
       }
@@ -609,7 +610,10 @@ namespace PV {
             int cropTop = rowFromRank(rank, icComm->numCommRows(), icComm->numCommColumns()) * loc->ny;
 
             // Crop the input data to the size of one process.
-            croppedBuffer.crop(activityWidth, activityHeight, Buffer::NORTHWEST, cropLeft, cropTop);
+            croppedBuffer.translate(-cropLeft, -cropTop);
+            croppedBuffer.crop(activityWidth, activityHeight, Buffer::NORTHWEST);
+            pvDebug() << getName() << ": BUFFER CROPPED FROM " << mInputData.at(batchIndex).getWidth() << "x" << mInputData.at(batchIndex).getHeight()
+               << " TO " << croppedBuffer.getWidth() << "x" << croppedBuffer.getHeight() << " aw=" << activityWidth << ", ah=" << activityHeight << "\n";
 
             // If this isn't the root process, ship it off to the appropriate process.
             if(rank != rootProc) {
@@ -623,12 +627,13 @@ namespace PV {
          
          // Create a temporary array to receive from MPI, move the values into
          // a vector, and then create a Buffer out of that vector.
-         float tempBuffer[numElements];
-         MPI_Recv(&tempBuffer, numElements, MPI_FLOAT, rootProc, 31, mpiComm, MPI_STATUS_IGNORE);
+         float *tempBuffer = static_cast<float*>(calloc(numElements, sizeof(float)));
+         MPI_Recv(tempBuffer, numElements, MPI_FLOAT, rootProc, 31, mpiComm, MPI_STATUS_IGNORE);
          std::vector<float> bufferData(numElements);
          for(int i = 0; i < numElements; ++i) {
             bufferData.at(i) = tempBuffer[i];
          }
+         free(tempBuffer);
          croppedBuffer.set(bufferData, activityWidth, activityHeight, numFeatures);
       }
 
@@ -662,14 +667,18 @@ namespace PV {
       pvAssert(parent->columnId() == 0);
       const PVLayerLoc *loc = getLayerLoc();
       const PVHalo *halo = &loc->halo;
-      const int targetWidth = loc->nxGlobal + (mUseInputBCflag ? (halo->lt + halo->rt) : 0);
+      const int targetWidth  = loc->nxGlobal + (mUseInputBCflag ? (halo->lt + halo->rt) : 0);
       const int targetHeight = loc->nyGlobal + (mUseInputBCflag ? (halo->dn + halo->up) : 0);
- 
+
       if(mAutoResizeFlag) {
          buffer.rescale(targetWidth, targetHeight, mRescaleMethod, mInterpolationMethod, mOffsetAnchor); 
+         buffer.translate(-mOffsetX, -mOffsetY);
       }
-      buffer.crop(targetWidth, targetHeight, mOffsetAnchor, mOffsetX, mOffsetY);
-      buffer.grow(targetWidth, targetHeight);
+      else {
+         buffer.grow(targetWidth, targetHeight, mOffsetAnchor);
+         buffer.translate(-mOffsetX, -mOffsetY);
+         buffer.crop(targetWidth, targetHeight, mOffsetAnchor);
+      }
    }     
 
    //Apply normalizeLuminanceFlag, normalizeStdDev, and inverseFlag, which can be done pixel-by-pixel

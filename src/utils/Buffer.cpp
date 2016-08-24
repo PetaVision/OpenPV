@@ -41,10 +41,10 @@ namespace PV {
        return mData;
    }
 
-   // Resizing a Buffer will clear its contents. Use rescale or crop to preserve values.
+   // Resizing a Buffer will clear its contents. Use rescale, crop, or grow to preserve values.
    void Buffer::resize(int width, int height, int features) {
       mData.clear();
-      mData.resize(height * width * features);
+      mData.resize(height * width * features, 0.0f);
       mWidth = width;
       mHeight = height;
       mFeatures = features;
@@ -68,7 +68,7 @@ namespace PV {
       return 0;
    }
 
-   int Buffer::getOffsetY(enum OffsetAnchor offsetAnchor, int offsetY, int newHeight, int currentHeight) {
+   int Buffer::getOffsetY(enum OffsetAnchor offsetAnchor, int offsetY, int smallerHeight, int biggerHeight) {
       switch(offsetAnchor) {
          case NORTHWEST:
          case NORTH:
@@ -77,55 +77,71 @@ namespace PV {
          case WEST:
          case CENTER:
          case EAST:
-            return currentHeight/2 - newHeight/2 + offsetY;
+            return biggerHeight/2 - smallerHeight/2 + offsetY;
          case SOUTHWEST:
          case SOUTH:
          case SOUTHEAST:
-         return offsetY + currentHeight - newHeight;
+         return offsetY + biggerHeight - smallerHeight;
       }
       return 0;
    }
-  
-   // Grows a buffer with the original in the center.
-   void Buffer::grow(int newWidth, int newHeight) {
-      if(newWidth < getWidth() || newHeight < getHeight()) {
-         return;
-      }
-      int originX = newWidth  / 2 - getWidth()  / 2;
-      int originY = newHeight / 2 - getHeight() / 2;
-      
-      Buffer bigger(newWidth, newHeight, getFeatures());
+
+   void Buffer::translate(int offsetX, int offsetY) {
+      Buffer result(getWidth(), getHeight(), getFeatures());
       for(int y = 0; y < getHeight(); ++y) {
          for(int x = 0; x < getWidth(); ++x) {
             for(int f = 0; f < getFeatures(); ++f) {
-               bigger.set(x + originX, y + originY, f, at(x, y, f));
+               int destX = x + offsetX;
+               int destY = y + offsetY;
+               if(destX < 0 || destX >= getWidth())  continue;
+               if(destY < 0 || destY >= getHeight()) continue;
+               result.set(destX, destY, f, at(x, y, f));
+            }
+         }
+      }
+      set(result.asVector(), getWidth(), getHeight(), getFeatures());
+   }
+  
+   // Grows a buffer
+   void Buffer::grow(int newWidth, int newHeight, enum OffsetAnchor offsetAnchor) {
+      if(newWidth < getWidth() && newHeight < getHeight()) {
+         return;
+      }
+      int offsetX = getOffsetX(offsetAnchor, 0, getWidth(),  newWidth);
+      int offsetY = getOffsetY(offsetAnchor, 0, getHeight(), newHeight);
+      Buffer bigger(newWidth, newHeight, getFeatures());
+
+      for(int y = 0; y < getHeight(); ++y) {
+         for(int x = 0; x < getWidth(); ++x) {
+            for(int f = 0; f < getFeatures(); ++f) {
+               int destX = x + offsetX;
+               int destY = y + offsetY;
+               if(destX < 0 || destX >= newWidth)  continue;
+               if(destY < 0 || destY >= newHeight) continue;
+               bigger.set(destX, destY, f, at(x, y, f));
             }
          }
       }
       set(bigger.asVector(), newWidth, newHeight, getFeatures());
    }
 
-   // Crops a buffer down to the specified size, OR grows the canvas keeping the original in the middle (how does this interact with offset?)
-   void Buffer::crop(int targetWidth, int targetHeight, enum OffsetAnchor offsetAnchor, int offsetX, int offsetY) {
+   // Crops a buffer down to the specified size
+   void Buffer::crop(int targetWidth, int targetHeight, enum OffsetAnchor offsetAnchor) {
       if(targetWidth >= getWidth() && targetHeight >= getHeight()) {
          return;
       }
-
-      offsetX = getOffsetX(offsetAnchor, offsetX, targetWidth,  getWidth());
-      offsetY = getOffsetY(offsetAnchor, offsetY, targetHeight, getHeight());
+      int offsetX = getOffsetX(offsetAnchor, 0, targetWidth,  getWidth());
+      int offsetY = getOffsetY(offsetAnchor, 0, targetHeight, getHeight());
       Buffer cropped(targetWidth, targetHeight, getFeatures());
 
-      for(int smallY = 0; smallY < targetHeight; ++smallY) {
-         for(int smallX = 0; smallX < targetWidth; ++smallX) {
+      for(int destY = 0; destY < targetHeight; ++destY) {
+         for(int destX = 0; destX < targetWidth; ++destX) {
             for(int f = 0; f < getFeatures(); ++f) {
-               int x = smallX + offsetX, y = smallY + offsetY;
-               x = x < 0 ? 0 :
-                   x > getWidth() - 1 ? getWidth() -1 :
-                   x;
-               y = y < 0 ? 0 :
-                   y > getHeight() - 1 ? getHeight() -1 :
-                   y;
-               cropped.set(smallX, smallY, f, at(x, y, f));
+               int sourceX = destX + offsetX;
+               int sourceY = destY + offsetY;
+               if(sourceX < 0 || sourceX >= getWidth())  continue;
+               if(sourceY < 0 || sourceX >= getHeight()) continue;
+               cropped.set(destX, destY, f, at(sourceX, sourceY, f));
             }
          }
       }
@@ -133,7 +149,7 @@ namespace PV {
    }
 
    void Buffer::rescale(int targetWidth, int targetHeight, enum RescaleMethod rescaleMethod, enum InterpolationMethod interpMethod, enum OffsetAnchor offsetAnchor) {
-      float xRatio = static_cast<float>(targetWidth) / getWidth();
+      float xRatio = static_cast<float>(targetWidth)  / getWidth();
       float yRatio = static_cast<float>(targetHeight) / getHeight();
       int resizedWidth = targetWidth;
       int resizedHeight = targetHeight;
@@ -168,10 +184,10 @@ namespace PV {
       // this actually grows the buffer to include the padded region.
       switch(rescaleMethod) {
          case CROP:
-            crop(targetWidth, targetHeight, offsetAnchor, 0, 0);
+            crop(targetWidth, targetHeight, offsetAnchor);
             break;
          case PAD:
-            grow(targetWidth, targetHeight); // TODO: Does this need offsetAnchor support as well?
+            grow(targetWidth, targetHeight, offsetAnchor);
             break;
       }
    }

@@ -2,15 +2,18 @@
 
 namespace PV {
 
-#ifdef PV_USE_GDAL
-
 ImageOffsetTestLayer::ImageOffsetTestLayer(const char * name, HyPerCol * hc){
-   Image::initialize(name, hc);
+   ImageLayer::initialize(name, hc);
 }
 
 double ImageOffsetTestLayer::getDeltaUpdateTime(){
    return 1;
 }
+
+bool ImageOffsetTestLayer::readyForNextFile() {
+   return false;
+}
+
 
 int ImageOffsetTestLayer::updateState(double timef, double dt){
    //Grab layer size
@@ -127,15 +130,5 @@ int ImageOffsetTestLayer::updateState(double timef, double dt){
    }
    return PV_SUCCESS;
 }
-
-#else // PV_USE_GDAL
-ImageOffsetTestLayer::ImageOffsetTestLayer(const char * name, HyPerCol * hc) {
-   if (hc->columnId()==0) {
-      pvErrorNoExit().printf("ImageOffsetTestLayer class requires compiling with PV_USE_GDAL set\n");
-   }
-   MPI_Barrier(hc->icCommunicator()->communicator());
-   exit(EXIT_FAILURE);
-}
-#endif // PV_USE_GDAL
 
 } /* namespace PV */
