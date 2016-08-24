@@ -143,55 +143,10 @@ void TransposePoolingConn::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
 // TODO: ioParam_pvpatchAccumulateType and unsetAccumulateType are copied from PV::PoolingConn.
 // Can we make TransposePoolingConn a derived class of PoolingConn?  (TransposeConn is currently a derived class of HyPerConn.)
 void TransposePoolingConn::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {
-   PVParams * params = parent->parameters();
-
-   parent->ioParamStringRequired(ioFlag, name, "pvpatchAccumulateType", &pvpatchAccumulateTypeString);
+   // During the communication phase, pvpatchAccumulateType will be copied from mOriginalConn
    if (ioFlag==PARAMS_IO_READ) {
-      if (pvpatchAccumulateTypeString==NULL) {
-         unsetAccumulateType();
-         return;
-      }
-      // Convert string to lowercase so that capitalization doesn't matter.
-      for (char * c = pvpatchAccumulateTypeString; *c!='\0'; c++) {
-         *c = (char) tolower((int) *c);
-      }
-
-      if ((strcmp(pvpatchAccumulateTypeString,"maxpooling")==0) ||
-           (strcmp(pvpatchAccumulateTypeString,"max_pooling")==0) ||
-           (strcmp(pvpatchAccumulateTypeString,"max pooling")==0)) {
-         mPoolingType = PoolingConn::MAX;
-      }
-      else if ((strcmp(pvpatchAccumulateTypeString,"sumpooling")==0) ||
-           (strcmp(pvpatchAccumulateTypeString,"sum_pooling")==0)  ||
-           (strcmp(pvpatchAccumulateTypeString,"sum pooling")==0)) {
-         mPoolingType = PoolingConn::SUM;
-      }
-      else if ((strcmp(pvpatchAccumulateTypeString,"avgpooling")==0) ||
-           (strcmp(pvpatchAccumulateTypeString,"avg_pooling")==0)  ||
-           (strcmp(pvpatchAccumulateTypeString,"avg pooling")==0)) {
-         mPoolingType = PoolingConn::AVG;
-      }
-      else {
-         unsetAccumulateType();
-      }
+      parent->parameters()->handleUnnecessaryStringParameter(name, "pvpatchAccumulateType");
    }
-}
-
-void TransposePoolingConn::unsetAccumulateType() {
-   if (parent->columnId()==0) {
-      pvErrorNoExit(errorMessage);
-      if (pvpatchAccumulateTypeString) {
-         errorMessage.printf("%s: pvpatchAccumulateType \"%s\" is unrecognized.",
-               getDescription_c(), pvpatchAccumulateTypeString);
-      }
-      else {
-         errorMessage.printf("%s: pvpatchAccumulateType NULL is unrecognized.",
-               getDescription_c());
-      }
-      errorMessage.printf("  Allowed values are \"maxpooling\", \"sumpooling\", or \"avgpooling\".");
-   }
-   MPI_Barrier(parent->getCommunicator()->communicator());
-   exit(EXIT_FAILURE);
 }
 
 void TransposePoolingConn::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
@@ -318,6 +273,19 @@ int TransposePoolingConn::communicateInitInfo() {
    status = HyPerConn::communicateInitInfo(); // calls setPatchSize()
    if (status != PV_SUCCESS) return status;
 
+   //Check post layer phases to make sure it matches
+   if(mOriginalConn->postSynapticLayer()->getPhase() >= post->getPhase()){
+      pvWarn().printf("TransposePoolingConn \"%s\": originalConn's post layer phase is greater or equal than this layer's post. Behavior undefined.\n", name);
+   }
+
+   mPoolingType = mOriginalConn->getPoolingType();
+   if (parent->parameters()->stringPresent(name, "pvpatchAccumulateType")) {
+      char const * checkStringPresent = parent->parameters()->stringValue(name, "pvpatchAccumulateType");
+      if (PoolingConn::parseAccumulateTypeString(checkStringPresent) != mPoolingType) {
+         pvError() << getDescription() << ": originalConn accumulateType does not match this layer's accumulate type.\n";
+
+      }
+   }
    if(mPoolingType == PoolingConn::MAX) {
       if (!mOriginalConn->needPostIndex() && !receiveGpu) {
          if (parent->columnId()==0) {
@@ -327,15 +295,6 @@ int TransposePoolingConn::communicateInitInfo() {
       }
    }
    if (status != PV_SUCCESS) return status;
-
-   //Check post layer phases to make sure it matches
-   if(mOriginalConn->postSynapticLayer()->getPhase() >= post->getPhase()){
-      pvWarn().printf("TransposePoolingConn \"%s\": originalConn's post layer phase is greater or equal than this layer's post. Behavior undefined.\n", name);
-   }
-
-   if(mOriginalConn->getPoolingType() != mPoolingType){
-      pvError().printf("TransposePoolingConn \"%s\" error: originalConn accumulateType does not match this layer's accumulate type.\n", name);
-   }
 
    const PVLayerLoc * preLoc = pre->getLayerLoc();
    const PVLayerLoc * origPostLoc = mOriginalConn->postSynapticLayer()->getLayerLoc();

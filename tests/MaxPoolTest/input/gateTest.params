@@ -298,7 +298,6 @@ TransposePoolingConn "maxPoolPreToGatedMaxPoolPre" = {
     writeCompressedCheckpoints = false;
     shmget_flag = false;
     delay = 0;
-    pvpatchAccumulateType = "maxpooling";
     updateGSynFromPostPerspective = false;
 };
 
@@ -313,7 +312,6 @@ TransposePoolingConn "maxPoolPostToGatedMaxPoolPost" = {
     writeCompressedCheckpoints = false;
     shmget_flag = false;
     delay = 0;
-    pvpatchAccumulateType = "maxpooling";
     updateGSynFromPostPerspective = false;
 };
 

@@ -186,7 +186,6 @@ TransposePoolingConn "sumPoolPreToUnpoolPre" = {
     writeCompressedCheckpoints = false;
     shmget_flag = false;
     delay = 0;
-    pvpatchAccumulateType = "sumpooling";
     updateGSynFromPostPerspective = false;
 };
 
@@ -201,6 +200,5 @@ TransposePoolingConn "sumPoolPostToUnpoolPost" = {
     writeCompressedCheckpoints = false;
     shmget_flag = false;
     delay = 0;
-    pvpatchAccumulateType = "sumpooling";
     updateGSynFromPostPerspective = false;
 };

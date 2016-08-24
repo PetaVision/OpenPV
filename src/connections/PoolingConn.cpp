@@ -8,6 +8,8 @@
 #include "PoolingConn.hpp"
 #include <cstring>
 #include <cmath>
+#include <string>
+#include <locale>
 
 namespace PV {
 
@@ -73,34 +75,31 @@ void PoolingConn::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {
 
    parent->ioParamStringRequired(ioFlag, name, "pvpatchAccumulateType", &pvpatchAccumulateTypeString);
    if (ioFlag==PARAMS_IO_READ) {
-      if (pvpatchAccumulateTypeString==NULL) {
-         unsetAccumulateType();
-         return;
-      }
-      // Convert string to lowercase so that capitalization doesn't matter.
-      for (char * c = pvpatchAccumulateTypeString; *c!='\0'; c++) {
-         *c = (char) tolower((int) *c);
-      }
-
-      if ((strcmp(pvpatchAccumulateTypeString,"maxpooling")==0) ||
-           (strcmp(pvpatchAccumulateTypeString,"max_pooling")==0) ||
-           (strcmp(pvpatchAccumulateTypeString,"max pooling")==0)) {
-         poolingType = MAX;
-      }
-      else if ((strcmp(pvpatchAccumulateTypeString,"sumpooling")==0) ||
-           (strcmp(pvpatchAccumulateTypeString,"sum_pooling")==0)  ||
-           (strcmp(pvpatchAccumulateTypeString,"sum pooling")==0)) {
-         poolingType = SUM;
-      }
-      else if ((strcmp(pvpatchAccumulateTypeString,"avgpooling")==0) ||
-           (strcmp(pvpatchAccumulateTypeString,"avg_pooling")==0)  ||
-           (strcmp(pvpatchAccumulateTypeString,"avg pooling")==0)) {
-         poolingType = AVG;
-      }
-      else {
+      poolingType = parseAccumulateTypeString(pvpatchAccumulateTypeString);
+      if (poolingType==UNDEFINED) {
          unsetAccumulateType();
       }
    }
+}
+
+PoolingConn::AccumulateType PoolingConn::parseAccumulateTypeString(char const * poolingTypeString) {
+   if (poolingTypeString==nullptr) {
+      return UNDEFINED;
+   }
+   PoolingConn::AccumulateType accType;
+   std::string str(poolingTypeString);
+   // Convert string to lowercase so that capitalization doesn't matter.
+   for (auto& c : str) {
+      c = std::tolower(c, std::locale());
+   }
+   // "max_pooling", "max pooling", "maxpooling" are equally acceptable (same for sum and avg)
+   if (str.size()>=4 && (str[3]==' ' || str[3]=='_')) { str.erase(3,1); }
+
+   if (strcmp(str.c_str(),"maxpooling")==0) { accType = MAX; }
+   else if (strcmp(str.c_str(),"sumpooling")==0) { accType = SUM; }
+   else if (strcmp(str.c_str(),"avgpooling")==0) { accType = AVG; }
+   else { accType = UNDEFINED; }
+   return accType;
 }
 
 void PoolingConn::unsetAccumulateType() {

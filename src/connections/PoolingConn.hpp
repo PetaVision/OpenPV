@@ -31,6 +31,7 @@ public:
    PoolingIndexLayer* getPostIndexLayer(){return postIndexLayer;}
    bool needPostIndex(){return needPostIndexLayer;}
    inline AccumulateType getPoolingType() const { return poolingType; }
+   static AccumulateType parseAccumulateTypeString(char const * typeString);
 
 protected:
    int initialize(const char * name, HyPerCol * hc, InitWeights * weightInitializer, NormalizeBase * weightNormalizer);

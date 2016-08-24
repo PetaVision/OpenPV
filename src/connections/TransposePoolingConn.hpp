@@ -71,7 +71,6 @@ protected:
 
 private:
     int deleteWeights();
-    void unsetAccumulateType();
 
 // Member variables
 protected:

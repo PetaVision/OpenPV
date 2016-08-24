@@ -185,7 +185,6 @@ TransposePoolingConn "avgPoolPreToUnpoolPre" = {
     writeCompressedCheckpoints = false;
     shmget_flag = false;
     delay = 0;
-    pvpatchAccumulateType = "avgpooling";
     updateGSynFromPostPerspective = false;
 };
 
@@ -200,6 +199,5 @@ TransposePoolingConn "avgPoolPostToUnpoolPost" = {
     writeCompressedCheckpoints = false;
     shmget_flag = false;
     delay = 0;
-    pvpatchAccumulateType = "avgpooling";
     updateGSynFromPostPerspective = false;
 };
