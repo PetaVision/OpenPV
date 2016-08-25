@@ -147,18 +147,6 @@ void LocalizationProbe::ioParam_minBoundingBoxHeight(enum PV::ParamsIOFlag ioFla
 
 void LocalizationProbe::ioParam_drawMontage(enum PV::ParamsIOFlag ioFlag) {
    this->getParent()->ioParamValue(ioFlag, this->getName(), "drawMontage", &drawMontage, drawMontage, true/*warnIfAbsent*/);
-#ifdef PV_USE_GDAL
-   GDALAllRegister();
-#else // PV_USE_GDAL
-   if (ioFlag==PARAMS_IO_READ) {
-      if (parent->columnId()==0) {
-         pvErrorNoExit().printf("%s: PetaVision must be compiled with GDAL to use drawMontage=true.\n",
-               getDescription_c());
-      }
-      MPI_Barrier(parent->getCommunicator()->communicator());
-      pvExitFailure("");
-   }
-#endif // PV_USE_GDAL
 }
 
 void LocalizationProbe::ioParam_heatMapMontageDir(enum PV::ParamsIOFlag ioFlag) {

@@ -92,7 +92,7 @@ namespace PV {
          virtual void ioParam_useInputBCflag(enum ParamsIOFlag ioFlag);
 
       protected:
-         InputLayer();
+         InputLayer() {}
 
          // This method scatters the mInputData buffer to the activity buffers of the several MPI processes.
          int scatterInput(int batchIndex);
@@ -109,7 +109,6 @@ namespace PV {
          virtual int initializeV();
          virtual int initializeActivity();
          virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-         virtual int readStateFromCheckpoint(const char* cpDir, double* timeptr);
          virtual double getDeltaUpdateTime();
 
          // Method that signals when to load the next file. 
@@ -140,38 +139,34 @@ namespace PV {
          const std::string getInputPath() { return mInputPath; }
 
       private:
-         int initialize_base();
          void populateFileList();
          void fitBufferToLayer(Buffer &buffer);
 
       protected:
-         // Raw data read from disk, one per batch
-         std::vector<Buffer> mInputData;
-
          // If mAutoResizeFlag is enabled, do we crop the edges or pad the edges with mPadValue?
          Buffer::RescaleMethod mRescaleMethod;
 
          // If mAutoResizeFlag is enabled, do we rescale with bicubic or nearest neighbor filtering?
-         Buffer::InterpolationMethod mInterpolationMethod;
+         Buffer::InterpolationMethod mInterpolationMethod = Buffer::BICUBIC;
 
          // When cropping or resizing, which side of the canvas is the origin?
-         Buffer::Anchor mAnchor;
+         Buffer::Anchor mAnchor = Buffer::CENTER;
 
          // Flag that enables rescaling input buffer to layer dimensions instead of just cropping
-         bool mAutoResizeFlag;
+         bool mAutoResizeFlag = false;
 
          // Flag that inverts input buffer during post process step
-         bool mInverseFlag;
+         bool mInverseFlag = false;
 
          // Flag that enables scaling input buffer to extended region instead of restricted region
-         bool mUseInputBCflag;
+         bool mUseInputBCflag = false;
          
          // Flag enabling normalization in the post process step
-         bool mNormalizeLuminanceFlag;
+         bool mNormalizeLuminanceFlag = false;
          
          // If true and normalizeLuminanceFlag == true, normalize the standard deviation to 1 and mean = 0
          // If false and normalizeLuminanceFlag == true, nomalize max = 1, min = 0
-         bool mNormalizeStdDev;
+         bool mNormalizeStdDev = true;
         
          // Amount to translate input buffer before scattering but after rescaling
          int mOffsetX = 0;
@@ -182,6 +177,8 @@ namespace PV {
          BatchIndexer::BatchMethod mBatchMethod;
 
       private:
+         // Raw data read from disk, one per batch
+         std::vector<Buffer> mInputData;
          
          // MPI datatypes for boundary exchange
          MPI_Datatype* mDatatypes = nullptr;
@@ -205,10 +202,10 @@ namespace PV {
          bool mEchoFramePathnameFlag = false;          
          
          // When reaching the end of the file list, do we reset to 0 or to start_index?
-         bool mResetToStartOnLoop = false;
+         bool mResetToStartOnLoop = true;
 
          // Flag to write filenames and batch indices to disk as they are loaded
-         bool mWriteFileToTimestamp = false;
+         bool mWriteFileToTimestamp = true;
 
          // An array of starting file list indices, one per batch
          std::vector<int> mStartFrameIndex;

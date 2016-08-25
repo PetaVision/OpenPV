@@ -2,22 +2,20 @@
 
 namespace PV {
 
-#ifdef PV_USE_GDAL
-
 ImageTestLayer::ImageTestLayer(const char * name, HyPerCol * hc) {
-   Image::initialize(name, hc);
+   initialize(name, hc);
 }
 
 int ImageTestLayer::updateState(double time, double dt)
 {
-   Image::updateState(time, dt);
+   ImageLayer::updateState(time, dt);
    const PVLayerLoc * loc = getLayerLoc();
    int nx = loc->nx;
    int ny = loc->ny;
    int nf = loc->nf;
    int nbatch = loc->nbatch;
    for(int b = 0; b < nbatch; b++){
-      pvdata_t * dataBatch = data + b * getNumExtended();
+      pvdata_t * dataBatch = getActivity() + b * getNumExtended();
       for(int nkRes = 0; nkRes < getNumNeurons(); nkRes++){
          //Calculate extended index
          int nkExt = kIndexExtended(nkRes, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);  
@@ -37,14 +35,4 @@ int ImageTestLayer::updateState(double time, double dt)
    return PV_SUCCESS;
 }
 
-#else // PV_USE_GDAL
-ImageTestLayer::ImageTestLayer(const char * name, HyPerCol * hc) {
-   if (hc->columnId()==0) {
-      pvErrorNoExit().printf("ImageTestLayer class requires compiling with PV_USE_GDAL set\n");
-   }
-   MPI_Barrier(hc->icCommunicator()->communicator());
-   exit(EXIT_FAILURE);
 }
-#endif // PV_USE_GDAL
-
-}  // end namespace PV

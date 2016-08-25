@@ -3,7 +3,7 @@
 namespace PV {
 
 ImageOffsetTestLayer::ImageOffsetTestLayer(const char * name, HyPerCol * hc){
-   ImageLayer::initialize(name, hc);
+   initialize(name, hc);
 }
 
 double ImageOffsetTestLayer::getDeltaUpdateTime(){

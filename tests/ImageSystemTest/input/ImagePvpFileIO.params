@@ -53,16 +53,16 @@ ImagePvpTestLayer "input0" = {
     offsetY = 0;
     offsetAnchor = "tl";
     jitterFlag = false; // moving around like an eyeball. our eyeballs are not still even when we are gazing at something.
-    pvpFrameIdx = 0;
+    start_frame_index = [0];
 };
 
 ImagePvpTestLayer "input1" = {
    #include "input0";
-   @pvpFrameIdx = 1;
+   @start_frame_index = [1];
 };
 
 ImagePvpTestLayer "input2" = {
    #include "input0";
-   @pvpFrameIdx = 2;
+   @start_frame_index = [2];
 };
 

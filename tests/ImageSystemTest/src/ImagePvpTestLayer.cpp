@@ -3,20 +3,20 @@
 namespace PV {
 
 ImagePvpTestLayer::ImagePvpTestLayer(const char * name, HyPerCol * hc) {
-   ImagePvp::initialize(name, hc);
+   initialize(name, hc);
 }
 
 int ImagePvpTestLayer::updateState(double time, double dt)
 {
-   ImagePvp::updateState(time, dt);
+   PvpLayer::updateState(time, dt);
    const PVLayerLoc * loc = getLayerLoc();
    int nx = loc->nx;
    int ny = loc->ny;
    int nf = loc->nf;
    int nbatch = loc->nbatch;
-   int frameIdx = getPvpFrameIdx();
    for(int b = 0; b < nbatch; b++){
-      pvdata_t * dataBatch = data + b * getNumExtended();
+	  int frameIdx = getStartIndex(b);
+      pvdata_t * dataBatch = getActivity() + b * getNumExtended();
       for(int nkRes = 0; nkRes < getNumNeurons(); nkRes++){
          //Calculate extended index
          int nkExt = kIndexExtended(nkRes, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);  

@@ -8,18 +8,13 @@ namespace PV {
    class ImageLayer : public InputLayer {
 
    protected:
-      ImageLayer();
-      int initialize(const char * name, HyPerCol * hc);
+      ImageLayer() {}
       virtual Buffer retrieveData(std::string filename, int batchIndex);
-      virtual void readImage(std::string filename);
-      virtual int postProcess(double timef, double dt);
+      void readImage(std::string filename);
 
    public:
       ImageLayer(const char * name, HyPerCol * hc);
-      virtual ~ImageLayer();
-
-   private:
-      int initialize_base();
+      virtual ~ImageLayer() {}
 
    protected:
       std::unique_ptr<Image> mImage = nullptr;

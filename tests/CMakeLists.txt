@@ -61,7 +61,7 @@ if (PV_USE_CUDA)
 endif (PV_USE_CUDA)
 
 add_subdirectory(GroupNormalizationTest)
-#add_subdirectory(ImageSystemTest)
+add_subdirectory(ImageSystemTest)
 add_subdirectory(ImageOffsetTest)
 add_subdirectory(InputSystemTest)
 add_subdirectory(ImportParamsTest)

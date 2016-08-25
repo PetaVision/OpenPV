@@ -17,8 +17,6 @@
 #include <cstdlib>
 namespace PV {
 
-#ifdef PV_USE_GDAL
-
 FilenameParsingGroundTruthLayer::FilenameParsingGroundTruthLayer(const char * name, HyPerCol * hc)
 {
    initialize(name, hc);
@@ -156,17 +154,4 @@ int FilenameParsingGroundTruthLayer::updateState(double time, double dt)
    update_timer->stop();
    return PV_SUCCESS;
 }
-
-#else // PV_USE_GDAL
-FilenameParsingGroundTruthLayer::FilenameParsingGroundTruthLayer(const char * name, HyPerCol * hc)
-{
-   if (hc->columnId()==0) {
-      pvErrorNoExit().printf("FilenameParsingGroundTruthLayer \"%s\": FilenameParsingGroundTruthLayer class requires compiling with PV_USE_GDAL set\n", name);
-   }
-   MPI_Barrier(hc->getCommunicator()->communicator());
-   exit(EXIT_FAILURE);
-}
-FilenameParsingGroundTruthLayer::FilenameParsingGroundTruthLayer() {}
-#endif // PV_USE_GDAL
-
 } /* namespace PV */

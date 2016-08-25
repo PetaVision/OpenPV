@@ -88,10 +88,6 @@ endif()
 include_directories(${PV_CONFIG_FILE_DIR})
 include_directories(${PV_INCLUDE_DIR})
 
-if (PV_USE_GDAL AND GDAL_FOUND)
-  include_directories(${GDAL_INCLUDE_DIR})
-endif()
-
 if (PV_USE_CUDA AND CUDNN_FOUND)
   include_directories(${CUDA_TOOLKIT_INCLUDE})
   include_directories(${CUDNN_INCLUDE_DIR})

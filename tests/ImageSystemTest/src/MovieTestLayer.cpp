@@ -1,28 +1,27 @@
 #include "MovieTestLayer.hpp"
+#include <utils/BatchIndexer.hpp>
 
 namespace PV {
 
-#ifdef PV_USE_GDAL
-
 MovieTestLayer::MovieTestLayer(const char * name, HyPerCol * hc) {
-   Movie::initialize(name, hc);
+   initialize(name, hc);
 }
 
 int MovieTestLayer::updateState(double time, double dt)
 {
-   Movie::updateState(time, dt);
+   ImageLayer::updateState(time, dt);
    const PVLayerLoc * loc = getLayerLoc();
    int nx = loc->nx;
    int ny = loc->ny;
    int nf = loc->nf;
    int nbatch = loc->nbatch;
    for(int b = 0; b < nbatch; b++){
-      pvdata_t * dataBatch = data + b * getNumExtended();
+      pvdata_t * dataBatch = getActivity() + b * getNumExtended();
       int frameIdx;
-      if(strcmp(getBatchMethod(), "byImage") == 0){
+      if(mBatchMethod == BatchIndexer::BYFILE){
          frameIdx = (time-1) * nbatch + b;
       }
-      else if(strcmp(getBatchMethod(), "byMovie") == 0){
+      else if(mBatchMethod == BatchIndexer::BYLIST){
          frameIdx = b * 2 + (time-1);
       }
       
@@ -44,15 +43,6 @@ int MovieTestLayer::updateState(double time, double dt)
    }
    return PV_SUCCESS;
 }
-#else // PV_USE_GDAL
-MovieTestLayer::MovieTestLayer(const char * name, HyPerCol * hc) {
-   if (hc->columnId()==0) {
-      pvErrorNoExit().printf("MovieTestLayer class requires compiling with PV_USE_GDAL set\n");
-   }
-   MPI_Barrier(hc->icCommunicator()->communicator());
-   exit(EXIT_FAILURE);
-}
-#endif // PV_USE_GDAL
 
-}  // end namespace PV
+}
 

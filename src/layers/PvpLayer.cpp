@@ -7,25 +7,21 @@
 
 namespace PV {
 
-   PvpLayer::PvpLayer() {
-      initialize_base();
-   }
-
    PvpLayer::PvpLayer(const char * name, HyPerCol * hc) {
-      initialize_base();
       initialize(name, hc);
    }
 
    PvpLayer::~PvpLayer() {
    }   
 
-   int PvpLayer::initialize_base() {
-         return PV_SUCCESS;
-   }
-
-   int PvpLayer::initialize(const char * name, HyPerCol * hc) {
-      int status = InputLayer::initialize(name, hc);
-      return status;
+   int PvpLayer::allocateDataStructures() {
+      int status = InputLayer::allocateDataStructures();
+      if(status != PV_SUCCESS) {
+         return status;
+      }
+      if(parent->columnId() == 0) {
+         initializeBatchIndexer(mPvpFrameCount);
+      }
    }
 
    Buffer PvpLayer::retrieveData(std::string filename, int batchIndex)
@@ -63,16 +59,23 @@ namespace PV {
       pvErrorIf(invalidFile,
             "File \"%s\" appears to be an obsolete version of the .pvp format.\n", filename.c_str());
 
+      // This is present so that when nextInput() is called during
+      // InputLayer::allocateDataStructures, we correctly load the
+      // inital state of the layer. Then, after InputLayer::allocate
+      // is finished, PvpLayer::allocate reinitializes the BatchIndexer
+      // so that the first update state does not skip the first
+      // frame in the batch.
+      if(mPvpFrameCount == -1) {
+         mPvpFrameCount = params[INDEX_NBANDS];
+         initializeBatchIndexer(mPvpFrameCount);
+      }
+
       int frameNumber = 0;
 
       // If we're playing through the pvp file like a movie, use
       // BatchIndexer to get the frame number. Otherwise, just use
       // the start_frame_index value for this batch.
       if(getDisplayPeriod() > 0) {
-         if(parent->columnId() == 0 && !mInitializedBatchIndexer) {
-            mInitializedBatchIndexer = true;
-            initializeBatchIndexer(params[INDEX_NBANDS]);
-         }
          frameNumber = mBatchIndexer->nextIndex(batchIndex);
       }
       else {

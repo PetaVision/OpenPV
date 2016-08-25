@@ -29,7 +29,6 @@ namespace PV {
    }
 
    int ImageFromMemoryBuffer::initialize(char const * name, HyPerCol * hc) {
-      return ImageLayer::initialize(name, hc);
       if (mUseInputBCflag && mAutoResizeFlag) {
          if (parent->columnId()==0) {
             pvErrorNoExit().printf("%s: setting both useImageBCflag and autoResizeFlag has not yet been implemented.\n", getDescription_c());
