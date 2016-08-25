@@ -51,7 +51,7 @@ void AdaptiveTimeScaleProbe::ioParam_baseMin(enum ParamsIOFlag ioFlag) {
 }
 
 void AdaptiveTimeScaleProbe::ioParam_dtMinToleratedTimeScale(enum ParamsIOFlag ioFlag) {
-   if (ioFlag==PARAMS_IO_READ && parent->parameters()->present(getName(), "dtScaleMin")) {
+   if (ioFlag==PARAMS_IO_READ && parent->parameters()->present(getName(), "dtMinToleratedTimeScale")) {
       if (parent->getCommunicator()->commRank()==0) {
          pvErrorNoExit() << "The dtMinToleratedTimeScale parameter has been removed.\n";
       }
@@ -155,10 +155,9 @@ int AdaptiveTimeScaleProbe::respondAdaptTimestep(AdaptTimestepMessage const * me
 
 // AdaptiveTimeScaleProbe::calcValues calls targetProbe->getValues() and passes the
 // result to mAdaptiveTimeScaleController->calcTimesteps() to use as timeScaleTrue.
-// mAdaptiveTimeScaleController->calcTimesteps() returns timeScale, checks it against
-// dtMinToleratedTimeScale (unless it doesn't) and copies the result into probeValues.
-// AdaptiveTimeScaleProbe should also process the triggering and only involve
-// mAdaptiveTimeScaleController when triggering doesn't happen.
+// mAdaptiveTimeScaleController->calcTimesteps() returns timeScale and copies the
+// result into probeValues. AdaptiveTimeScaleProbe also processes the triggering and
+// only reads the mAdaptiveTimeScaleController when triggering doesn't happen.
 
 int AdaptiveTimeScaleProbe::calcValues(double timeValue) {
    std::vector<double> rawProbeValues;

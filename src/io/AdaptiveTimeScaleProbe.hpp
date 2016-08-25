@@ -60,8 +60,7 @@ protected:
    virtual void ioParam_growthFactor(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief mDtMinToleratedTimeScale: If mDtAdaptController is set, specifies the minimum value dt can drop to before exiting
-    * @details Program will exit if mTimeScale drops below this value
+    * @brief mDtMinToleratedTimeScale: Obsolete. This parameter has been removed.
     */
    virtual void ioParam_dtMinToleratedTimeScale(enum ParamsIOFlag ioFlag);
 
