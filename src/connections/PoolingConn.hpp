@@ -8,7 +8,9 @@
 #ifndef POOLINGCONN_HPP_
 #define POOLINGCONN_HPP_
 
+#ifdef PV_USE_CUDA
 #include <cudakernels/CudaPoolingDeliverKernel.hpp>
+#endif // PV_USE_CUDA
 #include "HyPerConn.hpp"
 #include "layers/PoolingIndexLayer.hpp"
 
@@ -55,9 +57,11 @@ protected:
     * @brief PoolingConn does not have weights to normalize, and does not use normalizeMethod
     */
    void ioParam_normalizeMethod(enum ParamsIOFlag ioFlag);
+#ifdef PV_USE_CUDA
    virtual int allocateReceivePostKernel() override;
    virtual int allocateReceivePreKernel() override;
    int allocatePoolingDeliverKernel();
+#endif // PV_USE_CUDA
    virtual int setInitialValues() override { return PV_SUCCESS; }
    virtual int constructWeights();
 
@@ -79,7 +83,9 @@ private:
    char* postIndexLayerName;
    PoolingIndexLayer* postIndexLayer;
    AccumulateType poolingType;
+#ifdef PV_USE_CUDA
    PVCuda::CudaPoolingDeliverKernel* krPoolingDeliver = nullptr; // Cuda kernel for update state call
+#endif // PV_USE_CUDA
 }; // end class PoolingConn
 
 }  // end namespace PV

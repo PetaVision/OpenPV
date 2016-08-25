@@ -11,7 +11,9 @@
 #include "HyPerConn.hpp"
 #include "PoolingConn.hpp"
 #include "layers/PoolingIndexLayer.hpp"
+#ifdef PV_USE_CUDA
 #include "cudakernels/CudaTransposePoolingDeliverKernel.hpp"
+#endif // PV_USE_CUDA
 
 namespace PV {
 
@@ -57,9 +59,11 @@ protected:
     int initialize(const char * name, HyPerCol * hc);
     virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
     virtual int setPatchSize();
+#ifdef PV_USE_CUDA
     virtual int allocateReceivePostKernel() override;
     virtual int allocateReceivePreKernel() override;
     int allocateTransposePoolingDeliverKernel();
+#endif // PV_USE_CUDA
     virtual int setInitialValues();
     virtual int constructWeights();
     virtual int deliverPresynapticPerspective(PVLayerCube const * activity, int arborID);

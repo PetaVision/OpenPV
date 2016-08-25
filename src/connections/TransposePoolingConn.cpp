@@ -256,8 +256,10 @@ int TransposePoolingConn::communicateInitInfo() {
       return PV_POSTPONE;
    }
 
+#ifdef PV_USE_CUDA
    receiveGpu = mOriginalConn->getReceiveGpu();
    parent->parameters()->handleUnnecessaryParameter(name, "receiveGpu", receiveGpu);
+#endif // PV_USE_CUDA
 
    sharedWeights = mOriginalConn->usingSharedWeights();
    parent->parameters()->handleUnnecessaryParameter(name, "sharedWeights", sharedWeights);
@@ -292,8 +294,11 @@ int TransposePoolingConn::communicateInitInfo() {
 
       }
    }
-   if(mPoolingType == PoolingConn::MAX) {
-      if (!mOriginalConn->needPostIndex() && !receiveGpu) {
+   if(mPoolingType == PoolingConn::MAX && !mOriginalConn->needPostIndex()) {
+#ifdef PV_USE_CUDA // Hopefully the awkwardness of this macro management will go away once I clean up this class.
+      if (!receiveGpu)
+#endif // PV_USE_CUDA
+      {
          if (parent->columnId()==0) {
             pvErrorNoExit().printf("TransposePoolingConn \"%s\": original pooling conn \"%s\" needs to have a postIndexLayer if unmax pooling.\n", name, mOriginalConnName);
             status = PV_FAILURE;
@@ -457,6 +462,7 @@ int TransposePoolingConn::deleteWeights() {
    return 0; // HyPerConn::deleteWeights(); // HyPerConn destructor calls HyPerConn::deleteWeights()
 }
 
+#ifdef PV_USE_CUDA
 int TransposePoolingConn::allocateReceivePostKernel() {
    return allocateTransposePoolingDeliverKernel();
 }
@@ -506,6 +512,7 @@ int TransposePoolingConn::allocateTransposePoolingDeliverKernel() {
    );
    return PV_SUCCESS;
 }
+#endif // PV_USE_CUDA
 
 int TransposePoolingConn::setInitialValues() {
    return PV_SUCCESS;
@@ -724,12 +731,15 @@ int TransposePoolingConn::deliverPresynapticPerspective(PVLayerCube const * acti
    return PV_SUCCESS;
 }
 
+#ifdef PV_USE_CUDA
 int TransposePoolingConn::deliverPresynapticPerspectiveGPU(PVLayerCube const * activity, int arborID) {
    return deliverGPU(activity, arborID);
 }
+
 int TransposePoolingConn::deliverPostsynapticPerspectiveGPU(PVLayerCube const * activity, int arborID) {
    return deliverGPU(activity, arborID);
 }
+
 int TransposePoolingConn::deliverGPU(PVLayerCube const * activity, int arborID) {
    //Check channel number for noupdate
    if(getChannel() == CHANNEL_NOUPDATE){
@@ -749,6 +759,7 @@ int TransposePoolingConn::deliverGPU(PVLayerCube const * activity, int arborID) 
    mTransposePoolingDeliverKernel->run();
    return PV_SUCCESS;
 }
+#endif // PV_USE_CUDA
 
 int TransposePoolingConn::checkpointRead(const char * cpDir, double * timeptr) {
    return PV_SUCCESS;

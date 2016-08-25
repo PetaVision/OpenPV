@@ -160,6 +160,7 @@ int PoolingConn::initialize(const char * name, HyPerCol * hc, InitWeights * weig
 
    int status = BaseConnection::initialize(name, hc); // BaseConnection should *NOT* take weightInitializer or weightNormalizer as arguments, as it does not know about InitWeights or NormalizeBase
 
+#ifdef PV_USE_CUDA
    if (needPostIndexLayer && receiveGpu) {
       if (parent->getCommunicator()->commRank()==0) {
          pvError() << getDescription() << ": receiveGpu and needPostIndexLayer both set.  The GPU version does not currently compute the post index layer.";
@@ -167,6 +168,7 @@ int PoolingConn::initialize(const char * name, HyPerCol * hc, InitWeights * weig
       MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
+#endif // PV_USE_CUDA
 
    assert(parent);
    PVParams * inputParams = parent->parameters();
@@ -328,6 +330,7 @@ int PoolingConn::allocateDataStructures(){
 
 // On the GPU, pooling uses cudnnPoolingForward, so pre and post do the same thing.
 
+#ifdef PV_USE_CUDA
 int PoolingConn::allocateReceivePostKernel() {
    return allocatePoolingDeliverKernel();
 }
@@ -371,6 +374,7 @@ int PoolingConn::allocatePoolingDeliverKernel() {
    );
    return PV_SUCCESS;
 }
+#endif // PV_USE_CUDA
 
 int PoolingConn::constructWeights(){
    int sx = nfp;
@@ -647,10 +651,6 @@ int PoolingConn::deliverPresynapticPerspective(PVLayerCube const * activity, int
    return PV_SUCCESS;
 }
 
-int PoolingConn::deliverPresynapticPerspectiveGPU(PVLayerCube const * activity, int arborID) {
-   return deliverGPU(activity, arborID);
-}
-
 int PoolingConn::deliverPostsynapticPerspective(PVLayerCube const * activity, int arborID) {
    //Check channel number for noupdate
    if(getChannel() == CHANNEL_NOUPDATE){
@@ -766,6 +766,11 @@ int PoolingConn::deliverPostsynapticPerspective(PVLayerCube const * activity, in
    return PV_SUCCESS;
 }
 
+#ifdef PV_USE_CUDA
+int PoolingConn::deliverPresynapticPerspectiveGPU(PVLayerCube const * activity, int arborID) {
+   return deliverGPU(activity, arborID);
+}
+
 int PoolingConn::deliverPostsynapticPerspectiveGPU(PVLayerCube const * activity, int arborID) {
    return deliverPresynapticPerspectiveGPU(activity, arborID);
 }
@@ -789,5 +794,6 @@ int PoolingConn::deliverGPU(PVLayerCube const * activity, int arborID) {
    krPoolingDeliver->run();
    return PV_SUCCESS;
 }
+#endif // PV_USE_CUDA
 
 } // end namespace PV
