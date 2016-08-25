@@ -22,6 +22,7 @@ namespace PV {
       if(parent->columnId() == 0) {
          initializeBatchIndexer(mPvpFrameCount);
       }
+      return status;
    }
 
    Buffer PvpLayer::retrieveData(std::string filename, int batchIndex)

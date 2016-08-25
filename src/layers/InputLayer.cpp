@@ -77,11 +77,11 @@ namespace PV {
          // We want to fill the activity buffer with the initial data without actually advancing
          // our indices, so this is a quick hack to "rewind" after the initial nextInput()
          std::vector<int> tempIndices = mBatchIndexer->getIndices();
-         nextInput(parent->simulationTime(), parent->getDeltaTimeBase());
+         nextInput(parent->simulationTime(), 0);
          mBatchIndexer->setIndices(tempIndices);
       }
       else {
-         nextInput(parent->simulationTime(), parent->getDeltaTimeBase());
+         nextInput(parent->simulationTime(), 0);
       }
       
       // create mpi_datatypes for border transfer
@@ -92,14 +92,17 @@ namespace PV {
    }
 
    void InputLayer::initializeBatchIndexer(int fileCount) {
+      int localBatchCount = parent->getNBatch();
+      int mpiBatchIndex = parent->commBatch();
+      int globalBatchOffset = localBatchCount * mpiBatchIndex;
       mBatchIndexer = std::unique_ptr<BatchIndexer>(new BatchIndexer(
                parent->getNBatchGlobal(),
-               parent->commBatch() * parent->getNBatch(),
+               globalBatchOffset,
                parent->numCommBatches(),
                fileCount,
                mBatchMethod));
-      for(int b = 0; b < parent->getNBatch(); ++b) {
-         mBatchIndexer->specifyBatching(b, mStartFrameIndex.at(b), mSkipFrameIndex.at(b));
+      for(int b = 0; b < localBatchCount; ++b) {
+         mBatchIndexer->specifyBatching(b, mStartFrameIndex.at(globalBatchOffset+b), mSkipFrameIndex.at(globalBatchOffset+b));
          mBatchIndexer->initializeBatch(b);
       }
    }
@@ -344,14 +347,14 @@ namespace PV {
       return mDisplayPeriod > 0 ? mDisplayPeriod : DBL_MAX;
    }
 
-   double InputLayer::calcTimeScale(int batchIdx) {
-      if(needUpdate(parent->simulationTime(), parent->getDeltaTime())) {
-         return parent->getTimeScaleMin(); 
-      }
-      else {
-         return HyPerLayer::calcTimeScale(batchIdx);
-      }
-   }
+//   double InputLayer::calcTimeScale(int batchIdx) {
+//      if(needUpdate(parent->simulationTime(), parent->getDeltaTime())) {
+//         return parent->getTimeScaleMin(); 
+//      }
+//      else {
+//         return HyPerLayer::calcTimeScale(batchIdx);
+//      }
+//   }
 
    int InputLayer::requireChannel(int channelNeeded, int * numChannelsResult) {
       if (parent->columnId()==0) {
@@ -741,7 +744,7 @@ namespace PV {
       }
       this->getParent()->ioParamArray(ioFlag, this->getName(), "start_frame_index", &paramsStartFrameIndex, &length);
       mStartFrameIndex.clear();
-      mStartFrameIndex.resize(parent->getNBatch());
+      mStartFrameIndex.resize(length < parent->getNBatch() ? parent->getNBatch() : length);
       if(length > 0) {
          for(int i = 0; i < length; ++i) {
             mStartFrameIndex.at(i) = paramsStartFrameIndex[i];
@@ -762,7 +765,7 @@ namespace PV {
       }
       this->getParent()->ioParamArray(ioFlag, this->getName(), "skip_frame_index", &paramsSkipFrameIndex, &length);
       mSkipFrameIndex.clear();
-      mSkipFrameIndex.resize(parent->getNBatch());
+      mSkipFrameIndex.resize(length < parent->getNBatch() ? parent->getNBatch() : length);
       if(length > 0) {
          for(int i = 0; i < length; ++i) {
             mSkipFrameIndex.at(i) = paramsSkipFrameIndex[i];

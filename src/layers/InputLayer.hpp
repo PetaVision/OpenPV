@@ -130,7 +130,7 @@ namespace PV {
          virtual int updateState(double time, double dt);
          virtual int checkpointRead(const char * cpDir, double * timef);
          virtual int checkpointWrite(const char *cpDir);
-         virtual double calcTimeScale(int batchIndex);
+         //virtual double calcTimeScale(int batchIndex);
          virtual bool activityIsSpiking() {return false;}
          void exchange();
          int getDisplayPeriod() { return mDisplayPeriod; }
