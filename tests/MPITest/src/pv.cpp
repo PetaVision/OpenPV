@@ -12,7 +12,7 @@
 
 #include "columns/buildandrun.hpp"
 #include "io/io.hpp"
-#include <assert.h>
+#include <utils/PVLog.hpp>
 
 #define MAIN_USES_CUSTOM_GROUPS
 

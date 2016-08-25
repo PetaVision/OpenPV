@@ -1958,21 +1958,7 @@ int HyPerConn::writeWeights(PVPatch *** patches, pvwdata_t ** dataStart, int num
 
    int chars_needed = 0;
    if (filename == NULL) {
-      pvAssert(parent->includeConnectionName()<=2 && parent->includeConnectionName()>=0);
-      switch(parent->includeConnectionName()) {
-      case 0:
-         chars_needed = snprintf(path, PV_PATH_MAX, "%s/w%d.pvp", parent->getOutputPath(), getConnectionId());
-         break;
-      case 1:
-         chars_needed = snprintf(path, PV_PATH_MAX, "%s/w%d_%s.pvp", parent->getOutputPath(), getConnectionId(), name);
-         break;
-      case 2:
-         chars_needed = snprintf(path, PV_PATH_MAX, "%s/%s.pvp", parent->getOutputPath(), name);
-         break;
-      default:
-         pvAssert(0);
-         break;
-      }
+      chars_needed = snprintf(path, PV_PATH_MAX, "%s/%s.pvp", parent->getOutputPath(), name);
    }
    else {
       chars_needed = snprintf(path, PV_PATH_MAX, "%s", filename);
@@ -2305,6 +2291,7 @@ int HyPerConn::updateState(double time, double dt){
       //Need to finish command queue of pre and post activity
       //Doing both in case of multiple gpus running
 
+#ifdef OBSOLETE // Marked obsolete Aug 18, 2016.   Should not skip images when learning, and timescale adaptation has been moved out of HyPerCol.
       //TODO: commented out to compile, but we'll want to average across only batches where timeScale >= timeScaleMin.
       for(int b = 0; b < parent->getNBatch(); b++){
          double preTimeScale = pre->getTimeScale(b); 
@@ -2334,6 +2321,7 @@ int HyPerConn::updateState(double time, double dt){
          }
          batchSkip[b] = skip;
       }
+#endif // OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to ColumnEnergyProbe.
 
       status = calc_dW();        // Calculate changes in weights
 
@@ -2769,7 +2757,7 @@ int HyPerConn::deliver() {
 
    for (int arbor=0; arbor<numArbors; arbor++) {
       int delay = getDelay(arbor);
-      cube.data = (pvdata_t *) store->buffer(0, delay); //First element is batch, but since it's a continuous buffer, 0 here is alright
+      cube.data = store->buffer(0, delay); //First element is batch, but since it's a continuous buffer, 0 here is alright
       if(!getUpdateGSynFromPostPerspective()){
          cube.isSparse = store->isSparse();
          if(cube.isSparse){
@@ -4135,22 +4123,7 @@ int HyPerConn::writePostSynapticWeights(double timef, bool last) {
 
    const char * last_str = (last) ? "_last" : "";
 
-   int chars_needed = 0;
-   pvAssert(parent->includeConnectionName()<=2 && parent->includeConnectionName()>=0);
-   switch(parent->includeConnectionName()) {
-   case 0:
-      chars_needed = snprintf(path, PV_PATH_MAX-1, "%s/w%d_post%s.pvp", parent->getOutputPath(), getConnectionId(), last_str);
-      break;
-   case 1:
-      chars_needed = snprintf(path, PV_PATH_MAX-1, "%s/w%d_%s_post%s.pvp", parent->getOutputPath(), getConnectionId(), name, last_str);
-      break;
-   case 2:
-      chars_needed = snprintf(path, PV_PATH_MAX-1, "%s/%s_post%s.pvp", parent->getOutputPath(), name, last_str);
-      break;
-   default:
-      pvAssert(0);
-      break;
-   }
+   int chars_needed = snprintf(path, PV_PATH_MAX-1, "%s/%s_post%s.pvp", parent->getOutputPath(), name, last_str);
 
    const PVLayerLoc * postLoc = post->getLayerLoc();
    Communicator * comm = parent->getCommunicator();

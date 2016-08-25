@@ -10,8 +10,6 @@ HyPerCol "column" = {
     progressInterval = 1.0;
     //Change this
     outputPath = "output/";
-    filenamesContainLayerNames = true;
-    filenamesContainConnectionNames = true;
     checkpointWrite = true;
     checkpointWriteDir = "output/Checkpoints";
     checkpointWriteStepInterval = 1;
@@ -103,7 +101,7 @@ MomentumConn "preToPost" = {
      
     delay = 0;
      
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
     selfFlag = false;
 
     updateGSynFromPostPerspective = false;

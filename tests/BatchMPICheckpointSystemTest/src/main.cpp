@@ -108,7 +108,7 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
       status = diffDirs(cpdir1, cpdir2, index);
    }
    MPI_Bcast(&status, 1, MPI_INT, rootproc, hc->getCommunicator()->communicator());
-   assert(status == PV_SUCCESS);
+   pvErrorIf(!(status == PV_SUCCESS), "Test failed.\n");
    if( rank == rootproc ) {
       int index = hc->getFinalStep()-hc->getInitialStep();
       const char * cpdir1 = "checkpoints1/batchsweep_01";
@@ -116,6 +116,6 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
       status = diffDirs(cpdir1, cpdir2, index);
    }
    MPI_Bcast(&status, 1, MPI_INT, rootproc, hc->getCommunicator()->communicator());
-   assert(status == PV_SUCCESS);
+   pvErrorIf(!(status == PV_SUCCESS), "Test failed.\n");
    return status;
 }

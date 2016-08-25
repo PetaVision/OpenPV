@@ -93,7 +93,7 @@ int compareOutputs() {
 #ifndef NDEBUG
    int rank;
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-   assert(rank==0);
+   pvErrorIf(!(rank==0), "Test failed.\n");
 #endif // NDEBUG
 
    int status = PV_SUCCESS;
@@ -115,7 +115,7 @@ int deleteFile(char const * path, PV::PV_Init * pv_obj) {
 #ifndef NDEBUG
    int rank;
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-   assert(rank==0);
+   pvErrorIf(!(rank==0), "Test failed.\n");
 #endif // NDEBUG
 
    int status = unlink(path);

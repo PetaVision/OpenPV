@@ -24,23 +24,23 @@ int SegmentTestLayer::updateState(double timef, double dt){
          int labelY = (label-1)/ 3;
 
          if(labelX == 0){
-            assert(xIdx == 1);
+            pvErrorIf(!(xIdx == 1), "Test failed.\n");
          }
          if(labelX == 1){
-            assert(xIdx == 4);
+            pvErrorIf(!(xIdx == 4), "Test failed.\n");
          }
          if(labelX == 2){
-            assert(xIdx == 6);
+            pvErrorIf(!(xIdx == 6), "Test failed.\n");
          }
 
          if(labelY == 0){
-            assert(yIdx == 1);
+            pvErrorIf(!(yIdx == 1), "Test failed.\n");
          }
          if(labelY == 1){
-            assert(yIdx == 4);
+            pvErrorIf(!(yIdx == 4), "Test failed.\n");
          }
          if(labelY == 2){
-            assert(yIdx == 6);
+            pvErrorIf(!(yIdx == 6), "Test failed.\n");
          }
 
          //pvInfo() << "Label " << label << " (" << labelX << ", " << labelY << ") centerpoint: (" << xIdx << ", " << yIdx << ")\n";

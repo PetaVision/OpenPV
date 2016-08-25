@@ -3,7 +3,6 @@ debugParsing = false;
 HyPerCol "column" = {
     startTime                           = 0;
     dt                                  = 1;
-    dtAdaptController                   = NULL;
     stopTime                            = 50;
     progressInterval                    = 10;
     writeProgressToErr                  = false;
@@ -13,8 +12,6 @@ HyPerCol "column" = {
     randomSeed                          = 1860277205;
     nx                                  = 8;
     ny                                  = 8;
-    filenamesContainLayerNames          = 1;
-    filenamesContainConnectionNames     = 1;
     initializeFromCheckpointDir         = "";
     checkpointWrite                     = true;
     checkpointWriteDir                  = "checkpoints2";
@@ -22,9 +19,8 @@ HyPerCol "column" = {
     checkpointWriteStepInterval         = 4;
     deleteOlderCheckpoints              = false;
     suppressNonplasticCheckpoints       = false;
-    writeTimescales                     = true;
     errorOnNotANumber                   = false;
-    nbatch = 4;
+    nbatch                              = 4;
 };
 
 CPTestInputLayer "input" = {

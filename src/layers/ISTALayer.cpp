@@ -10,7 +10,7 @@
 
 #ifdef PV_USE_CUDA
 
-#include "../cudakernels/CudaUpdateStateFunctions.hpp"
+#include "cudakernels/CudaUpdateStateFunctions.hpp"
 
 #endif
 
@@ -97,6 +97,10 @@ void ISTALayer::ioParam_selfInteract(enum ParamsIOFlag ioFlag) {
    }   
 }
 
+void ISTALayer::ioParam_adaptiveTimeScaleProbe(enum ParamsIOFlag ioFlag) {
+   parent->ioParamString(ioFlag, name, "adaptiveTimeScaleProbe", &mAdaptiveTimeScaleProbeName, nullptr/*default*/, true/*warn if absent*/);
+}
+
 int ISTALayer::requireChannel(int channelNeeded, int * numChannelsResult) {
    int status = HyPerLayer::requireChannel(channelNeeded, numChannelsResult);
    if (channelNeeded>=2 && parent->columnId()==0) {
@@ -131,8 +135,7 @@ int ISTALayer::allocateUpdateKernel(){
    const float AShift = this->AShift;
    const float VWidth = this->VWidth;
    const bool selfInteract = this->selfInteract;
-   //This value is being updated every timestep, so we need to update it on the gpu
-   const float tau = timeConstantTau; //dt/timeConstantTau;
+   const float tau = timeConstantTau/parent->getDeltaTime(); // TODO: eliminate need to call parent method
    PVCuda::CudaBuffer* d_GSyn = getDeviceGSyn();
    PVCuda::CudaBuffer* d_activity = getDeviceActivity();
 
@@ -160,7 +163,7 @@ int ISTALayer::updateStateGpu(double time, double dt){
       pvError().printf("HyPerLayer::Trigger reset of V does not work on GPUs\n");
    }
    //Copy over d_dtAdapt
-   d_dtAdapt->copyToDevice(parent->getTimeScale());
+   d_dtAdapt->copyToDevice(deltaTimes());
    //Change dt to match what is passed in
    PVCuda::CudaUpdateISTALayer* updateKernel = dynamic_cast<PVCuda::CudaUpdateISTALayer*>(krUpdate);
    assert(updateKernel);
@@ -193,11 +196,19 @@ int ISTALayer::updateState(double time, double dt)
       }
    }
    
-   double * deltaTimeAdapt = parent->getTimeScale();
-
    ISTALayer_update_state(nbatch, num_neurons, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, numChannels,
-         V, VThresh, deltaTimeAdapt, timeConstantTau, gSynHead, A);
+         V, VThresh, deltaTimes(), timeConstantTau/dt, gSynHead, A);
    return PV_SUCCESS;
+}
+
+double * ISTALayer::deltaTimes() {
+   if (mAdaptiveTimeScaleProbe) {
+      mAdaptiveTimeScaleProbe->getValues(parent->simulationTime(), &mDeltaTimes);
+   }
+   else {
+      mDeltaTimes.assign(getLayerLoc()->nbatch, parent->getDeltaTime());
+   }
+   return mDeltaTimes.data();
 }
 
 } /* namespace PV */

@@ -19,8 +19,6 @@ HyPerCol "column" = {
    progressInterval = 100.0;
    writeProgressToErr = false;
    outputPath = "output/";
-   filenamesContainLayerNames = false;
-   filenamesContainConnectionNames = false;
    checkpointWrite = false;
    suppressLastOutput = false;
 };
@@ -100,7 +98,7 @@ PlasticTestConn "PreToPost" = {
 
     pvpatchAccumulateType = "convolve";
     shrinkPatches = false;
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
     selfFlag = false;
     combine_dW_with_W_flag = false;
     dWMax = 1.0;

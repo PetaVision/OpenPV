@@ -6,7 +6,7 @@
 #include "identicalBatchProbe.hpp"
 #include <include/pv_arch.h>
 #include <layers/HyPerLayer.hpp>
-#include <assert.h>
+#include <utils/PVLog.hpp>
 #include <string.h>
 
 namespace PV {
@@ -41,7 +41,7 @@ int identicalBatchProbe::outputState(double timed){
          if(diff > 1e-4){
             pvError() << "Difference at neuron " << i << ", batch 0: " << checkVal << " batch " << b << ": " << ABatch[i] << "\n";
          }
-         assert(diff <= 1e-4);
+         pvErrorIf(!(diff <= 1e-4), "Test failed.\n");
       }
    }
    return status;

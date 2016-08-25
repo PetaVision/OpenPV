@@ -10,8 +10,6 @@ HyPerCol "column" = {
     progressInterval = 1.0;
     //Change this
     outputPath = "output/postTest_margins";
-    filenamesContainLayerNames = true;
-    filenamesContainConnectionNames = true;
     checkpointWrite = false;
     // deleteOlderCheckpoints = false;
     suppressLastOutput = true;
@@ -289,7 +287,7 @@ HyPerConn "origConnPrePost" = {
      
     delay = 0;
      
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
     selfFlag = false;
 
     updateGSynFromPostPerspective = false;
@@ -303,7 +301,7 @@ TransposeConn "preTransposeConn" = {
     channelCode = 0; //Does nothing to the input layer
     originalConnName = "origConnPrePost";
     selfFlag = false;
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
     writeStep = -1;
     delay = 0;
     pvpatchAccumulateType = "convolve";
@@ -316,7 +314,7 @@ TransposeConn "postTransposeConn" = {
     channelCode = 0;
     originalConnName = "origConnPrePost";
     selfFlag = false;
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
     writeStep = -1.0;
     delay = 0;
     pvpatchAccumulateType = "convolve";
@@ -361,7 +359,7 @@ HyPerConn "origConnKnown" = {
      
     delay = 0;
      
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
     selfFlag = false;
 
     updateGSynFromPostPerspective = false;
@@ -375,7 +373,7 @@ TransposeConn "knownTransposeConn" = {
     channelCode = 0;
     originalConnName = "origConnKnown";
     selfFlag = false;
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
     writeStep = -1.0;
     delay = 0;
     pvpatchAccumulateType = "convolve";
@@ -418,7 +416,7 @@ HyPerConn "fakeConn" = {
      
     delay = 0;
      
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
     selfFlag = false;
 
     updateGSynFromPostPerspective = false;

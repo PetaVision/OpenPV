@@ -10,14 +10,14 @@
 #include "layers/HyPerLayer.hpp"
 #include "connections/HyPerConn.hpp"
 #include "io/io.hpp"
-#include <assert.h>
+#include <utils/PVLog.hpp>
 
 #include "Example.hpp"
 
 using namespace PV;
 
 int check_kernel_vs_hyper(HyPerConn * cHyPer, HyPerConn * cKernel, int kPre,
-		int axonID);
+      int axonID);
 
 int main(int argc, char * argv[])
 {
@@ -40,9 +40,9 @@ int main(int argc, char * argv[])
 
    PV::HyPerCol * hc = new PV::HyPerCol("test_gauss2d column", initObj);
    PV::Example * pre = new PV::Example(pre_layer_name, hc);
-   assert(pre);
+   pvErrorIf(!(pre), "Test failed.\n");
    PV::Example * post = new PV::Example(post_layer_name, hc);
-   assert(post);
+   pvErrorIf(!(post), "Test failed.\n");
 
    
    PV::HyPerConn * cHyPer = new HyPerConn("test_gauss2d hyperconn", hc);
@@ -50,25 +50,25 @@ int main(int argc, char * argv[])
    PV::HyPerConn * cKernel = new HyPerConn("test_gauss2d kernelconn", hc);
 
    PV::Example * pre2 = new PV::Example(pre2_layer_name, hc);
-   assert(pre2);
+   pvErrorIf(!(pre2), "Test failed.\n");
    PV::Example * post2 = new PV::Example(post2_layer_name, hc);
-   assert(post2);
+   pvErrorIf(!(post2), "Test failed.\n");
 
    PV::HyPerConn * cHyPer1to2 =
          new HyPerConn("test_gauss2d hyperconn 1 to 2", hc);
-   assert(cHyPer1to2);
+   pvErrorIf(!(cHyPer1to2), "Test failed.\n");
 
    PV::HyPerConn * cKernel1to2 =
          new HyPerConn("test_gauss2d kernelconn 1 to 2", hc);
-   assert(cKernel1to2);
+   pvErrorIf(!(cKernel1to2), "Test failed.\n");
 
    PV::HyPerConn * cHyPer2to1 =
          new HyPerConn("test_gauss2d hyperconn 2 to 1", hc);
-   assert(cHyPer2to1);
+   pvErrorIf(!(cHyPer2to1), "Test failed.\n");
 
    PV::HyPerConn * cKernel2to1 =
          new HyPerConn("test_gauss2d kernelconn 2 to 1", hc);
-   assert(cKernel2to1);
+   pvErrorIf(!(cKernel2to1), "Test failed.\n");
    
    int status = 0;
 
@@ -79,12 +79,12 @@ int main(int argc, char * argv[])
    for (int l=0; l<hc->numberOfLayers(); l++) {
       HyPerLayer * layer = hc->getLayer(l);
       int status = layer->respond(commMessagePtr);
-      assert(status==PV_SUCCESS);
+      pvErrorIf(!(status==PV_SUCCESS), "Test failed.\n");
    }
    for (int c=0; c<hc->numberOfConnections(); c++) {
       BaseConnection * conn = hc->getConnection(c);
       int status = conn->respond(commMessagePtr);
-      assert(status==PV_SUCCESS);
+      pvErrorIf(!(status==PV_SUCCESS), "Test failed.\n");
    }
    delete objectMap;
 
@@ -92,26 +92,26 @@ int main(int argc, char * argv[])
    for (int l=0; l<hc->numberOfLayers(); l++) {
       HyPerLayer * layer = hc->getLayer(l);
       int status = layer->respond(allocateMessagePtr);
-      assert(status==PV_SUCCESS);
+      pvErrorIf(!(status==PV_SUCCESS), "Test failed.\n");
    }
 
    for (int c=0; c<hc->numberOfConnections(); c++) {
       BaseConnection * conn = hc->getConnection(c);
       int status = conn->respond(allocateMessagePtr);
-      assert(status==PV_SUCCESS);
+      pvErrorIf(!(status==PV_SUCCESS), "Test failed.\n");
    }
 
    const int axonID = 0;
    int num_pre_extended = pre->clayer->numExtended;
-   assert(num_pre_extended == cHyPer->getNumWeightPatches());
+   pvErrorIf(!(num_pre_extended == cHyPer->getNumWeightPatches()), "Test failed.\n");
 
    for (int kPre = 0; kPre < num_pre_extended; kPre++) {
      status = check_kernel_vs_hyper(cHyPer, cKernel, kPre, axonID);
-     assert(status==0);
+     pvErrorIf(!(status==0), "Test failed.\n");
      status = check_kernel_vs_hyper(cHyPer1to2, cKernel1to2, kPre, axonID);
-     assert(status==0);
+     pvErrorIf(!(status==0), "Test failed.\n");
      status = check_kernel_vs_hyper(cHyPer2to1, cKernel2to1, kPre, axonID);
-     assert(status==0);
+     pvErrorIf(!(status==0), "Test failed.\n");
    }
 
    delete hc;
@@ -121,22 +121,22 @@ int main(int argc, char * argv[])
 
 int check_kernel_vs_hyper(HyPerConn * cHyPer, HyPerConn * cKernel, int kPre, int axonID)
 {
-   assert(cKernel->usingSharedWeights()==true);
-   assert(cHyPer->usingSharedWeights()==false);
+   pvErrorIf(!(cKernel->usingSharedWeights()==true), "Test failed.\n");
+   pvErrorIf(!(cHyPer->usingSharedWeights()==false), "Test failed.\n");
    int status = 0;
    PVPatch * hyperPatch = cHyPer->getWeights(kPre, axonID);
    PVPatch * kernelPatch = cKernel->getWeights(kPre, axonID);
    int hyPerDataIndex = cHyPer->patchIndexToDataIndex(kPre);
    int kernelDataIndex = cKernel->patchIndexToDataIndex(kPre);
 
-   int nk = cHyPer->fPatchSize() * (int) hyperPatch->nx; // hyperPatch->nf * hyperPatch->nx;
-   assert(nk == (cKernel->fPatchSize() * (int) kernelPatch->nx));// assert(nk == (kernelPatch->nf * kernelPatch->nx));
+   int nk = cHyPer->fPatchSize() * (int) hyperPatch->nx;
+   pvErrorIf(!(nk == (cKernel->fPatchSize() * (int) kernelPatch->nx)), "Test failed.\n");
    int ny = hyperPatch->ny;
-   assert(ny == kernelPatch->ny);
-   int sy = cHyPer->yPatchStride(); // hyperPatch->sy;
-   assert(sy == cKernel->yPatchStride()); // assert(sy == kernelPatch->sy);
-   pvwdata_t * hyperWeights = cHyPer->get_wData(axonID, hyPerDataIndex); // hyperPatch->data;
-   pvwdata_t * kernelWeights = cKernel->get_wDataHead(axonID, kernelDataIndex)+hyperPatch->offset; // kernelPatch->data;
+   pvErrorIf(!(ny == kernelPatch->ny), "Test failed.\n");
+   int sy = cHyPer->yPatchStride();
+   pvErrorIf(!(sy == cKernel->yPatchStride()), "Test failed.\n");
+   pvwdata_t * hyperWeights = cHyPer->get_wData(axonID, hyPerDataIndex);
+   pvwdata_t * kernelWeights = cKernel->get_wDataHead(axonID, kernelDataIndex)+hyperPatch->offset;
    float test_cond = 0.0f;
    for (int y = 0; y < ny; y++) {
       for (int k = 0; k < nk; k++) {

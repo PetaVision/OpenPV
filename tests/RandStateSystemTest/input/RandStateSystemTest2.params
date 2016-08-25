@@ -20,8 +20,6 @@ HyPerCol "column" = {
    writeProgressToErr           = false;
    outputPath                   = "output2";
    printParamsFilename          = "pv.params";
-   filenamesContainLayerNames   = 2;
-   filenamesContainConnectionNames = 2;
    checkpointWrite              = true;
    checkpointWriteTriggerMode   = "step";
    checkpointWriteDir           = "checkpoints2";
@@ -192,7 +190,7 @@ HyPerConn "InputToDownsampled" = {
    writeCompressedCheckpoints   = false;
    selfFlag                     = false;
    shrinkPatches                = false;
-   preActivityIsNotRate         = false;
+   convertRateToSpikeCount         = false;
    updateGSynFromPostPerspective = false;
 };
 
@@ -229,7 +227,7 @@ HyPerConn "CenterOn" = {
    writeCompressedCheckpoints   = false;
    selfFlag                     = false;
    shrinkPatches                = false;
-   preActivityIsNotRate         = false;
+   convertRateToSpikeCount         = false;
    updateGSynFromPostPerspective = false;
 };
 
@@ -264,7 +262,7 @@ HyPerConn "SurroundOn" = {
    writeCompressedCheckpoints   = false;
    selfFlag                     = false;
    shrinkPatches                = false;
-   preActivityIsNotRate         = false;
+   convertRateToSpikeCount         = false;
    updateGSynFromPostPerspective = false;
 };
 
@@ -300,7 +298,7 @@ HyPerConn "CenterOff" = {
    writeCompressedCheckpoints   = false;
    selfFlag                     = false;
    shrinkPatches                = false;
-   preActivityIsNotRate         = false;
+   convertRateToSpikeCount         = false;
    updateGSynFromPostPerspective = false;
 };
 
@@ -335,7 +333,7 @@ HyPerConn "SurroundOff" = {
    writeCompressedCheckpoints   = false;
    selfFlag                     = false;
    shrinkPatches                = false;
-   preActivityIsNotRate         = false;
+   convertRateToSpikeCount         = false;
    updateGSynFromPostPerspective = false;
 };
 
@@ -359,7 +357,7 @@ HyPerConn "RetinaOnToLIFLayer" = {
    writeCompressedCheckpoints  = false;
    selfFlag                    = false;
    shrinkPatches               = false;
-   preActivityIsNotRate        = false;
+   convertRateToSpikeCount        = false;
    updateGSynFromPostPerspective = false;
 };
 
@@ -383,6 +381,6 @@ HyPerConn "RetinaOffToLIFLayer" = {
    writeCompressedCheckpoints  = false;
    selfFlag                    = false;
    shrinkPatches               = false;
-   preActivityIsNotRate        = false;
+   convertRateToSpikeCount        = false;
    updateGSynFromPostPerspective = false;
 };

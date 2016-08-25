@@ -10,8 +10,6 @@ HyPerCol "column" = {
     progressInterval = 1.0;
     //Change this
     outputPath = "output/postTestNoTranspose/";
-    filenamesContainLayerNames = true;
-    filenamesContainConnectionNames = true;
     checkpointWrite = false;
     // deleteOlderCheckpoints = false;
     suppressLastOutput = false;
@@ -133,7 +131,7 @@ HyPerConn "cpuConn" = {
      
     delay = 0;
      
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
     selfFlag = false;
 
     updateGSynFromPostPerspective = true;
@@ -180,7 +178,7 @@ HyPerConn "gpuConn" = {
      
     delay = 0;
      
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
     selfFlag = false;
 
     updateGSynFromPostPerspective = true;

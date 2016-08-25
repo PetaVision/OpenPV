@@ -600,7 +600,7 @@ void BBFindConfRemapProbe::drawProgressInformation() {
    std::stringstream progress("");
    double elapsed = parent->simulationTime() - parent->getStartTime();
    double finishTime = parent->getStopTime() - parent->getStartTime();
-   bool isLastTimeStep = elapsed >= finishTime - parent->getDeltaTimeBase()/2;
+   bool isLastTimeStep = elapsed >= finishTime - parent->getDeltaTime()/2;
    if (!isLastTimeStep) {
       int percentage = (int) nearbyintf(100.0 * elapsed / finishTime);
       progress << "t = " << elapsed << ", finish time = " << finishTime << " (" << percentage << "%%)";
@@ -749,7 +749,7 @@ void BBFindConfRemapProbe::insertImageIntoMontage(int xStart, int yStart, pvadat
 void BBFindConfRemapProbe::writeMontage() {
    std::stringstream montagePathSStream("");
    montagePathSStream << heatMapMontageDir << "/" << outputFilenameBase << "_" << parent->getCurrentStep();
-   bool isLastTimeStep = parent->simulationTime() >= parent->getStopTime() - parent->getDeltaTimeBase()/2;
+   bool isLastTimeStep = parent->simulationTime() >= parent->getStopTime() - parent->getDeltaTime()/2;
    if (isLastTimeStep) { montagePathSStream << "_final"; }
    montagePathSStream << ".tif";
    char * montagePath = strdup(montagePathSStream.str().c_str()); // not sure why I have to strdup this

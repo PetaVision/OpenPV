@@ -14,8 +14,6 @@ HyPerCol "column" = {
    progressInterval                 = 1000;
    writeProgressToErr               = false;
    outputPath                       = "output/";
-   filenamesContainLayerNames       = 2;
-   filenamesContainConnectionNames  = 2;
    checkpointWrite                  = false;
    // checkpointWriteDir               = "output/checkpoints";
    // checkpointWriteStepInterval      = 10000;
@@ -153,7 +151,7 @@ HyPerConn "inputToNoShrunkenFlag" = {
     pvpatchAccumulateType            = "Convolve";
     shrinkPatches                    = false;
     updateGSynFromPostPerspective    = false;
-    preActivityIsNotRate             = false;
+    convertRateToSpikeCount             = false;
 };
 
 HyPerConn "inputToShrunkenFlag" = {
@@ -194,7 +192,7 @@ HyPerConn "inputToShrunkenFlag" = {
     pvpatchAccumulateType            = "Convolve";
     shrinkPatches                    = true;
     updateGSynFromPostPerspective    = false;
-    preActivityIsNotRate             = false;
+    convertRateToSpikeCount             = false;
 };
 
 IdentConn "noShrunkenFlag_to_comparison" = {

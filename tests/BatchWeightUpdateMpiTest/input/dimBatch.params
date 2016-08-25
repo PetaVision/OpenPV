@@ -3,7 +3,6 @@ debugParsing = false;
 HyPerCol "column" = {
     startTime                           = 0;
     dt                                  = 6;
-    dtAdaptController                   = NULL;
     stopTime                            = 6;
     progressInterval                    = 10;
     writeProgressToErr                  = false;
@@ -13,15 +12,12 @@ HyPerCol "column" = {
     randomSeed                          = 1860277205;
     nx                                  = 8;
     ny                                  = 8;
-    filenamesContainLayerNames          = 1;
-    filenamesContainConnectionNames     = 1;
     initializeFromCheckpointDir         = "";
     checkpointWrite                     = false;
     deleteOlderCheckpoints              = false;
     suppressNonplasticCheckpoints       = false;
-    writeTimescales                     = true;
     errorOnNotANumber                   = false;
-    nbatch = 5; 
+    nbatch                              = 5; 
 };
 
 PvpLayer "pre" = {

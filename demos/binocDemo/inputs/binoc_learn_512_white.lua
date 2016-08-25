@@ -450,7 +450,7 @@ pv.addGroup(pvParams, "V1ToLeftError",
       normalize_cutoff = 0.0;
       normalizeFromPostPerspective = false;
       symmetrizeWeights = false;
-      preActivityIsNotRate = false;
+      convertRateToSpikeCount = false;
       keepKernelsSynchronized = true; 
       combine_dW_with_W_flag = false; 
       writeStep = -1;
@@ -512,7 +512,7 @@ pv.addMultiGroups(pvParams,
       channelCode = 0;
       originalConnName = "V1ToLeftError";
       selfFlag = false;
-      preActivityIsNotRate = false;
+      convertRateToSpikeCount = false;
       writeStep = -1;
       writeCompressedCheckpoints = false;
       shmget_flag = false;
@@ -531,7 +531,7 @@ pv.addMultiGroups(pvParams,
       originalConnName = "V1ToLeftError";
       selfFlag = false;
       delay = 0;
-      preActivityIsNotRate = false;
+      convertRateToSpikeCount = false;
       useWindowPost = false;
       updateGSynFromPostPerspective = false;
       pvpatchAccumulateType = "convolve";

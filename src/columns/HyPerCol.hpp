@@ -81,71 +81,62 @@ private:
    virtual void ioParam_dt(enum ParamsIOFlag ioFlag);
    
    /**
-    * @brief dtAdaptController: The name of a ColProbe to use for controlling the adaptive timestep.
-    * The ColProbe's vectorSize (returned by getVectorSize()) must be the same as the HyPerCol's nBatch parameter.
+    * @brief dtAdaptController: Obsolete.  Adaptive timescale parameters have moved to AdaptiveTimeScaleProbe.
     */
    virtual void ioParam_dtAdaptController(enum ParamsIOFlag ioFlag);
    
    /**
-     * @brief dtAdaptFlag: Deprecated.  If mDtAdaptController is set to a ColProbe, then dtAdaptFlag is implied to be true.
-     * If mDtAdaptController is null, dtAdaptFlag is implied to be false.
-     * It is an error for dtAdaptFlag to be inconsistent with mDtAdaptController.
+     * @brief dtAdaptFlag: Obsolete.  Set the AdaptiveTimeScaleProbe useAdaptiveTimeScales parameter instead.
      */
    virtual void ioParam_dtAdaptFlag(enum ParamsIOFlag ioFlag);
    
    /**
-    * @brief : determines whether a time step adaptation method based on an expotential approximation of the energy is used, requires a mDtAdaptController
+    * @brief useAdaptMethodExp1stOrder: Obsolete.  Exp1stOrder is currently the only supported adaptive timestep scheme.
     */
    virtual void ioParam_useAdaptMethodExp1stOrder(enum ParamsIOFlag ioFlag);
    
    /**
-    * @brief mDtAdaptTriggerLayerName: The name of a HyPerLayer that resets the adaptive time step scheme when it triggers.
+    * @brief mDtAdaptTriggerLayerName: Obsolete.  This parameter is now handled by AdaptiveTimeScaleProbe.
     */
    virtual void ioParam_dtAdaptTriggerLayerName(enum ParamsIOFlag ioFlag);
    
    /**
-    * @brief triggerOffset: If triggerLayer is set, triggers \<triggerOffset\> timesteps before target trigger
-    * @details Defaults to 0
+    * @brief triggerOffset: Obsolete.  This parameter is now handled by AdaptiveTimeScaleProbe.
     */
    virtual void ioParam_dtAdaptTriggerOffset(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief dtScaleMax: If mDtAdaptController is set, specifies the maximum timescale allowed
+    * @brief dtScaleMax: Obsolete.  This parameter is now in AdaptiveTimeScaleProbe, as baseMax.
     */
    virtual void ioParam_dtScaleMax(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief dtScaleMax2: If mDtAdaptController is set, specifies the maximum dtScaleMax allowed (this is a 2nd maximum that adapts much more slowly)
+    * @brief dtScaleMax2: Obsolete.  This parameter has been eliminated.
     */
    virtual void ioParam_dtScaleMax2(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief dtScaleMin: If mDtAdaptController is set, specifies the default timescale
-    * @details The parameter name is misleading, since dtAdapt can drop below timescale min
+    * @brief dtScaleMin: Obsolete.  This parameter is now handled by AdaptiveTimeScaleProbe, as baseMin.
     */
    virtual void ioParam_dtScaleMin(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief dtChangeMax: If mDtAdaptController is set, specifies the upper limit of adaptive dt based on error
-    * @details dt will only adapt if the percent change in error is between dtChangeMin and dtChangeMax
+    * @brief dtChangeMax: Obsolete.  This parameter is now handled by AdaptiveTimeScaleProbe, as tauFactor.
     */
    virtual void ioParam_dtChangeMax(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief dtChangeMin: If mDtAdaptController is set, specifies the lower limit of adaptive dt based on error
-    * @details dt will only adapt if the percent change in error is between dtChangeMin and dtChangeMax.
-    * Defaults to 0
+    * @brief dtChangeMin: Obsolete.  This parameter is now handled by AdaptiveTimeScaleProbe, as growthFactor.
     */
    virtual void ioParam_dtChangeMin(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief mDtMinToleratedTimeScale: If mDtAdaptController is set, specifies the minimum value dt can drop to before exiting
-    * @details Program will exit if mTimeScale drops below this value
+    * @brief mDtMinToleratedTimeScale: Obsolete.  This parameter is now handled by AdaptiveTimeScaleProbe.
     */
    virtual void ioParam_dtMinToleratedTimeScale(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief writeTimeScaleFieldnames: A flag to determine if fieldnames are written to the HyPerCol_timescales file, if false, file is written as comma separated list
+    * @brief writeTimeScaleFieldnames: Obsolete.  This parameter is now handled by AdaptiveTimeScaleProbe.
     */
    virtual void ioParam_writeTimeScaleFieldnames(enum ParamsIOFlag ioFlag);
 
@@ -156,7 +147,7 @@ private:
    virtual void ioParam_progressInterval(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief writeProgressToError: Whether to print timestep progress to the error stream instead of the output stream
+    * @brief writeProgressToErr: Whether to print timestep progress to the error stream instead of the output stream
     */
    virtual void ioParam_writeProgressToErr(enum ParamsIOFlag ioFlag);
 
@@ -207,16 +198,14 @@ private:
    virtual void ioParam_filenamesContainLayerNames(enum ParamsIOFlag ioFlag);
    
    /**
-    * @brief mFilenamesContainConnectionNames: Specifies if connection names gets printed out to output connection pvp files
-    * @details Options are 0, 1, or 2.
-    * - 0: filenames have form w5.pvp
-    * - 1: filenames have form w5_NameOfConnection.pvp
-    * - 2: filenames have form NameOfConnection.pvp
+    * @brief mFilenamesContainConnectionNames is obsolete.
+    * The file produced by outputState has the form NameOfConnection.pvp
     */
    virtual void ioParam_filenamesContainConnectionNames(enum ParamsIOFlag ioFlag);
    
    /**
-    * @brief initializeFromChckpointDir: Sets directory for mLayers and connection to initialize from.
+    * @brief mFilenamesContainLayerNames is obsolete.
+    * The file produced by outputState has the form NameOfLayer.pvp
     */
    virtual void ioParam_initializeFromCheckpointDir(enum ParamsIOFlag ioFlag);
    
@@ -303,8 +292,7 @@ private:
    virtual void ioParam_checkpointIndexWidth(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief writeTimescales: If mDtAdaptController is set, specifies if the timescales should be written
-    * @details The timescales get written to outputPath/HyPerCol_timescales.txt.
+    * @brief writeTimescales:  Obsolete.  This parameter is now handled by AdaptiveTimeScaleProbe, as writeTimeScales.
     */
    virtual void ioParam_writeTimescales(enum ParamsIOFlag ioFlag); 
 
@@ -349,7 +337,7 @@ public:
    int readArrayFromFile(const char* cp_dir, const char* group_name, const char* val_name, T* val, size_t count, T default_value=(T) 0);
    template <typename T>
    int readScalarFromFile(const char* cp_dir, const char* group_name, const char* val_name, T* val, T default_value=(T) 0);
-   int run() { return run(mStartTime, mStopTime, mDeltaTimeBase); }
+   int run() { return run(mStartTime, mStopTime, mDeltaTime); }
    int run(double mStartTime, double mStopTime, double dt);
    template <typename T>
    int writeArrayToFile(const char* cp_dir, const char* group_name, const char* val_name, T*  val, size_t count);
@@ -379,11 +367,8 @@ public:
 
    BaseConnection* getConnection(int which)  { return mConnections.at(which); }
    BaseProbe* getBaseProbe(int which) { return mBaseProbes.at(which); }
-   bool getDtAdaptFlag() const { pvWarn() << "getDtAdaptFlag() is deprecated.\n" ; return usingAdaptiveTimeScale(); }  // getDtAdaptFlag() was deprecated Jul 7, 2016, in favor if usingAdaptiveTimeScale().
    bool getVerifyWrites() { return mVerifyWrites; }
    bool warmStartup() const { return mWarmStart; }
-   bool usingAdaptiveTimeScale() const { return mDtAdaptController != nullptr; }
-   bool getUseAdaptMethodExp1stOrder() const { return mUseAdaptMethodExp1stOrder; }
    bool getDefaultInitializeFromCheckpointFlag() { return mDefaultInitializeFromCheckpointFlag; }
    bool getCheckpointReadFlag() const { return mCheckpointReadFlag; }
    bool getCheckpointWriteFlag() const { return mCheckpointWriteFlag; }
@@ -397,6 +382,10 @@ public:
    const char * getPrintParamsFilename() const { return mPrintParamsFilename; }
    ColProbe * getColProbe(int which) { return mColProbes.at(which); }
    double getDeltaTime() const { return mDeltaTime; }
+#ifdef OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
+   bool usingAdaptiveTimeScale() const { return mDtAdaptController != nullptr; }
+   bool getDtAdaptFlag() const { pvWarn() << "getDtAdaptFlag() is deprecated.\n" ; return usingAdaptiveTimeScale(); }  // getDtAdaptFlag() was deprecated Jul 7, 2016, in favor of usingAdaptiveTimeScale().
+   bool getUseAdaptMethodExp1stOrder() const { return mUseAdaptMethodExp1stOrder; }
    double getDeltaTimeBase() const { return mDeltaTimeBase; }
    double getTimeScale(int batch) const { pvAssert(batch >= 0 && batch < mNumBatch); return mTimeScale[batch]; }
    double getTimeScaleMax(int batch) const { pvAssert(batch >= 0 && batch < mNumBatch); return mTimeScaleMax[batch]; }
@@ -406,12 +395,13 @@ public:
    double getTimeScaleMin() const { return mTimeScaleMin; }
    double getChangeTimeScaleMax() const { return mChangeTimeScaleMax; }
    double getChangeTimeScaleMin() const { return mChangeTimeScaleMin; }
-   double simulationTime() const { return mSimTime; }
-   double getStartTime() const { return mStartTime; }
-   double getStopTime() const { return mStopTime; }
    double* getTimeScale() const { return mTimeScale; }
    double* getTimeScaleMaxPtr() const { return mTimeScaleMax; }
    double* getTimeScaleMax2Ptr() const { return mTimeScaleMax2; }
+#endif // OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
+   double simulationTime() const { return mSimTime; }
+   double getStartTime() const { return mStartTime; }
+   double getStopTime() const { return mStopTime; }
    HyPerLayer * getLayer(int which)       {return mLayers.at(which);}
    int globalRank() { return mCommunicator->globalCommRank(); }
    int columnId() { return mCommunicator->commRank(); }
@@ -420,8 +410,6 @@ public:
    int getNBatch() { return mNumBatch; }
    int getNBatchGlobal() { return mNumBatchGlobal; }
    int getNumThreads() const { return mNumThreads;}
-   int includeLayerName() const { return mFilenamesContainLayerNames;}
-   int includeConnectionName() const { return mFilenamesContainConnectionNames;}
    int numberOfLayers() const { return mLayers.size();}
    int numberOfConnections() const { return mConnections.size();}
    int numberOfNormalizers() const { return mNormalizers.size();}
@@ -466,13 +454,17 @@ public:
  
 private:
    bool advanceCPWriteTime();
+#ifdef OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
    double* adaptTimeScale();
    double* adaptTimeScaleExp1stOrder();
+   void initDtAdaptControlProbe();
+#endif // OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
    int initializeThreads(char const * in_device);
    int initialize_base();
    int initialize(const char * name, PV_Init* initObj);
    int ioParams(enum ParamsIOFlag ioFlag);
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   void paramMovedToColumnEnergyProbe(enum ParamsIOFlag ioFlag, char const * paramName);
    int checkDirExists(const char * dirname, struct stat * pathstat);
    void notify(std::vector<std::shared_ptr<BaseMessage> > messages);
    inline void notify(std::shared_ptr<BaseMessage> message) { notify(std::vector<std::shared_ptr<BaseMessage> >{message});}
@@ -490,7 +482,6 @@ private:
     * If printMessagesFlag is false, these messages are suppressed.
     */
    int setNumThreads(bool printMessagesFlag);
-   void initDtAdaptControlProbe();
 
    // Private variables
 
@@ -511,9 +502,8 @@ private:
    bool mSuppressNonplasticCheckpoints; // If mSuppressNonplasticCheckpoints is true, only weights with plasticityFlag true will be checkpointed.  If false, all weights will be checkpointed.
    bool mReadyFlag;          // Initially false; set to true when communicateInitInfo, allocateDataStructures, and setInitialValues stages are completed
    bool mParamsProcessedFlag; // Initially false; set to true when processParams is called.
-   bool mUseAdaptMethodExp1stOrder = true; // specifies whether exponential approximation to energy function decay is used to adapt time scale, requires mDtAdaptControlProbe != NULL
    bool mWriteTimeScaleFieldnames;      // determines whether fieldnames are written to HyPerCol_timescales file
-   bool mWriteProgressToError;// Whether to write progress step to standard error (True) or standard output (False) (default is output)
+   bool mWriteProgressToErr;// Whether to write progress step to standard error (True) or standard output (False) (default is output)
    bool mVerifyWrites;     // Flag to indicate whether calls to PV_fwrite do a readback check
    bool mOwnsCommunicator; // True if icComm was created by initialize, false if passed in the constructor
    bool mWriteTimescales;
@@ -522,13 +512,10 @@ private:
    char* mCheckpointWriteDir; // name of the directory to write checkpoints to
    char* mCheckpointWriteTriggerModeString;
    char* mCheckpointWriteClockUnit; // If checkpoint mode is clock, the string that specifies the units.  "seconds", "minutes", "hours", or "days".
-   char* mDtAdaptController;       // If nonblank, the name of a ColProbe whose getValues() method is called to control mTimeScale
    char* mName;
    char* mOutputPath;     // path to output file directory
    char* mPrintParamsFilename; // filename for outputting the mParams, including defaults and excluding unread mParams
-   char* mDtAdaptTriggerLayerName;
    char * mInitializeFromCheckpointDir; // If nonempty, mLayers and mConnections can load from this directory as in checkpointRead, by setting their initializeFromCheckpointFlag parameter, but the run still starts at mSimTime=mStartTime
-   ColProbe * mDtAdaptControlProbe; // The probe pointed to by mDtAdaptController, mDtAdaptControlProbe->getValues() is used to control mTimeScale.  If blank, use the original method
    std::vector<ColProbe*> mColProbes; //ColProbe ** mColProbes;
    double mStartTime;
    double mSimTime;          // current time in milliseconds
@@ -537,16 +524,22 @@ private:
    double mCpWriteTimeInterval;
    double mNextCpWriteTime;
    double mCpWriteClockInterval; // If checkpoint mode is clock, the clock time between checkpoints, in the units specified by checkpointWriteClockUnit
+   double mProgressInterval; // Output progress after mSimTime increases by this amount.
+   double mNextProgressTime; // Next time to output a progress message
+#ifdef OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
+   char* mDtAdaptController;       // If nonblank, the name of a ColProbe whose getValues() method is called to control mTimeScale
+   ColProbe * mDtAdaptControlProbe; // The probe pointed to by mDtAdaptController, mDtAdaptControlProbe->getValues() is used to control mTimeScale.  If blank, use the original method
+   char* mDtAdaptTriggerLayerName;
+   HyPerLayer * mDtAdaptTriggerLayer;
    double mDtAdaptTriggerOffset;
+   bool mUseAdaptMethodExp1stOrder = true; // specifies whether exponential approximation to energy function decay is used to adapt time scale, requires mDtAdaptControlProbe != NULL
    double mDeltaTimeBase;    // base time step interval if mDtAdaptController is used; mTimeScale is applied to this value
-   double mTimeScaleMaxBase;     // default value of maximum value of mTimeScale 
-   double mTimeScaleMax2Base;     // default value of maximum value of mTimeScaleMax 
+   double mTimeScaleMaxBase;     // default value of maximum value of mTimeScale
+   double mTimeScaleMax2Base;     // default value of maximum value of mTimeScaleMax
    double mTimeScaleMin;     // minimum value of mTimeScale (not really a minimum, actually sets starting/iniital value of mDeltaTime)
    double mChangeTimeScaleMax;     // maximum change in value of mTimeScale (prevents mDeltaTime from growing too quickly)
    double mChangeTimeScaleMin;     // typically 0 or negative, maximum DECREASE in mTimeScale allowed before resetting mTimeScale -> mTimeScaleMin
    double mDtMinToleratedTimeScale;// Exits with an error if any layer returns a mTimeScale between zero and this amount
-   double mProgressInterval; // Output progress after mSimTime increases by this amount.
-   double mNextProgressTime; // Next time to output a progress message
    double* mTimeScale;        // scale factor for mDeltaTimeBase, mDeltaTime = mTimeScale*mDeltaTimeBase
    double* mTimeScaleTrue;    // true mTimeScale returned by min(HyPerLayer::getTimeScale) before MIN/MAX/CHANGE constraints applied
    double* mOldTimeScale;        // old value of mTimeScale
@@ -554,8 +547,8 @@ private:
    double* mDeltaTimeAdapt;    // Actual mDeltaTimeAdapt buffer passed to updateState
    double* mTimeScaleMax;     // maximum value of mTimeScale (prevents mDeltaTime from growing too large)
    double* mTimeScaleMax2;     // maximum value of mTimeScaleMax (prevents mTimeScaleMax from growing too large)
+#endif // OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
    enum CheckpointWriteTriggerMode mCheckpointWriteTriggerMode;
-   HyPerLayer * mDtAdaptTriggerLayer;
    std::vector<HyPerLayer*> mLayers; //HyPerLayer ** mLayers;
    int mNumPhases;
    int mCheckpointSignal;      // whether the process should checkpoint in response to an external signal
@@ -566,11 +559,7 @@ private:
    int mNumYGlobal;
    int mNumBatch;
    int mNumBatchGlobal;
-   int mFilenamesContainLayerNames; // Controls the form of mLayers' clayer->activeFP
-                                   // Value 0: mLayers have form a5.pvp
-                                   // Value 1: mLayers have form a5_NameOfLayer.pvp
-                                   // Value 2: mLayers have form NameOfLayer.pvp
-   int mFilenamesContainConnectionNames; // Similar to mFilenamesContainLayerNames, but for mConnections
+   // mFilenamesContainLayerNames and mFilenamesContainConnectionNames were removed Aug 12, 2016.
    int mOrigStdOut;
    int mOrigStdErr;
    int mNumThreads;
@@ -608,6 +597,7 @@ private:
    int mNumGpuGroup;
    PVCuda::CudaDevice * mCudaDevice;    // object for running kernels on OpenCL device
 #endif
+   bool mObsoleteParameterFound = false;
 
 }; // class HyPerCol
 

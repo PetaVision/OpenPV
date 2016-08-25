@@ -45,7 +45,7 @@ void TestImage::ioParam_constantVal(enum ParamsIOFlag ioFlag) {
 }
 
 int TestImage::allocateV() {
-   assert(getV()==NULL);
+   pvErrorIf(!(getV()==NULL), "Test failed.\n");
    return PV_SUCCESS;
 }
 

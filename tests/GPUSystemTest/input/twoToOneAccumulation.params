@@ -10,8 +10,6 @@ HyPerCol "column" = {
     progressInterval = 1.0;
     //Change this
     outputPath = "output/postTest/";
-    filenamesContainLayerNames = true;
-    filenamesContainConnectionNames = true;
     checkpointWrite = false;
     // deleteOlderCheckpoints = false;
     suppressLastOutput = false;
@@ -150,7 +148,7 @@ ANNLayer "outputTest" = {
 //     
 //    delay = 0;
 //     
-//    preActivityIsNotRate = false;
+//    convertRateToSpikeCount = false;
 //    selfFlag = false;
 //
 //    updateGSynFromPostPerspective = false;
@@ -196,7 +194,7 @@ HyPerConn "origConn1" = {
      
     delay = 0;
      
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
     selfFlag = false;
 
     updateGSynFromPostPerspective = false;
@@ -242,7 +240,7 @@ HyPerConn "origConn2" = {
      
     delay = 0;
      
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
     selfFlag = false;
 
     updateGSynFromPostPerspective = false;
@@ -256,7 +254,7 @@ TransposeConn "TransposeConn1" = {
     channelCode = 0; 
     originalConnName = "origConn1";
     selfFlag = false;
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
     writeStep = -1;
     delay = 0;
     pvpatchAccumulateType = "convolve";
@@ -270,7 +268,7 @@ TransposeConn "TransposeConn2" = {
     channelCode = 0; 
     originalConnName = "origConn2";
     selfFlag = false;
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
     writeStep = -1;
     delay = 0;
     pvpatchAccumulateType = "convolve";
@@ -284,7 +282,7 @@ TransposeConn "gpuTransposeConn1" = {
     channelCode = 0;
     originalConnName = "origConn1";
     selfFlag = false;
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
     writeStep = -1.0;
     delay = 0;
     pvpatchAccumulateType = "convolve";
@@ -302,7 +300,7 @@ TransposeConn "gpuTransposeConn2" = {
     channelCode = 0;
     originalConnName = "origConn2";
     selfFlag = false;
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
     writeStep = -1.0;
     delay = 0;
     pvpatchAccumulateType = "convolve";

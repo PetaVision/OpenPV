@@ -12,7 +12,7 @@
 int customexit(HyPerCol * hc, int argc, char * argv[]);
 
 int main(int argc, char * argv[]) {
-	return buildandrun(argc, argv, NULL, customexit);
+   return buildandrun(argc, argv, NULL, customexit);
 }
 
 int customexit(HyPerCol * hc, int argc, char * argv[]) {
@@ -22,58 +22,58 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
    BaseConnection * baseConn;
    baseConn = hc->getConnFromName("NormalizeSumConnection");
    HyPerConn * normalizeSumConn = dynamic_cast<HyPerConn *>(baseConn);
-   assert(normalizeSumConn);
+   pvErrorIf(!(normalizeSumConn), "Test failed.\n");
    NormalizeBase * normalizeSumNormalizer = normalizeSumConn->getNormalizer();
-   assert(normalizeSumNormalizer);
+   pvErrorIf(!(normalizeSumNormalizer), "Test failed.\n");
    float normalizeSumStrength = normalizeSumNormalizer->getStrength();
    HyPerLayer * normalizeSumCheck = hc->getLayerFromName("NormalizeSumCheck");
    float normalizeSumValue = normalizeSumCheck->getLayerData()[0];
-   assert(fabsf(normalizeSumValue - normalizeSumStrength)<tol);
+   pvErrorIf(!(fabsf(normalizeSumValue - normalizeSumStrength)<tol), "Test failed.\n");
 
    // check normalizeL2
    baseConn = hc->getConnFromName("NormalizeL2Connection");
    HyPerConn * normalizeL2Conn = dynamic_cast<HyPerConn *>(baseConn);
-   assert(normalizeL2Conn);
+   pvErrorIf(!(normalizeL2Conn), "Test failed.\n");
    NormalizeBase * normalizeL2Normalizer = normalizeL2Conn->getNormalizer();
-   assert(normalizeL2Normalizer);
+   pvErrorIf(!(normalizeL2Normalizer), "Test failed.\n");
    float normalizeL2Strength = normalizeL2Normalizer->getStrength();
    HyPerLayer * normalizeL2Check = hc->getLayerFromName("NormalizeL2Check");
-   assert(normalizeL2Check);
+   pvErrorIf(!(normalizeL2Check), "Test failed.\n");
    float normalizeL2Value = sqrtf(normalizeL2Check->getLayerData()[0]);
-   assert(fabsf(normalizeL2Value - normalizeL2Strength)<tol);
+   pvErrorIf(!(fabsf(normalizeL2Value - normalizeL2Strength)<tol), "Test failed.\n");
 
    // check normalizeMax
    baseConn = hc->getConnFromName("NormalizeMaxConnection");
    HyPerConn * normalizeMaxConn = dynamic_cast<HyPerConn *>(baseConn);
-   assert(normalizeMaxConn);
+   pvErrorIf(!(normalizeMaxConn), "Test failed.\n");
    NormalizeBase * normalizeMaxNormalizer = normalizeMaxConn->getNormalizer();
-   assert(normalizeMaxNormalizer);
+   pvErrorIf(!(normalizeMaxNormalizer), "Test failed.\n");
    float normalizeMaxStrength = normalizeMaxNormalizer->getStrength();
    HyPerLayer * normalizeMaxCheck = hc->getLayerFromName("NormalizeMaxCheck");
-   assert(normalizeMaxCheck);
+   pvErrorIf(!(normalizeMaxCheck), "Test failed.\n");
    float normalizeMaxValue = -FLT_MAX;
    for (int k=0; k<normalizeMaxCheck->getNumExtended(); k++) {
       pvadata_t layerData = normalizeMaxCheck->getLayerData()[k];
       if (normalizeMaxValue < layerData) {normalizeMaxValue = layerData;}
    }
-   assert(fabsf(normalizeMaxValue - normalizeMaxStrength)<tol);
+   pvErrorIf(!(fabsf(normalizeMaxValue - normalizeMaxStrength)<tol), "Test failed.\n");
 
    // check normalizeContrastZeroMean.
    baseConn = hc->getConnFromName("NormalizeContrastZeroMeanConnection");
    HyPerConn * normalizeContrastZeroMeanConn = dynamic_cast<HyPerConn *>(baseConn);
-   assert(normalizeContrastZeroMeanConn);
+   pvErrorIf(!(normalizeContrastZeroMeanConn), "Test failed.\n");
    NormalizeBase * normalizeContrastZeroMeanNormalizer = normalizeContrastZeroMeanConn->getNormalizer();
-   assert(normalizeContrastZeroMeanNormalizer);
+   pvErrorIf(!(normalizeContrastZeroMeanNormalizer), "Test failed.\n");
    float normalizeContrastZeroMeanStrength = normalizeContrastZeroMeanNormalizer->getStrength();
    int numNeurons = normalizeContrastZeroMeanConn->postSynapticLayer()->getNumGlobalNeurons();
    HyPerLayer * normalizeContrastZeroMeanCheckMean = hc->getLayerFromName("NormalizeContrastZeroMeanCheckMean");
-   assert(normalizeContrastZeroMeanCheckMean);
+   pvErrorIf(!(normalizeContrastZeroMeanCheckMean), "Test failed.\n");
    float normalizeContrastZeroMeanValue = normalizeContrastZeroMeanCheckMean->getLayerData()[0]/numNeurons;
-   assert(fabsf(normalizeContrastZeroMeanValue)<tol);
+   pvErrorIf(!(fabsf(normalizeContrastZeroMeanValue)<tol), "Test failed.\n");
    HyPerLayer * normalizeContrastZeroMeanCheckVariance = hc->getLayerFromName("NormalizeContrastZeroMeanCheckVariance");
-   assert(normalizeContrastZeroMeanCheckVariance);
+   pvErrorIf(!(normalizeContrastZeroMeanCheckVariance), "Test failed.\n");
    float normalizeContrastZeroMeanStDev = sqrtf(normalizeContrastZeroMeanCheckVariance->getLayerData()[0]/numNeurons);
-   assert(fabsf(normalizeContrastZeroMeanStDev - normalizeContrastZeroMeanStrength)<tol);
+   pvErrorIf(!(fabsf(normalizeContrastZeroMeanStDev - normalizeContrastZeroMeanStrength)<tol), "Test failed.\n");
 
    return PV_SUCCESS;
 }

@@ -7,7 +7,7 @@ namespace PV {
 
 class SegmentTestLayer: public PV::SegmentLayer{
 public:
-	SegmentTestLayer(const char* name, HyPerCol * hc);
+   SegmentTestLayer(const char* name, HyPerCol * hc);
 
 protected:
    int updateState(double timef, double dt);

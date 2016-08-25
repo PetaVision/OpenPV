@@ -34,9 +34,9 @@ int test_PatchHead(int kzPre, int nzPatch, int zScaleLog2Pre, int zScaleLog2Post
       shift -= (kzPre < 0) ? l == 1 : l == 0;
    }
    else if (nzPatch % 2 == 1 && a < 1){
-	      // density decreases in post-synaptic layer
-	      shift = - (int) (0.5f * (float) nzPatch);
-	      return shift + nearby_neighbor(kzPre, zScaleLog2Pre, zScaleLog2Post);
+      // density decreases in post-synaptic layer
+      shift = - (int) (0.5f * (float) nzPatch);
+      return shift + nearby_neighbor(kzPre, zScaleLog2Pre, zScaleLog2Post);
    }
 
    int neighbor = nearby_neighbor(kzPre, zScaleLog2Pre, zScaleLog2Post);
@@ -100,105 +100,105 @@ int main(int argc, char* argv[])
       }
    }
 
-	// common usage tests, nPatch ODD, relative scale==2 (post less dense than pre, many to one)
-	//
-	int ainv;
-	int kmod;
+   // common usage tests, nPatch ODD, relative scale==2 (post less dense than pre, many to one)
+   //
+   int ainv;
+   int kmod;
 
-	a = 0.5;
-	ainv = 2;
-	scaleLog2Post = 1;
-	nPatch = 3;
-	test = 4;
-	ans = -5 - 1; // head starts at -6, increases every other kpre
-	for (kpre = -9; kpre < 9; kpre++) {
-		if (kpre >= 0){
-			kmod = kpre % ainv;
-		}
-		else {
-			kmod = ainv - 1 - ((-1-kpre) % ainv);
-		}
-		kh = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
-		kBack = zPatchHead(kh, nPatch * ainv, scaleLog2Post, scaleLog2Pre)
-				+ nPatch * ainv - ainv + kmod;
-		if (kh != ans || kBack != kpre) {
-			pvError().printf("FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d kmod=%d\n",
-					test, kpre, kh, kBack, kmod);
-		}
-		ans += (kmod == (ainv-1));
-	}
+   a = 0.5;
+   ainv = 2;
+   scaleLog2Post = 1;
+   nPatch = 3;
+   test = 4;
+   ans = -5 - 1; // head starts at -6, increases every other kpre
+   for (kpre = -9; kpre < 9; kpre++) {
+      if (kpre >= 0){
+         kmod = kpre % ainv;
+      }
+      else {
+         kmod = ainv - 1 - ((-1-kpre) % ainv);
+      }
+      kh = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
+      kBack = zPatchHead(kh, nPatch * ainv, scaleLog2Post, scaleLog2Pre)
+            + nPatch * ainv - ainv + kmod;
+      if (kh != ans || kBack != kpre) {
+         pvError().printf("FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d kmod=%d\n",
+               test, kpre, kh, kBack, kmod);
+      }
+      ans += (kmod == (ainv-1));
+   }
 
-	a = 0.5;
-	ainv = 2;
-	scaleLog2Post = 1;
-	nPatch = 9;
-	test = 5;
-	ans = -5 - 4; // head starts at -9, increases every other kpre
-	for (kpre = -9; kpre < 9; kpre++) {
-		if (kpre >= 0){
-			kmod = kpre % ainv;
-		}
-		else {
-			kmod = ainv - 1 - ((-1-kpre) % ainv);
-		}
-		kh = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
-		kBack = zPatchHead(kh, nPatch * ainv, scaleLog2Post, scaleLog2Pre)
-				+ nPatch * ainv - ainv + kmod;
-		if (kh != ans || kBack != kpre) {
-			pvInfo().printf("FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d kmod=%d\n",
-					test, kpre, kh, kBack, kmod);
-		}
-		ans += (kmod == (ainv-1));
-	}
+   a = 0.5;
+   ainv = 2;
+   scaleLog2Post = 1;
+   nPatch = 9;
+   test = 5;
+   ans = -5 - 4; // head starts at -9, increases every other kpre
+   for (kpre = -9; kpre < 9; kpre++) {
+      if (kpre >= 0){
+         kmod = kpre % ainv;
+      }
+      else {
+         kmod = ainv - 1 - ((-1-kpre) % ainv);
+      }
+      kh = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
+      kBack = zPatchHead(kh, nPatch * ainv, scaleLog2Post, scaleLog2Pre)
+            + nPatch * ainv - ainv + kmod;
+      if (kh != ans || kBack != kpre) {
+         pvInfo().printf("FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d kmod=%d\n",
+               test, kpre, kh, kBack, kmod);
+      }
+      ans += (kmod == (ainv-1));
+   }
 
-	// common usage tests, nPatch ODD, relative scale==4 (less dense)
-	//
+   // common usage tests, nPatch ODD, relative scale==4 (less dense)
+   //
 
-	a = 0.25;
-	ainv = 4;
-	scaleLog2Post = 2;
-	nPatch = 3;
-	test = 6;
-	ans = -3 - 1; // head starts at -4, increases every fourth kpre
-	for (kpre = -9; kpre < 9; kpre++) {
-		if (kpre >= 0){
-			kmod = kpre % ainv;
-		}
-		else {
-			kmod = ainv - 1 - ((-1-kpre) % ainv);
-		}
-		kh = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
-		kBack = zPatchHead(kh, nPatch * ainv, scaleLog2Post, scaleLog2Pre)
-				+ nPatch * ainv - ainv + kmod;
-		if (kh != ans || kBack != kpre) {
-			pvError().printf("FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d kmod=%d\n",
-					test, kpre, kh, kBack, kmod);
-		}
-		ans += (kmod == (ainv-1));
-	}
+   a = 0.25;
+   ainv = 4;
+   scaleLog2Post = 2;
+   nPatch = 3;
+   test = 6;
+   ans = -3 - 1; // head starts at -4, increases every fourth kpre
+   for (kpre = -9; kpre < 9; kpre++) {
+      if (kpre >= 0){
+         kmod = kpre % ainv;
+      }
+      else {
+         kmod = ainv - 1 - ((-1-kpre) % ainv);
+      }
+      kh = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
+      kBack = zPatchHead(kh, nPatch * ainv, scaleLog2Post, scaleLog2Pre)
+            + nPatch * ainv - ainv + kmod;
+      if (kh != ans || kBack != kpre) {
+         pvError().printf("FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d kmod=%d\n",
+               test, kpre, kh, kBack, kmod);
+      }
+      ans += (kmod == (ainv-1));
+   }
 
-	a = 0.25;
-	ainv = 4;
-	scaleLog2Post = 2;
-	nPatch = 9;
-	test = 7;
-	ans = -3 - 4; // head starts at -7, increases every fourth kpre
-	for (kpre = -9; kpre < 9; kpre++) {
-		if (kpre >= 0){
-			kmod = kpre % ainv;
-		}
-		else {
-			kmod = ainv - 1 - ((-1-kpre) % ainv);
-		}
-		kh = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
-		kBack = zPatchHead(kh, nPatch * ainv, scaleLog2Post, scaleLog2Pre)
-				+ nPatch * ainv - ainv + kmod;
-		if (kh != ans || kBack != kpre) {
-			pvError().printf("TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d kmod=%d\n",
-					test, kpre, kh, kBack, kmod);
-		}
-		ans += (kmod == (ainv-1));
-	}
+   a = 0.25;
+   ainv = 4;
+   scaleLog2Post = 2;
+   nPatch = 9;
+   test = 7;
+   ans = -3 - 4; // head starts at -7, increases every fourth kpre
+   for (kpre = -9; kpre < 9; kpre++) {
+      if (kpre >= 0){
+         kmod = kpre % ainv;
+      }
+      else {
+         kmod = ainv - 1 - ((-1-kpre) % ainv);
+      }
+      kh = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
+      kBack = zPatchHead(kh, nPatch * ainv, scaleLog2Post, scaleLog2Pre)
+            + nPatch * ainv - ainv + kmod;
+      if (kh != ans || kBack != kpre) {
+         pvError().printf("TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d kmod=%d\n",
+               test, kpre, kh, kBack, kmod);
+      }
+      ans += (kmod == (ainv-1));
+   }
 
    // common usage tests, nPatch even, relative scale==-1 (more dense)
    //

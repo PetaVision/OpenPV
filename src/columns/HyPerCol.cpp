@@ -82,7 +82,6 @@ HyPerCol::~HyPerCol() {
    delete mRunTimer;
    delete mCheckpointTimer;
    //TODO: Change these old C strings into std::string
-   free(mDtAdaptController);
    free(mPrintParamsFilename);
    free(mOutputPath);
    free(mInitializeFromCheckpointDir);
@@ -97,7 +96,9 @@ HyPerCol::~HyPerCol() {
       mCheckpointReadDir = nullptr;
       free(mCheckpointReadDirBase); mCheckpointReadDirBase = nullptr;
    }
+#ifdef OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
    if (mDtAdaptControlProbe && mWriteTimescales) { mTimeScaleStream.close(); }
+   free(mDtAdaptController);
    if(mTimeScale) { free(mTimeScale); }
    if(mTimeScaleMax) { free(mTimeScaleMax); }
    if(mTimeScaleMax2) { free(mTimeScaleMax2); }
@@ -105,6 +106,7 @@ HyPerCol::~HyPerCol() {
    if(mOldTimeScale) { free(mOldTimeScale); }
    if(mOldTimeScaleTrue) { free(mOldTimeScaleTrue); }
    if(mDeltaTimeAdapt) { free(mDeltaTimeAdapt); }
+#endif // OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
 }
 
 
@@ -139,6 +141,7 @@ int HyPerCol::initialize_base() {
    mStopTime = 0.0;
    mDeltaTime = DEFAULT_DELTA_T;
    mWriteTimeScaleFieldnames = true;
+#ifdef OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
    mDtAdaptController = nullptr;
    mDtAdaptControlProbe = nullptr;
    mDtAdaptTriggerLayerName = nullptr;
@@ -158,8 +161,10 @@ int HyPerCol::initialize_base() {
    mChangeTimeScaleMax = 1.0;
    mChangeTimeScaleMin = 0.0;
    mDtMinToleratedTimeScale = 1.0e-4;
+   mWriteTimescales = true; //Defaults to true
+#endif // OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
    mProgressInterval = 1.0;
-   mWriteProgressToError = false;
+   mWriteProgressToErr = false;
    mOrigStdOut = -1;
    mOrigStdErr = -1;
    mLayers.clear();
@@ -195,11 +200,8 @@ int HyPerCol::initialize_base() {
    mPhaseRecvTimers.clear();
    mColProbes.clear();
    mBaseProbes.clear();
-   mFilenamesContainLayerNames = 0;
-   mFilenamesContainConnectionNames = 0;
    mRandomSeed = 0U;
    //mRandomSeedObj = 0U;
-   mWriteTimescales = true; //Defaults to true
    mErrorOnNotANumber = false;
    mNumThreads = 1;
    mRecvLayerBuffer.clear();
@@ -287,9 +289,9 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
    ioParams(PARAMS_IO_READ);
    mCheckpointSignal = 0;
    mSimTime = mStartTime;
-   mInitialStep = (long int) nearbyint(mStartTime/mDeltaTimeBase);
+   mInitialStep = (long int) nearbyint(mStartTime/mDeltaTime);
    mCurrentStep = mInitialStep;
-   mFinalStep = (long int) nearbyint(mStopTime/mDeltaTimeBase);
+   mFinalStep = (long int) nearbyint(mStopTime/mDeltaTime);
    mNextProgressTime = mStartTime + mProgressInterval;
 
    RandomSeed::instance()->initialize(mRandomSeed);
@@ -426,6 +428,7 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
 #endif
    }
 
+#ifdef OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
    //Allocate timescales for batches
    //TODO: Make these std::vector
    mTimeScale        = static_cast<double*>(pvCallocError(mNumBatch, sizeof(double), "%s error: unable to allocate memory for TimeScale buffer.\n", programName));
@@ -446,6 +449,7 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
       mOldTimeScale[b]        = mTimeScaleMin;
       mDeltaTimeAdapt[b]      = mDeltaTimeBase;
    }
+#endif // OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
 
    // If mDeleteOlderCheckpoints is true, set up a ring buffer of checkpoint directory names.
    pvAssert(mOldCheckpointDirectories.size() == 0);
@@ -517,6 +521,18 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_checkpointIndexWidth(ioFlag);
    ioParam_writeTimescales(ioFlag);
    ioParam_errorOnNotANumber(ioFlag);
+
+   // Aug 18, 2016.  Several HyPerCol parameters have moved to AdaptiveTimeScaleProbe.
+   // The ioParam_* method for those parameters sets the mObsoleteParameterFound flag
+   // if the parameter is present in the HyPerCol group.  Exit with an error here
+   // if any of those parameters were found.
+   if (mObsoleteParameterFound) {
+      if (getCommunicator()->commRank()==0) {
+         pvErrorNoExit() << "Exiting due to obsolete HyPerCol parameters in the params file.\n";
+      }
+      MPI_Barrier(getCommunicator()->communicator());
+      exit(EXIT_FAILURE);
+   }
    return PV_SUCCESS;
 }
 
@@ -657,118 +673,124 @@ void HyPerCol::ioParam_startTime(enum ParamsIOFlag ioFlag) {
 
 void HyPerCol::ioParam_dt(enum ParamsIOFlag ioFlag) {
    ioParamValue(ioFlag, mName, "dt", &mDeltaTime, mDeltaTime);
-   mDeltaTimeBase = mDeltaTime;  // use param value as base
+   // mDeltaTimeBase = mDeltaTime;  // use param value as base
 }
 
 void HyPerCol::ioParam_dtAdaptController(enum ParamsIOFlag ioFlag) {
-   ioParamString(ioFlag, mName, "dtAdaptController", &mDtAdaptController, nullptr);
+   if (ioFlag==PARAMS_IO_READ && mParams->stringPresent(mName, "dtAdaptController")) {
+      if (columnId()==0) {
+         pvErrorNoExit() << "The dtAdaptController parameter is obsolete.  Use the AdaptiveTimeScaleProbe targetName parameter.\n";
+      }
+      mObsoleteParameterFound = true;
+   }
 }
 
 void HyPerCol::ioParam_dtAdaptFlag(enum ParamsIOFlag ioFlag) {
-   // dtAdaptFlag was deprecated Feb 1, 2016.
-   if (ioFlag==PARAMS_IO_READ) {
-      pvAssert(!mParams->presentAndNotBeenRead(mName, "dtAdaptController"));
-      bool dt_adapt_flag = (mDtAdaptController!=nullptr);
-      if (mParams->present(mName, "dtAdaptFlag")) {
-         if (columnId()==0) { pvWarn() << "HyPerCol parameter dtAdaptFlag is deprecated.  Value of dtAdaptController implies the value of dtAdaptFlag.\n"; }
-         ioParamValue(ioFlag, mName, "dtAdaptFlag", &dt_adapt_flag, dt_adapt_flag);
-         if (dt_adapt_flag != (mDtAdaptController!=nullptr)) {
-            if (columnId()==0) {
-               pvError(dtAdaptFlagError);
-               dtAdaptFlagError << "HyPerCol " << mName << ": dtAdaptController is ";
-               if (mDtAdaptController) {
-                  dtAdaptFlagError << "\"" << mDtAdaptController << "\"; therefore dtAdaptFlag can only be set to true.\n";
-               }
-               else {
-                  dtAdaptFlagError << "null; therefore dtAdaptFlag can only be set to false.\n";
-               }
-            }
-            MPI_Barrier(getCommunicator()->communicator());
-            exit(EXIT_FAILURE);
-         }
+   // dtAdaptFlag was deprecated Feb 1, 2016 and marked obsolete Aug 18, 2016.
+   if (ioFlag==PARAMS_IO_READ && mParams->present(mName, "dtAdaptFlag")) {
+      if (columnId()==0) {
+         pvErrorNoExit() << "The dtAdaptFlag parameter is obsolete.  Define an AdaptiveTimeScaleProbe\n";
       }
+   mObsoleteParameterFound = true;
+   }
+}
+
+// Several HyPerCol parameters were moved to AdaptiveTimeScaleProbe and are therefore obsolete as HyPerCol Parameters, Aug 18, 2016.
+void HyPerCol::paramMovedToColumnEnergyProbe(enum ParamsIOFlag ioFlag, char const * paramName) {
+   if (ioFlag==PARAMS_IO_READ && mParams->present(mName, paramName)) {
+      if (columnId()==0) {
+         pvErrorNoExit() << "The " << paramName << " parameter is now part of AdaptiveTimeScaleProbe.\n";
+      }
+      mObsoleteParameterFound = true;
    }
 }
 
 void HyPerCol::ioParam_writeTimescales(enum ParamsIOFlag ioFlag) {
-   pvAssert(!mParams->presentAndNotBeenRead(mName, "dtAdaptController"));
-   if (mDtAdaptController!=nullptr) {
-      ioParamValue(ioFlag, mName, "writeTimescales", &mWriteTimescales, mWriteTimescales);
+   if (ioFlag==PARAMS_IO_READ && mParams->present(mName, "dtAdaptTriggerOffset")) {
+      if (columnId()==0) {
+         pvErrorNoExit() << "The dtAdaptTriggerOffset parameter is obsolete.  Use the AdaptiveTimeScaleProbe writeTimeScales parameter (note capital S).\n";
+      }
+      mObsoleteParameterFound = true;
    }
 }
 
 void HyPerCol::ioParam_writeTimeScaleFieldnames(enum ParamsIOFlag ioFlag) {
-   pvAssert(!mParams->presentAndNotBeenRead(mName, "dtAdaptController"));
-   if (mDtAdaptController!=nullptr) {
-     ioParamValue(ioFlag, mName, "writeTimeScaleFieldnames", &mWriteTimeScaleFieldnames, mWriteTimeScaleFieldnames);
-   }
+   paramMovedToColumnEnergyProbe(ioFlag, "writeTimeScaleFieldnames");
 }
 
 void HyPerCol::ioParam_useAdaptMethodExp1stOrder(enum ParamsIOFlag ioFlag) {
-   pvAssert(!mParams->presentAndNotBeenRead(mName, "dtAdaptController"));
-   if (mDtAdaptController!=nullptr) {
-     ioParamValue(ioFlag, mName, "useAdaptMethodExp1stOrder", &mUseAdaptMethodExp1stOrder, mUseAdaptMethodExp1stOrder, false/*don't warn if absent*/);
-     if (ioFlag==PARAMS_IO_READ && !mUseAdaptMethodExp1stOrder) {
-        if (columnId()==0) {
-           pvWarn() << "Setting useAdaptMethodExp1stOrder to false is deprecated.\n";
-        }
-     }
+   if (ioFlag==PARAMS_IO_READ && mParams->present(mName, "useAdaptMethodExp1stOrder")) {
+      if (columnId()==0) {
+         pvErrorNoExit() << "The useAdaptMethodExp1stOrder parameter is obsolete.  Adapting the timestep always uses the Exp1stOrder method.\n";
+      }
+      mObsoleteParameterFound = true;
    }
 }
 
 void HyPerCol::ioParam_dtAdaptTriggerLayerName(enum ParamsIOFlag ioFlag) {
-   pvAssert(!mParams->presentAndNotBeenRead(mName, "dtAdaptController"));
-   if (mDtAdaptController && mDtAdaptController[0]) {
-      ioParamString(ioFlag, mName, "dtAdaptTriggerLayerName", &mDtAdaptTriggerLayerName, nullptr);
+   if (ioFlag==PARAMS_IO_READ && mParams->stringPresent(mName, "dtAdaptTriggerLayerName")) {
+      if (columnId()==0) {
+         pvErrorNoExit() << "The dtAdaptTriggerLayerName parameter obsolete.  Use the AdaptiveTimeScaleProbe triggerLayerName parameter.\n";
+      }
+      mObsoleteParameterFound = true;
    }
 }
 
 void HyPerCol::ioParam_dtAdaptTriggerOffset(enum ParamsIOFlag ioFlag) {
-   pvAssert(!mParams->presentAndNotBeenRead(mName, "dtAdaptTriggerLayerName"));
-   if (mDtAdaptTriggerLayerName && mDtAdaptTriggerLayerName[0]) {
-      ioParamValue(ioFlag, mName, "dtAdaptTriggerOffset", &mDtAdaptTriggerOffset, mDtAdaptTriggerOffset);
+   if (ioFlag==PARAMS_IO_READ && mParams->present(mName, "dtAdaptTriggerOffset")) {
+      if (columnId()==0) {
+         pvErrorNoExit() << "The dtAdaptTriggerOffset parameter is obsolete.  Use the AdaptiveTimeScaleProbe triggerOffset parameter\n";
+      }
+      mObsoleteParameterFound = true;
    }
 }
 
 void HyPerCol::ioParam_dtScaleMax(enum ParamsIOFlag ioFlag) {
-   pvAssert(!mParams->presentAndNotBeenRead(mName, "dtAdaptController"));
-   if (mDtAdaptController!=nullptr) {
-     ioParamValue(ioFlag, mName, "dtScaleMax", &mTimeScaleMaxBase, mTimeScaleMaxBase);
+   if (ioFlag==PARAMS_IO_READ && mParams->present(mName, "dtScaleMax")) {
+      if (columnId()==0) {
+         pvErrorNoExit() << "The dtScaleMax parameter is obsolete.  Use the AdaptiveTimeScaleProbe baseMax parameter\n";
+      }
+      mObsoleteParameterFound = true;
    }
 }
 
 void HyPerCol::ioParam_dtScaleMax2(enum ParamsIOFlag ioFlag) {
-   pvAssert(!mParams->presentAndNotBeenRead(mName, "dtAdaptController"));
-   if (mDtAdaptController!=nullptr) {
-     ioParamValue(ioFlag, mName, "dtScaleMax2", &mTimeScaleMax2Base, mTimeScaleMax2Base);
+   if (ioFlag==PARAMS_IO_READ && mParams->present(mName, "dtAdaptTriggerOffset")) {
+      if (columnId()==0) {
+         pvErrorNoExit() << "The dtScaleMax2 parameter has been removed.\n";
+      }
+      mObsoleteParameterFound = true;
    }
 }
 
 void HyPerCol::ioParam_dtScaleMin(enum ParamsIOFlag ioFlag) {
-   pvAssert(!mParams->presentAndNotBeenRead(mName, "dtAdaptController"));
-   if (mDtAdaptController!=nullptr) {
-     ioParamValue(ioFlag, mName, "dtScaleMin", &mTimeScaleMin, mTimeScaleMin);
+   if (ioFlag==PARAMS_IO_READ && mParams->present(mName, "dtScaleMin")) {
+      if (columnId()==0) {
+         pvErrorNoExit() << "The dtScaleMin parameter is obsolete.  Use the AdaptiveTimeScaleProbe baseMin parameter\n";
+      }
+      mObsoleteParameterFound = true;
    }
 }
 
 void HyPerCol::ioParam_dtMinToleratedTimeScale(enum ParamsIOFlag ioFlag) {
-   pvAssert(!mParams->presentAndNotBeenRead(mName, "dtAdaptController"));
-   if (mDtAdaptController!=nullptr) {
-      ioParamValue(ioFlag, mName, "dtMinToleratedTimeScale", &mDtMinToleratedTimeScale, mDtMinToleratedTimeScale);
-   }
+   paramMovedToColumnEnergyProbe(ioFlag, "dtMinToleratedTimeScale");
 }
 
 void HyPerCol::ioParam_dtChangeMax(enum ParamsIOFlag ioFlag) {
-   pvAssert(!mParams->presentAndNotBeenRead(mName, "dtAdaptController"));
-   if (mDtAdaptController!=nullptr) {
-     ioParamValue(ioFlag, mName, "dtChangeMax", &mChangeTimeScaleMax, mChangeTimeScaleMax);
+   if (ioFlag==PARAMS_IO_READ && mParams->present(mName, "dtChangeMax")) {
+      if (columnId()==0) {
+         pvErrorNoExit() << "The dtChangeMax parameter is obsolete.  Use the AdaptiveTimeScaleProbe tauFactor parameter\n";
+      }
+      mObsoleteParameterFound = true;
    }
 }
 
 void HyPerCol::ioParam_dtChangeMin(enum ParamsIOFlag ioFlag) {
-   pvAssert(!mParams->presentAndNotBeenRead(mName, "dtAdaptController"));
-   if (mDtAdaptController!=nullptr) {
-     ioParamValue(ioFlag, mName, "dtChangeMin", &mChangeTimeScaleMin, mChangeTimeScaleMin);
+   if (ioFlag==PARAMS_IO_READ && mParams->present(mName, "dtChangeMax")) {
+      if (columnId()==0) {
+         pvErrorNoExit() << "The dtChangeMin parameter is obsolete.  Use the AdaptiveTimeScaleProbe growthFactor parameter\n";
+      }
+      mObsoleteParameterFound = true;
    }
 }
 
@@ -777,7 +799,7 @@ void HyPerCol::ioParam_stopTime(enum ParamsIOFlag ioFlag) {
       assert(!mParams->presentAndNotBeenRead(mName, "startTime"));
       assert(!mParams->presentAndNotBeenRead(mName, "dt"));
       long int numSteps = mParams->value(mName, "numSteps");
-      mStopTime = mStartTime + numSteps * mDeltaTimeBase;
+      mStopTime = mStartTime + numSteps * mDeltaTime;
       if (globalRank()==0) {
          pvError() << "numSteps is obsolete.  Use startTime, stopTime and dt instead.\n" <<
                "    stopTime set to " << mStopTime << "\n";
@@ -793,7 +815,7 @@ void HyPerCol::ioParam_stopTime(enum ParamsIOFlag ioFlag) {
 void HyPerCol::ioParam_progressInterval(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ && !mParams->present(mName, "progressInterval") && mParams->present(mName, "progressStep")) {
       long int progressStep = (long int) mParams->value(mName, "progressStep");
-      mProgressInterval = progressStep/mDeltaTimeBase;
+      mProgressInterval = progressStep/mDeltaTime;
       if (globalRank()==0) {
          pvErrorNoExit() << "progressStep is obsolete.  Use progressInterval instead.\n";
       }
@@ -806,7 +828,7 @@ void HyPerCol::ioParam_progressInterval(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerCol::ioParam_writeProgressToErr(enum ParamsIOFlag ioFlag) {
-   ioParamValue(ioFlag, mName, "writeProgressToError", &mWriteProgressToError, mWriteProgressToError);
+   ioParamValue(ioFlag, mName, "writeProgressToErr", &mWriteProgressToErr, mWriteProgressToErr);
 }
 
 void HyPerCol::ioParam_verifyWrites(enum ParamsIOFlag ioFlag) {
@@ -894,15 +916,25 @@ void HyPerCol::ioParam_nBatch(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerCol::ioParam_filenamesContainLayerNames(enum ParamsIOFlag ioFlag) {
-   ioParamValue(ioFlag, mName, "filenamesContainLayerNames", &mFilenamesContainLayerNames, 0);
-   pvErrorIf(mFilenamesContainLayerNames < 0 || mFilenamesContainLayerNames > 2,
-      "HyPerCol %s: filenamesContainLayerNames must have the value 0, 1, or 2.\n", mName);
+   //filenamesContainConnectionNames was marked obsolete Aug 12, 2016.
+   if (parameters()->present(mName, "filenamesContainLayerNames")) {
+      double fccnValue = parameters()->value(mName, "filenamesContainLayerNames");
+      std::string msg("The HyPerCol parameter \"filenamesContainLayerNames\" is obsolete.\n");
+      msg.append("Layer output pvp files have the format \"NameOfConnection.pvp\"\n");
+      msg.append("(corresponding to filenamesContainLayerNames=2).\n");
+      if (fccnValue==2) { pvWarn() << msg; } else { pvError() << msg; }
+   }
 }
 
 void HyPerCol::ioParam_filenamesContainConnectionNames(enum ParamsIOFlag ioFlag) {
-   ioParamValue(ioFlag, mName, "filenamesContainConnectionNames", &mFilenamesContainConnectionNames, 0);
-   pvErrorIf(mFilenamesContainConnectionNames < 0 || mFilenamesContainConnectionNames > 2,
-      "HyPerCol %s: filenamesContainConnectionNames must have the value 0, 1, or 2.\n", mName);
+   //filenamesContainConnectionNames was marked obsolete Aug 12, 2016.
+   if (parameters()->present(mName, "filenamesContainConnectionNames")) {
+      double fccnValue = parameters()->value(mName, "filenamesContainConnectionNames");
+      std::string msg("The HyPerCol parameter \"filenamesContainConnectionNames\" is obsolete.\n");
+      msg.append("Connection output pvp files have the format \"NameOfConnection.pvp\"\n");
+      msg.append("(corresponding to filenamesContainConnectionNames=2).\n");
+      if (fccnValue==2) { pvWarn() << msg; } else { pvError() << msg; }
+   }
 }
 
 void HyPerCol::ioParam_initializeFromCheckpointDir(enum ParamsIOFlag ioFlag) {
@@ -987,7 +1019,7 @@ void HyPerCol::ioParam_checkpointWriteTimeInterval(enum ParamsIOFlag ioFlag) {
    if (mCheckpointWriteFlag) {
       pvAssert(!mParams->presentAndNotBeenRead(mName, "checkpointWriteTriggerMode"));
       if(mCheckpointWriteTriggerMode == CPWRITE_TRIGGER_TIME) {
-         ioParamValue(ioFlag, mName, "checkpointWriteTimeInterval", &mCpWriteTimeInterval, mDeltaTimeBase);
+         ioParamValue(ioFlag, mName, "checkpointWriteTimeInterval", &mCpWriteTimeInterval, mDeltaTime);
       }
    }
 }
@@ -1325,7 +1357,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
       omp_set_num_threads(mNumThreads);
 #endif // PV_USE_OPENMP_THREADS
 
-      initDtAdaptControlProbe();
+      // initDtAdaptControlProbe(); // Handling adaptive timesteps moved to AdaptiveTimeScaleProbe Aug 18, 2016.
 
       notify(std::make_shared<AllocateDataMessage>());
 
@@ -1354,7 +1386,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
 
       // Initial normalization moved here to facilitate normalizations of groups of HyPerConns
       normalizeWeights();
-      notify(std::make_shared<ConnectionFinalizeUpdateMessage>(mSimTime, mDeltaTimeBase));
+      notify(std::make_shared<ConnectionFinalizeUpdateMessage>(mSimTime, mDeltaTime));
 
       // publish initial conditions
       for(int phase = 0; phase < mNumPhases; phase++){
@@ -1443,6 +1475,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
    return status;
 }
 
+#ifdef OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
 void HyPerCol::initDtAdaptControlProbe() {
    // add the mDtAdaptController, if there is one.
    if (mDtAdaptController && mDtAdaptController[0]) {
@@ -1474,6 +1507,7 @@ void HyPerCol::initDtAdaptControlProbe() {
       mTimeScaleStream.precision(17);
    }
 }
+#endif // OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
 
 // This routine sets the mNumThreads member variable.  It should only be called by the run() method,
 // and only inside the !ready if-statement.
@@ -1629,6 +1663,7 @@ int HyPerCol::normalizeWeights() {
    return status;
 }
 
+#ifdef OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
 double * HyPerCol::adaptTimeScale(){
    for (int b=0; b<mNumBatch; b++) {
       mOldTimeScaleTrue[b] = mTimeScaleTrue[b];
@@ -1758,88 +1793,7 @@ double * HyPerCol::adaptTimeScaleExp1stOrder(){
 
 int HyPerCol::calcTimeScaleTrue() {
    pvAssert(mDtAdaptControlProbe);
-#ifdef OBSOLETE // Marked obsolete Jul 7, 2016.  calcTimeScaleTrue should not be called if mDtAdaptControlProbe is null.
-   if (!mDtAdaptControlProbe) {
-      if (columnId()==0) {
-         getOutputStream().flush();
-         pvWarn().printf("Setting dtAdaptFlag without defining a dtAdaptControlProbe is deprecated.\n\n\n");
-      }
-      // If there is no probe controlling the adaptive timestep,
-      // query all mLayers to check for barriers on how big the time scale can be.
-      // By default, HyPerLayer::getTimeScale returns -1
-      // (that is, the layer doesn't care how big the time scale is).
-      // Movie and MoviePvp return minTimeScale when expecting to load a new frame
-      // on next time step based on current value of mDeltaTime.
-      // ANNNormalizeErrorLayer (deprecated) is the only other layer in pv-core
-      // that overrides getTimeScale.
-      for (int b=0; b<mNumBatch; b++) {
-         // copying of mTimeScale and mTimeScaleTrue was moved to adaptTimeScale, just before the call to calcTimeScaleTrue -- Oct. 8, 2015
-         // set the true mTimeScale to the minimum mTimeScale returned by each layer, stored in minTimeScaleTmp
-         double minTimeScaleTmp = -1;
-         for(int l = 0; l < mNumLayers; l++) {
-            //Grab timescale
-            double timeScaleTmp = mLayers[l]->calcTimeScale(b);
-            if (timeScaleTmp > 0.0){
-               //Error if smaller than tolerated
-               if (timeScaleTmp < mDtMinToleratedTimeScale) {
-                  if (globalRank()==0) {
-                     if (mNumBatch==1) {
-                        pvErrorNoExit().printf("%s returned time scale %g, less than dtMinToleratedTimeScale=%g.\n", mLayers[l]->getDescription_c(), timeScaleTmp, mDtMinToleratedTimeScale);
-                     }
-                     else {
-                        pvErrorNoExit().printf("%s, batch element %d, returned time scale %g, less than dtMinToleratedTimeScale=%g.\n", mLayers[l]->getDescription_c(), b, timeScaleTmp, mDtMinToleratedTimeScale);
-                     }
-                  }
-                  MPI_Barrier(mCommunicator->globalCommunicator());
-                  exit(EXIT_FAILURE);
-               }
-               //Grabbing lowest timeScaleTmp
-               if (minTimeScaleTmp > 0.0){
-                  minTimeScaleTmp = timeScaleTmp < minTimeScaleTmp ? timeScaleTmp : minTimeScaleTmp;
-               }
-               //Initial set
-               else{
-                  minTimeScaleTmp = timeScaleTmp;
-               }
-            }
-         }
-         mTimeScaleTrue[b] = minTimeScaleTmp;
-      }
-   }
-   else {
-      // If there is a probe controlling the adaptive timestep, use its value for mTimeScaleTrue.
-      std::vector<double> colProbeValues;
-      bool triggersNow = false;
-      if (mDtAdaptTriggerLayer) {
-         double triggerTime = mDtAdaptTriggerLayer->getNextUpdateTime() - mDtAdaptTriggerOffset;
-         triggersNow = fabs(mSimTime - triggerTime) < (mDeltaTimeBase/2);
-      }
-      if (triggersNow) {
-         colProbeValues.assign(mNumBatch, -1.0);
-      }
-      else {
-         mDtAdaptControlProbe->getValues(mSimTime, &colProbeValues);
-      }
-      pvAssert(colProbeValues.size()==mNumBatch); // getValues sets mDtAdaptControlProbe->vectorSize to be equal to mNumBatch
-      for (int b=0; b<mNumBatch; b++) {
-         double timeScaleProbe = colProbeValues.at(b);
-         if (timeScaleProbe > 0 && timeScaleProbe < mDtMinToleratedTimeScale) {
-            if (globalRank()==0) {
-               if (mNumBatch==1) {
-                  pvErrorNoExit().printf("%s has time scale %g, less than dtMinToleratedTimeScale=%g.\n", mDtAdaptControlProbe->getDescription_c(), timeScaleProbe, mDtMinToleratedTimeScale);
-               }
-               else {
-                  pvErrorNoExit().printf("%s, batch element %d, has time scale %g, less than dtMinToleratedTimeScale=%g.\n", mDtAdaptControlProbe->getDescription_c(), b, timeScaleProbe, mDtMinToleratedTimeScale);
-               }
-            }
-            MPI_Barrier(mCommunicator->globalCommunicator());
-            exit(EXIT_FAILURE);
-         }
-         mTimeScaleTrue[b] =  timeScaleProbe;
-      }
-   }
-#endif // OBSOLETE // Marked obsolete Jul 7, 2016.  calcTimeScaleTrue should not be called if mDtAdaptControlProbe is null.
-   // The code below is the else-clause of the obsolete code block above.
+   // Code that was marked obsolete on Jul 7, 2016 was deleted Aug 18, 2016.
    std::vector<double> colProbeValues;
    bool triggersNow = false;
    if (mDtAdaptTriggerLayer) {
@@ -1871,13 +1825,14 @@ int HyPerCol::calcTimeScaleTrue() {
    }
    return PV_SUCCESS;
 }
+#endif // OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
 
 int HyPerCol::advanceTime(double sim_time)
 {
    if (mSimTime >= mNextProgressTime) {
       mNextProgressTime += mProgressInterval;
       if (columnId() == 0) {
-         std::ostream& progressStream = mWriteProgressToError ? getErrorStream() : getOutputStream();
+         std::ostream& progressStream = mWriteProgressToErr ? getErrorStream() : getOutputStream();
          time_t current_time;
          time(&current_time);
          progressStream << "   time==" << sim_time << "  " << ctime(&current_time); // ctime outputs an newline
@@ -1890,9 +1845,11 @@ int HyPerCol::advanceTime(double sim_time)
    // triggerOffset might fail if mSimTime does not advance uniformly because
    // mSimTime could skip over tigger event
    // !!!TODO: fix trigger layer to compute mTimeScale so as not to allow bypassing trigger event
-   mSimTime = sim_time + mDeltaTimeBase;
+   mSimTime = sim_time + mDeltaTime;
    mCurrentStep++;
 
+   notify(std::make_shared<AdaptTimestepMessage>());
+#ifdef OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
    mDeltaTime = mDeltaTimeBase;
    if (mDtAdaptControlProbe!=nullptr){ // adapt mDeltaTime
      // hack code to test new adapt time scale method using exponential approx to energy
@@ -1933,6 +1890,7 @@ int HyPerCol::advanceTime(double sim_time)
          mTimeScaleStream.flush();
      }
    } // mDtAdaptControlProbe!=nullptr
+#endif // OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
 
    // At this point all activity from the previous time step has
    // been delivered to the data store.
@@ -1942,9 +1900,9 @@ int HyPerCol::advanceTime(double sim_time)
 
    // update the connections (weights)
    //
-   notify(std::make_shared<ConnectionUpdateMessage>(mSimTime, mDeltaTimeBase));
+   notify(std::make_shared<ConnectionUpdateMessage>(mSimTime, mDeltaTime));
    normalizeWeights();
-   notify(std::make_shared<ConnectionFinalizeUpdateMessage>(mSimTime, mDeltaTimeBase));
+   notify(std::make_shared<ConnectionFinalizeUpdateMessage>(mSimTime, mDeltaTime));
    notify(std::make_shared<ConnectionOutputMessage>(mSimTime));
 
    if (globalRank()==0) {
@@ -1974,26 +1932,26 @@ int HyPerCol::advanceTime(double sim_time)
       //Ordering needs to go recvGpu, if(recvGpu and upGpu)update, recvNoGpu, update rest
 #ifdef PV_USE_CUDA
       notify({
-         std::make_shared<LayerRecvSynapticInputMessage>(phase, mPhaseRecvTimers.at(phase), true/*recvGpuFlag*/, mSimTime, mDeltaTimeBase),
-         std::make_shared<LayerUpdateStateMessage>(phase, true/*recvGpuFlag*/, true/*updateGpuFlag*/, mSimTime, mDeltaTimeBase)
+         std::make_shared<LayerRecvSynapticInputMessage>(phase, mPhaseRecvTimers.at(phase), true/*recvGpuFlag*/, mSimTime, mDeltaTime),
+         std::make_shared<LayerUpdateStateMessage>(phase, true/*recvGpuFlag*/, true/*updateGpuFlag*/, mSimTime, mDeltaTime)
       });
 
       notify({
-         std::make_shared<LayerRecvSynapticInputMessage>(phase, mPhaseRecvTimers.at(phase), false/*recvGpuFlag*/, mSimTime, mDeltaTimeBase),
-         std::make_shared<LayerUpdateStateMessage>(phase, false/*recvGpuFlag*/, false/*updateGpuFlag*/, mSimTime, mDeltaTimeBase)
+         std::make_shared<LayerRecvSynapticInputMessage>(phase, mPhaseRecvTimers.at(phase), false/*recvGpuFlag*/, mSimTime, mDeltaTime),
+         std::make_shared<LayerUpdateStateMessage>(phase, false/*recvGpuFlag*/, false/*updateGpuFlag*/, mSimTime, mDeltaTime)
 
       });
 
       getDevice()->syncDevice();
 
       //Update for receiving on cpu and updating on gpu
-      notify(std::make_shared<LayerUpdateStateMessage>(phase, false/*recvOnGpuFlag*/, true/*updateOnGpuFlag*/, mSimTime, mDeltaTimeBase));
+      notify(std::make_shared<LayerUpdateStateMessage>(phase, false/*recvOnGpuFlag*/, true/*updateOnGpuFlag*/, mSimTime, mDeltaTime));
 
       getDevice()->syncDevice();
       notify(std::make_shared<LayerCopyFromGpuMessage>(phase, mPhaseRecvTimers.at(phase)));
 
       //Update for gpu recv and non gpu update
-      notify(std::make_shared<LayerUpdateStateMessage>(phase, true/*recvOnGpuFlag*/, false/*updateOnGpuFlag*/, mSimTime, mDeltaTimeBase));
+      notify(std::make_shared<LayerUpdateStateMessage>(phase, true/*recvOnGpuFlag*/, false/*updateOnGpuFlag*/, mSimTime, mDeltaTime));
 #else
       notify({
          std::make_shared<LayerRecvSynapticInputMessage>(phase, mPhaseRecvTimers.at(phase), mSimTime, mDeltaTimeBase),
@@ -2102,9 +2060,14 @@ int HyPerCol::checkpointRead() {
       if (t >= mNextProgressTime) {
          mNextProgressTime += mProgressInterval;
       }
-      t += mDeltaTimeBase;
+      t += mDeltaTime;
    }
 
+   double checkTime = simulationTime();
+   for (auto& p : mColProbes) {
+      p->checkpointRead(mCheckpointReadDir, &checkTime);
+   }
+#ifdef OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
    if (mDtAdaptControlProbe!=nullptr) {
       struct timescalemax_struct {
          double mTimeScale; // mTimeScale factor for increasing/decreasing dt
@@ -2203,6 +2166,7 @@ int HyPerCol::checkpointRead() {
          }
       }
    } // mDtAdaptControlProbe!=nullptr
+#endif // OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
 
    if(mCheckpointWriteFlag) {
       char nextCheckpointPath[PV_PATH_MAX];
@@ -2303,6 +2267,10 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
       //PV_fclose(timercsvstream); timercsvstream = nullptr;
    }
 
+   for (auto& p : mColProbes) {
+      p->checkpointWrite(cpDir);
+   }
+#ifdef OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
    // write adaptive time step info if using mDtAdaptControlProbe
    if( columnId()==0 && mDtAdaptControlProbe!=nullptr) {
       char timescalepath[PV_PATH_MAX];
@@ -2344,6 +2312,7 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
       }
       PV_fclose(timescalefile);
    }
+#endif // OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
 
    std::string checkpointedParamsFile = cpDir;
    checkpointedParamsFile += "/";
@@ -2845,7 +2814,7 @@ int HyPerCol::addBaseProbe(BaseProbe * p) {
 int HyPerCol::outputState(double time)
 {
    for( int n = 0; n < mColProbes.size(); n++ ) {
-       mColProbes.at(n)->outputStateWrapper(time, mDeltaTimeBase);
+       mColProbes.at(n)->outputStateWrapper(time, mDeltaTime);
    }
    return PV_SUCCESS;
 }

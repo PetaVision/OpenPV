@@ -98,16 +98,13 @@ int pvpatch_max_pooling(int kPreGlobalExt, int nk, float* RESTRICT v, float a, p
 {
   int k;
   int err = 0;
-  //float * gate = (float *)auxPtr;
-  int * gate = (int*)auxPtr;
+  float * gate = (float *)auxPtr;
   for (k = 0; k < nk; k+=sf) {
-    //     v[k] = v[k] > a*w[k] ? v[k] : a*w[k];
-    //v[k] = v[k] > a*w[0] ? v[k] : a*w[0];
     float checkVal = a*w[0];
     if(v[k] <= checkVal){
        v[k] = checkVal;
        if(gate){
-          gate[k] = kPreGlobalExt;
+          gate[k] = (float) kPreGlobalExt;
        }
     }
   }
@@ -118,14 +115,12 @@ int pvpatch_max_pooling_from_post(int kPreGlobalExt, int nk, float * RESTRICT v,
    int status = 0;
    int k;
    float vmax = *v;
-   int* gate = (int*)auxPtr;
+   float* gate = (float*)auxPtr;
    int gateMax;
    if(gate){
-      gateMax = *gate;
+      gateMax = (int) *gate;
    }
    for (k = 0; k < nk; k+=sf) {
-      //vmax = vmax > a[k]*w[k] ? vmax : a[k]*w[k];
-      //vmax = vmax > a[k]*w[0] ? vmax : a[k]*w[0];
       float checkVal = a[k]*w[0];
       if(vmax <= checkVal){
          vmax = checkVal;
@@ -136,7 +131,7 @@ int pvpatch_max_pooling_from_post(int kPreGlobalExt, int nk, float * RESTRICT v,
    }
    *v = vmax;
    if(gate){
-      *gate = gateMax;
+      *gate = (float) gateMax;
    }
    return status;
 }

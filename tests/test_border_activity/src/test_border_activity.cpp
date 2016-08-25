@@ -17,7 +17,7 @@
 #include <io/PointProbe.hpp>
 #include <weightinit/InitUniformWeights.hpp>
 #include <cMakeHeader.h>
-#include <assert.h>
+#include <utils/PVLog.hpp>
 
 #undef DEBUG_OUTPUT
 
@@ -59,9 +59,9 @@ int main(int argc, char * argv[])
    ANNLayer * l1     = new ANNLayer(l1LayerName, hc);           assert(l1);
 
    HyPerConn * conn1 = new HyPerConn("test_border_activity connection 1", hc);
-   assert(conn1);
+   pvErrorIf(!(conn1), "Test failed.\n");
    HyPerConn * conn2 = new HyPerConn("test_border_activity connection 2", hc);
-   assert(conn2);
+   pvErrorIf(!(conn2), "Test failed.\n");
    
    hc->addObject(image);
    hc->addObject(retina);
@@ -99,7 +99,7 @@ int check_activity(HyPerLayer * l)
    const int nf = l->clayer->loc.nf;
 
    const int nk = l->clayer->numNeurons;
-   assert(nk == nx*ny*nf);
+   pvErrorIf(!(nk == nx*ny*nf), "Test failed.\n");
 
    for (int k = 0; k < nk; k++) {
       int a = (int) l->clayer->activity->data[k];

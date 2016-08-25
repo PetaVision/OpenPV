@@ -21,13 +21,13 @@ int checkoutput(HyPerCol * hc, int argc, char ** argv) {
    // Column should have two layers and one connection
 
    int status = PV_SUCCESS;
-   assert(hc->numberOfLayers()==2 && hc->numberOfConnections()==1);
+   pvErrorIf(!(hc->numberOfLayers()==2 && hc->numberOfConnections()==1), "Test failed.\n");
 
    // Input layer should be 2x2 with values 1, 2, 3, 4;
    // and have margin width 1 with mirror boundary conditions off.
    HyPerLayer * inLayer = hc->getLayer(0);
    const PVLayerLoc * inLoc = inLayer->getLayerLoc();
-   assert(inLoc->nxGlobal==2 && inLoc->nyGlobal==2 && inLoc->nf==1);
+   pvErrorIf(!(inLoc->nxGlobal==2 && inLoc->nyGlobal==2 && inLoc->nf==1), "Test failed.\n");
    assert(inLoc->halo.lt==1 &&
           inLoc->halo.rt==1 &&
           inLoc->halo.dn==1 &&
@@ -62,10 +62,10 @@ int checkoutput(HyPerCol * hc, int argc, char ** argv) {
    // Connection should be a 3x3 kernel with values 0 through 8 in the weights
    BaseConnection * baseConn = hc->getConnection(0);
    HyPerConn * conn = dynamic_cast<HyPerConn *>(baseConn);
-   assert(conn->xPatchSize()==3 && conn->yPatchSize()==3 && conn->fPatchSize()==1);
+   pvErrorIf(!(conn->xPatchSize()==3 && conn->yPatchSize()==3 && conn->fPatchSize()==1), "Test failed.\n");
    int patchSize = conn->xPatchSize()*conn->yPatchSize()*conn->fPatchSize();
-   assert(conn->numberOfAxonalArborLists()==1);
-   assert(conn->getNumDataPatches()==1);
+   pvErrorIf(!(conn->numberOfAxonalArborLists()==1), "Test failed.\n");
+   pvErrorIf(!(conn->getNumDataPatches()==1), "Test failed.\n");
    pvwdata_t * w = conn->get_wDataHead(0,0);
    for (int r=0; r<hc->getCommunicator()->commSize(); r++) {
       if (r==hc->columnId()) {
@@ -81,13 +81,13 @@ int checkoutput(HyPerCol * hc, int argc, char ** argv) {
       MPI_Barrier(hc->getCommunicator()->communicator());
    }
    for (int k=0; k<patchSize; k++) {
-      assert(w[k]==(pvdata_t) k);
+      pvErrorIf(!(w[k]==(pvdata_t) k), "Test failed.\n");
    }
 
    // Finally, output layer should be 2x2 with values [13 23; 43 53].
    HyPerLayer * outLayer = hc->getLayer(1);
    const PVLayerLoc * outLoc = outLayer->getLayerLoc();
-   assert(outLoc->nxGlobal==2 && outLoc->nyGlobal==2 && outLoc->nf==1);
+   pvErrorIf(!(outLoc->nxGlobal==2 && outLoc->nyGlobal==2 && outLoc->nf==1), "Test failed.\n");
    assert(outLoc->halo.lt==0 &&
           outLoc->halo.rt==0 &&
           outLoc->halo.dn==0 &&

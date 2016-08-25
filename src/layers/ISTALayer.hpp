@@ -7,7 +7,9 @@
 
 #ifndef ISTALAYER_HPP_
 #define ISTALAYER_HPP_
+// TODO: Take care of code duplication between ISTALayer and HyPerLCALayer.
 
+#include <io/AdaptiveTimeScaleProbe.hpp>
 #include "ANNLayer.hpp"
 
 namespace PV {
@@ -40,6 +42,10 @@ protected:
     */
    virtual void ioParam_selfInteract(enum ParamsIOFlag ioFlag);
 
+   /**
+    * @brief adaptiveTimeScaleProbe: If using adaptive timesteps, the name of the AdaptiveTimeScaleProbe that will compute the dt values.
+    */
+   virtual void ioParam_adaptiveTimeScaleProbe(enum ParamsIOFlag ioFlag);
    /** @} */
 
    virtual int updateState(double time, double dt);
@@ -54,15 +60,22 @@ protected:
    virtual int allocateUpdateKernel();
 #endif
 
-
-   pvdata_t timeConstantTau;
-   bool selfInteract;
+   double * deltaTimes(); // TODO: make const-correct
+   // Better name?  getDeltaTimes isn't good because it sounds like it's just the getter-method.
 
 private:
    int initialize_base();
 #ifdef PV_USE_CUDA
    PVCuda::CudaBuffer* d_dtAdapt;
 #endif
+
+// Data members
+protected:
+   pvdata_t timeConstantTau;
+   bool selfInteract;
+   char * mAdaptiveTimeScaleProbeName = nullptr;
+   AdaptiveTimeScaleProbe * mAdaptiveTimeScaleProbe = nullptr;
+   std::vector<double> mDeltaTimes;
 }; // class ISTALayer
 
 } /* namespace PV */

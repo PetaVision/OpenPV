@@ -7,7 +7,7 @@
 
 #include "MomentumConnTestProbe.hpp"
 #include <string.h>
-#include <assert.h>
+#include <utils/PVLog.hpp>
 
 namespace PV {
 
@@ -46,7 +46,7 @@ int MomentumConnTestProbe::outputState(double timed) {
    if( icComm->commRank() != rcvProc ) {
       return PV_SUCCESS;
    }
-   assert(getTargetConn()!=NULL);
+   pvErrorIf(!(getTargetConn()!=NULL), "Test failed.\n");
    outputStream->printf("    Time %f, %s:\n", timed, getTargetConn()->getDescription_c());
    const pvwdata_t * w = c->get_wDataHead(getArbor(), getKernelIndex());
    const pvdata_t * dw = c->get_dwDataHead(getArbor(), getKernelIndex());

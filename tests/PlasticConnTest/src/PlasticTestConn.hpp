@@ -14,11 +14,10 @@ namespace PV {
 
 class PlasticTestConn : public HyPerConn {
 public:
-	PlasticTestConn(const char * name, HyPerCol * hc);
-	virtual ~PlasticTestConn();
+   PlasticTestConn(const char * name, HyPerCol * hc);
+   virtual ~PlasticTestConn();
 protected:
-	//virtual int update_dW(int axonId);
-	virtual pvdata_t updateRule_dW(pvdata_t pre, pvdata_t post);
+   virtual pvdata_t updateRule_dW(pvdata_t pre, pvdata_t post);
 }; // end class PlasticTestConn
 
 

@@ -10,8 +10,6 @@ HyPerCol "column" = {
     progressInterval = 1.0;
     //Change this
     outputPath = "output/";
-    filenamesContainLayerNames = true;
-    filenamesContainConnectionNames = true;
     checkpointWrite = false;
     // deleteOlderCheckpoints = false;
     suppressLastOutput = true;
@@ -145,7 +143,7 @@ HyPerConn "origConn" = {
      
     delay = 0;
      
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
     selfFlag = false;
 
     updateGSynFromPostPerspective = false;
@@ -159,7 +157,7 @@ PlasticCloneConn "cloneConn" = {
     originalConnName = "origConn";
     selfFlag = false;
     delay = 0;
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
     updateGSynFromPostPerspective = false;
     pvpatchAccumulateType = "convolve";
 };

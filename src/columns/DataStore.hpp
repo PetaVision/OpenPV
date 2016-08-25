@@ -9,8 +9,10 @@
 #define DATASTORE_HPP_
 
 #include "include/pv_arch.h"
+#include "include/pv_types.h"
 #include <cstdlib>
 #include <cstring>
+#include <vector>
 
 namespace PV
 {
@@ -18,73 +20,80 @@ namespace PV
 class DataStore
 {
 public:
-   DataStore(int numBuffers, int numItems, size_t dataSize, int numLevels, bool isSparse);
+   DataStore(int numBuffers, int numItems, int numLevels, bool isSparse);
 
-   virtual ~DataStore();
+   virtual ~DataStore() {}
 
-   size_t size()         {return bufSize;}
-
-   int numberOfLevels()  {return numLevels;}
-   int numberOfBuffers() {return numBuffers;}
-   int lastLevelIndex()
-         {return ((numLevels + curLevel + 1) % numLevels);}
-   int levelIndex(int level)
-         {return ((level + curLevel) % numLevels);}
-   int newLevelIndex()
-         {return (curLevel = (numLevels + curLevel - 1) % numLevels);}
-
-   //Levels (delays) spins slower than bufferId (batches)
-
-   void* buffer(int bufferId, int level)
-         {return (recvBuffers + levelIndex(level)*numBuffers*bufSize + bufferId * bufSize);}
-   void* buffer(int bufferId)
-         {return (recvBuffers + curLevel*numBuffers*bufSize + bufferId * bufSize);}
-
-   double getLastUpdateTime(int bufferId, int level) 
-      { return lastUpdateTimes[levelIndex(level) * numBuffers + bufferId]; }
-   double getLastUpdateTime(int bufferId) 
-      { return lastUpdateTimes[levelIndex(0) * numBuffers + bufferId]; }
-
-   void setLastUpdateTime(int bufferId, int level, double t) 
-      { lastUpdateTimes[levelIndex(level)*numBuffers + bufferId] = t; }
-   void setLastUpdateTime(int bufferId, double t) 
-      { lastUpdateTimes[levelIndex(0)*numBuffers + bufferId] = t; }
-
-   size_t bufferOffset(int bufferId, int level=0)
-         {return (levelIndex(level)*numBuffers*bufSize + bufferId*bufSize);}
-   bool isSparse() {return isSparse_flag;}
-
-   unsigned int* activeIndicesBuffer(int bufferId, int level)
-         {return (activeIndices + levelIndex(level)*numBuffers*numItems + bufferId*numItems);}
-
-   unsigned int* activeIndicesBuffer(int bufferId){
-      return (activeIndices + curLevel*numBuffers*numItems + bufferId*numItems);
+   int getNumLevels() const {return mNumLevels;}
+   int getNumBuffers() const {return mNumBuffers;}
+   int newLevelIndex() {
+      return (mCurrentLevel = (mNumLevels + mCurrentLevel - 1) % mNumLevels);
    }
 
-   long * numActiveBuffer(int bufferId, int level){
-      //return (numActive + bufferId*numLevels + levelIndex(level));
-      return (numActive + levelIndex(level)*numBuffers + bufferId);
+   //Level (delay) spins slower than bufferId (batch element)
+
+   pvdata_t * buffer(int bufferId, int level) {
+      return &mBuffer[levelIndex(level)].at(bufferId*mNumItems);
    }
 
-   long * numActiveBuffer(int bufferId){
-      return (numActive + curLevel*numBuffers + bufferId);
+   pvdata_t * buffer(int bufferId) {
+      return &mBuffer[mCurrentLevel].at(bufferId*mNumItems);
    }
 
-   int getNumItems(){ return numItems;}
+   double getLastUpdateTime(int bufferId, int level) const {
+      return mLastUpdateTimes[levelIndex(level)].at(bufferId);
+   }
+
+   double getLastUpdateTime(int bufferId) const {
+      return mLastUpdateTimes[levelIndex(0)].at(bufferId);
+   }
+
+   void setLastUpdateTime(int bufferId, int level, double t) {
+      mLastUpdateTimes[levelIndex(level)].at(bufferId) = t;
+   }
+
+   void setLastUpdateTime(int bufferId, double t) {
+      mLastUpdateTimes[mCurrentLevel].at(bufferId) = t;
+   }
+
+   bool isSparse() const {return mSparseFlag;}
+
+   unsigned int* activeIndicesBuffer(int bufferId, int level) {
+      return &mActiveIndices[levelIndex(level)].at(bufferId*mNumItems);
+   }
+
+   unsigned int* activeIndicesBuffer(int bufferId) {
+      return &mActiveIndices[mCurrentLevel].at(bufferId*mNumItems);
+   }
+
+   void setNumActive(int bufferId, long numActive) {
+      mNumActive[mCurrentLevel].at(bufferId) = numActive;
+   }
+
+   long * numActiveBuffer(int bufferId, int level) {
+      return &mNumActive[levelIndex(level)].at(bufferId);
+   }
+
+   long * numActiveBuffer(int bufferId) {
+      return &mNumActive[mCurrentLevel].at(bufferId);
+   }
+
+   int getNumItems() const { return mNumItems;}
 
 private:
-   size_t dataSize;
-   int    numItems;
-   size_t bufSize;
-   int    curLevel;
-   int    numLevels;
-   int    numBuffers;
-   char*  recvBuffers;
+   int levelIndex(int level) const { return ((level + mCurrentLevel) % mNumLevels); }
 
-   unsigned int*   activeIndices;
-   long *   numActive;
-   bool  isSparse_flag;
-   double * lastUpdateTimes; // A ring buffer for the getLastUpdateTime() function.
+private:
+   int   mNumItems;
+   int   mCurrentLevel;
+   int   mNumLevels;
+   int   mNumBuffers;
+   bool  mSparseFlag;
+
+   std::vector<std::vector<pvdata_t> >     mBuffer;
+   std::vector<std::vector<long> >         mNumActive;
+   std::vector<std::vector<unsigned int> > mActiveIndices;
+   std::vector<std::vector<double> >       mLastUpdateTimes;
 };
 
 } // NAMESPACE

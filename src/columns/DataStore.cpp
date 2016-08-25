@@ -16,56 +16,38 @@
 namespace PV
 {
 
-/**
- * @numBuffers
- * @bufSize
- * @numLevels
- */
-DataStore::DataStore(int numBuffers, int numItems, size_t dataSize, int numLevels, bool isSparse_flag)
+DataStore::DataStore(int numBuffers, int numItems, int numLevels, bool isSparse_flag)
 {
    assert(numLevels > 0 && numBuffers > 0);
-   this->curLevel = 0; // Publisher::publish decrements levels when writing, so first level written to is numLevels - 1;
-   this->numItems = numItems;
-   this->dataSize = dataSize;
-   this->bufSize = numItems * dataSize;
-   this->numLevels = numLevels;
-   this->numBuffers = numBuffers;
-   this->recvBuffers = (char*) calloc(numBuffers * numLevels * numItems * dataSize, sizeof(char));
-   if (this->recvBuffers==NULL) {
-      pvError().printf("DataStore unable to allocate data buffer for %d items, %d buffers and %d levels: %s\n", numItems, numBuffers, numLevels, strerror(errno));
-   }
-   this->lastUpdateTimes = (double *) malloc(numBuffers * numLevels * sizeof(double));
-   if (this->lastUpdateTimes==NULL) {
-      pvError().printf("DataStore unable to allocate lastUpdateTimes buffer for %d buffers and %d levels: %s\n", numBuffers, numLevels, strerror(errno));
-   }
-   double infvalue = std::numeric_limits<double>::infinity();
-   for (int lvl=0; lvl<numLevels*numBuffers; lvl++) {
-      lastUpdateTimes[lvl] = -infvalue;
-   }
+   this->mCurrentLevel = 0; // Publisher::publish decrements levels when writing, so first level written to is numLevels - 1;
+   this->mNumItems = numItems;
+   this->mNumLevels = numLevels;
+   this->mNumBuffers = numBuffers;
 
-   this->isSparse_flag = isSparse_flag;
-   if(this->isSparse_flag){
-      this->activeIndices = (unsigned int*) calloc(numBuffers * numLevels * numItems, sizeof(unsigned int));
-      if (this->activeIndices==NULL) {
-         pvError().printf("DataStore unable to allocate activeIndices buffer for %d items, %d buffers and %d levels: %s\n", numItems, numBuffers, numLevels, strerror(errno));
+   //Level (delay) spins slower than bufferId (batch element)
+   mBuffer.resize(numLevels);
+   for(auto& v : mBuffer) {
+      v.resize(numBuffers*numItems);
+   }
+   mLastUpdateTimes.resize(numLevels);
+   for(auto& v : mLastUpdateTimes) {
+      v.resize(numBuffers, -std::numeric_limits<double>::infinity());
+   }
+   this->mSparseFlag = isSparse_flag;
+   if(this->mSparseFlag) {
+      mActiveIndices.resize(numLevels);
+      for(auto& v : mActiveIndices) {
+         v.resize(numBuffers*numItems);
       }
-      this->numActive = (long *) calloc(numBuffers * numLevels, sizeof(long));
-      if (this->numActive==NULL) {
-         pvError().printf("DataStore unable to allocate numActive buffer for %d buffers and %d levels: %s\n", numBuffers, numLevels, strerror(errno));
+      mNumActive.resize(numLevels);
+      for(auto& v : mNumActive) {
+         v.resize(numBuffers);
       }
    }
-   else{
-      this->activeIndices = NULL;
-      this->numActive = NULL;
+   else {
+      mActiveIndices.clear();
+      mNumActive.clear();
    }
-}
-
-DataStore::~DataStore()
-{
-   free(recvBuffers);
-   free(activeIndices);
-   free(numActive);
-   free(lastUpdateTimes);
 }
 
 }

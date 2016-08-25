@@ -19,15 +19,15 @@ int ImportParamsLayer::initialize(const char * name, HyPerCol * hc)
    PVParams * params = parent->parameters();
    if(strcmp(name, "orig") == 0){
       //Test grabbed value
-      assert(params->value(name, "nxScale") == 1);
+      pvErrorIf(!(params->value(name, "nxScale") == 1), "Test failed.\n");
       //Test grabbed filename
-      assert(strcmp(params->stringValue(name, "Vfilename"), "input/a0.pvp") == 0);
+      pvErrorIf(!(strcmp(params->stringValue(name, "Vfilename"), "input/a0.pvp") == 0), "Test failed.\n");
    }
    else{
       //Test overwritten value
-      assert(params->value(name, "nxScale") == 2);
+      pvErrorIf(!(params->value(name, "nxScale") == 2), "Test failed.\n");
       //Test overwritten filename
-      assert(strcmp(params->stringValue(name, "Vfilename"), "input/a1.pvp") == 0);
+      pvErrorIf(!(strcmp(params->stringValue(name, "Vfilename"), "input/a1.pvp") == 0), "Test failed.\n");
    }
 
    return PV_SUCCESS;

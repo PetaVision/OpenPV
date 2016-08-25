@@ -15,8 +15,6 @@
 HyPerCol "column" = {
     startTime                           = 0;
     dt                                  = 1;
-    dtAdaptFlag                         = false;
-    dtAdaptController                   = NULL;
     stopTime                            = 10;
     progressInterval                    = 10;
     writeProgressToErr                  = false;
@@ -27,8 +25,6 @@ HyPerCol "column" = {
     nx                                  = 16;
     ny                                  = 16;
     nbatch                              = 1;
-    filenamesContainLayerNames          = 1;
-    filenamesContainConnectionNames     = 1;
     initializeFromCheckpointDir         = "";
     checkpointWrite                     = false;
     suppressLastOutput                  = false;

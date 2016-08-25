@@ -130,9 +130,9 @@ bool compareLayers(PV::HyPerLayer * layer1, PV::HyPerLayer * layer2, pvwdata_t t
       pvError() << "Number of neurons in layer \"" << layer2->getName() << "\" has the wrong number of neurons.\n";
    }
    int const N = layer1->getNumNeurons(); pvAssert(N==layer2->getNumNeurons());
-   int const nx = loc1->nx; pvAssert(nx==loc2->nx);
-   int const ny = loc1->ny; pvAssert(ny==loc2->ny);
-   int const nf = loc1->nf; pvAssert(nf==loc2->nf);
+   int const nx = loc1->nx; pvErrorIf(nx!=loc2->nx, "Test failed.\n");
+   int const ny = loc1->ny; pvErrorIf(ny!=loc2->ny, "Test failed.\n");
+   int const nf = loc1->nf; pvErrorIf(nf!=loc2->nf, "Test failed.\n");
    PVHalo const * halo1 = &loc1->halo;
    PVHalo const * halo2 = &loc2->halo;
 

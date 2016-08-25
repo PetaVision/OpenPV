@@ -24,14 +24,14 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
    BaseConnection * baseConn;
    baseConn = hc->getConnFromName("normalizeL3 connection");
    HyPerConn * normalizeL3Conn = dynamic_cast<HyPerConn *>(baseConn);
-   assert(normalizeL3Conn);
+   pvErrorIf(!(normalizeL3Conn), "Test failed.\n");
    NormalizeBase * normalizeL3Normalizer = normalizeL3Conn->getNormalizer();
-   assert(normalizeL3Normalizer);
+   pvErrorIf(!(normalizeL3Normalizer), "Test failed.\n");
    float normalizeL3Strength = normalizeL3Normalizer->getStrength();
    float correctValue = powf(normalizeL3Strength, 3.0f);
    HyPerLayer * normalizeL3Check = hc->getLayerFromName("normalizeL3 check");
    float normalizeL3Value = normalizeL3Check->getLayerData()[0];
-   assert(fabsf(normalizeL3Value - correctValue)<tol);
+   pvErrorIf(!(fabsf(normalizeL3Value - correctValue)<tol), "Test failed.\n");
 
    return PV_SUCCESS;
 }

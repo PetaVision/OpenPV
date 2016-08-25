@@ -46,8 +46,8 @@ int AverageRateConn::updateState(double timed, double dt) {
    float t = timed <= dt ? dt : timed; // Avoid dividing by zero.
    float w = 1/t;
    int arbor = 0; // Assumes one axonal arbor.
-   assert(nfp==getNumDataPatches());
-   assert(nxp==1 && nyp==1);
+   pvErrorIf(!(nfp==getNumDataPatches()), "Test failed.\n");
+   pvErrorIf(!(nxp==1 && nyp==1), "Test failed.\n");
    for (int k = 0; k < getNumDataPatches(); k++) {
       pvwdata_t * p = get_wDataHead(arbor, k);
       //TODO-CER-2014.4.4 - weight conversion

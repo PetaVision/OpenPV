@@ -9,7 +9,7 @@
 #include <include/pv_arch.h>
 #include <layers/HyPerLayer.hpp>
 #include <string.h>
-#include <assert.h>
+#include <utils/PVLog.hpp>
 
 namespace PV {
 
@@ -38,9 +38,9 @@ int ArborTestForOnesProbe::outputState(double timed)
    }
    if(timed>1.0f){
       for(int b = 0; b < getParent()->getNBatch(); b++){
-         assert((fMin[b]>0.99)&&(fMin[b]<1.01));
-         assert((fMax[b]>0.99)&&(fMax[b]<1.01));
-         assert((avg[b]>0.99)&&(avg[b]<1.01));
+         pvErrorIf(!((fMin[b]>0.99)&&(fMin[b]<1.01)), "Test failed.\n");
+         pvErrorIf(!((fMax[b]>0.99)&&(fMax[b]<1.01)), "Test failed.\n");
+         pvErrorIf(!((avg[b]>0.99)&&(avg[b]<1.01)), "Test failed.\n");
       }
    }
 

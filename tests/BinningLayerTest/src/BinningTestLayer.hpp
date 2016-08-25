@@ -7,7 +7,7 @@ namespace PV {
 
 class BinningTestLayer: public PV::BinningLayer{
 public:
-	BinningTestLayer(const char* name, HyPerCol * hc);
+   BinningTestLayer(const char* name, HyPerCol * hc);
 
 protected:
    int updateState(double timef, double dt);

@@ -29,13 +29,13 @@ int BinningTestLayer::updateState(double timef, double dt){
                   if(A[idx] != 1){
                      pvError() << iY << "," << iX << "," << iF << ": " << A[idx] << "\n";
                   }
-                  assert(A[idx] == 1);
+                  pvErrorIf(!(A[idx] == 1), "Test failed.\n");
                }
                else{
                   if(A[idx] != 0){
                      pvError() << iY << "," << iX << "," << iF << ": " << A[idx] << "\n";
                   }
-                  assert(A[idx] == 0);
+                  pvErrorIf(!(A[idx] == 0), "Test failed.\n");
                }
             }
             else if (getSigma() == 2){
@@ -45,14 +45,14 @@ int BinningTestLayer::updateState(double timef, double dt){
                   if(temp > .00001){
                      pvError() << iY << "," << iX << "," << iF << ": " << A[idx] << "\n";
                   }
-                  assert(temp <= .00001);
+                  pvErrorIf(!(temp <= .00001), "Test failed.\n");
                }
                if(iX+kx0 == iF-1 || iX+kx0 == iF+1){
                   temp = A[idx] - .176;
                   if(temp > .00001){
                      pvError() << iY << "," << iX << "," << iF << ": " << A[idx] << "\n";
                   }
-                  assert(temp <= .00001);
+                  pvErrorIf(!(temp <= .00001), "Test failed.\n");
 
                }
                if(iX+kx0 == iF){
@@ -60,7 +60,7 @@ int BinningTestLayer::updateState(double timef, double dt){
                   if(temp > .00001){
                      pvError() << iY << "," << iX << "," << iF << ": " << A[idx] << "\n";
                   }
-                  assert(temp <= .00001);
+                  pvErrorIf(!(temp <= .00001), "Test failed.\n");
                }
             }
          }

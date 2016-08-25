@@ -9,7 +9,7 @@
 #include <include/pv_arch.h> 
 #include <layers/HyPerLayer.hpp>
 #include <string.h>
-#include <assert.h>
+#include <utils/PVLog.hpp>
 
 namespace PV {
 

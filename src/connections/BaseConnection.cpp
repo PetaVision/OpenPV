@@ -22,7 +22,6 @@ BaseConnection::BaseConnection() {
 }
 
 int BaseConnection::initialize_base() {
-   connId = -1;
    preLayerName = NULL;
    postLayerName = NULL;
    pre = NULL;
@@ -48,7 +47,7 @@ int BaseConnection::initialize_base() {
 int BaseConnection::initialize(const char * name, HyPerCol * hc) {
    int status = BaseObject::initialize(name, hc);
 
-   this->connId = this->getParent()->addConnection(this);
+   this->getParent()->addConnection(this);
    if (status == PV_SUCCESS) status = ioParams(PARAMS_IO_READ);
    return status;
 }
@@ -118,11 +117,6 @@ void BaseConnection::setNumberOfAxonalArborLists(int numArbors) {
    this->numAxonalArborLists = numArbors;
 }
 
-// preActivityIsNotRate was replaced by convertRateToSpikeCount on Dec 31, 2014.
-// void BaseConnection::setPreActivityIsNotRate(bool preActivityIsNotRate) {
-//    assert(!initInfoCommunicatedFlag);
-//    this->preActivityIsNotRate = preActivityIsNotRate;
-// }
 void BaseConnection::setConvertRateToSpikeCount(bool convertRateToSpikeCountFlag) {
    assert(!initInfoCommunicatedFlag);
    this->convertRateToSpikeCount = convertRateToSpikeCountFlag;
@@ -240,7 +234,6 @@ int BaseConnection::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_delay(ioFlag);
    ioParam_numAxonalArbors(ioFlag);
    ioParam_plasticityFlag(ioFlag);
-   // ioParam_preActivityIsNotRate(ioFlag); // preActivityIsNotRate was replaced with convertRateToSpikeCount on Dec 31, 2014.
    ioParam_convertRateToSpikeCount(ioFlag);
 
    // GPU-specific parameter.  If not using GPUs, we read it anyway, with warnIfAbsent set to false, to prevent unnecessary warnings from unread or missing parameters.
@@ -316,32 +309,10 @@ void BaseConnection::ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) {
 }
 
 // preActivityIsNotRate was replaced with convertRateToSpikeCount on Dec 31, 2014.
-// void BaseConnection::ioParam_preActivityIsNotRate(enum ParamsIOFlag ioFlag) {
-//    this->getParent()->ioParamValue(ioFlag, this->getName(), "preActivityIsNotRate", &preActivityIsNotRate, false/*default value*/, true/*warn if absent*/);
-// }
+// The warning issued if the params file contained preActivityIsNotRate was removed on Aug 5, 2014.
 
 void BaseConnection::ioParam_convertRateToSpikeCount(enum ParamsIOFlag ioFlag) {
-   // The parameter preActivityIsNotRate was eliminated Dec 31, 2014.  After a sufficient fade time, the if-statement
-   // checking for the presence of the parameter in the params file can be eliminated, and this method
-   // will consist of the single line calling HyPerCol::ioParamValue with "convertRateToSpikeCount".
-   if (ioFlag == PARAMS_IO_READ) {
-      if (this->getParent()->parameters()->present(this->getName(), "preActivityIsNotRate")) {
-         bool preActivityIsNotRateValue = this->getParent()->parameters()->value(this->getName(), "preActivityIsNotRate");
-         if (this->getParent()->columnId()==0) {
-            std::stringstream errorMessage("");
-            errorMessage << getDescription_c() << ": preActivityIsNotRate has been replaced with convertRateToSpikeCount.\n";
-            if (preActivityIsNotRateValue) {
-               pvErrorNoExit() << errorMessage.str() << "   Setting preActivityIsNotRate to true is regarded as an error because convertRateToSpikeCount is not exactly equivalent.  Exiting.\n";
-            }
-            else {
-               pvWarn() << errorMessage.str();
-            }
-         }
-         MPI_Barrier(this->getParent()->getCommunicator()->communicator());
-         if (preActivityIsNotRateValue) { exit(EXIT_FAILURE); }
-      }
-   }
-   this->getParent()->ioParamValue(ioFlag, this->getName(), "convertRateToSpikeCount", &convertRateToSpikeCount, false/*default value*/);
+   getParent()->ioParamValue(ioFlag, this->getName(), "convertRateToSpikeCount", &convertRateToSpikeCount, false/*default value*/);
 }
 
 void BaseConnection::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {

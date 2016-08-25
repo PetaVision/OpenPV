@@ -4,15 +4,12 @@ HyPerCol "column" = {
     nx = 8; //1242;  // KITTI synced value
     ny = 8;  //218;
     dt = 1.0;
-    dtAdaptController = NULL;
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
     startTime = 0.0;
     stopTime = 100.0;       // Depends on number of VINE video frames
     progressInterval = 1.0;
     outputPath = "output/maxpooltest";
     printParamsFilename = "pv.params";
-    filenamesContainLayerNames = true;
-    filenamesContainConnectionNames = true;
     initializeFromCheckpointDir = "";
     checkpointWrite = false;
     // deleteOlderCheckpoints = false;
@@ -101,9 +98,7 @@ PoolingConn "input2maxPoolPre" = {
     nxp = 3; 
     nyp = 3; 
     numAxonalArbors = 1;
-    writeStep = -1;
     initialWriteTime = 0.0;
-    writeCompressedWeights = false;
     
     normalizeMethod                     = "none";
     //strength                            = 1;
@@ -112,8 +107,6 @@ PoolingConn "input2maxPoolPre" = {
     //normalize_cutoff                    = 0;
     
     shrinkPatches = false;
-    //writeCompressedWeights = 0.0;
-    writeCompressedCheckpoints = false;
     plasticityFlag = 0;
     pvpatchAccumulateType = "maxpooling";
      

@@ -10,8 +10,6 @@ HyPerCol "column" = {
     progressInterval = 1.0;
     //Change this
     outputPath = "output/postTest_ManyToOne";
-    filenamesContainLayerNames = true;
-    filenamesContainConnectionNames = true;
     checkpointWrite = false;
     // deleteOlderCheckpoints = false;
     suppressLastOutput = false;
@@ -128,7 +126,7 @@ HyPerConn "origConn" = {
      
     delay = 0;
      
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
     selfFlag = false;
     shmget_flag = false;
 
@@ -143,7 +141,7 @@ TransposeConn "preTransposeConn" = {
     channelCode = 0; //Does nothing to the input layer
     originalConnName = "origConn";
     selfFlag = false;
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
     writeStep = -1;
     shmget_flag = false;
     delay = 0;
@@ -157,7 +155,7 @@ TransposeConn "postTransposeConn" = {
     channelCode = 0;
     originalConnName = "origConn";
     selfFlag = false;
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
     writeStep = -1.0;
     shmget_flag = false;
     delay = 0;

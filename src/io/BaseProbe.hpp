@@ -101,6 +101,13 @@ public:
    double getCoefficient() { return coefficient; }
 
    /**
+    * Returns the time that calcValues was last called.
+    * BaseProbe updates the last update time in getValues() and getValue(),
+    * based on the result of needRecalc.
+    */
+   double getLastUpdateTime() { return lastUpdateTime; }
+
+   /**
     * getValues(double timevalue, double * values) sets the buffer 'values' with the probe's calculated values.
     * It assumes that the values buffer is large enough to hold getNumValues()
     * double-precision values.
@@ -280,13 +287,6 @@ protected:
     * Returns a pointer to the buffer containing the probeValues.
     */
    double * getValuesBuffer() { return probeValues; }
-
-   /**
-    * Returns the time that calcValues was last called.
-    * BaseProbe updates the last update time in getValues() and getValue(),
-    * based on the result of needRecalc.
-    */
-   double getLastUpdateTime() { return lastUpdateTime; }
 
    /**
     * Returns the value of the textOutputFlag parameter

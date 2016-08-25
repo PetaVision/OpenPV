@@ -4,7 +4,7 @@
  */
 
 #include "TriggerTestLayerProbe.hpp"
-#include <assert.h>
+#include <utils/PVLog.hpp>
 #include <columns/HyPerCol.hpp>
 
 namespace PV {
@@ -32,37 +32,37 @@ int TriggerTestLayerProbe::outputStateWrapper(double time, double dt){
    //No trigger, always update
    const char * name = getName();
    getValues(time);
-   assert(this->getNumValues()>0);
+   pvErrorIf(!(this->getNumValues()>0), "Test failed.\n");
    int updateNeeded = (int) getValuesBuffer()[0];
    pvInfo().printf("%s: time=%f, dt=%f, needUpdate=%d\n", name, time, dt, updateNeeded);
    if(strcmp(name, "notriggerlayerprobe") == 0){
-      assert(updateNeeded == 1);
+      pvErrorIf(!(updateNeeded == 1), "Test failed.\n");
    }
    //Trigger with offset of 0, assuming display period is 5
    else if(strcmp(name, "trigger0layerprobe") == 0){
       if(((int)time-1) % 5 == 0){
-         assert(updateNeeded == 1);
+         pvErrorIf(!(updateNeeded == 1), "Test failed.\n");
       }
       else{
-         assert(updateNeeded == 0);
+         pvErrorIf(!(updateNeeded == 0), "Test failed.\n");
       }
    }
    //Trigger with offset of 1, assuming display period is 5
    else if(strcmp(name, "trigger1layerprobe") == 0){
       if(((int)time) % 5 == 0){
-         assert(updateNeeded == 1);
+         pvErrorIf(!(updateNeeded == 1), "Test failed.\n");
       }
       else{
-         assert(updateNeeded == 0);
+         pvErrorIf(!(updateNeeded == 0), "Test failed.\n");
       }
    }
    //Trigger with offset of 1, assuming display period is 5
    else if(strcmp(name, "trigger2layerprobe") == 0){
       if(((int)time+1) % 5 == 0){
-         assert(updateNeeded == 1);
+         pvErrorIf(!(updateNeeded == 1), "Test failed.\n");
       }
       else{
-         assert(updateNeeded == 0);
+         pvErrorIf(!(updateNeeded == 0), "Test failed.\n");
       }
    }
    return LayerProbe::outputStateWrapper(time, dt);

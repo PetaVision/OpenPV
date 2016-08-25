@@ -17,7 +17,7 @@ int MaxPoolTestLayer::updateState(double timef, double dt){
    int nf = loc->nf;
    int kx0 = loc->kx0;
    int ky0 = loc->ky0;
-   assert(nf == 3);
+   pvErrorIf(!(nf == 3), "Test failed.\n");
 
    bool isCorrect = true;
    for(int b = 0; b < loc->nbatch; b++){
