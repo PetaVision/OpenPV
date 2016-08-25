@@ -773,7 +773,12 @@ void HyPerCol::ioParam_dtScaleMin(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerCol::ioParam_dtMinToleratedTimeScale(enum ParamsIOFlag ioFlag) {
-   paramMovedToColumnEnergyProbe(ioFlag, "dtMinToleratedTimeScale");
+   if (ioFlag==PARAMS_IO_READ && mParams->present(mName, "dtScaleMin")) {
+      if (columnId()==0) {
+         pvErrorNoExit() << "The dtMinToleratedTimeScale parameter has been removed.\n";
+      }
+      mObsoleteParameterFound = true;
+   }
 }
 
 void HyPerCol::ioParam_dtChangeMax(enum ParamsIOFlag ioFlag) {

@@ -99,7 +99,6 @@ protected:
 protected:
    double mBaseMax                  = 1.0;
    double mBaseMin                  = 1.0;
-   double mDtMinToleratedTimeScale  = 1.0e-4;
    double tauFactor                 = 1.0;
    double mGrowthFactor             = 1.0;
    bool   mWriteTimeScales          = true;

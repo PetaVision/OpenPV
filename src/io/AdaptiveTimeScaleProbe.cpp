@@ -51,7 +51,13 @@ void AdaptiveTimeScaleProbe::ioParam_baseMin(enum ParamsIOFlag ioFlag) {
 }
 
 void AdaptiveTimeScaleProbe::ioParam_dtMinToleratedTimeScale(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "dtMinToleratedTimeScale", &mDtMinToleratedTimeScale, mDtMinToleratedTimeScale);
+   if (ioFlag==PARAMS_IO_READ && parent->parameters()->present(getName(), "dtScaleMin")) {
+      if (parent->getCommunicator()->commRank()==0) {
+         pvErrorNoExit() << "The dtMinToleratedTimeScale parameter has been removed.\n";
+      }
+      MPI_Barrier(parent->getCommunicator()->communicator());
+      exit(EXIT_FAILURE);
+   }
 }
 
 void AdaptiveTimeScaleProbe::ioParam_tauFactor(enum ParamsIOFlag ioFlag) {
@@ -168,29 +174,6 @@ int AdaptiveTimeScaleProbe::calcValues(double timeValue) {
       mTargetProbe->getValues(timeValue, &rawProbeValues);
    }
    pvAssert(rawProbeValues.size()==getNumValues()); // In allocateDataStructures, we checked that mTargetProbe has a compatible size.
-   for (int b=0; b<getNumValues(); b++) {
-      double rawTimescale = rawProbeValues.at(b);
-      if (rawTimescale > 0 && rawTimescale < mDtMinToleratedTimeScale) {
-         if (parent->getCommunicator()->globalCommRank()) {
-            if (getNumValues()==1) {
-               pvErrorNoExit() << getDescription() << ": target probe \"" <<
-                     ", has time scale " << rawTimescale <<
-                     ", less than dtMinToleratedTimeScale=" <<
-                     mDtMinToleratedTimeScale << ".\n";
-            }
-            else {
-               pvErrorNoExit() << getDescription() << ": target probe \"" <<
-                     mTargetProbe->getName() << "\"" <<
-                     ", batch element " << b <<
-                     ", has time scale " << rawTimescale <<
-                     ", less than dtMinToleratedTimeScale=" <<
-                     mDtMinToleratedTimeScale << ".\n";
-            }
-         }
-         MPI_Barrier(parent->getCommunicator()->globalCommunicator());
-         exit(EXIT_FAILURE);
-      }
-   }
    std::vector<double> const& timeSteps = mAdaptiveTimeScaleController->calcTimesteps(timeValue, rawProbeValues);
    memcpy(getValuesBuffer(), timeSteps.data(), sizeof(double)*getNumValues());
    return PV_SUCCESS;
