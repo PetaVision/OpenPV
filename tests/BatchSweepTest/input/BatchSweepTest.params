@@ -31,8 +31,7 @@ HyPerCol "column" = {
 // layers
 //
 
-ImagePvp "Input" = {
-    restart = 0;
+PvpLayer "Input" = {
     nxScale = 1;
     nyScale = 1;
     inputPath = "input/sampleimage.pvp";
@@ -46,10 +45,12 @@ ImagePvp "Input" = {
     inverseFlag = false;
     normalizeLuminanceFlag = false;
     autoResizeFlag = false;
-    writeImages = false;
     offsetX = 0;
     offsetY = 0;
-    jitterFlag = 0;
+	displayPeriod = 0;
+	batchMethod = "bySpecified";
+	start_frame_index = [0, 0, 0, 0];
+	skip_frame_index = [1, 1, 1, 1];
 };
 
 ANNLayer "Output" = {

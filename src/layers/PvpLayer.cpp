@@ -25,8 +25,7 @@ namespace PV {
       return status;
    }
 
-   Buffer PvpLayer::retrieveData(std::string filename, int batchIndex)
-   {
+   Buffer PvpLayer::retrieveData(std::string filename, int batchIndex) {
       PV_Stream *pvpFile = pvp_open_read_file(filename.c_str(), parent->getCommunicator()); 
 
       int numParams = NUM_BIN_PARAMS; 

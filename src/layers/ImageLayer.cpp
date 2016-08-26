@@ -12,8 +12,7 @@ namespace PV {
       initialize(name, hc);
    }
 
-   Buffer ImageLayer::retrieveData(std::string filename, int batchIndex)
-   {
+   Buffer ImageLayer::retrieveData(std::string filename, int batchIndex)  {
       readImage(filename);
       if (mImage->getFeatures() != getLayerLoc()->nf) {
          switch(getLayerLoc()->nf) {
@@ -43,8 +42,7 @@ namespace PV {
       return result;
    }
 
-   void ImageLayer::readImage(std::string filename)
-   {
+   void ImageLayer::readImage(std::string filename) {
       const PVLayerLoc *loc = getLayerLoc();
       bool usingTempFile = false;
 
@@ -83,4 +81,4 @@ namespace PV {
 
       pvErrorIf(usingTempFile && remove(filename.c_str()), "remove(\"%s\") failed.  Exiting.\n", filename.c_str());
    }
-} // namespace PV
+}

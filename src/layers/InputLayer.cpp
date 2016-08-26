@@ -25,13 +25,13 @@ namespace PV {
       //Update on first timestep
       setNextUpdateTime(parent->simulationTime() + hc->getDeltaTime());
 
-      if(mWriteFileToTimestamp){
+      if (mWriteFileToTimestamp){
          std::string timestampFilename = std::string(parent->getOutputPath()) + std::string("/timestamps/");
          parent->ensureDirExists(timestampFilename.c_str());
          timestampFilename += name + std::string(".txt");
-         if(getParent()->getCommunicator()->commRank() == 0) {
+         if (getParent()->getCommunicator()->commRank() == 0) {
              //If checkpoint read is set, append, otherwise, clobber
-             if(getParent()->getCheckpointReadFlag()) {
+             if (getParent()->getCheckpointReadFlag()) {
                 struct stat statbuf;
                 if (PV_stat(timestampFilename.c_str(), &statbuf) != 0) {
                    pvWarn().printf("%s: timestamp file \"%s\" unable to be found.  Creating new file.\n",
@@ -42,7 +42,7 @@ namespace PV {
                    mTimestampFile = PV::PV_fopen(timestampFilename.c_str(), "r+", false);
                 }
              }
-             else{
+             else {
                 mTimestampFile = PV::PV_fopen(timestampFilename.c_str(), "w", parent->getVerifyWrites());
              }
 
@@ -54,22 +54,22 @@ namespace PV {
 
    int InputLayer::allocateDataStructures() {
       int status = HyPerLayer::allocateDataStructures();
-      if(status != PV_SUCCESS) {
+      if (status != PV_SUCCESS) {
          return status;
       }
 
       int numBatch = parent->getNBatch();
  
-      if(parent->columnId() == 0) {
+      if (parent->columnId() == 0) {
 
          //Calculate file positions for beginning of each frame
-         if(mUsingFileList) {
+         if (mUsingFileList) {
             populateFileList();
             pvInfo() << "File " << mInputPath << " contains " << mFileList.size() << " frames\n";
          }
 
          mInputData.resize(numBatch);
-         for(int b = 0; b < numBatch; ++b) {
+         for (int b = 0; b < numBatch; ++b) {
             mInputData.at(b).resize(getLayerLoc()->ny, getLayerLoc()->nx, getLayerLoc()->nf);
          }
          initializeBatchIndexer(mFileList.size());
@@ -101,7 +101,7 @@ namespace PV {
                parent->numCommBatches(),
                fileCount,
                mBatchMethod));
-      for(int b = 0; b < localBatchCount; ++b) {
+      for (int b = 0; b < localBatchCount; ++b) {
          mBatchIndexer->specifyBatching(b, mStartFrameIndex.at(globalBatchOffset+b), mSkipFrameIndex.at(globalBatchOffset+b));
          mBatchIndexer->initializeBatch(b);
       }
@@ -117,21 +117,21 @@ namespace PV {
 
    int InputLayer::updateState(double time, double dt)  {
       Communicator * icComm = getParent()->getCommunicator();
-      if(readyForNextFile()) {
+      if (readyForNextFile()) {
 
         // Write file path to timestamp file
-         if(icComm->commRank() == 0 && mTimestampFile) {
+         if (icComm->commRank() == 0 && mTimestampFile) {
             std::ostringstream outStrStream;
             outStrStream.precision(15);
             int kb0 = getLayerLoc()->kb0;
-            if(mUsingFileList) {
+            if (mUsingFileList) {
                std::vector<int> batchIndices = mBatchIndexer->getIndices();
-               for(int b = 0; b < parent->getNBatch(); ++b) {
+               for (int b = 0; b < parent->getNBatch(); ++b) {
                   outStrStream << time << "," << b+kb0 << "," << batchIndices.at(b) << "," << mFileList.at(batchIndices.at(b)) << "\n";
                }
             }
             size_t len = outStrStream.str().length();
-            pvErrorIf(PV_fwrite(outStrStream.str().c_str(), sizeof(char), len, mTimestampFile) != len,
+            pvErrorif (PV_fwrite(outStrStream.str().c_str(), sizeof(char), len, mTimestampFile) != len,
                   "%s: Movie::updateState failed to write to timestamp file.\n", getDescription_c());
             fflush(mTimestampFile->fp);
          }
@@ -143,10 +143,10 @@ namespace PV {
    }
 
    void InputLayer::nextInput(double timef, double dt) {
-      for(int b = 0; b < parent->getNBatch(); b++) {
+      for (int b = 0; b < parent->getNBatch(); b++) {
          if (parent->columnId() == 0) {
             std::string fileName = mInputPath;
-            if(mUsingFileList) {
+            if (mUsingFileList) {
                fileName = mFileList.at(mBatchIndexer->nextIndex(b));
             }
             mInputData.at(b) = retrieveData(fileName, b);
@@ -188,11 +188,9 @@ namespace PV {
             // Crop the input data to the size of one process.
             croppedBuffer.translate(-cropLeft, -cropTop);
             croppedBuffer.crop(activityWidth, activityHeight, Buffer::NORTHWEST);
-            pvDebug() << getName() << ": BUFFER CROPPED FROM " << mInputData.at(batchIndex).getWidth() << "x" << mInputData.at(batchIndex).getHeight()
-               << " TO " << croppedBuffer.getWidth() << "x" << croppedBuffer.getHeight() << " aw=" << activityWidth << ", ah=" << activityHeight << "\n";
 
             // If this isn't the root process, ship it off to the appropriate process.
-            if(rank != rootProc) {
+            if (rank != rootProc) {
                // This is required because croppedBuffer.asVector() returns a const vector<>
                std::vector<float> bufferData = croppedBuffer.asVector();
                MPI_Send(bufferData.data(), numElements, MPI_FLOAT, rank, 31, mpiComm);
@@ -206,7 +204,7 @@ namespace PV {
          float *tempBuffer = static_cast<float*>(calloc(numElements, sizeof(float)));
          MPI_Recv(tempBuffer, numElements, MPI_FLOAT, rootProc, 31, mpiComm, MPI_STATUS_IGNORE);
          std::vector<float> bufferData(numElements);
-         for(int i = 0; i < numElements; ++i) {
+         for (int i = 0; i < numElements; ++i) {
             bufferData.at(i) = tempBuffer[i];
          }
          free(tempBuffer);
@@ -220,9 +218,9 @@ namespace PV {
          activityBuffer[n] = mPadValue;
       }
 
-      for(int y = 0; y < activityHeight; ++y) {
-         for(int x = 0; x < activityWidth; ++x) {
-            for(int f = 0; f < numFeatures; ++f) {
+      for (int y = 0; y < activityHeight; ++y) {
+         for (int x = 0; x < activityWidth; ++x) {
+            for (int f = 0; f < numFeatures; ++f) {
                int activityIndex = kIndex(
                   halo->lt + x,
                   halo->up + y, 
@@ -246,7 +244,7 @@ namespace PV {
       const int targetWidth  = loc->nxGlobal + (mUseInputBCflag ? (halo->lt + halo->rt) : 0);
       const int targetHeight = loc->nyGlobal + (mUseInputBCflag ? (halo->dn + halo->up) : 0);
 
-      if(mAutoResizeFlag) {
+      if (mAutoResizeFlag) {
          buffer.rescale(targetWidth, targetHeight, mRescaleMethod, mInterpolationMethod, mAnchor); 
          buffer.translate(-mOffsetX, -mOffsetY);
       }
@@ -268,7 +266,7 @@ namespace PV {
       // if normalizeLuminanceFlag == true and the image in buffer is completely flat, force all values to zero
       for (int b = 0; b < parent->getNBatch(); b++) {
          float* buf = getActivity() + b * numExtended;
-         if(mNormalizeLuminanceFlag){
+         if (mNormalizeLuminanceFlag){
             if (mNormalizeStdDev){
                double image_sum = 0.0f;
                double image_sum2 = 0.0f;
@@ -290,18 +288,18 @@ namespace PV {
                
                // set std dev to 1
                double image_std = sqrt(image_ave2 - image_ave*image_ave); 
-               if(image_std == 0){
+               if (image_std == 0){
                   for (int k=0; k<numExtended; k++) {
                      buf[k] = 0.0;
                   }
                }
-               else{
+               else {
                   for (int k=0; k<numExtended; k++) {
                      buf[k] /= image_std;
                   }
                }
             }
-            else{
+            else {
                float image_max = -FLT_MAX;
                float image_min = FLT_MAX;
                for (int k=0; k<numExtended; k++) {
@@ -317,14 +315,14 @@ namespace PV {
                      buf[k] *= image_stretch;
                   }
                }
-               else{ 
+               else { 
                   for (int k=0; k<numExtended; k++) {
                      buf[k] = 0.0f;
                   }
                }
             }
          }
-         if(mInverseFlag) {
+         if (mInverseFlag) {
             for (int k=0; k<numExtended; k++) {
                // If normalizeLuminanceFlag is true, should the effect of inverseFlag be buf[k] = -buf[k]?
                buf[k] = 1 - buf[k]; 
@@ -346,15 +344,6 @@ namespace PV {
    double InputLayer::getDeltaUpdateTime() { 
       return mDisplayPeriod > 0 ? mDisplayPeriod : DBL_MAX;
    }
-
-//   double InputLayer::calcTimeScale(int batchIdx) {
-//      if(needUpdate(parent->simulationTime(), parent->getDeltaTime())) {
-//         return parent->getTimeScaleMin(); 
-//      }
-//      else {
-//         return HyPerLayer::calcTimeScale(batchIdx);
-//      }
-//   }
 
    int InputLayer::requireChannel(int channelNeeded, int * numChannelsResult) {
       if (parent->columnId()==0) {
@@ -380,15 +369,15 @@ namespace PV {
    }
 
    void InputLayer::populateFileList() {
-      if(mUsingFileList && parent->columnId() == 0) {
+      if (mUsingFileList && parent->columnId() == 0) {
          std::string line;
          mFileList.clear();
          pvInfo() << "Reading list: " << mInputPath << "\n";
          std::ifstream infile(mInputPath, std::ios_base::in);
-         while(getline(infile, line, '\n')) {
+         while (getline(infile, line, '\n')) {
             std::string noWhiteSpace = line;
-            noWhiteSpace.erase(std::remove_if(noWhiteSpace.begin(), noWhiteSpace.end(), ::isspace), noWhiteSpace.end());
-            if(!noWhiteSpace.empty()) {
+            noWhiteSpace.erase(std::remove_if (noWhiteSpace.begin(), noWhiteSpace.end(), ::isspace), noWhiteSpace.end());
+            if (!noWhiteSpace.empty()) {
                pvInfo() << noWhiteSpace << "\n";
                mFileList.push_back(noWhiteSpace);
             }
@@ -425,11 +414,11 @@ namespace PV {
       parent->readArrayFromFile(cpDir, getName(), "FrameNumbers", frameNumbers, parent->getNBatch());  
       
       // We have to read this even on non-root processes to get MPI to line up.
-      // TODO: Fix MPI's tendrils extending to every region of the codebase, starting with file IO
-      if(parent->columnId() == 0) {
+      // TODO: File IO should not depend on MPI 
+      if (parent->columnId() == 0) {
          std::vector<int> indices;
          indices.resize(parent->getNBatch());
-         for(int n = 0; n < indices.size(); ++n) {
+         for (int n = 0; n < indices.size(); ++n) {
             indices.at(n) = frameNumbers[n];
          }
          mBatchIndexer->setIndices(indices);
@@ -440,7 +429,7 @@ namespace PV {
          long timestampFilePos = 0L;
          parent->readScalarFromFile(cpDir, getName(), "TimestampState", &timestampFilePos, timestampFilePos);
          if (mTimestampFile) {
-            pvErrorIf(PV_fseek(mTimestampFile, timestampFilePos, SEEK_SET) != 0,
+            pvErrorif (PV_fseek(mTimestampFile, timestampFilePos, SEEK_SET) != 0,
                "MovieLayer::checkpointRead error: unable to recover initial file position in timestamp file for layer %s: %s\n", name, strerror(errno));
          }
       }
@@ -449,7 +438,7 @@ namespace PV {
    
    int InputLayer::checkpointWrite(const char * cpDir) {
       int status = HyPerLayer::checkpointWrite(cpDir);
-      if(parent->columnId() == 0) {
+      if (parent->columnId() == 0) {
          parent->writeArrayToFile(cpDir, getName(), "FrameNumbers", static_cast<int*>(mBatchIndexer->getIndices().data()), parent->getNBatch());
       }
       else {
@@ -470,15 +459,15 @@ namespace PV {
 
    void InputLayer::ioParam_inputPath(enum ParamsIOFlag ioFlag) {
       char *tempString = nullptr;
-      if(ioFlag == PARAMS_IO_WRITE) {
+      if (ioFlag == PARAMS_IO_WRITE) {
          tempString = strdup(mInputPath.c_str());
       }
       parent->ioParamStringRequired(ioFlag, name, "inputPath", &tempString);
-      if(ioFlag == PARAMS_IO_READ) { 
+      if (ioFlag == PARAMS_IO_READ) { 
          mInputPath = std::string(tempString);
          // Check if the input path ends in ".txt" and enable the file list if so
          std::string txt = ".txt";
-         if(mInputPath.size() > txt.size() && mInputPath.compare(mInputPath.size() - txt.size(), txt.size(), txt) == 0) {
+         if (mInputPath.size() > txt.size() && mInputPath.compare(mInputPath.size() - txt.size(), txt.size(), txt) == 0) {
             mUsingFileList = true; 
          }
          else {
@@ -503,31 +492,31 @@ namespace PV {
       if (ioFlag==PARAMS_IO_READ) {
          char *offsetAnchor = nullptr;
          parent->ioParamString(ioFlag, name, "offsetAnchor", &offsetAnchor, "tl");
-         if(strcmp(offsetAnchor, "tl") == 0) {
+         if (strcmp(offsetAnchor, "tl") == 0) {
             mAnchor = Buffer::NORTHWEST;
          }
-         else if(strcmp(offsetAnchor, "tc") == 0) {
+         else if (strcmp(offsetAnchor, "tc") == 0) {
             mAnchor = Buffer::NORTH;
          }
-         else if(strcmp(offsetAnchor, "tr") == 0) {
+         else if (strcmp(offsetAnchor, "tr") == 0) {
             mAnchor = Buffer::NORTHEAST;
          }
-         else if(strcmp(offsetAnchor, "cl") == 0) {
+         else if (strcmp(offsetAnchor, "cl") == 0) {
             mAnchor = Buffer::WEST;
          }
-         else if(strcmp(offsetAnchor, "cc") == 0) {
+         else if (strcmp(offsetAnchor, "cc") == 0) {
             mAnchor = Buffer::CENTER;
          }
-         else if(strcmp(offsetAnchor, "cr") == 0) {
+         else if (strcmp(offsetAnchor, "cr") == 0) {
             mAnchor = Buffer::EAST;
          }
-         else if(strcmp(offsetAnchor, "bl") == 0) { 
+         else if (strcmp(offsetAnchor, "bl") == 0) { 
             mAnchor = Buffer::SOUTHWEST;
          }
-         else if(strcmp(offsetAnchor, "bc") == 0) {
+         else if (strcmp(offsetAnchor, "bc") == 0) {
             mAnchor = Buffer::SOUTH;
          }
-         else if(strcmp(offsetAnchor, "br") == 0) {
+         else if (strcmp(offsetAnchor, "br") == 0) {
             mAnchor = Buffer::SOUTHEAST;
          }
          else {
@@ -543,7 +532,7 @@ namespace PV {
          //The opposite of above. Find a better way to do this that isn't so gross
          char *offsetAnchor = (char*)calloc(3, sizeof(char));
          offsetAnchor[2] = '\0';
-         switch(mAnchor) {
+         switch (mAnchor) {
             case Buffer::NORTH:
             case Buffer::NORTHWEST:
             case Buffer::NORTHEAST:
@@ -560,7 +549,7 @@ namespace PV {
                offsetAnchor[0] = 'b';
                break;
          }
-         switch(mAnchor) {
+         switch (mAnchor) {
             case Buffer::NORTH:
             case Buffer::CENTER:
             case Buffer::SOUTH:
@@ -590,8 +579,8 @@ namespace PV {
       assert(!parent->parameters()->presentAndNotBeenRead(name, "autoResizeFlag"));
       if (mAutoResizeFlag) {
          char *aspectRatioAdjustment = nullptr;
-         if(ioFlag == PARAMS_IO_WRITE) {
-            switch(mRescaleMethod) {
+         if (ioFlag == PARAMS_IO_WRITE) {
+            switch (mRescaleMethod) {
                case Buffer::CROP:
                   aspectRatioAdjustment = strdup("crop");
                   break;
@@ -605,10 +594,10 @@ namespace PV {
             assert(aspectRatioAdjustment);
             for (char * c = aspectRatioAdjustment; *c; c++) { *c = tolower(*c); }
          }
-         if(strcmp(aspectRatioAdjustment, "crop") == 0) {
+         if (strcmp(aspectRatioAdjustment, "crop") == 0) {
             mRescaleMethod = Buffer::CROP;
          }
-         else if(strcmp(aspectRatioAdjustment, "pad") == 0) {
+         else if (strcmp(aspectRatioAdjustment, "pad") == 0) {
             mRescaleMethod = Buffer::PAD;
          }
          else {
@@ -703,8 +692,8 @@ namespace PV {
 
    void InputLayer::ioParam_batchMethod(enum ParamsIOFlag ioFlag) {
       char *batchMethod = nullptr;
-      if(ioFlag == PARAMS_IO_WRITE) {
-         switch(mBatchMethod) {
+      if (ioFlag == PARAMS_IO_WRITE) {
+         switch (mBatchMethod) {
             case BatchIndexer::BYFILE:
                batchMethod = strdup("byFile");
                break;
@@ -717,16 +706,16 @@ namespace PV {
          }
       }
       parent->ioParamString(ioFlag, name, "batchMethod", &batchMethod, "byFile");
-      if(strcmp(batchMethod, "byImage") == 0 || strcmp(batchMethod, "byFile") == 0) {
+      if (strcmp(batchMethod, "byImage") == 0 || strcmp(batchMethod, "byFile") == 0) {
          mBatchMethod = BatchIndexer::BYFILE;
       }
-      else if(strcmp(batchMethod, "byMovie") == 0 || strcmp(batchMethod, "byList") == 0) {
+      else if (strcmp(batchMethod, "byMovie") == 0 || strcmp(batchMethod, "byList") == 0) {
          mBatchMethod = BatchIndexer::BYLIST;
       } 
-      else if(strcmp(batchMethod, "bySpecified") == 0) {
+      else if (strcmp(batchMethod, "bySpecified") == 0) {
          mBatchMethod = BatchIndexer::BYSPECIFIED;
       }
-      else{
+      else {
          pvError() << "WARNING: Input layer " << name << " batchMethod not recognized. Options are \"byFile\", \"byList\", and \"bySpecified\"\n.";
       }
       free(batchMethod);
@@ -735,18 +724,19 @@ namespace PV {
    void InputLayer::ioParam_start_frame_index(enum ParamsIOFlag ioFlag) {
       int *paramsStartFrameIndex;
       int length = -1;
-      if(ioFlag == PARAMS_IO_WRITE) {
+      if (ioFlag == PARAMS_IO_WRITE) {
          length = mStartFrameIndex.size();
          paramsStartFrameIndex = static_cast<int*>(calloc(length, sizeof(int)));
-         for(int i = 0; i < length; ++i) {
+         for (int i = 0; i < length; ++i) {
             paramsStartFrameIndex[i] = mStartFrameIndex.at(i);
          }
       }
+      // TODO: Throw an error if we get an incorrect number of indices, based on mBatchMethod
       this->getParent()->ioParamArray(ioFlag, this->getName(), "start_frame_index", &paramsStartFrameIndex, &length);
       mStartFrameIndex.clear();
-      mStartFrameIndex.resize(length < parent->getNBatch() ? parent->getNBatch() : length);
-      if(length > 0) {
-         for(int i = 0; i < length; ++i) {
+      mStartFrameIndex.resize(length < parent->getNBatchGlobal() ? parent->getNBatchGlobal() : length);
+      if (length > 0) {
+         for (int i = 0; i < length; ++i) {
             mStartFrameIndex.at(i) = paramsStartFrameIndex[i];
          }
       }
@@ -756,18 +746,18 @@ namespace PV {
    void InputLayer::ioParam_skip_frame_index(enum ParamsIOFlag ioFlag) {
       int *paramsSkipFrameIndex;
       int length = -1;
-      if(ioFlag == PARAMS_IO_WRITE) {
+      if (ioFlag == PARAMS_IO_WRITE) {
          length = mSkipFrameIndex.size();
          paramsSkipFrameIndex = static_cast<int*>(calloc(length, sizeof(int)));
-         for(int i = 0; i < length; ++i) {
+         for (int i = 0; i < length; ++i) {
             paramsSkipFrameIndex[i] = mSkipFrameIndex.at(i);
          }
       }
       this->getParent()->ioParamArray(ioFlag, this->getName(), "skip_frame_index", &paramsSkipFrameIndex, &length);
       mSkipFrameIndex.clear();
-      mSkipFrameIndex.resize(length < parent->getNBatch() ? parent->getNBatch() : length);
-      if(length > 0) {
-         for(int i = 0; i < length; ++i) {
+      mSkipFrameIndex.resize(length < parent->getNBatchGlobal() ? parent->getNBatchGlobal() : length);
+      if (length > 0) {
+         for (int i = 0; i < length; ++i) {
             mSkipFrameIndex.at(i) = paramsSkipFrameIndex[i];
          }
       }
