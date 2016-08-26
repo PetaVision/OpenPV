@@ -547,7 +547,6 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
    }
    ioParam_initializeFromCheckpointFlag(ioFlag);
    ioParam_triggerLayerName(ioFlag);
-   ioParam_triggerFlag(ioFlag);
    ioParam_triggerOffset(ioFlag);
    ioParam_weightUpdatePeriod(ioFlag);
    ioParam_initialWeightUpdateTime(ioFlag);
@@ -718,42 +717,6 @@ void HyPerConn::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
       parent->ioParamString(ioFlag, name, "triggerLayerName", &triggerLayerName, NULL, false/*warnIfAbsent*/);
       if (ioFlag==PARAMS_IO_READ) {
          triggerFlag = (triggerLayerName!=NULL && triggerLayerName[0]!='\0');
-      }
-   }
-}
-
-// triggerFlag was deprecated Aug 17, 2015.
-// Setting triggerLayerName to a nonempty string has the effect of triggerFlag=true, and
-// setting triggerLayerName to NULL or "" has the effect of triggerFlag=false.
-// While triggerFlag is being deprecated, it is an error for triggerFlag to be false
-// and triggerLayerName to be a nonempty string.
-void HyPerConn::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
-   if (plasticityFlag) {
-      pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
-      if (ioFlag == PARAMS_IO_READ && parent->parameters()->present(name, "triggerFlag")) {
-         bool flagFromParams = false;
-         parent->ioParamValue(ioFlag, name, "triggerFlag", &flagFromParams, flagFromParams);
-         if (parent->columnId()==0) {
-            pvWarn(triggerFlagMessage);
-            triggerFlagMessage.printf("%s: triggerFlag has been deprecated.\n", getDescription_c());
-            triggerFlagMessage.printf("   If triggerLayerName is a nonempty string, triggering will be on;\n");
-            triggerFlagMessage.printf("   if triggerLayerName is empty or null, triggering will be off.\n");
-            if (parent->columnId()==0) {
-               if (flagFromParams != triggerFlag) {
-                  pvErrorNoExit(errorMessage);
-                  errorMessage.printf("triggerLayerName=", name);
-                  if (triggerLayerName) { errorMessage.printf("\"%s\"", triggerLayerName); }
-                  else { errorMessage.printf("NULL"); }
-                  errorMessage.printf(" implies triggerFlag=%s but triggerFlag was set in params to %s\n",
-                        triggerFlag ? "true" : "false", flagFromParams ? "true" : "false");
-               }
-            }
-         }
-         if (flagFromParams != triggerFlag) {
-            MPI_Barrier(parent->getCommunicator()->communicator());
-            exit(EXIT_FAILURE);
-         }
       }
    }
 }

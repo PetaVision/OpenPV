@@ -678,12 +678,7 @@ protected:
    virtual void ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief triggerFlag: If plasticity flag is set, allows weight updates to be triggered off layers
-    */
-   virtual void ioParam_triggerFlag(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief triggerLayerName: If trigger flag is set, specifies the layer to trigger off of
+    * @brief triggerLayerName: Specifies the layer to trigger weight updates
     */
    virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag);
 
