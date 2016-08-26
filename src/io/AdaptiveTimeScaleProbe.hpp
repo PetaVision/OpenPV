@@ -94,6 +94,7 @@ protected:
    bool needRecalc(double timeValue) override { return parent->simulationTime() > getLastUpdateTime(); }
    double referenceUpdateTime() const override { return mTargetProbe->getLastUpdateTime(); }
    int calcValues(double timeValue);
+   virtual bool needUpdate(double timeValue, double dt) override { return true; }
 
 protected:
    double mBaseMax                  = 1.0;
