@@ -131,7 +131,7 @@ private:
    virtual void ioParam_dtChangeMin(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief mDtMinToleratedTimeScale: Obsolete.  This parameter is now handled by AdaptiveTimeScaleProbe.
+    * @brief mDtMinToleratedTimeScale: Obsolete.  This parameter has been eliminated.
     */
    virtual void ioParam_dtMinToleratedTimeScale(enum ParamsIOFlag ioFlag);
 

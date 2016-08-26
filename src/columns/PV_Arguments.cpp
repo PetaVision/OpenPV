@@ -254,6 +254,7 @@ int PV_Arguments::printState() const {
    if (numRows) { pvInfo().printf(" -rows %d", numRows); }
    if (numColumns) { pvInfo().printf(" -columns %d", numColumns); }
    if (batchWidth) { pvInfo().printf(" -batchwidth %d", batchWidth); }
+   if (dryRunFlag) { pvInfo().printf(" -n"); }
    pvInfo().printf("\n");
    return PV_SUCCESS;
 }

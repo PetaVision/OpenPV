@@ -74,7 +74,6 @@ local pvParameters = {
       baseMin                             = 0.01; -- default time scale to use after image flips or when something is wacky
       tauFactor                           = 0.1; -- determines fraction of tau_effective to which to set the time step, can be a small percentage as tau_eff can be huge
       growthFactor                        = 0.01; -- percentage increase in the maximum allowed time scale whenever the time scale equals the current maximum
-      dtMinToleratedTimeScale             = 0.0001;
       writeTimeScales                     = true;
    };
 
