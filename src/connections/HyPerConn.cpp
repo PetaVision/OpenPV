@@ -2192,6 +2192,7 @@ int HyPerConn::insertProbe(BaseConnectionProbe * p)
 int HyPerConn::setInitialValues() {
    initializeWeights(wPatches, wDataStart);
    int status = PV_SUCCESS;
+#ifdef PV_USE_CUDA
    if(receiveGpu){
       if(updateGSynFromPostPerspective){
          status = initializeReceivePostKernelArgs();
@@ -2206,6 +2207,7 @@ int HyPerConn::setInitialValues() {
    else{
       pvError().printf("%s: unable to allocate device memory in rank %d process: %s\n", getDescription_c(), getParent()->columnId(), strerror(errno));
    }
+#endif // PV_USE_CUDA
    return status;
 }
 
