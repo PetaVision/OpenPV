@@ -1435,14 +1435,6 @@ int HyPerConn::allocatePostConn(){
 
 
 int HyPerConn::allocateDataStructures() {
-#ifdef PV_USE_CUDA
-   if (!pre->getDataStructuresAllocatedFlag()) {
-      if (parent->columnId()==0) {
-         pvInfo().printf("%s must wait until pre-synaptic layer \"%s\" has finished its allocateDataStructures stage.\n", getDescription_c(), pre->getName());
-      }
-      return PV_POSTPONE;
-   }
-#endif // defined(PV_USE_CUDA)
    int status = BaseConnection::allocateDataStructures();
    pvAssert(status == PV_SUCCESS);
    initNumWeightPatches();
@@ -1479,20 +1471,7 @@ int HyPerConn::allocateDataStructures() {
 
 #ifdef PV_USE_CUDA
    status = allocateDeviceBuffers();
-   if(receiveGpu){
-      if(updateGSynFromPostPerspective){
-         status |= allocateReceivePostKernel();
-      }
-      else{
-         status |= allocateReceivePreKernel();
-      }
-   }
-   if(status == 0) {
-      status = PV_SUCCESS;
-   }
-   else{
-      pvError().printf("%s: unable to allocate device memory in rank %d process: %s\n", getDescription_c(), getParent()->columnId(), strerror(errno));
-   }
+   // allocateReceivePostKernel and allocateReceivePreKernel moved to setInitialValues stage
 #endif
 
    //Allocate temp buffers if needed, 1 for each thread
@@ -1686,7 +1665,7 @@ int HyPerConn::allocateDeviceBuffers()
    return status;
 }
 
-int HyPerConn::allocateReceivePreKernel()
+int HyPerConn::initializeReceivePreKernelArgs()
 {
    int status = 0;
    PVCuda::CudaDevice * device = parent->getDevice();
@@ -1769,7 +1748,7 @@ int HyPerConn::allocateReceivePreKernel()
    return status;
 }
 
-int HyPerConn::allocateReceivePostKernel()
+int HyPerConn::initializeReceivePostKernelArgs()
 {
    pvInfo() << name << " setting up post kernel\n";
    int status = 0;
@@ -2212,7 +2191,24 @@ int HyPerConn::insertProbe(BaseConnectionProbe * p)
 
 int HyPerConn::setInitialValues() {
    initializeWeights(wPatches, wDataStart);
-   return PV_SUCCESS;
+   int status = PV_SUCCESS;
+#ifdef PV_USE_CUDA
+   if(receiveGpu){
+      if(updateGSynFromPostPerspective){
+         status = initializeReceivePostKernelArgs();
+      }
+      else{
+         status = initializeReceivePreKernelArgs();
+      }
+   }
+   if(status == 0) {
+      status = PV_SUCCESS;
+   }
+   else{
+      pvError().printf("%s: unable to allocate device memory in rank %d process: %s\n", getDescription_c(), getParent()->columnId(), strerror(errno));
+   }
+#endif // PV_USE_CUDA
+   return status;
 }
 
 int HyPerConn::outputProbeParams() {
