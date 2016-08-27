@@ -50,6 +50,7 @@ add_subdirectory(DryRunFlagTest)
 add_subdirectory(GenericSystemTest)
 
 if (PV_USE_CUDA)
+   add_subdirectory(GPULCATest)
    add_subdirectory(GPUSystemTest)
 endif (PV_USE_CUDA)
 
@@ -68,9 +69,9 @@ add_subdirectory(LIFTest)
 add_subdirectory(MarginWidthTest)
 add_subdirectory(MaskLayerTest)
 add_subdirectory(MaxPoolTest)
-add_subdirectory(MovieSystemTest)
 add_subdirectory(MomentumTest)
 add_subdirectory(MomentumLCATest)
+add_subdirectory(MovieSystemTest)
 #add_subdirectory(MLPTest) # Moved to auxlib/mlearning
 if (PV_USE_MPI)
    add_subdirectory(MPITest)

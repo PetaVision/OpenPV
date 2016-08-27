@@ -151,7 +151,7 @@ int generate(PV_Init* initObj, int rank) {
             0/*last four bytes of timestamp in first frame*/,
             0/*Number of active values in the frame (zero for empty data)*/};
 
-      size_t numwritten = PV_fwrite(emptydata, 23, sizeof(int), emptyinfile);
+      size_t numwritten = PV_fwrite(emptydata, sizeof(int), 23, emptyinfile);
       if (numwritten != 23) {
          pvErrorNoExit().printf("%s failure to write placeholder data into input/correct.pvp file.\n", initObj->getProgramName());
       }
@@ -164,7 +164,7 @@ int generate(PV_Init* initObj, int rank) {
 int copyCorrectOutput(HyPerCol * hc, int argc, char * argv[]) {
    int status = PV_SUCCESS;
    std::string sourcePathString = hc->getOutputPath();
-   sourcePathString += "/" "a1_output.pvp";
+   sourcePathString += "/" "output.pvp";
    const char * sourcePath = sourcePathString.c_str();
    MoviePvp * correctLayer = dynamic_cast<MoviePvp *>(hc->getLayerFromName("correct"));
    pvErrorIf(!(correctLayer), "Test failed.\n");
