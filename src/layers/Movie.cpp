@@ -431,17 +431,19 @@ double Movie::getDeltaUpdateTime(){
    return displayPeriod;
 }
 
+#ifdef OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to ColumnEnergyProbe.
   // ensure that timeScale == 1 if new frame being loaded on current time step
   // (note: this used to add getDeltaTime to simulationTime, but calcTimeScale is now called after simulationTime is incremented. -pfs 2015-11-05)
   
 double Movie::calcTimeScale(int batchIdx){
-    if(needUpdate(parent->simulationTime(), parent->getDeltaTime())){
+   if(needUpdate(parent->simulationTime(), parent->getDeltaTime())){
       return parent->getTimeScaleMin(); 
-    }
-    else{
+   }
+   else{
       return HyPerLayer::calcTimeScale(batchIdx);
-    }
-  }
+   }
+}
+#endif // OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to ColumnEnergyProbe.
 
 int Movie::updateState(double time, double dt)
 {

@@ -3,7 +3,6 @@ debugParsing = false;
 HyPerCol "column" = {
     startTime                           = 0;
     dt                                  = 1;
-    dtAdaptController                   = NULL;
     stopTime                            = 6;
     progressInterval                    = 10;
     writeProgressToErr                  = false;
@@ -17,9 +16,8 @@ HyPerCol "column" = {
     checkpointWrite                     = false;
     deleteOlderCheckpoints              = false;
     suppressNonplasticCheckpoints       = false;
-    writeTimescales                     = true;
     errorOnNotANumber                   = false;
-    nbatch = 1; 
+    nbatch                              = 1; 
 };
 
 MoviePvp "pre" = {

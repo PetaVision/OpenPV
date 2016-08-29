@@ -8,6 +8,7 @@
 #ifndef HYPERLCALAYER_HPP_
 #define HYPERLCALAYER_HPP_
 
+#include <io/AdaptiveTimeScaleProbe.hpp>
 #include "ANNLayer.hpp"
 
 namespace PV {
@@ -22,7 +23,8 @@ public:
 protected:
    HyPerLCALayer();
    int initialize(const char * name, HyPerCol * hc);
-   virtual int allocateDataStructures();
+   virtual int communicateInitInfo() override;
+   virtual int allocateDataStructures() override;
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
    /**
@@ -39,15 +41,19 @@ protected:
 #endif // OBSOLETE // Marked obsolete June 27, 2016.
 
    /**
-    * timeConstantTau: the time constant tau for the LCA dynamics, which models the equation dV/dt = 1/tau*(-V+s*A+GSyn)
+    * @brief timeConstantTau: the time constant tau for the LCA dynamics, which models the equation dV/dt = 1/tau*(-V+s*A+GSyn)
     */
    virtual void ioParam_timeConstantTau(enum ParamsIOFlag ioFlag);
 
    /**
-    * timeConstantTau: the self-interaction coefficient s for the LCA dynamics, which models the equation dV/dt = 1/tau*(-V+s*A+GSyn)
+    * @brief timeConstantTau: the self-interaction coefficient s for the LCA dynamics, which models the equation dV/dt = 1/tau*(-V+s*A+GSyn)
     */
    virtual void ioParam_selfInteract(enum ParamsIOFlag ioFlag);
 
+   /**
+    * @brief adaptiveTimeScaleProbe: If using adaptive timesteps, the name of the AdaptiveTimeScaleProbe that will compute the dt values.
+    */
+   virtual void ioParam_adaptiveTimeScaleProbe(enum ParamsIOFlag ioFlag);
    /** @} */
 
    virtual int updateState(double time, double dt);
@@ -62,9 +68,19 @@ protected:
    virtual int allocateUpdateKernel();
 #endif
 
+   double * deltaTimes(); // TODO: make const-correct
+   // Better name?  getDeltaTimes isn't good because it sounds like it's just the getter-method.
 
+private:
+   int initialize_base();
+
+// Data members
+protected:
    pvdata_t timeConstantTau;
    bool selfInteract;
+   char * mAdaptiveTimeScaleProbeName = nullptr;
+   AdaptiveTimeScaleProbe * mAdaptiveTimeScaleProbe = nullptr;
+   std::vector<double> mDeltaTimes;
 
 #ifdef PV_USE_CUDA
    PVCuda::CudaBuffer* d_dtAdapt;
@@ -72,9 +88,6 @@ protected:
    PVCuda::CudaBuffer* d_verticesA;
    PVCuda::CudaBuffer* d_slopes;
 #endif
-
-private:
-   int initialize_base();
 }; // class HyPerLCALayer
 
 } /* namespace PV */

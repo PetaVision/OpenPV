@@ -14,13 +14,6 @@ HyPerCol "column" = {
    nx = 60;
    ny = 60;
    dt = 1.0;
-   dtAdaptController = "TimeScale";
-   dtScaleMax = 5;
-   dtScaleMin = 0.125;
-   dtChangeMax = 0.05;
-   dtChangeMin = 0;
-   dtMinToleratedTimeScale = 0.0001;
-   writeTimescales = true;
    randomSeed = 1234567890;
    startTime = 0.0;
    stopTime = 10.0;  
@@ -37,6 +30,19 @@ HyPerCol "column" = {
    deleteOlderCheckpoints = false;
    // suppressLastOutput = false;
    checkpointIndexWidth = -1;
+};
+
+AdaptiveTimeScaleProbe "AdaptiveTimeScales" = {
+   targetName = "TimeScale";
+   message = NULL;
+   textOutputFlag = true;
+   probeOutputFile = "AdaptiveTimeScales.txt";
+   triggerLayerName = NULL;
+   baseMax = 5;
+   baseMin = 0.125;
+   tauFactor = 0.05;
+   growthFactor = 0;
+   writeTimeScales = true;
 };
 
 //
@@ -119,6 +125,7 @@ HyPerLCALayer "V1" = {
     slopeErrorStd                       = 0.01;
     selfInteract                        = true;
     dVThresh                            = 0;
+    adaptiveTimeScaleProbe              = "AdaptiveTimeScales";
 };
 
 ANNLayer "reconstruction" = {

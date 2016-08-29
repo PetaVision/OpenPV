@@ -134,8 +134,7 @@ int MomentumLCALayer::allocateUpdateKernel(){
    const float AShift = this->AShift;
    const float VWidth = this->VWidth;
    const bool selfInteract = this->selfInteract;
-   //This value is being updated every timestep, so we need to update it on the gpu
-   const float tau = timeConstantTau; //dt/timeConstantTau;
+   const float tau = timeConstantTau/parent->getDeltaTime(); // TODO: eliminate need to call parent method
    PVCuda::CudaBuffer* d_GSyn = getDeviceGSyn();
    PVCuda::CudaBuffer* d_activity = getDeviceActivity();
 
@@ -183,7 +182,7 @@ int MomentumLCALayer::updateStateGpu(double time, double dt){
       pvError().printf("HyPerLayer::Trigger reset of V does not work on GPUs\n");
    }
    //Copy over d_dtAdapt
-   d_dtAdapt->copyToDevice(parent->getTimeScale());
+   d_dtAdapt->copyToDevice(deltaTimes());
 
    //Don't need to copy as prevDrive buffer is only needed for checkpointing
    //d_prevDrive->copyToDevice(prevDrive);
@@ -213,11 +212,9 @@ int MomentumLCALayer::updateState(double time, double dt)
    int nbatch = loc->nbatch;
    //Only update when the probe updates
    
-   double * deltaTimeAdapt = parent->getTimeScale();
-
    MomentumLCALayer_update_state(nbatch, num_neurons, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, numChannels,
          V, numVertices, verticesV, verticesA, slopes,
-         selfInteract, deltaTimeAdapt, timeConstantTau, LCAMomentumRate, gSynHead, A, prevDrive);
+         selfInteract, deltaTimes(), timeConstantTau/dt, LCAMomentumRate, gSynHead, A, prevDrive);
    return PV_SUCCESS;
 }
 

@@ -1434,14 +1434,6 @@ int HyPerConn::allocatePostConn(){
 
 
 int HyPerConn::allocateDataStructures() {
-#ifdef PV_USE_CUDA
-   if (!pre->getDataStructuresAllocatedFlag()) {
-      if (parent->columnId()==0) {
-         pvInfo().printf("%s must wait until pre-synaptic layer \"%s\" has finished its allocateDataStructures stage.\n", getDescription_c(), pre->getName());
-      }
-      return PV_POSTPONE;
-   }
-#endif // defined(PV_USE_CUDA)
    int status = BaseConnection::allocateDataStructures();
    pvAssert(status == PV_SUCCESS);
    initNumWeightPatches();
@@ -1478,20 +1470,7 @@ int HyPerConn::allocateDataStructures() {
 
 #ifdef PV_USE_CUDA
    status = allocateDeviceBuffers();
-   if(receiveGpu){
-      if(updateGSynFromPostPerspective){
-         status |= allocateReceivePostKernel();
-      }
-      else{
-         status |= allocateReceivePreKernel();
-      }
-   }
-   if(status == 0) {
-      status = PV_SUCCESS;
-   }
-   else{
-      pvError().printf("%s: unable to allocate device memory in rank %d process: %s\n", getDescription_c(), getParent()->columnId(), strerror(errno));
-   }
+   // allocateReceivePostKernel and allocateReceivePreKernel moved to setInitialValues stage
 #endif
 
    //Allocate temp buffers if needed, 1 for each thread
@@ -1685,7 +1664,7 @@ int HyPerConn::allocateDeviceBuffers()
    return status;
 }
 
-int HyPerConn::allocateReceivePreKernel()
+int HyPerConn::initializeReceivePreKernelArgs()
 {
    int status = 0;
    PVCuda::CudaDevice * device = parent->getDevice();
@@ -1768,7 +1747,7 @@ int HyPerConn::allocateReceivePreKernel()
    return status;
 }
 
-int HyPerConn::allocateReceivePostKernel()
+int HyPerConn::initializeReceivePostKernelArgs()
 {
    pvInfo() << name << " setting up post kernel\n";
    int status = 0;
@@ -2211,7 +2190,24 @@ int HyPerConn::insertProbe(BaseConnectionProbe * p)
 
 int HyPerConn::setInitialValues() {
    initializeWeights(wPatches, wDataStart);
-   return PV_SUCCESS;
+   int status = PV_SUCCESS;
+#ifdef PV_USE_CUDA
+   if(receiveGpu){
+      if(updateGSynFromPostPerspective){
+         status = initializeReceivePostKernelArgs();
+      }
+      else{
+         status = initializeReceivePreKernelArgs();
+      }
+   }
+   if(status == 0) {
+      status = PV_SUCCESS;
+   }
+   else{
+      pvError().printf("%s: unable to allocate device memory in rank %d process: %s\n", getDescription_c(), getParent()->columnId(), strerror(errno));
+   }
+#endif // PV_USE_CUDA
+   return status;
 }
 
 int HyPerConn::outputProbeParams() {
@@ -2290,6 +2286,7 @@ int HyPerConn::updateState(double time, double dt){
       //Need to finish command queue of pre and post activity
       //Doing both in case of multiple gpus running
 
+#ifdef OBSOLETE // Marked obsolete Aug 18, 2016.   Should not skip images when learning, and timescale adaptation has been moved out of HyPerCol.
       //TODO: commented out to compile, but we'll want to average across only batches where timeScale >= timeScaleMin.
       for(int b = 0; b < parent->getNBatch(); b++){
          double preTimeScale = pre->getTimeScale(b); 
@@ -2319,6 +2316,7 @@ int HyPerConn::updateState(double time, double dt){
          }
          batchSkip[b] = skip;
       }
+#endif // OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to ColumnEnergyProbe.
 
       status = calc_dW();        // Calculate changes in weights
 
@@ -3088,36 +3086,37 @@ int HyPerConn::deliverPostsynapticPerspectiveConvolve(PVLayerCube const * activi
       pvdata_t * activityBatch = activity->data + b * (sourceNx + sourceHalo->rt + sourceHalo->lt) * (sourceNy + sourceHalo->up + sourceHalo->dn) * sourceNf;
       pvdata_t * gSynPatchHeadBatch = gSynPatchHead + b * targetNx * targetNy * targetNf;
 
+      // Iterate over each line in the y axis, the goal is to keep weights in the cache
+      for(int ky = 0; ky < yPatchSize; ky++) {
+         // Threading over feature was the important change that improved cache performance by
+         // 5-10x. dynamic scheduling also gave another performance increase over static.
 #ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for schedule(static)
+#pragma omp parallel for schedule(dynamic)
 #endif
-      for (int idx = 0; idx < numNeurons; idx++) {
-         int kTargetRes = recvPostSparse ? activeList[b][idx] : idx;
+         for (int feature = 0; feature < nfp; feature++) {
+            for (int idx = feature; idx < numNeurons; idx += nfp) {
+               int kTargetRes = recvPostSparse ? activeList[b][idx] : idx;
+               // gSyn
+               pvdata_t * gSyn = gSynPatchHeadBatch + kTargetRes;
 
-         // gSyn
-         pvdata_t * gSyn = gSynPatchHeadBatch + kTargetRes;
+               // Activity
+               float * a = activityBatch + startSourceExtBuf[kTargetRes] + ky * sy;
 
-         // Activity
-         long startSourceExt = startSourceExtBuf[kTargetRes];
-         float* activityStartBuf = activityBatch + startSourceExt;
+               // Weight
+               int kTargetExt = kIndexExtended(kTargetRes, targetNx, targetNy, targetNf, targetHalo->lt, targetHalo->rt, targetHalo->dn, targetHalo->up);
+               int kernelIndex = postConn->patchToDataLUT(kTargetExt);
+               pvwdata_t* weightStartBuf = postConn->get_wDataHead(arbor, kernelIndex);
+               pvwdata_t * w = weightStartBuf + ky * syp;
 
-         // Weight
-         int kTargetExt = kIndexExtended(kTargetRes, targetNx, targetNy, targetNf, targetHalo->lt, targetHalo->rt, targetHalo->dn, targetHalo->up);
-         int kernelIndex = postConn->patchToDataLUT(kTargetExt);
-         pvwdata_t* weightStartBuf = postConn->get_wDataHead(arbor, kernelIndex);
-
-         for (int ky = 0; ky < yPatchSize; ky++){
-            float * a = activityStartBuf + ky * sy;
-            pvwdata_t * w = weightStartBuf + ky * syp;
-            float dv = 0.0;
-            for (int k = 0; k < numPerStride; k++) {
-               dv += a[k] * w[k];
+               float dv = 0.0;
+               for (int k = 0; k < numPerStride; k++) {
+                  dv += a[k] * w[k];
+               }
+               *gSyn += dt_factor * dv;
             }
-            *gSyn += dt_factor * dv;
          }
       }
    }
-
    return PV_SUCCESS;
 }
 

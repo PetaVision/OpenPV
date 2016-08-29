@@ -40,16 +40,6 @@ local pvParameters = {
       groupType = "HyPerCol";
       startTime                           = 0;
       dt                                  = 1;
-      dtAdaptFlag                         = true;
-      useAdaptMethodExp1stOrder           = true;
-      dtAdaptController                   = "V1EnergyProbe";
-      dtAdaptTriggerLayerName             = "Input";
-      dtAdaptTriggerOffset                = 0;
-      dtScaleMax                          = .1; --1.0; -- minimum value for the maximum time scale, regardless of tau_eff
-      dtScaleMin                          = 0.01; -- default time scale to use after image flips or when something is wacky
-      dtChangeMax                         = 0.1; -- determines fraction of tau_effective to which to set the time step, can be a small percentage as tau_eff can be huge
-      dtChangeMin                         = 0.01; -- percentage increase in the maximum allowed time scale whenever the time scale equals the current maximum
-      dtMinToleratedTimeScale             = 0.0001;
       stopTime                            = stopTime;
       progressInterval                    = (displayPeriod * 10);
       writeProgressToErr                  = true;
@@ -70,8 +60,21 @@ local pvParameters = {
       checkpointWriteStepInterval         = checkpointPeriod; --How often to checkpoint
       deleteOlderCheckpoints              = false;
       suppressNonplasticCheckpoints       = false;
-      writeTimescales                     = true;
       errorOnNotANumber                   = false;
+   };
+
+   AdaptiveTimeScaleProbe "AdaptiveTimeScales" = {
+      targetName                          = "V1EnergyProbe";
+      message                             = nil;
+      textOutputFlag                      = true;
+      probeOutputFile                     = "AdaptiveTimeScales.txt";
+      triggerLayerName                    = "Input";
+      triggerOffset                       = 0;
+      baseMax                             = .1; --1.0; -- minimum value for the maximum time scale, regardless of tau_eff
+      baseMin                             = 0.01; -- default time scale to use after image flips or when something is wacky
+      tauFactor                           = 0.1; -- determines fraction of tau_effective to which to set the time step, can be a small percentage as tau_eff can be huge
+      growthFactor                        = 0.01; -- percentage increase in the maximum allowed time scale whenever the time scale equals the current maximum
+      writeTimeScales                     = true;
    };
 
    Input = {

@@ -1,5 +1,5 @@
 /*
- * pv.cpp
+ * main.cpp
  *
  */
 
@@ -8,9 +8,9 @@
 #include <io/RequireAllZeroActivityProbe.hpp>
 #include <layers/MoviePvp.cpp>
 
-#define CORRECT_PVP_NX 1440 // The x-dimension in the "correct.pvp" file.  Needed by generate()
-#define CORRECT_PVP_NY 960 // The y-dimension in the "correct.pvp" file.  Needed by generate()
-#define CORRECT_PVP_NF 1 // The number of features in the "correct.pvp" file.  Needed by generate()
+#define CORRECT_PVP_NX 128 // The x-dimension in the "correct.pvp" file.  Needed by generate()
+#define CORRECT_PVP_NY 64 // The y-dimension in the "correct.pvp" file.  Needed by generate()
+#define CORRECT_PVP_NF 3 // The number of features in the "correct.pvp" file.  Needed by generate()
 
 int copyCorrectOutput(HyPerCol * hc, int argc, char * argv[]);
 int assertAllZeroes(HyPerCol * hc, int argc, char * argv[]);
@@ -31,7 +31,7 @@ int main(int argc, char * argv[]) {
    bool testcheckpointFlag = false;  // Flag for whether to run from checkpoint and then check the RequireAllZeroActivity probe
    bool testioparamsFlag = false; // Flag for whether to run from the output pv.params and then check the RequireAllZeroActivity probe
 
-   // Run through the command line initObj.  If an argument is any of
+   // Run through the command line arguments.  If an argument is any of
    // --generate
    // --testrun
    // --testcheckpoint
@@ -119,17 +119,41 @@ int generate(PV_Init* initObj, int rank) {
    initObj->setRestartFlag(false);
    initObj->setCheckpointReadDir(NULL);
    if (rank==0) {
-      pvInfo().printf("Running --generate with effective command line\n");
+      pvInfo().printf("Running --generate.  Effective command line is\n");
       initObj->printState();
    }
    if (rank==0) {
       PV_Stream * emptyinfile = PV_fopen("input/correct.pvp", "w", false/*verifyWrites*/);
       // Data for a CORRECT_PVP_NX-by-CORRECT_PVP_NY layer with CORRECT_PVP_NF features.
       // Sparse activity with no active neurons so file size doesn't change with number of features
-      int emptydata[] = {80, 20, 2, CORRECT_PVP_NX, CORRECT_PVP_NY, CORRECT_PVP_NF, 1, 0, 4, 2, 1, 1, CORRECT_PVP_NX, CORRECT_PVP_NY, 0, 0, 0, 1, 0, 0, 0, 0, 0};
+      int emptydata[] = {
+            80/*header size in chars*/,
+            20/*header size in 4-byte integers*/,
+            2/*file type (2=sparse binary)*/,
+            CORRECT_PVP_NX/*the number of pixels in the x-direction*/,
+            CORRECT_PVP_NY/*the number of pixels in the y-direction*/,
+            CORRECT_PVP_NF/*the number of features*/,
+            1/*number of records*/,
+            0/*record size*/,
+            4/*data size*/,
+            2/*data type*/,
+            1/*number of processes in x-direction (always 1 for layers)*/,
+            1/*number of processes in y-direction (always 1 for layers)*/,
+            CORRECT_PVP_NX/*NX_GLOBAL (always the same as NX for layers)*/,
+            CORRECT_PVP_NY/*NY_GLOBAL (always the same as NY for layers)*/,
+            0/*kx0 (always 0 for layers)*/,
+            0/*ky0 (always 0 for layers)*/,
+            0/*number of boundary pixels*/,
+            1/*number of frames*/,
+            0/*first four bytes of timestamp in header(a double-precision floating-point)*/,
+            0/*last four bytes of timestamp in header*/,
+            0/*first four bytes of timestamp in first frame*/,
+            0/*last four bytes of timestamp in first frame*/,
+            0/*Number of active values in the frame (zero for empty data)*/};
+
       size_t numwritten = PV_fwrite(emptydata, 23, sizeof(int), emptyinfile);
       if (numwritten != 23) {
-         pvErrorNoExit().printf("%s: failure to write placeholder data into input/correct.pvp file.\n", initObj->getProgramName());
+         pvErrorNoExit().printf("%s failure to write placeholder data into input/correct.pvp file.\n", initObj->getProgramName());
       }
       PV_fclose(emptyinfile);
    }
@@ -140,10 +164,10 @@ int generate(PV_Init* initObj, int rank) {
 int copyCorrectOutput(HyPerCol * hc, int argc, char * argv[]) {
    int status = PV_SUCCESS;
    std::string sourcePathString = hc->getOutputPath();
-   sourcePathString += "/" "a3_Reconstruction.pvp";
+   sourcePathString += "/" "Reconstruction.pvp";
    const char * sourcePath = sourcePathString.c_str();
    MoviePvp * correctLayer = dynamic_cast<MoviePvp *>(hc->getLayerFromName("Correct"));
-   pvErrorIf(!(correctLayer), "Test failed.\n");
+   pvErrorIf(!(correctLayer), "No MoviePvp layer named \"Correct\" in params.\n");
    const char * destPath = correctLayer->getInputPath();
    if (strcmp(&destPath[strlen(destPath)-4], ".pvp")!=0) {
       if (hc->columnId()==0) {
@@ -154,18 +178,18 @@ int copyCorrectOutput(HyPerCol * hc, int argc, char * argv[]) {
    }
    if (hc->columnId()==0) {
       PV_Stream * infile = PV_fopen(sourcePath, "r", false/*verifyWrites*/);
-      pvErrorIf(!(infile), "Test failed.\n");
+      pvErrorIf(!infile, "Unable to open \"%s\" for reading.\n", sourcePath);
       PV_fseek(infile, 0L, SEEK_END);
       long int filelength = PV_ftell(infile);
       PV_fseek(infile, 0L, SEEK_SET);
       char * buf = (char *) malloc((size_t) filelength);
       size_t charsread = PV_fread(buf, sizeof(char), (size_t) filelength, infile);
-      pvErrorIf(!(charsread == (size_t) filelength), "Test failed.\n");
+      pvErrorIf(charsread != (size_t) filelength, "Expected to read %lu characters; only read %zu.\n", filelength, charsread);
       PV_fclose(infile); infile = NULL;
       PV_Stream * outfile = PV_fopen(destPath, "w", false/*verifyWrites*/);
-      pvErrorIf(!(outfile), "Test failed.\n");
+      pvErrorIf(!outfile, "Unable to open \"%s\" for writing.\n", destPath);
       size_t charswritten = PV_fwrite(buf, sizeof(char), (size_t) filelength, outfile);
-      pvErrorIf(!(charswritten == (size_t) filelength), "Test failed.\n");
+      pvErrorIf(charswritten != (size_t) filelength, "Attempted to write %lu characters; only wrote %zu.\n", filelength, charswritten);
       PV_fclose(outfile); outfile = NULL;
       free(buf); buf = NULL;
    }
@@ -178,7 +202,7 @@ int testrun(PV_Init * initObj, int rank) {
    initObj->setRestartFlag(false);
    initObj->setCheckpointReadDir(NULL);
    if (rank==0) {
-      pvInfo().printf("%s --testrun running PetaVision with initObj\n", initObj->getProgramName());
+      pvInfo().printf("Running --testrun.  Effective command line is\n");
       initObj->printState();
    }
    int status = rebuildandrun(initObj, NULL, &assertAllZeroes);
@@ -197,8 +221,7 @@ int testcheckpoint(PV_Init * initObj, int rank) {
       exit(EXIT_FAILURE);
    }
    if (rank==0) {
-      pvInfo().printf("Running --testcheckpoint with effective command line\n");
-      initObj->printState();
+      pvInfo().printf("Running --testcheckpoint.  Effective command line is\n");
    }
    int status = rebuildandrun(initObj, NULL, &assertAllZeroes);
    return status;
@@ -211,11 +234,11 @@ int testioparams(PV_Init* initObj, int rank) {
    initObj->setCheckpointReadDir(NULL);
    HyPerCol * hc = build(initObj);
    if (hc == NULL) {
-      pvError().printf("testioparams: unable to build HyPerCol.\n");
+      pvError().printf("testioparams error: unable to build HyPerCol.\n");
    }
    int status = hc->run(); // Needed to generate pv.params file
    if (status != PV_SUCCESS) {
-      pvError().printf("testioparams: run to generate pv.params file failed.\n");
+      pvError().printf("testioparams error: run to generate pv.params file failed.\n");
    }
    const char * paramsfile = hc->getPrintParamsFilename();
    std::string paramsfileString = paramsfile;
@@ -228,8 +251,9 @@ int testioparams(PV_Init* initObj, int rank) {
 
    initObj->setParams(paramsfileString.c_str());
    if (rank==0) {
-      pvInfo().printf("%s --testioparams running PetaVision with initObj\n", initObj->getProgramName());
+      pvInfo().printf("Running --testioparams.  Effective command line is\n");
       initObj->printState();
+
    }
    status = rebuildandrun(initObj, NULL, &assertAllZeroes);
    return status;
@@ -238,7 +262,7 @@ int testioparams(PV_Init* initObj, int rank) {
 int assertAllZeroes(HyPerCol * hc, int argc, char * argv[]) {
    const char * targetLayerName = "Comparison";
    HyPerLayer * layer = hc->getLayerFromName(targetLayerName);
-   pvErrorIf(!(layer), "Test failed.\n");
+   pvErrorIf(!(layer), "No layer named \"Comparison\".\n");
    LayerProbe * probe = NULL;
    int np = layer->getNumProbes();
    for (int p=0; p<np; p++) {
@@ -248,7 +272,7 @@ int assertAllZeroes(HyPerCol * hc, int argc, char * argv[]) {
       }
    }
    RequireAllZeroActivityProbe * allzeroProbe = dynamic_cast<RequireAllZeroActivityProbe *>(probe);
-   pvErrorIf(!(allzeroProbe), "Test failed.\n");
+   pvErrorIf(!(allzeroProbe), "No RequireAllZeroActivityProbe named \"ComparisonTest\".\n");
    if (allzeroProbe->getNonzeroFound()) {
       if (hc->columnId()==0) {
          double t = allzeroProbe->getNonzeroTime();

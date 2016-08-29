@@ -16,13 +16,6 @@ debugParsing = false;
 HyPerCol "column" = {
     startTime                           = 0;
     dt                                  = 1;
-    dtAdaptFlag                         = true;
-    dtAdaptController                   = NULL;
-    dtScaleMax                          = 4;
-    dtScaleMin                          = 0.125;
-    dtChangeMax                         = 0.05;
-    dtChangeMin                         = 0;
-    dtMinToleratedTimeScale             = 0.0001;
     stopTime                            = 1000;
     progressInterval                    = 1000;
     writeProgressToErr                  = false;
@@ -38,7 +31,6 @@ HyPerCol "column" = {
     initializeFromCheckpointDir         = "";
     checkpointWrite                     = false;
     suppressLastOutput                  = false;
-    writeTimescales                     = true;
     errorOnNotANumber                   = false;
 };
 

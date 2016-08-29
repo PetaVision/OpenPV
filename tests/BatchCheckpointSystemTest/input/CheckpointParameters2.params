@@ -3,7 +3,6 @@ debugParsing = false;
 HyPerCol "column" = {
     startTime                           = 0;
     dt                                  = 1;
-    dtAdaptController                   = NULL;
     stopTime                            = 50;
     progressInterval                    = 10;
     writeProgressToErr                  = false;
@@ -20,7 +19,6 @@ HyPerCol "column" = {
     checkpointWriteStepInterval         = 4;
     deleteOlderCheckpoints              = false;
     suppressNonplasticCheckpoints       = false;
-    writeTimescales                     = true;
     errorOnNotANumber                   = false;
     nbatch = 2;
 };

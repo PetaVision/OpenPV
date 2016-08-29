@@ -17,13 +17,6 @@ debugParsing = false;
 HyPerCol "column" = {
     startTime                           = 0;
     dt                                  = 1;
-    dtAdaptFlag                         = true;
-    dtAdaptController                   = "Total_Energy_Probe";
-    dtScaleMax                          = 5;
-    dtScaleMin                          = 0.125;
-    dtChangeMax                         = 0.05;
-    dtChangeMin                         = 0;
-    dtMinToleratedTimeScale             = 0.0001;
     stopTime                            = 1000;
     progressInterval                    = 1000;
     writeProgressToErr                  = false;
@@ -39,8 +32,17 @@ HyPerCol "column" = {
     initializeFromCheckpointDir         = "";
     checkpointWrite                     = false;
     suppressLastOutput                  = false;
-    writeTimescales                     = true;
     errorOnNotANumber                   = false;
+};
+
+AdaptiveTimeScaleProbe "AdaptiveTimeScales" = {
+    targetName                          = "Total_Energy_Probe";
+    probeOutputFile                     = "AdaptiveTimeScales.txt";
+    baseMax                             = 5;
+    baseMin                             = 0.125;
+    tauFactor                           = 0.05;
+    growthFactor                        = 0;
+    writeTimeScales                     = true;
 };
 
 Movie "input" = {

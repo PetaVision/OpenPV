@@ -347,7 +347,7 @@ int TransposePoolingConn::communicateInitInfo() {
       mOriginalConn->getPostIndexLayer()->synchronizeMarginWidth(pre);
 
       //Need to tell postIndexLayer the number of delays needed by this connection
-      int allowedDelay = mOriginalConn->getPostIndexLayer()->increaseDelayLevels(getDelayArraySize());
+      int allowedDelay = mOriginalConn->getPostIndexLayer()->increaseDelayLevels(maxDelaySteps());
       if( allowedDelay < getDelayArraySize()) {
          if( this->getParent()->columnId() == 0 ) {
             pvErrorNoExit().printf("%s: attempt to set delay to %d, but the maximum allowed delay is %d.  Exiting\n", this->getDescription_c(), getDelayArraySize(), allowedDelay);

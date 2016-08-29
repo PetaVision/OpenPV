@@ -362,7 +362,7 @@ int BaseInput::allocateDataStructures() {
 
    data = clayer->activity->data;
 
-   status = getFrame(parent->simulationTime(), parent->getDeltaTimeBase());
+   status = getFrame(parent->simulationTime(), parent->getDeltaTime());
    assert(status == PV_SUCCESS);
 
    // readImage sets imageLoc based on the indicated file.  If filename is null, imageLoc doesn't change.

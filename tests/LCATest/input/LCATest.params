@@ -1,100 +1,92 @@
 //
 // LCATest.params
 //
-// created by peteschultz: Aug 15, 2014
-//
+// created by peteschultz: Aug 25, 2016
 
-//  A test of LCA in the GenericSystemTest paradigm
-//  An input->error<->V1 LCA module, using random initial weights
-//  and a correct-values movie being compared to the Reconstruction layer.
-//
+// A system test for an input->error<->V1 LCA module with adaptive timescales
+// and random initial weights.  Two frames are loaded with a display period
+// of 20, and the LCA dynamics are computed and compared with previously
+// computed trusted values.
 
 debugParsing = false;
 
 HyPerCol "column" = {
-   nx = 60;
-   ny = 60;
-   nbatch = 1;
-   dt = 1.0;
-   dtAdaptController = "TotalEnergyProbe";
-   useAdaptMethodExp1stOrder = true;
-   dtScaleMax = 5;
-   dtScaleMin = 0.125;
-   dtChangeMax = 0.05;
-   dtChangeMin = 0;
-   dtMinToleratedTimeScale = 0.0001;
-   writeTimescales = true;
-   randomSeed = 1234567890;
-   startTime = 0.0;
-   stopTime = 10.0;  
-   progressInterval = 1.0;
-   errorOnNotANumber = false;
-   writeProgressToErr = false;  
-   verifyWrites = true;
-   outputPath = "output/";
-   printParamsFilename = "pv.params";
-   initializeFromCheckpointDir = "";
-   checkpointWrite = true;
-   checkpointWriteDir = "checkpoints";
-   checkpointWriteTriggerMode = "step";
-   checkpointWriteStepInterval = 1;
-   deleteOlderCheckpoints = false;
-   suppressNonplasticCheckpoints = false;
-   // suppressLastOutput = false;
-   checkpointIndexWidth = -1;
+    startTime                           = 0;
+    dt                                  = 1;
+    stopTime                            = 40;
+    progressInterval                    = 40;
+    writeProgressToErr                  = false;
+    verifyWrites                        = true;
+    outputPath                          = "output/";
+    printParamsFilename                 = "LCATest.params";
+    randomSeed                          = 1234567890;
+    nx                                  = 128;
+    ny                                  = 64;
+    nbatch                              = 1;
+    initializeFromCheckpointDir         = "";
+    checkpointWrite                     = true;
+    checkpointWriteDir                  = "output/checkpoints";
+    checkpointWriteTriggerMode          = "step";
+    checkpointWriteStepInterval         = 2;
+    deleteOlderCheckpoints              = false;
+    suppressNonplasticCheckpoints       = false;
+    checkpointIndexWidth                = -1;
+    errorOnNotANumber                   = false;
 };
 
-//
-// layers
-//
-
-ImagePvp "Input" = {
-    nxScale = 1;
-    nyScale = 1;
-    inputPath = "input/testimage.pvp";
-    nf = 1;
-    phase = 0;
-    writeStep = 1;
-    sparseLayer = false;
-    updateGpu = false;
-    mirrorBCflag = false;
-    valueBC = 0.0;
-    useImageBCflag = false;
-    inverseFlag = false; 
-    normalizeLuminanceFlag = false;
-    padValue = 0.0;
-    autoResizeFlag = false;
-    writeImages = false;
-    offsetAnchor = "tl";
-    offsetX = 0;
-    offsetY = 0;
-    jitterFlag = false;
+MoviePvp "Input" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    writeStep                           = 20;
+    initialWriteTime                    = 20;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+    inputPath                           = "input/inputImages.pvp";
+    offsetAnchor                        = "tl";
+    offsetX                             = 0;
+    offsetY                             = 0;
+    writeImages                         = 0;
+    autoResizeFlag                      = false;
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = false;
+    jitterFlag                          = 0;
+    useImageBCflag                      = false;
+    padValue                            = 0;
+    displayPeriod                       = 20;
+    echoFramePathnameFlag               = false;
+    batchMethod                         = "bySpecified";
+    writeFrameToTimestamp               = true;
+    flipOnTimescaleError                = true;
+    resetToStartOnLoop                  = false;
 };
 
 ANNErrorLayer "Residual" = {
-    nxScale = 1; 
-    nyScale = 1;
-    nf = 1;
-    phase = 1;
-    mirrorBCflag = true;
-    triggerLayerName = NULL;
-    writeStep = 1;
-    initialWriteTime = 0;
-    sparseLayer = false;
-    updateGpu = false;
-
-    InitVType = "ZeroV";
-
-    VThresh = -infinity;   
-    clearGSynInterval = 0;
-    
-    errScale = 1.0;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 1;
+    mirrorBCflag                        = true;
+    InitVType                           = "ZeroV";
+    triggerLayerName                    = NULL;
+    writeStep                           = 20;
+    initialWriteTime                    = 20;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+    VThresh                             = -infinity;
+    clearGSynInterval                   = 0;
+    errScale                            = 1;
 };
 
 HyPerLCALayer "V1" = {
     nxScale                             = 0.5;
     nyScale                             = 0.5;
-    nf                                  = 32;
+    nf                                  = 24;
     phase                               = 2;
     mirrorBCflag                        = false;
     valueBC                             = 0;
@@ -103,10 +95,11 @@ HyPerLCALayer "V1" = {
     maxV                                = 0.1;
     triggerLayerName                    = NULL;
     writeStep                           = 1;
-    initialWriteTime                    = 0; // 1.44e+06;
+    initialWriteTime                    = 0;
     sparseLayer                         = true;
     writeSparseValues                   = true;
     updateGpu                           = false;
+    dataType                            = NULL;
     VThresh                             = 0.025;
     AMin                                = 0;
     AMax                                = infinity;
@@ -115,6 +108,7 @@ HyPerLCALayer "V1" = {
     clearGSynInterval                   = 0;
     timeConstantTau                     = 100;
     selfInteract                        = true;
+    adaptiveTimeScaleProbe              = "AdaptiveTimeScales";
 };
 
 ANNLayer "Reconstruction" = {
@@ -126,10 +120,11 @@ ANNLayer "Reconstruction" = {
     valueBC                             = 0;
     InitVType                           = "ZeroV";
     triggerLayerName                    = NULL;
-    writeStep                           = 1.0;
-    initialWriteTime                    = 1.0;
+    writeStep                           = 1;
+    initialWriteTime                    = 1;
     sparseLayer                         = false;
     updateGpu                           = false;
+    dataType                            = NULL;
     VThresh                             = -infinity;
     AMin                                = -infinity;
     AMax                                = infinity;
@@ -138,45 +133,94 @@ ANNLayer "Reconstruction" = {
     clearGSynInterval                   = 0;
 };
 
-// connections
+MoviePvp "Correct" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 1;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    writeStep                           = 1;
+    initialWriteTime                    = 1;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+    inputPath                           = "input/correct.pvp";
+    offsetAnchor                        = "tl";
+    offsetX                             = 0;
+    offsetY                             = 0;
+    writeImages                         = 0;
+    autoResizeFlag                      = false;
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = false;
+    jitterFlag                          = 0;
+    useImageBCflag                      = false;
+    padValue                            = 0;
+    displayPeriod                       = 1;
+    batchMethod                         = "bySpecified";
+    start_frame_index                   = [0.000000];
+    skip_frame_index                    = [1.000000];
+    writeFrameToTimestamp               = true;
+    flipOnTimescaleError                = true;
+    resetToStartOnLoop                  = false;
+};
+
+ANNLayer "Comparison" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 4;
+    mirrorBCflag                        = true;
+    InitVType                           = "ZeroV";
+    triggerLayerName                    = NULL;
+    writeStep                           = 1;
+    initialWriteTime                    = 1;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+    VThresh                             = -infinity;
+    AMin                                = -infinity;
+    AMax                                = infinity;
+    AShift                              = 0;
+    VWidth                              = 0;
+    clearGSynInterval                   = 0;
+};
 
 IdentConn "InputToResidual" = {
-    preLayerName = "Input";
-    postLayerName = "Residual";
-    channelCode = 0;
-    delay = 0;
-    writeStep = -1;
+    preLayerName                        = "Input";
+    postLayerName                       = "Residual";
+    channelCode                         = 0;
+    delay                               = [0.000000];
+    initWeightsFile                     = NULL;
+    weightSparsity                      = 0;
 };
 
 HyPerConn "V1ToResidual" = {
     preLayerName                        = "V1";
     postLayerName                       = "Residual";
-    channelCode                         = 1;
-    sharedWeights                       = true;
-    weightInitType                      = "UniformRandomWeight";
-    // initWeightsFile                     was set to (NULL);
-    wMinInit                            = -1;
-    wMaxInit                            = 1;
-    sparseFraction                      = 0.9;
+    channelCode                         = -1;
+    delay                               = [0.000000];
     numAxonalArbors                     = 1;
     plasticityFlag                      = false;
     convertRateToSpikeCount             = false;
     receiveGpu                          = false;
+    sharedWeights                       = true;
+    weightInitType                      = "UniformRandomWeight";
+    initWeightsFile                     = NULL;
+    wMinInit                            = -1;
+    wMaxInit                            = 1;
+    sparseFraction                      = 0.9;
+    updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
-    writeStep                           = 1;
-    initialWriteTime                    = 0;
-    writeCompressedWeights              = false;
+    writeStep                           = -1;
     writeCompressedCheckpoints          = false;
     selfFlag                            = false;
-    delay                               = [0.0];
     nxp                                 = 18;
     nyp                                 = 18;
     nfp                                 = 1;
     shrinkPatches                       = false;
-    updateGSynFromPostPerspective       = false;
     normalizeMethod                     = "normalizeL2";
     strength                            = 1;
-    normalizeFromPostPerspective        = false;
     normalizeArborsIndividually         = false;
     normalizeOnInitialize               = true;
     normalizeOnWeightUpdate             = true;
@@ -184,21 +228,24 @@ HyPerConn "V1ToResidual" = {
     rMinY                               = 0;
     nonnegativeConstraintFlag           = false;
     normalize_cutoff                    = 0;
+    normalizeFromPostPerspective        = false;
     minL2NormTolerated                  = 0;
+    weightSparsity                      = 0;
 };
 
 TransposeConn "ResidualToV1" = {
     preLayerName                        = "Residual";
     postLayerName                       = "V1";
     channelCode                         = 0;
+    delay                               = [0.000000];
+    convertRateToSpikeCount             = false;
+    receiveGpu                          = false;
+    updateGSynFromPostPerspective       = true;
     pvpatchAccumulateType               = "convolve";
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
     selfFlag                            = false;
-    delay                               = [0.0];
-    convertRateToSpikeCount             = false;
-    receiveGpu                          = false;
-    updateGSynFromPostPerspective       = true;
+    weightSparsity                      = 0;
     originalConnName                    = "V1ToResidual";
 };
 
@@ -206,121 +253,98 @@ CloneConn "V1ToReconstruction" = {
     preLayerName                        = "V1";
     postLayerName                       = "Reconstruction";
     channelCode                         = 0;
-    pvpatchAccumulateType               = "convolve";
-    selfFlag                            = false;
-    delay                               = [0.0];
+    delay                               = [0.000000];
     convertRateToSpikeCount             = false;
     receiveGpu                          = false;
     updateGSynFromPostPerspective       = false;
+    pvpatchAccumulateType               = "convolve";
+    selfFlag                            = false;
+    weightSparsity                      = 0;
     originalConnName                    = "V1ToResidual";
-
 };
 
-// Compare Reconstruction to what it should be
-
-MoviePvp "Correct" = {
-    nxScale = 1;
-    nyScale = 1;
-    nf = 1;
-    phase = 1;
-    mirrorBCflag = false;
-    valueBC = 0.0;
-    writeStep = 1.0;
-    initialWriteTime = 1.0;
-    sparseLayer = false;
-    updateGpu = false;
-
-    inputPath = "input/correct.pvp";
-    offsetAnchor = "tl";
-    offsetX = 0;
-    offsetY = 0;
-    writeImages = false;
-    useImageBCflag = false;
-    padValue = 0;
-    // autoResizeFlag = false;
-    inverseFlag = false;
-    normalizeLuminanceFlag = false;
-    jitterFlag = false;
-    resetToStartOnLoop = false;
-
-    displayPeriod = 1;
-    batchMethod = "bySpecified";
-    start_frame_index = 0;
-    skip_frame_index = 1;
-    writeFrameToTimestamp = true;
-    flipOnTimescaleError = true;
-};
-
-ANNLayer "Comparison" = {
-    nxScale = 1;
-    nyScale = 1;
-    nf = 1;
-    phase = 4;
-    mirrorBCflag = true;
-    triggerLayerName = NULL;
-    writeStep = 1.0;
-    initialWriteTime = 1.0;
-    sparseLayer = false;
-    updateGpu = false;
-
-    InitVType = "ZeroV";
-
-    VThresh = -infinity;
-    AMax = infinity;
-    AMin = -infinity;
-    AShift = 0.0;
-    VWidth = 0.0;
-    clearGSynInterval = 0;
+IdentConn "ReconstructionToResidual" = {
+    preLayerName                        = "Reconstruction";
+    postLayerName                       = "Residual";
+    channelCode                         = 1;
+    delay                               = [0.000000];
+    initWeightsFile                     = NULL;
+    weightSparsity                      = 0;
 };
 
 IdentConn "ReconstructionToComparison" = {
-    preLayerName = "Reconstruction";
-    postLayerName = "Comparison";
-    channelCode = 0;
-    writeStep = -1;
-    delay = 0;
+    preLayerName                        = "Reconstruction";
+    postLayerName                       = "Comparison";
+    channelCode                         = 0;
+    delay                               = [0.000000];
+    initWeightsFile                     = NULL;
+    weightSparsity                      = 0;
 };
 
 IdentConn "CorrectToComparison" = {
-    preLayerName = "Correct";
-    postLayerName = "Comparison";
-    channelCode = 1;
-    writeStep = -1;
-    delay = 0;
+    preLayerName                        = "Correct";
+    postLayerName                       = "Comparison";
+    channelCode                         = 1;
+    delay                               = [0.000000];
+    initWeightsFile                     = NULL;
+    weightSparsity                      = 0;
 };
 
-// Energy probe used in time scale adaptation
+AdaptiveTimeScaleProbe "AdaptiveTimeScales" = {
+    targetName                          = "TotalEnergyProbe";
+    message                             = NULL;
+    textOutputFlag                      = true;
+    probeOutputFile                     = "AdaptiveTimeScales.txt";
+    triggerLayerName                    = "Input";
+    triggerOffset                       = 0;
+    energyProbe                         = NULL;
+    baseMax                             = 0.55;
+    baseMin                             = 0.5;
+    tauFactor                           = 0.1;
+    growthFactor                        = 0.01;
+    writeTimeScales                     = true;
+    writeTimeScaleFieldnames            = true;
+};
 
 ColumnEnergyProbe "TotalEnergyProbe" = {
+    message                             = NULL;
+    textOutputFlag                      = true;
     probeOutputFile                     = "total_energy.txt";
+    triggerLayerName                    = NULL;
+    energyProbe                         = NULL;
 };
 
 L2NormProbe "ReconstructionErrorProbe" = {
     targetLayer                         = "Residual";
     message                             = NULL;
+    textOutputFlag                      = true;
     probeOutputFile                     = "recon_error_l2norm.txt";
     triggerLayerName                    = NULL;
     energyProbe                         = "TotalEnergyProbe";
     coefficient                         = 0.5;
-    exponent                            = 2.0;
+    maskLayerName                       = NULL;
+    exponent                            = 2;
 };
 
 FirmThresholdCostFnLCAProbe "CostFunctionProbe" = {
     targetLayer                         = "V1";
     message                             = NULL;
+    textOutputFlag                      = true;
     probeOutputFile                     = "cost_function.txt";
     triggerLayerName                    = NULL;
     energyProbe                         = "TotalEnergyProbe";
-    // VThresh inherited from targetLayer
-    // VWidth inherited from targetLayer
+    maskLayerName                       = NULL;
+    VThresh                             = 0.025;
+    VWidth                              = 0.025;
 };
 
-// Evaluation probe.  Sets a flag if activity in "Comparison" is ever nonzero.
-
 RequireAllZeroActivityProbe "ComparisonTest" = {
-    targetLayer = "Comparison";
-    textOutputFlag = true;
-    probeOutputFile = "ComparisonTest.txt";
-    nnzThreshold = 1e-6;
-    exitOnFailure = false; // exit-hook function will test for failures in source code
+    targetLayer                         = "Comparison";
+    message                             = NULL;
+    textOutputFlag                      = true;
+    probeOutputFile                     = "ComparisonTest.txt";
+    triggerLayerName                    = NULL;
+    energyProbe                         = NULL;
+    nnzThreshold                        = 1e-06;
+    exitOnFailure                       = false;
 };

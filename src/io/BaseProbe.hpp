@@ -52,15 +52,6 @@ public:
    virtual int allocateDataStructures();
 
    /**
-    * If there is a triggering layer, needUpdate returns true when the triggering layer's
-    * nextUpdateTime, modified by the probe's triggerOffset parameter, occurs; otherwise false.
-    * If there is not a triggering layer, needUpdate always returns true.
-    * This behavior can be overridden if a probe uses some criterion other than triggering
-    * to choose when output its state.
-    */
-   virtual bool needUpdate(double time, double dt);
-
-   /**
     * Returns the number of value indices the probe can compute (typically the value
     * of the parent HyPerCol's nBatch parameter).
     * BaseProbe::getNumValues() returns the parent HyPerCol's getNBatch(), which can be overridden.
@@ -99,6 +90,13 @@ public:
     * Returns the coefficient if the energy probe is set.
     */
    double getCoefficient() { return coefficient; }
+
+   /**
+    * Returns the time that calcValues was last called.
+    * BaseProbe updates the last update time in getValues() and getValue(),
+    * based on the result of needRecalc.
+    */
+   double getLastUpdateTime() { return lastUpdateTime; }
 
    /**
     * getValues(double timevalue, double * values) sets the buffer 'values' with the probe's calculated values.
@@ -282,13 +280,6 @@ protected:
    double * getValuesBuffer() { return probeValues; }
 
    /**
-    * Returns the time that calcValues was last called.
-    * BaseProbe updates the last update time in getValues() and getValue(),
-    * based on the result of needRecalc.
-    */
-   double getLastUpdateTime() { return lastUpdateTime; }
-
-   /**
     * Returns the value of the textOutputFlag parameter
     */
    inline bool getTextOutputFlag() const { return textOutputFlag; }
@@ -298,6 +289,15 @@ protected:
     * Otherwise, returns false (indicating output is going to getOutputStream().
     */
    inline bool isWritingToFile() const { return writingToFile; }
+
+   /**
+    * If there is a triggering layer, needUpdate returns true when the triggering layer's
+    * nextUpdateTime, modified by the probe's triggerOffset parameter, occurs; otherwise false.
+    * If there is not a triggering layer, needUpdate always returns true.
+    * This behavior can be overridden if a probe uses some criterion other than triggering
+    * to choose when output its state.
+    */
+   virtual bool needUpdate(double time, double dt);
 
 private:
    int initialize_base();
