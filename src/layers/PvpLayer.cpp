@@ -78,7 +78,6 @@ namespace PV {
       // the start_frame_index value for this batch.
       if(getDisplayPeriod() > 0) {
          frameNumber = mBatchIndexer->nextIndex(batchIndex);
-         pvDebug() << getName() << ": FRAME " << frameNumber << " AT TIMESTEP " << parent->simulationTime() << "\n";
       }
       else {
          frameNumber = getStartIndex(batchIndex);

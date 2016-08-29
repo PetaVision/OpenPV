@@ -57,7 +57,7 @@ ImageLayer "input" = {
     echoFramePathnameFlag            = true;
     nf                               = 1;
     phase                            = 0;
-    writeStep                        = 1;
+    writeStep                        = -1;
     // initialWriteTime
     sparseLayer                      = false;
     updateGpu                        = false;
@@ -87,7 +87,7 @@ ANNLayer "ganglion" = {
     nyScale                          = 1;
     nf                               = 1;
     phase                            = 1;
-    writeStep                        = 1;
+    writeStep                        = -1;
     // initialWriteTime
     mirrorBCflag                     = true;
     sparseLayer                      = false;
@@ -112,7 +112,7 @@ ImageLayer "correctoutput" = {
     echoFramePathnameFlag            = true;
     nf                               = 1;
     phase                            = 0;
-    writeStep                        = 1;
+    writeStep                        = -1;
     // initialWriteTime
     sparseLayer                      = false;
     updateGpu                        = false;
@@ -142,7 +142,7 @@ ANNLayer "comparison" = {
     nyScale                          = 1;
     nf                               = 1;
     phase                            = 2;
-    writeStep                        = 1;
+    writeStep                        = -1;
     // initialWriteTime
     mirrorBCflag                     = true;
     sparseLayer                      = false;

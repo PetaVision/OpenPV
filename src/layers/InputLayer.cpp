@@ -742,7 +742,7 @@ namespace PV {
 
    void InputLayer::ioParam_start_frame_index(enum ParamsIOFlag ioFlag) {
       int *paramsStartFrameIndex;
-      int length = -1;
+      int length = 0;
       if (ioFlag == PARAMS_IO_WRITE) {
          length = mStartFrameIndex.size();
          paramsStartFrameIndex = static_cast<int*>(calloc(length, sizeof(int)));
@@ -750,8 +750,9 @@ namespace PV {
             paramsStartFrameIndex[i] = mStartFrameIndex.at(i);
          }
       }
-      // TODO: Throw an error if we get an incorrect number of indices, based on mBatchMethod
       this->getParent()->ioParamArray(ioFlag, this->getName(), "start_frame_index", &paramsStartFrameIndex, &length);
+      pvErrorIf(length > 0 && length != parent->getNBatchGlobal(),
+            "%s: start_frame_index requires either 0 or nbatch values.\n", getName());
       mStartFrameIndex.clear();
       mStartFrameIndex.resize(length < parent->getNBatchGlobal() ? parent->getNBatchGlobal() : length);
       if (length > 0) {
@@ -763,16 +764,25 @@ namespace PV {
    }
 
    void InputLayer::ioParam_skip_frame_index(enum ParamsIOFlag ioFlag) {
-      int *paramsSkipFrameIndex;
-      int length = -1;
+      int *paramsSkipFrameIndex = nullptr;
+      int length = 0;
       if (ioFlag == PARAMS_IO_WRITE) {
-         length = mSkipFrameIndex.size();
-         paramsSkipFrameIndex = static_cast<int*>(calloc(length, sizeof(int)));
-         for (int i = 0; i < length; ++i) {
-            paramsSkipFrameIndex[i] = mSkipFrameIndex.at(i);
+         if(mBatchMethod == BatchIndexer::BYSPECIFIED) {
+            length = mSkipFrameIndex.size();
+            paramsSkipFrameIndex = static_cast<int*>(calloc(length, sizeof(int)));
+            for (int i = 0; i < length; ++i) {
+               paramsSkipFrameIndex[i] = mSkipFrameIndex.at(i);
+            }
+         }
+         else {
+            return;
          }
       }
       this->getParent()->ioParamArray(ioFlag, this->getName(), "skip_frame_index", &paramsSkipFrameIndex, &length);
+      pvErrorIf(length != 0 && mBatchMethod != BatchIndexer::BYSPECIFIED,
+            "%s: skip_frame_index requires batchMethod == bySpecified.\n", getName());
+      pvErrorIf(mBatchMethod == BatchIndexer::BYSPECIFIED && length != parent->getNBatchGlobal(),
+            "%s: skip_frame_index requires nbatch values.\n", getName());
       mSkipFrameIndex.clear();
       mSkipFrameIndex.resize(length < parent->getNBatchGlobal() ? parent->getNBatchGlobal() : length);
       if (length > 0) {

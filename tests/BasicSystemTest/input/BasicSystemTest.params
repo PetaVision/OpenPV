@@ -49,18 +49,15 @@ PvpLayer "Input" = {
     sparseLayer = false; //only write weights which are not 0
     mirrorBCflag = false;    //border condition flag
     valueBC = 0.0;
-    useImageBCflag = false;
+    useInputBCflag = false;
     updateGpu = false;
     inverseFlag = false; 
     normalizeLuminanceFlag = false;
     autoResizeFlag = false;
-    writeImages = false;
     offsetAnchor = "tl";
     offsetX = 0;  // offset for crop, when the input size is smaller than the size of image
     offsetY = 0;
-    jitterFlag = false; // moving around like an eyeball. our eyeballs are not still even when we are gazing at something.
     padValue = false;
-    pvpFrameIdx = 0;
 };
 
 //an output layer
