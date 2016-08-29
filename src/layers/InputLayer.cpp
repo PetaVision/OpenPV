@@ -73,6 +73,7 @@ namespace PV {
             mInputData.at(b).resize(getLayerLoc()->ny, getLayerLoc()->nx, getLayerLoc()->nf);
          }
          initializeBatchIndexer(mFileList.size());
+         mBatchIndexer->setWrapToStartIndex(mResetToStartOnLoop);
 
          // We want to fill the activity buffer with the initial data without actually advancing
          // our indices, so this is a quick hack to "rewind" after the initial nextInput()
@@ -183,7 +184,7 @@ namespace PV {
             // Copy the input data to a temporary buffer. This gets cropped to the layer size below.
             croppedBuffer = mInputData.at(batchIndex);
             int cropLeft = columnFromRank(rank, icComm->numCommRows(), icComm->numCommColumns()) * loc->nx;
-            int cropTop = rowFromRank(rank, icComm->numCommRows(), icComm->numCommColumns()) * loc->ny;
+            int cropTop  = rowFromRank(   rank, icComm->numCommRows(), icComm->numCommColumns()) * loc->ny;
 
             // Crop the input data to the size of one process.
             croppedBuffer.translate(-cropLeft, -cropTop);
@@ -191,10 +192,7 @@ namespace PV {
 
             // If this isn't the root process, ship it off to the appropriate process.
             if (rank != rootProc) {
-               // This is required because croppedBuffer.asVector() returns a const vector<>
-               std::vector<float> bufferData = croppedBuffer.asVector();
-               pvAssert(bufferData.size() == numElements);
-               MPI_Send(bufferData.data(), numElements, MPI_FLOAT, rank, 31, mpiComm);
+               MPI_Send(croppedBuffer.asVector().data(), numElements, MPI_FLOAT, rank, 31, mpiComm);
             }
          }
       }
@@ -496,7 +494,6 @@ namespace PV {
       free(tempString);
    }
 
-   // TODO: Change to useInputBCFlag, add deprecated warning
    void InputLayer::ioParam_useInputBCflag(enum ParamsIOFlag ioFlag) { 
       parent->ioParamValue(ioFlag, name, "useInputBCflag", &mUseInputBCflag, mUseInputBCflag);
    }

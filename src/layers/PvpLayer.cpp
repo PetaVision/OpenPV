@@ -78,6 +78,7 @@ namespace PV {
       // the start_frame_index value for this batch.
       if(getDisplayPeriod() > 0) {
          frameNumber = mBatchIndexer->nextIndex(batchIndex);
+         pvDebug() << getName() << ": FRAME " << frameNumber << " AT TIMESTEP " << parent->simulationTime() << "\n";
       }
       else {
          frameNumber = getStartIndex(batchIndex);
@@ -235,31 +236,20 @@ namespace PV {
    }
 
    Buffer PvpLayer::readNonspikingActivityFrame(int numParams, int * params, PV_Stream * pvstream, int frameNumber) {
-      int status = PV_SUCCESS;
       int recordsize = params[INDEX_RECORD_SIZE];
-      int datasize = params[INDEX_DATA_SIZE];
-      int framesize = recordsize*datasize+8;
-      long framepos = (long)framesize * (long)frameNumber + (long)params[INDEX_HEADER_SIZE];
+      int datasize   = params[INDEX_DATA_SIZE];
+      int framesize  = recordsize * datasize + 8; // What is this magic number?
+      long framepos  = (long)framesize * (long)frameNumber + (long)params[INDEX_HEADER_SIZE];
       //ONLY READING TIME INFO HERE
-      status = PV_fseek(pvstream, framepos, SEEK_SET);
-      if (status != 0) {
-         pvErrorNoExit().printf("scatterImageFilePVP: Unable to seek to start of frame %d in \"%s\": %s\n", frameNumber, pvstream->name, strerror(errno));
-         status = PV_FAILURE;
+      if (PV_fseek(pvstream, framepos, SEEK_SET) == PV_FAILURE) {
+         pvError().printf("scatterImageFilePVP: Unable to seek to start of frame %d in \"%s\": %s\n", frameNumber, pvstream->name, strerror(errno));
       }
       else { 
          float pvpFileTime = 0;
-         size_t numread = PV::PV_fread(&pvpFileTime, sizeof(double), (size_t) 1, pvstream);
-         if (numread != (size_t) 1) {
+         size_t numRead = PV::PV_fread(&pvpFileTime, sizeof(double), (size_t) 1, pvstream);
+         if (numRead != (size_t) 1) {
             pvErrorNoExit(errorMessage); //TODO: What is errorMessage? Where does it come from?
-            errorMessage.printf("scatterImageFilePVP: Unable to read timestamp from frame %d of file \"%s\":", frameNumber, pvstream->name);
-            if (feof(pvstream->fp)) {
-               errorMessage.printf(" end-of-file."); 
-            }
-            if (ferror(pvstream->fp)) {
-               errorMessage.printf(" fread error."); 
-            }
-            errorMessage.printf("\n");
-            status = PV_FAILURE;
+            pvError().printf("scatterImageFilePVP: Unable to read timestamp from frame %d of file \"%s\": %s", frameNumber, pvstream->name, feof(pvstream->fp) ? " EOF" : " fread error");
          }
       }
       // Assumes that imageData is of type float.
@@ -267,7 +257,8 @@ namespace PV {
       int height     = params[INDEX_NY];
       int features   = params[INDEX_NF];
       std::vector<float> data(width * height * features);
-      PV_fread(data.data(), sizeof(float), (size_t) (width * height * features), pvstream);
+      size_t numRead = PV_fread(data.data(), sizeof(float), data.size(), pvstream);
+      pvErrorIf(numRead != data.size(), "Expected to read %d values, found %d instead.\n", data.size(), numRead);
       return Buffer(data, width, height, features);
    }
 }

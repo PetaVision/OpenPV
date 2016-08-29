@@ -23,11 +23,11 @@ namespace PV {
          std::vector<int> getIndices() { return mIndices; }
 
       private:
-         int mGlobalBatchCount;
-         int mFileCount;
-         bool mWrapToStartIndex;
-         int mBatchWidth;
-         int mBatchWidthIndex;
+         int mGlobalBatchCount = 0;
+         int mFileCount = 0;
+         bool mWrapToStartIndex = true;
+         int mBatchWidth = 0;
+         int mBatchWidthIndex = 0;
          std::vector<int> mIndices;
          std::vector<int> mStartIndices;
          std::vector<int> mSkipAmounts;

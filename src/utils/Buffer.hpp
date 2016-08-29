@@ -29,7 +29,7 @@ namespace PV {
             NORTHWEST
          };
 
-         Buffer(int rows, int columns, int features); 
+         Buffer(int width, int height, int features); 
          Buffer();
          Buffer(const std::vector<float> &data, int width, int height, int features);
 
@@ -44,7 +44,7 @@ namespace PV {
                enum InterpolationMethod interpMethod,
                enum Anchor anchor);
          void translate(int offsetX, int offsetY);
-         const std::vector<float> asVector() { return mData; }
+         std::vector<float> asVector() { return mData; }
          int getHeight()   { return mHeight; }
          int getWidth()    { return mWidth; }
          int getFeatures() { return mFeatures; }
@@ -67,10 +67,8 @@ namespace PV {
 
          inline static float bicubic(float x) {
             float const absx = fabsf(x);
-            return  absx < 1
-                  ? 1 + absx*absx*(-2 + absx)
-                  : absx < 2
-                  ? 4 + absx*(-8 + absx*(5-absx))
+            return  absx < 1 ? 1 + absx * absx * (-2 + absx)
+                  : absx < 2 ? 4 + absx * (-8 + absx * (5 - absx))
                   : 0;
          }
 

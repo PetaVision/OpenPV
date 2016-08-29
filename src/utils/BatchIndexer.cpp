@@ -10,9 +10,9 @@ namespace PV {
       mFileCount = fileCount;
       mBatchWidth = batchWidth > 0 ? batchWidth : 1;
       mBatchWidthIndex = globalBatchIndex / mBatchWidth;
-      mIndices.resize(mGlobalBatchCount / mBatchWidth);
-      mStartIndices.resize(mGlobalBatchCount / mBatchWidth);
-      mSkipAmounts.resize(mGlobalBatchCount / mBatchWidth);
+      mIndices.resize(mGlobalBatchCount / mBatchWidth, 0);
+      mStartIndices.resize(mGlobalBatchCount / mBatchWidth, 0);
+      mSkipAmounts.resize(mGlobalBatchCount / mBatchWidth, 0);
    }
 
    int BatchIndexer::nextIndex(int localBatchIndex) {
