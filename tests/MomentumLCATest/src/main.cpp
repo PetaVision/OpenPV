@@ -127,7 +127,7 @@ int generate(PV_Init* initObj, int rank) {
       // Data for a CORRECT_PVP_NX-by-CORRECT_PVP_NY layer with CORRECT_PVP_NF features.
       // Sparse activity with no active neurons so file size doesn't change with number of features
       int emptydata[] = {80, 20, 2, CORRECT_PVP_NX, CORRECT_PVP_NY, CORRECT_PVP_NF, 1, 0, 4, 2, 1, 1, CORRECT_PVP_NX, CORRECT_PVP_NY, 0, 0, 0, 1, 0, 0, 0, 0, 0};
-      size_t numwritten = PV_fwrite(emptydata, 23, sizeof(int), emptyinfile);
+      size_t numwritten = PV_fwrite(emptydata, sizeof(int), 23, emptyinfile);
       if (numwritten != 23) {
          pvErrorNoExit().printf("%s: failure to write placeholder data into input/correct.pvp file.\n", initObj->getProgramName());
       }
@@ -140,7 +140,7 @@ int generate(PV_Init* initObj, int rank) {
 int copyCorrectOutput(HyPerCol * hc, int argc, char * argv[]) {
    int status = PV_SUCCESS;
    std::string sourcePathString = hc->getOutputPath();
-   sourcePathString += "/" "a3_Reconstruction.pvp";
+   sourcePathString += "/" "Reconstruction.pvp";
    const char * sourcePath = sourcePathString.c_str();
    MoviePvp * correctLayer = dynamic_cast<MoviePvp *>(hc->getLayerFromName("Correct"));
    pvErrorIf(!(correctLayer), "Test failed.\n");

@@ -92,7 +92,7 @@ protected:
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    int respondAdaptTimestep(AdaptTimestepMessage const * message);
    bool needRecalc(double timeValue) override { return parent->simulationTime() > getLastUpdateTime(); }
-   double referenceUpdateTime() const override { return mTargetProbe->getLastUpdateTime(); }
+   double referenceUpdateTime() const override { return parent->simulationTime(); }
    int calcValues(double timeValue);
    virtual bool needUpdate(double timeValue, double dt) override { return true; }
 
