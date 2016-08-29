@@ -8,11 +8,11 @@
 #ifndef POOLINGCONN_HPP_
 #define POOLINGCONN_HPP_
 
-#ifdef PV_USE_CUDA
-#include <cudakernels/CudaPoolingDeliverKernel.hpp>
-#endif // PV_USE_CUDA
 #include "HyPerConn.hpp"
 #include "layers/PoolingIndexLayer.hpp"
+#ifdef PV_USE_CUDA
+#include "cudakernels/CudaPoolingDeliverKernel.hpp"
+#endif // PV_USE_CUDA
 
 namespace PV {
 
@@ -58,11 +58,9 @@ protected:
     */
    void ioParam_normalizeMethod(enum ParamsIOFlag ioFlag);
 #ifdef PV_USE_CUDA
-   virtual int allocateReceivePostKernel() override;
-   virtual int allocateReceivePreKernel() override;
-   int allocatePoolingDeliverKernel();
+   int initializeDeliverKernelArgs();
 #endif // PV_USE_CUDA
-   virtual int setInitialValues() override { return PV_SUCCESS; }
+   virtual int setInitialValues() override { return initializeDeliverKernelArgs(); }
    virtual int constructWeights();
 
    virtual int deliverPresynapticPerspective(PVLayerCube const * activity, int arborID) override;

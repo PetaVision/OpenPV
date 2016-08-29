@@ -199,6 +199,11 @@ int CudaTransposePoolingDeliverKernel::do_run() {
    callPermuteGSynPVToCudnnKernel(gridSizeOrigConnPost, blockSize, mOrigConnGSyn, cudnnGSynPointer, nbatch, origConnNyPost, origConnNxPost, nf, 1, 1);
    handleCallError("CudaTransposeConn: permute original conn's GSyn PV to CUDNN");
 
+   // Debugging: transfer the permuted buffers onto host so it can be examined.
+   // cudnnOrigConnGSynPointer
+   // cudnnDataStorePointer
+   // cudnnOrigConnDataStorePointer
+
    // Do the pooling
    cudnnStatus_t status = cudnnPoolingBackward(
          (cudnnHandle_t) device->getCudnnHandle(),

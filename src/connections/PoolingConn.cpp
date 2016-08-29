@@ -331,15 +331,7 @@ int PoolingConn::allocateDataStructures(){
 // On the GPU, pooling uses cudnnPoolingForward, so pre and post do the same thing.
 
 #ifdef PV_USE_CUDA
-int PoolingConn::allocateReceivePostKernel() {
-   return allocatePoolingDeliverKernel();
-}
-
-int PoolingConn::allocateReceivePreKernel() {
-   return allocatePoolingDeliverKernel();
-}
-
-int PoolingConn::allocatePoolingDeliverKernel() {
+int PoolingConn::initializeDeliverKernelArgs() {
    PVCuda::CudaDevice * device = parent->getDevice();
    PVCuda::CudaBuffer * d_preDatastore = pre->getDeviceDatastore();
    PVCuda::CudaBuffer* d_postGSyn = post->getDeviceGSyn();
@@ -360,18 +352,22 @@ int PoolingConn::allocatePoolingDeliverKernel() {
       pvAssert(0);
       break;
    }
-   krPoolingDeliver = new PVCuda::CudaPoolingDeliverKernel(device);
-   krPoolingDeliver->setArgs(
-         pre->getLayerLoc(),
-         post->getLayerLoc(),
-         nxpPost,
-         nypPost,
-         poolingMode,
-         multiplier,
-         d_preDatastore,
-         d_postGSyn,
-         (int) channel
-   );
+#ifdef PV_USE_CUDA
+   if (receiveGpu) {
+      krPoolingDeliver = new PVCuda::CudaPoolingDeliverKernel(device);
+      krPoolingDeliver->setArgs(
+            pre->getLayerLoc(),
+            post->getLayerLoc(),
+            nxpPost,
+            nypPost,
+            poolingMode,
+            multiplier,
+            d_preDatastore,
+            d_postGSyn,
+            (int) channel
+      );
+   }
+#endif // PV_USE_CUDA
    return PV_SUCCESS;
 }
 #endif // PV_USE_CUDA

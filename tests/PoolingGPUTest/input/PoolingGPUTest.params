@@ -3,7 +3,6 @@ debugParsing = false;
 HyPerCol "Column" = {
     startTime                           = 0;
     dt                                  = 1;
-    dtAdaptController                   = NULL;
     stopTime                            = 5;
     progressInterval                    = 1;
     writeProgressToErr                  = false;

@@ -463,15 +463,15 @@ int TransposePoolingConn::deleteWeights() {
 }
 
 #ifdef PV_USE_CUDA
-int TransposePoolingConn::allocateReceivePostKernel() {
-   return allocateTransposePoolingDeliverKernel();
+int TransposePoolingConn::initializeReceivePostKernelArgs() {
+   return initializeTransposePoolingDeliverKernelArgs();
 }
 
-int TransposePoolingConn::allocateReceivePreKernel() {
-   return allocateTransposePoolingDeliverKernel();
+int TransposePoolingConn::initializeReceivePreKernelArgs() {
+   return initializeTransposePoolingDeliverKernelArgs();
 }
 
-int TransposePoolingConn::allocateTransposePoolingDeliverKernel() {
+int TransposePoolingConn::initializeTransposePoolingDeliverKernelArgs() {
    PVCuda::CudaDevice * device = parent->getDevice();
    PVCuda::CudaBuffer * d_preDatastore = pre->getDeviceDatastore();
    PVCuda::CudaBuffer* d_postGSyn = post->getDeviceGSyn();
