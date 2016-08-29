@@ -100,7 +100,7 @@ namespace PV {
        
          // Returns PV_SUCCESS if offsetAnchor is a valid anchor string, PV_FAILURE otherwise.
          // (two characters long; first characters one of 't', 'c', or 'b'; second characters one of 'l', 'c', or 'r')
-         int checkValidAnchorString();
+         int checkValidAnchorString(const char* offsetAnchor);
  
          // This method post processes the activity buffer after a file is loaded and scattered.
          // Overload this to add additional post process steps in subclasses.
@@ -215,5 +215,10 @@ namespace PV {
 
          // List of filenames to iterate over
          std::vector<std::string> mFileList;
+   };
+
+   class BaseInputDeprecatedError : public BaseObject {
+      public:
+         BaseInputDeprecatedError(const char* name, HyPerCol *hc);
    };
 } 

@@ -131,7 +131,7 @@ namespace PV {
                }
             }
             size_t len = outStrStream.str().length();
-            pvErrorif (PV_fwrite(outStrStream.str().c_str(), sizeof(char), len, mTimestampFile) != len,
+            pvErrorIf (PV_fwrite(outStrStream.str().c_str(), sizeof(char), len, mTimestampFile) != len,
                   "%s: Movie::updateState failed to write to timestamp file.\n", getDescription_c());
             fflush(mTimestampFile->fp);
          }
@@ -193,6 +193,7 @@ namespace PV {
             if (rank != rootProc) {
                // This is required because croppedBuffer.asVector() returns a const vector<>
                std::vector<float> bufferData = croppedBuffer.asVector();
+               pvAssert(bufferData.size() == numElements);
                MPI_Send(bufferData.data(), numElements, MPI_FLOAT, rank, 31, mpiComm);
             }
          }
@@ -429,7 +430,7 @@ namespace PV {
          long timestampFilePos = 0L;
          parent->readScalarFromFile(cpDir, getName(), "TimestampState", &timestampFilePos, timestampFilePos);
          if (mTimestampFile) {
-            pvErrorif (PV_fseek(mTimestampFile, timestampFilePos, SEEK_SET) != 0,
+            pvErrorIf (PV_fseek(mTimestampFile, timestampFilePos, SEEK_SET) != 0,
                "MovieLayer::checkpointRead error: unable to recover initial file position in timestamp file for layer %s: %s\n", name, strerror(errno));
          }
       }
@@ -456,6 +457,24 @@ namespace PV {
       return status; 
    }
 
+   int InputLayer::checkValidAnchorString(const char* offsetAnchor) {
+      int status = PV_SUCCESS;
+      if (offsetAnchor==NULL || strlen(offsetAnchor) != (size_t) 2) {
+         status = PV_FAILURE;
+      }
+      else {
+         char xOffsetAnchor = offsetAnchor[1];
+         if (xOffsetAnchor != 'l' && xOffsetAnchor != 'c' && xOffsetAnchor != 'r') {
+            status = PV_FAILURE;
+         }
+         char yOffsetAnchor = offsetAnchor[0];
+         if (yOffsetAnchor != 't' && yOffsetAnchor != 'c' && yOffsetAnchor != 'b') {
+            status = PV_FAILURE;
+         }
+      }
+      return status;
+   }
+  
 
    void InputLayer::ioParam_inputPath(enum ParamsIOFlag ioFlag) {
       char *tempString = nullptr;
@@ -479,7 +498,7 @@ namespace PV {
 
    // TODO: Change to useInputBCFlag, add deprecated warning
    void InputLayer::ioParam_useInputBCflag(enum ParamsIOFlag ioFlag) { 
-      parent->ioParamValue(ioFlag, name, "useImageBCflag", &mUseInputBCflag, mUseInputBCflag);
+      parent->ioParamValue(ioFlag, name, "useInputBCflag", &mUseInputBCflag, mUseInputBCflag);
    }
 
    int InputLayer::ioParam_offsets(enum ParamsIOFlag ioFlag) {
@@ -492,6 +511,9 @@ namespace PV {
       if (ioFlag==PARAMS_IO_READ) {
          char *offsetAnchor = nullptr;
          parent->ioParamString(ioFlag, name, "offsetAnchor", &offsetAnchor, "tl");
+         if(checkValidAnchorString(offsetAnchor) == PV_FAILURE) {
+            pvError() << "Invalid value for offsetAnchor\n";
+         }
          if (strcmp(offsetAnchor, "tl") == 0) {
             mAnchor = Buffer::NORTHWEST;
          }
@@ -772,7 +794,26 @@ namespace PV {
       parent->ioParamValue(ioFlag, name, "resetToStartOnLoop", &mResetToStartOnLoop, mResetToStartOnLoop);
    }
 
-
+   BaseInputDeprecatedError::BaseInputDeprecatedError(const char * name, HyPerCol *hc) {
+      pvError()
+         << "Movie, Image, MoviePvp, and ImagePvp are deprecated.\n"
+         << "Use ImageLayer or PvpLayer instead. These replacements\n"
+         << "accept the same parameters with the following changes:\n"
+         << "  - ImageLayer assumes any inputPath ending in .txt is\n"
+         << "    a Movie, and behaves accordingly. Set displayPeriod\n"
+         << "    to 0 to display a single image within a file list.\n"
+         << "    If inputPath ends in .png, .jpg, or .bmp, the layer\n"
+         << "    displays a single Image.\n"
+         << "  - PvpLayer no longer has the parameter pvpFrameIndex.\n"
+         << "    Instead, use start_frame_index to specify which\n"
+         << "    index to display. If displayPeriod != 0, PvpLayer\n"
+         << "    behaves like a MoviePvp instead of an ImagePvp.\n"
+         << "  - Jitter has been removed. Parameters related to it\n"
+         << "    will be ignored.\n"
+         << "  - useImageBCFlag is now useInputBCFlag.\n"
+         << "  - batchMethod now expects byFile or byList instead of\n"
+         << "    byImage or byMovie. bySpecified has not changed.\n";
+   }
 } 
 
 

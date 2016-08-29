@@ -29,24 +29,22 @@ HyPerCol "column" = {
 // layers
 //
 
-ImagePvp "MarginsEqualImage" = {
+PvpLayer "MarginsEqualImage" = {
     nxScale = 1;
     nyScale = 1;
     inputPath = "input/testimage.pvp";
     nf = 1;
     phase = 0;
     writeStep = -1;
-    sparseLayer = false;
     mirrorBCflag = false;
     valueBC = 0.0;
-    useImageBCflag = false;
+    useInputBCflag = false;
     inverseFlag = false; 
     normalizeLuminanceFlag = false;
     autoResizeFlag = false;
-    writeImages = false;
     offsetX = 0;
     offsetY = 0;
-    jitterFlag = false;
+	displayPeriod                       = 0;
 };
 
 ANNLayer "MarginsEqualResult" = {
@@ -69,24 +67,22 @@ ANNLayer "MarginsEqualResult" = {
     VWidth = 0.0;
 };
 
-ImagePvp "XMarginLargerImage" = {
+PvpLayer "XMarginLargerImage" = {
     nxScale = 1;
     nyScale = 1;
     inputPath = "input/testimage.pvp";
     nf = 1;
     phase = 0;
     writeStep = -1;
-    sparseLayer = false;
     mirrorBCflag = false;
     valueBC = 0.0;
-    useImageBCflag = false;
+    useInputBCflag = false;
     inverseFlag = false; 
     normalizeLuminanceFlag = false;
     autoResizeFlag = false;
-    writeImages = false;
     offsetX = 0;
     offsetY = 0;
-    jitterFlag = false;
+	displayPeriod = 0;
 };
 
 ANNLayer "XMarginLargerResult" = {
@@ -109,24 +105,22 @@ ANNLayer "XMarginLargerResult" = {
     VWidth = 0.0;
 };
 
-ImagePvp "YMarginLargerImage" = {
+PvpLayer "YMarginLargerImage" = {
     nxScale = 1;
     nyScale = 1;
     inputPath = "input/testimage.pvp";
     nf = 1;
     phase = 0;
     writeStep = -1;
-    sparseLayer = false;
     mirrorBCflag = false;
     valueBC = 0.0;
-    useImageBCflag = false;
+    useInputBCflag = false;
     inverseFlag = false; 
     normalizeLuminanceFlag = false;
     autoResizeFlag = false;
-    writeImages = false;
     offsetX = 0;
     offsetY = 0;
-    jitterFlag = false;
+	displayPeriod = 0;
 };
 
 ANNLayer "YMarginLargerResult" = {
@@ -149,24 +143,22 @@ ANNLayer "YMarginLargerResult" = {
     VWidth = 0.0;
 };
 
-ImagePvp "MultipleConnImage" = {
+PvpLayer "MultipleConnImage" = {
     nxScale = 1;
     nyScale = 1;
     inputPath = "input/testimage.pvp";
     nf = 1;
     phase = 0;
     writeStep = -1;
-    sparseLayer = false;
     mirrorBCflag = false;
     valueBC = 0.0;
-    useImageBCflag = false;
+    useInputBCflag = false;
     inverseFlag = false; 
     normalizeLuminanceFlag = false;
     autoResizeFlag = false;
-    writeImages = false;
     offsetX = 0;
     offsetY = 0;
-    jitterFlag = false;
+	displayPeriod = 0;
 };
 
 ANNLayer "MultipleConnResult" = {

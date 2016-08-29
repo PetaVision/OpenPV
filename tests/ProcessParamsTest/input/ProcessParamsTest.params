@@ -61,7 +61,7 @@ HyPerCol "column" = {
 
 
 // this is a input layer
-ImagePvp
+PvpLayer
 "Input"
 = { nxScale = 1;  // this must be 2^n, n = ...,-2,-1,0,1,2,... 
     nyScale = 1;  // the scale is to decide how much area will be used as input. For exampel, nx * nxScale = 32. The size of input
@@ -84,9 +84,8 @@ ImagePvp
 "tl"; offsetX =
 0;  // offset for crop, when the input size is smaller than the size of image
 				          offsetY = 0;
-    jitterFlag = false; // moving around like an eyeball. our eyeballs are not still even when we are gazing at something.
     padValue = false;
-    pvpFrameIdx = 0; };
+    	displayPeriod = 0; };
 
 //an output layer
 ANNLayer "OutputBase" = {

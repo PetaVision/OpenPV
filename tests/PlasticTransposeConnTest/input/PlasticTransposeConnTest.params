@@ -42,7 +42,7 @@ HyPerCol "column" = {
 // layers
 //
 
-ImagePvp "pre" = {
+PvpLayer "pre" = {
     // nxScale is set in parameter sweep
     // nyScale is set in parameter sweep
     // imagePath is set in parameter sweep
@@ -51,37 +51,33 @@ ImagePvp "pre" = {
     mirrorBCflag = false;
     valueBC = 0;
     writeStep = -1;
-    sparseLayer = false;
-    useImageBCflag = false;
+    useInputBCflag = false;
     inverseFlag = false; 
     normalizeLuminanceFlag = false;
     autoResizeFlag = false;
-    writeImages = false;
     offsetAnchor = "tl";
     offsetX = 0;
     offsetY = 0;
-    jitterFlag = false;
+	displayPeriod = 0;
 };
 
-ImagePvp "post" = {
+PvpLayer "post" = {
     // nxScale is set in parameter sweep
     // nyScale is set in parameter sweep
     // imagePath is set in parameter sweep
     nf = 3;
     phase = 0;
     writeStep = -1;
-    sparseLayer = false;
     mirrorBCflag = false;
     valueBC = 0.0;
-    useImageBCflag = false;
+    useInputBCflag = false;
     inverseFlag = false;
     normalizeLuminanceFlag = false;
     autoResizeFlag = false;
-    writeImages = false;
     offsetAnchor = "tl";
     offsetX = 0;  
     offsetY = 0;
-    jitterFlag = false; 
+	displayPeriod = 0;
 };
 
 ANNLayer "comparison" = {

@@ -18,25 +18,21 @@
 #include <layers/BinningLayer.hpp>
 #include <layers/CloneVLayer.hpp>
 #include <layers/ConstantLayer.hpp>
-//#include <layers/FilenameParsingGroundTruthLayer.hpp>
+//#include <layers/FilenameParsingGroundTruthLayer.hpp> //TODO: Fix this
 #include <layers/GapLayer.hpp>
 #include <layers/HyPerLayer.hpp>
 #include <layers/HyPerLCALayer.hpp>
 #include <layers/ISTALayer.hpp>
 #include <layers/ImageLayer.hpp>
-//#include <layers/ImagePvp.hpp>
 #include <layers/ImageFromMemoryBuffer.hpp>
 #include <layers/KmeansLayer.hpp>
 #include <layers/LCALIFLayer.hpp>
 #include <layers/LIF.hpp>
 #include <layers/LIFGap.hpp>
 #include <layers/LabelErrorLayer.hpp>
-//#include <layers/LabelLayer.hpp>
 #include <layers/LeakyIntegrator.hpp>
 #include <layers/MaskLayer.hpp>
 #include <layers/MomentumLCALayer.hpp>
-//#include <layers/Movie.hpp>
-//#include <layers/MoviePvp.hpp>
 #include <layers/PoolingIndexLayer.hpp>
 #include <layers/PtwiseLinearTransferLayer.hpp>
 #include <layers/PtwiseProductLayer.hpp>
@@ -109,6 +105,12 @@ Factory::Factory() {
 int Factory::registerCoreKeywords() {
    keywordHandlerList = std::vector<KeywordHandler*>();
 
+   registerKeyword("Image",    Factory::create<BaseInputDeprecatedError>);
+   registerKeyword("Movie",    Factory::create<BaseInputDeprecatedError>); 
+   registerKeyword("ImagePvp", Factory::create<BaseInputDeprecatedError>); 
+   registerKeyword("MoviePvp", Factory::create<BaseInputDeprecatedError>); 
+
+
    registerKeyword("ANNErrorLayer", Factory::create<ANNErrorLayer>);
    registerKeyword("ANNLayer", Factory::create<ANNLayer>);
    registerKeyword("ANNSquaredLayer", Factory::create<ANNSquaredLayer>);
@@ -117,33 +119,23 @@ int Factory::registerCoreKeywords() {
    registerKeyword("BinningLayer", Factory::create<BinningLayer>);
    registerKeyword("CloneVLayer", Factory::create<CloneVLayer>);
    registerKeyword("ConstantLayer", Factory::create<ConstantLayer>);
- //  registerKeyword("FilenameParsingGroundTruthLayer", Factory::create<FilenameParsingGroundTruthLayer>);
+//   registerKeyword("FilenameParsingGroundTruthLayer", Factory::create<FilenameParsingGroundTruthLayer>);
    registerKeyword("GapLayer", Factory::create<GapLayer>);
    registerKeyword("HyPerLayer", Factory::create<HyPerLayer>);
    registerKeyword("HyPerLCALayer", Factory::create<HyPerLCALayer>);
    registerKeyword("ISTALayer", Factory::create<ISTALayer>);
    
-   // Leaving these in for backwards compatibility.
-   // Remove after a short fade time. 8-12-16
-   registerKeyword("Image", Factory::create<ImageLayer>); 
-   registerKeyword("Movie", Factory::create<ImageLayer>);
-   registerKeyword("ImagePvp", Factory::create<PvpLayer>);
-   registerKeyword("MoviePvp", Factory::create<PvpLayer>);
-
    registerKeyword("ImageLayer", Factory::create<ImageLayer>);
    registerKeyword("PvpLayer", Factory::create<PvpLayer>);
-//   registerKeyword("ImagePvp", Factory::create<ImagePvp>);
-//   registerKeyword("ImageFromMemoryBuffer", Factory::create<ImageFromMemoryBuffer>);
+   registerKeyword("ImageFromMemoryBuffer", Factory::create<ImageFromMemoryBuffer>);
    registerKeyword("KmeansLayer", Factory::create<KmeansLayer>);
    registerKeyword("LCALIFLayer", Factory::create<LCALIFLayer>);
    registerKeyword("LIF", Factory::create<LIF>);
    registerKeyword("LIFGap", Factory::create<LIFGap>);
    registerKeyword("LabelErrorLayer", Factory::create<LabelErrorLayer>);
-//   registerKeyword("LabelLayer", Factory::create<LabelLayer>);
    registerKeyword("LeakyIntegrator", Factory::create<LeakyIntegrator>);
    registerKeyword("MaskLayer", Factory::create<MaskLayer>);
    registerKeyword("MomentumLCALayer", Factory::create<MomentumLCALayer>);
-//   registerKeyword("MoviePvp", Factory::create<MoviePvp>);
    registerKeyword("PoolingIndexLayer", Factory::create<PoolingIndexLayer>);
    registerKeyword("PtwiseLinearTransferLayer", Factory::create<PtwiseLinearTransferLayer>);
    registerKeyword("PtwiseProductLayer", Factory::create<PtwiseProductLayer>);

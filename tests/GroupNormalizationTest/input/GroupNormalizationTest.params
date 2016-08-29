@@ -55,25 +55,23 @@ HyPerCol "column" = {
 // layers
 //
 
-ImagePvp "input" = {
+PvpLayer "input" = {
     nxScale = 1;
     nyScale = 1;
     inputPath = "input/ones.pvp";
     nf = 3;
     phase = 0;
     writeStep = -1;
-    sparseLayer = false;
     mirrorBCflag = true;
-    useImageBCflag = false;
+    useInputBCflag = false;
     inverseFlag = false; 
     normalizeLuminanceFlag = false;
     autoResizeFlag = false;
-    writeImages = false;
     offsetAnchor = "tl";
     offsetX = 0;
     offsetY = 0;
-    jitterFlag = false;
     padValue = 0.0;
+	displayPeriod                       = 0;
 };
 
 ANNLayer "output1" = {

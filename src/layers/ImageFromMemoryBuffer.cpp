@@ -82,7 +82,7 @@ namespace PV {
       mOffsetX = offsetX;
       mOffsetY = offsetY;
       mAnchor = Buffer::CENTER;
-      if (checkValidAnchorString()!=PV_SUCCESS) {
+      if (checkValidAnchorString(offsetAnchor)!=PV_SUCCESS) {
          if (parent->columnId()==0) {
             pvErrorNoExit().printf("%s: setMemoryBuffer called with invalid anchor string \"%s\"",
                   getDescription_c(), offsetAnchor);
@@ -90,6 +90,7 @@ namespace PV {
          MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
+      // TODO: Parse offsetAnchor into an enum here
       return setMemoryBuffer(externalBuffer, height, width, numbands, xstride, ystride, bandstride, zeroval, oneval);
    }
    template int ImageFromMemoryBuffer::setMemoryBuffer<uint8_t>(uint8_t const * buffer, int height, int width, int numbands, int xstride, int ystride, int bandstride, uint8_t zeroval, uint8_t oneval, int offsetX, int offsetY, char const * offsetAnchor);

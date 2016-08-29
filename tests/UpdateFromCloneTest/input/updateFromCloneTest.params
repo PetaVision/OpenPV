@@ -17,8 +17,7 @@ HyPerCol "column" = {
 };
 
 //This layer must have .5 activity for every neuron
-ImagePvp "origPre" = {
-    restart = 0;  // make only a certain layer restart
+PvpLayer "origPre" = {
     nxScale = 1;  // this must be 2^n, n = ...,-2,-1,0,1,2,... 
     nyScale = 1;  // the scale is to decide how much area will be used as input. For exampel, nx * nxScale = 32. The size of input
     	      	  // cannot be larger than the input image size.
@@ -29,20 +28,17 @@ ImagePvp "origPre" = {
     sparseLayer = false; //only write weights which are not 0
     mirrorBCflag = true;    //border condition flag
     valueBC = 0.0; // Value in border if mirrorBCflag is false
-    useImageBCflag = false;
+    useInputBCflag = false;
     inverseFlag = false; 
     normalizeLuminanceFlag = false;
     autoResizeFlag = false;
-    writeImages = false;
     offsetX = 0;  // offset for crop, when the input size is smaller than the size of image
     offsetY = 0;
-    jitterFlag = false; // moving around like an eyeball. our eyeballs are not still even when we are gazing at something.
-    // frameNumber = 0;
+	displayPeriod = 0;
 };
 
 //This layer must have .25 activity for every neuron
-ImagePvp "clonePre" = {
-    restart = 0;  // make only a certain layer restart
+PvpLayer "clonePre" = {
     nxScale = 1;  // this must be 2^n, n = ...,-2,-1,0,1,2,... 
     nyScale = 1;  // the scale is to decide how much area will be used as input. For exampel, nx * nxScale = 32. The size of input
     	      	  // cannot be larger than the input image size.
@@ -50,18 +46,15 @@ ImagePvp "clonePre" = {
     nf = 1; //number of features.
     phase = 0; //phase defines an order in which layers should be executed.
     writeStep = 1;  //-1 means doesn't write for log
-    sparseLayer = false; //only write weights which are not 0
     mirrorBCflag = true;    //border condition flag
     valueBC = 0.0; // Value in border if mirrorBCflag is false
-    useImageBCflag = false;
+    useInputBCflag = false;
     inverseFlag = false; 
     normalizeLuminanceFlag = false;
     autoResizeFlag = false;
-    writeImages = false;
     offsetX = 0;  // offset for crop, when the input size is smaller than the size of image
     offsetY = 0;
-    jitterFlag = false; // moving around like an eyeball. our eyeballs are not still even when we are gazing at something.
-    // frameNumber = 0;
+	displayPeriod = 0;
 };
 
 ANNLayer "origPost" = {

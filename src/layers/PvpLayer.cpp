@@ -27,6 +27,7 @@ namespace PV {
 
    Buffer PvpLayer::retrieveData(std::string filename, int batchIndex) {
       PV_Stream *pvpFile = pvp_open_read_file(filename.c_str(), parent->getCommunicator()); 
+      pvErrorIf(pvpFile == nullptr, "Could not open %s\n", filename.c_str());
 
       int numParams = NUM_BIN_PARAMS; 
       int params[numParams];
@@ -105,6 +106,7 @@ namespace PV {
    }
 
    Buffer PvpLayer::readSparseBinaryActivityFrame(int numParams, int * params, PV_Stream * pvstream, int frameNumber) {
+
       // Allocate the byte positions in file where each frame's data starts and the number of active neurons in each frame
       // Only need to do this once
       int status = PV_SUCCESS;
