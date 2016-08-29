@@ -9,6 +9,7 @@
 #include "arch/cuda/cuda_util.hpp"
 #include "utils/PVAssert.hpp"
 #include <cmath>
+#include <vector> // Added for debugging
 
 namespace PVCuda {
 
@@ -31,11 +32,14 @@ void CudaTransposePoolingDeliverKernel::setArgs(
       int channel) {
    mPreLoc = preLoc;
    mPostLoc = postLoc;
+   pvAssertMessage(preLoc->nx<=postLoc->nx && preLoc->ny<=postLoc->ny, "CudaTransposePoolingDeliverKernel: Transpose pooling requires pre-layer to have same or lower density as post-layer.\n");
    mPoolingMode = poolingMode;
    mMultiplier = (float) multiplier;
 
-   int strideX = calcStride(preLoc->nx, postLoc->nx);
-   int strideY = calcStride(preLoc->ny, postLoc->ny);
+   int strideX = CudaPoolingDeliverKernel::calcStride(mPostLoc->nx, mPreLoc->nx);
+   int strideY = CudaPoolingDeliverKernel::calcStride(mPostLoc->ny, mPreLoc->ny);
+   int nxpPre = nxpPost*mPostLoc->nx/mPreLoc->nx; pvAssert(nxpPre*mPreLoc->nx == nxpPost*mPostLoc->nx);
+   int nypPre = nypPost*mPostLoc->ny/mPreLoc->ny; pvAssert(nypPre*mPreLoc->ny == nypPost*mPostLoc->ny);
 
    cudnnStatus_t status;
    status = cudnnCreatePoolingDescriptor(&mPoolingDescriptor);
@@ -43,27 +47,27 @@ void CudaTransposePoolingDeliverKernel::setArgs(
    status = cudnnSetPooling2dDescriptor(
          mPoolingDescriptor,
          poolingMode,
-         nypPost,
-         nxpPost,
+         nypPre,
+         nxpPre,
          0/*horizontal padding*/,
          0/*vertical padding*/,
          strideY,
          strideX
    );
 
-   const PVHalo* preHalo = &preLoc->halo;
-   mBorderExcessX = calcBorderExcess(preLoc->nx, postLoc->nx, preHalo->lt, nxpPost);
-   mBorderExcessY = calcBorderExcess(preLoc->ny, postLoc->ny, preHalo->up, nypPost);
+   const PVHalo* preHalo = &mPreLoc->halo;
+   mBorderExcessX = calcBorderExcess(mPreLoc->nx, mPostLoc->nx, preHalo->lt, nxpPost);
+   mBorderExcessY = calcBorderExcess(mPreLoc->ny, mPostLoc->ny, preHalo->up, nypPost);
    status = cudnnCreateTensorDescriptor(&mDataStoreDescriptor);
    cudnnHandleError(status, "Create input tensor descriptor");
    status = cudnnSetTensor4dDescriptor(
          mDataStoreDescriptor,
          CUDNN_TENSOR_NCHW, // PetaVision arrays are ordered NHWC; they will be permuted to NCHW inside do_run()
          CUDNN_DATA_FLOAT,
-         preLoc->nbatch, //Number of images
-         preLoc->nf, //Number of feature maps per image
-         preLoc->ny + preHalo->up + preHalo->dn - 2*mBorderExcessY, //Height of each feature map
-         preLoc->nx + preHalo->lt + preHalo->rt - 2*mBorderExcessX
+         mPreLoc->nbatch, //Number of images
+         mPreLoc->nf, //Number of feature maps per image
+         mPreLoc->ny + preHalo->up + preHalo->dn - 2*mBorderExcessY, //Height of each feature map
+         mPreLoc->nx + preHalo->lt + preHalo->rt - 2*mBorderExcessX
          ); //Width of each feature map
    cudnnHandleError(status, "Set input tensor descriptor");
    mDataStore = (float*) dataStoreBuffer->getPointer();
@@ -75,16 +79,16 @@ void CudaTransposePoolingDeliverKernel::setArgs(
          mGSynDescriptor,
          CUDNN_TENSOR_NCHW, // PetaVision arrays are ordered NHWC; they will be permuted to NCHW inside do_run()
          CUDNN_DATA_FLOAT,
-         preLoc->nbatch, //Number of images
-         postLoc->nf, //Number of feature maps per image
-         postLoc->ny, //ny restricted
-         postLoc->nx
+         mPreLoc->nbatch, //Number of images
+         mPostLoc->nf, //Number of feature maps per image
+         mPostLoc->ny, //ny restricted
+         mPostLoc->nx
    ); //nx restricted
    cudnnHandleError(status, "Set output tensor descriptor");
-   int numGSynNeuronsAcrossBatch = postLoc->nf*postLoc->ny*postLoc->nf*postLoc->nbatch;
+   int numGSynNeuronsAcrossBatch = mPostLoc->nx*mPostLoc->ny*mPostLoc->nf*mPostLoc->nbatch;
    float * gSynHead = (float*) gSynBuffer->getPointer();
    mGSyn = &gSynHead[channel*numGSynNeuronsAcrossBatch];
-   mCudnnGSyn = device->createBuffer(numGSynNeuronsAcrossBatch);
+   mCudnnGSyn = device->createBuffer(numGSynNeuronsAcrossBatch*sizeof(float));
 
    mOrigConnPreLoc = origConnPreLoc;
    mOrigConnPostLoc = origConnPostLoc;
@@ -120,9 +124,9 @@ void CudaTransposePoolingDeliverKernel::setArgs(
    ); //nx restricted
    cudnnHandleError(status, "Set original conn post gsyn tensor descriptor");
    int numOrigConnGSynNeuronsAcrossBatch = mOrigConnPostLoc->nf*mOrigConnPostLoc->ny*mOrigConnPostLoc->nf*mOrigConnPostLoc->nbatch;
-   float * origConnGSynHead = (float*) gSynBuffer->getPointer();
+   float * origConnGSynHead = (float*) origConnGSynBuffer->getPointer();
    mOrigConnGSyn = &origConnGSynHead[channel*numOrigConnGSynNeuronsAcrossBatch];
-   mCudnnOrigConnGSyn = device->createBuffer(numOrigConnGSynNeuronsAcrossBatch);
+   mCudnnOrigConnGSyn = device->createBuffer(numOrigConnGSynNeuronsAcrossBatch*sizeof(float));
 }
 
 int CudaTransposePoolingDeliverKernel::calcBorderExcess(int preRestricted, int postRestricted, int border, int patchSizePostPerspective) {
@@ -183,12 +187,12 @@ int CudaTransposePoolingDeliverKernel::do_run() {
    //Ceil to get all neurons
    int const gridSizeOrigConnPre = std::ceil((float)numNeurons/blockSize);
    float * cudnnOrigConnDataStorePointer = (float*) mCudnnOrigConnDataStore->getPointer();
-   callPermuteDatastorePVToCudnnKernel(gridSizeOrigConnPre, blockSize, mDataStore, cudnnDataStorePointer, nbatch, origConnNyPreExt, origConnNxPreExt, nf, mBorderExcessX, mBorderExcessY);
+   callPermuteDatastorePVToCudnnKernel(gridSizeOrigConnPre, blockSize, mOrigConnDataStore, cudnnOrigConnDataStorePointer, nbatch, origConnNyPreExt, origConnNxPreExt, nf, mBorderExcessX, mBorderExcessY);
    handleCallError("CudaTransposeConn: permute original conn's DataStore PV to CUDNN");
 
    // Permute the PV-ordered original conn's GSyn channel to CUDNN ordering.
    int const origConnNxPost = mOrigConnPostLoc->nx;
-   int const origConnNyPost = mPostLoc->ny;
+   int const origConnNyPost = mOrigConnPostLoc->ny;
    pvAssert(nf==mOrigConnPostLoc->nf);
    pvAssert(mOrigConnPostLoc->nbatch==nbatch);
    //Calculate grid and work size
@@ -196,13 +200,8 @@ int CudaTransposePoolingDeliverKernel::do_run() {
    float * cudnnOrigConnGSynPointer = (float*) mCudnnOrigConnGSyn->getPointer();
    //Ceil to get all neurons
    int const gridSizeOrigConnPost = std::ceil((float)numNeurons/(float)blockSize);
-   callPermuteGSynPVToCudnnKernel(gridSizeOrigConnPost, blockSize, mOrigConnGSyn, cudnnGSynPointer, nbatch, origConnNyPost, origConnNxPost, nf, 1, 1);
+   callPermuteGSynPVToCudnnKernel(gridSizeOrigConnPost, blockSize, mOrigConnGSyn, cudnnOrigConnGSynPointer, nbatch, origConnNyPost, origConnNxPost, nf, 1, 1);
    handleCallError("CudaTransposeConn: permute original conn's GSyn PV to CUDNN");
-
-   // Debugging: transfer the permuted buffers onto host so it can be examined.
-   // cudnnOrigConnGSynPointer
-   // cudnnDataStorePointer
-   // cudnnOrigConnDataStorePointer
 
    // Do the pooling
    cudnnStatus_t status = cudnnPoolingBackward(
@@ -217,6 +216,7 @@ int CudaTransposePoolingDeliverKernel::do_run() {
    );
    cudnnHandleError(status, "CudaTransposeConn: backward pooling run");
 
+   device->syncDevice();
 
    // Permute the CUDNN-ordering GSyn back to PV ordering
    callPermuteGSynCudnnToPVKernel(gridSizePost, blockSize, mGSyn, cudnnGSynPointer, nbatch, nyPost, nxPost, nf, 1, 1);

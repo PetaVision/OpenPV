@@ -103,6 +103,9 @@ int TransposePoolingConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 
 void TransposePoolingConn::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
    // During the communication phase, receiveGpu will be copied from mOriginalConn
+   if (ioFlag==PARAMS_IO_READ) {
+      parent->parameters()->handleUnnecessaryParameter(name, "receiveGpu");
+   }
 }
 
 void TransposePoolingConn::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
@@ -463,14 +466,6 @@ int TransposePoolingConn::deleteWeights() {
 }
 
 #ifdef PV_USE_CUDA
-int TransposePoolingConn::initializeReceivePostKernelArgs() {
-   return initializeTransposePoolingDeliverKernelArgs();
-}
-
-int TransposePoolingConn::initializeReceivePreKernelArgs() {
-   return initializeTransposePoolingDeliverKernelArgs();
-}
-
 int TransposePoolingConn::initializeTransposePoolingDeliverKernelArgs() {
    PVCuda::CudaDevice * device = parent->getDevice();
    PVCuda::CudaBuffer * d_preDatastore = pre->getDeviceDatastore();
@@ -513,10 +508,6 @@ int TransposePoolingConn::initializeTransposePoolingDeliverKernelArgs() {
    return PV_SUCCESS;
 }
 #endif // PV_USE_CUDA
-
-int TransposePoolingConn::setInitialValues() {
-   return PV_SUCCESS;
-}
 
 bool TransposePoolingConn::needUpdate(double timed, double dt) {
    return plasticityFlag && mOriginalConn->getLastUpdateTime() > lastUpdateTime;

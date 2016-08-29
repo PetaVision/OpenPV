@@ -352,22 +352,19 @@ int PoolingConn::initializeDeliverKernelArgs() {
       pvAssert(0);
       break;
    }
-#ifdef PV_USE_CUDA
-   if (receiveGpu) {
-      krPoolingDeliver = new PVCuda::CudaPoolingDeliverKernel(device);
-      krPoolingDeliver->setArgs(
-            pre->getLayerLoc(),
-            post->getLayerLoc(),
-            nxpPost,
-            nypPost,
-            poolingMode,
-            multiplier,
-            d_preDatastore,
-            d_postGSyn,
-            (int) channel
-      );
-   }
-#endif // PV_USE_CUDA
+
+   krPoolingDeliver = new PVCuda::CudaPoolingDeliverKernel(device);
+   krPoolingDeliver->setArgs(
+         pre->getLayerLoc(),
+         post->getLayerLoc(),
+         nxpPost,
+         nypPost,
+         poolingMode,
+         multiplier,
+         d_preDatastore,
+         d_postGSyn,
+         (int) channel
+   );
    return PV_SUCCESS;
 }
 #endif // PV_USE_CUDA

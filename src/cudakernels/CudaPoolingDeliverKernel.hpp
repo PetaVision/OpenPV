@@ -41,12 +41,12 @@ public:
          CudaBuffer * outputBuffer,
          int channel
          );
+   static int calcStride(int preRestricted, int postRestricted);
 
 protected:
    virtual int do_run() override;
    int calcBorderExcess(int preRestricted, int postRestricted, int border, int patchSizePostPerspective);
    int calcManyScale(int preRestricted, int postRestricted);
-   int calcStride(int preRestricted, int postRestricted);
 
 protected:
    PVLayerLoc const * mPreLoc = nullptr;

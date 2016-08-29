@@ -60,11 +60,9 @@ protected:
     virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
     virtual int setPatchSize();
 #ifdef PV_USE_CUDA
-    virtual int initializeReceivePostKernelArgs() override;
-    virtual int initializeReceivePreKernelArgs() override;
     int initializeTransposePoolingDeliverKernelArgs();
 #endif // PV_USE_CUDA
-    virtual int setInitialValues();
+    virtual int setInitialValues() override { return receiveGpu ? initializeTransposePoolingDeliverKernelArgs() : PV_SUCCESS; }
     virtual int constructWeights();
     virtual int deliverPresynapticPerspective(PVLayerCube const * activity, int arborID);
     virtual int deliverPostsynapticPerspective(PVLayerCube const * activity, int arborID);
