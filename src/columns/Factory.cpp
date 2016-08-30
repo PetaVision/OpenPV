@@ -18,7 +18,7 @@
 #include <layers/BinningLayer.hpp>
 #include <layers/CloneVLayer.hpp>
 #include <layers/ConstantLayer.hpp>
-//#include <layers/FilenameParsingGroundTruthLayer.hpp> //TODO: Fix this
+#include <layers/FilenameParsingGroundTruthLayer.hpp>
 #include <layers/GapLayer.hpp>
 #include <layers/HyPerLayer.hpp>
 #include <layers/HyPerLCALayer.hpp>
@@ -119,7 +119,7 @@ int Factory::registerCoreKeywords() {
    registerKeyword("BinningLayer", Factory::create<BinningLayer>);
    registerKeyword("CloneVLayer", Factory::create<CloneVLayer>);
    registerKeyword("ConstantLayer", Factory::create<ConstantLayer>);
-//   registerKeyword("FilenameParsingGroundTruthLayer", Factory::create<FilenameParsingGroundTruthLayer>);
+   registerKeyword("FilenameParsingGroundTruthLayer", Factory::create<FilenameParsingGroundTruthLayer>);
    registerKeyword("GapLayer", Factory::create<GapLayer>);
    registerKeyword("HyPerLayer", Factory::create<HyPerLayer>);
    registerKeyword("HyPerLCALayer", Factory::create<HyPerLCALayer>);

@@ -819,7 +819,9 @@ namespace PV {
          << "    will be ignored.\n"
          << "  - useImageBCFlag is now useInputBCFlag.\n"
          << "  - batchMethod now expects byFile or byList instead of\n"
-         << "    byImage or byMovie. bySpecified has not changed.\n";
+         << "    byImage or byMovie. bySpecified has not changed.\n"
+         << "  - FilenameParsingGroundTruthLayer now acceps a param\n"
+         << "    called inputLayerName instead of movieLayerName.\n";
    }
 } 
 

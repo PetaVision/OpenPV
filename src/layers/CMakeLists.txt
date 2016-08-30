@@ -9,7 +9,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/BinningLayer.cpp
    ${SUBDIR}/CloneVLayer.cpp
    ${SUBDIR}/ConstantLayer.cpp
-#   ${SUBDIR}/FilenameParsingGroundTruthLayer.cpp
+   ${SUBDIR}/FilenameParsingGroundTruthLayer.cpp
    ${SUBDIR}/GapLayer.cpp
    ${SUBDIR}/HyPerLayer.cpp
    ${SUBDIR}/HyPerLCALayer.cpp
@@ -52,7 +52,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/BinningLayer.hpp
    ${SUBDIR}/CloneVLayer.hpp
    ${SUBDIR}/ConstantLayer.hpp
-#   ${SUBDIR}/FilenameParsingGroundTruthLayer.hpp
+   ${SUBDIR}/FilenameParsingGroundTruthLayer.hpp
    ${SUBDIR}/GapLayer.hpp
    ${SUBDIR}/HyPerLayer.hpp
    ${SUBDIR}/HyPerLCALayer.hpp

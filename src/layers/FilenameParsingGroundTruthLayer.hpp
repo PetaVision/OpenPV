@@ -7,6 +7,8 @@
 #pragma once
 
 #include <string>
+#include "InputLayer.hpp"
+#include "ANNLayer.hpp"
 
 namespace PV {
 
@@ -15,21 +17,20 @@ namespace PV {
       public:
          FilenameParsingGroundTruthLayer(const char * name, HyPerCol * hc);
          virtual ~FilenameParsingGroundTruthLayer();
-         virtual int initialize(const char * name, HyPerCol * hc);
          virtual int communicateInitInfo();
          virtual int updateState(double timef, double dt);
          virtual bool needUpdate(double time, double dt);
          int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-      private:
-         std::ifstream inputfile;
-         std::string * classes;
-         int numClasses;
-         char * movieLayerName;
-         Movie * movieLayer;
-         float gtClassTrueValue;
-         float gtClassFalseValue;
-      protected:
 
+      private:
+         std::ifstream mInputFile;
+         std::vector<std::string> mClasses;
+         char *mInputLayerName = nullptr;
+         InputLayer *mInputLayer = nullptr;
+         float mGtClassTrueValue = 1.0f;
+         float mGtClassFalseValue = 0.0f;
+
+      protected:
          /**
           * List of protected paramters needed from FilenameParsingGroundTruthLayer
           * @name FilenameParsingGroundTruthLayer Paramters
@@ -50,7 +51,7 @@ namespace PV {
           * @brief movieLayerName: lists name of the movie layer from which the imageListPath is used to parse the classification
           */
 
-         virtual void ioParam_movieLayerName(enum ParamsIOFlag ioFlag);
+         virtual void ioParam_inputLayerName(enum ParamsIOFlag ioFlag);
          
          /**
           * @brief gtClassTrueValue: defines value to be set for the neuron that matches classes.txt classifer
