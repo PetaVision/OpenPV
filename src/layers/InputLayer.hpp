@@ -130,7 +130,6 @@ namespace PV {
          virtual int updateState(double time, double dt);
          virtual int checkpointRead(const char * cpDir, double * timef);
          virtual int checkpointWrite(const char *cpDir);
-         //virtual double calcTimeScale(int batchIndex);
          virtual bool activityIsSpiking() {return false;}
          void exchange();
          int getDisplayPeriod() { return mDisplayPeriod; }
@@ -173,7 +172,7 @@ namespace PV {
          int mOffsetX = 0;
          int mOffsetY = 0;
   
-         // Object to handle batch indexing. 
+         // Object to handle assigning file indices to batches
          std::unique_ptr<BatchIndexer> mBatchIndexer;
          BatchIndexer::BatchMethod mBatchMethod;
 

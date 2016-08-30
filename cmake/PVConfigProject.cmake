@@ -62,7 +62,6 @@ macro(pv_config_project)
   set(PV_BUILD_SHARED_HELP "Build a shared library")
   set(PV_DEBUG_OUTPUT_HELP "Display output from logDebug() in Release builds")
   set(PV_BUILD_TEST_HELP "Build the OpenPV test suite")
-  set(PV_REORDER_HYPERCONN_HELP "Use the proposed cache friendly reordered inner loops in HyPerConn")
   set(PV_COMPILE_OPTIONS_EXTRA_HELP "Any additional flags to pass to the compiler")
 
   ################################################################################
@@ -165,7 +164,6 @@ macro(pv_config_project)
   set(PV_BUILD_SHARED OFF CACHE BOOL "${PV_BUILD_SHARED_HELP}")
   set(PV_DEBUG_OUTPUT OFF CACHE BOOL "${PV_DEBUG_OUTPUT_HELP}")
   set(PV_BUILD_TEST ON CACHE BOOL "${PV_BUILD_TEST_HELP}")
-  set(PV_REORDER_HYPERCONN ON CACHE BOOL "${PV_REORDER_HYPERCONN_HELP}")
   set(PV_COMPILE_OPTIONS_EXTRA "" CACHE STRING "${PV_COMPILE_FLAGS_EXTRA_HELP}")
 
   ################################################################################

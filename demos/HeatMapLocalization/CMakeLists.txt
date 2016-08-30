@@ -3,7 +3,8 @@ include(PVAddExecutable)
 get_filename_component(PV_PROJECT_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 
 #include_directories("${CMAKE_CURRENT_SOURCE_DIR}/src")
-
+find_package(GDAL)
+include_directories(${GDAL_INCLUDE_DIR})
 set(${PV_PROJECT_NAME}_SRCCPP
   src/BBFind.cpp
   src/BBFindConfRemapLayer.cpp
@@ -11,7 +12,6 @@ set(${PV_PROJECT_NAME}_SRCCPP
   src/ConvertFromTable.cpp
   src/LocalizationProbe.cpp
   src/LocalizationBBFindProbe.cpp
-  src/MaskFromMemoryBuffer.cpp
   src/main.cpp
 )
 
@@ -21,3 +21,5 @@ pv_add_executable(${PV_PROJECT_NAME}
 )
 
 add_dependencies(${PV_PROJECT_NAME} pv)
+
+

@@ -101,10 +101,6 @@ if (PV_USE_LUA AND LUA_FOUND)
   include_directories(${LUA_INCLUDE_DIR})
 endif()
 
-if (PV_REORDER_HYPERCONN)
-  add_definitions("-DPV_REORDER_HYPERCONN=1")
-endif()
-
 if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "MinRelSize")
   list(APPEND CMAKE_CXX_FLAGS ${PV_COMPILE_FLAGS_RELEASE})
 else()

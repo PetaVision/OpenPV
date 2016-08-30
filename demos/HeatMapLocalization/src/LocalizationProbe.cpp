@@ -10,6 +10,8 @@
 #include <unistd.h>
 #include <string.h>
 #include <limits>
+#include <gdal.h>
+#include <gdal_priv.h>
 #include "LocalizationProbe.hpp"
 
 LocalizationProbe::LocalizationProbe(const char * probeName, PV::HyPerCol * hc) {
