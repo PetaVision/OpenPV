@@ -63,7 +63,7 @@ public:
    void permuteWeightsPVToCudnn(void *d_inPtr, int numArbors, int numKernels, int nxp, int nyp, int nfp);
 
 protected:
-   void * d_ptr;                       // pointer to buffer on host
+   void * d_ptr;                       // pointer to buffer on device
    size_t size;
    cudaStream_t stream;
    CudaDevice * device;

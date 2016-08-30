@@ -6,7 +6,7 @@ namespace PVCuda{
 #ifdef PV_USE_CUDNN
 #include <cudnn.h>
 
-//Function to change PV representation to CUDNN reprsentation
+//Function to change PV representation to CUDNN representation
 //Does 2 things: permutate ordering from [outFeature, ny, nx, inFeature] to [outFeature, inFeature, ny, nx]
 //Reshapes the matrix if manyScale > 1 to map different "many" kernels into feature dimension
 //Coalesced in input

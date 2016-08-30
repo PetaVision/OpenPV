@@ -8,6 +8,8 @@
 #include "PoolingConn.hpp"
 #include <cstring>
 #include <cmath>
+#include <string>
+#include <locale>
 
 namespace PV {
 
@@ -73,34 +75,31 @@ void PoolingConn::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {
 
    parent->ioParamStringRequired(ioFlag, name, "pvpatchAccumulateType", &pvpatchAccumulateTypeString);
    if (ioFlag==PARAMS_IO_READ) {
-      if (pvpatchAccumulateTypeString==NULL) {
-         unsetAccumulateType();
-         return;
-      }
-      // Convert string to lowercase so that capitalization doesn't matter.
-      for (char * c = pvpatchAccumulateTypeString; *c!='\0'; c++) {
-         *c = (char) tolower((int) *c);
-      }
-
-      if ((strcmp(pvpatchAccumulateTypeString,"maxpooling")==0) ||
-           (strcmp(pvpatchAccumulateTypeString,"max_pooling")==0) ||
-           (strcmp(pvpatchAccumulateTypeString,"max pooling")==0)) {
-         poolingType = MAX;
-      }
-      else if ((strcmp(pvpatchAccumulateTypeString,"sumpooling")==0) ||
-           (strcmp(pvpatchAccumulateTypeString,"sum_pooling")==0)  ||
-           (strcmp(pvpatchAccumulateTypeString,"sum pooling")==0)) {
-         poolingType = SUM;
-      }
-      else if ((strcmp(pvpatchAccumulateTypeString,"avgpooling")==0) ||
-           (strcmp(pvpatchAccumulateTypeString,"avg_pooling")==0)  ||
-           (strcmp(pvpatchAccumulateTypeString,"avg pooling")==0)) {
-         poolingType = AVG;
-      }
-      else {
+      poolingType = parseAccumulateTypeString(pvpatchAccumulateTypeString);
+      if (poolingType==UNDEFINED) {
          unsetAccumulateType();
       }
    }
+}
+
+PoolingConn::AccumulateType PoolingConn::parseAccumulateTypeString(char const * poolingTypeString) {
+   if (poolingTypeString==nullptr) {
+      return UNDEFINED;
+   }
+   PoolingConn::AccumulateType accType;
+   std::string str(poolingTypeString);
+   // Convert string to lowercase so that capitalization doesn't matter.
+   for (auto& c : str) {
+      c = std::tolower(c, std::locale());
+   }
+   // "max_pooling", "max pooling", "maxpooling" are equally acceptable (same for sum and avg)
+   if (str.size()>=4 && (str[3]==' ' || str[3]=='_')) { str.erase(3,1); }
+
+   if (strcmp(str.c_str(),"maxpooling")==0) { accType = MAX; }
+   else if (strcmp(str.c_str(),"sumpooling")==0) { accType = SUM; }
+   else if (strcmp(str.c_str(),"avgpooling")==0) { accType = AVG; }
+   else { accType = UNDEFINED; }
+   return accType;
 }
 
 void PoolingConn::unsetAccumulateType() {
@@ -161,20 +160,22 @@ int PoolingConn::initialize(const char * name, HyPerCol * hc, InitWeights * weig
 
    int status = BaseConnection::initialize(name, hc); // BaseConnection should *NOT* take weightInitializer or weightNormalizer as arguments, as it does not know about InitWeights or NormalizeBase
 
+#ifdef PV_USE_CUDA
+   if (needPostIndexLayer && receiveGpu) {
+      if (parent->getCommunicator()->commRank()==0) {
+         pvError() << getDescription() << ": receiveGpu and needPostIndexLayer both set.  The GPU version does not currently compute the post index layer.";
+      }
+      MPI_Barrier(parent->getCommunicator()->communicator());
+      exit(EXIT_FAILURE);
+   }
+#endif // PV_USE_CUDA
+
    assert(parent);
    PVParams * inputParams = parent->parameters();
 
    //set accumulateFunctionPointer
    assert(!inputParams->presentAndNotBeenRead(name, "pvpatchAccumulateType"));
    switch (poolingType) {
-#ifdef OBSOLETE // Marked obsolete May 3, 2016.  HyPerConn defines HyPerConnAccumulateType and PoolingConn defines PoolingType
-   case ACCUMULATE_CONVOLVE:
-      pvError() << "ACCUMULATE_CONVOLVE not allowed in pooling conn\n";
-      break;
-   case ACCUMULATE_STOCHASTIC:
-      pvError() << "ACCUMULATE_STOCASTIC not allowed in pooling conn\n";
-      break;
-#endif // OBSOLETE // Marked obsolete May 3, 2016.  HyPerConn defines HyPerConnAccumulateType and PoolingConn defines PoolingType
    case MAX:
       accumulateFunctionPointer = &pvpatch_max_pooling;
       accumulateFunctionFromPostPointer = &pvpatch_max_pooling_from_post;
@@ -250,7 +251,7 @@ int PoolingConn::communicateInitInfo() {
       //(margins doesnt matter)
       if(idxLoc->nxGlobal != postLoc->nxGlobal || idxLoc->nyGlobal != postLoc->nyGlobal || idxLoc->nf != postLoc->nf){
          if (parent->columnId()==0) {
-            pvErrorNoExit().printf("%s: postIndexLayer \"%s\" must have the same dimensions as the post pooling layer \"%s\".", getDescription_c(), this->postIndexLayerName, this->postLayerName);
+            pvErrorNoExit().printf("%s: postIndexLayer \"%s\" must have the same dimensions as the post pooling layer \"%s\".\n", getDescription_c(), this->postIndexLayerName, this->postLayerName);
          }
          MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
@@ -275,10 +276,6 @@ int PoolingConn::communicateInitInfo() {
    return status;
 }
 
-int PoolingConn::finalizeUpdate(double time, double dt) {
-   return PV_SUCCESS;
-}
-
 void PoolingConn::clearGateIdxBuffer(){
    if(needPostIndexLayer){
       //Reset postIndexLayer's gsyn
@@ -287,6 +284,12 @@ void PoolingConn::clearGateIdxBuffer(){
 }
 
 int PoolingConn::allocateDataStructures(){
+   if (postIndexLayer && postIndexLayer->getDataStructuresAllocatedFlag()==false) {
+      if (parent->columnId()==0) {
+         pvInfo().printf("%s must wait until postIndexLayer layer \"%s\" has finished its allocateDataStructures stage.\n", getDescription_c(), postIndexLayer->getName());
+      }
+      return PV_POSTPONE;
+   }
    int status = HyPerConn::allocateDataStructures();
    if (status == PV_POSTPONE) { return status; }
    assert(status == PV_SUCCESS);
@@ -326,9 +329,52 @@ int PoolingConn::allocateDataStructures(){
 }
 
 int PoolingConn::setInitialValues() {
-   //Doing nothing
+#ifdef PV_USE_CUDA
+   if (receiveGpu) { return initializeDeliverKernelArgs(); }
+#endif // PV_USE_CUDA
    return PV_SUCCESS;
 }
+
+// On the GPU, pooling uses cudnnPoolingForward, so pre and post do the same thing.
+
+#ifdef PV_USE_CUDA
+int PoolingConn::initializeDeliverKernelArgs() {
+   PVCuda::CudaDevice * device = parent->getDevice();
+   PVCuda::CudaBuffer * d_preDatastore = pre->getDeviceDatastore();
+   PVCuda::CudaBuffer* d_postGSyn = post->getDeviceGSyn();
+   cudnnPoolingMode_t poolingMode;
+   int multiplier = 1;
+   switch(poolingType) {
+   case MAX:
+      poolingMode = CUDNN_POOLING_MAX;
+      break;
+   case SUM:
+      poolingMode = CUDNN_POOLING_AVERAGE_COUNT_INCLUDE_PADDING;
+      multiplier = nxpPost * nypPost;
+      break;
+   case AVG:
+      poolingMode = CUDNN_POOLING_AVERAGE_COUNT_INCLUDE_PADDING;
+      break;
+   default:
+      pvAssert(0);
+      break;
+   }
+
+   krPoolingDeliver = new PVCuda::CudaPoolingDeliverKernel(device);
+   krPoolingDeliver->setArgs(
+         pre->getLayerLoc(),
+         post->getLayerLoc(),
+         nxpPost,
+         nypPost,
+         poolingMode,
+         multiplier,
+         d_preDatastore,
+         d_postGSyn,
+         (int) channel
+   );
+   return PV_SUCCESS;
+}
+#endif // PV_USE_CUDA
 
 int PoolingConn::constructWeights(){
    int sx = nfp;
@@ -366,14 +412,6 @@ int PoolingConn::constructWeights(){
 
 }
 
-int PoolingConn::checkpointRead(const char * cpDir, double * timeptr) {
-   return PV_SUCCESS;
-}
-
-int PoolingConn::checkpointWrite(const char * cpDir) {
-   return PV_SUCCESS;
-}
-
 float PoolingConn::minWeight(int arborId){
    if(getPoolingType() == MAX){
      return 1.0;
@@ -387,8 +425,8 @@ float PoolingConn::minWeight(int arborId){
      return (1.0/(nxp*nyp*relative_XScale*relative_YScale));
    }
    else {
-       assert(0); // only possibilities are ACCUMULATE_MAXPOOLING, ACCUMULATE_SUMPOOLING, ACCUMULATe_AVGPOOLING
-       return 0.0; // gets rid of a compile warning
+       assert(0); // only possibilities are PoolingConn::MAX, PoolingConn::SUM, PoolingConn::AVG
+       return 0.0f; // gets rid of a compile warning
     }
 }
 
@@ -405,8 +443,8 @@ float PoolingConn::maxWeight(int arborId){
      return (1.0/(nxp*nyp*relative_XScale*relative_YScale));
    }
    else {
-       assert(0); // only possibilities are ACCUMULATE_MAXPOOLING and ACCUMULATE_SUMPOOLING
-       return 0.0; // gets rid of a compile warning
+       assert(0); // only possibilities are PoolingConn::MAX, PoolingConn::SUM, PoolingConn::AVG
+       return 0.0f; // gets rid of a compile warning
     }
 }
 
@@ -532,7 +570,6 @@ int PoolingConn::deliverPresynapticPerspective(PVLayerCube const * activity, int
             gatePatchHead = gatePatchHeadBatch;
          }
 #endif // PV_USE_OPENMP_THREADS
-         //deliverOnePreNeuronActivity(kPreExt, arborID, a, gSynPatchHead, gatePatchHead);
          
          PVPatch * weights = getWeights(kPreExt, arborID);
          const int nk = weights->nx * fPatchSize();
@@ -728,5 +765,35 @@ int PoolingConn::deliverPostsynapticPerspective(PVLayerCube const * activity, in
    }
    return PV_SUCCESS;
 }
+
+#ifdef PV_USE_CUDA
+int PoolingConn::deliverPresynapticPerspectiveGPU(PVLayerCube const * activity, int arborID) {
+   return deliverGPU(activity, arborID);
+}
+
+int PoolingConn::deliverPostsynapticPerspectiveGPU(PVLayerCube const * activity, int arborID) {
+   return deliverPresynapticPerspectiveGPU(activity, arborID);
+}
+
+int PoolingConn::deliverGPU(PVLayerCube const * activity, int arborID) {
+   //Check channel number for noupdate
+   if(getChannel() == CHANNEL_NOUPDATE){
+      return PV_SUCCESS;
+   }
+   pvAssert(post->getChannel(getChannel()));
+
+   if(pre->getUpdatedDeviceDatastoreFlag()){
+      float * h_preDatastore = activity->data;
+      PVCuda::CudaBuffer* d_preDatastore = pre->getDeviceDatastore();
+      pvAssert(d_preDatastore);
+      d_preDatastore->copyToDevice(h_preDatastore);
+      //Device now has updated
+      pre->setUpdatedDeviceDatastoreFlag(false);
+   }
+
+   krPoolingDeliver->run();
+   return PV_SUCCESS;
+}
+#endif // PV_USE_CUDA
 
 } // end namespace PV

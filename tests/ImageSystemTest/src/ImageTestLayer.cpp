@@ -42,7 +42,7 @@ ImageTestLayer::ImageTestLayer(const char * name, HyPerCol * hc) {
    if (hc->columnId()==0) {
       pvErrorNoExit().printf("ImageTestLayer class requires compiling with PV_USE_GDAL set\n");
    }
-   MPI_Barrier(hc->icCommunicator()->communicator());
+   MPI_Barrier(hc->getCommunicator()->communicator());
    exit(EXIT_FAILURE);
 }
 #endif // PV_USE_GDAL

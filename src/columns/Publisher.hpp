@@ -26,7 +26,7 @@ public:
    int exchangeBorders(const PVLayerLoc * loc, int delay=0);
    int wait();
 
-   int increaseTimeLevel()   {return store->newLevelIndex();}
+   void increaseTimeLevel()   {store->newLevelIndex();}
 
    DataStore * dataStore()   {return store;}
 

@@ -1,4 +1,5 @@
 set (PVLibSrcCpp ${PVLibSrcCpp}
+   ${SUBDIR}/accumulate_functions.cpp
    ${SUBDIR}/BaseConnection.cpp
    ${SUBDIR}/CloneConn.cpp
    ${SUBDIR}/CloneKernelConn.cpp
@@ -19,6 +20,8 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
 )
 
 set (PVLibSrcHpp ${PVLibSrcHpp}
+   ${SUBDIR}/accumulate_functions.hpp
+   ${SUBDIR}/BaseConnection.hpp
    ${SUBDIR}/BaseConnection.hpp
    ${SUBDIR}/CloneConn.hpp
    ${SUBDIR}/CloneKernelConn.hpp

@@ -1628,7 +1628,7 @@ void HyPerCol::notify(std::vector<std::shared_ptr<BaseMessage> > messages) {
                pvError() << obj->getDescription() << " failed " << msg->getMessageType() << ".\n";
                break;
             default:
-               pvError() << obj->getDescription() << " returned unrecognized return code " << status << ".\n";
+               pvError() << obj->getDescription() << ": " << msg->getMessageType() << " returned unrecognized return code " << status << ".\n";
                break;
             }
          }

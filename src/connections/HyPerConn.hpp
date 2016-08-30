@@ -9,15 +9,16 @@
 #define HYPERCONN_HPP_
 
 #include "BaseConnection.hpp"
-#include "../columns/Communicator.hpp"
-#include "../columns/HyPerCol.hpp"
-#include "../columns/Random.hpp"
-#include "../include/pv_common.h"
-#include "../include/pv_types.h"
-#include "../io/PVParams.hpp"
-#include "../io/BaseConnectionProbe.hpp"
-#include "../layers/HyPerLayer.hpp"
-#include "../utils/Timer.hpp"
+#include "columns/Communicator.hpp"
+#include "columns/HyPerCol.hpp"
+#include "columns/Random.hpp"
+#include "connections/accumulate_functions.hpp"
+#include "include/pv_common.h"
+#include "include/pv_types.h"
+#include "io/PVParams.hpp"
+#include "io/BaseConnectionProbe.hpp"
+#include "layers/HyPerLayer.hpp"
+#include "utils/Timer.hpp"
 #include <stdlib.h>
 #include <vector>
 #include <stdlib.h>
@@ -25,9 +26,9 @@
 #include <map>
 
 #ifdef PV_USE_CUDA
-#include "../cudakernels/CudaRecvPost.hpp"
-#include "../cudakernels/CudaRecvPre.hpp"
-#include "../arch/cuda/CudaBuffer.hpp"
+#include "cudakernels/CudaRecvPost.hpp"
+#include "cudakernels/CudaRecvPre.hpp"
+#include "arch/cuda/CudaBuffer.hpp"
 #endif
 
 #define PROTECTED_NUMBER 13
