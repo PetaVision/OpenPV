@@ -3,7 +3,6 @@ include(PVAddExecutable)
 get_filename_component(PV_PROJECT_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 
 #include_directories("${CMAKE_CURRENT_SOURCE_DIR}/src")
-find_package(GDAL)
 include_directories(${GDAL_INCLUDE_DIR})
 set(${PV_PROJECT_NAME}_SRCCPP
   src/BBFind.cpp
@@ -22,4 +21,8 @@ pv_add_executable(${PV_PROJECT_NAME}
 
 add_dependencies(${PV_PROJECT_NAME} pv)
 
+find_package(GDAL)
+if(GDAL_FOUND)
+   target_link_libraries(${PV_PROJECT_NAME} ${GDAL_LIBRARIES})
+endif()
 
