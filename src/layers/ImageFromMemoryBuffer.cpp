@@ -19,7 +19,6 @@ namespace PV {
 
    ImageFromMemoryBuffer::ImageFromMemoryBuffer() {
       initialize_base();
-      // protected default constructor; initialize(name,hc) should be called by any derived class's initialization routine
    }
 
    int ImageFromMemoryBuffer::initialize_base() {
@@ -90,7 +89,10 @@ namespace PV {
          MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
-      // TODO: Parse offsetAnchor into an enum here
+      //TODO: This is a dirty hack, make this function take an enum instead of a string to fix it
+      if (strcmp(offsetAnchor, "cc") != 0) {
+         pvWarn() << getName() << ": Offset anchor %s is being ignored, using cc instead. ImageFromMemoryBuffer only supports cc.\n";
+      }
       return setMemoryBuffer(externalBuffer, height, width, numbands, xstride, ystride, bandstride, zeroval, oneval);
    }
    template int ImageFromMemoryBuffer::setMemoryBuffer<uint8_t>(uint8_t const * buffer, int height, int width, int numbands, int xstride, int ystride, int bandstride, uint8_t zeroval, uint8_t oneval, int offsetX, int offsetY, char const * offsetAnchor);
