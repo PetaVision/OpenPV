@@ -60,7 +60,7 @@ protected:
 #ifdef PV_USE_CUDA
    int initializeDeliverKernelArgs();
 #endif // PV_USE_CUDA
-   virtual int setInitialValues() override { return receiveGpu ? initializeDeliverKernelArgs() : PV_SUCCESS; }
+   virtual int setInitialValues() override;
    virtual int constructWeights();
 
    virtual int deliverPresynapticPerspective(PVLayerCube const * activity, int arborID) override;

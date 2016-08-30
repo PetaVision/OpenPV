@@ -465,6 +465,13 @@ int TransposePoolingConn::deleteWeights() {
    return 0; // HyPerConn::deleteWeights(); // HyPerConn destructor calls HyPerConn::deleteWeights()
 }
 
+int TransposePoolingConn::setInitialValues() {
+#ifdef PV_USE_CUDA
+   if (receiveGpu) { return initializeTransposePoolingDeliverKernelArgs(); }
+#endif // PV_USE_CUDA
+   return PV_SUCCESS;
+}
+
 #ifdef PV_USE_CUDA
 int TransposePoolingConn::initializeTransposePoolingDeliverKernelArgs() {
    PVCuda::CudaDevice * device = parent->getDevice();

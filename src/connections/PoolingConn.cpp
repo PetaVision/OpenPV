@@ -328,6 +328,13 @@ int PoolingConn::allocateDataStructures(){
    return PV_SUCCESS;
 }
 
+int PoolingConn::setInitialValues() {
+#ifdef PV_USE_CUDA
+   if (receiveGpu) { return initializeDeliverKernelArgs(); }
+#endif // PV_USE_CUDA
+   return PV_SUCCESS;
+}
+
 // On the GPU, pooling uses cudnnPoolingForward, so pre and post do the same thing.
 
 #ifdef PV_USE_CUDA

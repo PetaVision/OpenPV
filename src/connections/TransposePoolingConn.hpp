@@ -62,7 +62,7 @@ protected:
 #ifdef PV_USE_CUDA
     int initializeTransposePoolingDeliverKernelArgs();
 #endif // PV_USE_CUDA
-    virtual int setInitialValues() override { return receiveGpu ? initializeTransposePoolingDeliverKernelArgs() : PV_SUCCESS; }
+    virtual int setInitialValues();
     virtual int constructWeights();
     virtual int deliverPresynapticPerspective(PVLayerCube const * activity, int arborID);
     virtual int deliverPostsynapticPerspective(PVLayerCube const * activity, int arborID);
