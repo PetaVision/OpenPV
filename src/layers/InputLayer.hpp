@@ -136,6 +136,7 @@ namespace PV {
          int getDisplayPeriod() { return mDisplayPeriod; }
          int getStartIndex(int batchIndex) { return mStartFrameIndex.at(batchIndex); }
          int getSkipIndex(int batchIndex) { return mSkipFrameIndex.at(batchIndex); }
+         bool getUsingFileList() { return mUsingFileList; }
          const std::string getInputPath() { return mInputPath; }
          std::string getFileName(int batchIndex) { return mBatchIndexer != nullptr ? mFileList.at(mBatchIndexer->getIndices().at(batchIndex)) : 0; }
       private:

@@ -20,6 +20,9 @@ namespace PV {
          return status;
       }
       if(parent->columnId() == 0) {
+         pvErrorIf(getUsingFileList(),
+            "%s: PvpLayer does not support using a list of files.\n",
+            getName());
          initializeBatchIndexer(mPvpFrameCount);
       }
       return status;
