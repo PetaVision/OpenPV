@@ -8,9 +8,8 @@
 #include "DataStore.hpp"
 #include "include/pv_common.h"
 #include "utils/PVLog.hpp"
+#include "utils/PVAssert.hpp"
 
-#include <assert.h>
-#include <stdlib.h>
 #include <limits>
 
 namespace PV
@@ -19,34 +18,18 @@ namespace PV
 DataStore::DataStore(int numBuffers, int numItems, int numLevels, bool isSparse_flag)
 {
    assert(numLevels > 0 && numBuffers > 0);
-   this->mCurrentLevel = 0; // Publisher::publish decrements levels when writing, so first level written to is numLevels - 1;
-   this->mNumItems = numItems;
-   this->mNumLevels = numLevels;
-   this->mNumBuffers = numBuffers;
+   mCurrentLevel = 0; // Publisher::publish decrements levels when writing, so first level written to is numLevels - 1;
+   mNumItems = numItems;
+   mNumLevels = numLevels;
+   mNumBuffers = numBuffers;
 
-   //Level (delay) spins slower than bufferId (batch element)
-   mBuffer.resize(numLevels);
-   for(auto& v : mBuffer) {
-      v.resize(numBuffers*numItems);
-   }
-   mLastUpdateTimes.resize(numLevels);
-   for(auto& v : mLastUpdateTimes) {
-      v.resize(numBuffers, -std::numeric_limits<double>::infinity());
-   }
-   this->mSparseFlag = isSparse_flag;
-   if(this->mSparseFlag) {
-      mActiveIndices.resize(numLevels);
-      for(auto& v : mActiveIndices) {
-         v.resize(numBuffers*numItems);
-      }
-      mNumActive.resize(numLevels);
-      for(auto& v : mNumActive) {
-         v.resize(numBuffers);
-      }
-   }
-   else {
-      mActiveIndices.clear();
-      mNumActive.clear();
+   mBuffer = new RingBuffer<pvdata_t>(numLevels, numBuffers*numItems);
+   mLastUpdateTimes = new RingBuffer<double>(numLevels, numBuffers, -std::numeric_limits<double>::infinity()/*initial value*/);
+
+   mSparseFlag = isSparse_flag;
+   if(mSparseFlag) {
+      mActiveIndices = new RingBuffer<unsigned int>(numLevels, numBuffers*numItems);
+      mNumActive = new RingBuffer<long>(numLevels, numBuffers);
    }
 }
 

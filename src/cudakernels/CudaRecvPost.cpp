@@ -11,14 +11,6 @@ namespace PVCuda{
 #ifdef PV_USE_CUDNN
 #include <cudnn.h>
 
-void cudnnHandleError(cudnnStatus_t status, const char* errStr){
-   if(status != CUDNN_STATUS_SUCCESS){
-      pvErrorNoExit().printf("CUDNN %s: %s", errStr, cudnnGetErrorString(status));
-      return;
-   }
-   return;
-}
-
 #endif // PV_USE_CUDNN
 
 CudaRecvPost::CudaRecvPost(CudaDevice* inDevice):CudaKernel(inDevice){
@@ -159,16 +151,16 @@ void CudaRecvPost::setArgs(
 
    int strideX, strideY;
    int actualXBorder, actualYBorder;
-   assert(params.preNblt == params.preNbrt);
-   assert(params.preNbup == params.preNbdn);
+   pvAssert(params.preNblt == params.preNbrt);
+   pvAssert(params.preNbup == params.preNbdn);
    //One to many case
    if(preToPostScaleX < 1){
       float fmanyScale = (float)1/params.preToPostScaleX;
       //Make sure manyScale is an actual integer
-      assert(std::ceil(fmanyScale) == fmanyScale);
+      pvAssert(std::ceil(fmanyScale) == fmanyScale);
       params.manyScaleX = fmanyScale;
       fmanyScale = (float)1/params.preToPostScaleY;
-      assert(std::ceil(fmanyScale) == fmanyScale);
+      pvAssert(std::ceil(fmanyScale) == fmanyScale);
       params.manyScaleY = fmanyScale;
       strideX = 1;
       strideY = 1;
@@ -189,8 +181,8 @@ void CudaRecvPost::setArgs(
    else{
       params.manyScaleX = 1;
       params.manyScaleY = 1;
-      assert(std::ceil(preToPostScaleX) == preToPostScaleX);
-      assert(std::ceil(preToPostScaleY) == preToPostScaleY);
+      pvAssert(std::ceil(preToPostScaleX) == preToPostScaleX);
+      pvAssert(std::ceil(preToPostScaleY) == preToPostScaleY);
       strideX = preToPostScaleX;
       strideY = preToPostScaleY;
 
@@ -207,7 +199,7 @@ void CudaRecvPost::setArgs(
    params.diffX = params.preNblt - actualXBorder;
    params.diffY = params.preNbup - actualYBorder;
 
-   //assert(diffX <= 0 && diffY <= 0);
+   //pvAssert(diffX <= 0 && diffY <= 0);
 
    //Set up pre descriptor
    cudnnTensorDescriptor_t inputDescriptor;
@@ -374,7 +366,7 @@ int CudaRecvPost::do_run(){
    //   params.cudnn_gSyn
    //);
 
-   //assert(status == CUDNN_STATUS_SUCCESS);
+   //pvAssert(status == CUDNN_STATUS_SUCCESS);
    
 #else // PV_USE_CUDNN
    params.postBufNum = block_size.x * block_size.y * block_size.z;
@@ -431,7 +423,7 @@ void CudaRecvPost::permuteDatastorePVToCudnn(){
 
    device->syncDevice();
 
-   callPermuteDatastorePVToCudnnKernel(gridSize, blockSize, nbatch, ny, nx, nf);
+   callPermuteDatastorePVToCudnnKernel(gridSize, blockSize, params.preData, params.cudnn_preData, nbatch, ny, nx, nf, params.diffX, params.diffY);
    handleCallError("Permute PV to CUDNN");
 }
 
@@ -448,8 +440,8 @@ void CudaRecvPost::permuteGSynPVToCudnn(int channel){
 
    int blockSize = device->get_max_threads();
    //Ceil to get all weights
-   int gridSize = ceil((float)numNeurons/blockSize);
-   callPermuteGSynPVToCudnnKernel(gridSize, blockSize, gSynPatchHead, nbatch, ny, nx, nf);
+   int gridSize = std::ceil((float)numNeurons/(float)blockSize);
+   callPermuteGSynPVToCudnnKernel(gridSize, blockSize, gSynPatchHead, params.cudnn_gSyn, nbatch, ny, nx, nf, params.manyScaleX, params.manyScaleY);
    handleCallError("Permute GSyn PV to CUDNN");
 }
 
@@ -467,28 +459,9 @@ void CudaRecvPost::permuteGSynCudnnToPV(int channel){
    int blockSize = device->get_max_threads();
    //Ceil to get all weights
    int gridSize = ceil((float)numNeurons/blockSize);
-   callPermuteGSynCudnnToPVKernel(gridSize, blockSize, gSynPatchHead, nbatch, ny, nx, nf);
+   callPermuteGSynCudnnToPVKernel(gridSize, blockSize, gSynPatchHead, params.cudnn_gSyn, nbatch, ny, nx, nf, params.manyScaleX, params.manyScaleY);
    handleCallError("Permute GSyn CUDNN to PV");
 }
-
-//void CudaRecvPost::permuteWeightsPVToCudnn(){
-//   //outFeatures is number of kernels
-//   int outFeatures = params.nf;
-//
-//   //Rest is patch sizes
-//   int ny = params.nyp;
-//   int nx = params.nxp;
-//   int inFeatures = params.nfp;
-//
-//   //Calculate grid and work size
-//   int numWeights = outFeatures * params.manyScaleX * params.manyScaleY * ny * nx * inFeatures;
-//   int blockSize = device->get_max_threads();
-//   //Ceil to get all weights
-//   int gridSize = ceil((float)numWeights/blockSize);
-//   //Call function
-//   CudaPermuteWeightsPVToCudnn<<<gridSize, blockSize, 0, device->getStream()>>>(params.cudnn_weights, params.weights, outFeatures, ny, nx, inFeatures, params.manyScaleX, params.manyScaleY);
-//   handleCallError("Permute weights PV to CUDNN");
-//}
 
 #endif // PV_USE_CUDNN
 

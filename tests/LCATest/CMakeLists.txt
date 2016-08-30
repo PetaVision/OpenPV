@@ -1,1 +1,1 @@
-pv_add_test(FLAGS "-c checkpoints/Checkpoint06 --testall")
+pv_add_test(FLAGS "-c output/checkpoints/Checkpoint06 --testall")

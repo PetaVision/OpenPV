@@ -16,5 +16,6 @@ if(PV_USE_CUDA)
   
   set (PVLibSrcCu ${PVLibSrcCu}
      ${SUBDIR}/CudaBuffer.cu
+     ${SUBDIR}/CudaKernel.cu
   )
 endif(PV_USE_CUDA)

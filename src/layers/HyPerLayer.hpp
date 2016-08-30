@@ -11,7 +11,6 @@
 #ifndef HYPERLAYER_HPP_
 #define HYPERLAYER_HPP_
 
-#include <layers/accumulate_functions.h>
 #include <layers/PVLayerCube.hpp>
 #include <layers/BaseLayer.hpp>
 #include <columns/DataStore.hpp>

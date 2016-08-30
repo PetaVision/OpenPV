@@ -52,15 +52,6 @@ public:
    virtual int allocateDataStructures();
 
    /**
-    * If there is a triggering layer, needUpdate returns true when the triggering layer's
-    * nextUpdateTime, modified by the probe's triggerOffset parameter, occurs; otherwise false.
-    * If there is not a triggering layer, needUpdate always returns true.
-    * This behavior can be overridden if a probe uses some criterion other than triggering
-    * to choose when output its state.
-    */
-   virtual bool needUpdate(double time, double dt);
-
-   /**
     * Returns the number of value indices the probe can compute (typically the value
     * of the parent HyPerCol's nBatch parameter).
     * BaseProbe::getNumValues() returns the parent HyPerCol's getNBatch(), which can be overridden.
@@ -298,6 +289,15 @@ protected:
     * Otherwise, returns false (indicating output is going to getOutputStream().
     */
    inline bool isWritingToFile() const { return writingToFile; }
+
+   /**
+    * If there is a triggering layer, needUpdate returns true when the triggering layer's
+    * nextUpdateTime, modified by the probe's triggerOffset parameter, occurs; otherwise false.
+    * If there is not a triggering layer, needUpdate always returns true.
+    * This behavior can be overridden if a probe uses some criterion other than triggering
+    * to choose when output its state.
+    */
+   virtual bool needUpdate(double time, double dt);
 
 private:
    int initialize_base();

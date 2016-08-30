@@ -1,0 +1,230 @@
+debugParsing = false;
+
+HyPerCol "Column" = {
+    startTime                           = 0;
+    dt                                  = 1;
+    stopTime                            = 1;
+    progressInterval                    = 1;
+    writeProgressToErr                  = false;
+    verifyWrites                        = true;
+    outputPath                          = "output/TransposePoolingNonoverapping";
+    printParamsFilename                 = "pv.params";
+    randomSeed                          = 1470694687;
+    nx                                  = 8;
+    ny                                  = 8;
+    nbatch                              = 1;
+    initializeFromCheckpointDir         = "";
+    checkpointWrite                     = false;
+    suppressLastOutput                  = false;
+    errorOnNotANumber                   = false;
+};
+
+ImagePvp "ForwardPoolingSource" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 4;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    writeStep                           = 1;
+    initialWriteTime                    = 1;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+    inputPath                           = "input/forwardpoolingsource.pvp";
+    offsetAnchor                        = "tl";
+    offsetX                             = 0;
+    offsetY                             = 0;
+    writeImages                         = 0;
+    autoResizeFlag                      = false;
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = false;
+    jitterFlag                          = 0;
+    useImageBCflag                      = false;
+    padValue                            = 0;
+    pvpFrameIdx                         = 0;
+};
+
+HyPerLayer "ForwardPoolingDestinationCPU" = {
+    nxScale                             = 0.5;
+    nyScale                             = 0.5;
+    nf                                  = 4;
+    phase                               = 1;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    InitVType                           = "ZeroV";
+    triggerLayerName                    = NULL;
+    writeStep                           = 1;
+    initialWriteTime                    = 1;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+};
+
+ImagePvp "BackwardPoolingSource" = {
+    nxScale                             = 0.5;
+    nyScale                             = 0.5;
+    nf                                  = 4;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    writeStep                           = 1;
+    initialWriteTime                    = 1;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+    inputPath                           = "input/backwardpoolingsource.pvp";
+    offsetAnchor                        = "tl";
+    offsetX                             = 0;
+    offsetY                             = 0;
+    writeImages                         = 0;
+    autoResizeFlag                      = false;
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = false;
+    jitterFlag                          = 0;
+    useImageBCflag                      = false;
+    padValue                            = 0;
+    pvpFrameIdx                         = 0;
+};
+
+HyPerLayer "BackwardPoolingDestinationCPU" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 4;
+    phase                               = 3;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    InitVType                           = "ZeroV";
+    triggerLayerName                    = NULL;
+    writeStep                           = 1;
+    initialWriteTime                    = 1;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+};
+
+PoolingConn "ForwardCPU" = {
+    preLayerName                        = "ForwardPoolingSource";
+    postLayerName                       = "ForwardPoolingDestinationCPU";
+    channelCode                         = 0;
+    delay                               = [0.000000];
+    numAxonalArbors                     = 1;
+    convertRateToSpikeCount             = false;
+    receiveGpu                          = true;
+    sharedWeights                       = true;
+    updateGSynFromPostPerspective       = true;
+    pvpatchAccumulateType               = "maxpooling";
+    selfFlag                            = false;
+    nxp                                 = 1;
+    nyp                                 = 1;
+    nfp                                 = 4;
+    shrinkPatches                       = false;
+    weightSparsity                      = 0;
+    needPostIndexLayer                  = false;
+    //postIndexLayerName                  = "PostIndexLayerCPU";
+};
+
+TransposePoolingConn "BackwardCPU" = {
+    preLayerName                        = "BackwardPoolingSource";
+    postLayerName                       = "BackwardPoolingDestinationCPU";
+    channelCode                         = 0;
+    delay                               = [0.000000];
+    convertRateToSpikeCount             = false;
+    updateGSynFromPostPerspective       = false;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+    weightSparsity                      = 0;
+    originalConnName                    = "ForwardCPU";
+};
+
+PoolingIndexLayer "PostIndexLayerCPU" = {
+    nxScale = 0.5;
+    nyScale = 0.5;
+    nf = 4;
+    writeStep = 1;
+    initialWriteTime = 1;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    sparseLayer = 0;
+    InitVType = "ZeroV";
+    phase = 2;
+    triggerLayerName = NULL;
+    updateGpu = false;
+};
+
+HyPerLayer "ForwardPoolingDestinationGPU" = {
+    #include "ForwardPoolingDestinationCPU";
+};
+
+HyPerLayer "BackwardPoolingDestinationGPU" = {
+    #include "BackwardPoolingDestinationCPU";
+};
+
+PoolingConn "ForwardGPU" = {
+    preLayerName                        = "ForwardPoolingSource";
+    postLayerName                       = "ForwardPoolingDestinationGPU";
+    channelCode                         = 0;
+    delay                               = [0.000000];
+    numAxonalArbors                     = 1;
+    convertRateToSpikeCount             = false;
+    receiveGpu                          = true;
+    sharedWeights                       = true;
+    updateGSynFromPostPerspective       = true;
+    pvpatchAccumulateType               = "maxpooling";
+    selfFlag                            = false;
+    nxp                                 = 1;
+    nyp                                 = 1;
+    nfp                                 = 4;
+    shrinkPatches                       = false;
+    weightSparsity                      = 0;
+    needPostIndexLayer                  = false;
+    // postIndexLayerName                  = "PostIndexLayer";
+};
+
+TransposePoolingConn "BackwardGPU" = {
+    preLayerName                        = "BackwardPoolingSource";
+    postLayerName                       = "BackwardPoolingDestinationGPU";
+    channelCode                         = 0;
+    delay                               = [0.000000];
+    convertRateToSpikeCount             = false;
+    updateGSynFromPostPerspective       = false;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+    weightSparsity                      = 0;
+    originalConnName                    = "ForwardGPU";
+};
+
+HyPerLayer "Comparison" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 4;
+    phase                               = 4;
+    mirrorBCflag                        = true;
+    InitVType                           = "ZeroV";
+    triggerLayerName                    = NULL;
+    writeStep                           = -1;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+};
+
+IdentConn "BackwardPoolingDestinationCPUToComparison" = {
+    preLayerName                        = "BackwardPoolingDestinationCPU";
+    postLayerName                       = "Comparison";
+    channelCode                         = 1;
+    delay                               = [0.000000];
+};
+
+IdentConn "BackwardPoolingDestinationGPUToComparison" = {
+    #include "BackwardPoolingDestinationCPUToComparison";
+    @preLayerName = "BackwardPoolingDestinationCPU";
+    @channelCode = 0;
+};
+
+RequireAllZeroActivityProbe "ComparisonProbe" = {
+    targetLayer = "Comparison";
+    probeOutputFile = "ComparisonProbe.txt";
+    triggerLayerName = NULL;
+    nnzThreshold = 1e-6;
+    exitOnFailure = true; // exit-hook function will test for failures in source code
+    immediateExitOnFailure = false;
+};

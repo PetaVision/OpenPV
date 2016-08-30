@@ -1,0 +1,5 @@
+if (PV_USE_CUDA)
+  if (PV_USE_CUDNN)
+    pv_add_test(PARAMS ForwardPoolingTest TransposePoolingNonoverlapping)
+  endif (PV_USE_CUDNN)
+endif (PV_USE_CUDA)

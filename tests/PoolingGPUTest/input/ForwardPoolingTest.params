@@ -1,0 +1,165 @@
+debugParsing = false;
+
+HyPerCol "Column" = {
+    startTime                           = 0;
+    dt                                  = 1;
+    stopTime                            = 5;
+    progressInterval                    = 1;
+    writeProgressToErr                  = false;
+    verifyWrites                        = true;
+    // outputPath is set in parameter sweep
+    printParamsFilename                 = "pv.params";
+    randomSeed                          = 1470694687;
+    nx                                  = 8;
+    ny                                  = 8;
+    nbatch                              = 1;
+    initializeFromCheckpointDir         = "";
+    checkpointWrite                     = false;
+    suppressLastOutput                  = false;
+    errorOnNotANumber                   = false;
+};
+
+// Input layer
+
+ImagePvp "Input" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 4;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+    inputPath                           = "input/input.pvp";
+    offsetAnchor                        = "tl";
+    offsetX                             = 0;
+    offsetY                             = 0;
+    writeImages                         = 0;
+    autoResizeFlag                      = false;
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = false;
+    jitterFlag                          = 0;
+    useImageBCflag                      = false;
+    padValue                            = 0;
+    pvpFrameIdx                         = 0;
+};
+
+// Test pooling with nxScale, nyScale = 1.0
+
+HyPerLayer "OutputCPU" = {
+    // nxScale is set in parameter sweep
+    // nyScale is set in parameter sweep
+    nf                                  = 4;
+    phase                               = 1;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    InitVType                           = "ZeroV";
+    triggerLayerName                    = NULL;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+};
+
+HyPerLayer "OutputGPU" = {
+    #include "OutputCPU";
+};
+
+PoolingConn "InputToOutputCPU" = {
+    preLayerName                        = "Input";
+    postLayerName                       = "OutputCPU";
+    channelCode                         = 0;
+    delay                               = [0.000000];
+    numAxonalArbors                     = 1;
+    convertRateToSpikeCount             = false;
+    receiveGpu                          = false;
+    sharedWeights                       = true;
+    updateGSynFromPostPerspective       = true;
+    pvpatchAccumulateType               = "sumpooling";
+    selfFlag                            = false;
+    nxp                                 = 3;
+    nyp                                 = 3;
+    nfp                                 = 4;
+    shrinkPatches                       = false;
+    weightSparsity                      = 0;
+    needPostIndexLayer                  = false;
+};
+
+PoolingConn "InputToOutputGPU" = {
+    #include "InputToOutputCPU";
+    @postLayerName                      = "OutputGPU";
+    @receiveGpu                         = true;
+};
+
+IdentConn "OutputGPUToComparison" = {
+    channelCode                         = 0;
+    delay                               = [0.000000];
+};
+
+IdentConn "OutputCPUToComparison" = {
+    channelCode                         = 1;
+    delay                               = [0.000000];
+};
+
+HyPerLayer "Comparison" = {
+    // nxScale is set in parameter sweep
+    // nyScale is set in parameter sweep
+    nf                                  = 4;
+    phase                               = 2;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    InitVType                           = "ZeroV";
+    triggerLayerName                    = NULL;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+};
+
+// Evaluation probe.  Fails if activity in "Comparison" is ever nonzero.
+RequireAllZeroActivityProbe "ComparisonVerify" = {
+    targetLayer = "Comparison";
+    textOutputFlag = true;
+    probeOutputFile = "ComparisonVerify.txt";
+    nnzThreshold = 0;
+    exitOnFailure = true;
+    immediateExitOnFailure = false;
+};
+
+ParameterSweep "Column":outputPath = {
+    "maxpooling-samescale";
+    "maxpooling-smallerscale";
+    "sumpooling-samescale";
+    "sumpooling-smallerscale";
+    "avgpooling-samescale";
+    "avgpooling-smallerscale";
+};
+
+ParameterSweep "OutputCPU":nxScale = {
+    1.0; 0.5; 1.0; 0.5; 1.0; 0.5;
+};
+
+ParameterSweep "OutputCPU":nyScale = {
+    1.0; 0.5; 1.0; 0.5; 1.0; 0.5;
+};
+
+ParameterSweep "OutputGPU":nxScale = {
+    1.0; 0.5; 1.0; 0.5; 1.0; 0.5;
+};
+
+ParameterSweep "OutputGPU":nyScale = {
+    1.0; 0.5; 1.0; 0.5; 1.0; 0.5;
+};
+
+ParameterSweep "Comparison":nxScale = {
+    1.0; 0.5; 1.0; 0.5; 1.0; 0.5;
+};
+
+ParameterSweep "Comparison":nyScale = {
+    1.0; 0.5; 1.0; 0.5; 1.0; 0.5;
+};

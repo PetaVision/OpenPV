@@ -1,21 +1,22 @@
 set (PVLibSrcCpp ${PVLibSrcCpp}
-   ${SUBDIR}/Timer.cpp
    ${SUBDIR}/PVAssert.cpp
    ${SUBDIR}/PVAlloc.cpp
    ${SUBDIR}/PVLog.cpp
    ${SUBDIR}/Image.cpp
    ${SUBDIR}/Buffer.cpp
    ${SUBDIR}/BatchIndexer.cpp
+   ${SUBDIR}/Timer.cpp
 )
 
 set (PVLibSrcHpp ${PVLibSrcHpp}
-   ${SUBDIR}/Timer.hpp
    ${SUBDIR}/PVAssert.hpp
    ${SUBDIR}/PVAlloc.hpp
    ${SUBDIR}/PVLog.hpp
    ${SUBDIR}/Image.hpp
    ${SUBDIR}/Buffer.hpp
    ${SUBDIR}/BatchIndexer.cpp
+   ${SUBDIR}/RingBuffer.hpp
+   ${SUBDIR}/Timer.hpp
 )
 
 set (PVLibSrcC ${PVLibSrcC}
@@ -27,4 +28,3 @@ set (PVLibSrcH ${PVLibSrcH}
    ${SUBDIR}/cl_random.h
    ${SUBDIR}/conversions.h
 )
-

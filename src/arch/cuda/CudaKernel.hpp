@@ -10,6 +10,7 @@
 
 #include "CudaDevice.hpp"
 #include <stdlib.h>
+#include <cudnn.h>
 
 namespace PVCuda {
 
@@ -67,6 +68,12 @@ public:
     */
    int run(long gWorkSizeX, long gWorkSizeY, long gWorkSizeF,
            long lWorkSizeX, long lWorkSizeY, long lWorkSizeF);
+
+   static void cudnnHandleError(cudnnStatus_t status, const char* errStr);
+   // can't move the definition into .hpp file yet because the .cu file includes the .hpp file
+   // and the .cu files can't use PVLog classes because a clang/nvcc incompatibility prevents
+   // compiling the .cu files as C++11
+
 protected:
    /**
     * This virtual function should be overwritten by any subclasses. Note that argsSet and dimsSet should be set before this function is called
@@ -86,6 +93,12 @@ protected:
    bool argsSet;
    bool dimsSet;
    char const * kernelName;
+
+#ifdef PV_USE_CUDNN
+   void callPermuteDatastorePVToCudnnKernel(int gridSize, int blockSize, float * pvBuffer, float * cudnnBuffer, int nbatch, int ny, int nx, int nf, int diffX, int diffY);
+   void callPermuteGSynPVToCudnnKernel(int gridSize, int blockSize, float * pvBuffer, float * cudnnBuffer, int nbatch, int ny, int nx, int nf, int manyScaleX, int manyScaleY);
+   void callPermuteGSynCudnnToPVKernel(int gridSize, int blockSize, float * pvBuffer, float * cudnnBuffer, int nbatch, int ny, int nx, int nf, int manyScaleX, int manyScaleY);
+#endif // PV_USE_CUDNN
 
 private:
    /**
