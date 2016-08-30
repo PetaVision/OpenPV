@@ -26,7 +26,6 @@ HyPerCol "column" = {
    errorOnNotANumber = false;
    outputPath = "output/";
    printParamsFilename = "pv.params";
-   initializeFromCheckpointDir = "";
    checkpointWrite = false;
    suppressLastOutput = false;
 };
@@ -37,7 +36,6 @@ HyPerCol "column" = {
 
 PvpLayer "Input" = {
     inputPath = "./input/box.pvp";
-
     nxScale = 1;
     nyScale = 1;
     nf = 1;
@@ -47,21 +45,14 @@ PvpLayer "Input" = {
     updateGpu = false;
     mirrorBCflag = false;
     valueBC = 0.0;
-    useImageBCflag = false;
+    useInputBCflag = false;
     inverseFlag = false;
     normalizeLuminanceFlag = false;  
     autoResizeFlag = false;  
     padValue = 0;
-    
-    writeImages = false;
     writeFrameToTimestamp = false;
-
-    displayPeriod = 100;
-    batchMethod = "bySpecified";
-    flipOnTimescaleError = false;
-    start_frame_index = 0;
-    skip_frame_index = 0;
-    jitterFlag = false;
+    displayPeriod = 0;
+    batchMethod = "byFile";
     offsetAnchor = "tl";
     offsetX = 0;
     offsetY = 0;

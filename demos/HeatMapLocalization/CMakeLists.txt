@@ -24,5 +24,7 @@ add_dependencies(${PV_PROJECT_NAME} pv)
 find_package(GDAL)
 if(GDAL_FOUND)
    target_link_libraries(${PV_PROJECT_NAME} ${GDAL_LIBRARIES})
+else()
+   message("ERROR: HeatMapLocalization requires GDAL.")
 endif()
 

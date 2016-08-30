@@ -14,7 +14,7 @@ HyPerCol "column" = {
    suppressLastOutput = false;
 };
 
-ImagePvp "test_border_activity image" = {
+PvpLayer "test_border_activity image" = {
    nxScale = 1;
    nyScale = 1;
    nf = 1;
@@ -24,17 +24,14 @@ ImagePvp "test_border_activity image" = {
    writeStep = 1.0;
    initialWriteTime = 0.0;
    sparseLayer = false;
-   writeImages = false;
-   restart = false;
-
    inputPath = "input/const_one_64x64.pvp";
    offsetX = 0;
    offsetY = 0;
-   useImageBCflag = false;
+   useInputBCflag = false;
    autoResizeFlag = false;
    inverseFlag = false;
    normalizeLuminanceFlag = false;
-   jitterFlag = false;
+   displayPeriod = 0;
 };
 
 Retina "test_border_activity retina" = {

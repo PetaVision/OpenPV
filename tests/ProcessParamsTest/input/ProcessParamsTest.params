@@ -75,7 +75,7 @@ PvpLayer
     mirrorBCflag = false;    //border condition flag
     unneededParameter = "unneeded";
     valueBC = 0.0;
-    useImageBCflag = false; updateGpu
+    useInputBCflag = false; updateGpu
 = false;
  inverseFlag = false; 
   normalizeLuminanceFlag = false;
