@@ -735,7 +735,7 @@ namespace PV {
          mBatchMethod = BatchIndexer::BYSPECIFIED;
       }
       else {
-         pvError() << "WARNING: Input layer " << name << " batchMethod not recognized. Options are \"byFile\", \"byList\", and \"bySpecified\"\n.";
+         pvError() << getName() << ": Input layer " << name << " batchMethod not recognized. Options are \"byFile\", \"byList\", and \"bySpecified\"\n.";
       }
       free(batchMethod);
    }
