@@ -1,15 +1,20 @@
 #include "Image.hpp"
 #include "PVLog.hpp"
 
-# ifndef STB_IMAGE_IMPLEMENTATION
-#  define STB_IMAGE_IMPLEMENTATION 
-#  include "stb_image.h"
-# endif
+// These defines are required by the stb headers
+#ifndef STB_IMAGE_IMPLEMENTATION
+#   define STB_IMAGE_IMPLEMENTATION 
+#   include "stb_image.h"
+#endif
+#ifndef STB_IMAGE_WRITE_IMPLEMENTATION
+#   define STB_IMAGE_WRITE_IMPLEMENTATION
+#   include "stb_image_write.h"
+#endif
 
 namespace PV {
 
    Image::Image(std::string filename) {
-      load(filename);
+      read(filename);
    }
 
    Image::Image(const std::vector<float> &data, int width, int height, int channels) {
@@ -155,7 +160,7 @@ namespace PV {
       }
    }
 
-   void Image::load(std::string filename) {
+   void Image::read(std::string filename) {
       int width = 0, height = 0, channels = 0;
       uint8_t* data = stbi_load(filename.c_str(), &width, &height, &channels, 0);
       pvErrorIf(data == nullptr, " File not found: %s\n", filename.c_str());
@@ -172,6 +177,17 @@ namespace PV {
       
       stbi_image_free(data);
    }
-
- 
+   
+   void Image::write(std::string filename) {
+      std::vector<uint8_t> byteData(getWidth() * getHeight() * getFeatures());
+      int byteIndex = 0;
+      for(int y = 0; y < getHeight(); ++y) {
+         for(int x = 0; x < getWidth(); ++x) {
+            for(int f = 0; f < getFeatures(); ++f) {
+               byteData.at(byteIndex++) = static_cast<uint8_t>(at(x, y, f) * 255.0f);
+            }
+         }
+      }
+      stbi_write_png(filename.c_str(), getWidth(), getHeight(), getFeatures(), byteData.data(), getWidth() * getFeatures());
+   }
 }

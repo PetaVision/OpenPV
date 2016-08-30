@@ -1,8 +1,7 @@
 // Wrapper class for stb_image.h
 // athresher, Jul 27 2016
 
-#ifndef IMAGE_HPP__
-#define IMAGE_HPP__
+#pragma once
 
 #include "Buffer.hpp"
 
@@ -24,8 +23,8 @@ namespace PV {
          float getPixelA(int x, int y);
          void convertToColor(bool alphaChannel);
          void convertToGray(bool alphaChannel);
-         void load(std::string filename);
-
+         void read(std::string filename);
+         void write(std::string filename); 
          static constexpr const float mRToGray = 0.30f;
          static constexpr const float mGToGray = 0.59f;
          static constexpr const float mBToGray = 0.11f;
@@ -39,5 +38,3 @@ namespace PV {
    };
 
 }
-
-#endif

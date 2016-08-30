@@ -34,47 +34,12 @@ HyPerCol "column" = {
     errorOnNotANumber                   = false;
 };
 
-<<<<<<< HEAD
-AdaptiveTimeScaleProbe "AdaptiveTimeScales" = {
-   targetName = "TotalEnergyProbe";
-   message = NULL;
-   textOutputFlag = true;
-   probeOutputFile = "AdaptiveTimeScales.txt";
-   triggerLayerName = NULL;
-   baseMax = 5;
-   baseMin = 0.125;
-   tauFactor = 0.05;
-   growthFactor = 0;
-   writeTimeScales = true;
-};
 
 //
 // layers
 //
 
 PvpLayer "Input" = {
-    nxScale = 1;
-    nyScale = 1;
-    inputPath = "input/testimage.pvp";
-    nf = 1;
-    phase = 0;
-    writeStep = 1;
-    sparseLayer = false;
-    updateGpu = false;
-    mirrorBCflag = false;
-    valueBC = 0.0;
-    useImageBCflag = false;
-    inverseFlag = false; 
-    normalizeLuminanceFlag = false;
-    padValue = 0.0;
-    autoResizeFlag = false;
-    writeImages = false;
-    offsetAnchor = "tl";
-    offsetX = 0;
-    offsetY = 0;
-    jitterFlag = false;
-=======
-MoviePvp "Input" = {
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 1;
@@ -90,20 +55,15 @@ MoviePvp "Input" = {
     offsetAnchor                        = "tl";
     offsetX                             = 0;
     offsetY                             = 0;
-    writeImages                         = 0;
     autoResizeFlag                      = false;
     inverseFlag                         = false;
     normalizeLuminanceFlag              = false;
-    jitterFlag                          = 0;
-    useImageBCflag                      = false;
+    useInputBCflag                      = false;
     padValue                            = 0;
     displayPeriod                       = 20;
-    echoFramePathnameFlag               = false;
-    batchMethod                         = "bySpecified";
+    batchMethod                         = "byFile";
     writeFrameToTimestamp               = true;
-    flipOnTimescaleError                = true;
     resetToStartOnLoop                  = false;
->>>>>>> 2abd57a75865e4c7399d27d556859bca2c3272d5
 };
 
 ANNErrorLayer "Residual" = {
@@ -174,7 +134,7 @@ ANNLayer "Reconstruction" = {
     clearGSynInterval                   = 0;
 };
 
-MoviePvp "Correct" = {
+PvpLayer "Correct" = {
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 1;
@@ -190,19 +150,14 @@ MoviePvp "Correct" = {
     offsetAnchor                        = "tl";
     offsetX                             = 0;
     offsetY                             = 0;
-    writeImages                         = 0;
     autoResizeFlag                      = false;
     inverseFlag                         = false;
     normalizeLuminanceFlag              = false;
-    jitterFlag                          = 0;
-    useImageBCflag                      = false;
+    useInputBCflag                      = false;
     padValue                            = 0;
     displayPeriod                       = 1;
-    batchMethod                         = "bySpecified";
-    start_frame_index                   = [0.000000];
-    skip_frame_index                    = [1.000000];
+    batchMethod                         = "byFile";
     writeFrameToTimestamp               = true;
-    flipOnTimescaleError                = true;
     resetToStartOnLoop                  = false;
 };
 
@@ -304,63 +259,7 @@ CloneConn "V1ToReconstruction" = {
     originalConnName                    = "V1ToResidual";
 };
 
-<<<<<<< HEAD
-// Compare Reconstruction to what it should be
 
-PvpLayer "Correct" = {
-    nxScale = 1;
-    nyScale = 1;
-    nf = 1;
-    phase = 1;
-    mirrorBCflag = false;
-    valueBC = 0.0;
-    writeStep = 1.0;
-    initialWriteTime = 1.0;
-    sparseLayer = false;
-    updateGpu = false;
-
-    inputPath = "input/correct.pvp";
-    offsetAnchor = "tl";
-    offsetX = 0;
-    offsetY = 0;
-    writeImages = false;
-    useImageBCflag = false;
-    padValue = 0;
-    // autoResizeFlag = false;
-    inverseFlag = false;
-    normalizeLuminanceFlag = false;
-    jitterFlag = false;
-    resetToStartOnLoop = false;
-
-    displayPeriod = 1;
-    batchMethod = "bySpecified";
-    start_frame_index = 0;
-    skip_frame_index = 1;
-    writeFrameToTimestamp = true;
-    flipOnTimescaleError = true;
-};
-
-ANNLayer "Comparison" = {
-    nxScale = 1;
-    nyScale = 1;
-    nf = 1;
-    phase = 4;
-    mirrorBCflag = true;
-    triggerLayerName = NULL;
-    writeStep = 1.0;
-    initialWriteTime = 1.0;
-    sparseLayer = false;
-    updateGpu = false;
-
-    InitVType = "ZeroV";
-
-    VThresh = -infinity;
-    AMax = infinity;
-    AMin = -infinity;
-    AShift = 0.0;
-    VWidth = 0.0;
-    clearGSynInterval = 0;
-=======
 IdentConn "ReconstructionToResidual" = {
     preLayerName                        = "Reconstruction";
     postLayerName                       = "Residual";
@@ -368,7 +267,6 @@ IdentConn "ReconstructionToResidual" = {
     delay                               = [0.000000];
     initWeightsFile                     = NULL;
     weightSparsity                      = 0;
->>>>>>> 2abd57a75865e4c7399d27d556859bca2c3272d5
 };
 
 IdentConn "ReconstructionToComparison" = {

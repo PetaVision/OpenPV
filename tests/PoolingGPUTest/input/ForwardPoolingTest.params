@@ -21,7 +21,7 @@ HyPerCol "Column" = {
 
 // Input layer
 
-ImagePvp "Input" = {
+PvpLayer "Input" = {
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 4;
@@ -37,14 +37,12 @@ ImagePvp "Input" = {
     offsetAnchor                        = "tl";
     offsetX                             = 0;
     offsetY                             = 0;
-    writeImages                         = 0;
     autoResizeFlag                      = false;
     inverseFlag                         = false;
     normalizeLuminanceFlag              = false;
-    jitterFlag                          = 0;
-    useImageBCflag                      = false;
+    useInputBCflag                      = false;
     padValue                            = 0;
-    pvpFrameIdx                         = 0;
+	displayPeriod                       = 0;
 };
 
 // Test pooling with nxScale, nyScale = 1.0
