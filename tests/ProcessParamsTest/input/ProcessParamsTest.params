@@ -22,11 +22,8 @@
 //  The two runs use different output paths in the PV_Argument object
 //  (output-generate/ and output-verify/).
 //
-//  Finally, the test compares the two output directories, examining
-//  all files except for pv.params, pv.params.lua, and timers.txt
-//  (pv.params and pv.params.lua differ in their timestamps and
-//  in the output directory.  timers.txt differs because of vagaries
-//  of timing from run to run.)
+//  Finally, the test uses Compare.params to compare the Input, OutputBase,
+//  and OutputImported layers using RequireAllZeroActivityProbe.
 //
 //  The params file makes use of the #include capability.
 //  TODO: How does processParams interact with parameter sweeps?

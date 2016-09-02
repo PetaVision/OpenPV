@@ -2816,7 +2816,7 @@ int HyPerConn::deliverPresynapticPerspectiveConvolve(PVLayerCube const * activit
 
       for (int y = 0; y < nyp; y++) {
 #ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for schedule(static) // changing to guided should improve performance but currently breaks.
+#pragma omp parallel for schedule(guided)
 #endif
          for (int idx = 0; idx < numNeurons; idx++) {
             int kPreExt = activity->isSparse ? activeIndicesBatch[idx] : idx;

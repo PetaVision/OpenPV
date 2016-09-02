@@ -97,7 +97,7 @@ ANNLayer "comparison" = {
     nyScale                          = 1;
     nf                               = 1;
     phase                            = 2;
-    writeStep                        = -1;
+    writeStep                        = 1;
     // initialWriteTime
     mirrorBCflag                     = true;
     sparseLayer                      = false;
@@ -211,7 +211,14 @@ IdentConn "ShrunkenFlag_to_comparison" = {
     writeStep                        = -1;
 };
 
-TestAllZerosProbe "comparison probe" = {
-    targetLayer = "comparison";
-    message = "comparison                    ";
+RequireAllZeroActivityProbe "comparison_probe" = {
+    targetLayer                      = "comparison";
+    message                          = "comparison                    ";
+    textOutputFlag                   = true;
+    probeOutputFile                  = NULL;
+    triggerLayerName                 = NULL;
+    energyProbe                      = NULL;
+    nnzThreshold                     = 1.0e-7;
+    exitOnFailure                    = true;
+    immediateExitOnFailure           = false;
 };

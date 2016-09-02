@@ -125,32 +125,34 @@ bool ColumnArchive::operator==(ColumnArchive const& comparison) const {
 void ColumnArchive::addLayer(PV::HyPerLayer * layer, pvdata_t layerTolerance) {
    std::vector<LayerArchive>::size_type sz = m_layerdata.size();
    m_layerdata.resize(sz+1);
-   LayerArchive& la = m_layerdata.at(sz);
-   la.name = layer->getName();
-   la.layerLoc = layer->getLayerLoc()[0];
+   LayerArchive& latestLayer = m_layerdata.at(sz);
+   latestLayer.name = layer->getName();
+   latestLayer.layerLoc = layer->getLayerLoc()[0];
    pvdata_t const * ldatastart = layer->getLayerData();
    pvdata_t const * ldataend = &ldatastart[layer->getNumExtendedAllBatches()];
-   la.data = std::vector<pvdata_t>(ldatastart, ldataend);
+   latestLayer.data = std::vector<pvdata_t>(ldatastart, ldataend);
+   latestLayer.tolerance = layerTolerance;
 }
 
 void ColumnArchive::addConn(PV::HyPerConn * conn, pvwdata_t connTolerance) {
    std::vector<ConnArchive>::size_type sz = m_conndata.size();
    m_conndata.resize(sz+1);
-   ConnArchive& ca = m_conndata.at(sz);
-   ca.name = conn->getName();
+   ConnArchive& latestConnection = m_conndata.at(sz);
+   latestConnection.name = conn->getName();
    int const numArbors = conn->numberOfAxonalArborLists();
 
-   ca.numArbors = numArbors;
-   ca.nxp = conn->xPatchSize();
-   ca.nyp = conn->yPatchSize();
-   ca.nfp = conn->fPatchSize();
-   ca.data.resize(numArbors);
-   int const datasize = ca.nxp*ca.nyp*ca.nfp*ca.numDataPatches;
+   latestConnection.numArbors = numArbors;
+   latestConnection.nxp = conn->xPatchSize();
+   latestConnection.nyp = conn->yPatchSize();
+   latestConnection.nfp = conn->fPatchSize();
+   latestConnection.data.resize(numArbors);
+   int const datasize = latestConnection.nxp*latestConnection.nyp*latestConnection.nfp*latestConnection.numDataPatches;
    for (int arbor=0; arbor<numArbors; arbor++) {
       pvwdata_t const * cdatastart = conn->get_wDataStart(arbor);
       pvwdata_t const * cdataend = &cdatastart[datasize];
-      ca.data.at(arbor) = std::vector<pvwdata_t>(cdatastart, cdataend);
+      latestConnection.data.at(arbor) = std::vector<pvwdata_t>(cdatastart, cdataend);
    }
+   latestConnection.tolerance = connTolerance;
 }
 
 void ColumnArchive::addCol(PV::HyPerCol * hc, pvdata_t layerTolerance, pvwdata_t connTolerance) {
