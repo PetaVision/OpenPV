@@ -66,7 +66,7 @@ private:
 
 template <typename T> bool compareFields(char const * type, char const * field, T val1, T val2) {
    if (val1 != val2) {
-      pvErrorNoExit() << type << " have different " << field << ": " << val1 << " versus \"" << val2 << ".\n";
+      pvErrorNoExit() << type << " have different " << field << ": " << val1 << " versus " << val2 << ".\n";
       return false;
    }
    else {
