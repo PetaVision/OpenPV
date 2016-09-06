@@ -19,31 +19,22 @@ HyPerCol "column" = {
     errorOnNotANumber = false;
 };
 
-MoviePvp "Input" = {
-    restart = 0;
+PvpLayer "Input" = {
     nxScale = 1;
     nyScale = 1;
     nf = 3;
     inputPath = "input/Input.pvp";
-    writeFrameToTimestamp = true;
     writeStep = -1;
     sparseLayer = false;
     displayPeriod = 1;
-    start_frame_index = 0;
-    skip_frame_index = 0;
-    echoFramePathnameFlag = true;
     mirrorBCflag = true;
-    jitterFlag = 0;
-    useImageBCflag = false;
+    useInputBCflag = false;
     inverseFlag = false;
     normalizeLuminanceFlag = false;
-    writeImages = false;
     offsetX = 0;
     offsetY = 0;
     autoResizeFlag = 0;
-    randomMovie = 0;
     phase = 0;
-    //useParamsImage = true;
 };
 
 //Testing 4 points, such that when ran with mpi, it will test each process

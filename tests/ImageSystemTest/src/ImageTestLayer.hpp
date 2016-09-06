@@ -3,20 +3,16 @@
  * Author: slundquist
  */
 
-#ifndef IMAGETESTLAYER_HPP_
-#define IMAGETESTLAYER_HPP_
-#include <layers/Image.hpp>
+#pragma once
+#include <layers/ImageLayer.hpp>
 
 namespace PV{
 
-class ImageTestLayer : public PV::Image{
+class ImageTestLayer : public PV::ImageLayer {
 public:
    ImageTestLayer(const char * name, HyPerCol * hc);
-#ifdef PV_USE_GDAL
    virtual int updateState(double time, double dt);
-#endif // PV_USE_GDAL
 };
 
 
 }
-#endif /* IMAGETESTLAYER_HPP */

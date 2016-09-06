@@ -10,7 +10,7 @@
  */
 
 #include <columns/HyPerCol.hpp>
-#include <layers/ImagePvp.hpp>
+#include <layers/PvpLayer.hpp>
 #include <layers/Retina.hpp>
 #include <connections/HyPerConn.hpp>
 #include <layers/ANNLayer.hpp>
@@ -54,9 +54,9 @@ int main(int argc, char * argv[])
    const char * retinaLayerName = "test_border_activity retina";
    const char * l1LayerName = "test_border_activity layer";
 
-   ImagePvp * image   = new ImagePvp(imageLayerName, hc); pvErrorIf(!(image), "Test failed.\n");
-   Retina * retina = new Retina(retinaLayerName, hc);           pvErrorIf(!(retina), "Test failed.\n");
-   ANNLayer * l1     = new ANNLayer(l1LayerName, hc);           pvErrorIf(!(l1), "Test failed.\n");
+   PvpLayer * image   = new PvpLayer(imageLayerName, hc); assert(image);
+   Retina * retina = new Retina(retinaLayerName, hc);           assert(retina);
+   ANNLayer * l1     = new ANNLayer(l1LayerName, hc);           assert(l1);
 
    HyPerConn * conn1 = new HyPerConn("test_border_activity connection 1", hc);
    pvErrorIf(!(conn1), "Test failed.\n");

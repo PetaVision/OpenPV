@@ -15,6 +15,7 @@
 
 #include <float.h>
 #include <columns/buildandrun.hpp>
+#include <columns/Communicator.hpp>
 #include <connections/TransposeConn.hpp>
 #include <layers/ANNLayer.hpp>
 
@@ -162,7 +163,7 @@ int testWeightsEqual(HyPerConn * conn1, HyPerConn * conn2) {
    int numWeightPatches = conn1->getNumWeightPatches();
    pvErrorIf(!(numWeightPatches == conn2->getNumWeightPatches()), "Test failed.\n");
    for( int patchindex = 0; patchindex < numWeightPatches; patchindex++ ) {
-      int status1 = testPatchesEqual( conn1->getWeights(patchindex, LOCAL), conn2->getWeights(patchindex, LOCAL), patchindex, conn1->getName(), conn2->getName());
+      int status1 = testPatchesEqual( conn1->getWeights(patchindex, Communicator::LOCAL), conn2->getWeights(patchindex, Communicator::LOCAL), patchindex, conn1->getName(), conn2->getName());
       if( status1 != PV_SUCCESS ) {
          status = status1;
          break;

@@ -27,25 +27,22 @@ HyPerCol "column" = {
 //  2 Random Image
 //  3 Comparison
 
-ImagePvp "Image" = {
-    restart = 0;
+PvpLayer "Image" = {
     nxScale = 1;
     nyScale = 1;
     inputPath = "input/F_N160050.pvp";
     nf = 3;
     phase = 0;
     writeStep = -1;
-    sparseLayer = false;
     mirrorBCflag = false;
     valueBC = 0.0;
-    writeImages = false;
-    useImageBCflag = false;
+    useInputBCflag = false;
     inverseFlag = false;
     normalizeLuminanceFlag = false;
     autoResizeFlag = false;
-    jitterFlag = false;
     offsetX = 0;
     offsetY = 0;
+	displayPeriod                       = 0;
 };
 
 ANNLayer "Copy" = {
@@ -70,23 +67,20 @@ ANNLayer "Copy" = {
     VWidth = 0.0;
 };
 
-ImagePvp "RandomImage" = {
-    restart = 0;
+PvpLayer "RandomImage" = {
     nxScale = 1;
     nyScale = 1;
     inputPath = "input/randomimage.pvp";
     nf = 3;
     phase = 0;
     writeStep = -1;
-    sparseLayer = false;
     mirrorBCflag = false;
     valueBC = 0.0;
-    writeImages = false;
-    useImageBCflag = false;
+    useInputBCflag = false;
     inverseFlag = false;
     normalizeLuminanceFlag = false;
     autoResizeFlag = false;
-    jitterFlag = false;
+	displayPeriod = 0;
     offsetX = 0;
     offsetY = 0;
 };

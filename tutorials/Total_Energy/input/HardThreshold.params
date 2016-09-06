@@ -26,9 +26,6 @@ HyPerCol "column" = {
     nx                                  = 32;
     ny                                  = 32;
     nbatch                              = 1;
-    filenamesContainLayerNames          = 1;
-    filenamesContainConnectionNames     = 1;
-    initializeFromCheckpointDir         = "";
     checkpointWrite                     = false;
     suppressLastOutput                  = false;
     errorOnNotANumber                   = false;
@@ -44,7 +41,7 @@ AdaptiveTimeScaleProbe "AdaptiveTimeScales" = {
     writeTimeScales                     = true;
 };
 
-Movie "input" = {
+ImageLayer "input" = {
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 3;
@@ -60,20 +57,14 @@ Movie "input" = {
     offsetAnchor                        = "tl";
     offsetX                             = 0;
     offsetY                             = 0;
-    writeImages                         = 0;
     inverseFlag                         = false;
     normalizeLuminanceFlag              = false;
-    jitterFlag                          = 0;
-    useImageBCflag                      = false;
+    useInputBCflag                      = false;
     padValue                            = 0;
     autoResizeFlag                      = false;
     displayPeriod                       = 200;
-    echoFramePathnameFlag               = true;
-    batchMethod                         = "bySpecified";
-    start_frame_index                   = [0.000000];
-    skip_frame_index                    = [0.000000];
+    batchMethod                         = "byFile";
     writeFrameToTimestamp               = true;
-    flipOnTimescaleError                = true;
     resetToStartOnLoop                  = false;
 };
 
@@ -121,6 +112,7 @@ HyPerLCALayer "V1" = {
     clearGSynInterval                   = 0;
     timeConstantTau                     = 100;
     selfInteract                        = true;
+	adaptiveTimeScaleProbe              = "AdaptiveTimeScales";
 };
 
 ANNLayer "reconstruction" = {

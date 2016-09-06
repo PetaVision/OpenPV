@@ -31,25 +31,22 @@ HyPerCol "column" = {
 // layers
 //
 
-ImagePvp "input" = {
+PvpLayer "input" = {
     nxScale = 1;
     nyScale = 1;
-    	      	
     inputPath = "input/ones.pvp";
     nf = 1;
     phase = 0;
     writeStep = -1;
-    sparseLayer = false;
     mirrorBCflag = false;
     valueBC = 0.0;
-    useImageBCflag = false;
+    useInputBCflag = false;
     inverseFlag = false; 
     normalizeLuminanceFlag = false;
     autoResizeFlag = false;
-    writeImages = false;
     offsetX = 0;
     offsetY = 0;
-    jitterFlag = false;
+	displayPeriod = 0;
 };
 
 ANNLayer "output" = {
@@ -74,26 +71,23 @@ ANNLayer "output" = {
     clearGSynInterval = 0.0;
 };
 
-ImagePvp "correct" = {
+PvpLayer "correct" = {
     // nxScale set in parameter sweep
     // nyScale set in parameter sweep
     	      	
     // imagePath set in parameter sweep
-    pvpFrameIdx = 0;
+	displayPeriod = 0;
     nf = 1;
     phase = 0;
     writeStep = -1;
-    sparseLayer = false;
     mirrorBCflag = false;
     valueBC = 0.0;
-    useImageBCflag = false;
+    useInputBCflag = false;
     inverseFlag = false; 
     normalizeLuminanceFlag = false;
     autoResizeFlag = false;
-    writeImages = false;
     offsetX = 0;
     offsetY = 0;
-    jitterFlag = false;
 };
 
 ANNLayer "compare" = {

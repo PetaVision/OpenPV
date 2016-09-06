@@ -3,7 +3,7 @@
 //
 // created by peteschultz: Dec 5, 2013
 //
-// A short params file to test border exchange in the Movie class.
+// A short params file to test border exchange in the ImageLayer class.
 //
 // There are two input movies of 8x8 images, with 64 distinct images
 // and a display period of 5.
@@ -49,35 +49,28 @@ HyPerCol "column" = {
 // layers
 //
 
-MoviePvp "input" = {
+PvpLayer "input" = {
     restart                          = false;
     nxScale                          = 1;
     nyScale                          = 1;
     inputPath                        = "input/dot.pvp";
-    echoFramePathnameFlag            = true;
     nf                               = 1;
     phase                            = 0;
     writeStep                        = -1;
-    // initialWriteTime
     sparseLayer                      = false;
     updateGpu                        = false;
     mirrorBCflag                     = true;
-    useImageBCflag                   = false;
+    useInputBCflag                   = false;
     inverseFlag                      = false;
     normalizeLuminanceFlag           = false;
     autoResizeFlag                   = false;
-    writeImages                      = false;
     offsetAnchor                     = "tl";
     offsetX                          = 0;
     offsetY                          = 0;
-    jitterFlag                       = false;
     padValue                         = 0;
-    randomMovie                      = false;
     displayPeriod                    = 5;
-    start_frame_index                = 1;
-    skip_frame_index                 = 0;
+    start_frame_index                = [1];
     writeFrameToTimestamp            = true;
-    flipOnTimescaleError             = true;
     resetToStartOnLoop               = false;
 };
 
@@ -104,35 +97,28 @@ ANNLayer "ganglion" = {
     clearGSynInterval                = 0.0;
 };
 
-MoviePvp "correctoutput" = {
+PvpLayer "correctoutput" = {
     restart                          = false;
     nxScale                          = 1;
     nyScale                          = 1;
     inputPath                        = "input/out.pvp";
-    echoFramePathnameFlag            = true;
     nf                               = 1;
     phase                            = 0;
     writeStep                        = -1;
-    // initialWriteTime
     sparseLayer                      = false;
     updateGpu                        = false;
     mirrorBCflag                     = true;
-    useImageBCflag                   = false;
+    useInputBCflag                   = false;
     inverseFlag                      = false;
     normalizeLuminanceFlag           = false;
     autoResizeFlag                   = false;
-    writeImages                      = false;
     offsetAnchor                     = "tl";
     offsetX                          = 0;
     offsetY                          = 0;
-    jitterFlag                       = false;
     padValue                         = 0;
-    randomMovie                      = false;
     displayPeriod                    = 5;
-    start_frame_index                = 1;
-    skip_frame_index                 = 0;
+    start_frame_index                = [1];
     writeFrameToTimestamp            = true;
-    flipOnTimescaleError             = true;
     resetToStartOnLoop               = false;
 };
 

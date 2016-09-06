@@ -23,7 +23,6 @@ HyPerCol "column" = {
    verifyWrites = false;
    outputPath = "output/";
    printParamsFilename = "pv.params";
-   initializeFromCheckpointDir = "";
    checkpointWrite = false;
    suppressLastOutput = false;
    nbatch = 2;
@@ -33,7 +32,7 @@ HyPerCol "column" = {
 // Layers
 //
 
-MoviePvp "inputmovie" = {
+PvpLayer "inputmovie" = {
    nxScale = 1.0;
    nyScale = 1.0;
    inputPath = "input/testmovie.pvp";
@@ -43,24 +42,17 @@ MoviePvp "inputmovie" = {
    sparseLayer = false;
    mirrorBCflag = false;
    valueBC = 0.0;
-   useImageBCflag = false;
+   useInputBCflag = false;
    inverseFlag = false;
    normalizeLuminanceFlag = false;
    autoResizeFlag = false;
-   writeImages = false;
    offsetAnchor = "tl";
    offsetX = 0;
    offsetY = 0;
-   jitterFlag = false;
    padValue = 0;
    displayPeriod = 1.0;
-   randomMovie = false;
-   echoFramePathnameFlag = true;
    batchMethod = "byImage";
-   //start_frame_index = 0;
-   //skip_frame_index = 0;
    writeFrameToTimestamp = true;
-   flipOnTimescaleError = true;
    resetToStartOnLoop = false;
 };
 

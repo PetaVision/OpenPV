@@ -3,20 +3,16 @@
  * Author: slundquist
  */
 
-#ifndef MOVIETESTLAYER_HPP_
-#define MOVIETESTLAYER_HPP_
-#include <layers/Movie.hpp>
+#pragma once
+#include <layers/ImageLayer.hpp>
 
 namespace PV{
 
-class MovieTestLayer : public PV::Movie{
+class MovieTestLayer : public PV::ImageLayer {
 public:
    MovieTestLayer(const char * name, HyPerCol * hc);
-#ifdef PV_USE_GDAL
    virtual int updateState(double time, double dt);
-#endif // PV_USE_GDAL
 };
 
 
 }
-#endif /* IMAGETESTLAYER_HPP */

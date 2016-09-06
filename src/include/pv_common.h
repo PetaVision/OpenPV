@@ -39,15 +39,14 @@
 #define NUM_NEIGHBORHOOD 9
 
 // directional indices
-#define LOCAL     0
-#define NORTHWEST 1
-#define NORTH     2
-#define NORTHEAST 3
-#define WEST      4
-#define EAST      5
-#define SOUTHWEST 6
-#define SOUTH     7
-#define SOUTHEAST 8
+//#define LOCAL     0 //#define NORTHWEST 1
+//#define NORTH     2
+//#define NORTHEAST 3
+//#define WEST      4
+//#define EAST      5
+//#define SOUTHWEST 6
+//#define SOUTH     7
+//#define SOUTHEAST 8
 
 // Limits:
 #define MAX_NEIGHBORS                   8

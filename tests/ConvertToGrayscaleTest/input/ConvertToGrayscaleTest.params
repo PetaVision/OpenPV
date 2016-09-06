@@ -32,7 +32,7 @@ HyPerCol "column" = {
 // layers
 //
 
-Image "input" = {
+ImageLayer "input" = {
     nxScale = 1;
     nyScale = 1;
     	      	
@@ -40,16 +40,14 @@ Image "input" = {
     nf = 1;
     phase = 0;
     writeStep = -1;
-    sparseLayer = false;
     mirrorBCflag = false;
     valueBC = 0.0;
-    useImageBCflag = false;
+    useInputBCflag = false;
     inverseFlag = false; 
     normalizeLuminanceFlag = false;
     autoResizeFlag = false;
-    writeImages = false;
     offsetAnchor = "tl";
     offsetX = 0;
     offsetY = 0;
-    jitterFlag = false;
+	displayPeriod                       = 0;
 };

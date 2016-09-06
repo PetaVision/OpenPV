@@ -35,8 +35,7 @@ HyPerCol "column" = {
 // Layers
 //
 
-ImagePvp "Input" = {
-    restart = 0;
+PvpLayer "Input" = {
     nxScale = 1; 
     nyScale = 1;
     nf = 6;
@@ -44,19 +43,15 @@ ImagePvp "Input" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = true;
-    sparseLayer = false;
-
     inputPath = "input/input.pvp";
-    pvpFrameIdx= 0;
+	displayPeriod = 0;
     offsetX = 0;
     offsetY = 0;
     offsetAnchor = "tl";
-    writeImages = false;
-    useImageBCflag = false;
+    useInputBCflag = false;
     autoResizeFlag = false;
     inverseFlag = false;
     normalizeLuminanceFlag = false;
-    jitterFlag = false;
     padValue = 0;
 };
 

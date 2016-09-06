@@ -1,14 +1,15 @@
 #include "MoviePvpTestLayer.hpp"
+#include <utils/BatchIndexer.hpp>
 
 namespace PV {
 
 MoviePvpTestLayer::MoviePvpTestLayer(const char * name, HyPerCol * hc) {
-   MoviePvp::initialize(name, hc);
+   initialize(name, hc);
 }
 
 int MoviePvpTestLayer::updateState(double time, double dt)
 {
-   MoviePvp::updateState(time, dt);
+   PvpLayer::updateState(time, dt);
    const PVLayerLoc * loc = getLayerLoc();
    int nx = loc->nx;
    int ny = loc->ny;
@@ -19,12 +20,12 @@ int MoviePvpTestLayer::updateState(double time, double dt)
    int numBatchPerProc = parent->numCommBatches();
 
    for(int b = 0; b < nbatch; b++){
-      pvdata_t * dataBatch = data + b * getNumExtended();
-      int frameIdx;
-      if(strcmp(getBatchMethod(), "byImage") == 0 || strcmp(getBatchMethod(), "bySpecified") == 0){
+      pvdata_t * dataBatch = getActivity() + b * getNumExtended();
+      int frameIdx = 0;
+      if(mBatchMethod == BatchIndexer::BYFILE || mBatchMethod == BatchIndexer::BYSPECIFIED){
          frameIdx = (time-1) * nbatchGlobal + commBatch*numBatchPerProc + b;
       }
-      else if(strcmp(getBatchMethod(), "byMovie") == 0){
+      else if(mBatchMethod == BatchIndexer::BYLIST){
          frameIdx = b * 2 + (time-1);
       }
       for(int nkRes = 0; nkRes < getNumNeurons(); nkRes++){
@@ -39,7 +40,7 @@ int MoviePvpTestLayer::updateState(double time, double dt)
 
          pvdata_t expectedVal = kIndex(kxGlobal, kyGlobal, kf, loc->nxGlobal, loc->nyGlobal, nf) + frameIdx*192;
          if(fabs(checkVal - expectedVal) >= 1e-5){
-            pvError() << "ImageFileIO " << name << " test Expected: " << expectedVal << " Actual: " << checkVal << "\n";
+            pvErrorNoExit() << "ImageFileIO " << name << " test Expected: " << expectedVal << " Actual: " << checkVal << "\n";
          }
       }
    }

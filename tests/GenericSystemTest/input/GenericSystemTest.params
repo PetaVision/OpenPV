@@ -26,7 +26,6 @@ HyPerCol "column" = {
    outputPath = "output1/";
    printParamsFilename = "pv.params";
    checkpointWrite = true;
-   initializeFromCheckpointDir = "";
    checkpointWriteDir = "checkpoints";
    checkpointWriteTriggerMode = "step";
    checkpointWriteStepInterval = 1;
@@ -44,7 +43,7 @@ HyPerCol "column" = {
 
 
 // this is an input layer
-MoviePvp "input" = {
+PvpLayer "input" = {
     nxScale = 1;  // this must be 2^n, n = ...,-2,-1,0,1,2,... 
     nyScale = 1;  // the scale is to decide how much area will be used as input. For exampel, nx * nxScale = 32. The size of input
     	      	  // cannot be larger than the input image size.
@@ -57,24 +56,17 @@ MoviePvp "input" = {
     updateGpu = false;
     mirrorBCflag = false;    //border condition flag
     valueBC = 0.0;
-    useImageBCflag = false;
+    useInputBCflag = false;
     padValue = 0.0;
     inverseFlag = false; 
     normalizeLuminanceFlag = false;
     autoResizeFlag = false;
-    writeImages = false;
     offsetAnchor = "tl";
     offsetX = 0;  // offset for crop, when the input size is smaller than the size of image
     offsetY = 0;
-    jitterFlag = false; // moving around like an eyeball. our eyeballs are not still even when we are gazing at something.
-
     displayPeriod = 1;
-    batchMethod = "bySpecified";
-    echoFramePathnameFlag = true;
-    start_frame_index = 0;
-    skip_frame_index = 0;
+    batchMethod = "byFile";
     writeFrameToTimestamp = true;
-    flipOnTimescaleError = false;
     resetToStartOnLoop = false;
 };
 
@@ -102,7 +94,7 @@ ANNLayer "output" = {
     clearGSynInterval = 0;
 };
 
-MoviePvp "correct" = {
+PvpLayer "correct" = {
     nxScale = 1;
     nyScale = 1;
     nf = 8;
@@ -113,25 +105,18 @@ MoviePvp "correct" = {
     initialWriteTime = 1.0;
     sparseLayer = false;
     updateGpu = false;
-
     inputPath = "input/correct.pvp";
     offsetAnchor = "tl";
     offsetX = 0;
     offsetY = 0;
-    writeImages = false;
-    useImageBCflag = false;
+    useInputBCflag = false;
     padValue = 0.0;
     autoResizeFlag = false;
     inverseFlag = false;
     normalizeLuminanceFlag = false;
-    jitterFlag = false;
-
     displayPeriod = 1;
-    batchMethod = "bySpecified";
-    start_frame_index = 0;
-    skip_frame_index = 1;
+    batchMethod = "byFile";
     writeFrameToTimestamp = true;
-    flipOnTimescaleError = false;
     resetToStartOnLoop = false;
 };
 

@@ -70,18 +70,6 @@ void BBFindConfRemapProbe::ioParam_minBoundingBoxHeight(enum PV::ParamsIOFlag io
 
 void BBFindConfRemapProbe::ioParam_drawMontage(enum PV::ParamsIOFlag ioFlag) {
    this->getParent()->ioParamValue(ioFlag, this->getName(), "drawMontage", &drawMontage, drawMontage, true/*warnIfAbsent*/);
-#ifdef PV_USE_GDAL
-   GDALAllRegister();
-#else // PV_USE_GDAL
-   if (ioFlag==PARAMS_IO_READ) {
-      if (parent->columnId()==0) {
-         fprintf(stderr, "%s error: PetaVision must be compiled with GDAL to use BBFindConfRemapProbe with drawMontage set.\n",
-               getDescription_c());
-      }
-      MPI_Barrier(parent->getCommunicator()->communicator());
-      return PV_FAILURE;
-   }
-#endif // PV_USE_GDAL
 }
 
 void BBFindConfRemapProbe::ioParam_heatMapMontageDir(enum PV::ParamsIOFlag ioFlag) {

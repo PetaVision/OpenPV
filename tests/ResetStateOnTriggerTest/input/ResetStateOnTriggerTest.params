@@ -43,16 +43,12 @@ HyPerCol "column" = {
     nx                                  = 8;
     ny                                  = 8;
     nbatch                              = 1;
-    initializeFromCheckpointDir         = "";
     checkpointWrite                     = false;
-    // checkpointWriteDir
-    // checkpointWriteTriggerMode
-    // checkpointWriteTimeInterval
     suppressLastOutput                  = false;
     errorOnNotANumber                   = true;
 };
 
-MoviePvp "TriggeringLayer" = {
+PvpLayer "TriggeringLayer" = {
     nxScale                             = 0.25;
     nyScale                             = 0.25;
     nf                                  = 1;
@@ -67,18 +63,15 @@ MoviePvp "TriggeringLayer" = {
     offsetAnchor                        = "tl";
     offsetX                             = 0;
     offsetY                             = 0;
-    writeImages                         = 0;
     inverseFlag                         = false;
     normalizeLuminanceFlag              = false;
-    jitterFlag                          = 0;
-    useImageBCflag                      = false;
+    useInputBCflag                      = false;
     padValue                            = 0;
     displayPeriod                       = 5;
     batchMethod                         = "bySpecified";
     start_frame_index                   = [1.000000];
     skip_frame_index                    = [0.000000];
     writeFrameToTimestamp               = true;
-    flipOnTimescaleError                = true;
     resetToStartOnLoop                  = false;
 };
 
@@ -98,7 +91,7 @@ ConstantLayer "InputLayer" = {
     dataType                            = NULL;
 };
 
-MoviePvp "ResetLayer" = {
+PvpLayer "ResetLayer" = {
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 1;
@@ -117,17 +110,14 @@ MoviePvp "ResetLayer" = {
     writeImages                         = 0;
     inverseFlag                         = false;
     normalizeLuminanceFlag              = false;
-    jitterFlag                          = 0;
-    useImageBCflag                      = false;
+    useInputBCflag                      = false;
     padValue                            = 0;
     autoResizeFlag                      = false;
     displayPeriod                       = 1;
-    echoFramePathnameFlag               = true;
     batchMethod                         = "bySpecified";
     start_frame_index                   = [1.000000];
     skip_frame_index                    = [0.000000];
     writeFrameToTimestamp               = true;
-    flipOnTimescaleError                = true;
     resetToStartOnLoop                  = false;
 };
 

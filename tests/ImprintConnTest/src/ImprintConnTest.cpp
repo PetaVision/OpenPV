@@ -12,7 +12,7 @@
 #ifdef MAIN_USES_CUSTOM_GROUPS
 #include <columns/PV_Init.hpp>
 #include "TestLayer.hpp"
-#include "InputLayer.hpp"
+#include "ImprintConnTestInputLayer.hpp"
 #endif // MAIN_USES_CUSTOM_GROUPS
 
 int main(int argc, char * argv[]) {
@@ -33,7 +33,7 @@ int main(int argc, char * argv[]) {
    // etc.
    //
    pv_initObj.registerKeyword("TestLayer", Factory::create<TestLayer>);
-   pv_initObj.registerKeyword("InputLayer", Factory::create<InputLayer>);
+   pv_initObj.registerKeyword("ImprintConnTestInputLayer", Factory::create<ImprintConnTestInputLayer>);
    int status = buildandrun(&pv_initObj, NULL, NULL);
 #endif // MAIN_USES_CUSTOM_GROUPS
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;

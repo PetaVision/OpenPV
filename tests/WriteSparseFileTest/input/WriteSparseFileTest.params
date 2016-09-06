@@ -41,7 +41,7 @@ HyPerCol "column" = {
 
 
 // this is an input layer
-MoviePvp "input" = {
+PvpLayer "input" = {
     nxScale = 1;  // this must be 2^n, n = ...,-2,-1,0,1,2,... 
     nyScale = 1;  // the scale is to decide how much area will be used as input. For exampel, nx * nxScale = 32. The size of input
     	      	  // cannot be larger than the input image size.
@@ -52,23 +52,15 @@ MoviePvp "input" = {
     sparseLayer = false; //only write weights which are not 0
     mirrorBCflag = false;    //border condition flag
     valueBC = 0.0;
-    useImageBCflag = false;
+    useInputBCflag = false;
     inverseFlag = false; 
     normalizeLuminanceFlag = false;
     autoResizeFlag = false;
     writeImages = false;
     offsetX = 0;  // offset for crop, when the input size is smaller than the size of image
     offsetY = 0;
-    jitterFlag = false; // moving around like an eyeball. our eyeballs are not still even when we are gazing at something.
-
     displayPeriod = 1;
-    randomMovie = false;
-    readPvpFile = false;
-    echoFramePathnameFlag = true;
-    start_frame_index = 0;
-    skip_frame_index = 1;
     writeFrameToTimestamp = true;
-    flipOnTimescaleError = false;
 };
 
 //an output layer
@@ -94,7 +86,7 @@ ANNLayer "output" = {
     VWidth = 0.0;
 };
 
-MoviePvp "correct" = {
+PvpLayer "correct" = {
     nxScale = 1;
     nyScale = 1;
     nf = 8;
@@ -104,24 +96,15 @@ MoviePvp "correct" = {
     writeStep = 1.0;
     initialWriteTime = 1.0;
     sparseLayer = false;
-
     inputPath = "input/correct.pvp";
     offsetX = 0;
     offsetY = 0;
-    writeImages = false;
-    useImageBCflag = false;
+    useInputBCflag = false;
     autoResizeFlag = false;
     inverseFlag = false;
     normalizeLuminanceFlag = false;
-    jitterFlag = false;
-
     displayPeriod = 1;
-    randomMovie = false;
-    readPvpFile = true;
-    start_frame_index = 0;
-    skip_frame_index = 1;
     writeFrameToTimestamp = true;
-    flipOnTimescaleError = false;
 };
 
 ANNLayer "comparison" = {

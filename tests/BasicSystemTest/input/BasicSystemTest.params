@@ -38,7 +38,7 @@ HyPerCol "column" = {
 
 
 // this is a input layer
-ImagePvp "Input" = {
+PvpLayer "Input" = {
     nxScale = 1;  // this must be 2^n, n = ...,-2,-1,0,1,2,... 
     nyScale = 1;  // the scale is to decide how much area will be used as input. For exampel, nx * nxScale = 32. The size of input
     	      	  // cannot be larger than the input image size.
@@ -49,18 +49,15 @@ ImagePvp "Input" = {
     sparseLayer = false; //only write weights which are not 0
     mirrorBCflag = false;    //border condition flag
     valueBC = 0.0;
-    useImageBCflag = false;
+    useInputBCflag = false;
     updateGpu = false;
     inverseFlag = false; 
     normalizeLuminanceFlag = false;
     autoResizeFlag = false;
-    writeImages = false;
     offsetAnchor = "tl";
     offsetX = 0;  // offset for crop, when the input size is smaller than the size of image
     offsetY = 0;
-    jitterFlag = false; // moving around like an eyeball. our eyeballs are not still even when we are gazing at something.
     padValue = false;
-    pvpFrameIdx = 0;
 };
 
 //an output layer

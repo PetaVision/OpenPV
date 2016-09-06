@@ -32,27 +32,24 @@ HyPerCol "column" = {
    suppressLastOutput = false; 
 };
 
-ImagePvp "input" = {
-    initializeFromCheckpointFlag = false;
+PvpLayer "input" = {
     nxScale = 1;  
     nyScale = 1;  
     	      	  
     inputPath = "input/input.pvp";
-    pvpFrameIdx = 0;
     nf = 1; 
     phase = 0; 
     writeStep = -1;  
-    sparseLayer = false; 
     mirrorBCflag = false;    
     valueBC = 0.0;
-    useImageBCflag = false;
+    useInputBCflag = false;
     inverseFlag = false; 
     normalizeLuminanceFlag = false;
     autoResizeFlag = false;
     writeImages = false;
     offsetX = 0;  
     offsetY = 0;
-    jitterFlag = false; 
+	displayPeriod                       = 0;
 };
 
 

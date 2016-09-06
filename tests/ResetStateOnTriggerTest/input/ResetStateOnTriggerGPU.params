@@ -25,14 +25,12 @@ HyPerCol "column" = {
    verifyWrites = true;
    outputPath = "output/";
    printParamsFilename = "pv.params";
-   initializeFromCheckpointDir = "";
    checkpointWrite = false;
    checkpointWriteDir = "checkpoints";
    checkpointWriteTriggerMode = "step";
    checkpointWriteStepInterval = 1;
    deleteOlderCheckpoints = false;
    suppressNonplasticCheckpoints = false;
-   // suppressLastOutput = false;
    checkpointIndexWidth = -1;
 };
 
@@ -40,7 +38,7 @@ HyPerCol "column" = {
 // layers
 //
 
-ImagePvp "Input" = {
+PvpLayer "Input" = {
     nxScale = 1;
     nyScale = 1;
     inputPath = "input/testimage.pvp";
@@ -51,16 +49,14 @@ ImagePvp "Input" = {
     updateGpu = false;
     mirrorBCflag = false;
     valueBC = 0.0;
-    useImageBCflag = false;
+    useInputBCflag = false;
     inverseFlag = false; 
     normalizeLuminanceFlag = false;
     padValue = 0.0;
     autoResizeFlag = false;
-    writeImages = false;
     offsetAnchor = "tl";
     offsetX = 0;
     offsetY = 0;
-    jitterFlag = false;
 };
 
 ConstantLayer "onesLayer" = {

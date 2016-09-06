@@ -18,30 +18,22 @@ HyPerCol "column" = {
     writeProgressToErr = true;
 };
 
-MoviePvp "pre" = {
-    restart                          = false;
+PvpLayer "pre" = {
     nxScale                          = 1;
     nyScale                          = 1;
     inputPath                        = "input/input.pvp";
-    echoFramePathnameFlag            = true;
     nf                               = 1;
     phase                            = 0;
     writeStep                        = -1;
-    // initialWriteTime
     sparseLayer                      = false;
     mirrorBCflag                     = false;
-    useImageBCflag                   = false;
+    useInputBCflag                   = false;
     inverseFlag                      = false;
     normalizeLuminanceFlag           = false;
     autoResizeFlag                   = false;
-    writeImages                      = false;
     offsetX                          = 0;
     offsetY                          = 0;
-    jitterFlag                       = false;
-    randomMovie                      = false;
     displayPeriod                    = 1;
-    start_frame_index                = 0;
-    skip_frame_index                 = 0;
 };
 
 ConstantLayer "post" = {

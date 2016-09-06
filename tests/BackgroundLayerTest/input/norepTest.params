@@ -20,27 +20,22 @@ HyPerCol "column" = {
 };
 
 // this is a input layer
-ImagePvp "input" = {
-    restart = 0;
+PvpLayer "input" = {
     nxScale = 1;
     nyScale = 1;
     inputPath = "input/input.pvp";
     nf = 4;
     phase = 0; //phase defines an order in which layers should be executed.
     writeStep = -1;  //-1 means doesn't write for log
-    sparseLayer = false; //only write weights which are not 0
     mirrorBCflag = false;    //border condition flag
     valueBC = 0.0;
-    useImageBCflag = false;
+    useInputBCflag = false;
     inverseFlag = false; 
     normalizeLuminanceFlag = false;
     autoResizeFlag = false;
-    writeImages = false;
     offsetAnchor = "tl";
     offsetX = 0;  // offset for crop, when the input size is smaller than the size of image
     offsetY = 0;
-    pvpFrameIdx = 0;
-    jitterFlag = false; // moving around like an eyeball. our eyeballs are not still even when we are gazing at something.
     padValue = 0;
 };
 
@@ -61,18 +56,16 @@ BackgroundLayer "background" = {
 };
 
 // this is a input layer
-ImagePvp "actual" = {
-    restart = 0;
+PvpLayer "actual" = {
     nxScale = 1;
     nyScale = 1;
     inputPath = "input/gt.pvp";
     nf = 5;
     phase = 0; //phase defines an order in which layers should be executed.
     writeStep = -1;  //-1 means doesn't write for log
-    sparseLayer = false; //only write weights which are not 0
     mirrorBCflag = false;    //border condition flag
     valueBC = 0.0;
-    useImageBCflag = false;
+    useInputBCflag = false;
     inverseFlag = false; 
     normalizeLuminanceFlag = false;
     autoResizeFlag = false;
@@ -80,8 +73,6 @@ ImagePvp "actual" = {
     offsetAnchor = "tl";
     offsetX = 0;  // offset for crop, when the input size is smaller than the size of image
     offsetY = 0;
-    frameNumber = 0;
-    jitterFlag = false; // moving around like an eyeball. our eyeballs are not still even when we are gazing at something.
     padValue = 0;
 };
 

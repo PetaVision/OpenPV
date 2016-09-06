@@ -88,10 +88,6 @@ endif()
 include_directories(${PV_CONFIG_FILE_DIR})
 include_directories(${PV_INCLUDE_DIR})
 
-if (PV_USE_GDAL AND GDAL_FOUND)
-  include_directories(${GDAL_INCLUDE_DIR})
-endif()
-
 if (PV_USE_CUDA AND CUDNN_FOUND)
   include_directories(${CUDA_TOOLKIT_INCLUDE})
   include_directories(${CUDNN_INCLUDE_DIR})
@@ -103,10 +99,6 @@ endif()
 
 if (PV_USE_LUA AND LUA_FOUND)
   include_directories(${LUA_INCLUDE_DIR})
-endif()
-
-if (PV_REORDER_HYPERCONN)
-  add_definitions("-DPV_REORDER_HYPERCONN=1")
 endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "MinRelSize")

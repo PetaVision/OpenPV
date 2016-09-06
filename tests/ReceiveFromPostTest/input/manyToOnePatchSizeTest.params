@@ -8,10 +8,8 @@ HyPerCol "column" = {
     startTime = 0.0;
     stopTime = 10.0;       // Depends on number of VINE video frames
     progressInterval = 1.0;
-    //Change this
     outputPath = "output/manyToOnePatchSizeTest";
     checkpointWrite = false;
-    // deleteOlderCheckpoints = false;
     suppressLastOutput = true;
     writeProgressToErr = true;
 };
@@ -25,37 +23,12 @@ ConstantLayer "input" = {
     initialWriteTime = 0.0;
     mirrorBCflag = true;
     sparseLayer = 0;
-    //
-    //InitVType = "ConstantV";
-    //valueV    = 1;
     InitVType = "UniformRandomV";
     minV = 0;
     maxV = 1;
 
     phase = 1; 
 };
-
-//Image "input" = {
-//    nxScale = .5;
-//    nyScale = .5;
-//    imagePath = "input/oneval_3_3_small.pvp";
-//    nf = 1;
-//    phase = 0;
-//    writeStep = -1;
-//    sparseLayer = false;
-//    mirrorBCflag = false; 
-//    valueBC = 0.0;
-//    useImageBCflag = false;
-//    inverseFlag = false; 
-//    normalizeLuminanceFlag = false;
-//    autoResizeFlag = false;
-//    writeImages = false;
-//    offsetAnchor = "tl";
-//    offsetX = 0;  // offset for crop, when the input size is smaller than the size of image
-//    offsetY = 0;
-//    jitterFlag = false; // moving around like an eyeball. our eyeballs are not still even when we are gazing at something.
-//    padValue = false;
-//};
 
 ANNLayer "outputRecvPre" = {
     restart = 0;
@@ -164,33 +137,6 @@ HyPerConn "origConn" = {
     keepKernelsSynchronized             = true;
 };
 
-//TransposeConn "firstTranspose" = {
-//    preLayerName = "outputRecvPre";
-//    postLayerName = "input";
-//    channelCode = -1; //Does nothing to the input layer
-//    originalConnName = "origConn";
-//    selfFlag = false;
-//    convertRateToSpikeCount = false;
-//    writeStep = -1;
-//    delay = 0;
-//    pvpatchAccumulateType = "convolve";
-//    updateGSynFromPostPerspective = false;
-//};
-//
-//TransposeConn "secondTranspose" = {
-//    preLayerName = "input";
-//    postLayerName = "outputRecvPost";
-//    channelCode = 0;
-//    originalConnName = "firstTranspose";
-//    selfFlag = false;
-//    convertRateToSpikeCount = false;
-//    writeStep = -1.0;
-//    delay = 0;
-//    pvpatchAccumulateType = "convolve";
-//    updateGSynFromPostPerspective = true;
-//    receiveGpu = false;
-//};
-
 CloneConn "clone" = {
     preLayerName = "input";
     postLayerName = "outputRecvPost";
@@ -226,8 +172,3 @@ ReceiveFromPostProbe "testProbe" = {
    message = "testProbe ";
    tolerance = 3e-3; // covers worst case with roundoff error 2^-24 and 3456 inputs 
 };
-
-//RequireAllZeroActivityProbe "testProbe" = {
-//    targetLayer = "outputTest";
-//    nnzThreshold = 1e-6;
-//};

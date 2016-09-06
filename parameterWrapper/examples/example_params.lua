@@ -33,7 +33,6 @@ local basicParams = {
       nx = nxSize;  --Using user defined variables 
       ny = nySize;
       dt = 1.0;
-      dtAdaptFlag = false; --Boolean values 
       randomSeed = 1234567890;
       startTime = 0.0;
       stopTime = 10.0; 
@@ -43,8 +42,6 @@ local basicParams = {
       verifyWrites = false;
       outputPath = "output/";
       printParamsFilename = "pv.params";
-      filenamesContainLayerNames = false;  
-      filenamesContainConnectionNames = false;
       initializeFromCheckpointDir = nil; --"NULL" variable
       checkpointWrite = false;
       suppressLastOutput = false
@@ -60,25 +57,23 @@ pv.addMultiGroups(basicParams,
    --
    -- Implicit key of 2 for same reason as above. This counter will keep incrementing for every non-keyed value specified
    Input = {
-      groupType = "Image";
+      groupType = "ImageLayer";
       nxScale = 1;
       nyScale = 1;
-      imagePath = "input/sampleimage.png";
+      inputPath = "input/sampleimage.png";
       nf = 1;
       phase = 0;
       writeStep = -1;
       sparseLayer = false;
       mirrorBCflag = false;
       valueBC = 0.0;
-      useImageBCflag = false;
+      useInputBCflag = false;
       inverseFlag = false ;
       normalizeLuminanceFlag = false;
       autoResizeFlag = false;
-      writeImages = false;
       offsetAnchor = "tl";
       offsetX = 0;
       offsetY = 0;
-      jitterFlag = false;
       padValue = false
    };
 

@@ -6,7 +6,6 @@
  *  Created on: Mar 7, 2012
  *      Author: pschultz
  */
-
 #ifndef UPDATESTATEFUNCTIONS_H_
 #define UPDATESTATEFUNCTIONS_H_
 

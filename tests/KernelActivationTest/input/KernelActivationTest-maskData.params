@@ -18,13 +18,8 @@ HyPerCol "column" = {
     suppressLastOutput = false;
 };
 
-MoviePvp "8x8Images" = {
+PvpLayer "8x8Images" = {
     inputPath = "./input/image08x08sequence_mask.pvp";
-    start_frame_index = 0;
-    skip_frame_index = 0;
-    echoFramePathnameFlag = false;
-
-    restart = 0;
     nxScale = 0.5;
     nyScale = 0.5;
     nf = 1;
@@ -33,28 +28,17 @@ MoviePvp "8x8Images" = {
     sparseLayer = false;
     mirrorBCflag = false;
     valueBC = 0.0;
-    useImageBCflag = false;
+    useInputBCflag = false;
     inverseFlag = false;
     normalizeLuminanceFlag = false;
     autoResizeFlag = false;
-    
-    writeImages = false;
-
-    displayPeriod = 1;
-    jitterFlag = 0;
-    randomMovie = 0;
+	displayPeriod = 1;
     offsetX = 0;
     offsetY = 0;
-    readPvpFile = false;
 };
 
-MoviePvp "16x16Images" = {
+PvpLayer "16x16Images" = {
     inputPath = "./input/image16x16sequence_mask.pvp";
-    start_frame_index = 0;
-    skip_frame_index = 0;
-    echoFramePathnameFlag = false;
-
-    restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 1;
@@ -63,28 +47,17 @@ MoviePvp "16x16Images" = {
     sparseLayer = false;
     mirrorBCflag = false;
     valueBC = 0.0;
-    useImageBCflag = false;
+    useInputBCflag = false;
     inverseFlag = false;
     normalizeLuminanceFlag = false;
     autoResizeFlag = false;
-    
-    writeImages = false;
-
     displayPeriod = 1;
-    jitterFlag = 0;
-    randomMovie = 0;
     offsetX = 0;
     offsetY = 0;
-    readPvpFile = false;
 };
 
-MoviePvp "32x32Images" = {
+PvpLayer "32x32Images" = {
     inputPath = "./input/image32x32sequence_mask.pvp";
-    start_frame_index = 0;
-    skip_frame_index = 0;
-    echoFramePathnameFlag = false;
-
-    restart = 0;
     nxScale = 2;
     nyScale = 2;
     nf = 1;
@@ -93,19 +66,13 @@ MoviePvp "32x32Images" = {
     sparseLayer = false;
     mirrorBCflag = false;
     valueBC = 0.0;
-    useImageBCflag = false;
+    useInputBCflag = false;
     inverseFlag = false;
     normalizeLuminanceFlag = false;
     autoResizeFlag = false;
-    
-    writeImages = false;
-
     displayPeriod = 1;
-    jitterFlag = 0;
-    randomMovie = 0;
     offsetX = 0;
     offsetY = 0;
-    readPvpFile = false;
 };
 
 ConstantLayer "Pre16x16Singleband" = {

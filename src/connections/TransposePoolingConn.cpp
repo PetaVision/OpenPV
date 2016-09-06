@@ -557,7 +557,7 @@ int TransposePoolingConn::deliverPresynapticPerspective(PVLayerCube const * acti
       DataStore * store = postIndexLayer->getPublisher()->dataStore();
       int delay = getDelay(arborID);
 
-      postIdxData = store->buffer(LOCAL, delay);
+      postIdxData = store->buffer(Communicator::LOCAL, delay);
    }
 
    for(int b = 0; b < parent->getNBatch(); b++){

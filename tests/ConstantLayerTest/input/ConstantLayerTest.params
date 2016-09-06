@@ -40,35 +40,33 @@ ConstantLayer "ConstantV" = {
     valueBC                             = 0;
     InitVType                           = "ConstantV";
     valueV                              = 10;
-    writeStep                           = -1;
+    writeStep                           = 1;
     sparseLayer                         = false;
     updateGpu                           = false;
     dataType                            = NULL;
 };
 
-ImagePvp "ConstantVCheck" = {
+PvpLayer "ConstantVCheck" = {
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 3;
     phase                               = 0;
     mirrorBCflag                        = false;
     valueBC                             = 0;
-    writeStep                           = -1;
-    sparseLayer                         = false;
+    writeStep                           = 1;
     updateGpu                           = false;
     dataType                            = NULL;
     inputPath                           = "input/initialVConstant.pvp";
     offsetAnchor                        = "tl";
     offsetX                             = 0;
     offsetY                             = 0;
-    writeImages                         = 0;
     autoResizeFlag                      = false;
     inverseFlag                         = false;
     normalizeLuminanceFlag              = false;
     jitterFlag                          = 0;
-    useImageBCflag                      = false;
+    useInputBCflag                      = false;
     padValue                            = 0;
-    pvpFrameIdx                         = 0;
+	displayPeriod                       = 0;
 };
 
 HyPerLayer "ConstantVCompare" = {
@@ -128,7 +126,7 @@ ConstantLayer "InitVFromFile" = {
     dataType                            = NULL;
 };
 
-ImagePvp "InitVFromFileCheck" = {
+PvpLayer "InitVFromFileCheck" = {
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 3;
@@ -136,21 +134,19 @@ ImagePvp "InitVFromFileCheck" = {
     mirrorBCflag                        = false;
     valueBC                             = 0;
     writeStep                           = -1;
-    sparseLayer                         = false;
     updateGpu                           = false;
     dataType                            = NULL;
     inputPath                           = "input/initialVFile.pvp";
     offsetAnchor                        = "tl";
     offsetX                             = 0;
     offsetY                             = 0;
-    writeImages                         = 0;
     autoResizeFlag                      = false;
     inverseFlag                         = false;
     normalizeLuminanceFlag              = false;
     jitterFlag                          = 0;
-    useImageBCflag                      = false;
+    useInputBCflag                      = false;
     padValue                            = 0;
-    pvpFrameIdx                         = 0;
+	displayPeriod                       = 0;
 };
 
 HyPerLayer "InitVFromFileCompare" = {

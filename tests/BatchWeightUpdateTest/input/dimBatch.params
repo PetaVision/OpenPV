@@ -12,7 +12,6 @@ HyPerCol "column" = {
     randomSeed                          = 1860277205;
     nx                                  = 8;
     ny                                  = 8;
-    initializeFromCheckpointDir         = "";
     checkpointWrite                     = false;
     deleteOlderCheckpoints              = false;
     suppressNonplasticCheckpoints       = false;
@@ -20,8 +19,7 @@ HyPerCol "column" = {
     nbatch                              = 5; 
 };
 
-MoviePvp "pre" = {
-    restart = 0;  // make only a certain layer restart
+PvpLayer "pre" = {
     nxScale = 1;  // this must be 2^n, n = ...,-2,-1,0,1,2,... 
     nyScale = 1;  // the scale is to decide how much area will be used as input. For exampel, nx * nxScale = 32. The size of input
     	      	  // cannot be larger than the input image size.
@@ -31,21 +29,17 @@ MoviePvp "pre" = {
     writeStep = -1;  //-1 means doesn't write for log
     sparseLayer = false;
     mirrorBCflag = false;    //board condition flag
-    useImageBCflag = false;
+    useInputBCflag = false;
     inverseFlag = false; 
     normalizeLuminanceFlag = false;
-    writeImages = false;
     offsetX = 0;  //No offsets, as this layer is exactly the size of the image
     offsetY = 0;
     offsetAnchor = "tl";
-    jitterFlag = false; // moving around like an eyeball. our eyeballs are not still even when we are gazing at something.
-
     batchMethod = "byImage";
     displayPeriod = 1;
 };
 
-MoviePvp "post" = {
-    restart = 0;  // make only a certain layer restart
+PvpLayer "post" = {
     nxScale = .5;  // this must be 2^n, n = ...,-2,-1,0,1,2,... 
     nyScale = .5;  // the scale is to decide how much area will be used as input. For exampel, nx * nxScale = 32. The size of input
     	      	  // cannot be larger than the input image size.
@@ -55,15 +49,12 @@ MoviePvp "post" = {
     writeStep = -1;  //-1 means doesn't write for log
     sparseLayer = false;
     mirrorBCflag = false;    //board condition flag
-    useImageBCflag = false;
+    useInputBCflag = false;
     inverseFlag = false; 
     normalizeLuminanceFlag = false;
-    writeImages = false;
     offsetX = 0;  //No offsets, as this layer is exactly the size of the image
     offsetY = 0;
     offsetAnchor = "tl";
-    jitterFlag = false; // moving around like an eyeball. our eyeballs are not still even when we are gazing at something.
-
     batchMethod = "byImage";
     displayPeriod = 1;
 };
