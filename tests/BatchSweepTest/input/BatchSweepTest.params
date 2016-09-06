@@ -19,10 +19,8 @@ HyPerCol "column" = {
    progressInterval = 10;
    writeProgressToErr = false;
    verifyWrites = true;
-   //outputPath = "output/";
    printParamsFilename = "pv.params";
    checkpointWrite = false;
-   initializeFromCheckpointDir = "";
    suppressLastOutput = false;
    nbatch = 4;
 };
@@ -31,8 +29,7 @@ HyPerCol "column" = {
 // layers
 //
 
-ImagePvp "Input" = {
-    restart = 0;
+PvpLayer "Input" = {
     nxScale = 1;
     nyScale = 1;
     inputPath = "input/sampleimage.pvp";
@@ -42,14 +39,16 @@ ImagePvp "Input" = {
     sparseLayer = false;
     mirrorBCflag = false;
     valueBC = 0.0;
-    useImageBCflag = false;
+    useInputBCflag = false;
     inverseFlag = false;
     normalizeLuminanceFlag = false;
     autoResizeFlag = false;
-    writeImages = false;
     offsetX = 0;
     offsetY = 0;
-    jitterFlag = 0;
+	displayPeriod = 0;
+	batchMethod = "bySpecified";
+	start_frame_index = [0, 0, 0, 0];
+	skip_frame_index = [1, 1, 1, 1];
 };
 
 ANNLayer "Output" = {

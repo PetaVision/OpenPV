@@ -65,6 +65,18 @@ public:
 
    bool isExtraProc(){return isExtra;}
 
+   static const int LOCAL      = 0;
+   static const int NORTHWEST  = 1;
+   static const int NORTH      = 2;
+   static const int NORTHEAST  = 3;
+   static const int WEST       = 4;
+   static const int EAST       = 5;
+   static const int SOUTHWEST  = 6;
+   static const int SOUTH      = 7;
+   static const int SOUTHEAST  = 8;
+
+
+
 protected:
 
    int commRow(int commId);
@@ -82,6 +94,7 @@ protected:
 
 private:
 
+   
    int gcd(int a, int b);
 
    int localRank;

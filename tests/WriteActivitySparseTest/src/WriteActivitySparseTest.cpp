@@ -3,7 +3,7 @@
  *
  */
 #include <columns/buildandrun.hpp>
-#include <layers/Movie.hpp>
+#include <layers/InputLayer.hpp>
 #include <columns/PV_Init.hpp>
 #include "TestNotAlwaysAllZerosProbe.hpp"
 #include "TestAllZerosProbe.hpp"
@@ -60,9 +60,9 @@ int main(int argc, char * argv[]) {
 // check that the input layer has become nonzero at some point
 // If the comparison layer ever has a nonzero value, TestAllZerosProbe
 // should catch it and exit with an error.
-// However, there are some bugs that could cause Movie to
-// have all zeros in the activity.  In that case, OriginalMovie and
-// GeneratedMovie would always be zero, so the comparison would always
+// However, there are some bugs that could cause InputLayer to
+// have all zeros in the activity.  In that case, OriginalInputLayer and
+// GeneratedInputLayer would always be zero, so the comparison would always
 // be zero, so the test would pass even though there's a bug.
 //
 // The problem of what to do if comparison reports zero when given

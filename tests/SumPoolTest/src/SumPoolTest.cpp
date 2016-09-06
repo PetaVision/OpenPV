@@ -8,7 +8,7 @@
 #include <columns/buildandrun.hpp>
 #include <columns/PV_Init.hpp>
 #include "SumPoolTestLayer.hpp"
-#include "InputLayer.hpp"
+#include "SumPoolTestInputLayer.hpp"
 #include "GatePoolTestLayer.hpp"
 
 #define MAIN_USES_CUSTOMGROUPS
@@ -18,7 +18,7 @@ int main(int argc, char * argv[]) {
 #ifdef MAIN_USES_CUSTOMGROUPS
    PV_Init pv_initObj(&argc, &argv, false/*do not allow unrecognized arguments*/);
    pv_initObj.registerKeyword("SumPoolTestLayer", Factory::create<SumPoolTestLayer>);
-   pv_initObj.registerKeyword("InputLayer", Factory::create<InputLayer>);
+   pv_initObj.registerKeyword("SumPoolTestInputLayer", Factory::create<SumPoolTestInputLayer>);
    pv_initObj.registerKeyword("GatePoolTestLayer", Factory::create<GatePoolTestLayer>);
    int status = buildandrun(&pv_initObj);
 #else // MAIN_USES_CUSTOMGROUPS

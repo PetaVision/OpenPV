@@ -6,7 +6,7 @@
 
 #include <columns/buildandrun.hpp>
 #include <io/RequireAllZeroActivityProbe.hpp>
-#include <layers/MoviePvp.cpp>
+#include <layers/InputLayer.hpp>
 
 #define CORRECT_PVP_NX 128 // The x-dimension in the "correct.pvp" file.  Needed by generate()
 #define CORRECT_PVP_NY 64 // The y-dimension in the "correct.pvp" file.  Needed by generate()
@@ -166,9 +166,10 @@ int copyCorrectOutput(HyPerCol * hc, int argc, char * argv[]) {
    std::string sourcePathString = hc->getOutputPath();
    sourcePathString += "/" "Reconstruction.pvp";
    const char * sourcePath = sourcePathString.c_str();
-   MoviePvp * correctLayer = dynamic_cast<MoviePvp *>(hc->getLayerFromName("Correct"));
+   InputLayer * correctLayer = dynamic_cast<InputLayer *>(hc->getLayerFromName("Correct"));
    pvErrorIf(!(correctLayer), "No MoviePvp layer named \"Correct\" in params.\n");
-   const char * destPath = correctLayer->getInputPath();
+   const char * destPath = correctLayer->getInputPath().c_str();
+
    if (strcmp(&destPath[strlen(destPath)-4], ".pvp")!=0) {
       if (hc->columnId()==0) {
          pvErrorNoExit().printf("%s --generate: This system test assumes that the layer \"correct\" is a Movie layer with imageListPath ending in \".pvp\".\n", argv[0]);

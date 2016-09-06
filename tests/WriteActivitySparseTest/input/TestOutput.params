@@ -41,14 +41,13 @@ HyPerCol "column" = {
     randomSeed                          = 1234567890;
     nx                                  = 8;
     ny                                  = 8;
-    initializeFromCheckpointDir         = "";
     checkpointWrite                     = false;
     suppressLastOutput                  = false;
     errorOnNotANumber                   = true;
     nbatch = 2;
 };
 
-MoviePvp "OriginalMovie" = {
+PvpLayer "OriginalMovie" = {
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 3;
@@ -59,29 +58,22 @@ MoviePvp "OriginalMovie" = {
     initialWriteTime                    = 0;
     sparseLayer                         = false;
     updateGpu                           = false;
-    // dataType                            was set to (NULL);
     offsetAnchor                        = "tl";
     offsetX                             = 0;
     offsetY                             = 0;
-    writeImages                         = 0;
-    useImageBCflag                      = false;
+    useInputBCflag                      = false;
     autoResizeFlag                      = false;
     inverseFlag                         = false;
     normalizeLuminanceFlag              = false;
-    jitterFlag                          = 0;
     padValue                            = 0;
     inputPath                           = "input/inputmovie.pvp";
     displayPeriod                       = 1;
-    randomMovie                         = 0;
     batchMethod = "byImage";
-    //start_frame_index                   = 0;
-    //skip_frame_index                    = 1;
     writeFrameToTimestamp               = false;
-    flipOnTimescaleError                = true;
     resetToStartOnLoop                  = false;
 };
 
-MoviePvp "GeneratedMovie" = {
+PvpLayer "GeneratedMovie" = {
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 3;
@@ -92,25 +84,18 @@ MoviePvp "GeneratedMovie" = {
     initialWriteTime                    = 0;
     sparseLayer                         = false;
     updateGpu                           = false;
-    // dataType                            was set to (NULL);
     offsetAnchor                        = "tl";
     offsetX                             = 0;
     offsetY                             = 0;
-    writeImages                         = 0;
-    useImageBCflag                      = false;
+    useInputBCflag                      = false;
     autoResizeFlag                      = false;
     inverseFlag                         = false;
     normalizeLuminanceFlag              = false;
-    jitterFlag                          = 0;
     padValue                            = 0;
     inputPath                           = "outputGenerate/Input.pvp";
     displayPeriod                       = 1;
-    randomMovie                         = 0;
     batchMethod = "byImage";
-    //start_frame_index                   = 0;
-    //skip_frame_index                    = 1;
     writeFrameToTimestamp               = false;
-    flipOnTimescaleError                = true;
     resetToStartOnLoop                  = false;
 };
 

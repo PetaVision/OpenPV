@@ -139,9 +139,9 @@ static int check_borders(pvdata_t * image, PV::Communicator * comm, PVLayerLoc l
    // hence all zeroes.  Only if the northwest neighbor is distinct from the
    // northern neighbor and from the western neighbor will the data the neighbor
    // sent be from the restricted region.
-   if (comm->hasNeighbor(NORTHWEST)) {
-      if (comm->neighborIndex(rank, NORTHWEST) != comm->neighborIndex(rank, NORTH) &&
-          comm->neighborIndex(rank, NORTHWEST) != comm->neighborIndex(rank, WEST)) {
+   if (comm->hasNeighbor(PV::Communicator::NORTHWEST)) {
+      if (comm->neighborIndex(rank, PV::Communicator::NORTHWEST) != comm->neighborIndex(rank, PV::Communicator::NORTH) &&
+          comm->neighborIndex(rank, PV::Communicator::NORTHWEST) != comm->neighborIndex(rank, PV::Communicator::WEST)) {
          for (int ky = 0; ky < halo->up; ky++) {
             int k = (k0-halo->lt) + (ky-halo->up) * loc.nxGlobal;
             float * buf = image + ky * sy;
@@ -167,7 +167,7 @@ static int check_borders(pvdata_t * image, PV::Communicator * comm, PVLayerLoc l
    }
 
    // west
-   if (comm->hasNeighbor(WEST)) {
+   if (comm->hasNeighbor(PV::Communicator::WEST)) {
       for (int ky = 0; ky < ny; ky++) {
          int k = k0 - halo->up + ky * loc.nxGlobal;
          float * buf = image + (ky + halo->up) * sy;
@@ -181,7 +181,7 @@ static int check_borders(pvdata_t * image, PV::Communicator * comm, PVLayerLoc l
    }
 
    // east
-   if (comm->hasNeighbor(EAST)) {
+   if (comm->hasNeighbor(PV::Communicator::EAST)) {
       for (int ky = 0; ky < ny; ky++) {
          int k = k0 + nx + ky * loc.nxGlobal;
          float * buf = image + (nx + halo->lt) + (ky + halo->up) * sy;

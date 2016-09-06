@@ -10,7 +10,6 @@
 #
 # Optional in scope variables 
 #
-# GDAL_FOUND, GDAL_INCLUDE_DIR and GDAL_LIBRARIES. These can be set with find_package(GDAL)
 # MPI_FOUND, MPI_CXX_INCLUDE_PATH and MPI_CXX_LIBRARIES. Can be set with find_package(MPI)
 # CUDA_FOUND. Can be set with find_package(CUDA). Requires CUDNN
 # CUDNN_FOUND, CUDNN_INCLUDE_DIR, CUDNN_LIBRARIES. Can be set with find_package(CUDNN).
@@ -44,10 +43,6 @@ macro(pv_add_library TARGET)
 
   include_directories(${PV_CONFIG_FILE_DIR})
   include_directories(${PV_INCLUDE_DIR})
-
-  if (PV_USE_GDAL AND GDAL_FOUND)
-    include_directories(${GDAL_INCLUDE_DIR})
-  endif()
 
   if (PV_USE_CUDA AND CUDNN_FOUND)
     include_directories(${CUDA_TOOLKIT_INCLUDE})

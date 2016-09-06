@@ -1,5 +1,0 @@
-if (PV_USE_GDAL)
-   pv_add_test(PARAMS MoviePvpSystemTest MovieSystemTest)
-else (PV_USE_GDAL)
-   pv_add_test(PARAMS MoviePvpSystemTest)
-endif (PV_USE_GDAL)

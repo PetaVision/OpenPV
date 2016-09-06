@@ -49,7 +49,7 @@ AdaptiveTimeScaleProbe "AdaptiveTimeScales" = {
 // layers
 //
 
-ImagePvp "input" = {
+PvpLayer "input" = {
     nxScale = 1;
     nyScale = 1;
     inputPath = "input/testimage.pvp";
@@ -59,21 +59,13 @@ ImagePvp "input" = {
     sparseLayer = false;
     mirrorBCflag = false;
     valueBC = 0.0;
-    useImageBCflag = false;
+    useInputBCflag = false;
     inverseFlag = false; 
     normalizeLuminanceFlag = false;
     autoResizeFlag = false;
-    writeImages = false;
     offsetX = 0;
     offsetY = 0;
-    jitterFlag = false;
-
     displayPeriod = 1;
-    randomMovie = false;
-    readPvpFile = false;
-    echoFramePathnameFlag = true;
-    start_frame_index = 0;
-    skip_frame_index = 0;
     writeFrameToTimestamp = true;
 };
 
@@ -225,7 +217,7 @@ CloneConn "V1_to_reconstruction" = {
 
 // Compare reconstruction to what it should be
 
-MoviePvp "correct" = {
+PvpLayer "correct" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
@@ -235,22 +227,15 @@ MoviePvp "correct" = {
     writeStep = 1.0;
     initialWriteTime = 1.0;
     sparseLayer = false;
-
     inputPath = "input/correct.pvp";
     offsetX = 0;
     offsetY = 0;
-    writeImages = false;
-    useImageBCflag = false;
+    useInputBCflag = false;
     autoResizeFlag = false;
     inverseFlag = false;
     normalizeLuminanceFlag = false;
-    jitterFlag = false;
-
     displayPeriod = 1;
-    start_frame_index = 0;
-    skip_frame_index = 1;
     writeFrameToTimestamp = true;
-    flipOnTimescaleError = true;
 };
 
 ANNLayer "comparison" = {

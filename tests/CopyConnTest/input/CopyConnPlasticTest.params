@@ -19,7 +19,7 @@ HyPerCol "column" = {
     errorOnNotANumber                   = true;
 };
 
-ImagePvp "Input" = {
+PvpLayer "Input" = {
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 1;
@@ -34,14 +34,12 @@ ImagePvp "Input" = {
     offsetAnchor                        = "tl";
     offsetX                             = 0;
     offsetY                             = 0;
-    writeImages                         = 0;
-    useImageBCflag                      = false;
+    useInputBCflag                      = false;
     autoResizeFlag                      = false;
     inverseFlag                         = false;
     normalizeLuminanceFlag              = false;
-    jitterFlag                          = 0;
     padValue                            = 0;
-    pvpFrameIdx                         = 0;
+	displayPeriod                       = 0;
 };
 
 ANNLayer "OriginalConn Output" = {

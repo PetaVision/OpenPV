@@ -19,6 +19,13 @@ else("${PV_SYSTEM_TEST_THREADS}" MATCHES "^([0-9]+|)$")
    message(FATAL_ERROR "PV_SYSTEM_TEST_THREADS must be either a positive integer or the empty string")
 endif("${PV_SYSTEM_TEST_THREADS}" MATCHES "^([0-9]+|)$")
 
+
+# Unit tests for individual classes happen first. If these fail, the rest of the results are unreliable.
+add_subdirectory(BatchIndexerTest)
+add_subdirectory(BufferTest)
+add_subdirectory(ImageTest)
+
+# System tests that involve starting up a full instance of PetaVision happen next.
 add_subdirectory(BasicSystemTest)
 add_subdirectory(AdjustAxonalArborsTest)
 add_subdirectory(ANNLayerVerticesTest)
@@ -57,6 +64,7 @@ endif (PV_USE_CUDA)
 add_subdirectory(GroupNormalizationTest)
 add_subdirectory(ImageSystemTest)
 add_subdirectory(ImageOffsetTest)
+add_subdirectory(InputSystemTest)
 add_subdirectory(ImportParamsTest)
 add_subdirectory(ImprintConnTest)
 add_subdirectory(InitWeightsTest)
@@ -71,8 +79,6 @@ add_subdirectory(MaskLayerTest)
 add_subdirectory(MaxPoolTest)
 add_subdirectory(MomentumTest)
 add_subdirectory(MomentumLCATest)
-add_subdirectory(MovieSystemTest)
-#add_subdirectory(MLPTest) # Moved to auxlib/mlearning
 if (PV_USE_MPI)
    add_subdirectory(MPITest)
 endif (PV_USE_MPI)

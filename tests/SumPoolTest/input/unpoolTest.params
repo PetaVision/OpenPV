@@ -22,7 +22,7 @@ HyPerCol "column" = {
 
 // this is a input layer
 // value is equal to restricted index into extended layer (with negative values) index, with order [x, y, f] from fastest to slowest
-InputLayer "input" = {
+SumPoolTestInputLayer "input" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;

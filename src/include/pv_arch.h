@@ -7,7 +7,6 @@
  * PV_USE_OPENMP_THREADS, PV_OPENCL, PV_CUDA, PV_CUDNN
  * were moved into cMakeHeader.h on Mar 25, 2015.
  * PV_USE_MPI was moved into cMakeHeader.h on Sept 1, 2015.
- * PV_USE_GDAL was moved into cMakeHeader.h on Jan 29, 2016.
  */
 
 /* define this for 64 bit architectures */

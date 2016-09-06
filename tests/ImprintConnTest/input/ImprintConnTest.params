@@ -20,7 +20,7 @@ HyPerCol "column" = {
 };
 
 // this is a input layer
-InputLayer "input" = {
+ImprintConnTestInputLayer "input" = {
     restart = 0;
     nxScale = .25;
     nyScale = .25;
@@ -43,34 +43,26 @@ InputLayer "input" = {
     triggerLayerName = NULL;
 };
 
-MoviePvp "errInput" = {
+PvpLayer "errInput" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 3;
-    readPvpFile = true;
     inputPath = "input/errInput.pvp";
     writeFrameToTimestamp = true;
     writeStep = -1;
     sparseLayer = false;
     displayPeriod = 1;
-    start_frame_index = 0;
-    skip_frame_index = 1;
-    // echoFramePathnameFlag = true;
     mirrorBCflag = true;
-    jitterFlag = 0;
-    useImageBCflag = false;
+    useInputBCflag = false;
     inverseFlag = false;
     normalizeLuminanceFlag = false;
-    writeImages = false;
     offsetAnchor = "tl";
     offsetX = 0;
     offsetY = 0;
     autoResizeFlag = 0;
-    randomMovie = 0;
     phase = 0;
     padValue = 0.0;
-    flipOnTimescaleError = true;
     resetToStartOnLoop = true;
 };
 

@@ -19,7 +19,7 @@ HyPerCol "Column" = {
     errorOnNotANumber                   = false;
 };
 
-ImagePvp "ForwardPoolingSource" = {
+PvpLayer "ForwardPoolingSource" = {
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 4;
@@ -35,14 +35,12 @@ ImagePvp "ForwardPoolingSource" = {
     offsetAnchor                        = "tl";
     offsetX                             = 0;
     offsetY                             = 0;
-    writeImages                         = 0;
     autoResizeFlag                      = false;
     inverseFlag                         = false;
     normalizeLuminanceFlag              = false;
-    jitterFlag                          = 0;
-    useImageBCflag                      = false;
+    useInputBCflag                      = false;
     padValue                            = 0;
-    pvpFrameIdx                         = 0;
+	displayPeriod                       = 0;
 };
 
 HyPerLayer "ForwardPoolingDestinationCPU" = {
@@ -61,7 +59,7 @@ HyPerLayer "ForwardPoolingDestinationCPU" = {
     dataType                            = NULL;
 };
 
-ImagePvp "BackwardPoolingSource" = {
+PvpLayer "BackwardPoolingSource" = {
     nxScale                             = 0.5;
     nyScale                             = 0.5;
     nf                                  = 4;
@@ -77,14 +75,12 @@ ImagePvp "BackwardPoolingSource" = {
     offsetAnchor                        = "tl";
     offsetX                             = 0;
     offsetY                             = 0;
-    writeImages                         = 0;
     autoResizeFlag                      = false;
     inverseFlag                         = false;
     normalizeLuminanceFlag              = false;
-    jitterFlag                          = 0;
-    useImageBCflag                      = false;
+    useInputBCflag                      = false;
     padValue                            = 0;
-    pvpFrameIdx                         = 0;
+	displayPeriod                       = 0;
 };
 
 HyPerLayer "BackwardPoolingDestinationCPU" = {

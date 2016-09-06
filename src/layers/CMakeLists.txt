@@ -4,7 +4,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/ANNSquaredLayer.cpp
    ${SUBDIR}/ANNWhitenedLayer.cpp
    ${SUBDIR}/BackgroundLayer.cpp
-   ${SUBDIR}/BaseInput.cpp
+   ${SUBDIR}/InputLayer.cpp
    ${SUBDIR}/BaseLayer.cpp
    ${SUBDIR}/BinningLayer.cpp
    ${SUBDIR}/CloneVLayer.cpp
@@ -14,27 +14,23 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/HyPerLayer.cpp
    ${SUBDIR}/HyPerLCALayer.cpp
    ${SUBDIR}/MomentumLCALayer.cpp
-   ${SUBDIR}/Image.cpp
+   ${SUBDIR}/ImageLayer.cpp
    ${SUBDIR}/ImageFromMemoryBuffer.cpp
-   ${SUBDIR}/ImagePvp.cpp
    ${SUBDIR}/InitV.cpp
    ${SUBDIR}/ISTALayer.cpp
    ${SUBDIR}/KmeansLayer.cpp
    ${SUBDIR}/LabelErrorLayer.cpp
-   ${SUBDIR}/LabelLayer.cpp
    ${SUBDIR}/LCALIFLayer.cpp
    ${SUBDIR}/LeakyIntegrator.cpp
    ${SUBDIR}/LIF.cpp
    ${SUBDIR}/LIFGap.cpp
    ${SUBDIR}/MaskLayer.cpp
-   ${SUBDIR}/Movie.cpp
-   ${SUBDIR}/MoviePvp.cpp
-   ${SUBDIR}/Patterns.cpp
    ${SUBDIR}/PoolingIndexLayer.cpp
    ${SUBDIR}/PtwiseLinearTransferLayer.cpp
    ${SUBDIR}/PtwiseProductLayer.cpp
    ${SUBDIR}/PtwiseQuotientLayer.cpp
    ${SUBDIR}/PVLayerCube.cpp
+   ${SUBDIR}/PvpLayer.cpp
    ${SUBDIR}/RescaleLayer.cpp
    ${SUBDIR}/Retina.cpp
    ${SUBDIR}/RunningAverageLayer.cpp
@@ -51,7 +47,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/ANNSquaredLayer.hpp
    ${SUBDIR}/ANNWhitenedLayer.hpp
    ${SUBDIR}/BackgroundLayer.hpp
-   ${SUBDIR}/BaseInput.hpp
+   ${SUBDIR}/InputLayer.hpp
    ${SUBDIR}/BaseLayer.hpp
    ${SUBDIR}/BinningLayer.hpp
    ${SUBDIR}/CloneVLayer.hpp
@@ -60,26 +56,22 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/GapLayer.hpp
    ${SUBDIR}/HyPerLayer.hpp
    ${SUBDIR}/HyPerLCALayer.hpp
-   ${SUBDIR}/Image.hpp
+   ${SUBDIR}/ImageLayer.hpp
    ${SUBDIR}/ImageFromMemoryBuffer.hpp
-   ${SUBDIR}/ImagePvp.hpp
    ${SUBDIR}/InitV.hpp
    ${SUBDIR}/ISTALayer.hpp
    ${SUBDIR}/KmeansLayer.hpp
    ${SUBDIR}/LabelErrorLayer.hpp
-   ${SUBDIR}/LabelLayer.hpp
    ${SUBDIR}/LCALIFLayer.hpp
    ${SUBDIR}/LeakyIntegrator.hpp
    ${SUBDIR}/LIF.hpp
    ${SUBDIR}/LIFGap.hpp
    ${SUBDIR}/MaskLayer.hpp
-   ${SUBDIR}/Movie.hpp
-   ${SUBDIR}/MoviePvp.hpp
-   ${SUBDIR}/Patterns.hpp
    ${SUBDIR}/PoolingIndexLayer.hpp
    ${SUBDIR}/PtwiseLinearTransferLayer.hpp
    ${SUBDIR}/PtwiseProductLayer.hpp
    ${SUBDIR}/PVLayerCube.hpp
+   ${SUBDIR}/PvpLayer.hpp
    ${SUBDIR}/RescaleLayer.hpp
    ${SUBDIR}/Retina.hpp
    ${SUBDIR}/RunningAverageLayer.hpp

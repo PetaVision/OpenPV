@@ -15,12 +15,6 @@ debugParsing = false;
 HyPerCol "column" = {
     startTime                           = 0;
     dt                                  = 1;
-    dtAdaptFlag                         = true;
-    dtScaleMax                          = 5;
-    dtScaleMin                          = 0.125;
-    dtChangeMax                         = 0.05;
-    dtChangeMin                         = 0;
-    dtMinToleratedTimeScale             = 0.0001;
     stopTime                            = 1000;
     progressInterval                    = 1000;
     writeProgressToErr                  = false;
@@ -31,16 +25,22 @@ HyPerCol "column" = {
     nx                                  = 32;
     ny                                  = 32;
     nbatch                              = 1;
-    filenamesContainLayerNames          = 1;
-    filenamesContainConnectionNames     = 1;
-    initializeFromCheckpointDir         = "";
     checkpointWrite                     = false;
     suppressLastOutput                  = false;
-    writeTimescales                     = true;
     errorOnNotANumber                   = false;
 };
 
-Movie "input" = {
+AdaptiveTimeScaleProbe "AdaptiveTimeScales" = {
+    targetName                           = "TimeScale";
+    probeOutputFile                      = "AdaptiveTimeScales.txt";
+    baseMax                              = 4;
+    baseMin                              = 0.125;
+    tauFactor                            = 0.05;
+    growthFactor                         = 0;
+    writeTimeScales                      = true;
+};
+
+ImageLayer "input" = {
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 3;
@@ -56,23 +56,16 @@ Movie "input" = {
     offsetAnchor                        = "tl";
     offsetX                             = 0;
     offsetY                             = 0;
-    writeImages                         = 0;
     inverseFlag                         = false;
     normalizeLuminanceFlag              = false;
-    jitterFlag                          = 0;
-    useImageBCflag                      = false;
+    useInputBCflag                      = false;
     padValue                            = 0;
     autoResizeFlag                      = false;
     displayPeriod                       = 200;
-    echoFramePathnameFlag               = true;
-    batchMethod                         = "bySpecified";
-    start_frame_index                   = [0.000000];
-    skip_frame_index                    = [0.000000];
+    batchMethod                         = "byFile";
     writeFrameToTimestamp               = true;
-    flipOnTimescaleError                = true;
     resetToStartOnLoop                  = false;
 };
-
 ANNNormalizedErrorLayer "residual" = {
     nxScale                             = 1;
     nyScale                             = 1;
@@ -117,6 +110,7 @@ HyPerLCALayer "V1" = {
     clearGSynInterval                   = 0;
     timeConstantTau                     = 100;
     selfInteract                        = true;
+	adaptiveTimeScaleProbe              = "AdaptiveTimeScales";
 };
 
 ANNLayer "reconstruction" = {

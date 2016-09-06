@@ -52,6 +52,9 @@ int pvp_close_file(PV_Stream * pvstream, Communicator * comm);
 int pvp_read_header(PV_Stream * pvstream, Communicator * comm, int * params, int * numParams);
 int pvp_read_header(const char * filename, Communicator * comm, double * time,
                     int * filetype, int * datatype, int params[], int * numParams);
+int pvp_read_header(PV_Stream * pvstream, double * time, int * filetype,
+                    int * datatype, int params[], int * numParams);
+
 void read_header_err(const char * filename, Communicator * comm, int returned_num_params, int * params);
 int pvp_write_header(PV_Stream * pvstream, Communicator * comm, int * params, int numParams);
 

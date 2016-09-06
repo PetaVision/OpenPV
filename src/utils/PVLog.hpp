@@ -156,7 +156,7 @@ template<> inline bool LogWarnType::flushOutputStream() { return false; }
 template<> inline bool LogErrorType::flushOutputStream() { return true; }
 template<> inline bool LogErrorNoExitType::flushOutputStream() { return true; }
 template<> inline bool LogStackTraceType::flushOutputStream() { return true; }
-template<> inline bool LogDebugType::flushOutputStream() { return false; }
+template<> inline bool LogDebugType::flushOutputStream() { return true; }
 
 template<> inline bool LogInfoType::prependPrefix() { return false; }
 template<> inline bool LogWarnType::prependPrefix() { return true; }

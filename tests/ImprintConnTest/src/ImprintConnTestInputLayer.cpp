@@ -1,12 +1,12 @@
-#include "InputLayer.hpp"
+#include "ImprintConnTestInputLayer.hpp"
 
 namespace PV {
 
-InputLayer::InputLayer(const char * name, HyPerCol * hc){
+ImprintConnTestInputLayer::ImprintConnTestInputLayer(const char * name, HyPerCol * hc){
    ANNLayer::initialize(name, hc);
 }
 
-int InputLayer::updateState(double timef, double dt){
+int ImprintConnTestInputLayer::updateState(double timef, double dt){
    //Grab the activity layer of current layer
    pvdata_t * A = getActivity();
    //Grab layer size

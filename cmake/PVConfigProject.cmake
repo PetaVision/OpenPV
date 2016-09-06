@@ -30,9 +30,13 @@ macro(pv_config_project)
   
   # GCC compiler defaults
   set(GCC_OPENMP_FLAG "-fopenmp")
+  # warning flag is here so that it skips nvcc, which causes inaccurate warnings by compiling .cu as C
+  #  set(GCC_CPP_11X_FLAGS "-std=c++11 -Wall -fdiagnostics-show-option")
+  # Warnings disabled so that they can be addressed in a seperate branch
   set(GCC_CPP_11X_FLAGS "-std=c++11")
   set(GCC_SANITIZE_ADDRESS_CXX_FLAGS -g;-fsanitize=address;-fno-omit-frame-pointer)
   set(GCC_SANITIZE_ADDRESS_LINKER_FLAGS -g;-fsanitize=address)
+#  set(GCC_COMPILE_FLAGS_DEBUG -Wdouble-promotion)
   set(GCC_RELEASE_FLAGS "")
   set(GCC_LINK_LIBRARIES m)
   
@@ -52,14 +56,12 @@ macro(pv_config_project)
   set(PV_USE_MPI_HELP "Defines whether PetaVision uses MPI")
   set(PV_USE_CUDA_HELP "Defines if PetaVision uses CUDA GPU")
   set(PV_CUDA_RELEASE_HELP "Defines if Cuda compiles with optimization")
-  set(PV_USE_GDAL_HELP "Enable loading of images and movies")
   set(PV_USE_LUA_HELP "Enable using a lua program as the params file")
   set(PV_CUDNN_PATH_HELP "Location of cuDNN libraries. Optional")
   set(PV_ADDRESS_SANITIZE_HELP "Add compiler flags for sanitizing addresses")
   set(PV_BUILD_SHARED_HELP "Build a shared library")
   set(PV_DEBUG_OUTPUT_HELP "Display output from logDebug() in Release builds")
   set(PV_BUILD_TEST_HELP "Build the OpenPV test suite")
-  set(PV_REORDER_HYPERCONN_HELP "Use the proposed cache friendly reordered inner loops in HyPerConn")
   set(PV_COMPILE_OPTIONS_EXTRA_HELP "Any additional flags to pass to the compiler")
 
   ################################################################################
@@ -157,13 +159,11 @@ macro(pv_config_project)
   set(PV_OPENMP_FLAG "${PV_OPENMP_FLAG}" CACHE STRING "${PV_OPENMP_FLAG_HELP}")
   set(PV_USE_CUDA ON CACHE BOOL "${PV_USE_CUDA_HELP}")
   set(PV_CUDA_RELEASE ON CACHE BOOL ${PV_CUDA_RELEASE_HELP})
-  set(PV_USE_GDAL ON CACHE BOOL "${PV_USE_GDAL_HELP}")
   set(PV_USE_LUA OFF CACHE BOOL "${PV_USE_LUA_HELP}")
   set(PV_ADDRESS_SANITIZE OFF CACHE BOOL "${PV_ADDRESS_SANITIZE_HELP}")
   set(PV_BUILD_SHARED OFF CACHE BOOL "${PV_BUILD_SHARED_HELP}")
   set(PV_DEBUG_OUTPUT OFF CACHE BOOL "${PV_DEBUG_OUTPUT_HELP}")
   set(PV_BUILD_TEST ON CACHE BOOL "${PV_BUILD_TEST_HELP}")
-  set(PV_REORDER_HYPERCONN ON CACHE BOOL "${PV_REORDER_HYPERCONN_HELP}")
   set(PV_COMPILE_OPTIONS_EXTRA "" CACHE STRING "${PV_COMPILE_FLAGS_EXTRA_HELP}")
 
   ################################################################################
@@ -249,10 +249,6 @@ macro(pv_config_project)
       endif()
       
     endif()
-  endif()
-  
-  if (PV_USE_GDAL)
-    find_package(GDAL)
   endif()
   
   if (PV_USE_MPI)

@@ -3,11 +3,15 @@
 namespace PV {
 
 ImagePvpOffsetTestLayer::ImagePvpOffsetTestLayer(const char * name, HyPerCol * hc){
-   ImagePvp::initialize(name, hc);
+   PvpLayer::initialize(name, hc);
 }
 
 double ImagePvpOffsetTestLayer::getDeltaUpdateTime(){
    return 1;
+}
+
+bool ImagePvpOffsetTestLayer::readyForNextFile() {
+   return false;
 }
 
 int ImagePvpOffsetTestLayer::updateState(double timef, double dt){

@@ -27,25 +27,22 @@ HyPerCol "column" = {
 //  0 Image
 //  1 Copy
 
-ImagePvp "Image" = {
-    initializeFromCheckpointFlag = false;
+PvpLayer "Image" = {
     nxScale = 1;
     nyScale = 1;
     inputPath = "input/F_N160050.pvp";
     nf = 3;
     phase = 0;
     writeStep = -1;
-    sparseLayer = false;
     mirrorBCflag = false;
     valueBC = 0.0;
-    writeImages = false;
-    useImageBCflag = false;
+    useInputBCflag = false;
     inverseFlag = false;
     normalizeLuminanceFlag = false;
     autoResizeFlag = false;
-    jitterFlag = false;
     offsetX = 0;
     offsetY = 0;
+	displayPeriod                       = 0;
 };
 
 ANNLayer "Copy" = {

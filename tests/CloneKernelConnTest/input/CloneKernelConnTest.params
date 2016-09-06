@@ -36,7 +36,7 @@ HyPerCol "column" = {
 // layers
 //
 
-MoviePvp "Input" = {
+PvpLayer "Input" = {
     inputPath = "./input/box.pvp";
 
     nxScale = 1;
@@ -48,20 +48,16 @@ MoviePvp "Input" = {
     updateGpu = false;
     mirrorBCflag = false;
     valueBC = 0.0;
-    useImageBCflag = false;
+    useInputBCflag = false;
     inverseFlag = false;
     normalizeLuminanceFlag = false;  
     autoResizeFlag = false;  
     padValue = 0;
-    
-    writeImages = false;
     writeFrameToTimestamp = false;
-
     displayPeriod = 100;
-    flipOnTimescaleError = false;
     start_frame_index = [0, 0];
     skip_frame_index = [0, 0];
-    jitterFlag = false;
+    batchMethod = "bySpecified";
     offsetAnchor = "tl";
     offsetX = 0;
     offsetY = 0;

@@ -2001,9 +2001,9 @@ int HyPerConn::checkpointRead(const char * cpDir, double * timeptr) {
 
    status = parent->readScalarFromFile(cpDir, getName(), "lastUpdateTime", &lastUpdateTime, lastUpdateTime);
    pvAssert(status == PV_SUCCESS);
-   if (plasticityFlag) {
+   if (plasticityFlag && !triggerLayerName) {
       status = parent->readScalarFromFile(cpDir, getName(), "weightUpdateTime", &weightUpdateTime, weightUpdateTime);
-      if (!triggerLayerName && weightUpdateTime<parent->simulationTime()) {
+      if (weightUpdateTime<parent->simulationTime()) {
          pvAssert(status == PV_SUCCESS);
          while(weightUpdateTime <= parent->simulationTime()) {weightUpdateTime += weightUpdatePeriod;}
          if (parent->columnId()==0) {

@@ -1,9 +1,9 @@
 //
-// MovieSystemTest.params
+// ImageLayerSystemTest.params
 //
 // created by peteschultz: Dec 5, 2013
 //
-// A short params file to test border exchange in the Movie class.
+// A short params file to test border exchange in the ImageLayer class.
 //
 // There are two input movies of 8x8 images, with 64 distinct images
 // and a display period of 5.
@@ -27,6 +27,7 @@ debugParsing = false;    // If true, debug the reading of this parameter file.
 HyPerCol "column" = {
    nx                               = 8;
    ny                               = 8;
+   nbatch                           = 1;
    dt                               = 1.0;
    randomSeed                       = 1234567890;
    startTime                        = 0.0;
@@ -49,35 +50,28 @@ HyPerCol "column" = {
 // layers
 //
 
-Movie "input" = {
+ImageLayer "input" = {
     restart                          = false;
     nxScale                          = 1;
     nyScale                          = 1;
     inputPath                        = "input/dot.txt";
-    echoFramePathnameFlag            = true;
     nf                               = 1;
     phase                            = 0;
     writeStep                        = -1;
-    // initialWriteTime
     sparseLayer                      = false;
     updateGpu                        = false;
     mirrorBCflag                     = true;
-    useImageBCflag                   = false;
+    useInputBCflag                   = false;
     inverseFlag                      = false;
     normalizeLuminanceFlag           = false;
     autoResizeFlag                   = false;
-    writeImages                      = false;
     offsetAnchor                     = "tl";
     offsetX                          = 0;
     offsetY                          = 0;
-    jitterFlag                       = false;
     padValue                         = 0;
-    randomMovie                      = false;
     displayPeriod                    = 5;
-    start_frame_index                = 1;
-    skip_frame_index                 = 0;
+    start_frame_index                = [1];
     writeFrameToTimestamp            = true;
-    flipOnTimescaleError             = true;
     resetToStartOnLoop               = false;
 };
 
@@ -104,7 +98,7 @@ ANNLayer "ganglion" = {
     clearGSynInterval                = 0.0;
 };
 
-Movie "correctoutput" = {
+ImageLayer "correctoutput" = {
     restart                          = false;
     nxScale                          = 1;
     nyScale                          = 1;
@@ -113,24 +107,19 @@ Movie "correctoutput" = {
     nf                               = 1;
     phase                            = 0;
     writeStep                        = -1;
-    // initialWriteTime
     sparseLayer                      = false;
     updateGpu                        = false;
     mirrorBCflag                     = true;
-    useImageBCflag                   = false;
+    useInputBCflag                   = false;
     inverseFlag                      = false;
     normalizeLuminanceFlag           = false;
     autoResizeFlag                   = false;
-    writeImages                      = false;
     offsetAnchor                     = "tl";
     offsetX                          = 0;
     offsetY                          = 0;
-    jitterFlag                       = false;
     padValue                         = 0;
-    randomMovie                      = false;
     displayPeriod                    = 5;
-    start_frame_index                = 1;
-    skip_frame_index                 = 0;
+    start_frame_index                = [1];
     writeFrameToTimestamp            = true;
     flipOnTimescaleError             = true;
     resetToStartOnLoop               = false;

@@ -6,6 +6,9 @@
 #include <list>
 #include <cerrno>
 #include <cstring>
+#include <gdal.h>
+#include <gdal_priv.h>
+
 #include "columns/Communicator.hpp"
 #include "columns/PV_Init.hpp"
 #include "layers/ImageFromMemoryBuffer.hpp"
@@ -17,7 +20,6 @@
 #include "ConvertFromTable.hpp"
 #include "LocalizationProbe.hpp"
 #include "LocalizationBBFindProbe.hpp"
-#include "MaskFromMemoryBuffer.hpp"
 #define TEXTFILEBUFFERSIZE 1024
 
 char * getImageFileName(PV::Communicator * icComm);
@@ -159,7 +161,6 @@ int main(int argc, char* argv[])
    pv_init.registerKeyword("ConvertFromTable", PV::Factory::create<ConvertFromTable>);
    pv_init.registerKeyword("LocalizationBBFindProbe", PV::Factory::create<LocalizationBBFindProbe>);
    pv_init.registerKeyword("LocalizationProbe", PV::Factory::create<LocalizationProbe>);
-   pv_init.registerKeyword("MaskFromMemoryBuffer", PV::Factory::create<MaskFromMemoryBuffer>);
    pv_init.registerKeyword("Harness", PV::Factory::create<HarnessObject>);
    PV::HyPerCol * hc = createHyPerCol(&pv_init);
    pvAssert(hc->getStartTime()==hc->simulationTime());
@@ -441,7 +442,7 @@ int setImageLayerMemoryBuffer(PV::Communicator * icComm, char const * imageFile,
          pvInfo().printf("Image from file \"%s\"\n", imageFile);
          path = strdup(imageFile);
       }
-      GDALDataset * gdalDataset = PV_GDALOpen(path);
+      GDALDataset * gdalDataset = (GDALDataset*)GDALOpen(path, GA_ReadOnly);
       if (gdalDataset==NULL)
       {
          pvError().printf("setImageLayerMemoryBuffer: GDALOpen failed for image \"%s\".\n", imageFile);

@@ -251,7 +251,7 @@ int privateTransposeConn::transposeNonsharedWeights(int arborId) {
    size_t buffersize[NUM_NEIGHBORHOOD];
    bool hasRestrictedNeighbor[NUM_NEIGHBORHOOD];
    for (int neighbor=0; neighbor<NUM_NEIGHBORHOOD; neighbor++) {
-      hasRestrictedNeighbor[neighbor] = neighbor!=LOCAL &&
+      hasRestrictedNeighbor[neighbor] = neighbor!=Communicator::LOCAL &&
                                         icComm->neighborIndex(parent->columnId(), neighbor)>=0 &&
                                         icComm->reverseDirection(parent->columnId(), neighbor) + neighbor == NUM_NEIGHBORHOOD;
    }
@@ -447,38 +447,38 @@ int privateTransposeConn::mpiexchangesize(int neighbor, int * size, int * startx
    const int nx = preLocOrig->nx;
    const int ny = preLocOrig->ny;
    switch(neighbor) {
-   case LOCAL:
+   case Communicator::LOCAL:
       assert(0);
       break;
-   case NORTHWEST:
+   case Communicator::NORTHWEST:
       *startx = 0; *stopx = halo->lt;
       *starty = 0; *stopy = halo->up;
       break;
-   case NORTH:
+   case Communicator::NORTH:
       *startx = halo->lt; *stopx = halo->lt + nx;
       *starty = 0; *stopy = halo->up;
       break;
-   case NORTHEAST:
+   case Communicator::NORTHEAST:
       *startx = nx + halo->lt; *stopx = nx + halo->lt + halo->rt;
       *starty = 0; *stopy = halo->up;
       break;
-   case WEST:
+   case Communicator::WEST:
       *startx = 0; *stopx = halo->lt;
       *starty = halo->up; *stopy = halo->up + ny;
       break;
-   case EAST:
+   case Communicator::EAST:
       *startx = nx + halo->lt; *stopx = nx + halo->lt + halo->rt;
       *starty = halo->up; *stopy = halo->up + ny;
       break;
-   case SOUTHWEST:
+   case Communicator::SOUTHWEST:
       *startx = 0; *stopx = halo->lt;
       *starty = ny + halo->up; *stopy = ny + halo->dn + halo->up;
       break;
-   case SOUTH:
+   case Communicator::SOUTH:
       *startx = halo->lt; *stopx = halo->lt + nx;
       *starty = ny + halo->up; *stopy = ny + halo->dn + halo->up;
       break;
-   case SOUTHEAST:
+   case Communicator::SOUTHEAST:
       *startx = nx + halo->lt; *stopx = nx + halo->lt + halo->rt;
       *starty = ny + halo->up; *stopy = ny + halo->dn + halo->up;
       break;

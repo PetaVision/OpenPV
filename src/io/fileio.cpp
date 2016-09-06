@@ -879,7 +879,6 @@ void read_header_err(const char * filename, Communicator * comm, int returned_nu
    abort();
 }
 
-static
 int pvp_read_header(PV_Stream * pvstream, double * time, int * filetype,
                     int * datatype, int params[], int * numParams)
 {

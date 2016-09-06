@@ -50,10 +50,6 @@ local pvParameters = {
       nx                                  = nxSize;
       ny                                  = nySize;
       nbatch                              = nbatch;
-      filenamesContainLayerNames          = 2;
-      filenamesContainConnectionNames     = 2;
-      initializeFromCheckpointDir         = "";
-      defaultInitializeFromCheckpointFlag = false;
       checkpointWrite                     = true;
       checkpointWriteDir                  = outputPath .. "/Checkpoints"; --The checkpoint output directory
       checkpointWriteTriggerMode          = "step";
@@ -63,7 +59,8 @@ local pvParameters = {
       errorOnNotANumber                   = false;
    };
 
-   AdaptiveTimeScaleProbe "AdaptiveTimeScales" = {
+   AdaptiveTimeScales = {
+      groupTpye = "AdaptiveTimeScaleProbe";
       targetName                          = "V1EnergyProbe";
       message                             = nil;
       textOutputFlag                      = true;
@@ -78,13 +75,12 @@ local pvParameters = {
    };
 
    Input = {
-      groupType = "Movie";
+      groupType = "ImageLayer";
       nxScale                             = 1;
       nyScale                             = 1;
       nf                                  = 3;
       phase                               = 0;
       mirrorBCflag                        = true;
-      initializeFromCheckpointFlag        = false;
       writeStep                           = writeStep;
       initialWriteTime                    = initialWriteTime;
       sparseLayer                         = false;
@@ -94,25 +90,21 @@ local pvParameters = {
       offsetAnchor                        = "tl";
       offsetX                             = 0;
       offsetY                             = 0;
-      writeImages                         = 0;
       inverseFlag                         = false;
       normalizeLuminanceFlag              = true;
       normalizeStdDev                     = true;
       jitterFlag                          = 0;
-      useImageBCflag                      = false;
+      useInputBCflag                      = false;
       padValue                            = 0;
       autoResizeFlag                      = false;
       displayPeriod                       = displayPeriod;
-      echoFramePathnameFlag               = true;
       batchMethod                         = "byImage";
-      start_frame_index                   = {0.000000};
       writeFrameToTimestamp               = true;
-      flipOnTimescaleError                = true;
       resetToStartOnLoop                  = false;
    };
 
    InputError = {
-      groupType = "ANNLayer";
+      groupType = "HyPerLayer";
       nxScale                             = 1;
       nyScale                             = 1;
       nf                                  = 3;
@@ -127,12 +119,6 @@ local pvParameters = {
       sparseLayer                         = false;
       updateGpu                           = false;
       dataType                            = nil;
-      VThresh                             = -infinity;
-      AMin                                = -infinity;
-      AMax                                = infinity;
-      AShift                              = 0;
-      clearGSynInterval                   = 0;
-      useMask                             = false;
    };
 
    V1 = {
@@ -166,7 +152,7 @@ local pvParameters = {
    };
 
    InputRecon = {
-      groupType = "ANNLayer";
+      groupType = "HyPerLayer";
       nxScale                             = 1;
       nyScale                             = 1;
       nf                                  = 3;
@@ -181,12 +167,6 @@ local pvParameters = {
       sparseLayer                         = false;
       updateGpu                           = false;
       dataType                            = nil;
-      VThresh                             = -infinity;
-      AMin                                = -infinity;
-      AMax                                =  infinity;
-      AShift                              = 0;
-      VWidth                              = 0;
-      clearGSynInterval                   = 0;
    };
 
 --Connections ------------------------------------------------------

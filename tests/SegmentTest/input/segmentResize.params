@@ -9,18 +9,15 @@ HyPerCol "column" = {
     progressInterval = 1.0;
     outputPath = "output/";
     printParamsFilename = "pv.params";
-    initializeFromCheckpointDir = "";
     checkpointWrite = false;
-    // deleteOlderCheckpoints = false;
     suppressLastOutput = false;
     writeProgressToErr = true;
     verifyWrites = false;
     errorOnNotANumber = false;
-    batchMethod = "byImage";
     nbatch = 1;
 };
 
-MoviePvp "Input" = {
+PvpLayer "Input" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
@@ -30,22 +27,17 @@ MoviePvp "Input" = {
     writeStep = -1;
     sparseLayer = false;
     writeSparseValues = true;
-    displayPeriod = 1;
-    //start_frame_index = 0; //Start at frame 1
-    //skip_frame_index = 1;
-    echoFramePathnameFlag = true;
+    displayPeriod = 0;
     mirrorBCflag = true;
-    jitterFlag = 0;
-    useImageBCflag = false;
+    useInputBCflag = false;
     inverseFlag = false;
     normalizeLuminanceFlag = false;
     writeImages = false;
     offsetX = 0;
     offsetY = 0;
     autoResizeFlag = 0;
-    randomMovie = 0;
     phase = 0;
-    //useParamsImage = true;
+    batchMethod = "byFile";
 };
 
 SegmentLayer "segLayer" = {
