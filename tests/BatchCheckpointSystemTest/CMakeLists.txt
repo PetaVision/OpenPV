@@ -1,16 +1,16 @@
 set(SRC_CPP
-  src/CPTestInputLayer.cpp
   src/main.cpp
-  src/VaryingHyPerConn.cpp
+  ${TESTS_SHARED_DIR}/CPTestInputLayer.cpp
+  ${TESTS_SHARED_DIR}/VaryingHyPerConn.cpp
 )
 
 set(SRC_HPP
-  src/CPTestInputLayer.hpp
-  src/VaryingHyPerConn.hpp
+  ${TESTS_SHARED_DIR}/CPTestInputLayer.hpp
+  ${TESTS_SHARED_DIR}/VaryingHyPerConn.hpp
 )
 
 set(SRC_H
-  src/CPTest_updateStateFunctions.h
+  ${TESTS_SHARED_DIR}/CPTest_updateStateFunctions.h
 )
 
 pv_add_test(NO_PARAMS SRCFILES ${SRC_CPP} ${SRC_HPP} ${SRC_C} ${SRC_H})
