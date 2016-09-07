@@ -336,27 +336,21 @@ public:
     * @return Returns if the update needs to happen
     */
    virtual bool needUpdate(double time, double dt);
-   /**
-    * A function to update nextUpdateTime of the layer based on trigger
-    */
-   virtual int updateNextUpdateTime();
-   /**
-    * A function to set nextUpdateTime to a specific time
-    */
-   virtual void setNextUpdateTime(double in){nextUpdateTime = in;}
+
    /**
     * A function to return the interval between times when updateState is needed.
     */
    virtual double getDeltaUpdateTime();
+
    /**
     * A function to return the interval between triggering times.  A negative value means that the layer never triggers
     * (either there is no triggerLayer or the triggerLayer never updates).
     */
    virtual double getDeltaTriggerTime();
+
    /**
     * A function to update the time that the next trigger is expected to occur.
     */
-   virtual int updateNextTriggerTime();
    virtual int respondLayerRecvSynapticInput(LayerRecvSynapticInputMessage const * message);
    virtual int respondLayerUpdateState(LayerUpdateStateMessage const * message);
 #ifdef PV_USE_CUDA
@@ -378,9 +372,6 @@ public:
    int resetBuffer(pvdata_t * buf, int numItems);
 
    static bool localDimensionsEqual(PVLayerLoc const * loc1, PVLayerLoc const * loc2);
-#ifdef OBSOLETE // Marked obsolete June 28, 2016.  When mirroring is done, all borders are mirrored.
-   int mirrorInteriorToBorder(int whichBorder, PVLayerCube * cube, PVLayerCube * borderCube);
-#endif // OBSOLETE // Marked obsolete June 28, 2016.  When mirroring is done, all borders are mirrored.
    int mirrorInteriorToBorder(PVLayerCube * cube, PVLayerCube * borderCube);
 
    virtual int checkpointRead(const char * cpDir, double * timeptr); // (const char * cpDir, double * timed);
@@ -456,9 +447,8 @@ public:
    const PVLayerLoc * getLayerLoc()  { return &(clayer->loc); }
    bool isExtended()                 { return true; }
 
-   double getLastUpdateTime() { return lastUpdateTime; }
-   double getNextUpdateTime() { return nextUpdateTime; }
-
+   double getLastUpdateTime() { return mLastUpdateTime; }
+   double getNextUpdateTime() { return mLastUpdateTime + getDeltaUpdateTime(); }
    float getMaxRate() {return maxRate;}
 
    Publisher * getPublisher() { return publisher; }
@@ -538,10 +528,8 @@ protected:
    char* dataTypeString;
    PVDataType dataType;
 
-
-   double lastUpdateTime; // The most recent time that the layer's activity is updated, used as a cue for publisher to exchange borders
-   double nextUpdateTime; // The timestep to update next
-   double nextTriggerTime; // The timestep when triggerLayer is next expected to trigger.
+   double mLastUpdateTime;
+   double mLastTriggerTime;
 
    pvdata_t ** thread_gSyn; //Accumulate buffer for each thread, only used if numThreads > 1
    std::vector<BaseConnection *> recvConns;
