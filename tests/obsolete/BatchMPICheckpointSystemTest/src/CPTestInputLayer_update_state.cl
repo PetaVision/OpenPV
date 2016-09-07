@@ -1,19 +1,6 @@
 #include <layers/updateStateFunctions.h>
 #include "CPTest_updateStateFunctions.h"
 
-#ifndef PV_USE_OPENCL
-#  define CL_KERNEL
-#  define CL_MEM_GLOBAL
-#  define CL_MEM_CONST
-#  define CL_MEM_LOCAL
-#else  /* compiling with OpenCL */
-#  define CL_KERNEL       __kernel
-#  define CL_MEM_GLOBAL   __global
-#  define CL_MEM_CONST    __constant
-#  define CL_MEM_LOCAL    __local
-//#  include "conversions.hcl"
-#endif
-
 //
 // update the state of a CPTestInputLayer
 //
@@ -21,7 +8,6 @@
 // static inline functions.  If a subclass needs new behavior, it needs to
 // have its own static inline function.
 //
-CL_KERNEL
 void CPTestInputLayer_update_state(
     const int nbatch,
     const int numNeurons,
@@ -33,14 +19,12 @@ void CPTestInputLayer_update_state(
     const int dn,
     const int up,
 
-    CL_MEM_GLOBAL float * V,
+    float * V,
     const float Vth,
     const float AMin,
     const float AMax,
-    CL_MEM_GLOBAL float * GSynHead,
-//    CL_MEM_GLOBAL float * GSynExc,
-//    CL_MEM_GLOBAL float * GSynInh,
-    CL_MEM_GLOBAL float * activity)
+    float * GSynHead,
+    float * activity)
 {
    updateV_CPTestInputLayer(nbatch, numNeurons, V);
    setActivity_HyPerLayer(nbatch, numNeurons, activity, V, nx, ny, nf, lt, rt, dn, up);

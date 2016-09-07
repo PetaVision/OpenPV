@@ -76,60 +76,20 @@ int CPTestInputLayer::initializeV() {
    return PV_SUCCESS;
 }
 
-//#ifdef PV_USE_OPENCL
-///**
-// * Initialize OpenCL buffers.  This must be called after PVLayer data have
-// * been allocated.
-// */
-//int CPTestInputLayer::initializeThreadBuffers(const char * kernel_name)
-//{
-//   int status = ANNLayer::initializeThreadBuffers(kernel_name);
-//   //There are no CPTestInputLayer-specific buffers...
-//   return status;
-//}
-//
-//int CPTestInputLayer::initializeThreadKernels(const char * kernel_name)
-//{
-//   return ANNLayer::initializeThreadKernels(kernel_name);
-//}
-//int CPTestInputLayer::updateStateOpenCL(double timed, double dt)
-//{
-//   //at the moment there's no reason to do anything differently
-//   //for CPTestInputLayer, but I still defined the method in case
-//   //that changes in the future.
-//   int status = ANNLayer::updateStateOpenCL(timed, dt);
-//   return status;
-//}
-//
-//#endif // PV_USE_OPENCL
-
-
 int CPTestInputLayer::updateState(double timed, double dt) {
    update_timer->start();
-//#ifdef PV_USE_OPENCL
-//   if(gpuAccelerateFlag) {
-//      updateStateOpenCL(timed, dt);
-//      //HyPerLayer::updateState(time, dt);
-//   }
-//   else {
-//#endif
-      const int nx = clayer->loc.nx;
-      const int ny = clayer->loc.ny;
-      const int nf = clayer->loc.nf;
-      const PVHalo * halo = &clayer->loc.halo;
-      const int numNeurons = getNumNeurons();
-      const int nbatch = clayer->loc.nbatch;
+   const int nx = clayer->loc.nx;
+   const int ny = clayer->loc.ny;
+   const int nf = clayer->loc.nf;
+   const PVHalo * halo = &clayer->loc.halo;
+   const int numNeurons = getNumNeurons();
+   const int nbatch = clayer->loc.nbatch;
 
-      //pvdata_t * GSynExc   = getChannel(CHANNEL_EXC);
-      //pvdata_t * GSynInh   = getChannel(CHANNEL_INH);
-      pvdata_t * GSynHead   = GSyn[0];
-      pvdata_t * V = getV();
-      pvdata_t * activity = clayer->activity->data;
+   pvdata_t * GSynHead   = GSyn[0];
+   pvdata_t * V = getV();
+   pvdata_t * activity = clayer->activity->data;
 
-      CPTestInputLayer_update_state(nbatch, numNeurons, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up, V, VThresh, AMin, AMax, GSynHead, activity);
-//#ifdef PV_USE_OPENCL
-//   }
-//#endif
+   CPTestInputLayer_update_state(nbatch, numNeurons, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up, V, VThresh, AMin, AMax, GSynHead, activity);
 
    update_timer->stop();
    return PV_SUCCESS;
@@ -142,14 +102,38 @@ int CPTestInputLayer::updateState(double timed, double dt) {
 extern "C" {
 #endif
 
-#ifndef PV_USE_OPENCL
-#  include "CPTestInputLayer_update_state.cl"
-#else
-#  undef PV_USE_OPENCL
-#  include "CPTestInputLayer_update_state.cl"
-#  define PV_USE_OPENCL
-#endif
+#include <layers/updateStateFunctions.h>
+#include "CPTest_updateStateFunctions.h"
 
+//
+// update the state of a CPTestInputLayer
+//
+// To allow porting to GPUs, functions called from this function must be
+// static inline functions.  If a subclass needs new behavior, it needs to
+// have its own static inline function.
+//
+void CPTestInputLayer_update_state(
+    const int nbatch,
+    const int numNeurons,
+    const int nx,
+    const int ny,
+    const int nf,
+    const int lt,
+    const int rt,
+    const int dn,
+    const int up,
+
+    float * V,
+    const float Vth,
+    const float AMin,
+    const float AMax,
+    float * GSynHead,
+    float * activity)
+{
+   updateV_CPTestInputLayer(nbatch, numNeurons, V);
+   setActivity_HyPerLayer(nbatch, numNeurons, activity, V, nx, ny, nf, lt, rt, dn, up);
+   resetGSynBuffers_HyPerLayer(nbatch, numNeurons, 2, GSynHead);
+}
 #ifdef __cplusplus
 }
 #endif

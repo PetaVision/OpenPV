@@ -4,7 +4,6 @@
 #define PV_DIR "@PV_DIR@"
 #cmakedefine PV_USE_MPI
 #cmakedefine PV_USE_OPENMP_THREADS
-#cmakedefine PV_USE_OPENCL
 #cmakedefine PV_USE_CUDA
 #cmakedefine PV_USE_CUDNN
 #cmakedefine PV_USE_LUA

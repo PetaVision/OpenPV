@@ -16,7 +16,6 @@ Example::Example(const char * name, HyPerCol * hc)
    initialize(name, hc);
 }
 
-
 int Example::updateState(double time, double dt)
 {
 #ifdef DEBUG_OUTPUT
