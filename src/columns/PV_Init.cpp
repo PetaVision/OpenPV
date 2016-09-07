@@ -120,7 +120,9 @@ void PV_Init::initLogFile(bool appendFlag) {
       else {
          insertionPoint = finalDot;
       }
-      logFileString.insert(finalDot, std::to_string(globalRank)).insert(finalDot, "_");
+      std::string insertion("_");
+      insertion.append(std::to_string(globalRank));
+      logFileString.insert(insertionPoint, insertion);
       PV::setLogFile(logFileString.c_str(), mode);
    }
    else {

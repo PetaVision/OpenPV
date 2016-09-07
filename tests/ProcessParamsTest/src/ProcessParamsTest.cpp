@@ -10,8 +10,6 @@
 #define PROCESSED_PARAMS "processed.params"
 
 int deleteGeneratedFiles(PV::PV_Init * pv_obj);
-int compareOutputs();
-
 int deleteFile(char const * path, PV::PV_Init * pv_obj);
 
 int main(int argc, char * argv[]) {
@@ -63,11 +61,12 @@ int main(int argc, char * argv[]) {
       pvError().printf("%s: running with processed params file failed on process %d\n", argv[0], rank);
    }
 
-   if (rank==0) {
-      status = compareOutputs();
-      if (status != PV_SUCCESS) {
-         pvError().printf("%s: compareOutputs() failed with return code %d.\n", argv[0], status);
-      }
+   // Run Compare.params file to compare the rusults of raw and cleaned-up params files.
+   pv_obj.setOutputPath("output-compare");
+   pv_obj.setParams("input/Compare.params");
+   status = rebuildandrun(&pv_obj);
+   if (status != PV_SUCCESS) {
+      pvError().printf("%s: running with comparison params file failed on process %d\n", argv[0], rank);
    }
 
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
@@ -85,28 +84,6 @@ int deleteGeneratedFiles(PV::PV_Init * pv_obj) {
       if (system("rm -rf output-verify") != PV_SUCCESS) { status = PV_FAILURE; }
    }
    MPI_Bcast(&status, 1, MPI_INT, 0, pv_obj->getCommunicator()->communicator());
-   return status;
-}
-
-int compareOutputs() {
-   // Only root process calls this function, since it does I/O
-#ifndef NDEBUG
-   int rank;
-   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-   pvErrorIf(!(rank==0), "Test failed.\n");
-#endif // NDEBUG
-
-   int status = PV_SUCCESS;
-   char const * diffcmd = "diff -r -q -x pv.params -x pv.params.lua -x timers.txt output-generate output-verify";
-   status = system(diffcmd);
-   if (status != 0) {
-      // If the diff command fails, it may be only that the file system hasn't caught up yet.  
-      pvWarn().printf("diff command returned %d: waiting 1 second and trying again...\n", WEXITSTATUS(status));
-      pvWarn().flush();
-      sleep(1);
-      status = system(diffcmd);
-      if (status!=0) { status = WEXITSTATUS(status); }
-   }
    return status;
 }
 

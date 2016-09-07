@@ -22,6 +22,7 @@ debugParsing = false;    // Debug the reading of this parameter file.
 HyPerCol "column" = {
    nx = 32;   //size of the whole networks
    ny = 32;
+   nbatch = 1;
    // dt // parameter sweep
    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
    startTime = 0.0;
@@ -63,7 +64,7 @@ PvpLayer "input" = {
     offsetX = 0;  // offset for crop, when the input size is smaller than the size of image
     offsetY = 0;
     padValue = 0;
-	displayPeriod                       = 0;
+    displayPeriod = 0;
 };
 
 ANNLayer "output_noconversion" = {
@@ -84,6 +85,7 @@ ANNLayer "output_noconversion" = {
     AMin = -infinity;
     AShift = 0.0;
     VWidth = 0.0;
+    clearGSynInterval = 0.0;
 };
 
 ANNLayer "output_withconversion" = {
@@ -104,6 +106,7 @@ ANNLayer "output_withconversion" = {
     AMin = -infinity;
     AShift = 0.0;
     VWidth = 0.0;
+    clearGSynInterval = 0.0;
 };
 
 ANNLayer "comparison" = {
@@ -124,6 +127,7 @@ ANNLayer "comparison" = {
     AMin = -infinity;
     AShift = 0.0;
     VWidth = 0.0;
+    clearGSynInterval = 0.0;
 };
 
 //HyPerConns are connections between two layers
@@ -144,17 +148,12 @@ HyPerConn "input_to_output_noconversion" = {
     writeStep = -1;
     
     weightInitType = "Gauss2DWeight";
-    deltaThetaMax = 6.283185;
-    thetaMax = 1.0;
-    numFlanks = 1;
-    flankShift = 0;
-    rotate = false;
-    bowtieFlag = false;
     aspect = 3;
     sigma = 1;
     rMax  = infinity;
     rMin = 0;
     numOrientationsPost = 8;
+    numOrientationsPre = 3;
     // strength // parameter sweep
 
     normalizeMethod = "none";
@@ -187,17 +186,12 @@ HyPerConn "input_to_output_withconversion" = {
     writeStep = -1;
     
     weightInitType = "Gauss2DWeight";
-    deltaThetaMax = 6.283185;
-    thetaMax = 1.0;
-    numFlanks = 1;
-    flankShift = 0;
-    rotate = false;
-    bowtieFlag = false;
     aspect = 3;
     sigma = 1;
     rMax  = infinity;
     rMin = 0;
     numOrientationsPost = 8;
+    numOrientationsPre = 3;
       
     strength = 1.0;
     normalizeMethod = "none";
@@ -234,8 +228,14 @@ IdentConn "output_withconversion_to_comparison" = {
 
 RequireAllZeroActivityProbe "probe" = {
    targetLayer = "comparison";
+   message = NULL;
+   textOutputFlag = true;
+   probeOutputFile = NULL;
    triggerLayerName = NULL;
-   nnzThreshold = 0;
+   energyProbe = NULL;
+   nnzThreshold = 2.0e-6;
+   exitOnFailure = true;
+   immediateExitOnFailure = true;
 };
 
 ParameterSweep "column":outputPath = { "output1000"; "output0500"; "output0250"; "output0125"; };

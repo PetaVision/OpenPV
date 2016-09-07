@@ -526,6 +526,9 @@ int privateTransposeConn::transposeSharedWeights(int arborId) {
          assert(numFFKernelPatches == nfFB);
          int nxFB = nxp; // kpFB->nx;
          int nyFB = nyp; // kpFB->ny;
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for collapse(3)
+#endif
          for( int kyFB = 0; kyFB < nyFB; kyFB++ ) {
             for( int kxFB = 0; kxFB < nxFB; kxFB++ ) {
                for( int kfFB = 0; kfFB < nfFB; kfFB++ ) {

@@ -2816,7 +2816,7 @@ int HyPerConn::deliverPresynapticPerspectiveConvolve(PVLayerCube const * activit
 
       for (int y = 0; y < nyp; y++) {
 #ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for schedule(static)
+#pragma omp parallel for schedule(guided)
 #endif
          for (int idx = 0; idx < numNeurons; idx++) {
             int kPreExt = activity->isSparse ? activeIndicesBatch[idx] : idx;
@@ -2925,7 +2925,7 @@ int HyPerConn::deliverPresynapticPerspectiveStochastic(PVLayerCube const * activ
          }
       }
 
-#pragma omp parallel for schedule(static)
+#pragma omp parallel for schedule(guided)
 #endif
       for (int idx = 0; idx < numNeurons; idx++) {
          int kPreExt = activity->isSparse ? activeIndicesBatch[idx] : idx;
@@ -3042,6 +3042,7 @@ int HyPerConn::deliverPostsynapticPerspectiveConvolve(PVLayerCube const * activi
    int syp = postConn->yPatchStride();
    int yPatchSize = postConn->yPatchSize();
    int numPerStride = postConn->xPatchSize() * postConn->fPatchSize();
+   int neuronIndexStride = nfp < 4 ? 1 : nfp/4;
 
    for(int b = 0; b < nbatch; b++){
       int numNeurons = recvPostSparse ? numActive[b] : numPostRestricted;
@@ -3054,10 +3055,10 @@ int HyPerConn::deliverPostsynapticPerspectiveConvolve(PVLayerCube const * activi
          // Threading over feature was the important change that improved cache performance by
          // 5-10x. dynamic scheduling also gave another performance increase over static.
 #ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for schedule(static)
 #endif
-         for (int feature = 0; feature < nfp; feature++) {
-            for (int idx = feature; idx < numNeurons; idx += nfp) {
+         for (int feature = 0; feature < neuronIndexStride; feature++) {
+            for (int idx = feature; idx < numNeurons; idx += neuronIndexStride) {
                int kTargetRes = recvPostSparse ? activeList[b][idx] : idx;
                // gSyn
                pvdata_t * gSyn = gSynPatchHeadBatch + kTargetRes;
@@ -3160,7 +3161,7 @@ int HyPerConn::deliverPostsynapticPerspectiveStochastic(PVLayerCube const * acti
          // Threading over feature was the important change that improved cache performance by
          // 5-10x. dynamic scheduling also gave another performance increase over static.
 #ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for schedule(static)
 #endif
          for (int feature = 0; feature < nfp; feature++) {
             for (int idx = feature; idx < numNeurons; idx += nfp) {

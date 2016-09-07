@@ -1,0 +1,239 @@
+//
+// Compare.params
+//
+// created by peteschultz: Feb 19, 2015
+//
+
+//  A params file to test the HyPerCol::processParams method.
+//  ProcessParamsTest first runs the ProcessParamsTest.params
+//  file to create the output-generate directory,
+//  and then runs the params file generated from that run
+//  to create the output-verify directory.  Finally, it
+//  runs this params file to check whether the layers generated
+//  in these two runs are equivalent.
+
+debugParsing = true;    // Debug the reading of this parameter file.
+
+HyPerCol "column" = {
+   nx = 32;   //size of the whole networks
+   ny = 32;
+   nbatch = 1;
+   dt = 1.0;
+   randomSeed = 1234567890;
+   startTime = 0.0;
+   stopTime = 1.0;
+   errorOnNotANumber = true;
+   progressInterval = 10.0;
+   writeProgressToErr = false;
+   verifyWrites = false;
+   outputPath = "output-compare/";
+   printParamsFilename = "pv.params";
+   initializeFromCheckpointDir = "";
+   checkpointWrite = false;
+   suppressLastOutput = false;
+};
+
+//
+// layers
+//
+
+// Compare Input layers
+ConstantLayer "InputGenerate" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    phase = 0;
+    writeStep = -1;
+    sparseLayer = false;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    useImageBCflag = false;
+    updateGpu = false;
+    InitVType = "InitVFromFile";
+    Vfilename = "output-generate/Last/Input_A.pvp";
+};
+
+ConstantLayer "InputVerify" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    phase = 0;
+    writeStep = -1;
+    sparseLayer = false;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    useImageBCflag = false;
+    updateGpu = false;
+    InitVType = "InitVFromFile";
+    Vfilename = "output-verify/Last/Input_A.pvp";
+};
+
+IdentConn "InputGenerateToInputCompare" = {
+    channelCode = 1;
+    delay = 0;
+};
+
+IdentConn "InputVerifyToInputCompare" = {
+    channelCode = 0;
+    delay = 0;
+};
+
+HyPerLayer "InputCompare" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    phase = 1;
+    writeStep = -1;
+    sparseLayer = false;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    useImageBCflag = false;
+    updateGpu = false;
+    InitVType = "ZeroV";
+};
+
+RequireAllZeroActivityProbe "InputCompareProbe" = {
+    targetLayer                      = "InputCompare";
+    message                          = "InputCompare                   ";
+    textOutputFlag                   = true;
+    probeOutputFile                  = "InputCompareProbe.txt";
+    triggerLayerName                 = NULL;
+    energyProbe                      = NULL;
+    nnzThreshold                     = 1.0e-6;
+    exitOnFailure                    = true;
+    immediateExitOnFailure           = false;
+};
+
+// Compare OutputBase layers
+ConstantLayer "OutputBaseGenerate" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 8;
+    phase = 0;
+    writeStep = -1;
+    sparseLayer = false;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    useImageBCflag = false;
+    updateGpu = false;
+    InitVType = "InitVFromFile";
+    Vfilename = "output-generate/Last/OutputBase_A.pvp";
+};
+
+ConstantLayer "OutputBaseVerify" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 8;
+    phase = 0;
+    writeStep = -1;
+    sparseLayer = false;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    useImageBCflag = false;
+    updateGpu = false;
+    InitVType = "InitVFromFile";
+    Vfilename = "output-verify/Last/OutputBase_A.pvp";
+};
+
+IdentConn "OutputBaseGenerateToOutputBaseCompare" = {
+    channelCode = 1;
+    delay = 0;
+};
+
+IdentConn "OutputBaseVerifyToOutputBaseCompare" = {
+    channelCode = 0;
+    delay = 0;
+};
+
+HyPerLayer "OutputBaseCompare" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 8;
+    phase = 1;
+    writeStep = -1;
+    sparseLayer = false;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    useImageBCflag = false;
+    updateGpu = false;
+    InitVType = "ZeroV";
+};
+
+RequireAllZeroActivityProbe "OutputBaseCompareProbe" = {
+    targetLayer                      = "OutputBaseCompare";
+    message                          = "OutputBaseCompare              ";
+    textOutputFlag                   = true;
+    probeOutputFile                  = "OutputBaseCompareProbe.txt";
+    triggerLayerName                 = NULL;
+    energyProbe                      = NULL;
+    nnzThreshold                     = 1.0e-6;
+    exitOnFailure                    = true;
+    immediateExitOnFailure           = false;
+};
+
+// Compare OutputImported layers
+ConstantLayer "OutputImportedGenerate" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 6;
+    phase = 0;
+    writeStep = -1;
+    sparseLayer = false;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    useImageBCflag = false;
+    updateGpu = false;
+    InitVType = "InitVFromFile";
+    Vfilename = "output-generate/Last/OutputImported_A.pvp";
+};
+
+ConstantLayer "OutputImportedVerify" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 6;
+    phase = 0;
+    writeStep = -1;
+    sparseLayer = false;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    useImageBCflag = false;
+    updateGpu = false;
+    InitVType = "InitVFromFile";
+    Vfilename = "output-verify/Last/OutputImported_A.pvp";
+};
+
+IdentConn "OutputImportedGenerateToOutputImportedCompare" = {
+    channelCode = 1;
+    delay = 0;
+};
+
+IdentConn "OutputImportedVerifyToOutputImportedCompare" = {
+    channelCode = 0;
+    delay = 0;
+};
+
+HyPerLayer "OutputImportedCompare" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 6;
+    phase = 1;
+    writeStep = -1;
+    sparseLayer = false;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    useImageBCflag = false;
+    updateGpu = false;
+    InitVType = "ZeroV";
+};
+
+RequireAllZeroActivityProbe "OutputImportedCompareProbe" = {
+    targetLayer                      = "OutputImportedCompare";
+    message                          = "OutputImportedCompare          ";
+    textOutputFlag                   = true;
+    probeOutputFile                  = "OutputImportedCompareProbe.txt";
+    triggerLayerName                 = NULL;
+    energyProbe                      = NULL;
+    nnzThreshold                     = 1.0e-6;
+    exitOnFailure                    = true;
+    immediateExitOnFailure           = false;
+};
