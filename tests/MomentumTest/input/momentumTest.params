@@ -85,6 +85,7 @@ MomentumConn "preToPost" = {
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
     triggerLayerName = "pre";
+    triggerOffset = 0;
     pvpatchAccumulateType = "convolve";
 
     dWMax = 1;
