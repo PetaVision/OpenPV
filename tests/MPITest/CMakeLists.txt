@@ -1,1 +1,12 @@
-pv_add_test(PARAMS MPI_test)
+set(SRC_CPP
+  src/MPITestLayer.cpp
+  src/MPITestProbe.cpp
+  src/pv.cpp
+)
+
+set(SRC_HPP
+  src/MPITestLayer.hpp
+  src/MPITestProbe.hpp
+)
+
+pv_add_test(PARAMS MPI_test SRCFILES ${SRC_CPP} ${SRC_HPP} ${SRC_C} ${SRC_H})
