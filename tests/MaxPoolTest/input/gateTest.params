@@ -173,7 +173,7 @@ ANNLayer "GatedMaxPoolPost" = {
     triggerLayerName = NULL;
 };
 
-GatePoolTestLayer "GatePoolTestPre" = {
+GateMaxPoolTestLayer "GatePoolTestPre" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
@@ -195,7 +195,7 @@ GatePoolTestLayer "GatePoolTestPre" = {
     triggerLayerName = NULL;
 };
 
-GatePoolTestLayer "GatePoolTestPost" = {
+GateMaxPoolTestLayer "GatePoolTestPost" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;

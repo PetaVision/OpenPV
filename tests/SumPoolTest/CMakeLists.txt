@@ -1,12 +1,12 @@
 set(SRC_CPP
-  src/GatePoolTestLayer.cpp
+  src/GateSumPoolTestLayer.cpp
   src/SumPoolTest.cpp
   src/SumPoolTestInputLayer.cpp
   src/SumPoolTestLayer.cpp
 )
 
 set(SRC_HPP
-  src/GatePoolTestLayer.hpp
+  src/GateSumPoolTestLayer.hpp
   src/SumPoolTestInputLayer.hpp
   src/SumPoolTestLayer.hpp
 )

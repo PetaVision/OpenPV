@@ -1,11 +1,11 @@
 set(SRC_CPP
-  src/GatePoolTestLayer.cpp
+  src/GateMaxPoolTestLayer.cpp
   src/MaxPoolTest.cpp
   src/MaxPoolTestLayer.cpp
 )
 
 set(SRC_HPP
-  src/GatePoolTestLayer.hpp
+  src/GateMaxPoolTestLayer.hpp
   src/MaxPoolTestLayer.hpp
 )
 
