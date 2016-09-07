@@ -6,7 +6,6 @@ set(SRC_CPP
 
 set(SRC_HPP
   src/ImprintConnTestInputLayer.hpp
-  src/InputLayer.hpp
   src/TestLayer.hpp
 )
 

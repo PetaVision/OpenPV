@@ -5,7 +5,6 @@ set(SRC_CPP
 )
 
 set(SRC_HPP
-  src/InputLayer.hpp
   src/MaskTestInputLayer.hpp
   src/MaskTestLayer.hpp
 )
