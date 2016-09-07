@@ -188,7 +188,8 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc) {
 
    parent->addLayer(this);
 
-   mLastUpdateTime = parent->simulationTime();
+   mLastUpdateTime  = parent->getDeltaTime();
+   mLastTriggerTime = parent->getDeltaTime();
    return PV_SUCCESS;
 }
 
@@ -1522,10 +1523,15 @@ bool HyPerLayer::needUpdate(double time, double dt){
    if (getDeltaUpdateTime() <= 0) {
       return false;
    }
-   if (mLastUpdateTime == time) {
+   if (mLastUpdateTime == time + triggerOffset) {
       return true;
    }
-   if (getNextUpdateTime() >= time) {
+   double timeToCheck = mLastUpdateTime;
+   if(triggerLayer != nullptr && triggerBehaviorType == UPDATEONLY_TRIGGER) {
+      timeToCheck = triggerLayer->getLastUpdateTime();
+   }
+   if (time + triggerOffset      >= timeToCheck + getDeltaUpdateTime()
+    && time + triggerOffset + dt <= timeToCheck + getDeltaUpdateTime() + dt) {
       return true;
    }
    return false;
@@ -1541,7 +1547,7 @@ bool HyPerLayer::needReset(double time, double dt) {
    if (getDeltaTriggerTime() <= 0) {
       return false;
    }
-   if (time >= mLastTriggerTime + getDeltaTriggerTime()) {
+   if (time > mLastTriggerTime + getDeltaTriggerTime()) {
       return true;
    }
    return false;
@@ -1552,10 +1558,7 @@ int HyPerLayer::callUpdateState(double time, double dt){
    if (needUpdate(time, dt)) {
       if (needReset(time, dt)) {
          status = resetStateOnTrigger();
-         // This should keep our timestamp consistent even when dt != 1
-         while (mLastTriggerTime < time && getDeltaTriggerTime() > 0) {
-            mLastTriggerTime += getDeltaTriggerTime();
-         }
+         mLastTriggerTime = time;
       }
 
       update_timer->start();
@@ -1578,9 +1581,7 @@ int HyPerLayer::callUpdateState(double time, double dt){
 #endif
       update_timer->stop();
    
-      while (mLastUpdateTime < time && getDeltaUpdateTime() > 0) {
-         mLastUpdateTime += getDeltaUpdateTime();
-      }
+      mLastUpdateTime = time;
    }
    return status;
 }

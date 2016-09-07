@@ -289,31 +289,11 @@ int BaseProbe::initMessage(const char * msg) {
 }
 
 bool BaseProbe::needUpdate(double time, double dt){
-   if(triggerFlag){
-      assert(triggerLayer);
-      double updateTime;
-      //Update if trigger layer updated on this timestep
-      if(fabs(time - triggerLayer->getLastUpdateTime()) <= (dt/2)){
-         updateTime = triggerLayer->getLastUpdateTime();
-      }
-      else{
-         updateTime = triggerLayer->getNextUpdateTime();
-      }
-      //never update flag
-      if(updateTime == -1){
-         return false;
-      }
-      //Check for equality
-      if(fabs(time - (updateTime - triggerOffset)) < (dt/2)){
-         return true;
-      }
-      //If it gets to this point, don't update
-      return false;
+   if (triggerFlag) {
+      return triggerLayer->needUpdate(time + triggerOffset, dt)
+         && !triggerLayer->needUpdate(time + triggerOffset - dt, dt);
    }
-   //If no trigger, update every timestep
-   else{
-      return true;
-   }
+   return true;
 }
 
 int BaseProbe::getValues(double timevalue) {
