@@ -109,25 +109,18 @@ ANNLayer "output_withconversion" = {
     clearGSynInterval = 0.0;
 };
 
-ANNLayer "comparison" = {
+HyPerLayer "comparison" = {
     nxScale = 1; 
     nyScale = 1;
     nf = 8; // 8 outputs 
     phase = 1;
     triggerLayerName = NULL; // If set to another layer, this layer updates in response to the trigger layer updating.
-    writeStep = -1;
+    writeStep = 1;
+    initialWriteTime = 0;
     mirrorBCflag = 1;
     sparseLayer = false;
 
     InitVType = "ZeroV";
-
-    //define a linear relation between its input and output, with some hard cut-off.
-    VThresh = -infinity;   
-    AMax = infinity;
-    AMin = -infinity;
-    AShift = 0.0;
-    VWidth = 0.0;
-    clearGSynInterval = 0.0;
 };
 
 //HyPerConns are connections between two layers
@@ -233,9 +226,9 @@ RequireAllZeroActivityProbe "probe" = {
    probeOutputFile = NULL;
    triggerLayerName = NULL;
    energyProbe = NULL;
-   nnzThreshold = 2.0e-6;
+   nnzThreshold = 5.0e-6;
    exitOnFailure = true;
-   immediateExitOnFailure = true;
+   immediateExitOnFailure = false;
 };
 
 ParameterSweep "column":outputPath = { "output1000"; "output0500"; "output0250"; "output0125"; };
