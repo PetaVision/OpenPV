@@ -1,10 +1,10 @@
 set(SRC_CPP
-  src/ColumnArchive.cpp
+  ${TESTS_SHARED_DIR}/ColumnArchive.cpp
   src/main.cpp
 )
 
 set(SRC_HPP
-  src/ColumnArchive.hpp
+  ${TESTS_SHARED_DIR}/ColumnArchive.hpp
 )
 
 if (PV_USE_LUA)

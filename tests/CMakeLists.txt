@@ -10,6 +10,8 @@ cmake_minimum_required(VERSION 2.8.10)
 include(PVAddTest)
 include(PVAddExecutable)
 
+set(TESTS_SHARED_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Shared")
+
 set(PV_SYSTEM_TEST_THREADS "" CACHE STRING "Defines the number of threads to use for system tests (empty string for max)")
 
 # Make sure that PV_SYSTEM_TEST_THREADS is a number

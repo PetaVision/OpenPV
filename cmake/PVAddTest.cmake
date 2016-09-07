@@ -126,6 +126,7 @@ macro(pv_add_test)
       message(FATAL_ERROR "${BASE_NAME} did not contain any source files")
     endif (SRCFILES_EMPTY)
 
+    include_directories("${TEST_TOP_DIR}/../Shared")
     pv_add_executable(${BASE_NAME} SRC ${PARSED_ARGS_SRCFILES} OUTPUT_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}")
     add_dependencies(${BASE_NAME} pv)
     if (NOT ${CMAKE_CURRENT_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_BINARY_DIR})
