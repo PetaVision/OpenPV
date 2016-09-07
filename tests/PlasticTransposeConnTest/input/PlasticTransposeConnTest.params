@@ -13,7 +13,7 @@
 // so the values of the comparison layer should be zero everywhere.
 // Since there are no floating-point calculations involved in taking the transpose, round-off is
 // not an issue.
-// A TestAllZerosProbe checks the comparison layer to assure that it is zero throughout.
+// A RequireAllZeroActivityProbe checks the comparison layer to assure that it is zero throughout.
 //
 // The test uses a parameter sweep to do six variants:
 // each of one-to-one, one-to-many, or many-to-one, each with shared weights on or off.
@@ -191,7 +191,7 @@ CloneConn "clone of original" = {
     writeCompressedCheckpoints = false;
 };
 
-TestAllZerosProbe "probe" = {
+RequireAllZeroActivityProbe "probe" = {
     targetLayer = "comparison";
     triggerLayerName = NULL;
     nnzThreshold = 5.0e-4;

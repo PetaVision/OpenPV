@@ -1,11 +1,9 @@
 set(SRC_CPP
-  src/TestAllZerosProbe.cpp
   src/TestNotAlwaysAllZerosProbe.cpp
   src/WriteActivitySparseTest.cpp
 )
 
 set(SRC_HPP
-  src/TestAllZerosProbe.hpp
   src/TestNotAlwaysAllZerosProbe.hpp
 )
 

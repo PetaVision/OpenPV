@@ -6,7 +6,6 @@
 #include <layers/InputLayer.hpp>
 #include <columns/PV_Init.hpp>
 #include "TestNotAlwaysAllZerosProbe.hpp"
-#include "TestAllZerosProbe.hpp"
 
 int checkProbesOnExit(HyPerCol * hc, int argc, char * argv[]);
 
@@ -39,7 +38,6 @@ int main(int argc, char * argv[]) {
    }
 
    initObj.registerKeyword("TestNotAlwaysAllZerosProbe", Factory::create<TestNotAlwaysAllZerosProbe>);
-   initObj.registerKeyword("TestAllZerosProbe", Factory::create<TestAllZerosProbe>);
 
    initObj.setParams(paramFile1);
    status = rebuildandrun(&initObj);
@@ -58,7 +56,7 @@ int main(int argc, char * argv[]) {
 }
 
 // check that the input layer has become nonzero at some point
-// If the comparison layer ever has a nonzero value, TestAllZerosProbe
+// If the comparison layer ever has a nonzero value, RequireAllZeroActivityProbe
 // should catch it and exit with an error.
 // However, there are some bugs that could cause InputLayer to
 // have all zeros in the activity.  In that case, OriginalInputLayer and
