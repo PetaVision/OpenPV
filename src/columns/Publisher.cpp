@@ -130,18 +130,18 @@ int Publisher::exchangeBorders(const PVLayerLoc * loc, int delay/*default 0*/) {
    //The loop over batch elements probably belongs inside
    //Communicator::exchange(), but for this to happen, exchange() would need
    //to know how its data argument is organized with respect to batching.
+   int exchangeVectorSize = 2*(mComm->numberOfNeighbors()-1);
    for(int b = 0; b < loc->nbatch; b++){
       // don't send interior
-      pvAssert(requests.size() == b * (mComm->numberOfNeighbors()-1));
+      pvAssert(requests.size() == b * exchangeVectorSize);
 
       pvdata_t * data = recvBuffer(b, delay);
       std::vector<MPI_Request> batchElementMPIRequest{};
       mComm->exchange(data, neighborDatatypes, loc, batchElementMPIRequest);
-      pvAssert(batchElementMPIRequest.size()==mComm->numberOfNeighbors()-1);
+      pvAssert(batchElementMPIRequest.size()==exchangeVectorSize);
       requests.insert(requests.end(), batchElementMPIRequest.begin(), batchElementMPIRequest.end());
-      pvAssert(requests.size() == (b+1) * (mComm->numberOfNeighbors()-1));
+      pvAssert(requests.size() == (b+1) * exchangeVectorSize);
    }
-   pvAssert(requests.size() == loc->nbatch * (mComm->numberOfNeighbors()-1));
 
 #endif // PV_USE_MPI
 

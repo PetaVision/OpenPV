@@ -731,7 +731,6 @@ int Communicator::exchange(pvdata_t * data,
    for (int n = 1; n < NUM_NEIGHBORHOOD; n++) {
       if (neighbors[n] == localRank) continue;  // don't send interior/self
       pvdata_t * recvBuf = data + recvOffset(n, loc);
-      pvdata_t * sendBuf = data + sendOffset(n, loc);
 #ifdef DEBUG_OUTPUT
       pvInfo().printf("[%2d]: recv,send to %d, n=%d recvOffset==%ld sendOffset==%ld send[0]==%f\n", localRank, neighbors[n], n, recvOffset(n,loc), sendOffset(n,loc), sendBuf[0]);
       pvInfo().flush();
@@ -740,9 +739,20 @@ int Communicator::exchange(pvdata_t * data,
       req.resize(sz+1);
       MPI_Irecv(recvBuf, 1, neighborDatatypes[n], neighbors[n], getReverseTag(n), localIcComm,
                 &(req.data())[sz]);
-      MPI_Send( sendBuf, 1, neighborDatatypes[n], neighbors[n], getTag(n), localIcComm);
    }
-   assert(req.size()==numberOfNeighbors()-1);
+
+   for (int n = 1; n < NUM_NEIGHBORHOOD; n++) {
+      if (neighbors[n] == localRank) continue;  // don't send interior/self
+      pvdata_t * sendBuf = data + sendOffset(n, loc);
+#ifdef DEBUG_OUTPUT
+      pvInfo().printf("[%2d]: recv,send to %d, n=%d recvOffset==%ld sendOffset==%ld send[0]==%f\n", localRank, neighbors[n], n, recvOffset(n,loc), sendOffset(n,loc), sendBuf[0]);
+      pvInfo().flush();
+#endif // DEBUG_OUTPUT
+      auto sz = req.size();
+      req.resize(sz+1);
+      MPI_Isend( sendBuf, 1, neighborDatatypes[n], neighbors[n], getTag(n), localIcComm,
+                 &(req.data())[sz]);
+   }
 
    // don't recv interior
 #ifdef DEBUG_OUTPUT

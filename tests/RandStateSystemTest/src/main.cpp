@@ -7,8 +7,7 @@
 #include <sstream>
 #include <arch/mpi/mpi.h>
 #include <columns/buildandrun.hpp>
-
-int customexit(HyPerCol * hc, int argc, char * argv[]);
+#include "ColumnArchive.hpp"
 
 int main(int argc, char * argv[]) {
    const char * paramfile1 = "input/RandStateSystemTest1.params";
@@ -26,18 +25,29 @@ int main(int argc, char * argv[]) {
       exit(EXIT_FAILURE);
    }
 
+   float tolerance = 1.0e-7;
+
    initObj.setParams(paramfile1);
-   int status1 = rebuildandrun(&initObj, NULL, NULL);
+   HyPerCol * hc1 = build(&initObj);
+   int status1 = hc1->run();
    if (status1 != PV_SUCCESS) {
-      pvError().printf("%s failed on param file %s with return code %d.\n", initObj.getProgramName(), paramfile1, status1);
+      pvError().printf("%s failed to run on param file %s with return code %d.\n", initObj.getProgramName(), paramfile1, status1);
    }
+   ColumnArchive columnArchive1(hc1, tolerance, tolerance);
 
    initObj.setParams(paramfile2);
-   int status2 = rebuildandrun(&initObj, NULL, &customexit);
+   HyPerCol * hc2 = build(&initObj);
+   int status2 = hc2->run();
    if (status2 != PV_SUCCESS) {
-      pvErrorNoExit().printf("%s failed on param file %s.\n", initObj.getProgramName(), paramfile2);
+      pvErrorNoExit().printf("%s failed to run on param file %s.\n", initObj.getProgramName(), paramfile2);
    }
-   int status = status1==PV_SUCCESS && status2==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
+   ColumnArchive columnArchive2(hc1, tolerance, tolerance);
+
+   int status3 = columnArchive1==columnArchive2 ? PV_SUCCESS : PV_FAILURE;
+   if (status3 != PV_SUCCESS) {
+      pvErrorNoExit().printf("%s failed comparing params files %s and %s.\n", initObj.getProgramName(), paramfile1, paramfile2);
+   }
+   int status = status1==PV_SUCCESS && status2==PV_SUCCESS && status3==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 
 #ifdef PV_USE_MPI
    if (status == EXIT_SUCCESS) {
@@ -55,21 +65,5 @@ int main(int argc, char * argv[]) {
    }
 #endif // PV_USE_MPI
 
-   return status;
-}
-
-int customexit(HyPerCol * hc, int argc, char * argv[]) {
-   int status = PV_SUCCESS;
-   if (hc->columnId()==0) {
-      std::string cmd("diff -r -q -x timers.txt -x pv.params -x pv.params.lua checkpoints*/Checkpoint");
-      std::stringstream stepnumber;
-      stepnumber << hc->getFinalStep();
-      cmd += stepnumber.str();
-      const char * cmdstr = cmd.c_str();
-      status = system(cmdstr);
-      if (status != 0) {
-         pvErrorNoExit().printf("%s failed: system command \"%s\" returned %d\n", argv[0], cmdstr, status);
-      }
-   }
    return status;
 }
