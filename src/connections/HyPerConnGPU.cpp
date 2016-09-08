@@ -30,12 +30,13 @@ HyPerConnGPU::~HyPerConnGPU() {
       cudnnDestroyConvolutionDescriptor(cudnnConvolutionDescriptor),
       "destroy convolution descriptor");
 
+  cudnnStatusDestructorCheck(
+      cudnnDestroyTensorDescriptor(cudnnTensorDescriptorPreNHWC),
+      "destroy tensor descriptor");
+
   if (!isPreGPULayer) {
     delete PreNHWC;
     delete pre;
-    cudnnStatusDestructorCheck(
-        cudnnDestroyTensorDescriptor(cudnnTensorDescriptorPreNHWC),
-        "destroy tensor descriptor");
   }
 
   if (isWeightSparse) {
@@ -97,14 +98,14 @@ int HyPerConnGPU::allocateDataStructures() {
 
   if (isWeightSparse) {
     auto initFunc = [&, this](PVCudaWrapper<pvwdata_t>& w) {
-      w.sparse.init(sparseWeightParams, &getCusparseHandle(),
-                    &getCusparseMatDescr(), true);
+      w.sparse.init(sparseWeightParams, &cusparseHandle, &cusparseMatDescr,
+                    true);
     };
     std::for_each(W.begin(), W.end(), initFunc);
 
     auto transposedInitFunc = [&, this](PVCudaWrapper<pvwdata_t>& w) {
-      w.sparse.init(transposedSparseWeightParams, &getCusparseHandle(),
-                    &getCusparseMatDescr(), true);
+      w.sparse.init(transposedSparseWeightParams, &cusparseHandle,
+                    &cusparseMatDescr, true);
     };
     std::for_each(WT.begin(), WT.end(), transposedInitFunc);
 
@@ -126,12 +127,7 @@ int HyPerConnGPU::allocateDataStructures() {
     std::for_each(WT.begin(), WT.end(), initFunc);
 
     /*  cuDnn initialization */
-    cudnnStatusCheck(cudnnCreate(&cudnnHandle), "create handle");
-
     if (!isPreGPULayer) {
-      cudnnStatusCheck(
-          cudnnCreateTensorDescriptor(&cudnnTensorDescriptorPreNHWC),
-          "create tensor descriptor");
       cudnnStatusCheck(
           cudnnSetTensor4dDescriptor(cudnnTensorDescriptorPreNHWC,
                                      CUDNN_TENSOR_NHWC, CUDNN_DATA_FLOAT, 1,
@@ -139,16 +135,12 @@ int HyPerConnGPU::allocateDataStructures() {
           "set 4D tensor");
     }
 
-    cudnnStatusCheck(cudnnCreateTensorDescriptor(&cudnnTensorDescriptorPre),
-                     "create tensor descriptor");
     cudnnStatusCheck(
         cudnnSetTensor4dDescriptor(cudnnTensorDescriptorPre, CUDNN_TENSOR_NCHW,
                                    CUDNN_DATA_FLOAT, 1, preLoc->nf, preLoc->ny,
                                    preLoc->nx),
         "set 4D tensor");
 
-    cudnnStatusCheck(cudnnCreateTensorDescriptor(&cudnnTensorDescriptorPost),
-                     "create tensor descriptor");
     cudnnStatusCheck(
         cudnnSetTensor4dDescriptor(cudnnTensorDescriptorPost, CUDNN_TENSOR_NCHW,
                                    CUDNN_DATA_FLOAT, 1, postLoc->nf,
@@ -176,16 +168,18 @@ int HyPerConnGPU::allocateDataStructures() {
     pad_h /= 2;
     pad_w /= 2;
 
-    cudnnStatusCheck(
-        cudnnCreateConvolutionDescriptor(&cudnnConvolutionDescriptor),
-        "create convolution descriptor");
-    cudnnStatusCheck(cudnnSetConvolution2dDescriptor(
-                         cudnnConvolutionDescriptor, pad_h, pad_w, xStride,
-                         yStride, 1.0, 1.0, CUDNN_CROSS_CORRELATION),
-                     "set 2D convolution descriptor");
+    if (!getUpdateGSynFromPostPerspective()) {
+      cudnnStatusCheck(cudnnSetConvolution2dDescriptor(
+                           cudnnConvolutionDescriptor, pad_h, pad_w, xStride,
+                           yStride, 1.0, 1.0, CUDNN_CONVOLUTION),
+                       "set 2D convolution descriptor");
+    } else {
+      cudnnStatusCheck(cudnnSetConvolution2dDescriptor(
+                           cudnnConvolutionDescriptor, pad_h, pad_w, xStride,
+                           yStride, 1.0, 1.0, CUDNN_CROSS_CORRELATION),
+                       "set 2D convolution descriptor");
+    }
 
-    cudnnStatusCheck(cudnnCreateFilterDescriptor(&cudnnFilterDescriptor),
-                     "create filter descriptor");
     cudnnStatusCheck(
         cudnnSetFilter4dDescriptor(
             cudnnFilterDescriptor, CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW,
@@ -194,7 +188,7 @@ int HyPerConnGPU::allocateDataStructures() {
         "set 4D filter");
 
     int status = computeTransposeMap();
-    status = findCudnnAlgo();
+    if (getChannel() != 0) status = findCudnnAlgo();
     return status;
   }
 
@@ -250,11 +244,25 @@ int HyPerConnGPU::deliver() {
 }
 
 void HyPerConnGPU::initialize_base() {
-  isPreGPULayer = false;
+  isPreGPULayer = true;
   isWeightSparse = false;
 }
 
 int HyPerConnGPU::initialize() {
+  /*  cuDnn initialization */
+  cudnnStatusCheck(cudnnCreate(&cudnnHandle), "create handle");
+  cudnnStatusCheck(cudnnCreateTensorDescriptor(&cudnnTensorDescriptorPreNHWC),
+                   "create tensor descriptor");
+  cudnnStatusCheck(cudnnCreateTensorDescriptor(&cudnnTensorDescriptorPre),
+                   "create tensor descriptor");
+  cudnnStatusCheck(cudnnCreateTensorDescriptor(&cudnnTensorDescriptorPost),
+                   "create tensor descriptor");
+  cudnnStatusCheck(
+      cudnnCreateConvolutionDescriptor(&cudnnConvolutionDescriptor),
+      "create convolution descriptor");
+  cudnnStatusCheck(cudnnCreateFilterDescriptor(&cudnnFilterDescriptor),
+                   "create filter descriptor");
+
   if (isWeightSparse) {
     try {
       cusparseStatusCheck(cusparseCreate(&cusparseHandle), "create handle");
@@ -373,10 +381,7 @@ int HyPerConnGPU::computeTransposeMap() {
 
 int HyPerConnGPU::transposeWeight() {
   try {
-    auto it1 = W.begin(),
-         it2 = WT.begin(),
-         end1 = W.end(),
-         end2 = WT.end();
+    auto it1 = W.begin(), it2 = WT.begin(), end1 = W.end(), end2 = WT.end();
     for (; (it1 != end1) && (it2 != end2);
          std::advance(it1, 1), std::advance(it2, 1)) {
       permuteWeight<pvwdata_t>(

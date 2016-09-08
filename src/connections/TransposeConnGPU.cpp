@@ -6,19 +6,11 @@
 namespace GPULCA {
 
 TransposeConnGPU::TransposeConnGPU() {}
-	
+
 TransposeConnGPU::TransposeConnGPU(const char *name, PV::HyPerCol *hc)
     : HyPerConnGPU(name, hc) {}
 
-TransposeConnGPU::~TransposeConnGPU() {
-  cudnnStatusDestructorCheck(
-      cudnnDestroyFilterDescriptor(cudnnFilterDescriptor),
-      "destroy filter descriptor");
-
-  cudnnStatusDestructorCheck(
-      cudnnDestroyConvolutionDescriptor(cudnnConvolutionDescriptor),
-      "destroy convolution descriptor");
-}
+TransposeConnGPU::~TransposeConnGPU() {}
 
 int TransposeConnGPU::communicateInitInfo() {
   int status = PV_SUCCESS;
@@ -61,42 +53,48 @@ int TransposeConnGPU::communicateInitInfo() {
 }
 
 int TransposeConnGPU::allocateDataStructures() {
+  int status = HyPerConn::allocateDataStructures();
   try {
     if (getOriginalConn()->getIsWeightSparseFlag()) {
       cerr << "TransposeConnGPU doesn't support sparse weight right now.\n";
       return PV_FAILURE;
     } else {
-      int k = getOriginalConn()->getWT().front().dense.getN(),
-          c = getOriginalConn()->getWT().front().dense.getC(),
-          h = getOriginalConn()->getWT().front().dense.getH(),
-          w = getOriginalConn()->getWT().front().dense.getW();
+      const PVLayerLoc *preLoc = preSynapticLayer()->getLayerLoc(),
+                       *postLoc = postSynapticLayer()->getLayerLoc();
+      MatrixInfo preNHWCParams = {.n = 1,
+                                  .height = preLoc->ny,
+                                  .width = preLoc->nx,
+                                  .channel = preLoc->nf,
+                                  .layout = NHWC},
+                 preParams = {.n = 1,
+                              .height = preLoc->ny,
+                              .width = preLoc->nx,
+                              .channel = preLoc->nf,
+                              .layout = NCHW};
+      if (getIsPreGPULayerFlag()) {
+        PreNHWC = nullptr;
+        Pre =
+            &((dynamic_cast<ANNLayerGPU *>(preSynapticLayer()))->getActivity());
 
-      MatrixInfo wtParams = {
-          .n = c, .height = h, .width = w, .channel = k, .layout = NCHW};
-
-      auto initFunc =
-          [&](PVCudaWrapper<pvwdata_t> &w) { w.dense.init(wtParams); };
-			getWT().resize(numAxonalArborLists);
-      std::for_each(getWT().begin(), getWT().end(), initFunc);
-      map.init(wtParams);
+      } else {
+        PreNHWC = new PVCudaWrapper<pvwdata_t>(preNHWCParams);
+        Pre = new PVCudaWrapper<pvwdata_t>(preParams);
+      }
 
       cudnnTensorDescriptorPreP =
           &(getOriginalConn()->getPostTensorDescriptor());
       cudnnTensorDescriptorPostP =
           &(getOriginalConn()->getPreTensorDescriptor());
 
-      cudnnStatusCheck(cudnnCreateFilterDescriptor(&cudnnFilterDescriptor),
-                       "create filter descriptor");
       cudnnStatusCheck(
           cudnnSetFilter4dDescriptor(
               cudnnFilterDescriptor, CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW,
-              getWT().front().dense.getN(), getWT().front().dense.getC(),
-              getWT().front().dense.getH(), getWT().front().dense.getW()),
+              getOriginalConn()->getWT().front().dense.getN(),
+              getOriginalConn()->getWT().front().dense.getC(),
+              getOriginalConn()->getWT().front().dense.getH(),
+              getOriginalConn()->getWT().front().dense.getW()),
           "set 4D filter");
 
-      const PVLayerLoc *
-          preLoc = getOriginalConn()->postSynapticLayer()->getLayerLoc(),
-         *postLoc = getOriginalConn()->preSynapticLayer()->getLayerLoc();
       PV::HyPerLayer *pre = getOriginalConn()->postSynapticLayer(),
                      *post = getOriginalConn()->preSynapticLayer();
       int xStride = (post->getCLayer()->xScale - pre->getCLayer()->xScale) * 2,
@@ -108,8 +106,8 @@ int TransposeConnGPU::allocateDataStructures() {
                           to_string(xStride) + "," + to_string(yStride) + ").");
       out_h = preLoc->ny / yStride;
       out_w = preLoc->nx / xStride;
-      pad_h = (out_h - 1) * yStride + getWT().front().dense.getH() - preLoc->ny;
-      pad_w = (out_w - 1) * xStride + getWT().front().dense.getW() - preLoc->nx;
+      pad_h = (out_h - 1) * yStride + getOriginalConn()->getWT().front().dense.getH() - preLoc->ny;
+      pad_w = (out_w - 1) * xStride + getOriginalConn()->getWT().front().dense.getW() - preLoc->nx;
 
       if (pad_h % 2 != 0 || pad_w % 2 != 0)
         throw logic_error("The pad size is not integer: (" +
@@ -117,9 +115,7 @@ int TransposeConnGPU::allocateDataStructures() {
                           to_string(pad_w / 2.0) + ").");
       pad_h /= 2;
       pad_w /= 2;
-      cudnnStatusCheck(
-          cudnnCreateConvolutionDescriptor(&cudnnConvolutionDescriptor),
-          "create convolution descriptor");
+
       cudnnStatusCheck(cudnnSetConvolution2dDescriptor(
                            cudnnConvolutionDescriptor, pad_h, pad_w, xStride,
                            yStride, 1.0, 1.0, CUDNN_CONVOLUTION),
@@ -129,7 +125,10 @@ int TransposeConnGPU::allocateDataStructures() {
     cerr << e.what() << endl;
     return PV_FAILURE;
   }
-  return PV_SUCCESS;
+
+  status = findCudnnAlgo();
+
+  return status;
 }
 
 int TransposeConnGPU::deliver() {
@@ -140,29 +139,41 @@ int TransposeConnGPU::deliver() {
       cerr << "TransposeConnGPU doesn't support sparse weight right now.\n";
       return PV_FAILURE;
     } else {
-      pvdata_t *preDeviceData =
-                   (dynamic_cast<ANNLayerGPU *>(preSynapticLayer()))
-                       ->getActivity()
-                       .dense.getDeviceData(),
-               *postDeviceData =
-                   (dynamic_cast<ANNLayerGPU *>(postSynapticLayer()))
-                       ->getGSyn()
-                       .at(channelNum)
-                       .dense.getDeviceData();
+      if (!getIsPreGPULayerFlag()) {
+        pvdata_t *preHostData = preSynapticLayer()->getActivity();
+
+        PreNHWC->dense.getCudaVector().setDeviceData(preLayerSize, preHostData);
+
+        /* change pre-layer layout (need a parameter to specify whether
+         * pre-layer is a GPULCA layer or not ) */
+        pvdata_t alpha = 1, beta = 0;
+        cudnnStatus_t cudnnStatus = cudnnTransformTensor(
+            cudnnHandle, &alpha, cudnnTensorDescriptorPreNHWC,
+            PreNHWC->dense.getDeviceData(), &beta, cudnnTensorDescriptorPre,
+            Pre->dense.getDeviceData());
+        cudnnStatusCheck(cudnnStatus, "cudnnTransformTensor");
+      }
+
+      pvdata_t *postDeviceData =
+          (dynamic_cast<ANNLayerGPU *>(postSynapticLayer()))
+              ->getGSyn()
+              .at(channelNum)
+              .dense.getDeviceData();
 
       /* convolution  */
       int alpha = 1, beta = 1;
       auto convolveFunc = [&, this](PVCudaWrapper<pvwdata_t> &w) {
         cudnnStatus_t cudnnStatus = cudnnConvolutionForward(
-            getOriginalConn()->getCudnnHandle(), &alpha,
-            *cudnnTensorDescriptorPreP, preDeviceData, cudnnFilterDescriptor,
-            w.dense.getDeviceData(), cudnnConvolutionDescriptor, algoFwd,
+            cudnnHandle, &alpha, *cudnnTensorDescriptorPreP, Pre->dense.getDeviceData(),
+            cudnnFilterDescriptor, w.dense.getDeviceData(),
+            cudnnConvolutionDescriptor, algoFwd,
             workspaceForward.getDeviceData(), workspaceSizeForward, &beta,
             *cudnnTensorDescriptorPostP, postDeviceData);
         cudnnStatusCheck(cudnnStatus, "convolution");
       };
 
-      std::for_each(getWT().begin(), getWT().end(), convolveFunc);
+      std::for_each(getOriginalConn()->getWT().begin(),
+                    getOriginalConn()->getWT().end(), convolveFunc);
     }
   } catch (exception &e) {
     cerr << e.what() << endl;
@@ -191,26 +202,24 @@ int TransposeConnGPU::findCudnnAlgo() {
     int m = 8;
     std::vector<cudnnConvolutionFwdAlgoPerf_t> p =
         std::vector<cudnnConvolutionFwdAlgoPerf_t>(m);
-    cudnnStatusCheck(
-        cudnnFindConvolutionForwardAlgorithm(
-            getOriginalConn()->getCudnnHandle(), *cudnnTensorDescriptorPreP,
-            cudnnFilterDescriptor, cudnnConvolutionDescriptor,
-            *cudnnTensorDescriptorPostP, m, &n, p.data()),
-        "cudnnFindConvolutionForwardAlgorithm");
+    cudnnStatusCheck(cudnnFindConvolutionForwardAlgorithm(
+                         cudnnHandle, *cudnnTensorDescriptorPreP,
+                         cudnnFilterDescriptor, cudnnConvolutionDescriptor,
+                         *cudnnTensorDescriptorPostP, m, &n, p.data()),
+                     "cudnnFindConvolutionForwardAlgorithm");
 
     cudnnStatusCheck(
         cudnnGetConvolutionForwardAlgorithm(
-            getOriginalConn()->getCudnnHandle(), *cudnnTensorDescriptorPreP,
-            cudnnFilterDescriptor, cudnnConvolutionDescriptor,
-            *cudnnTensorDescriptorPostP, CUDNN_CONVOLUTION_FWD_PREFER_FASTEST,
-            0, &algoFwd),
+            cudnnHandle, *cudnnTensorDescriptorPreP, cudnnFilterDescriptor,
+            cudnnConvolutionDescriptor, *cudnnTensorDescriptorPostP,
+            CUDNN_CONVOLUTION_FWD_PREFER_FASTEST, 0, &algoFwd),
         "cudnnGetConvolutionForwardAlgorithm");
 
     cudnnStatusCheck(
         cudnnGetConvolutionForwardWorkspaceSize(
-            getOriginalConn()->getCudnnHandle(), *cudnnTensorDescriptorPreP,
-            cudnnFilterDescriptor, cudnnConvolutionDescriptor,
-            *cudnnTensorDescriptorPostP, algoFwd, &workspaceSizeForward),
+            cudnnHandle, *cudnnTensorDescriptorPreP, cudnnFilterDescriptor,
+            cudnnConvolutionDescriptor, *cudnnTensorDescriptorPostP, algoFwd,
+            &workspaceSizeForward),
         "cudnnGetConvolutionForwardWorkspaceSize");
 
     workspaceForward.resize(workspaceSizeForward);

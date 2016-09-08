@@ -21,11 +21,7 @@ class IdentConnGPU : public HyPerConnGPU {
 
  private:
   DenseMatrix<pvdata_t> buf;
-  PVCudaWrapper<pvwdata_t> *PreNHWC;
-
-	/*  CUDA handle */
-  cudnnHandle_t cudnnHandle;
-  cudnnTensorDescriptor_t cudnnTensorDescriptorPreNHWC, cudnnTensorDescriptorPre;
+	
 };
 }
 

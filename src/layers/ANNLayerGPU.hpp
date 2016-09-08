@@ -32,6 +32,8 @@ class ANNLayerGPU : public PV::ANNLayer {
     return cusparseMatDescr;
   }
 
+  virtual int publish(PV::Communicator* comm, double time);
+
  protected:
   ANNLayerGPU();
   int initialize();
@@ -41,7 +43,7 @@ class ANNLayerGPU : public PV::ANNLayer {
   virtual int resetGSynBuffers(double timef, double dt);
   virtual int setActivity();
   virtual int initializeV();
-	virtual int updateState(double timef, double dt);
+  virtual int updateState(double timef, double dt);
 
  private:
   void initialize_base();

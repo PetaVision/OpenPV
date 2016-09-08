@@ -104,7 +104,7 @@ int HyPerGPULCALayer::updateState(double time, double dt) {
                     beta, getV().dense.getDeviceData());
       cudaStatusCheck("updating V");
 
-			ANNLayerGPU::setActivity();
+      ANNLayerGPU::setActivity();
     }
   } catch (exception& e) {
     cerr << e.what() << endl;

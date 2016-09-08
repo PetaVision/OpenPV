@@ -25,16 +25,10 @@ class TransposeConnGPU : public HyPerConnGPU {
  private:
   char* originalConnName;
   HyPerConnGPU* originalConn;
-  DenseMatrix<int> map;
 
 	/*  CUDA Handler  */
   const cudnnTensorDescriptor_t* cudnnTensorDescriptorPreP,
       *cudnnTensorDescriptorPostP;
-  cudnnFilterDescriptor_t cudnnFilterDescriptor;
-  cudnnConvolutionDescriptor_t cudnnConvolutionDescriptor;
-  cudnnConvolutionFwdAlgo_t algoFwd;
-  CudaVector<pvwdata_t> workspaceForward;
-  size_t workspaceSizeForward;
 };
 }
 

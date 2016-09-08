@@ -1,0 +1,250 @@
+// PetaVision version something-point-something run at Fri Aug  1 17:29:25 2014
+// Compiled with MPI and run using 2 rows and 2 columns.
+
+HyPerCol "column" = {
+    startTime                           = 0;
+    dt                                  = 1;
+    dtAdaptFlag                         = true;
+    useAdaptMethodExp1stOrder 		= true;
+    dtScaleMax                          = 0.5;
+    dtScaleMin                          = 0.005;
+    dtChangeMax                         = 0.05;
+    dtChangeMin                         = 0.005;
+    dtMinToleratedTimeScale             = 0.0001;
+    dtAdaptController                   = "S1EnergyProbe";
+    dtAdaptTriggerLayerName  		= "Image";
+    stopTime                            = 5000000;
+    progressInterval                    = 2000;
+    writeProgressToErr                  = true;
+    outputPath                          = "../GPULCATest";
+    printParamsFilename                 = "GPULCATest.params";
+    randomSeed                          = 1234567890;
+    nx                                  = 32;
+    ny                                  = 32;
+    filenamesContainLayerNames          = 1;
+    filenamesContainConnectionNames     = 1;
+    defaultInitializeFromCheckpointFlag = false;
+    checkpointRead                      = false;
+    checkpointWrite                     = true;
+    checkpointWriteDir                  = "../GPULCATest";
+    checkpointWriteTriggerMode          = "step";
+    checkpointWriteStepInterval         = 10000;
+    deleteOlderCheckpoints              = true;
+    writeTimescales                     = true;
+};
+
+Movie "Image" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 3;
+    phase                               = 0;
+    mirrorBCflag                        = true;
+    restart                             = false;
+    writeStep                           = -1;
+    initialWriteTime                    = 10000;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    offsetAnchor                        = "tl";
+    offsetX                             = 0;
+    offsetY                             = 0;
+    writeImages                         = 0;
+    useImageBCflag                      = false;
+    autoResizeFlag                      = false;
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = true;
+    normalizeStdDev                     = true;
+    jitterFlag                          = 0;
+    inputPath                           = "../Data/imageList.txt";
+    displayPeriod                       = 500;
+    randomMovie                         = 0;
+    readPvpFile                         = false;
+    echoFramePathnameFlag               = true;
+    start_frame_index                   = 0;
+    skip_frame_index                    = 0;
+    flipOnTimescaleError                = true;
+    writeFrameToTimestamp               = true;
+};
+
+ANNLayerGPU "Error" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 3;
+    phase                               = 1;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    restart                             = false;
+    InitVType                           = "ZeroV";
+    writeStep                           = -1;
+    initialWriteTime                    = 10000;
+    sparseLayer                         = false;
+    VThresh                             = -3.40282e+38;
+    AMin                                = -3.40282e+38;
+    AMax                                = 3.40282e+38;
+    AShift                              = 0;
+    VWidth                              = 0;
+    errScale                            = 1;
+};
+
+
+HyPerGPULCALayer "S1" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 64;
+    phase                               = 2;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    restart                             = false;
+    InitVType 				= "UniformRandomV";
+    minV 				= -1.0;
+    maxV 				= .025; 
+    writeStep                           = 500;
+    initialWriteTime                    = 500;
+    sparseLayer                         = true;
+    writeSparseValues                   = true;
+    VThresh                             = 0.005;
+    AMin                                = 0;
+    AMax                                = 3.40282e+38;
+    AShift                              = 0.005;
+    VWidth                              = 0;
+    numChannels                         = 1;
+    timeConstantTau                     = 100;
+    selfInteract                        = true;
+    updateGpu                   				= true;
+};
+
+ANNLayerGPU "Recon" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 3;
+    phase                               = 3;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    restart                             = false;
+    InitVType                           = "ZeroV";
+    triggerOffset                       = 0;
+    writeStep                           = -1;
+    initialWriteTime                    = 10000;
+    writeSparseActivity                 = false;
+    VThresh                             = -3.40282e+38;
+    AMin                                = -3.40282e+38;
+    AMax                                = 3.40282e+38;
+    AShift                              = 0;
+    VWidth                              = 0;
+};
+
+IdentConnGPU "ImageToError" = {
+    preLayerName                        = "Image";
+    postLayerName                       = "Error";
+    channelCode                         = 1;
+    delay                               = [0.000000];
+    // initWeightsFile                     was set to (NULL);
+    writeStep                           = -1;
+		isPreGPULayer                       = false;
+};
+
+HyPerConnGPU "S1ToError" = {
+    preLayerName                        = "S1";
+    postLayerName                       = "Error";
+    channelCode                         = -1;
+    delay                               = [0.000000];
+    numAxonalArbors                     = 1;
+    plasticityFlag                      = true;
+    convertRateToSpikeCount             = false;
+    receiveGpu                          = false;
+    sharedWeights                       = true;
+    weightInitType                      = "FileWeight";
+    initWeightsFile                     = "/home/xzhang/work/DataAnalysis/Outputs/S1_64/S1_64_Stride_1/Checkpoint25000000/S1ToError_W.pvp";
+    useListOfArborFiles                 = false;
+    combineWeightFiles                  = false;
+    initializeFromCheckpointFlag        = false;
+    triggerLayerName                    = "Image";
+    triggerOffset                       = 1;
+    updateGSynFromPostPerspective       = false;
+    pvpatchAccumulateType               = "convolve";
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+    combine_dW_with_W_flag              = false;
+    nxp                                 = 19;
+    nyp                                 = 19;
+    nfp                                 = 3;
+    shrinkPatches                       = false;
+    normalizeMethod                     = "normalizeL2";
+    strength                            = 1;
+    normalizeArborsIndividually         = false;
+    normalizeOnInitialize               = true;
+    normalizeOnWeightUpdate             = true;
+    rMinX                               = 0;
+    rMinY                               = 0;
+    nonnegativeConstraintFlag           = false;
+    normalize_cutoff                    = 0;
+    normalizeFromPostPerspective        = false;
+    minL2NormTolerated                  = 0;
+    dWMax                               = 0.1;
+    keepKernelsSynchronized             = true;
+    useMask                             = false;
+    momentumTau                         = 100;
+    momentumMethod                      = "viscosity";
+};
+
+TransposeConn "ErrorToS1" = {
+    preLayerName                        = "Error";
+    postLayerName                       = "S1";
+    channelCode                         = 0;
+    pvpatchAccumulateType               = "convolve";
+    preActivityIsNotRate                = false;
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+    delay                               = [0.000000];
+    updateGSynFromPostPerspective       = true;
+    receiveGpu 				= true;
+    originalConnName                    = "S1ToError";
+};
+
+CloneKernelConn "S1ToRecon" = {
+    preLayerName                        = "S1";
+    postLayerName                       = "Recon";
+    channelCode                         = 0;
+    pvpatchAccumulateType               = "convolve";
+    preActivityIsNotRate                = false;
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+    delay                               = [0.000000];
+    updateGSynFromPostPerspective       = false;
+    originalConnName                    = "S1ToError";
+};
+
+IdentConn "ReconToError" = {
+    preLayerName                        = "Recon";
+    postLayerName                       = "Error";
+    channelCode                         = 1;
+    delay                               = [0.000000];
+    // initWeightsFile                     was set to (NULL);
+    writeStep                           = -1;
+};
+
+ColumnEnergyProbe "S1EnergyProbe" = {
+    probeOutputFile                     = "S1EnergyProbe.txt";
+};
+
+L2NormProbe "InputL2NormProbe" = {
+    targetLayer                         = "Error";
+    message                             = NULL;
+    probeOutputFile                     = "Error_l2norm.txt";
+    triggerLayerName                    = NULL;
+    energyProbe                         = "S1EnergyProbe";
+    coefficient                         = 0.5;
+    exponent                            = 2.0;
+};
+
+FirmThresholdCostFnLCAProbe "CostFunctionProbe" = {
+    targetLayer                         = "S1";
+    message                             = NULL;
+    probeOutputFile                     = "S1_sparsity.txt";
+    triggerLayerName                    = NULL;
+    energyProbe                         = "S1EnergyProbe";
+    // VThresh inherited from targetLayer
+    // VWidth inherited from targetLayer
+};

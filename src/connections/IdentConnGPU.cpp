@@ -10,18 +10,7 @@ IdentConnGPU::IdentConnGPU() { initialize_base(); }
 IdentConnGPU::IdentConnGPU(const char *name, PV::HyPerCol *hc)
     : HyPerConnGPU(name, hc) {}
 
-IdentConnGPU::~IdentConnGPU() {
-  if (!getIsPreGPULayerFlag()) {
-    delete PreNHWC;
-    cudnnStatusDestructorCheck(cudnnDestroy(cudnnHandle), "destroy handle");
-    cudnnStatusDestructorCheck(
-        cudnnDestroyTensorDescriptor(cudnnTensorDescriptorPreNHWC),
-        "destroy tensor descriptor");
-    cudnnStatusDestructorCheck(
-        cudnnDestroyTensorDescriptor(cudnnTensorDescriptorPre),
-        "destroy tensor descriptor");
-  }
-}
+IdentConnGPU::~IdentConnGPU() {}
 
 int IdentConnGPU::communicateInitInfo() {
   int status = HyPerConn::communicateInitInfo();
@@ -99,13 +88,6 @@ int IdentConnGPU::allocateDataStructures() {
       PreNHWC = new PVCudaWrapper<pvwdata_t>(paramsNHWC);
 
       /*  cuDnn initialization */
-      cudnnStatusCheck(cudnnCreate(&cudnnHandle), "create handle");
-      cudnnStatusCheck(
-          cudnnCreateTensorDescriptor(&cudnnTensorDescriptorPreNHWC),
-          "create tensor descriptor");
-      cudnnStatusCheck(cudnnCreateTensorDescriptor(&cudnnTensorDescriptorPre),
-                       "create tensor descriptor");
-
       cudnnStatusCheck(
           cudnnSetTensor4dDescriptor(
               cudnnTensorDescriptorPreNHWC, CUDNN_TENSOR_NHWC, CUDNN_DATA_FLOAT,
@@ -125,5 +107,4 @@ int IdentConnGPU::allocateDataStructures() {
 }
 
 void IdentConnGPU::initialize_base() {}
-
 }

@@ -51,7 +51,9 @@ add_subdirectory(GenericSystemTest)
 
 if (PV_USE_CUDA)
    add_subdirectory(GPUSystemTest)
-endif (PV_USE_CUDA)
+ endif (PV_USE_CUDA)
+
+add_subdirectory(GPULCATest)
 
 add_subdirectory(GroupNormalizationTest)
 add_subdirectory(ImageSystemTest)

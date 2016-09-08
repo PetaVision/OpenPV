@@ -45,6 +45,43 @@ int ANNLayerGPU::initialize() {
   return PV_SUCCESS;
 }
 
+int ANNLayerGPU::publish(PV::Communicator* comm, double time) {
+  publish_timer->start();
+
+  bool mirroring = useMirrorBCs();
+  mirroring = mirroring ? (getLastUpdateTime() >= getParent()->simulationTime())
+                        : false;
+
+  activity.dense.device2Host();
+  const PVLayerLoc* l = getLayerLoc();
+  PVLayerCube a = {.size = getCLayer()->activity->size,
+                   .numItems = getCLayer()->activity->numItems,
+                   .data = activity.dense.getHostData(),
+                   .padding = {},
+                   .loc = {l->nbatch,
+                           l->nx,
+                           l->ny,
+                           l->nf,
+                           l->nbatchGlobal,
+                           l->nxGlobal,
+                           l->nyGlobal,
+                           l->kb0,
+                           l->kx0,
+                           l->ky0,
+                           {l->halo.lt, l->halo.rt, l->halo.dn, l->halo.up}},
+                   .isSparse = getCLayer()->activity->isSparse,
+                   .numActive = getCLayer()->activity->numActive,
+                   .activeIndices = getCLayer()->activity->activeIndices};
+
+  if (mirroring) {
+    mirrorInteriorToBorder(&a, &a);
+  }
+
+  int status = publisher->publish(time, lastUpdateTime, &a);
+  publish_timer->stop();
+  return status;
+}
+
 int ANNLayerGPU::allocateGSyn() {
   try {
     if (getNumChannels() > 0) {
@@ -170,9 +207,9 @@ int ANNLayerGPU::setActivity() {
                      V.dense.getSize(), getVThresh(), getAMin(), getAMax(),
                      getAShift(), VTW, tanTheta);
     }
-		
+
     cudaStatusCheck("computing A");
-		
+
     getActivity().dense2sparse();
 
     if (getActivity().sparse.getNNZ() == 0)
@@ -225,7 +262,7 @@ int ANNLayerGPU::updateState(double timef, double dt) {
 
       std::for_each(it, getGSyn().end(), sumFunction);
 
-			setActivity();
+      setActivity();
     }
   } catch (exception& e) {
     cerr << e.what() << endl;
