@@ -324,7 +324,7 @@ public:
    virtual int recvAllSynapticInput(); // Calls recvSynapticInput for each conn and each arborID
 
    //An updateState wrapper that determines if updateState needs to be called
-   int callUpdateState(double time, double dt);
+   int callUpdateState(double simTime, double dt);
   /**
     * A virtual function to determine if callUpdateState method needs to be called
     * Default behavior is dependent on the triggering method.
@@ -335,7 +335,7 @@ public:
     * @param dt The current non-adaptive dt of the run
     * @return Returns if the update needs to happen
     */
-   virtual bool needUpdate(double time, double dt);
+   virtual bool needUpdate(double simTime, double dt);
 
    /**
     * A function to return the interval between times when updateState is needed.
@@ -360,7 +360,7 @@ public:
    virtual int respondLayerCheckNotANumber(LayerCheckNotANumberMessage const * message);
    virtual int respondLayerUpdateActiveIndices(LayerUpdateActiveIndicesMessage const * message);
    virtual int respondLayerOutputState(LayerOutputStateMessage const * message);
-   virtual int publish(Communicator * comm, double time);
+   virtual int publish(Communicator * comm, double simTime);
    virtual int resetGSynBuffers(double timef, double dt);
    // ************************************************************************************//
 

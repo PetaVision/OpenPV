@@ -1519,25 +1519,25 @@ double HyPerLayer::getDeltaTriggerTime() {
    }
 }
 
-bool HyPerLayer::needUpdate(double time, double dt){
+bool HyPerLayer::needUpdate(double simTime, double dt){
    if (getDeltaUpdateTime() <= 0) {
       return false;
    }
-   if (mLastUpdateTime == time + triggerOffset) {
+   if (mLastUpdateTime == simTime + triggerOffset) {
       return true;
    }
    double timeToCheck = mLastUpdateTime;
    if(triggerLayer != nullptr && triggerBehaviorType == UPDATEONLY_TRIGGER) {
       timeToCheck = triggerLayer->getLastUpdateTime();
    }
-   if (time + triggerOffset      >= timeToCheck + getDeltaUpdateTime()
-    && time + triggerOffset + dt <= timeToCheck + getDeltaUpdateTime() + dt) {
+   if (simTime + triggerOffset      >= timeToCheck + getDeltaUpdateTime()
+    && simTime + triggerOffset + dt <= timeToCheck + getDeltaUpdateTime() + dt) {
       return true;
    }
    return false;
 }
 
-bool HyPerLayer::needReset(double time, double dt) {
+bool HyPerLayer::needReset(double simTime, double dt) {
    if (triggerLayer == nullptr) {
       return false;
    }
@@ -1547,18 +1547,19 @@ bool HyPerLayer::needReset(double time, double dt) {
    if (getDeltaTriggerTime() <= 0) {
       return false;
    }
-   if (time > mLastTriggerTime + getDeltaTriggerTime()) {
+   if (simTime > mLastTriggerTime + getDeltaTriggerTime()) {
       return true;
    }
    return false;
 }
 
-int HyPerLayer::callUpdateState(double time, double dt){
+int HyPerLayer::callUpdateState(double simTime, double dt){
    int status = PV_SUCCESS;
-   if (needUpdate(time, dt)) {
-      if (needReset(time, dt)) {
+   if (needUpdate(simTime, dt)) {
+      pvInfo() << getName() << " UPDATING AT " << simTime << "\n";
+      if (needReset(simTime, dt)) {
          status = resetStateOnTrigger();
-         mLastTriggerTime = time;
+         mLastTriggerTime = simTime;
       }
 
       update_timer->start();
@@ -1567,12 +1568,12 @@ int HyPerLayer::callUpdateState(double time, double dt){
          gpu_update_timer->start();
          pvdata_t * gSynHead = GSyn == NULL ? NULL : GSyn[0];
          assert(updateGpu);
-         status = updateStateGpu(time, dt);
+         status = updateStateGpu(simTime, dt);
          gpu_update_timer->stop();
       }
       else {
 #endif
-         status = updateState(time, dt);
+         status = updateState(simTime, dt);
 #ifdef PV_USE_CUDA
       }
       //Activity updated, set flag to true
@@ -1581,7 +1582,7 @@ int HyPerLayer::callUpdateState(double time, double dt){
 #endif
       update_timer->stop();
    
-      mLastUpdateTime = time;
+      mLastUpdateTime = simTime;
    }
    return status;
 }
@@ -1757,15 +1758,15 @@ int HyPerLayer::recvAllSynapticInput() {
 
 #ifdef PV_USE_CUDA
 float HyPerLayer::addGpuTimers(){
-   float time = 0;
+   float simTime = 0;
    bool updateNeeded = needUpdate(parent->simulationTime(), parent->getDeltaTime());
    if(recvGpu && updateNeeded){
-      time += gpu_recvsyn_timer->accumulateTime();
+      simTime += gpu_recvsyn_timer->accumulateTime();
    }
    if(updateGpu && updateNeeded){
-      time += gpu_update_timer->accumulateTime();
+      simTime += gpu_update_timer->accumulateTime();
    }
-   return time;
+   return simTime;
 }
 
 void HyPerLayer::syncGpu(){
@@ -1820,8 +1821,7 @@ void HyPerLayer::copyAllActivityFromDevice(){
 
 #endif
 
-int HyPerLayer::publish(Communicator* comm, double time)
-{
+int HyPerLayer::publish(Communicator* comm, double simTime) {
    publish_timer->start();
 
    bool mirroring = useMirrorBCs();
@@ -1832,7 +1832,7 @@ int HyPerLayer::publish(Communicator* comm, double time)
       mirrorInteriorToBorder(clayer->activity, clayer->activity);
    }
    
-   int status = publisher->publish(time, mLastUpdateTime);
+   int status = publisher->publish(simTime, mLastUpdateTime);
    publish_timer->stop();
    return status;
 }

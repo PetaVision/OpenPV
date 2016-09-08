@@ -2214,36 +2214,42 @@ int HyPerConn::outputState(double timef, bool last)
    return status;
 }
 
-bool HyPerConn::needUpdate(double time, double dt){
+bool HyPerConn::needUpdate(double simTime, double dt){
    if( !plasticityFlag ) {
       return false;
    }
    if(triggerLayer){
-      return triggerLayer->needUpdate(time + triggerOffset, dt)
-         && !triggerLayer->needUpdate(time + triggerOffset - dt, dt);
+      return triggerLayer->needUpdate(simTime + triggerOffset, dt)
+         && !triggerLayer->needUpdate(simTime + triggerOffset - dt, dt);
    }
-   return time >= weightUpdateTime;
+   return simTime >= weightUpdateTime;
 }
 
-int HyPerConn::updateState(double time, double dt){
+int HyPerConn::updateState(double simTime, double dt){
    int status = PV_SUCCESS;
-   if( !plasticityFlag ){lastTimeUpdateCalled = time; return status;}
+   if (!plasticityFlag) {
+      lastTimeUpdateCalled = simTime;
+      return status;
+   }
 
    update_timer->start();
-   if(needUpdate(time, dt)){
+   if (needUpdate(simTime, dt)) {
+      pvInfo() << getName() << " UPDATING AT " << simTime << "\n";
       status = calc_dW();        // Calculate changes in weights
-      for(int arborId=0;arborId<numberOfAxonalArborLists();arborId++){
+      for (int arborId = 0; arborId < numberOfAxonalArborLists(); arborId++) {
          status = updateWeights(arborId);  // Apply changes in weights
-         if (status==PV_BREAK) { break; }
-         pvAssert(status==PV_SUCCESS);
+         if (status == PV_BREAK) {
+            break;
+         }
+         pvAssert(status == PV_SUCCESS);
       }
 
-      lastUpdateTime = time;
-      computeNewWeightUpdateTime(time, weightUpdateTime);
+      lastUpdateTime = simTime;
+      computeNewWeightUpdateTime(simTime, weightUpdateTime);
       needFinalize = true;
    }
    update_timer->stop();
-   lastTimeUpdateCalled = time;
+   lastTimeUpdateCalled = simTime;
    return status;
 }
 
@@ -2633,10 +2639,10 @@ int HyPerConn::updateWeights(int arborId)
    return PV_BREAK;
 }
 
-double HyPerConn::computeNewWeightUpdateTime(double time, double currentUpdateTime) {
+double HyPerConn::computeNewWeightUpdateTime(double simTime, double currentUpdateTime) {
    //Only called if plasticity flag is set
    if (!triggerLayer) {
-      while(time >= weightUpdateTime){
+      while(simTime >= weightUpdateTime){
          weightUpdateTime += weightUpdatePeriod;
       }
    }
@@ -3620,12 +3626,12 @@ int HyPerConn::adjustAxonalArbors(int arborId)
    return adjustAllPatches(nxPre, nyPre, nfPre, haloPre, nxPost, nyPost, nfPost, haloPost, wPatches, gSynPatchStart, aPostOffset, arborId);
 }
 
-PVPatch *** HyPerConn::convertPreSynapticWeights(double time)
+PVPatch *** HyPerConn::convertPreSynapticWeights(double simTime)
 {
-   if (time <= wPostTime) {
+   if (simTime <= wPostTime) {
       return wPostPatches;
    }
-   wPostTime = time;
+   wPostTime = simTime;
 
    const PVLayerLoc * preLoc = pre->getLayerLoc();
    const PVLayerLoc * postLoc = post->getLayerLoc();
