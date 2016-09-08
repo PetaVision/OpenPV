@@ -1523,7 +1523,8 @@ bool HyPerLayer::needUpdate(double simTime, double dt){
    if (getDeltaUpdateTime() <= 0) {
       return false;
    }
-   if (mLastUpdateTime == simTime + triggerOffset) {
+   // This was mLastUpdateTime + triggerOffset == simTime when everything but MomentumLCATest passed
+   if (mLastUpdateTime == simTime) {
       return true;
    }
    double timeToCheck = mLastUpdateTime;
@@ -1556,7 +1557,6 @@ bool HyPerLayer::needReset(double simTime, double dt) {
 int HyPerLayer::callUpdateState(double simTime, double dt){
    int status = PV_SUCCESS;
    if (needUpdate(simTime, dt)) {
-      pvInfo() << getName() << " UPDATING AT " << simTime << "\n";
       if (needReset(simTime, dt)) {
          status = resetStateOnTrigger();
          mLastTriggerTime = simTime;

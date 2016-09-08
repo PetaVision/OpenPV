@@ -161,12 +161,7 @@ int AdaptiveTimeScaleProbe::respondAdaptTimestep(AdaptTimestepMessage const * me
 
 int AdaptiveTimeScaleProbe::calcValues(double timeValue) {
    std::vector<double> rawProbeValues;
-   bool triggersNow = false;
-   if (triggerLayer) {
-      double triggerTime = triggerLayer->getNextUpdateTime() - triggerOffset;
-      triggersNow = fabs(timeValue - triggerTime) < (parent->getDeltaTime()/2);
-   }
-   if (triggersNow) {
+   if (triggerLayer != nullptr && triggerLayer->needUpdate(timeValue + triggerOffset, parent->getDeltaTime())) {
       rawProbeValues.assign(getNumValues(), -1.0);
    }
    else {

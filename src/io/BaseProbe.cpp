@@ -288,10 +288,9 @@ int BaseProbe::initMessage(const char * msg) {
    return status;
 }
 
-bool BaseProbe::needUpdate(double time, double dt){
+bool BaseProbe::needUpdate(double simTime, double dt) {
    if (triggerFlag) {
-      return triggerLayer->needUpdate(time + triggerOffset, dt)
-         && !triggerLayer->needUpdate(time + triggerOffset - dt, dt);
+      return triggerLayer->needUpdate(simTime + triggerOffset, dt);
    }
    return true;
 }

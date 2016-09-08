@@ -2215,12 +2215,11 @@ int HyPerConn::outputState(double timef, bool last)
 }
 
 bool HyPerConn::needUpdate(double simTime, double dt){
-   if( !plasticityFlag ) {
+   if (!plasticityFlag) {
       return false;
    }
-   if(triggerLayer){
-      return triggerLayer->needUpdate(simTime + triggerOffset, dt)
-         && !triggerLayer->needUpdate(simTime + triggerOffset - dt, dt);
+   if (triggerLayer) {
+      return triggerLayer->needUpdate(simTime + triggerOffset, dt);
    }
    return simTime >= weightUpdateTime;
 }
@@ -2234,7 +2233,6 @@ int HyPerConn::updateState(double simTime, double dt){
 
    update_timer->start();
    if (needUpdate(simTime, dt)) {
-      pvInfo() << getName() << " UPDATING AT " << simTime << "\n";
       status = calc_dW();        // Calculate changes in weights
       for (int arborId = 0; arborId < numberOfAxonalArborLists(); arborId++) {
          status = updateWeights(arborId);  // Apply changes in weights
