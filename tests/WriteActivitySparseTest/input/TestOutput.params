@@ -13,7 +13,7 @@
 // IdentConns connect each to a comparison layer, one on the excitatory
 // channel and one on the inhibitory channel.
 //
-// A TestAllZerosProbe probe on the excitatory channel throws an error if
+// A RequireAllZeroActivityProbe throws an error if
 // any comparison layer neuron is nonzero.
 // 
 // There is also a TestNotAlwaysAllZeroProbe on the excitatory channel.
@@ -158,7 +158,7 @@ TestNotAlwaysAllZerosProbe "OriginalMovieProbe" = {
     nnzThreshold                        = 0;
 };
 
-TestAllZerosProbe "ComparisonProbe" = {
+RequireAllZeroActivityProbe "ComparisonProbe" = {
     targetLayer                         = "Comparison";
     message                             = "Comparison    ";
     probeOutputFile                     = "ComparisonProbe.txt";

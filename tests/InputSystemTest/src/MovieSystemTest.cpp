@@ -12,7 +12,6 @@
 
 #ifdef MAIN_USES_CUSTOM_GROUPS
 #include <columns/PV_Init.hpp>
-#include "TestAllZerosProbe.hpp"
 #endif // MAIN_USES_CUSTOM_GROUPS
 
 int main(int argc, char * argv[]) {
@@ -32,7 +31,6 @@ int main(int argc, char * argv[]) {
    // pv_initObj.registerKeyword("CustomClass2", Factory::create<CustomClass2>);
    // etc.
    //
-   pv_initObj.registerKeyword("TestAllZerosProbe", Factory::create<TestAllZerosProbe>);
    int status = buildandrun(&pv_initObj, NULL, NULL);
 #endif // MAIN_USES_CUSTOM_GROUPS
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;

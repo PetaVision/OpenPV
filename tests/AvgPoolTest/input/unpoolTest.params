@@ -91,7 +91,7 @@ AvgPoolTestLayer "avgPoolPost" = {
     triggerLayerName = NULL;
 };
 
-GatePoolTestLayer "UnpoolTestPre" = {
+GateAvgPoolTestLayer "UnpoolTestPre" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
@@ -114,7 +114,7 @@ GatePoolTestLayer "UnpoolTestPre" = {
     triggerLayerName = NULL;
 };
 
-GatePoolTestLayer "UnpoolTestPost" = {
+GateAvgPoolTestLayer "UnpoolTestPost" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;

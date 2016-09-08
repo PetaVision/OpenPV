@@ -5,7 +5,7 @@
  *      Author: pschultz
  */
 
-#ifndef SRC_COLUMNARCHIVE_HPP_
+#ifndef COLUMNARCHIVE_HPP_
 #define COLUMNARCHIVE_HPP_
 
 #include <include/PVLayerLoc.h>

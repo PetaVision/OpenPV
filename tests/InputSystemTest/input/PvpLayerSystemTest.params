@@ -19,7 +19,7 @@
 // correct result of the 3x3 convolution.
 //
 // The output of the first movie is compared with the second movie in the
-// layer "comparison".  TestAllZerosProbe reports an error if there is ever
+// layer "comparison".  RequireAllZeroActivityProbe reports an error if there is ever
 // a nonzero activity in the comparison layer.
 
 debugParsing = false;    // If true, debug the reading of this parameter file.
@@ -192,7 +192,7 @@ IdentConn "correctoutput_to_comparison" = {
     writeStep                        = -1;
 };
 
-TestAllZerosProbe "comparison probe" = {
+RequireAllZeroActivityProbe "comparison probe" = {
     targetLayer = "comparison";
     message = "comparison                    ";
     probeOutputFile = NULL;

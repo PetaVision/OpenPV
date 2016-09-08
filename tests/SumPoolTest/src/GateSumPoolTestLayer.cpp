@@ -1,12 +1,12 @@
-#include "GatePoolTestLayer.hpp"
+#include "GateSumPoolTestLayer.hpp"
 
 namespace PV {
 
-GatePoolTestLayer::GatePoolTestLayer(const char * name, HyPerCol * hc){
+GateSumPoolTestLayer::GateSumPoolTestLayer(const char * name, HyPerCol * hc){
    ANNLayer::initialize(name, hc);
 }
 
-int GatePoolTestLayer::updateState(double timef, double dt){
+int GateSumPoolTestLayer::updateState(double timef, double dt){
    //Do update state of ANN Layer first
    ANNLayer::updateState(timef, dt);
 

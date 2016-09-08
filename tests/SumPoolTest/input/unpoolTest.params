@@ -91,7 +91,7 @@ SumPoolTestLayer "sumPoolPost" = {
     triggerLayerName = NULL;
 };
 
-GatePoolTestLayer "UnpoolTestPre" = {
+GateSumPoolTestLayer "UnpoolTestPre" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
@@ -114,7 +114,7 @@ GatePoolTestLayer "UnpoolTestPre" = {
     triggerLayerName = NULL;
 };
 
-GatePoolTestLayer "UnpoolTestPost" = {
+GateSumPoolTestLayer "UnpoolTestPost" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;

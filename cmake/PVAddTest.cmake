@@ -67,7 +67,7 @@ function(pv_add_test_error TEST_NAME MESSAGE)
 endfunction()
 
 macro(pv_add_test)
-  cmake_parse_arguments(PARSED_ARGS "MPI_ONLY;NO_MPI;NO_PARAMS" "MIN_MPI_COPIES;MAX_MPI_COPIES;FLAGS;BASE_NAME" "PARAMS" ${ARGN})
+  cmake_parse_arguments(PARSED_ARGS "MPI_ONLY;NO_MPI;NO_PARAMS" "MIN_MPI_COPIES;MAX_MPI_COPIES;FLAGS;BASE_NAME" "PARAMS;SRCFILES" ${ARGN})
 
   set(ERROR_STATE OFF)
 
@@ -121,19 +121,13 @@ macro(pv_add_test)
   
     # Add the executable
     
-    # File globbing is not a recommended best practice in the CMake docs.
-    # But it's so darn easy and getting rid of this particular set of file
-    # globbing is a bit tedious and the gains aren't that big.
-    # 
-    # To fix this, add a SRC multi_value_keywords to cmake_parse_arguments and specify
-    # the list of sources in the call to pv_add_test. Then the list of sources will be in
-    # PARSED_ARGS_SRC
-    file(GLOB libSrcCPP ${TEST_SOURCE_DIR}/*.cpp)
-    file(GLOB libSrcC ${TEST_SOURCE_DIR}/*.c)
-    file(GLOB libSrcHPP ${TEST_SOURCE_DIR}/*.hpp)
-    file(GLOB libSrcH ${TEST_SOURCE_DIR}/*.h)
+    string(COMPARE EQUAL "${PARSED_ARGS_SRCFILES}" "" SRCFILES_EMPTY)
+    if (SRCFILES_EMPTY)
+      message(FATAL_ERROR "${BASE_NAME} did not contain any source files")
+    endif (SRCFILES_EMPTY)
 
-    pv_add_executable(${BASE_NAME} SRC ${libSrcCPP} ${libSrcC} ${libSrcHPP} ${libSrcH} OUTPUT_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}")
+    include_directories("${TEST_TOP_DIR}/../Shared")
+    pv_add_executable(${BASE_NAME} SRC ${PARSED_ARGS_SRCFILES} OUTPUT_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}")
     add_dependencies(${BASE_NAME} pv)
     if (NOT ${CMAKE_CURRENT_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_BINARY_DIR})
       set(TEST_SOURCE_INPUT "${CMAKE_CURRENT_SOURCE_DIR}/input")

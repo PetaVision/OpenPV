@@ -1,12 +1,12 @@
-#include "GatePoolTestLayer.hpp"
+#include "GateMaxPoolTestLayer.hpp"
 
 namespace PV {
 
-GatePoolTestLayer::GatePoolTestLayer(const char * name, HyPerCol * hc){
+GateMaxPoolTestLayer::GateMaxPoolTestLayer(const char * name, HyPerCol * hc){
    ANNLayer::initialize(name, hc);
 }
 
-int GatePoolTestLayer::updateState(double timef, double dt){
+int GateMaxPoolTestLayer::updateState(double timef, double dt){
 
    //Grab layer size
    const PVLayerLoc* loc = getLayerLoc();
