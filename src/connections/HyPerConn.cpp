@@ -1399,6 +1399,29 @@ int HyPerConn::allocatePostConn(){
 int HyPerConn::allocateDataStructures() {
    int status = BaseConnection::allocateDataStructures();
    pvAssert(status == PV_SUCCESS);
+#ifdef PV_USE_CUDA
+   if(receiveGpu){
+      if (!pre->getDataStructuresAllocatedFlag()) {
+         if (parent->getCommunicator()->commRank()==0) {
+            pvInfo() << getDescription() << " must wait until presynaptic layer \"" << pre->getName() << "\" has finished its allocateDataStructures stage.\n";
+         }
+         status = PV_POSTPONE;
+      }
+      if (!post->getDataStructuresAllocatedFlag()) {
+         if (parent->getCommunicator()->commRank()==0) {
+            pvInfo() << getDescription() << " must wait until postsynaptic layer \"" << post->getName() << "\" has finished its allocateDataStructures stage.\n";
+         }
+         status = PV_POSTPONE;
+      }
+      if (status==PV_POSTPONE) { return status; }
+   }
+   if(status == 0) {
+      status = PV_SUCCESS;
+   }
+   else{
+      pvError().printf("%s: unable to allocate device memory in rank %d process: %s\n", getDescription_c(), getParent()->columnId(), strerror(errno));
+   }
+#endif // PV_USE_CUDA
    initNumWeightPatches();
    initNumDataPatches();
    initPatchToDataLUT();
@@ -1433,8 +1456,21 @@ int HyPerConn::allocateDataStructures() {
 
 #ifdef PV_USE_CUDA
    status = allocateDeviceBuffers();
-   // allocateReceivePostKernel and allocateReceivePreKernel moved to setInitialValues stage
-#endif
+   if(receiveGpu){
+      if(updateGSynFromPostPerspective){
+         status = initializeReceivePostKernelArgs();
+      }
+      else{
+         status = initializeReceivePreKernelArgs();
+      }
+   }
+   if(status == 0) {
+      status = PV_SUCCESS;
+   }
+   else{
+      pvError().printf("%s: unable to allocate device memory in rank %d process: %s\n", getDescription_c(), getParent()->columnId(), strerror(errno));
+   }
+#endif // PV_USE_CUDA
 
    //Allocate temp buffers if needed, 1 for each thread
    //Only allocate for recv from pre, and not threading over batches
@@ -2154,22 +2190,6 @@ int HyPerConn::insertProbe(BaseConnectionProbe * p)
 int HyPerConn::setInitialValues() {
    initializeWeights(wPatches, wDataStart);
    int status = PV_SUCCESS;
-#ifdef PV_USE_CUDA
-   if(receiveGpu){
-      if(updateGSynFromPostPerspective){
-         status = initializeReceivePostKernelArgs();
-      }
-      else{
-         status = initializeReceivePreKernelArgs();
-      }
-   }
-   if(status == 0) {
-      status = PV_SUCCESS;
-   }
-   else{
-      pvError().printf("%s: unable to allocate device memory in rank %d process: %s\n", getDescription_c(), getParent()->columnId(), strerror(errno));
-   }
-#endif // PV_USE_CUDA
    return status;
 }
 
