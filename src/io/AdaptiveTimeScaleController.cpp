@@ -160,7 +160,6 @@ std::vector<double> const& AdaptiveTimeScaleController::calcTimesteps(double tim
 }
 
 void AdaptiveTimeScaleController::writeTimestepInfo(double timeValue, std::ostream& stream) {
-std::cout << "precision=" << stream.precision() << "; width=" << stream.width() << std::endl;
    auto saveWidth = stream.width();
    auto savePrec = stream.precision();
    stream.width(10);

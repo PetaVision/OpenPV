@@ -371,7 +371,6 @@ namespace PV {
             std::string noWhiteSpace = line;
             noWhiteSpace.erase(std::remove_if (noWhiteSpace.begin(), noWhiteSpace.end(), ::isspace), noWhiteSpace.end());
             if (!noWhiteSpace.empty()) {
-               pvInfo() << noWhiteSpace << "\n";
                mFileList.push_back(noWhiteSpace);
             }
          }
