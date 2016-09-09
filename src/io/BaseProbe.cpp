@@ -49,7 +49,7 @@ int BaseProbe::initialize_base() {
    coefficient = 1.0;
    numValues = 0;
    probeValues = NULL;
-   lastUpdateTime = -DBL_MAX;
+   lastUpdateTime = 0.0;
    writingToFile = false;
    return PV_SUCCESS;
 }

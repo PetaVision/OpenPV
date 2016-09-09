@@ -1523,8 +1523,7 @@ bool HyPerLayer::needUpdate(double simTime, double dt){
    if (getDeltaUpdateTime() <= 0) {
       return false;
    }
-   // This was mLastUpdateTime + triggerOffset == simTime when everything but MomentumLCATest passed
-   if (mLastUpdateTime == simTime) {
+   if (mLastUpdateTime == simTime + triggerOffset) {
       return true;
    }
    double timeToCheck = mLastUpdateTime;
