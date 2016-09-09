@@ -160,7 +160,11 @@ std::vector<double> const& AdaptiveTimeScaleController::calcTimesteps(double tim
 }
 
 void AdaptiveTimeScaleController::writeTimestepInfo(double timeValue, std::ostream& stream) {
-
+std::cout << "precision=" << stream.precision() << "; width=" << stream.width() << std::endl;
+   auto saveWidth = stream.width();
+   auto savePrec = stream.precision();
+   stream.width(10);
+   stream.precision(8);
    if (mWriteTimeScaleFieldnames) {
       stream << "sim_time = " << timeValue << "\n";
    }
@@ -182,6 +186,8 @@ void AdaptiveTimeScaleController::writeTimestepInfo(double timeValue, std::ostre
       }
    }
    stream.flush();
+   stream.width(saveWidth);
+   stream.precision(saveWidth);
 }
 
 } /* namespace PV */
