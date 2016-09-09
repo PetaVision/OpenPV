@@ -158,7 +158,7 @@ int LIFGap::calcGapStrength() {
       for (int c=0; c<parent->numberOfConnections(); c++) {
          HyPerConn * conn = dynamic_cast<HyPerConn *>(parent->getConnection(c));
          if (conn->postSynapticLayer() != this || conn->getChannel() != CHANNEL_GAP) { continue; }
-         if (lastUpdateTime < conn->getLastUpdateTime()) {
+         if (mLastUpdateTime < conn->getLastUpdateTime()) {
             needsNewCalc = true;
             break;
          }

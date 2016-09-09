@@ -34,35 +34,35 @@ int TriggerTestLayerProbe::outputStateWrapper(double time, double dt){
    getValues(time);
    pvErrorIf(!(this->getNumValues()>0), "Test failed.\n");
    int updateNeeded = (int) getValuesBuffer()[0];
-   pvInfo().printf("%s: time=%f, dt=%f, needUpdate=%d\n", name, time, dt, updateNeeded);
+   pvInfo().printf("%s: time=%f, dt=%f, needUpdate=%d, triggerOffset=%f\n", name, time, dt, updateNeeded, triggerOffset);
    if(strcmp(name, "notriggerlayerprobe") == 0){
-      pvErrorIf(!(updateNeeded == 1), "Test failed.\n");
+      pvErrorIf(!(updateNeeded == 1), "Test failed at %s. Expected true, found false.\n", getName());
    }
    //Trigger with offset of 0, assuming display period is 5
    else if(strcmp(name, "trigger0layerprobe") == 0){
       if(((int)time-1) % 5 == 0){
-         pvErrorIf(!(updateNeeded == 1), "Test failed.\n");
+         pvErrorIf(!(updateNeeded == 1), "Test failed at %s. Expected true, found false.\n", getName());
       }
       else{
-         pvErrorIf(!(updateNeeded == 0), "Test failed.\n");
+         pvErrorIf(!(updateNeeded == 0), "Test failed at %s. Expected false, found true.\n", getName());
       }
    }
    //Trigger with offset of 1, assuming display period is 5
    else if(strcmp(name, "trigger1layerprobe") == 0){
       if(((int)time) % 5 == 0){
-         pvErrorIf(!(updateNeeded == 1), "Test failed.\n");
+         pvErrorIf(!(updateNeeded == 1), "Test failed at %s. Expected true, found false.\n", getName());
       }
       else{
-         pvErrorIf(!(updateNeeded == 0), "Test failed.\n");
+         pvErrorIf(!(updateNeeded == 0), "Test failed at %s. Expected false, found true.\n", getName());
       }
    }
    //Trigger with offset of 1, assuming display period is 5
    else if(strcmp(name, "trigger2layerprobe") == 0){
       if(((int)time+1) % 5 == 0){
-         pvErrorIf(!(updateNeeded == 1), "Test failed.\n");
+         pvErrorIf(!(updateNeeded == 1), "Test failed at %s. Expected true, found false.\n", getName());
       }
       else{
-         pvErrorIf(!(updateNeeded == 0), "Test failed.\n");
+         pvErrorIf(!(updateNeeded == 0), "Test failed at %s. Expected false, found true.\n", getName());
       }
    }
    return LayerProbe::outputStateWrapper(time, dt);

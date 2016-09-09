@@ -2234,87 +2234,40 @@ int HyPerConn::outputState(double timef, bool last)
    return status;
 }
 
-bool HyPerConn::needUpdate(double time, double dt){
-   if( !plasticityFlag ) {
+bool HyPerConn::needUpdate(double simTime, double dt){
+   if (!plasticityFlag) {
       return false;
    }
-   if(triggerLayer){
-      double nextUpdateTime = triggerLayer->getNextUpdateTime();
-      //never update flag
-      if(nextUpdateTime == -1){
-         return false;
-      }
-      //Check for equality
-      if(fabs(time - (nextUpdateTime - triggerOffset)) < (dt/2)){
-         return true;
-      }
-      //If it gets to this point, don't update
-      return false;
+   if (triggerLayer) {
+      return triggerLayer->needUpdate(simTime + triggerOffset, dt);
    }
-   //If no trigger, use weightUpdateTime
-   else{
-      if( time >= weightUpdateTime) {
-         return true;
-      }
-      return false;
-   }
+   return simTime >= weightUpdateTime;
 }
 
-int HyPerConn::updateState(double time, double dt){
+int HyPerConn::updateState(double simTime, double dt){
    int status = PV_SUCCESS;
-   if( !plasticityFlag ){lastTimeUpdateCalled = time; return status;}
+   if (!plasticityFlag) {
+      lastTimeUpdateCalled = simTime;
+      return status;
+   }
 
    update_timer->start();
-   if(needUpdate(time, dt)){
-      //Need to finish command queue of pre and post activity
-      //Doing both in case of multiple gpus running
-
-#ifdef OBSOLETE // Marked obsolete Aug 18, 2016.   Should not skip images when learning, and timescale adaptation has been moved out of HyPerCol.
-      //TODO: commented out to compile, but we'll want to average across only batches where timeScale >= timeScaleMin.
-      for(int b = 0; b < parent->getNBatch(); b++){
-         double preTimeScale = pre->getTimeScale(b); 
-         double postTimeScale = post->getTimeScale(b);
-         double colTimeScale = parent->getTimeScale(b);
-         double timeScaleMin = parent->getTimeScaleMin();
-         double skip = false;
-         //If timeScale is less than the value for dtScaleMin specified in the params but not -1, don't updateState.
-         //This is implemented as an optimization so weights don't change dramatically as ANNNormalizedErrorLayer values get large.
-         if (preTimeScale > 0 && preTimeScale < timeScaleMin) { 
-            if (parent->getCommunicator()->commRank()==0) {
-               pvInfo().printf("TimeScale = %f for %s batch %d, which is less than your specified dtScaleMin, %f. updateState won't be called for %s this timestep.\n", preTimeScale, pre->getDescription_c(), b, timeScaleMin, getDescription_c());
-            }
-            skip = true;
-         }
-         else if (postTimeScale > 0 && postTimeScale < timeScaleMin) { 
-            if (parent->getCommunicator()->commRank()==0) {
-               pvInfo().printf("TimeScale = %f for %s batch %d, which is less than your specified dtScaleMin, %f. updateState won't be called for %s this timestep.\n", postTimeScale, post->getDescription_c(), b, timeScaleMin, getDescription_c());
-            }
-            skip = true;
-         }
-         else if (colTimeScale > 0 && colTimeScale < timeScaleMin) { 
-            if (parent->getCommunicator()->commRank()==0) {
-               pvInfo().printf("TimeScale = %f for column %s batch %d, which is less than your specified dtScaleMin, %f. updateState won't be called for %s this timestep.\n", colTimeScale, parent->getName(), b, timeScaleMin, getDescription_c());
-            }
-            skip = true;
-         }
-         batchSkip[b] = skip;
-      }
-#endif // OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to ColumnEnergyProbe.
-
+   if (needUpdate(simTime, dt)) {
       status = calc_dW();        // Calculate changes in weights
-
-      for(int arborId=0;arborId<numberOfAxonalArborLists();arborId++){
+      for (int arborId = 0; arborId < numberOfAxonalArborLists(); arborId++) {
          status = updateWeights(arborId);  // Apply changes in weights
-         if (status==PV_BREAK) { break; }
-         pvAssert(status==PV_SUCCESS);
+         if (status == PV_BREAK) {
+            break;
+         }
+         pvAssert(status == PV_SUCCESS);
       }
 
-      lastUpdateTime = time;
-      computeNewWeightUpdateTime(time, weightUpdateTime);
+      lastUpdateTime = simTime;
+      computeNewWeightUpdateTime(simTime, weightUpdateTime);
       needFinalize = true;
    }
    update_timer->stop();
-   lastTimeUpdateCalled = time;
+   lastTimeUpdateCalled = simTime;
    return status;
 }
 
@@ -2704,10 +2657,10 @@ int HyPerConn::updateWeights(int arborId)
    return PV_BREAK;
 }
 
-double HyPerConn::computeNewWeightUpdateTime(double time, double currentUpdateTime) {
+double HyPerConn::computeNewWeightUpdateTime(double simTime, double currentUpdateTime) {
    //Only called if plasticity flag is set
    if (!triggerLayer) {
-      while(time >= weightUpdateTime){
+      while(simTime >= weightUpdateTime){
          weightUpdateTime += weightUpdatePeriod;
       }
    }
@@ -3692,12 +3645,12 @@ int HyPerConn::adjustAxonalArbors(int arborId)
    return adjustAllPatches(nxPre, nyPre, nfPre, haloPre, nxPost, nyPost, nfPost, haloPost, wPatches, gSynPatchStart, aPostOffset, arborId);
 }
 
-PVPatch *** HyPerConn::convertPreSynapticWeights(double time)
+PVPatch *** HyPerConn::convertPreSynapticWeights(double simTime)
 {
-   if (time <= wPostTime) {
+   if (simTime <= wPostTime) {
       return wPostPatches;
    }
-   wPostTime = time;
+   wPostTime = simTime;
 
    const PVLayerLoc * preLoc = pre->getLayerLoc();
    const PVLayerLoc * postLoc = post->getLayerLoc();

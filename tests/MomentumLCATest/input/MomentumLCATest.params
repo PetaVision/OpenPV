@@ -39,7 +39,7 @@ AdaptiveTimeScaleProbe "AdaptiveTimeScales" = {
    message = NULL;
    textOutputFlag = true;
    probeOutputFile = "AdaptiveTimeScales.txt";
-   triggerLayerName = NULL;
+   triggerLayerName = "Input";
    baseMax = 5;
    baseMin = 0.125;
    tauFactor = 0.05;
@@ -70,7 +70,7 @@ PvpLayer "Input" = {
     offsetAnchor = "tl";
     offsetX = 0;
     offsetY = 0;
-	displayPeriod = 0;
+	displayPeriod = 5;
 };
 
 ANNErrorLayer "Residual" = {
@@ -317,6 +317,6 @@ RequireAllZeroActivityProbe "ComparisonTest" = {
     targetLayer = "Comparison";
     textOutputFlag = true;
     probeOutputFile = "ComparisonTest.txt";
-    nnzThreshold = 1e-6;
+    nnzThreshold = 1e-4;
     exitOnFailure = false; // exit-hook function will test for failures in source code
 };

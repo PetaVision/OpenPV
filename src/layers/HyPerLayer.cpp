@@ -30,7 +30,6 @@
 
 namespace PV {
 
-///////
 // This constructor is protected so that only derived classes can call it.
 // It should be called as the normal method of object construction by
 // derived classes.  It should NOT call any virtual methods
@@ -44,87 +43,86 @@ HyPerLayer::HyPerLayer(const char * name, HyPerCol * hc)
     initialize(name, hc);
 }
 
-///////
 // initialize_base should be called only by constructors.  It should not
 // call any virtual methods, because polymorphism is not available when
 // a base class constructor is inherited from a derived class constructor.
 // In general, initialize_base should be used only to initialize member variables
 // to safe values.
 int HyPerLayer::initialize_base() {
-   this->name = NULL;
-   this->probes = NULL;
-   this->nxScale = 1.0f;
-   this->nyScale = 1.0f;
-   this->numFeatures = 1;
-   this->mirrorBCflag = 0;
-   this->xmargin = 0;
-   this->ymargin = 0;
-   this->numProbes = 0;
-   this->ioAppend = 0;
-   this->numChannels = 2;
-   this->clayer = NULL;
-   this->GSyn = NULL;
-   //this->labels = NULL;
-   this->marginIndices = NULL;
-   this->numMargin = 0;
-   this->writeTime = 0;
-   this->initialWriteTime = 0;
-   this->triggerFlag = false; //Default to update every timestamp
-   this->triggerLayer = NULL;
-   this->triggerLayerName = NULL;
-   this->triggerBehavior = NULL;
-   this->triggerBehaviorType = NO_TRIGGER;
-   this->triggerResetLayerName = NULL;
-   this->initVObject = NULL;
-   this->triggerOffset = 0;
-   this->nextUpdateTime = 0;
-   this->initializeFromCheckpointFlag = false;
-   this->outputStateStream = NULL;
+   name = NULL;
+   probes = NULL;
+   nxScale = 1.0f;
+   nyScale = 1.0f;
+   numFeatures = 1;
+   mirrorBCflag = 0;
+   xmargin = 0;
+   ymargin = 0;
+   numProbes = 0;
+   ioAppend = 0;
+   numChannels = 2;
+   clayer = NULL;
+   GSyn = NULL;
+   marginIndices = NULL;
+   numMargin = 0;
+   writeTime = 0;
+   initialWriteTime = 0;
+   triggerFlag = false; //Default to update every timestamp
+   triggerLayer = NULL;
+   triggerLayerName = NULL;
+   triggerBehavior = NULL;
+   triggerBehaviorType = NO_TRIGGER;
+   triggerResetLayerName = NULL;
+   initVObject = NULL;
+   triggerOffset = 0;
+   initializeFromCheckpointFlag = false;
+   outputStateStream = NULL;
    
-   this->lastUpdateTime = 0.0;
-   this->phase = 0;
+   mLastUpdateTime = 0.0;
+   mLastTriggerTime = 0.0;
+
+   phase = 0;
    
-   this->numSynchronizedMarginWidthLayers = 0;
-   this->synchronizedMarginWidthLayers = NULL;
+   numSynchronizedMarginWidthLayers = 0;
+   synchronizedMarginWidthLayers = NULL;
    
    dataType = PV_FLOAT;
    dataTypeString = NULL;
 
 #ifdef PV_USE_CUDA
 //   this->krUpdate = NULL;
-   this->allocDeviceV = false;
-   this->allocDeviceGSyn = false;
-   this->allocDeviceActivity = false;
-   this->allocDeviceDatastore= false;
-   this->allocDeviceActiveIndices= false;
-   this->d_V = NULL;
-   this->d_GSyn = NULL;
-   this->d_Activity = NULL;
-   this->d_Datastore= NULL;
-   this->d_ActiveIndices= NULL;
-   this->d_numActive = NULL;
-   this->updatedDeviceActivity = true; //Start off always updating activity
-   this->updatedDeviceDatastore = true;
-   this->updatedDeviceGSyn = true;
-   this->recvGpu = false;
-   this->updateGpu = false;
-   this->krUpdate = NULL;
+   allocDeviceV = false;
+   allocDeviceGSyn = false;
+   allocDeviceActivity = false;
+   allocDeviceDatastore= false;
+   allocDeviceActiveIndices= false;
+   d_V = NULL;
+   d_GSyn = NULL;
+   d_Activity = NULL;
+   d_Datastore= NULL;
+   d_ActiveIndices= NULL;
+   d_numActive = NULL;
+   updatedDeviceActivity = true; //Start off always updating activity
+   updatedDeviceDatastore = true;
+   updatedDeviceGSyn = true;
+   recvGpu = false;
+   updateGpu = false;
+   krUpdate = NULL;
 #endif // PV_USE_CUDA
 
 #if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
-   this->cudnn_GSyn = NULL;
-   this->cudnn_Datastore= NULL;
+   cudnn_GSyn = NULL;
+   cudnn_Datastore= NULL;
 #endif
 
-   this->update_timer  = NULL;
-   this->recvsyn_timer = NULL;
-   this->publish_timer = NULL;
-   this->timescale_timer = NULL;
-   this->io_timer      = NULL;
+   update_timer  = NULL;
+   recvsyn_timer = NULL;
+   publish_timer = NULL;
+   timescale_timer = NULL;
+   io_timer      = NULL;
 
 #ifdef PV_USE_CUDA
-   this->gpu_recvsyn_timer = NULL;
-   this->gpu_update_timer = NULL;
+   gpu_recvsyn_timer = NULL;
+   gpu_update_timer = NULL;
 #endif
 
 #if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
@@ -134,8 +132,8 @@ int HyPerLayer::initialize_base() {
 #endif
 
 
-   this->thread_gSyn = NULL;
-   this->recvConns.clear();
+   thread_gSyn = NULL;
+   recvConns.clear();
 
    return PV_SUCCESS;
 }
@@ -150,18 +148,19 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc) {
    if (status != PV_SUCCESS) { return status; }
 
    // Timers
-   this->update_timer =  new Timer(getName(), "layer", "update ");
-   this->recvsyn_timer = new Timer(getName(), "layer", "recvsyn");
-   this->publish_timer = new Timer(getName(), "layer", "publish");
-   this->timescale_timer = new Timer(getName(), "layer", "timescale");
-   this->io_timer =      new Timer(getName(), "layer", "io     ");
+   update_timer    = new Timer(getName(), "layer", "update ");
+   recvsyn_timer   = new Timer(getName(), "layer", "recvsyn");
+   publish_timer   = new Timer(getName(), "layer", "publish");
+   timescale_timer = new Timer(getName(), "layer", "timescale");
+   io_timer        = new Timer(getName(), "layer", "io     ");
 
 #ifdef PV_USE_CUDA
-   this->gpu_recvsyn_timer = new PVCuda::CudaTimer(getName(), "layer", "gpurecvsyn");
-   this->gpu_recvsyn_timer->setStream(hc->getDevice()->getStream());
-   this->gpu_update_timer = new PVCuda::CudaTimer(getName(), "layer", "gpuupdate");
-   this->gpu_update_timer->setStream(hc->getDevice()->getStream());
+   gpu_recvsyn_timer = new PVCuda::CudaTimer(getName(), "layer", "gpurecvsyn");
+   gpu_recvsyn_timer->setStream(hc->getDevice()->getStream());
+   gpu_update_timer = new PVCuda::CudaTimer(getName(), "layer", "gpuupdate");
+   gpu_update_timer->setStream(hc->getDevice()->getStream());
 #ifdef PV_USE_CUDNN
+   // TODO: Why is this commented out? Is this dead code?
    //this->permute_weights_timer = new PVCuda::CudaTimer(getName(), "layer", "gpuWeightsPermutate");
    //this->permute_weights_timer->setStream(hc->getDevice()->getStream());
    //this->permute_preData_timer = new PVCuda::CudaTimer(getName(), "layer", "gpuPreDataPermutate");
@@ -189,9 +188,8 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc) {
 
    parent->addLayer(this);
 
-   lastUpdateTime = parent->simulationTime();
-   nextUpdateTime = lastUpdateTime + parent->getDeltaTime();
-   // nextTriggerTime will be initialized in communicateInitInfo(), as it depends on triggerLayer
+   mLastUpdateTime  = parent->getDeltaTime();
+   mLastTriggerTime = parent->getDeltaTime();
    return PV_SUCCESS;
 }
 
@@ -228,26 +226,27 @@ int HyPerLayer::initClayer() {
 
 HyPerLayer::~HyPerLayer()
 {
-   delete recvsyn_timer;  recvsyn_timer = NULL;
-   delete update_timer;   update_timer  = NULL;
-   delete publish_timer;  publish_timer = NULL;
-   delete timescale_timer;  timescale_timer = NULL;
-   delete io_timer;       io_timer      = NULL;
+   delete recvsyn_timer;  
+   delete update_timer;   
+   delete publish_timer;  
+   delete timescale_timer;
+   delete io_timer;       
 #ifdef PV_USE_CUDA
-   delete gpu_recvsyn_timer; gpu_recvsyn_timer = NULL;
-   delete gpu_update_timer; gpu_update_timer = NULL;
+   delete gpu_recvsyn_timer;
+   delete gpu_update_timer; 
 #endif
 
-   if (outputStateStream) { pvp_close_file(outputStateStream, parent->getCommunicator()); }
+   if (outputStateStream) {
+      pvp_close_file(outputStateStream, parent->getCommunicator());
+   }
 
-   delete initVObject; initVObject = NULL;
+   delete initVObject; 
    freeClayer();
    freeChannels();
 
 #ifdef PV_USE_CUDA
    if(krUpdate){
       delete krUpdate;
-      krUpdate= NULL;
    }
    if(d_V){
       delete d_V;
@@ -258,13 +257,6 @@ HyPerLayer::~HyPerLayer()
    if(d_Datastore){
       delete d_Datastore;
    }
-
-//      delete clPrevTime;
-//      delete clParams;
-//
-//
-//      free(evList);
-//      evList = NULL;
 #endif
 
 #if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
@@ -273,23 +265,20 @@ HyPerLayer::~HyPerLayer()
    }
 #endif
 
-   //free(labels); labels = NULL;
-   free(marginIndices); marginIndices = NULL;
+   free(marginIndices);
    free(probes); // All probes are deleted by the HyPerCol, so probes[i] doesn't need to be deleted, only the array itself.
 
    free(synchronizedMarginWidthLayers);
    
-   free(triggerLayerName); triggerLayerName = NULL;
-   free(triggerBehavior); triggerBehavior = NULL;
-   free(triggerResetLayerName); triggerResetLayerName = NULL;
+   free(triggerLayerName); 
+   free(triggerBehavior);
+   free(triggerResetLayerName);
 
    if(thread_gSyn){
       for(int i = 0; i < parent->getNumThreads(); i++){
          free(thread_gSyn[i]);
-         thread_gSyn[i] = NULL;
       }
       free(thread_gSyn);
-      thread_gSyn = NULL;
    }
    delete publisher;
 }
@@ -1069,8 +1058,7 @@ int HyPerLayer::communicateInitInfo()
          MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
-      nextTriggerTime = triggerLayer->getNextUpdateTime();
-      if (triggerBehaviorType==RESETSTATE_TRIGGER) {
+      if (triggerBehaviorType == RESETSTATE_TRIGGER) {
          char const * resetLayerName = NULL; // Will point to name of actual resetLayer, whether triggerResetLayerName is blank (in which case resetLayerName==triggerLayerName) or not
          if (triggerResetLayerName==NULL || triggerResetLayerName[0]=='\0') {
             resetLayerName = triggerLayerName;
@@ -1497,38 +1485,6 @@ const pvdata_t * HyPerLayer::getLayerData(int delay)
    return store->buffer(0, delay);
 }
 
-#ifdef OBSOLETE // Marked obsolete June 28, 2016.  When mirroring is done, all borders are mirrored.
-int HyPerLayer::mirrorInteriorToBorder(int whichBorder, PVLayerCube * cube, PVLayerCube * border)
-{
-   assert( cube->numItems == border->numItems );
-   assert( localDimensionsEqual(&cube->loc,&border->loc));
-   int status = 0;
-   switch (whichBorder) {
-   case NORTHWEST:
-      status = mirrorToNorthWest(border, cube); break;
-   case NORTH:
-      status = mirrorToNorth(border, cube); break;
-   case NORTHEAST:
-      status = mirrorToNorthEast(border, cube); break;
-   case WEST:
-      status = mirrorToWest(border, cube); break;
-   case EAST:
-      status = mirrorToEast(border, cube); break;
-   case SOUTHWEST:
-      status = mirrorToSouthWest(border, cube); break;
-   case SOUTH:
-      status = mirrorToSouth(border, cube); break;
-   case SOUTHEAST:
-      status = mirrorToSouthEast(border, cube); break;
-   default:
-      pvErrorNoExit().printf("HyPerLayer::mirrorInteriorToBorder: bad border index %d\n", whichBorder);
-      status = -1;
-      break;
-   }
-   return status;
-}
-#endif // OBSOLETE // Marked obsolete June 28, 2016.  When mirroring is done, all borders are mirrored.
-
 int HyPerLayer::mirrorInteriorToBorder(PVLayerCube * cube, PVLayerCube * border)
 {
    assert( cube->numItems == border->numItems );
@@ -1545,116 +1501,88 @@ int HyPerLayer::mirrorInteriorToBorder(PVLayerCube * cube, PVLayerCube * border)
    return 0;
 }
 
-bool HyPerLayer::needUpdate(double time, double dt){
-   bool updateNeeded = false;
-   // Check if the layer ever updates.
-   if (getDeltaUpdateTime() < 0) {
-      updateNeeded = false;
-   }
-   //Return true if the layer was updated this timestep as well
-   else if(fabs(parent->simulationTime() - lastUpdateTime) < (dt/2)){
-      updateNeeded = true;
-   }
-   else {
-      //We want to check whether time==nextUpdateTime-triggerOffset,
-      // but to account for roundoff errors, we check if it's within half the delta time
-      updateNeeded = fabs(time - (nextUpdateTime - triggerOffset)) < (dt/2);
-   }
-   return updateNeeded;
-}
-
-int HyPerLayer::updateNextUpdateTime(){
-   double deltaUpdateTime = getDeltaUpdateTime();
-   assert(deltaUpdateTime != 0);
-   if(deltaUpdateTime > 0){
-      while(parent->simulationTime() >= nextUpdateTime){
-         nextUpdateTime += deltaUpdateTime;
-      }
-   }
-   return PV_SUCCESS;
-}
-
-double HyPerLayer::getDeltaUpdateTime(){
-   if(triggerLayer != NULL && triggerBehaviorType == UPDATEONLY_TRIGGER){
+double HyPerLayer::getDeltaUpdateTime() {
+   if (triggerLayer != NULL && triggerBehaviorType == UPDATEONLY_TRIGGER) {
       return getDeltaTriggerTime();
    }
-   else{
+   else {
       return parent->getDeltaTime();
    }
 }
 
-int HyPerLayer::updateNextTriggerTime() {
-   if (triggerLayer==NULL) { return PV_SUCCESS; }
-   double deltaTriggerTime = getDeltaTriggerTime();
-   if (deltaTriggerTime > 0) {
-      while(parent->simulationTime() >= nextTriggerTime) {
-         nextTriggerTime += deltaTriggerTime;
-      }
-   }
-   return PV_SUCCESS;
-}
-
-double HyPerLayer::getDeltaTriggerTime(){
-   if(triggerLayer != NULL){
+double HyPerLayer::getDeltaTriggerTime() {
+   if (triggerLayer != NULL) {
       return triggerLayer->getDeltaUpdateTime();
    }
-   else{
+   else {
       return -1;
    }
 }
 
-bool HyPerLayer::needReset(double timed, double dt) {
-   bool resetNeeded = false;
-   if (triggerLayer != NULL && triggerBehaviorType == RESETSTATE_TRIGGER) {
-      resetNeeded = fabs(timed - (nextTriggerTime - triggerOffset)) < (dt/2);
+bool HyPerLayer::needUpdate(double simTime, double dt){
+   if (getDeltaUpdateTime() <= 0) {
+      return false;
    }
-   return resetNeeded;
+   if (mLastUpdateTime == simTime + triggerOffset) {
+      return true;
+   }
+   double timeToCheck = mLastUpdateTime;
+   if(triggerLayer != nullptr && triggerBehaviorType == UPDATEONLY_TRIGGER) {
+      timeToCheck = triggerLayer->getLastUpdateTime();
+   }
+   if (simTime + triggerOffset      >= timeToCheck + getDeltaUpdateTime()
+    && simTime + triggerOffset + dt <= timeToCheck + getDeltaUpdateTime() + dt) {
+      return true;
+   }
+   return false;
 }
 
-int HyPerLayer::callUpdateState(double timef, double dt){
-   int status = PV_SUCCESS;
-   if(needUpdate(timef, parent->getDeltaTime())){
-      if (needReset(timef, dt)) {
-         status = resetStateOnTrigger();
-         updateNextTriggerTime();
-      }
-      //status = callUpdateState(timef, dt);
+bool HyPerLayer::needReset(double simTime, double dt) {
+   if (triggerLayer == nullptr) {
+      return false;
+   }
+   if (triggerBehaviorType != RESETSTATE_TRIGGER) {
+      return false;
+   }
+   if (getDeltaTriggerTime() <= 0) {
+      return false;
+   }
+   if (simTime > mLastTriggerTime + getDeltaTriggerTime()) {
+      return true;
+   }
+   return false;
+}
 
-      //callUpdateState contents begin
+int HyPerLayer::callUpdateState(double simTime, double dt){
+   int status = PV_SUCCESS;
+   if (needUpdate(simTime, dt)) {
+      if (needReset(simTime, dt)) {
+         status = resetStateOnTrigger();
+         mLastTriggerTime = simTime;
+      }
+
       update_timer->start();
 #ifdef PV_USE_CUDA
-      if(updateGpu)
-      {
+      if (updateGpu) {
          gpu_update_timer->start();
-         //status = updateStateGpu(timed, dt);
-         //updateStateGpu contents begin
-         pvdata_t * gSynHead = GSyn==NULL ? NULL : GSyn[0];
+         pvdata_t * gSynHead = GSyn == NULL ? NULL : GSyn[0];
          assert(updateGpu);
-         status = updateStateGpu(timef, dt);
-         //updateStateGpu contents end
+         status = updateStateGpu(simTime, dt);
          gpu_update_timer->stop();
       }
-      else
-      {
+      else {
 #endif
-         //status = updateState(timed, dt);
-         //updateState contents begin
-         status = updateState(timef, dt);
-         //updateState contents end
+         status = updateState(simTime, dt);
 #ifdef PV_USE_CUDA
       }
       //Activity updated, set flag to true
-      updatedDeviceActivity = true;
+      updatedDeviceActivity  = true;
       updatedDeviceDatastore = true;
 #endif
       update_timer->stop();
- 
-      //callUpdateState contents end
-
-      lastUpdateTime = parent->simulationTime();
+   
+      mLastUpdateTime = simTime;
    }
-   //Because of the triggerOffset, we need to check if we need to update nextUpdateTime every time
-   updateNextUpdateTime();
    return status;
 }
 
@@ -1829,15 +1757,15 @@ int HyPerLayer::recvAllSynapticInput() {
 
 #ifdef PV_USE_CUDA
 float HyPerLayer::addGpuTimers(){
-   float time = 0;
+   float simTime = 0;
    bool updateNeeded = needUpdate(parent->simulationTime(), parent->getDeltaTime());
    if(recvGpu && updateNeeded){
-      time += gpu_recvsyn_timer->accumulateTime();
+      simTime += gpu_recvsyn_timer->accumulateTime();
    }
    if(updateGpu && updateNeeded){
-      time += gpu_update_timer->accumulateTime();
+      simTime += gpu_update_timer->accumulateTime();
    }
-   return time;
+   return simTime;
 }
 
 void HyPerLayer::syncGpu(){
@@ -1892,8 +1820,7 @@ void HyPerLayer::copyAllActivityFromDevice(){
 
 #endif
 
-int HyPerLayer::publish(Communicator* comm, double time)
-{
+int HyPerLayer::publish(Communicator* comm, double simTime) {
    publish_timer->start();
 
    bool mirroring = useMirrorBCs();
@@ -1904,7 +1831,7 @@ int HyPerLayer::publish(Communicator* comm, double time)
       mirrorInteriorToBorder(clayer->activity, clayer->activity);
    }
    
-   int status = publisher->publish(time, lastUpdateTime);
+   int status = publisher->publish(simTime, mLastUpdateTime);
    publish_timer->stop();
    return status;
 }
@@ -2041,8 +1968,7 @@ int HyPerLayer::checkpointRead(const char * cpDir, double * timeptr) {
       pvError().printf("%s: rank %d process failed to read state from checkpoint directory \"%s\"\n", getDescription_c(), parent->columnId(), cpDir);
    }
    Communicator * icComm = parent->getCommunicator();
-   parent->readScalarFromFile(cpDir, getName(), "lastUpdateTime", &lastUpdateTime, parent->simulationTime()-parent->getDeltaTime());
-   parent->readScalarFromFile(cpDir, getName(), "nextUpdateTime", &nextUpdateTime, parent->simulationTime()+parent->getDeltaTime());
+   parent->readScalarFromFile(cpDir, getName(), "lastUpdateTime", &mLastUpdateTime, parent->simulationTime()-parent->getDeltaTime());
    parent->readScalarFromFile(cpDir, getName(), "nextWrite", &writeTime, writeTime);
 
    if (ioAppend) {
@@ -2212,8 +2138,7 @@ int HyPerLayer::checkpointWrite(const char * cpDir) {
    writeDataStoreToFile(filename, icComm, timed);
    free(filename);
 
-   parent->writeScalarToFile(cpDir, getName(), "lastUpdateTime", lastUpdateTime);
-   parent->writeScalarToFile(cpDir, getName(), "nextUpdateTime", nextUpdateTime);
+   parent->writeScalarToFile(cpDir, getName(), "lastUpdateTime", mLastUpdateTime);
    parent->writeScalarToFile(cpDir, getName(), "nextWrite", writeTime);
 
    if (parent->columnId()==0) {
@@ -2293,8 +2218,8 @@ int HyPerLayer::writeDataStoreToFile(const char * filename, Communicator * comm,
    for(int b = 0; b < numbuffers; b++){
       for (int l=0; l<numlevels; l++) {
          if (writeFile != NULL) { // Root process has writeFile set to non-null; other processes to NULL.
-            double lastUpdateTime = datastore->getLastUpdateTime(b/*bufferId*/, l);
-            int numwritten = PV_fwrite(&lastUpdateTime, sizeof(double), 1, writeFile);
+            double lastUpdate = datastore->getLastUpdateTime(b/*bufferId*/, l);
+            int numwritten = PV_fwrite(&lastUpdate, sizeof(double), 1, writeFile);
             if (numwritten != 1) {
                pvError().printf("HyPerLayer::writeBufferFile error writing timestamp to \"%s\"\n", filename);
             }

@@ -75,6 +75,7 @@ int MomentumLCALayer::initialize_base()
 int MomentumLCALayer::initialize(const char * name, HyPerCol * hc)
 {
    HyPerLCALayer::initialize(name, hc);
+
    return PV_SUCCESS;
 }
 

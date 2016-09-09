@@ -121,10 +121,6 @@ int RunningAverageLayer::updateState(double timef, double dt) {
           }
        }
     }
-
-    //Update lastUpdateTime
-    lastUpdateTime = parent->simulationTime();
-
    return status;
 }
 

@@ -49,7 +49,7 @@ int BaseProbe::initialize_base() {
    coefficient = 1.0;
    numValues = 0;
    probeValues = NULL;
-   lastUpdateTime = -DBL_MAX;
+   lastUpdateTime = 0.0;
    writingToFile = false;
    return PV_SUCCESS;
 }
@@ -288,32 +288,11 @@ int BaseProbe::initMessage(const char * msg) {
    return status;
 }
 
-bool BaseProbe::needUpdate(double time, double dt){
-   if(triggerFlag){
-      assert(triggerLayer);
-      double updateTime;
-      //Update if trigger layer updated on this timestep
-      if(fabs(time - triggerLayer->getLastUpdateTime()) <= (dt/2)){
-         updateTime = triggerLayer->getLastUpdateTime();
-      }
-      else{
-         updateTime = triggerLayer->getNextUpdateTime();
-      }
-      //never update flag
-      if(updateTime == -1){
-         return false;
-      }
-      //Check for equality
-      if(fabs(time - (updateTime - triggerOffset)) < (dt/2)){
-         return true;
-      }
-      //If it gets to this point, don't update
-      return false;
+bool BaseProbe::needUpdate(double simTime, double dt) {
+   if (triggerFlag) {
+      return triggerLayer->needUpdate(simTime + triggerOffset, dt);
    }
-   //If no trigger, update every timestep
-   else{
-      return true;
-   }
+   return true;
 }
 
 int BaseProbe::getValues(double timevalue) {

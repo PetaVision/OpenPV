@@ -20,12 +20,7 @@ namespace PV {
 
    int InputLayer::initialize(const char * name, HyPerCol * hc) {
       int status = HyPerLayer::initialize(name, hc);
-      this->lastUpdateTime = parent->getStartTime();
-
-      //Update on first timestep
-      setNextUpdateTime(parent->simulationTime() + hc->getDeltaTime());
-
-      if (mWriteFileToTimestamp){
+      if (mWriteFileToTimestamp) {
          std::string timestampFilename = std::string(parent->getOutputPath()) + std::string("/timestamps/");
          parent->ensureDirExists(timestampFilename.c_str());
          timestampFilename += name + std::string(".txt");
@@ -45,7 +40,6 @@ namespace PV {
              else {
                 mTimestampFile = PV::PV_fopen(timestampFilename.c_str(), "w", parent->getVerifyWrites());
              }
-
              pvAssert(mTimestampFile);
          }
       }
