@@ -957,7 +957,7 @@ protected:
    virtual int deliverPostsynapticPerspectiveGPU(PVLayerCube const * activity, int arborID);
 #endif // PV_USE_CUDA
 
-   float getConvertToRateDeltaTimeFactor();
+   double getConvertToRateDeltaTimeFactor();
 
 //GPU variables
 #ifdef PV_USE_CUDA

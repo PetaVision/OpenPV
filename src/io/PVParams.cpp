@@ -79,12 +79,22 @@ Parameter::~Parameter()
 
 int Parameter::outputParam(FILE * fp, int indentation) {
    int status = PV_SUCCESS;
-   for( int i=indentation; i>0; i-- ) fputc(' ', fp);
+   for(int i = 0; i < indentation; ++i) {
+      fputc(' ', fp);
+   }
    fprintf(fp, "%s : %.17e", paramName, paramDblValue);
-   if( paramDblValue == 1.0f ) fprintf(fp, " (true)");
-   else if( paramDblValue == 1.0f ) fprintf(fp, " (false)");
-   else if( paramDblValue == FLT_MAX ) fprintf(fp, " (infinity)");
-   else if( paramDblValue == -FLT_MAX ) fprintf(fp, " (-infinity)");
+   if (paramDblValue == 1.0) {
+      fprintf(fp, " (true)");
+   }
+   else if (paramDblValue == -1.0) {
+      fprintf(fp, " (false)");
+   }
+   else if (paramDblValue == DBL_MAX) {
+      fprintf(fp, " (infinity)");
+   }
+   else if (paramDblValue == -DBL_MAX) {
+      fprintf(fp, " (-infinity)");
+   }
    fprintf(fp, "\n");
    return status;
 }

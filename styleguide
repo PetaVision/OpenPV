@@ -7,6 +7,8 @@
 // Primitive type names are lowercase
 // Enum values are ALL_CAPS
 
+// TODO comments must always include the date entered
+
 // Descriptive variable names are preferred to shorthand.
 // Avoid using one letter abbreviations anywhere other than for loop indices.
 

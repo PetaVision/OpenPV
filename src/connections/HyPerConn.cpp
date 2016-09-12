@@ -358,7 +358,7 @@ int HyPerConn::shrinkPatch(int kExt, int arborId) {
    for (int y = 0; y < ny; y++) {
       for (int x = 0; x < nx; x++) {
          for (int f = 0; f < nfp; f++) {
-            if(fabs(w[x * sxp + y * syp + f * sfp]) <= shrinkPatchesThresh) {
+            if(fabsf(w[x * sxp + y * syp + f * sfp]) <= shrinkPatchesThresh) {
                nonZeroWeightFound=true;
                maxnx = maxnx < x ? x : maxnx;
                minnx = minnx > x ? x : minnx;
@@ -1346,7 +1346,9 @@ int HyPerConn::allocatePostToPreBuffer(){
       }
    }
    else{
-      pvError().printf("sourceToTargetScaleX= %f, sourceToTargetScaleY= %f: the case of many-to-one in one dimension and one-to-many in the other has not yet been implemented.\n", sourceToTargetScaleX, sourceToTargetScaleY);
+      pvError().printf(
+            "sourceToTargetScaleX= %f, sourceToTargetScaleY= %f: the case of many-to-one in one dimension and one-to-many in the other has not yet been implemented.\n",
+            (double)sourceToTargetScaleX, (double)sourceToTargetScaleY);
    }
    
    return PV_SUCCESS;
@@ -2924,7 +2926,7 @@ int HyPerConn::deliverPresynapticPerspectiveStochastic(PVLayerCube const * activ
          const int ny = weights->ny;
          pvwdata_t * weightDataStart = get_wData(arbor,kPreExt); // make this a pvwdata_t const *?
          taus_uint4 * rng = randState->getRNG(kPreExt);
-         long along = (long) (a*cl_random_max());
+         long along = (long) ((double)a * cl_random_max());
 
          for (int y = 0; y < ny; y++) {
             float * v = postPatchStart + y * sy;
@@ -3081,7 +3083,7 @@ int HyPerConn::deliverPostsynapticPerspectiveStochastic(PVLayerCube const * acti
    //Get number of neurons restricted target
    const int numPostRestricted = post->getNumNeurons();
 
-   float dt_factor = getConvertToRateDeltaTimeFactor();
+   double dt_factor = getConvertToRateDeltaTimeFactor();
    if (getPvpatchAccumulateType()==STOCHASTIC) {
       dt_factor = getParent()->getDeltaTime();
    }
@@ -3158,7 +3160,7 @@ int HyPerConn::deliverPostsynapticPerspectiveStochastic(PVLayerCube const * acti
                for (int k = 0; k < numPerStride; k++) {
                   *rng = cl_random_get(*rng);
                   double p = (double) rng->s0/cl_random_max(); // 0.0 < p < 1.0
-                  dv += (p<a[k]*dt_factor)*w[k];
+                  dv += (p < (double) a[k] * dt_factor) * w[k];
                }
                *gSyn += dv;
             }
@@ -3438,9 +3440,9 @@ int HyPerConn::createWeights(PVPatch *** patches, int nWeightPatches, int nDataP
    return PV_SUCCESS;
 }
 
-float HyPerConn::getConvertToRateDeltaTimeFactor()
+double HyPerConn::getConvertToRateDeltaTimeFactor()
 {
-   float dt_factor = 1.0f;
+   double dt_factor = 1.0;
    // if (preActivityIsNotRate) { // preActivityIsNotRate was replaced with convertRateToSpikeCount on Dec 31, 2014
    if (convertRateToSpikeCount && !pre->activityIsSpiking()) {
       enum ChannelType channel_type = getChannel();
@@ -3448,7 +3450,7 @@ float HyPerConn::getConvertToRateDeltaTimeFactor()
       float tau = post->getChannelTimeConst(channel_type);
       if (tau > 0) {
          double exp_dt_tau = exp(-dt / tau);
-         dt_factor = (1 - exp_dt_tau) / exp_dt_tau;
+         dt_factor = (1.0 - exp_dt_tau) / exp_dt_tau;
          // the above factor was chosen so that for a constant input of G_SYN to an excitatory conductance G_EXC,
          // then G_EXC -> G_SYN as t -> inf
       }
@@ -4079,8 +4081,8 @@ int HyPerConn::sumWeights(int nx, int ny, int offset, pvwdata_t * dataStart, dou
 {
    // TODO CER - should make volatile conditional on GPU usage (this could be slow otherwise)?
    volatile pvwdata_t * w = dataStart + offset;
-   double sum_tmp = 0;
-   double sum2_tmp = 0;
+   float sum_tmp = 0;
+   float sum2_tmp = 0;
    pvdata_t max_tmp = -FLT_MAX;
    for (int ky = 0; ky < ny; ky++) {
       for(int iWeight = 0; iWeight < syp; iWeight++ ){
@@ -4253,9 +4255,9 @@ SparseWeightInfo HyPerConn::findPercentileThreshold(float percentile, pvwdata_t 
    SparseWeightInfo info;
    info.percentile = percentile;
 
-   if (percentile >= 1.0) {
+   if (percentile >= 1.0f) {
       info.size = fullWeightSize;
-      info.thresholdWeight = 0.0;
+      info.thresholdWeight = 0.0f;
       return info;
    }
 

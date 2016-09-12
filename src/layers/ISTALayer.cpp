@@ -55,7 +55,7 @@ ISTALayer::~ISTALayer()
 int ISTALayer::initialize_base()
 {
    numChannels = 1; // If a connection connects to this layer on inhibitory channel, HyPerLayer::requireChannel will add necessary channel
-   timeConstantTau = 1.0;
+   timeConstantTau = 1.0f;
    //Locality in conn
    //numWindowX = 1;
    //numWindowY = 1;
@@ -135,7 +135,7 @@ int ISTALayer::allocateUpdateKernel(){
    const float AShift = this->AShift;
    const float VWidth = this->VWidth;
    const bool selfInteract = this->selfInteract;
-   const float tau = timeConstantTau/parent->getDeltaTime(); // TODO: eliminate need to call parent method
+   const float tau = timeConstantTau/(float)parent->getDeltaTime(); // TODO: eliminate need to call parent method
    PVCuda::CudaBuffer* d_GSyn = getDeviceGSyn();
    PVCuda::CudaBuffer* d_activity = getDeviceActivity();
 
@@ -197,7 +197,7 @@ int ISTALayer::updateState(double time, double dt)
    }
    
    ISTALayer_update_state(nbatch, num_neurons, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, numChannels,
-         V, VThresh, deltaTimes(), timeConstantTau/dt, gSynHead, A);
+         V, VThresh, deltaTimes(), timeConstantTau/(float)dt, gSynHead, A);
    return PV_SUCCESS;
 }
 

@@ -590,14 +590,14 @@ int PoolingConn::deliverPresynapticPerspective(PVLayerCube const * activity, int
 
          int offset = kfPre;
          int sf = fPatchSize();
-         pvwdata_t w = 1.0;
+         pvwdata_t w = 1.0f;
          if(getPoolingType() == SUM){
-           w = 1.0;
+           w = 1.0f;
          }
          else if(getPoolingType() == AVG){
            float relative_XScale = pow(2, (post->getXScale() - pre->getXScale()));
            float relative_YScale = pow(2, (post->getYScale() - pre->getYScale()));
-           w = 1.0/(nxp*nyp*relative_XScale*relative_YScale);
+           w = 1.0f / (nxp*nyp*relative_XScale*relative_YScale);
          }
          void* auxPtr = nullptr;
          for (int y = 0; y < ny; y++) {
@@ -738,14 +738,14 @@ int PoolingConn::deliverPostsynapticPerspective(PVLayerCube const * activity, in
          const int kfPost = featureIndex(kTargetExt, postLoc->nx + postLoc->halo.lt + postLoc->halo.rt, postLoc->ny + postLoc->halo.dn + postLoc->halo.up, postLoc->nf);
          int offset = kfPost;
 
-         pvwdata_t w = 1.0;
+         pvwdata_t w = 1.0f;
          if(getPoolingType() == SUM){
-           w = 1.0;
+           w = 1.0f;
          }
          else if(getPoolingType() == AVG){
            float relative_XScale = pow(2, (post->getXScale() - pre->getXScale()));
            float relative_YScale = pow(2, (post->getYScale() - pre->getYScale()));
-           w = 1.0/(nxp*nyp*relative_XScale*relative_YScale);
+           w = 1.0f / (nxp*nyp*relative_XScale*relative_YScale);
          }
 
          for (int ky = 0; ky < yPatchSize; ky++){

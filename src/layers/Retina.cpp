@@ -258,12 +258,15 @@ int Retina::setRetinaParams(PVParams * p)
 {
    clayer->params = &rParams;
 
-   double dt_sec = parent->getDeltaTime() * .001;  // seconds
+   float dt_sec = (float)parent->getDeltaTime() * 0.001f;  // seconds
    float probStim = probStimParam * dt_sec;
-   if (probStim > 1.0) probStim = 1.0f;
+   if (probStim > 1.0f) {
+      probStim = 1.0f;
+   }
    float probBase = probBaseParam * dt_sec;
-   if (probBase > 1.0) probBase = 1.0f;
-
+   if (probBase > 1.0f) {
+      probBase = 1.0f;
+   }
    maxRate = probStim/dt_sec;
 
    // default parameters
@@ -417,10 +420,10 @@ static inline
 float calcBurstStatus(double timed, Retina_params * params) {
    float burstStatus;
    if (params->burstDuration <= 0 || params->burstFreq == 0) {
-      burstStatus = cosf( 2*PI*timed * params->burstFreq / 1000. );
+      burstStatus = cosf(2.0f * (float)(PI * timed) * params->burstFreq / 1000.0f );
    }
    else {
-      burstStatus = fmod(timed, 1000. / params->burstFreq);
+      burstStatus = fmodf((float)timed, 1000.0f / params->burstFreq);
       burstStatus = burstStatus < params->burstDuration;
    }
    burstStatus *= (int) ( (timed >= params->beginStim) && (timed < params->endStim) );
@@ -509,8 +512,8 @@ void Retina_spiking_update_state (
          float l_phiInh = phiInhBatch[k];
          float l_prev   = prevTimeBatch[kex];
          float l_activ;
-         l_activ = (float) spike(timed, dt, l_prev, (l_phiExc - l_phiInh), &l_rnd, burst_status, params);
-         l_prev  = (l_activ > 0.0f) ? timed : l_prev;
+         l_activ = (float) spike((float)timed, (float)dt, l_prev, (l_phiExc - l_phiInh), &l_rnd, burst_status, params);
+         l_prev  = (l_activ > 0.0f) ? (float)timed : l_prev;
          //l_phiExc = 0.0f;
          //l_phiInh = 0.0f;
          // store local variables back to global memory

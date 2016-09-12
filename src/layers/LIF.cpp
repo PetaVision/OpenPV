@@ -195,24 +195,30 @@ void LIF::ioParam_noiseAmpIB(enum ParamsIOFlag ioFlag) { parent->ioParamValue(io
 void LIF::ioParam_noiseFreqE(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "noiseFreqE", &lParams.noiseFreqE, 250.0f);
    if (ioFlag==PARAMS_IO_READ) {
-      float dt_sec = .001 * parent->getDeltaTime();// seconds
-      if (dt_sec * lParams.noiseFreqE  > 1.0) lParams.noiseFreqE  = 1.0/dt_sec;
+      float dt_sec = 0.001f * (float)parent->getDeltaTime();// seconds
+      if (dt_sec * lParams.noiseFreqE  > 1.0f) {
+         lParams.noiseFreqE  = 1.0f / dt_sec;
+      }
    }
 }
 
 void LIF::ioParam_noiseFreqI(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "noiseFreqI", &lParams.noiseFreqI, 250.0f);
    if (ioFlag==PARAMS_IO_READ) {
-      float dt_sec = .001 * parent->getDeltaTime();// seconds
-      if (dt_sec * lParams.noiseFreqI  > 1.0) lParams.noiseFreqI  = 1.0/dt_sec;
+      float dt_sec = 0.001f * (float)parent->getDeltaTime();// seconds
+      if (dt_sec * lParams.noiseFreqI  > 1.0f) {
+         lParams.noiseFreqI  = 1.0f / dt_sec;
+      }
    }
 }
 
 void LIF::ioParam_noiseFreqIB(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "noiseFreqIB", &lParams.noiseFreqIB, 250.0f);
    if (ioFlag==PARAMS_IO_READ) {
-      float dt_sec = .001 * parent->getDeltaTime();// seconds
-      if (dt_sec * lParams.noiseFreqIB > 1.0) lParams.noiseFreqIB = 1.0/dt_sec;
+      float dt_sec = 0.001f * (float)parent->getDeltaTime();// seconds
+      if (dt_sec * lParams.noiseFreqIB > 1.0f) {
+         lParams.noiseFreqIB = 1.0f / dt_sec;
+      }
    }
 }
 
@@ -220,7 +226,9 @@ void LIF::ioParam_method(enum ParamsIOFlag ioFlag) {
    // Read the integration method: one of 'arma' (preferred), 'beginning' (deprecated), or 'original' (deprecated).
    const char * default_method = "arma";
    parent->ioParamString(ioFlag, name, "method", &methodString, default_method, true/*warnIfAbsent*/);
-   if (ioFlag != PARAMS_IO_READ) return;
+   if (ioFlag != PARAMS_IO_READ) {
+      return;
+   }
 
    assert(methodString);
    if (methodString[0] == '\0') {
@@ -470,7 +478,7 @@ float LIF_Vmem_derivative(
       const float V_IB,
       const float Vrest,
       const float tau) {
-   float totalconductance = 1.0 + G_E + G_I + G_IB;
+   float totalconductance = 1.0f + G_E + G_I + G_IB;
    float Vmeminf = (Vrest + V_E*G_E + V_I*G_I + V_IB*G_IB)/totalconductance;
    return totalconductance*(Vmeminf-Vmem)/tau;
 }
@@ -514,7 +522,7 @@ void LIF_update_state_original(
    const float exp_tauIB   = expf(-dt/params->tauIB);
    const float exp_tauVth  = expf(-dt/params->tauVth);
 
-   const float dt_sec = .001 * dt;   // convert to seconds
+   const float dt_sec = 0.001f * dt;   // convert to seconds
 
 
    for (k = 0; k < nx*ny*nf*nbatch; k++) {
@@ -527,7 +535,7 @@ void LIF_update_state_original(
       // local param variables
       float tau, Vrest, VthRest, Vexc, Vinh, VinhB, deltaVth, deltaGIB;
 
-      const float GMAX = 10.0;
+      const float GMAX = 10.0f;
 
       // local variables
       float l_activ;
@@ -596,9 +604,9 @@ void LIF_update_state_original(
       l_G_I  = (l_G_I  > GMAX) ? GMAX : l_G_I;
       l_G_IB = (l_G_IB > GMAX) ? GMAX : l_G_IB;
 
-      tauInf  = (dt/tau) * (1.0 + l_G_E + l_G_I + l_G_IB);
+      tauInf  = (dt/tau) * (1.0f + l_G_E + l_G_I + l_G_IB);
       VmemInf = (Vrest + l_G_E*Vexc + l_G_I*Vinh + l_G_IB*VinhB)
-              / (1.0 + l_G_E + l_G_I + l_G_IB);
+              / (1.0f + l_G_E + l_G_I + l_G_IB);
 
       l_V = VmemInf + (l_V - VmemInf)*expf(-tauInf);
 
@@ -679,7 +687,7 @@ void LIF_update_state_beginning(
    const float exp_tauIB   = expf(-dt/params->tauIB);
    const float exp_tauVth  = expf(-dt/params->tauVth);
 
-   const float dt_sec = .001 * dt;   // convert to seconds
+   const float dt_sec = 0.001f * dt;   // convert to seconds
 
 
    for (k = 0; k < nx*ny*nf*nbatch; k++) {
@@ -693,7 +701,7 @@ void LIF_update_state_beginning(
       // local param variables
       float tau, Vrest, VthRest, Vexc, Vinh, VinhB, deltaVth, deltaGIB;
 
-      const float GMAX = 10.0;
+      const float GMAX = 10.0f;
 
       // local variables
       float l_activ;
@@ -771,7 +779,7 @@ void LIF_update_state_beginning(
 
       dV1 = LIF_Vmem_derivative(l_V, G_E_initial, G_I_initial, G_IB_initial, Vexc, Vinh, VinhB, Vrest, tau);
       dV2 = LIF_Vmem_derivative(l_V+dt*dV1, G_E_final, G_I_final, G_IB_final, Vexc, Vinh, VinhB, Vrest, tau);
-      dV = (dV1+dV2)*0.5;
+      dV = (dV1+dV2)*0.5f;
       l_V = l_V + dt*dV;
 
       l_G_E = G_E_final;
@@ -845,7 +853,7 @@ void LIF_update_state_arma(
    const float exp_tauIB   = expf(-dt/params->tauIB);
    const float exp_tauVth  = expf(-dt/params->tauVth);
 
-   const float dt_sec = .001 * dt;   // convert to seconds
+   const float dt_sec = 0.001f * dt;   // convert to seconds
 
 
    for (k = 0; k < nx*ny*nf*nbatch; k++) {

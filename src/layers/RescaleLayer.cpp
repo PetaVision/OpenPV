@@ -226,10 +226,10 @@ int RescaleLayer::updateState(double timef, double dt) {
           }
 
           MPI_Allreduce(MPI_IN_PLACE, &sumsq, 1, MPI_FLOAT, MPI_SUM, parent->getCommunicator()->communicator());
-          float std = sqrt(sumsq / originalLayer->getNumGlobalNeurons());
+          float std = sqrtf(sumsq / originalLayer->getNumGlobalNeurons());
           // The difference between the if and the else clauses is only in the computation of A[kext], but this
           // way the std != 0.0 conditional is only evaluated once, not every time through the for-loop.
-          if (std != 0.0) {
+          if (std != 0.0f) {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
@@ -280,10 +280,10 @@ int RescaleLayer::updateState(double timef, double dt) {
           }
 
           MPI_Allreduce(MPI_IN_PLACE, &sumsq, 1, MPI_FLOAT, MPI_SUM, parent->getCommunicator()->communicator());
-          float std = sqrt(sumsq / originalLayer->getNumGlobalNeurons());
+          float std = sqrtf(sumsq / originalLayer->getNumGlobalNeurons());
           // The difference between the if and the else clauses is only in the computation of A[kext], but this
           // way the std != 0.0 conditional is only evaluated once, not every time through the for-loop.
-          if (std != 0.0) {
+          if (std != 0.0f) {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
@@ -291,7 +291,7 @@ int RescaleLayer::updateState(double timef, double dt) {
                 int kext = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.up, loc->halo.dn);
                 int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf,
                       locOriginal->halo.lt, locOriginal->halo.rt, locOriginal->halo.dn, locOriginal->halo.up);
-                ABatch[kext] = ((originalABatch[kextOriginal] - mean) * (1/(std * sqrt((float)patchSize))));
+                ABatch[kext] = ((originalABatch[kextOriginal] - mean) * (1.0f/(std * sqrtf((float)patchSize))));
              }
           }
           else {
@@ -325,7 +325,7 @@ int RescaleLayer::updateState(double timef, double dt) {
           float std = sqrt(sumsq / originalLayer->getNumGlobalNeurons());
           // The difference between the if and the else clauses is only in the computation of A[kext], but this
           // way the std != 0.0 conditional is only evaluated once, not every time through the for-loop.
-          if (std != 0.0) {
+          if (std != 0.0f) {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
@@ -333,7 +333,7 @@ int RescaleLayer::updateState(double timef, double dt) {
                 int kext = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.up, loc->halo.dn);
                 int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf,
                       locOriginal->halo.lt, locOriginal->halo.rt, locOriginal->halo.dn, locOriginal->halo.up);
-                ABatch[kext] = ((originalABatch[kextOriginal]) * (1/(std * sqrt((float)patchSize))));
+                ABatch[kext] = ((originalABatch[kextOriginal]) * (1.0f/(std * sqrtf((float)patchSize))));
              }
           }
           else {
@@ -368,7 +368,7 @@ int RescaleLayer::updateState(double timef, double dt) {
                    int kext = kIndex(iX, iY, iF, nx+haloOrig->lt+haloOrig->rt, ny+haloOrig->dn+haloOrig->up, nf);
                    sumsq += (originalABatch[kext]) * (originalABatch[kext]);
                 }
-                float divisor = sqrt(sumsq);
+                float divisor = sqrtf(sumsq);
                 // Difference in the if-part and else-part is only in the value assigned to A[kext], but this way the std != 0
                 // conditional does not have to be reevaluated every time through the for loop.
                 // can't pragma omp parallel the for loops because it was already parallelized in the outermost for-loop
@@ -414,7 +414,7 @@ int RescaleLayer::updateState(double timef, double dt) {
                    int kext = kIndex(iX, iY, iF, nx+haloOrig->lt+haloOrig->rt, ny+haloOrig->dn+haloOrig->up, nf);
                    sumsq += (originalABatch[kext] - mean) * (originalABatch[kext] - mean);
                 }
-                float std = sqrt(sumsq/nf);
+                float std = sqrtf(sumsq/nf);
                 // Difference in the if-part and else-part is only in the value assigned to A[kext], but this way the std != 0
                 // conditional does not have to be reevaluated every time through the for loop.
                 // can't pragma omp parallel the for loops because it was already parallelized in the outermost for-loop
@@ -451,7 +451,7 @@ int RescaleLayer::updateState(double timef, double dt) {
                 float sumexpx = 0;
                 for(int iF = 0; iF < nf; iF++){
                    int kextOrig = kIndex(iX, iY, iF, nx+haloOrig->lt+haloOrig->rt, ny+haloOrig->dn+haloOrig->up, nf);
-                   sumexpx += exp(originalABatch[kextOrig]);
+                   sumexpx += expf(originalABatch[kextOrig]);
                 }
                 //Error checking for sumexpx = 0
                 assert(sumexpx != 0);
@@ -459,7 +459,7 @@ int RescaleLayer::updateState(double timef, double dt) {
                 for(int iF = 0; iF < nf; iF++){
                    int kextOrig = kIndex(iX, iY, iF, nx+haloOrig->lt+haloOrig->rt, ny+haloOrig->dn+haloOrig->up, nf);
                    int kext = kIndex(iX, iY, iF, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, nf);
-                   ABatch[kext] = exp(originalABatch[kextOrig])/sumexpx;
+                   ABatch[kext] = expf(originalABatch[kextOrig])/sumexpx;
                    //if(ABatch[kext] < 0 || ABatch[kext] > 1){
                    //   pvInfo() << "ABatch[" << kext << "] = " << ABatch[kext] << " : " << originalABatch[kextOrig] << " - " << mean << " / " << sumexpx << "\n";
                    //   pvInfo() << std::flush;
@@ -482,7 +482,7 @@ int RescaleLayer::updateState(double timef, double dt) {
              int kext = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.up, loc->halo.dn);
              int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf,
                    locOriginal->halo.lt, locOriginal->halo.rt, locOriginal->halo.dn, locOriginal->halo.up);
-             ABatch[kext] = (float)1/(1+exp(originalABatch[kextOriginal]));
+             ABatch[kext] = 1.0f/(1.0f+expf(originalABatch[kextOriginal]));
           }
        }
        else if(strcmp(rescaleMethod, "zerotonegative") == 0){

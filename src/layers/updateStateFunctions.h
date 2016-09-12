@@ -20,7 +20,7 @@
 
 
 #ifndef PV_USE_CUDA
-#  define KERNEL         static inline
+#  define KERNEL         inline
 #  define MEM_GLOBAL
 #  define MEM_CONST
 #  define MEM_LOCAL
@@ -210,13 +210,6 @@ int resetGSynBuffers_PoolingIndexLayer(int nbatch, int numNeurons, int num_chann
 KERNEL
 int resetGSynBuffers_SigmoidLayer();
 
-//Gaussian function prototype TODO: maybe this can go somewhere else?
-//static inline float calcGausDist(float xVal, float height, float mean, float sigma);
-//
-//static inline float calcGausDist(float xVal, float height, float mean, float sigma){
-//   return height * exp(-(pow(xVal-mean, 2)/(2*pow(sigma, 2))));
-//}
-
 KERNEL
 int setActivity_KmeansLayer(int nbatch, int numNeurons, int num_channels, MEM_GLOBAL pvdata_t * GSynHead, MEM_GLOBAL pvdata_t * A,int nx,int ny, int nf, int lt, int rt, int dn, int up, bool trainingFlag);
 
@@ -239,7 +232,7 @@ int applyGSyn_HyPerLayer1Channel(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t
       int k = kbatch % numNeurons;
       MEM_GLOBAL pvdata_t* VBatch = V + b*numNeurons;
       MEM_GLOBAL pvdata_t* GSynExcBatch = GSynExc + b*numNeurons;
-      VBatch[k] = GSynExcBatch[k]; // - GSynInh[k];
+      VBatch[k] = GSynExcBatch[k];
    }
    return PV_SUCCESS;
 }
@@ -291,15 +284,15 @@ int applyGSyn_LabelErrorLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * 
          MEM_GLOBAL pvdata_t* GSynExcBatch = GSynExc + b*numNeurons;
          MEM_GLOBAL pvdata_t* GSynInhBatch = GSynInh + b*numNeurons;
          VBatch[k] = GSynExcBatch[k] - GSynInhBatch[k];
-         if (GSynExcBatch[k]>0){ // target label is positive
-            VBatch[k] = VBatch[k] > 0 ? VBatch[k] : 0;
+         if (GSynExcBatch[k] > 0.0f) { // target label is positive
+            VBatch[k] = VBatch[k] > 0.0f ? VBatch[k] : 0.0f;
          }
          else {              // target label is negative
-            VBatch[k] = VBatch[k] < 0 ? VBatch[k] : 0;
+            VBatch[k] = VBatch[k] < 0.0f ? VBatch[k] : 0.0f;
          }
       }
    }
-   else{
+   else {
 #ifndef PV_USE_CUDA
    #ifdef PV_USE_OPENMP_THREADS
    #pragma omp parallel for schedule(static)
@@ -315,7 +308,7 @@ int applyGSyn_LabelErrorLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * 
          pvdata_t* GSynExcBatch = GSynExc + b*numNeurons;
          pvdata_t* GSynInhBatch = GSynInh + b*numNeurons;
 
-         float ratio = 1;
+         float ratio = 1.0f;
          //Need to find maximum value of target label
          //If first feature, find ratio between target and guess feature val
          int iF = featureIndex(k, nx+lt+rt, ny+dn+up, nf);
@@ -335,14 +328,14 @@ int applyGSyn_LabelErrorLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * 
                ratio = maxTargetVal / GSynInhBatch[maxIdx];
             }
             else{
-               ratio = 1;
+               ratio = 1.0f;
             }
          }
          //Calculate V value based on target and rescaled guess
          VBatch[k] = GSynExcBatch[k] - (GSynInhBatch[k] * ratio);
          //If target label is negative, and guess is lower than target label, err = 0
-         if (GSynExcBatch[k] < 0){
-            VBatch[k] = VBatch[k] < 0 ? VBatch[k] : 0;
+         if (GSynExcBatch[k] < 0.0f){
+            VBatch[k] = VBatch[k] < 0.0f ? VBatch[k] : 0.0f;
          }
       }
    }
@@ -367,13 +360,13 @@ int applyGSyn_HyPerLCALayer(int nbatch, int numNeurons,
    {
       int b = kbatch / numNeurons;
       int k = kbatch % numNeurons;
-      float exp_tau = exp(-dtAdapt[b]/tau);
+      float exp_tau = expf((float)-dtAdapt[b]/tau);
       MEM_GLOBAL pvdata_t* VBatch = V + b*numNeurons;
       MEM_GLOBAL pvdata_t* GSynErrorBatch = GSynError + b*numNeurons;
       //Activity extended
       MEM_GLOBAL pvdata_t* activityBatch = activity + b*(nx+rt+lt)*(ny+up+dn)*nf;
       int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
-         VBatch[k] = exp_tau * VBatch[k] + (1 - exp_tau) * (GSynErrorBatch[k] + selfInteract * activityBatch[kex]);
+         VBatch[k] = exp_tau * VBatch[k] + (1.0f - exp_tau) * (GSynErrorBatch[k] + selfInteract * activityBatch[kex]);
    }
    return PV_SUCCESS;
 }
@@ -384,8 +377,8 @@ int applyGSyn_HyPerLCALayer2(int nbatch, int numNeurons,
       MEM_GLOBAL pvdata_t * activity, double* dtAdapt, pvdata_t tau, pvdata_t selfInteract, 
       int nx, int ny, int nf, int lt, int rt, int dn, int up) {
    int kbatch;
-   MEM_GLOBAL pvdata_t * GSynError = &GSynHead[0 * nbatch * numNeurons]; // weighted input
-   MEM_GLOBAL pvdata_t * GSynError2 = &GSynHead[1 * nbatch * numNeurons]; // weighted input
+   MEM_GLOBAL pvdata_t * GSynError = &GSynHead[CHANNEL_EXC * nbatch * numNeurons]; // weighted input
+   MEM_GLOBAL pvdata_t * GSynError2 = &GSynHead[CHANNEL_INH * nbatch * numNeurons]; // weighted input
 
 #ifndef PV_USE_CUDA
    #ifdef PV_USE_OPENMP_THREADS
@@ -399,7 +392,7 @@ int applyGSyn_HyPerLCALayer2(int nbatch, int numNeurons,
       int b = kbatch / numNeurons;
       int k = kbatch % numNeurons;
 
-      float exp_tau = exp(-dtAdapt[b]/tau);
+      float exp_tau = expf((float)-dtAdapt[b]/tau);
       MEM_GLOBAL pvdata_t* VBatch = V + b*numNeurons;
       MEM_GLOBAL pvdata_t* GSynErrorBatch = GSynError + b*numNeurons;
       MEM_GLOBAL pvdata_t* GSynError2Batch = GSynError2 + b*numNeurons;
@@ -407,7 +400,7 @@ int applyGSyn_HyPerLCALayer2(int nbatch, int numNeurons,
       MEM_GLOBAL pvdata_t* activityBatch = activity + b*(nx+rt+lt)*(ny+up+dn)*nf;
 
       int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
-         VBatch[k] = exp_tau * VBatch[k] + (1 - exp_tau) * (GSynErrorBatch[k] - GSynError2Batch[k] + selfInteract * activityBatch[kex]);
+         VBatch[k] = exp_tau * VBatch[k] + (1.0f - exp_tau) * (GSynErrorBatch[k] - GSynError2Batch[k] + selfInteract * activityBatch[kex]);
    }
    return PV_SUCCESS;
 }
@@ -430,7 +423,7 @@ int applyGSyn_MomentumLCALayer(int nbatch, int numNeurons,
    {
       int b = kbatch / numNeurons;
       int k = kbatch % numNeurons;
-      float exp_tau = exp(-dtAdapt[b]/tau);
+      float exp_tau = expf((float)-dtAdapt[b]/tau);
       MEM_GLOBAL pvdata_t* VBatch = V + b*numNeurons;
       MEM_GLOBAL pvdata_t* GSynErrorBatch = GSynError + b*numNeurons;
       MEM_GLOBAL pvdata_t* prevDriveBatch = prevDrive + b*numNeurons;
@@ -438,7 +431,7 @@ int applyGSyn_MomentumLCALayer(int nbatch, int numNeurons,
       MEM_GLOBAL pvdata_t* activityBatch = activity + b*(nx+rt+lt)*(ny+up+dn)*nf;
       int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
       //Calculate current drive
-      pvdata_t currentDrive = (1-exp_tau) * (GSynErrorBatch[k] + selfInteract * activityBatch[kex]);
+      pvdata_t currentDrive = (1.0f-exp_tau) * (GSynErrorBatch[k] + selfInteract * activityBatch[kex]);
       //Accumulate into VBatch with decay and momentum
       VBatch[k] = exp_tau * VBatch[k] + currentDrive + LCAMomentumRate * prevDriveBatch[k];
       //Update momentum buffer
@@ -469,7 +462,7 @@ int applyGSyn_MomentumLCALayer2(int nbatch, int numNeurons,
       int b = kbatch / numNeurons;
       int k = kbatch % numNeurons;
 
-      float exp_tau = exp(-dtAdapt[b]/tau);
+      float exp_tau = expf((float)-dtAdapt[b]/tau);
       MEM_GLOBAL pvdata_t* VBatch = V + b*numNeurons;
       MEM_GLOBAL pvdata_t* GSynErrorBatch = GSynError + b*numNeurons;
       MEM_GLOBAL pvdata_t* GSynError2Batch = GSynError2 + b*numNeurons;
@@ -479,7 +472,7 @@ int applyGSyn_MomentumLCALayer2(int nbatch, int numNeurons,
 
       int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
 
-      pvdata_t currentDrive = (1-exp_tau) * ((GSynErrorBatch[k] - GSynError2Batch[k]) + selfInteract * activityBatch[kex]);
+      pvdata_t currentDrive = (1.0f-exp_tau) * ((GSynErrorBatch[k] - GSynError2Batch[k]) + selfInteract * activityBatch[kex]);
       VBatch[k] = exp_tau * VBatch[k] + currentDrive + LCAMomentumRate * prevDriveBatch[k];
       prevDriveBatch[k] = currentDrive;
    }
@@ -492,7 +485,7 @@ int applyGSyn_ISTALayer(int nbatch, int numNeurons,
 			    MEM_GLOBAL pvdata_t * activity, double* dtAdapt, pvdata_t tau,
 			int nx, int ny, int nf, int lt, int rt, int dn, int up, pvdata_t VThresh) {
   int kbatch;
-  MEM_GLOBAL pvdata_t * GSynError = &GSynHead[0 * nbatch * numNeurons]; // weighted input                                              
+  MEM_GLOBAL pvdata_t * GSynError = &GSynHead[CHANNEL_EXC * nbatch * numNeurons]; // weighted input                                              
 #ifndef PV_USE_CUDA
    #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(static)
@@ -504,18 +497,16 @@ int applyGSyn_ISTALayer(int nbatch, int numNeurons,
   {
     int b = kbatch / numNeurons;
     int k = kbatch % numNeurons;
-    float exp_tau = exp(-dtAdapt[b]/tau);
     MEM_GLOBAL pvdata_t* VBatch = V + b*numNeurons;
     MEM_GLOBAL pvdata_t* GSynErrorBatch = GSynError + b*numNeurons;
     //Activity extended                                                                                                               
     MEM_GLOBAL pvdata_t* activityBatch = activity + b*(nx+rt+lt)*(ny+up+dn)*nf;
     int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
-    float sign;
-    if (activityBatch[kex] == 0)
-      sign = 0;
-    else
-      sign = activityBatch[kex]/fabsf(activityBatch[kex]);
-    VBatch[k] += (dtAdapt[b]/tau) * (GSynErrorBatch[k] - (VThresh * sign));
+    float sign = 0.0f;
+    if (activityBatch[kex] != 0.0f) {
+       sign = activityBatch[kex] / fabsf(activityBatch[kex]);
+    }
+    VBatch[k] += ((float)dtAdapt[b] / tau) * (GSynErrorBatch[k] - (VThresh * sign));
   }
   return PV_SUCCESS;
 }
@@ -541,7 +532,6 @@ int applyGSyn_ISTALayer2(int nbatch, int numNeurons,
     int b = kbatch / numNeurons;
     int k = kbatch % numNeurons;
 
-    float exp_tau = exp(-dtAdapt[b]/tau);
     MEM_GLOBAL pvdata_t* VBatch = V + b*numNeurons;
     MEM_GLOBAL pvdata_t* GSynErrorBatch = GSynError + b*numNeurons;
     MEM_GLOBAL pvdata_t* GSynError2Batch = GSynError2 + b*numNeurons;
@@ -549,12 +539,11 @@ int applyGSyn_ISTALayer2(int nbatch, int numNeurons,
     MEM_GLOBAL pvdata_t* activityBatch = activity + b*(nx+rt+lt)*(ny+up+dn)*nf;
 
     int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
-    float sign;
-    if (activityBatch[kex] == 0)
-      sign = 0;
-    else
-      sign = activityBatch[kex]/fabsf(activityBatch[kex]);
-    VBatch[k] += (dtAdapt[b]/tau) * ( (GSynErrorBatch[k] - GSynError2Batch[k]) - (VThresh * sign) );
+    float sign = 0.0f;
+    if (activityBatch[kex] != 0.0f) {
+      sign = activityBatch[kex] / fabsf(activityBatch[kex]);
+    }
+    VBatch[k] += ((float)dtAdapt[b]/tau) * ( (GSynErrorBatch[k] - GSynError2Batch[k]) - (VThresh * sign) );
   }
   return PV_SUCCESS;
 }
@@ -577,7 +566,7 @@ int applyGSyn_ANNWhitenedLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t *
 #endif // PV_USE_CUDA
    {
       // set mean to zero and standard deviation to one over patch window
-      V[k] = (GSynInput[k] - GSynAveInput[k]) / (sqrt(GSynAveSquaredInput[k] - GSynAveInput[k]*GSynAveInput[k]) + FLT_MIN);
+      V[k] = (GSynInput[k] - GSynAveInput[k]) / (sqrtf(GSynAveSquaredInput[k] - GSynAveInput[k]*GSynAveInput[k]) + FLT_MIN);
    }
    return PV_SUCCESS;
 }
@@ -699,7 +688,9 @@ int updateV_ANNErrorLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
    for(int i = 0; i < numNeurons*nbatch; i++){
        V[i] *= errScale;
    }
-   if(status == PV_SUCCESS) status = setActivity_HyPerLayer(nbatch, numNeurons, activity, V, nx, ny, nf, lt, rt, dn, up);
+   if(status == PV_SUCCESS) {
+      status = setActivity_HyPerLayer(nbatch, numNeurons, activity, V, nx, ny, nf, lt, rt, dn, up);
+   }
    if( status == PV_SUCCESS ) {
       status = setActivity_PtwiseLinearTransferLayer(nbatch, numNeurons, activity, V, nx, ny, nf, lt, rt, dn, up, numVertices, verticesV, verticesA, slopes);
    }
@@ -736,8 +727,10 @@ int updateV_ANNWhitenedLayer(int nbatch, int numNeurons,
 {
    int status;
    status = applyGSyn_ANNWhitenedLayer(nbatch, numNeurons, V, GSynHead);
-   if(status == PV_SUCCESS) status = setActivity_HyPerLayer(nbatch, numNeurons, activity, V, nx, ny, nf, lt, rt, dn, up);
-   if (status==PV_SUCCESS) {
+   if(status == PV_SUCCESS) {
+      status = setActivity_HyPerLayer(nbatch, numNeurons, activity, V, nx, ny, nf, lt, rt, dn, up);
+   }
+   if (status == PV_SUCCESS) {
       status = setActivity_PtwiseLinearTransferLayer(nbatch, numNeurons, activity, V, nx, ny, nf, lt, rt, dn, up, numVertices, verticesV, verticesA, slopes);
    }
    return status;
@@ -759,7 +752,7 @@ int updateV_ANNDivInh(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V, MEM_G
    k = getIndex();
 #endif // PV_USE_CUDA
    {
-      V[k] = (GSynExc[k] - GSynInh[k])/(GSynDivInh[k]+0.04);
+      V[k] = (GSynExc[k] - GSynInh[k])/(GSynDivInh[k]+0.04f);
    }
    return PV_SUCCESS;
 }
@@ -866,8 +859,9 @@ int applyVMax_ANNLayer_threshminmax(int nbatch, int numNeurons, MEM_GLOBAL pvdat
          int k = kbatch % numNeurons;
          MEM_GLOBAL pvdata_t * activityBatch = activity + b*(nx+lt+rt)*(ny+up+dn)*nf;
          int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
-         if (activityBatch[kex] > AMax)
+         if (activityBatch[kex] > AMax) {
             activityBatch[kex] = AMax;
+         }
       }
    }
    return PV_SUCCESS;
@@ -894,12 +888,15 @@ int applyVThresh_ANNLayer_threshminmax(int nbatch, int numNeurons,
          MEM_GLOBAL pvdata_t * VBatch = V + b*numNeurons;
          MEM_GLOBAL pvdata_t * activityBatch = activity + b*(nx+lt+rt)*(ny+up+dn)*nf;
          int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
-         if (VBatch[k] < VThresh)
+         if (VBatch[k] < VThresh) {
             activityBatch[kex] = AMin;
-         else if (VBatch[k] < VThresh + VWidth)
+         }
+         else if (VBatch[k] < VThresh + VWidth) {
             activityBatch[kex] = AMin + (VThresh+VWidth-AShift-AMin)*(VBatch[k]-VThresh)/VWidth;
-         else
+         }
+         else {
             activityBatch[kex] -= AShift;
+         }
       }
    }
    return PV_SUCCESS;
@@ -926,7 +923,7 @@ int applyVThresh_ANNErrorLayer(int nbatch, int numNeurons,
          MEM_GLOBAL pvdata_t * VBatch = V + b*numNeurons;
          MEM_GLOBAL pvdata_t * activityBatch = activity + b*(nx+lt+rt)*(ny+up+dn)*nf;
          int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
-         if (fabs(VBatch[k]) < VThresh)
+         if (fabsf(VBatch[k]) < VThresh)
             activityBatch[kex] = AMin;
          else
             activityBatch[kex] -= AShift;
@@ -968,22 +965,21 @@ int updateSparsityTermDeriv_LogLatWTAGenLayer(int nbatch, int numNeurons, int nu
       }
       pvdata_t lat_wta_expr = lateralCompetitionPenalty(&V[feature_start], num_features);
       for (f=0; f<num_features; f++) {
-         sparsitytermderivative[k*num_features+f] = 2*(sum_across_features-V[k*num_features+f])/(1+lat_wta_expr);
+         sparsitytermderivative[k*num_features+f] = 2.0f * (sum_across_features - V[k*num_features+f]) / (1.0f + lat_wta_expr);
       }
-   }
-   for (k=0; k<numNeurons; k++) {
-
    }
 #else // PV_USE_CUDA
    int k = getIndex();
    {
       int feature_start = k - (k % num_features);
       pvdata_t sum_across_features = 0.0f;
-      for( int f=0; f<num_features; f++ ) sum_across_features += V[feature_start+f];
+      for( int f=0; f<num_features; f++ )  {
+         sum_across_features += V[feature_start+f];
+      }
       pvdata_t lat_wta_expr = lateralCompetitionPenalty(&V[feature_start], num_features);
       // Each block of num_features neurons will have the same sum_across_features and latWTAexpr.
       // Can we eliminate redundant calculations?
-      sparsitytermderivative[k] = 2*(sum_across_features-V[k])/(1+lat_wta_expr);
+      sparsitytermderivative[k] = 2.0f * (sum_across_features - V[k]) / (1.0f + lat_wta_expr);
    }
 #endif // PV_USE_CUDA
 
@@ -992,13 +988,15 @@ int updateSparsityTermDeriv_LogLatWTAGenLayer(int nbatch, int numNeurons, int nu
 
 KERNEL
 pvdata_t lateralCompetitionPenalty(MEM_GLOBAL pvdata_t * V, int num_features) {
-   pvdata_t z=0;
+   pvdata_t z = 0.0f;
    #ifdef PV_USE_OPENMP_THREADS
    #pragma omp parallel for
    #endif
    for( int p=0; p<num_features; p++ ) {
       for( int q=0; q<num_features; q++ ) {
-         if( p!= q ) z += V[p]*V[q];
+         if( p != q ) {
+            z += V[p]*V[q];
+         }
       }
    }
    return z;
@@ -1056,7 +1054,9 @@ int setActivity_PtwiseLinearTransferLayer(int nbatch, int numNeurons, MEM_GLOBAL
       }
       else {
          for (v=0; v<last; v++) {
-            if (potential<verticesV[v]) { break; } // makes the jumps continuous from the right.  TODO: allow user control over value at jump
+            if (potential<verticesV[v]) {
+               break; // makes the jumps continuous from the right.  TODO: allow user control over value at jump
+            }
             if (potential==verticesV[v]) {
                activity = verticesA[v];
             }
@@ -1113,14 +1113,16 @@ int setActivity_GapLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * A, ME
       int kex = kIndexExtended(k,nx,ny,nf,lt, rt, dn, up);
       int kexorig = kIndexExtended(k,nx,ny,nf,orig_lt, orig_rt, orig_dn, orig_up);
       ABatch[kex] = VBatch[k];
-      if( checkActiveBatch[kexorig] > 0.0) ABatch[kex] += ampSpikelet;
+      if( checkActiveBatch[kexorig] > 0.0f) {
+         ABatch[kex] += ampSpikelet;
+      }
    }
    return PV_SUCCESS;
 }
 
 KERNEL
 int setActivity_SigmoidLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * A, MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int lt, int rt, int dn, int up, float VthRest, float Vrest, float sigmoid_alpha, bool sigmoid_flag, bool inverse_flag, float dt) {
-   pvdata_t Vth = (VthRest+Vrest)/2.0;
+   pvdata_t Vth = (VthRest+Vrest) / 2.0f;
    pvdata_t sig_scale = -logf(1.0f/sigmoid_alpha - 1.0f)/(Vth - Vrest);
    if (!sigmoid_flag) {
       sig_scale = sig_scale/logf(3.0f);
@@ -1145,20 +1147,17 @@ int setActivity_SigmoidLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * A
       int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
       pvdata_t activity = 0.0f;
       if(!sigmoid_flag) {
-         activity = 0.5f - (VBatch[k] - Vth) * sig_scale/2;
+         activity = 0.5f - (VBatch[k] - Vth) * sig_scale/2.0f;
          activity = activity < 0.0f ? 0.0f : activity;
          activity = activity > 1.0f ? 1.0f : activity;
       }
       else{
-         activity = 1.0f / (1.0f + exp(2.0f * (VBatch[k] - Vth) * sig_scale));
+         activity = 1.0f / (1.0f + expf(2.0f * (VBatch[k] - Vth) * sig_scale));
       }
       ABatch[kex] = activity;
-      if (inverse_flag) ABatch[kex] = 1.0f - ABatch[kex];
-      // At this point A[kex] is in spikes per milli seconds;
-      // A*dt makes activity dimensionless and timestep-independent
-      // A[kex] *= dt;
-      // This was moved to the strength definition of the dynamic layers
-
+      if (inverse_flag) {
+         ABatch[kex] = 1.0f - ABatch[kex];
+      }
    }
    return PV_SUCCESS;
 }
@@ -1198,7 +1197,7 @@ int resetGSynBuffers_PoolingIndexLayer(int nbatch, int numNeurons, int num_chann
       k = getIndex();
 #endif // PV_USE_CUDA
       {
-         channelStart[k] = (pvdata_t) -1;
+         channelStart[k] = -1.0f;
       }
    }
    return PV_SUCCESS;
@@ -1246,15 +1245,15 @@ int setActivity_KmeansLayer(int nbatch, int numNeurons, int num_channels, MEM_GL
                        int kk = (i*nx+j)*nf + k;
                        int kex = kIndexExtended(kk,nx,ny,nf,lt, rt, dn, up);
                        if (kk == maxIndex)
-                           ABatch[kex] = 1;
+                           ABatch[kex] = 1.0f;
                        else
-                           ABatch[kex] = 0;
+                           ABatch[kex] = 0.0f;
                    }
                }
                else
                {
                    //compute mean
-                   float mean = 0;
+                   float mean = 0.0f;
                    
                    for(int k = 0; k < nf; k++)
                    {
@@ -1271,10 +1270,12 @@ int setActivity_KmeansLayer(int nbatch, int numNeurons, int num_channels, MEM_GL
                    {
                        int kk = (i*nx+j)*nf + k;
                        int kex = kIndexExtended(kk,nx,ny,nf,lt, rt, dn, up);
-                       if (GSynExcBatch[kk] >= mean)
+                       if (GSynExcBatch[kk] >= mean) {
                            ABatch[kex] = GSynExcBatch[kk];
-                       else
-                           ABatch[kex] = 0;
+                       }
+                       else {
+                           ABatch[kex] = 0.0f;
+                       }
                    }
                }
            }
@@ -1304,9 +1305,9 @@ int setActivity_MLPSigmoidLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t 
       bool* dropoutBatch = dropout_buf + b * nx * ny * nf;
 
       int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
-      pvdata_t activity = 1.7159 * tanh(((float)2/3) * VBatch[k]) + linear_alpha * VBatch[k];
+      pvdata_t activity = 1.7159f * tanhf(2.0f/3.0f * VBatch[k]) + linear_alpha * VBatch[k];
       //Set explicitly to 0 if that neuron was dropped out
-      ABatch[kex] = dropoutBatch[k] ? 0 : activity;
+      ABatch[kex] = dropoutBatch[k] ? 0.0f : activity;
    }
    return PV_SUCCESS;
 }

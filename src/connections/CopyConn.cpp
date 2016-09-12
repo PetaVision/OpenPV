@@ -216,14 +216,12 @@ int CopyConn::updateState(double time, double dt){
 
 int CopyConn::updateWeights(int axonID) {
    assert(originalConn->getLastUpdateTime() > lastUpdateTime);
-   int status;
-   float original_update_time = originalConn->getLastUpdateTime();
+   int status = PV_SUCCESS;
+   double original_update_time = originalConn->getLastUpdateTime();
    if(original_update_time > lastUpdateTime ) {
       status = copy(axonID);
       lastUpdateTime = parent->simulationTime();
    }
-   else
-      status = PV_SUCCESS;
    return status;
 }  // end of CopyConn::updateWeights(int);
 

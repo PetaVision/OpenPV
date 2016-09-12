@@ -170,7 +170,7 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc) {
 #endif
 #endif
 
-   PVParams * params = parent->parameters();
+   PVParams * params = hc->parameters();
 
    status = ioParams(PARAMS_IO_READ);
    assert(status == PV_SUCCESS);
@@ -179,17 +179,17 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc) {
    writeActivityCalls = 0;
    writeActivitySparseCalls = 0;
    numDelayLevels = 1; // If a connection has positive delay so that more delay levels are needed, numDelayLevels is increased when BaseConnection::communicateInitInfo calls increaseDelayLevels
-   maxRate = 1000.0f/parent->getDeltaTime();
+   maxRate = 1000.0f / (float)hc->getDeltaTime();
 
    initClayer();
 
    // must set ioAppend before addLayer is called (addLayer causes activity file to be opened using layerid)
-   ioAppend = parent->getCheckpointReadFlag() ? 1 : 0;
+   ioAppend = hc->getCheckpointReadFlag() ? 1 : 0;
 
-   parent->addLayer(this);
+   hc->addLayer(this);
 
-   mLastUpdateTime  = parent->getDeltaTime();
-   mLastTriggerTime = parent->getDeltaTime();
+   mLastUpdateTime  = hc->getDeltaTime();
+   mLastTriggerTime = hc->getDeltaTime();
    return PV_SUCCESS;
 }
 
@@ -405,7 +405,8 @@ int HyPerLayer::setLayerLoc(PVLayerLoc * layerLoc, float nxScale, float nyScale,
       if (parent->columnId()==0) {
          pvErrorNoExit(errorMessage);
          errorMessage.printf("nxScale of layer \"%s\" is incompatible with size of column.\n", getName());
-         errorMessage.printf("Column nx %d multiplied by nxScale %f must be an integer.\n", parent->getNxGlobal(), nxScale);
+         errorMessage.printf("Column nx %d multiplied by nxScale %f must be an integer.\n",
+               (double)parent->getNxGlobal(), (double)nxScale);
       }
       status = PV_FAILURE;
    }
@@ -416,7 +417,8 @@ int HyPerLayer::setLayerLoc(PVLayerLoc * layerLoc, float nxScale, float nyScale,
       if (parent->columnId()==0) {
          pvErrorNoExit(errorMessage);
          errorMessage.printf("nyScale of layer \"%s\" is incompatible with size of column.\n", getName());
-         errorMessage.printf("Column ny %d multiplied by nyScale %f must be an integer.\n", parent->getNyGlobal(), nyScale);
+         errorMessage.printf("Column ny %d multiplied by nyScale %f must be an integer.\n",
+               (double)parent->getNyGlobal(), (double)nyScale);
       }
       status = PV_FAILURE;
    }
@@ -1756,8 +1758,8 @@ int HyPerLayer::recvAllSynapticInput() {
 
 
 #ifdef PV_USE_CUDA
-float HyPerLayer::addGpuTimers(){
-   float simTime = 0;
+double HyPerLayer::addGpuTimers(){
+   double simTime = 0;
    bool updateNeeded = needUpdate(parent->simulationTime(), parent->getDeltaTime());
    if(recvGpu && updateNeeded){
       simTime += gpu_recvsyn_timer->accumulateTime();
@@ -2148,7 +2150,7 @@ int HyPerLayer::checkpointWrite(const char * cpDir) {
       }
    }
 
-   if (writeStep>=0.0f) {
+   if (writeStep >= 0.0) {
       if (sparseLayer) {
          parent->writeScalarToFile(cpDir, getName(), "numframes_sparse", writeActivitySparseCalls);
       }

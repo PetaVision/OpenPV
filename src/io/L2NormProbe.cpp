@@ -93,8 +93,7 @@ double L2NormProbe::getValueInternal(double timevalue, int index) {
                int featureBase = kxy*nf;
                for (int f=0; f<nf; f++) {
                   int kex = kIndexExtended(featureBase++, nx, ny, nf, lt, rt, dn, up);
-                  pvadata_t val = aBuffer[kex];
-                  l2normsq += val*val;
+                  l2normsq += pow((double)aBuffer[kex], 2.0);
                }
             }
          }         
@@ -106,10 +105,8 @@ double L2NormProbe::getValueInternal(double timevalue, int index) {
          for (int k=0; k<getTargetLayer()->getNumNeurons(); k++) {
             int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
             int kexMask = kIndexExtended(k, nx, ny, nf, maskLt, maskRt, maskDn, maskUp);
-            //            if (maskLayerData[kexMask]) {
-               pvadata_t val = aBuffer[kex];
-               l2normsq += maskLayerData[kexMask] * val*val;
-            //            }
+               double val = aBuffer[kex];
+               l2normsq += (double)maskLayerData[kexMask] * val * val;
          }
       }
    }
@@ -124,8 +121,8 @@ double L2NormProbe::getValueInternal(double timevalue, int index) {
          for (int k=0; k<numActive; k++) {
             int extIndex = activeList[k];
             int inRestricted = !extendedIndexInBorderRegion(extIndex, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
-            pvadata_t val = inRestricted * fabsf(aBuffer[extIndex]);
-            l2normsq += val*val;
+            double val = inRestricted * fabs((double)aBuffer[extIndex]);
+            l2normsq += pow(val, 2.0);
          }
       }
       else {
@@ -134,8 +131,7 @@ double L2NormProbe::getValueInternal(double timevalue, int index) {
 #endif // PV_USE_OPENMP_THREADS
          for (int k=0; k<getTargetLayer()->getNumNeurons(); k++) {
             int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
-            pvadata_t val = aBuffer[kex];
-            l2normsq += val*val;
+            l2normsq += pow((double)aBuffer[kex], 2.0); 
          }
       }
    }

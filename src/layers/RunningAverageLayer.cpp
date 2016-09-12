@@ -80,7 +80,6 @@ int RunningAverageLayer::setActivity() {
 int RunningAverageLayer::updateState(double timef, double dt) {
    numUpdateTimes++;
    int status = PV_SUCCESS;
-   double deltaT = parent->getDeltaTime();
    //Check if an update is needed
    //Done in cloneVLayer
     int numNeurons = originalLayer->getNumNeurons();
@@ -98,7 +97,7 @@ int RunningAverageLayer::updateState(double timef, double dt) {
     for(int b = 0; b < nbatch; b++){
        const pvdata_t * originalABatch = originalA + b * originalLayer->getNumExtended();
        pvdata_t * ABatch = A + b * getNumExtended();
-       if (numUpdateTimes < numImagesToAverage*deltaT){
+       if (numUpdateTimes < numImagesToAverage * dt){
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif // PV_USE_OPENMP_THREADS
@@ -106,7 +105,7 @@ int RunningAverageLayer::updateState(double timef, double dt) {
                 int kExt = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
                 int kExtOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf,
                       locOriginal->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
-                ABatch[kExt] = ((numUpdateTimes/deltaT-1) * ABatch[kExt] + originalABatch[kExtOriginal]) * deltaT / numUpdateTimes;
+                ABatch[kExt] = ((numUpdateTimes / (float)dt - 1) * ABatch[kExt] + originalABatch[kExtOriginal]) * (float)dt / numUpdateTimes;
              }
        }
        else{

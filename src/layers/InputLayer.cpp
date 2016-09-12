@@ -261,17 +261,17 @@ namespace PV {
          float* buf = getActivity() + b * numExtended;
          if (mNormalizeLuminanceFlag){
             if (mNormalizeStdDev){
-               double image_sum = 0.0f;
-               double image_sum2 = 0.0f;
+               float image_sum = 0.0;
+               float image_sum2 = 0.0;
                for (int k=0; k<numExtended; k++) {
                   image_sum += buf[k];
                   image_sum2 += buf[k]*buf[k];
                }
-               double image_ave = image_sum / numExtended;
-               double image_ave2 = image_sum2 / numExtended;
-               MPI_Allreduce(MPI_IN_PLACE, &image_ave, 1, MPI_DOUBLE, MPI_SUM, parent->getCommunicator()->communicator());
+               float image_ave = image_sum / numExtended;
+               float image_ave2 = image_sum2 / numExtended;
+               MPI_Allreduce(MPI_IN_PLACE, &image_ave, 1, MPI_FLOAT, MPI_SUM, parent->getCommunicator()->communicator());
                image_ave /= parent->getCommunicator()->commSize();
-               MPI_Allreduce(MPI_IN_PLACE, &image_ave2, 1, MPI_DOUBLE, MPI_SUM, parent->getCommunicator()->communicator());
+               MPI_Allreduce(MPI_IN_PLACE, &image_ave2, 1, MPI_FLOAT, MPI_SUM, parent->getCommunicator()->communicator());
                image_ave2 /= parent->getCommunicator()->commSize();
 
                // set mean to zero
@@ -280,10 +280,10 @@ namespace PV {
                }
                
                // set std dev to 1
-               double image_std = sqrt(image_ave2 - image_ave*image_ave); 
+               float image_std = sqrtf(image_ave2 - image_ave*image_ave); 
                if (image_std == 0){
                   for (int k=0; k<numExtended; k++) {
-                     buf[k] = 0.0;
+                     buf[k] = 0.0f;
                   }
                }
                else {
@@ -318,7 +318,7 @@ namespace PV {
          if (mInverseFlag) {
             for (int k=0; k<numExtended; k++) {
                // If normalizeLuminanceFlag is true, should the effect of inverseFlag be buf[k] = -buf[k]?
-               buf[k] = 1 - buf[k]; 
+               buf[k] = 1.0f - buf[k]; 
             }
          }
       }

@@ -84,9 +84,9 @@ double FirmThresholdCostFnProbe::getValueInternal(double timevalue, int index) {
    int const dn = halo->dn;
    int const up = halo->up;
    double sum = 0.0;
-   pvpotentialdata_t VThreshPlusVWidth = VThresh+VWidth;
-   double amax=0.5f*VThreshPlusVWidth;
-   double a2 = 0.5f/VThreshPlusVWidth;
+   double VThreshPlusVWidth = VThresh + VWidth;
+   double amax= 0.5 * VThreshPlusVWidth;
+   double a2  = 0.5 / VThreshPlusVWidth;
    pvadata_t const * aBuffer = getTargetLayer()->getLayerData() + index * getTargetLayer()->getNumExtended();
    
    if (getMaskLayer()) {
@@ -105,16 +105,16 @@ double FirmThresholdCostFnProbe::getValueInternal(double timevalue, int index) {
 #endif // PV_USE_OPENMP_THREADS
          for (int kxy=0; kxy<nxy; kxy++) {
             int kexMask = kIndexExtended(kxy, nx, ny, 1, maskLt, maskRt, maskDn, maskUp);
-            if (maskLayerData[kexMask]==0) { continue; }
+            if (maskLayerData[kexMask] == 0) { continue; }
             int featureBase = kxy*nf;
             for (int f=0; f<nf; f++) {
                int kex = kIndexExtended(featureBase++, nx, ny, nf, lt, rt, dn, up);
-               pvadata_t a = fabsf(aBuffer[kex]);
-               if (a>=VThreshPlusVWidth) {
+               double a = (double)fabs(aBuffer[kex]);
+               if (a >= VThreshPlusVWidth) {
                   sum += amax;
                }
                else {
-                  sum += a*(1 - a2*a);
+                  sum += a * (1.0 - a2*a);
                }
             }
          }         
@@ -125,15 +125,15 @@ double FirmThresholdCostFnProbe::getValueInternal(double timevalue, int index) {
 #endif // PV_USE_OPENMP_THREADS
          for (int k=0; k<getTargetLayer()->getNumNeurons(); k++) {
             int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
-            pvadata_t a = fabsf(aBuffer[kex]);
+            double a = (double)fabs(aBuffer[kex]);
             if (a==0) { continue; }
             int kexMask = kIndexExtended(k, nx, ny, nf, maskLt, maskRt, maskDn, maskUp);
             if (maskLayerData[kexMask]==0) { continue; }
-            if (a>=VThreshPlusVWidth) {
+            if (a >= VThreshPlusVWidth) {
                sum += amax;
             }
             else {
-               sum += a*(1 - a2*a);
+               sum += a * (1.0 - a2*a);
             }
          }
       }
@@ -149,12 +149,12 @@ double FirmThresholdCostFnProbe::getValueInternal(double timevalue, int index) {
          for (int k=0; k<numActive; k++) {
             int extIndex = activeList[k];
             int inRestricted = !extendedIndexInBorderRegion(extIndex, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
-            pvadata_t a = inRestricted * fabsf(aBuffer[extIndex]);
-            if (a>=VThreshPlusVWidth) {
+            double a = inRestricted * (double)fabs(aBuffer[extIndex]);
+            if (a >= VThreshPlusVWidth) {
                sum += amax;
             }
             else {
-               sum += a*(1 - a2*a);
+               sum += a * (1.0 - a2*a);
             }
          }
       }
@@ -164,13 +164,13 @@ double FirmThresholdCostFnProbe::getValueInternal(double timevalue, int index) {
 #endif // PV_USE_OPENMP_THREADS
          for (int k=0; k<getTargetLayer()->getNumNeurons(); k++) {
             int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
-            pvadata_t a = fabsf(aBuffer[kex]);
+            double a = (double)fabs(aBuffer[kex]);
             if (a==0) { continue; }
             if (a>=VThreshPlusVWidth) {
                sum += amax;
             }
             else {
-               sum += a*(1 - a2*a);
+               sum += a * (1.0 - a2*a);
             }
          }
       }

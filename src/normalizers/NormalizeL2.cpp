@@ -60,7 +60,7 @@ int NormalizeL2::normalizeWeights() {
    if (normalizeArborsIndividually) {
       for (int arborID = 0; arborID<nArbors; arborID++) {
          for (int patchindex = 0; patchindex<numDataPatches; patchindex++) {
-            double sumsq = 0.0;
+            float sumsq = 0.0f;
             for (int c=0; c<numConnections; c++) {
                HyPerConn * conn = connectionList[c];
                int nxp = conn->xPatchSize();
@@ -70,10 +70,11 @@ int NormalizeL2::normalizeWeights() {
                pvwdata_t * dataStartPatch = conn->get_wDataHead(arborID, patchindex);
                accumulateSumSquared(dataStartPatch, weights_per_patch, &sumsq);
             }
-            double l2norm = sqrt(sumsq);
-            if (fabs(l2norm) <= minL2NormTolerated) {
-               pvWarn().printf("for NormalizeL2 \"%s\": sum of squares of weights in patch %d of arbor %d is within minL2NormTolerated=%f of zero.  Weights in this patch unchanged.\n", getName(), patchindex, arborID, minL2NormTolerated);
-               break;
+            double l2norm = sqrtf(sumsq);
+            if (fabsf(l2norm) <= minL2NormTolerated) {
+               pvWarn().printf("for NormalizeL2 \"%s\": sum of squares of weights in patch %d of arbor %d is within minL2NormTolerated=%f of zero.  Weights in this patch unchanged.\n",
+                     getName(), patchindex, arborID, (double)minL2NormTolerated);
+               continue;
             }
             for (int c=0; c<numConnections; c++) {
                HyPerConn * conn = connectionList[c];
@@ -89,7 +90,7 @@ int NormalizeL2::normalizeWeights() {
    }
    else {
       for (int patchindex = 0; patchindex<numDataPatches; patchindex++) {
-         double sumsq = 0.0;
+         float sumsq = 0.0f;
          for (int arborID = 0; arborID<nArbors; arborID++) {
             for (int c=0; c<numConnections; c++) {
                HyPerConn * conn = connectionList[c];
@@ -103,9 +104,10 @@ int NormalizeL2::normalizeWeights() {
                accumulateSumSquared(dataStartPatch, weights_per_patch, &sumsq);
             }
          }
-         double l2norm = sqrt(sumsq);
-         if (fabs(sumsq) <= minL2NormTolerated) {
-            pvWarn().printf("for NormalizeL2 \"%s\": sum of squares of weights in patch %d is within minL2NormTolerated=%f of zero.  Weights in this patch unchanged.\n", getName(), patchindex, minL2NormTolerated);
+         float l2norm = sqrtf(sumsq);
+         if (fabsf(sumsq) <= minL2NormTolerated) {
+            pvWarn().printf("for NormalizeL2 \"%s\": sum of squares of weights in patch %d is within minL2NormTolerated=%f of zero.  Weights in this patch unchanged.\n",
+                  getName(), patchindex, (double)minL2NormTolerated);
             break;
          }
          for (int arborID = 0; arborID<nArbors; arborID++) {

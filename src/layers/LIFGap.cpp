@@ -275,7 +275,7 @@ float LIFGap_Vmem_derivative(
       const pvgsyndata_t sum_gap,
       const float Vrest,
       const float tau) {
-   float totalconductance = 1.0 + G_E + G_I + G_IB + sum_gap;
+   float totalconductance = 1.0f + G_E + G_I + G_IB + sum_gap;
    float Vmeminf = (Vrest + V_E*G_E + V_I*G_I + V_IB*G_IB + G_Gap)/totalconductance;
    return totalconductance*(Vmeminf-Vmem)/tau;
 }
@@ -323,7 +323,7 @@ void LIFGap_update_state_original(
    const float exp_tauIB   = expf(-dt/params->tauIB);
    const float exp_tauVth  = expf(-dt/params->tauVth);
 
-   const float dt_sec = .001 * dt;   // convert to seconds
+   const float dt_sec = 0.001f * dt;   // convert to seconds
 
 
 for (k = 0; k < nx*ny*nf*nbatch; k++) {
@@ -391,7 +391,7 @@ for (k = 0; k < nx*ny*nf*nbatch; k++) {
       l_GSynInhB = l_GSynInhB + params->noiseAmpIB*cl_random_prob(l_rnd);
    }
 
-   const float GMAX = 10.0;
+   const float GMAX = 10.0f;
    float tauInf, VmemInf;
 
 
@@ -406,9 +406,9 @@ for (k = 0; k < nx*ny*nf*nbatch; k++) {
 
    // l_G_Gap = l_GSynGap;
 
-   tauInf  = (dt/tau) * (1.0 + l_G_E + l_G_I + l_G_IB + l_gapStrength);
+   tauInf  = (dt/tau) * (1.0f + l_G_E + l_G_I + l_G_IB + l_gapStrength);
    VmemInf = (Vrest + l_G_E*Vexc + l_G_I*Vinh + l_G_IB*VinhB + l_GSynGap)
-           / (1.0 + l_G_E + l_G_I + l_G_IB + l_gapStrength);
+           / (1.0f + l_G_E + l_G_I + l_G_IB + l_gapStrength);
 
    l_V = VmemInf + (l_V - VmemInf)*expf(-tauInf);
 
@@ -485,7 +485,7 @@ void LIFGap_update_state_beginning(
    const float exp_tauIB   = expf(-dt/params->tauIB);
    const float exp_tauVth  = expf(-dt/params->tauVth);
 
-   const float dt_sec = .001 * dt;   // convert to seconds
+   const float dt_sec = 0.001f * dt;   // convert to seconds
 
 for (k = 0; k < nx*ny*nf*nbatch; k++) {
    int kex = kIndexExtendedBatch(k, nbatch, nx, ny, nf, lt, rt, dn, up);
@@ -556,7 +556,7 @@ for (k = 0; k < nx*ny*nf*nbatch; k++) {
       l_GSynInhB = l_GSynInhB + params->noiseAmpIB*cl_random_prob(l_rnd);
    }
 
-   const float GMAX = 10.0;
+   const float GMAX = 10.0f;
 
    // The portion of code below uses the newer method of calculating l_V.
    float G_E_initial, G_I_initial, G_IB_initial, G_E_final, G_I_final, G_IB_final;
@@ -578,7 +578,7 @@ for (k = 0; k < nx*ny*nf*nbatch; k++) {
 
    dV1 = LIFGap_Vmem_derivative(l_V, G_E_initial, G_I_initial, G_IB_initial, l_GSynGap, Vexc, Vinh, VinhB, l_gapStrength, Vrest, tau);
    dV2 = LIFGap_Vmem_derivative(l_V+dt*dV1, G_E_final, G_I_final, G_IB_final, l_GSynGap, Vexc, Vinh, VinhB, l_gapStrength, Vrest, tau);
-   dV = (dV1+dV2)*0.5;
+   dV = (dV1+dV2)*0.5f;
    l_V = l_V + dt*dV;
    
    l_G_E = G_E_final;
@@ -654,7 +654,7 @@ void LIFGap_update_state_arma(
    const float exp_tauIB   = expf(-dt/params->tauIB);
    const float exp_tauVth  = expf(-dt/params->tauVth);
 
-   const float dt_sec = .001 * dt;   // convert to seconds
+   const float dt_sec = 0.001f * dt;   // convert to seconds
 
 
    for (k = 0; k < nx*ny*nf*nbatch; k++) {
@@ -667,7 +667,7 @@ void LIFGap_update_state_arma(
       // local param variables
       float tau, Vrest, VthRest, Vexc, Vinh, VinhB, deltaVth, deltaGIB;
 
-      const float GMAX = 10.0;
+      const float GMAX = 10.0f;
 
       // local variables
       float l_activ;
@@ -738,8 +738,8 @@ void LIFGap_update_state_arma(
       G_I_initial = l_G_I + l_GSynInh;
       G_IB_initial = l_G_IB + l_GSynInhB;
       // l_G_Gap = l_GSynGap;
-      tau_inf_initial = tau/(1+G_E_initial+G_I_initial+G_IB_initial+l_gapStrength);
-      V_inf_initial = (Vrest+Vexc*G_E_initial+Vinh*G_I_initial+VinhB*G_IB_initial+l_GSynGap)/(1+G_E_initial+G_I_initial+G_IB_initial+l_gapStrength);
+      tau_inf_initial = tau/(1.0f+G_E_initial+G_I_initial+G_IB_initial+l_gapStrength);
+      V_inf_initial = (Vrest+Vexc*G_E_initial+Vinh*G_I_initial+VinhB*G_IB_initial+l_GSynGap)/(1.0f+G_E_initial+G_I_initial+G_IB_initial+l_gapStrength);
 
       G_E_initial  = (G_E_initial  > GMAX) ? GMAX : G_E_initial;
       G_I_initial  = (G_I_initial  > GMAX) ? GMAX : G_I_initial;
@@ -748,8 +748,8 @@ void LIFGap_update_state_arma(
       G_E_final = G_E_initial*exp_tauE;
       G_I_final = G_I_initial*exp_tauI;
       G_IB_final = G_IB_initial*exp_tauIB;
-      tau_inf_final = tau/(1+G_E_final+G_I_final+G_IB_final+l_gapStrength);
-      V_inf_final = (Vrest+Vexc*G_E_final+Vinh*G_I_final+VinhB*G_IB_final+l_GSynGap)/(1+G_E_final+G_I_final+G_IB_final+l_gapStrength);
+      tau_inf_final = tau/(1.0f+G_E_final+G_I_final+G_IB_final+l_gapStrength);
+      V_inf_final = (Vrest+Vexc*G_E_final+Vinh*G_I_final+VinhB*G_IB_final+l_GSynGap)/(1.0f+G_E_final+G_I_final+G_IB_final+l_gapStrength);
 
       float tau_slope = (tau_inf_final-tau_inf_initial)/dt;
       float f1 = tau_slope==0.0f ? expf(-dt/tau_inf_initial) : powf(tau_inf_final/tau_inf_initial, -1/tau_slope);

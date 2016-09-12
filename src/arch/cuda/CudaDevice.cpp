@@ -140,7 +140,7 @@ void CudaDevice::query_device(int id)
 
    pvInfo().printf("with %d units/cores", props.multiProcessorCount);
 
-   pvInfo().printf(" at %f MHz\n", (float)props.clockRate * .001);
+   pvInfo().printf(" at %f MHz\n", (double)props.clockRate * 0.001);
 
    pvInfo().printf("\tMaximum threads group size == %d\n", props.maxThreadsPerBlock);
    

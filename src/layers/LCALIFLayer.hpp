@@ -11,7 +11,7 @@
 #include "HyPerLayer.hpp"
 #include "LIFGap.hpp"
 
-#define DEFAULT_DYNVTHSCALE 1.0
+#define DEFAULT_DYNVTHSCALE 1.0f
 
 namespace PV {
 class LCALIFLayer : public PV::LIFGap {

@@ -208,7 +208,7 @@ int MomentumConn::updateWeights(int arborId){
 int MomentumConn::applyMomentum(int arbor_ID){
    int nExt = preSynapticLayer()->getNumExtended();
    const PVLayerLoc * loc = preSynapticLayer()->getLayerLoc();
-   if(sharedWeights){
+   if (sharedWeights) {
       int numKernels = getNumDataPatches();
       //Shared weights done in parallel, parallel in numkernels
 #ifdef PV_USE_OPENMP_THREADS
@@ -226,7 +226,7 @@ int MomentumConn::applyMomentum(int arbor_ID){
          else if(!strcmp(momentumMethod, "viscosity")){
             for(int k = 0; k < nxp*nyp*nfp; k++){
                //dwdata_start[k] = momentumTau * (prev_dw_start[k] + dwdata_start[k]) * (1 - exp(-1.0/ momentumTau)) - momentumDecay*wdata_start[k];
-               dwdata_start[k] = (prev_dw_start[k] * exp(-1.0/ momentumTau)) + dwdata_start[k] - momentumDecay*wdata_start[k];
+               dwdata_start[k] = (prev_dw_start[k] * expf(-1.0f / momentumTau)) + dwdata_start[k] - momentumDecay*wdata_start[k];
             }
          }
          else if(!strcmp(momentumMethod, "alex")){

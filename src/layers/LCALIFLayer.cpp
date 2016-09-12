@@ -97,7 +97,7 @@ int LCALIFLayer::initialize(const char * name, HyPerCol * hc, const char * kerne
    Vscale = defaultDynVthScale > 0 ? defaultDynVthScale : DEFAULT_DYNVTHSCALE;
    if (Vscale <= 0) {
       if (hc->columnId()==0) {
-         pvErrorNoExit().printf("LCALIFLayer \"%s\": Vscale must be positive (value in params is %f).\n", name, Vscale);
+         pvErrorNoExit().printf("LCALIFLayer \"%s\": Vscale must be positive (value in params is %f).\n", name, (double)Vscale);
       }
       abort();
    }
@@ -332,19 +332,19 @@ void LCALIF_update_state(
 {
 
    // convert target rate from Hz to kHz
-   float targetRatekHz = targetRateHz/1000;
+   float targetRatekHz = targetRateHz/1000.0f;
 
    // tau parameters
    const float tauO = 1/targetRatekHz;   //Convert target rate from kHz to ms (tauO)
 
-   const float decayE   = expf(-dt/params->tauE);
-   const float decayI   = expf(-dt/params->tauI);
-   const float decayIB  = expf(-dt/params->tauIB);
-   const float decayVth = expf(-dt/params->tauVth);
-   const float decayO   = expf(-dt/tauO);
+   const float decayE   = expf((float)-dt/params->tauE);
+   const float decayI   = expf((float)-dt/params->tauI);
+   const float decayIB  = expf((float)-dt/params->tauIB);
+   const float decayVth = expf((float)-dt/params->tauVth);
+   const float decayO   = expf((float)-dt/tauO);
 
    //Convert dt to seconds
-   const float dt_sec = .001 * dt;
+   const float dt_sec = (float)(0.001 * dt);
 
    for (int k = 0; k < nx*ny*nf*nbatch; k++) {
       int kex = kIndexExtendedBatch(k, nbatch, nx, ny, nf, lt, rt, dn, up);
@@ -398,9 +398,9 @@ void LCALIF_update_state(
       deltaGIB = params->deltaGIB;
 
       if (normalizeInputFlag && l_GSynNorm==0 && l_GSynExc != 0) {
-         pvErrorNoExit().printf("time = %f, k = %d, normalizeInputFlag is true but GSynNorm is zero and l_GSynExc = %f\n", timed, k, l_GSynExc);
+         pvErrorNoExit().printf("time = %f, k = %d, normalizeInputFlag is true but GSynNorm is zero and l_GSynExc = %f\n", timed, k, (double)l_GSynExc);
          abort();
-      };
+      }
       l_GSynExc /= (l_GSynNorm + (l_GSynNorm==0 ? 1 : 0));
       GSynExcEffective[k] = l_GSynExc;
       GSynInhEffective[k] = l_GSynInh;
@@ -450,7 +450,7 @@ void LCALIF_update_state(
       G_I_initial  = (G_I_initial  > GMAX) ? GMAX : G_I_initial;
       G_IB_initial = (G_IB_initial > GMAX) ? GMAX : G_IB_initial;
 
-      float totalconductance = 1.0 + G_E_initial + G_I_initial + G_IB_initial + l_gapStrength;
+      float totalconductance = 1.0f + G_E_initial + G_I_initial + G_IB_initial + l_gapStrength;
       Vmeminf[k] = (Vrest + Vexc*G_E_initial + Vinh*G_I_initial + VinhB*G_IB_initial + l_GSynGap)/totalconductance;
 
       G_E_final = G_E_initial * decayE;
@@ -459,10 +459,10 @@ void LCALIF_update_state(
       tau_inf_final = LCALIF_tauInf(tau, G_E_final, G_I_initial, G_IB_initial, l_gapStrength);
       V_inf_final = LCALIF_VmemInf(Vrest, Vexc, Vinh, VinhB, G_E_final, G_I_final, G_IB_final, l_GSynGap, l_gapStrength);
 
-      float tau_slope = (tau_inf_final-tau_inf_initial)/dt;
-      float f1 = tau_slope==0.0f ? expf(-dt/tau_inf_initial) : powf(tau_inf_final/tau_inf_initial, -1/tau_slope);
-      float f2 = tau_slope==-1.0f ? tau_inf_initial/dt*logf(tau_inf_final/tau_inf_initial+1.0f) :
-                                    (1-tau_inf_initial/dt*(1-f1))/(1+tau_slope);
+      float tau_slope = (tau_inf_final-tau_inf_initial)/(float)dt;
+      float f1 = tau_slope==0.0f ? expf(-(float)dt/tau_inf_initial) : powf(tau_inf_final/tau_inf_initial, -1.0f/tau_slope);
+      float f2 = tau_slope==-1.0f ? tau_inf_initial/(float)dt*logf(tau_inf_final/tau_inf_initial+1.0f) :
+                                    (1.0f-tau_inf_initial/(float)dt*(1.0f-f1))/(1.0f+tau_slope);
       float f3 = 1.0f - f1 - f2;
       l_V = f1*l_V + f2*V_inf_initial + f3*V_inf_final;
       
