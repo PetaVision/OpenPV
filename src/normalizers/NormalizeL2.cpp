@@ -70,7 +70,7 @@ int NormalizeL2::normalizeWeights() {
                pvwdata_t * dataStartPatch = conn->get_wDataHead(arborID, patchindex);
                accumulateSumSquared(dataStartPatch, weights_per_patch, &sumsq);
             }
-            double l2norm = sqrtf(sumsq);
+            float l2norm = sqrtf(sumsq);
             if (fabsf(l2norm) <= minL2NormTolerated) {
                pvWarn().printf("for NormalizeL2 \"%s\": sum of squares of weights in patch %d of arbor %d is within minL2NormTolerated=%f of zero.  Weights in this patch unchanged.\n",
                      getName(), patchindex, arborID, (double)minL2NormTolerated);

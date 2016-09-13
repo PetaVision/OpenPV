@@ -420,7 +420,7 @@ static inline
 float calcBurstStatus(double timed, Retina_params * params) {
    float burstStatus;
    if (params->burstDuration <= 0 || params->burstFreq == 0) {
-      burstStatus = cosf(2.0f * (float)(PI * timed) * params->burstFreq / 1000.0f );
+      burstStatus = cosf(2.0f * PI * (float)timed * params->burstFreq / 1000.0f );
    }
    else {
       burstStatus = fmodf((float)timed, 1000.0f / params->burstFreq);

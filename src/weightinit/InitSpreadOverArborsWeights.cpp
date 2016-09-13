@@ -91,7 +91,7 @@ int InitSpreadOverArborsWeights::spreadOverArborsWeights(/* PVPatch * patch */ p
 
 
             float weight = 0;
-            if (xp*xp+yp*yp<1e-4) {
+            if (xp*xp+yp*yp<1e-4f) {
                weight = iWeight/nArbors;
             }
             else {
@@ -102,8 +102,12 @@ int InitSpreadOverArborsWeights::spreadOverArborsWeights(/* PVPatch * patch */ p
                f2u.f = xp; xpraw = f2u.i;
                f2u.f = yp; ypraw = f2u.i;
                f2u.f = theta2pi; atanraw = f2u.i;
-               if(theta2pi<0) theta2pi+=1;
-               if(theta2pi>=1) theta2pi-=1; // theta2pi should be in the range [0,1) but roundoff could make it exactly 1
+               if(theta2pi<0) {
+                  theta2pi+=1;
+               }
+               if(theta2pi>=1) {
+                  theta2pi-=1; // theta2pi should be in the range [0,1) but roundoff could make it exactly 1
+               }
                float zone = theta2pi*nArbors;
 
                float intpart;

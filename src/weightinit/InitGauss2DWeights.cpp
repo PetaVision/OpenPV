@@ -70,8 +70,8 @@ int InitGauss2DWeights::gauss2DCalcWeights(pvdata_t * dataStart, InitGauss2DWeig
    int sx_tmp=weightParamPtr->getsx();
    int sy_tmp=weightParamPtr->getsy();
    int sf_tmp=weightParamPtr->getsf();
-   double r2Max=weightParamPtr->getr2Max();
-   double r2Min=weightParamPtr->getr2Min();
+   float r2Max=weightParamPtr->getr2Max();
+   float r2Min=weightParamPtr->getr2Min();
 
    pvdata_t * w_tmp = dataStart;
 
@@ -81,20 +81,28 @@ int InitGauss2DWeights::gauss2DCalcWeights(pvdata_t * dataStart, InitGauss2DWeig
    for (int fPost = 0; fPost < nfPatch_tmp; fPost++) {
       float thPost = weightParamPtr->calcThPost(fPost);
       //TODO: add additional weight factor for difference between thPre and thPost
-      if(weightParamPtr->checkThetaDiff(thPost)) continue;
-      if(weightParamPtr->checkColorDiff(fPost)) continue;
+      if(weightParamPtr->checkThetaDiff(thPost)) {
+         continue;
+      }
+      if(weightParamPtr->checkColorDiff(fPost)) {
+         continue;
+      }
       for (int jPost = 0; jPost < nyPatch_tmp; jPost++) {
          float yDelta = weightParamPtr->calcYDelta(jPost);
          for (int iPost = 0; iPost < nxPatch_tmp; iPost++) {
             float xDelta = weightParamPtr->calcXDelta(iPost);
 
-            if(weightParamPtr->isSameLocOrSelf(xDelta, yDelta, fPost)) continue;
+            if(weightParamPtr->isSameLocOrSelf(xDelta, yDelta, fPost)) {
+               continue;
+            }
 
             // rotate the reference frame by th (change sign of thPost?)
-            float xp = +xDelta * cos(thPost) + yDelta * sin(thPost);
-            float yp = -xDelta * sin(thPost) + yDelta * cos(thPost);
+            float xp = +xDelta * cosf(thPost) + yDelta * sinf(thPost);
+            float yp = -xDelta * sinf(thPost) + yDelta * cosf(thPost);
 
-            if(weightParamPtr->checkBowtieAngle(yp, xp)) continue;
+            if(weightParamPtr->checkBowtieAngle(yp, xp)) {
+               continue;
+            }
 
 
             // include shift to flanks
@@ -102,13 +110,13 @@ int InitGauss2DWeights::gauss2DCalcWeights(pvdata_t * dataStart, InitGauss2DWeig
             int index = iPost * sx_tmp + jPost * sy_tmp + fPost * sf_tmp;
             w_tmp[index] = 0;
             if ((d2 <= r2Max) && (d2 >= r2Min)) {
-               w_tmp[index] += strength*exp(-d2 / (2.0f * sigma * sigma));
+               w_tmp[index] += strength*expf(-d2 / (2.0f * sigma * sigma));
             }
             if (numFlanks > 1) {
                // shift in opposite direction
                d2 = xp * xp + (aspect * (yp + shift) * aspect * (yp + shift));
                if ((d2 <= r2Max) && (d2 >= r2Min)) {
-                  w_tmp[index] += strength*exp(-d2 / (2.0f * sigma * sigma));
+                  w_tmp[index] += strength*expf(-d2 / (2.0f * sigma * sigma));
                }
             }
          }

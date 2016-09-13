@@ -238,12 +238,12 @@ float InitGauss2DWeightsParams::calcThPost(int fPost) {
 }
 
 bool InitGauss2DWeightsParams::checkThetaDiff(float thPost) {
-  if ((deltaTheta = fabs(thPre - thPost)) > deltaThetaMax) {
+  if ((deltaTheta = fabsf(thPre - thPost)) > deltaThetaMax) {
      //the following is obviously not ideal. But cocirc needs this deltaTheta:
-     deltaTheta = (deltaTheta <= PI / 2.0) ? deltaTheta : PI - deltaTheta;
+     deltaTheta = (deltaTheta <= PI / 2.0f) ? deltaTheta : PI - deltaTheta;
       return true;
    }
-  deltaTheta = (deltaTheta <= PI / 2.0) ? deltaTheta : PI - deltaTheta;
+  deltaTheta = (deltaTheta <= PI / 2.0f) ? deltaTheta : PI - deltaTheta;
    return false;
 }
 

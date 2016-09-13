@@ -77,7 +77,9 @@ int InitCocircWeights::cocircCalcWeights(pvdata_t * w_tmp, InitCocircWeightsPara
 
       weightParamPtr->calcKurvePostAndSigmaKurvePost(kfPost);
 
-     if(weightParamPtr->checkThetaDiff(thPost)) continue;
+     if(weightParamPtr->checkThetaDiff(thPost)) { 
+        continue;
+     }
 
      for (int jPost = 0; jPost < nyPatch_tmp; jPost++) {
         float yDelta = weightParamPtr->calcYDelta(jPost);
@@ -87,17 +89,17 @@ int InitCocircWeights::cocircCalcWeights(pvdata_t * w_tmp, InitCocircWeightsPara
            weightParamPtr->initializeDistChordCocircKurvePreAndKurvePost();
 
 
-            if(calcDistChordCocircKurvePreNKurvePost(xDelta, yDelta, kfPost, weightParamPtr, thPost))
+            if(calcDistChordCocircKurvePreNKurvePost(xDelta, yDelta, kfPost, weightParamPtr, thPost)) {
               continue;
+            }
 
 
             //update weights based on calculated values:
             float weight_tmp = weightParamPtr->calculateWeight();
-            if (weight_tmp < min_weight) continue;
+            if (weight_tmp < min_weight) { 
+               continue;
+            }
             w_tmp[iPost * sx_tmp + jPost * sy_tmp + kfPost * sf_tmp] = weight_tmp;
-
-
-
         }
      }
    }
@@ -112,7 +114,7 @@ bool InitCocircWeights::calcDistChordCocircKurvePreNKurvePost(
    const float shift = weightParamPtr->getShift();
    const float sigma = weightParamPtr->getSigma();
    const float sigma2 = 2 * sigma * sigma;
-   const double r2Max = weightParamPtr->getr2Max();
+   const float r2Max = weightParamPtr->getr2Max();
    const int numFlanks = weightParamPtr->getNumFlanks();
    float thetaPre = weightParamPtr->getthPre();
 
@@ -137,13 +139,15 @@ bool InitCocircWeights::calcDistChordCocircKurvePreNKurvePost(
    }
 
 
-   if (weightParamPtr->getGDist() == 0.0) return true;
+   if (weightParamPtr->getGDist() == 0.0f) {
+      return true;
+   }
    if (d2 == 0) {
-     if(weightParamPtr->checkSameLoc(kfPost)) return true;
-
+     if(weightParamPtr->checkSameLoc(kfPost)) {
+        return true;
+     }
    }
    else { // d2 > 0
-
 
      // compute curvature of cocircular contour
      float cocircKurve_shift = d2_shift > 0 ? fabsf(2 * dyP_shift) / d2_shift
@@ -152,8 +156,9 @@ bool InitCocircWeights::calcDistChordCocircKurvePreNKurvePost(
       weightParamPtr->updateCocircNChord(
            thPost, dyP_shift, dxP,cocircKurve_shift, d2_shift);
 
-     if(weightParamPtr->checkFlags(dyP_shift, dxP))
+     if(weightParamPtr->checkFlags(dyP_shift, dxP)) {
         return true;
+     }
 
 
       //calculate values for gKurvePre and gKurvePost:
@@ -167,13 +172,12 @@ bool InitCocircWeights::calcDistChordCocircKurvePreNKurvePost(
         weightParamPtr->updateCocircNChord(
              thPost, dyP_shift2, dxP,cocircKurve_shift2, d2_shift);
 
-        if(weightParamPtr->checkFlags(dyP_shift2, dxP))
+        if(weightParamPtr->checkFlags(dyP_shift2, dxP)) {
            return true;
-
+        }
 
         //calculate values for gKurvePre and gKurvePost:
         weightParamPtr->updategKurvePreNgKurvePost(cocircKurve_shift2);
-
      }
    }
 

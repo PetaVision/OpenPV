@@ -30,13 +30,13 @@ void testPng24Load() {
             && png24.getPixelB(1, 1) == 1.0f;
 
    pvErrorIf(!tl, "Failed (Top Left). Expected (1.0, 0.0, 0.0), found (%f, %f, %f) instead.\n",
-         png24.getPixelR(0, 0), png24.getPixelG(0, 0), png24.getPixelB(0, 0));
+         (double)png24.getPixelR(0, 0), (double)png24.getPixelG(0, 0), (double)png24.getPixelB(0, 0));
    pvErrorIf(!tr, "Failed (Top Right). Expected (0.0, 1.0, 0.0), found (%f, %f, %f) instead.\n",
-         png24.getPixelR(1, 0), png24.getPixelG(1, 0), png24.getPixelB(1, 0));
+         (double)png24.getPixelR(1, 0), (double)png24.getPixelG(1, 0), (double)png24.getPixelB(1, 0));
    pvErrorIf(!bl, "Failed (Bottom Left). Expected (0.0, 0.0, 1.0), found (%f, %f, %f) instead.\n",
-         png24.getPixelR(0, 1), png24.getPixelG(0, 1), png24.getPixelB(0, 1));
+         (double)png24.getPixelR(0, 1), (double)png24.getPixelG(0, 1), (double)png24.getPixelB(0, 1));
    pvErrorIf(!br, "Failed (Bottom Right). Expected (1.0, 1.0, 1.0), found (%f, %f, %f) instead.\n",
-         png24.getPixelR(1, 1), png24.getPixelG(1, 1), png24.getPixelB(1, 1));
+         (double)png24.getPixelR(1, 1), (double)png24.getPixelG(1, 1), (double)png24.getPixelB(1, 1));
 }
 
 // Image;:Image(filename.png32)
@@ -69,12 +69,12 @@ void testPng32Load() {
    bool br =   png32.getPixelA(1, 1) == 0.0f;
 
    pvErrorIf(!tl, "Failed (Top Left). Expected (1.0, 0.0, 0.0, 1.0), found (%f, %f, %f, %f) instead.\n",
-         png32.getPixelR(0, 0), png32.getPixelG(0, 0), png32.getPixelB(0, 0), png32.getPixelA(0, 0));
+         (double)png32.getPixelR(0, 0), (double)png32.getPixelG(0, 0), (double)png32.getPixelB(0, 0), (double)png32.getPixelA(0, 0));
    pvErrorIf(!tr, "Failed (Top Right). Expected (0.0, 1.0, 0.0, 1.0), found (%f, %f, %f, %f) instead.\n",
-         png32.getPixelR(1, 0), png32.getPixelG(1, 0), png32.getPixelB(1, 0), png32.getPixelA(1, 0));
+         (double)png32.getPixelR(1, 0), (double)png32.getPixelG(1, 0), (double)png32.getPixelB(1, 0), (double)png32.getPixelA(1, 0));
    pvErrorIf(!bl, "Failed (Bottom Left). Expected (0.0, 0.0, 1.0, 1.0), found (%f, %f, %f, %f) instead.\n",
-         png32.getPixelR(0, 1), png32.getPixelG(0, 1), png32.getPixelB(0, 1), png32.getPixelA(0, 1));
-   pvErrorIf(!br, "Failed (Bottom Right). Expected A = 0.0, found %f instead.\n", png32.getPixelA(1, 1));
+         (double)png32.getPixelR(0, 1), (double)png32.getPixelG(0, 1), (double)png32.getPixelB(0, 1), (double)png32.getPixelA(0, 1));
+   pvErrorIf(!br, "Failed (Bottom Right). Expected A = 0.0, found %f instead.\n", (double)png32.getPixelA(1, 1));
 }
 
 // Image::Image(filename.jpg)
@@ -108,13 +108,13 @@ void testJpgLoad() {
             && jpg.getPixelB(1, 1) >= 0.9f;
 
    pvErrorIf(!tl, "Failed (Top Left). Expected values within 0.1 of (1.0, 0.0, 0.0), found (%f, %f, %f) instead.\n",
-         jpg.getPixelR(0, 0), jpg.getPixelG(0, 0), jpg.getPixelB(0, 0));
+         (double)jpg.getPixelR(0, 0), (double)jpg.getPixelG(0, 0), (double)jpg.getPixelB(0, 0));
    pvErrorIf(!tr, "Failed (Top Right). Expected values within 0.1 of (0.0, 1.0, 0.0), found (%f, %f, %f) instead.\n",
-         jpg.getPixelR(1, 0), jpg.getPixelG(1, 0), jpg.getPixelB(1, 0));
+         (double)jpg.getPixelR(1, 0), (double)jpg.getPixelG(1, 0), (double)jpg.getPixelB(1, 0));
    pvErrorIf(!bl, "Failed (Bottom Left). Expected values within 0.1 of (0.0, 0.0, 1.0), found (%f, %f, %f) instead.\n",
-         jpg.getPixelR(0, 1), jpg.getPixelG(0, 1), jpg.getPixelB(0, 1));
+         (double)jpg.getPixelR(0, 1), (double)jpg.getPixelG(0, 1), (double)jpg.getPixelB(0, 1));
    pvErrorIf(!br, "Failed (Bottom Right). Expected values within 0.1 of (1.0, 1.0, 1.0), found (%f, %f, %f) instead.\n",
-         jpg.getPixelR(1, 1), jpg.getPixelG(1, 1), jpg.getPixelB(1, 1));
+         (double)jpg.getPixelR(1, 1), (double)jpg.getPixelG(1, 1), (double)jpg.getPixelB(1, 1));
 }
 
 // Image::Image(filename.bmp)
@@ -143,13 +143,13 @@ void testBmpLoad() {
             && bmp.getPixelB(1, 1) == 1.0f;
 
    pvErrorIf(!tl, "Failed (Top Left). Expected (1.0, 0.0, 0.0), found (%f, %f, %f) instead.\n",
-         bmp.getPixelR(0, 0), bmp.getPixelG(0, 0), bmp.getPixelB(0, 0));
+         (double)bmp.getPixelR(0, 0), (double)bmp.getPixelG(0, 0), (double)bmp.getPixelB(0, 0));
    pvErrorIf(!tr, "Failed (Top Right). Expected (0.0, 1.0, 0.0), found (%f, %f, %f) instead.\n",
-         bmp.getPixelR(1, 0), bmp.getPixelG(1, 0), bmp.getPixelB(1, 0));
+         (double)bmp.getPixelR(1, 0), (double)bmp.getPixelG(1, 0), (double)bmp.getPixelB(1, 0));
    pvErrorIf(!bl, "Failed (Bottom Left). Expected (0.0, 0.0, 1.0), found (%f, %f, %f) instead.\n",
-         bmp.getPixelR(0, 1), bmp.getPixelG(0, 1), bmp.getPixelB(0, 1));
+         (double)bmp.getPixelR(0, 1), (double)bmp.getPixelG(0, 1), (double)bmp.getPixelB(0, 1));
    pvErrorIf(!br, "Failed (Bottom Right). Expected (1.0, 1.0, 1.0), found (%f, %f, %f) instead.\n",
-         bmp.getPixelR(1, 1), bmp.getPixelG(1, 1), bmp.getPixelB(1, 1));
+         (double)bmp.getPixelR(1, 1), (double)bmp.getPixelG(1, 1), (double)bmp.getPixelB(1, 1));
 }
 
 // Image::convertToColor(bool alphaChannel)
@@ -169,19 +169,19 @@ void testConvertToGray() {
 
       pvErrorIf(img.getPixelR(0, 0) != Image::mRToGray,
             "Failed (Top Left). Expected %f, found %f.\n",
-            Image::mRToGray, img.getPixelR(0, 0));
+            (double)Image::mRToGray, (double)img.getPixelR(0, 0));
 
       pvErrorIf(img.getPixelR(1, 0) != Image::mGToGray,
             "Failed (Top Right). Expected %f, found %f.\n",
-            Image::mGToGray, img.getPixelR(1, 0));
+            (double)Image::mGToGray, (double)img.getPixelR(1, 0));
 
        pvErrorIf(img.getPixelR(0, 1) != Image::mBToGray,
             "Failed (Bottom Left). Expected %f, found %f.\n",
-            Image::mBToGray, img.getPixelR(0, 1));
+            (double)Image::mBToGray, (double)img.getPixelR(0, 1));
 
        pvErrorIf(img.getPixelR(1, 1) != 1.0f,
             "Failed (Bottom Right). Expected 1.0, found %f.\n",
-            img.getPixelR(1, 1));
+            (double)img.getPixelR(1, 1));
    }
 
    {
@@ -192,19 +192,19 @@ void testConvertToGray() {
 
       pvErrorIf(img.getPixelR(0, 0) != Image::mRToGray,
             "Failed (Top Left). Expected %f, found %f.\n",
-            Image::mRToGray, img.getPixelR(0, 0));
+            (double)Image::mRToGray, (double)img.getPixelR(0, 0));
 
       pvErrorIf(img.getPixelR(1, 0) != Image::mGToGray,
             "Failed (Top Right). Expected %f, found %f.\n",
-            Image::mGToGray, img.getPixelR(1, 0));
+            Image::mGToGray, (double)img.getPixelR(1, 0));
 
        pvErrorIf(img.getPixelR(0, 1) != Image::mBToGray,
             "Failed (Bottom Left). Expected %f, found %f.\n",
-            Image::mBToGray, img.getPixelR(0, 1));
+            (double)Image::mBToGray, img.getPixelR(0, 1));
 
        pvErrorIf(img.getPixelG(1, 1) != 0.0f,
             "Failed (Bottom Right). Expected 0.0, found %f.\n",
-            img.getPixelG(1, 1));
+            (double)img.getPixelG(1, 1));
    }
 }
 
@@ -219,19 +219,19 @@ void testConvertToColor() {
 
       pvErrorIf(img.getPixelR(0, 0) != Image::mRToGray,
             "Failed (Top Left). Expected R = %f, found %f.\n",
-            Image::mRToGray, img.getPixelR(0, 0));
+            (double)Image::mRToGray, (double)img.getPixelR(0, 0));
 
       pvErrorIf(img.getPixelG(1, 0) != Image::mGToGray,
             "Failed (Top Right). Expected G = %f, found %f.\n",
-            Image::mGToGray, img.getPixelG(1, 0));
+            (double)Image::mGToGray, (double)img.getPixelG(1, 0));
 
        pvErrorIf(img.getPixelB(0, 1) != Image::mBToGray,
             "Failed (Bottom Left). Expected B = %f, found %f.\n",
-            Image::mBToGray, img.getPixelB(0, 1));
+            (double)Image::mBToGray, (double)img.getPixelB(0, 1));
 
        pvErrorIf(img.getPixelR(1, 1) != 1.0f || img.getPixelG(1, 1) != 1.0f || img.getPixelB(1, 1) != 1.0f,
             "Failed (Bottom Right). Expected (1.0, 1.0, 1.0), found (%f, %f, %f).\n",
-            img.getPixelR(1, 1), img.getPixelG(1, 1), img.getPixelB(1, 1));
+            (double)img.getPixelR(1, 1), (double)img.getPixelG(1, 1), (double)img.getPixelB(1, 1));
    }
 
    {
@@ -242,19 +242,19 @@ void testConvertToColor() {
 
       pvErrorIf(img.getPixelR(0, 0) != Image::mRToGray,
             "Failed (Top Left). Expected %f, found %f.\n",
-            Image::mRToGray, img.getPixelR(0, 0));
+            (double)Image::mRToGray, (double)img.getPixelR(0, 0));
 
       pvErrorIf(img.getPixelG(1, 0) != Image::mGToGray,
             "Failed (Top Right). Expected %f, found %f.\n",
-            Image::mGToGray, img.getPixelG(1, 0));
+            (double)Image::mGToGray, (double)img.getPixelG(1, 0));
 
        pvErrorIf(img.getPixelB(0, 1) != Image::mBToGray,
             "Failed (Bottom Left). Expected %f, found %f.\n",
-            Image::mBToGray, img.getPixelB(0, 1));
+            (double)Image::mBToGray, (double)img.getPixelB(0, 1));
 
        pvErrorIf(img.getPixelA(1, 1) != 0.0f,
             "Failed (Bottom Right). Expected 0.0, found %f.\n",
-            img.getPixelA(1, 1));
+            (double)img.getPixelA(1, 1));
    }
 }
 
