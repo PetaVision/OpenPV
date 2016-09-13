@@ -360,13 +360,13 @@ int applyGSyn_HyPerLCALayer(int nbatch, int numNeurons,
    {
       int b = kbatch / numNeurons;
       int k = kbatch % numNeurons;
-      float exp_tau = expf((float)-dtAdapt[b]/tau);
+      float exp_tau = (float)exp(-dtAdapt[b]/(double)tau);
       MEM_GLOBAL pvdata_t* VBatch = V + b*numNeurons;
       MEM_GLOBAL pvdata_t* GSynErrorBatch = GSynError + b*numNeurons;
       //Activity extended
       MEM_GLOBAL pvdata_t* activityBatch = activity + b*(nx+rt+lt)*(ny+up+dn)*nf;
       int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
-         VBatch[k] = exp_tau * VBatch[k] + (1.0f - exp_tau) * (GSynErrorBatch[k] + selfInteract * activityBatch[kex]);
+      VBatch[k] = exp_tau * VBatch[k] + (1.0f - exp_tau) * (GSynErrorBatch[k] + selfInteract * activityBatch[kex]);
    }
    return PV_SUCCESS;
 }
@@ -377,8 +377,8 @@ int applyGSyn_HyPerLCALayer2(int nbatch, int numNeurons,
       MEM_GLOBAL pvdata_t * activity, double* dtAdapt, pvdata_t tau, pvdata_t selfInteract, 
       int nx, int ny, int nf, int lt, int rt, int dn, int up) {
    int kbatch;
-   MEM_GLOBAL pvdata_t * GSynError = &GSynHead[CHANNEL_EXC * nbatch * numNeurons]; // weighted input
-   MEM_GLOBAL pvdata_t * GSynError2 = &GSynHead[CHANNEL_INH * nbatch * numNeurons]; // weighted input
+   MEM_GLOBAL pvdata_t * GSynError = &GSynHead[0 * nbatch * numNeurons]; // weighted input
+   MEM_GLOBAL pvdata_t * GSynError2 = &GSynHead[1 * nbatch * numNeurons]; // weighted input
 
 #ifndef PV_USE_CUDA
    #ifdef PV_USE_OPENMP_THREADS
@@ -392,7 +392,7 @@ int applyGSyn_HyPerLCALayer2(int nbatch, int numNeurons,
       int b = kbatch / numNeurons;
       int k = kbatch % numNeurons;
 
-      float exp_tau = expf((float)-dtAdapt[b]/tau);
+      float exp_tau = (float)exp(-dtAdapt[b]/(double)tau);
       MEM_GLOBAL pvdata_t* VBatch = V + b*numNeurons;
       MEM_GLOBAL pvdata_t* GSynErrorBatch = GSynError + b*numNeurons;
       MEM_GLOBAL pvdata_t* GSynError2Batch = GSynError2 + b*numNeurons;
@@ -400,7 +400,7 @@ int applyGSyn_HyPerLCALayer2(int nbatch, int numNeurons,
       MEM_GLOBAL pvdata_t* activityBatch = activity + b*(nx+rt+lt)*(ny+up+dn)*nf;
 
       int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
-         VBatch[k] = exp_tau * VBatch[k] + (1.0f - exp_tau) * (GSynErrorBatch[k] - GSynError2Batch[k] + selfInteract * activityBatch[kex]);
+      VBatch[k] = exp_tau * VBatch[k] + (1.0f - exp_tau) * (GSynErrorBatch[k] - GSynError2Batch[k] + selfInteract * activityBatch[kex]);
    }
    return PV_SUCCESS;
 }
