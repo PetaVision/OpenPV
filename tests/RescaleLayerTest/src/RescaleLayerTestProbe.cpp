@@ -64,13 +64,13 @@ int RescaleLayerTestProbe::outputState(double timed)
       if (!isRoot) { return PV_SUCCESS; }
       for(int b = 0; b < parent->getNBatch(); b++){
          float targetMax = targetRescaleLayer->getTargetMax();
-         if (fabs(fMax[b]-targetMax)>tolerance) {
-            pvErrorNoExit().printf("RescaleLayerTestProbe \"%s\": RescaleLayer \"%s\" has max %f instead of target max %f\n", getName(), targetRescaleLayer->getName(), fMax[b], targetMax);
+         if (fabsf(fMax[b]-targetMax)>tolerance) {
+            pvErrorNoExit().printf("RescaleLayerTestProbe \"%s\": RescaleLayer \"%s\" has max %f instead of target max %f\n", getName(), targetRescaleLayer->getName(), (double)fMax[b], (double)targetMax);
             status = PV_FAILURE;
          }
          float targetMin = targetRescaleLayer->getTargetMin();
-         if (fabs(fMin[b]-targetMin)>tolerance) {
-            pvErrorNoExit().printf("RescaleLayerTestProbe \"%s\": RescaleLayer \"%s\" has min %f instead of target min %f\n", getName(), targetRescaleLayer->getName(), fMin[b], targetMin);
+         if (fabsf(fMin[b]-targetMin)>tolerance) {
+            pvErrorNoExit().printf("RescaleLayerTestProbe \"%s\": RescaleLayer \"%s\" has min %f instead of target min %f\n", getName(), targetRescaleLayer->getName(), (double)fMin[b], (double)targetMin);
             status = PV_FAILURE;
          }
 
@@ -108,15 +108,15 @@ int RescaleLayerTestProbe::outputState(double timed)
          }
          else{
             targetMean = 0;
-            targetStd = 1/sqrt((float)targetRescaleLayer->getL2PatchSize());
+            targetStd = 1/sqrtf((float)targetRescaleLayer->getL2PatchSize());
          }
 
-         if (fabs(avg[b]-targetMean)>tolerance) {
-            pvErrorNoExit().printf("%s: %s has mean %f instead of target mean %f\n", getDescription_c(), targetRescaleLayer->getDescription_c(), (double)avg[b], targetMean);
+         if (fabsf(avg[b]-targetMean)>tolerance) {
+            pvErrorNoExit().printf("%s: %s has mean %f instead of target mean %f\n", getDescription_c(), targetRescaleLayer->getDescription_c(), (double)avg[b], (double)targetMean);
             status = PV_FAILURE;
          }
-         if (sigma[b]>tolerance && fabs(sigma[b]-targetStd)>tolerance) {
-            pvErrorNoExit().printf("%s: %s has std.dev. %f instead of target std.dev. %f\n", getDescription_c(), targetRescaleLayer->getDescription_c(), (double)sigma[b], targetStd);
+         if (sigma[b]>tolerance && fabsf(sigma[b]-targetStd)>tolerance) {
+            pvErrorNoExit().printf("%s: %s has std.dev. %f instead of target std.dev. %f\n", getDescription_c(), targetRescaleLayer->getDescription_c(), (double)sigma[b], (double)targetStd);
             status = PV_FAILURE;
          }
 
@@ -156,26 +156,26 @@ int RescaleLayerTestProbe::outputState(double timed)
          pvadata_t const * rescaledData = targetRescaleLayer->getLayerData() + b*targetRescaleLayer->getNumExtended();
          for (int k=0; k<numNeurons; k+=nf) {
             int kExtended = kIndexExtended(k, loc->nx, loc->ny, loc->nf, halo->lt, halo->rt, halo->dn, halo->up);
-            double pointmean = 0.0;
+            float pointmean = 0.0f;
             for (int f=0; f<nf; f++) {
                pointmean += rescaledData[kExtended+f];
             }
             pointmean /= nf;
-            double pointstd = 0.0;
+            float pointstd = 0.0f;
             for (int f=0; f<nf; f++) {
-               double d = rescaledData[kExtended+f]-pointmean;
+               float d = rescaledData[kExtended+f]-pointmean;
                pointstd += d*d;
             }
             pointstd /= nf;
-            pointstd = sqrt(pointstd);
-            if (fabs(pointmean-targetMean)>tolerance) {
+            pointstd = sqrtf(pointstd);
+            if (fabsf(pointmean-targetMean)>tolerance) {
                pvErrorNoExit().printf("RescaleLayerTestProbe \"%s\": RescaleLayer \"%s\", location in rank %d, starting at restricted neuron %d, has mean %f instead of target mean %f\n",
-                     getName(), targetRescaleLayer->getName(), getParent()->columnId(), k, pointmean, targetMean);
+                     getName(), targetRescaleLayer->getName(), getParent()->columnId(), k, (double)pointmean, (double)targetMean);
                status = PV_FAILURE;
             }
-            if (pointstd>tolerance && fabs(pointstd-targetStd)>tolerance) {
+            if (pointstd>tolerance && fabsf(pointstd-targetStd)>tolerance) {
                pvErrorNoExit().printf("RescaleLayerTestProbe \"%s\": RescaleLayer \"%s\", location in rank %d, starting at restricted neuron %d, has std.dev. %f instead of target std.dev. %f\n",
-                     getName(), targetRescaleLayer->getName(), getParent()->columnId(), k, pointstd, targetStd);
+                     getName(), targetRescaleLayer->getName(), getParent()->columnId(), k, (double)pointstd, (double)targetStd);
                status = PV_FAILURE;
             }
             bool iscolinear = colinear(nf, 1, 0, 0, &originalData[k], &rescaledData[kExtended], tolerance, NULL, NULL, NULL);
@@ -205,10 +205,10 @@ int RescaleLayerTestProbe::outputState(double timed)
             int rescale_kExtended = kIndexExtended(k, rescaleLoc->nx, rescaleLoc->ny, rescaleLoc->nf, rescaleHalo->lt, rescaleHalo->rt, rescaleHalo->dn, rescaleHalo->up);
             int orig_kExtended = kIndexExtended(k, origLoc->nx, origLoc->ny, origLoc->nf, origHalo->lt, origHalo->rt, origHalo->dn, origHalo->up);
             pvadata_t observedval = rescaledData[rescale_kExtended];
-            pvpotentialdata_t correctval = originalData[orig_kExtended] ? observedval : -1.0;
+            pvpotentialdata_t correctval = originalData[orig_kExtended] ? observedval : -1.0f;
             if (observedval != correctval) {
                pvErrorNoExit().printf("RescaleLayerTestProbe \"%s\": RescaleLayer \"%s\", rank %d, restricted neuron %d has value %f instead of expected %f\n.",
-                     this->getName(), targetRescaleLayer->getName(), parent->columnId(), k, observedval, correctval);
+                     this->getName(), targetRescaleLayer->getName(), parent->columnId(), k, (double)observedval, (double)correctval);
                status = PV_FAILURE;
             }
          }

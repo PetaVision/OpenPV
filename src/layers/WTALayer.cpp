@@ -106,7 +106,7 @@ void WTALayer::ioParam_binMaxMin(enum ParamsIOFlag ioFlag) {
    if(ioFlag == PARAMS_IO_READ && binMax <= binMin){
       if (parent->columnId()==0) {
          pvErrorNoExit().printf("%s: binMax (%f) must be greater than binMin (%f).\n",
-            getDescription_c(), binMax, binMin);
+            getDescription_c(), (double)binMax, (double)binMin);
       }
       MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);

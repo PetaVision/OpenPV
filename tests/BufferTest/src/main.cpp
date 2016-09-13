@@ -39,7 +39,7 @@ void testSetVector() {
       for(int x = 0; x < 2; ++x) {
          for(int f = 0; f < 2; ++f) {
             pvErrorIf(testBuffer.at(x, y, f) != v++,
-                  "Failed. Expected %d, found %d instead.\n", v-1, testBuffer.at(x, y, f));
+                  "Failed. Expected %f, found %f instead.\n", (double)v-1, (double)testBuffer.at(x, y, f));
          }
       }
    }
@@ -67,8 +67,8 @@ void testAsVector() {
 
    for(int i = 0; i < testVector.size(); ++i) {
       pvErrorIf(testVector.at(i) != comparison.at(i),
-            "Failed: Expected %d, found %d at index %d.\n",
-            testVector.at(i), comparison.at(i), i);
+            "Failed: Expected %f, found %f at index %d.\n",
+            (double)testVector.at(i), (double)comparison.at(i), i);
    }
 }
 
@@ -284,7 +284,7 @@ void testRescale() {
    for(int i = 0; i < nearest.size(); ++i) {
       pvErrorIf(nearest.at(i) != answerNearest.at(i),
          "Failed (Nearest). Expected %f at index %d, found %f.\n",
-         answerNearest.at(i), i, nearest.at(i));
+         (double)answerNearest.at(i), i, (double)nearest.at(i));
    }
  
    // Test Buffer::CROP resizeMethod
@@ -297,7 +297,7 @@ void testRescale() {
    for(int i = 0; i < cropped.size(); ++i) {
       pvErrorIf(cropped.at(i) != answerCrop.at(i),
          "Failed (Crop). Expected %f at index %d, found %f.\n",
-         answerCrop.at(i), i, cropped.at(i));
+         (double)answerCrop.at(i), i, (double)cropped.at(i));
    }
    
    // Test Buffer::PAD resizeMethod
@@ -310,7 +310,7 @@ void testRescale() {
   for(int i = 0; i < padded.size(); ++i) {
       pvErrorIf(padded.at(i) != answerPad.at(i),
          "Failed (Pad). Expected %f at index %d, found %f.\n",
-         answerPad.at(i), i, padded.at(i));
+         (double)answerPad.at(i), i, (double)padded.at(i));
    }
 }
 

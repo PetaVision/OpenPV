@@ -246,9 +246,7 @@ int IdentConn::deliverPresynapticPerspective(PVLayerCube const * activity, int a
       return PV_SUCCESS;
    }
    assert(post->getChannel(getChannel()));
-
-   float dt_factor = getConvertToRateDeltaTimeFactor();
-   assert(dt_factor==1.0);
+   assert(getConvertToRateDeltaTimeFactor() == 1.0);
 
    const PVLayerLoc * preLoc = preSynapticLayer()->getLayerLoc();
    const PVLayerLoc * postLoc = postSynapticLayer()->getLayerLoc();

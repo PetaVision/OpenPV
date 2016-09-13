@@ -185,7 +185,7 @@ void StatsProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
 }
 
 void StatsProbe::ioParam_nnzThreshold(enum ParamsIOFlag ioFlag) {
-    getParent()->ioParamValue(ioFlag, getName(), "nnzThreshold", &nnzThreshold, (pvdata_t) 0);
+    getParent()->ioParamValue(ioFlag, getName(), "nnzThreshold", &nnzThreshold, 0.0f);
 }
 
 int StatsProbe::initNumValues() {
@@ -220,20 +220,26 @@ int StatsProbe::outputState(double timed)
          buf = getTargetLayer()->getV() + b * getTargetLayer()->getNumNeurons();
          if( buf == NULL ) {
 #ifdef PV_USE_MPI
-            if( rank != rcvProc ) return 0;
+            if( rank != rcvProc ) {
+               return 0;
+            }
 #endif // PV_USE_MPI
             output() << getMessage() << "V buffer is NULL\n";
             return 0;
          }
          for( int k=0; k<nk; k++ ) {
-            pvdata_t a = buf[k];
-            sum[b] += a;
-            sum2[b] += a*a;
-            if (fabs((double) a)>(double) nnzThreshold){
+            float a = buf[k];
+            sum[b] += (double)a;
+            sum2[b] += (double)(a*a);
+            if (fabsf(a) > nnzThreshold){
                nnz[b]++;
-            } // Optimize for different datatypes of a?
-            if (a < fMin[b]) fMin[b] = a;
-            if (a > fMax[b]) fMax[b] = a;
+            } 
+            if (a < fMin[b]) {
+               fMin[b] = a;
+            }
+            if (a > fMax[b]) {
+               fMax[b] = a;
+            }
          }
       }
       comptimer->stop();
@@ -246,14 +252,18 @@ int StatsProbe::outputState(double timed)
          for( int k=0; k<nk; k++ ) {
             const PVLayerLoc * loc = getTargetLayer()->getLayerLoc();
             int kex = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up); // TODO: faster to use strides and a double-loop than compute kIndexExtended for every neuron?
-            pvdata_t a = buf[kex];
-            sum[b] += a;
-            sum2[b] += a*a;
-            if (fabs((double) a)>(double) nnzThreshold) {
+            float a = buf[kex];
+            sum[b] += (double)a;
+            sum2[b] += (double)(a*a);
+            if (fabsf(a) > nnzThreshold) {
                nnz[b]++; // Optimize for different datatypes of a?
             }
-            if( a < fMin[b] ) fMin[b] = a;
-            if( a > fMax[b] ) fMax[b] = a;
+            if( a < fMin[b] ) {
+               fMin[b] = a;
+            }
+            if( a > fMax[b] ) { 
+               fMax[b] = a;
+            }
          }
       }
       comptimer->stop();
@@ -288,23 +298,23 @@ int StatsProbe::outputState(double timed)
 
    mpitimer->stop();
 #endif // PV_USE_MPI
-   double divisor = nk;
+   float divisor = nk;
 
    iotimer->start();
    for(int b = 0; b < nbatch; b++){
-      avg[b] = sum[b]/divisor;
-      sigma[b] = sqrt(sum2[b]/divisor - avg[b]*avg[b]);
-      double avgval = 0.0;
+      avg[b] = (float)sum[b] / divisor;
+      sigma[b] = sqrtf((float)sum2[b] / divisor - avg[b]*avg[b]);
+      float avgval = 0.0f;
       char const * avgnote = nullptr;
-      if (type==BufActivity && getTargetLayer()->getSparseFlag()) {
-         avgval = 1000.0 * avg[b]; // convert spikes per millisecond to hertz.
+      if (type == BufActivity && getTargetLayer()->getSparseFlag()) {
+         avgval = 1000.0f * avg[b]; // convert spikes per millisecond to hertz.
          avgnote = " Hz (/dt ms)";
       }
       else {
          avgval = avg[b];
          avgnote = "";
       }
-      outputStream->printf("%st==%6.1f b==%d N==%d Total==%f Min==%f Avg==%f%s Max==%f sigma==%f nnz==%d", getMessage(), (double)timed, (int)b, (int)divisor, (double)sum[b], (double)fMin[b], avgval, avgnote, (double)fMax[b], (double)sigma[b], (int)nnz[b]);
+      outputStream->printf("%st==%6.1f b==%d N==%d Total==%f Min==%f Avg==%f%s Max==%f sigma==%f nnz==%d", getMessage(), (double)timed, (int)b, (int)divisor, (double)sum[b], (double)fMin[b], (double)avgval, avgnote, (double)fMax[b], (double)sigma[b], (int)nnz[b]);
       output() << std::endl;
    }
 

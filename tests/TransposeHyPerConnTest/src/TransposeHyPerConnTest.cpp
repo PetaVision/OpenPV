@@ -101,39 +101,6 @@ int main(int argc, char * argv[]) {
    return status;
 }
 
-//int manyToOneForTransposeConn(int argc, char * argv[]) {
-//   HyPerCol * hc = new HyPerCol("column", argc, argv);
-//   // Layers
-//   const char * layerAname = "Layer A";
-//   const char * layerB1to1name = "Layer B One to one";
-//   const char * layerB_ManyTo1Name = "Layer B Many to one";
-//   const char * layerB1toManyName = "Layer B One to many";
-//   const char * originalConnName = "Many to one original map";
-//   const char * transposeConnName = "Many to one transpose";
-//   const char * transposeOfTransposeConnName = "Many to one double transpose";
-//
-//   ANNLayer * layerA = new ANNLayer(layerAname, hc);
-//   pvErrorIf(!(layerA), "Test failed.\n");
-//   ANNLayer * layerB_ManyTo1 = new ANNLayer(layerB_ManyTo1Name, hc);
-//   pvErrorIf(!(layerB_ManyTo1), "Test failed.\n");
-//   new ANNLayer(layerB1to1name, hc); // This layer and the next are unused in this test, but get created anyway
-//   new ANNLayer(layerB1toManyName, hc); // to cause the params to be read, so we don't get unused-parameter warnings.
-//
-//   // Connections
-//   HyPerConn * originalMapManyto1 = new HyPerConn(originalConnName, hc);
-//   pvErrorIf(!(originalMapManyto1), "Test failed.\n");
-//   TransposeConn * transposeManyto1 = new TransposeConn(transposeConnName, hc);
-//   pvErrorIf(!(transposeManyto1), "Test failed.\n");
-//   TransposeConn * transposeOfTransposeManyto1 = new TransposeConn(transposeOfTransposeConnName, hc);
-//   pvErrorIf(!(transposeOfTransposeManyto1), "Test failed.\n");
-//
-//   hc->run(); // Weight values are initialized when run calls allocateDataStructures
-//
-//   int status = testTransposeOfTransposeWeights(originalMapManyto1, transposeManyto1, transposeOfTransposeManyto1, "Many-to-one case, TransposeConn");
-//   delete hc;
-//   return status;
-//}
-
 int testTransposeOfTransposeWeights(HyPerConn * originalMap, TransposeConn * transpose, TransposeConn * transposeOfTranspose, const char * message) {
    int status = testWeightsEqual(originalMap, transposeOfTranspose);
    if( status == PV_SUCCESS ) {
@@ -215,7 +182,7 @@ int testDataPatchEqual(pvdata_t * wgts1, pvdata_t * wgts2, int patchSize, const 
       pvdata_t w2 = wgts2[w];
       // w2 will be either 0 or in the range [1,2].  It's nonzero iff the weight has any pre-neurons in restricted space.
       if (w2 && w1!=w2) { // If the weight is from an extended neuron, and sharedWeights is off, the transpose will be zero.
-         pvErrorNoExit().printf("TransposeHyPerConnTest: value %d of \"%s\" and \"%s\" are not equal (%f versus %f).\n", w, name1, name2, wgts1[w], wgts2[w]);
+         pvErrorNoExit().printf("TransposeHyPerConnTest: value %d of \"%s\" and \"%s\" are not equal (%f versus %f).\n", w, name1, name2, (double)wgts1[w], (double)wgts2[w]);
          status_out = PV_FAILURE;
          if (status_out != PV_SUCCESS) break;
       }
@@ -248,7 +215,7 @@ int dumpWeights(HyPerConn * conn) {
          for(int k=0; k<nxp*nyp*nfp; k++) {
             pvErrorNoExit().printf("    Arbor %d, Data Patch %d, Index %4d, (x=%3d, y=%3d, f=%3d): Value %g\n",
                     arbor, n, k, kxPos(k, nxp, nyp, nfp), kyPos(k, nxp, nyp, nfp),
-                    featureIndex(k, nxp, nyp, nfp), conn->get_wData(arbor, n)[k]);
+                    featureIndex(k, nxp, nyp, nfp), (double)conn->get_wData(arbor, n)[k]);
          }
       }
    }

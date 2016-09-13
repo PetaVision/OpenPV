@@ -265,7 +265,7 @@ protected:
     * that the parent HyPerCol's dt parameter is specified in.  Internally, the delay is set as
     * an integral number of timesteps, specifically round(delay/dt).
     */
-   void setDelay(int arborId, float delay);
+   void setDelay(int arborId, double delay);
 
    /**
     * Sets the number of arbors to the indicated argument.  It is an error to try to change numArbors

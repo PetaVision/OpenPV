@@ -25,10 +25,10 @@ InitCocircWeightsParams::~InitCocircWeightsParams()
 
 int InitCocircWeightsParams::initialize_base() {
 
-   aspect = 1.0; // circular (not line oriented)
-   sigma = 0.8;
-   rMax = 1.4;
-   strength = 1.0;
+   aspect = 1.0f; // circular (not line oriented)
+   sigma = 0.8f;
+   rMax = 1.4f;
+   strength = 1.0f;
    r2Max = rMax * rMax;
 
    numFlanks = 1;
@@ -37,20 +37,20 @@ int InitCocircWeightsParams::initialize_base() {
    //setDeltaThetaMax(2.0f * PI);  // max orientation in units of PI
    setThetaMax(1.0f); // max orientation in units of PI
 
-   sigma_cocirc = PI / 2.0;
+   sigma_cocirc = PI / 2.0f;
 
-   sigma_kurve = 1.0; // fraction of delta_radius_curvature
+   sigma_kurve = 1.0f; // fraction of delta_radius_curvature
 
    // sigma_chord = % of PI * R, where R == radius of curvature (1/curvature)
    // sigma_chord = 0.5;
 
-   setDeltaThetaMax(PI / 2.0);
+   setDeltaThetaMax(PI / 2.0f);
 
    cocirc_self = (pre != post);
 
    // from pv_common.h
    // // DK (1.0/(6*(NK-1)))   /*1/(sqrt(DX*DX+DY*DY)*(NK-1))*/         //  change in curvature
-   delta_radius_curvature = 1.0; // 1 = minimum radius of curvature
+   delta_radius_curvature = 1.0f; // 1 = minimum radius of curvature
 
    //why are these hard coded in!!!:
    min_weight = 0.0f; // read in as param
@@ -201,14 +201,14 @@ bool InitCocircWeightsParams::checkSameLoc(int kfPost) {
    if ((!sameLoc) || (cocirc_self)) {
       gCocirc = sigma_cocirc > 0 ? expf(-getDeltaTheta() * getDeltaTheta()
             / sigma_cocirc2) : expf(-getDeltaTheta() * getDeltaTheta() / sigma_cocirc2)
-            - 1.0;
+            - 1.0f;
       if ((nKurvePre > 1) && (nKurvePost > 1)) {
          gKurvePre = expf(-(kurvePre - kurvePost) * (kurvePre - kurvePost)
                / (sigma_kurve_pre2 + sigma_kurve_post2));
       }
    }
    else { // sameLoc && !cocircSelf
-      gCocirc = 0.0;
+      gCocirc = 0.0f;
       return true;
    }
    return false;
@@ -256,18 +256,18 @@ void InitCocircWeightsParams::updateCocircNChord(
    // const float sigma_chord2 = 2.0 * getSigma_chord() * getSigma_chord();
    const int nKurvePre = (int)getnKurvePre();
 
-   float atanx2_shift = thetaPre + 2. * atan2f(dyP_shift, dxP); // preferred angle (rad)
-   atanx2_shift += 2. * PI;
+   float atanx2_shift = thetaPre + 2.0f * atan2f(dyP_shift, dxP); // preferred angle (rad)
+   atanx2_shift += 2.0f * PI;
    atanx2_shift = fmodf(atanx2_shift, PI);
    atanx2_shift = fabsf(atanx2_shift - thPost);
    float chi_shift = atanx2_shift; //fabsf(atanx2_shift - thetaPost); // radians
-   if (chi_shift >= PI / 2.0) {
+   if (chi_shift >= PI / 2.0f) {
       chi_shift = PI - chi_shift;
    }
    if (noPre > 1 && noPost > 1) {
       gCocirc = sigma_cocirc2 > 0 ? expf(-chi_shift * chi_shift
             / sigma_cocirc2) : expf(-chi_shift * chi_shift / sigma_cocirc2)
-            - 1.0;
+            - 1.0f;
    }
    // compute distance along contour. // Broken because of sigma_chord bug. Commented out because gChord ultimately is not used.  -pete 2014-03-14
    // float d_chord_shift = (cocircKurve_shift != 0.0f) ? atanx2_shift
@@ -284,20 +284,20 @@ void InitCocircWeightsParams::updategKurvePreNgKurvePost(float cocircKurve_shift
    const float sigma_kurve_post2 = getSigma_kurve_post2();
 
    gKurvePre = (nKurvePre > 1) ? expf(-powf((cocircKurve_shift - fabsf(
-         kurvePre)), 2) / sigma_kurve_pre2) : 1.0;
+         kurvePre)), 2) / sigma_kurve_pre2) : 1.0f;
    gKurvePost
          = ((nKurvePre > 1) && (nKurvePost > 1) && (sigma_cocirc2 > 0)) ? expf(
                -powf((cocircKurve_shift - fabsf(kurvePost)), 2)
                      / sigma_kurve_post2)
-               : 1.0;
+               : 1.0f;
 }
 
 void InitCocircWeightsParams::initializeDistChordCocircKurvePreAndKurvePost() {
-   gDist = 0.0;
+   gDist = 0.0f;
    // gChord = 1.0; //not used!
-   gCocirc = 1.0;
-   gKurvePre = 1.0;
-   gKurvePost = 1.0;
+   gCocirc = 1.0f;
+   gKurvePre = 1.0f;
+   gKurvePost = 1.0f;
 }
 
 float InitCocircWeightsParams::calculateWeight() {

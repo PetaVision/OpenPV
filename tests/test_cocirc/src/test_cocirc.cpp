@@ -120,13 +120,13 @@ int check_cocirc_vs_hyper(HyPerConn * cHyPer, HyPerConn * cKernel, int kPre, int
    for (int y = 0; y < ny; y++) {
       for (int k = 0; k < nk; k++) {
          test_cond = cocircWeights[k] - hyperWeights[k];
-         if (fabs(test_cond) > 0.001f) {
+         if (fabsf(test_cond) > 0.001f) {
             const char * cHyper_filename = "cocirc_hyper.txt";
             cHyPer->writeTextWeights(cHyper_filename, kPre);
             const char * cKernel_filename = "cocirc_cocirc.txt";
             cKernel->writeTextWeights(cKernel_filename, kPre);
          }
-         pvErrorIf(!(fabs(test_cond) <= 0.001f), "Test failed.\n");
+         pvErrorIf(!(fabsf(test_cond) <= 0.001f), "Test failed.\n");
       }
       // advance pointers in y
       hyperWeights += sy;

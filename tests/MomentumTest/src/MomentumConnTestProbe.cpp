@@ -69,18 +69,18 @@ int MomentumConnTestProbe::outputState(double timed) {
          if(isViscosity){
             wCorrect = 1;
             for(int i = 0; i < (timed - 3); i++){
-               wCorrect += exp(-(2*(i+1)));
+               wCorrect += expf(-(2*(i+1)));
             }
          }
          else{
-            wCorrect = 2 - pow(2, -(timed - 3));
+            wCorrect = 2 - powf(2, -(timed - 3));
          }
       }
 
       if( fabs( ((double) (wObserved - wCorrect))/timed ) > 1e-4 ) {
          int y=kyPos(k,nxp,nyp,nfp);
          int f=featureIndex(k,nxp,nyp,nfp);
-         outputStream->printf("        w = %f, should be %f\n", wObserved, wCorrect);
+         outputStream->printf("        w = %f, should be %f\n", (double)wObserved, (double)wCorrect);
          exit(-1);
       }
    }

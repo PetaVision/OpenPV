@@ -53,7 +53,7 @@ protected:
    float* avg;
    float* sigma;
 
-   pvdata_t nnzThreshold;
+   float nnzThreshold;
    Timer * iotimer;   // A timer for the i/o part of outputState
    Timer * mpitimer;  // A timer for the MPI part of outputState
    Timer * comptimer; // A timer for the basic computation of outputState

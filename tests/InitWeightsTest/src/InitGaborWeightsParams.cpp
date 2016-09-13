@@ -25,10 +25,10 @@ InitGaborWeightsParams::~InitGaborWeightsParams()
 
 int InitGaborWeightsParams::initialize_base() {
 
-   aspect = 4.0; // circular (not line oriented)
-   sigma = 2.0;
-   rMax = 8.0;
-   strength = 1.0;
+   aspect = 4.0f; // circular (not line oriented)
+   sigma = 2.0f;
+   rMax = 8.0f;
+   strength = 1.0f;
    r2Max = rMax * rMax;
 
    //numFlanks = 1;
@@ -36,7 +36,7 @@ int InitGaborWeightsParams::initialize_base() {
    //rotate = 1.0f; // rotate so that axis isn't aligned
    setRotate(0.0f); // rotate so that axis isn't aligned
 
-   lambda = (int)(sigma/0.8);
+   lambda = (int)(sigma/0.8f);
    phi=0;
    invert=true;
 

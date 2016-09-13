@@ -1146,10 +1146,10 @@ void HyPerCol::writeParam(const char * param_name, T value) {
       }
       else {
          if (std::numeric_limits<T>::has_infinity) {
-             if (value<=-FLT_MAX) {
+             if (value == std::numeric_limits<T>::min()) {
                  vstr << "-infinity";
              }
-             else if (value>=FLT_MAX) {
+             else if (value == std::numeric_limits<T>::max()) {
                  vstr << "infinity";
              }
              else {
@@ -1195,11 +1195,11 @@ void HyPerCol::writeParamArray(const char * param_name, const T * array, int arr
          fprintf(mPrintParamsStream->fp, "    %-35s = [", param_name);
          fprintf(mLuaPrintParamsStream->fp, "    %-35s = {", param_name);
          for (int k=0; k<arraysize-1; k++) {
-            fprintf(mPrintParamsStream->fp, "%f,", (float) array[k]);
-            fprintf(mLuaPrintParamsStream->fp, "%f,", (float) array[k]);
+            fprintf(mPrintParamsStream->fp, "%f,", (double) array[k]);
+            fprintf(mLuaPrintParamsStream->fp, "%f,", (double) array[k]);
          }
-         fprintf(mPrintParamsStream->fp, "%f];\n", (float) array[arraysize-1]);
-         fprintf(mLuaPrintParamsStream->fp, "%f};\n", (float) array[arraysize-1]);
+         fprintf(mPrintParamsStream->fp, "%f];\n", (double) array[arraysize-1]);
+         fprintf(mLuaPrintParamsStream->fp, "%f};\n", (double) array[arraysize-1]);
       }
    }
 }

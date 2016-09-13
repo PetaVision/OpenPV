@@ -113,7 +113,7 @@ int NormalizeBase::normalizeWeights() {
    return status;
 }
 
-int NormalizeBase::accumulateSum(pvwdata_t * dataPatchStart, int weights_in_patch, double * sum) {
+int NormalizeBase::accumulateSum(pvwdata_t * dataPatchStart, int weights_in_patch, float * sum) {
    // Do not call with sum uninitialized.
    // sum, sumsq, max are not cleared inside this routine so that you can accumulate the stats over several patches with multiple calls
    for (int k=0; k<weights_in_patch; k++) {
@@ -124,7 +124,7 @@ int NormalizeBase::accumulateSum(pvwdata_t * dataPatchStart, int weights_in_patc
    return PV_SUCCESS;
 }
 
-int NormalizeBase::accumulateSumShrunken(pvwdata_t * dataPatchStart, double * sum,
+int NormalizeBase::accumulateSumShrunken(pvwdata_t * dataPatchStart, float * sum,
 		int nxpShrunken, int nypShrunken, int offsetShrunken, int xPatchStride, int yPatchStride) {
    // Do not call with sumsq uninitialized.
    // sum, sumsq, max are not cleared inside this routine so that you can accumulate the stats over several patches with multiple calls
@@ -140,7 +140,7 @@ int NormalizeBase::accumulateSumShrunken(pvwdata_t * dataPatchStart, double * su
    return PV_SUCCESS;
 }
 
-int NormalizeBase::accumulateSumSquared(pvwdata_t * dataPatchStart, int weights_in_patch, double * sumsq) {
+int NormalizeBase::accumulateSumSquared(pvwdata_t * dataPatchStart, int weights_in_patch, float * sumsq) {
    // Do not call with sumsq uninitialized.
    // sum, sumsq, max are not cleared inside this routine so that you can accumulate the stats over several patches with multiple calls
    for (int k=0; k<weights_in_patch; k++) {
@@ -150,7 +150,7 @@ int NormalizeBase::accumulateSumSquared(pvwdata_t * dataPatchStart, int weights_
    return PV_SUCCESS;
 }
 
-int NormalizeBase::accumulateSumSquaredShrunken(pvwdata_t * dataPatchStart, double * sumsq,
+int NormalizeBase::accumulateSumSquaredShrunken(pvwdata_t * dataPatchStart, float * sumsq,
 		int nxpShrunken, int nypShrunken, int offsetShrunken, int xPatchStride, int yPatchStride) {
    // Do not call with sumsq uninitialized.
    // sum, sumsq, max are not cleared inside this routine so that you can accumulate the stats over several patches with multiple calls

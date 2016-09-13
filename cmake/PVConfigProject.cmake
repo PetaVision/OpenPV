@@ -36,7 +36,7 @@ macro(pv_config_project)
   set(GCC_CPP_11X_FLAGS "-std=c++11")
   set(GCC_SANITIZE_ADDRESS_CXX_FLAGS -g;-fsanitize=address;-fno-omit-frame-pointer)
   set(GCC_SANITIZE_ADDRESS_LINKER_FLAGS -g;-fsanitize=address)
-#  set(GCC_COMPILE_FLAGS_DEBUG -Wdouble-promotion)
+  set(GCC_COMPILE_FLAGS_DEBUG -Wdouble-promotion)
   set(GCC_RELEASE_FLAGS "")
   set(GCC_LINK_LIBRARIES m)
   

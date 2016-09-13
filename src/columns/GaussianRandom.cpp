@@ -110,12 +110,12 @@ float GaussianRandom::gaussianDist(int localIndex) {
    else {
       float w;
       do {
-         x1 = 2.0 * uniformRandom(localIndex) - 1.0;
-         x2 = 2.0 * uniformRandom(localIndex) - 1.0;
+         x1 = 2.0f * uniformRandom(localIndex) - 1.0f;
+         x2 = 2.0f * uniformRandom(localIndex) - 1.0f;
          w = x1 * x1 + x2 * x2;
-      } while ( w >= 1.0 );
+      } while ( w >= 1.0f );
 
-      w = sqrt( (-2.0 * log( w ) ) / w );
+      w = sqrtf( (-2.0f * logf( w ) ) / w );
       y = x1 * w;
       bmdata.heldValue = x2 * w;
    }

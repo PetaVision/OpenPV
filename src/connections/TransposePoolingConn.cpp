@@ -676,18 +676,15 @@ int TransposePoolingConn::deliverPresynapticPerspective(PVLayerCube const * acti
             int offset = kfPre;
             int sf = fPatchSize();
 
-            pvwdata_t w = 1.0;
+            pvwdata_t w = 1.0f;
             if(mPoolingType == PoolingConn::MAX){
-              //float relative_XScale = pow(2, (post->getXScale() - pre->getXScale()));
-              //float relative_YScale = pow(2, (post->getYScale() - pre->getYScale()));
-              //w = 1.0/(nxp*nyp*relative_XScale*relative_YScale);
-              w = 1.0;
+              w = 1.0f;
             }
             else if(mPoolingType == PoolingConn::MAX){
               float relative_XScale = pow(2, (post->getXScale() - pre->getXScale()));
               float relative_YScale = pow(2, (post->getYScale() - pre->getYScale()));
               float normVal = nxp*nyp;
-              w = 1.0/normVal;
+              w = 1.0f / normVal;
             }
             void* auxPtr = NULL;
             for (int y = 0; y < ny; y++) {
@@ -709,8 +706,8 @@ int TransposePoolingConn::deliverPresynapticPerspective(PVLayerCube const * acti
                float maxMag = -INFINITY;
                int maxMagIdx = -1;
                for(int ti = 0; ti < parent->getNumThreads(); ti++){
-                  if(maxMag < fabs(thread_gSyn[ti][ni])){
-                     maxMag = fabs(thread_gSyn[ti][ni]);
+                  if(maxMag < fabsf(thread_gSyn[ti][ni])){
+                     maxMag = fabsf(thread_gSyn[ti][ni]);
                      maxMagIdx = ti;
                   }
                }

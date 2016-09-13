@@ -72,8 +72,9 @@ int NormalizeMax::normalizeWeights() {
                accumulateMax(dataStartPatch, weights_per_patch, &max);
             }
             if (max <= minMaxTolerated) {
-               pvWarn().printf("for NormalizeMax \"%s\": max of weights in patch %d of arbor %d is within minMaxTolerated=%f of zero.  Weights in this patch unchanged.\n", getName(), patchindex, arborID, minMaxTolerated);
-               break; // TODO: continue?
+               pvWarn().printf("for NormalizeMax \"%s\": max of weights in patch %d of arbor %d is within minMaxTolerated=%f of zero.  Weights in this patch unchanged.\n",
+                     getName(), patchindex, arborID, (double)minMaxTolerated);
+               continue;
             }
             for (int c=0; c<numConnections; c++) {
                HyPerConn * conn = connectionList[c];
@@ -102,8 +103,9 @@ int NormalizeMax::normalizeWeights() {
             }
          }
          if (max <= minMaxTolerated) {
-            pvWarn().printf("for NormalizeMax \"%s\": max of weights in patch %d is within minMaxTolerated=%f of zero. Weights in this patch unchanged.\n", getName(), patchindex, minMaxTolerated);
-            break; // TODO: continue?
+            pvWarn().printf("for NormalizeMax \"%s\": max of weights in patch %d is within minMaxTolerated=%f of zero. Weights in this patch unchanged.\n",
+                  getName(), patchindex, (double)minMaxTolerated);
+            continue;
          }
          for (int arborID = 0; arborID<nArbors; arborID++) {
             for (int c=0; c<numConnections; c++) {

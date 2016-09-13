@@ -91,8 +91,8 @@ double L1NormProbe::getValueInternal(double timevalue, int index) {
          for (int k=0; k<numActive; k++) {
             int extIndex = activeList[k];
             int inRestricted = !extendedIndexInBorderRegion(extIndex, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
-            pvadata_t val = inRestricted * fabsf(aBuffer[extIndex]);
-            sum += fabsf(val);
+            double val = inRestricted * (double)fabs(aBuffer[extIndex]);
+            sum += fabs(val);
          }
       }
       else {
@@ -101,8 +101,7 @@ double L1NormProbe::getValueInternal(double timevalue, int index) {
 #endif // PV_USE_OPENMP_THREADS
          for (int k=0; k<getTargetLayer()->getNumNeurons(); k++) {
             int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
-            pvadata_t val = fabsf(aBuffer[kex]);
-            sum += fabsf(val);
+            sum += (double)fabs(aBuffer[kex]);
          }
       }
    }

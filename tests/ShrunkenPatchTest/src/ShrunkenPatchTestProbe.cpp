@@ -112,19 +112,19 @@ int ShrunkenPatchTestProbe::outputState(double timed) {
    pvErrorIf(!(correctValues!=NULL), "Test failed.\n");
 
    int status = StatsProbe::outputState(timed);
-   double tol = 1e-4f;
+   float tol = 1e-4f;
 
    const pvdata_t * buf = getTargetLayer()->getLayerData();
 
-   if (timed>=3.0f) {
+   if (timed>=3.0) {
       for (int k=0; k<num_neurons; k++) {
          int kex = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
          int x = kxPos(k,loc->nx, loc->ny, loc->nf);
-         if (fabs(buf[kex]-correctValues[x])>tol) {
+         if (fabsf(buf[kex]-correctValues[x])>tol) {
             int y = kyPos(k,loc->nx, loc->ny, loc->nf);
             int f = featureIndex(k,loc->nx,loc->ny,loc->nf);
             pvError().printf("%s: Incorrect value %f (should be %f) in process %d, x=%d, y=%d, f=%d\n",
-                  l->getDescription_c(), buf[kex], correctValues[x], getTargetLayer()->getParent()->columnId(), x, y, f);
+                  l->getDescription_c(), (double)buf[kex], (double)correctValues[x], getTargetLayer()->getParent()->columnId(), x, y, f);
          }
       }
    }

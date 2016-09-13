@@ -134,7 +134,7 @@ int StochasticReleaseTestProbe::computePValues(long int step, int f) {
          }
       }
    }
-   preact *= getParent()->getDeltaTime();
+   preact *= (float)getParent()->getDeltaTime();
    if (preact < 0.0f) preact = 0.0f;
    if (preact > 1.0f) preact = 1.0f;
 

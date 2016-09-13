@@ -147,7 +147,7 @@ int HyPerLCALayer::allocateUpdateKernel(){
    const float AShift = this->AShift;
    const float VWidth = this->VWidth;
    const bool selfInteract = this->selfInteract;
-   const float tau = timeConstantTau/parent->getDeltaTime(); // TODO: eliminate need to call parent method
+   const float tau = timeConstantTau / (float)parent->getDeltaTime(); // TODO: eliminate need to call parent method
    PVCuda::CudaBuffer* d_GSyn = getDeviceGSyn();
    PVCuda::CudaBuffer* d_activity = getDeviceActivity();
 
@@ -222,7 +222,7 @@ int HyPerLCALayer::updateState(double time, double dt) {
       
       HyPerLCALayer_update_state(nbatch, num_neurons, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, numChannels,
             V, numVertices, verticesV, verticesA, slopes,
-            selfInteract, deltaTimes(), timeConstantTau/dt, gSynHead, A);
+            selfInteract, deltaTimes(), timeConstantTau / (float)dt, gSynHead, A);
    }
 
    return PV_SUCCESS;

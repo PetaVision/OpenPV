@@ -51,7 +51,7 @@ int DatastoreDelayTestProbe::outputState(double timed) {
       pvdata_t * V = l->getV();
       for( int k=0; k<l->getNumNeuronsAllBatches(); k++ ) {
          if( V[k] != correctValue ) {
-            outputStream->printf("%s: timef = %f, neuron %d: value is %f instead of %d\n", l->getDescription_c(), timed, k, V[k], (int) correctValue);
+            outputStream->printf("%s: timef = %f, neuron %d: value is %f instead of %d\n", l->getDescription_c(), timed, k, (double)V[k], (int) correctValue);
             status = PV_FAILURE;
          }
       }

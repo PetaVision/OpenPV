@@ -39,16 +39,16 @@ int TestConnProbe::outputState(double timed){
          pvwdata_t * dataYStart = data + y * syw;
          for(int k = 0; k < nk; k++){
             if(fabs(timed - 0) < (parent->getDeltaTime()/2)){
-               if(fabs(dataYStart[k] - 1) > .01){
+               if(fabsf(dataYStart[k] - 1) > 0.01f){
                   pvError() << "dataYStart[k]: " << dataYStart[k] << "\n";
                }
-               pvErrorIf(!(fabs(dataYStart[k] - 1) <= .01), "Test failed.\n");
+               pvErrorIf(!(fabsf(dataYStart[k] - 1) <= 0.01f), "Test failed.\n");
             }
             else if(fabs(timed - 1) < (parent->getDeltaTime()/2)){
-               if(fabs(dataYStart[k] - 1.375) > .01){
+               if(fabsf(dataYStart[k] - 1.375f) > 0.01f){
                   pvError() << "dataYStart[k]: " << dataYStart[k] << "\n";
                }
-               pvErrorIf(!(fabs(dataYStart[k] - 1.375) <= .01), "Test failed.\n");
+               pvErrorIf(!(fabsf(dataYStart[k] - 1.375f) <= 0.01f), "Test failed.\n");
             }
 
          }

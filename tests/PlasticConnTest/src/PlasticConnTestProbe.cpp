@@ -56,7 +56,7 @@ int PlasticConnTestProbe::outputState(double timed) {
          if( fabs( ((double) (wObserved - wCorrect))/timed ) > 1e-4 ) {
             int y=kyPos(k,nxp,nyp,nfp);
             int f=featureIndex(k,nxp,nyp,nfp);
-            outputStream->printf("        index %d (x=%d, y=%d, f=%d: w = %f, should be %f\n", k, x, y, f, wObserved, wCorrect);
+            outputStream->printf("        index %d (x=%d, y=%d, f=%d: w = %f, should be %f\n", k, x, y, f, (double)wObserved, (double)wCorrect);
          }
       }
       if(timed > 0 && getOutputPlasticIncr() && dw != NULL) {
@@ -65,7 +65,7 @@ int PlasticConnTestProbe::outputState(double timed) {
          if( dwObserved != dwCorrect ) {
             int y=kyPos(k,nxp,nyp,nfp);
             int f=featureIndex(k,nxp,nyp,nfp);
-            outputStream->printf("        index %d (x=%d, y=%d, f=%d: dw = %f, should be %f\n", k, x, y, f, dwObserved, dwCorrect);
+            outputStream->printf("        index %d (x=%d, y=%d, f=%d: dw = %f, should be %f\n", k, x, y, f, (double)dwObserved, (double)dwCorrect);
          }
       }
    }

@@ -60,11 +60,11 @@ protected:
    virtual void ioParam_normalizeOnWeightUpdate(enum ParamsIOFlag ioFlag);
 
    virtual int normalizeWeights();
-   int accumulateSum(pvwdata_t * dataPatchStart, int weights_in_patch, double * sum);
-   int accumulateSumShrunken(pvwdata_t * dataPatchStart, double * sum,
+   int accumulateSum(pvwdata_t * dataPatchStart, int weights_in_patch, float * sum);
+   int accumulateSumShrunken(pvwdata_t * dataPatchStart, float * sum,
    		int nxpShrunken, int nypShrunken, int offsetShrunken, int xPatchStride, int yPatchStride);
-   int accumulateSumSquared(pvwdata_t * dataPatchStart, int weights_in_patch, double * sumsq);
-   int accumulateSumSquaredShrunken(pvwdata_t * dataPatchStart, double * sumsq,
+   int accumulateSumSquared(pvwdata_t * dataPatchStart, int weights_in_patch, float * sumsq);
+   int accumulateSumSquaredShrunken(pvwdata_t * dataPatchStart, float * sumsq,
    		int nxpShrunken, int nypShrunken, int offsetShrunken, int xPatchStride, int yPatchStride);
    int accumulateMaxAbs(pvwdata_t * dataPatchStart, int weights_in_patch, float * max);
    int accumulateMax(pvwdata_t * dataPatchStart, int weights_in_patch, float * max);

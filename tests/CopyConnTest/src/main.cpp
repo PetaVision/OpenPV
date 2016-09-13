@@ -119,9 +119,9 @@ int runparamsfile(PV_Init* initObj, char const * paramsfile) {
                   pvwdata_t origWeight = origConn->get_wDataHead(arbor, patchindex)[indexinpatch];
                   pvwdata_t copyWeight = copyConn->get_wDataHead(arbor, patchindex)[indexinpatch];
                   float discrep = fabsf(origWeight*copyStrength - copyWeight*origStrength);
-                  if (discrep > 1e-6) {
+                  if (discrep > 1e-6f) {
                      pvErrorNoExit().printf("Rank %d: arbor %d, patchindex %d, x=%d, y=%d, f=%d: discrepancy of %g\n",
-                           hc->columnId(), arbor, patchindex, x, y, f, discrep);
+                           hc->columnId(), arbor, patchindex, x, y, f, (double)discrep);
                      status = PV_FAILURE;
                   }
                }

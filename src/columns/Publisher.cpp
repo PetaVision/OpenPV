@@ -52,7 +52,7 @@ int Publisher::calcAllActiveIndices() {
          long * numActiveBuf = store->numActiveBuffer(b, l);
 
          for (int kex = 0; kex < store->getNumItems(); kex++) {
-            if (activity[kex] != 0.0) {
+            if (activity[kex] != 0.0f) {
                activeIndices[numActive] = kex;
                numActive++;
             }
@@ -72,7 +72,7 @@ int Publisher::calcActiveIndices() {
       unsigned int * activeIndices = store->activeIndicesBuffer(b);
       long * numActiveBuf = store->numActiveBuffer(b);
       for (int kex = 0; kex < store->getNumItems(); kex++) {
-         if (activity[kex] != 0.0) {
+         if (activity[kex] != 0.0f) {
             activeIndices[numActive] = kex;
             numActive++;
          }

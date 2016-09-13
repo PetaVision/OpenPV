@@ -41,7 +41,7 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
    N = check_clone_layer->getNumExtended();
 
    for (int k=0; k<N; k++) {
-      pvErrorIf(!(fabsf(check_clone_layer_data[k])<1e-6), "Test failed.\n");
+      pvErrorIf(!(fabsf(check_clone_layer_data[k])<1e-6f), "Test failed.\n");
    }
 
    HyPerLayer * check_sigmoid_layer = hc->getLayer(check_sigmoid_id);
@@ -50,7 +50,7 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
    N = check_sigmoid_layer->getNumExtended();
 
    for (int k=0; k<N; k++) {
-      pvErrorIf(!(fabsf(check_sigmoid_layer_data[k])<1e-6), "Test failed.\n");
+      pvErrorIf(!(fabsf(check_sigmoid_layer_data[k])<1e-6f), "Test failed.\n");
    }
 
    if (hc->columnId()==0) {

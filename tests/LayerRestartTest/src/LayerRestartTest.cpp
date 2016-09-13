@@ -130,7 +130,7 @@ int checkComparisonZero(HyPerCol * hc, int argc, char * argv[]) {
    pvdata_t * V = layer->getV();
    for( int k=0; k<layer->getNumNeurons(); k++ ) {
       if( V[k] ) {
-         pvErrorNoExit().printf("Neuron %d: discrepancy %f\n", k, V[k]);
+         pvErrorNoExit().printf("Neuron %d: discrepancy %f\n", k, (double)V[k]);
          status = PV_FAILURE;
       }
    }

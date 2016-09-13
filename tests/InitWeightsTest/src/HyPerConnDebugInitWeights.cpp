@@ -142,10 +142,10 @@ int HyPerConnDebugInitWeights::smartWeights(PVPatch * wp, pvdata_t * dataStart, 
 PVPatch ** HyPerConnDebugInitWeights::initializeCocircWeights(PVPatch ** patches, pvdata_t * dataStart, int numDataPatches)
 {
    PVParams * params = parent->parameters();
-   float aspect = 1.0; // circular (not line oriented)
-   float sigma = 0.8;
-   float rMax = 1.4;
-   float strength = 1.0;
+   float aspect = 1.0f; // circular (not line oriented)
+   float sigma = 0.8f;
+   float rMax = 1.4f;
+   float strength = 1.0f;
 
    aspect = params->value(name, "aspect", aspect);
    sigma = params->value(name, "sigma", sigma);
@@ -172,17 +172,17 @@ PVPatch ** HyPerConnDebugInitWeights::initializeCocircWeights(PVPatch ** patches
    pvErrorIf(!(noPost > 0), "Test failed.\n");
    pvErrorIf(!(noPost <= post->getLayerLoc()->nf), "Test failed.\n");
 
-   float sigma_cocirc = PI / 2.0;
+   float sigma_cocirc = PI / 2.0f;
    sigma_cocirc = params->value(name, "sigmaCocirc", sigma_cocirc);
 
-   float sigma_kurve = 1.0; // fraction of delta_radius_curvature
+   float sigma_kurve = 1.0f; // fraction of delta_radius_curvature
    sigma_kurve = params->value(name, "sigmaKurve", sigma_kurve);
 
    // sigma_chord = % of PI * R, where R == radius of curvature (1/curvature)
-   float sigma_chord = 0.5;
+   float sigma_chord = 0.5f;
    sigma_chord = params->value(name, "sigmaChord", sigma_chord);
 
-   float delta_theta_max = PI / 2.0;
+   float delta_theta_max = PI / 2.0f;
    delta_theta_max = params->value(name, "deltaThetaMax", delta_theta_max);
 
    float cocirc_self = (pre != post);
@@ -190,7 +190,7 @@ PVPatch ** HyPerConnDebugInitWeights::initializeCocircWeights(PVPatch ** patches
 
    // from pv_common.h
    // // DK (1.0/(6*(NK-1)))   /*1/(sqrt(DX*DX+DY*DY)*(NK-1))*/         //  change in curvature
-   float delta_radius_curvature = 1.0; // 1 = minimum radius of curvature
+   float delta_radius_curvature = 1.0f; // 1 = minimum radius of curvature
    delta_radius_curvature = params->value(name, "deltaRadiusCurvature",
          delta_radius_curvature);
 
@@ -304,8 +304,8 @@ int HyPerConnDebugInitWeights::cocircCalcWeights(PVPatch * wp, pvdata_t * dataSt
    const int nKurvePost = post->getLayerLoc()->nf / noPost;
    const float dThPre = PI / noPre;
    const float dThPost = PI / noPost;
-   const float th0Pre = rotate * dThPre / 2.0;
-   const float th0Post = rotate * dThPost / 2.0;
+   const float th0Pre = rotate * dThPre / 2.0f;
+   const float th0Post = rotate * dThPost / 2.0f;
    const int iThPre = dataPatchIndex % noPre;
    //const int iThPre = kfPre / nKurvePre;
    const float thetaPre = th0Pre + iThPre * dThPre;
@@ -331,7 +331,7 @@ int HyPerConnDebugInitWeights::cocircCalcWeights(PVPatch * wp, pvdata_t * dataSt
    float sigma_kurve_pre = sigma_kurve * radKurvPre;
    float sigma_kurve_pre2 = 2 * sigma_kurve_pre * sigma_kurve_pre;
    sigma_chord *= PI * radKurvPre;
-   float sigma_chord2 = 2.0 * sigma_chord * sigma_chord;
+   float sigma_chord2 = 2.0f * sigma_chord * sigma_chord;
 
 
 
@@ -366,7 +366,7 @@ int HyPerConnDebugInitWeights::cocircCalcWeights(PVPatch * wp, pvdata_t * dataSt
       float sigma_kurve_post2 = 2 * sigma_kurve_post * sigma_kurve_post;
 
       float deltaTheta = fabsf(thetaPre - thetaPost);
-      deltaTheta = (deltaTheta <= PI / 2.0) ? deltaTheta : PI - deltaTheta;
+      deltaTheta = (deltaTheta <= PI / 2.0f) ? deltaTheta : PI - deltaTheta;
       if (deltaTheta > delta_theta_max) {
          continue;
       }
@@ -376,11 +376,11 @@ int HyPerConnDebugInitWeights::cocircCalcWeights(PVPatch * wp, pvdata_t * dataSt
          for (int iPost = 0; iPost < nxPatch_tmp; iPost++) {
             float xDelta = (xDistHeadPreUnits + iPost * dxPost);
 
-            float gDist = 0.0;
-            float gChord = 1.0;
-            float gCocirc = 1.0;
-            float gKurvePre = 1.0;
-            float gKurvePost = 1.0;
+            float gDist = 0.0f;
+            float gChord = 1.0f;
+            float gCocirc = 1.0f;
+            float gKurvePre = 1.0f;
+            float gKurvePost = 1.0f;
 
             // rotate the reference frame by th
             float dxP = +xDelta * cosf(thetaPre) + yDelta * sinf(thetaPre);
@@ -401,13 +401,13 @@ int HyPerConnDebugInitWeights::cocircCalcWeights(PVPatch * wp, pvdata_t * dataSt
                   gDist += expf(-d2_shift2 / sigma2);
                }
             }
-            if (gDist == 0.0) continue;
+            if (gDist == 0.0f) continue;
             if (d2 == 0) {
                bool sameLoc = (kfPre == kfPost);
                if ((!sameLoc) || (cocirc_self)) {
                   gCocirc = sigma_cocirc > 0 ? expf(-deltaTheta * deltaTheta
                         / sigma_cocirc2) : expf(-deltaTheta * deltaTheta / sigma_cocirc2)
-                        - 1.0;
+                        - 1.0f;
                   if ((nKurvePre > 1) && (nKurvePost > 1)) {
                      gKurvePre = expf(-(kurvePre - kurvePost) * (kurvePre - kurvePost)
                            / 2 * (sigma_kurve_pre * sigma_kurve_pre + sigma_kurve_post
@@ -415,24 +415,24 @@ int HyPerConnDebugInitWeights::cocircCalcWeights(PVPatch * wp, pvdata_t * dataSt
                   }
                }
                else { // sameLoc && !cocircSelf
-                  gCocirc = 0.0;
+                  gCocirc = 0.0f;
                   continue;
                }
             }
             else { // d2 > 0
 
-               float atanx2_shift = thetaPre + 2. * atan2f(dyP_shift, dxP); // preferred angle (rad)
-               atanx2_shift += 2. * PI;
+               float atanx2_shift = thetaPre + 2.0f * atan2f(dyP_shift, dxP); // preferred angle (rad)
+               atanx2_shift += 2.0f * PI;
                atanx2_shift = fmodf(atanx2_shift, PI);
                atanx2_shift = fabsf(atanx2_shift - thetaPost);
                float chi_shift = atanx2_shift; //fabsf(atanx2_shift - thetaPost); // radians
-               if (chi_shift >= PI / 2.0) {
+               if (chi_shift >= PI / 2.0f) {
                   chi_shift = PI - chi_shift;
                }
                if (noPre > 1 && noPost > 1) {
                   gCocirc = sigma_cocirc2 > 0 ? expf(-chi_shift * chi_shift
                         / sigma_cocirc2) : expf(-chi_shift * chi_shift / sigma_cocirc2)
-                        - 1.0;
+                        - 1.0f;
                }
 
                // compute curvature of cocircular contour
@@ -466,32 +466,32 @@ int HyPerConnDebugInitWeights::cocircCalcWeights(PVPatch * wp, pvdata_t * dataSt
                   }
                } // POS_KURVE_FLAG
                gKurvePre = (nKurvePre > 1) ? expf(-powf((cocircKurve_shift - fabsf(
-                     kurvePre)), 2) / sigma_kurve_pre2) : 1.0;
+                     kurvePre)), 2) / sigma_kurve_pre2) : 1.0f;
                gKurvePost
                = ((nKurvePre > 1) && (nKurvePost > 1) && (sigma_cocirc2 > 0)) ? expf(
                      -powf((cocircKurve_shift - fabsf(kurvePost)), 2)
                      / sigma_kurve_post2)
-                     : 1.0;
+                     : 1.0f;
 
                // compute distance along contour
                float d_chord_shift = (cocircKurve_shift != 0.0f) ? atanx2_shift
-                     / cocircKurve_shift : sqrt(d2_shift);
+                     / cocircKurve_shift : sqrtf(d2_shift);
                gChord = (nKurvePre > 1) ? expf(-powf(d_chord_shift, 2) / sigma_chord2)
-                     : 1.0;
+                     : 1.0f;
 
                if (numFlanks > 1) {
-                  float atanx2_shift2 = thetaPre + 2. * atan2f(dyP_shift2, dxP); // preferred angle (rad)
-                  atanx2_shift2 += 2. * PI;
+                  float atanx2_shift2 = thetaPre + 2.0f * atan2f(dyP_shift2, dxP); // preferred angle (rad)
+                  atanx2_shift2 += 2.0f * PI;
                   atanx2_shift2 = fmodf(atanx2_shift2, PI);
                   atanx2_shift2 = fabsf(atanx2_shift2 - thetaPost);
                   float chi_shift2 = atanx2_shift2; //fabsf(atanx2_shift2 - thetaPost); // radians
-                  if (chi_shift2 >= PI / 2.0) {
+                  if (chi_shift2 >= PI / 2.0f) {
                      chi_shift2 = PI - chi_shift2;
                   }
                   if (noPre > 1 && noPost > 1) {
                      gCocirc += sigma_cocirc2 > 0 ? expf(-chi_shift2 * chi_shift2
                            / sigma_cocirc2) : expf(-chi_shift2 * chi_shift2
-                                 / sigma_cocirc2) - 1.0;
+                                 / sigma_cocirc2) - 1.0f;
                   }
 
                   float cocircKurve_shift2 = d2_shift2 > 0 ? fabsf(2 * dyP_shift2)
@@ -523,15 +523,15 @@ int HyPerConnDebugInitWeights::cocircCalcWeights(PVPatch * wp, pvdata_t * dataSt
                      } // SADDLE_FLAG
                   } // POS_KURVE_FLAG
                   gKurvePre += (nKurvePre > 1) ? expf(-powf((cocircKurve_shift2 - fabsf(
-                        kurvePre)), 2) / sigma_kurve_pre2) : 1.0;
+                        kurvePre)), 2) / sigma_kurve_pre2) : 1.0f;
                   gKurvePost += ((nKurvePre > 1) && (nKurvePost > 1) && (sigma_cocirc2
                         > 0)) ? expf(-powf((cocircKurve_shift2 - fabsf(kurvePost)), 2)
-                              / sigma_kurve_post2) : 1.0;
+                              / sigma_kurve_post2) : 1.0f;
 
                   float d_chord_shift2 = cocircKurve_shift2 != 0.0f ? atanx2_shift2
-                        / cocircKurve_shift2 : sqrt(d2_shift2);
+                        / cocircKurve_shift2 : sqrtf(d2_shift2);
                   gChord += (nKurvePre > 1) ? expf(-powf(d_chord_shift2, 2) / sigma_chord2)
-                        : 1.0;
+                        : 1.0f;
 
                }
             }
@@ -543,35 +543,6 @@ int HyPerConnDebugInitWeights::cocircCalcWeights(PVPatch * wp, pvdata_t * dataSt
       }
    }
 
-   // copy weights from full sized temporary patch to (possibly shrunken) patch
-   // copyToWeightPatch(wp_tmp, 0, kPre);
-/*
-   w = wp->data;
-   const int nxunshrunkPatch = wp_tmp->nx;
-   const int nyunshrunkPatch = wp_tmp->ny;
-   const int nfunshrunkPatch = fPatchSize();
-   const int unshrunkPatchSize = nxunshrunkPatch*nyunshrunkPatch*nfunshrunkPatch;
-   pvdata_t *wtop = this->getPatchDataStart(0);
-   //pvdata_t * data_head = &wtop[unshrunkPatchSize*kPre];
-   //pvdata_t * data_head = (pvdata_t *) ((char*) wp + sizeof(PVPatch));
-   //size_t data_offset = w - data_head;
-   pvdata_t * data_head1 = &wtop[unshrunkPatchSize*kPre]; // (pvdata_t *) ((char*) wp + sizeof(PVPatch));
-   pvdata_t * data_head2 = (pvdata_t *) ((char*) wp + sizeof(PVPatch));
-   size_t data_offset1 = w - data_head1;
-   size_t data_offset2 = w - data_head2;
-   size_t data_offset = fabs(data_offset1) < fabs(data_offset2) ? data_offset1 : data_offset2;
-   w_tmp = &wp_tmp->data[data_offset];
-   int nk = nxPatch * nfPatch;
-   for (int ky = 0; ky < nyPatch; ky++) {
-      for (int iWeight = 0; iWeight < nk; iWeight++) {
-         w[iWeight] = w_tmp[iWeight];
-      }
-      w += sy;
-      w_tmp += sy_tmp;
-   }
-*/
-
-   // free(wp_tmp);
    return 0;
 
 }
@@ -582,13 +553,13 @@ PVPatch ** HyPerConnDebugInitWeights::initializeGaussian2DWeights(PVPatch ** pat
 
    // default values (chosen for center on cell of one pixel)
    int noPost = nfp;
-   float aspect = 1.0; // circular (not line oriented)
-   float sigma = 0.8;
-   float rMax = 1.4;
-   float rMin = 1.4;
-   float strength = 1.0;
+   float aspect = 1.0f; // circular (not line oriented)
+   float sigma = 0.8f;
+   float rMax = 1.4f;
+   float rMin = 1.4f;
+   float strength = 1.0f;
    float deltaThetaMax = 2.0f * PI;  // max difference in orientation between pre and post
-   float thetaMax = 1.0;  // max orientation in units of PI
+   float thetaMax = 1.0f;  // max orientation in units of PI
    int numFlanks = 1;
    float shift = 0.0f;
    float rotate = 0.0f;   // rotate so that axis isn't aligned
@@ -737,7 +708,7 @@ int HyPerConnDebugInitWeights::gauss2DCalcWeights(PVPatch * wp, pvdata_t * dataS
          thPost = thPre;
       }
       //TODO: add additional weight factor for difference between thPre and thPost
-      if (fabs(thPre - thPost) > deltaThetaMax) {
+      if (fabsf(thPre - thPost) > deltaThetaMax) {
          continue;
       }
       for (int jPost = 0; jPost < nyPatch_tmp; jPost++) {
@@ -782,36 +753,6 @@ int HyPerConnDebugInitWeights::gauss2DCalcWeights(PVPatch * wp, pvdata_t * dataS
          }
       }
    }
-
-   // copy weights from full sized temporary patch to (possibly shrunken) patch
-   // copyToWeightPatch(wp_tmp, 0, kPre);
-/*
-   w = wp->data;
-   const int nxunshrunkPatch = wp_tmp->nx;
-   const int nyunshrunkPatch = wp_tmp->ny;
-   const int nfunshrunkPatch = fPatchSize();
-   const int unshrunkPatchSize = nxunshrunkPatch*nyunshrunkPatch*nfunshrunkPatch;
-   pvdata_t *wtop = this->getPatchDataStart(0);
-   //pvdata_t * data_head = &wtop[unshrunkPatchSize*kPre];
-   //pvdata_t * data_head =  (pvdata_t *) ((char*) wp + sizeof(PVPatch));
-   //size_t data_offset = w - data_head;
-   pvdata_t * data_head1 = &wtop[unshrunkPatchSize*kPre]; // (pvdata_t *) ((char*) wp + sizeof(PVPatch));
-   pvdata_t * data_head2 = (pvdata_t *) ((char*) wp + sizeof(PVPatch));
-   size_t data_offset1 = w - data_head1;
-   size_t data_offset2 = w - data_head2;
-   size_t data_offset = fabs(data_offset1) < fabs(data_offset2) ? data_offset1 : data_offset2;
-   w_tmp = &wp_tmp->data[data_offset];
-   int nk = nxPatch * nfPatch;
-   for (int ky = 0; ky < nyPatch; ky++) {
-      for (int iWeight = 0; iWeight < nk; iWeight++) {
-         w[iWeight] = w_tmp[iWeight];
-      }
-      w += sy;
-      w_tmp += sy_tmp;
-   }
-*/
-
-   // free(wp_tmp);
    return 0;
 }
 
@@ -823,11 +764,11 @@ PVPatch ** HyPerConnDebugInitWeights::initializeGaborWeights(PVPatch ** patches,
 
    PVParams * params = parent->parameters();
 
-   float aspect = 4.0;
-   float sigma  = 2.0;
-   float rMax   = 8.0;
-   float lambda = sigma/0.8;    // gabor wavelength
-   float strength = 1.0;
+   float aspect = 4.0f;
+   float sigma  = 2.0f;
+   float rMax   = 8.0f;
+   float lambda = sigma/0.8f;    // gabor wavelength
+   float strength = 1.0f;
    float phi = 0;
 
    aspect   = params->value(name, "aspect", aspect);
@@ -851,8 +792,8 @@ int HyPerConnDebugInitWeights::gaborWeights(PVPatch * wp, pvdata_t * dataStart, 
 {
    PVParams * params = parent->parameters();
 
-   float rotate = 1.0;
-   float invert = 0.0;
+   float rotate = 1.0f;
+   float invert = 0.0f;
    if (params->present(name, "rotate")) rotate = params->value(name, "rotate");
    if (params->present(name, "invert")) invert = params->value(name, "invert");
 
@@ -896,7 +837,7 @@ int HyPerConnDebugInitWeights::gaborWeights(PVPatch * wp, pvdata_t * dataStart, 
             float u2 = -xp * sinf(th) + yp * cosf(th);
 
             float factor = cos(2.0f*PI*u2/lambda + phi);
-            if (fabs(u2/lambda) > 3.0f/4.0f) factor = 0.0f;  // phase < 3*PI/2 (no second positive band)
+            if (fabsf(u2/lambda) > 3.0f/4.0f) factor = 0.0f;  // phase < 3*PI/2 (no second positive band)
             float d2 = u1 * u1 + (aspect*u2 * aspect*u2);
             float wt = factor * expf(-d2 / (2.0f*sigma*sigma));
 

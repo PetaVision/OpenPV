@@ -159,7 +159,7 @@ int PtwiseLinearTransferLayer::checkVertices() {
          status = PV_FAILURE;
          if (this->getParent()->columnId()==0) {
             pvErrorNoExit().printf("%s: vertices %d and %d: V-coordinates decrease from %f to %f.\n",
-                  getDescription_c(), v, v+1, verticesV[v-1], verticesV[v]);
+                  getDescription_c(), v, v+1, (double)verticesV[v-1], (double)verticesV[v]);
          }
       }
    }

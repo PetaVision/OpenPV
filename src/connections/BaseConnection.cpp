@@ -493,12 +493,12 @@ int BaseConnection::maxDelaySteps() {
 }
 
 //Input delay is in ms
-void BaseConnection::setDelay(int arborId, float delay) {
-   assert(arborId>=0 && arborId<this->numberOfAxonalArborLists());
-   int intDelay = round(delay/this->getParent()->getDeltaTime());
-   if (fmod(delay, this->getParent()->getDeltaTime()) != 0){
-      float actualDelay = intDelay * this->getParent()->getDeltaTime();
-      pvWarn() << this->getName() << ": A delay of " << delay << " will be rounded to " << actualDelay << "\n";
+void BaseConnection::setDelay(int arborId, double delay) {
+   assert(arborId>=0 && arborId<numberOfAxonalArborLists());
+   int intDelay = round(delay / getParent()->getDeltaTime());
+   if (fmod(delay, getParent()->getDeltaTime()) != 0){
+      double actualDelay = intDelay * getParent()->getDeltaTime();
+      pvWarn() << getName() << ": A delay of " << delay << " will be rounded to " << actualDelay << "\n";
    }
    delays[arborId] = (int)(intDelay);
 }

@@ -62,7 +62,7 @@ int NormalizeSum::normalizeWeights() {
    if (normalizeArborsIndividually) {
 	  for (int arborID = 0; arborID<nArbors; arborID++) {
 		 for (int patchindex = 0; patchindex<numDataPatches; patchindex++) {
-			double sum = 0.0;
+			float sum = 0.0;
 			for (int c=0; c<numConnections; c++) {
 			   HyPerConn * conn = connectionList[c];
                int nxp = conn->xPatchSize();
@@ -72,9 +72,10 @@ int NormalizeSum::normalizeWeights() {
 			   pvwdata_t * dataStartPatch = conn->get_wDataHead(arborID,patchindex);
                accumulateSum(dataStartPatch, weights_per_patch, &sum);
 			}
-			if (fabs(sum) <= minSumTolerated) {
-			   pvWarn().printf("NormalizeSum for %s: sum of weights in patch %d of arbor %d is within minSumTolerated=%f of zero. Weights in this patch unchanged.\n", getDescription_c(), patchindex, arborID, minSumTolerated);
-			   break;
+			if (fabsf(sum) <= minSumTolerated) {
+			   pvWarn().printf("NormalizeSum for %s: sum of weights in patch %d of arbor %d is within minSumTolerated=%f of zero. Weights in this patch unchanged.\n",
+                                 getDescription_c(), patchindex, arborID, (double)minSumTolerated);
+			   continue;
 			}
             for (int c=0; c<numConnections; c++) {
                HyPerConn * conn = connectionList[c];
@@ -90,7 +91,7 @@ int NormalizeSum::normalizeWeights() {
    }
    else {
       for (int patchindex = 0; patchindex<numDataPatches; patchindex++) {
-         double sum = 0.0;
+         float sum = 0.0;
          for (int arborID = 0; arborID<nArbors; arborID++) {
             for (int c=0; c<numConnections; c++) {
                HyPerConn * conn = connectionList[c];
@@ -102,9 +103,10 @@ int NormalizeSum::normalizeWeights() {
                accumulateSum(dataStartPatch, weights_per_patch, &sum);
             }
          }
-         if (fabs(sum) <= minSumTolerated) {
-            pvWarn().printf("NormalizeSum for %s: sum of weights in patch %d is within minSumTolerated=%f of zero.  Weights in this patch unchanged.\n", getDescription_c(), patchindex, minSumTolerated);
-            break;
+         if (fabsf(sum) <= minSumTolerated) {
+            pvWarn().printf("NormalizeSum for %s: sum of weights in patch %d is within minSumTolerated=%f of zero.  Weights in this patch unchanged.\n",
+                  getDescription_c(), patchindex, (double)minSumTolerated);
+            continue;
 
          }
          for (int arborID = 0; arborID<nArbors; arborID++) {

@@ -46,13 +46,12 @@ int DelayTestProbe::outputState(double timed)
 
    for(int b = 0; b < loc->nbatch; b++){
       if (timed==0) {
-         //TODO: Is this a candidate for floating point error? Also, what is this even doing? Why not just compare these to each other?
-         assert(avg[b] == timed / nf);
-         assert(avg[b] == static_cast<double>(nnz[b]) / (nx*rows*ny*cols*nf));
+         assert(avg[b] == (float)(timed / nf));
+         assert(avg[b] == (float)nnz[b] / (nx*rows*ny*cols*nf));
       }
       else {
-         assert(avg[b] == (timed-1) / nf);
-         assert(avg[b] == static_cast<double>(nnz[b]) / (nx*rows*ny*cols*nf));
+         assert(avg[b] == (float)((timed-1) / nf));
+         assert(avg[b] == (float)nnz[b] / (nx*rows*ny*cols*nf));
       }
    }
    return status;

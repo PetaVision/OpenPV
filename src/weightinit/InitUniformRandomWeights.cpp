@@ -47,22 +47,23 @@ int InitUniformRandomWeights::randomWeights(pvdata_t * patchDataStart, InitWeigh
       pvError().printf("Failed to recast pointer to weightsParam!  Exiting...");
    }
 
-   float minwgt = weightParamPtr->getWMin();
-   float maxwgt = weightParamPtr->getWMax();
+   double minwgt = weightParamPtr->getWMin();
+   double maxwgt = weightParamPtr->getWMax();
    float sparseFraction = weightParamPtr->getSparseFraction();
 
    double p;
    if( maxwgt <= minwgt ) {
       if( maxwgt < minwgt ) {
-         pvWarn().printf("uniformWeights maximum less than minimum.  Changing max = %f to min value of %f\n", maxwgt, minwgt);
+         pvWarn().printf("uniformWeights maximum less than minimum.  Changing max = %f to min value of %f\n",
+               maxwgt, minwgt);
          maxwgt = minwgt;
       }
       p = 0;
    }
    else {
-       p = (maxwgt - minwgt) / (1.0+(double) CL_RANDOM_MAX);
+       p = (maxwgt - minwgt) / (1.0 + (double) CL_RANDOM_MAX);
    }
-   sparseFraction *= (1.0+(double) CL_RANDOM_MAX);
+   sparseFraction *= (float)(1.0 + (double) CL_RANDOM_MAX);
 
    // loop over all post-synaptic cells in patch
 
@@ -71,8 +72,10 @@ int InitUniformRandomWeights::randomWeights(pvdata_t * patchDataStart, InitWeigh
    const int nfp = weightParamPtr->getnfPatch();
    const int patchSize = nxp*nyp*nfp;
    for (int n=0; n<patchSize; n++) {
-      pvdata_t data = minwgt + (pvdata_t) (p * (double) randState->randomUInt(patchIndex));
-      if ((double) randState->randomUInt(patchIndex) < sparseFraction) data = 0.0;
+      float data = (float)(minwgt + (p * (double) randState->randomUInt(patchIndex)));
+      if ((double)randState->randomUInt(patchIndex) < (double)sparseFraction) {
+         data = 0.0f;
+      }
       patchDataStart[n] = data;
    }
 

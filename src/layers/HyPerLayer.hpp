@@ -539,7 +539,7 @@ protected:
 public:
 
    virtual void syncGpu();
-   virtual float addGpuTimers();
+   virtual double addGpuTimers();
 
    void copyAllGSynToDevice();
    void copyAllGSynFromDevice();

@@ -37,10 +37,10 @@ int GateMaxPoolTestLayer::updateState(double timef, double dt){
       
       //Must be 25% active
       float percentActive = (float)numActive/getNumNeurons();
-      if(percentActive != .25){
+      if(percentActive != 0.25f){
          pvError() << "Percent active for " << name << " is " << percentActive << ", where expected is .25 at timestep " << timef << " for batch " << b << "\n";
       }
-      pvErrorIf(!(percentActive == .25), "Test failed.\n");
+      pvErrorIf(!(percentActive == 0.25f), "Test failed.\n");
    }
 
    if(!isCorrect){

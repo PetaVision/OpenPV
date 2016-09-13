@@ -1991,18 +1991,13 @@ int pv_text_write_patch(OutStream * outStream, PVPatch * patch, pvwdata_t * data
 
    const int nx = (int) patch->nx;
    const int ny = (int) patch->ny;
-   //const int nf = (int) patch->nf;
-
-   //const int sx = (int) patch->sx;  assert(sx == nf);
-   //const int sy = (int) patch->sy;  //assert(sy == nf*nx);
-   //const int sf = (int) patch->sf;  assert(sf == 1);
 
    assert(outStream != NULL);
 
    for (f = 0; f < nf; f++) {
       for (j = 0; j < ny; j++) {
          for (i = 0; i < nx; i++) {
-            outStream->printf("%7.5f ", data[i*sx + j*sy + f*sf]);
+            outStream->printf("%7.5f ", (double)data[i*sx + j*sy + f*sf]);
          }
          outStream->printf("\n");
       }

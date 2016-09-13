@@ -135,7 +135,7 @@ int MomentumLCALayer::allocateUpdateKernel(){
    const float AShift = this->AShift;
    const float VWidth = this->VWidth;
    const bool selfInteract = this->selfInteract;
-   const float tau = timeConstantTau/parent->getDeltaTime(); // TODO: eliminate need to call parent method
+   const float tau = timeConstantTau/(float)parent->getDeltaTime(); // TODO: eliminate need to call parent method
    PVCuda::CudaBuffer* d_GSyn = getDeviceGSyn();
    PVCuda::CudaBuffer* d_activity = getDeviceActivity();
 
@@ -215,7 +215,7 @@ int MomentumLCALayer::updateState(double time, double dt)
    
    MomentumLCALayer_update_state(nbatch, num_neurons, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, numChannels,
          V, numVertices, verticesV, verticesA, slopes,
-         selfInteract, deltaTimes(), timeConstantTau/dt, LCAMomentumRate, gSynHead, A, prevDrive);
+         selfInteract, deltaTimes(), timeConstantTau/(float)dt, LCAMomentumRate, gSynHead, A, prevDrive);
    return PV_SUCCESS;
 }
 
