@@ -105,8 +105,8 @@ int dumponeweight(HyPerConn * conn) {
                //The pixel value from the input is actually 127, where we divide it by 255.
                //Not exaclty .5, a little less
                //Squared because both pre and post is grabbing it's activity from the image
-               pvdata_t correct = usingMirrorBCs ? pow(float(127)/float(255),2) : (float(127)/float(255)) * .5;
-               if( fabs(wgt-correct)>1.0e-5 ) {
+               pvdata_t correct = usingMirrorBCs ? powf(127.0f / 255.0f, 2.0f) : (127.0f / 255.0f) * 0.5f;
+               if( fabsf(wgt-correct)>1.0e-5f ) {
                   pvErrorNoExit(errorMessage);
                   if( errorfound == false ) {
                       errorfound = true;
@@ -114,7 +114,7 @@ int dumponeweight(HyPerConn * conn) {
                       errorMessage.printf("\n");
                       errorMessage.printf("Rank %d, %s:\n",rank, conn->getDescription_c());
                   }
-                  errorMessage.printf("Rank %d, Patch %d, x=%d, y=%d, f=%d: weight=%f, correct=%f, off by a factor of %f\n", rank, p, x, y, f, wgt, correct, wgt/correct);
+                  errorMessage.printf("Rank %d, Patch %d, x=%d, y=%d, f=%d: weight=%f, correct=%f, off by a factor of %f\n", rank, p, x, y, f, (double)wgt, (double)correct, (double)(wgt/correct));
                   status = PV_FAILURE;
                }
             }

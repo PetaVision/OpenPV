@@ -110,19 +110,19 @@ int LIFTestProbe::outputState(double timed) {
    HyPerLayer * l = getTargetLayer();
    const PVLayerLoc * loc = l->getLayerLoc();
    int n = l->getNumNeurons();
-   double xctr = 0.5*(loc->nxGlobal-1) - loc->kx0;
-   double yctr = 0.5*(loc->nyGlobal-1) - loc->ky0;
+   float xctr = 0.5f*(loc->nxGlobal-1) - loc->kx0;
+   float yctr = 0.5f*(loc->nyGlobal-1) - loc->ky0;
    for (int j=0; j<LIFTESTPROBE_BINS; j++) {
       rates[j] = 0;
    }
    for (int k=0; k<n; k++) {
       int x = kxPos(k, loc->nx, loc->ny, loc->nf);
       int y = kyPos(k, loc->nx, loc->ny, loc->nf);
-      double r = sqrt((x-xctr)*(x-xctr) + (y-yctr)*(y-yctr));
-      int bin_number = (int) floor(r/5.0);
+      float r = sqrtf((x-xctr)*(x-xctr) + (y-yctr)*(y-yctr));
+      int bin_number = (int) floor(r/5.0f);
       bin_number -= bin_number > 0 ? 1 : 0;
       if (bin_number < LIFTESTPROBE_BINS) {
-         rates[bin_number] += l->getV()[k];
+         rates[bin_number] += (double)l->getV()[k];
       }
    }
    int root_proc = 0;
@@ -132,17 +132,17 @@ int LIFTestProbe::outputState(double timed) {
       pvInfo(dumpRates);
       dumpRates.printf("%s t=%f:", getMessage(), timed);
       for (int j=0; j<LIFTESTPROBE_BINS; j++) {
-         rates[j] /= counts[j]*timed/1000.0;
-         dumpRates.printf(" %f", rates[j]);
+         rates[j] /= (double)counts[j] * timed / 1000.0;
+         dumpRates.printf(" %f", (double)rates[j]);
       }
       dumpRates.printf("\n");
-      if (timed >= endingTime) {
+      if (timed >= (double)endingTime) {
          double stdfactor = sqrt(timed/2000.0); // Since the values of std are based on t=2000.
          for (int j=0; j<LIFTESTPROBE_BINS; j++) {
             double scaledstdev = stddevs[j]/stdfactor;
             double observed = (rates[j]-targetrates[j])/scaledstdev;
             if(fabs(observed)>tolerance) {
-               pvErrorNoExit().printf("Bin number %d failed at time %f: %f standard deviations off, with tolerance %f.\n", j, timed, observed, tolerance);
+               pvErrorNoExit().printf("Bin number %d failed at time %f: %f standard deviations off, with tolerance %f.\n", j, timed, observed, (double)tolerance);
                status = PV_FAILURE;
             }
          }

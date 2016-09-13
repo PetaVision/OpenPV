@@ -39,8 +39,8 @@ int SumPoolTestLayer::updateState(double timef, double dt){
 
               //expectedValue is set for avg pool, multiply by patch size for actual answer
               float expectedvalue;
-              if(nxScale == .5){
-                 expectedvalue = iFeature * 64 + yval * 16 + xval * 2 + 4.5;
+              if(nxScale == 0.5f){
+                 expectedvalue = iFeature * 64 + yval * 16 + xval * 2 + 4.5f;
                  expectedvalue *= 4;
               }
               else{

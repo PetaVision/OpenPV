@@ -38,15 +38,15 @@ int AvgPoolTestLayer::updateState(double timef, double dt){
               pvErrorIf(!(yval >= 0 && yval < loc->nxGlobal), "Test failed.\n");
 
               float expectedvalue;
-              if(nxScale == .5){
-                 expectedvalue = iFeature * 64 + yval * 16 + xval * 2 + 4.5;
+              if(nxScale == 0.5f){
+                 expectedvalue = iFeature * 64 + yval * 16 + xval * 2 + 4.5f;
               }
               else{
                  int res_idx = kIndex(xval, yval, 0, nxGlobal, nyGlobal, 1);
                  //TODO different features define different offsets into this index
                  expectedvalue = iFeature * nxGlobal * nyGlobal + res_idx;
               }
-              if(fabs(actualvalue - expectedvalue) >= 1e-4){
+              if(fabsf(actualvalue - expectedvalue) >= 1e-4f){
                    pvErrorNoExit() << "Connection " << name << " Mismatch at (" << iX << "," << iY << ") : actual value: " << actualvalue << " Expected value: " << expectedvalue << ".  Discrepancy is a whopping " << actualvalue - expectedvalue << "!  Horrors!" << "\n";
                    isCorrect = false;
               }

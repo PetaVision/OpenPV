@@ -47,11 +47,11 @@ int checkoutput(HyPerCol * hc, int argc, char ** argv) {
             
             if (x>=0 && x<inLoc->nxGlobal && y>=0 && y<inLoc->nyGlobal) {
                int kRestricted = kIndex(x,y,f,inLoc->nxGlobal,inLoc->nyGlobal,inLoc->nf);
-               pvInfo().printf("Rank %d, kLocal(extended)=%d, kGlobal(restricted)=%2d, x=%2d, y=%2d, f=%2d, a=%f\n", r, k, kRestricted, x, y, f, a);
+               pvInfo().printf("Rank %d, kLocal(extended)=%d, kGlobal(restricted)=%2d, x=%2d, y=%2d, f=%2d, a=%f\n", r, k, kRestricted, x, y, f, (double)a);
                pvdata_t correctValue = (pvdata_t) kRestricted+1.0f;
                if (a!=correctValue) {
                   status = PV_FAILURE;
-                  pvErrorNoExit().printf("        Failure! Correct value is %f\n", correctValue);
+                  pvErrorNoExit().printf("        Failure! Correct value is %f\n", (double)correctValue);
                }
             }
          }
@@ -71,10 +71,10 @@ int checkoutput(HyPerCol * hc, int argc, char ** argv) {
       if (r==hc->columnId()) {
          pvInfo().printf("Rank %d, Weight values\n", r);
          for (int k=0; k<patchSize; k++) {
-            pvInfo().printf("Rank %d, k=%2d, w=%f\n", r, k, w[k]);
+            pvInfo().printf("Rank %d, k=%2d, w=%f\n", r, k, (double)w[k]);
             if (w[k]!=(pvdata_t) k) {
                status = PV_FAILURE;
-               pvErrorNoExit().printf("        Failure! Correct value is %f\n", (pvdata_t) k);
+               pvErrorNoExit().printf("        Failure! Correct value is %f\n", (double)k);
             }
          }
       }
@@ -106,10 +106,10 @@ int checkoutput(HyPerCol * hc, int argc, char ** argv) {
             
             if (x>=0 && x<outLoc->nxGlobal && y>=0 && y<outLoc->nyGlobal) {
                int kRestricted = kIndex(x,y,f,outLoc->nxGlobal,outLoc->nyGlobal,outLoc->nf);
-               pvInfo().printf("Rank %d, kLocal=%d, kGlobal=%2d, x=%2d, y=%2d, f=%2d, V=%f\n", r, k, kRestricted, x, y, f, V);
+               pvInfo().printf("Rank %d, kLocal=%d, kGlobal=%2d, x=%2d, y=%2d, f=%2d, V=%f\n", r, k, kRestricted, x, y, f, (double)V);
                if (V!=correct[kRestricted]) {
                   status = PV_FAILURE;
-                  pvErrorNoExit().printf("        Failure! Correct value is %f\n", correct[kRestricted]);
+                  pvErrorNoExit().printf("        Failure! Correct value is %f\n", (double)correct[kRestricted]);
                }
             }
          }

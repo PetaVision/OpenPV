@@ -44,12 +44,12 @@ int MomentumTestConnProbe::outputState(double timed){
                wCorrect = 0;
             }
             else{
-               wCorrect = .376471;
+               wCorrect = 0.376471f;
                for(int i = 0; i < (timed-3); i++){
-                  wCorrect += .376471 * exp(-(2*(i+1)));
+                  wCorrect += 0.376471f * expf(-(2*(i+1)));
                }
             }
-            pvErrorIf(!(fabs(wObserved - wCorrect) <= 1e-4), "Test failed.\n");
+            pvErrorIf(!(fabsf(wObserved - wCorrect) <= 1e-4f), "Test failed.\n");
          }
       }
    }

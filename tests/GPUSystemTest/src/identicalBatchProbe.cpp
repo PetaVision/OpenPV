@@ -37,11 +37,11 @@ int identicalBatchProbe::outputState(double timed){
       pvdata_t checkVal = A[i];
       for(int b = 0; b < loc->nbatch; b++){
          const pvdata_t * ABatch = A + b * getTargetLayer()->getNumExtended();
-         float diff = fabs(checkVal - ABatch[i]);
-         if(diff > 1e-4){
+         float diff = fabsf(checkVal - ABatch[i]);
+         if(diff > 1e-4f){
             pvError() << "Difference at neuron " << i << ", batch 0: " << checkVal << " batch " << b << ": " << ABatch[i] << "\n";
          }
-         pvErrorIf(!(diff <= 1e-4), "Test failed.\n");
+         pvErrorIf(!(diff <= 1e-4f), "Test failed.\n");
       }
    }
    return status;

@@ -40,7 +40,7 @@ int MPITestProbe::outputState(double timed) {
    if( icComm->commRank() != rcvProc ) {
       return status;
    }
-   double tol = 1e-4f;
+   float tol = 1e-4f;
 
    // if many to one connection, each neuron should receive its global x/y/f position
    // if one to many connection, the position of the nearest sending cell is received
@@ -57,17 +57,17 @@ int MPITestProbe::outputState(double timed) {
    float max_global_xpos = xPosGlobal(kGlobal, xScaleLog2, nxGlobal, nyGlobal, nf);
 
    if (xScaleLog2 < 0) {
-      float xpos_shift = 0.5 - min_global_xpos;
-      min_global_xpos = 0.5;
+      float xpos_shift = 0.5f - min_global_xpos;
+      min_global_xpos = 0.5f;
       max_global_xpos -= xpos_shift;
    }
    float ave_global_xpos = (min_global_xpos + max_global_xpos) / 2.0f;
 
    outputStream->printf("%s min_global_xpos==%f ave_global_xpos==%f max_global_xpos==%f",
-         getMessage(), min_global_xpos, ave_global_xpos, max_global_xpos);
+         getMessage(), (double)min_global_xpos, (double)ave_global_xpos, (double)max_global_xpos);
    output() << std::endl;
    for(int b = 0; b < parent->getNBatch(); b++){
-      if (timed > 3.0f) {
+      if (timed > 3.0) {
          pvErrorIf(!((fMin[b]/min_global_xpos > (1 - tol)) && (fMin[b]/min_global_xpos < (1 + tol))), "Test failed.\n");
          pvErrorIf(!((fMax[b]/max_global_xpos > (1 - tol)) && (fMax[b]/max_global_xpos < (1 + tol))), "Test failed.\n");
          pvErrorIf(!((avg[b]/ave_global_xpos > (1 - tol)) && (avg[b]/ave_global_xpos < (1 + tol))), "Test failed.\n");

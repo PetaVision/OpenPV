@@ -71,7 +71,7 @@ int InitGaborWeights::gaborWeights(pvwdata_t * dataStart, InitGaborWeightsParams
    int sx_tmp=weightParamPtr->getsx();
    int sy_tmp=weightParamPtr->getsy();
    int sf_tmp=weightParamPtr->getsf();
-   double r2Max=weightParamPtr->getr2Max();
+   float r2Max=weightParamPtr->getr2Max();
 
    float wMin = weightParamPtr->getWMin();
    float wMax = weightParamPtr->getWMax();
@@ -91,8 +91,8 @@ int InitGaborWeights::gaborWeights(pvwdata_t * dataStart, InitGaborWeightsParams
             float xp = +xDelta * cosf(thPost) + yDelta * sinf(thPost);
             float yp = -xDelta * sinf(thPost) + yDelta * cosf(thPost);
 
-            float factor = cos(2.0f*PI*yp/lambda + phi);
-            if (fabs(yp/lambda) > 3.0f/4.0f) factor = 0.0f;  // phase < 3*PI/2 (no second positive band)
+            float factor = cosf(2.0f*PI*yp/lambda + phi);
+            if (fabsf(yp/lambda) > 3.0f/4.0f) factor = 0.0f;  // phase < 3*PI/2 (no second positive band)
 
             float d2 = xp * xp + (aspect * (yp - shift) * aspect * (yp - shift));
             float wt = factor * expf(-d2 / (2.0f*sigma*sigma));

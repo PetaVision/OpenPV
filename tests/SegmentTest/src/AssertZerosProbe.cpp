@@ -41,14 +41,7 @@ int AssertZerosProbe::outputState(double timed){
    //getOutputStream().precision(15);
    float sumsq = 0;
    for (int i = 0; i < numExtNeurons; i++){
-      //if(fabs(A[i]) != 0){
-      //   int xpos = kxPos(i, loc->nx+loc->halo.lt+loc->halo.rt, loc->ny+loc->halo.dn+loc->halo.up, loc->nf);
-      //   int ypos = kyPos(i, loc->nx+loc->halo.lt+loc->halo.rt, loc->ny+loc->halo.dn+loc->halo.up, loc->nf);
-      //   int fpos = featureIndex(i, loc->nx+loc->halo.lt+loc->halo.rt, loc->ny+loc->halo.dn+loc->halo.up, loc->nf);
-      //   pvInfo() << "[" << xpos << "," << ypos << "," << fpos << "] = " << std::fixed << A[i] << "\n";
-      //}
-      //For max difference roundoff errors
-      pvErrorIf(!(fabs(A[i]) < 5e-4), "Test failed.\n");
+      pvErrorIf(!(fabsf(A[i]) < 5e-4f), "Test failed.\n");
    }
 
    if(timed > 0){
@@ -66,7 +59,7 @@ int AssertZerosProbe::outputState(double timed){
 
    for(int b = 0; b < loc->nbatch; b++){
       //For max std of 5e-5
-      pvErrorIf(!(sigma[b] <= 5e-5), "Test failed.\n");
+      pvErrorIf(!(sigma[b] <= 5e-5f), "Test failed.\n");
    }
 
    return status;

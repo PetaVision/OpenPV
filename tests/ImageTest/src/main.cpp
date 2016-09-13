@@ -196,11 +196,11 @@ void testConvertToGray() {
 
       pvErrorIf(img.getPixelR(1, 0) != Image::mGToGray,
             "Failed (Top Right). Expected %f, found %f.\n",
-            Image::mGToGray, (double)img.getPixelR(1, 0));
+            (double)Image::mGToGray, (double)img.getPixelR(1, 0));
 
        pvErrorIf(img.getPixelR(0, 1) != Image::mBToGray,
             "Failed (Bottom Left). Expected %f, found %f.\n",
-            (double)Image::mBToGray, img.getPixelR(0, 1));
+            (double)Image::mBToGray, (double)img.getPixelR(0, 1));
 
        pvErrorIf(img.getPixelG(1, 1) != 0.0f,
             "Failed (Bottom Right). Expected 0.0, found %f.\n",

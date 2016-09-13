@@ -58,7 +58,7 @@ int NormalizeL3::normalizeWeights() {
    if (normalizeArborsIndividually) {
       for (int arborID = 0; arborID<nArbors; arborID++) {
          for (int patchindex = 0; patchindex<numDataPatches; patchindex++) {
-            double sumcubed = 0.0;
+            float sumcubed = 0.0f;
             for (int c=0; c<numConnections; c++) {
                HyPerConn * conn = connectionList[c];
                int nxp = conn->xPatchSize();
@@ -73,10 +73,11 @@ int NormalizeL3::normalizeWeights() {
                   sumcubed += w*w*w;
                }
             }
-            double l3norm = pow(sumcubed, 1.0/3.0);
-            if (fabs(l3norm) <= minL3NormTolerated) {
-               pvWarn().printf("NormalizeL3 \"%s\": L^3 norm in patch %d of arbor %d is within minL3NormTolerated=%f of zero.  Weights in this patch unchanged.\n", getName(), patchindex, arborID, minL3NormTolerated);
-               break;
+            float l3norm = powf(sumcubed, 1.0f/3.0f);
+            if (fabsf(l3norm) <= minL3NormTolerated) {
+               pvWarn().printf("NormalizeL3 \"%s\": L^3 norm in patch %d of arbor %d is within minL3NormTolerated=%f of zero.  Weights in this patch unchanged.\n",
+                     getName(), patchindex, arborID, (double)minL3NormTolerated);
+               continue;
             }
             for (int c=0; c<numConnections; c++) {
                HyPerConn * conn = connectionList[c];
@@ -92,7 +93,7 @@ int NormalizeL3::normalizeWeights() {
    }
    else {
       for (int patchindex = 0; patchindex<numDataPatches; patchindex++) {
-         double sumcubed = 0.0;
+         float sumcubed = 0.0f;
          for (int arborID = 0; arborID<nArbors; arborID++) {
             for (int c=0; c<numConnections; c++) {
                HyPerConn * conn = connectionList[c];
@@ -109,10 +110,11 @@ int NormalizeL3::normalizeWeights() {
                }
             }
          }
-         double l3norm = pow(sumcubed, 1.0/3.0);
-         if (fabs(sumcubed) <= minL3NormTolerated) {
-            pvWarn().printf("NormalizeL3 \"%s\": sum of squares of weights in patch %d is within minL3NormTolerated=%f of zero.  Weights in this patch unchanged.\n", getName(), patchindex, minL3NormTolerated);
-            break;
+         float l3norm = powf(sumcubed, 1.0f/3.0f);
+         if (fabsf(sumcubed) <= minL3NormTolerated) {
+            pvWarn().printf("NormalizeL3 \"%s\": sum of squares of weights in patch %d is within minL3NormTolerated=%f of zero.  Weights in this patch unchanged.\n",
+                  getName(), patchindex, (double)minL3NormTolerated);
+            continue;
          }
          for (int arborID = 0; arborID<nArbors; arborID++) {
             for (int c=0; c<numConnections; c++) {

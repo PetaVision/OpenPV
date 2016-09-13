@@ -19,7 +19,7 @@ int customexit(HyPerCol * hc, int argc, char ** argv) {
    pvadata_t tolerance = 1.0e-3f;
 
    if (hc->columnId()==0) {
-      pvInfo().printf("Checking whether input layer has all values equal to %f ...\n", correctvalue);
+      pvInfo().printf("Checking whether input layer has all values equal to %f ...\n", (double)correctvalue);
    }
    HyPerLayer * inputlayer = hc->getLayerFromName("input");
    pvErrorIf(!(inputlayer), "Test failed.\n");
@@ -47,9 +47,9 @@ int customexit(HyPerCol * hc, int argc, char ** argv) {
          for (int k=0; k<numNeurons; k++) {
             int kExt = kIndexExtended(k,loc->nx,loc->ny,loc->nf,loc->halo.lt,loc->halo.rt,loc->halo.dn,loc->halo.up);
             pvadata_t value = databuffer[kExt];
-            if (fabs(value-correctvalue)>=tolerance) {
+            if (fabsf(value-correctvalue)>=tolerance) {
                pvErrorNoExit().printf("Rank %d, restricted index %d, extended index %d, value is %f instead of %f\n",
-                     proc, k, kExt, value, correctvalue);
+                     proc, k, kExt, (double)value, (double)correctvalue);
                status = PV_FAILURE;
             }
          }

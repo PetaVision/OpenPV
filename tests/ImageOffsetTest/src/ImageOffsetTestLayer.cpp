@@ -117,7 +117,7 @@ namespace PV {
                      pvError() << "Layer name " << name << " not recoginzed\n";
                   }
                   float diff = fabs(actualvalue - expectedvalue);
-                  if(diff >= 1e-4){
+                  if(diff >= 1e-4f){
                      pvErrorNoExit() << "Connection " << name << " Mismatch at (" << ixGlobal << "," << iyGlobal << "," << iF << ") : actual value: " << actualvalue << " Expected value: " << expectedvalue << "\n";
                      isCorrect = false;
                   }

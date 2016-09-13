@@ -211,7 +211,7 @@ int testDataPatchEqual(pvdata_t * w1, pvdata_t * w2, int patchSize, const char *
    int status_out = status_in;
    for (int w=0; w<patchSize; w++) {
       if (w1[w] != w2[w]) {
-         pvErrorNoExit().printf("TransposeConnTest: value %d of \"%s\" and \"%s\" are not equal (%f versus %f).\n", w, name1, name2, w1[w], w2[w]);
+         pvErrorNoExit().printf("TransposeConnTest: value %d of \"%s\" and \"%s\" are not equal (%f versus %f).\n", w, name1, name2, (double)w1[w], (double)w2[w]);
          status_out = PV_FAILURE;
          if (status_out != PV_SUCCESS) break;
       }
@@ -244,7 +244,7 @@ int dumpWeights(HyPerConn * conn) {
          for(int k=0; k<nxp*nyp*nfp; k++) {
             pvErrorNoExit().printf("    Arbor %d, Data Patch %d, Index %4d, (x=%3d, y=%3d, f=%3d): Value %g\n",
                     arbor, n, k, kxPos(k, nxp, nyp, nfp), kyPos(k, nxp, nyp, nfp),
-                    featureIndex(k, nxp, nyp, nfp), conn->get_wData(arbor, n)[k]);
+                    featureIndex(k, nxp, nyp, nfp), (double)conn->get_wData(arbor, n)[k]);
          }
       }
    }
