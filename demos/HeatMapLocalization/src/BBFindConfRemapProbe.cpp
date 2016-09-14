@@ -5,6 +5,7 @@
  *      Author: pschultz
  */
 
+#include <cmath>
 #include <limits>
 #include <stdexcept>
 #include <gdal.h>
@@ -248,7 +249,7 @@ void BBFindConfRemapProbe::setOptimalMontage() {
       totalSizeX[idx] = numCol * (imageLayer->getLayerLoc()->nxGlobal + 10); // +10 for spacing between images.
       totalSizeY[idx] = numRows[idx] * (imageLayer->getLayerLoc()->nyGlobal + 64 + 10); // +64 for category label
       aspectRatio[idx] = (float) totalSizeX[idx]/(float) totalSizeY[idx];
-      ldgr[idx] = fabsf(log(aspectRatio[idx]) - loggoldenratio);
+      ldgr[idx] = std::abs(std::log(aspectRatio[idx]) - loggoldenratio);
    }
    numMontageColumns = -1;
    float minldfgr = std::numeric_limits<float>::infinity();

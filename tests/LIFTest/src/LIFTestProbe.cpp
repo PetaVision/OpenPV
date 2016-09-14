@@ -6,9 +6,10 @@
  */
 
 #include "LIFTestProbe.hpp"
+#include <cmath>
 
-#define LIFTESTPROBE_DEFAULTENDINGTIME 2000.0f
-#define LIFTESTPROBE_DEFAULTTOLERANCE  3.0f
+#define LIFTESTPROBE_DEFAULTENDINGTIME 2000.0
+#define LIFTESTPROBE_DEFAULTTOLERANCE  3.0
 #define LIFTESTPROBE_BINS 5
 
 namespace PV {
@@ -136,13 +137,13 @@ int LIFTestProbe::outputState(double timed) {
          dumpRates.printf(" %f", (double)rates[j]);
       }
       dumpRates.printf("\n");
-      if (timed >= (double)endingTime) {
+      if (timed >= endingTime) {
          double stdfactor = sqrt(timed/2000.0); // Since the values of std are based on t=2000.
          for (int j=0; j<LIFTESTPROBE_BINS; j++) {
             double scaledstdev = stddevs[j]/stdfactor;
             double observed = (rates[j]-targetrates[j])/scaledstdev;
-            if(fabs(observed)>tolerance) {
-               pvErrorNoExit().printf("Bin number %d failed at time %f: %f standard deviations off, with tolerance %f.\n", j, timed, observed, (double)tolerance);
+            if(std::fabs(observed)>tolerance) {
+               pvErrorNoExit().printf("Bin number %d failed at time %f: %f standard deviations off, with tolerance %f.\n", j, timed, observed, tolerance);
                status = PV_FAILURE;
             }
          }

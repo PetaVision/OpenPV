@@ -376,7 +376,7 @@ float BBFind::sigmoidedRMS(const Map2 confMap, const Rectangle &bounds)
 			int _x = bounds.left() + x;
 			int _y = bounds.top()  + y;
 			if(_x < 0 || _x >= mapWidth || _y < 0 || _y >= mapHeight) continue;
-			sum += pow(confMap[_y][_x], 2);
+			sum += std::pow(confMap[_y][_x], 2.0f);
 		}
 	}
 	float avg = sqrt(sum / (mapWidth*mapHeight));
@@ -384,7 +384,7 @@ float BBFind::sigmoidedRMS(const Map2 confMap, const Rectangle &bounds)
 	// This is a very easy curve that still soft caps at 1.0.
 	// Combined with the increaseContrast function, it allows
    // values > 0.85 to bring the average up based on the contrast argument.
-	return  (1.0f / (1.0f + pow(e,-e*avg)) - 0.5f) * 2.0f;
+	return  (1.0f / (1.0f + std::pow(e,-e*avg)) - 0.5f) * 2.0f;
 }
 
 BBFind::Map2 BBFind::makeEdgeDistanceMap(const Map2 confMap)
@@ -566,7 +566,7 @@ BBFind::Map3 BBFind::increaseContrast(const Map3 fullMap, float contrast, float 
             // pass 1.0 at val = 0.9. How far it passes 1 depends
             // on contrast.
             float val = fullMap[c][y][x];
-            resultMap[c][y][x] = val * (1.0f - strength) + pow(pow(50.0f, val) / 33.3f, contrast) * strength;
+            resultMap[c][y][x] = val * (1.0f - strength) + std::pow(std::pow(50.0f, val) / 33.3f, contrast) * strength;
          }
       }
    }

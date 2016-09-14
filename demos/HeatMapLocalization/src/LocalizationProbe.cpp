@@ -333,8 +333,9 @@ int LocalizationProbe::communicateInitInfo() {
          if (heatMapMaximum[k] < detectionThreshold[k]) {
             status = PV_FAILURE;
             if (parent->columnId()==0) {
-               pvErrorNoExit().printf("%s: heatMapMaximum entry %d (%f) cannot be less than corresponding detectionThreshold entry (%f).\n",
-                     getDescription_c(), k, heatMapMaximum[k], detectionThreshold[k]);
+               pvErrorNoExit() << getDescription() << ": heatMapMaximum entry " << k <<
+                     " (" << heatMapMaximum[k] << ") cannot be less than corresponding detection threshold entry" <<
+                     " (" << detectionThreshold[k] << ").\n";
             }
          }
       }
@@ -475,14 +476,14 @@ int LocalizationProbe::setOptimalMontage() {
    float totalSizeY[numDisplayedCategories];
    float aspectRatio[numDisplayedCategories];
    float ldgr[numDisplayedCategories]; // log of difference from golden ratio
-   float loggoldenratio = logf(0.5f * (1.0f + sqrtf(5.0f)));
+   float loggoldenratio = std::log(0.5f * (1.0f + sqrtf(5.0f)));
    for (int numCol=1; numCol <= numDisplayedCategories ; numCol++) {
       int idx = numCol-1;
       numRows[idx] = (int) ceil((float) numDisplayedCategories/(float) numCol);
       totalSizeX[idx] = numCol * (imageLayer->getLayerLoc()->nxGlobal + 10); // +10 for spacing between images.
       totalSizeY[idx] = numRows[idx] * (imageLayer->getLayerLoc()->nyGlobal + 64 + 10); // +64 for category label
       aspectRatio[idx] = (float) totalSizeX[idx]/(float) totalSizeY[idx];
-      ldgr[idx] = fabsf(log(aspectRatio[idx]) - loggoldenratio);
+      ldgr[idx] = std::abs(std::log(aspectRatio[idx]) - loggoldenratio);
    }
    numMontageColumns = -1;
    float minldfgr = std::numeric_limits<float>::infinity();
@@ -812,7 +813,7 @@ int LocalizationProbe::calcValues(double timevalue) {
                   int n=kIndex(xLoc, yLoc, winningFeature, loc->nx, loc->ny,loc->nf);
                   int nExt=kIndexExtended(n, loc->nx, loc->ny,loc->nf, halo->lt, halo->rt, halo->dn, halo->up);
                   targetRes[n] = 0.0f;
-                  score += targetLayer->getLayerData()[nExt];
+                  score += (double) targetLayer->getLayerData()[nExt];
                   numpixels++;
                }
             }
