@@ -45,10 +45,10 @@ namespace PV {
                enum Anchor anchor);
          void translate(int offsetX, int offsetY);
          std::vector<float> asVector() { return mData; }
-         int getHeight()   { return mHeight; }
-         int getWidth()    { return mWidth; }
-         int getFeatures() { return mFeatures; }
-
+         const int getHeight()        { return mHeight; }
+         const int getWidth()         { return mWidth; }
+         const int getFeatures()      { return mFeatures; }
+         const int getTotalElements() { return mHeight * mWidth * mFeatures; }
       protected:
          static int getAnchorX(enum Anchor anchor, int smallerWidth, int biggerWidth);
          static int getAnchorY(enum Anchor anchor, int smallerHeight, int biggerHeight);
