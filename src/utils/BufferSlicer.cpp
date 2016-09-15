@@ -1,5 +1,7 @@
 #include "BufferSlicer.hpp"
 #include "arch/mpi/mpi.h"
+#include "conversions.h"
+#include "PVLog.hpp"
 
 namespace PV {
 
@@ -8,26 +10,23 @@ BufferSlicer::BufferSlicer(Communicator &comm) : mComm(comm) {}
 void BufferSlicer::scatter(Buffer &buffer,
                            unsigned int sliceStrideX,
                            unsigned int sliceStrideY) {
-   // This assumes buffer's dimensions are nxGlobal x nyGlobal
-   int xMargins    = buffer.getWidth()
-                   - (sliceStrideX * mComm.numCommColumns());
-   int yMargins    = buffer.getHeight()
-                   - (sliceStrideY * mComm.numCommRows());
-   int numElements = (sliceStrideX + xMargins)
-                   * (sliceStrideY + yMargins)
-                   * buffer.getFeatures();
-
-   // Defining this outside of the loop lets it contain the correct
-   // data for the root process at the end
-   Buffer croppedBuffer;
    if (mComm.commRank() == 0) {
+      // This assumes buffer's dimensions are nxGlobal x nyGlobal
+      int xMargins    = buffer.getWidth()
+                      - (sliceStrideX * mComm.numCommColumns());
+      int yMargins    = buffer.getHeight()
+                      - (sliceStrideY * mComm.numCommRows());
+      int numElements = (sliceStrideX + xMargins)
+                      * (sliceStrideY + yMargins)
+                      * buffer.getFeatures();
+
       // Loop through each rank, ending on the root process.
       // Uses Buffer::crop and MPI_Send to give each process
       // the correct slice of input data.
       for (int sendRank = mComm.commSize()-1; sendRank >= 0; --sendRank) {
          // Copy the input data to a temporary buffer.
          // This gets cropped to the layer size below.
-         croppedBuffer = buffer;
+         Buffer croppedBuffer = buffer;
          unsigned int cropLeft = sliceStrideX
                                * columnFromRank(
                                      sendRank,
@@ -52,15 +51,15 @@ void BufferSlicer::scatter(Buffer &buffer,
             MPI_Send(croppedBuffer.asVector().data(),
                      numElements,
                      MPI_FLOAT,
-                     mComm.commRank(),
+                     sendRank,
                      31,
                      mComm.communicator());
          }
          else { 
             // This is root, keep a slice for ourselves
             buffer.set(croppedBuffer.asVector(),
-                       sliceStrideX + xMargin,
-                       sliceStrideY + yMargin,
+                       sliceStrideX + xMargins,
+                       sliceStrideY + yMargins,
                        buffer.getFeatures());
          }
       }
@@ -70,25 +69,25 @@ void BufferSlicer::scatter(Buffer &buffer,
       // a vector, and then set our Buffer's contents to that vector.
       // This set of conversions could be greatly reduced by giving Buffer
       // a constructor that accepts raw memory.
-      float *tempMem = (float*)calloc(numElements, sizeof(float));
+      float *tempMem = (float*)calloc(buffer.getTotalElements(), sizeof(float));
       pvErrorIf(tempMem == nullptr,
                 "Could not allocate a receive buffer of %d bytes.\n",
-                numElements * sizeof(float));
+                buffer.getTotalElements() * sizeof(float));
       MPI_Recv(tempMem,
-               numElements,
+               buffer.getTotalElements(),
                MPI_FLOAT,
                0,
                31,
                mComm.communicator(),
                MPI_STATUS_IGNORE);
-      std::vector<float> tempVector(numElements);
-      for (int i = 0; i < numElements; ++i) {
+      std::vector<float> tempVector(buffer.getTotalElements());
+      for (size_t i = 0; i < tempVector.size(); ++i) {
          tempVector.at(i) = tempMem[i];
       }
       free(tempMem);
       buffer.set(tempVector,
-                 sliceStrideX + xMargin,
-                 sliceStrideY + xMargin,
+                 buffer.getWidth(),
+                 buffer.getHeight(),
                  buffer.getFeatures());
    }
 }
@@ -99,12 +98,12 @@ void BufferSlicer::gather(Buffer &buffer,
    // Here, we assume that buffer is the size of local,
    // not global, nx and ny. If we have margins, then
    // buffer.getWidth != sliceStrideX. Same for Y.
-   int xMargin = buffer.getWidth()  - sliceStrideX;
-   int yMargin = buffer.getHeight() - sliceStrideY;
+   int xMargins = buffer.getWidth()  - sliceStrideX;
+   int yMargins = buffer.getHeight() - sliceStrideY;
 
    if (mComm.commRank() == 0) {
-      int globalWidth   = sliceStrideX * mComm.numCommColumns() + xMargin;
-      int globalHeight  = sliceStrideY * mComm.numCommRows()    + yMargin;
+      int globalWidth   = sliceStrideX * mComm.numCommColumns() + xMargins;
+      int globalHeight  = sliceStrideY * mComm.numCommRows()    + yMargins;
       int numElements   = buffer.getTotalElements();
 
       Buffer globalBuffer(globalWidth, globalHeight, buffer.getFeatures());

@@ -4,6 +4,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/PVLog.cpp
    ${SUBDIR}/Image.cpp
    ${SUBDIR}/Buffer.cpp
+   ${SUBDIR}/BufferSlicer.cpp
    ${SUBDIR}/BatchIndexer.cpp
    ${SUBDIR}/Timer.cpp
 )
@@ -15,6 +16,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/Image.hpp
    ${SUBDIR}/Buffer.hpp
    ${SUBDIR}/BatchIndexer.cpp
+   ${SUBDIR}/BufferSlicer.hpp
    ${SUBDIR}/RingBuffer.hpp
    ${SUBDIR}/Timer.hpp
 )
