@@ -12,17 +12,17 @@ BufferSlicer<T>::BufferSlicer(Communicator *comm) {
 
 template <class T>
 void BufferSlicer<T>::scatter(Buffer<T> &buffer,
-                              unsigned int sliceStrideX,
-                              unsigned int sliceStrideY) {
+                              unsigned int localWidth,
+                              unsigned int localHeight) {
    size_t dataSize = sizeof(T);
    if (mComm->commRank() == 0) {
       // This assumes buffer's dimensions are nxGlobal x nyGlobal
       int xMargins    = buffer.getWidth()
-                      - (sliceStrideX * mComm->numCommColumns());
+                      - (localWidth * mComm->numCommColumns());
       int yMargins    = buffer.getHeight()
-                      - (sliceStrideY * mComm->numCommRows());
-      int numElements = (sliceStrideX + xMargins)
-                      * (sliceStrideY + yMargins)
+                      - (localHeight * mComm->numCommRows());
+      int numElements = (localWidth + xMargins)
+                      * (localHeight + yMargins)
                       * buffer.getFeatures();
 
       // Loop through each rank, ending on the root process.
@@ -32,12 +32,12 @@ void BufferSlicer<T>::scatter(Buffer<T> &buffer,
          // Copy the input data to a temporary buffer.
          // This gets cropped to the layer size below.
          Buffer<T> croppedBuffer = buffer;
-         unsigned int cropLeft = sliceStrideX
+         unsigned int cropLeft = localWidth
                                * columnFromRank(
                                      sendRank,
                                      mComm->numCommRows(),
                                      mComm->numCommColumns());
-         unsigned int cropTop  = sliceStrideY
+         unsigned int cropTop  = localHeight
                                * rowFromRank(
                                      sendRank,
                                      mComm->numCommRows(),
@@ -45,8 +45,8 @@ void BufferSlicer<T>::scatter(Buffer<T> &buffer,
 
          // Crop the input data to the size of one process.
          croppedBuffer.translate(-cropLeft, -cropTop);
-         croppedBuffer.crop(sliceStrideX + xMargins,
-                            sliceStrideY + yMargins,
+         croppedBuffer.crop(localWidth + xMargins,
+                            localHeight + yMargins,
                             Buffer<T>::NORTHWEST);
 
          assert(numElements == croppedBuffer.getTotalElements());
@@ -63,8 +63,8 @@ void BufferSlicer<T>::scatter(Buffer<T> &buffer,
          else { 
             // This is root, keep a slice for ourselves
             buffer.set(croppedBuffer.asVector(),
-                       sliceStrideX + xMargins,
-                       sliceStrideY + yMargins,
+                       localWidth + xMargins,
+                       localHeight + yMargins,
                        buffer.getFeatures());
          }
       }
@@ -94,19 +94,19 @@ void BufferSlicer<T>::scatter(Buffer<T> &buffer,
 }
 
 template <class T>
-void BufferSlicer<T>::gather(Buffer<T> &buffer,
-                             unsigned int sliceStrideX,
-                             unsigned int sliceStrideY) {
+Buffer<T> BufferSlicer<T>::gather(Buffer<T> buffer,
+                             unsigned int localWidth,
+                             unsigned int localHeight) {
    // Here, we assume that buffer is the size of local,
    // not global, nx and ny. If we have margins, then
-   // buffer.getWidth != sliceStrideX. Same for Y.
-   int xMargins = buffer.getWidth()  - sliceStrideX;
-   int yMargins = buffer.getHeight() - sliceStrideY;
+   // buffer.getWidth != localWidth. Same for Y.
+   int xMargins = buffer.getWidth()  - localWidth;
+   int yMargins = buffer.getHeight() - localHeight;
    size_t dataSize = sizeof(T);
 
    if (mComm->commRank() == 0) {
-      int globalWidth   = sliceStrideX * mComm->numCommColumns() + xMargins;
-      int globalHeight  = sliceStrideY * mComm->numCommRows()    + yMargins;
+      int globalWidth   = localWidth * mComm->numCommColumns() + xMargins;
+      int globalHeight  = localHeight * mComm->numCommRows()    + yMargins;
       int numElements   = buffer.getTotalElements();
 
       Buffer<T> globalBuffer(globalWidth, globalHeight, buffer.getFeatures());
@@ -135,12 +135,12 @@ void BufferSlicer<T>::gather(Buffer<T> &buffer,
          else {
             smallBuffer = buffer;
          }
-         unsigned int sliceX = sliceStrideX
+         unsigned int sliceX = localWidth
                              * columnFromRank(
                                    recvRank,
                                    mComm->numCommRows(),
                                    mComm->numCommColumns());
-         unsigned int sliceY = sliceStrideY
+         unsigned int sliceY = localHeight
                              * rowFromRank(
                                    recvRank,
                                    mComm->numCommRows(),
@@ -159,7 +159,7 @@ void BufferSlicer<T>::gather(Buffer<T> &buffer,
          }
       }
       free(tempMem);
-      buffer = globalBuffer;
+      return globalBuffer;
    }
    else {
       // Send our chunk of the global buffer to root for reassembly
@@ -170,6 +170,7 @@ void BufferSlicer<T>::gather(Buffer<T> &buffer,
                171 + mComm->commRank(),
                mComm->communicator());
    }
+   return buffer;
 }
 
 template class BufferSlicer<float>;

@@ -29,6 +29,7 @@ class Buffer {
       void set(int x, int y, int feature, T value);
       void set(const std::vector<T> &vector, int width, int height, int features);
       void set(const T* data, int width, int height, int features);
+      void set(Buffer<T> other);
       void resize(int width, int height, int features);
       void crop(int newWidth, int newHeight, enum Anchor anchor);
       void grow(int newWidth, int newHeight, enum Anchor anchor);

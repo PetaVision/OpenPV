@@ -95,7 +95,7 @@ void testRestricted(int argc, char** argv) {
 
    pvInfo() << "Beginning gather on rank " << rank << "\n";
 
-   slicer.gather(dataBuffer, sliceX, sliceY);
+   dataBuffer.set(slicer.gather(dataBuffer, sliceX, sliceY));
    result = dataBuffer.asVector();
 
    if(rank == 0) {
@@ -259,7 +259,7 @@ void testExtended(int argc, char** argv) {
 
    pvInfo() << "Beginning gather on rank " << rank << "\n";
 
-   slicer.gather(dataBuffer, sliceX, sliceY);
+   dataBuffer.set(slicer.gather(dataBuffer, sliceX, sliceY));
    result = dataBuffer.asVector();
 
    if(rank == 0) {

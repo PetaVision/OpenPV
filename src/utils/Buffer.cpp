@@ -60,6 +60,14 @@ void Buffer<T>::set(const T *data, int width, int height, int features) {
    set(tempVector, width, height, features);
 }
 
+template <class T>
+void Buffer<T>::set(Buffer<T> other) {
+   set(other.asVector(),
+       other.getWidth(),
+       other.getHeight(),
+       other.getFeatures());
+}
+
 // Resizing a Buffer will clear its contents. Use rescale, crop, or grow to preserve values.
 template <class T> 
 void Buffer<T>::resize(int width, int height, int features) {
