@@ -19,6 +19,13 @@ namespace PV {
       set(data, width, height, features);
    }
 
+   // This constructor is for backwards compatibility with raw float buffers.
+   // It lacks bounds checking and should be removed when layers used Buffers
+   // instead of malloc'd floats.
+   Buffer::Buffer(const float *data, int width, int height, int features) {
+      set(data, width, height, features);
+   }
+
    float Buffer::at(int x, int y, int feature) {
       return mData.at(index(x, y, feature));
    }
@@ -35,6 +42,14 @@ namespace PV {
       mWidth = width;
       mHeight = height;
       mFeatures = features;
+   }
+
+   void Buffer::set(const float *data, int width, int height, int features) {
+      std::vector<float> tempVector(width * height * features);
+      for(size_t i = 0; i < tempVector.size(); ++i) {
+         tempVector.at(i) = data[i];
+      }
+      set(tempVector, width, height, features);
    }
 
    // Resizing a Buffer will clear its contents. Use rescale, crop, or grow to preserve values.

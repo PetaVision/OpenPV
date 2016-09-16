@@ -4,6 +4,7 @@
  */
 
 #include "InputLayer.hpp"
+#include "utils/BufferSlicer.hpp"
 
 #include <algorithm>
 #include <cfloat>
@@ -153,55 +154,23 @@ namespace PV {
    }
 
    int InputLayer::scatterInput(int batchIndex) {
-      Communicator *icComm = parent->getCommunicator();
       const int rank = parent->columnId();
-      const int rootProc = 0;
       MPI_Comm mpiComm = parent->getCommunicator()->communicator();
       pvadata_t *activityBuffer = getActivity() + batchIndex * getNumExtended();
       const PVLayerLoc *loc = getLayerLoc();
       const PVHalo *halo = &loc->halo;
-      const int numFeatures = loc->nf;
       int activityWidth = loc->nx + (mUseInputBCflag ? halo->lt + halo->rt : 0);
       int activityHeight = loc->ny + (mUseInputBCflag ? halo->up + halo->dn : 0);
-      int numElements = activityHeight * activityWidth * numFeatures;
-
-      // Defining this outside of the loop lets it contain the correct
-      // data for the root process at the end
       Buffer croppedBuffer;
-      if (rank == rootProc) {
+      BufferSlicer slicer(parent->getCommunicator());
 
-         // Loop through each rank, ending on the root process.
-         // Uses Buffer::crop and MPI_Send to give each process
-         // the correct slice of input data.
-         for (int rank = icComm->commSize()-1; rank >= 0; --rank) {
-            
-            // Copy the input data to a temporary buffer. This gets cropped to the layer size below.
-            croppedBuffer = mInputData.at(batchIndex);
-            int cropLeft = columnFromRank(rank, icComm->numCommRows(), icComm->numCommColumns()) * loc->nx;
-            int cropTop  = rowFromRank(   rank, icComm->numCommRows(), icComm->numCommColumns()) * loc->ny;
-
-            // Crop the input data to the size of one process.
-            croppedBuffer.translate(-cropLeft, -cropTop);
-            croppedBuffer.crop(activityWidth, activityHeight, Buffer::NORTHWEST);
-
-            // If this isn't the root process, ship it off to the appropriate process.
-            if (rank != rootProc) {
-               MPI_Send(croppedBuffer.asVector().data(), numElements, MPI_FLOAT, rank, 31, mpiComm);
-            }
-         }
+      if (rank == 0) {
+         croppedBuffer = mInputData.at(batchIndex);
+         slicer.scatter(croppedBuffer, loc->nx, loc->ny);
       }
       else {
-         
-         // Create a temporary array to receive from MPI, move the values into
-         // a vector, and then create a Buffer out of that vector.
-         float *tempBuffer = static_cast<float*>(calloc(numElements, sizeof(float)));
-         MPI_Recv(tempBuffer, numElements, MPI_FLOAT, rootProc, 31, mpiComm, MPI_STATUS_IGNORE);
-         std::vector<float> bufferData(numElements);
-         for (int i = 0; i < numElements; ++i) {
-            bufferData.at(i) = tempBuffer[i];
-         }
-         free(tempBuffer);
-         croppedBuffer.set(bufferData, activityWidth, activityHeight, numFeatures);
+         croppedBuffer.resize(activityWidth, activityHeight, loc->nf);
+         slicer.scatter(croppedBuffer, loc->nx, loc->ny);
       }
 
       // At this point, croppedBuffer has the correct data for this
@@ -236,6 +205,10 @@ namespace PV {
       const PVHalo *halo = &loc->halo;
       const int targetWidth  = loc->nxGlobal + (mUseInputBCflag ? (halo->lt + halo->rt) : 0);
       const int targetHeight = loc->nyGlobal + (mUseInputBCflag ? (halo->dn + halo->up) : 0);
+
+      pvErrorIf(buffer.getFeatures() != loc->nf,
+            "ERROR: Input for layer %s has %d features, but layer has %d\n.",
+            getName(), buffer.getFeatures(), loc->nf);
 
       if (mAutoResizeFlag) {
          buffer.rescale(targetWidth, targetHeight, mRescaleMethod, mInterpolationMethod, mAnchor); 

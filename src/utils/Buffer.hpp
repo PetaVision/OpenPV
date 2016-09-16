@@ -32,10 +32,11 @@ namespace PV {
          Buffer(int width, int height, int features); 
          Buffer();
          Buffer(const std::vector<float> &data, int width, int height, int features);
-
+         Buffer(const float* data, int width, int height, int features);
          float at(int x, int y, int feature); 
          void set(int x, int y, int feature, float value);
          void set(const std::vector<float> &vector, int width, int height, int features);
+         void set(const float* data, int width, int height, int features);
          void resize(int width, int height, int features);
          void crop(int newWidth, int newHeight, enum Anchor anchor);
          void grow(int newWidth, int newHeight, enum Anchor anchor);

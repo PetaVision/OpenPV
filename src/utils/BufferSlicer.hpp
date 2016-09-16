@@ -9,7 +9,7 @@ namespace PV
 
 class BufferSlicer {
    public:
-      BufferSlicer(Communicator &comm);
+      BufferSlicer(Communicator *comm);
 
       // Every MPI process should call this with a buffer with
       // dimensions globalNx x globalNy, with the root process
@@ -30,7 +30,7 @@ class BufferSlicer {
                    unsigned int sliceStrideY);
 
    private:
-      Communicator& mComm;
+      Communicator *mComm;
 };
 }
 #endif

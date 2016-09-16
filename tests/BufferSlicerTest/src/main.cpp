@@ -17,14 +17,14 @@ PV_Arguments *args;
 // BufferSlicer::scatter(Buffer &buffer, uint sliceStrideX, uint sliceStrideY)
 void testScatterRestricted(int argc, char** argv) {
    PV_Arguments *args = new PV_Arguments(argc, argv, false);
-   Communicator comm(args); 
+   Communicator *comm = new Communicator(args); 
    BufferSlicer slicer(comm);
-   int rank = comm.commRank();
+   int rank = comm->commRank();
 
    pvInfo() << "Setup complete on rank " << rank << ". Running test.\n";
 
-   unsigned int sliceX = 4 / comm.numCommColumns();
-   unsigned int sliceY = 4 / comm.numCommRows();
+   unsigned int sliceX = 4 / comm->numCommColumns();
+   unsigned int sliceY = 4 / comm->numCommRows();
 
    // Send / receive the test data, depending on what rank we are
    vector<float> result;
@@ -48,7 +48,7 @@ void testScatterRestricted(int argc, char** argv) {
    pvInfo() << "Scatter complete on rank " << rank << ".\n";
 
    // Check to make sure the chunk of data we received is correct
-   if (comm.commSize() == 1) {
+   if (comm->commSize() == 1) {
       pvErrorIf(result.size() != 16,
          "Failed. Expected 16 values, found %d.\n", result.size());
       vector<float> expected = {
@@ -63,7 +63,7 @@ void testScatterRestricted(int argc, char** argv) {
                (int)expected.at(i), (int)result.at(i));
       }
    }
-   else if (comm.commSize() == 2) {
+   else if (comm->commSize() == 2) {
       pvErrorIf(result.size() != 8,
          "Failed. Expected 8 values, found %d.\n", result.size());
       vector<float> expected = {
@@ -77,12 +77,12 @@ void testScatterRestricted(int argc, char** argv) {
                rank * 2 + (int)expected.at(i), (int)result.at(i));
       }
    }
-   else if (comm.commSize() == 4) {
+   else if (comm->commSize() == 4) {
       pvErrorIf(result.size() != 4,
          "Failed. Expected 4 values, found %d.\n", result.size());
       for (size_t i = 0; i < result.size(); ++i) {
          pvErrorIf(result.at(i) != rank,
-            "Failed. Expected to find %d, found %d instead.\n",
+            "Failed = new Communicator. Expected to find %d, found %d instead.\n",
                rank, (int)result.at(i));
       }
    }
@@ -94,14 +94,14 @@ void testScatterRestricted(int argc, char** argv) {
 // BufferSlicer::scatter(Buffer &buffer, uint sliceStrideX, uint sliceStrideY)
 void testScatterExtended(int argc, char** argv) {
    PV_Arguments *args = new PV_Arguments(argc, argv, false);
-   Communicator comm(args); 
+   Communicator *comm = new Communicator(args); 
    BufferSlicer slicer(comm);
-   int rank = comm.commRank();
+   int rank = comm->commRank();
 
    pvInfo() << "Setup complete on rank " << rank << ". Running test.\n";
 
-   unsigned int sliceX = 4 / comm.numCommColumns();
-   unsigned int sliceY = 4 / comm.numCommRows();
+   unsigned int sliceX = 4 / comm->numCommColumns();
+   unsigned int sliceY = 4 / comm->numCommRows();
 
    // Send / receive the test data, depending on what rank we are
    vector<float> result;
@@ -128,7 +128,7 @@ void testScatterExtended(int argc, char** argv) {
    pvInfo() << "Scatter complete on rank " << rank << ".\n";
 
    // Check to make sure the chunk of data we received is correct
-   if (comm.commSize() == 1) {
+   if (comm->commSize() == 1) {
       pvErrorIf(result.size() != 6 * 6,
          "Failed. Expected 36 values, found %d.\n", result.size());
       vector<float> expected = {
@@ -145,7 +145,7 @@ void testScatterExtended(int argc, char** argv) {
                (int)expected.at(i), (int)result.at(i));
       }
    }
-   else if (comm.commSize() == 2) {
+   else if (comm->commSize() == 2) {
       pvErrorIf(result.size() != 4 * 6,
          "Failed. Expected 24 values, found %d.\n", result.size());
 
@@ -177,7 +177,7 @@ void testScatterExtended(int argc, char** argv) {
                (int)expected.at(i), (int)result.at(i));
       }
    }
-   else if (comm.commSize() == 4) {
+   else if (comm->commSize() == 4) {
       pvErrorIf(result.size() != 4 * 4,
          "Failed. Expected 16 values, found %d.\n", result.size());
 
