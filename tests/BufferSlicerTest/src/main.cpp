@@ -16,7 +16,8 @@ using std::vector;
 PV_Arguments *args;
 
 // BufferSlicer::scatter(Buffer &buffer, uint sliceStrideX, uint sliceStrideY)
-void testScatterRestricted(int argc, char** argv) {
+// BufferSlicer::gather(Buffer &buffer, uint sliceStrideX, uint sliceStrideY)
+void testRestricted(int argc, char** argv) {
    PV_Arguments *args = new PV_Arguments(argc, argv, false);
    Communicator *comm = new Communicator(args); 
    BufferSlicer<float> slicer(comm);
@@ -27,6 +28,8 @@ void testScatterRestricted(int argc, char** argv) {
    unsigned int sliceX = 4 / comm->numCommColumns();
    unsigned int sliceY = 4 / comm->numCommRows();
 
+   RealBuffer dataBuffer;
+
    // Send / receive the test data, depending on what rank we are
    vector<float> result;
    if (rank == 0) {
@@ -36,16 +39,15 @@ void testScatterRestricted(int argc, char** argv) {
             2, 2, 3, 3,
             2, 2, 3, 3
          };
-
-      RealBuffer send(testData, 4, 4, 1); 
-      slicer.scatter(send, sliceX, sliceY);
-      result = send.asVector();
+      dataBuffer.set(testData, 4, 4, 1); 
+      slicer.scatter(dataBuffer, sliceX, sliceY);
    }
    else {
-      RealBuffer recv(sliceX, sliceY, 1);
-      slicer.scatter(recv, sliceX, sliceY);
-      result = recv.asVector();
+      dataBuffer.resize(sliceX, sliceY, 1);
+      slicer.scatter(dataBuffer, sliceX, sliceY);
    }
+   result = dataBuffer.asVector();
+
    pvInfo() << "Scatter complete on rank " << rank << ".\n";
 
    // Check to make sure the chunk of data we received is correct
@@ -83,17 +85,40 @@ void testScatterRestricted(int argc, char** argv) {
          "Failed. Expected 4 values, found %d.\n", result.size());
       for (size_t i = 0; i < result.size(); ++i) {
          pvErrorIf(result.at(i) != rank,
-            "Failed = new Communicator. Expected to find %d, found %d instead.\n",
+            "Failed. Expected to find %d, found %d instead.\n",
                rank, (int)result.at(i));
       }
    }
    else {
       pvError() << "Failed. Must test using 1, 2, or 4 MPI processes.\n";
    }
+
+   pvInfo() << "Beginning gather on rank " << rank << "\n";
+
+   slicer.gather(dataBuffer, sliceX, sliceY);
+   result = dataBuffer.asVector();
+
+   if(rank == 0) {
+      vector<float> expected = {
+            0, 0, 1, 1,
+            0, 0, 1, 1,
+            2, 2, 3, 3,
+            2, 2, 3, 3
+         };
+      pvErrorIf(result.size() != 16,
+         "Failed. Expected 16 values, found %d.\n", result.size());
+      for (size_t i = 0; i < result.size(); ++i) {
+         pvErrorIf(result.at(i) != expected.at(i),
+            "Failed. Expected to find %d, found %d instead.\n",
+               (int)expected.at(i), (int)result.at(i));
+ 
+      }
+   }
 }
 
 // BufferSlicer::scatter(Buffer &buffer, uint sliceStrideX, uint sliceStrideY)
-void testScatterExtended(int argc, char** argv) {
+// BufferSlicer::gather(Buffer &buffer, uint sliceStrideX, uint sliceStrideY)
+void testExtended(int argc, char** argv) {
    PV_Arguments *args = new PV_Arguments(argc, argv, false);
    Communicator *comm = new Communicator(args); 
    BufferSlicer<float> slicer(comm);
@@ -103,6 +128,8 @@ void testScatterExtended(int argc, char** argv) {
 
    unsigned int sliceX = 4 / comm->numCommColumns();
    unsigned int sliceY = 4 / comm->numCommRows();
+
+   RealBuffer dataBuffer;
 
    // Send / receive the test data, depending on what rank we are
    vector<float> result;
@@ -116,16 +143,16 @@ void testScatterExtended(int argc, char** argv) {
             9, 9, 9, 9, 9, 9
          };
 
-      RealBuffer send(testData, 6, 6, 1); 
-      slicer.scatter(send, sliceX, sliceY);
-      result = send.asVector();
+      dataBuffer.set(testData, 6, 6, 1); 
+      slicer.scatter(dataBuffer, sliceX, sliceY);
    }
    else {
       // We have a 1 element margin on each side
-      RealBuffer recv(sliceX + 2, sliceY + 2, 1);
-      slicer.scatter(recv, sliceX, sliceY);
-      result = recv.asVector();
+      dataBuffer.resize(sliceX + 2, sliceY + 2, 1);
+      slicer.scatter(dataBuffer, sliceX, sliceY);
    }
+   result = dataBuffer.asVector();
+
    pvInfo() << "Scatter complete on rank " << rank << ".\n";
 
    // Check to make sure the chunk of data we received is correct
@@ -229,6 +256,29 @@ void testScatterExtended(int argc, char** argv) {
    else {
       pvError() << "Failed. Must test using 1, 2, or 4 MPI processes.\n";
    }
+
+   pvInfo() << "Beginning gather on rank " << rank << "\n";
+
+   slicer.gather(dataBuffer, sliceX, sliceY);
+   result = dataBuffer.asVector();
+
+   if(rank == 0) {
+      vector<float> expected = {
+            9, 9, 9, 9, 9, 9,
+            9, 0, 0, 1, 1, 9,
+            9, 0, 0, 1, 1, 9,
+            9, 2, 2, 3, 3, 9,
+            9, 2, 2, 3, 3, 9,
+            9, 9, 9, 9, 9, 9
+          };
+      pvErrorIf(result.size() != 6 * 6,
+         "Failed. Expected 36 values, found %d.\n", result.size());
+      for (size_t i = 0; i < result.size(); ++i) {
+         pvErrorIf(result.at(i) != expected.at(i),
+            "Failed. Expected to find %d, found %d instead.\n",
+               (int)expected.at(i), (int)result.at(i));
+      }
+   }
 }
 
 int main(int argc, char** argv) {
@@ -252,13 +302,13 @@ int main(int argc, char** argv) {
            ? strdup("1")
            : strdup("2");
 
-   pvInfo() << "Testing restricted BufferSlicer::scatter():\n";
-   testScatterRestricted(5, args);
-   pvInfo() << "Completed.\n";
+   pvInfo() << "Rank " << rank << ": Testing restricted BufferSlicer::scatter() and BufferSlicer::gather():\n";
+   testRestricted(5, args);
+   pvInfo() << "Rank " << rank << ": Completed.\n";
 
-   pvInfo() << "Testing extended BufferSlicer::scatter():\n";
-   testScatterExtended(5, args);
-   pvInfo() << "Completed.\n";
+   pvInfo() << "Rank " << rank << ": Testing extended BufferSlicer::scatter() and BufferSlicer::gather():\n";
+   testExtended(5, args);
+   pvInfo() << "Rank " << rank << ": Completed.\n";
 
 
    MPI_Finalize();

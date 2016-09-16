@@ -166,7 +166,7 @@ void BufferSlicer<T>::gather(Buffer<T> &buffer,
       MPI_Send(buffer.asVector().data(),
                buffer.getTotalElements() * dataSize,
                MPI_BYTE,
-               mComm->commRank(),
+               0,
                171 + mComm->commRank(),
                mComm->communicator());
    }
