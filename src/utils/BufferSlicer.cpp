@@ -5,17 +5,16 @@
 
 namespace PV {
 
-BufferSlicer::BufferSlicer(Communicator *comm) {
+template <class T>
+BufferSlicer<T>::BufferSlicer(Communicator *comm) {
    mComm = comm;
 }
 
-
-// TODO: This might need to accept margin size,
-// figure out why Margin test is failing.
-
-void BufferSlicer::scatter(Buffer &buffer,
-                           unsigned int sliceStrideX,
-                           unsigned int sliceStrideY) {
+template <class T>
+void BufferSlicer<T>::scatter(Buffer<T> &buffer,
+                              unsigned int sliceStrideX,
+                              unsigned int sliceStrideY) {
+   size_t dataSize = sizeof(T);
    if (mComm->commRank() == 0) {
       // This assumes buffer's dimensions are nxGlobal x nyGlobal
       int xMargins    = buffer.getWidth()
@@ -32,7 +31,7 @@ void BufferSlicer::scatter(Buffer &buffer,
       for (int sendRank = mComm->commSize()-1; sendRank >= 0; --sendRank) {
          // Copy the input data to a temporary buffer.
          // This gets cropped to the layer size below.
-         Buffer croppedBuffer = buffer;
+         Buffer<T> croppedBuffer = buffer;
          unsigned int cropLeft = sliceStrideX
                                * columnFromRank(
                                      sendRank,
@@ -48,15 +47,15 @@ void BufferSlicer::scatter(Buffer &buffer,
          croppedBuffer.translate(-cropLeft, -cropTop);
          croppedBuffer.crop(sliceStrideX + xMargins,
                             sliceStrideY + yMargins,
-                            Buffer::NORTHWEST);
+                            Buffer<T>::NORTHWEST);
 
          assert(numElements == croppedBuffer.getTotalElements());
 
          if (sendRank != 0) {
             // If this isn't for root, ship it off to the appropriate process.
             MPI_Send(croppedBuffer.asVector().data(),
-                     numElements,
-                     MPI_FLOAT,
+                     numElements * dataSize,
+                     MPI_BYTE,
                      sendRank,
                      31,
                      mComm->communicator());
@@ -75,13 +74,13 @@ void BufferSlicer::scatter(Buffer &buffer,
       // a vector, and then set our Buffer's contents to that vector.
       // This set of conversions could be greatly reduced by giving Buffer
       // a constructor that accepts raw memory.
-      float *tempMem = (float*)calloc(buffer.getTotalElements(), sizeof(float));
+      T *tempMem = (T*)calloc(buffer.getTotalElements(), dataSize);
       pvErrorIf(tempMem == nullptr,
                 "Could not allocate a receive buffer of %d bytes.\n",
-                buffer.getTotalElements() * sizeof(float));
+                buffer.getTotalElements() * dataSize);
       MPI_Recv(tempMem,
-               buffer.getTotalElements(),
-               MPI_FLOAT,
+               buffer.getTotalElements() * dataSize,
+               MPI_BYTE,
                0,
                31,
                mComm->communicator(),
@@ -94,34 +93,36 @@ void BufferSlicer::scatter(Buffer &buffer,
    }
 }
 
-void BufferSlicer::gather(Buffer &buffer,
-                          unsigned int sliceStrideX,
-                          unsigned int sliceStrideY) {
+template <class T>
+void BufferSlicer<T>::gather(Buffer<T> &buffer,
+                             unsigned int sliceStrideX,
+                             unsigned int sliceStrideY) {
    // Here, we assume that buffer is the size of local,
    // not global, nx and ny. If we have margins, then
    // buffer.getWidth != sliceStrideX. Same for Y.
    int xMargins = buffer.getWidth()  - sliceStrideX;
    int yMargins = buffer.getHeight() - sliceStrideY;
+   size_t dataSize = sizeof(T);
 
    if (mComm->commRank() == 0) {
       int globalWidth   = sliceStrideX * mComm->numCommColumns() + xMargins;
       int globalHeight  = sliceStrideY * mComm->numCommRows()    + yMargins;
       int numElements   = buffer.getTotalElements();
 
-      Buffer globalBuffer(globalWidth, globalHeight, buffer.getFeatures());
+      Buffer<T> globalBuffer(globalWidth, globalHeight, buffer.getFeatures());
 
       // Receive each slice of our full buffer from each MPI process
-      float *tempMem = (float*)calloc(numElements, sizeof(float));
+      T *tempMem = (T*)calloc(numElements, dataSize);
       pvErrorIf(tempMem == nullptr,
             "Could not allocate a receive buffer of %d bytes.\n",
-            numElements * sizeof(float));
+            numElements * dataSize);
       for (int recvRank = mComm->commSize() - 1; recvRank >= 0; --recvRank) {
-         Buffer smallBuffer;
+         Buffer<T> smallBuffer;
          if (recvRank != 0) {
             // This is nearly identical to the non-root receive in scatter
             MPI_Recv(tempMem,
-                     numElements,
-                     MPI_FLOAT,
+                     numElements * dataSize,
+                     MPI_BYTE,
                      recvRank,
                      171 + recvRank, // Unique tag for each rank
                      mComm->communicator(),
@@ -163,21 +164,15 @@ void BufferSlicer::gather(Buffer &buffer,
    else {
       // Send our chunk of the global buffer to root for reassembly
       MPI_Send(buffer.asVector().data(),
-               buffer.getTotalElements(),
-               MPI_FLOAT,
+               buffer.getTotalElements() * dataSize,
+               MPI_BYTE,
                mComm->commRank(),
                171 + mComm->commRank(),
                mComm->communicator());
    }
 }
 
-
-
-
-
-
-
-
-
+template class BufferSlicer<float>;
+template class BufferSlicer<taus_uint4>;
 
 }

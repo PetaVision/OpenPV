@@ -120,10 +120,13 @@ namespace PV {
             std::ostringstream outStrStream;
             outStrStream.precision(15);
             int kb0 = getLayerLoc()->kb0;
-            if (mUsingFileList) {
-               std::vector<int> batchIndices = mBatchIndexer->getIndices();
-               for (int b = 0; b < parent->getNBatch(); ++b) {
+            std::vector<int> batchIndices = mBatchIndexer->getIndices();
+            for (int b = 0; b < parent->getNBatch(); ++b) {
+               if (mUsingFileList) {
                   outStrStream << time << "," << b+kb0 << "," << batchIndices.at(b) << "," << mFileList.at(batchIndices.at(b)) << "\n";
+               }
+               else {
+                  outStrStream << time << "," << b+kb0 << "," << batchIndices.at(b) << "\n";
                }
             }
             size_t len = outStrStream.str().length();
@@ -161,8 +164,8 @@ namespace PV {
       const PVHalo *halo = &loc->halo;
       int activityWidth = loc->nx + (mUseInputBCflag ? halo->lt + halo->rt : 0);
       int activityHeight = loc->ny + (mUseInputBCflag ? halo->up + halo->dn : 0);
-      Buffer croppedBuffer;
-      BufferSlicer slicer(parent->getCommunicator());
+      RealBuffer croppedBuffer;
+      BufferSlicer<float> slicer(parent->getCommunicator());
 
       if (rank == 0) {
          croppedBuffer = mInputData.at(batchIndex);
@@ -199,7 +202,7 @@ namespace PV {
       return PV_SUCCESS;
    }
 
-   void InputLayer::fitBufferToLayer(Buffer &buffer) {
+   void InputLayer::fitBufferToLayer(RealBuffer &buffer) {
       pvAssert(parent->columnId() == 0);
       const PVLayerLoc *loc = getLayerLoc();
       const PVHalo *halo = &loc->halo;
@@ -364,7 +367,6 @@ namespace PV {
       ioParam_normalizeStdDev(ioFlag);
       ioParam_useInputBCflag(ioFlag);
       ioParam_padValue(ioFlag);
-      ioParam_echoFramePathnameFlag(ioFlag);
       ioParam_batchMethod(ioFlag);
       ioParam_start_frame_index(ioFlag);
       ioParam_skip_frame_index(ioFlag);
@@ -478,31 +480,31 @@ namespace PV {
             pvError() << "Invalid value for offsetAnchor\n";
          }
          if (strcmp(offsetAnchor, "tl") == 0) {
-            mAnchor = Buffer::NORTHWEST;
+            mAnchor = RealBuffer::NORTHWEST;
          }
          else if (strcmp(offsetAnchor, "tc") == 0) {
-            mAnchor = Buffer::NORTH;
+            mAnchor = RealBuffer::NORTH;
          }
          else if (strcmp(offsetAnchor, "tr") == 0) {
-            mAnchor = Buffer::NORTHEAST;
+            mAnchor = RealBuffer::NORTHEAST;
          }
          else if (strcmp(offsetAnchor, "cl") == 0) {
-            mAnchor = Buffer::WEST;
+            mAnchor = RealBuffer::WEST;
          }
          else if (strcmp(offsetAnchor, "cc") == 0) {
-            mAnchor = Buffer::CENTER;
+            mAnchor = RealBuffer::CENTER;
          }
          else if (strcmp(offsetAnchor, "cr") == 0) {
-            mAnchor = Buffer::EAST;
+            mAnchor = RealBuffer::EAST;
          }
          else if (strcmp(offsetAnchor, "bl") == 0) { 
-            mAnchor = Buffer::SOUTHWEST;
+            mAnchor = RealBuffer::SOUTHWEST;
          }
          else if (strcmp(offsetAnchor, "bc") == 0) {
-            mAnchor = Buffer::SOUTH;
+            mAnchor = RealBuffer::SOUTH;
          }
          else if (strcmp(offsetAnchor, "br") == 0) {
-            mAnchor = Buffer::SOUTHEAST;
+            mAnchor = RealBuffer::SOUTHEAST;
          }
          else {
             if (parent->columnId()==0) {
@@ -518,36 +520,36 @@ namespace PV {
          char *offsetAnchor = (char*)calloc(3, sizeof(char));
          offsetAnchor[2] = '\0';
          switch (mAnchor) {
-            case Buffer::NORTH:
-            case Buffer::NORTHWEST:
-            case Buffer::NORTHEAST:
+            case RealBuffer::NORTH:
+            case RealBuffer::NORTHWEST:
+            case RealBuffer::NORTHEAST:
                offsetAnchor[0] = 't';
                break;
-            case Buffer::WEST:
-            case Buffer::CENTER:
-            case Buffer::EAST:
+            case RealBuffer::WEST:
+            case RealBuffer::CENTER:
+            case RealBuffer::EAST:
                offsetAnchor[0] = 'c';
                break;
-            case Buffer::SOUTHWEST:
-            case Buffer::SOUTH:
-            case Buffer::SOUTHEAST:
+            case RealBuffer::SOUTHWEST:
+            case RealBuffer::SOUTH:
+            case RealBuffer::SOUTHEAST:
                offsetAnchor[0] = 'b';
                break;
          }
          switch (mAnchor) {
-            case Buffer::NORTH:
-            case Buffer::CENTER:
-            case Buffer::SOUTH:
+            case RealBuffer::NORTH:
+            case RealBuffer::CENTER:
+            case RealBuffer::SOUTH:
                offsetAnchor[1] = 'c';
                break;
-            case Buffer::EAST:
-            case Buffer::NORTHEAST:
-            case Buffer::SOUTHEAST:
+            case RealBuffer::EAST:
+            case RealBuffer::NORTHEAST:
+            case RealBuffer::SOUTHEAST:
                offsetAnchor[1] = 'l';
                break;
-            case Buffer::WEST:
-            case Buffer::NORTHWEST:
-            case Buffer::SOUTHWEST:
+            case RealBuffer::WEST:
+            case RealBuffer::NORTHWEST:
+            case RealBuffer::SOUTHWEST:
                offsetAnchor[1] = 'r';
                break;
          }
@@ -566,10 +568,10 @@ namespace PV {
          char *aspectRatioAdjustment = nullptr;
          if (ioFlag == PARAMS_IO_WRITE) {
             switch (mRescaleMethod) {
-               case Buffer::CROP:
+               case RealBuffer::CROP:
                   aspectRatioAdjustment = strdup("crop");
                   break;
-               case Buffer::PAD:
+               case RealBuffer::PAD:
                   aspectRatioAdjustment = strdup("pad");
                   break;
             }
@@ -580,10 +582,9 @@ namespace PV {
             for (char * c = aspectRatioAdjustment; *c; c++) { *c = tolower(*c); }
          }
          if (strcmp(aspectRatioAdjustment, "crop") == 0) {
-            mRescaleMethod = Buffer::CROP;
-         }
+            mRescaleMethod = RealBuffer::CROP; }
          else if (strcmp(aspectRatioAdjustment, "pad") == 0) {
-            mRescaleMethod = Buffer::PAD;
+            mRescaleMethod = RealBuffer::PAD;
          }
          else {
             if (parent->columnId()==0) {
@@ -606,10 +607,10 @@ namespace PV {
             assert(interpolationMethodString);
             for (char * c = interpolationMethodString; *c; c++) { *c = tolower(*c); }
             if (!strncmp(interpolationMethodString, "bicubic", strlen("bicubic"))) {
-               mInterpolationMethod = Buffer::BICUBIC;
+               mInterpolationMethod = RealBuffer::BICUBIC;
             }
             else if (!strncmp(interpolationMethodString, "nearestneighbor", strlen("nearestneighbor"))) {
-               mInterpolationMethod = Buffer::NEAREST;
+               mInterpolationMethod = RealBuffer::NEAREST;
             }
             else {
                if (parent->columnId()==0) {
@@ -623,10 +624,10 @@ namespace PV {
          else {
             assert(ioFlag == PARAMS_IO_WRITE);
             switch (mInterpolationMethod) {
-            case Buffer::BICUBIC:
+            case RealBuffer::BICUBIC:
                interpolationMethodString = strdup("bicubic");
                break;
-            case Buffer::NEAREST:
+            case RealBuffer::NEAREST:
                interpolationMethodString = strdup("nearestNeighbor");
                break;
             }
@@ -669,10 +670,6 @@ namespace PV {
 
    void InputLayer::ioParam_displayPeriod(enum ParamsIOFlag ioFlag) {
       parent->ioParamValue(ioFlag, name, "displayPeriod", &mDisplayPeriod, mDisplayPeriod);
-   }
-
-   void InputLayer::ioParam_echoFramePathnameFlag(enum ParamsIOFlag ioFlag) {
-      parent->ioParamValue(ioFlag, name, "echoFramePathnameFlag", &mEchoFramePathnameFlag, false/*default value*/);
    }
 
    void InputLayer::ioParam_batchMethod(enum ParamsIOFlag ioFlag) {

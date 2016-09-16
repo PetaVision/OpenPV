@@ -80,7 +80,7 @@ namespace PV {
    int ImageFromMemoryBuffer::setMemoryBuffer(pixeltype const * externalBuffer, int height, int width, int numbands, int xstride, int ystride, int bandstride, pixeltype zeroval, pixeltype oneval, int offsetX, int offsetY, char const * offsetAnchor) {
       mOffsetX = offsetX;
       mOffsetY = offsetY;
-      mAnchor = Buffer::CENTER;
+      mAnchor = RealBuffer::CENTER;
       if (checkValidAnchorString(offsetAnchor)!=PV_SUCCESS) {
          if (parent->columnId()==0) {
             pvErrorNoExit().printf("%s: setMemoryBuffer called with invalid anchor string \"%s\"",

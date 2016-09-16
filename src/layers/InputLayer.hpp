@@ -5,7 +5,7 @@
 
 #include "HyPerLayer.hpp"
 #include "columns/HyPerCol.hpp"
-#include "utils/Buffer.hpp"
+#include "utils/RealBuffer.hpp"
 #include "utils/BatchIndexer.hpp"
 
 #include <memory>
@@ -63,9 +63,6 @@ namespace PV {
          // If this is <= 0 or inputPath does not end in .txt, assumes the input is a single file and will not change.
          virtual void ioParam_displayPeriod(enum ParamsIOFlag ioFlag);
 
-         // echoFramePathnameFlag: if true, print the filename when a new file is loaded.
-         virtual void ioParam_echoFramePathnameFlag(enum ParamsIOFlag ioFlag);
-
          // start_frame_index: Array specifying the file indices to start at.
          // If displayPeriod <= 0, this determines which index from the file list will be used.
          virtual void ioParam_start_frame_index(enum ParamsIOFlag ioFlag);
@@ -117,7 +114,7 @@ namespace PV {
 
          // This pure virtual function gets called from nextInput by the root process only.
          // Load the input file from disk in this method.
-         virtual Buffer retrieveData(std::string filename, int batchIndex) = 0;
+         virtual RealBuffer retrieveData(std::string filename, int batchIndex) = 0;
          void nextInput(double timef, double dt);
          void initializeBatchIndexer(int fileCount);
 
@@ -140,17 +137,17 @@ namespace PV {
          std::string getFileName(int batchIndex) { return mBatchIndexer != nullptr ? mFileList.at(mBatchIndexer->getIndices().at(batchIndex)) : 0; }
       private:
          void populateFileList();
-         void fitBufferToLayer(Buffer &buffer);
+         void fitBufferToLayer(RealBuffer &buffer);
 
       protected:
          // If mAutoResizeFlag is enabled, do we crop the edges or pad the edges with mPadValue?
-         Buffer::RescaleMethod mRescaleMethod;
+         RealBuffer::RescaleMethod mRescaleMethod;
 
          // If mAutoResizeFlag is enabled, do we rescale with bicubic or nearest neighbor filtering?
-         Buffer::InterpolationMethod mInterpolationMethod = Buffer::BICUBIC;
+         RealBuffer::InterpolationMethod mInterpolationMethod = RealBuffer::BICUBIC;
 
          // When cropping or resizing, which side of the canvas is the origin?
-         Buffer::Anchor mAnchor = Buffer::CENTER;
+         RealBuffer::Anchor mAnchor = RealBuffer::CENTER;
 
          // Flag that enables rescaling input buffer to layer dimensions instead of just cropping
          bool mAutoResizeFlag = false;
@@ -178,7 +175,7 @@ namespace PV {
 
       private:
          // Raw data read from disk, one per batch
-         std::vector<Buffer> mInputData;
+         std::vector<RealBuffer> mInputData;
          
          // MPI datatypes for boundary exchange
          MPI_Datatype* mDatatypes = nullptr;

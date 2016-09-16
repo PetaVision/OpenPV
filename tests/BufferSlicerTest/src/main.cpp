@@ -1,3 +1,4 @@
+#include "utils/RealBuffer.hpp"
 #include "utils/BufferSlicer.hpp"
 #include "utils/PVLog.hpp"
 #include "columns/PV_Arguments.hpp"
@@ -6,7 +7,7 @@
 
 #include <vector>
 
-using PV::Buffer;
+using PV::RealBuffer;
 using PV::BufferSlicer;
 using PV::PV_Arguments;
 using PV::Communicator;
@@ -18,7 +19,7 @@ PV_Arguments *args;
 void testScatterRestricted(int argc, char** argv) {
    PV_Arguments *args = new PV_Arguments(argc, argv, false);
    Communicator *comm = new Communicator(args); 
-   BufferSlicer slicer(comm);
+   BufferSlicer<float> slicer(comm);
    int rank = comm->commRank();
 
    pvInfo() << "Setup complete on rank " << rank << ". Running test.\n";
@@ -36,12 +37,12 @@ void testScatterRestricted(int argc, char** argv) {
             2, 2, 3, 3
          };
 
-      Buffer send(testData, 4, 4, 1); 
+      RealBuffer send(testData, 4, 4, 1); 
       slicer.scatter(send, sliceX, sliceY);
       result = send.asVector();
    }
    else {
-      Buffer recv(sliceX, sliceY, 1);
+      RealBuffer recv(sliceX, sliceY, 1);
       slicer.scatter(recv, sliceX, sliceY);
       result = recv.asVector();
    }
@@ -95,7 +96,7 @@ void testScatterRestricted(int argc, char** argv) {
 void testScatterExtended(int argc, char** argv) {
    PV_Arguments *args = new PV_Arguments(argc, argv, false);
    Communicator *comm = new Communicator(args); 
-   BufferSlicer slicer(comm);
+   BufferSlicer<float> slicer(comm);
    int rank = comm->commRank();
 
    pvInfo() << "Setup complete on rank " << rank << ". Running test.\n";
@@ -115,13 +116,13 @@ void testScatterExtended(int argc, char** argv) {
             9, 9, 9, 9, 9, 9
          };
 
-      Buffer send(testData, 6, 6, 1); 
+      RealBuffer send(testData, 6, 6, 1); 
       slicer.scatter(send, sliceX, sliceY);
       result = send.asVector();
    }
    else {
       // We have a 1 element margin on each side
-      Buffer recv(sliceX + 2, sliceY + 2, 1);
+      RealBuffer recv(sliceX + 2, sliceY + 2, 1);
       slicer.scatter(recv, sliceX, sliceY);
       result = recv.asVector();
    }

@@ -7,6 +7,7 @@
 namespace PV
 {
 
+template <class T>
 class BufferSlicer {
    public:
       BufferSlicer(Communicator *comm);
@@ -16,7 +17,7 @@ class BufferSlicer {
       // buffer having the actual contents to be scattered.
       // Afterwards, buffer will contain the slice of the data 
       // that has been assigned to the current MPI process,
-      void scatter(Buffer &buffer,
+      void scatter(Buffer<T> &buffer,
                    unsigned int sliceStrideX,  // These values should be the
                    unsigned int sliceStrideY); // layer's local restricted nx and ny
 
@@ -25,9 +26,9 @@ class BufferSlicer {
       // afterwards the root process will have a filled buffer with
       // dimensions globalNx x globalNy. Buffer will be unchanged
       // on non-root processess.
-      void gather( Buffer &buffer,
-                   unsigned int sliceStrideX,
-                   unsigned int sliceStrideY);
+      void gather(Buffer<T> &buffer,
+                  unsigned int sliceStrideX,
+                  unsigned int sliceStrideY);
 
    private:
       Communicator *mComm;
