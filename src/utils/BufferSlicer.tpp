@@ -172,7 +172,4 @@ Buffer<T> BufferSlicer<T>::gather(Buffer<T> buffer,
    return buffer;
 }
 
-template class BufferSlicer<float>;
-template class BufferSlicer<taus_uint4>;
-
-}
+}  // end namespace PV

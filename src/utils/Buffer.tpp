@@ -179,7 +179,4 @@ int Buffer<T>::getAnchorY(enum Anchor anchor, int smallerHeight, int biggerHeigh
    }
 }
 
-template class Buffer<float>;
-template class Buffer<taus_uint4>;
-
-}
+}  // end namespace PV
