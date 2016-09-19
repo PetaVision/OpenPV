@@ -207,7 +207,7 @@ class DenseMatrix : public Matrix {
 template <class T>
 class SparseMatrix : public Matrix {
  public:
-  SparseMatrix();
+  SparseMatrix() {}
   SparseMatrix(const MatrixInfo &info, cusparseHandle_t *cusparseHandle,
                cusparseMatDescr_t *cusparseMatDescr, bool bufFlag)
       : Matrix(info),
