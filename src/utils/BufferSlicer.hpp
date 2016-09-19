@@ -32,6 +32,10 @@ class BufferSlicer {
 
    private:
       Communicator *mComm;
-};
-}
+}; // end class BufferSlicer
+
+}  // end namespace PV
+
+#include "BufferSlicer.tpp" // template implementations file
+
 #endif

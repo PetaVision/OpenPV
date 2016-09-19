@@ -3,8 +3,6 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/PVAlloc.cpp
    ${SUBDIR}/PVLog.cpp
    ${SUBDIR}/Image.cpp
-   ${SUBDIR}/Buffer.cpp
-   ${SUBDIR}/BufferSlicer.cpp
    ${SUBDIR}/BatchIndexer.cpp
    ${SUBDIR}/RealBuffer.cpp
    ${SUBDIR}/Timer.cpp

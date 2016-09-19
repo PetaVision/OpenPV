@@ -50,6 +50,10 @@ class Buffer {
       int mWidth    = 0;
       int mHeight   = 0;
       int mFeatures = 0;      
-};
-}
+}; // end class Buffer
+
+}  // end namespace PV
+
+#include "Buffer.tpp" // template implementations file
+
 #endif

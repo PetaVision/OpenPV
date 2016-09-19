@@ -1,4 +1,3 @@
-#include "BufferSlicer.hpp"
 #include "arch/mpi/mpi.h"
 #include "conversions.h"
 #include "PVLog.hpp"
