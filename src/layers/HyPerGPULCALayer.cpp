@@ -79,7 +79,7 @@ int HyPerGPULCALayer::updateState(double time, double dt) {
       std::advance(it, 1);
       auto sumFunction = [&](PVCudaWrapper<pvdata_t>& x) {
         pvdata_t alpha = 1, beta = 1;
-        CudaMatrixAdd(UDot.dense.getSize(), alpha,
+        CudaMatrixAdd<pvdata_t>(UDot.dense.getSize(), alpha,
                                 x.dense.getDeviceData(), beta,
                                 UDot.dense.getDeviceData());
         cudaStatusCheck("computing GSyn summation");
@@ -100,7 +100,7 @@ int HyPerGPULCALayer::updateState(double time, double dt) {
       /*  update V */
       pvdata_t alpha = 1 / getChannelTimeConst(CHANNEL_EXC);
       pvdata_t beta = 1 - alpha;
-      CudaMatrixAdd(getV().dense.getSize(), alpha, UDot.dense.getDeviceData(),
+      CudaMatrixAdd<pvdata_t>(getV().dense.getSize(), alpha, UDot.dense.getDeviceData(),
                     beta, getV().dense.getDeviceData());
       cudaStatusCheck("updating V");
 

@@ -203,9 +203,10 @@ int ANNLayerGPU::setActivity() {
       cerr << "No sparse to sparse activation funciton yet." << endl;
       return PV_FAILURE;
     } else {
-      activationFunc(V.dense.getDeviceData(), activity.dense.getDeviceData(),
-                     V.dense.getSize(), getVThresh(), getAMin(), getAMax(),
-                     getAShift(), VTW, tanTheta);
+      activationFunc<float>(V.dense.getDeviceData(),
+                            activity.dense.getDeviceData(), V.dense.getSize(),
+                            getVThresh(), getAMin(), getAMax(), getAShift(),
+                            VTW, tanTheta);
     }
 
     cudaStatusCheck("computing A");
@@ -254,7 +255,7 @@ int ANNLayerGPU::updateState(double timef, double dt) {
       std::advance(it, 1);
       auto sumFunction = [&](PVCudaWrapper<pvdata_t>& x) {
         pvdata_t alpha = 1, beta = 1;
-        CudaMatrixAdd(V.dense.getSize(), alpha,
+        CudaMatrixAdd<pvdata_t>(V.dense.getSize(), alpha,
                                 x.dense.getDeviceData(), beta,
                                 V.dense.getDeviceData());
         cudaStatusCheck("computing GSyn summation");
@@ -272,11 +273,12 @@ int ANNLayerGPU::updateState(double timef, double dt) {
 }
 
 int ANNLayerGPU::writeActivity(double timed) {
-	PV::DataStore* store = publisher->dataStore();
+  PV::DataStore* store = publisher->dataStore();
 
   // copy activity to datastore.
-	activity.dense.device2Host();
-	memcpy(store->buffer(0), activity.dense.getHostData(), activity.dense.getSize() * sizeof(pvdata_t));
+  activity.dense.device2Host();
+  memcpy(store->buffer(0), activity.dense.getHostData(),
+         activity.dense.getSize() * sizeof(pvdata_t));
 
   int status = PV::writeActivity(outputStateStream, parent->getCommunicator(),
                                  timed, store, getLayerLoc());
