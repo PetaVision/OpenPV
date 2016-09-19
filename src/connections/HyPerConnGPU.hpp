@@ -14,7 +14,6 @@ class HyPerConnGPU : public PV::HyPerConn {
   HyPerConnGPU(const char* name, PV::HyPerCol* hc);
   virtual ~HyPerConnGPU();
   virtual int allocateDataStructures();
-  virtual int updateState(double time, double dt);
   virtual int deliver();
 
   /*  get CUDA objects */

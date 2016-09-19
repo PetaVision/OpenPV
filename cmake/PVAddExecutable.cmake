@@ -108,5 +108,16 @@ macro(pv_add_executable TARGET)
   if (PV_USE_LUA)
     target_link_libraries(${TARGET} ${LUA_LIBRARIES})
   endif (PV_USE_LUA)
+
+	set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -O;)
+	find_library(CUSPARSE
+		NAMES cusparse
+		HINTS	/usr/local/cuda/lib64
+		)
+	find_library(CUBLAS
+		NAMES cublas
+		HINTS	/usr/local/cuda/lib64
+		)
+	target_link_libraries(${TARGET} ${CUSPARSE} ${CUBLAS})
 endmacro()
 

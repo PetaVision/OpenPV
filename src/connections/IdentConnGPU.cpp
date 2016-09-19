@@ -53,7 +53,7 @@ int IdentConnGPU::deliver() {
             (dynamic_cast<ANNLayerGPU *>(preSynapticLayer()))
                 ->getActivity()
                 .dense;
-        CudaMatrixAdd<pvdata_t>(preDense.getSize(), 1, preDense.getDeviceData(),
+        CudaMatrixAdd<float>(preDense.getSize(), 1, preDense.getDeviceData(),
                                 1, postDense.getDeviceData());
         cudaStatusCheck("IdentConnGPU copying from pre to post");
       } else {

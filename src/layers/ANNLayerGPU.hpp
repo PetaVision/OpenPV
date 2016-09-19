@@ -44,6 +44,7 @@ class ANNLayerGPU : public PV::ANNLayer {
   virtual int setActivity();
   virtual int initializeV();
   virtual int updateState(double timef, double dt);
+  virtual int writeActivity(double timed);
 
  private:
   void initialize_base();

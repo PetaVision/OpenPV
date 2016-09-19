@@ -12,6 +12,7 @@
 
 #include <layers/ANNErrorLayer.hpp>
 #include <layers/ANNLayer.hpp>
+#include <layers/ANNLayerGPU.hpp>
 #include <layers/ANNSquaredLayer.hpp>
 #include <layers/ANNWhitenedLayer.hpp>
 #include <layers/BackgroundLayer.hpp>
@@ -22,6 +23,7 @@
 #include <layers/GapLayer.hpp>
 #include <layers/HyPerLayer.hpp>
 #include <layers/HyPerLCALayer.hpp>
+#include <layers/HyPerGPULCALayer.hpp>
 #include <layers/ISTALayer.hpp>
 #include <layers/Image.hpp>
 #include <layers/ImagePvp.hpp>
@@ -50,12 +52,15 @@
 #include <layers/WTALayer.hpp>
 
 #include <connections/HyPerConn.hpp>
+#include <connections/HyPerConnGPU.hpp>
 #include <connections/CloneConn.hpp>
+#include <connections/CloneConnGPU.hpp>
 #include <connections/CloneKernelConn.hpp>
 #include <connections/CopyConn.hpp>
 #include <connections/FeedbackConn.hpp>
 #include <connections/GapConn.hpp>
 #include <connections/IdentConn.hpp>
+#include <connections/IdentConnGPU.hpp>
 #include <connections/ImprintConn.hpp>
 #include <connections/KernelConn.hpp>
 #include <connections/MomentumConn.hpp>
@@ -63,6 +68,7 @@
 #include <connections/PoolingConn.hpp>
 #include <connections/RescaleConn.hpp>
 #include <connections/TransposeConn.hpp>
+#include <connections/TransposeConnGPU.hpp>
 #include <connections/TransposePoolingConn.hpp>
 
 #include <io/ColumnEnergyProbe.hpp>
@@ -110,6 +116,7 @@ int Factory::registerCoreKeywords() {
 
    registerKeyword("ANNErrorLayer", Factory::create<ANNErrorLayer>);
    registerKeyword("ANNLayer", Factory::create<ANNLayer>);
+	 registerKeyword("ANNLayerGPU", Factory::create<GPULCA::ANNLayerGPU>);
    registerKeyword("ANNSquaredLayer", Factory::create<ANNSquaredLayer>);
    registerKeyword("ANNWhitenedLayer", Factory::create<ANNWhitenedLayer>);
    registerKeyword("BackgroundLayer", Factory::create<BackgroundLayer>);
@@ -120,6 +127,7 @@ int Factory::registerCoreKeywords() {
    registerKeyword("GapLayer", Factory::create<GapLayer>);
    registerKeyword("HyPerLayer", Factory::create<HyPerLayer>);
    registerKeyword("HyPerLCALayer", Factory::create<HyPerLCALayer>);
+	 registerKeyword("HyPerGPULCALayer", Factory::create<GPULCA::HyPerGPULCALayer>);
    registerKeyword("ISTALayer", Factory::create<ISTALayer>);
    registerKeyword("Image", Factory::create<Image>);
    registerKeyword("ImagePvp", Factory::create<ImagePvp>);
@@ -148,12 +156,15 @@ int Factory::registerCoreKeywords() {
    registerKeyword("WTALayer", Factory::create<WTALayer>);
 
    registerKeyword("HyPerConn", Factory::create<HyPerConn>);
+	 registerKeyword("HyPerConnGPU", Factory::create<GPULCA::HyPerConnGPU>);
    registerKeyword("CloneConn", Factory::create<CloneConn>);
+	 registerKeyword("CloneConnGPU", Factory::create<GPULCA::CloneConnGPU>);
    registerKeyword("CloneKernelConn", Factory::create<CloneKernelConn>);
    registerKeyword("CopyConn", Factory::create<CopyConn>);
    registerKeyword("FeedbackConn", Factory::create<FeedbackConn>);
    registerKeyword("GapConn", Factory::create<GapConn>);
    registerKeyword("IdentConn", Factory::create<IdentConn>);
+	 registerKeyword("IdentConnGPU", Factory::create<GPULCA::IdentConnGPU>);
    registerKeyword("ImprintConn", Factory::create<ImprintConn>);
    registerKeyword("KernelConn", Factory::create<KernelConn>);
    registerKeyword("MomentumConn", Factory::create<MomentumConn>);
@@ -161,6 +172,7 @@ int Factory::registerCoreKeywords() {
    registerKeyword("PoolingConn", Factory::create<PoolingConn>);
    registerKeyword("RescaleConn", Factory::create<RescaleConn>);
    registerKeyword("TransposeConn", Factory::create<TransposeConn>);
+	 registerKeyword("TransposeConnGPU", Factory::create<GPULCA::TransposeConnGPU>);
    registerKeyword("TransposePoolingConn", Factory::create<TransposePoolingConn>);
 
    registerKeyword("ColumnEnergyProbe", Factory::create<ColumnEnergyProbe>);

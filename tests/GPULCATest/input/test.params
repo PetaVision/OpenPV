@@ -97,8 +97,8 @@ HyPerGPULCALayer "S1" = {
     InitVType 				= "UniformRandomV";
     minV 				= -1.0;
     maxV 				= .025; 
-    writeStep                           = 500;
-    initialWriteTime                    = 500;
+    writeStep                           = -1;
+    initialWriteTime                    = -1;
     sparseLayer                         = true;
     writeSparseValues                   = true;
     VThresh                             = 0.005;
@@ -122,8 +122,8 @@ ANNLayerGPU "Recon" = {
     restart                             = false;
     InitVType                           = "ZeroV";
     triggerOffset                       = 0;
-    writeStep                           = -1;
-    initialWriteTime                    = 10000;
+    writeStep                           = 500;
+    initialWriteTime                    = 500;
     writeSparseActivity                 = false;
     VThresh                             = -3.40282e+38;
     AMin                                = -3.40282e+38;
@@ -131,6 +131,7 @@ ANNLayerGPU "Recon" = {
     AShift                              = 0;
     VWidth                              = 0;
 };
+
 
 IdentConnGPU "ImageToError" = {
     preLayerName                        = "Image";
@@ -152,8 +153,11 @@ HyPerConnGPU "S1ToError" = {
     convertRateToSpikeCount             = false;
     receiveGpu                          = false;
     sharedWeights                       = true;
-    weightInitType                      = "FileWeight";
-    initWeightsFile                     = "/home/xzhang/work/DataAnalysis/Outputs/S1_64/S1_64_Stride_1/Checkpoint25000000/S1ToError_W.pvp";
+    weightInitType                      = "UniformRandomWeight";
+    initWeightsFile                     = NULL;
+    wMinInit                            = -0.1;
+    wMaxInit                            = 0.1;
+    sparseFraction                      = 0.9;
     useListOfArborFiles                 = false;
     combineWeightFiles                  = false;
     initializeFromCheckpointFlag        = false;
@@ -187,8 +191,8 @@ HyPerConnGPU "S1ToError" = {
     momentumMethod                      = "viscosity";
 };
 
-TransposeConn "ErrorToS1" = {
-    preLayerName                        = "Error";
+TransposeConnGPU "ImageToS1" = {
+    preLayerName                        = "Image";
     postLayerName                       = "S1";
     channelCode                         = 0;
     pvpatchAccumulateType               = "convolve";
@@ -200,9 +204,11 @@ TransposeConn "ErrorToS1" = {
     updateGSynFromPostPerspective       = true;
     receiveGpu 				= true;
     originalConnName                    = "S1ToError";
+		isPreGPULayer                       = false;
 };
 
-CloneKernelConn "S1ToRecon" = {
+
+CloneConnGPU "S1ToRecon" = {
     preLayerName                        = "S1";
     postLayerName                       = "Recon";
     channelCode                         = 0;
@@ -216,35 +222,11 @@ CloneKernelConn "S1ToRecon" = {
     originalConnName                    = "S1ToError";
 };
 
-IdentConn "ReconToError" = {
+IdentConnGPU "ReconToError" = {
     preLayerName                        = "Recon";
     postLayerName                       = "Error";
     channelCode                         = 1;
     delay                               = [0.000000];
     // initWeightsFile                     was set to (NULL);
     writeStep                           = -1;
-};
-
-ColumnEnergyProbe "S1EnergyProbe" = {
-    probeOutputFile                     = "S1EnergyProbe.txt";
-};
-
-L2NormProbe "InputL2NormProbe" = {
-    targetLayer                         = "Error";
-    message                             = NULL;
-    probeOutputFile                     = "Error_l2norm.txt";
-    triggerLayerName                    = NULL;
-    energyProbe                         = "S1EnergyProbe";
-    coefficient                         = 0.5;
-    exponent                            = 2.0;
-};
-
-FirmThresholdCostFnLCAProbe "CostFunctionProbe" = {
-    targetLayer                         = "S1";
-    message                             = NULL;
-    probeOutputFile                     = "S1_sparsity.txt";
-    triggerLayerName                    = NULL;
-    energyProbe                         = "S1EnergyProbe";
-    // VThresh inherited from targetLayer
-    // VWidth inherited from targetLayer
 };

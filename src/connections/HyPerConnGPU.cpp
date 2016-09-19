@@ -384,7 +384,7 @@ int HyPerConnGPU::transposeWeight() {
     auto it1 = W.begin(), it2 = WT.begin(), end1 = W.end(), end2 = WT.end();
     for (; (it1 != end1) && (it2 != end2);
          std::advance(it1, 1), std::advance(it2, 1)) {
-      permuteWeight<pvwdata_t>(
+      permuteWeight(
           (*it2).dense.getSize(), (*it1).dense.getDeviceData(),
           (*it2).dense.getDeviceData(), map.getDeviceData());
       cudaStatusCheck("permuting weight");

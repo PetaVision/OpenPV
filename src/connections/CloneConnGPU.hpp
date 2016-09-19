@@ -17,7 +17,6 @@ class CloneConnGPU : public HyPerConnGPU {
  protected:
   CloneConnGPU();
   virtual int cloneParameters();
-  virtual int findCudnnAlgo();
 
  private:
   char* originalConnName;
