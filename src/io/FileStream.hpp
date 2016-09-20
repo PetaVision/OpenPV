@@ -33,16 +33,21 @@ private:
 
 class FileStream : public OutStream {
 public:
-   FileStream(char const * path, std::ios_base::openmode mode, bool verifyWrites = false);
+   FileStream(char const * path,
+              std::ios_base::openmode mode,
+              bool verifyWrites = false);
    virtual ~FileStream();
-   bool readable() { return mMode & std::ios_base::out; }
-   bool writeable() { return mMode & std::ios_base::in; }
+   bool readable() { return mMode & std::ios_base::in; }
+   bool writeable() { return mMode & std::ios_base::out; }
    bool readwrite() { return readable() && writeable(); }
+   bool binary() { return mMode & std::ios_base::binary; }
    std::istream& inStream() { return *mInStream; }
 
 protected:
    FileStream() {}
-   void initialize(char const * path, std::ios_base::openmode mode, bool verifyWrites);
+   void initialize(char const * path,
+                   std::ios_base::openmode mode,
+                   bool verifyWrites);
 
 private:
    void openFile(char const * path, std::ios_base::openmode mode);

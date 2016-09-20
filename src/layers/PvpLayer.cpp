@@ -203,7 +203,7 @@ namespace PV {
                PV_fseek(pvstream, mFrameStartBuffer[f] - (long)4, SEEK_SET);
             }
          }
-         pvInfo() << "\r" << percent << "% Done\n";
+         pvInfo() << "\r" << percent << "\% Done\n";
          pvInfo().flush();
 
          // We still need the last count
@@ -215,11 +215,11 @@ namespace PV {
 
       long framepos = (long)mFrameStartBuffer[frameNumber];
       unsigned int length = mCountBuffer[frameNumber];
-      float pvpFileTime = 0;
+      double pvpFileTime = 0;
       PV_fseek(pvstream, framepos-sizeof(double)-sizeof(unsigned int), SEEK_SET);
       PV_fread(&pvpFileTime, sizeof(double), 1, pvstream);
       unsigned int dropLength;
-      PV::PV_fread(&dropLength, sizeof(unsigned int), 1, pvstream);
+      PV_fread(&dropLength, sizeof(unsigned int), 1, pvstream);
       assert(dropLength == length);
       struct locvalue {
          int location;
@@ -247,7 +247,7 @@ namespace PV {
          pvError().printf("scatterImageFilePVP: Unable to seek to start of frame %d in \"%s\": %s\n", frameNumber, pvstream->name, strerror(errno));
       }
       else { 
-         float pvpFileTime = 0;
+         double pvpFileTime = 0;
          size_t numRead = PV::PV_fread(&pvpFileTime, sizeof(double), (size_t) 1, pvstream);
          if (numRead != (size_t) 1) {
             pvErrorNoExit(errorMessage); //TODO: What is errorMessage? Where does it come from?
