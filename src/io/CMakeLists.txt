@@ -37,6 +37,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/BaseConnectionProbe.hpp
    ${SUBDIR}/BaseHyPerConnProbe.hpp
    ${SUBDIR}/BaseProbe.hpp
+   ${SUBDIR}/BufferIO.hpp
    ${SUBDIR}/Clock.hpp
    ${SUBDIR}/ColProbe.hpp
    ${SUBDIR}/ColumnEnergyProbe.hpp

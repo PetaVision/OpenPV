@@ -4,6 +4,9 @@
 
 #include <vector>
 
+using PV::BufferIO;
+using PV::RealBuffer;
+using std::vector;
 
 void testReadFromPvp() {
 
@@ -16,10 +19,11 @@ void testReadFromPvp() {
       for (int i = 0; i < 8 * 4 * 2; ++i) {
          testData.at(i) = val++;
       }
-      RealBuffer testBuffer();
-      double timeVal = BufferIO::readFromPvp("input/input_8x4x2_x3.pvp",
-                                             &testBuffer,
-                                             frame);
+      RealBuffer testBuffer;
+      double timeVal = BufferIO::readFromPvp<float>(
+            "input/input_8x4x2_x3.pvp",
+            &testBuffer,
+            frame);
       pvErrorIf(timeVal != (double)frame + 1,
             "Failed on frame %d. Expected time %d, found %d.\n",
             frame + 1, (int)timeVal);
@@ -48,7 +52,7 @@ void testReadFromPvp() {
 }
 
 void testWriteToPvp() {
-   pvErrorIf(true, "Failed. Not implemented.\n",);
+   pvErrorIf(true, "Failed. Not implemented.\n");
 }
 
 

@@ -2648,9 +2648,13 @@ int scatterActivity(PV_Stream * pvstream,
                                              fileLoc->nxGlobal,
                                              fileLoc->nyGlobal,
                                              layerLoc->nf);
+                     // The braces here are a hack to allow assigning
+                     // a value when T is taus_uint4. We should never
+                     // actually reach this branch when that is the
+                     // case, but this lets it compile.
                      TBuff[(ypos - ky0 - offsetY) * linesize
                          + (xpos - kx0 - offsetX) * layerLoc->nf
-                         + fpos] = 1;
+                         + fpos] = {1};
                   }
             }
             if (r > 0) {
@@ -2665,7 +2669,7 @@ int scatterActivity(PV_Stream * pvstream,
                // Clear the buffer so rootproc can calculate
                // the next process's buffer.
                for (int i = 0; i < numLocalNeurons; ++i) {
-                  TBuff[i] = 0;
+                  TBuff[i] = {0};
                }
             }
          }
@@ -2680,7 +2684,7 @@ int scatterActivity(PV_Stream * pvstream,
                   "buffer for active neuron locations: %s\n",
                   pvstream->name, strerror(errno));
 
-         pvdata_t *vals = (pvdata_t*)calloc(numActive, datasize);
+         T *vals = (T*)calloc(numActive, datasize);
          pvErrorIf(activeNeurons == NULL,
                   "scatterActivity error for \"%s\": unable to allocate "
                   "buffer for active neuron values: %s\n",
@@ -2722,14 +2726,14 @@ int scatterActivity(PV_Stream * pvstream,
                                           fileLoc->nxGlobal,
                                           fileLoc->nyGlobal,
                                           layerLoc->nf);
-                  TBuff1[(ypos - ky0 - offsetY) * linesize
+                  TBuff[(ypos - ky0 - offsetY) * linesize
                        + (xpos - kx0 - offsetX) * layerLoc->nf
                        + fpos] = vals[i];
                }
             }
             if (r > 0) {
                //Send buffer to appropriate mpi process
-               MPI_Send(TBuff1,
+               MPI_Send(TBuff,
                         numLocalNeurons *(int)datasize,
                         MPI_BYTE,
                         r,
@@ -2737,7 +2741,7 @@ int scatterActivity(PV_Stream * pvstream,
                         comm->communicator());
                //Clear the buffer for the next process
                for (int i = 0; i < numLocalNeurons; ++i) {
-                  TBuff1[i] = 0;
+                  TBuff[i] = {0};
                }
             }
          }
@@ -2751,7 +2755,7 @@ int scatterActivity(PV_Stream * pvstream,
                datasize * numLocalNeurons,
                MPI_BYTE,
                rootproc,
-               171 + rank,
+               171 + localRank,
                comm->communicator(),
                MPI_STATUS_IGNORE);
    }

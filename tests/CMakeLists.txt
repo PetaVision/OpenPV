@@ -27,6 +27,7 @@ add_subdirectory(BatchIndexerTest)
 add_subdirectory(BufferTest)
 add_subdirectory(ImageTest)
 add_subdirectory(BufferSlicerTest)
+add_subdirectory(BufferIOTest)
 
 # System tests that involve starting up a full instance of PetaVision happen next.
 add_subdirectory(BasicSystemTest)

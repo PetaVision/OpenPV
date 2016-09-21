@@ -41,7 +41,7 @@ public:
    bool writeable() { return mMode & std::ios_base::out; }
    bool readwrite() { return readable() && writeable(); }
    bool binary() { return mMode & std::ios_base::binary; }
-   std::istream& inStream() { return *mInStream; }
+   std::istream& inStream() { return *mStrPtr; }
 
 protected:
    FileStream() {}
@@ -58,7 +58,6 @@ private:
    char * mPath = nullptr;
    std::ios_base::openmode mMode = std::ios_base::out;
    std::fstream * mStrPtr = nullptr;
-   std::istream * mInStream = nullptr;
    std::streambuf::pos_type mFilePos = (std::streambuf::pos_type) 0;
    std::streambuf::pos_type mFileLength = (std::streambuf::pos_type) 0;
    bool mVerifyWrites = false;

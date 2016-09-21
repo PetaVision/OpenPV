@@ -28,14 +28,18 @@ class BufferIO {
                                      int features,
                                      int numFrames);
       template <typename T>
-      static void writeToPvp(string fName,
+      static void writeToPvp(const char * fName,
                              Buffer<T> *buffer,
                              double timeStamp);
       template <typename T>
-      static void appendToPvp(string fName,
+      static void appendToPvp(const char * fName,
                               Buffer<T> *buffer,
                               int frameWriteIndex,
                               double timeStamp);
+      template <typename T>
+      static double readFromPvp(const char * fName,
+                                Buffer<T> *buffer,
+                                int frameReadIndex); 
       static void writeHeader(FileStream *fStream, vector<int> header);
       static vector<int> readHeader(FileStream *fStream);
 };

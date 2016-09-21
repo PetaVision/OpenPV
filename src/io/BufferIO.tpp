@@ -14,8 +14,8 @@ void BufferIO::writeFrame(FileStream *fStream,
    size_t dataSize = sizeof(T);
    pvErrorIf(!fStream->binary(),
          "writeBuffer requires a binary FileStream.\n");
-   fStream->outStream().write(&timestamp, sizeof(double));
-   fStream->outStream().write(buffer->asVector().data(),
+   fStream->outStream().write((char*)&timestamp, sizeof(double));
+   fStream->outStream().write((char*)buffer->asVector().data(),
                               buffer->getTotalElements() * dataSize);
    fStream->outStream().flush();
 }
@@ -35,15 +35,21 @@ double BufferIO::readFrame(FileStream *fStream,
              ( header.at(INDEX_RECORD_SIZE)
              * header.at(INDEX_DATA_SIZE)
              + sizeof(double) );
-   buffer->resize(header.at(INDEX_NX),
-                  header.at(INDEX_NY),
-                  header.at(INDEX_NF));
+
    double timeStamp;
-   fStream->outStream().seekp(frameOffset, std::ios_base::cur);
-   fStream->outStream().read(&timeStamp, sizeof(double));
-   fStream->outStream().read(buffer->asVector().data(),
-                             buffer->getTotalElements()
-                           * header.at(INDEX_DATA_SIZE));
+   fStream->inStream().seekg(frameOffset, std::ios_base::cur);
+   fStream->inStream().read((char*)&timeStamp, sizeof(double));
+
+   assert(fStream->inStream().gcount() == sizeof(double));
+   
+   size_t expected = data.size() * header.at(INDEX_DATA_SIZE);
+   fStream->inStream().read((char*)data.data(), expected);
+   assert(fStream->inStream().gcount() == expected);
+   
+   buffer->set(data,
+               header.at(INDEX_NX),
+               header.at(INDEX_NY),
+               header.at(INDEX_NF));
    return timeStamp;
 }
 
@@ -80,7 +86,7 @@ void BufferIO::writeHeader(FileStream *fStream, vector<int> header) {
    pvErrorIf(!fStream->binary(),
          "writeBuffer requires a binary FileStream.\n");
    fStream->outStream().seekp(std::ios_base::beg);
-   fStream->outStream().write(header.data(),
+   fStream->outStream().write((char*)header.data(),
                               header.size() * sizeof(uint32_t));
    fStream->outStream().flush();
 }
@@ -89,8 +95,8 @@ void BufferIO::writeHeader(FileStream *fStream, vector<int> header) {
 // pointing at the start of the first frame.
 vector<int> BufferIO::readHeader(FileStream *fStream) {
    vector<int> header(NUM_BIN_PARAMS);
-   fStream->inStream().seekg(0, fStream->inStream().beg);
-   fStream->inStream().read(header.data(), header.size() * sizeof(uint32_t));
+   fStream->inStream().seekg(0);
+   fStream->inStream().read((char*)header.data(), header.size() * sizeof(uint32_t));
    return header;
 }
 
@@ -99,14 +105,18 @@ vector<int> BufferIO::readHeader(FileStream *fStream) {
 // Writes a buffer to a pvp file containing a header and a single frame.
 // Use appendToPvp to write multiple frames to a pvp file.
 template <typename T>
-void BufferIO::writeToPvp(string fName,
+void BufferIO::writeToPvp(const char * fName,
                           Buffer<T> *buffer,
                           double timeStamp) {
    FileStream *fStream =
-      new FileStream(fName.c_str(),
+      new FileStream(fName,
                      std::ios_base::out
                     |std::ios_base::binary,
                      false);
+
+   pvErrorIf(fStream->outStream().bad(),
+         "Failed to open ostream %s.\n", fName);
+
    // TODO: Make sure the file was opened successfully
    writeHeader(fStream,
                buildHeader<T>(buffer->getWidth(),
@@ -114,20 +124,26 @@ void BufferIO::writeToPvp(string fName,
                               buffer->getFeatures(),
                               1));
    writeFrame<T>(fStream, buffer, timeStamp);
-   fStream->closeFile();
 }
 
 template <typename T>
-void BufferIO::appendToPvp(string fName,
+void BufferIO::appendToPvp(const char * fName,
                            Buffer<T> *buffer,
                            int frameWriteIndex,
                            double timeStamp) {
    FileStream *fStream =
-      new FileStream(fName.c_str(),
+      new FileStream(fName,
                      std::ios_base::out
                     |std::ios_base::in
                     |std::ios_base::binary,
                      false);
+
+   pvErrorIf(fStream->outStream().bad(),
+         "Failed to open ostream %s.\n", fName);
+   pvErrorIf(fStream->inStream().bad(),
+         "Failed to open istream %s.\n", fName);
+
+
    // Modify the number of records in the header
    vector<int> header = readHeader(fStream);
    header.at(INDEX_NBANDS)++;
@@ -144,20 +160,22 @@ void BufferIO::appendToPvp(string fName,
 
    fStream->outStream().seekp(frameOffset, std::ios_base::cur);
    writeFrame<T>(fStream, buffer, timeStamp);
-   fStream->closeFile();
 }
 
 template <typename T>
-double BufferIO::readFromPvp(string fName,
+double BufferIO::readFromPvp(const char * fName,
                            Buffer<T> *buffer,
                            int frameReadIndex) {
    FileStream *fStream =
-      new FileStream(fName.c_str(),
+      new FileStream(fName,
                      std::ios_base::in
                     |std::ios_base::binary,
                      false);
+
+   pvErrorIf(fStream->inStream().bad(),
+         "Failed to open istream %s.\n", fName);
+
    double timeStamp = readFrame<T>(fStream, buffer, frameReadIndex);
-   fStream->closeFile();
    return timeStamp;
 }
 
