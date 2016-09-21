@@ -34,7 +34,6 @@
 #include <layers/MaskLayer.hpp>
 #include <layers/MomentumLCALayer.hpp>
 #include <layers/PoolingIndexLayer.hpp>
-#include <layers/PtwiseLinearTransferLayer.hpp>
 #include <layers/PtwiseProductLayer.hpp>
 #include <layers/PtwiseQuotientLayer.hpp>
 #include <layers/PvpLayer.hpp>
@@ -137,7 +136,6 @@ int Factory::registerCoreKeywords() {
    registerKeyword("MaskLayer", Factory::create<MaskLayer>);
    registerKeyword("MomentumLCALayer", Factory::create<MomentumLCALayer>);
    registerKeyword("PoolingIndexLayer", Factory::create<PoolingIndexLayer>);
-   registerKeyword("PtwiseLinearTransferLayer", Factory::create<PtwiseLinearTransferLayer>);
    registerKeyword("PtwiseProductLayer", Factory::create<PtwiseProductLayer>);
    registerKeyword("PtwiseQuotientLayer", Factory::create<PtwiseQuotientLayer>);
    registerKeyword("RescaleLayer", Factory::create<RescaleLayer>);
@@ -218,6 +216,10 @@ int Factory::registerKeyword(char const * keyword, ObjectCreateFn creator) {
 }
 
 BaseObject * Factory::createByKeyword(char const * keyword, char const * name, HyPerCol * hc) const {
+   // Sep 21, 2016: PtwiseLinearTransferLayer marked obsolete.
+   if (!strcmp(keyword, "PtwiseLinearTransferLayer")) {
+      pvError() << keyword << " \"" << name << "\": PtwiseLinearTransferLayer is obsolete. Use ANNLayer instead.\n";
+   }
    KeywordHandler const * keywordHandler = getKeywordHandler(keyword);
    if (keywordHandler == nullptr) {
       auto errorString = std::string("Unrecognized keyword ").append(keyword);
