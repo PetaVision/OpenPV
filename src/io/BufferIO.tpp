@@ -60,7 +60,8 @@ vector<int> BufferIO::buildHeader(int width,
                                   int height,
                                   int features,
                                   int numFrames) {
-   vector<uint32_t> header(NUM_BIN_PARAMS);   
+   // TODO: This misses headersize
+   vector<int> header(NUM_BIN_PARAMS);   
    header.at(INDEX_FILE_TYPE)   = PVP_NONSPIKING_ACT_FILE_TYPE;
    header.at(INDEX_NX)          = width;
    header.at(INDEX_NY)          = height;
@@ -87,7 +88,7 @@ void BufferIO::writeHeader(FileStream *fStream, vector<int> header) {
          "writeBuffer requires a binary FileStream.\n");
    fStream->outStream().seekp(std::ios_base::beg);
    fStream->outStream().write((char*)header.data(),
-                              header.size() * sizeof(uint32_t));
+                              header.size() * sizeof(int));
    fStream->outStream().flush();
 }
  
@@ -96,7 +97,7 @@ void BufferIO::writeHeader(FileStream *fStream, vector<int> header) {
 vector<int> BufferIO::readHeader(FileStream *fStream) {
    vector<int> header(NUM_BIN_PARAMS);
    fStream->inStream().seekg(0);
-   fStream->inStream().read((char*)header.data(), header.size() * sizeof(uint32_t));
+   fStream->inStream().read((char*)header.data(), header.size() * sizeof(int));
    return header;
 }
 
@@ -117,7 +118,6 @@ void BufferIO::writeToPvp(const char * fName,
    pvErrorIf(fStream->outStream().bad(),
          "Failed to open ostream %s.\n", fName);
 
-   // TODO: Make sure the file was opened successfully
    writeHeader(fStream,
                buildHeader<T>(buffer->getWidth(),
                               buffer->getHeight(),
