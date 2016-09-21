@@ -61,7 +61,6 @@ ANNLayer "OriginalConn Output" = {
     AMax                                = infinity;
     AShift                              = 0;
     VWidth                              = 0;
-    clearGSynInterval                   = 0;
 };
 
 ANNLayer "CopyConn Output" = {
@@ -83,7 +82,6 @@ ANNLayer "CopyConn Output" = {
     AMax                                = infinity;
     AShift                              = 0;
     VWidth                              = 0;
-    clearGSynInterval                   = 0;
 };
 
 HyPerConn "OriginalConn" = {

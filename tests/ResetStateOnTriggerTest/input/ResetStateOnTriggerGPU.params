@@ -88,7 +88,6 @@ ANNErrorLayer "Residual" = {
     InitVType = "ZeroV";
 
     VThresh = -infinity;   
-    clearGSynInterval = 0;
     
     errScale = 1.0;
 };
@@ -117,7 +116,6 @@ HyPerLCALayer "V1" = {
     AMax                                = infinity;
     AShift                              = 0;
     VWidth                              = 0.025;
-    clearGSynInterval                   = 0;
     timeConstantTau                     = 100;
     selfInteract                        = true;
 };
@@ -149,7 +147,6 @@ ANNLayer "Comparison" = {
     AMax                                = infinity;
     AShift                              = 0;
     VWidth                              = 0;
-    clearGSynInterval                   = 0;
 };
 
 // connections

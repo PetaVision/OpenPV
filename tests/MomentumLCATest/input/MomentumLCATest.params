@@ -88,7 +88,6 @@ ANNErrorLayer "Residual" = {
     InitVType = "ZeroV";
 
     VThresh = -infinity;   
-    clearGSynInterval = 0;
     
     errScale = 1.0;
 };
@@ -114,7 +113,6 @@ MomentumLCALayer "V1" = {
     AMax                                = infinity;
     AShift                              = 0;
     VWidth                              = 0.025;
-    clearGSynInterval                   = 0;
     timeConstantTau                     = 100;
     selfInteract                        = true;
     adaptiveTimeScaleProbe              = "AdaptiveTimeScales";
@@ -139,7 +137,6 @@ ANNLayer "Reconstruction" = {
     AMax                                = infinity;
     AShift                              = 0;
     VWidth                              = 0;
-    clearGSynInterval                   = 0;
 };
 
 // connections
@@ -266,7 +263,6 @@ ANNLayer "Comparison" = {
     AMin = -infinity;
     AShift = 0.0;
     VWidth = 0.0;
-    clearGSynInterval = 0;
 };
 
 IdentConn "ReconstructionToComparison" = {

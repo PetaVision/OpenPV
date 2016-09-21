@@ -94,7 +94,6 @@ ANNLayer "ganglion" = {
     AMin                             = -infinity;
     AShift                           = 0.0;
     VWidth                           = 0.0;
-    clearGSynInterval                = 0.0;
 };
 
 PvpLayer "correctoutput" = {
@@ -142,7 +141,6 @@ ANNLayer "comparison" = {
     AMin                             = -infinity;
     AShift                           = 0.0;
     VWidth                           = 0.0;
-    clearGSynInterval                = 0.0;
 };
 
 HyPerConn "input_to_ganglion" = {

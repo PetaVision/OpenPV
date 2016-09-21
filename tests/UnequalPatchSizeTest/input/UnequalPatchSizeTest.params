@@ -68,7 +68,6 @@ ANNLayer "output" = {
     AMin = -infinity;
     AShift = 0.0;
     VWidth = 0.0;
-    clearGSynInterval = 0.0;
 };
 
 PvpLayer "correct" = {
@@ -109,7 +108,6 @@ ANNLayer "compare" = {
     AMin = -infinity;
     AShift = 0.0;
     VWidth = 0.0;
-    clearGSynInterval = 0.0;
 };
 
 HyPerConn "input_to_output" = {

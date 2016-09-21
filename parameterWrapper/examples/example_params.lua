@@ -95,7 +95,6 @@ pv.addMultiGroups(basicParams,
       AMin = -infinity;
       AShift = 0.0;
       VWidth = 0.0;
-      clearGSynInterval = 0.0;
    };
 
    --a connection
@@ -169,7 +168,6 @@ pv.addGroup(
       AMin = -infinity;
       AShift = 0.0;
       VWidth = 0.0;
-      clearGSynInterval = 0.0;
    }
 ) --End of function call
 
@@ -194,7 +192,6 @@ basicParams["Output2"] =
    AMin = -infinity;
    AShift = 0.0;
    VWidth = 0.0;
-   clearGSynInterval = 0.0;
 }
 
 --Function to include a previously defined group

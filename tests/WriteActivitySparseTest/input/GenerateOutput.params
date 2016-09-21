@@ -75,7 +75,6 @@ ANNLayer "Output" = {
     AMax                                = infinity;
     AShift                              = 0;
     VWidth                              = 0;
-    clearGSynInterval                   = 0;
 };
 
 HyPerConn "InputToOutput" = {

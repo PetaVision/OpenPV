@@ -85,7 +85,6 @@ ANNLayer "output_noconversion" = {
     AMin = -infinity;
     AShift = 0.0;
     VWidth = 0.0;
-    clearGSynInterval = 0.0;
 };
 
 ANNLayer "output_withconversion" = {
@@ -106,7 +105,6 @@ ANNLayer "output_withconversion" = {
     AMin = -infinity;
     AShift = 0.0;
     VWidth = 0.0;
-    clearGSynInterval = 0.0;
 };
 
 HyPerLayer "comparison" = {

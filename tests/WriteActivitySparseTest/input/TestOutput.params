@@ -117,7 +117,6 @@ ANNLayer "Comparison" = {
     AMax                                = 3.40282e+38;
     AShift                              = 0;
     VWidth                              = 0;
-    clearGSynInterval                   = 0;
 };
 
 IdentConn "GeneratedMovieToComparison" = {

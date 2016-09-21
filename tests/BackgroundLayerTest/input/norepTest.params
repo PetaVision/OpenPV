@@ -93,7 +93,6 @@ ComparisonLayer "compare" = {
     AMin = -infinity; 
     AShift = 0.0;
     VWidth = 0.0;
-    clearGSynInterval = 0.0;
     // 
     phase = 2; 
     triggerLayerName = NULL;

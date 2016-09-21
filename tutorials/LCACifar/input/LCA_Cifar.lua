@@ -146,7 +146,6 @@ local pvParameters = {
       AMax                                = AMax;
       AShift                              = AShift;
       VWidth                              = VWidth;
-      clearGSynInterval                   = 0;
       timeConstantTau                     = timeConstantTau;
       selfInteract                        = true;
    };

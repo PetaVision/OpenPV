@@ -80,7 +80,6 @@ ANNLayer "Output" = {
     AMin = -infinity;
     AShift = 0.0;
     VWidth = 0.0;
-    clearGSynInterval = 0.0;
 };
 
 CloneVLayer "Clone" = {
@@ -118,7 +117,6 @@ ANNLayer "CheckClone" = {
     AMin = -infinity;
     AShift = 0.0;
     VWidth = 0.0;
-    clearGSynInterval = 0.0;
 };
 
 SigmoidLayer "Sigmoid" = {
@@ -161,7 +159,6 @@ ANNLayer "DuplicateSigmoid" = {
     AMax = 1.0;
     AShift = 1.0;
     VWidth = 0.0;
-    clearGSynInterval = 0.0;
 };
 
 ANNLayer "CheckSigmoid" = {
@@ -183,7 +180,6 @@ ANNLayer "CheckSigmoid" = {
     AMin = -infinity;
     AShift = 0.0;
     VWidth = 0.0;
-    clearGSynInterval = 0.0;
 };
 
 //this is a layer for connection

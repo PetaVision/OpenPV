@@ -96,7 +96,6 @@ ANNLayer "L0" = {
     AMin = -infinity;
     AShift = 0.0;
     VWidth = 0.0;
-    clearGSynInterval = 0.0;
 };
 
 
@@ -120,7 +119,6 @@ ANNLayer "Lx1" = {
     AMin = -infinity;
     AShift = 0.0;
     VWidth = 0.0;
-    clearGSynInterval = 0.0;
 };
 
 
@@ -144,7 +142,6 @@ ANNLayer "Lx2" = {
     AMin = -infinity;
     AShift = 0.0;
     VWidth = 0.0;
-    clearGSynInterval = 0.0;
 };
 
 
@@ -169,7 +166,6 @@ ANNLayer "Lx4" = {
     AMin = -infinity;
     AShift = 0.0;
     VWidth = 0.0;
-    clearGSynInterval = 0.0;
 };
 
 
@@ -195,7 +191,6 @@ ANNLayer "Lx1_2" = {
     AMin = -infinity;
     AShift = 0.0;
     VWidth = 0.0;
-    clearGSynInterval = 0.0;
 };
 
 
@@ -221,7 +216,6 @@ ANNLayer "Lx1_4" = {
     AMin = -infinity;
     AShift = 0.0;
     VWidth = 0.0;
-    clearGSynInterval = 0.0;
 };
 
 

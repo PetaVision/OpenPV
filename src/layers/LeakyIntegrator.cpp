@@ -6,6 +6,7 @@
  */
 
 #include "LeakyIntegrator.hpp"
+#include <cmath>
 
 namespace PV {
 
@@ -44,7 +45,7 @@ void LeakyIntegrator::ioParam_integrationTime(enum ParamsIOFlag ioFlag) {
 int LeakyIntegrator::updateState(double timed, double dt) {
    pvdata_t * V = getV();
    pvdata_t * gSyn = GSyn[0];
-   pvdata_t decayfactor = expf((float)-dt/integrationTime);
+   pvdata_t decayfactor = std::exp(-(pvdata_t)dt/integrationTime);
    for (int k=0; k<getNumNeuronsAllBatches(); k++) {
       V[k] *= decayfactor;
       V[k] += gSyn[k];

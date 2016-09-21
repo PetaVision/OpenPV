@@ -39,7 +39,6 @@ AvgPoolTestInputLayer "input" = {
     AMin = -infinity; 
     AShift = 0.0;
     VWidth = 0.0;
-    clearGSynInterval = 0.0;
     // 
     phase = 0; 
     triggerLayerName = NULL;
@@ -62,7 +61,6 @@ AvgPoolTestLayer "avgPoolPre" = {
     AMin = -infinity; 
     AShift = 0.0;
     VWidth = 0.0;
-    clearGSynInterval = 0.0;
     // 
     phase = 1; 
     triggerLayerName = NULL;
@@ -85,7 +83,6 @@ AvgPoolTestLayer "avgPoolPost" = {
     AMin = -infinity; 
     AShift = 0.0;
     VWidth = 0.0;
-    clearGSynInterval = 0.0;
     // 
     phase = 1; 
     triggerLayerName = NULL;
@@ -108,7 +105,6 @@ GateAvgPoolTestLayer "UnpoolTestPre" = {
     AMin = -infinity; 
     AShift = 0.0;
     VWidth = 0.0;
-    clearGSynInterval = 0.0;
     // 
     phase = 4; 
     triggerLayerName = NULL;
@@ -131,7 +127,6 @@ GateAvgPoolTestLayer "UnpoolTestPost" = {
     AMin = -infinity; 
     AShift = 0.0;
     VWidth = 0.0;
-    clearGSynInterval = 0.0;
     // 
     phase = 4; 
     triggerLayerName = NULL;

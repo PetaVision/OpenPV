@@ -80,7 +80,6 @@ ANNErrorLayer "Residual" = {
     updateGpu                           = false;
     dataType                            = NULL;
     VThresh                             = -infinity;
-    clearGSynInterval                   = 0;
     errScale                            = 1;
 };
 
@@ -106,7 +105,6 @@ HyPerLCALayer "V1" = {
     AMax                                = infinity;
     AShift                              = 0;
     VWidth                              = 0.025;
-    clearGSynInterval                   = 0;
     timeConstantTau                     = 100;
     selfInteract                        = true;
     adaptiveTimeScaleProbe              = "AdaptiveTimeScales";
@@ -131,7 +129,6 @@ ANNLayer "Reconstruction" = {
     AMax                                = infinity;
     AShift                              = 0;
     VWidth                              = 0;
-    clearGSynInterval                   = 0;
 };
 
 PvpLayer "Correct" = {
@@ -179,7 +176,6 @@ ANNLayer "Comparison" = {
     AMax                                = infinity;
     AShift                              = 0;
     VWidth                              = 0;
-    clearGSynInterval                   = 0;
 };
 
 IdentConn "InputToResidual" = {
