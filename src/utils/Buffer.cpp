@@ -84,7 +84,7 @@ namespace PV {
                int sourceX = destX + offsetX;
                int sourceY = destY + offsetY;
                if(sourceX < 0 || sourceX >= getWidth())  continue;
-               if(sourceY < 0 || sourceX >= getHeight()) continue;
+               if(sourceY < 0 || sourceY >= getHeight()) continue;
                cropped.set(destX, destY, f, at(sourceX, sourceY, f));
             }
          }
