@@ -2,6 +2,9 @@
 
 namespace PV {
 
+// TODO: Check header[INDEX_FILE_TYPE] and error if it isn't supported
+
+
 // Write a single frame to a pvp file, starting at fStream's location.
 // A pvp file may contain multiple frames.
 template <typename T>
@@ -144,5 +147,18 @@ void BufferIO::appendToPvp(string fName,
    fStream->closeFile();
 }
 
+template <typename T>
+double BufferIO::readFromPvp(string fName,
+                           Buffer<T> *buffer,
+                           int frameReadIndex) {
+   FileStream *fStream =
+      new FileStream(fName.c_str(),
+                     std::ios_base::in
+                    |std::ios_base::binary,
+                     false);
+   double timeStamp = readFrame<T>(fStream, buffer, frameReadIndex);
+   fStream->closeFile();
+   return timeStamp;
+}
 
 }
