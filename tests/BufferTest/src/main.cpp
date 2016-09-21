@@ -1,14 +1,16 @@
-#include "utils/RealBuffer.hpp"
+#include "utils/Buffer.hpp"
+#include "utils/BufferUtils.hpp"
 #include "utils/PVLog.hpp"
 
 #include <vector>
 
-using PV::RealBuffer;
+using PV::Buffer;
+namespace BufferUtils = PV::BufferUtils;
 
 // Buffer::at(int x, int y, int feature)
 // Buffer::set(int x, int y, int feature, float value)
 void testAtSet() {
-   RealBuffer testBuffer(3, 2, 4);
+   Buffer<float> testBuffer(3, 2, 4);
    pvErrorIf(testBuffer.at(1, 1, 1) != 0.0f, "Failed.\n");
 
    float v = 0;
@@ -33,7 +35,7 @@ void testSetVector() {
          4.0f, 5.0f,
          6.0f, 7.0f
       };
-   RealBuffer testBuffer(testVector, 2, 2, 2);
+   Buffer<float> testBuffer(testVector, 2, 2, 2);
    float v = 0;
    for(int y = 0; y < 2; ++y) {
       for(int x = 0; x < 2; ++x) {
@@ -47,7 +49,7 @@ void testSetVector() {
 
 // Buffer::asVector()
 void testAsVector() {
-   RealBuffer testBuffer(3, 4, 2);
+   Buffer<float> testBuffer(3, 4, 2);
    std::vector<float> testVector;
    
    float v = 1.0f;
@@ -74,7 +76,7 @@ void testAsVector() {
 
 // Buffer::resize(int width, int height, int features)
 void testResize() {
-   RealBuffer testBuffer(3, 4, 2);
+   Buffer<float> testBuffer(3, 4, 2);
    pvErrorIf(testBuffer.getHeight() != 4,
          "Failed (height): expected 4, found %d instead.\n", testBuffer.getHeight());
    pvErrorIf(testBuffer.getWidth() != 3,
@@ -123,16 +125,16 @@ void testCrop() {
          13.0f, 14.0f, 15.0f, 16.0f
       };
 
-   std::vector<RealBuffer::Anchor> anchors = {
-         RealBuffer::NORTH,     RealBuffer::SOUTH,
-         RealBuffer::EAST,      RealBuffer::WEST,
-         RealBuffer::NORTHEAST, RealBuffer::NORTHWEST,
-         RealBuffer::SOUTHEAST, RealBuffer::SOUTHWEST,
-         RealBuffer::CENTER 
+   std::vector<Buffer<float>::Anchor> anchors = {
+         Buffer<float>::NORTH,     Buffer<float>::SOUTH,
+         Buffer<float>::EAST,      Buffer<float>::WEST,
+         Buffer<float>::NORTHEAST, Buffer<float>::NORTHWEST,
+         Buffer<float>::SOUTHEAST, Buffer<float>::SOUTHWEST,
+         Buffer<float>::CENTER 
       };
 
    // Test cropping to the same size
-   RealBuffer testBuffer(bufferContents, 4, 4, 1);
+   Buffer<float> testBuffer(bufferContents, 4, 4, 1);
    
    for(auto anchor : anchors) {
       testBuffer.set(bufferContents, 4, 4, 1);
@@ -147,55 +149,55 @@ void testCrop() {
 
    // Test each offset anchor
    testBuffer.set(bufferContents, 4, 4, 1);
-   testBuffer.crop(2, 2, RealBuffer::NORTH);
+   testBuffer.crop(2, 2, Buffer<float>::NORTH);
    pvErrorIf(
          testBuffer.at(0, 0, 0) != 2.0f || testBuffer.at(1, 0, 0) != 3.0f,
          "Failed (north).\n");
 
    testBuffer.set(bufferContents, 4, 4, 1);
-   testBuffer.crop(2, 2, RealBuffer::NORTHEAST);
+   testBuffer.crop(2, 2, Buffer<float>::NORTHEAST);
    pvErrorIf(
          testBuffer.at(0, 0, 0) != 3.0f || testBuffer.at(1, 1, 0) != 8.0f,
          "Failed (northeast).\n");
 
    testBuffer.set(bufferContents, 4, 4, 1);
-   testBuffer.crop(2, 2, RealBuffer::EAST);
+   testBuffer.crop(2, 2, Buffer<float>::EAST);
    pvErrorIf(
          testBuffer.at(1, 0, 0) != 8.0f || testBuffer.at(1, 1, 0) != 12.0f,
          "Failed (east).\n");
 
    testBuffer.set(bufferContents, 4, 4, 1);
-   testBuffer.crop(2, 2, RealBuffer::SOUTHEAST);
+   testBuffer.crop(2, 2, Buffer<float>::SOUTHEAST);
    pvErrorIf(
          testBuffer.at(1, 0, 0) != 12.0f || testBuffer.at(0, 1, 0) != 15.0f,
          "Failed (southeast).\n");
    
    testBuffer.set(bufferContents, 4, 4, 1);
-   testBuffer.crop(2, 2, RealBuffer::SOUTH);
+   testBuffer.crop(2, 2, Buffer<float>::SOUTH);
    pvErrorIf(
          testBuffer.at(0, 1, 0) != 14.0f || testBuffer.at(1, 1, 0) != 15.0f,
          "Failed (south).\n");
 
    testBuffer.set(bufferContents, 4, 4, 1);
-   testBuffer.crop(2, 2, RealBuffer::SOUTHWEST);
+   testBuffer.crop(2, 2, Buffer<float>::SOUTHWEST);
    pvErrorIf(
          testBuffer.at(0, 0, 0) != 9.0f || testBuffer.at(1, 1, 0) != 14.0f,
          "Failed (southwest).\n");
 
    testBuffer.set(bufferContents, 4, 4, 1);
-   testBuffer.crop(2, 2, RealBuffer::WEST);
+   testBuffer.crop(2, 2, Buffer<float>::WEST);
    pvErrorIf(
          testBuffer.at(0, 0, 0) != 5.0f || testBuffer.at(0, 1, 0) != 9.0f,
          "Failed (west).\n");
 
    testBuffer.set(bufferContents, 4, 4, 1);
-   testBuffer.crop(2, 2, RealBuffer::NORTHWEST);
+   testBuffer.crop(2, 2, Buffer<float>::NORTHWEST);
    pvErrorIf(
          testBuffer.at(0, 1, 0) != 5.0f || testBuffer.at(1, 0, 0) != 2.0f,
          "Failed (northwest).\n");
    
    testBuffer.set(bufferContents, 4, 4, 1);
-   testBuffer.crop(2, 2, RealBuffer::CENTER);
+   testBuffer.crop(2, 2, Buffer<float>::CENTER);
    pvErrorIf(
          testBuffer.at(0, 0, 0) != 6.0f || testBuffer.at(1, 1, 0) != 11.0f,
          "Failed (center).\n");
@@ -204,34 +206,34 @@ void testCrop() {
  
    testBuffer.set(bufferContents, 4, 4, 1);
    testBuffer.translate(-1, 0);
-   testBuffer.crop(2, 2, RealBuffer::CENTER);
+   testBuffer.crop(2, 2, Buffer<float>::CENTER);
    pvErrorIf(
          testBuffer.at(0, 0, 0) != 7.0f || testBuffer.at(1, 1, 0) != 12.0f,
          "Failed (offsetX = 1).\n");
 
    testBuffer.set(bufferContents, 4, 4, 1);
    testBuffer.translate(1, 0);
-   testBuffer.crop(2, 2, RealBuffer::EAST);
+   testBuffer.crop(2, 2, Buffer<float>::EAST);
    pvErrorIf(
          testBuffer.at(0, 0, 0) != 6.0f || testBuffer.at(1, 1, 0) != 11.0f,
          "Failed (offsetX = -1).\n");
 
    testBuffer.set(bufferContents, 4, 4, 1);
    testBuffer.translate(0, -1);
-   testBuffer.crop(2, 2, RealBuffer::NORTHWEST);
+   testBuffer.crop(2, 2, Buffer<float>::NORTHWEST);
    pvErrorIf(
          testBuffer.at(0, 0, 0) != 5.0f || testBuffer.at(1, 1, 0) != 10.0f,
          "Failed (offsetY = 1).\n");
  
    testBuffer.set(bufferContents, 4, 4, 1);
    testBuffer.translate(0, 1);
-   testBuffer.crop(2, 2, RealBuffer::SOUTH);
+   testBuffer.crop(2, 2, Buffer<float>::SOUTH);
    pvErrorIf(
          testBuffer.at(0, 0, 0) != 6.0f || testBuffer.at(1, 1, 0) != 11.0f,
          "Failed (offsetY = -1).\n");
 }
 
-// Buffer::rescale(int targetRows, int targetColumns, enum RescaleMethod rescaleMethod, enum InterpolationMethod interpMethod, enum OffsetAnchor offsetAnchor)
+// BufferUtils::rescale(Buffer<float> &buffer, int targetRows, int targetColumns, enum RescaleMethod rescaleMethod, enum InterpolationMethod interpMethod, enum OffsetAnchor offsetAnchor)
 void testRescale() {
 
    std::vector<float> testData = {
@@ -271,11 +273,11 @@ void testRescale() {
    };
 
 
-   RealBuffer testBuffer(testData, 8, 8, 1);
+   Buffer<float> testBuffer(testData, 8, 8, 1);
 
    // Test nearest neighbor scaling. Rescale method will not be
    // used here because the aspect ratio is the same.
-   testBuffer.rescale(4, 4, RealBuffer::PAD, RealBuffer::NEAREST, RealBuffer::CENTER);
+   BufferUtils::rescale(testBuffer, 4, 4, BufferUtils::PAD, BufferUtils::NEAREST, Buffer<float>::CENTER);
    std::vector<float> nearest = testBuffer.asVector();
 
    pvErrorIf(nearest.size() != answerNearest.size(),
@@ -289,7 +291,7 @@ void testRescale() {
  
    // Test Buffer::CROP resizeMethod
    testBuffer.set(testData, 8, 8, 1);
-   testBuffer.rescale(8, 4, RealBuffer::CROP, RealBuffer::NEAREST, RealBuffer::CENTER);
+   BufferUtils::rescale(testBuffer, 8, 4, BufferUtils::CROP, BufferUtils::NEAREST, Buffer<float>::CENTER);
    std::vector<float> cropped = testBuffer.asVector();
    pvErrorIf(cropped.size() != answerCrop.size(),
          "Failed (Size). Expected %d elements, found %d.\n",
@@ -302,7 +304,7 @@ void testRescale() {
    
    // Test Buffer::PAD resizeMethod
    testBuffer.set(testData, 8, 8, 1);
-   testBuffer.rescale(4, 8, RealBuffer::PAD, RealBuffer::NEAREST, RealBuffer::CENTER);
+   BufferUtils::rescale(testBuffer, 4, 8, BufferUtils::PAD, BufferUtils::NEAREST, Buffer<float>::CENTER);
    std::vector<float> padded = testBuffer.asVector();
    pvErrorIf(padded.size() != answerPad.size(),
          "Failed (Size). Expected %d elements, found %d.\n",
@@ -335,7 +337,7 @@ int main(int argc, char** argv) {
    testCrop();
    pvInfo() << "Completed.\n";
 
-   pvInfo() << "Testing Buffer::rescale(): ";
+   pvInfo() << "Testing BufferUtils::rescale(): ";
    testRescale();
    pvInfo() << "Completed.\n";
   

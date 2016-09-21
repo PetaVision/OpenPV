@@ -12,7 +12,7 @@ namespace PV {
       initialize(name, hc);
    }
 
-   RealBuffer ImageLayer::retrieveData(std::string filename, int batchIndex)  {
+   Buffer<float> ImageLayer::retrieveData(std::string filename, int batchIndex)  {
       readImage(filename);
       if (mImage->getFeatures() != getLayerLoc()->nf) {
          switch(getLayerLoc()->nf) {
@@ -38,7 +38,7 @@ namespace PV {
          }
       }
 
-      RealBuffer result(mImage->asVector(), mImage->getWidth(), mImage->getHeight(), getLayerLoc()->nf);
+      Buffer<float> result(mImage->asVector(), mImage->getWidth(), mImage->getHeight(), getLayerLoc()->nf);
       return result;
    }
 

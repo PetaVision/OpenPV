@@ -5,7 +5,8 @@
 
 #include "HyPerLayer.hpp"
 #include "columns/HyPerCol.hpp"
-#include "utils/RealBuffer.hpp"
+#include "utils/Buffer.hpp"
+#include "utils/BufferUtils.hpp"
 #include "utils/BatchIndexer.hpp"
 
 #include <memory>
@@ -114,7 +115,7 @@ namespace PV {
 
          // This pure virtual function gets called from nextInput by the root process only.
          // Load the input file from disk in this method.
-         virtual RealBuffer retrieveData(std::string filename, int batchIndex) = 0;
+         virtual Buffer<float> retrieveData(std::string filename, int batchIndex) = 0;
          void nextInput(double timef, double dt);
          void initializeBatchIndexer(int fileCount);
 
@@ -137,17 +138,17 @@ namespace PV {
          std::string getFileName(int batchIndex) { return mBatchIndexer != nullptr ? mFileList.at(mBatchIndexer->getIndices().at(batchIndex)) : 0; }
       private:
          void populateFileList();
-         void fitBufferToLayer(RealBuffer &buffer);
+         void fitBufferToLayer(Buffer<float> &buffer);
 
       protected:
          // If mAutoResizeFlag is enabled, do we crop the edges or pad the edges with mPadValue?
-         RealBuffer::RescaleMethod mRescaleMethod;
+         BufferUtils::RescaleMethod mRescaleMethod;
 
          // If mAutoResizeFlag is enabled, do we rescale with bicubic or nearest neighbor filtering?
-         RealBuffer::InterpolationMethod mInterpolationMethod = RealBuffer::BICUBIC;
+         BufferUtils::InterpolationMethod mInterpolationMethod = BufferUtils::BICUBIC;
 
          // When cropping or resizing, which side of the canvas is the origin?
-         RealBuffer::Anchor mAnchor = RealBuffer::CENTER;
+         Buffer<float>::Anchor mAnchor = Buffer<float>::CENTER;
 
          // Flag that enables rescaling input buffer to layer dimensions instead of just cropping
          bool mAutoResizeFlag = false;
@@ -175,7 +176,7 @@ namespace PV {
 
       private:
          // Raw data read from disk, one per batch
-         std::vector<RealBuffer> mInputData;
+         std::vector< Buffer<float> > mInputData;
          
          // MPI datatypes for boundary exchange
          MPI_Datatype* mDatatypes = nullptr;

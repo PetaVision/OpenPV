@@ -28,7 +28,7 @@ namespace PV {
       return status;
    }
 
-   RealBuffer PvpLayer::retrieveData(std::string filename, int batchIndex) {
+   Buffer<float> PvpLayer::retrieveData(std::string filename, int batchIndex) {
       PV_Stream *pvpFile = pvp_open_read_file(filename.c_str(), parent->getCommunicator()); 
       pvErrorIf(pvpFile == nullptr, "Could not open %s\n", filename.c_str());
 
@@ -87,7 +87,7 @@ namespace PV {
       }
 
       int fileType = params[INDEX_FILE_TYPE];
-      RealBuffer result;
+      Buffer<float> result;
       switch(fileType) {
          case PVP_ACT_FILE_TYPE:
             result = readSparseBinaryActivityFrame(numParams, params, pvpFile, frameNumber);
@@ -108,7 +108,7 @@ namespace PV {
       return result;
    }
 
-   RealBuffer PvpLayer::readSparseBinaryActivityFrame(int numParams, int * params, PV_Stream * pvstream, int frameNumber) {
+   Buffer<float> PvpLayer::readSparseBinaryActivityFrame(int numParams, int * params, PV_Stream * pvstream, int frameNumber) {
 
       // Allocate the byte positions in file where each frame's data starts and the number of active neurons in each frame
       // Only need to do this once
@@ -167,10 +167,10 @@ namespace PV {
       for(unsigned int l = 0; l < length; l++) {
          data.at(locations[l]) = 1.0f;
       }
-      return RealBuffer(data, width, height, features);
+      return Buffer<float>(data, width, height, features);
    }
 
-   RealBuffer PvpLayer::readSparseValuesActivityFrame(int numParams, int * params, PV_Stream * pvstream, int frameNumber) {
+   Buffer<float> PvpLayer::readSparseValuesActivityFrame(int numParams, int * params, PV_Stream * pvstream, int frameNumber) {
       
       // Allocate the byte positions in file where each frame's data starts and the number of active neurons in each frame
       // Only need to do this once
@@ -234,10 +234,10 @@ namespace PV {
       for(unsigned int l = 0; l < length; l++) {
          data.at(locvalues[l].location) = locvalues[l].value;
       }
-      return RealBuffer(data, width, height, features);
+      return Buffer<float>(data, width, height, features);
    }
 
-   RealBuffer PvpLayer::readNonspikingActivityFrame(int numParams, int * params, PV_Stream * pvstream, int frameNumber) {
+   Buffer<float> PvpLayer::readNonspikingActivityFrame(int numParams, int * params, PV_Stream * pvstream, int frameNumber) {
       int recordsize = params[INDEX_RECORD_SIZE];
       int datasize   = params[INDEX_DATA_SIZE];
       int framesize  = recordsize * datasize + 8; // What is this magic number?
@@ -261,6 +261,6 @@ namespace PV {
       std::vector<float> data(width * height * features);
       size_t numRead = PV_fread(data.data(), sizeof(float), data.size(), pvstream);
       pvErrorIf(numRead != data.size(), "Expected to read %d values, found %d instead.\n", data.size(), numRead);
-      return RealBuffer(data, width, height, features);
+      return Buffer<float>(data, width, height, features);
    }
 }

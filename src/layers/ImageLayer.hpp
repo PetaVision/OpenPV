@@ -9,7 +9,7 @@ namespace PV {
 
    protected:
       ImageLayer() {}
-      virtual RealBuffer retrieveData(std::string filename, int batchIndex);
+      virtual Buffer<float> retrieveData(std::string filename, int batchIndex);
       void readImage(std::string filename);
 
    public:

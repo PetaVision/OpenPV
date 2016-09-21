@@ -24,10 +24,10 @@ void testReadFromPvp() {
             "input/input_8x4x2_x3.pvp",
             &testBuffer,
             frame);
+      
       pvErrorIf(timeVal != (double)frame + 1,
             "Failed on frame %d. Expected time %d, found %d.\n",
             frame, frame + 1, (int)timeVal);
-      
       pvErrorIf(testBuffer.getWidth() != 8,
             "Failed on frame %d. Expected width to be 8, found %d.\n",
             frame, testBuffer.getWidth());
@@ -52,6 +52,7 @@ void testReadFromPvp() {
 }
 
 void testWriteToPvp() {
+
    // This test builds a buffer, writes it to
    // disk, and then reads it back in to verify
    // its contents. The result of this test can
@@ -81,7 +82,6 @@ void testWriteToPvp() {
 
    // Now that we've written our pvp file, read it in
    // and check that it's correct
-
    for (int frame = 0; frame < 3; ++frame) {
       RealBuffer testBuffer;
       double timeVal = BufferIO::readFromPvp<float>(
@@ -93,7 +93,6 @@ void testWriteToPvp() {
       pvErrorIf(timeVal != (double)frame + 1,
             "Failed on frame %d. Expected time %d, found %d.\n",
             frame, frame + 1, (int)timeVal);
-      
       pvErrorIf(testBuffer.getWidth() != 8,
             "Failed on frame %d. Expected width to be 8, found %d.\n",
             frame, testBuffer.getWidth());
@@ -119,8 +118,6 @@ void testWriteToPvp() {
 
 
 int main(int argc, char **argv) {
-
-   // TODO: Test reading header first
 
    pvInfo() << "Testing BufferIO:readFromPvp(): ";
    testReadFromPvp();

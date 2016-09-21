@@ -164,7 +164,7 @@ namespace PV {
       const PVHalo *halo = &loc->halo;
       int activityWidth = loc->nx + (mUseInputBCflag ? halo->lt + halo->rt : 0);
       int activityHeight = loc->ny + (mUseInputBCflag ? halo->up + halo->dn : 0);
-      RealBuffer croppedBuffer;
+      Buffer<float> croppedBuffer;
       BufferSlicer<float> slicer(parent->getCommunicator());
 
       if (rank == 0) {
@@ -202,7 +202,7 @@ namespace PV {
       return PV_SUCCESS;
    }
 
-   void InputLayer::fitBufferToLayer(RealBuffer &buffer) {
+   void InputLayer::fitBufferToLayer(Buffer<float> &buffer) {
       pvAssert(parent->columnId() == 0);
       const PVLayerLoc *loc = getLayerLoc();
       const PVHalo *halo = &loc->halo;
@@ -214,7 +214,7 @@ namespace PV {
             getName(), buffer.getFeatures(), loc->nf);
 
       if (mAutoResizeFlag) {
-         buffer.rescale(targetWidth, targetHeight, mRescaleMethod, mInterpolationMethod, mAnchor); 
+         BufferUtils::rescale(buffer, targetWidth, targetHeight, mRescaleMethod, mInterpolationMethod, mAnchor); 
          buffer.translate(-mOffsetX, -mOffsetY);
       }
       else {
@@ -480,31 +480,31 @@ namespace PV {
             pvError() << "Invalid value for offsetAnchor\n";
          }
          if (strcmp(offsetAnchor, "tl") == 0) {
-            mAnchor = RealBuffer::NORTHWEST;
+            mAnchor = Buffer<float>::NORTHWEST;
          }
          else if (strcmp(offsetAnchor, "tc") == 0) {
-            mAnchor = RealBuffer::NORTH;
+            mAnchor = Buffer<float>::NORTH;
          }
          else if (strcmp(offsetAnchor, "tr") == 0) {
-            mAnchor = RealBuffer::NORTHEAST;
+            mAnchor = Buffer<float>::NORTHEAST;
          }
          else if (strcmp(offsetAnchor, "cl") == 0) {
-            mAnchor = RealBuffer::WEST;
+            mAnchor = Buffer<float>::WEST;
          }
          else if (strcmp(offsetAnchor, "cc") == 0) {
-            mAnchor = RealBuffer::CENTER;
+            mAnchor = Buffer<float>::CENTER;
          }
          else if (strcmp(offsetAnchor, "cr") == 0) {
-            mAnchor = RealBuffer::EAST;
+            mAnchor = Buffer<float>::EAST;
          }
          else if (strcmp(offsetAnchor, "bl") == 0) { 
-            mAnchor = RealBuffer::SOUTHWEST;
+            mAnchor = Buffer<float>::SOUTHWEST;
          }
          else if (strcmp(offsetAnchor, "bc") == 0) {
-            mAnchor = RealBuffer::SOUTH;
+            mAnchor = Buffer<float>::SOUTH;
          }
          else if (strcmp(offsetAnchor, "br") == 0) {
-            mAnchor = RealBuffer::SOUTHEAST;
+            mAnchor = Buffer<float>::SOUTHEAST;
          }
          else {
             if (parent->columnId()==0) {
@@ -520,36 +520,36 @@ namespace PV {
          char *offsetAnchor = (char*)calloc(3, sizeof(char));
          offsetAnchor[2] = '\0';
          switch (mAnchor) {
-            case RealBuffer::NORTH:
-            case RealBuffer::NORTHWEST:
-            case RealBuffer::NORTHEAST:
+            case Buffer<float>::NORTH:
+            case Buffer<float>::NORTHWEST:
+            case Buffer<float>::NORTHEAST:
                offsetAnchor[0] = 't';
                break;
-            case RealBuffer::WEST:
-            case RealBuffer::CENTER:
-            case RealBuffer::EAST:
+            case Buffer<float>::WEST:
+            case Buffer<float>::CENTER:
+            case Buffer<float>::EAST:
                offsetAnchor[0] = 'c';
                break;
-            case RealBuffer::SOUTHWEST:
-            case RealBuffer::SOUTH:
-            case RealBuffer::SOUTHEAST:
+            case Buffer<float>::SOUTHWEST:
+            case Buffer<float>::SOUTH:
+            case Buffer<float>::SOUTHEAST:
                offsetAnchor[0] = 'b';
                break;
          }
          switch (mAnchor) {
-            case RealBuffer::NORTH:
-            case RealBuffer::CENTER:
-            case RealBuffer::SOUTH:
+            case Buffer<float>::NORTH:
+            case Buffer<float>::CENTER:
+            case Buffer<float>::SOUTH:
                offsetAnchor[1] = 'c';
                break;
-            case RealBuffer::EAST:
-            case RealBuffer::NORTHEAST:
-            case RealBuffer::SOUTHEAST:
+            case Buffer<float>::EAST:
+            case Buffer<float>::NORTHEAST:
+            case Buffer<float>::SOUTHEAST:
                offsetAnchor[1] = 'l';
                break;
-            case RealBuffer::WEST:
-            case RealBuffer::NORTHWEST:
-            case RealBuffer::SOUTHWEST:
+            case Buffer<float>::WEST:
+            case Buffer<float>::NORTHWEST:
+            case Buffer<float>::SOUTHWEST:
                offsetAnchor[1] = 'r';
                break;
          }
@@ -568,10 +568,10 @@ namespace PV {
          char *aspectRatioAdjustment = nullptr;
          if (ioFlag == PARAMS_IO_WRITE) {
             switch (mRescaleMethod) {
-               case RealBuffer::CROP:
+               case BufferUtils::CROP:
                   aspectRatioAdjustment = strdup("crop");
                   break;
-               case RealBuffer::PAD:
+               case BufferUtils::PAD:
                   aspectRatioAdjustment = strdup("pad");
                   break;
             }
@@ -582,9 +582,9 @@ namespace PV {
             for (char * c = aspectRatioAdjustment; *c; c++) { *c = tolower(*c); }
          }
          if (strcmp(aspectRatioAdjustment, "crop") == 0) {
-            mRescaleMethod = RealBuffer::CROP; }
+            mRescaleMethod = BufferUtils::CROP; }
          else if (strcmp(aspectRatioAdjustment, "pad") == 0) {
-            mRescaleMethod = RealBuffer::PAD;
+            mRescaleMethod = BufferUtils::PAD;
          }
          else {
             if (parent->columnId()==0) {
@@ -607,10 +607,10 @@ namespace PV {
             assert(interpolationMethodString);
             for (char * c = interpolationMethodString; *c; c++) { *c = tolower(*c); }
             if (!strncmp(interpolationMethodString, "bicubic", strlen("bicubic"))) {
-               mInterpolationMethod = RealBuffer::BICUBIC;
+               mInterpolationMethod = BufferUtils::BICUBIC;
             }
             else if (!strncmp(interpolationMethodString, "nearestneighbor", strlen("nearestneighbor"))) {
-               mInterpolationMethod = RealBuffer::NEAREST;
+               mInterpolationMethod = BufferUtils::NEAREST;
             }
             else {
                if (parent->columnId()==0) {
@@ -624,10 +624,10 @@ namespace PV {
          else {
             assert(ioFlag == PARAMS_IO_WRITE);
             switch (mInterpolationMethod) {
-            case RealBuffer::BICUBIC:
+            case BufferUtils::BICUBIC:
                interpolationMethodString = strdup("bicubic");
                break;
-            case RealBuffer::NEAREST:
+            case BufferUtils::NEAREST:
                interpolationMethodString = strdup("nearestNeighbor");
                break;
             }
