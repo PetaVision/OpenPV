@@ -128,7 +128,6 @@ IdentConn "GeneratedMovieToComparison" = {
     // initWeightsFile                     was set to (NULL);
     writeStep                           = -1;
     gpuGroupIdx                         = 0;
-    preDataLocal                        = false;
     numXLocal                           = 0;
     numYLocal                           = 0;
     numFLocal                           = 0;
@@ -143,7 +142,6 @@ IdentConn "OriginalMovieToComparison" = {
     // initWeightsFile                     was set to (NULL);
     writeStep                           = -1;
     gpuGroupIdx                         = 0;
-    preDataLocal                        = false;
     numXLocal                           = 0;
     numYLocal                           = 0;
     numFLocal                           = 0;

@@ -109,7 +109,6 @@ HyPerConn "InputToOutput" = {
     keepKernelsSynchronized             = true;
     useMask                             = false;
     gpuGroupIdx                         = 0;
-    preDataLocal                        = false;
     numXLocal                           = 0;
     numYLocal                           = 0;
     numFLocal                           = 0;

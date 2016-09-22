@@ -215,7 +215,6 @@ TransposeConn "TransposeConn1_1" = {
     pvpatchAccumulateType = "convolve";
     updateGSynFromPostPerspective = true;
     receiveGpu = true;
-    preDataLocal = false;
 };
 
 TransposeConn "TransposeConn1_2" = {
@@ -230,7 +229,6 @@ TransposeConn "TransposeConn1_2" = {
     pvpatchAccumulateType = "convolve";
     updateGSynFromPostPerspective = true;
     receiveGpu = true;
-    preDataLocal = false;
 };
 
 HyPerConn "origConn_2" = {
@@ -250,7 +248,6 @@ TransposeConn "TransposeConn2_1" = {
     pvpatchAccumulateType = "convolve";
     updateGSynFromPostPerspective = true;
     receiveGpu = true;
-    preDataLocal = false;
 };
 
 IdentConn "RecvTest1_1" = {
