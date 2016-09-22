@@ -43,7 +43,9 @@ namespace PV {
             for (int kx=0; kx<widthOut; kx++) {
                int xfetch = xinteger[kx];
                for (int f=0; f<numBands; f++) {
-                  int fetchIdx = yfetch * yStrideIn + xfetch * xStrideIn + f * bandStrideIn;
+                  int fetchIdx = yfetch * yStrideIn
+                               + xfetch * xStrideIn
+                               + f * bandStrideIn;
                   int outputIdx = kIndex(kx, ky, f, widthOut, heightOut, numBands);
                   bufferOut[outputIdx] = bufferIn[fetchIdx];
                }
@@ -57,7 +59,8 @@ namespace PV {
             float * bufferOut,
             int widthOut,  int heightOut) {
 
-         /* Interpolation using bicubic convolution with a=-1 (following Octave image toolbox's imremap function -- change this?). */
+         // Interpolation using bicubic convolution with a = -1
+         // (following Octave image toolbox's imremap function - change this?)
          float xinterp[widthOut];
          int xinteger[widthOut];
          float xfrac[widthOut];
@@ -189,6 +192,5 @@ namespace PV {
                break;
          }
       }
-
    } // End BufferUtils namespace
 } // End PV namespace

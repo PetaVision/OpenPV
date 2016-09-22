@@ -1,11 +1,11 @@
-#include "utils/RealBuffer.hpp"
+#include "utils/Buffer.hpp"
 #include "utils/PVLog.hpp"
 #include "io/BufferIO.hpp"
 
 #include <vector>
 
 using PV::BufferIO;
-using PV::RealBuffer;
+using PV::Buffer;
 using std::vector;
 
 void testReadFromPvp() {
@@ -19,7 +19,7 @@ void testReadFromPvp() {
       for (int i = 0; i < 8 * 4 * 2; ++i) {
          testData.at(i) = val++;
       }
-      RealBuffer testBuffer;
+      Buffer<float> testBuffer;
       double timeVal = BufferIO::readFromPvp<float>(
             "input/input_8x4x2_x3.pvp",
             &testBuffer,
@@ -65,7 +65,7 @@ void testWriteToPvp() {
          testData.at(i) = val++;
       }
       allFrames.at(frame) = testData;
-      RealBuffer outBuffer(testData, 8, 4, 2);
+      Buffer<float> outBuffer(testData, 8, 4, 2);
  
       if (frame == 0) {
          BufferIO::writeToPvp<float>("test.pvp",
@@ -83,7 +83,7 @@ void testWriteToPvp() {
    // Now that we've written our pvp file, read it in
    // and check that it's correct
    for (int frame = 0; frame < 3; ++frame) {
-      RealBuffer testBuffer;
+      Buffer<float> testBuffer;
       double timeVal = BufferIO::readFromPvp<float>(
             "test.pvp",
             &testBuffer,

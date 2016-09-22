@@ -5,11 +5,11 @@
 // These defines are required by the stb headers
 #ifndef STB_IMAGE_IMPLEMENTATION
 #   define STB_IMAGE_IMPLEMENTATION 
-#   include "stb_image.h"
+#   include "io/stb_image.h"
 #endif
 #ifndef STB_IMAGE_WRITE_IMPLEMENTATION
 #   define STB_IMAGE_WRITE_IMPLEMENTATION
-#   include "stb_image_write.h"
+#   include "io/stb_image_write.h"
 #endif
 
 namespace PV {
@@ -75,7 +75,7 @@ namespace PV {
          }
          else {
             // We are already grayscale, but we're adding or removing an alpha channel
-            RealBuffer grayScale(getWidth(), getHeight(), alphaChannel ? 2 : 1);
+            Buffer<float> grayScale(getWidth(), getHeight(), alphaChannel ? 2 : 1);
             for (int y = 0; y < getHeight(); ++y) {
                for (int x = 0; x < getWidth(); ++x) {
                   grayScale.set(x, y, 0, at(x, y, 0));
@@ -92,7 +92,7 @@ namespace PV {
          // We're currently RGB or RGBA and need to be Grayscale or Grayscale + Alpha
          // RGB weights from <https://en.wikipedia.org/wiki/Grayscale>, citing Pratt, Digital Image Processing
          const float rgbWeights[3] = { mRToGray, mGToGray, mBToGray };//{0.30f, 0.59f, 0.11f};
-         RealBuffer grayScale(getWidth(), getHeight(), alphaChannel ? 2 : 1);
+         Buffer<float> grayScale(getWidth(), getHeight(), alphaChannel ? 2 : 1);
 
          for (int y = 0; y < getHeight(); ++y) {
             for (int x = 0; x < getWidth(); ++x) {
@@ -124,7 +124,7 @@ namespace PV {
          }
          else {
             // We're already color, but we're adding or removing an alpha channel
-            RealBuffer color(getWidth(), getHeight(), alphaChannel ? 4 : 3);
+            Buffer<float> color(getWidth(), getHeight(), alphaChannel ? 4 : 3);
             for (int y = 0; y < getHeight(); ++y) {
                for (int x = 0; x < getWidth(); ++x) {
                   color.set(x, y, mRPos, at(x, y, mRPos));
@@ -140,7 +140,7 @@ namespace PV {
       }
       else {
          // We're converting a grayscale image to color
-         RealBuffer color(getWidth(), getHeight(), alphaChannel ? 4 : 3);
+         Buffer<float> color(getWidth(), getHeight(), alphaChannel ? 4 : 3);
          for (int y = 0; y < getHeight(); ++y) {
             for (int x = 0; x < getWidth(); ++x) {
                float val = at(x, y, 0);

@@ -1,4 +1,4 @@
-#include "utils/RealBuffer.hpp"
+#include "utils/Buffer.hpp"
 #include "utils/BufferSlicer.hpp"
 #include "utils/PVLog.hpp"
 #include "columns/PV_Arguments.hpp"
@@ -7,7 +7,7 @@
 
 #include <vector>
 
-using PV::RealBuffer;
+using PV::Buffer;
 using PV::BufferSlicer;
 using PV::PV_Arguments;
 using PV::Communicator;
@@ -28,7 +28,7 @@ void testRestricted(int argc, char** argv) {
    unsigned int sliceX = 4 / comm->numCommColumns();
    unsigned int sliceY = 4 / comm->numCommRows();
 
-   RealBuffer dataBuffer;
+   Buffer<float> dataBuffer;
 
    // Send / receive the test data, depending on what rank we are
    vector<float> result;
@@ -129,7 +129,7 @@ void testExtended(int argc, char** argv) {
    unsigned int sliceX = 4 / comm->numCommColumns();
    unsigned int sliceY = 4 / comm->numCommRows();
 
-   RealBuffer dataBuffer;
+   Buffer<float> dataBuffer;
 
    // Send / receive the test data, depending on what rank we are
    vector<float> result;

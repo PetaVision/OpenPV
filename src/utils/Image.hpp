@@ -4,14 +4,14 @@
 #ifndef __IMAGE_HPP__
 #define __IMAGE_HPP__
 
-#include "RealBuffer.hpp"
+#include "Buffer.hpp"
 
 #include <string>
 #include <vector>
 
 namespace PV {
    
-   class Image : public RealBuffer { 
+   class Image : public Buffer<float> { 
       public:
          Image(std::string filename);
          Image(const std::vector<float> &data, int width, int height, int channels);
