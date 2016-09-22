@@ -8,7 +8,7 @@
 #ifndef SHRUNKENPATCHTESTPROBE_HPP_
 #define SHRUNKENPATCHTESTPROBE_HPP_
 
-#include <io/StatsProbe.hpp>
+#include "probes/StatsProbe.hpp"
 
 namespace PV {
 

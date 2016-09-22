@@ -4,9 +4,9 @@
  */
 
 
-#include <columns/buildandrun.hpp>
-#include <io/RequireAllZeroActivityProbe.hpp>
-#include <layers/InputLayer.hpp>
+#include "columns/buildandrun.hpp"
+#include "probes/RequireAllZeroActivityProbe.hpp"
+#include "layers/InputLayer.hpp"
 
 #define CORRECT_PVP_NX 1440 // The x-dimension in the "correct.pvp" file.  Needed by generate()
 #define CORRECT_PVP_NY 960 // The y-dimension in the "correct.pvp" file.  Needed by generate()

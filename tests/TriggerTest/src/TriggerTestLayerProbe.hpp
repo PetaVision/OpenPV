@@ -5,7 +5,7 @@
 
 #ifndef TRIGGERTESTLAYERPROBE_HPP_
 #define TRIGGERTESTLAYERPROBE_HPP_ 
-#include <io/LayerProbe.hpp>
+#include "probes/LayerProbe.hpp"
 
 namespace PV{
 

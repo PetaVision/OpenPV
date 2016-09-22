@@ -60,21 +60,21 @@
 #include <connections/TransposeConn.hpp>
 #include <connections/TransposePoolingConn.hpp>
 
-#include <io/AdaptiveTimeScaleProbe.hpp>
-#include <io/ColumnEnergyProbe.hpp>
-#include <io/QuotientColProbe.hpp>
-#include <io/FirmThresholdCostFnLCAProbe.hpp>
-#include <io/FirmThresholdCostFnProbe.hpp>
-#include <io/L0NormLCAProbe.hpp>
-#include <io/L0NormProbe.hpp>
-#include <io/L1NormLCAProbe.hpp>
-#include <io/L1NormProbe.hpp>
-#include <io/L2NormProbe.hpp>
-#include <io/PointLIFProbe.hpp>
-#include <io/PointProbe.hpp>
-#include <io/RequireAllZeroActivityProbe.hpp>
-#include <io/StatsProbe.hpp>
-#include <io/KernelProbe.hpp>
+#include <probes/AdaptiveTimeScaleProbe.hpp>
+#include <probes/ColumnEnergyProbe.hpp>
+#include <probes/QuotientColProbe.hpp>
+#include <probes/FirmThresholdCostFnLCAProbe.hpp>
+#include <probes/FirmThresholdCostFnProbe.hpp>
+#include <probes/L0NormLCAProbe.hpp>
+#include <probes/L0NormProbe.hpp>
+#include <probes/L1NormLCAProbe.hpp>
+#include <probes/L1NormProbe.hpp>
+#include <probes/L2NormProbe.hpp>
+#include <probes/PointLIFProbe.hpp>
+#include <probes/PointProbe.hpp>
+#include <probes/RequireAllZeroActivityProbe.hpp>
+#include <probes/StatsProbe.hpp>
+#include <probes/KernelProbe.hpp>
 
 #include <weightinit/InitWeights.hpp>
 #include <weightinit/InitCocircWeights.hpp>

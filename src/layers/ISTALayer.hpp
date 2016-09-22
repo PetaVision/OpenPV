@@ -9,7 +9,7 @@
 #define ISTALAYER_HPP_
 // TODO: Take care of code duplication between ISTALayer and HyPerLCALayer.
 
-#include <io/AdaptiveTimeScaleProbe.hpp>
+#include "probes/AdaptiveTimeScaleProbe.hpp"
 #include "ANNLayer.hpp"
 
 namespace PV {

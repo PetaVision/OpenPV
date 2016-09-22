@@ -16,7 +16,7 @@
 #include "include/pv_common.h"
 #include "include/pv_types.h"
 #include "io/PVParams.hpp"
-#include "io/BaseConnectionProbe.hpp"
+#include "probes/BaseConnectionProbe.hpp"
 #include "layers/HyPerLayer.hpp"
 #include "utils/Timer.hpp"
 #include <stdlib.h>
