@@ -4,9 +4,9 @@
 
 #include <vector>
 
-using PV::BufferIO;
 using PV::Buffer;
 using std::vector;
+namespace BufferIO = PV::BufferIO;
 
 void testReadFromPvp() {
 

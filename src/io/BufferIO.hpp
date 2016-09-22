@@ -12,8 +12,7 @@ using std::string;
 
 namespace PV {
 
-class BufferIO {
-   public:
+   namespace BufferIO {
       template <typename T>
       static void writeFrame(FileStream *fStream,
                              Buffer<T> *buffer,
@@ -42,7 +41,7 @@ class BufferIO {
                                 int frameReadIndex); 
       static void writeHeader(FileStream *fStream, vector<int> header);
       static vector<int> readHeader(FileStream *fStream);
-};
+   }
 }
 
 #include "BufferIO.tpp"
