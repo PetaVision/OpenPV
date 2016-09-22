@@ -119,7 +119,7 @@ void compareParameterNumericStacks(char const * groupName, PV::ParameterStack * 
          }
       }
       if (!found) {
-         pvError() << "Parameter \"%s\" was found in group \"%s\" of one stack but not the other.\n";
+         pvError() << "Parameter \"" << paramName1 << "\" was found in group \"" << groupName << "\" of one stack but not the other.\n";
       }
    }
    pvAssert(parameterMap.size()==size);
@@ -154,7 +154,7 @@ void compareParameterArrayStacks(char const * groupName, PV::ParameterArrayStack
          }
       }
       if (!found) {
-         pvError() << "Parameter \"%s\" was found in group \"%s\" of one stack but not the other.\n";
+         pvError() << "Parameter \"" << paramName1 << "\" was found in group \"" << groupName << "\" of one stack but not the other.\n";
       }
    }
    pvAssert(parameterArrayMap.size()==size);
@@ -200,7 +200,7 @@ void compareParameterStringStacks(char const * groupName, PV::ParameterStringSta
          }
       }
       if (!found) {
-         pvError() << "Parameter \"%s\" was found in group \"%s\" of one stack but not the other.\n";
+         pvError() << "Parameter \"" << paramName1 << "\" was found in group \"" << groupName << "\" of one stack but not the other.\n";
       }
    }
    pvAssert(parameterStringMap.size()==size);
