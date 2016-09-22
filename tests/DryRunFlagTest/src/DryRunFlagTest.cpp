@@ -3,150 +3,217 @@
  *
  */
 
+#include "AlwaysFailsLayer.hpp"
+#include <columns/buildandrun.hpp>
+#include <utils/PVAssert.hpp>
 #include <sys/types.h>
 #include <unistd.h>
-#include <columns/buildandrun.hpp>
 
-#define PROCESSED_PARAMS "processed.params"
-
-int deleteGeneratedFiles(PV::PV_Init * pv_obj);
-int checkDryRunSet(HyPerCol * hc, int argc, char * argv[]);
-int checkDryRunCleared(HyPerCol * hc, int argc, char * argv[]);
-int checkNumTimesteps(HyPerCol * hc, char const * programName);
-
-int deleteFile(char const * path, PV::PV_Init * pv_obj);
+int deleteOutputDirectory(PV::Communicator * comm);
+void compareParamsFiles(char const * paramsFile1, char const * paramsFile2, PV::Communicator * comm);
+void compareParameterGroups(PV::ParameterGroup * group1, PV::ParameterGroup * group2);
+void compareParameterNumericStacks(char const * groupName, PV::ParameterStack * stack1, PV::ParameterStack * stack2);
+void compareParameterNumeric(char const * groupName, PV::Parameter * parameter1, PV::Parameter * parameter2);
+void compareParameterArrayStacks(char const * groupName, PV::ParameterArrayStack * stack1, PV::ParameterArrayStack * stack2);
+void compareParameterArray(char const * groupName, PV::ParameterArray * array1, PV::ParameterArray * array2);
+void compareParameterStringStacks(char const * groupName, PV::ParameterStringStack * stack1, PV::ParameterStringStack * stack2);
+void compareParameterString(char const * groupName, PV::ParameterString * string1, PV::ParameterString * string2);
 
 int main(int argc, char * argv[]) {
 
    int status = PV_SUCCESS;
 
    PV::PV_Init pv_obj(&argc, &argv, false/*allowUnrecognizedArguments*/);
-
-   if (status != PV_SUCCESS) {
-      pvError().printf("%s: PV_Init::initialize() failed on process with PID=%d\n", argv[0], getpid()); 
-   }
+   pv_obj.registerKeyword("AlwaysFailsLayer", Factory::create<AlwaysFailsLayer>);
 
    pv_obj.setDryRunFlag(true);
 
-   if (pv_obj.getParamsFile()==NULL) {
-      pv_obj.setParams("input/DryRunFlagTest.params");
-   }
-
    if (pv_obj.isExtraProc()) { return EXIT_SUCCESS; }
+
+   pvErrorIf(pv_obj.getParamsFile()!=nullptr, "%s should be called without the -p argument; the necessary params file is hard-coded.\n");
+   pv_obj.setParams("input/DryRunFlagTest.params");
 
    int rank = pv_obj.getCommunicator()->globalCommRank();
 
-   status = deleteGeneratedFiles(&pv_obj);
+   status = deleteOutputDirectory(pv_obj.getCommunicator());
    if (status!=PV_SUCCESS) {
       pvError().printf("%s: error cleaning generated files from any previous run.\n", argv[0]);
    }
 
-   status = rebuildandrun(&pv_obj, NULL, checkDryRunSet);
+   status = buildandrun(&pv_obj);
 
    if (status!=PV_SUCCESS) {
       pvError().printf("%s: running with dry-run flag set failed on process %d.\n", argv[0], rank);
    }
 
-   // Re-run, without the dry-run flag.
-   pv_obj.setDryRunFlag(false);
-   pv_obj.setOutputPath("output-generate");
-   status = rebuildandrun(&pv_obj, NULL, checkDryRunCleared);
-   if (status != PV_SUCCESS) {
-      pvError().printf("%s: running with dry-run flag cleared failed on process %d\n", argv[0], rank);
-   }
-
-   // Run the column with the cleaned-up params file, sending output to directory "output-verify/"
-   pv_obj.setOutputPath("output-verify");
-   pv_obj.setParams("output/pv.params");
-   status = rebuildandrun(&pv_obj, NULL, checkDryRunCleared);
-   if (status != PV_SUCCESS) {
-      pvError().printf("%s: running with processed params file failed on process %d\n", argv[0], rank);
-   }
-
-   // Run Compare.params file to compare the rusults of raw and cleaned-up params files.
-   pv_obj.setOutputPath("output-compare");
-   pv_obj.setParams("input/Compare.params");
-   status = rebuildandrun(&pv_obj, NULL);
-   if (status != PV_SUCCESS) {
-      pvError().printf("%s: running with processed params file failed on process %d\n", argv[0], rank);
-   }
-
-   return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
+   compareParamsFiles("output/pv.params", "input/correct.params", pv_obj.getCommunicator());
 }
 
-int deleteGeneratedFiles(PV::PV_Init * pv_obj) {
-
+int deleteOutputDirectory(PV::Communicator * comm) {
    int status = PV_SUCCESS;
-   if (pv_obj->getCommunicator()->globalCommRank()==0) {
-      char const * filename = NULL;
-
-      if (deleteFile(PROCESSED_PARAMS, pv_obj) != PV_SUCCESS) { status = PV_FAILURE; }
-      if (deleteFile(PROCESSED_PARAMS ".lua", pv_obj) != PV_SUCCESS) { status = PV_FAILURE; }
+   if (comm->globalCommRank()==0) {
       if (system("rm -rf output") != PV_SUCCESS) { status = PV_FAILURE; }
-      if (system("rm -rf output-generate") != PV_SUCCESS) { status = PV_FAILURE; }
-      if (system("rm -rf output-verify") != PV_SUCCESS) { status = PV_FAILURE; }
    }
-   MPI_Bcast(&status, 1, MPI_INT, 0, pv_obj->getCommunicator()->communicator());
+   MPI_Bcast(&status, 1, MPI_INT, 0, comm->communicator());
    return status;
 }
 
-int deleteFile(char const * path, PV::PV_Init * pv_obj) {
-   // Only root process calls this function, since it does I/O
-#ifndef NDEBUG
-   int rank;
-   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-   pvErrorIf(!(rank==0), "Test failed.\n");
-#endif // NDEBUG
+void compareParamsFiles(char const * paramsFile1, char const * paramsFile2, PV::Communicator * comm) {
+   PV::PVParams params1{paramsFile1, INITIAL_LAYER_ARRAY_SIZE, comm};
+   PV::PVParams params2{paramsFile2, INITIAL_LAYER_ARRAY_SIZE, comm};
 
-   int status = unlink(path);
-   if (status != 0 && errno != ENOENT) {
-      pvErrorNoExit().printf("%s: error deleting %s: %s\n", pv_obj->getProgramName(), path, strerror(errno));
-      status = PV_FAILURE;
+   // create a map between groups in paramsFile1 and those in paramsFile2.
+   std::map<PV::ParameterGroup*, PV::ParameterGroup*> parameterGroupMap;
+   char const * groupName = nullptr;
+   for(int idx=0; groupName = params1.groupNameFromIndex(idx); idx++) {
+      PV::ParameterGroup * g1 = params1.group(groupName);
+      PV::ParameterGroup * g2 = params2.group(groupName);
+      pvErrorIf(g2==nullptr, "Group name \"%s\" is in \"%s\" but not in \"%s\".\n", groupName, paramsFile1, paramsFile2);
+      parameterGroupMap.emplace(std::make_pair(g1, g2));
    }
-   else {
-      status = PV_SUCCESS;
+   for(int idx=0; groupName = params2.groupNameFromIndex(idx); idx++) {
+      pvErrorIf(params1.group(groupName)==nullptr, "Group name \"%s\" is in \"%s\" but not in \"%s\".\n", groupName, paramsFile2, paramsFile1);
    }
-   return PV_SUCCESS;
+
+   for (auto& p : parameterGroupMap) {
+      compareParameterGroups(p.first, p.second);
+   }
+   return;
 }
 
-int checkDryRunSet(HyPerCol * hc, int argc, char * argv[]) {
-   pvErrorIf(!(argc>=1), "Test failed.\n");
-   int status = checkNumTimesteps(hc, argv[0]);
-   if (hc->getCurrentStep() != hc->getInitialStep()) {
-      if (hc->columnId()==0) {
-         pvErrorNoExit().printf("%s failed: with dry-run flag set, initialStep was %ld but currentStep was %ld\n",
-                 argv[0], hc->getInitialStep(), hc->getCurrentStep());
+void compareParameterGroups(PV::ParameterGroup * group1, PV::ParameterGroup * group2) {
+   pvAssert(!strcmp(group1->name(), group2->name()));
+   pvErrorIf(strcmp(group1->getGroupKeyword(), group2->getGroupKeyword()),
+         "Keywords for group \"%s\" do not match (\"%s\" versus \"%s\").\n",
+         group1->name(), group1->getGroupKeyword(), group2->getGroupKeyword());
+   PV::ParameterStack * numericStack1 = group1->copyStack();
+   PV::ParameterStack * numericStack2 = group2->copyStack();
+   compareParameterNumericStacks(group1->name(), numericStack1, numericStack2);
+
+   PV::ParameterArrayStack * arrayStack1 = group1->copyArrayStack();
+   PV::ParameterArrayStack * arrayStack2 = group2->copyArrayStack();
+   compareParameterArrayStacks(group1->name(), arrayStack1, arrayStack2);
+
+   PV::ParameterStringStack * stringStack1 = group1->copyStringStack();
+   PV::ParameterStringStack * stringStack2 = group2->copyStringStack();
+   compareParameterStringStacks(group1->name(), stringStack1, stringStack2);
+}
+
+void compareParameterNumericStacks(char const * groupName, PV::ParameterStack * stack1, PV::ParameterStack * stack2) {
+   pvErrorIf(stack1->size() != stack2->size(),
+         "Numeric stacks for \"%s\" have different sizes: %d versus %d.\n", groupName, stack1->size(), stack2->size());
+   // create a map between stack1 and stack2
+   int const size = stack1->size();
+   std::map<PV::Parameter*, PV::Parameter*> parameterMap;
+   for(int i=0; i < size; i++) {
+      PV::Parameter * param1 = stack1->peek(i);
+      char const * paramName1 = param1->name();
+      bool found = false;
+      for (int j=0; j < size; j++) {
+         PV::Parameter * param2 = stack2->peek(j);
+         char const * paramName2 = param2->name();
+         if (!strcmp(paramName1, paramName2)) {
+            parameterMap.emplace(std::make_pair(param1, param2));
+            found = true;
+            break;
+         }
       }
-      MPI_Barrier(hc->getCommunicator()->communicator());
-      status = PV_FAILURE;
+      if (!found) {
+         pvError() << "Parameter \"%s\" was found in group \"%s\" of one stack but not the other.\n";
+      }
    }
-   return status;
+   pvAssert(parameterMap.size()==size);
+
+   for (auto& p : parameterMap) {
+      compareParameterNumeric(groupName, p.first, p.second);
+   }
 }
 
-int checkDryRunCleared(HyPerCol * hc, int argc, char * argv[]) {
-   pvErrorIf(!(argc>=1), "Test failed.\n");
-   int status = checkNumTimesteps(hc, argv[0]);
-   if (hc->getCurrentStep() != hc->getFinalStep()) {
-      if (hc->columnId()==0) {
-         pvErrorNoExit().printf("%s failed: with dry-run flag cleared, finalStep was %ld but currentStep was %ld\n",
-                 argv[0], hc->getFinalStep(), hc->getCurrentStep());
-      }
-      MPI_Barrier(hc->getCommunicator()->communicator());
-      status = PV_FAILURE;
-   }
-   return status;
+void compareParameterNumeric(char const * groupName, PV::Parameter * parameter1, PV::Parameter * parameter2) {
+   pvAssert(!strcmp(parameter1->name(), parameter2->name()));
+   pvErrorIf(parameter1->value()!=parameter2->value(), "Numeric parameter \"%s\" in group \"%s\" differs (%f versus %f).\n", parameter1->name(), groupName, parameter1->value(), parameter2->value());
 }
 
-int checkNumTimesteps(HyPerCol * hc, char const * programName) {
-   int status;
-   if (hc->getInitialStep() == hc->getFinalStep()) {
-      if (hc->columnId()==0) {
-         pvError().printf("HyPerCol has same initial step and final step (%ld): unable to test dry-run flag.\n", hc->getInitialStep());
+void compareParameterArrayStacks(char const * groupName, PV::ParameterArrayStack * stack1, PV::ParameterArrayStack * stack2) {
+   pvErrorIf(stack1->size() != stack2->size(),
+         "Numeric stacks for \"%s\" have different sizes: %d versus %d.\n", groupName, stack1->size(), stack2->size());
+   // create a map between stack1 and stack2
+   int const size = stack1->size();
+   std::map<PV::ParameterArray*, PV::ParameterArray*> parameterArrayMap;
+   for(int i=0; i < size; i++) {
+      PV::ParameterArray * param1 = stack1->peek(i);
+      char const * paramName1 = param1->name();
+      bool found = false;
+      for (int j=0; j < size; j++) {
+         PV::ParameterArray * param2 = stack2->peek(j);
+         char const * paramName2 = param2->name();
+         if (!strcmp(paramName1, paramName2)) {
+            parameterArrayMap.emplace(std::make_pair(param1, param2));
+            found = true;
+            break;
+         }
       }
-      status = PV_FAILURE;
+      if (!found) {
+         pvError() << "Parameter \"%s\" was found in group \"%s\" of one stack but not the other.\n";
+      }
    }
-   else {
-      status = PV_SUCCESS;
+   pvAssert(parameterArrayMap.size()==size);
+
+   for (auto& p : parameterArrayMap) {
+      compareParameterArray(groupName, p.first, p.second);
    }
-   return status;
+}
+
+void compareParameterArray(char const * groupName, PV::ParameterArray * array1, PV::ParameterArray * array2) {
+   pvAssert(!strcmp(array1->name(), array2->name()));
+   pvErrorIf(array1->getArraySize() != array2->getArraySize(), "Array \"%s\" in group \"%s\" differs in size (%d versus %d).\n", array1->name(), groupName, array1->getArraySize(), array2->getArraySize());
+   int size = array1->getArraySize();
+   double const * values1 = array1->getValuesDbl(&size);
+   double const * values2 = array2->getValuesDbl(&size);
+   int badIndex = 0;
+   for (int i=0; i<size; i++) {
+      if (values1[i] != values2[i]) {
+         badIndex = i+1;
+         pvErrorNoExit() << "Group " << groupName << ", array " << array1->name() << ", index " << badIndex << " differs (" << values1[i] << " versus " << values2[i] << ").\n";
+      }
+   }
+   if (badIndex>0) { exit(EXIT_FAILURE); }
+}
+
+void compareParameterStringStacks(char const * groupName, PV::ParameterStringStack * stack1, PV::ParameterStringStack * stack2) {
+   pvErrorIf(stack1->size() != stack2->size(),
+         "Numeric stacks for \"%s\" have different sizes: %d versus %d.\n", groupName, stack1->size(), stack2->size());
+   // create a map between stack1 and stack2
+   int const size = stack1->size();
+   std::map<PV::ParameterString*, PV::ParameterString*> parameterStringMap;
+   for(int i=0; i < size; i++) {
+      PV::ParameterString * param1 = stack1->peek(i);
+      char const * paramName1 = param1->getName();
+      bool found = false;
+      for (int j=0; j < size; j++) {
+         PV::ParameterString * param2 = stack2->peek(j);
+         char const * paramName2 = param2->getName();
+         if (!strcmp(paramName1, paramName2)) {
+            parameterStringMap.emplace(std::make_pair(param1, param2));
+            found = true;
+            break;
+         }
+      }
+      if (!found) {
+         pvError() << "Parameter \"%s\" was found in group \"%s\" of one stack but not the other.\n";
+      }
+   }
+   pvAssert(parameterStringMap.size()==size);
+
+   for (auto& p : parameterStringMap) {
+      compareParameterString(groupName, p.first, p.second);
+   }
+}
+
+void compareParameterString(char const * groupName, PV::ParameterString * string1, PV::ParameterString * string2) {
+   pvAssert(!strcmp(string1->getName(), string2->getName()));
+   char const * nullString = "(null)";
+   char const * value1 = string1->getValue(); if (value1==nullptr) { value1 = nullString; } 
+   char const * value2 = string2->getValue(); if (value2==nullptr) { value2 = nullString; } 
+   pvErrorIf(strcmp(value1, value2), "String parameter \"%s\" in group \"%s\" differs (\"%s\" versus \"%s\").\n", string1->getName(), groupName, value1, value2);
 }
