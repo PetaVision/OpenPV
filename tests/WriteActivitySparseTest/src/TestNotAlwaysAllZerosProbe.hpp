@@ -1,9 +1,9 @@
 #ifndef TESTNOTALWAYSALLZEROSPROBE_HPP_
 #define TESTNOTALWAYSALLZEROSPROBE_HPP_
 
-#include <io/StatsProbe.hpp>
-#include <layers/HyPerLayer.hpp>
-#include <utils/PVLog.hpp>
+#include "probes/StatsProbe.hpp"
+#include "layers/HyPerLayer.hpp"
+#include "utils/PVLog.hpp"
 
 namespace PV {
 

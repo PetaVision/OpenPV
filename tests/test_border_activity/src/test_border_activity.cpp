@@ -9,15 +9,15 @@
  * the post-synaptic layer.
  */
 
-#include <columns/HyPerCol.hpp>
-#include <layers/PvpLayer.hpp>
-#include <layers/Retina.hpp>
-#include <connections/HyPerConn.hpp>
-#include <layers/ANNLayer.hpp>
-#include <io/PointProbe.hpp>
-#include <weightinit/InitUniformWeights.hpp>
-#include <cMakeHeader.h>
-#include <utils/PVLog.hpp>
+#include "columns/HyPerCol.hpp"
+#include "layers/PvpLayer.hpp"
+#include "layers/Retina.hpp"
+#include "connections/HyPerConn.hpp"
+#include "layers/ANNLayer.hpp"
+#include "probes/PointProbe.hpp"
+#include "weightinit/InitUniformWeights.hpp"
+#include "cMakeHeader.h"
+#include "utils/PVLog.hpp"
 
 #undef DEBUG_OUTPUT
 

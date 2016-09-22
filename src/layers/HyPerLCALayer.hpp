@@ -8,7 +8,7 @@
 #ifndef HYPERLCALAYER_HPP_
 #define HYPERLCALAYER_HPP_
 
-#include <io/AdaptiveTimeScaleProbe.hpp>
+#include "probes/AdaptiveTimeScaleProbe.hpp"
 #include "ANNLayer.hpp"
 
 namespace PV {

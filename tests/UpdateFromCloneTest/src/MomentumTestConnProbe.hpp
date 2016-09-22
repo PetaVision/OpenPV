@@ -6,7 +6,7 @@
 #ifndef MOMENTUMTESTCONNPROBE_HPP_
 #define MOMENTUMTESTCONNPROBE_HPP_
 
-#include <io/BaseHyPerConnProbe.hpp>
+#include "probes/BaseHyPerConnProbe.hpp"
 
 namespace PV {
 

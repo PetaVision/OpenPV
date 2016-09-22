@@ -5,7 +5,7 @@
 
 #ifndef RECEIVEFROMPOSTPROBE_HPP_
 #define RECEIVEFROMPOSTPROBE_HPP_
-#include <io/StatsProbe.hpp>
+#include "probes/StatsProbe.hpp"
 
 namespace PV{
 

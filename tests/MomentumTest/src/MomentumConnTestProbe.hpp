@@ -8,7 +8,7 @@
 #ifndef MOMENTUMCONNTESTPROBE_HPP_
 #define MOMENTUMCONNTESTPROBE_HPP_
 
-#include <io/KernelProbe.hpp>
+#include "probes/KernelProbe.hpp"
 
 namespace PV {
 

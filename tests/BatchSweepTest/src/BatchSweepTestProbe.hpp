@@ -8,9 +8,9 @@
 #ifndef BATCHSWEEPTESTPROBE_HPP_
 #define BATCHSWEEPTESTPROBE_HPP_
 
-#include <io/StatsProbe.hpp>
-#include <layers/HyPerLayer.hpp>
-#include <utils/PVLog.hpp>
+#include "probes/StatsProbe.hpp"
+#include "layers/HyPerLayer.hpp"
+#include "utils/PVLog.hpp"
 #include <math.h>
 
 namespace PV {

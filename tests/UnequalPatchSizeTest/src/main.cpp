@@ -4,8 +4,8 @@
  */
 
 
-#include <columns/buildandrun.hpp>
-#include <io/RequireAllZeroActivityProbe.hpp>
+#include "columns/buildandrun.hpp"
+#include "probes/RequireAllZeroActivityProbe.hpp"
 
 int customexit(HyPerCol * hc, int argc, char * argv[]);
 int correctHaloSize(int patchsize, int nPre, int nPost);

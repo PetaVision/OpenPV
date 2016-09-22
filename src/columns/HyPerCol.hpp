@@ -18,7 +18,7 @@
 #include <include/pv_types.h>
 #include <columns/PV_Init.hpp>
 #include <utils/Timer.hpp>
-#include <io/ColProbe.hpp>
+#include <probes/ColProbe.hpp>
 #include <time.h>
 #include <typeinfo>
 #include <sys/stat.h>
