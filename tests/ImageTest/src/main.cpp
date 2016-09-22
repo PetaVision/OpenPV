@@ -1,4 +1,4 @@
-#include "utils/Image.hpp"
+#include "structures/Image.hpp"
 #include "utils/PVLog.hpp"
 
 using PV::Image;

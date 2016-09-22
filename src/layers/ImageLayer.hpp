@@ -1,6 +1,6 @@
 #pragma once
 
-#include "utils/Image.hpp"
+#include "structures/Image.hpp"
 #include "InputLayer.hpp"
 
 namespace PV {

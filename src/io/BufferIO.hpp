@@ -2,7 +2,7 @@
 #define __BUFFERIO_HPP__
 
 #include "FileStream.hpp"
-#include "utils/Buffer.hpp"
+#include "structures/Buffer.hpp"
 
 #include <vector>
 #include <string>

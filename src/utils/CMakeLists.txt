@@ -2,8 +2,6 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/PVAssert.cpp
    ${SUBDIR}/PVAlloc.cpp
    ${SUBDIR}/PVLog.cpp
-   ${SUBDIR}/Image.cpp
-   ${SUBDIR}/BatchIndexer.cpp
    ${SUBDIR}/BufferUtils.cpp
    ${SUBDIR}/Timer.cpp
 )
@@ -12,12 +10,8 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/PVAssert.hpp
    ${SUBDIR}/PVAlloc.hpp
    ${SUBDIR}/PVLog.hpp
-   ${SUBDIR}/Image.hpp
-   ${SUBDIR}/Buffer.hpp
    ${SUBDIR}/BufferUtils.hpp
-   ${SUBDIR}/BatchIndexer.hpp
    ${SUBDIR}/BufferSlicer.hpp
-   ${SUBDIR}/RingBuffer.hpp
    ${SUBDIR}/Timer.hpp
 )
 

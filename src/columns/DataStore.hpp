@@ -8,7 +8,7 @@
 #ifndef DATASTORE_HPP_
 #define DATASTORE_HPP_
 
-#include "utils/RingBuffer.hpp"
+#include "structures/RingBuffer.hpp"
 #include "include/pv_arch.h"
 #include "include/pv_types.h"
 #include <cstdlib>

@@ -1,5 +1,5 @@
 #include "MoviePvpTestLayer.hpp"
-#include <utils/BatchIndexer.hpp>
+#include <components/BatchIndexer.hpp>
 
 namespace PV {
 

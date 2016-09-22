@@ -1,7 +1,7 @@
 #ifndef __BUFFERUTILS_HPP__
 #define __BUFFERUTILS_HPP__
 
-#include "Buffer.hpp"
+#include "structures/Buffer.hpp"
 
 namespace PV {
    namespace BufferUtils {

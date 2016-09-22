@@ -2,7 +2,7 @@
 #define __BUFFERSLICER_HPP_
 
 #include "columns/Communicator.hpp"
-#include "Buffer.hpp"
+#include "structures/Buffer.hpp"
 
 namespace PV
 {

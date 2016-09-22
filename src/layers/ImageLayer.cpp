@@ -1,5 +1,5 @@
 #include "ImageLayer.hpp"
-#include "utils/Image.hpp"
+#include "structures/Image.hpp"
 #include "../arch/mpi/mpi.h"
 
 #include <assert.h>

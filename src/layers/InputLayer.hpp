@@ -5,9 +5,9 @@
 
 #include "HyPerLayer.hpp"
 #include "columns/HyPerCol.hpp"
-#include "utils/Buffer.hpp"
+#include "structures/Buffer.hpp"
 #include "utils/BufferUtils.hpp"
-#include "utils/BatchIndexer.hpp"
+#include "components/BatchIndexer.hpp"
 
 #include <memory>
 

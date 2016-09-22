@@ -1,4 +1,4 @@
-#include "utils/Buffer.hpp"
+#include "structures/Buffer.hpp"
 #include "utils/BufferSlicer.hpp"
 #include "utils/PVLog.hpp"
 #include "columns/PV_Arguments.hpp"
