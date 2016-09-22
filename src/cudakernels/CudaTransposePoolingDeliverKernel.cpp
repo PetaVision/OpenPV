@@ -47,6 +47,7 @@ void CudaTransposePoolingDeliverKernel::setArgs(
    status = cudnnSetPooling2dDescriptor(
          mPoolingDescriptor,
          poolingMode,
+				 CUDNN_NOT_PROPAGATE_NAN,
          nypPre,
          nxpPre,
          0/*horizontal padding*/,
