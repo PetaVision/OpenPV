@@ -364,55 +364,6 @@ int CudaRecvPost::do_run(){
       );
 
    cudnnHandleError(status, "Convolution run");
-
-   //int scaleFactor = 1;
-   //status = cudnnAddTensor(
-   //   handle,
-   //   CUDNN_ADD_FULL_TENSOR,
-   //   &scaleFactor,
-   //   outputDescriptor,
-   //   params.cudnn_accumGSyn,
-   //   &scaleFactor,
-   //   outputDescriptor,
-   //   params.cudnn_gSyn
-   //);
-
-   //pvAssert(status == CUDNN_STATUS_SUCCESS);
-   
-#else // PV_USE_CUDNN
-   params.postBufNum = block_size.x * block_size.y * block_size.z;
-
-   if(params.preDataLocal){
-      params.preBufNum = params.localBufSizeX * params.nfp;
-   }
-   else{
-      params.preBufNum = 0;
-   }
-
-   params.weightsBufNum = params.nxp * params.nfp;
-
-   size_t sharedSize = sizeof(float) * (params.preBufNum + params.postBufNum + params.weightsBufNum);
-
-   if(sharedSize > device->get_local_mem()){
-      pvErrorNoExit().printf("gpu post run: given shared memory size of %zu is bigger than allowed shared memory size of %zu\n", sharedSize, device->get_local_mem());
-   }
-
-   if(block_size.x != 1){
-      pvErrorNoExit().printf("gpu post run: numFLocal must be 1\n");
-   }
-   
-   if(params.preDataLocal){
-      if(block_size.z != 1){
-         pvErrorNoExit().printf("gpu post run: numYLocal must be 1 if using local pre data\n");
-      }
-   }
-
-   //TODO make this function handle multiple batches
-   //For now, since we mostly use CUDNN, queue many recvs based on batch
-   for(int b = 0; b < params.nbatch; b++){
-      HyPerLayer_recv_post<<<grid_size, block_size, sharedSize, device->getStream()>>>(params, b);
-      handleCallError("Recv from post");
-   }
 #endif // PV_USE_CUDNN
 
    return 0;

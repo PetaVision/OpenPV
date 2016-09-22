@@ -600,11 +600,6 @@ void HyPerConn::ioParam_gpuGroupIdx(enum ParamsIOFlag ioFlag) {
 
 void HyPerConn::ioParam_preDataLocal(enum ParamsIOFlag ioFlag) {
    pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
-# ifndef PV_USE_CUDNN
-   if(receiveGpu){
-      parent->ioParamValue(ioFlag, name, "preDataLocal", &preDataLocal, true/*default*/, false/*warn if absent*/);
-   }
-# endif
 }
 
 void HyPerConn::ioParam_numXLocal(enum ParamsIOFlag ioFlag) {
@@ -616,8 +611,6 @@ void HyPerConn::ioParam_numXLocal(enum ParamsIOFlag ioFlag) {
       if(!updateGSynFromPostPerspective){
          parent->ioParamValue(ioFlag, name, "numXLocal", &numXLocal, 1, true);
       }
-# else
-      parent->ioParamValue(ioFlag, name, "numXLocal", &numXLocal, 1, true);
 # endif
    }
 }
@@ -630,8 +623,6 @@ void HyPerConn::ioParam_numYLocal(enum ParamsIOFlag ioFlag) {
       if(!updateGSynFromPostPerspective){
          parent->ioParamValue(ioFlag, name, "numYLocal", &numYLocal, 1, true);
       }
-# else
-      parent->ioParamValue(ioFlag, name, "numYLocal", &numYLocal, 1, true);
 # endif
    }
 }
@@ -644,8 +635,6 @@ void HyPerConn::ioParam_numFLocal(enum ParamsIOFlag ioFlag) {
       if(!updateGSynFromPostPerspective){
          parent->ioParamValue(ioFlag, name, "numFLocal", &numFLocal, 1, true);
       }
-# else
-      parent->ioParamValue(ioFlag, name, "numFLocal", &numFLocal, 1, true);
 # endif
    }
 }
@@ -3344,7 +3333,7 @@ int HyPerConn::deliverPostsynapticPerspectiveGPU(PVLayerCube const * activity, i
    
    //Permute GSyn
    krRecvPost->permuteGSynPVToCudnn(getChannel());
-# endif // defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
+# endif // PV_USE_CUDA
 
    int totF = targetNf;
    int totX = targetNx;

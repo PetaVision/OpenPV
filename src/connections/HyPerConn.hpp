@@ -977,42 +977,32 @@ public:
    virtual void setAllocPostDeviceWeights(){
       allocPostDeviceWeights = true;
    }
-#ifdef PV_USE_CUDA
    virtual PVCuda::CudaBuffer * getDeviceWData(){
-#endif
       return d_WData;
    }
-#ifdef PV_USE_CUDA
    PVCuda::CudaBuffer * getDevicePatches(){
-#endif
       return d_Patches;
    }
-#ifdef PV_USE_CUDA
    PVCuda::CudaBuffer * getDeviceGSynPatchStart(){
-#endif
       return d_GSynPatchStart;
    }
-#ifdef PV_USE_CUDA
    void setDeviceWData(PVCuda::CudaBuffer* inBuf){
-#endif
       d_WData = inBuf;
    }
 
-#if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
+#ifdef PV_USE_CUDNN
    virtual PVCuda::CudaBuffer * getCudnnWData(){
       return cudnn_WData;
    }
    void setCudnnWData(PVCuda::CudaBuffer* inBuf){
       cudnn_WData = inBuf;
    }
-#endif
+#endif // PV_USE_CUDNN
 
    bool getPreDataLocal(){return preDataLocal;}
 
-#ifdef PV_USE_CUDA
    PVCuda::CudaRecvPost * getKrRecvPost(){return krRecvPost;}
    PVCuda::CudaRecvPre * getKrRecvPre(){return krRecvPre;}
-#endif
 
    virtual int getNumXLocal(){return numXLocal;}
    virtual int getNumYLocal(){return numYLocal;}
@@ -1031,7 +1021,6 @@ protected:
    //bool updatedDeviceWeights;
    
 
-#ifdef PV_USE_CUDA
    PVCuda::CudaBuffer * d_WData;
 #ifdef PV_USE_CUDNN
    PVCuda::CudaBuffer * cudnn_WData;
@@ -1042,7 +1031,6 @@ protected:
    PVCuda::CudaBuffer * d_Patch2DataLookupTable;
    PVCuda::CudaRecvPost* krRecvPost;        // Cuda kernel for update state call
    PVCuda::CudaRecvPre* krRecvPre;        // Cuda kernel for update state call
-#endif // PV_USE_CUDA
    int gpuGroupIdx;
    bool preDataLocal;
    int numXLocal;
