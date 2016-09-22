@@ -842,11 +842,8 @@ protected:
     */
    virtual void ioParam_gpuGroupIdx(enum ParamsIOFlag ioFlag);
 
-   /**
-    * @brief preDataLocal: If not using CUDNN, specifies if preData should be in local memory.
-    * This parameter is ignored if PetaVision was compiled without GPU acceleration.
-    */
-   virtual void ioParam_preDataLocal(enum ParamsIOFlag ioFlag);
+   // preDataLocal was removed Sep 22, 2016.
+
    /**
     * @brief numXLocal: Specifies number of local threads to run in x direction
     * @details Only set if receiving from gpu. Not used if using receive CUDNN from post. 
@@ -999,8 +996,6 @@ public:
    }
 #endif // PV_USE_CUDNN
 
-   bool getPreDataLocal(){return preDataLocal;}
-
    PVCuda::CudaRecvPost * getKrRecvPost(){return krRecvPost;}
    PVCuda::CudaRecvPre * getKrRecvPre(){return krRecvPre;}
 
@@ -1032,7 +1027,6 @@ protected:
    PVCuda::CudaRecvPost* krRecvPost;        // Cuda kernel for update state call
    PVCuda::CudaRecvPre* krRecvPre;        // Cuda kernel for update state call
    int gpuGroupIdx;
-   bool preDataLocal;
    int numXLocal;
    int numYLocal;
    int numFLocal;

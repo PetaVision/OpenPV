@@ -223,7 +223,6 @@ int HyPerConn::initialize_base()
    numXLocal= 1;
    numYLocal= 1;
    numFLocal = 1;
-   preDataLocal = true;
    gpuGroupIdx = -1;
 # ifdef PV_USE_CUDNN
    cudnn_WData = NULL;
@@ -578,7 +577,6 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
 #ifdef PV_USE_CUDA
    // GPU-specific parameters.  If not using GPUs, we read them anyway, with warnIfAbsent set to false, to prevent unnecessary warnings from unread or missing parameters.
    ioParam_gpuGroupIdx(ioFlag);
-   ioParam_preDataLocal(ioFlag);
    //Only read numX, Y, and F local if not using CUDNN
    ioParam_numXLocal(ioFlag);
    ioParam_numYLocal(ioFlag);
@@ -596,10 +594,6 @@ void HyPerConn::ioParam_gpuGroupIdx(enum ParamsIOFlag ioFlag) {
    if(receiveGpu){
       parent->ioParamValue(ioFlag, name, "gpuGroupIdx", &gpuGroupIdx, gpuGroupIdx/*default*/, false/*warn if absent*/);
    }
-}
-
-void HyPerConn::ioParam_preDataLocal(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
 }
 
 void HyPerConn::ioParam_numXLocal(enum ParamsIOFlag ioFlag) {
@@ -1865,9 +1859,7 @@ int HyPerConn::initializeReceivePostKernelArgs()
       cudnn_origWData,
       cudnn_gSyn,
 # endif
-      d_Patch2DataLookupTable,
-
-      preDataLocal
+      d_Patch2DataLookupTable
    );
    return status;
 }

@@ -91,9 +91,7 @@ void CudaRecvPost::setArgs(
       /* float* */ CudaBuffer* cudnn_weights,
       /* float* */ CudaBuffer* cudnn_gSyn,
 #endif // PV_USE_CUDNN
-      /* int* */   CudaBuffer* patch2datalookuptable,
-
-      const bool preDataLocal
+      /* int* */   CudaBuffer* patch2datalookuptable
    ){
    params.nbatch = nbatch;
    params.nxRes = nxRes;
@@ -140,8 +138,6 @@ void CudaRecvPost::setArgs(
    params.patch2datalookuptable = (int*)patch2datalookuptable->getPointer();
 
    params.warpSize = device->get_warp_size();
-
-   params.preDataLocal = preDataLocal;
 
 #ifdef PV_USE_CUDNN
    //CUDNN code
