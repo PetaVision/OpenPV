@@ -228,11 +228,22 @@ void CudaRecvPost::setArgs(
    cudnnFilterDescriptor_t filterDescriptor;
    status = cudnnCreateFilterDescriptor(&filterDescriptor);
    cudnnHandleError(status, "Create filter tensor descriptor");
+#if CUDNN_MAJOR == 5
    status = cudnnSetFilter4dDescriptor(filterDescriptor, CUDNN_DATA_FLOAT,
+																			 CUDNN_TENSOR_NCHW,
       params.nf * params.manyScaleX * params.manyScaleY, //Number of output feature maps. For one to many, output feature maps are repeated for each kernel
       params.nfp, //Number of input feature maps
       params.nyp, //Height of each filter
       params.nxp); //Width of each filter
+#elif CUDNN_MAJOR == 4
+	 status = cudnnSetFilter4dDescriptor(filterDescriptor, CUDNN_DATA_FLOAT,
+      params.nf * params.manyScaleX * params.manyScaleY, //Number of output feature maps. For one to many, output feature maps are repeated for each kernel
+      params.nfp, //Number of input feature maps
+      params.nyp, //Height of each filter
+      params.nxp); //Width of each filter
+#else
+#error The cuDNN version is required to be either v4 or v5.\n
+#endif
    cudnnHandleError(status, "Set filter tensor descriptor");
    params.v_filterDescriptor = (void*)filterDescriptor;
 
