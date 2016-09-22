@@ -575,14 +575,15 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
    ioParam_maskLayerName(ioFlag);
    ioParam_maskFeatureIdx(ioFlag);
 
+#ifdef PV_USE_CUDA
    // GPU-specific parameters.  If not using GPUs, we read them anyway, with warnIfAbsent set to false, to prevent unnecessary warnings from unread or missing parameters.
    ioParam_gpuGroupIdx(ioFlag);
-   // ioParam_receiveGpu(ioFlag); // read by parent class BaseConnection
    ioParam_preDataLocal(ioFlag);
    //Only read numX, Y, and F local if not using CUDNN
    ioParam_numXLocal(ioFlag);
    ioParam_numYLocal(ioFlag);
    ioParam_numFLocal(ioFlag);
+#endif // PV_USE_CUDA
    // Weight sparsity
    ioParam_weightSparsity(ioFlag);
    return PV_SUCCESS;
@@ -647,30 +648,6 @@ void HyPerConn::ioParam_numFLocal(enum ParamsIOFlag ioFlag) {
       parent->ioParamValue(ioFlag, name, "numFLocal", &numFLocal, 1, true);
 # endif
    }
-}
-
-#else // PV_USE_CUDA
-// Some dummy ioParam_ functions to read GPU-specific params, without generating a warning if
-// they are present, or generating a warning if they are absent.
-void HyPerConn::ioParam_gpuGroupIdx(enum ParamsIOFlag ioFlag) {
-   int dummyVar = 0;
-   parent->ioParamValue(ioFlag, name, "gpuGroupIdx", &dummyVar, dummyVar/*default*/, false/*warnIfAbsent*/);
-}
-void HyPerConn::ioParam_preDataLocal(enum ParamsIOFlag ioFlag) {
-   bool dummyFlag = false;
-   parent->ioParamValue(ioFlag, name, "preDataLocal", &dummyFlag, dummyFlag/*default*/, false/*warnIfAbsent*/);
-}
-void HyPerConn::ioParam_numXLocal(enum ParamsIOFlag ioFlag) {
-   int dummyVar = 0;
-   parent->ioParamValue(ioFlag, name, "numXLocal", &dummyVar, dummyVar/*default*/, false/*warnIfAbsent*/);
-}
-void HyPerConn::ioParam_numYLocal(enum ParamsIOFlag ioFlag) {
-   int dummyVar = 0;
-   parent->ioParamValue(ioFlag, name, "numYLocal", &dummyVar, dummyVar/*default*/, false/*warnIfAbsent*/);
-}
-void HyPerConn::ioParam_numFLocal(enum ParamsIOFlag ioFlag) {
-   int dummyVar = 0;
-   parent->ioParamValue(ioFlag, name, "numFLocal", &dummyVar, dummyVar/*default*/, false/*warnIfAbsent*/);
 }
 #endif // PV_USE_CUDA
 

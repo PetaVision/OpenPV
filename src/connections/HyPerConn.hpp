@@ -834,6 +834,7 @@ protected:
     */
    virtual void ioParam_maskFeatureIdx(enum ParamsIOFlag ioFlag);
 
+#ifdef PV_USE_CUDA
    /**
     * @brief gpuGroupIdx: All connections in the same group uses the same GPU memory for weights
     * @details Specify a group index. An index of -1 means no group (default).
@@ -868,6 +869,7 @@ protected:
     * This parameter is ignored if PetaVision was compiled without GPU acceleration.
     */
    virtual void ioParam_numFLocal(enum ParamsIOFlag ioFlag);
+#endif // PV_USE_CUDA
 
    /**
     * @brief weightSparsity: Specifies what percentage of weights will be ignored. Default is 0.0
