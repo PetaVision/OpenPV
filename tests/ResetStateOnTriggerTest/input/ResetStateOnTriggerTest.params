@@ -143,7 +143,6 @@ LeakyIntegrator "TestLayer" = {
     AMax                                = infinity;
     AShift                              = 0;
     VWidth                              = 0;
-    clearGSynInterval                   = 0;
     integrationTime                     = infinity;
 };
 

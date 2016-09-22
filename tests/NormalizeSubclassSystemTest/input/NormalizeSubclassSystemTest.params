@@ -75,7 +75,6 @@ ANNLayer "normalizeL3 output" = {
    VThresh = -infinity;
    AShift = 0.0;
    VWidth = 0.0;
-   clearGSynInterval = 0.0;
 };
 
 PtwiseProductLayer "output squared" = {
@@ -95,7 +94,6 @@ PtwiseProductLayer "output squared" = {
    VThresh = -infinity;
    AShift = 0.0;
    VWidth = 0.0;
-   clearGSynInterval = 0.0;
 };
 
 PtwiseProductLayer "output cubed" = {
@@ -115,7 +113,6 @@ PtwiseProductLayer "output cubed" = {
    VThresh = -infinity;
    AShift = 0.0;
    VWidth = 0.0;
-   clearGSynInterval = 0.0;
 };
 
 ANNLayer "normalizeL3 check" = {
@@ -135,7 +132,6 @@ ANNLayer "normalizeL3 check" = {
    VThresh = -infinity;
    AShift = 0.0;
    VWidth = 0.0;
-   clearGSynInterval = 0.0;
 };
 
 //

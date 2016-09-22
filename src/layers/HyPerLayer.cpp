@@ -1531,6 +1531,11 @@ bool HyPerLayer::needUpdate(double simTime, double dt){
    double timeToCheck = mLastUpdateTime;
    if(triggerLayer != nullptr && triggerBehaviorType == UPDATEONLY_TRIGGER) {
       timeToCheck = triggerLayer->getLastUpdateTime();
+
+      // If our target layer updates this tick, so do we
+      if (timeToCheck == simTime && triggerOffset == 0) {
+         return true;
+      }
    }
    if (simTime + triggerOffset      >= timeToCheck + getDeltaUpdateTime()
     && simTime + triggerOffset + dt <= timeToCheck + getDeltaUpdateTime() + dt) {

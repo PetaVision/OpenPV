@@ -74,7 +74,6 @@ ANNLayer "test_border_activity layer" = {
    VThresh = -infinity;
    AShift = 0.0;
    VWidth = 0.0;
-   clearGSynInterval = 0.0;
 };
 
 HyPerConn "test_border_activity connection 1" = {

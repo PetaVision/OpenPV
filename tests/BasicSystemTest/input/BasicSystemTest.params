@@ -81,7 +81,6 @@ ANNLayer "Output" = {
     AMin = -infinity;
     AShift = 0.0;
     VWidth = 0.0;
-    clearGSynInterval = 0.0; // If positive, only blanks GSyn the given amount of time.  If zero or negative, clears GSyn every time step.
 };
 
 //HyPerConns are connections between two layers

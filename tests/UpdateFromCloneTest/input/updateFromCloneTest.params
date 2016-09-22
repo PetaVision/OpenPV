@@ -84,7 +84,6 @@ ANNLayer "origPost" = {
     AMax = infinity;
     AShift = 0.0;
     VWidth = 0.0;
-    clearGSynInterval = 0.0;
 };
 
 ANNLayer "clonePost" = {
@@ -106,7 +105,6 @@ ANNLayer "clonePost" = {
     AMax = infinity;
     AShift = 0.0;
     VWidth = 0.0;
-    clearGSynInterval = 0.0;
 };
 
 HyPerConn "origConn" = {

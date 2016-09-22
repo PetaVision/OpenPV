@@ -365,7 +365,7 @@ function addActivityMask
   local displayPeriod = pvParams[triggerLayerName]['displayPeriod'];
 
   local maskLayer = {
-    groupType = "PtwiseLinearTransferLayer";
+    groupType = "ANNLayer";
     nxScale   = maskingLayer['nxScale'];
     nyScale   = maskingLayer['nyScale'];
     nf        = maskingLayer['nf'];

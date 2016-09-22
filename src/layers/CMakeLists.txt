@@ -26,7 +26,6 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/LIFGap.cpp
    ${SUBDIR}/MaskLayer.cpp
    ${SUBDIR}/PoolingIndexLayer.cpp
-   ${SUBDIR}/PtwiseLinearTransferLayer.cpp
    ${SUBDIR}/PtwiseProductLayer.cpp
    ${SUBDIR}/PtwiseQuotientLayer.cpp
    ${SUBDIR}/PVLayerCube.cpp
@@ -68,7 +67,6 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/LIFGap.hpp
    ${SUBDIR}/MaskLayer.hpp
    ${SUBDIR}/PoolingIndexLayer.hpp
-   ${SUBDIR}/PtwiseLinearTransferLayer.hpp
    ${SUBDIR}/PtwiseProductLayer.hpp
    ${SUBDIR}/PVLayerCube.hpp
    ${SUBDIR}/PvpLayer.hpp

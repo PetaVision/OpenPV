@@ -136,12 +136,10 @@ protected:
     */
    virtual void ioParam_VWidth(enum ParamsIOFlag ioFlag);
 
+   // Sep 21, 2016: clearGSynInterval removed.
    /**
-    * @brief clearGSynInterval: the time interval after which GSyn is reset to zero.
-    * @details Until this interval elapses, GSyn continues to accumulate from timestep to timestep.
-    * If clearGSynInterval is zero or negative, GSyn clears every timestep.
-    * If clearGSynInterval is infinite, the layer acts as an accumulator.
-    * Default is zero.
+    * @brief clearGSynInterval: this parameter is obsolete.  Setting the value to 0 (which was the default) produces a warning.
+    * Setting the value to a nonzero value produces an error.
     */
    virtual void ioParam_clearGSynInterval(enum ParamsIOFlag ioFlag);
    /** @} */
@@ -189,9 +187,6 @@ protected:
                      // AShift == 0, hard threshold condition
                      // AShift == VThresh, soft threshold condition
    pvdata_t VWidth = (pvdata_t) 0;  // The thresholding occurs linearly over the region [VThresh,VThresh+VWidth].  VWidth=0,AShift=0 is standard hard-thresholding
-
-   double clearGSynInterval = 0.0; // The interval between successive clears of GSyn
-   double nextGSynClearTime = 0.0; // The next time that the GSyn will be cleared.
 
 private:
    int initialize_base();

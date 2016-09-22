@@ -80,7 +80,6 @@ ANNErrorLayer "ResidualCPU" = {
     updateGpu                           = false;
     dataType                            = NULL;
     VThresh                             = -infinity;
-    clearGSynInterval                   = 0;
     errScale                            = 1;
 };
 
@@ -105,7 +104,6 @@ HyPerLCALayer "V1CPU" = {
     AMax                                = infinity;
     AShift                              = 0;
     VWidth                              = 0.025;
-    clearGSynInterval                   = 0;
     timeConstantTau                     = 100;
     selfInteract                        = true;
     adaptiveTimeScaleProbe              = "AdaptiveTimeScalesCPU";
@@ -130,7 +128,6 @@ ANNLayer "ReconstructionCPU" = {
     AMax                                = infinity;
     AShift                              = 0;
     VWidth                              = 0;
-    clearGSynInterval                   = 0;
 };
 
 IdentConn "InputToResidualCPU" = {
@@ -356,7 +353,6 @@ ANNLayer "Comparison" = {
     AMax                                = infinity;
     AShift                              = 0;
     VWidth                              = 0;
-    clearGSynInterval                   = 0;
 };
 
 IdentConn "ReconstructionGPUToComparison" = {

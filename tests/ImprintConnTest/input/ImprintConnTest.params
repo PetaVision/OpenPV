@@ -37,7 +37,6 @@ ImprintConnTestInputLayer "input" = {
     AMin = -infinity; 
     AShift = 0.0;
     VWidth = 0.0;
-    clearGSynInterval = 0.0;
     // 
     phase = 0; 
     triggerLayerName = NULL;
@@ -83,7 +82,6 @@ ANNLayer "error" = {
     AMin = -infinity; 
     AShift = 0.0;
     VWidth = 0.0;
-    clearGSynInterval = 0.0;
     // 
     phase = 1; 
     triggerLayerName = NULL;
@@ -106,7 +104,6 @@ TestLayer "recon" = {
     AMin = -infinity; 
     AShift = 0.0;
     VWidth = 0.0;
-    clearGSynInterval = 0.0;
     // 
     phase = 2; 
     triggerLayerName = NULL;

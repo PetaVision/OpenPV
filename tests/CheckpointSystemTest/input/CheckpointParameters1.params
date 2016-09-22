@@ -41,7 +41,6 @@ CPTestInputLayer "input" = {
     AMax                                = infinity;
     AShift                              = 0;
     VWidth                              = 0;
-    clearGSynInterval                   = 0;
 };
 
 ANNLayer "output no delay" = {
@@ -63,7 +62,6 @@ ANNLayer "output no delay" = {
     AMax                                = infinity;
     AShift                              = 0;
     VWidth                              = 0;
-    clearGSynInterval                   = 0;
 };
 
 ANNLayer "output with delay" = {
@@ -85,7 +83,6 @@ ANNLayer "output with delay" = {
     AMax                                = infinity;
     AShift                              = 0;
     VWidth                              = 0;
-    clearGSynInterval                   = 0;
 };
 
 ANNLayer "output arbor" = {
@@ -107,7 +104,6 @@ ANNLayer "output arbor" = {
     AMax                                = infinity;
     AShift                              = 0;
     VWidth                              = 0;
-    clearGSynInterval                   = 0;
 };
 
 ANNLayer "output from full hyperconn" = {
@@ -129,7 +125,6 @@ ANNLayer "output from full hyperconn" = {
     AMax                                = infinity;
     AShift                              = 0;
     VWidth                              = 0;
-    clearGSynInterval                   = 0;
 };
 
 VaryingHyPerConn "conn no delay" = {

@@ -77,7 +77,6 @@ ANNLayer "Output" = {
     verticesA = [0.0, 1.0];
     slopeNegInf = 0.0;
     slopePosInf = 0.0;
-    clearGSynInterval = 0.0; // If positive, only blanks GSyn the given amount of time.  If zero or negative, clears GSyn every time step.
 };
 
 //HyPerConns are connections between two layers

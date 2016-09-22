@@ -39,7 +39,6 @@ SumPoolTestInputLayer "input" = {
     AMin = -infinity; 
     AShift = 0.0;
     VWidth = 0.0;
-    clearGSynInterval = 0.0;
     // 
     phase = 0; 
     triggerLayerName = NULL;
@@ -62,7 +61,6 @@ SumPoolTestLayer "sumPoolPre" = {
     AMin = -infinity; 
     AShift = 0.0;
     VWidth = 0.0;
-    clearGSynInterval = 0.0;
     // 
     phase = 1; 
     triggerLayerName = NULL;
@@ -85,7 +83,6 @@ SumPoolTestLayer "sumPoolPost" = {
     AMin = -infinity; 
     AShift = 0.0;
     VWidth = 0.0;
-    clearGSynInterval = 0.0;
     // 
     phase = 1; 
     triggerLayerName = NULL;

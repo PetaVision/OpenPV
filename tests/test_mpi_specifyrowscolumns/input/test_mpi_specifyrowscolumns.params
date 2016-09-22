@@ -32,5 +32,4 @@ ANNLayer "layer" = {
     AMin = -infinity;
     AShift = 0.0;
     VWidth = 0.0;
-    clearGSynInterval = 0.0;
 };

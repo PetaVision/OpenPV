@@ -91,7 +91,6 @@ ANNLayer "output" = {
     AMin = -infinity;
     AShift = 0.0;
     VWidth = 0.0;
-    clearGSynInterval = 0;
 };
 
 PvpLayer "correct" = {
@@ -140,7 +139,6 @@ ANNLayer "comparison" = {
     AMin = -infinity;
     AShift = 0.0;
     VWidth = 0.0;
-    clearGSynInterval = 0;
 };
 
 // connections

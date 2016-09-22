@@ -97,7 +97,6 @@ int ANNLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
       ioParam_VWidth(ioFlag);
    }
 
-   ioParam_clearGSynInterval(ioFlag);
    return status;
 }
 
@@ -189,10 +188,23 @@ void ANNLayer::ioParam_VWidth(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "VWidth", &VWidth, VWidth);
 }
 
+// clearGSynInterval parameter was made obsolete Sep 21, 2016.
 void ANNLayer::ioParam_clearGSynInterval(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "clearGSynInterval", &clearGSynInterval, clearGSynInterval);
-   if (ioFlag==PARAMS_IO_READ) {
-      nextGSynClearTime = parent->getStartTime();
+   if (ioFlag==PARAMS_IO_READ && parent->parameters()->present(name, "clearGSynInterval")) {
+      double clearGSynInterval;
+      parent->ioParamValueRequired(ioFlag, name, "clearGSynInterval", &clearGSynInterval);
+      if (clearGSynInterval) {
+         if (parent->getCommunicator()->commRank()==0) {
+            pvErrorNoExit() << getDescription() << ": the clearGSynInterval parameter is obsolete.  Value 0 specified in params file will be ignored.\n";
+         }
+         MPI_Barrier(parent->getCommunicator()->communicator());
+         exit(EXIT_FAILURE);
+      }
+      else {
+         if (parent->getCommunicator()->commRank()==0) {
+            pvWarn() << getDescription() << ": the clearGSynInterval parameter is obsolete.  Nonzero values of clearGSynInterval must be removed.\n";
+         }
+      }
    }
 }
 
@@ -364,16 +376,7 @@ int ANNLayer::checkVertices() const {
 }
 
 int ANNLayer::resetGSynBuffers(double timef, double dt) {
-   int status = PV_SUCCESS;
-   if (GSyn == NULL) return PV_SUCCESS;
-   bool clearNow = clearGSynInterval <= 0 || timef >= nextGSynClearTime;
-   if (clearNow) {
-      resetGSynBuffers_HyPerLayer(parent->getNBatch(), this->getNumNeurons(), getNumChannels(), GSyn[0]);
-   }
-   if (clearNow > 0) {
-      nextGSynClearTime += clearGSynInterval;   
-   }
-   return status;
+   return HyPerLayer::resetGSynBuffers(timef, dt);
 }
 
 int ANNLayer::updateState(double time, double dt)
@@ -411,19 +414,11 @@ int ANNLayer::setActivity() {
 }
 
 int ANNLayer::checkpointRead(char const * cpDir, double * timeptr) {
-   int status = HyPerLayer::checkpointRead(cpDir, timeptr);
-   if (status==PV_SUCCESS) {
-      status = parent->readScalarFromFile(cpDir, getName(), "nextGSynClearTime", &nextGSynClearTime, parent->simulationTime()-parent->getDeltaTime());
-   }
-   return status;
+   return HyPerLayer::checkpointRead(cpDir, timeptr);
 }
 
 int ANNLayer::checkpointWrite(char const * cpDir) {
-   int status = HyPerLayer::checkpointWrite(cpDir);
-   if (status==PV_SUCCESS) {
-      status = parent->writeScalarToFile(cpDir, getName(), "nextGSynClearTime", nextGSynClearTime);
-   }
-   return status;
+   return HyPerLayer::checkpointWrite(cpDir);
 }
 
 }  // end namespace PV

@@ -75,7 +75,6 @@ ANNLayer "ScaledInput" = {
     AMin                            = -infinity;
     VThresh                         = -infinity;
     VWidth                          = 0.0;
-    clearGSynInterval               = 0.0;
 };
 
 Retina "Retina" = {
@@ -100,7 +99,7 @@ Retina "Retina" = {
     burstDuration                   = 1000;
 };
 
-ANNLayer "RetinaSpikeCounter" = {
+LeakyIntegrator "RetinaSpikeCounter" = {
     nxScale                         = 1;
     nyScale                         = 1;
     nf                              = 1;
@@ -120,7 +119,7 @@ ANNLayer "RetinaSpikeCounter" = {
     AMin                            = -infinity;
     VThresh                         = -infinity;
     VWidth                          = 0.0;
-    clearGSynInterval               = infinity;
+    integrationTime                 = infinity;
 };
 
 LIFGap "LIFTest" = {
@@ -159,7 +158,7 @@ LIFGap "LIFTest" = {
     method                          = "a";
 };
 
-ANNLayer "LIFTestSpikeCounter" = {
+LeakyIntegrator "LIFTestSpikeCounter" = {
     nxScale                         = 1;
     nyScale                         = 1;
     nf                              = 1;
@@ -179,7 +178,7 @@ ANNLayer "LIFTestSpikeCounter" = {
     AMin                            = -infinity;
     VThresh                         = -infinity;
     VWidth                          = 0.0;
-    clearGSynInterval               = infinity;
+    integrationTime                 = infinity;
 };
 
 GapLayer "GapTest" = {
@@ -233,7 +232,7 @@ LIFGap "LIFGapTest" = {
     method                          = "a";
 };
 
-ANNLayer "LIFGapTestSpikeCounter" = {
+LeakyIntegrator "LIFGapTestSpikeCounter" = {
     nxScale                         = 1;
     nyScale                         = 1;
     nf                              = 1;
@@ -253,7 +252,7 @@ ANNLayer "LIFGapTestSpikeCounter" = {
     AMin                            = -infinity;
     VThresh                         = -infinity;
     VWidth                          = 0.0;
-    clearGSynInterval               = infinity;
+    integrationTime                 = infinity;
 };
 
 HyPerConn "InputToScaledInput" = {
