@@ -44,12 +44,11 @@ void CudaTransposePoolingDeliverKernel::setArgs(
    cudnnStatus_t status;
    status = cudnnCreatePoolingDescriptor(&mPoolingDescriptor);
    cudnnHandleError(status, "Create pooling descriptor");
+#if CUDNN_MAJOR == 5
    status = cudnnSetPooling2dDescriptor(
          mPoolingDescriptor,
          poolingMode,
-#if CUDNN_MAJOR >= 5
 				 CUDNN_NOT_PROPAGATE_NAN,
-#endif
          nypPre,
          nxpPre,
          0/*horizontal padding*/,
@@ -57,6 +56,20 @@ void CudaTransposePoolingDeliverKernel::setArgs(
          strideY,
          strideX
    );
+#elif CUDNN_MAJOR == 4
+	 status = cudnnSetPooling2dDescriptor(
+         mPoolingDescriptor,
+         poolingMode,
+         nypPre,
+         nxpPre,
+         0/*horizontal padding*/,
+         0/*vertical padding*/,
+         strideY,
+         strideX
+   );
+#else
+#error The cuDNN version is required to be either v4 or v5.
+#endif
 
    const PVHalo* preHalo = &mPreLoc->halo;
    mBorderExcessX = calcBorderExcess(mPreLoc->nx, mPostLoc->nx, preHalo->lt, nxpPost);

@@ -159,13 +159,16 @@ int CudaPoolingDeliverKernel::do_run() {
 
    cudnnPoolingMode_t checkMode;
    int h,w,vPad,hPad,vStride,hStride;
-#if CUDNN_MAJOR >= 5
+#if CUDNN_MAJOR == 5
 	 cudnnNanPropagation_t cudnnNanPropagation;
    cudnnGetPooling2dDescriptor((cudnnPoolingDescriptor_t) mPoolingDescriptor,
 															 &checkMode, &cudnnNanPropagation, &h, &w, &vPad, &hPad, &vStride, &hStride);
-#else
+
+#elif CUDNN_MAJOR == 4
    cudnnGetPooling2dDescriptor((cudnnPoolingDescriptor_t) mPoolingDescriptor,
 															 &checkMode, &h, &w, &vPad, &hPad, &vStride, &hStride);
+#else
+#error The cuDNN version is required to be either v4 or v5.
 #endif
 
    // Do the pooling
