@@ -1,4 +1,6 @@
 set (PVLibSrcCpp ${PVLibSrcCpp}
+   ${SUBDIR}/AdaptiveTimeScaleController.cpp
+   ${SUBDIR}/Clock.cpp
    ${SUBDIR}/PVAssert.cpp
    ${SUBDIR}/PVAlloc.cpp
    ${SUBDIR}/PVLog.cpp
@@ -9,6 +11,8 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
 )
 
 set (PVLibSrcHpp ${PVLibSrcHpp}
+   ${SUBDIR}/AdaptiveTimeScaleController.hpp
+   ${SUBDIR}/Clock.hpp
    ${SUBDIR}/PVAssert.hpp
    ${SUBDIR}/PVAlloc.hpp
    ${SUBDIR}/PVLog.hpp

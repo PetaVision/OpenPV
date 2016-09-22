@@ -8,7 +8,7 @@
 #ifndef InitWeightTestProbe_HPP_
 #define InitWeightTestProbe_HPP_
 
-#include <io/StatsProbe.hpp>
+#include "probes/StatsProbe.hpp"
 
 namespace PV {
 

@@ -5,7 +5,7 @@
 
 #ifndef GPUSYSTEMTESTPROBE_HPP_ 
 #define GPUSYSTEMTESTPROBE_HPP_
-#include <io/StatsProbe.hpp>
+#include "probes/StatsProbe.hpp"
 
 namespace PV{
 

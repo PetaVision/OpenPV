@@ -13,7 +13,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include "BaseConnection.hpp"
-#include <io/BaseConnectionProbe.hpp>
+#include "probes/BaseConnectionProbe.hpp"
 
 namespace PV {
 

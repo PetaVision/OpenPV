@@ -8,9 +8,9 @@
 #ifndef STOCHASTICRELEASETESTPROBE_HPP_
 #define STOCHASTICRELEASETESTPROBE_HPP_
 
-#include <io/StatsProbe.hpp>
-#include <columns/HyPerCol.hpp>
-#include <columns/buildandrun.hpp>
+#include "probes/StatsProbe.hpp"
+#include "columns/HyPerCol.hpp"
+#include "columns/buildandrun.hpp"
 #include <math.h>
 #include <stdlib.h>
 

@@ -15,7 +15,7 @@
 #include "columns/RandomSeed.hpp"
 #include "columns/Communicator.hpp"
 #include "normalizers/NormalizeBase.hpp"
-#include "io/Clock.hpp"
+#include "utils/Clock.hpp"
 #include "io/io.hpp"
 
 #include <assert.h>

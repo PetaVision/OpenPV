@@ -41,6 +41,8 @@ void CudaDevice::incrementConvKernels(){
 
 long CudaDevice::reserveMem(size_t size){
    deviceMem -= size;
+   pvInfo() << "Reserving " << size << " bytes of VRAM. "
+      << deviceMem << " bytes remaining.\n";
    return deviceMem;
 }
 

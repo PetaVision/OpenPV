@@ -8,7 +8,7 @@
 #ifndef ArborTestProbe_HPP_
 #define ArborTestProbe_HPP_
 
-#include <io/StatsProbe.hpp>
+#include "probes/StatsProbe.hpp"
 
 namespace PV {
 

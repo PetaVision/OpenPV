@@ -8,7 +8,7 @@
 #ifndef PLASTICCONNTESTPROBE_HPP_
 #define PLASTICCONNTESTPROBE_HPP_
 
-#include <io/KernelProbe.hpp>
+#include "probes/KernelProbe.hpp"
 
 namespace PV {
 

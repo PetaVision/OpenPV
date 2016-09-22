@@ -8,7 +8,7 @@
 #ifndef DelayTestProbe_HPP_
 #define DelayTestProbe_HPP_
 
-#include <io/StatsProbe.hpp>
+#include "probes/StatsProbe.hpp"
 
 namespace PV {
 

@@ -6,7 +6,7 @@
 #ifndef TESTCONNPROBE_HPP_
 #define TESTCONNPROBE_HPP_
 
-#include <io/BaseHyPerConnProbe.hpp>
+#include "probes/BaseHyPerConnProbe.hpp"
 
 namespace PV {
 

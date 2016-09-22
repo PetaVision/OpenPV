@@ -7,7 +7,7 @@
 #ifndef ALLCONSTANTVALUEPROBE_HPP_
 #define ALLCONSTANTVALUEPROBE_HPP_
 
-#include <io/StatsProbe.hpp>
+#include "probes/StatsProbe.hpp"
 
 namespace PV {
 
