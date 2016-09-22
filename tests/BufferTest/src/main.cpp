@@ -1,5 +1,5 @@
 #include "structures/Buffer.hpp"
-#include "utils/BufferUtils.hpp"
+#include "utils/BufferUtilsRescale.hpp"
 #include "utils/PVLog.hpp"
 
 #include <vector>

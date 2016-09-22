@@ -9,9 +9,9 @@
 #define IO_HPP_
 
 #include <stdbool.h>
-#include "include/pv_types.h"
+#include <mpi/mpi.h>
 
-#include "arch/mpi/mpi.h"
+#include "include/pv_types.h"
 
 #define MIN_BIN_PARAMS  6
 #define NUM_BIN_PARAMS (18 + sizeof(double)/sizeof(int))

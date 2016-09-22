@@ -1,12 +1,12 @@
 #include "structures/Buffer.hpp"
 #include "utils/PVLog.hpp"
-#include "io/BufferIO.hpp"
+#include "utils/BufferUtilsPvp.hpp"
 
 #include <vector>
 
 using PV::Buffer;
 using std::vector;
-namespace BufferIO = PV::BufferIO;
+namespace BufferUtils = PV::BufferUtils;
 
 void testReadFromPvp() {
 
@@ -20,7 +20,7 @@ void testReadFromPvp() {
          testData.at(i) = val++;
       }
       Buffer<float> testBuffer;
-      double timeVal = BufferIO::readFromPvp<float>(
+      double timeVal = BufferUtils::readFromPvp<float>(
             "input/input_8x4x2_x3.pvp",
             &testBuffer,
             frame);
@@ -68,12 +68,12 @@ void testWriteToPvp() {
       Buffer<float> outBuffer(testData, 8, 4, 2);
  
       if (frame == 0) {
-         BufferIO::writeToPvp<float>("test.pvp",
+         BufferUtils::writeToPvp<float>("test.pvp",
                                      &outBuffer,
                                      (double)(frame + 1));
       }
       else {
-         BufferIO::appendToPvp<float>("test.pvp",
+         BufferUtils::appendToPvp<float>("test.pvp",
                                      &outBuffer,
                                      frame,
                                      (double)(frame + 1));
@@ -84,7 +84,7 @@ void testWriteToPvp() {
    // and check that it's correct
    for (int frame = 0; frame < 3; ++frame) {
       Buffer<float> testBuffer;
-      double timeVal = BufferIO::readFromPvp<float>(
+      double timeVal = BufferUtils::readFromPvp<float>(
             "test.pvp",
             &testBuffer,
             frame);
@@ -116,17 +116,16 @@ void testWriteToPvp() {
    }
 }
 
-
 int main(int argc, char **argv) {
 
-   pvInfo() << "Testing BufferIO:readFromPvp(): ";
+   pvInfo() << "Testing BufferUtils:readFromPvp(): ";
    testReadFromPvp();
    pvInfo() << "Completed.\n";
    
-   pvInfo() << "Testing BufferIO:writeToPvp(): ";
+   pvInfo() << "Testing BufferUtils:writeToPvp(): ";
    testWriteToPvp();
    pvInfo() << "Completed.\n";
 
-   pvInfo() << "BufferIO tests completed successfully!\n";
+   pvInfo() << "BufferUtils tests completed successfully!\n";
    return EXIT_SUCCESS;
 }

@@ -1,5 +1,5 @@
 #include "structures/Buffer.hpp"
-#include "utils/BufferSlicer.hpp"
+#include "utils/BufferUtilsMPI.hpp"
 #include "utils/PVLog.hpp"
 #include "columns/PV_Arguments.hpp"
 #include "columns/Communicator.hpp"
@@ -8,19 +8,17 @@
 #include <vector>
 
 using PV::Buffer;
-using PV::BufferSlicer;
 using PV::PV_Arguments;
 using PV::Communicator;
 using std::vector;
 
-PV_Arguments *args;
+namespace BufferUtils = PV::BufferUtils;
 
 // BufferSlicer::scatter(Buffer &buffer, uint sliceStrideX, uint sliceStrideY)
 // BufferSlicer::gather(Buffer &buffer, uint sliceStrideX, uint sliceStrideY)
 void testRestricted(int argc, char** argv) {
    PV_Arguments *args = new PV_Arguments(argc, argv, false);
    Communicator *comm = new Communicator(args); 
-   BufferSlicer<float> slicer(comm);
    int rank = comm->commRank();
 
    pvInfo() << "Setup complete on rank " << rank << ". Running test.\n";
@@ -40,11 +38,11 @@ void testRestricted(int argc, char** argv) {
             2, 2, 3, 3
          };
       dataBuffer.set(testData, 4, 4, 1); 
-      slicer.scatter(dataBuffer, sliceX, sliceY);
+      BufferUtils::scatter<float>(comm, dataBuffer, sliceX, sliceY);
    }
    else {
       dataBuffer.resize(sliceX, sliceY, 1);
-      slicer.scatter(dataBuffer, sliceX, sliceY);
+      BufferUtils::scatter<float>(comm, dataBuffer, sliceX, sliceY);
    }
    result = dataBuffer.asVector();
 
@@ -95,7 +93,7 @@ void testRestricted(int argc, char** argv) {
 
    pvInfo() << "Beginning gather on rank " << rank << "\n";
 
-   dataBuffer.set(slicer.gather(dataBuffer, sliceX, sliceY));
+   dataBuffer.set(BufferUtils::gather<float>(comm, dataBuffer, sliceX, sliceY));
    result = dataBuffer.asVector();
 
    if(rank == 0) {
@@ -121,7 +119,6 @@ void testRestricted(int argc, char** argv) {
 void testExtended(int argc, char** argv) {
    PV_Arguments *args = new PV_Arguments(argc, argv, false);
    Communicator *comm = new Communicator(args); 
-   BufferSlicer<float> slicer(comm);
    int rank = comm->commRank();
 
    pvInfo() << "Setup complete on rank " << rank << ". Running test.\n";
@@ -144,12 +141,12 @@ void testExtended(int argc, char** argv) {
          };
 
       dataBuffer.set(testData, 6, 6, 1); 
-      slicer.scatter(dataBuffer, sliceX, sliceY);
+      BufferUtils::scatter<float>(comm, dataBuffer, sliceX, sliceY);
    }
    else {
       // We have a 1 element margin on each side
       dataBuffer.resize(sliceX + 2, sliceY + 2, 1);
-      slicer.scatter(dataBuffer, sliceX, sliceY);
+      BufferUtils::scatter<float>(comm, dataBuffer, sliceX, sliceY);
    }
    result = dataBuffer.asVector();
 
@@ -259,7 +256,7 @@ void testExtended(int argc, char** argv) {
 
    pvInfo() << "Beginning gather on rank " << rank << "\n";
 
-   dataBuffer.set(slicer.gather(dataBuffer, sliceX, sliceY));
+   dataBuffer.set(BufferUtils::gather(comm, dataBuffer, sliceX, sliceY));
    result = dataBuffer.asVector();
 
    if(rank == 0) {
@@ -302,11 +299,11 @@ int main(int argc, char** argv) {
            ? strdup("1")
            : strdup("2");
 
-   pvInfo() << "Rank " << rank << ": Testing restricted BufferSlicer::scatter() and BufferSlicer::gather():\n";
+   pvInfo() << "Rank " << rank << ": Testing restricted BufferUtils::scatter() and BufferUtils::gather():\n";
    testRestricted(5, args);
    pvInfo() << "Rank " << rank << ": Completed.\n";
 
-   pvInfo() << "Rank " << rank << ": Testing extended BufferSlicer::scatter() and BufferSlicer::gather():\n";
+   pvInfo() << "Rank " << rank << ": Testing extended BufferUtils::scatter() and BufferUtils::gather():\n";
    testExtended(5, args);
    pvInfo() << "Rank " << rank << ": Completed.\n";
 
@@ -318,6 +315,6 @@ int main(int argc, char** argv) {
    free(args[3]);
    free(args[4]);
 
-   pvInfo() << "BufferSlicer tests completed successfully!\n";
+   pvInfo() << "BufferUtilsMPI tests completed successfully!\n";
    return EXIT_SUCCESS;
 }

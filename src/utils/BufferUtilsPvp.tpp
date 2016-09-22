@@ -1,10 +1,10 @@
-#include "io.hpp"
+#include "io/io.hpp"
 
 namespace PV {
 
    // TODO: Check header[INDEX_FILE_TYPE] and error if it isn't supported
    
-   namespace BufferIO {
+   namespace BufferUtils {
       // Write a single frame to a pvp file, starting at fStream's location.
       // A pvp file may contain multiple frames.
       template <typename T>

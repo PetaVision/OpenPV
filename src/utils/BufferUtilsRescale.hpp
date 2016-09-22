@@ -1,5 +1,5 @@
-#ifndef __BUFFERUTILS_HPP__
-#define __BUFFERUTILS_HPP__
+#ifndef __BUFFERUTILSRESCALE_HPP__
+#define __BUFFERUTILSRESCALE_HPP__
 
 #include "structures/Buffer.hpp"
 

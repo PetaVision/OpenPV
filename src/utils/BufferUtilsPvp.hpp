@@ -1,7 +1,7 @@
-#ifndef __BUFFERIO_HPP__
-#define __BUFFERIO_HPP__
+#ifndef __BUFFERUTILSPVP_HPP__
+#define __BUFFERUTILSPVP_HPP__
 
-#include "FileStream.hpp"
+#include "io/FileStream.hpp"
 #include "structures/Buffer.hpp"
 
 #include <vector>
@@ -12,7 +12,7 @@ using std::string;
 
 namespace PV {
 
-   namespace BufferIO {
+   namespace BufferUtils {
       template <typename T>
       static void writeFrame(FileStream *fStream,
                              Buffer<T> *buffer,
@@ -44,6 +44,6 @@ namespace PV {
    }
 }
 
-#include "BufferIO.tpp"
+#include "BufferUtilsPvp.tpp"
 
 #endif

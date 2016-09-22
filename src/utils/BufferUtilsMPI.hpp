@@ -1,23 +1,20 @@
-#ifndef __BUFFERSLICER_HPP_
-#define __BUFFERSLICER_HPP_
+#ifndef __BUFFERUTILSMPI_HPP_
+#define __BUFFERUTILSMPI_HPP_
 
 #include "columns/Communicator.hpp"
 #include "structures/Buffer.hpp"
 
 namespace PV
 {
-
-template <class T>
-class BufferSlicer {
-   public:
-      BufferSlicer(Communicator *comm);
-
+   namespace BufferUtils {
       // Every MPI process should call this with a buffer with
       // dimensions globalNx x globalNy, with the root process
       // buffer having the actual contents to be scattered.
       // Afterwards, buffer will contain the slice of the data 
       // that has been assigned to the current MPI process,
-      void scatter(Buffer<T> &buffer,
+      template <typename T>
+      void scatter(Communicator *comm,
+                   Buffer<T> &buffer,
                    unsigned int localWidth,  // These values should be the
                    unsigned int localHeight); // layer's local nx and ny
 
@@ -26,16 +23,16 @@ class BufferSlicer {
       // afterwards the root process will have a filled buffer with
       // dimensions globalNx x globalNy. Buffer will be unchanged
       // on non-root processess.
-      Buffer<T> gather(Buffer<T> buffer,
-                  unsigned int localWidth,
-                  unsigned int localHeight);
+      template <typename T>
+      Buffer<T> gather(Communicator *comm,
+                       Buffer<T> buffer,
+                       unsigned int localWidth,
+                       unsigned int localHeight);
 
-   private:
-      Communicator *mComm;
-}; // end class BufferSlicer
+   } // end namespace BufferUtils
 
 }  // end namespace PV
 
-#include "BufferSlicer.tpp" // template implementations file
+#include "BufferUtilsMPI.tpp" // template implementations file
 
 #endif

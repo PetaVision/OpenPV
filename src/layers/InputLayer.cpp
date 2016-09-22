@@ -4,7 +4,7 @@
  */
 
 #include "InputLayer.hpp"
-#include "utils/BufferSlicer.hpp"
+#include "utils/BufferUtilsMPI.hpp"
 
 #include <algorithm>
 #include <cfloat>
@@ -165,15 +165,20 @@ namespace PV {
       int activityWidth = loc->nx + (mUseInputBCflag ? halo->lt + halo->rt : 0);
       int activityHeight = loc->ny + (mUseInputBCflag ? halo->up + halo->dn : 0);
       Buffer<float> croppedBuffer;
-      BufferSlicer<float> slicer(parent->getCommunicator());
 
       if (rank == 0) {
          croppedBuffer = mInputData.at(batchIndex);
-         slicer.scatter(croppedBuffer, loc->nx, loc->ny);
+         BufferUtils::scatter<float>(parent->getCommunicator(),
+                                     croppedBuffer,
+                                     loc->nx,
+                                     loc->ny);
       }
       else {
          croppedBuffer.resize(activityWidth, activityHeight, loc->nf);
-         slicer.scatter(croppedBuffer, loc->nx, loc->ny);
+         BufferUtils::scatter<float>(parent->getCommunicator(),
+                                     croppedBuffer,
+                                     loc->nx,
+                                     loc->ny);
       }
 
       // At this point, croppedBuffer has the correct data for this
