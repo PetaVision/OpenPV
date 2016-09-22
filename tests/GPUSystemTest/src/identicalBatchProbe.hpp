@@ -5,7 +5,7 @@
 
 #ifndef IDENTICALFEATUREPROBE_HPP_ 
 #define IDENTICALFEATUREPROBE_HPP_
-#include <io/StatsProbe.hpp>
+#include "probes/StatsProbe.hpp"
 
 namespace PV{
 

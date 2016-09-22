@@ -8,7 +8,7 @@
 #ifndef RESCALELAYERTESTPROBE_HPP_
 #define RESCALELAYERTESTPROBE_HPP_
 
-#include <io/StatsProbe.hpp>
+#include "probes/StatsProbe.hpp"
 
 namespace PV {
 

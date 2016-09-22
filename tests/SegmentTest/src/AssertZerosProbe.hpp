@@ -5,7 +5,7 @@
 
 #ifndef ASSERTZEROSPROBE_HPP_ 
 #define ASSERTZEROSPROBE_HPP_
-#include <io/StatsProbe.hpp>
+#include "probes/StatsProbe.hpp"
 
 namespace PV{
 

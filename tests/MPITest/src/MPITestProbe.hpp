@@ -8,7 +8,7 @@
 #ifndef MPITESTPROBE_HPP_
 #define MPITESTPROBE_HPP_
 
-#include <io/StatsProbe.hpp>
+#include "probes/StatsProbe.hpp"
 
 namespace PV {
 

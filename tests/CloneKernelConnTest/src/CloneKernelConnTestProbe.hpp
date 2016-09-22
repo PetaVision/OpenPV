@@ -8,7 +8,7 @@
 #ifndef CLONEKERNELCONNTESTPROBE_HPP_
 #define CLONEKERNELCONNTESTPROBE_HPP_
 
-#include <io/StatsProbe.hpp>
+#include "probes/StatsProbe.hpp"
 
 namespace PV {
 

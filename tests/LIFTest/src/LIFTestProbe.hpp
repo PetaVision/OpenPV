@@ -8,8 +8,8 @@
 #ifndef LIFTESTPROBE_HPP_
 #define LIFTESTPROBE_HPP_
 
-#include <io/StatsProbe.hpp>
-#include <layers/HyPerLayer.hpp>
+#include "probes/StatsProbe.hpp"
+#include "layers/HyPerLayer.hpp"
 
 namespace PV {
 

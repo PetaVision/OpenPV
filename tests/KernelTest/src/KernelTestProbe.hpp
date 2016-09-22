@@ -8,7 +8,7 @@
 #ifndef KERNELTESTPROBE_HPP_
 #define KERNELTESTPROBE_HPP_
 
-#include <io/StatsProbe.hpp>
+#include "probes/StatsProbe.hpp"
 
 namespace PV {
 

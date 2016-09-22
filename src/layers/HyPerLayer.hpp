@@ -11,17 +11,17 @@
 #ifndef HYPERLAYER_HPP_
 #define HYPERLAYER_HPP_
 
-#include <layers/PVLayerCube.hpp>
-#include <layers/BaseLayer.hpp>
-#include <columns/DataStore.hpp>
-#include <columns/HyPerCol.hpp>
-#include <columns/Communicator.hpp>
-#include <columns/Publisher.hpp>
-#include <io/LayerProbe.hpp>
-#include <io/fileio.hpp>
-#include <include/pv_common.h>
-#include <include/pv_types.h>
-#include <utils/Timer.hpp>
+#include "layers/PVLayerCube.hpp"
+#include "layers/BaseLayer.hpp"
+#include "columns/DataStore.hpp"
+#include "columns/HyPerCol.hpp"
+#include "columns/Communicator.hpp"
+#include "columns/Publisher.hpp"
+#include "probes/LayerProbe.hpp"
+#include "io/fileio.hpp"
+#include "include/pv_common.h"
+#include "include/pv_types.h"
+#include "utils/Timer.hpp"
 
 
 #ifdef PV_USE_CUDA

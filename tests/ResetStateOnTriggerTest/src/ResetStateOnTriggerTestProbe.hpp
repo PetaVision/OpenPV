@@ -1,7 +1,7 @@
 #ifndef RESETSTATEONTRIGGERTESTPROBE_HPP_
 #define RESETSTATEONTRIGGERTESTPROBE_HPP_
 
-#include <io/LayerProbe.hpp>
+#include "probes/LayerProbe.hpp"
 
 class ResetStateOnTriggerTestProbe : public PV::LayerProbe {
 public:
