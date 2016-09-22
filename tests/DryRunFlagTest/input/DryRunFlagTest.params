@@ -12,22 +12,18 @@
 //  The test begins by creating the PV_Init object with the -n flag set, to
 //  create a new, cleaned up params file ("output/pv.params") with unneeded
 //  parameters removed, missing parameters filled in with defaults, and
-//  formatted cleanly.  The customexit hook checks that no timesteps were
-//  executed.
+//  formatted cleanly.  The AlwaysFailsLayer fails anytime updateState is
+//  called, to verify that no timesteps are executed when the -n flag is set.
 //
-//  The test then calls rebuildandrun two more times, once with the messy
-//  params file "input/DryRunFlagTest.params", this time with the
-//  dry-run flag off; and once with the cleaned-up params file
-//  "output/pv.params".  The two runs use different output paths in the
-//  PV_Argument object (output-generate/ and output-verify/).
+//  The test then compares the generated output/pv.params file to
+//  input/correct.params, by creating a PVParams object from each file
+//  and comparing them.
 //
-//  Finally, the test compares the two output directories, examining
-//  all files except for pv.params, pv.params.lua, and timers.txt
-//  (pv.params and pv.params.lua differ in their timestamps and
-//  in the output directory.  timers.txt differs because of vagaries
-//  of timing from run to run.)
+//  Note that this test will fail any time that a parameter is added
+//  or removed by any of the classes whose keywords are used in this
+//  params file.  If this happens, the correct.params file will need
+//  to be updated accordingly.
 //
-//  The params file makes use of the #include capability.
 //  TODO: How does processParams interact with parameter sweeps?
 
 debugParsing = true;    // Debug the reading of this parameter file.
@@ -186,3 +182,5 @@ HyPerConn "InputToOutputImported" = { #include
 "InputToOutputBase"; @postLayerName =
    "OutputImported"; @nfp =
 6;			};
+
+AlwaysFailsLayer "AlwaysFails" = {};
