@@ -61,6 +61,9 @@ void CudaPoolingDeliverKernel::setArgs(
    status = cudnnSetPooling2dDescriptor(
          mPoolingDescriptor,
          poolingMode,
+#if CUDNN_MAJOR >=5
+				 CUDNN_NOT_PROPAGATE_NAN,
+#endif
          nypPost,
          nxpPost,
          0/*horizontal padding*/,
@@ -156,8 +159,17 @@ int CudaPoolingDeliverKernel::do_run() {
 
    cudnnPoolingMode_t checkMode;
    int h,w,vPad,hPad,vStride,hStride;
+#if CUDNN_MAJOR == 5
+	 cudnnNanPropagation_t cudnnNanPropagation;
    cudnnGetPooling2dDescriptor((cudnnPoolingDescriptor_t) mPoolingDescriptor,
-   &checkMode, &h, &w, &vPad, &hPad, &vStride, &hStride);
+															 &checkMode, &cudnnNanPropagation, &h, &w, &vPad, &hPad, &vStride, &hStride);
+
+#elif CUDNN_MAJOR == 4
+   cudnnGetPooling2dDescriptor((cudnnPoolingDescriptor_t) mPoolingDescriptor,
+															 &checkMode, &h, &w, &vPad, &hPad, &vStride, &hStride);
+#else
+#error The cuDNN version is required to be either v4 or v5.
+#endif
 
    // Do the pooling
    cudnnStatus_t status = cudnnPoolingForward(
