@@ -39,7 +39,7 @@ public:
     */
    int ioParams(enum ParamsIOFlag ioFlag);
 
-   virtual int respond(std::shared_ptr<BaseMessage> message) override;
+   virtual int respond(std::shared_ptr<BaseMessage const> message) override;
 
    // manage the communicateInitInfo, allocateDataStructures, and initializeState stages.
    /**

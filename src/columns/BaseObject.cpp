@@ -66,7 +66,7 @@ int BaseObject::setDescription() {
    return PV_SUCCESS;
 }
 
-int BaseObject::respond(std::shared_ptr<BaseMessage> message) {
+int BaseObject::respond(std::shared_ptr<BaseMessage const> message) {
    // TODO: convert PV_SUCCESS, PV_FAILURE, etc. to enum
    if (message==nullptr) {
       return PV_SUCCESS;

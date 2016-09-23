@@ -364,7 +364,7 @@ int BaseConnection::insertProbe(BaseConnectionProbe * p)
 
    return ++numProbes;
 }
-int BaseConnection::respond(std::shared_ptr<BaseMessage> message) {
+int BaseConnection::respond(std::shared_ptr<BaseMessage const> message) {
    int status = BaseObject::respond(message);
    if (status != PV_SUCCESS) {
       return status;
