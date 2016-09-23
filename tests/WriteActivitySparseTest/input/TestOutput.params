@@ -128,9 +128,6 @@ IdentConn "GeneratedMovieToComparison" = {
     // initWeightsFile                     was set to (NULL);
     writeStep                           = -1;
     gpuGroupIdx                         = 0;
-    numXLocal                           = 0;
-    numYLocal                           = 0;
-    numFLocal                           = 0;
 };
 
 IdentConn "OriginalMovieToComparison" = {
@@ -142,9 +139,6 @@ IdentConn "OriginalMovieToComparison" = {
     // initWeightsFile                     was set to (NULL);
     writeStep                           = -1;
     gpuGroupIdx                         = 0;
-    numXLocal                           = 0;
-    numYLocal                           = 0;
-    numFLocal                           = 0;
 };
 
 TestNotAlwaysAllZerosProbe "OriginalMovieProbe" = {

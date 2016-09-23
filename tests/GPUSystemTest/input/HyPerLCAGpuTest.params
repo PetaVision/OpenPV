@@ -238,9 +238,6 @@ TransposeConn "gpuTransposeConn" = {
     pvpatchAccumulateType = "convolve";
     updateGSynFromPostPerspective = true;
     receiveGpu = true;
-    //numXLocal = 128;
-    //numYLocal = 1;
-    //numFLocal = 1;
 };
 
 HyPerConn "origConn2" = {

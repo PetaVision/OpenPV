@@ -243,9 +243,6 @@ TransposeConn "gpuTransposeConn1" = {
     updateGSynFromPostPerspective = true;
     receiveGpu = true;
     gpuGroupIdx = 0;
-    numXLocal = 64;
-    numYLocal = 1;
-    numFLocal = 1;
 };
 
 IdentConn "RecvGpuTest1" = {
@@ -337,9 +334,6 @@ TransposeConn "gpuTransposeConn2" = {
     updateGSynFromPostPerspective = true;
     receiveGpu = true;
     gpuGroupIdx = 0;
-    //numXLocal = 64;
-    //numYLocal = 1;
-    //numFLocal = 1;
 };
 
 IdentConn "RecvGpuTest2" = {

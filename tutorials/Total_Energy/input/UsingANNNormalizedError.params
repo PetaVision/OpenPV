@@ -145,9 +145,6 @@ IdentConn "input_to_residual" = {
     initWeightsFile                     = NULL;
     writeStep                           = -1;
     gpuGroupIdx                         = 0;
-    numXLocal                           = 0;
-    numYLocal                           = 0;
-    numFLocal                           = 0;
 };
 
 HyPerConn "V1_to_residual" = {
@@ -185,9 +182,6 @@ HyPerConn "V1_to_residual" = {
     normalizeFromPostPerspective        = false;
     minL2NormTolerated                  = 0;
     gpuGroupIdx                         = 0;
-    numXLocal                           = 0;
-    numYLocal                           = 0;
-    numFLocal                           = 0;
 };
 
 TransposeConn "residual_to_V1" = {
@@ -203,9 +197,6 @@ TransposeConn "residual_to_V1" = {
     writeCompressedCheckpoints          = false;
     selfFlag                            = false;
     gpuGroupIdx                         = 0;
-    numXLocal                           = 0;
-    numYLocal                           = 0;
-    numFLocal                           = 0;
     originalConnName                    = "V1_to_residual";
 };
 
@@ -221,8 +212,5 @@ CloneConn "V1_to_reconstruction" = {
     writeCompressedCheckpoints          = false;
     selfFlag                            = false;
     gpuGroupIdx                         = 0;
-    numXLocal                           = 0;
-    numYLocal                           = 0;
-    numFLocal                           = 0;
     originalConnName                    = "V1_to_residual";
 };

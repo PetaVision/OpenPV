@@ -155,9 +155,6 @@ IdentConn "InputLayerToTestLayer" = {
     initWeightsFile                     = NULL;
     writeStep                           = -1;
     gpuGroupIdx                         = 0;
-    numXLocal                           = 0;
-    numYLocal                           = 0;
-    numFLocal                           = 0;
 };
 
 ResetStateOnTriggerTestProbe "TestProbe" = {
