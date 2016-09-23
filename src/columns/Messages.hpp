@@ -1,31 +1,22 @@
 /*
- * BaseMessage.hpp
+ * Messages.hpp
  *
  *  Created on: Jul 21, 2016
  *      Author: pschultz
+ *
+ *  The subclasses of BaseMessage used by the HyPerCol.
  */
 
-#ifndef BASEMESSAGE_HPP_
-#define BASEMESSAGE_HPP_
+#ifndef MESSAGES_HPP_
+#define MESSAGES_HPP_
 
+#include "observerpattern/BaseMessage.hpp"
 #include "utils/Timer.hpp"
 #include "cMakeHeader.h"
 #include <map>
 #include <string>
 
 namespace PV {
-
-class BaseMessage {
-public:
-   BaseMessage() { }
-   virtual ~BaseMessage() {}
-   inline std::string const& getMessageType() const { return mMessageType; }
-protected:
-   inline void setMessageType(std::string const& messageType) { mMessageType = messageType;}
-   inline void setMessageType(char const * messageType) { mMessageType = messageType;}
-private:
-   std::string mMessageType="";
-};
 
 template <typename T>
 class CommunicateInitInfoMessage : public BaseMessage {
@@ -221,4 +212,4 @@ public:
 
 } /* namespace PV */
 
-#endif /* BASEMESSAGE_HPP_ */
+#endif /* MESSAGES_HPP_ */
