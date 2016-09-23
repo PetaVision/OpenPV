@@ -60,6 +60,10 @@ protected:
     virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
     virtual int setPatchSize();
 #ifdef PV_USE_CUDA
+    virtual int allocateDeviceWeights() override { return PV_SUCCESS; }
+    virtual int initializeReceivePostKernelArgs() override { return PV_SUCCESS; }
+    virtual int initializeReceivePreKernelArgs() override { return PV_SUCCESS; }
+    virtual void updateDeviceWeights() override {}
     int initializeTransposePoolingDeliverKernelArgs();
 #endif // PV_USE_CUDA
     virtual int setInitialValues();
