@@ -317,11 +317,13 @@ public:
 
    /**
     * Adds an object (layer, connection, etc.) to the hierarchy.
-    * Return value is true if the object was successfully added, and false otherwise.
+    * Exits with an error if adding the object failed.
     * The usual reason for failing to add the object is that the name is the same
     * as that of an earlier added object.
+    * Currently, addLayer, addConnection, and addBaseProbe call addObject;
+    * therefore it is usually not necessary to call addObject.
     */
-   bool addObject(BaseObject * obj) { return mObjectHierarchy.addObject(obj->getName(), obj); }
+   void addObject(BaseObject * obj);
    int addBaseProbe(BaseProbe* p);
    int addConnection(BaseConnection* conn);
    int addNormalizer(NormalizeBase* normalizer);

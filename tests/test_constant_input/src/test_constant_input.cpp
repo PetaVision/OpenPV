@@ -65,9 +65,6 @@ int main(int argc, char* argv[])
    if (imageLoc->nx > retinaLoc->nx) { sumOfWeights *= imageLoc->nx/retinaLoc->nx;}
    if (imageLoc->ny > retinaLoc->ny) { sumOfWeights *= imageLoc->ny/retinaLoc->ny;}
    
-   hc->addObject(image);
-   hc->addObject(retina);
-   hc->addObject(conn);
    hc->run();
 
    const int rank = hc->columnId();
