@@ -842,30 +842,7 @@ protected:
     */
    virtual void ioParam_gpuGroupIdx(enum ParamsIOFlag ioFlag);
 
-   // preDataLocal was removed Sep 22, 2016.
-
-   /**
-    * @brief numXLocal: Specifies number of local threads to run in x direction
-    * @details Only set if receiving from gpu. Not used if using receive CUDNN from post. 
-    * This parameter is ignored if PetaVision was compiled without GPU acceleration.
-    */
-   virtual void ioParam_numXLocal(enum ParamsIOFlag ioFlag);
-   /**
-    * @brief numYLocal: Specifies number of local threads to run in xydirection
-    * @details Only set if receiving from gpu. Not used if using receive CUDNN from post. 
-    * Must be divisible by post layer x size. numXLocal * numYLocal * numFLocal must be less
-    * than the amount of local threads specified by the hardware.
-    * This parameter is ignored if PetaVision was compiled without GPU acceleration.
-    */
-   virtual void ioParam_numYLocal(enum ParamsIOFlag ioFlag);
-   /**
-    * @brief numYLocal: Specifies number of local threads to run in xydirection
-    * @details Only set if receiving from gpu. Not used if using receive CUDNN from post. 
-    * If using preDataLocal and recv form post, must be set to 1. numXLocal * numYLocal * numFLocal
-    * must be less than the amount of local threads specified by the hardware. Must be set to 1.
-    * This parameter is ignored if PetaVision was compiled without GPU acceleration.
-    */
-   virtual void ioParam_numFLocal(enum ParamsIOFlag ioFlag);
+   // preDataLocal, numXLocal, numYLocal, and numFLocal were removed Sep 22, 2016.
 #endif // PV_USE_CUDA
 
    /**
@@ -999,10 +976,6 @@ public:
    PVCuda::CudaRecvPost * getKrRecvPost(){return krRecvPost;}
    PVCuda::CudaRecvPre * getKrRecvPre(){return krRecvPre;}
 
-   virtual int getNumXLocal(){return numXLocal;}
-   virtual int getNumYLocal(){return numYLocal;}
-   virtual int getNumFLocal(){return numFLocal;}
-   
 protected:
    virtual int allocatePostDeviceWeights();
    virtual int allocateDeviceWeights();
@@ -1027,9 +1000,6 @@ protected:
    PVCuda::CudaRecvPost* krRecvPost;        // Cuda kernel for update state call
    PVCuda::CudaRecvPre* krRecvPre;        // Cuda kernel for update state call
    int gpuGroupIdx;
-   int numXLocal;
-   int numYLocal;
-   int numFLocal;
 
 #endif // PV_USE_CUDA
 
