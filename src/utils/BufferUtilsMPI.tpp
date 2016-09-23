@@ -169,5 +169,69 @@ namespace PV {
          }
          return buffer;
       }
+
+      template <typename T>
+      SparseList<T> gatherSparse(Communicator *comm,
+                                 SparseList<T> list) {
+         size_t entrySize = sizeof(SparseList<T>::Entry);
+         if (comm->commRank() == 0) {
+            SparseList<T> globalList;
+            for (int recvRank = comm->commSize() - 1; recvRank >= 0; --recvRank) {
+               SparseList<T> listChunk;
+               if (recvRank != 0) {
+                  uint32_t numToRecv = 0;
+                  MPI_Recv(&numToRecv,
+                           1,
+                           MPI_INT,
+                           recvRank,
+                           171 + recvRank * 2, // Odd tag for numToRecv
+                           comm->communicator(),
+                           MPI_STATUS_IGNORE);
+                 if (numToRecv > 0) {
+                     SparseList<T>::Entry *recvBuffer =
+                        (SparseList<T>::Entry*)calloc(numToRecv, entrySize);
+                     pvErrorIf(recvBuffer == nullptr, 
+                        "Could not allocate a receive buffer of %d bytes.\n",
+                        numToRecv * entrySize);
+                     MPI_Recv(recvBuffer,
+                           numToRecv * entrySize,
+                           MPI_BYTE,
+                           recvRank,
+                           172 + recvRank * 2, // Even tag for data
+                           comm->communicator(),
+                           MPI_STATUS_IGNORE);
+                     for (uint32_t i = 0; i < numToRecv; ++i) {
+                        listChunk.addEntry(recvBuffer[i]);
+                     }
+                     free(recvBuffer);
+                 }
+               }
+               else {
+                  listChunk = list;
+               }
+               listChunk.appendToList(globalList);
+            }
+            return globalList;
+         }
+         else {
+            vector<SparseList<T>::Entry> toSend = list.getContents();
+            uint32_t numToSend = toSend.size();
+            MPI_Send(&numToSend,
+                     1,
+                     MPI_INT,
+                     0,
+                     171 + recvRank * 2,
+                     comm->communicator());
+            if (numToSend > 0) {
+               MPI_Send(toSend.data(),
+                        numToSend * entrySize,
+                        MPI_BYTE,
+                        0,
+                        172 + recvRank * 2,
+                        comm->communicator());
+            }
+         }
+         return list;
+      }
    }
 }  // end namespace PV
