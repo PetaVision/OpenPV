@@ -8,17 +8,18 @@
 #ifndef HYPERCOL_HPP_
 #define HYPERCOL_HPP_
 
-#include <columns/Communicator.hpp>
-#include <columns/BaseObject.hpp>
-#include <columns/Messages.hpp>
-#include <columns/ObjectHierarchy.hpp>
-#include <layers/HyPerLayer.hpp>
-#include <connections/BaseConnection.hpp>
-#include <io/PVParams.hpp>
-#include <include/pv_types.h>
-#include <columns/PV_Init.hpp>
-#include <utils/Timer.hpp>
-#include <probes/ColProbe.hpp>
+#include "observerpattern/Subject.hpp"
+#include "columns/Communicator.hpp"
+#include "columns/BaseObject.hpp"
+#include "columns/Messages.hpp"
+#include "layers/HyPerLayer.hpp"
+#include "observerpattern/ObserverTable.hpp"
+#include "connections/BaseConnection.hpp"
+#include "io/PVParams.hpp"
+#include "include/pv_types.h"
+#include "columns/PV_Init.hpp"
+#include "utils/Timer.hpp"
+#include "probes/ColProbe.hpp"
 #include <time.h>
 #include <typeinfo>
 #include <sys/stat.h>
@@ -55,7 +56,7 @@ class PVParams;
 class NormalizeBase;
 class PV_Init;
 
-class HyPerCol {
+class HyPerCol : public Subject {
 
 private:
    /** 
@@ -320,7 +321,7 @@ public:
     * The usual reason for failing to add the object is that the name is the same
     * as that of an earlier added object.
     */
-   bool addObject(BaseObject * obj) { return mObjectHierarchy.addObject(obj); }
+   bool addObject(BaseObject * obj) { return mObjectHierarchy.addObject(obj->getName(), obj); }
    int addBaseProbe(BaseProbe* p);
    int addConnection(BaseConnection* conn);
    int addNormalizer(NormalizeBase* normalizer);
@@ -436,8 +437,8 @@ public:
    unsigned int seedRandomFromWallClock();
 
    // A hack to allow test_cocirc, test_gauss2d, and test_post_weights to send a CommunicateInitInfoMessage.
-   std::map<std::string, BaseObject*> * copyObjectMap() {
-      auto objectMap = new std::map<std::string, BaseObject*>;
+   std::map<std::string, Observer*> * copyObjectMap() {
+      auto objectMap = new std::map<std::string, Observer*>;
       *objectMap = mObjectHierarchy.getObjectMap();
       return objectMap;
    }
@@ -466,8 +467,8 @@ private:
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    void paramMovedToColumnEnergyProbe(enum ParamsIOFlag ioFlag, char const * paramName);
    int checkDirExists(const char * dirname, struct stat * pathstat);
-   void notify(std::vector<std::shared_ptr<BaseMessage> > messages);
-   inline void notify(std::shared_ptr<BaseMessage> message) { notify(std::vector<std::shared_ptr<BaseMessage> >{message});}
+   inline void notify(std::vector<std::shared_ptr<BaseMessage const> > messages) { Subject::notify(mObjectHierarchy, messages); }
+   inline void notify(std::shared_ptr<BaseMessage const> message) { notify(std::vector<std::shared_ptr<BaseMessage const> >{message});}
    int normalizeWeights();
    int checkpointRead();
    int checkpointWrite(const char * cpDir);
@@ -489,7 +490,7 @@ private:
 
    std::vector<BaseConnection*> mConnections; //BaseConnection  ** mConnections;
    std::vector<BaseProbe*> mBaseProbes; //Why is this Base and not just mProbes? //BaseProbe ** mBaseProbes;
-   ObjectHierarchy mObjectHierarchy;
+   ObserverTable mObjectHierarchy;
    bool mErrorOnNotANumber;        // If true, check each layer's activity buffer for not-a-numbers and exit with an error if any appear
    bool mDefaultInitializeFromCheckpointFlag ; // Each Layer and connection can individually set its own initializeFromCheckpointFlag.  This sets the default value for those flags.
    bool mWarmStart;             // whether to start from a checkpoint

@@ -8,7 +8,6 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/HyPerCol.cpp
    ${SUBDIR}/InterColComm.cpp
    ${SUBDIR}/KeywordHandler.cpp
-   ${SUBDIR}/ObjectHierarchy.cpp
    ${SUBDIR}/Publisher.cpp
    ${SUBDIR}/PV_Arguments.cpp
    ${SUBDIR}/PV_Init.cpp
@@ -29,7 +28,6 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/Messages.hpp
    ${SUBDIR}/Publisher.hpp
    ${SUBDIR}/PV_Arguments.hpp
-   ${SUBDIR}/ObjectHierarchy.cpp
    ${SUBDIR}/PV_Arguments.hpp
    ${SUBDIR}/PV_Init.hpp
    ${SUBDIR}/Random.hpp

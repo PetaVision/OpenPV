@@ -34,7 +34,7 @@ void Subject::notify(ObserverTable const& table, std::vector<std::shared_ptr<Bas
                pvError() << obj->getDescription() << " failed " << msg->getMessageType() << ".\n";
                break;
             default:
-               pvError() << obj->getDescription() << " returned unrecognized return code " << status << ".\n";
+               pvError() << obj->getDescription() << ": response to " << msg->getMessageType() << " returned unrecognized return code " << status << ".\n";
                break;
             }
          }

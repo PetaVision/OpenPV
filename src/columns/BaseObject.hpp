@@ -68,7 +68,7 @@ protected:
    int setParent(HyPerCol * hc);
    virtual int setDescription();
 
-   int respondCommunicateInitInfo(CommunicateInitInfoMessage<BaseObject*> const * message);
+   int respondCommunicateInitInfo(CommunicateInitInfoMessage const * message);
    int respondAllocateData(AllocateDataMessage const * message);
    int respondInitializeState(InitializeStateMessage const * message);
 

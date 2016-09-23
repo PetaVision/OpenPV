@@ -11,6 +11,7 @@
 #define MESSAGES_HPP_
 
 #include "observerpattern/BaseMessage.hpp"
+#include "observerpattern/Observer.hpp"
 #include "utils/Timer.hpp"
 #include "cMakeHeader.h"
 #include <map>
@@ -18,14 +19,13 @@
 
 namespace PV {
 
-template <typename T>
 class CommunicateInitInfoMessage : public BaseMessage {
 public:
-   CommunicateInitInfoMessage(std::map<std::string, T> const& hierarchy) {
+   CommunicateInitInfoMessage(std::map<std::string, Observer*> const& hierarchy) {
       setMessageType("CommunicateInitInfo");
       mHierarchy = hierarchy;
    }
-   std::map<std::string, T> mHierarchy;
+   std::map<std::string, Observer*> mHierarchy;
 };
 
 class AllocateDataMessage : public BaseMessage {
