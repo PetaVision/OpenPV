@@ -37,8 +37,6 @@ namespace PVCuda{
       int nyp;
       int nfp;
 
-      int localBufSizeX;
-      int localBufSizeY;
       float preToPostScaleX;
       float preToPostScaleY;
 
@@ -111,8 +109,6 @@ public:
       const int nyp,
       const int nfp,
 
-      const int localBufSizeX,
-      const int localBufSizeY,
       const float preToPostScaleX,
       const float preToPostScaleY,
 

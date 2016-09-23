@@ -1793,27 +1793,12 @@ int HyPerConn::initializeReceivePostKernelArgs()
       pvError() << "F local size of " << numFLocal << " is not divisible by post nf of " << postLoc->nf << "\n";
    }
 
-   int localBufSizeX;
-   int localBufSizeY;
    //See the size of buffer needed based on x and y
    //oNxp is the patch size from the post point of view
-   if(preToPostScaleX >= 1){
-      localBufSizeX = oNxp + (preToPostScaleX * (numXLocal - 1));
-   }
-   else{
-      localBufSizeX = oNxp + ((preToPostScaleX * numXLocal) - 1);
-   }
-   if(preToPostScaleY >= 1){
-      localBufSizeY = oNyp + (preToPostScaleY * (numYLocal - 1));
-   }
-   else{
-      localBufSizeY = oNyp + ((preToPostScaleY * numYLocal) - 1);
-   }
 
    if (parent->columnId()==0) {
       pvInfo() << "preToPostScale: (" << preToPostScaleX << "," << preToPostScaleY << ")\n";
       pvInfo() << "patch size: (" << oNxp << "," << oNyp << ") numLocal: (" << numXLocal << "," << numYLocal << ")\n";
-      pvInfo() << "local sizes: (" << localBufSizeX << "," << localBufSizeY << ")\n";
    }
    
    krRecvPost->setArgs(
@@ -1839,8 +1824,6 @@ int HyPerConn::initializeReceivePostKernelArgs()
       oNyp,
       oNfp,
 
-      localBufSizeX,
-      localBufSizeY,
       preToPostScaleX,
       preToPostScaleY,
 

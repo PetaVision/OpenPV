@@ -71,8 +71,6 @@ void CudaRecvPost::setArgs(
       const int nyp,
       const int nfp,
 
-      const int localBufSizeX,
-      const int localBufSizeY,
       const float preToPostScaleX,
       const float preToPostScaleY,
 
@@ -115,8 +113,6 @@ void CudaRecvPost::setArgs(
    params.nyp = nyp;
    params.nfp = nfp;
 
-   params.localBufSizeX = localBufSizeX;
-   params.localBufSizeY = localBufSizeY;
    params.preToPostScaleX = preToPostScaleX;
    params.preToPostScaleY = preToPostScaleY;
 
