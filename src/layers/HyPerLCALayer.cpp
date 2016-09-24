@@ -152,12 +152,12 @@ int HyPerLCALayer::allocateUpdateKernel(){
    PVCuda::CudaBuffer* d_activity = getDeviceActivity();
 
    size_t size = parent->getNBatch() * sizeof(double);
-   d_dtAdapt = device->createBuffer(size);
+   d_dtAdapt = device->createBuffer(size, &description);
 
    size = (size_t) numVertices * sizeof(*verticesV);
-   d_verticesV = device->createBuffer(size);
-   d_verticesA = device->createBuffer(size);
-   d_slopes = device->createBuffer(size+sizeof(*slopes));
+   d_verticesV = device->createBuffer(size, &description);
+   d_verticesA = device->createBuffer(size, &description);
+   d_slopes = device->createBuffer(size+sizeof(*slopes), &description);
 
    d_verticesV->copyToDevice(verticesV);
    d_verticesA->copyToDevice(verticesA);

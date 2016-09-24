@@ -87,7 +87,8 @@ void CudaTransposePoolingDeliverKernel::setArgs(
          ); //Width of each feature map
    cudnnHandleError(status, "Set input tensor descriptor");
    mDataStore = (float*) dataStoreBuffer->getPointer();
-   mCudnnDataStore = device->createBuffer(dataStoreBuffer->getSize());
+   std::string str(kernelName);
+   mCudnnDataStore = device->createBuffer(dataStoreBuffer->getSize(), &str);
 
    status = cudnnCreateTensorDescriptor(&mGSynDescriptor);
    cudnnHandleError(status, "Create input tensor descriptor");
@@ -104,7 +105,7 @@ void CudaTransposePoolingDeliverKernel::setArgs(
    int numGSynNeuronsAcrossBatch = mPostLoc->nx*mPostLoc->ny*mPostLoc->nf*mPostLoc->nbatch;
    float * gSynHead = (float*) gSynBuffer->getPointer();
    mGSyn = &gSynHead[channel*numGSynNeuronsAcrossBatch];
-   mCudnnGSyn = device->createBuffer(numGSynNeuronsAcrossBatch*sizeof(float));
+   mCudnnGSyn = device->createBuffer(numGSynNeuronsAcrossBatch*sizeof(float), &str);
 
    mOrigConnPreLoc = origConnPreLoc;
    mOrigConnPostLoc = origConnPostLoc;
@@ -125,7 +126,7 @@ void CudaTransposePoolingDeliverKernel::setArgs(
          ); //Width of each feature map
    cudnnHandleError(status, "Set original conn pre datastore tensor descriptor");
    mOrigConnDataStore = (float*) origConnDataStoreBuffer->getPointer();
-   mCudnnOrigConnDataStore = device->createBuffer(origConnDataStoreBuffer->getSize());
+   mCudnnOrigConnDataStore = device->createBuffer(origConnDataStoreBuffer->getSize(), &str);
 
    status = cudnnCreateTensorDescriptor(&mOrigConnGSynDescriptor);
    cudnnHandleError(status, "Create original conn post gsyn tensor descriptor");
@@ -142,7 +143,7 @@ void CudaTransposePoolingDeliverKernel::setArgs(
    int numOrigConnGSynNeuronsAcrossBatch = mOrigConnPostLoc->nf*mOrigConnPostLoc->ny*mOrigConnPostLoc->nf*mOrigConnPostLoc->nbatch;
    float * origConnGSynHead = (float*) origConnGSynBuffer->getPointer();
    mOrigConnGSyn = &origConnGSynHead[channel*numOrigConnGSynNeuronsAcrossBatch];
-   mCudnnOrigConnGSyn = device->createBuffer(numOrigConnGSynNeuronsAcrossBatch*sizeof(float));
+   mCudnnOrigConnGSyn = device->createBuffer(numOrigConnGSynNeuronsAcrossBatch*sizeof(float), &str);
 }
 
 int CudaTransposePoolingDeliverKernel::calcBorderExcess(int preRestricted, int postRestricted, int border, int patchSizePostPerspective) {

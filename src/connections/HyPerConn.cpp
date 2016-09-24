@@ -1516,10 +1516,10 @@ int HyPerConn::allocatePostDeviceWeights(){
 int HyPerConn::allocateDeviceWeights(){
    PVCuda::CudaDevice * device = parent->getDevice();
    const size_t size = numberOfAxonalArborLists() * getNumDataPatches() * xPatchSize() * yPatchSize() * fPatchSize() * sizeof(pvwdata_t);
-   d_WData = device->createBuffer(size);
+   d_WData = device->createBuffer(size, &description);
    pvAssert(d_WData);
 # ifdef PV_USE_CUDNN
-   cudnn_WData = device->createBuffer(size);
+   cudnn_WData = device->createBuffer(size, &description);
 # endif
    return PV_SUCCESS;
 }
@@ -1591,10 +1591,10 @@ int HyPerConn::allocateDeviceBuffers()
    if(receiveGpu){
       if(updateGSynFromPostPerspective){
          int numPostRes = post->getNumNeurons();
-         d_PostToPreActivity = device->createBuffer(numPostRes*sizeof(long)); 
+         d_PostToPreActivity = device->createBuffer(numPostRes*sizeof(long), &description); 
          if(sharedWeights){
             int numWeightPatches = postConn->getNumWeightPatches();
-            d_Patch2DataLookupTable = device->createBuffer(numWeightPatches * sizeof(int));  
+            d_Patch2DataLookupTable = device->createBuffer(numWeightPatches * sizeof(int), &description);  
          }
       }
       else{
@@ -1616,11 +1616,11 @@ int HyPerConn::allocateDeviceBuffers()
 
          int numWeightPatches = pre->getNumExtended() ;
          int patchSize = numWeightPatches * sizeof(PVPatch);
-         d_Patches = device->createBuffer(patchSize); 
+         d_Patches = device->createBuffer(patchSize, &description); 
 
          //Need a buffer for gsynpatch start for one arbor
          int gsynPatchStartIndexSize = numWeightPatches * sizeof(size_t);
-         d_GSynPatchStart = device->createBuffer(gsynPatchStartIndexSize); 
+         d_GSynPatchStart = device->createBuffer(gsynPatchStartIndexSize, &description); 
 
          if(numberOfAxonalArborLists() == 1){
             PVPatch* h_patches = weights(0)[0]; //0 beacuse it's one block of memory
@@ -1635,7 +1635,7 @@ int HyPerConn::allocateDeviceBuffers()
 
          if(sharedWeights){
             int numWeightPatches = getNumWeightPatches();
-            d_Patch2DataLookupTable = device->createBuffer(numWeightPatches * sizeof(int));  
+            d_Patch2DataLookupTable = device->createBuffer(numWeightPatches * sizeof(int), &description);  
          }
       }
    }
