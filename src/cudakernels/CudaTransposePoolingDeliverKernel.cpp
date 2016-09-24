@@ -13,6 +13,10 @@
 
 namespace PVCuda {
 
+CudaTransposePoolingDeliverKernel::CudaTransposePoolingDeliverKernel(CudaDevice* inDevice) : CudaKernel(inDevice) {
+   kernelName = "CudaTransposePoolingDeliverKernel";
+}
+
 CudaTransposePoolingDeliverKernel::~CudaTransposePoolingDeliverKernel() {
 }
 

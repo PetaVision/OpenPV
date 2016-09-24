@@ -14,7 +14,7 @@ namespace PVCuda{
 #endif // PV_USE_CUDNN
 
 CudaRecvPost::CudaRecvPost(CudaDevice* inDevice):CudaKernel(inDevice){
-   //inDevice->incrementConvKernels();
+   kernelName = "CudaRecvPost";
 }
 
 CudaRecvPost::~CudaRecvPost(){

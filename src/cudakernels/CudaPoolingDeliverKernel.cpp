@@ -14,6 +14,7 @@
 namespace PVCuda {
 
 CudaPoolingDeliverKernel::CudaPoolingDeliverKernel(CudaDevice* inDevice) : CudaKernel(inDevice) {
+   kernelName = "CudaPoolingDeliverKernel";
 }
 
 CudaPoolingDeliverKernel::~CudaPoolingDeliverKernel() {
