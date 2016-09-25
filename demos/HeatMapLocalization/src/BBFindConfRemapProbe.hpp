@@ -8,7 +8,7 @@
 #ifndef BBFINDCONFREMAPPROBE_HPP_
 #define BBFINDCONFREMAPPROBE_HPP_
 
-#include "io/LayerProbe.hpp"
+#include "probes/LayerProbe.hpp"
 #include "LocalizationData.hpp"
 #include "BBFindConfRemapLayer.hpp"
 

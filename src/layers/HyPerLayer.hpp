@@ -294,7 +294,7 @@ public:
    virtual double getTimeScale(int batchIdx)      {return -1.0;};
    virtual bool activityIsSpiking() { return false; }
    PVDataType getDataType()          {return dataType;}
-   virtual int respond(std::shared_ptr<BaseMessage> message) override;
+   virtual int respond(std::shared_ptr<BaseMessage const> message) override;
 protected:
 
    /**

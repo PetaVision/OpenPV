@@ -1307,6 +1307,7 @@ int HyPerCol::ensureDirExists(const char * dirname) {
 
 int HyPerCol::addLayer(HyPerLayer * layer)
 {
+   addObject(layer);
    mLayers.push_back(layer);
    if(layer->getPhase() >= mNumPhases) mNumPhases = layer->getPhase() + 1;
    return mLayers.size() - 1;
@@ -1314,6 +1315,7 @@ int HyPerCol::addLayer(HyPerLayer * layer)
 
 int HyPerCol::addConnection(BaseConnection * conn)
 {
+   addObject(conn);
    mConnections.push_back(conn);
    return mConnections.size() - 1;
 }
@@ -1588,7 +1590,7 @@ int HyPerCol::setNumThreads(bool printMessagesFlag) {
 int HyPerCol::processParams(char const * path) {
    if (!mParamsProcessedFlag) {
       auto const& objectMap = mObjectHierarchy.getObjectMap();
-      notify(std::make_shared<CommunicateInitInfoMessage<BaseObject*> >(objectMap));
+      notify(std::make_shared<CommunicateInitInfoMessage>(objectMap));
    }
 
    // Print a cleaned up version of params to the file given by printParamsFilename
@@ -1604,57 +1606,6 @@ int HyPerCol::processParams(char const * path) {
    }
    mParamsProcessedFlag = true;
    return PV_SUCCESS;
-}
-
-void HyPerCol::notify(std::vector<std::shared_ptr<BaseMessage> > messages) {
-   auto needsUpdate = mObjectHierarchy.getObjectVector();
-   auto numNeedsUpdate = needsUpdate.size();
-   while(numNeedsUpdate>0) {
-      auto oldNumNeedsUpdate = numNeedsUpdate;
-      auto iter=needsUpdate.begin();
-      while (iter!=needsUpdate.end()) {
-         auto obj = (*iter);
-         int status = PV_SUCCESS;
-         for (auto msg : messages) {
-            status = obj->respond(msg);
-            if (status == PV_BREAK) { status = PV_SUCCESS; } // Can we get rid of PV_BREAK as a possible return value of connections' updateState?
-            switch(status) {
-            case PV_SUCCESS:
-               continue;
-               break;
-            case PV_POSTPONE:
-               pvInfo() << obj->getDescription() << ": " << msg->getMessageType() << " postponed.\n";
-               break;
-            case PV_FAILURE:
-               pvError() << obj->getDescription() << " failed " << msg->getMessageType() << ".\n";
-               break;
-            default:
-               pvError() << obj->getDescription() << ": " << msg->getMessageType() << " returned unrecognized return code " << status << ".\n";
-               break;
-            }
-         }
-         switch(status) {
-         case PV_SUCCESS:
-            iter = needsUpdate.erase(iter);
-            break;
-         case PV_POSTPONE:
-            iter++;
-            break;
-         default:
-            pvAssert(0);
-            break;
-         }
-      }
-      numNeedsUpdate = needsUpdate.size();
-      if (numNeedsUpdate == oldNumNeedsUpdate) {
-         pvErrorNoExit() << "HyPerCol::notify has hung with " << numNeedsUpdate << " objects still postponed.\n";
-         for (auto& obj : needsUpdate) {
-            pvErrorNoExit() << obj->getDescription() << " is still postponed.\n";
-         }
-         exit(EXIT_FAILURE);
-         break;
-      }
-   }
 }
 
 int HyPerCol::normalizeWeights() {
@@ -1970,7 +1921,7 @@ int HyPerCol::advanceTime(double sim_time)
 
       // wait for all published data to arrive and call layer's outputState
 
-      std::vector<std::shared_ptr<BaseMessage>> messageVector = {
+      std::vector<std::shared_ptr<BaseMessage const> > messageVector = {
          std::make_shared<LayerUpdateActiveIndicesMessage>(phase),
          std::make_shared<LayerOutputStateMessage>(phase, mSimTime)
       };
@@ -2784,37 +2735,24 @@ int HyPerCol::insertProbe(ColProbe * p)
 {
    mColProbes.push_back(p);
    return mColProbes.size(); //Other insert functions return the index of the inserted object. Is this correct here?
-//ColProbe ** newprobes;
-//   newprobes = (ColProbe **) malloc( ((size_t) (mNumColProbes + 1)) * sizeof(ColProbe *) );
-//   assert(newprobes != nullptr);
-//
-//   for (int i = 0; i < mNumColProbes; i++) {
-//      newprobes[i] = mColProbes[i];
-//   }
-//   free(mColProbes);
-//
-//   mColProbes = newprobes;
-//   mColProbes[mNumColProbes] = p;
-//   return ++mNumColProbes;
+}
+
+void HyPerCol::addObject(BaseObject * obj) {
+   bool succeeded = mObjectHierarchy.addObject(obj->getName(), obj);
+   if (!succeeded) {
+      if (columnId()==0) {
+          pvError() << "Adding " << obj->getDescription() << "failed.\n";
+      }
+      MPI_Barrier(getCommunicator()->communicator());
+      exit(PV_FAILURE);
+   }
 }
 
 // BaseProbes include layer probes, connection probes, and column probes.
 int HyPerCol::addBaseProbe(BaseProbe * p) {
+   addObject(p);
    mBaseProbes.push_back(p);
    return mBaseProbes.size();
-//   BaseProbe ** newprobes;
-//   // Instead of mallocing a new buffer and freeing the old buffer, this could be a realloc.
-//   newprobes = (BaseProbe **) malloc( ((size_t) (mNumBaseProbes + 1)) * sizeof(BaseProbe *) );
-//   assert(newprobes != nullptr);
-//
-//   for (int i=0; i<mNumBaseProbes; i++) {
-//      newprobes[i] = mBaseProbes[i];
-//   }
-//   free(mBaseProbes);
-//   mBaseProbes = newprobes;
-//   mBaseProbes[mNumBaseProbes] = p;
-//
-//   return ++mNumBaseProbes;
 }
 
 int HyPerCol::outputState(double time)
@@ -3042,14 +2980,6 @@ HyPerCol * createHyPerCol(PV_Init * pv_initObj) {
             }
             delete hc;
             return nullptr;
-         }
-         bool addSucceeded = hc->addObject(addedObject);
-         if (!addSucceeded) {
-            if (hc->columnId()==0) {
-               pvError() << "";
-            }
-            MPI_Barrier(hc->getCommunicator()->communicator());
-            exit(PV_FAILURE);
          }
       }
    }

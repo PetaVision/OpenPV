@@ -23,6 +23,7 @@
 #ifndef BASEOBJECT_HPP_
 #define BASEOBJECT_HPP_
 
+#include "observerpattern/Observer.hpp"
 #include "columns/Messages.hpp"
 #include "include/pv_common.h"
 #include "utils/PVLog.hpp"
@@ -34,14 +35,12 @@ namespace PV {
 
 class HyPerCol;
 
-class BaseObject {
+class BaseObject : public Observer {
 public:
    inline char const * getName() const { return name; }
    inline HyPerCol * getParent() const { return parent; }
-   inline char const * getDescription_c() const { return description.c_str(); }
-   inline std::string const& getDescription() const { return description; }
    char const * getKeyword() const;
-   virtual int respond(std::shared_ptr<BaseMessage> message); // TODO: should return enum with values corresponding to PV_SUCCESS, PV_FAILURE, PV_POSTPONE
+   virtual int respond(std::shared_ptr<BaseMessage const> message) override; // TODO: should return enum with values corresponding to PV_SUCCESS, PV_FAILURE, PV_POSTPONE
    virtual ~BaseObject();
 
    /**
@@ -69,7 +68,7 @@ protected:
    int setParent(HyPerCol * hc);
    virtual int setDescription();
 
-   int respondCommunicateInitInfo(CommunicateInitInfoMessage<BaseObject*> const * message);
+   int respondCommunicateInitInfo(CommunicateInitInfoMessage const * message);
    int respondAllocateData(AllocateDataMessage const * message);
    int respondInitializeState(InitializeStateMessage const * message);
 

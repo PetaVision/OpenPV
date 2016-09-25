@@ -841,7 +841,7 @@ void HyPerLayer::ioParam_writeSparseValues(enum ParamsIOFlag ioFlag) {
       parent->ioParamValue(ioFlag, name, "writeSparseValues", &writeSparseValues, true/*default value*/);
 }
 
-int HyPerLayer::respond(std::shared_ptr<BaseMessage> message) {
+int HyPerLayer::respond(std::shared_ptr<BaseMessage const> message) {
    int status = BaseLayer::respond(message);
    if (status != PV_SUCCESS) {
       return status;

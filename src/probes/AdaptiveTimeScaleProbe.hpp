@@ -79,7 +79,7 @@ protected:
 public:
    AdaptiveTimeScaleProbe(char const * name, HyPerCol * hc);
    virtual ~AdaptiveTimeScaleProbe();
-   virtual int respond(std::shared_ptr<BaseMessage> const message) override;
+   virtual int respond(std::shared_ptr<BaseMessage const> message) override;
    virtual int communicateInitInfo() override;
    virtual int allocateDataStructures() override;
    virtual int checkpointRead(const char * cpDir, double * timeptr) override;

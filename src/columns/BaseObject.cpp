@@ -66,12 +66,12 @@ int BaseObject::setDescription() {
    return PV_SUCCESS;
 }
 
-int BaseObject::respond(std::shared_ptr<BaseMessage> message) {
+int BaseObject::respond(std::shared_ptr<BaseMessage const> message) {
    // TODO: convert PV_SUCCESS, PV_FAILURE, etc. to enum
    if (message==nullptr) {
       return PV_SUCCESS;
    }
-   else if (CommunicateInitInfoMessage<BaseObject*> const * castMessage = dynamic_cast<CommunicateInitInfoMessage<BaseObject*> const*>(message.get())) {
+   else if (CommunicateInitInfoMessage const * castMessage = dynamic_cast<CommunicateInitInfoMessage const*>(message.get())) {
       return respondCommunicateInitInfo(castMessage);
    }
    else if (AllocateDataMessage const * castMessage = dynamic_cast<AllocateDataMessage const*>(message.get())) {
@@ -85,7 +85,7 @@ int BaseObject::respond(std::shared_ptr<BaseMessage> message) {
    }
 }
 
-int BaseObject::respondCommunicateInitInfo(CommunicateInitInfoMessage<BaseObject*> const * message) {
+int BaseObject::respondCommunicateInitInfo(CommunicateInitInfoMessage const * message) {
    int status = PV_SUCCESS;
    if (getInitInfoCommunicatedFlag()) { return status; }
    status = communicateInitInfo();
