@@ -12,6 +12,7 @@
 #include "CudaBuffer.hpp"
 #include <stdio.h>
 #include <cuda_runtime_api.h>
+#include <string>
 
 namespace PVCuda{
    
@@ -24,7 +25,6 @@ protected:
 
 public:
 
-   long reserveMem(size_t size);
    void incrementConvKernels();
    size_t getMemory(){return deviceMem;}
    size_t getNumConvKernels(){return numConvKernels;}
@@ -53,9 +53,10 @@ public:
    /**
     * A function to create a buffer from the given stream
     * @param size The size of the buffer being created
+    * @param str  A string used in the message logging the buffer creation.
     * @return The CudaBuffer object from creating the buffer
     */
-   CudaBuffer * createBuffer(size_t size);
+   CudaBuffer * createBuffer(size_t size, std::string const* str);
 
    /**
     * A function to return the cuda stream the device is using
@@ -114,6 +115,12 @@ public:
    void* getCudnnHandle(){return handle;}
 #endif
 
+private:
+   /**
+    * Decrements deviceMem by the given number of bytes, and exits with an error if deviceMem drops below zero.
+    * Called by createBuffer.
+    */
+   long reserveMem(size_t size);
 
 protected:
    int num_devices;                  // number of computing devices

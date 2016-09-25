@@ -14,6 +14,7 @@
 namespace PVCuda {
 
 CudaPoolingDeliverKernel::CudaPoolingDeliverKernel(CudaDevice* inDevice) : CudaKernel(inDevice) {
+   kernelName = "CudaPoolingDeliverKernel";
 }
 
 CudaPoolingDeliverKernel::~CudaPoolingDeliverKernel() {
@@ -101,14 +102,15 @@ void CudaPoolingDeliverKernel::setArgs(
    ); //nx restricted
    cudnnHandleError(status, "Set output tensor descriptor");
 
-   mCudnnDataStore = device->createBuffer(dataStoreBuffer->getSize());
+   std::string str(kernelName);
+   mCudnnDataStore = device->createBuffer(dataStoreBuffer->getSize(), &str);
 
    int numGSynNeuronsAcrossBatch = postLoc->nf*postLoc->ny*postLoc->nf*postLoc->nbatch;
    float * gSynHead = (float*) gSynBuffer->getPointer();
    mGSyn = &gSynHead[channel*numGSynNeuronsAcrossBatch];
 
    size_t gSynSize = gSynBuffer->getSize();
-   mCudnnGSyn = device->createBuffer(numGSynNeuronsAcrossBatch);
+   mCudnnGSyn = device->createBuffer(numGSynNeuronsAcrossBatch, &str);
 }
 
 int CudaPoolingDeliverKernel::calcBorderExcess(int preRestricted, int postRestricted, int border, int patchSizePostPerspective) {
