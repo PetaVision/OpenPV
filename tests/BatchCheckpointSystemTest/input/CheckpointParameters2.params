@@ -176,10 +176,6 @@ VaryingHyPerConn "conn no delay" = {
     keepKernelsSynchronized             = true;
     useMask                             = false;
     gpuGroupIdx                         = 0;
-    preDataLocal                        = false;
-    numXLocal                           = 0;
-    numYLocal                           = 0;
-    numFLocal                           = 0;
 };
 
 VaryingHyPerConn "conn with delay" = {
@@ -225,10 +221,6 @@ VaryingHyPerConn "conn with delay" = {
     keepKernelsSynchronized             = true;
     useMask                             = false;
     gpuGroupIdx                         = 0;
-    preDataLocal                        = false;
-    numXLocal                           = 0;
-    numYLocal                           = 0;
-    numFLocal                           = 0;
 };
 
 HyPerConn "input to output arbor" = {
@@ -271,10 +263,6 @@ HyPerConn "input to output arbor" = {
     normalizeFromPostPerspective        = false;
     minSumTolerated                     = 0;
     gpuGroupIdx                         = 0;
-    preDataLocal                        = false;
-    numXLocal                           = 0;
-    numYLocal                           = 0;
-    numFLocal                           = 0;
 };
 
 IdentConn "selfconnection for output with delay" = {
@@ -286,8 +274,4 @@ IdentConn "selfconnection for output with delay" = {
     initWeightsFile                     = NULL;
     writeStep                           = -1;
     gpuGroupIdx                         = 0;
-    preDataLocal                        = false;
-    numXLocal                           = 0;
-    numYLocal                           = 0;
-    numFLocal                           = 0;
 };

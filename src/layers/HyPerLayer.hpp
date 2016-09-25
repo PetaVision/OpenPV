@@ -552,11 +552,11 @@ public:
       return d_GSyn;
    }
 
-#if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
+#ifdef PV_USE_CUDNN
    PVCuda::CudaBuffer * getCudnnGSyn(){
       return cudnn_GSyn;
    }
-#endif
+#endif // PV_USE_CUDNN
    PVCuda::CudaBuffer * getDeviceActivity(){
       return d_Activity;
    }
@@ -573,11 +573,11 @@ public:
       return d_numActive;
    }
 
-#if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
+#ifdef PV_USE_CUDNN
    PVCuda::CudaBuffer * getCudnnDatastore(){
       return cudnn_Datastore;
    }
-#endif
+#endif // PV_USE_CUDNN
 
    void setAllocDeviceV(){
       allocDeviceV = true;
