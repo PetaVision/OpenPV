@@ -10,10 +10,11 @@ namespace PV {
    template <typename T>
    class SparseList { 
       public:
-         struct Entry {
+
+         typedef struct {
             uint32_t index;
             T        value;
-         };
+         } Entry;
 
          SparseList() {}
          SparseList(const Buffer<T> &source, T zeroVal) {
@@ -26,7 +27,7 @@ namespace PV {
             for (int y = 0; y < source.getHeight(); ++y) {
                for (int x = 0; x < source.getWidth(); ++x) {
                   for (int f = 0; f < source.getFeatures(); ++f) {
-                     T val = buffer.at(x, y, f);
+                     T val = source.at(x, y, f);
                      if (val != zeroVal) {
                         mList.push_back({index++, val});
                      }

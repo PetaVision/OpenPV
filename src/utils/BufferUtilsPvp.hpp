@@ -3,6 +3,7 @@
 
 #include "io/FileStream.hpp"
 #include "structures/Buffer.hpp"
+#include "structures/SparseList.hpp"
 
 #include <vector>
 #include <string>

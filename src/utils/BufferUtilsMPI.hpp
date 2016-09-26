@@ -3,6 +3,7 @@
 
 #include "columns/Communicator.hpp"
 #include "structures/Buffer.hpp"
+#include "structures/SparseList.hpp"
 
 namespace PV
 {

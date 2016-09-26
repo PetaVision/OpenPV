@@ -171,7 +171,7 @@ namespace PV {
                                               * header.at(INDEX_DATA_SIZE)
                                               + sizeof(double) );
          fStream.inStream().seekg(frameOffset, std::ios_base::cur);
-         double timeStamp = readFrame<T>(&fStream, buffer, frameReadIndex);
+         double timeStamp = readFrame<T>(&fStream, buffer);
          return timeStamp;
       }
 
@@ -181,8 +181,8 @@ namespace PV {
       void writeSparseFrame(FileStream *fStream,
                             SparseList<T> *list,
                             double timestamp) {
-         size_t dataSize = sizeof(SparseList<T>::Entry);
-         vector<SparseList<T>::Entry> contents = list->getContents();
+         size_t dataSize = sizeof(struct SparseList<T>::Entry);
+         vector<struct SparseList<T>::Entry> contents = list->getContents();
          pvErrorIf(!fStream->binary(),
                "writeSparseFrame requires a binary FileStream.\n");
          fStream->outStream().write((char*)&timestamp, sizeof(double));
@@ -196,12 +196,12 @@ namespace PV {
       template <typename T>
       double readSparseFrame(FileStream *fStream,
                              SparseList<T> *list) {
-         size_t dataSize    = sizeof(SparseList<T>::Entry);
+         size_t dataSize    = sizeof(struct SparseList<T>::Entry);
          double timeStamp   = 0;
          int    numElements = 0;
          fStream->inStream().read((char*)&timeStamp, sizeof(double));
          fStream->inStream().read((char*)&numElements, sizeof(int));
-         vector<SparseList<T>::Entry> contents(numElements);
+         vector<struct SparseList<T>::Entry> contents(numElements);
          if (numElements > 0) {
             fStream->inStream().read((char*)contents.data(),
                                      contents.size() * dataSize);
@@ -216,9 +216,9 @@ namespace PV {
       static SparseFileTable buildSparseFileTable(FileStream *fStream,
                                                  int upToIndex) {
          vector<int> header = readHeader(fStream);
-         pvErrorIf(upToIndex >= header.at(INDEX_HEADER_NBANDS),
+         pvErrorIf(upToIndex >= header.at(INDEX_NBANDS),
                "buildSparseFileTable requested frame %d / %d.\n",
-               upToIndex, header.at(INDEX_HEADER_NBANDS));
+               upToIndex, header.at(INDEX_NBANDS));
 
          SparseFileTable result;
          result.valuesIncluded = header.at(INDEX_FILE_TYPE) != PVP_ACT_FILE_TYPE;
@@ -233,14 +233,14 @@ namespace PV {
          for (int f = 0; f < upToIndex; ++f) {
             double timeStamp        = 0;
             int    frameLength      = 0;
-            long   frameStartOffset = fStream.inStream().tellg();
-            fStream.inStream().read((char*)&timeStamp, sizeof(double));
-            fStream.inStream().read((char*)&frameLength, sizeof(int));
+            long   frameStartOffset = fStream->inStream().tellg();
+            fStream->inStream().read((char*)&timeStamp, sizeof(double));
+            fStream->inStream().read((char*)&frameLength, sizeof(int));
             result.frameLengths.at(f)      = frameLength;
             result.frameStartOffsets.at(f) = frameStartOffset;
             if (f != upToIndex - 1) {
-               fStream.inStream().seekg(frameLength * dataSize,
-                                        std::ios_base::cur);
+               fStream->inStream().seekg(frameLength * dataSize,
+                                         std::ios_base::cur);
             }
          }
 

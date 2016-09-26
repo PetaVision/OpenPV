@@ -188,8 +188,8 @@ namespace PV {
                            comm->communicator(),
                            MPI_STATUS_IGNORE);
                  if (numToRecv > 0) {
-                     SparseList<T>::Entry *recvBuffer =
-                        (SparseList<T>::Entry*)calloc(numToRecv, entrySize);
+                     struct SparseList<T>::Entry *recvBuffer =
+                        (struct SparseList<T>::Entry*)calloc(numToRecv, entrySize);
                      pvErrorIf(recvBuffer == nullptr, 
                         "Could not allocate a receive buffer of %d bytes.\n",
                         numToRecv * entrySize);
@@ -214,20 +214,20 @@ namespace PV {
             return globalList;
          }
          else {
-            vector<SparseList<T>::Entry> toSend = list.getContents();
+            vector<struct SparseList<T>::Entry> toSend = list.getContents();
             uint32_t numToSend = toSend.size();
             MPI_Send(&numToSend,
                      1,
                      MPI_INT,
                      0,
-                     171 + recvRank * 2,
+                     171 + comm->commRank() * 2,
                      comm->communicator());
             if (numToSend > 0) {
                MPI_Send(toSend.data(),
                         numToSend * entrySize,
                         MPI_BYTE,
                         0,
-                        172 + recvRank * 2,
+                        172 + comm->commRank() * 2,
                         comm->communicator());
             }
          }
