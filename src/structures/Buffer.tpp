@@ -128,6 +128,9 @@ void Buffer<T>::crop(int newWidth, int newHeight, enum Anchor anchor) {
 // Shift a buffer, clipping any values that land out of bounds
 template <class T> 
 void Buffer<T>::translate(int xShift, int yShift) {
+   if (xShift == 0 && yShift == 0) {
+      return;
+   }
    Buffer result(getWidth(), getHeight(), getFeatures());
    for(int y = 0; y < getHeight(); ++y) {
       for(int x = 0; x < getWidth(); ++x) {
