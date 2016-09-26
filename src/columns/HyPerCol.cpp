@@ -96,17 +96,6 @@ HyPerCol::~HyPerCol() {
       mCheckpointReadDir = nullptr;
       free(mCheckpointReadDirBase); mCheckpointReadDirBase = nullptr;
    }
-#ifdef OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
-   if (mDtAdaptControlProbe && mWriteTimescales) { mTimeScaleStream.close(); }
-   free(mDtAdaptController);
-   if(mTimeScale) { free(mTimeScale); }
-   if(mTimeScaleMax) { free(mTimeScaleMax); }
-   if(mTimeScaleMax2) { free(mTimeScaleMax2); }
-   if(mTimeScaleTrue) { free(mTimeScaleTrue); }
-   if(mOldTimeScale) { free(mOldTimeScale); }
-   if(mOldTimeScaleTrue) { free(mOldTimeScaleTrue); }
-   if(mDeltaTimeAdapt) { free(mDeltaTimeAdapt); }
-#endif // OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
 }
 
 
@@ -141,28 +130,7 @@ int HyPerCol::initialize_base() {
    mStopTime = 0.0;
    mDeltaTime = DEFAULT_DELTA_T;
    mWriteTimeScaleFieldnames = true;
-#ifdef OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
-   mDtAdaptController = nullptr;
-   mDtAdaptControlProbe = nullptr;
-   mDtAdaptTriggerLayerName = nullptr;
-   mDtAdaptTriggerLayer = nullptr;
-   mDtAdaptTriggerOffset = 0.0;
-   mDeltaTimeBase = DEFAULT_DELTA_T;
-   mTimeScale = nullptr;
-   mTimeScaleMax = nullptr;
-   mTimeScaleMax2 = nullptr;
-   mTimeScaleTrue = nullptr;
-   mOldTimeScale = nullptr;
-   mOldTimeScaleTrue = nullptr;
-   mDeltaTimeAdapt = nullptr;
-   mTimeScaleMaxBase  = 1.0;
-   mTimeScaleMax2Base = 1.0;
-   mTimeScaleMin = 1.0;
-   mChangeTimeScaleMax = 1.0;
-   mChangeTimeScaleMin = 0.0;
-   mDtMinToleratedTimeScale = 1.0e-4;
-   mWriteTimescales = true; //Defaults to true
-#endif // OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
+   // Sep 26, 2016: Adaptive timestep routines and member variables have been moved to AdaptiveTimeScaleProbe.
    mProgressInterval = 1.0;
    mWriteProgressToErr = false;
    mOrigStdOut = -1;
@@ -428,29 +396,6 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
       mCudaDevice->query_device_info();
 #endif
    }
-
-#ifdef OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
-   //Allocate timescales for batches
-   //TODO: Make these std::vector
-   mTimeScale        = static_cast<double*>(pvCallocError(mNumBatch, sizeof(double), "%s error: unable to allocate memory for TimeScale buffer.\n", programName));
-   mTimeScaleMax     = static_cast<double*>(pvCallocError(mNumBatch, sizeof(double), "%s error: unable to allocate memory for TimeScaleMax buffer.\n", programName));
-   mTimeScaleMax2    = static_cast<double*>(pvCallocError(mNumBatch, sizeof(double), "%s error: unable to allocate memory for TimeScaleMax2 buffer.\n", programName));
-   mTimeScaleTrue    = static_cast<double*>(pvCallocError(mNumBatch, sizeof(double), "%s error: unable to allocate memory for TimeScaleTrue buffer.\n", programName));
-   mOldTimeScale     = static_cast<double*>(pvCallocError(mNumBatch, sizeof(double), "%s error: unable to allocate memory for OldTimeScale buffer.\n", programName));
-   mOldTimeScaleTrue = static_cast<double*>(pvCallocError(mNumBatch, sizeof(double), "%s error: unable to allocate memory for OldTimeScaleTrue buffer.\n", programName));
-   mDeltaTimeAdapt   = static_cast<double*>(pvCallocError(mNumBatch, sizeof(double), "%s error: unable to allocate memory for DeltaTimeAdapt buffer.\n", programName));
-
-      //Initialize timeScales to 1
-   for(int b = 0; b < mNumBatch; b++){
-      mTimeScaleTrue[b]       = -1;
-      mOldTimeScaleTrue[b]    = -1;
-      mTimeScale[b]           = mTimeScaleMin;
-      mTimeScaleMax[b]        = mTimeScaleMaxBase;
-      mTimeScaleMax2[b]       = mTimeScaleMax2Base;
-      mOldTimeScale[b]        = mTimeScaleMin;
-      mDeltaTimeAdapt[b]      = mDeltaTimeBase;
-   }
-#endif // OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
 
    // If mDeleteOlderCheckpoints is true, set up a ring buffer of checkpoint directory names.
    pvAssert(mOldCheckpointDirectories.size() == 0);
@@ -1483,39 +1428,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
    return status;
 }
 
-#ifdef OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
-void HyPerCol::initDtAdaptControlProbe() {
-   // add the mDtAdaptController, if there is one.
-   if (mDtAdaptController && mDtAdaptController[0]) {
-      mDtAdaptControlProbe = getColProbeFromName(mDtAdaptController);
-      if (mDtAdaptControlProbe==nullptr) {
-         if (globalRank()==0) {
-            pvError().printf("HyPerCol \"%s\": dtAdaptController \"%s\" does not refer to a ColProbe in the HyPerCol.\n",
-                  this->getName(), mDtAdaptController);
-         }
-      }
-
-      // add the mDtAdaptTriggerLayer, if there is one.
-      if (mDtAdaptTriggerLayerName && mDtAdaptTriggerLayerName[0]) {
-         mDtAdaptTriggerLayer = getLayerFromName(mDtAdaptTriggerLayerName);
-         if (mDtAdaptTriggerLayer==nullptr) {
-            if (globalRank()==0) {
-               pvError().printf("HyPerCol \"%s\": dtAdaptTriggerLayerName \"%s\" does not refer to layer in the column.\n", this->getName(), mDtAdaptTriggerLayerName);
-            }
-         }
-      }
-   }
-   ensureDirExists(mOutputPath);
-   if (columnId()==0 && mDtAdaptControlProbe && mWriteTimescales){
-      size_t timeScaleFileNameLen = strlen(mOutputPath) + strlen("/HyPerCol_timescales.txt");
-      std::string timeScaleFilename(mOutputPath);
-      timeScaleFilename += "/" "HyPerCol_timescales.txt";
-      mTimeScaleStream.open(timeScaleFilename.c_str());
-      pvErrorIf(mTimeScaleStream.fail(), "HyPerCol \"%s\": Unable to open \"%s\".\n", mName, timeScaleFilename.c_str());
-      mTimeScaleStream.precision(17);
-   }
-}
-#endif // OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
+// Sep 26, 2016: Adaptive timestep routines and member variables have been moved to AdaptiveTimeScaleProbe.
 
 // This routine sets the mNumThreads member variable.  It should only be called by the run() method,
 // and only inside the !ready if-statement.
@@ -1620,169 +1533,7 @@ int HyPerCol::normalizeWeights() {
    return status;
 }
 
-#ifdef OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
-double * HyPerCol::adaptTimeScale(){
-   for (int b=0; b<mNumBatch; b++) {
-      mOldTimeScaleTrue[b] = mTimeScaleTrue[b];
-      mOldTimeScale[b] = mTimeScale[b];
-   }
-   calcTimeScaleTrue();
-   for(int b = 0; b < mNumBatch; b++){
-      // forces mTimeScale to remain constant if Error is changing too rapidly
-      // if change in mTimeScaleTrue is negative, revert to minimum mTimeScale
-      // TODO?? add ability to revert all dynamical variables to previous values if Error increases?
-
-      //Set mTimeScaleTrue to new minTimeScale
-      double minTimeScaleTmp = mTimeScaleTrue[b];
-
-      // force the minTimeScaleTmp to be <= mTimeScaleMaxBase
-      minTimeScaleTmp = minTimeScaleTmp < mTimeScaleMaxBase ? minTimeScaleTmp : mTimeScaleMaxBase;
-
-      // set the mTimeScale to minTimeScaleTmp iff minTimeScaleTmp > 0, otherwise default to mTimeScaleMin
-      mTimeScale[b] = minTimeScaleTmp > 0.0 ? minTimeScaleTmp : mTimeScaleMin;
-
-      // only let the mTimeScale change by a maximum percentage of oldTimescale of mChangeTimeScaleMax on any given time step
-      double changeTimeScale = (mTimeScale[b] - mOldTimeScale[b])/mOldTimeScale[b];
-      mTimeScale[b] = changeTimeScale < mChangeTimeScaleMax ? mTimeScale[b] : mOldTimeScale[b] * (1 + mChangeTimeScaleMax);
-
-      //Positive if timescale increased, error decreased
-      //Negative if timescale decreased, error increased
-      double changeTimeScaleTrue = mTimeScaleTrue[b] - mOldTimeScaleTrue[b];
-      // keep the mTimeScale constant if the error is decreasing too rapidly
-      if (changeTimeScaleTrue > mChangeTimeScaleMax){
-         mTimeScale[b] = mOldTimeScale[b];
-      }
-
-      // if error is increasing,
-      if (changeTimeScaleTrue < mChangeTimeScaleMin){
-         //retreat back to the MIN(mTimeScaleMin, minTimeScaleTmp)
-         if (minTimeScaleTmp > 0.0){
-            double setTimeScale = mOldTimeScale[b] < mTimeScaleMin ? mOldTimeScale[b] : mTimeScaleMin;
-            mTimeScale[b] = setTimeScale < minTimeScaleTmp ? setTimeScale : minTimeScaleTmp;
-            //mTimeScale =  minTimeScaleTmp < mTimeScaleMin ? minTimeScaleTmp : setTimeScale;
-         }
-         else{
-            mTimeScale[b] = mTimeScaleMin;
-         }
-      }
-
-      if(mTimeScale[b] > 0 && mTimeScaleTrue[b] > 0 && mTimeScale[b] > mTimeScaleTrue[b]){
-         pvError(timeScaleError);
-         timeScaleError << "timeScale is bigger than timeScaleTrue\n";
-         timeScaleError << "timeScale: " << mTimeScale[b] << "\n";
-         timeScaleError << "timeScaleTrue: " << mTimeScaleTrue[b] << "\n";
-         timeScaleError << "minTimeScaleTmp: " << minTimeScaleTmp << "\n";
-         timeScaleError << "oldTimeScaleTrue " << mOldTimeScaleTrue[b] << "\n";
-      }
-
-      // mDeltaTimeAdapt is only used internally to set scale of each update step
-      mDeltaTimeAdapt[b] = mTimeScale[b] * mDeltaTimeBase;
-   }
-   return mDeltaTimeAdapt;
-}
-
-  // time scale adaptation using model of E(dt) ~= E_0 * exp(-dt/tau_eff) + E_inf
-  // to first order:
-  //   E(0)  = E_0 + E_inf
-  //   E(dt) = E_0 * (1 - dt/tau_eff) + E_inf
-  // solving for tau_eff yields
-  //   tau_eff = dt * E_0 / |dE| <= dt * E(0) / |dE|
-  // where
-  //   dE = E(0) - E(dt)
-  // to 2nd order in a Taylor series expansion:  optim_dt ~= tau_eff -> argmin E'(optim_dt)
-  // where E' is the Tayler series expansion of E(dt) to 2nd order in dt
-double * HyPerCol::adaptTimeScaleExp1stOrder(){
-   for (int b=0; b<mNumBatch; b++) {
-     mOldTimeScaleTrue[b]    = mTimeScaleTrue[b];
-     mOldTimeScale[b]        = mTimeScale[b];
-   }
-   calcTimeScaleTrue(); // sets mTimeScaleTrue[b] to sqrt(Energy(t+dt)/|I|^2))^-1
-   for(int b = 0; b < mNumBatch; b++){
-     
-     // if ((mTimeScale[b] == mTimeScaleMin) && (mOldTimeScale[b] == mTimeScaleMax2[b])) {
-     //   mTimeScaleMax2[b] = (1 + mChangeTimeScaleMin) * mTimeScaleMax2[b];
-     // }
-       
-     double E_dt  =  mTimeScaleTrue[b];
-     double E_0   =  mOldTimeScaleTrue[b];
-     double dE_dt = (E_0 - E_dt)  /  mDeltaTimeAdapt[b];
-
-     if ( (dE_dt <= 0.0) || (E_0 <= 0) || (E_dt <= 0) ) {
-        mTimeScale[b]      = mTimeScaleMin;
-        mDeltaTimeAdapt[b] = mTimeScale[b] * mDeltaTimeBase;
-        mTimeScaleMax[b]   = mTimeScaleMaxBase;
-        //mTimeScaleMax2[b]  = mOldTimeScale[b]; // set Max2 to value of time scale at which instability appeared
-     }
-     else {
-        double tau_eff = E_0 / dE_dt;
-
-        // dt := mTimeScaleMaxBase * tau_eff
-        mTimeScale[b] = mChangeTimeScaleMax * tau_eff / mDeltaTimeBase;
-        //mTimeScale[b] = (mTimeScale[b] <= mTimeScaleMax2[b]) ? mTimeScale[b] : mTimeScaleMax2[b];
-        mTimeScale[b] = (mTimeScale[b] <= mTimeScaleMax[b]) ? mTimeScale[b] : mTimeScaleMax[b];
-        mTimeScale[b] = (mTimeScale[b] <  mTimeScaleMin) ? mTimeScaleMin : mTimeScale[b];
-
-        if (mTimeScale[b] == mTimeScaleMax[b]) {
-           mTimeScaleMax[b] = (1 + mChangeTimeScaleMin) * mTimeScaleMax[b];
-        }
-
-        // mDeltaTimeAdapt is only used internally to set scale of each update step
-        mDeltaTimeAdapt[b] = mTimeScale[b] * mDeltaTimeBase;
-
-        //pvInfo(timeScaleInfo);
-        //timeScaleInfo: " << mSimTime << "\n";
-        //timeScaleInfo << "mOldTimeScaleTrue: " << mOldTimeScaleTrue[b] << "\n";
-        //timeScaleInfo << "mOldTimeScale: " << mOldTimeScale[b] << "\n";
-        //timeScaleInfo << "E_dt: " << E_dt << "\n";
-        //timeScaleInfo << "E_0: " << E_0 << "\n";
-        //timeScaleInfo << "dE_dt: " << dE_dt << "\n";
-        //timeScaleInfo << "tau_eff: " << tau_eff << "\n";
-        //timeScaleInfo << "mTimeScale: " << mTimeScale[b] << "\n";
-        //timeScaleInfo << "mTimeScaleMax: " << mTimeScaleMax[b] << "\n";
-        //timeScaleInfo << "mTimeScaleMax2: " << mTimeScaleMax2[b] << "\n";
-        //timeScaleInfo << "mDeltaTimeAdapt: " << mDeltaTimeAdapt[b] << "\n";
-        //timeScaleInfo <<  "\n";
-
-     }
-   }
-   return mDeltaTimeAdapt;
-}
-
-int HyPerCol::calcTimeScaleTrue() {
-   pvAssert(mDtAdaptControlProbe);
-   // Code that was marked obsolete on Jul 7, 2016 was deleted Aug 18, 2016.
-   std::vector<double> colProbeValues;
-   bool triggersNow = false;
-   if (mDtAdaptTriggerLayer) {
-      double triggerTime = mDtAdaptTriggerLayer->getNextUpdateTime() - mDtAdaptTriggerOffset;
-      triggersNow = fabs(mSimTime - triggerTime) < (mDeltaTimeBase/2);
-   }
-   if (triggersNow) {
-      colProbeValues.assign(mNumBatch, -1.0);
-   }
-   else {
-      mDtAdaptControlProbe->getValues(mSimTime, &colProbeValues);
-   }
-   assert(colProbeValues.size()==mNumBatch); // getValues sets mDtAdaptControlProbe->vectorSize to be equal to mNumBatch
-   for (int b=0; b<mNumBatch; b++) {
-      double timeScaleProbe = colProbeValues.at(b);
-      if (timeScaleProbe > 0 && timeScaleProbe < mDtMinToleratedTimeScale) {
-         if (globalRank()==0) {
-            if (mNumBatch==1) {
-               pvErrorNoExit().printf("Probe \"%s\" has time scale %g, less than dtMinToleratedTimeScale=%g.\n", mDtAdaptControlProbe->getName(), timeScaleProbe, mDtMinToleratedTimeScale);
-            }
-            else {
-               pvErrorNoExit().printf("Layer \"%s\", batch element %d, has time scale %g, less than dtMinToleratedTimeScale=%g.\n", mDtAdaptControlProbe->getName(), b, timeScaleProbe, mDtMinToleratedTimeScale);
-            }
-         }
-         MPI_Barrier(mCommunicator->globalCommunicator());
-         exit(EXIT_FAILURE);
-      }
-      mTimeScaleTrue[b] =  timeScaleProbe;
-   }
-   return PV_SUCCESS;
-}
-#endif // OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
+// Sep 26, 2016: Adaptive timestep routines and member variables have been moved to AdaptiveTimeScaleProbe.
 
 int HyPerCol::advanceTime(double sim_time)
 {
@@ -1806,48 +1557,7 @@ int HyPerCol::advanceTime(double sim_time)
    mCurrentStep++;
 
    notify(std::make_shared<AdaptTimestepMessage>());
-#ifdef OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
-   mDeltaTime = mDeltaTimeBase;
-   if (mDtAdaptControlProbe!=nullptr){ // adapt mDeltaTime
-     // hack code to test new adapt time scale method using exponential approx to energy
-     //bool mUseAdaptMethodExp1stOrder = false; //true;
-     if (mUseAdaptMethodExp1stOrder){
-       adaptTimeScaleExp1stOrder();}
-     else{
-       adaptTimeScale();
-     }
-     if(mWriteTimescales && columnId() == 0) {
-       if (mWriteTimeScaleFieldnames) {
-         mTimeScaleStream << "sim_time = " << sim_time << "\n";
-       }
-       else {
-         mTimeScaleStream << sim_time << ", ";
-       }
-         for(int b = 0; b < mNumBatch; b++){
-	   if (mWriteTimeScaleFieldnames) {
-	     mTimeScaleStream << "\tbatch = " << b << ", timeScale = " << mTimeScale[b] << ", " << "timeScaleTrue = " << mTimeScaleTrue[b];
-	   }
-	   else {
-	     mTimeScaleStream << b << ", " << mTimeScale[b] << ", " << mTimeScaleTrue[b];
-	   }
-	   if (mUseAdaptMethodExp1stOrder) {
-	     if (mWriteTimeScaleFieldnames) {
-	       mTimeScaleStream <<  ", " << "timeScaleMax = " << mTimeScaleMax[b] << std::endl;
-	       // mTimeScaleStream <<  ", " << "mTimeScaleMax = " << mTimeScaleMax[b] <<  ", " << "mTimeScaleMax2 = " << mTimeScaleMax2[b] << std::endl;
-	     }
-	     else {
-	       // mTimeScaleStream <<  ", " << mTimeScaleMax[b] <<  ", " << mTimeScaleMax2[b] << std::endl;
-	       mTimeScaleStream <<  ", " << mTimeScaleMax[b] << std::endl;
-	     }
-	   }
-	   else {
-	     mTimeScaleStream << std::endl;
-	   }
-         }
-         mTimeScaleStream.flush();
-     }
-   } // mDtAdaptControlProbe!=nullptr
-#endif // OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
+   // Sep 26, 2016: Adaptive timestep routines and member variables have been moved to AdaptiveTimeScaleProbe.
 
    // At this point all activity from the previous time step has
    // been delivered to the data store.
@@ -2024,106 +1734,7 @@ int HyPerCol::checkpointRead() {
    for (auto& p : mColProbes) {
       p->checkpointRead(mCheckpointReadDir, &checkTime);
    }
-#ifdef OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
-   if (mDtAdaptControlProbe!=nullptr) {
-      struct timescalemax_struct {
-         double mTimeScale; // mTimeScale factor for increasing/decreasing dt
-         double mTimeScaleTrue; // true mTimeScale as returned by HyPerLayer::getTimeScaleTrue() typically computed by an adaptTimeScaleController (ColProbe)
-         double mTimeScaleMax; //  current maximum allowed value of mTimeScale as returned by HyPerLayer::getTimeScaleMaxPtr()
-         double mTimeScaleMax2; //  current maximum allowed value of mTimeScale as returned by HyPerLayer::getTimeScaleMax2Ptr()
-         double mDeltaTimeAdapt;
-      };
-      struct timescale_struct {
-         double mTimeScale; // mTimeScale factor for increasing/decreasing dt
-         double mTimeScaleTrue; // true mTimeScale as returned by HyPerLayer::getTimeScaleTrue() typically computed by an adaptTimeScaleController (ColProbe)
-         double mDeltaTimeAdapt;
-      };
-      struct timescalemax_struct timescalemax[mNumBatch];
-      struct timescale_struct timescale[mNumBatch];
-      if (mUseAdaptMethodExp1stOrder) {
-         for(int b = 0; b < mNumBatch; b++){
-            timescalemax[b].mTimeScale = 1;
-            timescalemax[b].mTimeScaleTrue = 1;
-            timescalemax[b].mTimeScaleMax = 1;
-            timescalemax[b].mTimeScaleMax2 = 1;
-            timescalemax[b].mDeltaTimeAdapt = 1;
-         }
-      }
-      else {
-         //Default values
-         for(int b = 0; b < mNumBatch; b++){
-            timescale[b].mTimeScale = 1;
-            timescale[b].mTimeScaleTrue = 1;
-            timescale[b].mDeltaTimeAdapt = 1;
-         }
-      }
-      size_t timescale_size = sizeof(struct timescale_struct);
-      size_t timescalemax_size = sizeof(struct timescalemax_struct);
-      if (mUseAdaptMethodExp1stOrder) {
-         assert(sizeof(struct timescalemax_struct) == sizeof(double) + sizeof(double) + sizeof(double) + sizeof(double) + sizeof(double));
-      }
-      else {
-         assert(sizeof(struct timescale_struct) == sizeof(double) + sizeof(double) + sizeof(double));
-      }
-      // read mTimeScale info
-      if(columnId()==0 ) {
-         char timescalepath[PV_PATH_MAX];
-         int chars_needed = snprintf(timescalepath, PV_PATH_MAX, "%s/timescaleinfo.bin", mCheckpointReadDir);
-         if (chars_needed >= PV_PATH_MAX) {
-            pvError().printf("HyPerCol::checkpointRead error: path \"%s/timescaleinfo.bin\" is too long.\n", mCheckpointReadDir);
-         }
-         PV_Stream * timescalefile = PV_fopen(timescalepath,"r",false/*mVerifyWrites*/);
-         if (timescalefile == nullptr) {
-            pvWarn(errorMessage);
-            errorMessage.printf("HyPerCol::checkpointRead: unable to open \"%s\" for reading: %s.\n", timescalepath, strerror(errno));
-            if (mUseAdaptMethodExp1stOrder) {
-               errorMessage.printf("    will use default value of mTimeScale=%f, mTimeScaleTrue=%f, mTimeScaleMax=%f, mTimeScaleMax2=%f\n", 1.0, 1.0, 1.0, 1.0);
-            }
-            else {
-               errorMessage.printf("    will use default value of mTimeScale=%f, mTimeScaleTrue=%f\n", 1.0, 1.0);
-            }
-         }
-         else {
-            for(int b = 0; b < mNumBatch; b++){
-               long int startpos = getPV_StreamFilepos(timescalefile);
-               if (mUseAdaptMethodExp1stOrder) {
-                  PV_fread(&timescalemax[b],1,timescalemax_size,timescalefile);
-               }
-               else {
-                  PV_fread(&timescale[b],1,timescale_size,timescalefile);
-               }
-               long int endpos = getPV_StreamFilepos(timescalefile);
-               if (mUseAdaptMethodExp1stOrder) {
-                  assert(endpos-startpos==(int)sizeof(struct timescalemax_struct));
-               }
-               else {
-                  assert(endpos-startpos==(int)sizeof(struct timescale_struct));
-               }
-            }
-            PV_fclose(timescalefile);
-         }
-      }
-      //Grab only the necessary part based on comm batch id
-      if (mUseAdaptMethodExp1stOrder) {
-         MPI_Bcast(&timescalemax,(int) timescalemax_size*mNumBatch,MPI_CHAR,0,getCommunicator()->communicator());
-         for (int b = 0; b < mNumBatch; b++){
-            mTimeScale[b] = timescalemax[b].mTimeScale;
-            mTimeScaleTrue[b] = timescalemax[b].mTimeScaleTrue;
-            mTimeScaleMax[b] = timescalemax[b].mTimeScaleMax;
-            mTimeScaleMax2[b] = timescalemax[b].mTimeScaleMax2;
-            mDeltaTimeAdapt[b] = timescalemax[b].mDeltaTimeAdapt;
-         }
-      }
-      else {
-         MPI_Bcast(&timescale,(int) timescale_size*mNumBatch,MPI_CHAR,0,getCommunicator()->communicator());
-         for (int b = 0; b < mNumBatch; b++){
-            mTimeScale[b] = timescale[b].mTimeScale;
-            mTimeScaleTrue[b] = timescale[b].mTimeScaleTrue;
-            mDeltaTimeAdapt[b] = timescale[b].mDeltaTimeAdapt;
-         }
-      }
-   } // mDtAdaptControlProbe!=nullptr
-#endif // OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
+   // Sep 26, 2016: Adaptive timestep routines and member variables have been moved to AdaptiveTimeScaleProbe.
 
    if(mCheckpointWriteFlag) {
       char nextCheckpointPath[PV_PATH_MAX];
@@ -2227,49 +1838,7 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
    for (auto& p : mColProbes) {
       p->checkpointWrite(cpDir);
    }
-#ifdef OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
-   // write adaptive time step info if using mDtAdaptControlProbe
-   if( columnId()==0 && mDtAdaptControlProbe!=nullptr) {
-      char timescalepath[PV_PATH_MAX];
-      int chars_needed = snprintf(timescalepath, PV_PATH_MAX, "%s/timescaleinfo.bin", cpDir);
-      assert(chars_needed < PV_PATH_MAX);
-      PV_Stream * timescalefile = PV_fopen(timescalepath,"w", getVerifyWrites());
-      assert(timescalefile);
-      for(int b = 0; b < mNumBatch; b++){
-         if (PV_fwrite(&mTimeScale[b],1,sizeof(double),timescalefile) != sizeof(double)) {
-            pvError().printf("HyPerCol::checkpointWrite error writing timeScale to %s\n", timescalefile->name);
-         }
-         if (PV_fwrite(&mTimeScaleTrue[b],1,sizeof(double),timescalefile) != sizeof(double)) {
-            pvError().printf("HyPerCol::checkpointWrite error writing timeScaleTrue to %s\n", timescalefile->name);
-         }
-         if (mUseAdaptMethodExp1stOrder) {
-            if (PV_fwrite(&mTimeScaleMax[b],1,sizeof(double),timescalefile) != sizeof(double)) {
-               pvError().printf("HyPerCol::checkpointWrite error writing timeScaleMax to %s\n", timescalefile->name);
-            }
-         }
-         if (mUseAdaptMethodExp1stOrder) {
-            if (PV_fwrite(&mTimeScaleMax2[b],1,sizeof(double),timescalefile) != sizeof(double)) {
-               pvError().printf("HyPerCol::checkpointWrite error writing timeScaleMax2 to %s\n", timescalefile->name);
-            }
-         }
-         if (PV_fwrite(&mDeltaTimeAdapt[b],1,sizeof(double),timescalefile) != sizeof(double)) {
-            pvError().printf("HyPerCol::checkpointWrite error writing deltaTimeAdapt to %s\n", timescalefile->name);
-         }
-      }
-      PV_fclose(timescalefile);
-      chars_needed = snprintf(timescalepath, PV_PATH_MAX, "%s/timescaleinfo.txt", cpDir);
-      assert(chars_needed < PV_PATH_MAX);
-      timescalefile = PV_fopen(timescalepath,"w", getVerifyWrites());
-      assert(timescalefile);
-      int kb0 = commBatch() * mNumBatch;
-      for(int b = 0; b < mNumBatch; b++){
-         fprintf(timescalefile->fp,"batch = %d\n", b+kb0);
-         fprintf(timescalefile->fp,"time = %g\n", mTimeScale[b]);
-         fprintf(timescalefile->fp,"timeScaleTrue = %g\n", mTimeScaleTrue[b]);
-      }
-      PV_fclose(timescalefile);
-   }
-#endif // OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
+   // Sep 26, 2016: Adaptive timestep routines and member variables have been moved to AdaptiveTimeScaleProbe.
 
    std::string checkpointedParamsFile = cpDir;
    checkpointedParamsFile += "/";
