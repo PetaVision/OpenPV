@@ -37,8 +37,6 @@ namespace PVCuda{
       int nyp;
       int nfp;
 
-      int localBufSizeX;
-      int localBufSizeY;
       float preToPostScaleX;
       float preToPostScaleY;
 
@@ -68,8 +66,6 @@ namespace PVCuda{
 
       //Warp size of the device
       int warpSize;
-
-      bool preDataLocal;
 #ifdef PV_USE_CUDNN
       /* cudnnTensorDescriptor_t */ void* v_inputDescriptor;
       /* cudnnFilterDescriptor_t */   void* v_filterDescriptor;
@@ -113,8 +109,6 @@ public:
       const int nyp,
       const int nfp,
 
-      const int localBufSizeX,
-      const int localBufSizeY,
       const float preToPostScaleX,
       const float preToPostScaleY,
 
@@ -133,9 +127,7 @@ public:
       /* float* */ CudaBuffer* cudnn_weights,
       /* float* */ CudaBuffer* cudnn_gSyn,
 #endif
-      /* int* */   CudaBuffer* patch2datalookuptable,
-
-      const bool preDataLocal
+      /* int* */   CudaBuffer* patch2datalookuptable
    );
 
 #ifdef PV_USE_CUDNN

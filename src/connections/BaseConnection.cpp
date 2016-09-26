@@ -32,9 +32,7 @@ int BaseConnection::initialize_base() {
    this->delays = NULL;
    numAxonalArborLists = 1;
    convertRateToSpikeCount = false;
-#ifdef PV_USE_CUDA
    receiveGpu = false;
-#endif //  PV_USE_CUDA
    this->initializeFromCheckpointFlag = false;
    this->probes = NULL;
    this->numProbes = 0;
@@ -319,12 +317,11 @@ void BaseConnection::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
 #ifdef PV_USE_CUDA
    parent->ioParamValue(ioFlag, name, "receiveGpu", &receiveGpu, false/*default*/, true/*warn if absent*/);
 #else
-   bool receiveGpu = false;
+   receiveGpu = false;
    parent->ioParamValue(ioFlag, name, "receiveGpu", &receiveGpu, receiveGpu/*default*/, false/*warn if absent*/);
    if (ioFlag==PARAMS_IO_READ && receiveGpu) {
       if (parent->columnId()==0) {
-         pvErrorNoExit().printf("%s: receiveGpu is set to true, but PetaVision was compiled without GPU acceleration.\n",
-               this->getDescription_c());
+         pvWarn() << getDescription_c() << ": receiveGpu is set to true in params, but PetaVision was compiled without GPU acceleration. receiveGpu has been set to false.\n";
       }
       MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -367,7 +364,7 @@ int BaseConnection::insertProbe(BaseConnectionProbe * p)
 
    return ++numProbes;
 }
-int BaseConnection::respond(std::shared_ptr<BaseMessage> message) {
+int BaseConnection::respond(std::shared_ptr<BaseMessage const> message) {
    int status = BaseObject::respond(message);
    if (status != PV_SUCCESS) {
       return status;

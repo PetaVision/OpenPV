@@ -63,18 +63,11 @@ int main(int argc, char * argv[])
    HyPerConn * conn2 = new HyPerConn("test_border_activity connection 2", hc);
    pvErrorIf(!(conn2), "Test failed.\n");
    
-   hc->addObject(image);
-   hc->addObject(retina);
-   hc->addObject(l1);
-   hc->addObject(conn1);
-   hc->addObject(conn2);
 #ifdef DEBUG_OUTPUT
    PointProbe * p1 = new PointProbe( 0,  0,  0, "L1 (0,0,0):");
    PointProbe * p2 = new PointProbe(32, 32, 32, "L1 (32,32,0):");
    l1->insertProbe(p1);
    l1->insertProbe(p2);
-   l1->addObject(p1);
-   l2->addObject(p2);
 #endif
 
    // run the simulation

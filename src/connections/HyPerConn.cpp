@@ -220,10 +220,6 @@ int HyPerConn::initialize_base()
    krRecvPost = NULL;
    krRecvPre = NULL;
    //updatedDeviceWeights = true; //Start off as always updated
-   numXLocal= 1;
-   numYLocal= 1;
-   numFLocal = 1;
-   preDataLocal = true;
    gpuGroupIdx = -1;
 # ifdef PV_USE_CUDNN
    cudnn_WData = NULL;
@@ -575,102 +571,20 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
    ioParam_maskLayerName(ioFlag);
    ioParam_maskFeatureIdx(ioFlag);
 
-   // GPU-specific parameters.  If not using GPUs, we read them anyway, with warnIfAbsent set to false, to prevent unnecessary warnings from unread or missing parameters.
+#ifdef PV_USE_CUDA
    ioParam_gpuGroupIdx(ioFlag);
-   // ioParam_receiveGpu(ioFlag); // read by parent class BaseConnection
-   ioParam_preDataLocal(ioFlag);
-   //Only read numX, Y, and F local if not using CUDNN
-   ioParam_numXLocal(ioFlag);
-   ioParam_numYLocal(ioFlag);
-   ioParam_numFLocal(ioFlag);
+#endif // PV_USE_CUDA
    // Weight sparsity
    ioParam_weightSparsity(ioFlag);
    return PV_SUCCESS;
 }
 
 #ifdef PV_USE_CUDA
-
 void HyPerConn::ioParam_gpuGroupIdx(enum ParamsIOFlag ioFlag) {
    pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
    if(receiveGpu){
       parent->ioParamValue(ioFlag, name, "gpuGroupIdx", &gpuGroupIdx, gpuGroupIdx/*default*/, false/*warn if absent*/);
    }
-}
-
-void HyPerConn::ioParam_preDataLocal(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
-# ifndef PV_USE_CUDNN
-   if(receiveGpu){
-      parent->ioParamValue(ioFlag, name, "preDataLocal", &preDataLocal, true/*default*/, false/*warn if absent*/);
-   }
-# endif
-}
-
-void HyPerConn::ioParam_numXLocal(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "updateGSynFromPostPerspective"));
-   if(receiveGpu){
-      //If we're using cudnn and updating from post, we don't need numX, Y, and F local
-# ifdef PV_USE_CUDNN
-      if(!updateGSynFromPostPerspective){
-         parent->ioParamValue(ioFlag, name, "numXLocal", &numXLocal, 1, true);
-      }
-# else
-      parent->ioParamValue(ioFlag, name, "numXLocal", &numXLocal, 1, true);
-# endif
-   }
-}
-
-void HyPerConn::ioParam_numYLocal(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "updateGSynFromPostPerspective"));
-   if(receiveGpu){
-# ifdef PV_USE_CUDNN
-      if(!updateGSynFromPostPerspective){
-         parent->ioParamValue(ioFlag, name, "numYLocal", &numYLocal, 1, true);
-      }
-# else
-      parent->ioParamValue(ioFlag, name, "numYLocal", &numYLocal, 1, true);
-# endif
-   }
-}
-
-void HyPerConn::ioParam_numFLocal(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "updateGSynFromPostPerspective"));
-   if(receiveGpu){
-# ifdef PV_USE_CUDNN
-      if(!updateGSynFromPostPerspective){
-         parent->ioParamValue(ioFlag, name, "numFLocal", &numFLocal, 1, true);
-      }
-# else
-      parent->ioParamValue(ioFlag, name, "numFLocal", &numFLocal, 1, true);
-# endif
-   }
-}
-
-#else // PV_USE_CUDA
-// Some dummy ioParam_ functions to read GPU-specific params, without generating a warning if
-// they are present, or generating a warning if they are absent.
-void HyPerConn::ioParam_gpuGroupIdx(enum ParamsIOFlag ioFlag) {
-   int dummyVar = 0;
-   parent->ioParamValue(ioFlag, name, "gpuGroupIdx", &dummyVar, dummyVar/*default*/, false/*warnIfAbsent*/);
-}
-void HyPerConn::ioParam_preDataLocal(enum ParamsIOFlag ioFlag) {
-   bool dummyFlag = false;
-   parent->ioParamValue(ioFlag, name, "preDataLocal", &dummyFlag, dummyFlag/*default*/, false/*warnIfAbsent*/);
-}
-void HyPerConn::ioParam_numXLocal(enum ParamsIOFlag ioFlag) {
-   int dummyVar = 0;
-   parent->ioParamValue(ioFlag, name, "numXLocal", &dummyVar, dummyVar/*default*/, false/*warnIfAbsent*/);
-}
-void HyPerConn::ioParam_numYLocal(enum ParamsIOFlag ioFlag) {
-   int dummyVar = 0;
-   parent->ioParamValue(ioFlag, name, "numYLocal", &dummyVar, dummyVar/*default*/, false/*warnIfAbsent*/);
-}
-void HyPerConn::ioParam_numFLocal(enum ParamsIOFlag ioFlag) {
-   int dummyVar = 0;
-   parent->ioParamValue(ioFlag, name, "numFLocal", &dummyVar, dummyVar/*default*/, false/*warnIfAbsent*/);
 }
 #endif // PV_USE_CUDA
 
@@ -1539,10 +1453,10 @@ int HyPerConn::allocatePostDeviceWeights(){
 int HyPerConn::allocateDeviceWeights(){
    PVCuda::CudaDevice * device = parent->getDevice();
    const size_t size = numberOfAxonalArborLists() * getNumDataPatches() * xPatchSize() * yPatchSize() * fPatchSize() * sizeof(pvwdata_t);
-   d_WData = device->createBuffer(size);
+   d_WData = device->createBuffer(size, &description);
    pvAssert(d_WData);
 # ifdef PV_USE_CUDNN
-   cudnn_WData = device->createBuffer(size);
+   cudnn_WData = device->createBuffer(size, &description);
 # endif
    return PV_SUCCESS;
 }
@@ -1614,10 +1528,10 @@ int HyPerConn::allocateDeviceBuffers()
    if(receiveGpu){
       if(updateGSynFromPostPerspective){
          int numPostRes = post->getNumNeurons();
-         d_PostToPreActivity = device->createBuffer(numPostRes*sizeof(long)); 
+         d_PostToPreActivity = device->createBuffer(numPostRes*sizeof(long), &description); 
          if(sharedWeights){
             int numWeightPatches = postConn->getNumWeightPatches();
-            d_Patch2DataLookupTable = device->createBuffer(numWeightPatches * sizeof(int));  
+            d_Patch2DataLookupTable = device->createBuffer(numWeightPatches * sizeof(int), &description);  
          }
       }
       else{
@@ -1639,11 +1553,11 @@ int HyPerConn::allocateDeviceBuffers()
 
          int numWeightPatches = pre->getNumExtended() ;
          int patchSize = numWeightPatches * sizeof(PVPatch);
-         d_Patches = device->createBuffer(patchSize); 
+         d_Patches = device->createBuffer(patchSize, &description); 
 
          //Need a buffer for gsynpatch start for one arbor
          int gsynPatchStartIndexSize = numWeightPatches * sizeof(size_t);
-         d_GSynPatchStart = device->createBuffer(gsynPatchStartIndexSize); 
+         d_GSynPatchStart = device->createBuffer(gsynPatchStartIndexSize, &description); 
 
          if(numberOfAxonalArborLists() == 1){
             PVPatch* h_patches = weights(0)[0]; //0 beacuse it's one block of memory
@@ -1658,7 +1572,7 @@ int HyPerConn::allocateDeviceBuffers()
 
          if(sharedWeights){
             int numWeightPatches = getNumWeightPatches();
-            d_Patch2DataLookupTable = device->createBuffer(numWeightPatches * sizeof(int));  
+            d_Patch2DataLookupTable = device->createBuffer(numWeightPatches * sizeof(int), &description);  
          }
       }
    }
@@ -1820,40 +1734,11 @@ int HyPerConn::initializeReceivePostKernelArgs()
 
    d_Patch2DataLookupTable->copyToDevice(postConn->getPatchToDataLUT());
 
-   //In receive from post, we need to make sure x, y, and f local size is divisible by the actual number of post neurons
-   if(postLoc->nx % numXLocal != 0){
-      pvError() << "X local size of " << numXLocal << " is not divisible by post nx of " << postLoc->nx << "\n";
-   }
-
-   if(postLoc->ny % numYLocal != 0){
-      pvError() << "Y local size of " << numYLocal << " is not divisible by post ny of " << postLoc->ny << "\n";
-   }
-
-   if(postLoc->nf % numFLocal != 0){
-      pvError() << "F local size of " << numFLocal << " is not divisible by post nf of " << postLoc->nf << "\n";
-   }
-
-   int localBufSizeX;
-   int localBufSizeY;
    //See the size of buffer needed based on x and y
    //oNxp is the patch size from the post point of view
-   if(preToPostScaleX >= 1){
-      localBufSizeX = oNxp + (preToPostScaleX * (numXLocal - 1));
-   }
-   else{
-      localBufSizeX = oNxp + ((preToPostScaleX * numXLocal) - 1);
-   }
-   if(preToPostScaleY >= 1){
-      localBufSizeY = oNyp + (preToPostScaleY * (numYLocal - 1));
-   }
-   else{
-      localBufSizeY = oNyp + ((preToPostScaleY * numYLocal) - 1);
-   }
 
    if (parent->columnId()==0) {
       pvInfo() << "preToPostScale: (" << preToPostScaleX << "," << preToPostScaleY << ")\n";
-      pvInfo() << "patch size: (" << oNxp << "," << oNyp << ") numLocal: (" << numXLocal << "," << numYLocal << ")\n";
-      pvInfo() << "local sizes: (" << localBufSizeX << "," << localBufSizeY << ")\n";
    }
    
    krRecvPost->setArgs(
@@ -1879,8 +1764,6 @@ int HyPerConn::initializeReceivePostKernelArgs()
       oNyp,
       oNfp,
 
-      localBufSizeX,
-      localBufSizeY,
       preToPostScaleX,
       preToPostScaleY,
 
@@ -1899,9 +1782,7 @@ int HyPerConn::initializeReceivePostKernelArgs()
       cudnn_origWData,
       cudnn_gSyn,
 # endif
-      d_Patch2DataLookupTable,
-
-      preDataLocal
+      d_Patch2DataLookupTable
    );
    return status;
 }
@@ -3367,13 +3248,13 @@ int HyPerConn::deliverPostsynapticPerspectiveGPU(PVLayerCube const * activity, i
    
    //Permute GSyn
    krRecvPost->permuteGSynPVToCudnn(getChannel());
-# endif // defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
+# endif // PV_USE_CUDA
 
    int totF = targetNf;
    int totX = targetNx;
    int totY = targetNy;
    //Make sure local sizes are divisible by f, x, and y
-   krRecvPost->run(totX, totY, totF, getNumXLocal(), getNumYLocal(), getNumFLocal());
+   krRecvPost->run(totX, totY, totF, 1L, 1L, 1L);
 
 # ifdef PV_USE_CUDNN
    krRecvPost->permuteGSynCudnnToPV(getChannel());

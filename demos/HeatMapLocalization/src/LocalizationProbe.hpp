@@ -10,7 +10,7 @@
 
 #include <unistd.h>
 #include <limits>
-#include "io/LayerProbe.hpp"
+#include "probes/LayerProbe.hpp"
 #include "layers/ImageFromMemoryBuffer.hpp"
 #include "layers/HyPerLayer.hpp"
 #include "LocalizationData.hpp"

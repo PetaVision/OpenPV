@@ -834,6 +834,7 @@ protected:
     */
    virtual void ioParam_maskFeatureIdx(enum ParamsIOFlag ioFlag);
 
+#ifdef PV_USE_CUDA
    /**
     * @brief gpuGroupIdx: All connections in the same group uses the same GPU memory for weights
     * @details Specify a group index. An index of -1 means no group (default).
@@ -841,33 +842,8 @@ protected:
     */
    virtual void ioParam_gpuGroupIdx(enum ParamsIOFlag ioFlag);
 
-   /**
-    * @brief preDataLocal: If not using CUDNN, specifies if preData should be in local memory.
-    * This parameter is ignored if PetaVision was compiled without GPU acceleration.
-    */
-   virtual void ioParam_preDataLocal(enum ParamsIOFlag ioFlag);
-   /**
-    * @brief numXLocal: Specifies number of local threads to run in x direction
-    * @details Only set if receiving from gpu. Not used if using receive CUDNN from post. 
-    * This parameter is ignored if PetaVision was compiled without GPU acceleration.
-    */
-   virtual void ioParam_numXLocal(enum ParamsIOFlag ioFlag);
-   /**
-    * @brief numYLocal: Specifies number of local threads to run in xydirection
-    * @details Only set if receiving from gpu. Not used if using receive CUDNN from post. 
-    * Must be divisible by post layer x size. numXLocal * numYLocal * numFLocal must be less
-    * than the amount of local threads specified by the hardware.
-    * This parameter is ignored if PetaVision was compiled without GPU acceleration.
-    */
-   virtual void ioParam_numYLocal(enum ParamsIOFlag ioFlag);
-   /**
-    * @brief numYLocal: Specifies number of local threads to run in xydirection
-    * @details Only set if receiving from gpu. Not used if using receive CUDNN from post. 
-    * If using preDataLocal and recv form post, must be set to 1. numXLocal * numYLocal * numFLocal
-    * must be less than the amount of local threads specified by the hardware. Must be set to 1.
-    * This parameter is ignored if PetaVision was compiled without GPU acceleration.
-    */
-   virtual void ioParam_numFLocal(enum ParamsIOFlag ioFlag);
+   // preDataLocal, numXLocal, numYLocal, and numFLocal were removed Sep 22, 2016.
+#endif // PV_USE_CUDA
 
    /**
     * @brief weightSparsity: Specifies what percentage of weights will be ignored. Default is 0.0
@@ -975,47 +951,31 @@ public:
    virtual void setAllocPostDeviceWeights(){
       allocPostDeviceWeights = true;
    }
-#ifdef PV_USE_CUDA
    virtual PVCuda::CudaBuffer * getDeviceWData(){
-#endif
       return d_WData;
    }
-#ifdef PV_USE_CUDA
    PVCuda::CudaBuffer * getDevicePatches(){
-#endif
       return d_Patches;
    }
-#ifdef PV_USE_CUDA
    PVCuda::CudaBuffer * getDeviceGSynPatchStart(){
-#endif
       return d_GSynPatchStart;
    }
-#ifdef PV_USE_CUDA
    void setDeviceWData(PVCuda::CudaBuffer* inBuf){
-#endif
       d_WData = inBuf;
    }
 
-#if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
+#ifdef PV_USE_CUDNN
    virtual PVCuda::CudaBuffer * getCudnnWData(){
       return cudnn_WData;
    }
    void setCudnnWData(PVCuda::CudaBuffer* inBuf){
       cudnn_WData = inBuf;
    }
-#endif
+#endif // PV_USE_CUDNN
 
-   bool getPreDataLocal(){return preDataLocal;}
-
-#ifdef PV_USE_CUDA
    PVCuda::CudaRecvPost * getKrRecvPost(){return krRecvPost;}
    PVCuda::CudaRecvPre * getKrRecvPre(){return krRecvPre;}
-#endif
 
-   virtual int getNumXLocal(){return numXLocal;}
-   virtual int getNumYLocal(){return numYLocal;}
-   virtual int getNumFLocal(){return numFLocal;}
-   
 protected:
    virtual int allocatePostDeviceWeights();
    virtual int allocateDeviceWeights();
@@ -1029,7 +989,6 @@ protected:
    //bool updatedDeviceWeights;
    
 
-#ifdef PV_USE_CUDA
    PVCuda::CudaBuffer * d_WData;
 #ifdef PV_USE_CUDNN
    PVCuda::CudaBuffer * cudnn_WData;
@@ -1040,12 +999,7 @@ protected:
    PVCuda::CudaBuffer * d_Patch2DataLookupTable;
    PVCuda::CudaRecvPost* krRecvPost;        // Cuda kernel for update state call
    PVCuda::CudaRecvPre* krRecvPre;        // Cuda kernel for update state call
-#endif // PV_USE_CUDA
    int gpuGroupIdx;
-   bool preDataLocal;
-   int numXLocal;
-   int numYLocal;
-   int numFLocal;
 
 #endif // PV_USE_CUDA
 

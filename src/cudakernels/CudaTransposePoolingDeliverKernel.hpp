@@ -14,7 +14,7 @@ namespace PVCuda {
 
 class CudaTransposePoolingDeliverKernel: public CudaKernel {
 public:
-   CudaTransposePoolingDeliverKernel(CudaDevice * inDevice) : CudaKernel(inDevice) {}
+   CudaTransposePoolingDeliverKernel(CudaDevice * inDevice);
    virtual ~CudaTransposePoolingDeliverKernel();
    void setArgs(
           PVLayerLoc const * preLoc,

@@ -107,12 +107,11 @@ int HyPerLayer::initialize_base() {
    recvGpu = false;
    updateGpu = false;
    krUpdate = NULL;
-#endif // PV_USE_CUDA
-
-#if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
+#ifdef PV_USE_CUDNN
    cudnn_GSyn = NULL;
    cudnn_Datastore= NULL;
-#endif
+#endif // PV_USE_CUDNN
+#endif // PV_USE_CUDA
 
    update_timer  = NULL;
    recvsyn_timer = NULL;
@@ -124,13 +123,6 @@ int HyPerLayer::initialize_base() {
    gpu_recvsyn_timer = NULL;
    gpu_update_timer = NULL;
 #endif
-
-#if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
-   //this->permute_weights_timer = NULL;
-   //this->permute_preData_timer = NULL;
-   //this->permute_postGSyn_timer = NULL;
-#endif
-
 
    thread_gSyn = NULL;
    recvConns.clear();
@@ -159,15 +151,6 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc) {
    gpu_recvsyn_timer->setStream(hc->getDevice()->getStream());
    gpu_update_timer = new PVCuda::CudaTimer(getName(), "layer", "gpuupdate");
    gpu_update_timer->setStream(hc->getDevice()->getStream());
-#ifdef PV_USE_CUDNN
-   // TODO: Why is this commented out? Is this dead code?
-   //this->permute_weights_timer = new PVCuda::CudaTimer(getName(), "layer", "gpuWeightsPermutate");
-   //this->permute_weights_timer->setStream(hc->getDevice()->getStream());
-   //this->permute_preData_timer = new PVCuda::CudaTimer(getName(), "layer", "gpuPreDataPermutate");
-   //this->permute_preData_timer->setStream(hc->getDevice()->getStream());
-   //this->permute_postGSyn_timer = new PVCuda::CudaTimer(getName(), "layer", "gpuPostGSynPermutate");
-   //this->permute_postGSyn_timer->setStream(hc->getDevice()->getStream());
-#endif
 #endif
 
    PVParams * params = hc->parameters();
@@ -257,13 +240,13 @@ HyPerLayer::~HyPerLayer()
    if(d_Datastore){
       delete d_Datastore;
    }
-#endif
 
-#if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
+#ifdef PV_USE_CUDNN
    if(cudnn_Datastore){
       delete cudnn_Datastore;
    }
-#endif
+#endif // PV_USE_CUDNN
+#endif // PV_USE_CUDA
 
    free(marginIndices);
    free(probes); // All probes are deleted by the HyPerCol, so probes[i] doesn't need to be deleted, only the array itself.
@@ -319,14 +302,12 @@ void HyPerLayer::freeChannels()
       delete d_GSyn;
       d_GSyn = NULL;
    }
-#endif
-
-#if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
+#ifdef PV_USE_CUDNN
    if (cudnn_GSyn != NULL) {
       delete cudnn_GSyn;
    }
-#endif
-
+#endif // PV_USE_CUDNN
+#endif // PV_USE_CUDA
 
    // GSyn gets allocated in allocateDataStructures, but only if numChannels>0.
    if (GSyn) {
@@ -860,7 +841,7 @@ void HyPerLayer::ioParam_writeSparseValues(enum ParamsIOFlag ioFlag) {
       parent->ioParamValue(ioFlag, name, "writeSparseValues", &writeSparseValues, true/*default value*/);
 }
 
-int HyPerLayer::respond(std::shared_ptr<BaseMessage> message) {
+int HyPerLayer::respond(std::shared_ptr<BaseMessage const> message) {
    int status = BaseLayer::respond(message);
    if (status != PV_SUCCESS) {
       return status;
@@ -998,34 +979,34 @@ int HyPerLayer::allocateDeviceBuffers()
 
    //Allocate based on which flags are set
    if(allocDeviceV){
-     d_V = device->createBuffer(size);
+     d_V = device->createBuffer(size, &description);
    }
 
    if(allocDeviceDatastore){
-     d_Datastore= device->createBuffer(size_ex);
+     d_Datastore= device->createBuffer(size_ex, &description);
       assert(d_Datastore);
 #ifdef PV_USE_CUDNN
-      cudnn_Datastore = device->createBuffer(size_ex);
+      cudnn_Datastore = device->createBuffer(size_ex, &description);
       assert(cudnn_Datastore);
 #endif
    }
 
    if(allocDeviceActiveIndices){
-      d_numActive = device->createBuffer(parent->getNBatch() * sizeof(long));
-      d_ActiveIndices= device->createBuffer(size_ex);
+      d_numActive = device->createBuffer(parent->getNBatch() * sizeof(long), &description);
+      d_ActiveIndices= device->createBuffer(size_ex, &description);
       assert(d_ActiveIndices);
    }
 
    if(allocDeviceActivity){
-      d_Activity = device->createBuffer(size_ex);
+      d_Activity = device->createBuffer(size_ex, &description);
    }
 
    //d_GSyn is the entire gsyn buffer. cudnn_GSyn is only one gsyn channel
    if(allocDeviceGSyn){
-      d_GSyn = device->createBuffer(size * numChannels);
+      d_GSyn = device->createBuffer(size * numChannels, &description);
       assert(d_GSyn);
 #ifdef PV_USE_CUDNN
-      cudnn_GSyn = device->createBuffer(size);
+      cudnn_GSyn = device->createBuffer(size, &description);
 #endif
    }
 

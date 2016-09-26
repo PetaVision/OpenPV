@@ -144,11 +144,6 @@ HyPerConn "InputToOutputBase" = {
     normalize_cutoff                    = 0;
     normalizeFromPostPerspective        = false;
     minSumTolerated                     = 0;
-    gpuGroupIdx                         = 0;
-    preDataLocal                        = false;
-    numXLocal                           = 0;
-    numYLocal                           = 0;
-    numFLocal                           = 0;
     weightSparsity                      = 0;
 };
 
@@ -191,10 +186,5 @@ HyPerConn "InputToOutputImported" = {
     normalize_cutoff                    = 0;
     normalizeFromPostPerspective        = false;
     minSumTolerated                     = 0;
-    gpuGroupIdx                         = 0;
-    preDataLocal                        = false;
-    numXLocal                           = 0;
-    numYLocal                           = 0;
-    numFLocal                           = 0;
     weightSparsity                      = 0;
 };

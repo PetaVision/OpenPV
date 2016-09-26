@@ -1,31 +1,31 @@
 /*
- * ObjectHierarchy.cpp
+ * ObserverTable.cpp
  *
  *  Created on: Jul 22, 2016
  *      Author: pschultz
  */
 
-#include <columns/ObjectHierarchy.hpp>
+#include "observerpattern/ObserverTable.hpp"
+#include "utils/PVAssert.hpp"
 #include <algorithm>
 
 namespace PV {
 
-ObjectHierarchy::ObjectHierarchy() {
+std::vector<Observer*>::size_type ObserverTable::size() const {
+   pvAssert(mObjectVector.size()==mObjectMap.size());
+   return mObjectVector.size();
 }
 
-ObjectHierarchy::~ObjectHierarchy() {
-}
-
-bool ObjectHierarchy::addObject(BaseObject * obj) {
-   bool addSucceeded = mObjectMap.insert(std::make_pair(obj->getName(), obj)).second;
+bool ObserverTable::addObject(std::string const& name, Observer * entry) {
+   bool addSucceeded = mObjectMap.insert(std::make_pair(std::string(name), entry)).second; // map::insert() returns a pair whose second element is whether the insertion was successful.
    if (addSucceeded) {
-      mObjectVector.emplace_back(obj);
+      mObjectVector.emplace_back(entry);
    }
    return addSucceeded;
 }
 
-void ObjectHierarchy::deleteObject(std::string const& name, bool deallocateFlag) {
-   BaseObject * obj = nullptr;
+void ObserverTable::deleteObject(std::string const& name, bool deallocateFlag) {
+   Observer * obj = nullptr;
    auto mapSearchResult = mObjectMap.find(name);
    if (mapSearchResult==mObjectMap.end()) {
       obj = mapSearchResult->second;
@@ -37,7 +37,7 @@ void ObjectHierarchy::deleteObject(std::string const& name, bool deallocateFlag)
    }
 }
 
-void ObjectHierarchy::clear(bool deallocateFlag) {
+void ObserverTable::clear(bool deallocateFlag) {
    if (deallocateFlag) {
       for (auto& obj : mObjectVector) {
          delete obj;

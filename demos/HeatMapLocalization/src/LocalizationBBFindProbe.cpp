@@ -234,7 +234,7 @@ double LocalizationBBFindProbe::computeBoxConfidence(LocalizationData const& bbo
          int index = kIndex(xt,yt,f,nx,ny,nf);
          pvadata_t a = buffer[index];
          if (a>=detectionThreshold[i]) {
-            score += buffer[index];
+            score += (double) buffer[index];
             count++;
          }
       }

@@ -39,7 +39,7 @@ public:
     */
    int ioParams(enum ParamsIOFlag ioFlag);
 
-   virtual int respond(std::shared_ptr<BaseMessage> message) override;
+   virtual int respond(std::shared_ptr<BaseMessage const> message) override;
 
    // manage the communicateInitInfo, allocateDataStructures, and initializeState stages.
    /**
@@ -187,9 +187,7 @@ public:
    inline int getDelay(int arbor) { return (arbor >= 0 && arbor < this->numberOfAxonalArborLists()) ? delays[arbor] : -1; }
 
    inline bool getConvertRateToSpikeCount() { return convertRateToSpikeCount; }
-#ifdef PV_USE_CUDA
    inline bool getReceiveGpu() { return receiveGpu; }
-#endif // PV_USE_CUDA 
 
    /**
     * Returns the number of probes that have been attached to this connection
@@ -486,9 +484,7 @@ protected:
    int numAxonalArborLists; // number of axonal arbors from presynaptic layer
    bool plasticityFlag;
    bool convertRateToSpikeCount; // Whether to check if pre-layer is spiking and, if it is not, scale activity by dt to convert it to a spike count
-#ifdef PV_USE_CUDA
    bool receiveGpu; // Whether to use GPU acceleration in updating post's GSyn
-#endif // PV_USE_CUDA
    bool initializeFromCheckpointFlag;
 
    BaseConnectionProbe** probes; // probes used to output data

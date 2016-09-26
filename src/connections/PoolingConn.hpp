@@ -58,6 +58,11 @@ protected:
     */
    void ioParam_normalizeMethod(enum ParamsIOFlag ioFlag);
 #ifdef PV_USE_CUDA
+   virtual int allocatePostDeviceWeights() override { return PV_SUCCESS; }
+   virtual int allocateDeviceWeights() override { return PV_SUCCESS; }
+   virtual int initializeReceivePostKernelArgs() override { return PV_SUCCESS; }
+   virtual int initializeReceivePreKernelArgs() override { return PV_SUCCESS; }
+   virtual void updateDeviceWeights() override {}
    int initializeDeliverKernelArgs();
 #endif // PV_USE_CUDA
    virtual int setInitialValues() override;

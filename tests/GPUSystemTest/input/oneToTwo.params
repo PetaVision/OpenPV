@@ -338,10 +338,6 @@ CloneConn "gpuClone1" = {
     pvpatchAccumulateType = "convolve";
     updateGSynFromPostPerspective = true;
     receiveGpu = true;
-    preDataLocal = false;
-    //numXLocal = 64;
-    //numYLocal = 1;
-    //numFLocal = 1;
 };
 
 CloneConn "gpuClone2" = {
@@ -356,10 +352,6 @@ CloneConn "gpuClone2" = {
     pvpatchAccumulateType = "convolve";
     updateGSynFromPostPerspective = true;
     receiveGpu = true;
-    preDataLocal = false;
-    //numXLocal = 64;
-    //numYLocal = 1;
-    //numFLocal = 1;
 };
 
 IdentConn "GpuToTest1" = {

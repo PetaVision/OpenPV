@@ -50,6 +50,7 @@ set(SRC_SUBDIRS
   layers
   normalizers
   structures
+  observerpattern
   probes
   utils
   weightinit

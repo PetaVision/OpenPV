@@ -136,7 +136,7 @@ int AdaptiveTimeScaleProbe::checkpointWrite(const char * cpDir) {
    return status;
 }
 
-int AdaptiveTimeScaleProbe::respond(std::shared_ptr<BaseMessage> message) {
+int AdaptiveTimeScaleProbe::respond(std::shared_ptr<BaseMessage const> message) {
    int status = ColProbe::respond(message);
    if (message==nullptr) {
       return status;

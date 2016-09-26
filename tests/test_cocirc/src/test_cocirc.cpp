@@ -53,7 +53,7 @@ int main(int argc, char * argv[])
    hc->ensureDirExists(hc->getOutputPath());
    
    auto objectMap = hc->copyObjectMap();
-   auto commMessagePtr = std::make_shared<CommunicateInitInfoMessage<BaseObject*> >(*objectMap);
+   auto commMessagePtr = std::make_shared<CommunicateInitInfoMessage>(*objectMap);
    for (int l=0; l<hc->numberOfLayers(); l++) {
       HyPerLayer * layer = hc->getLayer(l);
       int status = layer->respond(commMessagePtr);

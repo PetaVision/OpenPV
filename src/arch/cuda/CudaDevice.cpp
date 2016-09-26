@@ -41,8 +41,6 @@ void CudaDevice::incrementConvKernels(){
 
 long CudaDevice::reserveMem(size_t size){
    deviceMem -= size;
-   pvInfo() << "Reserving " << size << " bytes of VRAM. "
-      << deviceMem << " bytes remaining.\n";
    return deviceMem;
 }
 
@@ -68,8 +66,6 @@ int CudaDevice::initialize(int device)
    handleError(cudaGetDeviceProperties(&device_props, device), "Getting device properties");
 
    status = 0;
-#endif // PV_USE_CUDA
-   
 #ifdef PV_USE_CUDNN
    //Testing cudnn here
    cudnnHandle_t tmpHandle;
@@ -95,7 +91,9 @@ int CudaDevice::initialize(int device)
    }
 
    this->handle = (void*) tmpHandle;
-#endif
+#endif // PV_USE_CUDNN
+#endif // PV_USE_CUDA
+   
 
    return status;
 }
@@ -118,9 +116,13 @@ int CudaDevice::query_device_info()
    return 0;
 }
 
-CudaBuffer* CudaDevice::createBuffer(size_t size){
+CudaBuffer* CudaDevice::createBuffer(size_t size, std::string const* str){
    long memLeft = reserveMem(size);
+   pvInfo() << "Reserving " << size << " bytes of VRAM";
+   if (str) {pvInfo() << " (" << *str << ")";}
+   pvInfo() << ". " << deviceMem << " bytes remaining.\n";
    if(memLeft < 0){
+      pvInfo().flush();
       pvError().printf("CudaDevice createBuffer: out of memory\n");
    }
    return(new CudaBuffer(size, this, stream));
