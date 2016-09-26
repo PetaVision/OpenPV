@@ -131,7 +131,8 @@ namespace PV {
          pvErrorIf(fStream.inStream().bad(),
                "Failed to open istream %s.\n", fName);
       
-      
+         // TODO: Error if we're writing more than 1 index past the end
+
          // Modify the number of records in the header
          vector<int> header = readHeader(&fStream);
          header.at(INDEX_NBANDS) = frameWriteIndex + 1;
@@ -212,11 +213,13 @@ namespace PV {
 
       // Builds a table of offsets and lengths for each pvp frame
       // index up to (but not including) upToIndex. Works for both
-      // sparse activity and sparse binary files.
+      // sparse activity and sparse binary files. Leaves the input
+      // stream pointing at the location where frame upToIndex would
+      // begin.
       static SparseFileTable buildSparseFileTable(FileStream *fStream,
                                                  int upToIndex) {
          vector<int> header = readHeader(fStream);
-         pvErrorIf(upToIndex >= header.at(INDEX_NBANDS),
+         pvErrorIf(upToIndex > header.at(INDEX_NBANDS),
                "buildSparseFileTable requested frame %d / %d.\n",
                upToIndex, header.at(INDEX_NBANDS));
 
@@ -238,10 +241,8 @@ namespace PV {
             fStream->inStream().read((char*)&frameLength, sizeof(int));
             result.frameLengths.at(f)      = frameLength;
             result.frameStartOffsets.at(f) = frameStartOffset;
-            if (f != upToIndex - 1) {
-               fStream->inStream().seekg(frameLength * dataSize,
-                                         std::ios_base::cur);
-            }
+            fStream->inStream().seekg(frameLength * dataSize,
+                                      std::ios_base::cur);
          }
 
          return result;
@@ -274,8 +275,7 @@ namespace PV {
       static void appendSparseToPvp(const char *fName,
                                     SparseList<T> *list,
                                     double timeStamp,
-                                    int frameWriteIndex,
-                                    SparseFileTable *fileTable = nullptr) {
+                                    int frameWriteIndex) {
          FileStream fStream(fName,
                             std::ios_base::out
                           | std::ios_base::in
@@ -286,8 +286,19 @@ namespace PV {
          pvErrorIf(fStream.inStream().bad(),
                "Failed to open istream %s.\n", fName);
 
-         
+         // Modify the number of records in the header
+         vector<int> header = readHeader(&fStream);
+         header.at(INDEX_NBANDS) = frameWriteIndex + 1;
+         writeHeader(&fStream, header);
  
+         SparseFileTable table = buildSparseFileTable(&fStream,
+                                                      frameWriteIndex);
+         std::streambuf::pos_type frameOffset =
+            table.frameStartOffsets.at(frameWriteIndex - 1)
+          + table.frameLengths.at(frameWriteIndex - 1);
+
+         fStream.outStream().seekp(frameOffset, std::ios_base::cur);
+         writeSparseFrame<T>(&fStream, list, timeStamp); 
       }
    }
 }
