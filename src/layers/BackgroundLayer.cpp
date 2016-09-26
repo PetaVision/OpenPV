@@ -85,7 +85,7 @@ int BackgroundLayer::allocateV() {
 }
 
 void BackgroundLayer::ioParam_repFeatureNum(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "repFeatureNum", &repFeatureNum, repFeatureNum);
+   parent->parameters()->ioParamValue(ioFlag, name, "repFeatureNum", &repFeatureNum, repFeatureNum);
    if(repFeatureNum <= 0){
       pvError() << "BackgroundLayer " << name << ": repFeatureNum must an integer greater or equal to 1 (1 feature means no replication)\n";
    }

@@ -72,11 +72,11 @@ int LIFTestProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void LIFTestProbe::ioParam_endingTime(enum ParamsIOFlag ioFlag) {
-   getParent()->ioParamValue(ioFlag, getName(), "endingTime", &endingTime, LIFTESTPROBE_DEFAULTENDINGTIME);
+   getParent()->parameters()->ioParamValue(ioFlag, getName(), "endingTime", &endingTime, LIFTESTPROBE_DEFAULTENDINGTIME);
 }
 
 void LIFTestProbe::ioParam_tolerance(enum ParamsIOFlag ioFlag) {
-   getParent()->ioParamValue(ioFlag, getName(), "tolerance", &tolerance, LIFTESTPROBE_DEFAULTTOLERANCE);
+   getParent()->parameters()->ioParamValue(ioFlag, getName(), "tolerance", &tolerance, LIFTESTPROBE_DEFAULTTOLERANCE);
 }
 
 LIFTestProbe::~LIFTestProbe() {

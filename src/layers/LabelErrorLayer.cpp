@@ -71,11 +71,11 @@ int LabelErrorLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void LabelErrorLayer::ioParam_errScale(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "errScale", &errScale, errScale);
+   parent->parameters()->ioParamValue(ioFlag, name, "errScale", &errScale, errScale);
 }
 
 void LabelErrorLayer::ioParam_isBinary(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "isBinary", &isBinary, isBinary);
+   parent->parameters()->ioParamValue(ioFlag, name, "isBinary", &isBinary, isBinary);
 }
 
 int LabelErrorLayer::updateState(double time, double dt)

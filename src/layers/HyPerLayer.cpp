@@ -609,7 +609,7 @@ int HyPerLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerLayer::ioParam_dataType(enum ParamsIOFlag ioFlag) {
-   this->getParent()->ioParamString(ioFlag, this->getName(), "dataType", &dataTypeString, NULL, false/*warnIfAbsent*/);
+   this->getParent()->parameters()->ioParamString(ioFlag, this->getName(), "dataType", &dataTypeString, NULL, false/*warnIfAbsent*/);
    if(dataTypeString == NULL){
       //Default value
       dataType = PV_FLOAT;
@@ -628,10 +628,10 @@ void HyPerLayer::ioParam_dataType(enum ParamsIOFlag ioFlag) {
 
 void HyPerLayer::ioParam_updateGpu(enum ParamsIOFlag ioFlag) {
 #ifdef PV_USE_CUDA
-   parent->ioParamValue(ioFlag, name, "updateGpu", &updateGpu, updateGpu, true/*warnIfAbsent*/);
+   parent->parameters()->ioParamValue(ioFlag, name, "updateGpu", &updateGpu, updateGpu, true/*warnIfAbsent*/);
 #else //PV_USE_CUDA
    bool updateGpu = false;
-   parent->ioParamValue(ioFlag, name, "updateGpu", &updateGpu, updateGpu, false/*warnIfAbsent*/);
+   parent->parameters()->ioParamValue(ioFlag, name, "updateGpu", &updateGpu, updateGpu, false/*warnIfAbsent*/);
    if (ioFlag==PARAMS_IO_READ && updateGpu) {
       if (parent->columnId()==0) {
          pvErrorNoExit().printf("%s: updateGpu is set to true, but PetaVision was compiled without GPU acceleration.\n",
@@ -644,39 +644,39 @@ void HyPerLayer::ioParam_updateGpu(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerLayer::ioParam_nxScale(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "nxScale", &nxScale, nxScale);
+   parent->parameters()->ioParamValue(ioFlag, name, "nxScale", &nxScale, nxScale);
 }
 
 void HyPerLayer::ioParam_nyScale(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "nyScale", &nyScale, nyScale);
+   parent->parameters()->ioParamValue(ioFlag, name, "nyScale", &nyScale, nyScale);
 }
 
 void HyPerLayer::ioParam_nf(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "nf", &numFeatures, numFeatures);
+   parent->parameters()->ioParamValue(ioFlag, name, "nf", &numFeatures, numFeatures);
 }
 
 void HyPerLayer::ioParam_phase(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "phase", &phase, phase);
+   parent->parameters()->ioParamValue(ioFlag, name, "phase", &phase, phase);
    if (ioFlag == PARAMS_IO_READ && phase<0) {
       if (parent->columnId()==0) pvError().printf("%s: phase must be >= 0 (given value was %d).\n", getDescription_c(), phase);
    }
 }
 
 void HyPerLayer::ioParam_mirrorBCflag(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "mirrorBCflag", &mirrorBCflag, mirrorBCflag);
+   parent->parameters()->ioParamValue(ioFlag, name, "mirrorBCflag", &mirrorBCflag, mirrorBCflag);
 }
 
 void HyPerLayer::ioParam_valueBC(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "mirrorBCflag"));
    if (!mirrorBCflag) {
-      parent->ioParamValue(ioFlag, name, "valueBC", &valueBC, (pvdata_t) 0);
+      parent->parameters()->ioParamValue(ioFlag, name, "valueBC", &valueBC, (pvdata_t) 0);
    }
 }
 
 void HyPerLayer::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
    assert(parent->getInitializeFromCheckpointDir());
    if (parent->getInitializeFromCheckpointDir() && parent->getInitializeFromCheckpointDir()[0]) {
-      parent->ioParamValue(ioFlag, name, "initializeFromCheckpointFlag", &initializeFromCheckpointFlag, parent->getDefaultInitializeFromCheckpointFlag(), true/*warnIfAbsent*/);
+      parent->parameters()->ioParamValue(ioFlag, name, "initializeFromCheckpointFlag", &initializeFromCheckpointFlag, parent->getDefaultInitializeFromCheckpointFlag(), true/*warnIfAbsent*/);
    }
 }
 
@@ -694,7 +694,7 @@ void HyPerLayer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerLayer::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
-   parent->ioParamString(ioFlag, name, "triggerLayerName", &triggerLayerName, NULL, false/*warnIfAbsent*/);
+   parent->parameters()->ioParamString(ioFlag, name, "triggerLayerName", &triggerLayerName, NULL, false/*warnIfAbsent*/);
    if (ioFlag==PARAMS_IO_READ) {
       if (triggerLayerName && !strcmp(name, triggerLayerName)) {
          if (parent->columnId()==0) {
@@ -717,7 +717,7 @@ void HyPerLayer::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
    pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
    if (ioFlag == PARAMS_IO_READ && parent->parameters()->present(name, "triggerFlag")) {
       bool flagFromParams = false;
-      parent->ioParamValue(ioFlag, name, "triggerFlag", &flagFromParams, flagFromParams);
+      parent->parameters()->ioParamValue(ioFlag, name, "triggerFlag", &flagFromParams, flagFromParams);
       if (parent->columnId()==0) {
          pvWarn(triggerFlagMessage);
          triggerFlagMessage.printf("%s: triggerFlag has been deprecated.\n", getDescription_c());
@@ -744,7 +744,7 @@ void HyPerLayer::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
 void HyPerLayer::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
    if (triggerFlag) {
-      parent->ioParamValue(ioFlag, name, "triggerOffset", &triggerOffset, triggerOffset);
+      parent->parameters()->ioParamValue(ioFlag, name, "triggerOffset", &triggerOffset, triggerOffset);
       if(triggerOffset < 0){
          if (parent->columnId()==0) {
             pvError().printf("%s: TriggerOffset (%f) must be positive\n", getDescription_c(), triggerOffset);
@@ -755,7 +755,7 @@ void HyPerLayer::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
 void HyPerLayer::ioParam_triggerBehavior(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
    if (triggerFlag) {
-      parent->ioParamString(ioFlag, name, "triggerBehavior", &triggerBehavior, "updateOnlyOnTrigger", true/*warnIfAbsent*/);
+      parent->parameters()->ioParamString(ioFlag, name, "triggerBehavior", &triggerBehavior, "updateOnlyOnTrigger", true/*warnIfAbsent*/);
       if (triggerBehavior==NULL || !strcmp(triggerBehavior, "")) {
          free(triggerBehavior);
          triggerBehavior = strdup("updateOnlyOnTrigger");
@@ -787,20 +787,20 @@ void HyPerLayer::ioParam_triggerResetLayerName(enum ParamsIOFlag ioFlag) {
    if (triggerFlag) {
       assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerBehavior"));
       if (!strcmp(triggerBehavior, "resetStateOnTrigger")) {
-         parent->ioParamStringRequired(ioFlag, name, "triggerResetLayerName", &triggerResetLayerName);
+         parent->parameters()->ioParamStringRequired(ioFlag, name, "triggerResetLayerName", &triggerResetLayerName);
       }
    }
 }
 
 void HyPerLayer::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "writeStep", &writeStep, parent->getDeltaTime());
+   parent->parameters()->ioParamValue(ioFlag, name, "writeStep", &writeStep, parent->getDeltaTime());
 }
 
 void HyPerLayer::ioParam_initialWriteTime(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "writeStep"));
    if (writeStep>=0.0) {
       double start_time = parent->getStartTime();
-      parent->ioParamValue(ioFlag, name, "initialWriteTime", &initialWriteTime, start_time);
+      parent->parameters()->ioParamValue(ioFlag, name, "initialWriteTime", &initialWriteTime, start_time);
       if (ioFlag == PARAMS_IO_READ && writeStep > 0.0 && initialWriteTime < start_time) {
          double storeInitialWriteTime = initialWriteTime;
          while (initialWriteTime < start_time) {
@@ -818,7 +818,7 @@ void HyPerLayer::ioParam_initialWriteTime(enum ParamsIOFlag ioFlag) {
 
 void HyPerLayer::ioParam_sparseLayer(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ && !parent->parameters()->present(name, "sparseLayer") && parent->parameters()->present(name, "writeSparseActivity")){
-      parent->ioParamValue(ioFlag, name, "writeSparseActivity", &sparseLayer, false);
+      parent->parameters()->ioParamValue(ioFlag, name, "writeSparseActivity", &sparseLayer, false);
       if (parent->columnId()==0) {
          pvWarn().printf("writeSparseActivity is deprecated.  Use sparseLayer instead.\n");
       }
@@ -826,7 +826,7 @@ void HyPerLayer::ioParam_sparseLayer(enum ParamsIOFlag ioFlag) {
    }
    // writeSparseActivity was deprecated Nov 4, 2014
    // When support for writeSparseActivity is removed entirely, remove the above if-statement and keep the ioParamValue call below.
-   parent->ioParamValue(ioFlag, name, "sparseLayer", &sparseLayer, false);
+   parent->parameters()->ioParamValue(ioFlag, name, "sparseLayer", &sparseLayer, false);
 }
 
 void HyPerLayer::ioParam_writeSparseValues(enum ParamsIOFlag ioFlag) {
@@ -838,7 +838,7 @@ void HyPerLayer::ioParam_writeSparseValues(enum ParamsIOFlag ioFlag) {
       assert(!parent->parameters()->presentAndNotBeenRead(name, "sparseLayer"));
    }
    if (sparseLayer)
-      parent->ioParamValue(ioFlag, name, "writeSparseValues", &writeSparseValues, true/*default value*/);
+      parent->parameters()->ioParamValue(ioFlag, name, "writeSparseValues", &writeSparseValues, true/*default value*/);
 }
 
 int HyPerLayer::respond(std::shared_ptr<BaseMessage const> message) {

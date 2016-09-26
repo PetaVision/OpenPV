@@ -187,7 +187,7 @@ namespace PV {
          // Path to input file or list of input files
          std::string mInputPath;
 
-         // Filepointer to output file used when mEchoFramePathnameFlag == true
+         // Filepointer to output file used when mWriteFileToTimestamp == true
          PV_Stream* mTimestampFile = nullptr;
          
          // Number of timesteps an input file is displayed before advancing the file list. If <= 0, the file never changes.
@@ -195,9 +195,6 @@ namespace PV {
          
          // Automatically set if the inputPath ends in .txt. Determines whether this layer represents a collection of files.
          bool mUsingFileList = false;
-         
-         // if true, echo the frame pathname to output stream
-         bool mEchoFramePathnameFlag = false;          
          
          // When reaching the end of the file list, do we reset to 0 or to start_index?
          bool mResetToStartOnLoop = true;

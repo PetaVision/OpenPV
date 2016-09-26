@@ -103,7 +103,7 @@ int ANNLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 void ANNLayer::ioParam_verticesV(enum ParamsIOFlag ioFlag) {
    pvAssert(verticesListInParams);
    int numVerticesTmp = numVertices;
-   this->getParent()->ioParamArray(ioFlag, this->getName(), "verticesV", &verticesV, &numVerticesTmp);
+   this->getParent()->parameters()->ioParamArray(ioFlag, this->getName(), "verticesV", &verticesV, &numVerticesTmp);
    if (ioFlag==PARAMS_IO_READ) {
       if (numVerticesTmp==0) {
          if (this->getParent()->columnId()==0) {
@@ -129,7 +129,7 @@ void ANNLayer::ioParam_verticesV(enum ParamsIOFlag ioFlag) {
 void ANNLayer::ioParam_verticesA(enum ParamsIOFlag ioFlag) {
    pvAssert(verticesListInParams);
    int numVerticesA;
-   this->getParent()->ioParamArray(ioFlag, this->getName(), "verticesA", &verticesA, &numVerticesA);
+   this->getParent()->parameters()->ioParamArray(ioFlag, this->getName(), "verticesA", &verticesA, &numVerticesA);
    if (ioFlag==PARAMS_IO_READ) {
       if (numVerticesA==0) {
          if (this->getParent()->columnId()==0) {
@@ -154,45 +154,45 @@ void ANNLayer::ioParam_verticesA(enum ParamsIOFlag ioFlag) {
 
 void ANNLayer::ioParam_slopeNegInf(enum ParamsIOFlag ioFlag) {
    pvAssert(verticesListInParams);
-   parent->ioParamValue(ioFlag, name, "slopeNegInf", &slopeNegInf, slopeNegInf/*default*/, true/*warnIfAbsent*/);
+   parent->parameters()->ioParamValue(ioFlag, name, "slopeNegInf", &slopeNegInf, slopeNegInf/*default*/, true/*warnIfAbsent*/);
 }
 
 void ANNLayer::ioParam_slopePosInf(enum ParamsIOFlag ioFlag) {
    pvAssert(verticesListInParams);
-   parent->ioParamValue(ioFlag, name, "slopePosInf", &slopePosInf, slopePosInf/*default*/, true/*warnIfAbsent*/);
+   parent->parameters()->ioParamValue(ioFlag, name, "slopePosInf", &slopePosInf, slopePosInf/*default*/, true/*warnIfAbsent*/);
 }
 
 void ANNLayer::ioParam_VThresh(enum ParamsIOFlag ioFlag) {
    pvAssert(!verticesListInParams);
-   parent->ioParamValue(ioFlag, name, "VThresh", &VThresh, VThresh);
+   parent->parameters()->ioParamValue(ioFlag, name, "VThresh", &VThresh, VThresh);
 }
 
 void ANNLayer::ioParam_AMin(enum ParamsIOFlag ioFlag) {
    pvAssert(!verticesListInParams);
    pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "VThresh"));
-   parent->ioParamValue(ioFlag, name, "AMin", &AMin, VThresh); // defaults to the value of VThresh, which was read earlier.
+   parent->parameters()->ioParamValue(ioFlag, name, "AMin", &AMin, VThresh); // defaults to the value of VThresh, which was read earlier.
 }
 
 void ANNLayer::ioParam_AMax(enum ParamsIOFlag ioFlag) {
    pvAssert(!verticesListInParams);
-   parent->ioParamValue(ioFlag, name, "AMax", &AMax, AMax);
+   parent->parameters()->ioParamValue(ioFlag, name, "AMax", &AMax, AMax);
 }
 
 void ANNLayer::ioParam_AShift(enum ParamsIOFlag ioFlag) {
    pvAssert(!verticesListInParams);
-   parent->ioParamValue(ioFlag, name, "AShift", &AShift, AShift);
+   parent->parameters()->ioParamValue(ioFlag, name, "AShift", &AShift, AShift);
 }
 
 void ANNLayer::ioParam_VWidth(enum ParamsIOFlag ioFlag) {
    pvAssert(!verticesListInParams);
-   parent->ioParamValue(ioFlag, name, "VWidth", &VWidth, VWidth);
+   parent->parameters()->ioParamValue(ioFlag, name, "VWidth", &VWidth, VWidth);
 }
 
 // clearGSynInterval parameter was made obsolete Sep 21, 2016.
 void ANNLayer::ioParam_clearGSynInterval(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ && parent->parameters()->present(name, "clearGSynInterval")) {
       double clearGSynInterval;
-      parent->ioParamValueRequired(ioFlag, name, "clearGSynInterval", &clearGSynInterval);
+      parent->parameters()->ioParamValueRequired(ioFlag, name, "clearGSynInterval", &clearGSynInterval);
       if (clearGSynInterval) {
          if (parent->getCommunicator()->commRank()==0) {
             pvErrorNoExit() << getDescription() << ": the clearGSynInterval parameter is obsolete.  Value 0 specified in params file will be ignored.\n";

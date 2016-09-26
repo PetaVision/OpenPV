@@ -241,17 +241,17 @@ int BaseConnection::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void BaseConnection::ioParam_preLayerName(enum ParamsIOFlag ioFlag) {
-   this->getParent()->ioParamString(ioFlag, this->getName(), "preLayerName", &preLayerName, NULL, false/*warnIfAbsent*/);
+   this->getParent()->parameters()->ioParamString(ioFlag, this->getName(), "preLayerName", &preLayerName, NULL, false/*warnIfAbsent*/);
 }
 
 void BaseConnection::ioParam_postLayerName(enum ParamsIOFlag ioFlag) {
-   this->getParent()->ioParamString(ioFlag, this->getName(), "postLayerName", &postLayerName, NULL, false/*warnIfAbsent*/);
+   this->getParent()->parameters()->ioParamString(ioFlag, this->getName(), "postLayerName", &postLayerName, NULL, false/*warnIfAbsent*/);
 }
 
 void BaseConnection::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ) {
       int ch = 0;
-      this->getParent()->ioParamValueRequired(ioFlag, this->getName(), "channelCode", &ch);
+      this->getParent()->parameters()->ioParamValueRequired(ioFlag, this->getName(), "channelCode", &ch);
       int status = decodeChannel(ch, &channel);
       if (status != PV_SUCCESS) {
          if (this->getParent()->columnId()==0) {
@@ -264,7 +264,7 @@ void BaseConnection::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
    }
    else if (ioFlag==PARAMS_IO_WRITE) {
       int ch = (int) channel;
-      this->getParent()->ioParamValueRequired(ioFlag, this->getName(), "channelCode", &ch);
+      this->getParent()->parameters()->ioParamValueRequired(ioFlag, this->getName(), "channelCode", &ch);
    }
    else {
       assert(0); // All possibilities of ioFlag are covered above.
@@ -274,7 +274,7 @@ void BaseConnection::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
 void BaseConnection::ioParam_delay(enum ParamsIOFlag ioFlag) {
    //Grab delays in ms and load into fDelayArray.
    //initializeDelays() will convert the delays to timesteps store into delays.
-   this->getParent()->ioParamArray(ioFlag, this->getName(), "delay", &fDelayArray, &delayArraySize);
+   this->getParent()->parameters()->ioParamArray(ioFlag, this->getName(), "delay", &fDelayArray, &delayArraySize);
    if (ioFlag==PARAMS_IO_READ && delayArraySize==0) {
       assert(fDelayArray==NULL);
       fDelayArray = (float *) malloc(sizeof(float));
@@ -293,7 +293,7 @@ void BaseConnection::ioParam_delay(enum ParamsIOFlag ioFlag) {
 
 void BaseConnection::ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) {
    int numArbors = this->numberOfAxonalArborLists();
-   this->getParent()->ioParamValue(ioFlag, this->getName(), "numAxonalArbors", &numArbors, 1);
+   this->getParent()->parameters()->ioParamValue(ioFlag, this->getName(), "numAxonalArbors", &numArbors, 1);
    if (ioFlag == PARAMS_IO_READ) {
       this->setNumberOfAxonalArborLists(numArbors);
       if (ioFlag == PARAMS_IO_READ && this->numberOfAxonalArborLists()==0 && this->getParent()->columnId()==0) {
@@ -303,22 +303,22 @@ void BaseConnection::ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) {
 }
 
 void BaseConnection::ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "plasticityFlag", &plasticityFlag, true/*default value*/);
+   parent->parameters()->ioParamValue(ioFlag, name, "plasticityFlag", &plasticityFlag, true/*default value*/);
 }
 
 // preActivityIsNotRate was replaced with convertRateToSpikeCount on Dec 31, 2014.
 // The warning issued if the params file contained preActivityIsNotRate was removed on Aug 5, 2014.
 
 void BaseConnection::ioParam_convertRateToSpikeCount(enum ParamsIOFlag ioFlag) {
-   getParent()->ioParamValue(ioFlag, this->getName(), "convertRateToSpikeCount", &convertRateToSpikeCount, false/*default value*/);
+   getParent()->parameters()->ioParamValue(ioFlag, this->getName(), "convertRateToSpikeCount", &convertRateToSpikeCount, false/*default value*/);
 }
 
 void BaseConnection::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
 #ifdef PV_USE_CUDA
-   parent->ioParamValue(ioFlag, name, "receiveGpu", &receiveGpu, false/*default*/, true/*warn if absent*/);
+   parent->parameters()->ioParamValue(ioFlag, name, "receiveGpu", &receiveGpu, false/*default*/, true/*warn if absent*/);
 #else
    receiveGpu = false;
-   parent->ioParamValue(ioFlag, name, "receiveGpu", &receiveGpu, receiveGpu/*default*/, false/*warn if absent*/);
+   parent->parameters()->ioParamValue(ioFlag, name, "receiveGpu", &receiveGpu, receiveGpu/*default*/, false/*warn if absent*/);
    if (ioFlag==PARAMS_IO_READ && receiveGpu) {
       if (parent->columnId()==0) {
          pvWarn() << getDescription_c() << ": receiveGpu is set to true in params, but PetaVision was compiled without GPU acceleration. receiveGpu has been set to false.\n";
@@ -333,7 +333,7 @@ void BaseConnection::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
 void BaseConnection::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
    assert(parent->getInitializeFromCheckpointDir()); // If we're not initializing any layers or connections from a checkpoint, this should be the empty string, not null.
    if (parent->getInitializeFromCheckpointDir() && parent->getInitializeFromCheckpointDir()[0]) {
-      parent->ioParamValue(ioFlag, name, "initializeFromCheckpointFlag", &initializeFromCheckpointFlag, parent->getDefaultInitializeFromCheckpointFlag(), true/*warnIfAbsent*/);
+      parent->parameters()->ioParamValue(ioFlag, name, "initializeFromCheckpointFlag", &initializeFromCheckpointFlag, parent->getDefaultInitializeFromCheckpointFlag(), true/*warnIfAbsent*/);
    }
 }
 

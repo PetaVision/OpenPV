@@ -79,7 +79,7 @@ namespace PV
     
     void KmeansLayer::ioParam_TrainingFlag(enum ParamsIOFlag ioFlag)
     {
-        parent->ioParamValue(ioFlag, name, "training", &trainingFlag,trainingFlag);
+        parent->parameters()->ioParamValue(ioFlag, name, "training", &trainingFlag,trainingFlag);
     }
 
     int KmeansLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag)

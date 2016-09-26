@@ -9,12 +9,15 @@
 #define PVPARAMS_HPP_
 
 #include "include/pv_common.h"
-//#include "columns/HyPerCol.hpp"
 #include "columns/Communicator.hpp"
+#include "utils/PVAssert.hpp"
+#include "utils/PVLog.hpp"
 #include "fileio.hpp"
 #include "io.hpp"
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
+#include <limits>
+#include <sstream>
 
 // TODO - make MAX_PARAMS dynamic
 #define MAX_PARAMS 100  // maximum number of parameters in a group
@@ -33,7 +36,6 @@ public:
    const float * valuePtr() { hasBeenReadFlag = true; return &paramValue; }
    const double * valueDblPtr() { hasBeenReadFlag = true; return &paramDblValue; }
    bool hasBeenRead()       { return hasBeenReadFlag; }
-   int outputParam(FILE * fp, int indentation);
    void clearHasBeenRead()    { hasBeenReadFlag = false; }
    void setValue(double v)  { paramValue = (float) v; paramDblValue = v;}
    Parameter* copyParameter() {return new Parameter(paramName, paramDblValue);}
@@ -58,7 +60,6 @@ public:
    void resetArraySize(){arraySize = 0;}
    bool hasBeenRead() { return hasBeenReadFlag; }
    void clearHasBeenRead() { hasBeenReadFlag = false; }
-   int outputString(FILE * fp, int indentation);
    double peek(int index)   { return valuesDbl[index]; }
    ParameterArray* copyParameterArray();
 
@@ -80,7 +81,6 @@ public:
    const char * getName()      { return paramName; }
    const char * getValue()     { hasBeenReadFlag = true; return paramValue; }
    bool hasBeenRead()          { return hasBeenReadFlag; }
-   int outputString(FILE * fp, int indentation);
    void clearHasBeenRead()     { hasBeenReadFlag = false; }
    void setValue(const char * s) { free(paramValue); paramValue = s?strdup(s):NULL;}
    ParameterString* copyParameterString() {return new ParameterString(paramName, paramValue);}
@@ -100,7 +100,6 @@ public:
    Parameter * pop();
    Parameter * peek(int index)   { return parameters[index]; }
    int size()                    { return count; }
-   int outputStack(FILE * fp, int indentation);
 
 private:
    int count;
@@ -113,7 +112,6 @@ public:
    ParameterArrayStack(int initialCount);
    virtual ~ParameterArrayStack();
    int push(ParameterArray * array);
-   int outputStack(FILE * fp, int indentation);
    int size() {return count;}
    ParameterArray * peek(int index) {return index>=0 && index<count ? parameterArrays[index] : NULL; }
 
@@ -134,7 +132,6 @@ public:
    ParameterString * peek(int index)    { return index>=0 && index<count ? parameterStrings[index] : NULL; }
    int size()                           { return count; }
    const char * lookup(const char * targetname);
-   int outputStack(FILE * fp, int indentation);
 
 private:
    int count;
@@ -161,7 +158,6 @@ public:
    int warnUnread();
    bool hasBeenRead(const char * paramName);
    int clearHasBeenReadFlags();
-   int outputGroup(FILE * fp);
    int pushNumerical(Parameter * param);
    int pushString(ParameterString * param);
    int setValue(const char * param_name, double value);
@@ -218,10 +214,23 @@ public:
    PVParams(const char * buffer, long int bufferLength, size_t initialSize, Communicator* inIcComm);
    virtual ~PVParams();
 
-#ifdef OBSOLETE // Marked obsolete Aug 30, 2015. Never gets called anywhere in the OpenPV repository, and undocumented.
-   int parseBufferInRootProcess(char * buffer, long int bufferLength);
-#endif // OBSOLETE // Marked obsolete Aug 30, 2015. Never gets called anywhere in the OpenPV repository, and undocumented.
    bool getParseStatus() { return parseStatus; }
+
+   template <typename T>
+   void ioParamValueRequired(enum ParamsIOFlag ioFlag, const char * groupName, const char * paramName, T * val);
+   template <typename T>
+   void ioParamValue(enum ParamsIOFlag ioFlag, const char * groupName, const char * paramName, T * val, T defaultValue, bool warnIfAbsent=true);
+   void ioParamString(enum ParamsIOFlag ioFlag, const char * groupName, const char * paramName, char ** paramStringValue, const char * defaultValue, bool warnIfAbsent=true);
+
+   void ioParamStringRequired(enum ParamsIOFlag ioFlag, const char * groupName, const char * paramName, char ** paramStringValue);
+   template <typename T>
+   void ioParamArray(enum ParamsIOFlag ioFlag, const char * groupName, const char * paramName, T ** paramArrayValue, int * arraysize);
+   template <typename T>
+   void writeParam(const char* paramName, T paramValue);
+   template <typename T>
+   void writeParamArray(const char* paramName, const T* array, int arraysize);
+   void writeParamString(const char* paramName, const char* svalue);
+
    int   present(const char * groupName, const char * paramName);
    double value  (const char * groupName, const char * paramName);
    double value  (const char * groupName, const char * paramName, double initialValue, bool warnIfAbsent=true);
@@ -256,7 +265,9 @@ public:
     * are not equal.
     */
    void handleUnnecessaryStringParameter(const char * group_name, const char * param_name, const char * correctValue, bool case_insensitive_flag=false);
-   int outputParams(FILE *);
+
+   void setPrintLuaStream(PV_Stream * printLuaStream) { mPrintLuaStream = printLuaStream; }
+   void setPrintParamsStream(PV_Stream * printParamsStream) { mPrintParamsStream = printParamsStream; }
    int setParameterSweepValues(int n);
    int setBatchSweepValues();
 
@@ -325,6 +336,9 @@ private:
    char * currSweepGroupName;
    char * currSweepParamName;
 
+   PV_Stream * mPrintParamsStream = nullptr;
+   PV_Stream * mPrintLuaStream = nullptr;
+
    int initialize(size_t initialSize);
    int parseFile(const char * filename);
    void loadParamBuffer(char const * filename, std::string& paramsFileString);
@@ -344,6 +358,116 @@ private:
    int convertParamToInt(double value);
 };
 
+template <typename T>
+void PVParams::handleUnnecessaryParameter(const char * group_name, const char * param_name, T correct_value) {
+   int status = PV_SUCCESS;
+   if (present(group_name, param_name)) {
+      if (worldRank==0) {
+         const char * class_name = groupKeywordFromName(group_name);
+         pvWarn().printf("%s \"%s\" does not use parameter %s, but it is present in the parameters file.\n",
+               class_name, group_name, param_name);
+      }
+      T params_value = (T) value(group_name, param_name); // marks param as read so that presentAndNotBeenRead doesn't trip up
+      if (params_value != correct_value) {
+         status = PV_FAILURE;
+         if (worldRank==0) {
+            pvErrorNoExit() << "   Value " << params_value << " is inconsistent with correct value " << correct_value << std::endl;
+         }
+      }
+   }
+   MPI_Barrier(icComm->globalCommunicator());
+   if (status != PV_SUCCESS) exit(EXIT_FAILURE);
 }
+
+template <typename T>
+void PVParams::ioParamValueRequired(enum ParamsIOFlag ioFlag, const char * groupName, const char * paramName, T * paramValue) {
+   switch(ioFlag) {
+   case PARAMS_IO_READ:
+      *paramValue = (T) value(groupName, paramName);
+      break;
+   case PARAMS_IO_WRITE:
+      writeParam(paramName, *paramValue);
+      break;
+   }
+}
+
+template <typename T>
+void PVParams::ioParamValue(enum ParamsIOFlag ioFlag, const char * groupName, const char * paramName, T * paramValue, T defaultValue, bool warnIfAbsent) {
+   switch(ioFlag) {
+   case PARAMS_IO_READ:
+      *paramValue = (T) value(groupName, paramName, defaultValue, warnIfAbsent);
+      break;
+   case PARAMS_IO_WRITE:
+      writeParam(paramName, *paramValue);
+      break;
+   }
+}
+template <typename T>
+void PVParams::ioParamArray(enum ParamsIOFlag ioFlag, const char * groupName, const char * paramName, T ** paramArrayValue, int * arraysize) {
+    if(ioFlag==PARAMS_IO_READ) {
+       const double * paramArray = arrayValuesDbl(groupName, paramName, arraysize);
+       pvAssert(*arraysize>=0);
+       if (*arraysize>0) {
+          *paramArrayValue = (T *) calloc((size_t) *arraysize, sizeof(T));
+          pvErrorIf(paramArrayValue==nullptr, "%s \"%s\": global rank %d process unable to copy array parameter %s: %s\n",
+                   groupKeywordFromName(groupName), groupName, icComm->globalCommRank(), paramName, strerror(errno));
+          for (int k=0; k<*arraysize; k++) {
+             (*paramArrayValue)[k] = (T) paramArray[k]; 
+          }
+       }
+       else {
+          *paramArrayValue = nullptr; 
+       }
+    }
+    else if (ioFlag==PARAMS_IO_WRITE) {
+       writeParamArray(paramName, *paramArrayValue, *arraysize); 
+    }
+}
+
+template <typename T>
+void PVParams::writeParam(const char * paramName, T paramValue) {
+   if (icComm->commRank()==0) {
+      pvAssert(mPrintParamsStream && mPrintParamsStream->fp);
+      pvAssert(mPrintLuaStream && mPrintLuaStream->fp);
+      std::stringstream vstr("");
+      if (std::numeric_limits<T>::has_infinity) {
+            if (paramValue == std::numeric_limits<T>::min()) {
+               vstr << "-infinity";
+            }
+            else if (paramValue == std::numeric_limits<T>::max()) {
+               vstr << "infinity";
+            }
+            else {
+               vstr << paramValue;
+            }
+      }
+      else {
+            vstr << paramValue;
+      }
+      fprintf(mPrintParamsStream->fp, "    %-35s = %s;\n", paramName, vstr.str().c_str());
+      fprintf(mPrintLuaStream->fp, "    %-35s = %s;\n", paramName, vstr.str().c_str());
+   }
+}
+
+template <typename T>
+void PVParams::writeParamArray(const char * paramName, const T * array, int arraysize) {
+   if (icComm->commRank()==0) {
+      pvAssert(mPrintParamsStream!=nullptr && mPrintParamsStream->fp!=nullptr && arraysize>=0);
+      pvAssert(mPrintLuaStream!=nullptr && mPrintLuaStream->fp!=nullptr);
+      pvAssert(arraysize>=0);
+      if (arraysize>0) {
+         fprintf(mPrintParamsStream->fp, "    %-35s = [", paramName);
+         fprintf(mPrintLuaStream->fp, "    %-35s = {", paramName);
+         for (int k=0; k<arraysize-1; k++) {
+            fprintf(mPrintParamsStream->fp, "%f,", (double) array[k]);
+            fprintf(mPrintLuaStream->fp, "%f,", (double) array[k]);
+         }
+         fprintf(mPrintParamsStream->fp, "%f];\n", (double) array[arraysize-1]);
+         fprintf(mPrintLuaStream->fp, "%f};\n", (double) array[arraysize-1]);
+      }
+   }
+}
+
+}  // end namespace PV
 
 #endif /* PVPARAMS_HPP_ */

@@ -347,19 +347,8 @@ public:
    template <typename T>
    int writeScalarToFile(const char* cp_dir, const char* group_name, const char* val_name, T val);
    NormalizeBase* getNormalizerFromName(const char* normalizerName);
-   template <typename T>
-   void ioParamValueRequired(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, T * val);
-   template <typename T>
-   void ioParamValue(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, T * val, T defaultValue, bool warnIfAbsent=true);
-   void ioParamString(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, char ** value, const char * defaultValue, bool warnIfAbsent=true);
-   void ioParamStringRequired(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, char ** value);
-   template <typename T>
-   void ioParamArray(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, T ** value, int * arraysize);
-   template <typename T>
-   void writeParam(const char* param_name, T value);
-   template <typename T>
-   void writeParamArray(const char* param_name, const T* array, int arraysize);
-   void writeParamString(const char* param_name, const char* svalue);
+
+   // Sep 26, 2016: HyPerCol methods for parameter input/output have been moved to PVParams.
 
 #ifdef PV_USE_CUDA
    int finalizeThreads();

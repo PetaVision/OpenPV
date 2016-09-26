@@ -32,7 +32,7 @@ int AllConstantValueProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void AllConstantValueProbe::ioParam_correctValue(enum ParamsIOFlag ioFlag) {
-   getParent()->ioParamValue(ioFlag, getName(), "correctValue", &correctValue, correctValue/*default*/);
+   getParent()->parameters()->ioParamValue(ioFlag, getName(), "correctValue", &correctValue, correctValue/*default*/);
 }
 
 int AllConstantValueProbe::outputState(double timed) {

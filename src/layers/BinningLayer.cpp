@@ -44,7 +44,7 @@ int BinningLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void BinningLayer::ioParam_originalLayerName(enum ParamsIOFlag ioFlag) {
-   parent->ioParamStringRequired(ioFlag, name, "originalLayerName", &originalLayerName);
+   parent->parameters()->ioParamStringRequired(ioFlag, name, "originalLayerName", &originalLayerName);
    assert(originalLayerName);
    if (ioFlag==PARAMS_IO_READ && originalLayerName[0]=='\0') {
       if (parent->columnId()==0) {
@@ -57,8 +57,8 @@ void BinningLayer::ioParam_originalLayerName(enum ParamsIOFlag ioFlag) {
 }
 
 void BinningLayer::ioParam_binMaxMin(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "binMax", &binMax, binMax);
-   parent->ioParamValue(ioFlag, name, "binMin", &binMin, binMin);
+   parent->parameters()->ioParamValue(ioFlag, name, "binMax", &binMax, binMax);
+   parent->parameters()->ioParamValue(ioFlag, name, "binMin", &binMin, binMin);
    if(ioFlag == PARAMS_IO_READ && binMax <= binMin){
       if (parent->columnId()==0) {
          pvErrorNoExit().printf("%s: binMax (%f) must be greater than binMin (%f).\n",
@@ -70,23 +70,23 @@ void BinningLayer::ioParam_binMaxMin(enum ParamsIOFlag ioFlag) {
 }
 
 void BinningLayer::ioParam_binSigma(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "binSigma", &binSigma, binSigma);
+   parent->parameters()->ioParamValue(ioFlag, name, "binSigma", &binSigma, binSigma);
 }
 
 void BinningLayer::ioParam_delay(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "delay", &delay, delay);
+   parent->parameters()->ioParamValue(ioFlag, name, "delay", &delay, delay);
 }
 
 void BinningLayer::ioParam_zeroNeg(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "zeroNeg", &zeroNeg, zeroNeg);
+   parent->parameters()->ioParamValue(ioFlag, name, "zeroNeg", &zeroNeg, zeroNeg);
 }
 
 void BinningLayer::ioParam_zeroDCR(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "zeroDCR", &zeroDCR, zeroDCR);
+   parent->parameters()->ioParamValue(ioFlag, name, "zeroDCR", &zeroDCR, zeroDCR);
 }
 
 void BinningLayer::ioParam_normalDist(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "normalDist", &normalDist, normalDist);
+   parent->parameters()->ioParamValue(ioFlag, name, "normalDist", &normalDist, normalDist);
 }
 
 //TODO read params for gaussian over features

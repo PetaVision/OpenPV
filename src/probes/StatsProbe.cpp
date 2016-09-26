@@ -157,7 +157,7 @@ void StatsProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
          buffer = strdup("Activity");
       }
    }
-   getParent()->ioParamString(ioFlag, getName(), "buffer", &buffer, "Activity", true/*warnIfAbsent*/);
+   getParent()->parameters()->ioParamString(ioFlag, getName(), "buffer", &buffer, "Activity", true/*warnIfAbsent*/);
    if (ioFlag == PARAMS_IO_READ) {
       assert(buffer);
       size_t len = strlen(buffer);
@@ -185,7 +185,7 @@ void StatsProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
 }
 
 void StatsProbe::ioParam_nnzThreshold(enum ParamsIOFlag ioFlag) {
-    getParent()->ioParamValue(ioFlag, getName(), "nnzThreshold", &nnzThreshold, 0.0f);
+    getParent()->parameters()->ioParamValue(ioFlag, getName(), "nnzThreshold", &nnzThreshold, 0.0f);
 }
 
 int StatsProbe::initNumValues() {

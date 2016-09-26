@@ -36,7 +36,7 @@ int ConvertFromTable::ioParamsFillGroup(enum PV::ParamsIOFlag ioFlag) {
 }
 
 void ConvertFromTable::ioParam_dataFile(enum PV::ParamsIOFlag ioFlag) {
-   parent->ioParamStringRequired(ioFlag, name, "dataFile", &dataFile);
+   parent->parameters()->ioParamStringRequired(ioFlag, name, "dataFile", &dataFile);
 }
 
 int ConvertFromTable::allocateDataStructures() {

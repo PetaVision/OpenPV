@@ -86,7 +86,7 @@ void MomentumConn::ioParam_momentumTau(enum ParamsIOFlag ioFlag){
          defaultVal = .9;
       }
       
-      parent->ioParamValue(ioFlag, name, "momentumTau", &momentumTau, defaultVal);
+      parent->parameters()->ioParamValue(ioFlag, name, "momentumTau", &momentumTau, defaultVal);
    }
 }
 
@@ -99,7 +99,7 @@ void MomentumConn::ioParam_momentumTau(enum ParamsIOFlag ioFlag){
  */
 void MomentumConn::ioParam_momentumMethod(enum ParamsIOFlag ioFlag){
    if(plasticityFlag){
-      parent->ioParamStringRequired(ioFlag, name, "momentumMethod", &momentumMethod);
+      parent->parameters()->ioParamStringRequired(ioFlag, name, "momentumMethod", &momentumMethod);
       if(strcmp(momentumMethod, "simple") != 0 &&
          strcmp(momentumMethod, "viscosity") != 0 &&
          strcmp(momentumMethod, "alex")){
@@ -110,7 +110,7 @@ void MomentumConn::ioParam_momentumMethod(enum ParamsIOFlag ioFlag){
 
 void MomentumConn::ioParam_momentumDecay(enum ParamsIOFlag ioFlag){
    if(plasticityFlag){
-      parent->ioParamValue(ioFlag, name, "momentumDecay", &momentumDecay, momentumDecay);
+      parent->parameters()->ioParamValue(ioFlag, name, "momentumDecay", &momentumDecay, momentumDecay);
       if(momentumDecay < 0 || momentumDecay > 1){
          pvError() << "MomentumConn " << name << ": momentumDecay must be between 0 and 1 inclusive\n";
       }
@@ -120,7 +120,7 @@ void MomentumConn::ioParam_momentumDecay(enum ParamsIOFlag ioFlag){
 void MomentumConn::ioParam_batchPeriod(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if(plasticityFlag){
-      parent->ioParamValue(ioFlag, name, "batchPeriod", &timeBatchPeriod, timeBatchPeriod);
+      parent->parameters()->ioParamValue(ioFlag, name, "batchPeriod", &timeBatchPeriod, timeBatchPeriod);
    }
 }
 
