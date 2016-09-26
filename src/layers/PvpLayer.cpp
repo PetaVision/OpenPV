@@ -121,7 +121,7 @@ namespace PV {
          mCountBuffer.resize(params[INDEX_NBANDS]);
 
          // fseek past the header and first timestamp
-         PV_fseek(pvstream, (long)8 + (long)params[INDEX_HEADER_SIZE], SEEK_SET);
+         PV_fseek(pvstream, sizeof(double) + (long)params[INDEX_HEADER_SIZE], SEEK_SET);
          int percent = 0;
          for (int f = 0; f < params[INDEX_NBANDS]; f++) {
             int newpercent = 100*(f/(params[INDEX_NBANDS]));

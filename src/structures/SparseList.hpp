@@ -60,6 +60,10 @@ namespace PV {
             }
          }
 
+         void set(const vector<Entry> &values) {
+            mList = values;
+         }
+
          vector<Entry> getContents() { 
             return mList;
          }
