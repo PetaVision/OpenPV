@@ -39,15 +39,15 @@ int AdaptiveTimeScaleProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void AdaptiveTimeScaleProbe::ioParam_targetName(enum ParamsIOFlag ioFlag) {
-   parent->ioParamStringRequired(ioFlag, name, "targetName", &targetName);
+   parent->parameters()->ioParamStringRequired(ioFlag, name, "targetName", &targetName);
 }
 
 void AdaptiveTimeScaleProbe::ioParam_baseMax(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "baseMax", &mBaseMax, mBaseMax);
+   parent->parameters()->ioParamValue(ioFlag, name, "baseMax", &mBaseMax, mBaseMax);
 }
 
 void AdaptiveTimeScaleProbe::ioParam_baseMin(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "baseMin", &mBaseMin, mBaseMin);
+   parent->parameters()->ioParamValue(ioFlag, name, "baseMin", &mBaseMin, mBaseMin);
 }
 
 void AdaptiveTimeScaleProbe::ioParam_dtMinToleratedTimeScale(enum ParamsIOFlag ioFlag) {
@@ -61,21 +61,21 @@ void AdaptiveTimeScaleProbe::ioParam_dtMinToleratedTimeScale(enum ParamsIOFlag i
 }
 
 void AdaptiveTimeScaleProbe::ioParam_tauFactor(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "tauFactor", &tauFactor, tauFactor);
+   parent->parameters()->ioParamValue(ioFlag, name, "tauFactor", &tauFactor, tauFactor);
 }
 
 void AdaptiveTimeScaleProbe::ioParam_growthFactor(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "growthFactor", &mGrowthFactor, mGrowthFactor);
+   parent->parameters()->ioParamValue(ioFlag, name, "growthFactor", &mGrowthFactor, mGrowthFactor);
 }
 
 void AdaptiveTimeScaleProbe::ioParam_writeTimeScales(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "writeTimeScales", &mWriteTimeScales, mWriteTimeScales);
+   parent->parameters()->ioParamValue(ioFlag, name, "writeTimeScales", &mWriteTimeScales, mWriteTimeScales);
 }
 
 void AdaptiveTimeScaleProbe::ioParam_writeTimeScaleFieldnames(enum ParamsIOFlag ioFlag) {
    pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "writeTimeScales"));
    if (mWriteTimeScales) {
-     parent->ioParamValue(ioFlag, name, "writeTimeScaleFieldnames", &mWriteTimeScaleFieldnames, mWriteTimeScaleFieldnames);
+     parent->parameters()->ioParamValue(ioFlag, name, "writeTimeScaleFieldnames", &mWriteTimeScaleFieldnames, mWriteTimeScaleFieldnames);
    }
 }
 

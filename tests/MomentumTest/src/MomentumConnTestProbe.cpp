@@ -33,7 +33,7 @@ int MomentumConnTestProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void MomentumConnTestProbe::ioParam_isViscosity(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "isViscosity", &isViscosity, 0 /*default value*/);
+   parent->parameters()->ioParamValue(ioFlag, name, "isViscosity", &isViscosity, 0 /*default value*/);
 }
 
 /**

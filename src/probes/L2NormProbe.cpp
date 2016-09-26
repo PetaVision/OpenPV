@@ -39,7 +39,7 @@ int L2NormProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void L2NormProbe::ioParam_exponent(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "exponent", &exponent, 1.0/*default*/, true/*warnIfAbsent*/);
+   parent->parameters()->ioParamValue(ioFlag, name, "exponent", &exponent, 1.0/*default*/, true/*warnIfAbsent*/);
 }
 
 int L2NormProbe::setNormDescription() {

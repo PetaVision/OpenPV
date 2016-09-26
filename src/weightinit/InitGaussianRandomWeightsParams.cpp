@@ -43,11 +43,11 @@ int InitGaussianRandomWeightsParams::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
 }
 
 void InitGaussianRandomWeightsParams::ioParam_wGaussMean(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "wGaussMean", &wGaussMean, wGaussMean);
+   parent->parameters()->ioParamValue(ioFlag, name, "wGaussMean", &wGaussMean, wGaussMean);
 }
 
 void InitGaussianRandomWeightsParams::ioParam_wGaussStdev(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "wGaussStdev", &wGaussStdev, wGaussStdev);
+   parent->parameters()->ioParamValue(ioFlag, name, "wGaussStdev", &wGaussStdev, wGaussStdev);
 }
 
 } /* namespace PV */

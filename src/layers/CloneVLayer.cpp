@@ -38,7 +38,7 @@ int CloneVLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void CloneVLayer::ioParam_originalLayerName(enum ParamsIOFlag ioFlag) {
-   parent->ioParamStringRequired(ioFlag, name, "originalLayerName", &originalLayerName);
+   parent->parameters()->ioParamStringRequired(ioFlag, name, "originalLayerName", &originalLayerName);
 }
 
 void CloneVLayer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {

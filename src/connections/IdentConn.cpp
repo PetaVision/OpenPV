@@ -103,7 +103,7 @@ void IdentConn::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {
 void IdentConn::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       if (parent->parameters()->present(name, "writeStep")) {
-         parent->ioParamValue(ioFlag, name, "writeStep", &writeStep, -1.0/*default*/, false/*warnIfAbsent*/);
+         parent->parameters()->ioParamValue(ioFlag, name, "writeStep", &writeStep, -1.0/*default*/, false/*warnIfAbsent*/);
          if (writeStep>=0) {
             if (parent->columnId()==0) {
                pvErrorNoExit().printf("%s does not use writeStep, but the parameters file sets it to %f.\n", getDescription_c(), writeStep);

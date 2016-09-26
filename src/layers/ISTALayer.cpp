@@ -86,19 +86,19 @@ int ISTALayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void ISTALayer::ioParam_timeConstantTau(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "timeConstantTau", &timeConstantTau, timeConstantTau, true/*warnIfAbsent*/);
+   parent->parameters()->ioParamValue(ioFlag, name, "timeConstantTau", &timeConstantTau, timeConstantTau, true/*warnIfAbsent*/);
 }
 
 
 void ISTALayer::ioParam_selfInteract(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "selfInteract", &selfInteract, selfInteract);
+   parent->parameters()->ioParamValue(ioFlag, name, "selfInteract", &selfInteract, selfInteract);
    if (parent->columnId() == 0) {
      pvInfo() << "selfInteract = " << selfInteract << std::endl;
    }   
 }
 
 void ISTALayer::ioParam_adaptiveTimeScaleProbe(enum ParamsIOFlag ioFlag) {
-   parent->ioParamString(ioFlag, name, "adaptiveTimeScaleProbe", &mAdaptiveTimeScaleProbeName, nullptr/*default*/, true/*warn if absent*/);
+   parent->parameters()->ioParamString(ioFlag, name, "adaptiveTimeScaleProbe", &mAdaptiveTimeScaleProbeName, nullptr/*default*/, true/*warn if absent*/);
 }
 
 int ISTALayer::requireChannel(int channelNeeded, int * numChannelsResult) {

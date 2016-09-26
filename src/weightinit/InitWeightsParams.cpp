@@ -92,7 +92,7 @@ int InitWeightsParams::initialize(char const * name, HyPerCol * hc) {
 
 int InitWeightsParams::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    // Read/write any params from the params file, typically
-   // parent->ioParamValue(ioFlag, name, "param_name", &param, default_value);
+   // parent->parameters()->ioParamValue(ioFlag, name, "param_name", &param, default_value);
    parentConn = dynamic_cast<HyPerConn *>(parent->getConnFromName(name));
    ioParam_initWeightsFile(ioFlag);
    ioParam_useListOfArborFiles(ioFlag);
@@ -102,20 +102,20 @@ int InitWeightsParams::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void InitWeightsParams::ioParam_initWeightsFile(enum ParamsIOFlag ioFlag) {
-   parent->ioParamString(ioFlag, name, "initWeightsFile", &filename, NULL, false/*warnIfAbsent*/);
+   parent->parameters()->ioParamString(ioFlag, name, "initWeightsFile", &filename, NULL, false/*warnIfAbsent*/);
 }
 
 void InitWeightsParams::ioParam_useListOfArborFiles(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "initWeightsFile"));
    if (filename!=NULL) {
-      parent->ioParamValue(ioFlag, name, "useListOfArborFiles", &useListOfArborFiles, false/*default*/, true/*warnIfAbsent*/);
+      parent->parameters()->ioParamValue(ioFlag, name, "useListOfArborFiles", &useListOfArborFiles, false/*default*/, true/*warnIfAbsent*/);
    }
 }
 
 void InitWeightsParams::ioParam_combineWeightFiles(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "initWeightsFile"));
    if (filename!=NULL) {
-      parent->ioParamValue(ioFlag, name, "combineWeightFiles", &combineWeightFiles, false/*default*/, true/*warnIfAbsent*/);
+      parent->parameters()->ioParamValue(ioFlag, name, "combineWeightFiles", &combineWeightFiles, false/*default*/, true/*warnIfAbsent*/);
    }
 }
 
@@ -125,7 +125,7 @@ void InitWeightsParams::ioParam_numWeightFiles(enum ParamsIOFlag ioFlag) {
       assert(!parent->parameters()->presentAndNotBeenRead(name, "combineWeightFiles"));
       if (combineWeightFiles) {
          int max_weight_files = 1;  // arbitrary limit...
-         parent->ioParamValue(ioFlag, name, "numWeightFiles", &numWeightFiles, max_weight_files, true/*warnIfAbsent*/);
+         parent->parameters()->ioParamValue(ioFlag, name, "numWeightFiles", &numWeightFiles, max_weight_files, true/*warnIfAbsent*/);
       }
    }
 }

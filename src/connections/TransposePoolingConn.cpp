@@ -230,7 +230,7 @@ void TransposePoolingConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
 }
 
 void TransposePoolingConn::ioParam_originalConnName(enum ParamsIOFlag ioFlag) {
-   parent->ioParamStringRequired(ioFlag, name, "originalConnName", &mOriginalConnName);
+   parent->parameters()->ioParamStringRequired(ioFlag, name, "originalConnName", &mOriginalConnName);
 }
 
 int TransposePoolingConn::communicateInitInfo() {

@@ -50,7 +50,7 @@ void GapConn::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
    // Default of true for sharedWeights for GapConns was deprecated Aug 11, 2014.
    // This default was chosen for backwards compatibility because GapConn used to require sharedWeights be true.
    // Now GapConn can be used with or without shared weights, so eventually the default will false as it is for other HyPerConns.
-   parent->ioParamValue(ioFlag, name, "sharedWeights", &sharedWeights, true/*default*/, true/*warn if absent*/);
+   parent->parameters()->ioParamValue(ioFlag, name, "sharedWeights", &sharedWeights, true/*default*/, true/*warn if absent*/);
    if (ioFlag==PARAMS_IO_READ && !parent->parameters()->present(name, "sharedWeights")) {
       sharedWeights = true;
       if (parent->columnId()==0) {

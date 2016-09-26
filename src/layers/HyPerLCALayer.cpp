@@ -85,18 +85,18 @@ int HyPerLCALayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerLCALayer::ioParam_timeConstantTau(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "timeConstantTau", &timeConstantTau, timeConstantTau, true/*warnIfAbsent*/);
+   parent->parameters()->ioParamValue(ioFlag, name, "timeConstantTau", &timeConstantTau, timeConstantTau, true/*warnIfAbsent*/);
 }
 
 void HyPerLCALayer::ioParam_selfInteract(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "selfInteract", &selfInteract, selfInteract);
+   parent->parameters()->ioParamValue(ioFlag, name, "selfInteract", &selfInteract, selfInteract);
    if (ioFlag==PARAMS_IO_READ && parent->columnId() == 0) {
       pvInfo() << getDescription() << ": selfInteract flag is " << (selfInteract ? "true" : "false") << std::endl;
    }   
 }
 
 void HyPerLCALayer::ioParam_adaptiveTimeScaleProbe(enum ParamsIOFlag ioFlag) {
-   parent->ioParamString(ioFlag, name, "adaptiveTimeScaleProbe", &mAdaptiveTimeScaleProbeName, nullptr/*default*/, true/*warn if absent*/);
+   parent->parameters()->ioParamString(ioFlag, name, "adaptiveTimeScaleProbe", &mAdaptiveTimeScaleProbeName, nullptr/*default*/, true/*warn if absent*/);
 }
 
 int HyPerLCALayer::requireChannel(int channelNeeded, int * numChannelsResult) {

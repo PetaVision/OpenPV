@@ -148,18 +148,6 @@ int HyPerCol::initialize_base() {
    mNumYGlobal = 0;
    mNumBatch = 1;
    mNumBatchGlobal = 1;
-   mOrigStdOut = -1;
-   mOrigStdErr = -1;
-   mConnectionStatus = NULL;
-   mOutputPath = NULL;
-   mPrintParamsFilename = NULL;
-   mPrintParamsStream = NULL;
-   mLuaPrintParamsStream = NULL;
-   mNumXGlobal = 0;
-   mNumYGlobal = 0;
-   mNumBatch = 1;
-   mNumBatchGlobal = 1;
-   //mOwnsParams = true;
    mOwnsCommunicator = true;
    mParams = nullptr;
    mCommunicator = nullptr;
@@ -492,133 +480,14 @@ int HyPerCol::ioParamsFinishGroup(enum ParamsIOFlag ioFlag) {
    return PV_SUCCESS;
 }
 
-template <typename T>
-void HyPerCol::ioParamValueRequired(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, T * value) {
-   switch(ioFlag) {
-   case PARAMS_IO_READ:
-      if (typeid(T) == typeid(int)) { *value = mParams->valueInt(group_name, param_name); }
-      else { *value = mParams->value(group_name, param_name); }
-      break;
-   case PARAMS_IO_WRITE:
-      writeParam(param_name, *value);
-      break;
-   }
-}
-
-// Declare the instantiations of readScalarToFile that occur in other .cpp files; otherwise you'll get linker errors.
-template void HyPerCol::ioParamValueRequired<float>(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, float * value);
-template void HyPerCol::ioParamValueRequired<double>(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, double * value);
-template void HyPerCol::ioParamValueRequired<unsigned int>(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, unsigned int * value);
-template void HyPerCol::ioParamValueRequired<bool>(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, bool * value);
-template void HyPerCol::ioParamValueRequired<int>(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, int * value);
-
-template <typename T>
-void HyPerCol::ioParamValue(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, T * value, T defaultValue, bool warnIfAbsent) {
-   switch(ioFlag) {
-   case PARAMS_IO_READ:
-      if (typeid(T) == typeid(int)) { *value = mParams->valueInt(group_name, param_name, defaultValue, warnIfAbsent); }
-      else { *value = (T) mParams->value(group_name, param_name, defaultValue, warnIfAbsent); }
-      break;
-   case PARAMS_IO_WRITE:
-      writeParam(param_name, *value);
-      break;
-   }
-}
-// Declare the instantiations of readScalarToFile that occur in other .cpp files; otherwise you'll get linker errors.
-// template void HyPerCol::ioParamValue<pvdata_t>(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, pvdata_t * value, pvdata_t defaultValue, bool warnIfAbsent);
-template void HyPerCol::ioParamValue<float>(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, float * value, float defaultValue, bool warnIfAbsent);
-template void HyPerCol::ioParamValue<double>(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, double * value, double defaultValue, bool warnIfAbsent);
-template void HyPerCol::ioParamValue<int>(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, int * value, int defaultValue, bool warnIfAbsent);
-template void HyPerCol::ioParamValue<unsigned int>(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, unsigned int * value, unsigned int defaultValue, bool warnIfAbsent);
-template void HyPerCol::ioParamValue<bool>(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, bool * value, bool defaultValue, bool warnIfAbsent);
-template void HyPerCol::ioParamValue<long>(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, long * value, long defaultValue, bool warnIfAbsent);
-
-void HyPerCol::ioParamString(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, char ** value, const char * defaultValue, bool warnIfAbsent) {
-   const char * param_string = nullptr;
-   switch(ioFlag) {
-   case PARAMS_IO_READ:
-      if ( mParams->stringPresent(group_name, param_name) ) {
-         param_string = mParams->stringValue(group_name, param_name, warnIfAbsent);
-      }
-      else {
-         // parameter was not set in params file; use the default.  But default might or might not be nullptr.
-         if (columnId()==0 && warnIfAbsent==true) {
-            if (defaultValue != nullptr) {
-               pvWarn().printf("Using default value \"%s\" for string parameter \"%s\" in group \"%s\"\n", defaultValue, param_name, group_name);
-            }
-            else {
-               pvWarn().printf("Using default value of nullptr for string parameter \"%s\" in group \"%s\"\n", param_name, group_name);
-            }
-         }
-         param_string = defaultValue;
-      }
-      if (param_string!=nullptr) {
-         *value = strdup(param_string);
-         pvErrorIf(*value==nullptr, "Global rank %d process unable to copy param %s in group \"%s\": %s\n", globalRank(), param_name, group_name, strerror(errno));
-      }
-      else {
-         *value = nullptr; 
-      }
-      break;
-   case PARAMS_IO_WRITE:
-      writeParamString(param_name, *value);
-   }
-}
-
-void HyPerCol::ioParamStringRequired(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, char ** value) {
-   const char * param_string = nullptr;
-   switch(ioFlag) {
-   case PARAMS_IO_READ:
-      param_string = mParams->stringValue(group_name, param_name, false/*warnIfAbsent*/);
-      if (param_string!=nullptr) {
-         *value = strdup(param_string);
-         pvErrorIf(*value==nullptr, "Global Rank %d process unable to copy param %s in group \"%s\": %s\n", globalRank(), param_name, group_name, strerror(errno));
-      }
-      else {
-         if (globalRank()==0) {
-            pvErrorNoExit().printf("%s \"%s\": string parameter \"%s\" is required.\n",
-                            mParams->groupKeywordFromName(group_name), group_name, param_name);
-         }
-         MPI_Barrier(mCommunicator->globalCommunicator());
-         exit(EXIT_FAILURE);
-      }
-      break;
-   case PARAMS_IO_WRITE:
-      writeParamString(param_name, *value);
-   }
-
-}
-
-template <typename T>
-void HyPerCol::ioParamArray(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, T ** value, int * arraysize) {
-    if(ioFlag==PARAMS_IO_READ) {
-       const double * param_array = mParams->arrayValuesDbl(group_name, param_name, arraysize);
-       pvAssert(*arraysize>=0);
-       if (*arraysize>0) {
-          *value = (T *) calloc((size_t) *arraysize, sizeof(T));
-          pvErrorIf(value==nullptr, "%s \"%s\": global rank %d process unable to copy array parameter %s: %s\n",
-                   parameters()->groupKeywordFromName(mName), mName, globalRank(), param_name, strerror(errno));
-          for (int k=0; k<*arraysize; k++) {
-             (*value)[k] = (T) param_array[k]; 
-          }
-       }
-       else {
-          *value = nullptr; 
-       }
-    }
-    else if (ioFlag==PARAMS_IO_WRITE) {
-       writeParamArray(param_name, *value, *arraysize); 
-    }
-}
-template void HyPerCol::ioParamArray<float>(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, float ** value, int * arraysize);
-template void HyPerCol::ioParamArray<int>(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, int ** value, int * arraysize);
+// Sep 26, 2016: HyPerCol methods for parameter input/output have been moved to PVParams.
 
 void HyPerCol::ioParam_startTime(enum ParamsIOFlag ioFlag) {
-   ioParamValue(ioFlag, mName, "startTime", &mStartTime, mStartTime);
+   parameters()->ioParamValue(ioFlag, mName, "startTime", &mStartTime, mStartTime);
 }
 
 void HyPerCol::ioParam_dt(enum ParamsIOFlag ioFlag) {
-   ioParamValue(ioFlag, mName, "dt", &mDeltaTime, mDeltaTime);
+   parameters()->ioParamValue(ioFlag, mName, "dt", &mDeltaTime, mDeltaTime);
    // mDeltaTimeBase = mDeltaTime;  // use param value as base
 }
 
@@ -760,7 +629,7 @@ void HyPerCol::ioParam_stopTime(enum ParamsIOFlag ioFlag) {
    }
    // numSteps was deprecated Dec 12, 2013 and marked obsolete Jun 27, 2016
    // After a reasonable fade time, remove the above if-statement and keep the ioParamValue call below.
-   ioParamValue(ioFlag, mName, "stopTime", &mStopTime, mStopTime);
+   parameters()->ioParamValue(ioFlag, mName, "stopTime", &mStopTime, mStopTime);
 }
 
 void HyPerCol::ioParam_progressInterval(enum ParamsIOFlag ioFlag) {
@@ -775,15 +644,15 @@ void HyPerCol::ioParam_progressInterval(enum ParamsIOFlag ioFlag) {
    }
    // progressStep was deprecated Dec 18, 2013
    // After a reasonable fade time, remove the above if-statement and keep the ioParamValue call below.
-   ioParamValue(ioFlag, mName, "progressInterval", &mProgressInterval, mProgressInterval);
+   parameters()->ioParamValue(ioFlag, mName, "progressInterval", &mProgressInterval, mProgressInterval);
 }
 
 void HyPerCol::ioParam_writeProgressToErr(enum ParamsIOFlag ioFlag) {
-   ioParamValue(ioFlag, mName, "writeProgressToErr", &mWriteProgressToErr, mWriteProgressToErr);
+   parameters()->ioParamValue(ioFlag, mName, "writeProgressToErr", &mWriteProgressToErr, mWriteProgressToErr);
 }
 
 void HyPerCol::ioParam_verifyWrites(enum ParamsIOFlag ioFlag) {
-   ioParamValue(ioFlag, mName, "verifyWrites", &mVerifyWrites, mVerifyWrites);
+   parameters()->ioParamValue(ioFlag, mName, "verifyWrites", &mVerifyWrites, mVerifyWrites);
 }
 
 void HyPerCol::ioParam_outputPath(enum ParamsIOFlag ioFlag) {
@@ -806,14 +675,14 @@ void HyPerCol::ioParam_outputPath(enum ParamsIOFlag ioFlag) {
       }
       break;
    case PARAMS_IO_WRITE:
-      writeParamString("outputPath", mOutputPath);
+      parameters()->writeParamString("outputPath", mOutputPath);
       break;
    default: break;
    }
 }
 
 void HyPerCol::ioParam_printParamsFilename(enum ParamsIOFlag ioFlag) {
-   ioParamString(ioFlag, mName, "printParamsFilename", &mPrintParamsFilename, "pv.params");
+   parameters()->ioParamString(ioFlag, mName, "printParamsFilename", &mPrintParamsFilename, "pv.params");
    if (mPrintParamsFilename==nullptr || mPrintParamsFilename[0]=='\0') {
       if (columnId()==0) {
          pvErrorNoExit().printf("printParamsFilename cannot be null or the empty string.\n");
@@ -842,7 +711,7 @@ void HyPerCol::ioParam_randomSeed(enum ParamsIOFlag ioFlag) {
       }
       break;
    case PARAMS_IO_WRITE:
-      writeParam("randomSeed", mRandomSeed);
+      parameters()->writeParam("randomSeed", mRandomSeed);
       break;
    default:
       assert(0);
@@ -851,15 +720,15 @@ void HyPerCol::ioParam_randomSeed(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerCol::ioParam_nx(enum ParamsIOFlag ioFlag) {
-   ioParamValueRequired(ioFlag, mName, "nx", &mNumXGlobal);
+   parameters()->ioParamValueRequired(ioFlag, mName, "nx", &mNumXGlobal);
 }
 
 void HyPerCol::ioParam_ny(enum ParamsIOFlag ioFlag) {
-   ioParamValueRequired(ioFlag, mName, "ny", &mNumYGlobal);
+   parameters()->ioParamValueRequired(ioFlag, mName, "ny", &mNumYGlobal);
 }
 
 void HyPerCol::ioParam_nBatch(enum ParamsIOFlag ioFlag) {
-   ioParamValue(ioFlag, mName, "nbatch", &mNumBatchGlobal, mNumBatchGlobal);
+   parameters()->ioParamValue(ioFlag, mName, "nbatch", &mNumBatchGlobal, mNumBatchGlobal);
    //Make sure numCommBatches is a multiple of mNumBatch specified in the params file
    pvErrorIf(mNumBatchGlobal % mCommunicator->numCommBatches() != 0, 
          "The total number of batches (%d) must be a multiple of the batch width (%d)\n", mNumBatchGlobal, mCommunicator->numCommBatches());
@@ -889,13 +758,13 @@ void HyPerCol::ioParam_filenamesContainConnectionNames(enum ParamsIOFlag ioFlag)
 }
 
 void HyPerCol::ioParam_initializeFromCheckpointDir(enum ParamsIOFlag ioFlag) {
-   ioParamString(ioFlag, mName, "initializeFromCheckpointDir", &mInitializeFromCheckpointDir, "", true);
+   parameters()->ioParamString(ioFlag, mName, "initializeFromCheckpointDir", &mInitializeFromCheckpointDir, "", true);
 }
 
 void HyPerCol::ioParam_defaultInitializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
    assert(!mParams->presentAndNotBeenRead(mName, "initializeFromCheckpointDir"));
    if (mInitializeFromCheckpointDir != nullptr && mInitializeFromCheckpointDir[0] != '\0') {
-      ioParamValue(ioFlag, mName, "defaultInitializeFromCheckpointFlag", &mDefaultInitializeFromCheckpointFlag, mDefaultInitializeFromCheckpointFlag, true);
+      parameters()->ioParamValue(ioFlag, mName, "defaultInitializeFromCheckpointFlag", &mDefaultInitializeFromCheckpointFlag, mDefaultInitializeFromCheckpointFlag, true);
    }
 }
 
@@ -916,13 +785,13 @@ void HyPerCol::ioParam_checkpointRead(enum ParamsIOFlag ioFlag) {
 // Removed ioParam_checkpointRead(). It was marked obsolete.
 
 void HyPerCol::ioParam_checkpointWrite(enum ParamsIOFlag ioFlag) {
-   ioParamValue(ioFlag, mName, "checkpointWrite", &mCheckpointWriteFlag, false);
+   parameters()->ioParamValue(ioFlag, mName, "checkpointWrite", &mCheckpointWriteFlag, false);
 }
 
 void HyPerCol::ioParam_checkpointWriteDir(enum ParamsIOFlag ioFlag) {
    pvAssert(!mParams->presentAndNotBeenRead(mName, "checkpointWrite"));
    if (mCheckpointWriteFlag) {
-      ioParamStringRequired(ioFlag, mName, "checkpointWriteDir", &mCheckpointWriteDir); 
+      parameters()->ioParamStringRequired(ioFlag, mName, "checkpointWriteDir", &mCheckpointWriteDir); 
    }
    else { 
       mCheckpointWriteDir = nullptr; 
@@ -932,7 +801,7 @@ void HyPerCol::ioParam_checkpointWriteDir(enum ParamsIOFlag ioFlag) {
 void HyPerCol::ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag ) {
    pvAssert(!mParams->presentAndNotBeenRead(mName, "checkpointWrite"));
    if (mCheckpointWriteFlag) {
-      ioParamString(ioFlag, mName, "checkpointWriteTriggerMode", &mCheckpointWriteTriggerModeString, "step");
+      parameters()->ioParamString(ioFlag, mName, "checkpointWriteTriggerMode", &mCheckpointWriteTriggerModeString, "step");
       if (ioFlag==PARAMS_IO_READ) {
          pvAssert(mCheckpointWriteTriggerModeString);
          if (!strcmp(mCheckpointWriteTriggerModeString, "step") || !strcmp(mCheckpointWriteTriggerModeString, "Step") || !strcmp(mCheckpointWriteTriggerModeString, "STEP")) {
@@ -960,7 +829,7 @@ void HyPerCol::ioParam_checkpointWriteStepInterval(enum ParamsIOFlag ioFlag) {
    if (mCheckpointWriteFlag) {
       pvAssert(!mParams->presentAndNotBeenRead(mName, "checkpointWriteTriggerMode"));
       if(mCheckpointWriteTriggerMode == CPWRITE_TRIGGER_STEP) {
-         ioParamValue(ioFlag, mName, "checkpointWriteStepInterval", &mCpWriteStepInterval, 1L);
+         parameters()->ioParamValue(ioFlag, mName, "checkpointWriteStepInterval", &mCpWriteStepInterval, 1L);
       }
    }
 }
@@ -970,7 +839,7 @@ void HyPerCol::ioParam_checkpointWriteTimeInterval(enum ParamsIOFlag ioFlag) {
    if (mCheckpointWriteFlag) {
       pvAssert(!mParams->presentAndNotBeenRead(mName, "checkpointWriteTriggerMode"));
       if(mCheckpointWriteTriggerMode == CPWRITE_TRIGGER_TIME) {
-         ioParamValue(ioFlag, mName, "checkpointWriteTimeInterval", &mCpWriteTimeInterval, mDeltaTime);
+         parameters()->ioParamValue(ioFlag, mName, "checkpointWriteTimeInterval", &mCpWriteTimeInterval, mDeltaTime);
       }
    }
 }
@@ -980,7 +849,7 @@ void HyPerCol::ioParam_checkpointWriteClockInterval(enum ParamsIOFlag ioFlag) {
    if (mCheckpointWriteFlag) {
       pvAssert(!mParams->presentAndNotBeenRead(mName, "checkpointWriteTriggerMode"));
       if(mCheckpointWriteTriggerMode == CPWRITE_TRIGGER_CLOCK) {
-         ioParamValueRequired(ioFlag, mName, "checkpointWriteClockInterval", &mCpWriteClockInterval);
+         parameters()->ioParamValueRequired(ioFlag, mName, "checkpointWriteClockInterval", &mCpWriteClockInterval);
       }
    }
 }
@@ -991,7 +860,7 @@ void HyPerCol::ioParam_checkpointWriteClockUnit(enum ParamsIOFlag ioFlag) {
       pvAssert(!mParams->presentAndNotBeenRead(mName, "checkpointWriteTriggerMode"));
       if(mCheckpointWriteTriggerMode == CPWRITE_TRIGGER_CLOCK) {
          assert(!mParams->presentAndNotBeenRead(mName, "checkpointWriteTriggerClockInterval"));
-         ioParamString(ioFlag, mName, "checkpointWriteClockUnit", &mCheckpointWriteClockUnit, "seconds");
+         parameters()->ioParamString(ioFlag, mName, "checkpointWriteClockUnit", &mCheckpointWriteClockUnit, "seconds");
          if (ioFlag==PARAMS_IO_READ) {
             pvAssert(mCheckpointWriteClockUnit);
             for (size_t n=0; n<strlen(mCheckpointWriteClockUnit); n++) {
@@ -1033,7 +902,7 @@ void HyPerCol::ioParam_checkpointWriteClockUnit(enum ParamsIOFlag ioFlag) {
 void HyPerCol::ioParam_deleteOlderCheckpoints(enum ParamsIOFlag ioFlag) {
    assert(!mParams->presentAndNotBeenRead(mName, "checkpointWrite"));
    if (mCheckpointWriteFlag) {
-      ioParamValue(ioFlag, mName, "deleteOlderCheckpoints", &mDeleteOlderCheckpoints, false/*default value*/);
+      parameters()->ioParamValue(ioFlag, mName, "deleteOlderCheckpoints", &mDeleteOlderCheckpoints, false/*default value*/);
    }
 }
 
@@ -1042,7 +911,7 @@ void HyPerCol::ioParam_numCheckpointsKept(enum ParamsIOFlag ioFlag) {
    if (mCheckpointWriteFlag) {
       pvAssert(!mParams->presentAndNotBeenRead(mName, "deleteOlderCheckpoints"));
       if (mDeleteOlderCheckpoints) {
-         ioParamValue(ioFlag, mName, "numCheckpointsKept", &mNumCheckpointsKept, 1);
+         parameters()->ioParamValue(ioFlag, mName, "numCheckpointsKept", &mNumCheckpointsKept, 1);
          if (ioFlag==PARAMS_IO_READ && mNumCheckpointsKept <= 0) {
             if (columnId()==0) {
                pvErrorNoExit() << "HyPerCol \"" << mName << "\": numCheckpointsKept must be positive (value was " << mNumCheckpointsKept << ")" << std::endl;
@@ -1057,101 +926,29 @@ void HyPerCol::ioParam_numCheckpointsKept(enum ParamsIOFlag ioFlag) {
 void HyPerCol::ioParam_suppressLastOutput(enum ParamsIOFlag ioFlag) {
    assert(!mParams->presentAndNotBeenRead(mName, "checkpointWrite"));
    if (!mCheckpointWriteFlag) {
-      ioParamValue(ioFlag, mName, "suppressLastOutput", &mSuppressLastOutput, false/*default value*/);
+      parameters()->ioParamValue(ioFlag, mName, "suppressLastOutput", &mSuppressLastOutput, false/*default value*/);
    }
 }
 
 void HyPerCol::ioParam_suppressNonplasticCheckpoints(enum ParamsIOFlag ioFlag) {
    assert(!mParams->presentAndNotBeenRead(mName, "checkpointWrite"));
    if (mCheckpointWriteFlag) {
-      ioParamValue(ioFlag, mName, "suppressNonplasticCheckpoints", &mSuppressNonplasticCheckpoints, mSuppressNonplasticCheckpoints);
+      parameters()->ioParamValue(ioFlag, mName, "suppressNonplasticCheckpoints", &mSuppressNonplasticCheckpoints, mSuppressNonplasticCheckpoints);
    }
 }
 
 void HyPerCol::ioParam_checkpointIndexWidth(enum ParamsIOFlag ioFlag) {
    assert(!mParams->presentAndNotBeenRead(mName, "checkpointWrite"));
    if (mCheckpointWriteFlag) {
-      ioParamValue(ioFlag, mName, "checkpointIndexWidth", &mCheckpointIndexWidth, mCheckpointIndexWidth);
+      parameters()->ioParamValue(ioFlag, mName, "checkpointIndexWidth", &mCheckpointIndexWidth, mCheckpointIndexWidth);
    }
 }
 
 void HyPerCol::ioParam_errorOnNotANumber(enum ParamsIOFlag ioFlag) {
-   ioParamValue(ioFlag, mName, "errorOnNotANumber", &mErrorOnNotANumber, mErrorOnNotANumber);
+   parameters()->ioParamValue(ioFlag, mName, "errorOnNotANumber", &mErrorOnNotANumber, mErrorOnNotANumber);
 }
 
-
-template <typename T>
-void HyPerCol::writeParam(const char * param_name, T value) {
-   if (columnId()==0) {
-      pvAssert(mPrintParamsStream && mPrintParamsStream->fp);
-      pvAssert(mLuaPrintParamsStream && mLuaPrintParamsStream->fp);
-      std::stringstream vstr("");
-      if (typeid(value)==typeid(false)) {
-         vstr << (value ? "true" : "false");
-      }
-      else {
-         if (std::numeric_limits<T>::has_infinity) {
-             if (value == std::numeric_limits<T>::min()) {
-                 vstr << "-infinity";
-             }
-             else if (value == std::numeric_limits<T>::max()) {
-                 vstr << "infinity";
-             }
-             else {
-                 vstr << value;
-             }
-         }
-         else {
-             vstr << value;
-         }
-      }
-      fprintf(mPrintParamsStream->fp, "    %-35s = %s;\n", param_name, vstr.str().c_str());
-      fprintf(mLuaPrintParamsStream->fp, "    %-35s = %s;\n", param_name, vstr.str().c_str());
-   }
-}
-// Declare the instantiations of writeParam that occur in other .cpp files; otherwise you'll get linker errors.
-template void HyPerCol::writeParam<float>(const char * param_name, float value);
-template void HyPerCol::writeParam<int>(const char * param_name, int value);
-template void HyPerCol::writeParam<unsigned int>(const char * param_name, unsigned int value);
-template void HyPerCol::writeParam<bool>(const char * param_name, bool value);
-
-void HyPerCol::writeParamString(const char * param_name, const char * svalue) {
-   if (columnId()==0) {
-      pvAssert(mPrintParamsStream!=nullptr && mPrintParamsStream->fp!=nullptr);
-      pvAssert(mLuaPrintParamsStream && mLuaPrintParamsStream->fp);
-      if (svalue!=nullptr) {
-         fprintf(mPrintParamsStream->fp, "    %-35s = \"%s\";\n", param_name, svalue);
-         fprintf(mLuaPrintParamsStream->fp, "    %-35s = \"%s\";\n", param_name, svalue);
-      }
-      else {
-         fprintf(mPrintParamsStream->fp, "    %-35s = NULL;\n", param_name);
-         fprintf(mLuaPrintParamsStream->fp, "    %-35s = nil;\n", param_name);
-      }
-   }
-}
-
-template <typename T>
-void HyPerCol::writeParamArray(const char * param_name, const T * array, int arraysize) {
-   if (columnId()==0) {
-      pvAssert(mPrintParamsStream!=nullptr && mPrintParamsStream->fp!=nullptr && arraysize>=0);
-      pvAssert(mLuaPrintParamsStream!=nullptr && mLuaPrintParamsStream->fp!=nullptr);
-      pvAssert(arraysize>=0);
-      if (arraysize>0) {
-         fprintf(mPrintParamsStream->fp, "    %-35s = [", param_name);
-         fprintf(mLuaPrintParamsStream->fp, "    %-35s = {", param_name);
-         for (int k=0; k<arraysize-1; k++) {
-            fprintf(mPrintParamsStream->fp, "%f,", (double) array[k]);
-            fprintf(mLuaPrintParamsStream->fp, "%f,", (double) array[k]);
-         }
-         fprintf(mPrintParamsStream->fp, "%f];\n", (double) array[arraysize-1]);
-         fprintf(mLuaPrintParamsStream->fp, "%f};\n", (double) array[arraysize-1]);
-      }
-   }
-}
-// Declare the instantiations of writeParam that occur in other .cpp files; otherwise you'll get linker errors.
-template void HyPerCol::writeParamArray<float>(const char * param_name, const float * array, int arraysize);
-template void HyPerCol::writeParamArray<int>(const char * param_name, const int * array, int arraysize);
-
+// Sep 26, 2016: HyPerCol methods for parameter input/output have been moved to PVParams.
 
 int HyPerCol::checkDirExists(const char * dirname, struct stat * pathstat) {
    // check if the given directory name exists for the rank zero process
@@ -1962,6 +1759,8 @@ int HyPerCol::outputParams(char const * path) {
       }
       assert(mPrintParamsStream != nullptr);
       assert(mLuaPrintParamsStream != nullptr);
+      parameters()->setPrintParamsStream(mPrintParamsStream);
+      parameters()->setPrintLuaStream(mLuaPrintParamsStream);
 
       //Params file output
       outputParamsHeadComments(mPrintParamsStream->fp, "//");
@@ -2025,10 +1824,12 @@ int HyPerCol::outputParams(char const * path) {
    if (mPrintParamsStream) {
       PV_fclose(mPrintParamsStream);
       mPrintParamsStream = nullptr;
+      parameters()->setPrintParamsStream(mPrintParamsStream);
    }
    if (mLuaPrintParamsStream) {
       PV_fclose(mLuaPrintParamsStream);
       mLuaPrintParamsStream = nullptr;
+      parameters()->setPrintLuaStream(mLuaPrintParamsStream);
    }
    return status;
 }

@@ -35,16 +35,16 @@ namespace PV {
    }
 
    void FilenameParsingGroundTruthLayer::ioParam_gtClassTrueValue(enum ParamsIOFlag ioFlag) {
-         parent->ioParamValue(ioFlag, name, "gtClassTrueValue", &mGtClassTrueValue, 1.0f, false);
+         parent->parameters()->ioParamValue(ioFlag, name, "gtClassTrueValue", &mGtClassTrueValue, 1.0f, false);
    }
 
 
    void FilenameParsingGroundTruthLayer::ioParam_gtClassFalseValue(enum ParamsIOFlag ioFlag) {
-         parent->ioParamValue(ioFlag, name, "gtClassFalseValue", &mGtClassFalseValue, -1.0f, false);
+         parent->parameters()->ioParamValue(ioFlag, name, "gtClassFalseValue", &mGtClassFalseValue, -1.0f, false);
    }
 
    void FilenameParsingGroundTruthLayer::ioParam_inputLayerName(enum ParamsIOFlag ioFlag) {
-         parent->ioParamStringRequired(ioFlag, name, "inputLayerName", &mInputLayerName);
+         parent->parameters()->ioParamStringRequired(ioFlag, name, "inputLayerName", &mInputLayerName);
    }
 
    void FilenameParsingGroundTruthLayer::ioParam_classes(enum ParamsIOFlag ioFlag) {

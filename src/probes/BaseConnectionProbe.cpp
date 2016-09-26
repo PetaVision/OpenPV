@@ -33,7 +33,7 @@ int BaseConnectionProbe::initialize(const char * probeName, HyPerCol * hc) {
 }
 
 void BaseConnectionProbe::ioParam_targetName(enum ParamsIOFlag ioFlag) {
-   parent->ioParamString(ioFlag, name, "targetConnection", &targetName, NULL, false);
+   parent->parameters()->ioParamString(ioFlag, name, "targetConnection", &targetName, NULL, false);
    if(targetName == NULL){
       BaseProbe::ioParam_targetName(ioFlag);
    }

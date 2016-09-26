@@ -46,7 +46,7 @@ void HyPerConnDebugInitWeights::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerConnDebugInitWeights::ioParam_copiedConn(enum ParamsIOFlag ioFlag) {
-   parent->ioParamStringRequired(ioFlag, name, "copiedConn", &otherConnName);
+   parent->parameters()->ioParamStringRequired(ioFlag, name, "copiedConn", &otherConnName);
 }
 
 int HyPerConnDebugInitWeights::initialize_base() {

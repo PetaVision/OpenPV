@@ -40,7 +40,7 @@ int InitOneToOneWeightsWithDelaysParams::ioParamsFillGroup(enum ParamsIOFlag ioF
 }
 
 void InitOneToOneWeightsWithDelaysParams::ioParam_weightInit(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, getName(), "weightInit", &initWeight, initWeight);
+   parent->parameters()->ioParamValue(ioFlag, getName(), "weightInit", &initWeight, initWeight);
 }
 
 void InitOneToOneWeightsWithDelaysParams::calcOtherParams(int patchIndex) {

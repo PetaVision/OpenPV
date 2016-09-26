@@ -160,7 +160,7 @@ void Retina::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
 }
 
 void Retina::ioParam_spikingFlag(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "spikingFlag", &spikingFlag, true);
+   parent->parameters()->ioParamValue(ioFlag, name, "spikingFlag", &spikingFlag, true);
 }
 
 void Retina::ioParam_foregroundRate(enum ParamsIOFlag ioFlag) {
@@ -185,7 +185,7 @@ void Retina::ioParam_foregroundRate(enum ParamsIOFlag ioFlag) {
    }
    // noiseOnFreq and poissonEdgeProb were deprecated Jan 24, 2013 and marked obsolete Jun 27, 2016.
    // After a reasonable fade time, remove the above if-statement and keep the ioParamValue call below.
-   parent->ioParamValue(ioFlag, name, "foregroundRate", &probStimParam, 1.0f);
+   parent->parameters()->ioParamValue(ioFlag, name, "foregroundRate", &probStimParam, 1.0f);
 }
 
 void Retina::ioParam_backgroundRate(enum ParamsIOFlag ioFlag) {
@@ -211,7 +211,7 @@ void Retina::ioParam_backgroundRate(enum ParamsIOFlag ioFlag) {
    // noiseOffFreq and poissonBlankProb was deprecated Jan 24, 2013 and marked obsolete Jun 27, 2016.
    // After a reasonable fade time, remove the above if-statement and keep the ioParamValue call below
    // and the sanity check following it.
-   parent->ioParamValue(ioFlag, name, "backgroundRate", &probBaseParam, 0.0f);
+   parent->parameters()->ioParamValue(ioFlag, name, "backgroundRate", &probBaseParam, 0.0f);
    if (ioFlag==PARAMS_IO_READ) {
       assert(!parent->parameters()->presentAndNotBeenRead(name, "foregroundRate"));
       if (probBaseParam > probStimParam) {
@@ -223,33 +223,33 @@ void Retina::ioParam_backgroundRate(enum ParamsIOFlag ioFlag) {
 }
 
 void Retina::ioParam_beginStim(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "beginStim", &rParams.beginStim, 0.0);
+   parent->parameters()->ioParamValue(ioFlag, name, "beginStim", &rParams.beginStim, 0.0);
 }
 
 void Retina::ioParam_endStim(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "endStim", &rParams.endStim, (double) FLT_MAX);
+   parent->parameters()->ioParamValue(ioFlag, name, "endStim", &rParams.endStim, (double) FLT_MAX);
    if (ioFlag == PARAMS_IO_READ && rParams.endStim < 0) rParams.endStim = FLT_MAX;
 }
 
 void Retina::ioParam_burstFreq(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "burstFreq", &rParams.burstFreq, 1.0f);
+   parent->parameters()->ioParamValue(ioFlag, name, "burstFreq", &rParams.burstFreq, 1.0f);
 }
 
 void Retina::ioParam_burstDuration(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "burstDuration", &rParams.burstDuration, 1000.0f);
+   parent->parameters()->ioParamValue(ioFlag, name, "burstDuration", &rParams.burstDuration, 1000.0f);
 }
 
 void Retina::ioParam_refractoryPeriod(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "spikingFlag"));
    if (spikingFlag){
-      parent->ioParamValue(ioFlag, name, "refractoryPeriod", &rParams.refractory_period, (float) REFRACTORY_PERIOD);
+      parent->parameters()->ioParamValue(ioFlag, name, "refractoryPeriod", &rParams.refractory_period, (float) REFRACTORY_PERIOD);
    }
 }
 
 void Retina::ioParam_absRefractoryPeriod(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "spikingFlag"));
    if (spikingFlag){
-      parent->ioParamValue(ioFlag, name, "absRefractoryPeriod", &rParams.abs_refractory_period, (float) ABS_REFRACTORY_PERIOD);
+      parent->parameters()->ioParamValue(ioFlag, name, "absRefractoryPeriod", &rParams.abs_refractory_period, (float) ABS_REFRACTORY_PERIOD);
    }
 }
 

@@ -90,40 +90,40 @@ int BaseProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void BaseProbe::ioParam_targetName(enum ParamsIOFlag ioFlag) {
-   parent->ioParamStringRequired(ioFlag, name, "targetName", &targetName);
+   parent->parameters()->ioParamStringRequired(ioFlag, name, "targetName", &targetName);
 }
 
 void BaseProbe::ioParam_message(enum ParamsIOFlag ioFlag) {
-   parent->ioParamString(ioFlag, name, "message", &msgparams, NULL, false/*warnIfAbsent*/);
+   parent->parameters()->ioParamString(ioFlag, name, "message", &msgparams, NULL, false/*warnIfAbsent*/);
    if (ioFlag == PARAMS_IO_READ) {
       initMessage(msgparams);
    }
 }
 
 void BaseProbe::ioParam_energyProbe(enum ParamsIOFlag ioFlag) {
-   parent->ioParamString(ioFlag, name, "energyProbe", &energyProbe, NULL, false/*warnIfAbsent*/);
+   parent->parameters()->ioParamString(ioFlag, name, "energyProbe", &energyProbe, NULL, false/*warnIfAbsent*/);
 }
 
 void BaseProbe::ioParam_coefficient(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "energyProbe"));
    if (energyProbe && energyProbe[0]) {
-      parent->ioParamValue(ioFlag, name, "coefficient", &coefficient, coefficient, true/*warnIfAbsent*/);
+      parent->parameters()->ioParamValue(ioFlag, name, "coefficient", &coefficient, coefficient, true/*warnIfAbsent*/);
    }
 }
 
 void BaseProbe::ioParam_textOutputFlag(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "textOutputFlag", &textOutputFlag, textOutputFlag);
+   parent->parameters()->ioParamValue(ioFlag, name, "textOutputFlag", &textOutputFlag, textOutputFlag);
 }
 
 void BaseProbe::ioParam_probeOutputFile(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "textOutputFlag"));
    if (textOutputFlag) {
-      parent->ioParamString(ioFlag, name, "probeOutputFile", &probeOutputFilename, NULL, false/*warnIfAbsent*/);
+      parent->parameters()->ioParamString(ioFlag, name, "probeOutputFile", &probeOutputFilename, NULL, false/*warnIfAbsent*/);
    }
 }
 
 void BaseProbe::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
-   parent->ioParamString(ioFlag, name, "triggerLayerName", &triggerLayerName, NULL, false/*warnIfAbsent*/);
+   parent->parameters()->ioParamString(ioFlag, name, "triggerLayerName", &triggerLayerName, NULL, false/*warnIfAbsent*/);
    if (ioFlag==PARAMS_IO_READ) {
       triggerFlag = (triggerLayerName!=NULL && triggerLayerName[0]!='\0');
    }
@@ -138,7 +138,7 @@ void BaseProbe::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
    if (ioFlag == PARAMS_IO_READ && parent->parameters()->present(name, "triggerFlag")) {
       bool flagFromParams = false;
-      parent->ioParamValue(ioFlag, name, "triggerFlag", &flagFromParams, flagFromParams);
+      parent->parameters()->ioParamValue(ioFlag, name, "triggerFlag", &flagFromParams, flagFromParams);
       if (parent->columnId()==0) {
          pvWarn(triggerFlagDeprecated);
          triggerFlagDeprecated.printf("%s: triggerFlag has been deprecated.\n", getDescription_c());
@@ -159,7 +159,7 @@ void BaseProbe::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
 void BaseProbe::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerFlag"));
    if (triggerFlag) {
-      parent->ioParamValue(ioFlag, name, "triggerOffset", &triggerOffset, triggerOffset);
+      parent->parameters()->ioParamValue(ioFlag, name, "triggerOffset", &triggerOffset, triggerOffset);
       if(triggerOffset < 0){
          pvError().printf("%s \"%s\" error in rank %d process: TriggerOffset (%f) must be positive\n", parent->parameters()->groupKeywordFromName(name), name, parent->columnId(), triggerOffset);
       }
