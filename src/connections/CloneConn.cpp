@@ -53,7 +53,7 @@ void CloneConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
 }
 
 void CloneConn::ioParam_originalConnName(enum ParamsIOFlag ioFlag) {
-   parent->ioParamStringRequired(ioFlag, name, "originalConnName", &originalConnName);
+   parent->parameters()->ioParamStringRequired(ioFlag, name, "originalConnName", &originalConnName);
 }
 
 int CloneConn::setWeightInitializer() {

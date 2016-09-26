@@ -62,19 +62,19 @@ int NormalizeBase::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void NormalizeBase::ioParam_strength(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "strength", &strength, strength/*default*/, true/*warn if absent*/);
+   parent->parameters()->ioParamValue(ioFlag, name, "strength", &strength, strength/*default*/, true/*warn if absent*/);
 }
 
 void NormalizeBase::ioParam_normalizeArborsIndividually(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "normalizeArborsIndividually", &normalizeArborsIndividually, false/*default*/, true/*warnIfAbsent*/);
+   parent->parameters()->ioParamValue(ioFlag, name, "normalizeArborsIndividually", &normalizeArborsIndividually, false/*default*/, true/*warnIfAbsent*/);
 }
 
 void NormalizeBase::ioParam_normalizeOnInitialize(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "normalizeOnInitialize", &normalizeOnInitialize, normalizeOnInitialize);
+   parent->parameters()->ioParamValue(ioFlag, name, "normalizeOnInitialize", &normalizeOnInitialize, normalizeOnInitialize);
 }
 
 void NormalizeBase::ioParam_normalizeOnWeightUpdate(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "normalizeOnWeightUpdate", &normalizeOnWeightUpdate, normalizeOnWeightUpdate);
+   parent->parameters()->ioParamValue(ioFlag, name, "normalizeOnWeightUpdate", &normalizeOnWeightUpdate, normalizeOnWeightUpdate);
 }
 
 int NormalizeBase::communicateInitInfo() {

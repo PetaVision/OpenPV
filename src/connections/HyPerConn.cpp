@@ -583,7 +583,7 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
 void HyPerConn::ioParam_gpuGroupIdx(enum ParamsIOFlag ioFlag) {
    pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
    if(receiveGpu){
-      parent->ioParamValue(ioFlag, name, "gpuGroupIdx", &gpuGroupIdx, gpuGroupIdx/*default*/, false/*warn if absent*/);
+      parent->parameters()->ioParamValue(ioFlag, name, "gpuGroupIdx", &gpuGroupIdx, gpuGroupIdx/*default*/, false/*warn if absent*/);
    }
 }
 #endif // PV_USE_CUDA
@@ -591,7 +591,7 @@ void HyPerConn::ioParam_gpuGroupIdx(enum ParamsIOFlag ioFlag) {
 void HyPerConn::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ) {
       int ch = 0;
-      parent->ioParamValueRequired(ioFlag, name, "channelCode", &ch);
+      parent->parameters()->ioParamValueRequired(ioFlag, name, "channelCode", &ch);
       int status = decodeChannel(ch, &channel);
       if (status != PV_SUCCESS) {
          if (parent->columnId()==0) {
@@ -603,7 +603,7 @@ void HyPerConn::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
    }
    else if (ioFlag==PARAMS_IO_WRITE) {
       int ch = (int) channel;
-      parent->ioParamValueRequired(ioFlag, name, "channelCode", &ch);
+      parent->parameters()->ioParamValueRequired(ioFlag, name, "channelCode", &ch);
    }
    else {
       pvError().printf("All possibilities of ioFlag are covered above.");
@@ -611,11 +611,11 @@ void HyPerConn::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerConn::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "sharedWeights", &sharedWeights, true/*default*/, true/*warn if absent*/);
+   parent->parameters()->ioParamValue(ioFlag, name, "sharedWeights", &sharedWeights, true/*default*/, true/*warn if absent*/);
 }
 
 void HyPerConn::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
-   parent->ioParamString(ioFlag, name, "weightInitType", &weightInitTypeString, NULL, true/*warnIfAbsent*/);
+   parent->parameters()->ioParamString(ioFlag, name, "weightInitType", &weightInitTypeString, NULL, true/*warnIfAbsent*/);
    // The constructor that took a weightInitializer as an argument was deprecated June 22, 2022.
    // Once that constructor is removed, the weightInitializer==NULL part of the if-statement below can be removed.
    if (ioFlag==PARAMS_IO_READ && weightInitializer==NULL) {
@@ -627,7 +627,7 @@ void HyPerConn::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
 void HyPerConn::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
    pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (plasticityFlag) {
-      parent->ioParamString(ioFlag, name, "triggerLayerName", &triggerLayerName, NULL, false/*warnIfAbsent*/);
+      parent->parameters()->ioParamString(ioFlag, name, "triggerLayerName", &triggerLayerName, NULL, false/*warnIfAbsent*/);
       if (ioFlag==PARAMS_IO_READ) {
          triggerFlag = (triggerLayerName!=NULL && triggerLayerName[0]!='\0');
       }
@@ -639,7 +639,7 @@ void HyPerConn::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
    if (plasticityFlag) {
       pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
       if (triggerFlag) {
-         parent->ioParamValue(ioFlag, name, "triggerOffset", &triggerOffset, triggerOffset);
+         parent->parameters()->ioParamValue(ioFlag, name, "triggerOffset", &triggerOffset, triggerOffset);
          if(triggerOffset < 0){
             pvError().printf("%s error in rank %d process: TriggerOffset (%f) must be positive", getDescription_c(), parent->columnId(), triggerOffset);
          }
@@ -652,7 +652,7 @@ void HyPerConn::ioParam_weightUpdatePeriod(enum ParamsIOFlag ioFlag) {
    if (plasticityFlag) {
 	   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
 	   if (!triggerLayerName) {
-	      parent->ioParamValue(ioFlag, name, "weightUpdatePeriod", &weightUpdatePeriod, parent->getDeltaTime());
+	      parent->parameters()->ioParamValue(ioFlag, name, "weightUpdatePeriod", &weightUpdatePeriod, parent->getDeltaTime());
 	   }
    }
 }
@@ -663,7 +663,7 @@ void HyPerConn::ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag) {
       pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
       initialWeightUpdateTime = parent->getStartTime();
       if (!triggerLayerName) {
-         parent->ioParamValue(ioFlag, name, "initialWeightUpdateTime", &initialWeightUpdateTime, initialWeightUpdateTime, true/*warnIfAbsent*/);
+         parent->parameters()->ioParamValue(ioFlag, name, "initialWeightUpdateTime", &initialWeightUpdateTime, initialWeightUpdateTime, true/*warnIfAbsent*/);
       }
    }
    if (ioFlag==PARAMS_IO_READ) {
@@ -673,7 +673,7 @@ void HyPerConn::ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag) {
 
 void HyPerConn::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {
    PVParams * params = parent->parameters();
-   parent->ioParamString(ioFlag, name, "pvpatchAccumulateType", &pvpatchAccumulateTypeString, "convolve");
+   parent->parameters()->ioParamString(ioFlag, name, "pvpatchAccumulateType", &pvpatchAccumulateTypeString, "convolve");
    if (ioFlag==PARAMS_IO_READ) {
       if (pvpatchAccumulateTypeString==NULL) {
          unsetAccumulateType();
@@ -731,14 +731,14 @@ void HyPerConn::unsetAccumulateType() {
 
 
 void HyPerConn::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "writeStep", &writeStep, parent->getDeltaTime());
+   parent->parameters()->ioParamValue(ioFlag, name, "writeStep", &writeStep, parent->getDeltaTime());
 }
 
 void HyPerConn::ioParam_initialWriteTime(enum ParamsIOFlag ioFlag) {
    pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "writeStep"));
    if (writeStep>=0) {
       double start_time = parent->getStartTime();
-      parent->ioParamValue(ioFlag, name, "initialWriteTime", &initialWriteTime, start_time);
+      parent->parameters()->ioParamValue(ioFlag, name, "initialWriteTime", &initialWriteTime, start_time);
       if (ioFlag == PARAMS_IO_READ) {
          if (writeStep>0 && initialWriteTime < start_time) {
             if (parent->columnId()==0) {
@@ -763,13 +763,13 @@ void HyPerConn::ioParam_initialWriteTime(enum ParamsIOFlag ioFlag) {
 void HyPerConn::ioParam_writeCompressedWeights(enum ParamsIOFlag ioFlag) {
    pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "writeStep"));
    if (writeStep>=0) {
-      parent->ioParamValue(ioFlag, name, "writeCompressedWeights", &writeCompressedWeights, writeCompressedWeights, /*warnifabsent*/true);
+      parent->parameters()->ioParamValue(ioFlag, name, "writeCompressedWeights", &writeCompressedWeights, writeCompressedWeights, /*warnifabsent*/true);
    }
 }
 
 void HyPerConn::ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFlag) {
    if (parent->getCheckpointWriteFlag() || !parent->getSuppressLastOutputFlag()) {
-      parent->ioParamValue(ioFlag, name, "writeCompressedCheckpoints", &writeCompressedCheckpoints, writeCompressedCheckpoints, /*warnifabsent*/true);
+      parent->parameters()->ioParamValue(ioFlag, name, "writeCompressedCheckpoints", &writeCompressedCheckpoints, writeCompressedCheckpoints, /*warnifabsent*/true);
    }
 }
 
@@ -779,23 +779,23 @@ void HyPerConn::ioParam_selfFlag(enum ParamsIOFlag ioFlag) {
    // pre and post have not been set.  So we read the value with no warning if it's present;
    // if it's absent, set the value to pre==post in the communicateInitInfo stage and issue
    // the using-default-value warning then.
-   parent->ioParamValue(ioFlag, name, "selfFlag", &selfFlag, selfFlag, false/*warnIfAbsent*/);
+   parent->parameters()->ioParamValue(ioFlag, name, "selfFlag", &selfFlag, selfFlag, false/*warnIfAbsent*/);
 }
 
 void HyPerConn::ioParam_combine_dW_with_W_flag(enum ParamsIOFlag ioFlag) {
    pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (plasticityFlag){
-      parent->ioParamValue(ioFlag, name, "combine_dW_with_W_flag", &combine_dW_with_W_flag, combine_dW_with_W_flag, true/*warnIfAbsent*/);
+      parent->parameters()->ioParamValue(ioFlag, name, "combine_dW_with_W_flag", &combine_dW_with_W_flag, combine_dW_with_W_flag, true/*warnIfAbsent*/);
    }
 
 }
 
 void HyPerConn::ioParam_nxp(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "nxp", &nxp, 1);
+   parent->parameters()->ioParamValue(ioFlag, name, "nxp", &nxp, 1);
 }
 
 void HyPerConn::ioParam_nyp(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "nyp", &nyp, 1);
+   parent->parameters()->ioParamValue(ioFlag, name, "nyp", &nyp, 1);
 }
 
 // nxpShrunken and nypShrunken were deprecated Feb 2, 2015 and marked obsolete Jun 27, 2016
@@ -804,7 +804,7 @@ void HyPerConn::ioParam_nxpShrunken(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ) {
       if (parent->parameters()->present(name, "nxpShrunken")) {
          int nxpShrunken;
-         parent->ioParamValue(ioFlag, name, "nxpShrunken", &nxpShrunken, nxp);
+         parent->parameters()->ioParamValue(ioFlag, name, "nxpShrunken", &nxpShrunken, nxp);
          if (parent->columnId()==0) {
             pvError().printf("%s: nxpShrunken is obsolete, as nxp can now take any of the values nxpShrunken could take before.  nxp will be set to %d and nxpShrunken will not be used.",
                   getDescription_c(), nxp);
@@ -820,7 +820,7 @@ void HyPerConn::ioParam_nypShrunken(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ) {
       if (parent->parameters()->present(name, "nypShrunken")) {
          int nypShrunken;
-         parent->ioParamValue(ioFlag, name, "nypShrunken", &nypShrunken, nyp);
+         parent->parameters()->ioParamValue(ioFlag, name, "nypShrunken", &nypShrunken, nyp);
          if (parent->columnId()==0) {
             pvWarn().printf("%s: nypShrunken is deprecated, as nyp can now take any of the values nypShrunken could take before.  nyp will be set to %d and nypShrunken will not be used.",
                   getDescription_c(), nyp);
@@ -832,7 +832,7 @@ void HyPerConn::ioParam_nypShrunken(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerConn::ioParam_nfp(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "nfp", &nfp, -1, false);
+   parent->parameters()->ioParamValue(ioFlag, name, "nfp", &nfp, -1, false);
    if (ioFlag==PARAMS_IO_READ && nfp==-1 && !parent->parameters()->present(name, "nfp") && parent->columnId()==0) {
       pvInfo().printf("%s: nfp will be set in the communicateInitInfo() stage.\n",
             getDescription_c());
@@ -840,29 +840,29 @@ void HyPerConn::ioParam_nfp(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerConn::ioParam_shrinkPatches(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "shrinkPatches", &shrinkPatches_flag, shrinkPatches_flag);
+   parent->parameters()->ioParamValue(ioFlag, name, "shrinkPatches", &shrinkPatches_flag, shrinkPatches_flag);
 }
 
 void HyPerConn::ioParam_shrinkPatchesThresh(enum ParamsIOFlag ioFlag) {
    pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "shrinkPatches"));
    if (shrinkPatches_flag) {
-      parent->ioParamValue(ioFlag, name, "shrinkPatchesThresh", &shrinkPatchesThresh, shrinkPatchesThresh);
+      parent->parameters()->ioParamValue(ioFlag, name, "shrinkPatchesThresh", &shrinkPatchesThresh, shrinkPatchesThresh);
    }
 }
 
 void HyPerConn::ioParam_updateGSynFromPostPerspective(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "updateGSynFromPostPerspective", &updateGSynFromPostPerspective, updateGSynFromPostPerspective);
+   parent->parameters()->ioParamValue(ioFlag, name, "updateGSynFromPostPerspective", &updateGSynFromPostPerspective, updateGSynFromPostPerspective);
 }
 
 void HyPerConn::ioParam_dWMax(enum ParamsIOFlag ioFlag) {
    pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (plasticityFlag) {
-      parent->ioParamValueRequired(ioFlag, name, "dWMax", &dWMax);
+      parent->parameters()->ioParamValueRequired(ioFlag, name, "dWMax", &dWMax);
    }
 }
 
 void HyPerConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
-   parent->ioParamString(ioFlag, name, "normalizeMethod", &normalizeMethod, NULL, true/*warnIfAbsent*/);
+   parent->parameters()->ioParamString(ioFlag, name, "normalizeMethod", &normalizeMethod, NULL, true/*warnIfAbsent*/);
    if (ioFlag==PARAMS_IO_READ) {
       if (normalizeMethod==NULL) {
          if (parent->columnId()==0) {
@@ -885,7 +885,7 @@ void HyPerConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerConn::ioParam_weightSparsity(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "weightSparsity", &_weightSparsity, 0.0f, false);
+   parent->parameters()->ioParamValue(ioFlag, name, "weightSparsity", &_weightSparsity, 0.0f, false);
 }
 
 int HyPerConn::setWeightNormalizer() {
@@ -916,21 +916,21 @@ void HyPerConn::ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag) {
    pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "sharedWeights"));
    pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (sharedWeights && plasticityFlag) {
-      parent->ioParamValue(ioFlag, name, "keepKernelsSynchronized", &keepKernelsSynchronized_flag, true/*default*/, true/*warnIfAbsent*/);
+      parent->parameters()->ioParamValue(ioFlag, name, "keepKernelsSynchronized", &keepKernelsSynchronized_flag, true/*default*/, true/*warnIfAbsent*/);
    }
 }
 
 void HyPerConn::ioParam_normalizeDw(enum ParamsIOFlag ioFlag) {
    pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if(plasticityFlag){
-      getParent()->ioParamValue(ioFlag, getName(), "normalizeDw", &normalizeDwFlag, true, false/*warnIfAbsent*/);
+      getParent()->parameters()->ioParamValue(ioFlag, getName(), "normalizeDw", &normalizeDwFlag, true, false/*warnIfAbsent*/);
    }
 }
 
 void HyPerConn::ioParam_useMask(enum ParamsIOFlag ioFlag) {
    pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if(plasticityFlag){
-      getParent()->ioParamValue(ioFlag, getName(), "useMask", &useMask, false, false/*warnIfAbsent*/);
+      getParent()->parameters()->ioParamValue(ioFlag, getName(), "useMask", &useMask, false, false/*warnIfAbsent*/);
    }
 }
 
@@ -939,7 +939,7 @@ void HyPerConn::ioParam_maskLayerName(enum ParamsIOFlag ioFlag) {
    if(plasticityFlag){
       pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "useMask"));
       if(useMask){
-         parent->ioParamStringRequired(ioFlag, name, "maskLayerName", &maskLayerName);
+         parent->parameters()->ioParamStringRequired(ioFlag, name, "maskLayerName", &maskLayerName);
       }
    }
 }
@@ -949,7 +949,7 @@ void HyPerConn::ioParam_maskFeatureIdx(enum ParamsIOFlag ioFlag) {
    if(plasticityFlag){
       pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "useMask"));
       if(useMask){
-         parent->ioParamValue(ioFlag, name, "maskFeatureIdx", &maskFeatureIdx, maskFeatureIdx);
+         parent->parameters()->ioParamValue(ioFlag, name, "maskFeatureIdx", &maskFeatureIdx, maskFeatureIdx);
       }
    }
 }

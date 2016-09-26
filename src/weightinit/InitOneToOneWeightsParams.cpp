@@ -40,7 +40,7 @@ int InitOneToOneWeightsParams::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void InitOneToOneWeightsParams::ioParam_weightInit(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, getName(), "weightInit", &initWeight, initWeight);
+   parent->parameters()->ioParamValue(ioFlag, getName(), "weightInit", &initWeight, initWeight);
 }
 
 void InitOneToOneWeightsParams::calcOtherParams(int patchIndex) {

@@ -88,7 +88,7 @@ int WTALayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    return status;
 }
 void WTALayer::ioParam_originalLayerName(enum ParamsIOFlag ioFlag) {
-   parent->ioParamStringRequired(ioFlag, name, "originalLayerName", &originalLayerName);
+   parent->parameters()->ioParamStringRequired(ioFlag, name, "originalLayerName", &originalLayerName);
    assert(originalLayerName);
    if (ioFlag==PARAMS_IO_READ && originalLayerName[0]=='\0') {
       if (parent->columnId()==0) {
@@ -101,8 +101,8 @@ void WTALayer::ioParam_originalLayerName(enum ParamsIOFlag ioFlag) {
 }
 
 void WTALayer::ioParam_binMaxMin(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "binMax", &binMax, binMax);
-   parent->ioParamValue(ioFlag, name, "binMin", &binMin, binMin);
+   parent->parameters()->ioParamValue(ioFlag, name, "binMax", &binMax, binMax);
+   parent->parameters()->ioParamValue(ioFlag, name, "binMin", &binMin, binMin);
    if(ioFlag == PARAMS_IO_READ && binMax <= binMin){
       if (parent->columnId()==0) {
          pvErrorNoExit().printf("%s: binMax (%f) must be greater than binMin (%f).\n",

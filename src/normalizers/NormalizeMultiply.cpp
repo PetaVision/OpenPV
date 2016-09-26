@@ -43,19 +43,19 @@ int NormalizeMultiply::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void NormalizeMultiply::ioParam_rMinX(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "rMinX", &rMinX, rMinX);
+   parent->parameters()->ioParamValue(ioFlag, name, "rMinX", &rMinX, rMinX);
 }
 
 void NormalizeMultiply::ioParam_rMinY(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "rMinY", &rMinY, rMinY);
+   parent->parameters()->ioParamValue(ioFlag, name, "rMinY", &rMinY, rMinY);
 }
 
 void NormalizeMultiply::ioParam_nonnegativeConstraintFlag(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "nonnegativeConstraintFlag", &nonnegativeConstraintFlag, nonnegativeConstraintFlag);
+   parent->parameters()->ioParamValue(ioFlag, name, "nonnegativeConstraintFlag", &nonnegativeConstraintFlag, nonnegativeConstraintFlag);
 }
 
 void NormalizeMultiply::ioParam_normalize_cutoff(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "normalize_cutoff", &normalize_cutoff, normalize_cutoff);
+   parent->parameters()->ioParamValue(ioFlag, name, "normalize_cutoff", &normalize_cutoff, normalize_cutoff);
 }
 
 void NormalizeMultiply::ioParam_normalizeFromPostPerspective(enum ParamsIOFlag ioFlag) {
@@ -66,7 +66,7 @@ void NormalizeMultiply::ioParam_normalizeFromPostPerspective(enum ParamsIOFlag i
       normalizeFromPostPerspective = parent->parameters()->value(name, "normalizeTotalToPost");
       return;
    }
-   parent->ioParamValue(ioFlag, name, "normalizeFromPostPerspective", &normalizeFromPostPerspective, false/*default value*/, true/*warnIfAbsent*/);
+   parent->parameters()->ioParamValue(ioFlag, name, "normalizeFromPostPerspective", &normalizeFromPostPerspective, false/*default value*/, true/*warnIfAbsent*/);
 }
 
 int NormalizeMultiply::normalizeWeights() {

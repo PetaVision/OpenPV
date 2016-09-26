@@ -42,11 +42,11 @@ int FirmThresholdCostFnProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void FirmThresholdCostFnProbe::ioParam_VThresh(enum ParamsIOFlag ioFlag) {
-   getParent()->ioParamValue(ioFlag, name, "VThresh", &VThresh, VThresh/*default*/, false/*warnIfAbsent*/);
+   getParent()->parameters()->ioParamValue(ioFlag, name, "VThresh", &VThresh, VThresh/*default*/, false/*warnIfAbsent*/);
 }
 
 void FirmThresholdCostFnProbe::ioParam_VWidth(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "VWidth", &VWidth, VWidth/*default*/, false/*warnIfAbsent*/);
+   parent->parameters()->ioParamValue(ioFlag, name, "VWidth", &VWidth, VWidth/*default*/, false/*warnIfAbsent*/);
 }
 
 int FirmThresholdCostFnProbe::setNormDescription() {
@@ -66,8 +66,8 @@ int FirmThresholdCostFnProbe::communicateInitInfo() {
    }
    else {
       // Reread VThresh and VWidth commands, this time warning if they are not absent.
-      parent->ioParamValue(PARAMS_IO_READ, name, "VThresh", &VThresh, VThresh/*default*/, true/*warnIfAbsent*/);
-      parent->ioParamValue(PARAMS_IO_READ, name, "VThresh", &VThresh, VThresh/*default*/, true/*warnIfAbsent*/);
+      parent->parameters()->ioParamValue(PARAMS_IO_READ, name, "VThresh", &VThresh, VThresh/*default*/, true/*warnIfAbsent*/);
+      parent->parameters()->ioParamValue(PARAMS_IO_READ, name, "VThresh", &VThresh, VThresh/*default*/, true/*warnIfAbsent*/);
    }
    return PV_SUCCESS;
 }

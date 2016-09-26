@@ -472,7 +472,7 @@ namespace PV {
       if (ioFlag == PARAMS_IO_WRITE) {
          tempString = strdup(mInputPath.c_str());
       }
-      parent->ioParamStringRequired(ioFlag, name, "inputPath", &tempString);
+      parent->parameters()->ioParamStringRequired(ioFlag, name, "inputPath", &tempString);
       if (ioFlag == PARAMS_IO_READ) { 
          mInputPath = std::string(tempString);
          // Check if the input path ends in ".txt" and enable the file list if so
@@ -488,19 +488,19 @@ namespace PV {
    }
 
    void InputLayer::ioParam_useInputBCflag(enum ParamsIOFlag ioFlag) { 
-      parent->ioParamValue(ioFlag, name, "useInputBCflag", &mUseInputBCflag, mUseInputBCflag);
+      parent->parameters()->ioParamValue(ioFlag, name, "useInputBCflag", &mUseInputBCflag, mUseInputBCflag);
    }
 
    int InputLayer::ioParam_offsets(enum ParamsIOFlag ioFlag) {
-      parent->ioParamValue(ioFlag, name, "offsetX", &mOffsetX, mOffsetX);
-      parent->ioParamValue(ioFlag, name, "offsetY", &mOffsetY, mOffsetY);
+      parent->parameters()->ioParamValue(ioFlag, name, "offsetX", &mOffsetX, mOffsetX);
+      parent->parameters()->ioParamValue(ioFlag, name, "offsetY", &mOffsetY, mOffsetY);
       return PV_SUCCESS;
    }
 
    void InputLayer::ioParam_offsetAnchor(enum ParamsIOFlag ioFlag){
       if (ioFlag==PARAMS_IO_READ) {
          char *offsetAnchor = nullptr;
-         parent->ioParamString(ioFlag, name, "offsetAnchor", &offsetAnchor, "tl");
+         parent->parameters()->ioParamString(ioFlag, name, "offsetAnchor", &offsetAnchor, "tl");
          if(checkValidAnchorString(offsetAnchor) == PV_FAILURE) {
             pvError() << "Invalid value for offsetAnchor\n";
          }
@@ -578,13 +578,13 @@ namespace PV {
                offsetAnchor[1] = 'r';
                break;
          }
-         parent->ioParamString(ioFlag, name, "offsetAnchor", &offsetAnchor, "tl");
+         parent->parameters()->ioParamString(ioFlag, name, "offsetAnchor", &offsetAnchor, "tl");
          free(offsetAnchor);
       }
    }
 
    void InputLayer::ioParam_autoResizeFlag(enum ParamsIOFlag ioFlag) {
-      parent->ioParamValue(ioFlag, name, "autoResizeFlag", &mAutoResizeFlag, mAutoResizeFlag);
+      parent->parameters()->ioParamValue(ioFlag, name, "autoResizeFlag", &mAutoResizeFlag, mAutoResizeFlag);
    }
 
    void InputLayer::ioParam_aspectRatioAdjustment(enum ParamsIOFlag ioFlag) {
@@ -601,7 +601,7 @@ namespace PV {
                   break;
             }
          }
-         parent->ioParamString(ioFlag, name, "aspectRatioAdjustment", &aspectRatioAdjustment, "crop");
+         parent->parameters()->ioParamString(ioFlag, name, "aspectRatioAdjustment", &aspectRatioAdjustment, "crop");
          if (ioFlag == PARAMS_IO_READ) {
             assert(aspectRatioAdjustment);
             for (char * c = aspectRatioAdjustment; *c; c++) { *c = tolower(*c); }
@@ -629,7 +629,7 @@ namespace PV {
       if (mAutoResizeFlag) {
          char * interpolationMethodString = nullptr;
          if (ioFlag == PARAMS_IO_READ) {
-            parent->ioParamString(ioFlag, name, "interpolationMethod", &interpolationMethodString, "bicubic", true/*warn if absent*/);
+            parent->parameters()->ioParamString(ioFlag, name, "interpolationMethod", &interpolationMethodString, "bicubic", true/*warn if absent*/);
             assert(interpolationMethodString);
             for (char * c = interpolationMethodString; *c; c++) { *c = tolower(*c); }
             if (!strncmp(interpolationMethodString, "bicubic", strlen("bicubic"))) {
@@ -657,28 +657,28 @@ namespace PV {
                interpolationMethodString = strdup("nearestNeighbor");
                break;
             }
-            parent->ioParamString(ioFlag, name, "interpolationMethod", &interpolationMethodString, "bicubic", true/*warn if absent*/);
+            parent->parameters()->ioParamString(ioFlag, name, "interpolationMethod", &interpolationMethodString, "bicubic", true/*warn if absent*/);
          }
          free(interpolationMethodString);
       }
    }
 
    void InputLayer::ioParam_inverseFlag(enum ParamsIOFlag ioFlag) {
-      parent->ioParamValue(ioFlag, name, "inverseFlag", &mInverseFlag, mInverseFlag);
+      parent->parameters()->ioParamValue(ioFlag, name, "inverseFlag", &mInverseFlag, mInverseFlag);
    }
 
    void InputLayer::ioParam_normalizeLuminanceFlag(enum ParamsIOFlag ioFlag) {
-      parent->ioParamValue(ioFlag, name, "normalizeLuminanceFlag", &mNormalizeLuminanceFlag, mNormalizeLuminanceFlag);
+      parent->parameters()->ioParamValue(ioFlag, name, "normalizeLuminanceFlag", &mNormalizeLuminanceFlag, mNormalizeLuminanceFlag);
    }
 
    void InputLayer::ioParam_normalizeStdDev(enum ParamsIOFlag ioFlag) {
       assert(!parent->parameters()->presentAndNotBeenRead(name, "normalizeLuminanceFlag"));
       if (mNormalizeLuminanceFlag) {
-        parent->ioParamValue(ioFlag, name, "normalizeStdDev", &mNormalizeStdDev, mNormalizeStdDev);
+        parent->parameters()->ioParamValue(ioFlag, name, "normalizeStdDev", &mNormalizeStdDev, mNormalizeStdDev);
       }
    }
    void InputLayer::ioParam_padValue(enum ParamsIOFlag ioFlag) {
-      parent->ioParamValue(ioFlag, name, "padValue", &mPadValue, mPadValue);
+      parent->parameters()->ioParamValue(ioFlag, name, "padValue", &mPadValue, mPadValue);
    }
   
    void InputLayer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
@@ -695,11 +695,11 @@ namespace PV {
    }
 
    void InputLayer::ioParam_displayPeriod(enum ParamsIOFlag ioFlag) {
-      parent->ioParamValue(ioFlag, name, "displayPeriod", &mDisplayPeriod, mDisplayPeriod);
+      parent->parameters()->ioParamValue(ioFlag, name, "displayPeriod", &mDisplayPeriod, mDisplayPeriod);
    }
 
    void InputLayer::ioParam_echoFramePathnameFlag(enum ParamsIOFlag ioFlag) {
-      parent->ioParamValue(ioFlag, name, "echoFramePathnameFlag", &mEchoFramePathnameFlag, false/*default value*/);
+      parent->parameters()->ioParamValue(ioFlag, name, "echoFramePathnameFlag", &mEchoFramePathnameFlag, false/*default value*/);
    }
 
    void InputLayer::ioParam_batchMethod(enum ParamsIOFlag ioFlag) {
@@ -717,7 +717,7 @@ namespace PV {
                break;
          }
       }
-      parent->ioParamString(ioFlag, name, "batchMethod", &batchMethod, "byFile");
+      parent->parameters()->ioParamString(ioFlag, name, "batchMethod", &batchMethod, "byFile");
       if (strcmp(batchMethod, "byImage") == 0 || strcmp(batchMethod, "byFile") == 0) {
          mBatchMethod = BatchIndexer::BYFILE;
       }
@@ -743,7 +743,7 @@ namespace PV {
             paramsStartFrameIndex[i] = mStartFrameIndex.at(i);
          }
       }
-      this->getParent()->ioParamArray(ioFlag, this->getName(), "start_frame_index", &paramsStartFrameIndex, &length);
+      this->getParent()->parameters()->ioParamArray(ioFlag, this->getName(), "start_frame_index", &paramsStartFrameIndex, &length);
       pvErrorIf(length > 0 && length != parent->getNBatchGlobal(),
             "%s: start_frame_index requires either 0 or nbatch values.\n", getName());
       mStartFrameIndex.clear();
@@ -771,7 +771,7 @@ namespace PV {
             return;
          }
       }
-      this->getParent()->ioParamArray(ioFlag, this->getName(), "skip_frame_index", &paramsSkipFrameIndex, &length);
+      this->getParent()->parameters()->ioParamArray(ioFlag, this->getName(), "skip_frame_index", &paramsSkipFrameIndex, &length);
       pvErrorIf(length != 0 && mBatchMethod != BatchIndexer::BYSPECIFIED,
             "%s: skip_frame_index requires batchMethod == bySpecified.\n", getName());
       pvErrorIf(mBatchMethod == BatchIndexer::BYSPECIFIED && length != parent->getNBatchGlobal(),
@@ -787,11 +787,11 @@ namespace PV {
    }
 
    void InputLayer::ioParam_writeFrameToTimestamp(enum ParamsIOFlag ioFlag) {
-      parent->ioParamValue(ioFlag, name, "writeFrameToTimestamp", &mWriteFileToTimestamp, mWriteFileToTimestamp);
+      parent->parameters()->ioParamValue(ioFlag, name, "writeFrameToTimestamp", &mWriteFileToTimestamp, mWriteFileToTimestamp);
    }
 
    void InputLayer::ioParam_resetToStartOnLoop(enum ParamsIOFlag ioFlag) {
-      parent->ioParamValue(ioFlag, name, "resetToStartOnLoop", &mResetToStartOnLoop, mResetToStartOnLoop);
+      parent->parameters()->ioParamValue(ioFlag, name, "resetToStartOnLoop", &mResetToStartOnLoop, mResetToStartOnLoop);
    }
 
    BaseInputDeprecatedError::BaseInputDeprecatedError(const char * name, HyPerCol *hc) {

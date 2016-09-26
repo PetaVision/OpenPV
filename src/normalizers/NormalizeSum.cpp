@@ -34,7 +34,7 @@ int NormalizeSum::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void NormalizeSum::ioParam_minSumTolerated(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "minSumTolerated", &minSumTolerated, 0.0f, true/*warnIfAbsent*/);
+   parent->parameters()->ioParamValue(ioFlag, name, "minSumTolerated", &minSumTolerated, 0.0f, true/*warnIfAbsent*/);
 }
 
 int NormalizeSum::normalizeWeights() {

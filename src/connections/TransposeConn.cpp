@@ -174,7 +174,7 @@ void TransposeConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
 }
 
 void TransposeConn::ioParam_originalConnName(enum ParamsIOFlag ioFlag) {
-   parent->ioParamStringRequired(ioFlag, name, "originalConnName", &originalConnName);
+   parent->parameters()->ioParamStringRequired(ioFlag, name, "originalConnName", &originalConnName);
 }
 
 int TransposeConn::communicateInitInfo() {

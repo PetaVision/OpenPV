@@ -42,7 +42,7 @@ int SegmentLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void SegmentLayer::ioParam_segmentMethod(enum ParamsIOFlag ioFlag) {
-   parent->ioParamStringRequired(ioFlag, name, "segmentMethod", &segmentMethod);
+   parent->parameters()->ioParamStringRequired(ioFlag, name, "segmentMethod", &segmentMethod);
    assert(segmentMethod);
    //Check valid segment methods
    //none means the gsyn is already a segmentation. Helpful if reading segmentation from pvp
@@ -61,7 +61,7 @@ void SegmentLayer::ioParam_segmentMethod(enum ParamsIOFlag ioFlag) {
 }
 
 void SegmentLayer::ioParam_originalLayerName(enum ParamsIOFlag ioFlag) {
-   parent->ioParamStringRequired(ioFlag, name, "originalLayerName", &originalLayerName);
+   parent->parameters()->ioParamStringRequired(ioFlag, name, "originalLayerName", &originalLayerName);
    assert(originalLayerName);
    if (ioFlag==PARAMS_IO_READ && originalLayerName[0]=='\0') {
       if (parent->columnId()==0) {

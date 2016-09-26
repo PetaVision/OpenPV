@@ -39,7 +39,7 @@ int LeakyIntegrator::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void LeakyIntegrator::ioParam_integrationTime(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "integrationTime", &integrationTime, integrationTime);
+   parent->parameters()->ioParamValue(ioFlag, name, "integrationTime", &integrationTime, integrationTime);
 }
 
 int LeakyIntegrator::updateState(double timed, double dt) {

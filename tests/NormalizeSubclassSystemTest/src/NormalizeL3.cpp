@@ -32,7 +32,7 @@ int NormalizeL3::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void NormalizeL3::ioParam_minL3NormTolerated(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "minL3NormTolerated", &minL3NormTolerated, minL3NormTolerated, true/*warnIfAbsent*/);
+   parent->parameters()->ioParamValue(ioFlag, name, "minL3NormTolerated", &minL3NormTolerated, minL3NormTolerated, true/*warnIfAbsent*/);
 }
 int NormalizeL3::normalizeWeights() {
    int status = PV_SUCCESS;

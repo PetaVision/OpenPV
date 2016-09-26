@@ -58,15 +58,15 @@ int QuotientColProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void QuotientColProbe::ioParam_valueDescription(enum ParamsIOFlag ioFlag) {
-   parent->ioParamString(ioFlag, name, "valueDescription", &valueDescription, "value", true/*warnIfAbsent*/);
+   parent->parameters()->ioParamString(ioFlag, name, "valueDescription", &valueDescription, "value", true/*warnIfAbsent*/);
 }
 
 void QuotientColProbe::ioParam_numerator(enum ParamsIOFlag ioFlag) {
-   parent->ioParamStringRequired(ioFlag, name, "numerator", &numerator);
+   parent->parameters()->ioParamStringRequired(ioFlag, name, "numerator", &numerator);
 }
 
 void QuotientColProbe::ioParam_denominator(enum ParamsIOFlag ioFlag) {
-   parent->ioParamStringRequired(ioFlag, name, "denominator", &denominator);
+   parent->parameters()->ioParamStringRequired(ioFlag, name, "denominator", &denominator);
 }
 
 int QuotientColProbe::communicateInitInfo() {

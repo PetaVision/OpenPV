@@ -42,7 +42,7 @@ InitV::~InitV() {
 }
 
 void InitV::ioParamGroup_ConstantV(enum ParamsIOFlag ioFlag){
-   parent->ioParamValue(ioFlag, groupName, "valueV", &constantValue, (pvdata_t) V_REST);
+   parent->parameters()->ioParamValue(ioFlag, groupName, "valueV", &constantValue, (pvdata_t) V_REST);
 }
 
 void InitV::ioParamGroup_ZeroV(enum ParamsIOFlag ioFlag){
@@ -50,17 +50,17 @@ void InitV::ioParamGroup_ZeroV(enum ParamsIOFlag ioFlag){
 }
 
 void InitV::ioParamGroup_UniformRandomV(enum ParamsIOFlag ioFlag){
-   parent->ioParamValue(ioFlag, groupName, "minV", &minV, 0.0f);
-   parent->ioParamValue(ioFlag, groupName, "maxV", &maxV, minV + 1.0f);
+   parent->parameters()->ioParamValue(ioFlag, groupName, "minV", &minV, 0.0f);
+   parent->parameters()->ioParamValue(ioFlag, groupName, "maxV", &maxV, minV + 1.0f);
 }
 
 void InitV::ioParamGroup_GaussianRandomV(enum ParamsIOFlag ioFlag){
-   parent->ioParamValue(ioFlag, groupName, "meanV", &meanV, 0.0f);
-   parent->ioParamValue(ioFlag, groupName, "sigmaV", &sigmaV, 1.0f);
+   parent->parameters()->ioParamValue(ioFlag, groupName, "meanV", &meanV, 0.0f);
+   parent->parameters()->ioParamValue(ioFlag, groupName, "sigmaV", &sigmaV, 1.0f);
 }
 
 void InitV::ioParamGroup_InitVFromFile(enum ParamsIOFlag ioFlag){
-   parent->ioParamString(ioFlag, groupName, "Vfilename", &filename, NULL, true/*warnIfAbsent*/);
+   parent->parameters()->ioParamString(ioFlag, groupName, "Vfilename", &filename, NULL, true/*warnIfAbsent*/);
    if( filename == NULL ) {
       initVTypeCode = UndefinedInitV;
       pvErrorNoExit().printf("InitV::initialize, group \"%s\": for InitVFromFile, string parameter \"Vfilename\" must be defined.  Exiting\n", groupName);
@@ -72,7 +72,7 @@ void InitV::ioParamGroup_InitVFromFile(enum ParamsIOFlag ioFlag){
 int InitV::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = PV_SUCCESS;
    printErrors = parent->getCommunicator()->commRank()==0;
-   parent->ioParamString(ioFlag, groupName, "InitVType", &initVTypeString, "ConstantV", true/*warnIfAbsent*/);
+   parent->parameters()->ioParamString(ioFlag, groupName, "InitVType", &initVTypeString, "ConstantV", true/*warnIfAbsent*/);
    if( !strcmp(initVTypeString, "ConstantV") ) {
       initVTypeCode = ConstantV;
       ioParamGroup_ConstantV(ioFlag);

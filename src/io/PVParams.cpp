@@ -7,7 +7,6 @@
 
 #include "PVParams.hpp"
 #include "include/pv_common.h"
-#include "utils/PVLog.hpp"
 #include "utils/PVAlloc.hpp"
 #include <assert.h>
 #include <stdio.h>
@@ -1290,35 +1289,6 @@ int PVParams::parseBuffer(char const * buffer, long int bufferLength) {
    return PV_SUCCESS;
 }
 
-#ifdef OBSOLETE // Marked obsolete Aug 30, 2015. Never gets called anywhere in the OpenPV repository, and undocumented.
-int PVParams::parseBufferInRootProcess(char * buffer, long int bufferLength) {
-   // Under MPI, if this process is called, it should be called by all processes.
-#ifdef PV_USE_MPI
-   int status = PV_SUCCESS;
-   if (worldRank==0) {
-      MPI_Bcast(&bufferLength, 1, MPI_LONG, 0, icComm->globalCommunicator());
-      MPI_Bcast(buffer, bufferLength, MPI_CHAR, 0, icComm->globalCommunicator());
-      status = parseBuffer(buffer, bufferLength);
-   }
-   else {
-      long int bufLen;
-      char * buf = NULL;
-      MPI_Bcast(&bufLen, 1, MPI_LONG, 0, icComm->globalCommunicator());
-      buf = (char *) malloc((size_t) bufLen);
-      if (buf==NULL) {
-         pvError().printf("Process %d: error allocating %ld bytes for PVParams buffer.\n", worldRank, bufLen);
-      }
-      MPI_Bcast(buf, bufLen, MPI_CHAR, 0, icComm->globalCommunicator());
-      status = parseBuffer(buf, bufLen);
-      free(buf);
-   }
-#else // PV_USE_MPI
-   status = parseBuffer(buffer, bufferLength);
-#endif // PV_USE_MPI
-   return status;
-}
-#endif // OBSOLETE // Marked obsolete Aug 30, 2015. Never gets called anywhere in the OpenPV repository, and undocumented.
-
 int PVParams::setBatchSweepSize() {
    //pvInfo() << "Exiting test\n";
    batchSweepSize = -1;
@@ -1341,6 +1311,31 @@ int PVParams::setBatchSweepSize() {
       }
    }
    return batchSweepSize;
+}
+
+// TODO other integer types should also use valueInt
+template <>
+void PVParams::ioParamValue<int>(enum ParamsIOFlag ioFlag, const char * groupName, const char * paramName, int * paramValue, int defaultValue, bool warnIfAbsent) {
+   switch(ioFlag) {
+   case PARAMS_IO_READ:
+      *paramValue = valueInt(groupName, paramName, defaultValue, warnIfAbsent);
+      break;
+   case PARAMS_IO_WRITE:
+      writeParam(paramName, *paramValue);
+      break;
+   }   
+}
+
+template <>
+void PVParams::ioParamValueRequired<int>(enum ParamsIOFlag ioFlag, const char * groupName, const char * paramName, int * paramValue) {
+   switch(ioFlag) {
+   case PARAMS_IO_READ:
+      *paramValue = valueInt(groupName, paramName);
+      break;
+   case PARAMS_IO_WRITE:
+      writeParam(paramName, *paramValue);
+      break;
+   }   
 }
 
 int PVParams::setParameterSweepSize() {
@@ -1500,6 +1495,18 @@ double PVParams::value(const char * groupName, const char * paramName, double in
    }
 }
 
+template <>
+void PVParams::writeParam<bool>(const char * paramName, bool paramValue) {
+   if (icComm->commRank()==0) {
+      pvAssert(mPrintParamsStream && mPrintParamsStream->fp);
+      pvAssert(mPrintLuaStream && mPrintLuaStream->fp);
+      std::stringstream vstr("");
+      vstr << (paramValue ? "true" : "false");
+      fprintf(mPrintParamsStream->fp, "    %-35s = %s;\n", paramName, vstr.str().c_str());
+      fprintf(mPrintLuaStream->fp, "    %-35s = %s;\n", paramName, vstr.str().c_str());
+   }
+}
+
 bool PVParams::arrayPresent(const char * groupName, const char * paramName) {
    ParameterGroup * g = group(groupName);
    if (g == NULL) {
@@ -1511,7 +1518,6 @@ bool PVParams::arrayPresent(const char * groupName, const char * paramName) {
    }
 
    return g->arrayPresent(paramName);
-
 }
 
 // Could use a template function for arrayValues and arrayValuesDbl
@@ -1563,6 +1569,63 @@ const double * PVParams::arrayValuesDbl(const char * groupName, const char * par
    return retval;
 }
 
+void PVParams::ioParamString(enum ParamsIOFlag ioFlag, const char * groupName, const char * paramName, char ** paramStringValue, const char * defaultValue, bool warnIfAbsent) {
+   const char * paramString = nullptr;
+   switch(ioFlag) {
+   case PARAMS_IO_READ:
+      if ( stringPresent(groupName, paramName) ) {
+         paramString = stringValue(groupName, paramName, warnIfAbsent);
+      }
+      else {
+         // parameter was not set in params file; use the default.  But default might or might not be nullptr.
+         if (icComm->commRank()==0 && warnIfAbsent==true) {
+            if (defaultValue != nullptr) {
+               pvWarn().printf("Using default value \"%s\" for string parameter \"%s\" in group \"%s\"\n", defaultValue, paramName, groupName);
+            }
+            else {
+               pvWarn().printf("Using default value of nullptr for string parameter \"%s\" in group \"%s\"\n", paramName, groupName);
+            }
+         }
+         paramString = defaultValue;
+      }
+      if (paramString!=nullptr) {
+         *paramStringValue = strdup(paramString);
+         pvErrorIf(*paramStringValue==nullptr, "Global rank %d process unable to copy param %s in group \"%s\": %s\n",
+               icComm->globalCommRank(), paramName, groupName, strerror(errno));
+      }
+      else {
+         *paramStringValue = nullptr; 
+      }
+      break;
+   case PARAMS_IO_WRITE:
+      writeParamString(paramName, *paramStringValue);
+   }
+}
+
+void PVParams::ioParamStringRequired(enum ParamsIOFlag ioFlag, const char * groupName, const char * paramName, char ** paramStringValue) {
+   const char * paramString = nullptr;
+   switch(ioFlag) {
+   case PARAMS_IO_READ:
+      paramString = stringValue(groupName, paramName, false/*warnIfAbsent*/);
+      if (paramString!=nullptr) {
+         *paramStringValue = strdup(paramString);
+         pvErrorIf(*paramStringValue==nullptr, "Global Rank %d process unable to copy param %s in group \"%s\": %s\n",
+               icComm->globalCommRank(), paramName, groupName, strerror(errno));
+      }
+      else {
+         if (icComm->globalCommRank()==0) {
+            pvErrorNoExit().printf("%s \"%s\": string parameter \"%s\" is required.\n",
+                            groupKeywordFromName(groupName), groupName, paramName);
+         }
+         MPI_Barrier(icComm->globalCommunicator());
+         exit(EXIT_FAILURE);
+      }
+      break;
+   case PARAMS_IO_WRITE:
+      writeParamString(paramName, *paramStringValue);
+   }
+}
+
 /*
  *  @groupName
  *  @paramStringName
@@ -1571,7 +1634,7 @@ int PVParams::stringPresent(const char * groupName, const char * paramStringName
    ParameterGroup * g = group(groupName);
    if (g == NULL) {
       if( worldRank == 0 ) {
-         pvErrorNoExit().printf("PVParams::value: couldn't find a group for %s\n",
+         pvErrorNoExit().printf("PVParams::stringPresent: couldn't find a group for %s\n",
                  groupName);
       }
       exit(EXIT_FAILURE);
@@ -1594,6 +1657,21 @@ const char * PVParams::stringValue(const char * groupName, const char * paramStr
          pvWarn().printf("No parameter string named \"%s\" in group \"%s\"\n", paramStringName, groupName);
       }
       return NULL;
+   }
+}
+
+void PVParams::writeParamString(const char * paramName, const char * svalue) {
+   if (icComm->commRank()==0) {
+      pvAssert(mPrintParamsStream!=nullptr && mPrintParamsStream->fp!=nullptr);
+      pvAssert(mPrintLuaStream && mPrintLuaStream->fp);
+      if (svalue!=nullptr) {
+         fprintf(mPrintParamsStream->fp, "    %-35s = \"%s\";\n", paramName, svalue);
+         fprintf(mPrintLuaStream->fp, "    %-35s = \"%s\";\n", paramName, svalue);
+      }
+      else {
+         fprintf(mPrintParamsStream->fp, "    %-35s = NULL;\n", paramName);
+         fprintf(mPrintLuaStream->fp, "    %-35s = nil;\n", paramName);
+      }
    }
 }
 

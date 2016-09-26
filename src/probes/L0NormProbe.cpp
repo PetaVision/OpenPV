@@ -34,7 +34,7 @@ int L0NormProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void L0NormProbe::ioParam_nnzThreshold(enum ParamsIOFlag ioFlag) {
-    getParent()->ioParamValue(ioFlag, getName(), "nnzThreshold", &nnzThreshold, (pvadata_t) 0);
+    getParent()->parameters()->ioParamValue(ioFlag, getName(), "nnzThreshold", &nnzThreshold, (pvadata_t) 0);
 }
 
 double L0NormProbe::getValueInternal(double timevalue, int index) {

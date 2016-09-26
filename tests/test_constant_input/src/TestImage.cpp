@@ -41,7 +41,7 @@ void TestImage::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
 }
 
 void TestImage::ioParam_constantVal(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "constantVal", &val, (pvdata_t) 1);
+   parent->parameters()->ioParamValue(ioFlag, name, "constantVal", &val, (pvdata_t) 1);
 }
 
 int TestImage::allocateV() {

@@ -80,25 +80,25 @@ int InitCocircWeightsParams::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void InitCocircWeightsParams::ioParam_sigmaCocirc(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "sigmaCocirc", &sigma_cocirc, sigma_cocirc);
+   parent->parameters()->ioParamValue(ioFlag, name, "sigmaCocirc", &sigma_cocirc, sigma_cocirc);
 }
 
 void InitCocircWeightsParams::ioParam_sigmaKurve(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "sigmaKurve", &sigma_kurve, sigma_kurve);
+   parent->parameters()->ioParamValue(ioFlag, name, "sigmaKurve", &sigma_kurve, sigma_kurve);
 }
 
 // void InitCocircWeightsParams::ioParam_sigmaChord(enum ParamsIOFlag ioFlag) {
-//    parent->ioParamValue(ioFlag, name, "sigmaChord", &sigma_chord, sigma_chord);
+//    parent->parameters()->ioParamValue(ioFlag, name, "sigmaChord", &sigma_chord, sigma_chord);
 // }
 
 void InitCocircWeightsParams::ioParam_cocircSelf(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "cocircSelf", &cocirc_self, cocirc_self);
+   parent->parameters()->ioParamValue(ioFlag, name, "cocircSelf", &cocirc_self, cocirc_self);
 }
 
 void InitCocircWeightsParams::ioParam_deltaRadiusCurvature(enum ParamsIOFlag ioFlag) {
    // from pv_common.h
    // // DK (1.0/(6*(NK-1)))   /*1/(sqrt(DX*DX+DY*DY)*(NK-1))*/         //  change in curvature
-   parent->ioParamValue(ioFlag, name, "deltaRadiusCurvature", &delta_radius_curvature, delta_radius_curvature);
+   parent->parameters()->ioParamValue(ioFlag, name, "deltaRadiusCurvature", &delta_radius_curvature, delta_radius_curvature);
 }
 
 void InitCocircWeightsParams::ioParam_numOrientationsPre(enum ParamsIOFlag ioFlag) {
@@ -115,7 +115,7 @@ void InitCocircWeightsParams::ioParam_numOrientationsPre(enum ParamsIOFlag ioFla
       MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
-   parent->ioParamValue(ioFlag, name, paramname, &numOrientationsPre, pre->getLayerLoc()->nf);
+   parent->parameters()->ioParamValue(ioFlag, name, paramname, &numOrientationsPre, pre->getLayerLoc()->nf);
 }
 
 void InitCocircWeightsParams::ioParam_numOrientationsPost(enum ParamsIOFlag ioFlag) {
@@ -132,7 +132,7 @@ void InitCocircWeightsParams::ioParam_numOrientationsPost(enum ParamsIOFlag ioFl
       MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
-   parent->ioParamValue(ioFlag, name, paramname, &numOrientationsPost, post->getLayerLoc()->nf);
+   parent->parameters()->ioParamValue(ioFlag, name, paramname, &numOrientationsPost, post->getLayerLoc()->nf);
 }
 
 void InitCocircWeightsParams::calcOtherParams(int patchIndex) {

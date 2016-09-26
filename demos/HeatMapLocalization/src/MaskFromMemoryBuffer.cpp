@@ -40,7 +40,7 @@ int MaskFromMemoryBuffer::ioParamsFillGroup(enum PV::ParamsIOFlag ioFlag) {
 }
 
 void MaskFromMemoryBuffer::ioParam_imageLayerName(enum PV::ParamsIOFlag ioFlag) {
-   parent->ioParamStringRequired(ioFlag, name, "imageLayerName", &imageLayerName);
+   parent->parameters()->ioParamStringRequired(ioFlag, name, "imageLayerName", &imageLayerName);
 }
 
 int MaskFromMemoryBuffer::communicateInitInfo() {

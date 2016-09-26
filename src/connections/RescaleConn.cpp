@@ -34,7 +34,7 @@ int RescaleConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void RescaleConn::ioParam_scale(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "scale", &scale, scale/*default*/, true /*warn if absent*/);
+   parent->parameters()->ioParamValue(ioFlag, name, "scale", &scale, scale/*default*/, true /*warn if absent*/);
 }
 
 int RescaleConn::deliverPresynapticPerspective(PVLayerCube const * activity, int arborID) {

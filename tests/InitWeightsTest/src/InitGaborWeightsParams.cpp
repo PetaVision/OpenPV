@@ -58,15 +58,15 @@ int InitGaborWeightsParams::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void InitGaborWeightsParams::ioParam_lambda(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "lambda", &lambda, lambda);
+   parent->parameters()->ioParamValue(ioFlag, name, "lambda", &lambda, lambda);
 }
 
 void InitGaborWeightsParams::ioParam_phi(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "phi", &phi, phi);
+   parent->parameters()->ioParamValue(ioFlag, name, "phi", &phi, phi);
 }
 
 void InitGaborWeightsParams::ioParam_invert(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "invert", &invert, invert);
+   parent->parameters()->ioParamValue(ioFlag, name, "invert", &invert, invert);
 }
 
 void InitGaborWeightsParams::calcOtherParams(int patchIndex) {
