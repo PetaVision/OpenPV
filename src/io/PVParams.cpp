@@ -76,28 +76,6 @@ Parameter::~Parameter()
    free(paramName);
 }
 
-int Parameter::outputParam(FILE * fp, int indentation) {
-   int status = PV_SUCCESS;
-   for(int i = 0; i < indentation; ++i) {
-      fputc(' ', fp);
-   }
-   fprintf(fp, "%s : %.17e", paramName, paramDblValue);
-   if (paramDblValue == 1.0) {
-      fprintf(fp, " (true)");
-   }
-   else if (paramDblValue == -1.0) {
-      fprintf(fp, " (false)");
-   }
-   else if (paramDblValue == DBL_MAX) {
-      fprintf(fp, " (infinity)");
-   }
-   else if (paramDblValue == -DBL_MAX) {
-      fprintf(fp, " (-infinity)");
-   }
-   fprintf(fp, "\n");
-   return status;
-}
-
 ParameterArray::ParameterArray(int initialSize) {
    hasBeenReadFlag = false;
    paramNameSet = false;
@@ -157,19 +135,6 @@ int ParameterArray::pushValue(double value) {
    return arraySize;
 }
 
-int ParameterArray::outputString(FILE * fp, int indentation) {
-   int status = PV_SUCCESS;
-   for( int i=indentation; i>0; i--) fputc(' ', fp);
-   fprintf(fp, "%s : Values:\n", paramName);
-   int sz = 0;
-   const double * vals = getValuesDbl(&sz);
-   for (int j=0; j<sz; j++) {
-      for (int i=indentation; i>0; i--) fputc(' ', fp);
-      fprintf(fp, "    value %d = %f\n", j, vals[j]);
-   }
-   return status;
-}
-
 ParameterArray* ParameterArray::copyParameterArray(){
    ParameterArray* returnPA = new ParameterArray(bufferSize);
    int status = returnPA->setName(paramName);
@@ -195,13 +160,6 @@ ParameterString::~ParameterString()
 {
    free(paramName);
    free(paramValue);
-}
-
-int ParameterString::outputString(FILE * fp, int indentation) {
-   int status = PV_SUCCESS;
-   for( int i=indentation; i>0; i--) fputc(' ', fp);
-   fprintf(fp, "%s : \"%s\"\n", paramName, paramValue);
-   return status;
 }
 
 /**
@@ -236,18 +194,6 @@ Parameter * ParameterStack::pop()
 {
    assert(count > 0);
    return parameters[count--];
-}
-
-int ParameterStack::outputStack(FILE * fp, int indentation) {
-   int status = PV_SUCCESS;
-   for( int i=indentation; i>0; i-- ) {
-      fputc(' ', fp);
-   }
-   fprintf(fp, "// numerical parameters\n");
-   for( int s=0; s<count; s++ ) {
-      if( parameters[s]->outputParam(fp, indentation) != PV_SUCCESS ) status = PV_FAILURE;
-   }
-   return status;
 }
 
 ParameterArrayStack::ParameterArrayStack(int initialCount)
@@ -287,19 +233,6 @@ int ParameterArrayStack::push(ParameterArray * array) {
    count++;
    return PV_SUCCESS;
 }
-
-int ParameterArrayStack::outputStack(FILE * fp, int indentation) {
-   int status = PV_SUCCESS;
-   for( int i=indentation; i>0; i-- ) {
-      fputc(' ', fp);
-   }
-   fprintf(fp, "// array parameters\n");
-   for( int s=0; s<count; s++ ) {
-      if( parameterArrays[s]->outputString(fp, indentation) != PV_SUCCESS ) status = PV_FAILURE;
-   }
-   return status;
-}
-
 
 /*
  * initialCount
@@ -359,19 +292,6 @@ const char * ParameterStringStack::lookup(const char * targetname)
    }
    return result;
 }
-
-int ParameterStringStack::outputStack(FILE * fp, int indentation) {
-   int status = PV_SUCCESS;
-   for( int i=indentation; i>0; i-- ) {
-      fputc(' ', fp);
-   }
-   fprintf(fp, "// string parameters\n");
-   for( int s=0; s<count; s++ ) {
-      if( parameterStrings[s]->outputString(fp, indentation) != PV_SUCCESS ) status = PV_FAILURE;
-   }
-   return status;
-}
-
 
 /**
  * @name
@@ -625,16 +545,6 @@ int ParameterGroup::clearHasBeenReadFlags() {
       ParameterString * pstr = stringStack->peek(i);
       pstr->clearHasBeenRead();
    }
-   return status;
-}
-
-int ParameterGroup::outputGroup(FILE * fp) {
-   int status = PV_SUCCESS;
-   fprintf(fp, "%s \"%s\":\n", groupKeyword, groupName);
-   int indentation = 4;
-   if( stack->outputStack(fp, indentation) != PV_SUCCESS ) status = PV_FAILURE;
-   if (arrayStack->outputStack(fp, indentation) != PV_SUCCESS) status = PV_FAILURE;
-   if( stringStack->outputStack(fp, indentation) != PV_SUCCESS ) status = PV_FAILURE;
    return status;
 }
 
@@ -1928,14 +1838,6 @@ void PVParams::handleUnnecessaryStringParameter(const char * group_name, const c
       MPI_Barrier(icComm->globalCommunicator());
       exit(EXIT_FAILURE);
    }
-}
-
-int PVParams::outputParams(FILE * fp) {
-   int status = PV_SUCCESS;
-   for( int g=0; g<numGroups; g++ ) {
-      if( groups[g]->outputGroup(fp)!=PV_SUCCESS ) status = PV_FAILURE;
-   }
-   return status;
 }
 
 /**

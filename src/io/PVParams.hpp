@@ -36,7 +36,6 @@ public:
    const float * valuePtr() { hasBeenReadFlag = true; return &paramValue; }
    const double * valueDblPtr() { hasBeenReadFlag = true; return &paramDblValue; }
    bool hasBeenRead()       { return hasBeenReadFlag; }
-   int outputParam(FILE * fp, int indentation);
    void clearHasBeenRead()    { hasBeenReadFlag = false; }
    void setValue(double v)  { paramValue = (float) v; paramDblValue = v;}
    Parameter* copyParameter() {return new Parameter(paramName, paramDblValue);}
@@ -61,7 +60,6 @@ public:
    void resetArraySize(){arraySize = 0;}
    bool hasBeenRead() { return hasBeenReadFlag; }
    void clearHasBeenRead() { hasBeenReadFlag = false; }
-   int outputString(FILE * fp, int indentation);
    double peek(int index)   { return valuesDbl[index]; }
    ParameterArray* copyParameterArray();
 
@@ -83,7 +81,6 @@ public:
    const char * getName()      { return paramName; }
    const char * getValue()     { hasBeenReadFlag = true; return paramValue; }
    bool hasBeenRead()          { return hasBeenReadFlag; }
-   int outputString(FILE * fp, int indentation);
    void clearHasBeenRead()     { hasBeenReadFlag = false; }
    void setValue(const char * s) { free(paramValue); paramValue = s?strdup(s):NULL;}
    ParameterString* copyParameterString() {return new ParameterString(paramName, paramValue);}
@@ -103,7 +100,6 @@ public:
    Parameter * pop();
    Parameter * peek(int index)   { return parameters[index]; }
    int size()                    { return count; }
-   int outputStack(FILE * fp, int indentation);
 
 private:
    int count;
@@ -116,7 +112,6 @@ public:
    ParameterArrayStack(int initialCount);
    virtual ~ParameterArrayStack();
    int push(ParameterArray * array);
-   int outputStack(FILE * fp, int indentation);
    int size() {return count;}
    ParameterArray * peek(int index) {return index>=0 && index<count ? parameterArrays[index] : NULL; }
 
@@ -137,7 +132,6 @@ public:
    ParameterString * peek(int index)    { return index>=0 && index<count ? parameterStrings[index] : NULL; }
    int size()                           { return count; }
    const char * lookup(const char * targetname);
-   int outputStack(FILE * fp, int indentation);
 
 private:
    int count;
@@ -164,7 +158,6 @@ public:
    int warnUnread();
    bool hasBeenRead(const char * paramName);
    int clearHasBeenReadFlags();
-   int outputGroup(FILE * fp);
    int pushNumerical(Parameter * param);
    int pushString(ParameterString * param);
    int setValue(const char * param_name, double value);
@@ -272,7 +265,6 @@ public:
     * are not equal.
     */
    void handleUnnecessaryStringParameter(const char * group_name, const char * param_name, const char * correctValue, bool case_insensitive_flag=false);
-   int outputParams(FILE *);
 
    void setPrintLuaStream(PV_Stream * printLuaStream) { mPrintLuaStream = printLuaStream; }
    void setPrintParamsStream(PV_Stream * printParamsStream) { mPrintParamsStream = printParamsStream; }
