@@ -150,6 +150,9 @@ namespace PV {
    
    // Shift a buffer, clipping any values that land out of bounds
    void Buffer::translate(int xShift, int yShift) {
+      if (xShift == 0 && yShift == 0) {
+         return;
+      }
       Buffer result(getWidth(), getHeight(), getFeatures());
       for(int y = 0; y < getHeight(); ++y) {
          for(int x = 0; x < getWidth(); ++x) {
