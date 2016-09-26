@@ -367,6 +367,27 @@ private:
 };
 
 template <typename T>
+void PVParams::handleUnnecessaryParameter(const char * group_name, const char * param_name, T correct_value) {
+   int status = PV_SUCCESS;
+   if (present(group_name, param_name)) {
+      if (worldRank==0) {
+         const char * class_name = groupKeywordFromName(group_name);
+         pvWarn().printf("%s \"%s\" does not use parameter %s, but it is present in the parameters file.\n",
+               class_name, group_name, param_name);
+      }
+      T params_value = (T) value(group_name, param_name); // marks param as read so that presentAndNotBeenRead doesn't trip up
+      if (params_value != correct_value) {
+         status = PV_FAILURE;
+         if (worldRank==0) {
+            pvErrorNoExit() << "   Value " << params_value << " is inconsistent with correct value " << correct_value << std::endl;
+         }
+      }
+   }
+   MPI_Barrier(icComm->globalCommunicator());
+   if (status != PV_SUCCESS) exit(EXIT_FAILURE);
+}
+
+template <typename T>
 void PVParams::ioParamValueRequired(enum ParamsIOFlag ioFlag, const char * groupName, const char * paramName, T * paramValue) {
    switch(ioFlag) {
    case PARAMS_IO_READ:
