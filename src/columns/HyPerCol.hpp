@@ -385,23 +385,7 @@ public:
    const char * getPrintParamsFilename() const { return mPrintParamsFilename; }
    ColProbe * getColProbe(int which) { return mColProbes.at(which); }
    double getDeltaTime() const { return mDeltaTime; }
-#ifdef OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
-   bool usingAdaptiveTimeScale() const { return mDtAdaptController != nullptr; }
-   bool getDtAdaptFlag() const { pvWarn() << "getDtAdaptFlag() is deprecated.\n" ; return usingAdaptiveTimeScale(); }  // getDtAdaptFlag() was deprecated Jul 7, 2016, in favor of usingAdaptiveTimeScale().
-   bool getUseAdaptMethodExp1stOrder() const { return mUseAdaptMethodExp1stOrder; }
-   double getDeltaTimeBase() const { return mDeltaTimeBase; }
-   double getTimeScale(int batch) const { pvAssert(batch >= 0 && batch < mNumBatch); return mTimeScale[batch]; }
-   double getTimeScaleMax(int batch) const { pvAssert(batch >= 0 && batch < mNumBatch); return mTimeScaleMax[batch]; }
-   double getTimeScaleMax() const { return mTimeScaleMaxBase; }
-   double getTimeScaleMax2(int batch) const { assert(batch >= 0 && batch < mNumBatch); return mTimeScaleMax2[batch]; }
-   double getTimeScaleMax2() const { return mTimeScaleMax2Base; }
-   double getTimeScaleMin() const { return mTimeScaleMin; }
-   double getChangeTimeScaleMax() const { return mChangeTimeScaleMax; }
-   double getChangeTimeScaleMin() const { return mChangeTimeScaleMin; }
-   double* getTimeScale() const { return mTimeScale; }
-   double* getTimeScaleMaxPtr() const { return mTimeScaleMax; }
-   double* getTimeScaleMax2Ptr() const { return mTimeScaleMax2; }
-#endif // OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
+   // Sep 26, 2016: Adaptive timestep routines and member variables have been moved to AdaptiveTimeScaleProbe.
    double simulationTime() const { return mSimTime; }
    double getStartTime() const { return mStartTime; }
    double getStopTime() const { return mStopTime; }
@@ -457,11 +441,6 @@ public:
  
 private:
    bool advanceCPWriteTime();
-#ifdef OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
-   double* adaptTimeScale();
-   double* adaptTimeScaleExp1stOrder();
-   void initDtAdaptControlProbe();
-#endif // OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
    int initializeThreads(char const * in_device);
    int initialize_base();
    int initialize(const char * name, PV_Init* initObj);
@@ -529,28 +508,7 @@ private:
    double mCpWriteClockInterval; // If checkpoint mode is clock, the clock time between checkpoints, in the units specified by checkpointWriteClockUnit
    double mProgressInterval; // Output progress after mSimTime increases by this amount.
    double mNextProgressTime; // Next time to output a progress message
-#ifdef OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
-   char* mDtAdaptController;       // If nonblank, the name of a ColProbe whose getValues() method is called to control mTimeScale
-   ColProbe * mDtAdaptControlProbe; // The probe pointed to by mDtAdaptController, mDtAdaptControlProbe->getValues() is used to control mTimeScale.  If blank, use the original method
-   char* mDtAdaptTriggerLayerName;
-   HyPerLayer * mDtAdaptTriggerLayer;
-   double mDtAdaptTriggerOffset;
-   bool mUseAdaptMethodExp1stOrder = true; // specifies whether exponential approximation to energy function decay is used to adapt time scale, requires mDtAdaptControlProbe != NULL
-   double mDeltaTimeBase;    // base time step interval if mDtAdaptController is used; mTimeScale is applied to this value
-   double mTimeScaleMaxBase;     // default value of maximum value of mTimeScale
-   double mTimeScaleMax2Base;     // default value of maximum value of mTimeScaleMax
-   double mTimeScaleMin;     // minimum value of mTimeScale (not really a minimum, actually sets starting/iniital value of mDeltaTime)
-   double mChangeTimeScaleMax;     // maximum change in value of mTimeScale (prevents mDeltaTime from growing too quickly)
-   double mChangeTimeScaleMin;     // typically 0 or negative, maximum DECREASE in mTimeScale allowed before resetting mTimeScale -> mTimeScaleMin
-   double mDtMinToleratedTimeScale;// Exits with an error if any layer returns a mTimeScale between zero and this amount
-   double* mTimeScale;        // scale factor for mDeltaTimeBase, mDeltaTime = mTimeScale*mDeltaTimeBase
-   double* mTimeScaleTrue;    // true mTimeScale returned by min(HyPerLayer::getTimeScale) before MIN/MAX/CHANGE constraints applied
-   double* mOldTimeScale;        // old value of mTimeScale
-   double* mOldTimeScaleTrue;    // old value of mTimeScaleTrue
-   double* mDeltaTimeAdapt;    // Actual mDeltaTimeAdapt buffer passed to updateState
-   double* mTimeScaleMax;     // maximum value of mTimeScale (prevents mDeltaTime from growing too large)
-   double* mTimeScaleMax2;     // maximum value of mTimeScaleMax (prevents mTimeScaleMax from growing too large)
-#endif // OBSOLETE // Marked obsolete Aug 18, 2016. Handling the adaptive timestep has been moved to AdaptiveTimeScaleProbe.
+   // Sep 26, 2016: Adaptive timestep routines and member variables have been moved to AdaptiveTimeScaleProbe.
    enum CheckpointWriteTriggerMode mCheckpointWriteTriggerMode;
    std::vector<HyPerLayer*> mLayers; //HyPerLayer ** mLayers;
    int mNumPhases;
