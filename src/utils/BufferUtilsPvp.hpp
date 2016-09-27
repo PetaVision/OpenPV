@@ -19,17 +19,17 @@ namespace PV {
       // a sparse pvp file from start to finish every time
       // we want to load data from it.
       struct SparseFileTable {
-        vector<long> frameStartOffsets;
-        vector<int>  frameLengths;
-        bool         valuesIncluded;
+        vector<uint64_t> frameStartOffsets;
+        vector<int>      frameLengths;
+        bool             valuesIncluded;
       }; 
 
       template <typename T>
-      static void writeFrame(FileStream *fStream,
+      static void writeFrame(FileStream &fStream,
                              Buffer<T> *buffer,
                              double timeStamp);
       template <typename T>
-      static double readFrame(FileStream *fStream,
+      static double readFrame(FileStream &fStream,
                               Buffer<T> *buffer);
       template <typename T>
       static vector<int> buildHeader(int width,
@@ -37,7 +37,7 @@ namespace PV {
                                      int features,
                                      int numFrames);
       template <typename T>
-      static void writeToPvp(const char * fName,
+      static void writeToPvp(const char *fName,
                              Buffer<T> *buffer,
                              double timeStamp);
       template <typename T>
@@ -50,11 +50,11 @@ namespace PV {
                                 Buffer<T> *buffer,
                                 int frameReadIndex);
       template <typename T>
-      static void writeSparseFrame(FileStream *fStream,
+      static void writeSparseFrame(FileStream &fStream,
                                    SparseList<T> *list,
                                    double timeStamp);
       template <typename T>
-      static double readSparseFrame(FileStream *fStream,
+      static double readSparseFrame(FileStream &fStream,
                                     SparseList<T> *list);
       template <typename T>
       static void writeSparseToPvp(const char *fName,
@@ -71,12 +71,13 @@ namespace PV {
       template <typename T>
       static double readSparseFromPvp(const char *fName,
                                       SparseList<T> *list,
-                                      int frameReadIndex);
+                                      int frameReadIndex,
+                                      SparseFileTable *cachedTable = nullptr);
       
-      static void writeHeader(FileStream *fStream, vector<int> header);
-      static vector<int> readHeader(FileStream *fStream);
+      static void writeHeader(FileStream &fStream, vector<int> header);
+      static vector<int> readHeader(FileStream &fStream);
 
-      static SparseFileTable buildSparseFileTable(FileStream *fStream,
+      static SparseFileTable buildSparseFileTable(FileStream &fStream,
                                                   int upToIndex);
    }
 }

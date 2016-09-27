@@ -83,15 +83,7 @@ int writeActivitySparse(PV_Stream * pvstream, Communicator * comm, double timed,
 int readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numArbors, int numPatches, int nxp, int nyp, int nfp, const char * filename,
                 Communicator * comm, double * timed, const PVLayerLoc * loc);
 
-#ifdef OBSOLETE // Marked obsolete June 27, 2016.
-// The old readWeights, now readWeightsDeprecated, was deprecated Nov 20, 2014.
-// readWeights() reads weights that were saved in an MPI-independent manner (the current writeWeights)
-// readWeightsDeprecated() reads weights saved in the old MPI-dependent manner.
-int readWeightsDeprecated(PVPatch *** patches, pvwdata_t ** dataStart, int numArbors, int numPatches, int nxp, int nyp, int nfp, const char * filename,
-                Communicator * comm, double * timed, const PVLayerLoc * loc);
-#endif // OBSOLETE // Marked obsolete June 27, 2016.
-
-int pv_text_write_patch(OutStream * pvstream, PVPatch * patch, pvwdata_t * data, int nf, int sx, int sy, int sf);
+int pv_text_write_patch(PrintStream * pvstream, PVPatch * patch, pvwdata_t * data, int nf, int sx, int sy, int sf);
 
 int writeWeights(const char * filename, Communicator * comm, double timed, bool append,
                  const PVLayerLoc * preLoc, const PVLayerLoc * postLoc, int nxp, int nyp, int nfp, float minVal, float maxVal,

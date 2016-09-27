@@ -2222,7 +2222,7 @@ int HyPerLayer::writeDataStoreToFile(const char * filename, Communicator * comm,
    return status;
 }
 
-int HyPerLayer::writeTimers(std::ostream& stream){
+int HyPerLayer::writeTimers(PrintStream &stream){
    if (parent->getCommunicator()->commRank()==0) {
       recvsyn_timer->fprint_time(stream);
       update_timer->fprint_time(stream);

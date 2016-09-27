@@ -25,6 +25,7 @@
 #include "normalizers/NormalizeBase.hpp"
 #include "privateTransposeConn.hpp"
 #include "PlasticCloneConn.hpp"
+#include "io/PrintStream.hpp"
 #include "io/FileStream.hpp"
 
 namespace PV {
@@ -1847,7 +1848,7 @@ int HyPerConn::writeTextWeights(const char * filename, int k)
       pvError().printf("writeTextWeights error for %s: writeTextWeights is not compatible with MPI", getDescription_c());
       // NOTE : if run under MPI when more than one process sees the same file system, the contending processes will clobber each other.
    }
-   OutStream * outStream = nullptr;
+   PrintStream * outStream = nullptr;
 
    if (filename != nullptr) {
       char outfile[PV_PATH_MAX];
@@ -1855,7 +1856,7 @@ int HyPerConn::writeTextWeights(const char * filename, int k)
       outStream = new FileStream(outfile, std::ios_base::out, parent->getVerifyWrites());
    }
    else {
-      outStream = new OutStream(getOutputStream());
+      outStream = new PrintStream(getOutputStream());
    }
    if (outStream == nullptr) {
      pvErrorNoExit().printf("writeWeights: unable to open file \"%s\"\n", filename);
@@ -1972,7 +1973,7 @@ int HyPerConn::checkpointFilename(char * cpFilename, int size, const char * cpDi
    return PV_SUCCESS;
 }
 
-int HyPerConn::writeTimers(std::ostream& stream){
+int HyPerConn::writeTimers(PrintStream &stream){
    if (parent->getCommunicator()->commRank()==0) {
       io_timer->fprint_time(stream);
       update_timer->fprint_time(stream);

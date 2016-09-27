@@ -69,7 +69,7 @@ PV_Stream * PV_fopen(const char * path, const char * mode, bool verifyWrites) {
       errno = EINVAL;
       return NULL;
    }
-   char * realPath = expandLeadingTilde(path);
+   char * realPath = strdup(expandLeadingTilde(path).c_str());
    long filepos = 0L;
    long filelength = 0L;
    if (mode[0]=='r' || mode[0]=='a') {
@@ -131,7 +131,7 @@ int PV_stat(const char * path, struct stat * buf) {
    // Call stat library function, trying up to MAX_FILESYSTEMCALL_TRIES times if an error is returned.
    // If an error results on all MAX_FILESYSTEMCALL_TRIES times, returns -1 (the error return value) for stat()
    // and errno is the error of the last attempt.
-   char * realPath = expandLeadingTilde(path);
+   char * realPath = strdup(expandLeadingTilde(path).c_str());
    int attempt = 0;
    int retval = -1;
    while (retval != 0) {
@@ -563,7 +563,7 @@ PV_Stream * pvp_open_write_file(const char * filename, Communicator * comm, bool
          // If the file exists, need to use read/write mode (r+) since we'll navigate back to the header to update nbands
          // If the file does not exist, mode r+ gives an error
          struct stat filestat;
-         char * realPath = expandLeadingTilde(filename);
+         char * realPath = strdup(expandLeadingTilde(filename).c_str());
          int status = stat(realPath, &filestat);
          free(realPath);
          if (status==0) {
@@ -1985,7 +1985,7 @@ int readWeightsDeprecated(PVPatch *** patches, pvwdata_t ** dataStart, int numAr
  * @fd
  * @patch
  */
-int pv_text_write_patch(OutStream * outStream, PVPatch * patch, pvwdata_t * data, int nf, int sx, int sy, int sf)
+int pv_text_write_patch(PrintStream * outStream, PVPatch * patch, pvwdata_t * data, int nf, int sx, int sy, int sf)
 {
    int f, i, j;
 

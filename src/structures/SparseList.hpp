@@ -1,3 +1,6 @@
+#ifndef __SPARSELIST_HPP__
+#define __SPARSELIST_HPP__
+
 #include "Buffer.hpp"
 #include "utils/PVLog.hpp"
 
@@ -73,3 +76,5 @@ namespace PV {
          vector<Entry> mList;
   };
 }
+
+#endif

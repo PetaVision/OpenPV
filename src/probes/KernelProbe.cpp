@@ -94,7 +94,7 @@ int KernelProbe::allocateDataStructures() {
    }
 
    if(outputStream) {
-      outputStream->outStream() << "Probe \"" << name << "\", kernel index " << getKernelIndex() << ", arbor index " << getArbor() << ".\n";
+      *outputStream << "Probe \"" << name << "\", kernel index " << getKernelIndex() << ", arbor index " << getArbor() << ".\n";
    }
    if(getOutputPatchIndices()) {
       patchIndices(getTargetHyPerConn());

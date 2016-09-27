@@ -183,7 +183,7 @@ int BaseProbe::initOutputStream(const char * filename) {
          writingToFile = true;
       }
       else {
-         outputStream = new OutStream(PV::getOutputStream());
+         outputStream = new PrintStream(PV::getOutputStream());
          writingToFile = false;
       }
    }

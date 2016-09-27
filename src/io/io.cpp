@@ -13,6 +13,8 @@
 #include <float.h>  // FLT_MAX/MIN
 #include <math.h>
 #include <string.h>     // memcpy
+#include <string>
+
 #include "utils/PVLog.hpp"
 
 namespace PV {
@@ -242,36 +244,48 @@ int pv_center_image(float * V, int nx0, int ny0, int nx, int ny)
    return 0;
 }
 
-char * expandLeadingTilde(char const * path) {
+std::string expandLeadingTilde(char const * path) {
+   if (path == NULL) {
+      return std::string("");
+   }
    char * newpath = NULL;
    if (path != NULL) {
       int len = strlen(path);
       if (len==1 && path[0]=='~') {
          newpath = strdup(getenv("HOME"));
          if (newpath==NULL) {
-            pvError().printf("Unable to expand \"%s\": home directory not defined\n", path);
+            pvError().printf("Unable to expand \"%s\": "
+                             "home directory not defined\n", path);
             exit(EXIT_FAILURE);
          }
       }
       else if (len>1 && path[0]=='~' && path[1]=='/') {
          char * homedir = getenv("HOME");
          if (homedir==NULL) {
-            pvError().printf("Unable to expand \"%s\": home directory not defined\n", path);
+            pvError().printf("Unable to expand \"%s\": "
+                             "home directory not defined\n", path);
          }
          char dummy;
          int chars_needed = snprintf(&dummy, 0, "%s/%s", homedir, &path[2]);
          newpath = (char *) malloc(chars_needed+1);
          if (newpath==NULL) {
-            pvError().printf("Unable to allocate memory for path \"%s/%s\"\n", homedir, &path[2]);
+            pvError().printf("Unable to allocate memory for path \"%s/%s\"\n",
+                             homedir, &path[2]);
          }
-         int chars_used = snprintf(newpath, chars_needed+1, "%s/%s", homedir, &path[2]);
+         int chars_used = snprintf(newpath, chars_needed+1, "%s/%s",
+                                   homedir, &path[2]);
          assert(chars_used == chars_needed);
       }
       else {
          newpath = strdup(path);
       }
    }
-   return newpath;
+   pvErrorIf(newpath == NULL,
+         "Could not expand path: %s\n",
+         path);
+   std::string result(newpath);
+   free(newpath);
+   return result;
 }
 
 }  // namespace PV

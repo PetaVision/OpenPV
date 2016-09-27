@@ -9,7 +9,6 @@
 #define BASELAYER_HPP_
 
 #include "columns/BaseObject.hpp"
-
 namespace PV {
 
 /**

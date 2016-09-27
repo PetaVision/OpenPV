@@ -9,32 +9,27 @@ namespace PV {
       // Write a single frame to a pvp file, starting at fStream's location.
       // A pvp file may contain multiple frames.
       template <typename T>
-      void writeFrame(FileStream *fStream,
+      void writeFrame(FileStream &fStream,
                       Buffer<T> *buffer,
                       double timestamp) {
          size_t dataSize = sizeof(T);
-         pvErrorIf(!fStream->binary(),
-               "writeBuffer requires a binary FileStream.\n");
-         fStream->outStream().write((char*)&timestamp, sizeof(double));
-         fStream->outStream().write((char*)buffer->asVector().data(),
-                                    buffer->getTotalElements() * dataSize);
-         fStream->outStream().flush();
+         fStream.write(&timestamp, sizeof(double));
+         fStream.write(buffer->asVector().data(),
+                       buffer->getTotalElements() * dataSize);
       }
       
       // Reads the next frame from a pvp file. Returns the timeStamp.
       // Assumes that buffer is already the correct dimensions for
       // the expected data.
       template <typename T>
-      double readFrame(FileStream *fStream,
+      double readFrame(FileStream &fStream,
                        Buffer<T> *buffer) {
          double timeStamp;
-         fStream->inStream().read((char*)&timeStamp, sizeof(double));
-         assert(fStream->inStream().gcount() == sizeof(double));
+         fStream.read(&timeStamp, sizeof(double));
          
          vector<T> data(buffer->getTotalElements());
          size_t expected = data.size() * sizeof(T);
-         fStream->inStream().read((char*)data.data(), expected);
-         assert(fStream->inStream().gcount() == expected);
+         fStream.read(data.data(), expected);
          
          buffer->set(data,
                      buffer->getWidth(),
@@ -73,25 +68,19 @@ namespace PV {
          return header;
       }
       
-      void writeHeader(FileStream *fStream, vector<int> header) {
-         pvErrorIf(!fStream->binary(),
-               "writeBuffer requires a binary FileStream.\n");
-         fStream->outStream().seekp(std::ios_base::beg);
-         fStream->outStream().write((char*)header.data(),
-                                    header.size() * sizeof(int));
-         fStream->outStream().flush();
+      void writeHeader(FileStream &fStream, vector<int> header) {
+         fStream.setOutPos(0, true);
+         fStream.write(header.data(), header.size() * sizeof(int));
       }
        
       // Reads a pvp header and returns it in vector format. Leaves inStream
       // pointing at the start of the first frame.
-      vector<int> readHeader(FileStream *fStream) {
+      vector<int> readHeader(FileStream &fStream) {
          vector<int> header(NUM_BIN_PARAMS);
-         fStream->inStream().seekg(0);
-         fStream->inStream().read((char*)header.data(), header.size() * sizeof(int));
+         fStream.setInPos(0, true);
+         fStream.read(header.data(), header.size() * sizeof(int));
          return header;
       }
-      
-      // TODO: Allow verify writes for these
       
       // Writes a buffer to a pvp file containing a header and a single frame.
       // Use appendToPvp to write multiple frames to a pvp file.
@@ -103,16 +92,12 @@ namespace PV {
                             std::ios_base::out
                           | std::ios_base::binary,
                             false);
-      
-         pvErrorIf(fStream.outStream().bad(),
-               "Failed to open ostream %s.\n", fName);
-      
-         writeHeader(&fStream,
-                     buildHeader<T>(buffer->getWidth(),
-                                    buffer->getHeight(),
-                                    buffer->getFeatures(),
-                                    1));
-         writeFrame<T>(&fStream, buffer, timeStamp);
+     
+         writeHeader(fStream, buildHeader<T>(buffer->getWidth(),
+                                             buffer->getHeight(),
+                                             buffer->getFeatures(),
+                                             1));
+         writeFrame<T>(fStream, buffer, timeStamp);
       }
       
       template <typename T>
@@ -126,29 +111,23 @@ namespace PV {
                           | std::ios_base::binary,
                             false);
       
-         pvErrorIf(fStream.outStream().bad(),
-               "Failed to open ostream %s.\n", fName);
-         pvErrorIf(fStream.inStream().bad(),
-               "Failed to open istream %s.\n", fName);
-      
          // TODO: Error if we're writing more than 1 index past the end
 
          // Modify the number of records in the header
-         vector<int> header = readHeader(&fStream);
+         vector<int> header = readHeader(fStream);
          header.at(INDEX_NBANDS) = frameWriteIndex + 1;
-         writeHeader(&fStream, header);
+         writeHeader(fStream, header);
       
          // fStream is now pointing at the first frame. Each frame is
          // the size of the timestamp (double) plus the size of the
          // frame's data (numElements * sizeof(T))
-         std::streambuf::pos_type frameOffset =
-               frameWriteIndex *
-                   ( header.at(INDEX_RECORD_SIZE)
-                   * header.at(INDEX_DATA_SIZE)
-                   + sizeof(double) );
+         long frameOffset = frameWriteIndex *
+                              ( header.at(INDEX_RECORD_SIZE)
+                              * header.at(INDEX_DATA_SIZE)
+                              + sizeof(double) );
       
-         fStream.outStream().seekp(frameOffset, std::ios_base::cur);
-         writeFrame<T>(&fStream, buffer, timeStamp);
+         fStream.setOutPos(frameOffset, false);
+         writeFrame<T>(fStream, buffer, timeStamp);
       }
       
       template <typename T>
@@ -159,53 +138,47 @@ namespace PV {
                             std::ios_base::in
                           | std::ios_base::binary,
                             false);
-      
-         pvErrorIf(fStream.inStream().bad(),
-               "Failed to open istream %s.\n", fName);
-     
-         vector<int> header = readHeader(&fStream);
+         vector<int> header = readHeader(fStream);
          buffer->resize(header.at(INDEX_NX),
                         header.at(INDEX_NY),
                         header.at(INDEX_NF));
-         std::streambuf::pos_type frameOffset = frameReadIndex *
-                                              ( header.at(INDEX_RECORD_SIZE)
-                                              * header.at(INDEX_DATA_SIZE)
-                                              + sizeof(double) );
-         fStream.inStream().seekg(frameOffset, std::ios_base::cur);
-         double timeStamp = readFrame<T>(&fStream, buffer);
-         return timeStamp;
+         long frameOffset = frameReadIndex *
+                              ( header.at(INDEX_RECORD_SIZE)
+                              * header.at(INDEX_DATA_SIZE)
+                              + sizeof(double) );
+         fStream.setInPos(frameOffset, false);
+         return readFrame<T>(fStream, buffer);
       }
 
       // Writes a sparse frame (with values) to the current
       // outstream location
       template <typename T>
-      void writeSparseFrame(FileStream *fStream,
+      void writeSparseFrame(FileStream &fStream,
                             SparseList<T> *list,
                             double timestamp) {
          size_t dataSize = sizeof(struct SparseList<T>::Entry);
          vector<struct SparseList<T>::Entry> contents = list->getContents();
-         pvErrorIf(!fStream->binary(),
-               "writeSparseFrame requires a binary FileStream.\n");
-         fStream->outStream().write((char*)&timestamp, sizeof(double));
-         fStream->outStream().write((char*)contents.data(),
-                                    contents.size() * dataSize);
-         fStream->outStream().flush();
+         fStream.write(&timestamp, sizeof(double));
+         fStream.write(contents.data(), contents.size() * dataSize);
       }
 
       // Reads a sparse frame (with values) from the current
       // instream location
       template <typename T>
-      double readSparseFrame(FileStream *fStream,
+      double readSparseFrame(FileStream &fStream,
                              SparseList<T> *list) {
          size_t dataSize    = sizeof(struct SparseList<T>::Entry);
-         double timeStamp   = 0;
-         int    numElements = 0;
-         fStream->inStream().read((char*)&timeStamp, sizeof(double));
-         fStream->inStream().read((char*)&numElements, sizeof(int));
+         double timeStamp   = -1;
+         int    numElements = -1;
+         fStream.read(&timeStamp,   sizeof(double));
+         fStream.read(&numElements, sizeof(int));
+         pvErrorIf(timeStamp == -1,
+               "Failed to read timeStamp.\n");
+         pvErrorIf(numElements == -1,
+               "Failed to read numElements.\n");
          vector<struct SparseList<T>::Entry> contents(numElements);
          if (numElements > 0) {
-            fStream->inStream().read((char*)contents.data(),
-                                     contents.size() * dataSize);
+            fStream.read(contents.data(), contents.size() * dataSize);
          }
          list->set(contents);
          return timeStamp;
@@ -216,7 +189,7 @@ namespace PV {
       // sparse activity and sparse binary files. Leaves the input
       // stream pointing at the location where frame upToIndex would
       // begin.
-      static SparseFileTable buildSparseFileTable(FileStream *fStream,
+      static SparseFileTable buildSparseFileTable(FileStream &fStream,
                                                  int upToIndex) {
          vector<int> header = readHeader(fStream);
          pvErrorIf(upToIndex > header.at(INDEX_NBANDS),
@@ -225,26 +198,20 @@ namespace PV {
 
          SparseFileTable result;
          result.valuesIncluded = header.at(INDEX_FILE_TYPE) != PVP_ACT_FILE_TYPE;
-         int dataSize = sizeof(int); // Indices are stored as ints
-         if (result.valuesIncluded) {
-            dataSize += header.at(INDEX_DATA_SIZE);
-         }
+         int dataSize = header.at(INDEX_DATA_SIZE);
+         result.frameLengths.resize(upToIndex+1, 0);
+         result.frameStartOffsets.resize(upToIndex+1, 0);
 
-         result.frameLengths.resize(upToIndex);
-         result.frameStartOffsets.resize(upToIndex);
-
-         for (int f = 0; f < upToIndex; ++f) {
-            double timeStamp        = 0;
-            int    frameLength      = 0;
-            long   frameStartOffset = fStream->inStream().tellg();
-            fStream->inStream().read((char*)&timeStamp, sizeof(double));
-            fStream->inStream().read((char*)&frameLength, sizeof(int));
+         for (int f = 0; f < upToIndex+1; ++f) {
+            double   timeStamp        = 0;
+            int      frameLength      = 0;
+            long frameStartOffset = fStream.getInPos();
+            fStream.read(&timeStamp,   sizeof(double));
+            fStream.read(&frameLength, sizeof(int));
             result.frameLengths.at(f)      = frameLength;
             result.frameStartOffsets.at(f) = frameStartOffset;
-            fStream->inStream().seekg(frameLength * dataSize,
-                                      std::ios_base::cur);
+            fStream.setInPos(frameLength * dataSize, false);
          }
-
          return result;
       }
 
@@ -259,16 +226,11 @@ namespace PV {
                             std::ios_base::out
                           | std::ios_base::binary,
                             false);
-
-         pvErrorIf(fStream.outStream().bad(),
-               "Failed to open ostream %s.\n", fName);
-      
-         writeHeader(&fStream,
-                     buildHeader<T>(width,
-                                    height,
-                                    features,
-                                    1));
-         writeSparseFrame<T>(&fStream, list, timeStamp); 
+         writeHeader(fStream, buildHeader<T>(width,
+                                             height,
+                                             features,
+                                             1));
+         writeSparseFrame<T>(fStream, list, timeStamp); 
       }
 
       template <typename T>
@@ -281,24 +243,47 @@ namespace PV {
                           | std::ios_base::in
                           | std::ios_base::binary,
                             false);
-         pvErrorIf(fStream.outStream().bad(),
-               "Failed to open ostream %s.\n", fName);
-         pvErrorIf(fStream.inStream().bad(),
-               "Failed to open istream %s.\n", fName);
-
          // Modify the number of records in the header
-         vector<int> header = readHeader(&fStream);
+         vector<int> header = readHeader(fStream);
          header.at(INDEX_NBANDS) = frameWriteIndex + 1;
-         writeHeader(&fStream, header);
+         writeHeader(fStream, header);
  
-         SparseFileTable table = buildSparseFileTable(&fStream,
+         SparseFileTable table = buildSparseFileTable(fStream,
                                                       frameWriteIndex);
-         std::streambuf::pos_type frameOffset =
-            table.frameStartOffsets.at(frameWriteIndex - 1)
-          + table.frameLengths.at(frameWriteIndex - 1);
+         long frameOffset = table.frameStartOffsets.at(frameWriteIndex - 1)
+                              + table.frameLengths.at(frameWriteIndex - 1);
+         fStream.setOutPos(frameOffset, false);
+         writeSparseFrame<T>(fStream, list, timeStamp); 
+      }
 
-         fStream.outStream().seekp(frameOffset, std::ios_base::cur);
-         writeSparseFrame<T>(&fStream, list, timeStamp); 
+      template <typename T>
+      static double readSparseFromPvp(const char *fName,
+                                    SparseList<T> *list,
+                                    int frameReadIndex,
+                                    SparseFileTable *cachedTable = nullptr) {
+         FileStream fStream(fName,
+                            std::ios_base::in
+                          | std::ios_base::binary,
+                            false);
+
+         vector<int> header = readHeader(fStream);
+         pvErrorIf(header.at(INDEX_DATA_SIZE)
+                != sizeof(struct SparseList<T>::Entry),
+                "Error: Expected data size %d, found %d.\n",
+                sizeof(struct SparseList<T>::Entry),
+                header.at(INDEX_DATA_SIZE));
+
+         SparseFileTable table;
+         if (cachedTable == nullptr) {
+            table = buildSparseFileTable(fStream, frameReadIndex);
+         }
+         else {
+            table = *cachedTable;
+         }
+ 
+         long frameOffset = table.frameStartOffsets.at(frameReadIndex);
+         fStream.setInPos(frameOffset, false);
+         return readSparseFrame<T>(fStream, list);
       }
    }
 }

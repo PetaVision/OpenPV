@@ -1,10 +1,12 @@
 #include "structures/Buffer.hpp"
+#include "structures/SparseList.hpp"
 #include "utils/PVLog.hpp"
 #include "utils/BufferUtilsPvp.hpp"
 
 #include <vector>
 
 using PV::Buffer;
+using PV::SparseList;
 using std::vector;
 namespace BufferUtils = PV::BufferUtils;
 
@@ -116,6 +118,40 @@ void testWriteToPvp() {
    }
 }
 
+void testReadSparseFromPvp() {
+   vector<float> expected = {
+      0,  1,  0,  2,  0,
+      3,  0,  4,  0,  5,
+      0,  6,  0,  7,  0,
+      8,  0,  9,  0,  10,
+      0,  11, 0,  12, 0
+   };
+   
+   SparseList<float> list;
+   double timeStamp = BufferUtils::readSparseFromPvp("input/sparse_5x5x1_x1.pvp",
+                                        &list,
+                                        0);
+   pvErrorIf(timeStamp != 1,
+         "Failed on timeStamp. Expected time %f, found %f.\n",
+         1.0, timeStamp);
+
+   Buffer<float> buffer(5, 5, 1);
+   list.toBuffer(buffer, 0.0f);
+
+   vector<float> values = buffer.asVector();
+
+   for (int i = 0; i < expected.size(); ++i) {
+      pvErrorIf(values.at(i) != expected.at(i),
+            "Failed. Expected value %d, found %d.\n",
+            (int)expected.at(i), (int)values.at(i));
+   }
+}
+
+
+void testWriteSparseToPvp() {
+
+}
+
 int main(int argc, char **argv) {
 
    pvInfo() << "Testing BufferUtils:readFromPvp(): ";
@@ -124,6 +160,14 @@ int main(int argc, char **argv) {
    
    pvInfo() << "Testing BufferUtils:writeToPvp(): ";
    testWriteToPvp();
+   pvInfo() << "Completed.\n";
+
+   pvInfo() << "Testing BufferUtils:readSparseFromPvp(): ";
+   testReadSparseFromPvp();
+   pvInfo() << "Completed.\n";
+   
+   pvInfo() << "Testing BufferUtils:writeSparseToPvp(): ";
+   testWriteSparseToPvp();
    pvInfo() << "Completed.\n";
 
    pvInfo() << "BufferUtils tests completed successfully!\n";

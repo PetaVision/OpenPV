@@ -8,6 +8,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
 
 set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/fileio.hpp
+   ${SUBDIR}/PrintStream.hpp
    ${SUBDIR}/FileStream.hpp
    ${SUBDIR}/imageio.hpp
    ${SUBDIR}/io.hpp

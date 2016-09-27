@@ -8,6 +8,7 @@
 #ifndef IO_HPP_
 #define IO_HPP_
 
+#include <string>
 #include <stdbool.h>
 #include <mpi/mpi.h>
 
@@ -98,7 +99,7 @@ int parse_options(int argc, char * argv[], bool * paramusage, bool * require_ret
  * if the input string needs to be free()'ed, the calling routine has that responsibility
  * as well.
  */
-char * expandLeadingTilde(char const * path);
+std::string expandLeadingTilde(char const * path);
 
 }  // end namespace PV
 
