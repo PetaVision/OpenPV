@@ -63,6 +63,10 @@ void FileStream::openFile(char const * path, std::ios_base::openmode mode) {
 void FileStream::verifyFlags() {
    pvErrorIf(mFStream.fail(), "fstream: Logical error.\n");
    pvErrorIf(mFStream.bad(), "fstream: Read / Write error.\n");
+   pvErrorIf(writeable() && getOutPos() == -1,
+         "fstream: out pos == -1\n");
+   pvErrorIf(readable() && getInPos() == -1,
+         "fstream: in pos == -1\n");
 }
 
 void FileStream::write(void *data, long length) {

@@ -135,21 +135,29 @@ void testReadSparseFromPvp() {
          "Failed on timeStamp. Expected time %f, found %f.\n",
          1.0, timeStamp);
 
+   pvErrorIf(list.getContents().size() != 12,
+         "Expected 12 values, found %d.\n", list.getContents().size());
+
    Buffer<float> buffer(5, 5, 1);
    list.toBuffer(buffer, 0.0f);
 
    vector<float> values = buffer.asVector();
 
+   pvDebug() << "\n";
+   for (int i = 0; i < expected.size(); ++i) {
+      pvDebug() << values.at(i) << " :: " <<  expected.at(i) << "\n";
+   }
+ 
    for (int i = 0; i < expected.size(); ++i) {
       pvErrorIf(values.at(i) != expected.at(i),
-            "Failed. Expected value %d, found %d.\n",
-            (int)expected.at(i), (int)values.at(i));
+            "Failed. Expected value %d at index %d, found %d.\n",
+            (int)expected.at(i), i, (int)values.at(i));
    }
 }
 
 
 void testWriteSparseToPvp() {
-
+   pvError() << "Failed. Not implemented.\n";
 }
 
 int main(int argc, char **argv) {

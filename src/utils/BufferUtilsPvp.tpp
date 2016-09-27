@@ -252,7 +252,7 @@ namespace PV {
                                                       frameWriteIndex);
          long frameOffset = table.frameStartOffsets.at(frameWriteIndex - 1)
                               + table.frameLengths.at(frameWriteIndex - 1);
-         fStream.setOutPos(frameOffset, false);
+         fStream.setOutPos(frameOffset, true);
          writeSparseFrame<T>(fStream, list, timeStamp); 
       }
 
@@ -282,7 +282,7 @@ namespace PV {
          }
  
          long frameOffset = table.frameStartOffsets.at(frameReadIndex);
-         fStream.setInPos(frameOffset, false);
+         fStream.setInPos(frameOffset, true);
          return readSparseFrame<T>(fStream, list);
       }
    }
