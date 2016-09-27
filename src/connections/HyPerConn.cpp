@@ -573,6 +573,7 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
 
 #ifdef PV_USE_CUDA
    ioParam_gpuGroupIdx(ioFlag);
+	 ioParam_updateWeightsGPU(ioFlag);
 #endif // PV_USE_CUDA
    // Weight sparsity
    ioParam_weightSparsity(ioFlag);
@@ -585,6 +586,11 @@ void HyPerConn::ioParam_gpuGroupIdx(enum ParamsIOFlag ioFlag) {
    if(receiveGpu){
       parent->parameters()->ioParamValue(ioFlag, name, "gpuGroupIdx", &gpuGroupIdx, gpuGroupIdx/*default*/, false/*warn if absent*/);
    }
+}
+
+void HyPerConn::ioParam_updateWeightsGPU(enum ParamsIOFlag ioFlag) {
+  parent->parameters()->ioParamValue(ioFlag, name, "updateWeightsGPU",
+                                     &updateWeightsGPUFlag, false, true);
 }
 #endif // PV_USE_CUDA
 
@@ -3261,6 +3267,16 @@ int HyPerConn::deliverPostsynapticPerspectiveGPU(PVLayerCube const * activity, i
 # endif
 
    return PV_SUCCESS;
+}
+
+int HyPerConn::calc_dWGPU() {
+  int status = PV_SUCCESS;
+  return status;
+}
+
+int HyPerConn::updateWeightsGPU(int arborId) {
+  int status = PV_SUCCESS;
+  return status;
 }
 #endif // PV_USE_CUDA 
 

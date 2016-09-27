@@ -842,6 +842,12 @@ protected:
     */
    virtual void ioParam_gpuGroupIdx(enum ParamsIOFlag ioFlag);
 
+	/**
+   * @brief updateWeightGPUFlag: update weight on GPU.
+	 */
+
+	virtual void ioParam_updateWeightsGPU(enum ParamsIOFlag ioFlag);
+
    // preDataLocal, numXLocal, numYLocal, and numFLocal were removed Sep 22, 2016.
 #endif // PV_USE_CUDA
 
@@ -931,6 +937,8 @@ protected:
 #ifdef PV_USE_CUDA
    virtual int deliverPresynapticPerspectiveGPU(PVLayerCube const * activity, int arborID);
    virtual int deliverPostsynapticPerspectiveGPU(PVLayerCube const * activity, int arborID);
+	virtual int calc_dWGPU();
+	virtual int updateWeightsGPU(int arborId);
 #endif // PV_USE_CUDA
 
    double getConvertToRateDeltaTimeFactor();
@@ -1000,7 +1008,7 @@ protected:
    PVCuda::CudaRecvPost* krRecvPost;        // Cuda kernel for update state call
    PVCuda::CudaRecvPre* krRecvPre;        // Cuda kernel for update state call
    int gpuGroupIdx;
-
+   bool updateWeightsGPUFlag;
 #endif // PV_USE_CUDA
 
 private:
