@@ -42,6 +42,7 @@ int PV_fseek(PV_Stream * pvstream, long int offset, int whence);
 size_t PV_fwrite(const void * RESTRICT ptr, size_t size, size_t nitems, PV_Stream * RESTRICT pvstream);
 size_t PV_fread(void * RESTRICT ptr, size_t size, size_t nitems, PV_Stream * RESTRICT pvstream);
 int PV_fclose(PV_Stream * pvstream);
+int ensureDirExists(Communicator * comm, char const * dirname);
 
 PV_Stream * pvp_open_read_file(const char * filename, Communicator * comm);
 
