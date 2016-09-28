@@ -22,7 +22,7 @@ namespace PV {
       int status = HyPerLayer::initialize(name, hc);
       if (mWriteFileToTimestamp) {
          std::string timestampFilename = std::string(parent->getOutputPath()) + std::string("/timestamps/");
-         parent->ensureDirExists(timestampFilename.c_str());
+         ensureDirExists(parent->getCommunicator(), timestampFilename.c_str());
          timestampFilename += name + std::string(".txt");
          if (getParent()->getCommunicator()->commRank() == 0) {
              //If checkpoint read is set, append, otherwise, clobber

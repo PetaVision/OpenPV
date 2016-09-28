@@ -187,18 +187,7 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
    char * working_dir = expandLeadingTilde(mPVInitObj->getWorkingDir());
    mWarmStart = mPVInitObj->getRestartFlag();
 
-#ifdef PVP_DEBUG
-   if (mPVInitObj->getRequireReturnFlag()) {
-      if( rank == 0 ) {
-         fflush(stdout);
-         printf("Hit enter to begin! ");
-         fflush(stdout);
-         int charhit = -1;
-         while(charhit != '\n') { charhit = getc(stdin); }
-      }
-      MPI_Barrier(mCommunicator->globalCommunicator());
-   }
-#endif // PVP_DEBUG
+   // Sep 27, 2016: handling --require-return has been moved to the Communicator constructor.
 
    mName = strdup(name);
    mRunTimer = new Timer(mName, "column", "run    ");
@@ -949,103 +938,7 @@ void HyPerCol::ioParam_errorOnNotANumber(enum ParamsIOFlag ioFlag) {
 }
 
 // Sep 26, 2016: HyPerCol methods for parameter input/output have been moved to PVParams.
-
-int HyPerCol::checkDirExists(const char * dirname, struct stat * pathstat) {
-   // check if the given directory name exists for the rank zero process
-   // the return value is zero if a successful stat(2) call and the error
-   // if unsuccessful.  pathstat contains the result of the buffer from the stat call.
-   // The rank zero process is the only one that calls stat(); it then Bcasts the
-   // result to the rest of the processes.
-   pvAssert(pathstat);
-
-   int rank = columnId();
-   int status;
-   int errorcode;
-   if( rank == 0 ) {
-      char * expandedDirName = expandLeadingTilde(dirname);
-      status = stat(dirname, pathstat);
-      free(expandedDirName);
-      if( status ) errorcode = errno;
-   }
-#ifdef PV_USE_MPI
-   MPI_Bcast(&status, 1, MPI_INT, 0, getCommunicator()->communicator());
-   if( status ) {
-      MPI_Bcast(&errorcode, 1, MPI_INT, 0, getCommunicator()->communicator());
-   }
-   MPI_Bcast(pathstat, sizeof(struct stat), MPI_CHAR, 0, getCommunicator()->communicator());
-#endif // PV_USE_MPI
-   return status ? errorcode : 0;
-}
-
-
-static inline int makeDirectory(const char *dir) {
-   mode_t dirmode = S_IRWXU | S_IRWXG | S_IRWXO;
-   char tmp[PV_PATH_MAX];
-   char *p = nullptr;
-   int status = 0;
-
-   int num_chars_needed = snprintf(tmp,sizeof(tmp),"%s",dir);
-   pvErrorIf(num_chars_needed > PV_PATH_MAX, "Path \"%s\" is too long.",dir);
-
-   int len = strlen(tmp);
-   if(tmp[len - 1] == '/')
-      tmp[len - 1] = 0;
-
-   for(p = tmp + 1; *p; p++)
-      if(*p == '/') {
-         *p = 0;
-         status |= mkdir(tmp, dirmode);
-         if(status != 0 && errno != EEXIST){
-            return status;
-         }
-         *p = '/';
-      }
-   status |= mkdir(tmp, dirmode);
-   if(errno == EEXIST){
-      status = 0;
-   }
-   return status;
-}
-
-int HyPerCol::ensureDirExists(const char * dirname) {
-   // see if path exists, and try to create it if it doesn't.
-   // Since only rank 0 process should be reading and writing, only rank 0 does the mkdir call
-   int rank = columnId();
-   struct stat pathstat;
-   int resultcode = checkDirExists(dirname, &pathstat);
-   if( resultcode == 0 ) { // mOutputPath exists; now check if it's a directory.
-      pvErrorIf(!(pathstat.st_mode & S_IFDIR ) && rank == 0, "Path \"%s\" exists but is not a directory\n", dirname);
-   }
-   else if( resultcode == ENOENT /* No such file or directory */ ) {
-      if( rank == 0 ) {
-         pvInfo().printf("Directory \"%s\" does not exist; attempting to create\n", dirname);
-
-         //Try up to 5 times until it works
-         int const numAttempts = 5;
-         for(int attemptNum = 0; attemptNum < numAttempts; attemptNum++){
-            int mkdirstatus = makeDirectory(dirname);
-            if( mkdirstatus != 0 ) {
-               if(attemptNum == numAttempts - 1){
-                  pvError().printf("Directory \"%s\" could not be created: %s; Exiting\n", dirname, strerror(errno));
-               }
-               else{
-                  getOutputStream().flush();
-                  pvWarn().printf("Directory \"%s\" could not be created: %s; Retrying %d out of %d\n", dirname, strerror(errno), attemptNum + 1, numAttempts);
-                  sleep(1);
-               }
-            }
-            else { break; }
-         }
-      }
-   }
-   else {
-      if( rank == 0 ) {
-         pvErrorNoExit().printf("Error checking status of directory \"%s\": %s\n", dirname, strerror(resultcode)); 
-      }
-      exit(EXIT_FAILURE);
-   }
-   return PV_SUCCESS;
-}
+// Sep 27, 2016: ensureDirExists has been moved to fileio.cpp.
 
 int HyPerCol::addLayer(HyPerLayer * layer)
 {
@@ -1596,7 +1489,7 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
       }
    }
 
-   ensureDirExists(cpDir);
+   ensureDirExists(getCommunicator(), cpDir);
    for( int l=0; l<mLayers.size(); l++ ) {
       mLayers.at(l)->checkpointWrite(cpDir);
    }
@@ -1731,7 +1624,7 @@ int HyPerCol::outputParams(char const * path) {
       pvError().printf("HyPerCol::outputParams unable to allocate memory: %s\n", strerror(errno));
    }
    char * containingdir = dirname(tmp);
-   status = ensureDirExists(containingdir); // must be called by all processes, even though only rank 0 creates the directory
+   status = ensureDirExists(getCommunicator(), containingdir); // must be called by all processes, even though only rank 0 creates the directory
    if (status != PV_SUCCESS) {
       pvErrorNoExit().printf("HyPerCol::outputParams unable to create directory \"%s\"\n", containingdir);
    }

@@ -329,7 +329,6 @@ public:
    int addNormalizer(NormalizeBase* normalizer);
    int addLayer(HyPerLayer* l);
    int advanceTime(double time);
-   int ensureDirExists(const char* dirname);
    int exitRunLoop(bool exitOnFinish);
    int insertProbe(ColProbe* p);
    int outputState(double time);

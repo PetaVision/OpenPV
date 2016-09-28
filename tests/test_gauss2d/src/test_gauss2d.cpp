@@ -72,7 +72,7 @@ int main(int argc, char * argv[])
    
    int status = 0;
 
-   hc->ensureDirExists(hc->getOutputPath());
+   ensureDirExists(hc->getCommunicator(), hc->getOutputPath());
 
    auto objectMap = hc->copyObjectMap();
    auto commMessagePtr = std::make_shared<CommunicateInitInfoMessage>(*objectMap);
