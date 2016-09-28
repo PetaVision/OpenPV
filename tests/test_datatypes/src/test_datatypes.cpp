@@ -29,18 +29,6 @@ int main(int argc, char * argv[])
    PV::PV_Init* initObj = new PV::PV_Init(&argc, &argv, true/*allowUnrecognizedArguments*/);
    PV::Communicator * comm = initObj->getCommunicator();
    
-   // Handling of requireReturn copied from HyPerCol::initialize, since this test doesn't create a HyPerCol.
-   if (initObj->getRequireReturnFlag()) {
-      if (comm->commRank()==0) {
-         fprintf(stdout, "Hit enter to begin! ");
-         fflush(stdout);
-         int charhit = -1;
-         while(charhit != '\n') {
-            charhit = getc(stdin);
-         }
-      }
-      MPI_Barrier(comm->globalCommunicator());
-   }
    int err = 0;
    PVLayerLoc loc;
 

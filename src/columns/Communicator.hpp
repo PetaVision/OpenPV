@@ -8,11 +8,11 @@
 #include <cstdio>
 #include <vector>
 #include "PV_Arguments.hpp"
-#include "../include/pv_arch.h"
-#include "../include/pv_types.h"
-#include "../utils/Timer.hpp"
+#include "include/pv_arch.h"
+#include "include/pv_types.h"
+#include "utils/Timer.hpp"
 
-#include "../arch/mpi/mpi.h"
+#include "arch/mpi/mpi.h"
 
 #define COMMNAME_MAXLENGTH 16
 

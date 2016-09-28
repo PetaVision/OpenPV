@@ -82,11 +82,6 @@ public:
    char const * getProgramName() const { return arguments->getProgramName(); }
 
    /**
-    * Returns true if the require-return flag was set; false otherwise.
-    */
-   bool getRequireReturnFlag() const { return arguments->getRequireReturnFlag(); }
-
-   /**
     * Returns the output path string.
     */
    char const * getOutputPath() const { return arguments->getOutputPath(); }
@@ -319,13 +314,6 @@ public:
     * The function should return a pointer of type BaseObject, created with the new operator.
     */
    int registerKeyword(char const * keyword, ObjectCreateFn creator);
-
-   /**
-    * The method to create an object (layer, connection, weight initializer, weight normalizer,
-    * or probe) based on keyword and name, and add it to the given HyPerLayer.
-    */
-   BaseObject * create(char const * keyword, char const * name, HyPerCol * hc) const;
-
 
    /**
     * Obsolete.  Use createHyPerCol defined in HyPerCol.cpp instead.

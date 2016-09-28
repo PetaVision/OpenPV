@@ -2,11 +2,11 @@
  * Communicator.cpp
  */
 
-#include <assert.h>
-#include <math.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+#include <cassert>
+#include <cmath>
+#include <cstdlib>
+#include <cstdio>
+#include <cstring>
 #include <iostream>
 
 #include "Communicator.hpp"
@@ -26,8 +26,6 @@ int Communicator::gcd ( int a, int b ){
 
 Communicator::Communicator(PV_Arguments * argumentList)
 {
-   float r;
-
    int totalSize;
    localIcComm = NULL;
    globalIcComm = NULL;
@@ -56,10 +54,10 @@ Communicator::Communicator(PV_Arguments * argumentList)
       numRows = (int) ceil(procsLeft / numCols);
    }
    if( !rowsDefined  && !colsDefined ) {
-      r = sqrtf(procsLeft);
+      double r = std::sqrt(procsLeft);
       numRows = (int) r;
       if(numRows == 0){
-         pvError() << "Not enough processes left, error\n";
+         pvError() << "Not enough processes left\n";
       }
       numCols = (int) ceil(procsLeft / numRows);
    }
@@ -83,11 +81,28 @@ Communicator::Communicator(PV_Arguments * argumentList)
       pvWarn() << "Global process rank " << globalRank << " is extra, as only " << commSize << " mpiProcesses are required. Process exiting\n";
       return;
    }
+#else // PV_USE_MPI
+   isExtra = 0;
+   globalIcComm = MPI_COMM_WORLD;
+#endif // PV_USE_MPI
+   //globalIcComm is now a communicator with only useful mpi processes
+
+   // If --require-return was set, wait until global root process gets keyboard input.
+   if (argumentList->getRequireReturnFlag()) {
+      fflush(stdout);
+      MPI_Barrier(globalIcComm);
+      if (globalRank == 0) {
+         std::printf("Hit enter to begin! ");
+         fflush(stdout);
+         int charhit = -1;
+         while (charhit != '\n') { charhit = std::getc(stdin); }
+      }
+      MPI_Barrier(globalIcComm);
+   }
+
+#ifdef PV_USE_MPI
    //Grab globalSize now that extra processes have been exited
    MPI_Comm_size(globalIcComm, &globalSize);
-
-
-   //globalIcComm is now a communicator with only useful mpi processes
    
    //Calculate the batch idx from global rank 
    int batchColIdx = commBatch(globalRank);
@@ -96,8 +111,6 @@ Communicator::Communicator(PV_Arguments * argumentList)
    //Make new local communicator
    MPI_Comm_split(globalIcComm, batchColIdx, localRank, &localIcComm);
 #else // PV_USE_MPI
-   isExtra = 0;
-   globalIcComm = MPI_COMM_WORLD;
    globalSize = 1;
    localRank = 0;
    localIcComm = MPI_COMM_WORLD;
@@ -107,7 +120,7 @@ Communicator::Communicator(PV_Arguments * argumentList)
 //      pvDebug().printf("[%2d]: Formed resized communicator, size==%d cols==%d rows==%d\n", icRank, icSize, numCols, numRows);
 //#endif // DEBUG_OUTPUT
 
-//Grab local rank and check for errors
+   //Grab local rank and check for errors
    int tmpLocalRank;
    MPI_Comm_size(localIcComm, &localSize);
    MPI_Comm_rank(localIcComm, &tmpLocalRank);
@@ -122,7 +135,6 @@ Communicator::Communicator(PV_Arguments * argumentList)
    if (globalSize > 0) {
       neighborInit();
    }
-
    MPI_Barrier(globalIcComm);
 }
 

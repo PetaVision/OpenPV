@@ -187,18 +187,7 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
    char * working_dir = expandLeadingTilde(mPVInitObj->getWorkingDir());
    mWarmStart = mPVInitObj->getRestartFlag();
 
-#ifdef PVP_DEBUG
-   if (mPVInitObj->getRequireReturnFlag()) {
-      if( rank == 0 ) {
-         fflush(stdout);
-         printf("Hit enter to begin! ");
-         fflush(stdout);
-         int charhit = -1;
-         while(charhit != '\n') { charhit = getc(stdin); }
-      }
-      MPI_Barrier(mCommunicator->globalCommunicator());
-   }
-#endif // PVP_DEBUG
+   // Sep 27, 2016: handling --require-return has been moved to the Communicator constructor.
 
    mName = strdup(name);
    mRunTimer = new Timer(mName, "column", "run    ");
