@@ -72,9 +72,9 @@ public:
          T * dataPtr, size_t dataSize, int dataType, PVLayerLoc const * layerLoc, bool extended) :
          CheckpointEntry(name, verifyingWritesFlag, communicator),
          mDataPointer(dataPtr), mDataSize(dataSize), mDataType(dataType), mLayerLoc(layerLoc), mExtended(extended) {}
-   CheckpointEntryPvp(std::string const& objName, std::string const& dataName,
+   CheckpointEntryPvp(std::string const& objName, std::string const& dataName, bool verifyingWritesFlag, Communicator * communicator,
          T * dataPtr, size_t dataSize, int dataType, PVLayerLoc const * layerLoc, bool extended) :
-         CheckpointEntry(objName, dataName),
+         CheckpointEntry(objName, dataName, verifyingWritesFlag, communicator),
          mDataPointer(dataPtr), mDataSize(dataSize), mDataType(dataType), mLayerLoc(layerLoc), mExtended(extended) {}
    virtual void write(std::string const& checkpointDirectory, double simTime) const override;
    virtual void read(std::string const& checkpointDirectory, double * simTimePtr) const override;
