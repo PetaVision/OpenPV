@@ -188,57 +188,7 @@ int PV_Init::registerKeyword(char const * keyword, ObjectCreateFn creator) {
    return status;
 }
 
-#ifdef OBSOLETE // Marked obsolete Jul 19, 2016.  Use hc=createHyPerCol(pv_init_ptr) instead of hc=pv_init_ptr->build().
-HyPerCol * PV_Init::build() {
-   HyPerCol * hc = new HyPerCol("column", this);
-   if( hc == NULL ) {
-      pvErrorNoExit().printf("Unable to create HyPerCol\n");
-      return NULL;
-   }
-   PVParams * hcparams = hc->parameters();
-   int numGroups = hcparams->numberOfGroups();
-
-   // Make sure first group defines a column
-   if( strcmp(hcparams->groupKeywordFromIndex(0), "HyPerCol") ) {
-      pvErrorNoExit().printf("First group in the params file did not define a HyPerCol.\n");
-      delete hc;
-      return NULL;
-   }
-
-   for (int k=0; k<numGroups; k++) {
-      const char * kw = hcparams->groupKeywordFromIndex(k);
-      const char * name = hcparams->groupNameFromIndex(k);
-      if (!strcmp(kw, "HyPerCol")) {
-         if (k==0) { continue; }
-         else {
-            if (hc->columnId()==0) {
-               pvErrorNoExit().printf("Group %d in params file (\"%s\") is a HyPerCol; the HyPerCol must be the first group.\n",
-                       k+1, name);
-            }
-            delete hc;
-            return NULL;
-         }
-      }
-      else {
-         BaseObject * addedObject = factory->create(kw, name, hc);
-         if (addedObject==NULL) {
-            if (hc->globalRank()==0) {
-               pvErrorNoExit().printf("Unable to create %s \"%s\".\n", kw, name);
-            }
-            delete hc;
-            return NULL;
-         }
-      }
-   }
-
-   if( hc->numberOfLayers() == 0 ) {
-      pvErrorNoExit().printf("HyPerCol \"%s\" does not have any layers.\n", hc->getName());
-      delete hc;
-      return NULL;
-   }
-   return hc;
-}
-#endif // OBSOLETE // Marked obsolete Jul 19, 2016.  Use hc=createHyPerCol(pv_init_ptr) instead of hc=pv_init_ptr->build().
+// PV_Init::build() was marked obsolete Jul 19, 2016 and deleted Sep 27, 2016. Use hc=createHyPerCol(pv_init_ptr) instead of hc=pv_init_ptr->build().
 
 int PV_Init::commFinalize()
 {

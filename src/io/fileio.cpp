@@ -418,6 +418,100 @@ int PV_fclose(PV_Stream * pvstream) {
    return status;
 }
 
+int checkDirExists(Communicator *comm, const char * dirname, struct stat * pathstat) {
+   // check if the given directory name exists for the rank zero process
+   // the return value is zero if a successful stat(2) call and the error
+   // if unsuccessful.  pathstat contains the result of the buffer from the stat call.
+   // The rank zero process is the only one that calls stat(); it then Bcasts the
+   // result to the rest of the processes.
+   pvAssert(pathstat);
+
+   int rank = comm->commRank();
+   int status;
+   int errorcode;
+   if( rank == 0 ) {
+      char * expandedDirName = strdup(expandLeadingTilde(dirname).c_str());
+      status = stat(dirname, pathstat);
+      free(expandedDirName);
+      if( status ) errorcode = errno;
+   }
+#ifdef PV_USE_MPI
+   MPI_Bcast(&status, 1, MPI_INT, 0, comm->communicator());
+   if( status ) {
+      MPI_Bcast(&errorcode, 1, MPI_INT, 0, comm->communicator());
+   }
+   MPI_Bcast(pathstat, sizeof(struct stat), MPI_CHAR, 0, comm->communicator());
+#endif // PV_USE_MPI
+   return status ? errorcode : 0;
+}
+
+static inline int makeDirectory(char const *dir) {
+   mode_t dirmode = S_IRWXU | S_IRWXG | S_IRWXO;
+   int status = 0;
+
+   char * workingDir = strdup(dir);
+   pvErrorIf(workingDir==nullptr, "makeDirectory: unable to duplicate path \"%s\".",dir);
+
+   int len = strlen(workingDir);
+   if(workingDir[len - 1] == '/')
+      workingDir[len - 1] = '\0';
+
+   for(char * p = workingDir + 1; *p; p++)
+      if(*p == '/') {
+         *p = '\0';
+         status |= mkdir(workingDir, dirmode);
+         if(status != 0 && errno != EEXIST){
+            return status;
+         }
+         *p = '/';
+      }
+   status |= mkdir(workingDir, dirmode);
+   if(errno == EEXIST){
+      status = 0;
+   }
+   return status;
+}
+
+int ensureDirExists(Communicator * comm, char const * dirname) {
+   // see if path exists, and try to create it if it doesn't.
+   // Since only rank 0 process should be reading and writing, only rank 0 does the mkdir call
+   int rank = comm->commRank();
+   struct stat pathstat;
+   int resultcode = checkDirExists(comm, dirname, &pathstat);
+   if( resultcode == 0 ) { // mOutputPath exists; now check if it's a directory.
+      pvErrorIf(!(pathstat.st_mode & S_IFDIR ) && rank == 0, "Path \"%s\" exists but is not a directory\n", dirname);
+   }
+   else if( resultcode == ENOENT /* No such file or directory */ ) {
+      if( rank == 0 ) {
+         pvInfo().printf("Directory \"%s\" does not exist; attempting to create\n", dirname);
+
+         //Try up to 5 times until it works
+         int const numAttempts = 5;
+         for(int attemptNum = 0; attemptNum < numAttempts; attemptNum++){
+            int mkdirstatus = makeDirectory(dirname);
+            if( mkdirstatus != 0 ) {
+               if(attemptNum == numAttempts - 1){
+                  pvError().printf("Directory \"%s\" could not be created: %s; Exiting\n", dirname, strerror(errno));
+               }
+               else{
+                  getOutputStream().flush();
+                  pvWarn().printf("Directory \"%s\" could not be created: %s; Retrying %d out of %d\n", dirname, strerror(errno), attemptNum + 1, numAttempts);
+                  sleep(1);
+               }
+            }
+            else { break; }
+         }
+      }
+   }
+   else {
+      if( rank == 0 ) {
+         pvErrorNoExit().printf("Error checking status of directory \"%s\": %s\n", dirname, strerror(resultcode)); 
+      }
+      exit(EXIT_FAILURE);
+   }
+   return PV_SUCCESS;
+}
+
 /**
  * Gets the number of patches for the given PVLayerLoc, in a non-shared weight context.
  * The return value is the number of patches for the global column (i.e. not a particular MPI process)
