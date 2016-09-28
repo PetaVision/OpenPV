@@ -119,39 +119,39 @@ void testWriteToPvp() {
 }
 
 void testReadSparseFromPvp() {
-   vector<float> expected = {
-      0,  1,  0,  2,  0,
-      3,  0,  4,  0,  5,
-      0,  6,  0,  7,  0,
-      8,  0,  9,  0,  10,
-      0,  11, 0,  12, 0
-   };
-   
-   SparseList<float> list;
-   double timeStamp = BufferUtils::readSparseFromPvp("input/sparse_5x5x1_x1.pvp",
-                                        &list,
-                                        0);
-   pvErrorIf(timeStamp != 1,
-         "Failed on timeStamp. Expected time %f, found %f.\n",
-         1.0, timeStamp);
-
-   pvErrorIf(list.getContents().size() != 12,
-         "Expected 12 values, found %d.\n", list.getContents().size());
-
-   Buffer<float> buffer(5, 5, 1);
-   list.toBuffer(buffer, 0.0f);
-
-   vector<float> values = buffer.asVector();
-
-   pvDebug() << "\n";
-   for (int i = 0; i < expected.size(); ++i) {
-      pvDebug() << values.at(i) << " :: " <<  expected.at(i) << "\n";
+   vector<float> expected(5 * 5 * 5);
+   float val = 1.0f;
+   for (int f = 0; f < 5; ++f) {
+      for (int i = 0; i < 5 * 5; ++i) {
+         if (i % 2 == 0) {
+            expected.at(i + f * 5 * 5) = val++;
+         }
+      }
    }
- 
-   for (int i = 0; i < expected.size(); ++i) {
-      pvErrorIf(values.at(i) != expected.at(i),
-            "Failed. Expected value %d at index %d, found %d.\n",
-            (int)expected.at(i), i, (int)values.at(i));
+  
+   for (int f = 0; f < 5; ++f) {
+      SparseList<float> list;
+      double timeStamp = BufferUtils::readSparseFromPvp("input/sparse_5x5x1_x5.pvp",
+                                           &list,
+                                           f);
+      pvErrorIf((int)timeStamp != f + 1,
+            "Failed on timeStamp. Expected time %d, found %d.\n",
+            f + 1, (int)timeStamp);
+
+      pvErrorIf(list.getContents().size() != 13,
+            "Expected 13 values, found %d.\n", list.getContents().size());
+
+      Buffer<float> buffer(5, 5, 1);
+      list.toBuffer(buffer, 0.0f);
+
+      vector<float> values = buffer.asVector();
+
+     int frameOffset = f * 5 * 5; 
+     for (int i = 0; i < values.size(); ++i) {
+         pvErrorIf(values.at(i) != expected.at(i + frameOffset),
+               "Failed. Expected value %d at index %d, found %d.\n",
+               (int)expected.at(i + frameOffset), i, (int)values.at(i));
+      }
    }
 }
 
