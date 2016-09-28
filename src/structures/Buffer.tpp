@@ -30,7 +30,7 @@ Buffer<T>::Buffer(const T *data, int width, int height, int features) {
 }
 
 template <class T> 
-T Buffer<T>::at(int x, int y, int feature) {
+const T Buffer<T>::at(int x, int y, int feature) const {
    return mData.at(index(x, y, feature));
 }
 

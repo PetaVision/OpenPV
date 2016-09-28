@@ -118,7 +118,8 @@ void testWriteToPvp() {
    }
 }
 
-void testReadSparseFromPvp() {
+void testSparseFile(const char *fName) {
+   // This loop recreates the values in the input pvp file
    vector<float> expected(5 * 5 * 5);
    float val = 1.0f;
    for (int f = 0; f < 5; ++f) {
@@ -131,12 +132,12 @@ void testReadSparseFromPvp() {
   
    for (int f = 0; f < 5; ++f) {
       SparseList<float> list;
-      double timeStamp = BufferUtils::readSparseFromPvp("input/sparse_5x5x1_x5.pvp",
+      double timeStamp = BufferUtils::readSparseFromPvp(fName,
                                            &list,
                                            f);
       pvErrorIf((int)timeStamp != f + 1,
-            "Failed on timeStamp. Expected time %d, found %d.\n",
-            f + 1, (int)timeStamp);
+            "Failed on frame %d timeStamp. Expected time %d, found %d.\n",
+            (int)f, f + 1, (int)timeStamp);
 
       pvErrorIf(list.getContents().size() != 13,
             "Expected 13 values, found %d.\n", list.getContents().size());
@@ -147,18 +148,41 @@ void testReadSparseFromPvp() {
       vector<float> values = buffer.asVector();
 
      int frameOffset = f * 5 * 5; 
+     
      for (int i = 0; i < values.size(); ++i) {
          pvErrorIf(values.at(i) != expected.at(i + frameOffset),
-               "Failed. Expected value %d at index %d, found %d.\n",
-               (int)expected.at(i + frameOffset), i, (int)values.at(i));
+               "Failed on frame %d. Expected value %d at index %d, found %d.\n",
+               f, (int)expected.at(i + frameOffset), i, (int)values.at(i));
       }
    }
 }
 
+void testReadSparseFromPvp() {
+   testSparseFile("input/sparse_5x5x1_x5.pvp");
+}
+
 
 void testWriteSparseToPvp() {
-   pvError() << "Failed. Not implemented.\n";
-}
+   vector<float> output(5 * 5, 0.0f);
+   float val = 1.0f;
+   for (int f = 0; f < 5; ++f) {
+      for (int i = 0; i < 5 * 5; ++i) {
+         if (i % 2 == 0) {
+            output.at(i) = val++; 
+         }
+      }
+      Buffer<float> dense(output, 5, 5, 1);
+      SparseList<float> list;
+      list.fromBuffer(dense, 0.0f);
+      if (f == 0) {
+         BufferUtils::writeSparseToPvp<float>("sparse.pvp", &list, 1.0, 5, 5, 1);
+      } else {
+         BufferUtils::appendSparseToPvp<float>("sparse.pvp", &list, 1.0 + (double)f, f);
+      }
+   }
+   
+   testSparseFile("sparse.pvp");
+ }
 
 int main(int argc, char **argv) {
 

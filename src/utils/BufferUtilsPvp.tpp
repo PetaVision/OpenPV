@@ -44,7 +44,8 @@ namespace PV {
       vector<int> buildHeader(int width,
                               int height,
                               int features,
-                              int numFrames) {
+                              int numFrames,
+                              bool isSparse) {
          vector<int> header(NUM_BIN_PARAMS);
          header.at(INDEX_HEADER_SIZE) = header.size() * sizeof(int);
          header.at(INDEX_FILE_TYPE)   = PVP_NONSPIKING_ACT_FILE_TYPE;
@@ -53,7 +54,9 @@ namespace PV {
          header.at(INDEX_NF)          = features;
          header.at(INDEX_NUM_RECORDS) = 1;
          header.at(INDEX_RECORD_SIZE) = width * height * features;
-         header.at(INDEX_DATA_SIZE)   = sizeof(T);
+         header.at(INDEX_DATA_SIZE)   = isSparse
+                                        ? sizeof(struct SparseList<T>::Entry)
+                                        : sizeof(T);
          header.at(INDEX_DATA_TYPE)   = PV_FLOAT_TYPE; // TODO: How to template this?
          header.at(INDEX_NX_PROCS)    = 1;
          header.at(INDEX_NY_PROCS)    = 1;
@@ -96,7 +99,8 @@ namespace PV {
          writeHeader(fStream, buildHeader<T>(buffer->getWidth(),
                                              buffer->getHeight(),
                                              buffer->getFeatures(),
-                                             1));
+                                             1,
+                                             false));
          writeFrame<T>(fStream, buffer, timeStamp);
       }
       
@@ -155,11 +159,15 @@ namespace PV {
       template <typename T>
       void writeSparseFrame(FileStream &fStream,
                             SparseList<T> *list,
-                            double timestamp) {
+                            double timeStamp) {
          size_t dataSize = sizeof(struct SparseList<T>::Entry);
          vector<struct SparseList<T>::Entry> contents = list->getContents();
-         fStream.write(&timestamp, sizeof(double));
-         fStream.write(contents.data(), contents.size() * dataSize);
+         int numElements = contents.size();
+         fStream.write(&timeStamp,   sizeof(double));
+         fStream.write(&numElements, sizeof(int));
+         if (numElements > 0) {
+            fStream.write(contents.data(), contents.size() * dataSize);
+         }
       }
 
       // Reads a sparse frame (with values) from the current
@@ -203,14 +211,16 @@ namespace PV {
          result.frameStartOffsets.resize(upToIndex+1, 0);
 
          for (int f = 0; f < upToIndex+1; ++f) {
-            double   timeStamp        = 0;
-            int      frameLength      = 0;
-            long frameStartOffset = fStream.getInPos();
+            double timeStamp        = 0;
+            int    frameLength      = 0;
+            long   frameStartOffset = fStream.getInPos();
             fStream.read(&timeStamp,   sizeof(double));
             fStream.read(&frameLength, sizeof(int));
             result.frameLengths.at(f)      = frameLength;
             result.frameStartOffsets.at(f) = frameStartOffset;
-            fStream.setInPos(frameLength * dataSize, false);
+            if (f < upToIndex) {
+               fStream.setInPos(frameLength * dataSize, false);
+            }
          }
          return result;
       }
@@ -229,7 +239,8 @@ namespace PV {
          writeHeader(fStream, buildHeader<T>(width,
                                              height,
                                              features,
-                                             1));
+                                             1,
+                                             true));
          writeSparseFrame<T>(fStream, list, timeStamp); 
       }
 
@@ -249,9 +260,11 @@ namespace PV {
          writeHeader(fStream, header);
  
          SparseFileTable table = buildSparseFileTable(fStream,
-                                                      frameWriteIndex);
+                                                      frameWriteIndex - 1);
          long frameOffset = table.frameStartOffsets.at(frameWriteIndex - 1)
-                              + table.frameLengths.at(frameWriteIndex - 1);
+                          + table.frameLengths.at(frameWriteIndex - 1)
+                          * header.at(INDEX_DATA_SIZE)
+                          + sizeof(double) + sizeof(int); // Time / numElements
          fStream.setOutPos(frameOffset, true);
          writeSparseFrame<T>(fStream, list, timeStamp); 
       }

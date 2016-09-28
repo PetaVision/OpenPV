@@ -19,9 +19,9 @@ namespace PV {
       // a sparse pvp file from start to finish every time
       // we want to load data from it.
       struct SparseFileTable {
-        vector<uint64_t> frameStartOffsets;
-        vector<int>      frameLengths;
-        bool             valuesIncluded;
+        vector<long> frameStartOffsets;
+        vector<long> frameLengths;
+        bool         valuesIncluded;
       }; 
 
       template <typename T>
@@ -35,7 +35,8 @@ namespace PV {
       static vector<int> buildHeader(int width,
                                      int height,
                                      int features,
-                                     int numFrames);
+                                     int numFrames,
+                                     bool isSparse);
       template <typename T>
       static void writeToPvp(const char *fName,
                              Buffer<T> *buffer,

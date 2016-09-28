@@ -57,23 +57,23 @@ void FileStream::openFile(char const * path, std::ios_base::openmode mode) {
       pvWarn() << "FileStream::openFile succeeded for \"" << fullPath
                << "\" on attempt " << attempts+1 << "\n";
    }
-   verifyFlags();
+   verifyFlags("openFile");
 }
 
-void FileStream::verifyFlags() {
-   pvErrorIf(mFStream.fail(), "fstream: Logical error.\n");
-   pvErrorIf(mFStream.bad(), "fstream: Read / Write error.\n");
+void FileStream::verifyFlags(const char *caller) {
+   pvErrorIf(mFStream.fail(), "%s: Logical error.\n", caller);
+   pvErrorIf(mFStream.bad(), "%s: Read / Write error.\n", caller);
    pvErrorIf(writeable() && getOutPos() == -1,
-         "fstream: out pos == -1\n");
+         "%s: out pos == -1\n", caller);
    pvErrorIf(readable() && getInPos() == -1,
-         "fstream: in pos == -1\n");
+         "%s: in pos == -1\n", caller);
 }
 
 void FileStream::write(void *data, long length) {
    mFStream.write((char*)data, length);
    // TODO: Verify writes
    mFStream.flush();
-   verifyFlags();
+   verifyFlags("write");
 }
 
 void FileStream::read(void *data, long length) {
@@ -85,21 +85,25 @@ void FileStream::read(void *data, long length) {
          "Expected to read %d  bytes, read %d instead.\n"
          "Read position: %d\n",
          length, numRead, getInPos());
-   verifyFlags();
+   verifyFlags("read");
 }
 
 void FileStream::setOutPos(long pos, bool fromBeginning) {
-   mFStream.seekp(pos, fromBeginning
-                     ? std::ios_base::beg
-                     : std::ios_base::cur);
-   verifyFlags();
+   if (!fromBeginning) {
+      mFStream.seekp(pos, std::ios_base::cur);
+   } else {
+      mFStream.seekp(pos);
+   }
+   verifyFlags("setOutPos");
 }
 
 void FileStream::setInPos(long pos, bool fromBeginning) {
-   mFStream.seekg(pos, fromBeginning
-                     ? std::ios_base::beg
-                     : std::ios_base::cur);
-   verifyFlags();
+   if (!fromBeginning) {
+      mFStream.seekg(pos, std::ios_base::cur);
+   } else {
+      mFStream.seekg(pos);
+   }
+   verifyFlags("setInPos");
 }
 
 long FileStream::getOutPos() {

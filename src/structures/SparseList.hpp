@@ -32,8 +32,9 @@ namespace PV {
                   for (int f = 0; f < source.getFeatures(); ++f) {
                      T val = source.at(x, y, f);
                      if (val != zeroVal) {
-                        mList.push_back({index++, val});
+                        mList.push_back({index, val});
                      }
+                     index++;
                   }
                }
             }

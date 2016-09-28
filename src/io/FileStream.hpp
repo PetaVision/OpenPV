@@ -27,14 +27,14 @@ class FileStream : public PrintStream {
       void read(void *data, long length);
       void setOutPos(long pos, bool fromBeginning);
       void setInPos(long pos, bool fromBeginning);
-      void verifyFlags();
       long getOutPos();
       long getInPos();
       protected:
       FileStream() {}
+      void verifyFlags(const char *caller);
 
    private:
-      void openFile(char const * path, std::ios_base::openmode mode);
+      void openFile(char const *path, std::ios_base::openmode mode);
       void closeFile();
 
    private:
