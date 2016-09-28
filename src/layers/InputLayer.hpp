@@ -63,9 +63,6 @@ namespace PV {
          // If this is <= 0 or inputPath does not end in .txt, assumes the input is a single file and will not change.
          virtual void ioParam_displayPeriod(enum ParamsIOFlag ioFlag);
 
-         // echoFramePathnameFlag: if true, print the filename when a new file is loaded.
-         virtual void ioParam_echoFramePathnameFlag(enum ParamsIOFlag ioFlag);
-
          // start_frame_index: Array specifying the file indices to start at.
          // If displayPeriod <= 0, this determines which index from the file list will be used.
          virtual void ioParam_start_frame_index(enum ParamsIOFlag ioFlag);
@@ -189,7 +186,7 @@ namespace PV {
          // Path to input file or list of input files
          std::string mInputPath;
 
-         // Filepointer to output file used when mEchoFramePathnameFlag == true
+         // Filepointer to output file used when mWriteFrameToTimestamp == true
          PV_Stream* mTimestampFile = nullptr;
          
          // Number of timesteps an input file is displayed before advancing the file list. If <= 0, the file never changes.
@@ -198,14 +195,11 @@ namespace PV {
          // Automatically set if the inputPath ends in .txt. Determines whether this layer represents a collection of files.
          bool mUsingFileList = false;
          
-         // if true, echo the frame pathname to output stream
-         bool mEchoFramePathnameFlag = false;          
-         
          // When reaching the end of the file list, do we reset to 0 or to start_index?
          bool mResetToStartOnLoop = true;
 
          // Flag to write filenames and batch indices to disk as they are loaded
-         bool mWriteFileToTimestamp = true;
+         bool mWriteFrameToTimestamp = true;
 
          // An array of starting file list indices, one per batch
          std::vector<int> mStartFrameIndex;

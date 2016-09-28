@@ -52,6 +52,7 @@ MoviePvpTestLayer "inputByImage" = {
     offsetAnchor = "tl";
     batchMethod = "byFile";
     displayPeriod = 1;
+    writeFrameToTimestamp = true;
 };
 
 MoviePvpTestLayer "inputByMovie" = {
