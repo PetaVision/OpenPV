@@ -25,6 +25,7 @@ endif("${PV_SYSTEM_TEST_THREADS}" MATCHES "^([0-9]+|)$")
 # Unit tests for individual classes happen first. If these fail, the rest of the results are unreliable.
 add_subdirectory(BatchIndexerTest)
 add_subdirectory(BufferTest)
+add_subdirectory(CheckpointEntryTest)
 add_subdirectory(ImageTest)
 
 # System tests that involve starting up a full instance of PetaVision happen next.
