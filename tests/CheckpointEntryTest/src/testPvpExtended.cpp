@@ -71,5 +71,5 @@ void testPvpExtended(PV::Communicator * comm, std::string const& directory) {
             comm->commRank(), k, (double) checkpointData.at(k), (double) correctValue);
    }
    MPI_Barrier(comm->communicator());
-   pvInfo() << "testDataPvpRestricted passed.\n";
+   pvInfo() << "testDataPvpExtended passed.\n";
 }

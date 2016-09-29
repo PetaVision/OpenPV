@@ -18,9 +18,9 @@ class CheckpointEntry {
       CheckpointEntry(std::string const& name, Communicator * communicator) :
             mName(name), mCommunicator(communicator) {}
       CheckpointEntry(std::string const& objName, std::string const& dataName, Communicator * communicator) {
-         std::string key(objName);
-         if (!(objName.empty() || dataName.empty())) { key.append("_"); }
-         key.append(dataName);
+         mName = objName;
+         if (!(objName.empty() || dataName.empty())) { mName.append("_"); }
+         mName.append(dataName);
          mCommunicator = communicator;
       }
       virtual void write(std::string const& checkpointDirectory, double simTime, bool verifyWritesFlag) const {return;}
