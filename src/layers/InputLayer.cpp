@@ -137,10 +137,7 @@ namespace PV {
                                << ", batch: " << b+kb0
                                << ", index: " << batchIndices.at(b) << "\n";
                }
-               else {
-                  outStrStream << time << "," << b+kb0 << "," << batchIndices.at(b) << "\n";
-               }
-            }
+           }
             size_t len = outStrStream.str().length();
             pvErrorIf (PV_fwrite(outStrStream.str().c_str(), sizeof(char), len, mTimestampFile) != len,
                   "%s: InputLayer::updateState failed to write to timestamp file.\n", getDescription_c());
