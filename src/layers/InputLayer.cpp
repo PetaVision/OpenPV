@@ -21,7 +21,16 @@ namespace PV {
 
    int InputLayer::initialize(const char * name, HyPerCol * hc) {
       int status = HyPerLayer::initialize(name, hc);
-      if (mWriteFileToTimestamp) {
+      return status;
+   }
+
+   int InputLayer::allocateDataStructures() {
+      int status = HyPerLayer::allocateDataStructures();
+      if (status != PV_SUCCESS) {
+         return status;
+      }
+
+      if (mWriteFrameToTimestamp) {
          std::string timestampFilename = std::string(parent->getOutputPath()) + std::string("/timestamps/");
          ensureDirExists(parent->getCommunicator(), timestampFilename.c_str());
          timestampFilename += name + std::string(".txt");
@@ -44,15 +53,7 @@ namespace PV {
              pvAssert(mTimestampFile);
          }
       }
-      return status;
-   }
-
-   int InputLayer::allocateDataStructures() {
-      int status = HyPerLayer::allocateDataStructures();
-      if (status != PV_SUCCESS) {
-         return status;
-      }
-
+ 
       int numBatch = parent->getNBatch();
  
       if (parent->columnId() == 0) {
@@ -123,7 +124,18 @@ namespace PV {
             std::vector<int> batchIndices = mBatchIndexer->getIndices();
             for (int b = 0; b < parent->getNBatch(); ++b) {
                if (mUsingFileList) {
-                  outStrStream << time << "," << b+kb0 << "," << batchIndices.at(b) << "," << mFileList.at(batchIndices.at(b)) << "\n";
+                  outStrStream << "[" << getName()
+                               << "] time: " << time
+                               << ", batch: " << b+kb0
+                               << ", index: " << batchIndices.at(b)
+                               << "," << mFileList.at(batchIndices.at(b))
+                               << "\n";
+               }
+               else {
+                  outStrStream << "[" << getName()
+                               << "] time: " << time
+                               << ", batch: " << b+kb0
+                               << ", index: " << batchIndices.at(b) << "\n";
                }
                else {
                   outStrStream << time << "," << b+kb0 << "," << batchIndices.at(b) << "\n";
@@ -131,7 +143,7 @@ namespace PV {
             }
             size_t len = outStrStream.str().length();
             pvErrorIf (PV_fwrite(outStrStream.str().c_str(), sizeof(char), len, mTimestampFile) != len,
-                  "%s: Movie::updateState failed to write to timestamp file.\n", getDescription_c());
+                  "%s: InputLayer::updateState failed to write to timestamp file.\n", getDescription_c());
             fflush(mTimestampFile->fp);
          }
 
@@ -397,7 +409,7 @@ namespace PV {
       }
       free(frameNumbers);
       
-      if (mWriteFileToTimestamp) {
+      if (mWriteFrameToTimestamp) {
          long timestampFilePos = 0L;
          parent->readScalarFromFile(cpDir, getName(), "TimestampState", &timestampFilePos, timestampFilePos);
          if (mTimestampFile) {
@@ -421,7 +433,7 @@ namespace PV {
       }
       
       //Only do a checkpoint TimestampState if there exists a timestamp file
-      if (mWriteFileToTimestamp && mTimestampFile) {
+      if (mWriteFrameToTimestamp && mTimestampFile) {
          long timestampFilePos = getPV_StreamFilepos(mTimestampFile);
          parent->writeScalarToFile(cpDir, getName(), "TimestampState", timestampFilePos);
       }
@@ -762,7 +774,7 @@ namespace PV {
    }
 
    void InputLayer::ioParam_writeFrameToTimestamp(enum ParamsIOFlag ioFlag) {
-      parent->parameters()->ioParamValue(ioFlag, name, "writeFrameToTimestamp", &mWriteFileToTimestamp, mWriteFileToTimestamp);
+      parent->parameters()->ioParamValue(ioFlag, name, "writeFrameToTimestamp", &mWriteFrameToTimestamp, mWriteFrameToTimestamp);
    }
 
    void InputLayer::ioParam_resetToStartOnLoop(enum ParamsIOFlag ioFlag) {

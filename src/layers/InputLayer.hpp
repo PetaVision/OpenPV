@@ -187,7 +187,7 @@ namespace PV {
          // Path to input file or list of input files
          std::string mInputPath;
 
-         // Filepointer to output file used when mWriteFileToTimestamp == true
+         // Filepointer to output file used when mWriteFrameToTimestamp == true
          PV_Stream* mTimestampFile = nullptr;
          
          // Number of timesteps an input file is displayed before advancing the file list. If <= 0, the file never changes.
@@ -200,7 +200,7 @@ namespace PV {
          bool mResetToStartOnLoop = true;
 
          // Flag to write filenames and batch indices to disk as they are loaded
-         bool mWriteFileToTimestamp = true;
+         bool mWriteFrameToTimestamp = true;
 
          // An array of starting file list indices, one per batch
          std::vector<int> mStartFrameIndex;
