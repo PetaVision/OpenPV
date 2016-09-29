@@ -104,7 +104,6 @@ int HyPerCol::initialize_base() {
    mWarmStart = false;
    mReadyFlag = false;
    mParamsProcessedFlag = false;
-   mCurrentStep = 0;
    mNumPhases = 0;
    mCheckpointReadFlag = false;
    mCheckpointWriteFlag = false;
@@ -125,7 +124,6 @@ int HyPerCol::initialize_base() {
    mSuppressLastOutput = false;
    mSuppressNonplasticCheckpoints = false;
    mCheckpointIndexWidth = -1; // defaults to automatically determine index width
-   mSimTime = 0.0;
    mStartTime = 0.0;
    mStopTime = 0.0;
    mDeltaTime = DEFAULT_DELTA_T;
@@ -232,6 +230,8 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
    }
 
    mRandomSeed = mPVInitObj->getRandomSeed();
+
+   mSecretary = new Secretary(std::string(mName), mCommunicator);
    ioParams(PARAMS_IO_READ);
    mCheckpointSignal = 0;
    mSimTime = mStartTime;
@@ -418,6 +418,7 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_stopTime(ioFlag);
    ioParam_progressInterval(ioFlag);
    ioParam_writeProgressToErr(ioFlag);
+   mSecretary->ioParamsFillGroup(ioFlag, parameters());
    ioParam_verifyWrites(ioFlag);
    ioParam_outputPath(ioFlag);
    ioParam_printParamsFilename(ioFlag);
@@ -960,6 +961,9 @@ int HyPerCol::addNormalizer(NormalizeBase * normalizer) {
    return PV_SUCCESS; //Why does this return success when the other add functions return an index?
 }
 
+int HyPerCol::registerData(Secretary * secretary, std::string const& name) {
+}
+
   // typically called by buildandrun via HyPerCol::run()
 int HyPerCol::run(double start_time, double stop_time, double dt)
 {
@@ -1010,6 +1014,9 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
          sprintf(tmpStr, "phRecv%d", phase);
          mPhaseRecvTimers.push_back(new Timer(mName, "column", tmpStr));
       }
+
+      registerData(mSecretary, std::string(mName));
+      notify(std::make_shared<RegisterDataMessage<Secretary> >(mSecretary));
 
    #ifdef DEBUG_OUTPUT
       if (columnId() == 0) {
@@ -1385,32 +1392,7 @@ bool HyPerCol::advanceCPWriteTime() {
 }
 
 int HyPerCol::checkpointRead() {
-   struct timestamp_struct {
-      double time; // time measured in units of dt
-      long int step; // step number, usually time/dt
-   };
-   struct timestamp_struct timestamp;
-   size_t timestamp_size = sizeof(struct timestamp_struct);
-   assert(sizeof(struct timestamp_struct) == sizeof(long int) + sizeof(double));
-   if( columnId()==0 ) {
-      char timestamppath[PV_PATH_MAX];
-      int chars_needed = snprintf(timestamppath, PV_PATH_MAX, "%s/timeinfo.bin", mCheckpointReadDir);
-      if (chars_needed >= PV_PATH_MAX) {
-         pvError().printf("HyPerCol::checkpointRead error: path \"%s/timeinfo.bin\" is too long.\n", mCheckpointReadDir);
-      }
-      PV_Stream * timestampfile = PV_fopen(timestamppath,"r",false/*mVerifyWrites*/);
-      if (timestampfile == nullptr) {
-         pvError().printf("HyPerCol::checkpointRead error: unable to open \"%s\" for reading.\n", timestamppath);
-      }
-      long int startpos = getPV_StreamFilepos(timestampfile);
-      PV_fread(&timestamp,1,timestamp_size,timestampfile);
-      long int endpos = getPV_StreamFilepos(timestampfile);
-      assert(endpos-startpos==(int)timestamp_size);
-      PV_fclose(timestampfile);
-   }
-   MPI_Bcast(&timestamp,(int) timestamp_size,MPI_CHAR,0,getCommunicator()->communicator());
-   mSimTime = timestamp.time;
-   mCurrentStep = timestamp.step;
+   mSecretary->checkpointRead(mCheckpointReadDir, &mSimTime, &mCurrentStep);
 
    double t = mStartTime;
    for (long int k=mInitialStep; k<mCurrentStep; k++) {
@@ -1555,26 +1537,7 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
       }
    }
 
-
-   // Note: timeinfo should be done at the end of the checkpointing, so that its presence serves as a flag that the checkpoint has completed.
-   if( columnId()==0 ) {
-      char timestamppath[PV_PATH_MAX];
-      int chars_needed = snprintf(timestamppath, PV_PATH_MAX, "%s/timeinfo.bin", cpDir);
-      assert(chars_needed < PV_PATH_MAX);
-      PV_Stream * timestampfile = PV_fopen(timestamppath,"w", getVerifyWrites());
-      assert(timestampfile);
-      PV_fwrite(&mSimTime,1,sizeof(double),timestampfile);
-      PV_fwrite(&mCurrentStep,1,sizeof(long int),timestampfile);
-      PV_fclose(timestampfile);
-      chars_needed = snprintf(timestamppath, PV_PATH_MAX, "%s/timeinfo.txt", cpDir);
-      assert(chars_needed < PV_PATH_MAX);
-      timestampfile = PV_fopen(timestamppath,"w", getVerifyWrites());
-      assert(timestampfile);
-      fprintf(timestampfile->fp,"time = %g\n", mSimTime);
-      fprintf(timestampfile->fp,"timestep = %ld\n", mCurrentStep);
-      PV_fclose(timestampfile);
-   }
-
+   mSecretary->checkpointWrite(cpDir, mSimTime);
 
    if (mDeleteOlderCheckpoints) {
       pvAssert(mCheckpointWriteFlag); // checkpointWrite is called by exitRunLoop when mCheckpointWriteFlag is false; in this case mDeleteOlderCheckpoints should be false as well.

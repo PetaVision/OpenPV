@@ -19,8 +19,8 @@ void CheckpointEntryData<T>::write(std::string const& checkpointDirectory, doubl
    if (getCommunicator()->commRank()==0) {
       std::string path = generatePath(checkpointDirectory, "bin");
       PV_Stream * pvstream = PV_fopen(path.c_str(), "w", isVerifyingWrites());
-      int numRead = PV_fwrite(mDataPointer, sizeof(T), mNumValues, pvstream);
-      if (numRead != mNumValues) {
+      int numWritten = PV_fwrite(mDataPointer, sizeof(T), mNumValues, pvstream);
+      if (numWritten != mNumValues) {
          pvError() << "CheckpointEntryData::write: unable to write to \"" << path << "\".\n";
       }
       PV_fclose(pvstream);

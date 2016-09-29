@@ -35,6 +35,16 @@ public:
    }
 };
 
+template <typename T> // In practice, T is always Secretary.  Templated to avoid including Secretary.hpp in this file
+class RegisterDataMessage : public BaseMessage {
+public:
+   RegisterDataMessage(T * dataRegistry) {
+      setMessageType("RegisterCheckpointDataMessage");
+      mDataRegistry = dataRegistry;
+   }
+   T * mDataRegistry;
+};
+
 class InitializeStateMessage : public BaseMessage {
 public:
    InitializeStateMessage() {

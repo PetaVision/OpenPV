@@ -101,6 +101,14 @@ int BaseObject::respondAllocateData(AllocateDataMessage const * message) {
    return status;
 }
 
+int BaseObject::respondRegisterData(RegisterDataMessage<Secretary> const * message) {
+   int status = registerData(message->mDataRegistry, name);
+   if (status != PV_SUCCESS) {
+      pvError() << getDescription() << ": registerData failed.\n";
+   }
+   return status;
+}
+
 int BaseObject::respondInitializeState(InitializeStateMessage const * message) {
    int status = PV_SUCCESS;
    if (getInitialValuesSetFlag()) { return status; }

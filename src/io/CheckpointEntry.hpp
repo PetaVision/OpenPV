@@ -48,8 +48,8 @@ public:
          T * dataPtr, size_t numValues, bool broadcastingFlag) :
          CheckpointEntry(name, verifyingWritesFlag, communicator),
          mDataPointer(dataPtr), mNumValues(numValues), mBroadcastingFlag(broadcastingFlag) {}
-   CheckpointEntryData(std::string const& objName, bool verifyingWritesFlag, Communicator * communicator,
-         std::string const& dataName, T * dataPtr, size_t numValues, bool broadcastingFlag) :
+   CheckpointEntryData(std::string const& objName, std::string const& dataName, bool verifyingWritesFlag, Communicator * communicator,
+         T * dataPtr, size_t numValues, bool broadcastingFlag) :
          CheckpointEntry(objName, dataName, verifyingWritesFlag, communicator),
          mDataPointer(dataPtr), mNumValues(numValues), mBroadcastingFlag(broadcastingFlag) {}
    virtual void write(std::string const& checkpointDirectory, double simTime) const override;
