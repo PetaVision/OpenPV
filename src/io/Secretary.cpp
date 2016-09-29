@@ -6,22 +6,171 @@
  */
 
 #include "Secretary.hpp"
+#include <cmath>
+#include <signal.h>
 
 namespace PV {
 
-Secretary::Secretary(std::string const& name, Communicator * comm) : mName(name), mCommunicator(comm) {}
+Secretary::Secretary(std::string const& name, Communicator * comm) : mName(name), mCommunicator(comm) {
+   mTimeInfoCheckpointEntry = std::make_shared<CheckpointEntryData<Secretary::TimeInfo> >(
+      std::string("timeinfo"), getCommunicator(), &mTimeInfo, (size_t) 1, true/*broadcast*/);
+   // This doesn't get put into mCHeckpointRegistry because we handle the timeinfo separately.
+}
 
-Secretary::~Secretary() {}
+Secretary::~Secretary() {
+   free(mOutputPath);
+   free(mCheckpointWriteDir);
+   free(mCheckpointWriteTriggerModeString);
+}
+
+void Secretary::setOutputPath(std::string const& outputPath) {
+   if (mOutputPath) {
+      pvWarn(changingOutputPath);
+      changingOutputPath << "\"" << mName << "\": changing output path from \"" << mOutputPath << "\" to ";
+      if (!outputPath.empty()) {
+         changingOutputPath << "\"" << outputPath << "\".\n";
+      }
+      else {
+         changingOutputPath << "null.\n";
+      }
+   }
+   if (!outputPath.empty()) {
+      mOutputPath = expandLeadingTilde(outputPath.c_str());
+      pvErrorIf(mOutputPath == nullptr, "Secretary::setOutputPath unable to copy output path.\n");
+   }
+   else {
+      mOutputPath = nullptr;
+   }
+}
 
 void Secretary::ioParamsFillGroup(enum ParamsIOFlag ioFlag, PVParams * params) {
    // Currently, HyPerCol reads and writes params related to Secretary functions, and Secretary redundantly reads as needed.
    // TODO: Secretary should read and write from params, and HyPerCol should not need to refer to any Secretary-related params.
    if (ioFlag == PARAMS_IO_READ) {
-      params->ioParamValue(ioFlag, mName.c_str(), "verifyWrites", &mVerifyWritesFlag, mVerifyWritesFlag);
+      ioParam_verifyWrites(ioFlag, params);
+      ioParam_outputPath(ioFlag, params);
+      ioParam_checkpointWrite(ioFlag, params);
+      ioParam_checkpointWriteDir(ioFlag, params);
+      ioParam_checkpointWriteTriggerMode(ioFlag, params);
+      ioParam_checkpointWriteStepInterval(ioFlag, params);
+      ioParam_checkpointWriteTimeInterval(ioFlag, params);
+      ioParam_checkpointIndexWidth(ioFlag, params);
+      ioParam_suppressNonplasticCheckpoints(ioFlag, params);
+      ioParam_suppressLastOutput(ioFlag, params);
    }
-   mTimeInfoCheckpointEntry = std::make_shared<CheckpointEntryData<Secretary::TimeInfo> >(
-         std::string("timeinfo"), getCommunicator(), &mTimeInfo, (size_t) 1, true/*broadcast*/);
-   registerCheckpointEntry(mTimeInfoCheckpointEntry);
+}
+
+void Secretary::ioParam_verifyWrites(enum ParamsIOFlag ioFlag, PVParams * params) {
+   params->ioParamValue(ioFlag, mName.c_str(), "verifyWrites", &mVerifyWritesFlag, mVerifyWritesFlag);
+}
+
+void Secretary::ioParam_outputPath(enum ParamsIOFlag ioFlag, PVParams * params) {
+   switch(ioFlag) {
+      case PARAMS_IO_READ:
+         // To use make use of the -o option on the command line, call Secretary::setOutputPath() before Secretary::ioParamsFillGroup(), as HyPerCol::initialize() does.
+         if (mOutputPath==nullptr) {
+            if (!params->stringPresent(mName.c_str(), "outputPath")) {
+               pvWarn() << "Output path specified neither in command line nor in params file.\n";
+            }
+            params->ioParamString(ioFlag, mName.c_str(), "outputPath", &mOutputPath, mDefaultOutputPath.c_str(), true);
+         }
+         else {
+            if (params->stringPresent(mName.c_str(), "outputPath")) {
+               pvInfo() << "Output path \"" << mOutputPath << "\" specified on command line; value in params file will be ignored.\n";
+            }
+         }
+         break;
+      case PARAMS_IO_WRITE:
+         params->writeParamString("outputPath", mOutputPath);
+         break;
+      default:
+         pvAssert(0);
+         break;
+   }
+}
+
+void Secretary::ioParam_checkpointWrite(enum ParamsIOFlag ioFlag, PVParams * params) {
+   params->ioParamValue(ioFlag, mName.c_str(), "checkpointWrite", &mCheckpointWriteFlag, mCheckpointWriteFlag);
+}
+
+void Secretary::ioParam_checkpointWriteDir(enum ParamsIOFlag ioFlag, PVParams * params) {
+   pvAssert(!params->presentAndNotBeenRead(mName.c_str(), "checkpointWrite"));
+   if (mCheckpointWriteFlag) {
+      params->ioParamStringRequired(ioFlag, mName.c_str(), "checkpointWriteDir", &mCheckpointWriteDir);
+   }
+}
+
+void Secretary::ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag, PVParams * params) {
+   pvAssert(!params->presentAndNotBeenRead(mName.c_str(), "checkpointWrite"));
+   if (mCheckpointWriteFlag) {
+      params->ioParamString(ioFlag, mName.c_str(), "checkpointWriteTriggerMode", &mCheckpointWriteTriggerModeString, "step");
+      if (ioFlag==PARAMS_IO_READ) {
+         pvAssert(mCheckpointWriteTriggerModeString);
+         if (!strcmp(mCheckpointWriteTriggerModeString, "step") || !strcmp(mCheckpointWriteTriggerModeString, "Step") || !strcmp(mCheckpointWriteTriggerModeString, "STEP")) {
+            mCheckpointWriteTriggerMode = STEP;
+         }
+         else if (!strcmp(mCheckpointWriteTriggerModeString, "time") || !strcmp(mCheckpointWriteTriggerModeString, "Time") || !strcmp(mCheckpointWriteTriggerModeString, "TIME")) {
+            mCheckpointWriteTriggerMode = SIMTIME;
+         }
+         else if (!strcmp(mCheckpointWriteTriggerModeString, "clock") || !strcmp(mCheckpointWriteTriggerModeString, "Clock") || !strcmp(mCheckpointWriteTriggerModeString, "CLOCK")) {
+            mCheckpointWriteTriggerMode = WALLCLOCK;
+         }
+         else {
+            if (mCommunicator->globalCommRank()==0) {
+               pvErrorNoExit() << "Parameter group \"" << mName << "\" checkpointWriteTriggerMode \"" << mCheckpointWriteTriggerModeString << "\" is not recognized.\n";
+            }
+            MPI_Barrier(mCommunicator->globalCommunicator());
+            exit(EXIT_FAILURE);
+         }
+      }
+   }
+}
+
+void Secretary::ioParam_checkpointWriteStepInterval(enum ParamsIOFlag ioFlag, PVParams * params) {
+   pvAssert(!params->presentAndNotBeenRead(mName.c_str(), "checkpointWrite"));
+   if (mCheckpointWriteFlag) {
+      pvAssert(!params->presentAndNotBeenRead(mName.c_str(), "checkpointWriteTriggerMode"));
+      if(mCheckpointWriteTriggerMode == STEP) {
+         params->ioParamValue(ioFlag, mName.c_str(), "checkpointWriteStepInterval", &mCheckpointWriteStepInterval, mCheckpointWriteStepInterval);
+      }
+   }
+}
+
+void Secretary::ioParam_checkpointWriteTimeInterval(enum ParamsIOFlag ioFlag, PVParams * params) {
+   pvAssert(!params->presentAndNotBeenRead(mName.c_str(), "checkpointWrite"));
+   if (mCheckpointWriteFlag) {
+      pvAssert(!params->presentAndNotBeenRead(mName.c_str(), "checkpointWriteTriggerMode"));
+      if(mCheckpointWriteTriggerMode == SIMTIME) {
+         params->ioParamValue(ioFlag, mName.c_str(), "checkpointWriteTimeInterval", &mCheckpointWriteSimtimeInterval, mCheckpointWriteSimtimeInterval);
+      }
+   }
+}
+
+void Secretary::ioParam_checkpointIndexWidth(enum ParamsIOFlag ioFlag, PVParams * params) {
+   assert(!params->presentAndNotBeenRead(mName.c_str(), "checkpointWrite"));
+   if (mCheckpointWriteFlag) {
+      params->ioParamValue(ioFlag, mName.c_str(), "checkpointIndexWidth", &mCheckpointIndexWidth, mCheckpointIndexWidth);
+   }
+}
+
+void Secretary::ioParam_suppressNonplasticCheckpoints(enum ParamsIOFlag ioFlag, PVParams * params) {
+   assert(!params->presentAndNotBeenRead(mName.c_str(), "checkpointWrite"));
+   if (mCheckpointWriteFlag) {
+      params->ioParamValue(ioFlag, mName.c_str(), "suppressNonplasticCheckpoints", &mSuppressNonplasticCheckpoints, mSuppressNonplasticCheckpoints);
+   }
+}
+
+void Secretary::ioParam_suppressLastOutput(enum ParamsIOFlag ioFlag, PVParams * params) {
+   assert(!params->presentAndNotBeenRead(mName.c_str(), "checkpointWrite"));
+   if (!mCheckpointWriteFlag) {
+      params->ioParamValue(ioFlag, mName.c_str(), "suppressLastOutput", &mSuppressLastOutput, mSuppressLastOutput);
+   }
+}
+
+void Secretary::provideFinalStep(long int finalStep) {
+   if (mCheckpointIndexWidth<0) {
+      mWidthOfFinalStepNumber = (int) std::floor(std::log10((float) finalStep))+1;
+   }
 }
 
 void Secretary::addObserver(Observer * observer, BaseMessage const& message) {
@@ -30,33 +179,140 @@ void Secretary::addObserver(Observer * observer, BaseMessage const& message) {
 
 bool Secretary::registerCheckpointEntry(std::shared_ptr<CheckpointEntry> checkpointEntry) {
    std::string const& name = checkpointEntry->getName();
-   bool succeeded = mCheckpointRegistry.insert({&name, checkpointEntry}).second;
-   return succeeded;
+   for (auto& c : mCheckpointRegistry) {
+      if (c->getName()==checkpointEntry->getName()) { return false; }
+   }
+   mCheckpointRegistry.push_back(checkpointEntry);
+   return true;
 }
 
 void Secretary::checkpointRead(std::string const& checkpointReadDir, double * simTimePointer, long int * currentStepPointer) {
-   for (auto& p : mCheckpointRegistry) {
-      double readTime;
-      p.second->read(checkpointReadDir, &readTime);
+   mCheckpointReadDirectory = checkpointReadDir;
+   double readTime;
+   for (auto& c : mCheckpointRegistry) {
+      c->read(checkpointReadDir, &readTime);
    }
+   mTimeInfoCheckpointEntry->read(checkpointReadDir.c_str(), &readTime);
    if (simTimePointer) { *simTimePointer = mTimeInfo.mSimTime; }
    if (currentStepPointer) { *currentStepPointer = mTimeInfo.mCurrentCheckpointStep; }
    notify(mObserverTable, std::make_shared<ProcessCheckpointReadMessage const>());
 }
 
-void Secretary::checkpointWrite(std::string const& checkpointWriteDir, double simTime) {
-   ensureDirExists(getCommunicator(), checkpointWriteDir.c_str());
-   notify(mObserverTable, std::make_shared<PrepareCheckpointWriteMessage const>());
-   for (auto& p : mCheckpointRegistry) {
-      // do timeinfo at the end, so that the presence of timeinfo.bin serves as a flag that the checkpoint has completed
-      if (*(p.first)=="timeinfo") { continue; }
-      p.second->write(checkpointWriteDir, simTime, mVerifyWritesFlag);
+void Secretary::checkpointWrite(double simTime) {
+   std::string checkpointWriteDir;
+   mTimeInfo.mSimTime = simTime; // set mSimTime here so that it is available in routines called by checkpointWrite.
+   mTimeInfo.mCurrentCheckpointStep++;
+   if (!mCheckpointWriteFlag) { return; }
+   if (checkpointWriteSignal()) {
+      pvInfo().printf("Global rank %d: checkpointing in response to SIGUSR1 at time %f.\n", getCommunicator()->globalCommRank(), simTime);
+      mCheckpointSignal = 0;
+      checkpointNow();
    }
-
-   mTimeInfo.mSimTime = simTime;
-   mTimeInfoCheckpointEntry->write(checkpointWriteDir, simTime, mVerifyWritesFlag);
-   mTimeInfo.mCurrentCheckpointStep++; // increment at end because checkpoint of initial data is step 0.
+   else {
+      switch (mCheckpointWriteTriggerMode) {
+         case NONE:      pvAssert(0);                break; // Only NONE if checkpointWrite is off, in which case this method should have returned above.
+         case STEP:      checkpointWriteStep();      break;
+         case SIMTIME:   checkpointWriteSimtime();   break;
+         case WALLCLOCK: checkpointWriteWallclock(); break;
+         default:        pvAssert(0);                break;
+      }
+   }
 }
+
+bool Secretary::checkpointWriteSignal() {
+   if (getCommunicator()->globalCommRank()==0) {
+      int sigstatus = PV_SUCCESS;
+      sigset_t pollusr1;
+
+      sigstatus = sigpending(&pollusr1); assert(sigstatus==0);
+      mCheckpointSignal = sigismember(&pollusr1, SIGUSR1); assert(mCheckpointSignal==0 || mCheckpointSignal==1);
+      if (mCheckpointSignal) {
+         sigstatus = sigemptyset(&pollusr1); assert(sigstatus==0);
+         sigstatus = sigaddset(&pollusr1, SIGUSR1); assert(sigstatus==0);
+         int result=0;
+         sigwait(&pollusr1, &result);
+         assert(result==SIGUSR1);
+      }
+   }
+   MPI_Bcast(&mCheckpointSignal, 1/*count*/, MPI_INT, 0, mCommunicator->globalCommunicator());
+   bool signaled = (mCheckpointSignal!=0);
+   if (signaled) {
+      pvInfo().printf("Global rank %d: checkpointing in response to SIGUSR1 at time %f.\n", getCommunicator()->globalCommRank(), mTimeInfo.mSimTime);
+      mCheckpointSignal = 0;
+      checkpointNow();
+   }
+   return signaled;
+}
+
+void Secretary::checkpointWriteStep() {
+   pvAssert(mCheckpointWriteStepInterval>0);
+   if (mTimeInfo.mCurrentCheckpointStep % mCheckpointWriteStepInterval==0) {
+      checkpointNow();
+   }
+}
+
+void Secretary::checkpointWriteSimtime() {
+   if (mTimeInfo.mSimTime >= mLastCheckpointSimtime + mCheckpointWriteSimtimeInterval) {
+      checkpointNow();
+      mLastCheckpointSimtime = mTimeInfo.mSimTime;
+   }
+}
+
+void Secretary::checkpointWriteWallclock() {
+   std::time_t currentTime = std::time(nullptr);
+   if (currentTime==(std::time_t)(-1)) { throw; }
+   double elapsed = std::difftime(currentTime, mLastCheckpointWallclock);
+   if (elapsed >= mCheckpointWriteWallclockInterval) {
+      checkpointNow();
+      mLastCheckpointWallclock = currentTime;
+   }
+}
+
+void Secretary::checkpointNow() {
+   std::stringstream checkpointDirStream; 
+   checkpointDirStream << mCheckpointWriteDir << "/Checkpoint"; 
+   int fieldWidth = mCheckpointIndexWidth < 0 ? mWidthOfFinalStepNumber : mCheckpointIndexWidth; 
+   checkpointDirStream.fill('0'); 
+   checkpointDirStream.width(fieldWidth); 
+   checkpointDirStream << mTimeInfo.mCurrentCheckpointStep; 
+   std::string cpDir = checkpointDirStream.str(); 
+   if (strcmp(cpDir.c_str(),mCheckpointReadDirectory.c_str())) { 
+      /* Note: the strcmp isn't perfect, since there are multiple ways to specify a path that points to the same directory.  Should use realpath. */ 
+      if (mCommunicator->globalCommRank()==0) { 
+         pvInfo() << "Checkpointing to \"" << cpDir << "\", simTime = " << mTimeInfo.mSimTime << "\n"; 
+      } 
+   } 
+   else { 
+      if (mCommunicator->globalCommRank()==0) { 
+         pvInfo().printf("Skipping checkpoint to \"%s\", which would clobber the checkpointRead checkpoint.\n", cpDir.c_str()); 
+      } 
+      return; 
+   }
+   checkpointToDirectory(cpDir); 
+}
+
+void Secretary::checkpointToDirectory(std::string const& directory) {
+   notify(mObserverTable, std::make_shared<PrepareCheckpointWriteMessage const>());
+   ensureDirExists(getCommunicator(), directory.c_str());
+   for (auto& c : mCheckpointRegistry) {
+      c->write(directory, mTimeInfo.mSimTime, mVerifyWritesFlag);
+   }
+   mTimeInfoCheckpointEntry->write(directory, mTimeInfo.mSimTime, mVerifyWritesFlag);
+}
+
+void Secretary::finalCheckpoint(double simTime) {
+   mTimeInfo.mSimTime = simTime;
+   if (mCheckpointWriteFlag) {
+      checkpointNow(); // Should make sure we haven't already checkpointed using checkpointWrite()'
+   }
+   else if (!mSuppressLastOutput) {
+      std::string finalCheckpointDir{mOutputPath};
+      finalCheckpointDir.append("/Last");
+      checkpointToDirectory(finalCheckpointDir);
+   }
+}
+
+std::string const Secretary::mDefaultOutputPath = "output";
 
 namespace TextOutput {
 

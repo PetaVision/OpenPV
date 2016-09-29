@@ -232,12 +232,14 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
    mRandomSeed = mPVInitObj->getRandomSeed();
 
    mSecretary = new Secretary(std::string(mName), mCommunicator);
+   if (mOutputPath) { mSecretary->setOutputPath(mOutputPath); }
    ioParams(PARAMS_IO_READ);
    mCheckpointSignal = 0;
    mSimTime = mStartTime;
    mInitialStep = (long int) nearbyint(mStartTime/mDeltaTime);
    mCurrentStep = mInitialStep;
    mFinalStep = (long int) nearbyint(mStopTime/mDeltaTime);
+   mSecretary->provideFinalStep(mFinalStep);
    mNextProgressTime = mStartTime + mProgressInterval;
 
    RandomSeed::instance()->initialize(mRandomSeed);
@@ -1029,6 +1031,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
       // This needs to happen after initPublishers so that we can initialize the values in the data stores,
       // and before the mLayers' publish calls so that the data in border regions gets copied correctly.
       if ( mCheckpointReadFlag ) {
+         mSecretary->checkpointRead(mCheckpointReadDir, &mSimTime, &mCurrentStep);
          checkpointRead();
       }
 
@@ -1096,6 +1099,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
             mCheckpointSignal = 0;
          }
       }
+      mSecretary->checkpointWrite(mSimTime);
       status = advanceTime(mSimTime);
 
       step += 1;
@@ -1392,8 +1396,6 @@ bool HyPerCol::advanceCPWriteTime() {
 }
 
 int HyPerCol::checkpointRead() {
-   mSecretary->checkpointRead(mCheckpointReadDir, &mSimTime, &mCurrentStep);
-
    double t = mStartTime;
    for (long int k=mInitialStep; k<mCurrentStep; k++) {
       if (t >= mNextProgressTime) {
@@ -1536,8 +1538,6 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
          assert(0);
       }
    }
-
-   mSecretary->checkpointWrite(cpDir, mSimTime);
 
    if (mDeleteOlderCheckpoints) {
       pvAssert(mCheckpointWriteFlag); // checkpointWrite is called by exitRunLoop when mCheckpointWriteFlag is false; in this case mDeleteOlderCheckpoints should be false as well.
@@ -1759,6 +1759,7 @@ int HyPerCol::exitRunLoop(bool exitOnFinish)
          }
       }
       checkpointWrite(cpDir);
+      mSecretary->checkpointWrite(mSimTime);
    }
 
    if (exitOnFinish) {
