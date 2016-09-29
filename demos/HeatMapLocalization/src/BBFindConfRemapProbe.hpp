@@ -88,6 +88,7 @@ protected:
    double imageDilationX = 1.0;
    double imageDilationY = 1.0;
    char * outputFilenameBase = NULL;
+   long int mStepNumber; // The current step number, based on the values of timed and dt passed to outputState.  Should be the same as the number of times HyPerCol::advanceTime has been called, but we want to avoid calling HyPerCol methods.
 }; // class BBFindConfRemapProbe
 
 
