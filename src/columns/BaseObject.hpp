@@ -97,7 +97,6 @@ protected:
 protected:
    char * name = nullptr;
    HyPerCol * parent = nullptr; // TODO: eliminate HyPerCol argument to constructor in favor of PVParams argument
-   std::string description;
    bool mInitInfoCommunicatedFlag = false;
    bool mDataStructuresAllocatedFlag = false;
    bool mInitialValuesSetFlag = false;

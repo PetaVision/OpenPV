@@ -8,26 +8,41 @@
 #ifndef SECRETARY_HPP_
 #define SECRETARY_HPP_
 
+#include "observerpattern/Subject.hpp"
 #include "columns/Communicator.hpp"
 #include "io/CheckpointEntry.hpp"
 #include "io/io.hpp"
 #include "io/PVParams.hpp"
+#include "observerpattern/BaseMessage.hpp"
 #include <map>
 #include <memory>
 
 namespace PV {
 
-class Secretary {
+class Secretary : public Subject {
 public:
    struct TimeInfo {
       double mSimTime = 0.0;
       long int mCurrentCheckpointStep = 0L;
+   };
+   class ProcessCheckpointReadMessage : public BaseMessage {
+   public:
+      ProcessCheckpointReadMessage() {
+         setMessageType("PrepareCheckpointReadMessage");
+      }
+   };
+   class PrepareCheckpointWriteMessage : public BaseMessage {
+   public:
+      PrepareCheckpointWriteMessage() {
+         setMessageType("ProcessCheckpointWriteMessage");
+      }
    };
    Secretary(std::string const& name, Communicator * comm);
    ~Secretary();
 
    void ioParamsFillGroup(enum ParamsIOFlag ioFlag, PVParams * params);
    bool registerCheckpointEntry(std::shared_ptr<CheckpointEntry> checkpointEntry);
+   virtual void addObserver(Observer * observer, BaseMessage const& message) override;
    void checkpointRead(std::string const& checkpointReadDir, double * simTimePointer, long int * currentStepPointer);
    void checkpointWrite(std::string const& checkpointWriteDir, double simTime);
 
@@ -38,6 +53,7 @@ private:
    std::string mName;
    Communicator * mCommunicator = nullptr;
    std::map<std::string const*, std::shared_ptr<CheckpointEntry> > mCheckpointRegistry;
+   ObserverTable mObserverTable;
    TimeInfo mTimeInfo;
    std::shared_ptr<CheckpointEntryData<TimeInfo> > mTimeInfoCheckpointEntry = nullptr; 
    bool mVerifyWritesFlag = true;

@@ -24,6 +24,10 @@ void Secretary::ioParamsFillGroup(enum ParamsIOFlag ioFlag, PVParams * params) {
    registerCheckpointEntry(mTimeInfoCheckpointEntry);
 }
 
+void Secretary::addObserver(Observer * observer, BaseMessage const& message) {
+   mObserverTable.addObject(observer->getDescription(), observer);
+}
+
 bool Secretary::registerCheckpointEntry(std::shared_ptr<CheckpointEntry> checkpointEntry) {
    std::string const& name = checkpointEntry->getName();
    bool succeeded = mCheckpointRegistry.insert({&name, checkpointEntry}).second;
@@ -37,10 +41,12 @@ void Secretary::checkpointRead(std::string const& checkpointReadDir, double * si
    }
    if (simTimePointer) { *simTimePointer = mTimeInfo.mSimTime; }
    if (currentStepPointer) { *currentStepPointer = mTimeInfo.mCurrentCheckpointStep; }
+   notify(mObserverTable, std::make_shared<ProcessCheckpointReadMessage const>());
 }
 
 void Secretary::checkpointWrite(std::string const& checkpointWriteDir, double simTime) {
    ensureDirExists(getCommunicator(), checkpointWriteDir.c_str());
+   notify(mObserverTable, std::make_shared<PrepareCheckpointWriteMessage const>());
    for (auto& p : mCheckpointRegistry) {
       // do timeinfo at the end, so that the presence of timeinfo.bin serves as a flag that the checkpoint has completed
       if (*(p.first)=="timeinfo") { continue; }
