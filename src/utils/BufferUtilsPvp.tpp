@@ -79,9 +79,12 @@ namespace PV {
       // Reads a pvp header and returns it in vector format. Leaves inStream
       // pointing at the start of the first frame.
       vector<int> readHeader(FileStream &fStream) {
-         vector<int> header(NUM_BIN_PARAMS);
          fStream.setInPos(0, true);
-         fStream.read(header.data(), header.size() * sizeof(int));
+         int headerSize = -1;
+         fStream.read(&headerSize, sizeof(int));
+         fStream.setInPos(0, true);
+         vector<int> header(headerSize / sizeof(int));
+         fStream.read(header.data(), headerSize);
          return header;
       }
       
@@ -192,6 +195,34 @@ namespace PV {
          return timeStamp;
       }
 
+      // Reads a sparse binary frame from the current
+      // instream location
+      template <typename T>
+      double readSparseBinaryFrame(FileStream &fStream,
+                                   SparseList<T> *list,
+                                   T oneValue) {
+         double timeStamp   = -1;
+         int    numElements = -1;
+         fStream.read(&timeStamp,   sizeof(double));
+         fStream.read(&numElements, sizeof(int));
+         pvErrorIf(timeStamp == -1,
+               "Failed to read timeStamp.\n");
+         pvErrorIf(numElements == -1,
+               "Failed to read numElements.\n");
+         vector<struct SparseList<T>::Entry> contents(numElements);
+         vector<int> indices(numElements); 
+         if (numElements > 0) {
+            fStream.read(indices.data(), numElements * sizeof(int));
+         }
+         for (int i = 0; i < indices.size(); ++i) {
+            contents.at(i).index = indices.at(i);
+            contents.at(i).value = oneValue;
+         }
+         list->set(contents);
+         return timeStamp;
+      }
+
+
       // Builds a table of offsets and lengths for each pvp frame
       // index up to (but not including) upToIndex. Works for both
       // sparse activity and sparse binary files. Leaves the input
@@ -297,6 +328,37 @@ namespace PV {
          long frameOffset = table.frameStartOffsets.at(frameReadIndex);
          fStream.setInPos(frameOffset, true);
          return readSparseFrame<T>(fStream, list);
+      }
+
+      template <typename T>
+      static double readSparseBinaryFromPvp(const char *fName,
+                                            SparseList<T> *list,
+                                            int frameReadIndex,
+                                            T oneVal,
+                                            SparseFileTable *cachedTable = nullptr) {
+         FileStream fStream(fName,
+                            std::ios_base::in
+                          | std::ios_base::binary,
+                            false);
+
+         vector<int> header = readHeader(fStream);
+         pvErrorIf(header.at(INDEX_DATA_SIZE)
+                != sizeof(int),
+                "Error: Expected data size %d, found %d.\n",
+                sizeof(int),
+                header.at(INDEX_DATA_SIZE));
+
+         SparseFileTable table;
+         if (cachedTable == nullptr) {
+            table = buildSparseFileTable(fStream, frameReadIndex);
+         }
+         else {
+            table = *cachedTable;
+         }
+ 
+         long frameOffset = table.frameStartOffsets.at(frameReadIndex);
+         fStream.setInPos(frameOffset, true);
+         return readSparseBinaryFrame<T>(fStream, list, oneVal);
       }
    }
 }

@@ -58,6 +58,10 @@ namespace PV {
       static double readSparseFrame(FileStream &fStream,
                                     SparseList<T> *list);
       template <typename T>
+      static double readSparseBinaryFrame(FileStream &fStream,
+                                          SparseList<T> *list,
+                                          T oneVal);
+      template <typename T>
       static void writeSparseToPvp(const char *fName,
                                    SparseList<T> *list,
                                    double timeStamp,
@@ -75,6 +79,12 @@ namespace PV {
                                       int frameReadIndex,
                                       SparseFileTable *cachedTable = nullptr);
       
+      template <typename T>
+      static double readSparseBinaryFromPvp(const char *fName,
+                                      SparseList<T> *list,
+                                      int frameReadIndex,
+                                      T oneVal,
+                                      SparseFileTable *cachedTable = nullptr);
       static void writeHeader(FileStream &fStream, vector<int> header);
       static vector<int> readHeader(FileStream &fStream);
 

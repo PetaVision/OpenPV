@@ -182,8 +182,50 @@ void testWriteSparseToPvp() {
    }
    
    testSparseFile("sparse.pvp");
- }
+}
 
+void testReadFromSparseBinaryPvp() {
+   for (int frame = 0; frame < 3; ++frame) {
+      vector<float> testData(3 * 2 * 1);
+      for (int i = 0; i < 3 * 2 * 1; ++i) {
+         testData.at(i) = (1 + i + frame) % 2;
+      }
+
+      SparseList<float> list;
+      double timeVal = BufferUtils::readSparseBinaryFromPvp<float>(
+            "input/binary_3x2x1_x3.pvp",
+            &list,
+            frame,
+            1.0f,
+            nullptr);
+      Buffer<float> testBuffer(3, 2, 1);
+      list.toBuffer(testBuffer, 0.0f);
+ 
+      pvErrorIf(timeVal != (double)frame + 1,
+            "Failed on frame %d. Expected time %d, found %d.\n",
+            frame, frame + 1, (int)timeVal);
+      pvErrorIf(testBuffer.getWidth() != 3,
+            "Failed on frame %d. Expected width to be 3, found %d.\n",
+            frame, testBuffer.getWidth());
+      pvErrorIf(testBuffer.getHeight() != 2,
+            "Failed on frame %d. Expected height to be 2, found %d.\n",
+            frame, testBuffer.getHeight());
+      pvErrorIf(testBuffer.getFeatures() != 1,
+            "Failed on frame %d. Expected features to be 1, found %d.\n",
+            frame, testBuffer.getFeatures());
+
+      vector<float> readData = testBuffer.asVector();
+      pvErrorIf(readData.size() != testData.size(),
+            "Failed on frame %d. Expected %d elements, found %d.\n",
+            frame, testData.size(), readData.size());
+
+      for (int i = 0; i < 3 * 2 * 1; ++i) {
+         pvErrorIf(readData.at(i) != testData.at(i),
+               "Failed on frame %d. Expected value %d, found %d.\n",
+               frame, (int)testData.at(i), (int)readData.at(i));
+      }
+   }
+}
 int main(int argc, char **argv) {
 
    pvInfo() << "Testing BufferUtils:readFromPvp(): ";
@@ -202,6 +244,10 @@ int main(int argc, char **argv) {
    testWriteSparseToPvp();
    pvInfo() << "Completed.\n";
 
+   pvInfo() << "Testing BufferUtils:readSparseBinaryFromPvp(): ";
+   testReadFromSparseBinaryPvp();
+   pvInfo() << "Completed.\n";
+   
    pvInfo() << "BufferUtils tests completed successfully!\n";
    return EXIT_SUCCESS;
 }
