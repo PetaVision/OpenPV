@@ -49,11 +49,12 @@ namespace PV {
          mInputNf  = header.at(INDEX_NF);
          mFileType = header.at(INDEX_FILE_TYPE);
          mPvpFrameCount = header.at(INDEX_NBANDS);
+         pvDebug() << filename << " : " << mFileType << " :: " << mPvpFrameCount << " frames\n";
          initializeBatchIndexer(mPvpFrameCount);
          if (header.at(INDEX_FILE_TYPE) == PVP_ACT_SPARSEVALUES_FILE_TYPE
           || header.at(INDEX_FILE_TYPE) == PVP_ACT_FILE_TYPE) {
             sparseTable = BufferUtils::buildSparseFileTable(headerStream,
-                                                            mPvpFrameCount);
+                                                            mPvpFrameCount-1);
          }
       }
 

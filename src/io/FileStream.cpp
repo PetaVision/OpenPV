@@ -79,12 +79,13 @@ void FileStream::write(void *data, long length) {
 void FileStream::read(void *data, long length) {
    pvErrorIf(mFStream.eof(),
          "Attempting to read after EOF.\n");
+   long startPos = getInPos(); 
    mFStream.read((char*)data, length);
    long numRead = mFStream.gcount();
    pvErrorIf(numRead != length,
-         "Expected to read %d  bytes, read %d instead.\n"
-         "Read position: %d\n",
-         length, numRead, getInPos());
+         "Expected to read %d  bytes at %d, read %d instead.\n"
+         "New read position: %d\n",
+         length, startPos, numRead, getInPos());
    verifyFlags("read");
 }
 
