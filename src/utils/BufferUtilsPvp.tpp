@@ -48,7 +48,9 @@ namespace PV {
                               bool isSparse) {
          vector<int> header(NUM_BIN_PARAMS);
          header.at(INDEX_HEADER_SIZE) = header.size() * sizeof(int);
-         header.at(INDEX_FILE_TYPE)   = PVP_NONSPIKING_ACT_FILE_TYPE;
+         header.at(INDEX_FILE_TYPE)   = isSparse
+                                        ? PVP_ACT_SPARSEVALUES_FILE_TYPE 
+                                        : PVP_NONSPIKING_ACT_FILE_TYPE;
          header.at(INDEX_NX)          = width;
          header.at(INDEX_NY)          = height;
          header.at(INDEX_NF)          = features;
@@ -71,14 +73,14 @@ namespace PV {
          return header;
       }
       
-      void writeHeader(FileStream &fStream, vector<int> header) {
+      static void writeHeader(FileStream &fStream, vector<int> header) {
          fStream.setOutPos(0, true);
          fStream.write(header.data(), header.size() * sizeof(int));
       }
        
       // Reads a pvp header and returns it in vector format. Leaves inStream
       // pointing at the start of the first frame.
-      vector<int> readHeader(FileStream &fStream) {
+      static vector<int> readHeader(FileStream &fStream) {
          fStream.setInPos(0, true);
          int headerSize = -1;
          fStream.read(&headerSize, sizeof(int));
@@ -257,7 +259,7 @@ namespace PV {
       }
 
       template <typename T>
-      static void writeSparseToPvp(const char *fName,
+      void writeSparseToPvp(const char *fName,
                                    SparseList<T> *list,
                                    double timeStamp,
                                    int width,
@@ -276,7 +278,7 @@ namespace PV {
       }
 
       template <typename T>
-      static void appendSparseToPvp(const char *fName,
+      void appendSparseToPvp(const char *fName,
                                     SparseList<T> *list,
                                     double timeStamp,
                                     int frameWriteIndex) {
@@ -301,7 +303,7 @@ namespace PV {
       }
 
       template <typename T>
-      static double readSparseFromPvp(const char *fName,
+      double readSparseFromPvp(const char *fName,
                                     SparseList<T> *list,
                                     int frameReadIndex,
                                     SparseFileTable *cachedTable = nullptr) {
@@ -331,7 +333,7 @@ namespace PV {
       }
 
       template <typename T>
-      static double readSparseBinaryFromPvp(const char *fName,
+      double readSparseBinaryFromPvp(const char *fName,
                                             SparseList<T> *list,
                                             int frameReadIndex,
                                             T oneVal,

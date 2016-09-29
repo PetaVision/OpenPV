@@ -1,7 +1,8 @@
 // InputLayer
 // Base class for layers that take their input from file IO
 
-#pragma once
+#ifndef __INPUTLAYER_HPP__
+#define __INPUTLAYER_HPP__
 
 #include "HyPerLayer.hpp"
 #include "columns/HyPerCol.hpp"
@@ -217,3 +218,5 @@ namespace PV {
          BaseInputDeprecatedError(const char* name, HyPerCol *hc);
    };
 } 
+
+#endif
