@@ -21,6 +21,7 @@ Secretary::~Secretary() {
    free(mOutputPath);
    free(mCheckpointWriteDir);
    free(mCheckpointWriteTriggerModeString);
+   free(mCheckpointWriteWallclockUnit);
 }
 
 void Secretary::setOutputPath(std::string const& outputPath) {
@@ -54,8 +55,12 @@ void Secretary::ioParamsFillGroup(enum ParamsIOFlag ioFlag, PVParams * params) {
       ioParam_checkpointWriteTriggerMode(ioFlag, params);
       ioParam_checkpointWriteStepInterval(ioFlag, params);
       ioParam_checkpointWriteTimeInterval(ioFlag, params);
+      ioParam_checkpointWriteClockInterval(ioFlag, params);
+      ioParam_checkpointWriteClockUnit(ioFlag, params);
       ioParam_checkpointIndexWidth(ioFlag, params);
       ioParam_suppressNonplasticCheckpoints(ioFlag, params);
+      ioParam_deleteOlderCheckpoints(ioFlag, params);
+      ioParam_numCheckpointsKept(ioFlag, params);
       ioParam_suppressLastOutput(ioFlag, params);
    }
 }
@@ -142,6 +147,85 @@ void Secretary::ioParam_checkpointWriteTimeInterval(enum ParamsIOFlag ioFlag, PV
       pvAssert(!params->presentAndNotBeenRead(mName.c_str(), "checkpointWriteTriggerMode"));
       if(mCheckpointWriteTriggerMode == SIMTIME) {
          params->ioParamValue(ioFlag, mName.c_str(), "checkpointWriteTimeInterval", &mCheckpointWriteSimtimeInterval, mCheckpointWriteSimtimeInterval);
+      }
+   }
+}
+
+void Secretary::ioParam_checkpointWriteClockInterval(enum ParamsIOFlag ioFlag, PVParams * params) {
+   assert(!params->presentAndNotBeenRead(mName.c_str(), "checkpointWrite"));
+   if (mCheckpointWriteFlag) {
+      pvAssert(!params->presentAndNotBeenRead(mName.c_str(), "checkpointWriteTriggerMode"));
+      if(mCheckpointWriteTriggerMode == WALLCLOCK) {
+         params->ioParamValueRequired(ioFlag, mName.c_str(), "checkpointWriteClockInterval", &mCheckpointWriteWallclockInterval);
+      }
+   }
+}
+
+void Secretary::ioParam_checkpointWriteClockUnit(enum ParamsIOFlag ioFlag, PVParams * params) {
+   pvAssert(!params->presentAndNotBeenRead(mName.c_str(), "checkpointWrite"));
+   if (mCheckpointWriteFlag) {
+      pvAssert(!params->presentAndNotBeenRead(mName.c_str(), "checkpointWriteTriggerMode"));
+      if(mCheckpointWriteTriggerMode == WALLCLOCK) {
+         assert(!params->presentAndNotBeenRead(mName.c_str(), "checkpointWriteTriggerClockInterval"));
+         params->ioParamString(ioFlag, mName.c_str(), "checkpointWriteClockUnit", &mCheckpointWriteWallclockUnit, "seconds");
+         if (ioFlag==PARAMS_IO_READ) {
+            pvAssert(mCheckpointWriteWallclockUnit);
+            for (size_t n=0; n<strlen(mCheckpointWriteWallclockUnit); n++) {
+               mCheckpointWriteWallclockUnit[n] = tolower(mCheckpointWriteWallclockUnit[n]);
+            }
+            if (!strcmp(mCheckpointWriteWallclockUnit, "second") || !strcmp(mCheckpointWriteWallclockUnit, "seconds") || !strcmp(mCheckpointWriteWallclockUnit, "sec") || !strcmp(mCheckpointWriteWallclockUnit, "s")) {
+               free(mCheckpointWriteWallclockUnit);
+               mCheckpointWriteWallclockUnit=strdup("seconds");
+               mCheckpointWriteWallclockIntervalSeconds = mCheckpointWriteWallclockInterval;
+            }
+            else if (!strcmp(mCheckpointWriteWallclockUnit, "minute") || !strcmp(mCheckpointWriteWallclockUnit, "minutes") || !strcmp(mCheckpointWriteWallclockUnit, "min") || !strcmp(mCheckpointWriteWallclockUnit, "m")) {
+               free(mCheckpointWriteWallclockUnit);
+               mCheckpointWriteWallclockUnit=strdup("minutes");
+               mCheckpointWriteWallclockIntervalSeconds = mCheckpointWriteWallclockInterval * (time_t) 60;
+            }
+            else if (!strcmp(mCheckpointWriteWallclockUnit, "hour") || !strcmp(mCheckpointWriteWallclockUnit, "hours") || !strcmp(mCheckpointWriteWallclockUnit, "hr") || !strcmp(mCheckpointWriteWallclockUnit, "h")) {
+               free(mCheckpointWriteWallclockUnit);
+               mCheckpointWriteWallclockUnit=strdup("hours");
+               mCheckpointWriteWallclockIntervalSeconds = mCheckpointWriteWallclockInterval * (time_t) 3600;
+            }
+            else if (!strcmp(mCheckpointWriteWallclockUnit, "day") || !strcmp(mCheckpointWriteWallclockUnit, "days")) {
+               free(mCheckpointWriteWallclockUnit);
+               mCheckpointWriteWallclockUnit=strdup("days");
+               mCheckpointWriteWallclockIntervalSeconds = mCheckpointWriteWallclockInterval * (time_t) 86400;
+            }
+            else {
+               if (getCommunicator()->globalCommRank()==0) {
+                  pvErrorNoExit().printf("checkpointWriteClockUnit \"%s\" is unrecognized.  Use \"seconds\", \"minutes\", \"hours\", or \"days\".\n", mCheckpointWriteWallclockUnit);
+               }
+               MPI_Barrier(getCommunicator()->globalCommunicator());
+               exit(EXIT_FAILURE);
+            }
+            pvErrorIf(mCheckpointWriteWallclockUnit == nullptr, "Error in global rank %d process converting checkpointWriteClockUnit: %s\n", getCommunicator()->globalCommRank(), strerror(errno));
+         }
+      }
+   }
+}
+
+void Secretary::ioParam_deleteOlderCheckpoints(enum ParamsIOFlag ioFlag, PVParams * params) {
+   assert(!params->presentAndNotBeenRead(mName.c_str(), "checkpointWrite"));
+   if (mCheckpointWriteFlag) {
+      params->ioParamValue(ioFlag, mName.c_str(), "deleteOlderCheckpoints", &mDeleteOlderCheckpoints, false/*default value*/);
+   }
+}
+
+void Secretary::ioParam_numCheckpointsKept(enum ParamsIOFlag ioFlag, PVParams * params) {
+   pvAssert(!params->presentAndNotBeenRead(mName.c_str(), "checkpointWrite"));
+   if (mCheckpointWriteFlag) {
+      pvAssert(!params->presentAndNotBeenRead(mName.c_str(), "deleteOlderCheckpoints"));
+      if (mDeleteOlderCheckpoints) {
+         params->ioParamValue(ioFlag, mName.c_str(), "numCheckpointsKept", &mNumCheckpointsKept, 1);
+         if (ioFlag==PARAMS_IO_READ && mNumCheckpointsKept <= 0) {
+            if (getCommunicator()->commRank()==0) {
+               pvErrorNoExit() << "HyPerCol \"" << mName << "\": numCheckpointsKept must be positive (value was " << mNumCheckpointsKept << ")\n";
+            }
+            MPI_Barrier(mCommunicator->communicator());
+            exit(EXIT_FAILURE);
+         }
       }
    }
 }

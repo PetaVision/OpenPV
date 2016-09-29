@@ -21,6 +21,10 @@
 namespace PV {
 
 class Secretary : public Subject {
+private:
+   enum CheckpointWriteTriggerMode {NONE, STEP, SIMTIME, WALLCLOCK};
+   enum WallClockUnit {SECOND, MINUTE, HOUR, DAY};
+
 public:
    struct TimeInfo {
       double mSimTime = 0.0;
@@ -52,10 +56,18 @@ public:
 
    Communicator * getCommunicator() { return mCommunicator; }
    bool doesVerifyWrites() { return mVerifyWritesFlag; }
-   char const * getOutputPath() { return mOutputPath; }
+   char const * getOutputPath() const { return mOutputPath; }
+   bool getCheckpointWriteFlag() const { return mCheckpointWriteFlag; }
+   char const * getcheckpointWriteDir() const { return mCheckpointWriteDir; }
+   enum CheckpointWriteTriggerMode getCheckpointWriteTriggerMode() const { return mCheckpointWriteTriggerMode; }
+   long int getCheckpointWriteStepInterval() const { return mCheckpointWriteStepInterval; }
+   double getCheckpointWriteSimtimeInterval() const { return mCheckpointWriteSimtimeInterval; }
+   int getCheckpointIndexWidth() const { return mCheckpointIndexWidth; }
+   bool getSuppressNonplasticCheckpoints() const { return mSuppressNonplasticCheckpoints; }
+   bool getDeleteOlderCheckpointsFlag() const { return mDeleteOlderCheckpoints; }
+   int getNumCheckpointsKept() const { return mNumCheckpointsKept; }
+   bool getSuppressLastOutput() const { return mSuppressLastOutput; }
 private:
-   enum CheckpointWriteTriggerMode {NONE, STEP, SIMTIME, WALLCLOCK};
-   enum WallClockUnit {SECOND, MINUTE, HOUR, DAY};
    void ioParam_verifyWrites(enum ParamsIOFlag ioFlag, PVParams * params);
    void ioParam_outputPath(enum ParamsIOFlag ioFlag, PVParams * params);
    void ioParam_checkpointWrite(enum ParamsIOFlag ioFlag, PVParams * params);
@@ -63,8 +75,12 @@ private:
    void ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag, PVParams * params);
    void ioParam_checkpointWriteStepInterval(enum ParamsIOFlag ioFlag, PVParams * params);
    void ioParam_checkpointWriteTimeInterval(enum ParamsIOFlag ioFlag, PVParams * params);
+   void ioParam_checkpointWriteClockInterval(enum ParamsIOFlag ioFlag, PVParams * params);
+   void ioParam_checkpointWriteClockUnit(enum ParamsIOFlag ioFlag, PVParams * params);
    void ioParam_checkpointIndexWidth(enum ParamsIOFlag ioFlag, PVParams * params);
    void ioParam_suppressNonplasticCheckpoints(enum ParamsIOFlag ioFlag, PVParams * params);
+   void ioParam_deleteOlderCheckpoints(enum ParamsIOFlag ioFlag, PVParams * params);
+   void ioParam_numCheckpointsKept(enum ParamsIOFlag ioFlag, PVParams * params);
    void ioParam_suppressLastOutput(enum ParamsIOFlag ioFlag, PVParams * params);
    bool checkpointWriteSignal();
    void checkpointWriteStep();
@@ -88,9 +104,13 @@ private:
    enum CheckpointWriteTriggerMode mCheckpointWriteTriggerMode = NONE;
    long int mCheckpointWriteStepInterval = 1L;
    double mCheckpointWriteSimtimeInterval = 1.0;
-   double mCheckpointWriteWallclockInterval = 1.0;
+   std::time_t mCheckpointWriteWallclockInterval = 1L;
+   char * mCheckpointWriteWallclockUnit = nullptr;
+   std::time_t mCheckpointWriteWallclockIntervalSeconds = 1L;
    int mCheckpointIndexWidth = -1;
    bool mSuppressNonplasticCheckpoints = false;
+   bool mDeleteOlderCheckpoints = false;
+   int mNumCheckpointsKept = 2;
    bool mSuppressLastOutput = false;
    std::string mCheckpointReadDirectory;
    int mCheckpointSignal = 0;
