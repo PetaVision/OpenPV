@@ -17,7 +17,7 @@ int main(int argc, char * argv[]) {
    PV::PVParams * params = new PV::PVParams("input/SecretaryTest.params", 1, comm);
    secretary->ioParamsFillGroup(PV::PARAMS_IO_READ, params);
    delete params;
-   bool verifyingWritesFlag = secretary->isVerifyingWrites();
+   bool verifyWritesFlag = secretary->doesVerifyWrites();
 
    std::vector<double> fpCorrect{1.0, -1.0, 2.0, -2.0, 3.0, -3.0};
    int integerCorrect = 7;
@@ -26,9 +26,9 @@ int main(int argc, char * argv[]) {
    int integerCheckpoint = -5;
 
    secretary->registerCheckpointEntry(std::make_shared<PV::CheckpointEntryData<double> >(
-         std::string("floatingpoint"), verifyingWritesFlag, comm, fpCheckpoint.data(), fpCheckpoint.size(), true/*broadcasting*/));
+         std::string("floatingpoint"), comm, fpCheckpoint.data(), fpCheckpoint.size(), true/*broadcasting*/));
    secretary->registerCheckpointEntry(std::make_shared<PV::CheckpointEntryData<int> >(
-         std::string("integer"), verifyingWritesFlag, comm, &integerCheckpoint, (size_t) 1, true/*broadcasting*/));
+         std::string("integer"), comm, &integerCheckpoint, (size_t) 1, true/*broadcasting*/));
 
    secretary->checkpointWrite("checkpoint0", 0.0);
    secretary->checkpointWrite("checkpoint1", 1.0);

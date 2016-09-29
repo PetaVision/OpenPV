@@ -17,10 +17,10 @@ void Secretary::ioParamsFillGroup(enum ParamsIOFlag ioFlag, PVParams * params) {
    // Currently, HyPerCol reads and writes params related to Secretary functions, and Secretary redundantly reads as needed.
    // TODO: Secretary should read and write from params, and HyPerCol should not need to refer to any Secretary-related params.
    if (ioFlag == PARAMS_IO_READ) {
-      params->ioParamValue(ioFlag, mName.c_str(), "verifyWrites", &mVerifyingWritesFlag, mVerifyingWritesFlag);
+      params->ioParamValue(ioFlag, mName.c_str(), "verifyWrites", &mVerifyWritesFlag, mVerifyWritesFlag);
    }
    mTimeInfoCheckpointEntry = std::make_shared<CheckpointEntryData<Secretary::TimeInfo> >(
-         std::string("timeinfo"), mVerifyingWritesFlag, getCommunicator(), &mTimeInfo, (size_t) 1, true/*broadcast*/);
+         std::string("timeinfo"), getCommunicator(), &mTimeInfo, (size_t) 1, true/*broadcast*/);
    registerCheckpointEntry(mTimeInfoCheckpointEntry);
 }
 
@@ -44,11 +44,11 @@ void Secretary::checkpointWrite(std::string const& checkpointWriteDir, double si
    for (auto& p : mCheckpointRegistry) {
       // do timeinfo at the end, so that the presence of timeinfo.bin serves as a flag that the checkpoint has completed
       if (*(p.first)=="timeinfo") { continue; }
-      p.second->write(checkpointWriteDir, simTime);
+      p.second->write(checkpointWriteDir, simTime, mVerifyWritesFlag);
    }
 
    mTimeInfo.mSimTime = simTime;
-   mTimeInfoCheckpointEntry->write(checkpointWriteDir, simTime);
+   mTimeInfoCheckpointEntry->write(checkpointWriteDir, simTime, mVerifyWritesFlag);
    mTimeInfo.mCurrentCheckpointStep++; // increment at end because checkpoint of initial data is step 0.
 }
 

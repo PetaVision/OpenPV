@@ -34,7 +34,7 @@ void testPvpRestricted(PV::Communicator * comm, std::string const& directory) {
    // Initialize checkpointData as a vector with the same size as correctData.
    // Need to make sure that checkpointData.data() never gets relocated, since the CheckpointEntryPvp's mDataPointer doesn't change with it.
    std::vector<float> checkpointData(correctData.size());
-   PV::CheckpointEntryPvp<float> checkpointEntryPvp{"checkpointEntryPvpRestricted", false/*not verifying writes*/, comm,
+   PV::CheckpointEntryPvp<float> checkpointEntryPvp{"checkpointEntryPvpRestricted", comm,
          checkpointData.data(), checkpointData.size(), PV_FLOAT_TYPE, &loc, false/*not extended*/};
 
    double const simTime = 10.0;
@@ -42,7 +42,7 @@ void testPvpRestricted(PV::Communicator * comm, std::string const& directory) {
    for (int k=0; k<localSize; k++) {
       checkpointData.at(k) = correctData.at(k);
    }
-   checkpointEntryPvp.write(directory, simTime);
+   checkpointEntryPvp.write(directory, simTime, false/*not verifying writes*/);
 
    // Data has now been checkpointed. Change the vector to make sure that checkpointRead is really modifying the data.
    for (auto& a : checkpointData) {

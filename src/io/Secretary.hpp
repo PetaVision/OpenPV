@@ -32,7 +32,7 @@ public:
    void checkpointWrite(std::string const& checkpointWriteDir, double simTime);
 
    Communicator * getCommunicator() { return mCommunicator; }
-   bool isVerifyingWrites() { return mVerifyingWritesFlag; }
+   bool doesVerifyWrites() { return mVerifyWritesFlag; }
 
 private:
    std::string mName;
@@ -40,7 +40,7 @@ private:
    std::map<std::string const*, std::shared_ptr<CheckpointEntry> > mCheckpointRegistry;
    TimeInfo mTimeInfo;
    std::shared_ptr<CheckpointEntryData<TimeInfo> > mTimeInfoCheckpointEntry = nullptr; 
-   bool mVerifyingWritesFlag = true;
+   bool mVerifyWritesFlag = true;
 };
 
 /**

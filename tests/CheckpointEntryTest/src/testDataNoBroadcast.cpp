@@ -11,9 +11,9 @@ void testDataNoBroadcast(PV::Communicator * comm, std::string const& directory) 
          checkpointData.at(i) = (float) i;
       }
    }
-   PV::CheckpointEntryData<float> checkpointEntryNoBroadcast{"checkpointEntryNoBroadcast", false/*not verifying writes*/, comm,
+   PV::CheckpointEntryData<float> checkpointEntryNoBroadcast{"checkpointEntryNoBroadcast", comm,
          checkpointData.data(), checkpointData.size(), false/*no broadcast*/};
-   checkpointEntryNoBroadcast.write(directory, 0.0/*simTime, not used*/);
+   checkpointEntryNoBroadcast.write(directory, 0.0/*simTime, not used*/, false/*not verifying writes*/);
 
    // Data has now been checkpointed. Copy it to compare after CheckpointEntry::read,
    // and change the vector to make sure that checkpointRead is really modifying the data.

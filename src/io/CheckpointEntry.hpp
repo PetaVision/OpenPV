@@ -15,44 +15,41 @@ namespace PV {
 
 class CheckpointEntry {
    public:
-      CheckpointEntry(std::string const& name, bool verifyingWritesFlag, Communicator * communicator) :
-            mName(name), mVerifyingWritesFlag(verifyingWritesFlag), mCommunicator(communicator) {}
-      CheckpointEntry(std::string const& objName, std::string const& dataName, bool verifyingWritesFlag, Communicator * communicator) {
+      CheckpointEntry(std::string const& name, Communicator * communicator) :
+            mName(name), mCommunicator(communicator) {}
+      CheckpointEntry(std::string const& objName, std::string const& dataName, Communicator * communicator) {
          std::string key(objName);
          if (!(objName.empty() || dataName.empty())) { key.append("_"); }
          key.append(dataName);
-         mVerifyingWritesFlag = verifyingWritesFlag;
          mCommunicator = communicator;
       }
-      virtual void write(std::string const& checkpointDirectory, double simTime) const {return;}
+      virtual void write(std::string const& checkpointDirectory, double simTime, bool verifyWritesFlag) const {return;}
       virtual void read(std::string const& checkpointDirectory, double * simTimePtr) const {return;}
       virtual void remove(std::string const& checkpointDirectory) const {return;}
       std::string const& getName() const { return mName; }
    protected:
       std::string generatePath(std::string const& checkpointDirectory, std::string const& extension) const;
       void deleteFile(std::string const& checkpointDirectory, std::string const& extension) const;
-      bool isVerifyingWrites() const { return mVerifyingWritesFlag; }
       Communicator * getCommunicator() const { return mCommunicator; }
 
 // data members
 private:
    std::string mName;
-   bool mVerifyingWritesFlag;
    Communicator * mCommunicator;
 };
 
 template <typename T>
 class CheckpointEntryData : public CheckpointEntry {
 public:
-   CheckpointEntryData(std::string const& name, bool verifyingWritesFlag, Communicator * communicator,
+   CheckpointEntryData(std::string const& name, Communicator * communicator,
          T * dataPtr, size_t numValues, bool broadcastingFlag) :
-         CheckpointEntry(name, verifyingWritesFlag, communicator),
+         CheckpointEntry(name, communicator),
          mDataPointer(dataPtr), mNumValues(numValues), mBroadcastingFlag(broadcastingFlag) {}
-   CheckpointEntryData(std::string const& objName, std::string const& dataName, bool verifyingWritesFlag, Communicator * communicator,
+   CheckpointEntryData(std::string const& objName, std::string const& dataName, Communicator * communicator,
          T * dataPtr, size_t numValues, bool broadcastingFlag) :
-         CheckpointEntry(objName, dataName, verifyingWritesFlag, communicator),
+         CheckpointEntry(objName, dataName, communicator),
          mDataPointer(dataPtr), mNumValues(numValues), mBroadcastingFlag(broadcastingFlag) {}
-   virtual void write(std::string const& checkpointDirectory, double simTime) const override;
+   virtual void write(std::string const& checkpointDirectory, double simTime, bool verifyWritesFlag) const override;
    virtual void read(std::string const& checkpointDirectory, double * simTimePtr) const override;
    virtual void remove(std::string const& checkpointDirectory) const override;
 
@@ -68,15 +65,15 @@ private:
 template <typename T>
 class CheckpointEntryPvp : public CheckpointEntry {
 public:
-   CheckpointEntryPvp(std::string const& name, bool verifyingWritesFlag, Communicator * communicator,
+   CheckpointEntryPvp(std::string const& name, Communicator * communicator,
          T * dataPtr, size_t dataSize, int dataType, PVLayerLoc const * layerLoc, bool extended) :
-         CheckpointEntry(name, verifyingWritesFlag, communicator),
+         CheckpointEntry(name, communicator),
          mDataPointer(dataPtr), mDataSize(dataSize), mDataType(dataType), mLayerLoc(layerLoc), mExtended(extended) {}
-   CheckpointEntryPvp(std::string const& objName, std::string const& dataName, bool verifyingWritesFlag, Communicator * communicator,
+   CheckpointEntryPvp(std::string const& objName, std::string const& dataName, Communicator * communicator,
          T * dataPtr, size_t dataSize, int dataType, PVLayerLoc const * layerLoc, bool extended) :
-         CheckpointEntry(objName, dataName, verifyingWritesFlag, communicator),
+         CheckpointEntry(objName, dataName, communicator),
          mDataPointer(dataPtr), mDataSize(dataSize), mDataType(dataType), mLayerLoc(layerLoc), mExtended(extended) {}
-   virtual void write(std::string const& checkpointDirectory, double simTime) const override;
+   virtual void write(std::string const& checkpointDirectory, double simTime, bool verifyWritesFlag) const override;
    virtual void read(std::string const& checkpointDirectory, double * simTimePtr) const override;
    virtual void remove(std::string const& checkpointDirectory) const override;
 private:
