@@ -49,7 +49,6 @@ namespace PV {
          mInputNf  = header.at(INDEX_NF);
          mFileType = header.at(INDEX_FILE_TYPE);
          mPvpFrameCount = header.at(INDEX_NBANDS);
-         pvDebug() << filename << " : " << mFileType << " :: " << mPvpFrameCount << " frames\n";
          initializeBatchIndexer(mPvpFrameCount);
          if (header.at(INDEX_FILE_TYPE) == PVP_ACT_SPARSEVALUES_FILE_TYPE
           || header.at(INDEX_FILE_TYPE) == PVP_ACT_FILE_TYPE) {
@@ -86,9 +85,10 @@ namespace PV {
                                                   &list,
                                                   frameNumber,
                                                   &sparseTable);
+            pvDebug() << list.getContents().size();
             // This is a hack. We should only ever be
             // calling this with T == float.
-            list.fromBuffer(result, {0}); 
+            list.toBuffer(result, {0}); 
             break;
          case PVP_ACT_FILE_TYPE:
             // The {1} and {0} are the same hack.
@@ -97,7 +97,7 @@ namespace PV {
                                                         frameNumber,
                                                         {1},
                                                         &sparseTable);
-            list.fromBuffer(result, {0}); 
+            list.toBuffer(result, {0}); 
             break;
       }
 
