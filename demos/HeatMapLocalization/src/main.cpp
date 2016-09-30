@@ -22,7 +22,7 @@
 #include "LocalizationBBFindProbe.hpp"
 #define TEXTFILEBUFFERSIZE 1024
 
-char * getImageFileName(PV::Communicator * icComm);
+std::string getImageFileName(PV::Communicator * icComm);
 int setImageLayerMemoryBuffer(PV::Communicator * icComm, char const * imageFile, PV::ImageFromMemoryBuffer * imageLayer, uint8_t ** imageBufferPtr, size_t * imageBufferSizePtr);
 int runWithHarness(PV::HyPerCol * hc, int frameInterval);
 int runWithoutHarness(PV::HyPerCol * hc);
@@ -283,19 +283,19 @@ int runWithHarness(PV::HyPerCol * hc, int frameInterval) {
 
    FrameServer frameServer;
    frameServer.setFrameRate(frameInterval);
-   char * videoFile = getImageFileName(icComm);
-   while(videoFile!=NULL && videoFile[0]!='\0') {
+   std::string videoFile = getImageFileName(icComm);
+   while(!videoFile.empty()) {
       char frameNumberStr[5];
       unsigned int numFrames = 0U;
       if (rank==0) {
-         frameServer.feedVideoToDragonsGapingMaw(videoFile);
+         frameServer.feedVideoToDragonsGapingMaw(videoFile.c_str());
          numFrames = frameServer.getNumFrames();
       }
       MPI_Bcast(&numFrames, 1, MPI_UNSIGNED, 0, icComm->communicator());
       for (unsigned f=0; f<numFrames; f++) {
          startTime = hc->simulationTime();
          stopTime = startTime + displayPeriod;
-         localizationProbe->setOutputFilenameBase(videoFile);
+         localizationProbe->setOutputFilenameBase(videoFile.c_str());
          std::string filenameBase(localizationProbe->getOutputFilenameBase());
          filenameBase += "_frame";
          int sizeCheck = snprintf(frameNumberStr, (size_t) 5, "%04u", f);
@@ -322,13 +322,11 @@ int runWithHarness(PV::HyPerCol * hc, int frameInterval) {
             }
          }
       }
-      free(videoFile);
       if (rank==0) {
          frameServer.clearFrames();
       }
       videoFile = getImageFileName(icComm);
    }
-   free(videoFile);
    return status;
 }
 
@@ -336,7 +334,7 @@ int runWithoutHarness(PV::HyPerCol * hc) {
    return hc->run();
 }
 
-char * getImageFileName(PV::Communicator * icComm)
+std::string getImageFileName(PV::Communicator * icComm)
 {
    // All processes call this routine.  Calling routine is responsible for freeing the returned string.
    char buffer[TEXTFILEBUFFERSIZE];
@@ -369,11 +367,7 @@ char * getImageFileName(PV::Communicator * icComm)
       }
    }
    MPI_Bcast(buffer, TEXTFILEBUFFERSIZE/*count*/, MPI_CHAR, 0/*rootprocess*/, icComm->communicator());
-   char * filename = PV::expandLeadingTilde(buffer);
-   if (filename==NULL)
-   {
-      pvError().printf("Rank %d process unable to allocate space for line from listOfImageFiles file.\n", rank);
-   }
+   std::string filename = PV::expandLeadingTilde(buffer);
    return filename;
 }
 

@@ -22,7 +22,7 @@
 #include "include/pv_common.h"
 #include "include/pv_types.h"
 #include "utils/Timer.hpp"
-
+#include "io/PrintStream.hpp"
 
 #ifdef PV_USE_CUDA
 #  undef PV_USE_CUDA
@@ -376,7 +376,7 @@ public:
 
    virtual int checkpointRead(const char * cpDir, double * timeptr); // (const char * cpDir, double * timed);
    virtual int checkpointWrite(const char * cpDir);
-   virtual int writeTimers(std::ostream& stream);
+   virtual int writeTimers(PrintStream &stream);
    // TODO: readBufferFile and writeBufferFile have to take different types of buffers.  Can they be templated?
    template <typename T>
    static int readBufferFile(const char * filename, Communicator * comm, double * timed, T ** buffers, int numbands, bool extended, const PVLayerLoc * loc);

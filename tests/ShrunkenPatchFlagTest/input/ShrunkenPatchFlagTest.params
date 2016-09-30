@@ -210,7 +210,7 @@ RequireAllZeroActivityProbe "comparison_probe" = {
     probeOutputFile                  = NULL;
     triggerLayerName                 = NULL;
     energyProbe                      = NULL;
-    nnzThreshold                     = 1.0e-7;
+    nnzThreshold                     = 1.0e-4;
     exitOnFailure                    = true;
     immediateExitOnFailure           = false;
 };

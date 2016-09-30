@@ -87,7 +87,7 @@ private:
 namespace TextOutput {
 
 template <typename T>
-void print(T const * dataPointer, size_t numValues, std::ostream& stream) {
+void print(T const * dataPointer, size_t numValues, PrintStream &stream) {
    for (size_t n=0; n<numValues; n++) {
       stream << dataPointer[n] << "\n";
    }

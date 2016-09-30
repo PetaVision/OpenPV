@@ -72,7 +72,7 @@ public:
     * A pure virtual method for writing output to the output file.
     */
    virtual int outputState(double timef) = 0;
-   virtual int writeTimer(std::ostream& stream) {return PV_SUCCESS;}
+   virtual int writeTimer(PrintStream &stream) {return PV_SUCCESS;}
    
    /**
     * Returns the name of the targetName parameter for this probe.
@@ -248,14 +248,14 @@ protected:
    virtual int initMessage(const char * msg);
    
    /**
-    * Returns a pointer to the OutStream used by outputState.
+    * Returns a pointer to the PrintStream used by outputState.
     */
-   OutStream * getOutputStream() {return outputStream;}
+   PrintStream * getOutputStream() {return outputStream;}
 
    /**
     * Returns a reference to the ostream that outputState writes to.
     */
-   std::ostream& output() { return outputStream->outStream(); }
+   PrintStream& output() { return *outputStream; }
    
    /**
     * initNumValues is called by initialize.
@@ -304,7 +304,7 @@ private:
 
 // Member variables
 protected:
-   OutStream * outputStream;
+   PrintStream * outputStream;
    bool triggerFlag;
    char* triggerLayerName;
    HyPerLayer * triggerLayer;

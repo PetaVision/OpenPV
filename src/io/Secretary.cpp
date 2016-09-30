@@ -36,7 +36,7 @@ void Secretary::setOutputPath(std::string const& outputPath) {
       }
    }
    if (!outputPath.empty()) {
-      mOutputPath = expandLeadingTilde(outputPath.c_str());
+      mOutputPath = strdup(expandLeadingTilde(outputPath.c_str()).c_str());
       pvErrorIf(mOutputPath == nullptr, "Secretary::setOutputPath unable to copy output path.\n");
    }
    else {
@@ -448,7 +448,7 @@ std::string const Secretary::mDefaultOutputPath = "output";
 namespace TextOutput {
 
 template <>
-void print(Secretary::TimeInfo const * dataPointer, size_t numValues, std::ostream& stream) {
+void print(Secretary::TimeInfo const * dataPointer, size_t numValues, PrintStream& stream) {
    for (size_t n=0; n<numValues; n++) {
       stream << "time = " << dataPointer[n].mSimTime << "\n";
       stream << "timestep = " << dataPointer[n].mCurrentCheckpointStep << "\n";

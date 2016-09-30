@@ -13,10 +13,11 @@
 #ifndef BASECONNECTION_HPP_
 #define BASECONNECTION_HPP_
 
-#include <columns/BaseObject.hpp>
-#include <columns/HyPerCol.hpp>
-#include <io/io.hpp>
-#include <io/PVParams.hpp>
+#include "columns/BaseObject.hpp"
+#include "columns/HyPerCol.hpp"
+#include "io/io.hpp"
+#include "io/PVParams.hpp"
+#include "io/PrintStream.hpp"
 
 namespace PV {
 
@@ -125,7 +126,7 @@ public:
    /**
     * A pure virtual function for writing timing information.
     */
-   virtual int writeTimers(std::ostream& stream) = 0;
+   virtual int writeTimers(PrintStream &stream) = 0;
 
    /**
     * Called by HyPerCol::outputParams to output the params groups for probes whose ownership has

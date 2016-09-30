@@ -11,9 +11,9 @@
 #include "include/pv_datatypes.h"
 #include "include/pv_types.h"
 #include "include/PVLayerLoc.h"
-#include "arch/mpi/mpi.h"
 #include "columns/Communicator.hpp"
 #include "columns/DataStore.hpp"
+#include "mpi/mpi.h"
 
 namespace PV {
 

@@ -1,25 +1,20 @@
 set (PVLibSrcCpp ${PVLibSrcCpp}
-   ${SUBDIR}/AdaptiveTimeScaleController.cpp
+   ${SUBDIR}/BufferUtilsRescale.cpp
    ${SUBDIR}/Clock.cpp
    ${SUBDIR}/PVAssert.cpp
    ${SUBDIR}/PVAlloc.cpp
    ${SUBDIR}/PVLog.cpp
-   ${SUBDIR}/Image.cpp
-   ${SUBDIR}/Buffer.cpp
-   ${SUBDIR}/BatchIndexer.cpp
    ${SUBDIR}/Timer.cpp
 )
 
 set (PVLibSrcHpp ${PVLibSrcHpp}
-   ${SUBDIR}/AdaptiveTimeScaleController.hpp
    ${SUBDIR}/Clock.hpp
    ${SUBDIR}/PVAssert.hpp
    ${SUBDIR}/PVAlloc.hpp
    ${SUBDIR}/PVLog.hpp
-   ${SUBDIR}/Image.hpp
-   ${SUBDIR}/Buffer.hpp
-   ${SUBDIR}/BatchIndexer.cpp
-   ${SUBDIR}/RingBuffer.hpp
+   ${SUBDIR}/BufferUtilsRescale.hpp
+   ${SUBDIR}/BufferUtilsMPI.hpp
+   ${SUBDIR}/BufferUtilsPvp.hpp
    ${SUBDIR}/Timer.hpp
 )
 

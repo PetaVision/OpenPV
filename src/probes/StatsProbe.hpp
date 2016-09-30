@@ -18,7 +18,7 @@ public:
    virtual ~StatsProbe();
 
    virtual int outputState(double timef);
-virtual int checkpointTimers(OutStream& timerstream);
+virtual int checkpointTimers(PrintStream& timerstream);
 protected:
    StatsProbe();
    int initStatsProbe(const char * probeName, HyPerCol * hc);
