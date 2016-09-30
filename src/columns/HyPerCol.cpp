@@ -421,8 +421,25 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_progressInterval(ioFlag);
    ioParam_writeProgressToErr(ioFlag);
    mSecretary->ioParamsFillGroup(ioFlag, parameters());
-   ioParam_verifyWrites(ioFlag);
-   ioParam_outputPath(ioFlag);
+   if (ioFlag==PARAMS_IO_READ) {
+      // These parameters are read and written by mSecretary.
+      // During the transition of checkpointing from HyPerCol to Secretary,
+      // HyPerCol will redundantly read these parameters but not write them.
+      ioParam_verifyWrites(ioFlag);
+      ioParam_outputPath(ioFlag);
+      ioParam_checkpointWrite(ioFlag);
+      ioParam_checkpointWriteDir(ioFlag);
+      ioParam_checkpointWriteTriggerMode(ioFlag);
+      ioParam_checkpointWriteStepInterval(ioFlag);
+      ioParam_checkpointWriteTimeInterval(ioFlag);
+      ioParam_checkpointWriteClockInterval(ioFlag);
+      ioParam_checkpointWriteClockUnit(ioFlag);
+      ioParam_checkpointIndexWidth(ioFlag);
+      ioParam_suppressNonplasticCheckpoints(ioFlag);
+      ioParam_deleteOlderCheckpoints(ioFlag);
+      ioParam_numCheckpointsKept(ioFlag);
+      ioParam_suppressLastOutput(ioFlag);
+   }
    ioParam_printParamsFilename(ioFlag);
    ioParam_randomSeed(ioFlag);
    ioParam_nx(ioFlag);
@@ -433,18 +450,6 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_initializeFromCheckpointDir(ioFlag);
    ioParam_defaultInitializeFromCheckpointFlag(ioFlag);
    ioParam_checkpointRead(ioFlag); // checkpointRead is obsolete as of June 27, 2016.
-   ioParam_checkpointWrite(ioFlag);
-   ioParam_checkpointWriteDir(ioFlag);
-   ioParam_checkpointWriteTriggerMode(ioFlag);
-   ioParam_checkpointWriteStepInterval(ioFlag);
-   ioParam_checkpointWriteTimeInterval(ioFlag);
-   ioParam_checkpointWriteClockInterval(ioFlag);
-   ioParam_checkpointWriteClockUnit(ioFlag);
-   ioParam_deleteOlderCheckpoints(ioFlag);
-   ioParam_numCheckpointsKept(ioFlag);
-   ioParam_suppressLastOutput(ioFlag);
-   ioParam_suppressNonplasticCheckpoints(ioFlag);
-   ioParam_checkpointIndexWidth(ioFlag);
    ioParam_writeTimescales(ioFlag);
    ioParam_errorOnNotANumber(ioFlag);
 

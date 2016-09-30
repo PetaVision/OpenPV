@@ -45,24 +45,20 @@ void Secretary::setOutputPath(std::string const& outputPath) {
 }
 
 void Secretary::ioParamsFillGroup(enum ParamsIOFlag ioFlag, PVParams * params) {
-   // Currently, HyPerCol reads and writes params related to Secretary functions, and Secretary redundantly reads as needed.
-   // TODO: Secretary should read and write from params, and HyPerCol should not need to refer to any Secretary-related params.
-   if (ioFlag == PARAMS_IO_READ) {
-      ioParam_verifyWrites(ioFlag, params);
-      ioParam_outputPath(ioFlag, params);
-      ioParam_checkpointWrite(ioFlag, params);
-      ioParam_checkpointWriteDir(ioFlag, params);
-      ioParam_checkpointWriteTriggerMode(ioFlag, params);
-      ioParam_checkpointWriteStepInterval(ioFlag, params);
-      ioParam_checkpointWriteTimeInterval(ioFlag, params);
-      ioParam_checkpointWriteClockInterval(ioFlag, params);
-      ioParam_checkpointWriteClockUnit(ioFlag, params);
-      ioParam_checkpointIndexWidth(ioFlag, params);
-      ioParam_suppressNonplasticCheckpoints(ioFlag, params);
-      ioParam_deleteOlderCheckpoints(ioFlag, params);
-      ioParam_numCheckpointsKept(ioFlag, params);
-      ioParam_suppressLastOutput(ioFlag, params);
-   }
+   ioParam_verifyWrites(ioFlag, params);
+   ioParam_outputPath(ioFlag, params);
+   ioParam_checkpointWrite(ioFlag, params);
+   ioParam_checkpointWriteDir(ioFlag, params);
+   ioParam_checkpointWriteTriggerMode(ioFlag, params);
+   ioParam_checkpointWriteStepInterval(ioFlag, params);
+   ioParam_checkpointWriteTimeInterval(ioFlag, params);
+   ioParam_checkpointWriteClockInterval(ioFlag, params);
+   ioParam_checkpointWriteClockUnit(ioFlag, params);
+   ioParam_checkpointIndexWidth(ioFlag, params);
+   ioParam_suppressNonplasticCheckpoints(ioFlag, params);
+   ioParam_deleteOlderCheckpoints(ioFlag, params);
+   ioParam_numCheckpointsKept(ioFlag, params);
+   ioParam_suppressLastOutput(ioFlag, params);
 }
 
 void Secretary::ioParam_verifyWrites(enum ParamsIOFlag ioFlag, PVParams * params) {
