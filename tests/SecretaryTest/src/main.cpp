@@ -15,9 +15,6 @@ int main(int argc, char * argv[]) {
    PV::Secretary * secretary = new PV::Secretary("secretary", comm);
 
    PV::PVParams * params = new PV::PVParams("input/SecretaryTest.params", 1, comm);
-   if(comm->numCommBatches() > 1){
-         params->setBatchSweepValues();
-   }
 
    char const * checkpointWriteDir = params->stringValue("secretary", "checkpointWriteDir");
    pvErrorIf(checkpointWriteDir==nullptr, "Group \"secretary\" must have a checkpointWriteDir string parameter.\n");
@@ -28,6 +25,10 @@ int main(int argc, char * argv[]) {
       pvInfo() << "Cleaning directory \"" << checkpointWriteDirectory << "\" with \"" << rmcommand << "\".\n";
       int rmstatus = system(rmcommand.c_str());
       pvErrorIf(rmstatus, "Error executing \"%s\": status code was %d\n", rmcommand.c_str(), WEXITSTATUS(rmstatus));
+   }
+   if(comm->numCommBatches() > 1){
+      params->setBatchSweepValues();
+      checkpointWriteDirectory = std::string(params->stringValue("secretary", "checkpointWriteDir"));
    }
    secretary->ioParamsFillGroup(PV::PARAMS_IO_READ, params);
    delete params;

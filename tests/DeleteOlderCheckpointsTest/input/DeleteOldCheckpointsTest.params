@@ -1,0 +1,12 @@
+Secretary "secretary" = {
+    verifyWrites = true;
+    outputPath = "output";
+    checkpointWrite = true;
+    checkpointWriteDir = "output/checkpoints";
+    checkpointWriteTriggerMode = "step";
+    checkpointWriteStepInterval = 1;
+    checkpointIndexWidth = 2;
+    suppressNonplasticCheckpoints = false;
+    deleteOlderCheckpoints = true;
+    numCheckpointsKept = 5;
+};

@@ -98,6 +98,9 @@ void Secretary::ioParam_checkpointWriteDir(enum ParamsIOFlag ioFlag, PVParams * 
    pvAssert(!params->presentAndNotBeenRead(mName.c_str(), "checkpointWrite"));
    if (mCheckpointWriteFlag) {
       params->ioParamStringRequired(ioFlag, mName.c_str(), "checkpointWriteDir", &mCheckpointWriteDir);
+      if (ioFlag == PARAMS_IO_READ) {
+         ensureDirExists(getCommunicator(), mCheckpointWriteDir);
+      }
    }
 }
 
@@ -223,11 +226,13 @@ void Secretary::ioParam_numCheckpointsKept(enum ParamsIOFlag ioFlag, PVParams * 
             exit(EXIT_FAILURE);
          }
          if (ioFlag==PARAMS_IO_READ) {
-            if (getCommunicator()->globalCommRank()==0) {
-               pvErrorNoExit() << "HyPerCol \"" << mName << "\": numCheckpointsKept must be positive (value was " << mNumCheckpointsKept << ")\n";
+            if (mNumCheckpointsKept < 0) {
+               if (getCommunicator()->globalCommRank()==0) {
+                  pvErrorNoExit() << "HyPerCol \"" << mName << "\": numCheckpointsKept must be positive (value was " << mNumCheckpointsKept << ")\n";
+               }
+               MPI_Barrier(mCommunicator->globalCommunicator());
+               exit(EXIT_FAILURE);
             }
-            MPI_Barrier(mCommunicator->globalCommunicator());
-            exit(EXIT_FAILURE);
             if (mOldCheckpointDirectories.size() != 0) { pvWarn() << "ioParamsFillGroup called after list of old checkpoint directories was created.  Reinitializing.\n"; }
             mOldCheckpointDirectories.resize(mNumCheckpointsKept, "");
             mOldCheckpointDirectoriesIndex = 0;

@@ -26,6 +26,7 @@ endif("${PV_SYSTEM_TEST_THREADS}" MATCHES "^([0-9]+|)$")
 add_subdirectory(BatchIndexerTest)
 add_subdirectory(BufferTest)
 add_subdirectory(CheckpointEntryTest)
+add_subdirectory(DeleteOlderCheckpointsTest)
 add_subdirectory(ImageTest)
 add_subdirectory(SecretaryTest)
 
