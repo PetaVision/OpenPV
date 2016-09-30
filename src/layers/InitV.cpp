@@ -151,7 +151,6 @@ int InitV::calcGaussianRandomV(pvdata_t * V, const PVLayerLoc * loc, HyPerCol * 
    const int nxny = flatLoc.nx*flatLoc.ny;
    for(int b = 0; b < loc->nbatch; b++){
       pvdata_t * VBatch = V + b * loc->nx * loc->ny * loc->nf;
-      //int index = 0;
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
@@ -159,7 +158,6 @@ int InitV::calcGaussianRandomV(pvdata_t * V, const PVLayerLoc * loc, HyPerCol * 
          for (int f=0; f<loc->nf; f++) {
             int index = kIndex(xy, 0, f, nxny, 1, loc->nf);
             VBatch[index] = randState->gaussianDist(xy, meanV, sigmaV);
-            //index++;
          }
       }
    }
@@ -173,7 +171,6 @@ int InitV::calcUniformRandomV(pvdata_t * V, const PVLayerLoc * loc, HyPerCol * h
    flatLoc.nf = 1;
    Random * randState = new Random(&flatLoc, false/*isExtended*/);
    const int nxny = flatLoc.nx*flatLoc.ny;
-   //int index = 0;
    for(int b = 0; b < loc->nbatch; b++){
       pvdata_t * VBatch = V + b * loc->nx * loc->ny * loc->nf;
 #ifdef PV_USE_OPENMP_THREADS
@@ -183,7 +180,6 @@ int InitV::calcUniformRandomV(pvdata_t * V, const PVLayerLoc * loc, HyPerCol * h
          for (int f=0; f<loc->nf; f++) {
             int index = kIndex(xy, 0, f, nxny, 1, loc->nf);
             VBatch[index] = randState->uniformRandom(xy, minV, maxV);
-            //index++;
          }
       }
    }
@@ -225,7 +221,6 @@ int InitV::calcVFromFile(pvdata_t * V, const PVLayerLoc * loc, Communicator * ic
       fileLoc.nx = params[INDEX_NX];
       fileLoc.ny = params[INDEX_NY];
       fileLoc.nf = params[INDEX_NF];
-      //fileLoc.nbatch = params[INDEX_NBATCH];
       fileLoc.nxGlobal = params[INDEX_NX_GLOBAL];
       fileLoc.nyGlobal = params[INDEX_NY_GLOBAL];
       fileLoc.kx0 = 0;
@@ -243,7 +238,6 @@ int InitV::calcVFromFile(pvdata_t * V, const PVLayerLoc * loc, Communicator * ic
          case PVP_FILE_TYPE:
             if (printErrors) pvErrorNoExit().printf("calcVFromFile for file \"%s\": \"PVP_FILE_TYPE\" files is obsolete.\n", this->filename);
             abort();
-            //status = scatterActivity(readFile, icComm, 0/*root process*/, VBatch, loc, false/*extended*/, &fileLoc);
             break;
          case PVP_ACT_FILE_TYPE:
             if (printErrors) pvErrorNoExit().printf("calcVFromFile for file \"%s\": sparse activity files are not yet implemented for initializing V buffers.\n", this->filename);
@@ -266,19 +260,6 @@ int InitV::calcVFromFile(pvdata_t * V, const PVLayerLoc * loc, Communicator * ic
    else { // Treat as an image file
       if (printErrors) pvErrorNoExit().printf("calcVFromFile: file \"%s\" is not a pvp file.\n", this->filename);
       abort();
-      
-      //Obsoleted 7/7/15, as image does not have a v, and scatterImageFileGDAL should not be public
-      //status = getImageInfoGDAL(filename, icComm, &fileLoc, NULL);
-      //assert(status == PV_SUCCESS);
-      //if ( checkLoc(loc, fileLoc.nx, fileLoc.ny, fileLoc.nf, fileLoc.nxGlobal, fileLoc.nyGlobal)!=PV_SUCCESS ) {
-      //   // error message produced by checkLoc
-      //   abort();
-      //}
-      //HyPerLayer * layer = parent->getLayerFromName(groupName);
-      //Image * image = dynamic_cast<Image *>(layer);
-      //assert(image != NULL);
-      //status = image->scatterImageFileGDAL(this->filename, 0, 0, icComm, loc, V, false);
-      //// scatterImageFileGDAL handles the scaling by 1/255.0
    }
    return status;
 }

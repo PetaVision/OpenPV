@@ -51,15 +51,6 @@ int parse_options(int argc, char * argv[], bool * paramusage, bool * require_ret
                   bool * useDefaultNumThreads, int * numthreads,
                   int * num_rows, int * num_columns, int* batch_width, int * dry_run)
 {
-   // // Commented out Jan 7, 2016: some simple system tests do not require any arguments;
-   // // other tests may use several different command line set ups and may choose to start
-   // // blank and add separately.
-   // // If there is interest in restoring this feature, it should be called from somewhere
-   // // other than PV_Arguments::initialize
-   // if (argc < 2) {
-   //    usage();
-   //    return -1;
-   // }
    paramusage[0] = true;
    int arg;
    for (arg=1; arg<argc; arg++) {

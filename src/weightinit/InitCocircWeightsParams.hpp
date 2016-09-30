@@ -27,12 +27,10 @@ public:
    inline float getSigma_kurve_pre()        {return sigma_kurve_pre;}
    inline float getSigma_kurve_pre2()        {return sigma_kurve_pre2;}
    inline float getSigma_kurve_post2()        {return sigma_kurve_post2;}
-   // inline float getSigma_chord()        {return sigma_chord;}
    inline float getmin_weight()        {return min_weight;}
    inline float getnKurvePre()        {return nKurvePre;}
    inline float getGDist()        {return gDist;}
 
-   // float calcKurvePreAndSigmaKurvePre();
    float calcKurvePostAndSigmaKurvePost(int kfPost);
    float calcKurveAndSigmaKurve(int kf, int &nKurve,
          float &sigma_kurve_temp, float &kurve_tmp,
@@ -52,7 +50,6 @@ protected:
    int initialize(const char * name, HyPerCol * hc);
    virtual void ioParam_sigmaCocirc(enum ParamsIOFlag ioFlag);
    virtual void ioParam_sigmaKurve(enum ParamsIOFlag ioFlag);
-   // virtual void ioParam_sigmaChord(enum ParamsIOFlag ioFlag);
    virtual void ioParam_cocircSelf(enum ParamsIOFlag ioFlag);
    virtual void ioParam_deltaRadiusCurvature(enum ParamsIOFlag ioFlag);
    virtual void ioParam_numOrientationsPre(enum ParamsIOFlag ioFlag);
@@ -68,13 +65,8 @@ private:
    float strength;
    int numFlanks;
    float shift;
-   //float rotate; // rotate so that axis isn't aligned
-   //int noPre;
-   //int noPost;
    float sigma_cocirc;
    float sigma_kurve; // fraction of delta_radius_curvature
-   // float sigma_chord; // Handling of sigma_chord is broken, but sigma_chord is ultimately not used, so commented out. -pete 2014-03-14
-   //float delta_theta_max;
    float cocirc_self;
    float delta_radius_curvature; // 1 = minimum radius of curvature
 
@@ -99,7 +91,6 @@ private:
 
    //used for calculating weights:
    float gDist;
-   // float gChord; //not used!
    float gCocirc;
    float gKurvePre;
    float gKurvePost;

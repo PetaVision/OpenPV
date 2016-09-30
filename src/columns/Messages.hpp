@@ -90,33 +90,6 @@ public:
    double mTime;
 };
 
-//class LayerReceiveAndUpdateMessage : public BaseMessage {
-//public:
-//   LayerReceiveAndUpdateMessage(int phase, Timer * timer,
-//#ifdef PV_USE_CUDA
-//         bool recvOnGpuFlag, bool updateOnGpuFlag,
-//#endif // PV_USE_CUDA
-//         double simTime, double deltaTime) {
-//      setMessageType("LayerReceiveAndUpdate");
-//      mPhase = phase;
-//      mTimer = timer;
-//#ifdef PV_USE_CUDA
-//      mRecvOnGpuFlag = recvOnGpuFlag;
-//      mUpdateOnGpuFlag = updateOnGpuFlag;
-//#endif // PV_USE_CUDA
-//      mTime = simTime;
-//      mDeltaT = deltaTime;
-//   }
-//   int mPhase = 0;
-//   Timer * mTimer = nullptr;
-//#ifdef PV_USE_CUDA
-//   bool mRecvOnGpuFlag;
-//   bool mUpdateOnGpuFlag;
-//#endif // PV_USE_CUDA
-//   float mTime;
-//   float mDeltaT; // TODO: this should be the nbatch-sized vector of adaptive timesteps
-//};
-
 class LayerRecvSynapticInputMessage : public BaseMessage {
 public:
    LayerRecvSynapticInputMessage(int phase, Timer * timer,

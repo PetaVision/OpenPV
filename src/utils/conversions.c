@@ -114,20 +114,11 @@ int dist2NearestCell(int kzPre, int log2ScalePre, int log2ScalePost,
 int layerIndexToUnitCellIndex(int patchIndex, const PVLayerLoc * preLoc, int nxUnitCell, int nyUnitCell, int * kxUnitCellIndex,
       int * kyUnitCellIndex, int * kfUnitCellIndex)
 {
-   // int UnitCellIndex;
    int nxPreExtended = preLoc->nx + preLoc->halo.lt + preLoc->halo.rt;
    int nyPreExtended = preLoc->ny + preLoc->halo.dn + preLoc->halo.up;
    int nfPre = preLoc->nf;
    int kxPreExtended = kxPos(patchIndex, nxPreExtended, nyPreExtended, nfPre);
    int kyPreExtended = kyPos(patchIndex, nxPreExtended, nyPreExtended, nfPre);
-
-   // check that patchIndex lay within margins
-   /*
-   assert(kxPreExtended >= 0);
-   assert(kyPreExtended >= 0);
-   assert(kxPreExtended < nxPreExtended);
-   assert(kyPreExtended < nyPreExtended);
-   */
 
    // convert from extended to restricted space (in local HyPerCol coordinates)
    int kxPreRestricted;
@@ -150,10 +141,6 @@ int layerIndexToUnitCellIndex(int patchIndex, const PVLayerLoc * preLoc, int nxU
 
    int kfPre = featureIndex(patchIndex, nxPreExtended, nyPreExtended, nfPre);
 
-//   int nxUnitCell_tmp = (pre->getXScale() < post->getXScale()) ? pow(2,
-//         post->getXScale() - pre->getXScale()) : 1;
-//   int nyUnitCell_tmp = (pre->getYScale() < post->getYScale()) ? pow(2,
-//         post->getYScale() - pre->getYScale()) : 1;
    int kxUnitCell = kxPreRestricted % nxUnitCell;
    int kyUnitCell = kyPreRestricted % nyUnitCell;
 

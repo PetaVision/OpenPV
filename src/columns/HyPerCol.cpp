@@ -79,7 +79,6 @@ HyPerCol::~HyPerCol() {
    }
    mColProbes.clear();
    
-   //mCommunicator->clearPublishers();
    delete mRunTimer;
    delete mCheckpointTimer;
    //TODO: Change these old C strings into std::string
@@ -156,14 +155,12 @@ int HyPerCol::initialize_base() {
    mColProbes.clear();
    mBaseProbes.clear();
    mRandomSeed = 0U;
-   //mRandomSeedObj = 0U;
    mErrorOnNotANumber = false;
    mNumThreads = 1;
    mRecvLayerBuffer.clear();
    mVerifyWrites = true; // Default for reading back and verifying when calling PV_fwrite
 #ifdef PV_USE_CUDA
    mCudaDevice = nullptr;
-   //mGpuGroupConns = nullptr;
    mGpuGroupConns.clear();
 #endif
    return PV_SUCCESS;
@@ -191,11 +188,7 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
    mName = strdup(name);
    mRunTimer = new Timer(mName, "column", "run    ");
    mCheckpointTimer = new Timer(mName, "column", "checkpoint ");
-   // Commented out in conversion to std::vector
-   //mLayers = (HyPerLayer **) malloc(mLayerArraySize * sizeof(HyPerLayer *));
-   //mConnections = (BaseConnection **) malloc(mConnectionArraySize * sizeof(BaseConnection *));
-   //mNormalizers = (NormalizeBase **) malloc(mNormalizerArraySize * sizeof(NormalizeBase *));
-
+   
    // mNumThreads will not be set, or used until HyPerCol::run.
    // This means that threading cannot happen in the initialization or communicateInitInfo stages,
    // but that should not be a problem.
@@ -485,7 +478,6 @@ void HyPerCol::ioParam_startTime(enum ParamsIOFlag ioFlag) {
 
 void HyPerCol::ioParam_dt(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(ioFlag, mName, "dt", &mDeltaTime, mDeltaTime);
-   // mDeltaTimeBase = mDeltaTime;  // use param value as base
 }
 
 void HyPerCol::ioParam_dtAdaptController(enum ParamsIOFlag ioFlag) {
@@ -694,7 +686,6 @@ void HyPerCol::ioParam_randomSeed(enum ParamsIOFlag ioFlag) {
    // randomSeed can be set on the command line, from the params file, or from the system clock
    case PARAMS_IO_READ:
       // set random seed if it wasn't set in the command line
-      // bool seedfromclock = false;
       if( !mRandomSeed ) {
          if( mParams->present(mName, "randomSeed") ) {
             mRandomSeed = (unsigned long) mParams->value(mName, "randomSeed");
@@ -1010,8 +1001,6 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
       pvAssert(mNumThreads > 0); // setNumThreads should fail if it sets mNumThreads less than or equal to zero
       omp_set_num_threads(mNumThreads);
 #endif // PV_USE_OPENMP_THREADS
-
-      // initDtAdaptControlProbe(); // Handling adaptive timesteps moved to AdaptiveTimeScaleProbe Aug 18, 2016.
 
       notify(std::make_shared<AllocateDataMessage>());
 
@@ -1873,9 +1862,6 @@ int HyPerCol::initializeThreads(char const * in_device)
 int HyPerCol::finalizeThreads()
 {
    delete mCudaDevice;
-   //if(mGpuGroupConns){
-   //   free(mGpuGroupConns);
-   //}
    for(auto iterator = mGpuGroupConns.begin(); iterator != mGpuGroupConns.end();)
    {
       delete *iterator;
@@ -1893,23 +1879,6 @@ void HyPerCol::addGpuGroup(BaseConnection* conn, int gpuGroupIdx){
    if(mGpuGroupConns.at(gpuGroupIdx) == nullptr) {
       mGpuGroupConns.at(gpuGroupIdx) = conn;
    }
-   ////Resize buffer if not big enough
-   //if(gpuGroupIdx >= mNumGpuGroup){
-   //   int oldNumGpuGroup = mNumGpuGroup;
-   //   mNumGpuGroup = gpuGroupIdx + 1;
-   //   mGpuGroupConns = (BaseConnection**) realloc(mGpuGroupConns, mNumGpuGroup * sizeof(BaseConnection*));
-   //   //Initialize newly allocated part to nullptr
-   //   for(int i = oldNumGpuGroup; i < mNumGpuGroup; i++){
-   //      mGpuGroupConns[i] = nullptr;
-   //   }
-   //}
-   ////If empty, fill
-   //if(mGpuGroupConns[gpuGroupIdx] == nullptr){
-   //   mGpuGroupConns[gpuGroupIdx] = conn;
-   //}
-   ////Otherwise, do nothing
-   //
-   //return;
 }
 #endif //PV_USE_CUDA
 

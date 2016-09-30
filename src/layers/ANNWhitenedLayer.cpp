@@ -65,7 +65,6 @@ int ANNWhitenedLayer::updateState(double time, double dt)
    pvdata_t * V = getV();
    int num_channels = getNumChannels();
    pvdata_t * gSynHead = GSyn == NULL ? NULL : GSyn[0];
-   //update_timer->start();
    int nx = loc->nx;
    int ny = loc->ny;
    int nf = loc->nf;

@@ -63,12 +63,7 @@ int MomentumLCALayer::initialize_base()
    timeConstantTau = 1.0;
    LCAMomentumRate = 0;
    //Locality in conn
-   //numWindowX = 1;
-   //numWindowY = 1;
-   //windowSymX = false;
-   //windowSymY = false;
    selfInteract = true;
-   //sparseProbe = NULL;
    return PV_SUCCESS;
 }
 
@@ -185,15 +180,11 @@ int MomentumLCALayer::updateStateGpu(double time, double dt){
    //Copy over d_dtAdapt
    d_dtAdapt->copyToDevice(deltaTimes());
 
-   //Don't need to copy as prevDrive buffer is only needed for checkpointing
-   //d_prevDrive->copyToDevice(prevDrive);
-
    //Change dt to match what is passed in
    PVCuda::CudaUpdateMomentumLCALayer* updateKernel = dynamic_cast<PVCuda::CudaUpdateMomentumLCALayer*>(krUpdate);
    assert(updateKernel);
    runUpdateKernel();
 
-   //d_prevDrive->copyFromDevice(prevDrive);
 
    return PV_SUCCESS;
 }

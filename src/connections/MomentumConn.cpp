@@ -59,8 +59,6 @@ int MomentumConn::allocateDataStructures(){
       assert(prev_dwDataStart[arborId] != NULL);
    } // loop over arbors
 
-   //assert(clones.size() == 0);
-
    return PV_SUCCESS;
 }
 
@@ -225,7 +223,6 @@ int MomentumConn::applyMomentum(int arbor_ID){
          }
          else if(!strcmp(momentumMethod, "viscosity")){
             for(int k = 0; k < nxp*nyp*nfp; k++){
-               //dwdata_start[k] = momentumTau * (prev_dw_start[k] + dwdata_start[k]) * (1 - exp(-1.0/ momentumTau)) - momentumDecay*wdata_start[k];
                dwdata_start[k] = (prev_dw_start[k] * expf(-1.0f / momentumTau)) + dwdata_start[k] - momentumDecay*wdata_start[k];
             }
          }

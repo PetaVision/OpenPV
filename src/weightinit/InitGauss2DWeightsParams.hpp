@@ -109,7 +109,7 @@ protected:
    bool bowtieFlag;  // flag for setting bowtie angle
    float bowtieAngle;  // bowtie angle
 
-   //calculated values;
+   //calculated values
    double r2Max;
    double r2Min;
    bool self;

@@ -90,11 +90,6 @@ int GapConn::allocateDataStructures() {
    }
    int status = HyPerConn::allocateDataStructures();
 
-   // LIFGap now has a gapStrength member variable and calls calcGapStrength during setInitialValues stage
-   // assert(this->normalizer->getNormalizeFromPostPerspectiveFlag());
-   // float gap_strength = normalizer->getStrength(); // normalizer->getStrength() / this->postSynapticLayer()->getNumNeurons() * this->preSynapticLayer()->getNumNeurons();
-   // postLIFGap->addGapStrength(gap_strength);
-
    return status;
 }
 

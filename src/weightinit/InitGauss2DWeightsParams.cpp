@@ -208,10 +208,8 @@ bool InitGauss2DWeightsParams::checkBowtieAngle(float xp, float yp) {
 
 
 void InitGauss2DWeightsParams::calculateThetas(int kfPre_tmp, int patchIndex) {
-   //numOrientationsPost = post->getLayerLoc()->nf;  // to allow for color bands, can't assume numOrientations
    dthPost = PI*thetaMax / (float) numOrientationsPost;
    th0Post = rotate * dthPost / 2.0f;
-   //numOrientationsPre = pre->getLayerLoc()->nf; // to allow for color bands, can't assume numOrientations
    const float dthPre = calcDthPre();
    const float th0Pre = calcTh0Pre(dthPre);
    fPre = patchIndex % pre->getLayerLoc()->nf;

@@ -35,7 +35,6 @@ protected:
    virtual int readVFromCheckpoint(const char * cpDir, double * timeptr);
    virtual int checkpointWrite(const char * cpDir);
    virtual int updateState(double timed, double dt);
-   //virtual double getDeltaUpdateTime();
 
 private:
    int initialize_base();

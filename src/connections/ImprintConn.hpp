@@ -28,11 +28,9 @@ protected:
    virtual int update_dW(int arbor_ID);
    virtual int updateWeights(int arbor_ID);
 
-   //int initialize(const char * name, HyPerCol * hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag);
    virtual void ioParam_imprintTimeThresh(enum ParamsIOFlag ioFlag);
-   //virtual void ioParam_imprintChance(enum ParamsIOFlag ioFlag);
    int imprintFeature(int arborId, int batchId, int kExt);
    double imprintTimeThresh;
    double* lastActiveTime;

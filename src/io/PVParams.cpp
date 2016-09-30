@@ -807,7 +807,6 @@ PVParams::~PVParams()
 int PVParams::initialize(size_t initialSize) {
    this->numGroups = 0;
    groupArraySize = initialSize;
-   //this->icComm = icComm;
    //Get world rank and size
    MPI_Comm_rank(icComm->globalCommunicator(), &worldRank);
    MPI_Comm_size(icComm->globalCommunicator(), &worldSize);
@@ -1200,7 +1199,6 @@ int PVParams::parseBuffer(char const * buffer, long int bufferLength) {
 }
 
 int PVParams::setBatchSweepSize() {
-   //pvInfo() << "Exiting test\n";
    batchSweepSize = -1;
    for (int k=0; k<numBatchSweeps; k++) {
       if (batchSweepSize<0) {

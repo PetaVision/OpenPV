@@ -49,7 +49,7 @@ int InitSpreadOverArborsWeights::calcWeights(/* PVPatch * patch */ pvdata_t * da
 
    spreadOverArborsWeights(/* patch */ dataStart, arborId, weightParamPtr);
 
-   return PV_SUCCESS; // return 1;
+   return PV_SUCCESS; 
 }
 
 /**
@@ -58,7 +58,6 @@ int InitSpreadOverArborsWeights::calcWeights(/* PVPatch * patch */ pvdata_t * da
  */
 int InitSpreadOverArborsWeights::spreadOverArborsWeights(/* PVPatch * patch */ pvdata_t * dataStart, int arborId,
       InitSpreadOverArborsWeightsParams * weightParamPtr) {
-
 
 
    //load necessary params:
@@ -71,9 +70,6 @@ int InitSpreadOverArborsWeights::spreadOverArborsWeights(/* PVPatch * patch */ p
 
    const float iWeight = weightParamPtr->getInitWeight();
    const int nArbors = callingConn->numberOfAxonalArborLists();
-
-
-   // pvdata_t * w_tmp = patch->data;
 
    // loop over all post-synaptic cells in temporary patch
    for (int fPost = 0; fPost < nfPatch_tmp; fPost++) {
@@ -121,8 +117,6 @@ int InitSpreadOverArborsWeights::spreadOverArborsWeights(/* PVPatch * patch */ p
                   weight = iWeight*fracpart;
                }
             }
-            // if (arborId == zone)
-            //    weight = iWeight;
 
             int index = iPost * sx_tmp + jPost * sy_tmp + fPost * sf_tmp;
             dataStart[index] = weight;

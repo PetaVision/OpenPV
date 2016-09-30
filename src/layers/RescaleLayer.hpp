@@ -40,9 +40,6 @@ protected:
 private:
    int initialize_base();
 
-   // Handled by CloneVLayer
-   // char * originalLayerName;
-   // HyPerLayer * originalLayer;
 
 protected:
    float targetMax;

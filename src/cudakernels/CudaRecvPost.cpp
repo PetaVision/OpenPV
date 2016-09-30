@@ -184,14 +184,9 @@ void CudaRecvPost::setArgs(
       actualYBorder = (params.nyp-params.preToPostScaleY)/2;
    }
 
-   //params.diffX = actualXBorder - params.preNblt;
-   //params.diffY = actualYBorder - params.preNbup;
-
    //diffX is positive value of cropping
    params.diffX = params.preNblt - actualXBorder;
    params.diffY = params.preNbup - actualYBorder;
-
-   //pvAssert(diffX <= 0 && diffY <= 0);
 
    //Set up pre descriptor
    cudnnTensorDescriptor_t inputDescriptor;

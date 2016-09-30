@@ -33,8 +33,6 @@ void Retina_spiking_update_state (
     Retina_params * params,
     taus_uint4 * rnd,
     float * GSynHead,
-//    float * phiExc,
-//    float * phiInh,
     float * activity,
     float * prevTime);
 
@@ -52,8 +50,6 @@ void Retina_nonspiking_update_state (
     const int up,
     Retina_params * params,
     float * GSynHead,
-//    float * phiExc,
-//    float * phiInh,
     float * activity);
 
 
@@ -514,8 +510,6 @@ void Retina_spiking_update_state (
          float l_activ;
          l_activ = (float) spike((float)timed, (float)dt, l_prev, (l_phiExc - l_phiInh), &l_rnd, burst_status, params);
          l_prev  = (l_activ > 0.0f) ? (float)timed : l_prev;
-         //l_phiExc = 0.0f;
-         //l_phiInh = 0.0f;
          // store local variables back to global memory
          //
          rndBatch[k] = l_rnd;
@@ -572,8 +566,6 @@ void Retina_nonspiking_update_state (
          float l_activ;
          // adding base prob should not change default behavior
          l_activ = burstStatus * params->probStim*(l_phiExc - l_phiInh) + params->probBase;
-         //l_phiExc = 0.0f;
-         //l_phiInh = 0.0f;
          // store local variables back to global memory
          //
          activityBatch[kex] = l_activ;

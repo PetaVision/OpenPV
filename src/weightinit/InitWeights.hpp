@@ -17,10 +17,7 @@
 
 namespace PV {
 
-//class HyPerCol;
-//lass HyPerLayer;
 class InitWeightsParams;
-//class InitGauss2DWeightsParams;
 
 class InitWeights : public BaseObject {
 public:

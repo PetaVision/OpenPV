@@ -44,15 +44,7 @@ void InitOneToOneWeightsWithDelaysParams::ioParam_weightInit(enum ParamsIOFlag i
 }
 
 void InitOneToOneWeightsWithDelaysParams::calcOtherParams(int patchIndex) {
-
    this->getcheckdimensionsandstrides();
-
-   //const int kfPre_tmp = this->kernalIndexCalculations(patch, patchIndex);
-
-
-
-   //this->calculateThetas(kfPre_tmp, patchIndex);
-
 }
 
 

@@ -32,11 +32,7 @@ uint64_t get_cpu_time() {
    return mach_absolute_time();
 #else
    struct timeval tim;
-   //   struct rusage ru;
-   //   getrusage(RUSAGE_SELF, &ru);
-   //   tim = ru.ru_utime;
    gettimeofday(&tim, NULL);
-   //pvInfo().printf("get_cpu_time: sec==%d usec==%d\n", tim.tv_sec, tim.tv_usec);
    return ((uint64_t) tim.tv_sec)*1000000 + (uint64_t) tim.tv_usec;
 #endif
 }

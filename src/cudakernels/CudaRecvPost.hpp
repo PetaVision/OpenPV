@@ -54,7 +54,6 @@ namespace PVCuda{
       float* cudnn_preData;
       float* cudnn_weights;
       float* cudnn_gSyn;
-      //float* cudnn_accumGSyn;
       void* cudnn_workspace;
 #endif
       int* patch2datalookuptable;

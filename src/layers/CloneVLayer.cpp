@@ -58,7 +58,6 @@ int CloneVLayer::communicateInitInfo() {
       MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
-   //originalLayer->synchronizeMarginWidth(this);
    const PVLayerLoc * srcLoc = originalLayer->getLayerLoc();
    const PVLayerLoc * loc = getLayerLoc();
    assert(srcLoc != NULL && loc != NULL);
@@ -80,9 +79,6 @@ int CloneVLayer::communicateInitInfo() {
 int CloneVLayer::requireMarginWidth(int marginWidthNeeded, int * marginWidthResult, char axis) {
    HyPerLayer::requireMarginWidth(marginWidthNeeded, marginWidthResult, axis);
    assert(*marginWidthResult >= marginWidthNeeded);
-   // The code below is handled by the synchronizeMarginWidth call in communicateInitInfo
-   // originalLayer->requireMarginWidth(marginWidthNeeded, marginWidthResult, axis);
-   // assert(*marginWidthResult>=marginWidthNeeded);
    return PV_SUCCESS;
 }
 
@@ -144,14 +140,12 @@ int CloneVLayer::updateState(double timed, double dt){
    pvdata_t * V = getV();
    int num_channels = getNumChannels();
    pvdata_t * gSynHead = GSyn == NULL ? NULL : GSyn[0];
-   //update_timer->start();
    int nx = loc->nx;
    int ny = loc->ny;
    int nf = loc->nf;
    int num_neurons = nx*ny*nf;
    int nbatch = loc->nbatch;
    int status = setActivity_HyPerLayer(nbatch, num_neurons, A, V, nx, ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
-   //update_timer->stop();
    return status;
 }
 

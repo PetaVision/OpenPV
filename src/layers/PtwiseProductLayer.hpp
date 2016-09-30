@@ -24,13 +24,12 @@ public:
 
    virtual int allocateDataStructures();
    virtual int updateState(double timef, double dt);
-   // virtual int updateV();
 
 protected:
    PtwiseProductLayer();
    int initialize(const char * name, HyPerCol * hc);
 
-   /* static */ int updateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead);
+   int updateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead);
 
 private:
    int initialize_base();

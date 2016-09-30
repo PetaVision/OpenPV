@@ -31,7 +31,6 @@ int BackgroundLayer::initialize_base() {
 }
 
 int BackgroundLayer::initialize(const char * name, HyPerCol * hc) {
-   //int num_channels = sourceLayer->getNumChannels();
    int status_init = CloneVLayer::initialize(name, hc);
 
    return status_init;
@@ -48,7 +47,6 @@ int BackgroundLayer::communicateInitInfo() {
       MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
-   //originalLayer->synchronizeMarginWidth(this);
    const PVLayerLoc * srcLoc = originalLayer->getLayerLoc();
    const PVLayerLoc * loc = getLayerLoc();
    assert(srcLoc != NULL && loc != NULL);
@@ -92,7 +90,6 @@ void BackgroundLayer::ioParam_repFeatureNum(enum ParamsIOFlag ioFlag) {
 }
 
 int BackgroundLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag){
-  //readOriginalLayerName(params);  // done in CloneVLayer
    CloneVLayer::ioParamsFillGroup(ioFlag);
    ioParam_repFeatureNum(ioFlag);
    return PV_SUCCESS;
@@ -106,7 +103,6 @@ int BackgroundLayer::setActivity() {
 
 int BackgroundLayer::updateState(double timef, double dt) {
    int status = PV_SUCCESS;
-   //int numNeurons = originalLayer->getNumNeurons();
    pvdata_t * A = clayer->activity->data;
    const pvdata_t * originalA = originalLayer->getCLayer()->activity->data;
    const PVLayerLoc * loc = getLayerLoc();

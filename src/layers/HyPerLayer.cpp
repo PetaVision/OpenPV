@@ -89,7 +89,6 @@ int HyPerLayer::initialize_base() {
    dataTypeString = NULL;
 
 #ifdef PV_USE_CUDA
-//   this->krUpdate = NULL;
    allocDeviceV = false;
    allocDeviceGSyn = false;
    allocDeviceActivity = false;
@@ -330,7 +329,6 @@ int HyPerLayer::allocateClayerBuffers() {
 
    int statusV = allocateV();                      if (statusV!=PV_SUCCESS) status = PV_FAILURE;
    int statusA = allocateActivity();               if (statusA!=PV_SUCCESS) status = PV_FAILURE;
-   //int statusActIndices = allocateActiveIndices(); if (statusActIndices!=PV_SUCCESS) status = PV_FAILURE;
    int statusPrevAct = allocatePrevActivity();     if (statusPrevAct!=PV_SUCCESS) status = PV_FAILURE;
    for (k = 0; k < getNumExtendedAllBatches(); k++) {
       clayer->prevActivity[k] = -10*REFRACTORY_PERIOD;  // allow neuron to fire at time t==0
@@ -449,10 +447,10 @@ int HyPerLayer::setLayerLoc(PVLayerLoc * layerLoc, float nxScale, float nyScale,
    layerLoc->nbatchGlobal = parent->numCommBatches() * numBatches;
 
    // halo is set in calls to updateClayerMargin
-   layerLoc->halo.lt = 0; // margin;
-   layerLoc->halo.rt = 0; // margin;
-   layerLoc->halo.dn = 0; // margin;
-   layerLoc->halo.up = 0; // margin;
+   layerLoc->halo.lt = 0; 
+   layerLoc->halo.rt = 0; 
+   layerLoc->halo.dn = 0; 
+   layerLoc->halo.up = 0; 
 
    return 0;
 }
@@ -1298,14 +1296,6 @@ int HyPerLayer::allocateDataStructures()
    status = allocateBuffers();
    assert(status == PV_SUCCESS);
 
-   //Labels deprecated 6/16/15
-   //// labels are not extended
-   //labels = (int *) calloc(getNumNeurons(), sizeof(int));
-   //if (labels==NULL) {
-   //   pvErrorNoExit().printf("HyPerLayer \"%s\": rank %d unable to allocate memory for labels.\n", name, parent->columnId());
-   //   exit(EXIT_FAILURE);
-   //}
-
    //Allocate temp buffers if needed, 1 for each thread
    if(parent->getNumThreads() > 1){
       thread_gSyn = (pvdata_t**) malloc(sizeof(pvdata_t*) * parent->getNumThreads());
@@ -1634,7 +1624,7 @@ int HyPerLayer::resetStateOnTrigger() {
 int HyPerLayer::resetGSynBuffers(double timef, double dt) {
    int status = PV_SUCCESS;
    if (GSyn == NULL) return PV_SUCCESS;
-   resetGSynBuffers_HyPerLayer(parent->getNBatch(), this->getNumNeurons(), getNumChannels(), GSyn[0]); // resetGSynBuffers();
+   resetGSynBuffers_HyPerLayer(parent->getNBatch(), this->getNumNeurons(), getNumChannels(), GSyn[0]);
    return status;
 }
 
@@ -2067,7 +2057,6 @@ int HyPerLayer::readBufferFile(const char * filename, Communicator * comm, doubl
    return status;
 }
 // Declare the instantiations of readScalarToFile that occur in other .cpp files; otherwise you'll get linker errors.
-// template void HyPerCol::ioParamValueRequired<pvdata_t>(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, pvdata_t * value);
 template int HyPerLayer::readBufferFile<float>(const char * filename, Communicator * comm, double * timeptr, float ** buffers, int numbands, bool extended, const PVLayerLoc * loc);
 
 int HyPerLayer::readDataStoreFromFile(const char * filename, Communicator * comm, double * timeptr) {
@@ -2185,7 +2174,6 @@ int HyPerLayer::writeBufferFile(const char * filename, Communicator * comm, doub
    return status;
 }
 // Declare the instantiations of readScalarToFile that occur in other .cpp files; otherwise you'll get linker errors.
-// template void HyPerCol::ioParamValueRequired<pvdata_t>(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, pvdata_t * value);
 template int HyPerLayer::writeBufferFile<float>(const char * filename, Communicator * comm, double timed, float ** buffers, int numbands, bool extended, const PVLayerLoc * loc);
 
 int HyPerLayer::writeDataStoreToFile(const char * filename, Communicator * comm, double timed) {

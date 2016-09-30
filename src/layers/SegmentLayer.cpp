@@ -203,7 +203,6 @@ int SegmentLayer::allocateDataStructures() {
    int status = HyPerLayer::allocateDataStructures();
 
    int nbatch = getLayerLoc()->nbatch;
-   //growLabelBuffers(16); //Initialize with labels
    maxX.clear();
    maxY.clear();
    minX.clear();

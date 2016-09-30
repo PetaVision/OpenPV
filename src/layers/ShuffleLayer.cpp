@@ -55,7 +55,6 @@ int ShuffleLayer::initialize_base() {
    freqFilename         = NULL;
    featureFreqCount     = NULL;
    currFeatureFreqCount = NULL;
-   //maxCount             = -99999999;
    maxCount             = NULL;
    freqCollectTime      = 1000;
    readFreqFromFile     = 0;
@@ -333,7 +332,6 @@ int ShuffleLayer::updateState(double timef, double dt) {
    assert(loc->nx == sourceLoc->nx);
    assert(loc->ny == sourceLoc->ny);
    assert(loc->nf == sourceLoc->nf);
-   //assert(loc->nb == sourceLoc->nb);
    
    //Create a one to one mapping of neuron to neuron
    if (strcmp(shuffleMethod, "random") == 0){

@@ -20,9 +20,6 @@ RescaleLayer::RescaleLayer(const char * name, HyPerCol * hc) {
 RescaleLayer::~RescaleLayer()
 {
    free(rescaleMethod);
-   // Handled by CloneVLayer destructor
-   // free(originalLayerName);
-   // clayer->V = NULL;
 }
 
 int RescaleLayer::initialize_base() {
@@ -37,7 +34,6 @@ int RescaleLayer::initialize_base() {
 }
 
 int RescaleLayer::initialize(const char * name, HyPerCol * hc) {
-   //int num_channels = sourceLayer->getNumChannels();
    int status_init = CloneVLayer::initialize(name, hc);
 
    return status_init;
@@ -57,7 +53,6 @@ int RescaleLayer::allocateV() {
 
 
 int RescaleLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag){
-  //readOriginalLayerName(params);  // done in CloneVLayer
    CloneVLayer::ioParamsFillGroup(ioFlag);
    ioParam_rescaleMethod(ioFlag);
    if (strcmp(rescaleMethod, "maxmin") == 0){
@@ -149,7 +144,6 @@ int RescaleLayer::updateState(double timef, double dt) {
     const PVLayerLoc * locOriginal = originalLayer->getLayerLoc();
     int nbatch = loc->nbatch; 
     //Make sure all sizes match
-    //assert(locOriginal->nb == loc->nb);
     assert(locOriginal->nx == loc->nx);
     assert(locOriginal->ny == loc->ny);
     assert(locOriginal->nf == loc->nf);
@@ -460,10 +454,6 @@ int RescaleLayer::updateState(double timef, double dt) {
                    int kextOrig = kIndex(iX, iY, iF, nx+haloOrig->lt+haloOrig->rt, ny+haloOrig->dn+haloOrig->up, nf);
                    int kext = kIndex(iX, iY, iF, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, nf);
                    ABatch[kext] = expf(originalABatch[kextOrig])/sumexpx;
-                   //if(ABatch[kext] < 0 || ABatch[kext] > 1){
-                   //   pvInfo() << "ABatch[" << kext << "] = " << ABatch[kext] << " : " << originalABatch[kextOrig] << " - " << mean << " / " << sumexpx << "\n";
-                   //   pvInfo() << std::flush;
-                   //}
                    assert(ABatch[kext] >= 0 && ABatch[kext] <= 1);
                 }
              }

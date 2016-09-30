@@ -79,7 +79,6 @@ int RescaleConn::deliverPresynapticPerspective(PVLayerCube const * activity, int
             int kPre = activeIndicesBatch[loopIndex];
 
             float a = scale * activityBatch[kPre];
-            // if (a == 0.0f) continue;
             PVPatch * weights = getWeights(kPre, arborID);
             if (weights->nx>0 && weights->ny>0) {
                int f = featureIndex(kPre, preLoc->nx, preLoc->ny, preLoc->nf); // Not taking halo into account, but for feature index, shouldn't matter.

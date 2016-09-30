@@ -43,8 +43,6 @@ struct SparseWeightInfo {
    float percentile;
 };
 
-//class HyPerCol;
-//class HyPerLayer;
 class InitWeights;
 class BaseConnectionProbe;
 class PVParams;
@@ -147,11 +145,6 @@ public:
       return sharedWeights;
    }
 
-   //plasticityFlag moved to parent class BaseConnection on Jan 26, 2015.
-   //inline bool getPlasticityFlag() {
-   //   return plasticityFlag;
-   //};
-
    inline bool getKeepKernelsSynchronized() { 
       return keepKernelsSynchronized_flag;
    }
@@ -219,7 +212,6 @@ public:
 
    virtual PVPatch* getWeights(int kPre, int arborId);
 
-   // inline PVPatch * getPlasticIncr(int kPre, int arborId) {return plasticityFlag ? dwPatches[arborId][kPre] : NULL;}
    inline pvwdata_t* getPlasticIncr(int kPre, int arborId) {
       return
             plasticityFlag ?
@@ -314,7 +306,6 @@ public:
 
    PVPatch*** convertPreSynapticWeights(double time);
    PVPatch**** point2PreSynapticWeights();
-   //PVPatch**** point2PreSynapticWeights2();
    int preSynapticPatchHead(int kxPost, int kyPost, int kfPost, int* kxPre,
          int* kyPre);
    int postSynapticPatchHead(int kPre, int* kxPostOut, int* kyPostOut,
@@ -334,9 +325,6 @@ public:
          double* sum2, float* maxVal);
 
    virtual void addClone(PlasticCloneConn* conn);
-
-   //virtual int reduceActivations(int arborID);
-
    virtual long * getPostToPreActivity(){
       return postToPreActivity;
    }
@@ -353,7 +341,6 @@ public:
    void setNeedAllocPostWeights (bool inBool){needAllocPostWeights = inBool;}
 
 protected:
-   // char * filename; // Filename if loading weights from a file
    int fileparams[NUM_WGT_PARAMS]; // The header of the file named by the filename member variable
    int numWeightPatches; // Number of PVPatch structures in buffer pointed to by wPatches[arbor]
    int numDataPatches;   // Number of blocks of pvwdata_t's in buffer pointed to by wDataStart[arbor]
@@ -361,19 +348,15 @@ protected:
 
    std::vector <PlasticCloneConn*> clones; //A vector of plastic clones that are cloning from this connection
 
-   //these were moved to private to ensure use of get/set methods and made in 3D pointers:
-   //PVPatch       ** wPatches[MAX_ARBOR_LIST]; // list of weight patches, one set per neighbor
 private:
    PVPatch*** wPatches; // list of weight patches, one set per arbor
    // GTK:: gSynPatchStart redefined as offset from start of associated gSynBuffer
-   //pvwdata_t*** gSynPatchStart; //  gSynPatchStart[arborId][kExt] is a pointer to the start of the patch in the post-synaptic GSyn buffer
    size_t** gSynPatchStart;  // gSynPatchStart[arborId][kExt] is the offset to the start of the patch from the beginning of the post-synaptic GSyn buffer for corresponding channel
    size_t** aPostOffset; // aPostOffset[arborId][kExt] is the index of the start of a patch into an extended post-synaptic layer
    PVPatchStrides postExtStrides;    // sx,sy,sf for a patch mapping into an extended post-synaptic layer
    PVPatchStrides postNonextStrides; // sx,sy,sf for a patch mapping into a non-extended post-synaptic layer
    pvwdata_t** wDataStart;  //now that data for all patches are allocated to one continuous block of memory, this pointer saves the starting address of that array
    pvwdata_t** dwDataStart; //now that data for all patches are allocated to one continuous block of memory, this pointer saves the starting address of that array
-   //int defaultDelay; //added to save params file defined delay...
    bool strengthParamHasBeenWritten;
    int * patch2datalookuptable;
    
@@ -441,7 +424,6 @@ protected:
    int nxp, nyp, nfp; // size of weight dimensions
    bool warnDefaultNfp; // Whether to print a warning if the default nfp is used.
    int sxp, syp, sfp; // stride in x,y,features
-   // PVPatch       *** dwPatches;      // list of weight patches for storing changes to weights
    PVPatch*** wPostPatches; // post-synaptic linkage of weights // This is being deprecated in favor of TransposeConn
    pvwdata_t** wPostDataStart;
 
@@ -450,7 +432,6 @@ protected:
 
    int nxpPost, nypPost, nfpPost;
    int numParams;
-   //PVConnParams * params;
    float wMax;
    float wMin;
    bool ioAppend; // controls opening of binary files
@@ -466,7 +447,6 @@ protected:
    Timer * update_timer;
 
    bool sharedWeights; // Set to true for the old KernelConn behavior
-   // bool plasticityFlag; // Moved to base class BaseConnection on Jan 26, 2015
    bool triggerFlag;
    char* triggerLayerName;
    double triggerOffset;
@@ -576,7 +556,6 @@ protected:
 
    int calcUnitCellIndex(int patchIndex, int* kxUnitCellIndex = NULL,
          int* kyUnitCellIndex = NULL, int* kfUnitCellIndex = NULL);
-   // virtual int setPatchSize();
    virtual int setPatchStrides();
    int checkPatchDimensions();
    virtual int checkPatchSize(int patchSize, int scalePre, int scalePost,
@@ -614,7 +593,6 @@ protected:
     */
    virtual void ioParam_channelCode(enum ParamsIOFlag ioFlag);
 
-   // virtual void ioParam_initWeightsFile(enum ParamsIOFlag ioFlag);
    /**
     * @brief sharedWeights: Defines if the HyPerConn uses shared weights (kernelConn)
     */
@@ -660,12 +638,6 @@ protected:
     */
 
    virtual void ioParam_weightInitType(enum ParamsIOFlag ioFlag);
-
-   // plasticityFlag was moved to base class BaseConnection on Jan 26, 2015.
-   // /**
-   //  * @brief plasticityFlag: Specifies if the weights will be updated
-   //  */
-   // virtual void ioParam_plasticityFlag(enum ParamsIOFlag ioFlag);
 
    /**
     * @brief weightUpdatePeriod: If plasticity flag is set, specifies the update period of weights
@@ -985,7 +957,6 @@ protected:
 
    bool allocDeviceWeights;
    bool allocPostDeviceWeights;
-   //bool updatedDeviceWeights;
    
 
    PVCuda::CudaBuffer * d_WData;
@@ -1033,10 +1004,6 @@ public:
       }
       free(patchpointers);
       patchpointers = NULL;
-//      for (int i = 0; i < numBundles; i++) {
-//         pvpatch_inplace_delete(patches[i]);
-//      }
-      //free(patches);
 
       return 0;
    }

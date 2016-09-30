@@ -356,8 +356,6 @@ void LCALIF_update_state(
       // local param variables
       float tau, Vrest, VthRest, Vexc, Vinh, VinhB, deltaVth, deltaGIB;
 
-      // const float GMAX = 10.0;
-
       // local variables
       float l_activ;
 
@@ -474,9 +472,6 @@ void LCALIF_update_state(
       //      See LCA_Equations.pdf in the documentation for a full description of the neuron adaptive firing threshold.
       
       Vadpt[k] = -60.0f;
-      // Vadpt[k] += (dt/tauTHR) * ((integratedSpikeCount[k]/tauO) - targetRatekHz) * (Vscale/targetRatekHz);
-      // float Vadpt_floor = params->Vrest + 5.0f;
-      // Vadpt[k] = Vadpt[k] < Vadpt_floor ? Vadpt_floor : Vadpt[k];
 
       l_Vth = Vadpt[k] + decayVth * (l_Vth - Vadpt[k]);
       

@@ -53,7 +53,7 @@ int InitUniformWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, 
    const int kf = patchIndex % nfp;
 
    uniformWeights(dataStart, iWeight, kf, weightParamPtr, connectOnlySameFeatures);
-   return PV_SUCCESS; // return 1;
+   return PV_SUCCESS; 
 }
 
 /**
@@ -62,15 +62,14 @@ int InitUniformWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, 
  */
   int InitUniformWeights::uniformWeights(pvdata_t * dataStart, float iWeight, int kf, InitUniformWeightsParams *weightParamPtr, bool connectOnlySameFeatures) {
       // changed variable names to avoid confusion with data members this->wMin and this->wMax
-   // pvdata_t * w = wp->data;
 
-   const int nxp = weightParamPtr->getnxPatch(); // wp->nx;
-   const int nyp = weightParamPtr->getnyPatch(); // wp->ny;
-   const int nfp = weightParamPtr->getnfPatch(); //wp->nf;
+   const int nxp = weightParamPtr->getnxPatch(); 
+   const int nyp = weightParamPtr->getnyPatch(); 
+   const int nfp = weightParamPtr->getnfPatch(); 
 
-   const int sxp = weightParamPtr->getsx(); //wp->sx;
-   const int syp = weightParamPtr->getsy(); //wp->sy;
-   const int sfp = weightParamPtr->getsf(); //wp->sf;
+   const int sxp = weightParamPtr->getsx(); 
+   const int syp = weightParamPtr->getsy(); 
+   const int sfp = weightParamPtr->getsf(); 
 
    // loop over all post-synaptic cells in patch
    for (int y = 0; y < nyp; y++) {

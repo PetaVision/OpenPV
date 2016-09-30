@@ -39,9 +39,6 @@ private:
    bool  InverseFlag;
    bool  SigmoidFlag;
    float SigmoidAlpha;
-   // Use CloneVLayer's originalLayerName and originalLayer member variables
-   // char * sourceLayerName;
-   // HyPerLayer * sourceLayer;
 }; // class SigmoidLayer
 
 }  // namespace PV

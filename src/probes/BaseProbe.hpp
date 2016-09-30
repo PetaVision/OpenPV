@@ -19,11 +19,6 @@ namespace PV {
 class HyPerCol;
 class HyPerLayer;
 
-//typedef enum {
-//   BufV,
-//   BufActivity
-//} PVBufType;
-
 /**
  * An abstract base class for the common functionality of layer probes and connection probes.
  */
@@ -31,7 +26,6 @@ class BaseProbe : public BaseObject {
 
 // Methods
 public:
-   //BaseProbe(const char * probeName, HyPerCol * hc);
    virtual ~BaseProbe();
 
    int ioParams(enum ParamsIOFlag ioFlag);

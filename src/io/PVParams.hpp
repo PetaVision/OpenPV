@@ -307,7 +307,6 @@ private:
    int parseStatus;
    int numGroups;
    size_t groupArraySize;
-   // int maxGroups;
    ParameterGroup ** groups;
    ParameterStack * stack;
    ParameterArrayStack * arrayStack;

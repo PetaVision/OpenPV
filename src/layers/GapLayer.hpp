@@ -25,8 +25,6 @@ public:
 
    virtual int updateState(double timef, double dt);
 
-   // virtual int updateV();
-
 protected:
    GapLayer();
    int initialize(const char * name, HyPerCol * hc);
@@ -41,8 +39,6 @@ private:
    int initialize_base();
 
    // Handled in CloneVLayer
-   // char * sourceLayerName;
-   // LIFGap * sourceLayer; // We don't call any LIFGap-specific methods so we can use originalLayer
    float ampSpikelet;
 
 }; // class GapLayer

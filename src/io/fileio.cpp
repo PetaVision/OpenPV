@@ -60,7 +60,6 @@ size_t pv_sizeof(int datatype)
 size_t pv_sizeof_patch(int count, int datatype)
 {
    return ( 2*sizeof(unsigned short) + sizeof(unsigned int) + count*pv_sizeof(datatype) );
-   // return ( 2*sizeof(unsigned short) + count*pv_sizeof(datatype) );
 }
 
 PV_Stream * PV_fopen(const char * path, const char * mode, bool verifyWrites) {
@@ -267,7 +266,7 @@ size_t PV_fwrite(const void * RESTRICT ptr, size_t size, size_t nitems, PV_Strea
    size_t writesize = nitems*size;
    size_t charswritten = (size_t) 0;
    const char * RESTRICT curptr = (const char * RESTRICT) ptr;
-   long int fpos = pvstream->filepos; // PV_ftell(pvstream);
+   long int fpos = pvstream->filepos; 
    if (fpos<0) {
       pvError().printf("PV_fwrite error: unable to determine file position of \"%s\".  Fatal error\n", pvstream->name);
    }
@@ -367,7 +366,7 @@ size_t PV_fread(void * RESTRICT ptr, size_t size, size_t nitems, PV_Stream * RES
    size_t readsize = nitems*size;
    size_t stilltoread = readsize;
    char * RESTRICT curptr = (char * RESTRICT) ptr;
-   long int fpos = pvstream->filepos; // PV_ftell(pvstream);
+   long int fpos = pvstream->filepos; 
    clearerr(pvstream->fp);
    if (fpos<0) {
       pvError().printf("PV_fread error: unable to determine file position of \"%s\".  Fatal error\n", pvstream->name);
@@ -557,8 +556,7 @@ int pvp_copy_patches(unsigned char * buf, PVPatch ** patches, pvwdata_t * dataSt
          ny = p->ny;
          offset = p->offset;
       }
-      const pvwdata_t * data = dataStart + k*patchsize; // + offset; // Don't include offset as the entire patch will be copied
-
+      const pvwdata_t * data = dataStart + k*patchsize; 
       unsigned short * nxny = (unsigned short *) cptr;
       nxny[0] = (unsigned short) nxp;
       nxny[1] = (unsigned short) nyp;
@@ -601,10 +599,7 @@ int pvp_set_patches(const unsigned char * buf, const PVPatch * const * patches, 
    // The numweights values from dataStart+k*numweights will be copied from buf starting at &buf[k*(numweights*datasize+2*sizeof(short)+sizeof(int))].
    const unsigned char * cptr = buf;
 
-   // const int sfp = 1;
-   // const int sxp = nfp;
-   // const int syp = nfp * nxp;
-   const int patchsize = nxp * nyp * nfp; // syp * nyp;
+   const int patchsize = nxp * nyp * nfp;
 
    unsigned short nx = nxp;
    unsigned short ny = nyp;
@@ -772,108 +767,6 @@ int pvp_check_file_header(Communicator * comm, const PVLayerLoc * loc, int param
    return status;
 } // pvp_check_file_header
 
-#ifdef OBSOLETE // Marked obsolete June 27, 2016.
-// Deprecated Nov 20, 2014.  Use pvp_check_file_header
-int pvp_check_file_header_deprecated(Communicator * comm, const PVLayerLoc * loc, int params[], int numParams)
-{
-   int status = PV_SUCCESS;
-   int tmp_status = PV_SUCCESS;
-
-   int nxProcs = comm->numCommColumns();
-   int nyProcs = comm->numCommRows();
-
-   if (loc->nx       != params[INDEX_NX])        {status = PV_FAILURE; tmp_status = INDEX_NX;}
-   if (tmp_status == INDEX_NX) {
-      if (params[INDEX_FILE_TYPE] != PVP_KERNEL_FILE_TYPE){
-         pvErrorNoExit().printf("nx = %d != params[%d]==%d \n", loc->nx, INDEX_NX, params[INDEX_NX]);
-      }
-      else {
-         status = PV_SUCCESS; // kernels can be used regardless of layer size
-      }
-   }
-   if (loc->ny       != params[INDEX_NY])        {status = PV_FAILURE; tmp_status = INDEX_NY;}
-   if (tmp_status == INDEX_NY) {
-      if (params[INDEX_FILE_TYPE] != PVP_KERNEL_FILE_TYPE){
-         pvErrorNoExit().printf("ny = %d != params[%d]==%d \n", loc->ny, INDEX_NY, params[INDEX_NY]);
-      }
-      else {
-         status = PV_SUCCESS; // kernels can be used regardless of layer size
-      }
-   }
-   // TODO: Fix the following check for the patch size.
-   //if (loc->nf != params[INDEX_NF]) {status = PV_FAILURE; tmp_status = INDEX_NF;}
-   //if (tmp_status == INDEX_NF) {
-   //      pvErrorNoExit().printf("nBands = %d != params[%d]==%d \n", loc->nf, INDEX_NF, params[INDEX_NF]);
-   //}
-   if (loc->nxGlobal != params[INDEX_NX_GLOBAL]) {status = PV_FAILURE; tmp_status = INDEX_NX_GLOBAL;}
-   if (tmp_status == INDEX_NX_GLOBAL) {
-      if (params[INDEX_FILE_TYPE] != PVP_KERNEL_FILE_TYPE){
-         pvErrorNoExit().printf("nxGlobal = %d != params[%d]==%d \n", loc->nxGlobal, INDEX_NX_GLOBAL, params[INDEX_NX_GLOBAL]);
-      }
-      else {
-         status = PV_SUCCESS; // kernels can be used regardless of layer size
-      }
-   }
-   if (loc->nyGlobal != params[INDEX_NY_GLOBAL]) {status = PV_FAILURE; tmp_status = INDEX_NY_GLOBAL;}
-   if (tmp_status == INDEX_NY_GLOBAL) {
-      if (params[INDEX_FILE_TYPE] != PVP_KERNEL_FILE_TYPE){
-         pvErrorNoExit().printf("nyGlobal = %d != params[%d]==%d \n", loc->nyGlobal, INDEX_NY_GLOBAL, params[INDEX_NY_GLOBAL]);
-      }
-      else {
-         status = PV_SUCCESS; // kernels can be used regardless of layer size
-      }
-   }
-   if (nxProcs != params[INDEX_NX_PROCS]) {status = PV_FAILURE; tmp_status = INDEX_NX_PROCS;}
-   if (tmp_status == INDEX_NX_PROCS) {
-      if (params[INDEX_FILE_TYPE] != PVP_KERNEL_FILE_TYPE){
-         pvErrorNoExit().printf("nxProcs = %d != params[%d]==%d \n", nxProcs, INDEX_NX_PROCS, params[INDEX_NX_PROCS]);
-      }
-      else {
-         status = PV_SUCCESS; // kernels can be used regardless of num procs
-      }
-   }
-   if (nyProcs != params[INDEX_NY_PROCS]) {status = PV_FAILURE; tmp_status = INDEX_NY_PROCS;}
-   if (tmp_status == INDEX_NY_PROCS) {
-      if (params[INDEX_FILE_TYPE] != PVP_KERNEL_FILE_TYPE){
-         pvErrorNoExit().printf("nyProcs = %d != params[%d]==%d \n", nyProcs, INDEX_NY_PROCS, params[INDEX_NY_PROCS]);
-      }
-      else {
-         status = PV_SUCCESS; // kernels can be used regardless of num procs
-      }
-   }
-   // if (loc->nb != params[INDEX_NB]) {status = PV_FAILURE; tmp_status = INDEX_NB;}
-   // if (tmp_status == INDEX_NB) {
-   //    if (params[INDEX_FILE_TYPE] != PVP_KERNEL_FILE_TYPE){
-   //       pvErrorNoExit().printf("nPad = %d != params[%d]==%d \n", loc->nb, INDEX_NB, params[INDEX_NB]);
-   //    }
-   //    else {
-   //       status = PV_SUCCESS; // kernels can be used regardless of margin size
-   //    }
-   // }
-   //TODO: remove? Duplicated check from above.
-   //if (loc->nf != params[INDEX_NF]) {status = PV_FAILURE; tmp_status = INDEX_NF;}
-   //if (tmp_status == INDEX_NF) {
-   //      pvErrorNoExit().printf("nBands = %d != params[%d]==%d \n", loc->nf, INDEX_NF, params[INDEX_NF]);
-   //}
-
-   // (kx0,ky0) is for node 0 only (can be calculated otherwise)
-   //
-   //   if (loc->kx0      != params[INDEX_KX0])       status = -1;
-   //   if (loc->ky0      != params[INDEX_KY0])       status = -1;
-
-   if (status != 0) {
-      pvErrorNoExit(paramsDump);
-      for (int i = 0; i < numParams; i++) {
-         paramsDump.printf("params[%d]==%d ", i, params[i]);
-      }
-      paramsDump.printf("\n");
-   }
-
-   return status;
-} // pvp_check_file_header_deprecated
-#endif // OBSOLETE // Marked obsolete June 27, 2016.
-
-
 int pvp_read_header(PV_Stream * pvstream, Communicator * comm, int * params, int * numParams) {
    // Under MPI, called by all processes; nonroot processes should have pvstream==NULL
    // On entry, numParams is the size of the params buffer.
@@ -884,7 +777,6 @@ int pvp_read_header(PV_Stream * pvstream, Communicator * comm, int * params, int
    int status = PV_SUCCESS;
    int numParamsRead = 0;
    int * mpi_buffer = (int *) calloc((size_t)(*numParams+2), sizeof(int));
-   // int mpi_buffer[*numParams+2]; // space for params to be MPI_Bcast, along with space for status and number of params read
    if (comm->commRank()==0) {
       if (pvstream==NULL) {
          pvErrorNoExit().printf("pvp_read_header: pvstream==NULL for rank zero");
@@ -1070,7 +962,6 @@ int pvp_write_header(PV_Stream * pvstream, Communicator * comm, double time, con
 {
    int status = PV_SUCCESS;
    int nxBlocks, nyBlocks;
-//   int numItems;
    int params[NUM_BIN_PARAMS];
 
    if (comm->commRank() != 0) return status;
@@ -1079,11 +970,6 @@ int pvp_write_header(PV_Stream * pvstream, Communicator * comm, double time, con
 
    const int nxProcs = comm->numCommColumns();
    const int nyProcs = comm->numCommRows();
-
-//   const int nx = loc->nx;
-//   const int ny = loc->ny;
-//   const int nf = loc->nf;
-//   const int nb = loc->nb;
 
    if (contiguous) {
       nxBlocks = 1;
@@ -1094,10 +980,8 @@ int pvp_write_header(PV_Stream * pvstream, Communicator * comm, double time, con
       nyBlocks = nyProcs;
    }
 
-   // const size_t globalSize = (size_t) localSize * nxBlocks * nyBlocks;
 
    // make sure we don't blow out size of int for record size
-   // assert(globalSize < 0xffffffff); // should have checked this before calling pvp_write_header().
 
    int numRecords;
    int paramNBands;
@@ -1133,7 +1017,7 @@ int pvp_write_header(PV_Stream * pvstream, Communicator * comm, double time, con
    params[INDEX_NY_GLOBAL]   = loc->nyGlobal;
    params[INDEX_KX0]         = loc->kx0;
    params[INDEX_KY0]         = loc->ky0;
-   params[INDEX_NBATCH]      = loc->nbatch; // loc->nb;
+   params[INDEX_NBATCH]      = loc->nbatch; 
    params[INDEX_NBANDS]      = paramNBands;
 
    timeToParams(time, &params[INDEX_TIME]);
@@ -1165,7 +1049,7 @@ int * pvp_set_file_params(Communicator * comm, double timed, const PVLayerLoc * 
    params[INDEX_NY_GLOBAL]   = loc->nyGlobal;
    params[INDEX_KX0]         = 0;
    params[INDEX_KY0]         = 0;
-   params[INDEX_NBATCH]      = loc->nbatch; // loc->nb;
+   params[INDEX_NBATCH]      = loc->nbatch; 
    params[INDEX_NBANDS]      = numbands * loc->nbatch;
    timeToParams(timed, &params[INDEX_TIME]);
    return params;
@@ -1218,7 +1102,7 @@ int * pvp_set_weight_params(Communicator * comm, double timed, const PVLayerLoc 
    params[INDEX_NY_GLOBAL]   = loc->nyGlobal;
    params[INDEX_KX0]         = 0;
    params[INDEX_KY0]         = 0;
-   params[INDEX_NBATCH]      = loc->nbatch; // loc->nb;
+   params[INDEX_NBATCH]      = loc->nbatch; 
    params[INDEX_NBANDS]      = numbands;
    timeToParams(timed, &params[INDEX_TIME]);
    set_weight_params(params, nxp, nyp, nfp, min, max, numPatches);
@@ -1244,7 +1128,7 @@ int * pvp_set_nonspiking_act_params(Communicator * comm, double timed, const PVL
    params[INDEX_NY_GLOBAL]   = loc->nyGlobal;
    params[INDEX_KX0]         = 0;
    params[INDEX_KY0]         = 0;
-   params[INDEX_NBATCH]      = loc->nbatch; // loc->nb;
+   params[INDEX_NBATCH]      = loc->nbatch; 
    params[INDEX_NBANDS]      = numbands * loc->nbatch;
    timeToParams(timed, &params[INDEX_TIME]);
    return params;
@@ -1258,8 +1142,6 @@ int * pvp_set_kernel_params(Communicator * comm, double timed, const PVLayerLoc 
    params[INDEX_NX]          = loc->nxGlobal;
    params[INDEX_NY]          = loc->nyGlobal;
    params[INDEX_NF]          = loc->nf;
-   // int nxProcs               = 1;
-   // int nyProcs               = 1;
    int datasize              = pv_sizeof(datatype);
    params[INDEX_NUM_RECORDS] = numbands;
    params[INDEX_RECORD_SIZE] = numPatches * (8 + datasize*nxp*nyp*nfp);
@@ -1271,7 +1153,7 @@ int * pvp_set_kernel_params(Communicator * comm, double timed, const PVLayerLoc 
    params[INDEX_NY_GLOBAL]   = loc->nyGlobal;
    params[INDEX_KX0]         = 0;
    params[INDEX_KY0]         = 0;
-   params[INDEX_NBATCH]      = loc->nbatch; // loc->nb;
+   params[INDEX_NBATCH]      = loc->nbatch; 
    timeToParams(timed, &params[INDEX_TIME]);
    set_weight_params(params, nxp, nyp, nfp, min, max, numPatches);
    return params;
@@ -1297,7 +1179,7 @@ int * pvp_set_nonspiking_sparse_act_params(Communicator * comm, double timed, co
    params[INDEX_KX0]         = 0;
    params[INDEX_KY0]         = 0;
    params[INDEX_NBANDS]      = numbands * loc->nbatch;
-   params[INDEX_NBATCH]      = loc->nbatch; // loc->nb;
+   params[INDEX_NBATCH]      = loc->nbatch; 
    timeToParams(timed, &params[INDEX_TIME]);
    return params;
 }
@@ -1590,17 +1472,6 @@ int writeActivitySparse(PV_Stream * pvstream, Communicator * comm, double timed,
                     comm->commRank(), totalActive);
             return status;
          }
-         
-         //Write to seperate file this current file position
-         //long filepos = pvstream->filepos;
-         //status = (PV_fwrite(&filepos, sizeof(long), 1, posstream) != 1);
-         //fflush(posstream->fp);
-         
-         //if (status != 0) {
-         //   pvErrorNoExit().printf("[%2d]: writeActivitySparse: failed in fwrite(&filepos), filepos==%ld\n",
-         //           comm->commRank(), filepos);
-         //   return status;
-         //}
 
          if (localResActive > 0) {
             if (includeValues) {
@@ -1717,8 +1588,6 @@ int readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numArbors, int 
    memcpy(&minVal, &wgtParams[INDEX_WGT_MIN], sizeof(float));
    float maxVal = 0.0f;
    memcpy(&maxVal, &wgtParams[INDEX_WGT_MAX], sizeof(float));
-   // const float minVal = * ((float*) &wgtFloatParams[INDEX_WGT_MIN]);
-   // const float maxVal = * ((float*) &wgtFloatParams[INDEX_WGT_MAX]);
 
    const int icRank = comm->commRank();
 
@@ -1892,8 +1761,6 @@ int readWeightsDeprecated(PVPatch *** patches, pvwdata_t ** dataStart, int numAr
    memcpy(&minVal, &wgtParams[INDEX_WGT_MIN], sizeof(float));
    float maxVal = 0.0f;
    memcpy(&maxVal, &wgtParams[INDEX_WGT_MAX], sizeof(float));
-   // const float minVal = * ((float*) &wgtFloatParams[INDEX_WGT_MIN]);
-   // const float maxVal = * ((float*) &wgtFloatParams[INDEX_WGT_MAX]);
 
    if (contiguous) {
       nxBlocks = 1;

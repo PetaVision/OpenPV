@@ -111,9 +111,6 @@ int privateTransposeConn::setPatchSize() {
    // post->getLayerLoc()->nf must be the same as postConn->preSynapticLayer()->getLayerLoc()->nf.
    // This requirement is checked in communicateInitInfo
 
-   //parent->parameters()->handleUnnecessaryParameter(name, "nxp", nxp);
-   //parent->parameters()->handleUnnecessaryParameter(name, "nyp", nyp);
-   //parent->parameters()->handleUnnecessaryParameter(name, "nfp", nfp);
    return PV_SUCCESS;
 
 }
@@ -123,7 +120,6 @@ int privateTransposeConn::allocateDataStructures() {
    assert(status==PV_SUCCESS || status==PV_POSTPONE);
    normalizer = NULL;
    
-   // normalize_flag = false; // replaced by testing whether normalizer!=NULL
    return status;
 }
 
@@ -134,7 +130,6 @@ int privateTransposeConn::constructWeights(){
    int nPatches = getNumDataPatches();
    int status = PV_SUCCESS;
 
-   //assert(!parent->parameters()->presentAndNotBeenRead(name, "shrinkPatches"));
    
    // createArbors() uses the value of shrinkPatches.  It should have already been read in ioParamsFillGroup.
    //allocate the arbor arrays:
@@ -144,7 +139,6 @@ int privateTransposeConn::constructWeights(){
 
    ////allocate weight patches and axonal arbors for each arbor
    ////Allocate all the weights
-   //bool is_pooling_from_pre_perspective = (((getPvpatchAccumulateType() == ACCUMULATE_MAXPOOLING) || (getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING)) && (!updateGSynFromPostPerspective));
    if (needAllocWeights){
      wDataStart[0] = allocWeights(nPatches, nxp, nyp, nfp);
      assert(this->get_wDataStart(0) != NULL);
@@ -321,7 +315,7 @@ int privateTransposeConn::transposeNonsharedWeights(int arborId) {
    }
 #endif // PV_USE_MPI
 
-   const int nkRestrictedOrig = postConn->getPostNonextStrides()->sy; // preLocOrig->nx*preLocOrig->nf; // a stride in postConn
+   const int nkRestrictedOrig = postConn->getPostNonextStrides()->sy; // a stride in postConn
    int nPreRestrictedOrig = postConn->preSynapticLayer()->getNumNeurons();
    for (int kPreRestrictedOrig = 0; kPreRestrictedOrig < nPreRestrictedOrig; kPreRestrictedOrig++) {
       int kPreExtendedOrig = kIndexExtended(kPreRestrictedOrig, preLocOrig->nx, preLocOrig->ny, preLocOrig->nf, preLocOrig->halo.lt, preLocOrig->halo.rt, preLocOrig->halo.dn, preLocOrig->halo.up);
@@ -340,7 +334,6 @@ int privateTransposeConn::transposeNonsharedWeights(int arborId) {
             PVPatch * patchTranspose = getWeights(kPreExtendedTranspose, arborId);
             size_t gSynPatchStartTranspose = getGSynPatchStart(kPreExtendedTranspose, arborId);
             // Need to find which pixel in the patch is tied to kPostRestrictedTranspose
-            // assert((size_t) kPostRestrictedTranspose>=gSynPatchStartTranspose);
             int moveFromOffset = kPostRestrictedTranspose-(int) gSynPatchStartTranspose;
             div_t coordsFromOffset = div(moveFromOffset, getPostNonextStrides()->sy);
             int yt = coordsFromOffset.quot;
@@ -520,12 +513,11 @@ int privateTransposeConn::transposeSharedWeights(int arborId) {
       }
 
       for( int kernelnumberFB = 0; kernelnumberFB < numFBKernelPatches; kernelnumberFB++ ) {
-         // PVPatch * kpFB = getKernelPatch(0, kernelnumberFB);
          pvwdata_t * dataStartFB = get_wDataHead(arborId, kernelnumberFB);
          int nfFB = nfp;
          assert(numFFKernelPatches == nfFB);
-         int nxFB = nxp; // kpFB->nx;
-         int nyFB = nyp; // kpFB->ny;
+         int nxFB = nxp; 
+         int nyFB = nyp; 
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for collapse(3)
 #endif
@@ -534,7 +526,6 @@ int privateTransposeConn::transposeSharedWeights(int arborId) {
                for( int kfFB = 0; kfFB < nfFB; kfFB++ ) {
                   int kIndexFB = kIndex(kxFB,kyFB,kfFB,nxFB,nyFB,nfFB);
                   int kernelnumberFF = kfFB;
-                  // PVPatch * kpFF = postConn>getKernelPatch(0, kernelnumberFF);
                   pvwdata_t * dataStartFF = postConn->get_wDataHead(arborId, kernelnumberFF);
                   int nxpFF = postConn->xPatchSize();
                   int nypFF = postConn->yPatchSize();
@@ -552,7 +543,6 @@ int privateTransposeConn::transposeSharedWeights(int arborId) {
 
                   // can the calls to kxPos, kyPos, featureIndex be replaced by one call to patchIndexToKernelIndex?
                   dataStartFB[kIndexFB] = dataStartFF[kIndexFF];
-                  // kpFB->data[kIndexFB] = kpFF->data[kIndexFF];
                }
             }
          }
@@ -572,10 +562,9 @@ int privateTransposeConn::transposeSharedWeights(int arborId) {
       }
 
       for( int kernelnumberFB = 0; kernelnumberFB < numFBKernelPatches; kernelnumberFB++ ) {
-         // PVPatch * kpFB = getKernelPatch(0, kernelnumberFB);
          pvwdata_t * dataStartFB = get_wDataHead(arborId, kernelnumberFB);
-         int nxFB = nxp; // kpFB->nx;
-         int nyFB = nyp; // kpFB->ny;
+         int nxFB = nxp; 
+         int nyFB = nyp; 
          int nfFB = nfp;
          for( int kyFB = 0; kyFB < nyFB; kyFB++ ) {
             int precelloffsety = (kyFB + kerneloffsety) % yscaleq;

@@ -38,7 +38,7 @@ int InitSmartWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, in
    //actually need to save anything to work on...
 
    smartWeights(dataStart, patchIndex, weightParams);
-   return PV_SUCCESS; // return 1;
+   return PV_SUCCESS; 
 }
 
 InitWeightsParams * InitSmartWeights::createNewWeightParams() {
@@ -47,15 +47,14 @@ InitWeightsParams * InitSmartWeights::createNewWeightParams() {
 }
 
 int InitSmartWeights::smartWeights(/* PVPatch * wp */ pvdata_t * dataStart, int k, InitWeightsParams *weightParams) {
-   // pvdata_t * w = wp->data;
 
-   const int nxp = weightParams->getnxPatch(); // wp->nx;
-   const int nyp = weightParams->getnyPatch(); // wp->ny;
-   const int nfp = weightParams->getnfPatch(); //wp->nf;
+   const int nxp = weightParams->getnxPatch(); 
+   const int nyp = weightParams->getnyPatch(); 
+   const int nfp = weightParams->getnfPatch(); 
 
-   const int sxp = weightParams->getsx(); //wp->sx;
-   const int syp = weightParams->getsy(); //wp->sy;
-   const int sfp = weightParams->getsf(); //wp->sf;
+   const int sxp = weightParams->getsx(); 
+   const int syp = weightParams->getsy(); 
+   const int sfp = weightParams->getsf(); 
 
    // loop over all post-synaptic cells in patch
    for (int y = 0; y < nyp; y++) {

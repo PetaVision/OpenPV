@@ -34,15 +34,11 @@ int InitCocircWeightsParams::initialize_base() {
    numFlanks = 1;
    shift = 0.0f;
    setRotate(0.0f); // rotate so that axis isn't aligned
-   //setDeltaThetaMax(2.0f * PI);  // max orientation in units of PI
    setThetaMax(1.0f); // max orientation in units of PI
 
    sigma_cocirc = PI / 2.0f;
 
    sigma_kurve = 1.0f; // fraction of delta_radius_curvature
-
-   // sigma_chord = % of PI * R, where R == radius of curvature (1/curvature)
-   // sigma_chord = 0.5;
 
    setDeltaThetaMax(PI / 2.0f);
 
@@ -73,7 +69,6 @@ int InitCocircWeightsParams::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = InitGauss2DWeightsParams::ioParamsFillGroup(ioFlag);
    ioParam_sigmaCocirc(ioFlag);
    ioParam_sigmaKurve(ioFlag);
-   // ioParam_sigmaChord(ioFlag);
    ioParam_cocircSelf(ioFlag);
    ioParam_deltaRadiusCurvature(ioFlag);
    return status;
@@ -86,10 +81,6 @@ void InitCocircWeightsParams::ioParam_sigmaCocirc(enum ParamsIOFlag ioFlag) {
 void InitCocircWeightsParams::ioParam_sigmaKurve(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValue(ioFlag, name, "sigmaKurve", &sigma_kurve, sigma_kurve);
 }
-
-// void InitCocircWeightsParams::ioParam_sigmaChord(enum ParamsIOFlag ioFlag) {
-//    parent->parameters()->ioParamValue(ioFlag, name, "sigmaChord", &sigma_chord, sigma_chord);
-// }
 
 void InitCocircWeightsParams::ioParam_cocircSelf(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValue(ioFlag, name, "cocircSelf", &cocirc_self, cocirc_self);
@@ -142,21 +133,8 @@ void InitCocircWeightsParams::calcOtherParams(int patchIndex) {
    nKurvePre = pre->getLayerLoc()->nf / getNoPre();
    nKurvePost = post->getLayerLoc()->nf / getNoPost();
    this->calculateThetas(kfPre_tmp, patchIndex);
-   // float radKurvPre = this->calcKurvePreAndSigmaKurvePre();
-
-   // sigma_chord *= PI * radKurvPre; // This is broken.
-   // calcOtherParams is called once for every presynaptic cell, and sigma_chord gets changed each time.
-   // Commented out instead of fixed because sigma_chord is ultimately not used in calculating the weights.  -pete 2014-03-14
-
 }
-//float InitCocircWeightsParams::calcKurvePreAndSigmaKurvePre() {
-//   int iKvPre = this->getFPre() % nKurvePre;
-//   float radKurvPre = calcKurveAndSigmaKurve(iKvPre, nKurvePre,
-//         sigma_kurve_pre, kurvePre,
-//         iPosKurvePre, iSaddlePre);
-//   sigma_kurve_pre2 = 2 * sigma_kurve_pre * sigma_kurve_pre;
-//   return radKurvPre;
-//}
+
 float InitCocircWeightsParams::calcKurvePostAndSigmaKurvePost(int kfPost) {
    int iKvPost = kfPost % nKurvePost;
    float radKurvPost = calcKurveAndSigmaKurve(iKvPost, nKurvePost,
@@ -253,14 +231,13 @@ void InitCocircWeightsParams::updateCocircNChord(
    const int noPre = getNoPre();
    const int noPost = getNoPost();
    const float sigma_cocirc2 = 2 * getSigma_cocirc() * getSigma_cocirc();
-   // const float sigma_chord2 = 2.0 * getSigma_chord() * getSigma_chord();
    const int nKurvePre = (int)getnKurvePre();
 
    float atanx2_shift = thetaPre + 2.0f * atan2f(dyP_shift, dxP); // preferred angle (rad)
    atanx2_shift += 2.0f * PI;
    atanx2_shift = fmodf(atanx2_shift, PI);
    atanx2_shift = fabsf(atanx2_shift - thPost);
-   float chi_shift = atanx2_shift; //fabsf(atanx2_shift - thetaPost); // radians
+   float chi_shift = atanx2_shift; 
    if (chi_shift >= PI / 2.0f) {
       chi_shift = PI - chi_shift;
    }
@@ -269,12 +246,6 @@ void InitCocircWeightsParams::updateCocircNChord(
             / sigma_cocirc2) : expf(-chi_shift * chi_shift / sigma_cocirc2)
             - 1.0f;
    }
-   // compute distance along contour. // Broken because of sigma_chord bug. Commented out because gChord ultimately is not used.  -pete 2014-03-14
-   // float d_chord_shift = (cocircKurve_shift != 0.0f) ? atanx2_shift
-   //       / cocircKurve_shift : sqrt(d2_shift);
-   // gChord = (nKurvePre > 1) ? expf(-powf(d_chord_shift, 2) / sigma_chord2)
-   //       : 1.0;
-
 }
 
 void InitCocircWeightsParams::updategKurvePreNgKurvePost(float cocircKurve_shift) {
@@ -294,7 +265,6 @@ void InitCocircWeightsParams::updategKurvePreNgKurvePost(float cocircKurve_shift
 
 void InitCocircWeightsParams::initializeDistChordCocircKurvePreAndKurvePost() {
    gDist = 0.0f;
-   // gChord = 1.0; //not used!
    gCocirc = 1.0f;
    gKurvePre = 1.0f;
    gKurvePost = 1.0f;

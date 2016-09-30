@@ -86,26 +86,16 @@ protected:
     virtual int setNeededRNGSeeds() {return 0;}
     virtual int setInitialValues();
     virtual PVPatch *** initializeWeights(PVPatch *** arbors, pvwdata_t ** dataStart);
-    //int transpose(int arborId);
     virtual int calc_dW(int arborId){return PV_BREAK;};
-    //virtual int reduceKernels(int arborID);
     virtual int constructWeights();
     virtual int allocatePostConn();
 
-    // TransposeConn does not need to checkpoint; instead it gets its weights from the originalConn.
     virtual int checkpointWrite(const char * cpDir){return PV_SUCCESS;};
     virtual int checkpointRead(const char * cpDir, double *timef){return PV_SUCCESS;};
 
 private:
-    //int transposeSharedWeights(int arborId);
-    //int transposeNonsharedWeights(int arborId);
     int deleteWeights();
 
-    /**
-     * Calculates the parameters of the the region that needs to be sent to adjoining processes using MPI.
-     * Used only in the sharedWeights=false case, because in that case an individual weight's pre and post neurons can live in different processes.
-     */
-    //int mpiexchangesize(int neighbor, int * size, int * startx, int * stopx, int * starty, int * stopy, int * blocksize, size_t * buffersize);
 // Member variables
 protected:
     char * originalConnName;

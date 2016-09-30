@@ -142,7 +142,6 @@ int LIFGap::initialize(const char * name, HyPerCol * hc, const char * kernel_nam
 }
 
 int LIFGap::allocateConductances(int num_channels) {
-   // this->sumGap = 0.0f;
    int status = LIF::allocateConductances(num_channels-1); // CHANNEL_GAP doesn't have a conductance per se.
    gapStrength = (pvgsyndata_t *) calloc((size_t) getNumNeuronsAllBatches(), sizeof(*gapStrength));
    if(gapStrength == NULL) {
@@ -404,7 +403,6 @@ for (k = 0; k < nx*ny*nf*nbatch; k++) {
    l_G_I  = (l_G_I  > GMAX) ? GMAX : l_G_I;
    l_G_IB = (l_G_IB > GMAX) ? GMAX : l_G_IB;
 
-   // l_G_Gap = l_GSynGap;
 
    tauInf  = (dt/tau) * (1.0f + l_G_E + l_G_I + l_G_IB + l_gapStrength);
    VmemInf = (Vrest + l_G_E*Vexc + l_G_I*Vinh + l_G_IB*VinhB + l_GSynGap)
@@ -497,7 +495,6 @@ for (k = 0; k < nx*ny*nf*nbatch; k++) {
    // local param variables
    float tau, Vrest, VthRest, Vexc, Vinh, VinhB, deltaVth, deltaGIB;
 
-   // const float GMAX = 10.0;
 
    // local variables
    float l_activ;
@@ -574,7 +571,6 @@ for (k = 0; k < nx*ny*nf*nbatch; k++) {
    G_I_final = G_I_initial*exp_tauI;
    G_IB_final = G_IB_initial*exp_tauIB;
 
-   // l_G_Gap = l_GSynGap;
 
    dV1 = LIFGap_Vmem_derivative(l_V, G_E_initial, G_I_initial, G_IB_initial, l_GSynGap, Vexc, Vinh, VinhB, l_gapStrength, Vrest, tau);
    dV2 = LIFGap_Vmem_derivative(l_V+dt*dV1, G_E_final, G_I_final, G_IB_final, l_GSynGap, Vexc, Vinh, VinhB, l_gapStrength, Vrest, tau);
@@ -737,7 +733,6 @@ void LIFGap_update_state_arma(
       G_E_initial = l_G_E + l_GSynExc;
       G_I_initial = l_G_I + l_GSynInh;
       G_IB_initial = l_G_IB + l_GSynInhB;
-      // l_G_Gap = l_GSynGap;
       tau_inf_initial = tau/(1.0f+G_E_initial+G_I_initial+G_IB_initial+l_gapStrength);
       V_inf_initial = (Vrest+Vexc*G_E_initial+Vinh*G_I_initial+VinhB*G_IB_initial+l_GSynGap)/(1.0f+G_E_initial+G_I_initial+G_IB_initial+l_gapStrength);
 

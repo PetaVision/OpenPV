@@ -92,7 +92,6 @@ int InitWeightsParams::initialize(char const * name, HyPerCol * hc) {
 
 int InitWeightsParams::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    // Read/write any params from the params file, typically
-   // parent->parameters()->ioParamValue(ioFlag, name, "param_name", &param, default_value);
    parentConn = dynamic_cast<HyPerConn *>(parent->getConnFromName(name));
    ioParam_initWeightsFile(ioFlag);
    ioParam_useListOfArborFiles(ioFlag);

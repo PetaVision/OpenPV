@@ -62,7 +62,6 @@ int InitWeights::setDescription() {
 
 int InitWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    // Read/write any params from the params file, typically
-   // parent->parameters()->ioParamValue(ioFlag, name, "param_name", &param, default_value);
 
    if (ioFlag==PARAMS_IO_READ) {
       weightParams = createNewWeightParams();

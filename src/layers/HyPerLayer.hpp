@@ -243,16 +243,9 @@ protected:
    int readDataStoreFromFile(const char * filename, Communicator * comm, double * timed);
    int incrementNBands(int * numCalls);
    int writeDataStoreToFile(const char * filename, Communicator * comm, double dtime);
-   //virtual int calcActiveIndices();
    void calcNumExtended();
    
-   /**
-    * Called by updateStateWrapper when updating the state in the usual way
-    * (as opposed to being triggered when triggerBehavior is resetStateOnTrigger).
-    * It calls either updateState or updateStateGPU.  It also starts and stops the update timer.
-    */
-   //virtual int callUpdateState(double timed, double dt);
-   
+  
    /**
     * Returns true if the trigger behavior is resetStateOnTrigger and the layer was triggered.
     */
@@ -290,7 +283,6 @@ protected:
 public:
    HyPerLayer(const char * name, HyPerCol * hc);
    pvdata_t * getActivity()          {return clayer->activity->data;} // TODO: access to clayer->activity->data should not be public
-   // virtual double calcTimeScale(int batchIdx)          {return -1.0;}; // Marked obsolete Aug 18, 2016.
    virtual double getTimeScale(int batchIdx)      {return -1.0;};
    virtual bool activityIsSpiking() { return false; }
    PVDataType getDataType()          {return dataType;}
@@ -374,7 +366,7 @@ public:
    static bool localDimensionsEqual(PVLayerLoc const * loc1, PVLayerLoc const * loc2);
    int mirrorInteriorToBorder(PVLayerCube * cube, PVLayerCube * borderCube);
 
-   virtual int checkpointRead(const char * cpDir, double * timeptr); // (const char * cpDir, double * timed);
+   virtual int checkpointRead(const char * cpDir, double * timeptr); 
    virtual int checkpointWrite(const char * cpDir);
    virtual int writeTimers(PrintStream &stream);
    // TODO: readBufferFile and writeBufferFile have to take different types of buffers.  Can they be templated?
@@ -428,8 +420,6 @@ public:
    virtual float getChannelTimeConst(enum ChannelType channel_type){return 0.0f;};
    int getXScale()                   {return clayer->xScale;}
    int getYScale()                   {return clayer->yScale;}
-
-   //int getNumActive()                {return clayer->numActive;}
 
    bool useMirrorBCs()               {return this->mirrorBCflag;}
    pvdata_t getValueBC() {return this->valueBC;}

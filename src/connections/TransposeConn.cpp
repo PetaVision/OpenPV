@@ -209,9 +209,6 @@ int TransposeConn::communicateInitInfo() {
    numAxonalArborLists = originalConn->numberOfAxonalArborLists();
    parent->parameters()->handleUnnecessaryParameter(name, "numAxonalArbors", numAxonalArborLists);
 
-   //plasticityFlag = originalConn->getPlasticityFlag();
-   //parent->parameters()->handleUnnecessaryParameter(name, "plasticityFlag", plasticityFlag);
-
    if(originalConn->getShrinkPatches_flag()) {
       if (parent->columnId()==0) {
          pvErrorNoExit().printf("TransposeConn \"%s\": original conn \"%s\" has shrinkPatches set to true.  TransposeConn has not been implemented for that case.\n", name, originalConn->getName());
@@ -340,7 +337,6 @@ int TransposeConn::allocateDataStructures() {
 
    normalizer = NULL;
    
-   // normalize_flag = false; // replaced by testing whether normalizer!=NULL
    return status;
 }
 
@@ -363,13 +359,7 @@ int TransposeConn::deleteWeights() {
 	   gSynPatchStart = NULL;
 	   aPostOffset = NULL;
 	   dwDataStart = NULL;
-//   for(int arbor=0; arbor<numberOfAxonalArborLists(); arbor++) {
-//      get_wPatches()[arbor] = NULL;
-//      set_wDataStart(arbor,NULL);
-//   }
-   // set_kernelPatches(NULL);
-
-   return 0; // HyPerConn::deleteWeights(); // HyPerConn destructor calls HyPerConn::deleteWeights()
+   return 0;
 }
 
 int TransposeConn::setInitialValues() {

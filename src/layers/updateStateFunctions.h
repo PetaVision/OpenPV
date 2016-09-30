@@ -146,10 +146,6 @@ int updateV_PtwiseProductLayer(int nbatch, int numNeurons,
 KERNEL
 int updateV_PtwiseQuotientLayer(int nbatch, int numNeurons,
       MEM_GLOBAL pvdata_t * V, MEM_GLOBAL pvdata_t * GSynHead);
-//KERNEL
-//int updateV_TrainingLayer(int nbatch, int numNeurons,
-//      MEM_GLOBAL pvdata_t * V, int numTrainingLabels, int * trainingLabels,
-//      int traininglabelindex, int strength);
 KERNEL
 int updateV_GapLayer();
 KERNEL

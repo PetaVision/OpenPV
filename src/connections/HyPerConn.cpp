@@ -138,8 +138,6 @@ int HyPerConn::initialize_base()
    postConn = NULL;
    needPost = false;
 
-   // wMin = 0.0;
-   // wMax = 1.0;
    wPostTime = -1.0;
    wPostPatches = NULL;
    wPostDataStart = NULL;
@@ -220,7 +218,6 @@ int HyPerConn::initialize_base()
    d_Patch2DataLookupTable = NULL;
    krRecvPost = NULL;
    krRecvPre = NULL;
-   //updatedDeviceWeights = true; //Start off as always updated
    gpuGroupIdx = -1;
 # ifdef PV_USE_CUDNN
    cudnn_WData = NULL;
@@ -287,7 +284,6 @@ int HyPerConn::constructWeights()
    int nPatches = getNumDataPatches();
    int status = PV_SUCCESS;
 
-   //pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "shrinkPatches"));
    
    // createArbors() uses the value of shrinkPatches.  It should have already been read in ioParamsFillGroup.
    //allocate the arbor arrays:
@@ -409,23 +405,6 @@ int HyPerConn::initialize(char const * name, HyPerCol * hc) {
       accumulateFunctionPointer = &pvpatch_accumulate_stochastic;
       accumulateFunctionFromPostPointer = &pvpatch_accumulate_stochastic_from_post;
       break;
-#ifdef OBSOLETE // Marked obsolete May 3, 2016.  HyPerConn defines AccumulateType and PoolingConn defines PoolingType
-   case ACCUMULATE_MAXPOOLING:
-      pvError().printf("ACCUMULATE_MAXPOOLING not allowed in HyPerConn, use PoolingConn instead");
-      //accumulateFunctionPointer = &pvpatch_max_pooling;
-      //accumulateFunctionFromPostPointer = &pvpatch_max_pooling_from_post;
-      break;
-   case ACCUMULATE_SUMPOOLING:
-      pvError().printf("ACCUMULATE_SUMPOOLING not allowed in HyPerConn, use PoolingConn instead");
-      //accumulateFunctionPointer = &pvpatch_sum_pooling;
-      //accumulateFunctionFromPostPointer = &pvpatch_accumulate_from_post;
-      break;
-   case ACCUMULATE_AVGPOOLING:
-      pvError().printf("ACCUMULATE_AVGPOOLING not allowed in HyPerConn, use PoolingConn instead");
-      //accumulateFunctionPointer = &pvpatch_sum_pooling;
-      //accumulateFunctionFromPostPointer = &pvpatch_accumulate_from_post;
-      break;
-#endif // OBSOLETE // Marked obsolete May 3, 2016.  HyPerConn defines AccumulateType and PoolingConn defines PoolingType
    default:
       pvAssertMessage(0, "Unrecognized pvpatchAccumulate type");
       break;
@@ -1274,9 +1253,6 @@ void HyPerConn::handleDefaultSelfFlag() {
    if (!parent->parameters()->present(name, "selfFlag")) {
       selfFlag = (pre == post);
    }
-   else {
-      // parameter was specified in params; use that value.
-   }
 }
 
 int HyPerConn::setPatchSize() {
@@ -1630,12 +1606,6 @@ int HyPerConn::initializeReceivePreKernelArgs()
    //Since it never changes, set this buffer here
    d_Patch2DataLookupTable->copyToDevice(getPatchToDataLUT());
 
-
-   //Need to calculate new patches for weights
-   //= conn->weights(arborID)[0]; //0 because it's one block of memory
-   //CLBuffer * d_patches = getClPatches();
-   //
-
    krRecvPre->setArgs(
       nbatch,
       numPreExt,
@@ -1914,9 +1884,6 @@ int HyPerConn::readWeightsFromCheckpoint(const char * cpDir, double * timeptr) {
 }
 
 int HyPerConn::checkpointRead(const char * cpDir, double * timeptr) {
-  //if((getPvpatchAccumulateType() == ACCUMULATE_MAXPOOLING) || (getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING)){
-  //  return PV_SUCCESS;
-  //}
    int status = readStateFromCheckpoint(cpDir, timeptr);
 
    status = parent->readScalarFromFile(cpDir, getName(), "lastUpdateTime", &lastUpdateTime, lastUpdateTime);
@@ -1940,9 +1907,6 @@ int HyPerConn::checkpointRead(const char * cpDir, double * timeptr) {
 }
 
 int HyPerConn::checkpointWrite(const char * cpDir) {
-  //if((getPvpatchAccumulateType() == ACCUMULATE_MAXPOOLING) || (getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING)){
-  //  return PV_SUCCESS;
-  //}
    char filename[PV_PATH_MAX];
    int status = checkpointFilename(filename, PV_PATH_MAX, cpDir);
    pvAssert(status==PV_SUCCESS);
@@ -2506,10 +2470,6 @@ int HyPerConn::normalize_dW(int arbor_ID){
             for( int n=0; n<numpatchitems; n++ ) {
                long divisor = activations[n];
 
-               //for(int i = 0; i < clones.size(); i++){
-               //   long * cloneActivation = clones[i]->get_activationsHead(loop_arbor, kernelindex);
-               //   divisor += cloneActivation[n];
-               //}
                if(divisor != 0){
                   dwpatchdata[n] /= divisor;
                }
@@ -3068,10 +3028,6 @@ void HyPerConn::updateDeviceWeights(){
    //Set local sizes here
    const PVLayerLoc * preLoc = pre->getLayerLoc();
    const PVLayerLoc * postLoc = post->getLayerLoc();
-   //float preToPostScaleX = (float)postLoc->nx/((float)preLoc->nx);
-   //float preToPostScaleY = (float)postLoc->ny/((float)preLoc->ny);
-   //float preToPostScaleX = (float)preLoc->nx/((float)postLoc->nx);
-   //float preToPostScaleY = (float)preLoc->ny/((float)postLoc->ny);
 
    pvAssert(cudnn_WData);
    cudnn_WData->permuteWeightsPVToCudnn(d_weights->getPointer(), numberOfAxonalArborLists(), getNumDataPatches(), nxp, nyp, nfp);
@@ -3084,7 +3040,7 @@ int HyPerConn::deliverPresynapticPerspectiveGPU(PVLayerCube const * activity, in
    if(getChannel() == CHANNEL_NOUPDATE){
       return PV_SUCCESS;
    }
-   pvAssert(post->getChannel(getChannel())); // pvAssert(GSyn && GSyn[conn->getChannel()]);
+   pvAssert(post->getChannel(getChannel())); 
 
    float dt_factor;
    if (getPvpatchAccumulateType()==STOCHASTIC) {
@@ -3166,11 +3122,7 @@ int HyPerConn::deliverPresynapticPerspectiveGPU(PVLayerCube const * activity, in
    }
 
    long totPatchSize = xPatchSize() * yPatchSize() * fPatchSize();
-
    long totThreads = maxTotalActiveNeuron * totPatchSize;
-
-   //krRecvPre->set_numActive(totActiveNeuron);
-
    int maxThreads = parent->getDevice()->get_max_threads();
    int numLocalThreads = totPatchSize < maxThreads ? totPatchSize : maxThreads;
 
@@ -3304,9 +3256,6 @@ void HyPerConn::deliverOnePreNeuronActivity(int kPreExt, int arbor, pvadata_t a,
 int HyPerConn::createWeights(PVPatch *** patches, int nWeightPatches, int nDataPatches, int nxPatch,
       int nyPatch, int nfPatch, int arborId)
 {
-   // could create only a single patch with following call
-   //   return createPatches(numAxonalArborLists, nxp, nyp, nfp);
-
    pvAssert(patches[arborId] == NULL);
 
    if (shrinkPatches_flag || arborId == 0){
@@ -3316,9 +3265,6 @@ int HyPerConn::createWeights(PVPatch *** patches, int nWeightPatches, int nDataP
    else{
       patches[arborId] = patches[0];
    }
-
-   // allocate space for all weights at once (inplace), return pointer to beginning of weight array
-   //pvdata_t * data_patches = allocWeights(patches, nDataPatches, nxPatch, nyPatch, nfPatch, arborId);
    return PV_SUCCESS;
 }
 
@@ -3375,7 +3321,6 @@ int HyPerConn::clearWeights(pvwdata_t * arborDataStart, int numPatches, int nxp,
 
 int HyPerConn::deleteWeights() {
    // to be used if createPatches is used above
-   // HyPerConn::deletePatches(numAxonalArborLists, wPatches);
    if (wPatches != NULL) {
       for (int arbor = 0; arbor < numAxonalArborLists; arbor++) {
          if (wPatches[arbor] != NULL) {
@@ -3568,8 +3513,6 @@ PVPatch *** HyPerConn::convertPreSynapticWeights(double simTime)
    if (wPostPatches == NULL) {
       wPostPatches = (PVPatch***) pvCalloc(numAxonalArborLists, sizeof(PVPatch**));
       pvAssert(wPostDataStart == NULL);
-      //TODO-CER-2014.4.3 - is the sizeof part correct??????????????????
-      //PFS-2014.6.4 - This looks correct; it's of the form "foo * x = (foo *) calloc(numfoos, sizeof(foo))"
       wPostDataStart = (pvwdata_t **) pvCalloc(numAxonalArborLists, sizeof(pvwdata_t *));
       wPostDataStart[0] = allocWeights(numPost, nxpPost, nypPost, nfpPost);
       pvAssert(wPostDataStart[0] != NULL);
@@ -3616,7 +3559,7 @@ PVPatch *** HyPerConn::convertPreSynapticWeights(double simTime)
             // if {kPre, kzPre} out of bounds, set post weight to zero
             if (kxPre < 0 || kyPre < 0 || kxPre >= nxPre || kyPre >= nyPre) {
                pvAssert(kxPre < 0 || kyPre < 0 || kxPre >= nxPre || kyPre >= nyPre);
-               postData[kp] = 0.0; // wPostPatches[arborID][kPost]->data[kp] = 0.0;
+               postData[kp] = 0.0; 
             }
             else {
                // {kzPostHead} store the restricted indices of the postsynaptic patch head
@@ -3732,7 +3675,7 @@ PVPatch **** HyPerConn::point2PreSynapticWeights()
             // if {kPre, kzPre} out of bounds, set post weight to zero
             if (kxPre < 0 || kyPre < 0 || kxPre >= nxPre || kyPre >= nyPre) {
                pvAssert(kxPre < 0 || kyPre < 0 || kxPre >= nxPre || kyPre >= nyPre);
-               postData[kp] = &z; // wPostPatches[arborID][kPost]->data[kp] = 0.0;
+               postData[kp] = &z; 
             }
             else {
                // {kzPostHead} store the restricted indices of the postsynaptic patch head
@@ -3743,17 +3686,12 @@ PVPatch **** HyPerConn::point2PreSynapticWeights()
                postSynapticPatchHead(kPre, &kxPostHead, &kyPostHead, &kfPostHead, &dx_nxp,
                                         &dy_nyp,  &nxp_post,   &nyp_post);
 
-               //pvAssert(nxp_post == p->nx);
-               //pvAssert(nyp_post == p->ny);
-               //pvAssert(nfp == lPost->loc.nf);
-
                int kxPrePatch, kyPrePatch; // relative index in shrunken patch
                kxPrePatch = kxPost - kxPostHead;
                kyPrePatch = kyPost - kyPostHead;
                int kPrePatch = kfPost * sfp + kxPrePatch * sxp + kyPrePatch * syp;
                pvwdata_t * preData = get_wDataStart(arborID) + patchStartIndex(kPre) + getWeights(kPre,arborID)->offset;
                postData[kp] = &(preData[kPrePatch]);
-               // wPostPatches[arborID][kPost]->data[kp] = preData[kPrePatch];
 
             }
          }

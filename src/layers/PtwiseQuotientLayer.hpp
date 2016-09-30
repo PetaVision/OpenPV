@@ -26,7 +26,6 @@ public:
 
    virtual int allocateDataStructures();
    virtual int updateState(double timef, double dt);
-   // virtual int updateV();
 
 protected:
    PtwiseQuotientLayer();

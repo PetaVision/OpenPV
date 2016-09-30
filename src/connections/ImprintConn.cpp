@@ -48,7 +48,6 @@ int ImprintConn::allocateDataStructures() {
 int ImprintConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = HyPerConn::ioParamsFillGroup(ioFlag);
    ioParam_imprintTimeThresh(ioFlag);
-   //ioParam_imprintChance(ioFlag);
    return status;
 }
 
@@ -72,18 +71,6 @@ void ImprintConn::ioParam_imprintTimeThresh(enum ParamsIOFlag ioFlag) {
       }
    }
 }
-
-//void ImprintConn::ioParam_imprintChance(enum ParamsIOFlag ioFlag) {
-//   parent->parameters()->ioParamValue(ioFlag, name, "imprintChance", &imprintChance, imprintChance);
-//   if (ioFlag==PARAMS_IO_READ) {
-//      if (imprintTimeThresh==-1) {
-//         imprintTimeThresh = weightUpdateTime * 100; //Default value of 100 weight updates
-//      }
-//      else if(imprintTimeThresh <= weightUpdateTime && parent->columnId()==0){
-//         pvWarn().printf("ImprintConn's imprintTimeThresh is smaller than weightUpdateTime. The algorithm will imprint on every weight update\n");
-//      }
-//   }
-//}
 
 int ImprintConn::imprintFeature(int arbor_ID, int batch_ID, int kExt){
    const pvdata_t * postactbufAll = postSynapticLayer()->getLayerData(); 

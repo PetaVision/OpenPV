@@ -67,8 +67,6 @@ int InitCocircWeights::cocircCalcWeights(pvdata_t * w_tmp, InitCocircWeightsPara
    int sf_tmp=weightParamPtr->getsf();
    float min_weight=weightParamPtr->getmin_weight();
 
-   // pvdata_t * w_tmp = patch->data;
-
    // loop over all post synaptic neurons in patch
    for (int kfPost = 0; kfPost < nfPatch_tmp; kfPost++) {
       float thPost = weightParamPtr->calcThPost(kfPost);

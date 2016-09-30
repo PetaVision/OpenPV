@@ -22,9 +22,6 @@ RunningAverageLayer::RunningAverageLayer(const char * name, HyPerCol * hc) {
 
 RunningAverageLayer::~RunningAverageLayer()
 {
-   // Handled by CloneVLayer destructor
-   // free(originalLayerName);
-   // clayer->V = NULL;
 }
 
 int RunningAverageLayer::initialize_base() {
@@ -35,7 +32,6 @@ int RunningAverageLayer::initialize_base() {
 }
 
 int RunningAverageLayer::initialize(const char * name, HyPerCol * hc) {
-   //int num_channels = sourceLayer->getNumChannels();
    int status_init = CloneVLayer::initialize(name, hc);
    return status_init;
 }
@@ -54,8 +50,6 @@ int RunningAverageLayer::allocateV() {
 
 
 int RunningAverageLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag){
-  //readOriginalLayerName(params);  // done in CloneVLayer
-
    CloneVLayer::ioParamsFillGroup(ioFlag);
    ioParam_numImagesToAverage(ioFlag);
 
@@ -89,7 +83,6 @@ int RunningAverageLayer::updateState(double timef, double dt) {
     const PVLayerLoc * locOriginal = originalLayer->getLayerLoc();
     int nbatch = loc->nbatch;
     //Make sure all sizes match
-    //assert(locOriginal->nb == loc->nb);
     assert(locOriginal->nx == loc->nx);
     assert(locOriginal->ny == loc->ny);
     assert(locOriginal->nf == loc->nf);

@@ -21,12 +21,9 @@ GapLayer::GapLayer(const char * name, HyPerCol * hc) {
 
 GapLayer::~GapLayer()
 {
-   // Handled by CloneVLayer constructor
-   // clayer->V = NULL;
 }
 
 int GapLayer::initialize_base() {
-   // sourceLayer = NULL; // Handled by CloneVLayer
    ampSpikelet = 50;
    return PV_SUCCESS;
 }

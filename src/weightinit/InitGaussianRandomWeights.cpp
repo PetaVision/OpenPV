@@ -20,7 +20,7 @@ InitGaussianRandomWeights::InitGaussianRandomWeights() {
 }
 
 InitGaussianRandomWeights::~InitGaussianRandomWeights() {
-   gaussianRandState = NULL; // Don't delete; base class deletes randState, which gaussianRandState is effectively a dynamic_cast of.
+   gaussianRandState = NULL; // Don't delete. base class deletes randState, which gaussianRandState is effectively a dynamic_cast of.
 }
 
 int InitGaussianRandomWeights::initialize_base() {

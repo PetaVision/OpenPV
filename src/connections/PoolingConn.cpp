@@ -38,7 +38,6 @@ PoolingConn::~PoolingConn() {
 }
 
 int PoolingConn::initialize_base() {
-   //gateIdxBuffer = NULL;
    pvpatchAccumulateType = HyPerConn::UNDEFINED;
    thread_gateIdxBuffer = NULL;
    needPostIndexLayer = false;
@@ -266,20 +265,13 @@ int PoolingConn::communicateInitInfo() {
       needAllocPostWeights = false;
    }
 
-   //if(needPostIndexLayer){
-   //   //Synchronize margines of this post and the postIndexLayer, and vice versa
-   //   post->synchronizeMarginWidth(postIndexLayer);
-   //   postIndexLayer->synchronizeMarginWidth(post);
-   //}
-
-
    return status;
 }
 
 void PoolingConn::clearGateIdxBuffer(){
    if(needPostIndexLayer){
       //Reset postIndexLayer's gsyn
-      resetGSynBuffers_PoolingIndexLayer(parent->getNBatch(), postIndexLayer->getNumNeurons(), postIndexLayer->getNumChannels(), postIndexLayer->getChannel(CHANNEL_EXC)); // resetGSynBuffers();
+      resetGSynBuffers_PoolingIndexLayer(parent->getNBatch(), postIndexLayer->getNumNeurons(), postIndexLayer->getNumChannels(), postIndexLayer->getChannel(CHANNEL_EXC)); 
    }
 }
 
@@ -319,9 +311,6 @@ int PoolingConn::allocateDataStructures(){
             thread_gateIdxBuffer[ti][ni] = -1;
          }
       }
-
-      //gateIdxBuffer = (int*)malloc(post->getNumNeurons() * sizeof(int));
-      //assert(gateIdxBuffer);
 
       clearGateIdxBuffer();
    }
@@ -540,11 +529,9 @@ int PoolingConn::deliverPresynapticPerspective(PVLayerCube const * activity, int
          }
 
          float a = activityBatch[kPreExt] * dt_factor;
-         //if (a == 0.0f) continue;
 
          //If we're using thread_gSyn, set this here
          pvdata_t * gSynPatchHead;
-         //float * gatePatchHead = NULL;
          pvdata_t * gatePatchHead = NULL;
 #ifdef PV_USE_OPENMP_THREADS
          if(thread_gSyn){

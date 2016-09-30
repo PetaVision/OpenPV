@@ -132,9 +132,6 @@ int BinningLayer::communicateInitInfo() {
 int BinningLayer::requireMarginWidth(int marginWidthNeeded, int * marginWidthResult, char axis) {
    HyPerLayer::requireMarginWidth(marginWidthNeeded, marginWidthResult, axis);
    assert(*marginWidthResult >= marginWidthNeeded);
-   // The code below is handled by the synchronizeMarginWidth call in communicateInitInfo
-   // originalLayer->requireMarginWidth(marginWidthNeeded, marginWidthResult, axis);
-   // assert(*marginWidthResult>=marginWidthNeeded);
    return PV_SUCCESS;
 }
 
@@ -169,7 +166,6 @@ int BinningLayer::updateState(double timef, double dt) {
 
 int BinningLayer::doUpdateState(double timed, double dt, const PVLayerLoc * origLoc, const PVLayerLoc * currLoc, const pvdata_t * origData, pvdata_t * currA, float binMax, float binMin) {
    int status = PV_SUCCESS;
-   //update_timer->start();
    int numBins = currLoc->nf;
 
    int nx = currLoc->nx;
@@ -274,7 +270,6 @@ int BinningLayer::doUpdateState(double timed, double dt, const PVLayerLoc * orig
          }
       }
    }
-   //update_timer->stop();
    return status;
 }
 

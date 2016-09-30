@@ -276,7 +276,6 @@ int IdentConn::deliverPresynapticPerspective(PVLayerCube const * activity, int a
             int kPre = activeIndicesBatch[loopIndex];
 
             float a = activityBatch[kPre];
-            // if (a == 0.0f) continue;
             PVPatch * weights = getWeights(kPre, arborID);
             if (weights->nx>0 && weights->ny>0) {
                int f = featureIndex(kPre, preLoc->nx, preLoc->ny, preLoc->nf); // Not taking halo into account, but for feature index, shouldn't matter.
@@ -309,7 +308,6 @@ int IdentConn::deliverPresynapticPerspective(PVLayerCube const * activity, int a
          for (int kRestricted = 0; kRestricted < numRestricted; kRestricted++) {
             int kExtended = kIndexExtended(kRestricted, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
             float a = activityBatch[kExtended];
-            // if (a == 0.0f) continue;
             gSynPatchHeadBatch[kRestricted] += a;
          }
 #endif // OBSOLETE // Marked obsolete Jan 5, 2016

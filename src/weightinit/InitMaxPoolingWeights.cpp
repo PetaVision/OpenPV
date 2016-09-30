@@ -46,7 +46,7 @@ int InitMaxPoolingWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStar
       pvError().printf("Failed to recast pointer to weightsParam!  Exiting...");
    }
 
-   return PV_SUCCESS; // return 1;
+   return PV_SUCCESS; 
 }
 
 } /* namespace PV */

@@ -62,12 +62,7 @@ int CloneConn::setWeightInitializer() {
 }
 
 int CloneConn::constructWeights() {
-   int status = PV_SUCCESS;
-
-   // CloneConn::ioParam_shrinkPatches does nothing; shrinkPatches_flag is set in communicateInitInfo()
-
-   // if( status == PV_SUCCESS ) status = setPatchSize(NULL);
-   if( status == PV_SUCCESS ) status = setPatchStrides();
+   int status = setPatchStrides();
 
    wPatches = this->originalConn->get_wPatches();
    wDataStart = this->originalConn->get_wDataStart();
@@ -87,11 +82,6 @@ void CloneConn::constructWeightsOutOfMemory() {
 int CloneConn::createAxonalArbors(int arborId) {
    return PV_SUCCESS;
 }
-
-//void CloneConn::initPatchToDataLUT() {
-//   assert(patch2datalookuptable==NULL);
-//   patch2datalookuptable = originalConn->getPatchToDataLUT();
-//}
 
 PVPatch *** CloneConn::initializeWeights(PVPatch *** patches, pvdata_t ** dataStart) {
    return patches;
@@ -265,7 +255,6 @@ int CloneConn::communicateInitInfo() {
 //Overwriting HyPerConn's allocate, since it needs to just grab postConn and preToPostActivity from orig conn
 int CloneConn::allocatePostConn(){
    postConn = originalConn->postConn;
-   //postToPreActivity = originalConn->postToPreActivity;
    return PV_SUCCESS;
 }
 
@@ -343,13 +332,7 @@ int CloneConn::deleteWeights() {
 	   gSynPatchStart = NULL;
 	   aPostOffset = NULL;
 	   dwDataStart = NULL;
-//   for(int arbor=0; arbor<numberOfAxonalArborLists(); arbor++) {
-//      get_wPatches()[arbor] = NULL;
-//      set_wDataStart(arbor,NULL);
-//   }
-   // set_kernelPatches(NULL);
-
-   return 0; // HyPerConn::deleteWeights(); // HyPerConn destructor calls HyPerConn::deleteWeights()
+   return 0; 
 }
 
 CloneConn::~CloneConn() {

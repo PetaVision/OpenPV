@@ -115,7 +115,7 @@ int gatherImageFilePVP(const char * filename,
       params[INDEX_NF]          = loc->nf;
       params[INDEX_NUM_RECORDS] = 1;
       params[INDEX_RECORD_SIZE] = recordSize;
-      params[INDEX_DATA_SIZE]   = 1; // sizeof(unsigned char);
+      params[INDEX_DATA_SIZE]   = 1; // sizeof(unsigned char)
       params[INDEX_DATA_TYPE]   = PV_BYTE_TYPE;
       params[INDEX_NX_PROCS]    = 1;
       params[INDEX_NY_PROCS]    = 1;
@@ -123,7 +123,7 @@ int gatherImageFilePVP(const char * filename,
       params[INDEX_NY_GLOBAL]   = loc->nyGlobal;
       params[INDEX_KX0]         = 0;
       params[INDEX_KY0]         = 0;
-      params[INDEX_NBATCH]          = loc->nbatch; // loc->nb;
+      params[INDEX_NBATCH]          = loc->nbatch;
       params[INDEX_NBANDS]      = 1;
 
       int numWrite = PV::PV_fwrite(params, sizeof(int), numParams, pvstream);

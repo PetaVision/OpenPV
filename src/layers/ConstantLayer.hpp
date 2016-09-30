@@ -15,7 +15,6 @@ namespace PV {
 class ConstantLayer: public PV::HyPerLayer {
 public:
    ConstantLayer(const char * name, HyPerCol * hc);
-   //virtual int recvAllSynapticInput();
    virtual ~ConstantLayer();
    virtual bool needUpdate(double time, double dt);
 protected:
