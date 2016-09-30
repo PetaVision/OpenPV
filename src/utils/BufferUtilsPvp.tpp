@@ -2,8 +2,6 @@
 
 namespace PV {
 
-   // TODO: Check header[INDEX_FILE_TYPE] and error if it isn't supported
-   
    namespace BufferUtils {
 
       // Write a single frame to a pvp file, starting at fStream's location.
@@ -121,11 +119,12 @@ namespace PV {
                           | std::ios_base::in
                           | std::ios_base::binary,
                             verifyWrites);
-      
-         // TODO: Error if we're writing more than 1 index past the end
 
          // Modify the number of records in the header
          vector<int> header = readHeader(fStream);
+         pvErrorIf(frameWriteIndex > header.at(INDEX_NBANDS),
+               "Cannot write entry %d when only %d entries exist.\n",
+               frameWriteIndex, header.at(INDEX_NBANDS));
          header.at(INDEX_NBANDS) = frameWriteIndex + 1;
          writeHeader(fStream, header);
       
@@ -150,6 +149,9 @@ namespace PV {
                           | std::ios_base::binary,
                             false);
          vector<int> header = readHeader(fStream);
+         pvErrorIf(header.at(INDEX_FILE_TYPE) != PVP_NONSPIKING_ACT_FILE_TYPE,
+               "readFromPvp() can only be used on non-sparse activity pvps "
+               "(PVP_NONSPIKING_ACT_FILE_TYPE)\n");
          buffer->resize(header.at(INDEX_NX),
                         header.at(INDEX_NY),
                         header.at(INDEX_NF));
@@ -291,8 +293,12 @@ namespace PV {
                           | std::ios_base::in
                           | std::ios_base::binary,
                             verifyWrites);
+
          // Modify the number of records in the header
          vector<int> header = readHeader(fStream);
+         pvErrorIf(frameWriteIndex > header.at(INDEX_NBANDS),
+               "Cannot write entry %d when only %d entries exist.\n",
+               frameWriteIndex, header.at(INDEX_NBANDS));
          header.at(INDEX_NBANDS) = frameWriteIndex + 1;
          writeHeader(fStream, header);
  
@@ -317,6 +323,9 @@ namespace PV {
                             false);
 
          vector<int> header = readHeader(fStream);
+         pvErrorIf(header.at(INDEX_FILE_TYPE) != PVP_ACT_SPARSEVALUES_FILE_TYPE,
+               "readSparseFromPvp() can only be used on sparse activity pvps "
+               "(PVP_ACT_SPARSEVALUES_FILE_TYPE)\n");
          pvErrorIf(header.at(INDEX_DATA_SIZE)
                 != sizeof(struct SparseList<T>::Entry),
                 "Error: Expected data size %d, found %d.\n",
@@ -348,6 +357,9 @@ namespace PV {
                             false);
 
          vector<int> header = readHeader(fStream);
+         pvErrorIf(header.at(INDEX_FILE_TYPE) != PVP_ACT_FILE_TYPE,
+               "readSparseBinaryFromPvp() can only be used on sparse binary pvps "
+               "(PVP_ACT_FILE_TYPE)\n");
          pvErrorIf(header.at(INDEX_DATA_SIZE)
                 != sizeof(int),
                 "Error: Expected data size %d, found %d.\n",
