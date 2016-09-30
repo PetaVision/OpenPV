@@ -56,7 +56,7 @@ int NormalizeMax::normalizeWeights() {
    scale_factor *= strength;
 
    status = NormalizeMultiply::normalizeWeights(); // applies normalize_cutoff threshold and
-                                                   // symmetrizeWeights
+   // symmetrizeWeights
 
    int nArbors        = conn0->numberOfAxonalArborLists();
    int numDataPatches = conn0->getNumDataPatches();
@@ -94,7 +94,8 @@ int NormalizeMax::normalizeWeights() {
             }
          }
       }
-   } else {
+   }
+   else {
       for (int patchindex = 0; patchindex < numDataPatches; patchindex++) {
          float max = 0.0;
          for (int arborID = 0; arborID < nArbors; arborID++) {

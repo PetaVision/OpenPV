@@ -167,7 +167,8 @@ void StochasticReleaseTestProbe::computePValues() {
          if (a != 0.0f) {
             if (found) {
                pvErrorIf(!(preact == a), "Test failed.\n");
-            } else {
+            }
+            else {
                found  = true;
                preact = a;
             }

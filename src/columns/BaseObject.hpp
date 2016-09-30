@@ -42,11 +42,11 @@ class BaseObject : public Observer, public SecretaryDataInterface {
    inline HyPerCol *getParent() const { return parent; }
    char const *getKeyword() const;
    virtual int respond(std::shared_ptr<BaseMessage const> message) override; // TODO: should return
-                                                                             // enum with values
-                                                                             // corresponding to
-                                                                             // PV_SUCCESS,
-                                                                             // PV_FAILURE,
-                                                                             // PV_POSTPONE
+   // enum with values
+   // corresponding to
+   // PV_SUCCESS,
+   // PV_FAILURE,
+   // PV_POSTPONE
    virtual ~BaseObject();
 
    /**

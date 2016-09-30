@@ -61,7 +61,7 @@ int NormalizeL3::normalizeWeights() {
    scale_factor *= strength;
 
    status = NormalizeMultiply::normalizeWeights(); // applies normalize_cutoff threshold and
-                                                   // rMinX,rMinY
+   // rMinX,rMinY
 
    int nArbors        = conn0->numberOfAxonalArborLists();
    int numDataPatches = conn0->getNumDataPatches();
@@ -107,7 +107,8 @@ int NormalizeL3::normalizeWeights() {
             }
          }
       }
-   } else {
+   }
+   else {
       for (int patchindex = 0; patchindex < numDataPatches; patchindex++) {
          float sumcubed = 0.0f;
          for (int arborID = 0; arborID < nArbors; arborID++) {

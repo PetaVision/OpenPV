@@ -189,7 +189,8 @@ int testTransposeOfTransposeWeights(
    int status = testWeightsEqual(originalMap, transposeOfTranspose);
    if (status == PV_SUCCESS) {
       pvInfo().printf("%s: TestTransposeConn passed.\n", message);
-   } else {
+   }
+   else {
       dumpWeights(originalMap);
       dumpWeights(transpose);
       dumpWeights(transposeOfTranspose);

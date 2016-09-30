@@ -119,7 +119,8 @@ int verifyLoc(PV::HyPerCol *hc, int rows, int columns) {
       pvInfo().printf("Testing with %d rows by %d columns of subprocesses.\n", rows, columns);
       if (testpassed) {
          pvInfo().printf("Rank 0 passed.\n");
-      } else {
+      }
+      else {
          dumpLoc(loc, 0);
          pvErrorNoExit().printf("Rank 0 FAILED\n");
          status = PV_FAILURE;
@@ -137,7 +138,8 @@ int verifyLoc(PV::HyPerCol *hc, int rows, int columns) {
                MPI_STATUS_IGNORE);
          if (remotepassed) {
             pvInfo().printf("Rank %d passed.\n", src);
-         } else {
+         }
+         else {
             MPI_Recv(
                   &mpiLoc,
                   sizeof(PVLayerLoc),
@@ -151,7 +153,8 @@ int verifyLoc(PV::HyPerCol *hc, int rows, int columns) {
             status = PV_FAILURE;
          }
       }
-   } else {
+   }
+   else {
       // Send each process's testpassed value to root process.
       MPI_Send(&testpassed, 1, MPI_INT, 0, 10, hc->getCommunicator()->communicator());
       if (!testpassed) {

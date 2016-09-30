@@ -58,7 +58,8 @@ Buffer<float> PvpLayer::retrieveData(std::string filename, int batchIndex) {
    // the start_frame_index value for this batch.
    if (getDisplayPeriod() > 0) {
       frameNumber = mBatchIndexer->nextIndex(batchIndex);
-   } else {
+   }
+   else {
       frameNumber = getStartIndex(batchIndex);
    }
 

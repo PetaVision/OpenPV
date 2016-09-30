@@ -90,7 +90,8 @@ void BaseConnection::setPreSynapticLayer(HyPerLayer *pre) {
    assert(this->pre == NULL);
    if (pre != NULL) {
       this->pre = pre;
-   } else {
+   }
+   else {
       if (parent->columnId() == 0) {
          pvErrorNoExit().printf(
                "%s: pre layer \"%s\" does not exist in the params file.\n",
@@ -106,7 +107,8 @@ void BaseConnection::setPostSynapticLayer(HyPerLayer *post) {
    assert(this->post == NULL);
    if (post != NULL) {
       this->post = post;
-   } else {
+   }
+   else {
       if (parent->columnId() == 0) {
          pvErrorNoExit().printf(
                "%s: post layer \"%s\" does not exist in the params file.\n",
@@ -186,7 +188,8 @@ int BaseConnection::inferPreAndPostFromConnName(
          const char *postInConnName = &name[pre_len + seplen];
          memcpy(*postLayerNamePtr, postInConnName, post_len);
          (*postLayerNamePtr)[post_len] = 0;
-      } else {
+      }
+      else {
          status = PV_FAILURE;
          if (rank == 0) {
             pvErrorNoExit(errorMessage);
@@ -195,7 +198,8 @@ int BaseConnection::inferPreAndPostFromConnName(
             errorMessage.printf("The string \"To\" cannot appear in the name more than once.\n");
          }
       }
-   } else {
+   }
+   else {
       status = PV_FAILURE;
       if (rank == 0) {
          pvErrorNoExit(errorMessage);
@@ -226,21 +230,24 @@ int BaseConnection::getPreAndPostLayerNames(
                "stage.\n",
                getDescription_c());
       }
-   } else if (preLayerName == NULL && postLayerName != NULL) {
+   }
+   else if (preLayerName == NULL && postLayerName != NULL) {
       status = PV_FAILURE;
       if (parent->getCommunicator()->commRank() == 0) {
          pvErrorNoExit().printf(
                "%s: if postLayerName is specified, preLayerName must be specified as well.\n",
                getDescription_c());
       }
-   } else if (preLayerName != NULL && postLayerName == NULL) {
+   }
+   else if (preLayerName != NULL && postLayerName == NULL) {
       status = PV_FAILURE;
       if (parent->getCommunicator()->commRank() == 0) {
          pvErrorNoExit().printf(
                "%s: if preLayerName is specified, postLayerName must be specified as well.\n",
                getDescription_c());
       }
-   } else {
+   }
+   else {
       assert(preLayerName != NULL && postLayerName != NULL);
    }
    MPI_Barrier(parent->getCommunicator()->communicator());
@@ -302,11 +309,13 @@ void BaseConnection::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
          MPI_Barrier(this->getParent()->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
-   } else if (ioFlag == PARAMS_IO_WRITE) {
+   }
+   else if (ioFlag == PARAMS_IO_WRITE) {
       int ch = (int)channel;
       this->getParent()->parameters()->ioParamValueRequired(
             ioFlag, this->getName(), "channelCode", &ch);
-   } else {
+   }
+   else {
       assert(0); // All possibilities of ioFlag are covered above.
    }
 }
@@ -386,8 +395,8 @@ void BaseConnection::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
 
 void BaseConnection::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
    assert(parent->getInitializeFromCheckpointDir()); // If we're not initializing any layers or
-                                                     // connections from a checkpoint, this should
-                                                     // be the empty string, not null.
+   // connections from a checkpoint, this should
+   // be the empty string, not null.
    if (parent->getInitializeFromCheckpointDir() && parent->getInitializeFromCheckpointDir()[0]) {
       parent->parameters()->ioParamValue(
             ioFlag,
@@ -438,19 +447,23 @@ int BaseConnection::respond(std::shared_ptr<BaseMessage const> message) {
    int status = BaseObject::respond(message);
    if (status != PV_SUCCESS) {
       return status;
-   } else if (
+   }
+   else if (
          ConnectionUpdateMessage const *castMessage =
                dynamic_cast<ConnectionUpdateMessage const *>(message.get())) {
       return respondConnectionUpdate(castMessage);
-   } else if (
+   }
+   else if (
          ConnectionFinalizeUpdateMessage const *castMessage =
                dynamic_cast<ConnectionFinalizeUpdateMessage const *>(message.get())) {
       return respondConnectionFinalizeUpdate(castMessage);
-   } else if (
+   }
+   else if (
          ConnectionOutputMessage const *castMessage =
                dynamic_cast<ConnectionOutputMessage const *>(message.get())) {
       return respondConnectionOutput(castMessage);
-   } else {
+   }
+   else {
       return status;
    }
 }
@@ -529,13 +542,13 @@ int BaseConnection::communicateInitInfo() {
       status = this->postSynapticLayer()->requireChannel(ch, &num_channels_check);
    }
    assert(status != PV_SUCCESS || num_channels_check > (int)this->getChannel()); // if
-                                                                                 // requireChannel
-                                                                                 // passes, layer's
-                                                                                 // numChannels
-                                                                                 // should be large
-                                                                                 // enough for the
-                                                                                 // connection's
-                                                                                 // channel
+   // requireChannel
+   // passes, layer's
+   // numChannels
+   // should be large
+   // enough for the
+   // connection's
+   // channel
    if (status != PV_SUCCESS) {
       if (parent->columnId() == 0) {
          pvErrorNoExit().printf(
@@ -568,11 +581,14 @@ int BaseConnection::initializeDelays(const float *fDelayArray, int size) {
       if (size == 0) {
          // No delay
          setDelay(arborId, 0);
-      } else if (size == 1) {
+      }
+      else if (size == 1) {
          setDelay(arborId, fDelayArray[0]);
-      } else if (size == this->numberOfAxonalArborLists()) {
+      }
+      else if (size == this->numberOfAxonalArborLists()) {
          setDelay(arborId, fDelayArray[arborId]);
-      } else {
+      }
+      else {
          pvError().printf(
                "Delay must be either a single value or the same length as the number of arbors\n");
       }
@@ -605,18 +621,21 @@ void BaseConnection::setDelay(int arborId, double delay) {
 int BaseConnection::initializeState() {
    int status = PV_SUCCESS;
    assert(parent->getInitializeFromCheckpointDir()); // should never be null; it should be the empty
-                                                     // string if not initializing from a checkpoint
+   // string if not initializing from a checkpoint
    if (!this->getPlasticityFlag() && parent->getSuppressNonplasticCheckpoints()) {
       status = setInitialValues();
-   } else if (parent->getCheckpointReadFlag()) {
+   }
+   else if (parent->getCheckpointReadFlag()) {
       double checkTime = parent->simulationTime();
       checkpointRead(parent->getCheckpointReadDir(), &checkTime);
-   } else if (initializeFromCheckpointFlag) {
+   }
+   else if (initializeFromCheckpointFlag) {
       assert(
             parent->getInitializeFromCheckpointDir()
             && parent->getInitializeFromCheckpointDir()[0]);
       status = readStateFromCheckpoint(parent->getInitializeFromCheckpointDir(), NULL);
-   } else {
+   }
+   else {
       // initialize weights for patches:
       status = setInitialValues();
    }
@@ -629,7 +648,7 @@ BaseConnection::~BaseConnection() {
    free(fDelayArray);
    free(delays);
    free(this->probes); // All probes are deleted by the HyPerCol, so probes[i] doesn't need to be
-                       // deleted, only the array itself.
+   // deleted, only the array itself.
 }
 
 } // end namespace PV

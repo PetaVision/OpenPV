@@ -35,61 +35,80 @@ int ImageOffsetTestLayer::updateState(double timef, double dt) {
                float expectedvalue = -1;
                if (strcmp(name, "crop") == 0) {
                   expectedvalue = (iyGlobal + 4) * 16 + (ixGlobal + 4);
-               } else if (strcmp(name, "pad") == 0) {
+               }
+               else if (strcmp(name, "pad") == 0) {
                   if (ixGlobal < 8 || iyGlobal < 8 || ixGlobal >= 24 || iyGlobal >= 24) {
                      expectedvalue = 0;
-                  } else {
+                  }
+                  else {
                      expectedvalue = (iyGlobal - 8) * 16 + (ixGlobal - 8);
                   }
-               } else if (strcmp(name, "TLCorner") == 0) {
+               }
+               else if (strcmp(name, "TLCorner") == 0) {
                   if (ixGlobal < 2 && iyGlobal < 2) {
                      expectedvalue = (iyGlobal + 14) * 16 + (ixGlobal + 14);
-                  } else {
+                  }
+                  else {
                      expectedvalue = 0;
                   }
-               } else if (strcmp(name, "TRCorner") == 0) {
+               }
+               else if (strcmp(name, "TRCorner") == 0) {
                   if (ixGlobal >= 14 && iyGlobal < 2) {
                      expectedvalue = (iyGlobal + 14) * 16 + (ixGlobal - 14);
-                  } else {
+                  }
+                  else {
                      expectedvalue = 0;
                   }
-               } else if (strcmp(name, "BLCorner") == 0) {
+               }
+               else if (strcmp(name, "BLCorner") == 0) {
                   if (ixGlobal < 2 && iyGlobal >= 14) {
                      expectedvalue = (iyGlobal - 14) * 16 + (ixGlobal + 14);
-                  } else {
+                  }
+                  else {
                      expectedvalue = 0;
                   }
-               } else if (strcmp(name, "BRCorner") == 0) {
+               }
+               else if (strcmp(name, "BRCorner") == 0) {
                   if (ixGlobal >= 14 && iyGlobal >= 14) {
                      expectedvalue = (iyGlobal - 14) * 16 + (ixGlobal - 14);
-                  } else {
+                  }
+                  else {
                      expectedvalue = 0;
                   }
-               } else if (strcmp(name, "TLOver") == 0) {
+               }
+               else if (strcmp(name, "TLOver") == 0) {
                   if (ixGlobal >= 14 || iyGlobal >= 14) {
                      expectedvalue = 0;
-                  } else {
+                  }
+                  else {
                      expectedvalue = (iyGlobal + 2) * 16 + (ixGlobal + 2);
                   }
-               } else if (strcmp(name, "TROver") == 0) {
+               }
+               else if (strcmp(name, "TROver") == 0) {
                   if (ixGlobal < 2 || iyGlobal >= 14) {
                      expectedvalue = 0;
-                  } else {
+                  }
+                  else {
                      expectedvalue = (iyGlobal + 2) * 16 + (ixGlobal - 2);
                   }
-               } else if (strcmp(name, "BLOver") == 0) {
+               }
+               else if (strcmp(name, "BLOver") == 0) {
                   if (ixGlobal >= 14 || iyGlobal < 2) {
                      expectedvalue = 0;
-                  } else {
+                  }
+                  else {
                      expectedvalue = (iyGlobal - 2) * 16 + (ixGlobal + 2);
                   }
-               } else if (strcmp(name, "BROver") == 0) {
+               }
+               else if (strcmp(name, "BROver") == 0) {
                   if (ixGlobal < 2 || iyGlobal < 2) {
                      expectedvalue = 0;
-                  } else {
+                  }
+                  else {
                      expectedvalue = (iyGlobal - 2) * 16 + (ixGlobal - 2);
                   }
-               } else {
+               }
+               else {
                   pvError() << "Layer name " << name << " not recoginzed\n";
                }
                float diff = fabs(actualvalue - expectedvalue);

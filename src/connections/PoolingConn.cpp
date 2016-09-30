@@ -96,11 +96,14 @@ PoolingConn::AccumulateType PoolingConn::parseAccumulateTypeString(char const *p
 
    if (strcmp(str.c_str(), "maxpooling") == 0) {
       accType = MAX;
-   } else if (strcmp(str.c_str(), "sumpooling") == 0) {
+   }
+   else if (strcmp(str.c_str(), "sumpooling") == 0) {
       accType = SUM;
-   } else if (strcmp(str.c_str(), "avgpooling") == 0) {
+   }
+   else if (strcmp(str.c_str(), "avgpooling") == 0) {
       accType = AVG;
-   } else {
+   }
+   else {
       accType = UNDEFINED;
    }
    return accType;
@@ -114,7 +117,8 @@ void PoolingConn::unsetAccumulateType() {
                "%s: pvpatchAccumulateType \"%s\" is unrecognized.",
                getDescription_c(),
                pvpatchAccumulateTypeString);
-      } else {
+      }
+      else {
          errorMessage.printf("%s: pvpatchAccumulateType NULL is unrecognized.", getDescription_c());
       }
       errorMessage.printf(
@@ -175,9 +179,9 @@ int PoolingConn::initialize(
    this->normalizer        = weightNormalizer;
 
    int status = BaseConnection::initialize(name, hc); // BaseConnection should *NOT* take
-                                                      // weightInitializer or weightNormalizer as
-                                                      // arguments, as it does not know about
-                                                      // InitWeights or NormalizeBase
+// weightInitializer or weightNormalizer as
+// arguments, as it does not know about
+// InitWeights or NormalizeBase
 
 #ifdef PV_USE_CUDA
    if (needPostIndexLayer && receiveGpu) {
@@ -211,7 +215,7 @@ int PoolingConn::initialize(
          break;
       default:
          pvAssert(0); // Only MAX, SUM, and AVG are defined in PoolingConn; other methods should be
-                      // handled in other classes.
+         // handled in other classes.
          break;
    }
 
@@ -456,13 +460,16 @@ int PoolingConn::constructWeights() {
 float PoolingConn::minWeight(int arborId) {
    if (getPoolingType() == MAX) {
       return 1.0;
-   } else if (getPoolingType() == SUM) {
+   }
+   else if (getPoolingType() == SUM) {
       return 1;
-   } else if (getPoolingType() == AVG) {
+   }
+   else if (getPoolingType() == AVG) {
       int relative_XScale = (int)pow(2, pre->getXScale() - post->getXScale());
       int relative_YScale = (int)pow(2, pre->getYScale() - post->getYScale());
       return (1.0 / (nxp * nyp * relative_XScale * relative_YScale));
-   } else {
+   }
+   else {
       assert(0); // only possibilities are PoolingConn::MAX, PoolingConn::SUM, PoolingConn::AVG
       return 0.0f; // gets rid of a compile warning
    }
@@ -471,13 +478,16 @@ float PoolingConn::minWeight(int arborId) {
 float PoolingConn::maxWeight(int arborId) {
    if (getPoolingType() == MAX) {
       return 1.0;
-   } else if (getPoolingType() == SUM) {
+   }
+   else if (getPoolingType() == SUM) {
       return 1;
-   } else if (getPoolingType() == AVG) {
+   }
+   else if (getPoolingType() == AVG) {
       int relative_XScale = (int)pow(2, pre->getXScale() - post->getXScale());
       int relative_YScale = (int)pow(2, pre->getYScale() - post->getYScale());
       return (1.0 / (nxp * nyp * relative_XScale * relative_YScale));
-   } else {
+   }
+   else {
       assert(0); // only possibilities are PoolingConn::MAX, PoolingConn::SUM, PoolingConn::AVG
       return 0.0f; // gets rid of a compile warning
    }
@@ -537,7 +547,8 @@ int PoolingConn::deliverPresynapticPerspective(PVLayerCube const *activity, int 
       int numLoop;
       if (activity->isSparse) {
          numLoop = activity->numActive[b];
-      } else {
+      }
+      else {
          numLoop = numExtended;
       }
 
@@ -574,7 +585,8 @@ int PoolingConn::deliverPresynapticPerspective(PVLayerCube const *activity, int 
          int kPreExt;
          if (activity->isSparse) {
             kPreExt = activeIndicesBatch[loopIndex];
-         } else {
+         }
+         else {
             kPreExt = loopIndex;
          }
 
@@ -587,7 +599,8 @@ int PoolingConn::deliverPresynapticPerspective(PVLayerCube const *activity, int 
          if (thread_gSyn) {
             int ti        = omp_get_thread_num();
             gSynPatchHead = thread_gSyn[ti];
-         } else {
+         }
+         else {
             gSynPatchHead = gSynPatchHeadBatch;
          }
 
@@ -595,7 +608,8 @@ int PoolingConn::deliverPresynapticPerspective(PVLayerCube const *activity, int 
             if (thread_gateIdxBuffer) {
                int ti        = omp_get_thread_num();
                gatePatchHead = thread_gateIdxBuffer[ti];
-            } else {
+            }
+            else {
                gatePatchHead = gatePatchHeadBatch;
             }
          }
@@ -646,7 +660,8 @@ int PoolingConn::deliverPresynapticPerspective(PVLayerCube const *activity, int 
          pvwdata_t w = 1.0f;
          if (getPoolingType() == SUM) {
             w = 1.0f;
-         } else if (getPoolingType() == AVG) {
+         }
+         else if (getPoolingType() == AVG) {
             float relative_XScale = pow(2, (post->getXScale() - pre->getXScale()));
             float relative_YScale = pow(2, (post->getYScale() - pre->getYScale()));
             w                     = 1.0f / (nxp * nyp * relative_XScale * relative_YScale);
@@ -684,7 +699,8 @@ int PoolingConn::deliverPresynapticPerspective(PVLayerCube const *activity, int 
                      }
                   }
                }
-            } else {
+            }
+            else {
                for (int ti = 0; ti < parent->getNumThreads(); ti++) {
                   gSynPatchHead[ni] += thread_gSyn[ti][ni];
                }
@@ -808,7 +824,8 @@ int PoolingConn::deliverPostsynapticPerspective(PVLayerCube const *activity, int
          pvwdata_t w = 1.0f;
          if (getPoolingType() == SUM) {
             w = 1.0f;
-         } else if (getPoolingType() == AVG) {
+         }
+         else if (getPoolingType() == AVG) {
             float relative_XScale = pow(2, (post->getXScale() - pre->getXScale()));
             float relative_YScale = pow(2, (post->getYScale() - pre->getYScale()));
             w                     = 1.0f / (nxp * nyp * relative_XScale * relative_YScale);

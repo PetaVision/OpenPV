@@ -44,9 +44,11 @@ int L2NormProbe::setNormDescription() {
    int status = PV_SUCCESS;
    if (exponent == 1.0) {
       status = setNormDescriptionToString("L2-norm");
-   } else if (exponent == 2.0) {
+   }
+   else if (exponent == 2.0) {
       status = setNormDescriptionToString("L2-norm squared");
-   } else {
+   }
+   else {
       std::stringstream desc("(L2-norm)^");
       desc << exponent;
       status = setNormDescriptionToString(desc.str().c_str());
@@ -77,8 +79,8 @@ double L2NormProbe::getValueInternal(double timevalue, int index) {
       pvadata_t const *maskLayerData =
             getMaskLayer()->getLayerData()
             + index * getMaskLayer()->getNumExtended(); // Is there a DataStore method to return the
-                                                        // part of the layer data for a given batch
-                                                        // index?
+      // part of the layer data for a given batch
+      // index?
       int const maskLt = maskHalo->lt;
       int const maskRt = maskHalo->rt;
       int const maskDn = maskHalo->dn;
@@ -99,7 +101,8 @@ double L2NormProbe::getValueInternal(double timevalue, int index) {
                }
             }
          }
-      } else {
+      }
+      else {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for reduction(+ : l2normsq)
 #endif // PV_USE_OPENMP_THREADS
@@ -110,7 +113,8 @@ double L2NormProbe::getValueInternal(double timevalue, int index) {
             l2normsq += (double)maskLayerData[kexMask] * val * val;
          }
       }
-   } else {
+   }
+   else {
       if (getTargetLayer()->getSparseFlag()) {
          DataStore *store               = getTargetLayer()->getPublisher()->dataStore();
          int numActive                  = (int)store->numActiveBuffer(index)[0];
@@ -125,7 +129,8 @@ double L2NormProbe::getValueInternal(double timevalue, int index) {
             double val = inRestricted * fabs((double)aBuffer[extIndex]);
             l2normsq += pow(val, 2.0);
          }
-      } else {
+      }
+      else {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for reduction(+ : l2normsq)
 #endif // PV_USE_OPENMP_THREADS

@@ -197,8 +197,8 @@ int LCALIFLayer::updateState(double timed, double dt) {
    // Calculate_state kernel
    for (int k = 0; k < getNumNeuronsAllBatches(); k++) {
       G_Norm[k] = GSyn[CHANNEL_NORM][k]; // Copy GSyn buffer on normalizing channel for
-                                         // checkpointing, since LCALIF_update_state will blank the
-                                         // GSyn's
+      // checkpointing, since LCALIF_update_state will blank the
+      // GSyn's
    }
    LCALIF_update_state(
          clayer->loc.nbatch,

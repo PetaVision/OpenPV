@@ -27,7 +27,8 @@ int BatchIndexer::nextIndex(int localBatchIndex) {
    if (newIndex >= mFileCount) {
       if (mWrapToStartIndex) {
          newIndex = mStartIndices.at(localBatchIndex);
-      } else {
+      }
+      else {
          newIndex %= mFileCount;
       }
    }

@@ -108,17 +108,22 @@ PVPatch ***KernelConnDebugInitWeights::initializeWeights(
    if (initFromLastFlag) {
       pvError().printf("This method is for testing weight initialization!  It does not support "
                        "load from file!\n");
-   } else {
+   }
+   else {
       const char *weightInitTypeStr = inputParams->stringValue(name, "weightInitType");
       if ((weightInitTypeStr != 0) && (!strcmp(weightInitTypeStr, "CoCircWeight"))) {
          initializeCocircWeights(NULL, arborStart, numKernelPatches);
-      } else if ((weightInitTypeStr != 0) && (!strcmp(weightInitTypeStr, "SmartWeight"))) {
+      }
+      else if ((weightInitTypeStr != 0) && (!strcmp(weightInitTypeStr, "SmartWeight"))) {
          initializeSmartWeights(NULL, arborStart, numKernelPatches);
-      } else if ((weightInitTypeStr != 0) && (!strcmp(weightInitTypeStr, "GaborWeight"))) {
+      }
+      else if ((weightInitTypeStr != 0) && (!strcmp(weightInitTypeStr, "GaborWeight"))) {
          initializeGaborWeights(NULL, arborStart, numKernelPatches);
-      } else if ((weightInitTypeStr != 0) && (!strcmp(weightInitTypeStr, "Gauss2DWeight"))) {
+      }
+      else if ((weightInitTypeStr != 0) && (!strcmp(weightInitTypeStr, "Gauss2DWeight"))) {
          initializeGaussian2DWeights(NULL, arborStart, numKernelPatches);
-      } else { // default is also Gauss2D
+      }
+      else { // default is also Gauss2D
          initializeGaussian2DWeights(NULL, arborStart, numKernelPatches);
       }
    }
@@ -373,7 +378,8 @@ int KernelConnDebugInitWeights::cocircCalcWeights(
          pvErrorIf(!(nKurvePre >= 4), "Test failed.\n");
          iSaddlePre = (iKvPre % 2 == 0) ? 0 : 1;
          iKvPreAdj  = ((iKvPre % (nKurvePre / 2)) / 2);
-      } else { // SADDLE_FLAG
+      }
+      else { // SADDLE_FLAG
          iKvPreAdj = (iKvPre % (nKurvePre / 2));
       }
    } // POS_KURVE_FLAG
@@ -403,7 +409,8 @@ int KernelConnDebugInitWeights::cocircCalcWeights(
             pvErrorIf(!(nKurvePost >= 4), "Test failed.\n");
             iSaddlePost = (iKvPost % 2 == 0) ? 0 : 1;
             iKvPostAdj  = ((iKvPost % (nKurvePost / 2)) / 2);
-         } else { // SADDLE_FLAG
+         }
+         else { // SADDLE_FLAG
             iKvPostAdj = (iKvPost % (nKurvePost / 2));
          }
       } // POS_KURVE_FLAG
@@ -462,11 +469,13 @@ int KernelConnDebugInitWeights::cocircCalcWeights(
                                 * (sigma_kurve_pre * sigma_kurve_pre
                                    + sigma_kurve_post * sigma_kurve_post));
                   }
-               } else { // sameLoc && !cocircSelf
+               }
+               else { // sameLoc && !cocircSelf
                   gCocirc = 0.0f;
                   continue;
                }
-            } else { // d2 > 0
+            }
+            else { // d2 > 0
 
                float atanx2_shift =
                      thetaPre + 2.0f * atan2f(dyP_shift, dxP); // preferred angle (rad)
@@ -500,7 +509,8 @@ int KernelConnDebugInitWeights::cocircCalcWeights(
                          && (((dyP_shift > 0) && (dxP > 0)) || ((dyP_shift < 0) && (dxP < 0)))) {
                         continue;
                      }
-                  } else { // SADDLE_FLAG
+                  }
+                  else { // SADDLE_FLAG
                      if ((iPosKurvePre) && (dyP_shift < 0)) {
                         continue;
                      }
@@ -558,7 +568,8 @@ int KernelConnDebugInitWeights::cocircCalcWeights(
                                 || ((dyP_shift2 < 0) && (dxP < 0)))) {
                            continue;
                         }
-                     } else { // SADDLE_FLAG
+                     }
+                     else { // SADDLE_FLAG
                         if ((iPosKurvePre) && (dyP_shift2 < 0)) {
                            continue;
                         }
@@ -940,7 +951,8 @@ int KernelConnDebugInitWeights::gaborWeights(
 #endif
             if (xp * xp + yp * yp > r2Max) {
                w[i * sx + j * sy + f * sf] = 0.0f;
-            } else {
+            }
+            else {
                if (invert)
                   wt *= -1.0f;
                if (wt < 0.0f)

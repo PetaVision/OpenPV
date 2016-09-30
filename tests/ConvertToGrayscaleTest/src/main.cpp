@@ -39,7 +39,8 @@ int customexit(HyPerCol *hc, int argc, char **argv) {
       for (int proc = 0; proc < icComm->commSize(); proc++) {
          if (proc == rootproc) {
             memcpy(databuffer, layerData, numExtended * sizeof(pvadata_t));
-         } else {
+         }
+         else {
             MPI_Recv(
                   databuffer,
                   numExtended * sizeof(pvadata_t),
@@ -76,10 +77,12 @@ int customexit(HyPerCol *hc, int argc, char **argv) {
       free(databuffer);
       if (status == PV_SUCCESS) {
          pvInfo().printf("%s succeeded.\n", argv[0]);
-      } else {
+      }
+      else {
          pvError().printf("%s failed.\n", argv[0]);
       }
-   } else {
+   }
+   else {
       // const_cast necessary because older versions of MPI define MPI_Send with first arg as void*,
       // not void const*.
       MPI_Send(

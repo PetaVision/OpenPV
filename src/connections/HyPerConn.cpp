@@ -124,7 +124,7 @@ int HyPerConn::initialize_base() {
    nyp            = 1;
    nfp            = -1; // A negative value for nfp will be converted to postsynaptic layer's nf.
    warnDefaultNfp = true; // Issue a warning if default value of nfp (post's nf) is used.  Derived
-                          // layers can set to false if only one nfp is allowed (e.g. IdentConn)
+   // layers can set to false if only one nfp is allowed (e.g. IdentConn)
    sxp      = 1;
    syp      = 1;
    sfp      = 1;
@@ -151,7 +151,7 @@ int HyPerConn::initialize_base() {
    writeCompressedWeights     = false;
    writeCompressedCheckpoints = false;
    fileType = PVP_WGT_FILE_TYPE; // Subclass's initialize_base() gets called after HyPerConn's
-                                 // initialize_base(), so this can be changed in subclasses.
+   // initialize_base(), so this can be changed in subclasses.
 
    wDataStart     = NULL;
    dwDataStart    = NULL;
@@ -166,7 +166,7 @@ int HyPerConn::initialize_base() {
    normalizer             = NULL;
    plasticityFlag         = false;
    shrinkPatches_flag = false; // default value, overridden by params file parameter "shrinkPatches"
-                               // in readShrinkPatches()
+   // in readShrinkPatches()
    shrinkPatchesThresh         = 0;
    dWMax                       = std::numeric_limits<float>::quiet_NaN();
    strengthParamHasBeenWritten = false;
@@ -183,10 +183,10 @@ int HyPerConn::initialize_base() {
 
    randState = NULL;
 
-   triggerFlag      = false; // Default to update every timestamp
-   triggerLayer     = NULL;
-   triggerLayerName = NULL;
-   triggerOffset    = 0;
+   triggerFlag             = false; // Default to update every timestamp
+   triggerLayer            = NULL;
+   triggerLayerName        = NULL;
+   triggerOffset           = 0;
    weightUpdatePeriod      = 0;
    initialWeightUpdateTime = 0;
    weightUpdateTime        = 0;
@@ -382,8 +382,8 @@ int HyPerConn::shrinkPatch(int kExt, int arborId) {
             dxNew * getPostNonextStrides()->sx + dyNew * getPostNonextStrides()->sy;
       aPostOffset[arborId][kExt] += dxNew * getPostExtStrides()->sx
                                     + dyNew * getPostExtStrides()->sy; // Someone who uses these
-                                                                       // routines, please check
-                                                                       // that this is correct.
+      // routines, please check
+      // that this is correct.
    }
    return 0;
 }
@@ -497,7 +497,8 @@ int HyPerConn::initNumDataPatches() {
                            : 1;
       numDataPatches = pre->getLayerLoc()->nf * nxKernel * nyKernel;
       return PV_SUCCESS;
-   } else {
+   }
+   else {
       numDataPatches = getNumWeightPatches();
    }
    return PV_SUCCESS;
@@ -610,10 +611,12 @@ void HyPerConn::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
          MPI_Barrier(parent->getCommunicator()->communicator());
          pvAssert(0);
       }
-   } else if (ioFlag == PARAMS_IO_WRITE) {
+   }
+   else if (ioFlag == PARAMS_IO_WRITE) {
       int ch = (int)channel;
       parent->parameters()->ioParamValueRequired(ioFlag, name, "channelCode", &ch);
-   } else {
+   }
+   else {
       pvError().printf("All possibilities of ioFlag are covered above.");
    }
 }
@@ -715,9 +718,11 @@ void HyPerConn::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {
 
       if (strcmp(pvpatchAccumulateTypeString, "convolve") == 0) {
          pvpatchAccumulateType = CONVOLVE;
-      } else if (strcmp(pvpatchAccumulateTypeString, "stochastic") == 0) {
+      }
+      else if (strcmp(pvpatchAccumulateTypeString, "stochastic") == 0) {
          pvpatchAccumulateType = STOCHASTIC;
-      } else {
+      }
+      else {
          unsetAccumulateType();
       }
    }
@@ -730,7 +735,8 @@ void HyPerConn::unsetAccumulateType() {
                "%s error: pvpatchAccumulateType \"%s\" is unrecognized.",
                getDescription_c(),
                pvpatchAccumulateTypeString);
-      } else {
+      }
+      else {
          pvErrorNoExit().printf(
                "%s error: pvpatchAccumulateType NULL is unrecognized.", getDescription_c());
       }
@@ -1039,7 +1045,8 @@ int HyPerConn::setPostPatchSize() {
       nxpPost        = nxp_orig;
       if (xscaleDiff > 0) {
          nxpPost *= (int)pow(2, xscaleDiff);
-      } else if (xscaleDiff < 0) {
+      }
+      else if (xscaleDiff < 0) {
          nxpPost /= (int)pow(2, -xscaleDiff);
          pvAssert(nxp_orig == nxpPost * pow(2, (float)(-xscaleDiff)));
       }
@@ -1048,7 +1055,8 @@ int HyPerConn::setPostPatchSize() {
       nypPost        = nyp_orig;
       if (yscaleDiff > 0) {
          nypPost *= (int)pow(2, yscaleDiff);
-      } else if (yscaleDiff < 0) {
+      }
+      else if (yscaleDiff < 0) {
          nypPost /= (int)pow(2, -yscaleDiff);
          pvAssert(nyp_orig == nypPost * pow(2, (float)(-yscaleDiff)));
       }
@@ -1174,7 +1182,8 @@ int HyPerConn::communicateInitInfo() {
                "%s: stochastic accumulation function is not consistent with ", getDescription_c());
          if (getConvertRateToSpikeCount()) {
             errorMessage.printf("setting convertRateToSpikeCount to true.\n");
-         } else {
+         }
+         else {
             pvAssert(pre->activityIsSpiking());
             errorMessage.printf("a spiking presynaptic layer \"%s\".\n", pre->getName());
          }
@@ -1286,7 +1295,8 @@ int HyPerConn::communicateInitInfo() {
 
    if (sharedWeights) {
       fileType = PVP_KERNEL_FILE_TYPE;
-   } else {
+   }
+   else {
       fileType = PVP_WGT_FILE_TYPE;
    }
 
@@ -1310,7 +1320,8 @@ int HyPerConn::communicateInitInfo() {
          setAllocPostDeviceWeights();
          // Increment number of postKernels for workspace memory
          parent->getDevice()->incrementConvKernels();
-      } else {
+      }
+      else {
          setAllocDeviceWeights();
       }
       post->setAllocDeviceGSyn();
@@ -1404,7 +1415,8 @@ int HyPerConn::allocatePostToPreBuffer() {
                sourceNy + sourceHalo->up + sourceHalo->dn,
                sourceNf);
       }
-   } else {
+   }
+   else {
       pvError().printf(
             "sourceToTargetScaleX= %f, sourceToTargetScaleY= %f: the case of many-to-one in one "
             "dimension and one-to-many in the other has not yet been implemented.\n",
@@ -1479,7 +1491,8 @@ int HyPerConn::allocateDataStructures() {
    }
    if (status == 0) {
       status = PV_SUCCESS;
-   } else {
+   }
+   else {
       pvError().printf(
             "%s: unable to allocate device memory in rank %d process: %s\n",
             getDescription_c(),
@@ -1495,7 +1508,8 @@ int HyPerConn::allocateDataStructures() {
       bool from_post = getUpdateGSynFromPostPerspective();
       if (from_post) {
          randState = new Random(postSynapticLayer()->getLayerLoc(), false /*isExtended*/);
-      } else {
+      }
+      else {
          randState = new Random(preSynapticLayer()->getLayerLoc(), true /*isExtended*/);
       }
    }
@@ -1529,13 +1543,15 @@ int HyPerConn::allocateDataStructures() {
    if (receiveGpu) {
       if (updateGSynFromPostPerspective) {
          status = initializeReceivePostKernelArgs();
-      } else {
+      }
+      else {
          status = initializeReceivePreKernelArgs();
       }
    }
    if (status == 0) {
       status = PV_SUCCESS;
-   } else {
+   }
+   else {
       pvError().printf(
             "%s: unable to allocate device memory in rank %d process: %s\n",
             getDescription_c(),
@@ -1588,7 +1604,8 @@ void HyPerConn::initPatchToDataLUT() {
          int kernelindex          = patchIndexToDataIndex(i);
          patch2datalookuptable[i] = kernelindex;
       }
-   } else {
+   }
+   else {
       // lookuptable just returns the patchindex
    }
 }
@@ -1699,7 +1716,8 @@ int HyPerConn::allocateDeviceBuffers() {
             d_Patch2DataLookupTable =
                   device->createBuffer(numWeightPatches * sizeof(int), &description);
          }
-      } else {
+      }
+      else {
          // Calculate local pre size here
          const PVLayerLoc *preLoc  = pre->getLayerLoc();
          const PVLayerLoc *postLoc = post->getLayerLoc();
@@ -1725,7 +1743,7 @@ int HyPerConn::allocateDeviceBuffers() {
          d_GSynPatchStart            = device->createBuffer(gsynPatchStartIndexSize, &description);
 
          if (numberOfAxonalArborLists() == 1) {
-            PVPatch *h_patches = weights(0)[0]; // 0 beacuse it's one block of memory
+            PVPatch *h_patches            = weights(0)[0]; // 0 beacuse it's one block of memory
             PVCuda::CudaBuffer *d_patches = getDevicePatches();
             pvAssert(d_patches);
             d_patches->copyToDevice(h_patches);
@@ -1992,7 +2010,8 @@ int HyPerConn::writeWeights(
    int chars_needed = 0;
    if (filename == NULL) {
       chars_needed = snprintf(path, PV_PATH_MAX, "%s/%s.pvp", parent->getOutputPath(), name);
-   } else {
+   }
+   else {
       chars_needed = snprintf(path, PV_PATH_MAX, "%s", filename);
    }
    if (chars_needed >= PV_PATH_MAX) {
@@ -2045,7 +2064,8 @@ int HyPerConn::writeTextWeights(const char *filename, int k) {
       char outfile[PV_PATH_MAX];
       snprintf(outfile, PV_PATH_MAX - 1, "%s/%s", parent->getOutputPath(), filename);
       outStream = new FileStream(outfile, std::ios_base::out, parent->getVerifyWrites());
-   } else {
+   }
+   else {
       outStream = new PrintStream(getOutputStream());
    }
    if (outStream == nullptr) {
@@ -2229,7 +2249,8 @@ float HyPerConn::minWeight(int arborId) {
                   (min_weight < kernelWeights[iWeight]) ? min_weight : kernelWeights[iWeight];
          }
       }
-   } else {
+   }
+   else {
       for (int i_patch = 0; i_patch < num_data_patches; i_patch++) {
          pvwdata_t *w_data = get_wData(arborId, i_patch);
          PVPatch *w_patch  = getWeights(i_patch, arborId);
@@ -2254,7 +2275,8 @@ float HyPerConn::maxWeight(int arborId) {
                   (max_weight > kernelWeights[iWeight]) ? max_weight : kernelWeights[iWeight];
          }
       }
-   } else {
+   }
+   else {
       for (int i_weight = 0; i_weight < num_data_patches; i_weight++) {
          pvwdata_t *w_data = get_wData(arborId, i_weight);
          PVPatch *w_patch  = getWeights(i_weight, arborId);
@@ -2334,7 +2356,8 @@ int HyPerConn::outputState(double timef, bool last) {
    if (last) {
       status = writeWeights(timef, last);
       pvAssert(status == 0);
-   } else if ((writeStep >= 0) && (timef >= writeTime)) {
+   }
+   else if ((writeStep >= 0) && (timef >= writeTime)) {
       writeTime += writeStep;
 
       status = writeWeights(timef, last);
@@ -2342,9 +2365,10 @@ int HyPerConn::outputState(double timef, bool last) {
 
       // append to output file after original open
       ioAppend = true;
-   } else if (writeStep < 0) { // If writeStep is negative, we never call writeWeights, but someone
-                               // might restart from a checkpoint with a different writeStep, so we
-                               // should still maintain writeTime
+   }
+   else if (writeStep < 0) { // If writeStep is negative, we never call writeWeights, but someone
+      // might restart from a checkpoint with a different writeStep, so we
+      // should still maintain writeTime
       writeTime = timef;
    }
 
@@ -2597,7 +2621,8 @@ int HyPerConn::update_dW(int arbor_ID) {
             }
          }
       }
-   } else {
+   }
+   else {
       for (int b = 0; b < nbatch; b++) {
 // Shared weights done in parallel, parallel in numkernels
 #ifdef PV_USE_OPENMP_THREADS
@@ -2688,7 +2713,7 @@ int HyPerConn::updateInd_dW(int arbor_ID, int batch_ID, int kExt) {
             maskLoc->nx + maskLoc->halo.lt + maskLoc->halo.rt,
             maskLoc->ny + maskLoc->halo.up + maskLoc->halo.dn,
             maskLoc->nf); // This should take into account if maskLoc's nf is either 1 or the size
-                          // of post
+      // of post
 
       maskactRef = &maskactbuf[maskOffset];
       sym        = (maskLoc->nf * (maskLoc->nx + maskLoc->halo.lt + maskLoc->halo.rt));
@@ -2713,7 +2738,8 @@ int HyPerConn::updateInd_dW(int arbor_ID, int batch_ID, int kExt) {
          if (useMask) {
             if (mask->getLayerLoc()->nf == 1) {
                maskVal = maskactRef[lineoffsetm + ((int)k / postLoc->nf)];
-            } else {
+            }
+            else {
                // If a maskFeatureIdx was specified
                if (maskFeatureIdx >= 0) {
                   // k is an index into x/f space. Convert back to x space, and find the 0 feature
@@ -2721,7 +2747,8 @@ int HyPerConn::updateInd_dW(int arbor_ID, int batch_ID, int kExt) {
                   int startingMaskK = ((int)k / postLoc->nf) * postLoc->nf;
                   // Offset into maskFeatureIdx
                   maskVal = maskactRef[lineoffsetm + startingMaskK + maskFeatureIdx];
-               } else {
+               }
+               else {
                   maskVal = maskactRef[lineoffsetm + k];
                }
             }
@@ -2773,7 +2800,8 @@ int HyPerConn::normalize_dW(int arbor_ID) {
 
                if (divisor != 0) {
                   dwpatchdata[n] /= divisor;
-               } else {
+               }
+               else {
                   dwpatchdata[n] = 0;
                }
             }
@@ -2841,7 +2869,8 @@ int HyPerConn::deliver() {
             status = deliverPresynapticPerspectiveGPU(&cube, arbor);
             // No need to update GSyn since it's already living on gpu
             post->setUpdatedDeviceGSynFlag(false);
-         } else
+         }
+         else
 #endif
          {
             status = deliverPresynapticPerspective(&cube, arbor);
@@ -2850,13 +2879,15 @@ int HyPerConn::deliver() {
             post->setUpdatedDeviceGSynFlag(true);
 #endif
          }
-      } else {
+      }
+      else {
 #ifdef PV_USE_CUDA
          if (getReceiveGpu()) {
             status = deliverPostsynapticPerspectiveGPU(&cube, arbor);
             // GSyn already living on GPU
             post->setUpdatedDeviceGSynFlag(false);
-         } else
+         }
+         else
 #endif
          {
             status = deliverPostsynapticPerspective(&cube, arbor);
@@ -3108,7 +3139,8 @@ int HyPerConn::deliverPostsynapticPerspectiveConvolve(
    // Make sure numActive and activeList are either both null or both valid pointers
    if (numActive) {
       assert(activeList);
-   } else {
+   }
+   else {
       assert(!activeList);
    }
 
@@ -3229,7 +3261,8 @@ int HyPerConn::deliverPostsynapticPerspectiveStochastic(
    // Make sure numActive and activeList are either both null or both valid pointers
    if (numActive) {
       assert(activeList);
-   } else {
+   }
+   else {
       assert(!activeList);
    }
 
@@ -3375,9 +3408,11 @@ int HyPerConn::deliverPresynapticPerspectiveGPU(PVLayerCube const *activity, int
    float dt_factor;
    if (getPvpatchAccumulateType() == STOCHASTIC) {
       dt_factor = getParent()->getDeltaTime();
-   } else if (getPvpatchAccumulateType() == CONVOLVE) {
+   }
+   else if (getPvpatchAccumulateType() == CONVOLVE) {
       dt_factor = getConvertToRateDeltaTimeFactor();
-   } else {
+   }
+   else {
       pvError() << "Pooling accumulate not implemented for GPUs";
    }
 
@@ -3396,7 +3431,7 @@ int HyPerConn::deliverPresynapticPerspectiveGPU(PVLayerCube const *activity, int
    // If more than 1 arbor, need to update patches and GSynPatchStart.
    // If one arbor, done in allocatePreKernel in HyPerConn
    if (numberOfAxonalArborLists() > 1) {
-      PVPatch *h_patches = weights(arborID)[0]; // 0 because it's one block of memory
+      PVPatch *h_patches            = weights(arborID)[0]; // 0 because it's one block of memory
       PVCuda::CudaBuffer *d_patches = getDevicePatches();
       pvAssert(d_patches);
 
@@ -3440,7 +3475,8 @@ int HyPerConn::deliverPresynapticPerspectiveGPU(PVLayerCube const *activity, int
    for (int b = 0; b < parent->getNBatch(); b++) {
       if (activity->isSparse) {
          totActiveNeuron[b] = activity->numActive[b];
-      } else {
+      }
+      else {
          totActiveNeuron[b] = preSynapticLayer()->getNumExtended();
       }
       if (totActiveNeuron[b] > maxTotalActiveNeuron) {
@@ -3473,11 +3509,13 @@ int HyPerConn::deliverPostsynapticPerspectiveGPU(PVLayerCube const *activity, in
    float dt_factor;
    if (getPvpatchAccumulateType() == STOCHASTIC) {
       dt_factor = getParent()->getDeltaTime();
-   } else if (getPvpatchAccumulateType() == CONVOLVE) {
+   }
+   else if (getPvpatchAccumulateType() == CONVOLVE) {
       dt_factor = getConvertToRateDeltaTimeFactor();
-   } else {
+   }
+   else {
       pvAssert(0); // Only STOCHASTIC and CONVOLVE are defined in HyPerConn; other methods should be
-                   // handled in subclasses.
+      // handled in subclasses.
    }
 
    pvAssert(krRecvPost);
@@ -3612,7 +3650,8 @@ int HyPerConn::createWeights(
    if (shrinkPatches_flag || arborId == 0) {
       patches[arborId] = createPatches(nWeightPatches, nxPatch, nyPatch);
       pvAssert(patches[arborId] != NULL);
-   } else {
+   }
+   else {
       patches[arborId] = patches[0];
    }
    return PV_SUCCESS;
@@ -3632,7 +3671,8 @@ double HyPerConn::getConvertToRateDeltaTimeFactor() {
          // the above factor was chosen so that for a constant input of G_SYN to an excitatory
          // conductance G_EXC,
          // then G_EXC -> G_SYN as t -> inf
-      } else {
+      }
+      else {
          dt_factor = dt;
       }
    }
@@ -3736,7 +3776,7 @@ int HyPerConn::deleteWeights() {
 
    if (gSynPatchStart != NULL) {
       free(gSynPatchStart[0]); // All gSynPatchStart[k]'s were allocated together in a single malloc
-                               // call.
+      // call.
       free(gSynPatchStart);
    }
    if (aPostOffset != NULL) {
@@ -3783,7 +3823,7 @@ int HyPerConn::adjustAllPatches(
       int xPre =
             kxPos(kex, nxPre + haloPre->lt + haloPre->rt, nyPre + haloPre->dn + haloPre->up, nfPre)
             - haloPre->lt; // x-coordinate of presynaptic neuron tied to patch kex, in presynaptic
-                           // restricted coordinates.
+      // restricted coordinates.
       int xPostStart, xPatchStart, nxPatch;
       int status = adjustedPatchDimension(
             xPre,
@@ -3797,7 +3837,7 @@ int HyPerConn::adjustAllPatches(
       int yPre =
             kyPos(kex, nxPre + haloPre->lt + haloPre->rt, nyPre + haloPre->dn + haloPre->up, nfPre)
             - haloPre->up; // y-coordinate of presynaptic neuron tied to patch kex, in presynaptic
-                           // restricted coordinates.
+      // restricted coordinates.
       int yPostStart, yPatchStart, nyPatch;
       status = adjustedPatchDimension(
             yPre,
@@ -3963,7 +4003,8 @@ PVPatch ***HyPerConn::convertPreSynapticWeights(double simTime) {
             if (kxPre < 0 || kyPre < 0 || kxPre >= nxPre || kyPre >= nyPre) {
                pvAssert(kxPre < 0 || kyPre < 0 || kxPre >= nxPre || kyPre >= nyPre);
                postData[kp] = 0.0;
-            } else {
+            }
+            else {
                // {kzPostHead} store the restricted indices of the postsynaptic patch head
                int kxPostHead, kyPostHead, kfPostHead;
                int nxp_post, nyp_post; // shrunken patch dimensions
@@ -4084,7 +4125,8 @@ PVPatch ****HyPerConn::point2PreSynapticWeights() {
             if (kxPre < 0 || kyPre < 0 || kxPre >= nxPre || kyPre >= nyPre) {
                pvAssert(kxPre < 0 || kyPre < 0 || kxPre >= nxPre || kyPre >= nyPre);
                postData[kp] = &z;
-            } else {
+            }
+            else {
                // {kzPostHead} store the restricted indices of the postsynaptic patch head
                int kxPostHead, kyPostHead, kfPostHead;
                int nxp_post, nyp_post; // shrunken patch dimensions
@@ -4223,7 +4265,8 @@ int HyPerConn::postSynapticPatchHead(
       if (nxPatch < 0)
          nxPatch = 0;
       dx         = nxp - nxPatch;
-   } else if (kxPost + nxp > nxPost) {
+   }
+   else if (kxPost + nxp > nxPost) {
       nxPatch -= kxPost + nxp - nxPost;
       if (nxPatch <= 0) {
          nxPatch = 0;
@@ -4237,7 +4280,8 @@ int HyPerConn::postSynapticPatchHead(
       if (nyPatch < 0)
          nyPatch = 0;
       dy         = nyp - nyPatch;
-   } else if (kyPost + nyp > nyPost) {
+   }
+   else if (kyPost + nyp > nyPost) {
       nyPatch -= kyPost + nyp - nyPost;
       if (nyPatch <= 0) {
          nyPatch = 0;
@@ -4375,12 +4419,14 @@ int HyPerConn::checkPatchSize(int patchSize, int scalePre, int scalePost, char d
    if (scaleDiff == 0) {
       // complain if patchSize is not an odd number
       goodsize = patchSize > 0 && patchSize % 2 == 1;
-   } else if (scaleDiff > 0) {
+   }
+   else if (scaleDiff > 0) {
       // complain if patchSize is not a multiple of 2^scaleDiff
       int scaleFactor           = (int)pow(2, (double)scaleDiff);
       int multipleOfScaleFactor = patchSize / scaleFactor;
       goodsize = multipleOfScaleFactor > 0 && patchSize == multipleOfScaleFactor * scaleFactor;
-   } else {
+   }
+   else {
       pvAssert(scaleDiff < 0);
       // any patch size is allowed
       goodsize = true;
@@ -4405,7 +4451,8 @@ int HyPerConn::checkPatchSize(int patchSize, int scalePre, int scalePost, char d
          int scaleFactor = (int)pow(2, (float)scaleDiff);
          errorMessage.printf("(postsynaptic scale) = %d * (presynaptic scale);\n", scaleFactor);
          errorMessage.printf("therefore compatible sizes are multiples of %d.\n", scaleFactor);
-      } else {
+      }
+      else {
          // If scaleDiff < 0 any patch size is acceptable
          pvAssert(0);
       }
@@ -4491,7 +4538,8 @@ int HyPerConn::patchIndexToDataIndex(
    int dataIndex;
    if (sharedWeights) {
       dataIndex = calcUnitCellIndex(patchIndex, kx, ky, kf);
-   } else {
+   }
+   else {
       const PVLayerLoc *preLoc = pre->getLayerLoc();
       if (kx)
          *kx =
@@ -4534,7 +4582,8 @@ int HyPerConn::dataIndexToUnitCellIndex(
       if (kf)
          *kf        = featureIndex(dataIndex, nxUnitCell, nyUnitCell, nfUnitCell);
       unitCellIndex = dataIndex;
-   } else {
+   }
+   else {
       unitCellIndex = calcUnitCellIndex(dataIndex, kx, ky, kf);
    }
    return unitCellIndex;
@@ -4636,7 +4685,8 @@ void HyPerConn::allocateSparseWeightsPre(PVLayerCube const *activity, int arbor)
             sparseWeightValuesNk  = _sparseWeightValues.find(nk);
             sparseWeightIndexesNk = _sparseWeightIndexes.find(nk);
             shouldSparsify        = true;
-         } else if (
+         }
+         else if (
                sparseWeightValuesNk->second.find(weightPtr) == sparseWeightValuesNk->second.end()) {
             // This nk group exists, but no weight pointer.
             shouldSparsify = true;
@@ -4713,7 +4763,8 @@ void HyPerConn::allocateSparseWeightsPost(PVLayerCube const *activity, int arbor
             sparseWeightValuesNk  = _sparseWeightValues.find(nk);
             sparseWeightIndexesNk = _sparseWeightIndexes.find(nk);
             shouldSparsify        = true;
-         } else if (
+         }
+         else if (
                sparseWeightValuesNk->second.find(weightPtr) == sparseWeightValuesNk->second.end()) {
             // This nk group exists, but no weight pointer.
             shouldSparsify = true;

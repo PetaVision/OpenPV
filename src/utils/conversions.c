@@ -51,7 +51,8 @@ int zPatchHead(int kzPre, int nzPatch, int zScaleLog2Pre, int zScaleLog2Post) {
       // }
 
       shift -= (kzPre < 0) ? l == 1 : l == 0;
-   } else if (nzPatch % 2 == 1 && a < 1) {
+   }
+   else if (nzPatch % 2 == 1 && a < 1) {
       shift = -(int)(0.5f * (float)nzPatch);
    }
 
@@ -97,7 +98,8 @@ int dist2NearestCell(
       *distPost    = -0.5;
       *distPre     = -0.5 / scaleFac;
       kzPost       = (int)((kzPre + 0.5) * scaleFac) - 1; // left neighbor, add 1 for right neighbor
-   } else if (log2ScalePre < log2ScalePost) {
+   }
+   else if (log2ScalePre < log2ScalePost) {
       // post-synaptic layer has larger size scale (is less dense), scaleFac > 1
       int scaleFac = pow(2, log2ScalePost) / pow(2, log2ScalePre);
       *distPre     = 0.5 * (scaleFac - 2 * (kzPre % scaleFac) - 1);

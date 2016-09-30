@@ -46,7 +46,7 @@ ISTALayer::~ISTALayer() {}
 
 int ISTALayer::initialize_base() {
    numChannels = 1; // If a connection connects to this layer on inhibitory channel,
-                    // HyPerLayer::requireChannel will add necessary channel
+   // HyPerLayer::requireChannel will add necessary channel
    timeConstantTau = 1.0f;
    // Locality in conn
    selfInteract = true;
@@ -219,7 +219,8 @@ int ISTALayer::updateState(double time, double dt) {
 double *ISTALayer::deltaTimes() {
    if (mAdaptiveTimeScaleProbe) {
       mAdaptiveTimeScaleProbe->getValues(parent->simulationTime(), &mDeltaTimes);
-   } else {
+   }
+   else {
       mDeltaTimes.assign(getLayerLoc()->nbatch, parent->getDeltaTime());
    }
    return mDeltaTimes.data();

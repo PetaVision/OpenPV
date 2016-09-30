@@ -92,7 +92,8 @@ int InitGaborWeights::gaborWeights(pvwdata_t *dataStart, InitGaborWeightsParams 
 
             if (xDelta * xDelta + yDelta * yDelta > r2Max) {
                dataStart[index] = (pvwdata_t)0;
-            } else {
+            }
+            else {
                if (invert)
                   wt *= -1.0f;
                if (wt < 0.0f)

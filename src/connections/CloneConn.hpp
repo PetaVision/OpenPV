@@ -91,7 +91,7 @@ class CloneConn : public HyPerConn {
    virtual int createAxonalArbors(int arborId);
 
    virtual int setPatchSize(); // virtual int setPatchSize(const char * filename); // filename is
-                               // now a member variable.
+   // now a member variable.
 
    char *originalConnName;
    HyPerConn *originalConn;

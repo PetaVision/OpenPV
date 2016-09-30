@@ -20,7 +20,7 @@ ConstantLayer::~ConstantLayer() {}
 
 int ConstantLayer::initialize_base() {
    writeStep = -1; // HyPerLayer default for writeStep is 1.0, but -1 (never write) is a better
-                   // default for ConstantLayer
+   // default for ConstantLayer
    return PV_SUCCESS;
 }
 
@@ -49,7 +49,8 @@ bool ConstantLayer::needUpdate(double time, double dt) {
    assert(time >= parent->getStartTime());
    if (time == parent->getStartTime()) {
       return true;
-   } else {
+   }
+   else {
       return false;
    }
 }

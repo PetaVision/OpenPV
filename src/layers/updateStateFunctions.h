@@ -642,11 +642,13 @@ int applyGSyn_LabelErrorLayer(
          VBatch[k]                         = GSynExcBatch[k] - GSynInhBatch[k];
          if (GSynExcBatch[k] > 0.0f) { // target label is positive
             VBatch[k] = VBatch[k] > 0.0f ? VBatch[k] : 0.0f;
-         } else { // target label is negative
+         }
+         else { // target label is negative
             VBatch[k] = VBatch[k] < 0.0f ? VBatch[k] : 0.0f;
          }
       }
-   } else {
+   }
+   else {
 #ifndef PV_USE_CUDA
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(static)
@@ -680,7 +682,8 @@ int applyGSyn_LabelErrorLayer(
             // if target label is positive and guess is over target
             if (maxTargetVal > 0 && GSynInhBatch[maxIdx] > maxTargetVal) {
                ratio = maxTargetVal / GSynInhBatch[maxIdx];
-            } else {
+            }
+            else {
                ratio = 1.0f;
             }
          }
@@ -1031,7 +1034,8 @@ int updateV_ANNLayer_vertices(
    int status = PV_SUCCESS;
    if (num_channels == 1) {
       status = applyGSyn_HyPerLayer1Channel(nbatch, numNeurons, V, GSynHead);
-   } else {
+   }
+   else {
       status = applyGSyn_HyPerLayer(nbatch, numNeurons, V, GSynHead);
    }
    if (status == PV_SUCCESS) {
@@ -1077,7 +1081,8 @@ int updateV_ANNLayer_threshminmax(
       int up) {
    if (num_channels == 1) {
       applyGSyn_HyPerLayer1Channel(nbatch, numNeurons, V, GSynHead);
-   } else {
+   }
+   else {
       applyGSyn_HyPerLayer(nbatch, numNeurons, V, GSynHead);
    }
    setActivity_HyPerLayer(nbatch, numNeurons, activity, V, nx, ny, nf, lt, rt, dn, up);
@@ -1143,7 +1148,8 @@ int updateV_HyPerLCALayer(
                rt,
                dn,
                up);
-   } else if (numChannels == 1) {
+   }
+   else if (numChannels == 1) {
       if (status == PV_SUCCESS)
          status = applyGSyn_HyPerLCALayer(
                nbatch,
@@ -1229,7 +1235,8 @@ int updateV_MomentumLCALayer(
                rt,
                dn,
                up);
-   } else if (numChannels == 1) {
+   }
+   else if (numChannels == 1) {
       if (status == PV_SUCCESS)
          status = applyGSyn_MomentumLCALayer(
                nbatch,
@@ -1309,7 +1316,8 @@ int updateV_ISTALayer(
                dn,
                up,
                VThresh);
-   } else if (numChannels == 1) {
+   }
+   else if (numChannels == 1) {
       if (status == PV_SUCCESS)
          status = applyGSyn_ISTALayer(
                nbatch,
@@ -1673,10 +1681,12 @@ int applyVThresh_ANNLayer_threshminmax(
          int kex                            = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
          if (VBatch[k] < VThresh) {
             activityBatch[kex] = AMin;
-         } else if (VBatch[k] < VThresh + VWidth) {
+         }
+         else if (VBatch[k] < VThresh + VWidth) {
             activityBatch[kex] =
                   AMin + (VThresh + VWidth - AShift - AMin) * (VBatch[k] - VThresh) / VWidth;
-         } else {
+         }
+         else {
             activityBatch[kex] -= AShift;
          }
       }
@@ -1873,17 +1883,20 @@ int setActivity_PtwiseLinearTransferLayer(
 
       if (potential < verticesV[0]) {
          activity = verticesA[0] + slopes[0] * (potential - verticesV[0]);
-      } else if (potential >= verticesV[last]) {
+      }
+      else if (potential >= verticesV[last]) {
          activity = verticesA[last] + slopes[numVertices] * (potential - verticesV[last]);
-      } else {
+      }
+      else {
          for (v = 0; v < last; v++) {
             if (potential < verticesV[v]) {
                break; // makes the jumps continuous from the right.  TODO: allow user control over
-                      // value at jump
+               // value at jump
             }
             if (potential == verticesV[v]) {
                activity = verticesA[v];
-            } else if (potential > verticesV[v] && potential < verticesV[v + 1]) {
+            }
+            else if (potential > verticesV[v] && potential < verticesV[v + 1]) {
                activity = verticesA[v] + slopes[v + 1] * (potential - verticesV[v]);
             }
          }
@@ -2021,7 +2034,8 @@ int setActivity_SigmoidLayer(
          activity = 0.5f - (VBatch[k] - Vth) * sig_scale / 2.0f;
          activity = activity < 0.0f ? 0.0f : activity;
          activity = activity > 1.0f ? 1.0f : activity;
-      } else {
+      }
+      else {
          activity = 1.0f / (1.0f + expf(2.0f * (VBatch[k] - Vth) * sig_scale));
       }
       ABatch[kex] = activity;
@@ -2133,7 +2147,8 @@ int setActivity_KmeansLayer(
                   else
                      ABatch[kex] = 0.0f;
                }
-            } else {
+            }
+            else {
                // compute mean
                float mean = 0.0f;
 
@@ -2152,7 +2167,8 @@ int setActivity_KmeansLayer(
                   int kex = kIndexExtended(kk, nx, ny, nf, lt, rt, dn, up);
                   if (GSynExcBatch[kk] >= mean) {
                      ABatch[kex] = GSynExcBatch[kk];
-                  } else {
+                  }
+                  else {
                      ABatch[kex] = 0.0f;
                   }
                }

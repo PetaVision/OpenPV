@@ -62,7 +62,8 @@ int ResetStateOnTriggerTestProbe::calcValues(double timevalue) {
             }
          }
       }
-   } else {
+   }
+   else {
       for (int b = 0; b < nBatch; b++) {
          getValuesBuffer()[b] = 0.0;
       }
@@ -85,7 +86,8 @@ int ResetStateOnTriggerTestProbe::outputState(double timevalue) {
                timevalue,
                nnz,
                nnz == 1 ? " has" : "s have");
-      } else {
+      }
+      else {
          for (int k = 0; k < nBatch; k++) {
             int nnz = (int)nearbyint(getValuesBuffer()[k]);
             outputStream->printf(

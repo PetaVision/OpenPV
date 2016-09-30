@@ -60,8 +60,8 @@ int main(int argc, char *argv[]) {
       pvError() << "Running with \"" << paramsfile << "\" failed.\n";
    }
    ColumnArchive columnArchive1(hc1, tolerance, tolerance); // Archive the layer and connection data
-                                                            // since changing the params file is
-                                                            // destructive.
+   // since changing the params file is
+   // destructive.
 
    pv_initObj.setParams(paramsluafile.c_str());
    PV::HyPerCol *hc2 = createHyPerCol(&pv_initObj);

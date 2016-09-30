@@ -68,7 +68,7 @@ int BaseProbe::initialize(const char *probeName, HyPerCol *hc) {
    ioParams(PARAMS_IO_READ);
    // Add probe to list of probes
    parent->addBaseProbe(this); // Adds probe to HyPerCol.  If needed, probe will be attached to
-                               // layer or connection during communicateInitInfo
+   // layer or connection during communicateInitInfo
    status = initNumValues();
    return status;
 }
@@ -162,7 +162,8 @@ void BaseProbe::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
             triggerFlagError.printf("%s: triggerLayerName=", getDescription_c());
             if (triggerLayerName) {
                triggerFlagError.printf("\"%s\"", triggerLayerName);
-            } else {
+            }
+            else {
                triggerFlagError.printf("NULL");
             }
             triggerFlagError.printf(
@@ -207,13 +208,15 @@ int BaseProbe::initOutputStream(const char *filename) {
          }
          outputStream  = new FileStream(path.c_str(), mode, parent->getVerifyWrites());
          writingToFile = true;
-      } else {
+      }
+      else {
          outputStream  = new PrintStream(PV::getOutputStream());
          writingToFile = false;
       }
-   } else {
+   }
+   else {
       outputStream = NULL; // Only root process writes; if other processes need something written it
-                           // should be sent to root.
+      // should be sent to root.
       // Derived classes for which it makes sense for a different process to do the file i/o should
       // override initOutputStream
    }
@@ -230,11 +233,13 @@ int BaseProbe::setNumValues(int n) {
          // realloc() succeeded
          probeValues = newValuesBuffer;
          numValues   = n;
-      } else {
+      }
+      else {
          // realloc() failed
          status = PV_FAILURE;
       }
-   } else {
+   }
+   else {
       free(probeValues);
       probeValues = NULL;
    }
@@ -301,7 +306,8 @@ int BaseProbe::initMessage(const char *msg) {
          this->msgstring[msglen]     = ':';
          this->msgstring[msglen + 1] = '\0';
       }
-   } else {
+   }
+   else {
       this->msgstring = (char *)calloc(1, sizeof(char));
       if (this->msgstring) {
          this->msgstring[0] = '\0';
@@ -352,7 +358,8 @@ int BaseProbe::getValues(double timevalue, std::vector<double> *valuesVector) {
 double BaseProbe::getValue(double timevalue, int index) {
    if (index < 0 || index >= getNumValues()) {
       return std::numeric_limits<double>::signaling_NaN();
-   } else {
+   }
+   else {
       int status = PV_SUCCESS;
       if (needRecalc(timevalue)) {
          status = getValues(timevalue);

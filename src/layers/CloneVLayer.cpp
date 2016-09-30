@@ -101,7 +101,8 @@ int CloneVLayer::allocateDataStructures() {
    // buffer
    if (originalLayer->getDataStructuresAllocatedFlag()) {
       status = HyPerLayer::allocateDataStructures();
-   } else {
+   }
+   else {
       status = PV_POSTPONE;
    }
    return status;

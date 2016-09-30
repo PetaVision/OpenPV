@@ -45,7 +45,8 @@ void scatter(
                   sendRank,
                   31,
                   comm->communicator());
-         } else {
+         }
+         else {
             // This is root, keep a slice for ourselves
             buffer.set(
                   croppedBuffer.asVector(),
@@ -54,7 +55,8 @@ void scatter(
                   buffer.getFeatures());
          }
       }
-   } else {
+   }
+   else {
       // Create a temporary array to receive from MPI, move the values into
       // a vector, and then set our Buffer's contents to that vector.
       // This set of conversions could be greatly reduced by giving Buffer
@@ -113,7 +115,8 @@ gather(Communicator *comm, Buffer<T> buffer, unsigned int localWidth, unsigned i
                   comm->communicator(),
                   MPI_STATUS_IGNORE);
             smallBuffer.set(tempMem, buffer.getWidth(), buffer.getHeight(), buffer.getFeatures());
-         } else {
+         }
+         else {
             smallBuffer = buffer;
          }
          unsigned int sliceX =
@@ -132,7 +135,8 @@ gather(Communicator *comm, Buffer<T> buffer, unsigned int localWidth, unsigned i
       }
       free(tempMem);
       return globalBuffer;
-   } else {
+   }
+   else {
       // Send our chunk of the global buffer to root for reassembly
       MPI_Send(
             buffer.asVector().data(),
@@ -182,13 +186,15 @@ SparseList<T> gatherSparse(Communicator *comm, SparseList<T> list) {
                }
                free(recvBuffer);
             }
-         } else {
+         }
+         else {
             listChunk = list;
          }
          listChunk.appendToList(globalList);
       }
       return globalList;
-   } else {
+   }
+   else {
       vector<struct SparseList<T>::Entry> toSend = list.getContents();
       uint32_t numToSend                         = toSend.size();
       MPI_Send(&numToSend, 1, MPI_INT, 0, 171 + comm->commRank() * 2, comm->communicator());

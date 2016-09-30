@@ -21,7 +21,8 @@ int ImportParamsConn::initialize(const char *name, HyPerCol *hc) {
       pvErrorIf(!(delayVals[0] == 0), "Test failed.\n");
       pvErrorIf(!(delayVals[1] == 1), "Test failed.\n");
       pvErrorIf(!(strcmp(preLayerName, "orig") == 0), "Test failed.\n");
-   } else {
+   }
+   else {
       pvErrorIf(!(size == 3), "Test failed.\n");
       pvErrorIf(!(delayVals[0] == 3), "Test failed.\n");
       pvErrorIf(!(delayVals[1] == 4), "Test failed.\n");

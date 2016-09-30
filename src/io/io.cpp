@@ -152,7 +152,8 @@ int pv_getoptionalopt_int(
             if (paramusage) {
                paramusage[i] = true;
             }
-         } else {
+         }
+         else {
             if (iVal != NULL) {
                *iVal = atoi(argv[i + 1]);
             }
@@ -306,7 +307,8 @@ std::string expandLeadingTilde(char const *path) {
                   path);
             exit(EXIT_FAILURE);
          }
-      } else if (len > 1 && path[0] == '~' && path[1] == '/') {
+      }
+      else if (len > 1 && path[0] == '~' && path[1] == '/') {
          char *homedir = getenv("HOME");
          if (homedir == NULL) {
             pvError().printf(
@@ -322,7 +324,8 @@ std::string expandLeadingTilde(char const *path) {
          }
          int chars_used = snprintf(newpath, chars_needed + 1, "%s/%s", homedir, &path[2]);
          assert(chars_used == chars_needed);
-      } else {
+      }
+      else {
          newpath = strdup(path);
       }
    }

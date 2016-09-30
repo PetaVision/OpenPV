@@ -19,9 +19,9 @@ DatastoreDelayTestLayer::~DatastoreDelayTestLayer() {}
 int DatastoreDelayTestLayer::initialize(const char *name, HyPerCol *hc) {
    ANNLayer::initialize(name, hc);
    inited = false; // The first call to updateV sets this to true, so that the class knows whether
-                   // to initialize or not.
+   // to initialize or not.
    period = -1; // Can't set period until number of delay levels is determined, but that's
-                // determined by the connections,
+   // determined by the connections,
    // which can't be created until after initialization is finished.  period will be set in the
    // first call to updateV
    return PV_SUCCESS;
@@ -94,7 +94,8 @@ int DatastoreDelayTestLayer::updateV_DatastoreDelayTestLayer(
             }
          }
       }
-   } else {
+   }
+   else {
       for (int b = 0; b < loc->nbatch; b++) {
          pvdata_t *VBatch = V + b * loc->nx * loc->ny * loc->nf;
          if (loc->ny < period) {

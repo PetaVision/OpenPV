@@ -196,7 +196,8 @@ int CopyConn::setInitialValues() {
    int status = PV_SUCCESS;
    if (originalConn->getInitialValuesSetFlag()) {
       status = HyPerConn::setInitialValues(); // calls initializeWeights
-   } else {
+   }
+   else {
       status = PV_POSTPONE;
    }
    return status;
@@ -204,8 +205,8 @@ int CopyConn::setInitialValues() {
 
 PVPatch ***CopyConn::initializeWeights(PVPatch ***patches, pvwdata_t **dataStart) {
    assert(originalConn->getInitialValuesSetFlag()); // setInitialValues shouldn't call this function
-                                                    // unless original conn has set its own initial
-                                                    // values
+   // unless original conn has set its own initial
+   // values
    assert(dataStart == get_wDataStart());
    assert(patches == NULL || patches == get_wPatches());
    for (int arbor = 0; arbor < numAxonalArborLists; arbor++) {

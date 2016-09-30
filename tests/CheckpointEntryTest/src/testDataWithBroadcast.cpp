@@ -12,7 +12,8 @@ void testDataWithBroadcast(PV::Communicator *comm, std::string const &directory)
    int const rank = comm->commRank();
    if (rank == 0) {
       checkpointData = correctData;
-   } else {
+   }
+   else {
       checkpointData = std::vector<float>(vectorLength, 0);
    }
    pvErrorIf(

@@ -57,10 +57,10 @@ class LCALIFLayer : public PV::LIFGap {
    float Vscale;
    float *Vadpt;
    float *Vattained; // Membrane potential before testing to see if a spike resets it to resting
-                     // potential.  Output in checkpoints for diagnostic purposes but not otherwise
-                     // used.
+   // potential.  Output in checkpoints for diagnostic purposes but not otherwise
+   // used.
    float *Vmeminf; // Asymptotic value of the membrane potential.  Output in checkpoints for
-                   // diagnostic purposes but not otherwise used.
+   // diagnostic purposes but not otherwise used.
    bool normalizeInputFlag;
    // other methods and member variables
   private:

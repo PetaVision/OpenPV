@@ -418,7 +418,8 @@ struct _Log {
          va_end(args1);
          va_end(args2);
          return chars_needed;
-      } else {
+      }
+      else {
          chars_printed = 0;
       }
       return chars_printed;

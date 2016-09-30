@@ -33,7 +33,8 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
       // generalize.
       if (v < 0.5f) {
          pvErrorIf(!(a == 0.0f), "Test failed.\n");
-      } else {
+      }
+      else {
          pvErrorIf(!(a == 1.0f), "Test failed.\n");
       }
    }

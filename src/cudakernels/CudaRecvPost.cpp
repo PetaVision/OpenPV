@@ -231,8 +231,8 @@ void CudaRecvPost::setArgs(
          CUDNN_DATA_FLOAT,
          CUDNN_TENSOR_NCHW,
          params.nf * params.manyScaleX * params.manyScaleY, // Number of output feature maps. For
-                                                            // one to many, output feature maps are
-                                                            // repeated for each kernel
+         // one to many, output feature maps are
+         // repeated for each kernel
          params.nfp, // Number of input feature maps
          params.nyp, // Height of each filter
          params.nxp); // Width of each filter
@@ -241,8 +241,8 @@ void CudaRecvPost::setArgs(
          filterDescriptor,
          CUDNN_DATA_FLOAT,
          params.nf * params.manyScaleX * params.manyScaleY, // Number of output feature maps. For
-                                                            // one to many, output feature maps are
-                                                            // repeated for each kernel
+         // one to many, output feature maps are
+         // repeated for each kernel
          params.nfp, // Number of input feature maps
          params.nyp, // Height of each filter
          params.nxp); // Width of each filter

@@ -393,7 +393,8 @@ static int stbiw__outfile(
       ...) {
    if (y < 0 || x < 0) {
       return 0;
-   } else {
+   }
+   else {
       va_list v;
       va_start(v, fmt);
       stbiw__writefv(s, fmt, v);
@@ -456,7 +457,8 @@ STBIWDEF int stbi_write_bmp(char const *filename, int x, int y, int comp, const 
       int r = stbi_write_bmp_core(&s, x, y, comp, data);
       stbi__end_write_file(&s);
       return r;
-   } else
+   }
+   else
       return 0;
 }
 #endif //! STBI_WRITE_NO_STDIO
@@ -495,7 +497,8 @@ static int stbi_write_tga_core(stbi__write_context *s, int x, int y, int comp, v
             y,
             (colorbytes + has_alpha) * 8,
             has_alpha * 8);
-   } else {
+   }
+   else {
       int i, j, k;
 
       stbiw__writef(
@@ -532,16 +535,19 @@ static int stbi_write_tga_core(stbi__write_context *s, int x, int y, int comp, v
                      if (memcmp(prev, row + k * comp, comp)) {
                         prev += comp;
                         ++len;
-                     } else {
+                     }
+                     else {
                         --len;
                         break;
                      }
                   }
-               } else {
+               }
+               else {
                   for (k = i + 2; k < x && len < 128; ++k) {
                      if (!memcmp(begin, row + k * comp, comp)) {
                         ++len;
-                     } else {
+                     }
+                     else {
                         break;
                      }
                   }
@@ -554,7 +560,8 @@ static int stbi_write_tga_core(stbi__write_context *s, int x, int y, int comp, v
                for (k = 0; k < len; ++k) {
                   stbiw__write_pixel(s, -1, comp, has_alpha, 0, begin + k * comp);
                }
-            } else {
+            }
+            else {
                unsigned char header = STBIW_UCHAR(len - 129);
                s->func(s->context, &header, 1);
                stbiw__write_pixel(s, -1, comp, has_alpha, 0, begin);
@@ -584,7 +591,8 @@ int stbi_write_tga(char const *filename, int x, int y, int comp, const void *dat
       int r = stbi_write_tga_core(&s, x, y, comp, (void *)data);
       stbi__end_write_file(&s);
       return r;
-   } else
+   }
+   else
       return 0;
 }
 #endif
@@ -602,7 +610,8 @@ void stbiw__linear_to_rgbe(unsigned char *rgbe, float *linear) {
 
    if (maxcomp < 1e-32f) {
       rgbe[0] = rgbe[1] = rgbe[2] = rgbe[3] = 0;
-   } else {
+   }
+   else {
       float normalize = (float)frexp(maxcomp, &exponent) * 256.0f / maxcomp;
 
       rgbe[0] = (unsigned char)(linear[0] * normalize);
@@ -655,7 +664,8 @@ void stbiw__write_hdr_scanline(
          stbiw__linear_to_rgbe(rgbe, linear);
          s->func(s->context, rgbe, 4);
       }
-   } else {
+   }
+   else {
       int c, r;
       /* encode into scratch buffer */
       for (x = 0; x < width; x++) {
@@ -702,7 +712,7 @@ void stbiw__write_hdr_scanline(
             }
             // if there's a run, output it
             if (r + 2 < width) { // same test as what we break out of in search loop, so only true
-                                 // if we break'd
+               // if we break'd
                // find next byte after run
                while (r < width && comp[r] == comp[x])
                   ++r;
@@ -759,7 +769,8 @@ int stbi_write_hdr(char const *filename, int x, int y, int comp, const float *da
       int r = stbi_write_hdr_core(&s, x, y, comp, (float *)data);
       stbi__end_write_file(&s);
       return r;
-   } else
+   }
+   else
       return 0;
 }
 #endif // STBI_WRITE_NO_STDIO
@@ -931,7 +942,8 @@ unsigned char *stbi_zlib_compress(unsigned char *data, int data_len, int *out_le
          if (disteb[j])
             stbiw__zlib_add(d - distc[j], disteb[j]);
          i += best;
-      } else {
+      }
+      else {
          stbiw__zlib_huffb(data[i]);
          ++i;
       }

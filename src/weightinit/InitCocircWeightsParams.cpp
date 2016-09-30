@@ -168,7 +168,8 @@ float InitCocircWeightsParams::calcKurveAndSigmaKurve(
          assert(nKurve >= 4);
          iSaddle    = (iKv % 2 == 0) ? 0 : 1;
          iKvPostAdj = ((iKv % (nKurve / 2)) / 2);
-      } else { // SADDLE_FLAG
+      }
+      else { // SADDLE_FLAG
          iKvPostAdj = (iKv % (nKurve / 2));
       }
    } // POS_KURVE_FLAG
@@ -188,7 +189,8 @@ bool InitCocircWeightsParams::checkSameLoc(int kfPost) {
                expf(-(kurvePre - kurvePost) * (kurvePre - kurvePost)
                     / (sigma_kurve_pre2 + sigma_kurve_post2));
       }
-   } else { // sameLoc && !cocircSelf
+   }
+   else { // sameLoc && !cocircSelf
       gCocirc = 0.0f;
       return true;
    }
@@ -212,7 +214,8 @@ bool InitCocircWeightsParams::checkFlags(float dyP_shift, float dxP) {
              && (((dyP_shift > 0) && (dxP > 0)) || ((dyP_shift < 0) && (dxP < 0)))) {
             return true;
          }
-      } else { // SADDLE_FLAG
+      }
+      else { // SADDLE_FLAG
          if ((iPosKurvePre) && (dyP_shift < 0)) {
             return true;
          }

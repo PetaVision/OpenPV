@@ -104,7 +104,8 @@ int main(int argc, char *argv[]) {
       err = check_borders(image, comm, loc);
       if (err != 0) {
          pvErrorNoExit().printf("[%d]: check_borders failed\n", comm->commRank());
-      } else {
+      }
+      else {
          pvInfo().printf("[%d]: check_borders succeeded\n", comm->commRank());
       }
    }
@@ -159,7 +160,8 @@ static int check_borders(pvdata_t *image, PV::Communicator *comm, PVLayerLoc loc
                }
             }
          }
-      } else {
+      }
+      else {
          for (int ky = 0; ky < halo->up; ky++) {
             float *buf = image + ky * sy;
             for (int kx = 0; kx < halo->lt; kx++) {

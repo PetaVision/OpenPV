@@ -18,7 +18,7 @@
 namespace PV {
 
 class HyPerCol; // Included only to allow obsolete (as of Jul 19, 2016) HyPerCol* PV_Init::build()
-                // method to print an error message.
+// method to print an error message.
 
 /**
  * PV_Init is an object that initializes MPI and parameters to pass to the HyPerCol
@@ -307,7 +307,8 @@ class PV_Init {
    int getWorldRank() const {
       if (mCommunicator) {
          return mCommunicator->globalCommRank();
-      } else {
+      }
+      else {
          int rank = 0;
          MPI_Comm_rank(MPI_COMM_WORLD, &rank);
          return rank;
@@ -317,7 +318,8 @@ class PV_Init {
    int getWorldSize() {
       if (mCommunicator) {
          return mCommunicator->globalCommSize();
-      } else {
+      }
+      else {
          int size = 0;
          MPI_Comm_size(MPI_COMM_WORLD, &size);
          return size;

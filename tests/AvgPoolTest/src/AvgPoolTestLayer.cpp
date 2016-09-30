@@ -46,7 +46,8 @@ int AvgPoolTestLayer::updateState(double timef, double dt) {
                float expectedvalue;
                if (nxScale == 0.5f) {
                   expectedvalue = iFeature * 64 + yval * 16 + xval * 2 + 4.5f;
-               } else {
+               }
+               else {
                   int res_idx = kIndex(xval, yval, 0, nxGlobal, nyGlobal, 1);
                   // TODO different features define different offsets into this index
                   expectedvalue = iFeature * nxGlobal * nyGlobal + res_idx;
@@ -66,7 +67,7 @@ int AvgPoolTestLayer::updateState(double timef, double dt) {
       if (!isCorrect) {
          Communicator *icComm = parent->getCommunicator();
          MPI_Barrier(icComm->communicator()); // If there is an error, make sure that MPI doesn't
-                                              // kill the run before process 0 reports the error.
+         // kill the run before process 0 reports the error.
          exit(-1);
       }
    }

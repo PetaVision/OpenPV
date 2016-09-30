@@ -70,7 +70,8 @@ void Image::convertToGray(bool alphaChannel) {
       if ((getFeatures() == 1 && !alphaChannel) || (getFeatures() == 2 && alphaChannel)) {
          // Do nothing if we are already in the correct format
          return;
-      } else {
+      }
+      else {
          // We are already grayscale, but we're adding or removing an alpha channel
          Buffer<float> grayScale(getWidth(), getHeight(), alphaChannel ? 2 : 1);
          for (int y = 0; y < getHeight(); ++y) {
@@ -84,7 +85,8 @@ void Image::convertToGray(bool alphaChannel) {
          set(grayScale.asVector(), getWidth(), getHeight(), alphaChannel ? 2 : 1);
          return;
       }
-   } else {
+   }
+   else {
       // We're currently RGB or RGBA and need to be Grayscale or Grayscale + Alpha
       // RGB weights from <https://en.wikipedia.org/wiki/Grayscale>, citing Pratt, Digital Image
       // Processing
@@ -101,7 +103,8 @@ void Image::convertToGray(bool alphaChannel) {
             if (alphaChannel) {
                if (getFeatures() > 3) {
                   grayScale.set(x, y, 1, at(x, y, 3));
-               } else {
+               }
+               else {
                   grayScale.set(x, y, 1, 1.0f);
                }
             }
@@ -117,7 +120,8 @@ void Image::convertToColor(bool alphaChannel) {
       if ((getFeatures() == 3 && !alphaChannel) || (getFeatures() == 4 && alphaChannel)) {
          // This is the correct format already, nothing to be done
          return;
-      } else {
+      }
+      else {
          // We're already color, but we're adding or removing an alpha channel
          Buffer<float> color(getWidth(), getHeight(), alphaChannel ? 4 : 3);
          for (int y = 0; y < getHeight(); ++y) {
@@ -132,7 +136,8 @@ void Image::convertToColor(bool alphaChannel) {
          }
          set(color.asVector(), getWidth(), getHeight(), alphaChannel ? 4 : 3);
       }
-   } else {
+   }
+   else {
       // We're converting a grayscale image to color
       Buffer<float> color(getWidth(), getHeight(), alphaChannel ? 4 : 3);
       for (int y = 0; y < getHeight(); ++y) {
@@ -144,7 +149,8 @@ void Image::convertToColor(bool alphaChannel) {
             if (alphaChannel) {
                if (getFeatures() == 2) {
                   color.set(x, y, mAPos, at(x, y, 1));
-               } else {
+               }
+               else {
                   color.set(x, y, mAPos, 1.0f);
                }
             }

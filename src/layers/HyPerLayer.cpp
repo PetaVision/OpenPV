@@ -45,27 +45,27 @@ HyPerLayer::HyPerLayer(const char *name, HyPerCol *hc) {
 // In general, initialize_base should be used only to initialize member variables
 // to safe values.
 int HyPerLayer::initialize_base() {
-   name             = NULL;
-   probes           = NULL;
-   nxScale          = 1.0f;
-   nyScale          = 1.0f;
-   numFeatures      = 1;
-   mirrorBCflag     = 0;
-   xmargin          = 0;
-   ymargin          = 0;
-   numProbes        = 0;
-   ioAppend         = 0;
-   numChannels      = 2;
-   clayer           = NULL;
-   GSyn             = NULL;
-   marginIndices    = NULL;
-   numMargin        = 0;
-   writeTime        = 0;
-   initialWriteTime = 0;
-   triggerFlag      = false; // Default to update every timestamp
-   triggerLayer     = NULL;
-   triggerLayerName = NULL;
-   triggerBehavior  = NULL;
+   name                         = NULL;
+   probes                       = NULL;
+   nxScale                      = 1.0f;
+   nyScale                      = 1.0f;
+   numFeatures                  = 1;
+   mirrorBCflag                 = 0;
+   xmargin                      = 0;
+   ymargin                      = 0;
+   numProbes                    = 0;
+   ioAppend                     = 0;
+   numChannels                  = 2;
+   clayer                       = NULL;
+   GSyn                         = NULL;
+   marginIndices                = NULL;
+   numMargin                    = 0;
+   writeTime                    = 0;
+   initialWriteTime             = 0;
+   triggerFlag                  = false; // Default to update every timestamp
+   triggerLayer                 = NULL;
+   triggerLayerName             = NULL;
+   triggerBehavior              = NULL;
    triggerBehaviorType          = NO_TRIGGER;
    triggerResetLayerName        = NULL;
    initVObject                  = NULL;
@@ -96,12 +96,12 @@ int HyPerLayer::initialize_base() {
    d_Datastore              = NULL;
    d_ActiveIndices          = NULL;
    d_numActive              = NULL;
-   updatedDeviceActivity = true; // Start off always updating activity
-   updatedDeviceDatastore = true;
-   updatedDeviceGSyn      = true;
-   recvGpu                = false;
-   updateGpu              = false;
-   krUpdate               = NULL;
+   updatedDeviceActivity    = true; // Start off always updating activity
+   updatedDeviceDatastore   = true;
+   updatedDeviceGSyn        = true;
+   recvGpu                  = false;
+   updateGpu                = false;
+   krUpdate                 = NULL;
 #ifdef PV_USE_CUDNN
    cudnn_GSyn      = NULL;
    cudnn_Datastore = NULL;
@@ -159,8 +159,8 @@ int HyPerLayer::initialize(const char *name, HyPerCol *hc) {
    writeActivityCalls       = 0;
    writeActivitySparseCalls = 0;
    numDelayLevels = 1; // If a connection has positive delay so that more delay levels are needed,
-                       // numDelayLevels is increased when BaseConnection::communicateInitInfo calls
-                       // increaseDelayLevels
+   // numDelayLevels is increased when BaseConnection::communicateInitInfo calls
+   // increaseDelayLevels
    maxRate = 1000.0f / (float)hc->getDeltaTime();
 
    initClayer();
@@ -194,7 +194,7 @@ int HyPerLayer::initClayer() {
 
    clayer->numNeurons  = loc->nx * loc->ny * loc->nf;
    clayer->numExtended = clayer->numNeurons; // initially, margin is zero; it will be updated as
-                                             // needed during the communicateInitInfo stage.
+   // needed during the communicateInitInfo stage.
    clayer->numNeuronsAllBatches  = nBatch * loc->nx * loc->ny * loc->nf;
    clayer->numExtendedAllBatches = clayer->numNeuronsAllBatches;
 
@@ -253,7 +253,7 @@ HyPerLayer::~HyPerLayer() {
 
    free(marginIndices);
    free(probes); // All probes are deleted by the HyPerCol, so probes[i] doesn't need to be deleted,
-                 // only the array itself.
+   // only the array itself.
 
    free(synchronizedMarginWidthLayers);
 
@@ -459,7 +459,7 @@ int HyPerLayer::setLayerLoc(
       status = PV_FAILURE;
    }
    MPI_Barrier(icComm->communicator()); // If there is an error, make sure that MPI doesn't kill the
-                                        // run before process 0 reports the error.
+   // run before process 0 reports the error.
    if (status != PV_SUCCESS) {
       if (parent->columnId() == 0) {
          pvErrorNoExit().printf("setLayerLoc failed for %s.\n", getDescription_c());
@@ -545,15 +545,18 @@ int HyPerLayer::initializeState() {
    if (parent->getCheckpointReadFlag()) {
       double checkTime = parent->simulationTime();
       checkpointRead(parent->getCheckpointReadDir(), &checkTime);
-   } else if (
+   }
+   else if (
          parent->getInitializeFromCheckpointDir() && parent->getInitializeFromCheckpointDir()[0]) {
       assert(!params->presentAndNotBeenRead(name, "initializeFromCheckpointFlag"));
       if (initializeFromCheckpointFlag) {
          status = readStateFromCheckpoint(parent->getInitializeFromCheckpointDir(), NULL);
-      } else {
+      }
+      else {
          status = setInitialValues();
       }
-   } else {
+   }
+   else {
       status = setInitialValues();
    }
 #ifdef PV_USE_CUDA
@@ -651,9 +654,11 @@ void HyPerLayer::ioParam_dataType(enum ParamsIOFlag ioFlag) {
    }
    if (!strcmp(dataTypeString, "float")) {
       dataType = PV_FLOAT;
-   } else if (!strcmp(dataTypeString, "int")) {
+   }
+   else if (!strcmp(dataTypeString, "int")) {
       dataType = PV_INT;
-   } else {
+   }
+   else {
       pvError() << "BaseLayer \"" << name
                 << "\": dataType not recognized, can be \"float\" or \"int\"\n";
    }
@@ -779,7 +784,8 @@ void HyPerLayer::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
                errorMessage.printf("triggerLayerName=", name);
                if (triggerLayerName) {
                   errorMessage.printf("\"%s\"", triggerLayerName);
-               } else {
+               }
+               else {
                   errorMessage.printf("NULL");
                }
                errorMessage.printf(
@@ -823,13 +829,17 @@ void HyPerLayer::ioParam_triggerBehavior(enum ParamsIOFlag ioFlag) {
          free(triggerBehavior);
          triggerBehavior     = strdup("updateOnlyOnTrigger");
          triggerBehaviorType = UPDATEONLY_TRIGGER;
-      } else if (!strcmp(triggerBehavior, "updateOnlyOnTrigger")) {
+      }
+      else if (!strcmp(triggerBehavior, "updateOnlyOnTrigger")) {
          triggerBehaviorType = UPDATEONLY_TRIGGER;
-      } else if (!strcmp(triggerBehavior, "resetStateOnTrigger")) {
+      }
+      else if (!strcmp(triggerBehavior, "resetStateOnTrigger")) {
          triggerBehaviorType = RESETSTATE_TRIGGER;
-      } else if (!strcmp(triggerBehavior, "ignore")) {
+      }
+      else if (!strcmp(triggerBehavior, "ignore")) {
          triggerBehaviorType = NO_TRIGGER;
-      } else {
+      }
+      else {
          if (parent->columnId() == 0) {
             pvErrorNoExit().printf(
                   "%s: triggerBehavior=\"%s\" is unrecognized.\n",
@@ -839,7 +849,8 @@ void HyPerLayer::ioParam_triggerBehavior(enum ParamsIOFlag ioFlag) {
          MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
-   } else {
+   }
+   else {
       triggerBehaviorType = NO_TRIGGER;
    }
 }
@@ -904,7 +915,8 @@ void HyPerLayer::ioParam_writeSparseValues(enum ParamsIOFlag ioFlag) {
    // writeSparseActivity was deprecated Nov 4, 2014
    if (!parent->parameters()->present(name, "sparseLayer")) {
       assert(!parent->parameters()->presentAndNotBeenRead(name, "writeSparseActivity"));
-   } else {
+   }
+   else {
       assert(!parent->parameters()->presentAndNotBeenRead(name, "sparseLayer"));
    }
    if (sparseLayer)
@@ -916,11 +928,13 @@ int HyPerLayer::respond(std::shared_ptr<BaseMessage const> message) {
    int status = BaseLayer::respond(message);
    if (status != PV_SUCCESS) {
       return status;
-   } else if (
+   }
+   else if (
          LayerUpdateStateMessage const *castMessage =
                dynamic_cast<LayerUpdateStateMessage const *>(message.get())) {
       return respondLayerUpdateState(castMessage);
-   } else if (
+   }
+   else if (
          LayerRecvSynapticInputMessage const *castMessage =
                dynamic_cast<LayerRecvSynapticInputMessage const *>(message.get())) {
       return respondLayerRecvSynapticInput(castMessage);
@@ -936,19 +950,23 @@ int HyPerLayer::respond(std::shared_ptr<BaseMessage const> message) {
          LayerPublishMessage const *castMessage =
                dynamic_cast<LayerPublishMessage const *>(message.get())) {
       return respondLayerPublish(castMessage);
-   } else if (
+   }
+   else if (
          LayerUpdateActiveIndicesMessage const *castMessage =
                dynamic_cast<LayerUpdateActiveIndicesMessage const *>(message.get())) {
       return respondLayerUpdateActiveIndices(castMessage);
-   } else if (
+   }
+   else if (
          LayerOutputStateMessage const *castMessage =
                dynamic_cast<LayerOutputStateMessage const *>(message.get())) {
       return respondLayerOutputState(castMessage);
-   } else if (
+   }
+   else if (
          LayerCheckNotANumberMessage const *castMessage =
                dynamic_cast<LayerCheckNotANumberMessage const *>(message.get())) {
       return respondLayerCheckNotANumber(castMessage);
-   } else {
+   }
+   else {
       return status;
    }
 }
@@ -1143,12 +1161,13 @@ int HyPerLayer::communicateInitInfo() {
       }
       if (triggerBehaviorType == RESETSTATE_TRIGGER) {
          char const *resetLayerName = NULL; // Will point to name of actual resetLayer, whether
-                                            // triggerResetLayerName is blank (in which case
-                                            // resetLayerName==triggerLayerName) or not
+         // triggerResetLayerName is blank (in which case
+         // resetLayerName==triggerLayerName) or not
          if (triggerResetLayerName == NULL || triggerResetLayerName[0] == '\0') {
             resetLayerName    = triggerLayerName;
             triggerResetLayer = triggerLayer;
-         } else {
+         }
+         else {
             resetLayerName    = triggerResetLayerName;
             triggerResetLayer = parent->getLayerFromName(triggerResetLayerName);
             if (triggerResetLayer == NULL) {
@@ -1213,7 +1232,8 @@ int HyPerLayer::flushOutputStateStream() {
    int status = 0;
    if (outputStateStream && outputStateStream->fp) {
       status = fflush(outputStateStream->fp);
-   } else {
+   }
+   else {
       status = EOF;
       errno  = EBADF;
    }
@@ -1242,7 +1262,8 @@ int HyPerLayer::openOutputStateFile() {
                getDescription_c(),
                parent->commBatch());
       }
-   } else { // numCommBatches is one; insert the empty string instead.
+   }
+   else { // numCommBatches is one; insert the empty string instead.
       appendCommBatchIdx[0] = 0; // appendCommBatchIdx is the empty string
    }
    char filename[PV_PATH_MAX];
@@ -1267,10 +1288,12 @@ int HyPerLayer::openOutputStateFile() {
          if (statbuffer.st_size == (off_t)0) {
             ioAppend = false;
          }
-      } else {
+      }
+      else {
          if (errno == ENOENT) {
             ioAppend = false;
-         } else {
+         }
+         else {
             pvErrorNoExit().printf(
                   "HyPerLayer::initializeLayerId: stat \"%s\": %s\n", filename, strerror(errno));
             abort();
@@ -1285,12 +1308,14 @@ int HyPerLayer::openOutputStateFile() {
          if (numread == NUM_BIN_PARAMS) {
             if (sparseLayer) {
                writeActivitySparseCalls = params[INDEX_NBANDS];
-            } else {
+            }
+            else {
                writeActivityCalls = params[INDEX_NBANDS];
             }
          }
          PV_fclose(pvstream);
-      } else {
+      }
+      else {
          ioAppend = false;
       }
    }
@@ -1313,7 +1338,8 @@ void HyPerLayer::synchronizeMarginWidth(HyPerLayer *layer) {
          newSynchronizedMarginWidthLayers[k] = synchronizedMarginWidthLayers[k];
       }
       free(synchronizedMarginWidthLayers);
-   } else {
+   }
+   else {
       assert(synchronizedMarginWidthLayers == NULL);
    }
    synchronizedMarginWidthLayers = newSynchronizedMarginWidthLayers;
@@ -1476,7 +1502,8 @@ int HyPerLayer::allocateDataStructures() {
    // Allocate receive from post kernel
    if (status == 0) {
       status = PV_SUCCESS;
-   } else {
+   }
+   else {
       pvError().printf(
             "%s unable to allocate device memory in rank %d process: %s\n",
             getDescription_c(),
@@ -1648,7 +1675,8 @@ int HyPerLayer::mirrorInteriorToBorder(PVLayerCube *cube, PVLayerCube *border) {
 double HyPerLayer::getDeltaUpdateTime() {
    if (triggerLayer != NULL && triggerBehaviorType == UPDATEONLY_TRIGGER) {
       return getDeltaTriggerTime();
-   } else {
+   }
+   else {
       return parent->getDeltaTime();
    }
 }
@@ -1656,7 +1684,8 @@ double HyPerLayer::getDeltaUpdateTime() {
 double HyPerLayer::getDeltaTriggerTime() {
    if (triggerLayer != NULL) {
       return triggerLayer->getDeltaUpdateTime();
-   } else {
+   }
+   else {
       return -1;
    }
 }
@@ -1716,7 +1745,8 @@ int HyPerLayer::callUpdateState(double simTime, double dt) {
          assert(updateGpu);
          status = updateStateGpu(simTime, dt);
          gpu_update_timer->stop();
-      } else {
+      }
+      else {
 #endif
          status = updateState(simTime, dt);
 #ifdef PV_USE_CUDA
@@ -1753,7 +1783,8 @@ int HyPerLayer::resetStateOnTrigger() {
       for (int k = 0; k < getNumNeuronsAllBatches(); k++) {
          V[k] = resetV[k];
       }
-   } else {
+   }
+   else {
       pvadata_t const *resetA = triggerResetLayer->getActivity();
       PVLayerLoc const *loc   = triggerResetLayer->getLayerLoc();
       PVHalo const *halo      = &loc->halo;
@@ -1844,7 +1875,8 @@ int HyPerLayer::updateState(double timef, double dt) {
    int num_neurons = nx * ny * nf;
    if (num_channels == 1) {
       applyGSyn_HyPerLayer1Channel(nbatch, num_neurons, V, gSynHead);
-   } else {
+   }
+   else {
       applyGSyn_HyPerLayer(nbatch, num_neurons, V, gSynHead);
    }
    setActivity_HyPerLayer(
@@ -2077,7 +2109,8 @@ int HyPerLayer::outputState(double timef, bool last) {
       writeTime += writeStep;
       if (sparseLayer) {
          status = writeActivitySparse(timef, writeSparseValues);
-      } else {
+      }
+      else {
          status = writeActivity(timef);
       }
    }
@@ -2173,7 +2206,8 @@ int HyPerLayer::checkpointRead(const char *cpDir, double *timeptr) {
       if (sparseLayer) {
          nfname        = "numframes_sparse";
          num_calls_ptr = &writeActivitySparseCalls;
-      } else {
+      }
+      else {
          nfname        = "numframes";
          num_calls_ptr = &writeActivityCalls;
       }
@@ -2216,7 +2250,8 @@ int HyPerLayer::readBufferFile(
             bufferBatch = buffers[band]
                           + b * (loc->nx + loc->halo.rt + loc->halo.lt)
                                   * (loc->ny + loc->halo.up + loc->halo.dn) * loc->nf;
-         } else {
+         }
+         else {
             bufferBatch = buffers[band] + b * loc->nx * loc->ny * loc->nf;
          }
 
@@ -2398,7 +2433,8 @@ int HyPerLayer::checkpointWrite(const char *cpDir) {
    if (writeStep >= 0.0) {
       if (sparseLayer) {
          parent->writeScalarToFile(cpDir, getName(), "numframes_sparse", writeActivitySparseCalls);
-      } else {
+      }
+      else {
          parent->writeScalarToFile(cpDir, getName(), "numframes", writeActivityCalls);
       }
    }
@@ -2443,7 +2479,8 @@ int HyPerLayer::writeBufferFile(
             bufferBatch = buffers[band]
                           + b * (loc->nx + loc->halo.rt + loc->halo.lt)
                                   * (loc->ny + loc->halo.up + loc->halo.dn) * loc->nf;
-         } else {
+         }
+         else {
             bufferBatch = buffers[band] + b * loc->nx * loc->ny * loc->nf;
          }
 
@@ -2560,7 +2597,8 @@ int HyPerLayer::incrementNBands(int *numCalls) {
       int intswritten = PV_fwrite(numCalls, sizeof(int), 1, outputStateStream);
       PV_fseek(outputStateStream, fpos, SEEK_SET);
       status = intswritten == 1 ? PV_SUCCESS : PV_FAILURE;
-   } else {
+   }
+   else {
       status = PV_SUCCESS;
    }
    return status;

@@ -68,13 +68,15 @@ int MomentumConnTestProbe::outputState(double timed) {
 
       if (timed < 3) {
          wCorrect = 0;
-      } else {
+      }
+      else {
          if (isViscosity) {
             wCorrect = 1;
             for (int i = 0; i < (timed - 3); i++) {
                wCorrect += expf(-(2 * (i + 1)));
             }
-         } else {
+         }
+         else {
             wCorrect = 2 - powf(2, -(timed - 3));
          }
       }

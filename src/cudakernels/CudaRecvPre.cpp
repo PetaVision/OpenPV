@@ -61,7 +61,8 @@ void CudaRecvPre::setArgs(
    if (activeIndices) {
       params.numActive     = (long *)numActive->getPointer();
       params.activeIndices = (unsigned int *)activeIndices->getPointer();
-   } else {
+   }
+   else {
       params.activeIndices = NULL;
       params.numActive     = NULL;
    }

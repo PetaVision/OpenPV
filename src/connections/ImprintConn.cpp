@@ -72,7 +72,8 @@ void ImprintConn::ioParam_imprintTimeThresh(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       if (imprintTimeThresh == -1) {
          imprintTimeThresh = weightUpdateTime * 100; // Default value of 100 weight updates
-      } else if (imprintTimeThresh <= weightUpdateTime && parent->columnId() == 0) {
+      }
+      else if (imprintTimeThresh <= weightUpdateTime && parent->columnId() == 0) {
          pvWarn().printf("ImprintConn's imprintTimeThresh is smaller than weightUpdateTime. The "
                          "algorithm will imprint on every weight update\n");
       }
@@ -128,7 +129,8 @@ int ImprintConn::imprintFeature(int arbor_ID, int batch_ID, int kExt) {
          if (useMask) {
             if (mask->getLayerLoc()->nf == 1) {
                maskVal = maskactRef[lineoffsetm + ((int)k / postLoc->nf)];
-            } else {
+            }
+            else {
                maskVal = maskactRef[lineoffsetm + k];
             }
          }
@@ -206,7 +208,8 @@ int ImprintConn::update_dW(int arbor_ID) {
                int kExt = kIndex(kxIdx, kyIdx, kfIdx, nxExt, nyExt, nf);
                if (imprinted[arborStart + kernelIdx]) {
                   imprintFeature(arbor_ID, b, kExt);
-               } else {
+               }
+               else {
                   int status = updateInd_dW(arbor_ID, b, kExt);
                   // Status will be PV_CONTINUE if preact is 0 (not active)
                   if (status == PV_SUCCESS) {
@@ -278,7 +281,8 @@ int ImprintConn::checkpointRead(const char *cpDir, double *timeptr) {
          status = PV_fread(lastActiveTime, sizeof(double), numBuf, pvstream) == 1 ? status
                                                                                   : PV_FAILURE;
          PV_fclose(pvstream);
-      } else {
+      }
+      else {
          pvError().printf("Unable to read from \"%s\"\n", filename);
       }
       free(filename);
@@ -308,7 +312,8 @@ int ImprintConn::checkpointWrite(const char *cpDir) {
                         ? status
                         : PV_FAILURE;
          PV_fclose(pvstream);
-      } else {
+      }
+      else {
          pvError().printf("Unable to write to \"%s\"\n", filename);
       }
       if (status != PV_SUCCESS) {

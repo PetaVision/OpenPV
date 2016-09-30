@@ -57,8 +57,8 @@ double L0NormProbe::getValueInternal(double timevalue, int index) {
       pvadata_t const *maskLayerData =
             getMaskLayer()->getLayerData()
             + index * getMaskLayer()->getNumExtended(); // Is there a DataStore method to return the
-                                                        // part of the layer data for a given batch
-                                                        // index?
+      // part of the layer data for a given batch
+      // index?
       int const maskLt = maskHalo->lt;
       int const maskRt = maskHalo->rt;
       int const maskDn = maskHalo->dn;
@@ -80,7 +80,8 @@ double L0NormProbe::getValueInternal(double timevalue, int index) {
                }
             }
          }
-      } else {
+      }
+      else {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for reduction(+ : sum)
 #endif // PV_USE_OPENMP_THREADS
@@ -93,7 +94,8 @@ double L0NormProbe::getValueInternal(double timevalue, int index) {
             }
          }
       }
-   } else {
+   }
+   else {
       if (getTargetLayer()->getSparseFlag()) {
          DataStore *store               = getTargetLayer()->getPublisher()->dataStore();
          int numActive                  = (int)store->numActiveBuffer(index)[0];
@@ -108,7 +110,8 @@ double L0NormProbe::getValueInternal(double timevalue, int index) {
             pvadata_t val = inRestricted * fabsf(aBuffer[extIndex]);
             sum += val > nnzThreshold;
          }
-      } else {
+      }
+      else {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for reduction(+ : sum)
 #endif // PV_USE_OPENMP_THREADS

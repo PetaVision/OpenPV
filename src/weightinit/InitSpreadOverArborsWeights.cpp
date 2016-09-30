@@ -86,7 +86,8 @@ int InitSpreadOverArborsWeights::spreadOverArborsWeights(
             float weight = 0;
             if (xp * xp + yp * yp < 1e-4f) {
                weight = iWeight / nArbors;
-            } else {
+            }
+            else {
                float theta2pi = atan2f(yp, xp) / (2 * PI);
                unsigned int xpraw, ypraw, atanraw;
                union u {
@@ -105,7 +106,7 @@ int InitSpreadOverArborsWeights::spreadOverArborsWeights(
                }
                if (theta2pi >= 1) {
                   theta2pi -= 1; // theta2pi should be in the range [0,1) but roundoff could make it
-                                 // exactly 1
+                  // exactly 1
                }
                float zone = theta2pi * nArbors;
 
@@ -115,7 +116,8 @@ int InitSpreadOverArborsWeights::spreadOverArborsWeights(
 
                if (intpart == arborId) {
                   weight = iWeight * (1 - fracpart);
-               } else if ((int)(intpart - arborId + 1) % nArbors == 0) {
+               }
+               else if ((int)(intpart - arborId + 1) % nArbors == 0) {
                   weight = iWeight * fracpart;
                }
             }

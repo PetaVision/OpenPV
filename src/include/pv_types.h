@@ -89,7 +89,7 @@ typedef struct PVLayer_ {
    int numExtended; // # neurons in layer including extended border regions
    int numNeuronsAllBatches; // # Total neurons in this HyPerLayer, including batches
    int numExtendedAllBatches; // # Total neurons in layer including extended border regions and
-                              // batches
+   // batches
 
    // unsigned int   numActive;      // # neurons that fired
    // unsigned int * activeIndices;  // indices of neurons that fired
@@ -97,7 +97,7 @@ typedef struct PVLayer_ {
 
    PVLayerLoc loc;
    int xScale, yScale; // layersize=2**(-scale)*columnsize.  Layers with positive xScale are more
-                       // dense in the x-dimension.
+   // dense in the x-dimension.
 
    PVLayerCube *activity; // activity buffer FROM this layer
    float *prevActivity; // time of previous activity

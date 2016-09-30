@@ -90,7 +90,7 @@ class InitV {
    // if valueIsBeingHeld is false, heldValue is undefined
    char *filename; // Defined only for initVTypeCode=InitVFromFile
    bool printErrors; // Currently true for the local root process and false for other processes.
-                     // Error messages are printed to the error stream only if this flag is true
+   // Error messages are printed to the error stream only if this flag is true
 }; // end class InitV
 
 } // end namespace PV

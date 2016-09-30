@@ -47,7 +47,8 @@ class ANNLayer : public HyPerLayer {
    pvdata_t getVertexV(int n) const {
       if (n >= 0 && n < numVertices) {
          return verticesV[n];
-      } else {
+      }
+      else {
          return nan("");
       }
    }
@@ -59,7 +60,8 @@ class ANNLayer : public HyPerLayer {
    pvdata_t getVertexA(int n) const {
       if (n >= 0 && n < numVertices) {
          return verticesA[n];
-      } else {
+      }
+      else {
          return nan("");
       }
    }
@@ -201,7 +203,7 @@ class ANNLayer : public HyPerLayer {
    pvpotentialdata_t *verticesV = nullptr;
    pvadata_t *verticesA         = nullptr;
    float *slopes = nullptr; // slopes[0]=slopeNegInf; slopes[numVertices]=slopePosInf;
-                            // slopes[k]=slope from vertex k-1 to vertex k
+   // slopes[k]=slope from vertex k-1 to vertex k
    float slopeNegInf = 1.0f;
    float slopePosInf = 1.0f;
 
@@ -214,8 +216,8 @@ class ANNLayer : public HyPerLayer {
    // AShift == 0, hard threshold condition
    // AShift == VThresh, soft threshold condition
    pvdata_t VWidth = (pvdata_t)0; // The thresholding occurs linearly over the region
-                                  // [VThresh,VThresh+VWidth].  VWidth=0,AShift=0 is standard
-                                  // hard-thresholding
+   // [VThresh,VThresh+VWidth].  VWidth=0,AShift=0 is standard
+   // hard-thresholding
 
   private:
    int initialize_base();

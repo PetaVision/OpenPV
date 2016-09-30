@@ -510,7 +510,7 @@ class BaseConnection : public BaseObject {
    int numAxonalArborLists; // number of axonal arbors from presynaptic layer
    bool plasticityFlag;
    bool convertRateToSpikeCount; // Whether to check if pre-layer is spiking and, if it is not,
-                                 // scale activity by dt to convert it to a spike count
+   // scale activity by dt to convert it to a spike count
    bool receiveGpu; // Whether to use GPU acceleration in updating post's GSyn
    bool initializeFromCheckpointFlag;
 
@@ -524,7 +524,7 @@ class BaseConnection : public BaseObject {
   private:
    int delayArraySize;
    int *delays; // delays[arborId] is the delay in timesteps (not units of dt) of the arborId'th
-                // arbor
+   // arbor
    float *fDelayArray; // delays[arborId] is the delay in units of dt of the arborId'th arbor
 }; // end class BaseConnection
 

@@ -78,7 +78,8 @@ int InitUniformWeights::uniformWeights(
          for (int f = 0; f < nfp; f++) {
             if ((connectOnlySameFeatures) && (kf != f)) {
                dataStart[x * sxp + y * syp + f * sfp] = 0;
-            } else {
+            }
+            else {
                dataStart[x * sxp + y * syp + f * sfp] = iWeight;
             }
          }

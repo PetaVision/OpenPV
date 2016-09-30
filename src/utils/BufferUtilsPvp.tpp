@@ -285,7 +285,8 @@ double readSparseFromPvp(
    SparseFileTable table;
    if (cachedTable == nullptr) {
       table = buildSparseFileTable(fStream, frameReadIndex);
-   } else {
+   }
+   else {
       table = *cachedTable;
    }
 
@@ -317,7 +318,8 @@ double readSparseBinaryFromPvp(
    SparseFileTable table;
    if (cachedTable == nullptr) {
       table = buildSparseFileTable(fStream, frameReadIndex);
-   } else {
+   }
+   else {
       table = *cachedTable;
    }
 

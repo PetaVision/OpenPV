@@ -41,7 +41,8 @@ int Random::initializeFromLoc(const PVLayerLoc *locptr, bool isExtended) {
    PVHalo halo;
    if (isExtended) {
       halo = locptr->halo;
-   } else {
+   }
+   else {
       halo.lt = 0;
       halo.rt = 0;
       halo.dn = 0;

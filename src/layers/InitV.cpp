@@ -79,19 +79,24 @@ int InitV::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    if (!strcmp(initVTypeString, "ConstantV")) {
       initVTypeCode = ConstantV;
       ioParamGroup_ConstantV(ioFlag);
-   } else if (!strcmp(initVTypeString, "ZeroV")) {
+   }
+   else if (!strcmp(initVTypeString, "ZeroV")) {
       initVTypeCode = ConstantV;
       ioParamGroup_ZeroV(ioFlag);
-   } else if (!strcmp(initVTypeString, "UniformRandomV")) {
+   }
+   else if (!strcmp(initVTypeString, "UniformRandomV")) {
       initVTypeCode = UniformRandomV;
       ioParamGroup_UniformRandomV(ioFlag);
-   } else if (!strcmp(initVTypeString, "GaussianRandomV")) {
+   }
+   else if (!strcmp(initVTypeString, "GaussianRandomV")) {
       initVTypeCode = GaussianRandomV;
       ioParamGroup_GaussianRandomV(ioFlag);
-   } else if (!strcmp(initVTypeString, "InitVFromFile")) {
+   }
+   else if (!strcmp(initVTypeString, "InitVFromFile")) {
       initVTypeCode = InitVFromFile;
       ioParamGroup_InitVFromFile(ioFlag);
-   } else {
+   }
+   else {
       initVTypeCode = UndefinedInitV;
       if (printErrors)
          pvErrorNoExit().printf(
@@ -199,7 +204,8 @@ int InitV::calcVFromFile(pvdata_t *V, const PVLayerLoc *loc, Communicator *icCom
                   filename,
                   strerror(errno));
          }
-      } else {
+      }
+      else {
          assert(readFile == NULL); // Only root process should be doing input/output
       }
       assert(icComm->commRank() == 0 || readFile == NULL);
@@ -294,7 +300,8 @@ int InitV::calcVFromFile(pvdata_t *V, const PVLayerLoc *loc, Communicator *icCom
       }
       pvp_close_file(readFile, icComm);
       readFile = NULL;
-   } else { // Treat as an image file
+   }
+   else { // Treat as an image file
       if (printErrors)
          pvErrorNoExit().printf("calcVFromFile: file \"%s\" is not a pvp file.\n", this->filename);
       abort();

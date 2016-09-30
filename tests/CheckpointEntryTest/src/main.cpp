@@ -17,7 +17,7 @@ int main(int argc, char *argv[]) {
 
    std::string directory("checkpoints");
    ensureDirExists(comm, directory.c_str()); // Must be called by all processes, because it
-                                             // broadcasts the result of the stat() call.
+   // broadcasts the result of the stat() call.
    if (comm->commRank() == 0) {
       std::string rmcommand("rm -rf ");
       rmcommand.append(directory).append("/*");

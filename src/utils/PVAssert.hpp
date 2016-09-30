@@ -113,13 +113,15 @@ static inline void print_stacktrace(FILE *out = stderr, unsigned int max_frames 
             funcname = ret; // use possibly realloc()-ed string
             pvStackTrace() << "  " << symbollist[i] << " : " << funcname << "+" << begin_offset
                            << std::endl;
-         } else {
+         }
+         else {
             // demangling failed. Output function name as a C function with
             // no arguments.
             pvStackTrace() << "  " << symbollist[i] << " : " << begin_name << "+" << begin_offset
                            << std::endl;
          }
-      } else {
+      }
+      else {
          // couldn't parse the line? print the whole line.
          pvStackTrace() << "  " << symbollist[i] << std::endl;
       }

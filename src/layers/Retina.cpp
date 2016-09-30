@@ -376,7 +376,8 @@ int Retina::updateState(double timed, double dt) {
             GSynHead,
             activity,
             clayer->prevActivity);
-   } else {
+   }
+   else {
       Retina_nonspiking_update_state(
             nbatch,
             getNumNeurons(),
@@ -456,7 +457,8 @@ static inline float calcBurstStatus(double timed, Retina_params *params) {
    float burstStatus;
    if (params->burstDuration <= 0 || params->burstFreq == 0) {
       burstStatus = cosf(2.0f * PI * (float)timed * params->burstFreq / 1000.0f);
-   } else {
+   }
+   else {
       burstStatus = fmodf((float)timed, 1000.0f / params->burstFreq);
       burstStatus = burstStatus < params->burstDuration;
    }
@@ -483,7 +485,8 @@ spike(float timed,
    //
    if ((timed - prev) < params->abs_refractory_period) {
       return 0;
-   } else {
+   }
+   else {
       float delta   = timed - prev - params->abs_refractory_period;
       float refract = 1.0f - expf(-delta / params->refractory_period);
       refract       = (refract < 0) ? 0 : refract;

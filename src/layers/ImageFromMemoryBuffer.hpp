@@ -138,7 +138,7 @@ class ImageFromMemoryBuffer : public ImageLayer {
    // Member variables
   protected:
    bool hasNewImageFlag; // set to true by setMemoryBuffer; cleared to false by
-                         // initializeActivity();
+   // initializeActivity();
 }; // class ImageFromMemoryBuffer
 
 } // namespace PV

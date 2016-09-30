@@ -79,7 +79,8 @@ int ShuffleLayer::allocateDataStructures() {
    }
    if (readFreqFromFile) {
       readFreq();
-   } else {
+   }
+   else {
       currFeatureFreqCount = (long **)calloc(getLayerLoc()->nbatch, sizeof(long *));
       tmp                  = (long *)calloc(getLayerLoc()->nbatch * nf, sizeof(long));
       assert(tmp);
@@ -114,7 +115,8 @@ void ShuffleLayer::ioParam_shuffleMethod(enum ParamsIOFlag ioFlag) {
          ioFlag, name, "shuffleMethod", &shuffleMethod, "random", false /*warnIfAbsent*/);
    // ioFlag==PARAMS_IO_READ &&
    if ((strcmp(shuffleMethod, "random") == 0 || strcmp(shuffleMethod, "rejection") == 0)) {
-   } else {
+   }
+   else {
       pvError().printf("Shuffle Layer: Shuffle method not recognized. Options are \"random\" or "
                        "\"rejection\".\n");
    }
@@ -184,7 +186,8 @@ void ShuffleLayer::readFreq() { // TODO: Add MPI Bcast so that only root proc do
          }
       }
       freqFile.close();
-   } else {
+   }
+   else {
       pvError().printf("Shuffle Layer: Unable to open frequency file %s\n", freqFilename);
    }
 }
@@ -246,7 +249,8 @@ void ShuffleLayer::rejectionShuffle(const pvdata_t *sourceData, pvdata_t *activi
    if (!readFreqFromFile && parent->simulationTime() <= freqCollectTime) {
       // Collect maxVActivity and featureFreq
       collectFreq(sourceData);
-   } else {
+   }
+   else {
       for (int i = 0; i < numextended * nbatch; i++) { // Zero activity array for shuffling activity
          activity[i] = 0;
       }
@@ -377,7 +381,8 @@ int ShuffleLayer::updateState(double timef, double dt) {
    // Create a one to one mapping of neuron to neuron
    if (strcmp(shuffleMethod, "random") == 0) {
       randomShuffle(sourceData, A);
-   } else if (strcmp(shuffleMethod, "rejection") == 0) {
+   }
+   else if (strcmp(shuffleMethod, "rejection") == 0) {
       rejectionShuffle(sourceData, A);
    }
 

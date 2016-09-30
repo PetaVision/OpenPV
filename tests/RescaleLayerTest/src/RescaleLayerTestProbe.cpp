@@ -61,7 +61,8 @@ int RescaleLayerTestProbe::outputState(double timed) {
             name,
             targetRescaleLayer->getName());
       status = PV_FAILURE;
-   } else if (!strcmp(targetRescaleLayer->getRescaleMethod(), "maxmin")) {
+   }
+   else if (!strcmp(targetRescaleLayer->getRescaleMethod(), "maxmin")) {
       if (!isRoot) {
          return PV_SUCCESS;
       }
@@ -159,7 +160,8 @@ int RescaleLayerTestProbe::outputState(double timed) {
          if (!strcmp(targetRescaleLayer->getRescaleMethod(), "meanstd")) {
             targetMean = targetRescaleLayer->getTargetMean();
             targetStd  = targetRescaleLayer->getTargetStd();
-         } else {
+         }
+         else {
             targetMean = 0;
             targetStd  = 1 / sqrtf((float)targetRescaleLayer->getL2PatchSize());
          }
@@ -239,7 +241,8 @@ int RescaleLayerTestProbe::outputState(double timed) {
             status = PV_FAILURE;
          }
       }
-   } else if (!strcmp(targetRescaleLayer->getRescaleMethod(), "pointmeanstd")) {
+   }
+   else if (!strcmp(targetRescaleLayer->getRescaleMethod(), "pointmeanstd")) {
       PVLayerLoc const *loc = targetRescaleLayer->getLayerLoc();
       int nf                = loc->nf;
       if (nf < 2) {
@@ -317,7 +320,8 @@ int RescaleLayerTestProbe::outputState(double timed) {
             }
          }
       }
-   } else if (!strcmp(targetRescaleLayer->getRescaleMethod(), "zerotonegative")) {
+   }
+   else if (!strcmp(targetRescaleLayer->getRescaleMethod(), "zerotonegative")) {
       int numNeurons = targetRescaleLayer->getNumNeurons();
       pvErrorIf(
             !(numNeurons == targetRescaleLayer->getOriginalLayer()->getNumNeurons()),
@@ -370,7 +374,8 @@ int RescaleLayerTestProbe::outputState(double timed) {
             }
          }
       }
-   } else {
+   }
+   else {
       pvErrorIf(!(0), "Test failed.\n"); // All allowable rescaleMethod values are handled above.
    }
    if (status == PV_FAILURE) {

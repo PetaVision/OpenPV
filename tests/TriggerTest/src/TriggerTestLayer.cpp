@@ -34,7 +34,8 @@ int TriggerTestLayer::updateState(double time, double dt) {
                !(needUpdate(time, dt) == true),
                "Test failed at %s. Expected true, found false.\n",
                getName());
-      } else {
+      }
+      else {
          pvErrorIf(
                !(needUpdate(time, dt) == false),
                "Test failed at %s. Expected false, found true.\n",
@@ -48,7 +49,8 @@ int TriggerTestLayer::updateState(double time, double dt) {
                !(needUpdate(time, dt) == true),
                "Test failed at %s. Expected true, found false.\n",
                getName());
-      } else {
+      }
+      else {
          pvErrorIf(
                !(needUpdate(time, dt) == false),
                "Test failed at %s. Expected false, found true.\n",
@@ -62,7 +64,8 @@ int TriggerTestLayer::updateState(double time, double dt) {
                !(needUpdate(time, dt) == true),
                "Test failed at %s. Expected true, found false.\n",
                getName());
-      } else {
+      }
+      else {
          pvErrorIf(
                !(needUpdate(time, dt) == false),
                "Test failed at %s. Expected false, found true.\n",

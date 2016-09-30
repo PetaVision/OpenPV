@@ -31,10 +31,10 @@ BraceWrapping:
   AfterStruct:     false
   AfterUnion:      false
   BeforeCatch:     false
-  BeforeElse:      false
+  BeforeElse:      true 
   IndentBraces:    false
 BreakBeforeBinaryOperators: NonAssignment 
-BreakBeforeBraces: Attach
+BreakBeforeBraces: Custom
 BreakBeforeTernaryOperators: true
 BreakConstructorInitializersBeforeComma: false
 BreakAfterJavaFieldAnnotations: false

@@ -75,7 +75,8 @@ char **PV_Arguments::copyArgs(int argc, char const *const *argv) {
             pvError().printf("Argument was \"%s\".\n", arga);
          }
          argumentArray[a] = copied;
-      } else {
+      }
+      else {
          argumentArray[a] = NULL;
       }
    }

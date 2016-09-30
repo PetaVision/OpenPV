@@ -64,7 +64,8 @@ int FirmThresholdCostFnProbe::communicateInitInfo() {
       if (!getParent()->parameters()->present(getName(), "VWidth")) {
          VWidth = targetANNLayer->getVWidth();
       }
-   } else {
+   }
+   else {
       // Reread VThresh and VWidth commands, this time warning if they are not absent.
       parent->parameters()->ioParamValue(
             PARAMS_IO_READ, name, "VThresh", &VThresh, VThresh /*default*/, true /*warnIfAbsent*/);
@@ -100,8 +101,8 @@ double FirmThresholdCostFnProbe::getValueInternal(double timevalue, int index) {
       pvadata_t const *maskLayerData =
             getMaskLayer()->getLayerData()
             + index * getMaskLayer()->getNumExtended(); // Is there a DataStore method to return the
-                                                        // part of the layer data for a given batch
-                                                        // index?
+      // part of the layer data for a given batch
+      // index?
       int const maskLt = maskHalo->lt;
       int const maskRt = maskHalo->rt;
       int const maskDn = maskHalo->dn;
@@ -123,12 +124,14 @@ double FirmThresholdCostFnProbe::getValueInternal(double timevalue, int index) {
                double a = (double)fabs(aBuffer[kex]);
                if (a >= VThreshPlusVWidth) {
                   sum += amax;
-               } else {
+               }
+               else {
                   sum += a * (1.0 - a2 * a);
                }
             }
          }
-      } else {
+      }
+      else {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for reduction(+ : sum)
 #endif // PV_USE_OPENMP_THREADS
@@ -144,12 +147,14 @@ double FirmThresholdCostFnProbe::getValueInternal(double timevalue, int index) {
             }
             if (a >= VThreshPlusVWidth) {
                sum += amax;
-            } else {
+            }
+            else {
                sum += a * (1.0 - a2 * a);
             }
          }
       }
-   } else {
+   }
+   else {
       if (getTargetLayer()->getSparseFlag()) {
          DataStore *store               = getTargetLayer()->getPublisher()->dataStore();
          int numActive                  = (int)store->numActiveBuffer(index)[0];
@@ -164,11 +169,13 @@ double FirmThresholdCostFnProbe::getValueInternal(double timevalue, int index) {
             double a = inRestricted * (double)fabs(aBuffer[extIndex]);
             if (a >= VThreshPlusVWidth) {
                sum += amax;
-            } else {
+            }
+            else {
                sum += a * (1.0 - a2 * a);
             }
          }
-      } else {
+      }
+      else {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for reduction(+ : sum)
 #endif // PV_USE_OPENMP_THREADS
@@ -180,7 +187,8 @@ double FirmThresholdCostFnProbe::getValueInternal(double timevalue, int index) {
             }
             if (a >= VThreshPlusVWidth) {
                sum += amax;
-            } else {
+            }
+            else {
                sum += a * (1.0 - a2 * a);
             }
          }

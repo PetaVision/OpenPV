@@ -243,7 +243,8 @@ int BinningLayer::doUpdateState(
                         iX, iY, iF, nx + halo->lt + halo->rt, ny + halo->dn + halo->up, numBins);
                   currABatch[currIdx] = 0;
                }
-            } else {
+            }
+            else {
                // A sigma of zero means only the centered bin value should get input
                int featureIdx = round((inVal - binMin) / stepSize);
 
@@ -258,17 +259,20 @@ int BinningLayer::doUpdateState(
                      else {
                         if (zeroNeg) {
                            currABatch[currIdx] = 0;
-                        } else {
+                        }
+                        else {
                            currABatch[currIdx] = -1;
                         }
                      }
-                  } else {
+                  }
+                  else {
                      // Calculate center value for featureIdx (the bin that the value belongs to
                      // without a sigma) is binning
                      float mean;
                      if (normalDist) {
                         mean = featureIdx * stepSize + (stepSize / 2);
-                     } else {
+                     }
+                     else {
                         mean = featureIdx;
                      }
                      // Possible bins
@@ -280,7 +284,8 @@ int BinningLayer::doUpdateState(
                         float xVal;
                         if (normalDist) {
                            xVal = iF * stepSize + (stepSize / 2);
-                        } else {
+                        }
+                        else {
                            xVal = iF;
                         }
                         // Calculate normal dist
@@ -292,7 +297,8 @@ int BinningLayer::doUpdateState(
                      else {
                         if (zeroNeg) {
                            currABatch[currIdx] = 0;
-                        } else {
+                        }
+                        else {
                            currABatch[currIdx] = -1;
                         }
                      }
@@ -309,7 +315,8 @@ float BinningLayer::calcNormDist(float xVal, float mean, float sigma) {
    if (normalDist) {
       return 1.0f / (sigma * (sqrtf(2.0f * (float)PI)))
              * expf(-(powf(xVal - mean, 2.0f) / (2.0f * powf(sigma, 2.0f))));
-   } else {
+   }
+   else {
       return expf(-(powf(xVal - mean, 2.0f) / (2.0f * powf((sigma / 2.0f), 2.0f))));
    }
 }

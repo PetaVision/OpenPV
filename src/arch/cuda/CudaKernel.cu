@@ -43,12 +43,14 @@ __global__ void CudaPermutePVToCudnn(
       // check if in bounds
       if (kX < cropX || kX >= nx - cropX) {
          return;
-      } else {
+      }
+      else {
          kX = kX - cropX;
       }
       if (kY < cropY || kY >= ny - cropY) {
          return;
-      } else {
+      }
+      else {
          kY = kY - cropY;
       }
 

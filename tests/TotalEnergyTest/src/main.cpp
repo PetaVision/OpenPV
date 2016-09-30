@@ -26,13 +26,13 @@ int main(int argc, char *argv[]) {
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
    bool generateFlag = false; // Flag for whether to generate correct output for future tests; don't
-                              // check the RequireAllZeroActivity probe
+   // check the RequireAllZeroActivity probe
    bool testrunFlag = false; // Flag for whether to run from params and then check the
-                             // RequireAllZeroActivity probe
+   // RequireAllZeroActivity probe
    bool testcheckpointFlag = false; // Flag for whether to run from checkpoint and then check the
-                                    // RequireAllZeroActivity probe
+   // RequireAllZeroActivity probe
    bool testioparamsFlag = false; // Flag for whether to run from the output pv.params and then
-                                  // check the RequireAllZeroActivity probe
+   // check the RequireAllZeroActivity probe
 
    // Run through the command line arguments.  If an argument is any of
    // --generate
@@ -45,17 +45,22 @@ int main(int argc, char *argv[]) {
       const char *thisarg = argv[arg];
       if (!strcmp(thisarg, "--generate")) {
          generateFlag = true;
-      } else if (!strcmp(thisarg, "--testrun")) {
+      }
+      else if (!strcmp(thisarg, "--testrun")) {
          testrunFlag = true;
-      } else if (!strcmp(thisarg, "--testcheckpoint")) {
+      }
+      else if (!strcmp(thisarg, "--testcheckpoint")) {
          testcheckpointFlag = true;
-      } else if (!strcmp(thisarg, "--testioparams")) {
+      }
+      else if (!strcmp(thisarg, "--testioparams")) {
          testioparamsFlag = true;
-      } else if (!strcmp(thisarg, "--testall")) {
+      }
+      else if (!strcmp(thisarg, "--testall")) {
          testrunFlag        = true;
          testcheckpointFlag = true;
          testioparamsFlag   = true;
-      } else {
+      }
+      else {
          /* nothing to do here */
       }
    }
@@ -65,7 +70,7 @@ int main(int argc, char *argv[]) {
                "%s error: --generate option conflicts with the --test* options.\n", argv[0]);
       }
       MPI_Barrier(MPI_COMM_WORLD); // Make sure no child processes take down the MPI environment
-                                   // before root process prints error message.
+      // before root process prints error message.
       exit(EXIT_FAILURE);
    }
    if (!(generateFlag || testrunFlag || testcheckpointFlag || testioparamsFlag)) {
@@ -76,7 +81,7 @@ int main(int argc, char *argv[]) {
                argv[0]);
       }
       MPI_Barrier(MPI_COMM_WORLD); // Make sure no child processes take down the MPI environment
-                                   // before root process prints error message.
+      // before root process prints error message.
       exit(EXIT_FAILURE);
    }
    pvErrorIf(

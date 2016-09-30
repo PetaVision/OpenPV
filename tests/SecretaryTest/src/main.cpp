@@ -22,8 +22,8 @@ int main(int argc, char *argv[]) {
          "Group \"secretary\" must have a checkpointWriteDir string parameter.\n");
    std::string checkpointWriteDirectory(checkpointWriteDir);
    ensureDirExists(comm, checkpointWriteDirectory.c_str()); // Must be called by all processes,
-                                                            // because it broadcasts the result of
-                                                            // the stat() call.
+   // because it broadcasts the result of
+   // the stat() call.
    if (comm->commRank() == 0) {
       std::string rmcommand("rm -rf ");
       rmcommand.append(checkpointWriteDirectory).append("/*");

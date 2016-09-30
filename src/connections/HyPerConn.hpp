@@ -339,25 +339,25 @@ class HyPerConn : public BaseConnection {
    PVPatch ***wPatches; // list of weight patches, one set per arbor
    // GTK:: gSynPatchStart redefined as offset from start of associated gSynBuffer
    size_t **gSynPatchStart; // gSynPatchStart[arborId][kExt] is the offset to the start of the patch
-                            // from the beginning of the post-synaptic GSyn buffer for corresponding
-                            // channel
+   // from the beginning of the post-synaptic GSyn buffer for corresponding
+   // channel
    size_t **aPostOffset; // aPostOffset[arborId][kExt] is the index of the start of a patch into an
-                         // extended post-synaptic layer
+   // extended post-synaptic layer
    PVPatchStrides
          postExtStrides; // sx,sy,sf for a patch mapping into an extended post-synaptic layer
    PVPatchStrides
          postNonextStrides; // sx,sy,sf for a patch mapping into a non-extended post-synaptic layer
    pvwdata_t **wDataStart; // now that data for all patches are allocated to one continuous block of
-                           // memory, this pointer saves the starting address of that array
+   // memory, this pointer saves the starting address of that array
    pvwdata_t **dwDataStart; // now that data for all patches are allocated to one continuous block
-                            // of memory, this pointer saves the starting address of that array
+   // of memory, this pointer saves the starting address of that array
    bool strengthParamHasBeenWritten;
    int *patch2datalookuptable;
 
    long *postToPreActivity;
 
    bool needPost; // needPost is set during the communicate stage.  During the allocate stage, the
-                  // value is used to decide whether to create postConn.
+   // value is used to decide whether to create postConn.
 
    // All weights that are above the threshold
    typedef pvwdata_t WeightType;
@@ -393,7 +393,7 @@ class HyPerConn : public BaseConnection {
 
    unsigned long _numDeliverCalls; // Number of times deliver has been called
    unsigned long _allocateSparseWeightsFrequency; // Number of _numDeliverCalls that need to happen
-                                                  // before the pre list needs to be rebuilt
+   // before the pre list needs to be rebuilt
 
    // Allocate sparse weights when performing presynaptic delivery
    void allocateSparseWeightsPre(PVLayerCube const *activity, int arbor);
@@ -437,7 +437,7 @@ class HyPerConn : public BaseConnection {
    bool warnDefaultNfp; // Whether to print a warning if the default nfp is used.
    int sxp, syp, sfp; // stride in x,y,features
    PVPatch ***wPostPatches; // post-synaptic linkage of weights // This is being deprecated in favor
-                            // of TransposeConn
+   // of TransposeConn
    pvwdata_t **wPostDataStart;
 
    PVPatch ****wPostPatchesp; // Pointer to wPatches, but from the postsynaptic perspective
@@ -453,9 +453,9 @@ class HyPerConn : public BaseConnection {
    double writeTime; // time of next output, initialized in params file parameter initialWriteTime
    double writeStep; // output time interval
    bool writeCompressedWeights; // if true, outputState writes weights with 8-bit precision; if
-                                // false, write weights with float precision
+   // false, write weights with float precision
    bool writeCompressedCheckpoints; // similar to writeCompressedWeights, but for checkpointWrite
-                                    // instead of outputState
+   // instead of outputState
    int fileType; // type ID for file written by PV::writeWeights
 
    Timer *io_timer;
@@ -467,10 +467,10 @@ class HyPerConn : public BaseConnection {
    double triggerOffset;
    HyPerLayer *triggerLayer;
    bool combine_dW_with_W_flag; // indicates that dwDataStart should be set equal to wDataStart,
-                                // useful for saving memory when weights are not being learned but
-                                // not used
+   // useful for saving memory when weights are not being learned but
+   // not used
    bool selfFlag; // indicates that connection is from a layer to itself (even though pre and post
-                  // may be separately instantiated)
+   // may be separately instantiated)
    char *normalizeMethod;
    NormalizeBase *normalizer;
    bool shrinkPatches_flag;
@@ -487,15 +487,15 @@ class HyPerConn : public BaseConnection {
    char *pvpatchAccumulateTypeString;
    AccumulateType pvpatchAccumulateType;
    bool normalizeTotalToPost; // if false, normalize the sum of weights from each presynaptic
-                              // neuron.  If true, normalize the sum of weights into a postsynaptic
-                              // neuron.
+   // neuron.  If true, normalize the sum of weights into a postsynaptic
+   // neuron.
    float dWMax; // dW scale factor
    bool useListOfArborFiles;
    bool combineWeightFiles;
    bool updateGSynFromPostPerspective;
 
    pvdata_t **thread_gSyn; // Accumulate buffer for each thread, only used if numThreads > 1 // Move
-                           // back to HyPerLayer?
+   // back to HyPerLayer?
 
    double weightUpdatePeriod;
    double weightUpdateTime;
@@ -517,7 +517,7 @@ class HyPerConn : public BaseConnection {
    inline PVPatch ***get_wPatches() {
       return wPatches;
    } // protected so derived classes can use; public methods are weights(arbor) and
-     // getWeights(patchindex,arbor)
+   // getWeights(patchindex,arbor)
 
    inline void set_wPatches(PVPatch ***patches) { wPatches = patches; }
 
@@ -845,11 +845,11 @@ class HyPerConn : public BaseConnection {
    int setPostLayerName(const char *post_name);
    virtual int initPlasticityPatches();
    virtual int setPatchSize(); // Sets nxp, nyp, nfp if weights are loaded from file.  Subclasses
-                               // override if they have specialized ways of setting patch size that
-                               // needs to go in the communicate stage.
+   // override if they have specialized ways of setting patch size that
+   // needs to go in the communicate stage.
    virtual int setPostPatchSize(); // Sets nxp, nyp, nfp if weights are loaded from file.
-                                   // Subclasses override if they have specialized ways of setting
-                                   // patch size that needs to go in the communicate stage.
+   // Subclasses override if they have specialized ways of setting
+   // patch size that needs to go in the communicate stage.
    // (e.g. BIDSConn uses pre and post layer size to set nxp,nyp, but pre and post aren't set until
    // communicateInitInfo().
    virtual void
@@ -888,8 +888,8 @@ class HyPerConn : public BaseConnection {
    virtual int readWeightsFromCheckpoint(const char *cpDir, double *timeptr);
    int checkpointFilename(char *cpFilename, int size, const char *cpDir);
    virtual int setInitialValues(); // returns PV_SUCCESS if successful, or PV_POSTPONE if it needs
-                                   // to wait on other objects (e.g. TransposeConn has to wait for
-                                   // original conn)
+   // to wait on other objects (e.g. TransposeConn has to wait for
+   // original conn)
 
    /**
     * calc_dW is a function that calls initialze_dW, update_dW, reduce_dW, and normalize_dW
@@ -1070,13 +1070,15 @@ class HyPerConn : public BaseConnection {
       if (prescale == postscale) {
          assert(patchsize % 2 == 1);
          margin = (patchsize - 1) / 2;
-      } else if (prescale < postscale) { // Density of pre is greater than density of pre:
-                                         // many-to-one
+      }
+      else if (prescale < postscale) { // Density of pre is greater than density of pre:
+         // many-to-one
          // any patchsize is permissible
          int densityratio = (int)powf(2.0f, (float)(postscale - prescale));
          assert(densityratio % 2 == 0);
          margin = (patchsize - 1) * densityratio / 2;
-      } else {
+      }
+      else {
          assert(prescale > postscale); // one-to-many
          int densityratio = (int)powf(2.0f, (float)(prescale - postscale));
          int numcells     = patchsize / densityratio;
@@ -1099,19 +1101,21 @@ class HyPerConn : public BaseConnection {
          int *patchStartPtr,
          int *adjustedDim) {
       float preInPostCoords; // The location, in postsynaptic restricted coordinates, of the
-                             // presynaptic cell of this patch
+      // presynaptic cell of this patch
       if (postNeuronsPerPreNeuron > 1) {
          preInPostCoords = zPre * postNeuronsPerPreNeuron + 0.5f * (postNeuronsPerPreNeuron - 1);
-      } else if (preNeuronsPerPostNeuron > 1) {
+      }
+      else if (preNeuronsPerPostNeuron > 1) {
          preInPostCoords = ((float)(2 * zPre - (preNeuronsPerPostNeuron - 1)))
                            / ((float)2 * preNeuronsPerPostNeuron);
-      } else {
+      }
+      else {
          preInPostCoords = (float)zPre;
       }
       float postStartf = preInPostCoords - 0.5f * patchDim; // The location, in postsynaptic
-                                                            // restricted coordinates of the start
-                                                            // of an interval of length nxp and
-                                                            // center xPreInPostCoords
+      // restricted coordinates of the start
+      // of an interval of length nxp and
+      // center xPreInPostCoords
       float postStopf =
             preInPostCoords
             + 0.5f * patchDim; // The location of the end of the interval starting at xPostStartf.

@@ -49,7 +49,8 @@ int TriggerTestLayerProbe::outputStateWrapper(double time, double dt) {
       if (((int)time - 1) % 5 == 0) {
          pvErrorIf(
                !(updateNeeded == 1), "Test failed at %s. Expected true, found false.\n", getName());
-      } else {
+      }
+      else {
          pvErrorIf(
                !(updateNeeded == 0), "Test failed at %s. Expected false, found true.\n", getName());
       }
@@ -59,7 +60,8 @@ int TriggerTestLayerProbe::outputStateWrapper(double time, double dt) {
       if (((int)time) % 5 == 0) {
          pvErrorIf(
                !(updateNeeded == 1), "Test failed at %s. Expected true, found false.\n", getName());
-      } else {
+      }
+      else {
          pvErrorIf(
                !(updateNeeded == 0), "Test failed at %s. Expected false, found true.\n", getName());
       }
@@ -69,7 +71,8 @@ int TriggerTestLayerProbe::outputStateWrapper(double time, double dt) {
       if (((int)time + 1) % 5 == 0) {
          pvErrorIf(
                !(updateNeeded == 1), "Test failed at %s. Expected true, found false.\n", getName());
-      } else {
+      }
+      else {
          pvErrorIf(
                !(updateNeeded == 0), "Test failed at %s. Expected false, found true.\n", getName());
       }

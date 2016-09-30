@@ -37,13 +37,17 @@ int ImprintConnTestInputLayer::updateState(double timef, double dt) {
 
             if (timef == 10 && xval == 0 && yval == 0 && iF == 0) {
                A[idx] = 1;
-            } else if (timef == 10 && xval == 1 && yval == 0 && iF == 1) {
+            }
+            else if (timef == 10 && xval == 1 && yval == 0 && iF == 1) {
                A[idx] = 1;
-            } else if (timef == 10 && xval == 0 && yval == 1 && iF == 2) {
+            }
+            else if (timef == 10 && xval == 0 && yval == 1 && iF == 2) {
                A[idx] = 1;
-            } else if (timef == 10 && xval == 1 && yval == 1 && iF == 3) {
+            }
+            else if (timef == 10 && xval == 1 && yval == 1 && iF == 3) {
                A[idx] = 1;
-            } else {
+            }
+            else {
                A[idx] = 0;
             }
          }

@@ -31,7 +31,8 @@ int test_PatchHead(int kzPre, int nzPatch, int zScaleLog2Pre, int zScaleLog2Post
       int kpos = (kzPre < 0) ? -(1 + kzPre) : kzPre;
       int l    = (int)(2 * a * kpos) % 2;
       shift -= (kzPre < 0) ? l == 1 : l == 0;
-   } else if (nzPatch % 2 == 1 && a < 1) {
+   }
+   else if (nzPatch % 2 == 1 && a < 1) {
       // density decreases in post-synaptic layer
       shift = -(int)(0.5f * (float)nzPatch);
       return shift + nearby_neighbor(kzPre, zScaleLog2Pre, zScaleLog2Post);
@@ -126,7 +127,8 @@ int main(int argc, char *argv[]) {
    for (kpre = -9; kpre < 9; kpre++) {
       if (kpre >= 0) {
          kmod = kpre % ainv;
-      } else {
+      }
+      else {
          kmod = ainv - 1 - ((-1 - kpre) % ainv);
       }
       kh    = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
@@ -153,7 +155,8 @@ int main(int argc, char *argv[]) {
    for (kpre = -9; kpre < 9; kpre++) {
       if (kpre >= 0) {
          kmod = kpre % ainv;
-      } else {
+      }
+      else {
          kmod = ainv - 1 - ((-1 - kpre) % ainv);
       }
       kh    = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
@@ -183,7 +186,8 @@ int main(int argc, char *argv[]) {
    for (kpre = -9; kpre < 9; kpre++) {
       if (kpre >= 0) {
          kmod = kpre % ainv;
-      } else {
+      }
+      else {
          kmod = ainv - 1 - ((-1 - kpre) % ainv);
       }
       kh    = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
@@ -210,7 +214,8 @@ int main(int argc, char *argv[]) {
    for (kpre = -9; kpre < 9; kpre++) {
       if (kpre >= 0) {
          kmod = kpre % ainv;
-      } else {
+      }
+      else {
          kmod = ainv - 1 - ((-1 - kpre) % ainv);
       }
       kh    = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);

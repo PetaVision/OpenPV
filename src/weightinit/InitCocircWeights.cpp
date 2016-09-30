@@ -133,7 +133,8 @@ bool InitCocircWeights::calcDistChordCocircKurvePreNKurvePost(
       if (weightParamPtr->checkSameLoc(kfPost)) {
          return true;
       }
-   } else { // d2 > 0
+   }
+   else { // d2 > 0
 
       // compute curvature of cocircular contour
       float cocircKurve_shift = d2_shift > 0 ? fabsf(2 * dyP_shift) / d2_shift : 0.0f;

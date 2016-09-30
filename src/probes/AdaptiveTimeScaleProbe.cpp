@@ -142,11 +142,13 @@ int AdaptiveTimeScaleProbe::respond(std::shared_ptr<BaseMessage const> message) 
    int status = ColProbe::respond(message);
    if (message == nullptr) {
       return status;
-   } else if (
+   }
+   else if (
          AdaptTimestepMessage const *castMessage =
                dynamic_cast<AdaptTimestepMessage const *>(message.get())) {
       return respondAdaptTimestep(castMessage);
-   } else {
+   }
+   else {
       return status;
    }
 }
@@ -166,11 +168,12 @@ int AdaptiveTimeScaleProbe::calcValues(double timeValue) {
    if (triggerLayer != nullptr
        && triggerLayer->needUpdate(timeValue + triggerOffset, parent->getDeltaTime())) {
       rawProbeValues.assign(getNumValues(), -1.0);
-   } else {
+   }
+   else {
       mTargetProbe->getValues(timeValue, &rawProbeValues);
    }
    pvAssert(rawProbeValues.size() == getNumValues()); // In allocateDataStructures, we checked that
-                                                      // mTargetProbe has a compatible size.
+   // mTargetProbe has a compatible size.
    std::vector<double> const &timeSteps =
          mAdaptiveTimeScaleController->calcTimesteps(timeValue, rawProbeValues);
    memcpy(getValuesBuffer(), timeSteps.data(), sizeof(double) * getNumValues());

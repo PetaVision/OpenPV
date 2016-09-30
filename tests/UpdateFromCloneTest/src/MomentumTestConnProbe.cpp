@@ -35,7 +35,8 @@ int MomentumTestConnProbe::outputState(double timed) {
             pvdata_t wObserved = dataYStart[k];
             if (timed < 3) {
                wCorrect = 0;
-            } else {
+            }
+            else {
                wCorrect = 0.376471f;
                for (int i = 0; i < (timed - 3); i++) {
                   wCorrect += 0.376471f * expf(-(2 * (i + 1)));

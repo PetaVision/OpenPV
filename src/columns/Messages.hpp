@@ -34,8 +34,8 @@ class AllocateDataMessage : public BaseMessage {
 };
 
 template <typename T> // In practice, T is always Secretary.  Templated to avoid including
-                      // Secretary.hpp in this file
-                      class RegisterDataMessage : public BaseMessage {
+// Secretary.hpp in this file
+class RegisterDataMessage : public BaseMessage {
   public:
    RegisterDataMessage(T *dataRegistry) {
       setMessageType("RegisterCheckpointDataMessage");
@@ -120,7 +120,7 @@ class LayerUpdateStateMessage : public BaseMessage {
 #ifdef PV_USE_CUDA
          bool recvOnGpuFlag,
          bool updateOnGpuFlag, // updateState needs recvOnGpuFlag because correct order of updating
-                               // depends on it.
+// depends on it.
 #endif // PV_USE_CUDA
          double simTime,
          double deltaTime) {

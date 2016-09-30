@@ -33,7 +33,8 @@ int main(int argc, char *argv[]) {
          initObj.setParams("input/KernelActivationTest-maskData.params");
          status = rebuildandrun(&initObj);
       }
-   } else {
+   }
+   else {
       status = buildandrun(&initObj);
    }
    return status;
@@ -66,7 +67,8 @@ int dumpweights(HyPerCol *hc, int argc, char *argv[]) {
    if (status != PV_SUCCESS) {
       pvErrorNoExit().printf(
             "Rank %d: %s failed with return code %d.\n", rank, paramsfilename, status);
-   } else {
+   }
+   else {
       pvInfo().printf("Rank %d: %s succeeded.\n", rank, paramsfilename);
    }
    free(paramsfilename);

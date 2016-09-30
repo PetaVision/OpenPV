@@ -127,7 +127,8 @@ int PointProbe::outputState(double timef) {
    getValues(timef);
    if (parent->columnId() == 0) {
       return writeState(timef);
-   } else {
+   }
+   else {
       return PV_SUCCESS;
    }
 }
@@ -160,14 +161,16 @@ int PointProbe::calcValues(double timevalue) {
       const int k = kIndex(xLocLocal, yLocLocal, fLoc, nx, ny, nf);
       if (V) {
          valuesBuffer[0] = V[k + nbatchLocal * getTargetLayer()->getNumNeurons()];
-      } else {
+      }
+      else {
          valuesBuffer[0] = 0.0;
       }
       if (activity) {
          const int kex = kIndexExtended(
                k, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
          valuesBuffer[1] = activity[kex + nbatchLocal * getTargetLayer()->getNumExtended()];
-      } else {
+      }
+      else {
          valuesBuffer[1] = 0.0;
       }
       // If not in root process, send to root process

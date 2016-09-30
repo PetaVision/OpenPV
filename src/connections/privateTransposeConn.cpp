@@ -96,7 +96,8 @@ int privateTransposeConn::setPatchSize() {
    nxp            = nxp_orig;
    if (xscaleDiff > 0) {
       nxp *= (int)pow(2, xscaleDiff);
-   } else if (xscaleDiff < 0) {
+   }
+   else if (xscaleDiff < 0) {
       nxp /= (int)pow(2, -xscaleDiff);
       assert(nxp_orig == nxp * pow(2, (float)(-xscaleDiff)));
    }
@@ -105,7 +106,8 @@ int privateTransposeConn::setPatchSize() {
    nyp            = nyp_orig;
    if (yscaleDiff > 0) {
       nyp *= (int)pow(2, yscaleDiff);
-   } else if (yscaleDiff < 0) {
+   }
+   else if (yscaleDiff < 0) {
       nyp /= (int)pow(2, -yscaleDiff);
       assert(nyp_orig == nyp * pow(2, (float)(-yscaleDiff)));
    }
@@ -194,9 +196,9 @@ bool privateTransposeConn::needUpdate(double timed, double dt) {
 
 int privateTransposeConn::updateState(double time, double dt) {
    assert(plasticityFlag && postConn->getLastUpdateTime() > lastUpdateTime); // should only be
-                                                                             // called if needUpdate
-                                                                             // returned true this
-                                                                             // timestep
+   // called if needUpdate
+   // returned true this
+   // timestep
    // privateTransposeConn must wait until finalizeUpdate, after normalizers are called,
    // so that it will see the correct weights when it calls transpose.
    lastTimeUpdateCalled = time;
@@ -205,7 +207,7 @@ int privateTransposeConn::updateState(double time, double dt) {
 
 double privateTransposeConn::computeNewWeightUpdateTime(double time, double currentUpdateTime) {
    return weightUpdateTime; // privateTransposeConn does not use weightUpdateTime to determine when
-                            // to update
+   // to update
 }
 
 int privateTransposeConn::finalizeUpdate(double time, double dt) {
@@ -273,7 +275,8 @@ int privateTransposeConn::transposeNonsharedWeights(int arborId) {
          sendbuf[neighbor]    = NULL;
          recvbuf[neighbor]    = NULL;
          request[neighbor]    = NULL;
-      } else {
+      }
+      else {
          mpiexchangesize(
                neighbor,
                &size[neighbor],
@@ -310,7 +313,7 @@ int privateTransposeConn::transposeNonsharedWeights(int arborId) {
       }
       int nbrIdx = icComm->neighborIndex(parent->columnId(), neighbor);
       assert(nbrIdx >= 0); // If neighborIndex is negative, there is no neighbor in that direction
-                           // so hasRestrictedNeighbor should be false
+      // so hasRestrictedNeighbor should be false
 
       char *b = (char *)sendbuf[neighbor];
       for (int y = starty[neighbor]; y < stopy[neighbor]; y++) {
@@ -449,7 +452,7 @@ int privateTransposeConn::transposeNonsharedWeights(int arborId) {
       }
       int nbrIdx = icComm->neighborIndex(parent->columnId(), neighbor);
       assert(nbrIdx >= 0); // If neighborIndex is negative, there is no neighbor in that direction
-                           // so hasRestrictedNeighbor should be false
+      // so hasRestrictedNeighbor should be false
 
       MPI_Recv(
             recvbuf[neighbor],
@@ -730,7 +733,8 @@ int privateTransposeConn::transposeSharedWeights(int arborId) {
             }
          }
       }
-   } else if (xscalediff >= 0 && yscalediff >= 0) {
+   }
+   else if (xscalediff >= 0 && yscalediff >= 0) {
       int xscaleq = (int)pow(2, xscalediff);
       int yscaleq = (int)pow(2, yscalediff);
 
@@ -770,7 +774,8 @@ int privateTransposeConn::transposeSharedWeights(int arborId) {
             }
          }
       }
-   } else {
+   }
+   else {
       pvError().printf(
             "xscalediff = %d, yscalediff = %d: the case of many-to-one in one dimension and "
             "one-to-many in the other"

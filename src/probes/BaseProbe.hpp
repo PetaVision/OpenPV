@@ -316,7 +316,7 @@ class BaseProbe : public BaseObject {
   private:
    char *msgparams; // the message parameter in the params
    char *msgstring; // the string that gets printed by outputState ("" if message is empty or null;
-                    // message + ":" if nonempty
+   // message + ":" if nonempty
    char *probeOutputFilename;
    int numValues;
    double *probeValues;

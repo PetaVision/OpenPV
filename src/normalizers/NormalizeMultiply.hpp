@@ -95,12 +95,12 @@ class NormalizeMultiply : public NormalizeBase {
          rMinY; // zero all weights within rectangle rMinxY, rMInY aligned with center of patch
    bool nonnegativeConstraintFlag; // If true, negative weights are truncated to zero.
    float normalize_cutoff; // If positive, weights with abs(w)<max(abs(w))*normalize_cutoff are
-                           // truncated to zero.
+   // truncated to zero.
    // The rMinX, rMinY, and nonnegative constraints are applied before the normalize_cutoff
    // constraint.
    bool normalizeFromPostPerspective; // If false, group all weights with a common presynaptic
-                                      // neuron for normalizing.  If true, group all weights with a
-                                      // common postsynaptic neuron
+   // neuron for normalizing.  If true, group all weights with a
+   // common postsynaptic neuron
    // Only meaningful (at least for now) for KernelConns using sum of weights or sum of squares
    // normalization methods.
 }; // class NormalizeMultiply

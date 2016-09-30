@@ -32,7 +32,7 @@ struct ConnArchive {
    int nyp;
    int nfp;
    std::vector<std::vector<pvwdata_t>> data; // outer index is arbors, inner index is individual
-                                             // weights, with nxp,nyp,nfp,numDataPatches squashed.
+   // weights, with nxp,nyp,nfp,numDataPatches squashed.
    bool operator==(ConnArchive const &comparison) const;
    bool operator!=(ConnArchive const &comparison) const { return !(operator==(comparison)); }
    pvwdata_t tolerance;
@@ -73,7 +73,8 @@ bool compareFields(char const *type, char const *field, T val1, T val2) {
       pvErrorNoExit() << type << " have different " << field << ": " << val1 << " versus " << val2
                       << ".\n";
       return false;
-   } else {
+   }
+   else {
       return true;
    }
 }

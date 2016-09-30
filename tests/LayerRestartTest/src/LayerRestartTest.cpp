@@ -83,13 +83,15 @@ int main(int argc, char *argv[]) {
             MPI_Recv(&otherprocstatus, 1, MPI_INT, r, 59, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
          if (otherprocstatus == PV_SUCCESS) {
             pvInfo().printf("%s: rank %d process succeeded.\n", argv[0], r);
-         } else {
+         }
+         else {
             pvErrorNoExit().printf(
                   "%s: rank %d process FAILED with return code %d\n", argv[0], r, otherprocstatus);
             status = PV_FAILURE;
          }
       }
-   } else {
+   }
+   else {
       MPI_Send(&status, 1, MPI_INT, 0, 59, MPI_COMM_WORLD);
    }
 

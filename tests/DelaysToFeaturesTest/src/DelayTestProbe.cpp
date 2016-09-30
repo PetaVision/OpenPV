@@ -45,7 +45,8 @@ int DelayTestProbe::outputState(double timed) {
       if (timed == 0) {
          assert(avg[b] == (float)(timed / nf));
          assert(avg[b] == (float)nnz[b] / (nx * rows * ny * cols * nf));
-      } else {
+      }
+      else {
          assert(avg[b] == (float)((timed - 1) / nf));
          assert(avg[b] == (float)nnz[b] / (nx * rows * ny * cols * nf));
       }

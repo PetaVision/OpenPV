@@ -82,15 +82,15 @@ class Communicator {
    int commIdFromRowColumn(int commRow, int commColumn);
 
    int numNeighbors; // # of remote neighbors plus local.  NOT the size of the neighbors array,
-                     // which uses negative values to mark directions where there is no remote
-                     // neighbor.
+   // which uses negative values to mark directions where there is no remote
+   // neighbor.
 
    int isExtra; // Defines if the process is an extra process
 
    int neighbors[NUM_NEIGHBORHOOD]; // [0] is interior (local)
    int remoteNeighbors[NUM_NEIGHBORHOOD];
    int tags[NUM_NEIGHBORHOOD]; // diagonal communication needs a different tag from left/right or
-                               // up/down communication.
+   // up/down communication.
 
   private:
    int gcd(int a, int b);

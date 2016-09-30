@@ -193,7 +193,8 @@ int Communicator::neighborInit() {
                i,
                neighbors[i]);
 #endif // DEBUG_OUTPUT
-      } else {
+      }
+      else {
 #ifdef DEBUG_OUTPUT
          pvDebug().printf("[%2d]: neighborInit: i=%d, neighbor=%d\n", localRank, i, neighbors[i]);
 #endif // DEBUG_OUTPUT

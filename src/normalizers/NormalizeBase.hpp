@@ -93,11 +93,11 @@ class NormalizeBase : public BaseObject {
    float strength; // Value to normalize to; precise interpretation depends on normalization method
 
    bool normalizeArborsIndividually; // If true, each arbor is treated as its own connection.  If
-                                     // false, each patch groups all arbors together and normalizes
-                                     // them in common.
+   // false, each patch groups all arbors together and normalizes
+   // them in common.
 
    bool normalizeOnInitialize; // Whether to normalize weights when setting the weights' initial
-                               // values
+   // values
    bool normalizeOnWeightUpdate; // Whether to normalize weights when the weights have been updated
 }; // end of class NormalizeBase
 

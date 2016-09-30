@@ -20,7 +20,8 @@ int ImportParamsLayer::initialize(const char *name, HyPerCol *hc) {
       pvErrorIf(
             !(strcmp(params->stringValue(name, "Vfilename"), "input/a0.pvp") == 0),
             "Test failed.\n");
-   } else {
+   }
+   else {
       // Test overwritten value
       pvErrorIf(!(params->value(name, "nxScale") == 2), "Test failed.\n");
       // Test overwritten filename

@@ -53,10 +53,14 @@ void MaskLayer::ioParam_maskMethod(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamStringRequired(ioFlag, name, "maskMethod", &maskMethod);
    // Check valid methods
    if (strcmp(maskMethod, "layer") == 0) {
-   } else if (strcmp(maskMethod, "invertLayer") == 0) {
-   } else if (strcmp(maskMethod, "maskFeatures") == 0) {
-   } else if (strcmp(maskMethod, "noMaskFeatures") == 0) {
-   } else {
+   }
+   else if (strcmp(maskMethod, "invertLayer") == 0) {
+   }
+   else if (strcmp(maskMethod, "maskFeatures") == 0) {
+   }
+   else if (strcmp(maskMethod, "noMaskFeatures") == 0) {
+   }
+   else {
       if (parent->columnId() == 0) {
          pvErrorNoExit().printf(
                "%s: \"%s\" is not a valid maskMethod. Options are \"layer\", \"invertLayer\", "
@@ -152,7 +156,8 @@ int MaskLayer::communicateInitInfo() {
       }
 
       assert(maskLoc->nx == loc->nx && maskLoc->ny == loc->ny);
-   } else {
+   }
+   else {
       // Check for in bounds featureIdxs
       assert(features);
       const PVLayerLoc *loc = getLayerLoc();
@@ -189,11 +194,14 @@ int MaskLayer::updateState(double time, double dt) {
 
    if (strcmp(maskMethod, "layer") == 0) {
       method = METHOD_LAYER;
-   } else if (strcmp(maskMethod, "invertLayer") == 0) {
+   }
+   else if (strcmp(maskMethod, "invertLayer") == 0) {
       method = METHOD_INVERT_LAYER;
-   } else if (strcmp(maskMethod, "maskFeatures") == 0) {
+   }
+   else if (strcmp(maskMethod, "maskFeatures") == 0) {
       method = METHOD_FEATURES;
-   } else if (strcmp(maskMethod, "noMaskFeatures") == 0) {
+   }
+   else if (strcmp(maskMethod, "noMaskFeatures") == 0) {
       method = METHOD_INVERT_FEATURES;
    }
 
@@ -216,7 +224,8 @@ int MaskLayer::updateState(double time, double dt) {
                int kMaskRes;
                if (maskLoc->nf == 1) {
                   kMaskRes = ni / nf;
-               } else {
+               }
+               else {
                   kMaskRes = ni;
                }
                int kMaskExt = kIndexExtended(
@@ -237,7 +246,8 @@ int MaskLayer::updateState(double time, double dt) {
                int kMaskRes;
                if (maskLoc->nf == 1) {
                   kMaskRes = ni / nf;
-               } else {
+               }
+               else {
                   kMaskRes = ni;
                }
                int kMaskExt = kIndexExtended(
@@ -256,7 +266,7 @@ int MaskLayer::updateState(double time, double dt) {
             case METHOD_FEATURES: {
                // Calculate feature index of ni
                int featureNum = featureIndex(ni, nx, ny, nf);
-               maskVal = 1; // If nothing specified, copy everything
+               maskVal        = 1; // If nothing specified, copy everything
                for (int specF = 0; specF < numSpecifiedFeatures; specF++) {
                   if (featureNum == features[specF]) {
                      maskVal = 0;
@@ -267,7 +277,7 @@ int MaskLayer::updateState(double time, double dt) {
             case METHOD_INVERT_FEATURES: {
                // Calculate feature index of ni
                int featureNum = featureIndex(ni, nx, ny, nf);
-               maskVal = 0; // If nothing specified, copy nothing
+               maskVal        = 0; // If nothing specified, copy nothing
                for (int specF = 0; specF < numSpecifiedFeatures; specF++) {
                   if (featureNum == features[specF]) {
                      maskVal = 1;

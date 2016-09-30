@@ -49,9 +49,9 @@ int AdaptiveTimeScaleController::checkpointRead(const char *cpDir, double *timep
    struct timescalemax_struct {
       double mTimeScale; // mTimeScale factor for increasing/decreasing dt
       double mTimeScaleTrue; // true mTimeScale as returned by HyPerLayer::getTimeScaleTrue()
-                             // typically computed by an adaptTimeScaleController (ColProbe)
+      // typically computed by an adaptTimeScaleController (ColProbe)
       double mTimeScaleMax; //  current maximum allowed value of mTimeScale as returned by
-                            //  HyPerLayer::getTimeScaleMaxPtr()
+      //  HyPerLayer::getTimeScaleMaxPtr()
    };
    struct timescalemax_struct timescalemax[mBatchWidth];
 
@@ -84,7 +84,8 @@ int AdaptiveTimeScaleController::checkpointRead(const char *cpDir, double *timep
                1.0,
                1.0,
                1.0);
-      } else {
+      }
+      else {
          for (int b = 0; b < mBatchWidth; b++) {
             long int startpos = getPV_StreamFilepos(timescalefile);
             PV_fread(&timescalemax[b], 1, timescalemax_size, timescalefile);
@@ -164,7 +165,8 @@ std::vector<double> const &AdaptiveTimeScaleController::calcTimesteps(
       if ((dE_dt_scaled <= 0.0) || (E_0 <= 0) || (E_dt <= 0)) {
          mTimeScale[b]    = mBaseMin;
          mTimeScaleMax[b] = mBaseMax;
-      } else {
+      }
+      else {
          double tau_eff_scaled = E_0 / dE_dt_scaled;
 
          // dt := mTimeScaleMaxBase * tau_eff
@@ -183,7 +185,8 @@ std::vector<double> const &AdaptiveTimeScaleController::calcTimesteps(
 void AdaptiveTimeScaleController::writeTimestepInfo(double timeValue, PrintStream &stream) {
    if (mWriteTimeScaleFieldnames) {
       stream.printf("sim_time = %f\n", timeValue);
-   } else {
+   }
+   else {
       stream.printf("%f, ", timeValue);
    }
    for (int b = 0; b < mBatchWidth; b++) {
@@ -193,12 +196,14 @@ void AdaptiveTimeScaleController::writeTimestepInfo(double timeValue, PrintStrea
                b,
                mTimeScale[b],
                mTimeScaleTrue[b]);
-      } else {
+      }
+      else {
          stream.printf("%d, %10.8f, %10.8f", b, mTimeScale[b], mTimeScaleTrue[b]);
       }
       if (mWriteTimeScaleFieldnames) {
          stream.printf(", timeScaleMax = %10.8f\n", mTimeScaleMax[b]);
-      } else {
+      }
+      else {
          stream.printf(", %10.8f\n", mTimeScaleMax[b]);
       }
    }

@@ -53,7 +53,7 @@ class KernelProbe : public BaseHyPerConnProbe {
    bool outputWeights; // whether to output W
    bool outputPlasticIncr; // whether to output dW
    bool outputPatchIndices; // whether to output which presynaptic neurons using the given kernel
-                            // index
+   // index
 
 }; // end of class KernelProbe block
 

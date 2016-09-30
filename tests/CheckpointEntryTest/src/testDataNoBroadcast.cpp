@@ -41,7 +41,8 @@ void testDataNoBroadcast(PV::Communicator *comm, std::string const &directory) {
                (double)checkpointData.at(i),
                (double)dataCopy.at(i));
       }
-   } else {
+   }
+   else {
       for (int i = 0; i < vectorLength; i++) {
          pvErrorIf(
                checkpointData.at(i) != 5.0f,

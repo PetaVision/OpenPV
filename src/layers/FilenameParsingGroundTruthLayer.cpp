@@ -99,7 +99,8 @@ int FilenameParsingGroundTruthLayer::updateState(double time, double dt) {
                MPI_CHAR,
                0,
                parent->getCommunicator()->communicator());
-      } else {
+      }
+      else {
          // Receive broadcast about length of filename
          MPI_Bcast(&filenameLen, 1, MPI_INT, 0, parent->getCommunicator()->communicator());
          currentFilename = (char *)calloc(sizeof(char), filenameLen);
@@ -132,7 +133,8 @@ int FilenameParsingGroundTruthLayer::updateState(double time, double dt) {
          int match = fil.find(mClasses.at(i));
          if (0 <= match) {
             ABatch[nExt] = mGtClassTrueValue;
-         } else {
+         }
+         else {
             ABatch[nExt] = mGtClassFalseValue;
          }
       }

@@ -112,7 +112,8 @@ int RunningAverageLayer::updateState(double timef, double dt) {
                   ((numUpdateTimes / (float)dt - 1) * ABatch[kExt] + originalABatch[kExtOriginal])
                   * (float)dt / numUpdateTimes;
          }
-      } else {
+      }
+      else {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif // PV_USE_OPENMP_THREADS

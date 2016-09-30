@@ -72,7 +72,8 @@ PV_Stream *PV_fopen(const char *path, const char *mode, bool verifyWrites) {
          if (mode[0] == 'a') {
             filepos = filelength;
          }
-      } else if (errno != ENOENT) {
+      }
+      else if (errno != ENOENT) {
          pvError().printf(
                "PV_fopen: unable to stat \"%s\" with mode \"%s\": %s\n",
                realPath,
@@ -93,7 +94,8 @@ PV_Stream *PV_fopen(const char *path, const char *mode, bool verifyWrites) {
             "fopen failure for \"%s\" on attempt %d: %s\n", realPath, fopencounts, strerror(errno));
       if (fopencounts < MAX_FILESYSTEMCALL_TRIES) {
          sleep(1);
-      } else {
+      }
+      else {
          break;
       }
    }
@@ -102,7 +104,8 @@ PV_Stream *PV_fopen(const char *path, const char *mode, bool verifyWrites) {
             "PV_fopen: exceeded MAX_FILESYSTEMCALL_TRIES = %d attempting to open \"%s\"\n",
             MAX_FILESYSTEMCALL_TRIES,
             realPath);
-   } else {
+   }
+   else {
       if (fopencounts > 0) {
          pvWarn().printf("fopen succeeded for \"%s\" on attempt %d\n", realPath, fopencounts + 1);
       }
@@ -115,7 +118,8 @@ PV_Stream *PV_fopen(const char *path, const char *mode, bool verifyWrites) {
          streampointer->filelength   = filelength;
          streampointer->isfile       = 1;
          streampointer->verifyWrites = verifyWrites;
-      } else {
+      }
+      else {
          pvErrorNoExit().printf("PV_fopen failure for \"%s\": %s\n", realPath, strerror(errno));
          fclose(fp);
       }
@@ -143,7 +147,8 @@ int PV_stat(const char *path, struct stat *buf) {
             "stat() failure for \"%s\" on attempt %d: %s\n", path, attempt, strerror(errno));
       if (attempt < MAX_FILESYSTEMCALL_TRIES) {
          sleep(1);
-      } else {
+      }
+      else {
          break;
       }
    }
@@ -174,7 +179,8 @@ long int PV_ftell_primitive(PV_Stream *pvstream) {
             strerror(errno));
       if (ftellcounts < MAX_FILESYSTEMCALL_TRIES) {
          sleep(1);
-      } else {
+      }
+      else {
          break;
       }
    }
@@ -183,7 +189,8 @@ long int PV_ftell_primitive(PV_Stream *pvstream) {
             "PV_ftell failure for \"%s\": MAX_FILESYSTEMCALL_TRIES = %d exceeded\n",
             pvstream->name,
             MAX_FILESYSTEMCALL_TRIES);
-   } else if (ftellcounts > 0) {
+   }
+   else if (ftellcounts > 0) {
       pvWarn().printf(
             "PV_ftell succeeded for \"%s\" on attempt %d", pvstream->name, ftellcounts + 1);
    }
@@ -228,7 +235,8 @@ int PV_fseek(PV_Stream *pvstream, long offset, int whence) {
             strerror(errno));
       if (fseekcounts < MAX_FILESYSTEMCALL_TRIES) {
          sleep(1);
-      } else {
+      }
+      else {
          break;
       }
    }
@@ -237,7 +245,8 @@ int PV_fseek(PV_Stream *pvstream, long offset, int whence) {
             "PV_fseek failure for \"%s\": MAX_FILESYSTEMCALL_TRIES = %d exceeded\n",
             pvstream->name,
             MAX_FILESYSTEMCALL_TRIES);
-   } else if (fseekcounts > 0) {
+   }
+   else if (fseekcounts > 0) {
       pvWarn().printf(
             "PV_fseek succeeded for \"%s\" on attempt %d\n", pvstream->name, fseekcounts + 1);
    }
@@ -314,7 +323,8 @@ PV_fwrite(const void *RESTRICT ptr, size_t size, size_t nitems, PV_Stream *RESTR
                   "fwrite succeeded for \"%s\" on attempt %d.\n", pvstream->name, fwritecounts);
          }
          break;
-      } else {
+      }
+      else {
          hasfailed = true;
          pvWarn(fwriteFailure);
          fwriteFailure.printf(
@@ -345,7 +355,8 @@ PV_fwrite(const void *RESTRICT ptr, size_t size, size_t nitems, PV_Stream *RESTR
                      fpos,
                      ftellreturn);
             }
-         } else {
+         }
+         else {
             pvErrorNoExit().printf("MAX_FILESYSTEMCALL_TRIES exceeded.\n");
             return (size_t)0;
          }
@@ -455,7 +466,8 @@ size_t PV_fread(void *RESTRICT ptr, size_t size, size_t nitems, PV_Stream *RESTR
                   "fread succeeded for \"%s\" on attempt %d.\n", pvstream->name, freadcounts + 1);
          }
          break;
-      } else {
+      }
+      else {
          if (feof(pvstream->fp)) {
             pvWarn().printf(
                   "fread failure for \"%s\": end of file reached with %lu characters still "
@@ -476,7 +488,8 @@ size_t PV_fread(void *RESTRICT ptr, size_t size, size_t nitems, PV_Stream *RESTR
                charsread_thispass,
                stilltoread);
          sleep(1);
-      } else {
+      }
+      else {
          pvErrorNoExit().printf(
                "PV_fread failure for \"%s\": MAX_FILESYSTEMCALL_TRIES = %d exceeded, and %lu bytes "
                "of %lu read.\n",
@@ -575,7 +588,8 @@ int ensureDirExists(Communicator *comm, char const *dirname) {
             !(pathstat.st_mode & S_IFDIR) && rank == 0,
             "Path \"%s\" exists but is not a directory\n",
             dirname);
-   } else if (resultcode == ENOENT /* No such file or directory */) {
+   }
+   else if (resultcode == ENOENT /* No such file or directory */) {
       if (rank == 0) {
          pvInfo().printf("Directory \"%s\" does not exist; attempting to create\n", dirname);
 
@@ -589,7 +603,8 @@ int ensureDirExists(Communicator *comm, char const *dirname) {
                         "Directory \"%s\" could not be created: %s; Exiting\n",
                         dirname,
                         strerror(errno));
-               } else {
+               }
+               else {
                   getOutputStream().flush();
                   pvWarn().printf(
                         "Directory \"%s\" could not be created: %s; Retrying %d out of %d\n",
@@ -599,12 +614,14 @@ int ensureDirExists(Communicator *comm, char const *dirname) {
                         numAttempts);
                   sleep(1);
                }
-            } else {
+            }
+            else {
                break;
             }
          }
       }
-   } else {
+   }
+   else {
       if (rank == 0) {
          pvErrorNoExit().printf(
                "Error checking status of directory \"%s\": %s\n", dirname, strerror(resultcode));
@@ -689,7 +706,8 @@ int pvp_copy_patches(
          for (int k = 0; k < patchsize; k++) {
             *cptr++ = compressWeight(data[k], minVal, maxVal);
          }
-      } else {
+      }
+      else {
          float *fptr = (float *)cptr;
          for (int k = 0; k < patchsize; k++) {
             *fptr++ = data[k];
@@ -748,7 +766,8 @@ int pvp_set_patches(
             // values in buf are packed into chars
             data[k] += uncompressWeight(*cptr++, minVal, maxVal);
          }
-      } else {
+      }
+      else {
          const float *fptr = (const float *)cptr;
          for (int k = 0; k < patchsize; k++) {
             data[k] += *fptr++;
@@ -786,12 +805,14 @@ PV_Stream *pvp_open_write_file(const char *filename, Communicator *comm, bool ap
          free(realPath);
          if (status == 0) {
             rwmode = true;
-         } else {
+         }
+         else {
             if (errno == ENOENT) {
                pvWarn().printf(
                      "activity file \"%s\" does not exist.  File will be created\n", filename);
                rwmode = false;
-            } else {
+            }
+            else {
                pvError().printf(
                      "Error opening activity file \"%s\": %s", filename, strerror(errno));
             }
@@ -803,7 +824,8 @@ PV_Stream *pvp_open_write_file(const char *filename, Communicator *comm, bool ap
             pvErrorNoExit().printf(
                   "pvp_open_write_file failed for \"%s\": %s\n", filename, strerror(errno));
          }
-      } else {
+      }
+      else {
          pvstream = PV_fopen(filename, "wb", false /*verifyWrites*/);
          if (pvstream == NULL) {
             pvErrorNoExit().printf(
@@ -872,7 +894,8 @@ int pvp_check_file_header(Communicator *comm, const PVLayerLoc *loc, int params[
                         params[NUM_BIN_PARAMS + INDEX_WGT_NUMPATCHES]);
                   if (numGlobalExtended == numGlobalRestricted) {
                      badNumParams.printf("%d\n", numGlobalExtended);
-                  } else {
+                  }
+                  else {
                      badNumParams.printf(
                            "either %d (as post weights) or %d (as pre weights)\n",
                            numGlobalRestricted,
@@ -1007,7 +1030,8 @@ void read_header_err(
                      "   Called with %d params but only %d params could be read from file.\n",
                      (int)NUM_BIN_PARAMS,
                      returned_num_params);
-            } else {
+            }
+            else {
                header_error.printf(
                      "   Called with %d params but file contains %d params.\n",
                      (int)NUM_BIN_PARAMS,
@@ -1152,7 +1176,8 @@ int pvp_write_header(
    if (contiguous) {
       nxBlocks = 1;
       nyBlocks = 1;
-   } else {
+   }
+   else {
       nxBlocks = nxProcs;
       nyBlocks = nyProcs;
    }
@@ -1254,7 +1279,7 @@ int *pvp_set_activity_params(
    int datasize              = pv_sizeof(datatype);
    params[INDEX_RECORD_SIZE] = loc->nxGlobal * loc->nyGlobal * loc->nf
                                * datasize; // does not represent the size of the record in the file,
-                                           // but the size of the buffer
+   // but the size of the buffer
    params[INDEX_DATA_SIZE] = datasize;
    params[INDEX_DATA_TYPE] = datatype;
    params[INDEX_NX_PROCS]  = 1;
@@ -1393,7 +1418,7 @@ int *pvp_set_nonspiking_sparse_act_params(
    int datasize              = pv_sizeof(datatype);
    params[INDEX_RECORD_SIZE] = loc->nxGlobal * loc->nyGlobal * loc->nf
                                * datasize; // does not represent the size of the record in the file,
-                                           // but the size of the buffer
+   // but the size of the buffer
    params[INDEX_DATA_SIZE] = datasize;
    params[INDEX_DATA_TYPE] = datatype;
    params[INDEX_NX_PROCS]  = 1;
@@ -1588,7 +1613,8 @@ int writeActivitySparse(
             data           = (void *)indexvaluepairs;
             datasize       = sizeof(indexvaluepair);
             localResActive = pairsIdx;
-         } else {
+         }
+         else {
             // Change local ext indices to global res index
             globalResIndices = (unsigned int *)malloc(localActive * sizeof(unsigned int));
             int indiciesIdx  = 0;
@@ -1622,7 +1648,8 @@ int writeActivitySparse(
 
          // leaving not root-process section
          //
-      } else {
+      }
+      else {
          void *data = NULL;
          // we are io root process
          //
@@ -1643,7 +1670,8 @@ int writeActivitySparse(
                   pairsIdx++;
                }
                localResActive = pairsIdx;
-            } else {
+            }
+            else {
                // Change local ext indices to global res index
                globalResIndices = (unsigned int *)malloc(localActive * sizeof(unsigned int));
                int indiciesIdx  = 0;
@@ -1752,7 +1780,8 @@ int writeActivitySparse(
                status =
                      (PV_fwrite(indexvaluepairs, sizeof(indexvaluepair), localResActive, pvstream)
                       != (size_t)localResActive);
-            } else {
+            }
+            else {
                status =
                      (PV_fwrite(globalResIndices, sizeof(unsigned int), localResActive, pvstream)
                       != (size_t)localResActive);
@@ -1778,7 +1807,8 @@ int writeActivitySparse(
                indexvaluepairs = (indexvaluepair *)malloc(numActive[p] * datasize);
                assert(indexvaluepairs); /* lazy; fix with proper error message */
                data = (void *)indexvaluepairs;
-            } else {
+            }
+            else {
                datasize = sizeof(unsigned int);
                free(globalResIndices);
                globalResIndices = (unsigned int *)malloc(numActive[p] * datasize);
@@ -1956,7 +1986,8 @@ int readWeights(
                   localSize);
 #endif // DEBUG_OUTPUT
             MPI_Bcast(cbuf, localSize, MPI_BYTE, src, mpi_comm);
-         } else {
+         }
+         else {
             assert(header_file_type == PVP_WGT_FILE_TYPE);
 #ifdef DEBUG_OUTPUT
             pvDebug().printf(
@@ -2016,7 +2047,8 @@ int readWeights(
             if (comm->commSize() > 1) {
                MPI_Bcast(cbuf, localSize, MPI_BYTE, src, mpi_comm);
             }
-         } else {
+         }
+         else {
             assert(header_file_type == PVP_WGT_FILE_TYPE);
             int globalSize = patchSize * wgtParams[INDEX_WGT_NUMPATCHES];
             for (int proc = 0; proc <= comm->commSize(); proc++) {
@@ -2027,7 +2059,8 @@ int readWeights(
                if (proc == comm->commSize()) {
                   procrow    = rowFromRank(src, comm->numCommRows(), comm->numCommColumns());
                   proccolumn = columnFromRank(src, comm->numCommRows(), comm->numCommColumns());
-               } else {
+               }
+               else {
                   procrow    = rowFromRank(proc, comm->numCommRows(), comm->numCommColumns());
                   proccolumn = columnFromRank(proc, comm->numCommRows(), comm->numCommColumns());
                }
@@ -2186,9 +2219,9 @@ int writeWeights(
    if (icRank > 0) {
 #ifdef PV_USE_MPI
       if (file_type != PVP_KERNEL_FILE_TYPE) { // No MPI needed for kernel weights
-                                               // (sharedWeights==true).  If keepKernelsSynchronized
-                                               // is false, synchronize kernels before entering
-                                               // PV::writeWeights()
+         // (sharedWeights==true).  If keepKernelsSynchronized
+         // is false, synchronize kernels before entering
+         // PV::writeWeights()
          const int dest = 0;
          for (int arbor = 0; arbor < numArbors; arbor++) {
             pvp_copy_patches(
@@ -2236,7 +2269,7 @@ int writeWeights(
       }
       if (append)
          PV_fseek(pvstream, 0L, SEEK_END); // If append is true we open in "r+" mode so we need to
-                                           // move to the end of the file.
+      // move to the end of the file.
 
       int numGlobalPatches;
       bool asPostWeights;
@@ -2247,9 +2280,11 @@ int writeWeights(
                          * (preLoc->ny + preLoc->halo.dn + preLoc->halo.up)
                          * preLoc->nf) {
                asPostWeights = false;
-            } else if (numPatches == preLoc->nx * preLoc->ny * preLoc->nf) {
+            }
+            else if (numPatches == preLoc->nx * preLoc->ny * preLoc->nf) {
                asPostWeights = true;
-            } else {
+            }
+            else {
                pvErrorNoExit().printf(
                      "writeWeights: in file \"%s\", numPatches %d is not compatible with layer "
                      "dimensions nx=%d, ny=%d, nf=%d, halo=(%d,%d,%d,%d)\n",
@@ -2332,14 +2367,15 @@ int writeWeights(
                      "PV::writeWeights: unable to write weight data to file %s\n", filename);
                return -1;
             }
-         } else {
+         }
+         else {
             assert(file_type == PVP_WGT_FILE_TYPE);
             long int arborstartfile = getPV_StreamFilepos(pvstream);
             long int arborendfile   = arborstartfile + globalSize;
             PV_fseek(pvstream, arborendfile - 1, SEEK_SET);
             char endarborchar = (char)0;
             PV_fwrite(&endarborchar, 1, 1, pvstream); // Makes sure the file is the correct length
-                                                      // even if the last patch is shrunken
+            // even if the last patch is shrunken
             for (int proc = 0; proc < comm->commSize(); proc++) {
 #ifdef PV_USE_MPI
                if (proc == 0) /*local portion*/ {
@@ -2354,7 +2390,8 @@ int writeWeights(
                         minVal,
                         maxVal,
                         compress);
-               } else /*receive other portion via MPI*/ {
+               }
+               else /*receive other portion via MPI*/ {
                   MPI_Recv(
                         cbuf,
                         localSize,
@@ -2388,7 +2425,8 @@ int writeWeights(
                      int y = kyPos(k, preLoc->nx, preLoc->ny, preLoc->nf) + procrow * preLoc->ny;
                      int f = featureIndex(k, preLoc->nx, preLoc->ny, preLoc->nf);
                      globalIndex = kIndex(x, y, f, preLoc->nxGlobal, preLoc->nyGlobal, preLoc->nf);
-                  } else {
+                  }
+                  else {
                      int x = kxPos(k,
                                    preLoc->nx + preLoc->halo.lt + preLoc->halo.rt,
                                    preLoc->ny + preLoc->halo.dn + preLoc->halo.up,
@@ -2422,7 +2460,8 @@ int writeWeights(
                            arborstartfile + globalIndex * patchSize,
                            SEEK_SET); // TODO: error handling
                      PV_fwrite(cbufpatch, patchSize, (size_t)1, pvstream); // TODO: error handling
-                  } else {
+                  }
+                  else {
                      PV_fseek(
                            pvstream,
                            arborstartfile + k * patchSize,
@@ -2484,7 +2523,8 @@ int writeRandState(
          randStateBatch = randState
                           + b * (loc->nx + loc->halo.rt + loc->halo.lt)
                                   * (loc->ny + loc->halo.up + loc->halo.dn) * loc->nf;
-      } else {
+      }
+      else {
          randStateBatch = randState + b * loc->nx * loc->ny * loc->nf;
       }
       status =
@@ -2521,7 +2561,8 @@ int readRandState(
          randStateBatch = randState
                           + b * (loc->nx + loc->halo.rt + loc->halo.lt)
                                   * (loc->ny + loc->halo.up + loc->halo.dn) * loc->nf;
-      } else {
+      }
+      else {
          randStateBatch = randState + b * loc->nx * loc->ny * loc->nf;
       }
       status =
@@ -2558,7 +2599,8 @@ int gatherActivity(
       yLineStart = halo.up;
       xBufSize += halo.lt + halo.rt;
       yBufSize += halo.dn + halo.up;
-   } else {
+   }
+   else {
       halo.lt = halo.rt = halo.dn = halo.up = 0;
    }
 
@@ -2620,10 +2662,12 @@ int gatherActivity(
                   int k_restricted = kIndex(0, y, 0, layerLoc->nx, layerLoc->ny, layerLoc->nf);
                   memcpy(&temp_buffer[k_restricted], &buffer[k_extended], datasize * linesize);
                }
-            } else {
+            }
+            else {
                memcpy(temp_buffer, buffer, (size_t)numLocalNeurons * datasize);
             }
-         } else {
+         }
+         else {
             MPI_Recv(
                   temp_buffer,
                   numLocalNeurons * (int)datasize,
@@ -2653,7 +2697,8 @@ int gatherActivity(
                         numwritten);
                   status = PV_FAILURE;
                }
-            } else {
+            }
+            else {
                status = PV_FAILURE;
                pvErrorNoExit().printf(
                      "gatherActivity failure setting file position: %s\n", strerror(errno));
@@ -2661,7 +2706,8 @@ int gatherActivity(
          }
       }
       PV_fseek(pvstream, startpos + numLocalNeurons * datasize * comm_size, SEEK_SET);
-   } else {
+   }
+   else {
       if (halo.lt || halo.rt || halo.dn || halo.up) {
          // temp_buffer is a restricted buffer, but if extended
          // is true, buffer is an extended buffer.
@@ -2677,7 +2723,8 @@ int gatherActivity(
                rootproc,
                171 + rank /*tag*/,
                comm->communicator());
-      } else {
+      }
+      else {
          MPI_Send(
                buffer,
                numLocalNeurons * datasize,
@@ -2953,7 +3000,8 @@ int scatterActivity(
             free(vals);
             break;
       }
-   } else {
+   }
+   else {
       MPI_Recv(
             TBuff,
             datasize * numLocalNeurons,
@@ -2974,7 +3022,8 @@ int scatterActivity(
          int k_restricted = kIndex(0, y, 0, layerLoc->nx, layerLoc->ny, layerLoc->nf);
          memcpy(&buffer[k_extended], &TBuff[k_restricted], (size_t)linesize * datasize);
       }
-   } else {
+   }
+   else {
       memcpy(buffer, TBuff, (size_t)numLocalNeurons * datasize);
    }
 

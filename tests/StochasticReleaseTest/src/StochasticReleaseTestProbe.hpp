@@ -38,7 +38,7 @@ class StochasticReleaseTestProbe : public PV::StatsProbe {
    // Member variables
   protected:
    HyPerConn *conn = nullptr; // The connection for which targetLayer is the postsynaptic layer.
-                              // There must be exactly one such conn.
+   // There must be exactly one such conn.
    std::vector<double> pvalues; // The two-tailed p-value of the nnz value of each timestep.
 }; // end class StochasticReleaseTestProbe
 

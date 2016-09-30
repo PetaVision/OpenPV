@@ -64,12 +64,14 @@ int correctHaloSize(int patchsize, int nPre, int nPost) {
       int numcells = patchsize / many;
       pvErrorIf(!(numcells % 2 == 1), "Test failed.\n");
       haloSize = (numcells - 1) / 2;
-   } else if (nPost < nPre) { // many-to-one connection
+   }
+   else if (nPost < nPre) { // many-to-one connection
       int many = nPre / nPost;
       pvErrorIf(!(many * nPost == nPre), "Test failed.\n");
       pvErrorIf(!(patchsize % 2 == 1), "Test failed.\n");
       haloSize = many * (patchsize - 1) / 2;
-   } else {
+   }
+   else {
       pvErrorIf(!(nPost == nPre), "Test failed.\n");
       pvErrorIf(!(patchsize % 2 == 1), "Test failed.\n");
       haloSize = (patchsize - 1) / 2;

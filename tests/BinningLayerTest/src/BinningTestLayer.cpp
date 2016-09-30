@@ -36,13 +36,15 @@ int BinningTestLayer::updateState(double timef, double dt) {
                      pvError() << iY << "," << iX << "," << iF << ": " << A[idx] << "\n";
                   }
                   pvErrorIf(!(A[idx] == 1), "Test failed.\n");
-               } else {
+               }
+               else {
                   if (A[idx] != 0) {
                      pvError() << iY << "," << iX << "," << iF << ": " << A[idx] << "\n";
                   }
                   pvErrorIf(!(A[idx] == 0), "Test failed.\n");
                }
-            } else if (getSigma() == 2) {
+            }
+            else if (getSigma() == 2) {
                float temp;
                if (iX + kx0 == iF - 2 || iX + kx0 == iF + 2) {
                   temp = A[idx] - 0.121f;

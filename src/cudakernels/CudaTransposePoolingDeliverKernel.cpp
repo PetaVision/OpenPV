@@ -86,7 +86,7 @@ void CudaTransposePoolingDeliverKernel::setArgs(
    status = cudnnSetTensor4dDescriptor(
          mDataStoreDescriptor,
          CUDNN_TENSOR_NCHW, // PetaVision arrays are ordered NHWC; they will be permuted to NCHW
-                            // inside do_run()
+         // inside do_run()
          CUDNN_DATA_FLOAT,
          mPreLoc->nbatch, // Number of images
          mPreLoc->nf, // Number of feature maps per image
@@ -102,7 +102,7 @@ void CudaTransposePoolingDeliverKernel::setArgs(
    status = cudnnSetTensor4dDescriptor(
          mGSynDescriptor,
          CUDNN_TENSOR_NCHW, // PetaVision arrays are ordered NHWC; they will be permuted to NCHW
-                            // inside do_run()
+         // inside do_run()
          CUDNN_DATA_FLOAT,
          mPreLoc->nbatch, // Number of images
          mPostLoc->nf, // Number of feature maps per image
@@ -127,7 +127,7 @@ void CudaTransposePoolingDeliverKernel::setArgs(
    status = cudnnSetTensor4dDescriptor(
          mOrigConnDataStoreDescriptor,
          CUDNN_TENSOR_NCHW, // PetaVision arrays are ordered NHWC; they will be permuted to NCHW
-                            // inside do_run()
+         // inside do_run()
          CUDNN_DATA_FLOAT,
          mOrigConnPreLoc->nbatch, // Number of images
          mOrigConnPreLoc->nf, // Number of feature maps per image
@@ -144,7 +144,7 @@ void CudaTransposePoolingDeliverKernel::setArgs(
    status = cudnnSetTensor4dDescriptor(
          mOrigConnGSynDescriptor,
          CUDNN_TENSOR_NCHW, // PetaVision arrays are ordered NHWC; they will be permuted to NCHW
-                            // inside do_run()
+         // inside do_run()
          CUDNN_DATA_FLOAT,
          mOrigConnPostLoc->nbatch, // Number of images
          mOrigConnPostLoc->nf, // Number of feature maps per image

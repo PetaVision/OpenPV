@@ -49,7 +49,7 @@ HyPerLCALayer::~HyPerLCALayer() { free(mAdaptiveTimeScaleProbeName); }
 
 int HyPerLCALayer::initialize_base() {
    numChannels = 1; // If a connection connects to this layer on inhibitory channel,
-                    // HyPerLayer::requireChannel will add necessary channel
+   // HyPerLayer::requireChannel will add necessary channel
    timeConstantTau = 1.0;
    selfInteract    = true;
    return PV_SUCCESS;
@@ -259,7 +259,8 @@ int HyPerLCALayer::updateState(double time, double dt) {
 double *HyPerLCALayer::deltaTimes() {
    if (mAdaptiveTimeScaleProbe) {
       mAdaptiveTimeScaleProbe->getValues(parent->simulationTime(), &mDeltaTimes);
-   } else {
+   }
+   else {
       mDeltaTimes.assign(getLayerLoc()->nbatch, parent->getDeltaTime());
    }
    return mDeltaTimes.data();

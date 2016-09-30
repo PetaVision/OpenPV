@@ -152,7 +152,8 @@ int testTransposeOfTransposeWeights(
    int status = testWeightsEqual(originalMap, transposeOfTranspose);
    if (status == PV_SUCCESS) {
       pvInfo().printf("%s: TestTransposeConn passed.\n", message);
-   } else {
+   }
+   else {
       dumpWeights(originalMap);
       dumpWeights(transpose);
       dumpWeights(transposeOfTranspose);
@@ -294,12 +295,12 @@ int testDataPatchEqual(
    for (int w = 0; w < patchSize; w++) {
       pvdata_t w1 = wgts1[w];
       pvErrorIf(!(w1), "Test failed.\n"); // All original weights should be in the range [1,2]
-                                          // (values of wMinInit and wMaxInit)
+      // (values of wMinInit and wMaxInit)
       pvdata_t w2 = wgts2[w];
       // w2 will be either 0 or in the range [1,2].  It's nonzero iff the weight has any pre-neurons
       // in restricted space.
       if (w2 && w1 != w2) { // If the weight is from an extended neuron, and sharedWeights is off,
-                            // the transpose will be zero.
+         // the transpose will be zero.
          pvErrorNoExit().printf(
                "TransposeHyPerConnTest: value %d of \"%s\" and \"%s\" are not equal (%f versus "
                "%f).\n",

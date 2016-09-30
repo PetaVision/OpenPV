@@ -44,7 +44,8 @@ int InitRandomWeights::initRNGs(bool isKernel) {
    int status = PV_SUCCESS;
    if (isKernel) {
       randState = new Random(callingConn->getNumDataPatches());
-   } else {
+   }
+   else {
       randState = new Random(callingConn->preSynapticLayer()->getLayerLoc(), true /*isExtended*/);
    }
    if (randState == NULL) {

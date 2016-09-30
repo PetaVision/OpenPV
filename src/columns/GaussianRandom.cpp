@@ -50,7 +50,8 @@ float GaussianRandom::gaussianDist(int localIndex) {
    struct box_muller_data bmdata = heldValues[localIndex];
    if (bmdata.hasHeldValue) {
       y = bmdata.heldValue;
-   } else {
+   }
+   else {
       float w;
       do {
          x1 = 2.0f * uniformRandom(localIndex) - 1.0f;

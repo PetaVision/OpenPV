@@ -95,15 +95,16 @@ int RescaleConn::deliverPresynapticPerspective(PVLayerCube const *activity, int 
             PVPatch *weights = getWeights(kPre, arborID);
             if (weights->nx > 0 && weights->ny > 0) {
                int f = featureIndex(kPre, preLoc->nx, preLoc->ny, preLoc->nf); // Not taking halo
-                                                                               // into account, but
-                                                                               // for feature index,
-                                                                               // shouldn't matter.
+               // into account, but
+               // for feature index,
+               // shouldn't matter.
                pvgsyndata_t *postPatchStart =
                      gSynPatchHeadBatch + getGSynPatchStart(kPre, arborID) + f;
                *postPatchStart += a;
             }
          }
-      } else {
+      }
+      else {
          PVLayerLoc const *loc = &activity->loc;
          PVHalo const *halo    = &loc->halo;
          int lineSizeExt       = (loc->nx + halo->lt + halo->rt) * loc->nf;

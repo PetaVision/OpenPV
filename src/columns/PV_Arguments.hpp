@@ -352,7 +352,8 @@ class PV_Arguments {
    /**
     * setString() is used internally as a common interface for setting the internal string
     * variables.
-    * If it encounters an error, it prints an error message and returns nullptr with the old value of
+    * If it encounters an error, it prints an error message and returns nullptr with the old value
+    * of
     * the parameter untouched.
     */
    char const *setString(char **parameter, char const *string, char const *parameterName);

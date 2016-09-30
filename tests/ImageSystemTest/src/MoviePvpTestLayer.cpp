@@ -21,7 +21,8 @@ int MoviePvpTestLayer::updateState(double time, double dt) {
       int frameIdx        = 0;
       if (mBatchMethod == BatchIndexer::BYFILE || mBatchMethod == BatchIndexer::BYSPECIFIED) {
          frameIdx = (time - 1) * nbatchGlobal + commBatch * numBatchPerProc + b;
-      } else if (mBatchMethod == BatchIndexer::BYLIST) {
+      }
+      else if (mBatchMethod == BatchIndexer::BYLIST) {
          frameIdx = b * 2 + (time - 1);
       }
       for (int nkRes = 0; nkRes < getNumNeurons(); nkRes++) {

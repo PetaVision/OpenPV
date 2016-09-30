@@ -94,7 +94,7 @@ int NormalizeContrastZeroMean::normalizeWeights() {
    float scale_factor = strength;
 
    status = NormalizeBase::normalizeWeights(); // applies normalize_cutoff threshold and
-                                               // symmetrizeWeights
+   // symmetrizeWeights
 
    int nArbors        = conn0->numberOfAxonalArborLists();
    int numDataPatches = conn0->getNumDataPatches();
@@ -138,7 +138,8 @@ int NormalizeContrastZeroMean::normalizeWeights() {
             }
          }
       }
-   } else {
+   }
+   else {
       for (int patchindex = 0; patchindex < numDataPatches; patchindex++) {
          float sum             = 0.0f;
          float sumsq           = 0.0f;

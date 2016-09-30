@@ -56,7 +56,8 @@ void ImageLayer::readImage(std::string filename) {
 
       if (filename.find("s3://") != std::string::npos) {
          systemstring = std::string("aws s3 cp \'") + filename + std::string("\' ") + pathstring;
-      } else { // URLs other than s3://
+      }
+      else { // URLs other than s3://
          systemstring = std::string("wget -O ") + pathstring + std::string(" \'") + filename
                         + std::string("\'");
       }

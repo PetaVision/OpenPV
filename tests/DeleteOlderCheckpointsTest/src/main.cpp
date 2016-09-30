@@ -29,8 +29,8 @@ int main(int argc, char *argv[]) {
          "Group \"secretary\" must have a checkpointWriteDir string parameter.\n");
    std::string checkpointWriteDirectory(checkpointWriteDir);
    ensureDirExists(comm, checkpointWriteDirectory.c_str()); // Must be called by all processes,
-                                                            // because it broadcasts the result of
-                                                            // the stat() call.
+   // because it broadcasts the result of
+   // the stat() call.
    if (comm->commRank() == 0) {
       std::string rmcommand("rm -rf ");
       rmcommand.append(checkpointWriteDirectory).append("/*");
@@ -77,7 +77,8 @@ int main(int argc, char *argv[]) {
                if (statResult == 0) {
                   pvErrorNoExit() << (i->c_str()) << " exists but should be deleted.\n";
                   status = PV_FAILURE;
-               } else {
+               }
+               else {
                   pvAssert(statResult == -1);
                   if (errno != ENOENT) {
                      pvErrorNoExit() << "stat " << (i->c_str()) << " returned \""
@@ -85,14 +86,16 @@ int main(int argc, char *argv[]) {
                      status = PV_FAILURE;
                   }
                }
-            } else {
+            }
+            else {
                if (statResult == 0) {
                   bool isDirectory = S_ISDIR(dirstat.st_mode);
                   if (!isDirectory) {
                      pvErrorNoExit() << (i->c_str()) << " exists but is not a directory.\n";
                      status = PV_FAILURE;
                   }
-               } else {
+               }
+               else {
                   pvErrorNoExit() << "stat " << (i->c_str()) << " returned \""
                                   << std::strerror(errno) << "\".\n";
                   status = PV_FAILURE;

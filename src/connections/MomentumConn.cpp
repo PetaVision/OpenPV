@@ -82,9 +82,11 @@ void MomentumConn::ioParam_momentumTau(enum ParamsIOFlag ioFlag) {
       float defaultVal = 0;
       if (strcmp(momentumMethod, "simple") == 0) {
          defaultVal = .25;
-      } else if (strcmp(momentumMethod, "viscosity") == 0) {
+      }
+      else if (strcmp(momentumMethod, "viscosity") == 0) {
          defaultVal = 100;
-      } else if (strcmp(momentumMethod, "alex") == 0) {
+      }
+      else if (strcmp(momentumMethod, "alex") == 0) {
          defaultVal = .9;
       }
 
@@ -233,12 +235,14 @@ int MomentumConn::applyMomentum(int arbor_ID) {
             for (int k = 0; k < nxp * nyp * nfp; k++) {
                dwdata_start[k] += momentumTau * prev_dw_start[k] - momentumDecay * wdata_start[k];
             }
-         } else if (!strcmp(momentumMethod, "viscosity")) {
+         }
+         else if (!strcmp(momentumMethod, "viscosity")) {
             for (int k = 0; k < nxp * nyp * nfp; k++) {
                dwdata_start[k] = (prev_dw_start[k] * expf(-1.0f / momentumTau)) + dwdata_start[k]
                                  - momentumDecay * wdata_start[k];
             }
-         } else if (!strcmp(momentumMethod, "alex")) {
+         }
+         else if (!strcmp(momentumMethod, "alex")) {
             for (int k = 0; k < nxp * nyp * nfp; k++) {
                // weight_inc[i] := momW * weight_inc[i-1] - wc * epsW * weights[i-1] + epsW *
                // weight_grads[i]
@@ -248,7 +252,8 @@ int MomentumConn::applyMomentum(int arbor_ID) {
             }
          }
       }
-   } else {
+   }
+   else {
       pvWarn() << "Momentum not implemented for non-shared weights, not implementing momentum\n";
    }
    return PV_SUCCESS;

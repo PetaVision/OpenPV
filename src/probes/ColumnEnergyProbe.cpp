@@ -79,7 +79,8 @@ int ColumnEnergyProbe::addTerm(BaseProbe *probe) {
             exit(EXIT_FAILURE);
          }
       }
-   } else {
+   }
+   else {
       if (probe->getNumValues() != this->getNumValues()) {
          if (this->getParent()->columnId() == 0) {
             pvErrorNoExit().printf(

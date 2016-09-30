@@ -20,7 +20,8 @@ __global__ void HyPerLayer_recv_pre(recv_pre_params params, int batchIdx) {
       if (tIndex >= fullPatchSize * params.numActive[batchIdx]) {
          return;
       }
-   } else {
+   }
+   else {
       if (tIndex >= fullPatchSize * params.numPreExt) {
          return;
       }
@@ -31,14 +32,16 @@ __global__ void HyPerLayer_recv_pre(recv_pre_params params, int batchIdx) {
    int preBatchOffset = batchIdx * params.numPreExt;
    if (params.isSparse) {
       kPreExt = params.activeIndices[neuronIndex + preBatchOffset];
-   } else {
+   }
+   else {
       kPreExt = neuronIndex;
    }
    a = params.preData[kPreExt + preBatchOffset] * params.dt_factor;
    int kernelIndex;
    if (params.sharedWeights == 1) {
       kernelIndex = params.patch2datalookuptable[kPreExt];
-   } else {
+   }
+   else {
       kernelIndex = kPreExt;
    }
    // Grab weight patches

@@ -32,14 +32,16 @@ void Secretary::setOutputPath(std::string const &outputPath) {
                          << "\" to ";
       if (!outputPath.empty()) {
          changingOutputPath << "\"" << outputPath << "\".\n";
-      } else {
+      }
+      else {
          changingOutputPath << "null.\n";
       }
    }
    if (!outputPath.empty()) {
       mOutputPath = strdup(expandLeadingTilde(outputPath.c_str()).c_str());
       pvErrorIf(mOutputPath == nullptr, "Secretary::setOutputPath unable to copy output path.\n");
-   } else {
+   }
+   else {
       mOutputPath = nullptr;
    }
 }
@@ -82,7 +84,8 @@ void Secretary::ioParam_outputPath(enum ParamsIOFlag ioFlag, PVParams *params) {
                   &mOutputPath,
                   mDefaultOutputPath.c_str(),
                   true);
-         } else {
+         }
+         else {
             if (params->stringPresent(mName.c_str(), "outputPath")) {
                pvInfo() << "Output path \"" << mOutputPath
                         << "\" specified on command line; value in params file will be ignored.\n";
@@ -125,17 +128,20 @@ void Secretary::ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag, PVP
              || !strcmp(mCheckpointWriteTriggerModeString, "Step")
              || !strcmp(mCheckpointWriteTriggerModeString, "STEP")) {
             mCheckpointWriteTriggerMode = STEP;
-         } else if (
+         }
+         else if (
                !strcmp(mCheckpointWriteTriggerModeString, "time")
                || !strcmp(mCheckpointWriteTriggerModeString, "Time")
                || !strcmp(mCheckpointWriteTriggerModeString, "TIME")) {
             mCheckpointWriteTriggerMode = SIMTIME;
-         } else if (
+         }
+         else if (
                !strcmp(mCheckpointWriteTriggerModeString, "clock")
                || !strcmp(mCheckpointWriteTriggerModeString, "Clock")
                || !strcmp(mCheckpointWriteTriggerModeString, "CLOCK")) {
             mCheckpointWriteTriggerMode = WALLCLOCK;
-         } else {
+         }
+         else {
             if (mCommunicator->globalCommRank() == 0) {
                pvErrorNoExit() << "Parameter group \"" << mName
                                << "\" checkpointWriteTriggerMode \""
@@ -217,7 +223,8 @@ void Secretary::ioParam_checkpointWriteClockUnit(enum ParamsIOFlag ioFlag, PVPar
                free(mCheckpointWriteWallclockUnit);
                mCheckpointWriteWallclockUnit            = strdup("seconds");
                mCheckpointWriteWallclockIntervalSeconds = mCheckpointWriteWallclockInterval;
-            } else if (
+            }
+            else if (
                   !strcmp(mCheckpointWriteWallclockUnit, "minute")
                   || !strcmp(mCheckpointWriteWallclockUnit, "minutes")
                   || !strcmp(mCheckpointWriteWallclockUnit, "min")
@@ -226,7 +233,8 @@ void Secretary::ioParam_checkpointWriteClockUnit(enum ParamsIOFlag ioFlag, PVPar
                mCheckpointWriteWallclockUnit = strdup("minutes");
                mCheckpointWriteWallclockIntervalSeconds =
                      mCheckpointWriteWallclockInterval * (time_t)60;
-            } else if (
+            }
+            else if (
                   !strcmp(mCheckpointWriteWallclockUnit, "hour")
                   || !strcmp(mCheckpointWriteWallclockUnit, "hours")
                   || !strcmp(mCheckpointWriteWallclockUnit, "hr")
@@ -235,14 +243,16 @@ void Secretary::ioParam_checkpointWriteClockUnit(enum ParamsIOFlag ioFlag, PVPar
                mCheckpointWriteWallclockUnit = strdup("hours");
                mCheckpointWriteWallclockIntervalSeconds =
                      mCheckpointWriteWallclockInterval * (time_t)3600;
-            } else if (
+            }
+            else if (
                   !strcmp(mCheckpointWriteWallclockUnit, "day")
                   || !strcmp(mCheckpointWriteWallclockUnit, "days")) {
                free(mCheckpointWriteWallclockUnit);
                mCheckpointWriteWallclockUnit = strdup("days");
                mCheckpointWriteWallclockIntervalSeconds =
                      mCheckpointWriteWallclockInterval * (time_t)86400;
-            } else {
+            }
+            else {
                if (getCommunicator()->globalCommRank() == 0) {
                   pvErrorNoExit().printf(
                         "checkpointWriteClockUnit \"%s\" is unrecognized.  Use \"seconds\", "
@@ -385,7 +395,7 @@ void Secretary::checkpointRead(
 void Secretary::checkpointWrite(double simTime) {
    std::string checkpointWriteDir;
    mTimeInfo.mSimTime = simTime; // set mSimTime here so that it is available in routines called by
-                                 // checkpointWrite.
+   // checkpointWrite.
    mTimeInfo.mCurrentCheckpointStep++;
    if (!mCheckpointWriteFlag) {
       return;
@@ -397,12 +407,13 @@ void Secretary::checkpointWrite(double simTime) {
             simTime);
       mCheckpointSignal = 0;
       checkpointNow();
-   } else {
+   }
+   else {
       switch (mCheckpointWriteTriggerMode) {
          case NONE:
             pvAssert(0);
             break; // Only NONE if checkpointWrite is off, in which case this method should have
-                   // returned above.
+         // returned above.
          case STEP: checkpointWriteStep(); break;
          case SIMTIME: checkpointWriteSimtime(); break;
          case WALLCLOCK: checkpointWriteWallclock(); break;
@@ -488,7 +499,8 @@ void Secretary::checkpointNow() {
          pvInfo() << "Checkpointing to \"" << checkpointDirectory
                   << "\", simTime = " << mTimeInfo.mSimTime << "\n";
       }
-   } else {
+   }
+   else {
       if (mCommunicator->globalCommRank() == 0) {
          pvInfo().printf(
                "Skipping checkpoint to \"%s\", which would clobber the checkpointRead "
@@ -516,7 +528,8 @@ void Secretary::finalCheckpoint(double simTime) {
    mTimeInfo.mSimTime = simTime;
    if (mCheckpointWriteFlag) {
       checkpointNow(); // Should make sure we haven't already checkpointed using checkpointWrite()'
-   } else if (!mSuppressLastOutput) {
+   }
+   else if (!mSuppressLastOutput) {
       std::string finalCheckpointDir{mOutputPath};
       finalCheckpointDir.append("/Last");
       checkpointToDirectory(finalCheckpointDir);
@@ -535,7 +548,8 @@ void Secretary::rotateOldCheckpoints(std::string const &newCheckpointDirectory) 
                      "Failed to delete older checkpoint: failed to stat \"%s\": %s.\n",
                      oldestCheckpointDir.c_str(),
                      strerror(errno));
-            } else {
+            }
+            else {
                pvErrorNoExit().printf(
                      "Deleting older checkpoint: \"%s\" exists but is not a directory.\n",
                      oldestCheckpointDir.c_str());

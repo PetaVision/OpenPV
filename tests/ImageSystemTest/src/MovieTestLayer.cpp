@@ -17,7 +17,8 @@ int MovieTestLayer::updateState(double time, double dt) {
       int frameIdx;
       if (mBatchMethod == BatchIndexer::BYFILE) {
          frameIdx = (time - 1) * nbatch + b;
-      } else if (mBatchMethod == BatchIndexer::BYLIST) {
+      }
+      else if (mBatchMethod == BatchIndexer::BYLIST) {
          frameIdx = b * 2 + (time - 1);
       }
 

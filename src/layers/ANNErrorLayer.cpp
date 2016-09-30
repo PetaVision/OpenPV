@@ -86,7 +86,8 @@ int ANNErrorLayer::setVertices() {
       verticesA[2] = 0.0;
       verticesV[3] = VThresh;
       verticesA[3] = VThresh;
-   } else {
+   }
+   else {
       // checkVertices will complain if VThresh is negative but not "negative infinity"
       numVertices = 1;
       verticesV   = (pvpotentialdata_t *)malloc((size_t)numVertices * sizeof(*verticesV));
@@ -106,8 +107,8 @@ int ANNErrorLayer::setVertices() {
 int ANNErrorLayer::checkVertices() const {
    int status = PV_SUCCESS;
    if (VThresh < 0 && VThresh > -0.999 * max_pvvdata_t) { // 0.999 is to allow for imprecision from
-                                                          // params files using 3.40282e+38 instead
-                                                          // of infinity
+      // params files using 3.40282e+38 instead
+      // of infinity
       if (parent->columnId() == 0) {
          pvErrorNoExit().printf(
                "%s: VThresh cannot be negative (value is %f).\n",
@@ -115,7 +116,8 @@ int ANNErrorLayer::checkVertices() const {
                (double)VThresh);
       }
       status = PV_FAILURE;
-   } else {
+   }
+   else {
       pvAssert(ANNLayer::checkVertices() == PV_SUCCESS);
    }
    return status;

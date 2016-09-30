@@ -74,19 +74,23 @@ int BaseObject::respond(std::shared_ptr<BaseMessage const> message) {
    // TODO: convert PV_SUCCESS, PV_FAILURE, etc. to enum
    if (message == nullptr) {
       return PV_SUCCESS;
-   } else if (
+   }
+   else if (
          CommunicateInitInfoMessage const *castMessage =
                dynamic_cast<CommunicateInitInfoMessage const *>(message.get())) {
       return respondCommunicateInitInfo(castMessage);
-   } else if (
+   }
+   else if (
          AllocateDataMessage const *castMessage =
                dynamic_cast<AllocateDataMessage const *>(message.get())) {
       return respondAllocateData(castMessage);
-   } else if (
+   }
+   else if (
          InitializeStateMessage const *castMessage =
                dynamic_cast<InitializeStateMessage const *>(message.get())) {
       return respondInitializeState(castMessage);
-   } else {
+   }
+   else {
       return PV_SUCCESS;
    }
 }

@@ -89,7 +89,8 @@ int PV_Init::commInit(int *argc, char ***argv) {
    if (!mpiInit) {
       pvAssert((*argv)[*argc] == NULL); // Open MPI 1.7 assumes this.
       MPI_Init(argc, argv);
-   } else {
+   }
+   else {
       pvError() << "PV_Init communicator already initialized\n";
    }
 
@@ -123,14 +124,16 @@ void PV_Init::initLogFile(bool appendFlag) {
       if (finalDot == std::string::npos
           || (finalSlash != std::string::npos && finalDot < finalSlash)) {
          insertionPoint = logFileString.length();
-      } else {
+      }
+      else {
          insertionPoint = finalDot;
       }
       std::string insertion("_");
       insertion.append(std::to_string(globalRank));
       logFileString.insert(insertionPoint, insertion);
       PV::setLogFile(logFileString.c_str(), mode);
-   } else {
+   }
+   else {
       PV::setLogFile(logFile, mode);
    }
 }
@@ -157,7 +160,8 @@ int PV_Init::createParams() {
             2 * (INITIAL_LAYER_ARRAY_SIZE + INITIAL_CONNECTION_ARRAY_SIZE),
             mCommunicator);
       return PV_SUCCESS;
-   } else {
+   }
+   else {
       return PV_FAILURE;
    }
 }

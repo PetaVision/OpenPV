@@ -91,7 +91,8 @@ int ANNLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
       ioParam_verticesA(ioFlag);
       ioParam_slopeNegInf(ioFlag);
       ioParam_slopePosInf(ioFlag);
-   } else {
+   }
+   else {
       verticesListInParams = false;
       ioParam_VThresh(ioFlag);
       ioParam_AMin(ioFlag);
@@ -220,7 +221,8 @@ void ANNLayer::ioParam_clearGSynInterval(enum ParamsIOFlag ioFlag) {
          }
          MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
-      } else {
+      }
+      else {
          if (parent->getCommunicator()->commRank() == 0) {
             pvWarn() << getDescription() << ": the clearGSynInterval parameter is obsolete.  "
                                             "Nonzero values of clearGSynInterval must be "
@@ -257,7 +259,8 @@ int ANNLayer::setVertices() {
                   (double)AMin,
                   (double)limfromright,
                   (double)VThresh);
-         } else {
+         }
+         else {
             pvWarn().printf(
                   "%s: nonmonotonic transfer function, changing from %f to %f as V goes from "
                   "VThresh=%f to VThresh+VWidth=%f\n",
@@ -282,7 +285,8 @@ int ANNLayer::setVertices() {
       vectorV.push_back((pvpotentialdata_t)0);
       vectorA.push_back(-AShift);
       slopeNegInf = 1.0f;
-   } else {
+   }
+   else {
       assert(VWidth >= (pvpotentialdata_t)0);
       if (VWidth == (pvpotentialdata_t)0
           && (pvadata_t)VThresh - AShift
@@ -290,7 +294,8 @@ int ANNLayer::setVertices() {
          numVertices = 1;
          vectorV.push_back(VThresh);
          vectorA.push_back(AMin);
-      } else {
+      }
+      else {
          numVertices = 2;
          vectorV.push_back(VThresh);
          vectorV.push_back(VThresh + VWidth);
@@ -306,7 +311,8 @@ int ANNLayer::setVertices() {
          vectorV.push_back(vectorV[numVertices - 1] + (pvpotentialdata_t)interval);
          vectorA.push_back(AMax);
          numVertices++;
-      } else {
+      }
+      else {
          // find the last vertex where A < AMax.
          bool found = false;
          int v;
@@ -327,7 +333,8 @@ int ANNLayer::setVertices() {
             // In principle, there could be a case where a vertex n has A[n]>AMax but A[n-1] and
             // A[n+1] are both < AMax.
             // But with the current ANNLayer parameters, that won't happen.
-         } else {
+         }
+         else {
             // All vertices have A>=AMax.
             // If slopeNegInf is positive, transfer function should increase from -infinity to AMax,
             // and then stays constant.
@@ -340,7 +347,8 @@ int ANNLayer::setVertices() {
                pvpotentialdata_t intervalV = (pvpotentialdata_t)(intervalA / slopeNegInf);
                vectorV[0]                  = vectorV[0] - intervalV;
                vectorA[0]                  = AMax;
-            } else {
+            }
+            else {
                // Everything everywhere is above AMax, so make the transfer function a constant
                // A=AMax.
                vectorA.resize(1);
@@ -384,7 +392,8 @@ void ANNLayer::setSlopes() {
       float V2 = verticesV[k];
       if (V1 != V2) {
          slopes[k] = (verticesA[k] - verticesA[k - 1]) / (V2 - V1);
-      } else {
+      }
+      else {
          slopes[k] = verticesA[k] > verticesA[k - 1]
                            ? std::numeric_limits<float>::infinity()
                            : verticesA[k] < verticesA[k - 1]
@@ -459,7 +468,8 @@ int ANNLayer::updateState(double time, double dt) {
             num_channels,
             gSynHead,
             A);
-   } else {
+   }
+   else {
       ANNLayer_threshminmax_update_state(
             nbatch,
             num_neurons,

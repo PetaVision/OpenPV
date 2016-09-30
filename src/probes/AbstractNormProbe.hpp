@@ -129,8 +129,8 @@ class AbstractNormProbe : public LayerProbe {
    bool singleFeatureMask;
 
    double timeLastComputed; // the value of the input argument timevalue for the most recent
-                            // getValues() call.  Calls to getValue() do not set or refer to this
-                            // time.
+   // getValues() call.  Calls to getValue() do not set or refer to this
+   // time.
 
 }; // end class AbstractNormProbe
 

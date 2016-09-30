@@ -42,10 +42,12 @@ int InputLayer::allocateDataStructures() {
                      timestampFilename.c_str());
                mTimestampFile =
                      PV::PV_fopen(timestampFilename.c_str(), "w", parent->getVerifyWrites());
-            } else {
+            }
+            else {
                mTimestampFile = PV::PV_fopen(timestampFilename.c_str(), "r+", false);
             }
-         } else {
+         }
+         else {
             mTimestampFile =
                   PV::PV_fopen(timestampFilename.c_str(), "w", parent->getVerifyWrites());
          }
@@ -75,7 +77,8 @@ int InputLayer::allocateDataStructures() {
       std::vector<int> tempIndices = mBatchIndexer->getIndices();
       nextInput(parent->simulationTime(), 0);
       mBatchIndexer->setIndices(tempIndices);
-   } else {
+   }
+   else {
       nextInput(parent->simulationTime(), 0);
    }
 
@@ -128,7 +131,8 @@ int InputLayer::updateState(double time, double dt) {
                outStrStream << "[" << getName() << "] time: " << time << ", batch: " << b + kb0
                             << ", index: " << batchIndices.at(b) << ","
                             << mFileList.at(batchIndices.at(b)) << "\n";
-            } else {
+            }
+            else {
                outStrStream << "[" << getName() << "] time: " << time << ", batch: " << b + kb0
                             << ", index: " << batchIndices.at(b) << "\n";
             }
@@ -175,7 +179,8 @@ int InputLayer::scatterInput(int batchIndex) {
    if (rank == 0) {
       croppedBuffer = mInputData.at(batchIndex);
       BufferUtils::scatter<float>(parent->getCommunicator(), croppedBuffer, loc->nx, loc->ny);
-   } else {
+   }
+   else {
       croppedBuffer.resize(activityWidth, activityHeight, loc->nf);
       BufferUtils::scatter<float>(parent->getCommunicator(), croppedBuffer, loc->nx, loc->ny);
    }
@@ -223,7 +228,8 @@ void InputLayer::fitBufferToLayer(Buffer<float> &buffer) {
       BufferUtils::rescale(
             buffer, targetWidth, targetHeight, mRescaleMethod, mInterpolationMethod, mAnchor);
       buffer.translate(-mOffsetX, -mOffsetY);
-   } else {
+   }
+   else {
       buffer.grow(targetWidth, targetHeight, mAnchor);
       buffer.translate(-mOffsetX, -mOffsetY);
       buffer.crop(targetWidth, targetHeight, mAnchor);
@@ -281,12 +287,14 @@ int InputLayer::postProcess(double timef, double dt) {
                for (int k = 0; k < numExtended; k++) {
                   buf[k] = 0.0f;
                }
-            } else {
+            }
+            else {
                for (int k = 0; k < numExtended; k++) {
                   buf[k] /= image_std;
                }
             }
-         } else {
+         }
+         else {
             float image_max = -FLT_MAX;
             float image_min = FLT_MAX;
             for (int k = 0; k < numExtended; k++) {
@@ -313,7 +321,8 @@ int InputLayer::postProcess(double timef, double dt) {
                   buf[k] -= image_min;
                   buf[k] *= image_stretch;
                }
-            } else {
+            }
+            else {
                for (int k = 0; k < numExtended; k++) {
                   buf[k] = 0.0f;
                }
@@ -445,7 +454,8 @@ int InputLayer::checkpointWrite(const char *cpDir) {
             "FrameNumbers",
             static_cast<int *>(mBatchIndexer->getIndices().data()),
             parent->getNBatch());
-   } else {
+   }
+   else {
       // This is just to line up MPI calls
       int *garbage = static_cast<int *>(calloc(parent->getNBatch(), sizeof(int)));
       parent->writeArrayToFile(cpDir, getName(), "FrameNumbers", garbage, parent->getNBatch());
@@ -464,7 +474,8 @@ int InputLayer::checkValidAnchorString(const char *offsetAnchor) {
    int status = PV_SUCCESS;
    if (offsetAnchor == NULL || strlen(offsetAnchor) != (size_t)2) {
       status = PV_FAILURE;
-   } else {
+   }
+   else {
       char xOffsetAnchor = offsetAnchor[1];
       if (xOffsetAnchor != 'l' && xOffsetAnchor != 'c' && xOffsetAnchor != 'r') {
          status = PV_FAILURE;
@@ -490,7 +501,8 @@ void InputLayer::ioParam_inputPath(enum ParamsIOFlag ioFlag) {
       if (mInputPath.size() > txt.size()
           && mInputPath.compare(mInputPath.size() - txt.size(), txt.size(), txt) == 0) {
          mUsingFileList = true;
-      } else {
+      }
+      else {
          mUsingFileList = false;
       }
    }
@@ -517,23 +529,32 @@ void InputLayer::ioParam_offsetAnchor(enum ParamsIOFlag ioFlag) {
       }
       if (strcmp(offsetAnchor, "tl") == 0) {
          mAnchor = Buffer<float>::NORTHWEST;
-      } else if (strcmp(offsetAnchor, "tc") == 0) {
+      }
+      else if (strcmp(offsetAnchor, "tc") == 0) {
          mAnchor = Buffer<float>::NORTH;
-      } else if (strcmp(offsetAnchor, "tr") == 0) {
+      }
+      else if (strcmp(offsetAnchor, "tr") == 0) {
          mAnchor = Buffer<float>::NORTHEAST;
-      } else if (strcmp(offsetAnchor, "cl") == 0) {
+      }
+      else if (strcmp(offsetAnchor, "cl") == 0) {
          mAnchor = Buffer<float>::WEST;
-      } else if (strcmp(offsetAnchor, "cc") == 0) {
+      }
+      else if (strcmp(offsetAnchor, "cc") == 0) {
          mAnchor = Buffer<float>::CENTER;
-      } else if (strcmp(offsetAnchor, "cr") == 0) {
+      }
+      else if (strcmp(offsetAnchor, "cr") == 0) {
          mAnchor = Buffer<float>::EAST;
-      } else if (strcmp(offsetAnchor, "bl") == 0) {
+      }
+      else if (strcmp(offsetAnchor, "bl") == 0) {
          mAnchor = Buffer<float>::SOUTHWEST;
-      } else if (strcmp(offsetAnchor, "bc") == 0) {
+      }
+      else if (strcmp(offsetAnchor, "bc") == 0) {
          mAnchor = Buffer<float>::SOUTH;
-      } else if (strcmp(offsetAnchor, "br") == 0) {
+      }
+      else if (strcmp(offsetAnchor, "br") == 0) {
          mAnchor = Buffer<float>::SOUTHEAST;
-      } else {
+      }
+      else {
          if (parent->columnId() == 0) {
             pvErrorNoExit().printf(
                   "%s: offsetAnchor must be a two-letter string.  The first character must be "
@@ -545,7 +566,8 @@ void InputLayer::ioParam_offsetAnchor(enum ParamsIOFlag ioFlag) {
          exit(EXIT_FAILURE);
       }
       free(offsetAnchor);
-   } else { // Writing
+   }
+   else { // Writing
       // The opposite of above. Find a better way to do this that isn't so gross
       char *offsetAnchor = (char *)calloc(3, sizeof(char));
       offsetAnchor[2]    = '\0';
@@ -601,9 +623,11 @@ void InputLayer::ioParam_aspectRatioAdjustment(enum ParamsIOFlag ioFlag) {
       }
       if (strcmp(aspectRatioAdjustment, "crop") == 0) {
          mRescaleMethod = BufferUtils::CROP;
-      } else if (strcmp(aspectRatioAdjustment, "pad") == 0) {
+      }
+      else if (strcmp(aspectRatioAdjustment, "pad") == 0) {
          mRescaleMethod = BufferUtils::PAD;
-      } else {
+      }
+      else {
          if (parent->columnId() == 0) {
             pvErrorNoExit().printf(
                   "%s: aspectRatioAdjustment must be either \"crop\" or \"pad\".\n",
@@ -634,12 +658,12 @@ void InputLayer::ioParam_interpolationMethod(enum ParamsIOFlag ioFlag) {
          }
          if (!strncmp(interpolationMethodString, "bicubic", strlen("bicubic"))) {
             mInterpolationMethod = BufferUtils::BICUBIC;
-         } else if (!strncmp(
-                          interpolationMethodString,
-                          "nearestneighbor",
-                          strlen("nearestneighbor"))) {
+         }
+         else if (!strncmp(
+                        interpolationMethodString, "nearestneighbor", strlen("nearestneighbor"))) {
             mInterpolationMethod = BufferUtils::NEAREST;
-         } else {
+         }
+         else {
             if (parent->columnId() == 0) {
                pvErrorNoExit().printf(
                      "%s: interpolationMethod must be either \"bicubic\" or \"nearestNeighbor\".\n",
@@ -648,7 +672,8 @@ void InputLayer::ioParam_interpolationMethod(enum ParamsIOFlag ioFlag) {
             MPI_Barrier(parent->getCommunicator()->communicator());
             exit(EXIT_FAILURE);
          }
-      } else {
+      }
+      else {
          assert(ioFlag == PARAMS_IO_WRITE);
          switch (mInterpolationMethod) {
             case BufferUtils::BICUBIC: interpolationMethodString = strdup("bicubic"); break;
@@ -717,11 +742,14 @@ void InputLayer::ioParam_batchMethod(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamString(ioFlag, name, "batchMethod", &batchMethod, "byFile");
    if (strcmp(batchMethod, "byImage") == 0 || strcmp(batchMethod, "byFile") == 0) {
       mBatchMethod = BatchIndexer::BYFILE;
-   } else if (strcmp(batchMethod, "byMovie") == 0 || strcmp(batchMethod, "byList") == 0) {
+   }
+   else if (strcmp(batchMethod, "byMovie") == 0 || strcmp(batchMethod, "byList") == 0) {
       mBatchMethod = BatchIndexer::BYLIST;
-   } else if (strcmp(batchMethod, "bySpecified") == 0) {
+   }
+   else if (strcmp(batchMethod, "bySpecified") == 0) {
       mBatchMethod = BatchIndexer::BYSPECIFIED;
-   } else {
+   }
+   else {
       pvError() << getName() << ": Input layer " << name << " batchMethod not recognized. Options "
                                                             "are \"byFile\", \"byList\", and "
                                                             "\"bySpecified\"\n.";
@@ -765,7 +793,8 @@ void InputLayer::ioParam_skip_frame_index(enum ParamsIOFlag ioFlag) {
          for (int i = 0; i < length; ++i) {
             paramsSkipFrameIndex[i] = mSkipFrameIndex.at(i);
          }
-      } else {
+      }
+      else {
          return;
       }
    }

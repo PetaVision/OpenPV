@@ -13,7 +13,7 @@ NormalizeBase::NormalizeBase() { initialize_base(); }
 
 NormalizeBase::~NormalizeBase() {
    free(connectionList); // normalizer does not own the individual connections in the list, so don't
-                         // free them
+   // free them
 }
 
 int NormalizeBase::initialize_base() {
@@ -47,7 +47,8 @@ int NormalizeBase::setDescription() {
          name, "normalizeMethod", false /*do not warn if absent*/);
    if (method == nullptr) {
       description.append("weight normalizer ");
-   } else {
+   }
+   else {
       description.append(method);
    }
    description.append(" \"").append(name).append("\"");
@@ -107,9 +108,11 @@ int NormalizeBase::normalizeWeightsWrapper() {
    bool needUpdate = false;
    if (normalizeOnInitialize && simTime == parent->getStartTime()) {
       needUpdate = true;
-   } else if (!normalizeOnWeightUpdate) {
+   }
+   else if (!normalizeOnWeightUpdate) {
       needUpdate = false;
-   } else {
+   }
+   else {
       for (int k = 0; k < this->numConnections; k++) {
          HyPerConn *callingConn = connectionList[k];
          if (simTime == callingConn->getLastUpdateTime()) {
@@ -251,7 +254,8 @@ int NormalizeBase::addConnToList(HyPerConn *newConn) {
    if (connectionList) {
       newList =
             (HyPerConn **)realloc(connectionList, sizeof(*connectionList) * (numConnections + 1));
-   } else {
+   }
+   else {
       newList = (HyPerConn **)malloc(sizeof(*connectionList) * (numConnections + 1));
    }
    if (newList == NULL) {

@@ -29,7 +29,7 @@ class Secretary : public Subject {
    struct TimeInfo {
       double mSimTime                 = 0.0;
       long int mCurrentCheckpointStep = -1L; // increments at start of each checkpoint; the first
-                                             // time checkpointWrite the step number will be zero.
+      // time checkpointWrite the step number will be zero.
    };
    class ProcessCheckpointReadMessage : public BaseMessage {
      public:
@@ -97,9 +97,9 @@ class Secretary : public Subject {
    std::string mName;
    Communicator *mCommunicator = nullptr;
    std::vector<std::shared_ptr<CheckpointEntry>> mCheckpointRegistry; // Needs to be a vector so
-                                                                      // that each MPI process
-                                                                      // iterates over the entries
-                                                                      // in the same order.
+   // that each MPI process
+   // iterates over the entries
+   // in the same order.
    ObserverTable mObserverTable;
    TimeInfo mTimeInfo;
    std::shared_ptr<CheckpointEntryData<TimeInfo>> mTimeInfoCheckpointEntry = nullptr;
@@ -127,7 +127,7 @@ class Secretary : public Subject {
    int mOldCheckpointDirectoriesIndex =
          0; // A pointer to the oldest checkpoint in the mOldCheckpointDirectories vector.
    std::vector<std::string> mOldCheckpointDirectories; // A ring buffer of existing checkpoints,
-                                                       // used if mDeleteOlderCheckpoints is true.
+   // used if mDeleteOlderCheckpoints is true.
 
    static std::string const mDefaultOutputPath;
 };

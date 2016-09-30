@@ -38,7 +38,8 @@ class LogFileStream {
          }
          mCreatedWithNew = true;
          free(realPath);
-      } else {
+      }
+      else {
          mStream         = &mDefaultStream;
          mCreatedWithNew = false;
       }
@@ -79,7 +80,8 @@ void setLogFile(char const *logFile, std::ios_base::openmode mode) {
    outputLogFileStream.setStream(logFile, mode);
    if (logFile) {
       errorLogFileStream.setStream(&getOutputStream());
-   } else {
+   }
+   else {
       errorLogFileStream.setStream(logFile, mode);
    }
 }
@@ -88,7 +90,8 @@ void setWLogFile(char const *logFile, std::ios_base::openmode mode) {
    outputLogFileWStream.setStream(logFile, mode);
    if (logFile) {
       errorLogFileWStream.setStream(&getWOutputStream());
-   } else {
+   }
+   else {
       errorLogFileWStream.setStream(logFile, mode);
    }
 }

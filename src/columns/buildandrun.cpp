@@ -76,7 +76,8 @@ int buildandrun(
                         ? status
                         : PV_FAILURE;
       }
-   } else {
+   }
+   else {
       if (initObj->getCommunicator()->numCommBatches() > 1) {
          initObj->getParams()->setBatchSweepValues();
       }

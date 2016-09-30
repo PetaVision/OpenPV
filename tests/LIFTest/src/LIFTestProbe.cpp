@@ -66,8 +66,8 @@ int LIFTestProbe::initLIFTestProbe(const char *probeName, HyPerCol *hc) {
                  0.05482686550202272}; // Standard deviations of each bin at t=1000.
    // Note: s[] was determined by running the test 100 times for t=2000ms.
    int c[] = {316, 400, 548, 712, 852}; // Number of pixels that fall into each bin // TODO
-                                        // calculate on the fly based on layer size and bin
-                                        // boundaries
+   // calculate on the fly based on layer size and bin
+   // boundaries
 
    // Bins are r<10, 10<=r<15, 15<=r<20, 20<=r<25, and 25<=r<30.
    for (int k = 0; k < LIFTESTPROBE_BINS; k++) {
@@ -178,7 +178,8 @@ int LIFTestProbe::outputState(double timed) {
             }
          }
       }
-   } else {
+   }
+   else {
       MPI_Reduce(
             rates,
             rates,

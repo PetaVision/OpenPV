@@ -42,7 +42,7 @@ class LIFTestProbe : public StatsProbe {
 
    double endingTime; // The time, in the same units dt is in, at which to stop the test.
    double tolerance; // Number of standard deviations that the observed rates can differ from the
-                     // expected rates.
+   // expected rates.
 };
 
 } /* namespace PV */

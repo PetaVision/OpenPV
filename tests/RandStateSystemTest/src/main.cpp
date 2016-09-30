@@ -68,14 +68,16 @@ int main(int argc, char *argv[]) {
    if (status == EXIT_SUCCESS) {
       pvInfo().printf(
             "Test complete.  %s passed on process rank %d.\n", initObj.getProgramName(), rank);
-   } else {
+   }
+   else {
       pvErrorNoExit().printf(
             "Test complete.  %s FAILED on process rank %d.\n", initObj.getProgramName(), rank);
    }
 #else
    if (status == EXIT_SUCCESS) {
       pvInfo().printf("Test complete.  %s passed.\n", initObj.getProgramName());
-   } else {
+   }
+   else {
       pvErrorNoExit().printf("Test complete.  %s FAILED.\n", initObj.getProgramName());
    }
 #endif // PV_USE_MPI

@@ -117,7 +117,8 @@ void IdentConn::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
             MPI_Barrier(parent->getCommunicator()->communicator());
             exit(EXIT_FAILURE);
          }
-      } else {
+      }
+      else {
          writeStep = -1.0;
          parent->parameters()->handleUnnecessaryParameter(name, "writeStep");
       }
@@ -261,7 +262,7 @@ int IdentConn::communicateInitInfo() {
    }
    parent->parameters()->handleUnnecessaryParameter(
          name, "nfp", nfp); // nfp is set during call to HyPerConn::communicateInitInfo, so don't
-                            // check for unnecessary int parameter until after that.
+   // check for unnecessary int parameter until after that.
    return status;
 }
 
@@ -321,15 +322,16 @@ int IdentConn::deliverPresynapticPerspective(PVLayerCube const *activity, int ar
             PVPatch *weights = getWeights(kPre, arborID);
             if (weights->nx > 0 && weights->ny > 0) {
                int f = featureIndex(kPre, preLoc->nx, preLoc->ny, preLoc->nf); // Not taking halo
-                                                                               // into account, but
-                                                                               // for feature index,
-                                                                               // shouldn't matter.
+               // into account, but
+               // for feature index,
+               // shouldn't matter.
                pvgsyndata_t *postPatchStart =
                      gSynPatchHeadBatch + getGSynPatchStart(kPre, arborID) + f;
                *postPatchStart += a;
             }
          }
-      } else {
+      }
+      else {
          PVLayerLoc const *loc = &activity->loc;
          PVHalo const *halo    = &loc->halo;
          // The code below is a replacement for the block marked obsolete below it.  Jan 5, 2016
@@ -347,7 +349,7 @@ int IdentConn::deliverPresynapticPerspective(PVLayerCube const *activity, int ar
             }
          }
 #ifdef OBSOLETE // Marked obsolete Jan 5, 2016.  IdentConn is simple enough that we shouldn't need
-                // to call kIndexExtended inside the inner loop.
+         // to call kIndexExtended inside the inner loop.
          int numRestricted = loc->nx * loc->ny * loc->nf;
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for

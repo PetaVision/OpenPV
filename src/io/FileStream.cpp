@@ -46,14 +46,16 @@ void FileStream::openFile(char const *path, std::ios_base::openmode mode, bool v
       pvWarn() << "Failed to open \"" << fullPath << "\" on attempt " << attempts << "\n";
       if (attempts < mMaxAttempts) {
          sleep(1);
-      } else {
+      }
+      else {
          break;
       }
    }
    if (!mFStream.is_open()) {
       pvError() << "FileStream::openFile failure for \"" << fullPath
                 << "\": MAX_FILESYSTEMCALL_TRIES = " << mMaxAttempts << " exceeded.\n";
-   } else if (attempts > 0) {
+   }
+   else if (attempts > 0) {
       pvWarn() << "FileStream::openFile succeeded for \"" << fullPath << "\" on attempt "
                << attempts + 1 << "\n";
    }
@@ -62,7 +64,8 @@ void FileStream::openFile(char const *path, std::ios_base::openmode mode, bool v
       mVerifyWrites = true;
       if (binary()) {
          mWriteVerifier = new FileStream(path, std::ios_base::in | std::ios_base::binary, false);
-      } else {
+      }
+      else {
          mWriteVerifier = new FileStream(path, std::ios_base::in, false);
       }
    }
@@ -115,7 +118,8 @@ void FileStream::read(void *data, long length) {
 void FileStream::setOutPos(long pos, bool fromBeginning) {
    if (!fromBeginning) {
       mFStream.seekp(pos, std::ios_base::cur);
-   } else {
+   }
+   else {
       mFStream.seekp(pos);
    }
    verifyFlags("setOutPos");
@@ -124,7 +128,8 @@ void FileStream::setOutPos(long pos, bool fromBeginning) {
 void FileStream::setInPos(long pos, bool fromBeginning) {
    if (!fromBeginning) {
       mFStream.seekg(pos, std::ios_base::cur);
-   } else {
+   }
+   else {
       mFStream.seekg(pos);
    }
    verifyFlags("setInPos");

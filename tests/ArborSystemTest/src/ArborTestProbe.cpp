@@ -63,11 +63,14 @@ int ArborTestProbe::outputState(double timed) {
    for (int b = 0; b < getParent()->getNBatch(); b++) {
       if (timed == 1.0) {
          pvErrorIf(!((avg[b] > 0.2499f) && (avg[b] < 0.2501f)), "Test failed.\n");
-      } else if (timed == 2.0) {
+      }
+      else if (timed == 2.0) {
          pvErrorIf(!((avg[b] > 0.4999f) && (avg[b] < 0.5001f)), "Test failed.\n");
-      } else if (timed == 3.0) {
+      }
+      else if (timed == 3.0) {
          pvErrorIf(!((avg[b] > 0.7499f) && (avg[b] < 0.7501f)), "Test failed.\n");
-      } else if (timed > 3.0) {
+      }
+      else if (timed > 3.0) {
          pvErrorIf(!((fMin[b] > 0.9999f) && (fMin[b] < 1.001f)), "Test failed.\n");
          pvErrorIf(!((fMax[b] > 0.9999f) && (fMax[b] < 1.001f)), "Test failed.\n");
          pvErrorIf(!((avg[b] > 0.9999f) && (avg[b] < 1.001f)), "Test failed.\n");

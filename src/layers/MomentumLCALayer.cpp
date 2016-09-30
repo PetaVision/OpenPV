@@ -51,7 +51,7 @@ MomentumLCALayer::~MomentumLCALayer() {}
 
 int MomentumLCALayer::initialize_base() {
    numChannels = 1; // If a connection connects to this layer on inhibitory channel,
-                    // HyPerLayer::requireChannel will add necessary channel
+   // HyPerLayer::requireChannel will add necessary channel
    timeConstantTau = 1.0;
    LCAMomentumRate = 0;
    // Locality in conn

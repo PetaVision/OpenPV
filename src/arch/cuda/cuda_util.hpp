@@ -14,7 +14,8 @@ namespace PVCuda {
 inline void handleError(cudaError_t error, const char *message) {
    if (error == cudaSuccess) {
       return;
-   } else {
+   }
+   else {
       pvError().printf("Cuda call error in %s: %s\n", message, cudaGetErrorString(error));
    }
 }

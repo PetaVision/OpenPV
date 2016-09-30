@@ -481,8 +481,8 @@ class HyPerLayer : public BaseLayer {
    virtual int communicateInitInfo() override;
    virtual int allocateDataStructures() override;
    virtual int initializeState() final; // Not overridable since all layers should respond to
-                                        // initializeFromCheckpointFlag and (deprecated) restartFlag
-                                        // in the same way.
+   // initializeFromCheckpointFlag and (deprecated) restartFlag
+   // in the same way.
    // initializeState calls the virtual methods readStateFromCheckpoint(), and setInitialValues().
 
    int openOutputStateFile();
@@ -507,7 +507,7 @@ class HyPerLayer : public BaseLayer {
    int xmargin, ymargin;
 
    bool initializeFromCheckpointFlag; // Whether to load initial state using directory
-                                      // parent->getInitializeFromCheckpoint()
+   // parent->getInitializeFromCheckpoint()
    bool restartFlag;
 
    int numProbes;
@@ -515,7 +515,7 @@ class HyPerLayer : public BaseLayer {
 
    int phase; // All layers with phase 0 get updated before any with phase 1, etc.
    int numDelayLevels; // The number of timesteps in the datastore ring buffer to store older
-                       // timesteps for connections with delays
+   // timesteps for connections with delays
 
    bool mirrorBCflag; // true when mirror BC are to be applied
    pvdata_t valueBC; // If mirrorBCflag is false, the value of A to fill extended cells with
@@ -528,22 +528,22 @@ class HyPerLayer : public BaseLayer {
 
    bool sparseLayer; // if true, only nonzero activities are saved; if false, all values are saved.
    bool writeSparseValues; // if true, sparseLayer writes index-value pairs.  if false, sparseLayer
-                           // writes indices only and values are assumed to be 1.  Not used if
-                           // sparseLayer is false
+   // writes indices only and values are assumed to be 1.  Not used if
+   // sparseLayer is false
    int writeActivityCalls; // Number of calls to writeActivity (written to nbands in the header of
-                           // the a%d.pvp file)
+   // the a%d.pvp file)
    int writeActivitySparseCalls; // Number of calls to writeActivitySparse (written to nbands in the
-                                 // header of the a%d.pvp file)
+   // header of the a%d.pvp file)
 
    int *marginIndices; // indices of neurons in margin
    int numMargin; // number of neurons in margin
    float maxRate; // Maximum rate of activity.  HyPerLayer sets to 1/dt during initialize(); derived
-                  // classes should override in their own initialize method after calling
-                  // HyPerLayer's, if needed.
+   // classes should override in their own initialize method after calling
+   // HyPerLayer's, if needed.
 
    unsigned int rngSeedBase; // The starting seed for rng.  The parent HyPerCol reserves
-                             // {rngSeedbase, rngSeedbase+1,...rngSeedbase+neededRNGSeeds-1} for use
-                             // by this layer
+   // {rngSeedbase, rngSeedbase+1,...rngSeedbase+neededRNGSeeds-1} for use
+   // by this layer
 
    InitV *initVObject;
 
@@ -555,17 +555,17 @@ class HyPerLayer : public BaseLayer {
    //  variable to allow quick testing of whether we're triggering.  It is set during
    //  ioParam_triggerLayerName.
    bool triggerFlag; // Whether the layer has different behavior in response to another layer's
-                     // update.
+   // update.
    char *triggerLayerName; // The layer that triggers different behavior.  To turn triggering off,
-                           // set this parameter to NULL or ""
+   // set this parameter to NULL or ""
    char *triggerBehavior; // Specifies how to respond to a trigger.  Current values are
-                          // "updateOnlyOnTrigger" or "resetStateOnTrigger"
+   // "updateOnlyOnTrigger" or "resetStateOnTrigger"
    TriggerBehaviorType triggerBehaviorType;
    char *triggerResetLayerName; // If triggerBehavior is "resetStateOnTrigger", specifies the layer
-                                // to use in resetting values.
+   // to use in resetting values.
    double triggerOffset; // Adjust the timestep when the trigger is receieved by this amount; must
-                         // be >=0.  A positive value means the trigger occurs before the
-                         // triggerLayerName layer updates.
+   // be >=0.  A positive value means the trigger occurs before the
+   // triggerLayerName layer updates.
    HyPerLayer *triggerLayer;
    HyPerLayer *triggerResetLayer;
 

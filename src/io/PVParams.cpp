@@ -102,7 +102,8 @@ int ParameterArray::setName(const char *name) {
       free(paramName);
       paramName    = strdup(name);
       paramNameSet = true;
-   } else {
+   }
+   else {
       pvErrorNoExit().printf(
             "ParameterArray::setName called with \"%s\" but name is already set to \"%s\"\n",
             name,
@@ -284,7 +285,8 @@ int ParameterStringStack::push(ParameterString *param) {
 ParameterString *ParameterStringStack::pop() {
    if (count > 0) {
       return parameterStrings[count--];
-   } else
+   }
+   else
       return NULL;
 }
 
@@ -690,7 +692,8 @@ int ParameterSweep::setGroupAndParameter(const char *groupname, const char *para
       }
       errorMessage.printf("\n");
       status = PV_FAILURE;
-   } else {
+   }
+   else {
       groupName = strdup(groupname);
       paramName = strdup(parametername);
       // Check for duplicates
@@ -759,7 +762,8 @@ int ParameterSweep::getNumericValue(int n, double *val) {
    assert(valuesNumber != NULL);
    if (type != SWEEP_NUMBER || n < 0 || n >= numValues) {
       status = PV_FAILURE;
-   } else {
+   }
+   else {
       *val = valuesNumber[n];
    }
    return status;
@@ -910,7 +914,8 @@ int PVParams::parseFile(const char *filename) {
          MPI_Send(paramBuffer, (int)bufferlen, MPI_CHAR, i, 31, icComm->globalCommunicator());
       }
 #endif // PV_USE_MPI
-   } else { // rank != rootproc
+   }
+   else { // rank != rootproc
 #ifdef PV_USE_MPI
       MPI_Status mpi_status;
       int count;
@@ -987,7 +992,8 @@ void PVParams::loadParamBuffer(char const *filename, std::string &paramsFileStri
       lua_close(lua_state);
       pvInfo() << "Retrieved paramsFileString, with length " << llength << ".\n";
 #endif // PV_USE_LUA
-   } else {
+   }
+   else {
       off_t sz = filestatus.st_size;
       std::ifstream paramsStream(filename, std::ios_base::in);
       if (paramsStream.fail()) {
@@ -1055,9 +1061,9 @@ int PVParams::parseBuffer(char const *buffer, long int bufferLength) {
    getOutputStream().flush();
 
    setParameterSweepSize(); // Need to set sweepSize here, because if the outputPath sweep needs to
-                            // be created we need to know the size.
+   // be created we need to know the size.
    setBatchSweepSize(); // Need to set sweepSize here, because if the outputPath sweep needs to be
-                        // created we need to know the size.
+   // created we need to know the size.
 
    // If there is at least one ParameterSweep  and none of them set outputPath, create a
    // parameterSweep that does set outputPath.
@@ -1315,7 +1321,8 @@ int PVParams::setBatchSweepSize() {
    for (int k = 0; k < numBatchSweeps; k++) {
       if (batchSweepSize < 0) {
          batchSweepSize = this->batchSweeps[k]->getNumValues();
-      } else {
+      }
+      else {
          if (batchSweepSize != this->batchSweeps[k]->getNumValues()) {
             pvErrorNoExit().printf("PVParams::setBatchSweepSize: all BatchSweeps in the parameters "
                                    "file must have the same number of entries.\n");
@@ -1372,7 +1379,8 @@ int PVParams::setParameterSweepSize() {
    for (int k = 0; k < this->numberOfParameterSweeps(); k++) {
       if (parameterSweepSize < 0) {
          parameterSweepSize = this->paramSweeps[k]->getNumValues();
-      } else {
+      }
+      else {
          if (parameterSweepSize != this->paramSweeps[k]->getNumValues()) {
             pvErrorNoExit().printf("PVParams::setParameterSweepSize: all ParameterSweeps in the "
                                    "parameters file must have the same number of entries.\n");
@@ -1497,9 +1505,11 @@ int PVParams::convertParamToInt(double value) {
    int y = 0;
    if (value >= (double)INT_MAX) {
       y = INT_MAX;
-   } else if (value <= (double)INT_MIN) {
+   }
+   else if (value <= (double)INT_MIN) {
       y = INT_MIN;
-   } else {
+   }
+   else {
       y = (int)nearbyint(value);
    }
    return y;
@@ -1517,7 +1527,8 @@ double PVParams::value(
       bool warnIfAbsent) {
    if (present(groupName, paramName)) {
       return value(groupName, paramName);
-   } else {
+   }
+   else {
       if (warnIfAbsent && worldRank == 0) {
          pvWarn().printf(
                "Using default value %f for parameter \"%s\" in group \"%s\"\n",
@@ -1619,7 +1630,8 @@ void PVParams::ioParamString(
       case PARAMS_IO_READ:
          if (stringPresent(groupName, paramName)) {
             paramString = stringValue(groupName, paramName, warnIfAbsent);
-         } else {
+         }
+         else {
             // parameter was not set in params file; use the default.  But default might or might
             // not be nullptr.
             if (icComm->commRank() == 0 && warnIfAbsent == true) {
@@ -1629,7 +1641,8 @@ void PVParams::ioParamString(
                         defaultValue,
                         paramName,
                         groupName);
-               } else {
+               }
+               else {
                   pvWarn().printf(
                         "Using default value of nullptr for string parameter \"%s\" in group "
                         "\"%s\"\n",
@@ -1648,7 +1661,8 @@ void PVParams::ioParamString(
                   paramName,
                   groupName,
                   strerror(errno));
-         } else {
+         }
+         else {
             *paramStringValue = nullptr;
          }
          break;
@@ -1674,7 +1688,8 @@ void PVParams::ioParamStringRequired(
                   paramName,
                   groupName,
                   strerror(errno));
-         } else {
+         }
+         else {
             if (icComm->globalCommRank() == 0) {
                pvErrorNoExit().printf(
                      "%s \"%s\": string parameter \"%s\" is required.\n",
@@ -1716,7 +1731,8 @@ PVParams::stringValue(const char *groupName, const char *paramStringName, bool w
    if (stringPresent(groupName, paramStringName)) {
       ParameterGroup *g = group(groupName);
       return g->stringValue(paramStringName);
-   } else {
+   }
+   else {
       if (warnIfAbsent && worldRank == 0) {
          pvWarn().printf(
                "No parameter string named \"%s\" in group \"%s\"\n", paramStringName, groupName);
@@ -1732,7 +1748,8 @@ void PVParams::writeParamString(const char *paramName, const char *svalue) {
       if (svalue != nullptr) {
          fprintf(mPrintParamsStream->fp, "    %-35s = \"%s\";\n", paramName, svalue);
          fprintf(mPrintLuaStream->fp, "    %-35s = \"%s\";\n", paramName, svalue);
-      } else {
+      }
+      else {
          fprintf(mPrintParamsStream->fp, "    %-35s = NULL;\n", paramName);
          fprintf(mPrintLuaStream->fp, "    %-35s = nil;\n", paramName);
       }
@@ -1953,15 +1970,15 @@ void PVParams::handleUnnecessaryStringParameter(const char *group_name, const ch
       }
       const char *params_value =
             stringValue(group_name, param_name, false /*warnIfAbsent*/); // marks param as read so
-                                                                         // that
-                                                                         // presentAndNotBeenRead
-                                                                         // doesn't trip up
+      // that
+      // presentAndNotBeenRead
+      // doesn't trip up
       assert(params_value);
    }
    const char *params_value =
          stringValue(group_name, param_name, false /*warnIfAbsent*/); // marks param as read so that
-                                                                      // presentAndNotBeenRead
-                                                                      // doesn't trip up
+   // presentAndNotBeenRead
+   // doesn't trip up
 }
 void PVParams::handleUnnecessaryStringParameter(
       const char *group_name,
@@ -1981,9 +1998,9 @@ void PVParams::handleUnnecessaryStringParameter(
       }
       const char *params_value =
             stringValue(group_name, param_name, false /*warnIfAbsent*/); // marks param as read so
-                                                                         // that
-                                                                         // presentAndNotBeenRead
-                                                                         // doesn't trip up
+      // that
+      // presentAndNotBeenRead
+      // doesn't trip up
       if (params_value != NULL && correct_value != NULL) {
          char *correct_value_i =
                strdup(correct_value); // need mutable strings for case-insensitive comparison
@@ -2034,7 +2051,8 @@ void PVParams::handleUnnecessaryStringParameter(
          }
          free(correct_value_i);
          free(params_value_i);
-      } else if (params_value == NULL && correct_value != NULL) {
+      }
+      else if (params_value == NULL && correct_value != NULL) {
          status = PV_FAILURE;
          if (worldRank == 0) {
             pvErrorNoExit().printf(
@@ -2045,7 +2063,8 @@ void PVParams::handleUnnecessaryStringParameter(
                   param_name,
                   correct_value);
          }
-      } else if (params_value != NULL && correct_value == NULL) {
+      }
+      else if (params_value != NULL && correct_value == NULL) {
          status = PV_FAILURE;
          if (worldRank == 0) {
             pvErrorNoExit().printf(
@@ -2056,7 +2075,8 @@ void PVParams::handleUnnecessaryStringParameter(
                   param_name,
                   params_value);
          }
-      } else {
+      }
+      else {
          assert(params_value == NULL && correct_value == NULL);
          assert(status == PV_SUCCESS);
       }
@@ -2079,22 +2099,26 @@ void PVParams::action_pvparams_directive(char *id, double val) {
          directiveMessage.printf("debugParsing turned ");
          if (debugParsing) {
             directiveMessage.printf("on.\n");
-         } else {
+         }
+         else {
             directiveMessage.printf("off.\n");
          }
       }
-   } else if (!strcmp(id, "disable")) {
+   }
+   else if (!strcmp(id, "disable")) {
       disable = (val != 0);
       if (worldRank == 0) {
          pvInfo(directiveMessage);
          directiveMessage.printf("Parsing params file ");
          if (disable) {
             directiveMessage.printf("disabled.\n");
-         } else {
+         }
+         else {
             directiveMessage.printf("enabled.\n");
          }
       }
-   } else {
+   }
+   else {
       if (worldRank == 0) {
          pvWarn().printf("Unrecognized directive %s = %f, skipping.\n", id, val);
       }
@@ -2274,7 +2298,7 @@ void PVParams::action_parameter_string_def(const char *id, const char *stringval
       exit(EXIT_FAILURE);
    char *param_value = stripQuotationMarks(stringval);
    assert(!stringval || param_value); // stringval can be null, but if stringval is not null,
-                                      // param_value should also be non-null
+   // param_value should also be non-null
    ParameterString *pstr = new ParameterString(id, param_value);
    stringStack->push(pstr);
    free(param_value);
@@ -2304,7 +2328,7 @@ void PVParams::action_parameter_string_def_overwrite(const char *id, const char 
    }
    char *param_value = stripQuotationMarks(stringval);
    assert(!stringval || param_value); // stringval can be null, but if stringval is not null,
-                                      // param_value should also be non-null
+   // param_value should also be non-null
    // Set to new value
    currParam->setValue(param_value);
    free(param_value);
@@ -2328,7 +2352,8 @@ void PVParams::action_parameter_filename_def(const char *id, const char *stringv
    if (param_value && param_value[0] == '~') {
       pstr = new ParameterString(id, filename);
       free(filename);
-   } else {
+   }
+   else {
       pstr = new ParameterString(id, param_value);
    }
    free(param_value);
@@ -2363,7 +2388,8 @@ void PVParams::action_parameter_filename_def_overwrite(const char *id, const cha
    char *filename = NULL;
    if (param_value && param_value[0] == '~') {
       currParam->setValue(filename);
-   } else {
+   }
+   else {
       currParam->setValue(param_value);
    }
    free(param_value);
@@ -2503,7 +2529,7 @@ void PVParams::action_parameter_sweep_values_string(const char *stringval) {
    }
    char *string = stripQuotationMarks(stringval);
    assert(!stringval || string); // stringval can be null, but if stringval is not null, string
-                                 // should also be non-null
+   // should also be non-null
    activeParamSweep->pushStringValue(string);
    free(string);
 }
@@ -2518,7 +2544,7 @@ void PVParams::action_batch_sweep_values_string(const char *stringval) {
    }
    char *string = stripQuotationMarks(stringval);
    assert(!stringval || string); // stringval can be null, but if stringval is not null, string
-                                 // should also be non-null
+   // should also be non-null
    activeBatchSweep->pushStringValue(string);
    free(string);
 }
@@ -2564,7 +2590,8 @@ int PVParams::checkDuplicates(const char *paramName, double val) {
                   paramName,
                   parm->name(),
                   val);
-         } else {
+         }
+         else {
             pvErrorNoExit().printf(
                   "Rank %d process: parameter name \"%s\" duplicates a previous parameter name "
                   "with inconsistent values (%f versus %f)\n",
@@ -2603,7 +2630,8 @@ int PVParams::checkDuplicates(const char *paramName, double val) {
       if (numberOfGroups() == 0) {
          pvErrorNoExit().printf(
                "Rank %d process: this is the first parameter group being parsed\n", worldRank);
-      } else {
+      }
+      else {
          pvErrorNoExit().printf(
                "Rank %d process: last parameter group successfully added was \"%s\"\n",
                worldRank,

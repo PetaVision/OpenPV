@@ -26,14 +26,18 @@ float SegmentifyTest::getTargetVal(int yi, int xi, int fi) {
       // Account for edge cases
       if (segmentLabel == 3 || segmentLabel == 6 || segmentLabel == 7 || segmentLabel == 8) {
          returnLabel = segmentLabel * 6;
-      } else if (segmentLabel == 9) {
+      }
+      else if (segmentLabel == 9) {
          returnLabel = segmentLabel * 4;
-      } else {
+      }
+      else {
          returnLabel = segmentLabel * 9;
       }
-   } else if (strcmp(inputMethod, "average") == 0 || strcmp(inputMethod, "max") == 0) {
+   }
+   else if (strcmp(inputMethod, "average") == 0 || strcmp(inputMethod, "max") == 0) {
       returnLabel = segmentLabel;
-   } else {
+   }
+   else {
       // Should never get here
       pvErrorIf(!(0), "Test failed.\n");
    }
@@ -51,25 +55,31 @@ int SegmentifyTest::checkOutputVals(int yi, int xi, int fi, float targetVal, flo
       int centX, centY;
       if (newXi == 0) {
          centX = 1;
-      } else if (newXi == 1) {
+      }
+      else if (newXi == 1) {
          centX = 4;
-      } else if (newXi == 2) {
+      }
+      else if (newXi == 2) {
          centX = 6;
       }
       if (newYi == 0) {
          centY = 1;
-      } else if (newYi == 1) {
+      }
+      else if (newYi == 1) {
          centY = 4;
-      } else if (newYi == 2) {
+      }
+      else if (newYi == 2) {
          centY = 6;
       }
 
       if (xi == centX && yi == centY) {
          pvErrorIf(!(actualVal == targetVal), "Test failed.\n");
-      } else {
+      }
+      else {
          pvErrorIf(!(actualVal == 0), "Test failed.\n");
       }
-   } else if (strcmp(outputMethod, "fill") == 0) {
+   }
+   else if (strcmp(outputMethod, "fill") == 0) {
       pvErrorIf(!(actualVal == targetVal), "Test failed.\n");
    }
    return PV_SUCCESS;

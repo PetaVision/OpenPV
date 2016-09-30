@@ -19,7 +19,7 @@ InitGaussianRandomWeights::InitGaussianRandomWeights() { initialize_base(); }
 
 InitGaussianRandomWeights::~InitGaussianRandomWeights() {
    gaussianRandState = NULL; // Don't delete. base class deletes randState, which gaussianRandState
-                             // is effectively a dynamic_cast of.
+   // is effectively a dynamic_cast of.
 }
 
 int InitGaussianRandomWeights::initialize_base() {
@@ -42,7 +42,8 @@ int InitGaussianRandomWeights::initRNGs(bool isKernel) {
    int status = PV_SUCCESS;
    if (isKernel) {
       gaussianRandState = new GaussianRandom(callingConn->getNumDataPatches());
-   } else {
+   }
+   else {
       gaussianRandState =
             new GaussianRandom(callingConn->preSynapticLayer()->getLayerLoc(), true /*isExtended*/);
    }

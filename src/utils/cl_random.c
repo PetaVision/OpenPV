@@ -114,7 +114,8 @@ float cl_box_muller(
    {
       y1                 = bm_state->last_value;
       bm_state->use_last = 0;
-   } else {
+   }
+   else {
       do {
          *(bm_state->state) = cl_random_get(*(bm_state->state));
          x1                 = 2.0 * bm_state->state->s0 / (double)CL_RANDOM_MAX - 1.0;

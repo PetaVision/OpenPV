@@ -36,7 +36,8 @@ int TestConnProbe::outputState(double timed) {
                   pvError() << "dataYStart[k]: " << dataYStart[k] << "\n";
                }
                pvErrorIf(!(fabsf(dataYStart[k] - 1) <= 0.01f), "Test failed.\n");
-            } else if (fabs(timed - 1) < (parent->getDeltaTime() / 2)) {
+            }
+            else if (fabs(timed - 1) < (parent->getDeltaTime() / 2)) {
                if (fabsf(dataYStart[k] - 1.375f) > 0.01f) {
                   pvError() << "dataYStart[k]: " << dataYStart[k] << "\n";
                }

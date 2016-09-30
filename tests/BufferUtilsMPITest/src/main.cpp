@@ -34,7 +34,8 @@ void testRestricted(int argc, char **argv) {
       vector<float> testData = {0, 0, 1, 1, 0, 0, 1, 1, 2, 2, 3, 3, 2, 2, 3, 3};
       dataBuffer.set(testData, 4, 4, 1);
       BufferUtils::scatter<float>(comm, dataBuffer, sliceX, sliceY);
-   } else {
+   }
+   else {
       dataBuffer.resize(sliceX, sliceY, 1);
       BufferUtils::scatter<float>(comm, dataBuffer, sliceX, sliceY);
    }
@@ -53,7 +54,8 @@ void testRestricted(int argc, char **argv) {
                (int)expected.at(i),
                (int)result.at(i));
       }
-   } else if (comm->commSize() == 2) {
+   }
+   else if (comm->commSize() == 2) {
       pvErrorIf(result.size() != 8, "Failed. Expected 8 values, found %d.\n", result.size());
       vector<float> expected = {0, 0, 1, 1, 0, 0, 1, 1};
       for (size_t i = 0; i < result.size(); ++i) {
@@ -64,7 +66,8 @@ void testRestricted(int argc, char **argv) {
                rank * 2 + (int)expected.at(i),
                (int)result.at(i));
       }
-   } else if (comm->commSize() == 4) {
+   }
+   else if (comm->commSize() == 4) {
       pvErrorIf(result.size() != 4, "Failed. Expected 4 values, found %d.\n", result.size());
       for (size_t i = 0; i < result.size(); ++i) {
          pvErrorIf(
@@ -73,7 +76,8 @@ void testRestricted(int argc, char **argv) {
                rank,
                (int)result.at(i));
       }
-   } else {
+   }
+   else {
       pvError() << "Failed. Must test using 1, 2, or 4 MPI processes.\n";
    }
 
@@ -117,7 +121,8 @@ void testExtended(int argc, char **argv) {
 
       dataBuffer.set(testData, 6, 6, 1);
       BufferUtils::scatter<float>(comm, dataBuffer, sliceX, sliceY);
-   } else {
+   }
+   else {
       // We have a 1 element margin on each side
       dataBuffer.resize(sliceX + 2, sliceY + 2, 1);
       BufferUtils::scatter<float>(comm, dataBuffer, sliceX, sliceY);
@@ -138,7 +143,8 @@ void testExtended(int argc, char **argv) {
                (int)expected.at(i),
                (int)result.at(i));
       }
-   } else if (comm->commSize() == 2) {
+   }
+   else if (comm->commSize() == 2) {
       pvErrorIf(result.size() != 4 * 6, "Failed. Expected 24 values, found %d.\n", result.size());
 
       vector<float> expected;
@@ -159,7 +165,8 @@ void testExtended(int argc, char **argv) {
                (int)expected.at(i),
                (int)result.at(i));
       }
-   } else if (comm->commSize() == 4) {
+   }
+   else if (comm->commSize() == 4) {
       pvErrorIf(result.size() != 4 * 4, "Failed. Expected 16 values, found %d.\n", result.size());
 
       vector<float> expected;
@@ -178,7 +185,8 @@ void testExtended(int argc, char **argv) {
                (int)expected.at(i),
                (int)result.at(i));
       }
-   } else {
+   }
+   else {
       pvError() << "Failed. Must test using 1, 2, or 4 MPI processes.\n";
    }
 

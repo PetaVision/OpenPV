@@ -35,7 +35,7 @@ class InitUniformRandomWeightsParams : public PV::InitRandomWeightsParams {
    float wMin;
    float wMax;
    float sparseFraction; // fraction of weights identically zero:  0 (default) -> no sparseness, 1
-                         // -> all weights == 0
+   // -> all weights == 0
 };
 
 } /* namespace PV */

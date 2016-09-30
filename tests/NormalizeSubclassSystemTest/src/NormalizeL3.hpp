@@ -29,7 +29,7 @@ class NormalizeL3 : public NormalizeMultiply {
    // Member variables
   protected:
    float minL3NormTolerated; // Error if sqrt(sum(|weights|^3)) in any patch is less than this
-                             // amount.
+   // amount.
 }; // end class NormalizeL3
 
 } // end namespace PV

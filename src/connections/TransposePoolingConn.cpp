@@ -55,9 +55,9 @@ int TransposePoolingConn::initialize(const char *name, HyPerCol *hc) {
    this->normalizer        = NULL;
 
    int status = BaseConnection::initialize(name, hc); // BaseConnection should *NOT* take
-                                                      // weightInitializer or weightNormalizer as
-                                                      // arguments, as it does not know about
-                                                      // InitWeights or NormalizeBase
+   // weightInitializer or weightNormalizer as
+   // arguments, as it does not know about
+   // InitWeights or NormalizeBase
 
    assert(parent);
    PVParams *inputParams = parent->parameters();
@@ -331,7 +331,7 @@ int TransposePoolingConn::communicateInitInfo() {
    }
    if (mPoolingType == PoolingConn::MAX && !mOriginalConn->needPostIndex()) {
 #ifdef PV_USE_CUDA // Hopefully the awkwardness of this macro management will go away once I clean
-                   // up this class.
+      // up this class.
       if (!receiveGpu)
 #endif // PV_USE_CUDA
       {
@@ -441,7 +441,8 @@ int TransposePoolingConn::setPatchSize() {
    nxp            = nxp_orig;
    if (xscaleDiff > 0) {
       nxp *= (int)pow(2, xscaleDiff);
-   } else if (xscaleDiff < 0) {
+   }
+   else if (xscaleDiff < 0) {
       nxp /= (int)pow(2, -xscaleDiff);
       assert(nxp_orig == nxp * pow(2, (float)(-xscaleDiff)));
    }
@@ -450,7 +451,8 @@ int TransposePoolingConn::setPatchSize() {
    nyp            = nyp_orig;
    if (yscaleDiff > 0) {
       nyp *= (int)pow(2, yscaleDiff);
-   } else if (yscaleDiff < 0) {
+   }
+   else if (yscaleDiff < 0) {
       nyp /= (int)pow(2, -yscaleDiff);
       assert(nyp_orig == nyp * pow(2, (float)(-yscaleDiff)));
    }
@@ -583,7 +585,7 @@ int TransposePoolingConn::updateState(double time, double dt) {
 
 double TransposePoolingConn::computeNewWeightUpdateTime(double time, double currentUpdateTime) {
    return weightUpdateTime; // TransposePoolingConn does not use weightUpdateTime to determine when
-                            // to update
+   // to update
 }
 
 int TransposePoolingConn::deliverPostsynapticPerspective(PVLayerCube const *activity, int arborID) {
@@ -641,7 +643,8 @@ int TransposePoolingConn::deliverPresynapticPerspective(PVLayerCube const *activ
       int numLoop;
       if (activity->isSparse) {
          numLoop = activity->numActive[b];
-      } else {
+      }
+      else {
          numLoop = numExtended;
       }
 
@@ -667,7 +670,8 @@ int TransposePoolingConn::deliverPresynapticPerspective(PVLayerCube const *activ
          int kPreExt;
          if (activity->isSparse) {
             kPreExt = activeIndicesBatch[loopIndex];
-         } else {
+         }
+         else {
             kPreExt = loopIndex;
          }
 
@@ -681,7 +685,8 @@ int TransposePoolingConn::deliverPresynapticPerspective(PVLayerCube const *activ
          if (thread_gSyn) {
             int ti        = omp_get_thread_num();
             gSynPatchHead = thread_gSyn[ti];
-         } else {
+         }
+         else {
             gSynPatchHead = gSynPatchHeadBatch;
          }
 #else // PV_USE_OPENMP_THREADS
@@ -758,7 +763,8 @@ int TransposePoolingConn::deliverPresynapticPerspective(PVLayerCube const *activ
             if (fabs(a) > fabs(gSynPatchHead[kPostLocalRes])) {
                gSynPatchHead[kPostLocalRes] = a;
             }
-         } else {
+         }
+         else {
             PVPatch *weights             = getWeights(kPreExt, arborID);
             const int nk                 = weights->nx * fPatchSize();
             const int ny                 = weights->ny;
@@ -771,7 +777,8 @@ int TransposePoolingConn::deliverPresynapticPerspective(PVLayerCube const *activ
             pvwdata_t w = 1.0f;
             if (mPoolingType == PoolingConn::MAX) {
                w = 1.0f;
-            } else if (mPoolingType == PoolingConn::MAX) {
+            }
+            else if (mPoolingType == PoolingConn::MAX) {
                float relative_XScale = pow(2, (post->getXScale() - pre->getXScale()));
                float relative_YScale = pow(2, (post->getYScale() - pre->getYScale()));
                float normVal         = nxp * nyp;
@@ -805,7 +812,8 @@ int TransposePoolingConn::deliverPresynapticPerspective(PVLayerCube const *activ
                }
                assert(maxMagIdx >= 0);
                gSynPatchHead[ni] = thread_gSyn[maxMagIdx][ni];
-            } else {
+            }
+            else {
                for (int ti = 0; ti < parent->getNumThreads(); ti++) {
                   gSynPatchHead[ni] += thread_gSyn[ti][ni];
                }

@@ -124,7 +124,7 @@ class QuotientColProbe : public ColProbe {
    // Member variables
   protected:
    char *valueDescription; // A string description of the quantity calculated by the probe, used by
-                           // outputHeader
+   // outputHeader
    char *numerator; // The name of the probe that supplies the numerator
    char *denominator; // The name of the probe that supplies the denominator
    BaseProbe *numerProbe; // A pointer to the probe that supplies the numerator.

@@ -62,15 +62,19 @@ int TestLayer::updateState(double timef, double dt) {
                int tsScale;
                if (xPatchIdx == 0 && yPatchIdx == 0) {
                   tsScale = 5;
-               } else if (xPatchIdx == 1 && yPatchIdx == 0) {
+               }
+               else if (xPatchIdx == 1 && yPatchIdx == 0) {
                   tsScale = 6;
-               } else if (xPatchIdx == 0 && yPatchIdx == 1) {
+               }
+               else if (xPatchIdx == 0 && yPatchIdx == 1) {
                   tsScale = 7;
-               } else if (xPatchIdx == 1 && yPatchIdx == 1) {
+               }
+               else if (xPatchIdx == 1 && yPatchIdx == 1) {
                   tsScale = 8;
                }
                expectedvalue = expectedvalue * tsScale;
-            } else {
+            }
+            else {
                expectedvalue = 0;
             }
 

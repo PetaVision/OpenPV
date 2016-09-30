@@ -53,7 +53,7 @@ HyPerCol::~HyPerCol() {
    PrintStream pStream(getOutputStream());
    writeTimers(pStream);
    int rank = globalRank(); // Need to save so that we know whether we're the process that does I/O,
-                            // even after deleting mCommunicator.
+   // even after deleting mCommunicator.
    for (auto iterator = mConnections.begin(); iterator != mConnections.end();) {
       delete *iterator;
       iterator = mConnections.erase(iterator);
@@ -205,7 +205,7 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
    }
 
 #ifdef PV_USE_MPI // Fail if there was a parsing error, but make sure nonroot processes don't kill
-                  // the root process before the root process reaches the syntax error
+   // the root process before the root process reaches the syntax error
    int parsedStatus;
    int rootproc = 0;
    if (globalRank() == rootproc) {
@@ -290,13 +290,15 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
                      "%s error: checkpoint read directory \"%s\" too long.\n",
                      programName,
                      cpDirString.c_str());
-            } else {
+            }
+            else {
                pvError().printf(
                      "%s error: checkpoint read directory \"%s\" is not a directory.\n",
                      programName,
                      cpDirString.c_str());
             }
-         } else if (mCheckpointWriteFlag) {
+         }
+         else if (mCheckpointWriteFlag) {
             // Last directory didn't exist; now look for mCheckpointWriteDir
             assert(mCheckpointWriteDir);
             cpDirString = mCheckpointWriteDir;
@@ -339,20 +341,23 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
                         "%s error: checkpoint read directory \"%s\" too long.\n",
                         programName,
                         cpDirString.c_str());
-               } else {
+               }
+               else {
                   pvError().printf(
                         "%s error: checkpoint read directory \"%s\" is not a directory.\n",
                         programName,
                         mCheckpointWriteDir);
                }
-            } else if (errno == ENOENT) {
+            }
+            else if (errno == ENOENT) {
                pvError().printf(
                      "%s error: restarting but neither Last nor checkpointWriteDir directory "
                      "\"%s\" exists.\n",
                      programName,
                      mCheckpointWriteDir);
             }
-         } else {
+         }
+         else {
             pvError().printf(
                   "%s: restarting but Last directory does not exist and checkpointWriteDir is not "
                   "defined (checkpointWrite=false)\n",
@@ -721,7 +726,8 @@ void HyPerCol::ioParam_outputPath(enum ParamsIOFlag ioFlag) {
                pvAssert(strval);
                mOutputPath = strdup(strval);
                pvAssert(mOutputPath != nullptr);
-            } else {
+            }
+            else {
                mOutputPath = strdup(DEFAULT_OUTPUT_PATH);
                pvAssert(mOutputPath != nullptr);
                pvWarn().printf(
@@ -756,7 +762,8 @@ void HyPerCol::ioParam_randomSeed(enum ParamsIOFlag ioFlag) {
          if (!mRandomSeed) {
             if (mParams->present(mName, "randomSeed")) {
                mRandomSeed = (unsigned long)mParams->value(mName, "randomSeed");
-            } else {
+            }
+            else {
                mRandomSeed = seedRandomFromWallClock();
             }
          }
@@ -799,7 +806,8 @@ void HyPerCol::ioParam_filenamesContainLayerNames(enum ParamsIOFlag ioFlag) {
       msg.append("(corresponding to filenamesContainLayerNames=2).\n");
       if (fccnValue == 2) {
          pvWarn() << msg;
-      } else {
+      }
+      else {
          pvError() << msg;
       }
    }
@@ -814,7 +822,8 @@ void HyPerCol::ioParam_filenamesContainConnectionNames(enum ParamsIOFlag ioFlag)
       msg.append("(corresponding to filenamesContainConnectionNames=2).\n");
       if (fccnValue == 2) {
          pvWarn() << msg;
-      } else {
+      }
+      else {
          pvError() << msg;
       }
    }
@@ -863,7 +872,8 @@ void HyPerCol::ioParam_checkpointWriteDir(enum ParamsIOFlag ioFlag) {
    if (mCheckpointWriteFlag) {
       parameters()->ioParamStringRequired(
             ioFlag, mName, "checkpointWriteDir", &mCheckpointWriteDir);
-   } else {
+   }
+   else {
       mCheckpointWriteDir = nullptr;
    }
 }
@@ -883,17 +893,20 @@ void HyPerCol::ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag) {
              || !strcmp(mCheckpointWriteTriggerModeString, "Step")
              || !strcmp(mCheckpointWriteTriggerModeString, "STEP")) {
             mCheckpointWriteTriggerMode = CPWRITE_TRIGGER_STEP;
-         } else if (
+         }
+         else if (
                !strcmp(mCheckpointWriteTriggerModeString, "time")
                || !strcmp(mCheckpointWriteTriggerModeString, "Time")
                || !strcmp(mCheckpointWriteTriggerModeString, "TIME")) {
             mCheckpointWriteTriggerMode = CPWRITE_TRIGGER_TIME;
-         } else if (
+         }
+         else if (
                !strcmp(mCheckpointWriteTriggerModeString, "clock")
                || !strcmp(mCheckpointWriteTriggerModeString, "Clock")
                || !strcmp(mCheckpointWriteTriggerModeString, "CLOCK")) {
             mCheckpointWriteTriggerMode = CPWRITE_TRIGGER_CLOCK;
-         } else {
+         }
+         else {
             if (globalRank() == 0) {
                pvErrorNoExit().printf(
                      "HyPerCol \"%s\": checkpointWriteTriggerMode \"%s\" is not recognized.\n",
@@ -960,7 +973,8 @@ void HyPerCol::ioParam_checkpointWriteClockUnit(enum ParamsIOFlag ioFlag) {
                free(mCheckpointWriteClockUnit);
                mCheckpointWriteClockUnit = strdup("seconds");
                mCpWriteClockSeconds      = (time_t)mCpWriteClockInterval;
-            } else if (
+            }
+            else if (
                   !strcmp(mCheckpointWriteClockUnit, "minute")
                   || !strcmp(mCheckpointWriteClockUnit, "minutes")
                   || !strcmp(mCheckpointWriteClockUnit, "min")
@@ -968,7 +982,8 @@ void HyPerCol::ioParam_checkpointWriteClockUnit(enum ParamsIOFlag ioFlag) {
                free(mCheckpointWriteClockUnit);
                mCheckpointWriteClockUnit = strdup("minutes");
                mCpWriteClockSeconds      = (time_t)(60.0 * mCpWriteTimeInterval);
-            } else if (
+            }
+            else if (
                   !strcmp(mCheckpointWriteClockUnit, "hour")
                   || !strcmp(mCheckpointWriteClockUnit, "hours")
                   || !strcmp(mCheckpointWriteClockUnit, "hr")
@@ -976,13 +991,15 @@ void HyPerCol::ioParam_checkpointWriteClockUnit(enum ParamsIOFlag ioFlag) {
                free(mCheckpointWriteClockUnit);
                mCheckpointWriteClockUnit = strdup("hours");
                mCpWriteClockSeconds      = (time_t)(3600.0 * mCpWriteTimeInterval);
-            } else if (
+            }
+            else if (
                   !strcmp(mCheckpointWriteClockUnit, "day")
                   || !strcmp(mCheckpointWriteClockUnit, "days")) {
                free(mCheckpointWriteClockUnit);
                mCheckpointWriteClockUnit = strdup("days");
                mCpWriteClockSeconds      = (time_t)(86400.0 * mCpWriteTimeInterval);
-            } else {
+            }
+            else {
                if (globalRank() == 0) {
                   pvErrorNoExit().printf(
                         "checkpointWriteClockUnit \"%s\" is unrecognized.  Use \"seconds\", "
@@ -1213,7 +1230,8 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
          int stepFieldWidth;
          if (mCheckpointIndexWidth >= 0) {
             stepFieldWidth = mCheckpointIndexWidth;
-         } else {
+         }
+         else {
             stepFieldWidth = (int)floor(log10((mStopTime - mStartTime) / mDeltaTime)) + 1;
          }
          int chars_printed = snprintf(
@@ -1235,7 +1253,8 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
                pvInfo().printf("Checkpointing, simTime = %f\n", simulationTime());
             }
             checkpointWrite(cpDir);
-         } else {
+         }
+         else {
             if (globalRank() == 0) {
                pvInfo().printf(
                      "Skipping checkpoint at time %f, since this would clobber the checkpointRead "
@@ -1308,21 +1327,24 @@ int HyPerCol::setNumThreads(bool printMessagesFlag) {
                             "be oversubscribed.\n");
          }
       }
-   } else {
+   }
+   else {
       num_threads = mPVInitObj->getNumThreads();
    }
    if (num_threads > 0) {
       if (printMsgs0) {
          pvInfo().printf("Number of threads used is %d\n", num_threads);
       }
-   } else if (num_threads == 0) {
+   }
+   else if (num_threads == 0) {
       thread_status = PV_FAILURE;
       if (printMsgs0) {
          pvErrorNoExit().printf(
                "%s: number of threads must be positive (was set to zero)\n",
                mPVInitObj->getProgramName());
       }
-   } else {
+   }
+   else {
       assert(num_threads < 0);
       thread_status = PV_FAILURE;
       if (printMsgs0) {
@@ -1338,7 +1360,8 @@ int HyPerCol::setNumThreads(bool printMessagesFlag) {
       if (printMsgs0) {
          pvInfo().printf("Number of threads used is 1 (Compiled without OpenMP.\n");
       }
-   } else {
+   }
+   else {
       num_threads = mPVInitObj->getNumThreads();
       if (num_threads < 0) {
          num_threads = 1;
@@ -1370,7 +1393,8 @@ int HyPerCol::processParams(char const *path) {
    std::string printParamsPath = "";
    if (path != nullptr && path[0] != '\0') {
       outputParams(path);
-   } else {
+   }
+   else {
       if (globalRank() == 0) {
          pvInfo().printf(
                "HyPerCol \"%s\": path for printing parameters file was empty or null.\n", mName);
@@ -1742,8 +1766,8 @@ int HyPerCol::outputParams(char const *path) {
    }
    char *containingdir = dirname(tmp);
    status = ensureDirExists(getCommunicator(), containingdir); // must be called by all processes,
-                                                               // even though only rank 0 creates
-                                                               // the directory
+   // even though only rank 0 creates
+   // the directory
    if (status != PV_SUCCESS) {
       pvErrorNoExit().printf(
             "HyPerCol::outputParams unable to create directory \"%s\"\n", containingdir);
@@ -1755,7 +1779,8 @@ int HyPerCol::outputParams(char const *path) {
          pvWarn().printf(
                "outputParams called with too long a filename.  Parameters will not be printed.\n");
          status = ENAMETOOLONG;
-      } else {
+      }
+      else {
          mPrintParamsStream = PV_fopen(path, "w", getVerifyWrites());
          if (mPrintParamsStream == nullptr) {
             status = errno;
@@ -1879,18 +1904,22 @@ int HyPerCol::outputParamsHeadComments(FILE *fp, char const *commentToken) {
    fprintf(fp, "%s Compiled with OpenMP parallel code", commentToken);
    if (mNumThreads > 0) {
       fprintf(fp, " and run using %d threads.\n", mNumThreads);
-   } else if (mNumThreads == 0) {
+   }
+   else if (mNumThreads == 0) {
       fprintf(fp, " but number of threads was set to zero (error).\n");
-   } else {
+   }
+   else {
       fprintf(fp, " but the -t option was not specified.\n");
    }
 #else
    fprintf(fp, "%s Compiled without OpenMP parallel code", commentToken);
    if (mNumThreads == 1) {
       fprintf(fp, ".\n");
-   } else if (mNumThreads == 0) {
+   }
+   else if (mNumThreads == 0) {
       fprintf(fp, " but number of threads was set to zero (error).\n");
-   } else {
+   }
+   else {
       fprintf(fp, " but number of threads specified was %d instead of 1. (error).\n", mNumThreads);
    }
 #endif // PV_USE_OPENMP_THREADS
@@ -1935,7 +1964,8 @@ int HyPerCol::exitRunLoop(bool exitOnFinish) {
       if (mCheckpointWriteFlag) {
          chars_printed =
                snprintf(cpDir, PV_PATH_MAX, "%s/Checkpoint%ld", mCheckpointWriteDir, mCurrentStep);
-      } else {
+      }
+      else {
          assert(!mSuppressLastOutput);
          chars_printed = snprintf(cpDir, PV_PATH_MAX, "%s/Last", mOutputPath);
       }
@@ -1984,7 +2014,8 @@ int HyPerCol::getAutoGPUDevice() {
          if (rank == 0) {
             strcpy(rankToHost[rank], hostNameStr);
             rankToMaxGpu[rank] = PVCuda::CudaDevice::getNumDevices();
-         } else {
+         }
+         else {
             MPI_Recv(
                   rankToHost[rank],
                   PV_PATH_MAX,
@@ -2027,7 +2058,8 @@ int HyPerCol::getAutoGPUDevice() {
             for (int v_i = 0; v_i < numRanksPerHost; v_i++) {
                if (v_i != numRanksPerHost - 1) {
                   assignGpuWarning.printf("%d, ", rankVec[v_i]);
-               } else {
+               }
+               else {
                   assignGpuWarning.printf("%d", rankVec[v_i]);
                }
             }
@@ -2050,7 +2082,8 @@ int HyPerCol::getAutoGPUDevice() {
                   << rankToMaxGpu[rank] << " GPU[s]) using GPU index " << rankToGpu[rank] << "\n";
          if (rank == 0) {
             returnGpuIdx = rankToGpu[rank];
-         } else {
+         }
+         else {
             MPI_Send(&(rankToGpu[rank]), 1, MPI_INT, rank, 0, mCommunicator->globalCommunicator());
          }
       }
@@ -2088,7 +2121,8 @@ int HyPerCol::initializeThreads(char const *in_device) {
    if (in_device == nullptr) {
       pvInfo() << "Auto assigning GPUs\n";
       device = getAutoGPUDevice();
-   } else {
+   }
+   else {
       std::vector<int> deviceVec;
       std::stringstream ss(in_device);
       std::string stoken;
@@ -2111,9 +2145,11 @@ int HyPerCol::initializeThreads(char const *in_device) {
       // devices specified
       if (deviceVec.size() == 1) {
          device = deviceVec[0];
-      } else if (deviceVec.size() >= numMpi) {
+      }
+      else if (deviceVec.size() >= numMpi) {
          device = deviceVec[mCommunicator->globalCommRank()];
-      } else {
+      }
+      else {
          pvError().printf(
                "Device specification error: Number of devices specified (%zu) must be either 1 or "
                ">= than number of mpi processes (%d).\n",
@@ -2155,7 +2191,7 @@ void HyPerCol::addGpuGroup(BaseConnection *conn, int gpuGroupIdx) {
 int HyPerCol::insertProbe(ColProbe *p) {
    mColProbes.push_back(p);
    return mColProbes.size(); // Other insert functions return the index of the inserted object. Is
-                             // this correct here?
+   // this correct here?
 }
 
 void HyPerCol::addObject(BaseObject *obj) {
@@ -2346,7 +2382,7 @@ int HyPerCol::writeArrayToFile(
       for (int i = 0; i < count; i++) {
          fs << val[i];
          fs << std::endl; // Can write as fs << val << std::endl, but eclipse flags that as an error
-                          // 'Invalid overload of std::endl'
+         // 'Invalid overload of std::endl'
       }
       fs.close();
    }
@@ -2449,7 +2485,8 @@ int HyPerCol::readArrayFromFile(
       if (pvstream == nullptr) {
          pvWarn() << "readArrayFromFile: unable to open path \"" << filename
                   << "\" for reading.  Value used will be " << *val << std::endl;
-      } else {
+      }
+      else {
          int num_read = PV_fread(val, sizeof(T), count, pvstream);
          if (num_read != count) {
             pvWarn() << "readArrayFromFile: unable to read from \"" << filename
@@ -2519,7 +2556,8 @@ HyPerCol *createHyPerCol(PV_Init *pv_initObj) {
       if (!strcmp(kw, "HyPerCol")) {
          if (k == 0) {
             continue;
-         } else {
+         }
+         else {
             if (hc->columnId() == 0) {
                pvErrorNoExit() << "Group " << k + 1 << " in params file (\""
                                << pv_initObj->getParamsFile()
@@ -2528,7 +2566,8 @@ HyPerCol *createHyPerCol(PV_Init *pv_initObj) {
             delete hc;
             return nullptr;
          }
-      } else {
+      }
+      else {
          BaseObject *addedObject = Factory::instance()->createByKeyword(kw, name, hc);
          if (addedObject == nullptr) {
             if (hc->globalRank() == 0) {

@@ -322,7 +322,8 @@ int TransposeConn::setPatchSize() {
    nxp            = nxp_orig;
    if (xscaleDiff > 0) {
       nxp *= (int)pow(2, xscaleDiff);
-   } else if (xscaleDiff < 0) {
+   }
+   else if (xscaleDiff < 0) {
       nxp /= (int)pow(2, -xscaleDiff);
       assert(nxp_orig == nxp * pow(2, (float)(-xscaleDiff)));
    }
@@ -331,7 +332,8 @@ int TransposeConn::setPatchSize() {
    nyp            = nyp_orig;
    if (yscaleDiff > 0) {
       nyp *= (int)pow(2, yscaleDiff);
-   } else if (yscaleDiff < 0) {
+   }
+   else if (yscaleDiff < 0) {
       nyp /= (int)pow(2, -yscaleDiff);
       assert(nyp_orig == nyp * pow(2, (float)(-yscaleDiff)));
    }
@@ -408,7 +410,8 @@ int TransposeConn::setInitialValues() {
    int status = PV_SUCCESS;
    if (originalConn->getInitialValuesSetFlag()) {
       status = HyPerConn::setInitialValues(); // calls initializeWeights
-   } else {
+   }
+   else {
       status = PV_POSTPONE;
    }
    return status;
@@ -429,7 +432,7 @@ int TransposeConn::updateState(double time, double dt) {
 
 double TransposeConn::computeNewWeightUpdateTime(double time, double currentUpdateTime) {
    return weightUpdateTime; // TransposeConn does not use weightUpdateTime to determine when to
-                            // update
+   // update
 }
 
 int TransposeConn::finalizeUpdate(double timed, double dt) {

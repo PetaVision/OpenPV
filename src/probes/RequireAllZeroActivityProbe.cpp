@@ -49,7 +49,8 @@ void RequireAllZeroActivityProbe::ioParam_immediateExitOnFailure(enum ParamsIOFl
             "immediateExitOnFailure",
             &immediateExitOnFailure,
             immediateExitOnFailure);
-   } else {
+   }
+   else {
       immediateExitOnFailure = false;
    }
 }
@@ -81,7 +82,8 @@ void RequireAllZeroActivityProbe::nonzeroFoundMessage(
       message << getDescription_c() << ": Nonzero activity found at time " << badTime << "\n";
       if (fatalError) {
          pvError() << message.str();
-      } else {
+      }
+      else {
          pvWarn() << message.str();
       }
    }

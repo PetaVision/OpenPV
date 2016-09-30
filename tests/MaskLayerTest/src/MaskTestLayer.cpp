@@ -22,10 +22,14 @@ void MaskTestLayer::ioParam_maskMethod(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamStringRequired(ioFlag, name, "maskMethod", &maskMethod);
    // Check valid methods
    if (strcmp(maskMethod, "layer") == 0) {
-   } else if (strcmp(maskMethod, "invertLayer") == 0) {
-   } else if (strcmp(maskMethod, "maskFeatures") == 0) {
-   } else if (strcmp(maskMethod, "noMaskFeatures") == 0) {
-   } else {
+   }
+   else if (strcmp(maskMethod, "invertLayer") == 0) {
+   }
+   else if (strcmp(maskMethod, "maskFeatures") == 0) {
+   }
+   else if (strcmp(maskMethod, "noMaskFeatures") == 0) {
+   }
+   else {
       if (parent->columnId() == 0) {
          pvErrorNoExit().printf(
                "%s: \"%s\" is not a valid maskMethod. Options are \"invertLayer\", "
@@ -66,14 +70,16 @@ int MaskTestLayer::updateState(double timef, double dt) {
                                   << " Expected value: " << GSynInh[k] << ".\n";
                   isCorrect = false;
                }
-            } else {
+            }
+            else {
                if (GSynExt[k] != 0) {
                   pvErrorNoExit() << "Connection " << name << " Mismatch at " << k
                                   << ": actual value: " << GSynExt[k] << " Expected value: 0.\n";
                   isCorrect = false;
                }
             }
-         } else if (strcmp(maskMethod, "invertLayer") == 0) {
+         }
+         else if (strcmp(maskMethod, "invertLayer") == 0) {
             // pvErrorNoExit() << "Connection " << name << " Mismatch at " << k << ": actual value:
             // " << GSynExt[k] << " Expected value: " << GSynInh[k] << ".\n";
             if (!GSynInhB[k]) {
@@ -83,14 +89,16 @@ int MaskTestLayer::updateState(double timef, double dt) {
                                   << " Expected value: " << GSynInh[k] << ".\n";
                   isCorrect = false;
                }
-            } else {
+            }
+            else {
                if (GSynExt[k] != 0) {
                   pvErrorNoExit() << "Connection " << name << " Mismatch at " << k
                                   << ": actual value: " << GSynExt[k] << " Expected value: 0.\n";
                   isCorrect = false;
                }
             }
-         } else if (strcmp(maskMethod, "maskFeatures") == 0) {
+         }
+         else if (strcmp(maskMethod, "maskFeatures") == 0) {
             int featureIdx = featureIndex(k, nx, ny, nf);
             // Param files specifies idxs 0 and 2 out of 3 total features
             if (featureIdx == 0 || featureIdx == 2) {
@@ -99,7 +107,8 @@ int MaskTestLayer::updateState(double timef, double dt) {
                                   << ": actual value: " << GSynExt[k] << " Expected value: 0.\n";
                   isCorrect = false;
                }
-            } else {
+            }
+            else {
                if (GSynExt[k] != GSynInh[k]) {
                   pvErrorNoExit() << "Connection " << name << " Mismatch at " << k
                                   << ": actual value: " << GSynExt[k]
@@ -107,7 +116,8 @@ int MaskTestLayer::updateState(double timef, double dt) {
                   isCorrect = false;
                }
             }
-         } else if (strcmp(maskMethod, "noMaskFeatures") == 0) {
+         }
+         else if (strcmp(maskMethod, "noMaskFeatures") == 0) {
             int featureIdx = featureIndex(k, nx, ny, nf);
             // Param files specifies idxs 0 and 2 out of 3 total features
             if (featureIdx == 0 || featureIdx == 2) {
@@ -117,7 +127,8 @@ int MaskTestLayer::updateState(double timef, double dt) {
                                   << " Expected value: " << GSynInh[k] << ".\n";
                   isCorrect = false;
                }
-            } else {
+            }
+            else {
                if (GSynExt[k] != 0) {
                   pvErrorNoExit() << "Connection " << name << " Mismatch at " << k
                                   << ": actual value: " << GSynExt[k] << " Expected value: 0.\n";

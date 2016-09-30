@@ -43,9 +43,12 @@ int Segmentify::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 void Segmentify::ioParam_inputMethod(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamStringRequired(ioFlag, name, "inputMethod", &inputMethod);
    if (strcmp(inputMethod, "average") == 0) {
-   } else if (strcmp(inputMethod, "sum") == 0) {
-   } else if (strcmp(inputMethod, "max") == 0) {
-   } else {
+   }
+   else if (strcmp(inputMethod, "sum") == 0) {
+   }
+   else if (strcmp(inputMethod, "max") == 0) {
+   }
+   else {
       if (parent->columnId() == 0) {
          pvErrorNoExit().printf(
                "%s: inputMethod must be \"average\", \"sum\", or \"max\".\n", getDescription_c());
@@ -58,8 +61,10 @@ void Segmentify::ioParam_inputMethod(enum ParamsIOFlag ioFlag) {
 void Segmentify::ioParam_outputMethod(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamStringRequired(ioFlag, name, "outputMethod", &outputMethod);
    if (strcmp(outputMethod, "centroid") == 0) {
-   } else if (strcmp(outputMethod, "fill") == 0) {
-   } else {
+   }
+   else if (strcmp(outputMethod, "fill") == 0) {
+   }
+   else {
       if (parent->columnId() == 0) {
          pvErrorNoExit().printf(
                "%s: outputMethod must be \"centriod\" or \"fill\".\n", getDescription_c());
@@ -266,7 +271,8 @@ int Segmentify::buildLabelToIdx(int batchIdx) {
          // If average or sum, initialize to 0
          else if (strcmp(inputMethod, "average") == 0 || strcmp(inputMethod, "sum") == 0) {
             labelVals[fi][l] = 0;
-         } else {
+         }
+         else {
             assert(0); // should never get here
          }
       }
@@ -326,7 +332,8 @@ int Segmentify::calculateLabelVals(int batchIdx) {
                if (labelVals[fi][labelIdx] < srcVal) {
                   labelVals[fi][labelIdx] = srcVal;
                }
-            } else if (strcmp(inputMethod, "average") == 0 || strcmp(inputMethod, "sum") == 0) {
+            }
+            else if (strcmp(inputMethod, "average") == 0 || strcmp(inputMethod, "sum") == 0) {
                labelVals[fi][labelIdx] += srcVal;
             }
          } // End of fi loop
@@ -344,7 +351,8 @@ int Segmentify::calculateLabelVals(int batchIdx) {
       if (strcmp(inputMethod, "max") == 0) {
          MPI_Allreduce(
                MPI_IN_PLACE, labelVals[fi], numLabels, MPI_FLOAT, MPI_MAX, icComm->communicator());
-      } else if (strcmp(inputMethod, "sum") == 0 || strcmp(inputMethod, "average") == 0) {
+      }
+      else if (strcmp(inputMethod, "sum") == 0 || strcmp(inputMethod, "average") == 0) {
          MPI_Allreduce(
                MPI_IN_PLACE, labelVals[fi], numLabels, MPI_FLOAT, MPI_SUM, icComm->communicator());
       }
@@ -414,7 +422,8 @@ int Segmentify::setOutputVals(int batchIdx) {
             }
          }
       }
-   } else if (strcmp(outputMethod, "fill") == 0) {
+   }
+   else if (strcmp(outputMethod, "fill") == 0) {
       // Loop through this layer's neurons
       // Looping through restricted
       for (int yi = 0; yi < thisLoc->ny; yi++) {

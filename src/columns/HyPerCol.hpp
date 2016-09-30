@@ -506,49 +506,49 @@ class HyPerCol : public Subject {
          mBaseProbes; // Why is this Base and not just mProbes? //BaseProbe ** mBaseProbes;
    ObserverTable mObjectHierarchy;
    bool mErrorOnNotANumber; // If true, check each layer's activity buffer for not-a-numbers and
-                            // exit with an error if any appear
+   // exit with an error if any appear
    bool mDefaultInitializeFromCheckpointFlag; // Each Layer and connection can individually set its
-                                              // own initializeFromCheckpointFlag.  This sets the
-                                              // default value for those flags.
+   // own initializeFromCheckpointFlag.  This sets the
+   // default value for those flags.
    bool mWarmStart; // whether to start from a checkpoint
    bool mCheckpointReadFlag; // whether to load from a checkpoint directory
    bool mCheckpointWriteFlag; // whether to write from a checkpoint directory
    bool mDeleteOlderCheckpoints; // If true, whenever a checkpoint other than the first is written,
-                                 // the preceding checkpoint is deleted. Default is false.
+   // the preceding checkpoint is deleted. Default is false.
    bool mSuppressLastOutput; // If mCheckpointWriteFlag is false and this flag is false, on exit a
-                             // checkpoint is sent to the {mOutputPath}/Last directory.
+   // checkpoint is sent to the {mOutputPath}/Last directory.
    // If mCheckpointWriteFlag is false and this flag is true, no checkpoint is done on exit.
    // The flag has no effect if mCheckpointWriteFlag is true (in which case a checkpoint is written
    // on exit to the next directory in mCheckpointWriteDir
    bool mSuppressNonplasticCheckpoints; // If mSuppressNonplasticCheckpoints is true, only weights
-                                        // with plasticityFlag true will be checkpointed.  If false,
-                                        // all weights will be checkpointed.
+   // with plasticityFlag true will be checkpointed.  If false,
+   // all weights will be checkpointed.
    bool mReadyFlag; // Initially false; set to true when communicateInitInfo,
-                    // allocateDataStructures, and setInitialValues stages are completed
+   // allocateDataStructures, and setInitialValues stages are completed
    bool mParamsProcessedFlag; // Initially false; set to true when processParams is called.
    bool mWriteTimeScaleFieldnames; // determines whether fieldnames are written to
-                                   // HyPerCol_timescales file
+   // HyPerCol_timescales file
    bool mWriteProgressToErr; // Whether to write progress step to standard error (True) or standard
-                             // output (False) (default is output)
+   // output (False) (default is output)
    bool mVerifyWrites; // Flag to indicate whether calls to PV_fwrite do a readback check
    bool mOwnsCommunicator; // True if icComm was created by initialize, false if passed in the
-                           // constructor
+   // constructor
    bool mWriteTimescales;
    char *mCheckpointReadDir; // name of the directory to read an initializing checkpoint from
    char *mCheckpointReadDirBase; // name of the directory containing checkpoint read from (used by
-                                 // deprecated mParams-based method for loading from checkpoint)
+   // deprecated mParams-based method for loading from checkpoint)
    char *mCheckpointWriteDir; // name of the directory to write checkpoints to
    char *mCheckpointWriteTriggerModeString;
    char *mCheckpointWriteClockUnit; // If checkpoint mode is clock, the string that specifies the
-                                    // units.  "seconds", "minutes", "hours", or "days".
+   // units.  "seconds", "minutes", "hours", or "days".
    char *mName;
    char *mOutputPath; // path to output file directory
    char *mPrintParamsFilename; // filename for outputting the mParams, including defaults and
-                               // excluding unread mParams
+   // excluding unread mParams
    char *mInitializeFromCheckpointDir; // If nonempty, mLayers and mConnections can load from this
-                                       // directory as in checkpointRead, by setting their
-                                       // initializeFromCheckpointFlag parameter, but the run still
-                                       // starts at mSimTime=mStartTime
+   // directory as in checkpointRead, by setting their
+   // initializeFromCheckpointFlag parameter, but the run still
+   // starts at mSimTime=mStartTime
    std::vector<ColProbe *> mColProbes; // ColProbe ** mColProbes;
    double mStartTime;
    double mSimTime;
@@ -557,7 +557,7 @@ class HyPerCol : public Subject {
    double mCpWriteTimeInterval;
    double mNextCpWriteTime;
    double mCpWriteClockInterval; // If checkpoint mode is clock, the clock time between checkpoints,
-                                 // in the units specified by checkpointWriteClockUnit
+   // in the units specified by checkpointWriteClockUnit
    double mProgressInterval; // Output progress after mSimTime increases by this amount.
    double mNextProgressTime; // Next time to output a progress message
    // Sep 26, 2016: Adaptive timestep routines and member variables have been moved to
@@ -567,12 +567,12 @@ class HyPerCol : public Subject {
    int mNumPhases;
    int mCheckpointSignal; // whether the process should checkpoint in response to an external signal
    int mNumCheckpointsKept; // If mDeleteOlderCheckpoints is true, does not delete a checkpoint
-                            // until the specified number of more recent checkpoints have been
-                            // written.  Default is 2.
+   // until the specified number of more recent checkpoints have been
+   // written.  Default is 2.
    int mOldCheckpointDirectoriesIndex; // A pointer to the oldest checkpoint in the
-                                       // mOldCheckpointDirectories vector.
+   // mOldCheckpointDirectories vector.
    int mCheckpointIndexWidth; // minimum width of the step number field in the name of a checkpoint
-                              // directory; if needed the step number is padded with zeros.
+   // directory; if needed the step number is padded with zeros.
    int mNumXGlobal;
    int mNumYGlobal;
    int mNumBatch;
@@ -594,7 +594,7 @@ class HyPerCol : public Subject {
    long int mCurrentStep;
    long int mFinalStep;
    std::vector<NormalizeBase *> mNormalizers; // NormalizeBase ** mNormalizers; // Objects for
-                                              // normalizing mConnections or groups of mConnections
+   // normalizing mConnections or groups of mConnections
    PV_Init *mPVInitObj;
    PV_Stream *mPrintParamsStream; // file pointer associated with mPrintParamsFilename
    PV_Stream *mLuaPrintParamsStream; // file pointer associated with the output lua file
@@ -603,7 +603,7 @@ class HyPerCol : public Subject {
    size_t mConnectionArraySize;
    size_t mNormalizerArraySize;
    std::vector<std::string> mOldCheckpointDirectories; // A ring buffer of existing checkpoints,
-                                                       // used if mDeleteOlderCheckpoints is true.
+   // used if mDeleteOlderCheckpoints is true.
    std::ofstream mTimeScaleStream;
    std::vector<HyPerLayer *> mRecvLayerBuffer;
    std::vector<HyPerLayer *> mUpdateLayerBufferGpu;
@@ -612,7 +612,7 @@ class HyPerCol : public Subject {
    Timer *mCheckpointTimer;
    std::vector<Timer *> mPhaseRecvTimers; // Timer ** mPhaseRecvTimers;
    time_t mCpWriteClockSeconds; // If checkpoint mode is clock, the clock time between checkpoints,
-                                // in seconds
+   // in seconds
    time_t mNextCpWriteClock;
    unsigned int mRandomSeed;
 #ifdef PV_USE_CUDA

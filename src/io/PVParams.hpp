@@ -403,15 +403,15 @@ class PVParams {
    ParameterSweep **paramSweeps;
    ParameterSweep *activeParamSweep;
    int parameterSweepSize; // The number of parameter value sets in the sweep.  Each ParameterSweep
-                           // group in the params file must contain the same number of values, which
-                           // is sweepSize.
+   // group in the params file must contain the same number of values, which
+   // is sweepSize.
 
    int numBatchSweeps; // The number of different parameters that are changed during the sweep.
    ParameterSweep **batchSweeps;
    ParameterSweep *activeBatchSweep;
    int batchSweepSize; // The number of batch values sets in the sweep.  Each BatchSweep group in
-                       // the params file must contain the same number of values, which is
-                       // batchSweepSize.
+   // the params file must contain the same number of values, which is
+   // batchSweepSize.
 
    char *currGroupKeyword;
    char *currGroupName;
@@ -522,10 +522,12 @@ void PVParams::ioParamArray(
          for (int k = 0; k < *arraysize; k++) {
             (*paramArrayValue)[k] = (T)paramArray[k];
          }
-      } else {
+      }
+      else {
          *paramArrayValue = nullptr;
       }
-   } else if (ioFlag == PARAMS_IO_WRITE) {
+   }
+   else if (ioFlag == PARAMS_IO_WRITE) {
       writeParamArray(paramName, *paramArrayValue, *arraysize);
    }
 }
@@ -539,12 +541,15 @@ void PVParams::writeParam(const char *paramName, T paramValue) {
       if (std::numeric_limits<T>::has_infinity) {
          if (paramValue == std::numeric_limits<T>::min()) {
             vstr << "-infinity";
-         } else if (paramValue == std::numeric_limits<T>::max()) {
+         }
+         else if (paramValue == std::numeric_limits<T>::max()) {
             vstr << "infinity";
-         } else {
+         }
+         else {
             vstr << paramValue;
          }
-      } else {
+      }
+      else {
          vstr << paramValue;
       }
       fprintf(mPrintParamsStream->fp, "    %-35s = %s;\n", paramName, vstr.str().c_str());

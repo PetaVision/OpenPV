@@ -50,7 +50,8 @@ int InitWeights::setDescription() {
          parent->parameters()->stringValue(name, "weightInitType", false /*do not warn if absent*/);
    if (initType == nullptr) {
       description.append("weight initializer ");
-   } else {
+   }
+   else {
       description.append(initType);
    }
    description.append(" \"").append(name).append("\"");
@@ -66,7 +67,8 @@ int InitWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = PV_SUCCESS;
    if (weightParams == NULL) {
       status = PV_FAILURE;
-   } else {
+   }
+   else {
       weightParams->ioParamsFillGroup(ioFlag);
    }
    return status;
@@ -86,7 +88,8 @@ int InitWeights::communicateParamsInfo() {
             pvErrorNoExit().printf(
                   "InitWeights error: \"%s\" is not a connection in the column.\n", name);
          }
-      } else {
+      }
+      else {
          callingConn = dynamic_cast<HyPerConn *>(baseCallingConn);
          if (callingConn == NULL) {
             status = PV_FAILURE;
@@ -133,7 +136,8 @@ int InitWeights::initializeWeights(
    }
    if (weightParams->getFilename() != NULL && weightParams->getFilename()[0]) {
       readWeights(patches, dataStart, numPatches, weightParams->getFilename(), timef);
-   } else {
+   }
+   else {
       initRNGs(patches == NULL);
       calcWeights();
    } // filename != null
@@ -172,7 +176,8 @@ int InitWeights::zeroWeightsOutsideShrunkenPatch(PVPatch ***patches) {
             offsetPatch          = weightPatch->offset;
             pvwdata_t *wData     = callingConn->get_wData(arborID, kPre);
             delta_offset         = wData - wData_head;
-         } else { // callingConn uses shared weights
+         }
+         else { // callingConn uses shared weights
             delta_offset = 0;
             nxPatch      = callingConn->xPatchSize();
             nyPatch      = callingConn->yPatchSize();
@@ -283,9 +288,11 @@ int InitWeights::readWeights(
    int status    = PV_SUCCESS;
    if (weightParams->getUseListOfArborFiles()) {
       status = this->readListOfArborFiles(patches, dataStart, numPatches, filename, timeptr);
-   } else if (weightParams->getCombineWeightFiles()) {
+   }
+   else if (weightParams->getCombineWeightFiles()) {
       status = this->readCombinedWeightFiles(patches, dataStart, numPatches, filename, timeptr);
-   } else {
+   }
+   else {
       status = PV::readWeights(
             patches,
             dataStart,
@@ -336,12 +343,14 @@ int InitWeights::readListOfArborFiles(
                      "read.  Exiting.\n",
                      listOfArborsFilename,
                      numArbors);
-            } else {
+            }
+            else {
                int error = ferror(arborstream->fp);
                assert(error);
                pvError().printf("File of arbor files: error %d while reading.  Exiting.\n", error);
             }
-         } else {
+         }
+         else {
             // Remove linefeed from end of string
             arborfilename[PV_PATH_MAX - 1] = '\0';
             int len                        = strlen(arborfilename);
@@ -415,12 +424,14 @@ int InitWeights::readCombinedWeightFiles(
                      "were read.  Exiting.\n",
                      fileOfWeightFiles,
                      num_weight_files);
-            } else {
+            }
+            else {
                int error = ferror(weightstream->fp);
                assert(error);
                pvError().printf("File of weight files: error %d while reading.  Exiting.\n", error);
             }
-         } else {
+         }
+         else {
             // Remove linefeed from end of string
             weightsfilename[PV_PATH_MAX - 1] = '\0';
             int len                          = strlen(weightsfilename);

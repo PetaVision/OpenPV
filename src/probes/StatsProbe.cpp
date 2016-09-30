@@ -136,7 +136,8 @@ void StatsProbe::requireType(PVBufType requiredType) {
             }
          }
       }
-   } else {
+   }
+   else {
       type = requiredType;
    }
 }
@@ -159,9 +160,11 @@ void StatsProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
       }
       if (!strcmp(buffer, "v") || !strcmp(buffer, "membranepotential")) {
          type = BufV;
-      } else if (!strcmp(buffer, "a") || !strcmp(buffer, "activity")) {
+      }
+      else if (!strcmp(buffer, "a") || !strcmp(buffer, "activity")) {
          type = BufActivity;
-      } else {
+      }
+      else {
          if (getParent()->columnId() == 0) {
             const char *bufnameinparams =
                   getParent()->parameters()->stringValue(getName(), "buffer");
@@ -250,7 +253,7 @@ int StatsProbe::outputState(double timed) {
                      loc->halo.rt,
                      loc->halo.dn,
                      loc->halo.up); // TODO: faster to use strides and a double-loop than compute
-                                    // kIndexExtended for every neuron?
+               // kIndexExtended for every neuron?
                float a = buf[kex];
                sum[b] += (double)a;
                sum2[b] += (double)(a * a);
@@ -282,7 +285,8 @@ int StatsProbe::outputState(double timed) {
       ierr = MPI_Reduce(MPI_IN_PLACE, fMin, nbatch, MPI_FLOAT, MPI_MIN, rcvProc, comm);
       ierr = MPI_Reduce(MPI_IN_PLACE, fMax, nbatch, MPI_FLOAT, MPI_MAX, rcvProc, comm);
       ierr = MPI_Reduce(MPI_IN_PLACE, &nk, 1, MPI_INT, MPI_SUM, rcvProc, comm);
-   } else {
+   }
+   else {
       ierr = MPI_Reduce(sum, sum, nbatch, MPI_DOUBLE, MPI_SUM, rcvProc, comm);
       ierr = MPI_Reduce(sum2, sum2, nbatch, MPI_DOUBLE, MPI_SUM, rcvProc, comm);
       ierr = MPI_Reduce(nnz, nnz, nbatch, MPI_INT, MPI_SUM, rcvProc, comm);
@@ -305,7 +309,8 @@ int StatsProbe::outputState(double timed) {
       if (type == BufActivity && getTargetLayer()->getSparseFlag()) {
          avgval  = 1000.0f * avg[b]; // convert spikes per millisecond to hertz.
          avgnote = " Hz (/dt ms)";
-      } else {
+      }
+      else {
          avgval  = avg[b];
          avgnote = "";
       }

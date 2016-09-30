@@ -36,7 +36,7 @@
 
 #define PVP_FILE_TYPE                                                                              \
    1 // File type of activities where there are no timestamps in the individual frames.  No longer
-     // used.
+// used.
 #define PVP_ACT_FILE_TYPE                                                                          \
    2 // File type of the a%d.pvp for spiking layers (activity is sparse and values are only 1 or 0)
 #define PVP_WGT_FILE_TYPE                                                                          \

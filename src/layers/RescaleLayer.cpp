@@ -52,21 +52,30 @@ int RescaleLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    if (strcmp(rescaleMethod, "maxmin") == 0) {
       ioParam_targetMax(ioFlag);
       ioParam_targetMin(ioFlag);
-   } else if (strcmp(rescaleMethod, "meanstd") == 0) {
+   }
+   else if (strcmp(rescaleMethod, "meanstd") == 0) {
       ioParam_targetMean(ioFlag);
       ioParam_targetStd(ioFlag);
-   } else if (strcmp(rescaleMethod, "pointmeanstd") == 0) {
+   }
+   else if (strcmp(rescaleMethod, "pointmeanstd") == 0) {
       ioParam_targetMean(ioFlag);
       ioParam_targetStd(ioFlag);
-   } else if (strcmp(rescaleMethod, "l2") == 0) {
+   }
+   else if (strcmp(rescaleMethod, "l2") == 0) {
       ioParam_patchSize(ioFlag);
-   } else if (strcmp(rescaleMethod, "l2NoMean") == 0) {
+   }
+   else if (strcmp(rescaleMethod, "l2NoMean") == 0) {
       ioParam_patchSize(ioFlag);
-   } else if (strcmp(rescaleMethod, "pointResponseNormalization") == 0) {
-   } else if (strcmp(rescaleMethod, "zerotonegative") == 0) {
-   } else if (strcmp(rescaleMethod, "softmax") == 0) {
-   } else if (strcmp(rescaleMethod, "logreg") == 0) {
-   } else {
+   }
+   else if (strcmp(rescaleMethod, "pointResponseNormalization") == 0) {
+   }
+   else if (strcmp(rescaleMethod, "zerotonegative") == 0) {
+   }
+   else if (strcmp(rescaleMethod, "softmax") == 0) {
+   }
+   else if (strcmp(rescaleMethod, "logreg") == 0) {
+   }
+   else {
       pvError().printf(
             "RescaleLayer \"%s\": rescaleMethod does not exist. Current implemented methods are "
             "maxmin, meanstd, pointmeanstd, pointResponseNormalization, softmax, l2, l2NoMean, and "
@@ -205,7 +214,8 @@ int RescaleLayer::updateState(double timef, double dt) {
                      ((originalABatch[kExtOriginal] - minA) / rangeA) * (targetMax - targetMin)
                      + targetMin;
             }
-         } else {
+         }
+         else {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif // PV_USE_OPENMP_THREADS
@@ -222,7 +232,8 @@ int RescaleLayer::updateState(double timef, double dt) {
                ABatch[kExt] = (pvadata_t)0;
             }
          }
-      } else if (strcmp(rescaleMethod, "meanstd") == 0) {
+      }
+      else if (strcmp(rescaleMethod, "meanstd") == 0) {
          float sum   = 0;
          float sumsq = 0;
 // Find sum of originalA
@@ -307,7 +318,8 @@ int RescaleLayer::updateState(double timef, double dt) {
                ABatch[kext] =
                      ((originalABatch[kextOriginal] - mean) * (targetStd / std) + targetMean);
             }
-         } else {
+         }
+         else {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
@@ -333,7 +345,8 @@ int RescaleLayer::updateState(double timef, double dt) {
                ABatch[kext] = originalABatch[kextOriginal];
             }
          }
-      } else if (strcmp(rescaleMethod, "l2") == 0) {
+      }
+      else if (strcmp(rescaleMethod, "l2") == 0) {
          float sum   = 0;
          float sumsq = 0;
 // Find sum of originalA
@@ -419,7 +432,8 @@ int RescaleLayer::updateState(double timef, double dt) {
                      ((originalABatch[kextOriginal] - mean)
                       * (1.0f / (std * sqrtf((float)patchSize))));
             }
-         } else {
+         }
+         else {
             pvWarn() << "std of layer " << originalLayer->getName()
                      << " is 0, layer remains unchanged\n";
 #ifdef PV_USE_OPENMP_THREADS
@@ -447,7 +461,8 @@ int RescaleLayer::updateState(double timef, double dt) {
                ABatch[kext] = originalABatch[kextOriginal];
             }
          }
-      } else if (strcmp(rescaleMethod, "l2NoMean") == 0) {
+      }
+      else if (strcmp(rescaleMethod, "l2NoMean") == 0) {
          float sumsq = 0;
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for reduction(+ : sumsq)
@@ -506,7 +521,8 @@ int RescaleLayer::updateState(double timef, double dt) {
                ABatch[kext] =
                      ((originalABatch[kextOriginal]) * (1.0f / (std * sqrtf((float)patchSize))));
             }
-         } else {
+         }
+         else {
             pvWarn() << "std of layer " << originalLayer->getName()
                      << " is 0, layer remains unchanged\n";
 #ifdef PV_USE_OPENMP_THREADS
@@ -534,7 +550,8 @@ int RescaleLayer::updateState(double timef, double dt) {
                ABatch[kext] = originalABatch[kextOriginal];
             }
          }
-      } else if (strcmp(rescaleMethod, "pointResponseNormalization") == 0) {
+      }
+      else if (strcmp(rescaleMethod, "pointResponseNormalization") == 0) {
          int nx                 = loc->nx;
          int ny                 = loc->ny;
          int nf                 = loc->nf;
@@ -579,7 +596,8 @@ int RescaleLayer::updateState(double timef, double dt) {
                            iX, iY, iF, nx + halo->lt + halo->rt, ny + halo->dn + halo->up, nf);
                      ABatch[kext] = (originalABatch[kextOrig] / divisor);
                   }
-               } else {
+               }
+               else {
                   for (int iF = 0; iF < nf; iF++) {
                      int kextOrig = kIndex(
                            iX,
@@ -595,7 +613,8 @@ int RescaleLayer::updateState(double timef, double dt) {
                }
             }
          }
-      } else if (strcmp(rescaleMethod, "pointmeanstd") == 0) {
+      }
+      else if (strcmp(rescaleMethod, "pointmeanstd") == 0) {
          int nx                 = loc->nx;
          int ny                 = loc->ny;
          int nf                 = loc->nf;
@@ -653,7 +672,8 @@ int RescaleLayer::updateState(double timef, double dt) {
                      ABatch[kext] =
                            ((originalABatch[kextOrig] - mean) * (targetStd / std) + targetMean);
                   }
-               } else {
+               }
+               else {
                   for (int iF = 0; iF < nf; iF++) {
                      int kextOrig = kIndex(
                            iX,
@@ -669,7 +689,8 @@ int RescaleLayer::updateState(double timef, double dt) {
                }
             }
          }
-      } else if (strcmp(rescaleMethod, "softmax") == 0) {
+      }
+      else if (strcmp(rescaleMethod, "softmax") == 0) {
          int nx                 = loc->nx;
          int ny                 = loc->ny;
          int nf                 = loc->nf;
@@ -713,7 +734,8 @@ int RescaleLayer::updateState(double timef, double dt) {
                }
             }
          }
-      } else if (strcmp(rescaleMethod, "logreg") == 0) {
+      }
+      else if (strcmp(rescaleMethod, "logreg") == 0) {
          int nx = loc->nx;
          int ny = loc->ny;
          int nf = loc->nf;
@@ -744,7 +766,8 @@ int RescaleLayer::updateState(double timef, double dt) {
                   locOriginal->halo.up);
             ABatch[kext] = 1.0f / (1.0f + expf(originalABatch[kextOriginal]));
          }
-      } else if (strcmp(rescaleMethod, "zerotonegative") == 0) {
+      }
+      else if (strcmp(rescaleMethod, "zerotonegative") == 0) {
          PVHalo const *halo     = &loc->halo;
          PVHalo const *haloOrig = &locOriginal->halo;
 #ifdef PV_USE_OPENMP_THREADS
@@ -765,7 +788,8 @@ int RescaleLayer::updateState(double timef, double dt) {
             if (originalABatch[kextOriginal] == 0) {
                ;
                ABatch[kext] = -1;
-            } else {
+            }
+            else {
                ABatch[kext] = originalABatch[kextOriginal];
             }
          }

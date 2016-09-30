@@ -254,7 +254,8 @@ int SegmentLayer::updateState(double timef, double dt) {
       // Copy activity over
       // Since both buffers should be identical size, we can do a memcpy here
       memcpy(thisA, srcA, numBatchExtended * sizeof(pvdata_t));
-   } else {
+   }
+   else {
       // This case should never happen
       assert(0);
    }
@@ -416,7 +417,8 @@ int SegmentLayer::updateState(double timef, double dt) {
                   if (minYBuf[i] < minY.at(label)) {
                      minY[label] = minYBuf[i];
                   }
-               } else {
+               }
+               else {
                   maxX[label] = maxXBuf[i];
                   maxY[label] = maxYBuf[i];
                   minX[label] = minXBuf[i];

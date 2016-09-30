@@ -286,11 +286,13 @@ static inline int nearby_neighbor(int kzPre, int zScaleLog2Pre, int zScaleLog2Po
 static inline float deltaPosLayers(int kPre, int scale) {
    if (scale == 0) {
       return 0.0f;
-   } else if (scale < 0) {
+   }
+   else if (scale < 0) {
       // post-synaptic layer has smaller size scale
       int s = (int)powf(2.0f, (float)-scale);
       return 0.5f * (float)(1 - s);
-   } else {
+   }
+   else {
       // post-synaptic layer has larger size scale
       int s = (int)powf(2.0f, (float)scale);
       return 0.5f * (1.0f - (1.0f + 2.0f * (kPre % s)) / s);
@@ -523,13 +525,15 @@ static inline int layerIndexExt(int kPreExt, const PVLayerLoc *inLoc, const PVLa
    if (scaleFactorX > 1) {
       half   = floor(scaleFactorX / 2);
       kPostX = kPreX * scaleFactorX + half;
-   } else {
+   }
+   else {
       kPostX = floor(kPreX * scaleFactorX);
    }
    if (scaleFactorY > 1) {
       half   = floor(scaleFactorY / 2);
       kPostY = kPreY * scaleFactorY + half;
-   } else {
+   }
+   else {
       kPostY = floor(kPreY * scaleFactorY);
    }
 

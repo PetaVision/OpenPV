@@ -61,7 +61,8 @@ int InitUniformRandomWeights::randomWeights(
          maxwgt = minwgt;
       }
       p = 0;
-   } else {
+   }
+   else {
       p = (maxwgt - minwgt) / (1.0 + (double)CL_RANDOM_MAX);
    }
    sparseFraction *= (float)(1.0 + (double)CL_RANDOM_MAX);

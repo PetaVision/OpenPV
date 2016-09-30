@@ -70,7 +70,8 @@ int runparamsfile(PV_Init *initObj, char const *paramsfile) {
                   status);
          }
       }
-   } else {
+   }
+   else {
       status = PV_FAILURE;
    }
 
