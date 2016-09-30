@@ -15,6 +15,9 @@ int main(int argc, char * argv[]) {
    PV::Secretary * secretary = new PV::Secretary("secretary", comm);
 
    PV::PVParams * params = new PV::PVParams("input/SecretaryTest.params", 1, comm);
+   if(comm->numCommBatches() > 1){
+         params->setBatchSweepValues();
+   }
 
    char const * checkpointWriteDir = params->stringValue("secretary", "checkpointWriteDir");
    pvErrorIf(checkpointWriteDir==nullptr, "Group \"secretary\" must have a checkpointWriteDir string parameter.\n");
@@ -59,7 +62,7 @@ int main(int argc, char * argv[]) {
    integerCheckpoint = -25;
 
    std::string checkpointReadDir(checkpointWriteDirectory);
-   checkpointReadDir.append("/Checkpoint4");
+   checkpointReadDir.append("/Checkpoint04");
    secretary->checkpointRead(checkpointReadDir, &readTime, &readStep);
 
    delete secretary;
