@@ -75,7 +75,7 @@ int StochasticReleaseTestProbe::outputState(double timed) {
          // sort the p-values and apply Holm-Bonferroni method since there is one for each timestep and each feature.
          size_t N = pvalues.size();
          std::sort(pvalues.begin(), pvalues.end(), compar);
-         while(N>0 && isnan(pvalues.at(N-1))) {
+         while(N>0 && std::isnan(pvalues.at(N-1))) {
             N--;
          }
          pvalues.resize(N);
