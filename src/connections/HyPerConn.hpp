@@ -16,6 +16,7 @@
 #include "include/pv_common.h"
 #include "include/pv_types.h"
 #include "io/PVParams.hpp"
+#include "io/PrintStream.hpp"
 #include "probes/BaseConnectionProbe.hpp"
 #include "layers/HyPerLayer.hpp"
 #include "utils/Timer.hpp"
@@ -65,10 +66,8 @@ public:
    friend class PlasticCloneConn;
    friend class TransposeConn;
    friend class privateTransposeConn;
-//#ifdef OBSOLETE // Marked obsolete May 3, 2016.  All pooling-dependent behavior should be in PoolingConn
    friend class TransposePoolingConn;
-//#endif // OBSOLETE // Marked obsolete May 3, 2016.  All pooling-dependent behavior should be in PoolingConn
-   
+
    enum AccumulateType {UNDEFINED, CONVOLVE, STOCHASTIC};
    // Subclasses that need different accumulate types should define their own enums
 
@@ -84,7 +83,7 @@ public:
 
    virtual int checkpointRead(const char * cpDir, double* timef);
    virtual int checkpointWrite(const char * cpDir);
-   virtual int writeTimers(std::ostream& stream);
+   virtual int writeTimers(PrintStream &stream);
    virtual int insertProbe(BaseConnectionProbe* p);
    int outputProbeParams();
    virtual int outputState(double time, bool last = false);
@@ -99,7 +98,7 @@ public:
          int numPatches, const char* filename, double timef, bool compressWeights, bool last);
    virtual int writeTextWeights(const char* filename, int k);
 
-   virtual int writeTextWeightsExtra(OutStream * pvstream, int k, int arborID) {
+   virtual int writeTextWeightsExtra(PrintStream * pvstream, int k, int arborID) {
       return PV_SUCCESS;
    }
 

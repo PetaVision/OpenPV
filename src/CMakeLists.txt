@@ -42,12 +42,14 @@ set(SRC_SUBDIRS
   arch/mpi
   bindings
   columns
+  components
   connections
   cudakernels
   include
   io
   layers
   normalizers
+  structures
   observerpattern
   probes
   utils

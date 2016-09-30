@@ -323,10 +323,10 @@ int StatsProbe::outputState(double timed)
    return PV_SUCCESS;
 }
 
-int StatsProbe::checkpointTimers(OutStream& timerstream) {
-   iotimer->fprint_time(timerstream.outStream());
-   mpitimer->fprint_time(timerstream.outStream());
-   comptimer->fprint_time(timerstream.outStream());
+int StatsProbe::checkpointTimers(PrintStream& timerstream) {
+   iotimer->fprint_time(timerstream);
+   mpitimer->fprint_time(timerstream);
+   comptimer->fprint_time(timerstream);
    return PV_SUCCESS;
 }
 

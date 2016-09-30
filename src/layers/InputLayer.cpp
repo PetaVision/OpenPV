@@ -4,6 +4,7 @@
  */
 
 #include "InputLayer.hpp"
+#include "utils/BufferUtilsMPI.hpp"
 
 #include <algorithm>
 #include <cfloat>
@@ -136,7 +137,7 @@ namespace PV {
                                << ", batch: " << b+kb0
                                << ", index: " << batchIndices.at(b) << "\n";
                }
-            }
+           }
             size_t len = outStrStream.str().length();
             pvErrorIf (PV_fwrite(outStrStream.str().c_str(), sizeof(char), len, mTimestampFile) != len,
                   "%s: InputLayer::updateState failed to write to timestamp file.\n", getDescription_c());
@@ -165,55 +166,28 @@ namespace PV {
    }
 
    int InputLayer::scatterInput(int batchIndex) {
-      Communicator *icComm = parent->getCommunicator();
       const int rank = parent->columnId();
-      const int rootProc = 0;
       MPI_Comm mpiComm = parent->getCommunicator()->communicator();
       pvadata_t *activityBuffer = getActivity() + batchIndex * getNumExtended();
       const PVLayerLoc *loc = getLayerLoc();
       const PVHalo *halo = &loc->halo;
-      const int numFeatures = loc->nf;
       int activityWidth = loc->nx + (mUseInputBCflag ? halo->lt + halo->rt : 0);
       int activityHeight = loc->ny + (mUseInputBCflag ? halo->up + halo->dn : 0);
-      int numElements = activityHeight * activityWidth * numFeatures;
+      Buffer<float> croppedBuffer;
 
-      // Defining this outside of the loop lets it contain the correct
-      // data for the root process at the end
-      Buffer croppedBuffer;
-      if (rank == rootProc) {
-
-         // Loop through each rank, ending on the root process.
-         // Uses Buffer::crop and MPI_Send to give each process
-         // the correct slice of input data.
-         for (int rank = icComm->commSize()-1; rank >= 0; --rank) {
-            
-            // Copy the input data to a temporary buffer. This gets cropped to the layer size below.
-            croppedBuffer = mInputData.at(batchIndex);
-            int cropLeft = columnFromRank(rank, icComm->numCommRows(), icComm->numCommColumns()) * loc->nx;
-            int cropTop  = rowFromRank(   rank, icComm->numCommRows(), icComm->numCommColumns()) * loc->ny;
-
-            // Crop the input data to the size of one process.
-            croppedBuffer.translate(-cropLeft, -cropTop);
-            croppedBuffer.crop(activityWidth, activityHeight, Buffer::NORTHWEST);
-
-            // If this isn't the root process, ship it off to the appropriate process.
-            if (rank != rootProc) {
-               MPI_Send(croppedBuffer.asVector().data(), numElements, MPI_FLOAT, rank, 31, mpiComm);
-            }
-         }
+      if (rank == 0) {
+         croppedBuffer = mInputData.at(batchIndex);
+         BufferUtils::scatter<float>(parent->getCommunicator(),
+                                     croppedBuffer,
+                                     loc->nx,
+                                     loc->ny);
       }
       else {
-         
-         // Create a temporary array to receive from MPI, move the values into
-         // a vector, and then create a Buffer out of that vector.
-         float *tempBuffer = static_cast<float*>(calloc(numElements, sizeof(float)));
-         MPI_Recv(tempBuffer, numElements, MPI_FLOAT, rootProc, 31, mpiComm, MPI_STATUS_IGNORE);
-         std::vector<float> bufferData(numElements);
-         for (int i = 0; i < numElements; ++i) {
-            bufferData.at(i) = tempBuffer[i];
-         }
-         free(tempBuffer);
-         croppedBuffer.set(bufferData, activityWidth, activityHeight, numFeatures);
+         croppedBuffer.resize(activityWidth, activityHeight, loc->nf);
+         BufferUtils::scatter<float>(parent->getCommunicator(),
+                                     croppedBuffer,
+                                     loc->nx,
+                                     loc->ny);
       }
 
       // At this point, croppedBuffer has the correct data for this
@@ -242,15 +216,19 @@ namespace PV {
       return PV_SUCCESS;
    }
 
-   void InputLayer::fitBufferToLayer(Buffer &buffer) {
+   void InputLayer::fitBufferToLayer(Buffer<float> &buffer) {
       pvAssert(parent->columnId() == 0);
       const PVLayerLoc *loc = getLayerLoc();
       const PVHalo *halo = &loc->halo;
       const int targetWidth  = loc->nxGlobal + (mUseInputBCflag ? (halo->lt + halo->rt) : 0);
       const int targetHeight = loc->nyGlobal + (mUseInputBCflag ? (halo->dn + halo->up) : 0);
 
+      pvErrorIf(buffer.getFeatures() != loc->nf,
+            "ERROR: Input for layer %s has %d features, but layer has %d\n.",
+            getName(), buffer.getFeatures(), loc->nf);
+
       if (mAutoResizeFlag) {
-         buffer.rescale(targetWidth, targetHeight, mRescaleMethod, mInterpolationMethod, mAnchor); 
+         BufferUtils::rescale(buffer, targetWidth, targetHeight, mRescaleMethod, mInterpolationMethod, mAnchor); 
          buffer.translate(-mOffsetX, -mOffsetY);
       }
       else {
@@ -516,31 +494,31 @@ namespace PV {
             pvError() << "Invalid value for offsetAnchor\n";
          }
          if (strcmp(offsetAnchor, "tl") == 0) {
-            mAnchor = Buffer::NORTHWEST;
+            mAnchor = Buffer<float>::NORTHWEST;
          }
          else if (strcmp(offsetAnchor, "tc") == 0) {
-            mAnchor = Buffer::NORTH;
+            mAnchor = Buffer<float>::NORTH;
          }
          else if (strcmp(offsetAnchor, "tr") == 0) {
-            mAnchor = Buffer::NORTHEAST;
+            mAnchor = Buffer<float>::NORTHEAST;
          }
          else if (strcmp(offsetAnchor, "cl") == 0) {
-            mAnchor = Buffer::WEST;
+            mAnchor = Buffer<float>::WEST;
          }
          else if (strcmp(offsetAnchor, "cc") == 0) {
-            mAnchor = Buffer::CENTER;
+            mAnchor = Buffer<float>::CENTER;
          }
          else if (strcmp(offsetAnchor, "cr") == 0) {
-            mAnchor = Buffer::EAST;
+            mAnchor = Buffer<float>::EAST;
          }
          else if (strcmp(offsetAnchor, "bl") == 0) { 
-            mAnchor = Buffer::SOUTHWEST;
+            mAnchor = Buffer<float>::SOUTHWEST;
          }
          else if (strcmp(offsetAnchor, "bc") == 0) {
-            mAnchor = Buffer::SOUTH;
+            mAnchor = Buffer<float>::SOUTH;
          }
          else if (strcmp(offsetAnchor, "br") == 0) {
-            mAnchor = Buffer::SOUTHEAST;
+            mAnchor = Buffer<float>::SOUTHEAST;
          }
          else {
             if (parent->columnId()==0) {
@@ -556,36 +534,36 @@ namespace PV {
          char *offsetAnchor = (char*)calloc(3, sizeof(char));
          offsetAnchor[2] = '\0';
          switch (mAnchor) {
-            case Buffer::NORTH:
-            case Buffer::NORTHWEST:
-            case Buffer::NORTHEAST:
+            case Buffer<float>::NORTH:
+            case Buffer<float>::NORTHWEST:
+            case Buffer<float>::NORTHEAST:
                offsetAnchor[0] = 't';
                break;
-            case Buffer::WEST:
-            case Buffer::CENTER:
-            case Buffer::EAST:
+            case Buffer<float>::WEST:
+            case Buffer<float>::CENTER:
+            case Buffer<float>::EAST:
                offsetAnchor[0] = 'c';
                break;
-            case Buffer::SOUTHWEST:
-            case Buffer::SOUTH:
-            case Buffer::SOUTHEAST:
+            case Buffer<float>::SOUTHWEST:
+            case Buffer<float>::SOUTH:
+            case Buffer<float>::SOUTHEAST:
                offsetAnchor[0] = 'b';
                break;
          }
          switch (mAnchor) {
-            case Buffer::NORTH:
-            case Buffer::CENTER:
-            case Buffer::SOUTH:
+            case Buffer<float>::NORTH:
+            case Buffer<float>::CENTER:
+            case Buffer<float>::SOUTH:
                offsetAnchor[1] = 'c';
                break;
-            case Buffer::EAST:
-            case Buffer::NORTHEAST:
-            case Buffer::SOUTHEAST:
+            case Buffer<float>::EAST:
+            case Buffer<float>::NORTHEAST:
+            case Buffer<float>::SOUTHEAST:
                offsetAnchor[1] = 'l';
                break;
-            case Buffer::WEST:
-            case Buffer::NORTHWEST:
-            case Buffer::SOUTHWEST:
+            case Buffer<float>::WEST:
+            case Buffer<float>::NORTHWEST:
+            case Buffer<float>::SOUTHWEST:
                offsetAnchor[1] = 'r';
                break;
          }
@@ -604,10 +582,10 @@ namespace PV {
          char *aspectRatioAdjustment = nullptr;
          if (ioFlag == PARAMS_IO_WRITE) {
             switch (mRescaleMethod) {
-               case Buffer::CROP:
+               case BufferUtils::CROP:
                   aspectRatioAdjustment = strdup("crop");
                   break;
-               case Buffer::PAD:
+               case BufferUtils::PAD:
                   aspectRatioAdjustment = strdup("pad");
                   break;
             }
@@ -618,10 +596,9 @@ namespace PV {
             for (char * c = aspectRatioAdjustment; *c; c++) { *c = tolower(*c); }
          }
          if (strcmp(aspectRatioAdjustment, "crop") == 0) {
-            mRescaleMethod = Buffer::CROP;
-         }
+            mRescaleMethod = BufferUtils::CROP; }
          else if (strcmp(aspectRatioAdjustment, "pad") == 0) {
-            mRescaleMethod = Buffer::PAD;
+            mRescaleMethod = BufferUtils::PAD;
          }
          else {
             if (parent->columnId()==0) {
@@ -644,10 +621,10 @@ namespace PV {
             assert(interpolationMethodString);
             for (char * c = interpolationMethodString; *c; c++) { *c = tolower(*c); }
             if (!strncmp(interpolationMethodString, "bicubic", strlen("bicubic"))) {
-               mInterpolationMethod = Buffer::BICUBIC;
+               mInterpolationMethod = BufferUtils::BICUBIC;
             }
             else if (!strncmp(interpolationMethodString, "nearestneighbor", strlen("nearestneighbor"))) {
-               mInterpolationMethod = Buffer::NEAREST;
+               mInterpolationMethod = BufferUtils::NEAREST;
             }
             else {
                if (parent->columnId()==0) {
@@ -661,10 +638,10 @@ namespace PV {
          else {
             assert(ioFlag == PARAMS_IO_WRITE);
             switch (mInterpolationMethod) {
-            case Buffer::BICUBIC:
+            case BufferUtils::BICUBIC:
                interpolationMethodString = strdup("bicubic");
                break;
-            case Buffer::NEAREST:
+            case BufferUtils::NEAREST:
                interpolationMethodString = strdup("nearestNeighbor");
                break;
             }

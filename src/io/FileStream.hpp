@@ -5,61 +5,46 @@
  *      Author: pschultz
  */
 
-#ifndef SRC_IO_FILESTREAM_HPP_
-#define SRC_IO_FILESTREAM_HPP_
+#ifndef __FILESTREAM_HPP__
+#define __FILESTREAM_HPP__
 
-#include <ostream>
+#include "PrintStream.hpp"
+
 #include <fstream>
 
 namespace PV {
 
-class OutStream {
-public:
-   OutStream(std::ostream& stream);
-   virtual ~OutStream() {}
-   std::ostream& outStream() { return *mOutStream; }
-   int printf(const char *fmt, ...);
+class FileStream : public PrintStream {
+   public:
+      FileStream(char const * path,
+                 std::ios_base::openmode mode,
+                 bool verifyWrites = false);
+      ~FileStream();
+      bool readable()  { return mFStream.flags() & std::ios_base::in; }
+      bool writeable() { return mFStream.flags() & std::ios_base::out; }
+      bool binary()    { return mFStream.flags() & std::ios_base::binary; }
+      bool readwrite() { return readable() && writeable(); }
+      void write(void *data, long length);
+      void read(void *data, long length);
+      void setOutPos(long pos, bool fromBeginning);
+      void setInPos(long pos, bool fromBeginning);
+      long getOutPos();
+      long getInPos();
+   protected:
+      FileStream() {}
+      void verifyFlags(const char *caller);
 
-protected:
-   OutStream() {}
-   void setOutStream(std::ostream& stream);
+   private:
+      void openFile(char const *path, std::ios_base::openmode mode, bool verifyWrites);
+      void closeFile();
 
-private:
-
-// Data members
-private:
-   std::ostream * mOutStream = nullptr;
-};
-
-class FileStream : public OutStream {
-public:
-   FileStream(char const * path, std::ios_base::openmode mode, bool verifyWrites = false);
-   virtual ~FileStream();
-   bool readable() { return mMode & std::ios_base::out; }
-   bool writeable() { return mMode & std::ios_base::in; }
-   bool readwrite() { return readable() && writeable(); }
-   std::istream& inStream() { return *mInStream; }
-
-protected:
-   FileStream() {}
-   void initialize(char const * path, std::ios_base::openmode mode, bool verifyWrites);
-
-private:
-   void openFile(char const * path, std::ios_base::openmode mode);
-   void closeFile();
-
-// Data members
-private:
-   char * mPath = nullptr;
-   std::ios_base::openmode mMode = std::ios_base::out;
-   std::fstream * mStrPtr = nullptr;
-   std::istream * mInStream = nullptr;
-   std::streambuf::pos_type mFilePos = (std::streambuf::pos_type) 0;
-   std::streambuf::pos_type mFileLength = (std::streambuf::pos_type) 0;
-   bool mVerifyWrites = false;
-   int const mMaxAttempts = 5;
+   private:
+      std::fstream mFStream;
+      bool mVerifyWrites = false;
+      int const mMaxAttempts = 5;
+      FileStream *mWriteVerifier = nullptr;
 };
 
 } /* namespace PV */
 
-#endif /* SRC_IO_FILESTREAM_HPP_ */
+#endif

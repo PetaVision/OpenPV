@@ -17,6 +17,8 @@
 #include <string.h>
 #include <ostream>
 
+#include "io/PrintStream.hpp"
+
 ////////////////////////////////////////////////////////////////////////////////
 
 namespace PV {
@@ -32,7 +34,7 @@ namespace PV {
       virtual double start();
       virtual double stop();
       inline double elapsed_time();
-      virtual int fprint_time(std::ostream& stream);
+      virtual int fprint_time(PrintStream& stream);
       
    protected:
       

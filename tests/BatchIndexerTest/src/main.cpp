@@ -1,4 +1,4 @@
-#include "utils/BatchIndexer.hpp"
+#include "components/BatchIndexer.hpp"
 #include "utils/PVLog.hpp"
 
 #include <memory>

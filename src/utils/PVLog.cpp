@@ -20,7 +20,7 @@ public:
          delete mStream;
       }
       if (path) {
-         char * realPath = expandLeadingTilde(path);
+         char * realPath = strdup(expandLeadingTilde(path).c_str());
          if (realPath==nullptr) {
             // Error message has to go to cerr and not pvError() because pvError uses LogFileStream.
             std::cerr << "LogFileStream::setStream failed for \"" << realPath << "\"\n";
@@ -33,6 +33,7 @@ public:
             exit(EXIT_FAILURE);
          }
          mCreatedWithNew = true;
+         free(realPath);
       }
       else {
          mStream = &mDefaultStream;

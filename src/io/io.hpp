@@ -8,10 +8,11 @@
 #ifndef IO_HPP_
 #define IO_HPP_
 
+#include <string>
 #include <stdbool.h>
-#include "include/pv_types.h"
+#include <mpi/mpi.h>
 
-#include "arch/mpi/mpi.h"
+#include "include/pv_types.h"
 
 #define MIN_BIN_PARAMS  6
 #define NUM_BIN_PARAMS (18 + sizeof(double)/sizeof(int))
@@ -98,7 +99,7 @@ int parse_options(int argc, char * argv[], bool * paramusage, bool * require_ret
  * if the input string needs to be free()'ed, the calling routine has that responsibility
  * as well.
  */
-char * expandLeadingTilde(char const * path);
+std::string expandLeadingTilde(char const * path);
 
 }  // end namespace PV
 

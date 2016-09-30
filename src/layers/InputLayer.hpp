@@ -1,12 +1,14 @@
 // InputLayer
 // Base class for layers that take their input from file IO
 
-#pragma once
+#ifndef __INPUTLAYER_HPP__
+#define __INPUTLAYER_HPP__
 
 #include "HyPerLayer.hpp"
 #include "columns/HyPerCol.hpp"
-#include "utils/Buffer.hpp"
-#include "utils/BatchIndexer.hpp"
+#include "structures/Buffer.hpp"
+#include "utils/BufferUtilsRescale.hpp"
+#include "components/BatchIndexer.hpp"
 
 #include <memory>
 
@@ -114,7 +116,7 @@ namespace PV {
 
          // This pure virtual function gets called from nextInput by the root process only.
          // Load the input file from disk in this method.
-         virtual Buffer retrieveData(std::string filename, int batchIndex) = 0;
+         virtual Buffer<float> retrieveData(std::string filename, int batchIndex) = 0;
          void nextInput(double timef, double dt);
          void initializeBatchIndexer(int fileCount);
 
@@ -137,17 +139,17 @@ namespace PV {
          std::string getFileName(int batchIndex) { return mBatchIndexer != nullptr ? mFileList.at(mBatchIndexer->getIndices().at(batchIndex)) : 0; }
       private:
          void populateFileList();
-         void fitBufferToLayer(Buffer &buffer);
+         void fitBufferToLayer(Buffer<float> &buffer);
 
       protected:
          // If mAutoResizeFlag is enabled, do we crop the edges or pad the edges with mPadValue?
-         Buffer::RescaleMethod mRescaleMethod;
+         BufferUtils::RescaleMethod mRescaleMethod;
 
          // If mAutoResizeFlag is enabled, do we rescale with bicubic or nearest neighbor filtering?
-         Buffer::InterpolationMethod mInterpolationMethod = Buffer::BICUBIC;
+         BufferUtils::InterpolationMethod mInterpolationMethod = BufferUtils::BICUBIC;
 
          // When cropping or resizing, which side of the canvas is the origin?
-         Buffer::Anchor mAnchor = Buffer::CENTER;
+         Buffer<float>::Anchor mAnchor = Buffer<float>::CENTER;
 
          // Flag that enables rescaling input buffer to layer dimensions instead of just cropping
          bool mAutoResizeFlag = false;
@@ -175,7 +177,7 @@ namespace PV {
 
       private:
          // Raw data read from disk, one per batch
-         std::vector<Buffer> mInputData;
+         std::vector< Buffer<float> > mInputData;
          
          // MPI datatypes for boundary exchange
          MPI_Datatype* mDatatypes = nullptr;
@@ -216,3 +218,5 @@ namespace PV {
          BaseInputDeprecatedError(const char* name, HyPerCol *hc);
    };
 } 
+
+#endif

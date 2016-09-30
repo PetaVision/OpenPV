@@ -2097,8 +2097,7 @@ int HyPerLayer::readDataStoreFromFile(const char * filename, Communicator * comm
          pvp_read_time(readFile, comm, 0/*root process*/, &tlevel);
          datastore->setLastUpdateTime(b/*bufferId*/, l, tlevel);
          pvdata_t * buffer = datastore->buffer(b, l);
-         int status1 = scatterActivity(readFile, comm, 0/*root process*/, buffer, getLayerLoc(), true, NULL, 0, 0, PVP_NONSPIKING_ACT_FILE_TYPE, 0);
-         if (status1 != PV_SUCCESS) status = PV_FAILURE;
+         int status1 = scatterActivity(readFile, comm, 0/*root process*/, buffer, getLayerLoc(), true, NULL, 0, 0, PVP_NONSPIKING_ACT_FILE_TYPE, 0); if (status1 != PV_SUCCESS) status = PV_FAILURE;
       }
    }
    assert(status == PV_SUCCESS);
@@ -2223,7 +2222,7 @@ int HyPerLayer::writeDataStoreToFile(const char * filename, Communicator * comm,
    return status;
 }
 
-int HyPerLayer::writeTimers(std::ostream& stream){
+int HyPerLayer::writeTimers(PrintStream &stream){
    if (parent->getCommunicator()->commRank()==0) {
       recvsyn_timer->fprint_time(stream);
       update_timer->fprint_time(stream);

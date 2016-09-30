@@ -9,7 +9,7 @@
 #define ADAPTIVETIMESCALECONTROLLER_HPP_
 
 #include "columns/Communicator.hpp"
-#include <ostream>
+#include "io/PrintStream.hpp"
 #include <vector>
 
 namespace PV {
@@ -31,7 +31,7 @@ public:
    virtual int checkpointRead(const char * cpDir, double * timeptr);
    virtual int checkpointWrite(const char * cpDir);
    std::vector<double> const& calcTimesteps(double timeValue, std::vector<double> const& rawTimeScales);
-   void writeTimestepInfo(double timeValue, std::ostream& stream);
+   void writeTimestepInfo(double timeValue, PrintStream &stream);
 
 private:
    void calcTimeScaleTrue(double timeValue);

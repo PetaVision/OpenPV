@@ -1,6 +1,6 @@
 #pragma once
 
-#include "utils/Image.hpp"
+#include "structures/Image.hpp"
 #include "InputLayer.hpp"
 
 namespace PV {
@@ -9,7 +9,7 @@ namespace PV {
 
    protected:
       ImageLayer() {}
-      virtual Buffer retrieveData(std::string filename, int batchIndex);
+      virtual Buffer<float> retrieveData(std::string filename, int batchIndex);
       void readImage(std::string filename);
 
    public:

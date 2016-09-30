@@ -1,5 +1,7 @@
-#pragma once
+#ifndef __PVPLAYER_HPP__
+#define __PVPLAYER_HPP__
 
+#include "utils/BufferUtilsPvp.hpp"
 #include "InputLayer.hpp"
 
 namespace PV {
@@ -8,7 +10,7 @@ namespace PV {
 
    protected:
       PvpLayer() {}
-      virtual Buffer retrieveData(std::string filename, int batchIndex);
+      virtual Buffer<float> retrieveData(std::string filename, int batchIndex);
 
    public:
       PvpLayer(const char * name, HyPerCol * hc);
@@ -16,12 +18,13 @@ namespace PV {
       virtual int allocateDataStructures();
 
    private:
-      Buffer readSparseBinaryActivityFrame(int numParams, int *params, PV_Stream *pvstream, int frameNumber);
-      Buffer readSparseValuesActivityFrame(int numParams, int *params, PV_Stream *pvstream, int frameNumber);
-      Buffer readNonspikingActivityFrame(int numParams, int *params, PV_Stream *pvstream, int frameNumber);
-      bool mNeedFrameSizesForSpiking = true;
-      std::vector<long> mFrameStartBuffer;
-      std::vector<int> mCountBuffer;
+      struct BufferUtils::SparseFileTable sparseTable;
       int mPvpFrameCount = -1;
+      int mInputNx  = 0;
+      int mInputNy  = 0;
+      int mInputNf  = 0;
+      int mFileType = 0;
    };
 }
+
+#endif

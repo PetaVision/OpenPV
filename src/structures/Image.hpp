@@ -1,7 +1,8 @@
 // Wrapper class for stb_image.h
 // athresher, Jul 27 2016
 
-#pragma once
+#ifndef __IMAGE_HPP__
+#define __IMAGE_HPP__
 
 #include "Buffer.hpp"
 
@@ -10,7 +11,7 @@
 
 namespace PV {
    
-   class Image : public Buffer { 
+   class Image : public Buffer<float> { 
       public:
          Image(std::string filename);
          Image(const std::vector<float> &data, int width, int height, int channels);
@@ -38,3 +39,5 @@ namespace PV {
    };
 
 }
+
+#endif

@@ -17,6 +17,7 @@
 #include "normalizers/NormalizeBase.hpp"
 #include "utils/Clock.hpp"
 #include "io/io.hpp"
+#include "io/PrintStream.hpp"
 
 #include <assert.h>
 #include <math.h>
@@ -50,9 +51,9 @@ HyPerCol::~HyPerCol() {
 #ifdef PV_USE_CUDA
    finalizeThreads();
 #endif // PV_USE_CUDA
-   writeTimers(getOutputStream());
-   int rank = globalRank(); // Need to save so that we know whether we're the process that does I/O, even after deleting mCommunicator.
-
+   PrintStream pStream(getOutputStream());
+   writeTimers(pStream);
+   int rank = globalRank(); // Need to save so that we know whether we're the process that does I/O, even after deleting mCommunicator.  
    for(auto iterator = mConnections.begin(); iterator != mConnections.end();) {
       delete *iterator;
       iterator = mConnections.erase(iterator);
@@ -183,8 +184,8 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
       exit(EXIT_FAILURE);
    }
    int rank = mCommunicator->globalCommRank();
-   char const * gpu_devices = mPVInitObj->getGPUDevices();
-   char * working_dir = expandLeadingTilde(mPVInitObj->getWorkingDir());
+   const char *gpu_devices = mPVInitObj->getGPUDevices();
+   std::string working_dir = expandLeadingTilde(mPVInitObj->getWorkingDir());
    mWarmStart = mPVInitObj->getRestartFlag();
 
    // Sep 27, 2016: handling --require-return has been moved to the Communicator constructor.
@@ -202,15 +203,14 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
    // but that should not be a problem.
    char const * programName = mPVInitObj->getProgramName();
 
-   if(working_dir && columnId()==0) {
-      int status = chdir(working_dir);
+   if(columnId()==0 && working_dir != "") {
+      int status = chdir(working_dir.c_str());
       if(status) {
          pvError(chdirMessage);
-         chdirMessage.printf("Unable to switch directory to \"%s\"\n", working_dir);
+         chdirMessage.printf("Unable to switch directory to \"%s\"\n", working_dir.c_str());
          chdirMessage.printf("chdir error: %s\n", strerror(errno));
       }
    }
-   free(working_dir); working_dir = nullptr;
 
 #ifdef PV_USE_MPI // Fail if there was a parsing error, but make sure nonroot processes don't kill the root process before the root process reaches the syntax error
    int parsedStatus;
@@ -227,7 +227,7 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
    }
 
    if (mPVInitObj->getOutputPath()) {
-      mOutputPath = expandLeadingTilde(mPVInitObj->getOutputPath());
+      mOutputPath = strdup(expandLeadingTilde(mPVInitObj->getOutputPath()).c_str());
       pvErrorIf(mOutputPath == nullptr, "HyPerCol::initialize unable to copy output path.\n");
    }
 
@@ -347,7 +347,7 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
       pvErrorIf(count != mCommunicator->numCommBatches(), "Checkpoint read parsing error: Not enough colon seperated checkpoint read directories. Running with %d batch MPIs but only %zu colon seperated checkpoint directories.\n", mCommunicator->numCommBatches(), count);
 
       //Grab this rank's actual mCheckpointReadDir and replace with mCheckpointReadDir
-      mCheckpointReadDir = expandLeadingTilde(splitCheckpoint[mCommunicator->commBatch()]);
+      mCheckpointReadDir = strdup(expandLeadingTilde(splitCheckpoint[mCommunicator->commBatch()]).c_str());
       pvAssert(mCheckpointReadDir);
       //Free all tmp memories
       for(int i = 0; i < mCommunicator->numCommBatches(); i++){
@@ -1448,7 +1448,7 @@ int HyPerCol::checkpointRead() {
    return PV_SUCCESS;
 }
 
-int HyPerCol::writeTimers(std::ostream& stream){
+int HyPerCol::writeTimers(PrintStream &stream){
    int rank=columnId();
    if (rank==0) {
       mRunTimer->fprint_time(stream);
@@ -1503,26 +1503,9 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
       timerpathstring += "/";
       timerpathstring += "timers.txt";
 
-      //std::string timercsvstring = cpDir;
-      //timercsvstring += "/";
-      //timercsvstring += "timers.csv";
-
       const char * timerpath = timerpathstring.c_str();
       FileStream timerstream(timerpath, std::ios_base::out, getVerifyWrites());
-      if (timerstream.outStream().fail()) {
-         pvError().printf("Unable to open \"%s\" for checkpointing timer information: %s\n", timerpath, strerror(errno));
-      }
-      writeTimers(timerstream.outStream());
-
-      // NOTE: If timercsvpath ever gets brought back to life, it needs to be converted to using ostreams instead of FILE*s.
-      //const char * timercsvpath = timercsvstring.c_str();
-      //PV_Stream * timercsvstream = PV_fopen(timercsvpath, "w", getVerifyWrites());
-      //if (timercsvstream==nullptr) {
-      //   pvError().printf("Unable to open \"%s\" for checkpointing timer information: %s\n", timercsvpath, strerror(errno));
-      //}
-      //writeCSV(timercsvstream->fp);
-      //
-      //PV_fclose(timercsvstream); timercsvstream = nullptr;
+      writeTimers(timerstream);
    }
 
    for (auto& p : mColProbes) {

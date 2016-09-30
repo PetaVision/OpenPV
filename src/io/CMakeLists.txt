@@ -10,6 +10,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
 set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/CheckpointEntry.hpp
    ${SUBDIR}/fileio.hpp
+   ${SUBDIR}/PrintStream.hpp
    ${SUBDIR}/FileStream.hpp
    ${SUBDIR}/imageio.hpp
    ${SUBDIR}/io.hpp

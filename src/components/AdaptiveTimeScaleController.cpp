@@ -159,34 +159,29 @@ std::vector<double> const& AdaptiveTimeScaleController::calcTimesteps(double tim
    return mTimeScale;
 }
 
-void AdaptiveTimeScaleController::writeTimestepInfo(double timeValue, std::ostream& stream) {
-   auto saveWidth = stream.width();
-   auto savePrec = stream.precision();
-   stream.width(10);
-   stream.precision(8);
+void AdaptiveTimeScaleController::writeTimestepInfo(double timeValue, PrintStream &stream) {
    if (mWriteTimeScaleFieldnames) {
-      stream << "sim_time = " << timeValue << "\n";
+      stream.printf("sim_time = %f\n", timeValue);
    }
    else {
-      stream << timeValue << ", ";
+      stream.printf("%f, ", timeValue );
    }
    for(int b = 0; b < mBatchWidth; b++){
       if (mWriteTimeScaleFieldnames) {
-         stream << "\tbatch = " << b << ", timeScale = " << mTimeScale[b] << ", " << "timeScaleTrue = " << mTimeScaleTrue[b];
-      }
-      else {
-         stream << b << ", " << mTimeScale[b] << ", " << mTimeScaleTrue[b];
+         stream.printf("\tbatch = %d, timeScale = %10.8f, timeScaleTrue = %10.8f",
+               b, mTimeScale[b], mTimeScaleTrue[b]);
+      } else {
+         stream.printf("%d, %10.8f, %10.8f",
+               b, mTimeScale[b], mTimeScaleTrue[b]);
       }
       if (mWriteTimeScaleFieldnames) {
-         stream <<  ", " << "timeScaleMax = " << mTimeScaleMax[b] << std::endl;
+         stream.printf(", timeScaleMax = %10.8f\n", mTimeScaleMax[b]);
       }
       else {
-         stream <<  ", " << mTimeScaleMax[b] << std::endl;
+         stream.printf(", %10.8f\n", mTimeScaleMax[b]);
       }
    }
    stream.flush();
-   stream.width(saveWidth);
-   stream.precision(saveWidth);
 }
 
 } /* namespace PV */

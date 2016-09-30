@@ -26,7 +26,7 @@ void CheckpointEntryData<T>::write(std::string const& checkpointDirectory, doubl
       PV_fclose(pvstream);
       path = generatePath(checkpointDirectory, "txt");
       FileStream txtStream(path.c_str(), std::ios_base::out, isVerifyingWrites());
-      TextOutput::print(mDataPointer, mNumValues, txtStream.outStream());
+      TextOutput::print(mDataPointer, mNumValues, txtStream);
    }
 }
 

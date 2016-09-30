@@ -41,7 +41,6 @@ PvpLayer "Input" = {
     normalizeLuminanceFlag              = false;
     useInputBCflag                      = false;
     padValue                            = 0;
-    echoFramePathnameFlag               = false;
     batchMethod                         = "byFile";
     start_frame_index                   = [0.000000];
     writeFrameToTimestamp               = true;
