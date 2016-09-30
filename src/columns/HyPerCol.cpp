@@ -1544,39 +1544,6 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
       }
    }
 
-   if (mDeleteOlderCheckpoints) {
-      pvAssert(mCheckpointWriteFlag); // checkpointWrite is called by exitRunLoop when mCheckpointWriteFlag is false; in this case mDeleteOlderCheckpoints should be false as well.
-      char const * oldestCheckpointDir = mOldCheckpointDirectories[mOldCheckpointDirectoriesIndex].c_str();
-      if (oldestCheckpointDir && oldestCheckpointDir[0]) {
-         if (mCommunicator->commRank()==0) {
-            struct stat lcp_stat;
-            int statstatus = stat(oldestCheckpointDir, &lcp_stat);
-            if ( statstatus!=0 || !(lcp_stat.st_mode & S_IFDIR) ) {
-               if (statstatus==0) {
-                  pvErrorNoExit().printf("Failed to delete older checkpoint: failed to stat \"%s\": %s.\n", oldestCheckpointDir, strerror(errno));
-               }
-               else {
-                  pvErrorNoExit().printf("Deleting older checkpoint: \"%s\" exists but is not a directory.\n", oldestCheckpointDir);
-               }
-            }
-            sync();
-            std::string rmrf_string("");
-            rmrf_string = rmrf_string + "rm -r '" + oldestCheckpointDir + "'";
-            int rmrf_result = system(rmrf_string.c_str());
-            if (rmrf_result != 0) {
-               pvWarn().printf("unable to delete older checkpoint \"%s\": rm command returned %d\n",
-                     oldestCheckpointDir, WEXITSTATUS(rmrf_result));
-            }
-         }
-      }
-      mOldCheckpointDirectories[mOldCheckpointDirectoriesIndex] = std::string(cpDir);
-      mOldCheckpointDirectoriesIndex++;
-      if (mOldCheckpointDirectoriesIndex==mNumCheckpointsKept) { mOldCheckpointDirectoriesIndex = 0; }
-   }
-
-   if (mCommunicator->commRank()==0) {
-      pvInfo().printf("checkpointWrite complete. simTime = %f\n", mSimTime);
-   }
    mCheckpointTimer->stop();
    return PV_SUCCESS;
 }

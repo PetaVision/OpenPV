@@ -88,6 +88,7 @@ private:
    void checkpointWriteWallclock();
    void checkpointNow();
    void checkpointToDirectory(std::string const& checkpointDirectory);
+   void rotateOldCheckpoints(std::string const& newCheckpointDirectory);
 
 private:
    std::string mName;
@@ -117,6 +118,8 @@ private:
    double mLastCheckpointSimtime = -std::numeric_limits<double>::infinity();
    std::time_t mLastCheckpointWallclock = (std::time_t) 0;
    int mWidthOfFinalStepNumber = 0;
+   int mOldCheckpointDirectoriesIndex = 0; // A pointer to the oldest checkpoint in the mOldCheckpointDirectories vector.
+   std::vector<std::string> mOldCheckpointDirectories; // A ring buffer of existing checkpoints, used if mDeleteOlderCheckpoints is true.
 
    static std::string const mDefaultOutputPath;
 };

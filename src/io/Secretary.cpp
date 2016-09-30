@@ -222,6 +222,16 @@ void Secretary::ioParam_numCheckpointsKept(enum ParamsIOFlag ioFlag, PVParams * 
             MPI_Barrier(mCommunicator->communicator());
             exit(EXIT_FAILURE);
          }
+         if (ioFlag==PARAMS_IO_READ) {
+            if (getCommunicator()->globalCommRank()==0) {
+               pvErrorNoExit() << "HyPerCol \"" << mName << "\": numCheckpointsKept must be positive (value was " << mNumCheckpointsKept << ")\n";
+            }
+            MPI_Barrier(mCommunicator->globalCommunicator());
+            exit(EXIT_FAILURE);
+            if (mOldCheckpointDirectories.size() != 0) { pvWarn() << "ioParamsFillGroup called after list of old checkpoint directories was created.  Reinitializing.\n"; }
+            mOldCheckpointDirectories.resize(mNumCheckpointsKept, "");
+            mOldCheckpointDirectoriesIndex = 0;
+         }
       }
    }
 }
@@ -296,6 +306,10 @@ void Secretary::checkpointWrite(double simTime) {
          case WALLCLOCK: checkpointWriteWallclock(); break;
          default:        pvAssert(0);                break;
       }
+
+      if (mCommunicator->commRank()==0) {
+         pvInfo().printf("checkpointWrite complete. simTime = %f\n", simTime);
+      }
    }
 }
 
@@ -355,20 +369,23 @@ void Secretary::checkpointNow() {
    checkpointDirStream.fill('0'); 
    checkpointDirStream.width(fieldWidth); 
    checkpointDirStream << mTimeInfo.mCurrentCheckpointStep; 
-   std::string cpDir = checkpointDirStream.str(); 
-   if (strcmp(cpDir.c_str(),mCheckpointReadDirectory.c_str())) { 
-      /* Note: the strcmp isn't perfect, since there are multiple ways to specify a path that points to the same directory.  Should use realpath. */ 
+   std::string checkpointDirectory = checkpointDirStream.str(); 
+   if (strcmp(checkpointDirectory.c_str(),mCheckpointReadDirectory.c_str())) { 
+      /* Note: the strcmp isn't perfect, since there are multiple ways to specify a path that points to the same directory.  Should use realpath, but that breaks under OS X. */ 
       if (mCommunicator->globalCommRank()==0) { 
-         pvInfo() << "Checkpointing to \"" << cpDir << "\", simTime = " << mTimeInfo.mSimTime << "\n"; 
-      } 
+         pvInfo() << "Checkpointing to \"" << checkpointDirectory << "\", simTime = " << mTimeInfo.mSimTime << "\n"; 
+      }
    } 
    else { 
       if (mCommunicator->globalCommRank()==0) { 
-         pvInfo().printf("Skipping checkpoint to \"%s\", which would clobber the checkpointRead checkpoint.\n", cpDir.c_str()); 
+         pvInfo().printf("Skipping checkpoint to \"%s\", which would clobber the checkpointRead checkpoint.\n", checkpointDirectory.c_str()); 
       } 
       return; 
    }
-   checkpointToDirectory(cpDir); 
+   checkpointToDirectory(checkpointDirectory);
+   if (mDeleteOlderCheckpoints) {
+      rotateOldCheckpoints(checkpointDirectory);
+   }
 }
 
 void Secretary::checkpointToDirectory(std::string const& directory) {
@@ -390,6 +407,35 @@ void Secretary::finalCheckpoint(double simTime) {
       finalCheckpointDir.append("/Last");
       checkpointToDirectory(finalCheckpointDir);
    }
+}
+
+void Secretary::rotateOldCheckpoints(std::string const& newCheckpointDirectory) {
+   std::string& oldestCheckpointDir = mOldCheckpointDirectories[mOldCheckpointDirectoriesIndex];
+   if (!oldestCheckpointDir.empty()) {
+      if (mCommunicator->commRank()==0) {
+         struct stat lcp_stat;
+         int statstatus = stat(oldestCheckpointDir.c_str(), &lcp_stat);
+         if ( statstatus!=0 || !(lcp_stat.st_mode & S_IFDIR) ) {
+            if (statstatus==0) {
+               pvErrorNoExit().printf("Failed to delete older checkpoint: failed to stat \"%s\": %s.\n", oldestCheckpointDir.c_str(), strerror(errno));
+            }
+            else {
+               pvErrorNoExit().printf("Deleting older checkpoint: \"%s\" exists but is not a directory.\n", oldestCheckpointDir.c_str());
+            }
+         }
+         sync();
+         std::string rmrf_string("");
+         rmrf_string = rmrf_string + "rm -r '" + oldestCheckpointDir + "'";
+         int rmrf_result = system(rmrf_string.c_str());
+         if (rmrf_result != 0) {
+            pvWarn().printf("unable to delete older checkpoint \"%s\": rm command returned %d\n",
+                  oldestCheckpointDir.c_str(), WEXITSTATUS(rmrf_result));
+         }
+      }
+   }
+   mOldCheckpointDirectories[mOldCheckpointDirectoriesIndex] = newCheckpointDirectory;
+   mOldCheckpointDirectoriesIndex++;
+   if (mOldCheckpointDirectoriesIndex==mNumCheckpointsKept) { mOldCheckpointDirectoriesIndex = 0; }
 }
 
 std::string const Secretary::mDefaultOutputPath = "output";
