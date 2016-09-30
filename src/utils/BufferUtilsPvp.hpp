@@ -43,13 +43,15 @@ namespace PV {
       template <typename T>
       void writeToPvp(const char *fName,
                       Buffer<T> *buffer,
-                      double timeStamp);
+                      double timeStamp,
+                      bool verifyWrites = false);
 
       template <typename T>
       void appendToPvp(const char *fName,
                        Buffer<T> *buffer,
                        int frameWriteIndex,
-                       double timeStamp);
+                       double timeStamp,
+                       bool verifyWrites = false);
 
       template <typename T>
       double readFromPvp(const char *fName,
@@ -76,13 +78,15 @@ namespace PV {
                             double timeStamp,
                             int width,
                             int height,
-                            int features);
+                            int features,
+                            bool verifyWrites = false);
 
       template <typename T>
       void appendSparseToPvp(const char *fName,
                              SparseList<T> *list,
                              int frameWriteIndex,
-                             double timeStamp);
+                             double timeStamp,
+                             bool verifyWrites = false);
 
       template <typename T>
       double readSparseFromPvp(const char *fName,

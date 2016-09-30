@@ -95,11 +95,12 @@ namespace PV {
       template <typename T>
       void writeToPvp(const char * fName,
                       Buffer<T> *buffer,
-                      double timeStamp) {
+                      double timeStamp,
+                      bool verifyWrites = false) {
          FileStream fStream(fName,
                             std::ios_base::out
                           | std::ios_base::binary,
-                            false);
+                            verifyWrites);
      
          writeHeader(fStream, buildHeader<T>(buffer->getWidth(),
                                              buffer->getHeight(),
@@ -113,12 +114,13 @@ namespace PV {
       void appendToPvp(const char * fName,
                        Buffer<T> *buffer,
                        int frameWriteIndex,
-                       double timeStamp) {
+                       double timeStamp,
+                       bool verifyWrites = false) {
          FileStream fStream(fName,
                             std::ios_base::out
                           | std::ios_base::in
                           | std::ios_base::binary,
-                            false);
+                            verifyWrites);
       
          // TODO: Error if we're writing more than 1 index past the end
 
@@ -264,11 +266,12 @@ namespace PV {
                                    double timeStamp,
                                    int width,
                                    int height,
-                                   int features) {
+                                   int features,
+                                   bool verifyWrites = false) {
          FileStream fStream(fName,
                             std::ios_base::out
                           | std::ios_base::binary,
-                            false);
+                            verifyWrites);
          writeHeader(fStream, buildHeader<T>(width,
                                              height,
                                              features,
@@ -281,12 +284,13 @@ namespace PV {
       void appendSparseToPvp(const char *fName,
                                     SparseList<T> *list,
                                     double timeStamp,
-                                    int frameWriteIndex) {
+                                    int frameWriteIndex,
+                                    bool verifyWrites = false) {
          FileStream fStream(fName,
                             std::ios_base::out
                           | std::ios_base::in
                           | std::ios_base::binary,
-                            false);
+                            verifyWrites);
          // Modify the number of records in the header
          vector<int> header = readHeader(fStream);
          header.at(INDEX_NBANDS) = frameWriteIndex + 1;

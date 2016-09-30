@@ -72,13 +72,15 @@ void testWriteToPvp() {
       if (frame == 0) {
          BufferUtils::writeToPvp<float>("test.pvp",
                                      &outBuffer,
-                                     (double)(frame + 1));
+                                     (double)(frame + 1),
+                                     true);
       }
       else {
          BufferUtils::appendToPvp<float>("test.pvp",
                                      &outBuffer,
                                      frame,
-                                     (double)(frame + 1));
+                                     (double)(frame + 1),
+                                     true);
       }
    }
 
@@ -175,9 +177,9 @@ void testWriteSparseToPvp() {
       SparseList<float> list;
       list.fromBuffer(dense, 0.0f);
       if (f == 0) {
-         BufferUtils::writeSparseToPvp<float>("sparse.pvp", &list, 1.0, 5, 5, 1);
+         BufferUtils::writeSparseToPvp<float>("sparse.pvp", &list, 1.0, 5, 5, 1, true);
       } else {
-         BufferUtils::appendSparseToPvp<float>("sparse.pvp", &list, 1.0 + (double)f, f);
+         BufferUtils::appendSparseToPvp<float>("sparse.pvp", &list, 1.0 + (double)f, f, true);
       }
    }
    

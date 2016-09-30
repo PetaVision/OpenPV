@@ -19,6 +19,7 @@ class FileStream : public PrintStream {
       FileStream(char const * path,
                  std::ios_base::openmode mode,
                  bool verifyWrites = false);
+      ~FileStream();
       bool readable()  { return mFStream.flags() & std::ios_base::in; }
       bool writeable() { return mFStream.flags() & std::ios_base::out; }
       bool binary()    { return mFStream.flags() & std::ios_base::binary; }
@@ -29,18 +30,19 @@ class FileStream : public PrintStream {
       void setInPos(long pos, bool fromBeginning);
       long getOutPos();
       long getInPos();
-      protected:
+   protected:
       FileStream() {}
       void verifyFlags(const char *caller);
 
    private:
-      void openFile(char const *path, std::ios_base::openmode mode);
+      void openFile(char const *path, std::ios_base::openmode mode, bool verifyWrites);
       void closeFile();
 
    private:
       std::fstream mFStream;
       bool mVerifyWrites = false;
       int const mMaxAttempts = 5;
+      FileStream *mWriteVerifier = nullptr;
 };
 
 } /* namespace PV */

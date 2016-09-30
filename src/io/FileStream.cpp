@@ -25,12 +25,17 @@ using std::string;
 namespace PV {
 
 FileStream::FileStream(char const * path, std::ios_base::openmode mode, bool verifyWrites) {
-   openFile(path, mode);
    setOutStream(mFStream);
-   mVerifyWrites = verifyWrites;
+   openFile(path, mode, verifyWrites);
 }
 
-void FileStream::openFile(char const * path, std::ios_base::openmode mode) {
+FileStream::~FileStream() {
+   if (mWriteVerifier != nullptr) {
+      delete mWriteVerifier;
+   }
+}
+
+void FileStream::openFile(char const * path, std::ios_base::openmode mode, bool verifyWrites) {
    string fullPath = expandLeadingTilde(path);
    int attempts = 0;
    while (!mFStream.is_open()) {
@@ -58,6 +63,21 @@ void FileStream::openFile(char const * path, std::ios_base::openmode mode) {
                << "\" on attempt " << attempts+1 << "\n";
    }
    verifyFlags("openFile");
+   if (verifyWrites) {
+      mVerifyWrites = true;
+      if (binary()) {
+         mWriteVerifier =
+            new FileStream(path,
+                           std::ios_base::in
+                         | std::ios_base::binary,
+                           false);
+      } else {
+         mWriteVerifier =
+            new FileStream(path,
+                           std::ios_base::in,
+                           false);
+      }
+   }
 }
 
 void FileStream::verifyFlags(const char *caller) {
@@ -70,10 +90,25 @@ void FileStream::verifyFlags(const char *caller) {
 }
 
 void FileStream::write(void *data, long length) {
+   long startPos = getOutPos();
    mFStream.write((char*)data, length);
-   // TODO: Verify writes
    mFStream.flush();
+
    verifyFlags("write");
+   if (mVerifyWrites) {
+      pvErrorIf(mWriteVerifier == nullptr, "Write Verifier is null.\n");
+      // Set the input position to the location we wrote to
+      mWriteVerifier->setInPos(startPos, true);
+      uint8_t check[length];
+
+      // Read from the location we wrote to and compare
+      mWriteVerifier->read(check, length);
+      if (memcmp(check, data, length) != 0) {
+         pvError() << "Verify write failed when writing "
+                   << length << " bytes to position "
+                   << startPos << "\n";
+      }
+   }
 }
 
 void FileStream::read(void *data, long length) {
@@ -83,7 +118,7 @@ void FileStream::read(void *data, long length) {
    mFStream.read((char*)data, length);
    long numRead = mFStream.gcount();
    pvErrorIf(numRead != length,
-         "Expected to read %d  bytes at %d, read %d instead.\n"
+         "Expected to read %d bytes at %d, read %d instead.\n"
          "New read position: %d\n",
          length, startPos, numRead, getInPos());
    verifyFlags("read");
