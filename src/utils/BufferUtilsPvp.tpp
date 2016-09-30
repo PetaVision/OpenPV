@@ -94,7 +94,7 @@ namespace PV {
       void writeToPvp(const char * fName,
                       Buffer<T> *buffer,
                       double timeStamp,
-                      bool verifyWrites = false) {
+                      bool verifyWrites) {
          FileStream fStream(fName,
                             std::ios_base::out
                           | std::ios_base::binary,
@@ -113,7 +113,7 @@ namespace PV {
                        Buffer<T> *buffer,
                        int frameWriteIndex,
                        double timeStamp,
-                       bool verifyWrites = false) {
+                       bool verifyWrites) {
          FileStream fStream(fName,
                             std::ios_base::out
                           | std::ios_base::in
@@ -269,7 +269,7 @@ namespace PV {
                                    int width,
                                    int height,
                                    int features,
-                                   bool verifyWrites = false) {
+                                   bool verifyWrites) {
          FileStream fStream(fName,
                             std::ios_base::out
                           | std::ios_base::binary,
@@ -287,7 +287,7 @@ namespace PV {
                                     SparseList<T> *list,
                                     double timeStamp,
                                     int frameWriteIndex,
-                                    bool verifyWrites = false) {
+                                    bool verifyWrites) {
          FileStream fStream(fName,
                             std::ios_base::out
                           | std::ios_base::in
@@ -316,7 +316,7 @@ namespace PV {
       double readSparseFromPvp(const char *fName,
                                     SparseList<T> *list,
                                     int frameReadIndex,
-                                    SparseFileTable *cachedTable = nullptr) {
+                                    SparseFileTable *cachedTable) {
          FileStream fStream(fName,
                             std::ios_base::in
                           | std::ios_base::binary,
@@ -350,7 +350,7 @@ namespace PV {
                                             SparseList<T> *list,
                                             int frameReadIndex,
                                             T oneVal,
-                                            SparseFileTable *cachedTable = nullptr) {
+                                            SparseFileTable *cachedTable) {
          FileStream fStream(fName,
                             std::ios_base::in
                           | std::ios_base::binary,

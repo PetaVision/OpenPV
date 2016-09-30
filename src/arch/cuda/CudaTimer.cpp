@@ -4,7 +4,7 @@
  *  Sheng Lundquist
  */
 
-#include <ostream>
+#include "../../io/PrintStream.hpp"
 #include "CudaTimer.hpp"
 #include "cuda_util.hpp"
 
@@ -62,7 +62,7 @@ double CudaTimer::accumulateTime(){
    return (double) time;
 }
 
-int CudaTimer::fprint_time(std::ostream& stream) {
+int CudaTimer::fprint_time(PrintStream &stream) {
    if (rank == 0) {
       stream << message << "processor cycle time == " << time << std::endl;
    }

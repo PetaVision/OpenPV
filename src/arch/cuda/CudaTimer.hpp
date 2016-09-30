@@ -7,9 +7,12 @@
 #ifndef CUDATIMER_HPP_
 #define CUDATIMER_HPP_
 
+#include "../../io/PrintStream.hpp"
 #include "../../utils/Timer.hpp"
 #include <stdio.h>
 #include <cuda_runtime_api.h>
+
+using PV::PrintStream;
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -40,7 +43,7 @@ namespace PVCuda{
        * @return Returns the accumulated time of this timer
        */
       double accumulateTime();
-      virtual int fprint_time(std::ostream& stream);
+      virtual int fprint_time(PrintStream &stream);
       /**
        * A setter function to set the stream to time
        */
