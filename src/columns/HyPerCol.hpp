@@ -16,6 +16,7 @@
 #include "observerpattern/ObserverTable.hpp"
 #include "connections/BaseConnection.hpp"
 #include "io/PVParams.hpp"
+#include "io/Secretary.hpp"
 #include "include/pv_types.h"
 #include "columns/PV_Init.hpp"
 #include "utils/Timer.hpp"
@@ -335,6 +336,7 @@ public:
    int processParams(char const* path);
    int ioParamsFinishGroup(enum ParamsIOFlag);
    int ioParamsStartGroup(enum ParamsIOFlag ioFlag, const char* group_name);
+   int registerData(Secretary * secretary, std::string const& name);
    template <typename T>
    int readArrayFromFile(const char* cp_dir, const char* group_name, const char* val_name, T* val, size_t count, T default_value=(T) 0);
    template <typename T>
@@ -406,7 +408,6 @@ public:
    PVParams * parameters() const { return mParams; }
    long int getInitialStep() const { return mInitialStep; }
    long int getFinalStep() const { return mFinalStep; }
-   long int getCurrentStep() const { return mCurrentStep; }
    unsigned int getRandomSeed() { return mRandomSeed; }
    unsigned int seedRandomFromWallClock();
 
@@ -488,7 +489,7 @@ private:
    char * mInitializeFromCheckpointDir; // If nonempty, mLayers and mConnections can load from this directory as in checkpointRead, by setting their initializeFromCheckpointFlag parameter, but the run still starts at mSimTime=mStartTime
    std::vector<ColProbe*> mColProbes; //ColProbe ** mColProbes;
    double mStartTime;
-   double mSimTime;          // current time in milliseconds
+   double mSimTime;
    double mStopTime;         // time to stop time
    double mDeltaTime;        // time step interval
    double mCpWriteTimeInterval;
@@ -515,11 +516,13 @@ private:
    int * mLayerStatus;
    int * mConnectionStatus;
    Communicator * mCommunicator; // manages communication between HyPerColumns};
+
+   Secretary * mSecretary = nullptr; // manages checkpointing and, eventually, will manage outputState output.
    long int mCpReadDirIndex;  // checkpoint number within mCheckpointReadDir to read
    long int mCpWriteStepInterval;
    long int mNextCpWriteStep;
-   long int mCurrentStep;
    long int mInitialStep;
+   long int mCurrentStep;
    long int mFinalStep;
    std::vector<NormalizeBase*> mNormalizers; //NormalizeBase ** mNormalizers; // Objects for normalizing mConnections or groups of mConnections
    PV_Init* mPVInitObj;

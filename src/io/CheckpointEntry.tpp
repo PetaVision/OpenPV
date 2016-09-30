@@ -15,17 +15,17 @@
 namespace PV {
 
 template <typename T>
-void CheckpointEntryData<T>::write(std::string const& checkpointDirectory, double simTime) const {
+void CheckpointEntryData<T>::write(std::string const& checkpointDirectory, double simTime, bool verifyWritesFlag) const {
    if (getCommunicator()->commRank()==0) {
       std::string path = generatePath(checkpointDirectory, "bin");
-      PV_Stream * pvstream = PV_fopen(path.c_str(), "w", isVerifyingWrites());
-      int numRead = PV_fwrite(mDataPointer, sizeof(T), mNumValues, pvstream);
-      if (numRead != mNumValues) {
+      PV_Stream * pvstream = PV_fopen(path.c_str(), "w", verifyWritesFlag);
+      int numWritten = PV_fwrite(mDataPointer, sizeof(T), mNumValues, pvstream);
+      if (numWritten != mNumValues) {
          pvError() << "CheckpointEntryData::write: unable to write to \"" << path << "\".\n";
       }
       PV_fclose(pvstream);
       path = generatePath(checkpointDirectory, "txt");
-      FileStream txtStream(path.c_str(), std::ios_base::out, isVerifyingWrites());
+      FileStream txtStream(path.c_str(), std::ios_base::out, verifyWritesFlag);
       TextOutput::print(mDataPointer, mNumValues, txtStream);
    }
 }
@@ -34,7 +34,7 @@ template <typename T>
 void CheckpointEntryData<T>::read(std::string const& checkpointDirectory, double * simTimePtr) const {
    if (getCommunicator()->commRank()==0) {
       std::string path = generatePath(checkpointDirectory, "bin");
-      PV_Stream * pvstream = PV_fopen(path.c_str(), "r", false/*reading doesn't use verifyWrites, but PV_fopen constructor still uses it.*/);
+      PV_Stream * pvstream = PV_fopen(path.c_str(), "r", false/*reading doesn't use verifyWrites, but PV_fopen constructor still takes it as an argument.*/);
       int numRead = PV_fread(mDataPointer, sizeof(T), mNumValues, pvstream);
       if (numRead != mNumValues) {
          pvError() << "CheckpointData::read: unable to read from \"" << path << "\".\n";         
@@ -53,11 +53,11 @@ void CheckpointEntryData<T>::remove(std::string const& checkpointDirectory) cons
 }
 
 template <typename T>
-void CheckpointEntryPvp<T>::write(std::string const& checkpointDirectory, double simTime) const {
+void CheckpointEntryPvp<T>::write(std::string const& checkpointDirectory, double simTime, bool verifyWritesFlag) const {
    PV_Stream * pvstream = nullptr;
    if (getCommunicator()->commRank()==0) {
       std::string path = generatePath(checkpointDirectory, "pvp");
-      pvstream = PV_fopen(path.c_str(), "w", isVerifyingWrites());
+      pvstream = PV_fopen(path.c_str(), "w", verifyWritesFlag);
       int * params = pvp_set_nonspiking_act_params(getCommunicator(), simTime, mLayerLoc, mDataType, 1/*numbands*/);
       pvAssert(params && params[1]==NUM_BIN_PARAMS);
       int status = pvp_write_header(pvstream, getCommunicator(), params, params[1]);

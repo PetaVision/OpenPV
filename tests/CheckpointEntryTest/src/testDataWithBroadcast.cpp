@@ -15,9 +15,9 @@ void testDataWithBroadcast(PV::Communicator * comm, std::string const& directory
       checkpointData = std::vector<float>(vectorLength, 0);
    }
    pvErrorIf((int) checkpointData.size() != vectorLength, "checkpointData has length %zu instead of %d\n", (size_t) checkpointData.size(), vectorLength);
-   PV::CheckpointEntryData<float> checkpointEntryWithBroadcast{"checkpointEntryWithBroadcast", false/*not verifying writes*/, comm,
+   PV::CheckpointEntryData<float> checkpointEntryWithBroadcast{"checkpointEntryWithBroadcast", comm,
          checkpointData.data(), checkpointData.size(), true/*broadcasting read to all processes*/};
-   checkpointEntryWithBroadcast.write(directory, 0.0/*simTime, not used*/);
+   checkpointEntryWithBroadcast.write(directory, 0.0/*simTime, not used*/, false/*not verifying writes*/);
 
    // Data has now been checkpointed. Copy it to compare after CheckpointEntry::read,
    // and change the vector to make sure that checkpointRead is really modifying the data.

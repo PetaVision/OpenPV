@@ -105,7 +105,6 @@ int HyPerCol::initialize_base() {
    mWarmStart = false;
    mReadyFlag = false;
    mParamsProcessedFlag = false;
-   mCurrentStep = 0;
    mNumPhases = 0;
    mCheckpointReadFlag = false;
    mCheckpointWriteFlag = false;
@@ -126,7 +125,6 @@ int HyPerCol::initialize_base() {
    mSuppressLastOutput = false;
    mSuppressNonplasticCheckpoints = false;
    mCheckpointIndexWidth = -1; // defaults to automatically determine index width
-   mSimTime = 0.0;
    mStartTime = 0.0;
    mStopTime = 0.0;
    mDeltaTime = DEFAULT_DELTA_T;
@@ -232,12 +230,16 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
    }
 
    mRandomSeed = mPVInitObj->getRandomSeed();
+
+   mSecretary = new Secretary(std::string(mName), mCommunicator);
+   if (mOutputPath) { mSecretary->setOutputPath(mOutputPath); }
    ioParams(PARAMS_IO_READ);
    mCheckpointSignal = 0;
    mSimTime = mStartTime;
    mInitialStep = (long int) nearbyint(mStartTime/mDeltaTime);
    mCurrentStep = mInitialStep;
    mFinalStep = (long int) nearbyint(mStopTime/mDeltaTime);
+   mSecretary->provideFinalStep(mFinalStep);
    mNextProgressTime = mStartTime + mProgressInterval;
 
    RandomSeed::instance()->initialize(mRandomSeed);
@@ -418,8 +420,26 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_stopTime(ioFlag);
    ioParam_progressInterval(ioFlag);
    ioParam_writeProgressToErr(ioFlag);
-   ioParam_verifyWrites(ioFlag);
-   ioParam_outputPath(ioFlag);
+   mSecretary->ioParamsFillGroup(ioFlag, parameters());
+   if (ioFlag==PARAMS_IO_READ) {
+      // These parameters are read and written by mSecretary.
+      // During the transition of checkpointing from HyPerCol to Secretary,
+      // HyPerCol will redundantly read these parameters but not write them.
+      ioParam_verifyWrites(ioFlag);
+      ioParam_outputPath(ioFlag);
+      ioParam_checkpointWrite(ioFlag);
+      ioParam_checkpointWriteDir(ioFlag);
+      ioParam_checkpointWriteTriggerMode(ioFlag);
+      ioParam_checkpointWriteStepInterval(ioFlag);
+      ioParam_checkpointWriteTimeInterval(ioFlag);
+      ioParam_checkpointWriteClockInterval(ioFlag);
+      ioParam_checkpointWriteClockUnit(ioFlag);
+      ioParam_checkpointIndexWidth(ioFlag);
+      ioParam_suppressNonplasticCheckpoints(ioFlag);
+      ioParam_deleteOlderCheckpoints(ioFlag);
+      ioParam_numCheckpointsKept(ioFlag);
+      ioParam_suppressLastOutput(ioFlag);
+   }
    ioParam_printParamsFilename(ioFlag);
    ioParam_randomSeed(ioFlag);
    ioParam_nx(ioFlag);
@@ -430,18 +450,6 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_initializeFromCheckpointDir(ioFlag);
    ioParam_defaultInitializeFromCheckpointFlag(ioFlag);
    ioParam_checkpointRead(ioFlag); // checkpointRead is obsolete as of June 27, 2016.
-   ioParam_checkpointWrite(ioFlag);
-   ioParam_checkpointWriteDir(ioFlag);
-   ioParam_checkpointWriteTriggerMode(ioFlag);
-   ioParam_checkpointWriteStepInterval(ioFlag);
-   ioParam_checkpointWriteTimeInterval(ioFlag);
-   ioParam_checkpointWriteClockInterval(ioFlag);
-   ioParam_checkpointWriteClockUnit(ioFlag);
-   ioParam_deleteOlderCheckpoints(ioFlag);
-   ioParam_numCheckpointsKept(ioFlag);
-   ioParam_suppressLastOutput(ioFlag);
-   ioParam_suppressNonplasticCheckpoints(ioFlag);
-   ioParam_checkpointIndexWidth(ioFlag);
    ioParam_writeTimescales(ioFlag);
    ioParam_errorOnNotANumber(ioFlag);
 
@@ -960,6 +968,9 @@ int HyPerCol::addNormalizer(NormalizeBase * normalizer) {
    return PV_SUCCESS; //Why does this return success when the other add functions return an index?
 }
 
+int HyPerCol::registerData(Secretary * secretary, std::string const& name) {
+}
+
   // typically called by buildandrun via HyPerCol::run()
 int HyPerCol::run(double start_time, double stop_time, double dt)
 {
@@ -1011,6 +1022,9 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
          mPhaseRecvTimers.push_back(new Timer(mName, "column", tmpStr));
       }
 
+      registerData(mSecretary, std::string(mName));
+      notify(std::make_shared<RegisterDataMessage<Secretary> >(mSecretary));
+
    #ifdef DEBUG_OUTPUT
       if (columnId() == 0) {
          pvInfo().printf("[0]: HyPerCol: running...\n");
@@ -1022,6 +1036,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
       // This needs to happen after initPublishers so that we can initialize the values in the data stores,
       // and before the mLayers' publish calls so that the data in border regions gets copied correctly.
       if ( mCheckpointReadFlag ) {
+         mSecretary->checkpointRead(mCheckpointReadDir, &mSimTime, &mCurrentStep);
          checkpointRead();
       }
 
@@ -1089,6 +1104,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
             mCheckpointSignal = 0;
          }
       }
+      mSecretary->checkpointWrite(mSimTime);
       status = advanceTime(mSimTime);
 
       step += 1;
@@ -1385,33 +1401,6 @@ bool HyPerCol::advanceCPWriteTime() {
 }
 
 int HyPerCol::checkpointRead() {
-   struct timestamp_struct {
-      double time; // time measured in units of dt
-      long int step; // step number, usually time/dt
-   };
-   struct timestamp_struct timestamp;
-   size_t timestamp_size = sizeof(struct timestamp_struct);
-   assert(sizeof(struct timestamp_struct) == sizeof(long int) + sizeof(double));
-   if( columnId()==0 ) {
-      char timestamppath[PV_PATH_MAX];
-      int chars_needed = snprintf(timestamppath, PV_PATH_MAX, "%s/timeinfo.bin", mCheckpointReadDir);
-      if (chars_needed >= PV_PATH_MAX) {
-         pvError().printf("HyPerCol::checkpointRead error: path \"%s/timeinfo.bin\" is too long.\n", mCheckpointReadDir);
-      }
-      PV_Stream * timestampfile = PV_fopen(timestamppath,"r",false/*mVerifyWrites*/);
-      if (timestampfile == nullptr) {
-         pvError().printf("HyPerCol::checkpointRead error: unable to open \"%s\" for reading.\n", timestamppath);
-      }
-      long int startpos = getPV_StreamFilepos(timestampfile);
-      PV_fread(&timestamp,1,timestamp_size,timestampfile);
-      long int endpos = getPV_StreamFilepos(timestampfile);
-      assert(endpos-startpos==(int)timestamp_size);
-      PV_fclose(timestampfile);
-   }
-   MPI_Bcast(&timestamp,(int) timestamp_size,MPI_CHAR,0,getCommunicator()->communicator());
-   mSimTime = timestamp.time;
-   mCurrentStep = timestamp.step;
-
    double t = mStartTime;
    for (long int k=mInitialStep; k<mCurrentStep; k++) {
       if (t >= mNextProgressTime) {
@@ -1538,60 +1527,6 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
       }
    }
 
-
-   // Note: timeinfo should be done at the end of the checkpointing, so that its presence serves as a flag that the checkpoint has completed.
-   if( columnId()==0 ) {
-      char timestamppath[PV_PATH_MAX];
-      int chars_needed = snprintf(timestamppath, PV_PATH_MAX, "%s/timeinfo.bin", cpDir);
-      assert(chars_needed < PV_PATH_MAX);
-      PV_Stream * timestampfile = PV_fopen(timestamppath,"w", getVerifyWrites());
-      assert(timestampfile);
-      PV_fwrite(&mSimTime,1,sizeof(double),timestampfile);
-      PV_fwrite(&mCurrentStep,1,sizeof(long int),timestampfile);
-      PV_fclose(timestampfile);
-      chars_needed = snprintf(timestamppath, PV_PATH_MAX, "%s/timeinfo.txt", cpDir);
-      assert(chars_needed < PV_PATH_MAX);
-      timestampfile = PV_fopen(timestamppath,"w", getVerifyWrites());
-      assert(timestampfile);
-      fprintf(timestampfile->fp,"time = %g\n", mSimTime);
-      fprintf(timestampfile->fp,"timestep = %ld\n", mCurrentStep);
-      PV_fclose(timestampfile);
-   }
-
-
-   if (mDeleteOlderCheckpoints) {
-      pvAssert(mCheckpointWriteFlag); // checkpointWrite is called by exitRunLoop when mCheckpointWriteFlag is false; in this case mDeleteOlderCheckpoints should be false as well.
-      char const * oldestCheckpointDir = mOldCheckpointDirectories[mOldCheckpointDirectoriesIndex].c_str();
-      if (oldestCheckpointDir && oldestCheckpointDir[0]) {
-         if (mCommunicator->commRank()==0) {
-            struct stat lcp_stat;
-            int statstatus = stat(oldestCheckpointDir, &lcp_stat);
-            if ( statstatus!=0 || !(lcp_stat.st_mode & S_IFDIR) ) {
-               if (statstatus==0) {
-                  pvErrorNoExit().printf("Failed to delete older checkpoint: failed to stat \"%s\": %s.\n", oldestCheckpointDir, strerror(errno));
-               }
-               else {
-                  pvErrorNoExit().printf("Deleting older checkpoint: \"%s\" exists but is not a directory.\n", oldestCheckpointDir);
-               }
-            }
-            sync();
-            std::string rmrf_string("");
-            rmrf_string = rmrf_string + "rm -r '" + oldestCheckpointDir + "'";
-            int rmrf_result = system(rmrf_string.c_str());
-            if (rmrf_result != 0) {
-               pvWarn().printf("unable to delete older checkpoint \"%s\": rm command returned %d\n",
-                     oldestCheckpointDir, WEXITSTATUS(rmrf_result));
-            }
-         }
-      }
-      mOldCheckpointDirectories[mOldCheckpointDirectoriesIndex] = std::string(cpDir);
-      mOldCheckpointDirectoriesIndex++;
-      if (mOldCheckpointDirectoriesIndex==mNumCheckpointsKept) { mOldCheckpointDirectoriesIndex = 0; }
-   }
-
-   if (mCommunicator->commRank()==0) {
-      pvInfo().printf("checkpointWrite complete. simTime = %f\n", mSimTime);
-   }
    mCheckpointTimer->stop();
    return PV_SUCCESS;
 }
@@ -1779,6 +1714,7 @@ int HyPerCol::exitRunLoop(bool exitOnFinish)
          }
       }
       checkpointWrite(cpDir);
+      mSecretary->checkpointWrite(mSimTime);
    }
 
    if (exitOnFinish) {

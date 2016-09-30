@@ -1,5 +1,6 @@
 set(SRC_CPP
   src/main.cpp
+  src/testSeparatedName.cpp
   src/testDataNoBroadcast.cpp
   src/testDataWithBroadcast.cpp
   src/testPvpExtended.cpp
@@ -8,6 +9,7 @@ set(SRC_CPP
 )
 
 set(SRC_HPP
+  src/testSeparatedName.cpp
   src/testDataNoBroadcast.hpp
   src/testDataWithBroadcast.hpp
   src/testPvpExtended.hpp
