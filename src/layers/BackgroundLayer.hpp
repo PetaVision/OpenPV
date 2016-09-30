@@ -15,24 +15,26 @@
 namespace PV {
 
 // CloneLayer can be used to implement Sigmoid junctions between spiking neurons
-class BackgroundLayer: public CloneVLayer {
-public:
-   BackgroundLayer(const char * name, HyPerCol * hc);
+class BackgroundLayer : public CloneVLayer {
+  public:
+   BackgroundLayer(const char *name, HyPerCol *hc);
    virtual ~BackgroundLayer();
    virtual int communicateInitInfo();
    virtual int allocateV();
    virtual int updateState(double timef, double dt);
    virtual int setActivity();
-protected:
+
+  protected:
    BackgroundLayer();
-   int initialize(const char * name, HyPerCol * hc);
+   int initialize(const char *name, HyPerCol *hc);
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    void ioParam_repFeatureNum(enum ParamsIOFlag ioFlag);
-private:
+
+  private:
    int initialize_base();
    int repFeatureNum;
 }; // class BackgroundLayer
 
-}  // namespace PV
+} // namespace PV
 
 #endif /* CLONELAYER_HPP_ */

@@ -5,16 +5,15 @@
 
 namespace PV {
 
-class GateAvgPoolTestLayer: public PV::ANNLayer{
-public:
-   GateAvgPoolTestLayer(const char* name, HyPerCol * hc);
+class GateAvgPoolTestLayer : public PV::ANNLayer {
+  public:
+   GateAvgPoolTestLayer(const char *name, HyPerCol *hc);
 
-protected:
+  protected:
    int updateState(double timef, double dt);
 
-private:
+  private:
 }; // end class GateAvgPoolTestLayer
-
 
 } /* namespace PV */
 #endif // GATEAVGPOOLTESTLAYER_HPP_

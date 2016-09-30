@@ -8,22 +8,23 @@
 #ifndef PV_INIT_HPP_
 #define PV_INIT_HPP_
 
-#include <iostream>
 #include <arch/mpi/mpi.h>
+#include <columns/Factory.hpp>
+#include <columns/PV_Arguments.hpp>
 #include <io/PVParams.hpp>
 #include <io/io.hpp>
-#include <columns/PV_Arguments.hpp>
-#include <columns/Factory.hpp>
+#include <iostream>
 
 namespace PV {
 
-class HyPerCol; // Included only to allow obsolete (as of Jul 19, 2016) HyPerCol* PV_Init::build() method to print an error message.
+class HyPerCol; // Included only to allow obsolete (as of Jul 19, 2016) HyPerCol* PV_Init::build()
+                // method to print an error message.
 
 /**
  * PV_Init is an object that initializes MPI and parameters to pass to the HyPerCol
  */
 class PV_Init {
-public:
+  public:
    /**
     * The constructor creates a PV_Arguments object from the input arguments
     * and if MPI has not already been initialized, calls MPI_Init.
@@ -33,7 +34,7 @@ public:
     * groups (ANNLayer, HyPerConn, etc.).  To add additional known groups,
     * see the registerKeyword method.
     */
-   PV_Init(int* argc, char ** argv[], bool allowUnrecognizedArguments);
+   PV_Init(int *argc, char **argv[], bool allowUnrecognizedArguments);
    /**
     * Destructor calls MPI_Finalize
     */
@@ -63,48 +64,49 @@ public:
     * static method PV_Argument::freeArgs)
     * The length of the returned array is argc+1, and getArgs()[argc] is NULL.
     */
-   char ** getArgsCopy() const { return arguments->getArgsCopy(); }
+   char **getArgsCopy() const { return arguments->getArgsCopy(); }
 
    /**
     * Deallocates an array, assuming it was created by a call to getArgsCopy().
     * It frees argv[0], argv[1], ..., argv[argc-1], and then frees argv.
     */
-   static void freeArgs(int argc, char ** argv) { PV_Arguments::freeArgs(argc, argv); }
+   static void freeArgs(int argc, char **argv) { PV_Arguments::freeArgs(argc, argv); }
 
    /**
-    * Returns the length of the array returned by getUnusedArgArray(); i.e. the argc argument passed to the constructor.
+    * Returns the length of the array returned by getUnusedArgArray(); i.e. the argc argument passed
+    * to the constructor.
     */
    int getNumArgs() const { return arguments->getNumArgs(); }
 
    /**
     * Returns true if the require-return flag was set.
     */
-   char const * getProgramName() const { return arguments->getProgramName(); }
+   char const *getProgramName() const { return arguments->getProgramName(); }
 
    /**
     * Returns the output path string.
     */
-   char const * getOutputPath() const { return arguments->getOutputPath(); }
+   char const *getOutputPath() const { return arguments->getOutputPath(); }
 
    /**
     * Returns the params file string.
     */
-   char const * getParamsFile() const { return arguments->getParamsFile(); }
+   char const *getParamsFile() const { return arguments->getParamsFile(); }
 
    /**
     * getParams() returns a pointer to the PVParams object created from the params file.
     */
-   PVParams * getParams(){return params;}
+   PVParams *getParams() { return params; }
 
    /**
     * Returns the log file string.
     */
-   char const * getLogFile() const { return arguments->getLogFile(); }
+   char const *getLogFile() const { return arguments->getLogFile(); }
 
    /**
     * Returns the gpu devices string.
     */
-   char const * getGPUDevices() const { return arguments->getGPUDevices(); }
+   char const *getGPUDevices() const { return arguments->getGPUDevices(); }
 
    /**
     * Returns the random seed.
@@ -114,7 +116,7 @@ public:
    /**
     * Returns the working directory string.
     */
-   char const * getWorkingDir() const { return arguments->getWorkingDir(); }
+   char const *getWorkingDir() const { return arguments->getWorkingDir(); }
 
    /**
     * Returns true if the restart flag was set.
@@ -124,7 +126,7 @@ public:
    /**
     * Returns the checkpointRead directory string.
     */
-   char const * getCheckpointReadDir() const { return arguments->getCheckpointReadDir(); }
+   char const *getCheckpointReadDir() const { return arguments->getCheckpointReadDir(); }
 
    /**
     * Returns the useDefaultNumThreads flag.
@@ -169,14 +171,19 @@ public:
    /**
     * Sets the value of the require-return flag.  Always returns PV_SUCCESS.
     */
-   int setRequireReturnFlag(bool val) { arguments->setRequireReturnFlag(val); return PV_SUCCESS; }
+   int setRequireReturnFlag(bool val) {
+      arguments->setRequireReturnFlag(val);
+      return PV_SUCCESS;
+   }
 
    /**
     * Sets the value of the output path string.
     * Return value is PV_SUCCESS or PV_FAILURE.
     * If the routine fails, output path is unchanged.
     */
-   int setOutputPath(char const * val) { return arguments->setOutputPath(val) ? PV_SUCCESS : PV_FAILURE; }
+   int setOutputPath(char const *val) {
+      return arguments->setOutputPath(val) ? PV_SUCCESS : PV_FAILURE;
+   }
 
    /**
     * setParams(paramsFile) updates the params file stored in the arguments,
@@ -185,7 +192,7 @@ public:
     * Return value is PV_SUCCESS or PV_FAILURE.
     * If the routine fails, the params are unchanged.
     */
-   int setParams(char const * paramsFile);
+   int setParams(char const *paramsFile);
 
    /**
     * Sets the log file.  If the string argument is null, logging returns to the
@@ -194,7 +201,7 @@ public:
     * Return value is PV_SUCCESS or PV_FAILURE.
     * If the routine fails, the logging streams remain unchanged.
     */
-   int setLogFile(char const * val, bool appendFlag=false);
+   int setLogFile(char const *val, bool appendFlag = false);
 
    /**
     * Sets the value of the gpu devices string to a copy of the input argument.
@@ -202,13 +209,18 @@ public:
     * If the routine fails, the gpu devices string remains unchanged.
     * Note that this only changes the string; it doesn't touch the GPUs.
     */
-   int setGPUDevices(char const * val) { return arguments->setGPUDevices(val) ? PV_SUCCESS : PV_FAILURE; }
+   int setGPUDevices(char const *val) {
+      return arguments->setGPUDevices(val) ? PV_SUCCESS : PV_FAILURE;
+   }
 
    /**
     * Sets the value of the random seed to the input argument.
     * The return value is always PV_SUCCESS.
     */
-   unsigned int setRandomSeed(unsigned int val) { arguments->setRandomSeed(val); return PV_SUCCESS; }
+   unsigned int setRandomSeed(unsigned int val) {
+      arguments->setRandomSeed(val);
+      return PV_SUCCESS;
+   }
 
    /**
     * Sets the value of the working directory string to a copy of the input argument.
@@ -216,13 +228,18 @@ public:
     * If the routine fails, the working directory string remains unchanged.
     * TODO: PV_Init should handle the working directory, not HyPerCol.
     */
-   int setWorkingDir(char const * val) { return arguments->setWorkingDir(val) ? PV_SUCCESS : PV_FAILURE; }
+   int setWorkingDir(char const *val) {
+      return arguments->setWorkingDir(val) ? PV_SUCCESS : PV_FAILURE;
+   }
 
    /**
     * Sets the value of the restart flag.
     * The return value is always PV_SUCCESS
     */
-   int setRestartFlag(bool val) { arguments->setRestartFlag(val); return PV_SUCCESS; }
+   int setRestartFlag(bool val) {
+      arguments->setRestartFlag(val);
+      return PV_SUCCESS;
+   }
 
    /**
     * Sets the value of the checkpointRead directory string.
@@ -230,20 +247,29 @@ public:
     * If the routine fails, the checkpointRead directory string is unchanged.
     * Note that this only changes the string; it doesn't examine the directory.
     */
-   int setCheckpointReadDir(char const * val) { return arguments->setCheckpointReadDir(val) ? PV_SUCCESS : PV_FAILURE; }
+   int setCheckpointReadDir(char const *val) {
+      return arguments->setCheckpointReadDir(val) ? PV_SUCCESS : PV_FAILURE;
+   }
 
    /**
-     * Turns on the useDefaultNumThreads flag, and sets numThreads to zero. (Should be maxthreads/numProcesses)
+     * Turns on the useDefaultNumThreads flag, and sets numThreads to zero. (Should be
+    * maxthreads/numProcesses)
      * The return value is always PV_SUCCESS
      */
-    int setUseDefaultNumThreads() { arguments->setUseDefaultNumThreads(true); return PV_SUCCESS; }
+   int setUseDefaultNumThreads() {
+      arguments->setUseDefaultNumThreads(true);
+      return PV_SUCCESS;
+   }
 
    /**
     * Sets the number of threads to the input argument.
     * Additionally, turns off the useDefaultNumThreads.
     * The return value is always PV_SUCCESS
     */
-   int setNumThreads(int val) { arguments->setNumThreads(val); return PV_SUCCESS; }
+   int setNumThreads(int val) {
+      arguments->setNumThreads(val);
+      return PV_SUCCESS;
+   }
 
    /**
     * Sets the number of rows, columns, and batch elements.
@@ -261,7 +287,10 @@ public:
     * Sets the dry-run flag to the new argument.
     * The return value is always PV_SUCCESS
     */
-   int setDryRunFlag(bool val) { arguments->setDryRunFlag(val); return PV_SUCCESS; }
+   int setDryRunFlag(bool val) {
+      arguments->setDryRunFlag(val);
+      return PV_SUCCESS;
+   }
 
    /**
     * Resets all member variables to their state at the time the object was
@@ -273,38 +302,37 @@ public:
     */
    int resetState();
 
-   Communicator * getCommunicator(){return mCommunicator;}
+   Communicator *getCommunicator() { return mCommunicator; }
 
    int getWorldRank() const {
-      if(mCommunicator){
+      if (mCommunicator) {
          return mCommunicator->globalCommRank();
-      }
-      else{
+      } else {
          int rank = 0;
          MPI_Comm_rank(MPI_COMM_WORLD, &rank);
          return rank;
       }
    }
 
-   int getWorldSize(){
-      if(mCommunicator){
+   int getWorldSize() {
+      if (mCommunicator) {
          return mCommunicator->globalCommSize();
-      }
-      else{
+      } else {
          int size = 0;
          MPI_Comm_size(MPI_COMM_WORLD, &size);
          return size;
       }
    }
 
-   int isExtraProc(){return mCommunicator->isExtraProc();}
+   int isExtraProc() { return mCommunicator->isExtraProc(); }
 
    /**
-    * If using PV_USE_OPENMP_THREADS, returns the value returned by omp_get_max_threads() when the PV_Init object was instantiated.
+    * If using PV_USE_OPENMP_THREADS, returns the value returned by omp_get_max_threads() when the
+    * PV_Init object was instantiated.
     * Note that this value is NOT divided by the number of MPI processes.
     * If not using PV_USE_OPENMP_THREADS, returns 1.
     */
-   int getMaxThreads() const {return maxThreads; }
+   int getMaxThreads() const { return maxThreads; }
 
    /**
     * The method to add a new object type to the PV_Init object's class factory.
@@ -313,21 +341,21 @@ public:
     * creates an object of the corresponding keyword, with the given name and parent HyPerCol.
     * The function should return a pointer of type BaseObject, created with the new operator.
     */
-   int registerKeyword(char const * keyword, ObjectCreateFn creator);
+   int registerKeyword(char const *keyword, ObjectCreateFn creator);
 
    /**
     * Obsolete.  Use createHyPerCol defined in HyPerCol.cpp instead.
     */
-   HyPerCol * build() {
+   HyPerCol *build() {
       pvError() << "PV_Init::build is obsolete.  " // marked obsolete July 19, 2016.
-            << "Use hc=createHyPerCol(pv_init_ptr) instead of hc=pv_init_ptr->build()\n";
+                << "Use hc=createHyPerCol(pv_init_ptr) instead of hc=pv_init_ptr->build()\n";
       return nullptr;
    }
 
-private:
+  private:
    int initSignalHandler();
    int initMaxThreads();
-   int commInit(int* argc, char*** argv);
+   int commInit(int *argc, char ***argv);
 
    /**
     * A method used internally by initialize() to set the streams that will
@@ -359,12 +387,11 @@ private:
    void printInitMessage();
 
    int commFinalize();
-   PVParams * params;
-   PV_Arguments * arguments;
+   PVParams *params;
+   PV_Arguments *arguments;
    int maxThreads;
-   Communicator * mCommunicator;
+   Communicator *mCommunicator;
 };
-
 }
 
-#endif 
+#endif

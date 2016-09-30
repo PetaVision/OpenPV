@@ -1,31 +1,30 @@
 #ifndef TESTNOTALWAYSALLZEROSPROBE_HPP_
 #define TESTNOTALWAYSALLZEROSPROBE_HPP_
 
-#include "probes/StatsProbe.hpp"
 #include "layers/HyPerLayer.hpp"
+#include "probes/StatsProbe.hpp"
 #include "utils/PVLog.hpp"
 
 namespace PV {
 
-class TestNotAlwaysAllZerosProbe: public StatsProbe {
-public:
-   TestNotAlwaysAllZerosProbe(const char * probeName, HyPerCol * hc);
+class TestNotAlwaysAllZerosProbe : public StatsProbe {
+  public:
+   TestNotAlwaysAllZerosProbe(const char *probeName, HyPerCol *hc);
    bool nonzeroValueHasOccurred() { return nonzeroValueOccurred; }
-   
+
    virtual int outputState(double timed);
 
-protected:
-   int initTestNotAlwaysAllZerosProbe(const char * probeName, HyPerCol * hc);
+  protected:
+   int initTestNotAlwaysAllZerosProbe(const char *probeName, HyPerCol *hc);
    virtual void ioParam_buffer(enum ParamsIOFlag ioFlag);
 
-private:
+  private:
    int initTestNotAlwaysAllZerosProbe_base();
 
-// Member variables
-protected:
+   // Member variables
+  protected:
    bool nonzeroValueOccurred;
 }; // end of class TestNotAlwaysAllZerosProbe
-
 
 } // namespace PV
 

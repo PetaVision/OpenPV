@@ -8,24 +8,22 @@
 
 namespace PV {
 
-CloneKernelConn::CloneKernelConn() : CloneConn() {
-}
+CloneKernelConn::CloneKernelConn() : CloneConn() {}
 
-CloneKernelConn::CloneKernelConn(const char * name, HyPerCol * hc) {
-   initialize(name, hc);
-}
+CloneKernelConn::CloneKernelConn(const char *name, HyPerCol *hc) { initialize(name, hc); }
 
-int CloneKernelConn::initialize(const char * name, HyPerCol * hc) {
+int CloneKernelConn::initialize(const char *name, HyPerCol *hc) {
    int status = CloneConn::initialize(name, hc);
-   if (hc->columnId()==0) {
-      pvError().printf("%s: CloneKernelConn is obsolete.  Use CloneConn with sharedWeights=true.\n", getDescription_c());
+   if (hc->columnId() == 0) {
+      pvError().printf(
+            "%s: CloneKernelConn is obsolete.  Use CloneConn with sharedWeights=true.\n",
+            getDescription_c());
    }
    MPI_Barrier(parent->getCommunicator()->communicator());
    exit(EXIT_FAILURE);
    return status;
 }
 
-CloneKernelConn::~CloneKernelConn() {
-}
+CloneKernelConn::~CloneKernelConn() {}
 
 } // end namespace PV

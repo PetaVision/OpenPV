@@ -12,30 +12,38 @@
 
 namespace PV {
 
-class NormalizeContrastZeroMean: public PV::NormalizeBase {
+class NormalizeContrastZeroMean : public PV::NormalizeBase {
    // Member functions
-public:
-   NormalizeContrastZeroMean(const char * name, HyPerCol * hc);
+  public:
+   NormalizeContrastZeroMean(const char *name, HyPerCol *hc);
    virtual ~NormalizeContrastZeroMean();
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual int normalizeWeights();
 
-protected:
+  protected:
    NormalizeContrastZeroMean();
-   int initialize(const char * name, HyPerCol * hc);
+   int initialize(const char *name, HyPerCol *hc);
 
    virtual void ioParam_minSumTolerated(enum ParamsIOFlag ioFlag);
    virtual void ioParam_normalizeFromPostPerspective(enum ParamsIOFlag ioFlag);
 
-   static void subtractOffsetAndNormalize(pvwdata_t * dataStartPatch, int weights_per_patch, float offset, float normalizer);
-   int accumulateSumAndSumSquared(pvwdata_t * dataPatchStart, int weights_in_patch, float * sum, float * sumsq);
+   static void subtractOffsetAndNormalize(
+         pvwdata_t *dataStartPatch,
+         int weights_per_patch,
+         float offset,
+         float normalizer);
+   int accumulateSumAndSumSquared(
+         pvwdata_t *dataPatchStart,
+         int weights_in_patch,
+         float *sum,
+         float *sumsq);
 
-private:
+  private:
    int initialize_base();
 
    // Member variables
-protected:
+  protected:
    float minSumTolerated; // Error if abs(sum(weights)) in any patch is less than this amount.
 }; // class NormalizeContrastZeroMean
 

@@ -12,17 +12,17 @@
 
 namespace PV {
 
-class PlasticCloneConn : public CloneConn{
+class PlasticCloneConn : public CloneConn {
 
-public:
-   PlasticCloneConn(const char * name, HyPerCol * hc);
+  public:
+   PlasticCloneConn(const char *name, HyPerCol *hc);
    virtual ~PlasticCloneConn();
 
    virtual int communicateInitInfo();
 
-protected:
+  protected:
    PlasticCloneConn();
-   int initialize(const char * name, HyPerCol * hc);
+   int initialize(const char *name, HyPerCol *hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual void ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag);
    virtual void ioParam_normalizeDw(enum ParamsIOFlag ioFlag);
@@ -30,11 +30,11 @@ protected:
    virtual int constructWeights();
    int deleteWeights();
 
-private:
+  private:
    int initialize_base();
 
 }; // end class PlasticCloneConn
 
-}  // end namespace PV
+} // end namespace PV
 
 #endif /* CLONECONN_HPP_ */

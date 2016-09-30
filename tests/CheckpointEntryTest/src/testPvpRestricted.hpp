@@ -4,6 +4,6 @@
 #include "columns/Communicator.hpp"
 #include <string>
 
-void testPvpRestricted(PV::Communicator * comm, std::string const& directory);
+void testPvpRestricted(PV::Communicator *comm, std::string const &directory);
 
 #endif // TESTPVPRESTRICTED_HPP_

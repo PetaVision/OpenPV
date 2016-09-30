@@ -9,30 +9,24 @@
 
 namespace PV {
 
-InitUniformRandomWeightsParams::InitUniformRandomWeightsParams()
-{
-   initialize_base();
-}
+InitUniformRandomWeightsParams::InitUniformRandomWeightsParams() { initialize_base(); }
 
-InitUniformRandomWeightsParams::InitUniformRandomWeightsParams(const char * name, HyPerCol * hc)
-{
+InitUniformRandomWeightsParams::InitUniformRandomWeightsParams(const char *name, HyPerCol *hc) {
    initialize_base();
    initialize(name, hc);
 }
 
-InitUniformRandomWeightsParams::~InitUniformRandomWeightsParams()
-{
-}
+InitUniformRandomWeightsParams::~InitUniformRandomWeightsParams() {}
 
 int InitUniformRandomWeightsParams::initialize_base() {
 
-   wMin = 0;
-   wMax = 1;
+   wMin           = 0;
+   wMax           = 1;
    sparseFraction = 0;
    return 1;
 }
 
-int InitUniformRandomWeightsParams::initialize(const char * name, HyPerCol * hc) {
+int InitUniformRandomWeightsParams::initialize(const char *name, HyPerCol *hc) {
    return InitWeightsParams::initialize(name, hc);
 }
 
@@ -53,8 +47,8 @@ void InitUniformRandomWeightsParams::ioParam_wMaxInit(enum ParamsIOFlag ioFlag) 
 }
 
 void InitUniformRandomWeightsParams::ioParam_sparseFraction(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "sparseFraction", &sparseFraction, sparseFraction);
+   parent->parameters()->ioParamValue(
+         ioFlag, name, "sparseFraction", &sparseFraction, sparseFraction);
 }
-
 
 } /* namespace PV */

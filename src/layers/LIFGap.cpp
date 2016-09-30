@@ -6,12 +6,12 @@
  */
 
 #include "LIFGap.hpp"
-#include "utils/cl_random.h"
-#include "include/pv_datatypes.h"
-#include "../include/pv_common.h"
-#include "../include/default_params.h"
-#include "../io/fileio.hpp"
 #include "../connections/HyPerConn.hpp"
+#include "../include/default_params.h"
+#include "../include/pv_common.h"
+#include "../io/fileio.hpp"
+#include "include/pv_datatypes.h"
+#include "utils/cl_random.h"
 
 #include <assert.h>
 #include <float.h>
@@ -20,114 +20,101 @@
 #include <stdlib.h>
 #include <string.h>
 
-
-
 void LIFGap_update_state_original(
-    const int nbatch,
-    const int numNeurons,
-    const float time,
-    const float dt,
+      const int nbatch,
+      const int numNeurons,
+      const float time,
+      const float dt,
 
-    const int nx,
-    const int ny,
-    const int nf,
-    const int lt,
-    const int rt,
-    const int dn,
-    const int up,
+      const int nx,
+      const int ny,
+      const int nf,
+      const int lt,
+      const int rt,
+      const int dn,
+      const int up,
 
-    LIF_params * params,
-    taus_uint4 * rnd,
+      LIF_params *params,
+      taus_uint4 *rnd,
 
-    float * V,
-    float * Vth,
-    float * G_E,
-    float * G_I,
-    float * G_IB,
-    float * GSynHead,
-    float * activity,
+      float *V,
+      float *Vth,
+      float *G_E,
+      float *G_I,
+      float *G_IB,
+      float *GSynHead,
+      float *activity,
 
-    const pvgsyndata_t * gapStrength
-);
+      const pvgsyndata_t *gapStrength);
 
 void LIFGap_update_state_beginning(
-    const int nbatch,
-    const int numNeurons,
-    const float time,
-    const float dt,
+      const int nbatch,
+      const int numNeurons,
+      const float time,
+      const float dt,
 
-    const int nx,
-    const int ny,
-    const int nf,
-    const int lt,
-    const int rt,
-    const int dn,
-    const int up,
+      const int nx,
+      const int ny,
+      const int nf,
+      const int lt,
+      const int rt,
+      const int dn,
+      const int up,
 
-    LIF_params * params,
-    taus_uint4 * rnd,
+      LIF_params *params,
+      taus_uint4 *rnd,
 
-    float * V,
-    float * Vth,
-    float * G_E,
-    float * G_I,
-    float * G_IB,
-    float * GSynHead,
-    float * activity,
+      float *V,
+      float *Vth,
+      float *G_E,
+      float *G_I,
+      float *G_IB,
+      float *GSynHead,
+      float *activity,
 
-    const pvgsyndata_t * gapStrength
-);
+      const pvgsyndata_t *gapStrength);
 
 void LIFGap_update_state_arma(
-    const int nbatch,
-    const int numNeurons,
-    const float time,
-    const float dt,
+      const int nbatch,
+      const int numNeurons,
+      const float time,
+      const float dt,
 
-    const int nx,
-    const int ny,
-    const int nf,
-    const int lt,
-    const int rt,
-    const int dn,
-    const int up,
+      const int nx,
+      const int ny,
+      const int nf,
+      const int lt,
+      const int rt,
+      const int dn,
+      const int up,
 
-    LIF_params * params,
-    taus_uint4 * rnd,
+      LIF_params *params,
+      taus_uint4 *rnd,
 
-    float * V,
-    float * Vth,
-    float * G_E,
-    float * G_I,
-    float * G_IB,
-    float * GSynHead,
-    float * activity,
+      float *V,
+      float *Vth,
+      float *G_E,
+      float *G_I,
+      float *G_IB,
+      float *GSynHead,
+      float *activity,
 
-    const pvgsyndata_t * gapStrength
-);
-
-
-
+      const pvgsyndata_t *gapStrength);
 
 namespace PV {
 
-LIFGap::LIFGap() {
-   initialize_base();
-}
+LIFGap::LIFGap() { initialize_base(); }
 
-LIFGap::LIFGap(const char * name, HyPerCol * hc) {
+LIFGap::LIFGap(const char *name, HyPerCol *hc) {
    initialize_base();
    initialize(name, hc, "LIFGap_update_state");
 }
 
-LIFGap::~LIFGap()
-{
-   free(gapStrength);
-}
+LIFGap::~LIFGap() { free(gapStrength); }
 
 int LIFGap::initialize_base() {
-   numChannels = 4;
-   gapStrength = NULL;
+   numChannels            = 4;
+   gapStrength            = NULL;
    gapStrengthInitialized = false;
    return PV_SUCCESS;
 }
@@ -136,17 +123,21 @@ int LIFGap::initialize_base() {
 /*
  *
  */
-int LIFGap::initialize(const char * name, HyPerCol * hc, const char * kernel_name) {
+int LIFGap::initialize(const char *name, HyPerCol *hc, const char *kernel_name) {
    int status = LIF::initialize(name, hc, kernel_name);
    return status;
 }
 
 int LIFGap::allocateConductances(int num_channels) {
-   int status = LIF::allocateConductances(num_channels-1); // CHANNEL_GAP doesn't have a conductance per se.
-   gapStrength = (pvgsyndata_t *) calloc((size_t) getNumNeuronsAllBatches(), sizeof(*gapStrength));
-   if(gapStrength == NULL) {
-      pvError().printf("%s: rank %d process unable to allocate memory for gapStrength: %s\n",
-            getDescription_c(), parent->columnId(), strerror(errno));
+   int status = LIF::allocateConductances(
+         num_channels - 1); // CHANNEL_GAP doesn't have a conductance per se.
+   gapStrength = (pvgsyndata_t *)calloc((size_t)getNumNeuronsAllBatches(), sizeof(*gapStrength));
+   if (gapStrength == NULL) {
+      pvError().printf(
+            "%s: rank %d process unable to allocate memory for gapStrength: %s\n",
+            getDescription_c(),
+            parent->columnId(),
+            strerror(errno));
    }
    return status;
 }
@@ -154,32 +145,41 @@ int LIFGap::allocateConductances(int num_channels) {
 int LIFGap::calcGapStrength() {
    bool needsNewCalc = !gapStrengthInitialized;
    if (!needsNewCalc) {
-      for (int c=0; c<parent->numberOfConnections(); c++) {
-         HyPerConn * conn = dynamic_cast<HyPerConn *>(parent->getConnection(c));
-         if (conn->postSynapticLayer() != this || conn->getChannel() != CHANNEL_GAP) { continue; }
+      for (int c = 0; c < parent->numberOfConnections(); c++) {
+         HyPerConn *conn = dynamic_cast<HyPerConn *>(parent->getConnection(c));
+         if (conn->postSynapticLayer() != this || conn->getChannel() != CHANNEL_GAP) {
+            continue;
+         }
          if (mLastUpdateTime < conn->getLastUpdateTime()) {
             needsNewCalc = true;
             break;
          }
       }
    }
-   if (!needsNewCalc) { return PV_SUCCESS; }
-
-   for (int k=0; k<getNumNeuronsAllBatches(); k++) {
-      gapStrength[k] = (pvgsyndata_t) 0;
+   if (!needsNewCalc) {
+      return PV_SUCCESS;
    }
-   for (int c=0; c<parent->numberOfConnections(); c++) {
-      HyPerConn * conn = dynamic_cast<HyPerConn *>(parent->getConnection(c));
-      if (conn->postSynapticLayer() != this || conn->getChannel() != CHANNEL_GAP) { continue; }
-      if (conn->getPlasticityFlag() && parent->columnId()==0) {
-         pvWarn().printf("%s: %s on CHANNEL_GAP has plasticity flag set to true\n", getDescription_c(), conn->getDescription_c());
+
+   for (int k = 0; k < getNumNeuronsAllBatches(); k++) {
+      gapStrength[k] = (pvgsyndata_t)0;
+   }
+   for (int c = 0; c < parent->numberOfConnections(); c++) {
+      HyPerConn *conn = dynamic_cast<HyPerConn *>(parent->getConnection(c));
+      if (conn->postSynapticLayer() != this || conn->getChannel() != CHANNEL_GAP) {
+         continue;
       }
-      HyPerLayer * pre = conn->preSynapticLayer();
-      const int sy = conn->getPostNonextStrides()->sy;
-      const int syw = conn->yPatchStride();
-      for (int arbor=0; arbor<conn->numberOfAxonalArborLists(); arbor++) {
-         for (int k=0; k<pre->getNumExtendedAllBatches(); k++) {
-            conn->deliverOnePreNeuronActivity(k, arbor, (pvadata_t) 1.0, gapStrength, NULL);
+      if (conn->getPlasticityFlag() && parent->columnId() == 0) {
+         pvWarn().printf(
+               "%s: %s on CHANNEL_GAP has plasticity flag set to true\n",
+               getDescription_c(),
+               conn->getDescription_c());
+      }
+      HyPerLayer *pre = conn->preSynapticLayer();
+      const int sy    = conn->getPostNonextStrides()->sy;
+      const int syw   = conn->yPatchStride();
+      for (int arbor = 0; arbor < conn->numberOfAxonalArborLists(); arbor++) {
+         for (int k = 0; k < pre->getNumExtendedAllBatches(); k++) {
+            conn->deliverOnePreNeuronActivity(k, arbor, (pvadata_t)1.0, gapStrength, NULL);
          }
       }
    }
@@ -187,71 +187,137 @@ int LIFGap::calcGapStrength() {
    return PV_SUCCESS;
 }
 
-int LIFGap::checkpointWrite(const char * cpDir) {
+int LIFGap::checkpointWrite(const char *cpDir) {
    int status = LIF::checkpointWrite(cpDir);
 
    // checkpoint gapStrength buffer
-   Communicator * icComm = parent->getCommunicator();
-   double timed = (double) parent->simulationTime();
-   int filenamesize = strlen(cpDir)+(size_t) 1+strlen(name)+strlen("_gapStrength.pvp")+(size_t) 1;
+   Communicator *icComm = parent->getCommunicator();
+   double timed         = (double)parent->simulationTime();
+   int filenamesize =
+         strlen(cpDir) + (size_t)1 + strlen(name) + strlen("_gapStrength.pvp") + (size_t)1;
    // The +1's are for the slash between cpDir and name, and for the null terminator
-   char * filename = (char *) malloc( filenamesize*sizeof(char) );
+   char *filename = (char *)malloc(filenamesize * sizeof(char));
    assert(filename != NULL);
    int chars_needed;
 
    chars_needed = snprintf(filename, filenamesize, "%s/%s_gapStrength.pvp", cpDir, name);
    assert(chars_needed < filenamesize);
-   writeBufferFile(filename, icComm, timed, &gapStrength, 1, /*extended*/false, getLayerLoc());
+   writeBufferFile(filename, icComm, timed, &gapStrength, 1, /*extended*/ false, getLayerLoc());
    free(filename);
    return status;
 }
 
-int LIFGap::readStateFromCheckpoint(const char * cpDir, double * timeptr) {
+int LIFGap::readStateFromCheckpoint(const char *cpDir, double *timeptr) {
    int status = LIF::readStateFromCheckpoint(cpDir, timeptr);
-   status = readGapStrengthFromCheckpoint(cpDir, timeptr);
+   status     = readGapStrengthFromCheckpoint(cpDir, timeptr);
    return status;
 }
 
-int LIFGap::readGapStrengthFromCheckpoint(const char * cpDir, double * timeptr) {
-   char * filename = parent->pathInCheckpoint(cpDir, getName(), "_gapStrength.pvp");
-   int status = readBufferFile(filename, parent->getCommunicator(), timeptr, &gapStrength, 1, /*extended*/false, getLayerLoc());
-   assert(status==PV_SUCCESS);
+int LIFGap::readGapStrengthFromCheckpoint(const char *cpDir, double *timeptr) {
+   char *filename = parent->pathInCheckpoint(cpDir, getName(), "_gapStrength.pvp");
+   int status     = readBufferFile(
+         filename,
+         parent->getCommunicator(),
+         timeptr,
+         &gapStrength,
+         1,
+         /*extended*/ false,
+         getLayerLoc());
+   assert(status == PV_SUCCESS);
    free(filename);
    gapStrengthInitialized = true;
    return status;
 }
-int LIFGap::updateState(double time, double dt)
-{
+int LIFGap::updateState(double time, double dt) {
    int status = PV_SUCCESS;
 
    status = calcGapStrength();
 
-   const int nx = clayer->loc.nx;
-   const int ny = clayer->loc.ny;
-   const int nf = clayer->loc.nf;
-   const PVHalo * halo = &clayer->loc.halo;
-   const int nbatch = clayer->loc.nbatch;
+   const int nx       = clayer->loc.nx;
+   const int ny       = clayer->loc.ny;
+   const int nf       = clayer->loc.nf;
+   const PVHalo *halo = &clayer->loc.halo;
+   const int nbatch   = clayer->loc.nbatch;
 
-   pvdata_t * GSynHead   = GSyn[0];
-   pvdata_t * activity = clayer->activity->data;
+   pvdata_t *GSynHead = GSyn[0];
+   pvdata_t *activity = clayer->activity->data;
 
    switch (method) {
-   case 'a':
-      LIFGap_update_state_arma(nbatch, getNumNeurons(), time, dt, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up, &lParams, randState->getRNG(0), clayer->V, Vth, G_E,
-            G_I, G_IB, GSynHead, activity, gapStrength);
-   break;
-   case 'b':
-      LIFGap_update_state_beginning(nbatch, getNumNeurons(), time, dt, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up, &lParams, randState->getRNG(0), clayer->V, Vth, G_E,
-            G_I, G_IB, GSynHead, activity, gapStrength);
-   break;
-   case 'o':
-      LIFGap_update_state_original(nbatch, getNumNeurons(), time, dt, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up, &lParams, randState->getRNG(0), clayer->V, Vth, G_E,
-            G_I, G_IB, GSynHead, activity, gapStrength);
-      break;
-   default:
-      break;
+      case 'a':
+         LIFGap_update_state_arma(
+               nbatch,
+               getNumNeurons(),
+               time,
+               dt,
+               nx,
+               ny,
+               nf,
+               halo->lt,
+               halo->rt,
+               halo->dn,
+               halo->up,
+               &lParams,
+               randState->getRNG(0),
+               clayer->V,
+               Vth,
+               G_E,
+               G_I,
+               G_IB,
+               GSynHead,
+               activity,
+               gapStrength);
+         break;
+      case 'b':
+         LIFGap_update_state_beginning(
+               nbatch,
+               getNumNeurons(),
+               time,
+               dt,
+               nx,
+               ny,
+               nf,
+               halo->lt,
+               halo->rt,
+               halo->dn,
+               halo->up,
+               &lParams,
+               randState->getRNG(0),
+               clayer->V,
+               Vth,
+               G_E,
+               G_I,
+               G_IB,
+               GSynHead,
+               activity,
+               gapStrength);
+         break;
+      case 'o':
+         LIFGap_update_state_original(
+               nbatch,
+               getNumNeurons(),
+               time,
+               dt,
+               nx,
+               ny,
+               nf,
+               halo->lt,
+               halo->rt,
+               halo->dn,
+               halo->up,
+               &lParams,
+               randState->getRNG(0),
+               clayer->V,
+               Vth,
+               G_E,
+               G_I,
+               G_IB,
+               GSynHead,
+               activity,
+               gapStrength);
+         break;
+      default: break;
    }
-   return status; 
+   return status;
 }
 
 } // namespace PV
@@ -261,8 +327,7 @@ int LIFGap::updateState(double time, double dt)
 // implementation of LIF kernels
 //
 
-inline
-float LIFGap_Vmem_derivative(
+inline float LIFGap_Vmem_derivative(
       const float Vmem,
       const float G_E,
       const float G_I,
@@ -275,8 +340,8 @@ float LIFGap_Vmem_derivative(
       const float Vrest,
       const float tau) {
    float totalconductance = 1.0f + G_E + G_I + G_IB + sum_gap;
-   float Vmeminf = (Vrest + V_E*G_E + V_I*G_I + V_IB*G_IB + G_Gap)/totalconductance;
-   return totalconductance*(Vmeminf-Vmem)/tau;
+   float Vmeminf = (Vrest + V_E * G_E + V_I * G_I + V_IB * G_IB + G_Gap) / totalconductance;
+   return totalconductance * (Vmeminf - Vmem) / tau;
 }
 
 //
@@ -284,376 +349,390 @@ float LIFGap_Vmem_derivative(
 //
 //    assume called with 1D kernel
 //
-// LIFGap_update_state_original uses an Euler scheme for V where the conductances over the entire timestep are taken to be the values calculated at the end of the timestep
-// LIFGap_update_state_beginning uses a Heun scheme for V, using values of the conductances at both the beginning and end of the timestep.  Spikes in the input are applied at the beginning of the timestep.
+// LIFGap_update_state_original uses an Euler scheme for V where the conductances over the entire
+// timestep are taken to be the values calculated at the end of the timestep
+// LIFGap_update_state_beginning uses a Heun scheme for V, using values of the conductances at both
+// the beginning and end of the timestep.  Spikes in the input are applied at the beginning of the
+// timestep.
 //
 
 void LIFGap_update_state_original(
-    const int nbatch,
-    const int numNeurons,
-    const float time, 
-    const float dt,
+      const int nbatch,
+      const int numNeurons,
+      const float time,
+      const float dt,
 
-    const int nx,
-    const int ny,
-    const int nf,
-    const int lt,
-    const int rt,
-    const int dn,
-    const int up,
-    
-    
-    LIF_params * params,
-    taus_uint4 * rnd,
-    float * V,
-    float * Vth,
-    float * G_E,
-    float * G_I,
-    float * G_IB,
-    float * GSynHead,
-    float * activity, 
+      const int nx,
+      const int ny,
+      const int nf,
+      const int lt,
+      const int rt,
+      const int dn,
+      const int up,
 
-    const pvgsyndata_t * gapStrength)
-{
+      LIF_params *params,
+      taus_uint4 *rnd,
+      float *V,
+      float *Vth,
+      float *G_E,
+      float *G_I,
+      float *G_IB,
+      float *GSynHead,
+      float *activity,
+
+      const pvgsyndata_t *gapStrength) {
    int k;
 
-   const float exp_tauE    = expf(-dt/params->tauE);
-   const float exp_tauI    = expf(-dt/params->tauI);
-   const float exp_tauIB   = expf(-dt/params->tauIB);
-   const float exp_tauVth  = expf(-dt/params->tauVth);
+   const float exp_tauE   = expf(-dt / params->tauE);
+   const float exp_tauI   = expf(-dt / params->tauI);
+   const float exp_tauIB  = expf(-dt / params->tauIB);
+   const float exp_tauVth = expf(-dt / params->tauVth);
 
-   const float dt_sec = 0.001f * dt;   // convert to seconds
+   const float dt_sec = 0.001f * dt; // convert to seconds
 
+   for (k = 0; k < nx * ny * nf * nbatch; k++) {
+      int kex = kIndexExtendedBatch(k, nbatch, nx, ny, nf, lt, rt, dn, up);
 
-for (k = 0; k < nx*ny*nf*nbatch; k++) {
-   int kex = kIndexExtendedBatch(k, nbatch, nx, ny, nf, lt, rt, dn, up);
+      //
+      // kernel (nonheader part) begins here
+      //
 
-   //
-   // kernel (nonheader part) begins here
-   //
+      // local param variables
+      float tau, Vrest, VthRest, Vexc, Vinh, VinhB, deltaVth, deltaGIB;
 
-   // local param variables
-   float tau, Vrest, VthRest, Vexc, Vinh, VinhB, deltaVth, deltaGIB;
+      // local variables
+      float l_activ;
 
-   // local variables
-   float l_activ;
+      taus_uint4 l_rnd = rnd[k];
 
-   taus_uint4 l_rnd = rnd[k];
+      float l_V   = V[k];
+      float l_Vth = Vth[k];
 
-   float l_V   = V[k];
-   float l_Vth = Vth[k];
+      float l_G_E                = G_E[k];
+      float l_G_I                = G_I[k];
+      float l_G_IB               = G_IB[k];
+      pvgsyndata_t l_gapStrength = gapStrength[k];
 
-   float l_G_E  = G_E[k];
-   float l_G_I  = G_I[k];
-   float l_G_IB = G_IB[k];
-   pvgsyndata_t l_gapStrength = gapStrength[k];
+      float *GSynExc   = &GSynHead[CHANNEL_EXC * nbatch * numNeurons];
+      float *GSynInh   = &GSynHead[CHANNEL_INH * nbatch * numNeurons];
+      float *GSynInhB  = &GSynHead[CHANNEL_INHB * nbatch * numNeurons];
+      float *GSynGap   = &GSynHead[CHANNEL_GAP * nbatch * numNeurons];
+      float l_GSynExc  = GSynExc[k];
+      float l_GSynInh  = GSynInh[k];
+      float l_GSynInhB = GSynInhB[k];
+      float l_GSynGap  = GSynGap[k];
 
-   float * GSynExc = &GSynHead[CHANNEL_EXC*nbatch*numNeurons];
-   float * GSynInh = &GSynHead[CHANNEL_INH*nbatch*numNeurons];
-   float * GSynInhB = &GSynHead[CHANNEL_INHB*nbatch*numNeurons];
-   float * GSynGap = &GSynHead[CHANNEL_GAP*nbatch*numNeurons];
-   float l_GSynExc  = GSynExc[k];
-   float l_GSynInh  = GSynInh[k];
-   float l_GSynInhB = GSynInhB[k];
-   float l_GSynGap  = GSynGap[k];
-   
-   // define local param variables
-   //
-   tau   = params->tau;
-   Vexc  = params->Vexc;
-   Vinh  = params->Vinh;
-   VinhB = params->VinhB;
-   Vrest = params->Vrest;
+      // define local param variables
+      //
+      tau   = params->tau;
+      Vexc  = params->Vexc;
+      Vinh  = params->Vinh;
+      VinhB = params->VinhB;
+      Vrest = params->Vrest;
 
-   VthRest  = params->VthRest;
-   deltaVth = params->deltaVth;
-   deltaGIB = params->deltaGIB;
+      VthRest  = params->VthRest;
+      deltaVth = params->deltaVth;
+      deltaGIB = params->deltaGIB;
 
-   // add noise
-   //
+      // add noise
+      //
 
-   l_rnd = cl_random_get(l_rnd);
-   if (cl_random_prob(l_rnd) < dt_sec*params->noiseFreqE) {
       l_rnd = cl_random_get(l_rnd);
-      l_GSynExc = l_GSynExc + params->noiseAmpE*cl_random_prob(l_rnd);
-   }
+      if (cl_random_prob(l_rnd) < dt_sec * params->noiseFreqE) {
+         l_rnd     = cl_random_get(l_rnd);
+         l_GSynExc = l_GSynExc + params->noiseAmpE * cl_random_prob(l_rnd);
+      }
 
-   l_rnd = cl_random_get(l_rnd);
-   if (cl_random_prob(l_rnd) < dt_sec*params->noiseFreqI) {
       l_rnd = cl_random_get(l_rnd);
-      l_GSynInh = l_GSynInh + params->noiseAmpI*cl_random_prob(l_rnd);
-   }
+      if (cl_random_prob(l_rnd) < dt_sec * params->noiseFreqI) {
+         l_rnd     = cl_random_get(l_rnd);
+         l_GSynInh = l_GSynInh + params->noiseAmpI * cl_random_prob(l_rnd);
+      }
 
-   l_rnd = cl_random_get(l_rnd);
-   if (cl_random_prob(l_rnd) < dt_sec*params->noiseFreqIB) {
       l_rnd = cl_random_get(l_rnd);
-      l_GSynInhB = l_GSynInhB + params->noiseAmpIB*cl_random_prob(l_rnd);
-   }
+      if (cl_random_prob(l_rnd) < dt_sec * params->noiseFreqIB) {
+         l_rnd      = cl_random_get(l_rnd);
+         l_GSynInhB = l_GSynInhB + params->noiseAmpIB * cl_random_prob(l_rnd);
+      }
 
-   const float GMAX = 10.0f;
-   float tauInf, VmemInf;
+      const float GMAX = 10.0f;
+      float tauInf, VmemInf;
 
+      // The portion of code below uses the original method of calculating l_V.
+      l_G_E  = l_GSynExc + l_G_E * exp_tauE;
+      l_G_I  = l_GSynInh + l_G_I * exp_tauI;
+      l_G_IB = l_GSynInhB + l_G_IB * exp_tauIB;
 
-   // The portion of code below uses the original method of calculating l_V.
-   l_G_E  = l_GSynExc  + l_G_E *exp_tauE;
-   l_G_I  = l_GSynInh  + l_G_I *exp_tauI;
-   l_G_IB = l_GSynInhB + l_G_IB*exp_tauIB;
+      l_G_E  = (l_G_E > GMAX) ? GMAX : l_G_E;
+      l_G_I  = (l_G_I > GMAX) ? GMAX : l_G_I;
+      l_G_IB = (l_G_IB > GMAX) ? GMAX : l_G_IB;
 
-   l_G_E  = (l_G_E  > GMAX) ? GMAX : l_G_E;
-   l_G_I  = (l_G_I  > GMAX) ? GMAX : l_G_I;
-   l_G_IB = (l_G_IB > GMAX) ? GMAX : l_G_IB;
+      tauInf  = (dt / tau) * (1.0f + l_G_E + l_G_I + l_G_IB + l_gapStrength);
+      VmemInf = (Vrest + l_G_E * Vexc + l_G_I * Vinh + l_G_IB * VinhB + l_GSynGap)
+                / (1.0f + l_G_E + l_G_I + l_G_IB + l_gapStrength);
 
+      l_V = VmemInf + (l_V - VmemInf) * expf(-tauInf);
 
-   tauInf  = (dt/tau) * (1.0f + l_G_E + l_G_I + l_G_IB + l_gapStrength);
-   VmemInf = (Vrest + l_G_E*Vexc + l_G_I*Vinh + l_G_IB*VinhB + l_GSynGap)
-           / (1.0f + l_G_E + l_G_I + l_G_IB + l_gapStrength);
+      l_Vth = VthRest + (l_Vth - VthRest) * exp_tauVth;
+      // End of code unique to original method
 
-   l_V = VmemInf + (l_V - VmemInf)*expf(-tauInf);
+      bool fired_flag = (l_V > l_Vth);
 
-   l_Vth = VthRest + (l_Vth - VthRest)*exp_tauVth;
-   // End of code unique to original method
-   
-   bool fired_flag = (l_V > l_Vth);
+      l_activ = fired_flag ? 1.0f : 0.0f;
+      l_V     = fired_flag ? Vrest : l_V;
+      l_Vth   = fired_flag ? l_Vth + deltaVth : l_Vth;
+      l_G_IB  = fired_flag ? l_G_IB + deltaGIB : l_G_IB;
 
-   l_activ = fired_flag ? 1.0f                 : 0.0f;
-   l_V     = fired_flag ? Vrest                : l_V;
-   l_Vth   = fired_flag ? l_Vth + deltaVth     : l_Vth;
-   l_G_IB  = fired_flag ? l_G_IB + deltaGIB    : l_G_IB;
+      //
+      // These actions must be done outside of kernel
+      //    1. set activity to 0 in boundary (if needed)
+      //    2. update active indices
+      //
 
-   //
-   // These actions must be done outside of kernel
-   //    1. set activity to 0 in boundary (if needed)
-   //    2. update active indices
-   //
+      // store local variables back to global memory
+      //
+      rnd[k] = l_rnd;
 
-   // store local variables back to global memory
-   //
-   rnd[k] = l_rnd;
+      activity[kex] = l_activ;
 
-   activity[kex] = l_activ;
-   
-   V[k]   = l_V;
-   Vth[k] = l_Vth;
+      V[k]   = l_V;
+      Vth[k] = l_Vth;
 
-   G_E[k]  = l_G_E; // G_E_final;
-   G_I[k]  = l_G_I; // G_I_final;
-   G_IB[k] = l_G_IB; // G_IB_final;
-   // gapStrength[k] doesn't change;
+      G_E[k]  = l_G_E; // G_E_final;
+      G_I[k]  = l_G_I; // G_I_final;
+      G_IB[k] = l_G_IB; // G_IB_final;
+      // gapStrength[k] doesn't change;
 
-   // We blank GSyn here in original, but not in beginning or arma.  Why?
-   GSynExc[k]  = 0.0f;
-   GSynInh[k]  = 0.0f;
-   GSynInhB[k] = 0.0f;
-   GSynGap[k]  = 0.0f;
-   
+      // We blank GSyn here in original, but not in beginning or arma.  Why?
+      GSynExc[k]  = 0.0f;
+      GSynInh[k]  = 0.0f;
+      GSynInhB[k] = 0.0f;
+      GSynGap[k]  = 0.0f;
 
    } // loop over k
 }
 
 void LIFGap_update_state_beginning(
-    const int nbatch,
-    const int numNeurons,
-    const float time, 
-    const float dt,
+      const int nbatch,
+      const int numNeurons,
+      const float time,
+      const float dt,
 
-    const int nx,
-    const int ny,
-    const int nf,
-    const int lt,
-    const int rt,
-    const int dn,
-    const int up,
-    
-    LIF_params * params,
-    taus_uint4 * rnd,
-    float * V,
-    float * Vth,
-    float * G_E,
-    float * G_I,
-    float * G_IB,
-    float * GSynHead,
-    float * activity, 
+      const int nx,
+      const int ny,
+      const int nf,
+      const int lt,
+      const int rt,
+      const int dn,
+      const int up,
 
-    const pvgsyndata_t * gapStrength)
-{
+      LIF_params *params,
+      taus_uint4 *rnd,
+      float *V,
+      float *Vth,
+      float *G_E,
+      float *G_I,
+      float *G_IB,
+      float *GSynHead,
+      float *activity,
+
+      const pvgsyndata_t *gapStrength) {
    int k;
 
-   const float exp_tauE    = expf(-dt/params->tauE);
-   const float exp_tauI    = expf(-dt/params->tauI);
-   const float exp_tauIB   = expf(-dt/params->tauIB);
-   const float exp_tauVth  = expf(-dt/params->tauVth);
+   const float exp_tauE   = expf(-dt / params->tauE);
+   const float exp_tauI   = expf(-dt / params->tauI);
+   const float exp_tauIB  = expf(-dt / params->tauIB);
+   const float exp_tauVth = expf(-dt / params->tauVth);
 
-   const float dt_sec = 0.001f * dt;   // convert to seconds
+   const float dt_sec = 0.001f * dt; // convert to seconds
 
-for (k = 0; k < nx*ny*nf*nbatch; k++) {
-   int kex = kIndexExtendedBatch(k, nbatch, nx, ny, nf, lt, rt, dn, up);
+   for (k = 0; k < nx * ny * nf * nbatch; k++) {
+      int kex = kIndexExtendedBatch(k, nbatch, nx, ny, nf, lt, rt, dn, up);
 
-   //
-   // kernel (nonheader part) begins here
-   //
+      //
+      // kernel (nonheader part) begins here
+      //
 
-   // local param variables
-   float tau, Vrest, VthRest, Vexc, Vinh, VinhB, deltaVth, deltaGIB;
+      // local param variables
+      float tau, Vrest, VthRest, Vexc, Vinh, VinhB, deltaVth, deltaGIB;
 
+      // local variables
+      float l_activ;
 
-   // local variables
-   float l_activ;
+      taus_uint4 l_rnd = rnd[k];
 
-   taus_uint4 l_rnd = rnd[k];
+      float l_V   = V[k];
+      float l_Vth = Vth[k];
 
-   float l_V   = V[k];
-   float l_Vth = Vth[k];
+      // The correction factors to the conductances are so that if l_GSyn_* is the same every
+      // timestep,
+      // then the asymptotic value of l_G_* will be l_GSyn_*
+      float l_G_E                = G_E[k];
+      float l_G_I                = G_I[k];
+      float l_G_IB               = G_IB[k];
+      pvgsyndata_t l_gapStrength = gapStrength[k];
 
-   // The correction factors to the conductances are so that if l_GSyn_* is the same every timestep,
-   // then the asymptotic value of l_G_* will be l_GSyn_*
-   float l_G_E  = G_E[k];
-   float l_G_I  = G_I[k];
-   float l_G_IB = G_IB[k];
-   pvgsyndata_t l_gapStrength = gapStrength[k];
+      float *GSynExc   = &GSynHead[CHANNEL_EXC * nbatch * numNeurons];
+      float *GSynInh   = &GSynHead[CHANNEL_INH * nbatch * numNeurons];
+      float *GSynInhB  = &GSynHead[CHANNEL_INHB * nbatch * numNeurons];
+      float *GSynGap   = &GSynHead[CHANNEL_GAP * nbatch * numNeurons];
+      float l_GSynExc  = GSynExc[k];
+      float l_GSynInh  = GSynInh[k];
+      float l_GSynInhB = GSynInhB[k];
+      float l_GSynGap  = GSynGap[k];
 
-   float * GSynExc = &GSynHead[CHANNEL_EXC*nbatch*numNeurons];
-   float * GSynInh = &GSynHead[CHANNEL_INH*nbatch*numNeurons];
-   float * GSynInhB = &GSynHead[CHANNEL_INHB*nbatch*numNeurons];
-   float * GSynGap = &GSynHead[CHANNEL_GAP*nbatch*numNeurons];
-   float l_GSynExc  = GSynExc[k];
-   float l_GSynInh  = GSynInh[k];
-   float l_GSynInhB = GSynInhB[k];
-   float l_GSynGap  = GSynGap[k];
-   
-   // define local param variables
-   //
-   tau   = params->tau;
-   Vexc  = params->Vexc;
-   Vinh  = params->Vinh;
-   VinhB = params->VinhB;
-   Vrest = params->Vrest;
+      // define local param variables
+      //
+      tau   = params->tau;
+      Vexc  = params->Vexc;
+      Vinh  = params->Vinh;
+      VinhB = params->VinhB;
+      Vrest = params->Vrest;
 
-   VthRest  = params->VthRest;
-   deltaVth = params->deltaVth;
-   deltaGIB = params->deltaGIB;
+      VthRest  = params->VthRest;
+      deltaVth = params->deltaVth;
+      deltaGIB = params->deltaGIB;
 
-   // add noise
-   //
+      // add noise
+      //
 
-   l_rnd = cl_random_get(l_rnd);
-   if (cl_random_prob(l_rnd) < dt_sec*params->noiseFreqE) {
       l_rnd = cl_random_get(l_rnd);
-      l_GSynExc = l_GSynExc + params->noiseAmpE*cl_random_prob(l_rnd);
-   }
+      if (cl_random_prob(l_rnd) < dt_sec * params->noiseFreqE) {
+         l_rnd     = cl_random_get(l_rnd);
+         l_GSynExc = l_GSynExc + params->noiseAmpE * cl_random_prob(l_rnd);
+      }
 
-   l_rnd = cl_random_get(l_rnd);
-   if (cl_random_prob(l_rnd) < dt_sec*params->noiseFreqI) {
       l_rnd = cl_random_get(l_rnd);
-      l_GSynInh = l_GSynInh + params->noiseAmpI*cl_random_prob(l_rnd);
-   }
+      if (cl_random_prob(l_rnd) < dt_sec * params->noiseFreqI) {
+         l_rnd     = cl_random_get(l_rnd);
+         l_GSynInh = l_GSynInh + params->noiseAmpI * cl_random_prob(l_rnd);
+      }
 
-   l_rnd = cl_random_get(l_rnd);
-   if (cl_random_prob(l_rnd) < dt_sec*params->noiseFreqIB) {
       l_rnd = cl_random_get(l_rnd);
-      l_GSynInhB = l_GSynInhB + params->noiseAmpIB*cl_random_prob(l_rnd);
-   }
+      if (cl_random_prob(l_rnd) < dt_sec * params->noiseFreqIB) {
+         l_rnd      = cl_random_get(l_rnd);
+         l_GSynInhB = l_GSynInhB + params->noiseAmpIB * cl_random_prob(l_rnd);
+      }
 
-   const float GMAX = 10.0f;
+      const float GMAX = 10.0f;
 
-   // The portion of code below uses the newer method of calculating l_V.
-   float G_E_initial, G_I_initial, G_IB_initial, G_E_final, G_I_final, G_IB_final;
-   float dV1, dV2, dV;
+      // The portion of code below uses the newer method of calculating l_V.
+      float G_E_initial, G_I_initial, G_IB_initial, G_E_final, G_I_final, G_IB_final;
+      float dV1, dV2, dV;
 
-   G_E_initial = l_G_E + l_GSynExc;
-   G_I_initial = l_G_I + l_GSynInh;
-   G_IB_initial = l_G_IB + l_GSynInhB;
+      G_E_initial  = l_G_E + l_GSynExc;
+      G_I_initial  = l_G_I + l_GSynInh;
+      G_IB_initial = l_G_IB + l_GSynInhB;
 
-   G_E_initial  = (G_E_initial  > GMAX) ? GMAX : G_E_initial;
-   G_I_initial  = (G_I_initial  > GMAX) ? GMAX : G_I_initial;
-   G_IB_initial = (G_IB_initial > GMAX) ? GMAX : G_IB_initial;
+      G_E_initial  = (G_E_initial > GMAX) ? GMAX : G_E_initial;
+      G_I_initial  = (G_I_initial > GMAX) ? GMAX : G_I_initial;
+      G_IB_initial = (G_IB_initial > GMAX) ? GMAX : G_IB_initial;
 
-   G_E_final = G_E_initial*exp_tauE;
-   G_I_final = G_I_initial*exp_tauI;
-   G_IB_final = G_IB_initial*exp_tauIB;
+      G_E_final  = G_E_initial * exp_tauE;
+      G_I_final  = G_I_initial * exp_tauI;
+      G_IB_final = G_IB_initial * exp_tauIB;
 
+      dV1 = LIFGap_Vmem_derivative(
+            l_V,
+            G_E_initial,
+            G_I_initial,
+            G_IB_initial,
+            l_GSynGap,
+            Vexc,
+            Vinh,
+            VinhB,
+            l_gapStrength,
+            Vrest,
+            tau);
+      dV2 = LIFGap_Vmem_derivative(
+            l_V + dt * dV1,
+            G_E_final,
+            G_I_final,
+            G_IB_final,
+            l_GSynGap,
+            Vexc,
+            Vinh,
+            VinhB,
+            l_gapStrength,
+            Vrest,
+            tau);
+      dV  = (dV1 + dV2) * 0.5f;
+      l_V = l_V + dt * dV;
 
-   dV1 = LIFGap_Vmem_derivative(l_V, G_E_initial, G_I_initial, G_IB_initial, l_GSynGap, Vexc, Vinh, VinhB, l_gapStrength, Vrest, tau);
-   dV2 = LIFGap_Vmem_derivative(l_V+dt*dV1, G_E_final, G_I_final, G_IB_final, l_GSynGap, Vexc, Vinh, VinhB, l_gapStrength, Vrest, tau);
-   dV = (dV1+dV2)*0.5f;
-   l_V = l_V + dt*dV;
-   
-   l_G_E = G_E_final;
-   l_G_I = G_I_final;
-   l_G_IB = G_IB_final;
+      l_G_E  = G_E_final;
+      l_G_I  = G_I_final;
+      l_G_IB = G_IB_final;
 
-   l_Vth = VthRest + (l_Vth - VthRest)*exp_tauVth;
-   // End of code unique to newer method.
-   
-   bool fired_flag = (l_V > l_Vth);
+      l_Vth = VthRest + (l_Vth - VthRest) * exp_tauVth;
+      // End of code unique to newer method.
 
-   l_activ = fired_flag ? 1.0f                 : 0.0f;
-   l_V     = fired_flag ? Vrest                : l_V;
-   l_Vth   = fired_flag ? l_Vth + deltaVth     : l_Vth;
-   l_G_IB  = fired_flag ? l_G_IB + deltaGIB    : l_G_IB;
+      bool fired_flag = (l_V > l_Vth);
 
-   //
-   // These actions must be done outside of kernel
-   //    1. set activity to 0 in boundary (if needed)
-   //    2. update active indices
-   //
+      l_activ = fired_flag ? 1.0f : 0.0f;
+      l_V     = fired_flag ? Vrest : l_V;
+      l_Vth   = fired_flag ? l_Vth + deltaVth : l_Vth;
+      l_G_IB  = fired_flag ? l_G_IB + deltaGIB : l_G_IB;
 
-   // store local variables back to global memory
-   //
-   rnd[k] = l_rnd;
+      //
+      // These actions must be done outside of kernel
+      //    1. set activity to 0 in boundary (if needed)
+      //    2. update active indices
+      //
 
-   activity[kex] = l_activ;
-   
-   V[k]   = l_V;
-   Vth[k] = l_Vth;
+      // store local variables back to global memory
+      //
+      rnd[k] = l_rnd;
 
-   G_E[k]  = l_G_E; // G_E_final;
-   G_I[k]  = l_G_I; // G_I_final;
-   G_IB[k] = l_G_IB; // G_IB_final;
-   // gapStrength[k] doesn't change
+      activity[kex] = l_activ;
 
-   // We blank GSyn here in original, but not in beginning or arma.  Why?
+      V[k]   = l_V;
+      Vth[k] = l_Vth;
+
+      G_E[k]  = l_G_E; // G_E_final;
+      G_I[k]  = l_G_I; // G_I_final;
+      G_IB[k] = l_G_IB; // G_IB_final;
+      // gapStrength[k] doesn't change
+
+      // We blank GSyn here in original, but not in beginning or arma.  Why?
 
    } // loop over k
 }
 
-
 void LIFGap_update_state_arma(
-    const int nbatch,
-    const int numNeurons,
-    const float time,
-    const float dt,
+      const int nbatch,
+      const int numNeurons,
+      const float time,
+      const float dt,
 
-    const int nx,
-    const int ny,
-    const int nf,
-    const int lt,
-    const int rt,
-    const int dn,
-    const int up,
+      const int nx,
+      const int ny,
+      const int nf,
+      const int lt,
+      const int rt,
+      const int dn,
+      const int up,
 
-    LIF_params * params,
-    taus_uint4 * rnd,
-    float * V,
-    float * Vth,
-    float * G_E,
-    float * G_I,
-    float * G_IB,
-    float * GSynHead,
-    float * activity,
+      LIF_params *params,
+      taus_uint4 *rnd,
+      float *V,
+      float *Vth,
+      float *G_E,
+      float *G_I,
+      float *G_IB,
+      float *GSynHead,
+      float *activity,
 
-    const pvgsyndata_t * gapStrength)
-{
+      const pvgsyndata_t *gapStrength) {
    int k;
 
-   const float exp_tauE    = expf(-dt/params->tauE);
-   const float exp_tauI    = expf(-dt/params->tauI);
-   const float exp_tauIB   = expf(-dt/params->tauIB);
-   const float exp_tauVth  = expf(-dt/params->tauVth);
+   const float exp_tauE   = expf(-dt / params->tauE);
+   const float exp_tauI   = expf(-dt / params->tauI);
+   const float exp_tauIB  = expf(-dt / params->tauIB);
+   const float exp_tauVth = expf(-dt / params->tauVth);
 
-   const float dt_sec = 0.001f * dt;   // convert to seconds
+   const float dt_sec = 0.001f * dt; // convert to seconds
 
-
-   for (k = 0; k < nx*ny*nf*nbatch; k++) {
+   for (k = 0; k < nx * ny * nf * nbatch; k++) {
       int kex = kIndexExtendedBatch(k, nbatch, nx, ny, nf, lt, rt, dn, up);
 
       //
@@ -673,17 +752,18 @@ void LIFGap_update_state_arma(
       float l_V   = V[k];
       float l_Vth = Vth[k];
 
-      // The correction factors to the conductances are so that if l_GSyn_* is the same every timestep,
+      // The correction factors to the conductances are so that if l_GSyn_* is the same every
+      // timestep,
       // then the asymptotic value of l_G_* will be l_GSyn_*
-      float l_G_E  = G_E[k];
-      float l_G_I  = G_I[k];
-      float l_G_IB = G_IB[k];
+      float l_G_E                = G_E[k];
+      float l_G_I                = G_I[k];
+      float l_G_IB               = G_IB[k];
       pvgsyndata_t l_gapStrength = gapStrength[k];
 
-      float * GSynExc = &GSynHead[CHANNEL_EXC*nbatch*numNeurons];
-      float * GSynInh = &GSynHead[CHANNEL_INH*nbatch*numNeurons];
-      float * GSynInhB = &GSynHead[CHANNEL_INHB*nbatch*numNeurons];
-      float * GSynGap = &GSynHead[CHANNEL_GAP*nbatch*numNeurons];
+      float *GSynExc   = &GSynHead[CHANNEL_EXC * nbatch * numNeurons];
+      float *GSynInh   = &GSynHead[CHANNEL_INH * nbatch * numNeurons];
+      float *GSynInhB  = &GSynHead[CHANNEL_INHB * nbatch * numNeurons];
+      float *GSynGap   = &GSynHead[CHANNEL_GAP * nbatch * numNeurons];
       float l_GSynExc  = GSynExc[k];
       float l_GSynInh  = GSynInh[k];
       float l_GSynInhB = GSynInhB[k];
@@ -709,55 +789,60 @@ void LIFGap_update_state_arma(
       //
 
       l_rnd = cl_random_get(l_rnd);
-      if (cl_random_prob(l_rnd) < dt_sec*params->noiseFreqE) {
-         l_rnd = cl_random_get(l_rnd);
-         l_GSynExc = l_GSynExc + params->noiseAmpE*cl_random_prob(l_rnd);
+      if (cl_random_prob(l_rnd) < dt_sec * params->noiseFreqE) {
+         l_rnd     = cl_random_get(l_rnd);
+         l_GSynExc = l_GSynExc + params->noiseAmpE * cl_random_prob(l_rnd);
       }
 
       l_rnd = cl_random_get(l_rnd);
-      if (cl_random_prob(l_rnd) < dt_sec*params->noiseFreqI) {
-         l_rnd = cl_random_get(l_rnd);
-         l_GSynInh = l_GSynInh + params->noiseAmpI*cl_random_prob(l_rnd);
+      if (cl_random_prob(l_rnd) < dt_sec * params->noiseFreqI) {
+         l_rnd     = cl_random_get(l_rnd);
+         l_GSynInh = l_GSynInh + params->noiseAmpI * cl_random_prob(l_rnd);
       }
 
       l_rnd = cl_random_get(l_rnd);
-      if (cl_random_prob(l_rnd) < dt_sec*params->noiseFreqIB) {
-         l_rnd = cl_random_get(l_rnd);
-         l_GSynInhB = l_GSynInhB + params->noiseAmpIB*cl_random_prob(l_rnd);
+      if (cl_random_prob(l_rnd) < dt_sec * params->noiseFreqIB) {
+         l_rnd      = cl_random_get(l_rnd);
+         l_GSynInhB = l_GSynInhB + params->noiseAmpIB * cl_random_prob(l_rnd);
       }
 
       // The portion of code below uses the newer method of calculating l_V.
       float G_E_initial, G_I_initial, G_IB_initial, G_E_final, G_I_final, G_IB_final;
       float tau_inf_initial, tau_inf_final, V_inf_initial, V_inf_final;
 
-      G_E_initial = l_G_E + l_GSynExc;
-      G_I_initial = l_G_I + l_GSynInh;
-      G_IB_initial = l_G_IB + l_GSynInhB;
-      tau_inf_initial = tau/(1.0f+G_E_initial+G_I_initial+G_IB_initial+l_gapStrength);
-      V_inf_initial = (Vrest+Vexc*G_E_initial+Vinh*G_I_initial+VinhB*G_IB_initial+l_GSynGap)/(1.0f+G_E_initial+G_I_initial+G_IB_initial+l_gapStrength);
+      G_E_initial     = l_G_E + l_GSynExc;
+      G_I_initial     = l_G_I + l_GSynInh;
+      G_IB_initial    = l_G_IB + l_GSynInhB;
+      tau_inf_initial = tau / (1.0f + G_E_initial + G_I_initial + G_IB_initial + l_gapStrength);
+      V_inf_initial =
+            (Vrest + Vexc * G_E_initial + Vinh * G_I_initial + VinhB * G_IB_initial + l_GSynGap)
+            / (1.0f + G_E_initial + G_I_initial + G_IB_initial + l_gapStrength);
 
-      G_E_initial  = (G_E_initial  > GMAX) ? GMAX : G_E_initial;
-      G_I_initial  = (G_I_initial  > GMAX) ? GMAX : G_I_initial;
+      G_E_initial  = (G_E_initial > GMAX) ? GMAX : G_E_initial;
+      G_I_initial  = (G_I_initial > GMAX) ? GMAX : G_I_initial;
       G_IB_initial = (G_IB_initial > GMAX) ? GMAX : G_IB_initial;
 
-      G_E_final = G_E_initial*exp_tauE;
-      G_I_final = G_I_initial*exp_tauI;
-      G_IB_final = G_IB_initial*exp_tauIB;
-      tau_inf_final = tau/(1.0f+G_E_final+G_I_final+G_IB_final+l_gapStrength);
-      V_inf_final = (Vrest+Vexc*G_E_final+Vinh*G_I_final+VinhB*G_IB_final+l_GSynGap)/(1.0f+G_E_final+G_I_final+G_IB_final+l_gapStrength);
+      G_E_final     = G_E_initial * exp_tauE;
+      G_I_final     = G_I_initial * exp_tauI;
+      G_IB_final    = G_IB_initial * exp_tauIB;
+      tau_inf_final = tau / (1.0f + G_E_final + G_I_final + G_IB_final + l_gapStrength);
+      V_inf_final   = (Vrest + Vexc * G_E_final + Vinh * G_I_final + VinhB * G_IB_final + l_GSynGap)
+                    / (1.0f + G_E_final + G_I_final + G_IB_final + l_gapStrength);
 
-      float tau_slope = (tau_inf_final-tau_inf_initial)/dt;
-      float f1 = tau_slope==0.0f ? expf(-dt/tau_inf_initial) : powf(tau_inf_final/tau_inf_initial, -1/tau_slope);
-      float f2 = tau_slope==-1.0f ? tau_inf_initial/dt*logf(tau_inf_final/tau_inf_initial+1.0f) :
-                                    (1-tau_inf_initial/dt*(1-f1))/(1+tau_slope);
+      float tau_slope = (tau_inf_final - tau_inf_initial) / dt;
+      float f1        = tau_slope == 0.0f ? expf(-dt / tau_inf_initial)
+                                   : powf(tau_inf_final / tau_inf_initial, -1 / tau_slope);
+      float f2 = tau_slope == -1.0f
+                       ? tau_inf_initial / dt * logf(tau_inf_final / tau_inf_initial + 1.0f)
+                       : (1 - tau_inf_initial / dt * (1 - f1)) / (1 + tau_slope);
       float f3 = 1.0f - f1 - f2;
-      l_V = f1*l_V + f2*V_inf_initial + f3*V_inf_final;
+      l_V      = f1 * l_V + f2 * V_inf_initial + f3 * V_inf_final;
 
-      l_G_E = G_E_final;
-      l_G_I = G_I_final;
+      l_G_E  = G_E_final;
+      l_G_I  = G_I_final;
       l_G_IB = G_IB_final;
 
-      l_Vth = VthRest + (l_Vth - VthRest)*exp_tauVth;
+      l_Vth = VthRest + (l_Vth - VthRest) * exp_tauVth;
       // End of code unique to newer method.
 
       //
@@ -766,10 +851,10 @@ void LIFGap_update_state_arma(
 
       bool fired_flag = (l_V > l_Vth);
 
-      l_activ = fired_flag ? 1.0f                 : 0.0f;
-      l_V     = fired_flag ? Vrest                : l_V;
-      l_Vth   = fired_flag ? l_Vth + deltaVth     : l_Vth;
-      l_G_IB  = fired_flag ? l_G_IB + deltaGIB    : l_G_IB;
+      l_activ = fired_flag ? 1.0f : 0.0f;
+      l_V     = fired_flag ? Vrest : l_V;
+      l_Vth   = fired_flag ? l_Vth + deltaVth : l_Vth;
+      l_G_IB  = fired_flag ? l_G_IB + deltaGIB : l_G_IB;
 
       //
       // These actions must be done outside of kernel
@@ -792,6 +877,5 @@ void LIFGap_update_state_arma(
       // gapStrength[k] doesn't change
 
       // We blank GSyn here in original, but not in beginning or arma.  Why?
-}
-
+   }
 }

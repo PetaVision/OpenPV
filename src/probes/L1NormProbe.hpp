@@ -15,14 +15,14 @@ namespace PV {
  * A layer probe for returning the L1-norm of its target layer's activity buffer
  */
 class L1NormProbe : public AbstractNormProbe {
-public:
-   L1NormProbe(const char * probeName, HyPerCol * hc);
+  public:
+   L1NormProbe(const char *probeName, HyPerCol *hc);
    virtual ~L1NormProbe();
 
-protected:
+  protected:
    L1NormProbe();
-   int initL1NormProbe(const char * probeName, HyPerCol * hc);
-   
+   int initL1NormProbe(const char *probeName, HyPerCol *hc);
+
    /**
     * For each MPI process, getValueInternal returns the sum of the absolute
     * values of the activities in the restricted space of that MPI process.
@@ -35,10 +35,10 @@ protected:
     */
    virtual int setNormDescription();
 
-private:
-   int initL1NormProbe_base() {return PV_SUCCESS;}
+  private:
+   int initL1NormProbe_base() { return PV_SUCCESS; }
 }; // end class L1NormProbe
 
-}  // end namespace PV
+} // end namespace PV
 
 #endif /* L1NORMPROBE_HPP_ */

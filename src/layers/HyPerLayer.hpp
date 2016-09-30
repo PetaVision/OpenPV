@@ -11,45 +11,42 @@
 #ifndef HYPERLAYER_HPP_
 #define HYPERLAYER_HPP_
 
-#include "layers/PVLayerCube.hpp"
-#include "layers/BaseLayer.hpp"
+#include "columns/Communicator.hpp"
 #include "columns/DataStore.hpp"
 #include "columns/HyPerCol.hpp"
-#include "columns/Communicator.hpp"
 #include "columns/Publisher.hpp"
-#include "probes/LayerProbe.hpp"
-#include "io/fileio.hpp"
 #include "include/pv_common.h"
 #include "include/pv_types.h"
-#include "utils/Timer.hpp"
 #include "io/PrintStream.hpp"
+#include "io/fileio.hpp"
+#include "layers/BaseLayer.hpp"
+#include "layers/PVLayerCube.hpp"
+#include "probes/LayerProbe.hpp"
+#include "utils/Timer.hpp"
 
 #ifdef PV_USE_CUDA
-#  undef PV_USE_CUDA
-#  include <layers/updateStateFunctions.h>
-#  define PV_USE_CUDA
+#undef PV_USE_CUDA
+#include <layers/updateStateFunctions.h>
+#define PV_USE_CUDA
 #else
-#  include <layers/updateStateFunctions.h>
-#endif //PV_USE_CUDA
+#include <layers/updateStateFunctions.h>
+#endif // PV_USE_CUDA
 
 #ifdef PV_USE_OPENMP_THREADS
 #include <omp.h>
-#endif //PV_USE_OPENMP_THREADS
+#endif // PV_USE_OPENMP_THREADS
 
 #ifdef PV_USE_CUDA
-#include <arch/cuda/CudaKernel.hpp>
 #include <arch/cuda/CudaBuffer.hpp>
+#include <arch/cuda/CudaKernel.hpp>
 #include <arch/cuda/CudaTimer.hpp>
-#endif //PV_USE_CUDA
+#endif // PV_USE_CUDA
 
 #include <vector>
-
-
 
 // default constants
 #define HYPERLAYER_FEEDBACK_DELAY 1
 #define HYPERLAYER_FEEDFORWARD_DELAY 0
-
 
 namespace PV {
 
@@ -57,23 +54,26 @@ class InitV;
 class PVParams;
 class BaseConnection;
 
-typedef enum TriggerBehaviorTypeEnum { NO_TRIGGER, UPDATEONLY_TRIGGER, RESETSTATE_TRIGGER } TriggerBehaviorType;
+typedef enum TriggerBehaviorTypeEnum {
+   NO_TRIGGER,
+   UPDATEONLY_TRIGGER,
+   RESETSTATE_TRIGGER
+} TriggerBehaviorType;
 
-class HyPerLayer : public BaseLayer{
+class HyPerLayer : public BaseLayer {
 
-
-protected:
-
-   /** 
+  protected:
+   /**
     * List of parameters needed from the HyPerLayer class
     * @name HyPerLayer Parameters
     * @{
     */
 
    virtual void ioParam_dataType(enum ParamsIOFlag ioFlag);
-   
+
    /**
-    * @brief updateGpu: When compiled using CUDA or OpenCL GPU acceleration, this flag tells whether this layer's updateState method should use the GPU.
+    * @brief updateGpu: When compiled using CUDA or OpenCL GPU acceleration, this flag tells whether
+    * this layer's updateState method should use the GPU.
     * If PetaVision was compiled without GPU acceleration, it is an error to set this flag to true.
     */
    virtual void ioParam_updateGpu(enum ParamsIOFlag ioFlag);
@@ -109,18 +109,21 @@ protected:
    virtual void ioParam_valueBC(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief initializeFromCheckpointFlag: If set to true, initialize using checkpoint direcgtory set in HyPerCol.
+    * @brief initializeFromCheckpointFlag: If set to true, initialize using checkpoint direcgtory
+    * set in HyPerCol.
     * @details Checkpoint read directory must be set in HyPerCol to initialize from checkpoint.
     */
    virtual void ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief initVType: Specifies how to initialize the V buffer. 
+    * @brief initVType: Specifies how to initialize the V buffer.
     * @details Possible choices include
     * - @link InitV::ioParamGroup_ConstantV ConstantV@endlink: Sets V to a constant value
     * - @link InitV::ioParamGroup_ZeroV ZeroV@endlink: Sets V to zero
-    * - @link InitV::ioParamGroup_UniformRandomV UniformRandomV@endlink: Sets V with a uniform distribution
-    * - @link InitV::ioParamGroup_GaussianRandomV GaussianRandomV@endlink: Sets V with a gaussian distribution
+    * - @link InitV::ioParamGroup_UniformRandomV UniformRandomV@endlink: Sets V with a uniform
+    * distribution
+    * - @link InitV::ioParamGroup_GaussianRandomV GaussianRandomV@endlink: Sets V with a gaussian
+    * distribution
     * - @link InitV::ioparamGroup_InitVFromFile InitVFromFile@endlink: Sets V to specified pvp file
     *
     * Further parameters are needed depending on initialization type.
@@ -138,14 +141,17 @@ protected:
 
    /**
     * @brief triggerLayerName: Specifies the name of the layer that this layer triggers off of.
-    * If set to NULL or the empty string, the layer does not trigger but updates its state on every timestep.
+    * If set to NULL or the empty string, the layer does not trigger but updates its state on every
+    * timestep.
     */
    virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag);
 
-   // TODO: triggerOffset is measured in units of simulation time, not timesteps.  How does adaptTimeStep affect
+   // TODO: triggerOffset is measured in units of simulation time, not timesteps.  How does
+   // adaptTimeStep affect
    // the triggering time?
    /**
-    * @brief triggerOffset: If triggerLayer is set, triggers \<triggerOffset\> timesteps before target trigger
+    * @brief triggerOffset: If triggerLayer is set, triggers \<triggerOffset\> timesteps before
+    * target trigger
     * @details Defaults to 0
     */
    virtual void ioParam_triggerOffset(enum ParamsIOFlag ioFlag);
@@ -164,7 +170,8 @@ protected:
    virtual void ioParam_triggerBehavior(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief triggerResetLayerName: If triggerLayerName is set, this parameter specifies the layer to use for updating
+    * @brief triggerResetLayerName: If triggerLayerName is set, this parameter specifies the layer
+    * to use for updating
     * the state when the trigger happens.  If set to NULL or the empty string, use triggerLayerName.
     */
    virtual void ioParam_triggerResetLayerName(enum ParamsIOFlag ioFlag);
@@ -181,49 +188,50 @@ protected:
    virtual void ioParam_initialWriteTime(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief sparseLayer: Specifies if the layer should be considered sparese for optimization and output
+    * @brief sparseLayer: Specifies if the layer should be considered sparese for optimization and
+    * output
     */
    virtual void ioParam_sparseLayer(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief writeSparseValues: If sparseLayer is set, specifies if the pvp file should write sparse value file
+    * @brief writeSparseValues: If sparseLayer is set, specifies if the pvp file should write sparse
+    * value file
     */
    virtual void ioParam_writeSparseValues(enum ParamsIOFlag ioFlag);
    /** @} */
 
-
-private:
+  private:
    int initialize_base();
 
-protected:
-
+  protected:
    // only subclasses can be constructed directly
    HyPerLayer();
-   int initialize(const char * name, HyPerCol * hc);
+   int initialize(const char *name, HyPerCol *hc);
    virtual int initClayer();
 
    virtual int allocateClayerBuffers();
-   int setLayerLoc(PVLayerLoc * layerLoc, float nxScale, float nyScale, int nf, int numBatches);
+   int setLayerLoc(PVLayerLoc *layerLoc, float nxScale, float nyScale, int nf, int numBatches);
    virtual int allocateBuffers();
    virtual int allocateGSyn();
    void addPublisher();
 
    /*
-    * Allocates a buffer of the given length.  The membrane potential and activity buffer, among others, are created using allocateBuffer.
+    * Allocates a buffer of the given length.  The membrane potential and activity buffer, among
+    * others, are created using allocateBuffer.
     * To free a buffer created with this method, call freeBuffer().
     */
    template <typename T>
-   int allocateBuffer(T ** buf, int bufsize, const char * bufname);
+   int allocateBuffer(T **buf, int bufsize, const char *bufname);
 
    /**
     * Allocates a restricted buffer (that is, buffer's length is getNumNeuronsAllBatches()).
     */
-   int allocateRestrictedBuffer(pvdata_t ** buf, const char * bufname);
+   int allocateRestrictedBuffer(pvdata_t **buf, const char *bufname);
 
    /**
     * Allocates an extended buffer (that is, buffer's length is getNumExtendedAllBatches()).
     */
-   int allocateExtendedBuffer(pvdata_t ** buf, const char * bufname);
+   int allocateExtendedBuffer(pvdata_t **buf, const char *bufname);
 
    int allocateCube();
    virtual int allocateV();
@@ -232,27 +240,27 @@ protected:
    virtual int setInitialValues();
    virtual int initializeV();
    virtual int initializeActivity();
-   virtual int readStateFromCheckpoint(const char * cpDir, double * timeptr);
-   virtual int readActivityFromCheckpoint(const char * cpDir, double * timeptr);
-   virtual int readVFromCheckpoint(const char * cpDir, double * timeptr);
-   virtual int readDelaysFromCheckpoint(const char * cpDir, double * timeptr);
+   virtual int readStateFromCheckpoint(const char *cpDir, double *timeptr);
+   virtual int readActivityFromCheckpoint(const char *cpDir, double *timeptr);
+   virtual int readVFromCheckpoint(const char *cpDir, double *timeptr);
+   virtual int readDelaysFromCheckpoint(const char *cpDir, double *timeptr);
 #ifdef PV_USE_CUDA
    virtual int copyInitialStateToGPU();
 #endif // PV_USE_CUDA
-   char * pathInCheckpoint(const char * cpDir, const char * suffix);
-   int readDataStoreFromFile(const char * filename, Communicator * comm, double * timed);
-   int incrementNBands(int * numCalls);
-   int writeDataStoreToFile(const char * filename, Communicator * comm, double dtime);
+   char *pathInCheckpoint(const char *cpDir, const char *suffix);
+   int readDataStoreFromFile(const char *filename, Communicator *comm, double *timed);
+   int incrementNBands(int *numCalls);
+   int writeDataStoreToFile(const char *filename, Communicator *comm, double dtime);
    void calcNumExtended();
-   
-  
+
    /**
     * Returns true if the trigger behavior is resetStateOnTrigger and the layer was triggered.
     */
    virtual bool needReset(double timed, double dt);
-   
+
    /**
-    * Called instead of updateState when triggerBehavior is "resetStateOnTrigger" and a triggering event occurs.
+    * Called instead of updateState when triggerBehavior is "resetStateOnTrigger" and a triggering
+    * event occurs.
     * Copies the membrane potential V from triggerResetLayer and then calls setActivity to update A.
     */
    virtual int resetStateOnTrigger();
@@ -264,50 +272,51 @@ protected:
     * or any other allocateBuffer()-related method.
     */
    template <typename T>
-   int freeBuffer(T ** buf);
+   int freeBuffer(T **buf);
 
    /**
     * Frees a buffer created by allocateRestrictedBuffer().
     * Note that there is no checking whether the buffer was created by allocateRestrictedBuffer(),
     * or any other allocateBuffer()-related method.
     */
-   int freeRestrictedBuffer(pvdata_t ** buf);
+   int freeRestrictedBuffer(pvdata_t **buf);
 
    /**
     * Frees a buffer created by allocateRestrictedBuffer().
     * Note that there is no checking whether the buffer was created by allocateExtendedBuffer(),
     * or any other allocateBuffer()-related method.
     */
-   int freeExtendedBuffer(pvdata_t ** buf);
+   int freeExtendedBuffer(pvdata_t **buf);
 
-public:
-   HyPerLayer(const char * name, HyPerCol * hc);
-   pvdata_t * getActivity()          {return clayer->activity->data;} // TODO: access to clayer->activity->data should not be public
-   virtual double getTimeScale(int batchIdx)      {return -1.0;};
+  public:
+   HyPerLayer(const char *name, HyPerCol *hc);
+   pvdata_t *getActivity() {
+      return clayer->activity->data;
+   } // TODO: access to clayer->activity->data should not be public
+   virtual double getTimeScale(int batchIdx) { return -1.0; };
    virtual bool activityIsSpiking() { return false; }
-   PVDataType getDataType()          {return dataType;}
+   PVDataType getDataType() { return dataType; }
    virtual int respond(std::shared_ptr<BaseMessage const> message) override;
-protected:
 
+  protected:
    /**
     * The function that calls all ioParam functions
     */
-   virtual int  ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
-   static int equalizeMargins(HyPerLayer * layer1, HyPerLayer * layer2);
+   static int equalizeMargins(HyPerLayer *layer1, HyPerLayer *layer2);
 
    int freeClayer();
 
-public:
-
+  public:
    virtual ~HyPerLayer();
 
-   void synchronizeMarginWidth(HyPerLayer * layer);
+   void synchronizeMarginWidth(HyPerLayer *layer);
 
    int ioParams(enum ParamsIOFlag ioFlag);
 
    // TODO - make protected
-   PVLayer  * clayer;
+   PVLayer *clayer;
 
    // ************************************************************************************//
    // interface for public methods for controlling HyPerLayer cellular and synaptic dynamics
@@ -315,18 +324,20 @@ public:
    // ************************************************************************************//
    virtual int recvAllSynapticInput(); // Calls recvSynapticInput for each conn and each arborID
 
-   //An updateState wrapper that determines if updateState needs to be called
+   // An updateState wrapper that determines if updateState needs to be called
    int callUpdateState(double simTime, double dt);
-  /**
-    * A virtual function to determine if callUpdateState method needs to be called
-    * Default behavior is dependent on the triggering method.
-    * If there is no triggering, always returns true.
-    * If there is triggering and the trigger behavior is updateOnlyOnTrigger, returns true only when there is a triggering event.
-    * If there is triggering and the trigger behavior is resetStateOnTrigger, returns true only when there is not a trigger event.
-    * @param time The current timestep of the run
-    * @param dt The current non-adaptive dt of the run
-    * @return Returns if the update needs to happen
-    */
+   /**
+     * A virtual function to determine if callUpdateState method needs to be called
+     * Default behavior is dependent on the triggering method.
+     * If there is no triggering, always returns true.
+     * If there is triggering and the trigger behavior is updateOnlyOnTrigger, returns true only
+    * when there is a triggering event.
+     * If there is triggering and the trigger behavior is resetStateOnTrigger, returns true only
+    * when there is not a trigger event.
+     * @param time The current timestep of the run
+     * @param dt The current non-adaptive dt of the run
+     * @return Returns if the update needs to happen
+     */
    virtual bool needUpdate(double simTime, double dt);
 
    /**
@@ -335,7 +346,8 @@ public:
    virtual double getDeltaUpdateTime();
 
    /**
-    * A function to return the interval between triggering times.  A negative value means that the layer never triggers
+    * A function to return the interval between triggering times.  A negative value means that the
+    * layer never triggers
     * (either there is no triggerLayer or the triggerLayer never updates).
     */
    virtual double getDeltaTriggerTime();
@@ -343,114 +355,138 @@ public:
    /**
     * A function to update the time that the next trigger is expected to occur.
     */
-   virtual int respondLayerRecvSynapticInput(LayerRecvSynapticInputMessage const * message);
-   virtual int respondLayerUpdateState(LayerUpdateStateMessage const * message);
+   virtual int respondLayerRecvSynapticInput(LayerRecvSynapticInputMessage const *message);
+   virtual int respondLayerUpdateState(LayerUpdateStateMessage const *message);
 #ifdef PV_USE_CUDA
-   virtual int respondLayerCopyFromGpu(LayerCopyFromGpuMessage const * message);
+   virtual int respondLayerCopyFromGpu(LayerCopyFromGpuMessage const *message);
 #endif // PV_USE_CUDA
-   virtual int respondLayerPublish(LayerPublishMessage const * message);
-   virtual int respondLayerCheckNotANumber(LayerCheckNotANumberMessage const * message);
-   virtual int respondLayerUpdateActiveIndices(LayerUpdateActiveIndicesMessage const * message);
-   virtual int respondLayerOutputState(LayerOutputStateMessage const * message);
-   virtual int publish(Communicator * comm, double simTime);
+   virtual int respondLayerPublish(LayerPublishMessage const *message);
+   virtual int respondLayerCheckNotANumber(LayerCheckNotANumberMessage const *message);
+   virtual int respondLayerUpdateActiveIndices(LayerUpdateActiveIndicesMessage const *message);
+   virtual int respondLayerOutputState(LayerOutputStateMessage const *message);
+   virtual int publish(Communicator *comm, double simTime);
    virtual int resetGSynBuffers(double timef, double dt);
    // ************************************************************************************//
 
-   // mpi public wait method to ensure all targets have received synaptic input before proceeding to next time step
-   virtual int waitOnPublish(Communicator * comm);
+   // mpi public wait method to ensure all targets have received synaptic input before proceeding to
+   // next time step
+   virtual int waitOnPublish(Communicator *comm);
 
    virtual int updateAllActiveIndices();
    virtual int updateActiveIndices();
-   int resetBuffer(pvdata_t * buf, int numItems);
+   int resetBuffer(pvdata_t *buf, int numItems);
 
-   static bool localDimensionsEqual(PVLayerLoc const * loc1, PVLayerLoc const * loc2);
-   int mirrorInteriorToBorder(PVLayerCube * cube, PVLayerCube * borderCube);
+   static bool localDimensionsEqual(PVLayerLoc const *loc1, PVLayerLoc const *loc2);
+   int mirrorInteriorToBorder(PVLayerCube *cube, PVLayerCube *borderCube);
 
-   virtual int checkpointRead(const char * cpDir, double * timeptr); 
-   virtual int checkpointWrite(const char * cpDir);
+   virtual int checkpointRead(const char *cpDir, double *timeptr);
+   virtual int checkpointWrite(const char *cpDir);
    virtual int writeTimers(PrintStream &stream);
-   // TODO: readBufferFile and writeBufferFile have to take different types of buffers.  Can they be templated?
+   // TODO: readBufferFile and writeBufferFile have to take different types of buffers.  Can they be
+   // templated?
    template <typename T>
-   static int readBufferFile(const char * filename, Communicator * comm, double * timed, T ** buffers, int numbands, bool extended, const PVLayerLoc * loc);
+   static int readBufferFile(
+         const char *filename,
+         Communicator *comm,
+         double *timed,
+         T **buffers,
+         int numbands,
+         bool extended,
+         const PVLayerLoc *loc);
    template <typename T>
-   static int writeBufferFile(const char * filename, Communicator * comm, double dtime, T ** buffers, int numbands, bool extended, const PVLayerLoc * loc);
+   static int writeBufferFile(
+         const char *filename,
+         Communicator *comm,
+         double dtime,
+         T **buffers,
+         int numbands,
+         bool extended,
+         const PVLayerLoc *loc);
 
-   virtual int outputState(double timef, bool last=false);
+   virtual int outputState(double timef, bool last = false);
    virtual int writeActivity(double timed);
    virtual int writeActivitySparse(double timed, bool includeValues);
 
-   virtual int insertProbe(LayerProbe * probe);
+   virtual int insertProbe(LayerProbe *probe);
    int outputProbeParams();
 
    int getNumProbes() { return numProbes; }
-   LayerProbe * getProbe(int n) { return (n>=0 && n<numProbes) ? probes[n] : NULL; }
+   LayerProbe *getProbe(int n) { return (n >= 0 && n < numProbes) ? probes[n] : NULL; }
 
    // TODO: should the mirroring functions be static?  Why are they virtual?
-   virtual int mirrorToNorthWest(PVLayerCube * dest, PVLayerCube * src);
-   virtual int mirrorToNorth    (PVLayerCube * dest, PVLayerCube* src);
-   virtual int mirrorToNorthEast(PVLayerCube * dest, PVLayerCube * src);
-   virtual int mirrorToWest     (PVLayerCube * dest, PVLayerCube * src);
-   virtual int mirrorToEast     (PVLayerCube * dest, PVLayerCube * src);
-   virtual int mirrorToSouthWest(PVLayerCube * dest, PVLayerCube * src);
-   virtual int mirrorToSouth    (PVLayerCube * dest, PVLayerCube * src);
-   virtual int mirrorToSouthEast(PVLayerCube * dest, PVLayerCube * src);
+   virtual int mirrorToNorthWest(PVLayerCube *dest, PVLayerCube *src);
+   virtual int mirrorToNorth(PVLayerCube *dest, PVLayerCube *src);
+   virtual int mirrorToNorthEast(PVLayerCube *dest, PVLayerCube *src);
+   virtual int mirrorToWest(PVLayerCube *dest, PVLayerCube *src);
+   virtual int mirrorToEast(PVLayerCube *dest, PVLayerCube *src);
+   virtual int mirrorToSouthWest(PVLayerCube *dest, PVLayerCube *src);
+   virtual int mirrorToSouth(PVLayerCube *dest, PVLayerCube *src);
+   virtual int mirrorToSouthEast(PVLayerCube *dest, PVLayerCube *src);
 
    // Public access functions:
 
-   int getNumNeurons()               {return clayer->numNeurons;}
-   int getNumExtended()              {return clayer->numExtended;}
-   int getNumNeuronsAllBatches()     {return clayer->numNeuronsAllBatches;}
-   int getNumExtendedAllBatches()    {return clayer->numExtendedAllBatches;}
+   int getNumNeurons() { return clayer->numNeurons; }
+   int getNumExtended() { return clayer->numExtended; }
+   int getNumNeuronsAllBatches() { return clayer->numNeuronsAllBatches; }
+   int getNumExtendedAllBatches() { return clayer->numExtendedAllBatches; }
 
-
-   int getNumGlobalNeurons()         {const PVLayerLoc * loc = getLayerLoc(); return loc->nxGlobal*loc->nyGlobal*loc->nf;}
-   int getNumGlobalExtended()        {const PVLayerLoc * loc = getLayerLoc(); return (loc->nxGlobal+loc->halo.lt+loc->halo.rt)*(loc->nyGlobal+loc->halo.dn+loc->halo.up)*loc->nf;}
-   int getNumDelayLevels()           {return numDelayLevels;}
+   int getNumGlobalNeurons() {
+      const PVLayerLoc *loc = getLayerLoc();
+      return loc->nxGlobal * loc->nyGlobal * loc->nf;
+   }
+   int getNumGlobalExtended() {
+      const PVLayerLoc *loc = getLayerLoc();
+      return (loc->nxGlobal + loc->halo.lt + loc->halo.rt)
+             * (loc->nyGlobal + loc->halo.dn + loc->halo.up) * loc->nf;
+   }
+   int getNumDelayLevels() { return numDelayLevels; }
 
    int increaseDelayLevels(int neededDelay);
-   virtual int requireMarginWidth(int marginWidthNeeded, int * marginWidthResult, char axis);
-   virtual int requireChannel(int channelNeeded, int * numChannelsResult);
+   virtual int requireMarginWidth(int marginWidthNeeded, int *marginWidthResult, char axis);
+   virtual int requireChannel(int channelNeeded, int *numChannelsResult);
 
-   PVLayer*  getCLayer()             {return clayer;}
-   pvdata_t * getV()                 {return clayer->V;}           // name query
-   int getNumChannels()              {return numChannels;}
-   pvdata_t * getChannel(ChannelType ch) {                         // name query
+   PVLayer *getCLayer() { return clayer; }
+   pvdata_t *getV() { return clayer->V; } // name query
+   int getNumChannels() { return numChannels; }
+   pvdata_t *getChannel(ChannelType ch) { // name query
       return (ch < this->numChannels && ch >= 0) ? GSyn[ch] : NULL;
    }
-   virtual float getChannelTimeConst(enum ChannelType channel_type){return 0.0f;};
-   int getXScale()                   {return clayer->xScale;}
-   int getYScale()                   {return clayer->yScale;}
+   virtual float getChannelTimeConst(enum ChannelType channel_type) { return 0.0f; };
+   int getXScale() { return clayer->xScale; }
+   int getYScale() { return clayer->yScale; }
 
-   bool useMirrorBCs()               {return this->mirrorBCflag;}
-   pvdata_t getValueBC() {return this->valueBC;}
+   bool useMirrorBCs() { return this->mirrorBCflag; }
+   pvdata_t getValueBC() { return this->valueBC; }
 
-   bool getSparseFlag()             {return this->sparseLayer;}
+   bool getSparseFlag() { return this->sparseLayer; }
 
-   int getPhase()                    {return this->phase;}
+   int getPhase() { return this->phase; }
 
-   char const * getOutputStatePath();
+   char const *getOutputStatePath();
    int flushOutputStateStream();
 
    // implementation of LayerDataInterface interface
    //
-   const pvdata_t   * getLayerData(int delay=0);
-   const PVLayerLoc * getLayerLoc()  { return &(clayer->loc); }
-   bool isExtended()                 { return true; }
+   const pvdata_t *getLayerData(int delay = 0);
+   const PVLayerLoc *getLayerLoc() { return &(clayer->loc); }
+   bool isExtended() { return true; }
 
    double getLastUpdateTime() { return mLastUpdateTime; }
    double getNextUpdateTime() { return mLastUpdateTime + getDeltaUpdateTime(); }
-   float getMaxRate() {return maxRate;}
+   float getMaxRate() { return maxRate; }
 
-   Publisher * getPublisher() { return publisher; }
+   Publisher *getPublisher() { return publisher; }
 
-protected:
+  protected:
    virtual int communicateInitInfo() override;
    virtual int allocateDataStructures() override;
-   virtual int initializeState() final; // Not overridable since all layers should respond to initializeFromCheckpointFlag and (deprecated) restartFlag in the same way.
-                          // initializeState calls the virtual methods readStateFromCheckpoint(), and setInitialValues().
+   virtual int initializeState() final; // Not overridable since all layers should respond to
+                                        // initializeFromCheckpointFlag and (deprecated) restartFlag
+                                        // in the same way.
+   // initializeState calls the virtual methods readStateFromCheckpoint(), and setInitialValues().
 
    int openOutputStateFile();
-   /* static methods called by updateState({long_argument_list})*/
+/* static methods called by updateState({long_argument_list})*/
 
 #ifdef PV_USE_CUDA
    virtual int runUpdateKernel();
@@ -462,72 +498,89 @@ protected:
 
    // layerId was removed Aug 12, 2016.
 
-   int numChannels;             // number of channels
-   pvdata_t ** GSyn;            // of dynamic length numChannels
-   Publisher * publisher = nullptr;
+   int numChannels; // number of channels
+   pvdata_t **GSyn; // of dynamic length numChannels
+   Publisher *publisher = nullptr;
 
-   float nxScale, nyScale;        // Size of layer relative to column
+   float nxScale, nyScale; // Size of layer relative to column
    int numFeatures;
    int xmargin, ymargin;
 
-   bool initializeFromCheckpointFlag; // Whether to load initial state using directory parent->getInitializeFromCheckpoint()
+   bool initializeFromCheckpointFlag; // Whether to load initial state using directory
+                                      // parent->getInitializeFromCheckpoint()
    bool restartFlag;
 
    int numProbes;
-   LayerProbe ** probes;
+   LayerProbe **probes;
 
-   int phase;                   // All layers with phase 0 get updated before any with phase 1, etc.
-   int numDelayLevels;          // The number of timesteps in the datastore ring buffer to store older timesteps for connections with delays
+   int phase; // All layers with phase 0 get updated before any with phase 1, etc.
+   int numDelayLevels; // The number of timesteps in the datastore ring buffer to store older
+                       // timesteps for connections with delays
 
-   bool mirrorBCflag;           // true when mirror BC are to be applied
+   bool mirrorBCflag; // true when mirror BC are to be applied
    pvdata_t valueBC; // If mirrorBCflag is false, the value of A to fill extended cells with
 
-   int ioAppend;                // controls opening of binary files
-   double initialWriteTime;             // time of next output
-   double writeTime;             // time of next output
-   double writeStep;             // output time interval
-   PV_Stream * outputStateStream;       // activity generated by outputState
+   int ioAppend; // controls opening of binary files
+   double initialWriteTime; // time of next output
+   double writeTime; // time of next output
+   double writeStep; // output time interval
+   PV_Stream *outputStateStream; // activity generated by outputState
 
    bool sparseLayer; // if true, only nonzero activities are saved; if false, all values are saved.
-   bool writeSparseValues; // if true, sparseLayer writes index-value pairs.  if false, sparseLayer writes indices only and values are assumed to be 1.  Not used if sparseLayer is false
-   int writeActivityCalls;      // Number of calls to writeActivity (written to nbands in the header of the a%d.pvp file)
-   int writeActivitySparseCalls; // Number of calls to writeActivitySparse (written to nbands in the header of the a%d.pvp file)
+   bool writeSparseValues; // if true, sparseLayer writes index-value pairs.  if false, sparseLayer
+                           // writes indices only and values are assumed to be 1.  Not used if
+                           // sparseLayer is false
+   int writeActivityCalls; // Number of calls to writeActivity (written to nbands in the header of
+                           // the a%d.pvp file)
+   int writeActivitySparseCalls; // Number of calls to writeActivitySparse (written to nbands in the
+                                 // header of the a%d.pvp file)
 
-   int * marginIndices;   // indices of neurons in margin
-   int numMargin;         // number of neurons in margin
-   float maxRate;         // Maximum rate of activity.  HyPerLayer sets to 1/dt during initialize(); derived classes should override in their own initialize method after calling HyPerLayer's, if needed.
+   int *marginIndices; // indices of neurons in margin
+   int numMargin; // number of neurons in margin
+   float maxRate; // Maximum rate of activity.  HyPerLayer sets to 1/dt during initialize(); derived
+                  // classes should override in their own initialize method after calling
+                  // HyPerLayer's, if needed.
 
-   unsigned int rngSeedBase; // The starting seed for rng.  The parent HyPerCol reserves {rngSeedbase, rngSeedbase+1,...rngSeedbase+neededRNGSeeds-1} for use by this layer
+   unsigned int rngSeedBase; // The starting seed for rng.  The parent HyPerCol reserves
+                             // {rngSeedbase, rngSeedbase+1,...rngSeedbase+neededRNGSeeds-1} for use
+                             // by this layer
 
-   InitV * initVObject;
+   InitV *initVObject;
 
-   HyPerLayer ** synchronizedMarginWidthLayers;
+   HyPerLayer **synchronizedMarginWidthLayers;
    int numSynchronizedMarginWidthLayers;
 
-   //Trigger-related parameters
-   //  Although triggerFlag was deprecated as a params file parameter, it remains as a member variable to allow quick testing of whether we're triggering.  It is set during ioParam_triggerLayerName.
-   bool triggerFlag; // Whether the layer has different behavior in response to another layer's update.
-   char* triggerLayerName; // The layer that triggers different behavior.  To turn triggering off, set this parameter to NULL or ""
-   char * triggerBehavior; // Specifies how to respond to a trigger.  Current values are "updateOnlyOnTrigger" or "resetStateOnTrigger"
+   // Trigger-related parameters
+   //  Although triggerFlag was deprecated as a params file parameter, it remains as a member
+   //  variable to allow quick testing of whether we're triggering.  It is set during
+   //  ioParam_triggerLayerName.
+   bool triggerFlag; // Whether the layer has different behavior in response to another layer's
+                     // update.
+   char *triggerLayerName; // The layer that triggers different behavior.  To turn triggering off,
+                           // set this parameter to NULL or ""
+   char *triggerBehavior; // Specifies how to respond to a trigger.  Current values are
+                          // "updateOnlyOnTrigger" or "resetStateOnTrigger"
    TriggerBehaviorType triggerBehaviorType;
-   char * triggerResetLayerName; // If triggerBehavior is "resetStateOnTrigger", specifies the layer to use in resetting values.
-   double triggerOffset; // Adjust the timestep when the trigger is receieved by this amount; must be >=0.  A positive value means the trigger occurs before the triggerLayerName layer updates.
-   HyPerLayer* triggerLayer;
-   HyPerLayer * triggerResetLayer;
+   char *triggerResetLayerName; // If triggerBehavior is "resetStateOnTrigger", specifies the layer
+                                // to use in resetting values.
+   double triggerOffset; // Adjust the timestep when the trigger is receieved by this amount; must
+                         // be >=0.  A positive value means the trigger occurs before the
+                         // triggerLayerName layer updates.
+   HyPerLayer *triggerLayer;
+   HyPerLayer *triggerResetLayer;
 
-   char* dataTypeString;
+   char *dataTypeString;
    PVDataType dataType;
 
    double mLastUpdateTime;
    double mLastTriggerTime;
 
-   pvdata_t ** thread_gSyn; //Accumulate buffer for each thread, only used if numThreads > 1
+   pvdata_t **thread_gSyn; // Accumulate buffer for each thread, only used if numThreads > 1
    std::vector<BaseConnection *> recvConns;
 
-   // GPU variables
+// GPU variables
 #ifdef PV_USE_CUDA
-public:
-
+  public:
    virtual void syncGpu();
    virtual double addGpuTimers();
 
@@ -535,99 +588,57 @@ public:
    void copyAllGSynFromDevice();
    void copyAllVFromDevice();
    void copyAllActivityFromDevice();
-   PVCuda::CudaBuffer * getDeviceV(){
-      return d_V;
-   }
-   PVCuda::CudaBuffer * getDeviceGSyn() {
-      return d_GSyn;
-   }
+   PVCuda::CudaBuffer *getDeviceV() { return d_V; }
+   PVCuda::CudaBuffer *getDeviceGSyn() { return d_GSyn; }
 
 #ifdef PV_USE_CUDNN
-   PVCuda::CudaBuffer * getCudnnGSyn(){
-      return cudnn_GSyn;
-   }
+   PVCuda::CudaBuffer *getCudnnGSyn() { return cudnn_GSyn; }
 #endif // PV_USE_CUDNN
-   PVCuda::CudaBuffer * getDeviceActivity(){
-      return d_Activity;
-   }
+   PVCuda::CudaBuffer *getDeviceActivity() { return d_Activity; }
 
-  PVCuda::CudaBuffer * getDeviceDatastore(){
-      return d_Datastore;
-   }
+   PVCuda::CudaBuffer *getDeviceDatastore() { return d_Datastore; }
 
-  PVCuda::CudaBuffer * getDeviceActiveIndices(){
-      return d_ActiveIndices;
-   }
+   PVCuda::CudaBuffer *getDeviceActiveIndices() { return d_ActiveIndices; }
 
-   PVCuda::CudaBuffer * getDeviceNumActive(){
-      return d_numActive;
-   }
+   PVCuda::CudaBuffer *getDeviceNumActive() { return d_numActive; }
 
 #ifdef PV_USE_CUDNN
-   PVCuda::CudaBuffer * getCudnnDatastore(){
-      return cudnn_Datastore;
-   }
+   PVCuda::CudaBuffer *getCudnnDatastore() { return cudnn_Datastore; }
 #endif // PV_USE_CUDNN
 
-   void setAllocDeviceV(){
-      allocDeviceV = true;
-   }
-   void setAllocDeviceGSyn(){
-      allocDeviceGSyn = true;
-   }
+   void setAllocDeviceV() { allocDeviceV = true; }
+   void setAllocDeviceGSyn() { allocDeviceGSyn = true; }
 
-   void setAllocDeviceActivity(){
-      allocDeviceActivity = true;
-   }
+   void setAllocDeviceActivity() { allocDeviceActivity = true; }
 
-   void setAllocDeviceDatastore(){
-      allocDeviceDatastore= true;
-   }
+   void setAllocDeviceDatastore() { allocDeviceDatastore = true; }
 
-   void setAllocDeviceActiveIndices(){
-      allocDeviceActiveIndices = true;
-   }
+   void setAllocDeviceActiveIndices() { allocDeviceActiveIndices = true; }
 
-   bool getUpdatedDeviceActivityFlag(){
-      return updatedDeviceActivity;
-   }
+   bool getUpdatedDeviceActivityFlag() { return updatedDeviceActivity; }
 
-   void setUpdatedDeviceActivityFlag(bool in){
-      updatedDeviceActivity = in;
-   }
+   void setUpdatedDeviceActivityFlag(bool in) { updatedDeviceActivity = in; }
 
-   bool getUpdatedDeviceDatastoreFlag(){
-      return updatedDeviceDatastore;
-   }
+   bool getUpdatedDeviceDatastoreFlag() { return updatedDeviceDatastore; }
 
-   void setUpdatedDeviceDatastoreFlag(bool in){
-      updatedDeviceDatastore = in;
-   }
+   void setUpdatedDeviceDatastoreFlag(bool in) { updatedDeviceDatastore = in; }
 
-   bool getUpdatedDeviceGSynFlag(){
-      return updatedDeviceGSyn;
-   }
+   bool getUpdatedDeviceGSynFlag() { return updatedDeviceGSyn; }
 
-   void setUpdatedDeviceGSynFlag(bool in){
-      updatedDeviceGSyn = in;
-   }
+   void setUpdatedDeviceGSynFlag(bool in) { updatedDeviceGSyn = in; }
 
-   bool getRecvGpu(){
-      return recvGpu;
-   }
+   bool getRecvGpu() { return recvGpu; }
 
-   bool getUpdateGpu(){
-      return updateGpu;
-   }
-protected:
+   bool getUpdateGpu() { return updateGpu; }
 
+  protected:
    virtual int allocateUpdateKernel();
    virtual int allocateDeviceBuffers();
    // OpenCL buffers and their corresponding flags
    //
-   
+
    bool allocDeviceV;
-   bool allocDeviceGSyn;         // array of channels to allocate
+   bool allocDeviceGSyn; // array of channels to allocate
    bool allocDeviceActivity;
    bool allocDeviceDatastore;
    bool allocDeviceActiveIndices;
@@ -637,30 +648,30 @@ protected:
    bool recvGpu;
    bool updateGpu;
 
-   PVCuda::CudaBuffer * d_V;
-   PVCuda::CudaBuffer * d_GSyn;      
-   PVCuda::CudaBuffer * d_Activity;
-   PVCuda::CudaBuffer * d_Datastore;
-   PVCuda::CudaBuffer * d_numActive;
-   PVCuda::CudaBuffer * d_ActiveIndices;
-   PVCuda::CudaKernel * krUpdate;
+   PVCuda::CudaBuffer *d_V;
+   PVCuda::CudaBuffer *d_GSyn;
+   PVCuda::CudaBuffer *d_Activity;
+   PVCuda::CudaBuffer *d_Datastore;
+   PVCuda::CudaBuffer *d_numActive;
+   PVCuda::CudaBuffer *d_ActiveIndices;
+   PVCuda::CudaKernel *krUpdate;
 #ifdef PV_USE_CUDNN
-   PVCuda::CudaBuffer * cudnn_GSyn;
-   PVCuda::CudaBuffer * cudnn_Datastore;
-#endif //PV_USE_CUDNN
-#endif //PV_USE_CUDA
+   PVCuda::CudaBuffer *cudnn_GSyn;
+   PVCuda::CudaBuffer *cudnn_Datastore;
+#endif // PV_USE_CUDNN
+#endif // PV_USE_CUDA
 
-protected:
-   Timer * update_timer;
-   Timer * recvsyn_timer;
-   Timer * recvsyn_calc_timer;
-   Timer * publish_timer;
-   Timer * timescale_timer;
-   Timer * io_timer;
+  protected:
+   Timer *update_timer;
+   Timer *recvsyn_timer;
+   Timer *recvsyn_calc_timer;
+   Timer *publish_timer;
+   Timer *timescale_timer;
+   Timer *io_timer;
 
 #ifdef PV_USE_CUDA
-   PVCuda::CudaTimer * gpu_recvsyn_timer;
-   PVCuda::CudaTimer * gpu_update_timer;
+   PVCuda::CudaTimer *gpu_recvsyn_timer;
+   PVCuda::CudaTimer *gpu_update_timer;
 #endif
 };
 

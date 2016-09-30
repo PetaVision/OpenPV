@@ -10,22 +10,19 @@
 
 #include <layers/HyPerLayer.hpp>
 
-namespace PV
-{
+namespace PV {
 
-class Example: public PV::HyPerLayer
-{
-public:
-   Example(const char* name, HyPerCol * hc);
+class Example : public PV::HyPerLayer {
+  public:
+   Example(const char *name, HyPerCol *hc);
    virtual bool activityIsSpiking() { return false; }
 
    virtual int updateState(double time, double dt);
 
    virtual int initFinish(int colId, int colRow, int colCol);
 
-   virtual int outputState(double timef, bool last=false);
+   virtual int outputState(double timef, bool last = false);
 };
-
 }
 
 #endif /* EXAMPLE_HPP_ */

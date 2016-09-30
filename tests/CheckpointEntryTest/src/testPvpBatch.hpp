@@ -4,6 +4,6 @@
 #include "columns/Communicator.hpp"
 #include <string>
 
-void testPvpBatch(PV::Communicator * comm, std::string const& directory);
+void testPvpBatch(PV::Communicator *comm, std::string const &directory);
 
 #endif // TESTPVPBATCH_HPP_

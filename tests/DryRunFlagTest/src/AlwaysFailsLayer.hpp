@@ -11,19 +11,19 @@ namespace PV {
  * the dry run option (-n) never executes any timesteps.
  */
 class AlwaysFailsLayer : public HyPerLayer {
-public:
-   AlwaysFailsLayer(char const * name, HyPerCol * hc);
+  public:
+   AlwaysFailsLayer(char const *name, HyPerCol *hc);
    virtual ~AlwaysFailsLayer();
    virtual bool needUpdate(double simTime, double dt) override;
 
-protected:
+  protected:
    AlwaysFailsLayer();
-   int initialize(char const * name, HyPerCol * hc);
+   int initialize(char const *name, HyPerCol *hc);
 
-private:
+  private:
    int initialize_base();
 };
 
-}  // end namespace PV
+} // end namespace PV
 
 #endif // ALWAYSFAILSLAYER_HPP_

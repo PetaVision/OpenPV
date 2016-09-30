@@ -10,21 +10,21 @@
 // equal to their global position
 // ShrunkenPatchProbe checks whether he above suppositions are satisfied
 
-#include "columns/buildandrun.hpp"
-#include "io/io.hpp"
 #include "ShrunkenPatchTestLayer.hpp"
 #include "ShrunkenPatchTestProbe.hpp"
+#include "columns/buildandrun.hpp"
+#include "io/io.hpp"
 #include <utils/PVLog.hpp>
 
-int main(int argc, char * argv[]) {
+int main(int argc, char *argv[]) {
 
    int status;
-   PV_Init initObj(&argc, &argv, false/*allowUnrecognizedArguments*/);
+   PV_Init initObj(&argc, &argv, false /*allowUnrecognizedArguments*/);
    initObj.registerKeyword("ShrunkenPatchTestLayer", Factory::create<ShrunkenPatchTestLayer>);
    initObj.registerKeyword("ShrunkenPatchTestProbe", Factory::create<ShrunkenPatchTestProbe>);
    if (initObj.getParams() == NULL) {
       initObj.setParams("input/ShrunkenPatchTest.params");
    }
-   status = rebuildandrun(&initObj)==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
-   return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
+   status = rebuildandrun(&initObj) == PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
+   return status == PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }

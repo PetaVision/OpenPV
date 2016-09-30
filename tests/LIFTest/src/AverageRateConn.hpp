@@ -13,21 +13,20 @@
 namespace PV {
 
 class AverageRateConn : public IdentConn {
-public:
-   AverageRateConn(const char * name, HyPerCol * hc);
+  public:
+   AverageRateConn(const char *name, HyPerCol *hc);
    virtual ~AverageRateConn();
    virtual int updateState(double timed, double dt);
 
-protected:
+  protected:
    AverageRateConn();
-   int initialize(const char * name, HyPerCol * hc);
+   int initialize(const char *name, HyPerCol *hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual void ioParam_plasticityFlag(enum ParamsIOFlag ioFlag);
 
-private:
+  private:
    int initialize_base();
 };
-
 
 } /* namespace PV */
 #endif /* AVERAGERATECONN_HPP_ */

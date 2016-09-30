@@ -12,18 +12,18 @@
 
 namespace PV {
 
-class PlasticConnTestLayer: public PV::ANNLayer {
-public:
-   PlasticConnTestLayer(const char* name, HyPerCol * hc);
+class PlasticConnTestLayer : public PV::ANNLayer {
+  public:
+   PlasticConnTestLayer(const char *name, HyPerCol *hc);
    virtual int allocateDataStructures();
    virtual int updateState(double timef, double dt);
-   virtual int publish(Communicator * comm, double timef);
-protected:
+   virtual int publish(Communicator *comm, double timef);
+
+  protected:
    int copyAtoV();
    int setActivitytoGlobalPos();
-   int initialize(const char * name, HyPerCol * hc);
+   int initialize(const char *name, HyPerCol *hc);
 }; // end class PlasticConnTestLayer
-
 
 } // end namespace PV
 #endif /* PLASTICCONNTESTLAYER_HPP_ */

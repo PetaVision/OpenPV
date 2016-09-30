@@ -12,14 +12,18 @@
 
 namespace PV {
 
-std::string CheckpointEntry::generatePath(std::string const& checkpointDirectory, std::string const& extension) const {
+std::string CheckpointEntry::generatePath(
+      std::string const &checkpointDirectory,
+      std::string const &extension) const {
    std::string path(checkpointDirectory);
    path.append("/").append(getName()).append(".").append(extension);
    return path;
 }
 
-void CheckpointEntry::deleteFile(std::string const& checkpointDirectory, std::string const& extension) const {
-   if (getCommunicator()->commRank()==0) {
+void CheckpointEntry::deleteFile(
+      std::string const &checkpointDirectory,
+      std::string const &extension) const {
+   if (getCommunicator()->commRank() == 0) {
       std::string path = generatePath(checkpointDirectory, extension);
       struct stat pathStat;
       int statstatus = stat(path.c_str(), &pathStat);
@@ -31,5 +35,4 @@ void CheckpointEntry::deleteFile(std::string const& checkpointDirectory, std::st
       }
    }
 }
-
 }

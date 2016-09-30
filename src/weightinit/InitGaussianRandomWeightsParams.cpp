@@ -9,29 +9,23 @@
 
 namespace PV {
 
-InitGaussianRandomWeightsParams::InitGaussianRandomWeightsParams()
-{
-   initialize_base();
-}
+InitGaussianRandomWeightsParams::InitGaussianRandomWeightsParams() { initialize_base(); }
 
-InitGaussianRandomWeightsParams::InitGaussianRandomWeightsParams(const char * name, HyPerCol * hc)
-{
+InitGaussianRandomWeightsParams::InitGaussianRandomWeightsParams(const char *name, HyPerCol *hc) {
    initialize_base();
    initialize(name, hc);
 }
 
-InitGaussianRandomWeightsParams::~InitGaussianRandomWeightsParams()
-{
-}
+InitGaussianRandomWeightsParams::~InitGaussianRandomWeightsParams() {}
 
 int InitGaussianRandomWeightsParams::initialize_base() {
 
-   wGaussMean = 0;
+   wGaussMean  = 0;
    wGaussStdev = 1;
    return PV_SUCCESS;
 }
 
-int InitGaussianRandomWeightsParams::initialize(const char * name, HyPerCol * hc) {
+int InitGaussianRandomWeightsParams::initialize(const char *name, HyPerCol *hc) {
    return InitRandomWeightsParams::initialize(name, hc);
 }
 

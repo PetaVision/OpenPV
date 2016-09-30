@@ -13,9 +13,9 @@
 
 namespace PV {
 
-class RunningAverageLayer: public CloneVLayer {
-public:
-   RunningAverageLayer(const char * name, HyPerCol * hc);
+class RunningAverageLayer : public CloneVLayer {
+  public:
+   RunningAverageLayer(const char *name, HyPerCol *hc);
    virtual ~RunningAverageLayer();
    virtual int communicateInitInfo();
    virtual int allocateV();
@@ -23,19 +23,20 @@ public:
    virtual int setActivity();
    int getNumImagesToAverage() { return numImagesToAverage; }
 
-protected:
+  protected:
    RunningAverageLayer();
-   int initialize(const char * name, HyPerCol * hc);
+   int initialize(const char *name, HyPerCol *hc);
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    void ioParam_numImagesToAverage(enum ParamsIOFlag ioFlag);
-private:
+
+  private:
    int initialize_base();
 
-protected:
+  protected:
    int numImagesToAverage;
    int numUpdateTimes;
 }; // class RunningAverageLayer
 
-}  // namespace PV
+} // namespace PV
 
 #endif /* CLONELAYER_HPP_ */

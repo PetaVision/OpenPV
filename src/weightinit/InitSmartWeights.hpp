@@ -13,22 +13,23 @@
 
 namespace PV {
 
-class InitSmartWeights: public PV::InitWeights {
-public:
-   InitSmartWeights(char const * name, HyPerCol * hc);
+class InitSmartWeights : public PV::InitWeights {
+  public:
+   InitSmartWeights(char const *name, HyPerCol *hc);
    InitSmartWeights();
    virtual ~InitSmartWeights();
 
-   virtual InitWeightsParams * createNewWeightParams();
+   virtual InitWeightsParams *createNewWeightParams();
 
-   virtual int calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId);
+   virtual int calcWeights(/* PVPatch * patch */ pvdata_t *dataStart, int patchIndex, int arborId);
 
-protected:
-   int initialize(char const * name, HyPerCol * hc);
+  protected:
+   int initialize(char const *name, HyPerCol *hc);
 
-private:
+  private:
    int initialize_base();
-   int smartWeights(/* PVPatch * patch */ pvdata_t * dataStart, int k, InitWeightsParams *weightParams);
+   int
+   smartWeights(/* PVPatch * patch */ pvdata_t *dataStart, int k, InitWeightsParams *weightParams);
 }; // class InitSmartWeights
 
 } /* namespace PV */

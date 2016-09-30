@@ -9,16 +9,12 @@
 
 namespace PV {
 
+InitRandomWeightsParams::InitRandomWeightsParams() {}
 
-InitRandomWeightsParams::InitRandomWeightsParams()
-{
-}
-
-InitRandomWeightsParams::InitRandomWeightsParams(const char * name, HyPerCol * hc) {
+InitRandomWeightsParams::InitRandomWeightsParams(const char *name, HyPerCol *hc) {
    initialize(name, hc);
 }
 
-InitRandomWeightsParams::~InitRandomWeightsParams() {
-}
+InitRandomWeightsParams::~InitRandomWeightsParams() {}
 
 } /* namespace PV */

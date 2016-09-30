@@ -25,31 +25,42 @@
 namespace PV {
 
 class Random {
-public:
+  public:
    Random(int count);
-   Random(const PVLayerLoc * locptr, bool isExtended);
+   Random(const PVLayerLoc *locptr, bool isExtended);
    virtual ~Random();
 
-   taus_uint4 * getRNG(int index) {return &rngArray[index];}
-   float uniformRandom(int localIndex=0);
-   float uniformRandom(int localIndex, float min, float max) {return min+uniformRandom(localIndex)*(max-min);}
-   void uniformRandom(float * values, int localIndex, int count=1) {for (int k=0; k<count; k++) values[k] = uniformRandom(localIndex+k);}
-   void uniformRandom(float * values, int localIndex, int count, float min, float max) {for (int k=0; k<count; k++) values[k] = uniformRandom(localIndex+k,min,max);}
+   taus_uint4 *getRNG(int index) { return &rngArray[index]; }
+   float uniformRandom(int localIndex = 0);
+   float uniformRandom(int localIndex, float min, float max) {
+      return min + uniformRandom(localIndex) * (max - min);
+   }
+   void uniformRandom(float *values, int localIndex, int count = 1) {
+      for (int k   = 0; k < count; k++)
+         values[k] = uniformRandom(localIndex + k);
+   }
+   void uniformRandom(float *values, int localIndex, int count, float min, float max) {
+      for (int k   = 0; k < count; k++)
+         values[k] = uniformRandom(localIndex + k, min, max);
+   }
 
-   unsigned int randomUInt(int localIndex=0);
-   void randomUInt(unsigned int * values, int localIndex, int count=1) {for (int k=0; k<count; k++) values[k] = randomUInt(localIndex+k);}
-   static inline unsigned int randomUIntMax() {return CL_RANDOM_MAX;}
+   unsigned int randomUInt(int localIndex = 0);
+   void randomUInt(unsigned int *values, int localIndex, int count = 1) {
+      for (int k   = 0; k < count; k++)
+         values[k] = randomUInt(localIndex + k);
+   }
+   static inline unsigned int randomUIntMax() { return CL_RANDOM_MAX; }
 
-protected:
+  protected:
    Random();
    int initializeFromCount(int count);
-   int initializeFromLoc(const PVLayerLoc* locptr, bool isExtended);
+   int initializeFromLoc(const PVLayerLoc *locptr, bool isExtended);
 
-private:
+  private:
    int initialize_base();
 
-// Member variables
-protected:
+   // Member variables
+  protected:
    std::vector<taus_uint4> rngArray;
 };
 

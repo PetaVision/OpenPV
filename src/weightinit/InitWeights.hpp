@@ -9,10 +9,10 @@
 #define INITWEIGHTS_HPP_
 
 #include <columns/BaseObject.hpp>
+#include <connections/HyPerConn.hpp>
 #include <include/pv_common.h>
 #include <include/pv_types.h>
 #include <io/PVParams.hpp>
-#include <connections/HyPerConn.hpp>
 #include <weightinit/InitWeightsParams.hpp>
 
 namespace PV {
@@ -20,8 +20,8 @@ namespace PV {
 class InitWeightsParams;
 
 class InitWeights : public BaseObject {
-public:
-   InitWeights(char const * name, HyPerCol * hc);
+  public:
+   InitWeights(char const *name, HyPerCol *hc);
    virtual ~InitWeights();
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
@@ -38,34 +38,44 @@ public:
     * so it is more convenient and efficient to handle all the weights
     * together than to call one patch at a time.
     */
-   int initializeWeights(PVPatch *** patches, pvwdata_t ** dataStart,
-			double * timef = NULL);
-   virtual InitWeightsParams * createNewWeightParams();
+   int initializeWeights(PVPatch ***patches, pvwdata_t **dataStart, double *timef = NULL);
+   virtual InitWeightsParams *createNewWeightParams();
 
    virtual int calcWeights();
-   virtual int calcWeights(pvwdata_t * dataStart,
-			int patchIndex, int arborId);
+   virtual int calcWeights(pvwdata_t *dataStart, int patchIndex, int arborId);
 
-   virtual int readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numPatches,
-                           const char * filename, double * time=NULL);
+   virtual int readWeights(
+         PVPatch ***patches,
+         pvwdata_t **dataStart,
+         int numPatches,
+         const char *filename,
+         double *time = NULL);
 
-protected:
+  protected:
    InitWeights();
-   int initialize(const char * name, HyPerCol * hc);
+   int initialize(const char *name, HyPerCol *hc);
    virtual int setDescription();
    virtual int initRNGs(bool isKernel) { return PV_SUCCESS; }
-   virtual int zeroWeightsOutsideShrunkenPatch(PVPatch *** patches);
-   virtual int readListOfArborFiles(PVPatch *** patches, pvwdata_t ** dataStart,int numPatches,
-         const char * listOfArborsFilename, double * timef=NULL);
-   virtual int readCombinedWeightFiles(PVPatch *** patches, pvwdata_t ** dataStart,int numPatches,
-         const char * fileOfWeightFiles, double * timef=NULL);
+   virtual int zeroWeightsOutsideShrunkenPatch(PVPatch ***patches);
+   virtual int readListOfArborFiles(
+         PVPatch ***patches,
+         pvwdata_t **dataStart,
+         int numPatches,
+         const char *listOfArborsFilename,
+         double *timef = NULL);
+   virtual int readCombinedWeightFiles(
+         PVPatch ***patches,
+         pvwdata_t **dataStart,
+         int numPatches,
+         const char *fileOfWeightFiles,
+         double *timef = NULL);
 
-private:
+  private:
    int initialize_base();
 
-protected:
-   HyPerConn * callingConn;
-   InitWeightsParams * weightParams;
+  protected:
+   HyPerConn *callingConn;
+   InitWeightsParams *weightParams;
 
 }; // class InitWeights
 

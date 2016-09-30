@@ -12,24 +12,26 @@
 
 namespace PV {
 
-class MaskLayer: public PV::ANNLayer {
-public:
-   MaskLayer(const char * name, HyPerCol * hc);
+class MaskLayer : public PV::ANNLayer {
+  public:
+   MaskLayer(const char *name, HyPerCol *hc);
    MaskLayer();
    virtual ~MaskLayer();
    virtual int communicateInitInfo();
-protected:
+
+  protected:
    virtual int updateState(double time, double dt);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual void ioParam_maskMethod(enum ParamsIOFlag ioFlag);
    virtual void ioParam_maskLayerName(enum ParamsIOFlag ioFlag);
    virtual void ioParam_featureIdxs(enum ParamsIOFlag ioFlag);
-   char* maskMethod;
-   char* maskLayerName;
-   int* features;
+   char *maskMethod;
+   char *maskLayerName;
+   int *features;
    int numSpecifiedFeatures;
-   HyPerLayer* maskLayer;
-private:
+   HyPerLayer *maskLayer;
+
+  private:
    int initialize_base();
 
 }; // class MaskLayer

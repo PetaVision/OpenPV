@@ -9,21 +9,21 @@
 #define ISTALAYER_HPP_
 // TODO: Take care of code duplication between ISTALayer and HyPerLCALayer.
 
-#include "probes/AdaptiveTimeScaleProbe.hpp"
 #include "ANNLayer.hpp"
+#include "probes/AdaptiveTimeScaleProbe.hpp"
 
 namespace PV {
 
-class ISTALayer: public PV::ANNLayer {
-public:
-   ISTALayer(const char * name, HyPerCol * hc);
+class ISTALayer : public PV::ANNLayer {
+  public:
+   ISTALayer(const char *name, HyPerCol *hc);
    virtual ~ISTALayer();
    virtual double getDeltaUpdateTime();
-   virtual int requireChannel(int channelNeeded, int * numChannelsResult) ;
+   virtual int requireChannel(int channelNeeded, int *numChannelsResult);
 
-protected:
+  protected:
    ISTALayer();
-   int initialize(const char * name, HyPerCol * hc);
+   int initialize(const char *name, HyPerCol *hc);
    virtual int allocateDataStructures();
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
@@ -34,16 +34,19 @@ protected:
     */
 
    /**
-    * timeConstantTau: the time constant tau for the LCA dynamics, which models the equation dV/dt = 1/tau*(-V+s*A+GSyn)
+    * timeConstantTau: the time constant tau for the LCA dynamics, which models the equation dV/dt =
+    * 1/tau*(-V+s*A+GSyn)
     */
    virtual void ioParam_timeConstantTau(enum ParamsIOFlag ioFlag);
    /**
-    * timeConstantTau: the self-interaction coefficient s for the LCA dynamics, which models the equation dV/dt = 1/tau*(-V+s*A+GSyn)
+    * timeConstantTau: the self-interaction coefficient s for the LCA dynamics, which models the
+    * equation dV/dt = 1/tau*(-V+s*A+GSyn)
     */
    virtual void ioParam_selfInteract(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief adaptiveTimeScaleProbe: If using adaptive timesteps, the name of the AdaptiveTimeScaleProbe that will compute the dt values.
+    * @brief adaptiveTimeScaleProbe: If using adaptive timesteps, the name of the
+    * AdaptiveTimeScaleProbe that will compute the dt values.
     */
    virtual void ioParam_adaptiveTimeScaleProbe(enum ParamsIOFlag ioFlag);
    /** @} */
@@ -54,27 +57,27 @@ protected:
    virtual int updateStateGpu(double time, double dt);
 #endif
 
-   virtual float getChannelTimeConst(enum ChannelType channel_type){return timeConstantTau;};
+   virtual float getChannelTimeConst(enum ChannelType channel_type) { return timeConstantTau; };
 
 #ifdef PV_USE_CUDA
    virtual int allocateUpdateKernel();
 #endif
 
-   double * deltaTimes(); // TODO: make const-correct
+   double *deltaTimes(); // TODO: make const-correct
    // Better name?  getDeltaTimes isn't good because it sounds like it's just the getter-method.
 
-private:
+  private:
    int initialize_base();
 #ifdef PV_USE_CUDA
-   PVCuda::CudaBuffer* d_dtAdapt;
+   PVCuda::CudaBuffer *d_dtAdapt;
 #endif
 
-// Data members
-protected:
+   // Data members
+  protected:
    pvdata_t timeConstantTau;
    bool selfInteract;
-   char * mAdaptiveTimeScaleProbeName = nullptr;
-   AdaptiveTimeScaleProbe * mAdaptiveTimeScaleProbe = nullptr;
+   char *mAdaptiveTimeScaleProbeName               = nullptr;
+   AdaptiveTimeScaleProbe *mAdaptiveTimeScaleProbe = nullptr;
    std::vector<double> mDeltaTimes;
 }; // class ISTALayer
 

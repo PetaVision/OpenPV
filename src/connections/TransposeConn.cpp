@@ -10,27 +10,26 @@
 
 namespace PV {
 
-TransposeConn::TransposeConn() {
-   initialize_base();
-}  // TransposeConn::~TransposeConn()
+TransposeConn::TransposeConn() { initialize_base(); } // TransposeConn::~TransposeConn()
 
-TransposeConn::TransposeConn(const char * name, HyPerCol * hc) {
+TransposeConn::TransposeConn(const char *name, HyPerCol *hc) {
    initialize_base();
    int status = initialize(name, hc);
 }
 
 TransposeConn::~TransposeConn() {
-   free(originalConnName); originalConnName = NULL;
+   free(originalConnName);
+   originalConnName = NULL;
    deleteWeights();
    postConn = NULL;
-   //Transpose conn doesn't allocate postToPreActivity
+   // Transpose conn doesn't allocate postToPreActivity
    postToPreActivity = NULL;
-}  // TransposeConn::~TransposeConn()
+} // TransposeConn::~TransposeConn()
 
 int TransposeConn::initialize_base() {
-   plasticityFlag = false; // Default value; override in params
-   weightUpdatePeriod = 1;   // Default value; override in params
-   weightUpdateTime = 0;
+   plasticityFlag     = false; // Default value; override in params
+   weightUpdatePeriod = 1; // Default value; override in params
+   weightUpdateTime   = 0;
    // TransposeConn::initialize_base() gets called after
    // HyPerConn::initialize_base() so these default values override
    // those in HyPerConn::initialize_base().
@@ -39,14 +38,15 @@ int TransposeConn::initialize_base() {
    // by the params file values.
 
    originalConnName = NULL;
-   originalConn = NULL;
-   needFinalize = true;
+   originalConn     = NULL;
+   needFinalize     = true;
    return PV_SUCCESS;
-}  // TransposeConn::initialize_base()
+} // TransposeConn::initialize_base()
 
-int TransposeConn::initialize(const char * name, HyPerCol * hc) {
+int TransposeConn::initialize(const char *name, HyPerCol *hc) {
    int status = PV_SUCCESS;
-   if (status == PV_SUCCESS) status = HyPerConn::initialize(name, hc, NULL, NULL);
+   if (status == PV_SUCCESS)
+      status = HyPerConn::initialize(name, hc, NULL, NULL);
    return status;
 }
 
@@ -71,14 +71,14 @@ int TransposeConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 
 void TransposeConn::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
    // During the communication phase, numAxonalArbors will be copied from originalConn
-   if (ioFlag==PARAMS_IO_READ) {
+   if (ioFlag == PARAMS_IO_READ) {
       parent->parameters()->handleUnnecessaryStringParameter(name, "sharedWeights");
    }
 }
 
 void TransposeConn::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
    // TransposeConn doesn't use a weight initializer
-   if (ioFlag==PARAMS_IO_READ) {
+   if (ioFlag == PARAMS_IO_READ) {
       parent->parameters()->handleUnnecessaryStringParameter(name, "weightInitType", NULL);
    }
 }
@@ -88,20 +88,20 @@ void TransposeConn::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFla
       initializeFromCheckpointFlag = false;
       parent->parameters()->handleUnnecessaryParameter(name, "initializeFromCheckpointFlag");
    }
-   // During the setInitialValues phase, the conn will be computed from the original conn, so initializeFromCheckpointFlag is not needed.
+   // During the setInitialValues phase, the conn will be computed from the original conn, so
+   // initializeFromCheckpointFlag is not needed.
 }
 
-void TransposeConn::ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) {
-}
+void TransposeConn::ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) {}
 
 void TransposeConn::ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) {
    // During the communication phase, plasticityFlag will be copied from originalConn
 }
 
 void TransposeConn::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
-   if (ioFlag==PARAMS_IO_READ) {
+   if (ioFlag == PARAMS_IO_READ) {
       // make sure that TransposePoolingConn always checks if its originalConn has updated
-      triggerFlag = false;
+      triggerFlag      = false;
       triggerLayerName = NULL;
       parent->parameters()->handleUnnecessaryParameter(name, "triggerFlag", triggerFlag);
       parent->parameters()->handleUnnecessaryStringParameter(name, "triggerLayerName", NULL);
@@ -109,9 +109,10 @@ void TransposeConn::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
 }
 
 void TransposeConn::ioParam_combine_dW_with_W_flag(enum ParamsIOFlag ioFlag) {
-   if (ioFlag==PARAMS_IO_READ) {
+   if (ioFlag == PARAMS_IO_READ) {
       combine_dW_with_W_flag = false;
-      parent->parameters()->handleUnnecessaryParameter(name, "combine_dW_with_W_flag", combine_dW_with_W_flag);
+      parent->parameters()->handleUnnecessaryParameter(
+            name, "combine_dW_with_W_flag", combine_dW_with_W_flag);
    }
 }
 
@@ -137,14 +138,16 @@ void TransposeConn::ioParam_dWMax(enum ParamsIOFlag ioFlag) {
 void TransposeConn::ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       keepKernelsSynchronized_flag = false;
-      parent->parameters()->handleUnnecessaryParameter(name, "keepKernelsSynchronized", keepKernelsSynchronized_flag);
+      parent->parameters()->handleUnnecessaryParameter(
+            name, "keepKernelsSynchronized", keepKernelsSynchronized_flag);
    }
 }
 
 void TransposeConn::ioParam_weightUpdatePeriod(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       weightUpdatePeriod = parent->getDeltaTime();
-      // Every timestep needUpdate checks originalConn's lastUpdateTime against transpose's lastUpdateTime, so weightUpdatePeriod and initialWeightUpdateTime aren't needed
+      // Every timestep needUpdate checks originalConn's lastUpdateTime against transpose's
+      // lastUpdateTime, so weightUpdatePeriod and initialWeightUpdateTime aren't needed
       parent->parameters()->handleUnnecessaryParameter(name, "weightUpdatePeriod");
    }
 }
@@ -152,8 +155,10 @@ void TransposeConn::ioParam_weightUpdatePeriod(enum ParamsIOFlag ioFlag) {
 void TransposeConn::ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       initialWeightUpdateTime = parent->getStartTime();
-      // Every timestep needUpdate checks originalConn's lastUpdateTime against transpose's lastUpdateTime, so weightUpdatePeriod and initialWeightUpdateTime aren't needed
-      parent->parameters()->handleUnnecessaryParameter(name, "initialWeightUpdateTime", initialWeightUpdateTime);
+      // Every timestep needUpdate checks originalConn's lastUpdateTime against transpose's
+      // lastUpdateTime, so weightUpdatePeriod and initialWeightUpdateTime aren't needed
+      parent->parameters()->handleUnnecessaryParameter(
+            name, "initialWeightUpdateTime", initialWeightUpdateTime);
       weightUpdateTime = initialWeightUpdateTime;
    }
 }
@@ -167,7 +172,7 @@ void TransposeConn::ioParam_shrinkPatches(enum ParamsIOFlag ioFlag) {
 
 void TransposeConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
-      normalizer = NULL;
+      normalizer      = NULL;
       normalizeMethod = strdup("none");
       parent->parameters()->handleUnnecessaryStringParameter(name, "normalizeMethod", "none");
    }
@@ -178,27 +183,38 @@ void TransposeConn::ioParam_originalConnName(enum ParamsIOFlag ioFlag) {
 }
 
 int TransposeConn::communicateInitInfo() {
-   int status = PV_SUCCESS;
-   BaseConnection * originalConnBase = parent->getConnFromName(this->originalConnName);
-   if (originalConnBase==NULL) {
-      if (parent->columnId()==0) {
-         pvErrorNoExit().printf("%s: originalConnName \"%s\" does not refer to any connection in the column.\n", getDescription_c(), this->originalConnName);
+   int status                       = PV_SUCCESS;
+   BaseConnection *originalConnBase = parent->getConnFromName(this->originalConnName);
+   if (originalConnBase == NULL) {
+      if (parent->columnId() == 0) {
+         pvErrorNoExit().printf(
+               "%s: originalConnName \"%s\" does not refer to any connection in the column.\n",
+               getDescription_c(),
+               this->originalConnName);
       }
       MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    this->originalConn = dynamic_cast<HyPerConn *>(originalConnBase);
    if (originalConn == NULL) {
-      if (parent->columnId()==0) {
-         pvErrorNoExit().printf("%s: originalConnName \"%s\" is not an existing connection.\n", getDescription_c(), originalConnName);
+      if (parent->columnId() == 0) {
+         pvErrorNoExit().printf(
+               "%s: originalConnName \"%s\" is not an existing connection.\n",
+               getDescription_c(),
+               originalConnName);
          status = PV_FAILURE;
       }
    }
-   if (status != PV_SUCCESS) return status;
+   if (status != PV_SUCCESS)
+      return status;
 
    if (!originalConn->getInitInfoCommunicatedFlag()) {
-      if (parent->columnId()==0) {
-         pvInfo().printf("%s must wait until original connection \"%s\" has finished its communicateInitInfo stage.\n", getDescription_c(), originalConn->getName());
+      if (parent->columnId() == 0) {
+         pvInfo().printf(
+               "%s must wait until original connection \"%s\" has finished its communicateInitInfo "
+               "stage.\n",
+               getDescription_c(),
+               originalConn->getName());
       }
       return PV_POSTPONE;
    }
@@ -209,35 +225,62 @@ int TransposeConn::communicateInitInfo() {
    numAxonalArborLists = originalConn->numberOfAxonalArborLists();
    parent->parameters()->handleUnnecessaryParameter(name, "numAxonalArbors", numAxonalArborLists);
 
-   if(originalConn->getShrinkPatches_flag()) {
-      if (parent->columnId()==0) {
-         pvErrorNoExit().printf("TransposeConn \"%s\": original conn \"%s\" has shrinkPatches set to true.  TransposeConn has not been implemented for that case.\n", name, originalConn->getName());
+   if (originalConn->getShrinkPatches_flag()) {
+      if (parent->columnId() == 0) {
+         pvErrorNoExit().printf(
+               "TransposeConn \"%s\": original conn \"%s\" has shrinkPatches set to true.  "
+               "TransposeConn has not been implemented for that case.\n",
+               name,
+               originalConn->getName());
       }
       MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
 
    status = HyPerConn::communicateInitInfo(); // calls setPatchSize()
-   if (status != PV_SUCCESS) return status;
+   if (status != PV_SUCCESS)
+      return status;
 
-   const PVLayerLoc * preLoc = pre->getLayerLoc();
-   const PVLayerLoc * origPostLoc = originalConn->postSynapticLayer()->getLayerLoc();
-   if (preLoc->nx != origPostLoc->nx || preLoc->ny != origPostLoc->ny || preLoc->nf != origPostLoc->nf) {
-      if (parent->columnId()==0) {
+   const PVLayerLoc *preLoc      = pre->getLayerLoc();
+   const PVLayerLoc *origPostLoc = originalConn->postSynapticLayer()->getLayerLoc();
+   if (preLoc->nx != origPostLoc->nx || preLoc->ny != origPostLoc->ny
+       || preLoc->nf != origPostLoc->nf) {
+      if (parent->columnId() == 0) {
          pvErrorNoExit(errorMessage);
-         errorMessage.printf("%s: transpose's pre layer and original connection's post layer must have the same dimensions.\n", getDescription_c());
-         errorMessage.printf("    (x=%d, y=%d, f=%d) versus (x=%d, y=%d, f=%d).\n", preLoc->nx, preLoc->ny, preLoc->nf, origPostLoc->nx, origPostLoc->ny, origPostLoc->nf);
+         errorMessage.printf(
+               "%s: transpose's pre layer and original connection's post layer must have the same "
+               "dimensions.\n",
+               getDescription_c());
+         errorMessage.printf(
+               "    (x=%d, y=%d, f=%d) versus (x=%d, y=%d, f=%d).\n",
+               preLoc->nx,
+               preLoc->ny,
+               preLoc->nf,
+               origPostLoc->nx,
+               origPostLoc->ny,
+               origPostLoc->nf);
       }
       MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
-   const PVLayerLoc * postLoc = pre->getLayerLoc();
-   const PVLayerLoc * origPreLoc = originalConn->postSynapticLayer()->getLayerLoc();
-   if (postLoc->nx != origPreLoc->nx || postLoc->ny != origPreLoc->ny || postLoc->nf != origPreLoc->nf) {
-      if (parent->columnId()==0) {
+   const PVLayerLoc *postLoc    = pre->getLayerLoc();
+   const PVLayerLoc *origPreLoc = originalConn->postSynapticLayer()->getLayerLoc();
+   if (postLoc->nx != origPreLoc->nx || postLoc->ny != origPreLoc->ny
+       || postLoc->nf != origPreLoc->nf) {
+      if (parent->columnId() == 0) {
          pvErrorNoExit(errorMessage);
-         errorMessage.printf("%s: transpose's post layer and original connection's pre layer must have the same dimensions.\n", getDescription_c());
-         errorMessage.printf("    (x=%d, y=%d, f=%d) versus (x=%d, y=%d, f=%d).\n", postLoc->nx, postLoc->ny, postLoc->nf, origPreLoc->nx, origPreLoc->ny, origPreLoc->nf);
+         errorMessage.printf(
+               "%s: transpose's post layer and original connection's pre layer must have the same "
+               "dimensions.\n",
+               getDescription_c());
+         errorMessage.printf(
+               "    (x=%d, y=%d, f=%d) versus (x=%d, y=%d, f=%d).\n",
+               postLoc->nx,
+               postLoc->ny,
+               postLoc->nf,
+               origPreLoc->nx,
+               origPreLoc->ny,
+               origPreLoc->nf);
       }
       MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -246,22 +289,20 @@ int TransposeConn::communicateInitInfo() {
    originalConn->setNeedPost(true);
 
 #ifdef PV_USE_CUDA
-   if((updateGSynFromPostPerspective && receiveGpu) || allocPostDeviceWeights){
+   if ((updateGSynFromPostPerspective && receiveGpu) || allocPostDeviceWeights) {
       originalConn->setAllocDeviceWeights();
    }
-   if((!updateGSynFromPostPerspective && receiveGpu) || allocDeviceWeights){
+   if ((!updateGSynFromPostPerspective && receiveGpu) || allocDeviceWeights) {
       originalConn->setAllocPostDeviceWeights();
    }
 #endif
-   
 
-   //Synchronize margines of this post and orig pre, and vice versa
+   // Synchronize margines of this post and orig pre, and vice versa
    originalConn->preSynapticLayer()->synchronizeMarginWidth(post);
    post->synchronizeMarginWidth(originalConn->preSynapticLayer());
 
    originalConn->postSynapticLayer()->synchronizeMarginWidth(pre);
    pre->synchronizeMarginWidth(originalConn->postSynapticLayer());
-
 
    return status;
 }
@@ -276,29 +317,28 @@ int TransposeConn::setPatchSize() {
    assert(originalConn);
 
    int xscaleDiff = pre->getXScale() - post->getXScale();
-   int nxp_orig = originalConn->xPatchSize();
-   int nyp_orig = originalConn->yPatchSize();
-   nxp = nxp_orig;
-   if(xscaleDiff > 0 ) {
-      nxp *= (int) pow( 2, xscaleDiff );
-   }
-   else if(xscaleDiff < 0) {
-      nxp /= (int) pow(2,-xscaleDiff);
-      assert(nxp_orig==nxp*pow( 2, (float) (-xscaleDiff) ));
+   int nxp_orig   = originalConn->xPatchSize();
+   int nyp_orig   = originalConn->yPatchSize();
+   nxp            = nxp_orig;
+   if (xscaleDiff > 0) {
+      nxp *= (int)pow(2, xscaleDiff);
+   } else if (xscaleDiff < 0) {
+      nxp /= (int)pow(2, -xscaleDiff);
+      assert(nxp_orig == nxp * pow(2, (float)(-xscaleDiff)));
    }
 
    int yscaleDiff = pre->getYScale() - post->getYScale();
-   nyp = nyp_orig;
-   if(yscaleDiff > 0 ) {
-      nyp *= (int) pow( 2, yscaleDiff );
-   }
-   else if(yscaleDiff < 0) {
-      nyp /= (int) pow(2,-yscaleDiff);
-      assert(nyp_orig==nyp*pow( 2, (float) (-yscaleDiff) ));
+   nyp            = nyp_orig;
+   if (yscaleDiff > 0) {
+      nyp *= (int)pow(2, yscaleDiff);
+   } else if (yscaleDiff < 0) {
+      nyp /= (int)pow(2, -yscaleDiff);
+      assert(nyp_orig == nyp * pow(2, (float)(-yscaleDiff)));
    }
 
    nfp = post->getLayerLoc()->nf;
-   // post->getLayerLoc()->nf must be the same as originalConn->preSynapticLayer()->getLayerLoc()->nf.
+   // post->getLayerLoc()->nf must be the same as
+   // originalConn->preSynapticLayer()->getLayerLoc()->nf.
    // This requirement is checked in communicateInitInfo
 
    parent->parameters()->handleUnnecessaryParameter(name, "nxp", nxp);
@@ -308,17 +348,13 @@ int TransposeConn::setPatchSize() {
 }
 
 #ifdef PV_USE_CUDA
-//Device buffers live in origConn
-int TransposeConn::allocateDeviceWeights(){
-   return PV_SUCCESS;
-}
-int TransposeConn::allocatePostDeviceWeights(){
-   return PV_SUCCESS;
-}
+// Device buffers live in origConn
+int TransposeConn::allocateDeviceWeights() { return PV_SUCCESS; }
+int TransposeConn::allocatePostDeviceWeights() { return PV_SUCCESS; }
 #endif
 
-//Set this post to orig
-int TransposeConn::allocatePostConn(){
+// Set this post to orig
+int TransposeConn::allocatePostConn() {
    pvInfo() << "Connection " << name << " setting " << originalConn->getName() << " as postConn\n";
    postConn = originalConn;
    return PV_SUCCESS;
@@ -326,27 +362,33 @@ int TransposeConn::allocatePostConn(){
 
 int TransposeConn::allocateDataStructures() {
    if (!originalConn->getDataStructuresAllocatedFlag()) {
-      if (parent->columnId()==0) {
-         pvInfo().printf("%s must wait until original connection \"%s\" has finished its allocateDataStructures stage.\n", getDescription_c(), originalConn->getName());
+      if (parent->columnId() == 0) {
+         pvInfo().printf(
+               "%s must wait until original connection \"%s\" has finished its "
+               "allocateDataStructures stage.\n",
+               getDescription_c(),
+               originalConn->getName());
       }
       return PV_POSTPONE;
    }
 
    int status = HyPerConn::allocateDataStructures();
-   if (status != PV_SUCCESS) { return status; }
+   if (status != PV_SUCCESS) {
+      return status;
+   }
 
    normalizer = NULL;
-   
+
    return status;
 }
 
-int TransposeConn::constructWeights(){
+int TransposeConn::constructWeights() {
    setPatchStrides();
-   wPatches = this->originalConn->postConn->get_wPatches();
-   wDataStart = this->originalConn->postConn->get_wDataStart();
+   wPatches       = this->originalConn->postConn->get_wPatches();
+   wDataStart     = this->originalConn->postConn->get_wDataStart();
    gSynPatchStart = this->originalConn->postConn->getGSynPatchStart();
-   aPostOffset = this->originalConn->postConn->getAPostOffset();
-   dwDataStart = this->originalConn->postConn->get_dwDataStart();
+   aPostOffset    = this->originalConn->postConn->getAPostOffset();
+   dwDataStart    = this->originalConn->postConn->get_dwDataStart();
    return PV_SUCCESS;
 }
 
@@ -354,11 +396,11 @@ int TransposeConn::deleteWeights() {
    // Have to make sure not to free memory belonging to originalConn.
    // Set pointers that point into originalConn to NULL so that free() has no effect
    // when HyPerConn::deleteWeights or HyPerConn::deleteWeights is called
-	   wPatches = NULL;
-	   wDataStart = NULL;
-	   gSynPatchStart = NULL;
-	   aPostOffset = NULL;
-	   dwDataStart = NULL;
+   wPatches       = NULL;
+   wDataStart     = NULL;
+   gSynPatchStart = NULL;
+   aPostOffset    = NULL;
+   dwDataStart    = NULL;
    return 0;
 }
 
@@ -366,21 +408,19 @@ int TransposeConn::setInitialValues() {
    int status = PV_SUCCESS;
    if (originalConn->getInitialValuesSetFlag()) {
       status = HyPerConn::setInitialValues(); // calls initializeWeights
-   }
-   else {
+   } else {
       status = PV_POSTPONE;
    }
    return status;
 }
 
-PVPatch*** TransposeConn::initializeWeights(PVPatch*** patches, pvwdata_t** dataStart) {
-   // TransposeConn must wait until after originalConn has been normalized, so weight initialization doesn't take place until HyPerCol::run calls finalizeUpdate
+PVPatch ***TransposeConn::initializeWeights(PVPatch ***patches, pvwdata_t **dataStart) {
+   // TransposeConn must wait until after originalConn has been normalized, so weight initialization
+   // doesn't take place until HyPerCol::run calls finalizeUpdate
    return patches;
 }
 
-bool TransposeConn::needUpdate(double timed, double dt) {
-   return false;
-}
+bool TransposeConn::needUpdate(double timed, double dt) { return false; }
 
 int TransposeConn::updateState(double time, double dt) {
    lastTimeUpdateCalled = time;
@@ -388,11 +428,12 @@ int TransposeConn::updateState(double time, double dt) {
 }
 
 double TransposeConn::computeNewWeightUpdateTime(double time, double currentUpdateTime) {
-   return weightUpdateTime; // TransposeConn does not use weightUpdateTime to determine when to update
+   return weightUpdateTime; // TransposeConn does not use weightUpdateTime to determine when to
+                            // update
 }
 
-int TransposeConn::finalizeUpdate(double timed, double dt){
-   //Orig conn is in charge of calling finalizeUpdate for postConn.
+int TransposeConn::finalizeUpdate(double timed, double dt) {
+   // Orig conn is in charge of calling finalizeUpdate for postConn.
    return PV_SUCCESS;
 }
 

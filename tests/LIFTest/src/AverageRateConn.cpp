@@ -9,23 +9,18 @@
 
 namespace PV {
 
-AverageRateConn::AverageRateConn() {
-   initialize_base();
-}
+AverageRateConn::AverageRateConn() { initialize_base(); }
 
-AverageRateConn::AverageRateConn(const char * name, HyPerCol * hc) {
+AverageRateConn::AverageRateConn(const char *name, HyPerCol *hc) {
    initialize_base();
    initialize(name, hc);
 }
 
-AverageRateConn::~AverageRateConn() {
-}
+AverageRateConn::~AverageRateConn() {}
 
-int AverageRateConn::initialize_base() {
-   return PV_SUCCESS;
-}
+int AverageRateConn::initialize_base() { return PV_SUCCESS; }
 
-int AverageRateConn::initialize(const char * name, HyPerCol * hc) {
+int AverageRateConn::initialize(const char *name, HyPerCol *hc) {
    int status = IdentConn::initialize(name, hc);
    return status;
 }
@@ -43,14 +38,14 @@ void AverageRateConn::ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) {
 }
 
 int AverageRateConn::updateState(double timed, double dt) {
-   float t = timed <= dt ? dt : timed; // Avoid dividing by zero.
-   float w = 1/t;
+   float t   = timed <= dt ? dt : timed; // Avoid dividing by zero.
+   float w   = 1 / t;
    int arbor = 0; // Assumes one axonal arbor.
-   pvErrorIf(!(nfp==getNumDataPatches()), "Test failed.\n");
-   pvErrorIf(!(nxp==1 && nyp==1), "Test failed.\n");
+   pvErrorIf(!(nfp == getNumDataPatches()), "Test failed.\n");
+   pvErrorIf(!(nxp == 1 && nyp == 1), "Test failed.\n");
    for (int k = 0; k < getNumDataPatches(); k++) {
-      pvwdata_t * p = get_wDataHead(arbor, k);
-      //TODO-CER-2014.4.4 - weight conversion
+      pvwdata_t *p = get_wDataHead(arbor, k);
+      // TODO-CER-2014.4.4 - weight conversion
       p[k] = w;
    }
    return PV_SUCCESS;

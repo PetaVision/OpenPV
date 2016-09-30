@@ -5,54 +5,51 @@
  *
  */
 
-#include "HyPerLayer.hpp"
 #include "Retina.hpp"
-#include "io/io.hpp"
+#include "HyPerLayer.hpp"
 #include "include/default_params.h"
+#include "io/io.hpp"
 #include "utils/cl_random.h"
 
 #include <assert.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
 
+void Retina_spiking_update_state(
+      const int nbatch,
+      const int numNeurons,
+      const double timed,
+      const double dt,
+      const int nx,
+      const int ny,
+      const int nf,
+      const int lt,
+      const int rt,
+      const int dn,
+      const int up,
+      Retina_params *params,
+      taus_uint4 *rnd,
+      float *GSynHead,
+      float *activity,
+      float *prevTime);
 
-void Retina_spiking_update_state (
-    const int nbatch,
-    const int numNeurons,
-    const double timed,
-    const double dt,
-    const int nx,
-    const int ny,
-    const int nf,
-    const int lt,
-    const int rt,
-    const int dn,
-    const int up,
-    Retina_params * params,
-    taus_uint4 * rnd,
-    float * GSynHead,
-    float * activity,
-    float * prevTime);
-
-void Retina_nonspiking_update_state (
-    const int nbatch,
-    const int numNeurons,
-    const double timed,
-    const double dt,
-    const int nx,
-    const int ny,
-    const int nf,
-    const int lt,
-    const int rt,
-    const int dn,
-    const int up,
-    Retina_params * params,
-    float * GSynHead,
-    float * activity);
-
-
+void Retina_nonspiking_update_state(
+      const int nbatch,
+      const int numNeurons,
+      const double timed,
+      const double dt,
+      const int nx,
+      const int ny,
+      const int nf,
+      const int lt,
+      const int rt,
+      const int dn,
+      const int up,
+      Retina_params *params,
+      float *GSynHead,
+      float *activity);
 
 namespace PV {
 
@@ -66,32 +63,29 @@ Retina::Retina() {
    // as expected.
 }
 
-Retina::Retina(const char * name, HyPerCol * hc) {
+Retina::Retina(const char *name, HyPerCol *hc) {
    initialize_base();
    initialize(name, hc);
 }
 
-Retina::~Retina()
-{
-   delete randState;
-}
+Retina::~Retina() { delete randState; }
 
 int Retina::initialize_base() {
-   numChannels = NUM_RETINA_CHANNELS;
-   randState = NULL;
-   spikingFlag = true;
+   numChannels                   = NUM_RETINA_CHANNELS;
+   randState                     = NULL;
+   spikingFlag                   = true;
    rParams.abs_refractory_period = 0.0f;
-   rParams.refractory_period = 0.0f;
-   rParams.beginStim = 0.0f;
-   rParams.endStim = -1.0;
-   rParams.burstDuration = 1000.0;
-   rParams.burstFreq = 1.0f;
-   rParams.probBase = 0.0f;
-   rParams.probStim = 1.0f;
+   rParams.refractory_period     = 0.0f;
+   rParams.beginStim             = 0.0f;
+   rParams.endStim               = -1.0;
+   rParams.burstDuration         = 1000.0;
+   rParams.burstFreq             = 1.0f;
+   rParams.probBase              = 0.0f;
+   rParams.probStim              = 1.0f;
    return PV_SUCCESS;
 }
 
-int Retina::initialize(const char * name, HyPerCol * hc) {
+int Retina::initialize(const char *name, HyPerCol *hc) {
    int status = HyPerLayer::initialize(name, hc);
 
    setRetinaParams(parent->parameters());
@@ -101,7 +95,7 @@ int Retina::initialize(const char * name, HyPerCol * hc) {
 
 int Retina::communicateInitInfo() {
    int status = HyPerLayer::communicateInitInfo();
-   if(parent->getNBatch() != 1){
+   if (parent->getNBatch() != 1) {
       pvError() << "Retina does not support batches yet, TODO\n";
    }
    return status;
@@ -113,8 +107,8 @@ int Retina::allocateDataStructures() {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "spikingFlag"));
    if (spikingFlag) {
       // // a random state variable is needed for every neuron/clthread
-      const PVLayerLoc * loc = getLayerLoc();
-      //Allocate extended loc
+      const PVLayerLoc *loc = getLayerLoc();
+      // Allocate extended loc
       randState = new Random(loc, true);
    }
 
@@ -160,11 +154,11 @@ void Retina::ioParam_spikingFlag(enum ParamsIOFlag ioFlag) {
 }
 
 void Retina::ioParam_foregroundRate(enum ParamsIOFlag ioFlag) {
-   PVParams * params = parent->parameters();
-   if (ioFlag==PARAMS_IO_READ && !params->present(name, "foregroundRate")) {
+   PVParams *params = parent->parameters();
+   if (ioFlag == PARAMS_IO_READ && !params->present(name, "foregroundRate")) {
       if (params->present(name, "noiseOnFreq")) {
          probStimParam = params->value(name, "noiseOnFreq");
-         if (parent->columnId()==0) {
+         if (parent->columnId() == 0) {
             pvError().printf("noiseOnFreq is obsolete.  Use foregroundRate instead.\n");
          }
          MPI_Barrier(parent->getCommunicator()->communicator());
@@ -172,7 +166,7 @@ void Retina::ioParam_foregroundRate(enum ParamsIOFlag ioFlag) {
       }
       if (params->present(name, "poissonEdgeProb")) {
          probStimParam = params->value(name, "poissonEdgeProb");
-         if (parent->columnId()==0) {
+         if (parent->columnId() == 0) {
             pvError().printf("poissonEdgeProb is deprecated.  Use foregroundRate instead.\n");
          }
          MPI_Barrier(parent->getCommunicator()->communicator());
@@ -180,16 +174,17 @@ void Retina::ioParam_foregroundRate(enum ParamsIOFlag ioFlag) {
       }
    }
    // noiseOnFreq and poissonEdgeProb were deprecated Jan 24, 2013 and marked obsolete Jun 27, 2016.
-   // After a reasonable fade time, remove the above if-statement and keep the ioParamValue call below.
+   // After a reasonable fade time, remove the above if-statement and keep the ioParamValue call
+   // below.
    parent->parameters()->ioParamValue(ioFlag, name, "foregroundRate", &probStimParam, 1.0f);
 }
 
 void Retina::ioParam_backgroundRate(enum ParamsIOFlag ioFlag) {
-   PVParams * params = parent->parameters();
-   if (ioFlag==PARAMS_IO_READ && !params->present(name, "backgroundRate")) {
+   PVParams *params = parent->parameters();
+   if (ioFlag == PARAMS_IO_READ && !params->present(name, "backgroundRate")) {
       if (params->present(name, "noiseOffFreq")) {
          probBaseParam = params->value(name, "noiseOffFreq");
-         if (parent->columnId()==0) {
+         if (parent->columnId() == 0) {
             pvWarn().printf("noiseOffFreq is deprecated.  Use backgroundRate instead.\n");
          }
          MPI_Barrier(parent->getCommunicator()->communicator());
@@ -197,22 +192,24 @@ void Retina::ioParam_backgroundRate(enum ParamsIOFlag ioFlag) {
       }
       if (params->present(name, "poissonBlankProb")) {
          probBaseParam = params->value(name, "poissonBlankProb");
-         if (parent->columnId()==0) {
+         if (parent->columnId() == 0) {
             pvWarn().printf("poissonEdgeProb is deprecated.  Use backgroundRate instead.\n");
          }
          MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
    }
-   // noiseOffFreq and poissonBlankProb was deprecated Jan 24, 2013 and marked obsolete Jun 27, 2016.
-   // After a reasonable fade time, remove the above if-statement and keep the ioParamValue call below
+   // noiseOffFreq and poissonBlankProb was deprecated Jan 24, 2013 and marked obsolete Jun 27,
+   // 2016.
+   // After a reasonable fade time, remove the above if-statement and keep the ioParamValue call
+   // below
    // and the sanity check following it.
    parent->parameters()->ioParamValue(ioFlag, name, "backgroundRate", &probBaseParam, 0.0f);
-   if (ioFlag==PARAMS_IO_READ) {
+   if (ioFlag == PARAMS_IO_READ) {
       assert(!parent->parameters()->presentAndNotBeenRead(name, "foregroundRate"));
       if (probBaseParam > probStimParam) {
-         pvError().printf("%s: backgroundRate cannot be greater than foregroundRate.\n",
-               getDescription_c());
+         pvError().printf(
+               "%s: backgroundRate cannot be greater than foregroundRate.\n", getDescription_c());
          exit(EXIT_FAILURE);
       }
    }
@@ -223,8 +220,9 @@ void Retina::ioParam_beginStim(enum ParamsIOFlag ioFlag) {
 }
 
 void Retina::ioParam_endStim(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "endStim", &rParams.endStim, (double) FLT_MAX);
-   if (ioFlag == PARAMS_IO_READ && rParams.endStim < 0) rParams.endStim = FLT_MAX;
+   parent->parameters()->ioParamValue(ioFlag, name, "endStim", &rParams.endStim, (double)FLT_MAX);
+   if (ioFlag == PARAMS_IO_READ && rParams.endStim < 0)
+      rParams.endStim = FLT_MAX;
 }
 
 void Retina::ioParam_burstFreq(enum ParamsIOFlag ioFlag) {
@@ -232,29 +230,34 @@ void Retina::ioParam_burstFreq(enum ParamsIOFlag ioFlag) {
 }
 
 void Retina::ioParam_burstDuration(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "burstDuration", &rParams.burstDuration, 1000.0f);
+   parent->parameters()->ioParamValue(
+         ioFlag, name, "burstDuration", &rParams.burstDuration, 1000.0f);
 }
 
 void Retina::ioParam_refractoryPeriod(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "spikingFlag"));
-   if (spikingFlag){
-      parent->parameters()->ioParamValue(ioFlag, name, "refractoryPeriod", &rParams.refractory_period, (float) REFRACTORY_PERIOD);
+   if (spikingFlag) {
+      parent->parameters()->ioParamValue(
+            ioFlag, name, "refractoryPeriod", &rParams.refractory_period, (float)REFRACTORY_PERIOD);
    }
 }
 
 void Retina::ioParam_absRefractoryPeriod(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "spikingFlag"));
-   if (spikingFlag){
-      parent->parameters()->ioParamValue(ioFlag, name, "absRefractoryPeriod", &rParams.abs_refractory_period, (float) ABS_REFRACTORY_PERIOD);
+   if (spikingFlag) {
+      parent->parameters()->ioParamValue(
+            ioFlag,
+            name,
+            "absRefractoryPeriod",
+            &rParams.abs_refractory_period,
+            (float)ABS_REFRACTORY_PERIOD);
    }
 }
 
-
-int Retina::setRetinaParams(PVParams * p)
-{
+int Retina::setRetinaParams(PVParams *p) {
    clayer->params = &rParams;
 
-   float dt_sec = (float)parent->getDeltaTime() * 0.001f;  // seconds
+   float dt_sec   = (float)parent->getDeltaTime() * 0.001f; // seconds
    float probStim = probStimParam * dt_sec;
    if (probStim > 1.0f) {
       probStim = 1.0f;
@@ -263,53 +266,68 @@ int Retina::setRetinaParams(PVParams * p)
    if (probBase > 1.0f) {
       probBase = 1.0f;
    }
-   maxRate = probStim/dt_sec;
+   maxRate = probStim / dt_sec;
 
    // default parameters
    //
-   rParams.probStim  = probStim;
-   rParams.probBase  = probBase;
+   rParams.probStim = probStim;
+   rParams.probBase = probBase;
 
    return 0;
 }
 
-
-int Retina::readStateFromCheckpoint(const char * cpDir, double * timeptr) {
-   int status = HyPerLayer::readStateFromCheckpoint(cpDir, timeptr);
+int Retina::readStateFromCheckpoint(const char *cpDir, double *timeptr) {
+   int status      = HyPerLayer::readStateFromCheckpoint(cpDir, timeptr);
    double filetime = 0.0;
-   status = readRandStateFromCheckpoint(cpDir);
+   status          = readRandStateFromCheckpoint(cpDir);
    return status;
 }
 
-int Retina::readRandStateFromCheckpoint(const char * cpDir) {
+int Retina::readRandStateFromCheckpoint(const char *cpDir) {
    int status = PV_SUCCESS;
    if (spikingFlag) {
-      char * filename = parent->pathInCheckpoint(cpDir, getName(), "_rand_state.bin");
-      status = readRandState(filename, parent->getCommunicator(), randState->getRNG(0), getLayerLoc(), true /*isExtended*/);
+      char *filename = parent->pathInCheckpoint(cpDir, getName(), "_rand_state.bin");
+      status         = readRandState(
+            filename,
+            parent->getCommunicator(),
+            randState->getRNG(0),
+            getLayerLoc(),
+            true /*isExtended*/);
       free(filename);
    }
    return status;
 }
 
-int Retina::checkpointWrite(const char * cpDir) {
+int Retina::checkpointWrite(const char *cpDir) {
    int status = HyPerLayer::checkpointWrite(cpDir);
 
    // Save rand_state
    char filename[PV_PATH_MAX];
    int chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_rand_state.bin", cpDir, name);
-   if(chars_needed >= PV_PATH_MAX) {
-      if (parent->getCommunicator()->commRank()==0) {
-         pvErrorNoExit().printf("HyPerLayer::checkpointWrite for %s:  base pathname \"%s/%s_rand_state.bin\" too long.\n", getDescription_c(), cpDir, name);
+   if (chars_needed >= PV_PATH_MAX) {
+      if (parent->getCommunicator()->commRank() == 0) {
+         pvErrorNoExit().printf(
+               "HyPerLayer::checkpointWrite for %s:  base pathname \"%s/%s_rand_state.bin\" too "
+               "long.\n",
+               getDescription_c(),
+               cpDir,
+               name);
       }
       abort();
    }
    if (spikingFlag) {
-      int rand_state_status = writeRandState(filename, parent->getCommunicator(), randState->getRNG(0), getLayerLoc(), true /*isExtended*/, parent->getVerifyWrites());
-      if (rand_state_status != PV_SUCCESS) status = rand_state_status;
+      int rand_state_status = writeRandState(
+            filename,
+            parent->getCommunicator(),
+            randState->getRNG(0),
+            getLayerLoc(),
+            true /*isExtended*/,
+            parent->getVerifyWrites());
+      if (rand_state_status != PV_SUCCESS)
+         status = rand_state_status;
    }
    return status;
 }
-
 
 //! Updates the state of the Retina
 /*!
@@ -330,32 +348,55 @@ int Retina::checkpointWrite(const char * cpDir) {
  *
  *
  */
-int Retina::updateState(double timed, double dt)
-{
-      const int nx = clayer->loc.nx;
-      const int ny = clayer->loc.ny;
-      const int nf = clayer->loc.nf;
-      const int nbatch = clayer->loc.nbatch;
-      const PVHalo * halo = &clayer->loc.halo;
+int Retina::updateState(double timed, double dt) {
+   const int nx       = clayer->loc.nx;
+   const int ny       = clayer->loc.ny;
+   const int nf       = clayer->loc.nf;
+   const int nbatch   = clayer->loc.nbatch;
+   const PVHalo *halo = &clayer->loc.halo;
 
-      pvdata_t * GSynHead   = GSyn[0];
-      pvdata_t * activity = clayer->activity->data;
+   pvdata_t *GSynHead = GSyn[0];
+   pvdata_t *activity = clayer->activity->data;
 
-      if (spikingFlag == 1) {
-         Retina_spiking_update_state(nbatch, getNumNeurons(), timed, dt, nx, ny, nf,
-                                     halo->lt, halo->rt, halo->dn, halo->up,
-                                     &rParams, randState->getRNG(0),
-                                     GSynHead, activity, clayer->prevActivity);
-      }
-      else {
-         Retina_nonspiking_update_state(nbatch, getNumNeurons(), timed, dt, nx, ny, nf,
-                                        halo->lt, halo->rt, halo->dn, halo->up,
-                                        &rParams, GSynHead, activity);
-      }
-      
+   if (spikingFlag == 1) {
+      Retina_spiking_update_state(
+            nbatch,
+            getNumNeurons(),
+            timed,
+            dt,
+            nx,
+            ny,
+            nf,
+            halo->lt,
+            halo->rt,
+            halo->dn,
+            halo->up,
+            &rParams,
+            randState->getRNG(0),
+            GSynHead,
+            activity,
+            clayer->prevActivity);
+   } else {
+      Retina_nonspiking_update_state(
+            nbatch,
+            getNumNeurons(),
+            timed,
+            dt,
+            nx,
+            ny,
+            nf,
+            halo->lt,
+            halo->rt,
+            halo->dn,
+            halo->up,
+            &rParams,
+            GSynHead,
+            activity);
+   }
+
 #ifdef DEBUG_PRINT
    char filename[132];
-   sprintf(filename, "r_%d.tiff", (int)(2*timed));
+   sprintf(filename, "r_%d.tiff", (int)(2 * timed));
    this->writeActivity(filename, timed);
 
    pvDebug(debugRetina);
@@ -369,8 +410,7 @@ int Retina::updateState(double timed, double dt)
    return 0;
 }
 
-int Retina::outputState(double time, bool last)
-{
+int Retina::outputState(double time, bool last) {
    // HyPerLayer::outputState already has an io timer so don't duplicate
    return HyPerLayer::outputState(time, last);
 }
@@ -412,50 +452,52 @@ int Retina::outputState(double time, bool last)
  *
  */
 
-static inline
-float calcBurstStatus(double timed, Retina_params * params) {
+static inline float calcBurstStatus(double timed, Retina_params *params) {
    float burstStatus;
    if (params->burstDuration <= 0 || params->burstFreq == 0) {
-      burstStatus = cosf(2.0f * PI * (float)timed * params->burstFreq / 1000.0f );
-   }
-   else {
+      burstStatus = cosf(2.0f * PI * (float)timed * params->burstFreq / 1000.0f);
+   } else {
       burstStatus = fmodf((float)timed, 1000.0f / params->burstFreq);
       burstStatus = burstStatus < params->burstDuration;
    }
-   burstStatus *= (int) ( (timed >= params->beginStim) && (timed < params->endStim) );
+   burstStatus *= (int)((timed >= params->beginStim) && (timed < params->endStim));
    return burstStatus;
 }
 
-static inline
-int spike(float timed, float dt,
-          float prev, float stimFactor, taus_uint4 * rnd_state, float burst_status, Retina_params * params)
-{
+static inline int
+spike(float timed,
+      float dt,
+      float prev,
+      float stimFactor,
+      taus_uint4 *rnd_state,
+      float burst_status,
+      Retina_params *params) {
    float probSpike;
 
    // input parameters
    //
-   float probBase  = params->probBase;
-   float probStim  = params->probStim * stimFactor;
+   float probBase = params->probBase;
+   float probStim = params->probStim * stimFactor;
 
    // see if neuron is in a refractory period
    //
    if ((timed - prev) < params->abs_refractory_period) {
       return 0;
-   }
-   else {
-      float delta = timed - prev - params->abs_refractory_period;
-      float refract = 1.0f - expf(-delta/params->refractory_period);
-      refract = (refract < 0) ? 0 : refract;
+   } else {
+      float delta   = timed - prev - params->abs_refractory_period;
+      float refract = 1.0f - expf(-delta / params->refractory_period);
+      refract       = (refract < 0) ? 0 : refract;
       probBase *= refract;
       probStim *= refract;
    }
 
    probSpike = probBase;
 
-   probSpike += probStim * burst_status;  // negative prob is OK
-   // probSpike is spikes per millisecond; conversion to expected number of spikes in dt takes place in setRetinaParams
+   probSpike += probStim * burst_status; // negative prob is OK
+   // probSpike is spikes per millisecond; conversion to expected number of spikes in dt takes place
+   // in setRetinaParams
 
-   *rnd_state = cl_random_get(*rnd_state);
+   *rnd_state     = cl_random_get(*rnd_state);
    int spike_flag = (cl_random_prob(*rnd_state) < probSpike);
    return spike_flag;
 }
@@ -465,59 +507,64 @@ int spike(float timed, float dt,
 //
 //    assume called with 1D kernel
 //
-void Retina_spiking_update_state (
-    const int nbatch,
-    const int numNeurons,
-    const double timed,
-    const double dt,
+void Retina_spiking_update_state(
+      const int nbatch,
+      const int numNeurons,
+      const double timed,
+      const double dt,
 
-    const int nx,
-    const int ny,
-    const int nf,
-    const int lt,
-    const int rt,
-    const int dn,
-    const int up,
+      const int nx,
+      const int ny,
+      const int nf,
+      const int lt,
+      const int rt,
+      const int dn,
+      const int up,
 
-    Retina_params * params,
-    taus_uint4 * rnd,
-    float * GSynHead,
-    float * activity,
-    float * prevTime)
-{
+      Retina_params *params,
+      taus_uint4 *rnd,
+      float *GSynHead,
+      float *activity,
+      float *prevTime) {
 
-   float * phiExc = &GSynHead[CHANNEL_EXC*nbatch*numNeurons];
-   float * phiInh = &GSynHead[CHANNEL_INH*nbatch*numNeurons];
-   for(int b = 0; b < nbatch; b++){
-      taus_uint4* rndBatch = rnd + b * nx*ny*nf;
-      float* phiExcBatch = phiExc + b*nx*ny*nf;
-      float* phiInhBatch = phiInh + b*nx*ny*nf;
-      float* prevTimeBatch = prevTime + b * (nx+lt+rt)*(ny+up+dn)*nf;
-      float* activityBatch = activity + b * (nx+lt+rt)*(ny+up+dn)*nf;
+   float *phiExc = &GSynHead[CHANNEL_EXC * nbatch * numNeurons];
+   float *phiInh = &GSynHead[CHANNEL_INH * nbatch * numNeurons];
+   for (int b = 0; b < nbatch; b++) {
+      taus_uint4 *rndBatch = rnd + b * nx * ny * nf;
+      float *phiExcBatch   = phiExc + b * nx * ny * nf;
+      float *phiInhBatch   = phiInh + b * nx * ny * nf;
+      float *prevTimeBatch = prevTime + b * (nx + lt + rt) * (ny + up + dn) * nf;
+      float *activityBatch = activity + b * (nx + lt + rt) * (ny + up + dn) * nf;
       int k;
       float burst_status = calcBurstStatus(timed, params);
-      for (k = 0; k < nx*ny*nf; k++) {
+      for (k = 0; k < nx * ny * nf; k++) {
          int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
          //
          // kernel (nonheader part) begins here
          //
          // load local variables from global memory
          //
-         taus_uint4 l_rnd = rndBatch[k]; 
-         float l_phiExc = phiExcBatch[k];
-         float l_phiInh = phiInhBatch[k];
-         float l_prev   = prevTimeBatch[kex];
+         taus_uint4 l_rnd = rndBatch[k];
+         float l_phiExc   = phiExcBatch[k];
+         float l_phiInh   = phiInhBatch[k];
+         float l_prev     = prevTimeBatch[kex];
          float l_activ;
-         l_activ = (float) spike((float)timed, (float)dt, l_prev, (l_phiExc - l_phiInh), &l_rnd, burst_status, params);
-         l_prev  = (l_activ > 0.0f) ? (float)timed : l_prev;
+         l_activ = (float)spike(
+               (float)timed,
+               (float)dt,
+               l_prev,
+               (l_phiExc - l_phiInh),
+               &l_rnd,
+               burst_status,
+               params);
+         l_prev = (l_activ > 0.0f) ? (float)timed : l_prev;
          // store local variables back to global memory
          //
-         rndBatch[k] = l_rnd;
+         rndBatch[k]        = l_rnd;
          prevTimeBatch[kex] = l_prev;
          activityBatch[kex] = l_activ;
       }
    }
-
 }
 
 //
@@ -525,47 +572,46 @@ void Retina_spiking_update_state (
 //
 //    assume called with 1D kernel
 //
-void Retina_nonspiking_update_state (
-    const int nbatch,
-    const int numNeurons,
-    const double timed,
-    const double dt,
+void Retina_nonspiking_update_state(
+      const int nbatch,
+      const int numNeurons,
+      const double timed,
+      const double dt,
 
-    const int nx,
-    const int ny,
-    const int nf,
-    const int lt,
-    const int rt,
-    const int dn,
-    const int up,
+      const int nx,
+      const int ny,
+      const int nf,
+      const int lt,
+      const int rt,
+      const int dn,
+      const int up,
 
-    Retina_params * params,
-    float * GSynHead,
-    float * activity)
-{
+      Retina_params *params,
+      float *GSynHead,
+      float *activity) {
    int k;
    float burstStatus = calcBurstStatus(timed, params);
 
-   float * phiExc = &GSynHead[CHANNEL_EXC*nbatch*numNeurons];
-   float * phiInh = &GSynHead[CHANNEL_INH*nbatch*numNeurons];
+   float *phiExc = &GSynHead[CHANNEL_EXC * nbatch * numNeurons];
+   float *phiInh = &GSynHead[CHANNEL_INH * nbatch * numNeurons];
 
-   for(int b = 0; b < nbatch; b++){
-      float* phiExcBatch = phiExc + b*nx*ny*nf;
-      float* phiInhBatch = phiInh + b*nx*ny*nf;
-      float* activityBatch = activity + b * (nx+lt+rt)*(ny+up+dn)*nf;
-      for (k = 0; k < nx*ny*nf; k++) {
-            int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
+   for (int b = 0; b < nbatch; b++) {
+      float *phiExcBatch   = phiExc + b * nx * ny * nf;
+      float *phiInhBatch   = phiInh + b * nx * ny * nf;
+      float *activityBatch = activity + b * (nx + lt + rt) * (ny + up + dn) * nf;
+      for (k = 0; k < nx * ny * nf; k++) {
+         int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
          //
          // kernel (nonheader part) begins here
          //
-         
+
          // load local variables from global memory
          //
          float l_phiExc = phiExcBatch[k];
          float l_phiInh = phiInhBatch[k];
          float l_activ;
          // adding base prob should not change default behavior
-         l_activ = burstStatus * params->probStim*(l_phiExc - l_phiInh) + params->probBase;
+         l_activ = burstStatus * params->probStim * (l_phiExc - l_phiInh) + params->probBase;
          // store local variables back to global memory
          //
          activityBatch[kex] = l_activ;

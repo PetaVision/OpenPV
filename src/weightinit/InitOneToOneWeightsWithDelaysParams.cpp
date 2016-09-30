@@ -9,19 +9,16 @@
 
 namespace PV {
 
-InitOneToOneWeightsWithDelaysParams::InitOneToOneWeightsWithDelaysParams()
-{
-   initialize_base();
-}
-InitOneToOneWeightsWithDelaysParams::InitOneToOneWeightsWithDelaysParams(const char * name, HyPerCol * hc)
-                     : InitWeightsParams() {
+InitOneToOneWeightsWithDelaysParams::InitOneToOneWeightsWithDelaysParams() { initialize_base(); }
+InitOneToOneWeightsWithDelaysParams::InitOneToOneWeightsWithDelaysParams(
+      const char *name,
+      HyPerCol *hc)
+      : InitWeightsParams() {
    initialize_base();
    initialize(name, hc);
 }
 
-InitOneToOneWeightsWithDelaysParams::~InitOneToOneWeightsWithDelaysParams()
-{
-}
+InitOneToOneWeightsWithDelaysParams::~InitOneToOneWeightsWithDelaysParams() {}
 
 int InitOneToOneWeightsWithDelaysParams::initialize_base() {
 
@@ -29,7 +26,7 @@ int InitOneToOneWeightsWithDelaysParams::initialize_base() {
    return 1;
 }
 
-int InitOneToOneWeightsWithDelaysParams::initialize(const char * name, HyPerCol * hc) {
+int InitOneToOneWeightsWithDelaysParams::initialize(const char *name, HyPerCol *hc) {
    return InitWeightsParams::initialize(name, hc);
 }
 
@@ -46,6 +43,5 @@ void InitOneToOneWeightsWithDelaysParams::ioParam_weightInit(enum ParamsIOFlag i
 void InitOneToOneWeightsWithDelaysParams::calcOtherParams(int patchIndex) {
    this->getcheckdimensionsandstrides();
 }
-
 
 } /* namespace PV */

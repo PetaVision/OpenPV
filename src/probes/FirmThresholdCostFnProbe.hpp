@@ -27,19 +27,19 @@ namespace PV {
  * C(y_i) = |y_i|*(1-|y_i|/(VThresh+VWidth)/2) if |y_i|<VThresh+VWidth.
  */
 class FirmThresholdCostFnProbe : public AbstractNormProbe {
-public:
-   FirmThresholdCostFnProbe(const char * probeName, HyPerCol * hc);
+  public:
+   FirmThresholdCostFnProbe(const char *probeName, HyPerCol *hc);
    virtual ~FirmThresholdCostFnProbe();
-   
+
    virtual int communicateInitInfo();
 
-protected:
+  protected:
    FirmThresholdCostFnProbe();
-   int initFirmThresholdCostFnProbe(const char * probeName, HyPerCol * hc);
+   int initFirmThresholdCostFnProbe(const char *probeName, HyPerCol *hc);
    virtual double getValueInternal(double timevalue, int index);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
-   /** 
+   /**
     * List of parameters for the FirmThresholdCostFnProbe class
     * @name FirmThresholdCostFnProbe Parameters
     * @{
@@ -68,15 +68,15 @@ protected:
     */
    virtual int setNormDescription();
 
-private:
+  private:
    int initFirmThresholdCostFnProbe_base();
 
-// Member variables
-protected:
+   // Member variables
+  protected:
    pvpotentialdata_t VThresh;
    pvpotentialdata_t VWidth;
 }; // end class FirmThresholdCostFnProbe
 
-}  // end namespace PV
+} // end namespace PV
 
 #endif /* FIRMTHRESHOLDCOSTFNPROBE_HPP_ */

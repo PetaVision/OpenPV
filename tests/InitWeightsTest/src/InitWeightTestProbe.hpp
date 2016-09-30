@@ -12,20 +12,19 @@
 
 namespace PV {
 
-class InitWeightTestProbe: public PV::StatsProbe {
-public:
-   InitWeightTestProbe(const char * probeName, HyPerCol * hc);
+class InitWeightTestProbe : public PV::StatsProbe {
+  public:
+   InitWeightTestProbe(const char *probeName, HyPerCol *hc);
 
    virtual int outputState(double timef);
 
-protected:
-   int initInitWeightTestProbe(const char * probeName, HyPerCol * hc);
+  protected:
+   int initInitWeightTestProbe(const char *probeName, HyPerCol *hc);
    virtual void ioParam_buffer(enum ParamsIOFlag ioFlag);
 
-private:
+  private:
    int initInitWeightTestProbe_base();
 };
-
 
 } /* namespace PV */
 #endif /* ArborTestProbe_HPP_ */

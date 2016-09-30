@@ -4,6 +4,6 @@
 #include "columns/Communicator.hpp"
 #include <string>
 
-void testSeparatedName(PV::Communicator * comm);
+void testSeparatedName(PV::Communicator *comm);
 
 #endif // TESTSEPARATEDNAME_HPP_

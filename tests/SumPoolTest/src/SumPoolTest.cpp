@@ -4,19 +4,18 @@
  *
  */
 
-
-#include <columns/buildandrun.hpp>
-#include <columns/PV_Init.hpp>
-#include "SumPoolTestLayer.hpp"
-#include "SumPoolTestInputLayer.hpp"
 #include "GateSumPoolTestLayer.hpp"
+#include "SumPoolTestInputLayer.hpp"
+#include "SumPoolTestLayer.hpp"
+#include <columns/PV_Init.hpp>
+#include <columns/buildandrun.hpp>
 
 #define MAIN_USES_CUSTOMGROUPS
 
-int main(int argc, char * argv[]) {
+int main(int argc, char *argv[]) {
 
 #ifdef MAIN_USES_CUSTOMGROUPS
-   PV_Init pv_initObj(&argc, &argv, false/*do not allow unrecognized arguments*/);
+   PV_Init pv_initObj(&argc, &argv, false /*do not allow unrecognized arguments*/);
    pv_initObj.registerKeyword("SumPoolTestLayer", Factory::create<SumPoolTestLayer>);
    pv_initObj.registerKeyword("SumPoolTestInputLayer", Factory::create<SumPoolTestInputLayer>);
    pv_initObj.registerKeyword("GateSumPoolTestLayer", Factory::create<GateSumPoolTestLayer>);
@@ -25,5 +24,5 @@ int main(int argc, char * argv[]) {
    int status = buildandrun(argc, argv, NULL, NULL);
 #endif // MAIN_USES_CUSTOMGROUPS
 
-   return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
+   return status == PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }

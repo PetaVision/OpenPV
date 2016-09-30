@@ -13,30 +13,29 @@
 namespace PV {
 
 class TestImage : public HyPerLayer {
-public:
-   TestImage(const char * name, HyPerCol * hc);
+  public:
+   TestImage(const char *name, HyPerCol *hc);
    virtual int updateState(double timed, double dt);
    const pvdata_t getConstantVal() { return val; }
    virtual bool activityIsSpiking() { return false; }
    virtual ~TestImage();
 
-protected:
+  protected:
    TestImage();
-   int initialize(const char * name, HyPerCol * hc);
+   int initialize(const char *name, HyPerCol *hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual void ioParam_InitVType(enum ParamsIOFlag ioFlag);
    virtual void ioParam_constantVal(enum ParamsIOFlag ioFlag);
    virtual int allocateV();
    virtual int initializeActivity();
 
-private:
+  private:
    int initialize_base();
 
-//Member variables
-private:
+   // Member variables
+  private:
    pvdata_t val;
 };
-
 }
 
 #endif /* TESTIMAGE_HPP_ */

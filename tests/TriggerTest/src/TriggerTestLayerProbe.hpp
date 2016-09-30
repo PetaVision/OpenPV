@@ -4,18 +4,18 @@
  */
 
 #ifndef TRIGGERTESTLAYERPROBE_HPP_
-#define TRIGGERTESTLAYERPROBE_HPP_ 
+#define TRIGGERTESTLAYERPROBE_HPP_
 #include "probes/LayerProbe.hpp"
 
-namespace PV{
+namespace PV {
 
-class TriggerTestLayerProbe : public PV::LayerProbe{
-public:
-   TriggerTestLayerProbe(const char * name, HyPerCol * hc);
+class TriggerTestLayerProbe : public PV::LayerProbe {
+  public:
+   TriggerTestLayerProbe(const char *name, HyPerCol *hc);
    virtual int outputStateWrapper(double time, double dt);
    virtual int outputState(double time);
 
-protected:
+  protected:
    /**
     * @brief textOutputFlag: TriggerTestLayerProbe does not use textOutputFlag;
     * as it overrides outputStateWrapper to always create a text file.
@@ -27,13 +27,13 @@ protected:
     * investigate the value of needUpdate()
     */
    virtual bool needRecalc(double timevalue) { return true; }
-   
+
    /**
-    * Sets calcValue to the value of needUpdate(timevalue, dt), where dt is the parent HyPerCol's dt.
+    * Sets calcValue to the value of needUpdate(timevalue, dt), where dt is the parent HyPerCol's
+    * dt.
     */
    virtual int calcValues(double timevalue);
 }; // end TriggerTestLayer
 
-
-}  // end namespacePV
+} // end namespacePV
 #endif /* IMAGETESTPROBE_HPP */

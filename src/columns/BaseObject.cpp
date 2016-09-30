@@ -5,13 +5,13 @@
  *      Author: pschultz
  */
 
-#include <cstdlib>
-#include <cassert>
-#include <cstdio>
-#include <cstring>
-#include <cerrno>
 #include "BaseObject.hpp"
 #include "columns/HyPerCol.hpp"
+#include <cassert>
+#include <cerrno>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 namespace PV {
 
@@ -23,37 +23,41 @@ BaseObject::BaseObject() {
 }
 
 int BaseObject::initialize_base() {
-   name = NULL;
+   name   = NULL;
    parent = NULL;
    return PV_SUCCESS;
 }
 
-int BaseObject::initialize(const char * name, HyPerCol * hc) {
+int BaseObject::initialize(const char *name, HyPerCol *hc) {
    int status = setName(name);
-   if (status==PV_SUCCESS) { status = setParent(hc); }
-   if (status==PV_SUCCESS) { status = setDescription(); }
+   if (status == PV_SUCCESS) {
+      status = setParent(hc);
+   }
+   if (status == PV_SUCCESS) {
+      status = setDescription();
+   }
    return status;
 }
 
-char const * BaseObject::getKeyword() const {
+char const *BaseObject::getKeyword() const {
    return getParent()->parameters()->groupKeywordFromName(getName());
 }
 
-int BaseObject::setName(char const * name) {
-   pvAssert(this->name==NULL);
+int BaseObject::setName(char const *name) {
+   pvAssert(this->name == NULL);
    int status = PV_SUCCESS;
    this->name = strdup(name);
-   if (this->name==NULL) {
+   if (this->name == NULL) {
       pvErrorNoExit().printf("could not set name \"%s\": %s\n", name, strerror(errno));
       status = PV_FAILURE;
    }
    return status;
 }
 
-int BaseObject::setParent(HyPerCol * hc) {
-   pvAssert(parent==NULL);
-   HyPerCol * parentCol = dynamic_cast<HyPerCol*>(hc);
-   int status = parentCol!=NULL ? PV_SUCCESS : PV_FAILURE;
+int BaseObject::setParent(HyPerCol *hc) {
+   pvAssert(parent == NULL);
+   HyPerCol *parentCol = dynamic_cast<HyPerCol *>(hc);
+   int status          = parentCol != NULL ? PV_SUCCESS : PV_FAILURE;
    if (parentCol) {
       parent = parentCol;
    }
@@ -68,40 +72,50 @@ int BaseObject::setDescription() {
 
 int BaseObject::respond(std::shared_ptr<BaseMessage const> message) {
    // TODO: convert PV_SUCCESS, PV_FAILURE, etc. to enum
-   if (message==nullptr) {
+   if (message == nullptr) {
       return PV_SUCCESS;
-   }
-   else if (CommunicateInitInfoMessage const * castMessage = dynamic_cast<CommunicateInitInfoMessage const*>(message.get())) {
+   } else if (
+         CommunicateInitInfoMessage const *castMessage =
+               dynamic_cast<CommunicateInitInfoMessage const *>(message.get())) {
       return respondCommunicateInitInfo(castMessage);
-   }
-   else if (AllocateDataMessage const * castMessage = dynamic_cast<AllocateDataMessage const*>(message.get())) {
+   } else if (
+         AllocateDataMessage const *castMessage =
+               dynamic_cast<AllocateDataMessage const *>(message.get())) {
       return respondAllocateData(castMessage);
-   }
-   else if (InitializeStateMessage const * castMessage = dynamic_cast<InitializeStateMessage const*>(message.get())) {
+   } else if (
+         InitializeStateMessage const *castMessage =
+               dynamic_cast<InitializeStateMessage const *>(message.get())) {
       return respondInitializeState(castMessage);
-   }
-   else {
+   } else {
       return PV_SUCCESS;
    }
 }
 
-int BaseObject::respondCommunicateInitInfo(CommunicateInitInfoMessage const * message) {
+int BaseObject::respondCommunicateInitInfo(CommunicateInitInfoMessage const *message) {
    int status = PV_SUCCESS;
-   if (getInitInfoCommunicatedFlag()) { return status; }
+   if (getInitInfoCommunicatedFlag()) {
+      return status;
+   }
    status = communicateInitInfo();
-   if (status==PV_SUCCESS) { setInitInfoCommunicatedFlag(); }
+   if (status == PV_SUCCESS) {
+      setInitInfoCommunicatedFlag();
+   }
    return status;
 }
 
-int BaseObject::respondAllocateData(AllocateDataMessage const * message) {
+int BaseObject::respondAllocateData(AllocateDataMessage const *message) {
    int status = PV_SUCCESS;
-   if (getDataStructuresAllocatedFlag()) { return status; }
+   if (getDataStructuresAllocatedFlag()) {
+      return status;
+   }
    status = allocateDataStructures();
-   if (status==PV_SUCCESS) { setDataStructuresAllocatedFlag(); }
+   if (status == PV_SUCCESS) {
+      setDataStructuresAllocatedFlag();
+   }
    return status;
 }
 
-int BaseObject::respondRegisterData(RegisterDataMessage<Secretary> const * message) {
+int BaseObject::respondRegisterData(RegisterDataMessage<Secretary> const *message) {
    int status = registerData(message->mDataRegistry, name);
    if (status != PV_SUCCESS) {
       pvError() << getDescription() << ": registerData failed.\n";
@@ -109,16 +123,18 @@ int BaseObject::respondRegisterData(RegisterDataMessage<Secretary> const * messa
    return status;
 }
 
-int BaseObject::respondInitializeState(InitializeStateMessage const * message) {
+int BaseObject::respondInitializeState(InitializeStateMessage const *message) {
    int status = PV_SUCCESS;
-   if (getInitialValuesSetFlag()) { return status; }
+   if (getInitialValuesSetFlag()) {
+      return status;
+   }
    status = initializeState();
-   if (status==PV_SUCCESS) { setInitialValuesSetFlag(); }
+   if (status == PV_SUCCESS) {
+      setInitialValuesSetFlag();
+   }
    return status;
 }
 
-BaseObject::~BaseObject() {
-   free(name);
-}
+BaseObject::~BaseObject() { free(name); }
 
 } /* namespace PV */

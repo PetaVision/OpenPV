@@ -8,27 +8,24 @@
 #ifndef DATASTOREDELAYTESTPROBE_HPP_
 #define DATASTOREDELAYTESTPROBE_HPP_
 
-#include "probes/StatsProbe.hpp"
 #include "columns/HyPerCol.hpp"
 #include "include/pv_common.h"
+#include "probes/StatsProbe.hpp"
 
 namespace PV {
 
-class DatastoreDelayTestProbe: public StatsProbe {
-public:
-   DatastoreDelayTestProbe(const char * probename, HyPerCol * hc);
+class DatastoreDelayTestProbe : public StatsProbe {
+  public:
+   DatastoreDelayTestProbe(const char *probename, HyPerCol *hc);
 
    virtual int outputState(double timed);
 
    virtual ~DatastoreDelayTestProbe();
 
-protected:
-   int initDatastoreDelayTestProbe(const char * probename,  HyPerCol * hc);
+  protected:
+   int initDatastoreDelayTestProbe(const char *probename, HyPerCol *hc);
    virtual void ioParam_buffer(enum ParamsIOFlag ioFlag);
-
 };
-
-
 }
 
 #endif /* DATASTOREDELAYTESTPROBE_HPP_ */

@@ -11,7 +11,7 @@
 namespace PV {
 
 // InterColComm is obsolete as of Jul 26, 2016.
-InterColComm::InterColComm(PV_Arguments * argumentList) {
+InterColComm::InterColComm(PV_Arguments *argumentList) {
    pvError() << "InterColComm is obsolete.  Use Communicator class instead.\n";
 }
 

@@ -8,14 +8,14 @@
 #ifndef CLOCK_HPP_
 #define CLOCK_HPP_
 
-#include <time.h>
-#include <sys/time.h>
-#include <sys/resource.h>
-#include <stdint.h>
 #include <ostream>
+#include <stdint.h>
+#include <sys/resource.h>
+#include <sys/time.h>
+#include <time.h>
 
 // #define MACH_TIMER 1
-#undef  MACH_TIMER
+#undef MACH_TIMER
 #ifdef MACH_TIMER
 #include <CoreServices/CoreServices.h>
 #include <mach/mach.h>
@@ -28,17 +28,17 @@
 namespace PV {
 
 class Clock {
-public:
+  public:
    void start_clock();
    void stop_clock();
-   void print_elapsed(std::ostream& stream);
+   void print_elapsed(std::ostream &stream);
 #ifdef MACH_TIMER
    double elapsed_time();
    double mach_time_to_sec(uint64_t elapsed);
 #endif // MACH_TIMER
 
-// Data members
-private:
+   // Data members
+  private:
    clock_t m_start;
    clock_t m_end;
    double m_rstart;
@@ -61,6 +61,6 @@ private:
 #endif
 };
 
-}  // namespace PV
+} // namespace PV
 
 #endif /* CLOCK_HPP_ */

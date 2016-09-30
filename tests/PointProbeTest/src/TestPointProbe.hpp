@@ -10,17 +10,16 @@
 
 namespace PV {
 
-class TestPointProbe: public PV::PointProbe{
-public:
-   TestPointProbe(const char * probeName, HyPerCol * hc);
+class TestPointProbe : public PV::PointProbe {
+  public:
+   TestPointProbe(const char *probeName, HyPerCol *hc);
    virtual ~TestPointProbe();
 
-protected:
+  protected:
    TestPointProbe();
    virtual int point_writeState(double timef, float outVVal, float outAVal);
 }; // end class TestPointProbe
 
-
-}  // end namespace PV
+} // end namespace PV
 
 #endif /* POINTPROBE_HPP_ */

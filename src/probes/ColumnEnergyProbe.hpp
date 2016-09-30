@@ -37,12 +37,12 @@ class BaseProbe;
  */
 
 class ColumnEnergyProbe : public ColProbe {
-public:
+  public:
    /**
     * Public constructor for the ColumnEnergyProbe class.
     */
-   ColumnEnergyProbe(const char * probename, HyPerCol * hc);
-   
+   ColumnEnergyProbe(const char *probename, HyPerCol *hc);
+
    /**
     * Destructor for the ColumnEnergyProbe class.
     */
@@ -55,29 +55,30 @@ public:
     * All BaseProbes added to the ColumnEnergyProbe must have the same
     * getNumValues().
     */
-   int addTerm(BaseProbe * probe);
-   
+   int addTerm(BaseProbe *probe);
+
    /**
     * Prints the energies to the output stream, formatted as a comma-separated value:
     * "Name of probe",timevalue,index,energy
-    * The number of lines printed is equal to getVectorSize(), and index goes from 0 to getVectorSize()-1.
+    * The number of lines printed is equal to getVectorSize(), and index goes from 0 to
+    * getVectorSize()-1.
     */
    virtual int outputState(double timevalue);
 
    virtual int calcValues(double timevalue);
 
-protected:
+  protected:
    /**
     * The constructor without arguments should be used by derived classes.
     */
    ColumnEnergyProbe();
-   
+
    /**
     * Reads the parameters and performs initializations that do not
     * depend on other param groups.  It is called by the public constructor
     * and should be called by the initializer of any derived classes.
     */
-   int initializeColumnEnergyProbe(const char * probename, HyPerCol * hc);
+   int initializeColumnEnergyProbe(const char *probename, HyPerCol *hc);
 
    /**
     * Prints column headings, "time,index,energy" to outputStream.
@@ -98,9 +99,9 @@ protected:
    virtual double referenceUpdateTime() const;
 
    size_t numTerms;
-   BaseProbe ** terms;
+   BaseProbe **terms;
 
-private:
+  private:
    /**
     * Sets member variables to safe values.  It is called by both the
     * public and protected constructors, and should not otherwise be called.
@@ -109,6 +110,6 @@ private:
 
 }; // end class ColumnEnergyProbe
 
-}  // end namespace PV
+} // end namespace PV
 
 #endif /* COLUMNENERGYPROBE_HPP_ */

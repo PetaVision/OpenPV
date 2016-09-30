@@ -14,13 +14,13 @@ namespace PV {
 
 template <typename T>
 class RingBuffer {
-public:
-   RingBuffer(int numLevels, int numItems, T initialValue=(T) 0) {
+  public:
+   RingBuffer(int numLevels, int numItems, T initialValue = (T)0) {
       mCurrentLevel = 0;
-      mNumLevels = numLevels;
-      mNumItems = numItems;
+      mNumLevels    = numLevels;
+      mNumItems     = numItems;
       mBuffer.resize(numLevels);
-      for (auto& b : mBuffer) {
+      for (auto &b : mBuffer) {
          b.resize(numItems, initialValue);
       }
    }
@@ -30,30 +30,22 @@ public:
 
    int getNumItems() { return mNumItems; }
 
-   void newLevel() {
-      mCurrentLevel = (mNumLevels + mCurrentLevel - 1) % mNumLevels;
-   }
+   void newLevel() { mCurrentLevel = (mNumLevels + mCurrentLevel - 1) % mNumLevels; }
 
-   T * getBuffer(int level, int offset) {
-      return &mBuffer[levelIndex(level)].at(offset);
-   }
+   T *getBuffer(int level, int offset) { return &mBuffer[levelIndex(level)].at(offset); }
 
-   T * getBuffer(int offset) {
-      return &mBuffer[mCurrentLevel].at(offset);
-   }
+   T *getBuffer(int offset) { return &mBuffer[mCurrentLevel].at(offset); }
 
-   T * getBuffer() {
-      return mBuffer[mCurrentLevel].data();
-   }
+   T *getBuffer() { return mBuffer[mCurrentLevel].data(); }
 
-private:
+  private:
    int levelIndex(int level) const { return ((level + mCurrentLevel) % mNumLevels); }
 
-private:
+  private:
    int mCurrentLevel;
    int mNumLevels;
    int mNumItems;
-   std::vector<std::vector<T> > mBuffer;
+   std::vector<std::vector<T>> mBuffer;
 };
 
 } /* namespace PV */

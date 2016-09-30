@@ -24,40 +24,46 @@
  *
  */
 
+#include "arch/mpi/mpi.h"
 #include "columns/buildandrun.hpp"
 #include "io/io.hpp"
-#include "arch/mpi/mpi.h"
 
-int checkComparisonZero(HyPerCol * hc, int argc, char * argv[]);
-int checkComparisonNonzero(HyPerCol * hc, int argc, char * argv[]);
+int checkComparisonZero(HyPerCol *hc, int argc, char *argv[]);
+int checkComparisonNonzero(HyPerCol *hc, int argc, char *argv[]);
 
-int main(int argc, char * argv[]) {
+int main(int argc, char *argv[]) {
    int status;
-   PV_Init initObj(&argc, &argv, false/*allowUnrecognizedArguments*/);
+   PV_Init initObj(&argc, &argv, false /*allowUnrecognizedArguments*/);
    int rank = 0;
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-   if (initObj.getParamsFile()!=NULL) {
-      if (rank==0) {
-         pvErrorNoExit().printf("%s runs a number of params files in sequence.  Do not include a '-p' option when running this program.\n", argv[0]);
+   if (initObj.getParamsFile() != NULL) {
+      if (rank == 0) {
+         pvErrorNoExit().printf(
+               "%s runs a number of params files in sequence.  Do not include a '-p' option when "
+               "running this program.\n",
+               argv[0]);
       }
-      MPI_Barrier(MPI_COMM_WORLD); /* Can't use `initObj.getComm()->communicator()` because initObj.initialize hasn't been called. */
+      MPI_Barrier(MPI_COMM_WORLD); /* Can't use `initObj.getComm()->communicator()` because
+                                      initObj.initialize hasn't been called. */
       exit(EXIT_FAILURE);
    }
 
    initObj.setParams("input/LayerRestartTest-Write.params");
    status = rebuildandrun(&initObj);
-   if( status == PV_SUCCESS ) {
-      char const * checkParamsFile = "input/LayerRestartTest-Check.params";
-      if (rank==0) {
-         pvInfo().printf("*** %s: running params file %s\n", initObj.getProgramName(), checkParamsFile);
+   if (status == PV_SUCCESS) {
+      char const *checkParamsFile = "input/LayerRestartTest-Check.params";
+      if (rank == 0) {
+         pvInfo().printf(
+               "*** %s: running params file %s\n", initObj.getProgramName(), checkParamsFile);
       }
       initObj.setParams("input/LayerRestartTest-Check.params");
       status = rebuildandrun(&initObj, NULL, &checkComparisonNonzero);
-      if( status == PV_SUCCESS ) {
-         char const * readParamsFile = "input/LayerRestartTest-Read.params";
-         if (rank==0) {
-            pvInfo().printf("*** %s: running params file %s\n", initObj.getProgramName(), checkParamsFile);
+      if (status == PV_SUCCESS) {
+         char const *readParamsFile = "input/LayerRestartTest-Read.params";
+         if (rank == 0) {
+            pvInfo().printf(
+                  "*** %s: running params file %s\n", initObj.getProgramName(), checkParamsFile);
          }
          initObj.setParams(readParamsFile);
          status = rebuildandrun(&initObj, NULL, &checkComparisonZero);
@@ -65,48 +71,50 @@ int main(int argc, char * argv[]) {
    }
 
 #ifdef PV_USE_MPI
-   // Output status from each process, but go through root process since we might be using MPI across several machines
+   // Output status from each process, but go through root process since we might be using MPI
+   // across several machines
    // and only have a console on the root process
    if (rank == 0) {
       int otherprocstatus = status;
       int commsize;
       MPI_Comm_size(MPI_COMM_WORLD, &commsize);
-      for(int r=0; r<commsize; r++) {
-         if( r!= 0) MPI_Recv(&otherprocstatus, 1, MPI_INT, r, 59, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-         if( otherprocstatus == PV_SUCCESS ) {
+      for (int r = 0; r < commsize; r++) {
+         if (r != 0)
+            MPI_Recv(&otherprocstatus, 1, MPI_INT, r, 59, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+         if (otherprocstatus == PV_SUCCESS) {
             pvInfo().printf("%s: rank %d process succeeded.\n", argv[0], r);
-         }
-         else {
-            pvErrorNoExit().printf("%s: rank %d process FAILED with return code %d\n", argv[0], r, otherprocstatus);
+         } else {
+            pvErrorNoExit().printf(
+                  "%s: rank %d process FAILED with return code %d\n", argv[0], r, otherprocstatus);
             status = PV_FAILURE;
          }
       }
-   }
-   else {
+   } else {
       MPI_Send(&status, 1, MPI_INT, 0, 59, MPI_COMM_WORLD);
    }
 
-   //if( !mpi_initialized_on_entry ) MPI_Finalize();
+// if( !mpi_initialized_on_entry ) MPI_Finalize();
 #endif // PV_USE_MPI
    return status;
 }
 
-int checkComparisonNonzero(HyPerCol * hc, int argc, char * argv[]) {
-   int status = PV_FAILURE;
+int checkComparisonNonzero(HyPerCol *hc, int argc, char *argv[]) {
+   int status    = PV_FAILURE;
    int numLayers = hc->numberOfLayers();
    int layerIndex;
-   HyPerLayer * layer;
-   for( layerIndex=0; layerIndex<numLayers; layerIndex++ ) {
+   HyPerLayer *layer;
+   for (layerIndex = 0; layerIndex < numLayers; layerIndex++) {
       layer = hc->getLayer(layerIndex);
-      if( !strcmp(hc->getLayer(layerIndex)->getName(), "Comparison") ) break;
+      if (!strcmp(hc->getLayer(layerIndex)->getName(), "Comparison"))
+         break;
    }
-   if( layerIndex >= numLayers) {
+   if (layerIndex >= numLayers) {
       pvErrorNoExit().printf("%s: couldn't find layer \"Comparison\".", argv[0]);
       return PV_FAILURE;
    }
-   pvdata_t * V = layer->getV();
-   for( int k=0; k<layer->getNumNeurons(); k++ ) {
-      if( V[k] ) {
+   pvdata_t *V = layer->getV();
+   for (int k = 0; k < layer->getNumNeurons(); k++) {
+      if (V[k]) {
          status = PV_SUCCESS;
          break;
       }
@@ -114,22 +122,23 @@ int checkComparisonNonzero(HyPerCol * hc, int argc, char * argv[]) {
    return status;
 }
 
-int checkComparisonZero(HyPerCol * hc, int argc, char * argv[]) {
-   int status = PV_SUCCESS;
+int checkComparisonZero(HyPerCol *hc, int argc, char *argv[]) {
+   int status    = PV_SUCCESS;
    int numLayers = hc->numberOfLayers();
    int layerIndex;
-   HyPerLayer * layer;
-   for( layerIndex=0; layerIndex<numLayers; layerIndex++ ) {
+   HyPerLayer *layer;
+   for (layerIndex = 0; layerIndex < numLayers; layerIndex++) {
       layer = hc->getLayer(layerIndex);
-      if( !strcmp(hc->getLayer(layerIndex)->getName(), "Comparison") ) break;
+      if (!strcmp(hc->getLayer(layerIndex)->getName(), "Comparison"))
+         break;
    }
-   if( layerIndex >= numLayers) {
+   if (layerIndex >= numLayers) {
       pvErrorNoExit().printf("%s: couldn't find layer \"Comparison\".", argv[0]);
       return PV_FAILURE;
    }
-   pvdata_t * V = layer->getV();
-   for( int k=0; k<layer->getNumNeurons(); k++ ) {
-      if( V[k] ) {
+   pvdata_t *V = layer->getV();
+   for (int k = 0; k < layer->getNumNeurons(); k++) {
+      if (V[k]) {
          pvErrorNoExit().printf("Neuron %d: discrepancy %f\n", k, (double)V[k]);
          status = PV_FAILURE;
       }

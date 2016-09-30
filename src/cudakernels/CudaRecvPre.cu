@@ -1,14 +1,10 @@
 #include "CudaRecvPre.hpp"
 #include "conversions.hcu"
 
-namespace PVCuda{
+namespace PVCuda {
 
-//Kernel code
-__global__
-void HyPerLayer_recv_pre(
-   recv_pre_params params,
-   int batchIdx
-){
+// Kernel code
+__global__ void HyPerLayer_recv_pre(recv_pre_params params, int batchIdx) {
    unsigned int kPreExt;
    float a;
    PVPatch patch;
@@ -17,16 +13,15 @@ void HyPerLayer_recv_pre(
 
    long tIndex = (blockIdx.x * blockDim.x) + threadIdx.x;
 
-   //Put this on cpu
+   // Put this on cpu
    int fullPatchSize = params.nfp * params.nxp * params.nyp;
 
-   if(params.isSparse){
-      if(tIndex >= fullPatchSize * params.numActive[batchIdx]){
+   if (params.isSparse) {
+      if (tIndex >= fullPatchSize * params.numActive[batchIdx]) {
          return;
       }
-   }
-   else{
-      if(tIndex >= fullPatchSize * params.numPreExt){
+   } else {
+      if (tIndex >= fullPatchSize * params.numPreExt) {
          return;
       }
    }
@@ -34,68 +29,63 @@ void HyPerLayer_recv_pre(
    unsigned int neuronIndex = tIndex / fullPatchSize;
 
    int preBatchOffset = batchIdx * params.numPreExt;
-   if(params.isSparse){
+   if (params.isSparse) {
       kPreExt = params.activeIndices[neuronIndex + preBatchOffset];
-   }
-   else{
+   } else {
       kPreExt = neuronIndex;
    }
    a = params.preData[kPreExt + preBatchOffset] * params.dt_factor;
    int kernelIndex;
-   if(params.sharedWeights == 1){
+   if (params.sharedWeights == 1) {
       kernelIndex = params.patch2datalookuptable[kPreExt];
-   }
-   else{
+   } else {
       kernelIndex = kPreExt;
    }
-   //Grab weight patches
-   patch = params.patches[kPreExt];
-   wIdx = kernelIndex * fullPatchSize + patch.offset;
+   // Grab weight patches
+   patch                 = params.patches[kPreExt];
+   wIdx                  = kernelIndex * fullPatchSize + patch.offset;
    numberShrunkenWeights = params.nfp * patch.nx * patch.ny;
 
    //__syncthreads();
 
-   if(a == 0) return;
-   //patch may be shrunken, if thread oob, return
+   if (a == 0)
+      return;
+   // patch may be shrunken, if thread oob, return
    int patchIndex = tIndex % fullPatchSize;
-   if(patchIndex >= numberShrunkenWeights){
+   if (patchIndex >= numberShrunkenWeights) {
       return;
    }
 
    int postBatchOffset = batchIdx * params.numPostRes;
-   float* gSynStart = params.postGSyn + postBatchOffset + params.gSynPatchStart[kPreExt];
+   float *gSynStart    = params.postGSyn + postBatchOffset + params.gSynPatchStart[kPreExt];
 
-   //Calculate what y row patchIndex is in
+   // Calculate what y row patchIndex is in
    int ky = kyPos(patchIndex, patch.nx, patch.ny, params.nfp);
-   int kx = kxPos(patchIndex, patch.nx, patch.ny, params.nfp); 
-   int kf = featureIndex(patchIndex, patch.nx, patch.ny, params.nfp); 
-   int k = kx * params.nfp + kf;
+   int kx = kxPos(patchIndex, patch.nx, patch.ny, params.nfp);
+   int kf = featureIndex(patchIndex, patch.nx, patch.ny, params.nfp);
+   int k  = kx * params.nfp + kf;
 
-   float * gSynPtr = gSynStart + ky*params.sy + k;
-   float weightVal = params.weights[wIdx + ky*params.syw + k];
+   float *gSynPtr  = gSynStart + ky * params.sy + k;
+   float weightVal = params.weights[wIdx + ky * params.syw + k];
 
-   //Multiply values
+   // Multiply values
    float outVal = a * weightVal;
 
-   //Atomic add into postGSyn
+   // Atomic add into postGSyn
    atomicAdd(gSynPtr, outVal);
 }
 
-
-int CudaRecvPre::do_run(){
+int CudaRecvPre::do_run() {
 
    size_t sharedSize = 0;
 
    checkSharedMemSize(sharedSize);
 
-   for(int b = 0; b < params.nbatch; b++){
-      HyPerLayer_recv_pre<<<grid_size, block_size, sharedSize>>>(
-         params,
-         b
-      );
+   for (int b = 0; b < params.nbatch; b++) {
+      HyPerLayer_recv_pre<<<grid_size, block_size, sharedSize>>>(params, b);
    }
 
    return 0;
 }
 
-}  // end namespace PVCuda
+} // end namespace PVCuda

@@ -9,23 +9,18 @@
 
 namespace PV {
 
-TestImage::TestImage() {
-   initialize_base();
-}
+TestImage::TestImage() { initialize_base(); }
 
-TestImage::TestImage(const char * name, HyPerCol * hc) {
+TestImage::TestImage(const char *name, HyPerCol *hc) {
    initialize_base();
    initialize(name, hc);
 }
 
-TestImage::~TestImage() {
-}
+TestImage::~TestImage() {}
 
-int TestImage::initialize_base() {
-   return PV_SUCCESS;
-}
+int TestImage::initialize_base() { return PV_SUCCESS; }
 
-int TestImage::initialize(const char * name, HyPerCol * hc) {
+int TestImage::initialize(const char *name, HyPerCol *hc) {
    return HyPerLayer::initialize(name, hc);
 }
 
@@ -41,25 +36,24 @@ void TestImage::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
 }
 
 void TestImage::ioParam_constantVal(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "constantVal", &val, (pvdata_t) 1);
+   parent->parameters()->ioParamValue(ioFlag, name, "constantVal", &val, (pvdata_t)1);
 }
 
 int TestImage::allocateV() {
-   pvErrorIf(!(getV()==NULL), "Test failed.\n");
+   pvErrorIf(!(getV() == NULL), "Test failed.\n");
    return PV_SUCCESS;
 }
 
 int TestImage::initializeActivity() {
-   for (int k=0; k<getNumNeurons(); k++) {
-      const PVLayerLoc * loc = getLayerLoc();
-      int kExt = kIndexExtended(k,loc->nx,loc->ny,loc->nf,loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
+   for (int k = 0; k < getNumNeurons(); k++) {
+      const PVLayerLoc *loc = getLayerLoc();
+      int kExt              = kIndexExtended(
+            k, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
       getActivity()[kExt] = val;
    }
    return PV_SUCCESS;
 }
 
-int TestImage::updateState(double timed, double dt) {
-   return PV_SUCCESS;
-}
+int TestImage::updateState(double timed, double dt) { return PV_SUCCESS; }
 
 } // namespace PV

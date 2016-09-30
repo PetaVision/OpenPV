@@ -7,13 +7,13 @@
 
 #include "LCALIFLayer.hpp"
 
+#include <float.h>
+#include <math.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <math.h>
-#include <stdbool.h>
-#include <float.h>
 
 #include "utils/cl_random.h"
 
@@ -21,83 +21,85 @@
 // implementation of LIF kernels
 //////////////////////////////////////////////////////
 
-//Kernel update state implementation receives all necessary variables
-//for required computation. File is included above.
+// Kernel update state implementation receives all necessary variables
+// for required computation. File is included above.
 void LCALIF_update_state(
-   const int nbatch,
-   const int numNeurons,
-   const double timed,
-   const double dt,
+      const int nbatch,
+      const int numNeurons,
+      const double timed,
+      const double dt,
 
-   const int nx,
-   const int ny,
-   const int nf,
-   const int lt,
-   const int rt,
-   const int dn,
-   const int up,
+      const int nx,
+      const int ny,
+      const int nf,
+      const int lt,
+      const int rt,
+      const int dn,
+      const int up,
 
-   pvdata_t Vscale,
-   pvdata_t * Vadpt,
-   const float tauTHR,
-   const float targetRateHz,
+      pvdata_t Vscale,
+      pvdata_t *Vadpt,
+      const float tauTHR,
+      const float targetRateHz,
 
-   pvdata_t * integratedSpikeCount,
+      pvdata_t *integratedSpikeCount,
 
-    LIF_params * params,
-   taus_uint4 * rnd,
-   float * V,
-   float * Vth,
-   float * G_E,
-   float * G_I,
-   float * G_IB,
-   float * GSynHead,
-   float * activity,
+      LIF_params *params,
+      taus_uint4 *rnd,
+      float *V,
+      float *Vth,
+      float *G_E,
+      float *G_I,
+      float *G_IB,
+      float *GSynHead,
+      float *activity,
 
-   const pvgsyndata_t * gapStrength,
-   float * Vattained,
-   float * Vmeminf,
-   const int normalizeInputFlag,
-   float * GSynExcEffective,
-   float * GSynInhEffective,
-   float * excitatoryNoise,
-   float * inhibitoryNoise,
-   float * inhibNoiseB
-);
+      const pvgsyndata_t *gapStrength,
+      float *Vattained,
+      float *Vmeminf,
+      const int normalizeInputFlag,
+      float *GSynExcEffective,
+      float *GSynInhEffective,
+      float *excitatoryNoise,
+      float *inhibitoryNoise,
+      float *inhibNoiseB);
 
 namespace PV {
 LCALIFLayer::LCALIFLayer() {
    initialize_base();
-  // initialize(arguments) should *not* be called by the protected constructor.
+   // initialize(arguments) should *not* be called by the protected constructor.
 }
 
-LCALIFLayer::LCALIFLayer(const char * name, HyPerCol * hc) {
+LCALIFLayer::LCALIFLayer(const char *name, HyPerCol *hc) {
    initialize_base();
    initialize(name, hc, "LCALIF_update_state");
 }
 
-int LCALIFLayer::initialize_base(){
-   numChannels = 5;
-   tauTHR = 1000;
-   targetRateHz = 1;
-   Vscale = DEFAULT_DYNVTHSCALE;
-   Vadpt = NULL;
+int LCALIFLayer::initialize_base() {
+   numChannels          = 5;
+   tauTHR               = 1000;
+   targetRateHz         = 1;
+   Vscale               = DEFAULT_DYNVTHSCALE;
+   Vadpt                = NULL;
    integratedSpikeCount = NULL;
-   G_Norm = NULL;
-   GSynExcEffective = NULL;
-   normalizeInputFlag = false;
+   G_Norm               = NULL;
+   GSynExcEffective     = NULL;
+   normalizeInputFlag   = false;
    return PV_SUCCESS;
 }
 
-int LCALIFLayer::initialize(const char * name, HyPerCol * hc, const char * kernel_name){
+int LCALIFLayer::initialize(const char *name, HyPerCol *hc, const char *kernel_name) {
    LIFGap::initialize(name, hc, kernel_name);
-   PVParams * params = hc->parameters();
+   PVParams *params = hc->parameters();
 
-   float defaultDynVthScale = lParams.VthRest-lParams.Vrest;
-   Vscale = defaultDynVthScale > 0 ? defaultDynVthScale : DEFAULT_DYNVTHSCALE;
+   float defaultDynVthScale = lParams.VthRest - lParams.Vrest;
+   Vscale                   = defaultDynVthScale > 0 ? defaultDynVthScale : DEFAULT_DYNVTHSCALE;
    if (Vscale <= 0) {
-      if (hc->columnId()==0) {
-         pvErrorNoExit().printf("LCALIFLayer \"%s\": Vscale must be positive (value in params is %f).\n", name, (double)Vscale);
+      if (hc->columnId() == 0) {
+         pvErrorNoExit().printf(
+               "LCALIFLayer \"%s\": Vscale must be positive (value in params is %f).\n",
+               name,
+               (double)Vscale);
       }
       abort();
    }
@@ -123,35 +125,40 @@ void LCALIFLayer::ioParam_targetRate(enum ParamsIOFlag ioFlag) {
 }
 
 void LCALIFLayer::ioParam_normalizeInput(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "normalizeInput", &normalizeInputFlag, normalizeInputFlag);
+   parent->parameters()->ioParamValue(
+         ioFlag, name, "normalizeInput", &normalizeInputFlag, normalizeInputFlag);
 }
 
 void LCALIFLayer::ioParam_Vscale(enum ParamsIOFlag ioFlag) {
-   PVParams * p = parent->parameters();
+   PVParams *p = parent->parameters();
    assert(!p->presentAndNotBeenRead(name, "VthRest"));
    assert(!p->presentAndNotBeenRead(name, "Vrest"));
-   float defaultDynVthScale = lParams.VthRest-lParams.Vrest;
-   Vscale = defaultDynVthScale > 0 ? defaultDynVthScale : DEFAULT_DYNVTHSCALE;
+   float defaultDynVthScale = lParams.VthRest - lParams.Vrest;
+   Vscale                   = defaultDynVthScale > 0 ? defaultDynVthScale : DEFAULT_DYNVTHSCALE;
    parent->parameters()->ioParamValue(ioFlag, name, "Vscale", &Vscale, Vscale);
 }
 
-LCALIFLayer::~LCALIFLayer()
-{
-   free(integratedSpikeCount); integratedSpikeCount = NULL;
-   free(Vadpt); Vadpt = NULL;
-   free(Vattained); Vattained = NULL;
-   free(Vmeminf); Vmeminf = NULL;
+LCALIFLayer::~LCALIFLayer() {
+   free(integratedSpikeCount);
+   integratedSpikeCount = NULL;
+   free(Vadpt);
+   Vadpt = NULL;
+   free(Vattained);
+   Vattained = NULL;
+   free(Vmeminf);
+   Vmeminf = NULL;
 }
 
 int LCALIFLayer::allocateDataStructures() {
    int status = LIFGap::allocateDataStructures();
 
    int numNeurons = getNumNeuronsAllBatches();
-   for (int k=0; k<numNeurons; k++) {
-      integratedSpikeCount[k] = targetRateHz/1000; // Initialize integrated spikes to non-zero value
-      Vadpt[k]                = lParams.VthRest;   // Initialize integrated spikes to non-zero value
-      Vattained[k]            = lParams.Vrest;
-      Vmeminf[k]              = lParams.Vrest;
+   for (int k = 0; k < numNeurons; k++) {
+      integratedSpikeCount[k] =
+            targetRateHz / 1000; // Initialize integrated spikes to non-zero value
+      Vadpt[k]     = lParams.VthRest; // Initialize integrated spikes to non-zero value
+      Vattained[k] = lParams.Vrest;
+      Vmeminf[k]   = lParams.Vrest;
    }
 
    return status;
@@ -159,128 +166,194 @@ int LCALIFLayer::allocateDataStructures() {
 
 int LCALIFLayer::allocateBuffers() {
    const size_t numNeurons = getNumNeuronsAllBatches();
-   //Allocate data to keep track of trace
+   // Allocate data to keep track of trace
    int status = PV_SUCCESS;
-   if (status==PV_SUCCESS) status = allocateBuffer(&integratedSpikeCount, numNeurons, "integratedSpikeCount");
-   if (status==PV_SUCCESS) status = allocateBuffer(&Vadpt, numNeurons, "Vadpt");
-   if (status==PV_SUCCESS) status = allocateBuffer(&Vattained, numNeurons, "Vattained");
-   if (status==PV_SUCCESS) status = allocateBuffer(&Vmeminf, numNeurons, "Vmeminf");
-   if (status==PV_SUCCESS) status = allocateBuffer(&G_Norm, numNeurons, "G_Norm");
-   if (status==PV_SUCCESS) status = allocateBuffer(&GSynExcEffective, numNeurons, "GSynExcEffective");
-   if (status==PV_SUCCESS) status = allocateBuffer(&GSynInhEffective, numNeurons, "GSynInhEffective");
-   if (status==PV_SUCCESS) status = allocateBuffer(&excitatoryNoise, numNeurons, "excitatoryNoise");
-   if (status==PV_SUCCESS) status = allocateBuffer(&inhibitoryNoise, numNeurons, "inhibitoryNoise");
-   if (status==PV_SUCCESS) status = allocateBuffer(&inhibNoiseB, numNeurons, "inhibNoiseB");
-   if (status!=PV_SUCCESS) exit(EXIT_FAILURE);
+   if (status == PV_SUCCESS)
+      status = allocateBuffer(&integratedSpikeCount, numNeurons, "integratedSpikeCount");
+   if (status == PV_SUCCESS)
+      status = allocateBuffer(&Vadpt, numNeurons, "Vadpt");
+   if (status == PV_SUCCESS)
+      status = allocateBuffer(&Vattained, numNeurons, "Vattained");
+   if (status == PV_SUCCESS)
+      status = allocateBuffer(&Vmeminf, numNeurons, "Vmeminf");
+   if (status == PV_SUCCESS)
+      status = allocateBuffer(&G_Norm, numNeurons, "G_Norm");
+   if (status == PV_SUCCESS)
+      status = allocateBuffer(&GSynExcEffective, numNeurons, "GSynExcEffective");
+   if (status == PV_SUCCESS)
+      status = allocateBuffer(&GSynInhEffective, numNeurons, "GSynInhEffective");
+   if (status == PV_SUCCESS)
+      status = allocateBuffer(&excitatoryNoise, numNeurons, "excitatoryNoise");
+   if (status == PV_SUCCESS)
+      status = allocateBuffer(&inhibitoryNoise, numNeurons, "inhibitoryNoise");
+   if (status == PV_SUCCESS)
+      status = allocateBuffer(&inhibNoiseB, numNeurons, "inhibNoiseB");
+   if (status != PV_SUCCESS)
+      exit(EXIT_FAILURE);
    return LIFGap::allocateBuffers();
 }
 
-int LCALIFLayer::updateState(double timed, double dt)
-{
-   //Calculate_state kernel
-   for (int k=0; k<getNumNeuronsAllBatches(); k++) {
-      G_Norm[k] = GSyn[CHANNEL_NORM][k]; // Copy GSyn buffer on normalizing channel for checkpointing, since LCALIF_update_state will blank the GSyn's
+int LCALIFLayer::updateState(double timed, double dt) {
+   // Calculate_state kernel
+   for (int k = 0; k < getNumNeuronsAllBatches(); k++) {
+      G_Norm[k] = GSyn[CHANNEL_NORM][k]; // Copy GSyn buffer on normalizing channel for
+                                         // checkpointing, since LCALIF_update_state will blank the
+                                         // GSyn's
    }
-   LCALIF_update_state(clayer->loc.nbatch, getNumNeurons(), timed, dt, clayer->loc.nx, clayer->loc.ny, clayer->loc.nf,
-         clayer->loc.halo.lt, clayer->loc.halo.rt, clayer->loc.halo.dn, clayer->loc.halo.up, Vscale, Vadpt, tauTHR, targetRateHz, integratedSpikeCount, &lParams,
-         randState->getRNG(0), clayer->V, Vth, G_E, G_I, G_IB, GSyn[0], clayer->activity->data, getGapStrength(), Vattained, Vmeminf, (int) normalizeInputFlag,
-         GSynExcEffective, GSynInhEffective, excitatoryNoise, inhibitoryNoise, inhibNoiseB);
+   LCALIF_update_state(
+         clayer->loc.nbatch,
+         getNumNeurons(),
+         timed,
+         dt,
+         clayer->loc.nx,
+         clayer->loc.ny,
+         clayer->loc.nf,
+         clayer->loc.halo.lt,
+         clayer->loc.halo.rt,
+         clayer->loc.halo.dn,
+         clayer->loc.halo.up,
+         Vscale,
+         Vadpt,
+         tauTHR,
+         targetRateHz,
+         integratedSpikeCount,
+         &lParams,
+         randState->getRNG(0),
+         clayer->V,
+         Vth,
+         G_E,
+         G_I,
+         G_IB,
+         GSyn[0],
+         clayer->activity->data,
+         getGapStrength(),
+         Vattained,
+         Vmeminf,
+         (int)normalizeInputFlag,
+         GSynExcEffective,
+         GSynInhEffective,
+         excitatoryNoise,
+         inhibitoryNoise,
+         inhibNoiseB);
    return PV_SUCCESS;
 }
 
-int LCALIFLayer::readStateFromCheckpoint(const char * cpDir, double * timeptr) {
-   int status = LIFGap::readStateFromCheckpoint(cpDir, timeptr);
+int LCALIFLayer::readStateFromCheckpoint(const char *cpDir, double *timeptr) {
+   int status      = LIFGap::readStateFromCheckpoint(cpDir, timeptr);
    double filetime = 0.0;
-   status = read_integratedSpikeCountFromCheckpoint(cpDir, timeptr);
-   status = readVadptFromCheckpoint(cpDir, timeptr);
+   status          = read_integratedSpikeCountFromCheckpoint(cpDir, timeptr);
+   status          = readVadptFromCheckpoint(cpDir, timeptr);
    return status;
 }
 
-int LCALIFLayer::read_integratedSpikeCountFromCheckpoint(const char * cpDir, double * timeptr) {
-   char * filename = parent->pathInCheckpoint(cpDir, getName(), "_integratedSpikeCount.pvp");
-   int status = readBufferFile(filename, parent->getCommunicator(), timeptr, &Vth, 1, /*extended*/true, getLayerLoc());
-   assert(status==PV_SUCCESS);
+int LCALIFLayer::read_integratedSpikeCountFromCheckpoint(const char *cpDir, double *timeptr) {
+   char *filename = parent->pathInCheckpoint(cpDir, getName(), "_integratedSpikeCount.pvp");
+   int status     = readBufferFile(
+         filename, parent->getCommunicator(), timeptr, &Vth, 1, /*extended*/ true, getLayerLoc());
+   assert(status == PV_SUCCESS);
    free(filename);
    return status;
 }
 
-int LCALIFLayer::readVadptFromCheckpoint(const char * cpDir, double * timeptr) {
-   char * filename = parent->pathInCheckpoint(cpDir, getName(), "_Vadpt.pvp");
-   int status = readBufferFile(filename, parent->getCommunicator(), timeptr, &Vth, 1, /*extended*/true, getLayerLoc());
-   assert(status==PV_SUCCESS);
+int LCALIFLayer::readVadptFromCheckpoint(const char *cpDir, double *timeptr) {
+   char *filename = parent->pathInCheckpoint(cpDir, getName(), "_Vadpt.pvp");
+   int status     = readBufferFile(
+         filename, parent->getCommunicator(), timeptr, &Vth, 1, /*extended*/ true, getLayerLoc());
+   assert(status == PV_SUCCESS);
    free(filename);
    return status;
 }
 
-int LCALIFLayer::checkpointWrite(const char * cpDir) {
-   int status = LIFGap::checkpointWrite(cpDir);
-   Communicator * icComm = parent->getCommunicator();
+int LCALIFLayer::checkpointWrite(const char *cpDir) {
+   int status           = LIFGap::checkpointWrite(cpDir);
+   Communicator *icComm = parent->getCommunicator();
    char basepath[PV_PATH_MAX];
    char filename[PV_PATH_MAX];
    int lenbase = snprintf(basepath, PV_PATH_MAX, "%s/%s", cpDir, name);
-   if (lenbase+strlen("_integratedSpikeCount.pvp") >= PV_PATH_MAX) { // currently _integratedSpikeCount.pvp is the longest suffix needed
-      if (icComm->commRank()==0) {
-         pvError().printf("LCALIFLayer::checkpointWrite error in getDescription_c.  Base pathname \"%s/%s_\" too long.\n", getDescription_c(), cpDir, name);
+   if (lenbase + strlen("_integratedSpikeCount.pvp")
+       >= PV_PATH_MAX) { // currently _integratedSpikeCount.pvp is the longest suffix needed
+      if (icComm->commRank() == 0) {
+         pvError().printf(
+               "LCALIFLayer::checkpointWrite error in getDescription_c.  Base pathname \"%s/%s_\" "
+               "too long.\n",
+               getDescription_c(),
+               cpDir,
+               name);
       }
       MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
-   double timed = (double) parent->simulationTime();
+   double timed     = (double)parent->simulationTime();
    int chars_needed = snprintf(filename, PV_PATH_MAX, "%s_integratedSpikeCount.pvp", basepath);
    assert(chars_needed < PV_PATH_MAX);
-   writeBufferFile(filename, icComm, timed, &integratedSpikeCount, 1, /*extended*/false, getLayerLoc());
+   writeBufferFile(
+         filename, icComm, timed, &integratedSpikeCount, 1, /*extended*/ false, getLayerLoc());
 
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s_Vadpt.pvp", basepath);
    assert(chars_needed < PV_PATH_MAX);
-   writeBufferFile(filename, icComm, timed, &Vadpt, 1, /*extended*/false, getLayerLoc());
+   writeBufferFile(filename, icComm, timed, &Vadpt, 1, /*extended*/ false, getLayerLoc());
 
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s_Vattained.pvp", basepath);
    assert(chars_needed < PV_PATH_MAX);
-   writeBufferFile(filename, icComm, timed, &Vattained, 1, /*extended*/false, getLayerLoc());
+   writeBufferFile(filename, icComm, timed, &Vattained, 1, /*extended*/ false, getLayerLoc());
 
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s_Vmeminf.pvp", basepath);
    assert(chars_needed < PV_PATH_MAX);
-   writeBufferFile(filename, icComm, timed, &Vmeminf, 1, /*extended*/false, getLayerLoc());
+   writeBufferFile(filename, icComm, timed, &Vmeminf, 1, /*extended*/ false, getLayerLoc());
 
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s_G_Norm.pvp", basepath);
    assert(chars_needed < PV_PATH_MAX);
-   writeBufferFile(filename, icComm, timed, &G_Norm, 1, /*extended*/false, getLayerLoc());
+   writeBufferFile(filename, icComm, timed, &G_Norm, 1, /*extended*/ false, getLayerLoc());
 
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s_GSynExcEffective.pvp", basepath);
    assert(chars_needed < PV_PATH_MAX);
-   writeBufferFile(filename, icComm, timed, &GSynExcEffective, 1, /*extended*/false, getLayerLoc());
+   writeBufferFile(
+         filename, icComm, timed, &GSynExcEffective, 1, /*extended*/ false, getLayerLoc());
 
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s_GSynInhEffective.pvp", basepath);
    assert(chars_needed < PV_PATH_MAX);
-   writeBufferFile(filename, icComm, timed, &GSynInhEffective, 1, /*extended*/false, getLayerLoc());
+   writeBufferFile(
+         filename, icComm, timed, &GSynInhEffective, 1, /*extended*/ false, getLayerLoc());
 
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s_excitatoryNoise.pvp", basepath);
    assert(chars_needed < PV_PATH_MAX);
-   writeBufferFile(filename, icComm, timed, &excitatoryNoise, 1, /*extended*/false, getLayerLoc());
+   writeBufferFile(filename, icComm, timed, &excitatoryNoise, 1, /*extended*/ false, getLayerLoc());
 
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s_inhibitoryNoise.pvp", basepath);
    assert(chars_needed < PV_PATH_MAX);
-   writeBufferFile(filename, icComm, timed, &inhibitoryNoise, 1, /*extended*/false, getLayerLoc());
+   writeBufferFile(filename, icComm, timed, &inhibitoryNoise, 1, /*extended*/ false, getLayerLoc());
 
    chars_needed = snprintf(filename, PV_PATH_MAX, "%s_inhibNoiseB.pvp", basepath);
    assert(chars_needed < PV_PATH_MAX);
-   writeBufferFile(filename, icComm, timed, &inhibNoiseB, 1, /*extended*/false, getLayerLoc());
+   writeBufferFile(filename, icComm, timed, &inhibNoiseB, 1, /*extended*/ false, getLayerLoc());
 
    return status;
 }
 
-}  // namespace PV
+} // namespace PV
 
-//Kernels
+// Kernels
 
-inline
-float LCALIF_tauInf(const float tau, const float G_E, const float G_I, const float G_IB, const pvgsyndata_t sum_gap) {
-   return tau/(1+G_E+G_I+G_IB+sum_gap);
+inline float LCALIF_tauInf(
+      const float tau,
+      const float G_E,
+      const float G_I,
+      const float G_IB,
+      const pvgsyndata_t sum_gap) {
+   return tau / (1 + G_E + G_I + G_IB + sum_gap);
 }
 
-inline
-float LCALIF_VmemInf(const float Vrest, const float V_E, const float V_I, const float V_B, const float G_E, const float G_I, const float G_B, const float G_gap, const pvgsyndata_t sumgap) {
-   return (Vrest + V_E*G_E + V_I*G_I + V_B*G_B + G_gap)/(1+G_E+G_I+G_B+sumgap);
+inline float LCALIF_VmemInf(
+      const float Vrest,
+      const float V_E,
+      const float V_I,
+      const float V_B,
+      const float G_E,
+      const float G_I,
+      const float G_B,
+      const float G_gap,
+      const pvgsyndata_t sumgap) {
+   return (Vrest + V_E * G_E + V_I * G_I + V_B * G_B + G_gap) / (1 + G_E + G_I + G_B + sumgap);
 }
 
 //
@@ -290,63 +363,62 @@ float LCALIF_VmemInf(const float Vrest, const float V_E, const float V_I, const 
 //
 
 void LCALIF_update_state(
-    const int nbatch,
-    const int numNeurons,
-    const double timed,
-    const double dt,
+      const int nbatch,
+      const int numNeurons,
+      const double timed,
+      const double dt,
 
-    const int nx,
-    const int ny,
-    const int nf,
-    const int lt,
-    const int rt,
-    const int dn,
-    const int up,
-    
-    float Vscale,
-    float * Vadpt,
-    float tauTHR,
-    const float targetRateHz,
+      const int nx,
+      const int ny,
+      const int nf,
+      const int lt,
+      const int rt,
+      const int dn,
+      const int up,
 
-    float * integratedSpikeCount,
-    
-     LIF_params * params,
-    taus_uint4 * rnd,
-    float * V,
-    float * Vth,
-    float * G_E,
-    float * G_I,
-    float * G_IB,
-    float * GSynHead,
-    float * activity, 
+      float Vscale,
+      float *Vadpt,
+      float tauTHR,
+      const float targetRateHz,
 
-    const pvgsyndata_t * gapStrength,
-    float * Vattained,
-    float * Vmeminf,
-    const int normalizeInputFlag,
-    float * GSynExcEffective,
-    float * GSynInhEffective,
-    float * excitatoryNoise,
-    float * inhibitoryNoise,
-    float * inhibNoiseB)
-{
+      float *integratedSpikeCount,
+
+      LIF_params *params,
+      taus_uint4 *rnd,
+      float *V,
+      float *Vth,
+      float *G_E,
+      float *G_I,
+      float *G_IB,
+      float *GSynHead,
+      float *activity,
+
+      const pvgsyndata_t *gapStrength,
+      float *Vattained,
+      float *Vmeminf,
+      const int normalizeInputFlag,
+      float *GSynExcEffective,
+      float *GSynInhEffective,
+      float *excitatoryNoise,
+      float *inhibitoryNoise,
+      float *inhibNoiseB) {
 
    // convert target rate from Hz to kHz
-   float targetRatekHz = targetRateHz/1000.0f;
+   float targetRatekHz = targetRateHz / 1000.0f;
 
    // tau parameters
-   const float tauO = 1/targetRatekHz;   //Convert target rate from kHz to ms (tauO)
+   const float tauO = 1 / targetRatekHz; // Convert target rate from kHz to ms (tauO)
 
-   const float decayE   = expf((float)-dt/params->tauE);
-   const float decayI   = expf((float)-dt/params->tauI);
-   const float decayIB  = expf((float)-dt/params->tauIB);
-   const float decayVth = expf((float)-dt/params->tauVth);
-   const float decayO   = expf((float)-dt/tauO);
+   const float decayE   = expf((float)-dt / params->tauE);
+   const float decayI   = expf((float)-dt / params->tauI);
+   const float decayIB  = expf((float)-dt / params->tauIB);
+   const float decayVth = expf((float)-dt / params->tauVth);
+   const float decayO   = expf((float)-dt / tauO);
 
-   //Convert dt to seconds
+   // Convert dt to seconds
    const float dt_sec = (float)(0.001 * dt);
 
-   for (int k = 0; k < nx*ny*nf*nbatch; k++) {
+   for (int k = 0; k < nx * ny * nf * nbatch; k++) {
       int kex = kIndexExtendedBatch(k, nbatch, nx, ny, nf, lt, rt, dn, up);
 
       //
@@ -364,71 +436,77 @@ void LCALIF_update_state(
       float l_V   = V[k];
       float l_Vth = Vth[k];
 
-      // The correction factors to the conductances are so that if l_GSyn_* is the same every timestep,
+      // The correction factors to the conductances are so that if l_GSyn_* is the same every
+      // timestep,
       // then the asymptotic value of l_G_* will be l_GSyn_*
-      float l_G_E  = G_E[k];
-      float l_G_I  = G_I[k];
-      float l_G_IB = G_IB[k];
+      float l_G_E                = G_E[k];
+      float l_G_I                = G_I[k];
+      float l_G_IB               = G_IB[k];
       pvgsyndata_t l_gapStrength = gapStrength[k];
 
-#define CHANNEL_NORM (CHANNEL_GAP+1)
-      float * GSynExc = &GSynHead[CHANNEL_EXC*nbatch*numNeurons];
-      float * GSynInh = &GSynHead[CHANNEL_INH*nbatch*numNeurons];
-      float * GSynInhB = &GSynHead[CHANNEL_INHB*nbatch*numNeurons];
-      float * GSynGap = &GSynHead[CHANNEL_GAP*nbatch*numNeurons];
-      float * GSynNorm = &GSynHead[CHANNEL_NORM*nbatch*numNeurons];
+#define CHANNEL_NORM (CHANNEL_GAP + 1)
+      float *GSynExc   = &GSynHead[CHANNEL_EXC * nbatch * numNeurons];
+      float *GSynInh   = &GSynHead[CHANNEL_INH * nbatch * numNeurons];
+      float *GSynInhB  = &GSynHead[CHANNEL_INHB * nbatch * numNeurons];
+      float *GSynGap   = &GSynHead[CHANNEL_GAP * nbatch * numNeurons];
+      float *GSynNorm  = &GSynHead[CHANNEL_NORM * nbatch * numNeurons];
       float l_GSynExc  = GSynExc[k];
       float l_GSynInh  = GSynInh[k];
       float l_GSynInhB = GSynInhB[k];
       float l_GSynGap  = GSynGap[k];
       float l_GSynNorm = normalizeInputFlag ? GSynNorm[k] : 1.0f;
-      
+
       // define local param variables
       //
-      tau        = params->tau;
-      Vexc       = params->Vexc;
-      Vinh       = params->Vinh;
-      VinhB      = params->VinhB;
-      Vrest      = params->Vrest;
+      tau   = params->tau;
+      Vexc  = params->Vexc;
+      Vinh  = params->Vinh;
+      VinhB = params->VinhB;
+      Vrest = params->Vrest;
 
       VthRest  = params->VthRest;
       deltaVth = params->deltaVth;
       deltaGIB = params->deltaGIB;
 
-      if (normalizeInputFlag && l_GSynNorm==0 && l_GSynExc != 0) {
-         pvErrorNoExit().printf("time = %f, k = %d, normalizeInputFlag is true but GSynNorm is zero and l_GSynExc = %f\n", timed, k, (double)l_GSynExc);
+      if (normalizeInputFlag && l_GSynNorm == 0 && l_GSynExc != 0) {
+         pvErrorNoExit().printf(
+               "time = %f, k = %d, normalizeInputFlag is true but GSynNorm is zero and l_GSynExc = "
+               "%f\n",
+               timed,
+               k,
+               (double)l_GSynExc);
          abort();
       }
-      l_GSynExc /= (l_GSynNorm + (l_GSynNorm==0 ? 1 : 0));
+      l_GSynExc /= (l_GSynNorm + (l_GSynNorm == 0 ? 1 : 0));
       GSynExcEffective[k] = l_GSynExc;
       GSynInhEffective[k] = l_GSynInh;
 
       // add noise
       //
       excitatoryNoise[k] = 0.0f;
-      l_rnd = cl_random_get(l_rnd);
-      if (cl_random_prob(l_rnd) < dt_sec*params->noiseFreqE) {
-         l_rnd = cl_random_get(l_rnd);
-         excitatoryNoise[k] = params->noiseAmpE*cl_random_prob(l_rnd);
-         l_GSynExc = l_GSynExc + excitatoryNoise[k];
+      l_rnd              = cl_random_get(l_rnd);
+      if (cl_random_prob(l_rnd) < dt_sec * params->noiseFreqE) {
+         l_rnd              = cl_random_get(l_rnd);
+         excitatoryNoise[k] = params->noiseAmpE * cl_random_prob(l_rnd);
+         l_GSynExc          = l_GSynExc + excitatoryNoise[k];
       }
 
       inhibitoryNoise[k] = 0.0f;
-      l_rnd = cl_random_get(l_rnd);
-      float r = cl_random_prob(l_rnd);
-      if (r < dt_sec*params->noiseFreqI) {
-         l_rnd = cl_random_get(l_rnd);
-         r = cl_random_prob(l_rnd);
-         inhibitoryNoise[k] = params->noiseAmpI*r;
-         l_GSynInh = l_GSynInh + inhibitoryNoise[k];
+      l_rnd              = cl_random_get(l_rnd);
+      float r            = cl_random_prob(l_rnd);
+      if (r < dt_sec * params->noiseFreqI) {
+         l_rnd              = cl_random_get(l_rnd);
+         r                  = cl_random_prob(l_rnd);
+         inhibitoryNoise[k] = params->noiseAmpI * r;
+         l_GSynInh          = l_GSynInh + inhibitoryNoise[k];
       }
 
       inhibNoiseB[k] = 0.0f;
-      l_rnd = cl_random_get(l_rnd);
-      if (cl_random_prob(l_rnd) < dt_sec*params->noiseFreqIB) {
-         l_rnd = cl_random_get(l_rnd);
-         inhibNoiseB[k] = params->noiseAmpIB*cl_random_prob(l_rnd);
-         l_GSynInhB = l_GSynInhB + inhibNoiseB[k];
+      l_rnd          = cl_random_get(l_rnd);
+      if (cl_random_prob(l_rnd) < dt_sec * params->noiseFreqIB) {
+         l_rnd          = cl_random_get(l_rnd);
+         inhibNoiseB[k] = params->noiseAmpIB * cl_random_prob(l_rnd);
+         l_GSynInhB     = l_GSynInhB + inhibNoiseB[k];
       }
 
       const float GMAX = FLT_MAX;
@@ -437,54 +515,69 @@ void LCALIF_update_state(
       float G_E_initial, G_I_initial, G_IB_initial, G_E_final, G_I_final, G_IB_final;
       float tau_inf_initial, tau_inf_final, V_inf_initial, V_inf_final;
 
-      G_E_initial = l_G_E + l_GSynExc;
-      G_I_initial = l_G_I + l_GSynInh;
-      G_IB_initial = l_G_IB + l_GSynInhB;
+      G_E_initial     = l_G_E + l_GSynExc;
+      G_I_initial     = l_G_I + l_GSynInh;
+      G_IB_initial    = l_G_IB + l_GSynInhB;
       tau_inf_initial = LCALIF_tauInf(tau, G_E_initial, G_I_initial, G_IB_initial, l_gapStrength);
 
-      V_inf_initial = LCALIF_VmemInf(Vrest, Vexc, Vinh, VinhB, G_E_initial, G_I_initial, G_IB_initial, l_GSynGap, l_gapStrength);
+      V_inf_initial = LCALIF_VmemInf(
+            Vrest,
+            Vexc,
+            Vinh,
+            VinhB,
+            G_E_initial,
+            G_I_initial,
+            G_IB_initial,
+            l_GSynGap,
+            l_gapStrength);
 
-      G_E_initial  = (G_E_initial  > GMAX) ? GMAX : G_E_initial;
-      G_I_initial  = (G_I_initial  > GMAX) ? GMAX : G_I_initial;
+      G_E_initial  = (G_E_initial > GMAX) ? GMAX : G_E_initial;
+      G_I_initial  = (G_I_initial > GMAX) ? GMAX : G_I_initial;
       G_IB_initial = (G_IB_initial > GMAX) ? GMAX : G_IB_initial;
 
       float totalconductance = 1.0f + G_E_initial + G_I_initial + G_IB_initial + l_gapStrength;
-      Vmeminf[k] = (Vrest + Vexc*G_E_initial + Vinh*G_I_initial + VinhB*G_IB_initial + l_GSynGap)/totalconductance;
+      Vmeminf[k] =
+            (Vrest + Vexc * G_E_initial + Vinh * G_I_initial + VinhB * G_IB_initial + l_GSynGap)
+            / totalconductance;
 
-      G_E_final = G_E_initial * decayE;
-      G_I_final = G_I_initial * decayI;
-      G_IB_final = G_IB_initial * decayIB;
+      G_E_final     = G_E_initial * decayE;
+      G_I_final     = G_I_initial * decayI;
+      G_IB_final    = G_IB_initial * decayIB;
       tau_inf_final = LCALIF_tauInf(tau, G_E_final, G_I_initial, G_IB_initial, l_gapStrength);
-      V_inf_final = LCALIF_VmemInf(Vrest, Vexc, Vinh, VinhB, G_E_final, G_I_final, G_IB_final, l_GSynGap, l_gapStrength);
+      V_inf_final   = LCALIF_VmemInf(
+            Vrest, Vexc, Vinh, VinhB, G_E_final, G_I_final, G_IB_final, l_GSynGap, l_gapStrength);
 
-      float tau_slope = (tau_inf_final-tau_inf_initial)/(float)dt;
-      float f1 = tau_slope==0.0f ? expf(-(float)dt/tau_inf_initial) : powf(tau_inf_final/tau_inf_initial, -1.0f/tau_slope);
-      float f2 = tau_slope==-1.0f ? tau_inf_initial/(float)dt*logf(tau_inf_final/tau_inf_initial+1.0f) :
-                                    (1.0f-tau_inf_initial/(float)dt*(1.0f-f1))/(1.0f+tau_slope);
+      float tau_slope = (tau_inf_final - tau_inf_initial) / (float)dt;
+      float f1        = tau_slope == 0.0f ? expf(-(float)dt / tau_inf_initial)
+                                   : powf(tau_inf_final / tau_inf_initial, -1.0f / tau_slope);
+      float f2 = tau_slope == -1.0f
+                       ? tau_inf_initial / (float)dt * logf(tau_inf_final / tau_inf_initial + 1.0f)
+                       : (1.0f - tau_inf_initial / (float)dt * (1.0f - f1)) / (1.0f + tau_slope);
       float f3 = 1.0f - f1 - f2;
-      l_V = f1*l_V + f2*V_inf_initial + f3*V_inf_final;
-      
-      l_G_E = G_E_final;
-      l_G_I = G_I_final;
+      l_V      = f1 * l_V + f2 * V_inf_initial + f3 * V_inf_final;
+
+      l_G_E  = G_E_final;
+      l_G_I  = G_I_final;
       l_G_IB = G_IB_final;
 
-      //l_Vth updates according to traditional LIF rule in addition to the slow threshold adaptation
-      //      See LCA_Equations.pdf in the documentation for a full description of the neuron adaptive firing threshold.
-      
+      // l_Vth updates according to traditional LIF rule in addition to the slow threshold
+      // adaptation
+      //      See LCA_Equations.pdf in the documentation for a full description of the neuron
+      //      adaptive firing threshold.
+
       Vadpt[k] = -60.0f;
 
       l_Vth = Vadpt[k] + decayVth * (l_Vth - Vadpt[k]);
-      
+
       bool fired_flag = (l_V > l_Vth);
 
-      l_activ = fired_flag ? 1.0f                 : 0.0f;
+      l_activ      = fired_flag ? 1.0f : 0.0f;
       Vattained[k] = l_V; // Save the value of V before it drops due to the spike
-      l_V     = fired_flag ? Vrest                : l_V;
-      l_Vth   = fired_flag ? l_Vth + deltaVth     : l_Vth;
-      l_G_IB  = fired_flag ? l_G_IB + deltaGIB    : l_G_IB;
+      l_V          = fired_flag ? Vrest : l_V;
+      l_Vth        = fired_flag ? l_Vth + deltaVth : l_Vth;
+      l_G_IB       = fired_flag ? l_G_IB + deltaGIB : l_G_IB;
 
-
-      //integratedSpikeCount is the trace activity of the neuron, with an exponential decay
+      // integratedSpikeCount is the trace activity of the neuron, with an exponential decay
       integratedSpikeCount[k] = decayO * (l_activ + integratedSpikeCount[k]);
 
       //

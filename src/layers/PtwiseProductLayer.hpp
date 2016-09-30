@@ -18,23 +18,30 @@
 namespace PV {
 
 class PtwiseProductLayer : public ANNLayer {
-public:
-   PtwiseProductLayer(const char * name, HyPerCol * hc);
+  public:
+   PtwiseProductLayer(const char *name, HyPerCol *hc);
    virtual ~PtwiseProductLayer();
 
    virtual int allocateDataStructures();
    virtual int updateState(double timef, double dt);
 
-protected:
+  protected:
    PtwiseProductLayer();
-   int initialize(const char * name, HyPerCol * hc);
+   int initialize(const char *name, HyPerCol *hc);
 
-   int updateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead);
+   int updateState(
+         double timef,
+         double dt,
+         const PVLayerLoc *loc,
+         pvdata_t *A,
+         pvdata_t *V,
+         int num_channels,
+         pvdata_t *gSynHead);
 
-private:
+  private:
    int initialize_base();
-};  // end class PtwiseProductLayer
+}; // end class PtwiseProductLayer
 
-}  // end namespace PV
+} // end namespace PV
 
 #endif /* PTWISEPRODUCTLAYER_HPP_ */

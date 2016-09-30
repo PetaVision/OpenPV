@@ -20,11 +20,11 @@
 #include <layers/ConstantLayer.hpp>
 #include <layers/FilenameParsingGroundTruthLayer.hpp>
 #include <layers/GapLayer.hpp>
-#include <layers/HyPerLayer.hpp>
 #include <layers/HyPerLCALayer.hpp>
+#include <layers/HyPerLayer.hpp>
 #include <layers/ISTALayer.hpp>
-#include <layers/ImageLayer.hpp>
 #include <layers/ImageFromMemoryBuffer.hpp>
+#include <layers/ImageLayer.hpp>
 #include <layers/KmeansLayer.hpp>
 #include <layers/LCALIFLayer.hpp>
 #include <layers/LIF.hpp>
@@ -38,18 +38,18 @@
 #include <layers/PtwiseQuotientLayer.hpp>
 #include <layers/PvpLayer.hpp>
 #include <layers/RescaleLayer.hpp>
-#include <layers/RunningAverageLayer.hpp>
 #include <layers/Retina.hpp>
+#include <layers/RunningAverageLayer.hpp>
 #include <layers/ShuffleLayer.hpp>
 #include <layers/SigmoidLayer.hpp>
 #include <layers/WTALayer.hpp>
 
-#include <connections/HyPerConn.hpp>
 #include <connections/CloneConn.hpp>
 #include <connections/CloneKernelConn.hpp>
 #include <connections/CopyConn.hpp>
 #include <connections/FeedbackConn.hpp>
 #include <connections/GapConn.hpp>
+#include <connections/HyPerConn.hpp>
 #include <connections/IdentConn.hpp>
 #include <connections/ImprintConn.hpp>
 #include <connections/KernelConn.hpp>
@@ -62,9 +62,9 @@
 
 #include <probes/AdaptiveTimeScaleProbe.hpp>
 #include <probes/ColumnEnergyProbe.hpp>
-#include <probes/QuotientColProbe.hpp>
 #include <probes/FirmThresholdCostFnLCAProbe.hpp>
 #include <probes/FirmThresholdCostFnProbe.hpp>
+#include <probes/KernelProbe.hpp>
 #include <probes/L0NormLCAProbe.hpp>
 #include <probes/L0NormProbe.hpp>
 #include <probes/L1NormLCAProbe.hpp>
@@ -72,11 +72,10 @@
 #include <probes/L2NormProbe.hpp>
 #include <probes/PointLIFProbe.hpp>
 #include <probes/PointProbe.hpp>
+#include <probes/QuotientColProbe.hpp>
 #include <probes/RequireAllZeroActivityProbe.hpp>
 #include <probes/StatsProbe.hpp>
-#include <probes/KernelProbe.hpp>
 
-#include <weightinit/InitWeights.hpp>
 #include <weightinit/InitCocircWeights.hpp>
 #include <weightinit/InitGauss2DWeights.hpp>
 #include <weightinit/InitGaussianRandomWeights.hpp>
@@ -88,6 +87,7 @@
 #include <weightinit/InitSpreadOverArborsWeights.hpp>
 #include <weightinit/InitUniformRandomWeights.hpp>
 #include <weightinit/InitUniformWeights.hpp>
+#include <weightinit/InitWeights.hpp>
 
 #include <normalizers/NormalizeContrastZeroMean.hpp>
 #include <normalizers/NormalizeGroup.hpp>
@@ -97,18 +97,15 @@
 
 namespace PV {
 
-Factory::Factory() {
-   registerCoreKeywords();
-}
+Factory::Factory() { registerCoreKeywords(); }
 
 int Factory::registerCoreKeywords() {
-   keywordHandlerList = std::vector<KeywordHandler*>();
+   keywordHandlerList = std::vector<KeywordHandler *>();
 
-   registerKeyword("Image",    Factory::create<BaseInputDeprecatedError>);
-   registerKeyword("Movie",    Factory::create<BaseInputDeprecatedError>); 
-   registerKeyword("ImagePvp", Factory::create<BaseInputDeprecatedError>); 
-   registerKeyword("MoviePvp", Factory::create<BaseInputDeprecatedError>); 
-
+   registerKeyword("Image", Factory::create<BaseInputDeprecatedError>);
+   registerKeyword("Movie", Factory::create<BaseInputDeprecatedError>);
+   registerKeyword("ImagePvp", Factory::create<BaseInputDeprecatedError>);
+   registerKeyword("MoviePvp", Factory::create<BaseInputDeprecatedError>);
 
    registerKeyword("ANNErrorLayer", Factory::create<ANNErrorLayer>);
    registerKeyword("ANNLayer", Factory::create<ANNLayer>);
@@ -118,12 +115,13 @@ int Factory::registerCoreKeywords() {
    registerKeyword("BinningLayer", Factory::create<BinningLayer>);
    registerKeyword("CloneVLayer", Factory::create<CloneVLayer>);
    registerKeyword("ConstantLayer", Factory::create<ConstantLayer>);
-   registerKeyword("FilenameParsingGroundTruthLayer", Factory::create<FilenameParsingGroundTruthLayer>);
+   registerKeyword(
+         "FilenameParsingGroundTruthLayer", Factory::create<FilenameParsingGroundTruthLayer>);
    registerKeyword("GapLayer", Factory::create<GapLayer>);
    registerKeyword("HyPerLayer", Factory::create<HyPerLayer>);
    registerKeyword("HyPerLCALayer", Factory::create<HyPerLCALayer>);
    registerKeyword("ISTALayer", Factory::create<ISTALayer>);
-   
+
    registerKeyword("ImageLayer", Factory::create<ImageLayer>);
    registerKeyword("PvpLayer", Factory::create<PvpLayer>);
    registerKeyword("ImageFromMemoryBuffer", Factory::create<ImageFromMemoryBuffer>);
@@ -198,29 +196,30 @@ int Factory::registerCoreKeywords() {
    return PV_SUCCESS;
 }
 
-int Factory::copyKeywordHandlerList(std::vector<KeywordHandler*> const& orig) {
-   for (auto& kh : orig) {
+int Factory::copyKeywordHandlerList(std::vector<KeywordHandler *> const &orig) {
+   for (auto &kh : orig) {
       registerKeyword(kh->getKeyword(), kh->getCreator());
    }
    return PV_SUCCESS;
 }
 
-int Factory::registerKeyword(char const * keyword, ObjectCreateFn creator) {
-   KeywordHandler const * keywordHandler = getKeywordHandler(keyword);
+int Factory::registerKeyword(char const *keyword, ObjectCreateFn creator) {
+   KeywordHandler const *keywordHandler = getKeywordHandler(keyword);
    if (keywordHandler != nullptr) {
       return PV_FAILURE;
    }
-   KeywordHandler * newKeyword = new KeywordHandler(keyword, creator);
+   KeywordHandler *newKeyword = new KeywordHandler(keyword, creator);
    keywordHandlerList.push_back(newKeyword);
    return PV_SUCCESS;
 }
 
-BaseObject * Factory::createByKeyword(char const * keyword, char const * name, HyPerCol * hc) const {
+BaseObject *Factory::createByKeyword(char const *keyword, char const *name, HyPerCol *hc) const {
    // Sep 21, 2016: PtwiseLinearTransferLayer marked obsolete.
    if (!strcmp(keyword, "PtwiseLinearTransferLayer")) {
-      pvError() << keyword << " \"" << name << "\": PtwiseLinearTransferLayer is obsolete. Use ANNLayer instead.\n";
+      pvError() << keyword << " \"" << name
+                << "\": PtwiseLinearTransferLayer is obsolete. Use ANNLayer instead.\n";
    }
-   KeywordHandler const * keywordHandler = getKeywordHandler(keyword);
+   KeywordHandler const *keywordHandler = getKeywordHandler(keyword);
    if (keywordHandler == nullptr) {
       auto errorString = std::string("Unrecognized keyword ").append(keyword);
       throw std::invalid_argument(errorString);
@@ -228,8 +227,8 @@ BaseObject * Factory::createByKeyword(char const * keyword, char const * name, H
    return keywordHandler ? keywordHandler->create(name, hc) : nullptr;
 }
 
-KeywordHandler const * Factory::getKeywordHandler(char const * keyword) const {
-   for (auto& typeCreator : keywordHandlerList) {
+KeywordHandler const *Factory::getKeywordHandler(char const *keyword) const {
+   for (auto &typeCreator : keywordHandlerList) {
       if (!strcmp(typeCreator->getKeyword(), keyword)) {
          return typeCreator;
       }
@@ -238,16 +237,13 @@ KeywordHandler const * Factory::getKeywordHandler(char const * keyword) const {
 }
 
 int Factory::clearKeywordHandlerList() {
-   for (auto& kh : keywordHandlerList) {
+   for (auto &kh : keywordHandlerList) {
       delete kh;
    }
    keywordHandlerList.clear();
    return PV_SUCCESS;
 }
 
-
-Factory::~Factory() {
-   clearKeywordHandlerList();
-}
+Factory::~Factory() { clearKeywordHandlerList(); }
 
 } /* namespace PV */

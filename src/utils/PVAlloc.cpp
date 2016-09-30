@@ -1,7 +1,7 @@
-#include <stdio.h>
-#include <stdarg.h>
 #include "PVAlloc.hpp"
 #include "utils/PVLog.hpp"
+#include <stdarg.h>
+#include <stdio.h>
 
 namespace PV {
 
@@ -58,5 +58,4 @@ void *pv_calloc(const char *file, int line, size_t count, size_t size, const cha
    }
    return ptr;
 }
-
 }

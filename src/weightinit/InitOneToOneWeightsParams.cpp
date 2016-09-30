@@ -9,19 +9,14 @@
 
 namespace PV {
 
-InitOneToOneWeightsParams::InitOneToOneWeightsParams()
-{
-   initialize_base();
-}
-InitOneToOneWeightsParams::InitOneToOneWeightsParams(const char * name, HyPerCol * hc)
-                     : InitWeightsParams() {
+InitOneToOneWeightsParams::InitOneToOneWeightsParams() { initialize_base(); }
+InitOneToOneWeightsParams::InitOneToOneWeightsParams(const char *name, HyPerCol *hc)
+      : InitWeightsParams() {
    initialize_base();
    initialize(name, hc);
 }
 
-InitOneToOneWeightsParams::~InitOneToOneWeightsParams()
-{
-}
+InitOneToOneWeightsParams::~InitOneToOneWeightsParams() {}
 
 int InitOneToOneWeightsParams::initialize_base() {
 
@@ -29,7 +24,7 @@ int InitOneToOneWeightsParams::initialize_base() {
    return 1;
 }
 
-int InitOneToOneWeightsParams::initialize(const char * name, HyPerCol * hc) {
+int InitOneToOneWeightsParams::initialize(const char *name, HyPerCol *hc) {
    return InitWeightsParams::initialize(name, hc);
 }
 
@@ -46,6 +41,5 @@ void InitOneToOneWeightsParams::ioParam_weightInit(enum ParamsIOFlag ioFlag) {
 void InitOneToOneWeightsParams::calcOtherParams(int patchIndex) {
    this->getcheckdimensionsandstrides();
 }
-
 
 } /* namespace PV */

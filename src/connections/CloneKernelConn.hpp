@@ -14,17 +14,16 @@ namespace PV {
 
 class CloneKernelConn : public CloneConn {
 
-public:
-   CloneKernelConn(const char * name, HyPerCol * hc);
+  public:
+   CloneKernelConn(const char *name, HyPerCol *hc);
    virtual ~CloneKernelConn();
 
-protected:
+  protected:
    CloneKernelConn();
-   int initialize(const char * name, HyPerCol * hc);
-
+   int initialize(const char *name, HyPerCol *hc);
 
 }; // end class CloneKernelConn
 
-}  // end namespace PV
+} // end namespace PV
 
 #endif /* CLONEKERNELCONN_HPP_ */

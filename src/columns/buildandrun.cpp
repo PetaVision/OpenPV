@@ -34,25 +34,30 @@ using namespace PV;
 // Older versions of buildandrun, that used the now-obsolete customgroups function
 // pointer system or the now-obsolete ParamGroupHandler class, were removed
 // July 27, 2016.
-int buildandrun(int argc, char * argv[],
-                int (*custominit)(HyPerCol *, int, char **),
-                int (*customexit)(HyPerCol *, int, char **)) {
-   PV_Init initObj(&argc, &argv, false/*value of allowUnrecognizedArguments*/);
+int buildandrun(
+      int argc,
+      char *argv[],
+      int (*custominit)(HyPerCol *, int, char **),
+      int (*customexit)(HyPerCol *, int, char **)) {
+   PV_Init initObj(&argc, &argv, false /*value of allowUnrecognizedArguments*/);
    int status = buildandrun(&initObj, custominit, customexit);
    return status;
 }
 
-int buildandrun(PV_Init * initObj,
-                int (*custominit)(HyPerCol *, int, char **),
-                int (*customexit)(HyPerCol *, int, char **)) {
-   if(initObj->isExtraProc()){
+int buildandrun(
+      PV_Init *initObj,
+      int (*custominit)(HyPerCol *, int, char **),
+      int (*customexit)(HyPerCol *, int, char **)) {
+   if (initObj->isExtraProc()) {
       return 0;
    }
-   PVParams * params = initObj->getParams();
-   if (params==NULL) {
-      if (initObj->getWorldRank()==0) {
-         char const * progName = initObj->getProgramName();
-         if (progName==NULL) { progName = "PetaVision"; }
+   PVParams *params = initObj->getParams();
+   if (params == NULL) {
+      if (initObj->getWorldRank() == 0) {
+         char const *progName = initObj->getProgramName();
+         if (progName == NULL) {
+            progName = "PetaVision";
+         }
          pvErrorNoExit().printf("%s was called without having set a params file\n", progName);
       }
       MPI_Barrier(initObj->getCommunicator()->communicator());
@@ -63,18 +68,20 @@ int buildandrun(PV_Init * initObj,
 
    int status = PV_SUCCESS;
    if (numParamSweepValues) {
-      for (int k=0; k<numParamSweepValues; k++) {
-         if (initObj->getWorldRank()==0) {
-            pvInfo().printf("Parameter sweep: starting run %d of %d\n", k+1, numParamSweepValues);
+      for (int k = 0; k < numParamSweepValues; k++) {
+         if (initObj->getWorldRank() == 0) {
+            pvInfo().printf("Parameter sweep: starting run %d of %d\n", k + 1, numParamSweepValues);
          }
-         status = buildandrun1paramset(initObj, custominit, customexit, k) == PV_SUCCESS ? status : PV_FAILURE;
+         status = buildandrun1paramset(initObj, custominit, customexit, k) == PV_SUCCESS
+                        ? status
+                        : PV_FAILURE;
       }
-   }
-   else{
-      if(initObj->getCommunicator()->numCommBatches() > 1){
+   } else {
+      if (initObj->getCommunicator()->numCommBatches() > 1) {
          initObj->getParams()->setBatchSweepValues();
       }
-      status = buildandrun1paramset(initObj, custominit, customexit) == PV_SUCCESS ? status : PV_FAILURE;
+      status = buildandrun1paramset(initObj, custominit, customexit) == PV_SUCCESS ? status
+                                                                                   : PV_FAILURE;
    }
 
    return status;
@@ -82,43 +89,48 @@ int buildandrun(PV_Init * initObj,
 
 // A synonym for the form of buildandrun() that takes a PV_Init object.
 // It is older than that form, and has been kept for backwards compatibility.
-int rebuildandrun(PV_Init * initObj,
-                int (*custominit)(HyPerCol *, int, char **),
-                int (*customexit)(HyPerCol *, int, char **)) {
+int rebuildandrun(
+      PV_Init *initObj,
+      int (*custominit)(HyPerCol *, int, char **),
+      int (*customexit)(HyPerCol *, int, char **)) {
    return buildandrun(initObj, custominit, customexit);
 }
 
-int buildandrun1paramset(PV_Init * initObj,
-                         int (*custominit)(HyPerCol *, int, char **),
-                         int (*customexit)(HyPerCol *, int, char **),
-                         int sweepindex) {
-   if (sweepindex>=0) { initObj->getParams()->setParameterSweepValues(sweepindex); }
-   HyPerCol * hc = createHyPerCol(initObj);
-   if( hc == nullptr ) return PV_FAILURE;  // createHyPerCol() prints any error message
+int buildandrun1paramset(
+      PV_Init *initObj,
+      int (*custominit)(HyPerCol *, int, char **),
+      int (*customexit)(HyPerCol *, int, char **),
+      int sweepindex) {
+   if (sweepindex >= 0) {
+      initObj->getParams()->setParameterSweepValues(sweepindex);
+   }
+   HyPerCol *hc = createHyPerCol(initObj);
+   if (hc == nullptr)
+      return PV_FAILURE; // createHyPerCol() prints any error message
 
-   int status = PV_SUCCESS;
-   int argc = 0;
-   char ** argv = NULL;
+   int status  = PV_SUCCESS;
+   int argc    = 0;
+   char **argv = NULL;
    if (custominit || customexit) {
       argc = initObj->getNumArgs();
       argv = initObj->getArgsCopy();
    }
-   if( custominit != NULL ) {
+   if (custominit != NULL) {
       status = (*custominit)(hc, argc, argv);
-      if(status != PV_SUCCESS) {
+      if (status != PV_SUCCESS) {
          pvErrorNoExit().printf("custominit function failed with return value %d\n", status);
       }
    }
 
-   if( status==PV_SUCCESS && hc->getInitialStep() < hc->getFinalStep() ) {
+   if (status == PV_SUCCESS && hc->getInitialStep() < hc->getFinalStep()) {
       status = hc->run();
-      if( status != PV_SUCCESS ) {
+      if (status != PV_SUCCESS) {
          pvErrorNoExit().printf("HyPerCol::run() returned with error code %d\n", status);
       }
    }
-   if( status==PV_SUCCESS && customexit != NULL ) {
+   if (status == PV_SUCCESS && customexit != NULL) {
       status = (*customexit)(hc, argc, argv);
-      if( status != PV_SUCCESS) {
+      if (status != PV_SUCCESS) {
          pvErrorNoExit().printf("customexit function failed with return value %d\n", status);
       }
    }
@@ -129,7 +141,4 @@ int buildandrun1paramset(PV_Init * initObj,
    return status;
 }
 
-HyPerCol * build(PV_Init* initObj) {
-   return initObj ? createHyPerCol(initObj) : nullptr;
-}
-
+HyPerCol *build(PV_Init *initObj) { return initObj ? createHyPerCol(initObj) : nullptr; }

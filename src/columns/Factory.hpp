@@ -9,8 +9,8 @@
 #define FACTORY_HPP_
 
 #include <columns/KeywordHandler.hpp>
-#include <vector>
 #include <cstddef>
+#include <vector>
 
 namespace PV {
 
@@ -62,10 +62,9 @@ class BaseObject;
  * ...
  */
 class Factory {
-public:
-
-   static Factory * instance() {
-      static Factory * singleton = new Factory();
+  public:
+   static Factory *instance() {
+      static Factory *singleton = new Factory();
       return singleton;
    }
 
@@ -76,8 +75,8 @@ public:
     * with two arguments, the name and a pointer to the HyPerCol.
     */
    template <typename T>
-   static BaseObject * create(char const * name, HyPerCol * hc) {
-      return hc==nullptr ? nullptr : new T(name, hc);
+   static BaseObject *create(char const *name, HyPerCol *hc) {
+      return hc == nullptr ? nullptr : new T(name, hc);
    }
 
    /**
@@ -87,18 +86,19 @@ public:
     * creates an object of the corresponding keyword, with the given name and parent HyPerCol.
     * The function should return a pointer of type BaseObject, created with the new operator.
     */
-   int registerKeyword(char const * keyword, ObjectCreateFn creator);
+   int registerKeyword(char const *keyword, ObjectCreateFn creator);
 
    /**
     * The method to create an object of the type specified by keyword, with the given name
     * and parent HyPerCol.  It calls the function associated with the keyword by the
     * registerKeyword pointer.
     */
-   BaseObject * createByKeyword(char const * keyword, char const * name, HyPerCol * hc) const;
+   BaseObject *createByKeyword(char const *keyword, char const *name, HyPerCol *hc) const;
 
-private:
+  private:
    /**
-    * The constructor for Factory.  It initializes the list of known keywords to the core PetaVision keywords.
+    * The constructor for Factory.  It initializes the list of known keywords to the core PetaVision
+    * keywords.
     */
    Factory();
 
@@ -116,12 +116,12 @@ private:
     * A method used internally by the copy assignment operator and copy constructor,
     * to copy a keyword handler list into the Factory.
     */
-   int copyKeywordHandlerList(std::vector<KeywordHandler*> const& orig);
+   int copyKeywordHandlerList(std::vector<KeywordHandler *> const &orig);
 
    /**
     * A method used internally to retrieve the keyword handler corresponding to a given keyword.
     */
-   KeywordHandler const * getKeywordHandler(char const * keyword) const;
+   KeywordHandler const *getKeywordHandler(char const *keyword) const;
 
    /**
     * A method used internally by the copy assignment operator and destructor, to
@@ -129,11 +129,11 @@ private:
     */
    int clearKeywordHandlerList();
 
-// Member variables
-private:
-   std::vector<KeywordHandler *>keywordHandlerList;
+   // Member variables
+  private:
+   std::vector<KeywordHandler *> keywordHandlerList;
 }; // class Factory
 
-}  // namespace PV
+} // namespace PV
 
 #endif /* FACTORY_HPP_ */

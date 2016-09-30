@@ -4,6 +4,6 @@
 #include "columns/Communicator.hpp"
 #include <string>
 
-void testDataWithBroadcast(PV::Communicator * comm, std::string const& directory);
+void testDataWithBroadcast(PV::Communicator *comm, std::string const &directory);
 
 #endif // TESTDATAWITHBROADCAST_HPP_

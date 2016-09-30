@@ -2,48 +2,50 @@
 
 namespace PV {
 
-GateMaxPoolTestLayer::GateMaxPoolTestLayer(const char * name, HyPerCol * hc){
+GateMaxPoolTestLayer::GateMaxPoolTestLayer(const char *name, HyPerCol *hc) {
    ANNLayer::initialize(name, hc);
 }
 
-int GateMaxPoolTestLayer::updateState(double timef, double dt){
+int GateMaxPoolTestLayer::updateState(double timef, double dt) {
 
-   //Grab layer size
-   const PVLayerLoc* loc = getLayerLoc();
-   int nx = loc->nx;
-   int ny = loc->ny;
-   int nf = loc->nf;
-   int kx0 = loc->kx0;
-   int ky0 = loc->ky0;
-
+   // Grab layer size
+   const PVLayerLoc *loc = getLayerLoc();
+   int nx                = loc->nx;
+   int ny                = loc->ny;
+   int nf                = loc->nf;
+   int kx0               = loc->kx0;
+   int ky0               = loc->ky0;
 
    bool isCorrect = true;
-   for(int b = 0; b < loc->nbatch; b++){
-      pvdata_t * GSynExt = getChannel(CHANNEL_EXC) + b * getNumNeurons(); //gated
-      pvdata_t * GSynInh = getChannel(CHANNEL_INH) + b * getNumNeurons(); //gt
+   for (int b = 0; b < loc->nbatch; b++) {
+      pvdata_t *GSynExt = getChannel(CHANNEL_EXC) + b * getNumNeurons(); // gated
+      pvdata_t *GSynInh = getChannel(CHANNEL_INH) + b * getNumNeurons(); // gt
 
-      //Grab the activity layer of current layer
-      //We only care about restricted space
+      // Grab the activity layer of current layer
+      // We only care about restricted space
       int numActive = 0;
-      for (int k = 0; k < getNumNeurons(); k++){
-         if(GSynExt[k]){
+      for (int k = 0; k < getNumNeurons(); k++) {
+         if (GSynExt[k]) {
             numActive++;
-            if(GSynExt[k] != GSynInh[k]){
-                pvErrorNoExit() << "Connection " << name << " Mismatch at batch " << b << " neuron " << k << ": actual value: " << GSynExt[k] << " Expected value: " << GSynInh[k] << ".\n";
-                isCorrect = false;
+            if (GSynExt[k] != GSynInh[k]) {
+               pvErrorNoExit() << "Connection " << name << " Mismatch at batch " << b << " neuron "
+                               << k << ": actual value: " << GSynExt[k]
+                               << " Expected value: " << GSynInh[k] << ".\n";
+               isCorrect = false;
             }
          }
       }
-      
-      //Must be 25% active
-      float percentActive = (float)numActive/getNumNeurons();
-      if(percentActive != 0.25f){
-         pvError() << "Percent active for " << name << " is " << percentActive << ", where expected is .25 at timestep " << timef << " for batch " << b << "\n";
+
+      // Must be 25% active
+      float percentActive = (float)numActive / getNumNeurons();
+      if (percentActive != 0.25f) {
+         pvError() << "Percent active for " << name << " is " << percentActive
+                   << ", where expected is .25 at timestep " << timef << " for batch " << b << "\n";
       }
       pvErrorIf(!(percentActive == 0.25f), "Test failed.\n");
    }
 
-   if(!isCorrect){
+   if (!isCorrect) {
       exit(-1);
    }
    return PV_SUCCESS;

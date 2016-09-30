@@ -15,9 +15,9 @@
 namespace PV {
 
 // CloneLayer can be used to implement gap junctions between spiking neurons
-class GapLayer: public CloneVLayer {
-public:
-   GapLayer(const char * name, HyPerCol * hc);
+class GapLayer : public CloneVLayer {
+  public:
+   GapLayer(const char *name, HyPerCol *hc);
    virtual ~GapLayer();
 
    virtual int communicateInitInfo();
@@ -25,17 +25,23 @@ public:
 
    virtual int updateState(double timef, double dt);
 
-protected:
+  protected:
    GapLayer();
-   int initialize(const char * name, HyPerCol * hc);
-      // use LIFGap as source layer instead (LIFGap updates gap junctions more accurately)
+   int initialize(const char *name, HyPerCol *hc);
+   // use LIFGap as source layer instead (LIFGap updates gap junctions more accurately)
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual void ioParam_ampSpikelet(enum ParamsIOFlag ioFlag);
 
-   /* static */ int updateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, pvdata_t * checkActive);
+   /* static */ int updateState(
+         double timef,
+         double dt,
+         const PVLayerLoc *loc,
+         pvdata_t *A,
+         pvdata_t *V,
+         pvdata_t *checkActive);
    virtual int setActivity();
 
-private:
+  private:
    int initialize_base();
 
    // Handled in CloneVLayer
@@ -43,6 +49,6 @@ private:
 
 }; // class GapLayer
 
-}  // namespace PV
+} // namespace PV
 
 #endif /* GAPLAYER_HPP_ */

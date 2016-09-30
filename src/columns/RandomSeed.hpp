@@ -11,20 +11,21 @@
 namespace PV {
 
 class RandomSeed {
-public:
-   static RandomSeed * instance();
+  public:
+   static RandomSeed *instance();
    void initialize(unsigned int initialSeed);
    unsigned int allocate(unsigned int numRequested);
 
-private:
+  private:
    RandomSeed();
    virtual ~RandomSeed() {}
 
-public:
+  public:
    static unsigned int constexpr minSeed = 10000000U;
-private:
+
+  private:
    unsigned int mNextSeed = 0U;
-   bool mInitialized = false;
+   bool mInitialized      = false;
    // minSeed needs to be high enough that for the pseudorandom sequence to be good,
    // but must be less than (and should be much less than) ULONG_MAX/2
 };

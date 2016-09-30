@@ -7,12 +7,12 @@
 #ifndef BASEPROBE_HPP_
 #define BASEPROBE_HPP_
 
-#include <stdio.h>
-#include <vector>
-#include "include/pv_common.h"
 #include "columns/BaseObject.hpp"
+#include "include/pv_common.h"
 #include "io/FileStream.hpp"
 #include "io/io.hpp"
+#include <stdio.h>
+#include <vector>
 
 namespace PV {
 
@@ -24,8 +24,8 @@ class HyPerLayer;
  */
 class BaseProbe : public BaseObject {
 
-// Methods
-public:
+   // Methods
+  public:
    virtual ~BaseProbe();
 
    int ioParams(enum ParamsIOFlag ioFlag);
@@ -54,32 +54,33 @@ public:
     * are not fully implemented for that probe.
     */
    int getNumValues() { return numValues; }
-   
+
    /**
     * The public interface for calling the outputState method.
     * BaseConnection::outputStateWrapper calls outputState() if needUpdate() returns true.
     * This behavior is intended to be general, but the method can be overridden if needed.
     */
    virtual int outputStateWrapper(double timef, double dt);
-   
+
    /**
     * A pure virtual method for writing output to the output file.
     */
    virtual int outputState(double timef) = 0;
-   virtual int writeTimer(PrintStream &stream) {return PV_SUCCESS;}
-   
+   virtual int writeTimer(PrintStream &stream) { return PV_SUCCESS; }
+
    /**
     * Returns the name of the targetName parameter for this probe.
     * LayerProbe uses targetName to specify the layer to attach to;
     * BaseConnectionProbe uses it to specify the connection to attach to.
     */
-   const char * getTargetName() {return targetName;}
+   const char *getTargetName() { return targetName; }
 
    /**
-    * Returns the name of the energy probe the probe is attached to (null if not attached to an energy probe)
+    * Returns the name of the energy probe the probe is attached to (null if not attached to an
+    * energy probe)
     */
-   char const * getEnergyProbe() { return energyProbe; }
-   
+   char const *getEnergyProbe() { return energyProbe; }
+
    /**
     * Returns the coefficient if the energy probe is set.
     */
@@ -93,38 +94,41 @@ public:
    double getLastUpdateTime() { return lastUpdateTime; }
 
    /**
-    * getValues(double timevalue, double * values) sets the buffer 'values' with the probe's calculated values.
+    * getValues(double timevalue, double * values) sets the buffer 'values' with the probe's
+    * calculated values.
     * It assumes that the values buffer is large enough to hold getNumValues()
     * double-precision values.
     * If 'values' is NULL, the values are still updated internally if needed, but
     * those values are not returned.
     * Internally, getValues() calls calcValues() if needRecalc() is true.  It then
     * copies the probeValues buffer to the input argument buffer 'values'.
-    * Derived classes should not override or hide this method.  Instead, they should override calcValues.
+    * Derived classes should not override or hide this method.  Instead, they should override
+    * calcValues.
     */
-   int getValues(double timevalue, double * valuesVector);
+   int getValues(double timevalue, double *valuesVector);
    /**
     * getValues(double timevalue, vector<double> * valuesVector) is a wrapper around
     * getValues(double, double *) that uses C++ vectors.  It resizes valuesVector
     * to size getNumValues() and then fills the vector with the values returned by getValues.
     */
-   int getValues(double timevalue, std::vector<double> * valuesVector);
+   int getValues(double timevalue, std::vector<double> *valuesVector);
    /**
     * getValue() is meant for situations where the caller needs one value
     * that would be returned by getValues(), not the whole buffer.
     * getValue() returns a signaling NaN if index is out of bounds.  If index is valid,
     * getValue() calls calcValues() if needRecalc() returns true, and then
     * returns probeValues[index].
-    * Derived classes should not override or hide this method.  Instead, they should override calcValues.
+    * Derived classes should not override or hide this method.  Instead, they should override
+    * calcValues.
     */
    double getValue(double timevalue, int index);
 
-protected:
+  protected:
    BaseProbe();
-   int initialize(const char * probeName, HyPerCol * hc);
+   int initialize(const char *probeName, HyPerCol *hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
-   /** 
+   /**
     * List of parameters for the BaseProbe class
     * @name BaseProbe Parameters
     * @{
@@ -136,14 +140,16 @@ protected:
     * BaseConnectionProbe, targetName is used to define the targetConn.
     */
    virtual void ioParam_targetName(enum ParamsIOFlag ioFlag);
-   
+
    /**
-    * @brief message: A string parameter that is typically included in the lines output by the outputState method
+    * @brief message: A string parameter that is typically included in the lines output by the
+    * outputState method
     */
    virtual void ioParam_message(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief textOutputFlag: A boolean parameter that sets whether to generate an output file.  Defaults to true.
+    * @brief textOutputFlag: A boolean parameter that sets whether to generate an output file.
+    * Defaults to true.
     */
    virtual void ioParam_textOutputFlag(enum ParamsIOFlag ioFlag);
 
@@ -161,25 +167,25 @@ protected:
     * should be triggered.
     */
    virtual void ioParam_triggerFlag(enum ParamsIOFlag ioFlag);
-   
+
    /**
     * @brief triggerLayerName: If triggerFlag is true, triggerLayerName specifies the layer
     * to check for triggering.
     */
    virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag);
-   
+
    /**
     * @brief triggerOffset: If triggerFlag is true, triggerOffset specifies the
     * time interval *before* the triggerLayer's nextUpdate time that needUpdate() returns true.
     */
    virtual void ioParam_triggerOffset(enum ParamsIOFlag ioFlag);
-   
+
    /**
     * @brief energyProbe: If nonblank, specifies the name of a ColumnEnergyProbe
     * that this probe contributes an energy term to.
     */
    virtual void ioParam_energyProbe(enum ParamsIOFlag ioFlag);
-   
+
    /**
     * @brief coefficient: If energyProbe is set, the coefficient parameter specifies
     * that ColumnEnergyProbe multiplies the result of this probe's getValues() method
@@ -190,7 +196,7 @@ protected:
    virtual void ioParam_coefficient(enum ParamsIOFlag ioFlag);
    /** @} */
 
-   virtual int initOutputStream(const char * filename);
+   virtual int initOutputStream(const char *filename);
 
    /**
     * A pure virtual method for that should return true if the quantities being measured
@@ -229,28 +235,28 @@ protected:
     * (by calling calcValues) and sets lastUpdateTime to the timevalue input argument.
     */
    int getValues(double timevalue);
-   
+
    /**
     * Returns a pointer to the message parameter.
     */
-   const char * getMessage() {return msgstring;}
-   
+   const char *getMessage() { return msgstring; }
+
    /**
     * The method called by BaseProbe::initialize() to set the message used by
     * the probe's outputState method.
     */
-   virtual int initMessage(const char * msg);
-   
+   virtual int initMessage(const char *msg);
+
    /**
     * Returns a pointer to the PrintStream used by outputState.
     */
-   PrintStream * getOutputStream() {return outputStream;}
+   PrintStream *getOutputStream() { return outputStream; }
 
    /**
     * Returns a reference to the ostream that outputState writes to.
     */
-   PrintStream& output() { return *outputStream; }
-   
+   PrintStream &output() { return *outputStream; }
+
    /**
     * initNumValues is called by initialize.
     * BaseProbe::initNumValues sets numValues to the parent HyPerCol's getNBatch().
@@ -258,7 +264,7 @@ protected:
     * value.
     */
    virtual int initNumValues();
-   
+
    /**
     * Sets the numValues member variable (returned by getNumValues()) and reallocates
     * the probeValues member variable to hold numValues double-precision values.
@@ -267,11 +273,11 @@ protected:
     * Otherwise, PV_SUCCESS is returned.
     */
    int setNumValues(int n);
-   
+
    /**
     * Returns a pointer to the buffer containing the probeValues.
     */
-   double * getValuesBuffer() { return probeValues; }
+   double *getValuesBuffer() { return probeValues; }
 
    /**
     * Returns the value of the textOutputFlag parameter
@@ -293,33 +299,33 @@ protected:
     */
    virtual bool needUpdate(double time, double dt);
 
-private:
+  private:
    int initialize_base();
 
-// Member variables
-protected:
-   PrintStream * outputStream;
+   // Member variables
+  protected:
+   PrintStream *outputStream;
    bool triggerFlag;
-   char* triggerLayerName;
-   HyPerLayer * triggerLayer;
+   char *triggerLayerName;
+   HyPerLayer *triggerLayer;
    double triggerOffset;
-   char * targetName;
-   char * energyProbe; // the name of the ColumnEnergyProbe to attach to, if any.
+   char *targetName;
+   char *energyProbe; // the name of the ColumnEnergyProbe to attach to, if any.
    double coefficient;
 
-private:
-   char * msgparams; // the message parameter in the params
-   char * msgstring; // the string that gets printed by outputState ("" if message is empty or null; message + ":" if nonempty
-   char * probeOutputFilename;
+  private:
+   char *msgparams; // the message parameter in the params
+   char *msgstring; // the string that gets printed by outputState ("" if message is empty or null;
+                    // message + ":" if nonempty
+   char *probeOutputFilename;
    int numValues;
-   double * probeValues;
+   double *probeValues;
    double lastUpdateTime; // The time of the last time calcValues was called.
    bool textOutputFlag;
    bool writingToFile; // true outputStream is a FileStream
-   bool mInitInfoCommunicatedFlag = false;
+   bool mInitInfoCommunicatedFlag    = false;
    bool mDataStructuresAllocatedFlag = false;
 };
-
 }
 
 #endif /* BASEPROBE_HPP_ */

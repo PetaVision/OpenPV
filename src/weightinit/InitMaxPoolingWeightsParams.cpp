@@ -9,27 +9,19 @@
 
 namespace PV {
 
-InitMaxPoolingWeightsParams::InitMaxPoolingWeightsParams()
-{
-   initialize_base();
-}
+InitMaxPoolingWeightsParams::InitMaxPoolingWeightsParams() { initialize_base(); }
 
-InitMaxPoolingWeightsParams::InitMaxPoolingWeightsParams(const char * name, HyPerCol * hc)
-                     : InitWeightsParams() {
+InitMaxPoolingWeightsParams::InitMaxPoolingWeightsParams(const char *name, HyPerCol *hc)
+      : InitWeightsParams() {
    initialize_base();
    initialize(name, hc);
 }
 
-InitMaxPoolingWeightsParams::~InitMaxPoolingWeightsParams()
-{
-}
+InitMaxPoolingWeightsParams::~InitMaxPoolingWeightsParams() {}
 
-int InitMaxPoolingWeightsParams::initialize_base() {
+int InitMaxPoolingWeightsParams::initialize_base() { return PV_SUCCESS; }
 
-   return PV_SUCCESS;
-}
-
-int InitMaxPoolingWeightsParams::initialize(const char * name, HyPerCol * hc) {
+int InitMaxPoolingWeightsParams::initialize(const char *name, HyPerCol *hc) {
    return InitWeightsParams::initialize(name, hc);
 }
 

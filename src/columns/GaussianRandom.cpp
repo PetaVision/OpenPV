@@ -11,23 +11,19 @@ namespace PV {
 
 GaussianRandom::GaussianRandom(int count) {
    initialize_base();
-   initializeFromCount((unsigned int) count);
+   initializeFromCount((unsigned int)count);
 }
 
-GaussianRandom::GaussianRandom(const PVLayerLoc * locptr, bool isExtended) {
+GaussianRandom::GaussianRandom(const PVLayerLoc *locptr, bool isExtended) {
    initialize_base();
    initializeFromLoc(locptr, isExtended);
 }
 
-GaussianRandom::GaussianRandom() {
-   initialize_base();
-}
+GaussianRandom::GaussianRandom() { initialize_base(); }
 
-int GaussianRandom::initialize_base() {
-   return PV_SUCCESS;
-}
+int GaussianRandom::initialize_base() { return PV_SUCCESS; }
 
-int GaussianRandom::initializeGaussian(){
+int GaussianRandom::initializeGaussian() {
    int status = PV_SUCCESS;
    heldValues.assign(rngArray.size(), {false, 0.0});
    return status;
@@ -41,9 +37,9 @@ int GaussianRandom::initializeFromCount(unsigned int count) {
    return status;
 }
 
-int GaussianRandom::initializeFromLoc(const PVLayerLoc* locptr, bool isExtended) {
+int GaussianRandom::initializeFromLoc(const PVLayerLoc *locptr, bool isExtended) {
    int status = Random::initializeFromLoc(locptr, isExtended);
-   if(status == PV_SUCCESS){
+   if (status == PV_SUCCESS) {
       status = initializeGaussian();
    }
    return status;
@@ -54,17 +50,16 @@ float GaussianRandom::gaussianDist(int localIndex) {
    struct box_muller_data bmdata = heldValues[localIndex];
    if (bmdata.hasHeldValue) {
       y = bmdata.heldValue;
-   }
-   else {
+   } else {
       float w;
       do {
          x1 = 2.0f * uniformRandom(localIndex) - 1.0f;
          x2 = 2.0f * uniformRandom(localIndex) - 1.0f;
-         w = x1 * x1 + x2 * x2;
-      } while ( w >= 1.0f );
+         w  = x1 * x1 + x2 * x2;
+      } while (w >= 1.0f);
 
-      w = sqrtf( (-2.0f * logf( w ) ) / w );
-      y = x1 * w;
+      w                = sqrtf((-2.0f * logf(w)) / w);
+      y                = x1 * w;
       bmdata.heldValue = x2 * w;
    }
    bmdata.hasHeldValue = !bmdata.hasHeldValue;
@@ -72,8 +67,6 @@ float GaussianRandom::gaussianDist(int localIndex) {
    return y;
 }
 
-
-GaussianRandom::~GaussianRandom() {
-}
+GaussianRandom::~GaussianRandom() {}
 
 } /* namespace PV */

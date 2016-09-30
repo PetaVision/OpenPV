@@ -15,25 +15,29 @@ namespace PV {
 /**
  * A special case of FirmThresholdCostFnProbe, to be used when the target layer is an LCA layer
  * with a hard-threshold transfer function.  The corresponding cost function is the norm
- * measured by FirmThresholdCostFnProbe, with coefficient Vth, where Vth is the target LCA layer's VThresh.
+ * measured by FirmThresholdCostFnProbe, with coefficient Vth, where Vth is the target LCA layer's
+ * VThresh.
  */
-class FirmThresholdCostFnLCAProbe: public FirmThresholdCostFnProbe {
-public:
-   FirmThresholdCostFnLCAProbe(const char * probeName, HyPerCol * hc);
+class FirmThresholdCostFnLCAProbe : public FirmThresholdCostFnProbe {
+  public:
+   FirmThresholdCostFnLCAProbe(const char *probeName, HyPerCol *hc);
    virtual int communicateInitInfo();
    virtual ~FirmThresholdCostFnLCAProbe() {}
 
-protected:
+  protected:
    FirmThresholdCostFnLCAProbe();
-   int initFirmThresholdCostFnLCAProbe(const char * probeName, HyPerCol * hc)  { return initFirmThresholdCostFnProbe(probeName, hc); }
-   
+   int initFirmThresholdCostFnLCAProbe(const char *probeName, HyPerCol *hc) {
+      return initFirmThresholdCostFnProbe(probeName, hc);
+   }
+
    /**
     * FirmThresholdCostFnLCAProbe does not read coefficient from params,
     * but computes it from VThresh of the target layer.
     */
-   virtual void ioParam_coefficient(enum ParamsIOFlag ioFlag) {} // coefficient is set from targetLayer during communicateInitInfo.
+   virtual void ioParam_coefficient(enum ParamsIOFlag ioFlag) {
+   } // coefficient is set from targetLayer during communicateInitInfo.
 
-private:
+  private:
    int initialize_base() { return PV_SUCCESS; }
 }; // class FirmThresholdCostFnLCAProbe
 

@@ -6,25 +6,25 @@
 
 namespace PV {
 
-class Segmentify: public PV::HyPerLayer {
-public:
-   Segmentify(const char * name, HyPerCol * hc);
+class Segmentify : public PV::HyPerLayer {
+  public:
+   Segmentify(const char *name, HyPerCol *hc);
    virtual int communicateInitInfo();
    virtual int allocateDataStructures();
    virtual bool activityIsSpiking() { return false; }
    virtual ~Segmentify();
 
-protected:
+  protected:
    Segmentify();
-   int initialize(const char * name, HyPerCol * hc);
+   int initialize(const char *name, HyPerCol *hc);
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    void ioParam_originalLayerName(enum ParamsIOFlag ioFlag);
    void ioParam_segmentLayerName(enum ParamsIOFlag ioFlag);
-   //Defines the way to reduce values within a segment
-   //into a single scalar. Options are "average", "sum", and "max".
+   // Defines the way to reduce values within a segment
+   // into a single scalar. Options are "average", "sum", and "max".
    void ioParam_inputMethod(enum ParamsIOFlag ioFlag);
-   //Defines the way to fill the output segment with the
-   //reduced scalar method. Options are "centroid" and "fill"
+   // Defines the way to fill the output segment with the
+   // reduced scalar method. Options are "centroid" and "fill"
    void ioParam_outputMethod(enum ParamsIOFlag ioFlag);
    int allocateV();
    int initializeV();
@@ -33,33 +33,34 @@ protected:
    virtual int updateState(double timef, double dt);
 
    float calcNormDist(float xVal, float mean, float binSigma);
-private:
+
+  private:
    int initialize_base();
 
-protected:
+  protected:
    int checkLabelValBuf(int newSize);
    int buildLabelToIdx(int batchIdx);
    int calculateLabelVals(int batchIdx);
    int setOutputVals(int batchIdx);
 
-   char * originalLayerName;
-   HyPerLayer * originalLayer;
-   char * segmentLayerName;
-   SegmentLayer * segmentLayer;
+   char *originalLayerName;
+   HyPerLayer *originalLayer;
+   char *segmentLayerName;
+   SegmentLayer *segmentLayer;
 
-   //Reusing this buffer for batches
-   //Map to go from label to index into labelVals
+   // Reusing this buffer for batches
+   // Map to go from label to index into labelVals
    std::map<int, int> labelToIdx;
-   //Matrix to store values (one dim for features, one for # labels
+   // Matrix to store values (one dim for features, one for # labels
    int numLabelVals;
-   int* labelIdxBuf;
-   float** labelVals;
-   int** labelCount;
+   int *labelIdxBuf;
+   float **labelVals;
+   int **labelCount;
 
-   char* inputMethod;
-   char* outputMethod;
+   char *inputMethod;
+   char *outputMethod;
 
 }; // class Segmentify
 
 } /* namespace PV */
-#endif 
+#endif

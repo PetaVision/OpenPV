@@ -12,26 +12,26 @@
 
 namespace PV {
 
-class NormalizeL2: public PV::NormalizeMultiply {
+class NormalizeL2 : public PV::NormalizeMultiply {
    // Member functions
-public:
-   NormalizeL2(const char * name, HyPerCol * hc);
+  public:
+   NormalizeL2(const char *name, HyPerCol *hc);
    virtual ~NormalizeL2();
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual int normalizeWeights();
 
-protected:
+  protected:
    NormalizeL2();
-   int initialize(const char * name, HyPerCol * hc);
+   int initialize(const char *name, HyPerCol *hc);
 
    virtual void ioParam_minL2NormTolerated(enum ParamsIOFlag ioFlag);
 
-private:
+  private:
    int initialize_base();
 
    // Member variables
-protected:
+  protected:
    float minL2NormTolerated; // Error if sqrt(sum(weights^2)) in any patch is less than this amount.
 }; // class NormalizeL2
 

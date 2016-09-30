@@ -12,12 +12,12 @@
 
 namespace PV {
 
-class InitRandomWeightsParams: public PV::InitWeightsParams {
-public:
-   InitRandomWeightsParams(const char * name, HyPerCol * hc);
+class InitRandomWeightsParams : public PV::InitWeightsParams {
+  public:
+   InitRandomWeightsParams(const char *name, HyPerCol *hc);
    virtual ~InitRandomWeightsParams();
 
-protected:
+  protected:
    InitRandomWeightsParams();
 };
 

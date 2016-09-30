@@ -15,9 +15,9 @@
 
 #include "columns/BaseObject.hpp"
 #include "columns/HyPerCol.hpp"
-#include "io/io.hpp"
 #include "io/PVParams.hpp"
 #include "io/PrintStream.hpp"
+#include "io/io.hpp"
 
 namespace PV {
 
@@ -26,7 +26,7 @@ class BaseConnectionProbe;
 
 class BaseConnection : public BaseObject {
 
-public:
+  public:
    /**
     * Destructor for BaseConnection
     */
@@ -36,7 +36,8 @@ public:
     * Method for reading or writing the params from group in the parent HyPerCol's parameters.
     * The group from params is selected using the name of the connection.
     *
-    * Note that ioParams is not virtual.  To add parameters in a derived class, override ioParamFillGroup.
+    * Note that ioParams is not virtual.  To add parameters in a derived class, override
+    * ioParamFillGroup.
     */
    int ioParams(enum ParamsIOFlag ioFlag);
 
@@ -44,13 +45,17 @@ public:
 
    // manage the communicateInitInfo, allocateDataStructures, and initializeState stages.
    /**
-    * communicateInitInfo is used to allow connections and layers to set params and related member variables based on what other
-    * layers or connections are doing.  (For example, CloneConn sets many parameters the same as its originalConn.)
-    * After a connection is constructed, it is not properly initialized until communicateInitInfo(), allocateDataStructures(), and
+    * communicateInitInfo is used to allow connections and layers to set params and related member
+    * variables based on what other
+    * layers or connections are doing.  (For example, CloneConn sets many parameters the same as its
+    * originalConn.)
+    * After a connection is constructed, it is not properly initialized until communicateInitInfo(),
+    * allocateDataStructures(), and
     * initializeState() have been called.
     *
     * Return values:
-    *    PV_POSTPONE means that communicateInitInfo() cannot be run until other layers'/connections' own communicateInitInfo()
+    *    PV_POSTPONE means that communicateInitInfo() cannot be run until other layers'/connections'
+    * own communicateInitInfo()
     *    have been run successfully.
     *
     *    PV_SUCCESS and PV_FAILURE have their usual meanings.
@@ -63,20 +68,25 @@ public:
    /**
     * initializeState is used to set the initial values of the connection.
     * If the parent HyPerCol's checkpointReadFlag is set, it calls checkpointRead()
-    * If not, but the connection's initializeFromCheckpointFlag is set, it calls readStateFromCheckpoint().
+    * If not, but the connection's initializeFromCheckpointFlag is set, it calls
+    * readStateFromCheckpoint().
     * If neither of these flags is set, it calls setInitialValues.
-    * Note that derived classes must implement the methods checkpointRead(), readStateFromCheckpoint(), and setInitialValues().
+    * Note that derived classes must implement the methods checkpointRead(),
+    * readStateFromCheckpoint(), and setInitialValues().
     *
-    * After a connection is constructed, it is not properly initialized until communicateInitInfo(), allocateDataStructures(), and
+    * After a connection is constructed, it is not properly initialized until communicateInitInfo(),
+    * allocateDataStructures(), and
     * initializeState() have been called.
     *
     * Return values:
-    *    PV_POSTPONE means that initializeState() cannot be run until other layers'/connections' own initializeState()
+    *    PV_POSTPONE means that initializeState() cannot be run until other layers'/connections' own
+    * initializeState()
     *    have been run successfully.
     *
     *    PV_SUCCESS and PV_FAILURE have their usual meanings.
     *
-    * initializeState() is typically called by passing an InitializeStateMessage to respond(), which is
+    * initializeState() is typically called by passing an InitializeStateMessage to respond(), which
+    * is
     * usually done in HyPerCol::run.
     */
    virtual int initializeState() override final; // Not overridable because all connections should
@@ -84,7 +94,8 @@ public:
    // either checkpointRead() or setInitialValues(), both of which are virtual.
 
    /**
-    * A pure virtual function for writing the state of the connection to file(s) in the output directory.
+    * A pure virtual function for writing the state of the connection to file(s) in the output
+    * directory.
     * For example, HyPerConn writes the weights to a .pvp file with a schedule defined by
     * writeStep and initialWriteTime.
     */
@@ -102,26 +113,31 @@ public:
    virtual int finalizeUpdate(double timed, double dt) { return PV_SUCCESS; }
 
    /**
-    * A pure virtual function for modifying the post-synaptic layer's GSyn buffer based on the connection
+    * A pure virtual function for modifying the post-synaptic layer's GSyn buffer based on the
+    * connection
     * and the presynaptic activity
     */
    virtual int deliver() = 0;
 
    /**
-    * A pure virtual function for reading the state of the connection from the directory specified in cpDir.
+    * A pure virtual function for reading the state of the connection from the directory specified
+    * in cpDir.
     * On exit, *timeptr is the time at which the checkpoint was written.
-    * checkpointRead() should restore the state of the connection completely, so that restarting from a checkpoint
+    * checkpointRead() should restore the state of the connection completely, so that restarting
+    * from a checkpoint
     * is equivalent to having the run continue.
     *
     */
-   virtual int checkpointRead(const char * cpDir, double * timeptr) = 0;
+   virtual int checkpointRead(const char *cpDir, double *timeptr) = 0;
 
    /**
-    * A pure virtual function for writing the state of the connection to the directory specified in cpDir.
-    * checkpointWrite() should save the complete state of the connection, so that restarting from a checkpoint
+    * A pure virtual function for writing the state of the connection to the directory specified in
+    * cpDir.
+    * checkpointWrite() should save the complete state of the connection, so that restarting from a
+    * checkpoint
     * is equivalent to having the run continue.
     */
-   virtual int checkpointWrite(const char * cpDir) = 0;
+   virtual int checkpointWrite(const char *cpDir) = 0;
 
    /**
     * A pure virtual function for writing timing information.
@@ -137,55 +153,53 @@ public:
    /**
     * Adds the given probe to the list of probes.
     */
-   virtual int insertProbe(BaseConnectionProbe* p);
+   virtual int insertProbe(BaseConnectionProbe *p);
 
    /*
     * Returns the name of the connection's presynaptic layer.
     */
-   inline const char * getPreLayerName() {return preLayerName;}
+   inline const char *getPreLayerName() { return preLayerName; }
 
    /*
     * Returns the name of the connection's postsynaptic layer.
     */
-   inline const char * getPostLayerName() {return postLayerName;}
+   inline const char *getPostLayerName() { return postLayerName; }
 
    /*
     * Returns a pointer to the connection's presynaptic layer.
     */
-   inline HyPerLayer * preSynapticLayer() { return pre; }
+   inline HyPerLayer *preSynapticLayer() { return pre; }
 
    /*
     * Returns a pointer to the connection's postsynaptic layer.
     */
-   inline HyPerLayer * postSynapticLayer() { return post; }
+   inline HyPerLayer *postSynapticLayer() { return post; }
 
    /*
     * Returns a pointer to the connection's presynaptic layer.
     */
-   inline HyPerLayer * getPre() { return pre; }
+   inline HyPerLayer *getPre() { return pre; }
 
    /*
     * Returns a pointer to the connection's postsynaptic layer.
     */
-   inline HyPerLayer * getPost() { return post; }
+   inline HyPerLayer *getPost() { return post; }
 
    /*
     * Returns a pointer to the channel of the postsynaptic layer that the channel acts on.
     */
    inline ChannelType getChannel() { return channel; }
 
-   inline int numberOfAxonalArborLists() {
-      return numAxonalArborLists;
-   }
+   inline int numberOfAxonalArborLists() { return numAxonalArborLists; }
 
-   inline bool getPlasticityFlag() {
-      return plasticityFlag;
-   };
+   inline bool getPlasticityFlag() { return plasticityFlag; };
 
    /**
     * Returns the delay (in timesteps) belonging the given arbor.
     */
-   inline int getDelay(int arbor) { return (arbor >= 0 && arbor < this->numberOfAxonalArborLists()) ? delays[arbor] : -1; }
+   inline int getDelay(int arbor) {
+      return (arbor >= 0 && arbor < this->numberOfAxonalArborLists()) ? delays[arbor] : -1;
+   }
 
    inline bool getConvertRateToSpikeCount() { return convertRateToSpikeCount; }
    inline bool getReceiveGpu() { return receiveGpu; }
@@ -199,10 +213,9 @@ public:
     * Returns the probe with the indicated position in the list of probes.
     * It does not do sanity checking on the value of i.
     */
-   BaseConnectionProbe * getProbe(int i) { return probes[i]; }
+   BaseConnectionProbe *getProbe(int i) { return probes[i]; }
 
-protected:
-
+  protected:
    /**
     * The constructor implicitly called by derived classes' constructors.
     * It calls initialize_base(), but not initialize().
@@ -220,7 +233,7 @@ protected:
     * and calls (via ioParams) the virtual ioParamsFillGroup method,
     * which reads params from the parent HyPerCol's params.
     */
-   int initialize(const char * name, HyPerCol * hc);
+   int initialize(const char *name, HyPerCol *hc);
 
    /**
     * Sets the pre- and post-synaptic layer names according to the parent HyPerCol's params.
@@ -230,28 +243,30 @@ protected:
    virtual int setPreAndPostLayerNames();
 
    /**
-    * Sets the presynaptic layer name to the given string.  It is an error to try to set preLayerName
+    * Sets the presynaptic layer name to the given string.  It is an error to try to set
+    * preLayerName
     * after it has already been set, or to call setPreLayerName() with a NULL argument.
     */
-   void setPreLayerName(const char * preName);
+   void setPreLayerName(const char *preName);
 
    /**
-    * Sets the postsynaptic layer name to the given string.  It is an error to try to set postLayerName
+    * Sets the postsynaptic layer name to the given string.  It is an error to try to set
+    * postLayerName
     * after it has already been set, or to call setPostLayerName() with a NULL argument.
     */
-   void setPostLayerName(const char * postName);
+   void setPostLayerName(const char *postName);
 
    /**
     * Sets the presynaptic layer to the given layer.  It is an error to try to set preLayer
     * after it has already been set, or to call setPreLayerName() with a NULL argument.
     */
-   void setPreSynapticLayer(HyPerLayer * pre);
+   void setPreSynapticLayer(HyPerLayer *pre);
 
    /**
     * Sets the postsynaptic layer to the given layer.  It is an error to try to set postLayer
     * after it has already been set, or to call setPostLayerName() with a NULL argument.
     */
-   void setPostSynapticLayer(HyPerLayer * post);
+   void setPostSynapticLayer(HyPerLayer *post);
 
    /**
     * Sets the channel to the indicated argument.  It is an error to try to change channels
@@ -267,7 +282,8 @@ protected:
    void setDelay(int arborId, double delay);
 
    /**
-    * Sets the number of arbors to the indicated argument.  It is an error to try to change numArbors
+    * Sets the number of arbors to the indicated argument.  It is an error to try to change
+    * numArbors
     * after communicateInitInfo() has completed successfully.
     */
    void setNumberOfAxonalArborLists(int numArbors);
@@ -285,31 +301,43 @@ protected:
    /**
     * The default behavior of BaseConnection::handleMissingPreAndPostLayerNames.
     * It tries to parse the name argument of the connection in the form "PreLayerToPostLayer".
-    * Then "PreLayer" put into *preLayerNamePtr and "PostLayer" is put into *postLayerNamePtr, and PV_SUCCESS is returned.
-    * If name does not contain the string "To", or if it contains it in more than one place, then PV_FAILURE is returned
+    * Then "PreLayer" put into *preLayerNamePtr and "PostLayer" is put into *postLayerNamePtr, and
+    * PV_SUCCESS is returned.
+    * If name does not contain the string "To", or if it contains it in more than one place, then
+    * PV_FAILURE is returned
     * and *preLayerNamePtr and *postLayerNamePtr are not changed.
-    * rank is the rank of the process under MPI; the root process will print a message to the error stream if the routine fails; non-root process will not.
-    * This routine uses malloc to fill *{pre,post}LayerNamePtr, so the routine calling this one is responsible for freeing them.
+    * rank is the rank of the process under MPI; the root process will print a message to the error
+    * stream if the routine fails; non-root process will not.
+    * This routine uses malloc to fill *{pre,post}LayerNamePtr, so the routine calling this one is
+    * responsible for freeing them.
     */
-   static int inferPreAndPostFromConnName(const char * name, int rank, char ** preLayerNamePtr, char ** postLayerNamePtr);
-
+   static int inferPreAndPostFromConnName(
+         const char *name,
+         int rank,
+         char **preLayerNamePtr,
+         char **postLayerNamePtr);
 
    /**
-    * Sets *preLayerNamePtr and *postLayerNamePtr according to the preLayerName and postLayerName parameters in
+    * Sets *preLayerNamePtr and *postLayerNamePtr according to the preLayerName and postLayerName
+    * parameters in
     * the parameter group specified by the name and params arguments.
     */
-   int getPreAndPostLayerNames(const char * name, char ** preLayerNamePtr, char ** postLayerNamePtr);
+   int getPreAndPostLayerNames(const char *name, char **preLayerNamePtr, char **postLayerNamePtr);
 
    /**
-    * The virtual method for reading parameters from the parent HyPerCol's parameters, and writing to the output params file.
+    * The virtual method for reading parameters from the parent HyPerCol's parameters, and writing
+    * to the output params file.
     *
     * BaseConnection::ioParamsFillGroup reads/writes the paremeters
     * preLayerName, postLayerName, channelCode, delay, numAxonalArbors, and convertRateToSpikeCount.
     *
-    * Derived classes with additional parameters typically override ioParamsFillGroup to call the base class's ioParamsFillGroup
+    * Derived classes with additional parameters typically override ioParamsFillGroup to call the
+    * base class's ioParamsFillGroup
     * method and then call ioParam_[parametername] for each of their parameters.
-    * The ioParam_[parametername] methods should call the parent HyPerCol's ioParamValue() and related methods,
-    * to ensure that all parameters that get read also get written to the outputParams-generated file.
+    * The ioParam_[parametername] methods should call the parent HyPerCol's ioParamValue() and
+    * related methods,
+    * to ensure that all parameters that get read also get written to the outputParams-generated
+    * file.
     */
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
@@ -361,21 +389,26 @@ protected:
    // The warning issued if the params file contained preActivityIsNotRate was removed Aug 5, 2016.
 
    /**
-    * @brief convertRateToSpikeCount: If true, presynaptic activity should be converted from a rate to a count.
-    * @details If this flag is true and the presynaptic layer is not spiking, the activity will be interpreted
-    * as a spike rate, and will be converted to a spike count when delivering activity to the postsynaptic GSyn buffer.
+    * @brief convertRateToSpikeCount: If true, presynaptic activity should be converted from a rate
+    * to a count.
+    * @details If this flag is true and the presynaptic layer is not spiking, the activity will be
+    * interpreted
+    * as a spike rate, and will be converted to a spike count when delivering activity to the
+    * postsynaptic GSyn buffer.
     * If this flag is false, activity will not be converted.
     */
    virtual void ioParam_convertRateToSpikeCount(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief receiveGpu: If PetaVision was compiled with GPU acceleration and this flag is set to true, the connection uses the GPU to update the postsynaptic layer's GSyn.
+    * @brief receiveGpu: If PetaVision was compiled with GPU acceleration and this flag is set to
+    * true, the connection uses the GPU to update the postsynaptic layer's GSyn.
     * If compiled without GPU acceleration, it is an error to set this flag to true.
     */
    virtual void ioParam_receiveGpu(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief initializeFromCheckpointFlag: If set to true, initialize using checkpoint direcgtory set in HyPerCol.
+    * @brief initializeFromCheckpointFlag: If set to true, initialize using checkpoint direcgtory
+    * set in HyPerCol.
     * @details Checkpoint read directory must be set in HyPerCol to initialize from checkpoint.
     */
    virtual void ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag);
@@ -387,7 +420,7 @@ protected:
     * call this method as part of the implementation of checkpointRead
     * (for example, HyPerConn does this).
     */
-   virtual int readStateFromCheckpoint(const char * cpDir, double * timeptr) = 0;
+   virtual int readStateFromCheckpoint(const char *cpDir, double *timeptr) = 0;
 
    /**
     * A pure virtual method for initializing the connection if we are neither
@@ -398,11 +431,17 @@ protected:
     */
    virtual int setInitialValues() = 0;
 
-   virtual int respondConnectionUpdate(ConnectionUpdateMessage const * message) { return updateState(message->mTime, message->mDeltaT);  }
+   virtual int respondConnectionUpdate(ConnectionUpdateMessage const *message) {
+      return updateState(message->mTime, message->mDeltaT);
+   }
 
-   virtual int respondConnectionFinalizeUpdate(ConnectionFinalizeUpdateMessage const * message) { return finalizeUpdate(message->mTime, message->mDeltaT);  }
+   virtual int respondConnectionFinalizeUpdate(ConnectionFinalizeUpdateMessage const *message) {
+      return finalizeUpdate(message->mTime, message->mDeltaT);
+   }
 
-   virtual int respondConnectionOutput(ConnectionOutputMessage const * message) { return outputState(message->mTime);  }
+   virtual int respondConnectionOutput(ConnectionOutputMessage const *message) {
+      return outputState(message->mTime);
+   }
 
    /**
     * A pure virtual method whose implementation returns true
@@ -412,7 +451,8 @@ protected:
    virtual bool needUpdate(double time, double dt) = 0;
 
    /**
-    * Allocates the delays array and calls setDelay() for each arbor.  fDelayArray is an array of length size,
+    * Allocates the delays array and calls setDelay() for each arbor.  fDelayArray is an array of
+    * length size,
     * of delays, measured in the same units as the parent HyPerCol's dt.
     *
     * If size=0, all delays are set to zero.
@@ -420,23 +460,22 @@ protected:
     * If size=numArbors, delays[k] is calculated from fDelayArray[k].
     * If size is any other value, it is an error.
     */
-   virtual int initializeDelays(const float * fDelayArray, int size);
+   virtual int initializeDelays(const float *fDelayArray, int size);
 
    /**
     * Returns the maximum value of the delay array, as a number of timesteps
     */
    int maxDelaySteps();
-   
-private:
+
+  private:
    /**
     * Called by the constructor, initialize_base() sets member variables
     * to safe values (e.g. pointers to NULL) and parameters to default values.
     */
    int initialize_base();
 
-
-// static methods
-public:
+   // static methods
+  public:
    /**
     * Type-safe method of translating an integer channel_code into
     * an allowed channel type.  If channel_code corresponds to a
@@ -444,62 +483,50 @@ public:
     * function returns successfully.  Otherwise, *channel_type is undefined
     * and the function returns PV_FAILURE.
     */
-   static int decodeChannel(int channel_code, ChannelType * channel_type) {
+   static int decodeChannel(int channel_code, ChannelType *channel_type) {
       int status = PV_SUCCESS;
-      switch( channel_code ) {
-      case CHANNEL_EXC:
-         *channel_type = CHANNEL_EXC;
-         break;
-      case CHANNEL_INH:
-         *channel_type = CHANNEL_INH;
-         break;
-      case CHANNEL_INHB:
-         *channel_type = CHANNEL_INHB;
-         break;
-      case CHANNEL_GAP:
-         *channel_type = CHANNEL_GAP;
-         break;
-      case CHANNEL_NORM:
-         *channel_type = CHANNEL_NORM;
-         break;
-      case CHANNEL_NOUPDATE:
-         *channel_type = CHANNEL_NOUPDATE;
-         break;
-      default:
-         status = PV_FAILURE;
-         break;
+      switch (channel_code) {
+         case CHANNEL_EXC: *channel_type      = CHANNEL_EXC; break;
+         case CHANNEL_INH: *channel_type      = CHANNEL_INH; break;
+         case CHANNEL_INHB: *channel_type     = CHANNEL_INHB; break;
+         case CHANNEL_GAP: *channel_type      = CHANNEL_GAP; break;
+         case CHANNEL_NORM: *channel_type     = CHANNEL_NORM; break;
+         case CHANNEL_NOUPDATE: *channel_type = CHANNEL_NOUPDATE; break;
+         default: status                      = PV_FAILURE; break;
       }
       return status;
    }
 
-   int getDelayArraySize(){return delayArraySize;}
+   int getDelayArraySize() { return delayArraySize; }
 
-// member variables
-protected:
+   // member variables
+  protected:
    // connId was removed Aug 12, 2016.
-   char * preLayerName;
-   char * postLayerName;
-   HyPerLayer * pre;
-   HyPerLayer * post;
+   char *preLayerName;
+   char *postLayerName;
+   HyPerLayer *pre;
+   HyPerLayer *post;
    ChannelType channel;
    int numAxonalArborLists; // number of axonal arbors from presynaptic layer
    bool plasticityFlag;
-   bool convertRateToSpikeCount; // Whether to check if pre-layer is spiking and, if it is not, scale activity by dt to convert it to a spike count
+   bool convertRateToSpikeCount; // Whether to check if pre-layer is spiking and, if it is not,
+                                 // scale activity by dt to convert it to a spike count
    bool receiveGpu; // Whether to use GPU acceleration in updating post's GSyn
    bool initializeFromCheckpointFlag;
 
-   BaseConnectionProbe** probes; // probes used to output data
+   BaseConnectionProbe **probes; // probes used to output data
    int numProbes;
 
    bool initInfoCommunicatedFlag;
    bool dataStructuresAllocatedFlag;
    bool initialValuesSetFlag;
 
-private:
+  private:
    int delayArraySize;
-   int* delays; // delays[arborId] is the delay in timesteps (not units of dt) of the arborId'th arbor
-   float * fDelayArray; // delays[arborId] is the delay in units of dt of the arborId'th arbor
+   int *delays; // delays[arborId] is the delay in timesteps (not units of dt) of the arborId'th
+                // arbor
+   float *fDelayArray; // delays[arborId] is the delay in units of dt of the arborId'th arbor
 }; // end class BaseConnection
 
-}  // end namespace PV
+} // end namespace PV
 #endif // BASECONNECTION_HPP_

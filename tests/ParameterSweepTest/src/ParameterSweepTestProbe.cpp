@@ -9,14 +9,13 @@
 
 namespace PV {
 
-ParameterSweepTestProbe::ParameterSweepTestProbe(const char * probeName, HyPerCol * hc) {
+ParameterSweepTestProbe::ParameterSweepTestProbe(const char *probeName, HyPerCol *hc) {
    initParameterSweepTestProbe(probeName, hc);
 }
 
-ParameterSweepTestProbe::~ParameterSweepTestProbe() {
-}
+ParameterSweepTestProbe::~ParameterSweepTestProbe() {}
 
-int ParameterSweepTestProbe::initParameterSweepTestProbe(const char * probeName, HyPerCol * hc) {
+int ParameterSweepTestProbe::initParameterSweepTestProbe(const char *probeName, HyPerCol *hc) {
    int status = initStatsProbe(probeName, hc);
    return status;
 }
@@ -29,9 +28,7 @@ int ParameterSweepTestProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    return status;
 }
 
-void ParameterSweepTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
-   requireType(BufActivity);
-}
+void ParameterSweepTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) { requireType(BufActivity); }
 
 void ParameterSweepTestProbe::ioParam_expectedSum(enum ParamsIOFlag ioFlag) {
    getParent()->parameters()->ioParamValue(ioFlag, getName(), "expectedSum", &expectedSum, 0.0);
@@ -45,17 +42,17 @@ void ParameterSweepTestProbe::ioParam_expectedMax(enum ParamsIOFlag ioFlag) {
 }
 
 int ParameterSweepTestProbe::outputState(double timed) {
-   int status = StatsProbe::outputState(timed);
-   Communicator * icComm = getTargetLayer()->getParent()->getCommunicator();
-   const int rcvProc = 0;
-   if( icComm->commRank() != rcvProc ) {
+   int status           = StatsProbe::outputState(timed);
+   Communicator *icComm = getTargetLayer()->getParent()->getCommunicator();
+   const int rcvProc    = 0;
+   if (icComm->commRank() != rcvProc) {
       return 0;
    }
-   for(int b = 0; b < parent->getNBatch(); b++){
-      if (timed >= 3.0 ) {
-         pvErrorIf(!(fabs(expectedSum - sum[b])<1e-6), "Test failed.\n");
-         pvErrorIf(!(fabs(expectedMin - fMin[b])<1e-6), "Test failed.\n");
-         pvErrorIf(!(fabs(expectedMax - fMax[b])<1e-6), "Test failed.\n");
+   for (int b = 0; b < parent->getNBatch(); b++) {
+      if (timed >= 3.0) {
+         pvErrorIf(!(fabs(expectedSum - sum[b]) < 1e-6), "Test failed.\n");
+         pvErrorIf(!(fabs(expectedMin - fMin[b]) < 1e-6), "Test failed.\n");
+         pvErrorIf(!(fabs(expectedMax - fMax[b]) < 1e-6), "Test failed.\n");
       }
    }
    return status;

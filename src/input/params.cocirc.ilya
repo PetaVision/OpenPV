@@ -5,129 +5,129 @@
 //    be synchronized
 //
 
-HyPerCol "column" = {
-   nx = 64;
-   ny = 64;
-   dt = .5;
-};
+HyPerCol "column" = {nx = 64;
+ny                      = 64;
+dt                      = .5;
+}
+;
 
 //
 // Six layers, "Retina", "LGN", "LGN Inh", "V1", "V1 Inh", "V2"
 //
 
-HyPerLayer "Retina" = {
-   nx = 64;
-   ny = 64;
-   nf = 1;
-   
-   nBorder = 0;
+HyPerLayer "Retina" = {nx = 64;
+ny                        = 64;
+nf                        = 1;
 
-   beginStim = 100;//200;
-   endStim   = 300;//600;
+nBorder = 0;
 
-   invert  = 0.0;
-   uncolor = 1.0;               // if true, pixels>0 become 1.0
+beginStim = 100; // 200;
+endStim   = 300; // 600;
 
-   spikingFlag = 1;           // spike as poisson?
-   poissonEdgeProb  = .125;//.20;  //.125;      // if so, on probability
-   poissonBlankProb = 0.02;//.075; //.0125;     //       off probability
+invert  = 0.0;
+uncolor = 1.0; // if true, pixels>0 become 1.0
 
-   marginWidth = 0.0;           // set input to 0 within margin
-};
+spikingFlag      = 1; // spike as poisson?
+poissonEdgeProb  = .125; //.20;  //.125;      // if so, on probability
+poissonBlankProb = 0.02; //.075; //.0125;     //       off probability
 
-HyPerLayer "LGN" = {
-   nx = 64;
-   ny = 64;
-   nf = 1;    // only one orientation
-   no = 1;
-   nBorder = 0;
-   
-   noiseAmpE = 8.0;
-   noiseAmpI = 4.0;
-};
+marginWidth = 0.0; // set input to 0 within margin
+}
+;
 
-HyPerLayer "LGN Inh" = {
-   nx = 64;
-   ny = 64;
-   nf = 1;    // only one orientation
-   no = 1;
-   nBorder = 0;
-   
-   noiseAmpE = 8.0;
-   noiseAmpI = 4.0;
-};
+HyPerLayer "LGN" = {nx = 64;
+ny                     = 64;
+nf                     = 1; // only one orientation
+no                     = 1;
+nBorder                = 0;
 
-HyPerLayer "V1" = {
-   nx = 64;
-   ny = 64;
-   nf = 1;    // only one orientation
-   no = 1;
-   nBorder = 0;
-   
-   noiseAmpE = 0.0;//4.0;
-   noiseAmpI = 0.0;//4.0;
-   
-   noiseFreqE = 0.0;
-   noiseFreqI = 0.0;
-};
+noiseAmpE = 8.0;
+noiseAmpI = 4.0;
+}
+;
 
-HyPerLayer "V1 Inhibit" = {
-   nx = 64;
-   ny = 64;
-   nf = 1;
-   no = 1;
-   nBorder = 0;
-   
-   noiseAmpE = 0.0; //4.0;
-   noiseAmpI = 0.0; //4.0;
-};
+HyPerLayer "LGN Inh" = {nx = 64;
+ny                         = 64;
+nf                         = 1; // only one orientation
+no                         = 1;
+nBorder                    = 0;
 
-HyPerLayer "V2" = {
-   nx = 64;
-   ny = 64;
-   nf = 1;    // only one orientation
-   no = 1;
-   nBorder = 0;
-   
-   noiseAmpE = 4.0;
-   noiseAmpI = 4.0;
-};
+noiseAmpE = 8.0;
+noiseAmpI = 4.0;
+}
+;
 
-HyPerLayer "V2 Inh" = {
-   nx = 64;
-   ny = 64;
-   nf = 1;
-   no = 1;
-   nBorder = 0;
-   
-   noiseAmpE = 4.0;
-   noiseAmpI = 4.0;
-};
+HyPerLayer "V1" = {nx = 64;
+ny                    = 64;
+nf                    = 1; // only one orientation
+no                    = 1;
+nBorder               = 0;
 
-HyPerLayer "V4" = {
-   nx = 64;
-   ny = 64;
-   nf = 1;    // only one orientation
-   no = 1;
-   nBorder = 0;
-   
-   noiseAmpE = 4.0;
-   noiseAmpI = 4.0;
-};
+noiseAmpE = 0.0; // 4.0;
+noiseAmpI = 0.0; // 4.0;
 
-HyPerLayer "V4 Inh" = {
-   nx = 64;
-   ny = 64;
-   nf = 1;
-   no = 1;
-   nBorder = 0;
-   
-   noiseAmpE = 4.0;
-   noiseAmpI = 4.0;
-};
+noiseFreqE = 0.0;
+noiseFreqI = 0.0;
+}
+;
+
+HyPerLayer "V1 Inhibit" = {nx = 64;
+ny                            = 64;
+nf                            = 1;
+no                            = 1;
+nBorder                       = 0;
+
+noiseAmpE = 0.0; // 4.0;
+noiseAmpI = 0.0; // 4.0;
+}
+;
+
+HyPerLayer "V2" = {nx = 64;
+ny                    = 64;
+nf                    = 1; // only one orientation
+no                    = 1;
+nBorder               = 0;
+
+noiseAmpE = 4.0;
+noiseAmpI = 4.0;
+}
+;
+
+HyPerLayer "V2 Inh" = {nx = 64;
+ny                        = 64;
+nf                        = 1;
+no                        = 1;
+nBorder                   = 0;
+
+noiseAmpE = 4.0;
+noiseAmpI = 4.0;
+}
+;
+
+HyPerLayer "V4" = {nx = 64;
+ny                    = 64;
+nf                    = 1; // only one orientation
+no                    = 1;
+nBorder               = 0;
+
+noiseAmpE = 4.0;
+noiseAmpI = 4.0;
+}
+;
+
+HyPerLayer "V4 Inh" = {nx = 64;
+ny                        = 64;
+nf                        = 1;
+no                        = 1;
+nBorder                   = 0;
+
+noiseAmpE = 4.0;
+noiseAmpI = 4.0;
+}
+;
 
 //
-// 9 connections, 
+// 9 connections,
 //    "Retina to LGN"
 //    "Retina to LGN Inh"
 //    "LGN Inh to LGN"
@@ -139,511 +139,509 @@ HyPerLayer "V4 Inh" = {
 //    "V1 to V2"
 //
 
-HyPerConn "Retina to LGN" = {
-   nxp = 1;
-   nyp = 1;
-   strength = 70.0;
+HyPerConn "Retina to LGN" = {nxp = 1;
+nyp                              = 1;
+strength                         = 70.0;
 
-   rotate = 1.0;
-   invert = 0.0;
+rotate = 1.0;
+invert = 0.0;
 
-   aspect = 1.0;
-   sigma  = 1.0;
-   rMax   = 100.0;
-};
+aspect = 1.0;
+sigma  = 1.0;
+rMax   = 100.0;
+}
+;
 
-HyPerConn "Retina to V1" = {
-   nxp = 1;
-   nyp = 1;
-   strength = 25.0;
+HyPerConn "Retina to V1" = {nxp = 1;
+nyp                             = 1;
+strength                        = 25.0;
 
-   rotate = 1.0;
-   invert = 0.0;
+rotate = 1.0;
+invert = 0.0;
 
-   aspect = 1.0;
-   sigma  = 3.0;
-   lambda = 100.0;
-   rMax   = 100.0;
-};
+aspect = 1.0;
+sigma  = 3.0;
+lambda = 100.0;
+rMax   = 100.0;
+}
+;
 
-HyPerConn "Retina to V1 Inhibit" = {
-   nxp = 5;
-   nyp = 1;
-   strength = 0.0;
+HyPerConn "Retina to V1 Inhibit" = {nxp = 5;
+nyp                                     = 1;
+strength                                = 0.0;
 
-   rotate = 1.0;
-   invert = 0.0;
+rotate = 1.0;
+invert = 0.0;
 
-   aspect = 1.0;
-   sigma  = 3.0;
-   lambda = 100.0;
-   rMax   = 100.0;
-};
+aspect = 1.0;
+sigma  = 3.0;
+lambda = 100.0;
+rMax   = 100.0;
+}
+;
 
-HyPerConn "V1 to V1" = {
-   nxp = 20;
-   nyp = 1;
-   strength = 31.0; //40.;//20.0;
-   
-   aspect = 1.0;
-   sigma  = 4.0;
-   lambda = 100.0;
-   rMax   = 100.0;
-   
-   // cocircularity parameters
-   
-   deltaCurvature = 0.0;
-   cocirc_self = 0.0;
-   sigma_cocirc = 4.0;
-   sigma_kurve = 100.0; 
-};
+HyPerConn "V1 to V1" = {nxp = 20;
+nyp                         = 1;
+strength                    = 31.0; // 40.;//20.0;
 
-HyPerConn "Retina to LGN Inh" = {
-   nxp = 3;
-   nyp = 3;
-   strength = 10;//50.0;
+aspect = 1.0;
+sigma  = 4.0;
+lambda = 100.0;
+rMax   = 100.0;
 
-   rotate = 1.0;
-   invert = 0.0;
+// cocircularity parameters
 
-   aspect = 1.0;
-   sigma  = 1.0;
-   rMax   = 100.0;
-};
+deltaCurvature = 0.0;
+cocirc_self    = 0.0;
+sigma_cocirc   = 4.0;
+sigma_kurve    = 100.0;
+}
+;
 
-HyPerConn "LGN Inh to LGN" = {
-   nxp = 7;
-   nyp = 7;
-   strength = 50.0;
+HyPerConn "Retina to LGN Inh" = {nxp = 3;
+nyp                                  = 3;
+strength                             = 10; // 50.0;
 
-   rotate = 1.0;
-   invert = 0.0;
+rotate = 1.0;
+invert = 0.0;
 
-   aspect = 1.0;
-   sigma  = 3.0;
-   rMax   = 100.0;
-};
+aspect = 1.0;
+sigma  = 1.0;
+rMax   = 100.0;
+}
+;
 
-HyPerConn "LGN to V1" = {
-   nxp = 5;
-   nyp = 1;
-   strength = 25.0;
-   delay = 10;
+HyPerConn "LGN Inh to LGN" = {nxp = 7;
+nyp                               = 7;
+strength                          = 50.0;
 
-   rotate = 1.0;
-   invert = 0.0;
+rotate = 1.0;
+invert = 0.0;
 
-   aspect = 3.0;
-   sigma  = 2.0;
-   lambda = 100.0;
-   rMax   = 100.0;
-};
+aspect = 1.0;
+sigma  = 3.0;
+rMax   = 100.0;
+}
+;
 
-HyPerConn "LGN to V1 Inh" = {
-   nxp = 5;
-   nyp = 1;
-   strength = 10.0; //2.5;
-   delay = 10;
+HyPerConn "LGN to V1" = {nxp = 5;
+nyp                          = 1;
+strength                     = 25.0;
+delay                        = 10;
 
-   rotate = 1.0;
-   invert = 0.0;
+rotate = 1.0;
+invert = 0.0;
 
-   aspect = 3.0;
-   sigma  = 2.0;
-   lambda = 100.0;
-   rMax   = 100.0;
-};
+aspect = 3.0;
+sigma  = 2.0;
+lambda = 100.0;
+rMax   = 100.0;
+}
+;
 
-HyPerConn "V1 to V1 Inhibit" = {
-   nxp = 20;
-   nyp = 1;
-   strength = 30.0;
-   
-   aspect = 1.0;
-   sigma  = 4.0;
-   lambda = 100.0;
-   rMax   = 100.0;
-   
-   // cocircularity parameters
-   
-   deltaCurvature = 0.0;
-   cocirc_self = 0.0;
-   sigma_cocirc = 4.0;
-   sigma_kurve = 100.0; 
-};
+HyPerConn "LGN to V1 Inh" = {nxp = 5;
+nyp                              = 1;
+strength                         = 10.0; // 2.5;
+delay                            = 10;
 
-HyPerConn "V1 Inhibit to V1" = {
-   nxp = 20;
-   nyp = 1;
-   strength = 20.0;
-   
-   rotate = 1.0;
-   invert = 0.0;
+rotate = 1.0;
+invert = 0.0;
 
-   aspect = 1.0;
-   sigma  = 3.0;
-   lambda = 100.0;
-   rMax   = 100.0;
-};
+aspect = 3.0;
+sigma  = 2.0;
+lambda = 100.0;
+rMax   = 100.0;
+}
+;
 
+HyPerConn "V1 to V1 Inhibit" = {nxp = 20;
+nyp                                 = 1;
+strength                            = 30.0;
 
-HyPerConn "V1 to LGN" = {
-   nxp = 5;
-   nyp = 1;
-   strength = 15; //10.0;
-   delay = 10;
-   
-   aspect = 1.0;
-   sigma  = 2.0;
-   lambda = 100.0;
-   rMax   = 100.0;
-   
-   // cocircularity parameters
-   
-   deltaCurvature = 0.0;
-   cocirc_self = 0.0;
-   sigma_cocirc = 4.0;
-   sigma_kurve = 100.0; 
-};
+aspect = 1.0;
+sigma  = 4.0;
+lambda = 100.0;
+rMax   = 100.0;
 
+// cocircularity parameters
 
-HyPerConn "V1 to LGN Inh" = {
-   nxp = 5;
-   nyp = 1;
-   strength = 40.0;
-   delay = 10;
-   
-   aspect = 1.0;
-   sigma  = 2.0;
-   lambda = 100.0;
-   rMax   = 100.0;
-   
-   // cocircularity parameters
-   
-   deltaCurvature = 0.0;
-   cocirc_self = 0.0;
-   sigma_cocirc = 4.0;
-   sigma_kurve = 100.0; 
-};
+deltaCurvature = 0.0;
+cocirc_self    = 0.0;
+sigma_cocirc   = 4.0;
+sigma_kurve    = 100.0;
+}
+;
 
-HyPerConn "V1 to V1 long range" = {
-   nxp = 7;
-   nyp = 1;
-   strength = 0.0; //10.0;
-   delay = 20;
-   
-   aspect = 1.0;
-   sigma  = 4.0;
-   lambda = 100.0;
-   rMax   = 100.0;
-};
+HyPerConn "V1 Inhibit to V1" = {nxp = 20;
+nyp                                 = 1;
+strength                            = 20.0;
 
-HyPerConn "V1 to V2" = {
-   nxp = 9;
-   nyp = 1;
-   strength = 50.0;
-   delay = 10;
+rotate = 1.0;
+invert = 0.0;
 
-   rotate = 1.0;
-   invert = 0.0;
+aspect = 1.0;
+sigma  = 3.0;
+lambda = 100.0;
+rMax   = 100.0;
+}
+;
 
-   aspect = 3.0;
-   sigma  = 4.0;
-   rMax   = 100.0;
+HyPerConn "V1 to LGN" = {nxp = 5;
+nyp                          = 1;
+strength                     = 15; // 10.0;
+delay                        = 10;
 
-   // cocircularity parameters
-   
-   deltaCurvature = 0.0;
-   cocirc_self = 0.0;
-   sigma_cocirc = 4.0;
-   sigma_kurve = 100.0; 
-};
+aspect = 1.0;
+sigma  = 2.0;
+lambda = 100.0;
+rMax   = 100.0;
 
-HyPerConn "V1 to V2 Inh" = {
-   nxp = 9;
-   nyp = 1;
-   strength = 10;
-   delay = 10;
+// cocircularity parameters
 
-   rotate = 1.0;
-   invert = 0.0;
+deltaCurvature = 0.0;
+cocirc_self    = 0.0;
+sigma_cocirc   = 4.0;
+sigma_kurve    = 100.0;
+}
+;
 
-   aspect = 3.0;
-   sigma  = 4.0;
-   rMax   = 100.0;
+HyPerConn "V1 to LGN Inh" = {nxp = 5;
+nyp                              = 1;
+strength                         = 40.0;
+delay                            = 10;
 
-   // cocircularity parameters
-   
-   deltaCurvature = 0.0;
-   cocirc_self = 0.0;
-   sigma_cocirc = 4.0;
-   sigma_kurve = 100.0; 
-};
+aspect = 1.0;
+sigma  = 2.0;
+lambda = 100.0;
+rMax   = 100.0;
 
-HyPerConn "V2 to V2" = {
-   nxp = 15;
-   nyp = 1;
-   strength = 20.0;
+// cocircularity parameters
 
-   rotate = 1.0;
-   invert = 0.0;
+deltaCurvature = 0.0;
+cocirc_self    = 0.0;
+sigma_cocirc   = 4.0;
+sigma_kurve    = 100.0;
+}
+;
 
-   aspect = 3.0;
-   sigma  = 7.0;
-   rMax   = 100.0;
+HyPerConn "V1 to V1 long range" = {nxp = 7;
+nyp                                    = 1;
+strength                               = 0.0; // 10.0;
+delay                                  = 20;
 
-   // cocircularity parameters
-   
-   deltaCurvature = 0.0;
-   cocirc_self = 0.0;
-   sigma_cocirc = 4.0;
-   sigma_kurve = 100.0; 
-};
+aspect = 1.0;
+sigma  = 4.0;
+lambda = 100.0;
+rMax   = 100.0;
+}
+;
 
-HyPerConn "V2 to V2 Inh" = {
-   nxp = 15;
-   nyp = 1;
-   strength = 50.0;
+HyPerConn "V1 to V2" = {nxp = 9;
+nyp                         = 1;
+strength                    = 50.0;
+delay                       = 10;
 
-   rotate = 1.0;
-   invert = 0.0;
+rotate = 1.0;
+invert = 0.0;
 
-   aspect = 3.0;
-   sigma  = 7.0;
-   rMax   = 100.0;
+aspect = 3.0;
+sigma  = 4.0;
+rMax   = 100.0;
 
-   // cocircularity parameters
-   
-   deltaCurvature = 0.0;
-   cocirc_self = 0.0;
-   sigma_cocirc = 4.0;
-   sigma_kurve = 100.0; 
-};
+// cocircularity parameters
 
-HyPerConn "V2 Inh to V2" = {
-   nxp = 9;
-   nyp = 1;
-   strength = 50.0;
-   
-   aspect = 1.0;
-   sigma  = 4.0;
-   lambda = 100.0;
-   rMax   = 100.0;
-   
-   // cocircularity parameters
-   
-   deltaCurvature = 0.0;
-   cocirc_self = 0.0;
-   sigma_cocirc = 4.0;
-   sigma_kurve = 100.0; 
-};
+deltaCurvature = 0.0;
+cocirc_self    = 0.0;
+sigma_cocirc   = 4.0;
+sigma_kurve    = 100.0;
+}
+;
 
-HyPerConn "V2 to V1" = {
-   nxp = 9;//15;
-   nyp = 1;
-   strength = 15; //10.0;
-   delay = 10;
+HyPerConn "V1 to V2 Inh" = {nxp = 9;
+nyp                             = 1;
+strength                        = 10;
+delay                           = 10;
 
-   rotate = 1.0;
-   invert = 0.0;
+rotate = 1.0;
+invert = 0.0;
 
-   aspect = 3.0;
-   sigma  = 4;//8.0;
-   rMax   = 100.0;
-   
-   // cocircularity parameters
-   
-   deltaCurvature = 0.0;
-   cocirc_self = 0.0;
-   sigma_cocirc = 4.0;
-   sigma_kurve = 100.0; 
-};
+aspect = 3.0;
+sigma  = 4.0;
+rMax   = 100.0;
 
-HyPerConn "V2 to V1 Inh" = {
-   nxp = 9;//15;
-   nyp = 1;
-   strength = 50.0;
-   delay = 10;
+// cocircularity parameters
 
-   rotate = 1.0;
-   invert = 0.0;
+deltaCurvature = 0.0;
+cocirc_self    = 0.0;
+sigma_cocirc   = 4.0;
+sigma_kurve    = 100.0;
+}
+;
 
-   aspect = 3.0;
-   sigma  = 4;//8.0;
-   rMax   = 100.0;
+HyPerConn "V2 to V2" = {nxp = 15;
+nyp                         = 1;
+strength                    = 20.0;
 
-   // cocircularity parameters
-   
-   deltaCurvature = 0.0;
-   cocirc_self = 0.0;
-   sigma_cocirc = 4.0;
-   sigma_kurve = 100.0; 
-};
+rotate = 1.0;
+invert = 0.0;
 
-HyPerConn "V2 to V2 long range" = {
-   nxp = 15;
-   nyp = 1;
-   strength = 0; //10.0;
-   delay = 20;
-   
-   aspect = 1.0;
-   sigma  = 7.0;
-   lambda = 100.0;
-   rMax   = 100.0;
-};
+aspect = 3.0;
+sigma  = 7.0;
+rMax   = 100.0;
+
+// cocircularity parameters
+
+deltaCurvature = 0.0;
+cocirc_self    = 0.0;
+sigma_cocirc   = 4.0;
+sigma_kurve    = 100.0;
+}
+;
+
+HyPerConn "V2 to V2 Inh" = {nxp = 15;
+nyp                             = 1;
+strength                        = 50.0;
+
+rotate = 1.0;
+invert = 0.0;
+
+aspect = 3.0;
+sigma  = 7.0;
+rMax   = 100.0;
+
+// cocircularity parameters
+
+deltaCurvature = 0.0;
+cocirc_self    = 0.0;
+sigma_cocirc   = 4.0;
+sigma_kurve    = 100.0;
+}
+;
+
+HyPerConn "V2 Inh to V2" = {nxp = 9;
+nyp                             = 1;
+strength                        = 50.0;
+
+aspect = 1.0;
+sigma  = 4.0;
+lambda = 100.0;
+rMax   = 100.0;
+
+// cocircularity parameters
+
+deltaCurvature = 0.0;
+cocirc_self    = 0.0;
+sigma_cocirc   = 4.0;
+sigma_kurve    = 100.0;
+}
+;
+
+HyPerConn "V2 to V1" = {nxp = 9; // 15;
+nyp                         = 1;
+strength                    = 15; // 10.0;
+delay                       = 10;
+
+rotate = 1.0;
+invert = 0.0;
+
+aspect = 3.0;
+sigma  = 4; // 8.0;
+rMax   = 100.0;
+
+// cocircularity parameters
+
+deltaCurvature = 0.0;
+cocirc_self    = 0.0;
+sigma_cocirc   = 4.0;
+sigma_kurve    = 100.0;
+}
+;
+
+HyPerConn "V2 to V1 Inh" = {nxp = 9; // 15;
+nyp                             = 1;
+strength                        = 50.0;
+delay                           = 10;
+
+rotate = 1.0;
+invert = 0.0;
+
+aspect = 3.0;
+sigma  = 4; // 8.0;
+rMax   = 100.0;
+
+// cocircularity parameters
+
+deltaCurvature = 0.0;
+cocirc_self    = 0.0;
+sigma_cocirc   = 4.0;
+sigma_kurve    = 100.0;
+}
+;
+
+HyPerConn "V2 to V2 long range" = {nxp = 15;
+nyp                                    = 1;
+strength                               = 0; // 10.0;
+delay                                  = 20;
+
+aspect = 1.0;
+sigma  = 7.0;
+lambda = 100.0;
+rMax   = 100.0;
+}
+;
 
 // start of layer V4
 
-HyPerConn "V2 to V4" = {
-   nxp = 15;
-   nyp = 1;
-   strength = 75.0;
-   delay = 10;
+HyPerConn "V2 to V4" = {nxp = 15;
+nyp                         = 1;
+strength                    = 75.0;
+delay                       = 10;
 
-   rotate = 1.0;
-   invert = 0.0;
+rotate = 1.0;
+invert = 0.0;
 
-   aspect = 3.0;
-   sigma  = 7.0;
-   rMax   = 100.0;
+aspect = 3.0;
+sigma  = 7.0;
+rMax   = 100.0;
 
-   // cocircularity parameters
-   
-   deltaCurvature = 0.0;
-   cocirc_self = 0.0;
-   sigma_cocirc = 4.0;
-   sigma_kurve = 100.0; 
-};
+// cocircularity parameters
 
-HyPerConn "V2 to V4 Inh" = {
-   nxp = 15;
-   nyp = 1;
-   strength = 10;
-   delay = 10;
+deltaCurvature = 0.0;
+cocirc_self    = 0.0;
+sigma_cocirc   = 4.0;
+sigma_kurve    = 100.0;
+}
+;
 
-   rotate = 1.0;
-   invert = 0.0;
+HyPerConn "V2 to V4 Inh" = {nxp = 15;
+nyp                             = 1;
+strength                        = 10;
+delay                           = 10;
 
-   aspect = 3.0;
-   sigma  = 7.0;
-   rMax   = 100.0;
+rotate = 1.0;
+invert = 0.0;
 
-   // cocircularity parameters
-   
-   deltaCurvature = 0.0;
-   cocirc_self = 0.0;
-   sigma_cocirc = 4.0;
-   sigma_kurve = 100.0; 
-};
+aspect = 3.0;
+sigma  = 7.0;
+rMax   = 100.0;
 
-HyPerConn "V4 to V4" = {
-   nxp = 21;
-   nyp = 1;
-   strength = 20.0;
+// cocircularity parameters
 
-   rotate = 1.0;
-   invert = 0.0;
+deltaCurvature = 0.0;
+cocirc_self    = 0.0;
+sigma_cocirc   = 4.0;
+sigma_kurve    = 100.0;
+}
+;
 
-   aspect = 3.0;
-   sigma  = 10.0;
-   rMax   = 100.0;
+HyPerConn "V4 to V4" = {nxp = 21;
+nyp                         = 1;
+strength                    = 20.0;
 
-   // cocircularity parameters
-   
-   deltaCurvature = 0.0;
-   cocirc_self = 0.0;
-   sigma_cocirc = 4.0;
-   sigma_kurve = 100.0; 
-};
+rotate = 1.0;
+invert = 0.0;
 
-HyPerConn "V4 to V4 Inh" = {
-   nxp = 21;
-   nyp = 1;
-   strength = 75.0;
+aspect = 3.0;
+sigma  = 10.0;
+rMax   = 100.0;
 
-   rotate = 1.0;
-   invert = 0.0;
+// cocircularity parameters
 
-   aspect = 3.0;
-   sigma  = 10.0;
-   rMax   = 100.0;
+deltaCurvature = 0.0;
+cocirc_self    = 0.0;
+sigma_cocirc   = 4.0;
+sigma_kurve    = 100.0;
+}
+;
 
-   // cocircularity parameters
-   
-   deltaCurvature = 0.0;
-   cocirc_self = 0.0;
-   sigma_cocirc = 4.0;
-   sigma_kurve = 100.0; 
-};
+HyPerConn "V4 to V4 Inh" = {nxp = 21;
+nyp                             = 1;
+strength                        = 75.0;
 
-HyPerConn "V4 Inh to V4" = {
-   nxp = 15;
-   nyp = 1;
-   strength = 75.0;
-   
-   aspect = 1.0;
-   sigma  = 7.0;
-   lambda = 100.0;
-   rMax   = 100.0;
-   
-   // cocircularity parameters
-   
-   deltaCurvature = 0.0;
-   cocirc_self = 0.0;
-   sigma_cocirc = 4.0;
-   sigma_kurve = 100.0; 
-};
+rotate = 1.0;
+invert = 0.0;
 
-HyPerConn "V4 to V2" = {
-   nxp = 15;
-   nyp = 1;
-   strength = 25; //10.0;
-   delay = 10;
+aspect = 3.0;
+sigma  = 10.0;
+rMax   = 100.0;
 
-   rotate = 1.0;
-   invert = 0.0;
+// cocircularity parameters
 
-   aspect = 3.0;
-   sigma  = 7;
-   rMax   = 100.0;
-   
-   // cocircularity parameters
-   
-   deltaCurvature = 0.0;
-   cocirc_self = 0.0;
-   sigma_cocirc = 4.0;
-   sigma_kurve = 100.0; 
-};
+deltaCurvature = 0.0;
+cocirc_self    = 0.0;
+sigma_cocirc   = 4.0;
+sigma_kurve    = 100.0;
+}
+;
 
-HyPerConn "V4 to V2 Inh" = {
-   nxp = 15;
-   nyp = 1;
-   strength = 75.0;
-   delay = 10;
+HyPerConn "V4 Inh to V4" = {nxp = 15;
+nyp                             = 1;
+strength                        = 75.0;
 
-   rotate = 1.0;
-   invert = 0.0;
+aspect = 1.0;
+sigma  = 7.0;
+lambda = 100.0;
+rMax   = 100.0;
 
-   aspect = 3.0;
-   sigma  = 7;
-   rMax   = 100.0;
+// cocircularity parameters
 
-   // cocircularity parameters
-   
-   deltaCurvature = 0.0;
-   cocirc_self = 0.0;
-   sigma_cocirc = 4.0;
-   sigma_kurve = 100.0; 
-};
+deltaCurvature = 0.0;
+cocirc_self    = 0.0;
+sigma_cocirc   = 4.0;
+sigma_kurve    = 100.0;
+}
+;
 
-HyPerConn "V4 to V4 long range" = {
-   nxp = 21;
-   nyp = 1;
-   strength = 0; //10.0;
-   delay = 20;
-   
-   aspect = 1.0;
-   sigma  = 10.0;
-   lambda = 100.0;
-   rMax   = 100.0;
-};
+HyPerConn "V4 to V2" = {nxp = 15;
+nyp                         = 1;
+strength                    = 25; // 10.0;
+delay                       = 10;
+
+rotate = 1.0;
+invert = 0.0;
+
+aspect = 3.0;
+sigma  = 7;
+rMax   = 100.0;
+
+// cocircularity parameters
+
+deltaCurvature = 0.0;
+cocirc_self    = 0.0;
+sigma_cocirc   = 4.0;
+sigma_kurve    = 100.0;
+}
+;
+
+HyPerConn "V4 to V2 Inh" = {nxp = 15;
+nyp                             = 1;
+strength                        = 75.0;
+delay                           = 10;
+
+rotate = 1.0;
+invert = 0.0;
+
+aspect = 3.0;
+sigma  = 7;
+rMax   = 100.0;
+
+// cocircularity parameters
+
+deltaCurvature = 0.0;
+cocirc_self    = 0.0;
+sigma_cocirc   = 4.0;
+sigma_kurve    = 100.0;
+}
+;
+
+HyPerConn "V4 to V4 long range" = {nxp = 21;
+nyp                                    = 1;
+strength                               = 0; // 10.0;
+delay                                  = 20;
+
+aspect = 1.0;
+sigma  = 10.0;
+lambda = 100.0;
+rMax   = 100.0;
+}
+;

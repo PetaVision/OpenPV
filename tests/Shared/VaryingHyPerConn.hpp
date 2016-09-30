@@ -14,21 +14,27 @@ namespace PV {
 
 class VaryingHyPerConn : public HyPerConn {
 
-public:
-   VaryingHyPerConn(const char * name, HyPerCol * hc, InitWeights * weightInitializer=NULL, NormalizeBase * weightNormalizer=NULL);
+  public:
+   VaryingHyPerConn(
+         const char *name,
+         HyPerCol *hc,
+         InitWeights *weightInitializer  = NULL,
+         NormalizeBase *weightNormalizer = NULL);
    virtual ~VaryingHyPerConn();
    virtual int allocateDataStructures();
    virtual int updateWeights(int axonId = 0);
 
-protected:
-   int initialize(const char * name, HyPerCol * hc, InitWeights * weightInitializer=NULL, NormalizeBase * weightNormalizer=NULL);
+  protected:
+   int initialize(
+         const char *name,
+         HyPerCol *hc,
+         InitWeights *weightInitializer  = NULL,
+         NormalizeBase *weightNormalizer = NULL);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual int calc_dW(int axonId);
 
 }; // end class VaryingHyPerConn
 
-
-}  // end namespace PV block
-
+} // end namespace PV block
 
 #endif /* VARYINGHYPERCONN_HPP_ */

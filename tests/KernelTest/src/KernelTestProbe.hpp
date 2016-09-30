@@ -12,21 +12,19 @@
 
 namespace PV {
 
-class KernelTestProbe: public PV::StatsProbe {
-public:
-   KernelTestProbe(const char * probeName, HyPerCol * hc);
+class KernelTestProbe : public PV::StatsProbe {
+  public:
+   KernelTestProbe(const char *probeName, HyPerCol *hc);
 
    virtual int outputState(double timed);
 
-protected:
-   int initKernelTestProbe(const char * probeName, HyPerCol * hc);
+  protected:
+   int initKernelTestProbe(const char *probeName, HyPerCol *hc);
    void ioParam_buffer(enum ParamsIOFlag ioFlag);
 
-private:
+  private:
    int initKernelTestProbe_base();
-
 };
-
 
 } /* namespace PV */
 #endif /* KERNELTESTPROBE_HPP_ */

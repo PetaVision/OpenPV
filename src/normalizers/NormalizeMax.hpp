@@ -12,26 +12,26 @@
 
 namespace PV {
 
-class NormalizeMax: public PV::NormalizeMultiply {
-// Member functions
-public:
-   NormalizeMax(const char * name, HyPerCol * hc);
+class NormalizeMax : public PV::NormalizeMultiply {
+   // Member functions
+  public:
+   NormalizeMax(const char *name, HyPerCol *hc);
    virtual ~NormalizeMax();
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual int normalizeWeights();
 
-protected:
+  protected:
    NormalizeMax();
-   int initialize(const char * name, HyPerCol * hc);
+   int initialize(const char *name, HyPerCol *hc);
 
    virtual void ioParam_minMaxTolerated(enum ParamsIOFlag ioFlag);
 
-private:
+  private:
    int initialize_base();
 
-// Member variables
-protected:
+   // Member variables
+  protected:
    float minMaxTolerated; // Error if abs(sum(weights)) in any patch is less than this amount.
 };
 

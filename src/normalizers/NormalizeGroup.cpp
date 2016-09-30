@@ -9,23 +9,18 @@
 
 namespace PV {
 
-NormalizeGroup::NormalizeGroup(char const * name, HyPerCol * hc) {
+NormalizeGroup::NormalizeGroup(char const *name, HyPerCol *hc) {
    initialize_base();
    initialize(name, hc);
 }
 
-NormalizeGroup::NormalizeGroup() {
-}
+NormalizeGroup::NormalizeGroup() {}
 
-NormalizeGroup::~NormalizeGroup() {
-   free(normalizeGroupName);
-}
+NormalizeGroup::~NormalizeGroup() { free(normalizeGroupName); }
 
-int NormalizeGroup::initialize_base() {
-   return PV_SUCCESS;
-}
+int NormalizeGroup::initialize_base() { return PV_SUCCESS; }
 
-int NormalizeGroup::initialize(char const * name, HyPerCol * hc) {
+int NormalizeGroup::initialize(char const *name, HyPerCol *hc) {
    int status = NormalizeBase::initialize(name, hc);
    return status;
 }
@@ -43,25 +38,26 @@ void NormalizeGroup::ioParam_normalizeOnInitialize(enum ParamsIOFlag ioFlag) {}
 void NormalizeGroup::ioParam_normalizeOnWeightUpdate(enum ParamsIOFlag ioFlag) {}
 
 void NormalizeGroup::ioParam_normalizeGroupName(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamStringRequired(ioFlag, name, "normalizeGroupName", &normalizeGroupName);
+   parent->parameters()->ioParamStringRequired(
+         ioFlag, name, "normalizeGroupName", &normalizeGroupName);
 }
 
 int NormalizeGroup::communicateInitInfo() {
    groupHead = parent->getNormalizerFromName(normalizeGroupName);
-   if (groupHead==nullptr) {
-      if (parent->columnId()==0) {
-         pvErrorNoExit().printf("%s: normalizeGroupName \"%s\" is not a recognized normalizer.\n",
-               getDescription_c(), normalizeGroupName);
+   if (groupHead == nullptr) {
+      if (parent->columnId() == 0) {
+         pvErrorNoExit().printf(
+               "%s: normalizeGroupName \"%s\" is not a recognized normalizer.\n",
+               getDescription_c(),
+               normalizeGroupName);
       }
       MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
-   HyPerConn * conn = getTargetConn();
+   HyPerConn *conn = getTargetConn();
    return groupHead->addConnToList(conn);
 }
 
-int NormalizeGroup::normalizeWeights() {
-   return PV_SUCCESS;
-}
+int NormalizeGroup::normalizeWeights() { return PV_SUCCESS; }
 
 } /* namespace PV */

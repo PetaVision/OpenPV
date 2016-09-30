@@ -10,21 +10,21 @@
 
 #include "ANNLayer.hpp"
 
-#define NUM_ANNSQ_EVENTS   3
+#define NUM_ANNSQ_EVENTS 3
 
 namespace PV {
 
-class ANNSquaredLayer: public PV::ANNLayer {
-public:
-   ANNSquaredLayer(const char* name, HyPerCol * hc);
+class ANNSquaredLayer : public PV::ANNLayer {
+  public:
+   ANNSquaredLayer(const char *name, HyPerCol *hc);
    virtual ~ANNSquaredLayer();
    virtual int updateState(double time, double dt);
 
-protected:
+  protected:
    ANNSquaredLayer();
-   int initialize(const char * name, HyPerCol * hc);
+   int initialize(const char *name, HyPerCol *hc);
 
-private:
+  private:
    int initialize_base();
 
 }; // class ANNSquaredLayer

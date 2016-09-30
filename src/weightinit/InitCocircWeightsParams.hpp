@@ -8,46 +8,53 @@
 #ifndef INITCOCIRCWEIGHTSPARAMS_HPP_
 #define INITCOCIRCWEIGHTSPARAMS_HPP_
 
-#include "InitWeightsParams.hpp"
 #include "InitGauss2DWeightsParams.hpp"
+#include "InitWeightsParams.hpp"
 
 namespace PV {
 
-class InitCocircWeightsParams: public PV::InitGauss2DWeightsParams {
-public:
+class InitCocircWeightsParams : public PV::InitGauss2DWeightsParams {
+  public:
    InitCocircWeightsParams();
-   InitCocircWeightsParams(const char * name, HyPerCol * hc);
+   InitCocircWeightsParams(const char *name, HyPerCol *hc);
    virtual ~InitCocircWeightsParams();
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    void calcOtherParams(int patchIndex);
 
-   //get/set methods:
-   inline float getSigma_cocirc()        {return sigma_cocirc;}
-   inline float getSigma_kurve()        {return sigma_kurve;}
-   inline float getSigma_kurve_pre()        {return sigma_kurve_pre;}
-   inline float getSigma_kurve_pre2()        {return sigma_kurve_pre2;}
-   inline float getSigma_kurve_post2()        {return sigma_kurve_post2;}
-   inline float getmin_weight()        {return min_weight;}
-   inline float getnKurvePre()        {return nKurvePre;}
-   inline float getGDist()        {return gDist;}
+   // get/set methods:
+   inline float getSigma_cocirc() { return sigma_cocirc; }
+   inline float getSigma_kurve() { return sigma_kurve; }
+   inline float getSigma_kurve_pre() { return sigma_kurve_pre; }
+   inline float getSigma_kurve_pre2() { return sigma_kurve_pre2; }
+   inline float getSigma_kurve_post2() { return sigma_kurve_post2; }
+   inline float getmin_weight() { return min_weight; }
+   inline float getnKurvePre() { return nKurvePre; }
+   inline float getGDist() { return gDist; }
 
    float calcKurvePostAndSigmaKurvePost(int kfPost);
-   float calcKurveAndSigmaKurve(int kf, int &nKurve,
-         float &sigma_kurve_temp, float &kurve_tmp,
-         bool &iPosKurve, bool &iSaddle);
+   float calcKurveAndSigmaKurve(
+         int kf,
+         int &nKurve,
+         float &sigma_kurve_temp,
+         float &kurve_tmp,
+         bool &iPosKurve,
+         bool &iSaddle);
    bool checkSameLoc(int kfPost);
    bool checkFlags(float dyP_shift, float dxP);
    void updateCocircNChord(
-         float thPost, float dyP_shift, float dxP, float cocircKurve_shift,
+         float thPost,
+         float dyP_shift,
+         float dxP,
+         float cocircKurve_shift,
          float d2_shift);
    void updategKurvePreNgKurvePost(float cocircKurve_shift);
    void initializeDistChordCocircKurvePreAndKurvePost();
    float calculateWeight();
    void addToGDist(float inc);
 
-protected:
+  protected:
    int initialize_base();
-   int initialize(const char * name, HyPerCol * hc);
+   int initialize(const char *name, HyPerCol *hc);
    virtual void ioParam_sigmaCocirc(enum ParamsIOFlag ioFlag);
    virtual void ioParam_sigmaKurve(enum ParamsIOFlag ioFlag);
    virtual void ioParam_cocircSelf(enum ParamsIOFlag ioFlag);
@@ -55,9 +62,8 @@ protected:
    virtual void ioParam_numOrientationsPre(enum ParamsIOFlag ioFlag);
    virtual void ioParam_numOrientationsPost(enum ParamsIOFlag ioFlag);
 
-
-private:
-   //params variables:
+  private:
+   // params variables:
    float aspect; // circular (not line oriented)
    float sigma;
    float rMax;
@@ -70,12 +76,12 @@ private:
    float cocirc_self;
    float delta_radius_curvature; // 1 = minimum radius of curvature
 
-   //these variables have hard coded values!  Should the be read in as params?
+   // these variables have hard coded values!  Should the be read in as params?
    float min_weight; // read in as param
    bool POS_KURVE_FLAG; //  handle pos and neg curvature separately
    bool SADDLE_FLAG; // handle saddle points separately
 
-   //calculated parameters:
+   // calculated parameters:
    int nKurvePre;
    bool iPosKurvePre;
    bool iSaddlePre;
@@ -89,13 +95,11 @@ private:
    float sigma_kurve_post;
    float sigma_kurve_post2;
 
-   //used for calculating weights:
+   // used for calculating weights:
    float gDist;
    float gCocirc;
    float gKurvePre;
    float gKurvePost;
-
-
 };
 
 } /* namespace PV */

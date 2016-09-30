@@ -14,41 +14,42 @@
 
 namespace PV {
 
-class ShuffleLayer: public CloneVLayer {
-public:
-   ShuffleLayer(const char * name, HyPerCol * hc);
+class ShuffleLayer : public CloneVLayer {
+  public:
+   ShuffleLayer(const char *name, HyPerCol *hc);
    virtual ~ShuffleLayer();
    virtual int communicateInitInfo();
    virtual int allocateDataStructures();
    virtual int updateState(double timef, double dt);
    virtual int setActivity();
-protected:
+
+  protected:
    ShuffleLayer();
-   int initialize(const char * name, HyPerCol * hc);
+   int initialize(const char *name, HyPerCol *hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual void ioParam_shuffleMethod(enum ParamsIOFlag ioFlag);
    virtual void ioParam_readFreqFromFile(enum ParamsIOFlag ioFlag);
    virtual void ioParam_freqFilename(enum ParamsIOFlag ioFlag);
    virtual void ioParam_freqCollectTime(enum ParamsIOFlag ioFlag);
 
-   void randomShuffle(const pvdata_t * sourceData, pvdata_t * activity);
-   void rejectionShuffle(const pvdata_t * sourceData, pvdata_t * activity);
-   void collectFreq(const pvdata_t * sourceData);
+   void randomShuffle(const pvdata_t *sourceData, pvdata_t *activity);
+   void rejectionShuffle(const pvdata_t *sourceData, pvdata_t *activity);
+   void collectFreq(const pvdata_t *sourceData);
    void readFreq();
 
-private:
+  private:
    int initialize_base();
-   char * shuffleMethod;
-   char * freqFilename;
+   char *shuffleMethod;
+   char *freqFilename;
 
-   long ** featureFreqCount;
-   long ** currFeatureFreqCount;
+   long **featureFreqCount;
+   long **currFeatureFreqCount;
 
-   long * maxCount;
+   long *maxCount;
    long freqCollectTime;
    bool readFreqFromFile;
 }; // class ShuffleLayer
- 
-}  // namespace PV
+
+} // namespace PV
 
 #endif /* ShuffleLayer.hpp */

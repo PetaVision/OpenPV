@@ -12,16 +12,16 @@
 
 namespace PV {
 
-class MomentumLCALayer: public PV::HyPerLCALayer{
-public:
-   MomentumLCALayer(const char * name, HyPerCol * hc);
+class MomentumLCALayer : public PV::HyPerLCALayer {
+  public:
+   MomentumLCALayer(const char *name, HyPerCol *hc);
    virtual ~MomentumLCALayer();
-   virtual int checkpointWrite(const char * cpDir);
-   virtual int checkpointRead(const char * cpDir, double * timeptr);
+   virtual int checkpointWrite(const char *cpDir);
+   virtual int checkpointRead(const char *cpDir, double *timeptr);
 
-protected:
+  protected:
    MomentumLCALayer();
-   int initialize(const char * name, HyPerCol * hc);
+   int initialize(const char *name, HyPerCol *hc);
    virtual int allocateDataStructures();
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
@@ -42,14 +42,13 @@ protected:
    virtual int allocateUpdateKernel();
 #endif
 
-
    float LCAMomentumRate;
-   pvdata_t * prevDrive;
+   pvdata_t *prevDrive;
 #ifdef PV_USE_CUDA
-   PVCuda::CudaBuffer* d_prevDrive;
+   PVCuda::CudaBuffer *d_prevDrive;
 #endif
-   
-private:
+
+  private:
    int initialize_base();
 }; // class MomentumLCALayer
 

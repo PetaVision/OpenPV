@@ -25,13 +25,13 @@
 #undef IBM_CELL_BE
 
 /* define if to build for multiple threads */
-#undef  MULTITHREADED
+#undef MULTITHREADED
 /* the maximum number of threads */
 #define MAX_THREADS 1
 
 /* controls usage of the C99 restrict keyword */
 #ifndef RESTRICT
-#  define RESTRICT
+#define RESTRICT
 #endif
 
 #endif /* PV_ARCH_H */

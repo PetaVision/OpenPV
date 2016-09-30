@@ -17,22 +17,22 @@ namespace PV {
 class InitIdentWeights;
 
 class IdentConn : public HyPerConn {
-public:
-   IdentConn(const char * name, HyPerCol *hc);
+  public:
+   IdentConn(const char *name, HyPerCol *hc);
 
    virtual int communicateInitInfo();
-   virtual int updateWeights(int axonID) {return PV_SUCCESS;}
-   //virtual int deliver();
+   virtual int updateWeights(int axonID) { return PV_SUCCESS; }
+   // virtual int deliver();
 
-protected:
+  protected:
    IdentConn();
    int initialize_base();
-   int initialize(const char * name, HyPerCol *hc);
+   int initialize(const char *name, HyPerCol *hc);
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 #ifdef PV_USE_CUDA
    virtual void ioParam_receiveGpu(enum ParamsIOFlag ioFlag);
-#endif // PV_USE_CUDA 
+#endif // PV_USE_CUDA
    virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag);
    virtual void ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag);
    virtual void ioParam_weightInitType(enum ParamsIOFlag ioFlag);
@@ -59,15 +59,14 @@ protected:
    virtual int setWeightInitializer();
 
    // IdentConn does not need to checkpoint
-   virtual int checkpointRead(const char * cpDir, double* timef) { return PV_SUCCESS; }
-   virtual int checkpointWrite(const char * cpDir) { return PV_SUCCESS; }
+   virtual int checkpointRead(const char *cpDir, double *timef) { return PV_SUCCESS; }
+   virtual int checkpointWrite(const char *cpDir) { return PV_SUCCESS; }
 
    virtual void handleDefaultSelfFlag();
 
-   virtual int deliverPresynapticPerspective(PVLayerCube const * activity, int arborID);
+   virtual int deliverPresynapticPerspective(PVLayerCube const *activity, int arborID);
 }; // class IdentConn
 
-}  // end of block for namespace PV
-
+} // end of block for namespace PV
 
 #endif /* IDENTCONN_HPP_ */

@@ -12,18 +12,20 @@
 
 namespace PV {
 
-class LabelErrorLayer: public PV::ANNLayer {
-public:
-   LabelErrorLayer(const char * name, HyPerCol * hc);
+class LabelErrorLayer : public PV::ANNLayer {
+  public:
+   LabelErrorLayer(const char *name, HyPerCol *hc);
    virtual ~LabelErrorLayer();
-protected:
+
+  protected:
    LabelErrorLayer();
-   int initialize(const char * name, HyPerCol * hc);
+   int initialize(const char *name, HyPerCol *hc);
    virtual int updateState(double time, double dt);
    void ioParam_errScale(enum ParamsIOFlag ioFlag);
    void ioParam_isBinary(enum ParamsIOFlag ioFlag);
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-private:
+
+  private:
    int initialize_base();
    float errScale;
    int isBinary;

@@ -8,8 +8,8 @@
 #ifndef COLPROBE_HPP_
 #define COLPROBE_HPP_
 
-#include <string.h>
 #include "BaseProbe.hpp"
+#include <string.h>
 
 namespace PV {
 
@@ -19,7 +19,7 @@ class HyPerCol;
  * ColProbe is the base class for probes that are attached to the column as a whole,
  * as opposed to an individual layer or connection.
  * Derived classes must implement the needRecalc and calcValues methods.
- * 
+ *
  *
  * The original motivation for ColProbe was for computing total energy of a sparse-coding
  * hierarchy.  In this situation, the energy is a sum of contributions from the residual
@@ -31,35 +31,35 @@ class HyPerCol;
  * uses a ColProbe::getValues() call to compute the timeScaleTrue vector.
  */
 class ColProbe : public BaseProbe {
-public:
+  public:
    /**
     * Public constructor for the ColProbe class.
     */
-   ColProbe(const char * probeName, HyPerCol * hc);
+   ColProbe(const char *probeName, HyPerCol *hc);
 
    /**
     * Destructor for the ColumnEnergyProbe class.
     */
    virtual ~ColProbe();
-   
+
    /**
-    * Calls BaseProbe::communicateInitInfo (which sets up any triggering or attaching to an energy probe)
+    * Calls BaseProbe::communicateInitInfo (which sets up any triggering or attaching to an energy
+    * probe)
     * and then attaches to the parent HyPerCol by calling parent->insertProbe().
     */
    virtual int communicateInitInfo();
-   
-   virtual int checkpointRead(const char * cpDir, double * timeptr) { return PV_SUCCESS; }
-   virtual int checkpointWrite(const char * cpDir) { return PV_SUCCESS; }
+
+   virtual int checkpointRead(const char *cpDir, double *timeptr) { return PV_SUCCESS; }
+   virtual int checkpointWrite(const char *cpDir) { return PV_SUCCESS; }
 
    /**
     * The virtual method for outputting the quantities measured by the ColProbe.
     * Derived classes should override this method.  Typically, outputState
     * will fprintf to outputstream->fp, where stream is the BaseProbe member variable.
     */
-   virtual int outputState(double timed) {return PV_SUCCESS;}
+   virtual int outputState(double timed) { return PV_SUCCESS; }
 
-protected:
-
+  protected:
    /**
     * The constructor without arguments should be used by derived classes.
     */
@@ -70,7 +70,7 @@ protected:
     * depend on other param groups.  It is called by the public constructor
     * and should be called by the initializer of any derived classes.
     */
-   int initialize(const char * probeName, HyPerCol * hc);
+   int initialize(const char *probeName, HyPerCol *hc);
 
    /**
     * Reads parameters from the params file/writes parameters to the output params file.
@@ -81,19 +81,19 @@ protected:
     * ioParamsFillGroup method should call its base class's ioParamsFillGroup method.
     */
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-    
+
    /**
     * @brief targetName: ColProbe overrides targetName since the only possible target
     * is the parent HyPerCol.  On reading, it sets targetName.  Parameters are
     * neither read nor written by this method.
     */
    virtual void ioParam_targetName(enum ParamsIOFlag ioFlag);
-    
+
    /**
     * Calls BaseProbe::initOutputStream and then calls outputHeader()
     */
-   virtual int initOutputStream(const char * filename);
-    
+   virtual int initOutputStream(const char *filename);
+
    /**
     * Called by initialize_stream after opening the stream member variable.
     * Derived classes can override this method to write header data to the output
@@ -101,8 +101,7 @@ protected:
     */
    virtual int outputHeader() { return PV_SUCCESS; }
 
-private:
-    
+  private:
    /**
     * Initializes member variables to safe values (e.g. pointers are set to NULL).
     * It is called by both the public and protected constructors, and should not
@@ -111,6 +110,6 @@ private:
    int initialize_base();
 }; // end class ColProbe
 
-}  // end namespace PV
+} // end namespace PV
 
 #endif /* COLPROBE_HPP_ */

@@ -14,25 +14,24 @@
 namespace PV {
 
 // TODO make InitOneToOneWeightsWithDelaysParams a derived class of InitOneToOneWeightsParams
-class InitOneToOneWeightsWithDelaysParams: public PV::InitWeightsParams {
-public:
+class InitOneToOneWeightsWithDelaysParams : public PV::InitWeightsParams {
+  public:
    InitOneToOneWeightsWithDelaysParams();
-   InitOneToOneWeightsWithDelaysParams(const char * name, HyPerCol * hc);
+   InitOneToOneWeightsWithDelaysParams(const char *name, HyPerCol *hc);
    virtual ~InitOneToOneWeightsWithDelaysParams();
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    void calcOtherParams(int patchIndex);
 
-   //get/set methods:
-   inline float getInitWeight()        {return initWeight;}
+   // get/set methods:
+   inline float getInitWeight() { return initWeight; }
 
-protected:
+  protected:
    virtual int initialize_base();
-   int initialize(const char * name, HyPerCol * hc);
+   int initialize(const char *name, HyPerCol *hc);
    virtual void ioParam_weightInit(enum ParamsIOFlag ioFlag);
 
-private:
+  private:
    float initWeight;
-
 };
 
 } /* namespace PV */

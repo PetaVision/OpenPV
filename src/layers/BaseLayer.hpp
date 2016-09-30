@@ -21,12 +21,12 @@ namespace PV {
  * a class that all layers, however templated, are derived from.
  */
 class BaseLayer : public BaseObject {
-public:
+  public:
    virtual ~BaseLayer();
 
-protected:
+  protected:
    BaseLayer();
-   int initialize(char const * name, HyPerCol * hc);
+   int initialize(char const *name, HyPerCol *hc);
 };
 
 } // namespace PV

@@ -10,69 +10,70 @@
 
 namespace PV {
 
-InitUniformRandomWeights::InitUniformRandomWeights(char const * name, HyPerCol * hc) {
+InitUniformRandomWeights::InitUniformRandomWeights(char const *name, HyPerCol *hc) {
    initialize_base();
    initialize(name, hc);
 }
 
-InitUniformRandomWeights::InitUniformRandomWeights() {
-   initialize_base();
-}
+InitUniformRandomWeights::InitUniformRandomWeights() { initialize_base(); }
 
-InitUniformRandomWeights::~InitUniformRandomWeights() {
-}
+InitUniformRandomWeights::~InitUniformRandomWeights() {}
 
-int InitUniformRandomWeights::initialize_base() {
-   return PV_SUCCESS;
-}
+int InitUniformRandomWeights::initialize_base() { return PV_SUCCESS; }
 
-int InitUniformRandomWeights::initialize(char const * name, HyPerCol * hc) {
+int InitUniformRandomWeights::initialize(char const *name, HyPerCol *hc) {
    int status = InitRandomWeights::initialize(name, hc);
    return status;
 }
 
-InitWeightsParams * InitUniformRandomWeights::createNewWeightParams() {
-   InitWeightsParams * tempPtr = new InitUniformRandomWeightsParams(name, parent);
+InitWeightsParams *InitUniformRandomWeights::createNewWeightParams() {
+   InitWeightsParams *tempPtr = new InitUniformRandomWeightsParams(name, parent);
    return tempPtr;
 }
 
 /**
- * randomWeights() fills the full-size patch with random numbers, whether or not the patch is shrunken.
+ * randomWeights() fills the full-size patch with random numbers, whether or not the patch is
+ * shrunken.
  */
-int InitUniformRandomWeights::randomWeights(pvdata_t * patchDataStart, InitWeightsParams *weightParams, int patchIndex) {
+int InitUniformRandomWeights::randomWeights(
+      pvdata_t *patchDataStart,
+      InitWeightsParams *weightParams,
+      int patchIndex) {
 
-   InitUniformRandomWeightsParams *weightParamPtr = dynamic_cast<InitUniformRandomWeightsParams*>(weightParams);
+   InitUniformRandomWeightsParams *weightParamPtr =
+         dynamic_cast<InitUniformRandomWeightsParams *>(weightParams);
 
-   if(weightParamPtr==NULL) {
+   if (weightParamPtr == NULL) {
       pvError().printf("Failed to recast pointer to weightsParam!  Exiting...");
    }
 
-   double minwgt = weightParamPtr->getWMin();
-   double maxwgt = weightParamPtr->getWMax();
+   double minwgt        = weightParamPtr->getWMin();
+   double maxwgt        = weightParamPtr->getWMax();
    float sparseFraction = weightParamPtr->getSparseFraction();
 
    double p;
-   if( maxwgt <= minwgt ) {
-      if( maxwgt < minwgt ) {
-         pvWarn().printf("uniformWeights maximum less than minimum.  Changing max = %f to min value of %f\n",
-               maxwgt, minwgt);
+   if (maxwgt <= minwgt) {
+      if (maxwgt < minwgt) {
+         pvWarn().printf(
+               "uniformWeights maximum less than minimum.  Changing max = %f to min value of %f\n",
+               maxwgt,
+               minwgt);
          maxwgt = minwgt;
       }
       p = 0;
+   } else {
+      p = (maxwgt - minwgt) / (1.0 + (double)CL_RANDOM_MAX);
    }
-   else {
-       p = (maxwgt - minwgt) / (1.0 + (double) CL_RANDOM_MAX);
-   }
-   sparseFraction *= (float)(1.0 + (double) CL_RANDOM_MAX);
+   sparseFraction *= (float)(1.0 + (double)CL_RANDOM_MAX);
 
    // loop over all post-synaptic cells in patch
 
-   const int nxp = weightParamPtr->getnxPatch();
-   const int nyp = weightParamPtr->getnyPatch();
-   const int nfp = weightParamPtr->getnfPatch();
-   const int patchSize = nxp*nyp*nfp;
-   for (int n=0; n<patchSize; n++) {
-      float data = (float)(minwgt + (p * (double) randState->randomUInt(patchIndex)));
+   const int nxp       = weightParamPtr->getnxPatch();
+   const int nyp       = weightParamPtr->getnyPatch();
+   const int nfp       = weightParamPtr->getnfPatch();
+   const int patchSize = nxp * nyp * nfp;
+   for (int n = 0; n < patchSize; n++) {
+      float data = (float)(minwgt + (p * (double)randState->randomUInt(patchIndex)));
       if ((double)randState->randomUInt(patchIndex) < (double)sparseFraction) {
          data = 0.0f;
       }

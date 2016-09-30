@@ -20,28 +20,28 @@ namespace PV {
  * Derived classes must implement getValueInternal(double, int).  Each MPI process
  * should return its own contribution to the norm.  getValues() and getValue()
  * call getValueInternal and apply MPI_Allreduce to the result, so that
- * getValueInternal() typically does not have to call any MPI processes. 
+ * getValueInternal() typically does not have to call any MPI processes.
  */
 class AbstractNormProbe : public LayerProbe {
-public:
-   AbstractNormProbe(const char * probeName, HyPerCol * hc);
+  public:
+   AbstractNormProbe(const char *probeName, HyPerCol *hc);
    virtual ~AbstractNormProbe();
-   
+
    /**
     * Returns a pointer to the masking layer.  Returns NULL if masking is not used.
     */
-   HyPerLayer * getMaskLayer() { return maskLayer; }
+   HyPerLayer *getMaskLayer() { return maskLayer; }
 
    /**
     * Returns the name of the masking layer, as given by the params.
     * maskLayerName is not set in params, it returns NULL.
     */
-   char const * getMaskLayerName() { return maskLayerName; }
+   char const *getMaskLayerName() { return maskLayerName; }
 
-protected:
+  protected:
    AbstractNormProbe();
-   int initAbstractNormProbe(const char * probeName, HyPerCol * hc);
-   
+   int initAbstractNormProbe(const char *probeName, HyPerCol *hc);
+
    /**
     * Called during initialization, sets the member variable normDescription.
     * This member variable is used by outputState() when printing the norm value.
@@ -50,17 +50,17 @@ protected:
     * and on failure it sets errno.
     */
    virtual int setNormDescription();
-   
+
    /**
     * A generic method for setNormDescription() implementations to call.  It
     * frees normDescription if it has already been set, and then copies the
     * string in the input argument to the normDescription member variable.
     * It returns PV_SUCCESS or PV_FAILURE; on failure it sets errno.
     */
-   int setNormDescriptionToString(char const * s);
-   
+   int setNormDescriptionToString(char const *s);
+
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-   
+
    /**
     * List of parameters needed from the AbstractNormProbe class
     * @name AbstractNormProbe Parameters
@@ -80,13 +80,13 @@ protected:
     */
    virtual void ioParam_maskLayerName(enum ParamsIOFlag ioFlag);
    /** @} */
-   
+
    /**
     * Computes the norms.  Each MPI process calls getValueInternal to compute its
     * own contribution to the norms, and then calcValues calls MPI_Allreduce.
     */
    virtual int calcValues(double timeValue);
-   
+
    /**
     * getValueInternal(double, index) is a pure virtual function
     * called by calcValues().  The index refers to the layer's batch element index.
@@ -95,13 +95,13 @@ protected:
     * its own MPI process.  Then calcValues calls MPI_Allreduce.
     */
    virtual double getValueInternal(double timevalue, int index) = 0;
-   
+
    /**
     * Calls LayerProbe::communicateInitInfo to set up the targetLayer and
     * attach the probe; and then checks the masking layer if masking is used.
     */
    virtual int communicateInitInfo();
-   
+
    /**
     * Returns true if masking is used and the layer has multiple features but
     * the masking layer has a single feature.  In this case it is expected that
@@ -112,25 +112,28 @@ protected:
 
    /**
     * Implements the outputState method required by classes derived from BaseProbe.
-    * Prints to the outputFile the probe message, timestamp, number of neurons, and norm value for each batch element.
+    * Prints to the outputFile the probe message, timestamp, number of neurons, and norm value for
+    * each batch element.
     */
    virtual int outputState(double timevalue);
-   
-   char const * getNormDescription() { return normDescription; }
 
-private:
+   char const *getNormDescription() { return normDescription; }
+
+  private:
    int initAbstractNormProbe_base();
 
-private:
-   char * normDescription;
-   char * maskLayerName;
-   HyPerLayer * maskLayer;
+  private:
+   char *normDescription;
+   char *maskLayerName;
+   HyPerLayer *maskLayer;
    bool singleFeatureMask;
-   
-   double timeLastComputed; // the value of the input argument timevalue for the most recent getValues() call.  Calls to getValue() do not set or refer to this time.
-   
+
+   double timeLastComputed; // the value of the input argument timevalue for the most recent
+                            // getValues() call.  Calls to getValue() do not set or refer to this
+                            // time.
+
 }; // end class AbstractNormProbe
 
-}  // end namespace PV
+} // end namespace PV
 
 #endif /* ABSTRACTNORMPROBE_HPP_ */

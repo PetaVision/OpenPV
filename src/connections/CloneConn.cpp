@@ -8,11 +8,9 @@
 
 namespace PV {
 
-CloneConn::CloneConn(){
-   initialize_base();
-}
+CloneConn::CloneConn() { initialize_base(); }
 
-CloneConn::CloneConn(const char * name, HyPerCol * hc) {
+CloneConn::CloneConn(const char *name, HyPerCol *hc) {
    initialize_base();
    initialize(name, hc);
 }
@@ -22,7 +20,7 @@ int CloneConn::initialize_base() {
    return PV_SUCCESS;
 }
 
-int CloneConn::initialize(const char * name, HyPerCol * hc) {
+int CloneConn::initialize(const char *name, HyPerCol *hc) {
    int status = HyPerConn::initialize(name, hc, NULL, NULL);
    return status;
 }
@@ -34,14 +32,14 @@ int CloneConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void CloneConn::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
-   if (ioFlag==PARAMS_IO_READ) {
+   if (ioFlag == PARAMS_IO_READ) {
       parent->parameters()->handleUnnecessaryParameter(name, "writeStep");
       writeStep = -1;
-   }   
+   }
 }
 
 void CloneConn::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
-   if (ioFlag==PARAMS_IO_READ) {
+   if (ioFlag == PARAMS_IO_READ) {
       parent->parameters()->handleUnnecessaryStringParameter(name, "weightInitType", NULL);
    }
 }
@@ -64,11 +62,11 @@ int CloneConn::setWeightInitializer() {
 int CloneConn::constructWeights() {
    int status = setPatchStrides();
 
-   wPatches = this->originalConn->get_wPatches();
-   wDataStart = this->originalConn->get_wDataStart();
+   wPatches       = this->originalConn->get_wPatches();
+   wDataStart     = this->originalConn->get_wDataStart();
    gSynPatchStart = this->originalConn->getGSynPatchStart();
-   aPostOffset = this->originalConn->getAPostOffset();
-   dwDataStart = this->originalConn->get_dwDataStart();
+   aPostOffset    = this->originalConn->getAPostOffset();
+   dwDataStart    = this->originalConn->get_dwDataStart();
 
    // Don't call initPlasticityPatches since plasticityFlag is always false.
    // Don't call shrinkPatches() since the original connection will have already shrunk patches
@@ -76,14 +74,13 @@ int CloneConn::constructWeights() {
 }
 
 void CloneConn::constructWeightsOutOfMemory() {
-   pvError().printf("Out of memory error in CloneConn::constructWeightsOutOfMemory() for \"%s\"\n", name);
+   pvError().printf(
+         "Out of memory error in CloneConn::constructWeightsOutOfMemory() for \"%s\"\n", name);
 }
 
-int CloneConn::createAxonalArbors(int arborId) {
-   return PV_SUCCESS;
-}
+int CloneConn::createAxonalArbors(int arborId) { return PV_SUCCESS; }
 
-PVPatch *** CloneConn::initializeWeights(PVPatch *** patches, pvdata_t ** dataStart) {
+PVPatch ***CloneConn::initializeWeights(PVPatch ***patches, pvdata_t **dataStart) {
    return patches;
    // nothing to be done as the weight patches point to originalConn's space.
 }
@@ -123,7 +120,8 @@ void CloneConn::ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) {
 
 void CloneConn::ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
-      plasticityFlag = false; // CloneConn updates automatically, since it's done using pointer magic.
+      plasticityFlag =
+            false; // CloneConn updates automatically, since it's done using pointer magic.
       parent->parameters()->handleUnnecessaryParameter(name, "plasticityFlag", plasticityFlag);
    }
 }
@@ -131,8 +129,10 @@ void CloneConn::ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) {
 void CloneConn::ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       keepKernelsSynchronized_flag = false;
-      // CloneConns do not have to synchronize because the pointers keep them synchronized whenever the original is.
-      // We override this method because sharedWeights is not determined when this function is called.
+      // CloneConns do not have to synchronize because the pointers keep them synchronized whenever
+      // the original is.
+      // We override this method because sharedWeights is not determined when this function is
+      // called.
    }
 }
 
@@ -172,26 +172,35 @@ void CloneConn::ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFlag) {
 }
 
 int CloneConn::communicateInitInfo() {
-   // Need to set originalConn before calling HyPerConn::communicate, since HyPerConn::communicate calls setPatchSize, which needs originalConn.
-   BaseConnection * originalConnBase = parent->getConnFromName(originalConnName);
+   // Need to set originalConn before calling HyPerConn::communicate, since HyPerConn::communicate
+   // calls setPatchSize, which needs originalConn.
+   BaseConnection *originalConnBase = parent->getConnFromName(originalConnName);
    if (originalConnBase == NULL) {
-      if (parent->columnId()==0) {
-         pvErrorNoExit().printf("%s: originalConnName \"%s\" is not a connection in the column.\n",
-               getDescription_c(), originalConnName);
+      if (parent->columnId() == 0) {
+         pvErrorNoExit().printf(
+               "%s: originalConnName \"%s\" is not a connection in the column.\n",
+               getDescription_c(),
+               originalConnName);
       }
       MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    originalConn = dynamic_cast<HyPerConn *>(originalConnBase);
    if (originalConn == NULL) {
-      if (parent->columnId()==0) {
-         pvErrorNoExit().printf("%s: originalConnName \"%s\" is not a HyPerConn or HyPerConn-derived class.\n",
-               getDescription_c(), originalConnName);
+      if (parent->columnId() == 0) {
+         pvErrorNoExit().printf(
+               "%s: originalConnName \"%s\" is not a HyPerConn or HyPerConn-derived class.\n",
+               getDescription_c(),
+               originalConnName);
       }
    }
    if (!originalConn->getInitInfoCommunicatedFlag()) {
-      if (parent->columnId()==0) {
-         pvInfo().printf("%s must wait until original connection \"%s\" has finished its communicateInitInfo stage.\n", getDescription_c(), originalConn->getName());
+      if (parent->columnId() == 0) {
+         pvInfo().printf(
+               "%s must wait until original connection \"%s\" has finished its communicateInitInfo "
+               "stage.\n",
+               getDescription_c(),
+               originalConn->getName());
       }
       return PV_POSTPONE;
    }
@@ -202,34 +211,46 @@ int CloneConn::communicateInitInfo() {
    int status = cloneParameters();
 
    status = HyPerConn::communicateInitInfo();
-   if (status != PV_SUCCESS) return status;
+   if (status != PV_SUCCESS)
+      return status;
 
-   //Don't allocate post, just grab in allocate from orig
-   if(needPost){
+   // Don't allocate post, just grab in allocate from orig
+   if (needPost) {
       originalConn->setNeedPost(true);
    }
 
 #ifdef PV_USE_CUDA
-   if((updateGSynFromPostPerspective && receiveGpu) || allocPostDeviceWeights){
+   if ((updateGSynFromPostPerspective && receiveGpu) || allocPostDeviceWeights) {
       originalConn->setAllocPostDeviceWeights();
    }
-   if((!updateGSynFromPostPerspective && receiveGpu) || allocDeviceWeights){
+   if ((!updateGSynFromPostPerspective && receiveGpu) || allocDeviceWeights) {
       originalConn->setAllocDeviceWeights();
    }
 #endif
 
+   // Presynaptic layers of the CloneConn and its original conn must have the same size, or the
+   // patches won't line up with each other.
+   const PVLayerLoc *preLoc     = pre->getLayerLoc();
+   const PVLayerLoc *origPreLoc = originalConn->preSynapticLayer()->getLayerLoc();
 
-   // Presynaptic layers of the CloneConn and its original conn must have the same size, or the patches won't line up with each other.
-   const PVLayerLoc * preLoc = pre->getLayerLoc();
-   const PVLayerLoc * origPreLoc = originalConn->preSynapticLayer()->getLayerLoc();
-
-   if (preLoc->nx != origPreLoc->nx || preLoc->ny != origPreLoc->ny || preLoc->nf != origPreLoc->nf ) {
-      if (parent->getCommunicator()->commRank()==0) {
+   if (preLoc->nx != origPreLoc->nx || preLoc->ny != origPreLoc->ny
+       || preLoc->nf != origPreLoc->nf) {
+      if (parent->getCommunicator()->commRank() == 0) {
          pvErrorNoExit(errorMessage);
-         errorMessage.printf("%s: CloneConn and originalConn \"%s\" must have presynaptic layers with the same nx,ny,nf.\n",
-               getDescription_c(), parent->columnId(), originalConn->getName());
-         errorMessage.printf("{nx=%d, ny=%d, nf=%d} versus {nx=%d, ny=%d, nf=%d}\n",
-                 preLoc->nx, preLoc->ny, preLoc->nf, origPreLoc->nx, origPreLoc->ny, origPreLoc->nf);
+         errorMessage.printf(
+               "%s: CloneConn and originalConn \"%s\" must have presynaptic layers with the same "
+               "nx,ny,nf.\n",
+               getDescription_c(),
+               parent->columnId(),
+               originalConn->getName());
+         errorMessage.printf(
+               "{nx=%d, ny=%d, nf=%d} versus {nx=%d, ny=%d, nf=%d}\n",
+               preLoc->nx,
+               preLoc->ny,
+               preLoc->nf,
+               origPreLoc->nx,
+               origPreLoc->ny,
+               origPreLoc->nf);
       }
       MPI_Barrier(parent->getCommunicator()->communicator());
       abort();
@@ -241,27 +262,30 @@ int CloneConn::communicateInitInfo() {
 
    // Make sure the original's and the clone's margin widths stay equal
    // Only if this layer receives from post for patch to data LUT
-   if(getUpdateGSynFromPostPerspective())
-   {
+   if (getUpdateGSynFromPostPerspective()) {
       originalConn->postSynapticLayer()->synchronizeMarginWidth(post);
       post->synchronizeMarginWidth(originalConn->postSynapticLayer());
    }
-   //Redudant read in case it's a clone of a clone
+   // Redudant read in case it's a clone of a clone
 
    return status;
 }
 
-
-//Overwriting HyPerConn's allocate, since it needs to just grab postConn and preToPostActivity from orig conn
-int CloneConn::allocatePostConn(){
+// Overwriting HyPerConn's allocate, since it needs to just grab postConn and preToPostActivity from
+// orig conn
+int CloneConn::allocatePostConn() {
    postConn = originalConn->postConn;
    return PV_SUCCESS;
 }
 
 int CloneConn::allocateDataStructures() {
    if (!originalConn->getDataStructuresAllocatedFlag()) {
-      if (parent->columnId()==0) {
-         pvInfo().printf("%s must wait until original connection \"%s\" has finished its communicateInitInfo stage.\n", getDescription_c(), originalConn->getName());
+      if (parent->columnId() == 0) {
+         pvInfo().printf(
+               "%s must wait until original connection \"%s\" has finished its communicateInitInfo "
+               "stage.\n",
+               getDescription_c(),
+               originalConn->getName());
       }
       return PV_POSTPONE;
    }
@@ -269,17 +293,11 @@ int CloneConn::allocateDataStructures() {
    return status;
 }
 
-
 #ifdef PV_USE_CUDA
-//Device buffers live in origConn
-int CloneConn::allocateDeviceWeights(){
-   return PV_SUCCESS;
-}
-int CloneConn::allocatePostDeviceWeights(){
-   return PV_SUCCESS;
-}
+// Device buffers live in origConn
+int CloneConn::allocateDeviceWeights() { return PV_SUCCESS; }
+int CloneConn::allocatePostDeviceWeights() { return PV_SUCCESS; }
 #endif
-
 
 int CloneConn::setPatchSize() {
    assert(originalConn);
@@ -295,7 +313,7 @@ int CloneConn::setPatchSize() {
 int CloneConn::cloneParameters() {
    // Copy sharedWeights, numAxonalArborLists, shrinkPatches_flag from originalConn
 
-   PVParams * params = parent->parameters();
+   PVParams *params = parent->parameters();
 
    sharedWeights = originalConn->usingSharedWeights();
    params->handleUnnecessaryParameter(name, "sharedWeights", sharedWeights);
@@ -318,8 +336,8 @@ int CloneConn::updateState(double time, double dt) {
    return PV_SUCCESS;
 }
 
-int CloneConn::finalizeUpdate(double timed, double dt){
-   //Orig conn is in charge of calling finalizeUpdate for postConn.
+int CloneConn::finalizeUpdate(double timed, double dt) {
+   // Orig conn is in charge of calling finalizeUpdate for postConn.
    return PV_SUCCESS;
 }
 
@@ -327,18 +345,18 @@ int CloneConn::deleteWeights() {
    // Have to make sure not to free memory belonging to originalConn.
    // Set pointers that point into originalConn to NULL so that free() has no effect
    // when HyPerConn::deleteWeights or HyPerConn::deleteWeights is called
-	   wPatches = NULL;
-	   wDataStart = NULL;
-	   gSynPatchStart = NULL;
-	   aPostOffset = NULL;
-	   dwDataStart = NULL;
-   return 0; 
+   wPatches       = NULL;
+   wDataStart     = NULL;
+   gSynPatchStart = NULL;
+   aPostOffset    = NULL;
+   dwDataStart    = NULL;
+   return 0;
 }
 
 CloneConn::~CloneConn() {
    free(originalConnName);
    deleteWeights();
-   postConn = NULL;
+   postConn          = NULL;
    postToPreActivity = NULL;
 }
 

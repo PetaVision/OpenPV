@@ -12,20 +12,19 @@
 
 namespace PV {
 
-class MPITestProbe: public PV::StatsProbe {
-public:
-   MPITestProbe(const char * probeName, HyPerCol * hc);
+class MPITestProbe : public PV::StatsProbe {
+  public:
+   MPITestProbe(const char *probeName, HyPerCol *hc);
 
    virtual int outputState(double timed);
 
-protected:
-   int initMPITestProbe(const char * probeName, HyPerCol * hc);
+  protected:
+   int initMPITestProbe(const char *probeName, HyPerCol *hc);
 
-private:
+  private:
    int initMPITestProbe_base();
 }; // end class MPITestProbe
 
-
-}  // end namespace PV
+} // end namespace PV
 
 #endif /* MPITESTPROBE_HPP_ */

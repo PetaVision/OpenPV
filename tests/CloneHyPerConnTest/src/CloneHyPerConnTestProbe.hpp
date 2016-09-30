@@ -12,19 +12,18 @@
 
 namespace PV {
 
-class CloneHyPerConnTestProbe: public PV::StatsProbe {
-public:
-   CloneHyPerConnTestProbe(const char * probeName, HyPerCol * hc);
+class CloneHyPerConnTestProbe : public PV::StatsProbe {
+  public:
+   CloneHyPerConnTestProbe(const char *probeName, HyPerCol *hc);
 
    virtual int outputState(double timed);
 
-protected:
-   int initCloneHyPerConnTestProbe(const char * probeName, HyPerCol * hc);
+  protected:
+   int initCloneHyPerConnTestProbe(const char *probeName, HyPerCol *hc);
 
-private:
+  private:
    int initCloneHyPerConnTestProbe_base();
 };
-
 
 } /* namespace PV */
 #endif /* CLONEKERNELCONNTESTPROBE_HPP_ */

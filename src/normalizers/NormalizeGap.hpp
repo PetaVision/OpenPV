@@ -14,22 +14,22 @@
 #ifndef NORMALIZEGAP_HPP_
 #define NORMALIZEGAP_HPP_
 
-#include "NormalizeSum.hpp"
 #include "../connections/GapConn.hpp"
+#include "NormalizeSum.hpp"
 
 namespace PV {
 
-class NormalizeGap: public PV::NormalizeSum {
-public:
-   NormalizeGap(const char * name, HyPerCol * hc);
+class NormalizeGap : public PV::NormalizeSum {
+  public:
+   NormalizeGap(const char *name, HyPerCol *hc);
    virtual ~NormalizeGap();
 
-protected:
+  protected:
    NormalizeGap();
-   int initialize(const char * name, HyPerCol * hc);
+   int initialize(const char *name, HyPerCol *hc);
    virtual void ioParam_normalizeFromPostPerspective(enum ParamsIOFlag ioFlag);
 
-private:
+  private:
    int initialize_base();
 };
 

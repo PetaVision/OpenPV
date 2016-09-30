@@ -8,13 +8,13 @@
 #ifndef CUDARECVPRE_HPP_
 #define CUDARECVPRE_HPP_
 
-#include "../arch/cuda/CudaKernel.hpp"
 #include "../arch/cuda/CudaBuffer.hpp"
+#include "../arch/cuda/CudaKernel.hpp"
 //#include "../arch/cuda/Cuda3dFloatTextureBuffer.hpp"
 //#include "../utils/conversions.h"
 //#include "../layers/accumulate_functions.h"
 
-namespace PVCuda{
+namespace PVCuda {
 #include <builtin_types.h>
 
 typedef struct PVPatch_ {
@@ -23,81 +23,79 @@ typedef struct PVPatch_ {
    unsigned short nx, ny;
 } PVPatch;
 
-//Parameter structure
-   struct recv_pre_params{
-      int nbatch;
-      int numPreExt;
-      int numPostRes;
-      
-      int nxp;
-      int nyp;
-      int nfp;
+// Parameter structure
+struct recv_pre_params {
+   int nbatch;
+   int numPreExt;
+   int numPostRes;
 
-      int sy;
-      int syw;
-      float dt_factor;
-      int sharedWeights;
+   int nxp;
+   int nyp;
+   int nfp;
 
-      PVPatch* patches;
-      size_t* gSynPatchStart;
+   int sy;
+   int syw;
+   float dt_factor;
+   int sharedWeights;
 
-      float* preData;
-      float* weights;
-      float* postGSyn;
-      int* patch2datalookuptable;
+   PVPatch *patches;
+   size_t *gSynPatchStart;
 
-      bool isSparse;
-      long * numActive;
-      unsigned int * activeIndices;
-   };
+   float *preData;
+   float *weights;
+   float *postGSyn;
+   int *patch2datalookuptable;
 
+   bool isSparse;
+   long *numActive;
+   unsigned int *activeIndices;
+};
 
 class CudaRecvPre : public CudaKernel {
-public:
-   CudaRecvPre(CudaDevice* inDevice);
-   
+  public:
+   CudaRecvPre(CudaDevice *inDevice);
+
    virtual ~CudaRecvPre();
 
    void setArgs(
-      int nbatch,
-      int numPreExt,
-      int numPostRes,
-      int nxp,
-      int nyp,
-      int nfp,
+         int nbatch,
+         int numPreExt,
+         int numPostRes,
+         int nxp,
+         int nyp,
+         int nfp,
 
-      int sy,
-      int syw,
-      float dt_factor,
-      int sharedWeights,
+         int sy,
+         int syw,
+         float dt_factor,
+         int sharedWeights,
 
-      /* PVPatch* */ CudaBuffer* patches,
-      /* size_t* */  CudaBuffer* gSynPatchStart,
+         /* PVPatch* */ CudaBuffer *patches,
+         /* size_t* */ CudaBuffer *gSynPatchStart,
 
-      /* float* */   CudaBuffer* preData,
-      /* float* */   CudaBuffer* weights,
-      /* float* */   CudaBuffer* postGSyn,
-      /* int* */     CudaBuffer* patch2datalookuptable,
+         /* float* */ CudaBuffer *preData,
+         /* float* */ CudaBuffer *weights,
+         /* float* */ CudaBuffer *postGSyn,
+         /* int* */ CudaBuffer *patch2datalookuptable,
 
-      bool isSparse,
-      /* unsigned long * */ CudaBuffer* numActive, 
-      /* unsigned int* */ CudaBuffer* activeIndices
-   );
+         bool isSparse,
+         /* unsigned long * */ CudaBuffer *numActive,
+         /* unsigned int* */ CudaBuffer *activeIndices);
 
    void set_dt_factor(float new_dt_factor) { params.dt_factor = new_dt_factor; }
 
-protected:
-   //This is the function that should be overwritten in child classes
+  protected:
+   // This is the function that should be overwritten in child classes
    virtual int do_run();
 
-private:
+  private:
    void checkSharedMemSize(size_t sharedSize);
 
-private:
+  private:
    recv_pre_params params;
-   long * numActive;
+   long *numActive;
 }; // end class CudaRecvPre
 
-}  // end namespace PVCuda
+} // end namespace PVCuda
 
 #endif /* CLKERNEL_HPP_ */

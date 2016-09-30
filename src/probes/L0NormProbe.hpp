@@ -17,17 +17,17 @@ namespace PV {
  * above a certain threshold (often referred to as the L0-norm).
  */
 class L0NormProbe : public AbstractNormProbe {
-public:
-   L0NormProbe(const char * probeName, HyPerCol * hc);
+  public:
+   L0NormProbe(const char *probeName, HyPerCol *hc);
    virtual ~L0NormProbe();
 
-protected:
+  protected:
    L0NormProbe();
-   int initL0NormProbe(const char * probeName, HyPerCol * hc);
+   int initL0NormProbe(const char *probeName, HyPerCol *hc);
    virtual double getValueInternal(double timevalue, int index);
-   
+
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-   /** 
+   /**
     * List of parameters for the L0NormProbe class
     * @name L0NormProbe Parameters
     * @{
@@ -38,7 +38,7 @@ protected:
     * getValue(t, index) returns the number of targetLayer neurons whose
     * absolute value is greater than nnzThreshold.
     */
-   virtual void ioParam_nnzThreshold(enum ParamsIOFlag ioFlag);   
+   virtual void ioParam_nnzThreshold(enum ParamsIOFlag ioFlag);
    /** @} */
 
    /**
@@ -47,13 +47,13 @@ protected:
     */
    virtual int setNormDescription();
 
-private:
-   int initL0NormProbe_base() {return PV_SUCCESS;}
+  private:
+   int initL0NormProbe_base() { return PV_SUCCESS; }
 
-protected:
+  protected:
    pvadata_t nnzThreshold;
 }; // end class L0NormProbe
 
-}  // end namespace PV
+} // end namespace PV
 
 #endif /* L0NORMPROBE_HPP_ */

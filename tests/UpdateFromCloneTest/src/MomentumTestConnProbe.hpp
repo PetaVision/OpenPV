@@ -10,38 +10,40 @@
 
 namespace PV {
 
-class MomentumTestConnProbe: public BaseHyPerConnProbe {
+class MomentumTestConnProbe : public BaseHyPerConnProbe {
 
-// Methods
-public:
-   MomentumTestConnProbe(const char * probename, HyPerCol * hc);
+   // Methods
+  public:
+   MomentumTestConnProbe(const char *probename, HyPerCol *hc);
    virtual ~MomentumTestConnProbe();
    virtual int outputState(double timed);
 
-protected:
+  protected:
    MomentumTestConnProbe(); // Default constructor, can only be called by derived classes
-   
+
    /**
-    * MomentumTestConnProbe::initNumValues() sets numValues to -1, indicating that getValues() and getValue() should not be used.
+    * MomentumTestConnProbe::initNumValues() sets numValues to -1, indicating that getValues() and
+    * getValue() should not be used.
     */
    int initNumValues();
-   
+
    /**
-    * MomentumTestConnProbe::needRecalc() always returns false since calcValues should not be called.
+    * MomentumTestConnProbe::needRecalc() always returns false since calcValues should not be
+    * called.
     */
    bool needRecalc(double timevalue) { return false; }
-   
+
    /**
-    * MomentumTestConnProbe::calcValues() always fails since this probe does not use getValues() or getValue().
+    * MomentumTestConnProbe::calcValues() always fails since this probe does not use getValues() or
+    * getValue().
     */
    int calcValues(double timevalue) { return PV_FAILURE; }
 
-private:
+  private:
    int initialize_base();
 
 }; // end of class MomentumTestConnProbe
 
-
-}  // end of namespace PV block
+} // end of namespace PV block
 
 #endif /* BASECONNECTIONPROBE_HPP_ */

@@ -12,27 +12,26 @@
 
 namespace PV {
 
-class InitUniformWeightsParams: public PV::InitWeightsParams {
-public:
+class InitUniformWeightsParams : public PV::InitWeightsParams {
+  public:
    InitUniformWeightsParams();
-   InitUniformWeightsParams(const char * name, HyPerCol * hc);
+   InitUniformWeightsParams(const char *name, HyPerCol *hc);
    virtual ~InitUniformWeightsParams();
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
-   //get-set methods:
-   inline float getInitWeight()        {return initWeight;}
-   inline bool getConnectOnlySameFeatures()        {return connectOnlySameFeatures;}
+   // get-set methods:
+   inline float getInitWeight() { return initWeight; }
+   inline bool getConnectOnlySameFeatures() { return connectOnlySameFeatures; }
 
-protected:
+  protected:
    virtual int initialize_base();
-   int initialize(const char * name, HyPerCol * hc);
+   int initialize(const char *name, HyPerCol *hc);
    virtual void ioParam_weightInit(enum ParamsIOFlag ioFlag);
    virtual void ioParam_connectOnlySameFeatures(enum ParamsIOFlag ioFlag);
 
-private:
+  private:
    float initWeight;
    bool connectOnlySameFeatures;
-
 };
 
 } /* namespace PV */

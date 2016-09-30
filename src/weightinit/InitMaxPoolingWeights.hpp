@@ -8,23 +8,23 @@
 #ifndef INITMAXPOOLINGWEIGHTS_HPP_
 #define INITMAXPOOLINGWEIGHTS_HPP_
 
-#include "InitWeights.hpp"
 #include "InitMaxPoolingWeightsParams.hpp"
+#include "InitWeights.hpp"
 
 namespace PV {
 
-class InitMaxPoolingWeights: public PV::InitWeights {
-public:
-   InitMaxPoolingWeights(char const * name, HyPerCol * hc);
+class InitMaxPoolingWeights : public PV::InitWeights {
+  public:
+   InitMaxPoolingWeights(char const *name, HyPerCol *hc);
    virtual ~InitMaxPoolingWeights();
-   virtual InitWeightsParams * createNewWeightParams();
+   virtual InitWeightsParams *createNewWeightParams();
 
-   virtual int calcWeights(pvdata_t * dataStart, int patchIndex, int arborId);
+   virtual int calcWeights(pvdata_t *dataStart, int patchIndex, int arborId);
 
-protected:
+  protected:
    InitMaxPoolingWeights();
    int initialize_base();
-   int initialize(char const * name, HyPerCol * hc);
+   int initialize(char const *name, HyPerCol *hc);
 
 }; // class InitMaxPoolingWeights
 
