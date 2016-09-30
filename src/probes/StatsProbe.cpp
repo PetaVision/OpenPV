@@ -252,7 +252,9 @@ int StatsProbe::outputState(double timed) {
                      loc->halo.lt,
                      loc->halo.rt,
                      loc->halo.dn,
-                     loc->halo.up); // TODO: faster to use strides and a double-loop than compute
+                     loc->halo.up); // TODO: faster to use strides
+               // and a double-loop than
+               // compute
                // kIndexExtended for every neuron?
                float a = buf[kex];
                sum[b] += (double)a;
@@ -315,7 +317,8 @@ int StatsProbe::outputState(double timed) {
          avgnote = "";
       }
       outputStream->printf(
-            "%st==%6.1f b==%d N==%d Total==%f Min==%f Avg==%f%s Max==%f sigma==%f nnz==%d",
+            "%st==%6.1f b==%d N==%d Total==%f Min==%f Avg==%f%s "
+            "Max==%f sigma==%f nnz==%d",
             getMessage(),
             (double)timed,
             (int)b,

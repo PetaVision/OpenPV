@@ -31,7 +31,8 @@ int CopyConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void CopyConn::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
-   // CopyConn determines sharedWeights from originalConn, during communicateInitInfo
+   // CopyConn determines sharedWeights from originalConn, during
+   // communicateInitInfo
 }
 
 void CopyConn::ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag) {
@@ -40,7 +41,8 @@ void CopyConn::ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag) {
       parent->parameters()->handleUnnecessaryParameter(name, "keepKernelsSynchronized");
    }
    // CopyConn doesn't use the keepKernelsSynchronized flag.
-   // It copies weights from original conn, so kernels will automatically synchronize
+   // It copies weights from original conn, so kernels will automatically
+   // synchronize
    // whenever original the conn synchronizes.
 }
 
@@ -68,21 +70,25 @@ void CopyConn::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
       initializeFromCheckpointFlag = false;
       parent->parameters()->handleUnnecessaryParameter(name, "initializeFromCheckpointFlag");
    }
-   // During the setInitialValues phase, the conn will be copied from the original conn, so
+   // During the setInitialValues phase, the conn will be copied from the
+   // original conn, so
    // initializeFromCheckpointFlag is not needed.
 }
 
 void CopyConn::ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) {
-   // During the communication phase, numAxonalArbors will be copied from originalConn
+   // During the communication phase, numAxonalArbors will be copied from
+   // originalConn
 }
 
 void CopyConn::ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) {
-   // During the communication phase, plasticityFlag will be copied from originalConn
+   // During the communication phase, plasticityFlag will be copied from
+   // originalConn
 }
 
 void CopyConn::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
-      // make sure that TransposePoolingConn always checks if its originalConn has updated
+      // make sure that TransposePoolingConn always checks if its originalConn has
+      // updated
       triggerFlag      = false;
       triggerLayerName = NULL;
       parent->parameters()->handleUnnecessaryParameter(name, "triggerFlag", triggerFlag);
@@ -114,15 +120,16 @@ void CopyConn::ioParam_dWMax(enum ParamsIOFlag ioFlag) {
 
 void CopyConn::ioParam_useMask(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
-      useMask = false; // since CopyConn doesn't do its own learning, it doesn't need to have a mask
+      useMask = false; // since CopyConn doesn't do its own learning, it doesn't
+      // need to have a mask
       parent->parameters()->handleUnnecessaryParameter(name, "useMask", useMask);
    }
 }
 
 void CopyConn::ioParam_maskLayerName(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
-      maskLayerName =
-            NULL; // since CopyConn doesn't do its own learning, it doesn't need to have a mask
+      maskLayerName = NULL; // since CopyConn doesn't do its own learning, it
+      // doesn't need to have a mask
       parent->parameters()->handleUnnecessaryStringParameter(name, "maskLayerName", maskLayerName);
    }
 }
@@ -137,7 +144,8 @@ int CopyConn::communicateInitInfo() {
    if (originalConnBase == NULL) {
       if (parent->columnId() == 0) {
          pvErrorNoExit().printf(
-               "%s: originalConnName \"%s\" does not refer to any connection in the column.\n",
+               "%s: originalConnName \"%s\" does not refer to "
+               "any connection in the column.\n",
                getDescription_c(),
                this->originalConnName);
       }
@@ -160,7 +168,8 @@ int CopyConn::communicateInitInfo() {
    if (!originalConn->getInitInfoCommunicatedFlag()) {
       if (parent->columnId() == 0) {
          pvInfo().printf(
-               "%s must wait until original connection \"%s\" has finished its communicateInitInfo "
+               "%s must wait until original connection \"%s\" has "
+               "finished its communicateInitInfo "
                "stage.\n",
                getDescription_c(),
                originalConn->getName());
@@ -204,7 +213,8 @@ int CopyConn::setInitialValues() {
 }
 
 PVPatch ***CopyConn::initializeWeights(PVPatch ***patches, pvwdata_t **dataStart) {
-   assert(originalConn->getInitialValuesSetFlag()); // setInitialValues shouldn't call this function
+   assert(originalConn->getInitialValuesSetFlag()); // setInitialValues shouldn't
+   // call this function
    // unless original conn has set its own initial
    // values
    assert(dataStart == get_wDataStart());

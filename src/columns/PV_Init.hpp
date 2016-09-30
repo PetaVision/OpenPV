@@ -17,11 +17,13 @@
 
 namespace PV {
 
-class HyPerCol; // Included only to allow obsolete (as of Jul 19, 2016) HyPerCol* PV_Init::build()
+class HyPerCol; // Included only to allow obsolete (as of Jul 19, 2016)
+// HyPerCol* PV_Init::build()
 // method to print an error message.
 
 /**
- * PV_Init is an object that initializes MPI and parameters to pass to the HyPerCol
+ * PV_Init is an object that initializes MPI and parameters to pass to the
+ * HyPerCol
  */
 class PV_Init {
   public:
@@ -59,7 +61,8 @@ class PV_Init {
 
    /**
     * Returns a copy of the args array.  It uses malloc and strdup, so the caller
-    * is responsible for freeing getArgs()[k] for each k and for freeing getArgs()
+    * is responsible for freeing getArgs()[k] for each k and for freeing
+    * getArgs()
     * (the simplest way to free all the memory at once is to call the
     * static method PV_Argument::freeArgs)
     * The length of the returned array is argc+1, and getArgs()[argc] is NULL.
@@ -73,7 +76,8 @@ class PV_Init {
    static void freeArgs(int argc, char **argv) { PV_Arguments::freeArgs(argc, argv); }
 
    /**
-    * Returns the length of the array returned by getUnusedArgArray(); i.e. the argc argument passed
+    * Returns the length of the array returned by getUnusedArgArray(); i.e. the
+    * argc argument passed
     * to the constructor.
     */
    int getNumArgs() const { return arguments->getNumArgs(); }
@@ -94,7 +98,8 @@ class PV_Init {
    char const *getParamsFile() const { return arguments->getParamsFile(); }
 
    /**
-    * getParams() returns a pointer to the PVParams object created from the params file.
+    * getParams() returns a pointer to the PVParams object created from the
+    * params file.
     */
    PVParams *getParams() { return params; }
 
@@ -159,7 +164,8 @@ class PV_Init {
    bool getDryRunFlag() const { return arguments->getDryRunFlag(); }
 
    /**
-    * Prints the effective command line based on the argc/argv arguments used in instantiation,
+    * Prints the effective command line based on the argc/argv arguments used in
+    * instantiation,
     * and any set-methods used since then.
     */
    void printState() const { arguments->printState(); }
@@ -223,7 +229,8 @@ class PV_Init {
    }
 
    /**
-    * Sets the value of the working directory string to a copy of the input argument.
+    * Sets the value of the working directory string to a copy of the input
+    * argument.
     * Return value is PV_SUCCESS or PV_FAILURE.
     * If the routine fails, the working directory string remains unchanged.
     * TODO: PV_Init should handle the working directory, not HyPerCol.
@@ -252,7 +259,8 @@ class PV_Init {
    }
 
    /**
-     * Turns on the useDefaultNumThreads flag, and sets numThreads to zero. (Should be
+     * Turns on the useDefaultNumThreads flag, and sets numThreads to zero.
+    * (Should be
     * maxthreads/numProcesses)
      * The return value is always PV_SUCCESS
      */
@@ -329,7 +337,8 @@ class PV_Init {
    int isExtraProc() { return mCommunicator->isExtraProc(); }
 
    /**
-    * If using PV_USE_OPENMP_THREADS, returns the value returned by omp_get_max_threads() when the
+    * If using PV_USE_OPENMP_THREADS, returns the value returned by
+    * omp_get_max_threads() when the
     * PV_Init object was instantiated.
     * Note that this value is NOT divided by the number of MPI processes.
     * If not using PV_USE_OPENMP_THREADS, returns 1.
@@ -338,10 +347,14 @@ class PV_Init {
 
    /**
     * The method to add a new object type to the PV_Init object's class factory.
-    * keyword is the string that labels the object type, matching the keyword used in params files.
-    * creator is a pointer to a function that takes a name and a HyPerCol pointer, and
-    * creates an object of the corresponding keyword, with the given name and parent HyPerCol.
-    * The function should return a pointer of type BaseObject, created with the new operator.
+    * keyword is the string that labels the object type, matching the keyword
+    * used in params files.
+    * creator is a pointer to a function that takes a name and a HyPerCol
+    * pointer, and
+    * creates an object of the corresponding keyword, with the given name and
+    * parent HyPerCol.
+    * The function should return a pointer of type BaseObject, created with the
+    * new operator.
     */
    int registerKeyword(char const *keyword, ObjectCreateFn creator);
 
@@ -350,7 +363,8 @@ class PV_Init {
     */
    HyPerCol *build() {
       pvError() << "PV_Init::build is obsolete.  " // marked obsolete July 19, 2016.
-                << "Use hc=createHyPerCol(pv_init_ptr) instead of hc=pv_init_ptr->build()\n";
+                << "Use hc=createHyPerCol(pv_init_ptr) instead of "
+                   "hc=pv_init_ptr->build()\n";
       return nullptr;
    }
 
@@ -369,22 +383,27 @@ class PV_Init {
     * error streams.
     *
     * After setting the log file streams, initLogFile() writes the time stamp
-    * to pvInfo() and calls PV_Arguments::printState(), which writes the effective
+    * to pvInfo() and calls PV_Arguments::printState(), which writes the
+    * effective
     * command line to pvInfo().
     */
    void initLogFile(bool appendFlag);
 
    /**
-    * A method used internally by initialize() and setParams() to create the PVParams object
+    * A method used internally by initialize() and setParams() to create the
+    * PVParams object
     * from the params file set in the arguments.
-    * If the arguments has the params file set, it creates the PVParams object and returns success;
-    * otherwise it returns failure and leaves the value of the params data member unchanged.
+    * If the arguments has the params file set, it creates the PVParams object
+    * and returns success;
+    * otherwise it returns failure and leaves the value of the params data member
+    * unchanged.
     */
    int createParams();
 
    /**
     * Sends a timestamp and the effective command line to the pvInfo stream.
-    * The effective command line is based on the current state of the arguments data member.
+    * The effective command line is based on the current state of the arguments
+    * data member.
     */
    void printInitMessage();
 

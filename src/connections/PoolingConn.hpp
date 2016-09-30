@@ -49,16 +49,19 @@ class PoolingConn : public HyPerConn {
    void ioParam_postIndexLayerName(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief PoolingConn does not have weights to write, and does not use writeStep
+    * @brief PoolingConn does not have weights to write, and does not use
+    * writeStep
     */
    void ioParam_writeStep(enum ParamsIOFlag ioFlag);
    /**
-    * @brief PoolingConn does not have weights to write, and does not use writeCompressedCheckpoints
+    * @brief PoolingConn does not have weights to write, and does not use
+    * writeCompressedCheckpoints
     */
    void ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief PoolingConn does not have weights to normalize, and does not use normalizeMethod
+    * @brief PoolingConn does not have weights to normalize, and does not use
+    * normalizeMethod
     */
    void ioParam_normalizeMethod(enum ParamsIOFlag ioFlag);
 #ifdef PV_USE_CUDA

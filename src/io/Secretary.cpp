@@ -203,8 +203,9 @@ void Secretary::ioParam_checkpointWriteClockUnit(enum ParamsIOFlag ioFlag, PVPar
    if (mCheckpointWriteFlag) {
       pvAssert(!params->presentAndNotBeenRead(mName.c_str(), "checkpointWriteTriggerMode"));
       if (mCheckpointWriteTriggerMode == WALLCLOCK) {
-         assert(!params->presentAndNotBeenRead(
-               mName.c_str(), "checkpointWriteTriggerClockInterval"));
+         assert(
+               !params->presentAndNotBeenRead(
+                     mName.c_str(), "checkpointWriteTriggerClockInterval"));
          params->ioParamString(
                ioFlag,
                mName.c_str(),

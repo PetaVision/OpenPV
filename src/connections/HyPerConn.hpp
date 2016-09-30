@@ -230,9 +230,8 @@ class HyPerConn : public BaseConnection {
    }
 
    inline pvwdata_t *get_wData(int arborId, int patchIndex) {
-      return &wDataStart[arborId]
-                        [patchStartIndex(patchToDataLUT(patchIndex))
-                         + wPatches[arborId][patchIndex]->offset];
+      return &wDataStart[arborId][patchStartIndex(patchToDataLUT(patchIndex))
+                                  + wPatches[arborId][patchIndex]->offset];
    }
 
    inline pvwdata_t *get_dwDataStart(int arborId) { return dwDataStart[arborId]; }
@@ -248,15 +247,13 @@ class HyPerConn : public BaseConnection {
    }
 
    inline pvwdata_t *get_dwData(int arborId, int patchIndex) {
-      return &dwDataStart[arborId]
-                         [patchStartIndex(patchToDataLUT(patchIndex))
-                          + wPatches[arborId][patchIndex]->offset];
+      return &dwDataStart[arborId][patchStartIndex(patchToDataLUT(patchIndex))
+                                   + wPatches[arborId][patchIndex]->offset];
    }
 
    inline long *get_activations(int arborId, int patchIndex) {
-      return &numKernelActivations[arborId]
-                                  [patchStartIndex(patchToDataLUT(patchIndex))
-                                   + wPatches[arborId][patchIndex]->offset];
+      return &numKernelActivations[arborId][patchStartIndex(patchToDataLUT(patchIndex))
+                                            + wPatches[arborId][patchIndex]->offset];
    }
 
    inline PVPatch *getWPostPatches(int arbor, int patchIndex) {

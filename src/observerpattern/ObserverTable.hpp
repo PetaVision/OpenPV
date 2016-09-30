@@ -16,9 +16,11 @@ namespace PV {
 
 /**
  * An encapsulation of a map of name-object pairs and a vector of objects.
- * The map has the object names as the keys, and pointers to objects as the values.
+ * The map has the object names as the keys, and pointers to objects as the
+ * values.
  * The vector has the same set of objects as the map's values.
- * By keeping the vector, we can guarantee the order in which we iterate through the objects.
+ * By keeping the vector, we can guarantee the order in which we iterate through
+ * the objects.
  * By keeping the map, we have an easy way to look up the object from the name.
  */
 class ObserverTable {

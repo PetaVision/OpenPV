@@ -40,9 +40,10 @@ int main(int argc, char *argv[]) {
    }
    if (status != PV_SUCCESS) {
       if (rank == 0) {
-         pvErrorNoExit().printf("This test uses compares a hard-coded .params.lua file with a "
-                                "hard-coded .params file, and the results of the two runs are "
-                                "compared.\n");
+         pvErrorNoExit().printf(
+               "This test uses compares a hard-coded .params.lua file with a "
+               "hard-coded .params file, and the results of the two runs are "
+               "compared.\n");
       }
       MPI_Barrier(MPI_COMM_WORLD);
       exit(EXIT_FAILURE);

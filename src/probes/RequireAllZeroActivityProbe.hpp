@@ -43,19 +43,25 @@ class RequireAllZeroActivityProbe : public PV::StatsProbe {
     * @{
     */
    /**
-    * @brief exitOnFailure: If true, will error out if a nonzero value is encountered.  Default is
+    * @brief exitOnFailure: If true, will error out if a nonzero value is
+    * encountered.  Default is
     * true.
     * To control when the error is thrown, see immediateExitOnFailure.
-    * If set to false, the presense of a nonzero value can still be retrieved with the
+    * If set to false, the presense of a nonzero value can still be retrieved
+    * with the
     * getNonzeroFound() method,
-    * and the earliest time at which a nonzero value appears is available through getNonzeroTime().
+    * and the earliest time at which a nonzero value appears is available through
+    * getNonzeroTime().
     */
    virtual void ioParam_exitOnFailure(enum ParamsIOFlag ioFlag);
    /**
-    * @brief immediateExitOnFailure: determines when finding a nonzero value causes an exit with an
+    * @brief immediateExitOnFailure: determines when finding a nonzero value
+    * causes an exit with an
     * error.
-    * If true, outputState will exit on the timestep a nonzero value is detected.  If false,
-    * will not error out until the probe is deleted (which usually happens when the HyPerCol is
+    * If true, outputState will exit on the timestep a nonzero value is detected.
+    * If false,
+    * will not error out until the probe is deleted (which usually happens when
+    * the HyPerCol is
     * deleted).
     * Parameter is only read if exitOnFailure is true.  Default is true.
     */

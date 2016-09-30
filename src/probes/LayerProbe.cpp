@@ -12,7 +12,8 @@ namespace PV {
 
 LayerProbe::LayerProbe() {
    initialize_base();
-   // Derived classes of LayerProbe should call LayerProbe::initialize themselves.
+   // Derived classes of LayerProbe should call LayerProbe::initialize
+   // themselves.
 }
 
 /**

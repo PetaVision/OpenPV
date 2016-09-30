@@ -34,7 +34,8 @@ int FirmThresholdCostFnLCAProbe::communicateInitInfo() {
    if (targetLCALayer->layerListsVerticesInParams() == true) {
       if (parent->columnId() == 0) {
          pvErrorNoExit().printf(
-               "%s: LCAProbes require targetLayer \"%s\" to use VThresh etc. instead of "
+               "%s: LCAProbes require targetLayer \"%s\" to use "
+               "VThresh etc. instead of "
                "verticesV/verticesV.\n",
                getDescription_c(),
                getTargetName());

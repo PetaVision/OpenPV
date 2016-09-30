@@ -81,7 +81,8 @@ class Communicator {
    int commBatch(int commId);
    int commIdFromRowColumn(int commRow, int commColumn);
 
-   int numNeighbors; // # of remote neighbors plus local.  NOT the size of the neighbors array,
+   int numNeighbors; // # of remote neighbors plus local.  NOT the size of the
+   // neighbors array,
    // which uses negative values to mark directions where there is no remote
    // neighbor.
 
@@ -89,7 +90,8 @@ class Communicator {
 
    int neighbors[NUM_NEIGHBORHOOD]; // [0] is interior (local)
    int remoteNeighbors[NUM_NEIGHBORHOOD];
-   int tags[NUM_NEIGHBORHOOD]; // diagonal communication needs a different tag from left/right or
+   int tags[NUM_NEIGHBORHOOD]; // diagonal communication needs a different tag
+   // from left/right or
    // up/down communication.
 
   private:

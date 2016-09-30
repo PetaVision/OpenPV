@@ -66,7 +66,8 @@ int FirmThresholdCostFnProbe::communicateInitInfo() {
       }
    }
    else {
-      // Reread VThresh and VWidth commands, this time warning if they are not absent.
+      // Reread VThresh and VWidth commands, this time warning if they are not
+      // absent.
       parent->parameters()->ioParamValue(
             PARAMS_IO_READ, name, "VThresh", &VThresh, VThresh /*default*/, true /*warnIfAbsent*/);
       parent->parameters()->ioParamValue(

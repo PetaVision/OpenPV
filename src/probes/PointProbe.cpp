@@ -13,7 +13,8 @@ namespace PV {
 
 PointProbe::PointProbe() {
    initPointProbe_base();
-   // Default constructor for derived classes.  Derived classes should call initPointProbe from
+   // Default constructor for derived classes.  Derived classes should call
+   // initPointProbe from
    // their init-method.
 }
 
@@ -75,7 +76,8 @@ int PointProbe::communicateInitInfo() {
    bool isRoot           = getParent()->getCommunicator()->commRank() == 0;
    if ((xLoc < 0 || xLoc > loc->nxGlobal) && isRoot) {
       pvErrorNoExit().printf(
-            "PointProbe on layer %s: xLoc coordinate %d is out of bounds (layer has %d neurons in "
+            "PointProbe on layer %s: xLoc coordinate %d is out "
+            "of bounds (layer has %d neurons in "
             "the x-direction.\n",
             getTargetLayer()->getName(),
             xLoc,
@@ -84,7 +86,8 @@ int PointProbe::communicateInitInfo() {
    }
    if ((yLoc < 0 || yLoc > loc->nyGlobal) && isRoot) {
       pvErrorNoExit().printf(
-            "PointProbe on layer %s: yLoc coordinate %d is out of bounds (layer has %d neurons in "
+            "PointProbe on layer %s: yLoc coordinate %d is out "
+            "of bounds (layer has %d neurons in "
             "the y-direction.\n",
             getTargetLayer()->getName(),
             yLoc,
@@ -93,7 +96,8 @@ int PointProbe::communicateInitInfo() {
    }
    if ((fLoc < 0 || fLoc > loc->nf) && isRoot) {
       pvErrorNoExit().printf(
-            "PointProbe on layer %s: fLoc coordinate %d is out of bounds (layer has %d features.\n",
+            "PointProbe on layer %s: fLoc coordinate %d is out "
+            "of bounds (layer has %d features.\n",
             getTargetLayer()->getName(),
             fLoc,
             loc->nf);
@@ -101,7 +105,8 @@ int PointProbe::communicateInitInfo() {
    }
    if ((batchLoc < 0 || batchLoc > loc->nbatch) && isRoot) {
       pvErrorNoExit().printf(
-            "PointProbe on layer %s: batchLoc coordinate %d is out of bounds (layer has %d "
+            "PointProbe on layer %s: batchLoc coordinate %d is "
+            "out of bounds (layer has %d "
             "batches.\n",
             getTargetLayer()->getName(),
             batchLoc,
@@ -116,7 +121,8 @@ int PointProbe::communicateInitInfo() {
 /**
  * @timef
  * NOTES:
- *     - Only the activity buffer covers the extended frame - this is the frame that
+ *     - Only the activity buffer covers the extended frame - this is the frame
+ * that
  * includes boundaries.
  *     - The membrane potential V covers the "real" or "restricted" frame.
  *     - In MPI runs, xLoc and yLoc refer to global coordinates.
@@ -136,7 +142,8 @@ int PointProbe::outputState(double timef) {
 int PointProbe::calcValues(double timevalue) {
    assert(this->getNumValues() == 2);
    double *valuesBuffer = this->getValuesBuffer();
-   // We need to calculate which mpi process contains the target point, and send that info to the
+   // We need to calculate which mpi process contains the target point, and send
+   // that info to the
    // root process
    // Each process calculates local index
    const PVLayerLoc *loc = getTargetLayer()->getLayerLoc();

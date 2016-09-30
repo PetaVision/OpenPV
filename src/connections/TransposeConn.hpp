@@ -27,7 +27,8 @@ class TransposeConn : public HyPerConn {
    virtual int finalizeUpdate(double time, double dt);
 
 #ifdef PV_USE_CUDA
-   // If this layer needs to allocate device weights, set orig conn's alloc post weights
+   // If this layer needs to allocate device weights, set orig conn's alloc post
+   // weights
    virtual void setAllocDeviceWeights() { originalConn->setAllocPostDeviceWeights(); }
    // Vice versa
    virtual void setAllocPostDeviceWeights() { originalConn->setAllocDeviceWeights(); }

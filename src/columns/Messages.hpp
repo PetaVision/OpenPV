@@ -33,7 +33,8 @@ class AllocateDataMessage : public BaseMessage {
    AllocateDataMessage() { setMessageType("AllocateDataStructures"); }
 };
 
-template <typename T> // In practice, T is always Secretary.  Templated to avoid including
+template <typename T> // In practice, T is always Secretary.  Templated to avoid
+// including
 // Secretary.hpp in this file
 class RegisterDataMessage : public BaseMessage {
   public:
@@ -62,7 +63,8 @@ class ConnectionUpdateMessage : public BaseMessage {
       mDeltaT = deltaTime;
    }
    double mTime;
-   double mDeltaT; // TODO: this should be the nbatch-sized vector of adaptive timesteps
+   double mDeltaT; // TODO: this should be the nbatch-sized vector of adaptive
+   // timesteps
 };
 
 class ConnectionFinalizeUpdateMessage : public BaseMessage {
@@ -73,7 +75,8 @@ class ConnectionFinalizeUpdateMessage : public BaseMessage {
       mDeltaT = deltaTime;
    }
    double mTime;
-   double mDeltaT; // TODO: this should be the nbatch-sized vector of adaptive timesteps
+   double mDeltaT; // TODO: this should be the nbatch-sized vector of adaptive
+   // timesteps
 };
 
 class ConnectionOutputMessage : public BaseMessage {
@@ -110,7 +113,8 @@ class LayerRecvSynapticInputMessage : public BaseMessage {
    bool mRecvOnGpuFlag;
 #endif // PV_USE_CUDA
    float mTime;
-   float mDeltaT; // TODO: this should be the nbatch-sized vector of adaptive timesteps
+   float mDeltaT; // TODO: this should be the nbatch-sized vector of adaptive
+   // timesteps
 };
 
 class LayerUpdateStateMessage : public BaseMessage {
@@ -119,7 +123,9 @@ class LayerUpdateStateMessage : public BaseMessage {
          int phase,
 #ifdef PV_USE_CUDA
          bool recvOnGpuFlag,
-         bool updateOnGpuFlag, // updateState needs recvOnGpuFlag because correct order of updating
+         bool updateOnGpuFlag, // updateState needs
+// recvOnGpuFlag because correct
+// order of updating
 // depends on it.
 #endif // PV_USE_CUDA
          double simTime,
@@ -139,7 +145,8 @@ class LayerUpdateStateMessage : public BaseMessage {
    bool mUpdateOnGpuFlag;
 #endif // PV_USE_CUDA
    float mTime;
-   float mDeltaT; // TODO: this should be the nbatch-sized vector of adaptive timesteps
+   float mDeltaT; // TODO: this should be the nbatch-sized vector of adaptive
+   // timesteps
 };
 
 #ifdef PV_USE_CUDA

@@ -157,10 +157,14 @@ int AdaptiveTimeScaleProbe::respondAdaptTimestep(AdaptTimestepMessage const *mes
    return getValues(parent->simulationTime());
 }
 
-// AdaptiveTimeScaleProbe::calcValues calls targetProbe->getValues() and passes the
-// result to mAdaptiveTimeScaleController->calcTimesteps() to use as timeScaleTrue.
-// mAdaptiveTimeScaleController->calcTimesteps() returns timeScale and copies the
-// result into probeValues. AdaptiveTimeScaleProbe also processes the triggering and
+// AdaptiveTimeScaleProbe::calcValues calls targetProbe->getValues() and passes
+// the
+// result to mAdaptiveTimeScaleController->calcTimesteps() to use as
+// timeScaleTrue.
+// mAdaptiveTimeScaleController->calcTimesteps() returns timeScale and copies
+// the
+// result into probeValues. AdaptiveTimeScaleProbe also processes the triggering
+// and
 // only reads the mAdaptiveTimeScaleController when triggering doesn't happen.
 
 int AdaptiveTimeScaleProbe::calcValues(double timeValue) {

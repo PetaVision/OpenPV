@@ -33,7 +33,8 @@ class BaseProbe;
  * At the C/C++ code level, BaseProbes register themselves to the
  * ColumnEnergyProbe by calling the ColumnEnergyProbe's addTerm() method.
  * Each call to a ColumnEnergyProbe's object that calls addTerm() must
- * have the same getNumValues() value, which becomes the ColumnEnergyProbe's getNumValues() value.
+ * have the same getNumValues() value, which becomes the ColumnEnergyProbe's
+ * getNumValues() value.
  */
 
 class ColumnEnergyProbe : public ColProbe {
@@ -50,7 +51,8 @@ class ColumnEnergyProbe : public ColProbe {
 
    /** @brief Adds a probe to the energy calculation.
     * @details Returns PV_SUCCESS if the probe is added successfully.
-    * If probe is NULL, the list of terms is unchanged and PV_FAILURE is returned.
+    * If probe is NULL, the list of terms is unchanged and PV_FAILURE is
+    * returned.
     * Nothing prevents a probe from being added more than once.
     * All BaseProbes added to the ColumnEnergyProbe must have the same
     * getNumValues().
@@ -58,9 +60,11 @@ class ColumnEnergyProbe : public ColProbe {
    int addTerm(BaseProbe *probe);
 
    /**
-    * Prints the energies to the output stream, formatted as a comma-separated value:
+    * Prints the energies to the output stream, formatted as a comma-separated
+    * value:
     * "Name of probe",timevalue,index,energy
-    * The number of lines printed is equal to getVectorSize(), and index goes from 0 to
+    * The number of lines printed is equal to getVectorSize(), and index goes
+    * from 0 to
     * getVectorSize()-1.
     */
    virtual int outputState(double timevalue);

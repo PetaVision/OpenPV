@@ -140,9 +140,11 @@ void BaseProbe::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
 }
 
 // triggerFlag was deprecated Oct 7, 2015.
-// Setting triggerLayerName to a nonempty string has the effect of triggerFlag=true, and
+// Setting triggerLayerName to a nonempty string has the effect of
+// triggerFlag=true, and
 // setting triggerLayerName to NULL or "" has the effect of triggerFlag=false.
-// While triggerFlag is being deprecated, it is an error for triggerFlag to be false
+// While triggerFlag is being deprecated, it is an error for triggerFlag to be
+// false
 // and triggerLayerName to be a nonempty string.
 void BaseProbe::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
@@ -154,7 +156,8 @@ void BaseProbe::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
          pvWarn(triggerFlagDeprecated);
          triggerFlagDeprecated.printf("%s: triggerFlag has been deprecated.\n", getDescription_c());
          triggerFlagDeprecated.printf(
-               "   If triggerLayerName is a nonempty string, triggering will be on;\n");
+               "   If triggerLayerName is a nonempty "
+               "string, triggering will be on;\n");
          triggerFlagDeprecated.printf(
                "   if triggerLayerName is empty or null, triggering will be off.\n");
          if (flagFromParams != triggerFlag) {
@@ -182,7 +185,8 @@ void BaseProbe::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
             ioFlag, name, "triggerOffset", &triggerOffset, triggerOffset);
       if (triggerOffset < 0) {
          pvError().printf(
-               "%s \"%s\" error in rank %d process: TriggerOffset (%f) must be positive\n",
+               "%s \"%s\" error in rank %d process: TriggerOffset (%f) "
+               "must be positive\n",
                parent->parameters()->groupKeywordFromName(name),
                name,
                parent->columnId(),
@@ -215,9 +219,11 @@ int BaseProbe::initOutputStream(const char *filename) {
       }
    }
    else {
-      outputStream = NULL; // Only root process writes; if other processes need something written it
+      outputStream = NULL; // Only root process writes; if other processes need
+      // something written it
       // should be sent to root.
-      // Derived classes for which it makes sense for a different process to do the file i/o should
+      // Derived classes for which it makes sense for a different process to do
+      // the file i/o should
       // override initOutputStream
    }
    return PV_SUCCESS;
@@ -272,7 +278,8 @@ int BaseProbe::communicateInitInfo() {
       if (probe == NULL) {
          if (getParent()->columnId() == 0) {
             pvErrorNoExit().printf(
-                  "%s \"%s\": energyProbe \"%s\" is not a ColumnEnergyProbe in the column.\n",
+                  "%s \"%s\": energyProbe \"%s\" is not a ColumnEnergyProbe in the "
+                  "column.\n",
                   getParent()->parameters()->groupKeywordFromName(getName()),
                   getName(),
                   energyProbe);
@@ -300,7 +307,8 @@ int BaseProbe::initMessage(const char *msg) {
    if (msg != NULL && msg[0] != '\0') {
       size_t msglen   = strlen(msg);
       this->msgstring = (char *)calloc(
-            msglen + 2, sizeof(char)); // Allocate room for colon plus null terminator
+            msglen + 2,
+            sizeof(char)); // Allocate room for colon plus null terminator
       if (this->msgstring) {
          memcpy(this->msgstring, msg, msglen);
          this->msgstring[msglen]     = ':';

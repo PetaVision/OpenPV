@@ -26,7 +26,8 @@ void Subject::notify(
             status = obj->respond(msg);
             if (status == PV_BREAK) {
                status = PV_SUCCESS;
-            } // Can we get rid of PV_BREAK as a possible return value of connections' updateState?
+            } // Can we get rid of PV_BREAK as a possible return value of
+            // connections' updateState?
             switch (status) {
                case PV_SUCCESS: continue; break;
                case PV_POSTPONE:

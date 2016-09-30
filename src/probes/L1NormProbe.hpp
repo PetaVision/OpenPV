@@ -30,7 +30,8 @@ class L1NormProbe : public AbstractNormProbe {
    virtual double getValueInternal(double timevalue, int index);
 
    /**
-    * Overrides AbstractNormProbe::setNormDescription() to set normDescription to "L1-norm".
+    * Overrides AbstractNormProbe::setNormDescription() to set normDescription to
+    * "L1-norm".
     * Return values and errno are set by a call to setNormDescriptionToString.
     */
    virtual int setNormDescription();

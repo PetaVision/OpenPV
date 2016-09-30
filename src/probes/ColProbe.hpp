@@ -16,15 +16,20 @@ namespace PV {
 class HyPerCol;
 
 /**
- * ColProbe is the base class for probes that are attached to the column as a whole,
+ * ColProbe is the base class for probes that are attached to the column as a
+ * whole,
  * as opposed to an individual layer or connection.
  * Derived classes must implement the needRecalc and calcValues methods.
  *
  *
- * The original motivation for ColProbe was for computing total energy of a sparse-coding
- * hierarchy.  In this situation, the energy is a sum of contributions from the residual
- * layer and the sparse representation layer, and we need the energy for each element
- * of the batch.  The getValues() method would compute the energy for each element of the
+ * The original motivation for ColProbe was for computing total energy of a
+ * sparse-coding
+ * hierarchy.  In this situation, the energy is a sum of contributions from the
+ * residual
+ * layer and the sparse representation layer, and we need the energy for each
+ * element
+ * of the batch.  The getValues() method would compute the energy for each
+ * element of the
  * batch.  The getValue() method returns the energy for a single batch element.
  *
  * An AdaptiveTimeScaleProbe with targetName set to a ColProbe
@@ -43,7 +48,8 @@ class ColProbe : public BaseProbe {
    virtual ~ColProbe();
 
    /**
-    * Calls BaseProbe::communicateInitInfo (which sets up any triggering or attaching to an energy
+    * Calls BaseProbe::communicateInitInfo (which sets up any triggering or
+    * attaching to an energy
     * probe)
     * and then attaches to the parent HyPerCol by calling parent->insertProbe().
     */
@@ -55,7 +61,8 @@ class ColProbe : public BaseProbe {
    /**
     * The virtual method for outputting the quantities measured by the ColProbe.
     * Derived classes should override this method.  Typically, outputState
-    * will fprintf to outputstream->fp, where stream is the BaseProbe member variable.
+    * will fprintf to outputstream->fp, where stream is the BaseProbe member
+    * variable.
     */
    virtual int outputState(double timed) { return PV_SUCCESS; }
 
@@ -73,17 +80,24 @@ class ColProbe : public BaseProbe {
    int initialize(const char *probeName, HyPerCol *hc);
 
    /**
-    * Reads parameters from the params file/writes parameters to the output params file.
-    * If a derived class introduces a new parameter, its ioParamsFillGroup method should
-    * call an ioParam_ method for that parameter.  If a derived class eliminates a
-    * a parameter of the base class, or changes the dependencies of a parameter, it
-    * should override the ioParam_ method for that parameter.  The derived class's
-    * ioParamsFillGroup method should call its base class's ioParamsFillGroup method.
+    * Reads parameters from the params file/writes parameters to the output
+    * params file.
+    * If a derived class introduces a new parameter, its ioParamsFillGroup method
+    * should
+    * call an ioParam_ method for that parameter.  If a derived class eliminates
+    * a
+    * a parameter of the base class, or changes the dependencies of a parameter,
+    * it
+    * should override the ioParam_ method for that parameter.  The derived
+    * class's
+    * ioParamsFillGroup method should call its base class's ioParamsFillGroup
+    * method.
     */
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief targetName: ColProbe overrides targetName since the only possible target
+    * @brief targetName: ColProbe overrides targetName since the only possible
+    * target
     * is the parent HyPerCol.  On reading, it sets targetName.  Parameters are
     * neither read nor written by this method.
     */
@@ -103,7 +117,8 @@ class ColProbe : public BaseProbe {
 
   private:
    /**
-    * Initializes member variables to safe values (e.g. pointers are set to NULL).
+    * Initializes member variables to safe values (e.g. pointers are set to
+    * NULL).
     * It is called by both the public and protected constructors, and should not
     * otherwise be called.
     */

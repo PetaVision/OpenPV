@@ -13,7 +13,8 @@
 namespace PV {
 
 /**
- * A layer probe for returning the number of elements in its target layer's activity buffer
+ * A layer probe for returning the number of elements in its target layer's
+ * activity buffer
  * above a certain threshold (often referred to as the L0-norm).
  */
 class L0NormProbe : public AbstractNormProbe {
@@ -42,7 +43,8 @@ class L0NormProbe : public AbstractNormProbe {
    /** @} */
 
    /**
-    * Overrides AbstractNormProbe::setNormDescription() to set normDescription to "L0-norm".
+    * Overrides AbstractNormProbe::setNormDescription() to set normDescription to
+    * "L0-norm".
     * Return values and errno are set by a call to setNormDescriptionToString.
     */
    virtual int setNormDescription();

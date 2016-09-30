@@ -43,14 +43,16 @@ void PlasticCloneConn::ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag)
    if (ioFlag == PARAMS_IO_READ) {
       parent->parameters()->handleUnnecessaryParameter(name, "keepKernelsSynchronized");
    }
-   // During the communication phase, shrinkPatches_flag will be copied from originalConn
+   // During the communication phase, shrinkPatches_flag will be copied from
+   // originalConn
 }
 
 void PlasticCloneConn::ioParam_normalizeDw(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       parent->parameters()->handleUnnecessaryParameter(name, "normalizeDw");
    }
-   // During the communication phase, normalizeDw will be copied from originalConn
+   // During the communication phase, normalizeDw will be copied from
+   // originalConn
 }
 
 int PlasticCloneConn::communicateInitInfo() {
@@ -81,7 +83,8 @@ int PlasticCloneConn::deleteWeights() {
 }
 
 int PlasticCloneConn::cloneParameters() {
-   // called by CloneConn::communicateInitInfo, before it calls HyPerConn::communicateInitInfo
+   // called by CloneConn::communicateInitInfo, before it calls
+   // HyPerConn::communicateInitInfo
    CloneConn::cloneParameters();
 #ifdef PV_USE_MPI
    keepKernelsSynchronized_flag = originalConn->getKeepKernelsSynchronized();

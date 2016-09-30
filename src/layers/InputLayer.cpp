@@ -93,12 +93,13 @@ void InputLayer::initializeBatchIndexer(int fileCount) {
    int localBatchCount   = parent->getNBatch();
    int mpiBatchIndex     = parent->commBatch();
    int globalBatchOffset = localBatchCount * mpiBatchIndex;
-   mBatchIndexer         = std::unique_ptr<BatchIndexer>(new BatchIndexer(
-         parent->getNBatchGlobal(),
-         globalBatchOffset,
-         parent->numCommBatches(),
-         fileCount,
-         mBatchMethod));
+   mBatchIndexer         = std::unique_ptr<BatchIndexer>(
+         new BatchIndexer(
+               parent->getNBatchGlobal(),
+               globalBatchOffset,
+               parent->numCommBatches(),
+               fileCount,
+               mBatchMethod));
    for (int b = 0; b < localBatchCount; ++b) {
       mBatchIndexer->specifyBatching(
             b,
@@ -659,8 +660,8 @@ void InputLayer::ioParam_interpolationMethod(enum ParamsIOFlag ioFlag) {
          if (!strncmp(interpolationMethodString, "bicubic", strlen("bicubic"))) {
             mInterpolationMethod = BufferUtils::BICUBIC;
          }
-         else if (!strncmp(
-                        interpolationMethodString, "nearestneighbor", strlen("nearestneighbor"))) {
+         else if (
+               !strncmp(interpolationMethodString, "nearestneighbor", strlen("nearestneighbor"))) {
             mInterpolationMethod = BufferUtils::NEAREST;
          }
          else {

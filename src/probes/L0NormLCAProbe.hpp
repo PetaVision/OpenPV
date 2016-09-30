@@ -13,9 +13,12 @@
 namespace PV {
 
 /**
- * A special case of L0NormProbe probe, to be used when the target layer is an LCA layer
- * with a hard-threshold transfer function.  The corresponding cost function is the norm
- * measured by L0NormProbe, with coefficient Vth^2/2, where Vth is the target LCA layer's VThresh.
+ * A special case of L0NormProbe probe, to be used when the target layer is an
+ * LCA layer
+ * with a hard-threshold transfer function.  The corresponding cost function is
+ * the norm
+ * measured by L0NormProbe, with coefficient Vth^2/2, where Vth is the target
+ * LCA layer's VThresh.
  */
 class L0NormLCAProbe : public L0NormProbe {
   public:

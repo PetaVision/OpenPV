@@ -77,7 +77,8 @@ int AbstractNormProbe::communicateInitInfo() {
          if (parent->columnId() == 0) {
             pvErrorNoExit(maskLayerBadSize);
             maskLayerBadSize.printf(
-                  "%s: maskLayerName \"%s\" does not have the same x and y dimensions.\n",
+                  "%s: maskLayerName \"%s\" does not have the "
+                  "same x and y dimensions.\n",
                   getDescription_c(),
                   maskLayerName);
             maskLayerBadSize.printf(
@@ -97,7 +98,8 @@ int AbstractNormProbe::communicateInitInfo() {
          if (parent->columnId() == 0) {
             pvErrorNoExit(maskLayerBadSize);
             maskLayerBadSize.printf(
-                  "%s: maskLayerName \"%s\" must either have the same number of features as this "
+                  "%s: maskLayerName \"%s\" must either have the "
+                  "same number of features as this "
                   "layer, or one feature.\n",
                   getDescription_c(),
                   maskLayerName);

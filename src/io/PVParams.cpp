@@ -1082,8 +1082,9 @@ int PVParams::parseBuffer(char const *buffer, long int bufferLength) {
                hypercolgroupname = groups[g]->name();
                outputPathName    = groups[g]->stringValue("outputPath");
                if (outputPathName == NULL) {
-                  pvError().printf("PVParams::outputPath must be specified if parameterSweep does "
-                                   "not sweep over outputPath\n");
+                  pvError().printf(
+                        "PVParams::outputPath must be specified if parameterSweep does "
+                        "not sweep over outputPath\n");
                }
                break;
             }
@@ -1174,8 +1175,9 @@ int PVParams::parseBuffer(char const *buffer, long int bufferLength) {
                hypercolgroupname = groups[g]->name();
                outputPathName    = groups[g]->stringValue("outputPath");
                if (outputPathName == NULL) {
-                  pvError().printf("PVParams::outputPath must be specified if batchSweep does not "
-                                   "sweep over outputPath\n");
+                  pvError().printf(
+                        "PVParams::outputPath must be specified if batchSweep does not "
+                        "sweep over outputPath\n");
                }
                break;
             }
@@ -1324,8 +1326,9 @@ int PVParams::setBatchSweepSize() {
       }
       else {
          if (batchSweepSize != this->batchSweeps[k]->getNumValues()) {
-            pvErrorNoExit().printf("PVParams::setBatchSweepSize: all BatchSweeps in the parameters "
-                                   "file must have the same number of entries.\n");
+            pvErrorNoExit().printf(
+                  "PVParams::setBatchSweepSize: all BatchSweeps in the parameters "
+                  "file must have the same number of entries.\n");
             abort();
          }
       }
@@ -1382,8 +1385,9 @@ int PVParams::setParameterSweepSize() {
       }
       else {
          if (parameterSweepSize != this->paramSweeps[k]->getNumValues()) {
-            pvErrorNoExit().printf("PVParams::setParameterSweepSize: all ParameterSweeps in the "
-                                   "parameters file must have the same number of entries.\n");
+            pvErrorNoExit().printf(
+                  "PVParams::setParameterSweepSize: all ParameterSweeps in the "
+                  "parameters file must have the same number of entries.\n");
             abort();
          }
       }

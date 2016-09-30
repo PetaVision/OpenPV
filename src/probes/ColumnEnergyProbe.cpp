@@ -13,7 +13,8 @@ namespace PV {
 
 ColumnEnergyProbe::ColumnEnergyProbe()
       : ColProbe() { // Default constructor to be called by derived classes.
-   // They should call ColumnEnergyProbe::initialize from their own initialization routine
+   // They should call ColumnEnergyProbe::initialize from their own
+   // initialization routine
    // instead of calling a non-default constructor.
    initialize_base();
 } // end ColumnEnergyProbe::ColumnEnergyProbe(const char *)
@@ -60,7 +61,8 @@ int ColumnEnergyProbe::addTerm(BaseProbe *probe) {
          status = PV_FAILURE;
          if (parent->columnId() == 0) {
             pvErrorNoExit().printf(
-                  "%s: %s cannot be used as a term of the energy probe (getNumValue() returned a "
+                  "%s: %s cannot be used as a term of the energy "
+                  "probe (getNumValue() returned a "
                   "negative number).\n",
                   getDescription_c(),
                   probe->getDescription_c());
@@ -84,7 +86,8 @@ int ColumnEnergyProbe::addTerm(BaseProbe *probe) {
       if (probe->getNumValues() != this->getNumValues()) {
          if (this->getParent()->columnId() == 0) {
             pvErrorNoExit().printf(
-                  "Failed to add terms to %s:  new probe \"%s\" returns %d values, but previous "
+                  "Failed to add terms to %s:  new probe \"%s\" "
+                  "returns %d values, but previous "
                   "probes return %d values\n",
                   getDescription_c(),
                   probe->getName(),
@@ -100,7 +103,8 @@ int ColumnEnergyProbe::addTerm(BaseProbe *probe) {
    if (newNumTerms <= numTerms) {
       if (this->getParent()->columnId() == 0) {
          pvErrorNoExit().printf(
-               "How did you manage to add %zu terms to %s?  Unable to add any more!\n",
+               "How did you manage to add %zu terms to %s?  "
+               "Unable to add any more!\n",
                numTerms,
                getDescription_c());
       }

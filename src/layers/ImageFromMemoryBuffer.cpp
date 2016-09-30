@@ -57,8 +57,9 @@ int ImageFromMemoryBuffer::setMemoryBuffer(
       pixeltype oneval) {
    if (height <= 0 || width <= 0 || numbands <= 0) {
       if (parent->columnId() == 0) {
-         pvErrorNoExit().printf("ImageFromMemoryBuffer::setMemoryBuffer: height, width, numbands "
-                                "arguments must be positive.\n");
+         pvErrorNoExit().printf(
+               "ImageFromMemoryBuffer::setMemoryBuffer: height, width, numbands "
+               "arguments must be positive.\n");
       }
       return PV_FAILURE;
    }

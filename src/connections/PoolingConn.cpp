@@ -89,7 +89,8 @@ PoolingConn::AccumulateType PoolingConn::parseAccumulateTypeString(char const *p
    for (auto &c : str) {
       c = std::tolower(c, std::locale());
    }
-   // "max_pooling", "max pooling", "maxpooling" are equally acceptable (same for sum and avg)
+   // "max_pooling", "max pooling", "maxpooling" are equally acceptable (same for
+   // sum and avg)
    if (str.size() >= 4 && (str[3] == ' ' || str[3] == '_')) {
       str.erase(3, 1);
    }
@@ -122,7 +123,8 @@ void PoolingConn::unsetAccumulateType() {
          errorMessage.printf("%s: pvpatchAccumulateType NULL is unrecognized.", getDescription_c());
       }
       errorMessage.printf(
-            "  Allowed values are \"maxpooling\", \"sumpooling\", or \"avgpooling\".");
+            "  Allowed values are \"maxpooling\", \"sumpooling\", "
+            "or \"avgpooling\".");
    }
    MPI_Barrier(parent->getCommunicator()->communicator());
    exit(EXIT_FAILURE);
@@ -167,14 +169,19 @@ int PoolingConn::initialize(
       HyPerCol *hc,
       InitWeights *weightInitializer,
       NormalizeBase *weightNormalizer) {
-   // It is okay for either of weightInitializer or weightNormalizer to be null at this point,
-   // either because we're in a subclass that doesn't need it, or because we are allowing for
+   // It is okay for either of weightInitializer or weightNormalizer to be null
+   // at this point,
+   // either because we're in a subclass that doesn't need it, or because we are
+   // allowing for
    // backward compatibility.
-   // The two lines needs to be before the call to BaseConnection::initialize, because that function
+   // The two lines needs to be before the call to BaseConnection::initialize,
+   // because that function
    // calls ioParamsFillGroup,
-   // which will call ioParam_weightInitType and ioParam_normalizeMethod, which for reasons of
+   // which will call ioParam_weightInitType and ioParam_normalizeMethod, which
+   // for reasons of
    // backward compatibility
-   // will create the initializer and normalizer if those member variables are null.
+   // will create the initializer and normalizer if those member variables are
+   // null.
    this->weightInitializer = weightInitializer;
    this->normalizer        = weightNormalizer;
 
@@ -214,7 +221,8 @@ int PoolingConn::initialize(
          accumulateFunctionFromPostPointer = &pvpatch_sumpooling_from_post;
          break;
       default:
-         pvAssert(0); // Only MAX, SUM, and AVG are defined in PoolingConn; other methods should be
+         pvAssert(0); // Only MAX, SUM, and AVG are defined in PoolingConn; other
+         // methods should be
          // handled in other classes.
          break;
    }
@@ -243,8 +251,9 @@ int PoolingConn::communicateInitInfo() {
    float preToPostScaleX = (float)preLoc->nx / postLoc->nx;
    float preToPostScaleY = (float)preLoc->ny / postLoc->ny;
    if (preToPostScaleX < 1 || preToPostScaleY < 1) {
-      pvError() << "Pooling Layer " << name
-                << ":  preLayer to postLayer must be a many to one or one to one conection\n";
+      pvError() << "Pooling Layer " << name << ":  preLayer to postLayer must be "
+                                               "a many to one or one to one "
+                                               "conection\n";
    }
 
    if (needPostIndexLayer) {
@@ -252,7 +261,8 @@ int PoolingConn::communicateInitInfo() {
       if (basePostIndexLayer == NULL) {
          if (parent->columnId() == 0) {
             pvErrorNoExit().printf(
-                  "%s: postIndexLayerName \"%s\" does not refer to any layer in the column.\n",
+                  "%s: postIndexLayerName \"%s\" does not refer "
+                  "to any layer in the column.\n",
                   getDescription_c(),
                   this->postIndexLayerName);
          }
@@ -275,7 +285,8 @@ int PoolingConn::communicateInitInfo() {
       if (postIndexLayer->getDataType() != PV_INT) {
          if (parent->columnId() == 0) {
             pvErrorNoExit().printf(
-                  "%s: postIndexLayer \"%s\" must have data type of int. Specify parameter "
+                  "%s: postIndexLayer \"%s\" must have data type "
+                  "of int. Specify parameter "
                   "dataType in this layer to be \"int\".\n",
                   getDescription_c(),
                   this->postIndexLayerName);
@@ -291,7 +302,8 @@ int PoolingConn::communicateInitInfo() {
           || idxLoc->nf != postLoc->nf) {
          if (parent->columnId() == 0) {
             pvErrorNoExit().printf(
-                  "%s: postIndexLayer \"%s\" must have the same dimensions as the post pooling "
+                  "%s: postIndexLayer \"%s\" must have the same "
+                  "dimensions as the post pooling "
                   "layer \"%s\".\n",
                   getDescription_c(),
                   this->postIndexLayerName,
@@ -351,7 +363,8 @@ int PoolingConn::allocateDataStructures() {
             pvdata_t *thread_buffer = (pvdata_t *)malloc(sizeof(pvdata_t) * post->getNumNeurons());
             if (!thread_buffer) {
                pvError().printf(
-                     "HyPerLayer \"%s\" error: rank %d unable to allocate %zu memory for "
+                     "HyPerLayer \"%s\" error: rank %d unable to "
+                     "allocate %zu memory for "
                      "thread_gateIdxBuffer: %s\n",
                      name,
                      parent->columnId(),
@@ -387,7 +400,8 @@ int PoolingConn::setInitialValues() {
    return PV_SUCCESS;
 }
 
-// On the GPU, pooling uses cudnnPoolingForward, so pre and post do the same thing.
+// On the GPU, pooling uses cudnnPoolingForward, so pre and post do the same
+// thing.
 
 #ifdef PV_USE_CUDA
 int PoolingConn::initializeDeliverKernelArgs() {
@@ -429,7 +443,8 @@ int PoolingConn::constructWeights() {
    int status   = PV_SUCCESS;
 
    assert(!parent->parameters()->presentAndNotBeenRead(name, "shrinkPatches"));
-   // createArbors() uses the value of shrinkPatches.  It should have already been read in
+   // createArbors() uses the value of shrinkPatches.  It should have already
+   // been read in
    // ioParamsFillGroup.
    // allocate the arbor arrays:
    createArbors();
@@ -470,7 +485,8 @@ float PoolingConn::minWeight(int arborId) {
       return (1.0 / (nxp * nyp * relative_XScale * relative_YScale));
    }
    else {
-      assert(0); // only possibilities are PoolingConn::MAX, PoolingConn::SUM, PoolingConn::AVG
+      assert(0); // only possibilities are PoolingConn::MAX, PoolingConn::SUM,
+      // PoolingConn::AVG
       return 0.0f; // gets rid of a compile warning
    }
 }
@@ -488,7 +504,8 @@ float PoolingConn::maxWeight(int arborId) {
       return (1.0 / (nxp * nyp * relative_XScale * relative_YScale));
    }
    else {
-      assert(0); // only possibilities are PoolingConn::MAX, PoolingConn::SUM, PoolingConn::AVG
+      assert(0); // only possibilities are PoolingConn::MAX, PoolingConn::SUM,
+      // PoolingConn::AVG
       return 0.0f; // gets rid of a compile warning
    }
 }
@@ -676,7 +693,8 @@ int PoolingConn::deliverPresynapticPerspective(PVLayerCube const *activity, int 
          }
       }
 #ifdef PV_USE_OPENMP_THREADS
-      // Accumulate back into gSyn // Should this be done in HyPerLayer where it can be done once,
+      // Accumulate back into gSyn // Should this be done in HyPerLayer where it
+      // can be done once,
       // as opposed to once per connection?
       if (thread_gSyn) {
          pvdata_t *gSynPatchHead = gSynPatchHeadBatch;
@@ -760,7 +778,8 @@ int PoolingConn::deliverPostsynapticPerspective(PVLayerCube const *activity, int
 
    long *startSourceExtBuf = getPostToPreActivity();
    if (!startSourceExtBuf) {
-      pvError() << "HyPerLayer::recvFromPost unable to get preToPostActivity from connection. Is "
+      pvError() << "HyPerLayer::recvFromPost unable to get preToPostActivity "
+                   "from connection. Is "
                    "shrink_patches on?\n";
    }
 

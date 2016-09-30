@@ -23,9 +23,12 @@ Random::Random(int count) {
    initializeFromCount((unsigned int)count);
 }
 
-// Each neuron in a layer has its own RNG.  locptr defines the geometry of the layer.
-// isExtended tells whether to consider getNumGlobalNeurons() or getNumGlobalExtended() neurons.
-// The seed of each RNG is determined by *global* index; this way the initial state of the
+// Each neuron in a layer has its own RNG.  locptr defines the geometry of the
+// layer.
+// isExtended tells whether to consider getNumGlobalNeurons() or
+// getNumGlobalExtended() neurons.
+// The seed of each RNG is determined by *global* index; this way the initial
+// state of the
 // random number does not depend on the MPI configuration.
 Random::Random(const PVLayerLoc *locptr, bool isExtended) {
    initialize_base();
@@ -67,7 +70,8 @@ int Random::initializeFromLoc(const PVLayerLoc *locptr, bool isExtended) {
       int sbGlobal          = nxGlobalExt * nyGlobalExt * nf;
       int syGlobal          = nxGlobalExt * nf;
 
-      // Only thing that is continuous in memory is nx and ny, so loop over batch and y
+      // Only thing that is continuous in memory is nx and ny, so loop over batch
+      // and y
       for (int kb = 0; kb < nbatch; kb++) {
          for (int ky = 0; ky < nyExt; ky++) {
             // Calculate start index into local rngArray

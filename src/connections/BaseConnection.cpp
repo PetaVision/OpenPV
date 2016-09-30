@@ -60,7 +60,8 @@ void BaseConnection::setPreLayerName(const char *pre_name) {
       this->preLayerName = strdup(pre_name);
       if (this->preLayerName == NULL) {
          pvError().printf(
-               "%s: rank %d process unable to allocate memory for name of presynaptic layer "
+               "%s: rank %d process unable to allocate memory for name "
+               "of presynaptic layer "
                "\"%s\": %s\n",
                getDescription_c(),
                this->getParent()->columnId(),
@@ -76,7 +77,8 @@ void BaseConnection::setPostLayerName(const char *post_name) {
       this->postLayerName = strdup(post_name);
       if (this->postLayerName == NULL) {
          pvError().printf(
-               "%s: rank %d process unable to allocate memory for name of postsynaptic layer "
+               "%s: rank %d process unable to allocate memory for name "
+               "of postsynaptic layer "
                "\"%s\": %s\n",
                getDescription_c(),
                this->getParent()->columnId(),
@@ -145,14 +147,18 @@ int BaseConnection::inferPreAndPostFromConnName(
       int rank,
       char **preLayerNamePtr,
       char **postLayerNamePtr) {
-   // If the connection name has the form "AbcToXyz", then *preLayerNamePtr will be Abc and
+   // If the connection name has the form "AbcToXyz", then *preLayerNamePtr will
+   // be Abc and
    // *postLayerNamePtr will be Xyz.
-   // If either of the intended pre- or post-layer names contains the string "To", this method
+   // If either of the intended pre- or post-layer names contains the string
+   // "To", this method
    // cannot be used to infer them:
-   // it returns PV_FAILURE if the string contains either more or less than one occurrence of the
+   // it returns PV_FAILURE if the string contains either more or less than one
+   // occurrence of the
    // string "To", and does not change
    // *preLayerNamePtr or *postLayerNamePtr
-   // This routine uses malloc to fill *{pre,post}LayerNamePtr, so the routine calling this one is
+   // This routine uses malloc to fill *{pre,post}LayerNamePtr, so the routine
+   // calling this one is
    // responsible for freeing them.
 
    int status = PV_SUCCESS;
@@ -169,7 +175,8 @@ int BaseConnection::inferPreAndPostFromConnName(
          *preLayerNamePtr = (char *)malloc((size_t)(pre_len + 1));
          if (*preLayerNamePtr == NULL) {
             pvError().printf(
-                  "Connection \"%s\": unable to allocate memory for preLayerName: %s\n",
+                  "Connection \"%s\": unable to allocate memory for "
+                  "preLayerName: %s\n",
                   name,
                   strerror(errno));
          }
@@ -181,7 +188,8 @@ int BaseConnection::inferPreAndPostFromConnName(
          *postLayerNamePtr = (char *)malloc((size_t)(post_len + 1));
          if (*postLayerNamePtr == NULL) {
             pvError().printf(
-                  "Connection \"%s\": unable to allocate memory for postLayerName: %s\n",
+                  "Connection \"%s\": unable to allocate memory for "
+                  "postLayerName: %s\n",
                   name,
                   strerror(errno));
          }
@@ -205,7 +213,8 @@ int BaseConnection::inferPreAndPostFromConnName(
          pvErrorNoExit(errorMessage);
          errorMessage.printf("Unable to infer pre and post from connection name \"%s\".\n", name);
          errorMessage.printf(
-               "The connection name must have the form \"AbcToXyz\", to infer the names,\n");
+               "The connection name must have the form "
+               "\"AbcToXyz\", to infer the names,\n");
          errorMessage.printf("but the string \"To\" does not appear.\n");
       }
    }
@@ -216,9 +225,11 @@ int BaseConnection::getPreAndPostLayerNames(
       const char *name,
       char **preLayerNamePtr,
       char **postLayerNamePtr) {
-   // Retrieves preLayerName and postLayerName from parameter group whose name is given in the
+   // Retrieves preLayerName and postLayerName from parameter group whose name is
+   // given in the
    // functions first argument.
-   // This routine uses strdup to fill *{pre,post}LayerNamePtr, so the routine calling this one is
+   // This routine uses strdup to fill *{pre,post}LayerNamePtr, so the routine
+   // calling this one is
    // responsible for freeing them.
    int status        = PV_SUCCESS;
    *preLayerNamePtr  = NULL;
@@ -226,7 +237,8 @@ int BaseConnection::getPreAndPostLayerNames(
    if (preLayerName == NULL && postLayerName == NULL) {
       if (parent->getCommunicator()->commRank() == 0) {
          pvInfo().printf(
-               "%s: preLayerName and postLayerName will be inferred in the communicateInitInfo "
+               "%s: preLayerName and postLayerName will be inferred in "
+               "the communicateInitInfo "
                "stage.\n",
                getDescription_c());
       }
@@ -235,7 +247,8 @@ int BaseConnection::getPreAndPostLayerNames(
       status = PV_FAILURE;
       if (parent->getCommunicator()->commRank() == 0) {
          pvErrorNoExit().printf(
-               "%s: if postLayerName is specified, preLayerName must be specified as well.\n",
+               "%s: if postLayerName is specified, preLayerName "
+               "must be specified as well.\n",
                getDescription_c());
       }
    }
@@ -243,7 +256,8 @@ int BaseConnection::getPreAndPostLayerNames(
       status = PV_FAILURE;
       if (parent->getCommunicator()->commRank() == 0) {
          pvErrorNoExit().printf(
-               "%s: if preLayerName is specified, postLayerName must be specified as well.\n",
+               "%s: if preLayerName is specified, postLayerName "
+               "must be specified as well.\n",
                getDescription_c());
       }
    }
@@ -278,7 +292,8 @@ int BaseConnection::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_plasticityFlag(ioFlag);
    ioParam_convertRateToSpikeCount(ioFlag);
 
-   // GPU-specific parameter.  If not using GPUs, we read it anyway, with warnIfAbsent set to false,
+   // GPU-specific parameter.  If not using GPUs, we read it anyway, with
+   // warnIfAbsent set to false,
    // to prevent unnecessary warnings from unread or missing parameters.
    ioParam_receiveGpu(ioFlag);
 
@@ -349,7 +364,8 @@ void BaseConnection::ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) {
       if (ioFlag == PARAMS_IO_READ && this->numberOfAxonalArborLists() == 0
           && this->getParent()->columnId() == 0) {
          pvWarn().printf(
-               "Connection %s: Variable numAxonalArbors is set to 0. No connections will be "
+               "Connection %s: Variable numAxonalArbors is set to 0. No "
+               "connections will be "
                "made.\n",
                this->getName());
       }
@@ -361,8 +377,10 @@ void BaseConnection::ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) {
          ioFlag, name, "plasticityFlag", &plasticityFlag, true /*default value*/);
 }
 
-// preActivityIsNotRate was replaced with convertRateToSpikeCount on Dec 31, 2014.
-// The warning issued if the params file contained preActivityIsNotRate was removed on Aug 5, 2014.
+// preActivityIsNotRate was replaced with convertRateToSpikeCount on Dec 31,
+// 2014.
+// The warning issued if the params file contained preActivityIsNotRate was
+// removed on Aug 5, 2014.
 
 void BaseConnection::ioParam_convertRateToSpikeCount(enum ParamsIOFlag ioFlag) {
    getParent()->parameters()->ioParamValue(
@@ -394,7 +412,8 @@ void BaseConnection::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
 }
 
 void BaseConnection::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
-   assert(parent->getInitializeFromCheckpointDir()); // If we're not initializing any layers or
+   assert(parent->getInitializeFromCheckpointDir()); // If we're not initializing
+   // any layers or
    // connections from a checkpoint, this should
    // be the empty string, not null.
    if (parent->getInitializeFromCheckpointDir() && parent->getInitializeFromCheckpointDir()[0]) {
@@ -411,7 +430,8 @@ void BaseConnection::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFl
 int BaseConnection::insertProbe(BaseConnectionProbe *p) {
    if (p->getTargetConn() != this) {
       pvWarn().printf(
-            "%s: insertProbe called with probe %p, whose targetConn is not this connection.  Probe "
+            "%s: insertProbe called with probe %p, whose targetConn is "
+            "not this connection.  Probe "
             "was not inserted.\n",
             getDescription_c(),
             p);
@@ -420,7 +440,8 @@ int BaseConnection::insertProbe(BaseConnectionProbe *p) {
    for (int i = 0; i < numProbes; i++) {
       if (p == probes[i]) {
          pvWarn().printf(
-               "%s: insertProbe called with probe %p, which has already been inserted as probe "
+               "%s: insertProbe called with probe %p, which has already "
+               "been inserted as probe "
                "%d.\n",
                getDescription_c(),
                p,
@@ -501,7 +522,8 @@ int BaseConnection::communicateInitInfo() {
    if (this->preSynapticLayer() == NULL) {
       if (this->getParent()->columnId() == 0) {
          pvErrorNoExit().printf(
-               "%s: preLayerName \"%s\" does not correspond to a layer in the column.\n",
+               "%s: preLayerName \"%s\" does not correspond to a "
+               "layer in the column.\n",
                getDescription_c(),
                this->getPreLayerName());
       }
@@ -510,7 +532,8 @@ int BaseConnection::communicateInitInfo() {
    if (this->postSynapticLayer() == NULL) {
       if (this->getParent()->columnId() == 0) {
          pvErrorNoExit().printf(
-               "%s: postLayerName \"%s\" does not correspond to a layer in the column.\n",
+               "%s: postLayerName \"%s\" does not correspond to "
+               "a layer in the column.\n",
                getDescription_c(),
                this->getPostLayerName());
       }
@@ -527,7 +550,8 @@ int BaseConnection::communicateInitInfo() {
    if (allowedDelay < maxDelay) {
       if (this->getParent()->columnId() == 0) {
          pvErrorNoExit().printf(
-               "%s: attempt to set delay to %d, but the maximum allowed delay is %d.  Exiting\n",
+               "%s: attempt to set delay to %d, but the maximum "
+               "allowed delay is %d.  Exiting\n",
                getDescription_c(),
                maxDelay,
                allowedDelay);
@@ -563,8 +587,9 @@ int BaseConnection::communicateInitInfo() {
 
 int BaseConnection::initializeDelays(const float *fDelayArray, int size) {
    int status = PV_SUCCESS;
-   assert(!this->getParent()->parameters()->presentAndNotBeenRead(
-         this->getName(), "numAxonalArbors"));
+   assert(
+         !this->getParent()->parameters()->presentAndNotBeenRead(
+               this->getName(), "numAxonalArbors"));
    // Allocate delay data structure
    delays = (int *)calloc(this->numberOfAxonalArborLists(), sizeof(int));
    if (delays == NULL) {
@@ -590,7 +615,8 @@ int BaseConnection::initializeDelays(const float *fDelayArray, int size) {
       }
       else {
          pvError().printf(
-               "Delay must be either a single value or the same length as the number of arbors\n");
+               "Delay must be either a single value or the same length "
+               "as the number of arbors\n");
       }
    }
    return status;
@@ -620,7 +646,8 @@ void BaseConnection::setDelay(int arborId, double delay) {
 
 int BaseConnection::initializeState() {
    int status = PV_SUCCESS;
-   assert(parent->getInitializeFromCheckpointDir()); // should never be null; it should be the empty
+   assert(parent->getInitializeFromCheckpointDir()); // should never be null; it
+   // should be the empty
    // string if not initializing from a checkpoint
    if (!this->getPlasticityFlag() && parent->getSuppressNonplasticCheckpoints()) {
       status = setInitialValues();
@@ -647,7 +674,8 @@ BaseConnection::~BaseConnection() {
    free(this->postLayerName);
    free(fDelayArray);
    free(delays);
-   free(this->probes); // All probes are deleted by the HyPerCol, so probes[i] doesn't need to be
+   free(this->probes); // All probes are deleted by the HyPerCol, so probes[i]
+   // doesn't need to be
    // deleted, only the array itself.
 }
 

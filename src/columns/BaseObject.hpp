@@ -50,13 +50,15 @@ class BaseObject : public Observer, public SecretaryDataInterface {
    virtual ~BaseObject();
 
    /**
-    * Get-method for mInitInfoCommunicatedFlag, which is false on initialization and
+    * Get-method for mInitInfoCommunicatedFlag, which is false on initialization
+    * and
     * then becomes true once setInitInfoCommunicatedFlag() is called.
     */
    bool getInitInfoCommunicatedFlag() { return mInitInfoCommunicatedFlag; }
 
    /**
-    * Get-method for mDataStructuresAllocatedFlag, which is false on initialization and
+    * Get-method for mDataStructuresAllocatedFlag, which is false on
+    * initialization and
     * then becomes true once setDataStructuresAllocatedFlag() is called.
     */
    bool getDataStructuresAllocatedFlag() { return mDataStructuresAllocatedFlag; }
@@ -100,9 +102,9 @@ class BaseObject : public Observer, public SecretaryDataInterface {
 
    // Data members
   protected:
-   char *name = nullptr;
-   HyPerCol *parent =
-         nullptr; // TODO: eliminate HyPerCol argument to constructor in favor of PVParams argument
+   char *name       = nullptr;
+   HyPerCol *parent = nullptr; // TODO: eliminate HyPerCol argument to
+   // constructor in favor of PVParams argument
    bool mInitInfoCommunicatedFlag    = false;
    bool mDataStructuresAllocatedFlag = false;
    bool mInitialValuesSetFlag        = false;

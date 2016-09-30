@@ -33,7 +33,9 @@ int L2ConnProbe::outputState(double timed) {
 
    if (numKern != getTargetHyPerConn()->preSynapticLayer()->getLayerLoc()->nf) {
       pvError().printf(
-            "L2ConnProbe %s: L2ConnProbe only works for 1-to-many or 1-to-1 weights.\n", name);
+            "L2ConnProbe %s: L2ConnProbe only works for 1-to-many or "
+            "1-to-1 weights.\n",
+            name);
    }
 
 #ifdef PV_USE_OPENMP_THREADS

@@ -20,7 +20,8 @@ class HyPerCol;
 class HyPerLayer;
 
 /**
- * An abstract base class for the common functionality of layer probes and connection probes.
+ * An abstract base class for the common functionality of layer probes and
+ * connection probes.
  */
 class BaseProbe : public BaseObject {
 
@@ -31,8 +32,10 @@ class BaseProbe : public BaseObject {
    int ioParams(enum ParamsIOFlag ioFlag);
 
    /**
-    * A pure virtual function called during HyPerCol::run, during the communicateInitInfo stage.
-    * BaseProbe::communicateInitInfo sets up the triggering layer and attaches to the energy probe,
+    * A pure virtual function called during HyPerCol::run, during the
+    * communicateInitInfo stage.
+    * BaseProbe::communicateInitInfo sets up the triggering layer and attaches to
+    * the energy probe,
     * if either triggerFlag or energyProbe are set.
     */
    virtual int communicateInitInfo() = 0;
@@ -46,10 +49,13 @@ class BaseProbe : public BaseObject {
    virtual int allocateDataStructures();
 
    /**
-    * Returns the number of value indices the probe can compute (typically the value
+    * Returns the number of value indices the probe can compute (typically the
+    * value
     * of the parent HyPerCol's nBatch parameter).
-    * BaseProbe::getNumValues() returns the parent HyPerCol's getNBatch(), which can be overridden.
-    * Probes derived from BaseProbe can set numValues to zero or a negative number to indicate that
+    * BaseProbe::getNumValues() returns the parent HyPerCol's getNBatch(), which
+    * can be overridden.
+    * Probes derived from BaseProbe can set numValues to zero or a negative
+    * number to indicate that
     * getValues() and getNumValues()
     * are not fully implemented for that probe.
     */
@@ -57,8 +63,10 @@ class BaseProbe : public BaseObject {
 
    /**
     * The public interface for calling the outputState method.
-    * BaseConnection::outputStateWrapper calls outputState() if needUpdate() returns true.
-    * This behavior is intended to be general, but the method can be overridden if needed.
+    * BaseConnection::outputStateWrapper calls outputState() if needUpdate()
+    * returns true.
+    * This behavior is intended to be general, but the method can be overridden
+    * if needed.
     */
    virtual int outputStateWrapper(double timef, double dt);
 
@@ -76,7 +84,8 @@ class BaseProbe : public BaseObject {
    const char *getTargetName() { return targetName; }
 
    /**
-    * Returns the name of the energy probe the probe is attached to (null if not attached to an
+    * Returns the name of the energy probe the probe is attached to (null if not
+    * attached to an
     * energy probe)
     */
    char const *getEnergyProbe() { return energyProbe; }
@@ -94,31 +103,38 @@ class BaseProbe : public BaseObject {
    double getLastUpdateTime() { return lastUpdateTime; }
 
    /**
-    * getValues(double timevalue, double * values) sets the buffer 'values' with the probe's
+    * getValues(double timevalue, double * values) sets the buffer 'values' with
+    * the probe's
     * calculated values.
     * It assumes that the values buffer is large enough to hold getNumValues()
     * double-precision values.
     * If 'values' is NULL, the values are still updated internally if needed, but
     * those values are not returned.
-    * Internally, getValues() calls calcValues() if needRecalc() is true.  It then
+    * Internally, getValues() calls calcValues() if needRecalc() is true.  It
+    * then
     * copies the probeValues buffer to the input argument buffer 'values'.
-    * Derived classes should not override or hide this method.  Instead, they should override
+    * Derived classes should not override or hide this method.  Instead, they
+    * should override
     * calcValues.
     */
    int getValues(double timevalue, double *valuesVector);
    /**
-    * getValues(double timevalue, vector<double> * valuesVector) is a wrapper around
+    * getValues(double timevalue, vector<double> * valuesVector) is a wrapper
+    * around
     * getValues(double, double *) that uses C++ vectors.  It resizes valuesVector
-    * to size getNumValues() and then fills the vector with the values returned by getValues.
+    * to size getNumValues() and then fills the vector with the values returned
+    * by getValues.
     */
    int getValues(double timevalue, std::vector<double> *valuesVector);
    /**
     * getValue() is meant for situations where the caller needs one value
     * that would be returned by getValues(), not the whole buffer.
-    * getValue() returns a signaling NaN if index is out of bounds.  If index is valid,
+    * getValue() returns a signaling NaN if index is out of bounds.  If index is
+    * valid,
     * getValue() calls calcValues() if needRecalc() returns true, and then
     * returns probeValues[index].
-    * Derived classes should not override or hide this method.  Instead, they should override
+    * Derived classes should not override or hide this method.  Instead, they
+    * should override
     * calcValues.
     */
    double getValue(double timevalue, int index);
@@ -142,19 +158,22 @@ class BaseProbe : public BaseObject {
    virtual void ioParam_targetName(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief message: A string parameter that is typically included in the lines output by the
+    * @brief message: A string parameter that is typically included in the lines
+    * output by the
     * outputState method
     */
    virtual void ioParam_message(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief textOutputFlag: A boolean parameter that sets whether to generate an output file.
+    * @brief textOutputFlag: A boolean parameter that sets whether to generate an
+    * output file.
     * Defaults to true.
     */
    virtual void ioParam_textOutputFlag(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief probeOutputFile: If textOutputFlag is true, probeOutputFile specifies
+    * @brief probeOutputFile: If textOutputFlag is true, probeOutputFile
+    * specifies
     * the name of the file that the outputState method writes to.
     * If blank, the output is sent to the output stream.
     */
@@ -169,14 +188,16 @@ class BaseProbe : public BaseObject {
    virtual void ioParam_triggerFlag(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief triggerLayerName: If triggerFlag is true, triggerLayerName specifies the layer
+    * @brief triggerLayerName: If triggerFlag is true, triggerLayerName specifies
+    * the layer
     * to check for triggering.
     */
    virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag);
 
    /**
     * @brief triggerOffset: If triggerFlag is true, triggerOffset specifies the
-    * time interval *before* the triggerLayer's nextUpdate time that needUpdate() returns true.
+    * time interval *before* the triggerLayer's nextUpdate time that needUpdate()
+    * returns true.
     */
    virtual void ioParam_triggerOffset(enum ParamsIOFlag ioFlag);
 
@@ -187,10 +208,13 @@ class BaseProbe : public BaseObject {
    virtual void ioParam_energyProbe(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief coefficient: If energyProbe is set, the coefficient parameter specifies
-    * that ColumnEnergyProbe multiplies the result of this probe's getValues() method
+    * @brief coefficient: If energyProbe is set, the coefficient parameter
+    * specifies
+    * that ColumnEnergyProbe multiplies the result of this probe's getValues()
+    * method
     * by coefficient when computing the error.
-    * @details Note that coefficient does not affect the value returned by the getValue() or
+    * @details Note that coefficient does not affect the value returned by the
+    * getValue() or
     * getValues() method.
     */
    virtual void ioParam_coefficient(enum ParamsIOFlag ioFlag);
@@ -199,40 +223,55 @@ class BaseProbe : public BaseObject {
    virtual int initOutputStream(const char *filename);
 
    /**
-    * A pure virtual method for that should return true if the quantities being measured
-    * by the probe have changed since the last time the quantities were calculated.
-    * Typically, an implementation of needRecalc() will check the lastUpdateTime of
+    * A pure virtual method for that should return true if the quantities being
+    * measured
+    * by the probe have changed since the last time the quantities were
+    * calculated.
+    * Typically, an implementation of needRecalc() will check the lastUpdateTime
+    * of
     * the object being probed, and return true if that value is greater than the
     * lastUpdateTime member variable.
-    * needRecalc() is called by getValues(double) (and hence by getValue() and the other
+    * needRecalc() is called by getValues(double) (and hence by getValue() and
+    * the other
     * flavors of getValues).
-    * Note that there is a single needRecalc that applies to all getNumValues() quantities.
+    * Note that there is a single needRecalc that applies to all getNumValues()
+    * quantities.
     */
    virtual bool needRecalc(double timevalue) = 0;
 
    /**
-    * A pure virtual method that should return the simulation time for the values that calcValues()
-    * would compute if it were called instead.  The reason that this time might be different from
-    * the simuluation time at which referenceUpdate was called, is that calcValues might be called
-    * either before or after the update of whatever object the probe is attached to.
+    * A pure virtual method that should return the simulation time for the values
+    * that calcValues()
+    * would compute if it were called instead.  The reason that this time might
+    * be different from
+    * the simuluation time at which referenceUpdate was called, is that
+    * calcValues might be called
+    * either before or after the update of whatever object the probe is attached
+    * to.
     *
     * The getValues() method calls this function after calling calcValues(),
-    * and stores the result in the lastUpdateTime member variable.  Typically, the implementation
-    * of needRecalc() will return true if lastUpdateTime is less than the value returned by
+    * and stores the result in the lastUpdateTime member variable.  Typically,
+    * the implementation
+    * of needRecalc() will return true if lastUpdateTime is less than the value
+    * returned by
     * referenceUpdateTime, and false otherwise.
     */
    virtual double referenceUpdateTime() const = 0;
 
    /**
-    * A pure virtual method to calculate the values of the probe.  calcValues() can
+    * A pure virtual method to calculate the values of the probe.  calcValues()
+    * can
     * assume that needRecalc() has been called and returned true.
-    * It should write the computed values into the buffer of member variable 'probeValues'.
+    * It should write the computed values into the buffer of member variable
+    * 'probeValues'.
     */
    virtual int calcValues(double timevalue) = 0;
 
    /**
-    * If needRecalc() returns true, getValues(double) updates the probeValues buffer
-    * (by calling calcValues) and sets lastUpdateTime to the timevalue input argument.
+    * If needRecalc() returns true, getValues(double) updates the probeValues
+    * buffer
+    * (by calling calcValues) and sets lastUpdateTime to the timevalue input
+    * argument.
     */
    int getValues(double timevalue);
 
@@ -259,16 +298,20 @@ class BaseProbe : public BaseObject {
 
    /**
     * initNumValues is called by initialize.
-    * BaseProbe::initNumValues sets numValues to the parent HyPerCol's getNBatch().
-    * Derived classes can override initNumValues to initialize numValues to a different
+    * BaseProbe::initNumValues sets numValues to the parent HyPerCol's
+    * getNBatch().
+    * Derived classes can override initNumValues to initialize numValues to a
+    * different
     * value.
     */
    virtual int initNumValues();
 
    /**
-    * Sets the numValues member variable (returned by getNumValues()) and reallocates
+    * Sets the numValues member variable (returned by getNumValues()) and
+    * reallocates
     * the probeValues member variable to hold numValues double-precision values.
-    * If the reallocation fails, the probeValues buffer is left unchanged, errno is
+    * If the reallocation fails, the probeValues buffer is left unchanged, errno
+    * is
     * set (by a realloc() call), and PV_FAILURE is returned.
     * Otherwise, PV_SUCCESS is returned.
     */
@@ -291,10 +334,13 @@ class BaseProbe : public BaseObject {
    inline bool isWritingToFile() const { return writingToFile; }
 
    /**
-    * If there is a triggering layer, needUpdate returns true when the triggering layer's
-    * nextUpdateTime, modified by the probe's triggerOffset parameter, occurs; otherwise false.
+    * If there is a triggering layer, needUpdate returns true when the triggering
+    * layer's
+    * nextUpdateTime, modified by the probe's triggerOffset parameter, occurs;
+    * otherwise false.
     * If there is not a triggering layer, needUpdate always returns true.
-    * This behavior can be overridden if a probe uses some criterion other than triggering
+    * This behavior can be overridden if a probe uses some criterion other than
+    * triggering
     * to choose when output its state.
     */
    virtual bool needUpdate(double time, double dt);
@@ -315,7 +361,8 @@ class BaseProbe : public BaseObject {
 
   private:
    char *msgparams; // the message parameter in the params
-   char *msgstring; // the string that gets printed by outputState ("" if message is empty or null;
+   char *msgstring; // the string that gets printed by outputState ("" if message
+   // is empty or null;
    // message + ":" if nonempty
    char *probeOutputFilename;
    int numValues;

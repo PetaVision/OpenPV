@@ -52,7 +52,8 @@ HyPerCol::~HyPerCol() {
 #endif // PV_USE_CUDA
    PrintStream pStream(getOutputStream());
    writeTimers(pStream);
-   int rank = globalRank(); // Need to save so that we know whether we're the process that does I/O,
+   int rank = globalRank(); // Need to save so that we know whether we're the
+   // process that does I/O,
    // even after deleting mCommunicator.
    for (auto iterator = mConnections.begin(); iterator != mConnections.end();) {
       delete *iterator;
@@ -71,7 +72,8 @@ HyPerCol::~HyPerCol() {
       iterator = mLayers.erase(iterator);
    }
 
-   // mColProbes[i] should not be deleted; it points to an entry in mBaseProbes and will
+   // mColProbes[i] should not be deleted; it points to an entry in mBaseProbes
+   // and will
    // be deleted when mBaseProbes is deleted
    for (auto iterator = mBaseProbes.begin(); iterator != mBaseProbes.end();) {
       delete *iterator;
@@ -100,7 +102,8 @@ HyPerCol::~HyPerCol() {
 }
 
 int HyPerCol::initialize_base() {
-   // Initialize all member variables to safe values.  They will be set to their actual values in
+   // Initialize all member variables to safe values.  They will be set to their
+   // actual values in
    // initialize()
    mWarmStart                           = false;
    mReadyFlag                           = false;
@@ -129,7 +132,8 @@ int HyPerCol::initialize_base() {
    mStopTime                            = 0.0;
    mDeltaTime                           = DEFAULT_DELTA_T;
    mWriteTimeScaleFieldnames            = true;
-   // Sep 26, 2016: Adaptive timestep routines and member variables have been moved to
+   // Sep 26, 2016: Adaptive timestep routines and member variables have been
+   // moved to
    // AdaptiveTimeScaleProbe.
    mProgressInterval   = 1.0;
    mWriteProgressToErr = false;
@@ -184,14 +188,16 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
    std::string working_dir = expandLeadingTilde(mPVInitObj->getWorkingDir());
    mWarmStart              = mPVInitObj->getRestartFlag();
 
-   // Sep 27, 2016: handling --require-return has been moved to the Communicator constructor.
+   // Sep 27, 2016: handling --require-return has been moved to the Communicator
+   // constructor.
 
    mName            = strdup(name);
    mRunTimer        = new Timer(mName, "column", "run    ");
    mCheckpointTimer = new Timer(mName, "column", "checkpoint ");
 
    // mNumThreads will not be set, or used until HyPerCol::run.
-   // This means that threading cannot happen in the initialization or communicateInitInfo stages,
+   // This means that threading cannot happen in the initialization or
+   // communicateInitInfo stages,
    // but that should not be a problem.
    char const *programName = mPVInitObj->getProgramName();
 
@@ -204,7 +210,8 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
       }
    }
 
-#ifdef PV_USE_MPI // Fail if there was a parsing error, but make sure nonroot processes don't kill
+#ifdef PV_USE_MPI // Fail if there was a parsing error, but make sure nonroot
+   // processes don't kill
    // the root process before the root process reaches the syntax error
    int parsedStatus;
    int rootproc = 0;
@@ -261,12 +268,14 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
             mCpWriteStepInterval = -1;
             break;
          default:
-            assert(0); // All cases of mCheckpointWriteTriggerMode should have been covered above.
+            assert(0); // All cases of mCheckpointWriteTriggerMode should have been
+            // covered above.
             break;
       }
    }
 
-   // mWarmStart is set if command line sets the -r option.  PV_Arguments should prevent -r and -c
+   // mWarmStart is set if command line sets the -r option.  PV_Arguments should
+   // prevent -r and -c
    // from being both set.
    char const *checkpoint_read_dir = mPVInitObj->getCheckpointReadDir();
    pvAssert(!(mWarmStart && checkpoint_read_dir));
@@ -274,7 +283,8 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
       mCheckpointReadDir = (char *)pvCallocError(
             PV_PATH_MAX,
             sizeof(char),
-            "%s error: unable to allocate memory for path to checkpoint read directory.\n",
+            "%s error: unable to allocate memory for "
+            "path to checkpoint read directory.\n",
             programName);
       if (columnId() == 0) {
          struct stat statbuf;
@@ -293,7 +303,8 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
             }
             else {
                pvError().printf(
-                     "%s error: checkpoint read directory \"%s\" is not a directory.\n",
+                     "%s error: checkpoint read directory \"%s\" is not "
+                     "a directory.\n",
                      programName,
                      cpDirString.c_str());
             }
@@ -326,7 +337,8 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
                   }
                   pvErrorIf(
                         !found,
-                        "%s: restarting but Last directory does not exist and checkpointWriteDir "
+                        "%s: restarting but Last directory does not exist and "
+                        "checkpointWriteDir "
                         "directory \"%s\" does not have any checkpoints\n",
                         programName,
                         mCheckpointWriteDir);
@@ -344,14 +356,16 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
                }
                else {
                   pvError().printf(
-                        "%s error: checkpoint read directory \"%s\" is not a directory.\n",
+                        "%s error: checkpoint read directory \"%s\" is "
+                        "not a directory.\n",
                         programName,
                         mCheckpointWriteDir);
                }
             }
             else if (errno == ENOENT) {
                pvError().printf(
-                     "%s error: restarting but neither Last nor checkpointWriteDir directory "
+                     "%s error: restarting but neither Last nor "
+                     "checkpointWriteDir directory "
                      "\"%s\" exists.\n",
                      programName,
                      mCheckpointWriteDir);
@@ -359,7 +373,8 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
          }
          else {
             pvError().printf(
-                  "%s: restarting but Last directory does not exist and checkpointWriteDir is not "
+                  "%s: restarting but Last directory does not exist and "
+                  "checkpointWriteDir is not "
                   "defined (checkpointWrite=false)\n",
                   programName);
          }
@@ -377,7 +392,8 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
          count++;
          pvErrorIf(
                count > mCommunicator->numCommBatches(),
-               "Checkpoint read parsing error: Too many colon seperated checkpoint read "
+               "Checkpoint read parsing error: Too many colon seperated "
+               "checkpoint read "
                "directories. Only specify %d checkpoint directories.\n",
                mCommunicator->numCommBatches());
          tmp = strtok(nullptr, ":");
@@ -385,13 +401,16 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
       // Make sure number matches up
       pvErrorIf(
             count != mCommunicator->numCommBatches(),
-            "Checkpoint read parsing error: Not enough colon seperated checkpoint read "
-            "directories. Running with %d batch MPIs but only %zu colon seperated checkpoint "
+            "Checkpoint read parsing error: Not enough colon seperated "
+            "checkpoint read "
+            "directories. Running with %d batch MPIs but only %zu colon "
+            "seperated checkpoint "
             "directories.\n",
             mCommunicator->numCommBatches(),
             count);
 
-      // Grab this rank's actual mCheckpointReadDir and replace with mCheckpointReadDir
+      // Grab this rank's actual mCheckpointReadDir and replace with
+      // mCheckpointReadDir
       mCheckpointReadDir =
             strdup(expandLeadingTilde(splitCheckpoint[mCommunicator->commBatch()]).c_str());
       pvAssert(mCheckpointReadDir);
@@ -423,7 +442,8 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
 #endif
    }
 
-   // If mDeleteOlderCheckpoints is true, set up a ring buffer of checkpoint directory names.
+   // If mDeleteOlderCheckpoints is true, set up a ring buffer of checkpoint
+   // directory names.
    pvAssert(mOldCheckpointDirectories.size() == 0);
    mOldCheckpointDirectories.resize(mNumCheckpointsKept, "");
    mOldCheckpointDirectoriesIndex = 0;
@@ -500,13 +520,16 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_writeTimescales(ioFlag);
    ioParam_errorOnNotANumber(ioFlag);
 
-   // Aug 18, 2016.  Several HyPerCol parameters have moved to AdaptiveTimeScaleProbe.
-   // The ioParam_* method for those parameters sets the mObsoleteParameterFound flag
+   // Aug 18, 2016.  Several HyPerCol parameters have moved to
+   // AdaptiveTimeScaleProbe.
+   // The ioParam_* method for those parameters sets the mObsoleteParameterFound
+   // flag
    // if the parameter is present in the HyPerCol group.  Exit with an error here
    // if any of those parameters were found.
    if (mObsoleteParameterFound) {
       if (getCommunicator()->commRank() == 0) {
-         pvErrorNoExit() << "Exiting due to obsolete HyPerCol parameters in the params file.\n";
+         pvErrorNoExit() << "Exiting due to obsolete HyPerCol parameters in the "
+                            "params file.\n";
       }
       MPI_Barrier(getCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -524,7 +547,8 @@ int HyPerCol::ioParamsFinishGroup(enum ParamsIOFlag ioFlag) {
    return PV_SUCCESS;
 }
 
-// Sep 26, 2016: HyPerCol methods for parameter input/output have been moved to PVParams.
+// Sep 26, 2016: HyPerCol methods for parameter input/output have been moved to
+// PVParams.
 
 void HyPerCol::ioParam_startTime(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(ioFlag, mName, "startTime", &mStartTime, mStartTime);
@@ -548,14 +572,15 @@ void HyPerCol::ioParam_dtAdaptFlag(enum ParamsIOFlag ioFlag) {
    // dtAdaptFlag was deprecated Feb 1, 2016 and marked obsolete Aug 18, 2016.
    if (ioFlag == PARAMS_IO_READ && mParams->present(mName, "dtAdaptFlag")) {
       if (columnId() == 0) {
-         pvErrorNoExit()
-               << "The dtAdaptFlag parameter is obsolete.  Define an AdaptiveTimeScaleProbe\n";
+         pvErrorNoExit() << "The dtAdaptFlag parameter is obsolete.  Define an "
+                            "AdaptiveTimeScaleProbe\n";
       }
       mObsoleteParameterFound = true;
    }
 }
 
-// Several HyPerCol parameters were moved to AdaptiveTimeScaleProbe and are therefore obsolete as
+// Several HyPerCol parameters were moved to AdaptiveTimeScaleProbe and are
+// therefore obsolete as
 // HyPerCol Parameters, Aug 18, 2016.
 void HyPerCol::paramMovedToColumnEnergyProbe(enum ParamsIOFlag ioFlag, char const *paramName) {
    if (ioFlag == PARAMS_IO_READ && mParams->present(mName, paramName)) {
@@ -571,7 +596,8 @@ void HyPerCol::ioParam_writeTimescales(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ && mParams->present(mName, "dtAdaptTriggerOffset")) {
       if (columnId() == 0) {
          pvErrorNoExit() << "The dtAdaptTriggerOffset parameter is obsolete.  Use the "
-                            "AdaptiveTimeScaleProbe writeTimeScales parameter (note capital S).\n";
+                            "AdaptiveTimeScaleProbe writeTimeScales parameter (note capital "
+                            "S).\n";
       }
       mObsoleteParameterFound = true;
    }
@@ -584,7 +610,8 @@ void HyPerCol::ioParam_writeTimeScaleFieldnames(enum ParamsIOFlag ioFlag) {
 void HyPerCol::ioParam_useAdaptMethodExp1stOrder(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ && mParams->present(mName, "useAdaptMethodExp1stOrder")) {
       if (columnId() == 0) {
-         pvErrorNoExit() << "The useAdaptMethodExp1stOrder parameter is obsolete.  Adapting the "
+         pvErrorNoExit() << "The useAdaptMethodExp1stOrder parameter is obsolete. "
+                            " Adapting the "
                             "timestep always uses the Exp1stOrder method.\n";
       }
       mObsoleteParameterFound = true;
@@ -614,7 +641,8 @@ void HyPerCol::ioParam_dtAdaptTriggerOffset(enum ParamsIOFlag ioFlag) {
 void HyPerCol::ioParam_dtScaleMax(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ && mParams->present(mName, "dtScaleMax")) {
       if (columnId() == 0) {
-         pvErrorNoExit() << "The dtScaleMax parameter is obsolete.  Use the AdaptiveTimeScaleProbe "
+         pvErrorNoExit() << "The dtScaleMax parameter is obsolete.  Use the "
+                            "AdaptiveTimeScaleProbe "
                             "baseMax parameter\n";
       }
       mObsoleteParameterFound = true;
@@ -633,7 +661,8 @@ void HyPerCol::ioParam_dtScaleMax2(enum ParamsIOFlag ioFlag) {
 void HyPerCol::ioParam_dtScaleMin(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ && mParams->present(mName, "dtScaleMin")) {
       if (columnId() == 0) {
-         pvErrorNoExit() << "The dtScaleMin parameter is obsolete.  Use the AdaptiveTimeScaleProbe "
+         pvErrorNoExit() << "The dtScaleMin parameter is obsolete.  Use the "
+                            "AdaptiveTimeScaleProbe "
                             "baseMin parameter\n";
       }
       mObsoleteParameterFound = true;
@@ -684,7 +713,8 @@ void HyPerCol::ioParam_stopTime(enum ParamsIOFlag ioFlag) {
       exit(EXIT_FAILURE);
    }
    // numSteps was deprecated Dec 12, 2013 and marked obsolete Jun 27, 2016
-   // After a reasonable fade time, remove the above if-statement and keep the ioParamValue call
+   // After a reasonable fade time, remove the above if-statement and keep the
+   // ioParamValue call
    // below.
    parameters()->ioParamValue(ioFlag, mName, "stopTime", &mStopTime, mStopTime);
 }
@@ -701,7 +731,8 @@ void HyPerCol::ioParam_progressInterval(enum ParamsIOFlag ioFlag) {
       exit(EXIT_FAILURE);
    }
    // progressStep was deprecated Dec 18, 2013
-   // After a reasonable fade time, remove the above if-statement and keep the ioParamValue call
+   // After a reasonable fade time, remove the above if-statement and keep the
+   // ioParamValue call
    // below.
    parameters()->ioParamValue(
          ioFlag, mName, "progressInterval", &mProgressInterval, mProgressInterval);
@@ -731,7 +762,8 @@ void HyPerCol::ioParam_outputPath(enum ParamsIOFlag ioFlag) {
                mOutputPath = strdup(DEFAULT_OUTPUT_PATH);
                pvAssert(mOutputPath != nullptr);
                pvWarn().printf(
-                     "Output path specified neither in command line nor in params file.\n"
+                     "Output path specified neither in command line nor in "
+                     "params file.\n"
                      "Output path set to default \"%s\"\n",
                      DEFAULT_OUTPUT_PATH);
             }
@@ -756,7 +788,8 @@ void HyPerCol::ioParam_printParamsFilename(enum ParamsIOFlag ioFlag) {
 
 void HyPerCol::ioParam_randomSeed(enum ParamsIOFlag ioFlag) {
    switch (ioFlag) {
-      // randomSeed can be set on the command line, from the params file, or from the system clock
+      // randomSeed can be set on the command line, from the params file, or from
+      // the system clock
       case PARAMS_IO_READ:
          // set random seed if it wasn't set in the command line
          if (!mRandomSeed) {
@@ -769,7 +802,8 @@ void HyPerCol::ioParam_randomSeed(enum ParamsIOFlag ioFlag) {
          }
          if (mRandomSeed < RandomSeed::minSeed) {
             pvError().printf(
-                  "Error: random seed %u is too small. Use a seed of at least 10000000.\n",
+                  "Error: random seed %u is too small. Use a seed of at "
+                  "least 10000000.\n",
                   mRandomSeed);
          }
          break;
@@ -788,10 +822,12 @@ void HyPerCol::ioParam_ny(enum ParamsIOFlag ioFlag) {
 
 void HyPerCol::ioParam_nBatch(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(ioFlag, mName, "nbatch", &mNumBatchGlobal, mNumBatchGlobal);
-   // Make sure numCommBatches is a multiple of mNumBatch specified in the params file
+   // Make sure numCommBatches is a multiple of mNumBatch specified in the params
+   // file
    pvErrorIf(
          mNumBatchGlobal % mCommunicator->numCommBatches() != 0,
-         "The total number of batches (%d) must be a multiple of the batch width (%d)\n",
+         "The total number of batches (%d) must be a multiple of the batch "
+         "width (%d)\n",
          mNumBatchGlobal,
          mCommunicator->numCommBatches());
    mNumBatch = mNumBatchGlobal / mCommunicator->numCommBatches();
@@ -817,8 +853,12 @@ void HyPerCol::ioParam_filenamesContainConnectionNames(enum ParamsIOFlag ioFlag)
    // filenamesContainConnectionNames was marked obsolete Aug 12, 2016.
    if (parameters()->present(mName, "filenamesContainConnectionNames")) {
       double fccnValue = parameters()->value(mName, "filenamesContainConnectionNames");
-      std::string msg("The HyPerCol parameter \"filenamesContainConnectionNames\" is obsolete.\n");
-      msg.append("Connection output pvp files have the format \"NameOfConnection.pvp\"\n");
+      std::string msg(
+            "The HyPerCol parameter "
+            "\"filenamesContainConnectionNames\" is obsolete.\n");
+      msg.append(
+            "Connection output pvp files have the format "
+            "\"NameOfConnection.pvp\"\n");
       msg.append("(corresponding to filenamesContainConnectionNames=2).\n");
       if (fccnValue == 2) {
          pvWarn() << msg;
@@ -909,7 +949,8 @@ void HyPerCol::ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag) {
          else {
             if (globalRank() == 0) {
                pvErrorNoExit().printf(
-                     "HyPerCol \"%s\": checkpointWriteTriggerMode \"%s\" is not recognized.\n",
+                     "HyPerCol \"%s\": checkpointWriteTriggerMode "
+                     "\"%s\" is not recognized.\n",
                      mName,
                      mCheckpointWriteTriggerModeString);
             }
@@ -1002,7 +1043,8 @@ void HyPerCol::ioParam_checkpointWriteClockUnit(enum ParamsIOFlag ioFlag) {
             else {
                if (globalRank() == 0) {
                   pvErrorNoExit().printf(
-                        "checkpointWriteClockUnit \"%s\" is unrecognized.  Use \"seconds\", "
+                        "checkpointWriteClockUnit \"%s\" is "
+                        "unrecognized.  Use \"seconds\", "
                         "\"minutes\", \"hours\", or \"days\".\n",
                         mCheckpointWriteClockUnit);
                }
@@ -1011,7 +1053,8 @@ void HyPerCol::ioParam_checkpointWriteClockUnit(enum ParamsIOFlag ioFlag) {
             }
             pvErrorIf(
                   mCheckpointWriteClockUnit == nullptr,
-                  "Error in global rank %d process converting checkpointWriteClockUnit: %s\n",
+                  "Error in global rank %d process converting "
+                  "checkpointWriteClockUnit: %s\n",
                   globalRank(),
                   strerror(errno));
          }
@@ -1083,7 +1126,8 @@ void HyPerCol::ioParam_errorOnNotANumber(enum ParamsIOFlag ioFlag) {
          ioFlag, mName, "errorOnNotANumber", &mErrorOnNotANumber, mErrorOnNotANumber);
 }
 
-// Sep 26, 2016: HyPerCol methods for parameter input/output have been moved to PVParams.
+// Sep 26, 2016: HyPerCol methods for parameter input/output have been moved to
+// PVParams.
 // Sep 27, 2016: ensureDirExists has been moved to fileio.cpp.
 
 int HyPerCol::addLayer(HyPerLayer *layer) {
@@ -1102,7 +1146,8 @@ int HyPerCol::addConnection(BaseConnection *conn) {
 
 int HyPerCol::addNormalizer(NormalizeBase *normalizer) {
    mNormalizers.push_back(normalizer);
-   return PV_SUCCESS; // Why does this return success when the other add functions return an index?
+   return PV_SUCCESS; // Why does this return success when the other add
+   // functions return an index?
 }
 
 int HyPerCol::registerData(Secretary *secretary, std::string const &name) {}
@@ -1124,13 +1169,17 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
       printParamsFileString += mPrintParamsFilename;
 
       setNumThreads(false);
-      // When we call processParams, the communicateInitInfo stage will run, which can put out a lot
+      // When we call processParams, the communicateInitInfo stage will run, which
+      // can put out a lot
       // of messages.
-      // So if there's a problem with the -t option setting, the error message can be hard to find.
-      // Instead of printing the error messages here, we will call setNumThreads a second time after
+      // So if there's a problem with the -t option setting, the error message can
+      // be hard to find.
+      // Instead of printing the error messages here, we will call setNumThreads a
+      // second time after
       // processParams(), and only then print messages.
 
-      // processParams function does communicateInitInfo stage, sets up adaptive time step, and
+      // processParams function does communicateInitInfo stage, sets up adaptive
+      // time step, and
       // prints params
       status = processParams(printParamsFileString.c_str());
       MPI_Barrier(getCommunicator()->communicator());
@@ -1147,9 +1196,8 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
       }
 
 #ifdef PV_USE_OPENMP_THREADS
-      pvAssert(
-            mNumThreads
-            > 0); // setNumThreads should fail if it sets mNumThreads less than or equal to zero
+      pvAssert(mNumThreads > 0); // setNumThreads should fail if it sets
+      // mNumThreads less than or equal to zero
       omp_set_num_threads(mNumThreads);
 #endif // PV_USE_OPENMP_THREADS
 
@@ -1173,9 +1221,11 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
 #endif
 
       // Initialize either by loading from checkpoint, or calling initializeState
-      // This needs to happen after initPublishers so that we can initialize the values in the data
+      // This needs to happen after initPublishers so that we can initialize the
+      // values in the data
       // stores,
-      // and before the mLayers' publish calls so that the data in border regions gets copied
+      // and before the mLayers' publish calls so that the data in border regions
+      // gets copied
       // correctly.
       if (mCheckpointReadFlag) {
          mSecretary->checkpointRead(mCheckpointReadDir, &mSimTime, &mCurrentStep);
@@ -1184,7 +1234,8 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
 
       notify(std::make_shared<InitializeStateMessage>());
 
-      // Initial normalization moved here to facilitate normalizations of groups of HyPerConns
+      // Initial normalization moved here to facilitate normalizations of groups
+      // of HyPerConns
       normalizeWeights();
       notify(std::make_shared<ConnectionFinalizeUpdateMessage>(mSimTime, mDeltaTime));
 
@@ -1218,13 +1269,16 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
    pvAssert(status == PV_SUCCESS);
    while (mSimTime < mStopTime - mDeltaTime / 2.0) {
       // Should we move the if statement below into advanceTime()?
-      // That way, the routine that polls for SIGUSR1 and sets mCheckpointSignal is the same
-      // as the routine that acts on mCheckpointSignal and clears it, which seems clearer.  --pete
+      // That way, the routine that polls for SIGUSR1 and sets mCheckpointSignal
+      // is the same
+      // as the routine that acts on mCheckpointSignal and clears it, which seems
+      // clearer.  --pete
       // July 7, 2015
       if (mCheckpointWriteFlag && (advanceCPWriteTime() || mCheckpointSignal)) {
          // the order should be advanceCPWriteTime() || mCheckpointSignal so that
          // advanceCPWriteTime() is called even if mCheckpointSignal is true.
-         // that way advanceCPWriteTime's calculation of the next checkpoint time won't be thrown
+         // that way advanceCPWriteTime's calculation of the next checkpoint time
+         // won't be thrown
          // off.
          char cpDir[PV_PATH_MAX];
          int stepFieldWidth;
@@ -1243,11 +1297,13 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
                mCurrentStep);
          pvErrorIf(
                chars_printed >= PV_PATH_MAX && globalRank() == 0,
-               "HyPerCol::run error.  Checkpoint directory \"%s/Checkpoint%ld\" is too long.\n",
+               "HyPerCol::run error.  Checkpoint directory "
+               "\"%s/Checkpoint%ld\" is too long.\n",
                mCheckpointWriteDir,
                mCurrentStep);
          if (!mCheckpointReadFlag || strcmp(mCheckpointReadDir, cpDir)) {
-            /* Note: the strcmp isn't perfect, since there are multiple ways to specify a path that
+            /* Note: the strcmp isn't perfect, since there are multiple ways to
+             * specify a path that
              * points to the same directory */
             if (globalRank() == 0) {
                pvInfo().printf("Checkpointing, simTime = %f\n", simulationTime());
@@ -1257,7 +1313,8 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
          else {
             if (globalRank() == 0) {
                pvInfo().printf(
-                     "Skipping checkpoint at time %f, since this would clobber the checkpointRead "
+                     "Skipping checkpoint at time %f, since this would "
+                     "clobber the checkpointRead "
                      "checkpoint.\n",
                      simulationTime());
             }
@@ -1298,10 +1355,12 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
    return status;
 }
 
-// Sep 26, 2016: Adaptive timestep routines and member variables have been moved to
+// Sep 26, 2016: Adaptive timestep routines and member variables have been moved
+// to
 // AdaptiveTimeScaleProbe.
 
-// This routine sets the mNumThreads member variable.  It should only be called by the run() method,
+// This routine sets the mNumThreads member variable.  It should only be called
+// by the run() method,
 // and only inside the !ready if-statement.
 // TODO: Instead of using the printMessagesFlag, why not use the same flag that
 int HyPerCol::setNumThreads(bool printMessagesFlag) {
@@ -1313,7 +1372,8 @@ int HyPerCol::setNumThreads(bool printMessagesFlag) {
    int comm_size   = mCommunicator->globalCommSize();
    if (printMsgs0) {
       pvInfo().printf(
-            "Maximum number of OpenMP threads%s is %d\nNumber of MPI processes is %d.\n",
+            "Maximum number of OpenMP threads%s is %d\nNumber of MPI "
+            "processes is %d.\n",
             comm_size == 1 ? "" : " (over all processes)",
             max_threads,
             comm_size);
@@ -1323,8 +1383,10 @@ int HyPerCol::setNumThreads(bool printMessagesFlag) {
       if (num_threads == 0) {
          num_threads = 1;
          if (printMsgs0) {
-            pvWarn().printf("Warning: more MPI processes than available threads.  Processors may "
-                            "be oversubscribed.\n");
+            pvWarn().printf(
+                  "Warning: more MPI processes than available threads.  "
+                  "Processors may "
+                  "be oversubscribed.\n");
          }
       }
    }
@@ -1349,7 +1411,8 @@ int HyPerCol::setNumThreads(bool printMessagesFlag) {
       thread_status = PV_FAILURE;
       if (printMsgs0) {
          pvErrorNoExit().printf(
-               "%s was compiled with PV_USE_OPENMP_THREADS; therefore the \"-t\" argument is "
+               "%s was compiled with PV_USE_OPENMP_THREADS; "
+               "therefore the \"-t\" argument is "
                "required.\n",
                mPVInitObj->getProgramName());
       }
@@ -1373,7 +1436,8 @@ int HyPerCol::setNumThreads(bool printMessagesFlag) {
    if (printMsgs0) {
       if (thread_status != PV_SUCCESS) {
          pvErrorNoExit().printf(
-               "%s error: PetaVision must be compiled with OpenMP to run with threads.\n",
+               "%s error: PetaVision must be compiled with "
+               "OpenMP to run with threads.\n",
                mPVInitObj->getProgramName());
       }
    }
@@ -1388,7 +1452,8 @@ int HyPerCol::processParams(char const *path) {
       notify(std::make_shared<CommunicateInitInfoMessage>(objectMap));
    }
 
-   // Print a cleaned up version of params to the file given by printParamsFilename
+   // Print a cleaned up version of params to the file given by
+   // printParamsFilename
    parameters()->warnUnread();
    std::string printParamsPath = "";
    if (path != nullptr && path[0] != '\0') {
@@ -1397,7 +1462,9 @@ int HyPerCol::processParams(char const *path) {
    else {
       if (globalRank() == 0) {
          pvInfo().printf(
-               "HyPerCol \"%s\": path for printing parameters file was empty or null.\n", mName);
+               "HyPerCol \"%s\": path for printing parameters file was "
+               "empty or null.\n",
+               mName);
       }
    }
    mParamsProcessedFlag = true;
@@ -1418,7 +1485,8 @@ int HyPerCol::normalizeWeights() {
    return status;
 }
 
-// Sep 26, 2016: Adaptive timestep routines and member variables have been moved to
+// Sep 26, 2016: Adaptive timestep routines and member variables have been moved
+// to
 // AdaptiveTimeScaleProbe.
 
 int HyPerCol::advanceTime(double sim_time) {
@@ -1438,12 +1506,14 @@ int HyPerCol::advanceTime(double sim_time) {
    // make sure mSimTime is updated even if HyPerCol isn't running time loop
    // triggerOffset might fail if mSimTime does not advance uniformly because
    // mSimTime could skip over tigger event
-   // !!!TODO: fix trigger layer to compute mTimeScale so as not to allow bypassing trigger event
+   // !!!TODO: fix trigger layer to compute mTimeScale so as not to allow
+   // bypassing trigger event
    mSimTime = sim_time + mDeltaTime;
    mCurrentStep++;
 
    notify(std::make_shared<AdaptTimestepMessage>());
-   // Sep 26, 2016: Adaptive timestep routines and member variables have been moved to
+   // Sep 26, 2016: Adaptive timestep routines and member variables have been
+   // moved to
    // AdaptiveTimeScaleProbe.
 
    // At this point all activity from the previous time step has
@@ -1477,7 +1547,8 @@ int HyPerCol::advanceTime(double sim_time) {
          assert(result == SIGUSR1);
       }
    }
-   // Balancing MPI_Recv is after the for-loop over phases.  Is this better than MPI_Bcast?  Should
+   // Balancing MPI_Recv is after the for-loop over phases.  Is this better than
+   // MPI_Bcast?  Should
    // it be MPI_Isend?
    if (globalRank() == 0) {
       for (int k = 1; k < numberOfGlobalColumns(); k++) {
@@ -1494,39 +1565,46 @@ int HyPerCol::advanceTime(double sim_time) {
    // Each layer's phase establishes a priority for updating
    for (int phase = 0; phase < mNumPhases; phase++) {
 
-// Ordering needs to go recvGpu, if(recvGpu and upGpu)update, recvNoGpu, update rest
+// Ordering needs to go recvGpu, if(recvGpu and upGpu)update, recvNoGpu, update
+// rest
 #ifdef PV_USE_CUDA
-      notify({std::make_shared<LayerRecvSynapticInputMessage>(
-                    phase, mPhaseRecvTimers.at(phase), true /*recvGpuFlag*/, mSimTime, mDeltaTime),
-              std::make_shared<LayerUpdateStateMessage>(
-                    phase, true /*recvGpuFlag*/, true /*updateGpuFlag*/, mSimTime, mDeltaTime)});
+      notify(
+            {std::make_shared<LayerRecvSynapticInputMessage>(
+                   phase, mPhaseRecvTimers.at(phase), true /*recvGpuFlag*/, mSimTime, mDeltaTime),
+             std::make_shared<LayerUpdateStateMessage>(
+                   phase, true /*recvGpuFlag*/, true /*updateGpuFlag*/, mSimTime, mDeltaTime)});
 
-      notify({std::make_shared<LayerRecvSynapticInputMessage>(
-                    phase, mPhaseRecvTimers.at(phase), false /*recvGpuFlag*/, mSimTime, mDeltaTime),
-              std::make_shared<LayerUpdateStateMessage>(
-                    phase, false /*recvGpuFlag*/, false /*updateGpuFlag*/, mSimTime, mDeltaTime)
+      notify(
+            {std::make_shared<LayerRecvSynapticInputMessage>(
+                   phase, mPhaseRecvTimers.at(phase), false /*recvGpuFlag*/, mSimTime, mDeltaTime),
+             std::make_shared<LayerUpdateStateMessage>(
+                   phase, false /*recvGpuFlag*/, false /*updateGpuFlag*/, mSimTime, mDeltaTime)
 
-      });
+            });
 
       getDevice()->syncDevice();
 
       // Update for receiving on cpu and updating on gpu
-      notify(std::make_shared<LayerUpdateStateMessage>(
-            phase, false /*recvOnGpuFlag*/, true /*updateOnGpuFlag*/, mSimTime, mDeltaTime));
+      notify(
+            std::make_shared<LayerUpdateStateMessage>(
+                  phase, false /*recvOnGpuFlag*/, true /*updateOnGpuFlag*/, mSimTime, mDeltaTime));
 
       getDevice()->syncDevice();
       notify(std::make_shared<LayerCopyFromGpuMessage>(phase, mPhaseRecvTimers.at(phase)));
 
       // Update for gpu recv and non gpu update
-      notify(std::make_shared<LayerUpdateStateMessage>(
-            phase, true /*recvOnGpuFlag*/, false /*updateOnGpuFlag*/, mSimTime, mDeltaTime));
+      notify(
+            std::make_shared<LayerUpdateStateMessage>(
+                  phase, true /*recvOnGpuFlag*/, false /*updateOnGpuFlag*/, mSimTime, mDeltaTime));
 #else
-      notify({std::make_shared<LayerRecvSynapticInputMessage>(
-                    phase, mPhaseRecvTimers.at(phase), mSimTime, mDeltaTime),
-              std::make_shared<LayerUpdateStateMessage>(phase, mSimTime, mDeltaTime)});
+      notify(
+            {std::make_shared<LayerRecvSynapticInputMessage>(
+                   phase, mPhaseRecvTimers.at(phase), mSimTime, mDeltaTime),
+             std::make_shared<LayerUpdateStateMessage>(phase, mSimTime, mDeltaTime)});
 #endif
 
-      // Rotate DataStore ring buffers, copy activity buffer to DataStore, and do MPI exchange.
+      // Rotate DataStore ring buffers, copy activity buffer to DataStore, and do
+      // MPI exchange.
       notify(std::make_shared<LayerPublishMessage>(phase, mSimTime));
 
       // wait for all published data to arrive and call layer's outputState
@@ -1540,7 +1618,8 @@ int HyPerCol::advanceTime(double sim_time) {
       notify(messageVector);
    }
 
-   // Balancing MPI_Send is before the for-loop over phases.  Is this better than MPI_Bcast?
+   // Balancing MPI_Send is before the for-loop over phases.  Is this better than
+   // MPI_Bcast?
    if (globalRank() != 0) {
       MPI_Recv(
             &mCheckpointSignal,
@@ -1562,7 +1641,8 @@ int HyPerCol::advanceTime(double sim_time) {
 bool HyPerCol::advanceCPWriteTime() {
    // returns true if nextCPWrite{Step,Time} has been advanced
    bool advanceCPTime;
-   time_t now; // needed only by CPWRITE_TRIGGER_CLOCK, but can't declare variables inside a case
+   time_t now; // needed only by CPWRITE_TRIGGER_CLOCK, but can't declare
+   // variables inside a case
    switch (this->mCheckpointWriteTriggerMode) {
       case CPWRITE_TRIGGER_STEP:
          assert(
@@ -1615,7 +1695,8 @@ int HyPerCol::checkpointRead() {
    for (auto &p : mColProbes) {
       p->checkpointRead(mCheckpointReadDir, &checkTime);
    }
-   // Sep 26, 2016: Adaptive timestep routines and member variables have been moved to
+   // Sep 26, 2016: Adaptive timestep routines and member variables have been
+   // moved to
    // AdaptiveTimeScaleProbe.
 
    if (mCheckpointWriteFlag) {
@@ -1683,12 +1764,15 @@ int HyPerCol::checkpointWrite(const char *cpDir) {
       int chars_needed = snprintf(timeinfofilename, PV_PATH_MAX, "%s/timeinfo.bin", cpDir);
       if (chars_needed >= PV_PATH_MAX) {
          pvError().printf(
-               "HyPerCol::checkpointWrite error: path \"%s/timeinfo.bin\" is too long.\n", cpDir);
+               "HyPerCol::checkpointWrite error: path "
+               "\"%s/timeinfo.bin\" is too long.\n",
+               cpDir);
       }
       int statstatus = stat(timeinfofilename, &timeinfostat);
       if (statstatus == 0) {
          pvWarn().printf(
-               "Checkpoint directory \"%s\" has existing timeinfo.bin, which is now being "
+               "Checkpoint directory \"%s\" has existing timeinfo.bin, "
+               "which is now being "
                "deleted.\n",
                cpDir);
          int unlinkstatus = unlink(timeinfofilename);
@@ -1722,7 +1806,8 @@ int HyPerCol::checkpointWrite(const char *cpDir) {
    for (auto &p : mColProbes) {
       p->checkpointWrite(cpDir);
    }
-   // Sep 26, 2016: Adaptive timestep routines and member variables have been moved to
+   // Sep 26, 2016: Adaptive timestep routines and member variables have been
+   // moved to
    // AdaptiveTimeScaleProbe.
 
    std::string checkpointedParamsFile = cpDir;
@@ -1760,7 +1845,8 @@ int HyPerCol::outputParams(char const *path) {
    int rank   = mCommunicator->commRank();
    assert(mPrintParamsStream == nullptr);
    char printParamsPath[PV_PATH_MAX];
-   char *tmp = strdup(path); // duplicate string since dirname() is allowed to modify its argument
+   char *tmp = strdup(path); // duplicate string since dirname() is allowed to
+   // modify its argument
    if (tmp == nullptr) {
       pvError().printf("HyPerCol::outputParams unable to allocate memory: %s\n", strerror(errno));
    }
@@ -1777,7 +1863,8 @@ int HyPerCol::outputParams(char const *path) {
       if (strlen(path) + 4 /*allow room for .lua at end, and string terminator*/
           > (size_t)PV_PATH_MAX) {
          pvWarn().printf(
-               "outputParams called with too long a filename.  Parameters will not be printed.\n");
+               "outputParams called with too long a filename.  "
+               "Parameters will not be printed.\n");
          status = ENAMETOOLONG;
       }
       else {
@@ -1932,7 +2019,8 @@ int HyPerCol::outputParamsHeadComments(FILE *fp, char const *commentToken) {
 // Uses the arguments cpDir, objectName, and suffix to create a path of the form
 // [cpDir]/[objectName][suffix]
 // (the brackets are not in the created path, but the slash is)
-// The string returned is allocated with malloc, and the calling routine is responsible for freeing
+// The string returned is allocated with malloc, and the calling routine is
+// responsible for freeing
 // the string.
 char *HyPerCol::pathInCheckpoint(const char *cpDir, const char *objectName, const char *suffix) {
    assert(cpDir != nullptr && suffix != nullptr);
@@ -1972,7 +2060,8 @@ int HyPerCol::exitRunLoop(bool exitOnFinish) {
       if (chars_printed >= PV_PATH_MAX) {
          if (mCommunicator->commRank() == 0) {
             pvError().printf(
-                  "HyPerCol::run error.  Checkpoint directory \"%s/Checkpoint%ld\" is too long.\n",
+                  "HyPerCol::run error.  Checkpoint directory "
+                  "\"%s/Checkpoint%ld\" is too long.\n",
                   mCheckpointWriteDir,
                   mCurrentStep);
          }
@@ -2035,8 +2124,10 @@ int HyPerCol::getAutoGPUDevice() {
          }
       }
 
-      // rankToHost now is an array such that the index is the rank, and the value is the host
-      // Convert to a map of vectors, such that the key is the host name and the value
+      // rankToHost now is an array such that the index is the rank, and the value
+      // is the host
+      // Convert to a map of vectors, such that the key is the host name and the
+      // value
       // is a vector of mpi ranks that is running on that host
       std::map<std::string, std::vector<int>> hostMap;
       for (int rank = 0; rank < numMpi; rank++) {
@@ -2132,8 +2223,10 @@ int HyPerCol::initializeThreads(char const *in_device) {
          for (auto &ch : stoken) {
             if (!isdigit(ch)) {
                pvError().printf(
-                     "Device specification error: %s contains unrecognized characters. Must be "
-                     "comma separated integers greater or equal to 0 with no other characters "
+                     "Device specification error: %s contains "
+                     "unrecognized characters. Must be "
+                     "comma separated integers greater or equal to 0 "
+                     "with no other characters "
                      "allowed (including spaces).\n",
                      in_device);
             }
@@ -2141,7 +2234,8 @@ int HyPerCol::initializeThreads(char const *in_device) {
          deviceVec.push_back(atoi(stoken.c_str()));
       }
       // Check length of deviceVec
-      // Allowed cases are 1 device specified or greater than or equal to number of mpi processes
+      // Allowed cases are 1 device specified or greater than or equal to number
+      // of mpi processes
       // devices specified
       if (deviceVec.size() == 1) {
          device = deviceVec[0];
@@ -2151,7 +2245,8 @@ int HyPerCol::initializeThreads(char const *in_device) {
       }
       else {
          pvError().printf(
-               "Device specification error: Number of devices specified (%zu) must be either 1 or "
+               "Device specification error: Number of devices "
+               "specified (%zu) must be either 1 or "
                ">= than number of mpi processes (%d).\n",
                deviceVec.size(),
                numMpi);
@@ -2190,7 +2285,8 @@ void HyPerCol::addGpuGroup(BaseConnection *conn, int gpuGroupIdx) {
 
 int HyPerCol::insertProbe(ColProbe *p) {
    mColProbes.push_back(p);
-   return mColProbes.size(); // Other insert functions return the index of the inserted object. Is
+   return mColProbes.size(); // Other insert functions return the index of the
+   // inserted object. Is
    // this correct here?
 }
 
@@ -2319,7 +2415,8 @@ int HyPerCol::writeScalarToFile(
    return writeArrayToFile(cp_dir, group_name, val_name, &val, 1);
 }
 
-// Declare the instantiations of writeScalarToFile that occur in other .cpp files; otherwise you'll
+// Declare the instantiations of writeScalarToFile that occur in other .cpp
+// files; otherwise you'll
 // get linker errors.
 template int HyPerCol::writeScalarToFile<int>(
       char const *cpDir,
@@ -2381,14 +2478,16 @@ int HyPerCol::writeArrayToFile(
       }
       for (int i = 0; i < count; i++) {
          fs << val[i];
-         fs << std::endl; // Can write as fs << val << std::endl, but eclipse flags that as an error
+         fs << std::endl; // Can write as fs << val << std::endl, but eclipse flags
+         // that as an error
          // 'Invalid overload of std::endl'
       }
       fs.close();
    }
    return status;
 }
-// Declare the instantiations of writeArrayToFile that occur in other .cpp files; otherwise you'll
+// Declare the instantiations of writeArrayToFile that occur in other .cpp
+// files; otherwise you'll
 // get linker errors.
 template int HyPerCol::writeArrayToFile<int>(
       char const *cpDir,
@@ -2425,7 +2524,8 @@ int HyPerCol::readScalarFromFile(
    return readArrayFromFile(cp_dir, group_name, val_name, val, 1, default_value);
 }
 
-// Declare the instantiations of readScalarToFile that occur in other .cpp files; otherwise you'll
+// Declare the instantiations of readScalarToFile that occur in other .cpp
+// files; otherwise you'll
 // get linker errors.
 template int HyPerCol::readScalarFromFile<int>(
       char const *cpDir,
@@ -2499,7 +2599,8 @@ int HyPerCol::readArrayFromFile(
 
    return status;
 }
-// Declare the instantiations of readArrayToFile that occur in other .cpp files; otherwise you'll
+// Declare the instantiations of readArrayToFile that occur in other .cpp files;
+// otherwise you'll
 // get linker errors.
 template int HyPerCol::readArrayFromFile<int>(
       char const *cpDir,

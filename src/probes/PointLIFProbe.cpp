@@ -18,7 +18,8 @@ namespace PV {
 
 PointLIFProbe::PointLIFProbe() : PointProbe() {
    initPointLIFProbe_base();
-   // Derived classes of PointLIFProbe should use this PointLIFProbe constructor, and call
+   // Derived classes of PointLIFProbe should use this PointLIFProbe constructor,
+   // and call
    // initPointLIFProbe during their initialization.
 }
 
@@ -58,7 +59,8 @@ void PointLIFProbe::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
 int PointLIFProbe::initNumValues() { return setNumValues(NUMBER_OF_VALUES); }
 
 int PointLIFProbe::calcValues(double timevalue) {
-   // TODO: Reduce duplicated code between PointProbe::calcValues and PointLIFProbe::calcValues.
+   // TODO: Reduce duplicated code between PointProbe::calcValues and
+   // PointLIFProbe::calcValues.
    assert(this->getNumValues() == NUMBER_OF_VALUES);
    LIF *LIF_layer = dynamic_cast<LIF *>(getTargetLayer());
    assert(LIF_layer != NULL);
@@ -73,7 +75,8 @@ int PointLIFProbe::calcValues(double timevalue) {
    pvdata_t const *activity = getTargetLayer()->getLayerData();
    assert(V && activity && G_E && G_I && G_IB && Vth);
    double *valuesBuffer = this->getValuesBuffer();
-   // We need to calculate which mpi process contains the target point, and send that info to the
+   // We need to calculate which mpi process contains the target point, and send
+   // that info to the
    // root process
    // Each process calculates local index
    const PVLayerLoc *loc = getTargetLayer()->getLayerLoc();
@@ -151,9 +154,11 @@ int PointLIFProbe::calcValues(double timevalue) {
  * @k
  * @kex
  * NOTES:
- *     - Only the activity buffer covers the extended frame - this is the frame that
+ *     - Only the activity buffer covers the extended frame - this is the frame
+ * that
  * includes boundaries.
- *     - The other dynamic variables (G_E, G_I, V, Vth) cover the "real" or "restricted"
+ *     - The other dynamic variables (G_E, G_I, V, Vth) cover the "real" or
+ * "restricted"
  *     frame.
  */
 int PointLIFProbe::writeState(double timed) {

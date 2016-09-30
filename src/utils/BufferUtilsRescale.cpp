@@ -9,8 +9,8 @@ namespace { // Anonymous namespace for "private" functions
 
 inline static float bicubic(float x) {
    float const absx = fabsf(x);
-   return absx < 1 ? 1 + absx * absx * (-2 + absx)
-                   : absx < 2 ? 4 + absx * (-8 + absx * (5 - absx)) : 0;
+   return absx < 1 ? 1 + absx * absx * (-2 + absx) : absx < 2 ? 4 + absx * (-8 + absx * (5 - absx))
+                                                              : 0;
 }
 
 void nearestNeighborInterp(

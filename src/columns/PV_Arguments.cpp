@@ -186,7 +186,8 @@ int PV_Arguments::resetState() {
    int status = clearState();
    pvAssert(status == PV_SUCCESS);
    return setStateFromCmdLineArgs(true);
-   /* If unrecognized arguments were not allowed in the constructor and there were unrecognized args
+   /* If unrecognized arguments were not allowed in the constructor and there
+    * were unrecognized args
     * in argv,
     * the error would have taken place during the constructor. */
 }
@@ -219,7 +220,8 @@ int PV_Arguments::setStateFromCmdLineArgs(bool allowUnrecognizedArguments) {
    bool *usedArgArray = (bool *)calloc((size_t)numArgs, sizeof(bool));
    if (usedArgArray == NULL) {
       pvError().printf(
-            "PV_Arguments::setStateFromCmdLineArgs unable to allocate memory for usedArgArray: "
+            "PV_Arguments::setStateFromCmdLineArgs unable to allocate "
+            "memory for usedArgArray: "
             "%s\n",
             strerror(errno));
    }
@@ -252,7 +254,8 @@ int PV_Arguments::setStateFromCmdLineArgs(bool allowUnrecognizedArguments) {
    // Error out if both -r and -c are used
    if (restartFlag && checkpointReadDir) {
       pvError().printf(
-            "PV_Arguments: cannot set both the restart flag and the checkpoint read directory.\n");
+            "PV_Arguments: cannot set both the restart flag and the "
+            "checkpoint read directory.\n");
    }
 
    if (!allowUnrecognizedArguments) {

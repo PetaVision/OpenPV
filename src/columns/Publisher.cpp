@@ -112,7 +112,8 @@ int Publisher::publish(double currentTime, double lastUpdateTime) {
    }
    else if (store->getNumLevels() > 1) {
       // If there are delays, copy last level's data to this level.
-      // TODO: we could use pointer indirection to cut down on the number of memcpy calls required,
+      // TODO: we could use pointer indirection to cut down on the number of
+      // memcpy calls required,
       // if this turns out to be an expensive step
       memcpy(recvBuf, recvBuffer(Communicator::LOCAL /*bufferId*/, 1), dataSize);
       store->setLastUpdateTime(Communicator::LOCAL /*bufferId*/, lastUpdateTime);

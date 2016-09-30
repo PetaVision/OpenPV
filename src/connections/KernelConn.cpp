@@ -17,7 +17,8 @@ KernelConn::KernelConn(
       : HyPerConn() {
    if (hc->columnId() == 0) {
       pvError().printf(
-            "KernelConn \"%s\": class KernelConn is obsolete.  Instead use HyPerConn with "
+            "KernelConn \"%s\": class KernelConn is obsolete.  "
+            "Instead use HyPerConn with "
             "parameter sharedWeights set to true.\n",
             name);
    }

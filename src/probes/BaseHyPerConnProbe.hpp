@@ -28,7 +28,8 @@ class BaseHyPerConnProbe : public BaseConnectionProbe {
    virtual bool needRecalc(double timevalue);
 
    /**
-    * Implements the referenceUpdateTime method.  Returns the last update time of the target
+    * Implements the referenceUpdateTime method.  Returns the last update time of
+    * the target
     * HyPerConn.
     */
    virtual double referenceUpdateTime() const;

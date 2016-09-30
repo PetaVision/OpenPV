@@ -30,8 +30,10 @@ class LayerProbe : public BaseProbe {
    virtual ~LayerProbe();
 
    /**
-    * Called by HyPerCol::run.  It calls BaseProbe::communicateInitInfo, then checks that
-    * the targetLayer/targetName parameter refers to a HyPerLayer in the parent HyPerCol,
+    * Called by HyPerCol::run.  It calls BaseProbe::communicateInitInfo, then
+    * checks that
+    * the targetLayer/targetName parameter refers to a HyPerLayer in the parent
+    * HyPerCol,
     * and then calls the layer's insertProbe method.
     */
    virtual int communicateInitInfo();
@@ -50,7 +52,8 @@ class LayerProbe : public BaseProbe {
 
    /**
     * @brief targetName: the name of the layer to attach the probe to.
-    * In LayerProbes, targetLayer can be used in the params file instead of targetName.  LayerProbe
+    * In LayerProbes, targetLayer can be used in the params file instead of
+    * targetName.  LayerProbe
     * looks for targetLayer first
     * and then targetName.
     */
@@ -58,13 +61,15 @@ class LayerProbe : public BaseProbe {
    /** @} */
 
    /**
-    * Implements the needRecalc method.  Returns true if the target layer's getLastUpdateTime method
+    * Implements the needRecalc method.  Returns true if the target layer's
+    * getLastUpdateTime method
     * is greater than the probe's lastUpdateTime member variable.
     */
    virtual bool needRecalc(double timevalue);
 
    /**
-    * Implements the referenceUpdateTime method.  Returns the last update time of the target layer.
+    * Implements the referenceUpdateTime method.  Returns the last update time of
+    * the target layer.
     */
    virtual double referenceUpdateTime() const;
 

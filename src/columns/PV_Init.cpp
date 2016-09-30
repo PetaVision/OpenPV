@@ -35,14 +35,18 @@ PV_Init::~PV_Init() {
 }
 
 int PV_Init::initSignalHandler() {
-   // Block SIGUSR1.  root process checks for SIGUSR1 during advanceTime() and broadcasts sends to
+   // Block SIGUSR1.  root process checks for SIGUSR1 during advanceTime() and
+   // broadcasts sends to
    // all processes,
    // which saves the result in the checkpointSignal member variable.
-   // When run() checks whether to call checkpointWrite, it looks at checkpointSignal, and writes a
-   // checkpoint if checkpointWriteFlag is true, regardless of whether the next scheduled checkpoint
+   // When run() checks whether to call checkpointWrite, it looks at
+   // checkpointSignal, and writes a
+   // checkpoint if checkpointWriteFlag is true, regardless of whether the next
+   // scheduled checkpoint
    // time has arrived.
    //
-   // This routine must be called before MPI_Initialize; otherwise a thread created by MPI will not
+   // This routine must be called before MPI_Initialize; otherwise a thread
+   // created by MPI will not
    // get the signal handler
    // but will get the signal and the job will terminate.
    sigset_t blockusr1;
@@ -79,10 +83,13 @@ int PV_Init::initMaxThreads() {
 int PV_Init::commInit(int *argc, char ***argv) {
    int mpiInit;
    // If MPI wasn't initialized, initialize it.
-   // Remember if it was initialized on entry; the destructor will only finalize if the constructor
+   // Remember if it was initialized on entry; the destructor will only finalize
+   // if the constructor
    // init'ed.
-   // This way, you can do several simulations sequentially by initializing MPI before creating
-   // the first HyPerCol; after running the first simulation the MPI environment will still exist
+   // This way, you can do several simulations sequentially by initializing MPI
+   // before creating
+   // the first HyPerCol; after running the first simulation the MPI environment
+   // will still exist
    // and you
    // can run the second simulation, etc.
    MPI_Initialized(&mpiInit);
@@ -99,11 +106,14 @@ int PV_Init::commInit(int *argc, char ***argv) {
 
 void PV_Init::initLogFile(bool appendFlag) {
    // TODO: Under MPI, non-root processes should send messages to root process.
-   // Currently, if logFile is directory/filename.txt, the root process writes to that path,
-   // and nonroot processes write to directory/filename_<rank>.txt, where <rank> is replaced with
+   // Currently, if logFile is directory/filename.txt, the root process writes to
+   // that path,
+   // and nonroot processes write to directory/filename_<rank>.txt, where <rank>
+   // is replaced with
    // the global rank.
    // If filename does not have an extension, _<rank> is appended.
-   // Note that the global rank zero process does not insert _<rank>.  This is deliberate, as the
+   // Note that the global rank zero process does not insert _<rank>.  This is
+   // deliberate, as the
    // nonzero ranks
    // should be MPI-ing the data to the zero rank.
    char const *logFile         = arguments->getLogFile();
@@ -113,9 +123,12 @@ void PV_Init::initLogFile(bool appendFlag) {
    std::ios_base::openmode mode =
          appendFlag ? std::ios_base::out | std::ios_base::app : std::ios_base::out;
    if (logFile && globalRank != globalRootProcess) {
-      // To prevent collisions caused by multiple processes opening the same file for logging,
-      // processes with global rank other than zero append the rank to the log filename.
-      // If the logfile has an extension (e.g. ".log", ".txt"), the rank is appended before the
+      // To prevent collisions caused by multiple processes opening the same file
+      // for logging,
+      // processes with global rank other than zero append the rank to the log
+      // filename.
+      // If the logfile has an extension (e.g. ".log", ".txt"), the rank is
+      // appended before the
       // period separating the extension.
       std::string logFileString(logFile);
       size_t finalSlash = logFileString.rfind('/');
@@ -206,7 +219,8 @@ int PV_Init::registerKeyword(char const *keyword, ObjectCreateFn creator) {
    return status;
 }
 
-// PV_Init::build() was marked obsolete Jul 19, 2016 and deleted Sep 27, 2016. Use
+// PV_Init::build() was marked obsolete Jul 19, 2016 and deleted Sep 27, 2016.
+// Use
 // hc=createHyPerCol(pv_init_ptr) instead of hc=pv_init_ptr->build().
 
 int PV_Init::commFinalize() {

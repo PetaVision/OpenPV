@@ -13,7 +13,8 @@ namespace PV {
 
 QuotientColProbe::QuotientColProbe()
       : ColProbe() { // Default constructor to be called by derived classes.
-   // They should call QuotientColProbe::initialize from their own initialization routine
+   // They should call QuotientColProbe::initialize from their own initialization
+   // routine
    // instead of calling a non-default constructor.
    initialize_base();
 } // end QuotientColProbe::QuotientColProbe(const char *)
@@ -27,7 +28,8 @@ QuotientColProbe::~QuotientColProbe() {
    free(valueDescription);
    free(numerator);
    free(denominator);
-   // Don't free numerProbe or denomProbe; they don't belong to the QuotientColProbe.
+   // Don't free numerProbe or denomProbe; they don't belong to the
+   // QuotientColProbe.
 }
 
 int QuotientColProbe::initialize_base() {
@@ -98,7 +100,8 @@ int QuotientColProbe::communicateInitInfo() {
       if (nNumValues != dNumValues) {
          if (parent->columnId() == 0) {
             pvErrorNoExit().printf(
-                  "%s: numerator probe \"%s\" and denominator probe \"%s\" have differing numbers "
+                  "%s: numerator probe \"%s\" and denominator "
+                  "probe \"%s\" have differing numbers "
                   "of values (%d vs. %d)\n",
                   getDescription_c(),
                   numerator,

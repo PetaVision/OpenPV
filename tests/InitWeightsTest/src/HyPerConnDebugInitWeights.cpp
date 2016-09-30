@@ -80,8 +80,9 @@ PVPatch ***HyPerConnDebugInitWeights::initializeWeights(
    int initFromLastFlag = inputParams->value(getName(), "initFromLastFlag", 0.0f, false) != 0;
 
    if (initFromLastFlag) {
-      pvError().printf("This method is for testing weight initialization!  It does not support "
-                       "load from file!\n");
+      pvError().printf(
+            "This method is for testing weight initialization!  It does not support "
+            "load from file!\n");
    }
    else {
       const char *weightInitTypeStr = inputParams->stringValue(name, "weightInitType");

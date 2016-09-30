@@ -26,7 +26,8 @@ class BaseConnectionProbe : public BaseProbe {
    BaseConnection *getTargetConn() { return targetConn; }
 
   protected:
-   BaseConnectionProbe(); // Default constructor, can only be called by derived classes
+   BaseConnectionProbe(); // Default constructor, can only be called by derived
+   // classes
    int initialize(const char *probeName, HyPerCol *hc);
    virtual void ioParam_targetName(enum ParamsIOFlag ioFlag);
 

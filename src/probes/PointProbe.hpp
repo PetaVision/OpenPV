@@ -37,15 +37,19 @@ class PointProbe : public PV::LayerProbe {
    virtual int writeState(double timef);
 
    /**
-    * Overrides initNumValues() to set numValues to 2 (membrane potential and activity)
+    * Overrides initNumValues() to set numValues to 2 (membrane potential and
+    * activity)
     */
    virtual int initNumValues();
 
    /**
-    * Implements calcValues for PointProbe.  probeValues[0] is the point's membrane potential and
+    * Implements calcValues for PointProbe.  probeValues[0] is the point's
+    * membrane potential and
     * probeValues[1] is the point's activity.
-    * If the target layer does not have a membrane potential, probeValues[0] is zero.
-    * Note that under MPI, only the root process and the process containing the neuron being probed
+    * If the target layer does not have a membrane potential, probeValues[0] is
+    * zero.
+    * Note that under MPI, only the root process and the process containing the
+    * neuron being probed
     * contain
     * the values.
     */
@@ -55,13 +59,15 @@ class PointProbe : public PV::LayerProbe {
    int initPointProbe_base();
 
    /**
-    * A convenience method to return probeValues[0] (the membrane potential).  Note that it does not
+    * A convenience method to return probeValues[0] (the membrane potential).
+    * Note that it does not
     * call needRecalc().
     */
    inline double getV();
 
    /**
-    * A convenience method to return probeValues[0] (the activity).  Note that it does not call
+    * A convenience method to return probeValues[0] (the activity).  Note that it
+    * does not call
     * needRecalc().
     */
    inline double getA();

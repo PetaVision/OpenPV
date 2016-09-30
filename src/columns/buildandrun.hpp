@@ -25,7 +25,8 @@ using namespace PV;
 // Deprecated versions of buildandrun, etc. were removed July 27, 2016.
 
 /**
- * The most basic function for creating and running a column from command line settings.
+ * The most basic function for creating and running a column from command line
+ * settings.
  * If the command line arguments are complete and the params file contains only
  * groups in the core PetaVision functionality, it may be sufficient to execute
  * the following program:
@@ -53,7 +54,8 @@ using namespace PV;
  * the HyPerCol is deleted.
  *
  * More technically, the buildandrun function creates a PV_Init object, then
- * passes it to rebuildandrun(), and returns the result of the rebuildandrun() call.
+ * passes it to rebuildandrun(), and returns the result of the rebuildandrun()
+ * call.
  * Note that the PetaVision objects and environment are no longer available
  * after buildandrun() returns.  If more flexibility is required, see the
  * flavor of buildandrun that takes a PV_Init object as an argument,
@@ -69,7 +71,8 @@ int buildandrun(
  * This form of buildandrun takes a PV_Init object instead of argc and argv.
  * It can be used when some command line options are meant to be hardwired
  * create the PV_Init object, then call PV_Init set-methods, then call
- * buildandrun), or when there are params group types not in the core functionality
+ * buildandrun), or when there are params group types not in the core
+ * functionality
  * (create the PV_Init object, then call PV_Init::registerKeyword for
  * each custom group type, and then call buildandrun).
  *
@@ -78,7 +81,8 @@ int buildandrun(
  *
  * Otherwise, it calls buildandrun1paramset once.
  *
- * It returns success (return value zero) if all the calls to buildandrun1paramset
+ * It returns success (return value zero) if all the calls to
+ * buildandrun1paramset
  * succeed, and failure if any of the calls to buildandrun1paramset fail.
  */
 int buildandrun(
@@ -112,7 +116,8 @@ int buildandrun1paramset(
       int sweepindex = -1);
 
 /**
- * A convenience function for PV_Init::build() method, included for backwards compatibility.
+ * A convenience function for PV_Init::build() method, included for backwards
+ * compatibility.
  * It creates a HyPerCol object, layers, connections, and probes based on the
  * params set in the PV_Init object.
  */
@@ -120,17 +125,22 @@ HyPerCol *build(PV_Init *initObj);
 
 /**
  * Parses the params file specified by the input arguments,
- * discards unused parameter settings, fills in missing parameter settings with defaults,
- * and sends the params file with standardized formatting to the path specified in the
- * arguments.  It creates and deletes the PV_Init object, so that it is best used
+ * discards unused parameter settings, fills in missing parameter settings with
+ * defaults,
+ * and sends the params file with standardized formatting to the path specified
+ * in the
+ * arguments.  It creates and deletes the PV_Init object, so that it is best
+ * used
  * as a stand-alone method for generating a standardized params file.
  */
 int outputParams(int argc, char *argv[], char const *path);
 
 /**
  * Parses the params file specified by the PV_Init object,
- * discards unused parameter settings, fills in missing parameter settings with defaults,
- * and sends the params file with standardized formatting to the path specified in the
+ * discards unused parameter settings, fills in missing parameter settings with
+ * defaults,
+ * and sends the params file with standardized formatting to the path specified
+ * in the
  * arguments.  The PV_Init object is not modified or deleted during the call.
  */
 int outputParams(PV_Init *initObj, char const *path);

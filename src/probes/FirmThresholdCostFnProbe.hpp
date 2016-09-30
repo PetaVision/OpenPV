@@ -15,14 +15,18 @@ namespace PV {
 /**
  * A class for computing the cost function corresponding to a transfer function
  * intermediate between soft threshold and hard threshold:
- * If |V|<VThresh, activity is zero.  If |V|>VThresh+VWidth, activity is the same as V.
+ * If |V|<VThresh, activity is zero.  If |V|>VThresh+VWidth, activity is the
+ * same as V.
  * Otherwise, activity is sgn(V)*(|V|-VThresh)*(VThresh/VWidth+1)
- * Note that this defines a continuous, pointwise linear function of the membrane potential,
+ * Note that this defines a continuous, pointwise linear function of the
+ * membrane potential,
  * with breaks where |V|=VThresh and |V|=VThresh+VWidth.
- * Also, as VWidth->0, the transfer function approaches the hard threshold case, and as
+ * Also, as VWidth->0, the transfer function approaches the hard threshold case,
+ * and as
  * VWidth->infinity, the transfer function approaches the soft threshold case.
  *
- * The cost function for a layer with activities y_i is given by the sum of C(y_i),
+ * The cost function for a layer with activities y_i is given by the sum of
+ * C(y_i),
  * where C(y_i) = (VThresh+VWidth)/2 if |y_i|>=VThresh+VWidth, and
  * C(y_i) = |y_i|*(1-|y_i|/(VThresh+VWidth)/2) if |y_i|<VThresh+VWidth.
  */
@@ -63,7 +67,8 @@ class FirmThresholdCostFnProbe : public AbstractNormProbe {
    /** @} */
 
    /**
-    * Overrides AbstractNormProbe::setNormDescription() to set normDescription to "Cost function".
+    * Overrides AbstractNormProbe::setNormDescription() to set normDescription to
+    * "Cost function".
     * Return values and errno are set by a call to setNormDescriptionToString.
     */
    virtual int setNormDescription();

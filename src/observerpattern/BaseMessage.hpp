@@ -4,7 +4,8 @@
  *  Created on: Aug 1, 2016
  *      Author: pschultz
  *
- *  The base class for messages passed using Subject::notify and Observer::respond.
+ *  The base class for messages passed using Subject::notify and
+ * Observer::respond.
  */
 
 #ifndef BASEMESSAGE_HPP_

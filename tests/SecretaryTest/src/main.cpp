@@ -51,14 +51,16 @@ int main(int argc, char *argv[]) {
    fpCheckpoint.resize(fpCorrect.size());
    int integerCheckpoint = -5;
 
-   secretary->registerCheckpointEntry(std::make_shared<PV::CheckpointEntryData<double>>(
-         std::string("floatingpoint"),
-         comm,
-         fpCheckpoint.data(),
-         fpCheckpoint.size(),
-         true /*broadcasting*/));
-   secretary->registerCheckpointEntry(std::make_shared<PV::CheckpointEntryData<int>>(
-         std::string("integer"), comm, &integerCheckpoint, (size_t)1, true /*broadcasting*/));
+   secretary->registerCheckpointEntry(
+         std::make_shared<PV::CheckpointEntryData<double>>(
+               std::string("floatingpoint"),
+               comm,
+               fpCheckpoint.data(),
+               fpCheckpoint.size(),
+               true /*broadcasting*/));
+   secretary->registerCheckpointEntry(
+         std::make_shared<PV::CheckpointEntryData<int>>(
+               std::string("integer"), comm, &integerCheckpoint, (size_t)1, true /*broadcasting*/));
 
    secretary->checkpointWrite(0.0);
    secretary->checkpointWrite(1.0);

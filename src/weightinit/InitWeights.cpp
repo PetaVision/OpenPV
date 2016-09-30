@@ -126,9 +126,10 @@ int InitWeights::initializeWeights(
       }
       if (inputParams->value(callingConn->getName(), "initFromLastFlag")) {
          if (callingConn->getParent()->columnId() == 0) {
-            pvErrorNoExit().printf("Instead, use weightInitType=\"FileWeight\" or set HyPerCol "
-                                   "initializeFromCheckpointDir and set "
-                                   "initializeFromCheckpointFlag to true\n");
+            pvErrorNoExit().printf(
+                  "Instead, use weightInitType=\"FileWeight\" or set HyPerCol "
+                  "initializeFromCheckpointDir and set "
+                  "initializeFromCheckpointFlag to true\n");
          }
          MPI_Barrier(callingConn->getParent()->getCommunicator()->communicator());
          exit(EXIT_FAILURE);

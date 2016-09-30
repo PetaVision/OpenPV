@@ -91,7 +91,8 @@ Communicator::Communicator(PV_Arguments *argumentList) {
 #endif // PV_USE_MPI
    // globalIcComm is now a communicator with only useful mpi processes
 
-   // If --require-return was set, wait until global root process gets keyboard input.
+   // If --require-return was set, wait until global root process gets keyboard
+   // input.
    if (argumentList->getRequireReturnFlag()) {
       fflush(stdout);
       MPI_Barrier(globalIcComm);
@@ -123,7 +124,8 @@ Communicator::Communicator(PV_Arguments *argumentList) {
 #endif // PV_USE_MPI
 
    //#ifdef DEBUG_OUTPUT
-   //      pvDebug().printf("[%2d]: Formed resized communicator, size==%d cols==%d rows==%d\n",
+   //      pvDebug().printf("[%2d]: Formed resized communicator, size==%d
+   //      cols==%d rows==%d\n",
    //      icRank, icSize, numCols, numRows);
    //#endif // DEBUG_OUTPUT
 
@@ -169,11 +171,15 @@ int Communicator::neighborInit() {
 
    this->numNeighbors = numberOfNeighbors();
    int tags[9]        = {0, 33, 34, 35, 34, 34, 35, 34, 33};
-   // NW and SE corners have tag 33; edges have tag 34; NE and SW corners have tag 35.
+   // NW and SE corners have tag 33; edges have tag 34; NE and SW corners have
+   // tag 35.
    // In the top row of processes in the hypercolumn, a process is both the
-   // northeast and east neighbor of the process to its left.  If there is only one
-   // row, a process is the northeast, east, and southeast neighbor of the process
-   // to its left.  The numbering of tags ensures that the MPI_Send/MPI_Irecv calls
+   // northeast and east neighbor of the process to its left.  If there is only
+   // one
+   // row, a process is the northeast, east, and southeast neighbor of the
+   // process
+   // to its left.  The numbering of tags ensures that the MPI_Send/MPI_Irecv
+   // calls
    // can be distinguished.
 
    for (int i = 0; i < NUM_NEIGHBORHOOD; i++) {
@@ -428,14 +434,19 @@ int Communicator::neighborIndex(int commId, int direction) {
 }
 
 /*
- * In a send/receive exchange, when rank A makes an MPI send to its neighbor in direction x,
- * that neighbor must make a complementary MPI receive call.  To get the tags correct,
- * the receiver needs to know the direction that the sender was using in determining which
+ * In a send/receive exchange, when rank A makes an MPI send to its neighbor in
+ * direction x,
+ * that neighbor must make a complementary MPI receive call.  To get the tags
+ * correct,
+ * the receiver needs to know the direction that the sender was using in
+ * determining which
  * process to send to.
  *
- * Thus, if every process does an MPI send in each direction, to the process of rank
+ * Thus, if every process does an MPI send in each direction, to the process of
+ * rank
  * neighborIndex(icRank,direction) with tag[direction],
- * every process must also do an MPI receive in each direction, to the process of rank
+ * every process must also do an MPI receive in each direction, to the process
+ * of rank
  * neighborIndex(icRank,direction) with tag[reverseDirection(icRank,direction)].
  */
 int Communicator::reverseDirection(int commId, int direction) {
@@ -462,9 +473,8 @@ int Communicator::reverseDirection(int commId, int direction) {
          }
          break;
       case NORTH: /* north */
-         assert(
-               commRow(commId)
-               > 0); // If row==0, there is no north neighbor so should have already returned.
+         assert(commRow(commId) > 0); // If row==0, there is no north neighbor so
+         // should have already returned.
          break;
       case NORTHEAST: /* northeast */
          assert(revdir == SOUTHWEST);
@@ -575,7 +585,8 @@ size_t Communicator::sendOffset(int n, const PVLayerLoc *loc) {
 
 /**
  * Create a set of data types for inter-neighbor communication
- *   - caller should delete the MPI_Datatype array by calling Communicator::freeDatatypes
+ *   - caller should delete the MPI_Datatype array by calling
+ * Communicator::freeDatatypes
  */
 MPI_Datatype *Communicator::newDatatypes(const PVLayerLoc *loc) {
 #ifdef PV_USE_MPI
@@ -650,7 +661,8 @@ MPI_Datatype *Communicator::newDatatypes(const PVLayerLoc *loc) {
 #endif // PV_USE_MPI
 }
 
-/* Frees an MPI_Datatype array previously created with Communicator::newDatatypes */
+/* Frees an MPI_Datatype array previously created with
+ * Communicator::newDatatypes */
 int Communicator::freeDatatypes(MPI_Datatype *mpi_datatypes) {
 #ifdef PV_USE_MPI
    if (mpi_datatypes) {
@@ -687,7 +699,8 @@ int Communicator::exchange(
       pvdata_t *recvBuf = data + recvOffset(n, loc);
 #ifdef DEBUG_OUTPUT
       pvInfo().printf(
-            "[%2d]: recv,send to %d, n=%d recvOffset==%ld sendOffset==%ld send[0]==%f\n",
+            "[%2d]: recv,send to %d, n=%d recvOffset==%ld "
+            "sendOffset==%ld send[0]==%f\n",
             localRank,
             neighbors[n],
             n,
@@ -714,7 +727,8 @@ int Communicator::exchange(
       pvdata_t *sendBuf = data + sendOffset(n, loc);
 #ifdef DEBUG_OUTPUT
       pvInfo().printf(
-            "[%2d]: recv,send to %d, n=%d recvOffset==%ld sendOffset==%ld send[0]==%f\n",
+            "[%2d]: recv,send to %d, n=%d recvOffset==%ld "
+            "sendOffset==%ld send[0]==%f\n",
             localRank,
             neighbors[n],
             n,

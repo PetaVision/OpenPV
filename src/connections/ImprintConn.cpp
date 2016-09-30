@@ -74,8 +74,9 @@ void ImprintConn::ioParam_imprintTimeThresh(enum ParamsIOFlag ioFlag) {
          imprintTimeThresh = weightUpdateTime * 100; // Default value of 100 weight updates
       }
       else if (imprintTimeThresh <= weightUpdateTime && parent->columnId() == 0) {
-         pvWarn().printf("ImprintConn's imprintTimeThresh is smaller than weightUpdateTime. The "
-                         "algorithm will imprint on every weight update\n");
+         pvWarn().printf(
+               "ImprintConn's imprintTimeThresh is smaller than weightUpdateTime. The "
+               "algorithm will imprint on every weight update\n");
       }
    }
 }

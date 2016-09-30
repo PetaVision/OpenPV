@@ -26,7 +26,8 @@ class RandomSeed {
   private:
    unsigned int mNextSeed = 0U;
    bool mInitialized      = false;
-   // minSeed needs to be high enough that for the pseudorandom sequence to be good,
+   // minSeed needs to be high enough that for the pseudorandom sequence to be
+   // good,
    // but must be less than (and should be much less than) ULONG_MAX/2
 };
 

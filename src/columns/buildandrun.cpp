@@ -2,7 +2,8 @@
  * buildandrun.cpp
  *
  * buildandrun()  builds the layers, connections, and
- * (to a limited extent) probes from the params file and then calls the hypercol's run method.
+ * (to a limited extent) probes from the params file and then calls the
+ * hypercol's run method.
  * It deletes the PV_Init and HyPerCol objects that it creates.
  * Often, the main() function consists only of a call to buildandrun.
  *
@@ -31,7 +32,8 @@ using namespace PV;
 // and call PV_Init::registerKeyword with the create function (in most cases,
 // the static function template PV::Factory::create<CustomClass>.
 //
-// Older versions of buildandrun, that used the now-obsolete customgroups function
+// Older versions of buildandrun, that used the now-obsolete customgroups
+// function
 // pointer system or the now-obsolete ParamGroupHandler class, were removed
 // July 27, 2016.
 int buildandrun(
@@ -138,7 +140,8 @@ int buildandrun1paramset(
    if (custominit || customexit) {
       initObj->freeArgs(argc, argv);
    }
-   delete hc; /* HyPerCol's destructor takes care of deleting layers and connections */
+   delete hc; /* HyPerCol's destructor takes care of deleting layers and
+                 connections */
    return status;
 }
 

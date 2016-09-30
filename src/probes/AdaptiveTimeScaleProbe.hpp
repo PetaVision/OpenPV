@@ -31,7 +31,8 @@ class AdaptiveTimeScaleProbe : public ColProbe {
 
    /**
     * @brief targetName: the name of the probe that this probe attaches to.
-    * The target probe's values are used as the input to compute the adaptive timesteps.
+    * The target probe's values are used as the input to compute the adaptive
+    * timesteps.
     */
    virtual void ioParam_targetName(enum ParamsIOFlag ioFlag);
 
@@ -48,13 +49,15 @@ class AdaptiveTimeScaleProbe : public ColProbe {
    virtual void ioParam_baseMin(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief tauFactor: If Specifies the coefficient on the effective decay rate used to compute
+    * @brief tauFactor: If Specifies the coefficient on the effective decay rate
+    * used to compute
     * the timescale.
     */
    virtual void ioParam_tauFactor(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief dtChangeMin: Specifies the percentage by which the maximum timescale increases
+    * @brief dtChangeMin: Specifies the percentage by which the maximum timescale
+    * increases
     * when the timescale reaches the maximum.
     */
    virtual void ioParam_growthFactor(enum ParamsIOFlag ioFlag);
@@ -66,12 +69,14 @@ class AdaptiveTimeScaleProbe : public ColProbe {
 
    /**
     * @brief writeTimeScales: Specifies if the timescales should be written
-    * @details The timescales get written to outputPath/[name_of_probe]_timescales.txt.
+    * @details The timescales get written to
+    * outputPath/[name_of_probe]_timescales.txt.
     */
    virtual void ioParam_writeTimeScales(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief writeTimeScaleFieldnames: A flag to determine if fieldnames are written to the
+    * @brief writeTimeScaleFieldnames: A flag to determine if fieldnames are
+    * written to the
     * HyPerCol_timescales file, if false, file is written as comma separated list
     */
    virtual void ioParam_writeTimeScaleFieldnames(enum ParamsIOFlag ioFlag);

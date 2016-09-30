@@ -14,7 +14,8 @@
 #include <float.h>
 #include <stdio.h>
 
-// PV_ON and PV_OFF are never used.  Uncomment this if they become necessary again.
+// PV_ON and PV_OFF are never used.  Uncomment this if they become necessary
+// again.
 //#define PV_ON  1
 //#define PV_OFF 0
 
@@ -63,7 +64,8 @@ typedef struct PV_Stream_ {
    long filepos;
    long filelength;
    int isfile; /* True or false, tells whether stream corresponds to a file */
-   int verifyWrites; /* True or false, if true, calls to PV_fwrite will do a readback check.  */
+   int verifyWrites; /* True or false, if true, calls to PV_fwrite will do a
+                        readback check.  */
 } PV_Stream;
 
 /**
@@ -87,8 +89,10 @@ typedef struct PVLayerCube_ {
 typedef struct PVLayer_ {
    int numNeurons; // # neurons in this HyPerLayer (i.e. in PVLayerCube)
    int numExtended; // # neurons in layer including extended border regions
-   int numNeuronsAllBatches; // # Total neurons in this HyPerLayer, including batches
-   int numExtendedAllBatches; // # Total neurons in layer including extended border regions and
+   int numNeuronsAllBatches; // # Total neurons in this HyPerLayer, including
+   // batches
+   int numExtendedAllBatches; // # Total neurons in layer including extended
+   // border regions and
    // batches
 
    // unsigned int   numActive;      // # neurons that fired
@@ -96,7 +100,8 @@ typedef struct PVLayer_ {
    PV_Stream *activeFP; // file of sparse activity
 
    PVLayerLoc loc;
-   int xScale, yScale; // layersize=2**(-scale)*columnsize.  Layers with positive xScale are more
+   int xScale, yScale; // layersize=2**(-scale)*columnsize.  Layers with positive
+   // xScale are more
    // dense in the x-dimension.
 
    PVLayerCube *activity; // activity buffer FROM this layer

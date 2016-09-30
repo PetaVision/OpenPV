@@ -30,9 +30,11 @@ class PointLIFProbe : public PointProbe {
    virtual int initNumValues();
 
    /**
-    * Overrides PointProbe::calcValues to report the conductances and threshold V as well as V and
+    * Overrides PointProbe::calcValues to report the conductances and threshold V
+    * as well as V and
     * A.
-    * Note that under MPI, only the root process and the process containing the neuron being probed
+    * Note that under MPI, only the root process and the process containing the
+    * neuron being probed
     * contain
     * the values.
     */

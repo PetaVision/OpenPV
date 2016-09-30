@@ -117,8 +117,9 @@ void ShuffleLayer::ioParam_shuffleMethod(enum ParamsIOFlag ioFlag) {
    if ((strcmp(shuffleMethod, "random") == 0 || strcmp(shuffleMethod, "rejection") == 0)) {
    }
    else {
-      pvError().printf("Shuffle Layer: Shuffle method not recognized. Options are \"random\" or "
-                       "\"rejection\".\n");
+      pvError().printf(
+            "Shuffle Layer: Shuffle method not recognized. Options are \"random\" or "
+            "\"rejection\".\n");
    }
 }
 

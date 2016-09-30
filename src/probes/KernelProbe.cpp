@@ -87,7 +87,8 @@ int KernelProbe::allocateDataStructures() {
    assert(getTargetConn());
    if (getKernelIndex() < 0 || getKernelIndex() >= getTargetHyPerConn()->getNumDataPatches()) {
       pvError().printf(
-            "KernelProbe \"%s\": kernelIndex %d is out of bounds.  (min 0, max %d)\n",
+            "KernelProbe \"%s\": kernelIndex %d is out of bounds.  "
+            "(min 0, max %d)\n",
             name,
             getKernelIndex(),
             getTargetHyPerConn()->getNumDataPatches() - 1);
