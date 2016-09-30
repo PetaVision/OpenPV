@@ -322,6 +322,7 @@ int BBFindConfRemapProbe::calcValues(double timevalue) {
 
 int BBFindConfRemapProbe::outputStateWrapper(double timef, double dt){
    int status = PV_SUCCESS;
+   mStepNumber = (long int) std::nearbyintf(timef/dt);
    if((getTextOutputFlag()||drawMontage) && needUpdate(timef, dt)){
       status = outputState(timef);
    }
@@ -749,7 +750,7 @@ void BBFindConfRemapProbe::insertImageIntoMontage(int xStart, int yStart, pvadat
 
 void BBFindConfRemapProbe::writeMontage() {
    std::stringstream montagePathSStream("");
-   montagePathSStream << heatMapMontageDir << "/" << outputFilenameBase << "_" << parent->getCurrentStep();
+   montagePathSStream << heatMapMontageDir << "/" << outputFilenameBase << "_" << mStepNumber;
    bool isLastTimeStep = parent->simulationTime() >= parent->getStopTime() - parent->getDeltaTime()/2;
    if (isLastTimeStep) { montagePathSStream << "_final"; }
    montagePathSStream << ".tif";

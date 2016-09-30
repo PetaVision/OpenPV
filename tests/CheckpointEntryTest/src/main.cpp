@@ -1,3 +1,4 @@
+#include "testSeparatedName.hpp"
 #include "testDataNoBroadcast.hpp"
 #include "testDataWithBroadcast.hpp"
 #include "testPvpRestricted.hpp"
@@ -8,9 +9,6 @@
 #include "columns/PV_Arguments.hpp"
 #include "io/fileio.hpp"
 #include "utils/PVLog.hpp"
-
-void testDataWithBroadcast(PV::Communicator * comm);
-void testPvpRestricted(PV::Communicator * comm);
 
 int main(int argc, char * argv[]) {
    PV::PV_Arguments pvArguments{argc, argv, false/*do not allow unrecognized arguments*/};
@@ -30,6 +28,7 @@ int main(int argc, char * argv[]) {
       ensureDirExists(comm, directory.c_str());
    }
 
+   testSeparatedName(comm);
    testDataNoBroadcast(comm, directory);
    testDataWithBroadcast(comm, directory);
    testPvpRestricted(comm, directory);

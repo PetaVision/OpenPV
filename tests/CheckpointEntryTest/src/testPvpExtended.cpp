@@ -39,7 +39,7 @@ void testPvpExtended(PV::Communicator * comm, std::string const& directory) {
    // Initialize checkpointData as a vector with the same size as correctData.
    // Need to make sure that checkpointData.data() never gets relocated, since the CheckpointEntryPvp's mDataPointer doesn't change with it.
    std::vector<float> checkpointData(correctData.size());
-   PV::CheckpointEntryPvp<float> checkpointEntryPvp{"checkpointEntryPvpExtended", false/*not verifying writes*/, comm,
+   PV::CheckpointEntryPvp<float> checkpointEntryPvp{"checkpointEntryPvpExtended", comm,
          checkpointData.data(), checkpointData.size(), PV_FLOAT_TYPE, &loc, true/*extended*/};
 
    double const simTime = 10.0;
@@ -47,7 +47,7 @@ void testPvpExtended(PV::Communicator * comm, std::string const& directory) {
    for (int k=0; k<localExtendedSize; k++) {
       checkpointData.at(k) = correctData.at(k);
    }
-   checkpointEntryPvp.write(directory, simTime);
+   checkpointEntryPvp.write(directory, simTime, false/*not verifying writes*/);
 
    // Data has now been checkpointed. Change the vector to make sure that checkpointRead is really modifying the data.
    // Note that we're changing the border region as well as the restricted region, even though the border region doesn't get saved.
@@ -71,5 +71,5 @@ void testPvpExtended(PV::Communicator * comm, std::string const& directory) {
             comm->commRank(), k, (double) checkpointData.at(k), (double) correctValue);
    }
    MPI_Barrier(comm->communicator());
-   pvInfo() << "testDataPvpRestricted passed.\n";
+   pvInfo() << "testDataPvpExtended passed.\n";
 }

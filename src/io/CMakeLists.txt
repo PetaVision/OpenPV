@@ -5,6 +5,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/imageio.cpp
    ${SUBDIR}/io.cpp
    ${SUBDIR}/PVParams.cpp
+   ${SUBDIR}/Secretary.cpp
 )
 
 set (PVLibSrcHpp ${PVLibSrcHpp}
@@ -15,4 +16,5 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/imageio.hpp
    ${SUBDIR}/io.hpp
    ${SUBDIR}/PVParams.hpp
+   ${SUBDIR}/Secretary.hpp
 )

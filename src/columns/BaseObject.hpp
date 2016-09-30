@@ -23,6 +23,7 @@
 #ifndef BASEOBJECT_HPP_
 #define BASEOBJECT_HPP_
 
+#include "io/Secretary.hpp"
 #include "observerpattern/Observer.hpp"
 #include "columns/Messages.hpp"
 #include "include/pv_common.h"
@@ -35,7 +36,7 @@ namespace PV {
 
 class HyPerCol;
 
-class BaseObject : public Observer {
+class BaseObject : public Observer, public SecretaryDataInterface {
 public:
    inline char const * getName() const { return name; }
    inline HyPerCol * getParent() const { return parent; }
@@ -70,6 +71,7 @@ protected:
 
    int respondCommunicateInitInfo(CommunicateInitInfoMessage const * message);
    int respondAllocateData(AllocateDataMessage const * message);
+   int respondRegisterData(RegisterDataMessage<Secretary> const * message);
    int respondInitializeState(InitializeStateMessage const * message);
 
    virtual int communicateInitInfo() { return PV_SUCCESS; }
@@ -95,7 +97,6 @@ protected:
 protected:
    char * name = nullptr;
    HyPerCol * parent = nullptr; // TODO: eliminate HyPerCol argument to constructor in favor of PVParams argument
-   std::string description;
    bool mInitInfoCommunicatedFlag = false;
    bool mDataStructuresAllocatedFlag = false;
    bool mInitialValuesSetFlag = false;

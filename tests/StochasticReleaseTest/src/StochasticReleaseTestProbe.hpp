@@ -21,22 +21,23 @@ public:
    StochasticReleaseTestProbe(const char * name, HyPerCol * hc);
    virtual ~StochasticReleaseTestProbe();
 
-   virtual int communicateInitInfo();
+   virtual int communicateInitInfo() override;
 
-   virtual int outputState(double timed);
+   virtual int outputState(double timed) override;
 
 protected:
    StochasticReleaseTestProbe();
    int initStochasticReleaseTestProbe(const char * name, HyPerCol * hc);
-   virtual void ioParam_buffer(enum ParamsIOFlag ioFlag);
-   int computePValues(long int step, int f);
+   virtual void ioParam_buffer(enum ParamsIOFlag ioFlag) override;
+   void computePValues();
+   void computePValues(int step, int f);
 private:
    int initialize_base();
 
 // Member variables
 protected:
-   HyPerConn * conn; // The connection for which targetLayer is the postsynaptic layer.  There must be exactly one such conn.
-   double * pvalues;      // The two-tailed p-value of the nnz value of each timestep.
+   HyPerConn * conn = nullptr; // The connection for which targetLayer is the postsynaptic layer.  There must be exactly one such conn.
+   std::vector<double> pvalues; // The two-tailed p-value of the nnz value of each timestep.
 }; // end class StochasticReleaseTestProbe
 
 

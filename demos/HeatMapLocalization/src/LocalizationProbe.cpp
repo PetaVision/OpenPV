@@ -945,6 +945,7 @@ int LocalizationProbe::findBoundingBox(int winningFeature, int winningIndex, int
 
 int LocalizationProbe::outputStateWrapper(double timef, double dt){
    int status = PV_SUCCESS;
+   mStepNumber = (long int) std::nearbyintf(timef/dt);
    if((getTextOutputFlag()||drawMontage) && needUpdate(timef, dt)){
       status = outputState(timef);
    }
@@ -1243,7 +1244,7 @@ int LocalizationProbe::drawProgressInformation() {
 
 int LocalizationProbe::writeMontage() {
    std::stringstream montagePathSStream("");
-   montagePathSStream << heatMapMontageDir << "/" << outputFilenameBase << "_" << parent->getCurrentStep();
+   montagePathSStream << heatMapMontageDir << "/" << outputFilenameBase << "_" << mStepNumber;
    bool isLastTimeStep = parent->simulationTime() >= parent->getStopTime() - parent->getDeltaTime()/2;
    if (isLastTimeStep) { montagePathSStream << "_final"; }
    montagePathSStream << ".tif";

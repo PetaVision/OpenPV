@@ -171,6 +171,7 @@ protected:
    unsigned char * montageImageComm;
    pvadata_t imageBlendCoeff; // heatmap image will be imageBlendCoeff * imagedata plus (1-imageBlendCoeff) * heatmap data
    int featurefieldwidth; // how many digits it takes to print the features (e.g. if nf was 100, the last feature is 99, which needs 2 digits)  Set in communicateInitInfo.  All processes compute this, although only the root process uses it
+   long int mStepNumber; // The current step number, based on the values of timed and dt passed to outputState.  Should be the same as the number of times HyPerCol::advanceTime has been called, but we want to avoid calling HyPerCol methods.
 }; /* class LocalizationProbe */
 
 PV::BaseObject * createLocalizationProbe(char const * name, PV::HyPerCol * hc);
