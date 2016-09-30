@@ -33,13 +33,6 @@ protected:
     * @{
     */
 
-#ifdef OBSOLETE // Marked obsolete June 27, 2016.
-   /**
-    * numChannels: obsolete parameter, as the layer infers the number of channels from connections connecting to it.
-    */
-   virtual void ioParam_numChannels(enum ParamsIOFlag ioFlag); // numChannels as a HyPerLayer parameter is obsolete but generates warning.  After a suitable fade time, ioParam_numChannels can be removed
-#endif // OBSOLETE // Marked obsolete June 27, 2016.
-
    /**
     * @brief timeConstantTau: the time constant tau for the LCA dynamics, which models the equation dV/dt = 1/tau*(-V+s*A+GSyn)
     */

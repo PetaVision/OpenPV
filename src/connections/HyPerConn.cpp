@@ -670,23 +670,6 @@ void HyPerConn::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {
       else if (strcmp(pvpatchAccumulateTypeString,"stochastic")==0) {
          pvpatchAccumulateType = STOCHASTIC;
       }
-#ifdef OBSOLETE // Marked obsolete May 3, 2016.  HyPerConn defines HyPerConnAccumulateType and PoolingConn defines PoolingType
-      else if ((strcmp(pvpatchAccumulateTypeString,"maxpooling")==0) ||
-	       (strcmp(pvpatchAccumulateTypeString,"max_pooling")==0) ||
-	       (strcmp(pvpatchAccumulateTypeString,"max pooling")==0)) {
-         pvpatchAccumulateType = ACCUMULATE_MAXPOOLING;
-      }
-      else if ((strcmp(pvpatchAccumulateTypeString,"sumpooling")==0) ||
-	       (strcmp(pvpatchAccumulateTypeString,"sum_pooling")==0)  ||
-	       (strcmp(pvpatchAccumulateTypeString,"sum pooling")==0)) {
-         pvpatchAccumulateType = ACCUMULATE_SUMPOOLING;
-      }
-      else if ((strcmp(pvpatchAccumulateTypeString,"avgpooling")==0) ||
-	       (strcmp(pvpatchAccumulateTypeString,"avg_pooling")==0)  ||
-	       (strcmp(pvpatchAccumulateTypeString,"avg pooling")==0)) {
-         pvpatchAccumulateType = ACCUMULATE_AVGPOOLING;
-      }
-#endif // OBSOLETE // Marked obsolete May 3, 2016.  HyPerConn defines HyPerConnAccumulateType and PoolingConn defines PoolingType
       else {
          unsetAccumulateType();
       }
