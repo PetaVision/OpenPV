@@ -1769,30 +1769,7 @@ int HyPerCol::checkpointWrite(const char *cpDir) {
    // moved to
    // AdaptiveTimeScaleProbe.
 
-   std::string checkpointedParamsFile = cpDir;
-   checkpointedParamsFile += "/";
-   checkpointedParamsFile += "pv.params";
-   this->outputParams(checkpointedParamsFile.c_str());
-
-   if (mCheckpointWriteFlag) {
-      char nextCheckpointPath[PV_PATH_MAX];
-      int chars_needed;
-      PV_Stream *nextCheckpointFile = nullptr;
-      switch (mCheckpointWriteTriggerMode) {
-         case CPWRITE_TRIGGER_STEP:
-            writeScalarToFile(cpDir, mName, "nextCheckpointStep", mNextCpWriteStep);
-            break;
-         case CPWRITE_TRIGGER_TIME:
-            writeScalarToFile(cpDir, mName, "nextCheckpointTime", mNextCpWriteTime);
-            break;
-         case CPWRITE_TRIGGER_CLOCK:
-            // Nothing to do in this case
-            break;
-         default:
-            // All cases of mCheckpointWriteTriggerMode are handled above
-            assert(0);
-      }
-   }
+   // Sep 30, 2016: checkpointing nextCheckpointStep and nextCheckpointTime moved to Secretary.
 
    mCheckpointTimer->stop();
    return PV_SUCCESS;

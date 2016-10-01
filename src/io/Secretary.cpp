@@ -128,12 +128,28 @@ void Secretary::ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag, PVP
              || !strcmp(mCheckpointWriteTriggerModeString, "Step")
              || !strcmp(mCheckpointWriteTriggerModeString, "STEP")) {
             mCheckpointWriteTriggerMode = STEP;
+            registerCheckpointEntry(
+                  std::make_shared<CheckpointEntryData<long int> >(
+                        mName,
+                        std::string("nextCheckpointStep"),
+                        getCommunicator(),
+                        &mNextCheckpointStep,
+                        (std::size_t) 1,
+                        true/*broadcasting*/));
          }
          else if (
                !strcmp(mCheckpointWriteTriggerModeString, "time")
                || !strcmp(mCheckpointWriteTriggerModeString, "Time")
                || !strcmp(mCheckpointWriteTriggerModeString, "TIME")) {
             mCheckpointWriteTriggerMode = SIMTIME;
+            registerCheckpointEntry(
+                  std::make_shared<CheckpointEntryData<double> >(
+                        mName,
+                        std::string("nextCheckpointTime"),
+                        getCommunicator(),
+                        &mNextCheckpointSimtime,
+                        (std::size_t) 1,
+                        true/*broadcasting*/));
          }
          else if (
                !strcmp(mCheckpointWriteTriggerModeString, "clock")
@@ -458,14 +474,17 @@ bool Secretary::checkpointWriteSignal() {
 void Secretary::checkpointWriteStep() {
    pvAssert(mCheckpointWriteStepInterval > 0);
    if (mTimeInfo.mCurrentCheckpointStep % mCheckpointWriteStepInterval == 0) {
+      mNextCheckpointStep = mTimeInfo.mCurrentCheckpointStep + mCheckpointWriteStepInterval;
+      // We don't use mNextCheckpointStep for anything.  It's here because HyPerCol checkpointed
+      // it and we can test whether nothing broke during the refactor by comparing directories.
       checkpointNow();
    }
 }
 
 void Secretary::checkpointWriteSimtime() {
-   if (mTimeInfo.mSimTime >= mLastCheckpointSimtime + mCheckpointWriteSimtimeInterval) {
+   if (mTimeInfo.mSimTime >= mNextCheckpointSimtime) {
       checkpointNow();
-      mLastCheckpointSimtime = mTimeInfo.mSimTime;
+      mNextCheckpointSimtime += mCheckpointWriteSimtimeInterval;
    }
 }
 
@@ -500,8 +519,8 @@ void Secretary::checkpointNow() {
    else {
       if (mCommunicator->globalCommRank() == 0) {
          pvInfo().printf(
-               "Skipping checkpoint to \"%s\", which would clobber the checkpointRead "
-               "checkpoint.\n",
+               "Skipping checkpoint to \"%s\","
+               " which would clobber the checkpointRead checkpoint.\n",
                checkpointDirectory.c_str());
       }
       return;
