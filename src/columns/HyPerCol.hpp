@@ -303,20 +303,6 @@ class HyPerCol : public Subject {
    virtual void ioParam_checkpointWriteClockUnit(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief deleteOlderCheckpoints: If checkpointWrite, specifies if the run
-    * should delete older
-    * checkpoints when writing new ones.
-    */
-   virtual void ioParam_deleteOlderCheckpoints(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief mNumCheckpointsKept: If mDeleteOlderCheckpoints is set,
-    * keep this many checkpoints before deleting the checkpoint.
-    * Default is 1 (delete a checkpoint when a newer checkpoint is written.)
-    */
-   virtual void ioParam_numCheckpointsKept(enum ParamsIOFlag ioFlag);
-
-   /**
     * @brief supressLastOutput: If checkpointWrite, specifies if the run should
     * supress the final
     * written checkpoint for the end of the run.
@@ -629,9 +615,6 @@ class HyPerCol : public Subject {
    // delete a checkpoint
    // until the specified number of more recent checkpoints have been
    // written.  Default is 2.
-   int mOldCheckpointDirectoriesIndex; // A pointer to the oldest checkpoint in
-   // the
-   // mOldCheckpointDirectories vector.
    int mCheckpointIndexWidth; // minimum width of the step number field in the
    // name of a checkpoint
    // directory; if needed the step number is padded with zeros.

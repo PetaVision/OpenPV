@@ -22,6 +22,26 @@ namespace PV {
 
 class Secretary : public Subject {
   private:
+   /**
+    * List of parameters needed from the Secretary class
+    * @name Secretary Parameters
+    * @{
+    */
+
+   /**
+    * @brief deleteOlderCheckpoints: If checkpointWrite, specifies if the run
+    * should delete older checkpoints when writing new ones.
+    */
+   virtual void ioParam_deleteOlderCheckpoints(enum ParamsIOFlag ioFlag, PVParams * params);
+
+   /**
+    * @brief mNumCheckpointsKept: If mDeleteOlderCheckpoints is set,
+    * keep this many checkpoints before deleting the checkpoint.
+    * Default is 1 (delete a checkpoint when a newer checkpoint is written.)
+    */
+   virtual void ioParam_numCheckpointsKept(enum ParamsIOFlag ioFlag, PVParams * params);
+   /** @} */
+
    enum CheckpointWriteTriggerMode { NONE, STEP, SIMTIME, WALLCLOCK };
    enum WallClockUnit { SECOND, MINUTE, HOUR, DAY };
 
@@ -66,8 +86,6 @@ class Secretary : public Subject {
    double getCheckpointWriteSimtimeInterval() const { return mCheckpointWriteSimtimeInterval; }
    int getCheckpointIndexWidth() const { return mCheckpointIndexWidth; }
    bool getSuppressNonplasticCheckpoints() const { return mSuppressNonplasticCheckpoints; }
-   bool getDeleteOlderCheckpointsFlag() const { return mDeleteOlderCheckpoints; }
-   int getNumCheckpointsKept() const { return mNumCheckpointsKept; }
    bool getSuppressLastOutput() const { return mSuppressLastOutput; }
 
   private:
@@ -82,8 +100,6 @@ class Secretary : public Subject {
    void ioParam_checkpointWriteClockUnit(enum ParamsIOFlag ioFlag, PVParams *params);
    void ioParam_checkpointIndexWidth(enum ParamsIOFlag ioFlag, PVParams *params);
    void ioParam_suppressNonplasticCheckpoints(enum ParamsIOFlag ioFlag, PVParams *params);
-   void ioParam_deleteOlderCheckpoints(enum ParamsIOFlag ioFlag, PVParams *params);
-   void ioParam_numCheckpointsKept(enum ParamsIOFlag ioFlag, PVParams *params);
    void ioParam_suppressLastOutput(enum ParamsIOFlag ioFlag, PVParams *params);
    bool checkpointWriteSignal();
    void checkpointWriteStep();
