@@ -420,10 +420,6 @@ void Secretary::checkpointWrite(double simTime) {
          case WALLCLOCK: checkpointWriteWallclock(); break;
          default: pvAssert(0); break;
       }
-
-      if (mCommunicator->commRank() == 0) {
-         pvInfo().printf("checkpointWrite complete. simTime = %f\n", simTime);
-      }
    }
 }
 
@@ -511,6 +507,10 @@ void Secretary::checkpointNow() {
       return;
    }
    checkpointToDirectory(checkpointDirectory);
+   if (mCommunicator->commRank() == 0) {
+      pvInfo().printf("checkpointWrite complete. simTime = %f\n", mTimeInfo.mSimTime);
+   }
+
    if (mDeleteOlderCheckpoints) {
       rotateOldCheckpoints(checkpointDirectory);
    }
