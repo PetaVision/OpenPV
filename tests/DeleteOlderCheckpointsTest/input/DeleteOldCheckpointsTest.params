@@ -8,5 +8,5 @@ Secretary "secretary" = {
     checkpointIndexWidth = 2;
     suppressNonplasticCheckpoints = false;
     deleteOlderCheckpoints = true;
-    numCheckpointsKept = 5;
+    numCheckpointsKept = 4;
 };

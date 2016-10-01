@@ -122,8 +122,6 @@ int HyPerCol::initialize_base() {
    mNextCpWriteTime                     = 0.0;
    mCpWriteClockInterval                = -1.0;
    mDeleteOlderCheckpoints              = false;
-   mNumCheckpointsKept                  = 2;
-   mOldCheckpointDirectoriesIndex       = 0;
    mDefaultInitializeFromCheckpointFlag = false;
    mSuppressLastOutput                  = false;
    mSuppressNonplasticCheckpoints       = false;
@@ -441,12 +439,6 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
       mCudaDevice->query_device_info();
 #endif
    }
-
-   // If mDeleteOlderCheckpoints is true, set up a ring buffer of checkpoint
-   // directory names.
-   pvAssert(mOldCheckpointDirectories.size() == 0);
-   mOldCheckpointDirectories.resize(mNumCheckpointsKept, "");
-   mOldCheckpointDirectoriesIndex = 0;
    return PV_SUCCESS;
 }
 
@@ -503,8 +495,6 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
       ioParam_checkpointWriteClockUnit(ioFlag);
       ioParam_checkpointIndexWidth(ioFlag);
       ioParam_suppressNonplasticCheckpoints(ioFlag);
-      ioParam_deleteOlderCheckpoints(ioFlag);
-      ioParam_numCheckpointsKept(ioFlag);
       ioParam_suppressLastOutput(ioFlag);
    }
    ioParam_printParamsFilename(ioFlag);
@@ -1057,37 +1047,6 @@ void HyPerCol::ioParam_checkpointWriteClockUnit(enum ParamsIOFlag ioFlag) {
                   "checkpointWriteClockUnit: %s\n",
                   globalRank(),
                   strerror(errno));
-         }
-      }
-   }
-}
-
-void HyPerCol::ioParam_deleteOlderCheckpoints(enum ParamsIOFlag ioFlag) {
-   assert(!mParams->presentAndNotBeenRead(mName, "checkpointWrite"));
-   if (mCheckpointWriteFlag) {
-      parameters()->ioParamValue(
-            ioFlag,
-            mName,
-            "deleteOlderCheckpoints",
-            &mDeleteOlderCheckpoints,
-            false /*default value*/);
-   }
-}
-
-void HyPerCol::ioParam_numCheckpointsKept(enum ParamsIOFlag ioFlag) {
-   pvAssert(!mParams->presentAndNotBeenRead(mName, "checkpointWrite"));
-   if (mCheckpointWriteFlag) {
-      pvAssert(!mParams->presentAndNotBeenRead(mName, "deleteOlderCheckpoints"));
-      if (mDeleteOlderCheckpoints) {
-         parameters()->ioParamValue(ioFlag, mName, "numCheckpointsKept", &mNumCheckpointsKept, 1);
-         if (ioFlag == PARAMS_IO_READ && mNumCheckpointsKept <= 0) {
-            if (columnId() == 0) {
-               pvErrorNoExit() << "HyPerCol \"" << mName
-                               << "\": numCheckpointsKept must be positive (value was "
-                               << mNumCheckpointsKept << ")" << std::endl;
-            }
-            MPI_Barrier(mCommunicator->communicator());
-            exit(EXIT_FAILURE);
          }
       }
    }

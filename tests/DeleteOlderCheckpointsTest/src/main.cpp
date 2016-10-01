@@ -48,12 +48,14 @@ int main(int argc, char *argv[]) {
       checkpointWriteDirectory =
             std::string(params->stringValue("secretary", "checkpointWriteDir"));
    }
+   pvErrorIf(params->value("secretary", "deleteOlderCheckpoints")==0.0,
+         "Params file must set deleteOlderCheckpoints to true.\n");
+   std::size_t const numKept = (std::size_t) params->valueInt("secretary", "numCheckpointsKept");
 
    // Initialize Secretary object
    PV::Secretary *secretary = new PV::Secretary("secretary", comm);
    secretary->ioParamsFillGroup(PV::PARAMS_IO_READ, params);
    delete params;
-   std::size_t const numKept = (std::size_t)secretary->getNumCheckpointsKept();
 
    int status = PV_SUCCESS;
    std::vector<std::string> checkpointsCreated;
