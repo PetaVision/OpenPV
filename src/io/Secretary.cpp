@@ -13,9 +13,12 @@ namespace PV {
 
 Secretary::Secretary(std::string const &name, Communicator *comm)
       : mName(name), mCommunicator(comm) {
-   mTimeInfoCheckpointEntry = std::make_shared<CheckpointEntryData<Secretary::TimeInfo>>(
-         std::string("timeinfo"), getCommunicator(), &mTimeInfo, (size_t)1, true /*broadcast*/);
-   // This doesn't get put into mCHeckpointRegistry because we handle the timeinfo separately.
+   initialize();
+}
+
+Secretary::Secretary(HyPerCheckpoint * cp, std::string const &name, Communicator *comm)
+      : mHyPerCheckpoint(cp), mName(name), mCommunicator(comm) {
+   initialize();
 }
 
 Secretary::~Secretary() {
@@ -23,6 +26,12 @@ Secretary::~Secretary() {
    free(mCheckpointWriteDir);
    free(mCheckpointWriteTriggerModeString);
    free(mCheckpointWriteWallclockUnit);
+}
+
+void Secretary::initialize() {
+   mTimeInfoCheckpointEntry = std::make_shared<CheckpointEntryData<Secretary::TimeInfo>>(
+         std::string("timeinfo"), getCommunicator(), &mTimeInfo, (size_t)1, true /*broadcast*/);
+   // This doesn't get put into mCheckpointRegistry because we handle the timeinfo separately.   
 }
 
 void Secretary::setOutputPath(std::string const &outputPath) {

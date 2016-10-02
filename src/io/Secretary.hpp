@@ -10,6 +10,7 @@
 
 #include "columns/Communicator.hpp"
 #include "io/CheckpointEntry.hpp"
+#include "io/HyPerCheckpoint.hpp"
 #include "io/PVParams.hpp"
 #include "io/io.hpp"
 #include "observerpattern/BaseMessage.hpp"
@@ -60,6 +61,7 @@ class Secretary : public Subject {
       PrepareCheckpointWriteMessage() { setMessageType("ProcessCheckpointWriteMessage"); }
    };
    Secretary(std::string const &name, Communicator *comm);
+   Secretary(HyPerCheckpoint *cp, std::string const &name, Communicator *comm);
    ~Secretary();
 
    void setOutputPath(std::string const &outputPath);
@@ -89,6 +91,7 @@ class Secretary : public Subject {
    bool getSuppressLastOutput() const { return mSuppressLastOutput; }
 
   private:
+   void initialize();
    void ioParam_verifyWrites(enum ParamsIOFlag ioFlag, PVParams *params);
    void ioParam_outputPath(enum ParamsIOFlag ioFlag, PVParams *params);
    void ioParam_checkpointWrite(enum ParamsIOFlag ioFlag, PVParams *params);
@@ -109,7 +112,11 @@ class Secretary : public Subject {
    void checkpointToDirectory(std::string const &checkpointDirectory);
    void rotateOldCheckpoints(std::string const &newCheckpointDirectory);
 
-  private:
+private:
+   HyPerCheckpoint * mHyPerCheckpoint = nullptr;
+   // Note: the HyPerCheckpoint is a convenience in moving checkpointing functions from HyPerCol
+   // to Secretary. Once the refactor is complete, the mHyPerCheckpoint will be removed.
+
    std::string mName;
    Communicator *mCommunicator = nullptr;
    std::vector<std::shared_ptr<CheckpointEntry>> mCheckpointRegistry; // Needs to be a vector so
