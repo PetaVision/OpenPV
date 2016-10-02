@@ -14,6 +14,7 @@
 #include "columns/PV_Init.hpp"
 #include "connections/BaseConnection.hpp"
 #include "include/pv_types.h"
+#include "io/HyPerCheckpoint.hpp" // TODO: remove when Secretary class refactor is complete.
 #include "io/PVParams.hpp"
 #include "io/Secretary.hpp"
 #include "layers/HyPerLayer.hpp"
@@ -52,7 +53,7 @@ class PVParams;
 class NormalizeBase;
 class PV_Init;
 
-class HyPerCol : public Subject {
+class HyPerCol : public Subject, HyPerCheckpoint {
 
   private:
    /**
@@ -508,8 +509,8 @@ class HyPerCol : public Subject {
       notify(std::vector<std::shared_ptr<BaseMessage const>>{message});
    }
    int normalizeWeights();
-   int checkpointRead();
-   int checkpointWrite(const char *cpDir);
+   virtual int checkpointRead() override;
+   virtual int checkpointWrite(const char *cpDir) override;
    int writeTimers(PrintStream &stream);
    int outputParams(char const *path);
    int outputParamsHeadComments(FILE *fp, char const *commentToken);
