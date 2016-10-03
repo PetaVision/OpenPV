@@ -15,6 +15,7 @@
 #include "io/io.hpp"
 #include "observerpattern/BaseMessage.hpp"
 #include "observerpattern/Subject.hpp"
+#include "utils/Timer.hpp"
 #include <ctime>
 #include <map>
 #include <memory>
@@ -88,6 +89,8 @@ class Secretary : public Subject {
    int getCheckpointIndexWidth() const { return mCheckpointIndexWidth; }
    bool getSuppressNonplasticCheckpoints() const { return mSuppressNonplasticCheckpoints; }
    bool getSuppressLastOutput() const { return mSuppressLastOutput; }
+   Timer * getCheckpointTimer() { return mCheckpointTimer; } // Temporary until writeTimers
+   // is moved from HyPerCol to Secretary.
 
   private:
    void initialize();
@@ -152,6 +155,7 @@ private:
          0; // A pointer to the oldest checkpoint in the mOldCheckpointDirectories vector.
    std::vector<std::string> mOldCheckpointDirectories; // A ring buffer of existing checkpoints,
    // used if mDeleteOlderCheckpoints is true.
+   Timer *mCheckpointTimer = nullptr;
 
    static std::string const mDefaultOutputPath;
 };

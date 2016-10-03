@@ -82,7 +82,6 @@ HyPerCol::~HyPerCol() {
    mColProbes.clear();
 
    delete mRunTimer;
-   delete mCheckpointTimer;
    // TODO: Change these old C strings into std::string
    free(mPrintParamsFilename);
    free(mOutputPath);
@@ -154,7 +153,6 @@ int HyPerCol::initialize_base() {
    mParams               = nullptr;
    mCommunicator         = nullptr;
    mRunTimer             = nullptr;
-   mCheckpointTimer      = nullptr;
    mPhaseRecvTimers.clear();
    mColProbes.clear();
    mBaseProbes.clear();
@@ -191,7 +189,6 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
 
    mName            = strdup(name);
    mRunTimer        = new Timer(mName, "column", "run    ");
-   mCheckpointTimer = new Timer(mName, "column", "checkpoint ");
 
    // mNumThreads will not be set, or used until HyPerCol::run.
    // This means that threading cannot happen in the initialization or
@@ -1516,7 +1513,7 @@ int HyPerCol::writeTimers(PrintStream &stream) {
    int rank = columnId();
    if (rank == 0) {
       mRunTimer->fprint_time(stream);
-      mCheckpointTimer->fprint_time(stream);
+      mSecretary->getCheckpointTimer()->fprint_time(stream);
       for (auto c : mConnections) {
          c->writeTimers(stream);
       }
@@ -1537,7 +1534,6 @@ int HyPerCol::writeTimers(PrintStream &stream) {
 }
 
 int HyPerCol::checkpointWrite(const char *cpDir) {
-   mCheckpointTimer->start();
    if (columnId() == 0) {
       pvInfo().printf("Checkpointing to directory \"%s\" at simTime = %f\n", cpDir, mSimTime);
       struct stat timeinfostat;
@@ -1563,7 +1559,6 @@ int HyPerCol::checkpointWrite(const char *cpDir) {
       }
    }
 
-   ensureDirExists(getCommunicator(), cpDir);
    for (int l = 0; l < mLayers.size(); l++) {
       mLayers.at(l)->checkpointWrite(cpDir);
    }
@@ -1597,7 +1592,6 @@ int HyPerCol::checkpointWrite(const char *cpDir) {
 
    // Sep 30, 2016: checkpointing nextCheckpointStep and nextCheckpointTime moved to Secretary.
 
-   mCheckpointTimer->stop();
    return PV_SUCCESS;
 }
 

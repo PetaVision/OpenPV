@@ -33,8 +33,8 @@ class Timer {
 
    virtual double start();
    virtual double stop();
-   inline double elapsed_time();
-   virtual int fprint_time(PrintStream &stream);
+   inline double elapsed_time() const;
+   virtual int fprint_time(PrintStream &stream) const;
 
   protected:
    int rank;
