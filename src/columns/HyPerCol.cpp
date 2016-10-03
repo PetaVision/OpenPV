@@ -1534,31 +1534,6 @@ int HyPerCol::writeTimers(PrintStream &stream) {
 }
 
 int HyPerCol::checkpointWrite(const char *cpDir) {
-   if (columnId() == 0) {
-      pvInfo().printf("Checkpointing to directory \"%s\" at simTime = %f\n", cpDir, mSimTime);
-      struct stat timeinfostat;
-      char timeinfofilename[PV_PATH_MAX];
-      int chars_needed = snprintf(timeinfofilename, PV_PATH_MAX, "%s/timeinfo.bin", cpDir);
-      if (chars_needed >= PV_PATH_MAX) {
-         pvError().printf(
-               "HyPerCol::checkpointWrite error: path "
-               "\"%s/timeinfo.bin\" is too long.\n",
-               cpDir);
-      }
-      int statstatus = stat(timeinfofilename, &timeinfostat);
-      if (statstatus == 0) {
-         pvWarn().printf(
-               "Checkpoint directory \"%s\" has existing timeinfo.bin, "
-               "which is now being "
-               "deleted.\n",
-               cpDir);
-         int unlinkstatus = unlink(timeinfofilename);
-         if (unlinkstatus != 0) {
-            pvError().printf("Failure deleting \"%s\": %s\n", timeinfofilename, strerror(errno));
-         }
-      }
-   }
-
    for (int l = 0; l < mLayers.size(); l++) {
       mLayers.at(l)->checkpointWrite(cpDir);
    }
