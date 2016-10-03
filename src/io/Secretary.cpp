@@ -421,9 +421,8 @@ void Secretary::checkpointRead(
 
 void Secretary::checkpointWrite(double simTime) {
    std::string checkpointWriteDir;
-   mTimeInfo.mSimTime = simTime; // set mSimTime here so that it is available in routines called by
-   // checkpointWrite.
-   mTimeInfo.mCurrentCheckpointStep++;
+   mTimeInfo.mSimTime = simTime;
+   // set mSimTime here so that it is available in routines called by checkpointWrite.
    if (!mCheckpointWriteFlag) {
       return;
    }
@@ -447,6 +446,7 @@ void Secretary::checkpointWrite(double simTime) {
          default: pvAssert(0); break;
       }
    }
+   mTimeInfo.mCurrentCheckpointStep++;
 }
 
 bool Secretary::checkpointWriteSignal() {
