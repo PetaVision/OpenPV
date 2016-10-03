@@ -521,8 +521,8 @@ void Secretary::checkpointNow() {
    checkpointDirStream << mTimeInfo.mCurrentCheckpointStep;
    std::string checkpointDirectory = checkpointDirStream.str();
    if (strcmp(checkpointDirectory.c_str(), mCheckpointReadDirectory.c_str())) {
-      /* Note: the strcmp isn't perfect, since there are multiple ways to specify a path that points
-       * to the same directory.  Should use realpath, but that breaks under OS X. */
+      /* Note: the strcmp isn't perfect, since there are multiple ways to specify a path that
+       * points to the same directory.  Should use realpath, but that breaks under OS X. */
       if (mCommunicator->globalCommRank() == 0) {
          pvInfo() << "Checkpointing to \"" << checkpointDirectory
                   << "\", simTime = " << mTimeInfo.mSimTime << "\n";
@@ -549,6 +549,23 @@ void Secretary::checkpointNow() {
 
 void Secretary::checkpointToDirectory(std::string const &directory) {
    mCheckpointTimer->start();
+   if (getCommunicator()->commRank() == 0) {
+      pvInfo() << "Checkpointing to directory \""
+            << directory
+            << "\" at simTime = "
+            << mTimeInfo.mSimTime
+            << "\n";
+      struct stat timeinfostat;
+      std::string timeinfoFilename(directory);
+      timeinfoFilename.append("/timeinfo.bin");
+      int statstatus = stat(timeinfoFilename.c_str(), &timeinfostat);
+      if (statstatus == 0) {
+         pvWarn() << "Checkpoint directory \""
+               << directory
+               << "\" has existing timeinfo.bin, which is now being deleted.\n";
+         mTimeInfoCheckpointEntry->remove(timeinfoFilename);
+      }
+   }
    notify(mObserverTable, std::make_shared<PrepareCheckpointWriteMessage const>());
    ensureDirExists(getCommunicator(), directory.c_str());
    for (auto &c : mCheckpointRegistry) {
