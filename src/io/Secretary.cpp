@@ -415,6 +415,7 @@ void Secretary::checkpointRead(
    if (currentStepPointer) {
       *currentStepPointer = mTimeInfo.mCurrentCheckpointStep;
    }
+   if (mHyPerCheckpoint) { mHyPerCheckpoint->checkpointRead(); }
    notify(mObserverTable, std::make_shared<ProcessCheckpointReadMessage const>());
 }
 
@@ -550,6 +551,7 @@ void Secretary::checkpointToDirectory(std::string const &directory) {
    for (auto &c : mCheckpointRegistry) {
       c->write(directory, mTimeInfo.mSimTime, mVerifyWritesFlag);
    }
+   if (mHyPerCheckpoint) { mHyPerCheckpoint->checkpointWrite(directory.c_str()); }
    mTimeInfoCheckpointEntry->write(directory, mTimeInfo.mSimTime, mVerifyWritesFlag);
 }
 

@@ -494,7 +494,6 @@ class HyPerCol : public Subject, HyPerCheckpoint {
    // Private functions
 
   private:
-   bool advanceCPWriteTime();
    int initializeThreads(char const *in_device);
    int initialize_base();
    int initialize(const char *name, PV_Init *initObj);
