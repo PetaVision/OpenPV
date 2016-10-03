@@ -26,12 +26,14 @@ Secretary::~Secretary() {
    free(mCheckpointWriteDir);
    free(mCheckpointWriteTriggerModeString);
    free(mCheckpointWriteWallclockUnit);
+   delete mCheckpointTimer;
 }
 
 void Secretary::initialize() {
    mTimeInfoCheckpointEntry = std::make_shared<CheckpointEntryData<Secretary::TimeInfo>>(
          std::string("timeinfo"), getCommunicator(), &mTimeInfo, (size_t)1, true /*broadcast*/);
-   // This doesn't get put into mCheckpointRegistry because we handle the timeinfo separately.   
+   // This doesn't get put into mCheckpointRegistry because we handle the timeinfo separately.
+   mCheckpointTimer = new Timer(mName.c_str(), "column", "checkpoint");
 }
 
 void Secretary::setOutputPath(std::string const &outputPath) {
@@ -546,6 +548,7 @@ void Secretary::checkpointNow() {
 }
 
 void Secretary::checkpointToDirectory(std::string const &directory) {
+   mCheckpointTimer->start();
    notify(mObserverTable, std::make_shared<PrepareCheckpointWriteMessage const>());
    ensureDirExists(getCommunicator(), directory.c_str());
    for (auto &c : mCheckpointRegistry) {
@@ -553,6 +556,7 @@ void Secretary::checkpointToDirectory(std::string const &directory) {
    }
    if (mHyPerCheckpoint) { mHyPerCheckpoint->checkpointWrite(directory.c_str()); }
    mTimeInfoCheckpointEntry->write(directory, mTimeInfo.mSimTime, mVerifyWritesFlag);
+   mCheckpointTimer->stop();
 }
 
 void Secretary::finalCheckpoint(double simTime) {

@@ -655,7 +655,6 @@ class HyPerCol : public Subject, HyPerCheckpoint {
    std::vector<HyPerLayer *> mUpdateLayerBufferGpu;
    std::vector<HyPerLayer *> mUpdateLayerBuffer;
    Timer *mRunTimer;
-   Timer *mCheckpointTimer;
    std::vector<Timer *> mPhaseRecvTimers; // Timer ** mPhaseRecvTimers;
    time_t mCpWriteClockSeconds; // If checkpoint mode is clock, the clock time
    // between checkpoints,
