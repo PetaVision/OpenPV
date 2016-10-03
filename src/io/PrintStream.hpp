@@ -44,15 +44,15 @@ class PrintStream {
       return *this;
    }
    PrintStream &operator<<(std::ostream &(*f)(std::ostream &)) {
-      f(std::cout);
+      f(*mOutStream);
       return *this;
    }
    PrintStream &operator<<(std::ostream &(*f)(std::ios &)) {
-      f(std::cout);
+      f(*mOutStream);
       return *this;
    }
    PrintStream &operator<<(std::ostream &(*f)(std::ios_base &)) {
-      f(std::cout);
+      f(*mOutStream);
       return *this;
    }
 
