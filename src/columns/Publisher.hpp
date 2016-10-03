@@ -8,12 +8,12 @@
 #ifndef PUBLISHER_HPP_
 #define PUBLISHER_HPP_
 
+#include "../arch/mpi/mpi.h"
 #include "columns/Communicator.hpp"
 #include "columns/DataStore.hpp"
 #include "include/PVLayerLoc.h"
 #include "include/pv_datatypes.h"
 #include "include/pv_types.h"
-#include "mpi/mpi.h"
 
 namespace PV {
 

@@ -8,7 +8,7 @@
 #ifndef IO_HPP_
 #define IO_HPP_
 
-#include <mpi/mpi.h>
+#include "../arch/mpi/mpi.h"
 #include <stdbool.h>
 #include <string>
 
