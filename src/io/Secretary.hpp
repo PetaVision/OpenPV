@@ -49,8 +49,7 @@ class Secretary : public Subject {
   public:
    struct TimeInfo {
       double mSimTime                 = 0.0;
-      long int mCurrentCheckpointStep = -1L; // increments at start of each checkpoint; the first
-      // time checkpointWrite the step number will be zero.
+      long int mCurrentCheckpointStep = 0L; 
    };
    class ProcessCheckpointReadMessage : public BaseMessage {
      public:
