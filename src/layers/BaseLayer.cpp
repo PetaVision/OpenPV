@@ -9,16 +9,12 @@
 
 namespace PV {
 
-BaseLayer::BaseLayer() {
-}
+BaseLayer::BaseLayer() {}
 
-int BaseLayer::initialize(char const * name, HyPerCol * hc) {
+int BaseLayer::initialize(char const *name, HyPerCol *hc) {
    return BaseObject::initialize(name, hc);
 }
 
-BaseLayer::~BaseLayer() {
-}
+BaseLayer::~BaseLayer() {}
 
 } // namespace PV
-
-

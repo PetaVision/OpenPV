@@ -12,22 +12,21 @@
 
 namespace PV {
 
-class PlasticConnTestProbe: public KernelProbe {
-public:
-   PlasticConnTestProbe(const char * probename, HyPerCol * hc);
+class PlasticConnTestProbe : public KernelProbe {
+  public:
+   PlasticConnTestProbe(const char *probename, HyPerCol *hc);
 
    virtual int outputState(double timed);
 
    virtual ~PlasticConnTestProbe();
 
-protected:
-   int initialize(const char * probename, HyPerCol * hc);
+  protected:
+   int initialize(const char *probename, HyPerCol *hc);
 
-protected:
+  protected:
    bool errorPresent;
 }; // end class PlasticConnTestProbe
 
-
-}  // end namespace PV
+} // end namespace PV
 
 #endif /* PLASTICCONNTESTPROBE_HPP_ */

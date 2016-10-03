@@ -12,28 +12,27 @@
 namespace PV {
 
 class AllConstantValueProbe : public StatsProbe {
-public:
-   AllConstantValueProbe(const char * probeName, HyPerCol * hc);
+  public:
+   AllConstantValueProbe(const char *probeName, HyPerCol *hc);
    ~AllConstantValueProbe();
 
    pvadata_t getCorrectValue() { return correctValue; }
 
    int outputState(double timed);
 
-protected:
+  protected:
    AllConstantValueProbe();
-   int initAllConstantValueProbe(const char * probeName, HyPerCol * hc);
+   int initAllConstantValueProbe(const char *probeName, HyPerCol *hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual void ioParam_correctValue(enum ParamsIOFlag ioFlag);
 
-private:
+  private:
    int initialize_base();
 
-// Member variables
+   // Member variables
    pvadata_t correctValue;
 }; // class AllConstantValueProbe
 
-
-}  // namespace PV
+} // namespace PV
 
 #endif // ALLCONSTANTVALUEPROBE_HPP_

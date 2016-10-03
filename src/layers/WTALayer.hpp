@@ -3,36 +3,38 @@
  * Author: slundquist
  */
 
-#ifndef WTALAYER_HPP_ 
-#define WTALAYER_HPP_ 
+#ifndef WTALAYER_HPP_
+#define WTALAYER_HPP_
 #include "ANNLayer.hpp"
 
-namespace PV{
+namespace PV {
 
-class WTALayer : public PV::HyPerLayer{
-public:
-   WTALayer(const char * name, HyPerCol * hc);
+class WTALayer : public PV::HyPerLayer {
+  public:
+   WTALayer(const char *name, HyPerCol *hc);
    virtual ~WTALayer();
    virtual int updateState(double timef, double dt);
    virtual int communicateInitInfo();
    virtual bool activityIsSpiking() { return false; }
-protected:
+
+  protected:
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    void ioParam_originalLayerName(enum ParamsIOFlag ioFlag);
    void ioParam_binMaxMin(enum ParamsIOFlag ioFlag);
    int allocateV();
    int initializeV();
    virtual int initializeActivity();
-private:
+
+  private:
    int initialize_base();
    float binMax;
    float binMin;
 
-protected:
-   char * originalLayerName;
-   HyPerLayer * originalLayer;
+  protected:
+   char *originalLayerName;
+   HyPerLayer *originalLayer;
 
 }; // class WTALayer
 
-}  // namespace PV
-#endif 
+} // namespace PV
+#endif

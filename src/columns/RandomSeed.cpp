@@ -10,13 +10,13 @@
 
 namespace PV {
 
-RandomSeed * RandomSeed::instance() {
-   static RandomSeed * singleton = new RandomSeed();
+RandomSeed *RandomSeed::instance() {
+   static RandomSeed *singleton = new RandomSeed();
    return singleton;
 }
 
 RandomSeed::RandomSeed() {
-   if (sizeof(unsigned int) < (size_t) 4) {
+   if (sizeof(unsigned int) < (size_t)4) {
       pvError() << "Unsigned int must have a size of at least 4 bytes.\n";
    }
 }
@@ -24,11 +24,12 @@ RandomSeed::RandomSeed() {
 void RandomSeed::initialize(unsigned int initialSeed) {
    if (initialSeed < RandomSeed::minSeed) {
       pvError() << "random seed " << initialSeed << ""
-            " is too small. Use a seed of at least " <<  minSeed << ".\n";
+                                                    " is too small. Use a seed of at least "
+                << minSeed << ".\n";
    }
 
    mInitialized = true;
-   mNextSeed = initialSeed;
+   mNextSeed    = initialSeed;
    if (mInitialized) {
       pvInfo() << "RandomSeed initialized to " << mNextSeed << ".\n";
    }
@@ -40,7 +41,9 @@ unsigned int RandomSeed::allocate(unsigned int numRequested) {
    }
    unsigned int allocation = mNextSeed;
    mNextSeed += numRequested;
-   if (mNextSeed < minSeed) { mNextSeed += minSeed; }
+   if (mNextSeed < minSeed) {
+      mNextSeed += minSeed;
+   }
    return allocation;
 }
 

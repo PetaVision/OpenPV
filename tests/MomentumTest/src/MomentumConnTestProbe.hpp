@@ -12,19 +12,18 @@
 
 namespace PV {
 
-class MomentumConnTestProbe: public KernelProbe {
-public:
-   MomentumConnTestProbe(const char * probename, HyPerCol * hc);
+class MomentumConnTestProbe : public KernelProbe {
+  public:
+   MomentumConnTestProbe(const char *probename, HyPerCol *hc);
    virtual int outputState(double timed);
    virtual void ioParam_isViscosity(enum ParamsIOFlag ioFlag);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
-protected:
-   int initialize(const char * probename, HyPerCol * hc);
+  protected:
+   int initialize(const char *probename, HyPerCol *hc);
    int isViscosity;
 }; // end class MomentumConnTestProbe
 
-
-}  // end namespace PV
+} // end namespace PV
 
 #endif /* PLASTICCONNTESTPROBE_HPP_ */

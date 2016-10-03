@@ -8,20 +8,16 @@
 
 namespace PV {
 
-PlasticCloneConn::PlasticCloneConn(){
-   initialize_base();
-}
+PlasticCloneConn::PlasticCloneConn() { initialize_base(); }
 
-PlasticCloneConn::PlasticCloneConn(const char * name, HyPerCol * hc) {
+PlasticCloneConn::PlasticCloneConn(const char *name, HyPerCol *hc) {
    initialize_base();
    initialize(name, hc);
 }
 
-int PlasticCloneConn::initialize_base() {
-   return PV_SUCCESS;
-}
+int PlasticCloneConn::initialize_base() { return PV_SUCCESS; }
 
-int PlasticCloneConn::initialize(const char * name, HyPerCol * hc) {
+int PlasticCloneConn::initialize(const char *name, HyPerCol *hc) {
    int status = CloneConn::initialize(name, hc);
    return status;
 }
@@ -43,19 +39,20 @@ int PlasticCloneConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 // the parameter some way other than reading its own parameter
 // group's param directly.
 
-
 void PlasticCloneConn::ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       parent->parameters()->handleUnnecessaryParameter(name, "keepKernelsSynchronized");
    }
-   // During the communication phase, shrinkPatches_flag will be copied from originalConn
+   // During the communication phase, shrinkPatches_flag will be copied from
+   // originalConn
 }
 
 void PlasticCloneConn::ioParam_normalizeDw(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       parent->parameters()->handleUnnecessaryParameter(name, "normalizeDw");
    }
-   // During the communication phase, normalizeDw will be copied from originalConn
+   // During the communication phase, normalizeDw will be copied from
+   // originalConn
 }
 
 int PlasticCloneConn::communicateInitInfo() {
@@ -63,47 +60,46 @@ int PlasticCloneConn::communicateInitInfo() {
    originalConn->addClone(this);
    normalizeDwFlag = originalConn->getNormalizeDwFlag();
 
-
    return status;
 }
 
 int PlasticCloneConn::constructWeights() {
    int status = CloneConn::constructWeights();
-   if(status == PV_SUCCESS){
-      //Additionally point activations to orig conn
+   if (status == PV_SUCCESS) {
+      // Additionally point activations to orig conn
       numKernelActivations = this->originalConn->get_activations();
    }
    return status;
 }
 
 int PlasticCloneConn::deleteWeights() {
-   wPatches = NULL;
-   wDataStart = NULL;
-   gSynPatchStart = NULL;
-   aPostOffset = NULL;
-   dwDataStart = NULL;
+   wPatches             = NULL;
+   wDataStart           = NULL;
+   gSynPatchStart       = NULL;
+   aPostOffset          = NULL;
+   dwDataStart          = NULL;
    numKernelActivations = NULL;
    return 0;
 }
 
 int PlasticCloneConn::cloneParameters() {
-   // called by CloneConn::communicateInitInfo, before it calls HyPerConn::communicateInitInfo
+   // called by CloneConn::communicateInitInfo, before it calls
+   // HyPerConn::communicateInitInfo
    CloneConn::cloneParameters();
 #ifdef PV_USE_MPI
    keepKernelsSynchronized_flag = originalConn->getKeepKernelsSynchronized();
-   parent->parameters()->handleUnnecessaryParameter(name, "keepKernelsSynchronized", keepKernelsSynchronized_flag);
+   parent->parameters()->handleUnnecessaryParameter(
+         name, "keepKernelsSynchronized", keepKernelsSynchronized_flag);
 #endif
-   //Set plasticity flag to true for allocate
+   // Set plasticity flag to true for allocate
    plasticityFlag = true;
-   //Grab dwMax for calculation of weights
-   dWMax = originalConn->getDWMax();
+   // Grab dwMax for calculation of weights
+   dWMax              = originalConn->getDWMax();
    weightUpdatePeriod = originalConn->getWeightUpdatePeriod();
 
    return PV_SUCCESS;
 }
 
-PlasticCloneConn::~PlasticCloneConn() {
-  deleteWeights();
-}
+PlasticCloneConn::~PlasticCloneConn() { deleteWeights(); }
 
 } // end namespace PV

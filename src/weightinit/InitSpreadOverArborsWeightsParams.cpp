@@ -9,20 +9,14 @@
 
 namespace PV {
 
-InitSpreadOverArborsWeightsParams::InitSpreadOverArborsWeightsParams()
-{
-   initialize_base();
-}
-InitSpreadOverArborsWeightsParams::InitSpreadOverArborsWeightsParams(const char * name, HyPerCol * hc)
-                     : InitGauss2DWeightsParams() {
+InitSpreadOverArborsWeightsParams::InitSpreadOverArborsWeightsParams() { initialize_base(); }
+InitSpreadOverArborsWeightsParams::InitSpreadOverArborsWeightsParams(const char *name, HyPerCol *hc)
+      : InitGauss2DWeightsParams() {
    initialize_base();
    initialize(name, hc);
 }
 
-InitSpreadOverArborsWeightsParams::~InitSpreadOverArborsWeightsParams()
-{
-}
-
+InitSpreadOverArborsWeightsParams::~InitSpreadOverArborsWeightsParams() {}
 
 int InitSpreadOverArborsWeightsParams::initialize_base() {
 
@@ -33,7 +27,7 @@ int InitSpreadOverArborsWeightsParams::initialize_base() {
    return 1;
 }
 
-int InitSpreadOverArborsWeightsParams::initialize(const char * name, HyPerCol * hc) {
+int InitSpreadOverArborsWeightsParams::initialize(const char *name, HyPerCol *hc) {
    return InitWeightsParams::initialize(name, hc);
 }
 
@@ -53,10 +47,7 @@ void InitSpreadOverArborsWeightsParams::calcOtherParams(int patchIndex) {
 
    const int kfPre_tmp = this->kernelIndexCalculations(patchIndex);
 
-
-
    this->calculateThetas(kfPre_tmp, patchIndex);
-
 }
 
 } /* namespace PV */

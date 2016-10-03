@@ -8,26 +8,31 @@
 #ifndef INITUNIFORMWEIGHTS_HPP_
 #define INITUNIFORMWEIGHTS_HPP_
 
-#include "InitWeights.hpp"
 #include "InitUniformWeightsParams.hpp"
+#include "InitWeights.hpp"
 
 namespace PV {
 
-class InitUniformWeights: public PV::InitWeights {
-public:
-   InitUniformWeights(char const * name, HyPerCol * hc);
+class InitUniformWeights : public PV::InitWeights {
+  public:
+   InitUniformWeights(char const *name, HyPerCol *hc);
    virtual ~InitUniformWeights();
-   virtual InitWeightsParams * createNewWeightParams();
+   virtual InitWeightsParams *createNewWeightParams();
 
-   virtual int calcWeights(pvdata_t * dataStart, int patchIndex, int arborId);
+   virtual int calcWeights(pvdata_t *dataStart, int patchIndex, int arborId);
 
-protected:
+  protected:
    InitUniformWeights();
    int initialize_base();
-   int initialize(char const * name, HyPerCol * hc);
+   int initialize(char const *name, HyPerCol *hc);
 
-private:
-  int uniformWeights(pvdata_t * dataStart, float iWeight, int kf, InitUniformWeightsParams *weightParamPtr, bool connectOnlySameFeatures = false);
+  private:
+   int uniformWeights(
+         pvdata_t *dataStart,
+         float iWeight,
+         int kf,
+         InitUniformWeightsParams *weightParamPtr,
+         bool connectOnlySameFeatures = false);
 
 }; // class InitUniformWeights
 

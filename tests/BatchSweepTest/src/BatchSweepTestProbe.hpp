@@ -8,32 +8,32 @@
 #ifndef BATCHSWEEPTESTPROBE_HPP_
 #define BATCHSWEEPTESTPROBE_HPP_
 
-#include "probes/StatsProbe.hpp"
 #include "layers/HyPerLayer.hpp"
+#include "probes/StatsProbe.hpp"
 #include "utils/PVLog.hpp"
 #include <math.h>
 
 namespace PV {
 
 class BatchSweepTestProbe : public StatsProbe {
-public:
-   BatchSweepTestProbe(const char * probeName, HyPerCol * hc);
+  public:
+   BatchSweepTestProbe(const char *probeName, HyPerCol *hc);
    virtual ~BatchSweepTestProbe();
 
    virtual int outputState(double timed);
-protected:
-   int initBatchSweepTestProbe(const char * probeName, HyPerCol * hc);
+
+  protected:
+   int initBatchSweepTestProbe(const char *probeName, HyPerCol *hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual void ioParam_buffer(enum ParamsIOFlag ioFlag);
    virtual void ioParam_expectedSum(enum ParamsIOFlag ioFlag);
    virtual void ioParam_expectedMin(enum ParamsIOFlag ioFlag);
    virtual void ioParam_expectedMax(enum ParamsIOFlag ioFlag);
 
-private:
+  private:
    double expectedSum;
    float expectedMin, expectedMax;
 };
-
 
 } /* namespace PV */
 #endif /* PARAMETERSWEEPTESTPROBE_HPP_ */

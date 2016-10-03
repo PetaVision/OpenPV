@@ -11,9 +11,9 @@
 namespace PV {
 
 // CloneLayer can be used to implement Sigmoid junctions between spiking neurons
-class RescaleLayer: public CloneVLayer {
-public:
-   RescaleLayer(const char * name, HyPerCol * hc);
+class RescaleLayer : public CloneVLayer {
+  public:
+   RescaleLayer(const char *name, HyPerCol *hc);
    virtual ~RescaleLayer();
    virtual int communicateInitInfo();
    virtual int allocateV();
@@ -25,10 +25,11 @@ public:
    float getTargetMean() { return targetMean; }
    float getTargetStd() { return targetStd; }
    float getL2PatchSize() { return patchSize; }
-   char const * getRescaleMethod() { return rescaleMethod; }
-protected:
+   char const *getRescaleMethod() { return rescaleMethod; }
+
+  protected:
    RescaleLayer();
-   int initialize(const char * name, HyPerCol * hc);
+   int initialize(const char *name, HyPerCol *hc);
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
    void ioParam_targetMax(enum ParamsIOFlag ioFlag);
@@ -37,22 +38,19 @@ protected:
    void ioParam_targetStd(enum ParamsIOFlag ioFlag);
    void ioParam_rescaleMethod(enum ParamsIOFlag ioFlag);
    void ioParam_patchSize(enum ParamsIOFlag ioFlag);
-private:
+
+  private:
    int initialize_base();
 
-   // Handled by CloneVLayer
-   // char * originalLayerName;
-   // HyPerLayer * originalLayer;
-
-protected:
+  protected:
    float targetMax;
    float targetMin;
    float targetMean;
    float targetStd;
-   char * rescaleMethod; //can be either maxmin or meanstd
+   char *rescaleMethod; // can be either maxmin or meanstd
    int patchSize;
 }; // class RescaleLayer
 
-}  // namespace PV
+} // namespace PV
 
 #endif /* CLONELAYER_HPP_ */

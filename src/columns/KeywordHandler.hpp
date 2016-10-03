@@ -12,7 +12,7 @@
 
 namespace PV {
 
-typedef BaseObject * (*ObjectCreateFn)(char const * name, HyPerCol * hc);
+typedef BaseObject *(*ObjectCreateFn)(char const *name, HyPerCol *hc);
 
 class HyPerCol;
 
@@ -31,30 +31,30 @@ class HyPerCol;
  * (the function createHyPerLayer is defined in layers/HyPerLayer.hpp),
  * one can insert a new HyPerLayer called "layer" into a given HyPerCol with
  * the statement.
- * 
+ *
  * kwh->create("layer", hc);
  */
 class KeywordHandler {
-public:
+  public:
    /**
     * The constructor for KeywordHandler.
     */
-   KeywordHandler(char const * kw, ObjectCreateFn creator);
+   KeywordHandler(char const *kw, ObjectCreateFn creator);
 
    /**
     * The copy constructor for KeywordHandler
     */
-   KeywordHandler(KeywordHandler const& orig);
+   KeywordHandler(KeywordHandler const &orig);
 
    /**
     * The copy assignment operator for KeywordHandler
     */
-   KeywordHandler& operator=(KeywordHandler const& orig);
+   KeywordHandler &operator=(KeywordHandler const &orig);
 
    /**
     * A get-method for the handler's keyword.
     */
-   const char * getKeyword() const { return keyword; }
+   const char *getKeyword() const { return keyword; }
 
    /**
     * A get-method for the handler's creator function pointer.
@@ -64,23 +64,23 @@ public:
    /**
     * The method that calls the function pointer with the given arguments
     */
-   BaseObject * create(char const * name, HyPerCol * hc) const;
+   BaseObject *create(char const *name, HyPerCol *hc) const;
 
    /**
     * The destructor for KeywordHandler.
     */
    virtual ~KeywordHandler();
 
-protected:
+  protected:
    /**
     * A method used internally by the constructors and copy assignment operator
     * to set the initialize the KeywordHandler object.
     */
-   int initialize(char const * kw, BaseObject * (*creator)(char const * name, HyPerCol * hc));
+   int initialize(char const *kw, BaseObject *(*creator)(char const *name, HyPerCol *hc));
 
-// Member variables
-private:
-   char * keyword;
+   // Member variables
+  private:
+   char *keyword;
    ObjectCreateFn creator;
 };
 

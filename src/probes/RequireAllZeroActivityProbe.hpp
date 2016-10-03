@@ -17,26 +17,25 @@
 #ifndef REQUIREALLZEROACTIVITYPROBE_HPP_
 #define REQUIREALLZEROACTIVITYPROBE_HPP_
 
-#include "StatsProbe.hpp"
 #include "../columns/HyPerCol.hpp"
+#include "StatsProbe.hpp"
 
 namespace PV {
 
-class RequireAllZeroActivityProbe: public PV::StatsProbe {
-public:
-   RequireAllZeroActivityProbe(const char * probeName, HyPerCol * hc);
+class RequireAllZeroActivityProbe : public PV::StatsProbe {
+  public:
+   RequireAllZeroActivityProbe(const char *probeName, HyPerCol *hc);
    virtual ~RequireAllZeroActivityProbe();
    virtual int outputState(double timed);
 
    bool getNonzeroFound() { return nonzeroFound; }
    double getNonzeroTime() { return nonzeroTime; }
 
-protected:
+  protected:
    RequireAllZeroActivityProbe();
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-   int initRequireAllZeroActivityProbe(const char * probeName, HyPerCol * hc);
+   int initRequireAllZeroActivityProbe(const char *probeName, HyPerCol *hc);
    virtual void ioParam_buffer(enum ParamsIOFlag ioFlag);
-
 
    /**
     * List of parameters needed from the RequireAllZeroActivityProbe class
@@ -44,31 +43,41 @@ protected:
     * @{
     */
    /**
-    * @brief exitOnFailure: If true, will error out if a nonzero value is encountered.  Default is true.
+    * @brief exitOnFailure: If true, will error out if a nonzero value is
+    * encountered.  Default is
+    * true.
     * To control when the error is thrown, see immediateExitOnFailure.
-    * If set to false, the presense of a nonzero value can still be retrieved with the getNonzeroFound() method,
-    * and the earliest time at which a nonzero value appears is available through getNonzeroTime().
+    * If set to false, the presense of a nonzero value can still be retrieved
+    * with the
+    * getNonzeroFound() method,
+    * and the earliest time at which a nonzero value appears is available through
+    * getNonzeroTime().
     */
    virtual void ioParam_exitOnFailure(enum ParamsIOFlag ioFlag);
    /**
-    * @brief immediateExitOnFailure: determines when finding a nonzero value causes an exit with an error.
-    * If true, outputState will exit on the timestep a nonzero value is detected.  If false,
-    * will not error out until the probe is deleted (which usually happens when the HyPerCol is deleted).
+    * @brief immediateExitOnFailure: determines when finding a nonzero value
+    * causes an exit with an
+    * error.
+    * If true, outputState will exit on the timestep a nonzero value is detected.
+    * If false,
+    * will not error out until the probe is deleted (which usually happens when
+    * the HyPerCol is
+    * deleted).
     * Parameter is only read if exitOnFailure is true.  Default is true.
     */
    virtual void ioParam_immediateExitOnFailure(enum ParamsIOFlag ioFlag);
    /** @} */ // End of list of RequireAllZeroActivityProbe parameters.
 
-private:
+  private:
    int initialize_base();
 
    void nonzeroFoundMessage(double badTime, bool isRoot, bool fatalError);
 
-protected:
-   bool nonzeroFound = false;
-   bool exitOnFailure = true;
+  protected:
+   bool nonzeroFound           = false;
+   bool exitOnFailure          = true;
    bool immediateExitOnFailure = true;
-   double nonzeroTime = 0.0;
+   double nonzeroTime          = 0.0;
 }; // end class RequireAllZeroActivityProbe
 
 } /* namespace PV */

@@ -13,19 +13,19 @@
 
 namespace PV {
 
-class InitUniformRandomWeights: public PV::InitRandomWeights {
-public:
-   InitUniformRandomWeights(char const * name, HyPerCol * hc);
+class InitUniformRandomWeights : public PV::InitRandomWeights {
+  public:
+   InitUniformRandomWeights(char const *name, HyPerCol *hc);
    virtual ~InitUniformRandomWeights();
 
-   virtual InitWeightsParams * createNewWeightParams();
+   virtual InitWeightsParams *createNewWeightParams();
 
-protected:
+  protected:
    InitUniformRandomWeights();
-   int initialize(char const * name, HyPerCol * hc);
-   int randomWeights(pvdata_t * patchDataStart, InitWeightsParams *weightParams, int patchIndex);
+   int initialize(char const *name, HyPerCol *hc);
+   int randomWeights(pvdata_t *patchDataStart, InitWeightsParams *weightParams, int patchIndex);
 
-private:
+  private:
    int initialize_base();
 
 }; // class InitUniformRandomWeights

@@ -10,56 +10,53 @@
 
 namespace PV {
 
-InitOneToOneWeightsWithDelays::InitOneToOneWeightsWithDelays(char const * name, HyPerCol * hc)
-{
+InitOneToOneWeightsWithDelays::InitOneToOneWeightsWithDelays(char const *name, HyPerCol *hc) {
    initialize_base();
    initialize(name, hc);
 }
 
-InitOneToOneWeightsWithDelays::InitOneToOneWeightsWithDelays()
-{
-   initialize_base();
-}
+InitOneToOneWeightsWithDelays::InitOneToOneWeightsWithDelays() { initialize_base(); }
 
-InitOneToOneWeightsWithDelays::~InitOneToOneWeightsWithDelays()
-{
-}
+InitOneToOneWeightsWithDelays::~InitOneToOneWeightsWithDelays() {}
 
-int InitOneToOneWeightsWithDelays::initialize_base() {
-   return PV_SUCCESS;
-}
+int InitOneToOneWeightsWithDelays::initialize_base() { return PV_SUCCESS; }
 
-int InitOneToOneWeightsWithDelays::initialize(char const * name, HyPerCol * hc) {
+int InitOneToOneWeightsWithDelays::initialize(char const *name, HyPerCol *hc) {
    int status = InitWeights::initialize(name, hc);
    return status;
 }
 
-InitWeightsParams * InitOneToOneWeightsWithDelays::createNewWeightParams() {
-   InitWeightsParams * tempPtr = new InitOneToOneWeightsWithDelaysParams(name, parent);
+InitWeightsParams *InitOneToOneWeightsWithDelays::createNewWeightParams() {
+   InitWeightsParams *tempPtr = new InitOneToOneWeightsWithDelaysParams(name, parent);
    return tempPtr;
 }
 
-int InitOneToOneWeightsWithDelays::calcWeights(pvdata_t * dataStart, int patchIndex, int arborId) {
+int InitOneToOneWeightsWithDelays::calcWeights(pvdata_t *dataStart, int patchIndex, int arborId) {
 
-   InitOneToOneWeightsWithDelaysParams *weightParamPtr = dynamic_cast<InitOneToOneWeightsWithDelaysParams*>(weightParams);
+   InitOneToOneWeightsWithDelaysParams *weightParamPtr =
+         dynamic_cast<InitOneToOneWeightsWithDelaysParams *>(weightParams);
 
-
-   if(weightParamPtr==NULL) {
+   if (weightParamPtr == NULL) {
       pvError().printf("Failed to recast pointer to weightsParam!  Exiting...");
    }
-
 
    weightParamPtr->calcOtherParams(patchIndex);
 
    const float iWeight = weightParamPtr->getInitWeight();
 
-   return createOneToOneConnectionWithDelays(dataStart, patchIndex, iWeight, weightParamPtr, arborId);
+   return createOneToOneConnectionWithDelays(
+         dataStart, patchIndex, iWeight, weightParamPtr, arborId);
 }
 
-int InitOneToOneWeightsWithDelays::createOneToOneConnectionWithDelays(pvdata_t * dataStart, int dataPatchIndex, float iWeight, InitWeightsParams * weightParamPtr, int arborId) {
+int InitOneToOneWeightsWithDelays::createOneToOneConnectionWithDelays(
+      pvdata_t *dataStart,
+      int dataPatchIndex,
+      float iWeight,
+      InitWeightsParams *weightParamPtr,
+      int arborId) {
 
    const int nArbors = callingConn->numberOfAxonalArborLists();
-   int k=weightParamPtr->getParentConn()->dataIndexToUnitCellIndex(dataPatchIndex);
+   int k             = weightParamPtr->getParentConn()->dataIndexToUnitCellIndex(dataPatchIndex);
 
    const int nfp = weightParamPtr->getnfPatch();
    const int nxp = weightParamPtr->getnxPatch();
@@ -70,16 +67,15 @@ int InitOneToOneWeightsWithDelays::createOneToOneConnectionWithDelays(pvdata_t *
    const int sfp = weightParamPtr->getsf();
 
    // clear all weights in patch
-   memset(dataStart, 0, nxp*nyp*nfp);
+   memset(dataStart, 0, nxp * nyp * nfp);
    // then set the center point of the patch for each feature
-   int x = (int) (nxp/2);
-   int y = (int) (nyp/2);
-   for (int f=0; f < nfp; f++) {
-      dataStart[x * sxp + y * syp + f * sfp] = f == nArbors*k+arborId ? iWeight : 0;
+   int x = (int)(nxp / 2);
+   int y = (int)(nyp / 2);
+   for (int f = 0; f < nfp; f++) {
+      dataStart[x * sxp + y * syp + f * sfp] = f == nArbors * k + arborId ? iWeight : 0;
    }
 
    return PV_SUCCESS;
-
 }
 
 } /* namespace PV */

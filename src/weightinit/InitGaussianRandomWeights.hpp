@@ -8,32 +8,34 @@
 #ifndef INITGAUSSIANRANDOMWEIGHTS_HPP_
 #define INITGAUSSIANRANDOMWEIGHTS_HPP_
 
-#include "InitRandomWeights.hpp"
-#include "InitGaussianRandomWeightsParams.hpp"
 #include "../columns/GaussianRandom.hpp"
+#include "InitGaussianRandomWeightsParams.hpp"
+#include "InitRandomWeights.hpp"
 
 namespace PV {
 
-class InitGaussianRandomWeights: public PV::InitRandomWeights {
-public:
-   InitGaussianRandomWeights(char const * name, HyPerCol * hc);
-   InitGaussianRandomWeights(HyPerConn * conn);
+class InitGaussianRandomWeights : public PV::InitRandomWeights {
+  public:
+   InitGaussianRandomWeights(char const *name, HyPerCol *hc);
+   InitGaussianRandomWeights(HyPerConn *conn);
    virtual ~InitGaussianRandomWeights();
 
-   virtual InitWeightsParams * createNewWeightParams();
+   virtual InitWeightsParams *createNewWeightParams();
 
-protected:
+  protected:
    InitGaussianRandomWeights();
-   int initialize(char const * name, HyPerCol * hc);
+   int initialize(char const *name, HyPerCol *hc);
    virtual int initRNGs(bool isKernel);
-   virtual int randomWeights(pvdata_t * patchDataStart, InitWeightsParams *weightParamPtr, int patchIndex);
+   virtual int
+   randomWeights(pvdata_t *patchDataStart, InitWeightsParams *weightParamPtr, int patchIndex);
 
-private:
+  private:
    int initialize_base();
 
-// Member variables
-protected:
-   GaussianRandom * gaussianRandState; // Use this instead of randState to use Box-Muller transformation.
+   // Member variables
+  protected:
+   GaussianRandom
+         *gaussianRandState; // Use this instead of randState to use Box-Muller transformation.
 }; // class InitGaussianRandomWeights
 
 } /* namespace PV */

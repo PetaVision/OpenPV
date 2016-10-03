@@ -9,8 +9,8 @@
 #define FACTORY_HPP_
 
 #include <columns/KeywordHandler.hpp>
-#include <vector>
 #include <cstddef>
+#include <vector>
 
 namespace PV {
 
@@ -46,10 +46,12 @@ class BaseObject;
  * ...
  * Note that buildandrun() automates the task of calling the create() method;
  * in practice, you only need to specify the instantiator function, and
- * call the registerKeyword method calling before one of the buildandrun functions.
+ * call the registerKeyword method calling before one of the buildandrun
+ * functions.
  *
  * It is possible to use a custom instantiator function instead of create.
- * The function must take two arguments, the name as a C-style constant string and
+ * The function must take two arguments, the name as a C-style constant string
+ * and
  * a pointer to a HyPerCol.
  *
  * For example:
@@ -62,10 +64,9 @@ class BaseObject;
  * ...
  */
 class Factory {
-public:
-
-   static Factory * instance() {
-      static Factory * singleton = new Factory();
+  public:
+   static Factory *instance() {
+      static Factory *singleton = new Factory();
       return singleton;
    }
 
@@ -76,29 +77,37 @@ public:
     * with two arguments, the name and a pointer to the HyPerCol.
     */
    template <typename T>
-   static BaseObject * create(char const * name, HyPerCol * hc) {
-      return hc==nullptr ? nullptr : new T(name, hc);
+   static BaseObject *create(char const *name, HyPerCol *hc) {
+      return hc == nullptr ? nullptr : new T(name, hc);
    }
 
    /**
     * The method to add a new object type to the Factory.
-    * keyword is the string that labels the object type, matching the keyword used in params files.
-    * creator is a pointer to a function that takes a name and a HyPerCol pointer, and
-    * creates an object of the corresponding keyword, with the given name and parent HyPerCol.
-    * The function should return a pointer of type BaseObject, created with the new operator.
+    * keyword is the string that labels the object type, matching the keyword
+    * used in params files.
+    * creator is a pointer to a function that takes a name and a HyPerCol
+    * pointer, and
+    * creates an object of the corresponding keyword, with the given name and
+    * parent HyPerCol.
+    * The function should return a pointer of type BaseObject, created with the
+    * new operator.
     */
-   int registerKeyword(char const * keyword, ObjectCreateFn creator);
+   int registerKeyword(char const *keyword, ObjectCreateFn creator);
 
    /**
-    * The method to create an object of the type specified by keyword, with the given name
-    * and parent HyPerCol.  It calls the function associated with the keyword by the
+    * The method to create an object of the type specified by keyword, with the
+    * given name
+    * and parent HyPerCol.  It calls the function associated with the keyword by
+    * the
     * registerKeyword pointer.
     */
-   BaseObject * createByKeyword(char const * keyword, char const * name, HyPerCol * hc) const;
+   BaseObject *createByKeyword(char const *keyword, char const *name, HyPerCol *hc) const;
 
-private:
+  private:
    /**
-    * The constructor for Factory.  It initializes the list of known keywords to the core PetaVision keywords.
+    * The constructor for Factory.  It initializes the list of known keywords to
+    * the core PetaVision
+    * keywords.
     */
    Factory();
 
@@ -108,20 +117,23 @@ private:
    virtual ~Factory();
 
    /**
-    * The function called by the default constructor, to add the core PetaVision keywords.
+    * The function called by the default constructor, to add the core PetaVision
+    * keywords.
     */
    int registerCoreKeywords();
 
    /**
-    * A method used internally by the copy assignment operator and copy constructor,
+    * A method used internally by the copy assignment operator and copy
+    * constructor,
     * to copy a keyword handler list into the Factory.
     */
-   int copyKeywordHandlerList(std::vector<KeywordHandler*> const& orig);
+   int copyKeywordHandlerList(std::vector<KeywordHandler *> const &orig);
 
    /**
-    * A method used internally to retrieve the keyword handler corresponding to a given keyword.
+    * A method used internally to retrieve the keyword handler corresponding to a
+    * given keyword.
     */
-   KeywordHandler const * getKeywordHandler(char const * keyword) const;
+   KeywordHandler const *getKeywordHandler(char const *keyword) const;
 
    /**
     * A method used internally by the copy assignment operator and destructor, to
@@ -129,11 +141,11 @@ private:
     */
    int clearKeywordHandlerList();
 
-// Member variables
-private:
-   std::vector<KeywordHandler *>keywordHandlerList;
+   // Member variables
+  private:
+   std::vector<KeywordHandler *> keywordHandlerList;
 }; // class Factory
 
-}  // namespace PV
+} // namespace PV
 
 #endif /* FACTORY_HPP_ */

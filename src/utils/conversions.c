@@ -8,7 +8,6 @@
 #include "conversions.h"
 #include "assert.h"
 
-
 /**
  * Return the leading index in z direction (either x or y) of a patch in postsynaptic layer
  * @kzPre is the pre-synaptic index in z direction (can be either local or global)
@@ -18,18 +17,17 @@
  *
  * kzPre is always in restricted space
  */
-int zPatchHead(int kzPre, int nzPatch, int zScaleLog2Pre, int zScaleLog2Post)
-{
+int zPatchHead(int kzPre, int nzPatch, int zScaleLog2Pre, int zScaleLog2Post) {
    int shift;
 
-   float a = powf(2.0f, (float) (zScaleLog2Pre - zScaleLog2Post));
+   float a = powf(2.0f, (float)(zScaleLog2Pre - zScaleLog2Post));
 
-   if ((int) a == 1) {
-      shift = - (int) (0.5f * (float) nzPatch);
+   if ((int)a == 1) {
+      shift = -(int)(0.5f * (float)nzPatch);
       return shift + nearby_neighbor(kzPre, zScaleLog2Pre, zScaleLog2Post);
    }
 
-   shift = 1 - (int) (0.5f * (float) nzPatch);
+   shift = 1 - (int)(0.5f * (float)nzPatch);
 
    if (nzPatch % 2 == 0 && a < 1) {
       // density increases in post-synaptic layer
@@ -38,8 +36,8 @@ int zPatchHead(int kzPre, int nzPatch, int zScaleLog2Pre, int zScaleLog2Post)
       // set of presynaptic indices that are between postsynaptic
       //
 
-      int kpos = (kzPre < 0) ? -(1+kzPre) : kzPre;
-      int l = (int) (2*a*kpos) % 2;
+      int kpos = (kzPre < 0) ? -(1 + kzPre) : kzPre;
+      int l    = (int)(2 * a * kpos) % 2;
       // The following statement performs this:
       // if (kzPre < 0) {
       //    if (l == 1) {
@@ -55,13 +53,12 @@ int zPatchHead(int kzPre, int nzPatch, int zScaleLog2Pre, int zScaleLog2Post)
       shift -= (kzPre < 0) ? l == 1 : l == 0;
    }
    else if (nzPatch % 2 == 1 && a < 1) {
-      shift = - (int) (0.5f * (float) nzPatch);
+      shift = -(int)(0.5f * (float)nzPatch);
    }
-
 
    int neighbor = nearby_neighbor(kzPre, zScaleLog2Pre, zScaleLog2Post);
 
-   //added if nzPatch == 1
+   // added if nzPatch == 1
    if (nzPatch == 1) {
       return neighbor;
    }
@@ -84,88 +81,81 @@ int zPatchHead(int kzPre, int nzPatch, int zScaleLog2Pre, int zScaleLog2Post)
  * @distPre
  * @distPost
  */
-int dist2NearestCell(int kzPre, int log2ScalePre, int log2ScalePost,
-      float * distPre, float * distPost)
-{
+int dist2NearestCell(
+      int kzPre,
+      int log2ScalePre,
+      int log2ScalePost,
+      float *distPre,
+      float *distPost) {
    // scaleFac == 1
-   assert(kzPre >= 0);  // not valid in general if kzPre < 0
+   assert(kzPre >= 0); // not valid in general if kzPre < 0
    int kzPost = kzPre;
-   *distPost = 0.0;
-   *distPre = 0.0;
+   *distPost  = 0.0;
+   *distPre   = 0.0;
    if (log2ScalePre > log2ScalePost) {
       // post-synaptic layer has smaller size scale (is denser)
       int scaleFac = pow(2, log2ScalePre) / pow(2, log2ScalePost);
-      *distPost = -0.5;
-      *distPre = -0.5 / scaleFac;
-      kzPost = (int) ((kzPre + 0.5) * scaleFac) - 1;  // left neighbor, add 1 for right neighbor
+      *distPost    = -0.5;
+      *distPre     = -0.5 / scaleFac;
+      kzPost       = (int)((kzPre + 0.5) * scaleFac) - 1; // left neighbor, add 1 for right neighbor
    }
    else if (log2ScalePre < log2ScalePost) {
       // post-synaptic layer has larger size scale (is less dense), scaleFac > 1
       int scaleFac = pow(2, log2ScalePost) / pow(2, log2ScalePre);
-      *distPre = 0.5 * (scaleFac - 2 * (kzPre % scaleFac) - 1);
-      *distPost = *distPre / scaleFac;
-      kzPost = kzPre / scaleFac;
+      *distPre     = 0.5 * (scaleFac - 2 * (kzPre % scaleFac) - 1);
+      *distPost    = *distPre / scaleFac;
+      kzPost       = kzPre / scaleFac;
    }
    return kzPost;
 }
 
-
-
-int layerIndexToUnitCellIndex(int patchIndex, const PVLayerLoc * preLoc, int nxUnitCell, int nyUnitCell, int * kxUnitCellIndex,
-      int * kyUnitCellIndex, int * kfUnitCellIndex)
-{
-   // int UnitCellIndex;
+int layerIndexToUnitCellIndex(
+      int patchIndex,
+      const PVLayerLoc *preLoc,
+      int nxUnitCell,
+      int nyUnitCell,
+      int *kxUnitCellIndex,
+      int *kyUnitCellIndex,
+      int *kfUnitCellIndex) {
    int nxPreExtended = preLoc->nx + preLoc->halo.lt + preLoc->halo.rt;
    int nyPreExtended = preLoc->ny + preLoc->halo.dn + preLoc->halo.up;
-   int nfPre = preLoc->nf;
+   int nfPre         = preLoc->nf;
    int kxPreExtended = kxPos(patchIndex, nxPreExtended, nyPreExtended, nfPre);
    int kyPreExtended = kyPos(patchIndex, nxPreExtended, nyPreExtended, nfPre);
-
-   // check that patchIndex lay within margins
-   /*
-   assert(kxPreExtended >= 0);
-   assert(kyPreExtended >= 0);
-   assert(kxPreExtended < nxPreExtended);
-   assert(kyPreExtended < nyPreExtended);
-   */
 
    // convert from extended to restricted space (in local HyPerCol coordinates)
    int kxPreRestricted;
    kxPreRestricted = kxPreExtended - preLoc->halo.lt;
-   while(kxPreRestricted < 0){
+   while (kxPreRestricted < 0) {
       kxPreRestricted += preLoc->nx;
    }
-   while(kxPreRestricted >= preLoc->nx){
+   while (kxPreRestricted >= preLoc->nx) {
       kxPreRestricted -= preLoc->nx;
    }
 
    int kyPreRestricted;
    kyPreRestricted = kyPreExtended - preLoc->halo.up;
-   while(kyPreRestricted < 0){
+   while (kyPreRestricted < 0) {
       kyPreRestricted += preLoc->ny;
    }
-   while(kyPreRestricted >= preLoc->ny){
+   while (kyPreRestricted >= preLoc->ny) {
       kyPreRestricted -= preLoc->ny;
    }
 
    int kfPre = featureIndex(patchIndex, nxPreExtended, nyPreExtended, nfPre);
 
-//   int nxUnitCell_tmp = (pre->getXScale() < post->getXScale()) ? pow(2,
-//         post->getXScale() - pre->getXScale()) : 1;
-//   int nyUnitCell_tmp = (pre->getYScale() < post->getYScale()) ? pow(2,
-//         post->getYScale() - pre->getYScale()) : 1;
    int kxUnitCell = kxPreRestricted % nxUnitCell;
    int kyUnitCell = kyPreRestricted % nyUnitCell;
 
    int unitCellIndex = kIndex(kxUnitCell, kyUnitCell, kfPre, nxUnitCell, nyUnitCell, nfPre);
 
-   if (kxUnitCellIndex != NULL){
+   if (kxUnitCellIndex != NULL) {
       *kxUnitCellIndex = kxUnitCell;
    }
-   if (kyUnitCellIndex != NULL){
+   if (kyUnitCellIndex != NULL) {
       *kyUnitCellIndex = kyUnitCell;
    }
-   if (kfUnitCellIndex != NULL){
+   if (kfUnitCellIndex != NULL) {
       *kfUnitCellIndex = kfPre;
    }
    return unitCellIndex;

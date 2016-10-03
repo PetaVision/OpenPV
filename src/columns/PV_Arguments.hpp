@@ -14,57 +14,77 @@ namespace PV {
  * A class for parsing the command line arguments and storing the results.
  * Internally, the PV_Arguments object contains a require-return flag,
  * an output path string, a params file string, a log file string,
- * a gpu devices string, a working directory string, a checkpointRead directory string,
+ * a gpu devices string, a working directory string, a checkpointRead directory
+ * string,
  * a restart flag, an unsigned integer indicating a random seed,
  * and integers indicating the number of threads, the number of MPI rows,
  * the number of MPI columns, and the batch width.
  * After initialization, individual settings can be modified with set-methods,
  * or reset to the original argc/argv settings.
  *
- * It is an error to set both the restart flag and the checkpointRead directory string.
- * PV_Arguments does not check whether directory strings point at existing directories,
+ * It is an error to set both the restart flag and the checkpointRead directory
+ * string.
+ * PV_Arguments does not check whether directory strings point at existing
+ * directories,
  * or do any other sanity checking of the arguments.
  * Typically under MPI, each mpi process will call PV_Init with the same
  * arguments, and each process's PV_Init object creates a PV_Arguments object
- * that it, HyPerCol, and other objects can use to get the command-line arguments.
+ * that it, HyPerCol, and other objects can use to get the command-line
+ * arguments.
  */
 class PV_Arguments {
-public:
+  public:
    /**
     * The standard constructor for PV_Arguments.
     * The strings argv[0], argv[1], ..., argv[argc-1] are processed as follows:
     * argv[0] is ignored (but can be retrieved using the getProgramName method).
-    * argv[1] through argv[argc-1] are scanned for an exact match with each of the following:
-    *    "-c": the next argument is copied into the checkpointRead directory string.
+    * argv[1] through argv[argc-1] are scanned for an exact match with each of
+    * the following:
+    *    "-c": the next argument is copied into the checkpointRead directory
+    * string.
     *    "-d": the next argument is copied into the gpu devices argument.
     *    "-l": the next argument is copied into the log file string.
     *    "-o": the next argument is copied into the output path string.
     *    "-p": the next argument is copied into the params file string.
     *    "-r": the restart flag is set to true.
-    *    "-s": the next argument is parsed as an unsigned integer and stored into the random seed.
-    *    "-t": the next argument is parsed as an integer and stored as the number of threads.
+    *    "-s": the next argument is parsed as an unsigned integer and stored into
+    * the random seed.
+    *    "-t": the next argument is parsed as an integer and stored as the number
+    * of threads.
     *    "-w": the next argument is copied into the working directory string.
-    *    "-rows": the next argument is parsed as an integer and stored as the number of MPI rows.
-    *    "-columns": the next argument is parsed as an integer and stored as the number of MPI columns.
-    *    "-batchwidth": the next argument is parsed as an integer and stored as the batch width.
+    *    "-rows": the next argument is parsed as an integer and stored as the
+    * number of MPI rows.
+    *    "-columns": the next argument is parsed as an integer and stored as the
+    * number of MPI
+    * columns.
+    *    "-batchwidth": the next argument is parsed as an integer and stored as
+    * the batch width.
     *    "-n": the dry-run flag is set to true.
     *    "--require-return": the require-return flag is set to true.
-    * If "-t" appears but is not followed by an integer, numThreads is set to -1 and
-    *    useDefaultNumThreads is set to true (this behavior is governed by pv_getoptionalopt_int() in io/io.c)
+    * If "-t" appears but is not followed by an integer, numThreads is set to -1
+    * and
+    *    useDefaultNumThreads is set to true (this behavior is governed by
+    * pv_getoptionalopt_int()
+    * in io/io.c)
     * If "-t" is followed by an integer, useDefaultNumThreads is set to fals.
     * It is an error to have both the -r and -c options.
     *
-    * Note that all arguments have a single hyphen, except for "--require-return".
+    * Note that all arguments have a single hyphen, except for
+    * "--require-return".
     *
-    * If an option depends on the next argument but there is no next argument, the corresponding internal variable is not set,
+    * If an option depends on the next argument but there is no next argument,
+    * the corresponding
+    * internal variable is not set,
     * with the exception of "-t", as noted above.
     *
-    * If an option occurs more than once, only the first occurrence is used to set the value.
+    * If an option occurs more than once, only the first occurrence is used to
+    * set the value.
     *
-    * If allowUnrecognizedArguments is set to false, the constructor fails if any string
+    * If allowUnrecognizedArguments is set to false, the constructor fails if any
+    * string
     * in the argv array is not recoginzed.
     */
-   PV_Arguments(int argc, char * argv[], bool allowUnrecognizedArguments);
+   PV_Arguments(int argc, char *argv[], bool allowUnrecognizedArguments);
 
    /*
     * The destructor for PV_Arguments.
@@ -75,38 +95,41 @@ public:
     * Returns the string passed as argv[0] to the constructor,
     * typically the name of the program being run.
     */
-   char const * getProgramName() const { return args ? args[0] : NULL; }
+   char const *getProgramName() const { return args ? args[0] : nullptr; }
 
    /**
     * getArgument(i) returns the string passed as argv[i] to the constructor.
     * If i is out of bounds, returns null.
     */
-   char const * getArgument(int i) const { return (i>=0 && i<numArgs) ? args[i] : NULL; }
+   char const *getArgument(int i) const { return (i >= 0 && i < numArgs) ? args[i] : nullptr; }
 
    /**
     * Returns a read-only pointer to the args array.
     * Note that getArgsConst()[i] and getArgsConst()[i][j] are both const;
     * this method does not provide a way to modify the args array.
     */
-   char const * const * getArgsConst() const { return args; }
+   char const *const *getArgsConst() const { return args; }
 
    /**
     * Returns a copy of the args array.  It uses malloc and strdup, so the caller
-    * is responsible for freeing getArgs()[k] for each k and for freeing getArgs()
+    * is responsible for freeing getArgs()[k] for each k and for freeing
+    * getArgs()
     * (the simplest way to free all the memory at once is to call the
     * static method PV_Argument::freeArgs)
-    * The length of the returned array is argc+1, and getArgs()[argc] is NULL.
+    * The length of the returned array is argc+1, and getArgs()[argc] is nullptr.
     */
-   char ** getArgsCopy() const;
+   char **getArgsCopy() const;
 
    /**
     * Deallocates an array, assuming it was created by a call to getArgs().
     * It frees argv[0], argv[1], ..., argv[argc-1], and then frees argv.
     */
-   static void freeArgs(int argc, char ** argv);
+   static void freeArgs(int argc, char **argv);
 
    /**
-    * Returns the length of the array returned by getUnusedArgArray(); i.e. the argc argument passed to the constructor.
+    * Returns the length of the array returned by getUnusedArgArray(); i.e. the
+    * argc argument passed
+    * to the constructor.
     */
    int getNumArgs() const { return numArgs; }
 
@@ -118,22 +141,22 @@ public:
    /**
     * Returns the output path string.
     */
-   char const * getOutputPath() const { return outputPath; }
+   char const *getOutputPath() const { return outputPath; }
 
    /**
     * Returns the params file string.
     */
-   char const * getParamsFile() const { return paramsFile; }
+   char const *getParamsFile() const { return paramsFile; }
 
    /**
     * Returns the log file string.
     */
-   char const * getLogFile() const { return logFile; }
+   char const *getLogFile() const { return logFile; }
 
    /**
     * Returns the gpu devices string.
     */
-   char const * getGPUDevices() const { return gpuDevices; }
+   char const *getGPUDevices() const { return gpuDevices; }
 
    /**
     * Returns the random seed.
@@ -143,7 +166,7 @@ public:
    /**
     * Returns the working directory string.
     */
-   char const * getWorkingDir() const { return workingDir; }
+   char const *getWorkingDir() const { return workingDir; }
 
    /**
     * Returns true if the restart flag was set.
@@ -153,7 +176,7 @@ public:
    /**
     * Returns the checkpointRead directory string.
     */
-   char const * getCheckpointReadDir() const { return checkpointReadDir; }
+   char const *getCheckpointReadDir() const { return checkpointReadDir; }
 
    /**
     * Returns the useDefaultNumThreads flag.
@@ -195,49 +218,51 @@ public:
     * Sets the value of the output path string.
     * The return value is the new value of the output path string.
     */
-   char const * setOutputPath(char const * val);
+   char const *setOutputPath(char const *val);
 
    /**
     * Sets the value of the params file string to a copy of the input argument.
     * If there is an error setting the string, the old value is untouched and
-    * the return value is NULL.
+    * the return value is nullptr.
     * On success, the old value is deallocated and the return value is a
     * pointer to the new params file string.
     */
-   char const * setParamsFile(char const * val);
+   char const *setParamsFile(char const *val);
 
    /**
     * Sets the value of the log file string to a copy of the input argument.
     * If there is an error setting the string, the old value is untouched and
-    * the return value is NULL.
+    * the return value is nullptr.
     * On success, the old value is deallocated and the return value is a
     * pointer to the new log file string.
     */
-   char const * setLogFile(char const * val);
+   char const *setLogFile(char const *val);
 
    /**
     * Sets the value of the gpu devices string to a copy of the input argument.
     * If there is an error setting the string, the old value is untouched and
-    * the return value is NULL.
+    * the return value is nullptr.
     * On success, the old value is deallocated and the return value is a
     * pointer to the new gpu devices string.
     */
-   char const * setGPUDevices(char const * val);
+   char const *setGPUDevices(char const *val);
 
    /**
-    * Sets the value of the random seed to the input argument.  The old value is discarded.
+    * Sets the value of the random seed to the input argument.  The old value is
+    * discarded.
     * The return value is the new value of the random seed.
     */
    unsigned int setRandomSeed(unsigned int val);
 
    /**
-    * Sets the value of the working directory string to a copy of the input argument.
+    * Sets the value of the working directory string to a copy of the input
+    * argument.
     * If there is an error setting the string, the old value is untouched and
-    * the return value is NULL.
+    * the return value is nullptr.
     * On success, the old value is deallocated and the return value is a
     * pointer to the new working directory string.
     */
-   char const * setWorkingDir(char const * val);
+   char const *setWorkingDir(char const *val);
 
    /**
     * Sets the value of the restart flag.
@@ -246,23 +271,26 @@ public:
    bool setRestartFlag(bool val);
 
    /**
-    * Sets the value of the checkpointRead directory string to a copy of the input argument.
+    * Sets the value of the checkpointRead directory string to a copy of the
+    * input argument.
     * If there is an error setting the string, the old value is untouched and
-    * the return value is NULL.
+    * the return value is nullptr.
     * On success, the old value is deallocated and the return value is a
     * pointer to the new checkpointRead directory string.
     */
-   char const * setCheckpointReadDir(char const * val);
+   char const *setCheckpointReadDir(char const *val);
 
    /**
-    * Sets the useDefaultNumThreads flag to the given argument.  The old value is discarded.
+    * Sets the useDefaultNumThreads flag to the given argument.  The old value is
+    * discarded.
     * The return value is the new useDefaultNumThreads flag.
     * If the argument is true, numThreads is set to zero.
     */
    bool setUseDefaultNumThreads(bool val);
 
    /**
-    * Sets the number of threads to the input argument.  The old value is discarded.
+    * Sets the number of threads to the input argument.  The old value is
+    * discarded.
     * The return value is the new number of threads.
     * Additionally, the useDefaultNumThreads flag is set to false.
     */
@@ -275,7 +303,8 @@ public:
    int setNumRows(int val);
 
    /**
-    * Sets the number of columns to the input argument.  The old value is discarded.
+    * Sets the number of columns to the input argument.  The old value is
+    * discarded.
     * The return value is the new number of columns.
     */
    int setNumColumns(int val);
@@ -299,7 +328,7 @@ public:
     * constructor. Any previous pointers returned by get-methods become
     * invalid.
     */
-   int resetState(int argc, char * argv[], bool allowUnrecognizedArguments);
+   int resetState(int argc, char *argv[], bool allowUnrecognizedArguments);
 
    /**
     * Resets all member variables to their state at the time the object was
@@ -311,21 +340,23 @@ public:
    int resetState();
 
    /**
-    * Prints the effective command line based on the argc/argv arguments used in instantiation,
+    * Prints the effective command line based on the argc/argv arguments used in
+    * instantiation,
     * and any set-methods used since then.
     */
    int printState() const;
 
-private:
+  private:
    /**
-    * initialize_base() is called by the constructor to initialize the internal variables
-    * to false for flags, zero for integers, and NULL for strings.
+    * initialize_base() is called by the constructor to initialize the internal
+    * variables
+    * to false for flags, zero for integers, and nullptr for strings.
     */
    int initialize_base();
 
    /**
     * initializeState() sets all member variables except numArgs and args
-    * (the copies of argc and argv passed to the constructor) to zero or NULL.
+    * (the copies of argc and argv passed to the constructor) to zero or nullptr.
     * It is called by initialize_base() and clearState().
     */
    int initializeState();
@@ -334,25 +365,34 @@ private:
     * initialize() is called by the constructor to parse the argv array and set
     * internal variables accordingly.
     */
-   int initialize(int argc, char * argv[], bool allowUnrecognizedArguments);
+   int initialize(int argc, char *argv[], bool allowUnrecognizedArguments);
 
    /**
-    * copyArgs() is used internally both by the constructor, to copy the argv array into a member variable,
+    * copyArgs() is used internally both by the constructor, to copy the argv
+    * array into a member
+    * variable,
     * and by the getArgs get-method to return a copy of the args array.
-    * It returns an array of length argc+1, where the first argc strings are copied from argv
-    * and the last one is NULL (i.e. copyArgs()[argc]==NULL).
+    * It returns an array of length argc+1, where the first argc strings are
+    * copied from argv
+    * and the last one is nullptr (i.e. copyArgs()[argc]==nullptr).
     */
-   static char ** copyArgs(int argc, char const * const * argv);
+   static char **copyArgs(int argc, char const *const *argv);
 
    /**
-    * setString() is used internally as a common interface for setting the internal string variables.
-    * If it encounters an error, it prints an error message and returns NULL with the old value of
+    * setString() is used internally as a common interface for setting the
+    * internal string
+    * variables.
+    * If it encounters an error, it prints an error message and returns nullptr
+    * with the old value
+    * of
     * the parameter untouched.
     */
-   char const * setString(char ** parameter, char const * string, char const * parameterName);
+   char const *setString(char **parameter, char const *string, char const *parameterName);
 
    /**
-    * clearState() frees all memory allocated for member variables except for the copy of argv, and resets
+    * clearState() frees all memory allocated for member variables except for the
+    * copy of argv, and
+    * resets
     * all member variables to their
     */
    int clearState();
@@ -360,18 +400,18 @@ private:
    int setStateFromCmdLineArgs(bool allowUnrecognizedArguments);
 
    // Member variables
-private:
+  private:
    int numArgs;
-   char ** args;
+   char **args;
    bool requireReturnFlag;
-   char * outputPath;
-   char * paramsFile;
-   char * logFile;
-   char * gpuDevices;
+   char *outputPath;
+   char *paramsFile;
+   char *logFile;
+   char *gpuDevices;
    unsigned int randomSeed;
-   char * workingDir;
+   char *workingDir;
    bool restartFlag;
-   char * checkpointReadDir;
+   char *checkpointReadDir;
    bool useDefaultNumThreads;
    int numThreads;
    int numRows;

@@ -12,35 +12,31 @@
  *  the .hpp file should have
 */
 
-#include <iostream>
-#include <sstream>
 #include "HyPerLayer.hpp"
-#include "include/pv_common.h"
-#include "include/default_params.h"
+#include "InitV.hpp"
 #include "columns/HyPerCol.hpp"
 #include "connections/BaseConnection.hpp"
 #include "connections/TransposeConn.hpp"
-#include "InitV.hpp"
+#include "include/default_params.h"
+#include "include/pv_common.h"
 #include "io/fileio.hpp"
 #include "io/imageio.hpp"
 #include "io/io.hpp"
 #include <assert.h>
+#include <iostream>
+#include <sstream>
 #include <string.h>
-
 
 namespace PV {
 
 // This constructor is protected so that only derived classes can call it.
 // It should be called as the normal method of object construction by
 // derived classes.  It should NOT call any virtual methods
-HyPerLayer::HyPerLayer() {
-   initialize_base();
-}
+HyPerLayer::HyPerLayer() { initialize_base(); }
 
-HyPerLayer::HyPerLayer(const char * name, HyPerCol * hc)
-{
-    initialize_base();
-    initialize(name, hc);
+HyPerLayer::HyPerLayer(const char *name, HyPerCol *hc) {
+   initialize_base();
+   initialize(name, hc);
 }
 
 // initialize_base should be called only by constructors.  It should not
@@ -49,79 +45,78 @@ HyPerLayer::HyPerLayer(const char * name, HyPerCol * hc)
 // In general, initialize_base should be used only to initialize member variables
 // to safe values.
 int HyPerLayer::initialize_base() {
-   name = NULL;
-   probes = NULL;
-   nxScale = 1.0f;
-   nyScale = 1.0f;
-   numFeatures = 1;
-   mirrorBCflag = 0;
-   xmargin = 0;
-   ymargin = 0;
-   numProbes = 0;
-   ioAppend = 0;
-   numChannels = 2;
-   clayer = NULL;
-   GSyn = NULL;
-   marginIndices = NULL;
-   numMargin = 0;
-   writeTime = 0;
-   initialWriteTime = 0;
-   triggerFlag = false; //Default to update every timestamp
-   triggerLayer = NULL;
-   triggerLayerName = NULL;
-   triggerBehavior = NULL;
-   triggerBehaviorType = NO_TRIGGER;
-   triggerResetLayerName = NULL;
-   initVObject = NULL;
-   triggerOffset = 0;
+   name                         = NULL;
+   probes                       = NULL;
+   nxScale                      = 1.0f;
+   nyScale                      = 1.0f;
+   numFeatures                  = 1;
+   mirrorBCflag                 = 0;
+   xmargin                      = 0;
+   ymargin                      = 0;
+   numProbes                    = 0;
+   ioAppend                     = 0;
+   numChannels                  = 2;
+   clayer                       = NULL;
+   GSyn                         = NULL;
+   marginIndices                = NULL;
+   numMargin                    = 0;
+   writeTime                    = 0;
+   initialWriteTime             = 0;
+   triggerFlag                  = false; // Default to update every timestamp
+   triggerLayer                 = NULL;
+   triggerLayerName             = NULL;
+   triggerBehavior              = NULL;
+   triggerBehaviorType          = NO_TRIGGER;
+   triggerResetLayerName        = NULL;
+   initVObject                  = NULL;
+   triggerOffset                = 0;
    initializeFromCheckpointFlag = false;
-   outputStateStream = NULL;
-   
-   mLastUpdateTime = 0.0;
+   outputStateStream            = NULL;
+
+   mLastUpdateTime  = 0.0;
    mLastTriggerTime = 0.0;
 
    phase = 0;
-   
+
    numSynchronizedMarginWidthLayers = 0;
-   synchronizedMarginWidthLayers = NULL;
-   
-   dataType = PV_FLOAT;
+   synchronizedMarginWidthLayers    = NULL;
+
+   dataType       = PV_FLOAT;
    dataTypeString = NULL;
 
 #ifdef PV_USE_CUDA
-//   this->krUpdate = NULL;
-   allocDeviceV = false;
-   allocDeviceGSyn = false;
-   allocDeviceActivity = false;
-   allocDeviceDatastore= false;
-   allocDeviceActiveIndices= false;
-   d_V = NULL;
-   d_GSyn = NULL;
-   d_Activity = NULL;
-   d_Datastore= NULL;
-   d_ActiveIndices= NULL;
-   d_numActive = NULL;
-   updatedDeviceActivity = true; //Start off always updating activity
-   updatedDeviceDatastore = true;
-   updatedDeviceGSyn = true;
-   recvGpu = false;
-   updateGpu = false;
-   krUpdate = NULL;
+   allocDeviceV             = false;
+   allocDeviceGSyn          = false;
+   allocDeviceActivity      = false;
+   allocDeviceDatastore     = false;
+   allocDeviceActiveIndices = false;
+   d_V                      = NULL;
+   d_GSyn                   = NULL;
+   d_Activity               = NULL;
+   d_Datastore              = NULL;
+   d_ActiveIndices          = NULL;
+   d_numActive              = NULL;
+   updatedDeviceActivity    = true; // Start off always updating activity
+   updatedDeviceDatastore   = true;
+   updatedDeviceGSyn        = true;
+   recvGpu                  = false;
+   updateGpu                = false;
+   krUpdate                 = NULL;
 #ifdef PV_USE_CUDNN
-   cudnn_GSyn = NULL;
-   cudnn_Datastore= NULL;
+   cudnn_GSyn      = NULL;
+   cudnn_Datastore = NULL;
 #endif // PV_USE_CUDNN
 #endif // PV_USE_CUDA
 
-   update_timer  = NULL;
-   recvsyn_timer = NULL;
-   publish_timer = NULL;
+   update_timer    = NULL;
+   recvsyn_timer   = NULL;
+   publish_timer   = NULL;
    timescale_timer = NULL;
-   io_timer      = NULL;
+   io_timer        = NULL;
 
 #ifdef PV_USE_CUDA
    gpu_recvsyn_timer = NULL;
-   gpu_update_timer = NULL;
+   gpu_update_timer  = NULL;
 #endif
 
    thread_gSyn = NULL;
@@ -135,9 +130,11 @@ int HyPerLayer::initialize_base() {
 /// to take advantage of virtual methods.  Note that the HyPerLayer constructor
 /// does not call initialize.  This way, HyPerLayer::initialize can call virtual
 /// methods and the derived class's method will be the one that gets called.
-int HyPerLayer::initialize(const char * name, HyPerCol * hc) {
+int HyPerLayer::initialize(const char *name, HyPerCol *hc) {
    int status = BaseLayer::initialize(name, hc);
-   if (status != PV_SUCCESS) { return status; }
+   if (status != PV_SUCCESS) {
+      return status;
+   }
 
    // Timers
    update_timer    = new Timer(getName(), "layer", "update ");
@@ -153,20 +150,23 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc) {
    gpu_update_timer->setStream(hc->getDevice()->getStream());
 #endif
 
-   PVParams * params = hc->parameters();
+   PVParams *params = hc->parameters();
 
    status = ioParams(PARAMS_IO_READ);
    assert(status == PV_SUCCESS);
 
-   writeTime = initialWriteTime;
-   writeActivityCalls = 0;
+   writeTime                = initialWriteTime;
+   writeActivityCalls       = 0;
    writeActivitySparseCalls = 0;
-   numDelayLevels = 1; // If a connection has positive delay so that more delay levels are needed, numDelayLevels is increased when BaseConnection::communicateInitInfo calls increaseDelayLevels
+   numDelayLevels = 1; // If a connection has positive delay so that more delay levels are needed,
+   // numDelayLevels is increased when BaseConnection::communicateInitInfo calls
+   // increaseDelayLevels
    maxRate = 1000.0f / (float)hc->getDeltaTime();
 
    initClayer();
 
-   // must set ioAppend before addLayer is called (addLayer causes activity file to be opened using layerid)
+   // must set ioAppend before addLayer is called (addLayer causes activity file to be opened using
+   // layerid)
    ioAppend = hc->getCheckpointReadFlag() ? 1 : 0;
 
    hc->addLayer(this);
@@ -177,28 +177,32 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc) {
 }
 
 int HyPerLayer::initClayer() {
-   clayer = (PVLayer *) calloc(1UL, sizeof(PVLayer));
+   clayer     = (PVLayer *)calloc(1UL, sizeof(PVLayer));
    int status = PV_SUCCESS;
-   if (clayer==NULL) {
-      pvError().printf("HyPerLayer \"%s\" error in rank %d process: unable to allocate memory for Clayer.\n", name, parent->columnId());
+   if (clayer == NULL) {
+      pvError().printf(
+            "HyPerLayer \"%s\" error in rank %d process: unable to allocate memory for Clayer.\n",
+            name,
+            parent->columnId());
    }
 
-   PVLayerLoc * loc = &clayer->loc;
+   PVLayerLoc *loc = &clayer->loc;
    setLayerLoc(loc, nxScale, nyScale, numFeatures, parent->getNBatch());
-   assert(loc->halo.lt==0 && loc->halo.rt==0 && loc->halo.dn==0 && loc->halo.up==0);
+   assert(loc->halo.lt == 0 && loc->halo.rt == 0 && loc->halo.dn == 0 && loc->halo.up == 0);
 
    int nBatch = parent->getNBatch();
 
    clayer->numNeurons  = loc->nx * loc->ny * loc->nf;
-   clayer->numExtended = clayer->numNeurons; // initially, margin is zero; it will be updated as needed during the communicateInitInfo stage.
+   clayer->numExtended = clayer->numNeurons; // initially, margin is zero; it will be updated as
+   // needed during the communicateInitInfo stage.
    clayer->numNeuronsAllBatches  = nBatch * loc->nx * loc->ny * loc->nf;
    clayer->numExtendedAllBatches = clayer->numNeuronsAllBatches;
 
-   double xScaled = -log2( (double) nxScale);
-   double yScaled = -log2( (double) nyScale);
+   double xScaled = -log2((double)nxScale);
+   double yScaled = -log2((double)nyScale);
 
-   int xScale = (int) nearbyint(xScaled);
-   int yScale = (int) nearbyint(yScaled);
+   int xScale = (int)nearbyint(xScaled);
+   int yScale = (int)nearbyint(yScaled);
 
    clayer->xScale = xScale;
    clayer->yScale = yScale;
@@ -207,58 +211,58 @@ int HyPerLayer::initClayer() {
    return status;
 }
 
-HyPerLayer::~HyPerLayer()
-{
-   delete recvsyn_timer;  
-   delete update_timer;   
-   delete publish_timer;  
+HyPerLayer::~HyPerLayer() {
+   delete recvsyn_timer;
+   delete update_timer;
+   delete publish_timer;
    delete timescale_timer;
-   delete io_timer;       
+   delete io_timer;
 #ifdef PV_USE_CUDA
    delete gpu_recvsyn_timer;
-   delete gpu_update_timer; 
+   delete gpu_update_timer;
 #endif
 
    if (outputStateStream) {
       pvp_close_file(outputStateStream, parent->getCommunicator());
    }
 
-   delete initVObject; 
+   delete initVObject;
    freeClayer();
    freeChannels();
 
 #ifdef PV_USE_CUDA
-   if(krUpdate){
+   if (krUpdate) {
       delete krUpdate;
    }
-   if(d_V){
+   if (d_V) {
       delete d_V;
    }
-   if(d_Activity){
+   if (d_Activity) {
       delete d_Activity;
    }
-   if(d_Datastore){
+   if (d_Datastore) {
       delete d_Datastore;
    }
 
 #ifdef PV_USE_CUDNN
-   if(cudnn_Datastore){
+   if (cudnn_Datastore) {
       delete cudnn_Datastore;
    }
 #endif // PV_USE_CUDNN
 #endif // PV_USE_CUDA
 
    free(marginIndices);
-   free(probes); // All probes are deleted by the HyPerCol, so probes[i] doesn't need to be deleted, only the array itself.
+   free(probes); // All probes are deleted by the HyPerCol, so probes[i] doesn't need to be deleted,
+   // only the array itself.
 
    free(synchronizedMarginWidthLayers);
-   
-   free(triggerLayerName); 
+
+   free(triggerLayerName);
    free(triggerBehavior);
    free(triggerResetLayerName);
 
-   if(thread_gSyn){
-      for(int i = 0; i < parent->getNumThreads(); i++){
+   if (thread_gSyn) {
+      for (int i = 0; i < parent->getNumThreads(); i++) {
          free(thread_gSyn[i]);
       }
       free(thread_gSyn);
@@ -267,35 +271,32 @@ HyPerLayer::~HyPerLayer()
 }
 
 template <typename T>
-int HyPerLayer::freeBuffer(T ** buf) {
+int HyPerLayer::freeBuffer(T **buf) {
    free(*buf);
    *buf = NULL;
    return PV_SUCCESS;
 }
-// Declare the instantiations of allocateBuffer that occur in other .cpp files; otherwise you may get linker errors.
-template int HyPerLayer::freeBuffer<pvdata_t>(pvdata_t ** buf);
-template int HyPerLayer::freeBuffer<int>(int ** buf);
+// Declare the instantiations of allocateBuffer that occur in other .cpp files; otherwise you may
+// get linker errors.
+template int HyPerLayer::freeBuffer<pvdata_t>(pvdata_t **buf);
+template int HyPerLayer::freeBuffer<int>(int **buf);
 
-int HyPerLayer::freeRestrictedBuffer(pvdata_t ** buf) {
-   return freeBuffer(buf);
-}
+int HyPerLayer::freeRestrictedBuffer(pvdata_t **buf) { return freeBuffer(buf); }
 
-int HyPerLayer::freeExtendedBuffer(pvdata_t ** buf) {
-   return freeBuffer(buf);
-}
+int HyPerLayer::freeExtendedBuffer(pvdata_t **buf) { return freeBuffer(buf); }
 
 int HyPerLayer::freeClayer() {
    pvcube_delete(clayer->activity);
 
    freeBuffer(&clayer->prevActivity);
    freeBuffer(&clayer->V);
-   free(clayer); clayer = NULL;
+   free(clayer);
+   clayer = NULL;
 
    return PV_SUCCESS;
 }
 
-void HyPerLayer::freeChannels()
-{
+void HyPerLayer::freeChannels() {
 
 #ifdef PV_USE_CUDA
    if (d_GSyn != NULL) {
@@ -311,95 +312,114 @@ void HyPerLayer::freeChannels()
 
    // GSyn gets allocated in allocateDataStructures, but only if numChannels>0.
    if (GSyn) {
-      assert(numChannels>0);
-      free(GSyn[0]);  // conductances allocated contiguously so frees all buffer storage
-      free(GSyn);     // this frees the array pointers to separate conductance channels
-      GSyn = NULL;
+      assert(numChannels > 0);
+      free(GSyn[0]); // conductances allocated contiguously so frees all buffer storage
+      free(GSyn); // this frees the array pointers to separate conductance channels
+      GSyn        = NULL;
       numChannels = 0;
    }
 }
 
-
 int HyPerLayer::allocateClayerBuffers() {
    int k;
-   // clayer fields numNeurons, numExtended, loc, xScale, yScale, dx, dy, xOrigin, yOrigin were set in initClayer().
+   // clayer fields numNeurons, numExtended, loc, xScale, yScale, dx, dy, xOrigin, yOrigin were set
+   // in initClayer().
    assert(clayer);
    clayer->params = NULL;
 
    int status = PV_SUCCESS;
 
-   int statusV = allocateV();                      if (statusV!=PV_SUCCESS) status = PV_FAILURE;
-   int statusA = allocateActivity();               if (statusA!=PV_SUCCESS) status = PV_FAILURE;
-   //int statusActIndices = allocateActiveIndices(); if (statusActIndices!=PV_SUCCESS) status = PV_FAILURE;
-   int statusPrevAct = allocatePrevActivity();     if (statusPrevAct!=PV_SUCCESS) status = PV_FAILURE;
+   int statusV = allocateV();
+   if (statusV != PV_SUCCESS)
+      status   = PV_FAILURE;
+   int statusA = allocateActivity();
+   if (statusA != PV_SUCCESS)
+      status         = PV_FAILURE;
+   int statusPrevAct = allocatePrevActivity();
+   if (statusPrevAct != PV_SUCCESS)
+      status = PV_FAILURE;
    for (k = 0; k < getNumExtendedAllBatches(); k++) {
-      clayer->prevActivity[k] = -10*REFRACTORY_PERIOD;  // allow neuron to fire at time t==0
+      clayer->prevActivity[k] = -10 * REFRACTORY_PERIOD; // allow neuron to fire at time t==0
    }
 
    return PV_SUCCESS;
 }
 
 template <typename T>
-int HyPerLayer::allocateBuffer(T ** buf, int bufsize, const char * bufname) {
+int HyPerLayer::allocateBuffer(T **buf, int bufsize, const char *bufname) {
    int status = PV_SUCCESS;
-   *buf = (T *) calloc(bufsize, sizeof(T));
-   if(*buf == NULL) {
-      pvErrorNoExit().printf("%s: rank %d process unable to allocate memory for %s: %s.\n", getDescription_c(), parent->columnId(), bufname, strerror(errno));
+   *buf       = (T *)calloc(bufsize, sizeof(T));
+   if (*buf == NULL) {
+      pvErrorNoExit().printf(
+            "%s: rank %d process unable to allocate memory for %s: %s.\n",
+            getDescription_c(),
+            parent->columnId(),
+            bufname,
+            strerror(errno));
       status = PV_FAILURE;
    }
    return status;
 }
-// Declare the instantiations of allocateBuffer that occur in other .cpp files; otherwise you may get linker errors.
-template int HyPerLayer::allocateBuffer<pvdata_t>(pvdata_t ** buf, int bufsize, const char * bufname);
-template int HyPerLayer::allocateBuffer<int>(int ** buf, int bufsize, const char * bufname);
+// Declare the instantiations of allocateBuffer that occur in other .cpp files; otherwise you may
+// get linker errors.
+template int HyPerLayer::allocateBuffer<pvdata_t>(pvdata_t **buf, int bufsize, const char *bufname);
+template int HyPerLayer::allocateBuffer<int>(int **buf, int bufsize, const char *bufname);
 
-int HyPerLayer::allocateRestrictedBuffer(pvdata_t ** buf, char const * bufname) {
+int HyPerLayer::allocateRestrictedBuffer(pvdata_t **buf, char const *bufname) {
    return allocateBuffer(buf, getNumNeuronsAllBatches(), bufname);
 }
 
-int HyPerLayer::allocateExtendedBuffer(pvdata_t ** buf, char const * bufname) {
+int HyPerLayer::allocateExtendedBuffer(pvdata_t **buf, char const *bufname) {
    return allocateBuffer(buf, getNumExtendedAllBatches(), bufname);
 }
 
-int HyPerLayer::allocateV() {
-   return allocateRestrictedBuffer(&clayer->V, "membrane potential V");
-}
+int HyPerLayer::allocateV() { return allocateRestrictedBuffer(&clayer->V, "membrane potential V"); }
 
 int HyPerLayer::allocateActivity() {
    clayer->activity = pvcube_new(&clayer->loc, getNumExtendedAllBatches());
-   return clayer->activity!=NULL ? PV_SUCCESS : PV_FAILURE;
+   return clayer->activity != NULL ? PV_SUCCESS : PV_FAILURE;
 }
 
 int HyPerLayer::allocatePrevActivity() {
    return allocateExtendedBuffer(&clayer->prevActivity, "time of previous activity");
 }
 
-int HyPerLayer::setLayerLoc(PVLayerLoc * layerLoc, float nxScale, float nyScale, int nf, int numBatches)
-{
+int HyPerLayer::setLayerLoc(
+      PVLayerLoc *layerLoc,
+      float nxScale,
+      float nyScale,
+      int nf,
+      int numBatches) {
    int status = PV_SUCCESS;
 
-   Communicator * icComm = parent->getCommunicator();
+   Communicator *icComm = parent->getCommunicator();
 
    float nxglobalfloat = nxScale * parent->getNxGlobal();
-   layerLoc->nxGlobal = (int) nearbyintf(nxglobalfloat);
-   if (fabs(nxglobalfloat-layerLoc->nxGlobal)>0.0001) {
-      if (parent->columnId()==0) {
+   layerLoc->nxGlobal  = (int)nearbyintf(nxglobalfloat);
+   if (fabs(nxglobalfloat - layerLoc->nxGlobal) > 0.0001) {
+      if (parent->columnId() == 0) {
          pvErrorNoExit(errorMessage);
-         errorMessage.printf("nxScale of layer \"%s\" is incompatible with size of column.\n", getName());
-         errorMessage.printf("Column nx %d multiplied by nxScale %f must be an integer.\n",
-               (double)parent->getNxGlobal(), (double)nxScale);
+         errorMessage.printf(
+               "nxScale of layer \"%s\" is incompatible with size of column.\n", getName());
+         errorMessage.printf(
+               "Column nx %d multiplied by nxScale %f must be an integer.\n",
+               (double)parent->getNxGlobal(),
+               (double)nxScale);
       }
       status = PV_FAILURE;
    }
 
    float nyglobalfloat = nyScale * parent->getNyGlobal();
-   layerLoc->nyGlobal = (int) nearbyintf(nyglobalfloat);
-   if (fabs(nyglobalfloat-layerLoc->nyGlobal)>0.0001) {
-      if (parent->columnId()==0) {
+   layerLoc->nyGlobal  = (int)nearbyintf(nyglobalfloat);
+   if (fabs(nyglobalfloat - layerLoc->nyGlobal) > 0.0001) {
+      if (parent->columnId() == 0) {
          pvErrorNoExit(errorMessage);
-         errorMessage.printf("nyScale of layer \"%s\" is incompatible with size of column.\n", getName());
-         errorMessage.printf("Column ny %d multiplied by nyScale %f must be an integer.\n",
-               (double)parent->getNyGlobal(), (double)nyScale);
+         errorMessage.printf(
+               "nyScale of layer \"%s\" is incompatible with size of column.\n", getName());
+         errorMessage.printf(
+               "Column ny %d multiplied by nyScale %f must be an integer.\n",
+               (double)parent->getNyGlobal(),
+               (double)nyScale);
       }
       status = PV_FAILURE;
    }
@@ -409,26 +429,39 @@ int HyPerLayer::setLayerLoc(PVLayerLoc * layerLoc, float nxScale, float nyScale,
    //
 
    if (layerLoc->nxGlobal % icComm->numCommColumns() != 0) {
-      if (parent->columnId()==0) {
+      if (parent->columnId() == 0) {
          pvErrorNoExit(errorMessage);
-         errorMessage.printf("Size of HyPerLayer \"%s\" is not  compatible with the mpi configuration.\n", name);
-         errorMessage.printf("The layer has %d pixels horizontally, and there are %d mpi processes in a row, but %d does not divide %d.\n",
-               layerLoc->nxGlobal, icComm->numCommColumns(), icComm->numCommColumns(), layerLoc->nxGlobal);
+         errorMessage.printf(
+               "Size of HyPerLayer \"%s\" is not  compatible with the mpi configuration.\n", name);
+         errorMessage.printf(
+               "The layer has %d pixels horizontally, and there are %d mpi processes in a row, but "
+               "%d does not divide %d.\n",
+               layerLoc->nxGlobal,
+               icComm->numCommColumns(),
+               icComm->numCommColumns(),
+               layerLoc->nxGlobal);
       }
       status = PV_FAILURE;
    }
    if (layerLoc->nyGlobal % icComm->numCommRows() != 0) {
-      if (parent->columnId()==0) {
+      if (parent->columnId() == 0) {
          pvErrorNoExit(errorMessage);
-         errorMessage.printf("Size of HyPerLayer \"%s\" is not  compatible with the mpi configuration.\n", name);
-         errorMessage.printf("The layer has %d pixels vertically, and there are %d mpi processes in a column, but %d does not divide %d.\n",
-               layerLoc->nyGlobal, icComm->numCommRows(), icComm->numCommRows(), layerLoc->nyGlobal);
+         errorMessage.printf(
+               "Size of HyPerLayer \"%s\" is not  compatible with the mpi configuration.\n", name);
+         errorMessage.printf(
+               "The layer has %d pixels vertically, and there are %d mpi processes in a column, "
+               "but %d does not divide %d.\n",
+               layerLoc->nyGlobal,
+               icComm->numCommRows(),
+               icComm->numCommRows(),
+               layerLoc->nyGlobal);
       }
       status = PV_FAILURE;
    }
-   MPI_Barrier(icComm->communicator()); // If there is an error, make sure that MPI doesn't kill the run before process 0 reports the error.
+   MPI_Barrier(icComm->communicator()); // If there is an error, make sure that MPI doesn't kill the
+   // run before process 0 reports the error.
    if (status != PV_SUCCESS) {
-      if (parent->columnId()==0) {
+      if (parent->columnId() == 0) {
          pvErrorNoExit().printf("setLayerLoc failed for %s.\n", getDescription_c());
       }
       exit(EXIT_FAILURE);
@@ -445,21 +478,22 @@ int HyPerLayer::setLayerLoc(PVLayerLoc * layerLoc, float nxScale, float nyScale,
 
    layerLoc->nbatch = numBatches;
 
-   layerLoc->kb0 = parent->commBatch() * numBatches;
+   layerLoc->kb0          = parent->commBatch() * numBatches;
    layerLoc->nbatchGlobal = parent->numCommBatches() * numBatches;
 
    // halo is set in calls to updateClayerMargin
-   layerLoc->halo.lt = 0; // margin;
-   layerLoc->halo.rt = 0; // margin;
-   layerLoc->halo.dn = 0; // margin;
-   layerLoc->halo.up = 0; // margin;
+   layerLoc->halo.lt = 0;
+   layerLoc->halo.rt = 0;
+   layerLoc->halo.dn = 0;
+   layerLoc->halo.up = 0;
 
    return 0;
 }
 
 void HyPerLayer::calcNumExtended() {
-   PVLayerLoc const * loc = getLayerLoc();
-   clayer->numExtended = (loc->nx+loc->halo.lt+loc->halo.rt)*(loc->ny+loc->halo.dn+loc->halo.up)*loc->nf;
+   PVLayerLoc const *loc = getLayerLoc();
+   clayer->numExtended   = (loc->nx + loc->halo.lt + loc->halo.rt)
+                         * (loc->ny + loc->halo.dn + loc->halo.up) * loc->nf;
    clayer->numExtendedAllBatches = clayer->numExtended * loc->nbatch;
 }
 
@@ -469,23 +503,24 @@ int HyPerLayer::allocateBuffers() {
    // Typically an overriding allocateBuffers should call HyPerLayer::allocateBuffers
    // Specialized subclasses that don't use GSyn (e.g. CloneVLayer) should override
    // allocateGSyn to do nothing.
-   
+
    return allocateGSyn();
 }
 
 int HyPerLayer::allocateGSyn() {
    int status = PV_SUCCESS;
-   GSyn = NULL;
+   GSyn       = NULL;
    if (numChannels > 0) {
-      GSyn = (pvdata_t **) malloc(numChannels*sizeof(pvdata_t *));
-      if(GSyn == NULL) {
+      GSyn = (pvdata_t **)malloc(numChannels * sizeof(pvdata_t *));
+      if (GSyn == NULL) {
          status = PV_FAILURE;
          return status;
       }
 
-      GSyn[0] = (pvdata_t *) calloc(getNumNeuronsAllBatches()*numChannels, sizeof(pvdata_t));
-      // All channels allocated at once and contiguously.  resetGSynBuffers_HyPerLayer() assumes this is true, to make it easier to port to GPU.
-      if(GSyn[0] == NULL) {
+      GSyn[0] = (pvdata_t *)calloc(getNumNeuronsAllBatches() * numChannels, sizeof(pvdata_t));
+      // All channels allocated at once and contiguously.  resetGSynBuffers_HyPerLayer() assumes
+      // this is true, to make it easier to port to GPU.
+      if (GSyn[0] == NULL) {
          status = PV_FAILURE;
          return status;
       }
@@ -499,19 +534,20 @@ int HyPerLayer::allocateGSyn() {
 }
 
 void HyPerLayer::addPublisher() {
-   Communicator * icComm = parent->getCommunicator();
+   Communicator *icComm = parent->getCommunicator();
    publisher = new Publisher(icComm, clayer->activity, getNumDelayLevels(), getSparseFlag());
 }
 
 int HyPerLayer::initializeState() {
-   int status = PV_SUCCESS;
-   PVParams * params = parent->parameters();
+   int status       = PV_SUCCESS;
+   PVParams *params = parent->parameters();
 
    if (parent->getCheckpointReadFlag()) {
       double checkTime = parent->simulationTime();
       checkpointRead(parent->getCheckpointReadDir(), &checkTime);
    }
-   else if (parent->getInitializeFromCheckpointDir() && parent->getInitializeFromCheckpointDir()[0]) {
+   else if (
+         parent->getInitializeFromCheckpointDir() && parent->getInitializeFromCheckpointDir()[0]) {
       assert(!params->presentAndNotBeenRead(name, "initializeFromCheckpointFlag"));
       if (initializeFromCheckpointFlag) {
          status = readStateFromCheckpoint(parent->getInitializeFromCheckpointDir(), NULL);
@@ -531,17 +567,17 @@ int HyPerLayer::initializeState() {
 
 #ifdef PV_USE_CUDA
 int HyPerLayer::copyInitialStateToGPU() {
-   if(updateGpu){
-      float * h_V = getV();
+   if (updateGpu) {
+      float *h_V = getV();
       if (h_V != NULL) {
-         PVCuda::CudaBuffer* d_V = getDeviceV();
+         PVCuda::CudaBuffer *d_V = getDeviceV();
          assert(d_V);
          d_V->copyToDevice(h_V);
       }
 
-      PVCuda::CudaBuffer* d_activity = getDeviceActivity();
+      PVCuda::CudaBuffer *d_activity = getDeviceActivity();
       assert(d_activity);
-      float * h_activity = getCLayer()->activity->data;
+      float *h_activity = getCLayer()->activity->data;
       d_activity->copyToDevice(h_activity);
    }
    return PV_SUCCESS;
@@ -551,14 +587,15 @@ int HyPerLayer::copyInitialStateToGPU() {
 
 int HyPerLayer::setInitialValues() {
    int status = PV_SUCCESS;
-   status = initializeV();
-   if (status == PV_SUCCESS) initializeActivity();
+   status     = initializeV();
+   if (status == PV_SUCCESS)
+      initializeActivity();
    return status;
 }
 
 int HyPerLayer::initializeV() {
    int status = PV_SUCCESS;
-   if (getV()!=NULL && initVObject != NULL) {
+   if (getV() != NULL && initVObject != NULL) {
       status = initVObject->calcV(this);
    }
    return status;
@@ -569,8 +606,7 @@ int HyPerLayer::initializeActivity() {
    return status;
 }
 
-int HyPerLayer::ioParams(enum ParamsIOFlag ioFlag)
-{
+int HyPerLayer::ioParams(enum ParamsIOFlag ioFlag) {
    parent->ioParamsStartGroup(ioFlag, name);
    ioParamsFillGroup(ioFlag);
    parent->ioParamsFinishGroup(ioFlag);
@@ -609,38 +645,44 @@ int HyPerLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerLayer::ioParam_dataType(enum ParamsIOFlag ioFlag) {
-   this->getParent()->parameters()->ioParamString(ioFlag, this->getName(), "dataType", &dataTypeString, NULL, false/*warnIfAbsent*/);
-   if(dataTypeString == NULL){
-      //Default value
+   this->getParent()->parameters()->ioParamString(
+         ioFlag, this->getName(), "dataType", &dataTypeString, NULL, false /*warnIfAbsent*/);
+   if (dataTypeString == NULL) {
+      // Default value
       dataType = PV_FLOAT;
       return;
    }
-   if(!strcmp(dataTypeString, "float")){
+   if (!strcmp(dataTypeString, "float")) {
       dataType = PV_FLOAT;
    }
-   else if(!strcmp(dataTypeString, "int")){
+   else if (!strcmp(dataTypeString, "int")) {
       dataType = PV_INT;
    }
-   else{
-      pvError() << "BaseLayer \"" << name << "\": dataType not recognized, can be \"float\" or \"int\"\n";
+   else {
+      pvError() << "BaseLayer \"" << name
+                << "\": dataType not recognized, can be \"float\" or \"int\"\n";
    }
 }
 
 void HyPerLayer::ioParam_updateGpu(enum ParamsIOFlag ioFlag) {
 #ifdef PV_USE_CUDA
-   parent->parameters()->ioParamValue(ioFlag, name, "updateGpu", &updateGpu, updateGpu, true/*warnIfAbsent*/);
-#else //PV_USE_CUDA
+   parent->parameters()->ioParamValue(
+         ioFlag, name, "updateGpu", &updateGpu, updateGpu, true /*warnIfAbsent*/);
+#else // PV_USE_CUDA
    bool updateGpu = false;
-   parent->parameters()->ioParamValue(ioFlag, name, "updateGpu", &updateGpu, updateGpu, false/*warnIfAbsent*/);
-   if (ioFlag==PARAMS_IO_READ && updateGpu) {
-      if (parent->columnId()==0) {
-         pvErrorNoExit().printf("%s: updateGpu is set to true, but PetaVision was compiled without GPU acceleration.\n",
+   parent->parameters()->ioParamValue(
+         ioFlag, name, "updateGpu", &updateGpu, updateGpu, false /*warnIfAbsent*/);
+   if (ioFlag == PARAMS_IO_READ && updateGpu) {
+      if (parent->columnId() == 0) {
+         pvErrorNoExit().printf(
+               "%s: updateGpu is set to true, but PetaVision was compiled without GPU "
+               "acceleration.\n",
                getDescription_c());
       }
       MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
-#endif //PV_USE_CUDA
+#endif // PV_USE_CUDA
 }
 
 void HyPerLayer::ioParam_nxScale(enum ParamsIOFlag ioFlag) {
@@ -657,8 +699,10 @@ void HyPerLayer::ioParam_nf(enum ParamsIOFlag ioFlag) {
 
 void HyPerLayer::ioParam_phase(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValue(ioFlag, name, "phase", &phase, phase);
-   if (ioFlag == PARAMS_IO_READ && phase<0) {
-      if (parent->columnId()==0) pvError().printf("%s: phase must be >= 0 (given value was %d).\n", getDescription_c(), phase);
+   if (ioFlag == PARAMS_IO_READ && phase < 0) {
+      if (parent->columnId() == 0)
+         pvError().printf(
+               "%s: phase must be >= 0 (given value was %d).\n", getDescription_c(), phase);
    }
 }
 
@@ -669,21 +713,27 @@ void HyPerLayer::ioParam_mirrorBCflag(enum ParamsIOFlag ioFlag) {
 void HyPerLayer::ioParam_valueBC(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "mirrorBCflag"));
    if (!mirrorBCflag) {
-      parent->parameters()->ioParamValue(ioFlag, name, "valueBC", &valueBC, (pvdata_t) 0);
+      parent->parameters()->ioParamValue(ioFlag, name, "valueBC", &valueBC, (pvdata_t)0);
    }
 }
 
 void HyPerLayer::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
    assert(parent->getInitializeFromCheckpointDir());
    if (parent->getInitializeFromCheckpointDir() && parent->getInitializeFromCheckpointDir()[0]) {
-      parent->parameters()->ioParamValue(ioFlag, name, "initializeFromCheckpointFlag", &initializeFromCheckpointFlag, parent->getDefaultInitializeFromCheckpointFlag(), true/*warnIfAbsent*/);
+      parent->parameters()->ioParamValue(
+            ioFlag,
+            name,
+            "initializeFromCheckpointFlag",
+            &initializeFromCheckpointFlag,
+            parent->getDefaultInitializeFromCheckpointFlag(),
+            true /*warnIfAbsent*/);
    }
 }
 
 void HyPerLayer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       initVObject = new InitV(parent, name);
-      if( initVObject == NULL ) {
+      if (initVObject == NULL) {
          pvErrorNoExit().printf("%s: unable to create InitV object\n", getDescription_c());
          abort();
       }
@@ -694,17 +744,19 @@ void HyPerLayer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerLayer::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamString(ioFlag, name, "triggerLayerName", &triggerLayerName, NULL, false/*warnIfAbsent*/);
-   if (ioFlag==PARAMS_IO_READ) {
+   parent->parameters()->ioParamString(
+         ioFlag, name, "triggerLayerName", &triggerLayerName, NULL, false /*warnIfAbsent*/);
+   if (ioFlag == PARAMS_IO_READ) {
       if (triggerLayerName && !strcmp(name, triggerLayerName)) {
-         if (parent->columnId()==0) {
-            pvErrorNoExit().printf("%s: triggerLayerName cannot be the same as the name of the layer itself.\n",
+         if (parent->columnId() == 0) {
+            pvErrorNoExit().printf(
+                  "%s: triggerLayerName cannot be the same as the name of the layer itself.\n",
                   getDescription_c());
          }
          MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
-      triggerFlag = (triggerLayerName!=NULL && triggerLayerName[0]!='\0');
+      triggerFlag = (triggerLayerName != NULL && triggerLayerName[0] != '\0');
    }
 }
 
@@ -717,20 +769,29 @@ void HyPerLayer::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
    pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
    if (ioFlag == PARAMS_IO_READ && parent->parameters()->present(name, "triggerFlag")) {
       bool flagFromParams = false;
-      parent->parameters()->ioParamValue(ioFlag, name, "triggerFlag", &flagFromParams, flagFromParams);
-      if (parent->columnId()==0) {
+      parent->parameters()->ioParamValue(
+            ioFlag, name, "triggerFlag", &flagFromParams, flagFromParams);
+      if (parent->columnId() == 0) {
          pvWarn(triggerFlagMessage);
          triggerFlagMessage.printf("%s: triggerFlag has been deprecated.\n", getDescription_c());
-         triggerFlagMessage.printf("   If triggerLayerName is a nonempty string, triggering will be on;\n");
-         triggerFlagMessage.printf("   if triggerLayerName is empty or null, triggering will be off.\n");
-         if (parent->columnId()==0) {
+         triggerFlagMessage.printf(
+               "   If triggerLayerName is a nonempty string, triggering will be on;\n");
+         triggerFlagMessage.printf(
+               "   if triggerLayerName is empty or null, triggering will be off.\n");
+         if (parent->columnId() == 0) {
             if (flagFromParams != triggerFlag) {
                pvErrorNoExit(errorMessage);
                errorMessage.printf("triggerLayerName=", name);
-               if (triggerLayerName) { errorMessage.printf("\"%s\"", triggerLayerName); }
-               else { errorMessage.printf("NULL"); }
-               errorMessage.printf(" implies triggerFlag=%s but triggerFlag was set in params to %s\n",
-                     triggerFlag ? "true" : "false", flagFromParams ? "true" : "false");
+               if (triggerLayerName) {
+                  errorMessage.printf("\"%s\"", triggerLayerName);
+               }
+               else {
+                  errorMessage.printf("NULL");
+               }
+               errorMessage.printf(
+                     " implies triggerFlag=%s but triggerFlag was set in params to %s\n",
+                     triggerFlag ? "true" : "false",
+                     flagFromParams ? "true" : "false");
             }
          }
       }
@@ -744,10 +805,12 @@ void HyPerLayer::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
 void HyPerLayer::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
    if (triggerFlag) {
-      parent->parameters()->ioParamValue(ioFlag, name, "triggerOffset", &triggerOffset, triggerOffset);
-      if(triggerOffset < 0){
-         if (parent->columnId()==0) {
-            pvError().printf("%s: TriggerOffset (%f) must be positive\n", getDescription_c(), triggerOffset);
+      parent->parameters()->ioParamValue(
+            ioFlag, name, "triggerOffset", &triggerOffset, triggerOffset);
+      if (triggerOffset < 0) {
+         if (parent->columnId() == 0) {
+            pvError().printf(
+                  "%s: TriggerOffset (%f) must be positive\n", getDescription_c(), triggerOffset);
          }
       }
    }
@@ -755,10 +818,16 @@ void HyPerLayer::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
 void HyPerLayer::ioParam_triggerBehavior(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
    if (triggerFlag) {
-      parent->parameters()->ioParamString(ioFlag, name, "triggerBehavior", &triggerBehavior, "updateOnlyOnTrigger", true/*warnIfAbsent*/);
-      if (triggerBehavior==NULL || !strcmp(triggerBehavior, "")) {
+      parent->parameters()->ioParamString(
+            ioFlag,
+            name,
+            "triggerBehavior",
+            &triggerBehavior,
+            "updateOnlyOnTrigger",
+            true /*warnIfAbsent*/);
+      if (triggerBehavior == NULL || !strcmp(triggerBehavior, "")) {
          free(triggerBehavior);
-         triggerBehavior = strdup("updateOnlyOnTrigger");
+         triggerBehavior     = strdup("updateOnlyOnTrigger");
          triggerBehaviorType = UPDATEONLY_TRIGGER;
       }
       else if (!strcmp(triggerBehavior, "updateOnlyOnTrigger")) {
@@ -771,15 +840,19 @@ void HyPerLayer::ioParam_triggerBehavior(enum ParamsIOFlag ioFlag) {
          triggerBehaviorType = NO_TRIGGER;
       }
       else {
-         if (parent->columnId()==0) {
-            pvErrorNoExit().printf("%s: triggerBehavior=\"%s\" is unrecognized.\n",
-                  getDescription_c(), triggerBehavior);
+         if (parent->columnId() == 0) {
+            pvErrorNoExit().printf(
+                  "%s: triggerBehavior=\"%s\" is unrecognized.\n",
+                  getDescription_c(),
+                  triggerBehavior);
          }
          MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
    }
-   else { triggerBehaviorType = NO_TRIGGER; }
+   else {
+      triggerBehaviorType = NO_TRIGGER;
+   }
 }
 
 void HyPerLayer::ioParam_triggerResetLayerName(enum ParamsIOFlag ioFlag) {
@@ -787,58 +860,68 @@ void HyPerLayer::ioParam_triggerResetLayerName(enum ParamsIOFlag ioFlag) {
    if (triggerFlag) {
       assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerBehavior"));
       if (!strcmp(triggerBehavior, "resetStateOnTrigger")) {
-         parent->parameters()->ioParamStringRequired(ioFlag, name, "triggerResetLayerName", &triggerResetLayerName);
+         parent->parameters()->ioParamStringRequired(
+               ioFlag, name, "triggerResetLayerName", &triggerResetLayerName);
       }
    }
 }
 
 void HyPerLayer::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "writeStep", &writeStep, parent->getDeltaTime());
+   parent->parameters()->ioParamValue(
+         ioFlag, name, "writeStep", &writeStep, parent->getDeltaTime());
 }
 
 void HyPerLayer::ioParam_initialWriteTime(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "writeStep"));
-   if (writeStep>=0.0) {
+   if (writeStep >= 0.0) {
       double start_time = parent->getStartTime();
-      parent->parameters()->ioParamValue(ioFlag, name, "initialWriteTime", &initialWriteTime, start_time);
+      parent->parameters()->ioParamValue(
+            ioFlag, name, "initialWriteTime", &initialWriteTime, start_time);
       if (ioFlag == PARAMS_IO_READ && writeStep > 0.0 && initialWriteTime < start_time) {
          double storeInitialWriteTime = initialWriteTime;
          while (initialWriteTime < start_time) {
             initialWriteTime += writeStep;
          }
-         if (parent->columnId()==0) {
+         if (parent->columnId() == 0) {
             pvWarn(warningMessage);
-            warningMessage.printf("%s: initialWriteTime %f is earlier than start time %f.  Adjusting initialWriteTime:\n",
-                  getDescription_c(), initialWriteTime, start_time);
-            warningMessage.printf("    initialWriteTime adjusted to %f\n",initialWriteTime);
+            warningMessage.printf(
+                  "%s: initialWriteTime %f is earlier than start time %f.  Adjusting "
+                  "initialWriteTime:\n",
+                  getDescription_c(),
+                  initialWriteTime,
+                  start_time);
+            warningMessage.printf("    initialWriteTime adjusted to %f\n", initialWriteTime);
          }
       }
    }
 }
 
 void HyPerLayer::ioParam_sparseLayer(enum ParamsIOFlag ioFlag) {
-   if (ioFlag==PARAMS_IO_READ && !parent->parameters()->present(name, "sparseLayer") && parent->parameters()->present(name, "writeSparseActivity")){
+   if (ioFlag == PARAMS_IO_READ && !parent->parameters()->present(name, "sparseLayer")
+       && parent->parameters()->present(name, "writeSparseActivity")) {
       parent->parameters()->ioParamValue(ioFlag, name, "writeSparseActivity", &sparseLayer, false);
-      if (parent->columnId()==0) {
+      if (parent->columnId() == 0) {
          pvWarn().printf("writeSparseActivity is deprecated.  Use sparseLayer instead.\n");
       }
       return;
    }
    // writeSparseActivity was deprecated Nov 4, 2014
-   // When support for writeSparseActivity is removed entirely, remove the above if-statement and keep the ioParamValue call below.
+   // When support for writeSparseActivity is removed entirely, remove the above if-statement and
+   // keep the ioParamValue call below.
    parent->parameters()->ioParamValue(ioFlag, name, "sparseLayer", &sparseLayer, false);
 }
 
 void HyPerLayer::ioParam_writeSparseValues(enum ParamsIOFlag ioFlag) {
    // writeSparseActivity was deprecated Nov 4, 2014
-   if(!parent->parameters()->present(name, "sparseLayer")){
+   if (!parent->parameters()->present(name, "sparseLayer")) {
       assert(!parent->parameters()->presentAndNotBeenRead(name, "writeSparseActivity"));
    }
-   else{
+   else {
       assert(!parent->parameters()->presentAndNotBeenRead(name, "sparseLayer"));
    }
    if (sparseLayer)
-      parent->parameters()->ioParamValue(ioFlag, name, "writeSparseValues", &writeSparseValues, true/*default value*/);
+      parent->parameters()->ioParamValue(
+            ioFlag, name, "writeSparseValues", &writeSparseValues, true /*default value*/);
 }
 
 int HyPerLayer::respond(std::shared_ptr<BaseMessage const> message) {
@@ -846,27 +929,41 @@ int HyPerLayer::respond(std::shared_ptr<BaseMessage const> message) {
    if (status != PV_SUCCESS) {
       return status;
    }
-   else if (LayerUpdateStateMessage const * castMessage = dynamic_cast<LayerUpdateStateMessage const*>(message.get())) {
+   else if (
+         LayerUpdateStateMessage const *castMessage =
+               dynamic_cast<LayerUpdateStateMessage const *>(message.get())) {
       return respondLayerUpdateState(castMessage);
    }
-   else if (LayerRecvSynapticInputMessage const * castMessage = dynamic_cast<LayerRecvSynapticInputMessage const*>(message.get())) {
+   else if (
+         LayerRecvSynapticInputMessage const *castMessage =
+               dynamic_cast<LayerRecvSynapticInputMessage const *>(message.get())) {
       return respondLayerRecvSynapticInput(castMessage);
    }
 #ifdef PV_USE_CUDA
-   else if (LayerCopyFromGpuMessage const * castMessage = dynamic_cast<LayerCopyFromGpuMessage const*>(message.get())) {
+   else if (
+         LayerCopyFromGpuMessage const *castMessage =
+               dynamic_cast<LayerCopyFromGpuMessage const *>(message.get())) {
       return respondLayerCopyFromGpu(castMessage);
    }
 #endif // PV_USE_CUDA
-   else if (LayerPublishMessage const * castMessage = dynamic_cast<LayerPublishMessage const*>(message.get())) {
+   else if (
+         LayerPublishMessage const *castMessage =
+               dynamic_cast<LayerPublishMessage const *>(message.get())) {
       return respondLayerPublish(castMessage);
    }
-   else if (LayerUpdateActiveIndicesMessage const * castMessage = dynamic_cast<LayerUpdateActiveIndicesMessage const*>(message.get())) {
+   else if (
+         LayerUpdateActiveIndicesMessage const *castMessage =
+               dynamic_cast<LayerUpdateActiveIndicesMessage const *>(message.get())) {
       return respondLayerUpdateActiveIndices(castMessage);
    }
-   else if (LayerOutputStateMessage const * castMessage = dynamic_cast<LayerOutputStateMessage const*>(message.get())) {
+   else if (
+         LayerOutputStateMessage const *castMessage =
+               dynamic_cast<LayerOutputStateMessage const *>(message.get())) {
       return respondLayerOutputState(castMessage);
    }
-   else if (LayerCheckNotANumberMessage const * castMessage = dynamic_cast<LayerCheckNotANumberMessage const*>(message.get())) {
+   else if (
+         LayerCheckNotANumberMessage const *castMessage =
+               dynamic_cast<LayerCheckNotANumberMessage const *>(message.get())) {
       return respondLayerCheckNotANumber(castMessage);
    }
    else {
@@ -874,34 +971,46 @@ int HyPerLayer::respond(std::shared_ptr<BaseMessage const> message) {
    }
 }
 
-int HyPerLayer::respondLayerRecvSynapticInput(LayerRecvSynapticInputMessage const * message) {
+int HyPerLayer::respondLayerRecvSynapticInput(LayerRecvSynapticInputMessage const *message) {
    int status = PV_SUCCESS;
-   if (message->mPhase != getPhase()) { return status; }
+   if (message->mPhase != getPhase()) {
+      return status;
+   }
 #ifdef PV_USE_CUDA
-   if (message->mRecvOnGpuFlag != getRecvGpu()) { return status; }
+   if (message->mRecvOnGpuFlag != getRecvGpu()) {
+      return status;
+   }
 #endif // PV_USE_CUDA
-   resetGSynBuffers(message->mTime, message->mDeltaT);  // deltaTimeAdapt is not used
+   resetGSynBuffers(message->mTime, message->mDeltaT); // deltaTimeAdapt is not used
    message->mTimer->start();
    recvAllSynapticInput();
    message->mTimer->stop();
    return status;
 }
 
-int HyPerLayer::respondLayerUpdateState(LayerUpdateStateMessage const * message) {
+int HyPerLayer::respondLayerUpdateState(LayerUpdateStateMessage const *message) {
    int status = PV_SUCCESS;
-   if (message->mPhase != getPhase()) { return status; }
+   if (message->mPhase != getPhase()) {
+      return status;
+   }
 #ifdef PV_USE_CUDA
-   if (message->mRecvOnGpuFlag != getRecvGpu()) { return status; }
-   if (message->mUpdateOnGpuFlag != getUpdateGpu()) { return status; }
+   if (message->mRecvOnGpuFlag != getRecvGpu()) {
+      return status;
+   }
+   if (message->mUpdateOnGpuFlag != getUpdateGpu()) {
+      return status;
+   }
 #endif // PV_USE_CUDA
    status = callUpdateState(message->mTime, message->mDeltaT);
    return status;
 }
 
 #ifdef PV_USE_CUDA
-int HyPerLayer::respondLayerCopyFromGpu(LayerCopyFromGpuMessage const * message) {
+int HyPerLayer::respondLayerCopyFromGpu(LayerCopyFromGpuMessage const *message) {
    int status = PV_SUCCESS;
-   if (message->mPhase != getPhase()) { return status; }
+   if (message->mPhase != getPhase()) {
+      return status;
+   }
    message->mTimer->start();
    copyAllActivityFromDevice();
    copyAllVFromDevice();
@@ -912,28 +1021,33 @@ int HyPerLayer::respondLayerCopyFromGpu(LayerCopyFromGpuMessage const * message)
 }
 #endif // PV_USE_CUDA
 
-int HyPerLayer::respondLayerPublish(LayerPublishMessage const * message) {
+int HyPerLayer::respondLayerPublish(LayerPublishMessage const *message) {
    int status = PV_SUCCESS;
-   if (message->mPhase != getPhase()) { return status; }
+   if (message->mPhase != getPhase()) {
+      return status;
+   }
    publisher->increaseTimeLevel();
    publish(getParent()->getCommunicator(), message->mTime);
    return status;
 }
 
-int HyPerLayer::respondLayerCheckNotANumber(LayerCheckNotANumberMessage const * message) {
+int HyPerLayer::respondLayerCheckNotANumber(LayerCheckNotANumberMessage const *message) {
    int status = PV_SUCCESS;
-   if (message->mPhase != getPhase()) { return status; }
+   if (message->mPhase != getPhase()) {
+      return status;
+   }
    auto layerData = getLayerData();
-   int const N = getNumExtended();
-   for (int n=0; n<N; n++) {
+   int const N    = getNumExtended();
+   for (int n = 0; n < N; n++) {
       pvadata_t a = layerData[n];
-      if (a!=a) {
+      if (a != a) {
          status = PV_FAILURE;
       }
    }
    if (status != PV_SUCCESS) {
-      if (parent->columnId()==0) {
-         pvErrorNoExit() << getDescription() << " has not-a-number values in the activity buffer.  Exiting.\n";
+      if (parent->columnId() == 0) {
+         pvErrorNoExit() << getDescription()
+                         << " has not-a-number values in the activity buffer.  Exiting.\n";
       }
       MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -941,25 +1055,30 @@ int HyPerLayer::respondLayerCheckNotANumber(LayerCheckNotANumberMessage const * 
    return status;
 }
 
-int HyPerLayer::respondLayerUpdateActiveIndices(LayerUpdateActiveIndicesMessage const * message) {
+int HyPerLayer::respondLayerUpdateActiveIndices(LayerUpdateActiveIndicesMessage const *message) {
    int status = PV_SUCCESS;
-   if (message->mPhase != getPhase()) { return status; }
+   if (message->mPhase != getPhase()) {
+      return status;
+   }
    waitOnPublish(getParent()->getCommunicator());
    status = updateActiveIndices();
    return status;
 }
 
-int HyPerLayer::respondLayerOutputState(LayerOutputStateMessage const * message) {
+int HyPerLayer::respondLayerOutputState(LayerOutputStateMessage const *message) {
    int status = PV_SUCCESS;
-   if (message->mPhase != getPhase()) { return status; }
+   if (message->mPhase != getPhase()) {
+      return status;
+   }
    status = outputState(message->mTime); // also calls layer probes' outputState
    return status;
 }
 
 #ifdef PV_USE_CUDA
 
-int HyPerLayer::allocateUpdateKernel(){
-   pvError() << "Layer \"" << name << "\" of type " << getKeyword() << " does not support updating on gpus yet\n";
+int HyPerLayer::allocateUpdateKernel() {
+   pvError() << "Layer \"" << name << "\" of type " << getKeyword()
+             << " does not support updating on gpus yet\n";
    return -1;
 }
 
@@ -967,23 +1086,21 @@ int HyPerLayer::allocateUpdateKernel(){
  * Allocate GPU buffers.  This must be called after PVLayer data have
  * been allocated.
  */
-int HyPerLayer::allocateDeviceBuffers()
-{
+int HyPerLayer::allocateDeviceBuffers() {
    int status = 0;
 
-   
-   const size_t size    = getNumNeuronsAllBatches()  * sizeof(float);
+   const size_t size    = getNumNeuronsAllBatches() * sizeof(float);
    const size_t size_ex = getNumExtendedAllBatches() * sizeof(float);
-   
-   PVCuda::CudaDevice * device = parent->getDevice();
 
-   //Allocate based on which flags are set
-   if(allocDeviceV){
-     d_V = device->createBuffer(size, &description);
+   PVCuda::CudaDevice *device = parent->getDevice();
+
+   // Allocate based on which flags are set
+   if (allocDeviceV) {
+      d_V = device->createBuffer(size, &description);
    }
 
-   if(allocDeviceDatastore){
-     d_Datastore= device->createBuffer(size_ex, &description);
+   if (allocDeviceDatastore) {
+      d_Datastore = device->createBuffer(size_ex, &description);
       assert(d_Datastore);
 #ifdef PV_USE_CUDNN
       cudnn_Datastore = device->createBuffer(size_ex, &description);
@@ -991,18 +1108,18 @@ int HyPerLayer::allocateDeviceBuffers()
 #endif
    }
 
-   if(allocDeviceActiveIndices){
-      d_numActive = device->createBuffer(parent->getNBatch() * sizeof(long), &description);
-      d_ActiveIndices= device->createBuffer(size_ex, &description);
+   if (allocDeviceActiveIndices) {
+      d_numActive     = device->createBuffer(parent->getNBatch() * sizeof(long), &description);
+      d_ActiveIndices = device->createBuffer(size_ex, &description);
       assert(d_ActiveIndices);
    }
 
-   if(allocDeviceActivity){
+   if (allocDeviceActivity) {
       d_Activity = device->createBuffer(size_ex, &description);
    }
 
-   //d_GSyn is the entire gsyn buffer. cudnn_GSyn is only one gsyn channel
-   if(allocDeviceGSyn){
+   // d_GSyn is the entire gsyn buffer. cudnn_GSyn is only one gsyn channel
+   if (allocDeviceGSyn) {
       d_GSyn = device->createBuffer(size * numChannels, &description);
       assert(d_GSyn);
 #ifdef PV_USE_CUDNN
@@ -1015,8 +1132,7 @@ int HyPerLayer::allocateDeviceBuffers()
 
 #endif // PV_USE_CUDA
 
-int HyPerLayer::communicateInitInfo()
-{
+int HyPerLayer::communicateInitInfo() {
    // HyPerLayers need to tell the parent HyPerCol how many random number
    // seeds they need.  At the start of HyPerCol::run, the parent HyPerCol
    // calls each layer's communicateInitInfo() sequentially in a repeatable order
@@ -1031,29 +1147,35 @@ int HyPerLayer::communicateInitInfo()
    // Since all communicateInitInfo() methods are called before any allocateDataStructures()
    // methods, HyPerLayer knows its marginWidth before it has to allocate
    // anything.  So the margin width does not have to be specified in params.
-   if(triggerFlag){
+   if (triggerFlag) {
       triggerLayer = parent->getLayerFromName(triggerLayerName);
-      if (triggerLayer==NULL) {
-         if (parent->columnId()==0) {
-            pvErrorNoExit().printf("%s: triggerLayerName \"%s\" is not a layer in the HyPerCol.\n",
-                  getDescription_c(), triggerLayerName);
+      if (triggerLayer == NULL) {
+         if (parent->columnId() == 0) {
+            pvErrorNoExit().printf(
+                  "%s: triggerLayerName \"%s\" is not a layer in the HyPerCol.\n",
+                  getDescription_c(),
+                  triggerLayerName);
          }
          MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
       if (triggerBehaviorType == RESETSTATE_TRIGGER) {
-         char const * resetLayerName = NULL; // Will point to name of actual resetLayer, whether triggerResetLayerName is blank (in which case resetLayerName==triggerLayerName) or not
-         if (triggerResetLayerName==NULL || triggerResetLayerName[0]=='\0') {
-            resetLayerName = triggerLayerName;
+         char const *resetLayerName = NULL; // Will point to name of actual resetLayer, whether
+         // triggerResetLayerName is blank (in which case
+         // resetLayerName==triggerLayerName) or not
+         if (triggerResetLayerName == NULL || triggerResetLayerName[0] == '\0') {
+            resetLayerName    = triggerLayerName;
             triggerResetLayer = triggerLayer;
          }
          else {
-            resetLayerName = triggerResetLayerName;
+            resetLayerName    = triggerResetLayerName;
             triggerResetLayer = parent->getLayerFromName(triggerResetLayerName);
-            if (triggerResetLayer==NULL) {
-               if (parent->columnId()==0) {
-                  pvErrorNoExit().printf("%s: triggerResetLayerName \"%s\" is not a layer in the HyPerCol.\n",
-                        getDescription_c(), triggerResetLayerName);
+            if (triggerResetLayer == NULL) {
+               if (parent->columnId() == 0) {
+                  pvErrorNoExit().printf(
+                        "%s: triggerResetLayerName \"%s\" is not a layer in the HyPerCol.\n",
+                        getDescription_c(),
+                        triggerResetLayerName);
                }
                MPI_Barrier(parent->getCommunicator()->communicator());
                exit(EXIT_FAILURE);
@@ -1061,25 +1183,36 @@ int HyPerLayer::communicateInitInfo()
          }
          // Check that triggerResetLayer and this layer have the same (restricted) dimensions.
          // Do we need to postpone until triggerResetLayer has finished its communicateInitInfo?
-         PVLayerLoc const * triggerLoc = triggerResetLayer->getLayerLoc();
-         PVLayerLoc const * localLoc = this->getLayerLoc();
-         if (triggerLoc->nxGlobal != localLoc->nxGlobal || triggerLoc->nyGlobal != localLoc->nyGlobal || triggerLoc->nf != localLoc->nf) {
-            if (parent->columnId()==0) {
+         PVLayerLoc const *triggerLoc = triggerResetLayer->getLayerLoc();
+         PVLayerLoc const *localLoc   = this->getLayerLoc();
+         if (triggerLoc->nxGlobal != localLoc->nxGlobal
+             || triggerLoc->nyGlobal != localLoc->nyGlobal
+             || triggerLoc->nf != localLoc->nf) {
+            if (parent->columnId() == 0) {
                pvError(errorMessage);
-               errorMessage.printf("%s: triggerResetLayer \"%s\" has incompatible dimensions.\n",
-                     getDescription_c(), resetLayerName);
-               errorMessage.printf("    \"%s\" is %d-by-%d-by-%d and \"%s\" is %d-by-%d-by-%d.\n",
-                     name, localLoc->nxGlobal, localLoc->nyGlobal, localLoc->nf,
-                     resetLayerName, triggerLoc->nxGlobal, triggerLoc->nyGlobal, triggerLoc->nf);
+               errorMessage.printf(
+                     "%s: triggerResetLayer \"%s\" has incompatible dimensions.\n",
+                     getDescription_c(),
+                     resetLayerName);
+               errorMessage.printf(
+                     "    \"%s\" is %d-by-%d-by-%d and \"%s\" is %d-by-%d-by-%d.\n",
+                     name,
+                     localLoc->nxGlobal,
+                     localLoc->nyGlobal,
+                     localLoc->nf,
+                     resetLayerName,
+                     triggerLoc->nxGlobal,
+                     triggerLoc->nyGlobal,
+                     triggerLoc->nf);
             }
          }
       }
    }
 
 #ifdef PV_USE_CUDA
-   //Here, the connection tells all participating recev layers to allocate memory on gpu
-   //if receive from gpu is set. These buffers should be set in allocate
-   if(updateGpu){
+   // Here, the connection tells all participating recev layers to allocate memory on gpu
+   // if receive from gpu is set. These buffers should be set in allocate
+   if (updateGpu) {
       this->setAllocDeviceGSyn();
       this->setAllocDeviceV();
       this->setAllocDeviceActivity();
@@ -1091,35 +1224,43 @@ int HyPerLayer::communicateInitInfo()
    return status;
 }
 
-char const * HyPerLayer::getOutputStatePath() {
+char const *HyPerLayer::getOutputStatePath() {
    return outputStateStream ? outputStateStream->name : NULL;
 }
 
 int HyPerLayer::flushOutputStateStream() {
-    int status = 0;
-    if (outputStateStream && outputStateStream->fp) {
-        status = fflush(outputStateStream->fp);
-    }
-    else {
-        status = EOF;
-        errno = EBADF;
-    }
-    return status;
+   int status = 0;
+   if (outputStateStream && outputStateStream->fp) {
+      status = fflush(outputStateStream->fp);
+   }
+   else {
+      status = EOF;
+      errno  = EBADF;
+   }
+   return status;
 }
 
 int HyPerLayer::openOutputStateFile() {
-   if (writeStep<0) { ioAppend = false; return PV_SUCCESS; }
+   if (writeStep < 0) {
+      ioAppend = false;
+      return PV_SUCCESS;
+   }
 
-   // If the communicator's batchwidth is greater than one, each local communicator creates an outputState file.
-   // To prevent filename collisions, the global rank is inserted into the filename, just before the ".pvp" extension.
+   // If the communicator's batchwidth is greater than one, each local communicator creates an
+   // outputState file.
+   // To prevent filename collisions, the global rank is inserted into the filename, just before the
+   // ".pvp" extension.
    // If the batchwidth is one, however, there is no need to insert the global rank.
    char appendCommBatchIdx[32];
    int numCommBatches = parent->getCommunicator()->numCommBatches();
    if (numCommBatches != 1) {
       int sz = snprintf(appendCommBatchIdx, 32, "_%d", parent->commBatch());
       if (sz >= 32) {
-         pvError().printf("%s: Unable to create file name for outputState file: comm batch index %d is too long.\n",
-               getDescription_c(), parent->commBatch());
+         pvError().printf(
+               "%s: Unable to create file name for outputState file: comm batch index %d is too "
+               "long.\n",
+               getDescription_c(),
+               parent->commBatch());
       }
    }
    else { // numCommBatches is one; insert the empty string instead.
@@ -1127,40 +1268,44 @@ int HyPerLayer::openOutputStateFile() {
    }
    char filename[PV_PATH_MAX];
    char posFilename[PV_PATH_MAX];
-   int sz = snprintf(filename, PV_PATH_MAX, "%s/%s%s.pvp", parent->getOutputPath(), name, appendCommBatchIdx);
+   int sz = snprintf(
+         filename, PV_PATH_MAX, "%s/%s%s.pvp", parent->getOutputPath(), name, appendCommBatchIdx);
    if (sz >= PV_PATH_MAX) {
-      pvError().printf("%s: Unable to create file name for outputState file: file name with comm batch index %d is too long.\n",
-            getDescription_c(), parent->commBatch());
+      pvError().printf(
+            "%s: Unable to create file name for outputState file: file name with comm batch index "
+            "%d is too long.\n",
+            getDescription_c(),
+            parent->commBatch());
    }
 
    // initialize writeActivityCalls and writeSparseActivityCalls
    // only the root process needs these member variables so we don't need to do any MPI.
    int rootproc = 0;
-   if (ioAppend && parent->columnId()==rootproc) {
+   if (ioAppend && parent->columnId() == rootproc) {
       struct stat statbuffer;
       int filestatus = stat(filename, &statbuffer);
       if (filestatus == 0) {
-         if (statbuffer.st_size==(off_t) 0)
-         {
+         if (statbuffer.st_size == (off_t)0) {
             ioAppend = false;
          }
       }
       else {
-         if (errno==ENOENT) {
+         if (errno == ENOENT) {
             ioAppend = false;
          }
          else {
-            pvErrorNoExit().printf("HyPerLayer::initializeLayerId: stat \"%s\": %s\n", filename, strerror(errno));
+            pvErrorNoExit().printf(
+                  "HyPerLayer::initializeLayerId: stat \"%s\": %s\n", filename, strerror(errno));
             abort();
          }
       }
    }
-   if (ioAppend && parent->columnId()==rootproc) {
-      PV_Stream * pvstream = PV_fopen(filename,"r",false/*verifyWrites*/);
+   if (ioAppend && parent->columnId() == rootproc) {
+      PV_Stream *pvstream = PV_fopen(filename, "r", false /*verifyWrites*/);
       if (pvstream) {
          int params[NUM_BIN_PARAMS];
          int numread = PV_fread(params, sizeof(int), NUM_BIN_PARAMS, pvstream);
-         if (numread==NUM_BIN_PARAMS) {
+         if (numread == NUM_BIN_PARAMS) {
             if (sparseLayer) {
                writeActivitySparseCalls = params[INDEX_NBANDS];
             }
@@ -1174,25 +1319,28 @@ int HyPerLayer::openOutputStateFile() {
          ioAppend = false;
       }
    }
-   Communicator * icComm = parent->getCommunicator();
-   MPI_Bcast(&ioAppend, 1, MPI_INT, 0/*root*/, icComm->communicator());
+   Communicator *icComm = parent->getCommunicator();
+   MPI_Bcast(&ioAppend, 1, MPI_INT, 0 /*root*/, icComm->communicator());
    outputStateStream = pvp_open_write_file(filename, icComm, ioAppend);
    return PV_SUCCESS;
 }
 
-void HyPerLayer::synchronizeMarginWidth(HyPerLayer * layer) {
-   if (layer==this) { return; }
-   assert(layer->getLayerLoc()!=NULL && this->getLayerLoc()!=NULL);
-   HyPerLayer ** newSynchronizedMarginWidthLayers = (HyPerLayer **) calloc(numSynchronizedMarginWidthLayers+1, sizeof(HyPerLayer *));
+void HyPerLayer::synchronizeMarginWidth(HyPerLayer *layer) {
+   if (layer == this) {
+      return;
+   }
+   assert(layer->getLayerLoc() != NULL && this->getLayerLoc() != NULL);
+   HyPerLayer **newSynchronizedMarginWidthLayers =
+         (HyPerLayer **)calloc(numSynchronizedMarginWidthLayers + 1, sizeof(HyPerLayer *));
    assert(newSynchronizedMarginWidthLayers);
-   if (numSynchronizedMarginWidthLayers>0) {
-      for (int k=0; k<numSynchronizedMarginWidthLayers; k++) {
+   if (numSynchronizedMarginWidthLayers > 0) {
+      for (int k = 0; k < numSynchronizedMarginWidthLayers; k++) {
          newSynchronizedMarginWidthLayers[k] = synchronizedMarginWidthLayers[k];
       }
       free(synchronizedMarginWidthLayers);
    }
    else {
-      assert(synchronizedMarginWidthLayers==NULL);
+      assert(synchronizedMarginWidthLayers == NULL);
    }
    synchronizedMarginWidthLayers = newSynchronizedMarginWidthLayers;
    synchronizedMarginWidthLayers[numSynchronizedMarginWidthLayers] = layer;
@@ -1203,163 +1351,195 @@ void HyPerLayer::synchronizeMarginWidth(HyPerLayer * layer) {
    return;
 }
 
-int HyPerLayer::equalizeMargins(HyPerLayer * layer1, HyPerLayer * layer2) {
+int HyPerLayer::equalizeMargins(HyPerLayer *layer1, HyPerLayer *layer2) {
    int border1, border2, maxborder, result;
    int status = PV_SUCCESS;
 
-   border1 = layer1->getLayerLoc()->halo.lt;
-   border2 = layer2->getLayerLoc()->halo.lt;
+   border1   = layer1->getLayerLoc()->halo.lt;
+   border2   = layer2->getLayerLoc()->halo.lt;
    maxborder = border1 > border2 ? border1 : border2;
    layer1->requireMarginWidth(maxborder, &result, 'x');
-   if (result != maxborder) { status = PV_FAILURE; }
-   layer2->requireMarginWidth(maxborder, &result, 'x');
-   if (result != maxborder) { status = PV_FAILURE; }
-   if (status != PV_SUCCESS) {
-      pvError().printf("Error in rank %d process: unable to synchronize x-margin widths of layers \"%s\" and \"%s\" to %d\n", layer1->getParent()->columnId(), layer1->getName(), layer2->getName(), maxborder);;
+   if (result != maxborder) {
+      status = PV_FAILURE;
    }
-   assert(layer1->getLayerLoc()->halo.lt == layer2->getLayerLoc()->halo.lt &&
-          layer1->getLayerLoc()->halo.rt == layer2->getLayerLoc()->halo.rt &&
-          layer1->getLayerLoc()->halo.lt == layer1->getLayerLoc()->halo.rt &&
-          layer1->getLayerLoc()->halo.lt == maxborder);
+   layer2->requireMarginWidth(maxborder, &result, 'x');
+   if (result != maxborder) {
+      status = PV_FAILURE;
+   }
+   if (status != PV_SUCCESS) {
+      pvError().printf(
+            "Error in rank %d process: unable to synchronize x-margin widths of layers \"%s\" and "
+            "\"%s\" to %d\n",
+            layer1->getParent()->columnId(),
+            layer1->getName(),
+            layer2->getName(),
+            maxborder);
+      ;
+   }
+   assert(
+         layer1->getLayerLoc()->halo.lt == layer2->getLayerLoc()->halo.lt
+         && layer1->getLayerLoc()->halo.rt == layer2->getLayerLoc()->halo.rt
+         && layer1->getLayerLoc()->halo.lt == layer1->getLayerLoc()->halo.rt
+         && layer1->getLayerLoc()->halo.lt == maxborder);
 
-   border1 = layer1->getLayerLoc()->halo.dn;
-   border2 = layer2->getLayerLoc()->halo.dn;
+   border1   = layer1->getLayerLoc()->halo.dn;
+   border2   = layer2->getLayerLoc()->halo.dn;
    maxborder = border1 > border2 ? border1 : border2;
    layer1->requireMarginWidth(maxborder, &result, 'y');
-   if (result != maxborder) { status = PV_FAILURE; }
-   layer2->requireMarginWidth(maxborder, &result, 'y');
-   if (result != maxborder) { status = PV_FAILURE; }
-   if (status != PV_SUCCESS) {
-      pvError().printf("Error in rank %d process: unable to synchronize y-margin widths of layers \"%s\" and \"%s\" to %d\n", layer1->getParent()->columnId(), layer1->getName(), layer2->getName(), maxborder);;
+   if (result != maxborder) {
+      status = PV_FAILURE;
    }
-   assert(layer1->getLayerLoc()->halo.dn == layer2->getLayerLoc()->halo.dn &&
-          layer1->getLayerLoc()->halo.up == layer2->getLayerLoc()->halo.up &&
-          layer1->getLayerLoc()->halo.dn == layer1->getLayerLoc()->halo.up &&
-          layer1->getLayerLoc()->halo.dn == maxborder);
+   layer2->requireMarginWidth(maxborder, &result, 'y');
+   if (result != maxborder) {
+      status = PV_FAILURE;
+   }
+   if (status != PV_SUCCESS) {
+      pvError().printf(
+            "Error in rank %d process: unable to synchronize y-margin widths of layers \"%s\" and "
+            "\"%s\" to %d\n",
+            layer1->getParent()->columnId(),
+            layer1->getName(),
+            layer2->getName(),
+            maxborder);
+      ;
+   }
+   assert(
+         layer1->getLayerLoc()->halo.dn == layer2->getLayerLoc()->halo.dn
+         && layer1->getLayerLoc()->halo.up == layer2->getLayerLoc()->halo.up
+         && layer1->getLayerLoc()->halo.dn == layer1->getLayerLoc()->halo.up
+         && layer1->getLayerLoc()->halo.dn == maxborder);
    return status;
 }
 
-int HyPerLayer::allocateDataStructures()
-{
+int HyPerLayer::allocateDataStructures() {
    // Once initialize and communicateInitInfo have been called, HyPerLayer has the
    // information it needs to allocate the membrane potential buffer V, the
    // activity buffer activity->data, and the data store.
    int status = PV_SUCCESS;
 
-   //Doing this check here, since trigger layers are being set up in communicateInitInfo
-   //If the magnitude of the trigger offset is bigger than the delta update time, then error
-   if(triggerFlag){
+   // Doing this check here, since trigger layers are being set up in communicateInitInfo
+   // If the magnitude of the trigger offset is bigger than the delta update time, then error
+   if (triggerFlag) {
       double deltaUpdateTime = getDeltaUpdateTime();
-      if(deltaUpdateTime != -1 && triggerOffset >= deltaUpdateTime){ 
-         pvError().printf("%s error in rank %d process: TriggerOffset (%f) must be lower than the change in update time (%f) \n", getDescription_c(), parent->columnId(), triggerOffset, deltaUpdateTime);
+      if (deltaUpdateTime != -1 && triggerOffset >= deltaUpdateTime) {
+         pvError().printf(
+               "%s error in rank %d process: TriggerOffset (%f) must be lower than the change in "
+               "update time (%f) \n",
+               getDescription_c(),
+               parent->columnId(),
+               triggerOffset,
+               deltaUpdateTime);
       }
    }
 
    allocateClayerBuffers();
 
-   const PVLayerLoc * loc = getLayerLoc();
-   int nx = loc->nx;
-   int ny = loc->ny;
-   int nf = loc->nf;
-   PVHalo const * halo = &loc->halo;
+   const PVLayerLoc *loc = getLayerLoc();
+   int nx                = loc->nx;
+   int ny                = loc->ny;
+   int nf                = loc->nf;
+   PVHalo const *halo    = &loc->halo;
 
    // If not mirroring, fill the boundaries with the value in the valueBC param
-   if (!useMirrorBCs() && getValueBC()!=0.0f) {
+   if (!useMirrorBCs() && getValueBC() != 0.0f) {
       int idx = 0;
-      for(int batch=0; batch < loc->nbatch; batch++){
-         for (int b=0; b<halo->up; b++) {
-            for(int k=0; k<(nx+halo->lt+halo->rt)*nf; k++) {
+      for (int batch = 0; batch < loc->nbatch; batch++) {
+         for (int b = 0; b < halo->up; b++) {
+            for (int k = 0; k < (nx + halo->lt + halo->rt) * nf; k++) {
                clayer->activity->data[idx] = getValueBC();
                idx++;
             }
          }
-         for (int y=0; y<ny; y++) {
-            for(int k=0; k<halo->lt*nf; k++) {
+         for (int y = 0; y < ny; y++) {
+            for (int k = 0; k < halo->lt * nf; k++) {
                clayer->activity->data[idx] = getValueBC();
                idx++;
             }
-            idx += nx*nf;
-            for(int k=0; k<halo->rt*nf; k++) {
+            idx += nx * nf;
+            for (int k = 0; k < halo->rt * nf; k++) {
                clayer->activity->data[idx] = getValueBC();
                idx++;
             }
          }
-         for (int b=0; b<halo->dn; b++) {
-            for(int k=0; k<(nx+halo->lt+halo->rt)*nf; k++) {
+         for (int b = 0; b < halo->dn; b++) {
+            for (int k = 0; k < (nx + halo->lt + halo->rt) * nf; k++) {
                clayer->activity->data[idx] = getValueBC();
                idx++;
             }
          }
       }
-      assert(idx==getNumExtendedAllBatches());
+      assert(idx == getNumExtendedAllBatches());
    }
 
    // allocate storage for the input conductance arrays
    status = allocateBuffers();
    assert(status == PV_SUCCESS);
 
-   //Labels deprecated 6/16/15
-   //// labels are not extended
-   //labels = (int *) calloc(getNumNeurons(), sizeof(int));
-   //if (labels==NULL) {
-   //   pvErrorNoExit().printf("HyPerLayer \"%s\": rank %d unable to allocate memory for labels.\n", name, parent->columnId());
-   //   exit(EXIT_FAILURE);
-   //}
-
-   //Allocate temp buffers if needed, 1 for each thread
-   if(parent->getNumThreads() > 1){
-      thread_gSyn = (pvdata_t**) malloc(sizeof(pvdata_t*) * parent->getNumThreads());
+   // Allocate temp buffers if needed, 1 for each thread
+   if (parent->getNumThreads() > 1) {
+      thread_gSyn = (pvdata_t **)malloc(sizeof(pvdata_t *) * parent->getNumThreads());
       assert(thread_gSyn);
 
-      //Assign thread_gSyn to different points of tempMem
-      for(int i = 0; i < parent->getNumThreads(); i++){
-         pvdata_t* tempMem = (pvdata_t*) malloc(sizeof(pvdata_t) * getNumNeuronsAllBatches());
-         if(!tempMem){
-            pvError().printf("HyPerLayer \"%s\" error: rank %d unable to allocate %zu memory for thread_gSyn: %s\n", name, parent->columnId(), sizeof(pvdata_t) * getNumNeuronsAllBatches(), strerror(errno));
+      // Assign thread_gSyn to different points of tempMem
+      for (int i = 0; i < parent->getNumThreads(); i++) {
+         pvdata_t *tempMem = (pvdata_t *)malloc(sizeof(pvdata_t) * getNumNeuronsAllBatches());
+         if (!tempMem) {
+            pvError().printf(
+                  "HyPerLayer \"%s\" error: rank %d unable to allocate %zu memory for thread_gSyn: "
+                  "%s\n",
+                  name,
+                  parent->columnId(),
+                  sizeof(pvdata_t) * getNumNeuronsAllBatches(),
+                  strerror(errno));
          }
          thread_gSyn[i] = tempMem;
       }
-
    }
 
-   //Allocate cuda stuff on gpu if set
+// Allocate cuda stuff on gpu if set
 #ifdef PV_USE_CUDA
    status = allocateDeviceBuffers();
-   //Allocate receive from post kernel
-   if(status == 0){
+   // Allocate receive from post kernel
+   if (status == 0) {
       status = PV_SUCCESS;
    }
-   else{
-      pvError().printf("%s unable to allocate device memory in rank %d process: %s\n", getDescription_c(), getParent()->columnId(), strerror(errno));
+   else {
+      pvError().printf(
+            "%s unable to allocate device memory in rank %d process: %s\n",
+            getDescription_c(),
+            getParent()->columnId(),
+            strerror(errno));
    }
-   if(updateGpu){
-      //This function needs to be overwritten as needed on a subclass basis
+   if (updateGpu) {
+      // This function needs to be overwritten as needed on a subclass basis
       status = allocateUpdateKernel();
-      if(status == 0){
+      if (status == 0) {
          status = PV_SUCCESS;
       }
    }
 #endif
 
-   //Make a data structure that stores the connections (in order of execution) this layer needs to recv from
-   //CPU connections must run first to avoid race conditions
+   // Make a data structure that stores the connections (in order of execution) this layer needs to
+   // recv from
+   // CPU connections must run first to avoid race conditions
    int numConnections = parent->numberOfConnections();
-   for(int c=0; c<numConnections; c++){
-      BaseConnection * baseConn = parent->getConnection(c);
-      HyPerConn * conn = dynamic_cast<HyPerConn *>(baseConn);
-      if(conn->postSynapticLayer()!=this) continue;
+   for (int c = 0; c < numConnections; c++) {
+      BaseConnection *baseConn = parent->getConnection(c);
+      HyPerConn *conn          = dynamic_cast<HyPerConn *>(baseConn);
+      if (conn->postSynapticLayer() != this)
+         continue;
 #ifdef PV_USE_CUDA
-      //If not recv from gpu, execute first
-      if(!conn->getReceiveGpu()){
+      // If not recv from gpu, execute first
+      if (!conn->getReceiveGpu()) {
          recvConns.insert(recvConns.begin(), conn);
       }
-      //Otherwise, add to the back. If no gpus at all, just add to back
+      // Otherwise, add to the back. If no gpus at all, just add to back
       else
 #endif
       {
          recvConns.push_back(conn);
 #ifdef PV_USE_CUDA
-         //If it is receiving from gpu, set layer flag as such
+         // If it is receiving from gpu, set layer flag as such
          recvGpu = true;
 #endif
       }
@@ -1380,78 +1560,88 @@ int HyPerLayer::allocateDataStructures()
  * The routine returns the new value of numDelayLevels
  */
 int HyPerLayer::increaseDelayLevels(int neededDelay) {
-   if( numDelayLevels < neededDelay+1 ) numDelayLevels = neededDelay+1;
-   if( numDelayLevels > MAX_F_DELAY ) numDelayLevels = MAX_F_DELAY;
+   if (numDelayLevels < neededDelay + 1)
+      numDelayLevels = neededDelay + 1;
+   if (numDelayLevels > MAX_F_DELAY)
+      numDelayLevels = MAX_F_DELAY;
    return numDelayLevels;
 }
 
-int HyPerLayer::requireMarginWidth(int marginWidthNeeded, int * marginWidthResult, char axis) {
+int HyPerLayer::requireMarginWidth(int marginWidthNeeded, int *marginWidthResult, char axis) {
    // TODO: Is there a good way to handle x- and y-axis margins without so much duplication of code?
    // Navigating through the halo makes it difficult to combine cases.
-   PVLayerLoc * loc = &clayer->loc;
-   PVHalo * halo = &loc->halo;
+   PVLayerLoc *loc = &clayer->loc;
+   PVHalo *halo    = &loc->halo;
    switch (axis) {
-   case 'x':
-      *marginWidthResult = xmargin;
-      if (xmargin < marginWidthNeeded) {
-         assert(clayer);
-         if (parent->columnId()==0) {
-            pvInfo().printf("%s: adjusting x-margin width from %d to %d\n", getDescription_c(), xmargin, marginWidthNeeded);
-         }
-         xmargin = marginWidthNeeded;
-         halo->lt = xmargin;
-         halo->rt = xmargin;
-         calcNumExtended();
-         assert(axis=='x' && getLayerLoc()->halo.lt==getLayerLoc()->halo.rt);
+      case 'x':
          *marginWidthResult = xmargin;
-         if (synchronizedMarginWidthLayers != NULL) {
-            for (int k=0; k<numSynchronizedMarginWidthLayers; k++) {
-               HyPerLayer * l = synchronizedMarginWidthLayers[k];
-               if (l->getLayerLoc()->halo.lt < marginWidthNeeded) {
-                  synchronizedMarginWidthLayers[k]->requireMarginWidth(marginWidthNeeded, marginWidthResult, axis);
+         if (xmargin < marginWidthNeeded) {
+            assert(clayer);
+            if (parent->columnId() == 0) {
+               pvInfo().printf(
+                     "%s: adjusting x-margin width from %d to %d\n",
+                     getDescription_c(),
+                     xmargin,
+                     marginWidthNeeded);
+            }
+            xmargin  = marginWidthNeeded;
+            halo->lt = xmargin;
+            halo->rt = xmargin;
+            calcNumExtended();
+            assert(axis == 'x' && getLayerLoc()->halo.lt == getLayerLoc()->halo.rt);
+            *marginWidthResult = xmargin;
+            if (synchronizedMarginWidthLayers != NULL) {
+               for (int k = 0; k < numSynchronizedMarginWidthLayers; k++) {
+                  HyPerLayer *l = synchronizedMarginWidthLayers[k];
+                  if (l->getLayerLoc()->halo.lt < marginWidthNeeded) {
+                     synchronizedMarginWidthLayers[k]->requireMarginWidth(
+                           marginWidthNeeded, marginWidthResult, axis);
+                  }
+                  assert(l->getLayerLoc()->halo.lt == getLayerLoc()->halo.lt);
+                  assert(l->getLayerLoc()->halo.rt == getLayerLoc()->halo.rt);
                }
-               assert(l->getLayerLoc()->halo.lt == getLayerLoc()->halo.lt);
-               assert(l->getLayerLoc()->halo.rt == getLayerLoc()->halo.rt);
             }
          }
-      }
-      break;
-   case 'y':
-      *marginWidthResult = ymargin;
-      if (ymargin < marginWidthNeeded) {
-         assert(clayer);
-         if (parent->columnId()==0) {
-            pvInfo().printf("%s: adjusting y-margin width from %d to %d\n", getDescription_c(), ymargin, marginWidthNeeded);
-         }
-         ymargin = marginWidthNeeded;
-         halo->dn = ymargin;
-         halo->up = ymargin;
-         calcNumExtended();
-         assert(axis=='y' && getLayerLoc()->halo.dn==getLayerLoc()->halo.up);
+         break;
+      case 'y':
          *marginWidthResult = ymargin;
-         if (synchronizedMarginWidthLayers != NULL) {
-            for (int k=0; k<numSynchronizedMarginWidthLayers; k++) {
-               HyPerLayer * l = synchronizedMarginWidthLayers[k];
-               if (l->getLayerLoc()->halo.up < marginWidthNeeded) {
-                  synchronizedMarginWidthLayers[k]->requireMarginWidth(marginWidthNeeded, marginWidthResult, axis);
+         if (ymargin < marginWidthNeeded) {
+            assert(clayer);
+            if (parent->columnId() == 0) {
+               pvInfo().printf(
+                     "%s: adjusting y-margin width from %d to %d\n",
+                     getDescription_c(),
+                     ymargin,
+                     marginWidthNeeded);
+            }
+            ymargin  = marginWidthNeeded;
+            halo->dn = ymargin;
+            halo->up = ymargin;
+            calcNumExtended();
+            assert(axis == 'y' && getLayerLoc()->halo.dn == getLayerLoc()->halo.up);
+            *marginWidthResult = ymargin;
+            if (synchronizedMarginWidthLayers != NULL) {
+               for (int k = 0; k < numSynchronizedMarginWidthLayers; k++) {
+                  HyPerLayer *l = synchronizedMarginWidthLayers[k];
+                  if (l->getLayerLoc()->halo.up < marginWidthNeeded) {
+                     synchronizedMarginWidthLayers[k]->requireMarginWidth(
+                           marginWidthNeeded, marginWidthResult, axis);
+                  }
+                  assert(l->getLayerLoc()->halo.dn == getLayerLoc()->halo.dn);
+                  assert(l->getLayerLoc()->halo.up == getLayerLoc()->halo.up);
                }
-               assert(l->getLayerLoc()->halo.dn == getLayerLoc()->halo.dn);
-               assert(l->getLayerLoc()->halo.up == getLayerLoc()->halo.up);
             }
          }
-      }
-      break;
-   default:
-      assert(0);
-      break;
+         break;
+      default: assert(0); break;
    }
    return PV_SUCCESS;
 }
 
-int HyPerLayer::requireChannel(int channelNeeded, int * numChannelsResult) {
+int HyPerLayer::requireChannel(int channelNeeded, int *numChannelsResult) {
    if (channelNeeded >= numChannels) {
       int numOldChannels = numChannels;
-      numChannels = channelNeeded+1;
+      numChannels        = channelNeeded + 1;
    }
    *numChannelsResult = numChannels;
 
@@ -1462,16 +1652,14 @@ int HyPerLayer::requireChannel(int channelNeeded, int * numChannelsResult) {
  * Returns the activity data for the layer.  This data is in the
  * extended space (with margins).
  */
-const pvdata_t * HyPerLayer::getLayerData(int delay)
-{
-   DataStore * store = publisher->dataStore();
+const pvdata_t *HyPerLayer::getLayerData(int delay) {
+   DataStore *store = publisher->dataStore();
    return store->buffer(0, delay);
 }
 
-int HyPerLayer::mirrorInteriorToBorder(PVLayerCube * cube, PVLayerCube * border)
-{
-   assert( cube->numItems == border->numItems );
-   assert( localDimensionsEqual(&cube->loc,&border->loc));
+int HyPerLayer::mirrorInteriorToBorder(PVLayerCube *cube, PVLayerCube *border) {
+   assert(cube->numItems == border->numItems);
+   assert(localDimensionsEqual(&cube->loc, &border->loc));
 
    mirrorToNorthWest(border, cube);
    mirrorToNorth(border, cube);
@@ -1502,7 +1690,7 @@ double HyPerLayer::getDeltaTriggerTime() {
    }
 }
 
-bool HyPerLayer::needUpdate(double simTime, double dt){
+bool HyPerLayer::needUpdate(double simTime, double dt) {
    if (getDeltaUpdateTime() <= 0) {
       return false;
    }
@@ -1510,7 +1698,7 @@ bool HyPerLayer::needUpdate(double simTime, double dt){
       return true;
    }
    double timeToCheck = mLastUpdateTime;
-   if(triggerLayer != nullptr && triggerBehaviorType == UPDATEONLY_TRIGGER) {
+   if (triggerLayer != nullptr && triggerBehaviorType == UPDATEONLY_TRIGGER) {
       timeToCheck = triggerLayer->getLastUpdateTime();
 
       // If our target layer updates this tick, so do we
@@ -1518,8 +1706,8 @@ bool HyPerLayer::needUpdate(double simTime, double dt){
          return true;
       }
    }
-   if (simTime + triggerOffset      >= timeToCheck + getDeltaUpdateTime()
-    && simTime + triggerOffset + dt <= timeToCheck + getDeltaUpdateTime() + dt) {
+   if (simTime + triggerOffset >= timeToCheck + getDeltaUpdateTime()
+       && simTime + triggerOffset + dt <= timeToCheck + getDeltaUpdateTime() + dt) {
       return true;
    }
    return false;
@@ -1541,11 +1729,11 @@ bool HyPerLayer::needReset(double simTime, double dt) {
    return false;
 }
 
-int HyPerLayer::callUpdateState(double simTime, double dt){
+int HyPerLayer::callUpdateState(double simTime, double dt) {
    int status = PV_SUCCESS;
    if (needUpdate(simTime, dt)) {
       if (needReset(simTime, dt)) {
-         status = resetStateOnTrigger();
+         status           = resetStateOnTrigger();
          mLastTriggerTime = simTime;
       }
 
@@ -1553,7 +1741,7 @@ int HyPerLayer::callUpdateState(double simTime, double dt){
 #ifdef PV_USE_CUDA
       if (updateGpu) {
          gpu_update_timer->start();
-         pvdata_t * gSynHead = GSyn == NULL ? NULL : GSyn[0];
+         pvdata_t *gSynHead = GSyn == NULL ? NULL : GSyn[0];
          assert(updateGpu);
          status = updateStateGpu(simTime, dt);
          gpu_update_timer->stop();
@@ -1563,12 +1751,12 @@ int HyPerLayer::callUpdateState(double simTime, double dt){
          status = updateState(simTime, dt);
 #ifdef PV_USE_CUDA
       }
-      //Activity updated, set flag to true
+      // Activity updated, set flag to true
       updatedDeviceActivity  = true;
       updatedDeviceDatastore = true;
 #endif
       update_timer->stop();
-   
+
       mLastUpdateTime = simTime;
    }
    return status;
@@ -1576,155 +1764,173 @@ int HyPerLayer::callUpdateState(double simTime, double dt){
 
 int HyPerLayer::resetStateOnTrigger() {
    assert(triggerResetLayer != NULL);
-   pvpotentialdata_t * V = getV();
-   if (V==NULL) {
-      if (parent->columnId()==0) {
-         pvErrorNoExit().printf("%s: triggerBehavior is \"resetStateOnTrigger\" but layer does not have a membrane potential.\n",
+   pvpotentialdata_t *V = getV();
+   if (V == NULL) {
+      if (parent->columnId() == 0) {
+         pvErrorNoExit().printf(
+               "%s: triggerBehavior is \"resetStateOnTrigger\" but layer does not have a membrane "
+               "potential.\n",
                getDescription_c());
       }
       MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
-   pvpotentialdata_t const * resetV = triggerResetLayer->getV();
-   if (resetV!=NULL) {
-      #ifdef PV_USE_OPENMP_THREADS
-      #pragma omp parallel for
-      #endif // PV_USE_OPENMP_THREADS
-      for (int k=0; k<getNumNeuronsAllBatches(); k++) {
+   pvpotentialdata_t const *resetV = triggerResetLayer->getV();
+   if (resetV != NULL) {
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for
+#endif // PV_USE_OPENMP_THREADS
+      for (int k = 0; k < getNumNeuronsAllBatches(); k++) {
          V[k] = resetV[k];
       }
    }
    else {
-      pvadata_t const * resetA = triggerResetLayer->getActivity();
-      PVLayerLoc const * loc = triggerResetLayer->getLayerLoc();
-      PVHalo const * halo = &loc->halo;
-      for (int b = 0; b < parent->getNBatch(); b++){
-          pvadata_t const * resetABatch = resetA + (b*triggerResetLayer->getNumExtended());
-          pvpotentialdata_t * VBatch = V + (b*triggerResetLayer->getNumNeurons());
-          #ifdef PV_USE_OPENMP_THREADS
-          #pragma omp parallel for
-          #endif // PV_USE_OPENMP_THREADS
-          for (int k=0; k<getNumNeurons(); k++) {
-             int kex = kIndexExtended(k, loc->nx, loc->ny, loc->nf, halo->lt, halo->rt, halo->dn, halo->up);
-             VBatch[k] = resetABatch[kex];
-          }
+      pvadata_t const *resetA = triggerResetLayer->getActivity();
+      PVLayerLoc const *loc   = triggerResetLayer->getLayerLoc();
+      PVHalo const *halo      = &loc->halo;
+      for (int b = 0; b < parent->getNBatch(); b++) {
+         pvadata_t const *resetABatch = resetA + (b * triggerResetLayer->getNumExtended());
+         pvpotentialdata_t *VBatch    = V + (b * triggerResetLayer->getNumNeurons());
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for
+#endif // PV_USE_OPENMP_THREADS
+         for (int k = 0; k < getNumNeurons(); k++) {
+            int kex = kIndexExtended(
+                  k, loc->nx, loc->ny, loc->nf, halo->lt, halo->rt, halo->dn, halo->up);
+            VBatch[k] = resetABatch[kex];
+         }
       }
    }
 
    int status = setActivity();
 
-   //Update V on GPU after CPU V gets set
+// Update V on GPU after CPU V gets set
 #ifdef PV_USE_CUDA
-   if(updateGpu){
-       getDeviceV()->copyToDevice(V);
-       //Right now, we're setting the activity on the CPU and memsetting the GPU memory
-       //TODO calculate this on the GPU
-       getDeviceActivity()->copyToDevice(clayer->activity->data);
-       //We need to updateDeviceActivity and Datastore if we're resetting V
-       updatedDeviceActivity = true;
-       updatedDeviceDatastore = true;
+   if (updateGpu) {
+      getDeviceV()->copyToDevice(V);
+      // Right now, we're setting the activity on the CPU and memsetting the GPU memory
+      // TODO calculate this on the GPU
+      getDeviceActivity()->copyToDevice(clayer->activity->data);
+      // We need to updateDeviceActivity and Datastore if we're resetting V
+      updatedDeviceActivity  = true;
+      updatedDeviceDatastore = true;
    }
 #endif
-
-
 
    return status;
 }
 
 int HyPerLayer::resetGSynBuffers(double timef, double dt) {
    int status = PV_SUCCESS;
-   if (GSyn == NULL) return PV_SUCCESS;
-   resetGSynBuffers_HyPerLayer(parent->getNBatch(), this->getNumNeurons(), getNumChannels(), GSyn[0]); // resetGSynBuffers();
+   if (GSyn == NULL)
+      return PV_SUCCESS;
+   resetGSynBuffers_HyPerLayer(
+         parent->getNBatch(), this->getNumNeurons(), getNumChannels(), GSyn[0]);
    return status;
 }
 
-
 #ifdef PV_USE_CUDA
-int HyPerLayer::runUpdateKernel(){
+int HyPerLayer::runUpdateKernel() {
 
 #ifdef PV_USE_CUDA
    assert(updateGpu);
-   if(updatedDeviceGSyn){
+   if (updatedDeviceGSyn) {
       copyAllGSynToDevice();
       updatedDeviceGSyn = false;
    }
 
-   //V and Activity are write only buffers, so we don't need to do anything with them
+   // V and Activity are write only buffers, so we don't need to do anything with them
    assert(krUpdate);
 
-   //Sync all buffers before running
+   // Sync all buffers before running
    syncGpu();
-   
-   //Run kernel
+
+   // Run kernel
    krUpdate->run();
 #endif
 
    return PV_SUCCESS;
 }
 
-int HyPerLayer::updateStateGpu(double timef, double dt)
-{
+int HyPerLayer::updateStateGpu(double timef, double dt) {
    pvError() << "Update state for layer " << name << " is not implemented\n";
    return -1;
 }
 #endif
 
-int HyPerLayer::updateState(double timef, double dt)
-{
+int HyPerLayer::updateState(double timef, double dt) {
    // just copy accumulation buffer to membrane potential
    // and activity buffer (nonspiking)
 
-   const PVLayerLoc * loc = getLayerLoc();
-   pvdata_t *A = getCLayer()->activity->data;
-   pvdata_t *V = getV();
-   int num_channels = getNumChannels(); 
-   pvdata_t * gSynHead = GSyn == NULL ? NULL : GSyn[0];
+   const PVLayerLoc *loc = getLayerLoc();
+   pvdata_t *A           = getCLayer()->activity->data;
+   pvdata_t *V           = getV();
+   int num_channels      = getNumChannels();
+   pvdata_t *gSynHead    = GSyn == NULL ? NULL : GSyn[0];
 
-   int nx = loc->nx;
-   int ny = loc->ny;
-   int nf = loc->nf;
-   int nbatch = loc->nbatch;
-   int num_neurons = nx*ny*nf;
-   if (num_channels == 1){
+   int nx          = loc->nx;
+   int ny          = loc->ny;
+   int nf          = loc->nf;
+   int nbatch      = loc->nbatch;
+   int num_neurons = nx * ny * nf;
+   if (num_channels == 1) {
       applyGSyn_HyPerLayer1Channel(nbatch, num_neurons, V, gSynHead);
    }
-   else{
+   else {
       applyGSyn_HyPerLayer(nbatch, num_neurons, V, gSynHead);
    }
-   setActivity_HyPerLayer(nbatch, num_neurons, A, V, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
+   setActivity_HyPerLayer(
+         nbatch,
+         num_neurons,
+         A,
+         V,
+         nx,
+         ny,
+         nf,
+         loc->halo.lt,
+         loc->halo.rt,
+         loc->halo.dn,
+         loc->halo.up);
 
    return PV_SUCCESS;
 }
 
 int HyPerLayer::setActivity() {
-   const PVLayerLoc * loc = getLayerLoc();
-   return setActivity_HyPerLayer(loc->nbatch, getNumNeurons(), clayer->activity->data, getV(), loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
+   const PVLayerLoc *loc = getLayerLoc();
+   return setActivity_HyPerLayer(
+         loc->nbatch,
+         getNumNeurons(),
+         clayer->activity->data,
+         getV(),
+         loc->nx,
+         loc->ny,
+         loc->nf,
+         loc->halo.lt,
+         loc->halo.rt,
+         loc->halo.dn,
+         loc->halo.up);
 }
 
-//Updates active indices for all levels (delays) here
-int HyPerLayer::updateAllActiveIndices() {
-   return publisher->updateAllActiveIndices();
-}
-int HyPerLayer::updateActiveIndices() {
-   return publisher->updateActiveIndices();
-}
+// Updates active indices for all levels (delays) here
+int HyPerLayer::updateAllActiveIndices() { return publisher->updateAllActiveIndices(); }
+int HyPerLayer::updateActiveIndices() { return publisher->updateActiveIndices(); }
 
 int HyPerLayer::recvAllSynapticInput() {
    int status = PV_SUCCESS;
-   //Only recvAllSynapticInput if we need an update
-   if(needUpdate(parent->simulationTime(), parent->getDeltaTime())){
+   // Only recvAllSynapticInput if we need an update
+   if (needUpdate(parent->simulationTime(), parent->getDeltaTime())) {
       bool switchGpu = false;
-      //Start CPU timer here
+      // Start CPU timer here
       recvsyn_timer->start();
 
-      for (auto& conn : recvConns) {
+      for (auto &conn : recvConns) {
          pvAssert(conn != NULL);
 #ifdef PV_USE_CUDA
-         //Check if it's done with cpu connections
-         if(!switchGpu && conn->getReceiveGpu()){
-            //Copy GSyn over to GPU
+         // Check if it's done with cpu connections
+         if (!switchGpu && conn->getReceiveGpu()) {
+            // Copy GSyn over to GPU
             copyAllGSynToDevice();
-            //Start gpu timer
+            // Start gpu timer
             gpu_recvsyn_timer->start();
             switchGpu = true;
          }
@@ -1732,8 +1938,8 @@ int HyPerLayer::recvAllSynapticInput() {
          conn->deliver();
       }
 #ifdef PV_USE_CUDA
-      if(switchGpu){
-         //Stop timer
+      if (switchGpu) {
+         // Stop timer
          gpu_recvsyn_timer->stop();
       }
 #endif
@@ -1742,65 +1948,64 @@ int HyPerLayer::recvAllSynapticInput() {
    return status;
 }
 
-
 #ifdef PV_USE_CUDA
-double HyPerLayer::addGpuTimers(){
-   double simTime = 0;
+double HyPerLayer::addGpuTimers() {
+   double simTime    = 0;
    bool updateNeeded = needUpdate(parent->simulationTime(), parent->getDeltaTime());
-   if(recvGpu && updateNeeded){
+   if (recvGpu && updateNeeded) {
       simTime += gpu_recvsyn_timer->accumulateTime();
    }
-   if(updateGpu && updateNeeded){
+   if (updateGpu && updateNeeded) {
       simTime += gpu_update_timer->accumulateTime();
    }
    return simTime;
 }
 
-void HyPerLayer::syncGpu(){
-   if(recvGpu || updateGpu){
+void HyPerLayer::syncGpu() {
+   if (recvGpu || updateGpu) {
       parent->getDevice()->syncDevice();
    }
 }
 
-void HyPerLayer::copyAllGSynToDevice(){
-   if(recvGpu || updateGpu){
-      //Copy it to device
-      //Allocated as a big chunk, this should work
-      float * h_postGSyn = GSyn[0];
-     PVCuda::CudaBuffer * d_postGSyn = this->getDeviceGSyn();
+void HyPerLayer::copyAllGSynToDevice() {
+   if (recvGpu || updateGpu) {
+      // Copy it to device
+      // Allocated as a big chunk, this should work
+      float *h_postGSyn              = GSyn[0];
+      PVCuda::CudaBuffer *d_postGSyn = this->getDeviceGSyn();
       assert(d_postGSyn);
       d_postGSyn->copyToDevice(h_postGSyn);
    }
 }
 
-void HyPerLayer::copyAllGSynFromDevice(){
-   //Only copy if recving
-   if(recvGpu){
-      //Allocated as a big chunk, this should work
-      float * h_postGSyn = GSyn[0];
-      PVCuda::CudaBuffer * d_postGSyn = this->getDeviceGSyn();
+void HyPerLayer::copyAllGSynFromDevice() {
+   // Only copy if recving
+   if (recvGpu) {
+      // Allocated as a big chunk, this should work
+      float *h_postGSyn              = GSyn[0];
+      PVCuda::CudaBuffer *d_postGSyn = this->getDeviceGSyn();
       assert(d_postGSyn);
       d_postGSyn->copyFromDevice(h_postGSyn);
    }
 }
 
-void HyPerLayer::copyAllVFromDevice(){
-   //Only copy if updating
-   if(updateGpu){
-      //Allocated as a big chunk, this should work
-      float * h_V = getV();
-      PVCuda::CudaBuffer * d_V= this->getDeviceV();
+void HyPerLayer::copyAllVFromDevice() {
+   // Only copy if updating
+   if (updateGpu) {
+      // Allocated as a big chunk, this should work
+      float *h_V              = getV();
+      PVCuda::CudaBuffer *d_V = this->getDeviceV();
       assert(d_V);
       d_V->copyFromDevice(h_V);
    }
 }
 
-void HyPerLayer::copyAllActivityFromDevice(){
-   //Only copy if updating
-   if(updateGpu){
-      //Allocated as a big chunk, this should work
-      float * h_activity = getCLayer()->activity->data;
-      PVCuda::CudaBuffer * d_activity= this->getDeviceActivity();
+void HyPerLayer::copyAllActivityFromDevice() {
+   // Only copy if updating
+   if (updateGpu) {
+      // Allocated as a big chunk, this should work
+      float *h_activity              = getCLayer()->activity->data;
+      PVCuda::CudaBuffer *d_activity = this->getDeviceActivity();
       assert(d_activity);
       d_activity->copyFromDevice(h_activity);
    }
@@ -1808,24 +2013,21 @@ void HyPerLayer::copyAllActivityFromDevice(){
 
 #endif
 
-int HyPerLayer::publish(Communicator* comm, double simTime) {
+int HyPerLayer::publish(Communicator *comm, double simTime) {
    publish_timer->start();
 
    bool mirroring = useMirrorBCs();
-   mirroring = mirroring ?
-         (getLastUpdateTime() >= getParent()->simulationTime()) :
-         false;
-   if ( mirroring) {
+   mirroring      = mirroring ? (getLastUpdateTime() >= getParent()->simulationTime()) : false;
+   if (mirroring) {
       mirrorInteriorToBorder(clayer->activity, clayer->activity);
    }
-   
+
    int status = publisher->publish(simTime, mLastUpdateTime);
    publish_timer->stop();
    return status;
 }
 
-int HyPerLayer::waitOnPublish(Communicator* comm)
-{
+int HyPerLayer::waitOnPublish(Communicator *comm) {
    publish_timer->start();
 
    // wait for MPI border transfers to complete
@@ -1837,7 +2039,7 @@ int HyPerLayer::waitOnPublish(Communicator* comm)
 }
 
 /******************************************************************
- * FileIO 
+ * FileIO
  *****************************************************************/
 
 /* Inserts a new probe into an array of LayerProbes.
@@ -1845,22 +2047,31 @@ int HyPerLayer::waitOnPublish(Communicator* comm)
  *
  *
  */
-int HyPerLayer::insertProbe(LayerProbe * p)
-{
-   if(p->getTargetLayer() != this) {
-      pvWarn().printf("HyPerLayer \"%s\": insertProbe called with probe %p, whose targetLayer is not this layer.  Probe was not inserted.\n", name, p);
+int HyPerLayer::insertProbe(LayerProbe *p) {
+   if (p->getTargetLayer() != this) {
+      pvWarn().printf(
+            "HyPerLayer \"%s\": insertProbe called with probe %p, whose targetLayer is not this "
+            "layer.  Probe was not inserted.\n",
+            name,
+            p);
       return numProbes;
    }
-   for( int i=0; i<numProbes; i++ ) {
-      if( p == probes[i] ) {
-         pvWarn().printf("HyPerLayer \"%s\": insertProbe called with probe %p, which has already been inserted as probe %d.\n", name, p, i);
+   for (int i = 0; i < numProbes; i++) {
+      if (p == probes[i]) {
+         pvWarn().printf(
+               "HyPerLayer \"%s\": insertProbe called with probe %p, which has already been "
+               "inserted as probe %d.\n",
+               name,
+               p,
+               i);
          return numProbes;
       }
    }
 
-   // malloc'ing a new buffer, copying data over, and freeing the old buffer could be replaced by malloc
-   LayerProbe ** tmp;
-   tmp = (LayerProbe **) malloc((numProbes + 1) * sizeof(LayerProbe *));
+   // malloc'ing a new buffer, copying data over, and freeing the old buffer could be replaced by
+   // malloc
+   LayerProbe **tmp;
+   tmp = (LayerProbe **)malloc((numProbes + 1) * sizeof(LayerProbe *));
    assert(tmp != NULL);
 
    for (int i = 0; i < numProbes; i++) {
@@ -1868,7 +2079,7 @@ int HyPerLayer::insertProbe(LayerProbe * p)
    }
    free(probes);
 
-   probes = tmp;
+   probes            = tmp;
    probes[numProbes] = p;
 
    return ++numProbes;
@@ -1876,15 +2087,16 @@ int HyPerLayer::insertProbe(LayerProbe * p)
 
 int HyPerLayer::outputProbeParams() {
    int status = PV_SUCCESS;
-   for (int p=0; p<numProbes; p++) {
+   for (int p = 0; p < numProbes; p++) {
       int status1 = probes[p]->ioParams(PARAMS_IO_WRITE);
-      if (status1 != PV_SUCCESS) { status = PV_FAILURE; }
+      if (status1 != PV_SUCCESS) {
+         status = PV_FAILURE;
+      }
    }
    return status;
 }
 
-int HyPerLayer::outputState(double timef, bool last)
-{
+int HyPerLayer::outputState(double timef, bool last) {
    int status = PV_SUCCESS;
 
    io_timer->start();
@@ -1893,8 +2105,7 @@ int HyPerLayer::outputState(double timef, bool last)
       probes[i]->outputStateWrapper(timef, parent->getDeltaTime());
    }
 
-
-   if (timef >= (writeTime-(parent->getDeltaTime()/2)) && writeStep >= 0) {
+   if (timef >= (writeTime - (parent->getDeltaTime() / 2)) && writeStep >= 0) {
       writeTime += writeStep;
       if (sparseLayer) {
          status = writeActivitySparse(timef, writeSparseValues);
@@ -1903,98 +2114,128 @@ int HyPerLayer::outputState(double timef, bool last)
          status = writeActivity(timef);
       }
    }
-   if (status!=PV_SUCCESS) {
-      pvError().printf("%s: outputState failed on rank %d process.\n", getDescription_c(), parent->columnId());
+   if (status != PV_SUCCESS) {
+      pvError().printf(
+            "%s: outputState failed on rank %d process.\n", getDescription_c(), parent->columnId());
    }
 
    io_timer->stop();
    return status;
 }
 
-int HyPerLayer::readStateFromCheckpoint(const char * cpDir, double * timeptr) {
-   // If timeptr is NULL, the timestamps in the pvp files are ignored.  If non-null, they are compared to the value of *timeptr and
+int HyPerLayer::readStateFromCheckpoint(const char *cpDir, double *timeptr) {
+   // If timeptr is NULL, the timestamps in the pvp files are ignored.  If non-null, they are
+   // compared to the value of *timeptr and
    // a warning is issued if there is a discrepancy.
    int status = PV_SUCCESS;
-   status = readActivityFromCheckpoint(cpDir, timeptr);
-   status = readVFromCheckpoint(cpDir, timeptr);
-   status = readDelaysFromCheckpoint(cpDir, timeptr);
+   status     = readActivityFromCheckpoint(cpDir, timeptr);
+   status     = readVFromCheckpoint(cpDir, timeptr);
+   status     = readDelaysFromCheckpoint(cpDir, timeptr);
    return status;
 }
 
-int HyPerLayer::readActivityFromCheckpoint(const char * cpDir, double * timeptr) {
-   char * filename = parent->pathInCheckpoint(cpDir, getName(), "_A.pvp");
-   int status = readBufferFile(filename, parent->getCommunicator(), timeptr, &clayer->activity->data, 1, /*extended*/true, getLayerLoc());
-   assert(status==PV_SUCCESS);
+int HyPerLayer::readActivityFromCheckpoint(const char *cpDir, double *timeptr) {
+   char *filename = parent->pathInCheckpoint(cpDir, getName(), "_A.pvp");
+   int status     = readBufferFile(
+         filename,
+         parent->getCommunicator(),
+         timeptr,
+         &clayer->activity->data,
+         1,
+         /*extended*/ true,
+         getLayerLoc());
+   assert(status == PV_SUCCESS);
    free(filename);
-   assert(status==PV_SUCCESS);
+   assert(status == PV_SUCCESS);
    return status;
 }
 
-int HyPerLayer::readVFromCheckpoint(const char * cpDir, double * timeptr) {
+int HyPerLayer::readVFromCheckpoint(const char *cpDir, double *timeptr) {
    int status = PV_SUCCESS;
    if (getV() != NULL) {
-      char * filename = parent->pathInCheckpoint(cpDir, getName(), "_V.pvp");
-      pvdata_t * V = getV();
-      status = readBufferFile(filename, parent->getCommunicator(), timeptr, &V, 1, /*extended*/false, getLayerLoc());
+      char *filename = parent->pathInCheckpoint(cpDir, getName(), "_V.pvp");
+      pvdata_t *V    = getV();
+      status         = readBufferFile(
+            filename, parent->getCommunicator(), timeptr, &V, 1, /*extended*/ false, getLayerLoc());
       assert(status == PV_SUCCESS);
       free(filename);
    }
    return status;
 }
 
-int HyPerLayer::readDelaysFromCheckpoint(const char * cpDir, double * timeptr) {
-   char * filename = parent->pathInCheckpoint(cpDir, getName(), "_Delays.pvp");
-   int status = readDataStoreFromFile(filename, parent->getCommunicator(), timeptr);
+int HyPerLayer::readDelaysFromCheckpoint(const char *cpDir, double *timeptr) {
+   char *filename = parent->pathInCheckpoint(cpDir, getName(), "_Delays.pvp");
+   int status     = readDataStoreFromFile(filename, parent->getCommunicator(), timeptr);
    assert(status == PV_SUCCESS);
    free(filename);
    return status;
 }
 
-int HyPerLayer::checkpointRead(const char * cpDir, double * timeptr) {
+int HyPerLayer::checkpointRead(const char *cpDir, double *timeptr) {
    int status = readStateFromCheckpoint(cpDir, timeptr);
    if (status != PV_SUCCESS) {
-      pvError().printf("%s: rank %d process failed to read state from checkpoint directory \"%s\"\n", getDescription_c(), parent->columnId(), cpDir);
+      pvError().printf(
+            "%s: rank %d process failed to read state from checkpoint directory \"%s\"\n",
+            getDescription_c(),
+            parent->columnId(),
+            cpDir);
    }
-   Communicator * icComm = parent->getCommunicator();
-   parent->readScalarFromFile(cpDir, getName(), "lastUpdateTime", &mLastUpdateTime, parent->simulationTime()-parent->getDeltaTime());
+   Communicator *icComm = parent->getCommunicator();
+   parent->readScalarFromFile(
+         cpDir,
+         getName(),
+         "lastUpdateTime",
+         &mLastUpdateTime,
+         parent->simulationTime() - parent->getDeltaTime());
    parent->readScalarFromFile(cpDir, getName(), "nextWrite", &writeTime, writeTime);
 
    if (ioAppend) {
       long activityfilepos = 0L;
       parent->readScalarFromFile(cpDir, getName(), "filepos", &activityfilepos);
-      if (parent->columnId()==0 && outputStateStream) {
+      if (parent->columnId() == 0 && outputStateStream) {
          if (PV_fseek(outputStateStream, activityfilepos, SEEK_SET) != 0) {
-            pvErrorNoExit().printf("HyPerLayer::checkpointRead: unable to recover initial file position in activity file for layer %s\n", name);
+            pvErrorNoExit().printf(
+                  "HyPerLayer::checkpointRead: unable to recover initial file position in activity "
+                  "file for layer %s\n",
+                  name);
             abort();
          }
       }
-      int * num_calls_ptr = NULL;
-      const char * nfname = NULL;
+      int *num_calls_ptr = NULL;
+      const char *nfname = NULL;
       if (sparseLayer) {
-         nfname = "numframes_sparse";
+         nfname        = "numframes_sparse";
          num_calls_ptr = &writeActivitySparseCalls;
       }
       else {
-         nfname = "numframes";
+         nfname        = "numframes";
          num_calls_ptr = &writeActivityCalls;
       }
       parent->readScalarFromFile(cpDir, getName(), nfname, num_calls_ptr, 0);
    }
-   //Need to exchange border information since lastUpdateTime is being read from checkpoint, so no guarentee that publish will call exchange
+   // Need to exchange border information since lastUpdateTime is being read from checkpoint, so no
+   // guarentee that publish will call exchange
    status = publisher->exchangeBorders(getLayerLoc());
    status |= publisher->wait();
    assert(status == PV_SUCCESS);
-   //Update sparse indices here
+   // Update sparse indices here
    status = updateAllActiveIndices();
 
    return PV_SUCCESS;
 }
 
-template<class T>
-int HyPerLayer::readBufferFile(const char * filename, Communicator * comm, double * timeptr, T ** buffers, int numbands, bool extended, const PVLayerLoc * loc) {
-   PV_Stream * readFile = pvp_open_read_file(filename, comm);
-   int rank = comm->commRank();
-   assert( (readFile != NULL && rank == 0) || (readFile == NULL && rank != 0) );
+template <class T>
+int HyPerLayer::readBufferFile(
+      const char *filename,
+      Communicator *comm,
+      double *timeptr,
+      T **buffers,
+      int numbands,
+      bool extended,
+      const PVLayerLoc *loc) {
+   PV_Stream *readFile = pvp_open_read_file(filename, comm);
+   int rank            = comm->commRank();
+   assert((readFile != NULL && rank == 0) || (readFile == NULL && rank != 0));
    int numParams = NUM_BIN_PARAMS;
    int params[NUM_BIN_PARAMS];
    int status = pvp_read_header(readFile, comm, params, &numParams);
@@ -2002,63 +2243,86 @@ int HyPerLayer::readBufferFile(const char * filename, Communicator * comm, doubl
       read_header_err(filename, comm, numParams, params);
    }
 
-   for (int band=0; band<numbands; band++) {
-      for(int b = 0; b < loc->nbatch; b++){
-         T * bufferBatch;
-         if(extended){
-            bufferBatch = buffers[band] + b * (loc->nx + loc->halo.rt + loc->halo.lt) * (loc->ny + loc->halo.up + loc->halo.dn) * loc->nf; 
+   for (int band = 0; band < numbands; band++) {
+      for (int b = 0; b < loc->nbatch; b++) {
+         T *bufferBatch;
+         if (extended) {
+            bufferBatch = buffers[band]
+                          + b * (loc->nx + loc->halo.rt + loc->halo.lt)
+                                  * (loc->ny + loc->halo.up + loc->halo.dn) * loc->nf;
          }
-         else{
+         else {
             bufferBatch = buffers[band] + b * loc->nx * loc->ny * loc->nf;
          }
 
          double filetime = 0.0;
-         switch(params[INDEX_FILE_TYPE]) {
-         case PVP_FILE_TYPE:
-            filetime = timeFromParams(params);
-            break;
-         case PVP_ACT_FILE_TYPE:
-            status = pvp_read_time(readFile, comm, 0/*root process*/, &filetime);
-            if (status!=PV_SUCCESS) {
-               pvError().printf("HyPerLayer::readBufferFile error reading timestamp in file \"%s\"\n", filename);
-            }
-            if (rank==0) {
-               pvErrorNoExit().printf("HyPerLayer::readBufferFile: filename \"%s\" is a compressed spiking file, but this filetype has not yet been implemented in this case.\n", filename);
-            }
-            status = PV_FAILURE;
-            break;
-         case PVP_NONSPIKING_ACT_FILE_TYPE:
-            status = pvp_read_time(readFile, comm, 0/*root process*/, &filetime);
-            if (status!=PV_SUCCESS) {
-               pvError().printf("HyPerLayer::readBufferFile error reading timestamp in file \"%s\"\n", filename);
-            }
-            break;
-         case PVP_WGT_FILE_TYPE:
-         case PVP_KERNEL_FILE_TYPE:
-            if (rank==0) {
-               pvErrorNoExit().printf("HyPerLayer::readBufferFile: filename \"%s\" is a weight file (type %d) but a layer file is expected.\n", filename, params[INDEX_FILE_TYPE]);
-            }
-            status = PV_FAILURE;
-            break;
-         default:
-            if (rank==0) {
-               pvErrorNoExit().printf("HyPerLayer::readBufferFile: filename \"%s\" has unrecognized pvp file type %d\n", filename, params[INDEX_FILE_TYPE]);
-            }
-            status = PV_FAILURE;
-            break;
+         switch (params[INDEX_FILE_TYPE]) {
+            case PVP_FILE_TYPE: filetime = timeFromParams(params); break;
+            case PVP_ACT_FILE_TYPE:
+               status = pvp_read_time(readFile, comm, 0 /*root process*/, &filetime);
+               if (status != PV_SUCCESS) {
+                  pvError().printf(
+                        "HyPerLayer::readBufferFile error reading timestamp in file \"%s\"\n",
+                        filename);
+               }
+               if (rank == 0) {
+                  pvErrorNoExit().printf(
+                        "HyPerLayer::readBufferFile: filename \"%s\" is a compressed spiking file, "
+                        "but this filetype has not yet been implemented in this case.\n",
+                        filename);
+               }
+               status = PV_FAILURE;
+               break;
+            case PVP_NONSPIKING_ACT_FILE_TYPE:
+               status = pvp_read_time(readFile, comm, 0 /*root process*/, &filetime);
+               if (status != PV_SUCCESS) {
+                  pvError().printf(
+                        "HyPerLayer::readBufferFile error reading timestamp in file \"%s\"\n",
+                        filename);
+               }
+               break;
+            case PVP_WGT_FILE_TYPE:
+            case PVP_KERNEL_FILE_TYPE:
+               if (rank == 0) {
+                  pvErrorNoExit().printf(
+                        "HyPerLayer::readBufferFile: filename \"%s\" is a weight file (type %d) "
+                        "but a layer file is expected.\n",
+                        filename,
+                        params[INDEX_FILE_TYPE]);
+               }
+               status = PV_FAILURE;
+               break;
+            default:
+               if (rank == 0) {
+                  pvErrorNoExit().printf(
+                        "HyPerLayer::readBufferFile: filename \"%s\" has unrecognized pvp file "
+                        "type %d\n",
+                        filename,
+                        params[INDEX_FILE_TYPE]);
+               }
+               status = PV_FAILURE;
+               break;
          }
          if (params[INDEX_NX_PROCS] != 1 || params[INDEX_NY_PROCS] != 1) {
-            if (rank==0) {
-               pvErrorNoExit().printf("HyPerLayer::readBufferFile: file \"%s\" appears to be in an obsolete version of the .pvp format.\n", filename);
+            if (rank == 0) {
+               pvErrorNoExit().printf(
+                     "HyPerLayer::readBufferFile: file \"%s\" appears to be in an obsolete version "
+                     "of the .pvp format.\n",
+                     filename);
             }
             abort();
          }
-         if (status==PV_SUCCESS) {
-            status = scatterActivity(readFile, comm, 0/*root process*/, bufferBatch, loc, extended);
+         if (status == PV_SUCCESS) {
+            status =
+                  scatterActivity(readFile, comm, 0 /*root process*/, bufferBatch, loc, extended);
          }
-         assert(status==PV_SUCCESS);
-         if (rank==0 && timeptr && *timeptr != filetime) {
-            pvWarn().printf("\"%s\" checkpoint has timestamp %g instead of the expected value %g.\n", filename, filetime, *timeptr);
+         assert(status == PV_SUCCESS);
+         if (rank == 0 && timeptr && *timeptr != filetime) {
+            pvWarn().printf(
+                  "\"%s\" checkpoint has timestamp %g instead of the expected value %g.\n",
+                  filename,
+                  filetime,
+                  *timeptr);
          }
       }
    }
@@ -2066,13 +2330,22 @@ int HyPerLayer::readBufferFile(const char * filename, Communicator * comm, doubl
    readFile = NULL;
    return status;
 }
-// Declare the instantiations of readScalarToFile that occur in other .cpp files; otherwise you'll get linker errors.
-// template void HyPerCol::ioParamValueRequired<pvdata_t>(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, pvdata_t * value);
-template int HyPerLayer::readBufferFile<float>(const char * filename, Communicator * comm, double * timeptr, float ** buffers, int numbands, bool extended, const PVLayerLoc * loc);
+// Declare the instantiations of readScalarToFile that occur in other .cpp files; otherwise you'll
+// get linker errors.
+template int HyPerLayer::readBufferFile<float>(
+      const char *filename,
+      Communicator *comm,
+      double *timeptr,
+      float **buffers,
+      int numbands,
+      bool extended,
+      const PVLayerLoc *loc);
 
-int HyPerLayer::readDataStoreFromFile(const char * filename, Communicator * comm, double * timeptr) {
-   PV_Stream * readFile = pvp_open_read_file(filename, comm);
-   assert( (readFile != NULL && comm->commRank() == 0) || (readFile == NULL && comm->commRank() != 0) );
+int HyPerLayer::readDataStoreFromFile(const char *filename, Communicator *comm, double *timeptr) {
+   PV_Stream *readFile = pvp_open_read_file(filename, comm);
+   assert(
+         (readFile != NULL && comm->commRank() == 0)
+         || (readFile == NULL && comm->commRank() != 0));
    int numParams = NUM_BIN_PARAMS;
    int params[NUM_BIN_PARAMS];
    int status = pvp_read_header(readFile, comm, params, &numParams);
@@ -2080,24 +2353,45 @@ int HyPerLayer::readDataStoreFromFile(const char * filename, Communicator * comm
       read_header_err(filename, comm, numParams, params);
    }
    if (params[INDEX_NX_PROCS] != 1 || params[INDEX_NY_PROCS] != 1) {
-      if (comm->commRank()==0) {
-         pvErrorNoExit().printf("HyPerLayer::readBufferFile: file \"%s\" appears to be in an obsolete version of the .pvp format.\n", filename);
+      if (comm->commRank() == 0) {
+         pvErrorNoExit().printf(
+               "HyPerLayer::readBufferFile: file \"%s\" appears to be in an obsolete version of "
+               "the .pvp format.\n",
+               filename);
       }
       abort();
    }
-   DataStore * datastore = publisher->dataStore();
-   int numlevels = datastore->getNumLevels();
-   int numbuffers = datastore->getNumBuffers();
-   if (params[INDEX_NBANDS] != numlevels*numbuffers) {
-      pvError().printf("readDataStoreFromFile error reading \"%s\": number of delays + batches in file is %d, but number of delays + batches in layer is %d\n", filename, params[INDEX_NBANDS], numlevels*numbuffers);
+   DataStore *datastore = publisher->dataStore();
+   int numlevels        = datastore->getNumLevels();
+   int numbuffers       = datastore->getNumBuffers();
+   if (params[INDEX_NBANDS] != numlevels * numbuffers) {
+      pvError().printf(
+            "readDataStoreFromFile error reading \"%s\": number of delays + batches in file is %d, "
+            "but number of delays + batches in layer is %d\n",
+            filename,
+            params[INDEX_NBANDS],
+            numlevels * numbuffers);
    }
-   for (int b = 0; b < numbuffers; b++){
-      for (int l=0; l<numlevels; l++) {
+   for (int b = 0; b < numbuffers; b++) {
+      for (int l = 0; l < numlevels; l++) {
          double tlevel;
-         pvp_read_time(readFile, comm, 0/*root process*/, &tlevel);
-         datastore->setLastUpdateTime(b/*bufferId*/, l, tlevel);
-         pvdata_t * buffer = datastore->buffer(b, l);
-         int status1 = scatterActivity(readFile, comm, 0/*root process*/, buffer, getLayerLoc(), true, NULL, 0, 0, PVP_NONSPIKING_ACT_FILE_TYPE, 0); if (status1 != PV_SUCCESS) status = PV_FAILURE;
+         pvp_read_time(readFile, comm, 0 /*root process*/, &tlevel);
+         datastore->setLastUpdateTime(b /*bufferId*/, l, tlevel);
+         pvdata_t *buffer = datastore->buffer(b, l);
+         int status1      = scatterActivity(
+               readFile,
+               comm,
+               0 /*root process*/,
+               buffer,
+               getLayerLoc(),
+               true,
+               NULL,
+               0,
+               0,
+               PVP_NONSPIKING_ACT_FILE_TYPE,
+               0);
+         if (status1 != PV_SUCCESS)
+            status = PV_FAILURE;
       }
    }
    assert(status == PV_SUCCESS);
@@ -2105,20 +2399,21 @@ int HyPerLayer::readDataStoreFromFile(const char * filename, Communicator * comm
    return status;
 }
 
-int HyPerLayer::checkpointWrite(const char * cpDir) {
+int HyPerLayer::checkpointWrite(const char *cpDir) {
    // Writes checkpoint files for V, A, and datastore to files in working directory
-   Communicator * icComm = parent->getCommunicator();
-   double timed = (double) parent->simulationTime();
+   Communicator *icComm = parent->getCommunicator();
+   double timed         = (double)parent->simulationTime();
 
-   char * filename = NULL;
-   filename = parent->pathInCheckpoint(cpDir, getName(), "_A.pvp");
-   pvdata_t * A = getActivity();
-   writeBufferFile(filename, icComm, timed, &A, 1, /*extended*/true, getLayerLoc());
-   if( getV() != NULL ) {
+   char *filename = NULL;
+   filename       = parent->pathInCheckpoint(cpDir, getName(), "_A.pvp");
+   pvdata_t *A    = getActivity();
+   writeBufferFile(filename, icComm, timed, &A, 1, /*extended*/ true, getLayerLoc());
+   if (getV() != NULL) {
       free(filename);
-      filename = parent->pathInCheckpoint(cpDir, getName(), "_V.pvp");
-      pvdata_t * V = getV();
-      writeBufferFile(filename, icComm, timed, &V, /*numbands*/1, /*extended*/false, getLayerLoc());
+      filename    = parent->pathInCheckpoint(cpDir, getName(), "_V.pvp");
+      pvdata_t *V = getV();
+      writeBufferFile(
+            filename, icComm, timed, &V, /*numbands*/ 1, /*extended*/ false, getLayerLoc());
    }
    free(filename);
    filename = parent->pathInCheckpoint(cpDir, getName(), "_Delays.pvp");
@@ -2128,7 +2423,7 @@ int HyPerLayer::checkpointWrite(const char * cpDir) {
    parent->writeScalarToFile(cpDir, getName(), "lastUpdateTime", mLastUpdateTime);
    parent->writeScalarToFile(cpDir, getName(), "nextWrite", writeTime);
 
-   if (parent->columnId()==0) {
+   if (parent->columnId() == 0) {
       if (outputStateStream) {
          long activityfilepos = getPV_StreamFilepos(outputStateStream);
          parent->writeScalarToFile(cpDir, getName(), "filepos", activityfilepos);
@@ -2148,31 +2443,44 @@ int HyPerLayer::checkpointWrite(const char * cpDir) {
 }
 
 template <typename T>
-int HyPerLayer::writeBufferFile(const char * filename, Communicator * comm, double timed, T ** buffers, int numbands, bool extended, const PVLayerLoc * loc) {
-   PV_Stream * writeFile = pvp_open_write_file(filename, comm, /*append*/false);
-   assert( (writeFile != NULL && comm->commRank() == 0) || (writeFile == NULL && comm->commRank() != 0) );
+int HyPerLayer::writeBufferFile(
+      const char *filename,
+      Communicator *comm,
+      double timed,
+      T **buffers,
+      int numbands,
+      bool extended,
+      const PVLayerLoc *loc) {
+   PV_Stream *writeFile = pvp_open_write_file(filename, comm, /*append*/ false);
+   assert(
+         (writeFile != NULL && comm->commRank() == 0)
+         || (writeFile == NULL && comm->commRank() != 0));
 
-   //nbands gets multiplied by loc->nbatches in this function
-   int * params = pvp_set_nonspiking_act_params(comm, timed, loc, PV_FLOAT_TYPE, numbands);
-   assert(params && params[1]==NUM_BIN_PARAMS);
+   // nbands gets multiplied by loc->nbatches in this function
+   int *params = pvp_set_nonspiking_act_params(comm, timed, loc, PV_FLOAT_TYPE, numbands);
+   assert(params && params[1] == NUM_BIN_PARAMS);
    int status = pvp_write_header(writeFile, comm, params, NUM_BIN_PARAMS);
    if (status != PV_SUCCESS) {
       pvError().printf("HyPerLayer::writeBufferFile error writing \"%s\"\n", filename);
    }
 
-   for (int band=0; band<numbands; band++) {
-      for(int b = 0; b < loc->nbatch; b++){
-         if (writeFile != NULL) { // Root process has writeFile set to non-null; other processes to NULL.
+   for (int band = 0; band < numbands; band++) {
+      for (int b = 0; b < loc->nbatch; b++) {
+         if (writeFile
+             != NULL) { // Root process has writeFile set to non-null; other processes to NULL.
             int numwritten = PV_fwrite(&timed, sizeof(double), 1, writeFile);
             if (numwritten != 1) {
-               pvError().printf("HyPerLayer::writeBufferFile error writing timestamp to \"%s\"\n", filename);
+               pvError().printf(
+                     "HyPerLayer::writeBufferFile error writing timestamp to \"%s\"\n", filename);
             }
          }
-         T * bufferBatch;
-         if(extended){
-            bufferBatch = buffers[band] + b * (loc->nx + loc->halo.rt + loc->halo.lt) * (loc->ny + loc->halo.up + loc->halo.dn) * loc->nf; 
+         T *bufferBatch;
+         if (extended) {
+            bufferBatch = buffers[band]
+                          + b * (loc->nx + loc->halo.rt + loc->halo.lt)
+                                  * (loc->ny + loc->halo.up + loc->halo.dn) * loc->nf;
          }
-         else{
+         else {
             bufferBatch = buffers[band] + b * loc->nx * loc->ny * loc->nf;
          }
 
@@ -2184,36 +2492,49 @@ int HyPerLayer::writeBufferFile(const char * filename, Communicator * comm, doub
    writeFile = NULL;
    return status;
 }
-// Declare the instantiations of readScalarToFile that occur in other .cpp files; otherwise you'll get linker errors.
-// template void HyPerCol::ioParamValueRequired<pvdata_t>(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, pvdata_t * value);
-template int HyPerLayer::writeBufferFile<float>(const char * filename, Communicator * comm, double timed, float ** buffers, int numbands, bool extended, const PVLayerLoc * loc);
+// Declare the instantiations of readScalarToFile that occur in other .cpp files; otherwise you'll
+// get linker errors.
+template int HyPerLayer::writeBufferFile<float>(
+      const char *filename,
+      Communicator *comm,
+      double timed,
+      float **buffers,
+      int numbands,
+      bool extended,
+      const PVLayerLoc *loc);
 
-int HyPerLayer::writeDataStoreToFile(const char * filename, Communicator * comm, double timed) {
-   PV_Stream * writeFile = pvp_open_write_file(filename, comm, /*append*/false);
-   assert( (writeFile != NULL && comm->commRank() == 0) || (writeFile == NULL && comm->commRank() != 0) );
-   int numlevels = publisher->dataStore()->getNumLevels();
+int HyPerLayer::writeDataStoreToFile(const char *filename, Communicator *comm, double timed) {
+   PV_Stream *writeFile = pvp_open_write_file(filename, comm, /*append*/ false);
+   assert(
+         (writeFile != NULL && comm->commRank() == 0)
+         || (writeFile == NULL && comm->commRank() != 0));
+   int numlevels  = publisher->dataStore()->getNumLevels();
    int numbuffers = publisher->dataStore()->getNumBuffers();
    assert(numlevels == getNumDelayLevels());
-   int * params = pvp_set_nonspiking_act_params(comm, timed, getLayerLoc(), PV_FLOAT_TYPE, numlevels);
-   assert(params && params[1]==NUM_BIN_PARAMS);
+   int *params =
+         pvp_set_nonspiking_act_params(comm, timed, getLayerLoc(), PV_FLOAT_TYPE, numlevels);
+   assert(params && params[1] == NUM_BIN_PARAMS);
    int status = pvp_write_header(writeFile, comm, params, NUM_BIN_PARAMS);
    if (status != PV_SUCCESS) {
       pvError().printf("HyPerLayer::writeBufferFile error writing \"%s\"\n", filename);
    }
    free(params);
-   DataStore * datastore = publisher->dataStore();
-   for(int b = 0; b < numbuffers; b++){
-      for (int l=0; l<numlevels; l++) {
-         if (writeFile != NULL) { // Root process has writeFile set to non-null; other processes to NULL.
-            double lastUpdate = datastore->getLastUpdateTime(b/*bufferId*/, l);
-            int numwritten = PV_fwrite(&lastUpdate, sizeof(double), 1, writeFile);
+   DataStore *datastore = publisher->dataStore();
+   for (int b = 0; b < numbuffers; b++) {
+      for (int l = 0; l < numlevels; l++) {
+         if (writeFile
+             != NULL) { // Root process has writeFile set to non-null; other processes to NULL.
+            double lastUpdate = datastore->getLastUpdateTime(b /*bufferId*/, l);
+            int numwritten    = PV_fwrite(&lastUpdate, sizeof(double), 1, writeFile);
             if (numwritten != 1) {
-               pvError().printf("HyPerLayer::writeBufferFile error writing timestamp to \"%s\"\n", filename);
+               pvError().printf(
+                     "HyPerLayer::writeBufferFile error writing timestamp to \"%s\"\n", filename);
             }
          }
-         pvdata_t * buffer = datastore->buffer(b, l);
-         int status1 = gatherActivity(writeFile, comm, 0, buffer, getLayerLoc(), true/*extended*/);
-         if (status1 != PV_SUCCESS) status = PV_FAILURE;
+         pvdata_t *buffer = datastore->buffer(b, l);
+         int status1 = gatherActivity(writeFile, comm, 0, buffer, getLayerLoc(), true /*extended*/);
+         if (status1 != PV_SUCCESS)
+            status = PV_FAILURE;
       }
    }
    assert(status == PV_SUCCESS);
@@ -2222,8 +2543,8 @@ int HyPerLayer::writeDataStoreToFile(const char * filename, Communicator * comm,
    return status;
 }
 
-int HyPerLayer::writeTimers(PrintStream &stream){
-   if (parent->getCommunicator()->commRank()==0) {
+int HyPerLayer::writeTimers(PrintStream &stream) {
+   if (parent->getCommunicator()->commRank() == 0) {
       recvsyn_timer->fprint_time(stream);
       update_timer->fprint_time(stream);
 #ifdef PV_USE_CUDA
@@ -2233,17 +2554,17 @@ int HyPerLayer::writeTimers(PrintStream &stream){
       publish_timer->fprint_time(stream);
       timescale_timer->fprint_time(stream);
       io_timer->fprint_time(stream);
-      for (int p=0; p<getNumProbes(); p++){
+      for (int p = 0; p < getNumProbes(); p++) {
          getProbe(p)->writeTimer(stream);
       }
    }
    return PV_SUCCESS;
 }
 
-int HyPerLayer::writeActivitySparse(double timed, bool includeValues)
-{
-   DataStore * store = publisher->dataStore();
-   int status = PV::writeActivitySparse(outputStateStream, parent->getCommunicator(), timed, store, getLayerLoc(), includeValues);
+int HyPerLayer::writeActivitySparse(double timed, bool includeValues) {
+   DataStore *store = publisher->dataStore();
+   int status       = PV::writeActivitySparse(
+         outputStateStream, parent->getCommunicator(), timed, store, getLayerLoc(), includeValues);
 
    if (status == PV_SUCCESS) {
       status = incrementNBands(&writeActivitySparseCalls);
@@ -2252,10 +2573,10 @@ int HyPerLayer::writeActivitySparse(double timed, bool includeValues)
 }
 
 // write non-spiking activity
-int HyPerLayer::writeActivity(double timed)
-{
-   DataStore * store = publisher->dataStore();
-   int status = PV::writeActivity(outputStateStream, parent->getCommunicator(), timed, store, getLayerLoc());
+int HyPerLayer::writeActivity(double timed) {
+   DataStore *store = publisher->dataStore();
+   int status       = PV::writeActivity(
+         outputStateStream, parent->getCommunicator(), timed, store, getLayerLoc());
 
    if (status == PV_SUCCESS) {
       status = incrementNBands(&writeActivityCalls);
@@ -2263,15 +2584,16 @@ int HyPerLayer::writeActivity(double timed)
    return status;
 }
 
-int HyPerLayer::incrementNBands(int * numCalls) {
-   // Only the root process needs to maintain INDEX_NBANDS, so only the root process modifies numCalls
+int HyPerLayer::incrementNBands(int *numCalls) {
+   // Only the root process needs to maintain INDEX_NBANDS, so only the root process modifies
+   // numCalls
    // This way, writeActivityCalls does not need to be coordinated across MPI
    int status;
-   if( parent->getCommunicator()->commRank() == 0 ) {
-      assert(outputStateStream!=NULL);
-      (*numCalls) = (*numCalls) + parent->getNBatch();
+   if (parent->getCommunicator()->commRank() == 0) {
+      assert(outputStateStream != NULL);
+      (*numCalls)   = (*numCalls) + parent->getNBatch();
       long int fpos = getPV_StreamFilepos(outputStateStream);
-      PV_fseek(outputStateStream, sizeof(int)*INDEX_NBANDS, SEEK_SET);
+      PV_fseek(outputStateStream, sizeof(int) * INDEX_NBANDS, SEEK_SET);
       int intswritten = PV_fwrite(numCalls, sizeof(int), 1, outputStateStream);
       PV_fseek(outputStateStream, fpos, SEEK_SET);
       status = intswritten == 1 ? PV_SUCCESS : PV_FAILURE;
@@ -2282,44 +2604,39 @@ int HyPerLayer::incrementNBands(int * numCalls) {
    return status;
 }
 
-
-bool HyPerLayer::localDimensionsEqual(PVLayerLoc const * loc1, PVLayerLoc const * loc2) {
-   return
-         loc1->nbatch==loc2->nbatch &&
-         loc1->nx==loc2->nx &&
-         loc1->ny==loc2->ny &&
-         loc1->nf==loc2->nf &&
-         loc1->halo.lt==loc2->halo.lt &&
-         loc1->halo.rt==loc2->halo.rt &&
-         loc1->halo.dn==loc2->halo.dn &&
-         loc1->halo.up==loc2->halo.up;
+bool HyPerLayer::localDimensionsEqual(PVLayerLoc const *loc1, PVLayerLoc const *loc2) {
+   return loc1->nbatch == loc2->nbatch && loc1->nx == loc2->nx && loc1->ny == loc2->ny
+          && loc1->nf == loc2->nf && loc1->halo.lt == loc2->halo.lt
+          && loc1->halo.rt == loc2->halo.rt && loc1->halo.dn == loc2->halo.dn
+          && loc1->halo.up == loc2->halo.up;
 }
 
-int HyPerLayer::mirrorToNorthWest(PVLayerCube * dest, PVLayerCube * src)
-{
-   if (!localDimensionsEqual(&dest->loc, &src->loc)) { return -1; }
-   int nbatch = dest->loc.nbatch;
-   int nf = dest->loc.nf;
+int HyPerLayer::mirrorToNorthWest(PVLayerCube *dest, PVLayerCube *src) {
+   if (!localDimensionsEqual(&dest->loc, &src->loc)) {
+      return -1;
+   }
+   int nbatch     = dest->loc.nbatch;
+   int nf         = dest->loc.nf;
    int leftBorder = dest->loc.halo.lt;
-   int topBorder = dest->loc.halo.up;
-   size_t sb = strideBExtended(&dest->loc);
-   size_t sf = strideFExtended(&dest->loc);
-   size_t sx = strideXExtended(&dest->loc);
-   size_t sy = strideYExtended(&dest->loc);
+   int topBorder  = dest->loc.halo.up;
+   size_t sb      = strideBExtended(&dest->loc);
+   size_t sf      = strideFExtended(&dest->loc);
+   size_t sx      = strideXExtended(&dest->loc);
+   size_t sy      = strideYExtended(&dest->loc);
 
-   for(int b=0; b<nbatch; b++){
-      pvdata_t* srcData = src->data + b*sb ;
-      pvdata_t* destData = dest->data + b*sb;
+   for (int b = 0; b < nbatch; b++) {
+      pvdata_t *srcData  = src->data + b * sb;
+      pvdata_t *destData = dest->data + b * sb;
 
-      pvdata_t * src0 = srcData+ topBorder*sy + leftBorder*sx;
-      pvdata_t * dst0 = srcData+ (topBorder - 1)*sy + (leftBorder - 1)*sx;
+      pvdata_t *src0 = srcData + topBorder * sy + leftBorder * sx;
+      pvdata_t *dst0 = srcData + (topBorder - 1) * sy + (leftBorder - 1) * sx;
 
       for (int ky = 0; ky < topBorder; ky++) {
-         pvdata_t * to   = dst0 - ky*sy;
-         pvdata_t * from = src0 + ky*sy;
+         pvdata_t *to   = dst0 - ky * sy;
+         pvdata_t *from = src0 + ky * sy;
          for (int kx = 0; kx < leftBorder; kx++) {
             for (int kf = 0; kf < nf; kf++) {
-               to[kf*sf] = from[kf*sf];
+               to[kf * sf] = from[kf * sf];
             }
             to -= nf;
             from += nf;
@@ -2329,31 +2646,32 @@ int HyPerLayer::mirrorToNorthWest(PVLayerCube * dest, PVLayerCube * src)
    return 0;
 }
 
-int HyPerLayer::mirrorToNorth(PVLayerCube * dest, PVLayerCube * src)
-{
-   if (!localDimensionsEqual(&dest->loc, &src->loc)) { return -1; }
-   int nx = clayer->loc.nx;
-   int nf = clayer->loc.nf;
+int HyPerLayer::mirrorToNorth(PVLayerCube *dest, PVLayerCube *src) {
+   if (!localDimensionsEqual(&dest->loc, &src->loc)) {
+      return -1;
+   }
+   int nx         = clayer->loc.nx;
+   int nf         = clayer->loc.nf;
    int leftBorder = dest->loc.halo.lt;
-   int topBorder = dest->loc.halo.up;
-   int nbatch = dest->loc.nbatch;
-   size_t sb = strideBExtended(&dest->loc);
-   size_t sf = strideFExtended(&dest->loc);
-   size_t sx = strideXExtended(&dest->loc);
-   size_t sy = strideYExtended(&dest->loc);
+   int topBorder  = dest->loc.halo.up;
+   int nbatch     = dest->loc.nbatch;
+   size_t sb      = strideBExtended(&dest->loc);
+   size_t sf      = strideFExtended(&dest->loc);
+   size_t sx      = strideXExtended(&dest->loc);
+   size_t sy      = strideYExtended(&dest->loc);
 
-   for(int b=0; b<nbatch; b++){
-      pvdata_t* srcData = src->data + b*sb ;
-      pvdata_t* destData = dest->data + b*sb;
-      pvdata_t * src0 = srcData+ topBorder*sy + leftBorder*sx;
-      pvdata_t * dst0 = destData+ (topBorder-1)*sy + leftBorder*sx;
+   for (int b = 0; b < nbatch; b++) {
+      pvdata_t *srcData  = src->data + b * sb;
+      pvdata_t *destData = dest->data + b * sb;
+      pvdata_t *src0     = srcData + topBorder * sy + leftBorder * sx;
+      pvdata_t *dst0     = destData + (topBorder - 1) * sy + leftBorder * sx;
 
       for (int ky = 0; ky < topBorder; ky++) {
-         pvdata_t * to   = dst0 - ky*sy;
-         pvdata_t * from = src0 + ky*sy;
+         pvdata_t *to   = dst0 - ky * sy;
+         pvdata_t *from = src0 + ky * sy;
          for (int kx = 0; kx < nx; kx++) {
             for (int kf = 0; kf < nf; kf++) {
-               to[kf*sf] = from[kf*sf];
+               to[kf * sf] = from[kf * sf];
             }
             to += nf;
             from += nf;
@@ -2363,32 +2681,33 @@ int HyPerLayer::mirrorToNorth(PVLayerCube * dest, PVLayerCube * src)
    return 0;
 }
 
-int HyPerLayer::mirrorToNorthEast(PVLayerCube* dest, PVLayerCube* src)
-{
-   if (!localDimensionsEqual(&dest->loc, &src->loc)) { return -1; }
-   int nx = dest->loc.nx;
-   int nf = dest->loc.nf;
-   int leftBorder = dest->loc.halo.lt;
+int HyPerLayer::mirrorToNorthEast(PVLayerCube *dest, PVLayerCube *src) {
+   if (!localDimensionsEqual(&dest->loc, &src->loc)) {
+      return -1;
+   }
+   int nx          = dest->loc.nx;
+   int nf          = dest->loc.nf;
+   int leftBorder  = dest->loc.halo.lt;
    int rightBorder = dest->loc.halo.rt;
-   int topBorder = dest->loc.halo.up;
-   int nbatch = dest->loc.nbatch;
-   size_t sb = strideBExtended(&dest->loc);
-   size_t sf = strideFExtended(&dest->loc);
-   size_t sx = strideXExtended(&dest->loc);
-   size_t sy = strideYExtended(&dest->loc);
+   int topBorder   = dest->loc.halo.up;
+   int nbatch      = dest->loc.nbatch;
+   size_t sb       = strideBExtended(&dest->loc);
+   size_t sf       = strideFExtended(&dest->loc);
+   size_t sx       = strideXExtended(&dest->loc);
+   size_t sy       = strideYExtended(&dest->loc);
 
-   for(int b=0; b<nbatch; b++){
-      pvdata_t* srcData = src->data + b*sb ;
-      pvdata_t* destData = dest->data + b*sb;
-      pvdata_t * src0 = srcData + topBorder*sy + (nx + leftBorder - 1)*sx;
-      pvdata_t * dst0 = destData + (topBorder-1)*sy + (nx + leftBorder)*sx;
+   for (int b = 0; b < nbatch; b++) {
+      pvdata_t *srcData  = src->data + b * sb;
+      pvdata_t *destData = dest->data + b * sb;
+      pvdata_t *src0     = srcData + topBorder * sy + (nx + leftBorder - 1) * sx;
+      pvdata_t *dst0     = destData + (topBorder - 1) * sy + (nx + leftBorder) * sx;
 
       for (int ky = 0; ky < topBorder; ky++) {
-         pvdata_t * to   = dst0 - ky*sy;
-         pvdata_t * from = src0 + ky*sy;
+         pvdata_t *to   = dst0 - ky * sy;
+         pvdata_t *from = src0 + ky * sy;
          for (int kx = 0; kx < rightBorder; kx++) {
             for (int kf = 0; kf < nf; kf++) {
-               to[kf*sf] = from[kf*sf];
+               to[kf * sf] = from[kf * sf];
             }
             to += nf;
             from -= nf;
@@ -2398,31 +2717,32 @@ int HyPerLayer::mirrorToNorthEast(PVLayerCube* dest, PVLayerCube* src)
    return 0;
 }
 
-int HyPerLayer::mirrorToWest(PVLayerCube* dest, PVLayerCube* src)
-{
-   if (!localDimensionsEqual(&dest->loc, &src->loc)) { return -1; }
-   int ny = dest->loc.ny;
-   int nf = dest->loc.nf;
+int HyPerLayer::mirrorToWest(PVLayerCube *dest, PVLayerCube *src) {
+   if (!localDimensionsEqual(&dest->loc, &src->loc)) {
+      return -1;
+   }
+   int ny         = dest->loc.ny;
+   int nf         = dest->loc.nf;
    int leftBorder = dest->loc.halo.lt;
-   int topBorder = dest->loc.halo.up;
-   int nbatch = dest->loc.nbatch;
-   size_t sb = strideBExtended(&dest->loc);
-   size_t sf = strideFExtended(&dest->loc);
-   size_t sx = strideXExtended(&dest->loc);
-   size_t sy = strideYExtended(&dest->loc);
+   int topBorder  = dest->loc.halo.up;
+   int nbatch     = dest->loc.nbatch;
+   size_t sb      = strideBExtended(&dest->loc);
+   size_t sf      = strideFExtended(&dest->loc);
+   size_t sx      = strideXExtended(&dest->loc);
+   size_t sy      = strideYExtended(&dest->loc);
 
-   for(int b=0; b<nbatch; b++){
-      pvdata_t* srcData = src->data + b*sb ;
-      pvdata_t* destData = dest->data + b*sb;
-      pvdata_t * src0 = srcData + topBorder*sy + leftBorder*sx;
-      pvdata_t * dst0 = destData + topBorder*sy + (leftBorder - 1)*sx;
+   for (int b = 0; b < nbatch; b++) {
+      pvdata_t *srcData  = src->data + b * sb;
+      pvdata_t *destData = dest->data + b * sb;
+      pvdata_t *src0     = srcData + topBorder * sy + leftBorder * sx;
+      pvdata_t *dst0     = destData + topBorder * sy + (leftBorder - 1) * sx;
 
       for (int ky = 0; ky < ny; ky++) {
-         pvdata_t * to   = dst0 + ky*sy;
-         pvdata_t * from = src0 + ky*sy;
+         pvdata_t *to   = dst0 + ky * sy;
+         pvdata_t *from = src0 + ky * sy;
          for (int kx = 0; kx < leftBorder; kx++) {
             for (int kf = 0; kf < nf; kf++) {
-               to[kf*sf] = from[kf*sf];
+               to[kf * sf] = from[kf * sf];
             }
             to -= nf;
             from += nf;
@@ -2432,33 +2752,34 @@ int HyPerLayer::mirrorToWest(PVLayerCube* dest, PVLayerCube* src)
    return 0;
 }
 
-int HyPerLayer::mirrorToEast(PVLayerCube* dest, PVLayerCube* src)
-{
-   if (!localDimensionsEqual(&dest->loc, &src->loc)) { return -1; }
-   int nx = clayer->loc.nx;
-   int ny = clayer->loc.ny;
-   int nf = clayer->loc.nf;
-   int leftBorder = dest->loc.halo.lt;
+int HyPerLayer::mirrorToEast(PVLayerCube *dest, PVLayerCube *src) {
+   if (!localDimensionsEqual(&dest->loc, &src->loc)) {
+      return -1;
+   }
+   int nx          = clayer->loc.nx;
+   int ny          = clayer->loc.ny;
+   int nf          = clayer->loc.nf;
+   int leftBorder  = dest->loc.halo.lt;
    int rightBorder = dest->loc.halo.rt;
-   int topBorder = dest->loc.halo.up;
-   int nbatch = dest->loc.nbatch;
-   size_t sb = strideBExtended(&dest->loc);
-   size_t sf = strideFExtended(&dest->loc);
-   size_t sx = strideXExtended(&dest->loc);
-   size_t sy = strideYExtended(&dest->loc);
+   int topBorder   = dest->loc.halo.up;
+   int nbatch      = dest->loc.nbatch;
+   size_t sb       = strideBExtended(&dest->loc);
+   size_t sf       = strideFExtended(&dest->loc);
+   size_t sx       = strideXExtended(&dest->loc);
+   size_t sy       = strideYExtended(&dest->loc);
 
-   for(int b=0; b<nbatch; b++){
-      pvdata_t* srcData = src->data + b*sb ;
-      pvdata_t* destData = dest->data + b*sb;
-      pvdata_t * src0 = srcData + topBorder*sy + (nx + leftBorder - 1)*sx;
-      pvdata_t * dst0 = destData + topBorder*sy + (nx + leftBorder)*sx;
+   for (int b = 0; b < nbatch; b++) {
+      pvdata_t *srcData  = src->data + b * sb;
+      pvdata_t *destData = dest->data + b * sb;
+      pvdata_t *src0     = srcData + topBorder * sy + (nx + leftBorder - 1) * sx;
+      pvdata_t *dst0     = destData + topBorder * sy + (nx + leftBorder) * sx;
 
       for (int ky = 0; ky < ny; ky++) {
-         pvdata_t * to   = dst0 + ky*sy;
-         pvdata_t * from = src0 + ky*sy;
+         pvdata_t *to   = dst0 + ky * sy;
+         pvdata_t *from = src0 + ky * sy;
          for (int kx = 0; kx < rightBorder; kx++) {
             for (int kf = 0; kf < nf; kf++) {
-               to[kf*sf] = from[kf*sf];
+               to[kf * sf] = from[kf * sf];
             }
             to += nf;
             from -= nf;
@@ -2468,32 +2789,33 @@ int HyPerLayer::mirrorToEast(PVLayerCube* dest, PVLayerCube* src)
    return 0;
 }
 
-int HyPerLayer::mirrorToSouthWest(PVLayerCube* dest, PVLayerCube* src)
-{
-   if (!localDimensionsEqual(&dest->loc, &src->loc)) { return -1; }
-   int ny = dest->loc.ny;
-   int nf = dest->loc.nf;
-   int leftBorder = dest->loc.halo.lt;
-   int topBorder = dest->loc.halo.up;
+int HyPerLayer::mirrorToSouthWest(PVLayerCube *dest, PVLayerCube *src) {
+   if (!localDimensionsEqual(&dest->loc, &src->loc)) {
+      return -1;
+   }
+   int ny           = dest->loc.ny;
+   int nf           = dest->loc.nf;
+   int leftBorder   = dest->loc.halo.lt;
+   int topBorder    = dest->loc.halo.up;
    int bottomBorder = dest->loc.halo.dn;
-   int nbatch = dest->loc.nbatch;
-   size_t sb = strideBExtended(&dest->loc);
-   size_t sf = strideFExtended(&dest->loc);
-   size_t sx = strideXExtended(&dest->loc);
-   size_t sy = strideYExtended(&dest->loc);
+   int nbatch       = dest->loc.nbatch;
+   size_t sb        = strideBExtended(&dest->loc);
+   size_t sf        = strideFExtended(&dest->loc);
+   size_t sx        = strideXExtended(&dest->loc);
+   size_t sy        = strideYExtended(&dest->loc);
 
-   for(int b=0; b<nbatch; b++){
-      pvdata_t* srcData = src->data + b*sb ;
-      pvdata_t* destData = dest->data + b*sb;
-      pvdata_t * src0 = srcData + (ny + topBorder - 1)*sy + leftBorder*sx;
-      pvdata_t * dst0 = destData + (ny + topBorder)*sy + (leftBorder - 1)*sx;
+   for (int b = 0; b < nbatch; b++) {
+      pvdata_t *srcData  = src->data + b * sb;
+      pvdata_t *destData = dest->data + b * sb;
+      pvdata_t *src0     = srcData + (ny + topBorder - 1) * sy + leftBorder * sx;
+      pvdata_t *dst0     = destData + (ny + topBorder) * sy + (leftBorder - 1) * sx;
 
       for (int ky = 0; ky < bottomBorder; ky++) {
-         pvdata_t * to   = dst0 + ky*sy;
-         pvdata_t * from = src0 - ky*sy;
+         pvdata_t *to   = dst0 + ky * sy;
+         pvdata_t *from = src0 - ky * sy;
          for (int kx = 0; kx < leftBorder; kx++) {
             for (int kf = 0; kf < nf; kf++) {
-               to[kf*sf] = from[kf*sf];
+               to[kf * sf] = from[kf * sf];
             }
             to -= nf;
             from += nf;
@@ -2503,34 +2825,35 @@ int HyPerLayer::mirrorToSouthWest(PVLayerCube* dest, PVLayerCube* src)
    return 0;
 }
 
-int HyPerLayer::mirrorToSouth(PVLayerCube* dest, PVLayerCube* src)
-{
-   if (!localDimensionsEqual(&dest->loc, &src->loc)) { return -1; }
-   int nx = dest->loc.nx;
-   int ny = dest->loc.ny;
-   int nf = dest->loc.nf;
-   int leftBorder = dest->loc.halo.lt;
-   int rightBorder = dest->loc.halo.rt;
-   int topBorder = dest->loc.halo.up;
+int HyPerLayer::mirrorToSouth(PVLayerCube *dest, PVLayerCube *src) {
+   if (!localDimensionsEqual(&dest->loc, &src->loc)) {
+      return -1;
+   }
+   int nx           = dest->loc.nx;
+   int ny           = dest->loc.ny;
+   int nf           = dest->loc.nf;
+   int leftBorder   = dest->loc.halo.lt;
+   int rightBorder  = dest->loc.halo.rt;
+   int topBorder    = dest->loc.halo.up;
    int bottomBorder = dest->loc.halo.dn;
-   int nbatch = dest->loc.nbatch;
-   size_t sb = strideBExtended(&dest->loc);
-   size_t sf = strideFExtended(&dest->loc);
-   size_t sx = strideXExtended(&dest->loc);
-   size_t sy = strideYExtended(&dest->loc);
+   int nbatch       = dest->loc.nbatch;
+   size_t sb        = strideBExtended(&dest->loc);
+   size_t sf        = strideFExtended(&dest->loc);
+   size_t sx        = strideXExtended(&dest->loc);
+   size_t sy        = strideYExtended(&dest->loc);
 
-   for(int b=0; b<nbatch; b++){
-      pvdata_t* srcData = src->data + b*sb ;
-      pvdata_t* destData = dest->data + b*sb;
-      pvdata_t * src0 = srcData + (ny + topBorder -1)*sy + leftBorder*sx;
-      pvdata_t * dst0 = destData + (ny + topBorder)*sy + leftBorder*sx;
+   for (int b = 0; b < nbatch; b++) {
+      pvdata_t *srcData  = src->data + b * sb;
+      pvdata_t *destData = dest->data + b * sb;
+      pvdata_t *src0     = srcData + (ny + topBorder - 1) * sy + leftBorder * sx;
+      pvdata_t *dst0     = destData + (ny + topBorder) * sy + leftBorder * sx;
 
       for (int ky = 0; ky < bottomBorder; ky++) {
-         pvdata_t * to   = dst0 + ky*sy;
-         pvdata_t * from = src0 - ky*sy;
+         pvdata_t *to   = dst0 + ky * sy;
+         pvdata_t *from = src0 - ky * sy;
          for (int kx = 0; kx < nx; kx++) {
             for (int kf = 0; kf < nf; kf++) {
-               to[kf*sf] = from[kf*sf];
+               to[kf * sf] = from[kf * sf];
             }
             to += nf;
             from += nf;
@@ -2540,34 +2863,35 @@ int HyPerLayer::mirrorToSouth(PVLayerCube* dest, PVLayerCube* src)
    return 0;
 }
 
-int HyPerLayer::mirrorToSouthEast(PVLayerCube* dest, PVLayerCube* src)
-{
-   if (!localDimensionsEqual(&dest->loc, &src->loc)) { return -1; }
-   int nx = dest->loc.nx;
-   int ny = dest->loc.ny;
-   int nf = dest->loc.nf;
-   int leftBorder = dest->loc.halo.lt;
-   int rightBorder = dest->loc.halo.rt;
-   int topBorder = dest->loc.halo.up;
+int HyPerLayer::mirrorToSouthEast(PVLayerCube *dest, PVLayerCube *src) {
+   if (!localDimensionsEqual(&dest->loc, &src->loc)) {
+      return -1;
+   }
+   int nx           = dest->loc.nx;
+   int ny           = dest->loc.ny;
+   int nf           = dest->loc.nf;
+   int leftBorder   = dest->loc.halo.lt;
+   int rightBorder  = dest->loc.halo.rt;
+   int topBorder    = dest->loc.halo.up;
    int bottomBorder = dest->loc.halo.dn;
-   int nbatch = dest->loc.nbatch;
-   size_t sb = strideBExtended(&dest->loc);
-   size_t sf = strideFExtended(&dest->loc);
-   size_t sx = strideXExtended(&dest->loc);
-   size_t sy = strideYExtended(&dest->loc);
+   int nbatch       = dest->loc.nbatch;
+   size_t sb        = strideBExtended(&dest->loc);
+   size_t sf        = strideFExtended(&dest->loc);
+   size_t sx        = strideXExtended(&dest->loc);
+   size_t sy        = strideYExtended(&dest->loc);
 
-   for(int b=0; b<nbatch; b++){
-      pvdata_t* srcData = src->data + b*sb ;
-      pvdata_t* destData = dest->data + b*sb;
-      pvdata_t * src0 = srcData + (ny + topBorder - 1)*sy + (nx + leftBorder - 1)*sx;
-      pvdata_t * dst0 = destData + (ny + topBorder)*sy + (nx + leftBorder)*sx;
+   for (int b = 0; b < nbatch; b++) {
+      pvdata_t *srcData  = src->data + b * sb;
+      pvdata_t *destData = dest->data + b * sb;
+      pvdata_t *src0     = srcData + (ny + topBorder - 1) * sy + (nx + leftBorder - 1) * sx;
+      pvdata_t *dst0     = destData + (ny + topBorder) * sy + (nx + leftBorder) * sx;
 
       for (int ky = 0; ky < bottomBorder; ky++) {
-         pvdata_t * to   = dst0 + ky*sy;
-         pvdata_t * from = src0 - ky*sy;
+         pvdata_t *to   = dst0 + ky * sy;
+         pvdata_t *from = src0 - ky * sy;
          for (int kx = 0; kx < rightBorder; kx++) {
             for (int kf = 0; kf < nf; kf++) {
-               to[kf*sf] = from[kf*sf];
+               to[kf * sf] = from[kf * sf];
             }
             to += nf;
             from -= nf;
@@ -2576,7 +2900,5 @@ int HyPerLayer::mirrorToSouthEast(PVLayerCube* dest, PVLayerCube* src)
    }
    return 0;
 }
-
 
 } // end of PV namespace
-

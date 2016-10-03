@@ -4,62 +4,62 @@
  *  Sheng Lundquist
  */
 
-#include "../../io/PrintStream.hpp"
 #include "CudaTimer.hpp"
+#include "../../io/PrintStream.hpp"
 #include "cuda_util.hpp"
-
 
 namespace PVCuda {
 
-CudaTimer::CudaTimer(double init_time):PV::Timer(init_time)
-{
+CudaTimer::CudaTimer(double init_time) : PV::Timer(init_time) {
    handleError(cudaEventCreate(&startEvent), "Start event creation");
    handleError(cudaEventCreate(&stopEvent), "Stop event creation");
-   time = 0;
+   time   = 0;
    stream = nullptr;
 }
 
-CudaTimer::CudaTimer(const char * timermessage, double init_time):PV::Timer(timermessage, init_time)
-{
+CudaTimer::CudaTimer(const char *timermessage, double init_time)
+      : PV::Timer(timermessage, init_time) {
    handleError(cudaEventCreate(&startEvent), "Start event creation");
    handleError(cudaEventCreate(&stopEvent), "Stop event creation");
-   time = 0;
+   time   = 0;
    stream = nullptr;
 }
 
-CudaTimer::CudaTimer(const char * objname, const char * objtype, const char * timertype, double init_time):PV::Timer(objname, objtype, timertype, init_time){
+CudaTimer::CudaTimer(
+      const char *objname,
+      const char *objtype,
+      const char *timertype,
+      double init_time)
+      : PV::Timer(objname, objtype, timertype, init_time) {
    handleError(cudaEventCreate(&startEvent), "Start event creation");
    handleError(cudaEventCreate(&stopEvent), "Stop event creation");
-   time = 0;
+   time   = 0;
    stream = nullptr;
 }
 
-CudaTimer::~CudaTimer()
-{
+CudaTimer::~CudaTimer() {
    handleError(cudaEventDestroy(startEvent), "Start event destruction");
    handleError(cudaEventDestroy(stopEvent), "Stop event destruction");
 }
 
-double CudaTimer::start()
-{
+double CudaTimer::start() {
    handleError(cudaEventRecord(startEvent, stream), "Recording start event");
    return 0;
 }
 
-double CudaTimer::stop()
-{
+double CudaTimer::stop() {
    handleError(cudaEventRecord(stopEvent, stream), "Recording stop event");
    return 0;
 }
 
-//Note this function is blocking
-double CudaTimer::accumulateTime(){
+// Note this function is blocking
+double CudaTimer::accumulateTime() {
    float curTime;
    handleError(cudaEventSynchronize(stopEvent), "Synchronizing stop event");
    handleError(cudaEventElapsedTime(&curTime, startEvent, stopEvent), "Calculating elapsed time");
-   //Roundoff errors?
+   // Roundoff errors?
    time += curTime;
-   return (double) time;
+   return (double)time;
 }
 
 int CudaTimer::fprint_time(PrintStream &stream) {
@@ -68,5 +68,5 @@ int CudaTimer::fprint_time(PrintStream &stream) {
    }
    return 0;
 }
- 
-}  // namespace PV
+
+} // namespace PV

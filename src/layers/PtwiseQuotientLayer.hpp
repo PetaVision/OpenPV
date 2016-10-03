@@ -20,24 +20,30 @@
 namespace PV {
 
 class PtwiseQuotientLayer : public ANNLayer {
-public:
-   PtwiseQuotientLayer(const char * name, HyPerCol * hc);
+  public:
+   PtwiseQuotientLayer(const char *name, HyPerCol *hc);
    virtual ~PtwiseQuotientLayer();
 
    virtual int allocateDataStructures();
    virtual int updateState(double timef, double dt);
-   // virtual int updateV();
 
-protected:
+  protected:
    PtwiseQuotientLayer();
-   int initialize(const char * name, HyPerCol * hc);
+   int initialize(const char *name, HyPerCol *hc);
 
-   /* static */ int doUpdateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead);
+   /* static */ int doUpdateState(
+         double timef,
+         double dt,
+         const PVLayerLoc *loc,
+         pvdata_t *A,
+         pvdata_t *V,
+         int num_channels,
+         pvdata_t *gSynHead);
 
-private:
+  private:
    int initialize_base();
-};  // end class PtwiseQuotientLayer
+}; // end class PtwiseQuotientLayer
 
-}  // end namespace PV
+} // end namespace PV
 
 #endif /* PTWISEQUOTIENTLAYER_HPP_ */

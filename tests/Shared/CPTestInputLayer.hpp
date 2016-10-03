@@ -14,20 +14,18 @@ namespace PV {
 
 class CPTestInputLayer : public ANNLayer {
 
-public:
-   CPTestInputLayer(const char * name, HyPerCol * hc);
+  public:
+   CPTestInputLayer(const char *name, HyPerCol *hc);
    virtual ~CPTestInputLayer();
    virtual int allocateDataStructures();
    virtual int updateState(double timed, double dt);
 
-protected:
-   int initialize(const char * name, HyPerCol * hc);
+  protected:
+   int initialize(const char *name, HyPerCol *hc);
    virtual int initializeV();
 
 }; // end class CPTestInputLayer
 
-
-}  // end of namespace PV block
-
+} // end of namespace PV block
 
 #endif /* CPTESTINPUTLAYER_HPP_ */

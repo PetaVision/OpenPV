@@ -8,30 +8,30 @@
 #ifndef FEEDBACKCONN_HPP_
 #define FEEDBACKCONN_HPP_
 
-#include <string.h>
 #include <assert.h>
+#include <string.h>
 
 #include "TransposeConn.hpp"
-#include "io/io.hpp"
 #include "io/fileio.hpp"
+#include "io/io.hpp"
 
 namespace PV {
 
 class FeedbackConn : public TransposeConn {
-public:
-    FeedbackConn(const char * name, HyPerCol * hc);
+  public:
+   FeedbackConn(const char *name, HyPerCol *hc);
 
-protected:
-    FeedbackConn();
-    int initialize_base();
-    int initialize(const char * name, HyPerCol * hc);
-    void ioParam_preLayerName(enum ParamsIOFlag ioFlag);
-    void ioParam_postLayerName(enum ParamsIOFlag ioFlag);
+  protected:
+   FeedbackConn();
+   int initialize_base();
+   int initialize(const char *name, HyPerCol *hc);
+   void ioParam_preLayerName(enum ParamsIOFlag ioFlag);
+   void ioParam_postLayerName(enum ParamsIOFlag ioFlag);
 
-    virtual int setPreAndPostLayerNames();
-    virtual int handleMissingPreAndPostLayerNames();
+   virtual int setPreAndPostLayerNames();
+   virtual int handleMissingPreAndPostLayerNames();
 }; // end class FeedbackConn
 
-}  // end of block for namespace PV
+} // end of block for namespace PV
 
 #endif /* FEEDBACKCONN_HPP_ */

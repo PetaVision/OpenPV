@@ -14,36 +14,47 @@
 namespace PV {
 
 // SigmoidLayer can be used to implement Sigmoid junctions between spiking neurons
-class SigmoidLayer: public CloneVLayer {
-public:
-   SigmoidLayer(const char * name, HyPerCol * hc);
+class SigmoidLayer : public CloneVLayer {
+  public:
+   SigmoidLayer(const char *name, HyPerCol *hc);
    virtual ~SigmoidLayer();
    virtual int communicateInitInfo();
    virtual int allocateDataStructures();
    virtual int updateState(double timef, double dt);
    virtual int setActivity();
-protected:
+
+  protected:
    SigmoidLayer();
-   int initialize(const char * name, HyPerCol * hc);
+   int initialize(const char *name, HyPerCol *hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual void ioParam_Vrest(enum ParamsIOFlag ioFlag);
    virtual void ioParam_VthRest(enum ParamsIOFlag ioFlag);
    virtual void ioParam_InverseFlag(enum ParamsIOFlag ioFlag);
    virtual void ioParam_SigmoidFlag(enum ParamsIOFlag ioFlag);
    virtual void ioParam_SigmoidAlpha(enum ParamsIOFlag ioFlag);
-   /* static */ int updateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, float Vth, float V0, float sigmoid_alpha, bool sigmoid_flag, bool inverse_flag);
-private:
+   /* static */ int updateState(
+         double timef,
+         double dt,
+         const PVLayerLoc *loc,
+         pvdata_t *A,
+         pvdata_t *V,
+         int num_channels,
+         pvdata_t *gSynHead,
+         float Vth,
+         float V0,
+         float sigmoid_alpha,
+         bool sigmoid_flag,
+         bool inverse_flag);
+
+  private:
    int initialize_base();
    float V0;
    float Vth;
-   bool  InverseFlag;
-   bool  SigmoidFlag;
+   bool InverseFlag;
+   bool SigmoidFlag;
    float SigmoidAlpha;
-   // Use CloneVLayer's originalLayerName and originalLayer member variables
-   // char * sourceLayerName;
-   // HyPerLayer * sourceLayer;
 }; // class SigmoidLayer
 
-}  // namespace PV
+} // namespace PV
 
 #endif /* CLONELAYER_HPP_ */

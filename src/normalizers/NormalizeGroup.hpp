@@ -13,17 +13,17 @@
 namespace PV {
 
 class NormalizeGroup : public NormalizeBase {
-public:
-   NormalizeGroup(char const * name, HyPerCol * hc);
+  public:
+   NormalizeGroup(char const *name, HyPerCol *hc);
    virtual ~NormalizeGroup();
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
    virtual int communicateInitInfo();
 
-protected:
+  protected:
    NormalizeGroup();
-   int initialize(char const * name, HyPerCol * hc);
+   int initialize(char const *name, HyPerCol *hc);
 
    /**
     * NormalizeGroup does not read the strength parameter, but inherits it from its group head.
@@ -31,17 +31,20 @@ protected:
    virtual void ioParam_strength(enum ParamsIOFlag ioFlag);
 
    /**
-    * NormalizeGroup does not read the normalizeArborsIndividually parameter, but inherits it from its group head.
+    * NormalizeGroup does not read the normalizeArborsIndividually parameter, but inherits it from
+    * its group head.
     */
    virtual void ioParam_normalizeArborsIndividually(enum ParamsIOFlag ioFlag);
 
    /**
-    * NormalizeGroup does not read the normalizeOnInitialize parameter, but inherits it from its group head.
+    * NormalizeGroup does not read the normalizeOnInitialize parameter, but inherits it from its
+    * group head.
     */
    virtual void ioParam_normalizeOnInitialize(enum ParamsIOFlag ioFlag);
 
    /**
-    * NormalizeGroup does not read the normalizeOnWeightUpdate parameter, but inherits it from its group head.
+    * NormalizeGroup does not read the normalizeOnWeightUpdate parameter, but inherits it from its
+    * group head.
     */
    virtual void ioParam_normalizeOnWeightUpdate(enum ParamsIOFlag ioFlag);
 
@@ -58,13 +61,13 @@ protected:
     */
    virtual int normalizeWeights();
 
-private:
+  private:
    int initialize_base();
 
-// Data members
-private:
-   char * normalizeGroupName = nullptr;
-   NormalizeBase * groupHead = nullptr;
+   // Data members
+  private:
+   char *normalizeGroupName = nullptr;
+   NormalizeBase *groupHead = nullptr;
 }; // class NormalizeGroup
 
 } /* namespace PV */

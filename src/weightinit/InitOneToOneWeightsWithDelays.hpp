@@ -16,22 +16,26 @@ class InitWeightsParams;
 class InitOneToOneWeightsWithDelaysParams;
 
 // TODO make InitOneToOneWeightsWithDelays a derived class of InitOneToOneWeights
-class InitOneToOneWeightsWithDelays: public PV::InitWeights {
-public:
-   InitOneToOneWeightsWithDelays(char const * name, HyPerCol * hc);
+class InitOneToOneWeightsWithDelays : public PV::InitWeights {
+  public:
+   InitOneToOneWeightsWithDelays(char const *name, HyPerCol *hc);
    virtual ~InitOneToOneWeightsWithDelays();
 
-   virtual int calcWeights(pvdata_t * dataStart, int patchIndex, int arborId);
-   virtual InitWeightsParams * createNewWeightParams();
+   virtual int calcWeights(pvdata_t *dataStart, int patchIndex, int arborId);
+   virtual InitWeightsParams *createNewWeightParams();
    void calcOtherParams(int patchIndex);
 
-
-protected:
+  protected:
    InitOneToOneWeightsWithDelays();
-   int initialize(char const * name, HyPerCol * hc);
-   int createOneToOneConnectionWithDelays(pvdata_t * dataStart, int patchIndex, float iWeight, InitWeightsParams * weightParamPtr, int arborId);
+   int initialize(char const *name, HyPerCol *hc);
+   int createOneToOneConnectionWithDelays(
+         pvdata_t *dataStart,
+         int patchIndex,
+         float iWeight,
+         InitWeightsParams *weightParamPtr,
+         int arborId);
 
-private:
+  private:
    int initialize_base();
 };
 

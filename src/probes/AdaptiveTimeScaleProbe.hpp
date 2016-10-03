@@ -8,8 +8,8 @@
 #ifndef ADAPTIVETIMESCALEPROBE_HPP_
 #define ADAPTIVETIMESCALEPROBE_HPP_
 
-#include "ColProbe.hpp"
 #include "BaseProbe.hpp"
+#include "ColProbe.hpp"
 #include "components/AdaptiveTimeScaleController.hpp"
 #include "layers/HyPerLayer.hpp"
 
@@ -21,8 +21,8 @@ namespace PV {
 // than ColProbe inserting the probe into the HyPerCol's list of ColProbes.
 // Once the observer pattern is more fully implemented, it could probably
 // derive straight from BaseProbe.
-class AdaptiveTimeScaleProbe: public ColProbe {
-protected:
+class AdaptiveTimeScaleProbe : public ColProbe {
+  protected:
    /**
     * List of parameters needed from the AdaptiveTimeScaleProbe class
     * @name AdaptiveTimeScaleProbe Parameters
@@ -31,7 +31,8 @@ protected:
 
    /**
     * @brief targetName: the name of the probe that this probe attaches to.
-    * The target probe's values are used as the input to compute the adaptive timesteps.
+    * The target probe's values are used as the input to compute the adaptive
+    * timesteps.
     */
    virtual void ioParam_targetName(enum ParamsIOFlag ioFlag);
 
@@ -48,13 +49,15 @@ protected:
    virtual void ioParam_baseMin(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief tauFactor: If Specifies the coefficient on the effective decay rate used to compute
+    * @brief tauFactor: If Specifies the coefficient on the effective decay rate
+    * used to compute
     * the timescale.
     */
    virtual void ioParam_tauFactor(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief dtChangeMin: Specifies the percentage by which the maximum timescale increases
+    * @brief dtChangeMin: Specifies the percentage by which the maximum timescale
+    * increases
     * when the timescale reaches the maximum.
     */
    virtual void ioParam_growthFactor(enum ParamsIOFlag ioFlag);
@@ -66,46 +69,51 @@ protected:
 
    /**
     * @brief writeTimeScales: Specifies if the timescales should be written
-    * @details The timescales get written to outputPath/[name_of_probe]_timescales.txt.
+    * @details The timescales get written to
+    * outputPath/[name_of_probe]_timescales.txt.
     */
    virtual void ioParam_writeTimeScales(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief writeTimeScaleFieldnames: A flag to determine if fieldnames are written to the HyPerCol_timescales file, if false, file is written as comma separated list
+    * @brief writeTimeScaleFieldnames: A flag to determine if fieldnames are
+    * written to the
+    * HyPerCol_timescales file, if false, file is written as comma separated list
     */
    virtual void ioParam_writeTimeScaleFieldnames(enum ParamsIOFlag ioFlag);
    /** @} */
 
-public:
-   AdaptiveTimeScaleProbe(char const * name, HyPerCol * hc);
+  public:
+   AdaptiveTimeScaleProbe(char const *name, HyPerCol *hc);
    virtual ~AdaptiveTimeScaleProbe();
    virtual int respond(std::shared_ptr<BaseMessage const> message) override;
    virtual int communicateInitInfo() override;
    virtual int allocateDataStructures() override;
-   virtual int checkpointRead(const char * cpDir, double * timeptr) override;
-   virtual int checkpointWrite(const char * cpDir) override;
+   virtual int checkpointRead(const char *cpDir, double *timeptr) override;
+   virtual int checkpointWrite(const char *cpDir) override;
    virtual int outputState(double timeValue) override;
 
-protected:
+  protected:
    AdaptiveTimeScaleProbe();
-   int initialize(char const * name, HyPerCol * hc);
+   int initialize(char const *name, HyPerCol *hc);
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-   int respondAdaptTimestep(AdaptTimestepMessage const * message);
-   bool needRecalc(double timeValue) override { return parent->simulationTime() > getLastUpdateTime(); }
+   int respondAdaptTimestep(AdaptTimestepMessage const *message);
+   bool needRecalc(double timeValue) override {
+      return parent->simulationTime() > getLastUpdateTime();
+   }
    double referenceUpdateTime() const override { return parent->simulationTime(); }
    int calcValues(double timeValue);
    virtual bool needUpdate(double timeValue, double dt) override { return true; }
 
-protected:
-   double mBaseMax                  = 1.0;
-   double mBaseMin                  = 1.0;
-   double tauFactor                 = 1.0;
-   double mGrowthFactor             = 1.0;
-   bool   mWriteTimeScales          = true;
-   bool   mWriteTimeScaleFieldnames = true;
+  protected:
+   double mBaseMax                = 1.0;
+   double mBaseMin                = 1.0;
+   double tauFactor               = 1.0;
+   double mGrowthFactor           = 1.0;
+   bool mWriteTimeScales          = true;
+   bool mWriteTimeScaleFieldnames = true;
 
-   BaseProbe * mTargetProbe = nullptr;
-   AdaptiveTimeScaleController * mAdaptiveTimeScaleController = nullptr;
+   BaseProbe *mTargetProbe                                   = nullptr;
+   AdaptiveTimeScaleController *mAdaptiveTimeScaleController = nullptr;
 };
 
 } /* namespace PV */

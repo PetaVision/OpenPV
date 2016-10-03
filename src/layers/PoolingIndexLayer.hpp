@@ -13,21 +13,23 @@
 namespace PV {
 
 class PoolingIndexLayer : public HyPerLayer {
-public:
-   PoolingIndexLayer(const char* name, HyPerCol * hc);
+  public:
+   PoolingIndexLayer(const char *name, HyPerCol *hc);
    virtual ~PoolingIndexLayer();
    bool activityIsSpiking() { return false; }
-   virtual int requireChannel(int channelNeeded, int * numChannelsResult);
-protected:
+   virtual int requireChannel(int channelNeeded, int *numChannelsResult);
+
+  protected:
    PoolingIndexLayer();
-   int initialize(const char * name, HyPerCol * hc);
+   int initialize(const char *name, HyPerCol *hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual void ioParam_dataType(enum ParamsIOFlag ioFlag);
    virtual int resetGSynBuffers(double timef, double dt);
-private:
+
+  private:
    int initialize_base();
 }; // end of class PoolingIndexLayer
 
-}  // end namespace PV
+} // end namespace PV
 
 #endif /* ANNLAYER_HPP_ */

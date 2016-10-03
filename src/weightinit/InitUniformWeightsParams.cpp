@@ -9,29 +9,24 @@
 
 namespace PV {
 
-InitUniformWeightsParams::InitUniformWeightsParams()
-{
-   initialize_base();
-}
+InitUniformWeightsParams::InitUniformWeightsParams() { initialize_base(); }
 
-InitUniformWeightsParams::InitUniformWeightsParams(const char * name, HyPerCol * hc)
-                     : InitWeightsParams() {
+InitUniformWeightsParams::InitUniformWeightsParams(const char *name, HyPerCol *hc)
+      : InitWeightsParams() {
    initialize_base();
    initialize(name, hc);
 }
 
-InitUniformWeightsParams::~InitUniformWeightsParams()
-{
-}
+InitUniformWeightsParams::~InitUniformWeightsParams() {}
 
 int InitUniformWeightsParams::initialize_base() {
 
-   initWeight = 0;
+   initWeight              = 0;
    connectOnlySameFeatures = false;
    return 1;
 }
 
-int InitUniformWeightsParams::initialize(const char * name, HyPerCol * hc) {
+int InitUniformWeightsParams::initialize(const char *name, HyPerCol *hc) {
    return InitWeightsParams::initialize(name, hc);
 }
 
@@ -47,8 +42,12 @@ void InitUniformWeightsParams::ioParam_weightInit(enum ParamsIOFlag ioFlag) {
 }
 
 void InitUniformWeightsParams::ioParam_connectOnlySameFeatures(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "connectOnlySameFeatures", &connectOnlySameFeatures, connectOnlySameFeatures);
+   parent->parameters()->ioParamValue(
+         ioFlag,
+         name,
+         "connectOnlySameFeatures",
+         &connectOnlySameFeatures,
+         connectOnlySameFeatures);
 }
-
 
 } /* namespace PV */

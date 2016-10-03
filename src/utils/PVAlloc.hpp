@@ -11,21 +11,21 @@
  * exit(EXIT_FAILURE).
  *
  * These macros check for error conditions, log the file and line number of the failed
- * call, and then exit. 
+ * call, and then exit.
  *
  * The goals are:
  *
- * . consistent error handling 
+ * . consistent error handling
  * . easier debugging
  * . provide an opportunity to handle sending errors to other MPI ranks
  */
 
-#include <stdlib.h>
 #include "utils/PVLog.hpp"
+#include <stdlib.h>
 
 /**
  * pvMalloc(size_t size);
- * 
+ *
  * replaces standard malloc()
  */
 #define pvMalloc(size) PV::pv_malloc(__FILE__, __LINE__, size)
@@ -46,11 +46,12 @@
  *
  * Adds an error message if the allocation fails.
  */
-#define pvCallocError(count, size, fmt, ...) PV::pv_calloc(__FILE__, __LINE__, count, size, fmt, ##__VA_ARGS__)
+#define pvCallocError(count, size, fmt, ...)                                                       \
+   PV::pv_calloc(__FILE__, __LINE__, count, size, fmt, ##__VA_ARGS__)
 /**
  * Wraps a call to delete
  *
- * Verifies that the pointer is not NULL for calling delete. 
+ * Verifies that the pointer is not NULL for calling delete.
  */
 #define pvDelete(ptr) PV::pv_delete(__FILE__, __LINE__, ptr)
 
@@ -61,14 +62,13 @@ void *pv_malloc(const char *file, int line, size_t size, const char *fmt, ...);
 void *pv_calloc(const char *file, int line, size_t count, size_t size);
 void *pv_calloc(const char *file, int line, size_t count, size_t size, const char *fmt, ...);
 
-template<typename T>
+template <typename T>
 void pv_delete(const char *file, int line, T *ptr) {
    if (ptr != NULL) {
       delete ptr;
       ptr = NULL;
    }
 }
-
 }
 
 #endif

@@ -14,47 +14,55 @@
 
 namespace PV {
 
-PtwiseProductLayer::PtwiseProductLayer() {
-   initialize_base();
-}
+PtwiseProductLayer::PtwiseProductLayer() { initialize_base(); }
 
-PtwiseProductLayer::PtwiseProductLayer(const char * name, HyPerCol * hc) {
+PtwiseProductLayer::PtwiseProductLayer(const char *name, HyPerCol *hc) {
    initialize_base();
    initialize(name, hc);
-}  // end PtwiseProductLayer::PtwiseProductLayer(const char *, HyPerCol *)
+} // end PtwiseProductLayer::PtwiseProductLayer(const char *, HyPerCol *)
 
-PtwiseProductLayer::~PtwiseProductLayer() {
-}
+PtwiseProductLayer::~PtwiseProductLayer() {}
 
 int PtwiseProductLayer::initialize_base() {
    numChannels = 2;
    return PV_SUCCESS;
 }
 
-int PtwiseProductLayer::initialize(const char * name, HyPerCol * hc) {
+int PtwiseProductLayer::initialize(const char *name, HyPerCol *hc) {
    return ANNLayer::initialize(name, hc);
 }
 
 int PtwiseProductLayer::allocateDataStructures() {
    int status = ANNLayer::allocateDataStructures();
-   assert(numChannels>=2);
+   assert(numChannels >= 2);
    return status;
 }
 
 int PtwiseProductLayer::updateState(double timef, double dt) {
-   const PVLayerLoc * loc = getLayerLoc();
-   pvdata_t * A = clayer->activity->data;
-   pvdata_t * V = getV();
-   int num_channels = getNumChannels();
-   pvdata_t * gSynHead = GSyn == NULL ? NULL : GSyn[0];
-   int nx = loc->nx;
-   int ny = loc->ny;
-   int nf = loc->nf;
-   int num_neurons = nx*ny*nf;
-   int nbatch = loc->nbatch;
+   const PVLayerLoc *loc = getLayerLoc();
+   pvdata_t *A           = clayer->activity->data;
+   pvdata_t *V           = getV();
+   int num_channels      = getNumChannels();
+   pvdata_t *gSynHead    = GSyn == NULL ? NULL : GSyn[0];
+   int nx                = loc->nx;
+   int ny                = loc->ny;
+   int nf                = loc->nf;
+   int num_neurons       = nx * ny * nf;
+   int nbatch            = loc->nbatch;
    updateV_PtwiseProductLayer(nbatch, num_neurons, V, gSynHead);
-   setActivity_HyPerLayer(nbatch, num_neurons, A, V, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
+   setActivity_HyPerLayer(
+         nbatch,
+         num_neurons,
+         A,
+         V,
+         nx,
+         ny,
+         nf,
+         loc->halo.lt,
+         loc->halo.rt,
+         loc->halo.dn,
+         loc->halo.up);
    return PV_SUCCESS;
 }
 
-}  // end namespace PV
+} // end namespace PV

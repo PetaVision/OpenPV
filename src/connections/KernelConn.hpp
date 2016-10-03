@@ -12,10 +12,14 @@
 
 namespace PV {
 
-class KernelConn: public HyPerConn {
+class KernelConn : public HyPerConn {
 
-public:
-   KernelConn(const char * name, HyPerCol * hc, InitWeights * weightInitializer=NULL, NormalizeBase * weightNormalizer=NULL);
+  public:
+   KernelConn(
+         const char *name,
+         HyPerCol *hc,
+         InitWeights *weightInitializer  = NULL,
+         NormalizeBase *weightNormalizer = NULL);
 }; // class KernelConn
 
 } // namespace PV

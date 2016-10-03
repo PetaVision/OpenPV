@@ -15,57 +15,59 @@
 
 namespace PV {
 class LCALIFLayer : public PV::LIFGap {
-public:
-   LCALIFLayer(const char* name, HyPerCol * hc); // The constructor called by other methods
+  public:
+   LCALIFLayer(const char *name, HyPerCol *hc); // The constructor called by other methods
    virtual ~LCALIFLayer();
    virtual int allocateDataStructures();
    virtual int updateState(double timef, double dt);
    int findFlag(int numMatrixCol, int numMatrixRow);
 
-   virtual int checkpointWrite(const char * cpDir);
+   virtual int checkpointWrite(const char *cpDir);
 
-   inline float getTargetRate() {return targetRateHz;}
-   const float * getVadpt() {return Vadpt;}
-   const pvdata_t * getIntegratedSpikeCount() {return integratedSpikeCount;}
-   const pvdata_t * getVattained() {return Vattained;}
-   const pvdata_t * getVmeminf() {return Vmeminf;}
-protected:
+   inline float getTargetRate() { return targetRateHz; }
+   const float *getVadpt() { return Vadpt; }
+   const pvdata_t *getIntegratedSpikeCount() { return integratedSpikeCount; }
+   const pvdata_t *getVattained() { return Vattained; }
+   const pvdata_t *getVmeminf() { return Vmeminf; }
+
+  protected:
    LCALIFLayer();
-   int initialize(const char * name, HyPerCol * hc, const char * kernel_name);
+   int initialize(const char *name, HyPerCol *hc, const char *kernel_name);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual void ioParam_tauTHR(enum ParamsIOFlag ioFlag);
    virtual void ioParam_targetRate(enum ParamsIOFlag ioFlag);
    virtual void ioParam_normalizeInput(enum ParamsIOFlag ioFlag);
    virtual void ioParam_Vscale(enum ParamsIOFlag ioFlag);
-   virtual int readStateFromCheckpoint(const char * cpDir, double * timeptr);
-   virtual int read_integratedSpikeCountFromCheckpoint(const char * cpDir, double * timeptr);
-   virtual int readVadptFromCheckpoint(const char * cpDir, double * timeptr);
+   virtual int readStateFromCheckpoint(const char *cpDir, double *timeptr);
+   virtual int read_integratedSpikeCountFromCheckpoint(const char *cpDir, double *timeptr);
+   virtual int readVadptFromCheckpoint(const char *cpDir, double *timeptr);
 
    int allocateBuffers();
 
-   pvdata_t * integratedSpikeCount;      // plasticity decrement variable for postsynaptic layer
-   pvdata_t * G_Norm;                    // Copy of GSyn[CHANNEL_NORM] to be written out during checkpointing
-   pvdata_t * GSynExcEffective;         // What is used as GSynExc, after normalizing, stored for checkpointing
-   pvdata_t * GSynInhEffective;         // What is used as GSynInh
-   pvdata_t * excitatoryNoise;
-   pvdata_t * inhibitoryNoise;
-   pvdata_t * inhibNoiseB;
+   pvdata_t *integratedSpikeCount; // plasticity decrement variable for postsynaptic layer
+   pvdata_t *G_Norm; // Copy of GSyn[CHANNEL_NORM] to be written out during checkpointing
+   pvdata_t
+         *GSynExcEffective; // What is used as GSynExc, after normalizing, stored for checkpointing
+   pvdata_t *GSynInhEffective; // What is used as GSynInh
+   pvdata_t *excitatoryNoise;
+   pvdata_t *inhibitoryNoise;
+   pvdata_t *inhibNoiseB;
    float tauTHR;
    float targetRateHz;
    float Vscale;
-   float * Vadpt;
-   float * Vattained; // Membrane potential before testing to see if a spike resets it to resting potential.  Output in checkpoints for diagnostic purposes but not otherwise used.
-   float * Vmeminf;  // Asymptotic value of the membrane potential.  Output in checkpoints for diagnostic purposes but not otherwise used.
+   float *Vadpt;
+   float *Vattained; // Membrane potential before testing to see if a spike resets it to resting
+   // potential.  Output in checkpoints for diagnostic purposes but not otherwise
+   // used.
+   float *Vmeminf; // Asymptotic value of the membrane potential.  Output in checkpoints for
+   // diagnostic purposes but not otherwise used.
    bool normalizeInputFlag;
-  // other methods and member variables
-private:
+   // other methods and member variables
+  private:
    int initialize_base();
-  // other methods and member variables
+   // other methods and member variables
 }; // class LCALIFLayer
 
-}  // namespace PV
-
-
-
+} // namespace PV
 
 #endif /* LCALIFLAYER_HPP_ */

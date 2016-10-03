@@ -4,6 +4,6 @@
 #include "columns/Communicator.hpp"
 #include <string>
 
-void testPvpExtended(PV::Communicator * comm, std::string const& directory);
+void testPvpExtended(PV::Communicator *comm, std::string const &directory);
 
 #endif // TESTPVPEXTENDED_HPP_

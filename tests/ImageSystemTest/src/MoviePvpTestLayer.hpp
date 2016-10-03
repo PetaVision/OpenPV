@@ -6,13 +6,12 @@
 #pragma once
 #include <layers/PvpLayer.hpp>
 
-namespace PV{
+namespace PV {
 
-class MoviePvpTestLayer : public PV::PvpLayer{
-public:
-   MoviePvpTestLayer(const char * name, HyPerCol * hc);
+class MoviePvpTestLayer : public PV::PvpLayer {
+  public:
+   MoviePvpTestLayer(const char *name, HyPerCol *hc);
    virtual int updateState(double time, double dt);
 };
 
-
-}  // end namespace PV
+} // end namespace PV

@@ -12,21 +12,18 @@
 
 namespace PV {
 
-class MPITestLayer: public PV::ANNLayer {
-public:
-   MPITestLayer(const char* name, HyPerCol * hc);
+class MPITestLayer : public PV::ANNLayer {
+  public:
+   MPITestLayer(const char *name, HyPerCol *hc);
    virtual int allocateDataStructures();
    virtual int updateState(double time, double dt);
-   virtual int publish(Communicator * comm, double timed);
+   virtual int publish(Communicator *comm, double timed);
    int setVtoGlobalPos();
    int setActivitytoGlobalPos();
 
-private:
-   int initialize(const char * name, HyPerCol * hc);
-
+  private:
+   int initialize(const char *name, HyPerCol *hc);
 };
-
-
 
 } /* namespace PV */
 #endif /* MPITESTLAYER_HPP_ */

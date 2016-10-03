@@ -1,20 +1,19 @@
-#ifndef IMPRINTCONNTESTINPUTLAYER_HPP_ 
+#ifndef IMPRINTCONNTESTINPUTLAYER_HPP_
 #define IMPRINTCONNTESTINPUTLAYER_HPP_
 
 #include <layers/ANNLayer.hpp>
 
 namespace PV {
 
-class ImprintConnTestInputLayer: public PV::ANNLayer{
-public:
-	ImprintConnTestInputLayer(const char* name, HyPerCol * hc);
+class ImprintConnTestInputLayer : public PV::ANNLayer {
+  public:
+   ImprintConnTestInputLayer(const char *name, HyPerCol *hc);
 
-protected:
+  protected:
    int updateState(double timef, double dt);
 
-private:
+  private:
 };
-
 
 } /* namespace PV */
 #endif

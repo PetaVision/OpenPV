@@ -17,23 +17,22 @@
 #include "include/pv_types.h"
 #include "io/PVParams.hpp"
 #include "io/PrintStream.hpp"
-#include "probes/BaseConnectionProbe.hpp"
 #include "layers/HyPerLayer.hpp"
+#include "probes/BaseConnectionProbe.hpp"
 #include "utils/Timer.hpp"
+#include <map>
+#include <set>
 #include <stdlib.h>
 #include <vector>
-#include <stdlib.h>
-#include <set>
-#include <map>
 
 #ifdef PV_USE_CUDA
+#include "arch/cuda/CudaBuffer.hpp"
 #include "cudakernels/CudaRecvPost.hpp"
 #include "cudakernels/CudaRecvPre.hpp"
-#include "arch/cuda/CudaBuffer.hpp"
 #endif
 
 #define PROTECTED_NUMBER 13
-#define MAX_ARBOR_LIST (1+MAX_NEIGHBORS)
+#define MAX_ARBOR_LIST (1 + MAX_NEIGHBORS)
 
 namespace PV {
 
@@ -43,8 +42,6 @@ struct SparseWeightInfo {
    float percentile;
 };
 
-//class HyPerCol;
-//class HyPerLayer;
 class InitWeights;
 class BaseConnectionProbe;
 class PVParams;
@@ -61,44 +58,55 @@ class privateTransposeConn;
 
 class HyPerConn : public BaseConnection {
 
-public:
+  public:
    friend class CloneConn;
    friend class PlasticCloneConn;
    friend class TransposeConn;
    friend class privateTransposeConn;
    friend class TransposePoolingConn;
 
-   enum AccumulateType {UNDEFINED, CONVOLVE, STOCHASTIC};
+   enum AccumulateType { UNDEFINED, CONVOLVE, STOCHASTIC };
    // Subclasses that need different accumulate types should define their own enums
 
-   HyPerConn(const char * name, HyPerCol * hc);
+   HyPerConn(const char *name, HyPerCol *hc);
 
    /**
-    * Deprecated constructor.  Instead, call PV_Init::create("HyPerConn", name, hc), which calls HyPerConn(name, hc).
+    * Deprecated constructor.  Instead, call PV_Init::create("HyPerConn", name, hc), which calls
+    * HyPerConn(name, hc).
     */
-   HyPerConn(const char * name, HyPerCol * hc, InitWeights * weightInitializer, NormalizeBase * weightNormalizer); // Deprecated June 22, 2016.
+   HyPerConn(
+         const char *name,
+         HyPerCol *hc,
+         InitWeights *weightInitializer,
+         NormalizeBase *weightNormalizer); // Deprecated June 22, 2016.
    virtual ~HyPerConn();
    virtual int communicateInitInfo();
    virtual int allocateDataStructures();
 
-   virtual int checkpointRead(const char * cpDir, double* timef);
-   virtual int checkpointWrite(const char * cpDir);
+   virtual int checkpointRead(const char *cpDir, double *timef);
+   virtual int checkpointWrite(const char *cpDir);
    virtual int writeTimers(PrintStream &stream);
-   virtual int insertProbe(BaseConnectionProbe* p);
+   virtual int insertProbe(BaseConnectionProbe *p);
    int outputProbeParams();
    virtual int outputState(double time, bool last = false);
-   int updateState(double time, double dt); 
+   int updateState(double time, double dt);
    virtual int finalizeUpdate(double timed, double dt);
    virtual bool needUpdate(double time, double dt);
    virtual int updateInd_dW(int arbor_ID, int batch_ID, int kExt);
    virtual double computeNewWeightUpdateTime(double time, double currentUpdateTime);
    virtual int writeWeights(double timed, bool last = false);
-   virtual int writeWeights(const char* filename);
-   virtual int writeWeights(PVPatch*** patches, pvwdata_t** dataStart,
-         int numPatches, const char* filename, double timef, bool compressWeights, bool last);
-   virtual int writeTextWeights(const char* filename, int k);
+   virtual int writeWeights(const char *filename);
+   virtual int writeWeights(
+         PVPatch ***patches,
+         pvwdata_t **dataStart,
+         int numPatches,
+         const char *filename,
+         double timef,
+         bool compressWeights,
+         bool last);
+   virtual int writeTextWeights(const char *filename, int k);
 
-   virtual int writeTextWeightsExtra(PrintStream * pvstream, int k, int arborID) {
+   virtual int writeTextWeightsExtra(PrintStream *pvstream, int k, int arborID) {
       return PV_SUCCESS;
    }
 
@@ -108,53 +116,65 @@ public:
     * Uses presynaptic layer's activity to modify the postsynaptic GSyn or thread_gSyn
     */
    virtual int deliver();
-   virtual void deliverOnePreNeuronActivity(int patchIndex, int arbor, pvadata_t a, pvgsyndata_t * postBufferStart, void * auxPtr);
-   virtual void deliverOnePostNeuronActivity(int arborID, int kTargetExt, int inSy, float* activityStartBuf, pvdata_t* gSynPatchPos, float dt_factor, taus_uint4 * rngPtr);
-    
-   AccumulateType getPvpatchAccumulateType() { return pvpatchAccumulateType; }
-   int (*accumulateFunctionPointer)(int kPreRes, int nk, float* v, float a, pvwdata_t* w, void* auxPtr, int sf);
-   int (*accumulateFunctionFromPostPointer)(int kPreRes, int nk, float* v, float* a, pvwdata_t* w, float dt_factor, void* auxPtr, int sf);
+   virtual void deliverOnePreNeuronActivity(
+         int patchIndex,
+         int arbor,
+         pvadata_t a,
+         pvgsyndata_t *postBufferStart,
+         void *auxPtr);
+   virtual void deliverOnePostNeuronActivity(
+         int arborID,
+         int kTargetExt,
+         int inSy,
+         float *activityStartBuf,
+         pvdata_t *gSynPatchPos,
+         float dt_factor,
+         taus_uint4 *rngPtr);
 
-   double getWeightUpdatePeriod() {return weightUpdatePeriod;}
-   double getWeightUpdateTime() {return weightUpdateTime;}
+   AccumulateType getPvpatchAccumulateType() { return pvpatchAccumulateType; }
+   int (*accumulateFunctionPointer)(
+         int kPreRes,
+         int nk,
+         float *v,
+         float a,
+         pvwdata_t *w,
+         void *auxPtr,
+         int sf);
+   int (*accumulateFunctionFromPostPointer)(
+         int kPreRes,
+         int nk,
+         float *v,
+         float *a,
+         pvwdata_t *w,
+         float dt_factor,
+         void *auxPtr,
+         int sf);
+
+   double getWeightUpdatePeriod() { return weightUpdatePeriod; }
+   double getWeightUpdateTime() { return weightUpdateTime; }
 
    /**
     * Returns the last time that weights were updated.
     */
-   double getLastUpdateTime() {return lastUpdateTime;}
+   double getLastUpdateTime() { return lastUpdateTime; }
 
    /**
     * Returns the last time that the connection's updateState function was called.
     * Provided so that connections that depend on other connections (e.g. CopyConn)
     * can postpone their update until the connection they depend has processed its updateState call.
     */
-   double getLastTimeUpdateCalled() {return lastTimeUpdateCalled;}
+   double getLastTimeUpdateCalled() { return lastTimeUpdateCalled; }
 
    // TODO make a get-method to return this.
-   virtual PVLayerCube* getPlasticityDecrement() {
-      return NULL;
-   }
+   virtual PVLayerCube *getPlasticityDecrement() { return NULL; }
 
-   inline InitWeights* getWeightInitializer() {
-      return weightInitializer;
-   }
+   inline InitWeights *getWeightInitializer() { return weightInitializer; }
 
-   inline bool getSelfFlag() {
-      return selfFlag;
-   }
+   inline bool getSelfFlag() { return selfFlag; }
 
-   inline bool usingSharedWeights() {
-      return sharedWeights;
-   }
+   inline bool usingSharedWeights() { return sharedWeights; }
 
-   //plasticityFlag moved to parent class BaseConnection on Jan 26, 2015.
-   //inline bool getPlasticityFlag() {
-   //   return plasticityFlag;
-   //};
-
-   inline bool getKeepKernelsSynchronized() { 
-      return keepKernelsSynchronized_flag;
-   }
+   inline bool getKeepKernelsSynchronized() { return keepKernelsSynchronized_flag; }
 
    /** Actual mininum weight value */
    virtual float minWeight(int arborId = 0);
@@ -163,223 +183,178 @@ public:
    virtual float maxWeight(int arborId = 0);
 
    /** Minimum allowed weight value */
-   inline float getWMin() {
-      return wMin;
-   };
+   inline float getWMin() { return wMin; };
 
    /** Maximum allowed weight value */
-   inline float getWMax() {
-      return wMax;
-   };
+   inline float getWMax() { return wMax; };
 
-   inline float getDWMax(){
-      return dWMax;
+   inline float getDWMax() { return dWMax; }
+
+   inline int xPatchSize() { return nxp; }
+
+   inline int yPatchSize() { return nyp; }
+
+   inline int fPatchSize() { return nfp; }
+
+   inline int xPatchStride() { return sxp; }
+
+   inline int yPatchStride() { return syp; }
+
+   inline int fPatchStride() { return sfp; }
+
+   inline int xPostPatchSize() { return nxpPost; }
+
+   inline int yPostPatchSize() { return nypPost; }
+
+   inline int fPostPatchSize() { return nfpPost; }
+
+   // arbor and weight patch related get/set methods:
+   inline PVPatch **weights(int arborId = 0) { return wPatches[arborId]; }
+
+   virtual PVPatch *getWeights(int kPre, int arborId);
+
+   inline pvwdata_t *getPlasticIncr(int kPre, int arborId) {
+      return plasticityFlag
+                   ? &dwDataStart[arborId][patchStartIndex(kPre) + wPatches[arborId][kPre]->offset]
+                   : NULL;
    }
 
-   inline int xPatchSize() {
-      return nxp;
-   }
+   inline const PVPatchStrides *getPostExtStrides() { return &postExtStrides; }
 
-   inline int yPatchSize() {
-      return nyp;
-   }
+   inline const PVPatchStrides *getPostNonextStrides() { return &postNonextStrides; }
 
-   inline int fPatchSize() {
-      return nfp;
-   }
+   inline pvwdata_t *get_wDataStart(int arborId) { return wDataStart[arborId]; }
 
-   inline int xPatchStride() {
-      return sxp;
-   }
-
-   inline int yPatchStride() {
-      return syp;
-   }
-
-   inline int fPatchStride() {
-      return sfp;
-   }
-
-   inline int xPostPatchSize() {
-      return nxpPost;
-   }
-
-   inline int yPostPatchSize() {
-      return nypPost;
-   }
-
-   inline int fPostPatchSize() {
-      return nfpPost;
-   }
-
-   //arbor and weight patch related get/set methods:
-   inline PVPatch** weights(int arborId = 0) {
-      return wPatches[arborId];
-   }
-
-   virtual PVPatch* getWeights(int kPre, int arborId);
-
-   // inline PVPatch * getPlasticIncr(int kPre, int arborId) {return plasticityFlag ? dwPatches[arborId][kPre] : NULL;}
-   inline pvwdata_t* getPlasticIncr(int kPre, int arborId) {
-      return
-            plasticityFlag ?
-                  &dwDataStart[arborId][patchStartIndex(kPre)
-                        + wPatches[arborId][kPre]->offset] :
-                  NULL;
-   }
-
-   inline const PVPatchStrides* getPostExtStrides() {
-      return &postExtStrides;
-   }
-
-   inline const PVPatchStrides* getPostNonextStrides() {
-      return &postNonextStrides;
-   }
-
-   inline pvwdata_t* get_wDataStart(int arborId) {
-      return wDataStart[arborId];
-   }
-
-   inline pvwdata_t* get_wDataHead(int arborId, int dataIndex) {
+   inline pvwdata_t *get_wDataHead(int arborId, int dataIndex) {
       return &wDataStart[arborId][patchStartIndex(dataIndex)];
    }
 
-   inline pvwdata_t* get_wData(int arborId, int patchIndex) {
+   inline pvwdata_t *get_wData(int arborId, int patchIndex) {
       return &wDataStart[arborId][patchStartIndex(patchToDataLUT(patchIndex))
-            + wPatches[arborId][patchIndex]->offset];
+                                  + wPatches[arborId][patchIndex]->offset];
    }
 
-   inline pvwdata_t* get_dwDataStart(int arborId) {
-      return dwDataStart[arborId];
-   }
+   inline pvwdata_t *get_dwDataStart(int arborId) { return dwDataStart[arborId]; }
 
-   inline long* get_activations(int arborId){
-      return numKernelActivations[arborId];
-   }
+   inline long *get_activations(int arborId) { return numKernelActivations[arborId]; }
 
-   inline pvwdata_t* get_dwDataHead(int arborId, int dataIndex) {
+   inline pvwdata_t *get_dwDataHead(int arborId, int dataIndex) {
       return &dwDataStart[arborId][patchStartIndex(dataIndex)];
    }
 
-   inline long* get_activationsHead(int arborId, int dataIndex){
+   inline long *get_activationsHead(int arborId, int dataIndex) {
       return &numKernelActivations[arborId][patchStartIndex(dataIndex)];
    }
 
-   inline pvwdata_t* get_dwData(int arborId, int patchIndex) {
+   inline pvwdata_t *get_dwData(int arborId, int patchIndex) {
       return &dwDataStart[arborId][patchStartIndex(patchToDataLUT(patchIndex))
-            + wPatches[arborId][patchIndex]->offset];
+                                   + wPatches[arborId][patchIndex]->offset];
    }
 
-   inline long* get_activations(int arborId, int patchIndex){
+   inline long *get_activations(int arborId, int patchIndex) {
       return &numKernelActivations[arborId][patchStartIndex(patchToDataLUT(patchIndex))
-            + wPatches[arborId][patchIndex]->offset];
+                                            + wPatches[arborId][patchIndex]->offset];
    }
 
-   inline PVPatch* getWPostPatches(int arbor, int patchIndex) {
+   inline PVPatch *getWPostPatches(int arbor, int patchIndex) {
       return wPostPatches[arbor][patchIndex];
    }
 
-   inline pvwdata_t* getWPostData(int arbor, int patchIndex) {
+   inline pvwdata_t *getWPostData(int arbor, int patchIndex) {
       return &wPostDataStart[arbor][postPatchStartIndex(patchIndex)]
-            + wPostPatches[arbor][patchIndex]->offset;
+             + wPostPatches[arbor][patchIndex]->offset;
    }
 
-   inline pvwdata_t* getWPostData(int arbor) {
-      return wPostDataStart[arbor];
-   }
+   inline pvwdata_t *getWPostData(int arbor) { return wPostDataStart[arbor]; }
 
-   int getNumWeightPatches() {
-      return numWeightPatches;
-   }
+   int getNumWeightPatches() { return numWeightPatches; }
 
-   int getNumDataPatches() {
-      return numDataPatches;
-   }
+   int getNumDataPatches() { return numDataPatches; }
 
-   inline size_t getGSynPatchStart(int kPre, int arborId) {
-      return gSynPatchStart[arborId][kPre];
-   }
+   inline size_t getGSynPatchStart(int kPre, int arborId) { return gSynPatchStart[arborId][kPre]; }
 
-   inline size_t getAPostOffset(int kPre, int arborId) {
-      return aPostOffset[arborId][kPre];
-   }
+   inline size_t getAPostOffset(int kPre, int arborId) { return aPostOffset[arborId][kPre]; }
 
-   NormalizeBase * getNormalizer() {
-      return normalizer;
-   }
+   NormalizeBase *getNormalizer() { return normalizer; }
 
-   bool getNormalizeDwFlag() {
-      return normalizeDwFlag;
-   }
+   bool getNormalizeDwFlag() { return normalizeDwFlag; }
 
-   PVPatch*** convertPreSynapticWeights(double time);
-   PVPatch**** point2PreSynapticWeights();
-   //PVPatch**** point2PreSynapticWeights2();
-   int preSynapticPatchHead(int kxPost, int kyPost, int kfPost, int* kxPre,
-         int* kyPre);
-   int postSynapticPatchHead(int kPre, int* kxPostOut, int* kyPostOut,
-         int* kfPostOut, int* dxOut, int* dyOut, int* nxpOut, int* nypOut);
+   PVPatch ***convertPreSynapticWeights(double time);
+   PVPatch ****point2PreSynapticWeights();
+   int preSynapticPatchHead(int kxPost, int kyPost, int kfPost, int *kxPre, int *kyPre);
+   int postSynapticPatchHead(
+         int kPre,
+         int *kxPostOut,
+         int *kyPostOut,
+         int *kfPostOut,
+         int *dxOut,
+         int *dyOut,
+         int *nxpOut,
+         int *nypOut);
    virtual int shrinkPatches(int arborId);
    int shrinkPatch(int kExt, int arborId);
 
-   bool getShrinkPatches_flag() {
-      return shrinkPatches_flag;
-   }
+   bool getShrinkPatches_flag() { return shrinkPatches_flag; }
 
-   bool getUpdateGSynFromPostPerspective(){return updateGSynFromPostPerspective;}
+   bool getUpdateGSynFromPostPerspective() { return updateGSynFromPostPerspective; }
 
-   taus_uint4 * getRandState(int index);
+   taus_uint4 *getRandState(int index);
 
-   int sumWeights(int nx, int ny, int offset, pvwdata_t* dataStart, double* sum,
-         double* sum2, float* maxVal);
+   int sumWeights(
+         int nx,
+         int ny,
+         int offset,
+         pvwdata_t *dataStart,
+         double *sum,
+         double *sum2,
+         float *maxVal);
 
-   virtual void addClone(PlasticCloneConn* conn);
-
-   //virtual int reduceActivations(int arborID);
-
-   virtual long * getPostToPreActivity(){
-      return postToPreActivity;
-   }
+   virtual void addClone(PlasticCloneConn *conn);
+   virtual long *getPostToPreActivity() { return postToPreActivity; }
 
    virtual void initPatchToDataLUT();
    virtual int patchToDataLUT(int patchIndex);
-   virtual int* getPatchToDataLUT(){return patch2datalookuptable;}
-   virtual int patchIndexToDataIndex(int patchIndex, int* kx = NULL, int* ky =
-         NULL, int* kf = NULL);
-   virtual int dataIndexToUnitCellIndex(int dataIndex, int* kx = NULL, int* ky =
-         NULL, int* kf = NULL);
+   virtual int *getPatchToDataLUT() { return patch2datalookuptable; }
+   virtual int
+   patchIndexToDataIndex(int patchIndex, int *kx = NULL, int *ky = NULL, int *kf = NULL);
+   virtual int
+   dataIndexToUnitCellIndex(int dataIndex, int *kx = NULL, int *ky = NULL, int *kf = NULL);
 
-   void setNeedPost(bool inBool){needPost = inBool;}
-   void setNeedAllocPostWeights (bool inBool){needAllocPostWeights = inBool;}
+   void setNeedPost(bool inBool) { needPost = inBool; }
+   void setNeedAllocPostWeights(bool inBool) { needAllocPostWeights = inBool; }
 
-protected:
-   // char * filename; // Filename if loading weights from a file
+  protected:
    int fileparams[NUM_WGT_PARAMS]; // The header of the file named by the filename member variable
    int numWeightPatches; // Number of PVPatch structures in buffer pointed to by wPatches[arbor]
-   int numDataPatches;   // Number of blocks of pvwdata_t's in buffer pointed to by wDataStart[arbor]
+   int numDataPatches; // Number of blocks of pvwdata_t's in buffer pointed to by wDataStart[arbor]
    bool needAllocPostWeights;
 
-   std::vector <PlasticCloneConn*> clones; //A vector of plastic clones that are cloning from this connection
+   std::vector<PlasticCloneConn *>
+         clones; // A vector of plastic clones that are cloning from this connection
 
-   //these were moved to private to ensure use of get/set methods and made in 3D pointers:
-   //PVPatch       ** wPatches[MAX_ARBOR_LIST]; // list of weight patches, one set per neighbor
-private:
-   PVPatch*** wPatches; // list of weight patches, one set per arbor
+  private:
+   PVPatch ***wPatches; // list of weight patches, one set per arbor
    // GTK:: gSynPatchStart redefined as offset from start of associated gSynBuffer
-   //pvwdata_t*** gSynPatchStart; //  gSynPatchStart[arborId][kExt] is a pointer to the start of the patch in the post-synaptic GSyn buffer
-   size_t** gSynPatchStart;  // gSynPatchStart[arborId][kExt] is the offset to the start of the patch from the beginning of the post-synaptic GSyn buffer for corresponding channel
-   size_t** aPostOffset; // aPostOffset[arborId][kExt] is the index of the start of a patch into an extended post-synaptic layer
-   PVPatchStrides postExtStrides;    // sx,sy,sf for a patch mapping into an extended post-synaptic layer
-   PVPatchStrides postNonextStrides; // sx,sy,sf for a patch mapping into a non-extended post-synaptic layer
-   pvwdata_t** wDataStart;  //now that data for all patches are allocated to one continuous block of memory, this pointer saves the starting address of that array
-   pvwdata_t** dwDataStart; //now that data for all patches are allocated to one continuous block of memory, this pointer saves the starting address of that array
-   //int defaultDelay; //added to save params file defined delay...
+   size_t **gSynPatchStart; // gSynPatchStart[arborId][kExt] is the offset to the start of the patch
+   // from the beginning of the post-synaptic GSyn buffer for corresponding
+   // channel
+   size_t **aPostOffset; // aPostOffset[arborId][kExt] is the index of the start of a patch into an
+   // extended post-synaptic layer
+   PVPatchStrides
+         postExtStrides; // sx,sy,sf for a patch mapping into an extended post-synaptic layer
+   PVPatchStrides
+         postNonextStrides; // sx,sy,sf for a patch mapping into a non-extended post-synaptic layer
+   pvwdata_t **wDataStart; // now that data for all patches are allocated to one continuous block of
+   // memory, this pointer saves the starting address of that array
+   pvwdata_t **dwDataStart; // now that data for all patches are allocated to one continuous block
+   // of memory, this pointer saves the starting address of that array
    bool strengthParamHasBeenWritten;
-   int * patch2datalookuptable;
-   
-   long * postToPreActivity;
+   int *patch2datalookuptable;
 
-   bool needPost; // needPost is set during the communicate stage.  During the allocate stage, the value is used to decide whether to create postConn.
+   long *postToPreActivity;
+
+   bool needPost; // needPost is set during the communicate stage.  During the allocate stage, the
+   // value is used to decide whether to create postConn.
 
    // All weights that are above the threshold
    typedef pvwdata_t WeightType;
@@ -399,8 +374,8 @@ private:
    // Have sparse weights been allocated for each arbor?
    std::vector<bool> _sparseWeightsAllocated;
 
-   typedef std::map<const WeightType * const, const WeightListType> WeightPtrMapType;
-   typedef std::map<const WeightType * const, const IndexListType>  WeightIndexMapType;
+   typedef std::map<const WeightType *const, const WeightListType> WeightPtrMapType;
+   typedef std::map<const WeightType *const, const IndexListType> WeightIndexMapType;
 
    // Map nk -> weight ptr -> sparse weights
    typedef std::map<int, WeightPtrMapType> WeightMapType;
@@ -414,7 +389,8 @@ private:
    std::set<int> _kPreExtWeightSparsified;
 
    unsigned long _numDeliverCalls; // Number of times deliver has been called
-   unsigned long _allocateSparseWeightsFrequency; // Number of _numDeliverCalls that need to happen before the pre list needs to be rebuilt
+   unsigned long _allocateSparseWeightsFrequency; // Number of _numDeliverCalls that need to happen
+   // before the pre list needs to be rebuilt
 
    // Allocate sparse weights when performing presynaptic delivery
    void allocateSparseWeightsPre(PVLayerCube const *activity, int arbor);
@@ -422,35 +398,50 @@ private:
    void allocateSparseWeightsPost(PVLayerCube const *activity, int arbor);
    // Calculates the sparse weight threshold
    SparseWeightInfo calculateSparseWeightInfo() const;
-   SparseWeightInfo findPercentileThreshold(float percentile, pvwdata_t **wDataStart, size_t numAxonalArborLists, size_t numPatches, size_t patchSize) const;
-   void deliverOnePreNeuronActivitySparseWeights(int kPreExt, int arbor, pvadata_t a, pvgsyndata_t * postBufferStart, void * auxPtr);
-   void deliverOnePostNeuronActivitySparseWeights(int arborID, int kTargetExt, int inSy, float* activityStartBuf, pvdata_t* gSynPatchPos, float dt_factor, taus_uint4 * rngPtr);
+   SparseWeightInfo findPercentileThreshold(
+         float percentile,
+         pvwdata_t **wDataStart,
+         size_t numAxonalArborLists,
+         size_t numPatches,
+         size_t patchSize) const;
+   void deliverOnePreNeuronActivitySparseWeights(
+         int kPreExt,
+         int arbor,
+         pvadata_t a,
+         pvgsyndata_t *postBufferStart,
+         void *auxPtr);
+   void deliverOnePostNeuronActivitySparseWeights(
+         int arborID,
+         int kTargetExt,
+         int inSy,
+         float *activityStartBuf,
+         pvdata_t *gSynPatchPos,
+         float dt_factor,
+         taus_uint4 *rngPtr);
 
-
-protected:
-   HyPerConn* postConn;
+  protected:
+   HyPerConn *postConn;
    bool needFinalize;
    bool useMask;
-   char* maskLayerName;
+   char *maskLayerName;
    int maskFeatureIdx;
-   HyPerLayer* mask;
-   bool* batchSkip;
+   HyPerLayer *mask;
+   bool *batchSkip;
 
    bool normalizeDwFlag;
 
    int nxp, nyp, nfp; // size of weight dimensions
    bool warnDefaultNfp; // Whether to print a warning if the default nfp is used.
    int sxp, syp, sfp; // stride in x,y,features
-   // PVPatch       *** dwPatches;      // list of weight patches for storing changes to weights
-   PVPatch*** wPostPatches; // post-synaptic linkage of weights // This is being deprecated in favor of TransposeConn
-   pvwdata_t** wPostDataStart;
+   PVPatch ***wPostPatches; // post-synaptic linkage of weights // This is being deprecated in favor
+   // of TransposeConn
+   pvwdata_t **wPostDataStart;
 
-   PVPatch**** wPostPatchesp; // Pointer to wPatches, but from the postsynaptic perspective
-   pvwdata_t*** wPostDataStartp; // Pointer to wDataStart, but from the postsynaptic perspective
+   PVPatch ****wPostPatchesp; // Pointer to wPatches, but from the postsynaptic perspective
+   pvwdata_t ***wPostDataStartp; // Pointer to wDataStart, but from the postsynaptic perspective
 
    int nxpPost, nypPost, nfpPost;
    int numParams;
-   //PVConnParams * params;
    float wMax;
    float wMin;
    bool ioAppend; // controls opening of binary files
@@ -458,40 +449,50 @@ protected:
    double initialWriteTime;
    double writeTime; // time of next output, initialized in params file parameter initialWriteTime
    double writeStep; // output time interval
-   bool writeCompressedWeights; // if true, outputState writes weights with 8-bit precision; if false, write weights with float precision
-   bool writeCompressedCheckpoints; // similar to writeCompressedWeights, but for checkpointWrite instead of outputState
+   bool writeCompressedWeights; // if true, outputState writes weights with 8-bit precision; if
+   // false, write weights with float precision
+   bool writeCompressedCheckpoints; // similar to writeCompressedWeights, but for checkpointWrite
+   // instead of outputState
    int fileType; // type ID for file written by PV::writeWeights
 
-   Timer * io_timer;
-   Timer * update_timer;
+   Timer *io_timer;
+   Timer *update_timer;
 
    bool sharedWeights; // Set to true for the old KernelConn behavior
-   // bool plasticityFlag; // Moved to base class BaseConnection on Jan 26, 2015
    bool triggerFlag;
-   char* triggerLayerName;
+   char *triggerLayerName;
    double triggerOffset;
-   HyPerLayer* triggerLayer;
-   bool combine_dW_with_W_flag; // indicates that dwDataStart should be set equal to wDataStart, useful for saving memory when weights are not being learned but not used
-   bool selfFlag; // indicates that connection is from a layer to itself (even though pre and post may be separately instantiated)
-   char * normalizeMethod;
-   NormalizeBase * normalizer;
+   HyPerLayer *triggerLayer;
+   bool combine_dW_with_W_flag; // indicates that dwDataStart should be set equal to wDataStart,
+   // useful for saving memory when weights are not being learned but
+   // not used
+   bool selfFlag; // indicates that connection is from a layer to itself (even though pre and post
+   // may be separately instantiated)
+   char *normalizeMethod;
+   NormalizeBase *normalizer;
    bool shrinkPatches_flag;
    float shrinkPatchesThresh;
-   //This object handles calculating weights.  All the initialize weights methods for all connection classes
-   //are being moved into subclasses of this object.  The default root InitWeights class will create
-   //2D Gaussian weights.  If weight initialization type isn't created in a way supported by Buildandrun,
-   //this class will try to read the weights from a file or will do a 2D Gaussian.
-   char * weightInitTypeString;
-   InitWeights* weightInitializer;
-   char * pvpatchAccumulateTypeString;
+   // This object handles calculating weights.  All the initialize weights methods for all
+   // connection classes
+   // are being moved into subclasses of this object.  The default root InitWeights class will
+   // create
+   // 2D Gaussian weights.  If weight initialization type isn't created in a way supported by
+   // Buildandrun,
+   // this class will try to read the weights from a file or will do a 2D Gaussian.
+   char *weightInitTypeString;
+   InitWeights *weightInitializer;
+   char *pvpatchAccumulateTypeString;
    AccumulateType pvpatchAccumulateType;
-   bool normalizeTotalToPost; // if false, normalize the sum of weights from each presynaptic neuron.  If true, normalize the sum of weights into a postsynaptic neuron.
-   float dWMax;  // dW scale factor
+   bool normalizeTotalToPost; // if false, normalize the sum of weights from each presynaptic
+   // neuron.  If true, normalize the sum of weights into a postsynaptic
+   // neuron.
+   float dWMax; // dW scale factor
    bool useListOfArborFiles;
    bool combineWeightFiles;
    bool updateGSynFromPostPerspective;
 
-   pvdata_t ** thread_gSyn; //Accumulate buffer for each thread, only used if numThreads > 1 // Move back to HyPerLayer?
+   pvdata_t **thread_gSyn; // Accumulate buffer for each thread, only used if numThreads > 1 // Move
+   // back to HyPerLayer?
 
    double weightUpdatePeriod;
    double weightUpdateTime;
@@ -500,87 +501,67 @@ protected:
    double lastTimeUpdateCalled;
 
    bool symmetrizeWeightsFlag;
-   long ** numKernelActivations;
+   long **numKernelActivations;
    bool keepKernelsSynchronized_flag;
 
-   Random * randState;
+   Random *randState;
 
-
-
-protected:
+  protected:
    HyPerConn();
    virtual int initNumWeightPatches();
    virtual int initNumDataPatches();
 
-   inline PVPatch*** get_wPatches() {
+   inline PVPatch ***get_wPatches() {
       return wPatches;
-   } // protected so derived classes can use; public methods are weights(arbor) and getWeights(patchindex,arbor)
+   } // protected so derived classes can use; public methods are weights(arbor) and
+   // getWeights(patchindex,arbor)
 
-   inline void set_wPatches(PVPatch*** patches) {
-      wPatches = patches;
-   }
+   inline void set_wPatches(PVPatch ***patches) { wPatches = patches; }
 
-public:
-   inline size_t** getGSynPatchStart() {
-      return gSynPatchStart;
-   }
-protected:
+  public:
+   inline size_t **getGSynPatchStart() { return gSynPatchStart; }
 
-   inline void setGSynPatchStart(size_t** patchstart) {
-      gSynPatchStart = patchstart;
-   }
+  protected:
+   inline void setGSynPatchStart(size_t **patchstart) { gSynPatchStart = patchstart; }
 
-   inline size_t** getAPostOffset() {
-      return aPostOffset;
-   }
+   inline size_t **getAPostOffset() { return aPostOffset; }
 
-   inline void setAPostOffset(size_t** postoffset) {
-      aPostOffset = postoffset;
-   }
+   inline void setAPostOffset(size_t **postoffset) { aPostOffset = postoffset; }
 
-   inline pvwdata_t** get_wDataStart() {
-      return wDataStart;
-   }
+   inline pvwdata_t **get_wDataStart() { return wDataStart; }
 
-   inline void set_wDataStart(pvwdata_t** datastart) {
-      wDataStart = datastart;
-   }
+   inline void set_wDataStart(pvwdata_t **datastart) { wDataStart = datastart; }
 
-   inline void set_wDataStart(int arborId, pvwdata_t* pDataStart) {
+   inline void set_wDataStart(int arborId, pvwdata_t *pDataStart) {
       wDataStart[arborId] = pDataStart;
    }
 
-   inline pvwdata_t** get_dwDataStart() {
-      return dwDataStart;
-   }
+   inline pvwdata_t **get_dwDataStart() { return dwDataStart; }
 
-   inline long** get_activations(){
-      return numKernelActivations;
-   }
+   inline long **get_activations() { return numKernelActivations; }
 
-   inline void set_dwDataStart(pvwdata_t** datastart) {
-      dwDataStart = datastart;
-   }
+   inline void set_dwDataStart(pvwdata_t **datastart) { dwDataStart = datastart; }
 
-   inline void set_dwDataStart(int arborId, pvwdata_t* pIncrStart) {
+   inline void set_dwDataStart(int arborId, pvwdata_t *pIncrStart) {
       dwDataStart[arborId] = pIncrStart;
    }
 
    inline size_t patchStartIndex(int patchIndex) {
-      return (size_t) patchIndex * (size_t) (nxp*nyp*nfp);
+      return (size_t)patchIndex * (size_t)(nxp * nyp * nfp);
    }
 
    inline size_t postPatchStartIndex(int patchIndex) {
-      return (size_t) patchIndex * (size_t) (nxpPost*nypPost*nfpPost);
+      return (size_t)patchIndex * (size_t)(nxpPost * nypPost * nfpPost);
    }
 
-   int calcUnitCellIndex(int patchIndex, int* kxUnitCellIndex = NULL,
-         int* kyUnitCellIndex = NULL, int* kfUnitCellIndex = NULL);
-   // virtual int setPatchSize();
+   int calcUnitCellIndex(
+         int patchIndex,
+         int *kxUnitCellIndex = NULL,
+         int *kyUnitCellIndex = NULL,
+         int *kfUnitCellIndex = NULL);
    virtual int setPatchStrides();
    int checkPatchDimensions();
-   virtual int checkPatchSize(int patchSize, int scalePre, int scalePost,
-         char dim);
+   virtual int checkPatchSize(int patchSize, int scalePre, int scalePost, char dim);
    int initialize_base();
    virtual int createArbors();
    void createArborsOutOfMemory();
@@ -589,19 +570,24 @@ protected:
    /**
     * Deprecated in favor of initialize(name, hc)
     */
-   int initialize(const char * name, HyPerCol * hc, InitWeights * weightInitializer, NormalizeBase * weightNormalizer); // Deprecated June 22, 2016.
+   int initialize(
+         const char *name,
+         HyPerCol *hc,
+         InitWeights *weightInitializer,
+         NormalizeBase *weightNormalizer); // Deprecated June 22, 2016.
 
    /**
-    * Initializes the connection.  This routine should be called by the initialize method of classes derived from HyPerConn.
+    * Initializes the connection.  This routine should be called by the initialize method of classes
+    * derived from HyPerConn.
     * It is not called by the default HyPerConn constructor.
     */
-   int initialize(char const * name, HyPerCol * hc);
+   int initialize(char const *name, HyPerCol *hc);
    virtual int setWeightInitializer(); // Note: no longer deprecated.
-   virtual InitWeights * createInitWeightsObject(const char * weightInitTypeStr);
+   virtual InitWeights *createInitWeightsObject(const char *weightInitTypeStr);
    int setWeightNormalizer(); // Note: no longer deprecated.
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
-   /** 
+   /**
     * List of parameters needed from the HyPerConn class
     * @name HyPerConn Parameters
     * @{
@@ -614,7 +600,6 @@ protected:
     */
    virtual void ioParam_channelCode(enum ParamsIOFlag ioFlag);
 
-   // virtual void ioParam_initWeightsFile(enum ParamsIOFlag ioFlag);
    /**
     * @brief sharedWeights: Defines if the HyPerConn uses shared weights (kernelConn)
     */
@@ -623,7 +608,7 @@ protected:
    /**
     * @brief weightInitType: Specifies the initialization method of weights
     * @details Possible choices are
-    * - @link InitGauss2DWeightsParams Gauss2DWeight@endlink: 
+    * - @link InitGauss2DWeightsParams Gauss2DWeight@endlink:
     *   Initializes weights with a gaussian distribution in x and y over each f
     *
     * - @link InitCocircWeightsParams CoCircWeight@endlink:
@@ -661,19 +646,14 @@ protected:
 
    virtual void ioParam_weightInitType(enum ParamsIOFlag ioFlag);
 
-   // plasticityFlag was moved to base class BaseConnection on Jan 26, 2015.
-   // /**
-   //  * @brief plasticityFlag: Specifies if the weights will be updated
-   //  */
-   // virtual void ioParam_plasticityFlag(enum ParamsIOFlag ioFlag);
-
    /**
     * @brief weightUpdatePeriod: If plasticity flag is set, specifies the update period of weights
     */
    virtual void ioParam_weightUpdatePeriod(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief initialWeightUpdateTime: If plasticity flag is set, specifies the inital weight update time; ignored if triggerFlag = true
+    * @brief initialWeightUpdateTime: If plasticity flag is set, specifies the inital weight update
+    * time; ignored if triggerFlag = true
     */
    virtual void ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag);
 
@@ -683,7 +663,8 @@ protected:
    virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief triggerOffset: If trigger flag is set, triggers \<triggerOffset\> timesteps before target trigger
+    * @brief triggerOffset: If trigger flag is set, triggers \<triggerOffset\> timesteps before
+    * target trigger
     * @details Defaults to 0.
     */
    virtual void ioParam_triggerOffset(enum ParamsIOFlag ioFlag);
@@ -712,7 +693,8 @@ protected:
    virtual void ioParam_initialWriteTime(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief writeCompressedWeights: If writeStep >= 0, weights written out are bytes as opposed to floats.
+    * @brief writeCompressedWeights: If writeStep >= 0, weights written out are bytes as opposed to
+    * floats.
     */
    virtual void ioParam_writeCompressedWeights(enum ParamsIOFlag ioFlag);
 
@@ -724,7 +706,8 @@ protected:
 
    /**
     * @brief selfFlag: Indicates if pre and post is the same layer.
-    * @details The default value for selfFlag should be pre==post, but at the time ioParams(PARAMS_IO_READ) is called,
+    * @details The default value for selfFlag should be pre==post, but at the time
+    * ioParams(PARAMS_IO_READ) is called,
     * pre and post have not been set.  So we read the value with no warning if it's present;
     * if it's absent, set the value to pre==post in the communicateInitInfo stage and issue
     * the using-default-value warning then.
@@ -768,17 +751,19 @@ protected:
    virtual void ioParam_nfp(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief shrinkPatches: Optimization for shrinking a patch to it's non-zero values 
+    * @brief shrinkPatches: Optimization for shrinking a patch to it's non-zero values
     */
    virtual void ioParam_shrinkPatches(enum ParamsIOFlag ioFlag);
-   
+
    /**
-    * @brief shrinkPatchesThresh: If shrinkPatches flag is set, specifies threshold to consider weight as zero
+    * @brief shrinkPatchesThresh: If shrinkPatches flag is set, specifies threshold to consider
+    * weight as zero
     */
    virtual void ioParam_shrinkPatchesThresh(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief updateGSynFromPostPerspective: Specifies if the connection should push from pre or pull from post.
+    * @brief updateGSynFromPostPerspective: Specifies if the connection should push from pre or pull
+    * from post.
     */
    virtual void ioParam_updateGSynFromPostPerspective(enum ParamsIOFlag ioFlag);
 
@@ -786,34 +771,36 @@ protected:
     * @brief dWMax: If plasticity flag is set, specifies the learning rate of the weight updates.
     */
    virtual void ioParam_dWMax(enum ParamsIOFlag ioFlag);
-   
+
    /**
     * @brief normalizeMethod: Specifies the normalization method for weights
     * @details Weights will be normalized after initialization and after each weight update.
     * Possible choices are:
-    * - @link NormalizeSum normalizeSum@endlink: 
+    * - @link NormalizeSum normalizeSum@endlink:
     *   Normalization where sum of weights add up to strength
-    * - @link NormalizeL2 normalizeL2@endlink: 
+    * - @link NormalizeL2 normalizeL2@endlink:
     *   Normaliztion method where L2 of weights add up to strength
-    * - @link NormalizeMax normalizeMax@endlink: 
+    * - @link NormalizeMax normalizeMax@endlink:
     *   Normaliztion method where Max is clamped at strength
-    * - @link NormalizeContrastZeroMean normalizeContrastZeroMean@endlink: 
+    * - @link NormalizeContrastZeroMean normalizeContrastZeroMean@endlink:
     *   Normalization method for a weight with specified mean and std
-    * - @link NormalizeScale normalizeScale@endlink: 
+    * - @link NormalizeScale normalizeScale@endlink:
     *   TODO
-    * - none: Do not normalize 
+    * - none: Do not normalize
     *
     * Further parameters are needed depending on initialization type.
     */
    virtual void ioParam_normalizeMethod(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief keepKernelsSynchronized: If using sharedWeights and plasticityFlag, sets if kernels should be synchronized during the run.
+    * @brief keepKernelsSynchronized: If using sharedWeights and plasticityFlag, sets if kernels
+    * should be synchronized during the run.
     */
    virtual void ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag);
-   
+
    /**
-    * @brief normalizeDw: Specifies if this connection is averaging gradients (true) or summing them (false)
+    * @brief normalizeDw: Specifies if this connection is averaging gradients (true) or summing them
+    * (false)
     */
    virtual void ioParam_normalizeDw(enum ParamsIOFlag ioFlag);
 
@@ -826,7 +813,7 @@ protected:
     * @brief maskLayerName: If using mask, specifies the layer to use as a binary mask layer
     */
    virtual void ioParam_maskLayerName(enum ParamsIOFlag ioFlag);
-   
+
    /**
     * @brief maskLayerName: If using mask, specifies which feature dim to use for the mask
     * @details Defaults to -1, which means point wise mask
@@ -841,7 +828,7 @@ protected:
     */
    virtual void ioParam_gpuGroupIdx(enum ParamsIOFlag ioFlag);
 
-   // preDataLocal, numXLocal, numYLocal, and numFLocal were removed Sep 22, 2016.
+// preDataLocal, numXLocal, numYLocal, and numFLocal were removed Sep 22, 2016.
 #endif // PV_USE_CUDA
 
    /**
@@ -851,29 +838,55 @@ protected:
 
    /** @} */
 
-   int setPreLayerName(const char * pre_name);
-   int setPostLayerName(const char * post_name);
+   int setPreLayerName(const char *pre_name);
+   int setPostLayerName(const char *post_name);
    virtual int initPlasticityPatches();
-   virtual int setPatchSize(); // Sets nxp, nyp, nfp if weights are loaded from file.  Subclasses override if they have specialized ways of setting patch size that needs to go in the communicate stage.
-   virtual int setPostPatchSize(); // Sets nxp, nyp, nfp if weights are loaded from file.  Subclasses override if they have specialized ways of setting patch size that needs to go in the communicate stage.
-                               // (e.g. BIDSConn uses pre and post layer size to set nxp,nyp, but pre and post aren't set until communicateInitInfo().
-   virtual void handleDefaultSelfFlag(); // If selfFlag was not set in params, set it in this function.
-   virtual PVPatch*** initializeWeights(PVPatch*** arbors, pvwdata_t** dataStart);
-   virtual InitWeights* getDefaultInitWeightsMethod(const char* keyword);
-   virtual int createWeights(PVPatch*** patches, int nWeightPatches, int nDataPatches, int nxPatch,
-         int nyPatch, int nfPatch, int arborId);
-   int createWeights(PVPatch*** patches, int arborId);
-   virtual pvwdata_t * allocWeights(int nPatches, int nxPatch, int nyPatch, int nfPatch);
+   virtual int setPatchSize(); // Sets nxp, nyp, nfp if weights are loaded from file.  Subclasses
+   // override if they have specialized ways of setting patch size that
+   // needs to go in the communicate stage.
+   virtual int setPostPatchSize(); // Sets nxp, nyp, nfp if weights are loaded from file.
+   // Subclasses override if they have specialized ways of setting
+   // patch size that needs to go in the communicate stage.
+   // (e.g. BIDSConn uses pre and post layer size to set nxp,nyp, but pre and post aren't set until
+   // communicateInitInfo().
+   virtual void
+   handleDefaultSelfFlag(); // If selfFlag was not set in params, set it in this function.
+   virtual PVPatch ***initializeWeights(PVPatch ***arbors, pvwdata_t **dataStart);
+   virtual InitWeights *getDefaultInitWeightsMethod(const char *keyword);
+   virtual int createWeights(
+         PVPatch ***patches,
+         int nWeightPatches,
+         int nDataPatches,
+         int nxPatch,
+         int nyPatch,
+         int nfPatch,
+         int arborId);
+   int createWeights(PVPatch ***patches, int arborId);
+   virtual pvwdata_t *allocWeights(int nPatches, int nxPatch, int nyPatch, int nfPatch);
    virtual int allocatePostToPreBuffer();
    virtual int allocatePostConn();
 
-   int clearWeights(pvwdata_t** dataStart, int numPatches, int nx, int ny, int nf);
-   virtual int adjustAllPatches(int nxPre, int nyPre, int nfPre, const PVHalo * haloPre, int nxPost, int nyPost, int nfPost, const PVHalo * haloPost, PVPatch*** inWPatches, size_t** inGSynPatchStart, size_t** inAPostOffset, int arborId);
+   int clearWeights(pvwdata_t **dataStart, int numPatches, int nx, int ny, int nf);
+   virtual int adjustAllPatches(
+         int nxPre,
+         int nyPre,
+         int nfPre,
+         const PVHalo *haloPre,
+         int nxPost,
+         int nyPost,
+         int nfPost,
+         const PVHalo *haloPost,
+         PVPatch ***inWPatches,
+         size_t **inGSynPatchStart,
+         size_t **inAPostOffset,
+         int arborId);
    virtual int adjustAxonalArbors(int arborId);
-   virtual int readStateFromCheckpoint(const char * cpDir, double * timeptr);
-   virtual int readWeightsFromCheckpoint(const char * cpDir, double * timeptr);
-   int checkpointFilename(char * cpFilename, int size, const char * cpDir);
-   virtual int setInitialValues(); // returns PV_SUCCESS if successful, or PV_POSTPONE if it needs to wait on other objects (e.g. TransposeConn has to wait for original conn)
+   virtual int readStateFromCheckpoint(const char *cpDir, double *timeptr);
+   virtual int readWeightsFromCheckpoint(const char *cpDir, double *timeptr);
+   int checkpointFilename(char *cpFilename, int size, const char *cpDir);
+   virtual int setInitialValues(); // returns PV_SUCCESS if successful, or PV_POSTPONE if it needs
+   // to wait on other objects (e.g. TransposeConn has to wait for
+   // original conn)
 
    /**
     * calc_dW is a function that calls initialze_dW, update_dW, reduce_dW, and normalize_dW
@@ -892,7 +905,7 @@ protected:
    virtual int update_dW(int arborId);
    virtual pvdata_t updateRule_dW(pvdata_t pre, pvdata_t post);
    virtual int updateWeights(int arborId = 0);
-   virtual bool skipPre(pvdata_t preact){return preact == 0.0f;};
+   virtual bool skipPre(pvdata_t preact) { return preact == 0.0f; };
    /**
     * Reduces all dW and activations across MPI
     */
@@ -905,77 +918,77 @@ protected:
     */
    virtual int normalize_dW(int arbor_ID);
 
-   virtual int deliverPresynapticPerspectiveConvolve(PVLayerCube const * activity, int arborID);
-   virtual int deliverPresynapticPerspectiveStochastic(PVLayerCube const * activity, int arborID);
-   virtual int deliverPresynapticPerspective(PVLayerCube const * activity, int arborId){
+   virtual int deliverPresynapticPerspectiveConvolve(PVLayerCube const *activity, int arborID);
+   virtual int deliverPresynapticPerspectiveStochastic(PVLayerCube const *activity, int arborID);
+   virtual int deliverPresynapticPerspective(PVLayerCube const *activity, int arborId) {
       int status = PV_SUCCESS;
-      switch(pvpatchAccumulateType) {
-      case CONVOLVE: status = deliverPresynapticPerspectiveConvolve(activity, arborId); break;
-      case STOCHASTIC: status = deliverPresynapticPerspectiveStochastic(activity, arborId); break;
-      default: pvAssert(0); status = PV_FAILURE; break;
+      switch (pvpatchAccumulateType) {
+         case CONVOLVE: status = deliverPresynapticPerspectiveConvolve(activity, arborId); break;
+         case STOCHASTIC:
+            status = deliverPresynapticPerspectiveStochastic(activity, arborId);
+            break;
+         default:
+            pvAssert(0);
+            status = PV_FAILURE;
+            break;
       }
       return status;
    }
-   virtual int deliverPostsynapticPerspective(PVLayerCube const * activity, int arborID) {
+   virtual int deliverPostsynapticPerspective(PVLayerCube const *activity, int arborID) {
       int status = PV_SUCCESS;
-      switch(pvpatchAccumulateType) {
-      case CONVOLVE: status = deliverPostsynapticPerspectiveConvolve(activity, arborID, NULL, NULL); break;
-      case STOCHASTIC: status = deliverPostsynapticPerspectiveStochastic(activity, arborID, NULL, NULL); break;
-      default: pvAssert(0); status = PV_FAILURE; break;
+      switch (pvpatchAccumulateType) {
+         case CONVOLVE:
+            status = deliverPostsynapticPerspectiveConvolve(activity, arborID, NULL, NULL);
+            break;
+         case STOCHASTIC:
+            status = deliverPostsynapticPerspectiveStochastic(activity, arborID, NULL, NULL);
+            break;
+         default:
+            pvAssert(0);
+            status = PV_FAILURE;
+            break;
       }
       return status;
    }
-   virtual int deliverPostsynapticPerspectiveConvolve(PVLayerCube const * activity, int arborID, int* numActive, int** activeList);
-   virtual int deliverPostsynapticPerspectiveStochastic(PVLayerCube const * activity, int arborID, int* numActive, int** activeList);
+   virtual int deliverPostsynapticPerspectiveConvolve(
+         PVLayerCube const *activity,
+         int arborID,
+         int *numActive,
+         int **activeList);
+   virtual int deliverPostsynapticPerspectiveStochastic(
+         PVLayerCube const *activity,
+         int arborID,
+         int *numActive,
+         int **activeList);
 #ifdef PV_USE_CUDA
-   virtual int deliverPresynapticPerspectiveGPU(PVLayerCube const * activity, int arborID);
-   virtual int deliverPostsynapticPerspectiveGPU(PVLayerCube const * activity, int arborID);
+   virtual int deliverPresynapticPerspectiveGPU(PVLayerCube const *activity, int arborID);
+   virtual int deliverPostsynapticPerspectiveGPU(PVLayerCube const *activity, int arborID);
 #endif // PV_USE_CUDA
 
    double getConvertToRateDeltaTimeFactor();
 
-//GPU variables
+// GPU variables
 #ifdef PV_USE_CUDA
-public:
-   bool getAllocDeviceWeights(){
-      return allocDeviceWeights;
-   }
-   bool getAllocPostDeviceWeights(){
-      return allocPostDeviceWeights;
-   }
+  public:
+   bool getAllocDeviceWeights() { return allocDeviceWeights; }
+   bool getAllocPostDeviceWeights() { return allocPostDeviceWeights; }
 
-   virtual void setAllocDeviceWeights(){
-      allocDeviceWeights= true;
-   }
-   virtual void setAllocPostDeviceWeights(){
-      allocPostDeviceWeights = true;
-   }
-   virtual PVCuda::CudaBuffer * getDeviceWData(){
-      return d_WData;
-   }
-   PVCuda::CudaBuffer * getDevicePatches(){
-      return d_Patches;
-   }
-   PVCuda::CudaBuffer * getDeviceGSynPatchStart(){
-      return d_GSynPatchStart;
-   }
-   void setDeviceWData(PVCuda::CudaBuffer* inBuf){
-      d_WData = inBuf;
-   }
+   virtual void setAllocDeviceWeights() { allocDeviceWeights = true; }
+   virtual void setAllocPostDeviceWeights() { allocPostDeviceWeights = true; }
+   virtual PVCuda::CudaBuffer *getDeviceWData() { return d_WData; }
+   PVCuda::CudaBuffer *getDevicePatches() { return d_Patches; }
+   PVCuda::CudaBuffer *getDeviceGSynPatchStart() { return d_GSynPatchStart; }
+   void setDeviceWData(PVCuda::CudaBuffer *inBuf) { d_WData = inBuf; }
 
 #ifdef PV_USE_CUDNN
-   virtual PVCuda::CudaBuffer * getCudnnWData(){
-      return cudnn_WData;
-   }
-   void setCudnnWData(PVCuda::CudaBuffer* inBuf){
-      cudnn_WData = inBuf;
-   }
+   virtual PVCuda::CudaBuffer *getCudnnWData() { return cudnn_WData; }
+   void setCudnnWData(PVCuda::CudaBuffer *inBuf) { cudnn_WData = inBuf; }
 #endif // PV_USE_CUDNN
 
-   PVCuda::CudaRecvPost * getKrRecvPost(){return krRecvPost;}
-   PVCuda::CudaRecvPre * getKrRecvPre(){return krRecvPre;}
+   PVCuda::CudaRecvPost *getKrRecvPost() { return krRecvPost; }
+   PVCuda::CudaRecvPre *getKrRecvPre() { return krRecvPre; }
 
-protected:
+  protected:
    virtual int allocatePostDeviceWeights();
    virtual int allocateDeviceWeights();
    virtual int allocateDeviceBuffers();
@@ -985,37 +998,34 @@ protected:
 
    bool allocDeviceWeights;
    bool allocPostDeviceWeights;
-   //bool updatedDeviceWeights;
-   
 
-   PVCuda::CudaBuffer * d_WData;
+   PVCuda::CudaBuffer *d_WData;
 #ifdef PV_USE_CUDNN
-   PVCuda::CudaBuffer * cudnn_WData;
+   PVCuda::CudaBuffer *cudnn_WData;
 #endif // PV_USE_CUDNN
-   PVCuda::CudaBuffer * d_Patches;
-   PVCuda::CudaBuffer * d_GSynPatchStart;
-   PVCuda::CudaBuffer * d_PostToPreActivity;
-   PVCuda::CudaBuffer * d_Patch2DataLookupTable;
-   PVCuda::CudaRecvPost* krRecvPost;        // Cuda kernel for update state call
-   PVCuda::CudaRecvPre* krRecvPre;        // Cuda kernel for update state call
+   PVCuda::CudaBuffer *d_Patches;
+   PVCuda::CudaBuffer *d_GSynPatchStart;
+   PVCuda::CudaBuffer *d_PostToPreActivity;
+   PVCuda::CudaBuffer *d_Patch2DataLookupTable;
+   PVCuda::CudaRecvPost *krRecvPost; // Cuda kernel for update state call
+   PVCuda::CudaRecvPre *krRecvPre; // Cuda kernel for update state call
    int gpuGroupIdx;
 
 #endif // PV_USE_CUDA
 
-private:
-   int clearWeights(pvwdata_t* arborDataStart, int numPatches, int nx, int ny,
-         int nf);
+  private:
+   int clearWeights(pvwdata_t *arborDataStart, int numPatches, int nx, int ny, int nf);
    int deleteWeights();
    void unsetAccumulateType();
 
-// static member functions
-//
-public:
-   static PVPatch** createPatches(int nPatches, int nx, int ny) {
-      PVPatch** patchpointers = (PVPatch**) (calloc(nPatches, sizeof(PVPatch*)));
-      PVPatch* patcharray = (PVPatch*) (calloc(nPatches, sizeof(PVPatch)));
+   // static member functions
+   //
+  public:
+   static PVPatch **createPatches(int nPatches, int nx, int ny) {
+      PVPatch **patchpointers = (PVPatch **)(calloc(nPatches, sizeof(PVPatch *)));
+      PVPatch *patcharray     = (PVPatch *)(calloc(nPatches, sizeof(PVPatch)));
 
-      PVPatch * curpatch = patcharray;
+      PVPatch *curpatch = patcharray;
       for (int i = 0; i < nPatches; i++) {
          pvpatch_init(curpatch, nx, ny);
          patchpointers[i] = curpatch;
@@ -1025,116 +1035,127 @@ public:
       return patchpointers;
    }
 
-   static int deletePatches(PVPatch ** patchpointers)
-   {
-      if (patchpointers != NULL && *patchpointers != NULL){
+   static int deletePatches(PVPatch **patchpointers) {
+      if (patchpointers != NULL && *patchpointers != NULL) {
          free(*patchpointers);
          *patchpointers = NULL;
       }
       free(patchpointers);
       patchpointers = NULL;
-//      for (int i = 0; i < numBundles; i++) {
-//         pvpatch_inplace_delete(patches[i]);
-//      }
-      //free(patches);
 
       return 0;
    }
 
-   static inline
-   void pvpatch_init(PVPatch * p, int nx, int ny)
-   {
-      p->nx = nx;
-      p->ny = ny;
+   static inline void pvpatch_init(PVPatch *p, int nx, int ny) {
+      p->nx     = nx;
+      p->ny     = ny;
       p->offset = 0;
    }
 
-   static inline
-   void pvpatch_adjust(PVPatch * p, int sx, int sy, int nxNew, int nyNew, int dx, int dy)
-   {
+   static inline void
+   pvpatch_adjust(PVPatch *p, int sx, int sy, int nxNew, int nyNew, int dx, int dy) {
       p->nx = nxNew;
       p->ny = nyNew;
       p->offset += dx * sx + dy * sy;
    }
 
-protected:
+  protected:
    static inline int computeMargin(int prescale, int postscale, int patchsize) {
-   // 2^prescale is the distance between adjacent neurons in pre-layer, thus a smaller prescale means a layer with more neurons
+      // 2^prescale is the distance between adjacent neurons in pre-layer, thus a smaller prescale
+      // means a layer with more neurons
       int margin = 0;
-      if (prescale==postscale) {
-         assert(patchsize%2==1);
-         margin = (patchsize-1)/2;
+      if (prescale == postscale) {
+         assert(patchsize % 2 == 1);
+         margin = (patchsize - 1) / 2;
       }
-      else if (prescale<postscale) { // Density of pre is greater than density of pre: many-to-one
+      else if (prescale < postscale) { // Density of pre is greater than density of pre:
+         // many-to-one
          // any patchsize is permissible
-         int densityratio = (int) powf(2.0f,(float)(postscale-prescale));
+         int densityratio = (int)powf(2.0f, (float)(postscale - prescale));
          assert(densityratio % 2 == 0);
-         margin = (patchsize-1) * densityratio/2;
+         margin = (patchsize - 1) * densityratio / 2;
       }
-      else
-      {
-         assert(prescale>postscale); // one-to-many
-         int densityratio = (int) powf(2.0f,(float)(prescale-postscale));
-         int numcells = patchsize/densityratio;
-         assert(numcells*densityratio==patchsize); // For one-to-many, patchsize must be a multiple of "many".
-         margin = numcells/2; // integer division is correct, no matter whether numcells is even or odd
+      else {
+         assert(prescale > postscale); // one-to-many
+         int densityratio = (int)powf(2.0f, (float)(prescale - postscale));
+         int numcells     = patchsize / densityratio;
+         assert(
+               numcells * densityratio
+               == patchsize); // For one-to-many, patchsize must be a multiple of "many".
+         margin = numcells
+                  / 2; // integer division is correct, no matter whether numcells is even or odd
       }
       return margin;
    }
 
-   static inline int adjustedPatchDimension(int zPre, int preNeuronsPerPostNeuron, int postNeuronsPerPreNeuron, int nPost, int patchDim, int * postStartPtr, int * patchStartPtr, int * adjustedDim) {
-      float preInPostCoords; // The location, in postsynaptic restricted coordinates, of the presynaptic cell of this patch
+   static inline int adjustedPatchDimension(
+         int zPre,
+         int preNeuronsPerPostNeuron,
+         int postNeuronsPerPreNeuron,
+         int nPost,
+         int patchDim,
+         int *postStartPtr,
+         int *patchStartPtr,
+         int *adjustedDim) {
+      float preInPostCoords; // The location, in postsynaptic restricted coordinates, of the
+      // presynaptic cell of this patch
       if (postNeuronsPerPreNeuron > 1) {
-         preInPostCoords = zPre * postNeuronsPerPreNeuron + 0.5f*(postNeuronsPerPreNeuron-1);
+         preInPostCoords = zPre * postNeuronsPerPreNeuron + 0.5f * (postNeuronsPerPreNeuron - 1);
       }
       else if (preNeuronsPerPostNeuron > 1) {
-         preInPostCoords = ((float) (2*zPre-(preNeuronsPerPostNeuron-1)))/((float) 2*preNeuronsPerPostNeuron);
+         preInPostCoords = ((float)(2 * zPre - (preNeuronsPerPostNeuron - 1)))
+                           / ((float)2 * preNeuronsPerPostNeuron);
       }
       else {
-         preInPostCoords = (float) zPre;
+         preInPostCoords = (float)zPre;
       }
-      float postStartf = preInPostCoords - 0.5f*patchDim; // The location, in postsynaptic restricted coordinates of the start of an interval of length nxp and center xPreInPostCoords
-      float postStopf = preInPostCoords + 0.5f*patchDim; // The location of the end of the interval starting at xPostStartf.
+      float postStartf = preInPostCoords - 0.5f * patchDim; // The location, in postsynaptic
+      // restricted coordinates of the start
+      // of an interval of length nxp and
+      // center xPreInPostCoords
+      float postStopf =
+            preInPostCoords
+            + 0.5f * patchDim; // The location of the end of the interval starting at xPostStartf.
       // Everything between xPostStartf and xPostStopf, inclusive, is in the patch.
-      int postStart = (int) ceil(postStartf);
-      int postStop = (int) floor(postStopf) + 1;
-      assert(postStop-postStart==patchDim);
+      int postStart = (int)ceil(postStartf);
+      int postStop  = (int)floor(postStopf) + 1;
+      assert(postStop - postStart == patchDim);
       int patchStart = 0;
-      int patchStop = patchDim;
-      if (postStop<0) {
-         postStop=0;
-         postStart=0;
-         patchStart=0;
-         patchStop=0;
+      int patchStop  = patchDim;
+      if (postStop < 0) {
+         postStop   = 0;
+         postStart  = 0;
+         patchStart = 0;
+         patchStop  = 0;
       }
-      if (postStart<0) {
+      if (postStart < 0) {
          patchStart += -postStart;
          postStart = 0;
       }
-      if (postStart>nPost) {
-         postStart=nPost;
-         postStop=nPost;
-         patchStart=0;
-         patchStop=0;
+      if (postStart > nPost) {
+         postStart  = nPost;
+         postStop   = nPost;
+         patchStart = 0;
+         patchStop  = 0;
       }
-      if (postStop>nPost) {
-         patchStop-=(postStop-nPost);
+      if (postStop > nPost) {
+         patchStop -= (postStop - nPost);
          postStop = nPost;
       }
-      assert(postStop-postStart==patchStop-patchStart);
+      assert(postStop - postStart == patchStop - patchStart);
       // calculate width of the edge-adjusted patch and perform sanity checks.
       int width = patchStop - patchStart;
-      assert(width>=0 && width<=patchDim && patchStart>=0 && patchStart+width<=patchDim);
-      *postStartPtr = postStart;
+      assert(width >= 0 && width <= patchDim && patchStart >= 0 && patchStart + width <= patchDim);
+      *postStartPtr  = postStart;
       *patchStartPtr = patchStart;
-      *adjustedDim = width;
+      *adjustedDim   = width;
       return PV_SUCCESS;
    }
 
 }; // class HyPerConn
 
-InitWeights * getWeightInitializer(char const * name, HyPerCol * hc);
-NormalizeBase * getWeightNormalizer(char const * name, HyPerCol * hc);
+InitWeights *getWeightInitializer(char const *name, HyPerCol *hc);
+NormalizeBase *getWeightNormalizer(char const *name, HyPerCol *hc);
 
 } // namespace PV
 

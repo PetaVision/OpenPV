@@ -5,18 +5,18 @@
 
 namespace PV {
 
-class BinningLayer: public PV::HyPerLayer {
-public:
-   BinningLayer(const char * name, HyPerCol * hc);
+class BinningLayer : public PV::HyPerLayer {
+  public:
+   BinningLayer(const char *name, HyPerCol *hc);
    virtual int communicateInitInfo();
    virtual int allocateDataStructures();
-   virtual int requireMarginWidth(int marginWidthNeeded, int * marginWidthResult, char axis);
+   virtual int requireMarginWidth(int marginWidthNeeded, int *marginWidthResult, char axis);
    virtual bool activityIsSpiking() { return false; }
    virtual ~BinningLayer();
 
-protected:
+  protected:
    BinningLayer();
-   int initialize(const char * name, HyPerCol * hc);
+   int initialize(const char *name, HyPerCol *hc);
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    void ioParam_originalLayerName(enum ParamsIOFlag ioFlag);
    void ioParam_binMaxMin(enum ParamsIOFlag ioFlag);
@@ -29,12 +29,20 @@ protected:
    int initializeV();
    virtual int initializeActivity();
    virtual int updateState(double timef, double dt);
-   virtual int doUpdateState(double timed, double dt, const PVLayerLoc * origLoc,
-         const PVLayerLoc * currLoc, const pvdata_t * origData, pvdata_t * currV, float binMax, float binMin);
+   virtual int doUpdateState(
+         double timed,
+         double dt,
+         const PVLayerLoc *origLoc,
+         const PVLayerLoc *currLoc,
+         const pvdata_t *origData,
+         pvdata_t *currV,
+         float binMax,
+         float binMin);
 
-   float getSigma(){return binSigma;}
+   float getSigma() { return binSigma; }
    float calcNormDist(float xVal, float mean, float binSigma);
-private:
+
+  private:
    int initialize_base();
    int delay;
    float binMax;
@@ -44,10 +52,10 @@ private:
    bool zeroDCR;
    bool normalDist;
 
-protected:
-   char * originalLayerName;
-   HyPerLayer * originalLayer;
+  protected:
+   char *originalLayerName;
+   HyPerLayer *originalLayer;
 }; // class BinningLayer
 
 } /* namespace PV */
-#endif 
+#endif

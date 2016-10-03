@@ -7,30 +7,29 @@
 #define RECEIVEFROMPOSTPROBE_HPP_
 #include "probes/StatsProbe.hpp"
 
-namespace PV{
+namespace PV {
 
-class ReceiveFromPostProbe : public PV::StatsProbe{
-public:
-   ReceiveFromPostProbe(const char * probeName, HyPerCol * hc);
+class ReceiveFromPostProbe : public PV::StatsProbe {
+  public:
+   ReceiveFromPostProbe(const char *probeName, HyPerCol *hc);
 
    virtual int outputState(double timed);
 
-protected:
-   int initReceiveFromPostProbe(const char * probeName, HyPerCol * hc);
+  protected:
+   int initReceiveFromPostProbe(const char *probeName, HyPerCol *hc);
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    void ioParam_buffer(enum ParamsIOFlag ioFlag);
    void ioParam_tolerance(enum ParamsIOFlag ioFlag);
 
-private:
+  private:
    int initReceiveFromPostProbe_base();
 
-// Member variables
-protected:
+   // Member variables
+  protected:
    pvadata_t tolerance;
 
 }; // end class ReceiveFromPostProbe
 
+} // end namespcae PV
 
-}  // end namespcae PV
-
-#endif  // RECEIVEFROMPOSTPROBE_HPP_
+#endif // RECEIVEFROMPOSTPROBE_HPP_

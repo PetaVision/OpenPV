@@ -5,34 +5,26 @@
  *      Author: garkenyon
  */
 
-#include "HyPerLayer.hpp"
 #include "GapLayer.hpp"
+#include "HyPerLayer.hpp"
 
 // GapLayer can be used to implement gap junctions
 namespace PV {
-GapLayer::GapLayer() {
-   initialize_base();
-}
+GapLayer::GapLayer() { initialize_base(); }
 
-GapLayer::GapLayer(const char * name, HyPerCol * hc) {
+GapLayer::GapLayer(const char *name, HyPerCol *hc) {
    initialize_base();
    initialize(name, hc);
 }
 
-GapLayer::~GapLayer()
-{
-   // Handled by CloneVLayer constructor
-   // clayer->V = NULL;
-}
+GapLayer::~GapLayer() {}
 
 int GapLayer::initialize_base() {
-   // sourceLayer = NULL; // Handled by CloneVLayer
    ampSpikelet = 50;
    return PV_SUCCESS;
 }
 
-int GapLayer::initialize(const char * name, HyPerCol * hc)
-{
+int GapLayer::initialize(const char *name, HyPerCol *hc) {
    int status_init = CloneVLayer::initialize(name, hc);
    assert(originalLayerName != NULL);
 
@@ -64,25 +56,70 @@ int GapLayer::allocateDataStructures() {
 
 int GapLayer::updateState(double timef, double dt) {
    int status;
-   status = updateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(), originalLayer->getCLayer()->activity->data);
+   status = updateState(
+         timef,
+         dt,
+         getLayerLoc(),
+         getCLayer()->activity->data,
+         getV(),
+         originalLayer->getCLayer()->activity->data);
    return status;
 }
 
-int GapLayer::updateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, pvdata_t * checkActive) {
-   int nx = loc->nx;
-   int ny = loc->ny;
-   int nf = loc->nf;
-   int num_neurons = nx*ny*nf;
-   int nbatch = loc->nbatch;
+int GapLayer::updateState(
+      double timef,
+      double dt,
+      const PVLayerLoc *loc,
+      pvdata_t *A,
+      pvdata_t *V,
+      pvdata_t *checkActive) {
+   int nx          = loc->nx;
+   int ny          = loc->ny;
+   int nf          = loc->nf;
+   int num_neurons = nx * ny * nf;
+   int nbatch      = loc->nbatch;
    updateV_GapLayer();
-   setActivity_GapLayer(nbatch, num_neurons, A, V, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, originalLayer->getLayerLoc()->halo.lt, originalLayer->getLayerLoc()->halo.rt, originalLayer->getLayerLoc()->halo.dn, originalLayer->getLayerLoc()->halo.up, checkActive, ampSpikelet);
+   setActivity_GapLayer(
+         nbatch,
+         num_neurons,
+         A,
+         V,
+         nx,
+         ny,
+         nf,
+         loc->halo.lt,
+         loc->halo.rt,
+         loc->halo.dn,
+         loc->halo.up,
+         originalLayer->getLayerLoc()->halo.lt,
+         originalLayer->getLayerLoc()->halo.rt,
+         originalLayer->getLayerLoc()->halo.dn,
+         originalLayer->getLayerLoc()->halo.up,
+         checkActive,
+         ampSpikelet);
    return PV_SUCCESS;
 }
 
 int GapLayer::setActivity() {
-   const PVLayerLoc * loc = getLayerLoc();
-   return setActivity_GapLayer(loc->nbatch, getNumNeurons(), getCLayer()->activity->data, getV(), loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, originalLayer->getLayerLoc()->halo.lt, originalLayer->getLayerLoc()->halo.rt, originalLayer->getLayerLoc()->halo.dn, originalLayer->getLayerLoc()->halo.up, getCLayer()->activity->data,ampSpikelet);
+   const PVLayerLoc *loc = getLayerLoc();
+   return setActivity_GapLayer(
+         loc->nbatch,
+         getNumNeurons(),
+         getCLayer()->activity->data,
+         getV(),
+         loc->nx,
+         loc->ny,
+         loc->nf,
+         loc->halo.lt,
+         loc->halo.rt,
+         loc->halo.dn,
+         loc->halo.up,
+         originalLayer->getLayerLoc()->halo.lt,
+         originalLayer->getLayerLoc()->halo.rt,
+         originalLayer->getLayerLoc()->halo.dn,
+         originalLayer->getLayerLoc()->halo.up,
+         getCLayer()->activity->data,
+         ampSpikelet);
 }
 
 } // end namespace PV
-

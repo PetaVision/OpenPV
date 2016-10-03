@@ -9,14 +9,14 @@
 #ifndef LIF_HPP_
 #define LIF_HPP_
 
-#include "HyPerLayer.hpp"
 #include "../columns/Random.hpp"
+#include "HyPerLayer.hpp"
 //#include "../kernels/LIF_params.h"
 
-#define NUM_LIF_EVENTS   4
+#define NUM_LIF_EVENTS 4
 //#define EV_LIF_GSYN_E     0
 //#define EV_LIF_GSYN_I     1
-#define EV_LIF_GSYN_IB    2
+#define EV_LIF_GSYN_IB 2
 //#define EV_LIF_ACTIVITY  3
 #define pvconductance_t float
 
@@ -44,19 +44,15 @@ struct LIF_params {
    float noiseAmpIB;
 };
 
+namespace PV {
 
-namespace PV
-{
+class LIF : public PV::HyPerLayer {
+  public:
+   friend int test_kernels(int argc, char *argv[]);
+   friend int test_LIF(int argc, char *argv[]);
 
-class LIF: public PV::HyPerLayer
-{
-public:
-
-   friend int test_kernels(int argc, char * argv[]);
-   friend int test_LIF    (int argc, char * argv[]);
-
-   LIF(const char* name, HyPerCol * hc);
-   LIF(const char* name, HyPerCol * hc, int num_channels);
+   LIF(const char *name, HyPerCol *hc);
+   LIF(const char *name, HyPerCol *hc, int num_channels);
    virtual ~LIF();
 
    virtual int communicateInitInfo();
@@ -64,35 +60,34 @@ public:
 
    virtual int updateState(double time, double dt);
    virtual int setActivity();
-   
-   virtual int checkpointWrite(const char * cpDir);
 
-   pvdata_t * getVth()              {return Vth;}
-   virtual pvconductance_t * getConductance(ChannelType ch) {
-         return ch < this->numChannels ? G_E + ch*getNumNeurons() : NULL;
-      }
+   virtual int checkpointWrite(const char *cpDir);
+
+   pvdata_t *getVth() { return Vth; }
+   virtual pvconductance_t *getConductance(ChannelType ch) {
+      return ch < this->numChannels ? G_E + ch * getNumNeurons() : NULL;
+   }
 
    virtual float getChannelTimeConst(enum ChannelType channel_type);
 
-   virtual LIF_params * getLIFParams() {return &lParams;};
+   virtual LIF_params *getLIFParams() { return &lParams; };
 
    virtual bool activityIsSpiking() { return true; }
 
-
-protected:
+  protected:
    LIF_params lParams;
-   Random * randState;
-   pvdata_t * Vth;      // threshold potential
-   pvconductance_t * G_E;      // excitatory conductance
-   pvconductance_t * G_I;      // inhibitory conductance
-   pvconductance_t * G_IB;
+   Random *randState;
+   pvdata_t *Vth; // threshold potential
+   pvconductance_t *G_E; // excitatory conductance
+   pvconductance_t *G_I; // inhibitory conductance
+   pvconductance_t *G_IB;
 
-   char * methodString; // 'arma', 'before', or 'original'
-   char method;         // 'a', 'b', or 'o', the first character of methodString
+   char *methodString; // 'arma', 'before', or 'original'
+   char method; // 'a', 'b', or 'o', the first character of methodString
 
-protected:
+  protected:
    LIF();
-   int initialize(const char * name, HyPerCol * hc, const char * kernel_name);
+   int initialize(const char *name, HyPerCol *hc, const char *kernel_name);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual void ioParam_Vrest(enum ParamsIOFlag ioFlag);
    virtual void ioParam_Vexc(enum ParamsIOFlag ioFlag);
@@ -115,24 +110,29 @@ protected:
    virtual void ioParam_method(enum ParamsIOFlag ioFlag);
    virtual int allocateBuffers();
    virtual int allocateConductances(int num_channels);
-   virtual int readStateFromCheckpoint(const char * cpDir, double * timeptr);
-   virtual int readVthFromCheckpoint(const char * cpDir, double * timeptr);
-   virtual int readG_EFromCheckpoint(const char * cpDir, double * timeptr);
-   virtual int readG_IFromCheckpoint(const char * cpDir, double * timeptr);
-   virtual int readG_IBFromCheckpoint(const char * cpDir, double * timeptr);
-   virtual int readRandStateFromCheckpoint(const char * cpDir, double * timeptr);
+   virtual int readStateFromCheckpoint(const char *cpDir, double *timeptr);
+   virtual int readVthFromCheckpoint(const char *cpDir, double *timeptr);
+   virtual int readG_EFromCheckpoint(const char *cpDir, double *timeptr);
+   virtual int readG_IFromCheckpoint(const char *cpDir, double *timeptr);
+   virtual int readG_IBFromCheckpoint(const char *cpDir, double *timeptr);
+   virtual int readRandStateFromCheckpoint(const char *cpDir, double *timeptr);
 
-
-private:
+  private:
    int initialize_base();
-   int findPostSynaptic(int dim, int maxSize, int col,
-   // input: which layer, which neuron
-   HyPerLayer *lSource, float pos[],
+   int findPostSynaptic(
+         int dim,
+         int maxSize,
+         int col,
+         // input: which layer, which neuron
+         HyPerLayer *lSource,
+         float pos[],
 
-   // output: how many of our neurons are connected.
-   // an array with their indices.
-   // an array with their feature vectors.
-   int* nNeurons, int nConnectedNeurons[], float *vPos);
+         // output: how many of our neurons are connected.
+         // an array with their indices.
+         // an array with their feature vectors.
+         int *nNeurons,
+         int nConnectedNeurons[],
+         float *vPos);
 }; // class LIF
 
 } // namespace PV

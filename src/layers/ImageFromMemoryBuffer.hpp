@@ -18,94 +18,129 @@
 
 namespace PV {
 
-   class ImageFromMemoryBuffer : public ImageLayer {
+class ImageFromMemoryBuffer : public ImageLayer {
 
-      public:
-         ImageFromMemoryBuffer(char const * name, HyPerCol * hc);
-         
-         virtual ~ImageFromMemoryBuffer();
-         
-         /**
-          * Sets the image.  Under MPI, nonroot processes ignore the externalBuffer
-          * argument; all other arguments must be the same across all processes.
-          *
-          * Inputs:
-          *    buffer      A pointer to the beffer containing the image.
-          *                Under MPI, only the root process uses buffer and the root process scatters the image to the other processes.
-          *    height      The height in pixels of the entire image
-          *    width       The width in pixels of the entire image
-          *    numbands    The number of bands in the image: i.e., grayscale=1, RGB=3, etc.
-          *    xstride     The difference between the memory locations, as pointers of type pixeltype, between two pixels adjacent in the x-direction, with the same y-coordinate and band number.
-          *    ystride     The difference between the memory locations, as pointers of type pixeltype, between two pixels adjacent in the y-direction, with the same x-coordinate and band number.
-          *    bandstride  The difference between the memory locations, as pointers of type pixeltype, between two pixels from adjacent bands, with the same x- and y-coordinates.
-          *    zeroval     The value that should be converted to 0.0f internally.
-          *    oneval      The value that should be converted to 1.0f internally.  Values other than zeroval and oneval are converted to floats using a linear transformation.
-          */
-         template <typename pixeltype> int setMemoryBuffer(pixeltype const * externalBuffer, int height, int width, int numbands, int xstride, int ystride, int bandstride, pixeltype zeroval, pixeltype oneval);
+  public:
+   ImageFromMemoryBuffer(char const *name, HyPerCol *hc);
 
-         /**
-          * Sets the image.  Overloads setMemoryBuffer to also change the parameters offsetX, offsetY, and offsetAnchor.
-          */
-         template <typename pixeltype> int setMemoryBuffer(pixeltype const * externalBuffer, int height, int width, int numbands, int xstride, int ystride, int bandstride, pixeltype zeroval, pixeltype oneval, int offsetX, int offsetY, char const * offsetAnchor);
+   virtual ~ImageFromMemoryBuffer();
 
-         /**
-          * Returns true if a new image has been set by a call to setMemoryBuffer without having been copied to the
-          * activity buffer by a call to copyBuffer() (which is called by either updateState or initializeActivity)
-          */
-         virtual bool needUpdate(double time, double dt) { return hasNewImageFlag; }
-         
-         /**
-          * For ImageFromMemoryBuffer, the updateTime is the parent->getStopTime() - parent->getStartTime().
-          * Implemented to allow triggering off of an ImageFromMemoryBuffer layer.
-          */
-         virtual double getDeltaUpdateTime();
+   /**
+    * Sets the image.  Under MPI, nonroot processes ignore the externalBuffer
+    * argument; all other arguments must be the same across all processes.
+    *
+    * Inputs:
+    *    buffer      A pointer to the beffer containing the image.
+    *                Under MPI, only the root process uses buffer and the root process scatters the
+    * image to the other processes.
+    *    height      The height in pixels of the entire image
+    *    width       The width in pixels of the entire image
+    *    numbands    The number of bands in the image: i.e., grayscale=1, RGB=3, etc.
+    *    xstride     The difference between the memory locations, as pointers of type pixeltype,
+    * between two pixels adjacent in the x-direction, with the same y-coordinate and band number.
+    *    ystride     The difference between the memory locations, as pointers of type pixeltype,
+    * between two pixels adjacent in the y-direction, with the same x-coordinate and band number.
+    *    bandstride  The difference between the memory locations, as pointers of type pixeltype,
+    * between two pixels from adjacent bands, with the same x- and y-coordinates.
+    *    zeroval     The value that should be converted to 0.0f internally.
+    *    oneval      The value that should be converted to 1.0f internally.  Values other than
+    * zeroval and oneval are converted to floats using a linear transformation.
+    */
+   template <typename pixeltype>
+   int setMemoryBuffer(
+         pixeltype const *externalBuffer,
+         int height,
+         int width,
+         int numbands,
+         int xstride,
+         int ystride,
+         int bandstride,
+         pixeltype zeroval,
+         pixeltype oneval);
 
-      /**
-          * Overrides updateState
-          */
-         virtual int updateState(double time, double dt);
+   /**
+    * Sets the image.  Overloads setMemoryBuffer to also change the parameters offsetX, offsetY, and
+    * offsetAnchor.
+    */
+   template <typename pixeltype>
+   int setMemoryBuffer(
+         pixeltype const *externalBuffer,
+         int height,
+         int width,
+         int numbands,
+         int xstride,
+         int ystride,
+         int bandstride,
+         pixeltype zeroval,
+         pixeltype oneval,
+         int offsetX,
+         int offsetY,
+         char const *offsetAnchor);
 
-         /**
-          * ImageFromMemoryBuffer uses the same outputState as HyPerLayer
-          */
-         virtual int outputState(double time, bool last=false);
+   /**
+    * Returns true if a new image has been set by a call to setMemoryBuffer without having been
+    * copied to the
+    * activity buffer by a call to copyBuffer() (which is called by either updateState or
+    * initializeActivity)
+    */
+   virtual bool needUpdate(double time, double dt) { return hasNewImageFlag; }
 
-      protected:
-         ImageFromMemoryBuffer();
-         
-         int initialize(char const * name, HyPerCol * hc);
-         
-         virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   /**
+    * For ImageFromMemoryBuffer, the updateTime is the parent->getStopTime() -
+    * parent->getStartTime().
+    * Implemented to allow triggering off of an ImageFromMemoryBuffer layer.
+    */
+   virtual double getDeltaUpdateTime();
 
-         /** 
-          * List of parameters needed from the ImageFromMemoryBuffer class
-          * @name Image Parameters
-          * @{
-          */
+   /**
+       * Overrides updateState
+       */
+   virtual int updateState(double time, double dt);
 
-         /**
-          * @brief inputPath: Not used by ImageFromMemoryBuffer.
-          * @details ImageFromMemoryBuffer does not read the input from a path.  Instead, call setMemoryBuffer()
-          */
-         virtual void ioParam_inputPath(enum ParamsIOFlag ioFlag) { return; }
+   /**
+    * ImageFromMemoryBuffer uses the same outputState as HyPerLayer
+    */
+   virtual int outputState(double time, bool last = false);
 
-         /**
-          * Called by HyPerLayer::setActivity() during setInitialValues stage; calls copyBuffer()
-          */
-         virtual int initializeActivity(double time, double dt);
+  protected:
+   ImageFromMemoryBuffer();
 
-         int retrieveData(double timef, double dt, int batchIndex);
-            
-      private:
-         int initialize_base();
+   int initialize(char const *name, HyPerCol *hc);
 
-         template <typename pixeltype> pvadata_t pixelTypeConvert(pixeltype q, pixeltype zeroval, pixeltype oneval);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
-      // Member variables
-      protected:
-         bool hasNewImageFlag; // set to true by setMemoryBuffer; cleared to false by initializeActivity();
-   }; // class ImageFromMemoryBuffer
+   /**
+    * List of parameters needed from the ImageFromMemoryBuffer class
+    * @name Image Parameters
+    * @{
+    */
 
-}  // namespace PV
+   /**
+    * @brief inputPath: Not used by ImageFromMemoryBuffer.
+    * @details ImageFromMemoryBuffer does not read the input from a path.  Instead, call
+    * setMemoryBuffer()
+    */
+   virtual void ioParam_inputPath(enum ParamsIOFlag ioFlag) { return; }
+
+   /**
+    * Called by HyPerLayer::setActivity() during setInitialValues stage; calls copyBuffer()
+    */
+   virtual int initializeActivity(double time, double dt);
+
+   int retrieveData(double timef, double dt, int batchIndex);
+
+  private:
+   int initialize_base();
+
+   template <typename pixeltype>
+   pvadata_t pixelTypeConvert(pixeltype q, pixeltype zeroval, pixeltype oneval);
+
+   // Member variables
+  protected:
+   bool hasNewImageFlag; // set to true by setMemoryBuffer; cleared to false by
+   // initializeActivity();
+}; // class ImageFromMemoryBuffer
+
+} // namespace PV
 
 #endif // IMAGEFROMMEMORYBUFFER_HPP_

@@ -12,7 +12,7 @@
  * for example, to align memory to a vector size.
  */
 typedef struct PVHalo_ {
-   int lt, rt, dn, up;  // padding in {left, right, down, up} directions
+   int lt, rt, dn, up; // padding in {left, right, down, up} directions
 } PVHalo;
 
 /**
@@ -21,8 +21,8 @@ typedef struct PVHalo_ {
 typedef struct PVLayerLoc_ {
    int nbatch, nx, ny, nf; // local number of grid pts in each dimension
    int nbatchGlobal, nxGlobal, nyGlobal; // total number of grid pts in the global space
-   int kb0, kx0, ky0;      // origin of the local layer in global index space
-   PVHalo halo;            // padding for memory (must include nb)
+   int kb0, kx0, ky0; // origin of the local layer in global index space
+   PVHalo halo; // padding for memory (must include nb)
 } PVLayerLoc;
 
 #endif /* PVLAYERLOC_H_ */

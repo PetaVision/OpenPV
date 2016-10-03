@@ -9,15 +9,12 @@
 
 namespace PV {
 
-PlasticTestConn::PlasticTestConn(const char * name, HyPerCol * hc) : HyPerConn(){
+PlasticTestConn::PlasticTestConn(const char *name, HyPerCol *hc) : HyPerConn() {
    HyPerConn::initialize(name, hc);
 }
 
-pvdata_t PlasticTestConn::updateRule_dW(pvdata_t pre, pvdata_t post) {
-   return pre - post;
-}
+pvdata_t PlasticTestConn::updateRule_dW(pvdata_t pre, pvdata_t post) { return pre - post; }
 
-PlasticTestConn::~PlasticTestConn() {
-}
+PlasticTestConn::~PlasticTestConn() {}
 
 } /* namespace PV */

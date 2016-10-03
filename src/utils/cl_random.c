@@ -31,17 +31,15 @@
 
 #include "cl_random.h"
 
-static inline unsigned int taus_get (taus_state_t *vstate);
-static void taus_set (taus_state_t *state, unsigned int s);
+static inline unsigned int taus_get(taus_state_t *vstate);
+static void taus_set(taus_state_t *state, unsigned int s);
 
-taus_uint4 cl_random_get(taus_uint4 state)
-{
+taus_uint4 cl_random_get(taus_uint4 state) {
    state.s0 = taus_get(&state.state);
    return state;
 }
 
-int cl_random_init(taus_uint4 * state, size_t count, unsigned int seed)
-{
+int cl_random_init(taus_uint4 *state, size_t count, unsigned int seed) {
    int i;
 
    // a zero seed can cause problems (see taus_set)
@@ -50,54 +48,48 @@ int cl_random_init(taus_uint4 * state, size_t count, unsigned int seed)
    // initialize state array using a separate seed for each element
    //
    for (i = 0; i < count; i++) {
-      taus_set(&state[i].state, i+seed);
+      taus_set(&state[i].state, i + seed);
       state[i].s0 = (state[i].state.s1 ^ state[i].state.s2 ^ state[i].state.s3);
    }
 
    return 0;
 }
 
-
-static void
-taus_set (taus_state_t * state, unsigned int s)
-{
-  if (s == 0) {
-    s = 1;      /* default seed is 1 */
-  }
+static void taus_set(taus_state_t *state, unsigned int s) {
+   if (s == 0) {
+      s = 1; /* default seed is 1 */
+   }
 
 // original for unsigned long int
 //#define LCG(n) ((69069 * n) & 0xffffffffUL)
 #define LCG(n) ((69069 * n))
 
-  state->s1 = LCG (s);
-  state->s2 = LCG (state->s1);
-  state->s3 = LCG (state->s2);
+   state->s1 = LCG(s);
+   state->s2 = LCG(state->s1);
+   state->s3 = LCG(state->s2);
 
-  /* "warm it up" */
-  taus_get (state);
-  taus_get (state);
-  taus_get (state);
-  taus_get (state);
-  taus_get (state);
-  taus_get (state);
-  return;
+   /* "warm it up" */
+   taus_get(state);
+   taus_get(state);
+   taus_get(state);
+   taus_get(state);
+   taus_get(state);
+   taus_get(state);
+   return;
 }
 
-static inline unsigned int
-taus_get (taus_state_t * state)
-{
+static inline unsigned int taus_get(taus_state_t *state) {
 
 //#define MASK 0xffffffffUL
 //#define TAUSWORTHE(s,a,b,c,d) (((s &c) <<d) &MASK) ^ ((((s <<a) &MASK)^s) >>b)
-#define TAUSWORTHE(s,a,b,c,d) (((s &c) <<d)) ^ ((((s <<a))^s) >>b)
+#define TAUSWORTHE(s, a, b, c, d) (((s & c) << d)) ^ ((((s << a)) ^ s) >> b)
 
-  state->s1 = TAUSWORTHE (state->s1, 13, 19, 4294967294, 12);
-  state->s2 = TAUSWORTHE (state->s2, 2 , 25, 4294967288, 4);
-  state->s3 = TAUSWORTHE (state->s3, 3 , 11, 4294967280, 17);
+   state->s1 = TAUSWORTHE(state->s1, 13, 19, 4294967294, 12);
+   state->s2 = TAUSWORTHE(state->s2, 2, 25, 4294967288, 4);
+   state->s3 = TAUSWORTHE(state->s3, 3, 11, 4294967280, 17);
 
-  return (state->s1 ^ state->s2 ^ state->s3);
+   return (state->s1 ^ state->s2 ^ state->s3);
 }
-
 
 /* boxmuller.c           Implements the Polar form of the Box-Muller
                          Transformation
@@ -108,33 +100,35 @@ taus_get (taus_state_t * state)
                           copyright notice is preserved.
 
 */
-// Argument box_muller_state * bm_state added so that cl_random_prob() could be used in place of Carter's ranf().
+// Argument box_muller_state * bm_state added so that cl_random_prob() could be used in place of
+// Carter's ranf().
 // use_last and y2 changed to elements of bm_state so that several independent RNGs can be used.
-float cl_box_muller(float m, float s, struct box_muller_state * bm_state)      /* normal random variate generator */
-{                                       /* mean m, standard deviation s */
+float cl_box_muller(
+      float m,
+      float s,
+      struct box_muller_state *bm_state) /* normal random variate generator */
+{ /* mean m, standard deviation s */
    float x1, x2, w, y1;
 
-   if (bm_state->use_last)                   /* use value from previous call */
+   if (bm_state->use_last) /* use value from previous call */
    {
-      y1 = bm_state->last_value;
+      y1                 = bm_state->last_value;
       bm_state->use_last = 0;
    }
-   else
-   {
+   else {
       do {
          *(bm_state->state) = cl_random_get(*(bm_state->state));
-         x1 = 2.0 * bm_state->state->s0/(double) CL_RANDOM_MAX - 1.0;
+         x1                 = 2.0 * bm_state->state->s0 / (double)CL_RANDOM_MAX - 1.0;
          *(bm_state->state) = cl_random_get(*(bm_state->state));
-         x2 = 2.0 * bm_state->state->s0/(double) CL_RANDOM_MAX - 1.0;
-         w = x1 * x1 + x2 * x2;
-      } while ( w >= 1.0 );
+         x2                 = 2.0 * bm_state->state->s0 / (double)CL_RANDOM_MAX - 1.0;
+         w                  = x1 * x1 + x2 * x2;
+      } while (w >= 1.0);
 
-      w = sqrt( (-2.0 * log( w ) ) / w );
-      y1 = x1 * w;
+      w                    = sqrt((-2.0 * log(w)) / w);
+      y1                   = x1 * w;
       bm_state->last_value = x2 * w;
-      bm_state->use_last = 1;
+      bm_state->use_last   = 1;
    }
 
-   return( m + y1 * s );
+   return (m + y1 * s);
 }
-

@@ -12,125 +12,173 @@
 
 namespace PV {
 
-   ImageFromMemoryBuffer::ImageFromMemoryBuffer(char const * name, HyPerCol * hc) {
-      initialize_base();
-      initialize(name, hc);
-   }
+ImageFromMemoryBuffer::ImageFromMemoryBuffer(char const *name, HyPerCol *hc) {
+   initialize_base();
+   initialize(name, hc);
+}
 
-   ImageFromMemoryBuffer::ImageFromMemoryBuffer() {
-      initialize_base();
-   }
+ImageFromMemoryBuffer::ImageFromMemoryBuffer() { initialize_base(); }
 
-   int ImageFromMemoryBuffer::initialize_base() {
-      hasNewImageFlag = false;
-      mAutoResizeFlag = false;
-      return PV_SUCCESS;
-   }
+int ImageFromMemoryBuffer::initialize_base() {
+   hasNewImageFlag = false;
+   mAutoResizeFlag = false;
+   return PV_SUCCESS;
+}
 
-   int ImageFromMemoryBuffer::initialize(char const * name, HyPerCol * hc) {
-      if (mUseInputBCflag && mAutoResizeFlag) {
-         if (parent->columnId()==0) {
-            pvErrorNoExit().printf("%s: setting both useImageBCflag and autoResizeFlag has not yet been implemented.\n", getDescription_c());
-         }
-         MPI_Barrier(parent->getCommunicator()->communicator());
-         exit(EXIT_FAILURE);
+int ImageFromMemoryBuffer::initialize(char const *name, HyPerCol *hc) {
+   if (mUseInputBCflag && mAutoResizeFlag) {
+      if (parent->columnId() == 0) {
+         pvErrorNoExit().printf(
+               "%s: setting both useImageBCflag and autoResizeFlag has not yet been implemented.\n",
+               getDescription_c());
       }
+      MPI_Barrier(parent->getCommunicator()->communicator());
+      exit(EXIT_FAILURE);
    }
+}
 
-   int ImageFromMemoryBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-      int status = ImageLayer::ioParamsFillGroup(ioFlag);
-      ioParam_autoResizeFlag(ioFlag);
-      ioParam_aspectRatioAdjustment(ioFlag);
-      return status;
-   }
+int ImageFromMemoryBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = ImageLayer::ioParamsFillGroup(ioFlag);
+   ioParam_autoResizeFlag(ioFlag);
+   ioParam_aspectRatioAdjustment(ioFlag);
+   return status;
+}
 
-   template <typename pixeltype>
-   int ImageFromMemoryBuffer::setMemoryBuffer(pixeltype const * externalBuffer, int height, int width, int numbands, int xstride, int ystride, int bandstride, pixeltype zeroval, pixeltype oneval) {
-      if (height<=0 || width<=0 || numbands<=0) {
-         if (parent->columnId()==0) {
-            pvErrorNoExit().printf("ImageFromMemoryBuffer::setMemoryBuffer: height, width, numbands arguments must be positive.\n");
-         }
-         return PV_FAILURE;
+template <typename pixeltype>
+int ImageFromMemoryBuffer::setMemoryBuffer(
+      pixeltype const *externalBuffer,
+      int height,
+      int width,
+      int numbands,
+      int xstride,
+      int ystride,
+      int bandstride,
+      pixeltype zeroval,
+      pixeltype oneval) {
+   if (height <= 0 || width <= 0 || numbands <= 0) {
+      if (parent->columnId() == 0) {
+         pvErrorNoExit().printf(
+               "ImageFromMemoryBuffer::setMemoryBuffer: height, width, numbands "
+               "arguments must be positive.\n");
       }
+      return PV_FAILURE;
+   }
 
-      int newSize = height * width * numbands;
+   int newSize = height * width * numbands;
 
-
-      if (parent->columnId()==0) {
-         std::vector<float> newData(newSize);
+   if (parent->columnId() == 0) {
+      std::vector<float> newData(newSize);
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-         for (int k=0; k<newSize; k++) {
-            int x=kxPos(k, width, height, numbands);
-            int y=kyPos(k, width, height, numbands);
-            int f=featureIndex(k, width, height, numbands);
-            int externalIndex = x*xstride + y*ystride + f*bandstride;
-            newData.at(k) = pixelTypeConvert(externalBuffer[externalIndex], zeroval, oneval);
-         }
-         mImage = std::unique_ptr<Image>(new Image(newData, width, height, numbands));
+      for (int k = 0; k < newSize; k++) {
+         int x             = kxPos(k, width, height, numbands);
+         int y             = kyPos(k, width, height, numbands);
+         int f             = featureIndex(k, width, height, numbands);
+         int externalIndex = x * xstride + y * ystride + f * bandstride;
+         newData.at(k)     = pixelTypeConvert(externalBuffer[externalIndex], zeroval, oneval);
       }
-      hasNewImageFlag = true;
-
-      return PV_SUCCESS;
+      mImage = std::unique_ptr<Image>(new Image(newData, width, height, numbands));
    }
-   template int ImageFromMemoryBuffer::setMemoryBuffer<uint8_t>(uint8_t const * buffer, int height, int width, int numbands, int xstride, int ystride, int bandstride, uint8_t zeroval, uint8_t oneval);
+   hasNewImageFlag = true;
 
-   template <typename pixeltype>
-   int ImageFromMemoryBuffer::setMemoryBuffer(pixeltype const * externalBuffer, int height, int width, int numbands, int xstride, int ystride, int bandstride, pixeltype zeroval, pixeltype oneval, int offsetX, int offsetY, char const * offsetAnchor) {
-      mOffsetX = offsetX;
-      mOffsetY = offsetY;
-      mAnchor = Buffer<float>::CENTER;
-      if (checkValidAnchorString(offsetAnchor)!=PV_SUCCESS) {
-         if (parent->columnId()==0) {
-            pvErrorNoExit().printf("%s: setMemoryBuffer called with invalid anchor string \"%s\"",
-                  getDescription_c(), offsetAnchor);
-         }
-         MPI_Barrier(parent->getCommunicator()->communicator());
-         exit(EXIT_FAILURE);
+   return PV_SUCCESS;
+}
+template int ImageFromMemoryBuffer::setMemoryBuffer<uint8_t>(
+      uint8_t const *buffer,
+      int height,
+      int width,
+      int numbands,
+      int xstride,
+      int ystride,
+      int bandstride,
+      uint8_t zeroval,
+      uint8_t oneval);
+
+template <typename pixeltype>
+int ImageFromMemoryBuffer::setMemoryBuffer(
+      pixeltype const *externalBuffer,
+      int height,
+      int width,
+      int numbands,
+      int xstride,
+      int ystride,
+      int bandstride,
+      pixeltype zeroval,
+      pixeltype oneval,
+      int offsetX,
+      int offsetY,
+      char const *offsetAnchor) {
+   mOffsetX = offsetX;
+   mOffsetY = offsetY;
+   mAnchor  = Buffer<float>::CENTER;
+   if (checkValidAnchorString(offsetAnchor) != PV_SUCCESS) {
+      if (parent->columnId() == 0) {
+         pvErrorNoExit().printf(
+               "%s: setMemoryBuffer called with invalid anchor string \"%s\"",
+               getDescription_c(),
+               offsetAnchor);
       }
-      //TODO: This is a dirty hack, make this function take an enum instead of a string to fix it
-      if (strcmp(offsetAnchor, "cc") != 0) {
-         pvWarn() << getName() << ": Offset anchor %s is being ignored, using cc instead. ImageFromMemoryBuffer only supports cc.\n";
-      }
-      return setMemoryBuffer(externalBuffer, height, width, numbands, xstride, ystride, bandstride, zeroval, oneval);
+      MPI_Barrier(parent->getCommunicator()->communicator());
+      exit(EXIT_FAILURE);
    }
-   template int ImageFromMemoryBuffer::setMemoryBuffer<uint8_t>(uint8_t const * buffer, int height, int width, int numbands, int xstride, int ystride, int bandstride, uint8_t zeroval, uint8_t oneval, int offsetX, int offsetY, char const * offsetAnchor);
-
-   template <typename pixeltype>
-   pvadata_t ImageFromMemoryBuffer::pixelTypeConvert(pixeltype q, pixeltype zeroval, pixeltype oneval) {
-      return ((pvadata_t) (q-zeroval))/((pvadata_t) (oneval-zeroval));
+   // TODO: This is a dirty hack, make this function take an enum instead of a string to fix it
+   if (strcmp(offsetAnchor, "cc") != 0) {
+      pvWarn() << getName() << ": Offset anchor %s is being ignored, using cc instead. "
+                               "ImageFromMemoryBuffer only supports cc.\n";
    }
-   template pvadata_t ImageFromMemoryBuffer::pixelTypeConvert<unsigned char>(unsigned char q, unsigned char zeroval, unsigned char oneval);
+   return setMemoryBuffer(
+         externalBuffer, height, width, numbands, xstride, ystride, bandstride, zeroval, oneval);
+}
+template int ImageFromMemoryBuffer::setMemoryBuffer<uint8_t>(
+      uint8_t const *buffer,
+      int height,
+      int width,
+      int numbands,
+      int xstride,
+      int ystride,
+      int bandstride,
+      uint8_t zeroval,
+      uint8_t oneval,
+      int offsetX,
+      int offsetY,
+      char const *offsetAnchor);
 
-   int ImageFromMemoryBuffer::initializeActivity(double time, double dt) {
-      nextInput(time, dt);
-      return PV_SUCCESS;
-   }
+template <typename pixeltype>
+pvadata_t
+ImageFromMemoryBuffer::pixelTypeConvert(pixeltype q, pixeltype zeroval, pixeltype oneval) {
+   return ((pvadata_t)(q - zeroval)) / ((pvadata_t)(oneval - zeroval));
+}
+template pvadata_t ImageFromMemoryBuffer::pixelTypeConvert<unsigned char>(
+      unsigned char q,
+      unsigned char zeroval,
+      unsigned char oneval);
 
-   int ImageFromMemoryBuffer::updateState(double time, double dt) {
-      assert(hasNewImageFlag); // updateState shouldn't have been called otherwise.
-      hasNewImageFlag = false;
-      nextInput(time, dt);
-      return PV_SUCCESS;
-   }
+int ImageFromMemoryBuffer::initializeActivity(double time, double dt) {
+   nextInput(time, dt);
+   return PV_SUCCESS;
+}
 
-   int ImageFromMemoryBuffer::retrieveData(double timef, double dt, int batchIndex)
-   {
-      pvAssert(batchIndex==0); // ImageFromMemoryBuffer is not batched.
-      return PV_SUCCESS; // imageData, imageLoc, imageColorType were already set in setMemoryBuffer
-   }
+int ImageFromMemoryBuffer::updateState(double time, double dt) {
+   assert(hasNewImageFlag); // updateState shouldn't have been called otherwise.
+   hasNewImageFlag = false;
+   nextInput(time, dt);
+   return PV_SUCCESS;
+}
 
-   double ImageFromMemoryBuffer::getDeltaUpdateTime(){
-      return parent->getStopTime() - parent->getStartTime();
-   }
+int ImageFromMemoryBuffer::retrieveData(double timef, double dt, int batchIndex) {
+   pvAssert(batchIndex == 0); // ImageFromMemoryBuffer is not batched.
+   return PV_SUCCESS; // imageData, imageLoc, imageColorType were already set in setMemoryBuffer
+}
 
-   int ImageFromMemoryBuffer::outputState(double time, bool last) {
-      return HyPerLayer::outputState(time, last);
-   }
+double ImageFromMemoryBuffer::getDeltaUpdateTime() {
+   return parent->getStopTime() - parent->getStartTime();
+}
 
+int ImageFromMemoryBuffer::outputState(double time, bool last) {
+   return HyPerLayer::outputState(time, last);
+}
 
-   ImageFromMemoryBuffer::~ImageFromMemoryBuffer() {
-   }
+ImageFromMemoryBuffer::~ImageFromMemoryBuffer() {}
 
-}  // namespace PV
+} // namespace PV

@@ -10,35 +10,34 @@
 
 #include "LIF.hpp"
 
-#define NUM_LIFGAP_EVENTS   1 + NUM_LIF_EVENTS  // ???
+#define NUM_LIFGAP_EVENTS 1 + NUM_LIF_EVENTS // ???
 //#define EV_LIF_GSYN_GAP     NUM_LIF_EVENTS + 1
-#define EV_LIFGAP_GSYN_GAP     3
+#define EV_LIFGAP_GSYN_GAP 3
 //#define EV_LIFGAP_ACTIVITY  4
-
 
 namespace PV {
 
-class LIFGap: public PV::LIF {
-public:
-   LIFGap(const char* name, HyPerCol * hc);
+class LIFGap : public PV::LIF {
+  public:
+   LIFGap(const char *name, HyPerCol *hc);
    virtual ~LIFGap();
 
    int virtual updateState(double time, double dt);
 
-   int virtual checkpointWrite(const char * cpDir);
-   int virtual readStateFromCheckpoint(const char * cpDir, double * timeptr);
+   int virtual checkpointWrite(const char *cpDir);
+   int virtual readStateFromCheckpoint(const char *cpDir, double *timeptr);
 
-   const pvgsyndata_t * getGapStrength() { return gapStrength; }
+   const pvgsyndata_t *getGapStrength() { return gapStrength; }
 
-protected:
-
+  protected:
    LIFGap();
-   int initialize(const char * name, HyPerCol * hc, const char * kernel_name);
+   int initialize(const char *name, HyPerCol *hc, const char *kernel_name);
    virtual int allocateConductances(int num_channels);
-   virtual int readGapStrengthFromCheckpoint(const char * cpDir, double * timeptr);
-private:
+   virtual int readGapStrengthFromCheckpoint(const char *cpDir, double *timeptr);
+
+  private:
    int initialize_base();
-   pvgsyndata_t * gapStrength;
+   pvgsyndata_t *gapStrength;
    bool gapStrengthInitialized;
    int calcGapStrength();
 

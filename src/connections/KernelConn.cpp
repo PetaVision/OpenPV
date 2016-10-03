@@ -9,13 +9,21 @@
 
 namespace PV {
 
-KernelConn::KernelConn(const char * name, HyPerCol * hc, InitWeights * weightInitializer, NormalizeBase * weightNormalizer) : HyPerConn() {
-   if (hc->columnId()==0) {
-      pvError().printf("KernelConn \"%s\": class KernelConn is obsolete.  Instead use HyPerConn with parameter sharedWeights set to true.\n", name);
+KernelConn::KernelConn(
+      const char *name,
+      HyPerCol *hc,
+      InitWeights *weightInitializer,
+      NormalizeBase *weightNormalizer)
+      : HyPerConn() {
+   if (hc->columnId() == 0) {
+      pvError().printf(
+            "KernelConn \"%s\": class KernelConn is obsolete.  "
+            "Instead use HyPerConn with "
+            "parameter sharedWeights set to true.\n",
+            name);
    }
    MPI_Barrier(hc->getCommunicator()->communicator());
    exit(EXIT_FAILURE);
 }
 
 } // namespace PV
-

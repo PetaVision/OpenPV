@@ -9,25 +9,29 @@
 #define CL_RANDOM_H_
 
 #include "../include/pv_types.h"
-#include <stdlib.h>
 #include <limits.h>
 #include <math.h>
+#include <stdlib.h>
 
-#define CL_RANDOM_MAX       UINT_MAX
+#define CL_RANDOM_MAX UINT_MAX
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
-struct box_muller_state { taus_uint4 * state; int use_last; float last_value;};
+struct box_muller_state {
+   taus_uint4 *state;
+   int use_last;
+   float last_value;
+};
 
-int cl_random_init(taus_uint4 * state, size_t count, unsigned int seed);
+int cl_random_init(taus_uint4 *state, size_t count, unsigned int seed);
 taus_uint4 cl_random_get(taus_uint4 state);
-static inline double cl_random_max() {return (double) CL_RANDOM_MAX;}
-float cl_box_muller(float m, float s, struct box_muller_state * bm_state);
-static inline float cl_random_prob(taus_uint4 state) { return (float) ((float) state.s0 / (float) 4294967296.0); }
-
+static inline double cl_random_max() { return (double)CL_RANDOM_MAX; }
+float cl_box_muller(float m, float s, struct box_muller_state *bm_state);
+static inline float cl_random_prob(taus_uint4 state) {
+   return (float)((float)state.s0 / (float)4294967296.0);
+}
 
 #ifdef __cplusplus
 }

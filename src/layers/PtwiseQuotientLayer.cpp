@@ -14,48 +14,64 @@
 
 namespace PV {
 
-PtwiseQuotientLayer::PtwiseQuotientLayer() {
-   initialize_base();
-}
+PtwiseQuotientLayer::PtwiseQuotientLayer() { initialize_base(); }
 
-PtwiseQuotientLayer::PtwiseQuotientLayer(const char * name, HyPerCol * hc) {
+PtwiseQuotientLayer::PtwiseQuotientLayer(const char *name, HyPerCol *hc) {
    initialize_base();
    initialize(name, hc);
-}  // end PtwiseQuotientLayer::PtwiseQuotientLayer(const char *, HyPerCol *)
+} // end PtwiseQuotientLayer::PtwiseQuotientLayer(const char *, HyPerCol *)
 
-PtwiseQuotientLayer::~PtwiseQuotientLayer() {
-}
+PtwiseQuotientLayer::~PtwiseQuotientLayer() {}
 
 int PtwiseQuotientLayer::initialize_base() {
    numChannels = 2;
    return PV_SUCCESS;
 }
 
-int PtwiseQuotientLayer::initialize(const char * name, HyPerCol * hc) {
+int PtwiseQuotientLayer::initialize(const char *name, HyPerCol *hc) {
    return ANNLayer::initialize(name, hc);
 }
 
 int PtwiseQuotientLayer::allocateDataStructures() {
    int status = ANNLayer::allocateDataStructures();
-   assert(numChannels>=2);
+   assert(numChannels >= 2);
    return status;
 }
 
 int PtwiseQuotientLayer::updateState(double timef, double dt) {
    int status;
-   status = doUpdateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(), getNumChannels(), GSyn[0]);
+   status = doUpdateState(
+         timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(), getNumChannels(), GSyn[0]);
    return status;
 }
 
-int PtwiseQuotientLayer::doUpdateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead) {
-   int nx = loc->nx;
-   int ny = loc->ny;
-   int nf = loc->nf;
-   int num_neurons = nx*ny*nf;
-   int nbatch = loc->nbatch;
+int PtwiseQuotientLayer::doUpdateState(
+      double timef,
+      double dt,
+      const PVLayerLoc *loc,
+      pvdata_t *A,
+      pvdata_t *V,
+      int num_channels,
+      pvdata_t *gSynHead) {
+   int nx          = loc->nx;
+   int ny          = loc->ny;
+   int nf          = loc->nf;
+   int num_neurons = nx * ny * nf;
+   int nbatch      = loc->nbatch;
    updateV_PtwiseQuotientLayer(nbatch, num_neurons, V, gSynHead);
-   setActivity_HyPerLayer(nbatch, num_neurons, A, V, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
+   setActivity_HyPerLayer(
+         nbatch,
+         num_neurons,
+         A,
+         V,
+         nx,
+         ny,
+         nf,
+         loc->halo.lt,
+         loc->halo.rt,
+         loc->halo.dn,
+         loc->halo.up);
    return PV_SUCCESS;
 }
 
-}  // end namespace PV
+} // end namespace PV

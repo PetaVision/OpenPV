@@ -12,19 +12,19 @@
 
 namespace PV {
 
-class CopyConn: public HyPerConn {
-public:
-   CopyConn(char const * name, HyPerCol * hc);
+class CopyConn : public HyPerConn {
+  public:
+   CopyConn(char const *name, HyPerCol *hc);
    virtual ~CopyConn();
    virtual int communicateInitInfo();
    virtual bool needUpdate(double time, double dt);
    virtual int updateState(double time, double dt);
-   char const * getOriginalConnName() { return originalConnName; }
-   HyPerConn * getOriginalConn() { return originalConn; }
+   char const *getOriginalConnName() { return originalConnName; }
+   HyPerConn *getOriginalConn() { return originalConn; }
 
-protected:
+  protected:
    CopyConn();
-   int initialize(char const * name, HyPerCol * hc);
+   int initialize(char const *name, HyPerCol *hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    /**
     * List of parameters needed from the CopyConn class
@@ -33,7 +33,8 @@ protected:
     */
 
    /**
-    * @brief CopyConn inherits sharedWeights from the original connection, instead of reading it from parameters
+    * @brief CopyConn inherits sharedWeights from the original connection, instead of reading it
+    * from parameters
     */
    virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag);
 
@@ -43,17 +44,20 @@ protected:
    virtual void ioParam_weightInitType(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief CopyConn inherits nxp from the original connection, instead of reading it from parameters
+    * @brief CopyConn inherits nxp from the original connection, instead of reading it from
+    * parameters
     */
    virtual void ioParam_nxp(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief CopyConn inherits nyp from the original connection, instead of reading it from parameters
+    * @brief CopyConn inherits nyp from the original connection, instead of reading it from
+    * parameters
     */
    virtual void ioParam_nyp(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief CopyConn inherits nfp from the original connection, instead of reading it from parameters
+    * @brief CopyConn inherits nfp from the original connection, instead of reading it from
+    * parameters
     */
    virtual void ioParam_nfp(enum ParamsIOFlag ioFlag);
 
@@ -63,12 +67,14 @@ protected:
    virtual void ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief CopyConn inherits numAxonalArbors from the original connection, instead of reading it from parameters
+    * @brief CopyConn inherits numAxonalArbors from the original connection, instead of reading it
+    * from parameters
     */
    virtual void ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief CopyConn inherits plasticityFlag from the original connection, instead of reading it from parameters
+    * @brief CopyConn inherits plasticityFlag from the original connection, instead of reading it
+    * from parameters
     */
    virtual void ioParam_plasticityFlag(enum ParamsIOFlag ioFlag);
 
@@ -116,15 +122,15 @@ protected:
    virtual int setPatchSize();
 
    virtual int setInitialValues();
-   virtual PVPatch *** initializeWeights(PVPatch *** arbors, pvwdata_t ** dataStart);
+   virtual PVPatch ***initializeWeights(PVPatch ***arbors, pvwdata_t **dataStart);
 
    virtual int updateWeights(int arborId = 0);
    int copy(int arborId = 0);
 
-   char * originalConnName;
-   HyPerConn * originalConn;
+   char *originalConnName;
+   HyPerConn *originalConn;
 
-private:
+  private:
    int initialize_base();
 }; // end class CopyConn
 

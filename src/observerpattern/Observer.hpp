@@ -8,22 +8,22 @@
 #ifndef OBSERVER_HPP_
 #define OBSERVER_HPP_
 
-#include "observerpattern/BaseMessage.hpp"
 #include "include/pv_common.h"
+#include "observerpattern/BaseMessage.hpp"
 #include <memory>
 
 namespace PV {
 
 class Observer {
-public:
+  public:
    Observer() {}
    virtual ~Observer() {}
    virtual int respond(std::shared_ptr<BaseMessage const> message) { return PV_SUCCESS; }
-   inline std::string const& getDescription() const { return description; }
-   inline char const * getDescription_c() const { return description.c_str(); }
+   inline std::string const &getDescription() const { return description; }
+   inline char const *getDescription_c() const { return description.c_str(); }
 
-// Data members
-protected:
+   // Data members
+  protected:
    std::string description;
 };
 

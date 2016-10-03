@@ -9,24 +9,19 @@
 
 namespace PV {
 
-KernelProbe::KernelProbe() {
-   initialize_base();
-}
+KernelProbe::KernelProbe() { initialize_base(); }
 
-KernelProbe::KernelProbe(const char * probename, HyPerCol * hc) {
+KernelProbe::KernelProbe(const char *probename, HyPerCol *hc) {
    initialize_base();
    int status = initialize(probename, hc);
    assert(status == PV_SUCCESS);
 }
 
-KernelProbe::~KernelProbe() {
-}
+KernelProbe::~KernelProbe() {}
 
-int KernelProbe::initialize_base() {
-   return PV_SUCCESS;
-}
+int KernelProbe::initialize_base() { return PV_SUCCESS; }
 
-int KernelProbe::initialize(const char * probename, HyPerCol * hc) {
+int KernelProbe::initialize(const char *probename, HyPerCol *hc) {
    int status = BaseConnectionProbe::initialize(probename, hc);
    assert(name && parent);
 
@@ -52,27 +47,31 @@ void KernelProbe::ioParam_arborId(enum ParamsIOFlag ioFlag) {
 }
 
 void KernelProbe::ioParam_outputWeights(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "outputWeights", &outputWeights, true/*default value*/);
+   parent->parameters()->ioParamValue(
+         ioFlag, name, "outputWeights", &outputWeights, true /*default value*/);
 }
 
 void KernelProbe::ioParam_outputPlasticIncr(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "outputPlasticIncr", &outputPlasticIncr, false/*default value*/);
+   parent->parameters()->ioParamValue(
+         ioFlag, name, "outputPlasticIncr", &outputPlasticIncr, false /*default value*/);
 }
 
 void KernelProbe::ioParam_outputPatchIndices(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "outputPatchIndices", &outputPatchIndices, false/*default value*/);
+   parent->parameters()->ioParamValue(
+         ioFlag, name, "outputPatchIndices", &outputPatchIndices, false /*default value*/);
 }
 
-int KernelProbe::initNumValues() {
-   return setNumValues(-1);
-}
+int KernelProbe::initNumValues() { return setNumValues(-1); }
 
 int KernelProbe::communicateInitInfo() {
    int status = BaseHyPerConnProbe::communicateInitInfo();
    assert(targetHyPerConn);
-   if(getTargetHyPerConn()->usingSharedWeights()==false) {
-      if (parent->columnId()==0) {
-         pvErrorNoExit().printf("%s: %s is not using shared weights.\n", getDescription_c(), targetConn->getDescription_c());
+   if (getTargetHyPerConn()->usingSharedWeights() == false) {
+      if (parent->columnId() == 0) {
+         pvErrorNoExit().printf(
+               "%s: %s is not using shared weights.\n",
+               getDescription_c(),
+               targetConn->getDescription_c());
       }
       status = PV_FAILURE;
    }
@@ -86,17 +85,27 @@ int KernelProbe::communicateInitInfo() {
 int KernelProbe::allocateDataStructures() {
    int status = BaseHyPerConnProbe::allocateDataStructures();
    assert(getTargetConn());
-   if (getKernelIndex()<0 || getKernelIndex()>=getTargetHyPerConn()->getNumDataPatches()) {
-      pvError().printf("KernelProbe \"%s\": kernelIndex %d is out of bounds.  (min 0, max %d)\n", name, getKernelIndex(), getTargetHyPerConn()->getNumDataPatches()-1);
+   if (getKernelIndex() < 0 || getKernelIndex() >= getTargetHyPerConn()->getNumDataPatches()) {
+      pvError().printf(
+            "KernelProbe \"%s\": kernelIndex %d is out of bounds.  "
+            "(min 0, max %d)\n",
+            name,
+            getKernelIndex(),
+            getTargetHyPerConn()->getNumDataPatches() - 1);
    }
-   if (getArbor()<0 || getArbor()>=getTargetConn()->numberOfAxonalArborLists()) {
-      pvError().printf("KernelProbe \"%s\": arborId %d is out of bounds. (min 0, max %d)\n", name, getArbor(), getTargetConn()->numberOfAxonalArborLists()-1);
+   if (getArbor() < 0 || getArbor() >= getTargetConn()->numberOfAxonalArborLists()) {
+      pvError().printf(
+            "KernelProbe \"%s\": arborId %d is out of bounds. (min 0, max %d)\n",
+            name,
+            getArbor(),
+            getTargetConn()->numberOfAxonalArborLists() - 1);
    }
 
-   if(outputStream) {
-      *outputStream << "Probe \"" << name << "\", kernel index " << getKernelIndex() << ", arbor index " << getArbor() << ".\n";
+   if (outputStream) {
+      *outputStream << "Probe \"" << name << "\", kernel index " << getKernelIndex()
+                    << ", arbor index " << getArbor() << ".\n";
    }
-   if(getOutputPatchIndices()) {
+   if (getOutputPatchIndices()) {
       patchIndices(getTargetHyPerConn());
    }
 
@@ -104,23 +113,27 @@ int KernelProbe::allocateDataStructures() {
 }
 
 int KernelProbe::outputState(double timed) {
-   Communicator * icComm = parent->getCommunicator();
-   const int rank = icComm->commRank();
-   if( rank != 0 ) return PV_SUCCESS;
-   assert(getTargetConn()!=NULL);
-   int nxp = getTargetHyPerConn()->xPatchSize();
-   int nyp = getTargetHyPerConn()->yPatchSize();
-   int nfp = getTargetHyPerConn()->fPatchSize();
-   int patchSize = nxp*nyp*nfp;
+   Communicator *icComm = parent->getCommunicator();
+   const int rank       = icComm->commRank();
+   if (rank != 0)
+      return PV_SUCCESS;
+   assert(getTargetConn() != NULL);
+   int nxp       = getTargetHyPerConn()->xPatchSize();
+   int nyp       = getTargetHyPerConn()->yPatchSize();
+   int nfp       = getTargetHyPerConn()->fPatchSize();
+   int patchSize = nxp * nyp * nfp;
 
-   const pvwdata_t * wdata = getTargetHyPerConn()->get_wDataStart(arborID)+patchSize*kernelIndex;
-   const pvwdata_t * dwdata = outputPlasticIncr ?
-         getTargetHyPerConn()->get_dwDataStart(arborID)+patchSize*kernelIndex : NULL;
-   output() << "Time " << timed << ", Conn \"" << getTargetConn()->getName() << ", nxp=" << nxp << ", nyp=" << nyp << ", nfp=" << nfp << "\n";
-   for(int f=0; f<nfp; f++) {
-      for(int y=0; y<nyp; y++) {
-         for(int x=0; x<nxp; x++) {
-            int k = kIndex(x,y,f,nxp,nyp,nfp);
+   const pvwdata_t *wdata = getTargetHyPerConn()->get_wDataStart(arborID) + patchSize * kernelIndex;
+   const pvwdata_t *dwdata =
+         outputPlasticIncr
+               ? getTargetHyPerConn()->get_dwDataStart(arborID) + patchSize * kernelIndex
+               : NULL;
+   output() << "Time " << timed << ", Conn \"" << getTargetConn()->getName() << ", nxp=" << nxp
+            << ", nyp=" << nyp << ", nfp=" << nfp << "\n";
+   for (int f = 0; f < nfp; f++) {
+      for (int y = 0; y < nyp; y++) {
+         for (int x = 0; x < nxp; x++) {
+            int k = kIndex(x, y, f, nxp, nyp, nfp);
             output() << "    x=" << x << ", y=" << y << ", f=" << f << " (index " << k << "):";
             if (getOutputWeights()) {
                output() << "  weight=" << wdata[k];
@@ -136,26 +149,26 @@ int KernelProbe::outputState(double timed) {
    return PV_SUCCESS;
 }
 
-int KernelProbe::patchIndices(HyPerConn * conn) {
-   int nxp = conn->xPatchSize();
-   int nyp = conn->yPatchSize();
-   int nfp = conn->fPatchSize();
+int KernelProbe::patchIndices(HyPerConn *conn) {
+   int nxp     = conn->xPatchSize();
+   int nyp     = conn->yPatchSize();
+   int nfp     = conn->fPatchSize();
    int nPreExt = conn->getNumWeightPatches();
    assert(nPreExt == conn->preSynapticLayer()->getNumExtended());
-   const PVLayerLoc * loc = conn->preSynapticLayer()->getLayerLoc();
-   const PVHalo * halo = &loc->halo;
-   int nxPre = loc->nx;
-   int nyPre = loc->ny;
-   int nfPre = loc->nf;
-   int nxPreExt = nxPre+loc->halo.lt+loc->halo.rt;
-   int nyPreExt = nyPre+loc->halo.dn+loc->halo.up;
-   for( int kPre = 0; kPre < nPreExt; kPre++ ) {
-      PVPatch * w = conn->getWeights(kPre,arborID);
+   const PVLayerLoc *loc = conn->preSynapticLayer()->getLayerLoc();
+   const PVHalo *halo    = &loc->halo;
+   int nxPre             = loc->nx;
+   int nyPre             = loc->ny;
+   int nfPre             = loc->nf;
+   int nxPreExt          = nxPre + loc->halo.lt + loc->halo.rt;
+   int nyPreExt          = nyPre + loc->halo.dn + loc->halo.up;
+   for (int kPre = 0; kPre < nPreExt; kPre++) {
+      PVPatch *w  = conn->getWeights(kPre, arborID);
       int xOffset = kxPos(w->offset, nxp, nyp, nfp);
       int yOffset = kyPos(w->offset, nxp, nyp, nfp);
-      int kxPre = kxPos(kPre,nxPreExt,nyPreExt,nfPre)-loc->halo.lt;
-      int kyPre = kyPos(kPre,nxPreExt,nyPreExt,nfPre)-loc->halo.up;
-      int kfPre = featureIndex(kPre,nxPreExt,nyPreExt,nfPre);
+      int kxPre   = kxPos(kPre, nxPreExt, nyPreExt, nfPre) - loc->halo.lt;
+      int kyPre   = kyPos(kPre, nxPreExt, nyPreExt, nfPre) - loc->halo.up;
+      int kfPre   = featureIndex(kPre, nxPreExt, nyPreExt, nfPre);
       output() << "    presynaptic neuron " << kPre;
       output() << " (x=" << kxPre << ", y=" << kyPre << ", f=" << kfPre;
       output() << ") uses kernel index " << conn->patchIndexToDataIndex(kPre);
@@ -164,4 +177,4 @@ int KernelProbe::patchIndices(HyPerConn * conn) {
    return PV_SUCCESS;
 }
 
-}  // end of namespace PV block
+} // end of namespace PV block

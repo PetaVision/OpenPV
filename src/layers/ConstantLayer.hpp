@@ -12,17 +12,17 @@
 
 namespace PV {
 
-class ConstantLayer: public PV::HyPerLayer {
-public:
-   ConstantLayer(const char * name, HyPerCol * hc);
-   //virtual int recvAllSynapticInput();
+class ConstantLayer : public PV::HyPerLayer {
+  public:
+   ConstantLayer(const char *name, HyPerCol *hc);
    virtual ~ConstantLayer();
    virtual bool needUpdate(double time, double dt);
-protected:
-   ConstantLayer();
-   int initialize(const char * name, HyPerCol * hc);
 
-   /** 
+  protected:
+   ConstantLayer();
+   int initialize(const char *name, HyPerCol *hc);
+
+   /**
     * List of parameters needed from the ConstantLayer class
     * @name HyPerLayer Parameters
     * @{
@@ -36,7 +36,7 @@ protected:
 
    virtual int communicateInitInfo();
 
-private:
+  private:
    int initialize_base();
 }; // class ConstantLayer
 

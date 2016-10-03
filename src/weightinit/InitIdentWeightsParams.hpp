@@ -12,17 +12,16 @@
 
 namespace PV {
 
-class InitIdentWeightsParams: public PV::InitWeightsParams {
-public:
+class InitIdentWeightsParams : public PV::InitWeightsParams {
+  public:
    InitIdentWeightsParams();
-   InitIdentWeightsParams(const char * name, HyPerCol * hc);
+   InitIdentWeightsParams(const char *name, HyPerCol *hc);
    virtual ~InitIdentWeightsParams();
    void calcOtherParams(int patchIndex);
 
-
-protected:
+  protected:
    virtual int initialize_base();
-   int initialize(const char * name, HyPerCol * hc);
+   int initialize(const char *name, HyPerCol *hc);
 };
 
 } /* namespace PV */

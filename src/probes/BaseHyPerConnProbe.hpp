@@ -8,35 +8,37 @@
 #ifndef BASEHYPERCONNPROBE_HPP_
 #define BASEHYPERCONNPROBE_HPP_
 
-#include "BaseConnectionProbe.hpp"
 #include "../connections/HyPerConn.hpp"
+#include "BaseConnectionProbe.hpp"
 
 namespace PV {
 
-class BaseHyPerConnProbe: public BaseConnectionProbe {
-public:
-   BaseHyPerConnProbe(const char * probeName, HyPerCol * hc);
+class BaseHyPerConnProbe : public BaseConnectionProbe {
+  public:
+   BaseHyPerConnProbe(const char *probeName, HyPerCol *hc);
    virtual ~BaseHyPerConnProbe();
 
    virtual int communicateInitInfo();
 
-   HyPerConn * getTargetHyPerConn() { return targetHyPerConn; }
+   HyPerConn *getTargetHyPerConn() { return targetHyPerConn; }
 
-protected:
+  protected:
    BaseHyPerConnProbe();
-   int initialize(const char * probeName, HyPerCol * hc);
+   int initialize(const char *probeName, HyPerCol *hc);
    virtual bool needRecalc(double timevalue);
 
    /**
-    * Implements the referenceUpdateTime method.  Returns the last update time of the target HyPerConn.
+    * Implements the referenceUpdateTime method.  Returns the last update time of
+    * the target
+    * HyPerConn.
     */
    virtual double referenceUpdateTime() const;
 
-private:
+  private:
    int initialize_base();
 
-protected:
-   HyPerConn * targetHyPerConn;
+  protected:
+   HyPerConn *targetHyPerConn;
 };
 
 } /* namespace PV */

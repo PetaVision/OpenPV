@@ -14,14 +14,17 @@
 #include <stdio.h>
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif // __cplusplus
 
-   int dist2NearestCell(int kzPre, int log2ScalePre, int log2ScalePost, float * distPre,
-      float * distPost);
+int dist2NearestCell(
+      int kzPre,
+      int log2ScalePre,
+      int log2ScalePost,
+      float *distPre,
+      float *distPost);
 
-   int zPatchHead(int kzPre, int nzPatch, int zScaleLog2Pre, int zScaleLog2Post);
+int zPatchHead(int kzPre, int nzPatch, int zScaleLog2Pre, int zScaleLog2Post);
 
 /*
  * The following functions are simple, static inline functions.  They have been given the
@@ -36,7 +39,7 @@ extern "C"
  *
  */
 
- //! RETURNS FEATURE INDEX FROM LINEAR INDEX
+//! RETURNS FEATURE INDEX FROM LINEAR INDEX
 /**
  * Return the feature index for the given k index
  * @k the k index (can be either global or local depending on if nx,ny are global or local)
@@ -49,10 +52,7 @@ extern "C"
  *      since kf <= nf-1.
  *      .
  */
-static inline int featureIndex(int k, int nx, int ny, int nf)
-{
-   return k % nf;
-}
+static inline int featureIndex(int k, int nx, int ny, int nf) { return k % nf; }
 
 //! RETURNS X INDEX FROM LINEAR INDEX
 /*!
@@ -68,10 +68,7 @@ static inline int featureIndex(int k, int nx, int ny, int nf)
  *    since kx <= nx-1.
  *    .
  */
-static inline int kxPos(int k, int nx, int ny, int nf)
-{
-   return (k/nf) % nx;
-}
+static inline int kxPos(int k, int nx, int ny, int nf) { return (k / nf) % nx; }
 
 //! RETURNS Y INDEX FROM LINEAR INDEX
 /*!
@@ -87,10 +84,7 @@ static inline int kxPos(int k, int nx, int ny, int nf)
  *   .
  */
 //#pragma FTT elemental, vectorize
-static inline int kyPos(int k, int nx, int ny, int nf)
-{
-   return k / (nx*nf) % ny;
-}
+static inline int kyPos(int k, int nx, int ny, int nf) { return k / (nx * nf) % ny; }
 
 //! RETURNS B INDEX FROM LINEAR INDEX
 /*!
@@ -101,10 +95,7 @@ static inline int kyPos(int k, int nx, int ny, int nf)
  * @nf the number of neurons in the feature direction
  */
 //#pragma FTT elemental, vectorize
-static inline int batchIndex(int k, int nb, int nx, int ny, int nf)
-{
-   return k / (nx*nf*ny);
-}
+static inline int batchIndex(int k, int nb, int nx, int ny, int nf) { return k / (nx * nf * ny); }
 
 /**
  * Returns the x dimension scale length for the layer in retinatopic units
@@ -112,10 +103,7 @@ static inline int batchIndex(int k, int nb, int nx, int ny, int nf)
  * @xScaleLog2 the log2 scale factor for the layer
  *     - e.g. if xScaleLog2 == 1 then dx == 2, if xScaleLog2 == -1 then dx == 1/2
  */
-static inline float deltaX(int xScaleLog2)
-{
-   return powf(2.0f, (float) xScaleLog2);
-}
+static inline float deltaX(int xScaleLog2) { return powf(2.0f, (float)xScaleLog2); }
 
 /**
  * Returns the y dimension scale length for the layer in retinatopic units
@@ -123,30 +111,21 @@ static inline float deltaX(int xScaleLog2)
  * @yScaleLog2 the log2 scale factor for the layer
  *     - e.g. if yScaleLog2 == 1 then dy == 2, if yScaleLog2 == -1 then dy == 1/2
  */
-static inline float deltaY(int yScaleLog2)
-{
-   return powf(2.0f, (float) yScaleLog2);
-}
+static inline float deltaY(int yScaleLog2) { return powf(2.0f, (float)yScaleLog2); }
 
 /**
  * Returns the _global_ x origin in retinatopic units where dx == 1
  * @xScaleLog2 the log2 scale factor for the layer
  *     - e.g. if xScaleLog2 == 1 then dx == 2, if xScaleLog2 == -1 then dx == 1/2
  */
-static inline float xOriginGlobal(int xScaleLog2)
-{
-   return 0.5f * deltaX(xScaleLog2);
-}
+static inline float xOriginGlobal(int xScaleLog2) { return 0.5f * deltaX(xScaleLog2); }
 
 /**
  * Returns the _global_ y origin in retinatopic units where dy == 1
  * @yScaleLog2 the log2 scale factor for the layer
  *     - e.g. if yScaleLog2 == 1 then dy == 2, if yScaleLog2 == -1 then dy == 1/2
  */
-static inline float yOriginGlobal(int yScaleLog2)
-{
-   return 0.5f * deltaY(yScaleLog2);
-}
+static inline float yOriginGlobal(int yScaleLog2) { return 0.5f * deltaY(yScaleLog2); }
 
 /**
  * Returns the global x position in physical space
@@ -157,13 +136,11 @@ static inline float yOriginGlobal(int yScaleLog2)
  * @nyGlobal the number of global lattice sites in the y direction
  * @nf the number of features in the layer
  */
-static inline float xPosGlobal(int kGlobal, int xScaleLog2,
-                               int nxGlobal, int nyGlobal, int nf)
-{
+static inline float xPosGlobal(int kGlobal, int xScaleLog2, int nxGlobal, int nyGlobal, int nf) {
    // breaking out variables removes warning from Intel compiler
    const int kxGlobal = kxPos(kGlobal, nxGlobal, nyGlobal, nf);
-   const float x0 = xOriginGlobal(xScaleLog2);
-   const float dx = deltaX(xScaleLog2);
+   const float x0     = xOriginGlobal(xScaleLog2);
+   const float dx     = deltaX(xScaleLog2);
    return (x0 + dx * kxGlobal);
 }
 
@@ -176,12 +153,10 @@ static inline float xPosGlobal(int kGlobal, int xScaleLog2,
  * @nyGlobal the number of global lattice sites in the y direction
  * @nf the number of features in the layer
  */
-static inline float yPosGlobal(int kGlobal, int yScaleLog2,
-                               int nxGlobal, int nyGlobal, int nf)
-{
+static inline float yPosGlobal(int kGlobal, int yScaleLog2, int nxGlobal, int nyGlobal, int nf) {
    const int kyGlobal = kyPos(kGlobal, nxGlobal, nyGlobal, nf);
-   const float y0 = yOriginGlobal(yScaleLog2);
-   const float dy = deltaY(yScaleLog2);
+   const float y0     = yOriginGlobal(yScaleLog2);
+   const float dy     = deltaY(yScaleLog2);
    return (y0 + dy * kyGlobal);
 }
 
@@ -198,14 +173,12 @@ static inline float yPosGlobal(int kGlobal, int yScaleLog2,
  *      k = ky * (nf*nx) + kx * nf + kf
  *      .
  */
-static inline int kIndex(int kx, int ky, int kf, int nx, int ny, int nf)
-{
+static inline int kIndex(int kx, int ky, int kf, int nx, int ny, int nf) {
    return kf + (kx + ky * nx) * nf;
 }
 
 //! RETURNS LINEAR INDEX FROM Batch, X,Y, AND FEATURE INDEXES
-static inline int kIndexBatch(int kb, int kx, int ky, int kf, int nb, int nx, int ny, int nf)
-{
+static inline int kIndexBatch(int kb, int kx, int ky, int kf, int nb, int nx, int ny, int nf) {
    return (kb * nx * ny * nf) + (ky * nx * nf) + (kx * nf) + kf;
 }
 
@@ -218,16 +191,10 @@ static inline int kIndexBatch(int kb, int kx, int ky, int kf, int nb, int nx, in
  *      - remember that:
  *      k = ky * (nf*nx) + kx * nf + kf
  */
-static inline size_t strideF(const PVLayerLoc * loc)
-{
-   return 1;
-}
+static inline size_t strideF(const PVLayerLoc *loc) { return 1; }
 
 // Version for data structures in extended space (e.g., activity)
-static inline size_t strideFExtended(const PVLayerLoc * loc)
-{
-   return 1;
-}
+static inline size_t strideFExtended(const PVLayerLoc *loc) { return 1; }
 
 //! Returns stride in x dimension for linear indexing
 /*!
@@ -239,15 +206,26 @@ static inline size_t strideFExtended(const PVLayerLoc * loc)
  *      - remember that:
  *      k = ky * (nf*nx) + kx * nf + kf
  */
-static inline size_t strideX(const PVLayerLoc * loc)
-{
-   return loc->nf;
-}
+static inline size_t strideX(const PVLayerLoc *loc) { return loc->nf; }
 
 // Version for data structures in extended space (e.g., activity)
-static inline size_t strideXExtended(const PVLayerLoc * loc)
-{
-   return loc->nf;
+static inline size_t strideXExtended(const PVLayerLoc *loc) { return loc->nf; }
+
+//! Returns stride in y dimension for linear indexing
+/*!
+ * @loc
+ *
+ * REMARKS:
+ *      - in the linear index space feature index varies first, followed by
+ *      X direction index, followed by Y direction index.
+ *      - remember that:
+ *      k = ky * (nf*nx) + kx * nf + kf
+ */
+static inline size_t strideY(const PVLayerLoc *loc) { return loc->nf * loc->nx; }
+
+// Version for data structures in extended space (e.g., activity)
+static inline size_t strideYExtended(const PVLayerLoc *loc) {
+   return loc->nf * (loc->nx + loc->halo.lt + loc->halo.rt);
 }
 
 //! Returns stride in y dimension for linear indexing
@@ -260,36 +238,12 @@ static inline size_t strideXExtended(const PVLayerLoc * loc)
  *      - remember that:
  *      k = ky * (nf*nx) + kx * nf + kf
  */
-static inline size_t strideY(const PVLayerLoc * loc)
-{
-   return loc->nf*loc->nx;
-}
+static inline size_t strideB(const PVLayerLoc *loc) { return loc->nf * loc->nx * loc->ny; }
 
 // Version for data structures in extended space (e.g., activity)
-static inline size_t strideYExtended(const PVLayerLoc * loc)
-{
-   return loc->nf*(loc->nx + loc->halo.lt + loc->halo.rt);
-}
-
-//! Returns stride in y dimension for linear indexing
-/*!
- * @loc
- *
- * REMARKS:
- *      - in the linear index space feature index varies first, followed by
- *      X direction index, followed by Y direction index.
- *      - remember that:
- *      k = ky * (nf*nx) + kx * nf + kf
- */
-static inline size_t strideB(const PVLayerLoc * loc)
-{
-   return loc->nf*loc->nx*loc->ny;
-}
-
-// Version for data structures in extended space (e.g., activity)
-static inline size_t strideBExtended(const PVLayerLoc * loc)
-{
-   return loc->nf*(loc->nx + loc->halo.lt + loc->halo.rt)*(loc->ny + loc->halo.up + loc->halo.dn);
+static inline size_t strideBExtended(const PVLayerLoc *loc) {
+   return loc->nf * (loc->nx + loc->halo.lt + loc->halo.rt)
+          * (loc->ny + loc->halo.up + loc->halo.dn);
 }
 
 /**
@@ -307,17 +261,16 @@ static inline size_t strideBExtended(const PVLayerLoc * loc)
  *  presynaptic index should always be in restricted space
  *
  */
-static inline int nearby_neighbor(int kzPre, int zScaleLog2Pre, int zScaleLog2Post)
-{
-   float a = powf(2.0f, (float) (zScaleLog2Pre - zScaleLog2Post));
-   int ia = (int) a;
+static inline int nearby_neighbor(int kzPre, int zScaleLog2Pre, int zScaleLog2Post) {
+   float a = powf(2.0f, (float)(zScaleLog2Pre - zScaleLog2Post));
+   int ia  = (int)a;
 
-   int k0 = (ia < 2) ? 0 : ia/2 - 1;
+   int k0 = (ia < 2) ? 0 : ia / 2 - 1;
 
    // negative kzPre is different if density of post-synaptic layer decreases
-   int k  = (a < 1.0f && kzPre < 0) ? kzPre - (int) (1.0f/a) + 1 : kzPre;
+   int k = (a < 1.0f && kzPre < 0) ? kzPre - (int)(1.0f / a) + 1 : kzPre;
 
-   return k0 + (int) (a * k);
+   return k0 + (int)(a * k);
 }
 
 #define DEPRECATED_FEATURES
@@ -330,20 +283,19 @@ static inline int nearby_neighbor(int kzPre, int zScaleLog2Pre, int zScaleLog2Po
  * @kPre
  * @scale
  */
-static inline float deltaPosLayers(int kPre, int scale)
-{
+static inline float deltaPosLayers(int kPre, int scale) {
    if (scale == 0) {
       return 0.0f;
    }
    else if (scale < 0) {
       // post-synaptic layer has smaller size scale
-      int s = (int) powf(2.0f, (float) -scale);
-      return 0.5f * (float) (1 - s);
+      int s = (int)powf(2.0f, (float)-scale);
+      return 0.5f * (float)(1 - s);
    }
    else {
       // post-synaptic layer has larger size scale
-      int s = (int) powf(2.0f, (float) scale);
-      return 0.5f * (1.0f - (1.0f + 2.0f * (kPre%s)) / s);
+      int s = (int)powf(2.0f, (float)scale);
+      return 0.5f * (1.0f - (1.0f + 2.0f * (kPre % s)) / s);
    }
 }
 #endif /* DEPRECATED_FEATURES */
@@ -368,11 +320,10 @@ static inline float deltaPosLayers(int kPre, int scale)
  *   - ky is the Y direction index in restricted space
  *   .
  */
-static inline int kIndexExtended(int k, int nx, int ny, int nf, int lt, int rt, int dn, int up)
-{
+static inline int kIndexExtended(int k, int nx, int ny, int nf, int lt, int rt, int dn, int up) {
    const int kx_ex = lt + kxPos(k, nx, ny, nf);
    const int ky_ex = up + kyPos(k, nx, ny, nf);
-   const int kf = featureIndex(k, nx, ny, nf);
+   const int kf    = featureIndex(k, nx, ny, nf);
    return kIndex(kx_ex, ky_ex, kf, nx + lt + rt, ny + dn + up, nf);
 }
 
@@ -397,12 +348,12 @@ static inline int kIndexExtended(int k, int nx, int ny, int nf, int lt, int rt, 
  *   - ky is the Y direction index in restricted space
  *   .
  */
-static inline int kIndexExtendedBatch(int k, int nb, int nx, int ny, int nf, int lt, int rt, int dn, int up)
-{
+static inline int
+kIndexExtendedBatch(int k, int nb, int nx, int ny, int nf, int lt, int rt, int dn, int up) {
    const int kx_ex = lt + kxPos(k, nx, ny, nf);
    const int ky_ex = up + kyPos(k, nx, ny, nf);
-   const int kf = featureIndex(k, nx, ny, nf);
-   const int kb = batchIndex(k, nb, nx, ny, nf);
+   const int kf    = featureIndex(k, nx, ny, nf);
+   const int kb    = batchIndex(k, nb, nx, ny, nf);
    return kIndexBatch(kb, kx_ex, ky_ex, kf, nb, nx + lt + rt, ny + dn + up, nf);
 }
 
@@ -427,18 +378,20 @@ static inline int kIndexExtendedBatch(int k, int nb, int nx, int ny, int nf, int
  *   - ky is the Y direction index in restricted space
  *   .
  */
-static inline int kIndexRestricted(int k_ex, int nx, int ny, int nf, int lt, int rt, int dn, int up)
-{
+static inline int
+kIndexRestricted(int k_ex, int nx, int ny, int nf, int lt, int rt, int dn, int up) {
    int kx, ky, kf;
 
    const int nx_ex = nx + lt + rt;
    const int ny_ex = ny + dn + up;
 
    kx = kxPos(k_ex, nx_ex, ny_ex, nf) - lt;
-   if (kx < 0 || kx >= nx) return -1;
+   if (kx < 0 || kx >= nx)
+      return -1;
 
    ky = kyPos(k_ex, nx_ex, ny_ex, nf) - up;
-   if (ky < 0 || ky >= ny) return -1;
+   if (ky < 0 || ky >= ny)
+      return -1;
 
    kf = featureIndex(k_ex, nx_ex, ny_ex, nf);
    return kIndex(kx, ky, kf, nx, ny, nf);
@@ -455,48 +408,47 @@ static inline int kIndexRestricted(int k_ex, int nx, int ny, int nf, int lt, int
 //           tests/test_extend_border.c files. These tests run a
 //           function equivalent to the mpi version of
 //           globalIndexFromLocal but without using MPI.
-static inline int globalIndexFromLocal(int kl, const PVLayerLoc loc)
-{
+static inline int globalIndexFromLocal(int kl, const PVLayerLoc loc) {
 #ifdef PV_USE_MPI
    int kxg = loc.kx0 + kxPos(kl, loc.nx, loc.ny, loc.nf);
    int kyg = loc.ky0 + kyPos(kl, loc.nx, loc.ny, loc.nf);
-   int  kf = featureIndex(kl, loc.nx, loc.ny, loc.nf);
+   int kf  = featureIndex(kl, loc.nx, loc.ny, loc.nf);
    return kIndex(kxg, kyg, kf, loc.nxGlobal, loc.nyGlobal, loc.nf);
 #else
    return kl;
 #endif // PV_USE_MPI
 }
 
-
-static inline int localIndexFromGlobal(int kGlobal, const PVLayerLoc loc)
-{
+static inline int localIndexFromGlobal(int kGlobal, const PVLayerLoc loc) {
 #ifdef PV_USE_MPI
    int kxGlobal = kxPos(kGlobal, loc.nxGlobal, loc.nyGlobal, loc.nf);
    int kyGlobal = kyPos(kGlobal, loc.nxGlobal, loc.nyGlobal, loc.nf);
-   int kf = featureIndex(kGlobal, loc.nxGlobal, loc.nyGlobal, loc.nf);
-   int kxLocal = kxGlobal - loc.kx0;
-   int kyLocal = kyGlobal - loc.ky0;
+   int kf       = featureIndex(kGlobal, loc.nxGlobal, loc.nyGlobal, loc.nf);
+   int kxLocal  = kxGlobal - loc.kx0;
+   int kyLocal  = kyGlobal - loc.ky0;
    return kIndex(kxLocal, kyLocal, kf, loc.nx, loc.ny, loc.nf);
 #else
    return kGlobal;
 #endif // PV_USE_MPI
 }
 
-static inline int zUnitCellSize(float preZScale, float postZScale){
-   return (preZScale < postZScale) ? (int)pow(2,
-         postZScale - preZScale) : 1;
+static inline int zUnitCellSize(float preZScale, float postZScale) {
+   return (preZScale < postZScale) ? (int)pow(2, postZScale - preZScale) : 1;
 }
 
-int layerIndexToUnitCellIndex(int patchIndex, const PVLayerLoc * preLoc, int nxUnitCell, int nyUnitCell, int * kxUnitCellIndex,
-      int * kyUnitCellIndex, int * kfUnitCellIndex);
+int layerIndexToUnitCellIndex(
+      int patchIndex,
+      const PVLayerLoc *preLoc,
+      int nxUnitCell,
+      int nyUnitCell,
+      int *kxUnitCellIndex,
+      int *kyUnitCellIndex,
+      int *kfUnitCellIndex);
 
 /**
  * @x
  */
-static inline float sign(float x)
-{
-    return (x < 0.0f) ? -1.0f : 1.0f;
-}
+static inline float sign(float x) { return (x < 0.0f) ? -1.0f : 1.0f; }
 
 /**
  * Returns difference between two numbers assuming periodic boundary conditions.
@@ -506,15 +458,14 @@ static inline float sign(float x)
  * @max maximum difference
  */
 //#pragma FTT elemental, vectorize
-static inline float deltaWithPBC(float x1, float x2, float max)
-{
-    float dx = x2 - x1;
-    float abs_dx = fabsf(dx);
+static inline float deltaWithPBC(float x1, float x2, float max) {
+   float dx     = x2 - x1;
+   float abs_dx = fabsf(dx);
 
-    // Apply periodic boundary conditions
-    dx = abs_dx > max ? sign(dx) * (abs_dx - 2.0f*max) : dx;
+   // Apply periodic boundary conditions
+   dx = abs_dx > max ? sign(dx) * (abs_dx - 2.0f * max) : dx;
 
-    return dx;
+   return dx;
 }
 
 /**
@@ -531,113 +482,156 @@ static inline float deltaWithPBC(float x1, float x2, float max)
  * @nf
  */
 //#pragma FTT elemental, vectorize
-static inline int globalIndex(int kf, float x, float y, float x0, float y0,
-                              float dx, float dy, int nx, int ny, int nf)
-{
-   int kx = (int) nearbyintf((x - x0)/dx - 0.5f);
-   int ky = (int) nearbyintf((y - y0)/dy - 0.5f);
+static inline int globalIndex(
+      int kf,
+      float x,
+      float y,
+      float x0,
+      float y0,
+      float dx,
+      float dy,
+      int nx,
+      int ny,
+      int nf) {
+   int kx = (int)nearbyintf((x - x0) / dx - 0.5f);
+   int ky = (int)nearbyintf((y - y0) / dy - 0.5f);
    return kIndex(kx, ky, kf, nx, ny, nf);
 }
 
-//Converts an index from one layer to the other in the extended space
-//Warning: function will return center point in a one to many conversion
-//Conversion in feature space does not exist, output will be first feature
-//If outside the area of out layer, will move to the clostest avaliable position in out layer
-static inline int layerIndexExt(int kPreExt, const PVLayerLoc * inLoc, const PVLayerLoc * outLoc){
-   //Calculate scale factor based on restricted
+// Converts an index from one layer to the other in the extended space
+// Warning: function will return center point in a one to many conversion
+// Conversion in feature space does not exist, output will be first feature
+// If outside the area of out layer, will move to the clostest avaliable position in out layer
+static inline int layerIndexExt(int kPreExt, const PVLayerLoc *inLoc, const PVLayerLoc *outLoc) {
+   // Calculate scale factor based on restricted
    float scaleFactorX = (float)outLoc->nxGlobal / inLoc->nxGlobal;
    float scaleFactorY = (float)outLoc->nyGlobal / inLoc->nyGlobal;
-   //Calculate x and y in extended space
-   int kPreX = kxPos(kPreExt, inLoc->nx + inLoc->halo.lt + inLoc->halo.rt, inLoc->ny+ inLoc->halo.dn + inLoc->halo.up, inLoc->nf);
-   int kPreY = kyPos(kPreExt, inLoc->nx + inLoc->halo.lt + inLoc->halo.rt, inLoc->ny+ inLoc->halo.dn + inLoc->halo.up, inLoc->nf);
-   //Subtract margin to set 0 to the beginning of the restricted space
+   // Calculate x and y in extended space
+   int kPreX =
+         kxPos(kPreExt,
+               inLoc->nx + inLoc->halo.lt + inLoc->halo.rt,
+               inLoc->ny + inLoc->halo.dn + inLoc->halo.up,
+               inLoc->nf);
+   int kPreY =
+         kyPos(kPreExt,
+               inLoc->nx + inLoc->halo.lt + inLoc->halo.rt,
+               inLoc->ny + inLoc->halo.dn + inLoc->halo.up,
+               inLoc->nf);
+   // Subtract margin to set 0 to the beginning of the restricted space
    kPreX -= inLoc->halo.lt;
    kPreY -= inLoc->halo.up;
    int kPostX, kPostY, half;
-   //If one to many, scale factor is greater than 1
-   if (scaleFactorX > 1){
-      half = floor(scaleFactorX / 2);
+   // If one to many, scale factor is greater than 1
+   if (scaleFactorX > 1) {
+      half   = floor(scaleFactorX / 2);
       kPostX = kPreX * scaleFactorX + half;
    }
-   else{
+   else {
       kPostX = floor(kPreX * scaleFactorX);
    }
-   if (scaleFactorY > 1){
-      half = floor(scaleFactorY / 2);
+   if (scaleFactorY > 1) {
+      half   = floor(scaleFactorY / 2);
       kPostY = kPreY * scaleFactorY + half;
    }
-   else{
+   else {
       kPostY = floor(kPreY * scaleFactorY);
    }
 
-   //Change back to ext points 
+   // Change back to ext points
    kPostX += outLoc->halo.lt;
    kPostY += outLoc->halo.up;
 
-   //If outside of out layer margins, shrink
-   //Left margin
-   if (kPostX < 0){
+   // If outside of out layer margins, shrink
+   // Left margin
+   if (kPostX < 0) {
       kPostX = 0;
    }
-   //Right Margin
-   else if(kPostX >= outLoc->nx + outLoc->halo.lt + outLoc->halo.rt){
+   // Right Margin
+   else if (kPostX >= outLoc->nx + outLoc->halo.lt + outLoc->halo.rt) {
       kPostX = outLoc->nx + outLoc->halo.dn + outLoc->halo.up - 1;
    }
-   //Top margin
-   if (kPostY < 0){
+   // Top margin
+   if (kPostY < 0) {
       kPostY = 0;
    }
-   //Bottom Margin
-   else if(kPostY >= outLoc->ny + outLoc->halo.lt + outLoc->halo.rt){
+   // Bottom Margin
+   else if (kPostY >= outLoc->ny + outLoc->halo.lt + outLoc->halo.rt) {
       kPostY = outLoc->ny + outLoc->halo.dn + outLoc->halo.up - 1;
    }
-   //Change back to index
-   //Using feature of 0
-   return kIndex(kPostX, kPostY, 0, outLoc->nx + outLoc->halo.lt + outLoc->halo.rt, outLoc->ny + outLoc->halo.dn + outLoc->halo.up, outLoc->nf);
+   // Change back to index
+   // Using feature of 0
+   return kIndex(
+         kPostX,
+         kPostY,
+         0,
+         outLoc->nx + outLoc->halo.lt + outLoc->halo.rt,
+         outLoc->ny + outLoc->halo.dn + outLoc->halo.up,
+         outLoc->nf);
 }
 
-//Converts an index from one layer to the other in the restricted space
-//Warning: function will return center point in a one to many conversion
-//Conversion in feature space does not exist, output will be first feature
-static inline int layerIndexRes(int kPreRes, const PVLayerLoc * inLoc, const PVLayerLoc * outLoc){
-   //Call with extended index
-   int kPreExt = kIndexExtended(kPreRes, inLoc->nx, inLoc->ny, inLoc->nf, inLoc->halo.lt, inLoc->halo.rt, inLoc->halo.dn, inLoc->halo.up);
+// Converts an index from one layer to the other in the restricted space
+// Warning: function will return center point in a one to many conversion
+// Conversion in feature space does not exist, output will be first feature
+static inline int layerIndexRes(int kPreRes, const PVLayerLoc *inLoc, const PVLayerLoc *outLoc) {
+   // Call with extended index
+   int kPreExt = kIndexExtended(
+         kPreRes,
+         inLoc->nx,
+         inLoc->ny,
+         inLoc->nf,
+         inLoc->halo.lt,
+         inLoc->halo.rt,
+         inLoc->halo.dn,
+         inLoc->halo.up);
    return layerIndexExt(kPreExt, inLoc, outLoc);
 }
 
 /**
- * Returns 1 if the given extended index is in the border region, and 0 if it is in the restricted space.
+ * Returns 1 if the given extended index is in the border region, and 0 if it is in the restricted
+ * space.
  */
-static inline int extendedIndexInBorderRegion(int extK, int nx, int ny, int nf, int lt, int rt, int dn, int up) {
-   int x = kxPos(extK, nx+lt+rt, ny+dn+up, nf);
-   int y = kyPos(extK, nx+lt+rt, ny+dn+up, nf);
-   return x < lt | x >= nx+lt | y < up | y >= ny+up; // Which is better: bitwise-or or logical-or?
+static inline int
+extendedIndexInBorderRegion(int extK, int nx, int ny, int nf, int lt, int rt, int dn, int up) {
+   int x = kxPos(extK, nx + lt + rt, ny + dn + up, nf);
+   int y = kyPos(extK, nx + lt + rt, ny + dn + up, nf);
+   return x < lt | x >= nx + lt | y < up
+          | y >= ny + up; // Which is better: bitwise-or or logical-or?
 }
 
-//Converts a local ext index into a global res index
-//Returns -1 if localExtK is in extended space
-static inline int localExtToGlobalRes(int localExtK, const PVLayerLoc * loc){
-   //Change local ext indicies to global res index
-   int localExtX =     kxPos(localExtK, loc->nx+loc->halo.lt+loc->halo.rt, loc->ny+loc->halo.up+loc->halo.dn, loc->nf);
-   int localExtY =     kyPos(localExtK, loc->nx+loc->halo.lt+loc->halo.rt, loc->ny+loc->halo.up+loc->halo.dn, loc->nf);
-   int localF = featureIndex(localExtK, loc->nx+loc->halo.lt+loc->halo.rt, loc->ny+loc->halo.up+loc->halo.dn, loc->nf);
+// Converts a local ext index into a global res index
+// Returns -1 if localExtK is in extended space
+static inline int localExtToGlobalRes(int localExtK, const PVLayerLoc *loc) {
+   // Change local ext indicies to global res index
+   int localExtX =
+         kxPos(localExtK,
+               loc->nx + loc->halo.lt + loc->halo.rt,
+               loc->ny + loc->halo.up + loc->halo.dn,
+               loc->nf);
+   int localExtY =
+         kyPos(localExtK,
+               loc->nx + loc->halo.lt + loc->halo.rt,
+               loc->ny + loc->halo.up + loc->halo.dn,
+               loc->nf);
+   int localF = featureIndex(
+         localExtK,
+         loc->nx + loc->halo.lt + loc->halo.rt,
+         loc->ny + loc->halo.up + loc->halo.dn,
+         loc->nf);
 
-   //Check if restricted
-   if(localExtX < loc->halo.lt || localExtX >= loc->nx+loc->halo.lt ||
-         localExtY < loc->halo.up || localExtY >= loc->ny+loc->halo.up){
+   // Check if restricted
+   if (localExtX < loc->halo.lt || localExtX >= loc->nx + loc->halo.lt || localExtY < loc->halo.up
+       || localExtY >= loc->ny + loc->halo.up) {
       return -1;
    }
 
-   //Change ext to res
+   // Change ext to res
    int globalResX = localExtX - loc->halo.lt + loc->kx0;
    int globalResY = localExtY - loc->halo.up + loc->ky0;
 
-   //Get final globalResK
+   // Get final globalResK
    int globalResK = kIndex(globalResX, globalResY, localF, loc->nxGlobal, loc->nyGlobal, loc->nf);
    return globalResK;
 }
-
-
 
 /**
  * @x0
@@ -646,41 +640,45 @@ static inline int localExtToGlobalRes(int localExtK, const PVLayerLoc * loc){
  * @max
  */
 //#pragma FTT elemental, vectorize
-static inline float gaussianWeight(float x0, float x, float sigma, float max)
-{
+static inline float gaussianWeight(float x0, float x, float sigma, float max) {
    float dx = deltaWithPBC(x0, x, max);
    return expf(-0.5f * dx * dx / (sigma * sigma));
 }
 
-static inline pvdata_t * getChannelStart(pvdata_t * gSynHead, enum ChannelType ch, int num_neurons) {
-   return &gSynHead[num_neurons*((int) ch)];
+static inline pvdata_t *getChannelStart(pvdata_t *gSynHead, enum ChannelType ch, int num_neurons) {
+   return &gSynHead[num_neurons * ((int)ch)];
 }
 
 static inline int rankFromRowAndColumn(int row, int column, int numRows, int numColumns) {
-   return (row >=0 && row < numRows && column >=0 && column < numColumns) ? row*numColumns + column : -1;
+   return (row >= 0 && row < numRows && column >= 0 && column < numColumns)
+                ? row * numColumns + column
+                : -1;
 }
 
 static inline int globalToLocalRank(int rank, int batchWidth, int numRows, int numColumns) {
-   //This line will not do anything if the parameter rank is a localRank
+   // This line will not do anything if the parameter rank is a localRank
    int localRank = rank % (numRows * numColumns);
    return localRank;
 }
 
 static inline int rowFromRank(int rank, int numRows, int numColumns) {
    int row = rank / numColumns;
-   if( row < 0 || row >= numRows ) row = -1;
+   if (row < 0 || row >= numRows)
+      row = -1;
    return row;
 }
 
 static inline int columnFromRank(int rank, int numRows, int numColumns) {
    int col = rank % numColumns;
-   if( col < 0 || col >= numColumns) col = -1;
+   if (col < 0 || col >= numColumns)
+      col = -1;
    return col;
 }
 
 static inline int batchFromRank(int rank, int batchWidth, int numRows, int numColumns) {
-   int col = rank/(numRows * numColumns);
-   if( col < 0 || col >= batchWidth) col = -1;
+   int col = rank / (numRows * numColumns);
+   if (col < 0 || col >= batchWidth)
+      col = -1;
    return col;
 }
 

@@ -16,7 +16,7 @@
 
 namespace PV {
 
-TestNotAlwaysAllZerosProbe::TestNotAlwaysAllZerosProbe(const char * probeName, HyPerCol * hc) {
+TestNotAlwaysAllZerosProbe::TestNotAlwaysAllZerosProbe(const char *probeName, HyPerCol *hc) {
    initTestNotAlwaysAllZerosProbe_base();
    initTestNotAlwaysAllZerosProbe(probeName, hc);
 }
@@ -24,9 +24,12 @@ TestNotAlwaysAllZerosProbe::TestNotAlwaysAllZerosProbe(const char * probeName, H
 int TestNotAlwaysAllZerosProbe::outputState(double timed) {
    int status = StatsProbe::outputState(timed);
    if (status != PV_SUCCESS) {
-      pvError().printf("!!Time %f: TestNotAlwaysAllZerosProbe::outputState failed for %s\n", timed, getTargetLayer()->getDescription_c());
+      pvError().printf(
+            "!!Time %f: TestNotAlwaysAllZerosProbe::outputState failed for %s\n",
+            timed,
+            getTargetLayer()->getDescription_c());
    }
-   for(int b = 0; b < parent->getNBatch(); b++){
+   for (int b = 0; b < parent->getNBatch(); b++) {
       if (nnz[b] != 0) {
          nonzeroValueOccurred = true;
       }
@@ -39,7 +42,9 @@ int TestNotAlwaysAllZerosProbe::initTestNotAlwaysAllZerosProbe_base() {
    return PV_SUCCESS;
 }
 
-int TestNotAlwaysAllZerosProbe::initTestNotAlwaysAllZerosProbe(const char * probeName, HyPerCol * hc) {
+int TestNotAlwaysAllZerosProbe::initTestNotAlwaysAllZerosProbe(
+      const char *probeName,
+      HyPerCol *hc) {
    return StatsProbe::initStatsProbe(probeName, hc);
 }
 

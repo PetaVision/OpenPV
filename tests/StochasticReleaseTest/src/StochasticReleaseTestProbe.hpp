@@ -8,38 +8,39 @@
 #ifndef STOCHASTICRELEASETESTPROBE_HPP_
 #define STOCHASTICRELEASETESTPROBE_HPP_
 
-#include "probes/StatsProbe.hpp"
 #include "columns/HyPerCol.hpp"
 #include "columns/buildandrun.hpp"
+#include "probes/StatsProbe.hpp"
 #include <math.h>
 #include <stdlib.h>
 
 namespace PV {
 
-class StochasticReleaseTestProbe : public PV::StatsProbe{
-public:
-   StochasticReleaseTestProbe(const char * name, HyPerCol * hc);
+class StochasticReleaseTestProbe : public PV::StatsProbe {
+  public:
+   StochasticReleaseTestProbe(const char *name, HyPerCol *hc);
    virtual ~StochasticReleaseTestProbe();
 
    virtual int communicateInitInfo() override;
 
    virtual int outputState(double timed) override;
 
-protected:
+  protected:
    StochasticReleaseTestProbe();
-   int initStochasticReleaseTestProbe(const char * name, HyPerCol * hc);
+   int initStochasticReleaseTestProbe(const char *name, HyPerCol *hc);
    virtual void ioParam_buffer(enum ParamsIOFlag ioFlag) override;
    void computePValues();
    void computePValues(int step, int f);
-private:
+
+  private:
    int initialize_base();
 
-// Member variables
-protected:
-   HyPerConn * conn = nullptr; // The connection for which targetLayer is the postsynaptic layer.  There must be exactly one such conn.
+   // Member variables
+  protected:
+   HyPerConn *conn = nullptr; // The connection for which targetLayer is the postsynaptic layer.
+   // There must be exactly one such conn.
    std::vector<double> pvalues; // The two-tailed p-value of the nnz value of each timestep.
 }; // end class StochasticReleaseTestProbe
-
 
 } /* namespace PV */
 #endif /* STOCHASTICRELEASETESTPROBE_HPP_ */

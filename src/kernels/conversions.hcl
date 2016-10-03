@@ -12,10 +12,7 @@
  *    since kx <= nx-1.
  *    .
  */
-static inline int kxPos(int k, int nx, int ny, int nf)
-{
-   return (k/nf) % nx;
-}
+static inline int kxPos(int k, int nx, int ny, int nf) { return (k / nf) % nx; }
 
 //! RETURNS Y INDEX FROM LINEAR INDEX
 /*!
@@ -30,12 +27,9 @@ static inline int kxPos(int k, int nx, int ny, int nf)
  *    (note that kx <= nx-1 and kf <= nf-1).
  *   .
  */
-static inline int kyPos(int k, int nx, int ny, int nf)
-{
-   return k / (nx*nf);
-}
+static inline int kyPos(int k, int nx, int ny, int nf) { return k / (nx * nf); }
 
- //! RETURNS FEATURE INDEX FROM LINEAR INDEX
+//! RETURNS FEATURE INDEX FROM LINEAR INDEX
 /**
  * Return the feature index for the given k index
  * @k the k index (can be either global or local depending on if nx,ny are global or local)
@@ -48,10 +42,7 @@ static inline int kyPos(int k, int nx, int ny, int nf)
  *      since kf <= nf-1.
  *      .
  */
-static inline int featureIndex(int k, int nx, int ny, int nf)
-{
-   return k % nf;
-}
+static inline int featureIndex(int k, int nx, int ny, int nf) { return k % nf; }
 
 //! RETURNS LINEAR INDEX FROM X,Y, AND FEATURE INDEXES
 /*!
@@ -66,8 +57,7 @@ static inline int featureIndex(int k, int nx, int ny, int nf)
  *      k = ky * (nf*nx) + kx * nf + kf
  *      .
  */
-static inline int kIndex(int kx, int ky, int kf, int nx, int ny, int nf)
-{
+static inline int kIndex(int kx, int ky, int kf, int nx, int ny, int nf) {
    return kf + (kx + ky * nx) * nf;
 }
 
@@ -88,10 +78,9 @@ static inline int kIndex(int kx, int ky, int kf, int nx, int ny, int nf)
  *   - ky is the Y direction index in restricted space
  *   .
  */
-static inline int kIndexExtended(int k, int nx, int ny, int nf, int nb)
-{
+static inline int kIndexExtended(int k, int nx, int ny, int nf, int nb) {
    const int kx_ex = nb + kxPos(k, nx, ny, nf);
    const int ky_ex = nb + kyPos(k, nx, ny, nf);
-   const int kf = featureIndex(k, nx, ny, nf);
-   return kIndex(kx_ex, ky_ex, kf, nx + 2*nb, ny + 2*nb, nf);
+   const int kf    = featureIndex(k, nx, ny, nf);
+   return kIndex(kx_ex, ky_ex, kf, nx + 2 * nb, ny + 2 * nb, nf);
 }

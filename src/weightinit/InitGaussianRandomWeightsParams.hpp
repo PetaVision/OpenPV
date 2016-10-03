@@ -12,25 +12,24 @@
 
 namespace PV {
 
-class InitGaussianRandomWeightsParams: public PV::InitRandomWeightsParams {
-public:
+class InitGaussianRandomWeightsParams : public PV::InitRandomWeightsParams {
+  public:
    InitGaussianRandomWeightsParams();
-   InitGaussianRandomWeightsParams(const char * name, HyPerCol * hc);
+   InitGaussianRandomWeightsParams(const char *name, HyPerCol *hc);
    virtual ~InitGaussianRandomWeightsParams();
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
-   //get-set methods:
-   inline float getMean()        {return wGaussMean;}
-   inline float getStDev()        {return wGaussStdev;}
+   // get-set methods:
+   inline float getMean() { return wGaussMean; }
+   inline float getStDev() { return wGaussStdev; }
 
-protected:
+  protected:
    virtual int initialize_base();
-   int initialize(const char * name, HyPerCol * hc);
+   int initialize(const char *name, HyPerCol *hc);
    void ioParam_wGaussMean(enum ParamsIOFlag ioFlag);
    void ioParam_wGaussStdev(enum ParamsIOFlag ioFlag);
 
-
-private:
+  private:
    float wGaussMean;
    float wGaussStdev;
 };

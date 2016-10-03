@@ -15,9 +15,9 @@
 namespace PV {
 
 class AdaptiveTimeScaleController {
-public:
+  public:
    AdaptiveTimeScaleController(
-         char const * name,
+         char const *name,
          int batchWidth,
          double baseMax,
          double baseMin,
@@ -25,28 +25,29 @@ public:
          double growthFactor,
          bool writeTimeScales,
          bool writeTimeScaleFieldnames,
-         Communicator * comm,
+         Communicator *comm,
          bool verifyWrites);
    virtual ~AdaptiveTimeScaleController();
-   virtual int checkpointRead(const char * cpDir, double * timeptr);
-   virtual int checkpointWrite(const char * cpDir);
-   std::vector<double> const& calcTimesteps(double timeValue, std::vector<double> const& rawTimeScales);
+   virtual int checkpointRead(const char *cpDir, double *timeptr);
+   virtual int checkpointWrite(const char *cpDir);
+   std::vector<double> const &
+   calcTimesteps(double timeValue, std::vector<double> const &rawTimeScales);
    void writeTimestepInfo(double timeValue, PrintStream &stream);
 
-private:
+  private:
    void calcTimeScaleTrue(double timeValue);
 
-// Data members
-protected:
-   char * mName;
+   // Data members
+  protected:
+   char *mName;
    int mBatchWidth;
    double mBaseMax;
    double mBaseMin;
    double mTauFactor;
    double mGrowthFactor;
-   bool   mWriteTimeScales;
-   bool   mWriteTimeScaleFieldnames;
-   Communicator * mCommunicator;
+   bool mWriteTimeScales;
+   bool mWriteTimeScaleFieldnames;
+   Communicator *mCommunicator;
    bool mVerifyWrites;
 
    std::vector<double> mTimeScale;

@@ -15,21 +15,20 @@ namespace PV {
 class InitWeightsParams;
 class InitIdentWeightsParams;
 
-class InitIdentWeights: public PV::InitOneToOneWeights {
-public:
-   InitIdentWeights(char const * name, HyPerCol * hc);
+class InitIdentWeights : public PV::InitOneToOneWeights {
+  public:
+   InitIdentWeights(char const *name, HyPerCol *hc);
    virtual ~InitIdentWeights();
 
-   virtual int calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId);
-   virtual InitWeightsParams * createNewWeightParams();
+   virtual int calcWeights(/* PVPatch * patch */ pvdata_t *dataStart, int patchIndex, int arborId);
+   virtual InitWeightsParams *createNewWeightParams();
    void calcOtherParams(int patchIndex);
 
-
-protected:
+  protected:
    InitIdentWeights();
-   int initialize(char const * name, HyPerCol * hc);
+   int initialize(char const *name, HyPerCol *hc);
 
-protected:
+  protected:
    int initialize_base();
 }; // class InitIdentWeights
 

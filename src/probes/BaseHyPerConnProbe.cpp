@@ -9,21 +9,19 @@
 
 namespace PV {
 
-BaseHyPerConnProbe::BaseHyPerConnProbe(const char * probeName, HyPerCol * hc) {
+BaseHyPerConnProbe::BaseHyPerConnProbe(const char *probeName, HyPerCol *hc) {
    initialize_base();
    initialize(probeName, hc);
 }
 
-BaseHyPerConnProbe::BaseHyPerConnProbe() {
-   initialize_base();
-}
+BaseHyPerConnProbe::BaseHyPerConnProbe() { initialize_base(); }
 
 int BaseHyPerConnProbe::initialize_base() {
    targetHyPerConn = NULL;
    return PV_SUCCESS;
 }
 
-int BaseHyPerConnProbe::initialize(const char * probeName, HyPerCol * hc) {
+int BaseHyPerConnProbe::initialize(const char *probeName, HyPerCol *hc) {
    return BaseConnectionProbe::initialize(probeName, hc);
 }
 
@@ -31,10 +29,13 @@ int BaseHyPerConnProbe::communicateInitInfo() {
    int status = BaseConnectionProbe::communicateInitInfo();
    assert(getTargetConn());
    targetHyPerConn = dynamic_cast<HyPerConn *>(targetConn);
-   if (targetHyPerConn==NULL) {
-      if (parent->columnId()==0) {
-         pvErrorNoExit().printf("%s: targetConn \"%s\" must be a HyPerConn or HyPerConn-derived class.\n",
-               getDescription_c(), targetConn->getName());
+   if (targetHyPerConn == NULL) {
+      if (parent->columnId() == 0) {
+         pvErrorNoExit().printf(
+               "%s: targetConn \"%s\" must be a HyPerConn or "
+               "HyPerConn-derived class.\n",
+               getDescription_c(),
+               targetConn->getName());
       }
       status = PV_FAILURE;
    }
@@ -49,7 +50,6 @@ double BaseHyPerConnProbe::referenceUpdateTime() const {
    return targetHyPerConn->getLastUpdateTime();
 }
 
-BaseHyPerConnProbe::~BaseHyPerConnProbe() {
-}
+BaseHyPerConnProbe::~BaseHyPerConnProbe() {}
 
 } /* namespace PV */

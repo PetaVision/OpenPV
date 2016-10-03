@@ -12,14 +12,14 @@
 
 namespace PV {
 
-class RescaleConn: public IdentConn {
-public:
-   RescaleConn(char const * name, HyPerCol * hc);
+class RescaleConn : public IdentConn {
+  public:
+   RescaleConn(char const *name, HyPerCol *hc);
    virtual ~RescaleConn();
 
-protected:
+  protected:
    RescaleConn();
-   int initialize(char const * name, HyPerCol * hc);
+   int initialize(char const *name, HyPerCol *hc);
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
    /**
@@ -29,20 +29,21 @@ protected:
     */
 
    /**
-    * scale: presynaptic activity is multiplied by this scale factor before being added to the postsynaptic input.
+    * scale: presynaptic activity is multiplied by this scale factor before being added to the
+    * postsynaptic input.
     */
    void ioParam_scale(enum ParamsIOFlag ioFlag);
 
    /** @} */
    // End of parameters needed from the RescaleConn class.
 
-   virtual int deliverPresynapticPerspective(PVLayerCube const * activity, int arborID);
+   virtual int deliverPresynapticPerspective(PVLayerCube const *activity, int arborID);
 
-private:
+  private:
    int initialize_base();
 
-// Member variables
-protected:
+   // Member variables
+  protected:
    float scale;
 };
 

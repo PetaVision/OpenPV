@@ -16,13 +16,12 @@ namespace PV {
  * @type
  * @msg
  */
-DatastoreDelayTestProbe::DatastoreDelayTestProbe(const char * probeName, HyPerCol * hc) : StatsProbe()
-{
+DatastoreDelayTestProbe::DatastoreDelayTestProbe(const char *probeName, HyPerCol *hc)
+      : StatsProbe() {
    initDatastoreDelayTestProbe(probeName, hc);
 }
 
-
-int DatastoreDelayTestProbe::initDatastoreDelayTestProbe(const char * probeName, HyPerCol * hc) {
+int DatastoreDelayTestProbe::initDatastoreDelayTestProbe(const char *probeName, HyPerCol *hc) {
    initStatsProbe(probeName, hc);
    return PV_SUCCESS;
 }
@@ -38,32 +37,41 @@ void DatastoreDelayTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
  * @l
  */
 int DatastoreDelayTestProbe::outputState(double timed) {
-   HyPerLayer * l = getTargetLayer();
-   Communicator * icComm = l->getParent()->getCommunicator();
-   const int rcvProc = 0;
-   if( icComm->commRank() != rcvProc ) {
+   HyPerLayer *l        = getTargetLayer();
+   Communicator *icComm = l->getParent()->getCommunicator();
+   const int rcvProc    = 0;
+   if (icComm->commRank() != rcvProc) {
       return PV_SUCCESS;
    }
-   int status = PV_SUCCESS;
-   int numDelayLevels = l->getParent()->getLayer(0)->getNumDelayLevels();
-   pvdata_t correctValue = numDelayLevels*(numDelayLevels+1)/2;
-   if( timed >= numDelayLevels+2 ) {
-      pvdata_t * V = l->getV();
-      for( int k=0; k<l->getNumNeuronsAllBatches(); k++ ) {
-         if( V[k] != correctValue ) {
-            outputStream->printf("%s: timef = %f, neuron %d: value is %f instead of %d\n", l->getDescription_c(), timed, k, (double)V[k], (int) correctValue);
+   int status            = PV_SUCCESS;
+   int numDelayLevels    = l->getParent()->getLayer(0)->getNumDelayLevels();
+   pvdata_t correctValue = numDelayLevels * (numDelayLevels + 1) / 2;
+   if (timed >= numDelayLevels + 2) {
+      pvdata_t *V = l->getV();
+      for (int k = 0; k < l->getNumNeuronsAllBatches(); k++) {
+         if (V[k] != correctValue) {
+            outputStream->printf(
+                  "%s: timef = %f, neuron %d: value is %f instead of %d\n",
+                  l->getDescription_c(),
+                  timed,
+                  k,
+                  (double)V[k],
+                  (int)correctValue);
             status = PV_FAILURE;
          }
       }
-      if( status == PV_SUCCESS) {
-         outputStream->printf("%s: timef = %f, all neurons have correct value %d\n", l->getDescription_c(), timed, (int) correctValue);
+      if (status == PV_SUCCESS) {
+         outputStream->printf(
+               "%s: timef = %f, all neurons have correct value %d\n",
+               l->getDescription_c(),
+               timed,
+               (int)correctValue);
       }
    }
    pvErrorIf(!(status == PV_SUCCESS), "Test failed.\n");
    return PV_SUCCESS;
 }
 
-DatastoreDelayTestProbe::~DatastoreDelayTestProbe() {
-}
+DatastoreDelayTestProbe::~DatastoreDelayTestProbe() {}
 
-}  // end of namespace PV block
+} // end of namespace PV block

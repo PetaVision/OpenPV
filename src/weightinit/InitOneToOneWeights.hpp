@@ -16,22 +16,25 @@ class InitWeightsParams;
 class InitOneToOneWeightsParams;
 
 // TODO make InitOneToOneWeights a derived class of InitUniformWeights
-class InitOneToOneWeights: public PV::InitWeights {
-public:
-   InitOneToOneWeights(char const * name, HyPerCol * hc);
+class InitOneToOneWeights : public PV::InitWeights {
+  public:
+   InitOneToOneWeights(char const *name, HyPerCol *hc);
    virtual ~InitOneToOneWeights();
 
-   virtual int calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId);
-   virtual InitWeightsParams * createNewWeightParams();
+   virtual int calcWeights(/* PVPatch * patch */ pvdata_t *dataStart, int patchIndex, int arborId);
+   virtual InitWeightsParams *createNewWeightParams();
    void calcOtherParams(int patchIndex);
 
-
-protected:
+  protected:
    InitOneToOneWeights();
-   int initialize(char const * name, HyPerCol * hc);
-   int createOneToOneConnection(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, float iWeight, InitWeightsParams * weightParamPtr);
+   int initialize(char const *name, HyPerCol *hc);
+   int createOneToOneConnection(
+         /* PVPatch * patch */ pvdata_t *dataStart,
+         int patchIndex,
+         float iWeight,
+         InitWeightsParams *weightParamPtr);
 
-private:
+  private:
    int initialize_base();
 }; // class InitOneToOneWeights
 

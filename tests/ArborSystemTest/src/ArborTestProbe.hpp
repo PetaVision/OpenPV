@@ -12,22 +12,20 @@
 
 namespace PV {
 
-class ArborTestProbe: public PV::StatsProbe {
-public:
-   ArborTestProbe(const char * probeName, HyPerCol * hc);
+class ArborTestProbe : public PV::StatsProbe {
+  public:
+   ArborTestProbe(const char *probeName, HyPerCol *hc);
    virtual ~ArborTestProbe();
 
    virtual int outputState(double timed);
 
-protected:
-   int initArborTestProbe(const char * probeName, HyPerCol * hc);
+  protected:
+   int initArborTestProbe(const char *probeName, HyPerCol *hc);
    virtual void ioParam_buffer(enum ParamsIOFlag ioFlag);
 
-private:
+  private:
    int initArborTestProbe_base();
-
 };
-
 
 } /* namespace PV */
 #endif /* ArborTestProbe_HPP_ */

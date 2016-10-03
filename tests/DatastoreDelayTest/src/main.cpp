@@ -13,21 +13,21 @@
 //
 // The output layer should therefore be all zeros.
 
-#include "columns/buildandrun.hpp"
-#include "io/io.hpp"
 #include "DatastoreDelayTestLayer.hpp"
 #include "DatastoreDelayTestProbe.hpp"
+#include "columns/buildandrun.hpp"
+#include "io/io.hpp"
 #include <utils/PVLog.hpp>
 
-int main(int argc, char * argv[]) {
+int main(int argc, char *argv[]) {
 
-    int status;
-    PV_Init initObj(&argc, &argv, false/*allowUnrecognizedArguments*/);
-    initObj.registerKeyword("DatastoreDelayTestLayer", Factory::create<DatastoreDelayTestLayer>);
-    initObj.registerKeyword("DatastoreDelayTestProbe", Factory::create<DatastoreDelayTestProbe>);
-    if (initObj.getParams()==nullptr) {
-        initObj.setParams("input/DatastoreDelayTest.params");
-    }
-    status = buildandrun(&initObj);
-    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
+   int status;
+   PV_Init initObj(&argc, &argv, false /*allowUnrecognizedArguments*/);
+   initObj.registerKeyword("DatastoreDelayTestLayer", Factory::create<DatastoreDelayTestLayer>);
+   initObj.registerKeyword("DatastoreDelayTestProbe", Factory::create<DatastoreDelayTestProbe>);
+   if (initObj.getParams() == nullptr) {
+      initObj.setParams("input/DatastoreDelayTest.params");
+   }
+   status = buildandrun(&initObj);
+   return status == PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }

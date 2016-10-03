@@ -9,59 +9,58 @@
 
 namespace PV {
 
-InitSmartWeights::InitSmartWeights(char const * name, HyPerCol * hc) : InitWeights() {
+InitSmartWeights::InitSmartWeights(char const *name, HyPerCol *hc) : InitWeights() {
 
    InitSmartWeights::initialize_base();
    InitSmartWeights::initialize(name, hc);
 }
 
-InitSmartWeights::InitSmartWeights()
-{
-   initialize_base();
-}
+InitSmartWeights::InitSmartWeights() { initialize_base(); }
 
-InitSmartWeights::~InitSmartWeights()
-{
-}
+InitSmartWeights::~InitSmartWeights() {}
 
-int InitSmartWeights::initialize_base() {
-   return PV_SUCCESS;
-}
+int InitSmartWeights::initialize_base() { return PV_SUCCESS; }
 
-int InitSmartWeights::initialize(char const * name, HyPerCol * hc) {
+int InitSmartWeights::initialize(char const *name, HyPerCol *hc) {
    int status = InitWeights::initialize(name, hc);
    return status;
 }
 
-int InitSmartWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId) {
-   //smart weights doesn't have any params to load and is too simple to
-   //actually need to save anything to work on...
+int InitSmartWeights::calcWeights(
+      /* PVPatch * patch */ pvdata_t *dataStart,
+      int patchIndex,
+      int arborId) {
+   // smart weights doesn't have any params to load and is too simple to
+   // actually need to save anything to work on...
 
    smartWeights(dataStart, patchIndex, weightParams);
-   return PV_SUCCESS; // return 1;
+   return PV_SUCCESS;
 }
 
-InitWeightsParams * InitSmartWeights::createNewWeightParams() {
-   InitWeightsParams * tempPtr = new InitWeightsParams(name, parent);
+InitWeightsParams *InitSmartWeights::createNewWeightParams() {
+   InitWeightsParams *tempPtr = new InitWeightsParams(name, parent);
    return tempPtr;
 }
 
-int InitSmartWeights::smartWeights(/* PVPatch * wp */ pvdata_t * dataStart, int k, InitWeightsParams *weightParams) {
-   // pvdata_t * w = wp->data;
+int InitSmartWeights::smartWeights(
+      /* PVPatch * wp */ pvdata_t *dataStart,
+      int k,
+      InitWeightsParams *weightParams) {
 
-   const int nxp = weightParams->getnxPatch(); // wp->nx;
-   const int nyp = weightParams->getnyPatch(); // wp->ny;
-   const int nfp = weightParams->getnfPatch(); //wp->nf;
+   const int nxp = weightParams->getnxPatch();
+   const int nyp = weightParams->getnyPatch();
+   const int nfp = weightParams->getnfPatch();
 
-   const int sxp = weightParams->getsx(); //wp->sx;
-   const int syp = weightParams->getsy(); //wp->sy;
-   const int sfp = weightParams->getsf(); //wp->sf;
+   const int sxp = weightParams->getsx();
+   const int syp = weightParams->getsy();
+   const int sfp = weightParams->getsf();
 
    // loop over all post-synaptic cells in patch
    for (int y = 0; y < nyp; y++) {
       for (int x = 0; x < nxp; x++) {
          for (int f = 0; f < nfp; f++) {
-            dataStart[x * sxp + y * syp + f * sfp] = weightParams->getParentConn()->dataIndexToUnitCellIndex(k);
+            dataStart[x * sxp + y * syp + f * sfp] =
+                  weightParams->getParentConn()->dataIndexToUnitCellIndex(k);
          }
       }
    }
@@ -70,6 +69,3 @@ int InitSmartWeights::smartWeights(/* PVPatch * wp */ pvdata_t * dataStart, int 
 }
 
 } /* namespace PV */
-
-
-

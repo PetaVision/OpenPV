@@ -8,23 +8,22 @@
 extern "C" {
 #include <unistd.h>
 }
+#include <cinttypes>
+#include <cstdarg>
 #include <cstdio>
 #include <cstring>
-#include <cstdarg>
 #include <string>
-#include <cinttypes>
-
 
 #include "FileStream.hpp"
-#include "utils/PVLog.hpp"
-#include "utils/PVAssert.hpp"
 #include "io/io.hpp"
+#include "utils/PVAssert.hpp"
+#include "utils/PVLog.hpp"
 
 using std::string;
 
 namespace PV {
 
-FileStream::FileStream(char const * path, std::ios_base::openmode mode, bool verifyWrites) {
+FileStream::FileStream(char const *path, std::ios_base::openmode mode, bool verifyWrites) {
    setOutStream(mFStream);
    openFile(path, mode, verifyWrites);
 }
@@ -35,17 +34,16 @@ FileStream::~FileStream() {
    }
 }
 
-void FileStream::openFile(char const * path, std::ios_base::openmode mode, bool verifyWrites) {
+void FileStream::openFile(char const *path, std::ios_base::openmode mode, bool verifyWrites) {
    string fullPath = expandLeadingTilde(path);
-   int attempts = 0;
+   int attempts    = 0;
    while (!mFStream.is_open()) {
       mFStream.open(fullPath, mode);
       if (!mFStream.fail()) {
          break;
       }
       attempts++;
-      pvWarn() << "Failed to open \"" << fullPath
-               << "\" on attempt " << attempts << "\n";
+      pvWarn() << "Failed to open \"" << fullPath << "\" on attempt " << attempts << "\n";
       if (attempts < mMaxAttempts) {
          sleep(1);
       }
@@ -55,27 +53,20 @@ void FileStream::openFile(char const * path, std::ios_base::openmode mode, bool 
    }
    if (!mFStream.is_open()) {
       pvError() << "FileStream::openFile failure for \"" << fullPath
-                << "\": MAX_FILESYSTEMCALL_TRIES = " << mMaxAttempts
-                << " exceeded.\n";
+                << "\": MAX_FILESYSTEMCALL_TRIES = " << mMaxAttempts << " exceeded.\n";
    }
    else if (attempts > 0) {
-      pvWarn() << "FileStream::openFile succeeded for \"" << fullPath
-               << "\" on attempt " << attempts+1 << "\n";
+      pvWarn() << "FileStream::openFile succeeded for \"" << fullPath << "\" on attempt "
+               << attempts + 1 << "\n";
    }
    verifyFlags("openFile");
    if (verifyWrites) {
       mVerifyWrites = true;
       if (binary()) {
-         mWriteVerifier =
-            new FileStream(path,
-                           std::ios_base::in
-                         | std::ios_base::binary,
-                           false);
-      } else {
-         mWriteVerifier =
-            new FileStream(path,
-                           std::ios_base::in,
-                           false);
+         mWriteVerifier = new FileStream(path, std::ios_base::in | std::ios_base::binary, false);
+      }
+      else {
+         mWriteVerifier = new FileStream(path, std::ios_base::in, false);
       }
    }
 }
@@ -83,15 +74,13 @@ void FileStream::openFile(char const * path, std::ios_base::openmode mode, bool 
 void FileStream::verifyFlags(const char *caller) {
    pvErrorIf(mFStream.fail(), "%s: Logical error.\n", caller);
    pvErrorIf(mFStream.bad(), "%s: Read / Write error.\n", caller);
-   pvErrorIf(writeable() && getOutPos() == -1,
-         "%s: out pos == -1\n", caller);
-   pvErrorIf(readable() && getInPos() == -1,
-         "%s: in pos == -1\n", caller);
+   pvErrorIf(writeable() && getOutPos() == -1, "%s: out pos == -1\n", caller);
+   pvErrorIf(readable() && getInPos() == -1, "%s: in pos == -1\n", caller);
 }
 
 void FileStream::write(void *data, long length) {
    long startPos = getOutPos();
-   mFStream.write((char*)data, length);
+   mFStream.write((char *)data, length);
    mFStream.flush();
 
    verifyFlags("write");
@@ -104,30 +93,33 @@ void FileStream::write(void *data, long length) {
       // Read from the location we wrote to and compare
       mWriteVerifier->read(check, length);
       if (memcmp(check, data, length) != 0) {
-         pvError() << "Verify write failed when writing "
-                   << length << " bytes to position "
+         pvError() << "Verify write failed when writing " << length << " bytes to position "
                    << startPos << "\n";
       }
    }
 }
 
 void FileStream::read(void *data, long length) {
-   pvErrorIf(mFStream.eof(),
-         "Attempting to read after EOF.\n");
-   long startPos = getInPos(); 
-   mFStream.read((char*)data, length);
+   pvErrorIf(mFStream.eof(), "Attempting to read after EOF.\n");
+   long startPos = getInPos();
+   mFStream.read((char *)data, length);
    long numRead = mFStream.gcount();
-   pvErrorIf(numRead != length,
+   pvErrorIf(
+         numRead != length,
          "Expected to read %d bytes at %d, read %d instead.\n"
          "New read position: %d\n",
-         length, startPos, numRead, getInPos());
+         length,
+         startPos,
+         numRead,
+         getInPos());
    verifyFlags("read");
 }
 
 void FileStream::setOutPos(long pos, bool fromBeginning) {
    if (!fromBeginning) {
       mFStream.seekp(pos, std::ios_base::cur);
-   } else {
+   }
+   else {
       mFStream.seekp(pos);
    }
    verifyFlags("setOutPos");
@@ -136,18 +128,15 @@ void FileStream::setOutPos(long pos, bool fromBeginning) {
 void FileStream::setInPos(long pos, bool fromBeginning) {
    if (!fromBeginning) {
       mFStream.seekg(pos, std::ios_base::cur);
-   } else {
+   }
+   else {
       mFStream.seekg(pos);
    }
    verifyFlags("setInPos");
 }
 
-long FileStream::getOutPos() {
-   return mFStream.tellp();
-}
+long FileStream::getOutPos() { return mFStream.tellp(); }
 
-long FileStream::getInPos() {
-   return mFStream.tellg();
-}
+long FileStream::getInPos() { return mFStream.tellg(); }
 
 } /* namespace PV */

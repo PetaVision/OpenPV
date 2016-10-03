@@ -14,21 +14,20 @@ namespace PV {
 
 class L2ConnProbe : public KernelProbe {
 
-// Methods
-public:
-   L2ConnProbe(const char * probename, HyPerCol * hc);
+   // Methods
+  public:
+   L2ConnProbe(const char *probename, HyPerCol *hc);
    virtual ~L2ConnProbe();
    virtual int outputState(double timef);
 
-protected:
+  protected:
    L2ConnProbe();
 
-private:
+  private:
    int initialize_base();
 
 }; // end of class L2ConnProbe block
 
-}  // end of namespace PV block
-
+} // end of namespace PV block
 
 #endif /* L2CONNPROBE_HPP_ */
