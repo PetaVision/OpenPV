@@ -558,7 +558,7 @@ void Secretary::checkpointToDirectory(std::string const &directory) {
 void Secretary::finalCheckpoint(double simTime) {
    mTimeInfo.mSimTime = simTime;
    if (mCheckpointWriteFlag) {
-      checkpointNow(); // Should make sure we haven't already checkpointed using checkpointWrite()'
+      checkpointNow();
    }
    else if (!mSuppressLastOutput) {
       std::string finalCheckpointDir{mOutputPath};
