@@ -1677,7 +1677,7 @@ int HyPerLayer::registerData(Secretary *secretary, std::string const &objName) {
    secretary->registerTimer(update_timer);
 #ifdef PV_USE_CUDA
    secretary->registerTimer(gpu_recvsyn_timer);
-   secretary->registerTimer(gpu_update_timer);   
+   secretary->registerTimer(gpu_update_timer);
 #endif // PV_USE_CUDA
    secretary->registerTimer(publish_timer);
    secretary->registerTimer(timescale_timer);

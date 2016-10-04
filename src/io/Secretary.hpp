@@ -127,14 +127,14 @@ class Secretary : public Subject {
     * @brief deleteOlderCheckpoints: If checkpointWrite, specifies if the run
     * should delete older checkpoints when writing new ones.
     */
-   virtual void ioParam_deleteOlderCheckpoints(enum ParamsIOFlag ioFlag, PVParams * params);
+   virtual void ioParam_deleteOlderCheckpoints(enum ParamsIOFlag ioFlag, PVParams *params);
 
    /**
     * @brief numCheckpointsKept: If mDeleteOlderCheckpoints is set,
     * keep this many checkpoints before deleting the checkpoint.
     * Default is 1 (delete a checkpoint when a newer checkpoint is written.)
     */
-   virtual void ioParam_numCheckpointsKept(enum ParamsIOFlag ioFlag, PVParams * params);
+   virtual void ioParam_numCheckpointsKept(enum ParamsIOFlag ioFlag, PVParams *params);
    /** @} */
 
    enum CheckpointWriteTriggerMode { NONE, STEP, SIMTIME, WALLCLOCK };
@@ -143,7 +143,7 @@ class Secretary : public Subject {
   public:
    struct TimeInfo {
       double mSimTime                 = 0.0;
-      long int mCurrentCheckpointStep = 0L; 
+      long int mCurrentCheckpointStep = 0L;
    };
    class ProcessCheckpointReadMessage : public BaseMessage {
      public:
@@ -195,8 +195,8 @@ class Secretary : public Subject {
    void writeTimers(PrintStream &stream);
    void writeTimers(std::string const &directory);
 
-private:
-   HyPerCheckpoint * mHyPerCheckpoint = nullptr;
+  private:
+   HyPerCheckpoint *mHyPerCheckpoint = nullptr;
    // Note: the HyPerCheckpoint is a convenience in moving checkpointing functions from HyPerCol
    // to Secretary. Once the refactor is complete, the mHyPerCheckpoint will be removed.
 
@@ -236,7 +236,7 @@ private:
          0; // A pointer to the oldest checkpoint in the mOldCheckpointDirectories vector.
    std::vector<std::string> mOldCheckpointDirectories; // A ring buffer of existing checkpoints,
    // used if mDeleteOlderCheckpoints is true.
-   std::vector<Timer const*> mTimers;
+   std::vector<Timer const *> mTimers;
    Timer *mCheckpointTimer = nullptr;
 
    static std::string const mDefaultOutputPath;

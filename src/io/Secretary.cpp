@@ -16,7 +16,7 @@ Secretary::Secretary(std::string const &name, Communicator *comm)
    initialize();
 }
 
-Secretary::Secretary(HyPerCheckpoint * cp, std::string const &name, Communicator *comm)
+Secretary::Secretary(HyPerCheckpoint *cp, std::string const &name, Communicator *comm)
       : mHyPerCheckpoint(cp), mName(name), mCommunicator(comm) {
    initialize();
 }
@@ -143,13 +143,13 @@ void Secretary::ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag, PVP
              || !strcmp(mCheckpointWriteTriggerModeString, "STEP")) {
             mCheckpointWriteTriggerMode = STEP;
             registerCheckpointEntry(
-                  std::make_shared<CheckpointEntryData<long int> >(
+                  std::make_shared<CheckpointEntryData<long int>>(
                         mName,
                         std::string("nextCheckpointStep"),
                         getCommunicator(),
                         &mNextCheckpointStep,
-                        (std::size_t) 1,
-                        true/*broadcasting*/));
+                        (std::size_t)1,
+                        true /*broadcasting*/));
          }
          else if (
                !strcmp(mCheckpointWriteTriggerModeString, "time")
@@ -157,13 +157,13 @@ void Secretary::ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag, PVP
                || !strcmp(mCheckpointWriteTriggerModeString, "TIME")) {
             mCheckpointWriteTriggerMode = SIMTIME;
             registerCheckpointEntry(
-                  std::make_shared<CheckpointEntryData<double> >(
+                  std::make_shared<CheckpointEntryData<double>>(
                         mName,
                         std::string("nextCheckpointTime"),
                         getCommunicator(),
                         &mNextCheckpointSimtime,
-                        (std::size_t) 1,
-                        true/*broadcasting*/));
+                        (std::size_t)1,
+                        true /*broadcasting*/));
          }
          else if (
                !strcmp(mCheckpointWriteTriggerModeString, "clock")
@@ -404,10 +404,7 @@ bool Secretary::registerCheckpointEntry(std::shared_ptr<CheckpointEntry> checkpo
    return true;
 }
 
-void Secretary::registerTimer(Timer const *timer) {
-   mTimers.push_back(timer);
-}
-
+void Secretary::registerTimer(Timer const *timer) { mTimers.push_back(timer); }
 
 void Secretary::checkpointRead(
       std::string const &checkpointReadDir,
@@ -425,7 +422,9 @@ void Secretary::checkpointRead(
    if (currentStepPointer) {
       *currentStepPointer = mTimeInfo.mCurrentCheckpointStep;
    }
-   if (mHyPerCheckpoint) { mHyPerCheckpoint->checkpointRead(); }
+   if (mHyPerCheckpoint) {
+      mHyPerCheckpoint->checkpointRead();
+   }
    notify(mObserverTable, std::make_shared<ProcessCheckpointReadMessage const>());
 }
 
@@ -558,19 +557,15 @@ void Secretary::checkpointNow() {
 void Secretary::checkpointToDirectory(std::string const &directory) {
    mCheckpointTimer->start();
    if (getCommunicator()->commRank() == 0) {
-      pvInfo() << "Checkpointing to directory \""
-            << directory
-            << "\" at simTime = "
-            << mTimeInfo.mSimTime
-            << "\n";
+      pvInfo() << "Checkpointing to directory \"" << directory
+               << "\" at simTime = " << mTimeInfo.mSimTime << "\n";
       struct stat timeinfostat;
       std::string timeinfoFilename(directory);
       timeinfoFilename.append("/timeinfo.bin");
       int statstatus = stat(timeinfoFilename.c_str(), &timeinfostat);
       if (statstatus == 0) {
-         pvWarn() << "Checkpoint directory \""
-               << directory
-               << "\" has existing timeinfo.bin, which is now being deleted.\n";
+         pvWarn() << "Checkpoint directory \"" << directory
+                  << "\" has existing timeinfo.bin, which is now being deleted.\n";
          mTimeInfoCheckpointEntry->remove(timeinfoFilename);
       }
    }
@@ -579,7 +574,9 @@ void Secretary::checkpointToDirectory(std::string const &directory) {
    for (auto &c : mCheckpointRegistry) {
       c->write(directory, mTimeInfo.mSimTime, mVerifyWritesFlag);
    }
-   if (mHyPerCheckpoint) { mHyPerCheckpoint->checkpointWrite(directory.c_str()); }
+   if (mHyPerCheckpoint) {
+      mHyPerCheckpoint->checkpointWrite(directory.c_str());
+   }
    mTimeInfoCheckpointEntry->write(directory, mTimeInfo.mSimTime, mVerifyWritesFlag);
    mCheckpointTimer->stop();
    mCheckpointTimer->start();

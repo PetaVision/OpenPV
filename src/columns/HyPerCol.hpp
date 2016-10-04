@@ -331,7 +331,9 @@ class HyPerCol : public Subject, HyPerCheckpoint {
    bool getCheckpointReadFlag() const { return mCheckpointReadFlag; }
    bool getCheckpointWriteFlag() const { return mSecretary->getCheckpointWriteFlag(); }
    bool getSuppressLastOutputFlag() const { return mSecretary->getSuppressLastOutput(); }
-   bool getSuppressNonplasticCheckpoints() const { return mSecretary->getSuppressNonplasticCheckpoints(); }
+   bool getSuppressNonplasticCheckpoints() const {
+      return mSecretary->getSuppressNonplasticCheckpoints();
+   }
    bool getWriteTimescales() const { return mWriteTimescales; }
    const char *getName() { return mName; }
    const char *getOutputPath() { return mSecretary->getOutputPath(); }

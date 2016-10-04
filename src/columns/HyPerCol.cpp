@@ -164,7 +164,7 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
    // Sep 27, 2016: handling --require-return has been moved to the Communicator
    // constructor.
 
-   mName            = strdup(name);
+   mName = strdup(name);
 
    // mNumThreads will not be set, or used until HyPerCol::run.
    // This means that threading cannot happen in the initialization or
@@ -206,10 +206,10 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
       mSecretary->setOutputPath(outputPath);
    }
    ioParams(PARAMS_IO_READ);
-   mSimTime          = mStartTime;
-   mInitialStep      = (long int)nearbyint(mStartTime / mDeltaTime);
-   mCurrentStep      = mInitialStep;
-   mFinalStep        = (long int)nearbyint(mStopTime / mDeltaTime);
+   mSimTime     = mStartTime;
+   mInitialStep = (long int)nearbyint(mStartTime / mDeltaTime);
+   mCurrentStep = mInitialStep;
+   mFinalStep   = (long int)nearbyint(mStopTime / mDeltaTime);
    mSecretary->provideFinalStep(mFinalStep);
    mNextProgressTime = mStartTime + mProgressInterval;
 
@@ -879,7 +879,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
       for (int phase = 0; phase < mNumPhases; phase++) {
          std::string timerTypeString("phRecv");
          timerTypeString.append(std::to_string(phase));
-         Timer * phaseRecvTimer = new Timer(mName, "column", timerTypeString.c_str());
+         Timer *phaseRecvTimer = new Timer(mName, "column", timerTypeString.c_str());
          mPhaseRecvTimers.push_back(phaseRecvTimer);
          mSecretary->registerTimer(phaseRecvTimer);
       }
