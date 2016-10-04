@@ -140,11 +140,6 @@ class BaseConnection : public BaseObject {
    virtual int checkpointWrite(const char *cpDir) = 0;
 
    /**
-    * A pure virtual function for writing timing information.
-    */
-   virtual int writeTimers(PrintStream &stream) = 0;
-
-   /**
     * Called by HyPerCol::outputParams to output the params groups for probes whose ownership has
     * been transferred to this connection. (Does this need to be virtual?)
     */

@@ -352,9 +352,6 @@ class HyPerLayer : public BaseLayer {
     */
    virtual double getDeltaTriggerTime();
 
-   /**
-    * A function to update the time that the next trigger is expected to occur.
-    */
    virtual int respondLayerRecvSynapticInput(LayerRecvSynapticInputMessage const *message);
    virtual int respondLayerUpdateState(LayerUpdateStateMessage const *message);
 #ifdef PV_USE_CUDA
@@ -381,7 +378,6 @@ class HyPerLayer : public BaseLayer {
 
    virtual int checkpointRead(const char *cpDir, double *timeptr);
    virtual int checkpointWrite(const char *cpDir);
-   virtual int writeTimers(PrintStream &stream);
    // TODO: readBufferFile and writeBufferFile have to take different types of buffers.  Can they be
    // templated?
    template <typename T>
@@ -480,10 +476,10 @@ class HyPerLayer : public BaseLayer {
   protected:
    virtual int communicateInitInfo() override;
    virtual int allocateDataStructures() override;
+   virtual int registerData(Secretary *secretary, std::string const &objName) override;
    virtual int initializeState() final; // Not overridable since all layers should respond to
-   // initializeFromCheckpointFlag and (deprecated) restartFlag
-   // in the same way.
-   // initializeState calls the virtual methods readStateFromCheckpoint(), and setInitialValues().
+   // initializeFromCheckpointFlag and (deprecated) restartFlag in the same way.
+   // initializeState calls the virtual methods readStateFromCheckpoint() and setInitialValues().
 
    int openOutputStateFile();
 /* static methods called by updateState({long_argument_list})*/
@@ -664,7 +660,6 @@ class HyPerLayer : public BaseLayer {
   protected:
    Timer *update_timer;
    Timer *recvsyn_timer;
-   Timer *recvsyn_calc_timer;
    Timer *publish_timer;
    Timer *timescale_timer;
    Timer *io_timer;

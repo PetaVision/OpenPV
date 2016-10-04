@@ -186,10 +186,14 @@ void StatsProbe::ioParam_nnzThreshold(enum ParamsIOFlag ioFlag) {
 
 int StatsProbe::initNumValues() { return setNumValues(-1); }
 
-/**
- * @time
- * @l
- */
+int StatsProbe::registerData(Secretary *secretary, std::string const &objName) {
+   secretary->registerTimer(iotimer);
+   secretary->registerTimer(mpitimer);
+   secretary->registerTimer(comptimer);
+   return PV_SUCCESS;
+}
+
+
 int StatsProbe::outputState(double timed) {
 #ifdef PV_USE_MPI
    Communicator *icComm = getTargetLayer()->getParent()->getCommunicator();

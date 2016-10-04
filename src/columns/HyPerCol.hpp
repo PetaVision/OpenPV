@@ -380,7 +380,6 @@ class HyPerCol : public Subject, HyPerCheckpoint {
    int processParams(char const *path);
    int ioParamsFinishGroup(enum ParamsIOFlag);
    int ioParamsStartGroup(enum ParamsIOFlag ioFlag, const char *group_name);
-   int registerData(Secretary *secretary, std::string const &name);
    template <typename T>
    int readArrayFromFile(
          const char *cp_dir,
@@ -510,7 +509,6 @@ class HyPerCol : public Subject, HyPerCheckpoint {
    int normalizeWeights();
    virtual int checkpointRead() override;
    virtual int checkpointWrite(const char *cpDir) override;
-   int writeTimers(PrintStream &stream);
    int outputParams(char const *path);
    int outputParamsHeadComments(FILE *fp, char const *commentToken);
    int calcTimeScaleTrue();

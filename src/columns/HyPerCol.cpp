@@ -50,8 +50,6 @@ HyPerCol::~HyPerCol() {
 #ifdef PV_USE_CUDA
    finalizeThreads();
 #endif // PV_USE_CUDA
-   PrintStream pStream(getOutputStream());
-   writeTimers(pStream);
    int rank = globalRank(); // Need to save so that we know whether we're the
    // process that does I/O,
    // even after deleting mCommunicator.
@@ -188,7 +186,6 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
    // constructor.
 
    mName            = strdup(name);
-   mRunTimer        = new Timer(mName, "column", "run    ");
 
    // mNumThreads will not be set, or used until HyPerCol::run.
    // This means that threading cannot happen in the initialization or
@@ -268,6 +265,9 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
             break;
       }
    }
+
+   mRunTimer = new Timer(mName, "column", "run    ");
+   mSecretary->registerTimer(mRunTimer);
 
    // mWarmStart is set if command line sets the -r option.  PV_Arguments should
    // prevent -r and -c
@@ -1106,8 +1106,6 @@ int HyPerCol::addNormalizer(NormalizeBase *normalizer) {
    // functions return an index?
 }
 
-int HyPerCol::registerData(Secretary *secretary, std::string const &name) {}
-
 // typically called by buildandrun via HyPerCol::run()
 int HyPerCol::run(double start_time, double stop_time, double dt) {
    mStartTime = start_time;
@@ -1161,12 +1159,13 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
 
       mPhaseRecvTimers.clear();
       for (int phase = 0; phase < mNumPhases; phase++) {
-         char tmpStr[10];
-         sprintf(tmpStr, "phRecv%d", phase);
-         mPhaseRecvTimers.push_back(new Timer(mName, "column", tmpStr));
+         std::string timerTypeString("phRecv");
+         timerTypeString.append(std::to_string(phase));
+         Timer * phaseRecvTimer = new Timer(mName, "column", timerTypeString.c_str());
+         mPhaseRecvTimers.push_back(phaseRecvTimer);
+         mSecretary->registerTimer(phaseRecvTimer);
       }
 
-      registerData(mSecretary, std::string(mName));
       notify(std::make_shared<RegisterDataMessage<Secretary>>(mSecretary));
 
 #ifdef DEBUG_OUTPUT
@@ -1509,29 +1508,7 @@ int HyPerCol::checkpointRead() {
    return PV_SUCCESS;
 }
 
-int HyPerCol::writeTimers(PrintStream &stream) {
-   int rank = columnId();
-   if (rank == 0) {
-      mRunTimer->fprint_time(stream);
-      mSecretary->getCheckpointTimer()->fprint_time(stream);
-      for (auto c : mConnections) {
-         c->writeTimers(stream);
-      }
-      for (int phase = 0; phase < mPhaseRecvTimers.size(); phase++) {
-         if (mPhaseRecvTimers.at(phase)) {
-            mPhaseRecvTimers.at(phase)->fprint_time(stream);
-         }
-         for (int n = 0; n < mLayers.size(); n++) {
-            if (mLayers.at(n) != nullptr) { // How would mLayers ever contain a null pointer?
-               if (mLayers.at(n)->getPhase() != phase)
-                  continue;
-               mLayers.at(n)->writeTimers(stream);
-            }
-         }
-      }
-   }
-   return PV_SUCCESS;
-}
+// Oct 3, 2016.  writeTimers moved to Secretary class
 
 int HyPerCol::checkpointWrite(const char *cpDir) {
    for (int l = 0; l < mLayers.size(); l++) {
@@ -1543,16 +1520,7 @@ int HyPerCol::checkpointWrite(const char *cpDir) {
       }
    }
 
-   // Timers
-   if (columnId() == 0) {
-      std::string timerpathstring = cpDir;
-      timerpathstring += "/";
-      timerpathstring += "timers.txt";
-
-      const char *timerpath = timerpathstring.c_str();
-      FileStream timerstream(timerpath, std::ios_base::out, getVerifyWrites());
-      writeTimers(timerstream);
-   }
+   // Oct 3, 2016. Printing timers to checkpoint moved to Secretary::checkpointWrite
 
    for (auto &p : mColProbes) {
       p->checkpointWrite(cpDir);
