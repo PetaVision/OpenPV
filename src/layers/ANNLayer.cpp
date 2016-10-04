@@ -280,7 +280,7 @@ int ANNLayer::setVertices() {
    std::vector<pvadata_t> vectorA;
 
    slopePosInf = 1.0f;
-   if (VThresh <= -0.999 * max_pvadata_t) {
+   if (VThresh <= -0.999f * max_pvadata_t) {
       numVertices = 1;
       vectorV.push_back((pvpotentialdata_t)0);
       vectorA.push_back(-AShift);
@@ -304,7 +304,7 @@ int ANNLayer::setVertices() {
       }
       slopeNegInf = 0.0f;
    }
-   if (AMax < 0.999 * max_pvadata_t) {
+   if (AMax < 0.999f * max_pvadata_t) {
       assert(slopePosInf == 1.0f);
       if (vectorA[numVertices - 1] < AMax) {
          pvadata_t interval = AMax - vectorA[numVertices - 1];

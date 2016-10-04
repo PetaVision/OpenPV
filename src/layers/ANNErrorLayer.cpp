@@ -106,7 +106,7 @@ int ANNErrorLayer::setVertices() {
 
 int ANNErrorLayer::checkVertices() const {
    int status = PV_SUCCESS;
-   if (VThresh < 0 && VThresh > -0.999 * max_pvvdata_t) { // 0.999 is to allow for imprecision from
+   if (VThresh < 0 && VThresh > -0.999f * max_pvvdata_t) { // 0.999 is to allow for imprecision from
       // params files using 3.40282e+38 instead
       // of infinity
       if (parent->columnId() == 0) {
