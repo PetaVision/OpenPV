@@ -82,14 +82,7 @@ HyPerCol::~HyPerCol() {
    delete mRunTimer;
    // TODO: Change these old C strings into std::string
    free(mPrintParamsFilename);
-   free(mOutputPath);
    free(mInitializeFromCheckpointDir);
-   if (mCheckpointWriteFlag) {
-      free(mCheckpointWriteDir);
-      mCheckpointWriteDir = nullptr;
-      free(mCheckpointWriteTriggerModeString);
-      mCheckpointWriteTriggerModeString = nullptr;
-   }
    if (mCheckpointReadFlag) {
       free(mCheckpointReadDir);
       mCheckpointReadDir = nullptr;
@@ -107,22 +100,10 @@ int HyPerCol::initialize_base() {
    mParamsProcessedFlag                 = false;
    mNumPhases                           = 0;
    mCheckpointReadFlag                  = false;
-   mCheckpointWriteFlag                 = false;
    mCheckpointReadDir                   = nullptr;
    mCheckpointReadDirBase               = nullptr;
    mCpReadDirIndex                      = -1L;
-   mCheckpointWriteDir                  = nullptr;
-   mCheckpointWriteTriggerMode          = CPWRITE_TRIGGER_STEP;
-   mCpWriteStepInterval                 = -1L;
-   mNextCpWriteStep                     = 0L;
-   mCpWriteTimeInterval                 = -1.0;
-   mNextCpWriteTime                     = 0.0;
-   mCpWriteClockInterval                = -1.0;
-   mDeleteOlderCheckpoints              = false;
    mDefaultInitializeFromCheckpointFlag = false;
-   mSuppressLastOutput                  = false;
-   mSuppressNonplasticCheckpoints       = false;
-   mCheckpointIndexWidth                = -1; // defaults to automatically determine index width
    mStartTime                           = 0.0;
    mStopTime                            = 0.0;
    mDeltaTime                           = DEFAULT_DELTA_T;
@@ -139,7 +120,6 @@ int HyPerCol::initialize_base() {
    mNormalizers.clear(); // Pretty sure these aren't necessary
    mLayerStatus          = nullptr;
    mConnectionStatus     = nullptr;
-   mOutputPath           = nullptr;
    mPrintParamsFilename  = nullptr;
    mPrintParamsStream    = nullptr;
    mLuaPrintParamsStream = nullptr;
@@ -158,7 +138,6 @@ int HyPerCol::initialize_base() {
    mErrorOnNotANumber = false;
    mNumThreads        = 1;
    mRecvLayerBuffer.clear();
-   mVerifyWrites = true; // Default for reading back and verifying when calling PV_fwrite
 #ifdef PV_USE_CUDA
    mCudaDevice = nullptr;
    mGpuGroupConns.clear();
@@ -218,19 +197,15 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
       exit(parsedStatus);
    }
 
-   if (mPVInitObj->getOutputPath()) {
-      mOutputPath = strdup(expandLeadingTilde(mPVInitObj->getOutputPath()).c_str());
-      pvErrorIf(mOutputPath == nullptr, "HyPerCol::initialize unable to copy output path.\n");
-   }
-
    mRandomSeed = mPVInitObj->getRandomSeed();
 
    mSecretary = new Secretary(this, std::string(mName), mCommunicator);
-   if (mOutputPath) {
-      mSecretary->setOutputPath(mOutputPath);
+
+   char const *outputPath = mPVInitObj->getOutputPath();
+   if (outputPath) {
+      mSecretary->setOutputPath(outputPath);
    }
    ioParams(PARAMS_IO_READ);
-   mCheckpointSignal = 0;
    mSimTime          = mStartTime;
    mInitialStep      = (long int)nearbyint(mStartTime / mDeltaTime);
    mCurrentStep      = mInitialStep;
@@ -239,32 +214,6 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
    mNextProgressTime = mStartTime + mProgressInterval;
 
    RandomSeed::instance()->initialize(mRandomSeed);
-
-   if (mCheckpointWriteFlag) {
-      switch (mCheckpointWriteTriggerMode) {
-         case CPWRITE_TRIGGER_STEP:
-            mNextCpWriteStep      = mInitialStep;
-            mNextCpWriteTime      = mStartTime; // Should be unnecessary
-            mCpWriteTimeInterval  = -1;
-            mCpWriteClockInterval = -1.0;
-            break;
-         case CPWRITE_TRIGGER_TIME:
-            mNextCpWriteStep      = mInitialStep; // Should be unnecessary
-            mNextCpWriteTime      = mStartTime;
-            mCpWriteStepInterval  = -1;
-            mCpWriteClockInterval = -1.0;
-            break;
-         case CPWRITE_TRIGGER_CLOCK:
-            mNextCpWriteClock    = time(nullptr);
-            mCpWriteTimeInterval = -1;
-            mCpWriteStepInterval = -1;
-            break;
-         default:
-            assert(0); // All cases of mCheckpointWriteTriggerMode should have been
-            // covered above.
-            break;
-      }
-   }
 
    mRunTimer = new Timer(mName, "column", "run    ");
    mSecretary->registerTimer(mRunTimer);
@@ -284,7 +233,7 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
       if (columnId() == 0) {
          struct stat statbuf;
          // Look for directory "Last" in mOutputPath directory
-         std::string cpDirString = mOutputPath;
+         std::string cpDirString = mSecretary->getOutputPath();
          cpDirString += "/";
          cpDirString += "Last";
          if (PV_stat(cpDirString.c_str(), &statbuf) == 0) {
@@ -304,17 +253,18 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
                      cpDirString.c_str());
             }
          }
-         else if (mCheckpointWriteFlag) {
-            // Last directory didn't exist; now look for mCheckpointWriteDir
-            assert(mCheckpointWriteDir);
-            cpDirString = mCheckpointWriteDir;
+         else if (mSecretary->getCheckpointWriteFlag()) {
+            // Last directory didn't exist; now look for checkpointWriteDir
+            char *checkpointWriteDir = strdup(mSecretary->getCheckpointWriteDir());
+            assert(checkpointWriteDir);
+            cpDirString = checkpointWriteDir;
             if (cpDirString.c_str()[cpDirString.length() - 1] != '/') {
                cpDirString += "/";
             }
             int statstatus = PV_stat(cpDirString.c_str(), &statbuf);
             if (statstatus == 0) {
                if (statbuf.st_mode & S_IFDIR) {
-                  char *dirs[]      = {mCheckpointWriteDir, nullptr};
+                  char *dirs[]      = {checkpointWriteDir, nullptr};
                   FTS *fts          = fts_open(dirs, FTS_LOGICAL, nullptr);
                   FTSENT *ftsent    = fts_read(fts);
                   bool found        = false;
@@ -336,7 +286,7 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
                         "checkpointWriteDir "
                         "directory \"%s\" does not have any checkpoints\n",
                         programName,
-                        mCheckpointWriteDir);
+                        checkpointWriteDir);
                   int pathlen = snprintf(
                         mCheckpointReadDir,
                         PV_PATH_MAX,
@@ -354,7 +304,7 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
                         "%s error: checkpoint read directory \"%s\" is "
                         "not a directory.\n",
                         programName,
-                        mCheckpointWriteDir);
+                        checkpointWriteDir);
                }
             }
             else if (errno == ENOENT) {
@@ -363,7 +313,7 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
                      "checkpointWriteDir directory "
                      "\"%s\" exists.\n",
                      programName,
-                     mCheckpointWriteDir);
+                     checkpointWriteDir);
             }
          }
          else {
@@ -477,23 +427,6 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_progressInterval(ioFlag);
    ioParam_writeProgressToErr(ioFlag);
    mSecretary->ioParamsFillGroup(ioFlag, parameters());
-   if (ioFlag == PARAMS_IO_READ) {
-      // These parameters are read and written by mSecretary.
-      // During the transition of checkpointing from HyPerCol to Secretary,
-      // HyPerCol will redundantly read these parameters but not write them.
-      ioParam_verifyWrites(ioFlag);
-      ioParam_outputPath(ioFlag);
-      ioParam_checkpointWrite(ioFlag);
-      ioParam_checkpointWriteDir(ioFlag);
-      ioParam_checkpointWriteTriggerMode(ioFlag);
-      ioParam_checkpointWriteStepInterval(ioFlag);
-      ioParam_checkpointWriteTimeInterval(ioFlag);
-      ioParam_checkpointWriteClockInterval(ioFlag);
-      ioParam_checkpointWriteClockUnit(ioFlag);
-      ioParam_checkpointIndexWidth(ioFlag);
-      ioParam_suppressNonplasticCheckpoints(ioFlag);
-      ioParam_suppressLastOutput(ioFlag);
-   }
    ioParam_printParamsFilename(ioFlag);
    ioParam_randomSeed(ioFlag);
    ioParam_nx(ioFlag);
@@ -730,37 +663,6 @@ void HyPerCol::ioParam_writeProgressToErr(enum ParamsIOFlag ioFlag) {
          ioFlag, mName, "writeProgressToErr", &mWriteProgressToErr, mWriteProgressToErr);
 }
 
-void HyPerCol::ioParam_verifyWrites(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, mName, "verifyWrites", &mVerifyWrites, mVerifyWrites);
-}
-
-void HyPerCol::ioParam_outputPath(enum ParamsIOFlag ioFlag) {
-   // mOutputPath can be set on the command line.
-   switch (ioFlag) {
-      case PARAMS_IO_READ:
-         if (mOutputPath == nullptr) {
-            if (mParams->stringPresent(mName, "outputPath")) {
-               const char *strval = mParams->stringValue(mName, "outputPath");
-               pvAssert(strval);
-               mOutputPath = strdup(strval);
-               pvAssert(mOutputPath != nullptr);
-            }
-            else {
-               mOutputPath = strdup(DEFAULT_OUTPUT_PATH);
-               pvAssert(mOutputPath != nullptr);
-               pvWarn().printf(
-                     "Output path specified neither in command line nor in "
-                     "params file.\n"
-                     "Output path set to default \"%s\"\n",
-                     DEFAULT_OUTPUT_PATH);
-            }
-         }
-         break;
-      case PARAMS_IO_WRITE: parameters()->writeParamString("outputPath", mOutputPath); break;
-      default: break;
-   }
-}
-
 void HyPerCol::ioParam_printParamsFilename(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamString(
          ioFlag, mName, "printParamsFilename", &mPrintParamsFilename, "pv.params");
@@ -890,192 +792,8 @@ void HyPerCol::ioParam_checkpointRead(enum ParamsIOFlag ioFlag) {
 // athresher, July 20th
 // Removed ioParam_checkpointRead(). It was marked obsolete.
 
-void HyPerCol::ioParam_checkpointWrite(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, mName, "checkpointWrite", &mCheckpointWriteFlag, false);
-}
-
-void HyPerCol::ioParam_checkpointWriteDir(enum ParamsIOFlag ioFlag) {
-   pvAssert(!mParams->presentAndNotBeenRead(mName, "checkpointWrite"));
-   if (mCheckpointWriteFlag) {
-      parameters()->ioParamStringRequired(
-            ioFlag, mName, "checkpointWriteDir", &mCheckpointWriteDir);
-   }
-   else {
-      mCheckpointWriteDir = nullptr;
-   }
-}
-
-void HyPerCol::ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag) {
-   pvAssert(!mParams->presentAndNotBeenRead(mName, "checkpointWrite"));
-   if (mCheckpointWriteFlag) {
-      parameters()->ioParamString(
-            ioFlag,
-            mName,
-            "checkpointWriteTriggerMode",
-            &mCheckpointWriteTriggerModeString,
-            "step");
-      if (ioFlag == PARAMS_IO_READ) {
-         pvAssert(mCheckpointWriteTriggerModeString);
-         if (!strcmp(mCheckpointWriteTriggerModeString, "step")
-             || !strcmp(mCheckpointWriteTriggerModeString, "Step")
-             || !strcmp(mCheckpointWriteTriggerModeString, "STEP")) {
-            mCheckpointWriteTriggerMode = CPWRITE_TRIGGER_STEP;
-         }
-         else if (
-               !strcmp(mCheckpointWriteTriggerModeString, "time")
-               || !strcmp(mCheckpointWriteTriggerModeString, "Time")
-               || !strcmp(mCheckpointWriteTriggerModeString, "TIME")) {
-            mCheckpointWriteTriggerMode = CPWRITE_TRIGGER_TIME;
-         }
-         else if (
-               !strcmp(mCheckpointWriteTriggerModeString, "clock")
-               || !strcmp(mCheckpointWriteTriggerModeString, "Clock")
-               || !strcmp(mCheckpointWriteTriggerModeString, "CLOCK")) {
-            mCheckpointWriteTriggerMode = CPWRITE_TRIGGER_CLOCK;
-         }
-         else {
-            if (globalRank() == 0) {
-               pvErrorNoExit().printf(
-                     "HyPerCol \"%s\": checkpointWriteTriggerMode "
-                     "\"%s\" is not recognized.\n",
-                     mName,
-                     mCheckpointWriteTriggerModeString);
-            }
-            MPI_Barrier(getCommunicator()->globalCommunicator());
-            exit(EXIT_FAILURE);
-         }
-      }
-   }
-}
-
-void HyPerCol::ioParam_checkpointWriteStepInterval(enum ParamsIOFlag ioFlag) {
-   assert(!mParams->presentAndNotBeenRead(mName, "checkpointWrite"));
-   if (mCheckpointWriteFlag) {
-      pvAssert(!mParams->presentAndNotBeenRead(mName, "checkpointWriteTriggerMode"));
-      if (mCheckpointWriteTriggerMode == CPWRITE_TRIGGER_STEP) {
-         parameters()->ioParamValue(
-               ioFlag, mName, "checkpointWriteStepInterval", &mCpWriteStepInterval, 1L);
-      }
-   }
-}
-
-void HyPerCol::ioParam_checkpointWriteTimeInterval(enum ParamsIOFlag ioFlag) {
-   assert(!mParams->presentAndNotBeenRead(mName, "checkpointWrite"));
-   if (mCheckpointWriteFlag) {
-      pvAssert(!mParams->presentAndNotBeenRead(mName, "checkpointWriteTriggerMode"));
-      if (mCheckpointWriteTriggerMode == CPWRITE_TRIGGER_TIME) {
-         parameters()->ioParamValue(
-               ioFlag, mName, "checkpointWriteTimeInterval", &mCpWriteTimeInterval, mDeltaTime);
-      }
-   }
-}
-
-void HyPerCol::ioParam_checkpointWriteClockInterval(enum ParamsIOFlag ioFlag) {
-   assert(!mParams->presentAndNotBeenRead(mName, "checkpointWrite"));
-   if (mCheckpointWriteFlag) {
-      pvAssert(!mParams->presentAndNotBeenRead(mName, "checkpointWriteTriggerMode"));
-      if (mCheckpointWriteTriggerMode == CPWRITE_TRIGGER_CLOCK) {
-         parameters()->ioParamValueRequired(
-               ioFlag, mName, "checkpointWriteClockInterval", &mCpWriteClockInterval);
-      }
-   }
-}
-
-void HyPerCol::ioParam_checkpointWriteClockUnit(enum ParamsIOFlag ioFlag) {
-   pvAssert(!mParams->presentAndNotBeenRead(mName, "checkpointWrite"));
-   if (mCheckpointWriteFlag) {
-      pvAssert(!mParams->presentAndNotBeenRead(mName, "checkpointWriteTriggerMode"));
-      if (mCheckpointWriteTriggerMode == CPWRITE_TRIGGER_CLOCK) {
-         assert(!mParams->presentAndNotBeenRead(mName, "checkpointWriteTriggerClockInterval"));
-         parameters()->ioParamString(
-               ioFlag, mName, "checkpointWriteClockUnit", &mCheckpointWriteClockUnit, "seconds");
-         if (ioFlag == PARAMS_IO_READ) {
-            pvAssert(mCheckpointWriteClockUnit);
-            for (size_t n = 0; n < strlen(mCheckpointWriteClockUnit); n++) {
-               mCheckpointWriteClockUnit[n] = tolower(mCheckpointWriteClockUnit[n]);
-            }
-            if (!strcmp(mCheckpointWriteClockUnit, "second")
-                || !strcmp(mCheckpointWriteClockUnit, "seconds")
-                || !strcmp(mCheckpointWriteClockUnit, "sec")
-                || !strcmp(mCheckpointWriteClockUnit, "s")) {
-               free(mCheckpointWriteClockUnit);
-               mCheckpointWriteClockUnit = strdup("seconds");
-               mCpWriteClockSeconds      = (time_t)mCpWriteClockInterval;
-            }
-            else if (
-                  !strcmp(mCheckpointWriteClockUnit, "minute")
-                  || !strcmp(mCheckpointWriteClockUnit, "minutes")
-                  || !strcmp(mCheckpointWriteClockUnit, "min")
-                  || !strcmp(mCheckpointWriteClockUnit, "m")) {
-               free(mCheckpointWriteClockUnit);
-               mCheckpointWriteClockUnit = strdup("minutes");
-               mCpWriteClockSeconds      = (time_t)(60.0 * mCpWriteTimeInterval);
-            }
-            else if (
-                  !strcmp(mCheckpointWriteClockUnit, "hour")
-                  || !strcmp(mCheckpointWriteClockUnit, "hours")
-                  || !strcmp(mCheckpointWriteClockUnit, "hr")
-                  || !strcmp(mCheckpointWriteClockUnit, "h")) {
-               free(mCheckpointWriteClockUnit);
-               mCheckpointWriteClockUnit = strdup("hours");
-               mCpWriteClockSeconds      = (time_t)(3600.0 * mCpWriteTimeInterval);
-            }
-            else if (
-                  !strcmp(mCheckpointWriteClockUnit, "day")
-                  || !strcmp(mCheckpointWriteClockUnit, "days")) {
-               free(mCheckpointWriteClockUnit);
-               mCheckpointWriteClockUnit = strdup("days");
-               mCpWriteClockSeconds      = (time_t)(86400.0 * mCpWriteTimeInterval);
-            }
-            else {
-               if (globalRank() == 0) {
-                  pvErrorNoExit().printf(
-                        "checkpointWriteClockUnit \"%s\" is "
-                        "unrecognized.  Use \"seconds\", "
-                        "\"minutes\", \"hours\", or \"days\".\n",
-                        mCheckpointWriteClockUnit);
-               }
-               MPI_Barrier(getCommunicator()->globalCommunicator());
-               exit(EXIT_FAILURE);
-            }
-            pvErrorIf(
-                  mCheckpointWriteClockUnit == nullptr,
-                  "Error in global rank %d process converting "
-                  "checkpointWriteClockUnit: %s\n",
-                  globalRank(),
-                  strerror(errno));
-         }
-      }
-   }
-}
-
-void HyPerCol::ioParam_suppressLastOutput(enum ParamsIOFlag ioFlag) {
-   assert(!mParams->presentAndNotBeenRead(mName, "checkpointWrite"));
-   if (!mCheckpointWriteFlag) {
-      parameters()->ioParamValue(
-            ioFlag, mName, "suppressLastOutput", &mSuppressLastOutput, false /*default value*/);
-   }
-}
-
-void HyPerCol::ioParam_suppressNonplasticCheckpoints(enum ParamsIOFlag ioFlag) {
-   assert(!mParams->presentAndNotBeenRead(mName, "checkpointWrite"));
-   if (mCheckpointWriteFlag) {
-      parameters()->ioParamValue(
-            ioFlag,
-            mName,
-            "suppressNonplasticCheckpoints",
-            &mSuppressNonplasticCheckpoints,
-            mSuppressNonplasticCheckpoints);
-   }
-}
-
-void HyPerCol::ioParam_checkpointIndexWidth(enum ParamsIOFlag ioFlag) {
-   assert(!mParams->presentAndNotBeenRead(mName, "checkpointWrite"));
-   if (mCheckpointWriteFlag) {
-      parameters()->ioParamValue(
-            ioFlag, mName, "checkpointIndexWidth", &mCheckpointIndexWidth, mCheckpointIndexWidth);
-   }
-}
+// Oct 4, 2016. Removed ioParam_* methods related to writing checkpoints,
+// which is now handled by Secretary class.
 
 void HyPerCol::ioParam_errorOnNotANumber(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(
@@ -1117,7 +835,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
       pvAssert(mPrintParamsFilename && mPrintParamsFilename[0]);
       std::string printParamsFileString("");
       if (mPrintParamsFilename[0] != '/') {
-         printParamsFileString += mOutputPath;
+         printParamsFileString += mSecretary->getOutputPath();
          printParamsFileString += "/";
       }
       printParamsFileString += mPrintParamsFilename;
@@ -1515,7 +1233,7 @@ int HyPerCol::checkpointWrite(const char *cpDir) {
       mLayers.at(l)->checkpointWrite(cpDir);
    }
    for (auto c : mConnections) {
-      if (c->getPlasticityFlag() || !mSuppressNonplasticCheckpoints) {
+      if (c->getPlasticityFlag() || !getSuppressNonplasticCheckpoints()) {
          c->checkpointWrite(cpDir);
       }
    }

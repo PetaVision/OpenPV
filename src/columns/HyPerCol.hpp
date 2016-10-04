@@ -171,19 +171,6 @@ class HyPerCol : public Subject, HyPerCheckpoint {
    virtual void ioParam_writeProgressToErr(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief verifyWrites: If true, calls to PV_fwrite are checked by opening the
-    * file in read mode
-    * and reading back the data and comparing it to the data just written.
-    */
-   virtual void ioParam_verifyWrites(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief mOutputPath: Specifies the absolute or relative output path of the
-    * run
-    */
-   virtual void ioParam_outputPath(enum ParamsIOFlag ioFlag);
-
-   /**
     * @brief mPrintParamsFilename: Specifies the output mParams filename.
     * @details Defaults to pv.mParams. The output mParams file will be put into
     * mOutputPath.
@@ -250,88 +237,6 @@ class HyPerCol : public Subject, HyPerCheckpoint {
     * command line.
     */
    virtual void ioParam_checkpointRead(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief checkpointWrite: Flag to determine if the run writes checkpoints.
-    */
-   virtual void ioParam_checkpointWrite(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief checkpointWriteDir: If checkpointWrite is set, specifies the output
-    * checkpoint
-    * directory.
-    */
-   virtual void ioParam_checkpointWriteDir(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief mCheckpointWriteTriggerMode: If checkpointWrite is set, specifies
-    * the method to
-    * checkpoint.
-    * @details Possible choices include
-    * - step: Checkpoint off of timesteps
-    * - time: Checkpoint off of simulation time
-    * - clock: Checkpoint off of clock time. Not implemented yet.
-    */
-   virtual void ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief checkpointWriteStepInterval: If checkpointWrite on step, specifies
-    * the number of steps
-    * between checkpoints.
-    */
-   virtual void ioParam_checkpointWriteStepInterval(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief checkpointWriteTimeInteval: If checkpointWrite on time, specifies
-    * the amount of
-    * simulation time between checkpoints.
-    */
-   virtual void ioParam_checkpointWriteTimeInterval(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief checkpointWriteClockInteval: If checkpointWrite on clock, specifies
-    * the amount of clock
-    * time between checkpoints.  The units are specified using the parameter
-    * checkpointWriteClockUnit
-    */
-   virtual void ioParam_checkpointWriteClockInterval(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief checkpointWriteClockInteval: If checkpointWrite on clock, specifies
-    * the units used in
-    * checkpointWriteClockInterval.
-    */
-   virtual void ioParam_checkpointWriteClockUnit(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief supressLastOutput: If checkpointWrite, specifies if the run should
-    * supress the final
-    * written checkpoint for the end of the run.
-    */
-   virtual void ioParam_suppressLastOutput(enum ParamsIOFlag ioFlag);
-
-   /**
-    * If checkpointWrite is true and this flag is true, connections'
-    * checkpointWrite method will
-    * only be called for connections with plasticityFlag=false.
-    */
-   virtual void ioParam_suppressNonplasticCheckpoints(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief If checkpointWrite is true, checkpointIndexWidth specifies the
-    * minimum width for the
-    * step number appearing in the checkpoint directory.
-    * @details If the step number needs fewer digits than checkpointIndexWidth,
-    * it is padded with
-    * zeroes.  If the step number needs more, the full
-    * step number is still printed.  Hence, setting checkpointWrite to zero means
-    * that there are
-    * never any padded zeroes.
-    * If set to a negative number, the width will be inferred from startTime,
-    * stopTime and dt.
-    * The default value is -1 (infer the width).
-    */
-   virtual void ioParam_checkpointIndexWidth(enum ParamsIOFlag ioFlag);
 
    /**
     * @brief writeTimescales:  Obsolete.  This parameter is now handled by
@@ -420,16 +325,16 @@ class HyPerCol : public Subject, HyPerCheckpoint {
 
    BaseConnection *getConnection(int which) { return mConnections.at(which); }
    BaseProbe *getBaseProbe(int which) { return mBaseProbes.at(which); }
-   bool getVerifyWrites() { return mVerifyWrites; }
+   bool getVerifyWrites() { return mSecretary->doesVerifyWrites(); }
    bool warmStartup() const { return mWarmStart; }
    bool getDefaultInitializeFromCheckpointFlag() { return mDefaultInitializeFromCheckpointFlag; }
    bool getCheckpointReadFlag() const { return mCheckpointReadFlag; }
-   bool getCheckpointWriteFlag() const { return mCheckpointWriteFlag; }
-   bool getSuppressLastOutputFlag() const { return mSuppressLastOutput; }
-   bool getSuppressNonplasticCheckpoints() const { return mSuppressNonplasticCheckpoints; }
+   bool getCheckpointWriteFlag() const { return mSecretary->getCheckpointWriteFlag(); }
+   bool getSuppressLastOutputFlag() const { return mSecretary->getSuppressLastOutput(); }
+   bool getSuppressNonplasticCheckpoints() const { return mSecretary->getSuppressNonplasticCheckpoints(); }
    bool getWriteTimescales() const { return mWriteTimescales; }
    const char *getName() { return mName; }
-   const char *getOutputPath() { return mOutputPath; }
+   const char *getOutputPath() { return mSecretary->getOutputPath(); }
    const char *getInitializeFromCheckpointDir() const { return mInitializeFromCheckpointDir; }
    const char *getCheckpointReadDir() const { return mCheckpointReadDir; }
    const char *getPrintParamsFilename() const { return mPrintParamsFilename; }
@@ -537,22 +442,6 @@ class HyPerCol : public Subject, HyPerCheckpoint {
    // default value for those flags.
    bool mWarmStart; // whether to start from a checkpoint
    bool mCheckpointReadFlag; // whether to load from a checkpoint directory
-   bool mCheckpointWriteFlag; // whether to write from a checkpoint directory
-   bool mDeleteOlderCheckpoints; // If true, whenever a checkpoint other than the
-   // first is written,
-   // the preceding checkpoint is deleted. Default is false.
-   bool mSuppressLastOutput; // If mCheckpointWriteFlag is false and this flag is
-   // false, on exit a
-   // checkpoint is sent to the {mOutputPath}/Last directory.
-   // If mCheckpointWriteFlag is false and this flag is true, no checkpoint is
-   // done on exit.
-   // The flag has no effect if mCheckpointWriteFlag is true (in which case a
-   // checkpoint is written
-   // on exit to the next directory in mCheckpointWriteDir
-   bool mSuppressNonplasticCheckpoints; // If mSuppressNonplasticCheckpoints is
-   // true, only weights
-   // with plasticityFlag true will be checkpointed.  If false,
-   // all weights will be checkpointed.
    bool mReadyFlag; // Initially false; set to true when communicateInitInfo,
    // allocateDataStructures, and setInitialValues stages are completed
    bool mParamsProcessedFlag; // Initially false; set to true when processParams
@@ -562,8 +451,6 @@ class HyPerCol : public Subject, HyPerCheckpoint {
    bool mWriteProgressToErr; // Whether to write progress step to standard error
    // (True) or standard
    // output (False) (default is output)
-   bool mVerifyWrites; // Flag to indicate whether calls to PV_fwrite do a
-   // readback check
    bool mOwnsCommunicator; // True if icComm was created by initialize, false if
    // passed in the
    // constructor
@@ -573,13 +460,7 @@ class HyPerCol : public Subject, HyPerCheckpoint {
    char *mCheckpointReadDirBase; // name of the directory containing checkpoint
    // read from (used by
    // deprecated mParams-based method for loading from checkpoint)
-   char *mCheckpointWriteDir; // name of the directory to write checkpoints to
-   char *mCheckpointWriteTriggerModeString;
-   char *mCheckpointWriteClockUnit; // If checkpoint mode is clock, the string
-   // that specifies the
-   // units.  "seconds", "minutes", "hours", or "days".
    char *mName;
-   char *mOutputPath; // path to output file directory
    char *mPrintParamsFilename; // filename for outputting the mParams, including
    // defaults and
    // excluding unread mParams
@@ -593,29 +474,14 @@ class HyPerCol : public Subject, HyPerCheckpoint {
    double mSimTime;
    double mStopTime; // time to stop time
    double mDeltaTime; // time step interval
-   double mCpWriteTimeInterval;
-   double mNextCpWriteTime;
-   double mCpWriteClockInterval; // If checkpoint mode is clock, the clock time
-   // between checkpoints,
-   // in the units specified by checkpointWriteClockUnit
    double mProgressInterval; // Output progress after mSimTime increases by this
    // amount.
    double mNextProgressTime; // Next time to output a progress message
    // Sep 26, 2016: Adaptive timestep routines and member variables have been
    // moved to
    // AdaptiveTimeScaleProbe.
-   enum CheckpointWriteTriggerMode mCheckpointWriteTriggerMode;
    std::vector<HyPerLayer *> mLayers; // HyPerLayer ** mLayers;
    int mNumPhases;
-   int mCheckpointSignal; // whether the process should checkpoint in response to
-   // an external signal
-   int mNumCheckpointsKept; // If mDeleteOlderCheckpoints is true, does not
-   // delete a checkpoint
-   // until the specified number of more recent checkpoints have been
-   // written.  Default is 2.
-   int mCheckpointIndexWidth; // minimum width of the step number field in the
-   // name of a checkpoint
-   // directory; if needed the step number is padded with zeros.
    int mNumXGlobal;
    int mNumYGlobal;
    int mNumBatch;
@@ -632,8 +498,6 @@ class HyPerCol : public Subject, HyPerCheckpoint {
    Secretary *mSecretary = nullptr; // manages checkpointing and, eventually,
    // will manage outputState output.
    long int mCpReadDirIndex; // checkpoint number within mCheckpointReadDir to read
-   long int mCpWriteStepInterval;
-   long int mNextCpWriteStep;
    long int mInitialStep;
    long int mCurrentStep;
    long int mFinalStep;
@@ -646,18 +510,12 @@ class HyPerCol : public Subject, HyPerCheckpoint {
    size_t mLayerArraySize;
    size_t mConnectionArraySize;
    size_t mNormalizerArraySize;
-   std::vector<std::string> mOldCheckpointDirectories; // A ring buffer of existing checkpoints,
-   // used if mDeleteOlderCheckpoints is true.
    std::ofstream mTimeScaleStream;
    std::vector<HyPerLayer *> mRecvLayerBuffer;
    std::vector<HyPerLayer *> mUpdateLayerBufferGpu;
    std::vector<HyPerLayer *> mUpdateLayerBuffer;
    Timer *mRunTimer;
    std::vector<Timer *> mPhaseRecvTimers; // Timer ** mPhaseRecvTimers;
-   time_t mCpWriteClockSeconds; // If checkpoint mode is clock, the clock time
-   // between checkpoints,
-   // in seconds
-   time_t mNextCpWriteClock;
    unsigned int mRandomSeed;
 #ifdef PV_USE_CUDA
    // The list of GPU group showing which connection's buffer to use
