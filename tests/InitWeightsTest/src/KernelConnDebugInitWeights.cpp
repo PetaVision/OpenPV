@@ -103,30 +103,21 @@ PVPatch ***KernelConnDebugInitWeights::initializeWeights(
    pvdata_t *arborStart = dataStart[0];
    int numKernelPatches = getNumDataPatches();
 
-   int initFromLastFlag = inputParams->value(getName(), "initFromLastFlag", 0.0f, false) != 0;
-
-   if (initFromLastFlag) {
-      pvError().printf(
-            "This method is for testing weight initialization!  It does not support "
-            "load from file!\n");
+   const char *weightInitTypeStr = inputParams->stringValue(name, "weightInitType");
+   if ((weightInitTypeStr != 0) && (!strcmp(weightInitTypeStr, "CoCircWeight"))) {
+      initializeCocircWeights(NULL, arborStart, numKernelPatches);
    }
-   else {
-      const char *weightInitTypeStr = inputParams->stringValue(name, "weightInitType");
-      if ((weightInitTypeStr != 0) && (!strcmp(weightInitTypeStr, "CoCircWeight"))) {
-         initializeCocircWeights(NULL, arborStart, numKernelPatches);
-      }
-      else if ((weightInitTypeStr != 0) && (!strcmp(weightInitTypeStr, "SmartWeight"))) {
-         initializeSmartWeights(NULL, arborStart, numKernelPatches);
-      }
-      else if ((weightInitTypeStr != 0) && (!strcmp(weightInitTypeStr, "GaborWeight"))) {
-         initializeGaborWeights(NULL, arborStart, numKernelPatches);
-      }
-      else if ((weightInitTypeStr != 0) && (!strcmp(weightInitTypeStr, "Gauss2DWeight"))) {
-         initializeGaussian2DWeights(NULL, arborStart, numKernelPatches);
-      }
-      else { // default is also Gauss2D
-         initializeGaussian2DWeights(NULL, arborStart, numKernelPatches);
-      }
+   else if ((weightInitTypeStr != 0) && (!strcmp(weightInitTypeStr, "SmartWeight"))) {
+      initializeSmartWeights(NULL, arborStart, numKernelPatches);
+   }
+   else if ((weightInitTypeStr != 0) && (!strcmp(weightInitTypeStr, "GaborWeight"))) {
+      initializeGaborWeights(NULL, arborStart, numKernelPatches);
+   }
+   else if ((weightInitTypeStr != 0) && (!strcmp(weightInitTypeStr, "Gauss2DWeight"))) {
+      initializeGaussian2DWeights(NULL, arborStart, numKernelPatches);
+   }
+   else { // default is also Gauss2D
+      initializeGaussian2DWeights(NULL, arborStart, numKernelPatches);
    }
 
    if (normalizer) {

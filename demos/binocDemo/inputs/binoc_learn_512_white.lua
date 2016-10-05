@@ -441,7 +441,6 @@ pv.addGroup(pvParams, "V1ToLeftError",
       nyp = dictPatchSize;
       shrinkPatches = false;
       numAxonalArbors = 1;
-      initFromLastFlag = 0;
       sharedWeights = true;
       strength = 1;
       normalizeMethod = "normalizeL2";

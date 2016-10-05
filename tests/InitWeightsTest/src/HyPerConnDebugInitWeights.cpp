@@ -77,30 +77,21 @@ PVPatch ***HyPerConnDebugInitWeights::initializeWeights(
    pvdata_t *arborStart  = dataStart[0];
    numPatches            = getNumDataPatches();
 
-   int initFromLastFlag = inputParams->value(getName(), "initFromLastFlag", 0.0f, false) != 0;
-
-   if (initFromLastFlag) {
-      pvError().printf(
-            "This method is for testing weight initialization!  It does not support "
-            "load from file!\n");
+   const char *weightInitTypeStr = inputParams->stringValue(name, "weightInitType");
+   if ((weightInitTypeStr != 0) && (!strcmp(weightInitTypeStr, "CoCircWeight"))) {
+      initializeCocircWeights(patches, arborStart, numPatches);
    }
-   else {
-      const char *weightInitTypeStr = inputParams->stringValue(name, "weightInitType");
-      if ((weightInitTypeStr != 0) && (!strcmp(weightInitTypeStr, "CoCircWeight"))) {
-         initializeCocircWeights(patches, arborStart, numPatches);
-      }
-      else if ((weightInitTypeStr != 0) && (!strcmp(weightInitTypeStr, "SmartWeight"))) {
-         initializeSmartWeights(patches, arborStart, numPatches);
-      }
-      else if ((weightInitTypeStr != 0) && (!strcmp(weightInitTypeStr, "GaborWeight"))) {
-         initializeGaborWeights(patches, arborStart, numPatches);
-      }
-      else if ((weightInitTypeStr != 0) && (!strcmp(weightInitTypeStr, "Gauss2DWeight"))) {
-         initializeGaussian2DWeights(patches, arborStart, numPatches);
-      }
-      else { // default is also Gauss2D
-         initializeGaussian2DWeights(patches, arborStart, numPatches);
-      }
+   else if ((weightInitTypeStr != 0) && (!strcmp(weightInitTypeStr, "SmartWeight"))) {
+      initializeSmartWeights(patches, arborStart, numPatches);
+   }
+   else if ((weightInitTypeStr != 0) && (!strcmp(weightInitTypeStr, "GaborWeight"))) {
+      initializeGaborWeights(patches, arborStart, numPatches);
+   }
+   else if ((weightInitTypeStr != 0) && (!strcmp(weightInitTypeStr, "Gauss2DWeight"))) {
+      initializeGaussian2DWeights(patches, arborStart, numPatches);
+   }
+   else { // default is also Gauss2D
+      initializeGaussian2DWeights(patches, arborStart, numPatches);
    }
 
    if (normalizer) {
