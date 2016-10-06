@@ -421,12 +421,12 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
       free(splitCheckpoint);
       free(origChkPtr);
 
-      mCheckpointReadFlag = true;
       pvInfo().printf(
             "Global Rank %d process setting checkpointReadDir to %s.\n",
             globalRank(),
             mCheckpointReadDir);
    }
+   mCheckpointReadFlag = mCheckpointReadDir != nullptr;
 
 // run only on GPU for now
 #ifdef PV_USE_CUDA
