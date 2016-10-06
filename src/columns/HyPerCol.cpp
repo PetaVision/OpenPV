@@ -82,8 +82,7 @@ HyPerCol::~HyPerCol() {
    delete mRunTimer;
    // TODO: Change these old C strings into std::string
    free(mPrintParamsFilename);
-   free(mInitializeFromCheckpointDir);
-   if (mCheckpointReadFlag) {
+   if (getCheckpointReadFlag()) {
       free(mCheckpointReadDir);
       mCheckpointReadDir = nullptr;
       free(mCheckpointReadDirBase);
@@ -95,19 +94,17 @@ int HyPerCol::initialize_base() {
    // Initialize all member variables to safe values.  They will be set to their
    // actual values in
    // initialize()
-   mWarmStart                           = false;
-   mReadyFlag                           = false;
-   mParamsProcessedFlag                 = false;
-   mNumPhases                           = 0;
-   mCheckpointReadFlag                  = false;
-   mCheckpointReadDir                   = nullptr;
-   mCheckpointReadDirBase               = nullptr;
-   mCpReadDirIndex                      = -1L;
-   mDefaultInitializeFromCheckpointFlag = false;
-   mStartTime                           = 0.0;
-   mStopTime                            = 0.0;
-   mDeltaTime                           = DEFAULT_DELTA_T;
-   mWriteTimeScaleFieldnames            = true;
+   mWarmStart                = false;
+   mReadyFlag                = false;
+   mParamsProcessedFlag      = false;
+   mNumPhases                = 0;
+   mCheckpointReadDir        = nullptr;
+   mCheckpointReadDirBase    = nullptr;
+   mCpReadDirIndex           = -1L;
+   mStartTime                = 0.0;
+   mStopTime                 = 0.0;
+   mDeltaTime                = DEFAULT_DELTA_T;
+   mWriteTimeScaleFieldnames = true;
    // Sep 26, 2016: Adaptive timestep routines and member variables have been
    // moved to
    // AdaptiveTimeScaleProbe.
@@ -366,7 +363,6 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
       free(splitCheckpoint);
       free(origChkPtr);
 
-      mCheckpointReadFlag = true;
       pvInfo().printf(
             "Global Rank %d process setting checkpointReadDir to %s.\n",
             globalRank(),
@@ -434,8 +430,7 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_nBatch(ioFlag);
    ioParam_filenamesContainLayerNames(ioFlag);
    ioParam_filenamesContainConnectionNames(ioFlag);
-   ioParam_initializeFromCheckpointDir(ioFlag);
-   ioParam_defaultInitializeFromCheckpointFlag(ioFlag);
+   ioParam_initializeFromCheckpointDir(ioFlag); // initializeFromCheckpointDir obsolete Oct 5, 2016.
    ioParam_checkpointRead(ioFlag); // checkpointRead is obsolete as of June 27, 2016.
    ioParam_writeTimescales(ioFlag);
    ioParam_errorOnNotANumber(ioFlag);
@@ -758,21 +753,27 @@ void HyPerCol::ioParam_filenamesContainConnectionNames(enum ParamsIOFlag ioFlag)
    }
 }
 
+// Oct 5, 2016.  initializeFromCheckpointDir and defaultInitializeFromCheckpointFlag
+// marked obsolete.
 void HyPerCol::ioParam_initializeFromCheckpointDir(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamString(
-         ioFlag, mName, "initializeFromCheckpointDir", &mInitializeFromCheckpointDir, "", true);
-}
-
-void HyPerCol::ioParam_defaultInitializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
-   assert(!mParams->presentAndNotBeenRead(mName, "initializeFromCheckpointDir"));
-   if (mInitializeFromCheckpointDir != nullptr && mInitializeFromCheckpointDir[0] != '\0') {
-      parameters()->ioParamValue(
-            ioFlag,
-            mName,
-            "defaultInitializeFromCheckpointFlag",
-            &mDefaultInitializeFromCheckpointFlag,
-            mDefaultInitializeFromCheckpointFlag,
-            true);
+   if (ioFlag == PARAMS_IO_READ) {
+      if (mParams->stringPresent(mName, "initializeFromCheckpointDir")) {
+         char const *paramString = parameters()->stringValue(mName, "initializeFromCheckpointDir");
+         if (paramString && paramString[0]) {
+            if (getCommunicator()->commRank() == 0) {
+               pvErrorNoExit() << "The initializeFromCheckpointDir parameter is obsolete. Instead, "
+                               << "use FileWeight for connections and InitVFromFile for layers.\n";
+            }
+            MPI_Barrier(getCommunicator()->communicator());
+            exit(EXIT_FAILURE);
+         }
+         else {
+            if (getCommunicator()->commRank() == 0) {
+               pvWarn() << "The initializeFromCheckpointDir parameter is obsolete. Instead, "
+                        << "use FileWeight for connections and InitVFromFile for layers.\n";
+            }
+         }
+      }
    }
 }
 
@@ -782,7 +783,7 @@ void HyPerCol::ioParam_checkpointRead(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ && mParams->stringPresent(mName, "checkpointRead")) {
       if (columnId() == 0) {
          pvErrorNoExit() << "The checkpointRead params file parameter is obsolete."
-                         << "  Instead, set the checkpoint directory on the command line.\n";
+                         << " Instead, set the checkpoint directory on the command line.\n";
       }
       MPI_Barrier(getCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -900,7 +901,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
       // and before the mLayers' publish calls so that the data in border regions
       // gets copied
       // correctly.
-      if (mCheckpointReadFlag) {
+      if (getCheckpointReadFlag()) {
          mSecretary->checkpointRead(mCheckpointReadDir, &mSimTime, &mCurrentStep);
       }
 
@@ -922,7 +923,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
       }
 
       // output initial conditions
-      if (!mCheckpointReadFlag) {
+      if (!getCheckpointReadFlag()) {
          notify(std::make_shared<ConnectionOutputMessage>(mSimTime));
          for (int phase = 0; phase < mNumPhases; phase++) {
             notify(std::make_shared<LayerOutputStateMessage>(phase, mSimTime));
@@ -1427,7 +1428,7 @@ int HyPerCol::outputParamsHeadComments(FILE *fp, char const *commentToken) {
       fprintf(fp, " but number of threads specified was %d instead of 1. (error).\n", mNumThreads);
    }
 #endif // PV_USE_OPENMP_THREADS
-   if (mCheckpointReadFlag) {
+   if (getCheckpointReadFlag()) {
       fprintf(fp, "%s Started from checkpoint \"%s\"\n", commentToken, mCheckpointReadDir);
    }
    return PV_SUCCESS;

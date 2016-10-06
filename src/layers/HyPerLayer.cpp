@@ -546,16 +546,6 @@ int HyPerLayer::initializeState() {
       double checkTime = parent->simulationTime();
       checkpointRead(parent->getCheckpointReadDir(), &checkTime);
    }
-   else if (
-         parent->getInitializeFromCheckpointDir() && parent->getInitializeFromCheckpointDir()[0]) {
-      assert(!params->presentAndNotBeenRead(name, "initializeFromCheckpointFlag"));
-      if (initializeFromCheckpointFlag) {
-         status = readStateFromCheckpoint(parent->getInitializeFromCheckpointDir(), NULL);
-      }
-      else {
-         status = setInitialValues();
-      }
-   }
    else {
       status = setInitialValues();
    }
@@ -623,7 +613,6 @@ int HyPerLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_phase(ioFlag);
    ioParam_mirrorBCflag(ioFlag);
    ioParam_valueBC(ioFlag);
-   ioParam_initializeFromCheckpointFlag(ioFlag);
    ioParam_InitVType(ioFlag);
    ioParam_triggerLayerName(ioFlag);
    ioParam_triggerFlag(ioFlag);
@@ -714,19 +703,6 @@ void HyPerLayer::ioParam_valueBC(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "mirrorBCflag"));
    if (!mirrorBCflag) {
       parent->parameters()->ioParamValue(ioFlag, name, "valueBC", &valueBC, (pvdata_t)0);
-   }
-}
-
-void HyPerLayer::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
-   assert(parent->getInitializeFromCheckpointDir());
-   if (parent->getInitializeFromCheckpointDir() && parent->getInitializeFromCheckpointDir()[0]) {
-      parent->parameters()->ioParamValue(
-            ioFlag,
-            name,
-            "initializeFromCheckpointFlag",
-            &initializeFromCheckpointFlag,
-            parent->getDefaultInitializeFromCheckpointFlag(),
-            true /*warnIfAbsent*/);
    }
 }
 

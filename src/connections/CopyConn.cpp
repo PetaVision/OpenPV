@@ -65,16 +65,6 @@ void CopyConn::ioParam_nfp(enum ParamsIOFlag ioFlag) {
    // CopyConn determines nfp from originalConn, during communicateInitInfo
 }
 
-void CopyConn::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      initializeFromCheckpointFlag = false;
-      parent->parameters()->handleUnnecessaryParameter(name, "initializeFromCheckpointFlag");
-   }
-   // During the setInitialValues phase, the conn will be copied from the
-   // original conn, so
-   // initializeFromCheckpointFlag is not needed.
-}
-
 void CopyConn::ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) {
    // During the communication phase, numAxonalArbors will be copied from
    // originalConn

@@ -62,13 +62,6 @@ void IdentConn::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
    }
 }
 
-void IdentConn::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      initializeFromCheckpointFlag = false;
-      parent->parameters()->handleUnnecessaryParameter(name, "sharedWeights");
-   }
-}
-
 void IdentConn::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       weightInitializer = new InitIdentWeights(name, parent);

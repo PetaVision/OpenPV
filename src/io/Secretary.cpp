@@ -432,27 +432,25 @@ void Secretary::checkpointWrite(double simTime) {
    std::string checkpointWriteDir;
    mTimeInfo.mSimTime = simTime;
    // set mSimTime here so that it is available in routines called by checkpointWrite.
-   if (!mCheckpointWriteFlag) {
-      return;
-   }
-   if (checkpointWriteSignal()) {
-      pvInfo().printf(
-            "Global rank %d: checkpointing in response to SIGUSR1 at time %f.\n",
-            getCommunicator()->globalCommRank(),
-            simTime);
-      mCheckpointSignal = 0;
-      checkpointNow();
-   }
-   else {
-      switch (mCheckpointWriteTriggerMode) {
-         case NONE:
-            pvAssert(0);
-            break; // Only NONE if checkpointWrite is off, in which case this method should have
-         // returned above.
-         case STEP: checkpointWriteStep(); break;
-         case SIMTIME: checkpointWriteSimtime(); break;
-         case WALLCLOCK: checkpointWriteWallclock(); break;
-         default: pvAssert(0); break;
+   if (mCheckpointWriteFlag) {
+      if (checkpointWriteSignal()) {
+         pvInfo().printf(
+               "Global rank %d: checkpointing in response to SIGUSR1 at time %f.\n",
+               getCommunicator()->globalCommRank(),
+               simTime);
+         mCheckpointSignal = 0;
+         checkpointNow();
+      }
+      else {
+         switch (mCheckpointWriteTriggerMode) {
+            case NONE:
+               pvAssert(0); // Only NONE if checkpointWrite is off, we should never reach here.
+               break;
+            case STEP: checkpointWriteStep(); break;
+            case SIMTIME: checkpointWriteSimtime(); break;
+            case WALLCLOCK: checkpointWriteWallclock(); break;
+            default: pvAssert(0); break;
+         }
       }
    }
    mTimeInfo.mCurrentCheckpointStep++;

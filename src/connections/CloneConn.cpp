@@ -147,17 +147,9 @@ void CloneConn::ioParam_nfp(enum ParamsIOFlag ioFlag) {
    // During the communication phase, nfp will be copied from originalConn
 }
 
-void CloneConn::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      initializeFromCheckpointFlag = false;
-      parent->parameters()->handleUnnecessaryParameter(name, "initializeFromCheckpointFlag");
-   }
-   // CloneConn does not checkpoint, so we don't need initializeFromCheckpointFlag
-}
-
 void CloneConn::ioParam_writeCompressedWeights(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
-      initializeFromCheckpointFlag = false;
+      writeCompressedWeights = false;
       parent->parameters()->handleUnnecessaryParameter(name, "writeCompressedWeights");
    }
    // CloneConn does not write during outputState, so we don't need writeCompressedWeights
@@ -165,7 +157,7 @@ void CloneConn::ioParam_writeCompressedWeights(enum ParamsIOFlag ioFlag) {
 
 void CloneConn::ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
-      initializeFromCheckpointFlag = false;
+      writeCompressedCheckpoints = false;
       parent->parameters()->handleUnnecessaryParameter(name, "writeCompressedWeights");
    }
    // CloneConn does not checkpoint, so we don't need writeCompressedCheckpoints

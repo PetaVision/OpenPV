@@ -544,7 +544,6 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    if (weightInitializer != nullptr) {
       weightInitializer->ioParamsFillGroup(ioFlag);
    }
-   ioParam_initializeFromCheckpointFlag(ioFlag);
    ioParam_triggerLayerName(ioFlag);
    ioParam_triggerOffset(ioFlag);
    ioParam_weightUpdatePeriod(ioFlag);

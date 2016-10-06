@@ -34,7 +34,6 @@ class IdentConn : public HyPerConn {
    virtual void ioParam_receiveGpu(enum ParamsIOFlag ioFlag);
 #endif // PV_USE_CUDA
    virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag);
    virtual void ioParam_weightInitType(enum ParamsIOFlag ioFlag);
    virtual void ioParam_normalizeMethod(enum ParamsIOFlag ioFlag);
    virtual void ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag);

@@ -109,13 +109,6 @@ class HyPerLayer : public BaseLayer {
    virtual void ioParam_valueBC(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief initializeFromCheckpointFlag: If set to true, initialize using checkpoint direcgtory
-    * set in HyPerCol.
-    * @details Checkpoint read directory must be set in HyPerCol to initialize from checkpoint.
-    */
-   virtual void ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag);
-
-   /**
     * @brief initVType: Specifies how to initialize the V buffer.
     * @details Possible choices include
     * - @link InitV::ioParamGroup_ConstantV ConstantV@endlink: Sets V to a constant value
