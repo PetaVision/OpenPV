@@ -13,3 +13,10 @@ lib
 src/include/cMakeHeader.h
 subdirectories.txt
 
+/GPATH
+/GRTAGS
+/GSYMS
+/GTAGS
+*~
+tests/BasicSystemTest*
+
