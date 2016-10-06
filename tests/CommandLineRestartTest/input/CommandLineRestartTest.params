@@ -4,7 +4,7 @@
 // created by peteschultz: Oct 5, 2016
 //
 
-//  A params file for testing the -c option on the command line. There is a
+//  A params file for testing the -r option on the command line. There is a
 //  constant layer of ones as input, a FailBeforeExpectedStartTimeLayer as
 //  output, and a plastic 1x1 connection between them. The connection is
 //  plastic so that both the output layers and connections will change.
@@ -17,8 +17,7 @@
 //  The test runs this params file with HyPerCol::run(0,10,1) to get the
 //  correct values when running without restart. It then starts a new
 //  HyPerCol, which runs with HyPerCol::run(0,5,1). Finally, it sets the
-//  -c option, sets the expected start time to 5, and runs with
-//  HyPerCol::run(void) with the -c option set.
+//  -r option, sets the expected start time to 5, and runs in the usual way.
 //  The latter run should start at t=5 and end at t=10, with the same result as
 //  the initial run.
 
