@@ -22,7 +22,6 @@ class TransposePoolingConn : public HyPerConn {
    virtual void ioParam_receiveGpu(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_weightInitType(enum ParamsIOFlag ioFlag) override;
-   virtual void ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) override;

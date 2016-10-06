@@ -85,7 +85,6 @@ class HyPerConn : public BaseConnection {
 
    virtual int checkpointRead(const char *cpDir, double *timef);
    virtual int checkpointWrite(const char *cpDir);
-   virtual int writeTimers(PrintStream &stream);
    virtual int insertProbe(BaseConnectionProbe *p);
    int outputProbeParams();
    virtual int outputState(double time, bool last = false);
@@ -841,6 +840,7 @@ class HyPerConn : public BaseConnection {
    int setPreLayerName(const char *pre_name);
    int setPostLayerName(const char *post_name);
    virtual int initPlasticityPatches();
+   virtual int registerData(Secretary *secretary, std::string const &objName) override;
    virtual int setPatchSize(); // Sets nxp, nyp, nfp if weights are loaded from file.  Subclasses
    // override if they have specialized ways of setting patch size that
    // needs to go in the communicate stage.

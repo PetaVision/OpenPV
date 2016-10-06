@@ -62,11 +62,6 @@ class CopyConn : public HyPerConn {
    virtual void ioParam_nfp(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief initializeFromCheckpointFlag is not used by CopyConn.
-    */
-   virtual void ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag);
-
-   /**
     * @brief CopyConn inherits numAxonalArbors from the original connection, instead of reading it
     * from parameters
     */

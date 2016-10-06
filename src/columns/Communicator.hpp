@@ -8,7 +8,6 @@
 #include "PV_Arguments.hpp"
 #include "include/pv_arch.h"
 #include "include/pv_types.h"
-#include "utils/Timer.hpp"
 #include <cstdio>
 #include <vector>
 

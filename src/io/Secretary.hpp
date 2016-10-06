@@ -10,10 +10,12 @@
 
 #include "columns/Communicator.hpp"
 #include "io/CheckpointEntry.hpp"
+#include "io/HyPerCheckpoint.hpp"
 #include "io/PVParams.hpp"
 #include "io/io.hpp"
 #include "observerpattern/BaseMessage.hpp"
 #include "observerpattern/Subject.hpp"
+#include "utils/Timer.hpp"
 #include <ctime>
 #include <map>
 #include <memory>
@@ -22,14 +24,126 @@ namespace PV {
 
 class Secretary : public Subject {
   private:
+   /**
+    * List of parameters needed from the Secretary class
+    * @name Secretary Parameters
+    * @{
+    */
+
+   /**
+    * @brief verifyWrites: If true, calls to PV_fwrite are checked by opening the
+    * file in read mode
+    * and reading back the data and comparing it to the data just written.
+    */
+   void ioParam_verifyWrites(enum ParamsIOFlag ioFlag, PVParams *params);
+
+   /**
+    * @brief mOutputPath: Specifies the absolute or relative output path of the
+    * run
+    */
+   void ioParam_outputPath(enum ParamsIOFlag ioFlag, PVParams *params);
+
+   /**
+    * @brief checkpointWrite: Flag to determine if the run writes checkpoints.
+    */
+   void ioParam_checkpointWrite(enum ParamsIOFlag ioFlag, PVParams *params);
+
+   /**
+    * @brief checkpointWriteDir: If checkpointWrite is set, specifies the output
+    * checkpoint directory.
+    */
+   void ioParam_checkpointWriteDir(enum ParamsIOFlag ioFlag, PVParams *params);
+
+   /**
+    * @brief checkpointWriteTriggerMode: If checkpointWrite is set, specifies
+    * the method to
+    * checkpoint.
+    * @details Possible choices include
+    * - step: Checkpoint off of timesteps
+    * - time: Checkpoint off of simulation time
+    * - clock: Checkpoint off of clock time. Not implemented yet.
+    */
+   void ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag, PVParams *params);
+
+   /**
+    * @brief checkpointWriteStepInterval: If checkpointWrite on step, specifies
+    * the number of steps
+    * between checkpoints.
+    */
+   void ioParam_checkpointWriteStepInterval(enum ParamsIOFlag ioFlag, PVParams *params);
+
+   /**
+    * @brief checkpointWriteTimeInteval: If checkpointWrite on time, specifies
+    * the amount of
+    * simulation time between checkpoints.
+    */
+   void ioParam_checkpointWriteTimeInterval(enum ParamsIOFlag ioFlag, PVParams *params);
+
+   /**
+    * @brief checkpointWriteClockInteval: If checkpointWrite on clock, specifies
+    * the amount of clock
+    * time between checkpoints.  The units are specified using the parameter
+    * checkpointWriteClockUnit
+    */
+   void ioParam_checkpointWriteClockInterval(enum ParamsIOFlag ioFlag, PVParams *params);
+
+   /**
+    * @brief checkpointWriteClockInteval: If checkpointWrite on clock, specifies
+    * the units used in
+    * checkpointWriteClockInterval.
+    */
+   void ioParam_checkpointWriteClockUnit(enum ParamsIOFlag ioFlag, PVParams *params);
+
+   /**
+    * @brief If checkpointWrite is true, checkpointIndexWidth specifies the
+    * minimum width for the
+    * step number appearing in the checkpoint directory.
+    * @details If the step number needs fewer digits than checkpointIndexWidth,
+    * it is padded with
+    * zeroes.  If the step number needs more, the full
+    * step number is still printed.  Hence, setting checkpointWrite to zero means
+    * that there are
+    * never any padded zeroes.
+    * If set to a negative number, the width will be inferred from startTime,
+    * stopTime and dt.
+    * The default value is -1 (infer the width).
+    */
+   void ioParam_checkpointIndexWidth(enum ParamsIOFlag ioFlag, PVParams *params);
+
+   /**
+    * If checkpointWrite is true and this flag is true, connections'
+    * checkpointWrite method will
+    * only be called for connections with plasticityFlag=false.
+    */
+   void ioParam_suppressNonplasticCheckpoints(enum ParamsIOFlag ioFlag, PVParams *params);
+
+   /**
+    * @brief suppressLastOutput: If checkpointWrite, specifies if the run
+    * should suppress the final written checkpoint for the end of the run.
+    */
+   void ioParam_suppressLastOutput(enum ParamsIOFlag ioFlag, PVParams *params);
+
+   /**
+    * @brief deleteOlderCheckpoints: If checkpointWrite, specifies if the run
+    * should delete older checkpoints when writing new ones.
+    */
+   virtual void ioParam_deleteOlderCheckpoints(enum ParamsIOFlag ioFlag, PVParams *params);
+
+   /**
+    * @brief numCheckpointsKept: If mDeleteOlderCheckpoints is set,
+    * keep this many checkpoints before deleting the checkpoint.
+    * Default is 1 (delete a checkpoint when a newer checkpoint is written.)
+    */
+   virtual void ioParam_numCheckpointsKept(enum ParamsIOFlag ioFlag, PVParams *params);
+   /** @} */
+
    enum CheckpointWriteTriggerMode { NONE, STEP, SIMTIME, WALLCLOCK };
    enum WallClockUnit { SECOND, MINUTE, HOUR, DAY };
 
   public:
    struct TimeInfo {
       double mSimTime                 = 0.0;
-      long int mCurrentCheckpointStep = -1L; // increments at start of each checkpoint; the first
-      // time checkpointWrite the step number will be zero.
+      long int mCurrentCheckpointStep = 0L;
    };
    class ProcessCheckpointReadMessage : public BaseMessage {
      public:
@@ -40,12 +154,14 @@ class Secretary : public Subject {
       PrepareCheckpointWriteMessage() { setMessageType("ProcessCheckpointWriteMessage"); }
    };
    Secretary(std::string const &name, Communicator *comm);
+   Secretary(HyPerCheckpoint *cp, std::string const &name, Communicator *comm);
    ~Secretary();
 
    void setOutputPath(std::string const &outputPath);
    void ioParamsFillGroup(enum ParamsIOFlag ioFlag, PVParams *params);
    void provideFinalStep(long int finalStep);
    bool registerCheckpointEntry(std::shared_ptr<CheckpointEntry> checkpointEntry);
+   void registerTimer(Timer const *timer);
    virtual void addObserver(Observer *observer, BaseMessage const &message) override;
    void checkpointRead(
          std::string const &checkpointReadDir,
@@ -58,33 +174,17 @@ class Secretary : public Subject {
    bool doesVerifyWrites() { return mVerifyWritesFlag; }
    char const *getOutputPath() const { return mOutputPath; }
    bool getCheckpointWriteFlag() const { return mCheckpointWriteFlag; }
-   char const *getcheckpointWriteDir() const { return mCheckpointWriteDir; }
+   char const *getCheckpointWriteDir() const { return mCheckpointWriteDir; }
    enum CheckpointWriteTriggerMode getCheckpointWriteTriggerMode() const {
       return mCheckpointWriteTriggerMode;
    }
    long int getCheckpointWriteStepInterval() const { return mCheckpointWriteStepInterval; }
    double getCheckpointWriteSimtimeInterval() const { return mCheckpointWriteSimtimeInterval; }
-   int getCheckpointIndexWidth() const { return mCheckpointIndexWidth; }
    bool getSuppressNonplasticCheckpoints() const { return mSuppressNonplasticCheckpoints; }
-   bool getDeleteOlderCheckpointsFlag() const { return mDeleteOlderCheckpoints; }
-   int getNumCheckpointsKept() const { return mNumCheckpointsKept; }
    bool getSuppressLastOutput() const { return mSuppressLastOutput; }
 
   private:
-   void ioParam_verifyWrites(enum ParamsIOFlag ioFlag, PVParams *params);
-   void ioParam_outputPath(enum ParamsIOFlag ioFlag, PVParams *params);
-   void ioParam_checkpointWrite(enum ParamsIOFlag ioFlag, PVParams *params);
-   void ioParam_checkpointWriteDir(enum ParamsIOFlag ioFlag, PVParams *params);
-   void ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag, PVParams *params);
-   void ioParam_checkpointWriteStepInterval(enum ParamsIOFlag ioFlag, PVParams *params);
-   void ioParam_checkpointWriteTimeInterval(enum ParamsIOFlag ioFlag, PVParams *params);
-   void ioParam_checkpointWriteClockInterval(enum ParamsIOFlag ioFlag, PVParams *params);
-   void ioParam_checkpointWriteClockUnit(enum ParamsIOFlag ioFlag, PVParams *params);
-   void ioParam_checkpointIndexWidth(enum ParamsIOFlag ioFlag, PVParams *params);
-   void ioParam_suppressNonplasticCheckpoints(enum ParamsIOFlag ioFlag, PVParams *params);
-   void ioParam_deleteOlderCheckpoints(enum ParamsIOFlag ioFlag, PVParams *params);
-   void ioParam_numCheckpointsKept(enum ParamsIOFlag ioFlag, PVParams *params);
-   void ioParam_suppressLastOutput(enum ParamsIOFlag ioFlag, PVParams *params);
+   void initialize();
    bool checkpointWriteSignal();
    void checkpointWriteStep();
    void checkpointWriteSimtime();
@@ -92,8 +192,14 @@ class Secretary : public Subject {
    void checkpointNow();
    void checkpointToDirectory(std::string const &checkpointDirectory);
    void rotateOldCheckpoints(std::string const &newCheckpointDirectory);
+   void writeTimers(PrintStream &stream);
+   void writeTimers(std::string const &directory);
 
   private:
+   HyPerCheckpoint *mHyPerCheckpoint = nullptr;
+   // Note: the HyPerCheckpoint is a convenience in moving checkpointing functions from HyPerCol
+   // to Secretary. Once the refactor is complete, the mHyPerCheckpoint will be removed.
+
    std::string mName;
    Communicator *mCommunicator = nullptr;
    std::vector<std::shared_ptr<CheckpointEntry>> mCheckpointRegistry; // Needs to be a vector so
@@ -121,13 +227,17 @@ class Secretary : public Subject {
    bool mSuppressLastOutput                                                = false;
    std::string mCheckpointReadDirectory;
    int mCheckpointSignal                = 0;
-   double mLastCheckpointSimtime        = -std::numeric_limits<double>::infinity();
+   long int mNextCheckpointStep         = 0L; // kept only for consistency with HyPerCol
+   double mNextCheckpointSimtime        = 0.0;
    std::time_t mLastCheckpointWallclock = (std::time_t)0;
+   std::time_t mNextCheckpointWallclock = (std::time_t)0;
    int mWidthOfFinalStepNumber          = 0;
    int mOldCheckpointDirectoriesIndex =
          0; // A pointer to the oldest checkpoint in the mOldCheckpointDirectories vector.
    std::vector<std::string> mOldCheckpointDirectories; // A ring buffer of existing checkpoints,
    // used if mDeleteOlderCheckpoints is true.
+   std::vector<Timer const *> mTimers;
+   Timer *mCheckpointTimer = nullptr;
 
    static std::string const mDefaultOutputPath;
 };

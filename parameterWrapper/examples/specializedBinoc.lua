@@ -272,7 +272,6 @@ pv.addMultiGroups(pvParams,
       nxp = 1; 
       nyp = 1; 
       numAxonalArbors = 1;
-      initFromLastFlag = 0;
       writeStep = -1;
       initialWriteTime = 0.0;
       writeCompressedWeights = false;
@@ -373,7 +372,6 @@ for i=0,numDepthBins do
       nyp = dictPatchSize;
       shrinkPatches = false;
       numAxonalArbors = 1;
-      initFromLastFlag = 0;
       sharedWeights = true;
       strength = 1;
       symmetrizeWeights = false;

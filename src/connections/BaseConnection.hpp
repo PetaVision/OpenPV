@@ -68,9 +68,7 @@ class BaseConnection : public BaseObject {
    /**
     * initializeState is used to set the initial values of the connection.
     * If the parent HyPerCol's checkpointReadFlag is set, it calls checkpointRead()
-    * If not, but the connection's initializeFromCheckpointFlag is set, it calls
-    * readStateFromCheckpoint().
-    * If neither of these flags is set, it calls setInitialValues.
+    * Otherwise, it calls setInitialValues.
     * Note that derived classes must implement the methods checkpointRead(),
     * readStateFromCheckpoint(), and setInitialValues().
     *
@@ -138,11 +136,6 @@ class BaseConnection : public BaseObject {
     * is equivalent to having the run continue.
     */
    virtual int checkpointWrite(const char *cpDir) = 0;
-
-   /**
-    * A pure virtual function for writing timing information.
-    */
-   virtual int writeTimers(PrintStream &stream) = 0;
 
    /**
     * Called by HyPerCol::outputParams to output the params groups for probes whose ownership has
@@ -406,19 +399,12 @@ class BaseConnection : public BaseObject {
     */
    virtual void ioParam_receiveGpu(enum ParamsIOFlag ioFlag);
 
-   /**
-    * @brief initializeFromCheckpointFlag: If set to true, initialize using checkpoint direcgtory
-    * set in HyPerCol.
-    * @details Checkpoint read directory must be set in HyPerCol to initialize from checkpoint.
-    */
-   virtual void ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag);
+   // initializeFromCheckpointFlag was marked obsolete Oct 5, 2016.
 
    /**
     * A pure virtual method that uses an existing checkpoint to
-    * initialize the connection.  BaseConnection::initializeState calls it
-    * when initializeFromCheckpointFlag is true.  A Subclass may also
-    * call this method as part of the implementation of checkpointRead
-    * (for example, HyPerConn does this).
+    * initialize the connection. A Subclass may call this method as part of the implementation of
+    * checkpointRead (for example, HyPerConn does this).
     */
    virtual int readStateFromCheckpoint(const char *cpDir, double *timeptr) = 0;
 
@@ -512,7 +498,6 @@ class BaseConnection : public BaseObject {
    bool convertRateToSpikeCount; // Whether to check if pre-layer is spiking and, if it is not,
    // scale activity by dt to convert it to a spike count
    bool receiveGpu; // Whether to use GPU acceleration in updating post's GSyn
-   bool initializeFromCheckpointFlag;
 
    BaseConnectionProbe **probes; // probes used to output data
    int numProbes;

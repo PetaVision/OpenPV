@@ -38,6 +38,8 @@ class StatsProbe : public PV::LayerProbe {
     */
    virtual int initNumValues();
 
+   virtual int registerData(Secretary *secretary, std::string const &objName) override;
+
    /**
     * Implements needRecalc() for StatsProbe to always return false (getValues
     * and getValue methods

@@ -20,23 +20,22 @@ namespace PV {
 BaseConnection::BaseConnection() { initialize_base(); }
 
 int BaseConnection::initialize_base() {
-   preLayerName                       = NULL;
-   postLayerName                      = NULL;
-   pre                                = NULL;
-   post                               = NULL;
-   channel                            = CHANNEL_EXC;
-   delayArraySize                     = 0;
-   this->fDelayArray                  = NULL;
-   this->delays                       = NULL;
-   numAxonalArborLists                = 1;
-   convertRateToSpikeCount            = false;
-   receiveGpu                         = false;
-   this->initializeFromCheckpointFlag = false;
-   this->probes                       = NULL;
-   this->numProbes                    = 0;
-   initInfoCommunicatedFlag           = false;
-   dataStructuresAllocatedFlag        = false;
-   initialValuesSetFlag               = false;
+   preLayerName                = NULL;
+   postLayerName               = NULL;
+   pre                         = NULL;
+   post                        = NULL;
+   channel                     = CHANNEL_EXC;
+   delayArraySize              = 0;
+   this->fDelayArray           = NULL;
+   this->delays                = NULL;
+   numAxonalArborLists         = 1;
+   convertRateToSpikeCount     = false;
+   receiveGpu                  = false;
+   this->probes                = NULL;
+   this->numProbes             = 0;
+   initInfoCommunicatedFlag    = false;
+   dataStructuresAllocatedFlag = false;
+   initialValuesSetFlag        = false;
    return PV_SUCCESS;
 }
 
@@ -411,21 +410,8 @@ void BaseConnection::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
 #endif // PV_USE_CUDA
 }
 
-void BaseConnection::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
-   assert(parent->getInitializeFromCheckpointDir()); // If we're not initializing
-   // any layers or
-   // connections from a checkpoint, this should
-   // be the empty string, not null.
-   if (parent->getInitializeFromCheckpointDir() && parent->getInitializeFromCheckpointDir()[0]) {
-      parent->parameters()->ioParamValue(
-            ioFlag,
-            name,
-            "initializeFromCheckpointFlag",
-            &initializeFromCheckpointFlag,
-            parent->getDefaultInitializeFromCheckpointFlag(),
-            true /*warnIfAbsent*/);
-   }
-}
+// Oct 5, 2016. initializeFromCheckpointFlag marked obsolete.
+// Use weightInitType="FileWeight" instead.
 
 int BaseConnection::insertProbe(BaseConnectionProbe *p) {
    if (p->getTargetConn() != this) {
@@ -646,21 +632,12 @@ void BaseConnection::setDelay(int arborId, double delay) {
 
 int BaseConnection::initializeState() {
    int status = PV_SUCCESS;
-   assert(parent->getInitializeFromCheckpointDir()); // should never be null; it
-   // should be the empty
-   // string if not initializing from a checkpoint
    if (!this->getPlasticityFlag() && parent->getSuppressNonplasticCheckpoints()) {
       status = setInitialValues();
    }
    else if (parent->getCheckpointReadFlag()) {
       double checkTime = parent->simulationTime();
       checkpointRead(parent->getCheckpointReadDir(), &checkTime);
-   }
-   else if (initializeFromCheckpointFlag) {
-      assert(
-            parent->getInitializeFromCheckpointDir()
-            && parent->getInitializeFromCheckpointDir()[0]);
-      status = readStateFromCheckpoint(parent->getInitializeFromCheckpointDir(), NULL);
    }
    else {
       // initialize weights for patches:

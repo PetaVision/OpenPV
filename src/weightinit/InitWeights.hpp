@@ -28,8 +28,8 @@ class InitWeights : public BaseObject {
    virtual int communicateParamsInfo();
 
    /*
-    * initializeWeights is not virtual.  It checks initFromLastFlag and then
-    * filename, loading weights from a file if appropriate.  Otherwise
+    * initializeWeights is not virtual.  It checks the initWeightsFile
+    * parameter, loading weights from a file if appropriate.  Otherwise
     * it calls calcWeights with no arguments.
     * For most InitWeights objects, calcWeights(void) does not have to be
     * overridden but calcWeights(dataStart, patchIndex, arborId) should be.

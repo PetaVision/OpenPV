@@ -101,9 +101,9 @@ double Timer::stop() {
    return (double)time_end;
 }
 
-double Timer::elapsed_time() { return (double)time_elapsed; }
+double Timer::elapsed_time() const { return (double)time_elapsed; }
 
-int Timer::fprint_time(PrintStream &stream) {
+int Timer::fprint_time(PrintStream &stream) const {
    if (rank == 0) {
       stream << message << "processor cycle time == " << (float)cpu_time_to_sec(elapsed_time())
              << std::endl;

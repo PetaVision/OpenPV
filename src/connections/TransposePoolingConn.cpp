@@ -126,15 +126,6 @@ void TransposePoolingConn::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
    }
 }
 
-void TransposePoolingConn::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      initializeFromCheckpointFlag = false;
-      parent->parameters()->handleUnnecessaryParameter(name, "initializeFromCheckpointFlag");
-   }
-   // During the setInitialValues phase, the conn will be computed from the original conn, so
-   // initializeFromCheckpointFlag is not needed.
-}
-
 void TransposePoolingConn::ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) {}
 
 void TransposePoolingConn::ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) {

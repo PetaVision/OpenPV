@@ -546,16 +546,6 @@ int HyPerLayer::initializeState() {
       double checkTime = parent->simulationTime();
       checkpointRead(parent->getCheckpointReadDir(), &checkTime);
    }
-   else if (
-         parent->getInitializeFromCheckpointDir() && parent->getInitializeFromCheckpointDir()[0]) {
-      assert(!params->presentAndNotBeenRead(name, "initializeFromCheckpointFlag"));
-      if (initializeFromCheckpointFlag) {
-         status = readStateFromCheckpoint(parent->getInitializeFromCheckpointDir(), NULL);
-      }
-      else {
-         status = setInitialValues();
-      }
-   }
    else {
       status = setInitialValues();
    }
@@ -623,7 +613,6 @@ int HyPerLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_phase(ioFlag);
    ioParam_mirrorBCflag(ioFlag);
    ioParam_valueBC(ioFlag);
-   ioParam_initializeFromCheckpointFlag(ioFlag);
    ioParam_InitVType(ioFlag);
    ioParam_triggerLayerName(ioFlag);
    ioParam_triggerFlag(ioFlag);
@@ -714,19 +703,6 @@ void HyPerLayer::ioParam_valueBC(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "mirrorBCflag"));
    if (!mirrorBCflag) {
       parent->parameters()->ioParamValue(ioFlag, name, "valueBC", &valueBC, (pvdata_t)0);
-   }
-}
-
-void HyPerLayer::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
-   assert(parent->getInitializeFromCheckpointDir());
-   if (parent->getInitializeFromCheckpointDir() && parent->getInitializeFromCheckpointDir()[0]) {
-      parent->parameters()->ioParamValue(
-            ioFlag,
-            name,
-            "initializeFromCheckpointFlag",
-            &initializeFromCheckpointFlag,
-            parent->getDefaultInitializeFromCheckpointFlag(),
-            true /*warnIfAbsent*/);
    }
 }
 
@@ -1672,6 +1648,19 @@ int HyPerLayer::mirrorInteriorToBorder(PVLayerCube *cube, PVLayerCube *border) {
    return 0;
 }
 
+int HyPerLayer::registerData(Secretary *secretary, std::string const &objName) {
+   secretary->registerTimer(recvsyn_timer);
+   secretary->registerTimer(update_timer);
+#ifdef PV_USE_CUDA
+   secretary->registerTimer(gpu_recvsyn_timer);
+   secretary->registerTimer(gpu_update_timer);
+#endif // PV_USE_CUDA
+   secretary->registerTimer(publish_timer);
+   secretary->registerTimer(timescale_timer);
+   secretary->registerTimer(io_timer);
+   return PV_SUCCESS;
+}
+
 double HyPerLayer::getDeltaUpdateTime() {
    if (triggerLayer != NULL && triggerBehaviorType == UPDATEONLY_TRIGGER) {
       return getDeltaTriggerTime();
@@ -2541,24 +2530,6 @@ int HyPerLayer::writeDataStoreToFile(const char *filename, Communicator *comm, d
    pvp_close_file(writeFile, comm);
    writeFile = NULL;
    return status;
-}
-
-int HyPerLayer::writeTimers(PrintStream &stream) {
-   if (parent->getCommunicator()->commRank() == 0) {
-      recvsyn_timer->fprint_time(stream);
-      update_timer->fprint_time(stream);
-#ifdef PV_USE_CUDA
-      gpu_recvsyn_timer->fprint_time(stream);
-      gpu_update_timer->fprint_time(stream);
-#endif
-      publish_timer->fprint_time(stream);
-      timescale_timer->fprint_time(stream);
-      io_timer->fprint_time(stream);
-      for (int p = 0; p < getNumProbes(); p++) {
-         getProbe(p)->writeTimer(stream);
-      }
-   }
-   return PV_SUCCESS;
 }
 
 int HyPerLayer::writeActivitySparse(double timed, bool includeValues) {

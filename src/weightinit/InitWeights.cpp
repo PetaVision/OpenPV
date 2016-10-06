@@ -119,22 +119,6 @@ int InitWeights::initializeWeights(
       double *timef /*default NULL*/) {
    PVParams *inputParams = callingConn->getParent()->parameters();
    int numPatches        = callingConn->getNumDataPatches();
-   if (inputParams->present(callingConn->getName(), "initFromLastFlag")) {
-      if (callingConn->getParent()->columnId() == 0) {
-         pvErrorNoExit().printf(
-               "%s: initFromLastFlag is obsolete.\n", callingConn->getDescription_c());
-      }
-      if (inputParams->value(callingConn->getName(), "initFromLastFlag")) {
-         if (callingConn->getParent()->columnId() == 0) {
-            pvErrorNoExit().printf(
-                  "Instead, use weightInitType=\"FileWeight\" or set HyPerCol "
-                  "initializeFromCheckpointDir and set "
-                  "initializeFromCheckpointFlag to true\n");
-         }
-         MPI_Barrier(callingConn->getParent()->getCommunicator()->communicator());
-         exit(EXIT_FAILURE);
-      }
-   }
    if (weightParams->getFilename() != NULL && weightParams->getFilename()[0]) {
       readWeights(patches, dataStart, numPatches, weightParams->getFilename(), timef);
    }
