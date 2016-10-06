@@ -1,0 +1,109 @@
+//
+// CommandLineRestartTest.params
+//
+// created by peteschultz: Oct 5, 2016
+//
+
+//  A params file for testing the -r option on the command line. There is a
+//  constant layer of ones as input, a FailBeforeExpectedStartTimeLayer as
+//  output, and a plastic 1x1 connection between them. The connection is
+//  plastic so that both the output layers and connections will change.
+//
+//  FailBeforeExpectedStartTimeLayer is a custom layer with a data member
+//  that can be set by calling the public method setExpectedStartTime().
+//  updateState fails if it is called with simTime less than the expected
+//  start time.
+//
+//  The test runs this params file with HyPerCol::run(0,10,1) to get the
+//  correct values when running without restart. It then starts a new
+//  HyPerCol, which runs with HyPerCol::run(0,5,1). Finally, it sets the
+//  -r option, sets the expected start time to 5, and runs in the usual way.
+//  The latter run should start at t=5 and end at t=10, with the same result as
+//  the initial run.
+
+debugParsing = false;
+
+HyPerCol "column" = {
+    startTime                           = 0;
+    dt                                  = 1;
+    stopTime                            = 10;
+    progressInterval                    = 10;
+    writeProgressToErr                  = false;
+    verifyWrites                        = false;
+    outputPath                          = "output/";
+    checkpointWrite                     = false;
+    suppressLastOutput                  = false;
+    printParamsFilename                 = "pv.params";
+    randomSeed                          = 1234567890;
+    nx                                  = 8;
+    ny                                  = 8;
+    nbatch                              = 1;
+    errorOnNotANumber                   = true;
+};
+
+ConstantLayer "Input" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    InitVType                           = "ConstantV";
+    valueV                              = 1;
+    writeStep                           = -1;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+};
+
+FailBeforeExpectedStartTimeLayer "Output" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 1;
+    mirrorBCflag                        = true;
+    InitVType                           = "ZeroV";
+    triggerLayerName                    = NULL;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+};
+
+HyPerConn "InputToOutput" = {
+    preLayerName                        = "Input";
+    postLayerName                       = "Output";
+    channelCode                         = 0;
+    delay                               = [0.000000];
+    numAxonalArbors                     = 1;
+    plasticityFlag                      = true;
+    convertRateToSpikeCount             = false;
+    receiveGpu                          = false;
+    sharedWeights                       = true;
+    weightInitType                      = "UniformWeight";
+    initWeightsFile                     = NULL;
+    weightInit                          = 1;
+    connectOnlySameFeatures             = false;
+    triggerLayerName                    = NULL;
+    weightUpdatePeriod                  = 1;
+    initialWeightUpdateTime             = 0;
+    updateGSynFromPostPerspective       = false;
+    pvpatchAccumulateType               = "convolve";
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+    writeCompressedWeights              = false;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+    combine_dW_with_W_flag              = false;
+    nxp                                 = 1;
+    nyp                                 = 1;
+    nfp                                 = 1;
+    shrinkPatches                       = false;
+    normalizeMethod                     = "none";
+    dWMax                               = 1;
+    keepKernelsSynchronized             = true;
+    normalizeDw                         = true;
+    useMask                             = false;
+    weightSparsity                      = 0;
+};
