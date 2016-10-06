@@ -2067,7 +2067,7 @@ int HyPerCol::exitRunLoop(bool exitOnFinish) {
          }
       }
       checkpointWrite(cpDir);
-      mSecretary->checkpointWrite(mSimTime);
+      mSecretary->finalCheckpoint(mSimTime);
    }
 
    if (exitOnFinish) {
