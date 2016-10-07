@@ -521,12 +521,6 @@ int ANNLayer::setActivity() {
    return status;
 }
 
-int ANNLayer::checkpointRead(char const *cpDir, double *timeptr) {
-   return HyPerLayer::checkpointRead(cpDir, timeptr);
-}
-
-int ANNLayer::checkpointWrite(char const *cpDir) { return HyPerLayer::checkpointWrite(cpDir); }
-
 } // end namespace PV
 
 ///////////////////////////////////////////////////////
