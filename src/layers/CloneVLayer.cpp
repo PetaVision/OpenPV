@@ -145,11 +145,10 @@ int CloneVLayer::readVFromCheckpoint(const char *cpDir, double *timeptr) {
    return PV_SUCCESS;
 }
 
-int CloneVLayer::checkpointWrite(const char *cpDir) {
+int CloneVLayer::registerData(Secretary *secretary, std::string const &objName) {
    pvdata_t *V = clayer->V;
-   clayer->V   = NULL;
-   int status  = HyPerLayer::checkpointWrite(cpDir);
-   clayer->V   = V;
+   int status = HyPerLayer::registerData(secretary, objName);
+   clayer->V = V;
    return status;
 }
 
