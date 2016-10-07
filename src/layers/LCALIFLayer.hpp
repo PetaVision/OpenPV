@@ -22,8 +22,6 @@ class LCALIFLayer : public PV::LIFGap {
    virtual int updateState(double timef, double dt);
    int findFlag(int numMatrixCol, int numMatrixRow);
 
-   virtual int checkpointWrite(const char *cpDir);
-
    inline float getTargetRate() { return targetRateHz; }
    const float *getVadpt() { return Vadpt; }
    const pvdata_t *getIntegratedSpikeCount() { return integratedSpikeCount; }
@@ -38,6 +36,7 @@ class LCALIFLayer : public PV::LIFGap {
    virtual void ioParam_targetRate(enum ParamsIOFlag ioFlag);
    virtual void ioParam_normalizeInput(enum ParamsIOFlag ioFlag);
    virtual void ioParam_Vscale(enum ParamsIOFlag ioFlag);
+   virtual int registerData(Secretary *secretary, std::string const &objName) override;
    virtual int readStateFromCheckpoint(const char *cpDir, double *timeptr);
    virtual int read_integratedSpikeCountFromCheckpoint(const char *cpDir, double *timeptr);
    virtual int readVadptFromCheckpoint(const char *cpDir, double *timeptr);

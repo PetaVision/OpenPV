@@ -193,6 +193,21 @@ int LCALIFLayer::allocateBuffers() {
    return LIFGap::allocateBuffers();
 }
 
+int LCALIFLayer::registerData(Secretary *secretary, std::string const &objName) {
+   int status = LIFGap::registerData(secretary, objName);
+   checkpointPvpActivityFloat(secretary, "integratedSpikeCount", integratedSpikeCount, false/*not extended*/);
+   checkpointPvpActivityFloat(secretary, "Vadpt", Vadpt, false/*not extended*/);
+   checkpointPvpActivityFloat(secretary, "Vattained", Vattained, false/*not extended*/);
+   checkpointPvpActivityFloat(secretary, "Vmeminf", Vmeminf, false/*not extended*/);
+   checkpointPvpActivityFloat(secretary, "G_Norm", G_Norm, false/*not extended*/);
+   checkpointPvpActivityFloat(secretary, "GSynExcEffective", GSynExcEffective, false/*not extended*/);
+   checkpointPvpActivityFloat(secretary, "GSynInhEffective", GSynInhEffective, false/*not extended*/);
+   checkpointPvpActivityFloat(secretary, "excitatoryNoise", excitatoryNoise, false/*not extended*/);
+   checkpointPvpActivityFloat(secretary, "inhibitoryNoise", inhibitoryNoise, false/*not extended*/);
+   checkpointPvpActivityFloat(secretary, "inhibNoiseB", inhibNoiseB, false/*not extended*/);
+   return status;
+}
+
 int LCALIFLayer::updateState(double timed, double dt) {
    // Calculate_state kernel
    for (int k = 0; k < getNumNeuronsAllBatches(); k++) {
@@ -261,72 +276,6 @@ int LCALIFLayer::readVadptFromCheckpoint(const char *cpDir, double *timeptr) {
          filename, parent->getCommunicator(), timeptr, &Vth, 1, /*extended*/ true, getLayerLoc());
    assert(status == PV_SUCCESS);
    free(filename);
-   return status;
-}
-
-int LCALIFLayer::checkpointWrite(const char *cpDir) {
-   int status           = LIFGap::checkpointWrite(cpDir);
-   Communicator *icComm = parent->getCommunicator();
-   char basepath[PV_PATH_MAX];
-   char filename[PV_PATH_MAX];
-   int lenbase = snprintf(basepath, PV_PATH_MAX, "%s/%s", cpDir, name);
-   if (lenbase + strlen("_integratedSpikeCount.pvp")
-       >= PV_PATH_MAX) { // currently _integratedSpikeCount.pvp is the longest suffix needed
-      if (icComm->commRank() == 0) {
-         pvError().printf(
-               "LCALIFLayer::checkpointWrite error in getDescription_c.  Base pathname \"%s/%s_\" "
-               "too long.\n",
-               getDescription_c(),
-               cpDir,
-               name);
-      }
-      MPI_Barrier(parent->getCommunicator()->communicator());
-      exit(EXIT_FAILURE);
-   }
-   double timed     = (double)parent->simulationTime();
-   int chars_needed = snprintf(filename, PV_PATH_MAX, "%s_integratedSpikeCount.pvp", basepath);
-   assert(chars_needed < PV_PATH_MAX);
-   writeBufferFile(
-         filename, icComm, timed, &integratedSpikeCount, 1, /*extended*/ false, getLayerLoc());
-
-   chars_needed = snprintf(filename, PV_PATH_MAX, "%s_Vadpt.pvp", basepath);
-   assert(chars_needed < PV_PATH_MAX);
-   writeBufferFile(filename, icComm, timed, &Vadpt, 1, /*extended*/ false, getLayerLoc());
-
-   chars_needed = snprintf(filename, PV_PATH_MAX, "%s_Vattained.pvp", basepath);
-   assert(chars_needed < PV_PATH_MAX);
-   writeBufferFile(filename, icComm, timed, &Vattained, 1, /*extended*/ false, getLayerLoc());
-
-   chars_needed = snprintf(filename, PV_PATH_MAX, "%s_Vmeminf.pvp", basepath);
-   assert(chars_needed < PV_PATH_MAX);
-   writeBufferFile(filename, icComm, timed, &Vmeminf, 1, /*extended*/ false, getLayerLoc());
-
-   chars_needed = snprintf(filename, PV_PATH_MAX, "%s_G_Norm.pvp", basepath);
-   assert(chars_needed < PV_PATH_MAX);
-   writeBufferFile(filename, icComm, timed, &G_Norm, 1, /*extended*/ false, getLayerLoc());
-
-   chars_needed = snprintf(filename, PV_PATH_MAX, "%s_GSynExcEffective.pvp", basepath);
-   assert(chars_needed < PV_PATH_MAX);
-   writeBufferFile(
-         filename, icComm, timed, &GSynExcEffective, 1, /*extended*/ false, getLayerLoc());
-
-   chars_needed = snprintf(filename, PV_PATH_MAX, "%s_GSynInhEffective.pvp", basepath);
-   assert(chars_needed < PV_PATH_MAX);
-   writeBufferFile(
-         filename, icComm, timed, &GSynInhEffective, 1, /*extended*/ false, getLayerLoc());
-
-   chars_needed = snprintf(filename, PV_PATH_MAX, "%s_excitatoryNoise.pvp", basepath);
-   assert(chars_needed < PV_PATH_MAX);
-   writeBufferFile(filename, icComm, timed, &excitatoryNoise, 1, /*extended*/ false, getLayerLoc());
-
-   chars_needed = snprintf(filename, PV_PATH_MAX, "%s_inhibitoryNoise.pvp", basepath);
-   assert(chars_needed < PV_PATH_MAX);
-   writeBufferFile(filename, icComm, timed, &inhibitoryNoise, 1, /*extended*/ false, getLayerLoc());
-
-   chars_needed = snprintf(filename, PV_PATH_MAX, "%s_inhibNoiseB.pvp", basepath);
-   assert(chars_needed < PV_PATH_MAX);
-   writeBufferFile(filename, icComm, timed, &inhibNoiseB, 1, /*extended*/ false, getLayerLoc());
-
    return status;
 }
 
