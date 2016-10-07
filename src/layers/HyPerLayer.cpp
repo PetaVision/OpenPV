@@ -19,6 +19,7 @@
 #include "connections/TransposeConn.hpp"
 #include "include/default_params.h"
 #include "include/pv_common.h"
+#include "io/CheckpointEntryRandState.hpp"
 #include "io/fileio.hpp"
 #include "io/imageio.hpp"
 #include "io/io.hpp"
@@ -553,6 +554,26 @@ void HyPerLayer::checkpointPvpActivityFloat(
                PV_FLOAT_TYPE,
                getLayerLoc(),
                extended));
+   pvErrorIf(
+         !registerSucceeded,
+         "%s failed to register %s for checkpointing.\n",
+         getDescription_c(),
+         bufferName);
+}
+
+void HyPerLayer::checkpointRandState(
+      Secretary *secretary,
+      char const *bufferName,
+      Random *randState,
+      bool extendedFlag) {
+   bool registerSucceeded = secretary->registerCheckpointEntry(
+         std::make_shared<CheckpointEntryRandState>(
+               getName(),
+               bufferName,
+               parent->getCommunicator(),
+               randState->getRNG(0),
+               getLayerLoc(),
+               extendedFlag));
    pvErrorIf(
          !registerSucceeded,
          "%s failed to register %s for checkpointing.\n",

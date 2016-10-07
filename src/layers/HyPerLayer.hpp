@@ -15,6 +15,7 @@
 #include "columns/DataStore.hpp"
 #include "columns/HyPerCol.hpp"
 #include "columns/Publisher.hpp"
+#include "columns/Random.hpp"
 #include "include/pv_common.h"
 #include "include/pv_types.h"
 #include "io/PrintStream.hpp"
@@ -244,6 +245,12 @@ class HyPerLayer : public BaseLayer {
          char const *bufferName,
          float *pvpBuffer,
          bool extended);
+   void checkpointRandState(
+         Secretary *secretary,
+         char const *bufferName,
+         Random *randState,
+         bool extendedFlag);
+
    virtual int initializeV();
    virtual int initializeActivity();
    virtual int readStateFromCheckpoint(const char *cpDir, double *timeptr);
