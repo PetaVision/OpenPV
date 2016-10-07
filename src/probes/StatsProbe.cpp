@@ -193,7 +193,6 @@ int StatsProbe::registerData(Secretary *secretary, std::string const &objName) {
    return PV_SUCCESS;
 }
 
-
 int StatsProbe::outputState(double timed) {
 #ifdef PV_USE_MPI
    Communicator *icComm = getTargetLayer()->getParent()->getCommunicator();

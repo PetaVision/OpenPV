@@ -16,26 +16,17 @@ void CheckpointEntryRandState::write(
       bool verifyWritesFlag) const {
    std::string path = generatePath(checkpointDirectory, "bin");
    writeRandState(
-         path.c_str(),
-         getCommunicator(),
-         mDataPointer,
-         mLayerLoc,
-         mExtendedFlag,
-         verifyWritesFlag);
+         path.c_str(), getCommunicator(), mDataPointer, mLayerLoc, mExtendedFlag, verifyWritesFlag);
 }
 
-void CheckpointEntryRandState::read(std::string const &checkpointDirectory, double *simTimePtr) const {
+void CheckpointEntryRandState::read(std::string const &checkpointDirectory, double *simTimePtr)
+      const {
    std::string path = generatePath(checkpointDirectory, "bin");
-   readRandState(
-         path.c_str(),
-         getCommunicator(),
-         mDataPointer,
-         mLayerLoc,
-         mExtendedFlag);
+   readRandState(path.c_str(), getCommunicator(), mDataPointer, mLayerLoc, mExtendedFlag);
 }
 
 void CheckpointEntryRandState::remove(std::string const &checkpointDirectory) const {
    deleteFile(checkpointDirectory, "bin");
 }
 
-}  // namespace PV
+} // namespace PV

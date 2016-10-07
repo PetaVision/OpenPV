@@ -47,7 +47,6 @@ class CheckpointEntryRandState : public CheckpointEntry {
    bool mExtendedFlag;
 };
 
-}  // namespace PV
+} // namespace PV
 
 #endif // CHECKPOINTENTRYRANDSTATE_HPP_
-

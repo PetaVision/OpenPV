@@ -57,7 +57,7 @@ class LIF : public PV::HyPerLayer {
 
    virtual int communicateInitInfo();
    virtual int allocateDataStructures();
-   virtual int registerData(Secretary * secretary, std::string const &objName) override;
+   virtual int registerData(Secretary *secretary, std::string const &objName) override;
 
    virtual int updateState(double time, double dt);
    virtual int setActivity();

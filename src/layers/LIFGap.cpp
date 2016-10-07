@@ -189,7 +189,7 @@ int LIFGap::calcGapStrength() {
 
 int LIFGap::registerData(Secretary *secretary, std::string const &objName) {
    int status = LIF::registerData(secretary, objName);
-   checkpointPvpActivityFloat(secretary, "gapStrength", gapStrength, false/*not extended*/);
+   checkpointPvpActivityFloat(secretary, "gapStrength", gapStrength, false /*not extended*/);
    return status;
 }
 

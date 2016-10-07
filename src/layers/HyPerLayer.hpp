@@ -239,7 +239,11 @@ class HyPerLayer : public BaseLayer {
    virtual int allocatePrevActivity();
    virtual int setInitialValues();
 
-   void checkpointPvpActivityFloat(Secretary * secretary, char const *bufferName, float * pvpBuffer, bool extended);
+   void checkpointPvpActivityFloat(
+         Secretary *secretary,
+         char const *bufferName,
+         float *pvpBuffer,
+         bool extended);
    virtual int initializeV();
    virtual int initializeActivity();
    virtual int readStateFromCheckpoint(const char *cpDir, double *timeptr);

@@ -419,19 +419,22 @@ int LIF::readRandStateFromCheckpoint(const char *cpDir, double *timeptr) {
 
 int LIF::registerData(Secretary *secretary, std::string const &objName) {
    int status = HyPerLayer::registerData(secretary, objName);
-   checkpointPvpActivityFloat(secretary, "Vth", Vth, false/*not extended*/);
-   checkpointPvpActivityFloat(secretary, "G_E", G_E, false/*not extended*/);
-   checkpointPvpActivityFloat(secretary, "G_I", G_I, false/*not extended*/);
-   checkpointPvpActivityFloat(secretary, "G_IB", G_IB, false/*not extended*/);
+   checkpointPvpActivityFloat(secretary, "Vth", Vth, false /*not extended*/);
+   checkpointPvpActivityFloat(secretary, "G_E", G_E, false /*not extended*/);
+   checkpointPvpActivityFloat(secretary, "G_I", G_I, false /*not extended*/);
+   checkpointPvpActivityFloat(secretary, "G_IB", G_IB, false /*not extended*/);
    bool registerSucceeded = secretary->registerCheckpointEntry(
          std::make_shared<CheckpointEntryRandState>(
                getName(),
                "rand_state",
                parent->getCommunicator(),
-               randState->getRNG(0),           
-	       getLayerLoc(),
-	       false/*not extended*/));
-   pvErrorIf(!registerSucceeded, "%s failed to register rand_state for checkpointing.\n", getDescription_c());
+               randState->getRNG(0),
+               getLayerLoc(),
+               false /*not extended*/));
+   pvErrorIf(
+         !registerSucceeded,
+         "%s failed to register rand_state for checkpointing.\n",
+         getDescription_c());
    return status;
 }
 

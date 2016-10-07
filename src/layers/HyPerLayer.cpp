@@ -538,7 +538,11 @@ void HyPerLayer::addPublisher() {
    publisher = new Publisher(icComm, clayer->activity, getNumDelayLevels(), getSparseFlag());
 }
 
-void HyPerLayer::checkpointPvpActivityFloat(Secretary * secretary, char const *bufferName, float * pvpBuffer, bool extended) {
+void HyPerLayer::checkpointPvpActivityFloat(
+      Secretary *secretary,
+      char const *bufferName,
+      float *pvpBuffer,
+      bool extended) {
    bool registerSucceeded = secretary->registerCheckpointEntry(
          std::make_shared<CheckpointEntryPvp<float>>(
                getName(),
@@ -549,7 +553,11 @@ void HyPerLayer::checkpointPvpActivityFloat(Secretary * secretary, char const *b
                PV_FLOAT_TYPE,
                getLayerLoc(),
                extended));
-   pvErrorIf(!registerSucceeded, "%s failed to register %s for checkpointing.\n", getDescription_c(), bufferName);
+   pvErrorIf(
+         !registerSucceeded,
+         "%s failed to register %s for checkpointing.\n",
+         getDescription_c(),
+         bufferName);
 }
 
 int HyPerLayer::initializeState() {
@@ -1691,7 +1699,7 @@ int HyPerLayer::registerData(Secretary *secretary, std::string const &objName) {
    secretary->registerTimer(update_timer);
 #ifdef PV_USE_CUDA
    secretary->registerTimer(gpu_recvsyn_timer);
-   secretary->registerTimer(gpu_update_timer);   
+   secretary->registerTimer(gpu_update_timer);
 #endif // PV_USE_CUDA
    secretary->registerTimer(publish_timer);
    secretary->registerTimer(timescale_timer);
