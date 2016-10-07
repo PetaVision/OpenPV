@@ -116,6 +116,7 @@ class InputLayer : public HyPerLayer {
    virtual int initializeV();
    virtual int initializeActivity();
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual int registerData(Secretary *secretary, std::string const &objName) override;
    virtual double getDeltaUpdateTime();
 
    // Method that signals when to load the next file.

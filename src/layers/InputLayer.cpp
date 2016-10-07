@@ -446,22 +446,15 @@ int InputLayer::checkpointRead(const char *cpDir, double *timef) {
    return status;
 }
 
+int InputLayer::registerData(Secretary *secretary, std::string const &objName) {
+   int status = HyPerLayer::registerData(secretary, objName);
+   if (parent->getCommunicator()->commRank()==0) {
+      mBatchIndexer->registerData(secretary, objName);
+   }
+}
+
 int InputLayer::checkpointWrite(const char *cpDir) {
    int status = HyPerLayer::checkpointWrite(cpDir);
-   if (parent->columnId() == 0) {
-      parent->writeArrayToFile(
-            cpDir,
-            getName(),
-            "FrameNumbers",
-            static_cast<int *>(mBatchIndexer->getIndices().data()),
-            parent->getNBatch());
-   }
-   else {
-      // This is just to line up MPI calls
-      int *garbage = static_cast<int *>(calloc(parent->getNBatch(), sizeof(int)));
-      parent->writeArrayToFile(cpDir, getName(), "FrameNumbers", garbage, parent->getNBatch());
-      free(garbage);
-   }
 
    // Only do a checkpoint TimestampState if there exists a timestamp file
    if (mWriteFrameToTimestamp && mTimestampFile) {
