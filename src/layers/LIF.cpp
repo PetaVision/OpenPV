@@ -8,16 +8,18 @@
 #include "LIF.hpp"
 #include "HyPerLayer.hpp"
 
-#include "../include/default_params.h"
-#include "../include/pv_common.h"
-#include "../io/fileio.hpp"
+#include "include/default_params.h"
+#include "include/pv_common.h"
+#include "io/CheckpointEntryRandState.hpp"
+#include "io/fileio.hpp"
 
-#include <assert.h>
-#include <float.h>
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cassert>
+#include <cfloat>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <memory>
 
 void LIF_update_state_arma(
       const int nbatch,
@@ -415,45 +417,22 @@ int LIF::readRandStateFromCheckpoint(const char *cpDir, double *timeptr) {
    return status;
 }
 
-int LIF::checkpointWrite(const char *cpDir) {
-   HyPerLayer::checkpointWrite(cpDir);
-   Communicator *icComm = parent->getCommunicator();
-   double timed         = (double)parent->simulationTime();
-   int filenamesize     = strlen(cpDir) + 1 + strlen(name) + 16;
-   // The +1 is for the slash between cpDir and name; the +16 needs to be large enough to hold the
-   // suffix (e.g. _rand_state.bin) plus the null terminator
-   char *filename = (char *)malloc(filenamesize * sizeof(char));
-   assert(filename != NULL);
-   int chars_needed;
-
-   chars_needed = snprintf(filename, filenamesize, "%s/%s_Vth.pvp", cpDir, name);
-   assert(chars_needed < filenamesize);
-   writeBufferFile(filename, icComm, timed, &Vth, 1, /*extended*/ false, getLayerLoc());
-
-   chars_needed = snprintf(filename, filenamesize, "%s/%s_G_E.pvp", cpDir, name);
-   assert(chars_needed < filenamesize);
-   writeBufferFile(filename, icComm, timed, &G_E, 1, /*extended*/ false, getLayerLoc());
-
-   chars_needed = snprintf(filename, filenamesize, "%s/%s_G_I.pvp", cpDir, name);
-   assert(chars_needed < filenamesize);
-   writeBufferFile(filename, icComm, timed, &G_I, 1, /*extended*/ false, getLayerLoc());
-
-   chars_needed = snprintf(filename, filenamesize, "%s/%s_G_IB.pvp", cpDir, name);
-   assert(chars_needed < filenamesize);
-   writeBufferFile(filename, icComm, timed, &G_IB, 1, /*extended*/ false, getLayerLoc());
-
-   chars_needed = snprintf(filename, filenamesize, "%s/%s_rand_state.bin", cpDir, name);
-   assert(chars_needed < filenamesize);
-   writeRandState(
-         filename,
-         parent->getCommunicator(),
-         randState->getRNG(0),
-         getLayerLoc(),
-         false /*extended*/,
-         parent->getVerifyWrites()); // TODO Make a method in Random class
-
-   free(filename);
-   return PV_SUCCESS;
+int LIF::registerData(Secretary *secretary, std::string const &objName) {
+   int status = HyPerLayer::registerData(secretary, objName);
+   checkpointPvpActivityFloat(secretary, "Vth", Vth, false/*not extended*/);
+   checkpointPvpActivityFloat(secretary, "G_E", G_E, false/*not extended*/);
+   checkpointPvpActivityFloat(secretary, "G_I", G_I, false/*not extended*/);
+   checkpointPvpActivityFloat(secretary, "G_IB", G_IB, false/*not extended*/);
+   bool registerSucceeded = secretary->registerCheckpointEntry(
+         std::make_shared<CheckpointEntryRandState>(
+               getName(),
+               "rand_state",
+               parent->getCommunicator(),
+               randState->getRNG(0),           
+	       getLayerLoc(),
+	       false/*not extended*/));
+   pvErrorIf(!registerSucceeded, "%s failed to register rand_state for checkpointing.\n", getDescription_c());
+   return status;
 }
 
 int LIF::updateState(double time, double dt) {

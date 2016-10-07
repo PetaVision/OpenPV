@@ -1,5 +1,6 @@
 set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/CheckpointEntry.cpp
+   ${SUBDIR}/CheckpointEntryRandState.cpp
    ${SUBDIR}/fileio.cpp
    ${SUBDIR}/FileStream.cpp
    ${SUBDIR}/imageio.cpp
@@ -10,6 +11,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
 
 set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/CheckpointEntry.hpp
+   ${SUBDIR}/CheckpointEntryRandState.hpp
    ${SUBDIR}/fileio.hpp
    ${SUBDIR}/PrintStream.hpp
    ${SUBDIR}/FileStream.hpp
