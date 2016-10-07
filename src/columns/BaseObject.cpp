@@ -86,6 +86,11 @@ int BaseObject::respond(std::shared_ptr<BaseMessage const> message) {
       return respondAllocateData(castMessage);
    }
    else if (
+         RegisterDataMessage<Secretary> const *castMessage =
+               dynamic_cast<RegisterDataMessage<Secretary> const *>(message.get())) {
+      return respondRegisterData(castMessage);
+   }
+   else if (
          InitializeStateMessage const *castMessage =
                dynamic_cast<InitializeStateMessage const *>(message.get())) {
       return respondInitializeState(castMessage);

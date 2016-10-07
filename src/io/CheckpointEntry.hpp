@@ -9,6 +9,7 @@
 #define CHECKPOINTENTRY_HPP_
 
 #include "columns/Communicator.hpp"
+#include "io/PrintStream.hpp"
 #include <string>
 
 namespace PV {

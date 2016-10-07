@@ -34,6 +34,7 @@ void Secretary::initialize() {
          std::string("timeinfo"), getCommunicator(), &mTimeInfo, (size_t)1, true /*broadcast*/);
    // This doesn't get put into mCheckpointRegistry because we handle the timeinfo separately.
    mCheckpointTimer = new Timer(mName.c_str(), "column", "checkpoint");
+   registerTimer(mCheckpointTimer);
 }
 
 void Secretary::setOutputPath(std::string const &outputPath) {
@@ -401,6 +402,11 @@ bool Secretary::registerCheckpointEntry(std::shared_ptr<CheckpointEntry> checkpo
    return true;
 }
 
+void Secretary::registerTimer(Timer const *timer) {
+   mTimers.push_back(timer);
+}
+
+
 void Secretary::checkpointRead(
       std::string const &checkpointReadDir,
       double *simTimePointer,
@@ -574,6 +580,9 @@ void Secretary::checkpointToDirectory(std::string const &directory) {
    if (mHyPerCheckpoint) { mHyPerCheckpoint->checkpointWrite(directory.c_str()); }
    mTimeInfoCheckpointEntry->write(directory, mTimeInfo.mSimTime, mVerifyWritesFlag);
    mCheckpointTimer->stop();
+   mCheckpointTimer->start();
+   writeTimers(directory);
+   mCheckpointTimer->stop();
 }
 
 void Secretary::finalCheckpoint(double simTime) {
@@ -623,6 +632,24 @@ void Secretary::rotateOldCheckpoints(std::string const &newCheckpointDirectory) 
    mOldCheckpointDirectoriesIndex++;
    if (mOldCheckpointDirectoriesIndex == mNumCheckpointsKept) {
       mOldCheckpointDirectoriesIndex = 0;
+   }
+}
+
+void Secretary::writeTimers(PrintStream &stream) const {
+   for (auto timer : mTimers) {
+      timer->fprint_time(stream);
+   }
+}
+
+void Secretary::writeTimers(std::string const &directory) {
+   if (getCommunicator()->commRank() == 0) {
+      std::string timerpathstring = directory;
+      timerpathstring += "/";
+      timerpathstring += "timers.txt";
+
+      const char *timerpath = timerpathstring.c_str();
+      FileStream timerstream(timerpath, std::ios_base::out, mVerifyWritesFlag);
+      writeTimers(timerstream);
    }
 }
 

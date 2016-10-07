@@ -68,6 +68,7 @@ class Secretary : public Subject {
    void ioParamsFillGroup(enum ParamsIOFlag ioFlag, PVParams *params);
    void provideFinalStep(long int finalStep);
    bool registerCheckpointEntry(std::shared_ptr<CheckpointEntry> checkpointEntry);
+   void registerTimer(Timer const *timer);
    virtual void addObserver(Observer *observer, BaseMessage const &message) override;
    void checkpointRead(
          std::string const &checkpointReadDir,
@@ -75,6 +76,7 @@ class Secretary : public Subject {
          long int *currentStepPointer);
    void checkpointWrite(double simTime);
    void finalCheckpoint(double simTime);
+   void writeTimers(PrintStream &stream) const;
 
    Communicator *getCommunicator() { return mCommunicator; }
    bool doesVerifyWrites() { return mVerifyWritesFlag; }
@@ -89,8 +91,6 @@ class Secretary : public Subject {
    int getCheckpointIndexWidth() const { return mCheckpointIndexWidth; }
    bool getSuppressNonplasticCheckpoints() const { return mSuppressNonplasticCheckpoints; }
    bool getSuppressLastOutput() const { return mSuppressLastOutput; }
-   Timer * getCheckpointTimer() { return mCheckpointTimer; } // Temporary until writeTimers
-   // is moved from HyPerCol to Secretary.
 
   private:
    void initialize();
@@ -113,6 +113,7 @@ class Secretary : public Subject {
    void checkpointNow();
    void checkpointToDirectory(std::string const &checkpointDirectory);
    void rotateOldCheckpoints(std::string const &newCheckpointDirectory);
+   void writeTimers(std::string const &directory);
 
 private:
    HyPerCheckpoint * mHyPerCheckpoint = nullptr;
@@ -155,6 +156,7 @@ private:
          0; // A pointer to the oldest checkpoint in the mOldCheckpointDirectories vector.
    std::vector<std::string> mOldCheckpointDirectories; // A ring buffer of existing checkpoints,
    // used if mDeleteOlderCheckpoints is true.
+   std::vector<Timer const*> mTimers;
    Timer *mCheckpointTimer = nullptr;
 
    static std::string const mDefaultOutputPath;

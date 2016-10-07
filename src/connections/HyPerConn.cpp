@@ -1433,6 +1433,12 @@ void HyPerConn::handleDefaultSelfFlag() {
    }
 }
 
+int HyPerConn::registerData(Secretary *secretary, std::string const &objName) {
+   secretary->registerTimer(io_timer);
+   secretary->registerTimer(update_timer);
+   return PV_SUCCESS;
+}
+
 int HyPerConn::setPatchSize() {
    int status = PV_SUCCESS;
    // Some subclasses determine some of {nxp, nyp, nfp} from other layers or connections (e.g.
@@ -2219,20 +2225,6 @@ int HyPerConn::checkpointFilename(char *cpFilename, int size, const char *cpDir)
                "HyPerConn::checkpointFilename path \"%s/%s_W.pvp\" is too long.\n", cpDir, name);
       }
       abort();
-   }
-   return PV_SUCCESS;
-}
-
-int HyPerConn::writeTimers(PrintStream &stream) {
-   if (parent->getCommunicator()->commRank() == 0) {
-      io_timer->fprint_time(stream);
-      update_timer->fprint_time(stream);
-      for (int p = 0; p < numProbes; p++) {
-         probes[p]->writeTimer(stream);
-      }
-      if (needPost && postConn) {
-         postConn->writeTimers(stream);
-      }
    }
    return PV_SUCCESS;
 }

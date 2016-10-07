@@ -1672,6 +1672,19 @@ int HyPerLayer::mirrorInteriorToBorder(PVLayerCube *cube, PVLayerCube *border) {
    return 0;
 }
 
+int HyPerLayer::registerData(Secretary *secretary, std::string const &objName) {
+   secretary->registerTimer(recvsyn_timer);
+   secretary->registerTimer(update_timer);
+#ifdef PV_USE_CUDA
+   secretary->registerTimer(gpu_recvsyn_timer);
+   secretary->registerTimer(gpu_update_timer);   
+#endif // PV_USE_CUDA
+   secretary->registerTimer(publish_timer);
+   secretary->registerTimer(timescale_timer);
+   secretary->registerTimer(io_timer);
+   return PV_SUCCESS;
+}
+
 double HyPerLayer::getDeltaUpdateTime() {
    if (triggerLayer != NULL && triggerBehaviorType == UPDATEONLY_TRIGGER) {
       return getDeltaTriggerTime();
@@ -2541,24 +2554,6 @@ int HyPerLayer::writeDataStoreToFile(const char *filename, Communicator *comm, d
    pvp_close_file(writeFile, comm);
    writeFile = NULL;
    return status;
-}
-
-int HyPerLayer::writeTimers(PrintStream &stream) {
-   if (parent->getCommunicator()->commRank() == 0) {
-      recvsyn_timer->fprint_time(stream);
-      update_timer->fprint_time(stream);
-#ifdef PV_USE_CUDA
-      gpu_recvsyn_timer->fprint_time(stream);
-      gpu_update_timer->fprint_time(stream);
-#endif
-      publish_timer->fprint_time(stream);
-      timescale_timer->fprint_time(stream);
-      io_timer->fprint_time(stream);
-      for (int p = 0; p < getNumProbes(); p++) {
-         getProbe(p)->writeTimer(stream);
-      }
-   }
-   return PV_SUCCESS;
 }
 
 int HyPerLayer::writeActivitySparse(double timed, bool includeValues) {
