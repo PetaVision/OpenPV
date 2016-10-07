@@ -238,6 +238,8 @@ class HyPerLayer : public BaseLayer {
    virtual int allocateActivity();
    virtual int allocatePrevActivity();
    virtual int setInitialValues();
+
+   void checkpointPvpActivityFloat(Secretary * secretary, char const *bufferName, float * pvpBuffer, bool extended);
    virtual int initializeV();
    virtual int initializeActivity();
    virtual int readStateFromCheckpoint(const char *cpDir, double *timeptr);
@@ -378,8 +380,7 @@ class HyPerLayer : public BaseLayer {
 
    virtual int checkpointRead(const char *cpDir, double *timeptr);
    virtual int checkpointWrite(const char *cpDir);
-   // TODO: readBufferFile and writeBufferFile have to take different types of buffers.  Can they be
-   // templated?
+
    template <typename T>
    static int readBufferFile(
          const char *filename,

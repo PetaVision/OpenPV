@@ -538,6 +538,20 @@ void HyPerLayer::addPublisher() {
    publisher = new Publisher(icComm, clayer->activity, getNumDelayLevels(), getSparseFlag());
 }
 
+void HyPerLayer::checkpointPvpActivityFloat(Secretary * secretary, char const *bufferName, float * pvpBuffer, bool extended) {
+   bool registerSucceeded = secretary->registerCheckpointEntry(
+         std::make_shared<CheckpointEntryPvp<float>>(
+               getName(),
+               bufferName,
+               parent->getCommunicator(),
+               pvpBuffer,
+               sizeof(float),
+               PV_FLOAT_TYPE,
+               getLayerLoc(),
+               extended));
+   pvErrorIf(!registerSucceeded, "%s failed to register %s for checkpointing.\n", getDescription_c(), bufferName);
+}
+
 int HyPerLayer::initializeState() {
    int status       = PV_SUCCESS;
    PVParams *params = parent->parameters();
