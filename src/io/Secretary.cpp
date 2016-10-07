@@ -140,28 +140,24 @@ void Secretary::ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag, PVP
              || !strcmp(mCheckpointWriteTriggerModeString, "Step")
              || !strcmp(mCheckpointWriteTriggerModeString, "STEP")) {
             mCheckpointWriteTriggerMode = STEP;
-            registerCheckpointEntry(
-                  std::make_shared<CheckpointEntryData<long int>>(
-                        mName,
-                        std::string("nextCheckpointStep"),
-                        getCommunicator(),
-                        &mNextCheckpointStep,
-                        (std::size_t)1,
-                        true /*broadcasting*/));
+            registerCheckpointData(
+                  mName,
+                  std::string("nextCheckpointStep"),
+                  &mNextCheckpointStep,
+                  (std::size_t)1,
+                  true /*broadcast*/);
          }
          else if (
                !strcmp(mCheckpointWriteTriggerModeString, "time")
                || !strcmp(mCheckpointWriteTriggerModeString, "Time")
                || !strcmp(mCheckpointWriteTriggerModeString, "TIME")) {
             mCheckpointWriteTriggerMode = SIMTIME;
-            registerCheckpointEntry(
-                  std::make_shared<CheckpointEntryData<double>>(
-                        mName,
-                        std::string("nextCheckpointTime"),
-                        getCommunicator(),
-                        &mNextCheckpointSimtime,
-                        (std::size_t)1,
-                        true /*broadcasting*/));
+            registerCheckpointData(
+                  mName,
+                  std::string("nextCheckpointTime"),
+                  &mNextCheckpointSimtime,
+                  (std::size_t)1,
+                  true /*broadcast*/);
          }
          else if (
                !strcmp(mCheckpointWriteTriggerModeString, "clock")

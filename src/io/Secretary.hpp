@@ -67,6 +67,15 @@ class Secretary : public Subject {
    void setOutputPath(std::string const &outputPath);
    void ioParamsFillGroup(enum ParamsIOFlag ioFlag, PVParams *params);
    void provideFinalStep(long int finalStep);
+
+   template <typename T>
+   bool registerCheckpointData(
+         std::string const &objName,
+         std::string const &dataName,
+         T *dataPointer,
+         size_t numValues,
+         bool broadcast);
+
    bool registerCheckpointEntry(std::shared_ptr<CheckpointEntry> checkpointEntry);
    void registerTimer(Timer const *timer);
    virtual void addObserver(Observer *observer, BaseMessage const &message) override;
@@ -177,6 +186,18 @@ class SecretaryDataInterface {
   public:
    virtual int registerData(Secretary *secretary, std::string const &objName) { return PV_SUCCESS; }
 };
+
+template <typename T>
+bool Secretary::registerCheckpointData(
+      std::string const &objName,
+      std::string const &dataName,
+      T *dataPointer,
+      std::size_t numValues,
+      bool broadcast) {
+   return registerCheckpointEntry(
+         std::make_shared<CheckpointEntryData<T>>(
+               objName, dataName, getCommunicator(), dataPointer, numValues, broadcast));
+}
 
 } // namespace PV
 
