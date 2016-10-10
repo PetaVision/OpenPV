@@ -60,6 +60,7 @@ void FileStream::openFile(char const *path, std::ios_base::openmode mode, bool v
                << attempts + 1 << "\n";
    }
    verifyFlags("openFile");
+   updateFilePos();
    if (verifyWrites) {
       mVerifyWrites = true;
       if (binary()) {
@@ -71,6 +72,23 @@ void FileStream::openFile(char const *path, std::ios_base::openmode mode, bool v
    }
 }
 
+// When restoring from checkpoint, the variables mFileReadPos and mFileWritePos
+// will be modified. This method checks to see if this has happened, and seeks
+// to the correct location in the files.
+void FileStream::syncFilePos() {
+   if (mFileReadPos != getInPos()) {
+      setInPos(mFileReadPos, true);
+   }
+   if (mFileWritePos != getOutPos()) {
+      setOutPos(mFileWritePos, true);
+   }
+}
+
+void FileStream::updateFilePos() {
+   mFileReadPos  = getInPos();
+   mFileWritePos = getOutPos();
+}
+
 void FileStream::verifyFlags(const char *caller) {
    pvErrorIf(mFStream.fail(), "%s: Logical error.\n", caller);
    pvErrorIf(mFStream.bad(), "%s: Read / Write error.\n", caller);
@@ -79,6 +97,7 @@ void FileStream::verifyFlags(const char *caller) {
 }
 
 void FileStream::write(void *data, long length) {
+   syncFilePos();
    long startPos = getOutPos();
    mFStream.write((char *)data, length);
    mFStream.flush();
@@ -97,9 +116,11 @@ void FileStream::write(void *data, long length) {
                    << startPos << "\n";
       }
    }
+   updateFilePos();
 }
 
 void FileStream::read(void *data, long length) {
+   syncFilePos();
    pvErrorIf(mFStream.eof(), "Attempting to read after EOF.\n");
    long startPos = getInPos();
    mFStream.read((char *)data, length);
@@ -113,26 +134,31 @@ void FileStream::read(void *data, long length) {
          numRead,
          getInPos());
    verifyFlags("read");
+   updateFilePos();
 }
 
 void FileStream::setOutPos(long pos, bool fromBeginning) {
    if (!fromBeginning) {
+      syncFilePos();
       mFStream.seekp(pos, std::ios_base::cur);
    }
    else {
       mFStream.seekp(pos);
    }
    verifyFlags("setOutPos");
+   updateFilePos();
 }
 
 void FileStream::setInPos(long pos, bool fromBeginning) {
    if (!fromBeginning) {
+      syncFilePos(); 
       mFStream.seekg(pos, std::ios_base::cur);
    }
    else {
       mFStream.seekg(pos);
    }
    verifyFlags("setInPos");
+   updateFilePos();
 }
 
 long FileStream::getOutPos() { return mFStream.tellp(); }

@@ -35,10 +35,13 @@ class FileStream : public PrintStream {
 
   private:
    void openFile(char const *path, std::ios_base::openmode mode, bool verifyWrites);
-   void closeFile();
+   void syncFilePos();
+   void updateFilePos();
 
   private:
    std::fstream mFStream;
+   long mFileReadPos          = 0;
+   long mFileWritePos         = 0;
    bool mVerifyWrites         = false;
    int const mMaxAttempts     = 5;
    FileStream *mWriteVerifier = nullptr;
