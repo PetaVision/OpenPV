@@ -54,7 +54,7 @@ void CheckpointableFileStream::read(void *data, long length) {
 }
 
 void CheckpointableFileStream::setOutPos(long pos, bool fromBeginning) {
-   if (fromBeginning) {
+   if (!fromBeginning) {
       syncFilePos();
    }
    FileStream::setOutPos(pos, fromBeginning);
@@ -62,7 +62,7 @@ void CheckpointableFileStream::setOutPos(long pos, bool fromBeginning) {
 }
 
 void CheckpointableFileStream::setInPos(long pos, bool fromBeginning) {
-   if(fromBeginning) {
+   if(!fromBeginning) {
       syncFilePos();
    }
    FileStream::setInPos(pos, fromBeginning);
