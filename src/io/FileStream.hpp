@@ -15,35 +15,31 @@
 namespace PV {
 
 class FileStream : public PrintStream {
-   public:
-      FileStream(char const *path,
-            std::ios_base::openmode mode,
-            bool verifyWrites = false);
-      virtual ~FileStream();
-      virtual void write(void *data, long length);
-      virtual void read(void *data, long length);
-      virtual void setOutPos(long pos, bool fromBeginning);
-      virtual void setInPos(long pos, bool fromBeginning);
-      bool readable() { return mFStream.flags() & std::ios_base::in; }
-      bool writeable() { return mFStream.flags() & std::ios_base::out; }
-      bool binary() { return mFStream.flags() & std::ios_base::binary; }
-      bool readwrite() { return readable() && writeable(); }
-      long getOutPos();
-      long getInPos();
+  public:
+   FileStream(char const *path, std::ios_base::openmode mode, bool verifyWrites = false);
+   virtual ~FileStream();
+   virtual void write(void const *data, long length);
+   virtual void read(void *data, long length);
+   virtual void setOutPos(long pos, bool fromBeginning);
+   virtual void setInPos(long pos, bool fromBeginning);
+   bool readable() { return mFStream.flags() & std::ios_base::in; }
+   bool writeable() { return mFStream.flags() & std::ios_base::out; }
+   bool binary() { return mFStream.flags() & std::ios_base::binary; }
+   bool readwrite() { return readable() && writeable(); }
+   long getOutPos();
+   long getInPos();
 
-   protected:
-      FileStream() {}
-      void verifyFlags(const char *caller);
-      void openFile(char const *path,
-            std::ios_base::openmode mode,
-            bool verifyWrites);
+  protected:
+   FileStream() {}
+   void verifyFlags(const char *caller);
+   void openFile(char const *path, std::ios_base::openmode mode, bool verifyWrites);
 
-      std::fstream mFStream;
+   std::fstream mFStream;
 
-   private:
-      bool mVerifyWrites         = false;
-      int const mMaxAttempts     = 5;
-      FileStream *mWriteVerifier = nullptr;
+  private:
+   bool mVerifyWrites         = false;
+   int const mMaxAttempts     = 5;
+   FileStream *mWriteVerifier = nullptr;
 };
 
 } /* namespace PV */

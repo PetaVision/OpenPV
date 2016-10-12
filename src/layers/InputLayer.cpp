@@ -32,6 +32,8 @@ int InputLayer::allocateDataStructures() {
       ensureDirExists(parent->getCommunicator(), timestampFilename.c_str());
       timestampFilename += name + std::string(".txt");
       if (getParent()->getCommunicator()->commRank() == 0) {
+         std::string cpFileStreamLabel(getName());
+         cpFileStreamLabel.append("_TimestampState");
          // If checkpoint read is set, append, otherwise, clobber
          if (getParent()->getCheckpointReadFlag()) {
             struct stat statbuf;
@@ -40,18 +42,28 @@ int InputLayer::allocateDataStructures() {
                      "%s: timestamp file \"%s\" unable to be found.  Creating new file.\n",
                      getDescription_c(),
                      timestampFilename.c_str());
-               mTimestampFile =
-                     PV::PV_fopen(timestampFilename.c_str(), "w", parent->getVerifyWrites());
+               mTimestampStream = new CheckpointableFileStream(
+                     timestampFilename.c_str(),
+                     std::ios_base::out,
+                     cpFileStreamLabel,
+                     parent->getVerifyWrites());
             }
             else {
-               mTimestampFile = PV::PV_fopen(timestampFilename.c_str(), "r+", false);
+               mTimestampStream = new CheckpointableFileStream(
+                     timestampFilename.c_str(),
+                     std::ios_base::in | std::ios_base::out,
+                     cpFileStreamLabel,
+                     false);
             }
          }
          else {
-            mTimestampFile =
-                  PV::PV_fopen(timestampFilename.c_str(), "w", parent->getVerifyWrites());
+            mTimestampStream = new CheckpointableFileStream(
+                  timestampFilename.c_str(),
+                  std::ios_base::out,
+                  cpFileStreamLabel,
+                  parent->getVerifyWrites());
          }
-         pvAssert(mTimestampFile);
+         pvAssert(mTimestampStream);
       }
    }
 
@@ -122,7 +134,7 @@ int InputLayer::updateState(double time, double dt) {
    if (readyForNextFile()) {
 
       // Write file path to timestamp file
-      if (icComm->commRank() == 0 && mTimestampFile) {
+      if (icComm->commRank() == 0 && mTimestampStream) {
          std::ostringstream outStrStream;
          outStrStream.precision(15);
          int kb0                       = getLayerLoc()->kb0;
@@ -139,11 +151,8 @@ int InputLayer::updateState(double time, double dt) {
             }
          }
          size_t len = outStrStream.str().length();
-         pvErrorIf(
-               PV_fwrite(outStrStream.str().c_str(), sizeof(char), len, mTimestampFile) != len,
-               "%s: InputLayer::updateState failed to write to timestamp file.\n",
-               getDescription_c());
-         fflush(mTimestampFile->fp);
+         mTimestampStream->write(outStrStream.str().c_str(), len);
+         mTimestampStream->flush();
       }
 
       // Read in the next file
@@ -413,53 +422,13 @@ int InputLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    return status;
 }
 
-int InputLayer::checkpointRead(const char *cpDir, double *timef) {
-   int status        = HyPerLayer::checkpointRead(cpDir, timef);
-   int *frameNumbers = static_cast<int *>(calloc(parent->getNBatch(), sizeof(int)));
-   parent->readArrayFromFile(cpDir, getName(), "FrameNumbers", frameNumbers, parent->getNBatch());
-
-   // We have to read this even on non-root processes to get MPI to line up.
-   // TODO: File IO should not depend on MPI
-   if (parent->columnId() == 0) {
-      std::vector<int> indices;
-      indices.resize(parent->getNBatch());
-      for (int n = 0; n < indices.size(); ++n) {
-         indices.at(n) = frameNumbers[n];
-      }
-      mBatchIndexer->setIndices(indices);
-   }
-   free(frameNumbers);
-
-   if (mWriteFrameToTimestamp) {
-      long timestampFilePos = 0L;
-      parent->readScalarFromFile(
-            cpDir, getName(), "TimestampState", &timestampFilePos, timestampFilePos);
-      if (mTimestampFile) {
-         pvErrorIf(
-               PV_fseek(mTimestampFile, timestampFilePos, SEEK_SET) != 0,
-               "MovieLayer::checkpointRead error: unable to recover initial file position in "
-               "timestamp file for layer %s: %s\n",
-               name,
-               strerror(errno));
-      }
-   }
-   return status;
-}
-
 int InputLayer::registerData(Secretary *secretary, std::string const &objName) {
    int status = HyPerLayer::registerData(secretary, objName);
-   if (parent->getCommunicator()->commRank()==0) {
+   if (parent->getCommunicator()->commRank() == 0) {
       mBatchIndexer->registerData(secretary, objName);
    }
-}
-
-int InputLayer::checkpointWrite(const char *cpDir) {
-   int status = HyPerLayer::checkpointWrite(cpDir);
-
-   // Only do a checkpoint TimestampState if there exists a timestamp file
-   if (mWriteFrameToTimestamp && mTimestampFile) {
-      long timestampFilePos = getPV_StreamFilepos(mTimestampFile);
-      parent->writeScalarToFile(cpDir, getName(), "TimestampState", timestampFilePos);
+   if (mTimestampStream) {
+      mTimestampStream->registerData(secretary, objName);
    }
    return status;
 }

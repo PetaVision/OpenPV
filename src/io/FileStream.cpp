@@ -23,9 +23,7 @@ using std::string;
 
 namespace PV {
 
-FileStream::FileStream(char const *path,
-      std::ios_base::openmode mode,
-      bool verifyWrites) {
+FileStream::FileStream(char const *path, std::ios_base::openmode mode, bool verifyWrites) {
    setOutStream(mFStream);
    openFile(path, mode, verifyWrites);
 }
@@ -36,9 +34,7 @@ FileStream::~FileStream() {
    }
 }
 
-void FileStream::openFile(char const *path,
-      std::ios_base::openmode mode,
-      bool verifyWrites) {
+void FileStream::openFile(char const *path, std::ios_base::openmode mode, bool verifyWrites) {
    string fullPath = expandLeadingTilde(path);
    int attempts    = 0;
    while (!mFStream.is_open()) {
@@ -82,7 +78,7 @@ void FileStream::verifyFlags(const char *caller) {
    pvErrorIf(readable() && getInPos() == -1, "%s: in pos == -1\n", caller);
 }
 
-void FileStream::write(void *data, long length) {
+void FileStream::write(void const *data, long length) {
    long startPos = getOutPos();
    mFStream.write((char *)data, length);
    mFStream.flush();

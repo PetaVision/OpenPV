@@ -2,25 +2,22 @@
 
 namespace PV {
 
-CheckpointableFileStream::CheckpointableFileStream(char const *path, std::ios_base::openmode mode, string objName, bool verifyWrites) {
+CheckpointableFileStream::CheckpointableFileStream(
+      char const *path,
+      std::ios_base::openmode mode,
+      string objName,
+      bool verifyWrites) {
    mObjName = objName;
    setOutStream(mFStream);
    openFile(path, mode, verifyWrites);
    updateFilePos();
 }
 
-int CheckpointableFileStream::registerData(Secretary *secretary,
-      const string objName) {
+int CheckpointableFileStream::registerData(Secretary *secretary, const string objName) {
    secretary->registerCheckpointData<long>(
-         mObjName, std::string("FileStreamRead"),
-         &mFileReadPos,
-         sizeof(long),
-         false);
+         mObjName, std::string("FileStreamRead"), &mFileReadPos, (std::size_t)1, false);
    secretary->registerCheckpointData<long>(
-         mObjName, std::string("FileStreamWrite"),
-         &mFileWritePos,
-         sizeof(long),
-         false);
+         mObjName, std::string("FileStreamWrite"), &mFileWritePos, (std::size_t)1, false);
    return PV_SUCCESS;
 }
 
@@ -41,7 +38,7 @@ void CheckpointableFileStream::updateFilePos() {
    mFileWritePos = getOutPos();
 }
 
-void CheckpointableFileStream::write(void *data, long length) {
+void CheckpointableFileStream::write(void const *data, long length) {
    syncFilePos();
    FileStream::write(data, length);
    updateFilePos();
@@ -62,11 +59,10 @@ void CheckpointableFileStream::setOutPos(long pos, bool fromBeginning) {
 }
 
 void CheckpointableFileStream::setInPos(long pos, bool fromBeginning) {
-   if(!fromBeginning) {
+   if (!fromBeginning) {
       syncFilePos();
    }
    FileStream::setInPos(pos, fromBeginning);
    updateFilePos();
 }
-
 }
