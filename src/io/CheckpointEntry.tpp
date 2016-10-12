@@ -122,9 +122,11 @@ void CheckpointEntryPvp<T>::read(std::string const &checkpointDirectory, double 
       }
       scatterActivity(
             pvstream, getCommunicator(), 0 /*rootproc*/, batchElementStart, mLayerLoc, mExtended);
-      getCommunicator()->exchange(batchElementStart, exchangeDatatypes, mLayerLoc, req);
-      // TODO: scattering should be aware of interprocess overlap region so that exchange call isn't
-      // necessary.
+      if (mExtended) {
+         getCommunicator()->exchange(batchElementStart, exchangeDatatypes, mLayerLoc, req);
+         // TODO: scattering should be aware of interprocess overlap region so that exchange call
+         // isn't necessary.
+      }
       getCommunicator()->wait(req);
    }
    getCommunicator()->freeDatatypes(exchangeDatatypes);
