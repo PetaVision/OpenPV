@@ -54,7 +54,7 @@ class Secretary : public Subject {
    };
    class ProcessCheckpointReadMessage : public BaseMessage {
      public:
-      ProcessCheckpointReadMessage() { setMessageType("PrepareCheckpointReadMessage"); }
+      ProcessCheckpointReadMessage() { setMessageType("ProcessCheckpointReadMessage"); }
    };
    class PrepareCheckpointWriteMessage : public BaseMessage {
      public:
