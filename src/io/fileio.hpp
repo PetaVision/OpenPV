@@ -137,23 +137,19 @@ int set_weight_params(int *params, int nxp, int nyp, int nfp, float min, float m
 int pvp_read_time(PV_Stream *pvstream, Communicator *comm, int root_process, double *timed);
 
 int writeActivity(
-      PV_Stream *pvstream,
+      FileStream *fileStream,
       Communicator *comm,
       double timed,
       DataStore *store,
       const PVLayerLoc *loc);
 
 int writeActivitySparse(
-      PV_Stream *pvstream,
+      FileStream *fileStream,
       Communicator *comm,
       double timed,
       DataStore *store,
       const PVLayerLoc *loc,
       bool includeValues);
-
-// This function is not defined anywhere?
-// int writeActivitySparseValues(PV_Stream * pvstream, PV_Stream * posstream, Communicator * comm,
-// double time, PVLayer * l);
 
 int readWeights(
       PVPatch ***patches,

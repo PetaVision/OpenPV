@@ -125,6 +125,9 @@ class CheckpointEntryPvp : public CheckpointEntry {
    virtual void remove(std::string const &checkpointDirectory) const override;
 
   private:
+   T *calcBatchElementStart(int batchElement) const;
+
+  private:
    T *mDataPointer;
    size_t mDataSize;
    int mDataType;
