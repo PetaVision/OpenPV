@@ -421,9 +421,6 @@ void Secretary::checkpointWrite(double simTime) {
          default: pvAssert(0); break;
       }
 
-      if (mCommunicator->commRank() == 0) {
-         pvInfo().printf("checkpointWrite complete. simTime = %f\n", simTime);
-      }
    }
 }
 
