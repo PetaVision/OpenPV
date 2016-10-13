@@ -65,8 +65,8 @@ int FilenameParsingGroundTruthLayer::communicateInitInfo() {
          "%s: inputLayerName \"%s\" is not a layer in the HyPerCol.\n",
          getDescription_c(),
          mInputLayerName);
-   pvErrorIf(mInputLayer->getPhase() >= getPhase(),
-         "%s: The phase of layer %s (%d) must be less than the phase of the "
+   pvErrorIf(mInputLayer->getPhase() <= getPhase(),
+         "%s: The phase of layer %s (%d) must be greater than the phase of the "
          "FilenameParsingGroundTruthLayer (%d)\n",
          getName(),
          mInputLayerName,
