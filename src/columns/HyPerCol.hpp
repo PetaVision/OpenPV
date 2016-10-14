@@ -14,6 +14,7 @@
 #include "columns/PV_Init.hpp"
 #include "connections/BaseConnection.hpp"
 #include "include/pv_types.h"
+#include "io/HyPerCheckpoint.hpp" // TODO: remove when Secretary class refactor is complete.
 #include "io/PVParams.hpp"
 #include "io/Secretary.hpp"
 #include "layers/HyPerLayer.hpp"
@@ -52,7 +53,7 @@ class PVParams;
 class NormalizeBase;
 class PV_Init;
 
-class HyPerCol : public Subject {
+class HyPerCol : public Subject, HyPerCheckpoint {
 
   private:
    /**
@@ -303,20 +304,6 @@ class HyPerCol : public Subject {
    virtual void ioParam_checkpointWriteClockUnit(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief deleteOlderCheckpoints: If checkpointWrite, specifies if the run
-    * should delete older
-    * checkpoints when writing new ones.
-    */
-   virtual void ioParam_deleteOlderCheckpoints(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief mNumCheckpointsKept: If mDeleteOlderCheckpoints is set,
-    * keep this many checkpoints before deleting the checkpoint.
-    * Default is 1 (delete a checkpoint when a newer checkpoint is written.)
-    */
-   virtual void ioParam_numCheckpointsKept(enum ParamsIOFlag ioFlag);
-
-   /**
     * @brief supressLastOutput: If checkpointWrite, specifies if the run should
     * supress the final
     * written checkpoint for the end of the run.
@@ -393,7 +380,6 @@ class HyPerCol : public Subject {
    int processParams(char const *path);
    int ioParamsFinishGroup(enum ParamsIOFlag);
    int ioParamsStartGroup(enum ParamsIOFlag ioFlag, const char *group_name);
-   int registerData(Secretary *secretary, std::string const &name);
    template <typename T>
    int readArrayFromFile(
          const char *cp_dir,
@@ -507,7 +493,6 @@ class HyPerCol : public Subject {
    // Private functions
 
   private:
-   bool advanceCPWriteTime();
    int initializeThreads(char const *in_device);
    int initialize_base();
    int initialize(const char *name, PV_Init *initObj);
@@ -522,9 +507,8 @@ class HyPerCol : public Subject {
       notify(std::vector<std::shared_ptr<BaseMessage const>>{message});
    }
    int normalizeWeights();
-   int checkpointRead();
-   int checkpointWrite(const char *cpDir);
-   int writeTimers(PrintStream &stream);
+   virtual int checkpointRead() override;
+   virtual int checkpointWrite(const char *cpDir) override;
    int outputParams(char const *path);
    int outputParamsHeadComments(FILE *fp, char const *commentToken);
    int calcTimeScaleTrue();
@@ -629,9 +613,6 @@ class HyPerCol : public Subject {
    // delete a checkpoint
    // until the specified number of more recent checkpoints have been
    // written.  Default is 2.
-   int mOldCheckpointDirectoriesIndex; // A pointer to the oldest checkpoint in
-   // the
-   // mOldCheckpointDirectories vector.
    int mCheckpointIndexWidth; // minimum width of the step number field in the
    // name of a checkpoint
    // directory; if needed the step number is padded with zeros.
@@ -672,7 +653,6 @@ class HyPerCol : public Subject {
    std::vector<HyPerLayer *> mUpdateLayerBufferGpu;
    std::vector<HyPerLayer *> mUpdateLayerBuffer;
    Timer *mRunTimer;
-   Timer *mCheckpointTimer;
    std::vector<Timer *> mPhaseRecvTimers; // Timer ** mPhaseRecvTimers;
    time_t mCpWriteClockSeconds; // If checkpoint mode is clock, the clock time
    // between checkpoints,

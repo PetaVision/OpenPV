@@ -7,6 +7,9 @@
 
 #include "fileio.hpp"
 #include "connections/weight_conversions.hpp"
+#include "structures/Buffer.hpp"
+#include "utils/BufferUtilsMPI.hpp"
+#include "utils/BufferUtilsPvp.hpp"
 #include "utils/PVLog.hpp"
 #include "utils/conversions.h"
 
@@ -1502,7 +1505,7 @@ int pvp_read_time(PV_Stream *pvstream, Communicator *comm, int root_process, dou
 }
 
 int writeActivity(
-      PV_Stream *pvstream,
+      FileStream *fileStream,
       Communicator *comm,
       double timed,
       DataStore *store,
@@ -1515,13 +1518,13 @@ int writeActivity(
    for (int b = 0; b < loc->nbatch; b++) {
       pvadata_t *data = store->buffer(b);
       if (rank == 0) {
-         long fpos = getPV_StreamFilepos(pvstream);
+         long fpos = fileStream->getOutPos();
          if (fpos == 0L) {
             int *params =
                   pvp_set_nonspiking_act_params(comm, timed, loc, PV_FLOAT_TYPE, 1 /*numbands*/);
             assert(params && params[1] == NUM_BIN_PARAMS);
-            int numParams = params[1];
-            status        = pvp_write_header(pvstream, comm, params, numParams);
+            long int numParams = (long int)params[1];
+            fileStream->write(params, (long int)sizeof(*params) * numParams);
             free(params);
          }
          // HyPerLayer::writeActivity calls HyPerLayer::incrementNBands, which maintains the value
@@ -1529,25 +1532,26 @@ int writeActivity(
 
          // write time
          //
-         if (PV_fwrite(&timed, sizeof(double), 1, pvstream) != 1) {
-            pvError().printf(
-                  "fwrite of timestamp in PV::writeActivity failed in file \"%s\" at time %f\n",
-                  pvstream->name,
-                  timed);
-            return -1;
-         }
+         fileStream->write(&timed, (long int)sizeof(timed));
       }
-
-      if (gatherActivity(pvstream, comm, 0 /*root process*/, data, loc, true /*extended*/)
-          != PV_SUCCESS) {
-         status = PV_FAILURE;
+      PVHalo const &halo   = loc->halo;
+      int const nxExt      = loc->nx + halo.lt + halo.rt;
+      int const nyExt      = loc->ny + halo.dn + halo.up;
+      int const nf         = loc->nf;
+      auto pvpBuffer       = Buffer<pvadata_t>(data, nxExt, nyExt, nf);
+      auto pvpBufferGlobal = BufferUtils::gather(comm, pvpBuffer, loc->nx, loc->ny);
+      if (rank == 0) {
+         pvpBufferGlobal.crop(loc->nxGlobal, loc->nyGlobal, Buffer<pvadata_t>::CENTER);
+         fileStream->write(
+               pvpBufferGlobal.asVector().data(),
+               pvpBufferGlobal.getTotalElements() * sizeof(pvadata_t));
       }
    }
    return status;
 }
 
 int writeActivitySparse(
-      PV_Stream *pvstream,
+      FileStream *fileStream,
       Communicator *comm,
       double timed,
       DataStore *store,
@@ -1725,73 +1729,32 @@ int writeActivitySparse(
          bool extended   = false;
          bool contiguous = true;
 
-         const int datatype = includeValues ? PV_SPARSEVALUES_TYPE : PV_INT_TYPE;
-         const int filetype = includeValues ? PVP_ACT_SPARSEVALUES_FILE_TYPE : PVP_ACT_FILE_TYPE;
-
          // write activity header
          //
-         long fpos = getPV_StreamFilepos(pvstream);
+         long fpos = fileStream->getOutPos();
          if (fpos == 0L) {
-            int numParams = NUM_BIN_PARAMS;
-            status        = pvp_write_header(
-                  pvstream,
-                  comm,
-                  timed,
-                  loc,
-                  filetype,
-                  datatype,
-                  1,
-                  extended,
-                  contiguous,
-                  numParams,
-                  (size_t)totalActive);
-            if (status != 0) {
-               pvErrorNoExit().printf(
-                     "[%2d]: writeActivitySparse: failed in pvp_write_header, numParams==%d, "
-                     "localActive==%d\n",
-                     comm->commRank(),
-                     numParams,
-                     localActive);
-               return status;
+            auto header = BufferUtils::buildHeader<pvadata_t>(
+                  loc->nxGlobal, loc->nyGlobal, loc->nf, 1, true /*sparse*/);
+            // Hack because buildHeader doesn't handle sparse binary type.
+            if (!includeValues) {
+               header.at(INDEX_FILE_TYPE) = PVP_ACT_FILE_TYPE;
+               header.at(INDEX_DATA_TYPE) = PV_INT_TYPE;
             }
+            fileStream->write(header.data(), (long)(header.size() * sizeof(*header.data())));
          }
-
          // write time, total active count, and local activity
          //
-         status = (PV_fwrite(&timed, sizeof(double), 1, pvstream) != 1);
-         if (status != 0) {
-            pvErrorNoExit().printf(
-                  "[%2d]: writeActivitySparse: failed in fwrite(&timed), time==%f\n",
-                  comm->commRank(),
-                  timed);
-            return status;
-         }
-         status = (PV_fwrite(&totalActive, sizeof(unsigned int), 1, pvstream) != 1);
-         if (status != 0) {
-            pvErrorNoExit().printf(
-                  "[%2d]: writeActivitySparse: failed in fwrite(&totalActive), totalActive==%d\n",
-                  comm->commRank(),
-                  totalActive);
-            return status;
-         }
+         fileStream->write(&timed, sizeof(timed));
+         fileStream->write(&totalActive, sizeof(totalActive));
 
          if (localResActive > 0) {
             if (includeValues) {
-               status =
-                     (PV_fwrite(indexvaluepairs, sizeof(indexvaluepair), localResActive, pvstream)
-                      != (size_t)localResActive);
+               fileStream->write(
+                     indexvaluepairs, (long)localResActive * (long)sizeof(indexvaluepair));
             }
             else {
-               status =
-                     (PV_fwrite(globalResIndices, sizeof(unsigned int), localResActive, pvstream)
-                      != (size_t)localResActive);
-            }
-            if (status != 0) {
-               pvErrorNoExit().printf(
-                     "[%2d]: writeActivitySparse: failed in PV_fwrite(indices), localActive==%d\n",
-                     comm->commRank(),
-                     localResActive);
-               return status;
+               fileStream->write(
+                     globalResIndices, (long)localResActive * (long)sizeof(unsigned int));
             }
          }
 
@@ -1828,16 +1791,7 @@ int writeActivitySparse(
             MPI_Status mpi_status;
             MPI_Recv(data, numActive[p] * datasize, MPI_CHAR, p, tag, mpi_comm, &mpi_status);
 
-            status = (PV_fwrite(data, datasize, numActive[p], pvstream) != numActive[p]);
-            if (status != 0) {
-               pvErrorNoExit().printf(
-                     "[%2d]: writeActivitySparse: failed in PV_fwrite(indices), numActive[p]==%d, "
-                     "p=%d\n",
-                     comm->commRank(),
-                     numActive[p],
-                     p);
-               return status;
-            }
+            fileStream->write(data, (long)datasize * (long)numActive[p]);
          }
          free(numActive);
 #endif // PV_USE_MPI

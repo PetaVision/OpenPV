@@ -61,11 +61,13 @@ void FilenameParsingGroundTruthLayer::ioParam_classes(enum ParamsIOFlag ioFlag) 
 
 int FilenameParsingGroundTruthLayer::communicateInitInfo() {
    mInputLayer = dynamic_cast<InputLayer *>(parent->getLayerFromName(mInputLayerName));
-   pvErrorIf(mInputLayer == nullptr && parent->columnId() == 0,
+   pvErrorIf(
+         mInputLayer == nullptr && parent->columnId() == 0,
          "%s: inputLayerName \"%s\" is not a layer in the HyPerCol.\n",
          getDescription_c(),
          mInputLayerName);
-   pvErrorIf(mInputLayer->getPhase() <= getPhase(),
+   pvErrorIf(
+         mInputLayer->getPhase() <= getPhase(),
          "%s: The phase of layer %s (%d) must be greater than the phase of the "
          "FilenameParsingGroundTruthLayer (%d)\n",
          getName(),

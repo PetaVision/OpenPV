@@ -1,10 +1,11 @@
 #pragma once
 
+#include "io/Secretary.hpp"
 #include <vector>
 
 namespace PV {
 
-class BatchIndexer {
+class BatchIndexer : public SecretaryDataInterface {
 
   public:
    enum BatchMethod { BYFILE, BYLIST, BYSPECIFIED };
@@ -18,6 +19,7 @@ class BatchIndexer {
    int nextIndex(int localBatchIndex);
    void specifyBatching(int localBatchIndex, int startIndex, int skipAmount);
    void initializeBatch(int localBatchIndex);
+   virtual int registerData(Secretary *secretary, std::string const &objName) override;
    void setIndices(const std::vector<int> &indices) { mIndices = indices; }
    void setWrapToStartIndex(bool value) { mWrapToStartIndex = value; }
    bool getWrapToStartIndex() { return mWrapToStartIndex; }

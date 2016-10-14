@@ -47,7 +47,6 @@ class Retina : public PV::HyPerLayer {
 
    virtual int updateState(double time, double dt);
    virtual int outputState(double time, bool last);
-   virtual int checkpointWrite(const char *cpDir);
 
    virtual bool activityIsSpiking() { return spikingFlag; }
 
@@ -66,6 +65,7 @@ class Retina : public PV::HyPerLayer {
    virtual void ioParam_refractoryPeriod(enum ParamsIOFlag ioFlag);
    virtual void ioParam_absRefractoryPeriod(enum ParamsIOFlag ioFlag);
    virtual int allocateV();
+   virtual int registerData(Secretary *secretary, std::string const &objName);
    virtual int initializeV();
    virtual int initializeActivity();
    virtual int readStateFromCheckpoint(const char *cpDir, double *timeptr);

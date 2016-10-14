@@ -31,9 +31,9 @@ class CloneVLayer : public PV::HyPerLayer {
    virtual void ioParam_originalLayerName(enum ParamsIOFlag ioFlag);
    virtual void ioParam_InitVType(enum ParamsIOFlag ioFlag);
    virtual int allocateV();
+   virtual int registerData(Secretary *secretary, std::string const &objName) override;
    virtual int initializeV();
    virtual int readVFromCheckpoint(const char *cpDir, double *timeptr);
-   virtual int checkpointWrite(const char *cpDir);
    virtual int updateState(double timed, double dt);
 
   private:

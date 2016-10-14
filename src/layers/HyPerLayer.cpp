@@ -19,6 +19,8 @@
 #include "connections/TransposeConn.hpp"
 #include "include/default_params.h"
 #include "include/pv_common.h"
+#include "io/CheckpointEntryDataStore.hpp"
+#include "io/CheckpointEntryRandState.hpp"
 #include "io/fileio.hpp"
 #include "io/imageio.hpp"
 #include "io/io.hpp"
@@ -71,7 +73,6 @@ int HyPerLayer::initialize_base() {
    initVObject                  = NULL;
    triggerOffset                = 0;
    initializeFromCheckpointFlag = false;
-   outputStateStream            = NULL;
 
    mLastUpdateTime  = 0.0;
    mLastTriggerTime = 0.0;
@@ -222,9 +223,7 @@ HyPerLayer::~HyPerLayer() {
    delete gpu_update_timer;
 #endif
 
-   if (outputStateStream) {
-      pvp_close_file(outputStateStream, parent->getCommunicator());
-   }
+   delete mOutputStateStream;
 
    delete initVObject;
    freeClayer();
@@ -538,13 +537,63 @@ void HyPerLayer::addPublisher() {
    publisher = new Publisher(icComm, clayer->activity, getNumDelayLevels(), getSparseFlag());
 }
 
+void HyPerLayer::checkpointPvpActivityFloat(
+      Secretary *secretary,
+      char const *bufferName,
+      float *pvpBuffer,
+      bool extended) {
+   bool registerSucceeded = secretary->registerCheckpointEntry(
+         std::make_shared<CheckpointEntryPvp<float>>(
+               getName(),
+               bufferName,
+               parent->getCommunicator(),
+               pvpBuffer,
+               sizeof(float),
+               PV_FLOAT_TYPE,
+               getLayerLoc(),
+               extended));
+   pvErrorIf(
+         !registerSucceeded,
+         "%s failed to register %s for checkpointing.\n",
+         getDescription_c(),
+         bufferName);
+}
+
+void HyPerLayer::checkpointDataStore(
+      Secretary *secretary,
+      char const *bufferName,
+      DataStore *datastore) {
+   bool registerSucceeded = secretary->registerCheckpointEntry(
+         std::make_shared<CheckpointEntryDataStore>(
+               getName(), bufferName, parent->getCommunicator(), datastore, getLayerLoc()));
+}
+
+void HyPerLayer::checkpointRandState(
+      Secretary *secretary,
+      char const *bufferName,
+      Random *randState,
+      bool extendedFlag) {
+   bool registerSucceeded = secretary->registerCheckpointEntry(
+         std::make_shared<CheckpointEntryRandState>(
+               getName(),
+               bufferName,
+               parent->getCommunicator(),
+               randState->getRNG(0),
+               getLayerLoc(),
+               extendedFlag));
+   pvErrorIf(
+         !registerSucceeded,
+         "%s failed to register %s for checkpointing.\n",
+         getDescription_c(),
+         bufferName);
+}
+
 int HyPerLayer::initializeState() {
    int status       = PV_SUCCESS;
    PVParams *params = parent->parameters();
 
    if (parent->getCheckpointReadFlag()) {
-      double checkTime = parent->simulationTime();
-      checkpointRead(parent->getCheckpointReadDir(), &checkTime);
+      // Oct 14, 2016. Layer checkpoint reading/writing now handled by registerData()
    }
    else if (
          parent->getInitializeFromCheckpointDir() && parent->getInitializeFromCheckpointDir()[0]) {
@@ -1224,22 +1273,6 @@ int HyPerLayer::communicateInitInfo() {
    return status;
 }
 
-char const *HyPerLayer::getOutputStatePath() {
-   return outputStateStream ? outputStateStream->name : NULL;
-}
-
-int HyPerLayer::flushOutputStateStream() {
-   int status = 0;
-   if (outputStateStream && outputStateStream->fp) {
-      status = fflush(outputStateStream->fp);
-   }
-   else {
-      status = EOF;
-      errno  = EBADF;
-   }
-   return status;
-}
-
 int HyPerLayer::openOutputStateFile() {
    if (writeStep < 0) {
       ioAppend = false;
@@ -1281,47 +1314,54 @@ int HyPerLayer::openOutputStateFile() {
    // initialize writeActivityCalls and writeSparseActivityCalls
    // only the root process needs these member variables so we don't need to do any MPI.
    int rootproc = 0;
-   if (ioAppend && parent->columnId() == rootproc) {
-      struct stat statbuffer;
-      int filestatus = stat(filename, &statbuffer);
-      if (filestatus == 0) {
-         if (statbuffer.st_size == (off_t)0) {
-            ioAppend = false;
-         }
-      }
-      else {
-         if (errno == ENOENT) {
-            ioAppend = false;
+   if (parent->getCommunicator()->commRank() == 0) {
+      if (ioAppend) {
+         struct stat statbuffer;
+         int filestatus = stat(filename, &statbuffer);
+         if (filestatus == 0) {
+            if (statbuffer.st_size == (off_t)0) {
+               ioAppend = false;
+            }
          }
          else {
-            pvErrorNoExit().printf(
-                  "HyPerLayer::initializeLayerId: stat \"%s\": %s\n", filename, strerror(errno));
-            abort();
-         }
-      }
-   }
-   if (ioAppend && parent->columnId() == rootproc) {
-      PV_Stream *pvstream = PV_fopen(filename, "r", false /*verifyWrites*/);
-      if (pvstream) {
-         int params[NUM_BIN_PARAMS];
-         int numread = PV_fread(params, sizeof(int), NUM_BIN_PARAMS, pvstream);
-         if (numread == NUM_BIN_PARAMS) {
-            if (sparseLayer) {
-               writeActivitySparseCalls = params[INDEX_NBANDS];
+            if (errno == ENOENT) {
+               ioAppend = false;
             }
             else {
-               writeActivityCalls = params[INDEX_NBANDS];
+               pvErrorNoExit().printf(
+                     "HyPerLayer::initializeLayerId: stat \"%s\": %s\n", filename, strerror(errno));
+               abort();
             }
          }
-         PV_fclose(pvstream);
+         PV_Stream *pvstream = PV_fopen(filename, "r", false /*verifyWrites*/);
+         if (pvstream) {
+            int params[NUM_BIN_PARAMS];
+            int numread = PV_fread(params, sizeof(int), NUM_BIN_PARAMS, pvstream);
+            if (numread == NUM_BIN_PARAMS) {
+               if (sparseLayer) {
+                  writeActivitySparseCalls = params[INDEX_NBANDS];
+               }
+               else {
+                  writeActivityCalls = params[INDEX_NBANDS];
+               }
+            }
+            PV_fclose(pvstream);
+         }
+         else {
+            ioAppend = false;
+         }
       }
-      else {
-         ioAppend = false;
+      std::ios_base::openmode mode = std::ios_base::out;
+      if (ioAppend) {
+         mode |= std::ios_base::in;
       }
+      std::string checkpointLabel(getName());
+      checkpointLabel.append("_filepos");
+      mOutputStateStream = new CheckpointableFileStream(
+            filename, mode, checkpointLabel, parent->getVerifyWrites());
    }
    Communicator *icComm = parent->getCommunicator();
    MPI_Bcast(&ioAppend, 1, MPI_INT, 0 /*root*/, icComm->communicator());
-   outputStateStream = pvp_open_write_file(filename, icComm, ioAppend);
    return PV_SUCCESS;
 }
 
@@ -1670,6 +1710,60 @@ int HyPerLayer::mirrorInteriorToBorder(PVLayerCube *cube, PVLayerCube *border) {
    mirrorToSouth(border, cube);
    mirrorToSouthEast(border, cube);
    return 0;
+}
+
+int HyPerLayer::registerData(Secretary *secretary, std::string const &objName) {
+   int status = BaseLayer::registerData(secretary, objName);
+   checkpointPvpActivityFloat(secretary, "A", getActivity(), true /*extended*/);
+   if (getV() != nullptr) {
+      checkpointPvpActivityFloat(secretary, "V", getV(), false /*not extended*/);
+   }
+   checkpointDataStore(secretary, "Delays", publisher->dataStore());
+   secretary->registerCheckpointData(
+         std::string(getName()),
+         std::string("lastUpdateTime"),
+         &mLastUpdateTime,
+         (std::size_t)1,
+         true /*broadcast*/);
+   secretary->registerCheckpointData(
+         std::string(getName()),
+         std::string("nextWrite"),
+         &writeTime,
+         (std::size_t)1,
+         true /*broadcast*/);
+
+   if (writeStep >= 0.0) {
+      if (sparseLayer) {
+         secretary->registerCheckpointData(
+               std::string(getName()),
+               std::string("numframes_sparse"),
+               &writeActivitySparseCalls,
+               (std::size_t)1,
+               true /*broadcast*/);
+      }
+      else {
+         secretary->registerCheckpointData(
+               std::string(getName()),
+               std::string("numframes"),
+               &writeActivityCalls,
+               (std::size_t)1,
+               true /*broadcast*/);
+      }
+   }
+   if (mOutputStateStream) {
+      mOutputStateStream->registerData(secretary, objName);
+   }
+
+   secretary->registerTimer(recvsyn_timer);
+   secretary->registerTimer(update_timer);
+#ifdef PV_USE_CUDA
+   secretary->registerTimer(gpu_recvsyn_timer);
+   secretary->registerTimer(gpu_update_timer);
+#endif // PV_USE_CUDA
+   secretary->registerTimer(publish_timer);
+   secretary->registerTimer(timescale_timer);
+   secretary->registerTimer(io_timer);
+   return PV_SUCCESS;
 }
 
 double HyPerLayer::getDeltaUpdateTime() {
@@ -2171,59 +2265,6 @@ int HyPerLayer::readDelaysFromCheckpoint(const char *cpDir, double *timeptr) {
    return status;
 }
 
-int HyPerLayer::checkpointRead(const char *cpDir, double *timeptr) {
-   int status = readStateFromCheckpoint(cpDir, timeptr);
-   if (status != PV_SUCCESS) {
-      pvError().printf(
-            "%s: rank %d process failed to read state from checkpoint directory \"%s\"\n",
-            getDescription_c(),
-            parent->columnId(),
-            cpDir);
-   }
-   Communicator *icComm = parent->getCommunicator();
-   parent->readScalarFromFile(
-         cpDir,
-         getName(),
-         "lastUpdateTime",
-         &mLastUpdateTime,
-         parent->simulationTime() - parent->getDeltaTime());
-   parent->readScalarFromFile(cpDir, getName(), "nextWrite", &writeTime, writeTime);
-
-   if (ioAppend) {
-      long activityfilepos = 0L;
-      parent->readScalarFromFile(cpDir, getName(), "filepos", &activityfilepos);
-      if (parent->columnId() == 0 && outputStateStream) {
-         if (PV_fseek(outputStateStream, activityfilepos, SEEK_SET) != 0) {
-            pvErrorNoExit().printf(
-                  "HyPerLayer::checkpointRead: unable to recover initial file position in activity "
-                  "file for layer %s\n",
-                  name);
-            abort();
-         }
-      }
-      int *num_calls_ptr = NULL;
-      const char *nfname = NULL;
-      if (sparseLayer) {
-         nfname        = "numframes_sparse";
-         num_calls_ptr = &writeActivitySparseCalls;
-      }
-      else {
-         nfname        = "numframes";
-         num_calls_ptr = &writeActivityCalls;
-      }
-      parent->readScalarFromFile(cpDir, getName(), nfname, num_calls_ptr, 0);
-   }
-   // Need to exchange border information since lastUpdateTime is being read from checkpoint, so no
-   // guarentee that publish will call exchange
-   status = publisher->exchangeBorders(getLayerLoc());
-   status |= publisher->wait();
-   assert(status == PV_SUCCESS);
-   // Update sparse indices here
-   status = updateAllActiveIndices();
-
-   return PV_SUCCESS;
-}
-
 template <class T>
 int HyPerLayer::readBufferFile(
       const char *filename,
@@ -2399,49 +2440,6 @@ int HyPerLayer::readDataStoreFromFile(const char *filename, Communicator *comm, 
    return status;
 }
 
-int HyPerLayer::checkpointWrite(const char *cpDir) {
-   // Writes checkpoint files for V, A, and datastore to files in working directory
-   Communicator *icComm = parent->getCommunicator();
-   double timed         = (double)parent->simulationTime();
-
-   char *filename = NULL;
-   filename       = parent->pathInCheckpoint(cpDir, getName(), "_A.pvp");
-   pvdata_t *A    = getActivity();
-   writeBufferFile(filename, icComm, timed, &A, 1, /*extended*/ true, getLayerLoc());
-   if (getV() != NULL) {
-      free(filename);
-      filename    = parent->pathInCheckpoint(cpDir, getName(), "_V.pvp");
-      pvdata_t *V = getV();
-      writeBufferFile(
-            filename, icComm, timed, &V, /*numbands*/ 1, /*extended*/ false, getLayerLoc());
-   }
-   free(filename);
-   filename = parent->pathInCheckpoint(cpDir, getName(), "_Delays.pvp");
-   writeDataStoreToFile(filename, icComm, timed);
-   free(filename);
-
-   parent->writeScalarToFile(cpDir, getName(), "lastUpdateTime", mLastUpdateTime);
-   parent->writeScalarToFile(cpDir, getName(), "nextWrite", writeTime);
-
-   if (parent->columnId() == 0) {
-      if (outputStateStream) {
-         long activityfilepos = getPV_StreamFilepos(outputStateStream);
-         parent->writeScalarToFile(cpDir, getName(), "filepos", activityfilepos);
-      }
-   }
-
-   if (writeStep >= 0.0) {
-      if (sparseLayer) {
-         parent->writeScalarToFile(cpDir, getName(), "numframes_sparse", writeActivitySparseCalls);
-      }
-      else {
-         parent->writeScalarToFile(cpDir, getName(), "numframes", writeActivityCalls);
-      }
-   }
-
-   return PV_SUCCESS;
-}
-
 template <typename T>
 int HyPerLayer::writeBufferFile(
       const char *filename,
@@ -2543,28 +2541,10 @@ int HyPerLayer::writeDataStoreToFile(const char *filename, Communicator *comm, d
    return status;
 }
 
-int HyPerLayer::writeTimers(PrintStream &stream) {
-   if (parent->getCommunicator()->commRank() == 0) {
-      recvsyn_timer->fprint_time(stream);
-      update_timer->fprint_time(stream);
-#ifdef PV_USE_CUDA
-      gpu_recvsyn_timer->fprint_time(stream);
-      gpu_update_timer->fprint_time(stream);
-#endif
-      publish_timer->fprint_time(stream);
-      timescale_timer->fprint_time(stream);
-      io_timer->fprint_time(stream);
-      for (int p = 0; p < getNumProbes(); p++) {
-         getProbe(p)->writeTimer(stream);
-      }
-   }
-   return PV_SUCCESS;
-}
-
 int HyPerLayer::writeActivitySparse(double timed, bool includeValues) {
    DataStore *store = publisher->dataStore();
    int status       = PV::writeActivitySparse(
-         outputStateStream, parent->getCommunicator(), timed, store, getLayerLoc(), includeValues);
+         mOutputStateStream, parent->getCommunicator(), timed, store, getLayerLoc(), includeValues);
 
    if (status == PV_SUCCESS) {
       status = incrementNBands(&writeActivitySparseCalls);
@@ -2575,9 +2555,9 @@ int HyPerLayer::writeActivitySparse(double timed, bool includeValues) {
 // write non-spiking activity
 int HyPerLayer::writeActivity(double timed) {
    DataStore *store = publisher->dataStore();
-   int status       = PV::writeActivity(
-         outputStateStream, parent->getCommunicator(), timed, store, getLayerLoc());
 
+   int status = PV::writeActivity(
+         mOutputStateStream, parent->getCommunicator(), timed, store, getLayerLoc());
    if (status == PV_SUCCESS) {
       status = incrementNBands(&writeActivityCalls);
    }
@@ -2588,20 +2568,14 @@ int HyPerLayer::incrementNBands(int *numCalls) {
    // Only the root process needs to maintain INDEX_NBANDS, so only the root process modifies
    // numCalls
    // This way, writeActivityCalls does not need to be coordinated across MPI
-   int status;
-   if (parent->getCommunicator()->commRank() == 0) {
-      assert(outputStateStream != NULL);
+   if (mOutputStateStream != nullptr) {
       (*numCalls)   = (*numCalls) + parent->getNBatch();
-      long int fpos = getPV_StreamFilepos(outputStateStream);
-      PV_fseek(outputStateStream, sizeof(int) * INDEX_NBANDS, SEEK_SET);
-      int intswritten = PV_fwrite(numCalls, sizeof(int), 1, outputStateStream);
-      PV_fseek(outputStateStream, fpos, SEEK_SET);
-      status = intswritten == 1 ? PV_SUCCESS : PV_FAILURE;
+      long int fpos = mOutputStateStream->getOutPos();
+      mOutputStateStream->setOutPos(sizeof(int) * INDEX_NBANDS, true /*fromBeginning*/);
+      mOutputStateStream->write(numCalls, (long)sizeof(*numCalls));
+      mOutputStateStream->setOutPos(fpos, true /*fromBeginning*/);
    }
-   else {
-      status = PV_SUCCESS;
-   }
-   return status;
+   return PV_SUCCESS;
 }
 
 bool HyPerLayer::localDimensionsEqual(PVLayerLoc const *loc1, PVLayerLoc const *loc2) {

@@ -57,11 +57,10 @@ class LIF : public PV::HyPerLayer {
 
    virtual int communicateInitInfo();
    virtual int allocateDataStructures();
+   virtual int registerData(Secretary *secretary, std::string const &objName) override;
 
    virtual int updateState(double time, double dt);
    virtual int setActivity();
-
-   virtual int checkpointWrite(const char *cpDir);
 
    pvdata_t *getVth() { return Vth; }
    virtual pvconductance_t *getConductance(ChannelType ch) {

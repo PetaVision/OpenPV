@@ -80,10 +80,14 @@ class BaseObject : public Observer, public SecretaryDataInterface {
    int respondAllocateData(AllocateDataMessage const *message);
    int respondRegisterData(RegisterDataMessage<Secretary> const *message);
    int respondInitializeState(InitializeStateMessage const *message);
+   int respondProcessCheckpointRead(Secretary::ProcessCheckpointReadMessage const *message);
+   int respondPrepareCheckpointWrite(Secretary::PrepareCheckpointWriteMessage const *message);
 
    virtual int communicateInitInfo() { return PV_SUCCESS; }
    virtual int allocateDataStructures() { return PV_SUCCESS; }
    virtual int initializeState() { return PV_SUCCESS; }
+   virtual int processCheckpointRead() { return PV_SUCCESS; }
+   virtual int prepareCheckpointWrite() { return PV_SUCCESS; }
 
    /**
     * This method sets mInitInfoCommunicatedFlag to true.

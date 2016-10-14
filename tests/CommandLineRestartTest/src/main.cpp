@@ -62,13 +62,13 @@ int main(int argc, char *argv[]) {
    delete hc;
 
    pv_init.setRestartFlag(true);
-   hc          = createHyPerCol(&pv_init);
+   hc = createHyPerCol(&pv_init);
+   pvErrorIf(hc == nullptr, "failed to create HyPerCol.\n");
    outputLayer = dynamic_cast<FailBeforeExpectedStartTimeLayer *>(hc->getLayerFromName("Output"));
    pvErrorIf(
          outputLayer == nullptr,
          "Params file does not have a FailBeforeExpectedStartTimeLayer called \"Output\".\n");
    outputLayer->setExpectedStartTime(6.0);
-   pvErrorIf(hc == nullptr, "failed to create HyPerCol.\n");
    status = hc->run();
    pvErrorIf(status != PV_SUCCESS, "HyPerCol::run failed with restart flag set to true.\n");
    std::vector<pvdata_t> afterRestart = copyOutput(outputLayer);

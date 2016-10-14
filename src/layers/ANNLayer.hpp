@@ -193,9 +193,6 @@ class ANNLayer : public HyPerLayer {
 
    virtual int resetGSynBuffers(double timef, double dt);
 
-   virtual int checkpointRead(const char *cpDir, double *timeptr);
-   virtual int checkpointWrite(const char *cpDir);
-
    // Data members, initialized to default values.
    bool verticesListInParams =
          false; // True if verticesV/verticesA were specified in params explicitly; false otherwise

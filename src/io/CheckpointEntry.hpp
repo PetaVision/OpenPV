@@ -9,6 +9,7 @@
 #define CHECKPOINTENTRY_HPP_
 
 #include "columns/Communicator.hpp"
+#include "io/PrintStream.hpp"
 #include <string>
 
 namespace PV {
@@ -122,6 +123,9 @@ class CheckpointEntryPvp : public CheckpointEntry {
          const override;
    virtual void read(std::string const &checkpointDirectory, double *simTimePtr) const override;
    virtual void remove(std::string const &checkpointDirectory) const override;
+
+  private:
+   T *calcBatchElementStart(int batchElement) const;
 
   private:
    T *mDataPointer;

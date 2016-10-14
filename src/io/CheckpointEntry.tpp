@@ -44,7 +44,7 @@ void CheckpointEntryData<T>::read(std::string const &checkpointDirectory, double
             false /*reading doesn't use verifyWrites, but PV_fopen constructor still takes it as an argument.*/);
       int numRead = PV_fread(mDataPointer, sizeof(T), mNumValues, pvstream);
       if (numRead != mNumValues) {
-         pvError() << "CheckpointData::read: unable to read from \"" << path << "\".\n";
+         pvError() << "CheckpointEntryData::read: unable to read from \"" << path << "\".\n";
       }
       PV_fclose(pvstream);
    }
@@ -85,9 +85,7 @@ void CheckpointEntryPvp<T>::write(
       free(params);
    }
    for (int b = 0; b < mLayerLoc->nbatch; b++) {
-      int nxExt            = mLayerLoc->nx + mLayerLoc->halo.lt + mLayerLoc->halo.rt;
-      int nyExt            = mLayerLoc->ny + mLayerLoc->halo.dn + mLayerLoc->halo.up;
-      T *batchElementStart = &mDataPointer[b * nxExt * nyExt * mLayerLoc->nf];
+      T *batchElementStart = calcBatchElementStart(b);
       if (pvstream) {
          PV_fwrite(&simTime, sizeof(double), (size_t)1, pvstream);
       }
@@ -114,21 +112,32 @@ void CheckpointEntryPvp<T>::read(std::string const &checkpointDirectory, double 
    MPI_Datatype *exchangeDatatypes = getCommunicator()->newDatatypes(mLayerLoc);
    std::vector<MPI_Request> req{};
    for (int b = 0; b < mLayerLoc->nbatch; b++) {
-      int nxExt            = mLayerLoc->nx + mLayerLoc->halo.lt + mLayerLoc->halo.rt;
-      int nyExt            = mLayerLoc->ny + mLayerLoc->halo.dn + mLayerLoc->halo.up;
-      T *batchElementStart = &mDataPointer[b * nxExt * nyExt * mLayerLoc->nf];
+      T *batchElementStart = calcBatchElementStart(b);
       if (pvstream) {
          PV_fread(simTimePtr, sizeof(double), (size_t)1, pvstream);
       }
       scatterActivity(
             pvstream, getCommunicator(), 0 /*rootproc*/, batchElementStart, mLayerLoc, mExtended);
-      getCommunicator()->exchange(batchElementStart, exchangeDatatypes, mLayerLoc, req);
-      // TODO: scattering should be aware of interprocess overlap region so that exchange call isn't
-      // necessary.
-      getCommunicator()->wait(req);
+      if (mExtended) {
+         getCommunicator()->exchange(batchElementStart, exchangeDatatypes, mLayerLoc, req);
+         getCommunicator()->wait(req);
+         // TODO: scattering should be aware of interprocess overlap region so that exchange call
+         // isn't necessary.
+      }
    }
    getCommunicator()->freeDatatypes(exchangeDatatypes);
    MPI_Bcast(simTimePtr, 1, MPI_DOUBLE, 0, getCommunicator()->communicator());
+}
+
+template <typename T>
+T *CheckpointEntryPvp<T>::calcBatchElementStart(int batchElement) const {
+   int nx = mLayerLoc->nx;
+   int ny = mLayerLoc->ny;
+   if (mExtended) {
+      nx += mLayerLoc->halo.lt + mLayerLoc->halo.rt;
+      ny += mLayerLoc->halo.dn + mLayerLoc->halo.up;
+   }
+   return &mDataPointer[batchElement * nx * ny * mLayerLoc->nf];
 }
 
 template <typename T>

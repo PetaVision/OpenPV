@@ -228,53 +228,36 @@ int MomentumLCALayer::updateState(double time, double dt) {
    return PV_SUCCESS;
 }
 
-int MomentumLCALayer::checkpointWrite(const char *cpDir) {
-   HyPerLCALayer::checkpointWrite(cpDir);
-
-#ifdef PV_USE_CUDA
-   if (updateGpu) {
-      d_prevDrive->copyFromDevice(prevDrive);
-      parent->getDevice()->syncDevice();
-   }
-#endif
-
-   // Writes checkpoint files for V, A, and datastore to files in working directory
-   Communicator *icComm = parent->getCommunicator();
-   double timed         = (double)parent->simulationTime();
-   char *filename       = NULL;
-   filename             = parent->pathInCheckpoint(cpDir, getName(), "_prevDrive.pvp");
-   int status           = writeBufferFile(
-         filename, icComm, timed, &prevDrive, /*numbands*/ 1, /*extended*/ false, getLayerLoc());
-   assert(status == PV_SUCCESS);
-   free(filename);
+int MomentumLCALayer::registerData(Secretary *secretary, std::string const &objName) {
+   int status = HyPerLCALayer::registerData(secretary, objName);
+   checkpointPvpActivityFloat(secretary, "prevDrive", prevDrive, false /*not extended*/);
+   secretary->addObserver(this, BaseMessage{});
    return status;
-} /* namespace PV */
+}
 
-int MomentumLCALayer::checkpointRead(const char *cpDir, double *timeptr) {
-   HyPerLCALayer::checkpointRead(cpDir, timeptr);
-   int status     = PV_SUCCESS;
-   char *filename = parent->pathInCheckpoint(cpDir, getName(), "_prevDrive.pvp");
-   status         = readBufferFile(
-         filename,
-         parent->getCommunicator(),
-         timeptr,
-         &prevDrive,
-         1,
-         /*extended*/ false,
-         getLayerLoc());
-   assert(status == PV_SUCCESS);
-   free(filename);
-
+int MomentumLCALayer::processCheckpointRead() {
 #ifdef PV_USE_CUDA
-   // Copy over d_prevDrive
+   // Copy prevDrive onto GPU
    if (updateGpu) {
       d_prevDrive->copyToDevice(prevDrive);
       parent->getDevice()->syncDevice();
    }
 #endif
-   return status;
+   return PV_SUCCESS;
 }
+
+int MomentumLCALayer::prepareCheckpointWrite() {
+#ifdef PV_USE_CUDA
+   // Copy prevDrive from GPU
+   if (updateGpu) {
+      d_prevDrive->copyFromDevice(prevDrive);
+      parent->getDevice()->syncDevice();
+   }
+#endif
+   return PV_SUCCESS;
 }
+
+} // end namespace PV
 
 void MomentumLCALayer_update_state(
       const int nbatch,

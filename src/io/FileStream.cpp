@@ -78,7 +78,7 @@ void FileStream::verifyFlags(const char *caller) {
    pvErrorIf(readable() && getInPos() == -1, "%s: in pos == -1\n", caller);
 }
 
-void FileStream::write(void *data, long length) {
+void FileStream::write(void const *data, long length) {
    long startPos = getOutPos();
    mFStream.write((char *)data, length);
    mFStream.flush();

@@ -7,6 +7,7 @@
 #include "HyPerLayer.hpp"
 #include "columns/HyPerCol.hpp"
 #include "components/BatchIndexer.hpp"
+#include "io/CheckpointableFileStream.hpp"
 #include "structures/Buffer.hpp"
 #include "utils/BufferUtilsRescale.hpp"
 
@@ -116,6 +117,7 @@ class InputLayer : public HyPerLayer {
    virtual int initializeV();
    virtual int initializeActivity();
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual int registerData(Secretary *secretary, std::string const &objName) override;
    virtual double getDeltaUpdateTime();
 
    // Method that signals when to load the next file.
@@ -135,8 +137,6 @@ class InputLayer : public HyPerLayer {
    virtual int requireChannel(int channelNeeded, int *numChannelsResult);
    virtual int allocateDataStructures();
    virtual int updateState(double time, double dt);
-   virtual int checkpointRead(const char *cpDir, double *timef);
-   virtual int checkpointWrite(const char *cpDir);
    virtual bool activityIsSpiking() { return false; }
    void exchange();
    int getDisplayPeriod() { return mDisplayPeriod; }
@@ -201,7 +201,7 @@ class InputLayer : public HyPerLayer {
    std::string mInputPath;
 
    // Filepointer to output file used when mWriteFrameToTimestamp == true
-   PV_Stream *mTimestampFile = nullptr;
+   CheckpointableFileStream *mTimestampStream = nullptr;
 
    // Number of timesteps an input file is displayed before advancing the file list. If <= 0, the
    // file never changes.

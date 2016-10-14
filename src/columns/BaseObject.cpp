@@ -86,9 +86,24 @@ int BaseObject::respond(std::shared_ptr<BaseMessage const> message) {
       return respondAllocateData(castMessage);
    }
    else if (
+         RegisterDataMessage<Secretary> const *castMessage =
+               dynamic_cast<RegisterDataMessage<Secretary> const *>(message.get())) {
+      return respondRegisterData(castMessage);
+   }
+   else if (
          InitializeStateMessage const *castMessage =
                dynamic_cast<InitializeStateMessage const *>(message.get())) {
       return respondInitializeState(castMessage);
+   }
+   else if (
+         Secretary::ProcessCheckpointReadMessage const *castMessage =
+               dynamic_cast<Secretary::ProcessCheckpointReadMessage const *>(message.get())) {
+      return respondProcessCheckpointRead(castMessage);
+   }
+   else if (
+         Secretary::PrepareCheckpointWriteMessage const *castMessage =
+               dynamic_cast<Secretary::PrepareCheckpointWriteMessage const *>(message.get())) {
+      return respondPrepareCheckpointWrite(castMessage);
    }
    else {
       return PV_SUCCESS;
@@ -137,6 +152,16 @@ int BaseObject::respondInitializeState(InitializeStateMessage const *message) {
       setInitialValuesSetFlag();
    }
    return status;
+}
+
+int BaseObject::respondProcessCheckpointRead(
+      Secretary::ProcessCheckpointReadMessage const *message) {
+   return processCheckpointRead();
+}
+
+int BaseObject::respondPrepareCheckpointWrite(
+      Secretary::PrepareCheckpointWriteMessage const *message) {
+   return prepareCheckpointWrite();
 }
 
 BaseObject::~BaseObject() { free(name); }

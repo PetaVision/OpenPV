@@ -187,23 +187,9 @@ int LIFGap::calcGapStrength() {
    return PV_SUCCESS;
 }
 
-int LIFGap::checkpointWrite(const char *cpDir) {
-   int status = LIF::checkpointWrite(cpDir);
-
-   // checkpoint gapStrength buffer
-   Communicator *icComm = parent->getCommunicator();
-   double timed         = (double)parent->simulationTime();
-   int filenamesize =
-         strlen(cpDir) + (size_t)1 + strlen(name) + strlen("_gapStrength.pvp") + (size_t)1;
-   // The +1's are for the slash between cpDir and name, and for the null terminator
-   char *filename = (char *)malloc(filenamesize * sizeof(char));
-   assert(filename != NULL);
-   int chars_needed;
-
-   chars_needed = snprintf(filename, filenamesize, "%s/%s_gapStrength.pvp", cpDir, name);
-   assert(chars_needed < filenamesize);
-   writeBufferFile(filename, icComm, timed, &gapStrength, 1, /*extended*/ false, getLayerLoc());
-   free(filename);
+int LIFGap::registerData(Secretary *secretary, std::string const &objName) {
+   int status = LIF::registerData(secretary, objName);
+   checkpointPvpActivityFloat(secretary, "gapStrength", gapStrength, false /*not extended*/);
    return status;
 }
 

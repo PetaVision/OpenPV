@@ -298,33 +298,11 @@ int Retina::readRandStateFromCheckpoint(const char *cpDir) {
    return status;
 }
 
-int Retina::checkpointWrite(const char *cpDir) {
-   int status = HyPerLayer::checkpointWrite(cpDir);
-
-   // Save rand_state
-   char filename[PV_PATH_MAX];
-   int chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_rand_state.bin", cpDir, name);
-   if (chars_needed >= PV_PATH_MAX) {
-      if (parent->getCommunicator()->commRank() == 0) {
-         pvErrorNoExit().printf(
-               "HyPerLayer::checkpointWrite for %s:  base pathname \"%s/%s_rand_state.bin\" too "
-               "long.\n",
-               getDescription_c(),
-               cpDir,
-               name);
-      }
-      abort();
-   }
+int Retina::registerData(Secretary *secretary, std::string const &objName) {
+   int status = HyPerLayer::registerData(secretary, objName);
    if (spikingFlag) {
-      int rand_state_status = writeRandState(
-            filename,
-            parent->getCommunicator(),
-            randState->getRNG(0),
-            getLayerLoc(),
-            true /*isExtended*/,
-            parent->getVerifyWrites());
-      if (rand_state_status != PV_SUCCESS)
-         status = rand_state_status;
+      pvAssert(randState != nullptr);
+      checkpointRandState(secretary, "rand_state", randState, true /*extended*/);
    }
    return status;
 }

@@ -16,8 +16,6 @@ class MomentumLCALayer : public PV::HyPerLCALayer {
   public:
    MomentumLCALayer(const char *name, HyPerCol *hc);
    virtual ~MomentumLCALayer();
-   virtual int checkpointWrite(const char *cpDir);
-   virtual int checkpointRead(const char *cpDir, double *timeptr);
 
   protected:
    MomentumLCALayer();
@@ -34,6 +32,10 @@ class MomentumLCALayer : public PV::HyPerLCALayer {
    virtual void ioParam_LCAMomentumRate(enum ParamsIOFlag ioFlag);
 
    /** @} */
+
+   virtual int registerData(Secretary *secretary, std::string const &objName) override;
+   virtual int processCheckpointRead() override;
+   virtual int prepareCheckpointWrite() override;
 
    virtual int updateState(double time, double dt);
 

@@ -18,6 +18,7 @@ namespace PV {
 class PrintStream {
   public:
    PrintStream(std::ostream &stream) { setOutStream(stream); }
+   virtual ~PrintStream() {}
 
    int printf(const char *fmt, ...) {
       va_list args1, args2;
