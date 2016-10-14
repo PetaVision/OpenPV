@@ -1523,8 +1523,8 @@ int writeActivity(
             int *params =
                   pvp_set_nonspiking_act_params(comm, timed, loc, PV_FLOAT_TYPE, 1 /*numbands*/);
             assert(params && params[1] == NUM_BIN_PARAMS);
-            long int numParams = (long int) params[1];
-            fileStream->write(params, (long int) sizeof(*params) * numParams);
+            long int numParams = (long int)params[1];
+            fileStream->write(params, (long int)sizeof(*params) * numParams);
             free(params);
          }
          // HyPerLayer::writeActivity calls HyPerLayer::incrementNBands, which maintains the value
@@ -1532,19 +1532,19 @@ int writeActivity(
 
          // write time
          //
-         fileStream->write(&timed, (long int) sizeof(timed));
+         fileStream->write(&timed, (long int)sizeof(timed));
       }
-      PVHalo const &halo = loc->halo;
-      int const nxExt = loc->nx + halo.lt + halo.rt;
-      int const nyExt = loc->ny + halo.dn + halo.up;
-      int const nf    = loc->nf;
-      auto pvpBuffer  = Buffer<pvadata_t>(data, nxExt, nyExt, nf);
+      PVHalo const &halo   = loc->halo;
+      int const nxExt      = loc->nx + halo.lt + halo.rt;
+      int const nyExt      = loc->ny + halo.dn + halo.up;
+      int const nf         = loc->nf;
+      auto pvpBuffer       = Buffer<pvadata_t>(data, nxExt, nyExt, nf);
       auto pvpBufferGlobal = BufferUtils::gather(comm, pvpBuffer, loc->nx, loc->ny);
       if (rank == 0) {
          pvpBufferGlobal.crop(loc->nxGlobal, loc->nyGlobal, Buffer<pvadata_t>::CENTER);
          fileStream->write(
                pvpBufferGlobal.asVector().data(),
-               pvpBufferGlobal.getTotalElements()*sizeof(pvadata_t));
+               pvpBufferGlobal.getTotalElements() * sizeof(pvadata_t));
       }
    }
    return status;
@@ -1729,23 +1729,18 @@ int writeActivitySparse(
          bool extended   = false;
          bool contiguous = true;
 
-
          // write activity header
          //
          long fpos = fileStream->getOutPos();
          if (fpos == 0L) {
             auto header = BufferUtils::buildHeader<pvadata_t>(
-                  loc->nxGlobal,
-                  loc->nyGlobal,
-                  loc->nf,
-                  1,
-                  true /*sparse*/);
+                  loc->nxGlobal, loc->nyGlobal, loc->nf, 1, true /*sparse*/);
             // Hack because buildHeader doesn't handle sparse binary type.
             if (!includeValues) {
                header.at(INDEX_FILE_TYPE) = PVP_ACT_FILE_TYPE;
                header.at(INDEX_DATA_TYPE) = PV_INT_TYPE;
             }
-            fileStream->write(header.data(), (long) (header.size() * sizeof(*header.data())));
+            fileStream->write(header.data(), (long)(header.size() * sizeof(*header.data())));
          }
          // write time, total active count, and local activity
          //
@@ -1754,10 +1749,12 @@ int writeActivitySparse(
 
          if (localResActive > 0) {
             if (includeValues) {
-               fileStream->write(indexvaluepairs, (long) localResActive * (long) sizeof(indexvaluepair));
+               fileStream->write(
+                     indexvaluepairs, (long)localResActive * (long)sizeof(indexvaluepair));
             }
             else {
-               fileStream->write(globalResIndices, (long) localResActive * (long) sizeof(unsigned int));
+               fileStream->write(
+                     globalResIndices, (long)localResActive * (long)sizeof(unsigned int));
             }
          }
 
@@ -1794,7 +1791,7 @@ int writeActivitySparse(
             MPI_Status mpi_status;
             MPI_Recv(data, numActive[p] * datasize, MPI_CHAR, p, tag, mpi_comm, &mpi_status);
 
-            fileStream->write(data, (long) datasize*(long) numActive[p]);
+            fileStream->write(data, (long)datasize * (long)numActive[p]);
          }
          free(numActive);
 #endif // PV_USE_MPI

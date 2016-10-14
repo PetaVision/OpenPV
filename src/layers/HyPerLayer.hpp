@@ -245,7 +245,7 @@ class HyPerLayer : public BaseLayer {
          char const *bufferName,
          float *pvpBuffer,
          bool extended);
-   void checkpointDataStore(Secretary *secretary, char const *bufferName, DataStore * datastore);
+   void checkpointDataStore(Secretary *secretary, char const *bufferName, DataStore *datastore);
    void checkpointRandState(
          Secretary *secretary,
          char const *bufferName,

@@ -62,7 +62,7 @@ int main(int argc, char *argv[]) {
    delete hc;
 
    pv_init.setRestartFlag(true);
-   hc          = createHyPerCol(&pv_init);
+   hc = createHyPerCol(&pv_init);
    pvErrorIf(hc == nullptr, "failed to create HyPerCol.\n");
    outputLayer = dynamic_cast<FailBeforeExpectedStartTimeLayer *>(hc->getLayerFromName("Output"));
    pvErrorIf(

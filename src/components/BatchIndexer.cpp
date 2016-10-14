@@ -68,11 +68,11 @@ void BatchIndexer::initializeBatch(int localBatchIndex) {
 
 int BatchIndexer::registerData(Secretary *secretary, std::string const &objName) {
    secretary->registerCheckpointData<int>(
-         objName, std::string("FrameNumbers"),
+         objName,
+         std::string("FrameNumbers"),
          mIndices.data(),
          mIndices.size(),
-         false/*do not broadcast*/);
+         false /*do not broadcast*/);
    return PV_SUCCESS;
 }
-
 }

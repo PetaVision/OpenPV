@@ -559,14 +559,13 @@ void HyPerLayer::checkpointPvpActivityFloat(
          bufferName);
 }
 
-void HyPerLayer::checkpointDataStore(Secretary *secretary, char const *bufferName, DataStore * datastore) {
+void HyPerLayer::checkpointDataStore(
+      Secretary *secretary,
+      char const *bufferName,
+      DataStore *datastore) {
    bool registerSucceeded = secretary->registerCheckpointEntry(
          std::make_shared<CheckpointEntryDataStore>(
-               getName(),
-               bufferName,
-               parent->getCommunicator(),
-               datastore,
-               getLayerLoc()));
+               getName(), bufferName, parent->getCommunicator(), datastore, getLayerLoc()));
 }
 
 void HyPerLayer::checkpointRandState(
@@ -1315,7 +1314,7 @@ int HyPerLayer::openOutputStateFile() {
    // initialize writeActivityCalls and writeSparseActivityCalls
    // only the root process needs these member variables so we don't need to do any MPI.
    int rootproc = 0;
-   if (parent->getCommunicator()->commRank()==0) {
+   if (parent->getCommunicator()->commRank() == 0) {
       if (ioAppend) {
          struct stat statbuffer;
          int filestatus = stat(filename, &statbuffer);
@@ -1353,7 +1352,9 @@ int HyPerLayer::openOutputStateFile() {
          }
       }
       std::ios_base::openmode mode = std::ios_base::out;
-      if (ioAppend) { mode |= std::ios_base::in; }
+      if (ioAppend) {
+         mode |= std::ios_base::in;
+      }
       std::string checkpointLabel(getName());
       checkpointLabel.append("_filepos");
       mOutputStateStream = new CheckpointableFileStream(
@@ -2571,7 +2572,7 @@ int HyPerLayer::incrementNBands(int *numCalls) {
       (*numCalls)   = (*numCalls) + parent->getNBatch();
       long int fpos = mOutputStateStream->getOutPos();
       mOutputStateStream->setOutPos(sizeof(int) * INDEX_NBANDS, true /*fromBeginning*/);
-      mOutputStateStream->write(numCalls, (long) sizeof(*numCalls));
+      mOutputStateStream->write(numCalls, (long)sizeof(*numCalls));
       mOutputStateStream->setOutPos(fpos, true /*fromBeginning*/);
    }
    return PV_SUCCESS;
