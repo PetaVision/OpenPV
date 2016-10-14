@@ -19,6 +19,7 @@
 #include "connections/TransposeConn.hpp"
 #include "include/default_params.h"
 #include "include/pv_common.h"
+#include "io/CheckpointEntryDataStore.hpp"
 #include "io/CheckpointEntryRandState.hpp"
 #include "io/fileio.hpp"
 #include "io/imageio.hpp"
@@ -558,6 +559,16 @@ void HyPerLayer::checkpointPvpActivityFloat(
          bufferName);
 }
 
+void HyPerLayer::checkpointDataStore(Secretary *secretary, char const *bufferName, DataStore * datastore) {
+   bool registerSucceeded = secretary->registerCheckpointEntry(
+         std::make_shared<CheckpointEntryDataStore>(
+               getName(),
+               bufferName,
+               parent->getCommunicator(),
+               datastore,
+               getLayerLoc()));
+}
+
 void HyPerLayer::checkpointRandState(
       Secretary *secretary,
       char const *bufferName,
@@ -583,8 +594,7 @@ int HyPerLayer::initializeState() {
    PVParams *params = parent->parameters();
 
    if (parent->getCheckpointReadFlag()) {
-      double checkTime = parent->simulationTime();
-      checkpointRead(parent->getCheckpointReadDir(), &checkTime);
+      // Oct 14, 2016. Layer checkpoint reading/writing now handled by registerData()
    }
    else if (
          parent->getInitializeFromCheckpointDir() && parent->getInitializeFromCheckpointDir()[0]) {
@@ -1707,6 +1717,7 @@ int HyPerLayer::registerData(Secretary *secretary, std::string const &objName) {
    if (getV() != nullptr) {
       checkpointPvpActivityFloat(secretary, "V", getV(), false /*not extended*/);
    }
+   checkpointDataStore(secretary, "Delays", publisher->dataStore());
    secretary->registerCheckpointData(
          std::string(getName()),
          std::string("lastUpdateTime"),
@@ -2253,35 +2264,6 @@ int HyPerLayer::readDelaysFromCheckpoint(const char *cpDir, double *timeptr) {
    return status;
 }
 
-int HyPerLayer::checkpointRead(const char *cpDir, double *timeptr) {
-   int status = readStateFromCheckpoint(cpDir, timeptr);
-   if (status != PV_SUCCESS) {
-      pvError().printf(
-            "%s: rank %d process failed to read state from checkpoint directory \"%s\"\n",
-            getDescription_c(),
-            parent->columnId(),
-            cpDir);
-   }
-   Communicator *icComm = parent->getCommunicator();
-   parent->readScalarFromFile(
-         cpDir,
-         getName(),
-         "lastUpdateTime",
-         &mLastUpdateTime,
-         parent->simulationTime() - parent->getDeltaTime());
-   parent->readScalarFromFile(cpDir, getName(), "nextWrite", &writeTime, writeTime);
-
-   // Need to exchange border information since lastUpdateTime is being read from checkpoint, so no
-   // guarentee that publish will call exchange
-   status = publisher->exchangeBorders(getLayerLoc());
-   status |= publisher->wait();
-   assert(status == PV_SUCCESS);
-   // Update sparse indices here
-   status = updateAllActiveIndices();
-
-   return PV_SUCCESS;
-}
-
 template <class T>
 int HyPerLayer::readBufferFile(
       const char *filename,
@@ -2455,19 +2437,6 @@ int HyPerLayer::readDataStoreFromFile(const char *filename, Communicator *comm, 
    assert(status == PV_SUCCESS);
    pvp_close_file(readFile, comm);
    return status;
-}
-
-int HyPerLayer::checkpointWrite(const char *cpDir) {
-   // Writes checkpoint files for V, A, and datastore to files in working directory
-   Communicator *icComm = parent->getCommunicator();
-   double timed         = (double)parent->simulationTime();
-
-   char *filename = NULL;
-   filename       = parent->pathInCheckpoint(cpDir, getName(), "_Delays.pvp");
-   writeDataStoreToFile(filename, icComm, timed);
-   free(filename);
-
-   return PV_SUCCESS;
 }
 
 template <typename T>

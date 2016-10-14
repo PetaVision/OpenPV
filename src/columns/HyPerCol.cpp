@@ -1511,9 +1511,7 @@ int HyPerCol::checkpointRead() {
 // Oct 3, 2016.  writeTimers moved to Secretary class
 
 int HyPerCol::checkpointWrite(const char *cpDir) {
-   for (int l = 0; l < mLayers.size(); l++) {
-      mLayers.at(l)->checkpointWrite(cpDir);
-   }
+   // Oct 13, 2016. Checkpointing layers handled by HyPerLayer::registerData
    for (auto c : mConnections) {
       if (c->getPlasticityFlag() || !mSuppressNonplasticCheckpoints) {
          c->checkpointWrite(cpDir);

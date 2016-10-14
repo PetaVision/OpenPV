@@ -10,7 +10,7 @@
 
 #include "columns/Communicator.hpp"
 #include "io/CheckpointEntry.hpp"
-#include "structures/RingBuffer.hpp"
+#include "columns/DataStore.hpp"
 #include <string>
 
 namespace PV {
@@ -20,29 +20,26 @@ class CheckpointEntryDataStore : public CheckpointEntry {
    CheckpointEntryDataStore(
          std::string const &name,
          Communicator *communicator,
-         RingBuffer<pvdata_t> *buffer,
-         RingBuffer<double> *lastUpdateTimes,
+         DataStore *dataStore,
          PVLayerLoc const *layerLoc)
-         : CheckpointEntry(name, communicator) { initialize(buffer, lastUpdateTimes, layerLoc); }
+         : CheckpointEntry(name, communicator) { initialize(dataStore, layerLoc); }
    CheckpointEntryDataStore(
          std::string const &objName,
          std::string const &dataName,
          Communicator *communicator,
-         RingBuffer<pvdata_t> *buffer,
-         RingBuffer<double> *lastUpdateTimes,
+         DataStore *dataStore,
          PVLayerLoc const *layerLoc)
-         : CheckpointEntry(objName, dataName, communicator) { initialize(buffer, lastUpdateTimes, layerLoc); }
+         : CheckpointEntry(objName, dataName, communicator) { initialize(dataStore, layerLoc); }
    virtual void write(std::string const &checkpointDirectory, double simTime, bool verifyWritesFlag)
          const override;
    virtual void read(std::string const &checkpointDirectory, double *simTimePtr) const override;
    virtual void remove(std::string const &checkpointDirectory) const;
 
   protected:
-   void initialize(RingBuffer<pvdata_t> *buffer, RingBuffer<double> *lastUpdateTimes, PVLayerLoc const *layerLoc);
+   void initialize(DataStore *dataStore, PVLayerLoc const *layerLoc);
 
   private:
-   RingBuffer<pvdata_t> *mRingBuffer;
-   RingBuffer<double> *mLastUpdateTimes;
+   DataStore *mDataStore;
    PVLayerLoc const *mLayerLoc = nullptr;
 };
 

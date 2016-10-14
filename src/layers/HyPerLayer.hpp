@@ -245,6 +245,7 @@ class HyPerLayer : public BaseLayer {
          char const *bufferName,
          float *pvpBuffer,
          bool extended);
+   void checkpointDataStore(Secretary *secretary, char const *bufferName, DataStore * datastore);
    void checkpointRandState(
          Secretary *secretary,
          char const *bufferName,
@@ -388,9 +389,6 @@ class HyPerLayer : public BaseLayer {
 
    static bool localDimensionsEqual(PVLayerLoc const *loc1, PVLayerLoc const *loc2);
    int mirrorInteriorToBorder(PVLayerCube *cube, PVLayerCube *borderCube);
-
-   virtual int checkpointRead(const char *cpDir, double *timeptr);
-   virtual int checkpointWrite(const char *cpDir);
 
    template <typename T>
    static int readBufferFile(
