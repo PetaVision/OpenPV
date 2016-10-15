@@ -20,3 +20,5 @@ subdirectories.txt
 *~
 tests/BasicSystemTest*
 
+*.png
+octave-workspace
