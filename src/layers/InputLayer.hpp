@@ -57,11 +57,11 @@ class InputLayer : public HyPerLayer {
    virtual void ioParam_padValue(enum ParamsIOFlag ioFlag);
 
    // initVType: InputLayers do not have a V, do not set
-   virtual void ioParam_InitVType(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_InitVType(enum ParamsIOFlag ioFlag) override;
 
    // triggerLayerName: InputLayer and derived classes do not use triggering, and always set
    // triggerLayerName to NULL.
-   virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) override;
 
    // displayPeriod: the number of timesteps each input is displayed before switching to the next.
    // If this is <= 0 or inputPath does not end in .txt, assumes the input is a single file and will
@@ -113,12 +113,12 @@ class InputLayer : public HyPerLayer {
    // This method post processes the activity buffer after a file is loaded and scattered.
    // Overload this to add additional post process steps in subclasses.
    virtual int postProcess(double timef, double dt);
-   virtual int allocateV();
-   virtual int initializeV();
-   virtual int initializeActivity();
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual int allocateV() override;
+   virtual int initializeV() override;
+   virtual int initializeActivity() override;
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual int registerData(Secretary *secretary, std::string const &objName) override;
-   virtual double getDeltaUpdateTime();
+   virtual double getDeltaUpdateTime() override;
 
    // Method that signals when to load the next file.
    // Can be overridden for different file list logic in subclasses.
@@ -134,10 +134,10 @@ class InputLayer : public HyPerLayer {
    InputLayer(const char *name, HyPerCol *hc);
    virtual ~InputLayer();
 
-   virtual int requireChannel(int channelNeeded, int *numChannelsResult);
-   virtual int allocateDataStructures();
-   virtual int updateState(double time, double dt);
-   virtual bool activityIsSpiking() { return false; }
+   virtual int requireChannel(int channelNeeded, int *numChannelsResult) override;
+   virtual int allocateDataStructures() override;
+   virtual int updateState(double time, double dt) override;
+   virtual bool activityIsSpiking() override { return false; }
    void exchange();
    int getDisplayPeriod() { return mDisplayPeriod; }
    int getStartIndex(int batchIndex) { return mStartFrameIndex.at(batchIndex); }

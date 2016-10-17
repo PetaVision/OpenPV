@@ -23,12 +23,12 @@ class PoolingConn : public HyPerConn {
    PoolingConn();
    PoolingConn(const char *name, HyPerCol *hc);
    virtual ~PoolingConn();
-   virtual int communicateInitInfo();
-   virtual int allocateDataStructures();
+   virtual int communicateInitInfo() override;
+   virtual int allocateDataStructures() override;
    virtual int checkpointRead(const char *cpDir, double *timef) override { return PV_SUCCESS; }
    virtual int checkpointWrite(const char *cpDir) override { return PV_SUCCESS; }
-   virtual float minWeight(int arborId = 0);
-   virtual float maxWeight(int arborId = 0);
+   virtual float minWeight(int arborId = 0) override;
+   virtual float maxWeight(int arborId = 0) override;
    virtual int finalizeUpdate(double time, double dt) override { return PV_SUCCESS; }
    PoolingIndexLayer *getPostIndexLayer() { return postIndexLayer; }
    bool needPostIndex() { return needPostIndexLayer; }
@@ -41,10 +41,10 @@ class PoolingConn : public HyPerConn {
          HyPerCol *hc,
          InitWeights *weightInitializer,
          NormalizeBase *weightNormalizer);
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-   void ioParam_plasticityFlag(enum ParamsIOFlag ioFlag);
-   void ioParam_weightInitType(enum ParamsIOFlag ioFlag);
-   void ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   void ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) override;
+   void ioParam_weightInitType(enum ParamsIOFlag ioFlag) override;
+   void ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) override;
    void ioParam_needPostIndexLayer(enum ParamsIOFlag ioFlag);
    void ioParam_postIndexLayerName(enum ParamsIOFlag ioFlag);
 
@@ -52,18 +52,18 @@ class PoolingConn : public HyPerConn {
     * @brief PoolingConn does not have weights to write, and does not use
     * writeStep
     */
-   void ioParam_writeStep(enum ParamsIOFlag ioFlag);
+   void ioParam_writeStep(enum ParamsIOFlag ioFlag) override;
    /**
     * @brief PoolingConn does not have weights to write, and does not use
     * writeCompressedCheckpoints
     */
-   void ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFlag);
+   void ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFlag) override;
 
    /**
     * @brief PoolingConn does not have weights to normalize, and does not use
     * normalizeMethod
     */
-   void ioParam_normalizeMethod(enum ParamsIOFlag ioFlag);
+   void ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) override;
 #ifdef PV_USE_CUDA
    virtual int allocatePostDeviceWeights() override { return PV_SUCCESS; }
    virtual int allocateDeviceWeights() override { return PV_SUCCESS; }
@@ -73,7 +73,7 @@ class PoolingConn : public HyPerConn {
    int initializeDeliverKernelArgs();
 #endif // PV_USE_CUDA
    virtual int setInitialValues() override;
-   virtual int constructWeights();
+   virtual int constructWeights() override;
 
    virtual int deliverPresynapticPerspective(PVLayerCube const *activity, int arborID) override;
    virtual int deliverPostsynapticPerspective(PVLayerCube const *activity, int arborID) override;

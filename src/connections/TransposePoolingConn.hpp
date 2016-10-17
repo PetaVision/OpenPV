@@ -44,21 +44,21 @@ class TransposePoolingConn : public HyPerConn {
    TransposePoolingConn();
    TransposePoolingConn(const char *name, HyPerCol *hc);
    virtual ~TransposePoolingConn();
-   virtual int communicateInitInfo();
-   virtual int allocateDataStructures();
+   virtual int communicateInitInfo() override;
+   virtual int allocateDataStructures() override;
    inline PoolingConn *getOriginalConn() { return mOriginalConn; }
 
-   virtual bool needUpdate(double timed, double dt);
-   virtual int updateState(double time, double dt);
-   virtual double computeNewWeightUpdateTime(double time, double currentUpdateTime);
-   virtual int checkpointRead(const char *cpDir, double *timeptr);
-   virtual int checkpointWrite(const char *cpDir);
+   virtual bool needUpdate(double timed, double dt) override;
+   virtual int updateState(double time, double dt) override;
+   virtual double computeNewWeightUpdateTime(double time, double currentUpdateTime) override;
+   virtual int checkpointRead(const char *cpDir, double *timeptr) override;
+   virtual int checkpointWrite(const char *cpDir) override;
 
   protected:
    int initialize_base();
    int initialize(const char *name, HyPerCol *hc);
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-   virtual int setPatchSize();
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int setPatchSize() override;
 #ifdef PV_USE_CUDA
    virtual int allocatePostDeviceWeights() override { return PV_SUCCESS; }
    virtual int allocateDeviceWeights() override { return PV_SUCCESS; }
@@ -67,10 +67,10 @@ class TransposePoolingConn : public HyPerConn {
    virtual void updateDeviceWeights() override {}
    int initializeTransposePoolingDeliverKernelArgs();
 #endif // PV_USE_CUDA
-   virtual int setInitialValues();
-   virtual int constructWeights();
-   virtual int deliverPresynapticPerspective(PVLayerCube const *activity, int arborID);
-   virtual int deliverPostsynapticPerspective(PVLayerCube const *activity, int arborID);
+   virtual int setInitialValues() override;
+   virtual int constructWeights() override;
+   virtual int deliverPresynapticPerspective(PVLayerCube const *activity, int arborID) override;
+   virtual int deliverPostsynapticPerspective(PVLayerCube const *activity, int arborID) override;
 #ifdef PV_USE_CUDA
    virtual int deliverPresynapticPerspectiveGPU(PVLayerCube const *activity, int arborID);
    virtual int deliverPostsynapticPerspectiveGPU(PVLayerCube const *activity, int arborID);

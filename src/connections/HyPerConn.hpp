@@ -80,17 +80,17 @@ class HyPerConn : public BaseConnection {
          InitWeights *weightInitializer,
          NormalizeBase *weightNormalizer); // Deprecated June 22, 2016.
    virtual ~HyPerConn();
-   virtual int communicateInitInfo();
-   virtual int allocateDataStructures();
+   virtual int communicateInitInfo() override;
+   virtual int allocateDataStructures() override;
 
-   virtual int checkpointRead(const char *cpDir, double *timef);
-   virtual int checkpointWrite(const char *cpDir);
-   virtual int insertProbe(BaseConnectionProbe *p);
-   int outputProbeParams();
-   virtual int outputState(double time, bool last = false);
-   int updateState(double time, double dt);
-   virtual int finalizeUpdate(double timed, double dt);
-   virtual bool needUpdate(double time, double dt);
+   virtual int checkpointRead(const char *cpDir, double *timef) override;
+   virtual int checkpointWrite(const char *cpDir) override;
+   virtual int insertProbe(BaseConnectionProbe *p) override;
+   int outputProbeParams() override;
+   virtual int outputState(double time, bool last = false) override;
+   int updateState(double time, double dt) override;
+   virtual int finalizeUpdate(double timed, double dt) override;
+   virtual bool needUpdate(double time, double dt) override;
    virtual int updateInd_dW(int arbor_ID, int batch_ID, int kExt);
    virtual double computeNewWeightUpdateTime(double time, double currentUpdateTime);
    virtual int writeWeights(double timed, bool last = false);
@@ -114,7 +114,7 @@ class HyPerConn : public BaseConnection {
    /**
     * Uses presynaptic layer's activity to modify the postsynaptic GSyn or thread_gSyn
     */
-   virtual int deliver();
+   virtual int deliver() override;
    virtual void deliverOnePreNeuronActivity(
          int patchIndex,
          int arbor,
@@ -584,7 +584,7 @@ class HyPerConn : public BaseConnection {
    virtual int setWeightInitializer(); // Note: no longer deprecated.
    virtual InitWeights *createInitWeightsObject(const char *weightInitTypeStr);
    int setWeightNormalizer(); // Note: no longer deprecated.
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    /**
     * List of parameters needed from the HyPerConn class
@@ -597,7 +597,7 @@ class HyPerConn : public BaseConnection {
     * @details Channels can be -1 for no update, or >= 0 for channel number. <br />
     * 0 is excitatory, 1 is inhibitory
     */
-   virtual void ioParam_channelCode(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_channelCode(enum ParamsIOFlag ioFlag) override;
 
    /**
     * @brief sharedWeights: Defines if the HyPerConn uses shared weights (kernelConn)
@@ -881,10 +881,11 @@ class HyPerConn : public BaseConnection {
          size_t **inAPostOffset,
          int arborId);
    virtual int adjustAxonalArbors(int arborId);
-   virtual int readStateFromCheckpoint(const char *cpDir, double *timeptr);
+   virtual int readStateFromCheckpoint(const char *cpDir, double *timeptr) override;
    virtual int readWeightsFromCheckpoint(const char *cpDir, double *timeptr);
    int checkpointFilename(char *cpFilename, int size, const char *cpDir);
-   virtual int setInitialValues(); // returns PV_SUCCESS if successful, or PV_POSTPONE if it needs
+   virtual int
+   setInitialValues() override; // returns PV_SUCCESS if successful, or PV_POSTPONE if it needs
    // to wait on other objects (e.g. TransposeConn has to wait for
    // original conn)
 

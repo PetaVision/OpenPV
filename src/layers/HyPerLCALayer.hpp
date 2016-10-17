@@ -17,15 +17,15 @@ class HyPerLCALayer : public PV::ANNLayer {
   public:
    HyPerLCALayer(const char *name, HyPerCol *hc);
    virtual ~HyPerLCALayer();
-   virtual double getDeltaUpdateTime();
-   virtual int requireChannel(int channelNeeded, int *numChannelsResult);
+   virtual double getDeltaUpdateTime() override;
+   virtual int requireChannel(int channelNeeded, int *numChannelsResult) override;
 
   protected:
    HyPerLCALayer();
    int initialize(const char *name, HyPerCol *hc);
    virtual int communicateInitInfo() override;
    virtual int allocateDataStructures() override;
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    /**
     * List of parameters needed from the HyPerLCALayer class
@@ -52,13 +52,15 @@ class HyPerLCALayer : public PV::ANNLayer {
    virtual void ioParam_adaptiveTimeScaleProbe(enum ParamsIOFlag ioFlag);
    /** @} */
 
-   virtual int updateState(double time, double dt);
+   virtual int updateState(double time, double dt) override;
 
 #ifdef PV_USE_CUDA
    virtual int updateStateGpu(double time, double dt);
 #endif
 
-   virtual float getChannelTimeConst(enum ChannelType channel_type) { return timeConstantTau; };
+   virtual float getChannelTimeConst(enum ChannelType channel_type) override {
+      return timeConstantTau;
+   };
 
 #ifdef PV_USE_CUDA
    virtual int allocateUpdateKernel();
