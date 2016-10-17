@@ -422,13 +422,13 @@ int InputLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    return status;
 }
 
-int InputLayer::registerData(Secretary *secretary, std::string const &objName) {
-   int status = HyPerLayer::registerData(secretary, objName);
+int InputLayer::registerData(Checkpointer *checkpointer, std::string const &objName) {
+   int status = HyPerLayer::registerData(checkpointer, objName);
    if (parent->getCommunicator()->commRank() == 0) {
-      mBatchIndexer->registerData(secretary, objName);
+      mBatchIndexer->registerData(checkpointer, objName);
    }
    if (mTimestampStream) {
-      mTimestampStream->registerData(secretary, objName);
+      mTimestampStream->registerData(checkpointer, objName);
    }
    return status;
 }

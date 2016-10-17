@@ -241,13 +241,14 @@ class HyPerLayer : public BaseLayer {
    virtual int setInitialValues();
 
    void checkpointPvpActivityFloat(
-         Secretary *secretary,
+         Checkpointer *checkpointer,
          char const *bufferName,
          float *pvpBuffer,
          bool extended);
-   void checkpointDataStore(Secretary *secretary, char const *bufferName, DataStore *datastore);
+   void
+   checkpointDataStore(Checkpointer *checkpointer, char const *bufferName, DataStore *datastore);
    void checkpointRandState(
-         Secretary *secretary,
+         Checkpointer *checkpointer,
          char const *bufferName,
          Random *randState,
          bool extendedFlag);
@@ -483,7 +484,7 @@ class HyPerLayer : public BaseLayer {
   protected:
    virtual int communicateInitInfo() override;
    virtual int allocateDataStructures() override;
-   virtual int registerData(Secretary *secretary, std::string const &objName) override;
+   virtual int registerData(Checkpointer *checkpointer, std::string const &objName) override;
    virtual int initializeState() final; // Not overridable since all layers should respond to
    // initializeFromCheckpointFlag and (deprecated) restartFlag in the same way.
    // initializeState calls the virtual methods readStateFromCheckpoint() and setInitialValues().

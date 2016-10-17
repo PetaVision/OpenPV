@@ -86,8 +86,8 @@ int BaseObject::respond(std::shared_ptr<BaseMessage const> message) {
       return respondAllocateData(castMessage);
    }
    else if (
-         RegisterDataMessage<Secretary> const *castMessage =
-               dynamic_cast<RegisterDataMessage<Secretary> const *>(message.get())) {
+         RegisterDataMessage<Checkpointer> const *castMessage =
+               dynamic_cast<RegisterDataMessage<Checkpointer> const *>(message.get())) {
       return respondRegisterData(castMessage);
    }
    else if (
@@ -96,13 +96,13 @@ int BaseObject::respond(std::shared_ptr<BaseMessage const> message) {
       return respondInitializeState(castMessage);
    }
    else if (
-         Secretary::ProcessCheckpointReadMessage const *castMessage =
-               dynamic_cast<Secretary::ProcessCheckpointReadMessage const *>(message.get())) {
+         Checkpointer::ProcessCheckpointReadMessage const *castMessage =
+               dynamic_cast<Checkpointer::ProcessCheckpointReadMessage const *>(message.get())) {
       return respondProcessCheckpointRead(castMessage);
    }
    else if (
-         Secretary::PrepareCheckpointWriteMessage const *castMessage =
-               dynamic_cast<Secretary::PrepareCheckpointWriteMessage const *>(message.get())) {
+         Checkpointer::PrepareCheckpointWriteMessage const *castMessage =
+               dynamic_cast<Checkpointer::PrepareCheckpointWriteMessage const *>(message.get())) {
       return respondPrepareCheckpointWrite(castMessage);
    }
    else {
@@ -134,7 +134,7 @@ int BaseObject::respondAllocateData(AllocateDataMessage const *message) {
    return status;
 }
 
-int BaseObject::respondRegisterData(RegisterDataMessage<Secretary> const *message) {
+int BaseObject::respondRegisterData(RegisterDataMessage<Checkpointer> const *message) {
    int status = registerData(message->mDataRegistry, name);
    if (status != PV_SUCCESS) {
       pvError() << getDescription() << ": registerData failed.\n";
@@ -155,12 +155,12 @@ int BaseObject::respondInitializeState(InitializeStateMessage const *message) {
 }
 
 int BaseObject::respondProcessCheckpointRead(
-      Secretary::ProcessCheckpointReadMessage const *message) {
+      Checkpointer::ProcessCheckpointReadMessage const *message) {
    return processCheckpointRead();
 }
 
 int BaseObject::respondPrepareCheckpointWrite(
-      Secretary::PrepareCheckpointWriteMessage const *message) {
+      Checkpointer::PrepareCheckpointWriteMessage const *message) {
    return prepareCheckpointWrite();
 }
 

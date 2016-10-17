@@ -51,8 +51,8 @@ HyPerCol::~HyPerCol() {
    finalizeThreads();
 #endif // PV_USE_CUDA
    PrintStream pStream(getOutputStream());
-   mSecretary->writeTimers(pStream);
-   delete mSecretary;
+   mCheckpointer->writeTimers(pStream);
+   delete mCheckpointer;
    for (auto iterator = mConnections.begin(); iterator != mConnections.end();) {
       delete *iterator;
       iterator = mConnections.erase(iterator);
@@ -225,9 +225,9 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
 
    mRandomSeed = mPVInitObj->getRandomSeed();
 
-   mSecretary = new Secretary(this, std::string(mName), mCommunicator);
+   mCheckpointer = new Checkpointer(this, std::string(mName), mCommunicator);
    if (mOutputPath) {
-      mSecretary->setOutputPath(mOutputPath);
+      mCheckpointer->setOutputPath(mOutputPath);
    }
    ioParams(PARAMS_IO_READ);
    mCheckpointSignal = 0;
@@ -235,7 +235,7 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
    mInitialStep      = (long int)nearbyint(mStartTime / mDeltaTime);
    mCurrentStep      = mInitialStep;
    mFinalStep        = (long int)nearbyint(mStopTime / mDeltaTime);
-   mSecretary->provideFinalStep(mFinalStep);
+   mCheckpointer->provideFinalStep(mFinalStep);
    mNextProgressTime = mStartTime + mProgressInterval;
 
    RandomSeed::instance()->initialize(mRandomSeed);
@@ -267,7 +267,7 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
    }
 
    mRunTimer = new Timer(mName, "column", "run    ");
-   mSecretary->registerTimer(mRunTimer);
+   mCheckpointer->registerTimer(mRunTimer);
 
    // mWarmStart is set if command line sets the -r option.  PV_Arguments should
    // prevent -r and -c
@@ -476,10 +476,10 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_stopTime(ioFlag);
    ioParam_progressInterval(ioFlag);
    ioParam_writeProgressToErr(ioFlag);
-   mSecretary->ioParamsFillGroup(ioFlag, parameters());
+   mCheckpointer->ioParamsFillGroup(ioFlag, parameters());
    if (ioFlag == PARAMS_IO_READ) {
-      // These parameters are read and written by mSecretary.
-      // During the transition of checkpointing from HyPerCol to Secretary,
+      // These parameters are read and written by mCheckpointer.
+      // During the transition of checkpointing from HyPerCol to Checkpointer,
       // HyPerCol will redundantly read these parameters but not write them.
       ioParam_verifyWrites(ioFlag);
       ioParam_outputPath(ioFlag);
@@ -1163,10 +1163,10 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
          timerTypeString.append(std::to_string(phase));
          Timer *phaseRecvTimer = new Timer(mName, "column", timerTypeString.c_str());
          mPhaseRecvTimers.push_back(phaseRecvTimer);
-         mSecretary->registerTimer(phaseRecvTimer);
+         mCheckpointer->registerTimer(phaseRecvTimer);
       }
 
-      notify(std::make_shared<RegisterDataMessage<Secretary>>(mSecretary));
+      notify(std::make_shared<RegisterDataMessage<Checkpointer>>(mCheckpointer));
 
 #ifdef DEBUG_OUTPUT
       if (columnId() == 0) {
@@ -1183,7 +1183,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
       // gets copied
       // correctly.
       if (mCheckpointReadFlag) {
-         mSecretary->checkpointRead(mCheckpointReadDir, &mSimTime, &mCurrentStep);
+         mCheckpointer->checkpointRead(mCheckpointReadDir, &mSimTime, &mCurrentStep);
       }
 
       notify(std::make_shared<InitializeStateMessage>());
@@ -1222,7 +1222,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
    long int step = 0;
    pvAssert(status == PV_SUCCESS);
    while (mSimTime < mStopTime - mDeltaTime / 2.0) {
-      mSecretary->checkpointWrite(mSimTime);
+      mCheckpointer->checkpointWrite(mSimTime);
       status = advanceTime(mSimTime);
 
       step += 1;
@@ -1508,7 +1508,7 @@ int HyPerCol::checkpointRead() {
    return PV_SUCCESS;
 }
 
-// Oct 3, 2016.  writeTimers moved to Secretary class
+// Oct 3, 2016.  writeTimers moved to Checkpointer class
 
 int HyPerCol::checkpointWrite(const char *cpDir) {
    // Oct 13, 2016. Checkpointing layers handled by HyPerLayer::registerData
@@ -1518,7 +1518,7 @@ int HyPerCol::checkpointWrite(const char *cpDir) {
       }
    }
 
-   // Oct 3, 2016. Printing timers to checkpoint moved to Secretary::checkpointWrite
+   // Oct 3, 2016. Printing timers to checkpoint moved to Checkpointer::checkpointWrite
 
    for (auto &p : mColProbes) {
       p->checkpointWrite(cpDir);
@@ -1531,7 +1531,7 @@ int HyPerCol::checkpointWrite(const char *cpDir) {
    checkpointedParamsFile += "pv.params";
    this->outputParams(checkpointedParamsFile.c_str());
 
-   // Sep 30, 2016: checkpointing nextCheckpointStep and nextCheckpointTime moved to Secretary.
+   // Sep 30, 2016: checkpointing nextCheckpointStep and nextCheckpointTime moved to Checkpointer.
 
    return PV_SUCCESS;
 }
@@ -1743,7 +1743,7 @@ int HyPerCol::exitRunLoop(bool exitOnFinish) {
 
    // output final state of layers and connections
 
-   mSecretary->finalCheckpoint(mSimTime);
+   mCheckpointer->finalCheckpoint(mSimTime);
 
    if (exitOnFinish) {
       delete this;

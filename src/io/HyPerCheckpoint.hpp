@@ -4,12 +4,13 @@
  *  Created on: Oct 2, 2016
  *      Author: Pete Schultz
  *
- *  This class is a temporary convenience for the refactoring of checkpointing into the Secretary
- *  class. Secretary::checkpointRead/Write methods get a HyPerCheckpoint and they call that
+ *  This class is a temporary convenience for the refactoring of checkpointing into the Checkpointer
+ *  class. Checkpointer::checkpointRead/Write methods get a HyPerCheckpoint and they call that
  *  object's checkpointRead/Write methods. HyPerCol derives from HyPerCheckpoint. When all
- *  checkpointing is done by calling Secretary::registerCheckpointData so that nothing is done by
- *  checkpointRead and checkpointWrite methods except for those of the Secretary object, the
- *  secretary will no longer need to take a HyPerCheckpoint argument and this class wil disappear.
+ *  checkpointing is done by calling Checkpointer::registerCheckpointData so that nothing is done by
+ *  checkpointRead and checkpointWrite methods except for those of the Checkpointer object, the
+ *  checkpointer will no longer need to take a HyPerCheckpoint argument and this class wil
+ * disappear.
  */
 
 #ifndef HYPERCHECKPOINT_HPP_

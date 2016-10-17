@@ -840,7 +840,7 @@ class HyPerConn : public BaseConnection {
    int setPreLayerName(const char *pre_name);
    int setPostLayerName(const char *post_name);
    virtual int initPlasticityPatches();
-   virtual int registerData(Secretary *secretary, std::string const &objName) override;
+   virtual int registerData(Checkpointer *checkpointer, std::string const &objName) override;
    virtual int setPatchSize(); // Sets nxp, nyp, nfp if weights are loaded from file.  Subclasses
    // override if they have specialized ways of setting patch size that
    // needs to go in the communicate stage.

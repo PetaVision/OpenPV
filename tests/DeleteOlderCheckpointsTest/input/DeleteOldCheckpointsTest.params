@@ -1,4 +1,4 @@
-Secretary "secretary" = {
+Checkpointer "checkpointer" = {
     verifyWrites = true;
     outputPath = "output";
     checkpointWrite = true;

@@ -228,10 +228,10 @@ int MomentumLCALayer::updateState(double time, double dt) {
    return PV_SUCCESS;
 }
 
-int MomentumLCALayer::registerData(Secretary *secretary, std::string const &objName) {
-   int status = HyPerLCALayer::registerData(secretary, objName);
-   checkpointPvpActivityFloat(secretary, "prevDrive", prevDrive, false /*not extended*/);
-   secretary->addObserver(this, BaseMessage{});
+int MomentumLCALayer::registerData(Checkpointer *checkpointer, std::string const &objName) {
+   int status = HyPerLCALayer::registerData(checkpointer, objName);
+   checkpointPvpActivityFloat(checkpointer, "prevDrive", prevDrive, false /*not extended*/);
+   checkpointer->addObserver(this, BaseMessage{});
    return status;
 }
 

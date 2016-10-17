@@ -1433,9 +1433,9 @@ void HyPerConn::handleDefaultSelfFlag() {
    }
 }
 
-int HyPerConn::registerData(Secretary *secretary, std::string const &objName) {
-   secretary->registerTimer(io_timer);
-   secretary->registerTimer(update_timer);
+int HyPerConn::registerData(Checkpointer *checkpointer, std::string const &objName) {
+   checkpointer->registerTimer(io_timer);
+   checkpointer->registerTimer(update_timer);
    return PV_SUCCESS;
 }
 

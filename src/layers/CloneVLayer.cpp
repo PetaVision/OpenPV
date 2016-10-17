@@ -145,9 +145,9 @@ int CloneVLayer::readVFromCheckpoint(const char *cpDir, double *timeptr) {
    return PV_SUCCESS;
 }
 
-int CloneVLayer::registerData(Secretary *secretary, std::string const &objName) {
+int CloneVLayer::registerData(Checkpointer *checkpointer, std::string const &objName) {
    pvdata_t *V = clayer->V;
-   int status  = HyPerLayer::registerData(secretary, objName);
+   int status  = HyPerLayer::registerData(checkpointer, objName);
    clayer->V   = V;
    return status;
 }

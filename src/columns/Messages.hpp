@@ -33,8 +33,8 @@ class AllocateDataMessage : public BaseMessage {
    AllocateDataMessage() { setMessageType("AllocateDataStructures"); }
 };
 
-template <typename T> // In practice, T is always Secretary.
-// Templated to avoid including Secretary.hpp in this file.
+template <typename T> // In practice, T is always Checkpointer.
+// Templated to avoid including Checkpointer.hpp in this file.
 class RegisterDataMessage : public BaseMessage {
   public:
    RegisterDataMessage(T *dataRegistry) {

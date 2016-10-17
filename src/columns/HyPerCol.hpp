@@ -14,9 +14,9 @@
 #include "columns/PV_Init.hpp"
 #include "connections/BaseConnection.hpp"
 #include "include/pv_types.h"
-#include "io/HyPerCheckpoint.hpp" // TODO: remove when Secretary class refactor is complete.
+#include "io/Checkpointer.hpp"
+#include "io/HyPerCheckpoint.hpp" // TODO: remove when Checkpointer class refactor is complete.
 #include "io/PVParams.hpp"
-#include "io/Secretary.hpp"
 #include "layers/HyPerLayer.hpp"
 #include "observerpattern/ObserverTable.hpp"
 #include "observerpattern/Subject.hpp"
@@ -629,7 +629,7 @@ class HyPerCol : public Subject, HyPerCheckpoint {
    int *mConnectionStatus;
    Communicator *mCommunicator; // manages communication between HyPerColumns};
 
-   Secretary *mSecretary = nullptr; // manages checkpointing and, eventually,
+   Checkpointer *mCheckpointer = nullptr; // manages checkpointing and, eventually,
    // will manage outputState output.
    long int mCpReadDirIndex; // checkpoint number within mCheckpointReadDir to read
    long int mCpWriteStepInterval;

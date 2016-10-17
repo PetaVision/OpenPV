@@ -25,7 +25,7 @@
 
 #include "columns/Messages.hpp"
 #include "include/pv_common.h"
-#include "io/Secretary.hpp"
+#include "io/Checkpointer.hpp"
 #include "observerpattern/Observer.hpp"
 #include "utils/PVAlloc.hpp"
 #include "utils/PVAssert.hpp"
@@ -36,7 +36,7 @@ namespace PV {
 
 class HyPerCol;
 
-class BaseObject : public Observer, public SecretaryDataInterface {
+class BaseObject : public Observer, public CheckpointerDataInterface {
   public:
    inline char const *getName() const { return name; }
    inline HyPerCol *getParent() const { return parent; }
@@ -78,10 +78,10 @@ class BaseObject : public Observer, public SecretaryDataInterface {
 
    int respondCommunicateInitInfo(CommunicateInitInfoMessage const *message);
    int respondAllocateData(AllocateDataMessage const *message);
-   int respondRegisterData(RegisterDataMessage<Secretary> const *message);
+   int respondRegisterData(RegisterDataMessage<Checkpointer> const *message);
    int respondInitializeState(InitializeStateMessage const *message);
-   int respondProcessCheckpointRead(Secretary::ProcessCheckpointReadMessage const *message);
-   int respondPrepareCheckpointWrite(Secretary::PrepareCheckpointWriteMessage const *message);
+   int respondProcessCheckpointRead(Checkpointer::ProcessCheckpointReadMessage const *message);
+   int respondPrepareCheckpointWrite(Checkpointer::PrepareCheckpointWriteMessage const *message);
 
    virtual int communicateInitInfo() { return PV_SUCCESS; }
    virtual int allocateDataStructures() { return PV_SUCCESS; }

@@ -193,23 +193,23 @@ int LCALIFLayer::allocateBuffers() {
    return LIFGap::allocateBuffers();
 }
 
-int LCALIFLayer::registerData(Secretary *secretary, std::string const &objName) {
-   int status = LIFGap::registerData(secretary, objName);
+int LCALIFLayer::registerData(Checkpointer *checkpointer, std::string const &objName) {
+   int status = LIFGap::registerData(checkpointer, objName);
    checkpointPvpActivityFloat(
-         secretary, "integratedSpikeCount", integratedSpikeCount, false /*not extended*/);
-   checkpointPvpActivityFloat(secretary, "Vadpt", Vadpt, false /*not extended*/);
-   checkpointPvpActivityFloat(secretary, "Vattained", Vattained, false /*not extended*/);
-   checkpointPvpActivityFloat(secretary, "Vmeminf", Vmeminf, false /*not extended*/);
-   checkpointPvpActivityFloat(secretary, "G_Norm", G_Norm, false /*not extended*/);
+         checkpointer, "integratedSpikeCount", integratedSpikeCount, false /*not extended*/);
+   checkpointPvpActivityFloat(checkpointer, "Vadpt", Vadpt, false /*not extended*/);
+   checkpointPvpActivityFloat(checkpointer, "Vattained", Vattained, false /*not extended*/);
+   checkpointPvpActivityFloat(checkpointer, "Vmeminf", Vmeminf, false /*not extended*/);
+   checkpointPvpActivityFloat(checkpointer, "G_Norm", G_Norm, false /*not extended*/);
    checkpointPvpActivityFloat(
-         secretary, "GSynExcEffective", GSynExcEffective, false /*not extended*/);
+         checkpointer, "GSynExcEffective", GSynExcEffective, false /*not extended*/);
    checkpointPvpActivityFloat(
-         secretary, "GSynInhEffective", GSynInhEffective, false /*not extended*/);
+         checkpointer, "GSynInhEffective", GSynInhEffective, false /*not extended*/);
    checkpointPvpActivityFloat(
-         secretary, "excitatoryNoise", excitatoryNoise, false /*not extended*/);
+         checkpointer, "excitatoryNoise", excitatoryNoise, false /*not extended*/);
    checkpointPvpActivityFloat(
-         secretary, "inhibitoryNoise", inhibitoryNoise, false /*not extended*/);
-   checkpointPvpActivityFloat(secretary, "inhibNoiseB", inhibNoiseB, false /*not extended*/);
+         checkpointer, "inhibitoryNoise", inhibitoryNoise, false /*not extended*/);
+   checkpointPvpActivityFloat(checkpointer, "inhibNoiseB", inhibNoiseB, false /*not extended*/);
    return status;
 }
 

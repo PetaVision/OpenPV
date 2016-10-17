@@ -186,10 +186,10 @@ void StatsProbe::ioParam_nnzThreshold(enum ParamsIOFlag ioFlag) {
 
 int StatsProbe::initNumValues() { return setNumValues(-1); }
 
-int StatsProbe::registerData(Secretary *secretary, std::string const &objName) {
-   secretary->registerTimer(iotimer);
-   secretary->registerTimer(mpitimer);
-   secretary->registerTimer(comptimer);
+int StatsProbe::registerData(Checkpointer *checkpointer, std::string const &objName) {
+   checkpointer->registerTimer(iotimer);
+   checkpointer->registerTimer(mpitimer);
+   checkpointer->registerTimer(comptimer);
    return PV_SUCCESS;
 }
 

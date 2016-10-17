@@ -298,11 +298,11 @@ int Retina::readRandStateFromCheckpoint(const char *cpDir) {
    return status;
 }
 
-int Retina::registerData(Secretary *secretary, std::string const &objName) {
-   int status = HyPerLayer::registerData(secretary, objName);
+int Retina::registerData(Checkpointer *checkpointer, std::string const &objName) {
+   int status = HyPerLayer::registerData(checkpointer, objName);
    if (spikingFlag) {
       pvAssert(randState != nullptr);
-      checkpointRandState(secretary, "rand_state", randState, true /*extended*/);
+      checkpointRandState(checkpointer, "rand_state", randState, true /*extended*/);
    }
    return status;
 }
