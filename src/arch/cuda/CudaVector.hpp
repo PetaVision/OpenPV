@@ -5,10 +5,11 @@
 #include <exception>
 #include <stdexcept>
 #include <cuda_runtime.h>
+#include <utils/PVLog.hpp>
 
 using namespace std;
 
-namespace GPULCA {
+namespace PVCuda {
 
 template <class T>
 class CudaVector {
@@ -252,7 +253,7 @@ class CudaVector {
 
   void cudaFreeDestructorCheck(void **p) {
     cudaError_t cudaError = cudaFree(*p);
-    cout << ("CUDAFree error :" + string(cudaGetErrorName(cudaError))) << endl;
+    pvError() << ("CUDAFree error :" + string(cudaGetErrorName(cudaError))) << endl;
     *p = nullptr;
   }
 

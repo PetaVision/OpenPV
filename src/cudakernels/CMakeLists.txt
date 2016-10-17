@@ -5,6 +5,7 @@ if(PV_USE_CUDA)
      ${SUBDIR}/CudaRecvPre.hpp
      ${SUBDIR}/CudaTransposePoolingDeliverKernel.hpp
      ${SUBDIR}/CudaUpdateStateFunctions.hpp
+     ${SUBDIR}/CudaUpdateWeightKernel.hpp
   )
   
   set (PVLibSrcCpp ${PVLibSrcCpp}
@@ -13,6 +14,7 @@ if(PV_USE_CUDA)
      ${SUBDIR}/CudaRecvPre.cpp
      ${SUBDIR}/CudaTransposePoolingDeliverKernel.cpp
      ${SUBDIR}/CudaUpdateStateFunctions.cpp
+		 ${SUBDIR}/CudaUpdateWeightKernel.cpp
   )
   
   set (PVLibSrcCu ${PVLibSrcCu}

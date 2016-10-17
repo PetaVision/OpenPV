@@ -17,7 +17,7 @@
 #include "CudaVector.hpp"
 #include "CudaUtility.hpp"
 
-namespace GPULCA {
+namespace PVCuda {
 
 inline void cudnnStatusCheck(const cudnnStatus_t &status, string msg) {
   if (status != CUDNN_STATUS_SUCCESS)
@@ -28,7 +28,7 @@ inline void cudnnStatusCheck(const cudnnStatus_t &status, string msg) {
 inline void cudnnStatusDestructorCheck(const cudnnStatus_t &status,
                                        string msg) {
   if (status != CUDNN_STATUS_SUCCESS)
-    std::cout << ("cuDNN " + msg + " error :" +
+    pvError() << ("cuDNN " + msg + " error :" +
                   string(cudnnGetErrorString(status))) << endl;
 }
 
@@ -41,7 +41,7 @@ inline void cusparseStatusCheck(const cusparseStatus_t &status, string msg) {
 inline void cusparseStatusDestructorCheck(const cusparseStatus_t &status,
                                           string msg) {
   if (status != CUSPARSE_STATUS_SUCCESS)
-    cout << ("cusparse " + msg + " error :" + to_string(status)) << endl;
+    pvError() << ("cusparse " + msg + " error :" + to_string(status)) << endl;
 }
 
 inline void cublasStatusCheck(const cublasStatus_t &status, string msg) {
@@ -52,7 +52,7 @@ inline void cublasStatusCheck(const cublasStatus_t &status, string msg) {
 inline void cublasStatusDestructorCheck(const cublasStatus_t &status,
                                         string msg) {
   if (status != CUBLAS_STATUS_SUCCESS)
-    cout << ("cublas " + msg + " error :" + to_string(status)) << endl;
+    pvError() << ("cublas " + msg + " error :" + to_string(status)) << endl;
 }
 
 inline void cudaStatusCheck(const cudaError_t &status, string msg) {
