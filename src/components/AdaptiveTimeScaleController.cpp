@@ -44,6 +44,10 @@ AdaptiveTimeScaleController::AdaptiveTimeScaleController(
 
 AdaptiveTimeScaleController::~AdaptiveTimeScaleController() { free(mName); }
 
+int AdaptiveTimeScaleController::registerData(Checkpointer *checkpointer, std::string const &objName) {
+   return PV_SUCCESS;
+}
+
 int AdaptiveTimeScaleController::checkpointRead(const char *cpDir, double *timeptr) {
 
    struct timescalemax_struct {

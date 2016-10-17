@@ -122,6 +122,11 @@ int AdaptiveTimeScaleProbe::allocateDataStructures() {
    return status;
 }
 
+int AdaptiveTimeScaleProbe::registerData(Checkpointer *checkpointer, std::string const &objName) {
+   int status = ColProbe::registerData(checkpointer, objName);
+   mAdaptiveTimeScaleController->registerData(checkpointer, objName);
+}
+
 int AdaptiveTimeScaleProbe::checkpointRead(const char *cpDir, double *timeptr) {
    int status = ColProbe::checkpointRead(cpDir, timeptr);
    if (status == PV_SUCCESS) {

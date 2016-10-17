@@ -9,12 +9,13 @@
 #define ADAPTIVETIMESCALECONTROLLER_HPP_
 
 #include "columns/Communicator.hpp"
+#include "io/Checkpointer.hpp"
 #include "io/PrintStream.hpp"
 #include <vector>
 
 namespace PV {
 
-class AdaptiveTimeScaleController {
+class AdaptiveTimeScaleController : public CheckpointerDataInterface {
   public:
    AdaptiveTimeScaleController(
          char const *name,
@@ -28,6 +29,7 @@ class AdaptiveTimeScaleController {
          Communicator *comm,
          bool verifyWrites);
    virtual ~AdaptiveTimeScaleController();
+   virtual int registerData(Checkpointer *checkpointer, std::string const &objName) override;
    virtual int checkpointRead(const char *cpDir, double *timeptr);
    virtual int checkpointWrite(const char *cpDir);
    std::vector<double> const &

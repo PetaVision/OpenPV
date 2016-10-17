@@ -96,6 +96,7 @@ class AdaptiveTimeScaleProbe : public ColProbe {
    AdaptiveTimeScaleProbe();
    int initialize(char const *name, HyPerCol *hc);
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int registerData(Checkpointer *checkpointer, std::string const &objName) override;
    int respondAdaptTimestep(AdaptTimestepMessage const *message);
    bool needRecalc(double timeValue) override {
       return parent->simulationTime() > getLastUpdateTime();
