@@ -35,6 +35,7 @@ int ImageFromMemoryBuffer::initialize(char const *name, HyPerCol *hc) {
       MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
+   return PV_SUCCESS;
 }
 
 int ImageFromMemoryBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {

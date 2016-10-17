@@ -55,23 +55,23 @@ class LIF : public PV::HyPerLayer {
    LIF(const char *name, HyPerCol *hc, int num_channels);
    virtual ~LIF();
 
-   virtual int communicateInitInfo();
-   virtual int allocateDataStructures();
+   virtual int communicateInitInfo() override;
+   virtual int allocateDataStructures() override;
    virtual int registerData(Secretary *secretary, std::string const &objName) override;
 
-   virtual int updateState(double time, double dt);
-   virtual int setActivity();
+   virtual int updateState(double time, double dt) override;
+   virtual int setActivity() override;
 
    pvdata_t *getVth() { return Vth; }
    virtual pvconductance_t *getConductance(ChannelType ch) {
       return ch < this->numChannels ? G_E + ch * getNumNeurons() : NULL;
    }
 
-   virtual float getChannelTimeConst(enum ChannelType channel_type);
+   virtual float getChannelTimeConst(enum ChannelType channel_type) override;
 
    virtual LIF_params *getLIFParams() { return &lParams; };
 
-   virtual bool activityIsSpiking() { return true; }
+   virtual bool activityIsSpiking() override { return true; }
 
   protected:
    LIF_params lParams;
@@ -87,7 +87,7 @@ class LIF : public PV::HyPerLayer {
   protected:
    LIF();
    int initialize(const char *name, HyPerCol *hc, const char *kernel_name);
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_Vrest(enum ParamsIOFlag ioFlag);
    virtual void ioParam_Vexc(enum ParamsIOFlag ioFlag);
    virtual void ioParam_Vinh(enum ParamsIOFlag ioFlag);
@@ -107,9 +107,9 @@ class LIF : public PV::HyPerLayer {
    virtual void ioParam_noiseFreqI(enum ParamsIOFlag ioFlag);
    virtual void ioParam_noiseFreqIB(enum ParamsIOFlag ioFlag);
    virtual void ioParam_method(enum ParamsIOFlag ioFlag);
-   virtual int allocateBuffers();
+   virtual int allocateBuffers() override;
    virtual int allocateConductances(int num_channels);
-   virtual int readStateFromCheckpoint(const char *cpDir, double *timeptr);
+   virtual int readStateFromCheckpoint(const char *cpDir, double *timeptr) override;
    virtual int readVthFromCheckpoint(const char *cpDir, double *timeptr);
    virtual int readG_EFromCheckpoint(const char *cpDir, double *timeptr);
    virtual int readG_IFromCheckpoint(const char *cpDir, double *timeptr);

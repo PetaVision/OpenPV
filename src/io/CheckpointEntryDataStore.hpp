@@ -37,7 +37,7 @@ class CheckpointEntryDataStore : public CheckpointEntry {
    virtual void write(std::string const &checkpointDirectory, double simTime, bool verifyWritesFlag)
          const override;
    virtual void read(std::string const &checkpointDirectory, double *simTimePtr) const override;
-   virtual void remove(std::string const &checkpointDirectory) const;
+   virtual void remove(std::string const &checkpointDirectory) const override;
 
   protected:
    void initialize(DataStore *dataStore, PVLayerLoc const *layerLoc);

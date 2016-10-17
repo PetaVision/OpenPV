@@ -183,6 +183,7 @@ int PV_Init::setLogFile(char const *log_file, bool appendFlag) {
    arguments->setLogFile(log_file);
    initLogFile(appendFlag);
    printInitMessage();
+   return PV_SUCCESS;
 }
 
 int PV_Init::setMPIConfiguration(int rows, int columns, int batchWidth) {

@@ -34,7 +34,7 @@ class AdaptiveTimeScaleProbe : public ColProbe {
     * The target probe's values are used as the input to compute the adaptive
     * timesteps.
     */
-   virtual void ioParam_targetName(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_targetName(enum ParamsIOFlag ioFlag) override;
 
    /**
     * @brief baseMax: Specifies the initial maximum timescale allowed.
@@ -95,13 +95,13 @@ class AdaptiveTimeScaleProbe : public ColProbe {
   protected:
    AdaptiveTimeScaleProbe();
    int initialize(char const *name, HyPerCol *hc);
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    int respondAdaptTimestep(AdaptTimestepMessage const *message);
    bool needRecalc(double timeValue) override {
       return parent->simulationTime() > getLastUpdateTime();
    }
    double referenceUpdateTime() const override { return parent->simulationTime(); }
-   int calcValues(double timeValue);
+   int calcValues(double timeValue) override;
    virtual bool needUpdate(double timeValue, double dt) override { return true; }
 
   protected:

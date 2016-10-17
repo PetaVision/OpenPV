@@ -22,16 +22,16 @@ class LIFGap : public PV::LIF {
    LIFGap(const char *name, HyPerCol *hc);
    virtual ~LIFGap();
 
-   int virtual updateState(double time, double dt);
+   int virtual updateState(double time, double dt) override;
 
-   int virtual readStateFromCheckpoint(const char *cpDir, double *timeptr);
+   int virtual readStateFromCheckpoint(const char *cpDir, double *timeptr) override;
 
    const pvgsyndata_t *getGapStrength() { return gapStrength; }
 
   protected:
    LIFGap();
    int initialize(const char *name, HyPerCol *hc, const char *kernel_name);
-   virtual int allocateConductances(int num_channels);
+   virtual int allocateConductances(int num_channels) override;
    virtual int registerData(Secretary *secretary, std::string const &objName) override;
    virtual int readGapStrengthFromCheckpoint(const char *cpDir, double *timeptr);
 

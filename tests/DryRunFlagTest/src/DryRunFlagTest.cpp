@@ -89,7 +89,7 @@ void compareParamsFiles(char const *paramsFile1, char const *paramsFile2, PV::Co
    // create a map between groups in paramsFile1 and those in paramsFile2.
    std::map<PV::ParameterGroup *, PV::ParameterGroup *> parameterGroupMap;
    char const *groupName = nullptr;
-   for (int idx = 0; groupName = params1.groupNameFromIndex(idx); idx++) {
+   for (int idx = 0; (groupName = params1.groupNameFromIndex(idx)) != nullptr; idx++) {
       PV::ParameterGroup *g1 = params1.group(groupName);
       PV::ParameterGroup *g2 = params2.group(groupName);
       pvErrorIf(
@@ -100,7 +100,7 @@ void compareParamsFiles(char const *paramsFile1, char const *paramsFile2, PV::Co
             paramsFile2);
       parameterGroupMap.emplace(std::make_pair(g1, g2));
    }
-   for (int idx = 0; groupName = params2.groupNameFromIndex(idx); idx++) {
+   for (int idx = 0; (groupName = params2.groupNameFromIndex(idx)) != nullptr; idx++) {
       pvErrorIf(
             params1.group(groupName) == nullptr,
             "Group name \"%s\" is in \"%s\" but not in \"%s\".\n",

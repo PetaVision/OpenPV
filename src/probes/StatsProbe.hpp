@@ -17,13 +17,13 @@ class StatsProbe : public PV::LayerProbe {
    StatsProbe(const char *probeName, HyPerCol *hc);
    virtual ~StatsProbe();
 
-   virtual int outputState(double timef);
+   virtual int outputState(double timef) override;
    virtual int checkpointTimers(PrintStream &timerstream);
 
   protected:
    StatsProbe();
    int initStatsProbe(const char *probeName, HyPerCol *hc);
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_buffer(enum ParamsIOFlag ioFlag);
    virtual void ioParam_nnzThreshold(enum ParamsIOFlag ioFlag);
    void requireType(PVBufType requiredType);
@@ -36,7 +36,7 @@ class StatsProbe : public PV::LayerProbe {
     * getValues-friendly
     * probes.
     */
-   virtual int initNumValues();
+   virtual int initNumValues() override;
 
    virtual int registerData(Secretary *secretary, std::string const &objName) override;
 
@@ -45,14 +45,14 @@ class StatsProbe : public PV::LayerProbe {
     * and getValue methods
     * should not be used).
     */
-   virtual bool needRecalc(double timevalue) { return false; }
+   virtual bool needRecalc(double timevalue) override { return false; }
 
    /**
     * Implements calcValues() for StatsProbe to always fail (getValues and
     * getValue methods should
     * not be used).
     */
-   virtual int calcValues(double timevalue) { return PV_FAILURE; }
+   virtual int calcValues(double timevalue) override { return PV_FAILURE; }
 
    // Member variables
    PVBufType type;
