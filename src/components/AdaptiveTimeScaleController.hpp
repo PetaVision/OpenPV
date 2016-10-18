@@ -9,6 +9,7 @@
 #define ADAPTIVETIMESCALECONTROLLER_HPP_
 
 #include "columns/Communicator.hpp"
+#include "io/CheckpointEntry.hpp"
 #include "io/Checkpointer.hpp"
 #include "io/PrintStream.hpp"
 #include <vector>
@@ -17,6 +18,12 @@ namespace PV {
 
 class AdaptiveTimeScaleController : public CheckpointerDataInterface {
   public:
+   struct TimeScaleInfo {
+      std::vector<double> mTimeScale;
+      std::vector<double> mTimeScaleMax;
+      std::vector<double> mTimeScaleTrue;
+   };
+
    AdaptiveTimeScaleController(
          char const *name,
          int batchWidth,
@@ -52,11 +59,27 @@ class AdaptiveTimeScaleController : public CheckpointerDataInterface {
    Communicator *mCommunicator;
    bool mVerifyWrites;
 
-   std::vector<double> mTimeScale;
-   std::vector<double> mTimeScaleMax;
-   std::vector<double> mTimeScaleTrue;
+   TimeScaleInfo mTimeScaleInfo, mOldTimeScaleInfo;
    std::vector<double> mOldTimeScale;
    std::vector<double> mOldTimeScaleTrue;
+};
+
+class CheckpointEntryTimeScaleInfo : public CheckpointEntry {
+  public:
+   CheckpointEntryTimeScaleInfo(std::string const &name, Communicator *communicator, AdaptiveTimeScaleController::TimeScaleInfo *timeScaleInfoPtr)
+         : CheckpointEntry(name, communicator), mTimeScaleInfoPtr(timeScaleInfoPtr) {}
+   CheckpointEntryTimeScaleInfo(
+         std::string const &objName,
+         std::string const &dataName,
+         Communicator *communicator,
+         AdaptiveTimeScaleController::TimeScaleInfo *timeScaleInfoPtr) : CheckpointEntry(objName, dataName, communicator), mTimeScaleInfoPtr(timeScaleInfoPtr) {}
+   virtual void write(std::string const &checkpointDirectory, double simTime, bool verifyWritesFlag)
+         const override;
+   virtual void read(std::string const &checkpointDirectory, double *simTimePtr) const override;
+   virtual void remove(std::string const &checkpointDirectory) const override;
+
+   private:
+      AdaptiveTimeScaleController::TimeScaleInfo *mTimeScaleInfoPtr;
 };
 
 } /* namespace PV */
