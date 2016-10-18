@@ -1497,10 +1497,6 @@ int HyPerCol::checkpointRead() {
       t += mDeltaTime;
    }
 
-   double checkTime = simulationTime();
-   for (auto &p : mColProbes) {
-      p->checkpointRead(mCheckpointReadDir, &checkTime);
-   }
    // Sep 26, 2016: Adaptive timestep routines and member variables have been
    // moved to
    // AdaptiveTimeScaleProbe.
@@ -1520,9 +1516,6 @@ int HyPerCol::checkpointWrite(const char *cpDir) {
 
    // Oct 3, 2016. Printing timers to checkpoint moved to Checkpointer::checkpointWrite
 
-   for (auto &p : mColProbes) {
-      p->checkpointWrite(cpDir);
-   }
    // Sep 26, 2016: Adaptive timestep routines and member variables have been
    // moved to AdaptiveTimeScaleProbe.
 
