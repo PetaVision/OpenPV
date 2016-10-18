@@ -8,8 +8,8 @@
 #ifndef CHECKPOINTER_HPP_
 #define CHECKPOINTER_HPP_
 
+#include "checkpointing/CheckpointEntry.hpp"
 #include "columns/Communicator.hpp"
-#include "io/CheckpointEntry.hpp"
 #include "io/HyPerCheckpoint.hpp"
 #include "io/PVParams.hpp"
 #include "io/io.hpp"

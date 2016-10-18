@@ -2,7 +2,7 @@
 #define __CHECKPOINTABLEFILESTREAM_HPP__
 
 #include "Checkpointer.hpp"
-#include "FileStream.hpp"
+#include "io/FileStream.hpp"
 
 #include <string>
 

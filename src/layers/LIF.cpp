@@ -8,9 +8,9 @@
 #include "LIF.hpp"
 #include "HyPerLayer.hpp"
 
+#include "checkpointing/CheckpointEntryRandState.hpp"
 #include "include/default_params.h"
 #include "include/pv_common.h"
-#include "io/CheckpointEntryRandState.hpp"
 #include "io/fileio.hpp"
 
 #include <cassert>

@@ -1,5 +1,5 @@
 #include "testPvpExtended.hpp"
-#include "io/CheckpointEntry.hpp"
+#include "checkpointing/CheckpointEntry.hpp"
 #include "utils/PVLog.hpp"
 #include "utils/conversions.h"
 

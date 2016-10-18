@@ -8,13 +8,13 @@
 #ifndef HYPERCOL_HPP_
 #define HYPERCOL_HPP_
 
+#include "checkpointing/Checkpointer.hpp"
 #include "columns/BaseObject.hpp"
 #include "columns/Communicator.hpp"
 #include "columns/Messages.hpp"
 #include "columns/PV_Init.hpp"
 #include "connections/BaseConnection.hpp"
 #include "include/pv_types.h"
-#include "io/Checkpointer.hpp"
 #include "io/HyPerCheckpoint.hpp" // TODO: remove when Checkpointer class refactor is complete.
 #include "io/PVParams.hpp"
 #include "layers/HyPerLayer.hpp"

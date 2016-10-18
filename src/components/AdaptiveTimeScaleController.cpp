@@ -8,8 +8,8 @@
 #include "AdaptiveTimeScaleController.hpp"
 #include "arch/mpi/mpi.h"
 #include "include/pv_common.h"
-#include "io/fileio.hpp"
 #include "io/FileStream.hpp"
+#include "io/fileio.hpp"
 #include "utils/PVLog.hpp"
 
 namespace PV {
@@ -45,8 +45,11 @@ AdaptiveTimeScaleController::AdaptiveTimeScaleController(
 
 AdaptiveTimeScaleController::~AdaptiveTimeScaleController() { free(mName); }
 
-int AdaptiveTimeScaleController::registerData(Checkpointer *checkpointer, std::string const &objName) {
-   auto ptr = std::make_shared<CheckpointEntryTimeScaleInfo>(objName, "timescaleinfo", mCommunicator, &mTimeScaleInfo);
+int AdaptiveTimeScaleController::registerData(
+      Checkpointer *checkpointer,
+      std::string const &objName) {
+   auto ptr = std::make_shared<CheckpointEntryTimeScaleInfo>(
+         objName, "timescaleinfo", mCommunicator, &mTimeScaleInfo);
    checkpointer->registerCheckpointEntry(ptr);
    return PV_SUCCESS;
 }
@@ -54,8 +57,8 @@ int AdaptiveTimeScaleController::registerData(Checkpointer *checkpointer, std::s
 std::vector<double> const &AdaptiveTimeScaleController::calcTimesteps(
       double timeValue,
       std::vector<double> const &rawTimeScales) {
-   mOldTimeScaleInfo = mTimeScaleInfo;
-   mTimeScaleInfo.mTimeScaleTrue    = rawTimeScales;
+   mOldTimeScaleInfo             = mTimeScaleInfo;
+   mTimeScaleInfo.mTimeScaleTrue = rawTimeScales;
    for (int b = 0; b < mBatchWidth; b++) {
       double E_dt         = mTimeScaleInfo.mTimeScaleTrue[b];
       double E_0          = mOldTimeScaleInfo.mTimeScaleTrue[b];
@@ -70,8 +73,12 @@ std::vector<double> const &AdaptiveTimeScaleController::calcTimesteps(
 
          // dt := mTimeScaleMaxBase * tau_eff
          mTimeScaleInfo.mTimeScale[b] = mTauFactor * tau_eff_scaled;
-         mTimeScaleInfo.mTimeScale[b] = (mTimeScaleInfo.mTimeScale[b] <= mTimeScaleInfo.mTimeScaleMax[b]) ? mTimeScaleInfo.mTimeScale[b] : mTimeScaleInfo.mTimeScaleMax[b];
-         mTimeScaleInfo.mTimeScale[b] = (mTimeScaleInfo.mTimeScale[b] < mBaseMin) ? mBaseMin : mTimeScaleInfo.mTimeScale[b];
+         mTimeScaleInfo.mTimeScale[b] =
+               (mTimeScaleInfo.mTimeScale[b] <= mTimeScaleInfo.mTimeScaleMax[b])
+                     ? mTimeScaleInfo.mTimeScale[b]
+                     : mTimeScaleInfo.mTimeScaleMax[b];
+         mTimeScaleInfo.mTimeScale[b] =
+               (mTimeScaleInfo.mTimeScale[b] < mBaseMin) ? mBaseMin : mTimeScaleInfo.mTimeScale[b];
 
          if (mTimeScaleInfo.mTimeScale[b] == mTimeScaleInfo.mTimeScaleMax[b]) {
             mTimeScaleInfo.mTimeScaleMax[b] = (1 + mGrowthFactor) * mTimeScaleInfo.mTimeScaleMax[b];
@@ -97,7 +104,11 @@ void AdaptiveTimeScaleController::writeTimestepInfo(double timeValue, PrintStrea
                mTimeScaleInfo.mTimeScaleTrue[b]);
       }
       else {
-         stream.printf("%d, %10.8f, %10.8f", b, mTimeScaleInfo.mTimeScale[b], mTimeScaleInfo.mTimeScaleTrue[b]);
+         stream.printf(
+               "%d, %10.8f, %10.8f",
+               b,
+               mTimeScaleInfo.mTimeScale[b],
+               mTimeScaleInfo.mTimeScaleTrue[b]);
       }
       if (mWriteTimeScaleFieldnames) {
          stream.printf(", timeScaleMax = %10.8f\n", mTimeScaleInfo.mTimeScaleMax[b]);
@@ -113,11 +124,11 @@ void CheckpointEntryTimeScaleInfo::write(
       std::string const &checkpointDirectory,
       double simTime,
       bool verifyWritesFlag) const {
-   if (getCommunicator()->commRank()==0) {
-      int batchWidth = (int) mTimeScaleInfoPtr->mTimeScale.size();
+   if (getCommunicator()->commRank() == 0) {
+      int batchWidth   = (int)mTimeScaleInfoPtr->mTimeScale.size();
       std::string path = generatePath(checkpointDirectory, "bin");
       FileStream fileStream{path.c_str(), std::ios_base::out, verifyWritesFlag};
-      for (int b=0; b<batchWidth; b++) {
+      for (int b = 0; b < batchWidth; b++) {
          fileStream.write(&mTimeScaleInfoPtr->mTimeScale.at(b), sizeof(double));
          fileStream.write(&mTimeScaleInfoPtr->mTimeScaleTrue.at(b), sizeof(double));
          fileStream.write(&mTimeScaleInfoPtr->mTimeScaleMax.at(b), sizeof(double));
@@ -125,7 +136,7 @@ void CheckpointEntryTimeScaleInfo::write(
       path = generatePath(checkpointDirectory, "txt");
       FileStream txtFileStream{path.c_str(), std::ios_base::out, verifyWritesFlag};
       int kb0 = getCommunicator()->commBatch() * batchWidth;
-      for (std::size_t b=0; b<batchWidth; b++) {
+      for (std::size_t b = 0; b < batchWidth; b++) {
          txtFileStream << "batch index = " << b + kb0 << "\n";
          txtFileStream << "time = " << simTime << "\n";
          txtFileStream << "timeScale = " << mTimeScaleInfoPtr->mTimeScale[b] << "\n";
@@ -140,21 +151,36 @@ void CheckpointEntryTimeScaleInfo::remove(std::string const &checkpointDirectory
    deleteFile(checkpointDirectory, "txt");
 }
 
-void CheckpointEntryTimeScaleInfo::read(std::string const &checkpointDirectory, double *simTimePtr) const {
-   int batchWidth = (int) mTimeScaleInfoPtr->mTimeScale.size();
-   if (getCommunicator()->commRank()==0) {
+void CheckpointEntryTimeScaleInfo::read(std::string const &checkpointDirectory, double *simTimePtr)
+      const {
+   int batchWidth = (int)mTimeScaleInfoPtr->mTimeScale.size();
+   if (getCommunicator()->commRank() == 0) {
       std::string path = generatePath(checkpointDirectory, "bin");
       FileStream fileStream{path.c_str(), std::ios_base::in, false};
-      for (std::size_t b=0; b<batchWidth; b++) {
+      for (std::size_t b = 0; b < batchWidth; b++) {
          fileStream.read(&mTimeScaleInfoPtr->mTimeScale.at(b), sizeof(double));
          fileStream.read(&mTimeScaleInfoPtr->mTimeScaleTrue.at(b), sizeof(double));
          fileStream.read(&mTimeScaleInfoPtr->mTimeScaleMax.at(b), sizeof(double));
       }
    }
-   MPI_Bcast(mTimeScaleInfoPtr->mTimeScale.data(), batchWidth, MPI_DOUBLE, 0, getCommunicator()->communicator());
-   MPI_Bcast(mTimeScaleInfoPtr->mTimeScaleTrue.data(), batchWidth, MPI_DOUBLE, 0, getCommunicator()->communicator());
-   MPI_Bcast(mTimeScaleInfoPtr->mTimeScaleMax.data(), batchWidth, MPI_DOUBLE, 0, getCommunicator()->communicator());
+   MPI_Bcast(
+         mTimeScaleInfoPtr->mTimeScale.data(),
+         batchWidth,
+         MPI_DOUBLE,
+         0,
+         getCommunicator()->communicator());
+   MPI_Bcast(
+         mTimeScaleInfoPtr->mTimeScaleTrue.data(),
+         batchWidth,
+         MPI_DOUBLE,
+         0,
+         getCommunicator()->communicator());
+   MPI_Bcast(
+         mTimeScaleInfoPtr->mTimeScaleMax.data(),
+         batchWidth,
+         MPI_DOUBLE,
+         0,
+         getCommunicator()->communicator());
 }
-
 
 } /* namespace PV */

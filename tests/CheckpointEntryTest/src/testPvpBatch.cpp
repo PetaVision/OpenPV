@@ -1,5 +1,5 @@
 #include "testPvpBatch.hpp"
-#include "io/CheckpointEntry.hpp"
+#include "checkpointing/CheckpointEntry.hpp"
 #include "utils/conversions.h"
 
 void testPvpBatch(PV::Communicator *comm, std::string const &directory) {

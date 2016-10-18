@@ -5,9 +5,9 @@
 #define __INPUTLAYER_HPP__
 
 #include "HyPerLayer.hpp"
+#include "checkpointing/CheckpointableFileStream.hpp"
 #include "columns/HyPerCol.hpp"
 #include "components/BatchIndexer.hpp"
-#include "io/CheckpointableFileStream.hpp"
 #include "structures/Buffer.hpp"
 #include "utils/BufferUtilsRescale.hpp"
 

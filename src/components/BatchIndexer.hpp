@@ -1,6 +1,6 @@
 #pragma once
 
-#include "io/Checkpointer.hpp"
+#include "checkpointing/Checkpointer.hpp"
 #include <vector>
 
 namespace PV {

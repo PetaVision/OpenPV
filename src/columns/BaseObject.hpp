@@ -23,9 +23,9 @@
 #ifndef BASEOBJECT_HPP_
 #define BASEOBJECT_HPP_
 
+#include "checkpointing/Checkpointer.hpp"
 #include "columns/Messages.hpp"
 #include "include/pv_common.h"
-#include "io/Checkpointer.hpp"
 #include "observerpattern/Observer.hpp"
 #include "utils/PVAlloc.hpp"
 #include "utils/PVAssert.hpp"

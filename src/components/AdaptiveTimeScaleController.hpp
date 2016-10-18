@@ -8,9 +8,9 @@
 #ifndef ADAPTIVETIMESCALECONTROLLER_HPP_
 #define ADAPTIVETIMESCALECONTROLLER_HPP_
 
+#include "checkpointing/CheckpointEntry.hpp"
+#include "checkpointing/Checkpointer.hpp"
 #include "columns/Communicator.hpp"
-#include "io/CheckpointEntry.hpp"
-#include "io/Checkpointer.hpp"
 #include "io/PrintStream.hpp"
 #include <vector>
 
@@ -64,20 +64,24 @@ class AdaptiveTimeScaleController : public CheckpointerDataInterface {
 
 class CheckpointEntryTimeScaleInfo : public CheckpointEntry {
   public:
-   CheckpointEntryTimeScaleInfo(std::string const &name, Communicator *communicator, AdaptiveTimeScaleController::TimeScaleInfo *timeScaleInfoPtr)
+   CheckpointEntryTimeScaleInfo(
+         std::string const &name,
+         Communicator *communicator,
+         AdaptiveTimeScaleController::TimeScaleInfo *timeScaleInfoPtr)
          : CheckpointEntry(name, communicator), mTimeScaleInfoPtr(timeScaleInfoPtr) {}
    CheckpointEntryTimeScaleInfo(
          std::string const &objName,
          std::string const &dataName,
          Communicator *communicator,
-         AdaptiveTimeScaleController::TimeScaleInfo *timeScaleInfoPtr) : CheckpointEntry(objName, dataName, communicator), mTimeScaleInfoPtr(timeScaleInfoPtr) {}
+         AdaptiveTimeScaleController::TimeScaleInfo *timeScaleInfoPtr)
+         : CheckpointEntry(objName, dataName, communicator), mTimeScaleInfoPtr(timeScaleInfoPtr) {}
    virtual void write(std::string const &checkpointDirectory, double simTime, bool verifyWritesFlag)
          const override;
    virtual void read(std::string const &checkpointDirectory, double *simTimePtr) const override;
    virtual void remove(std::string const &checkpointDirectory) const override;
 
-   private:
-      AdaptiveTimeScaleController::TimeScaleInfo *mTimeScaleInfoPtr;
+  private:
+   AdaptiveTimeScaleController::TimeScaleInfo *mTimeScaleInfoPtr;
 };
 
 } /* namespace PV */
