@@ -51,113 +51,6 @@ int AdaptiveTimeScaleController::registerData(Checkpointer *checkpointer, std::s
    return PV_SUCCESS;
 }
 
-int AdaptiveTimeScaleController::checkpointRead(const char *cpDir, double *timeptr) {
-
-   struct timescalemax_struct {
-      double mTimeScale; // mTimeScale factor for increasing/decreasing dt
-      double mTimeScaleTrue; // true mTimeScale as returned by HyPerLayer::getTimeScaleTrue()
-      // typically computed by an adaptTimeScaleController (ColProbe)
-      double mTimeScaleMax; //  current maximum allowed value of mTimeScale as returned by
-      //  HyPerLayer::getTimeScaleMaxPtr()
-   };
-   struct timescalemax_struct timescalemax[mBatchWidth];
-
-   for (int b = 0; b < mBatchWidth; b++) {
-      timescalemax[b].mTimeScale     = 1;
-      timescalemax[b].mTimeScaleTrue = 1;
-      timescalemax[b].mTimeScaleMax  = 1;
-   }
-   size_t timescalemax_size = sizeof(struct timescalemax_struct);
-   assert(sizeof(struct timescalemax_struct) == sizeof(double) + sizeof(double) + sizeof(double));
-   // read mTimeScale info
-   if (mCommunicator->commRank() == 0) {
-      char timescalepath[PV_PATH_MAX];
-      int chars_needed =
-            snprintf(timescalepath, PV_PATH_MAX, "%s/%s_timescaleinfo.bin", cpDir, mName);
-      if (chars_needed >= PV_PATH_MAX) {
-         pvError().printf(
-               "HyPerCol::checkpointRead error: path \"%s/timescaleinfo.bin\" is too long.\n",
-               cpDir);
-      }
-      PV_Stream *timescalefile = PV_fopen(timescalepath, "r", false /*mVerifyWrites*/);
-      if (timescalefile == nullptr) {
-         pvWarn(errorMessage);
-         errorMessage.printf(
-               "HyPerCol::checkpointRead: unable to open \"%s\" for reading: %s.\n",
-               timescalepath,
-               strerror(errno));
-         errorMessage.printf(
-               "    will use default value of mTimeScale=%f, mTimeScaleTrue=%f, mTimeScaleMax=%f\n",
-               1.0,
-               1.0,
-               1.0);
-      }
-      else {
-         for (int b = 0; b < mBatchWidth; b++) {
-            long int startpos = getPV_StreamFilepos(timescalefile);
-            PV_fread(&timescalemax[b], 1, timescalemax_size, timescalefile);
-            long int endpos = getPV_StreamFilepos(timescalefile);
-            assert(endpos - startpos == (int)sizeof(struct timescalemax_struct));
-         }
-         PV_fclose(timescalefile);
-      }
-   }
-   // Grab only the necessary part based on comm batch id
-
-   MPI_Bcast(
-         &timescalemax,
-         (int)timescalemax_size * mBatchWidth,
-         MPI_CHAR,
-         0,
-         mCommunicator->communicator());
-   for (int b = 0; b < mBatchWidth; b++) {
-      mTimeScaleInfo.mTimeScale[b]     = timescalemax[b].mTimeScale;
-      mTimeScaleInfo.mTimeScaleTrue[b] = timescalemax[b].mTimeScaleTrue;
-      mTimeScaleInfo.mTimeScaleMax[b]  = timescalemax[b].mTimeScaleMax;
-   }
-   return PV_SUCCESS;
-}
-
-int AdaptiveTimeScaleController::checkpointWrite(const char *cpDir) {
-   if (mCommunicator->commRank() == 0) {
-      char timescalepath[PV_PATH_MAX];
-      int chars_needed =
-            snprintf(timescalepath, PV_PATH_MAX, "%s/%s_timescaleinfo.bin", cpDir, mName);
-      assert(chars_needed < PV_PATH_MAX);
-      PV_Stream *timescalefile = PV_fopen(timescalepath, "w", mVerifyWrites);
-      assert(timescalefile);
-      for (int b = 0; b < mBatchWidth; b++) {
-         if (PV_fwrite(&mTimeScaleInfo.mTimeScale[b], 1, sizeof(double), timescalefile) != sizeof(double)) {
-            pvError().printf(
-                  "HyPerCol::checkpointWrite error writing timeScale to %s\n", timescalefile->name);
-         }
-         if (PV_fwrite(&mTimeScaleInfo.mTimeScaleTrue[b], 1, sizeof(double), timescalefile) != sizeof(double)) {
-            pvError().printf(
-                  "HyPerCol::checkpointWrite error writing timeScaleTrue to %s\n",
-                  timescalefile->name);
-         }
-         if (PV_fwrite(&mTimeScaleInfo.mTimeScaleMax[b], 1, sizeof(double), timescalefile) != sizeof(double)) {
-            pvError().printf(
-                  "HyPerCol::checkpointWrite error writing timeScaleMax to %s\n",
-                  timescalefile->name);
-         }
-      }
-      PV_fclose(timescalefile);
-      chars_needed = snprintf(timescalepath, PV_PATH_MAX, "%s/%s_timescaleinfo.txt", cpDir, mName);
-      assert(chars_needed < PV_PATH_MAX);
-      timescalefile = PV_fopen(timescalepath, "w", mVerifyWrites);
-      assert(timescalefile);
-      int kb0 = mCommunicator->commBatch() * mBatchWidth;
-      for (int b = 0; b < mBatchWidth; b++) {
-         fprintf(timescalefile->fp, "batch = %d\n", b + kb0);
-         fprintf(timescalefile->fp, "time = %g\n", mTimeScaleInfo.mTimeScale[b]);
-         fprintf(timescalefile->fp, "timeScaleTrue = %g\n", mTimeScaleInfo.mTimeScaleTrue[b]);
-      }
-      PV_fclose(timescalefile);
-   }
-   return PV_SUCCESS;
-}
-
 std::vector<double> const &AdaptiveTimeScaleController::calcTimesteps(
       double timeValue,
       std::vector<double> const &rawTimeScales) {
@@ -221,15 +114,13 @@ void CheckpointEntryTimeScaleInfo::write(
       double simTime,
       bool verifyWritesFlag) const {
    if (getCommunicator()->commRank()==0) {
-      std::size_t batchWidth = mTimeScaleInfoPtr->mTimeScale.size();
-      pvErrorIf(mTimeScaleInfoPtr->mTimeScaleTrue.size() != batchWidth, "%s has different sizes of TimeScale and TimeScaleTrue vectors.\n", getName().c_str());
-      pvErrorIf(mTimeScaleInfoPtr->mTimeScaleMax.size() != batchWidth, "%s has different sizes of TimeScale and TimeScaleMax vectors.\n", getName().c_str());
+      int batchWidth = (int) mTimeScaleInfoPtr->mTimeScale.size();
       std::string path = generatePath(checkpointDirectory, "bin");
       FileStream fileStream{path.c_str(), std::ios_base::out, verifyWritesFlag};
-      for (std::size_t b=0; b<batchWidth; b++) {
-         fileStream.write(&mTimeScaleInfoPtr->mTimeScale.at(b), (std::size_t) 1);
-         fileStream.write(&mTimeScaleInfoPtr->mTimeScaleTrue.at(b), (std::size_t) 1);
-         fileStream.write(&mTimeScaleInfoPtr->mTimeScaleMax.at(b), (std::size_t) 1);
+      for (int b=0; b<batchWidth; b++) {
+         fileStream.write(&mTimeScaleInfoPtr->mTimeScale.at(b), sizeof(double));
+         fileStream.write(&mTimeScaleInfoPtr->mTimeScaleTrue.at(b), sizeof(double));
+         fileStream.write(&mTimeScaleInfoPtr->mTimeScaleMax.at(b), sizeof(double));
       }
       path = generatePath(checkpointDirectory, "txt");
       FileStream txtFileStream{path.c_str(), std::ios_base::out, verifyWritesFlag};
@@ -250,7 +141,19 @@ void CheckpointEntryTimeScaleInfo::remove(std::string const &checkpointDirectory
 }
 
 void CheckpointEntryTimeScaleInfo::read(std::string const &checkpointDirectory, double *simTimePtr) const {
-   return;
+   int batchWidth = (int) mTimeScaleInfoPtr->mTimeScale.size();
+   if (getCommunicator()->commRank()==0) {
+      std::string path = generatePath(checkpointDirectory, "bin");
+      FileStream fileStream{path.c_str(), std::ios_base::in, false};
+      for (std::size_t b=0; b<batchWidth; b++) {
+         fileStream.read(&mTimeScaleInfoPtr->mTimeScale.at(b), sizeof(double));
+         fileStream.read(&mTimeScaleInfoPtr->mTimeScaleTrue.at(b), sizeof(double));
+         fileStream.read(&mTimeScaleInfoPtr->mTimeScaleMax.at(b), sizeof(double));
+      }
+   }
+   MPI_Bcast(mTimeScaleInfoPtr->mTimeScale.data(), batchWidth, MPI_DOUBLE, 0, getCommunicator()->communicator());
+   MPI_Bcast(mTimeScaleInfoPtr->mTimeScaleTrue.data(), batchWidth, MPI_DOUBLE, 0, getCommunicator()->communicator());
+   MPI_Bcast(mTimeScaleInfoPtr->mTimeScaleMax.data(), batchWidth, MPI_DOUBLE, 0, getCommunicator()->communicator());
 }
 
 

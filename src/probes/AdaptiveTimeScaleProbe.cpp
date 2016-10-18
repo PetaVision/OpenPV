@@ -127,22 +127,6 @@ int AdaptiveTimeScaleProbe::registerData(Checkpointer *checkpointer, std::string
    mAdaptiveTimeScaleController->registerData(checkpointer, objName);
 }
 
-int AdaptiveTimeScaleProbe::checkpointRead(const char *cpDir, double *timeptr) {
-   int status = ColProbe::checkpointRead(cpDir, timeptr);
-   if (status == PV_SUCCESS) {
-      status = mAdaptiveTimeScaleController->checkpointRead(cpDir, timeptr);
-   }
-   return status;
-}
-
-int AdaptiveTimeScaleProbe::checkpointWrite(const char *cpDir) {
-   int status = ColProbe::checkpointWrite(cpDir);
-   if (status == PV_SUCCESS) {
-      status = mAdaptiveTimeScaleController->checkpointWrite(cpDir);
-   }
-   return status;
-}
-
 int AdaptiveTimeScaleProbe::respond(std::shared_ptr<BaseMessage const> message) {
    int status = ColProbe::respond(message);
    if (message == nullptr) {

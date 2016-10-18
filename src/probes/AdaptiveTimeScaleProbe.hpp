@@ -88,8 +88,6 @@ class AdaptiveTimeScaleProbe : public ColProbe {
    virtual int respond(std::shared_ptr<BaseMessage const> message) override;
    virtual int communicateInitInfo() override;
    virtual int allocateDataStructures() override;
-   virtual int checkpointRead(const char *cpDir, double *timeptr) override;
-   virtual int checkpointWrite(const char *cpDir) override;
    virtual int outputState(double timeValue) override;
 
   protected:
