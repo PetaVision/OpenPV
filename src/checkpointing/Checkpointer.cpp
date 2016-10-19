@@ -392,7 +392,8 @@ void Checkpointer::addObserver(Observer *observer, BaseMessage const &message) {
    mObserverTable.addObject(observer->getDescription(), observer);
 }
 
-bool Checkpointer::registerCheckpointEntry(std::shared_ptr<CheckpointEntry> checkpointEntry) {
+bool Checkpointer::registerCheckpointEntry(std::shared_ptr<CheckpointEntry> checkpointEntry, bool constantEntireRun) {
+   if (mSuppressNonplasticCheckpoints && constantEntireRun) { return true; }
    std::string const &name = checkpointEntry->getName();
    for (auto &c : mCheckpointRegistry) {
       if (c->getName() == checkpointEntry->getName()) {

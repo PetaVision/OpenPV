@@ -76,7 +76,7 @@ class Checkpointer : public Subject {
          size_t numValues,
          bool broadcast);
 
-   bool registerCheckpointEntry(std::shared_ptr<CheckpointEntry> checkpointEntry);
+   bool registerCheckpointEntry(std::shared_ptr<CheckpointEntry> checkpointEntry, bool constantEntireRun=false);
    void registerTimer(Timer const *timer);
    virtual void addObserver(Observer *observer, BaseMessage const &message) override;
    void checkpointRead(
