@@ -415,6 +415,7 @@ int InputLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_useInputBCflag(ioFlag);
    ioParam_padValue(ioFlag);
    ioParam_batchMethod(ioFlag);
+   ioParam_randomSeed(ioFlag);
    ioParam_start_frame_index(ioFlag);
    ioParam_skip_frame_index(ioFlag);
    ioParam_writeFrameToTimestamp(ioFlag);
@@ -700,6 +701,7 @@ void InputLayer::ioParam_batchMethod(enum ParamsIOFlag ioFlag) {
          case BatchIndexer::BYFILE: batchMethod      = strdup("byFile"); break;
          case BatchIndexer::BYLIST: batchMethod      = strdup("byList"); break;
          case BatchIndexer::BYSPECIFIED: batchMethod = strdup("bySpecified"); break;
+         case BatchIndexer::RANDOM: batchMethod      = strdup("random"); break;
       }
    }
    parent->parameters()->ioParamString(ioFlag, name, "batchMethod", &batchMethod, "byFile");
@@ -712,12 +714,22 @@ void InputLayer::ioParam_batchMethod(enum ParamsIOFlag ioFlag) {
    else if (strcmp(batchMethod, "bySpecified") == 0) {
       mBatchMethod = BatchIndexer::BYSPECIFIED;
    }
-   else {
-      pvError() << getName() << ": Input layer " << name << " batchMethod not recognized. Options "
-                                                            "are \"byFile\", \"byList\", and "
-                                                            "\"bySpecified\"\n.";
+   else if (strcmp(batchMethod, "random") == 0) {
+      mBatchMethod = BatchIndexer::RANDOM;
+   }
+    else {
+      pvError() << getName() << ": Input layer "
+         << name << " batchMethod not recognized. Options "
+         "are \"byFile\", \"byList\", bySpecified, and random.\n";
    }
    free(batchMethod);
+}
+
+void InputLayer::ioParam_randomSeed(enum ParamsIOFlag ioFlag) {
+   if (mBatchMethod == BatchIndexer::RANDOM) {
+      parent->parameters()->ioParamValue(
+            ioFlag, name, "randomSeed", &mRandomSeed, mRandomSeed);
+   }
 }
 
 void InputLayer::ioParam_start_frame_index(enum ParamsIOFlag ioFlag) {

@@ -92,7 +92,11 @@ class InputLayer : public HyPerLayer {
    // byFile: Each batch skips nbatch, and starts staggered from the beginning of the file list
    // byList: Each batch skips 1, and starts at index = numFrames/numBatch
    // bySpecified: User specified start_frame_index and skip_frame_index, one for each batch
+   // random: Randomizes the order of the given file. Does not duplicate indices until all are used
    virtual void ioParam_batchMethod(enum ParamsIOFlag ioFlag);
+
+   // Random seed used when batchMethod == random.
+   virtual void ioParam_randomSeed(enum ParamsIOFlag ioFlag);
 
    // useImageBCFlag: Specifies if the input should be scaled to fill margins
    virtual void ioParam_useInputBCflag(enum ParamsIOFlag ioFlag);
@@ -145,8 +149,9 @@ class InputLayer : public HyPerLayer {
    bool getUsingFileList() { return mUsingFileList; }
    const std::string getInputPath() { return mInputPath; }
    std::string getFileName(int batchIndex) {
-      return mBatchIndexer != nullptr ? mFileList.at(mBatchIndexer->getIndices().at(batchIndex))
-                                      : 0;
+      return mBatchIndexer != nullptr
+                            ? mFileList.at(mBatchIndexer->getIndex(batchIndex))
+                            : 0;
    }
 
   private:
@@ -182,6 +187,9 @@ class InputLayer : public HyPerLayer {
    // Amount to translate input buffer before scattering but after rescaling
    int mOffsetX = 0;
    int mOffsetY = 0;
+
+   // Random seed used when batchMethod == random
+   int mRandomSeed = 123456789;
 
    // Object to handle assigning file indices to batches
    std::unique_ptr<BatchIndexer> mBatchIndexer;
