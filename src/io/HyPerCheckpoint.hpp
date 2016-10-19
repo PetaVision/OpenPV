@@ -24,7 +24,6 @@ class HyPerCheckpoint {
   public:
    HyPerCheckpoint() {}
    virtual ~HyPerCheckpoint() {}
-   virtual int checkpointRead() { return PV_SUCCESS; }
    virtual int checkpointWrite(const char *cpDir) { return PV_SUCCESS; }
 };
 }

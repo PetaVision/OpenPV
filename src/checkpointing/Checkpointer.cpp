@@ -422,9 +422,6 @@ void Checkpointer::checkpointRead(
    if (currentStepPointer) {
       *currentStepPointer = mTimeInfo.mCurrentCheckpointStep;
    }
-   if (mHyPerCheckpoint) {
-      mHyPerCheckpoint->checkpointRead();
-   }
    notify(mObserverTable, std::make_shared<ProcessCheckpointReadMessage const>());
 }
 

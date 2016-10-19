@@ -268,10 +268,10 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
 
    mRunTimer = new Timer(mName, "column", "run    ");
    mCheckpointer->registerTimer(mRunTimer);
+   mCheckpointer->registerCheckpointData(mName, "nextProgressTime", &mNextProgressTime, (std::size_t) 1, true /*broadcast*/);
 
    // mWarmStart is set if command line sets the -r option.  PV_Arguments should
-   // prevent -r and -c
-   // from being both set.
+   // prevent -r and -c from being both set.
    char const *checkpoint_read_dir = mPVInitObj->getCheckpointReadDir();
    pvAssert(!(mWarmStart && checkpoint_read_dir));
    if (mWarmStart) {
@@ -1488,32 +1488,11 @@ int HyPerCol::advanceTime(double sim_time) {
    return status;
 }
 
-int HyPerCol::checkpointRead() {
-   double t = mStartTime;
-   for (long int k = mInitialStep; k < mCurrentStep; k++) {
-      if (t >= mNextProgressTime) {
-         mNextProgressTime += mProgressInterval;
-      }
-      t += mDeltaTime;
-   }
-
-   // Sep 26, 2016: Adaptive timestep routines and member variables have been
-   // moved to
-   // AdaptiveTimeScaleProbe.
-
-   return PV_SUCCESS;
-}
-
 // Oct 3, 2016.  writeTimers moved to Checkpointer class
 
 int HyPerCol::checkpointWrite(const char *cpDir) {
    // Oct 13, 2016. Checkpointing layers handled by HyPerLayer::registerData
-   for (auto c : mConnections) {
-      if (c->getPlasticityFlag() || !mSuppressNonplasticCheckpoints) {
-         c->checkpointWrite(cpDir);
-      }
-   }
-
+   // Oct 19, 2016. Checkpointing connections handled by HyPerLayer::registerData
    // Oct 3, 2016. Printing timers to checkpoint moved to Checkpointer::checkpointWrite
 
    // Sep 26, 2016: Adaptive timestep routines and member variables have been

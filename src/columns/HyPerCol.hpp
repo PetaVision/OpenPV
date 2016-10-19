@@ -507,7 +507,6 @@ class HyPerCol : public Subject, HyPerCheckpoint {
       notify(std::vector<std::shared_ptr<BaseMessage const>>{message});
    }
    int normalizeWeights();
-   virtual int checkpointRead() override;
    virtual int checkpointWrite(const char *cpDir) override;
    int outputParams(char const *path);
    int outputParamsHeadComments(FILE *fp, char const *commentToken);
