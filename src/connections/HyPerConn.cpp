@@ -2171,7 +2171,8 @@ void HyPerConn::checkpointWeightPvp(
                getNumDataPatches(),
                nxp, nyp, nfp,
                pre->getLayerLoc(),
-               post->getLayerLoc()));
+               post->getLayerLoc(),
+               writeCompressedWeights));
    pvErrorIf(
          !registerSucceeded,
          "%s failed to register %s for checkpointing.\n",

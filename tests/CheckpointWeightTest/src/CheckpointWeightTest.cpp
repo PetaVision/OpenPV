@@ -73,7 +73,8 @@ int main(int argc, char *argv[]) {
       nyp,
       nfp,
       conn->preSynapticLayer()->getLayerLoc(),
-      conn->postSynapticLayer()->getLayerLoc());
+      conn->postSynapticLayer()->getLayerLoc(),
+      false /*do not compress*/);
 
    PV::ensureDirExists(pv_initObj.getCommunicator(), checkpointDirectory.c_str());
    checkpointEntry->write(checkpointDirectory.c_str(), hc->simulationTime(), false);

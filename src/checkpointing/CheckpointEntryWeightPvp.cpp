@@ -24,7 +24,8 @@ void CheckpointEntryWeightPvp::initialize(
          int nyp, 
          int nfp, 
          PVLayerLoc const *preLoc, 
-         PVLayerLoc const *postLoc) {
+         PVLayerLoc const *postLoc,
+         bool compressFlag) {
    mNumArbors = numArbors;
    mSharedWeights = sharedWeights;
    mPatchData = patchData;
@@ -36,6 +37,7 @@ void CheckpointEntryWeightPvp::initialize(
    mPatchSizeF = nfp;
    mPreLoc  = preLoc;
    mPostLoc  = postLoc;
+   mCompressFlag = compressFlag;
 }
 
 void CheckpointEntryWeightPvp::calcMinMaxWeights(float *minWeightPtr, float *maxWeightPtr) const {
@@ -96,7 +98,7 @@ void CheckpointEntryWeightPvp::write(
          mWeightData,
          mWeightDataSize,
          mNumArbors,
-         false /*do not compress*/,
+         mCompressFlag,
          fileType);
 }
 
