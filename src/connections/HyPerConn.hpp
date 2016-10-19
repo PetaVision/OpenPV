@@ -83,8 +83,6 @@ class HyPerConn : public BaseConnection {
    virtual int communicateInitInfo() override;
    virtual int allocateDataStructures() override;
 
-   virtual int checkpointRead(const char *cpDir, double *timef) override;
-   virtual int checkpointWrite(const char *cpDir) override;
    virtual int insertProbe(BaseConnectionProbe *p) override;
    int outputProbeParams() override;
    virtual int outputState(double time, bool last = false) override;
@@ -883,11 +881,13 @@ class HyPerConn : public BaseConnection {
    virtual int adjustAxonalArbors(int arborId);
    virtual int readStateFromCheckpoint(const char *cpDir, double *timeptr) override;
    virtual int readWeightsFromCheckpoint(const char *cpDir, double *timeptr);
-   int checkpointFilename(char *cpFilename, int size, const char *cpDir);
-   virtual int
-   setInitialValues() override; // returns PV_SUCCESS if successful, or PV_POSTPONE if it needs
-   // to wait on other objects (e.g. TransposeConn has to wait for
-   // original conn)
+   void checkpointWeightPvp(
+         Checkpointer *checkpointer,
+         char const *bufferName,
+         pvdata_t **weightDataBuffer);
+   virtual int setInitialValues() override; // returns PV_SUCCESS if successful,
+   // or PV_POSTPONE if it needs to wait on other objects
+   // (e.g. TransposeConn has to wait for original conn)
 
    /**
     * calc_dW is a function that calls initialze_dW, update_dW, reduce_dW, and normalize_dW

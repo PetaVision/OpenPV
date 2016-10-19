@@ -859,8 +859,4 @@ int TransposePoolingConn::deliverGPU(PVLayerCube const *activity, int arborID) {
 }
 #endif // PV_USE_CUDA
 
-int TransposePoolingConn::checkpointRead(const char *cpDir, double *timeptr) { return PV_SUCCESS; }
-
-int TransposePoolingConn::checkpointWrite(const char *cpDir) { return PV_SUCCESS; }
-
 } // end namespace PV

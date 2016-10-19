@@ -25,8 +25,6 @@ class PoolingConn : public HyPerConn {
    virtual ~PoolingConn();
    virtual int communicateInitInfo() override;
    virtual int allocateDataStructures() override;
-   virtual int checkpointRead(const char *cpDir, double *timef) override { return PV_SUCCESS; }
-   virtual int checkpointWrite(const char *cpDir) override { return PV_SUCCESS; }
    virtual float minWeight(int arborId = 0) override;
    virtual float maxWeight(int arborId = 0) override;
    virtual int finalizeUpdate(double time, double dt) override { return PV_SUCCESS; }
@@ -72,6 +70,11 @@ class PoolingConn : public HyPerConn {
    virtual void updateDeviceWeights() override {}
    int initializeDeliverKernelArgs();
 #endif // PV_USE_CUDA
+
+   virtual int registerData(Checkpointer *checkpointer, std::string const &objName) override {
+      return PV_SUCCESS;
+   }
+
    virtual int setInitialValues() override;
    virtual int constructWeights() override;
 

@@ -77,14 +77,14 @@ class TransposeConn : public HyPerConn {
    virtual void ioParam_originalConnName(enum ParamsIOFlag ioFlag);
    virtual int setPatchSize();
    virtual int setNeededRNGSeeds() { return 0; }
+   virtual int registerData(Checkpointer *checkpointer, std::string const &objName) override {
+      return PV_SUCCESS;
+   }
    virtual int setInitialValues();
    virtual PVPatch ***initializeWeights(PVPatch ***arbors, pvwdata_t **dataStart);
    virtual int calc_dW(int arborId) { return PV_BREAK; };
    virtual int constructWeights();
    virtual int allocatePostConn();
-
-   virtual int checkpointWrite(const char *cpDir) { return PV_SUCCESS; };
-   virtual int checkpointRead(const char *cpDir, double *timef) { return PV_SUCCESS; };
 
   private:
    int deleteWeights();

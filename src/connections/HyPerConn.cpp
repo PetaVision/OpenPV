@@ -6,6 +6,7 @@
  */
 
 #include "HyPerConn.hpp"
+#include "checkpointing/CheckpointEntryWeightPvp.hpp"
 #include "include/default_params.h"
 #include "io/fileio.hpp"
 #include "io/io.hpp"
@@ -1433,12 +1434,6 @@ void HyPerConn::handleDefaultSelfFlag() {
    }
 }
 
-int HyPerConn::registerData(Checkpointer *checkpointer, std::string const &objName) {
-   checkpointer->registerTimer(io_timer);
-   checkpointer->registerTimer(update_timer);
-   return PV_SUCCESS;
-}
-
 int HyPerConn::setPatchSize() {
    int status = PV_SUCCESS;
    // Some subclasses determine some of {nxp, nyp, nfp} from other layers or connections (e.g.
@@ -2159,74 +2154,42 @@ int HyPerConn::readWeightsFromCheckpoint(const char *cpDir, double *timeptr) {
    return status;
 }
 
-int HyPerConn::checkpointRead(const char *cpDir, double *timeptr) {
-   int status = readStateFromCheckpoint(cpDir, timeptr);
-
-   status = parent->readScalarFromFile(
-         cpDir, getName(), "lastUpdateTime", &lastUpdateTime, lastUpdateTime);
-   pvAssert(status == PV_SUCCESS);
-   if (plasticityFlag && !triggerLayerName) {
-      status = parent->readScalarFromFile(
-            cpDir, getName(), "weightUpdateTime", &weightUpdateTime, weightUpdateTime);
-      if (weightUpdateTime < parent->simulationTime()) {
-         pvAssert(status == PV_SUCCESS);
-         while (weightUpdateTime <= parent->simulationTime()) {
-            weightUpdateTime += weightUpdatePeriod;
-         }
-         if (parent->columnId() == 0) {
-            pvWarn().printf(
-                  "initialWeightUpdateTime of %s less than simulation start time.  Adjusting "
-                  "weightUpdateTime to %f\n",
-                  getDescription_c(),
-                  weightUpdateTime);
-         }
-      }
-   }
-
-   status = parent->readScalarFromFile(cpDir, getName(), "nextWrite", &writeTime, writeTime);
-   pvAssert(status == PV_SUCCESS);
-
-   return status;
+void HyPerConn::checkpointWeightPvp(
+      Checkpointer *checkpointer,
+      char const *bufferName,
+      pvdata_t **weightDataBuffer) {
+   bool registerSucceeded = checkpointer->registerCheckpointEntry(
+         std::make_shared<CheckpointEntryWeightPvp>(
+               getName(),
+               bufferName,
+               parent->getCommunicator(),
+               numberOfAxonalArborLists(),
+               usingSharedWeights(),
+               get_wPatches(),
+               getNumWeightPatches(),
+               weightDataBuffer,
+               getNumDataPatches(),
+               nxp, nyp, nfp,
+               pre->getLayerLoc(),
+               post->getLayerLoc()));
+   pvErrorIf(
+         !registerSucceeded,
+         "%s failed to register %s for checkpointing.\n",
+         getDescription_c(),
+         bufferName);
 }
 
-int HyPerConn::checkpointWrite(const char *cpDir) {
-   char filename[PV_PATH_MAX];
-   int status = checkpointFilename(filename, PV_PATH_MAX, cpDir);
-   pvAssert(status == PV_SUCCESS);
-   PVPatch ***patches_arg = sharedWeights ? NULL : wPatches;
-   status                 = writeWeights(
-         patches_arg,
-         wDataStart,
-         getNumDataPatches(),
-         filename,
-         parent->simulationTime(),
-         writeCompressedCheckpoints,
-         /*last*/ true);
-   pvAssert(status == PV_SUCCESS);
-
-   // TODO: split the writeScalarToFile calls up into virtual methods so that subclasses that don't
-   // use these member variables don't have to save them.
-   status = parent->writeScalarToFile(cpDir, getName(), "nextWrite", writeTime);
-   pvAssert(status == PV_SUCCESS);
-   status = parent->writeScalarToFile(cpDir, getName(), "lastUpdateTime", lastUpdateTime);
-   pvAssert(status == PV_SUCCESS);
+int HyPerConn::registerData(Checkpointer *checkpointer, std::string const &objName) {
+   int status = BaseConnection::registerData(checkpointer, objName);  
+   checkpointWeightPvp(checkpointer, "W", get_wDataStart());
+   checkpointer->registerCheckpointData(objName, "lastUpdateTime", &lastUpdateTime, (std::size_t) 1, true /*broadcast*/);
    if (plasticityFlag && !triggerLayerName) {
-      status = parent->writeScalarToFile(cpDir, getName(), "weightUpdateTime", weightUpdateTime);
+      checkpointer->registerCheckpointData(objName, "weightUpdateTime", &weightUpdateTime, (std::size_t) 1, true /*broadcast*/);
    }
-   pvAssert(status == PV_SUCCESS);
+   checkpointer->registerCheckpointData(objName, "nextWrite", &writeTime, (std::size_t) 1, true /*broadcast*/);
+   checkpointer->registerTimer(io_timer);
+   checkpointer->registerTimer(update_timer);
    return status;
-}
-
-int HyPerConn::checkpointFilename(char *cpFilename, int size, const char *cpDir) {
-   int chars_needed = snprintf(cpFilename, size, "%s/%s_W.pvp", cpDir, name);
-   if (chars_needed >= PV_PATH_MAX) {
-      if (parent->getCommunicator()->commRank() == 0) {
-         pvErrorNoExit().printf(
-               "HyPerConn::checkpointFilename path \"%s/%s_W.pvp\" is too long.\n", cpDir, name);
-      }
-      abort();
-   }
-   return PV_SUCCESS;
 }
 
 float HyPerConn::minWeight(int arborId) {
