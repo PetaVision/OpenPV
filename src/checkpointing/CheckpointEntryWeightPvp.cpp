@@ -52,6 +52,14 @@ void CheckpointEntryWeightPvp::calcMinMaxWeights(float *minWeightPtr, float *max
    }
    *minWeightPtr = minWeight;
    *maxWeightPtr = maxWeight;
+   if (!mSharedWeights) {
+      float extrema[2];
+      extrema[0] = minWeight;
+      extrema[1] = -maxWeight;
+      MPI_Allreduce(MPI_IN_PLACE, extrema, 2, MPI_FLOAT, MPI_MIN, getCommunicator()->communicator());
+      minWeight = extrema[0];
+      maxWeight = -extrema[1];
+   }
 }
 
 void CheckpointEntryWeightPvp::write(

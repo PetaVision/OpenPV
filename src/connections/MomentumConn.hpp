@@ -24,8 +24,6 @@ class MomentumConn : public HyPerConn {
    virtual int allocateDataStructures();
 
    virtual int applyMomentum(int arbor_ID);
-   virtual int checkpointRead(const char *cpDir, double *timef);
-   virtual int checkpointWrite(const char *cpDir);
 
   protected:
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
@@ -33,6 +31,8 @@ class MomentumConn : public HyPerConn {
    virtual void ioParam_momentumMethod(enum ParamsIOFlag ioFlag);
    virtual void ioParam_momentumDecay(enum ParamsIOFlag ioFlag);
    virtual void ioParam_batchPeriod(enum ParamsIOFlag ioFlag);
+
+   virtual int registerData(Checkpointer *checkpointer, std::string const &objName) override;
 
    inline pvwdata_t *get_prev_dwDataHead(int arborId, int dataIndex) {
       return &prev_dwDataStart[arborId][dataIndex * nxp * nyp * nfp];
