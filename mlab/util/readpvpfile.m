@@ -101,7 +101,7 @@ if isempty(errorstring)
             data_size = 4;
     end
     switch hdr.filetype
-        case 1 % PVP_FILE_TYPE, used in HyPerCol::exitRunLoop
+        case 1 % PVP_FILE_TYPE, obsolete
             numvalues = hdr.recordsize/hdr.datasize;
             for f=1:lastframe
                 data_tmp = struct('time',hdr.time,'values',[]);

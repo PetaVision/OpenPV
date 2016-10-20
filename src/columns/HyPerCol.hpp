@@ -375,7 +375,6 @@ class HyPerCol : public Subject, Observer {
    int addNormalizer(NormalizeBase *normalizer);
    int addLayer(HyPerLayer *l);
    int advanceTime(double time);
-   int exitRunLoop(bool exitOnFinish);
    int insertProbe(ColProbe *p);
    int outputState(double time);
    int processParams(char const *path);

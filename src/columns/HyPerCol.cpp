@@ -1242,8 +1242,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
    }
 #endif
 
-   const bool exitOnFinish = false;
-   exitRunLoop(exitOnFinish);
+   mCheckpointer->finalCheckpoint(mSimTime);
 
 #ifdef TIMER_ON
    runClock.stop_clock();
@@ -1708,21 +1707,6 @@ char *HyPerCol::pathInCheckpoint(const char *cpDir, const char *objectName, cons
    int chars_needed = snprintf(filename, n, "%s/%s%s", cpDir, objectName, suffix);
    assert(chars_needed < n);
    return filename;
-}
-
-int HyPerCol::exitRunLoop(bool exitOnFinish) {
-   int status = 0;
-
-   // output final state of layers and connections
-
-   mCheckpointer->finalCheckpoint(mSimTime);
-
-   if (exitOnFinish) {
-      delete this;
-      exit(0);
-   }
-
-   return status;
 }
 
 int HyPerCol::getAutoGPUDevice() {
