@@ -72,7 +72,6 @@ Buffer<float> PvpLayer::retrieveData(std::string filename, int batchIndex) {
          break;
       case PVP_ACT_SPARSEVALUES_FILE_TYPE:
          BufferUtils::readSparseFromPvp<float>(filename.c_str(), &list, frameNumber, &sparseTable);
-         pvDebug() << list.getContents().size();
          // This is a hack. We should only ever be
          // calling this with T == float.
          list.toBuffer(result, {0});

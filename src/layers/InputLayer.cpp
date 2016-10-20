@@ -137,17 +137,16 @@ int InputLayer::updateState(double time, double dt) {
       if (icComm->commRank() == 0 && mTimestampStream) {
          std::ostringstream outStrStream;
          outStrStream.precision(15);
-         int kb0                       = getLayerLoc()->kb0;
-         std::vector<int> batchIndices = mBatchIndexer->getIndices();
+         int kb0 = getLayerLoc()->kb0;
          for (int b = 0; b < parent->getNBatch(); ++b) {
             if (mUsingFileList) {
                outStrStream << "[" << getName() << "] time: " << time << ", batch: " << b + kb0
-                            << ", index: " << batchIndices.at(b) << ","
-                            << mFileList.at(batchIndices.at(b)) << "\n";
+                            << ", index: " << mBatchIndexer->getIndex(b) << ","
+                            << mFileList.at(mBatchIndexer->getIndex(b)) << "\n";
             }
             else {
                outStrStream << "[" << getName() << "] time: " << time << ", batch: " << b + kb0
-                            << ", index: " << batchIndices.at(b) << "\n";
+                            << ", index: " << mBatchIndexer->getIndex(b) << "\n";
             }
          }
          size_t len = outStrStream.str().length();

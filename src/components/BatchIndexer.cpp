@@ -21,6 +21,7 @@ BatchIndexer::BatchIndexer(
    mIndices.resize(mGlobalBatchCount / mBatchWidth, 0);
    mStartIndices.resize(mGlobalBatchCount / mBatchWidth, 0);
    mSkipAmounts.resize(mGlobalBatchCount / mBatchWidth, 0);
+   shuffleLookupTable();
 }
 
 int BatchIndexer::nextIndex(int localBatchIndex) {
@@ -55,6 +56,7 @@ void BatchIndexer::specifyBatching(int localBatchIndex, int startIndex, int skip
 void BatchIndexer::initializeBatch(int localBatchIndex) {
    int globalBatchIndex = mBatchWidthIndex * mBatchWidth + localBatchIndex;
    switch (mBatchMethod) {
+      case RANDOM:
       case BYFILE:
          specifyBatching(
                localBatchIndex,
@@ -75,7 +77,6 @@ void BatchIndexer::initializeBatch(int localBatchIndex) {
          break;
    }
    mIndices.at(localBatchIndex) = mStartIndices.at(localBatchIndex);
-   shuffleLookupTable();
 }
 
 // This clears the current file index lookup table and fills it with
