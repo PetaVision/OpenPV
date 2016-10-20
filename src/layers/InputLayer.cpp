@@ -137,17 +137,16 @@ int InputLayer::updateState(double time, double dt) {
       if (icComm->commRank() == 0 && mTimestampStream) {
          std::ostringstream outStrStream;
          outStrStream.precision(15);
-         int kb0                       = getLayerLoc()->kb0;
-         std::vector<int> batchIndices = mBatchIndexer->getIndices();
+         int kb0 = getLayerLoc()->kb0;
          for (int b = 0; b < parent->getNBatch(); ++b) {
             if (mUsingFileList) {
                outStrStream << "[" << getName() << "] time: " << time << ", batch: " << b + kb0
-                            << ", index: " << batchIndices.at(b) << ","
-                            << mFileList.at(batchIndices.at(b)) << "\n";
+                            << ", index: " << mBatchIndexer->getIndex(b) << ","
+                            << mFileList.at(mBatchIndexer->getIndex(b)) << "\n";
             }
             else {
                outStrStream << "[" << getName() << "] time: " << time << ", batch: " << b + kb0
-                            << ", index: " << batchIndices.at(b) << "\n";
+                            << ", index: " << mBatchIndexer->getIndex(b) << "\n";
             }
          }
          size_t len = outStrStream.str().length();
@@ -415,6 +414,7 @@ int InputLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_useInputBCflag(ioFlag);
    ioParam_padValue(ioFlag);
    ioParam_batchMethod(ioFlag);
+   ioParam_randomSeed(ioFlag);
    ioParam_start_frame_index(ioFlag);
    ioParam_skip_frame_index(ioFlag);
    ioParam_writeFrameToTimestamp(ioFlag);
@@ -700,6 +700,7 @@ void InputLayer::ioParam_batchMethod(enum ParamsIOFlag ioFlag) {
          case BatchIndexer::BYFILE: batchMethod      = strdup("byFile"); break;
          case BatchIndexer::BYLIST: batchMethod      = strdup("byList"); break;
          case BatchIndexer::BYSPECIFIED: batchMethod = strdup("bySpecified"); break;
+         case BatchIndexer::RANDOM: batchMethod      = strdup("random"); break;
       }
    }
    parent->parameters()->ioParamString(ioFlag, name, "batchMethod", &batchMethod, "byFile");
@@ -712,12 +713,21 @@ void InputLayer::ioParam_batchMethod(enum ParamsIOFlag ioFlag) {
    else if (strcmp(batchMethod, "bySpecified") == 0) {
       mBatchMethod = BatchIndexer::BYSPECIFIED;
    }
+   else if (strcmp(batchMethod, "random") == 0) {
+      mBatchMethod = BatchIndexer::RANDOM;
+   }
    else {
-      pvError() << getName() << ": Input layer " << name << " batchMethod not recognized. Options "
-                                                            "are \"byFile\", \"byList\", and "
-                                                            "\"bySpecified\"\n.";
+      pvError() << getName() << ": Input layer " << name
+                << " batchMethod not recognized. Options "
+                   "are \"byFile\", \"byList\", bySpecified, and random.\n";
    }
    free(batchMethod);
+}
+
+void InputLayer::ioParam_randomSeed(enum ParamsIOFlag ioFlag) {
+   if (mBatchMethod == BatchIndexer::RANDOM) {
+      parent->parameters()->ioParamValue(ioFlag, name, "randomSeed", &mRandomSeed, mRandomSeed);
+   }
 }
 
 void InputLayer::ioParam_start_frame_index(enum ParamsIOFlag ioFlag) {

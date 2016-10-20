@@ -1,0 +1,75 @@
+debugParsing = false;
+
+HyPerCol "column" = {
+   nx                 = 4;
+   ny                 = 4; 
+   dt                 = 1.0;
+   randomSeed         = 1234567890;
+   startTime          = 0.0;
+   stopTime           = 20.0;
+   nbatch             = 2;
+   progressInterval   = 10.0;
+   writeProgressToErr = false;  
+   outputPath         = "output/";
+   checkpointWrite    = false;
+   suppressLastOutput = false;
+};
+
+// Both layers should have the same order because they have the same seed
+PvpLayer "InputA" = {
+    nxScale                = 1;
+    nyScale                = 1;
+    inputPath              = "input/test.pvp";
+    nf                     = 1;
+    phase                  = 0;
+    writeStep              = -1;
+    normalizeLuminanceFlag = false;
+    displayPeriod          = 1;
+    batchMethod            = "random";
+    randomSeed             = 10;
+};
+
+PvpLayer "InputB" = {
+    nxScale                = 1;
+    nyScale                = 1;
+    inputPath              = "input/test.pvp";
+    nf                     = 1;
+    phase                  = 0;
+    writeStep              = -1;
+    normalizeLuminanceFlag = false;
+    displayPeriod          = 1;
+    batchMethod            = "random";
+    randomSeed             = 10;
+};
+
+HyPerLayer "Comparison" = {
+    nxScale   = 1;
+    nyScale   = 1;
+    nf        = 1;
+    phase     = 1;
+    writeStep = -1;
+    InitVType = "ZeroV";
+};
+
+IdentConn "InputAToComparison" = {
+   preLayerName  = "InputA";
+   postLayerName = "Comparison";
+   channelCode   = 1;
+};
+
+IdentConn "InputBToComparison" = {
+   preLayerName  = "InputB";
+   postLayerName = "Comparison";
+   channelCode   = 0;
+};
+
+RequireAllZeroActivityProbe "ComparisonTest" = {
+    targetLayer                         = "Comparison";
+    message                             = NULL;
+    textOutputFlag                      = true;
+    probeOutputFile                     = "ComparisonTest.txt";
+    triggerLayerName                    = NULL;
+    energyProbe                         = NULL;
+    nnzThreshold                        = 1e-06;
+    exitOnFailure                       = true;
+};

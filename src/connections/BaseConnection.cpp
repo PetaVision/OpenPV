@@ -646,7 +646,7 @@ void BaseConnection::setDelay(int arborId, double delay) {
 
 int BaseConnection::initializeState() {
    int status = PV_SUCCESS;
-   status = setInitialValues();
+   status     = setInitialValues();
    pvAssert(parent->getInitializeFromCheckpointDir()); // should never be null; it
    // should be the empty string if not initializing from a checkpoint
    if (!this->getPlasticityFlag() && parent->getSuppressNonplasticCheckpoints()) {
