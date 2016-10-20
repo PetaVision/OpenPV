@@ -1175,19 +1175,16 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
          pvInfo().flush();
       }
 #endif
-
-      // Initialize either by loading from checkpoint, or calling initializeState
-      // This needs to happen after initPublishers so that we can initialize the
-      // values in the data
-      // stores,
-      // and before the mLayers' publish calls so that the data in border regions
-      // gets copied
-      // correctly.
+ 
+      // Initialize the state of each object based on the params file,
+      // and then if reading from checkpoint, call the checkpointer.
+      // This needs to happen after initPublishers so that we can initialize
+      // the values in the data stores, and before the mLayers' publish calls
+      // so that the data in border regions gets copied correctly.
+      notify(std::make_shared<InitializeStateMessage>());
       if (mCheckpointReadFlag) {
          mCheckpointer->checkpointRead(mCheckpointReadDir, &mSimTime, &mCurrentStep);
       }
-
-      notify(std::make_shared<InitializeStateMessage>());
 
       // Initial normalization moved here to facilitate normalizations of groups
       // of HyPerConns
