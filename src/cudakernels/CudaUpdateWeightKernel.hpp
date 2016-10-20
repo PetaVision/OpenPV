@@ -15,6 +15,7 @@ class CudaUpdateWeightKernel : public CudaKernel {
   virtual ~CudaUpdateWeightKernel();
 
   void setArgs(PVLayerLoc const* _preLoc, PVLayerLoc const* _postLoc,
+               const PVHalo* _preHalo, const PVHalo* _postHalo, int _numBatch,
                CudaBuffer* _errorBuffer, CudaBuffer* _activityBuffer,
                CudaBuffer* _weightBuffer);
 
@@ -22,20 +23,22 @@ class CudaUpdateWeightKernel : public CudaKernel {
   void findCudnnAlgo();
 
  private:
-  cudnnHandle_t cudnnHandle;
   cudnnTensorDescriptor_t cudnnTensorDescriptorPre, cudnnTensorDescriptorPost;
   cudnnFilterDescriptor_t cudnnFilterDescriptor;
   cudnnConvolutionDescriptor_t cudnnConvolutionDescriptor;
-  cudnnConvolutionFwdAlgo_t algoFwd;
+  cudnnConvolutionBwdFilterAlgo_t algoBwd;
 
   PVLayerLoc const* preLoc;
   PVLayerLoc const* postLoc;
+  const PVHalo* preHalo;
+  const PVHalo* postHalo;
+  int numBatch;
   CudaBuffer* errorBuffer;
   CudaBuffer* activityBuffer;
   CudaBuffer* weightBuffer;
 
-  CudaVector<pvwdata_t> workspaceForward;
-  size_t workspaceSizeForward;
+  CudaVector<pvwdata_t> workspaceBackwardFilter;
+  size_t workspaceSizeBackwardFilter;
 };
 }
 #endif

@@ -52,56 +52,86 @@ void CudaUpdateWeightKernel::findCudnnAlgo() {
   }
 
   int m = 8;
-  std::vector<cudnnConvolutionFwdAlgoPerf_t> p =
-      std::vector<cudnnConvolutionFwdAlgoPerf_t>(m);
-  cudnnHandleError(cudnnFindConvolutionForwardAlgorithm(
-                       cudnnHandle, cudnnTensorDescriptorPre,
-                       cudnnFilterDescriptor, cudnnConvolutionDescriptor,
-                       cudnnTensorDescriptorPost, m, &n, p.data()),
-                   "cudnnFindConvolutionForwardAlgorithm");
+  std::vector<cudnnConvolutionBwdFilterAlgoPerf_t> p =
+      std::vector<cudnnConvolutionBwdFilterAlgoPerf_t>(m);
+  cudnnHandleError(
+      cudnnFindConvolutionBackwardFilterAlgorithm(
+          (cudnnHandle_t)device->getCudnnHandle(), cudnnTensorDescriptorPre,
+          cudnnTensorDescriptorPost, cudnnConvolutionDescriptor,
+          cudnnFilterDescriptor, m, &n, p.data()),
+      "cudnnFindConvolutionBackwardFilterAlgorithm");
 
   cudnnHandleError(
-      cudnnGetConvolutionForwardAlgorithm(
-          cudnnHandle, cudnnTensorDescriptorPre, cudnnFilterDescriptor,
-          cudnnConvolutionDescriptor, cudnnTensorDescriptorPost,
-          CUDNN_CONVOLUTION_FWD_PREFER_FASTEST, 0, &algoFwd),
-      "cudnnGetConvolutionForwardAlgorithm");
+      cudnnGetConvolutionBackwardFilterAlgorithm(
+          (cudnnHandle_t)device->getCudnnHandle(), cudnnTensorDescriptorPre,
+          cudnnTensorDescriptorPost, cudnnConvolutionDescriptor,
+          cudnnFilterDescriptor, CUDNN_CONVOLUTION_BWD_FILTER_PREFER_FASTEST, 0,
+          &algoBwd),
+      "cudnnGetConvolutionBackwardFilterAlgorithm");
 
   cudnnHandleError(
-      cudnnGetConvolutionForwardWorkspaceSize(
-          cudnnHandle, cudnnTensorDescriptorPre, cudnnFilterDescriptor,
-          cudnnConvolutionDescriptor, cudnnTensorDescriptorPost, algoFwd,
-          &workspaceSizeForward),
-      "cudnnGetConvolutionForwardWorkspaceSize");
+      cudnnGetConvolutionBackwardFilterWorkspaceSize(
+          (cudnnHandle_t)device->getCudnnHandle(), cudnnTensorDescriptorPre,
+          cudnnTensorDescriptorPost, cudnnConvolutionDescriptor,
+          cudnnFilterDescriptor, algoBwd, &workspaceSizeBackwardFilter),
+      "cudnnGetConvolutionBackwardFilterWorkspaceSize");
 
-  workspaceForward.resize(workspaceSizeForward);
+  workspaceBackwardFilter.resize(workspaceSizeBackwardFilter);
 }
 
 void CudaUpdateWeightKernel::setArgs(PVLayerLoc const* _preLoc,
-                                PVLayerLoc const* _postLoc,
-                                CudaBuffer* _errorBuffer,
-                                CudaBuffer* _activityBuffer,
-                                CudaBuffer* _weightBuffer) {
+                                     PVLayerLoc const* _postLoc,
+                                     const PVHalo* _preHalo,
+                                     const PVHalo* _postHalo, int _numBatch,
+                                     CudaBuffer* _errorBuffer,
+                                     CudaBuffer* _activityBuffer,
+                                     CudaBuffer* _weightBuffer) {
   preLoc = _preLoc;
   postLoc = _postLoc;
+  preHalo = _preHalo;
+  postHalo = _postHalo;
+  numBatch = _numBatch;
   errorBuffer = _errorBuffer;
   activityBuffer = _activityBuffer;
   weightBuffer = _weightBuffer;
 
-	cudnnHandleError(
-        cudnnSetTensor4dDescriptor(cudnnTensorDescriptorPre, CUDNN_TENSOR_NCHW,
-                                   CUDNN_DATA_FLOAT, 1, preLoc->nf, preLoc->ny,
-                                   preLoc->nx),
-        "set 4D tensor");
+  int preToPostScaleX, preToPostScaleY;
+  int strideX, strideY;
+  int manyScaleX, manyScaleY;
+  float fmanyScale;
+  preToPostScaleX = preLoc->nx / ((pvdata_t)postLoc->nx);
+  preToPostScaleY = preLoc->ny / ((pvdata_t)postLos->ny);
 
-	cudnnHandleError(
-        cudnnSetTensor4dDescriptor(cudnnTensorDescriptorPost, CUDNN_TENSOR_NCHW,
-                                   CUDNN_DATA_FLOAT, 1, postLoc->nf,
-                                   postLoc->ny, postLoc->nx),
-        "set 4D tensor");
+  if (preToPostScaleX < 1) {
+    fmanyScale = (float)1 / params.preToPostScaleX;
+    manyScaleX = fmanyScale;
+    manyScaleY = fmanyScale;
+    strideX = 1;
+    strideY = 1;
+  } else {
+    manyScaleX = 1;
+    manyScaleY = 1;
+    strideX = preToPostScaleX;
+    strideY = preToPostScaleY;
+  }
+
+  cudnnHandleError(
+      cudnnSetTensor4dDescriptor(cudnnTensorDescriptorPre, CUDNN_TENSOR_NCHW,
+                                 CUDNN_DATA_FLOAT, numBatch, preLoc->nf,
+                                 preLoc->ny, preLoc->nx),
+      "set 4D tensor");
+
+  cudnnHandleError(
+      cudnnSetTensor4dDescriptor(cudnnTensorDescriptorPost, CUDNN_TENSOR_NCHW,
+                                 CUDNN_DATA_FLOAT, 1, postLoc->nf, postLoc->ny,
+                                 postLoc->nx),
+      "set 4D tensor");
+
+  cudnnHandleError(cudnnStatusCheck(
+      cudnnSetConvolution2dDescriptor(cudnnConvolutionDescriptor, 0, 0, xStride,
+                                      yStride, 1.0, 1.0, CUDNN_CONVOLUTION),
+      "set 2D convolution descriptor"));
 
   findCudnnAlgo();
-
-	
 }
 }

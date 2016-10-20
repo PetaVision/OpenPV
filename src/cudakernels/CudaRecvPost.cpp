@@ -161,7 +161,7 @@ void CudaRecvPost::setArgs(
       if(nxp % 2 == 0 || nyp % 2 == 0){
          pvErrorNoExit().printf("cuDNN: Running on a one to many connection with CUDNN must have patch size (%d, %d) be an odd muliple of many (%d, %d)\n", nxp*params.manyScaleX, nyp*params.manyScaleY, params.manyScaleX, params.manyScaleY);
       }
-
+			
       
       //There's the case where the border of pre is made bigger through other connections. Need to calculate difference
       //between current recv border and actual recv border
