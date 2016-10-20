@@ -716,18 +716,17 @@ void InputLayer::ioParam_batchMethod(enum ParamsIOFlag ioFlag) {
    else if (strcmp(batchMethod, "random") == 0) {
       mBatchMethod = BatchIndexer::RANDOM;
    }
-    else {
-      pvError() << getName() << ": Input layer "
-         << name << " batchMethod not recognized. Options "
-         "are \"byFile\", \"byList\", bySpecified, and random.\n";
+   else {
+      pvError() << getName() << ": Input layer " << name
+                << " batchMethod not recognized. Options "
+                   "are \"byFile\", \"byList\", bySpecified, and random.\n";
    }
    free(batchMethod);
 }
 
 void InputLayer::ioParam_randomSeed(enum ParamsIOFlag ioFlag) {
    if (mBatchMethod == BatchIndexer::RANDOM) {
-      parent->parameters()->ioParamValue(
-            ioFlag, name, "randomSeed", &mRandomSeed, mRandomSeed);
+      parent->parameters()->ioParamValue(ioFlag, name, "randomSeed", &mRandomSeed, mRandomSeed);
    }
 }
 

@@ -26,8 +26,7 @@ BatchIndexer::BatchIndexer(
 
 int BatchIndexer::nextIndex(int localBatchIndex) {
    int result   = getIndex(localBatchIndex);
-   int newIndex = mIndices.at(localBatchIndex)
-                + mSkipAmounts.at(localBatchIndex);
+   int newIndex = mIndices.at(localBatchIndex) + mSkipAmounts.at(localBatchIndex);
    if (newIndex >= mFileCount) {
       shuffleLookupTable();
       if (mWrapToStartIndex) {

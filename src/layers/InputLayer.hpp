@@ -149,9 +149,7 @@ class InputLayer : public HyPerLayer {
    bool getUsingFileList() { return mUsingFileList; }
    const std::string getInputPath() { return mInputPath; }
    std::string getFileName(int batchIndex) {
-      return mBatchIndexer != nullptr
-                            ? mFileList.at(mBatchIndexer->getIndex(batchIndex))
-                            : 0;
+      return mBatchIndexer != nullptr ? mFileList.at(mBatchIndexer->getIndex(batchIndex)) : 0;
    }
 
   private:
