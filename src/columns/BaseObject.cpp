@@ -96,13 +96,13 @@ int BaseObject::respond(std::shared_ptr<BaseMessage const> message) {
       return respondInitializeState(castMessage);
    }
    else if (
-         Checkpointer::ProcessCheckpointReadMessage const *castMessage =
-               dynamic_cast<Checkpointer::ProcessCheckpointReadMessage const *>(message.get())) {
+         ProcessCheckpointReadMessage const *castMessage =
+               dynamic_cast<ProcessCheckpointReadMessage const *>(message.get())) {
       return respondProcessCheckpointRead(castMessage);
    }
    else if (
-         Checkpointer::PrepareCheckpointWriteMessage const *castMessage =
-               dynamic_cast<Checkpointer::PrepareCheckpointWriteMessage const *>(message.get())) {
+         PrepareCheckpointWriteMessage const *castMessage =
+               dynamic_cast<PrepareCheckpointWriteMessage const *>(message.get())) {
       return respondPrepareCheckpointWrite(castMessage);
    }
    else {
@@ -155,12 +155,12 @@ int BaseObject::respondInitializeState(InitializeStateMessage const *message) {
 }
 
 int BaseObject::respondProcessCheckpointRead(
-      Checkpointer::ProcessCheckpointReadMessage const *message) {
+      ProcessCheckpointReadMessage const *message) {
    return processCheckpointRead();
 }
 
 int BaseObject::respondPrepareCheckpointWrite(
-      Checkpointer::PrepareCheckpointWriteMessage const *message) {
+      PrepareCheckpointWriteMessage const *message) {
    return prepareCheckpointWrite();
 }
 

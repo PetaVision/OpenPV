@@ -9,11 +9,10 @@
 #define CHECKPOINTER_HPP_
 
 #include "checkpointing/CheckpointEntry.hpp"
+#include "checkpointing/CheckpointingMessages.hpp"
 #include "columns/Communicator.hpp"
-#include "io/HyPerCheckpoint.hpp"
 #include "io/PVParams.hpp"
 #include "io/io.hpp"
-#include "observerpattern/BaseMessage.hpp"
 #include "observerpattern/Subject.hpp"
 #include "utils/Timer.hpp"
 #include <ctime>
@@ -52,16 +51,7 @@ class Checkpointer : public Subject {
       double mSimTime                 = 0.0;
       long int mCurrentCheckpointStep = 0L;
    };
-   class ProcessCheckpointReadMessage : public BaseMessage {
-     public:
-      ProcessCheckpointReadMessage() { setMessageType("ProcessCheckpointReadMessage"); }
-   };
-   class PrepareCheckpointWriteMessage : public BaseMessage {
-     public:
-      PrepareCheckpointWriteMessage() { setMessageType("ProcessCheckpointWriteMessage"); }
-   };
    Checkpointer(std::string const &name, Communicator *comm);
-   Checkpointer(HyPerCheckpoint *cp, std::string const &name, Communicator *comm);
    ~Checkpointer();
 
    void setOutputPath(std::string const &outputPath);
@@ -125,10 +115,6 @@ class Checkpointer : public Subject {
    void writeTimers(std::string const &directory);
 
   private:
-   HyPerCheckpoint *mHyPerCheckpoint = nullptr;
-   // Note: the HyPerCheckpoint is a convenience in moving checkpointing functions from HyPerCol
-   // to Checkpointer. Once the refactor is complete, the mHyPerCheckpoint will be removed.
-
    std::string mName;
    Communicator *mCommunicator = nullptr;
    std::vector<std::shared_ptr<CheckpointEntry>> mCheckpointRegistry; // Needs to be a vector so

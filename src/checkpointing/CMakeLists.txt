@@ -14,4 +14,5 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/CheckpointEntryWeightPvp.hpp
    ${SUBDIR}/CheckpointableFileStream.hpp
    ${SUBDIR}/Checkpointer.hpp
+   ${SUBDIR}/CheckpointingMessages.hpp
 )

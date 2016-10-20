@@ -16,11 +16,6 @@ Checkpointer::Checkpointer(std::string const &name, Communicator *comm)
    initialize();
 }
 
-Checkpointer::Checkpointer(HyPerCheckpoint *cp, std::string const &name, Communicator *comm)
-      : mHyPerCheckpoint(cp), mName(name), mCommunicator(comm) {
-   initialize();
-}
-
 Checkpointer::~Checkpointer() {
    free(mOutputPath);
    free(mCheckpointWriteDir);
@@ -422,7 +417,7 @@ void Checkpointer::checkpointRead(
    if (currentStepPointer) {
       *currentStepPointer = mTimeInfo.mCurrentCheckpointStep;
    }
-   notify(mObserverTable, std::make_shared<ProcessCheckpointReadMessage const>());
+   notify(mObserverTable, std::make_shared<ProcessCheckpointReadMessage const>(checkpointReadDir));
 }
 
 void Checkpointer::checkpointWrite(double simTime) {
@@ -566,13 +561,10 @@ void Checkpointer::checkpointToDirectory(std::string const &directory) {
          mTimeInfoCheckpointEntry->remove(timeinfoFilename);
       }
    }
-   notify(mObserverTable, std::make_shared<PrepareCheckpointWriteMessage const>());
+   notify(mObserverTable, std::make_shared<PrepareCheckpointWriteMessage const>(directory));
    ensureDirExists(getCommunicator(), directory.c_str());
    for (auto &c : mCheckpointRegistry) {
       c->write(directory, mTimeInfo.mSimTime, mVerifyWritesFlag);
-   }
-   if (mHyPerCheckpoint) {
-      mHyPerCheckpoint->checkpointWrite(directory.c_str());
    }
    mTimeInfoCheckpointEntry->write(directory, mTimeInfo.mSimTime, mVerifyWritesFlag);
    mCheckpointTimer->stop();

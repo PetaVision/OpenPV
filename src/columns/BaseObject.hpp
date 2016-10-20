@@ -80,8 +80,8 @@ class BaseObject : public Observer, public CheckpointerDataInterface {
    int respondAllocateData(AllocateDataMessage const *message);
    int respondRegisterData(RegisterDataMessage<Checkpointer> const *message);
    int respondInitializeState(InitializeStateMessage const *message);
-   int respondProcessCheckpointRead(Checkpointer::ProcessCheckpointReadMessage const *message);
-   int respondPrepareCheckpointWrite(Checkpointer::PrepareCheckpointWriteMessage const *message);
+   int respondProcessCheckpointRead(ProcessCheckpointReadMessage const *message);
+   int respondPrepareCheckpointWrite(PrepareCheckpointWriteMessage const *message);
 
    virtual int communicateInitInfo() { return PV_SUCCESS; }
    virtual int allocateDataStructures() { return PV_SUCCESS; }

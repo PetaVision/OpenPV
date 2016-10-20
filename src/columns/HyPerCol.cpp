@@ -225,7 +225,8 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
 
    mRandomSeed = mPVInitObj->getRandomSeed();
 
-   mCheckpointer = new Checkpointer(this, std::string(mName), mCommunicator);
+   mCheckpointer = new Checkpointer(std::string(mName), mCommunicator);
+   mCheckpointer->addObserver(this, BaseMessage{});
    if (mOutputPath) {
       mCheckpointer->setOutputPath(mOutputPath);
    }
@@ -1490,22 +1491,21 @@ int HyPerCol::advanceTime(double sim_time) {
 
 // Oct 3, 2016.  writeTimers moved to Checkpointer class
 
-int HyPerCol::checkpointWrite(const char *cpDir) {
-   // Oct 13, 2016. Checkpointing layers handled by HyPerLayer::registerData
-   // Oct 19, 2016. Checkpointing connections handled by HyPerLayer::registerData
-   // Oct 3, 2016. Printing timers to checkpoint moved to Checkpointer::checkpointWrite
+int HyPerCol::respond(std::shared_ptr<BaseMessage const> message) {
+   int status = PV_SUCCESS;
+   if (PrepareCheckpointWriteMessage const *castMessage =
+         dynamic_cast<PrepareCheckpointWriteMessage const *>(message.get())) {
+      status = respondPrepareCheckpointWrite(castMessage);
+   }
+   return status;
+}
 
-   // Sep 26, 2016: Adaptive timestep routines and member variables have been
-   // moved to AdaptiveTimeScaleProbe.
+// Oct 20, 2016. checkpointWrite and checkpointRead functionality moved to Checkpointer class.
 
-   std::string checkpointedParamsFile = cpDir;
-   checkpointedParamsFile += "/";
-   checkpointedParamsFile += "pv.params";
-   this->outputParams(checkpointedParamsFile.c_str());
-
-   // Sep 30, 2016: checkpointing nextCheckpointStep and nextCheckpointTime moved to Checkpointer.
-
-   return PV_SUCCESS;
+int HyPerCol::respondPrepareCheckpointWrite(PrepareCheckpointWriteMessage const *message) {
+   std::string path(message->mDirectory);
+   path.append("/").append("pv.params");
+   return outputParams(path.c_str());
 }
 
 int HyPerCol::outputParams(char const *path) {

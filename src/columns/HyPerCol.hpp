@@ -15,9 +15,9 @@
 #include "columns/PV_Init.hpp"
 #include "connections/BaseConnection.hpp"
 #include "include/pv_types.h"
-#include "io/HyPerCheckpoint.hpp" // TODO: remove when Checkpointer class refactor is complete.
 #include "io/PVParams.hpp"
 #include "layers/HyPerLayer.hpp"
+#include "observerpattern/Observer.hpp"
 #include "observerpattern/ObserverTable.hpp"
 #include "observerpattern/Subject.hpp"
 #include "probes/ColProbe.hpp"
@@ -53,7 +53,7 @@ class PVParams;
 class NormalizeBase;
 class PV_Init;
 
-class HyPerCol : public Subject, HyPerCheckpoint {
+class HyPerCol : public Subject, Observer {
 
   private:
    /**
@@ -354,6 +354,7 @@ class HyPerCol : public Subject, HyPerCheckpoint {
 
    // Public functions
 
+   virtual int respond(std::shared_ptr<BaseMessage const> message) override;
    BaseConnection *getConnFromName(const char *connectionName);
    BaseProbe *getBaseProbeFromName(const char *probeName);
    char *pathInCheckpoint(const char *cpDir, const char *objectName, const char *suffix);
@@ -482,8 +483,8 @@ class HyPerCol : public Subject, HyPerCheckpoint {
    inline void notify(std::shared_ptr<BaseMessage const> message) {
       notify(std::vector<std::shared_ptr<BaseMessage const>>{message});
    }
+   int respondPrepareCheckpointWrite(PrepareCheckpointWriteMessage const *message);
    int normalizeWeights();
-   virtual int checkpointWrite(const char *cpDir) override;
    int outputParams(char const *path);
    int outputParamsHeadComments(FILE *fp, char const *commentToken);
    int calcTimeScaleTrue();
