@@ -380,32 +380,8 @@ class HyPerCol : public Subject, HyPerCheckpoint {
    int processParams(char const *path);
    int ioParamsFinishGroup(enum ParamsIOFlag);
    int ioParamsStartGroup(enum ParamsIOFlag ioFlag, const char *group_name);
-   template <typename T>
-   int readArrayFromFile(
-         const char *cp_dir,
-         const char *group_name,
-         const char *val_name,
-         T *val,
-         size_t count,
-         T default_value = (T)0);
-   template <typename T>
-   int readScalarFromFile(
-         const char *cp_dir,
-         const char *group_name,
-         const char *val_name,
-         T *val,
-         T default_value = (T)0);
    int run() { return run(mStartTime, mStopTime, mDeltaTime); }
    int run(double mStartTime, double mStopTime, double dt);
-   template <typename T>
-   int writeArrayToFile(
-         const char *cp_dir,
-         const char *group_name,
-         const char *val_name,
-         T *val,
-         size_t count);
-   template <typename T>
-   int writeScalarToFile(const char *cp_dir, const char *group_name, const char *val_name, T val);
    NormalizeBase *getNormalizerFromName(const char *normalizerName);
 
 // Sep 26, 2016: HyPerCol methods for parameter input/output have been moved to
