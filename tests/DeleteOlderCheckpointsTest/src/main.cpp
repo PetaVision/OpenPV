@@ -1,8 +1,8 @@
+#include "checkpointing/CheckpointEntry.hpp"
+#include "checkpointing/Checkpointer.hpp"
 #include "columns/Communicator.hpp"
 #include "columns/PV_Arguments.hpp"
-#include "io/CheckpointEntry.hpp"
 #include "io/PVParams.hpp"
-#include "io/Secretary.hpp"
 #include "io/io.hpp"
 #include "utils/PVLog.hpp"
 #include <cerrno>
@@ -23,10 +23,10 @@ int main(int argc, char *argv[]) {
    PV::PVParams *params = new PV::PVParams("input/DeleteOldCheckpointsTest.params", 1, comm);
 
    // Create checkpointing directory and delete any existing files inside it.
-   char const *checkpointWriteDir = params->stringValue("secretary", "checkpointWriteDir");
+   char const *checkpointWriteDir = params->stringValue("checkpointer", "checkpointWriteDir");
    pvErrorIf(
          checkpointWriteDir == nullptr,
-         "Group \"secretary\" must have a checkpointWriteDir string parameter.\n");
+         "Group \"checkpointer\" must have a checkpointWriteDir string parameter.\n");
    std::string checkpointWriteDirectory(checkpointWriteDir);
    ensureDirExists(comm, checkpointWriteDirectory.c_str()); // Must be called by all processes,
    // because it broadcasts the result of
@@ -46,22 +46,22 @@ int main(int argc, char *argv[]) {
    if (comm->numCommBatches() > 1) {
       params->setBatchSweepValues();
       checkpointWriteDirectory =
-            std::string(params->stringValue("secretary", "checkpointWriteDir"));
+            std::string(params->stringValue("checkpointer", "checkpointWriteDir"));
    }
    pvErrorIf(
-         params->value("secretary", "deleteOlderCheckpoints") == 0.0,
+         params->value("checkpointer", "deleteOlderCheckpoints") == 0.0,
          "Params file must set deleteOlderCheckpoints to true.\n");
-   std::size_t const numKept = (std::size_t)params->valueInt("secretary", "numCheckpointsKept");
+   std::size_t const numKept = (std::size_t)params->valueInt("checkpointer", "numCheckpointsKept");
 
-   // Initialize Secretary object
-   PV::Secretary *secretary = new PV::Secretary("secretary", comm);
-   secretary->ioParamsFillGroup(PV::PARAMS_IO_READ, params);
+   // Initialize Checkpointer object
+   PV::Checkpointer *checkpointer = new PV::Checkpointer("checkpointer", comm);
+   checkpointer->ioParamsFillGroup(PV::PARAMS_IO_READ, params);
    delete params;
 
    int status = PV_SUCCESS;
    std::vector<std::string> checkpointsCreated;
    for (double t = 0; t < 10; t++) {
-      secretary->checkpointWrite(t);
+      checkpointer->checkpointWrite(t);
       if (comm->commRank() == 0) {
          auto iter = checkpointsCreated.emplace(
                checkpointsCreated.end(), std::string(checkpointWriteDirectory));
@@ -109,7 +109,7 @@ int main(int argc, char *argv[]) {
    }
    MPI_Bcast(&status, 1 /*count*/, MPI_INT, 0, comm->communicator());
 
-   delete secretary;
+   delete checkpointer;
    delete comm;
    MPI_Finalize();
 

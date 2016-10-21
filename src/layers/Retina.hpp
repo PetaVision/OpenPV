@@ -65,7 +65,7 @@ class Retina : public PV::HyPerLayer {
    virtual void ioParam_refractoryPeriod(enum ParamsIOFlag ioFlag);
    virtual void ioParam_absRefractoryPeriod(enum ParamsIOFlag ioFlag);
    virtual int allocateV();
-   virtual int registerData(Secretary *secretary, std::string const &objName);
+   virtual int registerData(Checkpointer *checkpointer, std::string const &objName);
    virtual int initializeV();
    virtual int initializeActivity();
    virtual int readStateFromCheckpoint(const char *cpDir, double *timeptr);

@@ -8,16 +8,16 @@
 #ifndef HYPERCOL_HPP_
 #define HYPERCOL_HPP_
 
+#include "checkpointing/Checkpointer.hpp"
 #include "columns/BaseObject.hpp"
 #include "columns/Communicator.hpp"
 #include "columns/Messages.hpp"
 #include "columns/PV_Init.hpp"
 #include "connections/BaseConnection.hpp"
 #include "include/pv_types.h"
-#include "io/HyPerCheckpoint.hpp" // TODO: remove when Secretary class refactor is complete.
 #include "io/PVParams.hpp"
-#include "io/Secretary.hpp"
 #include "layers/HyPerLayer.hpp"
+#include "observerpattern/Observer.hpp"
 #include "observerpattern/ObserverTable.hpp"
 #include "observerpattern/Subject.hpp"
 #include "probes/ColProbe.hpp"
@@ -53,7 +53,7 @@ class PVParams;
 class NormalizeBase;
 class PV_Init;
 
-class HyPerCol : public Subject, HyPerCheckpoint {
+class HyPerCol : public Subject, Observer {
 
   private:
    /**
@@ -354,6 +354,7 @@ class HyPerCol : public Subject, HyPerCheckpoint {
 
    // Public functions
 
+   virtual int respond(std::shared_ptr<BaseMessage const> message) override;
    BaseConnection *getConnFromName(const char *connectionName);
    BaseProbe *getBaseProbeFromName(const char *probeName);
    char *pathInCheckpoint(const char *cpDir, const char *objectName, const char *suffix);
@@ -374,38 +375,13 @@ class HyPerCol : public Subject, HyPerCheckpoint {
    int addNormalizer(NormalizeBase *normalizer);
    int addLayer(HyPerLayer *l);
    int advanceTime(double time);
-   int exitRunLoop(bool exitOnFinish);
    int insertProbe(ColProbe *p);
    int outputState(double time);
    int processParams(char const *path);
    int ioParamsFinishGroup(enum ParamsIOFlag);
    int ioParamsStartGroup(enum ParamsIOFlag ioFlag, const char *group_name);
-   template <typename T>
-   int readArrayFromFile(
-         const char *cp_dir,
-         const char *group_name,
-         const char *val_name,
-         T *val,
-         size_t count,
-         T default_value = (T)0);
-   template <typename T>
-   int readScalarFromFile(
-         const char *cp_dir,
-         const char *group_name,
-         const char *val_name,
-         T *val,
-         T default_value = (T)0);
    int run() { return run(mStartTime, mStopTime, mDeltaTime); }
    int run(double mStartTime, double mStopTime, double dt);
-   template <typename T>
-   int writeArrayToFile(
-         const char *cp_dir,
-         const char *group_name,
-         const char *val_name,
-         T *val,
-         size_t count);
-   template <typename T>
-   int writeScalarToFile(const char *cp_dir, const char *group_name, const char *val_name, T val);
    NormalizeBase *getNormalizerFromName(const char *normalizerName);
 
 // Sep 26, 2016: HyPerCol methods for parameter input/output have been moved to
@@ -506,9 +482,8 @@ class HyPerCol : public Subject, HyPerCheckpoint {
    inline void notify(std::shared_ptr<BaseMessage const> message) {
       notify(std::vector<std::shared_ptr<BaseMessage const>>{message});
    }
+   int respondPrepareCheckpointWrite(PrepareCheckpointWriteMessage const *message);
    int normalizeWeights();
-   virtual int checkpointRead() override;
-   virtual int checkpointWrite(const char *cpDir) override;
    int outputParams(char const *path);
    int outputParamsHeadComments(FILE *fp, char const *commentToken);
    int calcTimeScaleTrue();
@@ -629,7 +604,7 @@ class HyPerCol : public Subject, HyPerCheckpoint {
    int *mConnectionStatus;
    Communicator *mCommunicator; // manages communication between HyPerColumns};
 
-   Secretary *mSecretary = nullptr; // manages checkpointing and, eventually,
+   Checkpointer *mCheckpointer = nullptr; // manages checkpointing and, eventually,
    // will manage outputState output.
    long int mCpReadDirIndex; // checkpoint number within mCheckpointReadDir to read
    long int mCpWriteStepInterval;

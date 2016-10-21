@@ -1,8 +1,8 @@
 #ifndef __CHECKPOINTABLEFILESTREAM_HPP__
 #define __CHECKPOINTABLEFILESTREAM_HPP__
 
-#include "FileStream.hpp"
-#include "Secretary.hpp"
+#include "Checkpointer.hpp"
+#include "io/FileStream.hpp"
 
 #include <string>
 
@@ -10,7 +10,7 @@ using std::string;
 
 namespace PV {
 
-class CheckpointableFileStream : public FileStream, public SecretaryDataInterface {
+class CheckpointableFileStream : public FileStream, public CheckpointerDataInterface {
 
   public:
    CheckpointableFileStream(
@@ -22,14 +22,14 @@ class CheckpointableFileStream : public FileStream, public SecretaryDataInterfac
    virtual void read(void *data, long length);
    virtual void setOutPos(long pos, bool fromBeginning);
    virtual void setInPos(long pos, bool fromBeginning);
-   virtual int registerData(Secretary *secretary, const string objName);
+   virtual int registerData(Checkpointer *checkpointer, const string objName);
 
   private:
    void syncFilePos();
    void updateFilePos();
    long mFileReadPos  = 0;
    long mFileWritePos = 0;
-   string mObjName; // Used for SecretaryDataInterface
+   string mObjName; // Used for CheckpointerDataInterface
 };
 }
 

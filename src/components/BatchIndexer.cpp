@@ -96,8 +96,8 @@ void BatchIndexer::shuffleLookupTable() {
    std::shuffle(mIndexLookupTable.begin(), mIndexLookupTable.end(), rng);
 }
 
-int BatchIndexer::registerData(Secretary *secretary, std::string const &objName) {
-   secretary->registerCheckpointData<int>(
+int BatchIndexer::registerData(Checkpointer *checkpointer, std::string const &objName) {
+   checkpointer->registerCheckpointData<int>(
          objName,
          std::string("FrameNumbers"),
          mIndices.data(),

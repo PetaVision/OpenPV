@@ -122,20 +122,9 @@ int AdaptiveTimeScaleProbe::allocateDataStructures() {
    return status;
 }
 
-int AdaptiveTimeScaleProbe::checkpointRead(const char *cpDir, double *timeptr) {
-   int status = ColProbe::checkpointRead(cpDir, timeptr);
-   if (status == PV_SUCCESS) {
-      status = mAdaptiveTimeScaleController->checkpointRead(cpDir, timeptr);
-   }
-   return status;
-}
-
-int AdaptiveTimeScaleProbe::checkpointWrite(const char *cpDir) {
-   int status = ColProbe::checkpointWrite(cpDir);
-   if (status == PV_SUCCESS) {
-      status = mAdaptiveTimeScaleController->checkpointWrite(cpDir);
-   }
-   return status;
+int AdaptiveTimeScaleProbe::registerData(Checkpointer *checkpointer, std::string const &objName) {
+   int status = ColProbe::registerData(checkpointer, objName);
+   mAdaptiveTimeScaleController->registerData(checkpointer, objName);
 }
 
 int AdaptiveTimeScaleProbe::respond(std::shared_ptr<BaseMessage const> message) {
@@ -157,15 +146,11 @@ int AdaptiveTimeScaleProbe::respondAdaptTimestep(AdaptTimestepMessage const *mes
    return getValues(parent->simulationTime());
 }
 
-// AdaptiveTimeScaleProbe::calcValues calls targetProbe->getValues() and passes
-// the
-// result to mAdaptiveTimeScaleController->calcTimesteps() to use as
-// timeScaleTrue.
-// mAdaptiveTimeScaleController->calcTimesteps() returns timeScale and copies
-// the
-// result into probeValues. AdaptiveTimeScaleProbe also processes the triggering
-// and
-// only reads the mAdaptiveTimeScaleController when triggering doesn't happen.
+// AdaptiveTimeScaleProbe::calcValues calls targetProbe->getValues() and passes the result to
+// mAdaptiveTimeScaleController->calcTimesteps() to use as timeScaleTrue.
+// mAdaptiveTimeScaleController->calcTimesteps() returns timeScale and copies the result into
+// probeValues. AdaptiveTimeScaleProbe also processes the triggering and only reads the
+// mAdaptiveTimeScaleController when triggering doesn't happen.
 
 int AdaptiveTimeScaleProbe::calcValues(double timeValue) {
    std::vector<double> rawProbeValues;

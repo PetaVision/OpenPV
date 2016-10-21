@@ -41,6 +41,7 @@ set(SRC_SUBDIRS
   arch/cuda
   arch/mpi
   bindings
+  checkpointing
   columns
   components
   connections

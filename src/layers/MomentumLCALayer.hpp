@@ -33,7 +33,7 @@ class MomentumLCALayer : public PV::HyPerLCALayer {
 
    /** @} */
 
-   virtual int registerData(Secretary *secretary, std::string const &objName) override;
+   virtual int registerData(Checkpointer *checkpointer, std::string const &objName) override;
    virtual int processCheckpointRead() override;
    virtual int prepareCheckpointWrite() override;
 

@@ -8,9 +8,9 @@
 #include "LIF.hpp"
 #include "HyPerLayer.hpp"
 
+#include "checkpointing/CheckpointEntryRandState.hpp"
 #include "include/default_params.h"
 #include "include/pv_common.h"
-#include "io/CheckpointEntryRandState.hpp"
 #include "io/fileio.hpp"
 
 #include <cassert>
@@ -417,13 +417,13 @@ int LIF::readRandStateFromCheckpoint(const char *cpDir, double *timeptr) {
    return status;
 }
 
-int LIF::registerData(Secretary *secretary, std::string const &objName) {
-   int status = HyPerLayer::registerData(secretary, objName);
-   checkpointPvpActivityFloat(secretary, "Vth", Vth, false /*not extended*/);
-   checkpointPvpActivityFloat(secretary, "G_E", G_E, false /*not extended*/);
-   checkpointPvpActivityFloat(secretary, "G_I", G_I, false /*not extended*/);
-   checkpointPvpActivityFloat(secretary, "G_IB", G_IB, false /*not extended*/);
-   bool registerSucceeded = secretary->registerCheckpointEntry(
+int LIF::registerData(Checkpointer *checkpointer, std::string const &objName) {
+   int status = HyPerLayer::registerData(checkpointer, objName);
+   checkpointPvpActivityFloat(checkpointer, "Vth", Vth, false /*not extended*/);
+   checkpointPvpActivityFloat(checkpointer, "G_E", G_E, false /*not extended*/);
+   checkpointPvpActivityFloat(checkpointer, "G_I", G_I, false /*not extended*/);
+   checkpointPvpActivityFloat(checkpointer, "G_IB", G_IB, false /*not extended*/);
+   bool registerSucceeded = checkpointer->registerCheckpointEntry(
          std::make_shared<CheckpointEntryRandState>(
                getName(),
                "rand_state",

@@ -5,9 +5,9 @@
 #define __INPUTLAYER_HPP__
 
 #include "HyPerLayer.hpp"
+#include "checkpointing/CheckpointableFileStream.hpp"
 #include "columns/HyPerCol.hpp"
 #include "components/BatchIndexer.hpp"
-#include "io/CheckpointableFileStream.hpp"
 #include "structures/Buffer.hpp"
 #include "utils/BufferUtilsRescale.hpp"
 
@@ -121,7 +121,7 @@ class InputLayer : public HyPerLayer {
    virtual int initializeV() override;
    virtual int initializeActivity() override;
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-   virtual int registerData(Secretary *secretary, std::string const &objName) override;
+   virtual int registerData(Checkpointer *checkpointer, std::string const &objName) override;
    virtual double getDeltaUpdateTime() override;
 
    // Method that signals when to load the next file.

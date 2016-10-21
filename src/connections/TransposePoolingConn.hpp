@@ -51,8 +51,6 @@ class TransposePoolingConn : public HyPerConn {
    virtual bool needUpdate(double timed, double dt) override;
    virtual int updateState(double time, double dt) override;
    virtual double computeNewWeightUpdateTime(double time, double currentUpdateTime) override;
-   virtual int checkpointRead(const char *cpDir, double *timeptr) override;
-   virtual int checkpointWrite(const char *cpDir) override;
 
   protected:
    int initialize_base();
@@ -64,6 +62,9 @@ class TransposePoolingConn : public HyPerConn {
    virtual int allocateDeviceWeights() override { return PV_SUCCESS; }
    virtual int initializeReceivePostKernelArgs() override { return PV_SUCCESS; }
    virtual int initializeReceivePreKernelArgs() override { return PV_SUCCESS; }
+   virtual int registerData(Checkpointer *checkpointer, std::string const &objName) override {
+      return PV_SUCCESS;
+   }
    virtual void updateDeviceWeights() override {}
    int initializeTransposePoolingDeliverKernelArgs();
 #endif // PV_USE_CUDA

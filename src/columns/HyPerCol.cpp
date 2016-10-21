@@ -51,8 +51,8 @@ HyPerCol::~HyPerCol() {
    finalizeThreads();
 #endif // PV_USE_CUDA
    PrintStream pStream(getOutputStream());
-   mSecretary->writeTimers(pStream);
-   delete mSecretary;
+   mCheckpointer->writeTimers(pStream);
+   delete mCheckpointer;
    for (auto iterator = mConnections.begin(); iterator != mConnections.end();) {
       delete *iterator;
       iterator = mConnections.erase(iterator);
@@ -225,9 +225,10 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
 
    mRandomSeed = mPVInitObj->getRandomSeed();
 
-   mSecretary = new Secretary(this, std::string(mName), mCommunicator);
+   mCheckpointer = new Checkpointer(std::string(mName), mCommunicator);
+   mCheckpointer->addObserver(this, BaseMessage{});
    if (mOutputPath) {
-      mSecretary->setOutputPath(mOutputPath);
+      mCheckpointer->setOutputPath(mOutputPath);
    }
    ioParams(PARAMS_IO_READ);
    mCheckpointSignal = 0;
@@ -235,7 +236,7 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
    mInitialStep      = (long int)nearbyint(mStartTime / mDeltaTime);
    mCurrentStep      = mInitialStep;
    mFinalStep        = (long int)nearbyint(mStopTime / mDeltaTime);
-   mSecretary->provideFinalStep(mFinalStep);
+   mCheckpointer->provideFinalStep(mFinalStep);
    mNextProgressTime = mStartTime + mProgressInterval;
 
    RandomSeed::instance()->initialize(mRandomSeed);
@@ -267,11 +268,12 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
    }
 
    mRunTimer = new Timer(mName, "column", "run    ");
-   mSecretary->registerTimer(mRunTimer);
+   mCheckpointer->registerTimer(mRunTimer);
+   mCheckpointer->registerCheckpointData(
+         mName, "nextProgressTime", &mNextProgressTime, (std::size_t)1, true /*broadcast*/);
 
    // mWarmStart is set if command line sets the -r option.  PV_Arguments should
-   // prevent -r and -c
-   // from being both set.
+   // prevent -r and -c from being both set.
    char const *checkpoint_read_dir = mPVInitObj->getCheckpointReadDir();
    pvAssert(!(mWarmStart && checkpoint_read_dir));
    if (mWarmStart) {
@@ -476,10 +478,10 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_stopTime(ioFlag);
    ioParam_progressInterval(ioFlag);
    ioParam_writeProgressToErr(ioFlag);
-   mSecretary->ioParamsFillGroup(ioFlag, parameters());
+   mCheckpointer->ioParamsFillGroup(ioFlag, parameters());
    if (ioFlag == PARAMS_IO_READ) {
-      // These parameters are read and written by mSecretary.
-      // During the transition of checkpointing from HyPerCol to Secretary,
+      // These parameters are read and written by mCheckpointer.
+      // During the transition of checkpointing from HyPerCol to Checkpointer,
       // HyPerCol will redundantly read these parameters but not write them.
       ioParam_verifyWrites(ioFlag);
       ioParam_outputPath(ioFlag);
@@ -1163,10 +1165,10 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
          timerTypeString.append(std::to_string(phase));
          Timer *phaseRecvTimer = new Timer(mName, "column", timerTypeString.c_str());
          mPhaseRecvTimers.push_back(phaseRecvTimer);
-         mSecretary->registerTimer(phaseRecvTimer);
+         mCheckpointer->registerTimer(phaseRecvTimer);
       }
 
-      notify(std::make_shared<RegisterDataMessage<Secretary>>(mSecretary));
+      notify(std::make_shared<RegisterDataMessage<Checkpointer>>(mCheckpointer));
 
 #ifdef DEBUG_OUTPUT
       if (columnId() == 0) {
@@ -1175,18 +1177,15 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
       }
 #endif
 
-      // Initialize either by loading from checkpoint, or calling initializeState
-      // This needs to happen after initPublishers so that we can initialize the
-      // values in the data
-      // stores,
-      // and before the mLayers' publish calls so that the data in border regions
-      // gets copied
-      // correctly.
-      if (mCheckpointReadFlag) {
-         mSecretary->checkpointRead(mCheckpointReadDir, &mSimTime, &mCurrentStep);
-      }
-
+      // Initialize the state of each object based on the params file,
+      // and then if reading from checkpoint, call the checkpointer.
+      // This needs to happen after initPublishers so that we can initialize
+      // the values in the data stores, and before the mLayers' publish calls
+      // so that the data in border regions gets copied correctly.
       notify(std::make_shared<InitializeStateMessage>());
+      if (mCheckpointReadFlag) {
+         mCheckpointer->checkpointRead(mCheckpointReadDir, &mSimTime, &mCurrentStep);
+      }
 
       // Initial normalization moved here to facilitate normalizations of groups
       // of HyPerConns
@@ -1222,7 +1221,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
    long int step = 0;
    pvAssert(status == PV_SUCCESS);
    while (mSimTime < mStopTime - mDeltaTime / 2.0) {
-      mSecretary->checkpointWrite(mSimTime);
+      mCheckpointer->checkpointWrite(mSimTime);
       status = advanceTime(mSimTime);
 
       step += 1;
@@ -1241,8 +1240,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
    }
 #endif
 
-   const bool exitOnFinish = false;
-   exitRunLoop(exitOnFinish);
+   mCheckpointer->finalCheckpoint(mSimTime);
 
 #ifdef TIMER_ON
    runClock.stop_clock();
@@ -1488,52 +1486,23 @@ int HyPerCol::advanceTime(double sim_time) {
    return status;
 }
 
-int HyPerCol::checkpointRead() {
-   double t = mStartTime;
-   for (long int k = mInitialStep; k < mCurrentStep; k++) {
-      if (t >= mNextProgressTime) {
-         mNextProgressTime += mProgressInterval;
-      }
-      t += mDeltaTime;
-   }
+// Oct 3, 2016.  writeTimers moved to Checkpointer class
 
-   double checkTime = simulationTime();
-   for (auto &p : mColProbes) {
-      p->checkpointRead(mCheckpointReadDir, &checkTime);
+int HyPerCol::respond(std::shared_ptr<BaseMessage const> message) {
+   int status = PV_SUCCESS;
+   if (PrepareCheckpointWriteMessage const *castMessage =
+             dynamic_cast<PrepareCheckpointWriteMessage const *>(message.get())) {
+      status = respondPrepareCheckpointWrite(castMessage);
    }
-   // Sep 26, 2016: Adaptive timestep routines and member variables have been
-   // moved to
-   // AdaptiveTimeScaleProbe.
-
-   return PV_SUCCESS;
+   return status;
 }
 
-// Oct 3, 2016.  writeTimers moved to Secretary class
+// Oct 20, 2016. checkpointWrite and checkpointRead functionality moved to Checkpointer class.
 
-int HyPerCol::checkpointWrite(const char *cpDir) {
-   // Oct 13, 2016. Checkpointing layers handled by HyPerLayer::registerData
-   for (auto c : mConnections) {
-      if (c->getPlasticityFlag() || !mSuppressNonplasticCheckpoints) {
-         c->checkpointWrite(cpDir);
-      }
-   }
-
-   // Oct 3, 2016. Printing timers to checkpoint moved to Secretary::checkpointWrite
-
-   for (auto &p : mColProbes) {
-      p->checkpointWrite(cpDir);
-   }
-   // Sep 26, 2016: Adaptive timestep routines and member variables have been
-   // moved to AdaptiveTimeScaleProbe.
-
-   std::string checkpointedParamsFile = cpDir;
-   checkpointedParamsFile += "/";
-   checkpointedParamsFile += "pv.params";
-   this->outputParams(checkpointedParamsFile.c_str());
-
-   // Sep 30, 2016: checkpointing nextCheckpointStep and nextCheckpointTime moved to Secretary.
-
-   return PV_SUCCESS;
+int HyPerCol::respondPrepareCheckpointWrite(PrepareCheckpointWriteMessage const *message) {
+   std::string path(message->mDirectory);
+   path.append("/").append("pv.params");
+   return outputParams(path.c_str());
 }
 
 int HyPerCol::outputParams(char const *path) {
@@ -1736,21 +1705,6 @@ char *HyPerCol::pathInCheckpoint(const char *cpDir, const char *objectName, cons
    int chars_needed = snprintf(filename, n, "%s/%s%s", cpDir, objectName, suffix);
    assert(chars_needed < n);
    return filename;
-}
-
-int HyPerCol::exitRunLoop(bool exitOnFinish) {
-   int status = 0;
-
-   // output final state of layers and connections
-
-   mSecretary->finalCheckpoint(mSimTime);
-
-   if (exitOnFinish) {
-      delete this;
-      exit(0);
-   }
-
-   return status;
 }
 
 int HyPerCol::getAutoGPUDevice() {
@@ -2080,231 +2034,6 @@ unsigned int HyPerCol::seedRandomFromWallClock() {
    MPI_Bcast(&t, 1, MPI_UNSIGNED, rootproc, mCommunicator->communicator());
    return t;
 }
-
-template <typename T>
-int HyPerCol::writeScalarToFile(
-      const char *cp_dir,
-      const char *group_name,
-      const char *val_name,
-      T val) {
-   return writeArrayToFile(cp_dir, group_name, val_name, &val, 1);
-}
-
-// Declare the instantiations of writeScalarToFile that occur in other .cpp
-// files; otherwise you'll
-// get linker errors.
-template int HyPerCol::writeScalarToFile<int>(
-      char const *cpDir,
-      const char *group_name,
-      char const *val_name,
-      int val);
-template int HyPerCol::writeScalarToFile<long>(
-      char const *cpDir,
-      const char *group_name,
-      char const *val_name,
-      long val);
-template int HyPerCol::writeScalarToFile<float>(
-      char const *cpDir,
-      const char *group_name,
-      char const *val_name,
-      float val);
-template int HyPerCol::writeScalarToFile<double>(
-      char const *cpDir,
-      const char *group_name,
-      char const *val_name,
-      double val);
-
-template <typename T>
-int HyPerCol::writeArrayToFile(
-      const char *cp_dir,
-      const char *group_name,
-      const char *val_name,
-      T *val,
-      size_t count) {
-   int status = PV_SUCCESS;
-   if (columnId() == 0) {
-      char filename[PV_PATH_MAX];
-      int chars_needed =
-            snprintf(filename, PV_PATH_MAX, "%s/%s_%s.bin", cp_dir, group_name, val_name);
-      if (chars_needed >= PV_PATH_MAX) {
-         pvError().printf(
-               "writeArrayToFile error: path %s/%s_%s.bin is too long.\n",
-               cp_dir,
-               group_name,
-               val_name);
-      }
-      PV_Stream *pvstream = PV_fopen(filename, "w", getVerifyWrites());
-      if (pvstream == nullptr) {
-         pvError().printf(
-               "writeArrayToFile error: unable to open path %s for writing.\n", filename);
-      }
-      int num_written = PV_fwrite(val, sizeof(T), count, pvstream);
-      if (num_written != count) {
-         pvError().printf("writeArrayToFile error while writing to %s.\n", filename);
-      }
-      PV_fclose(pvstream);
-      chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_%s.txt", cp_dir, group_name, val_name);
-      assert(chars_needed < PV_PATH_MAX);
-      std::ofstream fs;
-      fs.open(filename);
-      if (!fs) {
-         pvError().printf(
-               "writeArrayToFile error: unable to open path %s for writing.\n", filename);
-      }
-      for (int i = 0; i < count; i++) {
-         fs << val[i];
-         fs << std::endl; // Can write as fs << val << std::endl, but eclipse flags
-         // that as an error
-         // 'Invalid overload of std::endl'
-      }
-      fs.close();
-   }
-   return status;
-}
-// Declare the instantiations of writeArrayToFile that occur in other .cpp
-// files; otherwise you'll
-// get linker errors.
-template int HyPerCol::writeArrayToFile<int>(
-      char const *cpDir,
-      const char *group_name,
-      char const *val_name,
-      int *val,
-      size_t count);
-template int HyPerCol::writeArrayToFile<long>(
-      char const *cpDir,
-      const char *group_name,
-      char const *val_name,
-      long *val,
-      size_t count);
-template int HyPerCol::writeArrayToFile<float>(
-      char const *cpDir,
-      const char *group_name,
-      char const *val_name,
-      float *val,
-      size_t count);
-template int HyPerCol::writeArrayToFile<double>(
-      char const *cpDir,
-      const char *group_name,
-      char const *val_name,
-      double *val,
-      size_t count);
-
-template <typename T>
-int HyPerCol::readScalarFromFile(
-      const char *cp_dir,
-      const char *group_name,
-      const char *val_name,
-      T *val,
-      T default_value) {
-   return readArrayFromFile(cp_dir, group_name, val_name, val, 1, default_value);
-}
-
-// Declare the instantiations of readScalarToFile that occur in other .cpp
-// files; otherwise you'll
-// get linker errors.
-template int HyPerCol::readScalarFromFile<int>(
-      char const *cpDir,
-      const char *group_name,
-      char const *val_name,
-      int *val,
-      int default_value);
-template int HyPerCol::readScalarFromFile<long>(
-      char const *cpDir,
-      const char *group_name,
-      char const *val_name,
-      long *val,
-      long default_value);
-template int HyPerCol::readScalarFromFile<float>(
-      char const *cpDir,
-      const char *group_name,
-      char const *val_name,
-      float *val,
-      float default_value);
-template int HyPerCol::readScalarFromFile<double>(
-      char const *cpDir,
-      const char *group_name,
-      char const *val_name,
-      double *val,
-      double default_value);
-
-template <typename T>
-int HyPerCol::readArrayFromFile(
-      const char *cp_dir,
-      const char *group_name,
-      const char *val_name,
-      T *val,
-      size_t count,
-      T default_value) {
-   int status = PV_SUCCESS;
-   if (columnId() == 0) {
-      char filename[PV_PATH_MAX];
-      int chars_needed;
-      chars_needed = snprintf(
-            filename,
-            PV_PATH_MAX,
-            "%s/%s_%s.bin",
-            cp_dir,
-            group_name,
-            val_name); // Could use pathInCheckpoint if not for the .bin
-      if (chars_needed >= PV_PATH_MAX) {
-         pvError().printf(
-               "HyPerLayer::readArrayFloat error: path %s/%s_%s.bin is too long.\n",
-               cp_dir,
-               group_name,
-               val_name);
-      }
-      PV_Stream *pvstream = PV_fopen(filename, "r", getVerifyWrites());
-      for (int i = 0; i < count; i++) {
-         val[i] = default_value;
-      }
-      if (pvstream == nullptr) {
-         pvWarn() << "readArrayFromFile: unable to open path \"" << filename
-                  << "\" for reading.  Value used will be " << *val << std::endl;
-      }
-      else {
-         int num_read = PV_fread(val, sizeof(T), count, pvstream);
-         if (num_read != count) {
-            pvWarn() << "readArrayFromFile: unable to read from \"" << filename
-                     << "\".  Value used will be " << *val << std::endl;
-         }
-         PV_fclose(pvstream);
-      }
-   }
-   MPI_Bcast(val, sizeof(T) * count, MPI_CHAR, 0, getCommunicator()->communicator());
-
-   return status;
-}
-// Declare the instantiations of readArrayToFile that occur in other .cpp files;
-// otherwise you'll
-// get linker errors.
-template int HyPerCol::readArrayFromFile<int>(
-      char const *cpDir,
-      const char *group_name,
-      char const *val_name,
-      int *val,
-      size_t count,
-      int default_value);
-template int HyPerCol::readArrayFromFile<long>(
-      char const *cpDir,
-      const char *group_name,
-      char const *val_name,
-      long *val,
-      size_t count,
-      long default_value);
-template int HyPerCol::readArrayFromFile<float>(
-      char const *cpDir,
-      const char *group_name,
-      char const *val_name,
-      float *val,
-      size_t count,
-      float default_value);
-template int HyPerCol::readArrayFromFile<double>(
-      char const *cpDir,
-      const char *group_name,
-      char const *val_name,
-      double *val,
-      size_t count,
-      double default_value);
 
 HyPerCol *createHyPerCol(PV_Init *pv_initObj) {
    PVParams *params = pv_initObj->getParams();

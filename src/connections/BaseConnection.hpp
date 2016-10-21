@@ -120,7 +120,7 @@ class BaseConnection : public BaseObject {
    virtual int deliver() = 0;
 
    /**
-    * A pure virtual function for reading the state of the connection from the directory specified
+    * A virtual function for reading the state of the connection from the directory specified
     * in cpDir.
     * On exit, *timeptr is the time at which the checkpoint was written.
     * checkpointRead() should restore the state of the connection completely, so that restarting
@@ -128,16 +128,16 @@ class BaseConnection : public BaseObject {
     * is equivalent to having the run continue.
     *
     */
-   virtual int checkpointRead(const char *cpDir, double *timeptr) = 0;
+   virtual int checkpointRead(const char *cpDir, double *timeptr) { return PV_SUCCESS; }
 
    /**
-    * A pure virtual function for writing the state of the connection to the directory specified in
+    * A virtual function for writing the state of the connection to the directory specified in
     * cpDir.
     * checkpointWrite() should save the complete state of the connection, so that restarting from a
     * checkpoint
     * is equivalent to having the run continue.
     */
-   virtual int checkpointWrite(const char *cpDir) = 0;
+   virtual int checkpointWrite(const char *cpDir) { return PV_SUCCESS; }
 
    /**
     * Called by HyPerCol::outputParams to output the params groups for probes whose ownership has

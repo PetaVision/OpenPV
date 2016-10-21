@@ -13,10 +13,10 @@ CheckpointableFileStream::CheckpointableFileStream(
    updateFilePos();
 }
 
-int CheckpointableFileStream::registerData(Secretary *secretary, const string objName) {
-   secretary->registerCheckpointData<long>(
+int CheckpointableFileStream::registerData(Checkpointer *checkpointer, const string objName) {
+   checkpointer->registerCheckpointData<long>(
          mObjName, std::string("FileStreamRead"), &mFileReadPos, (std::size_t)1, false);
-   secretary->registerCheckpointData<long>(
+   checkpointer->registerCheckpointData<long>(
          mObjName, std::string("FileStreamWrite"), &mFileWritePos, (std::size_t)1, false);
    return PV_SUCCESS;
 }

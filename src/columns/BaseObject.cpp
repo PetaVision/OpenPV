@@ -86,8 +86,8 @@ int BaseObject::respond(std::shared_ptr<BaseMessage const> message) {
       return respondAllocateData(castMessage);
    }
    else if (
-         RegisterDataMessage<Secretary> const *castMessage =
-               dynamic_cast<RegisterDataMessage<Secretary> const *>(message.get())) {
+         RegisterDataMessage<Checkpointer> const *castMessage =
+               dynamic_cast<RegisterDataMessage<Checkpointer> const *>(message.get())) {
       return respondRegisterData(castMessage);
    }
    else if (
@@ -96,13 +96,13 @@ int BaseObject::respond(std::shared_ptr<BaseMessage const> message) {
       return respondInitializeState(castMessage);
    }
    else if (
-         Secretary::ProcessCheckpointReadMessage const *castMessage =
-               dynamic_cast<Secretary::ProcessCheckpointReadMessage const *>(message.get())) {
+         ProcessCheckpointReadMessage const *castMessage =
+               dynamic_cast<ProcessCheckpointReadMessage const *>(message.get())) {
       return respondProcessCheckpointRead(castMessage);
    }
    else if (
-         Secretary::PrepareCheckpointWriteMessage const *castMessage =
-               dynamic_cast<Secretary::PrepareCheckpointWriteMessage const *>(message.get())) {
+         PrepareCheckpointWriteMessage const *castMessage =
+               dynamic_cast<PrepareCheckpointWriteMessage const *>(message.get())) {
       return respondPrepareCheckpointWrite(castMessage);
    }
    else {
@@ -134,7 +134,7 @@ int BaseObject::respondAllocateData(AllocateDataMessage const *message) {
    return status;
 }
 
-int BaseObject::respondRegisterData(RegisterDataMessage<Secretary> const *message) {
+int BaseObject::respondRegisterData(RegisterDataMessage<Checkpointer> const *message) {
    int status = registerData(message->mDataRegistry, name);
    if (status != PV_SUCCESS) {
       pvError() << getDescription() << ": registerData failed.\n";
@@ -154,13 +154,11 @@ int BaseObject::respondInitializeState(InitializeStateMessage const *message) {
    return status;
 }
 
-int BaseObject::respondProcessCheckpointRead(
-      Secretary::ProcessCheckpointReadMessage const *message) {
+int BaseObject::respondProcessCheckpointRead(ProcessCheckpointReadMessage const *message) {
    return processCheckpointRead();
 }
 
-int BaseObject::respondPrepareCheckpointWrite(
-      Secretary::PrepareCheckpointWriteMessage const *message) {
+int BaseObject::respondPrepareCheckpointWrite(PrepareCheckpointWriteMessage const *message) {
    return prepareCheckpointWrite();
 }
 

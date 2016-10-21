@@ -59,10 +59,12 @@ class IdentConn : public HyPerConn {
    virtual int setWeightInitializer();
 
    // IdentConn does not need to checkpoint
-   virtual int checkpointRead(const char *cpDir, double *timef) { return PV_SUCCESS; }
-   virtual int checkpointWrite(const char *cpDir) { return PV_SUCCESS; }
 
    virtual void handleDefaultSelfFlag();
+
+   virtual int registerData(Checkpointer *checkpointer, std::string const &objName) override {
+      return PV_SUCCESS;
+   }
 
    virtual int deliverPresynapticPerspective(PVLayerCube const *activity, int arborID);
 }; // class IdentConn

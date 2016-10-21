@@ -14,13 +14,13 @@
 
 #include "HyPerLayer.hpp"
 #include "InitV.hpp"
+#include "checkpointing/CheckpointEntryDataStore.hpp"
+#include "checkpointing/CheckpointEntryRandState.hpp"
 #include "columns/HyPerCol.hpp"
 #include "connections/BaseConnection.hpp"
 #include "connections/TransposeConn.hpp"
 #include "include/default_params.h"
 #include "include/pv_common.h"
-#include "io/CheckpointEntryDataStore.hpp"
-#include "io/CheckpointEntryRandState.hpp"
 #include "io/fileio.hpp"
 #include "io/imageio.hpp"
 #include "io/io.hpp"
@@ -538,11 +538,11 @@ void HyPerLayer::addPublisher() {
 }
 
 void HyPerLayer::checkpointPvpActivityFloat(
-      Secretary *secretary,
+      Checkpointer *checkpointer,
       char const *bufferName,
       float *pvpBuffer,
       bool extended) {
-   bool registerSucceeded = secretary->registerCheckpointEntry(
+   bool registerSucceeded = checkpointer->registerCheckpointEntry(
          std::make_shared<CheckpointEntryPvp<float>>(
                getName(),
                bufferName,
@@ -560,20 +560,20 @@ void HyPerLayer::checkpointPvpActivityFloat(
 }
 
 void HyPerLayer::checkpointDataStore(
-      Secretary *secretary,
+      Checkpointer *checkpointer,
       char const *bufferName,
       DataStore *datastore) {
-   bool registerSucceeded = secretary->registerCheckpointEntry(
+   bool registerSucceeded = checkpointer->registerCheckpointEntry(
          std::make_shared<CheckpointEntryDataStore>(
                getName(), bufferName, parent->getCommunicator(), datastore, getLayerLoc()));
 }
 
 void HyPerLayer::checkpointRandState(
-      Secretary *secretary,
+      Checkpointer *checkpointer,
       char const *bufferName,
       Random *randState,
       bool extendedFlag) {
-   bool registerSucceeded = secretary->registerCheckpointEntry(
+   bool registerSucceeded = checkpointer->registerCheckpointEntry(
          std::make_shared<CheckpointEntryRandState>(
                getName(),
                bufferName,
@@ -1712,20 +1712,20 @@ int HyPerLayer::mirrorInteriorToBorder(PVLayerCube *cube, PVLayerCube *border) {
    return 0;
 }
 
-int HyPerLayer::registerData(Secretary *secretary, std::string const &objName) {
-   int status = BaseLayer::registerData(secretary, objName);
-   checkpointPvpActivityFloat(secretary, "A", getActivity(), true /*extended*/);
+int HyPerLayer::registerData(Checkpointer *checkpointer, std::string const &objName) {
+   int status = BaseLayer::registerData(checkpointer, objName);
+   checkpointPvpActivityFloat(checkpointer, "A", getActivity(), true /*extended*/);
    if (getV() != nullptr) {
-      checkpointPvpActivityFloat(secretary, "V", getV(), false /*not extended*/);
+      checkpointPvpActivityFloat(checkpointer, "V", getV(), false /*not extended*/);
    }
-   checkpointDataStore(secretary, "Delays", publisher->dataStore());
-   secretary->registerCheckpointData(
+   checkpointDataStore(checkpointer, "Delays", publisher->dataStore());
+   checkpointer->registerCheckpointData(
          std::string(getName()),
          std::string("lastUpdateTime"),
          &mLastUpdateTime,
          (std::size_t)1,
          true /*broadcast*/);
-   secretary->registerCheckpointData(
+   checkpointer->registerCheckpointData(
          std::string(getName()),
          std::string("nextWrite"),
          &writeTime,
@@ -1734,7 +1734,7 @@ int HyPerLayer::registerData(Secretary *secretary, std::string const &objName) {
 
    if (writeStep >= 0.0) {
       if (sparseLayer) {
-         secretary->registerCheckpointData(
+         checkpointer->registerCheckpointData(
                std::string(getName()),
                std::string("numframes_sparse"),
                &writeActivitySparseCalls,
@@ -1742,7 +1742,7 @@ int HyPerLayer::registerData(Secretary *secretary, std::string const &objName) {
                true /*broadcast*/);
       }
       else {
-         secretary->registerCheckpointData(
+         checkpointer->registerCheckpointData(
                std::string(getName()),
                std::string("numframes"),
                &writeActivityCalls,
@@ -1751,18 +1751,18 @@ int HyPerLayer::registerData(Secretary *secretary, std::string const &objName) {
       }
    }
    if (mOutputStateStream) {
-      mOutputStateStream->registerData(secretary, objName);
+      mOutputStateStream->registerData(checkpointer, objName);
    }
 
-   secretary->registerTimer(recvsyn_timer);
-   secretary->registerTimer(update_timer);
+   checkpointer->registerTimer(recvsyn_timer);
+   checkpointer->registerTimer(update_timer);
 #ifdef PV_USE_CUDA
-   secretary->registerTimer(gpu_recvsyn_timer);
-   secretary->registerTimer(gpu_update_timer);
+   checkpointer->registerTimer(gpu_recvsyn_timer);
+   checkpointer->registerTimer(gpu_update_timer);
 #endif // PV_USE_CUDA
-   secretary->registerTimer(publish_timer);
-   secretary->registerTimer(timescale_timer);
-   secretary->registerTimer(io_timer);
+   checkpointer->registerTimer(publish_timer);
+   checkpointer->registerTimer(timescale_timer);
+   checkpointer->registerTimer(io_timer);
    return PV_SUCCESS;
 }
 

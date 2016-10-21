@@ -1,11 +1,11 @@
 #pragma once
 
-#include "io/Secretary.hpp"
+#include "checkpointing/Checkpointer.hpp"
 #include <vector>
 
 namespace PV {
 
-class BatchIndexer : public SecretaryDataInterface {
+class BatchIndexer : public CheckpointerDataInterface {
 
   public:
    enum BatchMethod { BYFILE, BYLIST, BYSPECIFIED, RANDOM };
@@ -22,7 +22,7 @@ class BatchIndexer : public SecretaryDataInterface {
    void initializeBatch(int localBatchIndex);
    void shuffleLookupTable();
    void setRandomSeed(int seed) { mRandomSeed = seed; }
-   virtual int registerData(Secretary *secretary, std::string const &objName) override;
+   virtual int registerData(Checkpointer *checkpointer, std::string const &objName) override;
    void setIndices(const std::vector<int> &indices) { mIndices = indices; }
    void setWrapToStartIndex(bool value) { mWrapToStartIndex = value; }
    bool getWrapToStartIndex() { return mWrapToStartIndex; }

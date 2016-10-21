@@ -25,8 +25,6 @@ class CloneConn : public HyPerConn {
 
    virtual int writeWeights(double time, bool last = false) { return PV_SUCCESS; }
    virtual int writeWeights(const char *filename) { return PV_SUCCESS; }
-   virtual int checkpointWrite(const char *cpDir) { return PV_SUCCESS; }
-   virtual int checkpointRead(const char *cpDir, double *timef) { return PV_SUCCESS; }
    virtual int outputState(double time, bool last = false) { return PV_SUCCESS; }
 
    HyPerConn *getOriginalConn() { return originalConn; }
@@ -92,6 +90,10 @@ class CloneConn : public HyPerConn {
 
    virtual int setPatchSize(); // virtual int setPatchSize(const char * filename); // filename is
    // now a member variable.
+
+   virtual int registerData(Checkpointer *checkpointer, std::string const &objName) override {
+      return PV_SUCCESS;
+   }
 
    char *originalConnName;
    HyPerConn *originalConn;

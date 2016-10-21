@@ -272,60 +272,11 @@ int ImprintConn::updateWeights(int arbor_ID) {
    return PV_BREAK;
 }
 
-int ImprintConn::checkpointRead(const char *cpDir, double *timeptr) {
-   int status  = HyPerConn::checkpointRead(cpDir, timeptr);
+int ImprintConn::registerData(Checkpointer *checkpointer, std::string const &objName) {
+   int status  = HyPerConn::registerData(checkpointer, objName);
    long numBuf = getNumDataPatches() * numberOfAxonalArborLists();
-   if (parent->columnId() == 0) {
-      char *filename      = parent->pathInCheckpoint(cpDir, getName(), "_ImprintState.bin");
-      PV_Stream *pvstream = PV_fopen(filename, "r", false /*verifyWrites*/);
-      if (pvstream != NULL) {
-         status = PV_fread(lastActiveTime, sizeof(double), numBuf, pvstream) == 1 ? status
-                                                                                  : PV_FAILURE;
-         PV_fclose(pvstream);
-      }
-      else {
-         pvError().printf("Unable to read from \"%s\"\n", filename);
-      }
-      free(filename);
-   }
-
-   if (parent->getCommunicator()->commSize() > 1) {
-      // Communicate buffer size to rest of processes
-      MPI_Bcast(lastActiveTime, numBuf, MPI_DOUBLE, 0, parent->getCommunicator()->communicator());
-   }
-   return status;
-}
-
-int ImprintConn::checkpointWrite(const char *cpDir) {
-   int status  = HyPerConn::checkpointWrite(cpDir);
-   long numBuf = getNumDataPatches() * numberOfAxonalArborLists();
-   if (parent->columnId() == 0) {
-      int filenamesize = strlen(cpDir) + 1 + strlen(name) + 18;
-      // The +1 is for the slash between cpDir and name; the +18 needs to be large enough to hold
-      // the suffix _PatternState.{bin,txt} plus the null terminator
-      char *filename = (char *)malloc(filenamesize * sizeof(char));
-      assert(filename != NULL);
-      sprintf(filename, "%s/%s_ImprintState.bin", cpDir, name);
-      pvInfo() << "filename: " << filename << "\n";
-      PV_Stream *pvstream = PV_fopen(filename, "w", parent->getVerifyWrites());
-      if (pvstream != NULL) {
-         status = PV_fwrite(lastActiveTime, sizeof(double), numBuf, pvstream) == numBuf
-                        ? status
-                        : PV_FAILURE;
-         PV_fclose(pvstream);
-      }
-      else {
-         pvError().printf("Unable to write to \"%s\"\n", filename);
-      }
-      if (status != PV_SUCCESS) {
-         pvError().printf(
-               "Patterns::checkpointWrite error: %s failed writing to %s\n",
-               getDescription_c(),
-               filename);
-      }
-      free(filename);
-      filename = NULL;
-   }
+   checkpointer->registerCheckpointData(
+         objName, "ImprintState", lastActiveTime, (std::size_t)numBuf, true /*broadcast*/);
    return PV_SUCCESS;
 }
 

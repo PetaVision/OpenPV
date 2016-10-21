@@ -260,60 +260,12 @@ int MomentumConn::applyMomentum(int arbor_ID) {
 }
 
 // TODO checkpointing not working with batching, must write checkpoint exactly at period
-int MomentumConn::checkpointWrite(const char *cpDir) {
-   HyPerConn::checkpointWrite(cpDir);
-   if (!plasticityFlag)
-      return PV_SUCCESS;
-   char filename[PV_PATH_MAX];
-   int chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_prev_dW.pvp", cpDir, name);
-   if (chars_needed >= PV_PATH_MAX) {
-      if (parent->getCommunicator()->commRank() == 0) {
-         pvErrorNoExit().printf(
-               "HyPerConn::checkpointFilename: path \"%s/%s_W.pvp\" is too long.\n", cpDir, name);
-      }
-      abort();
+int MomentumConn::registerData(Checkpointer *checkpointer, std::string const &objName) {
+   int status = HyPerConn::registerData(checkpointer, objName);
+   if (!plasticityFlag) {
+      return status;
    }
-   PVPatch ***patches_arg = sharedWeights ? NULL : get_wPatches();
-   int status             = writeWeights(
-         patches_arg,
-         prev_dwDataStart,
-         getNumDataPatches(),
-         filename,
-         parent->simulationTime(),
-         writeCompressedCheckpoints,
-         /*last*/ true);
-   assert(status == PV_SUCCESS);
-   return PV_SUCCESS;
-}
-
-int MomentumConn::checkpointRead(const char *cpDir, double *timeptr) {
-   HyPerConn::checkpointRead(cpDir, timeptr);
-   if (!plasticityFlag)
-      return PV_SUCCESS;
-   clearWeights(prev_dwDataStart, getNumDataPatches(), nxp, nyp, nfp);
-   char *path             = parent->pathInCheckpoint(cpDir, getName(), "_prev_dW.pvp");
-   PVPatch ***patches_arg = sharedWeights ? NULL : get_wPatches();
-   double filetime        = 0.0;
-   int status             = PV::readWeights(
-         patches_arg,
-         prev_dwDataStart,
-         numberOfAxonalArborLists(),
-         getNumDataPatches(),
-         nxp,
-         nyp,
-         nfp,
-         path,
-         parent->getCommunicator(),
-         &filetime,
-         pre->getLayerLoc());
-   if (parent->columnId() == 0 && timeptr && *timeptr != filetime) {
-      pvWarn().printf(
-            "\"%s\" checkpoint has timestamp %g instead of the expected value %g.\n",
-            path,
-            filetime,
-            *timeptr);
-   }
-   free(path);
+   checkpointWeightPvp(checkpointer, "prev_dW", prev_dwDataStart);
    return status;
 }
 

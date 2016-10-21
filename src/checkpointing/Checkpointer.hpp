@@ -1,19 +1,18 @@
 /*
- * Secretary.hpp
+ * Checkpointer.hpp
  *
  *  Created on Sep 28, 2016
  *      Author: Pete Schultz
  */
 
-#ifndef SECRETARY_HPP_
-#define SECRETARY_HPP_
+#ifndef CHECKPOINTER_HPP_
+#define CHECKPOINTER_HPP_
 
+#include "checkpointing/CheckpointEntry.hpp"
+#include "checkpointing/CheckpointingMessages.hpp"
 #include "columns/Communicator.hpp"
-#include "io/CheckpointEntry.hpp"
-#include "io/HyPerCheckpoint.hpp"
 #include "io/PVParams.hpp"
 #include "io/io.hpp"
-#include "observerpattern/BaseMessage.hpp"
 #include "observerpattern/Subject.hpp"
 #include "utils/Timer.hpp"
 #include <ctime>
@@ -22,11 +21,11 @@
 
 namespace PV {
 
-class Secretary : public Subject {
+class Checkpointer : public Subject {
   private:
    /**
-    * List of parameters needed from the Secretary class
-    * @name Secretary Parameters
+    * List of parameters needed from the Checkpointer class
+    * @name Checkpointer Parameters
     * @{
     */
 
@@ -52,17 +51,8 @@ class Secretary : public Subject {
       double mSimTime                 = 0.0;
       long int mCurrentCheckpointStep = 0L;
    };
-   class ProcessCheckpointReadMessage : public BaseMessage {
-     public:
-      ProcessCheckpointReadMessage() { setMessageType("ProcessCheckpointReadMessage"); }
-   };
-   class PrepareCheckpointWriteMessage : public BaseMessage {
-     public:
-      PrepareCheckpointWriteMessage() { setMessageType("ProcessCheckpointWriteMessage"); }
-   };
-   Secretary(std::string const &name, Communicator *comm);
-   Secretary(HyPerCheckpoint *cp, std::string const &name, Communicator *comm);
-   ~Secretary();
+   Checkpointer(std::string const &name, Communicator *comm);
+   ~Checkpointer();
 
    void setOutputPath(std::string const &outputPath);
    void ioParamsFillGroup(enum ParamsIOFlag ioFlag, PVParams *params);
@@ -76,7 +66,9 @@ class Secretary : public Subject {
          size_t numValues,
          bool broadcast);
 
-   bool registerCheckpointEntry(std::shared_ptr<CheckpointEntry> checkpointEntry);
+   bool registerCheckpointEntry(
+         std::shared_ptr<CheckpointEntry> checkpointEntry,
+         bool constantEntireRun = false);
    void registerTimer(Timer const *timer);
    virtual void addObserver(Observer *observer, BaseMessage const &message) override;
    void checkpointRead(
@@ -125,10 +117,6 @@ class Secretary : public Subject {
    void writeTimers(std::string const &directory);
 
   private:
-   HyPerCheckpoint *mHyPerCheckpoint = nullptr;
-   // Note: the HyPerCheckpoint is a convenience in moving checkpointing functions from HyPerCol
-   // to Secretary. Once the refactor is complete, the mHyPerCheckpoint will be removed.
-
    std::string mName;
    Communicator *mCommunicator = nullptr;
    std::vector<std::shared_ptr<CheckpointEntry>> mCheckpointRegistry; // Needs to be a vector so
@@ -172,23 +160,25 @@ class Secretary : public Subject {
 };
 
 /**
- * SecretaryDataInterface provides a virtual method intended for interfacing
- * with Secretary register methods.  An object that does checkpointing should
- * derive from SecretaryDataInterface, and override registerData to call
- * Secretary::registerCheckpointEntry once for each piece of checkpointable
+ * CheckpointerDataInterface provides a virtual method intended for interfacing
+ * with Checkpointer register methods.  An object that does checkpointing should
+ * derive from CheckpointerDataInterface, and override registerData to call
+ * Checkpointer::registerCheckpointEntry once for each piece of checkpointable
  * data.
  *
- * BaseObject derives from SecretaryDataInterface, and calls registerData
+ * BaseObject derives from CheckpointerDataInterface, and calls registerData
  * when it receives a RegisterDataMessage (which HyPerCol::run calls after
  * AllocateDataMessage and before InitializeStateMessage).
  */
-class SecretaryDataInterface {
+class CheckpointerDataInterface {
   public:
-   virtual int registerData(Secretary *secretary, std::string const &objName) { return PV_SUCCESS; }
+   virtual int registerData(Checkpointer *checkpointer, std::string const &objName) {
+      return PV_SUCCESS;
+   }
 };
 
 template <typename T>
-bool Secretary::registerCheckpointData(
+bool Checkpointer::registerCheckpointData(
       std::string const &objName,
       std::string const &dataName,
       T *dataPointer,
@@ -201,4 +191,4 @@ bool Secretary::registerCheckpointData(
 
 } // namespace PV
 
-#endif // SECRETARY_HPP_
+#endif // CHECKPOINTER_HPP_

@@ -1,8 +1,8 @@
+#include "checkpointing/CheckpointEntry.hpp"
+#include "checkpointing/Checkpointer.hpp"
 #include "columns/Communicator.hpp"
 #include "columns/PV_Arguments.hpp"
-#include "io/CheckpointEntry.hpp"
 #include "io/PVParams.hpp"
-#include "io/Secretary.hpp"
 #include "io/io.hpp"
 #include "utils/PVLog.hpp"
 #include <vector>
@@ -12,14 +12,14 @@ int main(int argc, char *argv[]) {
    MPI_Init(&argc, &argv);
    PV::Communicator *comm = new PV::Communicator(&pvArguments);
 
-   PV::Secretary *secretary = new PV::Secretary("secretary", comm);
+   PV::Checkpointer *checkpointer = new PV::Checkpointer("checkpointer", comm);
 
-   PV::PVParams *params = new PV::PVParams("input/SecretaryTest.params", 1, comm);
+   PV::PVParams *params = new PV::PVParams("input/CheckpointerClassTest.params", 1, comm);
 
-   char const *checkpointWriteDir = params->stringValue("secretary", "checkpointWriteDir");
+   char const *checkpointWriteDir = params->stringValue("checkpointer", "checkpointWriteDir");
    pvErrorIf(
          checkpointWriteDir == nullptr,
-         "Group \"secretary\" must have a checkpointWriteDir string parameter.\n");
+         "Group \"checkpointer\" must have a checkpointWriteDir string parameter.\n");
    std::string checkpointWriteDirectory(checkpointWriteDir);
    ensureDirExists(comm, checkpointWriteDirectory.c_str()); // Must be called by all processes,
    // because it broadcasts the result of
@@ -39,9 +39,9 @@ int main(int argc, char *argv[]) {
    if (comm->numCommBatches() > 1) {
       params->setBatchSweepValues();
       checkpointWriteDirectory =
-            std::string(params->stringValue("secretary", "checkpointWriteDir"));
+            std::string(params->stringValue("checkpointer", "checkpointWriteDir"));
    }
-   secretary->ioParamsFillGroup(PV::PARAMS_IO_READ, params);
+   checkpointer->ioParamsFillGroup(PV::PARAMS_IO_READ, params);
    delete params;
 
    std::vector<double> fpCorrect{1.0, -1.0, 2.0, -2.0, 3.0, -3.0};
@@ -51,27 +51,27 @@ int main(int argc, char *argv[]) {
    fpCheckpoint.resize(fpCorrect.size());
    int integerCheckpoint = -5;
 
-   secretary->registerCheckpointEntry(
+   checkpointer->registerCheckpointEntry(
          std::make_shared<PV::CheckpointEntryData<double>>(
                std::string("floatingpoint"),
                comm,
                fpCheckpoint.data(),
                fpCheckpoint.size(),
                true /*broadcasting*/));
-   secretary->registerCheckpointEntry(
+   checkpointer->registerCheckpointEntry(
          std::make_shared<PV::CheckpointEntryData<int>>(
                std::string("integer"), comm, &integerCheckpoint, (size_t)1, true /*broadcasting*/));
 
-   secretary->checkpointWrite(0.0);
-   secretary->checkpointWrite(1.0);
-   secretary->checkpointWrite(3.0);
-   secretary->checkpointWrite(6.0);
+   checkpointer->checkpointWrite(0.0);
+   checkpointer->checkpointWrite(1.0);
+   checkpointer->checkpointWrite(3.0);
+   checkpointer->checkpointWrite(6.0);
 
    for (std::vector<double>::size_type n = 0; n < fpCheckpoint.size(); n++) {
       fpCheckpoint.at(n) = fpCorrect.at(n);
    }
    integerCheckpoint = integerCorrect;
-   secretary->checkpointWrite(10.0);
+   checkpointer->checkpointWrite(10.0);
 
    double readTime   = -1.0;
    long int readStep = -1L;
@@ -82,9 +82,9 @@ int main(int argc, char *argv[]) {
 
    std::string checkpointReadDir(checkpointWriteDirectory);
    checkpointReadDir.append("/Checkpoint04");
-   secretary->checkpointRead(checkpointReadDir, &readTime, &readStep);
+   checkpointer->checkpointRead(checkpointReadDir, &readTime, &readStep);
 
-   delete secretary;
+   delete checkpointer;
    delete comm;
    MPI_Finalize();
 
