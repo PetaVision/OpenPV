@@ -1,5 +1,5 @@
 /*
- * CheckpointEntry.tpp
+ * CheckpointEntryData.tpp
  *
  *  Created on Sep 27, 2016
  *      Author: Pete Schultz
@@ -9,7 +9,6 @@
  */
 
 #include "io/fileio.hpp"
-#include "utils/PVAssert.hpp"
 #include "utils/PVLog.hpp"
 
 namespace PV {

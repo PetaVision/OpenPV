@@ -6,9 +6,11 @@
  */
 
 #include "CheckpointEntry.hpp"
+#include "utils/PVLog.hpp"
 #include <cerrno>
 #include <cstring>
 #include <sys/stat.h>
+#include <unistd.h>
 
 namespace PV {
 

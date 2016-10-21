@@ -7,6 +7,7 @@
 
 #include "CheckpointEntryWeightPvp.hpp"
 #include "structures/Buffer.hpp"
+#include "io/fileio.hpp"
 #include "utils/BufferUtilsMPI.hpp"
 #include "utils/BufferUtilsPvp.hpp"
 #include <limits>

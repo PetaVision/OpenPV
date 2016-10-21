@@ -1,5 +1,5 @@
 #include "testDataWithBroadcast.hpp"
-#include "checkpointing/CheckpointEntry.hpp"
+#include "checkpointing/CheckpointEntryData.hpp"
 #include "utils/PVLog.hpp"
 
 void testDataWithBroadcast(PV::Communicator *comm, std::string const &directory) {

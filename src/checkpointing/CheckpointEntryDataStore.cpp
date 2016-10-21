@@ -6,6 +6,7 @@
  */
 
 #include "CheckpointEntryDataStore.hpp"
+#include "io/fileio.hpp"
 #include "structures/Buffer.hpp"
 #include "utils/BufferUtilsMPI.hpp"
 #include "utils/BufferUtilsPvp.hpp"

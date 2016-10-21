@@ -1,4 +1,5 @@
 #include "testSeparatedName.hpp"
+#include "checkpointing/CheckpointEntryData.hpp"
 #include "checkpointing/CheckpointEntryPvp.hpp"
 #include "utils/PVLog.hpp"
 
