@@ -6,7 +6,6 @@
  */
 
 #include "CheckpointEntryDataStore.hpp"
-#include "io/fileio.hpp"
 #include "structures/Buffer.hpp"
 #include "utils/BufferUtilsMPI.hpp"
 #include "utils/BufferUtilsPvp.hpp"
@@ -29,10 +28,9 @@ void CheckpointEntryDataStore::write(
       std::string path   = generatePath(checkpointDirectory, "pvp");
       fileStream         = new FileStream(path.c_str(), std::ios_base::out, verifyWritesFlag);
       int const numBands = numBuffers * numLevels;
-      int *params        = pvp_set_nonspiking_act_params(
-            getCommunicator(), simTime, mLayerLoc, PV_FLOAT_TYPE, numLevels);
-      pvAssert(params && params[1] == NUM_BIN_PARAMS);
-      fileStream->write(params, params[0]);
+      BufferUtils::ActivityHeader header = BufferUtils::buildActivityHeader<pvdata_t>(
+            mLayerLoc->nxGlobal, mLayerLoc->nyGlobal, mLayerLoc->nf, numBands);
+      BufferUtils::writeActivityHeader(*fileStream, header);
    }
    int const nxExt       = mLayerLoc->nx + mLayerLoc->halo.lt + mLayerLoc->halo.rt;
    int const nyExt       = mLayerLoc->ny + mLayerLoc->halo.dn + mLayerLoc->halo.up;
