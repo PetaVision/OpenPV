@@ -17,6 +17,7 @@ debugParsing = false;
 HyPerCol "column" = {
    nx = 2;
    ny = 2;
+   nbatch = 1;
    dt = 1.0;
    randomSeed = 1234567890;  
    startTime = 0.0;
@@ -24,6 +25,7 @@ HyPerCol "column" = {
    errorOnNotANumber = true;
    progressInterval = 10.0; 
    writeProgressToErr = false;  
+   verifyWrites = true;
    outputPath = "output/";
    printParamsFilename = "pv.params"; 
    initializeFromCheckpointDir = "input/restartDir";
@@ -40,16 +42,24 @@ PvpLayer "input" = {
     nf = 1; 
     phase = 0; 
     writeStep = -1;  
+    sparseLayer = false;
     mirrorBCflag = false;    
     valueBC = 0.0;
+    initializeFromCheckpointFlag = false;
     useInputBCflag = false;
     inverseFlag = false; 
     normalizeLuminanceFlag = false;
     autoResizeFlag = false;
     writeImages = false;
+    offsetAnchor = "tr";
     offsetX = 0;  
     offsetY = 0;
-	displayPeriod                       = 0;
+    displayPeriod = 0;
+    padValue = 0;
+    batchMethod = "byFile";
+    start_frame_index = 0;
+    writeFrameToTimestamp = true;
+    resetToStartOnLoop = false;
 };
 
 
@@ -144,7 +154,11 @@ HyPerConn "initializeFromCheckpoint" = {
     normalizeMethod = "none";
 
     writeCompressedCheckpoints = false;
-    plasticityFlag = false;
+    plasticityFlag = true;
+    dWMax = 1.0;
+    weightUpdatePeriod = 20;
+    initialWeightUpdateTime = 20;
+    combine_dW_with_W_flag = false;
     selfFlag = false;  
 
     delay = 0;
