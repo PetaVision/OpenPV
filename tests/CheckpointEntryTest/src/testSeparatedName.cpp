@@ -1,5 +1,5 @@
 #include "testSeparatedName.hpp"
-#include "checkpointing/CheckpointEntry.hpp"
+#include "checkpointing/CheckpointEntryPvp.hpp"
 #include "utils/PVLog.hpp"
 
 void testSeparatedName(PV::Communicator *comm) {

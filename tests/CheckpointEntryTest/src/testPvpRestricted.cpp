@@ -1,5 +1,5 @@
 #include "testPvpRestricted.hpp"
-#include "checkpointing/CheckpointEntry.hpp"
+#include "checkpointing/CheckpointEntryPvp.hpp"
 #include "utils/conversions.h"
 
 void testPvpRestricted(PV::Communicator *comm, std::string const &directory) {
