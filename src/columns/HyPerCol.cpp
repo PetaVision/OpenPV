@@ -269,7 +269,8 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
 
    mRunTimer = new Timer(mName, "column", "run    ");
    mCheckpointer->registerTimer(mRunTimer);
-   mCheckpointer->registerCheckpointData(mName, "nextProgressTime", &mNextProgressTime, (std::size_t) 1, true /*broadcast*/);
+   mCheckpointer->registerCheckpointData(
+         mName, "nextProgressTime", &mNextProgressTime, (std::size_t)1, true /*broadcast*/);
 
    // mWarmStart is set if command line sets the -r option.  PV_Arguments should
    // prevent -r and -c from being both set.
@@ -1175,7 +1176,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
          pvInfo().flush();
       }
 #endif
- 
+
       // Initialize the state of each object based on the params file,
       // and then if reading from checkpoint, call the checkpointer.
       // This needs to happen after initPublishers so that we can initialize
@@ -1490,7 +1491,7 @@ int HyPerCol::advanceTime(double sim_time) {
 int HyPerCol::respond(std::shared_ptr<BaseMessage const> message) {
    int status = PV_SUCCESS;
    if (PrepareCheckpointWriteMessage const *castMessage =
-         dynamic_cast<PrepareCheckpointWriteMessage const *>(message.get())) {
+             dynamic_cast<PrepareCheckpointWriteMessage const *>(message.get())) {
       status = respondPrepareCheckpointWrite(castMessage);
    }
    return status;

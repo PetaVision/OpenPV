@@ -33,7 +33,19 @@ class CheckpointEntryWeightPvp : public CheckpointEntry {
          PVLayerLoc const *postLoc,
          bool compressFlag)
          : CheckpointEntry(name, communicator) {
-      initialize(numArbors, sharedWeights, patchData, patchDataSize, weightData, weightDataSize, nxp, nyp, nfp, preLoc, postLoc, compressFlag);
+      initialize(
+            numArbors,
+            sharedWeights,
+            patchData,
+            patchDataSize,
+            weightData,
+            weightDataSize,
+            nxp,
+            nyp,
+            nfp,
+            preLoc,
+            postLoc,
+            compressFlag);
    }
    CheckpointEntryWeightPvp(
          std::string const &objName,
@@ -52,7 +64,19 @@ class CheckpointEntryWeightPvp : public CheckpointEntry {
          PVLayerLoc const *postLoc,
          bool compressFlag)
          : CheckpointEntry(objName, dataName, communicator) {
-      initialize(numArbors, sharedWeights, patchData, patchDataSize, weightData, weightDataSize, nxp, nyp, nfp, preLoc, postLoc, compressFlag);
+      initialize(
+            numArbors,
+            sharedWeights,
+            patchData,
+            patchDataSize,
+            weightData,
+            weightDataSize,
+            nxp,
+            nyp,
+            nfp,
+            preLoc,
+            postLoc,
+            compressFlag);
    }
    virtual void write(std::string const &checkpointDirectory, double simTime, bool verifyWritesFlag)
          const override;

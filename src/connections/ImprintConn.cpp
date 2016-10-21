@@ -273,14 +273,10 @@ int ImprintConn::updateWeights(int arbor_ID) {
 }
 
 int ImprintConn::registerData(Checkpointer *checkpointer, std::string const &objName) {
-   int status = HyPerConn::registerData(checkpointer, objName);
+   int status  = HyPerConn::registerData(checkpointer, objName);
    long numBuf = getNumDataPatches() * numberOfAxonalArborLists();
    checkpointer->registerCheckpointData(
-         objName,
-         "ImprintState",
-         lastActiveTime,
-         (std::size_t) numBuf,
-         true /*broadcast*/);
+         objName, "ImprintState", lastActiveTime, (std::size_t)numBuf, true /*broadcast*/);
    return PV_SUCCESS;
 }
 

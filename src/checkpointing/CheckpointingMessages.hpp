@@ -18,4 +18,4 @@ class PrepareCheckpointWriteMessage : public BaseMessage {
    std::string mDirectory;
 };
 
-}  // end namespace PV
+} // end namespace PV

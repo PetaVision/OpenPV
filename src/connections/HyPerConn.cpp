@@ -2169,7 +2169,9 @@ void HyPerConn::checkpointWeightPvp(
                getNumWeightPatches(),
                weightDataBuffer,
                getNumDataPatches(),
-               nxp, nyp, nfp,
+               nxp,
+               nyp,
+               nfp,
                pre->getLayerLoc(),
                post->getLayerLoc(),
                writeCompressedWeights),
@@ -2182,13 +2184,16 @@ void HyPerConn::checkpointWeightPvp(
 }
 
 int HyPerConn::registerData(Checkpointer *checkpointer, std::string const &objName) {
-   int status = BaseConnection::registerData(checkpointer, objName);  
+   int status = BaseConnection::registerData(checkpointer, objName);
    checkpointWeightPvp(checkpointer, "W", get_wDataStart());
-   checkpointer->registerCheckpointData(objName, "lastUpdateTime", &lastUpdateTime, (std::size_t) 1, true /*broadcast*/);
+   checkpointer->registerCheckpointData(
+         objName, "lastUpdateTime", &lastUpdateTime, (std::size_t)1, true /*broadcast*/);
    if (plasticityFlag && !triggerLayerName) {
-      checkpointer->registerCheckpointData(objName, "weightUpdateTime", &weightUpdateTime, (std::size_t) 1, true /*broadcast*/);
+      checkpointer->registerCheckpointData(
+            objName, "weightUpdateTime", &weightUpdateTime, (std::size_t)1, true /*broadcast*/);
    }
-   checkpointer->registerCheckpointData(objName, "nextWrite", &writeTime, (std::size_t) 1, true /*broadcast*/);
+   checkpointer->registerCheckpointData(
+         objName, "nextWrite", &writeTime, (std::size_t)1, true /*broadcast*/);
    checkpointer->registerTimer(io_timer);
    checkpointer->registerTimer(update_timer);
    return status;

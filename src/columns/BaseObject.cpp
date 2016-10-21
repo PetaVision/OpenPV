@@ -154,13 +154,11 @@ int BaseObject::respondInitializeState(InitializeStateMessage const *message) {
    return status;
 }
 
-int BaseObject::respondProcessCheckpointRead(
-      ProcessCheckpointReadMessage const *message) {
+int BaseObject::respondProcessCheckpointRead(ProcessCheckpointReadMessage const *message) {
    return processCheckpointRead();
 }
 
-int BaseObject::respondPrepareCheckpointWrite(
-      PrepareCheckpointWriteMessage const *message) {
+int BaseObject::respondPrepareCheckpointWrite(PrepareCheckpointWriteMessage const *message) {
    return prepareCheckpointWrite();
 }
 
