@@ -14,7 +14,6 @@
 #include "include/pv_common.h"
 #include "include/pv_types.h"
 #include "io/fileio.hpp"
-#include "io/imageio.hpp"
 #include "io/io.hpp"
 #include "layers/HyPerLayer.hpp"
 #include <stdarg.h>
