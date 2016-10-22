@@ -66,7 +66,7 @@ void CheckpointEntryDataStore::read(std::string const &checkpointDirectory, doub
             header.at(INDEX_NBANDS) != numBands,
             "readDataStoreFromFile error reading \"%s\": delays*batchwidth in file is %d, "
             "but delays*batchwidth in layer is %d\n",
-            path,
+            path.c_str(),
             header.at(INDEX_NBANDS),
             numBands);
    }
