@@ -77,14 +77,14 @@ void testPvpExtended(PV::Communicator *comm, std::string const &directory) {
    checkpointEntryPvp.read(directory, &readTime);
 
    // Verify the read, noting that checkpointWrite only saves the restricted portion and
-   // checkpointRead does not modify the extended portion.
+   // checkpointRead sets the the extended portion to zero.
    pvErrorIf(readTime != simTime, "Read timestamp %f; expected %f.\n", readTime, simTime);
    for (int k = 0; k < localExtendedSize; k++) {
       int kxGlobalExt = kxPos(k, nxLocalExt, nyLocalExt, loc.nf) + loc.kx0;
       int kyGlobalExt = kyPos(k, nxLocalExt, nyLocalExt, loc.nf) + loc.ky0;
       bool inBorder   = kxGlobalExt < loc.halo.lt || kxGlobalExt >= loc.nxGlobal + loc.halo.lt
                       || kyGlobalExt < loc.halo.up || kyGlobalExt >= loc.nyGlobal + loc.halo.up;
-      float correctValue = inBorder ? -1.0f : correctData.at(k);
+      float correctValue = inBorder ? 0.0f : correctData.at(k);
       pvErrorIf(
             checkpointData.at(k) != correctValue,
             "testDataPvp failed: data at rank %d, index %d is %f, but should be %f\n",
