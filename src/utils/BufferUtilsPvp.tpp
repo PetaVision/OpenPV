@@ -65,7 +65,7 @@ buildSparseActivityHeader(int width, int height, int features, int numFrames) {
    return header;
 }
 
-static void writeActivityHeader(FileStream &fStream, struct ActivityHeader header) {
+static void writeActivityHeader(FileStream &fStream, struct ActivityHeader const &header) {
    fStream.setOutPos(0, true);
    fStream.write(&header, sizeof(header));
 }
