@@ -8,7 +8,7 @@
  *  the .tpp file does not include the .hpp file.
  */
 
-#include "io/fileio.hpp"
+#include "io/FileStream.hpp"
 #include "utils/PVLog.hpp"
 
 namespace PV {
@@ -20,12 +20,8 @@ void CheckpointEntryData<T>::write(
       bool verifyWritesFlag) const {
    if (getCommunicator()->commRank() == 0) {
       std::string path    = generatePath(checkpointDirectory, "bin");
-      PV_Stream *pvstream = PV_fopen(path.c_str(), "w", verifyWritesFlag);
-      int numWritten      = PV_fwrite(mDataPointer, sizeof(T), mNumValues, pvstream);
-      if (numWritten != mNumValues) {
-         pvError() << "CheckpointEntryData::write: unable to write to \"" << path << "\".\n";
-      }
-      PV_fclose(pvstream);
+      FileStream fileStream{path.c_str(), std::ios_base::out, verifyWritesFlag};
+      fileStream.write(mDataPointer, sizeof(T)*(std::size_t) mNumValues);
       path = generatePath(checkpointDirectory, "txt");
       FileStream txtStream(path.c_str(), std::ios_base::out, verifyWritesFlag);
       TextOutput::print(mDataPointer, mNumValues, txtStream);
@@ -37,15 +33,8 @@ void CheckpointEntryData<T>::read(std::string const &checkpointDirectory, double
       const {
    if (getCommunicator()->commRank() == 0) {
       std::string path    = generatePath(checkpointDirectory, "bin");
-      PV_Stream *pvstream = PV_fopen(
-            path.c_str(),
-            "r",
-            false /*reading doesn't use verifyWrites, but PV_fopen constructor still takes it as an argument.*/);
-      int numRead = PV_fread(mDataPointer, sizeof(T), mNumValues, pvstream);
-      if (numRead != mNumValues) {
-         pvError() << "CheckpointEntryData::read: unable to read from \"" << path << "\".\n";
-      }
-      PV_fclose(pvstream);
+      FileStream fileStream{path.c_str(), std::ios_base::in, false /*verifyWrites not needed*/};
+      fileStream.read(mDataPointer, sizeof(T)*(std::size_t) mNumValues);
    }
    if (mBroadcastingFlag) {
       MPI_Bcast(
