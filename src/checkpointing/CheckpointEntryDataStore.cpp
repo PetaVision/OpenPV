@@ -59,8 +59,8 @@ void CheckpointEntryDataStore::read(std::string const &checkpointDirectory, doub
    int const numBands     = numBuffers * numLevels;
    FileStream *fileStream = nullptr;
    if (getCommunicator()->commRank() == 0) {
-      std::string path        = generatePath(checkpointDirectory, "pvp");
-      fileStream              = new FileStream(path.c_str(), std::ios_base::in, false);
+      std::string path = generatePath(checkpointDirectory, "pvp");
+      fileStream       = new FileStream(path.c_str(), std::ios_base::in, false);
       struct BufferUtils::ActivityHeader header = BufferUtils::readActivityHeader(*fileStream);
       pvErrorIf(
             header.nBands != numBands,

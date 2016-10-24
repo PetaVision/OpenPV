@@ -25,24 +25,8 @@ struct SparseFileTable {
 };
 
 struct ActivityHeader {
-   int headerSize,
-       numParams,
-       fileType,
-       nx,
-       ny,
-       nf,
-       numRecords,
-       recordSize,
-       dataSize,
-       dataType,
-       nxProcs,
-       nyProcs,
-       nxGlobal,
-       nyGlobal,
-       kx0,
-       ky0,
-       nBatch,
-       nBands;
+   int headerSize, numParams, fileType, nx, ny, nf, numRecords, recordSize, dataSize, dataType,
+         nxProcs, nyProcs, nxGlobal, nyGlobal, kx0, ky0, nBatch, nBands;
    double timestamp;
 };
 

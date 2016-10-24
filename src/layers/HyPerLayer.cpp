@@ -2297,9 +2297,7 @@ int HyPerLayer::readBufferFile(
 
          double filetime = 0.0;
          switch (params[INDEX_FILE_TYPE]) {
-            case PVP_FILE_TYPE:
-               pvError().printf("Obsolete filetype %d\n", PVP_FILE_TYPE);
-               break;
+            case PVP_FILE_TYPE: pvError().printf("Obsolete filetype %d\n", PVP_FILE_TYPE); break;
             case PVP_ACT_FILE_TYPE:
                status = pvp_read_time(readFile, comm, 0 /*root process*/, &filetime);
                pvErrorIf(
