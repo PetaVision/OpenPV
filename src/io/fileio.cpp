@@ -1733,14 +1733,14 @@ int writeActivitySparse(
          //
          long fpos = fileStream->getOutPos();
          if (fpos == 0L) {
-            auto header = BufferUtils::buildHeader<pvadata_t>(
-                  loc->nxGlobal, loc->nyGlobal, loc->nf, 1, true /*sparse*/);
+            auto header = BufferUtils::buildActivityHeader<pvadata_t>(
+                  loc->nxGlobal, loc->nyGlobal, loc->nf, 1);
             // Hack because buildHeader doesn't handle sparse binary type.
             if (!includeValues) {
-               header.at(INDEX_FILE_TYPE) = PVP_ACT_FILE_TYPE;
-               header.at(INDEX_DATA_TYPE) = PV_INT_TYPE;
+               header.fileType = PVP_ACT_FILE_TYPE;
+               header.dataType = PV_INT_TYPE;
             }
-            fileStream->write(header.data(), (long)(header.size() * sizeof(*header.data())));
+            fileStream->write(&header, sizeof(header));
          }
          // write time, total active count, and local activity
          //

@@ -38,15 +38,16 @@ Buffer<float> PvpLayer::retrieveData(std::string filename, int batchIndex) {
    // frame in the batch.
    if (mPvpFrameCount == -1) {
       FileStream headerStream(filename.c_str(), std::ios_base::in | std::ios_base::binary, false);
-      vector<int> header = BufferUtils::readHeader(headerStream);
-      mInputNx           = header.at(INDEX_NX);
-      mInputNy           = header.at(INDEX_NY);
-      mInputNf           = header.at(INDEX_NF);
-      mFileType          = header.at(INDEX_FILE_TYPE);
-      mPvpFrameCount     = header.at(INDEX_NBANDS);
+      struct BufferUtils::ActivityHeader header = BufferUtils::readActivityHeader(headerStream);
+
+      mInputNx       = header.nx;
+      mInputNy       = header.ny;
+      mInputNf       = header.nf;
+      mFileType      = header.fileType;
+      mPvpFrameCount = header.nBands;
       initializeBatchIndexer(mPvpFrameCount);
-      if (header.at(INDEX_FILE_TYPE) == PVP_ACT_SPARSEVALUES_FILE_TYPE
-          || header.at(INDEX_FILE_TYPE) == PVP_ACT_FILE_TYPE) {
+      if (header.fileType == PVP_ACT_SPARSEVALUES_FILE_TYPE
+            || header.fileType == PVP_ACT_FILE_TYPE) {
          sparseTable = BufferUtils::buildSparseFileTable(headerStream, mPvpFrameCount - 1);
       }
    }

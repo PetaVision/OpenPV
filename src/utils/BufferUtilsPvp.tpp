@@ -32,45 +32,52 @@ double readFrame(FileStream &fStream, Buffer<T> *buffer) {
 // Write a pvp header to fStream. After finishing, outStream will be pointing
 // at the start of the first frame.
 template <typename T>
-vector<int> buildHeader(int width, int height, int features, int numFrames, bool isSparse) {
-   vector<int> header(NUM_BIN_PARAMS);
-   header.at(INDEX_HEADER_SIZE) = header.size() * sizeof(int);
-   header.at(INDEX_FILE_TYPE) =
-         isSparse ? PVP_ACT_SPARSEVALUES_FILE_TYPE : PVP_NONSPIKING_ACT_FILE_TYPE;
-   header.at(INDEX_NX)          = width;
-   header.at(INDEX_NY)          = height;
-   header.at(INDEX_NF)          = features;
-   header.at(INDEX_NUM_RECORDS) = 1;
-   header.at(INDEX_RECORD_SIZE) = width * height * features;
-   header.at(INDEX_DATA_SIZE)   = isSparse ? sizeof(struct SparseList<T>::Entry) : sizeof(T);
-   header.at(INDEX_DATA_TYPE)   = PV_FLOAT_TYPE; // TODO: How to template this?
-   header.at(INDEX_NX_PROCS)    = 1;
-   header.at(INDEX_NY_PROCS)    = 1;
-   header.at(INDEX_NX_GLOBAL)   = width;
-   header.at(INDEX_NY_GLOBAL)   = height;
-   header.at(INDEX_KX0)         = 0;
-   header.at(INDEX_KY0)         = 0;
-   header.at(INDEX_NBATCH)      = 1;
-   header.at(INDEX_NBANDS)      = numFrames;
-   header.at(INDEX_TIME)        = 0;
-   header.at(INDEX_TIME + 1)    = 0;
+struct ActivityHeader buildActivityHeader(int width, int height, int features, int numFrames) {
+   struct ActivityHeader result;
+   result.headerSize = sizeof(result);
+   result.numParams  = result.headerSize / 4;
+   result.fileType   = PVP_NONSPIKING_ACT_FILE_TYPE;
+   result.nx         = width;
+   result.ny         = height;
+   result.nf         = features;
+   result.numRecords = 1;
+   result.recordSize = width * height * features;
+   result.dataSize   = sizeof(T);
+   result.dataType   = PV_FLOAT_TYPE; // TODO: How to template this?
+   result.nxProcs    = 1;
+   result.nyProcs    = 1;
+   result.nxGlobal   = width;
+   result.nyGlobal   = height;
+   result.kx0        = 0;
+   result.ky0        = 0;
+   result.nBatch     = 1;
+   result.nBands     = numFrames;
+   result.timestamp  = 0;
+   return result;
+}
+
+template <typename T>
+struct ActivityHeader buildSparseActivityHeader(int width, int height, int features, int numFrames) {
+   struct ActivityHeader header = buildActivityHeader<T>(width, height, features, numFrames);
+   header.dataSize = sizeof(struct SparseList<T>::Entry);
+   header.fileType = PVP_ACT_SPARSEVALUES_FILE_TYPE;
    return header;
 }
 
-static void writeHeader(FileStream &fStream, vector<int> header) {
+static void writeActivityHeader(FileStream &fStream, struct ActivityHeader header) {
    fStream.setOutPos(0, true);
-   fStream.write(header.data(), header.size() * sizeof(int));
+   fStream.write(&header, sizeof(header));
 }
 
 // Reads a pvp header and returns it in vector format. Leaves inStream
 // pointing at the start of the first frame.
-static vector<int> readHeader(FileStream &fStream) {
+static struct ActivityHeader readActivityHeader(FileStream &fStream) {
    fStream.setInPos(0, true);
    int headerSize = -1;
    fStream.read(&headerSize, sizeof(int));
    fStream.setInPos(0, true);
-   vector<int> header(headerSize / sizeof(int));
-   fStream.read(header.data(), headerSize);
+   struct ActivityHeader header;
+   fStream.read(&header, headerSize);
    return header;
 }
 
@@ -79,10 +86,9 @@ static vector<int> readHeader(FileStream &fStream) {
 template <typename T>
 void writeToPvp(const char *fName, Buffer<T> *buffer, double timeStamp, bool verifyWrites) {
    FileStream fStream(fName, std::ios_base::out | std::ios_base::binary, verifyWrites);
-
-   writeHeader(
+   writeActivityHeader(
          fStream,
-         buildHeader<T>(buffer->getWidth(), buffer->getHeight(), buffer->getFeatures(), 1, false));
+         buildActivityHeader<T>(buffer->getWidth(), buffer->getHeight(), buffer->getFeatures(), 1));
    writeFrame<T>(fStream, buffer, timeStamp);
 }
 
@@ -97,20 +103,19 @@ void appendToPvp(
          fName, std::ios_base::out | std::ios_base::in | std::ios_base::binary, verifyWrites);
 
    // Modify the number of records in the header
-   vector<int> header = readHeader(fStream);
+   struct ActivityHeader header = readActivityHeader(fStream);
    pvErrorIf(
-         frameWriteIndex > header.at(INDEX_NBANDS),
+         frameWriteIndex > header.nBands,
          "Cannot write entry %d when only %d entries exist.\n",
          frameWriteIndex,
-         header.at(INDEX_NBANDS));
-   header.at(INDEX_NBANDS) = frameWriteIndex + 1;
-   writeHeader(fStream, header);
+         header.nBands);
+   header.nBands = frameWriteIndex + 1;
+   writeActivityHeader(fStream, header);
 
    // fStream is now pointing at the first frame. Each frame is
    // the size of the timestamp (double) plus the size of the
    // frame's data (numElements * sizeof(T))
-   long frameOffset = frameWriteIndex * (header.at(INDEX_RECORD_SIZE) * header.at(INDEX_DATA_SIZE)
-                                         + sizeof(double));
+   long frameOffset = frameWriteIndex * (header.recordSize * header.dataSize + sizeof(double));
 
    fStream.setOutPos(frameOffset, false);
    writeFrame<T>(fStream, buffer, timeStamp);
@@ -119,14 +124,13 @@ void appendToPvp(
 template <typename T>
 double readFromPvp(const char *fName, Buffer<T> *buffer, int frameReadIndex) {
    FileStream fStream(fName, std::ios_base::in | std::ios_base::binary, false);
-   vector<int> header = readHeader(fStream);
+   struct ActivityHeader header = readActivityHeader(fStream);
    pvErrorIf(
-         header.at(INDEX_FILE_TYPE) != PVP_NONSPIKING_ACT_FILE_TYPE,
+         header.fileType != PVP_NONSPIKING_ACT_FILE_TYPE,
          "readFromPvp() can only be used on non-sparse activity pvps "
          "(PVP_NONSPIKING_ACT_FILE_TYPE)\n");
-   buffer->resize(header.at(INDEX_NX), header.at(INDEX_NY), header.at(INDEX_NF));
-   long frameOffset = frameReadIndex * (header.at(INDEX_RECORD_SIZE) * header.at(INDEX_DATA_SIZE)
-                                        + sizeof(double));
+   buffer->resize(header.nx, header.ny, header.nf);
+   long frameOffset = frameReadIndex * (header.recordSize * header.dataSize + sizeof(double));
    fStream.setInPos(frameOffset, false);
    return readFrame<T>(fStream, buffer);
 }
@@ -193,16 +197,16 @@ double readSparseBinaryFrame(FileStream &fStream, SparseList<T> *list, T oneValu
 // stream pointing at the location where frame upToIndex would
 // begin.
 static SparseFileTable buildSparseFileTable(FileStream &fStream, int upToIndex) {
-   vector<int> header = readHeader(fStream);
+   struct ActivityHeader header = readActivityHeader(fStream);
    pvErrorIf(
-         upToIndex > header.at(INDEX_NBANDS),
+         upToIndex > header.nBands,
          "buildSparseFileTable requested frame %d / %d.\n",
          upToIndex,
-         header.at(INDEX_NBANDS));
+         header.nBands);
 
    SparseFileTable result;
-   result.valuesIncluded = header.at(INDEX_FILE_TYPE) != PVP_ACT_FILE_TYPE;
-   int dataSize          = header.at(INDEX_DATA_SIZE);
+   result.valuesIncluded = header.fileType != PVP_ACT_FILE_TYPE;
+   int dataSize          = header.dataSize;
    result.frameLengths.resize(upToIndex + 1, 0);
    result.frameStartOffsets.resize(upToIndex + 1, 0);
 
@@ -231,7 +235,7 @@ void writeSparseToPvp(
       int features,
       bool verifyWrites) {
    FileStream fStream(fName, std::ios_base::out | std::ios_base::binary, verifyWrites);
-   writeHeader(fStream, buildHeader<T>(width, height, features, 1, true));
+   writeActivityHeader(fStream, buildSparseActivityHeader<T>(width, height, features, 1));
    writeSparseFrame<T>(fStream, list, timeStamp);
 }
 
@@ -246,18 +250,18 @@ void appendSparseToPvp(
          fName, std::ios_base::out | std::ios_base::in | std::ios_base::binary, verifyWrites);
 
    // Modify the number of records in the header
-   vector<int> header = readHeader(fStream);
+   struct ActivityHeader header = readActivityHeader(fStream);
    pvErrorIf(
-         frameWriteIndex > header.at(INDEX_NBANDS),
+         frameWriteIndex > header.nBands,
          "Cannot write entry %d when only %d entries exist.\n",
          frameWriteIndex,
-         header.at(INDEX_NBANDS));
-   header.at(INDEX_NBANDS) = frameWriteIndex + 1;
-   writeHeader(fStream, header);
+         header.nBands);
+   header.nBands = frameWriteIndex + 1;
+   writeActivityHeader(fStream, header);
 
    SparseFileTable table = buildSparseFileTable(fStream, frameWriteIndex - 1);
    long frameOffset      = table.frameStartOffsets.at(frameWriteIndex - 1)
-                      + table.frameLengths.at(frameWriteIndex - 1) * header.at(INDEX_DATA_SIZE)
+                      + table.frameLengths.at(frameWriteIndex - 1) * header.dataSize
                       + sizeof(double) + sizeof(int); // Time / numElements
    fStream.setOutPos(frameOffset, true);
    writeSparseFrame<T>(fStream, list, timeStamp);
@@ -271,16 +275,16 @@ double readSparseFromPvp(
       SparseFileTable *cachedTable) {
    FileStream fStream(fName, std::ios_base::in | std::ios_base::binary, false);
 
-   vector<int> header = readHeader(fStream);
+   struct ActivityHeader header = readActivityHeader(fStream);
    pvErrorIf(
-         header.at(INDEX_FILE_TYPE) != PVP_ACT_SPARSEVALUES_FILE_TYPE,
+         header.fileType != PVP_ACT_SPARSEVALUES_FILE_TYPE,
          "readSparseFromPvp() can only be used on sparse activity pvps "
          "(PVP_ACT_SPARSEVALUES_FILE_TYPE)\n");
    pvErrorIf(
-         header.at(INDEX_DATA_SIZE) != sizeof(struct SparseList<T>::Entry),
+         header.dataSize != sizeof(struct SparseList<T>::Entry),
          "Error: Expected data size %d, found %d.\n",
          sizeof(struct SparseList<T>::Entry),
-         header.at(INDEX_DATA_SIZE));
+         header.dataSize);
 
    SparseFileTable table;
    if (cachedTable == nullptr) {
@@ -304,16 +308,16 @@ double readSparseBinaryFromPvp(
       SparseFileTable *cachedTable) {
    FileStream fStream(fName, std::ios_base::in | std::ios_base::binary, false);
 
-   vector<int> header = readHeader(fStream);
+   struct ActivityHeader header = readActivityHeader(fStream);
    pvErrorIf(
-         header.at(INDEX_FILE_TYPE) != PVP_ACT_FILE_TYPE,
+         header.fileType != PVP_ACT_FILE_TYPE,
          "readSparseBinaryFromPvp() can only be used on sparse binary pvps "
          "(PVP_ACT_FILE_TYPE)\n");
    pvErrorIf(
-         header.at(INDEX_DATA_SIZE) != sizeof(int),
+         header.dataSize != sizeof(int),
          "Error: Expected data size %d, found %d.\n",
          sizeof(int),
-         header.at(INDEX_DATA_SIZE));
+         header.dataSize);
 
    SparseFileTable table;
    if (cachedTable == nullptr) {
