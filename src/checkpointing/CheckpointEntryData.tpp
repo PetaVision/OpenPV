@@ -19,9 +19,9 @@ void CheckpointEntryData<T>::write(
       double simTime,
       bool verifyWritesFlag) const {
    if (getCommunicator()->commRank() == 0) {
-      std::string path    = generatePath(checkpointDirectory, "bin");
+      std::string path = generatePath(checkpointDirectory, "bin");
       FileStream fileStream{path.c_str(), std::ios_base::out, verifyWritesFlag};
-      fileStream.write(mDataPointer, sizeof(T)*(std::size_t) mNumValues);
+      fileStream.write(mDataPointer, sizeof(T) * (std::size_t)mNumValues);
       path = generatePath(checkpointDirectory, "txt");
       FileStream txtStream(path.c_str(), std::ios_base::out, verifyWritesFlag);
       TextOutput::print(mDataPointer, mNumValues, txtStream);
@@ -32,9 +32,9 @@ template <typename T>
 void CheckpointEntryData<T>::read(std::string const &checkpointDirectory, double *simTimePtr)
       const {
    if (getCommunicator()->commRank() == 0) {
-      std::string path    = generatePath(checkpointDirectory, "bin");
+      std::string path = generatePath(checkpointDirectory, "bin");
       FileStream fileStream{path.c_str(), std::ios_base::in, false /*verifyWrites not needed*/};
-      fileStream.read(mDataPointer, sizeof(T)*(std::size_t) mNumValues);
+      fileStream.read(mDataPointer, sizeof(T) * (std::size_t)mNumValues);
    }
    if (mBroadcastingFlag) {
       MPI_Bcast(
@@ -52,4 +52,4 @@ void CheckpointEntryData<T>::remove(std::string const &checkpointDirectory) cons
    deleteFile(checkpointDirectory, "bin");
    deleteFile(checkpointDirectory, "txt");
 }
-}  // end namespace PV
+} // end namespace PV

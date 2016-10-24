@@ -9,8 +9,8 @@
  */
 
 #include "structures/Buffer.hpp"
-#include "utils/BufferUtilsPvp.hpp"
 #include "utils/BufferUtilsMPI.hpp"
+#include "utils/BufferUtilsPvp.hpp"
 #include "utils/PVAssert.hpp"
 #include "utils/PVLog.hpp"
 #include <cstring>
@@ -26,26 +26,28 @@ void CheckpointEntryPvp<T>::write(
    FileStream *fileStream = nullptr;
    if (getCommunicator()->commRank() == 0) {
       std::string path = generatePath(checkpointDirectory, "pvp");
-      fileStream = new FileStream(path.c_str(), std::ios_base::out, verifyWritesFlag);
+      fileStream       = new FileStream(path.c_str(), std::ios_base::out, verifyWritesFlag);
       BufferUtils::ActivityHeader header = BufferUtils::buildActivityHeader<T>(
-         mLayerLoc->nxGlobal, mLayerLoc->nyGlobal, mLayerLoc->nf, mLayerLoc->nbatch);
+            mLayerLoc->nxGlobal, mLayerLoc->nyGlobal, mLayerLoc->nf, mLayerLoc->nbatch);
       BufferUtils::writeActivityHeader(*fileStream, header);
    }
    for (int b = 0; b < mLayerLoc->nbatch; b++) {
       T *batchElementStart = calcBatchElementStart(b);
-      int nxLocal = mLayerLoc->nx;
-      int nyLocal = mLayerLoc->ny;
-      int nf      = mLayerLoc->nf;
+      int nxLocal          = mLayerLoc->nx;
+      int nyLocal          = mLayerLoc->ny;
+      int nf               = mLayerLoc->nf;
       if (mExtended) {
          nxLocal += mLayerLoc->halo.lt + mLayerLoc->halo.rt;
          nyLocal += mLayerLoc->halo.dn + mLayerLoc->halo.up;
       }
       Buffer<T> pvpBuffer{batchElementStart, nxLocal, nyLocal, nf};
       pvpBuffer.crop(mLayerLoc->nx, mLayerLoc->ny, Buffer<T>::CENTER);
-      Buffer<T> pvpBufferGlobal = BufferUtils::gather(getCommunicator(), pvpBuffer, mLayerLoc->nx, mLayerLoc->ny);
+      Buffer<T> pvpBufferGlobal =
+            BufferUtils::gather(getCommunicator(), pvpBuffer, mLayerLoc->nx, mLayerLoc->ny);
       if (fileStream) {
          fileStream->write(&simTime, sizeof(simTime));
-         fileStream->write(pvpBufferGlobal.asVector().data(), sizeof(T)*pvpBufferGlobal.getTotalElements());
+         fileStream->write(
+               pvpBufferGlobal.asVector().data(), sizeof(T) * pvpBufferGlobal.getTotalElements());
       }
    }
    delete fileStream;
@@ -54,10 +56,11 @@ void CheckpointEntryPvp<T>::write(
 template <typename T>
 void CheckpointEntryPvp<T>::read(std::string const &checkpointDirectory, double *simTimePtr) const {
    std::string path = generatePath(checkpointDirectory, "pvp");
-   MPI_Datatype *exchangeDatatypes = mExtended ? getCommunicator()->newDatatypes(mLayerLoc) : nullptr;
+   MPI_Datatype *exchangeDatatypes =
+         mExtended ? getCommunicator()->newDatatypes(mLayerLoc) : nullptr;
    for (int b = 0; b < mLayerLoc->nbatch; b++) {
       Buffer<T> pvpBuffer;
-      if (getCommunicator()->commRank()==0) {
+      if (getCommunicator()->commRank() == 0) {
          *simTimePtr = BufferUtils::readFromPvp(path.c_str(), &pvpBuffer, b);
       }
       else {
@@ -71,7 +74,7 @@ void CheckpointEntryPvp<T>::read(std::string const &checkpointDirectory, double 
       }
       std::vector<T> bufferData = pvpBuffer.asVector();
       T *batchElementStart      = calcBatchElementStart(b);
-      std::memcpy(batchElementStart, bufferData.data(), sizeof(T)*pvpBuffer.getTotalElements());
+      std::memcpy(batchElementStart, bufferData.data(), sizeof(T) * pvpBuffer.getTotalElements());
       if (mExtended) {
          std::vector<MPI_Request> req{};
          getCommunicator()->exchange(batchElementStart, exchangeDatatypes, mLayerLoc, req);
@@ -97,4 +100,4 @@ template <typename T>
 void CheckpointEntryPvp<T>::remove(std::string const &checkpointDirectory) const {
    deleteFile(checkpointDirectory, "pvp");
 }
-}  // end namespace PV
+} // end namespace PV
