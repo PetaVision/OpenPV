@@ -61,13 +61,13 @@ void CheckpointEntryDataStore::read(std::string const &checkpointDirectory, doub
    if (getCommunicator()->commRank() == 0) {
       std::string path        = generatePath(checkpointDirectory, "pvp");
       fileStream              = new FileStream(path.c_str(), std::ios_base::in, false);
-      std::vector<int> header = BufferUtils::readHeader(*fileStream);
+      struct BufferUtils::ActivityHeader header = BufferUtils::readActivityHeader(*fileStream);
       pvErrorIf(
-            header.at(INDEX_NBANDS) != numBands,
+            header.nBands != numBands,
             "readDataStoreFromFile error reading \"%s\": delays*batchwidth in file is %d, "
             "but delays*batchwidth in layer is %d\n",
             path.c_str(),
-            header.at(INDEX_NBANDS),
+            header.nBands,
             numBands);
    }
    int const nxExtGlobal = mLayerLoc->nxGlobal + mLayerLoc->halo.lt + mLayerLoc->halo.rt;

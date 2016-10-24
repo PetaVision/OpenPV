@@ -24,6 +24,28 @@ struct SparseFileTable {
    bool valuesIncluded;
 };
 
+struct ActivityHeader {
+   int headerSize,
+       numParams,
+       fileType,
+       nx,
+       ny,
+       nf,
+       numRecords,
+       recordSize,
+       dataSize,
+       dataType,
+       nxProcs,
+       nyProcs,
+       nxGlobal,
+       nyGlobal,
+       kx0,
+       ky0,
+       nBatch,
+       nBands;
+   double timestamp;
+};
+
 template <typename T>
 void writeFrame(FileStream &fStream, Buffer<T> *buffer, double timeStamp);
 
@@ -31,7 +53,10 @@ template <typename T>
 double readFrame(FileStream &fStream, Buffer<T> *buffer);
 
 template <typename T>
-vector<int> buildHeader(int width, int height, int features, int numFrames, bool isSparse);
+struct ActivityHeader buildActivityHeader(int width, int height, int features, int numFrames);
+
+template <typename T>
+struct ActivityHeader buildSparseActivityHeader(int width, int height, int features, int numFrames);
 
 template <typename T>
 void writeToPvp(const char *fName, Buffer<T> *buffer, double timeStamp, bool verifyWrites = false);
@@ -89,8 +114,8 @@ double readSparseBinaryFromPvp(
       T oneVal,
       SparseFileTable *cachedTable = nullptr);
 
-static void writeHeader(FileStream &fStream, vector<int> header);
-static vector<int> readHeader(FileStream &fStream);
+static void writeActivityHeader(FileStream &fStream, struct ActivityHeader header);
+static struct ActivityHeader readActivityHeader(FileStream &fStream);
 static SparseFileTable buildSparseFileTable(FileStream &fStream, int upToIndex);
 }
 }
