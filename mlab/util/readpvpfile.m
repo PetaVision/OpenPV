@@ -41,9 +41,9 @@ errorstring = '';
 hdr = readpvpheader(fid);
 
 switch hdr.filetype
-    case 1 % PVP_FILE_TYPE
-        framesize = hdr.recordsize*hdr.numrecords;
-        numframes = (filedata(1).bytes - hdr.headersize)/framesize;
+    case 1 % PVP_FILE_TYPE, obsolete
+        errorident = 'readpvpfile:obsoletefiletype';
+        errorstring = sprintf('readpvpfile:File %s has obsolete file typd %d', filename, hdr.filetype);
     case 2 % PVP_ACT_FILE_TYPE % Compressed for spiking
         numframes = hdr.nbands;
         % framesize is variable
@@ -102,43 +102,7 @@ if isempty(errorstring)
     end
     switch hdr.filetype
         case 1 % PVP_FILE_TYPE, obsolete
-            numvalues = hdr.recordsize/hdr.datasize;
-            for f=1:lastframe
-                data_tmp = struct('time',hdr.time,'values',[]);
-                data_tmp.time = hdr.time;
-                Y = zeros(numvalues,hdr.numrecords);
-                for r=1:hdr.numrecords
-                    Y(:,r) = fread(fid, numvalues, precision);
-                end
-                if f < 1
-                    continue;
-                end%if
-                Z = zeros(hdr.nxGlobal,hdr.nyGlobal,hdr.nf);
-                r=0;
-                for y=1:hdr.nyprocs
-                    yidx = (1:hdr.ny)+(y-1)*hdr.ny;
-                    for x=1:hdr.nxprocs
-                        xidx = (1:hdr.nx)+(x-1)*hdr.nx;
-                        r = r+1;
-                        for feature=1:hdr.nf
-                            Z(xidx,yidx,feature) = reshape(Y(feature:hdr.nf:hdr.nx*hdr.ny*hdr.nf,r),hdr.nx,hdr.ny);
-                        end%for %% nxprocs
-                    end%for
-                end%for %% nyprocs
-                data_tmp.values = Z;
-                if exist('progressperiod','var')
-                    if ~mod(f,progressperiod)
-                        fprintf(1,'File %s: frame %d of %d\n',filename, f, lastframe);
-                        if exist('fflush')
-                           fflush(1);
-                        end%if
-                    end%if
-                end%if
-                if f < start_frame || mod(f,skip_frames)~=0
-                    continue;
-                end%if
-                data{ceil((f - start_frame + 1)/skip_frames)} = data_tmp;
-            end  %% last_frame
+            assert(0); % Error should be caught above.
         case 2 % PVP_ACT_FILE_TYPE % Compressed for spiking
             data_tmp = struct('time',0,'values',[]);
             for f=1:lastframe

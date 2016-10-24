@@ -194,8 +194,9 @@ int InitV::calcUniformRandomV(pvdata_t *V, const PVLayerLoc *loc, HyPerCol *hc) 
 int InitV::calcVFromFile(pvdata_t *V, const PVLayerLoc *loc, Communicator *icComm) {
    int status = PV_SUCCESS;
    PVLayerLoc fileLoc;
-   int filetype = getFileType(filename);
-   if (filetype == PVP_FILE_TYPE) {
+   char const *ext = strrchr(filename, '.');
+   bool isPvpFile  = (ext && strcmp(ext, ".pvp") == 0);
+   if (isPvpFile) {
       PV_Stream *readFile = pvp_open_read_file(filename, icComm);
       if (icComm->commRank() == 0) {
          if (readFile == NULL) {
@@ -263,11 +264,10 @@ int InitV::calcVFromFile(pvdata_t *V, const PVLayerLoc *loc, Communicator *icCom
          pvdata_t *VBatch = V + b * (loc->nx * loc->ny * loc->nf);
          switch (filetype) {
             case PVP_FILE_TYPE:
-               if (printErrors)
-                  pvErrorNoExit().printf(
-                        "calcVFromFile for file \"%s\": \"PVP_FILE_TYPE\" files is obsolete.\n",
-                        this->filename);
-               abort();
+               pvErrorIf(
+                     printErrors,
+                     "calcVFromFile for file \"%s\": \"PVP_FILE_TYPE\" files is obsolete.\n",
+                     this->filename);
                break;
             case PVP_ACT_FILE_TYPE:
                if (printErrors)

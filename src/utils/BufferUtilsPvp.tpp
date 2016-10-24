@@ -57,10 +57,11 @@ struct ActivityHeader buildActivityHeader(int width, int height, int features, i
 }
 
 template <typename T>
-struct ActivityHeader buildSparseActivityHeader(int width, int height, int features, int numFrames) {
+struct ActivityHeader
+buildSparseActivityHeader(int width, int height, int features, int numFrames) {
    struct ActivityHeader header = buildActivityHeader<T>(width, height, features, numFrames);
-   header.dataSize = sizeof(struct SparseList<T>::Entry);
-   header.fileType = PVP_ACT_SPARSEVALUES_FILE_TYPE;
+   header.dataSize              = sizeof(struct SparseList<T>::Entry);
+   header.fileType              = PVP_ACT_SPARSEVALUES_FILE_TYPE;
    return header;
 }
 

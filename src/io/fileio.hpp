@@ -89,12 +89,7 @@ int pvp_write_header(
       unsigned int numParams,
       size_t recordSize);
 
-int *pvp_set_file_params(
-      Communicator *comm,
-      double timed,
-      const PVLayerLoc *loc,
-      int datatype,
-      int numbands);
+// Oct 21, 2016. pvp_set_file_params removed, as filetype PVP_FILE_TYPE is obsolete.
 int *pvp_set_activity_params(
       Communicator *comm,
       double timed,

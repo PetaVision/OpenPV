@@ -22,7 +22,6 @@
 #include "include/default_params.h"
 #include "include/pv_common.h"
 #include "io/fileio.hpp"
-#include "io/imageio.hpp"
 #include "io/io.hpp"
 #include <assert.h>
 #include <iostream>
@@ -2298,14 +2297,13 @@ int HyPerLayer::readBufferFile(
 
          double filetime = 0.0;
          switch (params[INDEX_FILE_TYPE]) {
-            case PVP_FILE_TYPE: filetime = timeFromParams(params); break;
+            case PVP_FILE_TYPE: pvError().printf("Obsolete filetype %d\n", PVP_FILE_TYPE); break;
             case PVP_ACT_FILE_TYPE:
                status = pvp_read_time(readFile, comm, 0 /*root process*/, &filetime);
-               if (status != PV_SUCCESS) {
-                  pvError().printf(
-                        "HyPerLayer::readBufferFile error reading timestamp in file \"%s\"\n",
-                        filename);
-               }
+               pvErrorIf(
+                     status != PV_SUCCESS,
+                     "HyPerLayer::readBufferFile error reading timestamp in file \"%s\"\n",
+                     filename);
                if (rank == 0) {
                   pvErrorNoExit().printf(
                         "HyPerLayer::readBufferFile: filename \"%s\" is a compressed spiking file, "
@@ -2316,11 +2314,10 @@ int HyPerLayer::readBufferFile(
                break;
             case PVP_NONSPIKING_ACT_FILE_TYPE:
                status = pvp_read_time(readFile, comm, 0 /*root process*/, &filetime);
-               if (status != PV_SUCCESS) {
-                  pvError().printf(
-                        "HyPerLayer::readBufferFile error reading timestamp in file \"%s\"\n",
-                        filename);
-               }
+               pvErrorIf(
+                     status != PV_SUCCESS,
+                     "HyPerLayer::readBufferFile error reading timestamp in file \"%s\"\n",
+                     filename);
                break;
             case PVP_WGT_FILE_TYPE:
             case PVP_KERNEL_FILE_TYPE:

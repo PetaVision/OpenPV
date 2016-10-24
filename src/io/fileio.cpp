@@ -1235,36 +1235,6 @@ int pvp_write_header(
    return status;
 }
 
-int *pvp_set_file_params(
-      Communicator *comm,
-      double timed,
-      const PVLayerLoc *loc,
-      int datatype,
-      int numbands) {
-   int numParams = NUM_BIN_PARAMS;
-   int *params   = alloc_params(numParams);
-   assert(params != NULL);
-   params[INDEX_FILE_TYPE]   = PVP_FILE_TYPE;
-   params[INDEX_NX]          = loc->nxGlobal;
-   params[INDEX_NY]          = loc->nyGlobal;
-   params[INDEX_NF]          = loc->nf;
-   params[INDEX_NUM_RECORDS] = 1;
-   int datasize              = pv_sizeof(datatype);
-   params[INDEX_RECORD_SIZE] = loc->nxGlobal * loc->nyGlobal * loc->nf * datasize;
-   params[INDEX_DATA_SIZE]   = datasize;
-   params[INDEX_DATA_TYPE]   = datatype;
-   params[INDEX_NX_PROCS]    = 1;
-   params[INDEX_NY_PROCS]    = 1;
-   params[INDEX_NX_GLOBAL]   = loc->nxGlobal;
-   params[INDEX_NY_GLOBAL]   = loc->nyGlobal;
-   params[INDEX_KX0]         = 0;
-   params[INDEX_KY0]         = 0;
-   params[INDEX_NBATCH]      = loc->nbatch;
-   params[INDEX_NBANDS]      = numbands * loc->nbatch;
-   timeToParams(timed, &params[INDEX_TIME]);
-   return params;
-}
-
 int *pvp_set_activity_params(
       Communicator *comm,
       double timed,

@@ -47,7 +47,7 @@ Buffer<float> PvpLayer::retrieveData(std::string filename, int batchIndex) {
       mPvpFrameCount = header.nBands;
       initializeBatchIndexer(mPvpFrameCount);
       if (header.fileType == PVP_ACT_SPARSEVALUES_FILE_TYPE
-            || header.fileType == PVP_ACT_FILE_TYPE) {
+          || header.fileType == PVP_ACT_FILE_TYPE) {
          sparseTable = BufferUtils::buildSparseFileTable(headerStream, mPvpFrameCount - 1);
       }
    }

@@ -45,7 +45,7 @@
 #define INDEX_WGT_MAX        4
 #define INDEX_WGT_NUMPATCHES 5
 
-#define PVP_FILE_TYPE                   1
+// PVP_FILE_TYPE=1 removed Oct 21, 2016
 #define PVP_ACT_FILE_TYPE               2
 #define PVP_WGT_FILE_TYPE               3
 #define PVP_NONSPIKING_ACT_FILE_TYPE    4
@@ -115,7 +115,6 @@ int parseheader(FILE * fid)
     int isweight = 0;
     switch (params[INDEX_FILE_TYPE])
     {
-    case PVP_FILE_TYPE:
     case PVP_ACT_FILE_TYPE:
     case PVP_NONSPIKING_ACT_FILE_TYPE:
     case PVP_ACT_SPARSEVALUES_FILE_TYPE:
