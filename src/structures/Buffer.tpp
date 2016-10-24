@@ -119,7 +119,7 @@ void Buffer<T>::crop(int newWidth, int newHeight, enum Anchor anchor) {
             int sourceY = destY + offsetY;
             if (sourceX < 0 || sourceX >= getWidth())
                continue;
-            if (sourceY < 0 || sourceX >= getHeight())
+            if (sourceY < 0 || sourceY >= getHeight())
                continue;
             cropped.set(destX, destY, f, at(sourceX, sourceY, f));
          }
