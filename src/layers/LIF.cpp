@@ -12,6 +12,7 @@
 #include "include/default_params.h"
 #include "include/pv_common.h"
 #include "io/fileio.hpp"
+#include "io/randomstateio.hpp"
 
 #include <cassert>
 #include <cfloat>
@@ -406,15 +407,14 @@ int LIF::readG_IBFromCheckpoint(const char *cpDir, double *timeptr) {
 
 int LIF::readRandStateFromCheckpoint(const char *cpDir, double *timeptr) {
    char *filename = parent->pathInCheckpoint(cpDir, getName(), "_rand_state.bin");
-   int status     = readRandState(
+   readRandState(
          filename,
          parent->getCommunicator(),
          randState->getRNG(0),
          getLayerLoc(),
-         false /*extended*/); // TODO Make a method in Random class
-   assert(status == PV_SUCCESS);
+         false /*extended*/);
    free(filename);
-   return status;
+   return PV_SUCCESS;
 }
 
 int LIF::registerData(Checkpointer *checkpointer, std::string const &objName) {

@@ -189,21 +189,6 @@ int writeWeights(
 
 int pvp_check_file_header(Communicator *comm, const PVLayerLoc *loc, int params[], int numParams);
 
-int writeRandState(
-      const char *filename,
-      Communicator *comm,
-      taus_uint4 *randState,
-      const PVLayerLoc *loc,
-      bool isExtended,
-      bool verifyWrites);
-
-int readRandState(
-      const char *filename,
-      Communicator *comm,
-      taus_uint4 *randState,
-      const PVLayerLoc *loc,
-      bool isExtended);
-
 template <typename T>
 int gatherActivity(
       PV_Stream *pvstream,
