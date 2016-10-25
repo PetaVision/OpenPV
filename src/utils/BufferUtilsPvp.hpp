@@ -98,7 +98,7 @@ double readSparseBinaryFromPvp(
       T oneVal,
       SparseFileTable *cachedTable = nullptr);
 
-static void writeActivityHeader(FileStream &fStream, struct ActivityHeader header);
+static void writeActivityHeader(FileStream &fStream, struct ActivityHeader const &header);
 static struct ActivityHeader readActivityHeader(FileStream &fStream);
 static SparseFileTable buildSparseFileTable(FileStream &fStream, int upToIndex);
 }

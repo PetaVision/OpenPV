@@ -9,6 +9,7 @@
 #define CHECKPOINTER_HPP_
 
 #include "checkpointing/CheckpointEntry.hpp"
+#include "checkpointing/CheckpointEntryData.hpp"
 #include "checkpointing/CheckpointingMessages.hpp"
 #include "columns/Communicator.hpp"
 #include "io/PVParams.hpp"

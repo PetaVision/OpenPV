@@ -15,6 +15,7 @@
 #include "HyPerLayer.hpp"
 #include "InitV.hpp"
 #include "checkpointing/CheckpointEntryDataStore.hpp"
+#include "checkpointing/CheckpointEntryPvp.hpp"
 #include "checkpointing/CheckpointEntryRandState.hpp"
 #include "columns/HyPerCol.hpp"
 #include "connections/BaseConnection.hpp"

@@ -6,7 +6,7 @@
  */
 
 #include "CheckpointEntryRandState.hpp"
-#include "io/fileio.hpp"
+#include "io/randomstateio.hpp"
 
 namespace PV {
 
@@ -16,13 +16,13 @@ void CheckpointEntryRandState::write(
       bool verifyWritesFlag) const {
    std::string path = generatePath(checkpointDirectory, "bin");
    writeRandState(
-         path.c_str(), getCommunicator(), mDataPointer, mLayerLoc, mExtendedFlag, verifyWritesFlag);
+         path, getCommunicator(), mDataPointer, mLayerLoc, mExtendedFlag, verifyWritesFlag);
 }
 
 void CheckpointEntryRandState::read(std::string const &checkpointDirectory, double *simTimePtr)
       const {
    std::string path = generatePath(checkpointDirectory, "bin");
-   readRandState(path.c_str(), getCommunicator(), mDataPointer, mLayerLoc, mExtendedFlag);
+   writeRandState(path, getCommunicator(), mDataPointer, mLayerLoc, mExtendedFlag);
 }
 
 void CheckpointEntryRandState::remove(std::string const &checkpointDirectory) const {

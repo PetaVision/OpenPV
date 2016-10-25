@@ -3,6 +3,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/FileStream.cpp
    ${SUBDIR}/io.cpp
    ${SUBDIR}/PVParams.cpp
+   ${SUBDIR}/randomstateio.cpp
 )
 
 set (PVLibSrcHpp ${PVLibSrcHpp}
@@ -11,4 +12,5 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/FileStream.hpp
    ${SUBDIR}/io.hpp
    ${SUBDIR}/PVParams.hpp
+   ${SUBDIR}/randomstateio.hpp
 )

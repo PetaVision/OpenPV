@@ -1,5 +1,5 @@
 #include "testDataNoBroadcast.hpp"
-#include "checkpointing/CheckpointEntry.hpp"
+#include "checkpointing/CheckpointEntryData.hpp"
 #include "utils/PVLog.hpp"
 
 void testDataNoBroadcast(PV::Communicator *comm, std::string const &directory) {

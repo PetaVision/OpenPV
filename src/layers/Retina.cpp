@@ -9,6 +9,7 @@
 #include "HyPerLayer.hpp"
 #include "include/default_params.h"
 #include "io/io.hpp"
+#include "io/randomstateio.hpp"
 #include "utils/cl_random.h"
 
 #include <assert.h>
@@ -279,7 +280,7 @@ int Retina::setRetinaParams(PVParams *p) {
 int Retina::readStateFromCheckpoint(const char *cpDir, double *timeptr) {
    int status      = HyPerLayer::readStateFromCheckpoint(cpDir, timeptr);
    double filetime = 0.0;
-   status          = readRandStateFromCheckpoint(cpDir);
+   readRandStateFromCheckpoint(cpDir);
    return status;
 }
 
@@ -287,7 +288,7 @@ int Retina::readRandStateFromCheckpoint(const char *cpDir) {
    int status = PV_SUCCESS;
    if (spikingFlag) {
       char *filename = parent->pathInCheckpoint(cpDir, getName(), "_rand_state.bin");
-      status         = readRandState(
+      readRandState(
             filename,
             parent->getCommunicator(),
             randState->getRNG(0),
