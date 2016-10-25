@@ -423,18 +423,7 @@ int LIF::registerData(Checkpointer *checkpointer, std::string const &objName) {
    checkpointPvpActivityFloat(checkpointer, "G_E", G_E, false /*not extended*/);
    checkpointPvpActivityFloat(checkpointer, "G_I", G_I, false /*not extended*/);
    checkpointPvpActivityFloat(checkpointer, "G_IB", G_IB, false /*not extended*/);
-   bool registerSucceeded = checkpointer->registerCheckpointEntry(
-         std::make_shared<CheckpointEntryRandState>(
-               getName(),
-               "rand_state",
-               parent->getCommunicator(),
-               randState->getRNG(0),
-               getLayerLoc(),
-               false /*not extended*/));
-   pvErrorIf(
-         !registerSucceeded,
-         "%s failed to register rand_state for checkpointing.\n",
-         getDescription_c());
+   checkpointRandState(checkpointer, "rand_state", randState, false /*not extended*/);
    return status;
 }
 
