@@ -47,6 +47,7 @@ set(SRC_SUBDIRS
   connections
   cudakernels
   include
+  initv
   io
   layers
   normalizers

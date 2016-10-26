@@ -19,6 +19,7 @@
 #include "columns/Random.hpp"
 #include "include/pv_common.h"
 #include "include/pv_types.h"
+#include "initv/BaseInitV.hpp"
 #include "io/fileio.hpp"
 #include "layers/BaseLayer.hpp"
 #include "layers/PVLayerCube.hpp"
@@ -51,7 +52,6 @@
 
 namespace PV {
 
-class InitV;
 class PVParams;
 class BaseConnection;
 
@@ -119,13 +119,13 @@ class HyPerLayer : public BaseLayer {
    /**
     * @brief initVType: Specifies how to initialize the V buffer.
     * @details Possible choices include
-    * - @link InitV::ioParamGroup_ConstantV ConstantV@endlink: Sets V to a constant value
-    * - @link InitV::ioParamGroup_ZeroV ZeroV@endlink: Sets V to zero
-    * - @link InitV::ioParamGroup_UniformRandomV UniformRandomV@endlink: Sets V with a uniform
+    * - @link ConstantV::ioParamsFillGroup ConstantV@endlink: Sets V to a constant value
+    * - @link ZeroV::ioParamsFillGroup ZeroV@endlink: Sets V to zero
+    * - @link UniformRandomV::ioParamsFillGroup UniformRandomV@endlink: Sets V with a uniform
     * distribution
-    * - @link InitV::ioParamGroup_GaussianRandomV GaussianRandomV@endlink: Sets V with a gaussian
+    * - @link GaussianRandomV::ioParamsFillGroup GaussianRandomV@endlink: Sets V with a gaussian
     * distribution
-    * - @link InitV::ioparamGroup_InitVFromFile InitVFromFile@endlink: Sets V to specified pvp file
+    * - @link InitVFromFile::ioparamsFillGroup InitVFromFile@endlink: Sets V to specified pvp file
     *
     * Further parameters are needed depending on initialization type.
     */
@@ -549,7 +549,8 @@ class HyPerLayer : public BaseLayer {
    // {rngSeedbase, rngSeedbase+1,...rngSeedbase+neededRNGSeeds-1} for use
    // by this layer
 
-   InitV *initVObject;
+   char *initVTypeString = nullptr;
+   BaseInitV *mInitVObject = nullptr;
 
    HyPerLayer **synchronizedMarginWidthLayers;
    int numSynchronizedMarginWidthLayers;
