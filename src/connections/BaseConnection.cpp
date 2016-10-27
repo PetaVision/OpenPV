@@ -405,8 +405,6 @@ void BaseConnection::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
                                            "was compiled without GPU acceleration. receiveGpu has "
                                            "been set to false.\n";
       }
-      MPI_Barrier(parent->getCommunicator()->communicator());
-      exit(EXIT_FAILURE);
    }
 #endif // PV_USE_CUDA
 }
