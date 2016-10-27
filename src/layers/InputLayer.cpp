@@ -675,7 +675,7 @@ void InputLayer::ioParam_padValue(enum ParamsIOFlag ioFlag) {
 }
 
 void InputLayer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
-   assert(this->initVObject == NULL);
+   assert(mInitVObject == NULL);
    return;
 }
 

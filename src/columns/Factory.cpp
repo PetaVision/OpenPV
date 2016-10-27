@@ -6,94 +6,100 @@
  */
 
 #include "Factory.hpp"
-#include <include/pv_common.h>
+#include "include/pv_common.h"
 
-#include <columns/HyPerCol.hpp>
+#include "columns/HyPerCol.hpp"
 
-#include <layers/ANNErrorLayer.hpp>
-#include <layers/ANNLayer.hpp>
-#include <layers/ANNSquaredLayer.hpp>
-#include <layers/ANNWhitenedLayer.hpp>
-#include <layers/BackgroundLayer.hpp>
-#include <layers/BinningLayer.hpp>
-#include <layers/CloneVLayer.hpp>
-#include <layers/ConstantLayer.hpp>
-#include <layers/FilenameParsingGroundTruthLayer.hpp>
-#include <layers/GapLayer.hpp>
-#include <layers/HyPerLCALayer.hpp>
-#include <layers/HyPerLayer.hpp>
-#include <layers/ISTALayer.hpp>
-#include <layers/ImageFromMemoryBuffer.hpp>
-#include <layers/ImageLayer.hpp>
-#include <layers/KmeansLayer.hpp>
-#include <layers/LCALIFLayer.hpp>
-#include <layers/LIF.hpp>
-#include <layers/LIFGap.hpp>
-#include <layers/LabelErrorLayer.hpp>
-#include <layers/LeakyIntegrator.hpp>
-#include <layers/MaskLayer.hpp>
-#include <layers/MomentumLCALayer.hpp>
-#include <layers/PoolingIndexLayer.hpp>
-#include <layers/PtwiseProductLayer.hpp>
-#include <layers/PtwiseQuotientLayer.hpp>
-#include <layers/PvpLayer.hpp>
-#include <layers/RescaleLayer.hpp>
-#include <layers/Retina.hpp>
-#include <layers/RunningAverageLayer.hpp>
-#include <layers/ShuffleLayer.hpp>
-#include <layers/SigmoidLayer.hpp>
-#include <layers/WTALayer.hpp>
+#include "layers/ANNErrorLayer.hpp"
+#include "layers/ANNLayer.hpp"
+#include "layers/ANNSquaredLayer.hpp"
+#include "layers/ANNWhitenedLayer.hpp"
+#include "layers/BackgroundLayer.hpp"
+#include "layers/BinningLayer.hpp"
+#include "layers/CloneVLayer.hpp"
+#include "layers/ConstantLayer.hpp"
+#include "layers/FilenameParsingGroundTruthLayer.hpp"
+#include "layers/GapLayer.hpp"
+#include "layers/HyPerLCALayer.hpp"
+#include "layers/HyPerLayer.hpp"
+#include "layers/ISTALayer.hpp"
+#include "layers/ImageFromMemoryBuffer.hpp"
+#include "layers/ImageLayer.hpp"
+#include "layers/KmeansLayer.hpp"
+#include "layers/LCALIFLayer.hpp"
+#include "layers/LIF.hpp"
+#include "layers/LIFGap.hpp"
+#include "layers/LabelErrorLayer.hpp"
+#include "layers/LeakyIntegrator.hpp"
+#include "layers/MaskLayer.hpp"
+#include "layers/MomentumLCALayer.hpp"
+#include "layers/PoolingIndexLayer.hpp"
+#include "layers/PtwiseProductLayer.hpp"
+#include "layers/PtwiseQuotientLayer.hpp"
+#include "layers/PvpLayer.hpp"
+#include "layers/RescaleLayer.hpp"
+#include "layers/Retina.hpp"
+#include "layers/RunningAverageLayer.hpp"
+#include "layers/ShuffleLayer.hpp"
+#include "layers/SigmoidLayer.hpp"
+#include "layers/WTALayer.hpp"
 
-#include <connections/CloneConn.hpp>
-#include <connections/CloneKernelConn.hpp>
-#include <connections/CopyConn.hpp>
-#include <connections/FeedbackConn.hpp>
-#include <connections/GapConn.hpp>
-#include <connections/HyPerConn.hpp>
-#include <connections/IdentConn.hpp>
-#include <connections/ImprintConn.hpp>
-#include <connections/KernelConn.hpp>
-#include <connections/MomentumConn.hpp>
-#include <connections/PlasticCloneConn.hpp>
-#include <connections/PoolingConn.hpp>
-#include <connections/RescaleConn.hpp>
-#include <connections/TransposeConn.hpp>
-#include <connections/TransposePoolingConn.hpp>
+#include "connections/CloneConn.hpp"
+#include "connections/CloneKernelConn.hpp"
+#include "connections/CopyConn.hpp"
+#include "connections/FeedbackConn.hpp"
+#include "connections/GapConn.hpp"
+#include "connections/HyPerConn.hpp"
+#include "connections/IdentConn.hpp"
+#include "connections/ImprintConn.hpp"
+#include "connections/KernelConn.hpp"
+#include "connections/MomentumConn.hpp"
+#include "connections/PlasticCloneConn.hpp"
+#include "connections/PoolingConn.hpp"
+#include "connections/RescaleConn.hpp"
+#include "connections/TransposeConn.hpp"
+#include "connections/TransposePoolingConn.hpp"
 
-#include <probes/AdaptiveTimeScaleProbe.hpp>
-#include <probes/ColumnEnergyProbe.hpp>
-#include <probes/FirmThresholdCostFnLCAProbe.hpp>
-#include <probes/FirmThresholdCostFnProbe.hpp>
-#include <probes/KernelProbe.hpp>
-#include <probes/L0NormLCAProbe.hpp>
-#include <probes/L0NormProbe.hpp>
-#include <probes/L1NormLCAProbe.hpp>
-#include <probes/L1NormProbe.hpp>
-#include <probes/L2NormProbe.hpp>
-#include <probes/PointLIFProbe.hpp>
-#include <probes/PointProbe.hpp>
-#include <probes/QuotientColProbe.hpp>
-#include <probes/RequireAllZeroActivityProbe.hpp>
-#include <probes/StatsProbe.hpp>
+#include "probes/AdaptiveTimeScaleProbe.hpp"
+#include "probes/ColumnEnergyProbe.hpp"
+#include "probes/FirmThresholdCostFnLCAProbe.hpp"
+#include "probes/FirmThresholdCostFnProbe.hpp"
+#include "probes/KernelProbe.hpp"
+#include "probes/L0NormLCAProbe.hpp"
+#include "probes/L0NormProbe.hpp"
+#include "probes/L1NormLCAProbe.hpp"
+#include "probes/L1NormProbe.hpp"
+#include "probes/L2NormProbe.hpp"
+#include "probes/PointLIFProbe.hpp"
+#include "probes/PointProbe.hpp"
+#include "probes/QuotientColProbe.hpp"
+#include "probes/RequireAllZeroActivityProbe.hpp"
+#include "probes/StatsProbe.hpp"
 
-#include <weightinit/InitCocircWeights.hpp>
-#include <weightinit/InitGauss2DWeights.hpp>
-#include <weightinit/InitGaussianRandomWeights.hpp>
-#include <weightinit/InitIdentWeights.hpp>
-#include <weightinit/InitMaxPoolingWeights.hpp>
-#include <weightinit/InitOneToOneWeights.hpp>
-#include <weightinit/InitOneToOneWeightsWithDelays.hpp>
-#include <weightinit/InitSmartWeights.hpp>
-#include <weightinit/InitSpreadOverArborsWeights.hpp>
-#include <weightinit/InitUniformRandomWeights.hpp>
-#include <weightinit/InitUniformWeights.hpp>
-#include <weightinit/InitWeights.hpp>
+#include "initv/ConstantV.hpp"
+#include "initv/GaussianRandomV.hpp"
+#include "initv/InitVFromFile.hpp"
+#include "initv/UniformRandomV.hpp"
+#include "initv/ZeroV.hpp"
 
-#include <normalizers/NormalizeContrastZeroMean.hpp>
-#include <normalizers/NormalizeGroup.hpp>
-#include <normalizers/NormalizeL2.hpp>
-#include <normalizers/NormalizeMax.hpp>
-#include <normalizers/NormalizeSum.hpp>
+#include "weightinit/InitCocircWeights.hpp"
+#include "weightinit/InitGauss2DWeights.hpp"
+#include "weightinit/InitGaussianRandomWeights.hpp"
+#include "weightinit/InitIdentWeights.hpp"
+#include "weightinit/InitMaxPoolingWeights.hpp"
+#include "weightinit/InitOneToOneWeights.hpp"
+#include "weightinit/InitOneToOneWeightsWithDelays.hpp"
+#include "weightinit/InitSmartWeights.hpp"
+#include "weightinit/InitSpreadOverArborsWeights.hpp"
+#include "weightinit/InitUniformRandomWeights.hpp"
+#include "weightinit/InitUniformWeights.hpp"
+#include "weightinit/InitWeights.hpp"
+
+#include "normalizers/NormalizeContrastZeroMean.hpp"
+#include "normalizers/NormalizeGroup.hpp"
+#include "normalizers/NormalizeL2.hpp"
+#include "normalizers/NormalizeMax.hpp"
+#include "normalizers/NormalizeSum.hpp"
 
 namespace PV {
 
@@ -173,6 +179,12 @@ int Factory::registerCoreKeywords() {
    registerKeyword("QuotientColProbe", Factory::create<QuotientColProbe>);
    registerKeyword("RequireAllZeroActivityProbe", Factory::create<RequireAllZeroActivityProbe>);
    registerKeyword("StatsProbe", Factory::create<StatsProbe>);
+
+   registerKeyword("ConstantV", Factory::create<ConstantV>);
+   registerKeyword("GaussianRandomV", Factory::create<GaussianRandomV>);
+   registerKeyword("InitVFromFile", Factory::create<InitVFromFile>);
+   registerKeyword("UniformRandomV", Factory::create<UniformRandomV>);
+   registerKeyword("ZeroV", Factory::create<ZeroV>);
 
    registerKeyword("Gauss2DWeight", Factory::create<InitGauss2DWeights>);
    registerKeyword("CoCircWeight", Factory::create<InitCocircWeights>);

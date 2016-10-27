@@ -13,7 +13,6 @@
 */
 
 #include "HyPerLayer.hpp"
-#include "InitV.hpp"
 #include "checkpointing/CheckpointEntryDataStore.hpp"
 #include "checkpointing/CheckpointEntryPvp.hpp"
 #include "checkpointing/CheckpointEntryRandState.hpp"
@@ -70,7 +69,6 @@ int HyPerLayer::initialize_base() {
    triggerBehavior              = NULL;
    triggerBehaviorType          = NO_TRIGGER;
    triggerResetLayerName        = NULL;
-   initVObject                  = NULL;
    triggerOffset                = 0;
    initializeFromCheckpointFlag = false;
 
@@ -225,7 +223,7 @@ HyPerLayer::~HyPerLayer() {
 
    delete mOutputStateStream;
 
-   delete initVObject;
+   delete mInitVObject;
    freeClayer();
    freeChannels();
 
@@ -644,8 +642,8 @@ int HyPerLayer::setInitialValues() {
 
 int HyPerLayer::initializeV() {
    int status = PV_SUCCESS;
-   if (getV() != NULL && initVObject != NULL) {
-      status = initVObject->calcV(this);
+   if (getV() != nullptr && mInitVObject != nullptr) {
+      status = mInitVObject->calcV(getV(), getLayerLoc());
    }
    return status;
 }
@@ -780,15 +778,18 @@ void HyPerLayer::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) 
 }
 
 void HyPerLayer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
+   parent->parameters()->ioParamString(
+         ioFlag, name, "InitVType", &initVTypeString, "ConstantV", true /*warnIfAbsent*/);
    if (ioFlag == PARAMS_IO_READ) {
-      initVObject = new InitV(parent, name);
-      if (initVObject == NULL) {
+      BaseObject *object = Factory::instance()->createByKeyword(initVTypeString, name, parent);
+      mInitVObject       = dynamic_cast<BaseInitV *>(object);
+      if (mInitVObject == nullptr) {
          pvErrorNoExit().printf("%s: unable to create InitV object\n", getDescription_c());
          abort();
       }
    }
-   if (initVObject != NULL) {
-      initVObject->ioParamsFillGroup(ioFlag);
+   if (mInitVObject != nullptr) {
+      mInitVObject->ioParamsFillGroup(ioFlag);
    }
 }
 
