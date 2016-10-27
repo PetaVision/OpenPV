@@ -62,7 +62,7 @@ int MomentumConn::allocateDataStructures() {
          (pvwdata_t *)pvCalloc(numAxons * nxp * nyp * nfp * nPatches, sizeof(pvwdata_t));
    for (int arborId = 0; arborId < numAxons; arborId++) {
       prev_dwDataStart[arborId] = (prev_dwDataStart[0] + sp * nPatches * arborId);
-      assert(prev_dwDataStart[arborId] != NULL);
+      pvAssert(prev_dwDataStart[arborId] != NULL);
    } // loop over arbors
 
    return PV_SUCCESS;
@@ -78,6 +78,7 @@ int MomentumConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void MomentumConn::ioParam_momentumTau(enum ParamsIOFlag ioFlag) {
+   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (plasticityFlag) {
       float defaultVal = 0;
       if (strcmp(momentumMethod, "simple") == 0) {
@@ -102,6 +103,7 @@ void MomentumConn::ioParam_momentumTau(enum ParamsIOFlag ioFlag) {
  * alex: deltaW(t) = momentumTau * delta(t-1) - momentumDecay * dwMax * w(t) - a
  */
 void MomentumConn::ioParam_momentumMethod(enum ParamsIOFlag ioFlag) {
+   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (plasticityFlag) {
       parent->parameters()->ioParamStringRequired(ioFlag, name, "momentumMethod", &momentumMethod);
       if (strcmp(momentumMethod, "simple") != 0 && strcmp(momentumMethod, "viscosity") != 0
@@ -113,6 +115,7 @@ void MomentumConn::ioParam_momentumMethod(enum ParamsIOFlag ioFlag) {
 }
 
 void MomentumConn::ioParam_momentumDecay(enum ParamsIOFlag ioFlag) {
+   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (plasticityFlag) {
       parent->parameters()->ioParamValue(
             ioFlag, name, "momentumDecay", &momentumDecay, momentumDecay);
@@ -124,7 +127,7 @@ void MomentumConn::ioParam_momentumDecay(enum ParamsIOFlag ioFlag) {
 }
 
 void MomentumConn::ioParam_batchPeriod(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (plasticityFlag) {
       parent->parameters()->ioParamValue(
             ioFlag, name, "batchPeriod", &timeBatchPeriod, timeBatchPeriod);
@@ -132,7 +135,7 @@ void MomentumConn::ioParam_batchPeriod(enum ParamsIOFlag ioFlag) {
 }
 
 int MomentumConn::calc_dW() {
-   assert(plasticityFlag);
+   pvAssert(plasticityFlag);
    int status;
    timeBatchIdx = (timeBatchIdx + 1) % timeBatchPeriod;
 
@@ -155,7 +158,7 @@ int MomentumConn::calc_dW() {
          if (status == PV_BREAK) {
             break;
          }
-         assert(status == PV_SUCCESS);
+         pvAssert(status == PV_SUCCESS);
       }
    }
 
@@ -165,7 +168,7 @@ int MomentumConn::calc_dW() {
       if (status == PV_BREAK) {
          break;
       }
-      assert(status == PV_SUCCESS);
+      pvAssert(status == PV_SUCCESS);
    }
 
    for (int arborId = 0; arborId < numberOfAxonalArborLists(); arborId++) {
@@ -175,7 +178,7 @@ int MomentumConn::calc_dW() {
          if (status == PV_BREAK) {
             break;
          }
-         assert(status == PV_SUCCESS);
+         pvAssert(status == PV_SUCCESS);
       }
    }
 
@@ -186,7 +189,7 @@ int MomentumConn::calc_dW() {
          if (status == PV_BREAK) {
             break;
          }
-         assert(status == PV_SUCCESS);
+         pvAssert(status == PV_SUCCESS);
       }
    }
    return PV_SUCCESS;
@@ -202,7 +205,7 @@ int MomentumConn::updateWeights(int arborId) {
    }
 
    // Saved to prevweights
-   assert(prev_dwDataStart);
+   pvAssert(prev_dwDataStart);
    std::memcpy(
          *prev_dwDataStart,
          *get_dwDataStart(),
@@ -221,40 +224,32 @@ int MomentumConn::updateWeights(int arborId) {
 int MomentumConn::applyMomentum(int arbor_ID) {
    int nExt              = preSynapticLayer()->getNumExtended();
    const PVLayerLoc *loc = preSynapticLayer()->getLayerLoc();
-   if (sharedWeights) {
-      int numKernels = getNumDataPatches();
+   int numKernels        = getNumDataPatches();
 // Shared weights done in parallel, parallel in numkernels
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-      for (int kernelIdx = 0; kernelIdx < numKernels; kernelIdx++) {
-         pvwdata_t *dwdata_start  = get_dwDataHead(arbor_ID, kernelIdx);
-         pvwdata_t *prev_dw_start = get_prev_dwDataHead(arbor_ID, kernelIdx);
-         pvwdata_t *wdata_start   = get_wDataHead(arbor_ID, kernelIdx);
-         if (!strcmp(momentumMethod, "simple")) {
-            for (int k = 0; k < nxp * nyp * nfp; k++) {
-               dwdata_start[k] += momentumTau * prev_dw_start[k] - momentumDecay * wdata_start[k];
-            }
-         }
-         else if (!strcmp(momentumMethod, "viscosity")) {
-            for (int k = 0; k < nxp * nyp * nfp; k++) {
-               dwdata_start[k] = (prev_dw_start[k] * expf(-1.0f / momentumTau)) + dwdata_start[k]
-                                 - momentumDecay * wdata_start[k];
-            }
-         }
-         else if (!strcmp(momentumMethod, "alex")) {
-            for (int k = 0; k < nxp * nyp * nfp; k++) {
-               // weight_inc[i] := momW * weight_inc[i-1] - wc * epsW * weights[i-1] + epsW *
-               // weight_grads[i]
-               //   weights[i] := weights[i-1] + weight_inc[i]
-               dwdata_start[k] = momentumTau * prev_dw_start[k]
-                                 - momentumDecay * getDWMax() * wdata_start[k] + dwdata_start[k];
-            }
+   for (int kernelIdx = 0; kernelIdx < numKernels; kernelIdx++) {
+      pvwdata_t *dwdata_start  = get_dwDataHead(arbor_ID, kernelIdx);
+      pvwdata_t *prev_dw_start = get_prev_dwDataHead(arbor_ID, kernelIdx);
+      pvwdata_t *wdata_start   = get_wDataHead(arbor_ID, kernelIdx);
+      if (!strcmp(momentumMethod, "simple")) {
+         for (int k = 0; k < nxp * nyp * nfp; k++) {
+            dwdata_start[k] += momentumTau * prev_dw_start[k] - momentumDecay * wdata_start[k];
          }
       }
-   }
-   else {
-      pvWarn() << "Momentum not implemented for non-shared weights, not implementing momentum\n";
+      else if (!strcmp(momentumMethod, "viscosity")) {
+         for (int k = 0; k < nxp * nyp * nfp; k++) {
+            dwdata_start[k] = (prev_dw_start[k] * expf(-1.0f / momentumTau)) + dwdata_start[k]
+                              - momentumDecay * wdata_start[k];
+         }
+      }
+      else if (!strcmp(momentumMethod, "alex")) {
+         for (int k = 0; k < nxp * nyp * nfp; k++) {
+            dwdata_start[k] = momentumTau * prev_dw_start[k]
+                              - momentumDecay * getDWMax() * wdata_start[k] + dwdata_start[k];
+         }
+      }
    }
    return PV_SUCCESS;
 }
