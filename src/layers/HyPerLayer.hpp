@@ -549,7 +549,7 @@ class HyPerLayer : public BaseLayer {
    // {rngSeedbase, rngSeedbase+1,...rngSeedbase+neededRNGSeeds-1} for use
    // by this layer
 
-   char *initVTypeString = nullptr;
+   char *initVTypeString   = nullptr;
    BaseInitV *mInitVObject = nullptr;
 
    HyPerLayer **synchronizedMarginWidthLayers;

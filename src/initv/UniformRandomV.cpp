@@ -12,21 +12,16 @@
 
 namespace PV {
 
-UniformRandomV::UniformRandomV() {
-   initialize_base();
-}
+UniformRandomV::UniformRandomV() { initialize_base(); }
 
 UniformRandomV::UniformRandomV(char const *name, HyPerCol *hc) {
    initialize_base();
    initialize(name, hc);
 }
 
-UniformRandomV::~UniformRandomV() {
-}
+UniformRandomV::~UniformRandomV() {}
 
-int UniformRandomV::initialize_base() {
-   return PV_SUCCESS;
-}
+int UniformRandomV::initialize_base() { return PV_SUCCESS; }
 
 int UniformRandomV::initialize(char const *name, HyPerCol *hc) {
    int status = BaseInitV::initialize(name, hc);
@@ -52,7 +47,7 @@ void UniformRandomV::ioParam_maxV(enum ParamsIOFlag ioFlag) {
 int UniformRandomV::calcV(pvdata_t *V, PVLayerLoc const *loc) {
    PVLayerLoc flatLoc;
    memcpy(&flatLoc, loc, sizeof(PVLayerLoc));
-   flatLoc.nf        = 1;
+   flatLoc.nf = 1;
    Random randState{&flatLoc, false /*not extended*/};
    const int nxny = flatLoc.nx * flatLoc.ny;
    for (int b = 0; b < loc->nbatch; b++) {
@@ -70,4 +65,4 @@ int UniformRandomV::calcV(pvdata_t *V, PVLayerLoc const *loc) {
    return PV_SUCCESS;
 }
 
-}  // end namespace PV
+} // end namespace PV

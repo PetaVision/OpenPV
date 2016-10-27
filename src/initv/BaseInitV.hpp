@@ -27,6 +27,6 @@ class BaseInitV : public BaseObject {
    int initialize_base();
 }; // end class BaseInitV
 
-}  // end namespace PV
+} // end namespace PV
 
 #endif /* BASEINITV_HPP_ */

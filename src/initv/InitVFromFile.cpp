@@ -9,22 +9,16 @@
 #include "columns/HyPerCol.hpp"
 
 namespace PV {
-InitVFromFile::InitVFromFile() {
-   initialize_base();
-}
+InitVFromFile::InitVFromFile() { initialize_base(); }
 
 InitVFromFile::InitVFromFile(char const *name, HyPerCol *hc) {
    initialize_base();
    initialize(name, hc);
 }
 
-InitVFromFile::~InitVFromFile() {
-   free(mVfilename);
-}
+InitVFromFile::~InitVFromFile() { free(mVfilename); }
 
-int InitVFromFile::initialize_base() {
-   return PV_SUCCESS;
-}
+int InitVFromFile::initialize_base() { return PV_SUCCESS; }
 
 int InitVFromFile::initialize(char const *name, HyPerCol *hc) {
    int status = BaseInitV::initialize(name, hc);
@@ -42,7 +36,8 @@ void InitVFromFile::ioParam_Vfilename(enum ParamsIOFlag ioFlag) {
          ioFlag, name, "Vfilename", &mVfilename, nullptr, true /*warnIfAbsent*/);
    if (mVfilename == nullptr) {
       pvError().printf(
-            "InitVFromFile::initialize, group \"%s\": for InitVFromFile, string parameter \"Vfilename\" "
+            "InitVFromFile::initialize, group \"%s\": for InitVFromFile, string parameter "
+            "\"Vfilename\" "
             "must be defined.  Exiting\n",
             name);
    }
@@ -51,7 +46,7 @@ void InitVFromFile::ioParam_Vfilename(enum ParamsIOFlag ioFlag) {
 int InitVFromFile::calcV(pvdata_t *V, const PVLayerLoc *loc) {
    int status = PV_SUCCESS;
    PVLayerLoc fileLoc;
-   bool isRootProc = parent->getCommunicator()->commRank()==0;
+   bool isRootProc = parent->getCommunicator()->commRank() == 0;
    char const *ext = strrchr(mVfilename, '.');
    bool isPvpFile  = (ext && strcmp(ext, ".pvp") == 0);
    if (isPvpFile) {
@@ -59,7 +54,8 @@ int InitVFromFile::calcV(pvdata_t *V, const PVLayerLoc *loc) {
       if (parent->getCommunicator()->commRank() == 0) {
          if (readFile == NULL) {
             pvError().printf(
-                  "InitVFromFile::calcVFromFile error: path \"%s\" could not be opened: %s.  Exiting.\n",
+                  "InitVFromFile::calcVFromFile error: path \"%s\" could not be opened: %s.  "
+                  "Exiting.\n",
                   mVfilename,
                   strerror(errno));
          }
@@ -162,13 +158,20 @@ int InitVFromFile::calcV(pvdata_t *V, const PVLayerLoc *loc) {
    }
    else { // Treat as an image file
       if (isRootProc)
-         pvErrorNoExit().printf("calcVFromFile: file \"%s\" is not a pvp file.\n", this->mVfilename);
+         pvErrorNoExit().printf(
+               "calcVFromFile: file \"%s\" is not a pvp file.\n", this->mVfilename);
       abort();
    }
    return status;
 }
 
-int InitVFromFile::checkLoc(const PVLayerLoc *loc, int nx, int ny, int nf, int nxGlobal, int nyGlobal) {
+int InitVFromFile::checkLoc(
+      const PVLayerLoc *loc,
+      int nx,
+      int ny,
+      int nf,
+      int nxGlobal,
+      int nyGlobal) {
    int status = PV_SUCCESS;
    if (checkLocValue(loc->nxGlobal, nxGlobal, "nxGlobal") != PV_SUCCESS)
       status = PV_FAILURE;
@@ -182,7 +185,7 @@ int InitVFromFile::checkLoc(const PVLayerLoc *loc, int nx, int ny, int nf, int n
 int InitVFromFile::checkLocValue(int fromParams, int fromFile, const char *field) {
    int status = PV_SUCCESS;
    if (fromParams != fromFile) {
-      if (parent->getCommunicator()->commRank()==0) {
+      if (parent->getCommunicator()->commRank() == 0) {
          pvErrorNoExit().printf(
                "InitVFromFile: Incompatible %s: parameter group \"%s\" gives %d; "
                "filename \"%s\" gives %d\n",

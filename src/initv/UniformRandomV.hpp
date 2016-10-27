@@ -43,10 +43,10 @@ class UniformRandomV : public BaseInitV {
   private:
    int initialize_base();
 
-  // data members
-  private: 
-   pvdata_t minV = (pvdata_t) 0;
-   pvdata_t maxV = (pvdata_t) 1;
+   // data members
+  private:
+   pvdata_t minV = (pvdata_t)0;
+   pvdata_t maxV = (pvdata_t)1;
 
 }; // end class UniformRandomV
 

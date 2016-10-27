@@ -11,21 +11,16 @@
 
 namespace PV {
 
-GaussianRandomV::GaussianRandomV() {
-   initialize_base();
-}
+GaussianRandomV::GaussianRandomV() { initialize_base(); }
 
 GaussianRandomV::GaussianRandomV(char const *name, HyPerCol *hc) {
    initialize_base();
    initialize(name, hc);
 }
 
-GaussianRandomV::~GaussianRandomV() {
-}
+GaussianRandomV::~GaussianRandomV() {}
 
-int GaussianRandomV::initialize_base() {
-   return PV_SUCCESS;
-}
+int GaussianRandomV::initialize_base() { return PV_SUCCESS; }
 
 int GaussianRandomV::initialize(char const *name, HyPerCol *hc) {
    int status = BaseInitV::initialize(name, hc);
@@ -50,7 +45,7 @@ void GaussianRandomV::ioParam_sigmaV(enum ParamsIOFlag ioFlag) {
 int GaussianRandomV::calcV(pvdata_t *V, PVLayerLoc const *loc) {
    PVLayerLoc flatLoc;
    memcpy(&flatLoc, loc, sizeof(PVLayerLoc));
-   flatLoc.nf                = 1;
+   flatLoc.nf = 1;
    GaussianRandom randState{&flatLoc, false /*not extended*/};
    const int nxny = flatLoc.nx * flatLoc.ny;
    for (int b = 0; b < loc->nbatch; b++) {
@@ -68,4 +63,4 @@ int GaussianRandomV::calcV(pvdata_t *V, PVLayerLoc const *loc) {
    return PV_SUCCESS;
 }
 
-}  // end namespace PV
+} // end namespace PV

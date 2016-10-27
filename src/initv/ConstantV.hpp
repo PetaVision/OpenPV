@@ -39,7 +39,7 @@ class ConstantV : public BaseInitV {
   private:
    int initialize_base();
 
-  // Data members
+   // Data members
   protected:
    pvdata_t mValueV;
 }; // end class ConstantV

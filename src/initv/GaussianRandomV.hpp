@@ -42,8 +42,8 @@ class GaussianRandomV : public BaseInitV {
 
   private:
    int initialize_base();
-   pvdata_t meanV = (pvdata_t) 0;
-   pvdata_t sigmaV = (pvdata_t) 1;
+   pvdata_t meanV  = (pvdata_t)0;
+   pvdata_t sigmaV = (pvdata_t)1;
 
 }; // end class GaussianRandomV
 
