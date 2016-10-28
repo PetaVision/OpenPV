@@ -1,5 +1,9 @@
 function combinebatches(directory, layer_name, num_batch, batch_method, batch_width, total_frames)
 
+   file_type = -1;
+   nx = 0;
+   ny = 0;
+   nf = 0;
    result_index = 0; 
    total_found = 0;
    if strcmp(batch_method, "byFile") == 1 % Really, Octave?
@@ -10,7 +14,11 @@ function combinebatches(directory, layer_name, num_batch, batch_method, batch_wi
          fname = [directory, "/batchsweep_", num2str(i, "%02d"), "/", layer_name, "_", num2str(i), ".pvp"];
          printf("Reading %s... ", fname);
          fflush(stdout);
-         source_data = readpvpfile(fname);
+         [source_data, header] = readpvpfile(fname);
+         file_type = header.filetype;
+         nx = header.nx;
+         ny = header.ny;
+         nf = header.nf;
          num_frames = size(source_data)(1);
          total_found += num_frames;
          printf("%d frames.\n", num_frames);
@@ -39,7 +47,11 @@ function combinebatches(directory, layer_name, num_batch, batch_method, batch_wi
          fname = [directory, "/batchsweep_", num2str(i, "%02d"), "/", layer_name, "_", num2str(i), ".pvp"];
          printf("Reading %s... ", fname);
          fflush(stdout);
-         source_data = readpvpfile(fname);
+         [source_data, header] = readpvpfile(fname);
+         file_type = header.filetype;
+         nx = header.nx;
+         ny = header.ny;
+         nf = header.nf;
          num_frames = size(source_data)(1);
          total_found += num_frames;
          printf("%d frames.\n", num_frames);
@@ -64,7 +76,15 @@ function combinebatches(directory, layer_name, num_batch, batch_method, batch_wi
       fflush(stdout);
    endif
 
-   writepvpactivityfile([layer_name, ".pvp"], result);
+   if file_type == 4
+      writepvpactivityfile([layer_name, ".pvp"], result);
+   elseif file_type == 6
+      writepvpsparsevaluesfile([layer_name, ".pvp"], result, nx, ny, nf);
+   else
+      printf("Error: Unsupported filetype %d\n", file_type);
+      return;
+   endif
+
    printf("Finished assembling %s\n", [layer_name, ".pvp"]);
    fflush(stdout);
 endfunction
