@@ -22,7 +22,7 @@ void CheckpointEntryRandState::write(
 void CheckpointEntryRandState::read(std::string const &checkpointDirectory, double *simTimePtr)
       const {
    std::string path = generatePath(checkpointDirectory, "bin");
-   writeRandState(path, getCommunicator(), mDataPointer, mLayerLoc, mExtendedFlag);
+   readRandState(path, getCommunicator(), mDataPointer, mLayerLoc, mExtendedFlag);
 }
 
 void CheckpointEntryRandState::remove(std::string const &checkpointDirectory) const {
