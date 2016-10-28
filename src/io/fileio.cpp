@@ -1703,7 +1703,7 @@ int writeActivitySparse(
          //
          long fpos = fileStream->getOutPos();
          if (fpos == 0L) {
-            auto header = BufferUtils::buildActivityHeader<pvadata_t>(
+            auto header = BufferUtils::buildSparseActivityHeader<pvadata_t>(
                   loc->nxGlobal, loc->nyGlobal, loc->nf, 1);
             // Hack because buildHeader doesn't handle sparse binary type.
             if (!includeValues) {

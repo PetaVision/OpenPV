@@ -61,6 +61,7 @@ struct ActivityHeader
 buildSparseActivityHeader(int width, int height, int features, int numFrames) {
    struct ActivityHeader header = buildActivityHeader<T>(width, height, features, numFrames);
    header.dataSize              = sizeof(struct SparseList<T>::Entry);
+   header.dataType              = PV_SPARSEVALUES_TYPE;
    header.fileType              = PVP_ACT_SPARSEVALUES_FILE_TYPE;
    return header;
 }
