@@ -1,4 +1,5 @@
 #include "io/io.hpp"
+#include <limits>
 
 namespace PV {
 
@@ -29,10 +30,23 @@ double readFrame(FileStream &fStream, Buffer<T> *buffer) {
    return timeStamp;
 }
 
+template <typename T>
+HeaderDataType returnDataType() {
+   // Specializations for byte types and taus_uint4 in BufferUtilsPvp.cpp
+   if (std::numeric_limits<T>::is_integer) {
+      return sizeof(T)==(std::size_t) 1 ? BYTE : INT;
+    }
+   if (std::numeric_limits<T>::is_iec559) { return FLOAT; }
+   return BufferUtils::UNRECOGNIZED_DATATYPE;
+}
+
 // Write a pvp header to fStream. After finishing, outStream will be pointing
 // at the start of the first frame.
 template <typename T>
 struct ActivityHeader buildActivityHeader(int width, int height, int features, int numFrames) {
+   HeaderDataType dataType = returnDataType<T>();
+   pvErrorIf(dataType==UNRECOGNIZED_DATATYPE, "buildActivityHeader called with unrecognized data type.\n");
+
    struct ActivityHeader result;
    result.headerSize = sizeof(result);
    result.numParams  = result.headerSize / 4;
@@ -43,7 +57,7 @@ struct ActivityHeader buildActivityHeader(int width, int height, int features, i
    result.numRecords = 1;
    result.recordSize = width * height * features;
    result.dataSize   = sizeof(T);
-   result.dataType   = PV_FLOAT_TYPE; // TODO: How to template this?
+   result.dataType   = dataType;
    result.nxProcs    = 1;
    result.nyProcs    = 1;
    result.nxGlobal   = width;

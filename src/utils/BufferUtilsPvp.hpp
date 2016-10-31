@@ -15,6 +15,19 @@ namespace PV {
 
 namespace BufferUtils {
 
+/**
+ * The enum for the dataType field of the pvp file header.
+ */
+typedef enum HeaderDataTypeEnum {
+   // Values are hardcoded to ensure consistency between builds.
+   UNRECOGNIZED_DATATYPE=0,
+   BYTE=1,
+   INT=2,
+   FLOAT=3,
+   // datatype 4 is obsolete;
+   TAUS_UINT4=5,
+} HeaderDataType;
+
 // This structure is used to avoid having to traverse
 // a sparse pvp file from start to finish every time
 // we want to load data from it.
@@ -35,6 +48,9 @@ void writeFrame(FileStream &fStream, Buffer<T> *buffer, double timeStamp);
 
 template <typename T>
 double readFrame(FileStream &fStream, Buffer<T> *buffer);
+
+template <typename T>
+BufferUtils::HeaderDataType returnDataType();
 
 template <typename T>
 struct ActivityHeader buildActivityHeader(int width, int height, int features, int numFrames);

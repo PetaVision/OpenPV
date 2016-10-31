@@ -5,7 +5,7 @@
 
 namespace PV {
 
-void readRandState(
+double readRandState(
       std::string const &path,
       Communicator *comm,
       taus_uint4 *randState,
@@ -18,5 +18,6 @@ void writeRandState(
       taus_uint4 const *randState,
       PVLayerLoc const *loc,
       bool extended,
+      double simTime,
       bool verifyWrites = false);
 }
