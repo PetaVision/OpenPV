@@ -23,7 +23,7 @@ int IdentConn::initialize_base() {
 } // end of IdentConn::initialize_base()
 
 int IdentConn::initialize(const char *name, HyPerCol *hc) {
-   int status = HyPerConn::initialize(name, hc, NULL, NULL);
+   int status = HyPerConn::initialize(name, hc);
    return status;
 }
 
