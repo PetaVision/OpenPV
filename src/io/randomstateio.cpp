@@ -65,8 +65,10 @@ void writeRandState(
 namespace BufferUtils {
 
 template <>
-HeaderDataType returnDataType<taus_uint4>() { return TAUS_UINT4; }
+HeaderDataType returnDataType<taus_uint4>() {
+   return TAUS_UINT4;
+}
 
-}  // end namespace BufferUtils
+} // end namespace BufferUtils
 
 } // end namespace PV

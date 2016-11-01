@@ -34,9 +34,11 @@ template <typename T>
 HeaderDataType returnDataType() {
    // Specializations for byte types and taus_uint4 in BufferUtilsPvp.cpp
    if (std::numeric_limits<T>::is_integer) {
-      return sizeof(T)==(std::size_t) 1 ? BYTE : INT;
-    }
-   if (std::numeric_limits<T>::is_iec559) { return FLOAT; }
+      return sizeof(T) == (std::size_t)1 ? BYTE : INT;
+   }
+   if (std::numeric_limits<T>::is_iec559) {
+      return FLOAT;
+   }
    return BufferUtils::UNRECOGNIZED_DATATYPE;
 }
 
@@ -45,7 +47,9 @@ HeaderDataType returnDataType() {
 template <typename T>
 struct ActivityHeader buildActivityHeader(int width, int height, int features, int numFrames) {
    HeaderDataType dataType = returnDataType<T>();
-   pvErrorIf(dataType==UNRECOGNIZED_DATATYPE, "buildActivityHeader called with unrecognized data type.\n");
+   pvErrorIf(
+         dataType == UNRECOGNIZED_DATATYPE,
+         "buildActivityHeader called with unrecognized data type.\n");
 
    struct ActivityHeader result;
    result.headerSize = sizeof(result);

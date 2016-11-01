@@ -407,7 +407,7 @@ int LIF::readG_IBFromCheckpoint(const char *cpDir, double *timeptr) {
 
 int LIF::readRandStateFromCheckpoint(const char *cpDir, double *timeptr) {
    char *filename = parent->pathInCheckpoint(cpDir, getName(), "_rand_state.pvp");
-   *timeptr = readRandState(
+   *timeptr       = readRandState(
          filename,
          parent->getCommunicator(),
          randState->getRNG(0),

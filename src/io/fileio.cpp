@@ -1490,8 +1490,8 @@ int writeActivity(
       if (rank == 0) {
          long fpos = fileStream->getOutPos();
          if (fpos == 0L) {
-            int *params =
-                  pvp_set_nonspiking_act_params(comm, timed, loc, BufferUtils::FLOAT, 1 /*numbands*/);
+            int *params = pvp_set_nonspiking_act_params(
+                  comm, timed, loc, BufferUtils::FLOAT, 1 /*numbands*/);
             assert(params && params[1] == NUM_BIN_PARAMS);
             long int numParams = (long int)params[1];
             fileStream->write(params, (long int)sizeof(*params) * numParams);

@@ -20,12 +20,12 @@ namespace BufferUtils {
  */
 typedef enum HeaderDataTypeEnum {
    // Values are hardcoded to ensure consistency between builds.
-   UNRECOGNIZED_DATATYPE=0,
-   BYTE=1,
-   INT=2,
-   FLOAT=3,
+   UNRECOGNIZED_DATATYPE = 0,
+   BYTE                  = 1,
+   INT                   = 2,
+   FLOAT                 = 3,
    // datatype 4 is obsolete;
-   TAUS_UINT4=5,
+   TAUS_UINT4 = 5,
 } HeaderDataType;
 
 // This structure is used to avoid having to traverse
