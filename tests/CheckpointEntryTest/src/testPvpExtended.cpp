@@ -51,8 +51,6 @@ void testPvpExtended(PV::Communicator *comm, std::string const &directory) {
    PV::CheckpointEntryPvp<float> checkpointEntryPvp{"checkpointEntryPvpExtended",
                                                     comm,
                                                     checkpointData.data(),
-                                                    checkpointData.size(),
-                                                    PV_FLOAT_TYPE,
                                                     &loc,
                                                     true /*extended*/};
 

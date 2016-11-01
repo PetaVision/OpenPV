@@ -20,14 +20,10 @@ class CheckpointEntryPvp : public CheckpointEntry {
          std::string const &name,
          Communicator *communicator,
          T *dataPtr,
-         size_t dataSize,
-         int dataType,
          PVLayerLoc const *layerLoc,
          bool extended)
          : CheckpointEntry(name, communicator),
            mDataPointer(dataPtr),
-           mDataSize(dataSize),
-           mDataType(dataType),
            mLayerLoc(layerLoc),
            mExtended(extended) {}
    CheckpointEntryPvp(
@@ -35,14 +31,10 @@ class CheckpointEntryPvp : public CheckpointEntry {
          std::string const &dataName,
          Communicator *communicator,
          T *dataPtr,
-         size_t dataSize,
-         int dataType,
          PVLayerLoc const *layerLoc,
          bool extended)
          : CheckpointEntry(objName, dataName, communicator),
            mDataPointer(dataPtr),
-           mDataSize(dataSize),
-           mDataType(dataType),
            mLayerLoc(layerLoc),
            mExtended(extended) {}
    virtual void write(std::string const &checkpointDirectory, double simTime, bool verifyWritesFlag)
@@ -55,8 +47,6 @@ class CheckpointEntryPvp : public CheckpointEntry {
 
   private:
    T *mDataPointer;
-   size_t mDataSize;
-   int mDataType;
    PVLayerLoc const *mLayerLoc = nullptr;
    bool mExtended              = false;
 };

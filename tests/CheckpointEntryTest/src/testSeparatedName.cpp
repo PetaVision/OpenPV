@@ -20,8 +20,6 @@ void testSeparatedName(PV::Communicator *comm) {
                                                        "name",
                                                        comm,
                                                        (float *)nullptr,
-                                                       (size_t)0,
-                                                       PV_FLOAT_TYPE,
                                                        (PVLayerLoc const *)nullptr,
                                                        false /*no broadcast*/};
 

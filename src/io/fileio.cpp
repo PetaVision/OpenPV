@@ -32,17 +32,17 @@ double timeFromParams(void *params) {
 }
 
 size_t pv_sizeof(int datatype) {
-   if (datatype == PV_INT_TYPE) {
+   if (datatype == BufferUtils::INT) {
       return sizeof(int);
    }
-   if (datatype == PV_FLOAT_TYPE) {
+   if (datatype == BufferUtils::FLOAT) {
       return sizeof(float);
    }
-   if (datatype == PV_BYTE_TYPE) {
+   if (datatype == BufferUtils::BYTE) {
       return sizeof(unsigned char);
    }
-   if (datatype == PV_SPARSEVALUES_TYPE) {
-      return sizeof(indexvaluepair);
+   if (datatype == BufferUtils::TAUS_UINT4) {
+      return sizeof(taus_uint4);
    }
 
    // shouldn't arrive here
@@ -1491,7 +1491,7 @@ int writeActivity(
          long fpos = fileStream->getOutPos();
          if (fpos == 0L) {
             int *params =
-                  pvp_set_nonspiking_act_params(comm, timed, loc, PV_FLOAT_TYPE, 1 /*numbands*/);
+                  pvp_set_nonspiking_act_params(comm, timed, loc, BufferUtils::FLOAT, 1 /*numbands*/);
             assert(params && params[1] == NUM_BIN_PARAMS);
             long int numParams = (long int)params[1];
             fileStream->write(params, (long int)sizeof(*params) * numParams);
@@ -1708,7 +1708,7 @@ int writeActivitySparse(
             // Hack because buildHeader doesn't handle sparse binary type.
             if (!includeValues) {
                header.fileType = PVP_ACT_FILE_TYPE;
-               header.dataType = PV_INT_TYPE;
+               header.dataType = BufferUtils::INT;
             }
             fileStream->write(&header, sizeof(header));
          }
@@ -1854,7 +1854,7 @@ int readWeights(
 
    const int icRank = comm->commRank();
 
-   bool compress       = header_data_type == PV_BYTE_TYPE;
+   bool compress       = header_data_type == BufferUtils::BYTE;
    unsigned char *cbuf = (unsigned char *)malloc(localSize);
    if (cbuf == NULL) {
       pvError(errorMessage);
@@ -2111,7 +2111,7 @@ int writeWeights(
       int file_type) {
    int status = PV_SUCCESS;
 
-   int datatype = compress ? PV_BYTE_TYPE : PV_FLOAT_TYPE;
+   int datatype = compress ? BufferUtils::BYTE : BufferUtils::FLOAT;
 
    const int icRank = comm->commRank();
 

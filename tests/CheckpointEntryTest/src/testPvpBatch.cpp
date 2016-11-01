@@ -60,8 +60,6 @@ void testPvpBatch(PV::Communicator *comm, std::string const &directory) {
    PV::CheckpointEntryPvp<float> checkpointEntryPvp{"checkpointEntryPvpBatch",
                                                     comm,
                                                     checkpointData.data(),
-                                                    checkpointData.size(),
-                                                    PV_FLOAT_TYPE,
                                                     &loc,
                                                     false /*not extended*/};
 

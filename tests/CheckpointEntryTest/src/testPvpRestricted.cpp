@@ -46,8 +46,6 @@ void testPvpRestricted(PV::Communicator *comm, std::string const &directory) {
    PV::CheckpointEntryPvp<float> checkpointEntryPvp{"checkpointEntryPvpRestricted",
                                                     comm,
                                                     checkpointData.data(),
-                                                    checkpointData.size(),
-                                                    PV_FLOAT_TYPE,
                                                     &loc,
                                                     false /*not extended*/};
 

@@ -546,8 +546,6 @@ void HyPerLayer::checkpointPvpActivityFloat(
                bufferName,
                parent->getCommunicator(),
                pvpBuffer,
-               sizeof(float),
-               PV_FLOAT_TYPE,
                getLayerLoc(),
                extended));
    pvErrorIf(
@@ -2434,107 +2432,6 @@ int HyPerLayer::readDataStoreFromFile(const char *filename, Communicator *comm, 
    }
    assert(status == PV_SUCCESS);
    pvp_close_file(readFile, comm);
-   return status;
-}
-
-template <typename T>
-int HyPerLayer::writeBufferFile(
-      const char *filename,
-      Communicator *comm,
-      double timed,
-      T **buffers,
-      int numbands,
-      bool extended,
-      const PVLayerLoc *loc) {
-   PV_Stream *writeFile = pvp_open_write_file(filename, comm, /*append*/ false);
-   assert(
-         (writeFile != NULL && comm->commRank() == 0)
-         || (writeFile == NULL && comm->commRank() != 0));
-
-   // nbands gets multiplied by loc->nbatches in this function
-   int *params = pvp_set_nonspiking_act_params(comm, timed, loc, PV_FLOAT_TYPE, numbands);
-   assert(params && params[1] == NUM_BIN_PARAMS);
-   int status = pvp_write_header(writeFile, comm, params, NUM_BIN_PARAMS);
-   if (status != PV_SUCCESS) {
-      pvError().printf("HyPerLayer::writeBufferFile error writing \"%s\"\n", filename);
-   }
-
-   for (int band = 0; band < numbands; band++) {
-      for (int b = 0; b < loc->nbatch; b++) {
-         if (writeFile
-             != NULL) { // Root process has writeFile set to non-null; other processes to NULL.
-            int numwritten = PV_fwrite(&timed, sizeof(double), 1, writeFile);
-            if (numwritten != 1) {
-               pvError().printf(
-                     "HyPerLayer::writeBufferFile error writing timestamp to \"%s\"\n", filename);
-            }
-         }
-         T *bufferBatch;
-         if (extended) {
-            bufferBatch = buffers[band]
-                          + b * (loc->nx + loc->halo.rt + loc->halo.lt)
-                                  * (loc->ny + loc->halo.up + loc->halo.dn) * loc->nf;
-         }
-         else {
-            bufferBatch = buffers[band] + b * loc->nx * loc->ny * loc->nf;
-         }
-
-         status = gatherActivity(writeFile, comm, 0, bufferBatch, loc, extended);
-      }
-   }
-   free(params);
-   pvp_close_file(writeFile, comm);
-   writeFile = NULL;
-   return status;
-}
-// Declare the instantiations of readScalarToFile that occur in other .cpp files; otherwise you'll
-// get linker errors.
-template int HyPerLayer::writeBufferFile<float>(
-      const char *filename,
-      Communicator *comm,
-      double timed,
-      float **buffers,
-      int numbands,
-      bool extended,
-      const PVLayerLoc *loc);
-
-int HyPerLayer::writeDataStoreToFile(const char *filename, Communicator *comm, double timed) {
-   PV_Stream *writeFile = pvp_open_write_file(filename, comm, /*append*/ false);
-   assert(
-         (writeFile != NULL && comm->commRank() == 0)
-         || (writeFile == NULL && comm->commRank() != 0));
-   int numlevels  = publisher->dataStore()->getNumLevels();
-   int numbuffers = publisher->dataStore()->getNumBuffers();
-   assert(numlevels == getNumDelayLevels());
-   int *params =
-         pvp_set_nonspiking_act_params(comm, timed, getLayerLoc(), PV_FLOAT_TYPE, numlevels);
-   assert(params && params[1] == NUM_BIN_PARAMS);
-   int status = pvp_write_header(writeFile, comm, params, NUM_BIN_PARAMS);
-   if (status != PV_SUCCESS) {
-      pvError().printf("HyPerLayer::writeBufferFile error writing \"%s\"\n", filename);
-   }
-   free(params);
-   DataStore *datastore = publisher->dataStore();
-   for (int b = 0; b < numbuffers; b++) {
-      for (int l = 0; l < numlevels; l++) {
-         if (writeFile
-             != NULL) { // Root process has writeFile set to non-null; other processes to NULL.
-            double lastUpdate = datastore->getLastUpdateTime(b /*bufferId*/, l);
-            int numwritten    = PV_fwrite(&lastUpdate, sizeof(double), 1, writeFile);
-            if (numwritten != 1) {
-               pvError().printf(
-                     "HyPerLayer::writeBufferFile error writing timestamp to \"%s\"\n", filename);
-            }
-         }
-         pvdata_t *buffer = datastore->buffer(b, l);
-         int status1 = gatherActivity(writeFile, comm, 0, buffer, getLayerLoc(), true /*extended*/);
-         if (status1 != PV_SUCCESS)
-            status = PV_FAILURE;
-      }
-   }
-   assert(status == PV_SUCCESS);
-   pvp_close_file(writeFile, comm);
-   writeFile = NULL;
    return status;
 }
 
