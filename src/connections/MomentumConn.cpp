@@ -57,9 +57,9 @@ int MomentumConn::allocateDataStructures() {
    const int numAxons = numberOfAxonalArborLists();
 
    // Allocate dw buffer for previous dw
-   prev_dwDataStart = (pvwdata_t **)pvCalloc(numAxons, sizeof(pvwdata_t *));
-   prev_dwDataStart[0] =
-         (pvwdata_t *)pvCalloc(numAxons * nxp * nyp * nfp * nPatches, sizeof(pvwdata_t));
+   prev_dwDataStart       = (pvwdata_t **)pvCalloc(numAxons, sizeof(pvwdata_t *));
+   std::size_t numWeights = (std::size_t)(numAxons * nxp * nyp * nfp) * (std::size_t)nPatches;
+   prev_dwDataStart[0]    = (pvwdata_t *)pvCalloc(numWeights, sizeof(pvwdata_t));
    for (int arborId = 0; arborId < numAxons; arborId++) {
       prev_dwDataStart[arborId] = (prev_dwDataStart[0] + sp * nPatches * arborId);
       pvAssert(prev_dwDataStart[arborId] != NULL);
