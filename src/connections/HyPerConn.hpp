@@ -317,7 +317,10 @@ class HyPerConn : public BaseConnection {
    virtual int
    dataIndexToUnitCellIndex(int dataIndex, int *kx = NULL, int *ky = NULL, int *kf = NULL);
 
-   void setNeedPost(bool inBool) { needPost = inBool; }
+   /**
+    * Sets the flag indicating that the postsynaptic perspective is needed.
+    */
+   void setNeedPost() { needPost = true; }
    void setNeedAllocPostWeights(bool inBool) { needAllocPostWeights = inBool; }
 
   protected:

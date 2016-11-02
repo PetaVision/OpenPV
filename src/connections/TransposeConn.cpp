@@ -286,7 +286,7 @@ int TransposeConn::communicateInitInfo() {
       exit(EXIT_FAILURE);
    }
 
-   originalConn->setNeedPost(true);
+   originalConn->setNeedPost();
 
 #ifdef PV_USE_CUDA
    if ((updateGSynFromPostPerspective && receiveGpu) || allocPostDeviceWeights) {

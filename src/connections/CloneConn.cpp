@@ -216,7 +216,7 @@ int CloneConn::communicateInitInfo() {
 
    // Don't allocate post, just grab in allocate from orig
    if (needPost) {
-      originalConn->setNeedPost(true);
+      originalConn->setNeedPost();
    }
 
 #ifdef PV_USE_CUDA
