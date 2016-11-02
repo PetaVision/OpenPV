@@ -903,6 +903,12 @@ class HyPerConn : public BaseConnection {
    virtual int reduceActivations(int arborID);
 
    /**
+    * Used when batch size is greater than one, plasticityFlag is on, and shared weights are off.
+    * Sums the dW across all elements in the batch (both local and MPI).
+    */
+   void reduceAcrossBatch(int arborID);
+
+   /**
     * Normalizes all dW by dividing dW by activations
     */
    virtual int normalize_dW(int arbor_ID);

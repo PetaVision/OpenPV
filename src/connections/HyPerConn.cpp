@@ -1305,17 +1305,6 @@ int HyPerConn::communicateInitInfo() {
    }
 #endif
 
-   // No batches with non-shared weights
-   if (parent->getNBatch() > 1 && !sharedWeights) {
-      if (parent->columnId() == 0) {
-         pvErrorNoExit().printf(
-               "%s error: Non-shared weights with batches not implemented yet.\n",
-               getDescription_c());
-      }
-      MPI_Barrier(parent->getCommunicator()->communicator());
-      exit(EXIT_FAILURE);
-   }
-
    return status;
 }
 
@@ -2425,6 +2414,9 @@ int HyPerConn::reduce_dW(int arborId) {
          pvAssert(kernel_status == activation_status);
       }
    }
+   else {
+      reduceAcrossBatch(arborId);
+   }
    return kernel_status;
 }
 
@@ -2458,16 +2450,27 @@ int HyPerConn::reduceKernels(int arborID) {
    const int nProcs   = nxProcs * nyProcs * nbProcs;
    if (nProcs != 1) {
       const MPI_Comm mpi_comm = comm->globalCommunicator();
+      const int numPatches    = getNumDataPatches();
+      const size_t patchSize  = (size_t)nxp * (size_t)nyp * (size_t)nfp;
+      const size_t localSize  = (size_t)numPatches * (size_t)patchSize;
+      const size_t arborSize  = localSize * (size_t)numberOfAxonalArborLists();
       int ierr;
-      const int numPatches   = getNumDataPatches();
-      const size_t patchSize = (size_t)nxp * (size_t)nyp * (size_t)nfp;
-      const size_t localSize = numPatches * patchSize;
-      const size_t arborSize = localSize * numberOfAxonalArborLists();
-      ierr                   = MPI_Allreduce(
+      ierr = MPI_Allreduce(
             MPI_IN_PLACE, get_dwDataStart(arborID), arborSize, MPI_FLOAT, MPI_SUM, mpi_comm);
    }
 
    return PV_BREAK;
+}
+
+void HyPerConn::reduceAcrossBatch(int arborID) {
+   if (parent->getCommunicator()->numCommBatches() != 1) {
+      pvwdata_t *dwArborStart  = get_dwDataStart(arborID);
+      size_t const patchSize   = (size_t)nxp * (size_t)nyp * (size_t)nfp;
+      size_t const localSize   = (size_t)getNumDataPatches() * (size_t)patchSize;
+      size_t const arborSize   = localSize * (size_t)numberOfAxonalArborLists();
+      MPI_Comm const batchComm = parent->getCommunicator()->batchCommunicator();
+      MPI_Allreduce(MPI_IN_PLACE, dwArborStart, arborSize, MPI_FLOAT, MPI_SUM, batchComm);
+   }
 }
 
 int HyPerConn::calc_dW() {
