@@ -19,10 +19,10 @@ class NormalizeMultiply : public NormalizeBase {
    virtual ~NormalizeMultiply();
 
    const char *getName() { return name; }
-   const float getRMinX() { return rMinX; }
-   const float getRMinY() { return rMinY; }
-   const float getNormalizeCutoff() { return normalize_cutoff; }
-   const bool getNormalizeFromPostPerspectiveFlag() { return normalizeFromPostPerspective; }
+   float getRMinX() { return rMinX; }
+   float getRMinY() { return rMinY; }
+   float getNormalizeCutoff() { return normalize_cutoff; }
+   bool getNormalizeFromPostPerspectiveFlag() { return normalizeFromPostPerspective; }
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 

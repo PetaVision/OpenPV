@@ -24,10 +24,10 @@ class Buffer {
    void grow(int newWidth, int newHeight, enum Anchor anchor);
    void translate(int offsetX, int offsetY);
    std::vector<T> asVector() const { return mData; }
-   const int getHeight() const { return mHeight; }
-   const int getWidth() const { return mWidth; }
-   const int getFeatures() const { return mFeatures; }
-   const int getTotalElements() const { return mHeight * mWidth * mFeatures; }
+   int getHeight() const { return mHeight; }
+   int getWidth() const { return mWidth; }
+   int getFeatures() const { return mFeatures; }
+   int getTotalElements() const { return mHeight * mWidth * mFeatures; }
 
   protected:
    static int getAnchorX(enum Anchor anchor, int smallerWidth, int biggerWidth);
