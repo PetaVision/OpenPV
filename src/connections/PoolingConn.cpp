@@ -318,7 +318,7 @@ int PoolingConn::communicateInitInfo() {
    }
 
    if (getUpdateGSynFromPostPerspective()) {
-      setNeedPost(true);
+      setNeedPost();
       needAllocPostWeights = false;
    }
 

@@ -34,8 +34,6 @@ class TransposeConn : public HyPerConn {
    virtual void setAllocPostDeviceWeights() { originalConn->setAllocDeviceWeights(); }
 #endif // PV_USE_CUDA
 
-   virtual long *getPostToPreActivity() { return originalConn->postConn->getPostToPreActivity(); }
-
 #ifdef PV_USE_CUDA
    virtual PVCuda::CudaBuffer *getDeviceWData() { return originalConn->postConn->getDeviceWData(); }
 #endif
@@ -58,11 +56,6 @@ class TransposeConn : public HyPerConn {
    virtual void ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag);
    virtual void ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag);
    virtual void ioParam_plasticityFlag(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_triggerFlag(enum ParamsIOFlag ioFlag) { /* triggerFlag is deprecated as of
-                                                                   Aug 17, 2015.  See
-                                                                   HyPerConn::ioParam_triggerFlag
-                                                                   for details*/
-   }
    virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag);
    virtual void ioParam_combine_dW_with_W_flag(enum ParamsIOFlag ioFlag);
    virtual void ioParam_nxp(enum ParamsIOFlag ioFlag);

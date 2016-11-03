@@ -103,7 +103,6 @@ void TransposeConn::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
       // make sure that TransposePoolingConn always checks if its originalConn has updated
       triggerFlag      = false;
       triggerLayerName = NULL;
-      parent->parameters()->handleUnnecessaryParameter(name, "triggerFlag", triggerFlag);
       parent->parameters()->handleUnnecessaryStringParameter(name, "triggerLayerName", NULL);
    }
 }
@@ -286,7 +285,9 @@ int TransposeConn::communicateInitInfo() {
       exit(EXIT_FAILURE);
    }
 
-   originalConn->setNeedPost(true);
+   if (!updateGSynFromPostPerspective) {
+      originalConn->setNeedPost();
+   }
 
 #ifdef PV_USE_CUDA
    if ((updateGSynFromPostPerspective && receiveGpu) || allocPostDeviceWeights) {
@@ -317,9 +318,11 @@ int TransposeConn::setPatchSize() {
    assert(originalConn);
 
    int xscaleDiff = pre->getXScale() - post->getXScale();
+   int yscaleDiff = pre->getYScale() - post->getYScale();
    int nxp_orig   = originalConn->xPatchSize();
    int nyp_orig   = originalConn->yPatchSize();
-   nxp            = nxp_orig;
+
+   nxp = nxp_orig;
    if (xscaleDiff > 0) {
       nxp *= (int)pow(2, xscaleDiff);
    }
@@ -328,8 +331,7 @@ int TransposeConn::setPatchSize() {
       assert(nxp_orig == nxp * pow(2, (float)(-xscaleDiff)));
    }
 
-   int yscaleDiff = pre->getYScale() - post->getYScale();
-   nyp            = nyp_orig;
+   nyp = nyp_orig;
    if (yscaleDiff > 0) {
       nyp *= (int)pow(2, yscaleDiff);
    }
@@ -338,10 +340,10 @@ int TransposeConn::setPatchSize() {
       assert(nyp_orig == nyp * pow(2, (float)(-yscaleDiff)));
    }
 
-   nfp = post->getLayerLoc()->nf;
    // post->getLayerLoc()->nf must be the same as
    // originalConn->preSynapticLayer()->getLayerLoc()->nf.
    // This requirement is checked in communicateInitInfo
+   nfp = post->getLayerLoc()->nf;
 
    parent->parameters()->handleUnnecessaryParameter(name, "nxp", nxp);
    parent->parameters()->handleUnnecessaryParameter(name, "nyp", nyp);
@@ -359,6 +361,11 @@ int TransposeConn::allocatePostDeviceWeights() { return PV_SUCCESS; }
 int TransposeConn::allocatePostConn() {
    pvInfo() << "Connection " << name << " setting " << originalConn->getName() << " as postConn\n";
    postConn = originalConn;
+
+   // Can't do this with shrink patches flag
+   if (needPost && !shrinkPatches_flag) {
+      allocatePostToPreBuffer();
+   }
    return PV_SUCCESS;
 }
 
@@ -385,12 +392,14 @@ int TransposeConn::allocateDataStructures() {
 }
 
 int TransposeConn::constructWeights() {
-   setPatchStrides();
-   wPatches       = this->originalConn->postConn->get_wPatches();
-   wDataStart     = this->originalConn->postConn->get_wDataStart();
-   gSynPatchStart = this->originalConn->postConn->getGSynPatchStart();
-   aPostOffset    = this->originalConn->postConn->getAPostOffset();
-   dwDataStart    = this->originalConn->postConn->get_dwDataStart();
+   if (originalConn->postConn) {
+      setPatchStrides();
+      wPatches       = originalConn->postConn->get_wPatches();
+      wDataStart     = originalConn->postConn->get_wDataStart();
+      gSynPatchStart = originalConn->postConn->getGSynPatchStart();
+      aPostOffset    = originalConn->postConn->getAPostOffset();
+      dwDataStart    = originalConn->postConn->get_dwDataStart();
+   }
    return PV_SUCCESS;
 }
 
