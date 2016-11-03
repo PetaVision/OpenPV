@@ -393,7 +393,7 @@ int TransposePoolingConn::communicateInitInfo() {
       exit(EXIT_FAILURE);
    }
 
-   mOriginalConn->setNeedPost();
+   if (!updateGSynFromPostPerspective) { mOriginalConn->setNeedPost(); }
    mOriginalConn->setNeedAllocPostWeights(false);
 
    // Synchronize margines of this post and orig pre, and vice versa

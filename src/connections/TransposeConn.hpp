@@ -34,8 +34,6 @@ class TransposeConn : public HyPerConn {
    virtual void setAllocPostDeviceWeights() { originalConn->setAllocDeviceWeights(); }
 #endif // PV_USE_CUDA
 
-   virtual long *getPostToPreActivity() { return originalConn->postConn->getPostToPreActivity(); }
-
 #ifdef PV_USE_CUDA
    virtual PVCuda::CudaBuffer *getDeviceWData() { return originalConn->postConn->getDeviceWData(); }
 #endif

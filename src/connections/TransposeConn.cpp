@@ -286,7 +286,7 @@ int TransposeConn::communicateInitInfo() {
       exit(EXIT_FAILURE);
    }
 
-   originalConn->setNeedPost();
+   if (!updateGSynFromPostPerspective) { originalConn->setNeedPost(); }
 
 #ifdef PV_USE_CUDA
    if ((updateGSynFromPostPerspective && receiveGpu) || allocPostDeviceWeights) {
@@ -359,6 +359,11 @@ int TransposeConn::allocatePostDeviceWeights() { return PV_SUCCESS; }
 int TransposeConn::allocatePostConn() {
    pvInfo() << "Connection " << name << " setting " << originalConn->getName() << " as postConn\n";
    postConn = originalConn;
+
+   // Can't do this with shrink patches flag
+   if (needPost && !shrinkPatches_flag) {
+      allocatePostToPreBuffer();
+   }
    return PV_SUCCESS;
 }
 
@@ -385,12 +390,14 @@ int TransposeConn::allocateDataStructures() {
 }
 
 int TransposeConn::constructWeights() {
-   setPatchStrides();
-   wPatches       = this->originalConn->postConn->get_wPatches();
-   wDataStart     = this->originalConn->postConn->get_wDataStart();
-   gSynPatchStart = this->originalConn->postConn->getGSynPatchStart();
-   aPostOffset    = this->originalConn->postConn->getAPostOffset();
-   dwDataStart    = this->originalConn->postConn->get_dwDataStart();
+   if (originalConn->postConn) {
+      setPatchStrides();
+      wPatches       = this->originalConn->postConn->get_wPatches();
+      wDataStart     = this->originalConn->postConn->get_wDataStart();
+      gSynPatchStart = this->originalConn->postConn->getGSynPatchStart();
+      aPostOffset    = this->originalConn->postConn->getAPostOffset();
+      dwDataStart    = this->originalConn->postConn->get_dwDataStart();
+   }
    return PV_SUCCESS;
 }
 
