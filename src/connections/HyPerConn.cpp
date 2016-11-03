@@ -426,8 +426,8 @@ int HyPerConn::initialize(char const *name, HyPerCol *hc) {
    io_timer     = new Timer(getName(), "conn", "io     ");
    update_timer = new Timer(getName(), "conn", "update ");
 
-   _sparseWeightsAllocated.resize(numAxonalArborLists);
-   std::fill(_sparseWeightsAllocated.begin(), _sparseWeightsAllocated.end(), false);
+   mSparseWeightsAllocated.resize(numAxonalArborLists);
+   std::fill(mSparseWeightsAllocated.begin(), mSparseWeightsAllocated.end(), false);
 
    return status;
 }
@@ -950,7 +950,7 @@ void HyPerConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
 
 void HyPerConn::ioParam_weightSparsity(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValue(
-         ioFlag, name, "weightSparsity", &_weightSparsity, 0.0f, false);
+         ioFlag, name, "weightSparsity", &mWeightSparsity, 0.0f, false);
 }
 
 int HyPerConn::setWeightNormalizer() {
@@ -1788,7 +1788,7 @@ int HyPerConn::initializeReceivePreKernelArgs() {
    int nxp             = xPatchSize();
    int nyp             = yPatchSize();
    int nfp             = fPatchSize();
-   float dt_factor     = getConvertToRateDeltaTimeFactor();
+   float dtFactor      = getConvertToRateDeltaTimeFactor();
    int i_sharedWeights = sharedWeights;
 
    int sy  = getPostNonextStrides()->sy;
@@ -1823,7 +1823,7 @@ int HyPerConn::initializeReceivePreKernelArgs() {
 
          sy,
          syw,
-         dt_factor,
+         dtFactor,
          i_sharedWeights,
          d_Patches,
          d_GSynPatchStart,
@@ -1870,7 +1870,7 @@ int HyPerConn::initializeReceivePostKernelArgs() {
    int sy              = (preLoc->nx + preHalo->rt + preHalo->lt) * preLoc->nf;
    int syp             = postConn->yPatchStride();
    int numPerStride    = postConn->xPatchSize() * postConn->fPatchSize();
-   float dt_factor     = getConvertToRateDeltaTimeFactor();
+   float dtFactor      = getConvertToRateDeltaTimeFactor();
    int i_sharedWeights = sharedWeights;
 
    const PVHalo *oHalo = &postConn->preSynapticLayer()->getLayerLoc()->halo;
@@ -1943,7 +1943,7 @@ int HyPerConn::initializeReceivePostKernelArgs() {
          sy,
          syp,
          numPerStride,
-         dt_factor,
+         dtFactor,
          i_sharedWeights,
 
          d_PostToPreActivity,
@@ -2875,12 +2875,12 @@ int HyPerConn::deliverPresynapticPerspectiveConvolve(PVLayerCube const *activity
    }
    pvAssert(post->getChannel(getChannel()));
 
-   float dt_factor = getConvertToRateDeltaTimeFactor();
+   float dtFactor = getConvertToRateDeltaTimeFactor();
    if (getPvpatchAccumulateType() == STOCHASTIC) {
-      dt_factor = getParent()->getDeltaTime();
+      dtFactor = getParent()->getDeltaTime();
    }
 
-   if (_weightSparsity > 0.0f && !_sparseWeightsAllocated[arbor]) {
+   if (mWeightSparsity > 0.0f && !mSparseWeightsAllocated[arbor]) {
       allocateSparseWeightsPre(activity, arbor);
    }
 
@@ -2934,7 +2934,7 @@ int HyPerConn::deliverPresynapticPerspectiveConvolve(PVLayerCube const *activity
                continue;
 
             // Activity
-            float a = activityBatch[kPreExt] * dt_factor;
+            float a = activityBatch[kPreExt] * dtFactor;
             if (a == 0.0f)
                continue;
 
@@ -2992,12 +2992,12 @@ int HyPerConn::deliverPresynapticPerspectiveStochastic(PVLayerCube const *activi
    }
    pvAssert(post->getChannel(getChannel()));
 
-   float dt_factor = getConvertToRateDeltaTimeFactor();
+   float dtFactor = getConvertToRateDeltaTimeFactor();
    if (getPvpatchAccumulateType() == STOCHASTIC) {
-      dt_factor = getParent()->getDeltaTime();
+      dtFactor = getParent()->getDeltaTime();
    }
 
-   if (_weightSparsity > 0.0f && !_sparseWeightsAllocated[arbor]) {
+   if (mWeightSparsity > 0.0f && !mSparseWeightsAllocated[arbor]) {
       allocateSparseWeightsPre(activity, arbor);
    }
 
@@ -3042,7 +3042,7 @@ int HyPerConn::deliverPresynapticPerspectiveStochastic(PVLayerCube const *activi
          int kPreExt = activity->isSparse ? activeIndicesBatch[idx] : idx;
 
          // Activity
-         float a = activityBatch[kPreExt] * dt_factor;
+         float a = activityBatch[kPreExt] * dtFactor;
          if (a == 0.0f)
             continue;
 
@@ -3117,12 +3117,12 @@ int HyPerConn::deliverPostsynapticPerspectiveConvolve(
    // Get number of neurons restricted target
    const int numPostRestricted = post->getNumNeurons();
 
-   float dt_factor = getConvertToRateDeltaTimeFactor();
+   float dtFactor = getConvertToRateDeltaTimeFactor();
    if (getPvpatchAccumulateType() == STOCHASTIC) {
-      dt_factor = getParent()->getDeltaTime();
+      dtFactor = getParent()->getDeltaTime();
    }
 
-   if (_weightSparsity > 0.0f && !_sparseWeightsAllocated[arbor]) {
+   if (mWeightSparsity > 0.0f && !mSparseWeightsAllocated[arbor]) {
       allocateSparseWeightsPost(activity, arbor);
    }
 
@@ -3163,10 +3163,10 @@ int HyPerConn::deliverPostsynapticPerspectiveConvolve(
 
    if (sharedWeights) {
       for (int b = 0; b < nbatch; b++) {
-         int numNeurons = recvPostSparse ? numActive[b] : numPostRestricted;
+         int numNeurons  = recvPostSparse ? numActive[b] : numPostRestricted;
+         int sourceNxExt = sourceNx + sourceHalo->rt + sourceHalo->lt;
+         int sourceNyExt = sourceNy + sourceHalo->dn + sourceHalo->up;
 
-         int sourceNxExt              = sourceNx + sourceHalo->rt + sourceHalo->lt;
-         int sourceNyExt              = sourceNy + sourceHalo->dn + sourceHalo->up;
          pvdata_t *activityBatch      = activity->data + b * sourceNxExt * sourceNyExt * sourceNf;
          pvdata_t *gSynPatchHeadBatch = gSynPatchHead + b * targetNx * targetNy * targetNf;
 
@@ -3196,15 +3196,15 @@ int HyPerConn::deliverPostsynapticPerspectiveConvolve(
                         targetHalo->rt,
                         targetHalo->dn,
                         targetHalo->up);
-                  int kernelIndex           = postConn->patchToDataLUT(kTargetExt);
-                  pvwdata_t *weightStartBuf = postConn->get_wDataHead(arbor, kernelIndex);
-                  pvwdata_t *w              = weightStartBuf + ky * syp;
+                  int kernelIndex      = postConn->patchToDataLUT(kTargetExt);
+                  pvwdata_t *weightBuf = postConn->get_wDataHead(arbor, kernelIndex);
+                  pvwdata_t *weights   = weightBuf + ky * syp;
 
-                  float dv = 0.0;
-                  for (int k = 0; k < numPerStride; k++) {
-                     dv += a[k] * w[k];
+                  float dv = 0.0f;
+                  for (int k = 0; k < numPerStride; ++k) {
+                     dv += a[k] * weights[k];
                   }
-                  *gSyn += dt_factor * dv;
+                  *gSyn += dtFactor * dv;
                }
             }
          }
@@ -3212,10 +3212,10 @@ int HyPerConn::deliverPostsynapticPerspectiveConvolve(
    }
    else {
       for (int b = 0; b < nbatch; b++) {
-         int numNeurons = recvPostSparse ? numActive[b] : numPostRestricted;
+         int numNeurons  = recvPostSparse ? numActive[b] : numPostRestricted;
+         int sourceNxExt = sourceNx + sourceHalo->rt + sourceHalo->lt;
+         int sourceNyExt = sourceNy + sourceHalo->dn + sourceHalo->up;
 
-         int sourceNxExt              = sourceNx + sourceHalo->rt + sourceHalo->lt;
-         int sourceNyExt              = sourceNy + sourceHalo->dn + sourceHalo->up;
          pvdata_t *activityBatch      = activity->data + b * sourceNxExt * sourceNyExt * sourceNf;
          pvdata_t *gSynPatchHeadBatch = gSynPatchHead + b * targetNx * targetNy * targetNf;
 
@@ -3244,15 +3244,15 @@ int HyPerConn::deliverPostsynapticPerspectiveConvolve(
                      targetHalo->rt,
                      targetHalo->dn,
                      targetHalo->up);
-               int kernelIndex           = kTargetExt;
-               pvwdata_t *weightStartBuf = postConn->get_wDataHead(arbor, kernelIndex);
-               pvwdata_t *w              = weightStartBuf + ky * syp;
+               int kernelIndex      = kTargetExt;
+               pvwdata_t *weightBuf = postConn->get_wDataHead(arbor, kernelIndex);
+               pvwdata_t *weights   = weightBuf + ky * syp;
 
-               float dv = 0.0;
-               for (int k = 0; k < numPerStride; k++) {
-                  dv += a[k] * w[k];
+               float dv = 0.0f;
+               for (int k = 0; k < numPerStride; ++k) {
+                  dv += a[k] * weights[k];
                }
-               *gSyn += dt_factor * dv;
+               *gSyn += dtFactor * dv;
             }
          }
       }
@@ -3288,12 +3288,12 @@ int HyPerConn::deliverPostsynapticPerspectiveStochastic(
    // Get number of neurons restricted target
    const int numPostRestricted = post->getNumNeurons();
 
-   double dt_factor = getConvertToRateDeltaTimeFactor();
+   double dtFactor = getConvertToRateDeltaTimeFactor();
    if (getPvpatchAccumulateType() == STOCHASTIC) {
-      dt_factor = getParent()->getDeltaTime();
+      dtFactor = getParent()->getDeltaTime();
    }
 
-   if (_weightSparsity > 0.0f && !_sparseWeightsAllocated[arbor]) {
+   if (mWeightSparsity > 0.0f && !mSparseWeightsAllocated[arbor]) {
       allocateSparseWeightsPost(activity, arbor);
    }
 
@@ -3376,7 +3376,7 @@ int HyPerConn::deliverPostsynapticPerspectiveStochastic(
                for (int k = 0; k < numPerStride; k++) {
                   *rng     = cl_random_get(*rng);
                   double p = (double)rng->s0 / cl_random_max(); // 0.0 < p < 1.0
-                  dv += (p < (double)a[k] * dt_factor) * w[k];
+                  dv += (p < (double)a[k] * dtFactor) * w[k];
                }
                *gSyn += dv;
             }
@@ -3417,18 +3417,18 @@ int HyPerConn::deliverPresynapticPerspectiveGPU(PVLayerCube const *activity, int
    }
    pvAssert(post->getChannel(getChannel()));
 
-   float dt_factor;
+   float dtFactor;
    if (getPvpatchAccumulateType() == STOCHASTIC) {
-      dt_factor = getParent()->getDeltaTime();
+      dtFactor = getParent()->getDeltaTime();
    }
    else if (getPvpatchAccumulateType() == CONVOLVE) {
-      dt_factor = getConvertToRateDeltaTimeFactor();
+      dtFactor = getConvertToRateDeltaTimeFactor();
    }
    else {
       pvError() << "Pooling accumulate not implemented for GPUs";
    }
 
-   krRecvPre->set_dt_factor(dt_factor);
+   krRecvPre->set_dt_factor(dtFactor);
 
    // Post layer receives synaptic input
    // Only with respect to post layer
@@ -3518,12 +3518,12 @@ int HyPerConn::deliverPostsynapticPerspectiveGPU(PVLayerCube const *activity, in
    // Get number of neurons restricted target
    const int numRestricted = post->getNumNeurons();
 
-   float dt_factor;
+   float dtFactor;
    if (getPvpatchAccumulateType() == STOCHASTIC) {
-      dt_factor = getParent()->getDeltaTime();
+      dtFactor = getParent()->getDeltaTime();
    }
    else if (getPvpatchAccumulateType() == CONVOLVE) {
-      dt_factor = getConvertToRateDeltaTimeFactor();
+      dtFactor = getConvertToRateDeltaTimeFactor();
    }
    else {
       pvAssert(0); // Only STOCHASTIC and CONVOLVE are defined in HyPerConn; other methods should be
@@ -3531,7 +3531,7 @@ int HyPerConn::deliverPostsynapticPerspectiveGPU(PVLayerCube const *activity, in
    }
 
    pvAssert(krRecvPost);
-   krRecvPost->set_dt_factor(dt_factor);
+   krRecvPost->set_dt_factor(dtFactor);
 
    const PVLayerLoc *sourceLoc = pre->getLayerLoc();
    const PVLayerLoc *targetLoc = post->getLayerLoc();
@@ -3600,7 +3600,7 @@ void HyPerConn::deliverOnePostNeuronActivity(
       int inSy,
       float *activityStartBuf,
       pvdata_t *gSynPatchPos,
-      float dt_factor,
+      float dtFactor,
       taus_uint4 *rngPtr) {
    // get source layer's patch y stride
    int syp        = postConn->yPatchStride();
@@ -3617,7 +3617,7 @@ void HyPerConn::deliverOnePostNeuronActivity(
       pvwdata_t *weightY = weightStartBuf + ky * syp;
       // TODO add sf here
       (accumulateFunctionFromPostPointer)(
-            0, numPerStride, gSynPatchPos, activityY, weightY, dt_factor, rngPtr, sf);
+            0, numPerStride, gSynPatchPos, activityY, weightY, dtFactor, rngPtr, sf);
    }
 }
 
@@ -3670,7 +3670,7 @@ int HyPerConn::createWeights(
 }
 
 double HyPerConn::getConvertToRateDeltaTimeFactor() {
-   double dt_factor = 1.0;
+   double dtFactor = 1.0;
    // if (preActivityIsNotRate) { // preActivityIsNotRate was replaced with convertRateToSpikeCount
    // on Dec 31, 2014
    if (convertRateToSpikeCount && !pre->activityIsSpiking()) {
@@ -3679,16 +3679,16 @@ double HyPerConn::getConvertToRateDeltaTimeFactor() {
       float tau                     = post->getChannelTimeConst(channel_type);
       if (tau > 0) {
          double exp_dt_tau = exp(-dt / tau);
-         dt_factor         = (1.0 - exp_dt_tau) / exp_dt_tau;
+         dtFactor          = (1.0 - exp_dt_tau) / exp_dt_tau;
          // the above factor was chosen so that for a constant input of G_SYN to an excitatory
          // conductance G_EXC,
          // then G_EXC -> G_SYN as t -> inf
       }
       else {
-         dt_factor = dt;
+         dtFactor = dt;
       }
    }
-   return dt_factor;
+   return dtFactor;
 }
 
 /**
@@ -4665,11 +4665,11 @@ SparseWeightInfo HyPerConn::findPercentileThreshold(
 SparseWeightInfo HyPerConn::calculateSparseWeightInfo() const {
    size_t patchSize = nfp * nxp * nyp;
    return findPercentileThreshold(
-         _weightSparsity, wDataStart, numAxonalArborLists, numDataPatches, patchSize);
+         mWeightSparsity, wDataStart, numAxonalArborLists, numDataPatches, patchSize);
 }
 
 void HyPerConn::allocateSparseWeightsPre(PVLayerCube const *activity, int arbor) {
-   _sparseWeightInfo = calculateSparseWeightInfo();
+   mSparseWeightInfo = calculateSparseWeightInfo();
 
    std::map<const WeightType *const, int> sizes;
 
@@ -4686,16 +4686,16 @@ void HyPerConn::allocateSparseWeightsPre(PVLayerCube const *activity, int arbor)
          bool shouldSparsify = false;
 
          // Find the weight pointers for this nk sized patch
-         WeightMapType::iterator sparseWeightValuesNk = _sparseWeightValues.find(nk);
-         IndexMapType::iterator sparseWeightIndexesNk = _sparseWeightIndexes.find(nk);
+         WeightMapType::iterator sparseWeightValuesNk = mSparseWeightValues.find(nk);
+         IndexMapType::iterator sparseWeightIndexesNk = mSparseWeightIndices.find(nk);
 
-         if (sparseWeightValuesNk == _sparseWeightValues.end()) {
+         if (sparseWeightValuesNk == mSparseWeightValues.end()) {
             // Weight pointers don't exist for this sized nk. Allocate a map for this nk
-            _sparseWeightValues.insert(make_pair(nk, WeightPtrMapType()));
-            _sparseWeightIndexes.insert(make_pair(nk, WeightIndexMapType()));
+            mSparseWeightValues.insert(make_pair(nk, WeightPtrMapType()));
+            mSparseWeightIndices.insert(make_pair(nk, WeightIndexMapType()));
             // Get references
-            sparseWeightValuesNk  = _sparseWeightValues.find(nk);
-            sparseWeightIndexesNk = _sparseWeightIndexes.find(nk);
+            sparseWeightValuesNk  = mSparseWeightValues.find(nk);
+            sparseWeightIndexesNk = mSparseWeightIndices.find(nk);
             shouldSparsify        = true;
          }
          else if (
@@ -4711,7 +4711,7 @@ void HyPerConn::allocateSparseWeightsPre(PVLayerCube const *activity, int arbor)
             // Equivalent to inner loop accumulate
             for (int k = 0; k < nk; k++) {
                WeightType weight = weightPtr[k];
-               if (std::abs(weight) >= _sparseWeightInfo.thresholdWeight) {
+               if (std::abs(weight) >= mSparseWeightInfo.thresholdWeight) {
                   sparseWeight.push_back(weight);
                   idx.push_back(k);
                }
@@ -4722,14 +4722,14 @@ void HyPerConn::allocateSparseWeightsPre(PVLayerCube const *activity, int arbor)
          }
       }
 
-      _kPreExtWeightSparsified.insert(kPreExt);
+      mKPreExtWeightSparsified.insert(kPreExt);
    }
 
-   _sparseWeightsAllocated[arbor] = true;
+   mSparseWeightsAllocated[arbor] = true;
 }
 
 void HyPerConn::allocateSparseWeightsPost(PVLayerCube const *activity, int arbor) {
-   _sparseWeightInfo           = calculateSparseWeightInfo();
+   mSparseWeightInfo           = calculateSparseWeightInfo();
    const PVLayerLoc *targetLoc = post->getLayerLoc();
    const PVHalo *targetHalo    = &targetLoc->halo;
    const int targetNx          = targetLoc->nx;
@@ -4764,16 +4764,16 @@ void HyPerConn::allocateSparseWeightsPost(PVLayerCube const *activity, int arbor
 
          // Find the weight pointers for this nk sized patch
          // Find the weight pointers for this nk sized patch
-         WeightMapType::iterator sparseWeightValuesNk = _sparseWeightValues.find(nk);
-         IndexMapType::iterator sparseWeightIndexesNk = _sparseWeightIndexes.find(nk);
+         WeightMapType::iterator sparseWeightValuesNk = mSparseWeightValues.find(nk);
+         IndexMapType::iterator sparseWeightIndexesNk = mSparseWeightIndices.find(nk);
 
-         if (_sparseWeightValues.find(nk) == _sparseWeightValues.end()) {
+         if (mSparseWeightValues.find(nk) == mSparseWeightValues.end()) {
             // Weight pointers don't exist for this sized nk. Allocate a map for this nk
-            _sparseWeightValues.insert(make_pair(nk, WeightPtrMapType()));
-            _sparseWeightIndexes.insert(make_pair(nk, WeightIndexMapType()));
+            mSparseWeightValues.insert(make_pair(nk, WeightPtrMapType()));
+            mSparseWeightIndices.insert(make_pair(nk, WeightIndexMapType()));
             // Get references
-            sparseWeightValuesNk  = _sparseWeightValues.find(nk);
-            sparseWeightIndexesNk = _sparseWeightIndexes.find(nk);
+            sparseWeightValuesNk  = mSparseWeightValues.find(nk);
+            sparseWeightIndexesNk = mSparseWeightIndices.find(nk);
             shouldSparsify        = true;
          }
          else if (
@@ -4788,7 +4788,7 @@ void HyPerConn::allocateSparseWeightsPost(PVLayerCube const *activity, int arbor
 
             for (int k = 0; k < nk; k++) {
                WeightType weight = weightPtr[k];
-               if (std::abs(weight) >= _sparseWeightInfo.thresholdWeight) {
+               if (std::abs(weight) >= mSparseWeightInfo.thresholdWeight) {
                   sparseWeight.push_back(weight);
                   idx.push_back(k);
                }
@@ -4799,10 +4799,10 @@ void HyPerConn::allocateSparseWeightsPost(PVLayerCube const *activity, int arbor
          }
       }
 
-      _kPreExtWeightSparsified.insert(kTargetRes);
+      mKPreExtWeightSparsified.insert(kTargetRes);
    }
 
-   _sparseWeightsAllocated[arbor] = true;
+   mSparseWeightsAllocated[arbor] = true;
 }
 
 void HyPerConn::deliverOnePreNeuronActivitySparseWeights(
@@ -4811,8 +4811,8 @@ void HyPerConn::deliverOnePreNeuronActivitySparseWeights(
       pvadata_t a,
       pvgsyndata_t *postBufferStart,
       void *auxPtr) {
-   pvAssert(_sparseWeightsAllocated[arbor] == true);
-   pvAssert(_kPreExtWeightSparsified.find(kPreExt) != _kPreExtWeightSparsified.end());
+   pvAssert(mSparseWeightsAllocated[arbor] == true);
+   pvAssert(mKPreExtWeightSparsified.find(kPreExt) != mKPreExtWeightSparsified.end());
 
    PVPatch *patch               = getWeights(kPreExt, arbor);
    const int nk                 = patch->nx * fPatchSize();
@@ -4826,14 +4826,14 @@ void HyPerConn::deliverOnePreNeuronActivitySparseWeights(
       WeightType *weightPtr = weightDataStart + y * yPatchStride();
       pvadata_t *post       = postPatchStart + y * sy + offset;
 
-      pvAssert(_sparseWeightValues.find(nk) != _sparseWeightValues.end());
+      pvAssert(mSparseWeightValues.find(nk) != mSparseWeightValues.end());
       pvAssert(
-            _sparseWeightValues.find(nk)->second.find(weightPtr)
-            != _sparseWeightValues.find(nk)->second.end());
+            mSparseWeightValues.find(nk)->second.find(weightPtr)
+            != mSparseWeightValues.find(nk)->second.end());
 
       const WeightListType &sparseWeights =
-            _sparseWeightValues.find(nk)->second.find(weightPtr)->second;
-      const IndexListType &idx = _sparseWeightIndexes.find(nk)->second.find(weightPtr)->second;
+            mSparseWeightValues.find(nk)->second.find(weightPtr)->second;
+      const IndexListType &idx = mSparseWeightIndices.find(nk)->second.find(weightPtr)->second;
 
       for (int k = 0; k < sparseWeights.size(); k++) {
          int outIdx = idx[k];
@@ -4848,7 +4848,7 @@ void HyPerConn::deliverOnePostNeuronActivitySparseWeights(
       int inSy,
       float *activityStartBuf,
       pvdata_t *gSynPatchPos,
-      float dt_factor,
+      float dtFactor,
       taus_uint4 *rngPtr) {
    // get source layer's patch y stride
    int syp        = postConn->yPatchStride();
@@ -4864,20 +4864,20 @@ void HyPerConn::deliverOnePostNeuronActivitySparseWeights(
 
       pvwdata_t *weightPtr = weightStartBuf + ky * syp;
 
-      pvAssert(_sparseWeightValues.find(nk) != _sparseWeightValues.end());
+      pvAssert(mSparseWeightValues.find(nk) != mSparseWeightValues.end());
       pvAssert(
-            _sparseWeightValues.find(nk)->second.find(weightPtr)
-            != _sparseWeightValues.find(nk)->second.end());
+            mSparseWeightValues.find(nk)->second.find(weightPtr)
+            != mSparseWeightValues.find(nk)->second.end());
 
       const WeightListType &sparseWeight =
-            _sparseWeightValues.find(nk)->second.find(weightPtr)->second;
-      const IndexListType &idx = _sparseWeightIndexes.find(nk)->second.find(weightPtr)->second;
+            mSparseWeightValues.find(nk)->second.find(weightPtr)->second;
+      const IndexListType &idx = mSparseWeightIndices.find(nk)->second.find(weightPtr)->second;
 
       float dv = 0.0;
       for (int k = 0; k < sparseWeight.size(); k++) {
          dv += activityY[idx[k]] * sparseWeight[k];
       }
-      *gSynPatchPos += dt_factor * dv;
+      *gSynPatchPos += dtFactor * dv;
    }
 }
 

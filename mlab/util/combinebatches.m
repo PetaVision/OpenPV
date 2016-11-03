@@ -34,7 +34,7 @@ function combinebatches(directory, layer_name, num_batch, batch_method, batch_wi
                result_index++;
             else
                per_batch_left = per_batch;
-               result_index += num_batch - 1;
+               result_index += num_batch - per_batch + 1;
             endif
          endfor
          i--;

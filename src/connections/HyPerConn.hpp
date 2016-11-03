@@ -364,15 +364,17 @@ class HyPerConn : public BaseConnection {
    // Percentage of weights that are ignored. Weight values must be above this threshold
    // to be included in the calculation. Valid values are 0.0 - 1.0. But there's no
    // point in setting this to 1.0.
-   float _weightSparsity;
+   float mWeightSparsity;
+
+   // Commented out 11/3/16, seem to be unused?
    // The output offset into the post layer for a weight
-   std::vector<int> _sparsePost;
+   // std::vector<int> mSparsePost;
    // Start of sparse weight data in the _sparseWeight array, indexed by data patch
-   std::vector<int> _patchSparseWeightIndex;
+   // std::vector<int> mPatchSparseWeightIndex;
    // Number of sparse weights for a patch, indexed by data patch
-   std::vector<int> _patchSparseWeightCount;
+   // std::vector<int> mPatchSparseWeightCount;
    // Have sparse weights been allocated for each arbor?
-   std::vector<bool> _sparseWeightsAllocated;
+   std::vector<bool> mSparseWeightsAllocated;
 
    typedef std::map<const WeightType *const, const WeightListType> WeightPtrMapType;
    typedef std::map<const WeightType *const, const IndexListType> WeightIndexMapType;
@@ -382,14 +384,15 @@ class HyPerConn : public BaseConnection {
    // Map nk -> weight ptr -> output index
    typedef std::map<int, WeightIndexMapType> IndexMapType;
 
-   WeightMapType _sparseWeightValues;
-   IndexMapType _sparseWeightIndexes;
-   SparseWeightInfo _sparseWeightInfo;
+   WeightMapType mSparseWeightValues;
+   IndexMapType mSparseWeightIndices;
+   SparseWeightInfo mSparseWeightInfo;
 
-   std::set<int> _kPreExtWeightSparsified;
+   std::set<int> mKPreExtWeightSparsified;
 
-   unsigned long _numDeliverCalls; // Number of times deliver has been called
-   unsigned long _allocateSparseWeightsFrequency; // Number of _numDeliverCalls that need to happen
+   // unsigned long mNumDeliverCalls; // Number of times deliver has been called
+   // unsigned long mAllocateSparseWeightsFrequency; // Number of mNumDeliverCalls that need to
+   // happen
    // before the pre list needs to be rebuilt
 
    // Allocate sparse weights when performing presynaptic delivery
