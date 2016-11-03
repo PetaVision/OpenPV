@@ -527,7 +527,8 @@ int HyPerConn::initPlasticityPatches() {
    } // loop over arbors
 
    if (sharedWeights && normalizeDwFlag) {
-      numKernelActivations[0] = (long *)pvCalloc(nxp * nyp * nfp * nPatches, sizeof(long));
+      std::size_t numWeights  = (std::size_t)(nxp * nyp * nfp) * (std::size_t)nPatches;
+      numKernelActivations[0] = (long *)pvCalloc(numWeights, sizeof(long));
       for (int arborId = 0; arborId < numAxons; arborId++) {
          numKernelActivations[arborId] = (numKernelActivations[0] + sp * nPatches * arborId);
          pvAssert(get_dwDataStart(arborId) != NULL);
