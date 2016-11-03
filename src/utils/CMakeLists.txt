@@ -8,13 +8,13 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
 )
 
 set (PVLibSrcHpp ${PVLibSrcHpp}
+   ${SUBDIR}/BufferUtilsMPI.hpp
+   ${SUBDIR}/BufferUtilsPvp.hpp
+   ${SUBDIR}/BufferUtilsRescale.hpp
    ${SUBDIR}/Clock.hpp
    ${SUBDIR}/PVAssert.hpp
    ${SUBDIR}/PVAlloc.hpp
    ${SUBDIR}/PVLog.hpp
-   ${SUBDIR}/BufferUtilsRescale.hpp
-   ${SUBDIR}/BufferUtilsMPI.hpp
-   ${SUBDIR}/BufferUtilsPvp.hpp
    ${SUBDIR}/Timer.hpp
 )
 

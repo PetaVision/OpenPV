@@ -2,10 +2,11 @@
 #include "io/FileStream.hpp"
 #include "structures/Buffer.hpp"
 #include "utils/BufferUtilsMPI.hpp"
+#include "utils/BufferUtilsPvp.hpp"
 
 namespace PV {
 
-void readRandState(
+double readRandState(
       std::string const &path,
       Communicator *comm,
       taus_uint4 *randState,
@@ -21,11 +22,9 @@ void readRandState(
    int numGlobal = nxGlobal * nyGlobal * nf;
 
    Buffer<taus_uint4> buffer{nxGlobal, nyGlobal, nf};
+   double timestamp;
    if (comm->commRank() == 0) {
-      taus_uint4 globalData[numGlobal];
-      FileStream fileStream{path.c_str(), std::ios_base::in, false /*verifyWrites, not needed*/};
-      fileStream.read(globalData, numGlobal);
-      buffer.set(globalData, nxGlobal, nyGlobal, nf);
+      timestamp = BufferUtils::readFromPvp(path.c_str(), &buffer, 0 /*frameReadIndex*/);
    }
    BufferUtils::scatter(comm, buffer, loc->nx, loc->ny);
    int nxLocal = loc->nx;
@@ -37,6 +36,8 @@ void readRandState(
    int numLocal         = nxLocal * nyLocal * nf;
    std::size_t numBytes = sizeof(taus_uint4) * (std::size_t)numLocal;
    memcpy(randState, buffer.asVector().data(), numBytes);
+   MPI_Bcast(&timestamp, 1, MPI_DOUBLE, 0 /*root proc*/, comm->communicator());
+   return timestamp;
 }
 
 void writeRandState(
@@ -45,6 +46,7 @@ void writeRandState(
       taus_uint4 const *randState,
       PVLayerLoc const *loc,
       bool extended,
+      double simTime,
       bool verifyWrites) {
    int nxLocal = loc->nx;
    int nyLocal = loc->ny;
@@ -56,10 +58,17 @@ void writeRandState(
    Buffer<taus_uint4> localBuffer{randState, nxLocal, nyLocal, nf};
    Buffer<taus_uint4> globalBuffer = BufferUtils::gather(comm, localBuffer, loc->nx, loc->ny);
    if (comm->commRank() == 0) {
-      FileStream fileStream{path.c_str(), std::ios_base::out, verifyWrites};
-      fileStream.write(
-            globalBuffer.asVector().data(), globalBuffer.getTotalElements() * sizeof(taus_uint4));
+      BufferUtils::writeToPvp<taus_uint4>(path.c_str(), &globalBuffer, simTime, verifyWrites);
    }
 }
+
+namespace BufferUtils {
+
+template <>
+HeaderDataType returnDataType<taus_uint4>() {
+   return TAUS_UINT4;
+}
+
+} // end namespace BufferUtils
 
 } // end namespace PV

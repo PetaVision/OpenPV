@@ -287,7 +287,7 @@ int Retina::readStateFromCheckpoint(const char *cpDir, double *timeptr) {
 int Retina::readRandStateFromCheckpoint(const char *cpDir) {
    int status = PV_SUCCESS;
    if (spikingFlag) {
-      char *filename = parent->pathInCheckpoint(cpDir, getName(), "_rand_state.bin");
+      char *filename = parent->pathInCheckpoint(cpDir, getName(), "_rand_state.pvp");
       readRandState(
             filename,
             parent->getCommunicator(),

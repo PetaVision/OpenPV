@@ -48,13 +48,8 @@ void testPvpExtended(PV::Communicator *comm, std::string const &directory) {
    // Need to make sure that checkpointData.data() never gets relocated, since the
    // CheckpointEntryPvp's mDataPointer doesn't change with it.
    std::vector<float> checkpointData(correctData.size());
-   PV::CheckpointEntryPvp<float> checkpointEntryPvp{"checkpointEntryPvpExtended",
-                                                    comm,
-                                                    checkpointData.data(),
-                                                    checkpointData.size(),
-                                                    PV_FLOAT_TYPE,
-                                                    &loc,
-                                                    true /*extended*/};
+   PV::CheckpointEntryPvp<float> checkpointEntryPvp{
+         "checkpointEntryPvpExtended", comm, checkpointData.data(), &loc, true /*extended*/};
 
    double const simTime = 10.0;
    // Copy correct data into checkpoint data.

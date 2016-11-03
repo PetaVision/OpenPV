@@ -265,7 +265,6 @@ class HyPerLayer : public BaseLayer {
    char *pathInCheckpoint(const char *cpDir, const char *suffix);
    int readDataStoreFromFile(const char *filename, Communicator *comm, double *timed);
    int incrementNBands(int *numCalls);
-   int writeDataStoreToFile(const char *filename, Communicator *comm, double dtime);
    void calcNumExtended();
 
    /**
@@ -396,15 +395,6 @@ class HyPerLayer : public BaseLayer {
          const char *filename,
          Communicator *comm,
          double *timed,
-         T **buffers,
-         int numbands,
-         bool extended,
-         const PVLayerLoc *loc);
-   template <typename T>
-   static int writeBufferFile(
-         const char *filename,
-         Communicator *comm,
-         double dtime,
          T **buffers,
          int numbands,
          bool extended,
