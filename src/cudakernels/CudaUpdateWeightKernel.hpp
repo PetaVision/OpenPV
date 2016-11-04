@@ -15,9 +15,8 @@ class CudaUpdateWeightKernel : public CudaKernel {
   virtual ~CudaUpdateWeightKernel();
 
   void setArgs(PVLayerLoc const* _preLoc, PVLayerLoc const* _postLoc,
-               const PVHalo* _preHalo, const PVHalo* _postHalo, int _numBatch,
-               CudaBuffer* _errorBuffer, CudaBuffer* _activityBuffer,
-               CudaBuffer* _weightBuffer);
+               int _numBatch, int nxpPost, int nypPost, CudaBuffer* _errorBuffer,
+               CudaBuffer* _activityBuffer, CudaBuffer* _weightBuffer);
 
  protected:
   void findCudnnAlgo();

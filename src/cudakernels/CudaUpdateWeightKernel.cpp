@@ -37,21 +37,7 @@ CudaUpdateWeightKernel::~CudaUpdateWeightKernel() {
 }
 
 void CudaUpdateWeightKernel::findCudnnAlgo() {
-  int n, c, h, w;
-  cudnnHandleError(cudnnGetConvolution2dForwardOutputDim(
-                       cudnnConvolutionDescriptor, cudnnTensorDescriptorPre,
-                       cudnnFilterDescriptor, &n, &c, &h, &w),
-                   "cudnnGetConvolution2dForwardOutputDim");
-
-  if (c != postLoc->nf || h != postLoc->ny || w != postLoc->nx) {
-    pvError() << ("Convolution result dimension mismatched.\n" + to_string(c) +
-                  " " + to_string(h) + " " + to_string(w) + " vs. " +
-                  to_string(postLoc->nf) + " " + to_string(postLoc->ny) + " " +
-                  to_string(postLoc->nx) + " ")
-              << endl;
-  }
-
-  int m = 8;
+  int n, m = 8;
   std::vector<cudnnConvolutionBwdFilterAlgoPerf_t> p =
       std::vector<cudnnConvolutionBwdFilterAlgoPerf_t>(m);
   cudnnHandleError(
@@ -80,16 +66,15 @@ void CudaUpdateWeightKernel::findCudnnAlgo() {
 }
 
 void CudaUpdateWeightKernel::setArgs(PVLayerLoc const* _preLoc,
-                                     PVLayerLoc const* _postLoc,
-                                     const PVHalo* _preHalo,
-                                     const PVHalo* _postHalo, int _numBatch,
+                                     PVLayerLoc const* _postLoc, int _numBatch,
+                                     int nxpPost, int nypPost,
                                      CudaBuffer* _errorBuffer,
                                      CudaBuffer* _activityBuffer,
                                      CudaBuffer* _weightBuffer) {
   preLoc = _preLoc;
   postLoc = _postLoc;
-  preHalo = _preHalo;
-  postHalo = _postHalo;
+  preHalo = &_preLoc->halo;
+  postHalo = &_postLoc->halo;
   numBatch = _numBatch;
   errorBuffer = _errorBuffer;
   activityBuffer = _activityBuffer;
@@ -100,37 +85,61 @@ void CudaUpdateWeightKernel::setArgs(PVLayerLoc const* _preLoc,
   int manyScaleX, manyScaleY;
   float fmanyScale;
   preToPostScaleX = preLoc->nx / ((pvdata_t)postLoc->nx);
-  preToPostScaleY = preLoc->ny / ((pvdata_t)postLos->ny);
+  preToPostScaleY = preLoc->ny / ((pvdata_t)postLoc->ny);
 
+  // One to many
   if (preToPostScaleX < 1) {
-    fmanyScale = (float)1 / params.preToPostScaleX;
-    manyScaleX = fmanyScale;
-    manyScaleY = fmanyScale;
     strideX = 1;
     strideY = 1;
-  } else {
-    manyScaleX = 1;
-    manyScaleY = 1;
+
+    cudnnHandleError(
+        cudnnSetTensor4dDescriptor(cudnnTensorDescriptorPre, CUDNN_TENSOR_NCHW,
+                                   CUDNN_DATA_FLOAT, numBatch, preLoc->nf,
+                                   preLoc->ny + nypPost, preLoc->nx + nxpPost),
+        "set 4D tensor");
+
+  } else {  // many to one
     strideX = preToPostScaleX;
     strideY = preToPostScaleY;
+
+    cudnnHandleError(
+        cudnnSetTensor4dDescriptor(cudnnTensorDescriptorPre, CUDNN_TENSOR_NCHW,
+                                   CUDNN_DATA_FLOAT, numBatch, preLoc->nf,
+                                   preLoc->ny + nypPost - preToPostScaleY,
+                                   preLoc->nx + nxpPost - preToPostScaleX),
+        "set 4D tensor");
   }
 
   cudnnHandleError(
-      cudnnSetTensor4dDescriptor(cudnnTensorDescriptorPre, CUDNN_TENSOR_NCHW,
-                                 CUDNN_DATA_FLOAT, numBatch, preLoc->nf,
-                                 preLoc->ny, preLoc->nx),
+      cudnnSetTensor4dDescriptor(cudnnTensorDescriptorPost, CUDNN_TENSOR_NCHW,
+                                 CUDNN_DATA_FLOAT, numBatch, postLoc->nf,
+                                 postLoc->ny, postLoc->nx),
       "set 4D tensor");
 
   cudnnHandleError(
-      cudnnSetTensor4dDescriptor(cudnnTensorDescriptorPost, CUDNN_TENSOR_NCHW,
-                                 CUDNN_DATA_FLOAT, 1, postLoc->nf, postLoc->ny,
-                                 postLoc->nx),
-      "set 4D tensor");
+      cudnnSetConvolution2dDescriptor(cudnnConvolutionDescriptor, 0, 0, strideY,
+                                      strideX, 1.0, 1.0, CUDNN_CONVOLUTION),
+      "set 2D convolution descriptor");
 
-  cudnnHandleError(cudnnStatusCheck(
-      cudnnSetConvolution2dDescriptor(cudnnConvolutionDescriptor, 0, 0, xStride,
-                                      yStride, 1.0, 1.0, CUDNN_CONVOLUTION),
-      "set 2D convolution descriptor"));
+  cudnnHandleError(cudnnSetFilter4dDescriptor(
+      cudnnFilterDescriptor, CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, postLoc->nf,
+      preLoc->nf, preLoc->nyp, preLoc->nxp));
+
+
+	// test dimension setting
+	int n, c, h, w;
+  cudnnHandleError(cudnnGetConvolution2dForwardOutputDim(
+                       cudnnConvolutionDescriptor, cudnnTensorDescriptorPre,
+                       cudnnFilterDescriptor, &n, &c, &h, &w),
+                   "cudnnGetConvolution2dForwardOutputDim");
+
+  if (c != postLoc->nf || h != postLoc->ny || w != postLoc->nx || n != numBatch) {
+    pvError() << ("Convolution result dimension mismatched.\n" + to_string(n) + " " + to_string(c) +
+                  " " + to_string(h) + " " + to_string(w) + " vs. " + to_string(numBatch) + " " + 
+                  to_string(postLoc->nf) + " " + to_string(postLoc->ny) + " " +
+                  to_string(postLoc->nx) + " ")
+              << endl;
+  }
 
   findCudnnAlgo();
 }
