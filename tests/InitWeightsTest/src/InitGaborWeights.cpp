@@ -32,12 +32,12 @@ InitWeightsParams *InitGaborWeights::createNewWeightParams() {
    return tempPtr;
 }
 
-int InitGaborWeights::calcWeights(pvwdata_t *dataStart, int patchIndex, int arborId) {
+int InitGaborWeights::calcWeights(float *dataStart, int patchIndex, int arborId) {
 
    InitGaborWeightsParams *weightParamPtr = dynamic_cast<InitGaborWeightsParams *>(weightParams);
 
    if (weightParamPtr == NULL) {
-      pvError().printf("Failed to recast pointer to weightsParam!  Exiting...");
+      Fatal().printf("Failed to recast pointer to weightsParam!  Exiting...");
    }
 
    weightParamPtr->calcOtherParams(patchIndex);
@@ -47,7 +47,7 @@ int InitGaborWeights::calcWeights(pvwdata_t *dataStart, int patchIndex, int arbo
    return PV_SUCCESS; // return 1;
 }
 
-int InitGaborWeights::gaborWeights(pvwdata_t *dataStart, InitGaborWeightsParams *weightParamPtr) {
+int InitGaborWeights::gaborWeights(float *dataStart, InitGaborWeightsParams *weightParamPtr) {
    // load necessary params:
    int nfPatch_tmp = weightParamPtr->getnfPatch();
    int nyPatch_tmp = weightParamPtr->getnyPatch();
@@ -69,7 +69,7 @@ int InitGaborWeights::gaborWeights(pvwdata_t *dataStart, InitGaborWeightsParams 
 
    // 2014.6.19:Rasmussen - const should allow the compiler to optimize the
    //  if (compress) ... statement below.
-   const bool compress = (sizeof(pvwdata_t) == sizeof(unsigned char));
+   const bool compress = (sizeof(float) == sizeof(unsigned char));
 
    for (int fPost = 0; fPost < nfPatch_tmp; fPost++) {
       float thPost = weightParamPtr->calcThPost(fPost);
@@ -91,7 +91,7 @@ int InitGaborWeights::gaborWeights(pvwdata_t *dataStart, InitGaborWeightsParams 
             int index = iPost * sx_tmp + jPost * sy_tmp + fPost * sf_tmp;
 
             if (xDelta * xDelta + yDelta * yDelta > r2Max) {
-               dataStart[index] = (pvwdata_t)0;
+               dataStart[index] = (float)0;
             }
             else {
                if (invert)

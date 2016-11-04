@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
       kb = kIndexExtended(
             kl, nx, ny, nf, nb, nb, nb, nb); // All margin widths the same.  Should generalize
       if (kb != kg) {
-         pvError().printf("FAILED:TEST_EXTEND_BORDER: (kl,kb) = (%d,%d)\n", kl, kb);
+         Fatal().printf("FAILED:TEST_EXTEND_BORDER: (kl,kb) = (%d,%d)\n", kl, kb);
       }
    }
 

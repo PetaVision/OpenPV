@@ -15,8 +15,8 @@ int main(int argc, char *argv[]) {
    PV_Init *initObj = new PV_Init(&argc, &argv, false /*allowUnrecognizedArguments*/);
    if (initObj->getParamsFile()) {
       if (initObj->getWorldRank() == 0) {
-         pvErrorNoExit() << argv[0] << " should be run without the params file argument.\n"
-                         << "This test uses several hard-coded params files\n";
+         ErrorLog() << argv[0] << " should be run without the params file argument.\n"
+                    << "This test uses several hard-coded params files\n";
       }
       MPI_Barrier(MPI_COMM_WORLD);
       exit(EXIT_FAILURE);
@@ -56,14 +56,14 @@ int runparamsfile(PV_Init *initObj, char const *paramsfile) {
    int rank = 0;
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
    int status = initObj->setParams(paramsfile);
-   pvErrorIf(status != PV_SUCCESS, "Test failed.\n");
+   FatalIf(status != PV_SUCCESS, "Test failed.\n");
 
    HyPerCol *hc = build(initObj);
    if (hc != NULL) {
       status = hc->run();
       if (status != PV_SUCCESS) {
          if (rank == 0) {
-            pvErrorNoExit().printf(
+            ErrorLog().printf(
                   "%s: running with params file %s returned status code %d.\n",
                   initObj->getProgramName(),
                   paramsfile,
@@ -83,7 +83,7 @@ int runparamsfile(PV_Init *initObj, char const *paramsfile) {
    HyPerConn *origConn = dynamic_cast<HyPerConn *>(hc->getConnFromName("OriginalConn"));
    if (origConn == NULL) {
       if (rank == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "Unable to find connection named \"OriginalConn\" in params file \"%s\".\n",
                paramsfile);
       }
@@ -92,7 +92,7 @@ int runparamsfile(PV_Init *initObj, char const *paramsfile) {
    CopyConn *copyConn = dynamic_cast<CopyConn *>(hc->getConnFromName("CopyConn"));
    if (origConn == NULL) {
       if (rank == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "Unable to find connection named \"CopyConn\" in params file \"%s\".\n", paramsfile);
       }
       status = PV_FAILURE;
@@ -103,40 +103,40 @@ int runparamsfile(PV_Init *initObj, char const *paramsfile) {
    }
 
    NormalizeBase *origNormalizer = origConn->getNormalizer();
-   pvErrorIf(!(origNormalizer), "Test failed.\n");
+   FatalIf(!(origNormalizer), "Test failed.\n");
    float origStrength = origNormalizer->getStrength();
 
    NormalizeBase *copyNormalizer = copyConn->getNormalizer();
-   pvErrorIf(!(copyNormalizer), "Test failed.\n");
+   FatalIf(!(copyNormalizer), "Test failed.\n");
    float copyStrength = copyNormalizer->getStrength();
 
    int origNumPatches = origConn->getNumDataPatches();
    int copyNumPatches = copyConn->getNumDataPatches();
-   pvErrorIf(!(origNumPatches == copyNumPatches), "Test failed.\n");
+   FatalIf(!(origNumPatches == copyNumPatches), "Test failed.\n");
    int origNxp = origConn->xPatchSize();
    int copyNxp = copyConn->xPatchSize();
-   pvErrorIf(!(origNxp == copyNxp), "Test failed.\n");
+   FatalIf(!(origNxp == copyNxp), "Test failed.\n");
    int origNyp = origConn->yPatchSize();
    int copyNyp = copyConn->yPatchSize();
-   pvErrorIf(!(origNyp == copyNyp), "Test failed.\n");
+   FatalIf(!(origNyp == copyNyp), "Test failed.\n");
    int origNfp = origConn->fPatchSize();
    int copyNfp = copyConn->fPatchSize();
-   pvErrorIf(!(origNfp == copyNfp), "Test failed.\n");
+   FatalIf(!(origNfp == copyNfp), "Test failed.\n");
    int origNumArbors = origConn->numberOfAxonalArborLists();
    int copyNumArbors = copyConn->numberOfAxonalArborLists();
-   pvErrorIf(!(origNumArbors == copyNumArbors), "Test failed.\n");
+   FatalIf(!(origNumArbors == copyNumArbors), "Test failed.\n");
 
    for (int arbor = 0; arbor < origNumArbors; arbor++) {
       for (int patchindex = 0; patchindex < origNumPatches; patchindex++) {
          for (int y = 0; y < origNyp; y++) {
             for (int x = 0; x < origNxp; x++) {
                for (int f = 0; f < origNfp; f++) {
-                  int indexinpatch     = kIndex(x, y, f, origNxp, origNyp, origNfp);
-                  pvwdata_t origWeight = origConn->get_wDataHead(arbor, patchindex)[indexinpatch];
-                  pvwdata_t copyWeight = copyConn->get_wDataHead(arbor, patchindex)[indexinpatch];
-                  float discrep = fabsf(origWeight * copyStrength - copyWeight * origStrength);
+                  int indexinpatch = kIndex(x, y, f, origNxp, origNyp, origNfp);
+                  float origWeight = origConn->get_wDataHead(arbor, patchindex)[indexinpatch];
+                  float copyWeight = copyConn->get_wDataHead(arbor, patchindex)[indexinpatch];
+                  float discrep    = fabsf(origWeight * copyStrength - copyWeight * origStrength);
                   if (discrep > 1e-6f) {
-                     pvErrorNoExit().printf(
+                     ErrorLog().printf(
                            "Rank %d: arbor %d, patchindex %d, x=%d, y=%d, f=%d: discrepancy of "
                            "%g\n",
                            hc->columnId(),

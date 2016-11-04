@@ -16,7 +16,7 @@ KernelConn::KernelConn(
       NormalizeBase *weightNormalizer)
       : HyPerConn() {
    if (hc->columnId() == 0) {
-      pvError().printf(
+      Fatal().printf(
             "KernelConn \"%s\": class KernelConn is obsolete.  "
             "Instead use HyPerConn with "
             "parameter sharedWeights set to true.\n",

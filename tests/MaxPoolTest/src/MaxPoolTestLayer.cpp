@@ -17,12 +17,12 @@ int MaxPoolTestLayer::updateState(double timef, double dt) {
    int nf                = loc->nf;
    int kx0               = loc->kx0;
    int ky0               = loc->ky0;
-   pvErrorIf(!(nf == 3), "Test failed.\n");
+   FatalIf(!(nf == 3), "Test failed.\n");
 
    bool isCorrect = true;
    for (int b = 0; b < loc->nbatch; b++) {
       // Grab the activity layer of current layer
-      const pvdata_t *A = getActivity() + b * getNumExtended();
+      const float *A = getActivity() + b * getNumExtended();
       // We only care about restricted space
       for (int iY = loc->halo.up; iY < ny + loc->halo.up; iY++) {
          for (int iX = loc->halo.lt; iX < nx + loc->halo.lt; iX++) {
@@ -53,12 +53,12 @@ int MaxPoolTestLayer::updateState(double timef, double dt) {
                // float expectedvalue = 8*xval+yval+137;
                float expectedvalue = (yval + 1) + 8 * (xval + 1) + 64 * iFeature;
                if (actualvalue != expectedvalue) {
-                  pvErrorNoExit() << "Connection " << name << " Mismatch at (" << iX << "," << iY
-                                  << ") : actual value: " << actualvalue
-                                  << " Expected value: " << expectedvalue
-                                  << ".  Discrepancy is a whopping " << actualvalue - expectedvalue
-                                  << "!  Horrors!"
-                                  << "\n";
+                  ErrorLog() << "Connection " << name << " Mismatch at (" << iX << "," << iY
+                             << ") : actual value: " << actualvalue
+                             << " Expected value: " << expectedvalue
+                             << ".  Discrepancy is a whopping " << actualvalue - expectedvalue
+                             << "!  Horrors!"
+                             << "\n";
                   isCorrect = false;
                }
             }

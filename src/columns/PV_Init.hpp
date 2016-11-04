@@ -362,9 +362,9 @@ class PV_Init {
     * Obsolete.  Use createHyPerCol defined in HyPerCol.cpp instead.
     */
    HyPerCol *build() {
-      pvError() << "PV_Init::build is obsolete.  " // marked obsolete July 19, 2016.
-                << "Use hc=createHyPerCol(pv_init_ptr) instead of "
-                   "hc=pv_init_ptr->build()\n";
+      Fatal() << "PV_Init::build is obsolete.  " // marked obsolete July 19, 2016.
+              << "Use hc=createHyPerCol(pv_init_ptr) instead of "
+                 "hc=pv_init_ptr->build()\n";
       return nullptr;
    }
 
@@ -375,7 +375,7 @@ class PV_Init {
 
    /**
     * A method used internally by initialize() to set the streams that will
-    * be used by pvInfo(), pvWarn(), etc.
+    * be used by InfoLog(), WarnLog(), etc.
     * If the logFile is a path, the root process writes to that path and the
     * nonroot process will write to a path modified by inserting _<rank>
     * before the extension, or at the end if the path has no extension.
@@ -383,9 +383,9 @@ class PV_Init {
     * error streams.
     *
     * After setting the log file streams, initLogFile() writes the time stamp
-    * to pvInfo() and calls PV_Arguments::printState(), which writes the
+    * to InfoLog() and calls PV_Arguments::printState(), which writes the
     * effective
-    * command line to pvInfo().
+    * command line to InfoLog().
     */
    void initLogFile(bool appendFlag);
 
@@ -401,7 +401,7 @@ class PV_Init {
    int createParams();
 
    /**
-    * Sends a timestamp and the effective command line to the pvInfo stream.
+    * Sends a timestamp and the effective command line to the InfoLog stream.
     * The effective command line is based on the current state of the arguments
     * data member.
     */

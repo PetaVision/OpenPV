@@ -53,7 +53,7 @@ class L0NormProbe : public AbstractNormProbe {
    int initL0NormProbe_base() { return PV_SUCCESS; }
 
   protected:
-   pvadata_t nnzThreshold;
+   float nnzThreshold;
 }; // end class L0NormProbe
 
 } // end namespace PV

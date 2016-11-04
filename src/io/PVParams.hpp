@@ -450,7 +450,7 @@ void PVParams::handleUnnecessaryParameter(
    if (present(group_name, param_name)) {
       if (worldRank == 0) {
          const char *class_name = groupKeywordFromName(group_name);
-         pvWarn().printf(
+         WarnLog().printf(
                "%s \"%s\" does not use parameter %s, but it is present in the parameters file.\n",
                class_name,
                group_name,
@@ -462,8 +462,8 @@ void PVParams::handleUnnecessaryParameter(
       if (params_value != correct_value) {
          status = PV_FAILURE;
          if (worldRank == 0) {
-            pvErrorNoExit() << "   Value " << params_value << " is inconsistent with correct value "
-                            << correct_value << std::endl;
+            ErrorLog() << "   Value " << params_value << " is inconsistent with correct value "
+                       << correct_value << std::endl;
          }
       }
    }
@@ -511,7 +511,7 @@ void PVParams::ioParamArray(
       pvAssert(*arraysize >= 0);
       if (*arraysize > 0) {
          *paramArrayValue = (T *)calloc((size_t)*arraysize, sizeof(T));
-         pvErrorIf(
+         FatalIf(
                paramArrayValue == nullptr,
                "%s \"%s\": global rank %d process unable to copy array parameter %s: %s\n",
                groupKeywordFromName(groupName),

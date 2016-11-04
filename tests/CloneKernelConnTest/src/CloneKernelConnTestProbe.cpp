@@ -35,9 +35,9 @@ int CloneKernelConnTestProbe::outputState(double timed) {
 
    for (int b = 0; b < getParent()->getNBatch(); b++) {
       if (timed > 2.0) {
-         pvErrorIf(!(fabsf(fMin[b]) < 1e-6f), "Test failed.\n");
-         pvErrorIf(!(fabsf(fMax[b]) < 1e-6f), "Test failed.\n");
-         pvErrorIf(!(fabsf(avg[b]) < 1e-6f), "Test failed.\n");
+         FatalIf(!(fabsf(fMin[b]) < 1e-6f), "Test failed.\n");
+         FatalIf(!(fabsf(fMax[b]) < 1e-6f), "Test failed.\n");
+         FatalIf(!(fabsf(avg[b]) < 1e-6f), "Test failed.\n");
       }
    }
 

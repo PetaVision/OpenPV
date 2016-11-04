@@ -17,7 +17,7 @@ namespace PVCuda {
 CudaBuffer::CudaBuffer(size_t inSize, CudaDevice *inDevice, cudaStream_t stream) {
    handleError(cudaMalloc(&d_ptr, inSize), "CudaBuffer constructor");
    if (!d_ptr) {
-      pvError().printf("Cuda Buffer allocation error\n");
+      Fatal().printf("Cuda Buffer allocation error\n");
    }
    this->size   = inSize;
    this->stream = stream;
@@ -40,7 +40,7 @@ int CudaBuffer::copyToDevice(const void *h_ptr) {
 
 int CudaBuffer::copyToDevice(const void *h_ptr, size_t in_size) {
    if (in_size > this->size) {
-      pvError().printf(
+      Fatal().printf(
             "copyToDevice, in_size of %zu is bigger than buffer size of %zu\n",
             in_size,
             this->size);
@@ -58,7 +58,7 @@ int CudaBuffer::copyFromDevice(void *h_ptr) {
 
 int CudaBuffer::copyFromDevice(void *h_ptr, size_t in_size) {
    if (in_size > this->size) {
-      pvError().printf(
+      Fatal().printf(
             "copyFromDevice: in_size of %zu is bigger than buffer size of %zu\n",
             in_size,
             this->size);

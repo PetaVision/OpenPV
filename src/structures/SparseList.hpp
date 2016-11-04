@@ -41,7 +41,7 @@ class SparseList {
       int numElements = dest.getTotalElements();
       vector<T> newData(numElements, zeroVal);
       for (auto entry : mList) {
-         pvErrorIf(
+         FatalIf(
                entry.index > numElements,
                "Buffer is not large enough to hold index %d / %d\n",
                entry.index,

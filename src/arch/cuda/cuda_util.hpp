@@ -16,7 +16,7 @@ inline void handleError(cudaError_t error, const char *message) {
       return;
    }
    else {
-      pvError().printf("Cuda call error in %s: %s\n", message, cudaGetErrorString(error));
+      Fatal().printf("Cuda call error in %s: %s\n", message, cudaGetErrorString(error));
    }
 }
 

@@ -34,13 +34,13 @@ int ConstantV::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void ConstantV::ioParam_valueV(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "valueV", &mValueV, (pvdata_t)V_REST);
+   parent->parameters()->ioParamValue(ioFlag, name, "valueV", &mValueV, (float)V_REST);
 }
 
-int ConstantV::calcV(pvdata_t *V, PVLayerLoc const *loc) {
+int ConstantV::calcV(float *V, PVLayerLoc const *loc) {
    int status = PV_SUCCESS;
    if (V == NULL) {
-      pvError().printf("%s: calcV called but membrane potential V is null.\n", getDescription_c());
+      Fatal().printf("%s: calcV called but membrane potential V is null.\n", getDescription_c());
    }
    int const numNeurons = loc->nx * loc->ny * loc->nf * loc->nbatch;
    for (int k = 0; k < numNeurons; k++) {

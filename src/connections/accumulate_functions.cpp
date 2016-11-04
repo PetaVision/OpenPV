@@ -8,7 +8,7 @@ void pvpatch_accumulate(
       int nk,
       float *restrict v,
       float a,
-      pvwdata_t *restrict w,
+      float *restrict w,
       float *restrict m) {
    const float scale     = 33.3f;
    const float inv_scale = 1.0f / scale;
@@ -23,7 +23,7 @@ int pvpatch_accumulate(
       int nk,
       float *RESTRICT v,
       float a,
-      pvwdata_t *RESTRICT w,
+      float *RESTRICT w,
       void *auxPtr,
       int sf) {
    for (int k = 0; k < nk; ++k) {
@@ -38,7 +38,7 @@ int pvpatch_accumulate_from_post(
       int nk,
       float *RESTRICT v,
       float *RESTRICT a,
-      pvwdata_t *RESTRICT w,
+      float *RESTRICT w,
       float dt_factor,
       void *auxPtr,
       int sf) {
@@ -50,12 +50,7 @@ int pvpatch_accumulate_from_post(
    return PV_SUCCESS;
 }
 
-int pvpatch_accumulate2(
-      int nk,
-      float *RESTRICT v,
-      float a,
-      pvwdata_t *RESTRICT w,
-      float *RESTRICT m) {
+int pvpatch_accumulate2(int nk, float *RESTRICT v, float a, float *RESTRICT w, float *RESTRICT m) {
    for (int k = 0; k < nk; ++k) {
       v[k] += a * w[k] * m[k];
    }
@@ -68,7 +63,7 @@ int pvpatch_accumulate_stochastic(
       int nk,
       float *RESTRICT v,
       float a,
-      pvwdata_t *RESTRICT w,
+      float *RESTRICT w,
       void *auxPtr,
       int sf) {
    taus_uint4 *rng = (taus_uint4 *)auxPtr;
@@ -85,7 +80,7 @@ int pvpatch_accumulate_stochastic_from_post(
       int nk,
       float *RESTRICT v,
       float *RESTRICT a,
-      pvwdata_t *RESTRICT w,
+      float *RESTRICT w,
       float dt_factor,
       void *auxPtr,
       int sf) {
@@ -105,7 +100,7 @@ int pvpatch_max_pooling(
       int nk,
       float *RESTRICT v,
       float a,
-      pvwdata_t *RESTRICT w,
+      float *RESTRICT w,
       void *auxPtr,
       int sf) {
    float *gate = (float *)auxPtr;
@@ -126,7 +121,7 @@ int pvpatch_max_pooling_from_post(
       int nk,
       float *RESTRICT v,
       float *RESTRICT a,
-      pvwdata_t *RESTRICT w,
+      float *RESTRICT w,
       float dt_factor,
       void *auxPtr,
       int sf) {
@@ -155,7 +150,7 @@ int pvpatch_sum_pooling(
       int nk,
       float *RESTRICT v,
       float a,
-      pvwdata_t *RESTRICT w,
+      float *RESTRICT w,
       void *auxPtr,
       int sf) {
    for (int k = 0; k < nk; k += sf) {
@@ -169,7 +164,7 @@ int pvpatch_sumpooling_from_post(
       int nk,
       float *RESTRICT v,
       float *RESTRICT a,
-      pvwdata_t *RESTRICT w,
+      float *RESTRICT w,
       float dt_factor,
       void *auxPtr,
       int sf) {

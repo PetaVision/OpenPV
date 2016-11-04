@@ -74,7 +74,7 @@ class TransposeConn : public HyPerConn {
       return PV_SUCCESS;
    }
    virtual int setInitialValues();
-   virtual PVPatch ***initializeWeights(PVPatch ***arbors, pvwdata_t **dataStart);
+   virtual PVPatch ***initializeWeights(PVPatch ***arbors, float **dataStart);
    virtual int calc_dW(int arborId) { return PV_BREAK; };
    virtual int constructWeights();
    virtual int allocatePostConn();

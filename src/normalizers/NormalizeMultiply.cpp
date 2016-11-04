@@ -67,7 +67,7 @@ void NormalizeMultiply::ioParam_normalizeFromPostPerspective(enum ParamsIOFlag i
        && !parent->parameters()->present(name, "normalizeFromPostPerspective")
        && parent->parameters()->present(name, "normalize_arbors_individually")) {
       if (parent->columnId() == 0) {
-         pvWarn().printf(
+         WarnLog().printf(
                "Normalizer \"%s\": parameter name normalizeTotalToPost is deprecated.  Use "
                "normalizeFromPostPerspective.\n",
                name);
@@ -95,7 +95,7 @@ int NormalizeMultiply::normalizeWeights() {
       // Do we need to require sharedWeights be the same for all connections in the group?
       if (conn->usingSharedWeights() != conn0->usingSharedWeights()) {
          if (parent->columnId() == 0) {
-            pvErrorNoExit().printf(
+            ErrorLog().printf(
                   "%s: All connections in the normalization group must have the same sharedWeights "
                   "(%s has %d; %s has %d).\n",
                   this->getDescription_c(),
@@ -108,7 +108,7 @@ int NormalizeMultiply::normalizeWeights() {
       }
       if (conn->numberOfAxonalArborLists() != conn0->numberOfAxonalArborLists()) {
          if (parent->columnId() == 0) {
-            pvErrorNoExit().printf(
+            ErrorLog().printf(
                   "%s: All connections in the normalization group must have the same number of "
                   "arbors (%s has %d; %s has %d).\n",
                   this->getDescription_c(),
@@ -121,7 +121,7 @@ int NormalizeMultiply::normalizeWeights() {
       }
       if (conn->getNumDataPatches() != conn0->getNumDataPatches()) {
          if (parent->columnId() == 0) {
-            pvErrorNoExit().printf(
+            ErrorLog().printf(
                   "%s: All connections in the normalization group must have the same number of "
                   "data patches (%s has %d; %s has %d).\n",
                   this->getDescription_c(),
@@ -146,7 +146,7 @@ int NormalizeMultiply::normalizeWeights() {
          int num_patches          = conn->getNumDataPatches();
          int num_weights_in_patch = conn->xPatchSize() * conn->yPatchSize() * conn->fPatchSize();
          for (int arbor = 0; arbor < num_arbors; arbor++) {
-            pvwdata_t *dataPatchStart = conn->get_wDataStart(arbor);
+            float *dataPatchStart = conn->get_wDataStart(arbor);
             for (int patchindex = 0; patchindex < num_patches; patchindex++) {
                applyRMin(
                      dataPatchStart + patchindex * num_weights_in_patch,
@@ -170,9 +170,9 @@ int NormalizeMultiply::normalizeWeights() {
          int num_weights_in_patch = conn->xPatchSize() * conn->yPatchSize() * conn->fPatchSize();
          int num_weights_in_arbor = num_patches * num_weights_in_patch;
          for (int arbor = 0; arbor < num_arbors; arbor++) {
-            pvwdata_t *dataPatchStart = conn->get_wDataStart(arbor);
+            float *dataPatchStart = conn->get_wDataStart(arbor);
             for (int weightindex = 0; weightindex < num_weights_in_arbor; weightindex++) {
-               pvwdata_t *w = &dataPatchStart[weightindex];
+               float *w = &dataPatchStart[weightindex];
                if (*w < 0) {
                   *w = 0;
                }
@@ -190,7 +190,7 @@ int NormalizeMultiply::normalizeWeights() {
          int num_patches          = conn->getNumDataPatches();
          int num_weights_in_patch = conn->xPatchSize() * conn->yPatchSize() * conn->fPatchSize();
          for (int arbor = 0; arbor < num_arbors; arbor++) {
-            pvwdata_t *dataStart = conn->get_wDataStart(arbor);
+            float *dataStart = conn->get_wDataStart(arbor);
             for (int patchindex = 0; patchindex < num_patches; patchindex++) {
                accumulateMaxAbs(
                      dataStart + patchindex * num_weights_in_patch, num_weights_in_patch, &max);
@@ -203,7 +203,7 @@ int NormalizeMultiply::normalizeWeights() {
          int num_patches          = conn->getNumDataPatches();
          int num_weights_in_patch = conn->xPatchSize() * conn->yPatchSize() * conn->fPatchSize();
          for (int arbor = 0; arbor < num_arbors; arbor++) {
-            pvwdata_t *dataStart = conn->get_wDataStart(arbor);
+            float *dataStart = conn->get_wDataStart(arbor);
             for (int patchindex = 0; patchindex < num_patches; patchindex++) {
                applyThreshold(
                      dataStart + patchindex * num_weights_in_patch, num_weights_in_patch, max);
@@ -221,7 +221,7 @@ int NormalizeMultiply::normalizeWeights() {
  * weights_in_patch is the number of weights in the dataPatchStart buffer
  * wMax defines the threshold.  If |w| < wMax * normalize_cutoff, the weight will be zeroed.
  */
-int NormalizeMultiply::applyThreshold(pvwdata_t *dataPatchStart, int weights_in_patch, float wMax) {
+int NormalizeMultiply::applyThreshold(float *dataPatchStart, int weights_in_patch, float wMax) {
    assert(normalize_cutoff > 0); // Don't call this routine unless normalize_cutoff was set
    float threshold = wMax * normalize_cutoff;
    for (int k = 0; k < weights_in_patch; k++) {
@@ -237,7 +237,7 @@ int NormalizeMultiply::applyThreshold(pvwdata_t *dataPatchStart, int weights_in_
 // the diameter of the central exclusion region is truncated to the nearest integer value, which may
 // be zero
 int NormalizeMultiply::applyRMin(
-      pvwdata_t *dataPatchStart,
+      float *dataPatchStart,
       float rMinX,
       float rMinY,
       int nxp,
@@ -246,14 +246,14 @@ int NormalizeMultiply::applyRMin(
       int yPatchStride) {
    if (rMinX == 0 && rMinY == 0)
       return PV_SUCCESS;
-   int fullWidthX            = floor(2 * rMinX);
-   int fullWidthY            = floor(2 * rMinY);
-   int offsetX               = ceil((nxp - fullWidthX) / 2.0);
-   int offsetY               = ceil((nyp - fullWidthY) / 2.0);
-   int widthX                = nxp - 2 * offsetX;
-   int widthY                = nyp - 2 * offsetY;
-   pvwdata_t *rMinPatchStart = dataPatchStart + offsetY * yPatchStride + offsetX * xPatchStride;
-   int weights_in_row        = xPatchStride * widthX;
+   int fullWidthX        = floor(2 * rMinX);
+   int fullWidthY        = floor(2 * rMinY);
+   int offsetX           = ceil((nxp - fullWidthX) / 2.0);
+   int offsetY           = ceil((nyp - fullWidthY) / 2.0);
+   int widthX            = nxp - 2 * offsetX;
+   int widthY            = nyp - 2 * offsetY;
+   float *rMinPatchStart = dataPatchStart + offsetY * yPatchStride + offsetX * xPatchStride;
+   int weights_in_row    = xPatchStride * widthX;
    for (int ky = 0; ky < widthY; ky++) {
       for (int k = 0; k < weights_in_row; k++) {
          rMinPatchStart[k] = 0;

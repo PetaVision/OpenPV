@@ -31,12 +31,12 @@ InitWeightsParams *InitCocircWeights::createNewWeightParams() {
    return tempPtr;
 }
 
-int InitCocircWeights::calcWeights(pvdata_t *dataStart, int patchIndex, int arborId) {
+int InitCocircWeights::calcWeights(float *dataStart, int patchIndex, int arborId) {
 
    InitCocircWeightsParams *weightParamPtr = dynamic_cast<InitCocircWeightsParams *>(weightParams);
 
    if (weightParamPtr == NULL) {
-      pvError().printf("Failed to recast pointer to weightsParam!  Exiting...");
+      Fatal().printf("Failed to recast pointer to weightsParam!  Exiting...");
    }
 
    weightParamPtr->calcOtherParams(patchIndex);
@@ -46,7 +46,7 @@ int InitCocircWeights::calcWeights(pvdata_t *dataStart, int patchIndex, int arbo
    return PV_SUCCESS;
 }
 
-int InitCocircWeights::cocircCalcWeights(pvdata_t *w_tmp, InitCocircWeightsParams *weightParamPtr) {
+int InitCocircWeights::cocircCalcWeights(float *w_tmp, InitCocircWeightsParams *weightParamPtr) {
 
    // load stored params:
    int nfPatch_tmp  = weightParamPtr->getnfPatch();

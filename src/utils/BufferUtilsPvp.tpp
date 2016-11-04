@@ -47,7 +47,7 @@ HeaderDataType returnDataType() {
 template <typename T>
 struct ActivityHeader buildActivityHeader(int width, int height, int features, int numFrames) {
    HeaderDataType dataType = returnDataType<T>();
-   pvErrorIf(
+   FatalIf(
          dataType == UNRECOGNIZED_DATATYPE,
          "buildActivityHeader called with unrecognized data type.\n");
 
@@ -123,7 +123,7 @@ void appendToPvp(
 
    // Modify the number of records in the header
    struct ActivityHeader header = readActivityHeader(fStream);
-   pvErrorIf(
+   FatalIf(
          frameWriteIndex > header.nBands,
          "Cannot write entry %d when only %d entries exist.\n",
          frameWriteIndex,
@@ -144,7 +144,7 @@ template <typename T>
 double readFromPvp(const char *fName, Buffer<T> *buffer, int frameReadIndex) {
    FileStream fStream(fName, std::ios_base::in | std::ios_base::binary, false);
    struct ActivityHeader header = readActivityHeader(fStream);
-   pvErrorIf(
+   FatalIf(
          header.fileType != PVP_NONSPIKING_ACT_FILE_TYPE,
          "readFromPvp() can only be used on non-sparse activity pvps "
          "(PVP_NONSPIKING_ACT_FILE_TYPE)\n");
@@ -177,8 +177,8 @@ double readSparseFrame(FileStream &fStream, SparseList<T> *list) {
    int numElements  = -1;
    fStream.read(&timeStamp, sizeof(double));
    fStream.read(&numElements, sizeof(int));
-   pvErrorIf(timeStamp == -1, "Failed to read timeStamp.\n");
-   pvErrorIf(numElements == -1, "Failed to read numElements.\n");
+   FatalIf(timeStamp == -1, "Failed to read timeStamp.\n");
+   FatalIf(numElements == -1, "Failed to read numElements.\n");
    vector<struct SparseList<T>::Entry> contents(numElements);
    if (numElements > 0) {
       fStream.read(contents.data(), contents.size() * dataSize);
@@ -195,8 +195,8 @@ double readSparseBinaryFrame(FileStream &fStream, SparseList<T> *list, T oneValu
    int numElements  = -1;
    fStream.read(&timeStamp, sizeof(double));
    fStream.read(&numElements, sizeof(int));
-   pvErrorIf(timeStamp == -1, "Failed to read timeStamp.\n");
-   pvErrorIf(numElements == -1, "Failed to read numElements.\n");
+   FatalIf(timeStamp == -1, "Failed to read timeStamp.\n");
+   FatalIf(numElements == -1, "Failed to read numElements.\n");
    vector<struct SparseList<T>::Entry> contents(numElements);
    vector<int> indices(numElements);
    if (numElements > 0) {
@@ -217,7 +217,7 @@ double readSparseBinaryFrame(FileStream &fStream, SparseList<T> *list, T oneValu
 // begin.
 static SparseFileTable buildSparseFileTable(FileStream &fStream, int upToIndex) {
    struct ActivityHeader header = readActivityHeader(fStream);
-   pvErrorIf(
+   FatalIf(
          upToIndex > header.nBands,
          "buildSparseFileTable requested frame %d / %d.\n",
          upToIndex,
@@ -270,7 +270,7 @@ void appendSparseToPvp(
 
    // Modify the number of records in the header
    struct ActivityHeader header = readActivityHeader(fStream);
-   pvErrorIf(
+   FatalIf(
          frameWriteIndex > header.nBands,
          "Cannot write entry %d when only %d entries exist.\n",
          frameWriteIndex,
@@ -295,11 +295,11 @@ double readSparseFromPvp(
    FileStream fStream(fName, std::ios_base::in | std::ios_base::binary, false);
 
    struct ActivityHeader header = readActivityHeader(fStream);
-   pvErrorIf(
+   FatalIf(
          header.fileType != PVP_ACT_SPARSEVALUES_FILE_TYPE,
          "readSparseFromPvp() can only be used on sparse activity pvps "
          "(PVP_ACT_SPARSEVALUES_FILE_TYPE)\n");
-   pvErrorIf(
+   FatalIf(
          header.dataSize != sizeof(struct SparseList<T>::Entry),
          "Error: Expected data size %d, found %d.\n",
          sizeof(struct SparseList<T>::Entry),
@@ -328,11 +328,11 @@ double readSparseBinaryFromPvp(
    FileStream fStream(fName, std::ios_base::in | std::ios_base::binary, false);
 
    struct ActivityHeader header = readActivityHeader(fStream);
-   pvErrorIf(
+   FatalIf(
          header.fileType != PVP_ACT_FILE_TYPE,
          "readSparseBinaryFromPvp() can only be used on sparse binary pvps "
          "(PVP_ACT_FILE_TYPE)\n");
-   pvErrorIf(
+   FatalIf(
          header.dataSize != sizeof(int),
          "Error: Expected data size %d, found %d.\n",
          sizeof(int),

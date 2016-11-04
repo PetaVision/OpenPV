@@ -74,7 +74,7 @@ void ImprintConn::ioParam_imprintTimeThresh(enum ParamsIOFlag ioFlag) {
          imprintTimeThresh = weightUpdateTime * 100; // Default value of 100 weight updates
       }
       else if (imprintTimeThresh <= weightUpdateTime && parent->columnId() == 0) {
-         pvWarn().printf(
+         WarnLog().printf(
                "ImprintConn's imprintTimeThresh is smaller than weightUpdateTime. The "
                "algorithm will imprint on every weight update\n");
       }
@@ -82,8 +82,8 @@ void ImprintConn::ioParam_imprintTimeThresh(enum ParamsIOFlag ioFlag) {
 }
 
 int ImprintConn::imprintFeature(int arbor_ID, int batch_ID, int kExt) {
-   const pvdata_t *postactbufAll = postSynapticLayer()->getLayerData();
-   const pvdata_t *postactbuf    = postactbufAll + batch_ID * postSynapticLayer()->getNumExtended();
+   const float *postactbufAll = postSynapticLayer()->getLayerData();
+   const float *postactbuf    = postactbufAll + batch_ID * postSynapticLayer()->getNumExtended();
 
    const PVLayerLoc *postLoc = post->getLayerLoc();
 
@@ -93,15 +93,15 @@ int ImprintConn::imprintFeature(int arbor_ID, int batch_ID, int kExt) {
          (post->getLayerLoc()->nf * (post->getLayerLoc()->nx + post->getLayerLoc()->halo.lt
                                      + post->getLayerLoc()->halo.rt));
 
-   size_t offset              = getAPostOffset(kExt, arbor_ID);
-   const pvdata_t *postactRef = &postactbuf[offset];
+   size_t offset           = getAPostOffset(kExt, arbor_ID);
+   const float *postactRef = &postactbuf[offset];
 
-   int sym                    = 0;
-   const pvdata_t *maskactRef = NULL;
+   int sym                 = 0;
+   const float *maskactRef = NULL;
    if (useMask) {
-      const pvdata_t *maskactbufAll = mask->getLayerData();
-      const pvdata_t *maskactbuf    = maskactbufAll + batch_ID * mask->getNumExtended();
-      maskactRef                    = &maskactbuf[offset];
+      const float *maskactbufAll = mask->getLayerData();
+      const float *maskactbuf    = maskactbufAll + batch_ID * mask->getNumExtended();
+      maskactRef                 = &maskactbuf[offset];
       sym =
             (mask->getLayerLoc()->nf * (mask->getLayerLoc()->nx + mask->getLayerLoc()->halo.lt
                                         + mask->getLayerLoc()->halo.rt));
@@ -111,7 +111,7 @@ int ImprintConn::imprintFeature(int arbor_ID, int batch_ID, int kExt) {
    int nk          = weights->nx * nfp;
    int kernelIndex = patchIndexToDataIndex(kExt);
 
-   pvwdata_t *dwdata = get_dwData(arbor_ID, kExt);
+   float *dwdata     = get_dwData(arbor_ID, kExt);
    long *activations = NULL;
    if (normalizeDwFlag) {
       activations = get_activations(arbor_ID, kExt);
@@ -123,7 +123,7 @@ int ImprintConn::imprintFeature(int arbor_ID, int batch_ID, int kExt) {
 
    for (int y = 0; y < ny; y++) {
       for (int k = 0; k < nk; k++) {
-         pvdata_t aPost = postactRef[lineoffseta + k];
+         float aPost = postactRef[lineoffseta + k];
          // calculate contribution to dw unless masked out
          assert(!useMask || maskactRef != NULL); // if useMask is true, maskactRef must not be null
          float maskVal = 1;
@@ -164,13 +164,13 @@ int ImprintConn::initialize_dW(int arborId) {
 int ImprintConn::update_dW(int arbor_ID) {
    // That takes place in reduceKernels, so that the output is
    // independent of the number of processors.
-   int nExt                  = preSynapticLayer()->getNumExtended();
-   int numKernelIndices      = getNumDataPatches();
-   const PVLayerLoc *loc     = pre->getLayerLoc();
-   const pvdata_t *preactbuf = preSynapticLayer()->getLayerData(getDelay(arbor_ID));
-   int arborStart            = arbor_ID * numKernelIndices;
-   int patchSize             = nxp * nyp * nfp;
-   int nbatch                = loc->nbatch;
+   int nExt               = preSynapticLayer()->getNumExtended();
+   int numKernelIndices   = getNumDataPatches();
+   const PVLayerLoc *loc  = pre->getLayerLoc();
+   const float *preactbuf = preSynapticLayer()->getLayerData(getDelay(arbor_ID));
+   int arborStart         = arbor_ID * numKernelIndices;
+   int patchSize          = nxp * nyp * nfp;
+   int nbatch             = loc->nbatch;
 
    // Calculate x and y cell size
    int xCellSize  = zUnitCellSize(pre->getXScale(), post->getXScale());
@@ -195,7 +195,7 @@ int ImprintConn::update_dW(int arbor_ID) {
              > imprintTimeThresh) {
             imprinted[arborStart + kernelIdx]      = true;
             lastActiveTime[arborStart + kernelIdx] = parent->simulationTime();
-            pvInfo() << "Imprinted feature: Arbor " << arbor_ID << " kernel " << kernelIdx << "\n";
+            InfoLog() << "Imprinted feature: Arbor " << arbor_ID << " kernel " << kernelIdx << "\n";
          }
 
          // Loop over all cells in pre ext
@@ -252,8 +252,8 @@ int ImprintConn::update_dW(int arbor_ID) {
 int ImprintConn::updateWeights(int arbor_ID) {
    int numKernelIndices = getNumDataPatches();
    for (int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++) {
-      int arborStart          = kArbor * numKernelIndices;
-      pvwdata_t *w_data_start = get_wDataStart(kArbor);
+      int arborStart      = kArbor * numKernelIndices;
+      float *w_data_start = get_wDataStart(kArbor);
       for (int kKernel = 0; kKernel < numKernelIndices; kKernel++) {
          // Regular weight update
          for (int kPatch = 0; kPatch < nxp * nyp * nfp; kPatch++) {

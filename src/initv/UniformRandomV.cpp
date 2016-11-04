@@ -44,14 +44,14 @@ void UniformRandomV::ioParam_maxV(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValue(ioFlag, name, "maxV", &maxV, minV + 1.0f);
 }
 
-int UniformRandomV::calcV(pvdata_t *V, PVLayerLoc const *loc) {
+int UniformRandomV::calcV(float *V, PVLayerLoc const *loc) {
    PVLayerLoc flatLoc;
    memcpy(&flatLoc, loc, sizeof(PVLayerLoc));
    flatLoc.nf = 1;
    Random randState{&flatLoc, false /*not extended*/};
    const int nxny = flatLoc.nx * flatLoc.ny;
    for (int b = 0; b < loc->nbatch; b++) {
-      pvdata_t *VBatch = V + b * loc->nx * loc->ny * loc->nf;
+      float *VBatch = V + b * loc->nx * loc->ny * loc->nf;
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif

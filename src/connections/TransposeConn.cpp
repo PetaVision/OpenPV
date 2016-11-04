@@ -186,7 +186,7 @@ int TransposeConn::communicateInitInfo() {
    BaseConnection *originalConnBase = parent->getConnFromName(this->originalConnName);
    if (originalConnBase == NULL) {
       if (parent->columnId() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s: originalConnName \"%s\" does not refer to any connection in the column.\n",
                getDescription_c(),
                this->originalConnName);
@@ -197,7 +197,7 @@ int TransposeConn::communicateInitInfo() {
    this->originalConn = dynamic_cast<HyPerConn *>(originalConnBase);
    if (originalConn == NULL) {
       if (parent->columnId() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s: originalConnName \"%s\" is not an existing connection.\n",
                getDescription_c(),
                originalConnName);
@@ -209,7 +209,7 @@ int TransposeConn::communicateInitInfo() {
 
    if (!originalConn->getInitInfoCommunicatedFlag()) {
       if (parent->columnId() == 0) {
-         pvInfo().printf(
+         InfoLog().printf(
                "%s must wait until original connection \"%s\" has finished its communicateInitInfo "
                "stage.\n",
                getDescription_c(),
@@ -226,7 +226,7 @@ int TransposeConn::communicateInitInfo() {
 
    if (originalConn->getShrinkPatches_flag()) {
       if (parent->columnId() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "TransposeConn \"%s\": original conn \"%s\" has shrinkPatches set to true.  "
                "TransposeConn has not been implemented for that case.\n",
                name,
@@ -245,7 +245,7 @@ int TransposeConn::communicateInitInfo() {
    if (preLoc->nx != origPostLoc->nx || preLoc->ny != origPostLoc->ny
        || preLoc->nf != origPostLoc->nf) {
       if (parent->columnId() == 0) {
-         pvErrorNoExit(errorMessage);
+         ErrorLog(errorMessage);
          errorMessage.printf(
                "%s: transpose's pre layer and original connection's post layer must have the same "
                "dimensions.\n",
@@ -267,7 +267,7 @@ int TransposeConn::communicateInitInfo() {
    if (postLoc->nx != origPreLoc->nx || postLoc->ny != origPreLoc->ny
        || postLoc->nf != origPreLoc->nf) {
       if (parent->columnId() == 0) {
-         pvErrorNoExit(errorMessage);
+         ErrorLog(errorMessage);
          errorMessage.printf(
                "%s: transpose's post layer and original connection's pre layer must have the same "
                "dimensions.\n",
@@ -359,7 +359,7 @@ int TransposeConn::allocatePostDeviceWeights() { return PV_SUCCESS; }
 
 // Set this post to orig
 int TransposeConn::allocatePostConn() {
-   pvInfo() << "Connection " << name << " setting " << originalConn->getName() << " as postConn\n";
+   InfoLog() << "Connection " << name << " setting " << originalConn->getName() << " as postConn\n";
    postConn = originalConn;
 
    // Can't do this with shrink patches flag
@@ -372,7 +372,7 @@ int TransposeConn::allocatePostConn() {
 int TransposeConn::allocateDataStructures() {
    if (!originalConn->getDataStructuresAllocatedFlag()) {
       if (parent->columnId() == 0) {
-         pvInfo().printf(
+         InfoLog().printf(
                "%s must wait until original connection \"%s\" has finished its "
                "allocateDataStructures stage.\n",
                getDescription_c(),
@@ -426,7 +426,7 @@ int TransposeConn::setInitialValues() {
    return status;
 }
 
-PVPatch ***TransposeConn::initializeWeights(PVPatch ***patches, pvwdata_t **dataStart) {
+PVPatch ***TransposeConn::initializeWeights(PVPatch ***patches, float **dataStart) {
    // TransposeConn must wait until after originalConn has been normalized, so weight initialization
    // doesn't take place until HyPerCol::run calls finalizeUpdate
    return patches;

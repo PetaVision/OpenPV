@@ -22,8 +22,8 @@ FirmThresholdCostFnProbe::FirmThresholdCostFnProbe(const char *probeName, HyPerC
 }
 
 int FirmThresholdCostFnProbe::initFirmThresholdCostFnProbe_base() {
-   VThresh = (pvpotentialdata_t)0;
-   VWidth  = (pvpotentialdata_t)0;
+   VThresh = (float)0;
+   VWidth  = (float)0;
    return PV_SUCCESS;
 }
 
@@ -93,13 +93,13 @@ double FirmThresholdCostFnProbe::getValueInternal(double timevalue, int index) {
    double VThreshPlusVWidth = VThresh + VWidth;
    double amax              = 0.5 * VThreshPlusVWidth;
    double a2                = 0.5 / VThreshPlusVWidth;
-   pvadata_t const *aBuffer =
+   float const *aBuffer =
          getTargetLayer()->getLayerData() + index * getTargetLayer()->getNumExtended();
 
    if (getMaskLayer()) {
       PVLayerLoc const *maskLoc = getMaskLayer()->getLayerLoc();
       PVHalo const *maskHalo    = &maskLoc->halo;
-      pvadata_t const *maskLayerData =
+      float const *maskLayerData =
             getMaskLayer()->getLayerData()
             + index * getMaskLayer()->getNumExtended(); // Is there a DataStore method to return the
       // part of the layer data for a given batch

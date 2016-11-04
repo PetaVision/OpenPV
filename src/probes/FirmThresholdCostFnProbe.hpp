@@ -78,8 +78,8 @@ class FirmThresholdCostFnProbe : public AbstractNormProbe {
 
    // Member variables
   protected:
-   pvpotentialdata_t VThresh;
-   pvpotentialdata_t VWidth;
+   float VThresh;
+   float VWidth;
 }; // end class FirmThresholdCostFnProbe
 
 } // end namespace PV

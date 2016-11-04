@@ -79,7 +79,7 @@ void ISTALayer::ioParam_timeConstantTau(enum ParamsIOFlag ioFlag) {
 void ISTALayer::ioParam_selfInteract(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValue(ioFlag, name, "selfInteract", &selfInteract, selfInteract);
    if (parent->columnId() == 0) {
-      pvInfo() << "selfInteract = " << selfInteract << std::endl;
+      InfoLog() << "selfInteract = " << selfInteract << std::endl;
    }
 }
 
@@ -96,7 +96,7 @@ void ISTALayer::ioParam_adaptiveTimeScaleProbe(enum ParamsIOFlag ioFlag) {
 int ISTALayer::requireChannel(int channelNeeded, int *numChannelsResult) {
    int status = HyPerLayer::requireChannel(channelNeeded, numChannelsResult);
    if (channelNeeded >= 2 && parent->columnId() == 0) {
-      pvWarn().printf(
+      WarnLog().printf(
             "ISTALayer \"%s\": connection on channel %d, but ISTA only uses channels 0 and 1.\n",
             name,
             channelNeeded);
@@ -162,7 +162,7 @@ int ISTALayer::allocateUpdateKernel() {
 
 int ISTALayer::updateStateGpu(double time, double dt) {
    if (triggerLayer != NULL) {
-      pvError().printf("HyPerLayer::Trigger reset of V does not work on GPUs\n");
+      Fatal().printf("HyPerLayer::Trigger reset of V does not work on GPUs\n");
    }
    // Copy over d_dtAdapt
    d_dtAdapt->copyToDevice(deltaTimes());
@@ -179,10 +179,10 @@ double ISTALayer::getDeltaUpdateTime() { return parent->getDeltaTime(); }
 
 int ISTALayer::updateState(double time, double dt) {
    const PVLayerLoc *loc = getLayerLoc();
-   pvdata_t *A           = clayer->activity->data;
-   pvdata_t *V           = getV();
+   float *A              = clayer->activity->data;
+   float *V              = getV();
    int num_channels      = getNumChannels();
-   pvdata_t *gSynHead    = GSyn == NULL ? NULL : GSyn[0];
+   float *gSynHead       = GSyn == NULL ? NULL : GSyn[0];
    int nx                = loc->nx;
    int ny                = loc->ny;
    int nf                = loc->nf;

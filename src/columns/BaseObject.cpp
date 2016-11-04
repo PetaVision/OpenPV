@@ -48,7 +48,7 @@ int BaseObject::setName(char const *name) {
    int status = PV_SUCCESS;
    this->name = strdup(name);
    if (this->name == NULL) {
-      pvErrorNoExit().printf("could not set name \"%s\": %s\n", name, strerror(errno));
+      ErrorLog().printf("could not set name \"%s\": %s\n", name, strerror(errno));
       status = PV_FAILURE;
    }
    return status;
@@ -137,7 +137,7 @@ int BaseObject::respondAllocateData(AllocateDataMessage const *message) {
 int BaseObject::respondRegisterData(RegisterDataMessage<Checkpointer> const *message) {
    int status = registerData(message->mDataRegistry, name);
    if (status != PV_SUCCESS) {
-      pvError() << getDescription() << ": registerData failed.\n";
+      Fatal() << getDescription() << ": registerData failed.\n";
    }
    return status;
 }

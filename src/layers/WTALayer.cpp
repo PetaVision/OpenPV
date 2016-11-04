@@ -31,7 +31,7 @@ int WTALayer::communicateInitInfo() {
    originalLayer = parent->getLayerFromName(originalLayerName);
    if (originalLayer == NULL) {
       if (parent->columnId() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s: originalLayerName \"%s\" is not a layer in the HyPerCol.\n",
                getDescription_c(),
                originalLayerName);
@@ -49,7 +49,7 @@ int WTALayer::communicateInitInfo() {
    assert(srcLoc != NULL && loc != NULL);
    if (srcLoc->nxGlobal != loc->nxGlobal || srcLoc->nyGlobal != loc->nyGlobal) {
       if (parent->columnId() == 0) {
-         pvErrorNoExit(errorMessage);
+         ErrorLog(errorMessage);
          errorMessage.printf(
                "%s: originalLayerName \"%s\" does not have the same dimensions.\n",
                getDescription_c(),
@@ -65,7 +65,7 @@ int WTALayer::communicateInitInfo() {
       exit(EXIT_FAILURE);
    }
    if (getLayerLoc()->nf != 1) {
-      pvErrorNoExit().printf("%s: WTALayer can only have 1 feature.\n", getDescription_c());
+      ErrorLog().printf("%s: WTALayer can only have 1 feature.\n", getDescription_c());
    }
    assert(srcLoc->nx == loc->nx && srcLoc->ny == loc->ny);
    return status;
@@ -96,7 +96,7 @@ void WTALayer::ioParam_originalLayerName(enum ParamsIOFlag ioFlag) {
    assert(originalLayerName);
    if (ioFlag == PARAMS_IO_READ && originalLayerName[0] == '\0') {
       if (parent->columnId() == 0) {
-         pvErrorNoExit().printf("%s: originalLayerName must be set.\n", getDescription_c());
+         ErrorLog().printf("%s: originalLayerName must be set.\n", getDescription_c());
       }
       MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -108,7 +108,7 @@ void WTALayer::ioParam_binMaxMin(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValue(ioFlag, name, "binMin", &binMin, binMin);
    if (ioFlag == PARAMS_IO_READ && binMax <= binMin) {
       if (parent->columnId() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s: binMax (%f) must be greater than binMin (%f).\n",
                getDescription_c(),
                (double)binMax,
@@ -120,8 +120,8 @@ void WTALayer::ioParam_binMaxMin(enum ParamsIOFlag ioFlag) {
 }
 
 int WTALayer::updateState(double timef, double dt) {
-   pvdata_t *currA = getCLayer()->activity->data;
-   pvdata_t *srcA  = originalLayer->getCLayer()->activity->data;
+   float *currA = getCLayer()->activity->data;
+   float *srcA  = originalLayer->getCLayer()->activity->data;
 
    const PVLayerLoc *loc    = getLayerLoc();
    const PVLayerLoc *srcLoc = originalLayer->getLayerLoc();
@@ -131,8 +131,8 @@ int WTALayer::updateState(double timef, double dt) {
    float stepSize = (float)(binMax - binMin) / (float)srcLoc->nf;
 
    for (int b = 0; b < srcLoc->nbatch; b++) {
-      pvdata_t *currABatch = currA + b * getNumExtended();
-      pvdata_t *srcABatch  = srcA + b * originalLayer->getNumExtended();
+      float *currABatch = currA + b * getNumExtended();
+      float *srcABatch  = srcA + b * originalLayer->getNumExtended();
       // Loop over x and y of the src layer
       for (int yi = 0; yi < srcLoc->ny; yi++) {
          for (int xi = 0; xi < srcLoc->nx; xi++) {

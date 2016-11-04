@@ -46,7 +46,7 @@ int NormalizeGroup::communicateInitInfo() {
    groupHead = parent->getNormalizerFromName(normalizeGroupName);
    if (groupHead == nullptr) {
       if (parent->columnId() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s: normalizeGroupName \"%s\" is not a recognized normalizer.\n",
                getDescription_c(),
                normalizeGroupName);

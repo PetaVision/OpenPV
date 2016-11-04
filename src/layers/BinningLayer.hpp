@@ -34,8 +34,8 @@ class BinningLayer : public PV::HyPerLayer {
          double dt,
          const PVLayerLoc *origLoc,
          const PVLayerLoc *currLoc,
-         const pvdata_t *origData,
-         pvdata_t *currV,
+         const float *origData,
+         float *currV,
          float binMax,
          float binMin);
 

@@ -26,7 +26,7 @@ class LIFGap : public PV::LIF {
 
    int virtual readStateFromCheckpoint(const char *cpDir, double *timeptr) override;
 
-   const pvgsyndata_t *getGapStrength() { return gapStrength; }
+   const float *getGapStrength() { return gapStrength; }
 
   protected:
    LIFGap();
@@ -37,7 +37,7 @@ class LIFGap : public PV::LIF {
 
   private:
    int initialize_base();
-   pvgsyndata_t *gapStrength;
+   float *gapStrength;
    bool gapStrengthInitialized;
    int calcGapStrength();
 

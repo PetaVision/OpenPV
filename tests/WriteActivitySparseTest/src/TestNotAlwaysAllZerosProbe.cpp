@@ -24,7 +24,7 @@ TestNotAlwaysAllZerosProbe::TestNotAlwaysAllZerosProbe(const char *probeName, Hy
 int TestNotAlwaysAllZerosProbe::outputState(double timed) {
    int status = StatsProbe::outputState(timed);
    if (status != PV_SUCCESS) {
-      pvError().printf(
+      Fatal().printf(
             "!!Time %f: TestNotAlwaysAllZerosProbe::outputState failed for %s\n",
             timed,
             getTargetLayer()->getDescription_c());

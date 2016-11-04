@@ -37,7 +37,7 @@ ANNErrorLayer::ANNErrorLayer(const char *name, HyPerCol *hc) {
       status = initialize(name, hc);
    }
    if (status != PV_SUCCESS) {
-      pvError().printf("Creating ANNErrorLayer \"%s\" failed.\n", name);
+      Fatal().printf("Creating ANNErrorLayer \"%s\" failed.\n", name);
    }
 }
 
@@ -70,10 +70,10 @@ int ANNErrorLayer::setVertices() {
    slopePosInf = 1.0;
    if (VThresh > 0) {
       numVertices = 4;
-      verticesV   = (pvpotentialdata_t *)malloc((size_t)numVertices * sizeof(*verticesV));
-      verticesA   = (pvadata_t *)malloc((size_t)numVertices * sizeof(*verticesA));
+      verticesV   = (float *)malloc((size_t)numVertices * sizeof(*verticesV));
+      verticesA   = (float *)malloc((size_t)numVertices * sizeof(*verticesA));
       if (verticesV == NULL || verticesA == NULL) {
-         pvError().printf(
+         Fatal().printf(
                "%s: unable to allocate memory for vertices: %s\n",
                getDescription_c(),
                strerror(errno));
@@ -90,10 +90,10 @@ int ANNErrorLayer::setVertices() {
    else {
       // checkVertices will complain if VThresh is negative but not "negative infinity"
       numVertices = 1;
-      verticesV   = (pvpotentialdata_t *)malloc((size_t)numVertices * sizeof(*verticesV));
-      verticesA   = (pvadata_t *)malloc((size_t)numVertices * sizeof(*verticesA));
+      verticesV   = (float *)malloc((size_t)numVertices * sizeof(*verticesV));
+      verticesA   = (float *)malloc((size_t)numVertices * sizeof(*verticesA));
       if (verticesV == NULL || verticesA == NULL) {
-         pvError().printf(
+         Fatal().printf(
                "%s: unable to allocate memory for vertices: %s\n",
                getDescription_c(),
                strerror(errno));
@@ -106,12 +106,11 @@ int ANNErrorLayer::setVertices() {
 
 int ANNErrorLayer::checkVertices() const {
    int status = PV_SUCCESS;
-   if (VThresh < 0
-       && VThresh > -(pvdata_t)0.999 * max_pvvdata_t) { // 0.999 is to allow for imprecision from
+   if (VThresh < 0 && VThresh > -(float)0.999 * FLT_MAX) { // 0.999 is to allow for imprecision from
       // params files using 3.40282e+38 instead
       // of infinity
       if (parent->columnId() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s: VThresh cannot be negative (value is %f).\n",
                getDescription_c(),
                (double)VThresh);
@@ -126,10 +125,10 @@ int ANNErrorLayer::checkVertices() const {
 
 int ANNErrorLayer::updateState(double time, double dt) {
    const PVLayerLoc *loc = getLayerLoc();
-   pvdata_t *A           = clayer->activity->data;
-   pvdata_t *V           = getV();
+   float *A              = clayer->activity->data;
+   float *V              = getV();
    int num_channels      = getNumChannels();
-   pvdata_t *gSynHead    = GSyn == NULL ? NULL : GSyn[0];
+   float *gSynHead       = GSyn == NULL ? NULL : GSyn[0];
    int nx                = loc->nx;
    int ny                = loc->ny;
    int nf                = loc->nf;

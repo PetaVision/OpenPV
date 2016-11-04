@@ -30,13 +30,13 @@ InitWeightsParams *InitGauss2DWeights::createNewWeightParams() {
    return tempPtr;
 }
 
-int InitGauss2DWeights::calcWeights(pvdata_t *dataStart, int dataPatchIndex, int arborId) {
+int InitGauss2DWeights::calcWeights(float *dataStart, int dataPatchIndex, int arborId) {
 
    InitGauss2DWeightsParams *weightParamPtr =
          dynamic_cast<InitGauss2DWeightsParams *>(weightParams);
 
    if (weightParamPtr == NULL) {
-      pvError().printf("Failed to recast pointer to weightsParam!  Exiting...");
+      Fatal().printf("Failed to recast pointer to weightsParam!  Exiting...");
    }
 
    weightParamPtr->calcOtherParams(dataPatchIndex);
@@ -51,7 +51,7 @@ int InitGauss2DWeights::calcWeights(pvdata_t *dataStart, int dataPatchIndex, int
  * calculate gaussian weights between oriented line segments
  */
 int InitGauss2DWeights::gauss2DCalcWeights(
-      pvdata_t *dataStart,
+      float *dataStart,
       InitGauss2DWeightsParams *weightParamPtr) {
 
    // load necessary params:
@@ -69,7 +69,7 @@ int InitGauss2DWeights::gauss2DCalcWeights(
    float r2Max     = weightParamPtr->getr2Max();
    float r2Min     = weightParamPtr->getr2Min();
 
-   pvdata_t *w_tmp = dataStart;
+   float *w_tmp = dataStart;
 
    // loop over all post-synaptic cells in temporary patch
    for (int fPost = 0; fPost < nfPatch_tmp; fPost++) {

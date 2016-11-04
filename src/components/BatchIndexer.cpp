@@ -70,7 +70,7 @@ void BatchIndexer::initializeBatch(int localBatchIndex) {
                1);
          break;
       case BYSPECIFIED:
-         pvErrorIf(
+         FatalIf(
                mSkipAmounts.at(localBatchIndex) < 1,
                "BatchIndexer batchMethod was set to BYSPECIFIED, but no values were specified.\n");
          break;

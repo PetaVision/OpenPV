@@ -21,7 +21,7 @@ class InitOneToOneWeightsWithDelays : public PV::InitWeights {
    InitOneToOneWeightsWithDelays(char const *name, HyPerCol *hc);
    virtual ~InitOneToOneWeightsWithDelays();
 
-   virtual int calcWeights(pvdata_t *dataStart, int patchIndex, int arborId);
+   virtual int calcWeights(float *dataStart, int patchIndex, int arborId);
    virtual InitWeightsParams *createNewWeightParams();
    void calcOtherParams(int patchIndex);
 
@@ -29,7 +29,7 @@ class InitOneToOneWeightsWithDelays : public PV::InitWeights {
    InitOneToOneWeightsWithDelays();
    int initialize(char const *name, HyPerCol *hc);
    int createOneToOneConnectionWithDelays(
-         pvdata_t *dataStart,
+         float *dataStart,
          int patchIndex,
          float iWeight,
          InitWeightsParams *weightParamPtr,

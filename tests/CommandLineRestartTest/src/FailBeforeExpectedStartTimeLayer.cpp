@@ -23,7 +23,7 @@ int FailBeforeExpectedStartTimeLayer::updateStateGpu(double simTime, double dt) 
 #endif // PV_USE_CUDA
 
 int FailBeforeExpectedStartTimeLayer::updateState(double simTime, double dt) {
-   pvErrorIf(
+   FatalIf(
          simTime < mExpectedStartTime,
          "expected starting time is %f, but updateState was called with t=%f\n",
          mExpectedStartTime,

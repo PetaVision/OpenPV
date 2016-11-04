@@ -16,7 +16,7 @@ class InitCloneKernelWeights : public PV::InitWeights {
   public:
    InitCloneKernelWeights();
    virtual ~InitCloneKernelWeights();
-   virtual int calcWeights(/*PVPatch * patch*/ pvdata_t *dataStart, int patchIndex, int arborId);
+   virtual int calcWeights(/*PVPatch * patch*/ float *dataStart, int patchIndex, int arborId);
 
   protected:
    virtual int initialize_base();

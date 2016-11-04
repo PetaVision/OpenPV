@@ -32,9 +32,9 @@ class ShuffleLayer : public CloneVLayer {
    virtual void ioParam_freqFilename(enum ParamsIOFlag ioFlag);
    virtual void ioParam_freqCollectTime(enum ParamsIOFlag ioFlag);
 
-   void randomShuffle(const pvdata_t *sourceData, pvdata_t *activity);
-   void rejectionShuffle(const pvdata_t *sourceData, pvdata_t *activity);
-   void collectFreq(const pvdata_t *sourceData);
+   void randomShuffle(const float *sourceData, float *activity);
+   void rejectionShuffle(const float *sourceData, float *activity);
+   void collectFreq(const float *sourceData);
    void readFreq();
 
   private:

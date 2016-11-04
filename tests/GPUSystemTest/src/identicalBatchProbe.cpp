@@ -27,18 +27,18 @@ void identicalBatchProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) { requireType
 int identicalBatchProbe::outputState(double timed) {
    int status            = StatsProbe::outputState(timed);
    const PVLayerLoc *loc = getTargetLayer()->getLayerLoc();
-   const pvdata_t *A     = getTargetLayer()->getActivity();
+   const float *A        = getTargetLayer()->getActivity();
    int numExtNeurons     = getTargetLayer()->getNumExtended();
    for (int i = 0; i < numExtNeurons; i++) {
-      pvdata_t checkVal = A[i];
+      float checkVal = A[i];
       for (int b = 0; b < loc->nbatch; b++) {
-         const pvdata_t *ABatch = A + b * getTargetLayer()->getNumExtended();
-         float diff             = fabsf(checkVal - ABatch[i]);
+         const float *ABatch = A + b * getTargetLayer()->getNumExtended();
+         float diff          = fabsf(checkVal - ABatch[i]);
          if (diff > 1e-4f) {
-            pvError() << "Difference at neuron " << i << ", batch 0: " << checkVal << " batch " << b
-                      << ": " << ABatch[i] << "\n";
+            Fatal() << "Difference at neuron " << i << ", batch 0: " << checkVal << " batch " << b
+                    << ": " << ABatch[i] << "\n";
          }
-         pvErrorIf(!(diff <= 1e-4f), "Test failed.\n");
+         FatalIf(!(diff <= 1e-4f), "Test failed.\n");
       }
    }
    return status;

@@ -99,11 +99,7 @@ void LIF_update_state_original(
 
 namespace PV {
 
-LIF::LIF() {
-   initialize_base();
-   // this is the constructor to be used by derived classes, it does not produce
-   // a function class but is asking for an init by the derived class
-}
+LIF::LIF() { initialize_base(); }
 
 LIF::LIF(const char *name, HyPerCol *hc) {
    initialize_base();
@@ -132,15 +128,10 @@ int LIF::initialize_base() {
    return PV_SUCCESS;
 }
 
-// Initialize this class
 int LIF::initialize(const char *name, HyPerCol *hc, const char *kernel_name) {
    HyPerLayer::initialize(name, hc);
-   clayer->params = &lParams;
-
    return PV_SUCCESS;
 }
-// Set Parameters
-//
 
 int LIF::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    HyPerLayer::ioParamsFillGroup(ioFlag);
@@ -268,7 +259,7 @@ void LIF::ioParam_method(enum ParamsIOFlag ioFlag) {
       free(methodString);
       methodString = strdup(default_method);
       if (methodString == NULL) {
-         pvError().printf(
+         Fatal().printf(
                "%s: unable to set method string: %s\n", getDescription_c(), strerror(errno));
       }
    }
@@ -276,7 +267,7 @@ void LIF::ioParam_method(enum ParamsIOFlag ioFlag) {
                          : 'a'; // Default is ARMA; 'beginning' and 'original' are deprecated.
    if (method != 'o' && method != 'b' && method != 'a') {
       if (getParent()->columnId() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "LIF::setLIFParams error.  Layer \"%s\" has method \"%s\".  Allowable values are "
                "\"arma\", \"beginning\" and \"original\".",
                name,
@@ -287,7 +278,7 @@ void LIF::ioParam_method(enum ParamsIOFlag ioFlag) {
    }
    if (method != 'a') {
       if (getParent()->columnId() == 0) {
-         pvWarn().printf(
+         WarnLog().printf(
                "LIF layer \"%s\" integration method \"%s\" is deprecated.  Method \"arma\" is "
                "preferred.\n",
                name,
@@ -297,8 +288,8 @@ void LIF::ioParam_method(enum ParamsIOFlag ioFlag) {
 }
 
 int LIF::setActivity() {
-   pvdata_t *activity = clayer->activity->data;
-   memset(activity, 0, sizeof(pvdata_t) * clayer->numExtendedAllBatches);
+   float *activity = clayer->activity->data;
+   memset(activity, 0, sizeof(float) * clayer->numExtendedAllBatches);
    return 0;
 }
 
@@ -314,7 +305,7 @@ int LIF::allocateDataStructures() {
    // // a random state variable is needed for every neuron/clthread
    randState = new Random(getLayerLoc(), false /*isExtended*/);
    if (randState == NULL) {
-      pvError().printf(
+      Fatal().printf(
             "LIF::initialize:  %s unable to create object of Random class.\n", getDescription_c());
    }
 
@@ -329,9 +320,9 @@ int LIF::allocateDataStructures() {
 int LIF::allocateBuffers() {
    int status = allocateConductances(numChannels);
    assert(status == PV_SUCCESS);
-   Vth = (pvdata_t *)calloc((size_t)getNumNeuronsAllBatches(), sizeof(pvdata_t));
+   Vth = (float *)calloc((size_t)getNumNeuronsAllBatches(), sizeof(float));
    if (Vth == NULL) {
-      pvError().printf(
+      Fatal().printf(
             "%s: rank %d process unable to allocate memory for Vth: %s\n",
             getDescription_c(),
             parent->columnId(),
@@ -343,9 +334,9 @@ int LIF::allocateBuffers() {
 int LIF::allocateConductances(int num_channels) {
    assert(num_channels >= 3); // Need exc, inh, and inhb at a minimum.
    const int numNeurons = getNumNeuronsAllBatches();
-   G_E = (pvdata_t *)calloc((size_t)(getNumNeuronsAllBatches() * numChannels), sizeof(pvdata_t));
+   G_E = (float *)calloc((size_t)(getNumNeuronsAllBatches() * numChannels), sizeof(float));
    if (G_E == NULL) {
-      pvError().printf(
+      Fatal().printf(
             "%s: rank %d process unable to allocate memory for %d conductances: %s\n",
             getDescription_c(),
             parent->columnId(),
@@ -359,13 +350,12 @@ int LIF::allocateConductances(int num_channels) {
 }
 
 int LIF::readStateFromCheckpoint(const char *cpDir, double *timeptr) {
-   int status = HyPerLayer::readStateFromCheckpoint(cpDir, timeptr);
-   status     = readVthFromCheckpoint(cpDir, timeptr);
-   status     = readG_EFromCheckpoint(cpDir, timeptr);
-   status     = readG_IFromCheckpoint(cpDir, timeptr);
-   status     = readG_IBFromCheckpoint(cpDir, timeptr);
-   status     = readRandStateFromCheckpoint(cpDir, timeptr);
-
+   HyPerLayer::readStateFromCheckpoint(cpDir, timeptr);
+   readVthFromCheckpoint(cpDir, timeptr);
+   readG_EFromCheckpoint(cpDir, timeptr);
+   readG_IFromCheckpoint(cpDir, timeptr);
+   readG_IBFromCheckpoint(cpDir, timeptr);
+   readRandStateFromCheckpoint(cpDir, timeptr);
    return PV_SUCCESS;
 }
 
@@ -437,8 +427,8 @@ int LIF::updateState(double time, double dt) {
    const PVHalo *halo = &clayer->loc.halo;
    const int nbatch   = clayer->loc.nbatch;
 
-   pvdata_t *GSynHead = GSyn[0];
-   pvdata_t *activity = clayer->activity->data;
+   float *GSynHead = GSyn[0];
+   float *activity = clayer->activity->data;
 
    switch (method) {
       case 'a':
@@ -517,7 +507,6 @@ int LIF::updateState(double time, double dt) {
 }
 
 float LIF::getChannelTimeConst(enum ChannelType channel_type) {
-   clayer->params           = &lParams;
    float channel_time_const = 0.0f;
    switch (channel_type) {
       case CHANNEL_EXC: channel_time_const  = lParams.tauE; break;

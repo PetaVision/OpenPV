@@ -28,7 +28,7 @@ int ImageFromMemoryBuffer::initialize_base() {
 int ImageFromMemoryBuffer::initialize(char const *name, HyPerCol *hc) {
    if (mUseInputBCflag && mAutoResizeFlag) {
       if (parent->columnId() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s: setting both useImageBCflag and autoResizeFlag has not yet been implemented.\n",
                getDescription_c());
       }
@@ -58,7 +58,7 @@ int ImageFromMemoryBuffer::setMemoryBuffer(
       pixeltype oneval) {
    if (height <= 0 || width <= 0 || numbands <= 0) {
       if (parent->columnId() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "ImageFromMemoryBuffer::setMemoryBuffer: height, width, numbands "
                "arguments must be positive.\n");
       }
@@ -115,7 +115,7 @@ int ImageFromMemoryBuffer::setMemoryBuffer(
    mAnchor  = Buffer<float>::CENTER;
    if (checkValidAnchorString(offsetAnchor) != PV_SUCCESS) {
       if (parent->columnId() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s: setMemoryBuffer called with invalid anchor string \"%s\"",
                getDescription_c(),
                offsetAnchor);
@@ -125,8 +125,8 @@ int ImageFromMemoryBuffer::setMemoryBuffer(
    }
    // TODO: This is a dirty hack, make this function take an enum instead of a string to fix it
    if (strcmp(offsetAnchor, "cc") != 0) {
-      pvWarn() << getName() << ": Offset anchor %s is being ignored, using cc instead. "
-                               "ImageFromMemoryBuffer only supports cc.\n";
+      WarnLog() << getName() << ": Offset anchor %s is being ignored, using cc instead. "
+                                "ImageFromMemoryBuffer only supports cc.\n";
    }
    return setMemoryBuffer(
          externalBuffer, height, width, numbands, xstride, ystride, bandstride, zeroval, oneval);
@@ -146,11 +146,10 @@ template int ImageFromMemoryBuffer::setMemoryBuffer<uint8_t>(
       char const *offsetAnchor);
 
 template <typename pixeltype>
-pvadata_t
-ImageFromMemoryBuffer::pixelTypeConvert(pixeltype q, pixeltype zeroval, pixeltype oneval) {
-   return ((pvadata_t)(q - zeroval)) / ((pvadata_t)(oneval - zeroval));
+float ImageFromMemoryBuffer::pixelTypeConvert(pixeltype q, pixeltype zeroval, pixeltype oneval) {
+   return ((float)(q - zeroval)) / ((float)(oneval - zeroval));
 }
-template pvadata_t ImageFromMemoryBuffer::pixelTypeConvert<unsigned char>(
+template float ImageFromMemoryBuffer::pixelTypeConvert<unsigned char>(
       unsigned char q,
       unsigned char zeroval,
       unsigned char oneval);

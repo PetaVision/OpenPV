@@ -28,14 +28,14 @@ int GPUSystemTestProbe::outputState(double timed) {
    int status            = StatsProbe::outputState(timed);
    const PVLayerLoc *loc = getTargetLayer()->getLayerLoc();
    int numExtNeurons     = getTargetLayer()->getNumExtendedAllBatches();
-   const pvdata_t *A     = getTargetLayer()->getLayerData();
+   const float *A        = getTargetLayer()->getLayerData();
    float sumsq           = 0;
    for (int i = 0; i < numExtNeurons; i++) {
-      pvErrorIf(!(fabsf(A[i]) < 5e-4f), "Test failed.\n");
+      FatalIf(!(fabsf(A[i]) < 5e-4f), "Test failed.\n");
    }
    for (int b = 0; b < loc->nbatch; b++) {
       // For max std of 5e-5
-      pvErrorIf(!(sigma[b] <= 5e-5f), "Test failed.\n");
+      FatalIf(!(sigma[b] <= 5e-5f), "Test failed.\n");
    }
 
    return status;

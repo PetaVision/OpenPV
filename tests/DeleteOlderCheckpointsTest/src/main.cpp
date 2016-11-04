@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
 
    // Create checkpointing directory and delete any existing files inside it.
    char const *checkpointWriteDir = params->stringValue("checkpointer", "checkpointWriteDir");
-   pvErrorIf(
+   FatalIf(
          checkpointWriteDir == nullptr,
          "Group \"checkpointer\" must have a checkpointWriteDir string parameter.\n");
    std::string checkpointWriteDirectory(checkpointWriteDir);
@@ -34,10 +34,10 @@ int main(int argc, char *argv[]) {
    if (comm->commRank() == 0) {
       std::string rmcommand("rm -rf ");
       rmcommand.append(checkpointWriteDirectory).append("/*");
-      pvInfo() << "Cleaning directory \"" << checkpointWriteDirectory << "\" with \"" << rmcommand
-               << "\".\n";
+      InfoLog() << "Cleaning directory \"" << checkpointWriteDirectory << "\" with \"" << rmcommand
+                << "\".\n";
       int rmstatus = system(rmcommand.c_str());
-      pvErrorIf(
+      FatalIf(
             rmstatus,
             "Error executing \"%s\": status code was %d\n",
             rmcommand.c_str(),
@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
       checkpointWriteDirectory =
             std::string(params->stringValue("checkpointer", "checkpointWriteDir"));
    }
-   pvErrorIf(
+   FatalIf(
          params->value("checkpointer", "deleteOlderCheckpoints") == 0.0,
          "Params file must set deleteOlderCheckpoints to true.\n");
    std::size_t const numKept = (std::size_t)params->valueInt("checkpointer", "numCheckpointsKept");
@@ -78,14 +78,14 @@ int main(int argc, char *argv[]) {
             int statResult = stat(i->c_str(), &dirstat);
             if (i < firstKept) {
                if (statResult == 0) {
-                  pvErrorNoExit() << (i->c_str()) << " exists but should be deleted.\n";
+                  ErrorLog() << (i->c_str()) << " exists but should be deleted.\n";
                   status = PV_FAILURE;
                }
                else {
                   pvAssert(statResult == -1);
                   if (errno != ENOENT) {
-                     pvErrorNoExit() << "stat " << (i->c_str()) << " returned \""
-                                     << std::strerror(errno) << "\".\n";
+                     ErrorLog() << "stat " << (i->c_str()) << " returned \"" << std::strerror(errno)
+                                << "\".\n";
                      status = PV_FAILURE;
                   }
                }
@@ -94,13 +94,13 @@ int main(int argc, char *argv[]) {
                if (statResult == 0) {
                   bool isDirectory = S_ISDIR(dirstat.st_mode);
                   if (!isDirectory) {
-                     pvErrorNoExit() << (i->c_str()) << " exists but is not a directory.\n";
+                     ErrorLog() << (i->c_str()) << " exists but is not a directory.\n";
                      status = PV_FAILURE;
                   }
                }
                else {
-                  pvErrorNoExit() << "stat " << (i->c_str()) << " returned \""
-                                  << std::strerror(errno) << "\".\n";
+                  ErrorLog() << "stat " << (i->c_str()) << " returned \"" << std::strerror(errno)
+                             << "\".\n";
                   status = PV_FAILURE;
                }
             }

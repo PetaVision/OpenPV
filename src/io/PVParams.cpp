@@ -82,7 +82,7 @@ ParameterArray::ParameterArray(int initialSize) {
       values    = (float *)calloc(bufferSize, sizeof(float));
       valuesDbl = (double *)calloc(bufferSize, sizeof(double));
       if (values == NULL || valuesDbl == NULL) {
-         pvError().printf("ParameterArray failed to allocate memory for \"%s\"\n", name());
+         Fatal().printf("ParameterArray failed to allocate memory for \"%s\"\n", name());
       }
    }
 }
@@ -104,7 +104,7 @@ int ParameterArray::setName(const char *name) {
       paramNameSet = true;
    }
    else {
-      pvErrorNoExit().printf(
+      ErrorLog().printf(
             "ParameterArray::setName called with \"%s\" but name is already set to \"%s\"\n",
             name,
             paramName);
@@ -119,7 +119,7 @@ int ParameterArray::pushValue(double value) {
       bufferSize += PARAMETERARRAY_INITIALSIZE;
       float *new_values = (float *)calloc(bufferSize, sizeof(float));
       if (new_values == NULL) {
-         pvError().printf(
+         Fatal().printf(
                "ParameterArray::pushValue failed to increase array \"%s\" to %d values\n",
                name(),
                arraySize + 1);
@@ -129,7 +129,7 @@ int ParameterArray::pushValue(double value) {
       values                 = new_values;
       double *new_values_dbl = (double *)calloc(bufferSize, sizeof(double));
       if (new_values == NULL) {
-         pvError().printf(
+         Fatal().printf(
                "ParameterArray::pushValue failed to increase array \"%s\" to %d values\n",
                name(),
                arraySize + 1);
@@ -207,7 +207,7 @@ ParameterArrayStack::ParameterArrayStack(int initialCount) {
    if (initialCount > 0) {
       parameterArrays = (ParameterArray **)calloc(allocation, sizeof(ParameterArray *));
       if (parameterArrays == NULL) {
-         pvError().printf(
+         Fatal().printf(
                "ParameterArrayStack unable to allocate %d parameter arrays\n", initialCount);
       }
    }
@@ -379,12 +379,12 @@ double ParameterGroup::value(const char *name) {
          return p->value();
       }
    }
-   pvError().printf(
+   Fatal().printf(
          "PVParams::ParameterGroup::value: ERROR, couldn't find a value for %s"
          " in group %s\n",
          name,
          groupName);
-   return PV_FAILURE; // suppresses warning in compilers that don't recognize pvError always exits.
+   return PV_FAILURE; // suppresses warning in compilers that don't recognize Fatal always exits.
 }
 
 bool ParameterGroup::arrayPresent(const char *name) {
@@ -499,7 +499,7 @@ int ParameterGroup::warnUnread() {
       Parameter *p = stack->peek(i);
       if (!p->hasBeenRead()) {
          if (processRank == 0)
-            pvWarn().printf(
+            WarnLog().printf(
                   "Parameter group \"%s\": parameter \"%s\" has not been read.\n",
                   name(),
                   p->name());
@@ -511,7 +511,7 @@ int ParameterGroup::warnUnread() {
       ParameterArray *parr = arrayStack->peek(i);
       if (!parr->hasBeenRead()) {
          if (processRank == 0)
-            pvWarn().printf(
+            WarnLog().printf(
                   "Parameter group \"%s\": array parameter \"%s\" has not been read.\n",
                   name(),
                   parr->name());
@@ -522,7 +522,7 @@ int ParameterGroup::warnUnread() {
       ParameterString *pstr = stringStack->peek(i);
       if (!pstr->hasBeenRead()) {
          if (processRank == 0)
-            pvWarn().printf(
+            WarnLog().printf(
                   "Parameter group \"%s\": string parameter \"%s\" has not been read.\n",
                   name(),
                   pstr->getName());
@@ -592,7 +592,7 @@ int ParameterGroup::setValue(const char *param_name, double value) {
          return PV_SUCCESS;
       }
    }
-   pvError().printf(
+   Fatal().printf(
          "PVParams::ParameterGroup::setValue: ERROR, couldn't find parameter %s"
          " in group \"%s\"\n",
          param_name,
@@ -611,7 +611,7 @@ int ParameterGroup::setStringValue(const char *param_name, const char *svalue) {
          return PV_SUCCESS;
       }
    }
-   pvError().printf(
+   Fatal().printf(
          "PVParams::ParameterGroup::setStringValue: ERROR, couldn't find a string value for %s"
          " in group \"%s\"\n",
          param_name,
@@ -682,7 +682,7 @@ ParameterSweep::~ParameterSweep() {
 int ParameterSweep::setGroupAndParameter(const char *groupname, const char *parametername) {
    int status = PV_SUCCESS;
    if (groupName != NULL || paramName != NULL) {
-      pvErrorNoExit(errorMessage);
+      ErrorLog(errorMessage);
       errorMessage.printf("ParameterSweep::setGroupParameter: ");
       if (groupName != NULL) {
          errorMessage.printf(" groupName has already been set to \"%s\".", groupName);
@@ -714,7 +714,7 @@ int ParameterSweep::pushNumericValue(double val) {
       currentBufferSize += PARAMETERSWEEP_INCREMENTCOUNT;
       double *newValuesNumber = (double *)calloc(currentBufferSize, sizeof(double));
       if (newValuesNumber == NULL) {
-         pvErrorNoExit().printf("ParameterSweep:pushNumericValue: unable to allocate memory\n");
+         ErrorLog().printf("ParameterSweep:pushNumericValue: unable to allocate memory\n");
          status = PV_FAILURE;
          abort();
       }
@@ -742,7 +742,7 @@ int ParameterSweep::pushStringValue(const char *sval) {
       currentBufferSize += PARAMETERSWEEP_INCREMENTCOUNT;
       char **newValuesString = (char **)calloc(currentBufferSize, sizeof(char *));
       if (newValuesString == NULL) {
-         pvErrorNoExit().printf("ParameterSweep:pushStringValue: unable to allocate memory\n");
+         ErrorLog().printf("ParameterSweep:pushStringValue: unable to allocate memory\n");
          status = PV_FAILURE;
          abort();
       }
@@ -877,7 +877,7 @@ int PVParams::newActiveParamSweep() {
    int status       = PV_SUCCESS;
    activeParamSweep = new ParameterSweep();
    if (activeParamSweep == NULL) {
-      pvError().printf("PVParams::newActiveParamSweep: unable to create activeParamSweep");
+      Fatal().printf("PVParams::newActiveParamSweep: unable to create activeParamSweep");
       status = PV_FAILURE;
    }
    return status;
@@ -887,7 +887,7 @@ int PVParams::newActiveBatchSweep() {
    int status       = PV_SUCCESS;
    activeBatchSweep = new ParameterSweep();
    if (activeBatchSweep == NULL) {
-      pvError().printf("PVParams::newActiveBatchSweep: unable to create activeBatchSweep");
+      Fatal().printf("PVParams::newActiveBatchSweep: unable to create activeBatchSweep");
       status = PV_FAILURE;
    }
    return status;
@@ -925,7 +925,7 @@ int PVParams::parseFile(const char *filename) {
       bufferlen   = (size_t)count;
       paramBuffer = (char *)malloc(bufferlen);
       if (paramBuffer == NULL) {
-         pvError().printf(
+         Fatal().printf(
                "PVParams::parseFile: Rank %d process unable to allocate memory for params buffer\n",
                worldRank);
       }
@@ -947,17 +947,17 @@ int PVParams::parseFile(const char *filename) {
 
 void PVParams::loadParamBuffer(char const *filename, std::string &paramsFileString) {
    if (filename == nullptr) {
-      pvError() << "PVParams::loadParamBuffer: filename is null\n";
+      Fatal() << "PVParams::loadParamBuffer: filename is null\n";
    }
    struct stat filestatus;
    if (PV_stat(filename, &filestatus)) {
-      pvError().printf(
+      Fatal().printf(
             "PVParams::parseFile unable to get status of file \"%s\": %s\n",
             filename,
             strerror(errno));
    }
    if (filestatus.st_mode & S_IFDIR) {
-      pvError().printf("PVParams::parseFile: specified file \"%s\" is a directory.\n", filename);
+      Fatal().printf("PVParams::parseFile: specified file \"%s\" is a directory.\n", filename);
    }
 
 #ifdef PV_USE_LUA
@@ -971,26 +971,26 @@ void PVParams::loadParamBuffer(char const *filename, std::string &paramsFileStri
 
    if (useLua) {
 #ifdef PV_USE_LUA
-      pvInfo() << "Running lua program \"" << filename << "\".\n";
+      InfoLog() << "Running lua program \"" << filename << "\".\n";
       lua_State *lua_state = luaL_newstate();
       luaL_openlibs(lua_state);
       int result = luaL_dofile(lua_state, filename);
       if (result != LUA_OK) {
          char const *errorMessage = lua_tostring(lua_state, -1);
          lua_pop(lua_state, 1);
-         pvError() << errorMessage;
+         Fatal() << errorMessage;
       }
       lua_getglobal(lua_state, "paramsFileString");
       size_t llength;
       char const *lstring = lua_tolstring(lua_state, -1, &llength);
       if (lstring == nullptr) {
-         pvError() << "Lua program \"" << filename
-                   << "\" does not create a string variable \"paramsFileString\".\n";
+         Fatal() << "Lua program \"" << filename
+                 << "\" does not create a string variable \"paramsFileString\".\n";
       }
       paramsFileString.insert(paramsFileString.end(), lstring, &lstring[llength]);
       lua_pop(lua_state, 1);
       lua_close(lua_state);
-      pvInfo() << "Retrieved paramsFileString, with length " << llength << ".\n";
+      InfoLog() << "Retrieved paramsFileString, with length " << llength << ".\n";
 #endif // PV_USE_LUA
    }
    else {
@@ -1013,7 +1013,7 @@ bool PVParams::hasSweepValue(const char *inParamName) {
       const char *param_name = sweep->getParamName();
       ParameterGroup *gp     = group(group_name);
       if (gp == NULL) {
-         pvError().printf(
+         Fatal().printf(
                "PVParams::parseBuffer error: ParameterSweep %d (zero-indexed) refers to "
                "non-existent group \"%s\"\n",
                k,
@@ -1032,7 +1032,7 @@ bool PVParams::hasSweepValue(const char *inParamName) {
          const char *param_name = sweep->getParamName();
          ParameterGroup *gp     = group(group_name);
          if (gp == NULL) {
-            pvError().printf(
+            Fatal().printf(
                   "PVParams::parseBuffer error: BatchSweep %d (zero-indexed) refers to "
                   "non-existent group \"%s\"\n",
                   k,
@@ -1053,7 +1053,7 @@ int PVParams::parseBuffer(char const *buffer, long int bufferLength) {
    // This is where it calls the scanner and parser
    parseStatus = pv_parseParameters(this, buffer, bufferLength);
    if (parseStatus != 0) {
-      pvErrorNoExit().printf(
+      ErrorLog().printf(
             "Rank %d process: pv_parseParameters failed with return value %d\n",
             worldRank,
             parseStatus);
@@ -1071,7 +1071,7 @@ int PVParams::parseBuffer(char const *buffer, long int bufferLength) {
    // If both parameterSweep and batchSweep is set, must autoset output path, as there is no way to
    // specify both paramSweep and batchSweep
    if (numberOfParameterSweeps() > 0 && numberOfBatchSweeps() > 0) {
-      pvError().printf("PVParams::simultaneous batchSweep and parameterSweep not supported yet.\n");
+      Fatal().printf("PVParams::simultaneous batchSweep and parameterSweep not supported yet.\n");
    }
    if (numberOfParameterSweeps() > 0) {
       if (!hasSweepValue("outputPath")) {
@@ -1082,7 +1082,7 @@ int PVParams::parseBuffer(char const *buffer, long int bufferLength) {
                hypercolgroupname = groups[g]->name();
                outputPathName    = groups[g]->stringValue("outputPath");
                if (outputPathName == NULL) {
-                  pvError().printf(
+                  Fatal().printf(
                         "PVParams::outputPath must be specified if parameterSweep does "
                         "not sweep over outputPath\n");
                }
@@ -1090,7 +1090,7 @@ int PVParams::parseBuffer(char const *buffer, long int bufferLength) {
             }
          }
          if (hypercolgroupname == NULL) {
-            pvErrorNoExit().printf("PVParams::parseBuffer: no HyPerCol group\n");
+            ErrorLog().printf("PVParams::parseBuffer: no HyPerCol group\n");
             abort();
          }
 
@@ -1130,7 +1130,7 @@ int PVParams::parseBuffer(char const *buffer, long int bufferLength) {
             }
          }
          if (hypercolgroupname == NULL) {
-            pvErrorNoExit().printf("PVParams::parseBuffer: no HyPerCol group\n");
+            ErrorLog().printf("PVParams::parseBuffer: no HyPerCol group\n");
             abort();
          }
          if (checkpointWriteDir) {
@@ -1175,7 +1175,7 @@ int PVParams::parseBuffer(char const *buffer, long int bufferLength) {
                hypercolgroupname = groups[g]->name();
                outputPathName    = groups[g]->stringValue("outputPath");
                if (outputPathName == NULL) {
-                  pvError().printf(
+                  Fatal().printf(
                         "PVParams::outputPath must be specified if batchSweep does not "
                         "sweep over outputPath\n");
                }
@@ -1183,7 +1183,7 @@ int PVParams::parseBuffer(char const *buffer, long int bufferLength) {
             }
          }
          if (hypercolgroupname == NULL) {
-            pvErrorNoExit().printf("PVParams::parseBuffer: no HyPerCol group\n");
+            ErrorLog().printf("PVParams::parseBuffer: no HyPerCol group\n");
             abort();
          }
          char dummy;
@@ -1222,7 +1222,7 @@ int PVParams::parseBuffer(char const *buffer, long int bufferLength) {
             }
          }
          if (hypercolgroupname == NULL) {
-            pvErrorNoExit().printf("PVParams::parseBuffer: no HyPerCol group\n");
+            ErrorLog().printf("PVParams::parseBuffer: no HyPerCol group\n");
             abort();
          }
          if (checkpointWriteDir) {
@@ -1266,7 +1266,7 @@ int PVParams::parseBuffer(char const *buffer, long int bufferLength) {
       SweepType type         = sweep->getType();
       ParameterGroup *g      = group(group_name);
       if (g == NULL) {
-         pvErrorNoExit().printf("ParameterSweep: there is no group \"%s\"\n", group_name);
+         ErrorLog().printf("ParameterSweep: there is no group \"%s\"\n", group_name);
          abort();
       }
       switch (type) {
@@ -1293,7 +1293,7 @@ int PVParams::parseBuffer(char const *buffer, long int bufferLength) {
       SweepType type         = sweep->getType();
       ParameterGroup *g      = group(group_name);
       if (g == NULL) {
-         pvErrorNoExit().printf("BatchSweep: there is no group \"%s\"\n", group_name);
+         ErrorLog().printf("BatchSweep: there is no group \"%s\"\n", group_name);
          abort();
       }
       switch (type) {
@@ -1326,7 +1326,7 @@ int PVParams::setBatchSweepSize() {
       }
       else {
          if (batchSweepSize != this->batchSweeps[k]->getNumValues()) {
-            pvErrorNoExit().printf(
+            ErrorLog().printf(
                   "PVParams::setBatchSweepSize: all BatchSweeps in the parameters "
                   "file must have the same number of entries.\n");
             abort();
@@ -1338,7 +1338,7 @@ int PVParams::setBatchSweepSize() {
    int batchWidth    = icComm->numCommBatches();
    if (batchSweepSize) {
       if (batchWidth != batchSweepSize) {
-         pvError().printf(
+         Fatal().printf(
                "PVParams::setBatchSweepSize error: batchSweepSize %d must be the same as the MPI "
                "batch width %d.\n",
                batchSweepSize,
@@ -1385,7 +1385,7 @@ int PVParams::setParameterSweepSize() {
       }
       else {
          if (parameterSweepSize != this->paramSweeps[k]->getNumValues()) {
-            pvErrorNoExit().printf(
+            ErrorLog().printf(
                   "PVParams::setParameterSweepSize: all ParameterSweeps in the "
                   "parameters file must have the same number of entries.\n");
             abort();
@@ -1466,7 +1466,7 @@ int PVParams::present(const char *groupName, const char *paramName) {
    ParameterGroup *g = group(groupName);
    if (g == NULL) {
       if (worldRank == 0) {
-         pvErrorNoExit().printf("PVParams::present: couldn't find a group for %s\n", groupName);
+         ErrorLog().printf("PVParams::present: couldn't find a group for %s\n", groupName);
       }
       exit(EXIT_FAILURE);
    }
@@ -1482,8 +1482,7 @@ double PVParams::value(const char *groupName, const char *paramName) {
    ParameterGroup *g = group(groupName);
    if (g == NULL) {
       if (worldRank == 0) {
-         pvErrorNoExit().printf(
-               "PVParams::value: ERROR, couldn't find a group for %s\n", groupName);
+         ErrorLog().printf("PVParams::value: ERROR, couldn't find a group for %s\n", groupName);
       }
       exit(EXIT_FAILURE);
    }
@@ -1534,7 +1533,7 @@ double PVParams::value(
    }
    else {
       if (warnIfAbsent && worldRank == 0) {
-         pvWarn().printf(
+         WarnLog().printf(
                "Using default value %f for parameter \"%s\" in group \"%s\"\n",
                initialValue,
                paramName,
@@ -1560,7 +1559,7 @@ bool PVParams::arrayPresent(const char *groupName, const char *paramName) {
    ParameterGroup *g = group(groupName);
    if (g == NULL) {
       if (worldRank == 0) {
-         pvErrorNoExit().printf("PVParams::present: couldn't find a group for %s\n", groupName);
+         ErrorLog().printf("PVParams::present: couldn't find a group for %s\n", groupName);
       }
       exit(EXIT_FAILURE);
    }
@@ -1579,7 +1578,7 @@ PVParams::arrayValues(const char *groupName, const char *paramName, int *size, b
    ParameterGroup *g = group(groupName);
    if (g == NULL) {
       if (worldRank == 0) {
-         pvErrorNoExit().printf("PVParams::value: couldn't find a group for %s\n", groupName);
+         ErrorLog().printf("PVParams::value: couldn't find a group for %s\n", groupName);
       }
       return NULL;
    }
@@ -1587,7 +1586,7 @@ PVParams::arrayValues(const char *groupName, const char *paramName, int *size, b
    if (retval == NULL) {
       assert(*size == 0);
       if (worldRank == 0) {
-         pvWarn().printf(
+         WarnLog().printf(
                "Using empty array for parameter \"%s\" in group \"%s\"\n", paramName, groupName);
       }
    }
@@ -1607,7 +1606,7 @@ const double *PVParams::arrayValuesDbl(
    ParameterGroup *g = group(groupName);
    if (g == NULL) {
       if (worldRank == 0) {
-         pvErrorNoExit().printf("PVParams::value: couldn't find a group for %s\n", groupName);
+         ErrorLog().printf("PVParams::value: couldn't find a group for %s\n", groupName);
       }
       return NULL;
    }
@@ -1615,7 +1614,7 @@ const double *PVParams::arrayValuesDbl(
    if (retval == NULL) {
       assert(*size == 0);
       if (worldRank == 0) {
-         pvWarn().printf(
+         WarnLog().printf(
                "Using empty array for parameter \"%s\" in group \"%s\"\n", paramName, groupName);
       }
    }
@@ -1640,14 +1639,14 @@ void PVParams::ioParamString(
             // not be nullptr.
             if (icComm->commRank() == 0 && warnIfAbsent == true) {
                if (defaultValue != nullptr) {
-                  pvWarn().printf(
+                  WarnLog().printf(
                         "Using default value \"%s\" for string parameter \"%s\" in group \"%s\"\n",
                         defaultValue,
                         paramName,
                         groupName);
                }
                else {
-                  pvWarn().printf(
+                  WarnLog().printf(
                         "Using default value of nullptr for string parameter \"%s\" in group "
                         "\"%s\"\n",
                         paramName,
@@ -1658,7 +1657,7 @@ void PVParams::ioParamString(
          }
          if (paramString != nullptr) {
             *paramStringValue = strdup(paramString);
-            pvErrorIf(
+            FatalIf(
                   *paramStringValue == nullptr,
                   "Global rank %d process unable to copy param %s in group \"%s\": %s\n",
                   icComm->globalCommRank(),
@@ -1685,7 +1684,7 @@ void PVParams::ioParamStringRequired(
          paramString = stringValue(groupName, paramName, false /*warnIfAbsent*/);
          if (paramString != nullptr) {
             *paramStringValue = strdup(paramString);
-            pvErrorIf(
+            FatalIf(
                   *paramStringValue == nullptr,
                   "Global Rank %d process unable to copy param %s in group \"%s\": %s\n",
                   icComm->globalCommRank(),
@@ -1695,7 +1694,7 @@ void PVParams::ioParamStringRequired(
          }
          else {
             if (icComm->globalCommRank() == 0) {
-               pvErrorNoExit().printf(
+               ErrorLog().printf(
                      "%s \"%s\": string parameter \"%s\" is required.\n",
                      groupKeywordFromName(groupName),
                      groupName,
@@ -1717,8 +1716,7 @@ int PVParams::stringPresent(const char *groupName, const char *paramStringName) 
    ParameterGroup *g = group(groupName);
    if (g == NULL) {
       if (worldRank == 0) {
-         pvErrorNoExit().printf(
-               "PVParams::stringPresent: couldn't find a group for %s\n", groupName);
+         ErrorLog().printf("PVParams::stringPresent: couldn't find a group for %s\n", groupName);
       }
       exit(EXIT_FAILURE);
    }
@@ -1738,7 +1736,7 @@ PVParams::stringValue(const char *groupName, const char *paramStringName, bool w
    }
    else {
       if (warnIfAbsent && worldRank == 0) {
-         pvWarn().printf(
+         WarnLog().printf(
                "No parameter string named \"%s\" in group \"%s\"\n", paramStringName, groupName);
       }
       return NULL;
@@ -1801,7 +1799,7 @@ void PVParams::addGroup(char *keyword, char *name) {
    // Verify that the new group's name is not an existing group's name
    for (int k = 0; k < numGroups; k++) {
       if (!strcmp(name, groups[k]->name())) {
-         pvError().printf("Rank %d process: group name \"%s\" duplicated\n", worldRank, name);
+         Fatal().printf("Rank %d process: group name \"%s\" duplicated\n", worldRank, name);
       }
    }
 
@@ -1833,7 +1831,7 @@ void PVParams::addActiveParamSweep(const char *group_name, const char *param_nam
    for (int p = 0; p < numParamSweeps; p++) {
       if (strcmp(paramSweeps[p]->getGroupName(), group_name) == 0
           && strcmp(paramSweeps[p]->getParamName(), param_name) == 0) {
-         pvError().printf(
+         Fatal().printf(
                "PVParams::addActiveParamSweep: Parameter sweep %s, %s already exists\n",
                group_name,
                param_name);
@@ -1842,7 +1840,7 @@ void PVParams::addActiveParamSweep(const char *group_name, const char *param_nam
    for (int b = 0; b < numBatchSweeps; b++) {
       if (strcmp(batchSweeps[b]->getGroupName(), group_name) == 0
           && strcmp(batchSweeps[b]->getParamName(), param_name) == 0) {
-         pvError().printf(
+         Fatal().printf(
                "PVParams::addActiveParamSweep: Parameter sweep %s, %s already exists as a batch "
                "sweep, cannot do both for same parameter.\n",
                group_name,
@@ -1854,7 +1852,7 @@ void PVParams::addActiveParamSweep(const char *group_name, const char *param_nam
    ParameterSweep **newParamSweeps =
          (ParameterSweep **)calloc(numParamSweeps + 1, sizeof(ParameterSweep *));
    if (newParamSweeps == NULL) {
-      pvError().printf(
+      Fatal().printf(
             "PVParams::action_parameter_sweep: unable to allocate memory for larger paramSweeps\n");
    }
    for (int k = 0; k < numParamSweeps; k++) {
@@ -1872,7 +1870,7 @@ void PVParams::addActiveBatchSweep(const char *group_name, const char *param_nam
    for (int b = 0; b < numBatchSweeps; b++) {
       if (strcmp(batchSweeps[b]->getGroupName(), group_name) == 0
           && strcmp(batchSweeps[b]->getParamName(), param_name) == 0) {
-         pvError().printf(
+         Fatal().printf(
                "PVParams::addActiveBatchSweep: Batch sweep %s, %s already exists\n",
                group_name,
                param_name);
@@ -1881,7 +1879,7 @@ void PVParams::addActiveBatchSweep(const char *group_name, const char *param_nam
    for (int p = 0; p < numParamSweeps; p++) {
       if (strcmp(paramSweeps[p]->getGroupName(), group_name) == 0
           && strcmp(paramSweeps[p]->getParamName(), param_name) == 0) {
-         pvError().printf(
+         Fatal().printf(
                "PVParams::addActiveParamSweep: Batch sweep %s, %s already exists as a parameter "
                "sweep, cannot do both for same parameter.\n",
                group_name,
@@ -1893,7 +1891,7 @@ void PVParams::addActiveBatchSweep(const char *group_name, const char *param_nam
    ParameterSweep **newBatchSweeps =
          (ParameterSweep **)calloc(numBatchSweeps + 1, sizeof(ParameterSweep *));
    if (newBatchSweeps == NULL) {
-      pvError().printf(
+      Fatal().printf(
             "PVParams::action_parameter_sweep: unable to allocate memory for larger batchSweeps\n");
    }
    for (int k = 0; k < numBatchSweeps; k++) {
@@ -1949,7 +1947,7 @@ void PVParams::handleUnnecessaryParameter(const char *group_name, const char *pa
    if (present(group_name, param_name)) {
       if (worldRank == 0) {
          const char *class_name = groupKeywordFromName(group_name);
-         pvWarn().printf(
+         WarnLog().printf(
                "%s \"%s\" does not use parameter %s, but it is present in the parameters file.\n",
                class_name,
                group_name,
@@ -1965,7 +1963,7 @@ void PVParams::handleUnnecessaryStringParameter(const char *group_name, const ch
    const char *class_name = groupKeywordFromName(group_name);
    if (stringPresent(group_name, param_name)) {
       if (worldRank == 0) {
-         pvWarn().printf(
+         WarnLog().printf(
                "%s \"%s\" does not use string parameter %s, but it is present in the parameters "
                "file.\n",
                class_name,
@@ -1993,7 +1991,7 @@ void PVParams::handleUnnecessaryStringParameter(
    const char *class_name = groupKeywordFromName(group_name);
    if (stringPresent(group_name, param_name)) {
       if (worldRank == 0) {
-         pvWarn().printf(
+         WarnLog().printf(
                "%s \"%s\" does not use string parameter %s, but it is present in the parameters "
                "file.\n",
                class_name,
@@ -2013,7 +2011,7 @@ void PVParams::handleUnnecessaryStringParameter(
          if (correct_value_i == NULL) {
             status = PV_FAILURE;
             if (worldRank == 0) {
-               pvErrorNoExit().printf(
+               ErrorLog().printf(
                      "%s \"%s\": Rank %d process unable to copy correct string value: %s.\n",
                      class_name,
                      group_name,
@@ -2024,7 +2022,7 @@ void PVParams::handleUnnecessaryStringParameter(
          if (params_value_i == NULL) {
             status = PV_FAILURE;
             if (worldRank == 0) {
-               pvErrorNoExit().printf(
+               ErrorLog().printf(
                      "%s \"%s\": Rank %d process unable to copy parameter string value: %s.\n",
                      class_name,
                      group_name,
@@ -2043,7 +2041,7 @@ void PVParams::handleUnnecessaryStringParameter(
          if (strcmp(params_value_i, correct_value_i) != 0) {
             status = PV_FAILURE;
             if (worldRank == 0) {
-               pvErrorNoExit().printf(
+               ErrorLog().printf(
                      "%s \"%s\": parameter string %s = \"%s\" is inconsistent with correct value "
                      "\"%s\".  Exiting.\n",
                      class_name,
@@ -2059,7 +2057,7 @@ void PVParams::handleUnnecessaryStringParameter(
       else if (params_value == NULL && correct_value != NULL) {
          status = PV_FAILURE;
          if (worldRank == 0) {
-            pvErrorNoExit().printf(
+            ErrorLog().printf(
                   "%s \"%s\": parameter string %s = NULL is inconsistent with correct value "
                   "\"%s\".  Exiting.\n",
                   class_name,
@@ -2071,7 +2069,7 @@ void PVParams::handleUnnecessaryStringParameter(
       else if (params_value != NULL && correct_value == NULL) {
          status = PV_FAILURE;
          if (worldRank == 0) {
-            pvErrorNoExit().printf(
+            ErrorLog().printf(
                   "%s \"%s\": parameter string %s = \"%s\" is inconsistent with correct value of "
                   "NULL.  Exiting.\n",
                   class_name,
@@ -2099,7 +2097,7 @@ void PVParams::action_pvparams_directive(char *id, double val) {
    if (!strcmp(id, "debugParsing")) {
       debugParsing = (val != 0);
       if (worldRank == 0) {
-         pvInfo(directiveMessage);
+         InfoLog(directiveMessage);
          directiveMessage.printf("debugParsing turned ");
          if (debugParsing) {
             directiveMessage.printf("on.\n");
@@ -2112,7 +2110,7 @@ void PVParams::action_pvparams_directive(char *id, double val) {
    else if (!strcmp(id, "disable")) {
       disable = (val != 0);
       if (worldRank == 0) {
-         pvInfo(directiveMessage);
+         InfoLog(directiveMessage);
          directiveMessage.printf("Parsing params file ");
          if (disable) {
             directiveMessage.printf("disabled.\n");
@@ -2124,7 +2122,7 @@ void PVParams::action_pvparams_directive(char *id, double val) {
    }
    else {
       if (worldRank == 0) {
-         pvWarn().printf("Unrecognized directive %s = %f, skipping.\n", id, val);
+         WarnLog().printf("Unrecognized directive %s = %f, skipping.\n", id, val);
       }
    }
 }
@@ -2137,11 +2135,11 @@ void PVParams::action_parameter_group() {
    if (disable)
       return;
    if (debugParsing && worldRank == 0) {
-      pvInfo().printf(
+      InfoLog().printf(
             "action_parameter_group: %s \"%s\" parsed successfully.\n",
             currGroupKeyword,
             currGroupName);
-      pvInfo().flush();
+      InfoLog().flush();
    }
    // build a parameter group
    addGroup(currGroupKeyword, currGroupName);
@@ -2154,9 +2152,9 @@ void PVParams::action_parameter_group_name(char *keyword, char *name) {
    name[len - 1] = '\0';
 
    if (debugParsing && worldRank == 0) {
-      pvInfo().printf(
+      InfoLog().printf(
             "action_parameter_group_name: %s \"%s\" parsed successfully.\n", keyword, name);
-      pvInfo().flush();
+      InfoLog().flush();
    }
    currGroupKeyword = keyword;
    currGroupName    = name;
@@ -2170,9 +2168,9 @@ void PVParams::action_parameter_def(char *id, double val) {
    if (disable)
       return;
    if (debugParsing && worldRank == 0) {
-      pvInfo().flush();
-      pvInfo().printf("action_parameter_def: %s = %lf\n", id, val);
-      pvInfo().flush();
+      InfoLog().flush();
+      InfoLog().printf("action_parameter_def: %s = %lf\n", id, val);
+      InfoLog().flush();
    }
    if (checkDuplicates(id, val) != PV_SUCCESS)
       exit(EXIT_FAILURE);
@@ -2184,9 +2182,9 @@ void PVParams::action_parameter_def_overwrite(char *id, double val) {
    if (disable)
       return;
    if (debugParsing && worldRank == 0) {
-      pvInfo().flush();
-      pvInfo().printf("action_parameter_def_overwrite: %s = %lf\n", id, val);
-      pvInfo().flush();
+      InfoLog().flush();
+      InfoLog().printf("action_parameter_def_overwrite: %s = %lf\n", id, val);
+      InfoLog().flush();
    }
    // Search through current parameters for the id
    char *param_name     = stripOverwriteTag(id);
@@ -2201,17 +2199,17 @@ void PVParams::action_parameter_def_overwrite(char *id, double val) {
       for (int i = 0; i < arrayStack->size(); i++) {
          ParameterArray *arrayParam = arrayStack->peek(i);
          if (strcmp(arrayParam->name(), param_name) == 0) {
-            pvInfo().flush();
-            pvInfo().printf(
+            InfoLog().flush();
+            InfoLog().printf(
                   "%s is defined as an array parameter. Overwriting array parameters with value "
                   "parameters not implemented yet.\n",
                   id);
-            pvInfo().flush();
+            InfoLog().flush();
          }
       }
-      pvInfo().flush();
-      pvErrorNoExit().printf("Overwrite: %s is not an existing parameter to overwrite.\n", id);
-      pvInfo().flush();
+      InfoLog().flush();
+      ErrorLog().printf("Overwrite: %s is not an existing parameter to overwrite.\n", id);
+      InfoLog().flush();
    }
    free(param_name);
    // Set to new value
@@ -2222,9 +2220,9 @@ void PVParams::action_parameter_array(char *id) {
    if (disable)
       return;
    if (debugParsing && worldRank == 0) {
-      pvInfo().flush();
-      pvInfo().printf("action_parameter_array: %s\n", id);
-      pvInfo().flush();
+      InfoLog().flush();
+      InfoLog().printf("action_parameter_array: %s\n", id);
+      InfoLog().flush();
    }
    int status = currentParamArray->setName(id);
    assert(status == PV_SUCCESS);
@@ -2238,9 +2236,9 @@ void PVParams::action_parameter_array_overwrite(char *id) {
    if (disable)
       return;
    if (debugParsing && worldRank == 0) {
-      pvInfo().flush();
-      pvInfo().printf("action_parameter_array_overwrite: %s\n", id);
-      pvInfo().flush();
+      InfoLog().flush();
+      InfoLog().printf("action_parameter_array_overwrite: %s\n", id);
+      InfoLog().flush();
    }
    // Search through current parameters for the id
    char *param_name          = stripOverwriteTag(id);
@@ -2255,17 +2253,17 @@ void PVParams::action_parameter_array_overwrite(char *id) {
       for (int i = 0; i < stack->size(); i++) {
          Parameter *param = stack->peek(i);
          if (strcmp(param->name(), param_name) == 0) {
-            pvInfo().flush();
-            pvInfo().printf(
+            InfoLog().flush();
+            InfoLog().printf(
                   "%s is defined as a value parameter. Overwriting value parameters with array "
                   "parameters not implemented yet.\n",
                   id);
-            pvInfo().flush();
+            InfoLog().flush();
          }
       }
-      pvInfo().flush();
-      pvErrorNoExit().printf("Overwrite: %s is not an existing parameter to overwrite.\n", id);
-      pvInfo().flush();
+      InfoLog().flush();
+      ErrorLog().printf("Overwrite: %s is not an existing parameter to overwrite.\n", id);
+      InfoLog().flush();
    }
    free(param_name);
    // Set values of arrays
@@ -2282,8 +2280,8 @@ void PVParams::action_parameter_array_value(double val) {
    if (disable)
       return;
    if (debugParsing && worldRank == 0) {
-      pvInfo().flush();
-      pvInfo().printf("action_parameter_array_value %lf\n", val);
+      InfoLog().flush();
+      InfoLog().printf("action_parameter_array_value %lf\n", val);
    }
    int sz      = currentParamArray->getArraySize();
    int newsize = currentParamArray->pushValue(val);
@@ -2294,9 +2292,9 @@ void PVParams::action_parameter_string_def(const char *id, const char *stringval
    if (disable)
       return;
    if (debugParsing && worldRank == 0) {
-      pvInfo().flush();
-      pvInfo().printf("action_parameter_string_def: %s = %s\n", id, stringval);
-      pvInfo().flush();
+      InfoLog().flush();
+      InfoLog().printf("action_parameter_string_def: %s = %s\n", id, stringval);
+      InfoLog().flush();
    }
    if (checkDuplicates(id, 0.0) != PV_SUCCESS)
       exit(EXIT_FAILURE);
@@ -2312,9 +2310,9 @@ void PVParams::action_parameter_string_def_overwrite(const char *id, const char 
    if (disable)
       return;
    if (debugParsing && worldRank == 0) {
-      pvInfo().flush();
-      pvInfo().printf("action_parameter_string_def_overwrite: %s = %s\n", id, stringval);
-      pvInfo().flush();
+      InfoLog().flush();
+      InfoLog().printf("action_parameter_string_def_overwrite: %s = %s\n", id, stringval);
+      InfoLog().flush();
    }
    // Search through current parameters for the id
    char *param_name           = stripOverwriteTag(id);
@@ -2328,7 +2326,7 @@ void PVParams::action_parameter_string_def_overwrite(const char *id, const char 
    }
    free(param_name);
    if (!currParam) {
-      pvErrorNoExit().printf("Overwrite: %s is not an existing parameter to overwrite.\n", id);
+      ErrorLog().printf("Overwrite: %s is not an existing parameter to overwrite.\n", id);
    }
    char *param_value = stripQuotationMarks(stringval);
    assert(!stringval || param_value); // stringval can be null, but if stringval is not null,
@@ -2342,9 +2340,9 @@ void PVParams::action_parameter_filename_def(const char *id, const char *stringv
    if (disable)
       return;
    if (debugParsing && worldRank == 0) {
-      pvInfo().flush();
-      pvInfo().printf("action_parameter_filename_def: %s = %s\n", id, stringval);
-      pvInfo().flush();
+      InfoLog().flush();
+      InfoLog().printf("action_parameter_filename_def: %s = %s\n", id, stringval);
+      InfoLog().flush();
    }
    if (checkDuplicates(id, 0.0) != PV_SUCCESS) {
       exit(EXIT_FAILURE);
@@ -2368,9 +2366,9 @@ void PVParams::action_parameter_filename_def_overwrite(const char *id, const cha
    if (disable)
       return;
    if (debugParsing && worldRank == 0) {
-      pvInfo().flush();
-      pvInfo().printf("action_parameter_filename_def_overwrite: %s = %s\n", id, stringval);
-      pvInfo().flush();
+      InfoLog().flush();
+      InfoLog().printf("action_parameter_filename_def_overwrite: %s = %s\n", id, stringval);
+      InfoLog().flush();
    }
    // Search through current parameters for the id
    char *param_name           = stripOverwriteTag(id);
@@ -2385,7 +2383,7 @@ void PVParams::action_parameter_filename_def_overwrite(const char *id, const cha
    free(param_name);
    param_name = NULL;
    if (!currParam) {
-      pvErrorNoExit().printf("Overwrite: %s is not an existing parameter to overwrite.\n", id);
+      ErrorLog().printf("Overwrite: %s is not an existing parameter to overwrite.\n", id);
    }
    char *param_value = stripQuotationMarks(stringval);
    assert(param_value);
@@ -2403,15 +2401,15 @@ void PVParams::action_include_directive(const char *stringval) {
    if (disable)
       return;
    if (debugParsing && worldRank == 0) {
-      pvInfo().flush();
-      pvInfo().printf("action_include_directive: including %s\n", stringval);
-      pvInfo().flush();
+      InfoLog().flush();
+      InfoLog().printf("action_include_directive: including %s\n", stringval);
+      InfoLog().flush();
    }
    // The include directive must be the first parameter in the group if defined
    if (stack->size() != 0 || arrayStack->size() != 0 || stringStack->size() != 0) {
-      pvErrorNoExit().printf(
+      ErrorLog().printf(
             "Import of %s must be the first parameter specified in the group.\n", stringval);
-      pvInfo().flush();
+      InfoLog().flush();
    }
    // Grab the parameter value
    char *param_value = stripQuotationMarks(stringval);
@@ -2425,11 +2423,11 @@ void PVParams::action_include_directive(const char *stringval) {
    }
    // If group not found
    if (!includeGroup) {
-      pvErrorNoExit().printf("Include: include group %s is not defined.\n", param_value);
+      ErrorLog().printf("Include: include group %s is not defined.\n", param_value);
    }
    // Check keyword of group
    if (strcmp(includeGroup->getGroupKeyword(), currGroupKeyword) != 0) {
-      pvErrorNoExit().printf(
+      ErrorLog().printf(
             "Include: Cannot include group %s, which is a %s, into a %s. Group types must be the "
             "same.\n",
             param_value,
@@ -2460,12 +2458,12 @@ void PVParams::action_sweep_open(const char *groupname, const char *paramname) {
    assert(currSweepGroupName);
    currSweepParamName = strdup(paramname);
    if (debugParsing && worldRank == 0) {
-      pvInfo().flush();
-      pvInfo().printf(
+      InfoLog().flush();
+      InfoLog().printf(
             "action_batch_sweep_open: Sweep for group %s, parameter \"%s\" starting\n",
             groupname,
             paramname);
-      pvInfo().flush();
+      InfoLog().flush();
    }
 }
 
@@ -2474,11 +2472,11 @@ void PVParams::action_parameter_sweep_close() {
       return;
    addActiveParamSweep(currSweepGroupName, currSweepParamName);
    if (debugParsing && worldRank == 0) {
-      pvInfo().printf(
+      InfoLog().printf(
             "action_parameter_group: ParameterSweep for %s \"%s\" parsed successfully.\n",
             currSweepGroupName,
             currSweepParamName);
-      pvInfo().flush();
+      InfoLog().flush();
    }
    // build a parameter group
    free(currSweepGroupName);
@@ -2490,11 +2488,11 @@ void PVParams::action_batch_sweep_close() {
       return;
    addActiveBatchSweep(currSweepGroupName, currSweepParamName);
    if (debugParsing && worldRank == 0) {
-      pvInfo().printf(
+      InfoLog().printf(
             "action_parameter_group: BatchSweep for %s \"%s\" parsed successfully.\n",
             currSweepGroupName,
             currSweepParamName);
-      pvInfo().flush();
+      InfoLog().flush();
    }
    // build a parameter group
    free(currSweepGroupName);
@@ -2505,9 +2503,9 @@ void PVParams::action_parameter_sweep_values_number(double val) {
    if (disable)
       return;
    if (debugParsing && worldRank == 0) {
-      pvInfo().flush();
-      pvInfo().printf("action_parameter_sweep_values_number: %f\n", val);
-      pvInfo().flush();
+      InfoLog().flush();
+      InfoLog().printf("action_parameter_sweep_values_number: %f\n", val);
+      InfoLog().flush();
    }
    activeParamSweep->pushNumericValue(val);
 }
@@ -2516,9 +2514,9 @@ void PVParams::action_batch_sweep_values_number(double val) {
    if (disable)
       return;
    if (debugParsing && worldRank == 0) {
-      pvInfo().flush();
-      pvInfo().printf("action_batch_sweep_values_number: %f\n", val);
-      pvInfo().flush();
+      InfoLog().flush();
+      InfoLog().printf("action_batch_sweep_values_number: %f\n", val);
+      InfoLog().flush();
    }
    activeBatchSweep->pushNumericValue(val);
 }
@@ -2527,9 +2525,9 @@ void PVParams::action_parameter_sweep_values_string(const char *stringval) {
    if (disable)
       return;
    if (debugParsing && worldRank == 0) {
-      pvInfo().flush();
-      pvInfo().printf("action_sweep_values_string: %s\n", stringval);
-      pvInfo().flush();
+      InfoLog().flush();
+      InfoLog().printf("action_sweep_values_string: %s\n", stringval);
+      InfoLog().flush();
    }
    char *string = stripQuotationMarks(stringval);
    assert(!stringval || string); // stringval can be null, but if stringval is not null, string
@@ -2542,9 +2540,9 @@ void PVParams::action_batch_sweep_values_string(const char *stringval) {
    if (disable)
       return;
    if (debugParsing && worldRank == 0) {
-      pvInfo().flush();
-      pvInfo().printf("action_batch_values_string: %s\n", stringval);
-      pvInfo().flush();
+      InfoLog().flush();
+      InfoLog().printf("action_batch_values_string: %s\n", stringval);
+      InfoLog().flush();
    }
    char *string = stripQuotationMarks(stringval);
    assert(!stringval || string); // stringval can be null, but if stringval is not null, string
@@ -2557,9 +2555,9 @@ void PVParams::action_parameter_sweep_values_filename(const char *stringval) {
    if (disable)
       return;
    if (debugParsing && worldRank == 0) {
-      pvInfo().flush();
-      pvInfo().printf("action_sweep_values_filename: %s\n", stringval);
-      pvInfo().flush();
+      InfoLog().flush();
+      InfoLog().printf("action_sweep_values_filename: %s\n", stringval);
+      InfoLog().flush();
    }
    char *filename = stripQuotationMarks(stringval);
    assert(filename);
@@ -2571,9 +2569,9 @@ void PVParams::action_batch_sweep_values_filename(const char *stringval) {
    if (disable)
       return;
    if (debugParsing && worldRank == 0) {
-      pvInfo().flush();
-      pvInfo().printf("action_batch_sweep_values_filename: %s\n", stringval);
-      pvInfo().flush();
+      InfoLog().flush();
+      InfoLog().printf("action_batch_sweep_values_filename: %s\n", stringval);
+      InfoLog().flush();
    }
    char *filename = stripQuotationMarks(stringval);
    assert(filename);
@@ -2588,7 +2586,7 @@ int PVParams::checkDuplicates(const char *paramName, double val) {
       if (!strcmp(paramName, parm->name())) {
          double oldval = parm->value();
          if (val == oldval) {
-            pvWarn().printf(
+            WarnLog().printf(
                   "parameter name \"%s\" duplicates a previous parameter name and value (%s = "
                   "%f)\n",
                   paramName,
@@ -2596,7 +2594,7 @@ int PVParams::checkDuplicates(const char *paramName, double val) {
                   val);
          }
          else {
-            pvErrorNoExit().printf(
+            ErrorLog().printf(
                   "Rank %d process: parameter name \"%s\" duplicates a previous parameter name "
                   "with inconsistent values (%f versus %f)\n",
                   worldRank,
@@ -2610,7 +2608,7 @@ int PVParams::checkDuplicates(const char *paramName, double val) {
    }
    for (int k = 0; k < arrayStack->size(); k++) {
       if (!strcmp(paramName, arrayStack->peek(k)->name())) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "Rank %d process: parameter name \"%s\" duplicates a previous array parameter "
                "name\n",
                worldRank,
@@ -2621,7 +2619,7 @@ int PVParams::checkDuplicates(const char *paramName, double val) {
    }
    for (int k = 0; k < stringStack->size(); k++) {
       if (!strcmp(paramName, stringStack->peek(k)->getName())) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "Rank %d process: parameter name \"%s\" duplicates a previous string parameter "
                "name\n",
                worldRank,
@@ -2632,11 +2630,11 @@ int PVParams::checkDuplicates(const char *paramName, double val) {
    }
    if (status != PV_SUCCESS) {
       if (numberOfGroups() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "Rank %d process: this is the first parameter group being parsed\n", worldRank);
       }
       else {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "Rank %d process: last parameter group successfully added was \"%s\"\n",
                worldRank,
                groups[numberOfGroups() - 1]->name());

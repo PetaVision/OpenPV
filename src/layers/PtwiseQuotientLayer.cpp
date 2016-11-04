@@ -49,10 +49,10 @@ int PtwiseQuotientLayer::doUpdateState(
       double timef,
       double dt,
       const PVLayerLoc *loc,
-      pvdata_t *A,
-      pvdata_t *V,
+      float *A,
+      float *V,
       int num_channels,
-      pvdata_t *gSynHead) {
+      float *gSynHead) {
    int nx          = loc->nx;
    int ny          = loc->ny;
    int nf          = loc->nf;

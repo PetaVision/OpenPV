@@ -112,7 +112,7 @@ PoolingConn::AccumulateType PoolingConn::parseAccumulateTypeString(char const *p
 
 void PoolingConn::unsetAccumulateType() {
    if (parent->columnId() == 0) {
-      pvErrorNoExit(errorMessage);
+      ErrorLog(errorMessage);
       if (pvpatchAccumulateTypeString) {
          errorMessage.printf(
                "%s: pvpatchAccumulateType \"%s\" is unrecognized.",
@@ -193,9 +193,9 @@ int PoolingConn::initialize(
 #ifdef PV_USE_CUDA
    if (needPostIndexLayer && receiveGpu) {
       if (parent->getCommunicator()->commRank() == 0) {
-         pvError() << getDescription() << ": receiveGpu and needPostIndexLayer both set.  The GPU "
-                                          "version does not currently compute the post index "
-                                          "layer.";
+         Fatal() << getDescription() << ": receiveGpu and needPostIndexLayer both set.  The GPU "
+                                        "version does not currently compute the post index "
+                                        "layer.";
       }
       MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -243,24 +243,24 @@ int PoolingConn::communicateInitInfo() {
    const PVLayerLoc *postLoc = post->getLayerLoc();
 
    if (preLoc->nf != postLoc->nf) {
-      pvError() << "Pooling Layer " << name << ":  preLayer " << pre->getName() << " nf of "
-                << preLoc->nf << " does not match postLayer " << post->getName() << " nf of "
-                << postLoc->nf << ". Features must match\n";
+      Fatal() << "Pooling Layer " << name << ":  preLayer " << pre->getName() << " nf of "
+              << preLoc->nf << " does not match postLayer " << post->getName() << " nf of "
+              << postLoc->nf << ". Features must match\n";
    }
 
    float preToPostScaleX = (float)preLoc->nx / postLoc->nx;
    float preToPostScaleY = (float)preLoc->ny / postLoc->ny;
    if (preToPostScaleX < 1 || preToPostScaleY < 1) {
-      pvError() << "Pooling Layer " << name << ":  preLayer to postLayer must be "
-                                               "a many to one or one to one "
-                                               "conection\n";
+      Fatal() << "Pooling Layer " << name << ":  preLayer to postLayer must be "
+                                             "a many to one or one to one "
+                                             "conection\n";
    }
 
    if (needPostIndexLayer) {
       BaseLayer *basePostIndexLayer = parent->getLayerFromName(this->postIndexLayerName);
       if (basePostIndexLayer == NULL) {
          if (parent->columnId() == 0) {
-            pvErrorNoExit().printf(
+            ErrorLog().printf(
                   "%s: postIndexLayerName \"%s\" does not refer "
                   "to any layer in the column.\n",
                   getDescription_c(),
@@ -273,7 +273,7 @@ int PoolingConn::communicateInitInfo() {
       postIndexLayer = dynamic_cast<PoolingIndexLayer *>(basePostIndexLayer);
       if (postIndexLayer == NULL) {
          if (parent->columnId() == 0) {
-            pvErrorNoExit().printf(
+            ErrorLog().printf(
                   "%s: postIndexLayerName \"%s\" is not a PoolingIndexLayer.\n",
                   getDescription_c(),
                   this->postIndexLayerName);
@@ -284,7 +284,7 @@ int PoolingConn::communicateInitInfo() {
 
       if (postIndexLayer->getDataType() != PV_INT) {
          if (parent->columnId() == 0) {
-            pvErrorNoExit().printf(
+            ErrorLog().printf(
                   "%s: postIndexLayer \"%s\" must have data type "
                   "of int. Specify parameter "
                   "dataType in this layer to be \"int\".\n",
@@ -301,7 +301,7 @@ int PoolingConn::communicateInitInfo() {
       if (idxLoc->nxGlobal != postLoc->nxGlobal || idxLoc->nyGlobal != postLoc->nyGlobal
           || idxLoc->nf != postLoc->nf) {
          if (parent->columnId() == 0) {
-            pvErrorNoExit().printf(
+            ErrorLog().printf(
                   "%s: postIndexLayer \"%s\" must have the same "
                   "dimensions as the post pooling "
                   "layer \"%s\".\n",
@@ -339,7 +339,7 @@ void PoolingConn::clearGateIdxBuffer() {
 int PoolingConn::allocateDataStructures() {
    if (postIndexLayer && postIndexLayer->getDataStructuresAllocatedFlag() == false) {
       if (parent->columnId() == 0) {
-         pvInfo().printf(
+         InfoLog().printf(
                "%s must wait until postIndexLayer layer \"%s\" has finished its "
                "allocateDataStructures stage.\n",
                getDescription_c(),
@@ -356,13 +356,13 @@ int PoolingConn::allocateDataStructures() {
    if (needPostIndexLayer) {
       // Allocate temp buffers if needed, 1 for each thread
       if (parent->getNumThreads() > 1) {
-         thread_gateIdxBuffer = (pvdata_t **)malloc(sizeof(int *) * parent->getNumThreads());
+         thread_gateIdxBuffer = (float **)malloc(sizeof(int *) * parent->getNumThreads());
          assert(thread_gateIdxBuffer);
          // Assign thread_gSyn to different points of tempMem
          for (int i = 0; i < parent->getNumThreads(); i++) {
-            pvdata_t *thread_buffer = (pvdata_t *)malloc(sizeof(pvdata_t) * post->getNumNeurons());
+            float *thread_buffer = (float *)malloc(sizeof(float) * post->getNumNeurons());
             if (!thread_buffer) {
-               pvError().printf(
+               Fatal().printf(
                      "HyPerLayer \"%s\" error: rank %d unable to "
                      "allocate %zu memory for "
                      "thread_gateIdxBuffer: %s\n",
@@ -542,13 +542,13 @@ int PoolingConn::deliverPresynapticPerspective(PVLayerCube const *activity, int 
    clearGateIdxBuffer();
 
    for (int b = 0; b < parent->getNBatch(); b++) {
-      pvdata_t *activityBatch = activity->data
-                                + b * (preLoc->nx + preLoc->halo.rt + preLoc->halo.lt)
-                                        * (preLoc->ny + preLoc->halo.up + preLoc->halo.dn)
-                                        * preLoc->nf;
-      pvdata_t *gSynPatchHeadBatch =
+      float *activityBatch = activity->data
+                             + b * (preLoc->nx + preLoc->halo.rt + preLoc->halo.lt)
+                                     * (preLoc->ny + preLoc->halo.up + preLoc->halo.dn)
+                                     * preLoc->nf;
+      float *gSynPatchHeadBatch =
             post->getChannel(getChannel()) + b * postLoc->nx * postLoc->ny * postLoc->nf;
-      pvdata_t *gatePatchHeadBatch = NULL;
+      float *gatePatchHeadBatch = NULL;
       if (needPostIndexLayer) {
          gatePatchHeadBatch =
                postIndexLayer->getChannel(CHANNEL_EXC) + b * postIndexLayer->getNumNeurons();
@@ -610,8 +610,8 @@ int PoolingConn::deliverPresynapticPerspective(PVLayerCube const *activity, int 
          float a = activityBatch[kPreExt] * dt_factor;
 
          // If we're using thread_gSyn, set this here
-         pvdata_t *gSynPatchHead;
-         pvdata_t *gatePatchHead = NULL;
+         float *gSynPatchHead;
+         float *gatePatchHead = NULL;
 #ifdef PV_USE_OPENMP_THREADS
          if (thread_gSyn) {
             int ti        = omp_get_thread_num();
@@ -637,13 +637,13 @@ int PoolingConn::deliverPresynapticPerspective(PVLayerCube const *activity, int 
          }
 #endif // PV_USE_OPENMP_THREADS
 
-         PVPatch *weights             = getWeights(kPreExt, arborID);
-         const int nk                 = weights->nx * fPatchSize();
-         const int ny                 = weights->ny;
-         const int sy                 = getPostNonextStrides()->sy; // stride in layer
-         pvwdata_t *weightDataStart   = NULL;
-         pvgsyndata_t *postPatchStart = gSynPatchHead + getGSynPatchStart(kPreExt, arborID);
-         pvdata_t *postGatePatchStart = gatePatchHead + getGSynPatchStart(kPreExt, arborID);
+         PVPatch *weights          = getWeights(kPreExt, arborID);
+         const int nk              = weights->nx * fPatchSize();
+         const int ny              = weights->ny;
+         const int sy              = getPostNonextStrides()->sy; // stride in layer
+         float *weightDataStart    = NULL;
+         float *postPatchStart     = gSynPatchHead + getGSynPatchStart(kPreExt, arborID);
+         float *postGatePatchStart = gatePatchHead + getGSynPatchStart(kPreExt, arborID);
 
          const int kxPreExt =
                kxPos(kPreExt,
@@ -672,9 +672,9 @@ int PoolingConn::deliverPresynapticPerspective(PVLayerCube const *activity, int 
                preLoc->nyGlobal + preLoc->halo.up + preLoc->halo.dn,
                preLoc->nf);
 
-         int offset  = kfPre;
-         int sf      = fPatchSize();
-         pvwdata_t w = 1.0f;
+         int offset = kfPre;
+         int sf     = fPatchSize();
+         float w    = 1.0f;
          if (getPoolingType() == SUM) {
             w = 1.0f;
          }
@@ -697,8 +697,8 @@ int PoolingConn::deliverPresynapticPerspective(PVLayerCube const *activity, int 
       // can be done once,
       // as opposed to once per connection?
       if (thread_gSyn) {
-         pvdata_t *gSynPatchHead = gSynPatchHeadBatch;
-         pvdata_t *gateIdxBuffer = nullptr;
+         float *gSynPatchHead = gSynPatchHeadBatch;
+         float *gateIdxBuffer = nullptr;
          if (needPostIndexLayer && thread_gateIdxBuffer) {
             gateIdxBuffer = gatePatchHeadBatch;
          }
@@ -728,7 +728,7 @@ int PoolingConn::deliverPresynapticPerspective(PVLayerCube const *activity, int 
 #endif
    }
    if (activity->isSparse) {
-      pvdata_t *gSyn = post->getChannel(getChannel());
+      float *gSyn = post->getChannel(getChannel());
       for (int k = 0; k < post->getNumNeuronsAllBatches(); k++) {
          if (gSyn[k] == -INFINITY) {
             gSyn[k] = 0.0f;
@@ -768,19 +768,19 @@ int PoolingConn::deliverPostsynapticPerspective(PVLayerCube const *activity, int
    int sy = (sourceNx + sourceHalo->lt + sourceHalo->rt) * sourceNf;
 
    // The start of the gsyn buffer
-   pvdata_t *gSynPatchHead = post->getChannel(this->getChannel());
+   float *gSynPatchHead = post->getChannel(this->getChannel());
 
    clearGateIdxBuffer();
-   pvdata_t *gatePatchHead = nullptr;
+   float *gatePatchHead = nullptr;
    if (needPostIndexLayer) {
       gatePatchHead = postIndexLayer->getChannel(CHANNEL_EXC);
    }
 
    long *startSourceExtBuf = getPostToPreActivity();
    if (!startSourceExtBuf) {
-      pvError() << "HyPerLayer::recvFromPost unable to get preToPostActivity "
-                   "from connection. Is "
-                   "shrink_patches on?\n";
+      Fatal() << "HyPerLayer::recvFromPost unable to get preToPostActivity "
+                 "from connection. Is "
+                 "shrink_patches on?\n";
    }
 
    float resetVal = 0;
@@ -793,11 +793,10 @@ int PoolingConn::deliverPostsynapticPerspective(PVLayerCube const *activity, int
 #pragma omp parallel for
 #endif
       for (int kTargetRes = 0; kTargetRes < numPostRestricted; kTargetRes++) {
-         pvdata_t *activityBatch = activity->data
-                                   + b * (sourceNx + sourceHalo->rt + sourceHalo->lt)
-                                           * (sourceNy + sourceHalo->up + sourceHalo->dn)
-                                           * sourceNf;
-         pvdata_t *gSynPatchHeadBatch = gSynPatchHead + b * targetNx * targetNy * targetNf;
+         float *activityBatch = activity->data
+                                + b * (sourceNx + sourceHalo->rt + sourceHalo->lt)
+                                        * (sourceNy + sourceHalo->up + sourceHalo->dn) * sourceNf;
+         float *gSynPatchHeadBatch = gSynPatchHead + b * targetNx * targetNy * targetNf;
 
          // Change restricted to extended post neuron
          int kTargetExt = kIndexExtended(
@@ -814,23 +813,23 @@ int PoolingConn::deliverPostsynapticPerspective(PVLayerCube const *activity, int
          long startSourceExt = startSourceExtBuf[kTargetRes];
 
          // Calculate target's start of gsyn
-         pvdata_t *gSynPatchPos = gSynPatchHeadBatch + kTargetRes;
+         float *gSynPatchPos = gSynPatchHeadBatch + kTargetRes;
          // Initialize patch as a huge negative number
          *gSynPatchPos = resetVal;
 
-         pvdata_t *gatePatchPos = nullptr;
+         float *gatePatchPos = nullptr;
          if (needPostIndexLayer) {
             gatePatchPos = gatePatchHead + b * postIndexLayer->getNumNeurons() + kTargetRes;
             // Initialize gatePatchPos as a negative number
-            *gatePatchPos = (pvdata_t)-1;
+            *gatePatchPos = (float)-1;
          }
 
          float *activityStartBuf = &(activityBatch[startSourceExt]);
 
-         pvwdata_t *weightY = NULL; // No weights in pooling
-         int sf             = postConn->fPatchSize();
-         int yPatchSize     = postConn->yPatchSize();
-         int numPerStride   = postConn->xPatchSize() * postConn->fPatchSize();
+         float *weightY   = NULL; // No weights in pooling
+         int sf           = postConn->fPatchSize();
+         int yPatchSize   = postConn->yPatchSize();
+         int numPerStride = postConn->xPatchSize() * postConn->fPatchSize();
 
          const PVLayerLoc *postLoc = post->getLayerLoc();
          const int kfPost          = featureIndex(
@@ -840,7 +839,7 @@ int PoolingConn::deliverPostsynapticPerspective(PVLayerCube const *activity, int
                postLoc->nf);
          int offset = kfPost;
 
-         pvwdata_t w = 1.0f;
+         float w = 1.0f;
          if (getPoolingType() == SUM) {
             w = 1.0f;
          }

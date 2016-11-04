@@ -27,31 +27,31 @@ void testByFile() {
 
    // Test initial indices. The first call to nextIndex after
    // initializeBatch just returns their initial value.
-   pvErrorIf(
+   FatalIf(
          (value = batchIndexer->nextIndex(0)) != 0,
          "Failed. Expected 0, found %d instead.\n",
          value);
-   pvErrorIf(
+   FatalIf(
          (value = batchIndexer->nextIndex(1)) != 1,
          "Failed. Expected 1, found %d instead.\n",
          value);
 
    // Test nextIndex()
-   pvErrorIf(
+   FatalIf(
          (value = batchIndexer->nextIndex(0)) != 2,
          "Failed. Expected 2, found %d instead.\n",
          value);
-   pvErrorIf(
+   FatalIf(
          (value = batchIndexer->nextIndex(1)) != 3,
          "Failed. Expected 3, found %d instead.\n",
          value);
 
    // Test nextIndex() when wrapping around the last index
-   pvErrorIf(
+   FatalIf(
          (value = batchIndexer->nextIndex(0)) != 0,
          "Failed. Expected 0, found %d instead.\n",
          value);
-   pvErrorIf(
+   FatalIf(
          (value = batchIndexer->nextIndex(1)) != 1,
          "Failed. Expected 1, found %d instead.\n",
          value);
@@ -70,31 +70,31 @@ void testByFile() {
 
    // Test initial indices. The first call to nextIndex after
    // initializeBatch just returns their initial value.
-   pvErrorIf(
+   FatalIf(
          (value = batchIndexer->nextIndex(0)) != 2,
          "Failed. Expected 3, found %d instead.\n",
          value);
-   pvErrorIf(
+   FatalIf(
          (value = batchIndexer->nextIndex(1)) != 3,
          "Failed. Expected 4, found %d instead.\n",
          value);
 
    // Test nextIndex()
-   pvErrorIf(
+   FatalIf(
          (value = batchIndexer->nextIndex(0)) != 6,
          "Failed. Expected 6, found %d instead.\n",
          value);
-   pvErrorIf(
+   FatalIf(
          (value = batchIndexer->nextIndex(1)) != 7,
          "Failed. Expected 7, found %d instead.\n",
          value);
 
    // Test nextIndex() when wrapping around the last index
-   pvErrorIf(
+   FatalIf(
          (value = batchIndexer->nextIndex(0)) != 2,
          "Failed. Expected 2, found %d instead.\n",
          value);
-   pvErrorIf(
+   FatalIf(
          (value = batchIndexer->nextIndex(1)) != 3,
          "Failed. Expected 3, found %d instead.\n",
          value);
@@ -120,11 +120,11 @@ void testByList() {
 
    // Test initial indices. The first call to nextIndex after
    // initializeBatch just returns their initial value.
-   pvErrorIf(
+   FatalIf(
          (value = batchIndexer->nextIndex(0)) != 0,
          "Failed. Expected 0, found %d instead.\n",
          value);
-   pvErrorIf(
+   FatalIf(
          (value = batchIndexer->nextIndex(1)) != 2,
          "Failed. Expected 2, found %d instead.\n",
          value);
@@ -136,11 +136,11 @@ void testByList() {
    std::vector<int> indicesBeforeLoop = batchIndexer->getIndices();
 
    // Test nextIndex()
-   pvErrorIf(
+   FatalIf(
          (value = batchIndexer->nextIndex(0)) != 1,
          "Failed. Expected 1, found %d instead.\n",
          value);
-   pvErrorIf(
+   FatalIf(
          (value = batchIndexer->nextIndex(1)) != 3,
          "Failed. Expected 3, found %d instead.\n",
          value);
@@ -151,13 +151,13 @@ void testByList() {
 
    // Batch 0 won't loop, it's going to march
    // right into where batch 1 started.
-   pvErrorIf(
+   FatalIf(
          (value = batchIndexer->nextIndex(0)) != 2,
          "Failed. Expected 2, found %d instead.\n",
          value);
 
    // Batch 1 should loop.
-   pvErrorIf(
+   FatalIf(
          (value = batchIndexer->nextIndex(1)) != 2,
          "Failed. Expected 2, found %d instead.\n",
          value);
@@ -168,7 +168,7 @@ void testByList() {
    batchIndexer->setIndices(indicesBeforeLoop);
    batchIndexer->setWrapToStartIndex(false);
    batchIndexer->nextIndex(1);
-   pvErrorIf(
+   FatalIf(
          (value = batchIndexer->nextIndex(1)) != 0,
          "Failed. Expected 0, found %d instead.\n",
          value);
@@ -187,11 +187,11 @@ void testByList() {
 
    // Test initial indices. The first call to nextIndex after
    // initializeBatch just returns their initial value.
-   pvErrorIf(
+   FatalIf(
          (value = batchIndexer->nextIndex(0)) != 4,
          "Failed. Expected 4, found %d instead.\n",
          value);
-   pvErrorIf(
+   FatalIf(
          (value = batchIndexer->nextIndex(1)) != 6,
          "Failed. Expected 6, found %d instead.\n",
          value);
@@ -203,11 +203,11 @@ void testByList() {
    indicesBeforeLoop = batchIndexer->getIndices();
 
    // Test nextIndex()
-   pvErrorIf(
+   FatalIf(
          (value = batchIndexer->nextIndex(0)) != 5,
          "Failed. Expected 5, found %d instead.\n",
          value);
-   pvErrorIf(
+   FatalIf(
          (value = batchIndexer->nextIndex(1)) != 7,
          "Failed. Expected 7, found %d instead.\n",
          value);
@@ -218,13 +218,13 @@ void testByList() {
 
    // Batch 0 won't loop, it's going to march
    // right into where batch 1 started.
-   pvErrorIf(
+   FatalIf(
          (value = batchIndexer->nextIndex(0)) != 6,
          "Failed. Expected 6, found %d instead.\n",
          value);
 
    // Batch 1 should loop.
-   pvErrorIf(
+   FatalIf(
          (value = batchIndexer->nextIndex(1)) != 6,
          "Failed. Expected 6, found %d instead.\n",
          value);
@@ -235,7 +235,7 @@ void testByList() {
    batchIndexer->setIndices(indicesBeforeLoop);
    batchIndexer->setWrapToStartIndex(false);
    batchIndexer->nextIndex(1);
-   pvErrorIf(
+   FatalIf(
          (value = batchIndexer->nextIndex(1)) != 0,
          "Failed. Expected 0, found %d instead.\n",
          value);
@@ -260,11 +260,11 @@ void testBySpecified() {
 
    // Test initial indices. The first call to nextIndex after
    // initializeBatch just returns their initial value.
-   pvErrorIf(
+   FatalIf(
          (value = batchIndexer->nextIndex(0)) != 2,
          "Failed. Expected 2, found %d instead.\n",
          value);
-   pvErrorIf(
+   FatalIf(
          (value = batchIndexer->nextIndex(1)) != 0,
          "Failed. Expected 0, found %d instead.\n",
          value);
@@ -276,11 +276,11 @@ void testBySpecified() {
    std::vector<int> indicesBeforeLoop = batchIndexer->getIndices();
 
    // Test nextIndex()
-   pvErrorIf(
+   FatalIf(
          (value = batchIndexer->nextIndex(0)) != 3,
          "Failed. Expected 3, found %d instead.\n",
          value);
-   pvErrorIf(
+   FatalIf(
          (value = batchIndexer->nextIndex(1)) != 2,
          "Failed. Expected 2, found %d instead.\n",
          value);
@@ -289,11 +289,11 @@ void testBySpecified() {
    // Because setWrapToStartIndex is true, these should be
    // the same as the initial state, not 0.
 
-   pvErrorIf(
+   FatalIf(
          (value = batchIndexer->nextIndex(0)) != 2,
          "Failed. Expected 2, found %d instead.\n",
          value);
-   pvErrorIf(
+   FatalIf(
          (value = batchIndexer->nextIndex(1)) != 0,
          "Failed. Expected 0, found %d instead.\n",
          value);
@@ -305,29 +305,29 @@ void testBySpecified() {
    batchIndexer->setWrapToStartIndex(false);
    batchIndexer->nextIndex(0);
    batchIndexer->nextIndex(1);
-   pvErrorIf(
+   FatalIf(
          (value = batchIndexer->nextIndex(0)) != 0,
          "Failed. Expected 0, found %d instead.\n",
          value);
-   pvErrorIf(
+   FatalIf(
          (value = batchIndexer->nextIndex(1)) != 0,
          "Failed. Expected 0, found %d instead.\n",
          value);
 }
 
 int main(int argc, char **argv) {
-   pvInfo() << "Testing BatchIndexer::BYFILE: ";
+   InfoLog() << "Testing BatchIndexer::BYFILE: ";
    testByFile();
-   pvInfo() << "Completed.\n";
+   InfoLog() << "Completed.\n";
 
-   pvInfo() << "Testing BatchIndexer::BYLIST: ";
+   InfoLog() << "Testing BatchIndexer::BYLIST: ";
    testByList();
-   pvInfo() << "Completed.\n";
+   InfoLog() << "Completed.\n";
 
-   pvInfo() << "Testing BatchIndexer::BYSPECIFIED: ";
+   InfoLog() << "Testing BatchIndexer::BYSPECIFIED: ";
    testBySpecified();
-   pvInfo() << "Completed.\n";
+   InfoLog() << "Completed.\n";
 
-   pvInfo() << "BatchIndexer tests completed successfully!\n";
+   InfoLog() << "BatchIndexer tests completed successfully!\n";
    return EXIT_SUCCESS;
 }

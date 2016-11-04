@@ -31,13 +31,13 @@ InitWeightsParams *InitOneToOneWeights::createNewWeightParams() {
    return tempPtr;
 }
 
-int InitOneToOneWeights::calcWeights(pvdata_t *dataStart, int patchIndex, int arborId) {
+int InitOneToOneWeights::calcWeights(float *dataStart, int patchIndex, int arborId) {
 
    InitOneToOneWeightsParams *weightParamPtr =
          dynamic_cast<InitOneToOneWeightsParams *>(weightParams);
 
    if (weightParamPtr == NULL) {
-      pvError().printf("Failed to recast pointer to weightsParam!  Exiting...");
+      Fatal().printf("Failed to recast pointer to weightsParam!  Exiting...");
    }
 
    weightParamPtr->calcOtherParams(patchIndex);
@@ -48,7 +48,7 @@ int InitOneToOneWeights::calcWeights(pvdata_t *dataStart, int patchIndex, int ar
 }
 
 int InitOneToOneWeights::createOneToOneConnection(
-      pvdata_t *dataStart,
+      float *dataStart,
       int dataPatchIndex,
       float iWeight,
       InitWeightsParams *weightParamPtr) {

@@ -17,7 +17,7 @@ int BinningTestLayer::updateState(double timef, double dt) {
    int kx0               = loc->kx0;
    int ky0               = loc->ky0;
    // Grab the activity layer of current layer
-   const pvdata_t *A = getActivity();
+   const float *A = getActivity();
    // We only care about restricted space
    for (int iY = loc->halo.up; iY < ny + loc->halo.up; iY++) {
       for (int iX = loc->halo.up; iX < nx + loc->halo.lt; iX++) {
@@ -33,15 +33,15 @@ int BinningTestLayer::updateState(double timef, double dt) {
                // Based on the input image, X index should be the same as F index
                if (iX + kx0 == iF) {
                   if (A[idx] != 1) {
-                     pvError() << iY << "," << iX << "," << iF << ": " << A[idx] << "\n";
+                     Fatal() << iY << "," << iX << "," << iF << ": " << A[idx] << "\n";
                   }
-                  pvErrorIf(!(A[idx] == 1), "Test failed.\n");
+                  FatalIf(!(A[idx] == 1), "Test failed.\n");
                }
                else {
                   if (A[idx] != 0) {
-                     pvError() << iY << "," << iX << "," << iF << ": " << A[idx] << "\n";
+                     Fatal() << iY << "," << iX << "," << iF << ": " << A[idx] << "\n";
                   }
-                  pvErrorIf(!(A[idx] == 0), "Test failed.\n");
+                  FatalIf(!(A[idx] == 0), "Test failed.\n");
                }
             }
             else if (getSigma() == 2) {
@@ -49,23 +49,23 @@ int BinningTestLayer::updateState(double timef, double dt) {
                if (iX + kx0 == iF - 2 || iX + kx0 == iF + 2) {
                   temp = A[idx] - 0.121f;
                   if (temp > .00001f) {
-                     pvError() << iY << "," << iX << "," << iF << ": " << A[idx] << "\n";
+                     Fatal() << iY << "," << iX << "," << iF << ": " << A[idx] << "\n";
                   }
-                  pvErrorIf(!(temp <= 0.00001f), "Test failed.\n");
+                  FatalIf(!(temp <= 0.00001f), "Test failed.\n");
                }
                if (iX + kx0 == iF - 1 || iX + kx0 == iF + 1) {
                   temp = A[idx] - 0.176f;
                   if (temp > 0.00001f) {
-                     pvError() << iY << "," << iX << "," << iF << ": " << A[idx] << "\n";
+                     Fatal() << iY << "," << iX << "," << iF << ": " << A[idx] << "\n";
                   }
-                  pvErrorIf(!(temp <= 0.00001f), "Test failed.\n");
+                  FatalIf(!(temp <= 0.00001f), "Test failed.\n");
                }
                if (iX + kx0 == iF) {
                   temp = A[idx] - 0.199f;
                   if (temp > 0.00001f) {
-                     pvError() << iY << "," << iX << "," << iF << ": " << A[idx] << "\n";
+                     Fatal() << iY << "," << iX << "," << iF << ": " << A[idx] << "\n";
                   }
-                  pvErrorIf(!(temp <= 0.00001f), "Test failed.\n");
+                  FatalIf(!(temp <= 0.00001f), "Test failed.\n");
                }
             }
          }

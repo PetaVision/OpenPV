@@ -62,7 +62,7 @@ void MaskLayer::ioParam_maskMethod(enum ParamsIOFlag ioFlag) {
    }
    else {
       if (parent->columnId() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s: \"%s\" is not a valid maskMethod. Options are \"layer\", \"invertLayer\", "
                "\"maskFeatures\", or \"noMaskFeatures\".\n",
                getDescription_c(),
@@ -86,7 +86,7 @@ void MaskLayer::ioParam_featureIdxs(enum ParamsIOFlag ioFlag) {
             ioFlag, name, "featureIdxs", &features, &numSpecifiedFeatures);
       if (numSpecifiedFeatures == 0) {
          if (parent->columnId() == 0) {
-            pvErrorNoExit().printf(
+            ErrorLog().printf(
                   "%s: MaskLayer must specify at least one feature for maskMethod \"%s\".\n",
                   getDescription_c(),
                   maskMethod);
@@ -102,7 +102,7 @@ int MaskLayer::communicateInitInfo() {
       maskLayer = parent->getLayerFromName(maskLayerName);
       if (maskLayer == NULL) {
          if (parent->columnId() == 0) {
-            pvErrorNoExit().printf(
+            ErrorLog().printf(
                   "%s: maskLayerName \"%s\" is not a layer in the HyPerCol.\n",
                   getDescription_c(),
                   maskLayerName);
@@ -116,7 +116,7 @@ int MaskLayer::communicateInitInfo() {
       assert(maskLoc != NULL && loc != NULL);
       if (maskLoc->nxGlobal != loc->nxGlobal || maskLoc->nyGlobal != loc->nyGlobal) {
          if (parent->columnId() == 0) {
-            pvErrorNoExit(errorMessage);
+            ErrorLog(errorMessage);
             errorMessage.printf(
                   "%s: maskLayerName \"%s\" does not have the same x and y dimensions.\n",
                   getDescription_c(),
@@ -136,7 +136,7 @@ int MaskLayer::communicateInitInfo() {
 
       if (maskLoc->nf != 1 && maskLoc->nf != loc->nf) {
          if (parent->columnId() == 0) {
-            pvErrorNoExit(errorMessage);
+            ErrorLog(errorMessage);
             errorMessage.printf(
                   "%s: maskLayerName \"%s\" must either have the same number of features as this "
                   "layer, or one feature.\n",
@@ -163,7 +163,7 @@ int MaskLayer::communicateInitInfo() {
       const PVLayerLoc *loc = getLayerLoc();
       for (int f = 0; f < numSpecifiedFeatures; f++) {
          if (features[f] < 0 || features[f] >= loc->nf) {
-            pvError() << "Specified feature " << features[f] << "out of bounds\n";
+            Fatal() << "Specified feature " << features[f] << "out of bounds\n";
          }
       }
    }
@@ -174,10 +174,10 @@ int MaskLayer::communicateInitInfo() {
 int MaskLayer::updateState(double time, double dt) {
    ANNLayer::updateState(time, dt);
 
-   pvdata_t *A           = getCLayer()->activity->data;
-   pvdata_t *V           = getV();
+   float *A              = getCLayer()->activity->data;
+   float *V              = getV();
    int num_channels      = getNumChannels();
-   pvdata_t *gSynHead    = GSyn == NULL ? NULL : GSyn[0];
+   float *gSynHead       = GSyn == NULL ? NULL : GSyn[0];
    const PVLayerLoc *loc = getLayerLoc();
 
    int nx          = loc->nx;
@@ -206,7 +206,7 @@ int MaskLayer::updateState(double time, double dt) {
    }
 
    for (int b = 0; b < nbatch; b++) {
-      pvdata_t *ABatch = A + b * getNumExtended();
+      float *ABatch = A + b * getNumExtended();
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
@@ -218,9 +218,9 @@ int MaskLayer::updateState(double time, double dt) {
 
          switch (method) {
             case METHOD_LAYER: {
-               const PVLayerLoc *maskLoc   = maskLayer->getLayerLoc();
-               pvdata_t *maskActivity      = maskLayer->getActivity();
-               pvdata_t *maskActivityBatch = maskActivity + b * maskLayer->getNumExtended();
+               const PVLayerLoc *maskLoc = maskLayer->getLayerLoc();
+               float *maskActivity       = maskLayer->getActivity();
+               float *maskActivityBatch  = maskActivity + b * maskLayer->getNumExtended();
                int kMaskRes;
                if (maskLoc->nf == 1) {
                   kMaskRes = ni / nf;
@@ -240,9 +240,9 @@ int MaskLayer::updateState(double time, double dt) {
                maskVal = maskActivityBatch[kMaskExt];
             } break;
             case METHOD_INVERT_LAYER: {
-               const PVLayerLoc *maskLoc   = maskLayer->getLayerLoc();
-               pvdata_t *maskActivity      = maskLayer->getActivity();
-               pvdata_t *maskActivityBatch = maskActivity + b * maskLayer->getNumExtended();
+               const PVLayerLoc *maskLoc = maskLayer->getLayerLoc();
+               float *maskActivity       = maskLayer->getActivity();
+               float *maskActivityBatch  = maskActivity + b * maskLayer->getNumExtended();
                int kMaskRes;
                if (maskLoc->nf == 1) {
                   kMaskRes = ni / nf;

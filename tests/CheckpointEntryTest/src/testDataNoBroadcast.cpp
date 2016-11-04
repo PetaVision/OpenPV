@@ -34,7 +34,7 @@ void testDataNoBroadcast(PV::Communicator *comm, std::string const &directory) {
    // 5.0.
    if (rank == 0) {
       for (int i = 0; i < vectorLength; i++) {
-         pvErrorIf(
+         FatalIf(
                checkpointData.at(i) != dataCopy.at(i),
                "testDataNoBroadcast failed: data at index %d is %f, but should be %f.\n",
                i,
@@ -44,7 +44,7 @@ void testDataNoBroadcast(PV::Communicator *comm, std::string const &directory) {
    }
    else {
       for (int i = 0; i < vectorLength; i++) {
-         pvErrorIf(
+         FatalIf(
                checkpointData.at(i) != 5.0f,
                "testDataNoBroadcast failed for rank %d process: data at index %d is %f, but should "
                "be %f.\n",
@@ -54,5 +54,5 @@ void testDataNoBroadcast(PV::Communicator *comm, std::string const &directory) {
                (double)5.0f);
       }
    }
-   pvInfo() << "testDataNoBroadcast passed.\n";
+   InfoLog() << "testDataNoBroadcast passed.\n";
 }

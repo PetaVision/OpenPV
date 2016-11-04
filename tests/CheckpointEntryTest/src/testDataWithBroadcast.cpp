@@ -16,7 +16,7 @@ void testDataWithBroadcast(PV::Communicator *comm, std::string const &directory)
    else {
       checkpointData = std::vector<float>(vectorLength, 0);
    }
-   pvErrorIf(
+   FatalIf(
          (int)checkpointData.size() != vectorLength,
          "checkpointData has length %zu instead of %d\n",
          (size_t)checkpointData.size(),
@@ -43,7 +43,7 @@ void testDataWithBroadcast(PV::Communicator *comm, std::string const &directory)
 
    // All processes should have the original data
    for (int i = 0; i < vectorLength; i++) {
-      pvErrorIf(
+      FatalIf(
             checkpointData.at(i) != correctData.at(i),
             "testDataNoBroadcast failed: data at index %d is %f, but should be %f.\n",
             i,
@@ -51,5 +51,5 @@ void testDataWithBroadcast(PV::Communicator *comm, std::string const &directory)
             (double)correctData.at(i));
    }
    MPI_Barrier(comm->communicator());
-   pvInfo() << "testDataWithBroadcast passed.\n";
+   InfoLog() << "testDataWithBroadcast passed.\n";
 }

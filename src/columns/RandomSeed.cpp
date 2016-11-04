@@ -17,27 +17,27 @@ RandomSeed *RandomSeed::instance() {
 
 RandomSeed::RandomSeed() {
    if (sizeof(unsigned int) < (size_t)4) {
-      pvError() << "Unsigned int must have a size of at least 4 bytes.\n";
+      Fatal() << "Unsigned int must have a size of at least 4 bytes.\n";
    }
 }
 
 void RandomSeed::initialize(unsigned int initialSeed) {
    if (initialSeed < RandomSeed::minSeed) {
-      pvError() << "random seed " << initialSeed << ""
-                                                    " is too small. Use a seed of at least "
-                << minSeed << ".\n";
+      Fatal() << "random seed " << initialSeed << ""
+                                                  " is too small. Use a seed of at least "
+              << minSeed << ".\n";
    }
 
    mInitialized = true;
    mNextSeed    = initialSeed;
    if (mInitialized) {
-      pvInfo() << "RandomSeed initialized to " << mNextSeed << ".\n";
+      InfoLog() << "RandomSeed initialized to " << mNextSeed << ".\n";
    }
 }
 
 unsigned int RandomSeed::allocate(unsigned int numRequested) {
    if (!mInitialized) {
-      pvError() << "RandomSeed has not been initialized.\n";
+      Fatal() << "RandomSeed has not been initialized.\n";
    }
    unsigned int allocation = mNextSeed;
    mNextSeed += numRequested;

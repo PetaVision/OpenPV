@@ -20,22 +20,22 @@ int customexit(HyPerCol *hc, int argc, char **argv) {
    HyPerConn *initializeFromInitWeightsConn = dynamic_cast<HyPerConn *>(baseConn);
    // There must be a connection named initializeFromInitWeights. It should have a single weight
    // with value 1
-   pvErrorIf(!(initializeFromInitWeightsConn), "Test failed.\n");
-   pvErrorIf(!(initializeFromInitWeightsConn->xPatchSize() == 1), "Test failed.\n");
-   pvErrorIf(!(initializeFromInitWeightsConn->yPatchSize() == 1), "Test failed.\n");
-   pvErrorIf(!(initializeFromInitWeightsConn->fPatchSize() == 1), "Test failed.\n");
-   pvErrorIf(!(initializeFromInitWeightsConn->numberOfAxonalArborLists() == 1), "Test failed.\n");
-   pvErrorIf(!(initializeFromInitWeightsConn->get_wData(0, 0)[0] == 1.0f), "Test failed.\n");
+   FatalIf(!(initializeFromInitWeightsConn), "Test failed.\n");
+   FatalIf(!(initializeFromInitWeightsConn->xPatchSize() == 1), "Test failed.\n");
+   FatalIf(!(initializeFromInitWeightsConn->yPatchSize() == 1), "Test failed.\n");
+   FatalIf(!(initializeFromInitWeightsConn->fPatchSize() == 1), "Test failed.\n");
+   FatalIf(!(initializeFromInitWeightsConn->numberOfAxonalArborLists() == 1), "Test failed.\n");
+   FatalIf(!(initializeFromInitWeightsConn->get_wData(0, 0)[0] == 1.0f), "Test failed.\n");
 
    // There must be a connection named initializeFromCheckpoint.  It should have a single weight
    // with value 2
    baseConn                                = hc->getConnFromName("initializeFromCheckpoint");
    HyPerConn *initializeFromCheckpointConn = dynamic_cast<HyPerConn *>(baseConn);
-   pvErrorIf(!(initializeFromCheckpointConn), "Test failed.\n");
-   pvErrorIf(!(initializeFromCheckpointConn->xPatchSize() == 1), "Test failed.\n");
-   pvErrorIf(!(initializeFromCheckpointConn->yPatchSize() == 1), "Test failed.\n");
-   pvErrorIf(!(initializeFromCheckpointConn->fPatchSize() == 1), "Test failed.\n");
-   pvErrorIf(!(initializeFromCheckpointConn->numberOfAxonalArborLists() == 1), "Test failed.\n");
-   pvErrorIf(!(initializeFromCheckpointConn->get_wData(0, 0)[0] == 2.0f), "Test failed.\n");
+   FatalIf(!(initializeFromCheckpointConn), "Test failed.\n");
+   FatalIf(!(initializeFromCheckpointConn->xPatchSize() == 1), "Test failed.\n");
+   FatalIf(!(initializeFromCheckpointConn->yPatchSize() == 1), "Test failed.\n");
+   FatalIf(!(initializeFromCheckpointConn->fPatchSize() == 1), "Test failed.\n");
+   FatalIf(!(initializeFromCheckpointConn->numberOfAxonalArborLists() == 1), "Test failed.\n");
+   FatalIf(!(initializeFromCheckpointConn->get_wData(0, 0)[0] == 2.0f), "Test failed.\n");
    return PV_SUCCESS;
 }

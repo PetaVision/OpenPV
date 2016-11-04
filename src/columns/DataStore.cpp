@@ -23,7 +23,7 @@ DataStore::DataStore(int numBuffers, int numItems, int numLevels, bool isSparse_
    mNumLevels  = numLevels;
    mNumBuffers = numBuffers;
 
-   mBuffer          = new RingBuffer<pvdata_t>(numLevels, numBuffers * numItems);
+   mBuffer          = new RingBuffer<float>(numLevels, numBuffers * numItems);
    mLastUpdateTimes = new RingBuffer<double>(
          numLevels, numBuffers, -std::numeric_limits<double>::infinity() /*initial value*/);
 

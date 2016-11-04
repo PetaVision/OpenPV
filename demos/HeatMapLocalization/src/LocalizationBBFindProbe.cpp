@@ -149,7 +149,7 @@ int LocalizationBBFindProbe::calcValues(double timevalue) {
    unsigned detectionIndex = 0U;
 
    // Gather the confidence layers into root process for BBFind
-   pvadata_t confidenceLocal[targetLayer->getNumExtended()];
+   float confidenceLocal[targetLayer->getNumExtended()];
    PV::Communicator * icComm = parent->getCommunicator();
    int const rootProcess = 0;
    if (parent->columnId()==rootProcess) {
@@ -160,12 +160,12 @@ int LocalizationBBFindProbe::calcValues(double timevalue) {
       int const nf = loc->nf;
       int const nxGlobal = loc->nxGlobal;
       int const nyGlobal = loc->nyGlobal;
-      pvadata_t confidenceGlobal[targetLayer->getNumGlobalNeurons()];
+      float confidenceGlobal[targetLayer->getNumGlobalNeurons()];
       PVLayerLoc const * imageLoc = imageLayer->getLayerLoc();
       for (int rank=0; rank<icComm->commSize(); rank++) {
          int const kx0 = columnFromRank(rank, icComm->numCommRows(), icComm->numCommColumns())*nx;
          int const ky0 = rowFromRank(rank, icComm->numCommRows(), icComm->numCommColumns())*ny;
-         pvadata_t const * localPart = NULL;
+         float const * localPart = NULL;
          if (rank==0) {
             localPart = targetLayer->getLayerData();
          }
@@ -176,7 +176,7 @@ int LocalizationBBFindProbe::calcValues(double timevalue) {
          for (int y=0; y<targetLayer->getLayerLoc()->ny; y++) {
             int localStart = kIndex(halo->lt, y+halo->up, 0, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, nf);
             int globalStart = kIndex(kx0, y+ky0, 0, nxGlobal, nyGlobal, nf);
-            memcpy(&confidenceGlobal[globalStart], &localPart[localStart], sizeof(pvadata_t)*nx*nf);
+            memcpy(&confidenceGlobal[globalStart], &localPart[localStart], sizeof(float)*nx*nf);
          }
 
          bbfinder.giveMap(BBFind::bufferToMap3(confidenceGlobal, nxGlobal, nyGlobal, nf, displayedCategories, numDisplayedCategories));
@@ -210,7 +210,7 @@ int LocalizationBBFindProbe::calcValues(double timevalue) {
    }
    else {
       /*** The const_cast is used because older versions of MPI_Send use void* instead of void const* in the first argument.  Do not use const_cast. ***/
-      pvadata_t * buf = const_cast<pvadata_t *>(targetLayer->getLayerData());
+      float * buf = const_cast<float *>(targetLayer->getLayerData());
       MPI_Send(buf, targetLayer->getNumExtended(), MPI_FLOAT, 0, 137, icComm->communicator());
    }
    MPI_Bcast(&detectionIndex, 1, MPI_UNSIGNED, rootProcess, icComm->communicator());
@@ -221,7 +221,7 @@ int LocalizationBBFindProbe::calcValues(double timevalue) {
    return PV_SUCCESS;
 }
 
-double LocalizationBBFindProbe::computeBoxConfidence(LocalizationData const& bbox, pvadata_t const * buffer, int nx, int ny, int nf) {
+double LocalizationBBFindProbe::computeBoxConfidence(LocalizationData const& bbox, float const * buffer, int nx, int ny, int nf) {
    double score = 0.0f;
    int count = 0;
    for (int y=bbox.top; y<bbox.bottom; y++) {
@@ -232,7 +232,7 @@ double LocalizationBBFindProbe::computeBoxConfidence(LocalizationData const& bbo
          int f = bbox.feature;
          int i = bbox.displayedIndex;
          int index = kIndex(xt,yt,f,nx,ny,nf);
-         pvadata_t a = buffer[index];
+         float a = buffer[index];
          if (a>=detectionThreshold[i]) {
             score += (double) buffer[index];
             count++;

@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 int main(int argc, char *argv[]) {
-   pvError().printf(
+   Fatal().printf(
          "%s: this test can only be used under MPI with exactly six processes.\n", argv[0]);
    // TODO Greater than six should be permissible, with the excess over 6 being idle
 }
@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
    if (numProcs != 6) {
       // TODO Greater than six should be permissible, with the excess over 6 being idle
       if (rank == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s: this test can only be used under MPI with exactly six processes.\n", argv[0]);
       }
       MPI_Barrier(MPI_COMM_WORLD);
@@ -50,28 +50,28 @@ int main(int argc, char *argv[]) {
 
    if (initObj->getParamsFile() != NULL) {
       if (rank == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s should be run without the params file argument.\n", initObj->getProgramName());
       }
       status = PV_FAILURE;
    }
    if (initObj->getNumRows() != 0) {
       if (rank == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s should be run without the rows argument.\n", initObj->getProgramName());
       }
       status = PV_FAILURE;
    }
    if (initObj->getNumColumns() != 0) {
       if (rank == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s should be run without the columns argument.\n", initObj->getProgramName());
       }
       status = PV_FAILURE;
    }
    if (status != PV_SUCCESS) {
       if (rank == 0) {
-         pvErrorNoExit().printf("The necessary parameters are hardcoded.\n");
+         ErrorLog().printf("The necessary parameters are hardcoded.\n");
       }
       MPI_Barrier(MPI_COMM_WORLD);
       exit(EXIT_FAILURE);
@@ -93,7 +93,7 @@ int buildandverify(PV::PV_Init *initObj) {
    /* PV::ANNLayer * layer = */ new PV::ANNLayer("layer", hc);
    int rows    = initObj->getNumRows();
    int columns = initObj->getNumColumns();
-   pvErrorIf(!(rows > 0 && columns > 0), "Test failed.\n");
+   FatalIf(!(rows > 0 && columns > 0), "Test failed.\n");
    int status = verifyLoc(hc, rows, columns);
    delete hc;
    return status;
@@ -104,8 +104,8 @@ int verifyLoc(PV::HyPerCol *hc, int rows, int columns) {
    int testpassed;
    const PVLayerLoc *loc = hc->getLayer(0)->getLayerLoc();
    int rank              = hc->getCommunicator()->commRank();
-   pvErrorIf(!(rows == hc->getCommunicator()->numCommRows()), "Test failed.\n");
-   pvErrorIf(!(columns == hc->getCommunicator()->numCommColumns()), "Test failed.\n");
+   FatalIf(!(rows == hc->getCommunicator()->numCommRows()), "Test failed.\n");
+   FatalIf(!(columns == hc->getCommunicator()->numCommColumns()), "Test failed.\n");
    PVParams *params     = hc->parameters();
    int nxGlobFromParams = params->value("column", "nx");
    int nyGlobFromParams = params->value("column", "ny");
@@ -116,13 +116,13 @@ int verifyLoc(PV::HyPerCol *hc, int rows, int columns) {
 
    PVLayerLoc mpiLoc;
    if (rank == 0) {
-      pvInfo().printf("Testing with %d rows by %d columns of subprocesses.\n", rows, columns);
+      InfoLog().printf("Testing with %d rows by %d columns of subprocesses.\n", rows, columns);
       if (testpassed) {
-         pvInfo().printf("Rank 0 passed.\n");
+         InfoLog().printf("Rank 0 passed.\n");
       }
       else {
          dumpLoc(loc, 0);
-         pvErrorNoExit().printf("Rank 0 FAILED\n");
+         ErrorLog().printf("Rank 0 FAILED\n");
          status = PV_FAILURE;
       }
       // Receive each process's testpassed value and output it.
@@ -137,7 +137,7 @@ int verifyLoc(PV::HyPerCol *hc, int rows, int columns) {
                hc->getCommunicator()->communicator(),
                MPI_STATUS_IGNORE);
          if (remotepassed) {
-            pvInfo().printf("Rank %d passed.\n", src);
+            InfoLog().printf("Rank %d passed.\n", src);
          }
          else {
             MPI_Recv(
@@ -149,7 +149,7 @@ int verifyLoc(PV::HyPerCol *hc, int rows, int columns) {
                   hc->getCommunicator()->communicator(),
                   MPI_STATUS_IGNORE);
             dumpLoc(&mpiLoc, src);
-            pvErrorNoExit().printf("Rank %d FAILED\n", src);
+            ErrorLog().printf("Rank %d FAILED\n", src);
             status = PV_FAILURE;
          }
       }
@@ -163,14 +163,14 @@ int verifyLoc(PV::HyPerCol *hc, int rows, int columns) {
                &mpiLoc, sizeof(PVLayerLoc), MPI_CHAR, 0, 20, hc->getCommunicator()->communicator());
       }
    }
-   pvErrorIf(!(status == PV_SUCCESS), "Test failed.\n");
+   FatalIf(!(status == PV_SUCCESS), "Test failed.\n");
    return status;
 }
 
 int dumpLoc(const PVLayerLoc *loc, int rank) {
    if (loc == NULL)
       return PV_FAILURE;
-   pvInfo().printf(
+   InfoLog().printf(
          "Rank %d: nx=%d, ny=%d, nf=%d, nxGlobal=%d, nyGlobal=%d, kx0=%d, ky0=%d\n",
          rank,
          loc->nx,

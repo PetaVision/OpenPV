@@ -24,26 +24,26 @@ int SegmentTestLayer::updateState(double timef, double dt) {
          int labelY = (label - 1) / 3;
 
          if (labelX == 0) {
-            pvErrorIf(!(xIdx == 1), "Test failed.\n");
+            FatalIf(!(xIdx == 1), "Test failed.\n");
          }
          if (labelX == 1) {
-            pvErrorIf(!(xIdx == 4), "Test failed.\n");
+            FatalIf(!(xIdx == 4), "Test failed.\n");
          }
          if (labelX == 2) {
-            pvErrorIf(!(xIdx == 6), "Test failed.\n");
+            FatalIf(!(xIdx == 6), "Test failed.\n");
          }
 
          if (labelY == 0) {
-            pvErrorIf(!(yIdx == 1), "Test failed.\n");
+            FatalIf(!(yIdx == 1), "Test failed.\n");
          }
          if (labelY == 1) {
-            pvErrorIf(!(yIdx == 4), "Test failed.\n");
+            FatalIf(!(yIdx == 4), "Test failed.\n");
          }
          if (labelY == 2) {
-            pvErrorIf(!(yIdx == 6), "Test failed.\n");
+            FatalIf(!(yIdx == 6), "Test failed.\n");
          }
 
-         // pvInfo() << "Label " << label << " (" << labelX << ", " << labelY << ") centerpoint: ("
+         // InfoLog() << "Label " << label << " (" << labelX << ", " << labelY << ") centerpoint: ("
          // << xIdx << ", " << yIdx << ")\n";
       }
    }

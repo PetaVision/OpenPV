@@ -12,7 +12,6 @@
 #include "columns/Communicator.hpp"
 #include "columns/DataStore.hpp"
 #include "include/PVLayerLoc.h"
-#include "include/pv_datatypes.h"
 #include "include/pv_types.h"
 
 namespace PV {
@@ -34,8 +33,8 @@ class Publisher {
    int updateActiveIndices();
 
   private:
-   pvdata_t *recvBuffer(int bufferId) { return store->buffer(bufferId); }
-   pvdata_t *recvBuffer(int bufferId, int delay) { return store->buffer(bufferId, delay); }
+   float *recvBuffer(int bufferId) { return store->buffer(bufferId); }
+   float *recvBuffer(int bufferId, int delay) { return store->buffer(bufferId, delay); }
 
    long *recvNumActiveBuffer(int bufferId) { return store->numActiveBuffer(bufferId); }
    long *recvNumActiveBuffer(int bufferId, int delay) {

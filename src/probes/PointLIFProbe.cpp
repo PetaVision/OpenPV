@@ -70,9 +70,9 @@ int PointLIFProbe::calcValues(double timevalue) {
          LIF_layer->getConductance(CHANNEL_INH) + batchLoc * LIF_layer->getNumNeurons();
    pvconductance_t const *G_IB =
          LIF_layer->getConductance(CHANNEL_INHB) + batchLoc * LIF_layer->getNumNeurons();
-   pvdata_t const *V        = getTargetLayer()->getV();
-   pvdata_t const *Vth      = LIF_layer->getVth();
-   pvdata_t const *activity = getTargetLayer()->getLayerData();
+   float const *V        = getTargetLayer()->getV();
+   float const *Vth      = LIF_layer->getVth();
+   float const *activity = getTargetLayer()->getLayerData();
    assert(V && activity && G_E && G_I && G_IB && Vth);
    double *valuesBuffer = this->getValuesBuffer();
    // We need to calculate which mpi process contains the target point, and send
@@ -95,8 +95,8 @@ int PointLIFProbe::calcValues(double timevalue) {
    // if in bounds
    if (xLocLocal >= 0 && xLocLocal < nx && yLocLocal >= 0 && yLocLocal < ny && nbatchLocal >= 0
        && nbatchLocal < nbatch) {
-      const pvdata_t *V        = getTargetLayer()->getV();
-      const pvdata_t *activity = getTargetLayer()->getLayerData();
+      const float *V        = getTargetLayer()->getV();
+      const float *activity = getTargetLayer()->getLayerData();
       // Send V and A to root
       const int k      = kIndex(xLocLocal, yLocLocal, fLoc, nx, ny, nf);
       const int kbatch = k + nbatchLocal * getTargetLayer()->getNumNeurons();

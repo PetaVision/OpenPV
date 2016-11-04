@@ -21,7 +21,7 @@ int InitRandomWeights::initialize(char const *name, HyPerCol *hc) {
    return status;
 }
 
-int InitRandomWeights::calcWeights(pvdata_t *dataStart, int dataPatchIndex, int arborId) {
+int InitRandomWeights::calcWeights(float *dataStart, int dataPatchIndex, int arborId) {
    return randomWeights(
          dataStart,
          weightParams,
@@ -49,7 +49,7 @@ int InitRandomWeights::initRNGs(bool isKernel) {
       randState = new Random(callingConn->preSynapticLayer()->getLayerLoc(), true /*isExtended*/);
    }
    if (randState == NULL) {
-      pvError().printf(
+      Fatal().printf(
             "InitRandomWeights error in rank %d process: unable to create object of class "
             "Random.\n",
             callingConn->getParent()->columnId());

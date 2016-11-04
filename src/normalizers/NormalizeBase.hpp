@@ -60,28 +60,28 @@ class NormalizeBase : public BaseObject {
    virtual void ioParam_normalizeOnWeightUpdate(enum ParamsIOFlag ioFlag);
 
    virtual int normalizeWeights();
-   int accumulateSum(pvwdata_t *dataPatchStart, int weights_in_patch, float *sum);
+   int accumulateSum(float *dataPatchStart, int weights_in_patch, float *sum);
    int accumulateSumShrunken(
-         pvwdata_t *dataPatchStart,
+         float *dataPatchStart,
          float *sum,
          int nxpShrunken,
          int nypShrunken,
          int offsetShrunken,
          int xPatchStride,
          int yPatchStride);
-   int accumulateSumSquared(pvwdata_t *dataPatchStart, int weights_in_patch, float *sumsq);
+   int accumulateSumSquared(float *dataPatchStart, int weights_in_patch, float *sumsq);
    int accumulateSumSquaredShrunken(
-         pvwdata_t *dataPatchStart,
+         float *dataPatchStart,
          float *sumsq,
          int nxpShrunken,
          int nypShrunken,
          int offsetShrunken,
          int xPatchStride,
          int yPatchStride);
-   int accumulateMaxAbs(pvwdata_t *dataPatchStart, int weights_in_patch, float *max);
-   int accumulateMax(pvwdata_t *dataPatchStart, int weights_in_patch, float *max);
-   int accumulateMin(pvwdata_t *dataPatchStart, int weights_in_patch, float *max);
-   static void normalizePatch(pvwdata_t *dataStart, int weights_per_patch, float multiplier);
+   int accumulateMaxAbs(float *dataPatchStart, int weights_in_patch, float *max);
+   int accumulateMax(float *dataPatchStart, int weights_in_patch, float *max);
+   int accumulateMin(float *dataPatchStart, int weights_in_patch, float *max);
+   static void normalizePatch(float *dataStart, int weights_per_patch, float multiplier);
 
   private:
    int initialize_base();

@@ -70,13 +70,13 @@ double L2NormProbe::getValueInternal(double timevalue, int index) {
    int const dn          = halo->dn;
    int const up          = halo->up;
    double l2normsq       = 0.0;
-   pvadata_t const *aBuffer =
+   float const *aBuffer =
          getTargetLayer()->getLayerData() + index * getTargetLayer()->getNumExtended();
 
    if (getMaskLayer()) {
       PVLayerLoc const *maskLoc = getMaskLayer()->getLayerLoc();
       PVHalo const *maskHalo    = &maskLoc->halo;
-      pvadata_t const *maskLayerData =
+      float const *maskLayerData =
             getMaskLayer()->getLayerData()
             + index * getMaskLayer()->getNumExtended(); // Is there a DataStore method to return the
       // part of the layer data for a given batch

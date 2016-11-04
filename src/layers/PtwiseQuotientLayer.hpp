@@ -35,10 +35,10 @@ class PtwiseQuotientLayer : public ANNLayer {
          double timef,
          double dt,
          const PVLayerLoc *loc,
-         pvdata_t *A,
-         pvdata_t *V,
+         float *A,
+         float *V,
          int num_channels,
-         pvdata_t *gSynHead);
+         float *gSynHead);
 
   private:
    int initialize_base();

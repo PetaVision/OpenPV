@@ -31,16 +31,15 @@ void Subject::notify(
             switch (status) {
                case PV_SUCCESS: continue; break;
                case PV_POSTPONE:
-                  pvInfo() << obj->getDescription() << ": " << msg->getMessageType()
-                           << " postponed.\n";
+                  InfoLog() << obj->getDescription() << ": " << msg->getMessageType()
+                            << " postponed.\n";
                   break;
                case PV_FAILURE:
-                  pvError() << obj->getDescription() << " failed " << msg->getMessageType()
-                            << ".\n";
+                  Fatal() << obj->getDescription() << " failed " << msg->getMessageType() << ".\n";
                   break;
                default:
-                  pvError() << obj->getDescription() << ": response to " << msg->getMessageType()
-                            << " returned unrecognized return code " << status << ".\n";
+                  Fatal() << obj->getDescription() << ": response to " << msg->getMessageType()
+                          << " returned unrecognized return code " << status << ".\n";
                   break;
             }
          }
@@ -52,10 +51,10 @@ void Subject::notify(
       }
       numNeedsUpdate = needsUpdate.size();
       if (numNeedsUpdate == oldNumNeedsUpdate) {
-         pvErrorNoExit() << "HyPerCol::notify has hung with " << numNeedsUpdate
-                         << " objects still postponed.\n";
+         ErrorLog() << "HyPerCol::notify has hung with " << numNeedsUpdate
+                    << " objects still postponed.\n";
          for (auto &obj : needsUpdate) {
-            pvErrorNoExit() << obj->getDescription() << " is still postponed.\n";
+            ErrorLog() << obj->getDescription() << " is still postponed.\n";
          }
          exit(EXIT_FAILURE);
          break;

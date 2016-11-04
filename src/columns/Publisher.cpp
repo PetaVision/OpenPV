@@ -50,8 +50,8 @@ int Publisher::calcAllActiveIndices() {
    for (int l = 0; l < store->getNumLevels(); l++) {
       for (int b = 0; b < store->getNumBuffers(); b++) {
          // Active indicies stored as local ext values
-         int numActive      = 0;
-         pvdata_t *activity = store->buffer(b, l);
+         int numActive   = 0;
+         float *activity = store->buffer(b, l);
          ;
          unsigned int *activeIndices = store->activeIndicesBuffer(b, l);
          long *numActiveBuf          = store->numActiveBuffer(b, l);
@@ -72,8 +72,8 @@ int Publisher::calcAllActiveIndices() {
 int Publisher::calcActiveIndices() {
    for (int b = 0; b < store->getNumBuffers(); b++) {
       // Active indicies stored as local ext values
-      int numActive      = 0;
-      pvdata_t *activity = store->buffer(b);
+      int numActive   = 0;
+      float *activity = store->buffer(b);
       ;
       unsigned int *activeIndices = store->activeIndicesBuffer(b);
       long *numActiveBuf          = store->numActiveBuffer(b);
@@ -95,10 +95,10 @@ int Publisher::publish(double currentTime, double lastUpdateTime) {
    // This means that everyone should wait as well.
    //
 
-   size_t dataSize = mLayerCube->numItems * sizeof(pvdata_t);
+   size_t dataSize = mLayerCube->numItems * sizeof(float);
 
-   pvdata_t const *sendBuf = mLayerCube->data;
-   pvdata_t *recvBuf       = recvBuffer(0); // Grab all of the buffer, allocated continuously
+   float const *sendBuf = mLayerCube->data;
+   float *recvBuf       = recvBuffer(0); // Grab all of the buffer, allocated continuously
 
    if (lastUpdateTime >= currentTime) {
       // copy entire layer and let neighbors overwrite
@@ -144,7 +144,7 @@ int Publisher::exchangeBorders(const PVLayerLoc *loc, int delay /*default 0*/) {
       // don't send interior
       pvAssert(requests.size() == b * exchangeVectorSize);
 
-      pvdata_t *data = recvBuffer(b, delay);
+      float *data = recvBuffer(b, delay);
       std::vector<MPI_Request> batchElementMPIRequest{};
       mComm->exchange(data, neighborDatatypes, loc, batchElementMPIRequest);
       pvAssert(batchElementMPIRequest.size() == exchangeVectorSize);
@@ -163,8 +163,8 @@ int Publisher::exchangeBorders(const PVLayerLoc *loc, int delay /*default 0*/) {
 int Publisher::wait() {
 #ifdef PV_USE_MPI
 #ifdef DEBUG_OUTPUT
-   pvInfo().printf("[%2d]: waiting for data, num_requests==%d\n", mComm->commRank(), numRemote);
-   pvInfo().flush();
+   InfoLog().printf("[%2d]: waiting for data, num_requests==%d\n", mComm->commRank(), numRemote);
+   InfoLog().flush();
 #endif // DEBUG_OUTPUT
 
    if (!requests.empty()) {

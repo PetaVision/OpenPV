@@ -34,7 +34,7 @@ class UniformRandomV : public BaseInitV {
    UniformRandomV(char const *name, HyPerCol *hc);
    virtual ~UniformRandomV();
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-   virtual int calcV(pvdata_t *V, PVLayerLoc const *loc) override;
+   virtual int calcV(float *V, PVLayerLoc const *loc) override;
 
   protected:
    UniformRandomV();
@@ -45,8 +45,8 @@ class UniformRandomV : public BaseInitV {
 
    // data members
   private:
-   pvdata_t minV = (pvdata_t)0;
-   pvdata_t maxV = (pvdata_t)1;
+   float minV = (float)0;
+   float maxV = (float)1;
 
 }; // end class UniformRandomV
 

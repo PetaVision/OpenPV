@@ -41,7 +41,7 @@ void NormalizeL3::ioParam_minL3NormTolerated(enum ParamsIOFlag ioFlag) {
 int NormalizeL3::normalizeWeights() {
    int status = PV_SUCCESS;
 
-   pvErrorIf(!(numConnections >= 1), "Test failed.\n");
+   FatalIf(!(numConnections >= 1), "Test failed.\n");
 
    // All connections in the group must have the same values of sharedWeights, numArbors, and
    // numDataPatches
@@ -50,7 +50,7 @@ int NormalizeL3::normalizeWeights() {
    float scale_factor = 1.0f;
    if (normalizeFromPostPerspective) {
       if (conn0->usingSharedWeights() == false) {
-         pvError().printf(
+         Fatal().printf(
                "NormalizeL3 error for %s: normalizeFromPostPerspective is true but connection does "
                "not use shared weights.\n",
                conn0->getDescription_c());
@@ -77,16 +77,16 @@ int NormalizeL3::normalizeWeights() {
                int xPatchStride      = conn->xPatchStride();
                int yPatchStride      = conn->yPatchStride();
                int weights_per_patch = nxp * nyp * nfp;
-               pvwdata_t *dataStartPatch =
+               float *dataStartPatch =
                      conn->get_wDataStart(arborID) + patchindex * weights_per_patch;
                for (int k = 0; k < weights_per_patch; k++) {
-                  pvwdata_t w = fabs(dataStartPatch[k]);
+                  float w = fabs(dataStartPatch[k]);
                   sumcubed += w * w * w;
                }
             }
             float l3norm = powf(sumcubed, 1.0f / 3.0f);
             if (fabsf(l3norm) <= minL3NormTolerated) {
-               pvWarn().printf(
+               WarnLog().printf(
                      "NormalizeL3 \"%s\": L^3 norm in patch %d of arbor %d is within "
                      "minL3NormTolerated=%f of zero.  Weights in this patch unchanged.\n",
                      getName(),
@@ -101,7 +101,7 @@ int NormalizeL3::normalizeWeights() {
                int nyp               = conn->yPatchSize();
                int nfp               = conn->fPatchSize();
                int weights_per_patch = nxp * nyp * nfp;
-               pvwdata_t *dataStartPatch =
+               float *dataStartPatch =
                      conn0->get_wDataStart(arborID) + patchindex * weights_per_patch;
                normalizePatch(dataStartPatch, weights_per_patch, scale_factor / l3norm);
             }
@@ -120,17 +120,17 @@ int NormalizeL3::normalizeWeights() {
                int xPatchStride      = conn->xPatchStride();
                int yPatchStride      = conn->yPatchStride();
                int weights_per_patch = nxp * nyp * nfp;
-               pvwdata_t *dataStartPatch =
+               float *dataStartPatch =
                      conn->get_wDataStart(arborID) + patchindex * weights_per_patch;
                for (int k = 0; k < weights_per_patch; k++) {
-                  pvwdata_t w = fabs(dataStartPatch[k]);
+                  float w = fabs(dataStartPatch[k]);
                   sumcubed += w * w * w;
                }
             }
          }
          float l3norm = powf(sumcubed, 1.0f / 3.0f);
          if (fabsf(sumcubed) <= minL3NormTolerated) {
-            pvWarn().printf(
+            WarnLog().printf(
                   "NormalizeL3 \"%s\": sum of squares of weights in patch %d is within "
                   "minL3NormTolerated=%f of zero.  Weights in this patch unchanged.\n",
                   getName(),
@@ -145,7 +145,7 @@ int NormalizeL3::normalizeWeights() {
                int nyp               = conn->yPatchSize();
                int nfp               = conn->fPatchSize();
                int weights_per_patch = nxp * nyp * nfp;
-               pvwdata_t *dataStartPatch =
+               float *dataStartPatch =
                      conn->get_wDataStart(arborID) + patchindex * weights_per_patch;
                normalizePatch(dataStartPatch, weights_per_patch, scale_factor / l3norm);
             }

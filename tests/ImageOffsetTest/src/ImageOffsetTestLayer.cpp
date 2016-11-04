@@ -16,14 +16,14 @@ int ImageOffsetTestLayer::updateState(double timef, double dt) {
    int nf                = loc->nf;
    int kx0               = loc->kx0;
    int ky0               = loc->ky0;
-   pvErrorIf(
+   FatalIf(
          !(loc->halo.up == 0 && loc->halo.lt == 0 && loc->halo.rt == 0 && loc->halo.dn == 0),
          "Test failed.\n");
 
    bool isCorrect = true;
    // Grab the activity layer of current layer
    for (int b = 0; b < loc->nbatch; b++) {
-      const pvdata_t *A = getActivity() + b * getNumExtended();
+      const float *A = getActivity() + b * getNumExtended();
       // We only care about restricted space
       for (int iY = 0; iY < ny; iY++) {
          for (int iX = 0; iX < nx; iX++) {
@@ -109,13 +109,13 @@ int ImageOffsetTestLayer::updateState(double timef, double dt) {
                   }
                }
                else {
-                  pvError() << "Layer name " << name << " not recoginzed\n";
+                  Fatal() << "Layer name " << name << " not recoginzed\n";
                }
                float diff = fabs(actualvalue - expectedvalue);
                if (diff >= 1e-4f) {
-                  pvErrorNoExit() << "Connection " << name << " Mismatch at (" << ixGlobal << ","
-                                  << iyGlobal << "," << iF << ") : actual value: " << actualvalue
-                                  << " Expected value: " << expectedvalue << "\n";
+                  ErrorLog() << "Connection " << name << " Mismatch at (" << ixGlobal << ","
+                             << iyGlobal << "," << iF << ") : actual value: " << actualvalue
+                             << " Expected value: " << expectedvalue << "\n";
                   isCorrect = false;
                }
             }

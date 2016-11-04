@@ -59,7 +59,7 @@ void BaseConnection::setPreLayerName(const char *pre_name) {
    if (pre_name != NULL) {
       this->preLayerName = strdup(pre_name);
       if (this->preLayerName == NULL) {
-         pvError().printf(
+         Fatal().printf(
                "%s: rank %d process unable to allocate memory for name "
                "of presynaptic layer "
                "\"%s\": %s\n",
@@ -76,7 +76,7 @@ void BaseConnection::setPostLayerName(const char *post_name) {
    if (post_name != NULL) {
       this->postLayerName = strdup(post_name);
       if (this->postLayerName == NULL) {
-         pvError().printf(
+         Fatal().printf(
                "%s: rank %d process unable to allocate memory for name "
                "of postsynaptic layer "
                "\"%s\": %s\n",
@@ -95,7 +95,7 @@ void BaseConnection::setPreSynapticLayer(HyPerLayer *pre) {
    }
    else {
       if (parent->columnId() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s: pre layer \"%s\" does not exist in the params file.\n",
                this->getDescription_c(),
                this->preLayerName);
@@ -112,7 +112,7 @@ void BaseConnection::setPostSynapticLayer(HyPerLayer *post) {
    }
    else {
       if (parent->columnId() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s: post layer \"%s\" does not exist in the params file.\n",
                this->getDescription_c(),
                this->postLayerName);
@@ -174,7 +174,7 @@ int BaseConnection::inferPreAndPostFromConnName(
          int pre_len      = locto - name;
          *preLayerNamePtr = (char *)malloc((size_t)(pre_len + 1));
          if (*preLayerNamePtr == NULL) {
-            pvError().printf(
+            Fatal().printf(
                   "Connection \"%s\": unable to allocate memory for "
                   "preLayerName: %s\n",
                   name,
@@ -187,7 +187,7 @@ int BaseConnection::inferPreAndPostFromConnName(
          int post_len      = strlen(name) - pre_len - seplen;
          *postLayerNamePtr = (char *)malloc((size_t)(post_len + 1));
          if (*postLayerNamePtr == NULL) {
-            pvError().printf(
+            Fatal().printf(
                   "Connection \"%s\": unable to allocate memory for "
                   "postLayerName: %s\n",
                   name,
@@ -200,7 +200,7 @@ int BaseConnection::inferPreAndPostFromConnName(
       else {
          status = PV_FAILURE;
          if (rank == 0) {
-            pvErrorNoExit(errorMessage);
+            ErrorLog(errorMessage);
             errorMessage.printf(
                   "Unable to infer pre and post from connection name \"%s\":\n", name);
             errorMessage.printf("The string \"To\" cannot appear in the name more than once.\n");
@@ -210,7 +210,7 @@ int BaseConnection::inferPreAndPostFromConnName(
    else {
       status = PV_FAILURE;
       if (rank == 0) {
-         pvErrorNoExit(errorMessage);
+         ErrorLog(errorMessage);
          errorMessage.printf("Unable to infer pre and post from connection name \"%s\".\n", name);
          errorMessage.printf(
                "The connection name must have the form "
@@ -236,7 +236,7 @@ int BaseConnection::getPreAndPostLayerNames(
    *postLayerNamePtr = NULL;
    if (preLayerName == NULL && postLayerName == NULL) {
       if (parent->getCommunicator()->commRank() == 0) {
-         pvInfo().printf(
+         InfoLog().printf(
                "%s: preLayerName and postLayerName will be inferred in "
                "the communicateInitInfo "
                "stage.\n",
@@ -246,7 +246,7 @@ int BaseConnection::getPreAndPostLayerNames(
    else if (preLayerName == NULL && postLayerName != NULL) {
       status = PV_FAILURE;
       if (parent->getCommunicator()->commRank() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s: if postLayerName is specified, preLayerName "
                "must be specified as well.\n",
                getDescription_c());
@@ -255,7 +255,7 @@ int BaseConnection::getPreAndPostLayerNames(
    else if (preLayerName != NULL && postLayerName == NULL) {
       status = PV_FAILURE;
       if (parent->getCommunicator()->commRank() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s: if preLayerName is specified, postLayerName "
                "must be specified as well.\n",
                getDescription_c());
@@ -318,7 +318,7 @@ void BaseConnection::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
       int status = decodeChannel(ch, &channel);
       if (status != PV_SUCCESS) {
          if (this->getParent()->columnId() == 0) {
-            pvErrorNoExit().printf(
+            ErrorLog().printf(
                   "%s: channelCode %d is not a valid channel.\n", this->getDescription_c(), ch);
          }
          MPI_Barrier(this->getParent()->getCommunicator()->communicator());
@@ -344,13 +344,13 @@ void BaseConnection::ioParam_delay(enum ParamsIOFlag ioFlag) {
       assert(fDelayArray == NULL);
       fDelayArray = (float *)malloc(sizeof(float));
       if (fDelayArray == NULL) {
-         pvError().printf(
+         Fatal().printf(
                "%s: unable to set default delay: %s\n", this->getDescription_c(), strerror(errno));
       }
       *fDelayArray   = 0.0f; // Default delay
       delayArraySize = 1;
       if (this->getParent()->columnId() == 0) {
-         pvInfo().printf("%s: Using default value of zero for delay.\n", this->getDescription_c());
+         InfoLog().printf("%s: Using default value of zero for delay.\n", this->getDescription_c());
       }
    }
 }
@@ -363,7 +363,7 @@ void BaseConnection::ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) {
       this->setNumberOfAxonalArborLists(numArbors);
       if (ioFlag == PARAMS_IO_READ && this->numberOfAxonalArborLists() == 0
           && this->getParent()->columnId() == 0) {
-         pvWarn().printf(
+         WarnLog().printf(
                "Connection %s: Variable numAxonalArbors is set to 0. No "
                "connections will be "
                "made.\n",
@@ -401,9 +401,9 @@ void BaseConnection::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
          ioFlag, name, "receiveGpu", &receiveGpu, receiveGpu /*default*/, false /*warn if absent*/);
    if (ioFlag == PARAMS_IO_READ && receiveGpu) {
       if (parent->columnId() == 0) {
-         pvWarn() << getDescription_c() << ": receiveGpu is set to true in params, but PetaVision "
-                                           "was compiled without GPU acceleration. receiveGpu has "
-                                           "been set to false.\n";
+         WarnLog() << getDescription_c() << ": receiveGpu is set to true in params, but PetaVision "
+                                            "was compiled without GPU acceleration. receiveGpu has "
+                                            "been set to false.\n";
       }
    }
 #endif // PV_USE_CUDA
@@ -427,7 +427,7 @@ void BaseConnection::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFl
 
 int BaseConnection::insertProbe(BaseConnectionProbe *p) {
    if (p->getTargetConn() != this) {
-      pvWarn().printf(
+      WarnLog().printf(
             "%s: insertProbe called with probe %p, whose targetConn is "
             "not this connection.  Probe "
             "was not inserted.\n",
@@ -437,7 +437,7 @@ int BaseConnection::insertProbe(BaseConnectionProbe *p) {
    }
    for (int i = 0; i < numProbes; i++) {
       if (p == probes[i]) {
-         pvWarn().printf(
+         WarnLog().printf(
                "%s: insertProbe called with probe %p, which has already "
                "been inserted as probe "
                "%d.\n",
@@ -509,7 +509,7 @@ int BaseConnection::communicateInitInfo() {
    if (status != PV_SUCCESS) {
       assert(this->getPreLayerName() == NULL && this->getPostLayerName() == NULL);
       if (this->getParent()->columnId() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s: Unable to determine pre- and post-layer names.  Exiting.\n",
                this->getDescription_c());
       }
@@ -519,7 +519,7 @@ int BaseConnection::communicateInitInfo() {
    this->setPostSynapticLayer(this->getParent()->getLayerFromName(this->getPostLayerName()));
    if (this->preSynapticLayer() == NULL) {
       if (this->getParent()->columnId() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s: preLayerName \"%s\" does not correspond to a "
                "layer in the column.\n",
                getDescription_c(),
@@ -529,7 +529,7 @@ int BaseConnection::communicateInitInfo() {
    }
    if (this->postSynapticLayer() == NULL) {
       if (this->getParent()->columnId() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s: postLayerName \"%s\" does not correspond to "
                "a layer in the column.\n",
                getDescription_c(),
@@ -547,7 +547,7 @@ int BaseConnection::communicateInitInfo() {
    int allowedDelay = this->preSynapticLayer()->increaseDelayLevels(maxDelay);
    if (allowedDelay < maxDelay) {
       if (this->getParent()->columnId() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s: attempt to set delay to %d, but the maximum "
                "allowed delay is %d.  Exiting\n",
                getDescription_c(),
@@ -573,7 +573,7 @@ int BaseConnection::communicateInitInfo() {
    // channel
    if (status != PV_SUCCESS) {
       if (parent->columnId() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s: postsynaptic layer \"%s\" failed to add channel %d\n",
                this->getDescription_c(),
                this->postSynapticLayer()->getName(),
@@ -591,7 +591,7 @@ int BaseConnection::initializeDelays(const float *fDelayArray, int size) {
    // Allocate delay data structure
    delays = (int *)calloc(this->numberOfAxonalArborLists(), sizeof(int));
    if (delays == NULL) {
-      pvError().printf(
+      Fatal().printf(
             "%s: unable to allocate memory for %d delays: %s\n",
             getDescription_c(),
             size,
@@ -612,7 +612,7 @@ int BaseConnection::initializeDelays(const float *fDelayArray, int size) {
          setDelay(arborId, fDelayArray[arborId]);
       }
       else {
-         pvError().printf(
+         Fatal().printf(
                "Delay must be either a single value or the same length "
                "as the number of arbors\n");
       }
@@ -636,8 +636,8 @@ void BaseConnection::setDelay(int arborId, double delay) {
    int intDelay = round(delay / getParent()->getDeltaTime());
    if (fmod(delay, getParent()->getDeltaTime()) != 0) {
       double actualDelay = intDelay * getParent()->getDeltaTime();
-      pvWarn() << getName() << ": A delay of " << delay << " will be rounded to " << actualDelay
-               << "\n";
+      WarnLog() << getName() << ": A delay of " << delay << " will be rounded to " << actualDelay
+                << "\n";
    }
    delays[arborId] = (int)(intDelay);
 }

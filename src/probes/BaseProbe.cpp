@@ -153,7 +153,7 @@ void BaseProbe::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
       parent->parameters()->ioParamValue(
             ioFlag, name, "triggerFlag", &flagFromParams, flagFromParams);
       if (parent->columnId() == 0) {
-         pvWarn(triggerFlagDeprecated);
+         WarnLog(triggerFlagDeprecated);
          triggerFlagDeprecated.printf("%s: triggerFlag has been deprecated.\n", getDescription_c());
          triggerFlagDeprecated.printf(
                "   If triggerLayerName is a nonempty "
@@ -161,7 +161,7 @@ void BaseProbe::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
          triggerFlagDeprecated.printf(
                "   if triggerLayerName is empty or null, triggering will be off.\n");
          if (flagFromParams != triggerFlag) {
-            pvErrorNoExit(triggerFlagError);
+            ErrorLog(triggerFlagError);
             triggerFlagError.printf("%s: triggerLayerName=", getDescription_c());
             if (triggerLayerName) {
                triggerFlagError.printf("\"%s\"", triggerLayerName);
@@ -184,7 +184,7 @@ void BaseProbe::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
       parent->parameters()->ioParamValue(
             ioFlag, name, "triggerOffset", &triggerOffset, triggerOffset);
       if (triggerOffset < 0) {
-         pvError().printf(
+         Fatal().printf(
                "%s \"%s\" error in rank %d process: TriggerOffset (%f) "
                "must be positive\n",
                parent->parameters()->groupKeywordFromName(name),
@@ -260,7 +260,7 @@ int BaseProbe::communicateInitInfo() {
       triggerLayer = parent->getLayerFromName(triggerLayerName);
       if (triggerLayer == NULL) {
          if (parent->columnId() == 0) {
-            pvErrorNoExit().printf(
+            ErrorLog().printf(
                   "%s \"%s\": triggerLayer \"%s\" is not a layer in the HyPerCol.\n",
                   parent->parameters()->groupKeywordFromName(name),
                   name,
@@ -277,7 +277,7 @@ int BaseProbe::communicateInitInfo() {
       ColumnEnergyProbe *probe = dynamic_cast<ColumnEnergyProbe *>(baseprobe);
       if (probe == NULL) {
          if (getParent()->columnId() == 0) {
-            pvErrorNoExit().printf(
+            ErrorLog().printf(
                   "%s \"%s\": energyProbe \"%s\" is not a ColumnEnergyProbe in the "
                   "column.\n",
                   getParent()->parameters()->groupKeywordFromName(getName()),
@@ -322,7 +322,7 @@ int BaseProbe::initMessage(const char *msg) {
       }
    }
    if (!this->msgstring) {
-      pvErrorNoExit().printf(
+      ErrorLog().printf(
             "%s \"%s\": Unable to allocate memory for probe's message.\n",
             parent->parameters()->groupKeywordFromName(name),
             name);

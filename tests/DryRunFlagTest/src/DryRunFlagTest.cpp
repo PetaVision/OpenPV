@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
       return EXIT_SUCCESS;
    }
 
-   pvErrorIf(
+   FatalIf(
          pv_obj.getParamsFile() != nullptr,
          "%s should be called without the -p argument; the necessary params file is hard-coded.\n");
    pv_obj.setParams("input/DryRunFlagTest.params");
@@ -59,13 +59,13 @@ int main(int argc, char *argv[]) {
 
    status = deleteOutputDirectory(pv_obj.getCommunicator());
    if (status != PV_SUCCESS) {
-      pvError().printf("%s: error cleaning generated files from any previous run.\n", argv[0]);
+      Fatal().printf("%s: error cleaning generated files from any previous run.\n", argv[0]);
    }
 
    status = buildandrun(&pv_obj);
 
    if (status != PV_SUCCESS) {
-      pvError().printf("%s: running with dry-run flag set failed on process %d.\n", argv[0], rank);
+      Fatal().printf("%s: running with dry-run flag set failed on process %d.\n", argv[0], rank);
    }
 
    compareParamsFiles("output/pv.params", "input/correct.params", pv_obj.getCommunicator());
@@ -92,7 +92,7 @@ void compareParamsFiles(char const *paramsFile1, char const *paramsFile2, PV::Co
    for (int idx = 0; (groupName = params1.groupNameFromIndex(idx)) != nullptr; idx++) {
       PV::ParameterGroup *g1 = params1.group(groupName);
       PV::ParameterGroup *g2 = params2.group(groupName);
-      pvErrorIf(
+      FatalIf(
             g2 == nullptr,
             "Group name \"%s\" is in \"%s\" but not in \"%s\".\n",
             groupName,
@@ -101,7 +101,7 @@ void compareParamsFiles(char const *paramsFile1, char const *paramsFile2, PV::Co
       parameterGroupMap.emplace(std::make_pair(g1, g2));
    }
    for (int idx = 0; (groupName = params2.groupNameFromIndex(idx)) != nullptr; idx++) {
-      pvErrorIf(
+      FatalIf(
             params1.group(groupName) == nullptr,
             "Group name \"%s\" is in \"%s\" but not in \"%s\".\n",
             groupName,
@@ -117,7 +117,7 @@ void compareParamsFiles(char const *paramsFile1, char const *paramsFile2, PV::Co
 
 void compareParameterGroups(PV::ParameterGroup *group1, PV::ParameterGroup *group2) {
    pvAssert(!strcmp(group1->name(), group2->name()));
-   pvErrorIf(
+   FatalIf(
          strcmp(group1->getGroupKeyword(), group2->getGroupKeyword()),
          "Keywords for group \"%s\" do not match (\"%s\" versus \"%s\").\n",
          group1->name(),
@@ -140,7 +140,7 @@ void compareParameterNumericStacks(
       char const *groupName,
       PV::ParameterStack *stack1,
       PV::ParameterStack *stack2) {
-   pvErrorIf(
+   FatalIf(
          stack1->size() != stack2->size(),
          "Numeric stacks for \"%s\" have different sizes: %d versus %d.\n",
          groupName,
@@ -163,8 +163,8 @@ void compareParameterNumericStacks(
          }
       }
       if (!found) {
-         pvError() << "Parameter \"" << paramName1 << "\" was found in group \"" << groupName
-                   << "\" of one stack but not the other.\n";
+         Fatal() << "Parameter \"" << paramName1 << "\" was found in group \"" << groupName
+                 << "\" of one stack but not the other.\n";
       }
    }
    pvAssert(parameterMap.size() == size);
@@ -179,7 +179,7 @@ void compareParameterNumeric(
       PV::Parameter *parameter1,
       PV::Parameter *parameter2) {
    pvAssert(!strcmp(parameter1->name(), parameter2->name()));
-   pvErrorIf(
+   FatalIf(
          parameter1->value() != parameter2->value(),
          "Numeric parameter \"%s\" in group \"%s\" differs (%f versus %f).\n",
          parameter1->name(),
@@ -192,7 +192,7 @@ void compareParameterArrayStacks(
       char const *groupName,
       PV::ParameterArrayStack *stack1,
       PV::ParameterArrayStack *stack2) {
-   pvErrorIf(
+   FatalIf(
          stack1->size() != stack2->size(),
          "Numeric stacks for \"%s\" have different sizes: %d versus %d.\n",
          groupName,
@@ -215,8 +215,8 @@ void compareParameterArrayStacks(
          }
       }
       if (!found) {
-         pvError() << "Parameter \"" << paramName1 << "\" was found in group \"" << groupName
-                   << "\" of one stack but not the other.\n";
+         Fatal() << "Parameter \"" << paramName1 << "\" was found in group \"" << groupName
+                 << "\" of one stack but not the other.\n";
       }
    }
    pvAssert(parameterArrayMap.size() == size);
@@ -231,7 +231,7 @@ void compareParameterArray(
       PV::ParameterArray *array1,
       PV::ParameterArray *array2) {
    pvAssert(!strcmp(array1->name(), array2->name()));
-   pvErrorIf(
+   FatalIf(
          array1->getArraySize() != array2->getArraySize(),
          "Array \"%s\" in group \"%s\" differs in size (%d versus %d).\n",
          array1->name(),
@@ -245,9 +245,8 @@ void compareParameterArray(
    for (int i = 0; i < size; i++) {
       if (values1[i] != values2[i]) {
          badIndex = i + 1;
-         pvErrorNoExit() << "Group " << groupName << ", array " << array1->name() << ", index "
-                         << badIndex << " differs (" << values1[i] << " versus " << values2[i]
-                         << ").\n";
+         ErrorLog() << "Group " << groupName << ", array " << array1->name() << ", index "
+                    << badIndex << " differs (" << values1[i] << " versus " << values2[i] << ").\n";
       }
    }
    if (badIndex > 0) {
@@ -259,7 +258,7 @@ void compareParameterStringStacks(
       char const *groupName,
       PV::ParameterStringStack *stack1,
       PV::ParameterStringStack *stack2) {
-   pvErrorIf(
+   FatalIf(
          stack1->size() != stack2->size(),
          "Numeric stacks for \"%s\" have different sizes: %d versus %d.\n",
          groupName,
@@ -282,8 +281,8 @@ void compareParameterStringStacks(
          }
       }
       if (!found) {
-         pvError() << "Parameter \"" << paramName1 << "\" was found in group \"" << groupName
-                   << "\" of one stack but not the other.\n";
+         Fatal() << "Parameter \"" << paramName1 << "\" was found in group \"" << groupName
+                 << "\" of one stack but not the other.\n";
       }
    }
    pvAssert(parameterStringMap.size() == size);
@@ -307,7 +306,7 @@ void compareParameterString(
    if (value2 == nullptr) {
       value2 = nullString;
    }
-   pvErrorIf(
+   FatalIf(
          strcmp(value1, value2),
          "String parameter \"%s\" in group \"%s\" differs (\"%s\" versus \"%s\").\n",
          string1->getName(),

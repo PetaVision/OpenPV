@@ -117,7 +117,7 @@ void ShuffleLayer::ioParam_shuffleMethod(enum ParamsIOFlag ioFlag) {
    if ((strcmp(shuffleMethod, "random") == 0 || strcmp(shuffleMethod, "rejection") == 0)) {
    }
    else {
-      pvError().printf(
+      Fatal().printf(
             "Shuffle Layer: Shuffle method not recognized. Options are \"random\" or "
             "\"rejection\".\n");
    }
@@ -148,8 +148,8 @@ void ShuffleLayer::ioParam_freqCollectTime(enum ParamsIOFlag ioFlag) {
 }
 
 int ShuffleLayer::setActivity() {
-   pvdata_t *activity = clayer->activity->data;
-   memset(activity, 0, sizeof(pvdata_t) * clayer->numExtendedAllBatches);
+   float *activity = clayer->activity->data;
+   memset(activity, 0, sizeof(float) * clayer->numExtendedAllBatches);
    return 0;
 }
 
@@ -163,7 +163,7 @@ void ShuffleLayer::readFreq() { // TODO: Add MPI Bcast so that only root proc do
          for (int kf = 0; kf < nf; kf++) {
             getline(freqFile, line);
             if (freqFile.fail()) {
-               pvError().printf(
+               Fatal().printf(
                      "Shuffle Layer: Unable to read from frequency file %s\n", freqFilename);
             }
             featureFreqCount[b][kf] = atol(line.c_str());
@@ -171,7 +171,7 @@ void ShuffleLayer::readFreq() { // TODO: Add MPI Bcast so that only root proc do
                maxCount[b] = featureFreqCount[b][kf];
             }
             if (freqFile.eof()) {
-               pvError().printf(
+               Fatal().printf(
                      "Shuffle Layer: Invalid frequency file %s: EOF before %d nf, %d batches.\n ",
                      freqFilename,
                      nf,
@@ -179,7 +179,7 @@ void ShuffleLayer::readFreq() { // TODO: Add MPI Bcast so that only root proc do
             }
          }
          if (getline(freqFile, line)) {
-            pvError().printf(
+            Fatal().printf(
                   "Shuffle Layer: Invalid frequency file: %s contains > %d nf, %d batches.\n ",
                   freqFilename,
                   nf,
@@ -189,11 +189,11 @@ void ShuffleLayer::readFreq() { // TODO: Add MPI Bcast so that only root proc do
       freqFile.close();
    }
    else {
-      pvError().printf("Shuffle Layer: Unable to open frequency file %s\n", freqFilename);
+      Fatal().printf("Shuffle Layer: Unable to open frequency file %s\n", freqFilename);
    }
 }
 
-void ShuffleLayer::collectFreq(const pvdata_t *sourceData) {
+void ShuffleLayer::collectFreq(const float *sourceData) {
    PVHalo const *haloOrig = &originalLayer->getLayerLoc()->halo;
    int nx                 = getLayerLoc()->nx;
    int ny                 = getLayerLoc()->ny;
@@ -202,7 +202,7 @@ void ShuffleLayer::collectFreq(const pvdata_t *sourceData) {
    int nf                 = getLayerLoc()->nf;
    int nbatch             = getLayerLoc()->nbatch;
    for (int b = 0; b < nbatch; b++) {
-      const pvdata_t *sourceDataBatch = sourceData + b * nxExt * nyExt * nf;
+      const float *sourceDataBatch = sourceData + b * nxExt * nyExt * nf;
       // Reset currFeatureFreqCount
       for (int kf = 0; kf < nf; kf++) {
          currFeatureFreqCount[b][kf] = 0;
@@ -237,7 +237,7 @@ void ShuffleLayer::collectFreq(const pvdata_t *sourceData) {
    }
 }
 
-void ShuffleLayer::rejectionShuffle(const pvdata_t *sourceData, pvdata_t *activity) {
+void ShuffleLayer::rejectionShuffle(const float *sourceData, float *activity) {
    const PVLayerLoc *loc  = getLayerLoc();
    PVHalo const *haloOrig = &originalLayer->getLayerLoc()->halo;
    PVHalo const *halo     = &loc->halo;
@@ -259,8 +259,8 @@ void ShuffleLayer::rejectionShuffle(const pvdata_t *sourceData, pvdata_t *activi
       //      If the number of active features in sourceData is greater than 1/2 of nf, while will
       //      loop infinitely
       for (int b = 0; b < nbatch; b++) {
-         pvdata_t *activityBatch         = activity + b * numextended;
-         const pvdata_t *sourceDataBatch = sourceData + b * numextended;
+         float *activityBatch         = activity + b * numextended;
+         const float *sourceDataBatch = sourceData + b * numextended;
          for (int ky = 0; ky < ny; ky++) {
             for (int kx = 0; kx < nx; kx++) {
                int extIdx = kIndex(
@@ -313,7 +313,7 @@ void ShuffleLayer::rejectionShuffle(const pvdata_t *sourceData, pvdata_t *activi
    }
 }
 
-void ShuffleLayer::randomShuffle(const pvdata_t *sourceData, pvdata_t *activity) {
+void ShuffleLayer::randomShuffle(const float *sourceData, float *activity) {
    const PVLayerLoc *loc  = getLayerLoc();
    PVHalo const *haloOrig = &originalLayer->getLayerLoc()->halo;
    PVHalo const *halo     = &loc->halo;
@@ -330,8 +330,8 @@ void ShuffleLayer::randomShuffle(const pvdata_t *sourceData, pvdata_t *activity)
    //      If the number of active features in sourceData is greater than 1/2 of nf, do..while will
    //      loop infinitely
    for (int b = 0; b < nbatch; b++) {
-      const pvdata_t *sourceDataBatch = sourceData + b * numextended;
-      pvdata_t *activityBatch         = activity + b * numextended;
+      const float *sourceDataBatch = sourceData + b * numextended;
+      float *activityBatch         = activity + b * numextended;
       for (int ky = 0; ky < ny; ky++) {
          for (int kx = 0; kx < nx; kx++) {
             int extIdx = kIndex(
@@ -369,8 +369,8 @@ void ShuffleLayer::randomShuffle(const pvdata_t *sourceData, pvdata_t *activity)
 int ShuffleLayer::updateState(double timef, double dt) {
    int status = PV_SUCCESS;
    // sourceData is extended
-   const pvdata_t *sourceData  = originalLayer->getLayerData();
-   pvdata_t *A                 = getActivity();
+   const float *sourceData     = originalLayer->getLayerData();
+   float *A                    = getActivity();
    const PVLayerLoc *loc       = getLayerLoc();
    const PVLayerLoc *sourceLoc = originalLayer->getLayerLoc();
 

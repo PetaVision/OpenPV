@@ -25,30 +25,30 @@ void testReadFromPvp() {
       double timeVal =
             BufferUtils::readFromPvp<float>("input/input_8x4x2_x3.pvp", &testBuffer, frame);
 
-      pvErrorIf(
+      FatalIf(
             timeVal != (double)frame + 1,
             "Failed on frame %d. Expected time %d, found %d.\n",
             frame,
             frame + 1,
             (int)timeVal);
-      pvErrorIf(
+      FatalIf(
             testBuffer.getWidth() != 8,
             "Failed on frame %d. Expected width to be 8, found %d.\n",
             frame,
             testBuffer.getWidth());
-      pvErrorIf(
+      FatalIf(
             testBuffer.getHeight() != 4,
             "Failed on frame %d. Expected height to be 4, found %d.\n",
             frame,
             testBuffer.getHeight());
-      pvErrorIf(
+      FatalIf(
             testBuffer.getFeatures() != 2,
             "Failed on frame %d. Expected features to be 2, found %d.\n",
             frame,
             testBuffer.getFeatures());
 
       vector<float> readData = testBuffer.asVector();
-      pvErrorIf(
+      FatalIf(
             readData.size() != testData.size(),
             "Failed on frame %d. Expected %d elements, found %d.\n",
             frame,
@@ -56,7 +56,7 @@ void testReadFromPvp() {
             readData.size());
 
       for (int i = 0; i < 8 * 4 * 2; ++i) {
-         pvErrorIf(
+         FatalIf(
                readData.at(i) != testData.at(i),
                "Failed on frame %d. Expected value %d, found %d.\n",
                frame,
@@ -97,30 +97,30 @@ void testWriteToPvp() {
       double timeVal             = BufferUtils::readFromPvp<float>("test.pvp", &testBuffer, frame);
       vector<float> expectedData = allFrames.at(frame);
 
-      pvErrorIf(
+      FatalIf(
             timeVal != (double)frame + 1,
             "Failed on frame %d. Expected time %d, found %d.\n",
             frame,
             frame + 1,
             (int)timeVal);
-      pvErrorIf(
+      FatalIf(
             testBuffer.getWidth() != 8,
             "Failed on frame %d. Expected width to be 8, found %d.\n",
             frame,
             testBuffer.getWidth());
-      pvErrorIf(
+      FatalIf(
             testBuffer.getHeight() != 4,
             "Failed on frame %d. Expected height to be 4, found %d.\n",
             frame,
             testBuffer.getHeight());
-      pvErrorIf(
+      FatalIf(
             testBuffer.getFeatures() != 2,
             "Failed on frame %d. Expected features to be 2, found %d.\n",
             frame,
             testBuffer.getFeatures());
 
       vector<float> readData = testBuffer.asVector();
-      pvErrorIf(
+      FatalIf(
             readData.size() != expectedData.size(),
             "Failed on frame %d. Expected %d elements, found %d.\n",
             frame,
@@ -128,7 +128,7 @@ void testWriteToPvp() {
             readData.size());
 
       for (int i = 0; i < 8 * 4 * 2; ++i) {
-         pvErrorIf(
+         FatalIf(
                readData.at(i) != expectedData.at(i),
                "Failed on frame %d. Expected value %d, found %d.\n",
                frame,
@@ -153,14 +153,14 @@ void testSparseFile(const char *fName) {
    for (int f = 0; f < 5; ++f) {
       SparseList<float> list;
       double timeStamp = BufferUtils::readSparseFromPvp(fName, &list, f);
-      pvErrorIf(
+      FatalIf(
             (int)timeStamp != f + 1,
             "Failed on frame %d timeStamp. Expected time %d, found %d.\n",
             (int)f,
             f + 1,
             (int)timeStamp);
 
-      pvErrorIf(
+      FatalIf(
             list.getContents().size() != 13,
             "Expected 13 values, found %d.\n",
             list.getContents().size());
@@ -173,7 +173,7 @@ void testSparseFile(const char *fName) {
       int frameOffset = f * 5 * 5;
 
       for (int i = 0; i < values.size(); ++i) {
-         pvErrorIf(
+         FatalIf(
                values.at(i) != expected.at(i + frameOffset),
                "Failed on frame %d. Expected value %d at index %d, found %d.\n",
                f,
@@ -222,30 +222,30 @@ void testReadFromSparseBinaryPvp() {
       Buffer<float> testBuffer(3, 2, 1);
       list.toBuffer(testBuffer, 0.0f);
 
-      pvErrorIf(
+      FatalIf(
             timeVal != (double)frame + 1,
             "Failed on frame %d. Expected time %d, found %d.\n",
             frame,
             frame + 1,
             (int)timeVal);
-      pvErrorIf(
+      FatalIf(
             testBuffer.getWidth() != 3,
             "Failed on frame %d. Expected width to be 3, found %d.\n",
             frame,
             testBuffer.getWidth());
-      pvErrorIf(
+      FatalIf(
             testBuffer.getHeight() != 2,
             "Failed on frame %d. Expected height to be 2, found %d.\n",
             frame,
             testBuffer.getHeight());
-      pvErrorIf(
+      FatalIf(
             testBuffer.getFeatures() != 1,
             "Failed on frame %d. Expected features to be 1, found %d.\n",
             frame,
             testBuffer.getFeatures());
 
       vector<float> readData = testBuffer.asVector();
-      pvErrorIf(
+      FatalIf(
             readData.size() != testData.size(),
             "Failed on frame %d. Expected %d elements, found %d.\n",
             frame,
@@ -253,7 +253,7 @@ void testReadFromSparseBinaryPvp() {
             readData.size());
 
       for (int i = 0; i < 3 * 2 * 1; ++i) {
-         pvErrorIf(
+         FatalIf(
                readData.at(i) != testData.at(i),
                "Failed on frame %d. Expected value %d, found %d.\n",
                frame,
@@ -264,26 +264,26 @@ void testReadFromSparseBinaryPvp() {
 }
 int main(int argc, char **argv) {
 
-   pvInfo() << "Testing BufferUtils:readFromPvp(): ";
+   InfoLog() << "Testing BufferUtils:readFromPvp(): ";
    testReadFromPvp();
-   pvInfo() << "Completed.\n";
+   InfoLog() << "Completed.\n";
 
-   pvInfo() << "Testing BufferUtils:writeToPvp(): ";
+   InfoLog() << "Testing BufferUtils:writeToPvp(): ";
    testWriteToPvp();
-   pvInfo() << "Completed.\n";
+   InfoLog() << "Completed.\n";
 
-   pvInfo() << "Testing BufferUtils:readSparseFromPvp(): ";
+   InfoLog() << "Testing BufferUtils:readSparseFromPvp(): ";
    testReadSparseFromPvp();
-   pvInfo() << "Completed.\n";
+   InfoLog() << "Completed.\n";
 
-   pvInfo() << "Testing BufferUtils:writeSparseToPvp(): ";
+   InfoLog() << "Testing BufferUtils:writeSparseToPvp(): ";
    testWriteSparseToPvp();
-   pvInfo() << "Completed.\n";
+   InfoLog() << "Completed.\n";
 
-   pvInfo() << "Testing BufferUtils:readSparseBinaryFromPvp(): ";
+   InfoLog() << "Testing BufferUtils:readSparseBinaryFromPvp(): ";
    testReadFromSparseBinaryPvp();
-   pvInfo() << "Completed.\n";
+   InfoLog() << "Completed.\n";
 
-   pvInfo() << "BufferUtils tests completed successfully!\n";
+   InfoLog() << "BufferUtils tests completed successfully!\n";
    return EXIT_SUCCESS;
 }

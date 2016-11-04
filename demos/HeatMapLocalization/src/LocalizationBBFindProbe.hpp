@@ -46,7 +46,7 @@ protected:
    virtual void ioParam_internalMapHeight(enum PV::ParamsIOFlag ioFlag);
 
    virtual int calcValues(double timevalue);
-   double computeBoxConfidence(LocalizationData const& bbox, pvadata_t const * buffer, int nx, int ny, int nf);
+   double computeBoxConfidence(LocalizationData const& bbox, float const * buffer, int nx, int ny, int nf);
 
 private:
    int initialize_base();

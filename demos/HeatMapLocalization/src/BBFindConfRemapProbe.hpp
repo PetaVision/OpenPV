@@ -53,7 +53,7 @@ private:
    void drawTextOnMontage(char const * backgroundColor, char const * textColor, char const * labelText, int xOffset, int yOffset, int width, int height);
    void drawTextIntoFile(char const * labelName, char const * backgroundColor, char const * textColor, char const * labelText, int width, int height=32);
    void insertFileIntoMontage(char const * labelname, int xOffset, int yOffset, int xExpectedSize, int yExpectedSize);
-   void insertImageIntoMontage(int xStart, int yStart, pvadata_t const * sourceData, PVLayerLoc const * loc, bool extended);
+   void insertImageIntoMontage(int xStart, int yStart, float const * sourceData, PVLayerLoc const * loc, bool extended);
    void writeMontage();
 
 protected:
@@ -72,7 +72,7 @@ protected:
    float * heatMapThreshold = NULL;
    int numHeatMapMaxima = 0;
    float * heatMapMaximum = NULL;
-   pvadata_t imageBlendCoeff; // heatmap image will be imageBlendCoeff * imagedata plus (1-imageBlendCoeff) * heatmap data
+   float imageBlendCoeff; // heatmap image will be imageBlendCoeff * imagedata plus (1-imageBlendCoeff) * heatmap data
    int boundingBoxLineWidth = 5;
    char * displayCommand = NULL;
    vector<vector<LocalizationData>> detectionS;
@@ -84,7 +84,7 @@ protected:
    unsigned char * montageImage = NULL;
    unsigned char * montageImageLocal = NULL;
    unsigned char * montageImageComm = NULL;
-   pvadata_t * grayScaleImage = NULL;
+   float * grayScaleImage = NULL;
    double imageDilationX = 1.0;
    double imageDilationY = 1.0;
    char * outputFilenameBase = NULL;

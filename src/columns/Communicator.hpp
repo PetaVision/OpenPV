@@ -53,7 +53,7 @@ class Communicator {
    int numCommBatches() { return batchWidth; }
 
    int exchange(
-         pvdata_t *data,
+         float *data,
          const MPI_Datatype neighborDatatypes[],
          const PVLayerLoc *loc,
          std::vector<MPI_Request> &req);

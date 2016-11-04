@@ -11,22 +11,22 @@
 namespace PV {
 
 /** Compress a weight value to an unsigned char */
-static inline unsigned char compressWeight(pvdata_t w, pvdata_t minVal, pvdata_t maxVal) {
+static inline unsigned char compressWeight(float w, float minVal, float maxVal) {
    return (unsigned char)(255.0f * ((w - minVal) / (maxVal - minVal)) + 0.5f);
 }
 
-/** Compress a weight value to an unsigned char (weight type pvwdata_t already a uchar) */
-static inline unsigned char compressWeight(unsigned char w, pvdata_t minVal, pvdata_t maxVal) {
+/** Compress a weight value to an unsigned char (weight type float already a uchar) */
+static inline unsigned char compressWeight(unsigned char w, float minVal, float maxVal) {
    return w;
 }
 
-/** Uncompress a weight value to a pvdata_t data type */
-static inline pvdata_t uncompressWeight(unsigned char w, pvdata_t minVal, pvdata_t maxVal) {
-   return (pvdata_t)(minVal + (maxVal - minVal) * ((pvdata_t)w / 255.0f));
+/** Uncompress a weight value to a float data type */
+static inline float uncompressWeight(unsigned char w, float minVal, float maxVal) {
+   return (float)(minVal + (maxVal - minVal) * ((float)w / 255.0f));
 }
 
-/** Uncompress a weight value to a pvdata_t data type (weight type pvwdata_t already a float) */
-static inline pvdata_t uncompressWeight(float w, pvdata_t minVal, pvdata_t maxVal) { return w; }
+/** Uncompress a weight value to a float data type (weight type float already a float) */
+static inline float uncompressWeight(float w, float minVal, float maxVal) { return w; }
 
 } // end namespace PV
 

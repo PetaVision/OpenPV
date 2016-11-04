@@ -37,12 +37,12 @@ double L1NormProbe::getValueInternal(double timevalue, int index) {
    int const dn          = halo->dn;
    int const up          = halo->up;
    double sum            = 0.0;
-   pvadata_t const *aBuffer =
+   float const *aBuffer =
          getTargetLayer()->getLayerData() + index * getTargetLayer()->getNumExtended();
    if (getMaskLayer()) {
       PVLayerLoc const *maskLoc = getMaskLayer()->getLayerLoc();
       PVHalo const *maskHalo    = &maskLoc->halo;
-      pvadata_t const *maskLayerData =
+      float const *maskLayerData =
             getMaskLayer()->getLayerData()
             + index * getMaskLayer()->getNumExtended(); // Is there a DataStore method to return the
       // part of the layer data for a given batch
@@ -62,8 +62,8 @@ double L1NormProbe::getValueInternal(double timevalue, int index) {
             if (maskLayerData[kexMask]) {
                int featureBase = kxy * nf;
                for (int f = 0; f < nf; f++) {
-                  int kex       = kIndexExtended(featureBase++, nx, ny, nf, lt, rt, dn, up);
-                  pvadata_t val = aBuffer[kex];
+                  int kex   = kIndexExtended(featureBase++, nx, ny, nf, lt, rt, dn, up);
+                  float val = aBuffer[kex];
                   sum += fabs(val);
                }
             }
@@ -77,7 +77,7 @@ double L1NormProbe::getValueInternal(double timevalue, int index) {
             int kex     = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
             int kexMask = kIndexExtended(k, nx, ny, nf, maskLt, maskRt, maskDn, maskUp);
             if (maskLayerData[kexMask]) {
-               pvadata_t val = aBuffer[kex];
+               float val = aBuffer[kex];
                sum += fabs(val);
             }
          }

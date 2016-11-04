@@ -32,14 +32,14 @@ InitWeightsParams *InitUniformWeights::createNewWeightParams() {
 }
 
 int InitUniformWeights::calcWeights(
-      /* PVPatch * patch */ pvdata_t *dataStart,
+      /* PVPatch * patch */ float *dataStart,
       int patchIndex,
       int arborId) {
    InitUniformWeightsParams *weightParamPtr =
          dynamic_cast<InitUniformWeightsParams *>(weightParams);
 
    if (weightParamPtr == NULL) {
-      pvError().printf("Failed to recast pointer to weightsParam!  Exiting...");
+      Fatal().printf("Failed to recast pointer to weightsParam!  Exiting...");
    }
 
    const float iWeight                = weightParamPtr->getInitWeight();
@@ -57,7 +57,7 @@ int InitUniformWeights::calcWeights(
  *
  */
 int InitUniformWeights::uniformWeights(
-      pvdata_t *dataStart,
+      float *dataStart,
       float iWeight,
       int kf,
       InitUniformWeightsParams *weightParamPtr,

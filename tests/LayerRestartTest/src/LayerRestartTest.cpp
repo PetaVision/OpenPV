@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
 
    if (initObj.getParamsFile() != NULL) {
       if (rank == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s runs a number of params files in sequence.  Do not include a '-p' option when "
                "running this program.\n",
                argv[0]);
@@ -54,7 +54,7 @@ int main(int argc, char *argv[]) {
    if (status == PV_SUCCESS) {
       char const *checkParamsFile = "input/LayerRestartTest-Check.params";
       if (rank == 0) {
-         pvInfo().printf(
+         InfoLog().printf(
                "*** %s: running params file %s\n", initObj.getProgramName(), checkParamsFile);
       }
       initObj.setParams("input/LayerRestartTest-Check.params");
@@ -62,7 +62,7 @@ int main(int argc, char *argv[]) {
       if (status == PV_SUCCESS) {
          char const *readParamsFile = "input/LayerRestartTest-Read.params";
          if (rank == 0) {
-            pvInfo().printf(
+            InfoLog().printf(
                   "*** %s: running params file %s\n", initObj.getProgramName(), checkParamsFile);
          }
          initObj.setParams(readParamsFile);
@@ -82,10 +82,10 @@ int main(int argc, char *argv[]) {
          if (r != 0)
             MPI_Recv(&otherprocstatus, 1, MPI_INT, r, 59, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
          if (otherprocstatus == PV_SUCCESS) {
-            pvInfo().printf("%s: rank %d process succeeded.\n", argv[0], r);
+            InfoLog().printf("%s: rank %d process succeeded.\n", argv[0], r);
          }
          else {
-            pvErrorNoExit().printf(
+            ErrorLog().printf(
                   "%s: rank %d process FAILED with return code %d\n", argv[0], r, otherprocstatus);
             status = PV_FAILURE;
          }
@@ -111,10 +111,10 @@ int checkComparisonNonzero(HyPerCol *hc, int argc, char *argv[]) {
          break;
    }
    if (layerIndex >= numLayers) {
-      pvErrorNoExit().printf("%s: couldn't find layer \"Comparison\".", argv[0]);
+      ErrorLog().printf("%s: couldn't find layer \"Comparison\".", argv[0]);
       return PV_FAILURE;
    }
-   pvdata_t *V = layer->getV();
+   float *V = layer->getV();
    for (int k = 0; k < layer->getNumNeurons(); k++) {
       if (V[k]) {
          status = PV_SUCCESS;
@@ -135,13 +135,13 @@ int checkComparisonZero(HyPerCol *hc, int argc, char *argv[]) {
          break;
    }
    if (layerIndex >= numLayers) {
-      pvErrorNoExit().printf("%s: couldn't find layer \"Comparison\".", argv[0]);
+      ErrorLog().printf("%s: couldn't find layer \"Comparison\".", argv[0]);
       return PV_FAILURE;
    }
-   pvdata_t *V = layer->getV();
+   float *V = layer->getV();
    for (int k = 0; k < layer->getNumNeurons(); k++) {
       if (V[k]) {
-         pvErrorNoExit().printf("Neuron %d: discrepancy %f\n", k, (double)V[k]);
+         ErrorLog().printf("Neuron %d: discrepancy %f\n", k, (double)V[k]);
          status = PV_FAILURE;
       }
    }

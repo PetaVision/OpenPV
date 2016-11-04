@@ -15,7 +15,7 @@ namespace PV {
 
 class InitRandomWeights : public PV::InitWeights {
   public:
-   virtual int calcWeights(/* PVPatch * patch */ pvdata_t *dataStart, int patchIndex, int arborId);
+   virtual int calcWeights(/* PVPatch * patch */ float *dataStart, int patchIndex, int arborId);
    virtual ~InitRandomWeights();
 
   protected:
@@ -23,7 +23,7 @@ class InitRandomWeights : public PV::InitWeights {
    int initialize(char const *name, HyPerCol *hc);
    virtual int initRNGs(bool isKernel);
    virtual int
-   randomWeights(pvdata_t *patchDataStart, InitWeightsParams *weightParams, int patchIndex) = 0;
+   randomWeights(float *patchDataStart, InitWeightsParams *weightParams, int patchIndex) = 0;
    // Subclasses must implement randomWeights.
    // patchDataStart is a pointer to the beginning of a data patch.
    // patchIndex is the index for that patch.  The RNGs are accessed by calling randState's get

@@ -14,14 +14,14 @@ void testPvpRestricted(PV::Communicator *comm, std::string const &directory) {
    loc.halo.up      = 0;
    loc.nbatch       = 1;
    loc.kb0          = comm->commBatch();
-   pvErrorIf(
+   FatalIf(
          loc.nxGlobal % comm->numCommColumns(),
          "Global width %d is not a multiple of the number of MPI columns %d\n",
          loc.nxGlobal,
          comm->numCommColumns());
    loc.nx  = loc.nxGlobal / comm->numCommColumns();
    loc.kx0 = loc.nx * comm->commColumn();
-   pvErrorIf(
+   FatalIf(
          loc.nyGlobal % comm->numCommRows(),
          "Global height %d is not a multiple of the number of MPI rows %d\n",
          loc.nyGlobal,
@@ -65,9 +65,9 @@ void testPvpRestricted(PV::Communicator *comm, std::string const &directory) {
    checkpointEntryPvp.read(directory, &readTime);
 
    // Verify the read
-   pvErrorIf(readTime != simTime, "Read timestamp %f; expected %f.\n", readTime, simTime);
+   FatalIf(readTime != simTime, "Read timestamp %f; expected %f.\n", readTime, simTime);
    for (int k = 0; k < localSize; k++) {
-      pvErrorIf(
+      FatalIf(
             checkpointData.at(k) != correctData.at(k),
             "testDataPvp failed: data at rank %d, index %d is %f, but should be %f\n",
             comm->commRank(),
@@ -76,5 +76,5 @@ void testPvpRestricted(PV::Communicator *comm, std::string const &directory) {
             (double)correctData.at(k));
    }
    MPI_Barrier(comm->communicator());
-   pvInfo() << "testDataPvpRestricted passed.\n";
+   InfoLog() << "testDataPvpRestricted passed.\n";
 }
