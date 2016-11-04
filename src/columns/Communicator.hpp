@@ -37,6 +37,7 @@ class Communicator {
    int globalCommSize() { return globalSize; }
 
    MPI_Comm communicator() { return localIcComm; }
+   MPI_Comm batchCommunicator() { return batchIcComm; }
    MPI_Comm globalCommunicator() { return globalIcComm; }
 
    int numberOfNeighbors(); // includes interior (self) as a neighbor
@@ -108,6 +109,7 @@ class Communicator {
    char commName[COMMNAME_MAXLENGTH];
 
    MPI_Comm localIcComm;
+   MPI_Comm batchIcComm;
    MPI_Comm globalIcComm;
 
    // These methods are private for now, move to public as needed
