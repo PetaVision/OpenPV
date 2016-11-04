@@ -1,5 +1,5 @@
-#ifndef _BBFIND_HPP_
-#define _BBFIND_HPP_
+#ifndef BBFIND_HPP_
+#define BBFIND_HPP_
 
 #include <vector>
 #include <list>
@@ -249,4 +249,4 @@ class BBFind
       }
 };
 
-#endif
+#endif // BBFIND_HPP_
