@@ -7,26 +7,6 @@
 #include <string>
 #include <type_traits>
 
-#ifdef NDEBUG
-// Not DEBUG build
-#ifdef PV_DEBUG_OUTPUT
-// Release build, but logDebug output was requested
-#define _PV_DEBUG_OUTPUT 1
-#else
-// Release build, no debug output
-#undef _PV_DEBUG_OUTPUT
-#endif // PV_DEBUG_OUTPUT
-#else
-// Debug build, logDebug output needed
-#define _PV_DEBUG_OUTPUT 1
-#endif // NDEBUG
-
-#if defined(_PV_DEBUG_OUTPUT)
-#define DEBUG_LOG_TEST_CONDITION true
-#else
-#define DEBUG_LOG_TEST_CONDITION false
-#endif // defined(_PV_DEBUG_OUTPUT)
-
 //
 // Logging with the C++ builder pattern.
 //
@@ -185,7 +165,11 @@ inline bool StackTraceType::output() {
 }
 template <>
 inline bool DebugLogType::output() {
-   return DEBUG_LOG_TEST_CONDITION;
+#if defined(NDEBUG) || defined(PV_DEBUG_OUTPUT)
+   return true;
+#else
+   return false;
+#endif // defined(NDEBUG) || defined(PV_DEBUG_OUTPUT)
 }
 
 template <>
