@@ -3162,6 +3162,11 @@ int HyPerConn::deliverPostsynapticPerspectiveConvolve(
    int neuronIndexStride = nfp < 4 ? 1 : nfp / 4;
 
    if (sharedWeights) {
+      // The differences between the sharedWeights and non-sharedWeights parts of the code are:
+      // sharedWeights splits the loop over neurons using neuronIndexStride
+      // sharedWeights calls patchToDataLUT, while non-sharedWeights just uses the neuron index.
+      // If you change one side or the other of this if-statement, please evaluate whether
+      // the same change makes sense in the other part, or document the difference between them.
       for (int b = 0; b < nbatch; b++) {
          int numNeurons  = recvPostSparse ? numActive[b] : numPostRestricted;
          int sourceNxExt = sourceNx + sourceHalo->rt + sourceHalo->lt;
@@ -3211,6 +3216,11 @@ int HyPerConn::deliverPostsynapticPerspectiveConvolve(
       }
    }
    else {
+      // The differences between the sharedWeights and non-sharedWeights parts of the code are:
+      // sharedWeights splits the loop over neurons using neuronIndexStride
+      // sharedWeights calls patchToDataLUT, while non-sharedWeights just uses the neuron index.
+      // If you change one side or the other of this if-statement, please evaluate whether
+      // the same change makes sense in the other part, or document the difference between them.
       for (int b = 0; b < nbatch; b++) {
          int numNeurons  = recvPostSparse ? numActive[b] : numPostRestricted;
          int sourceNxExt = sourceNx + sourceHalo->rt + sourceHalo->lt;
@@ -3221,8 +3231,6 @@ int HyPerConn::deliverPostsynapticPerspectiveConvolve(
 
          // Iterate over each line in the y axis, the goal is to keep weights in the cache
          for (int ky = 0; ky < yPatchSize; ky++) {
-// Threading over feature was the important change that improved cache performance by
-// 5-10x. dynamic scheduling also gave another performance increase over static.
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(static)
 #endif
