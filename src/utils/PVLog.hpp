@@ -61,12 +61,12 @@
 // the file where the inline function is called. This is different
 // from Clang, which puts in the __FILE__ and __LINE__ of the caller
 #ifdef __GNUC__
-#define InfoLog(...) PV::_Info __VA_ARGS__(__FILE__, __LINE__)
-#define WarnLog(...) PV::_Warn __VA_ARGS__(__FILE__, __LINE__)
-#define Fatal(...) PV::_Error __VA_ARGS__(__FILE__, __LINE__)
-#define ErrorLog(...) PV::_ErrorNoExit __VA_ARGS__(__FILE__, __LINE__)
-#define DebugLog(...) PV::_Debug __VA_ARGS__(__FILE__, __LINE__)
-#define StackTrace(...) PV::_StackTrace __VA_ARGS__(__FILE__, __LINE__)
+#define InfoLog(...) PV::InfoLog __VA_ARGS__(__FILE__, __LINE__)
+#define WarnLog(...) PV::WarnLog __VA_ARGS__(__FILE__, __LINE__)
+#define Fatal(...) PV::Fatal __VA_ARGS__(__FILE__, __LINE__)
+#define ErrorLog(...) PV::ErrorLog __VA_ARGS__(__FILE__, __LINE__)
+#define DebugLog(...) PV::DebugLog __VA_ARGS__(__FILE__, __LINE__)
+#define StackTrace(...) PV::StackTrace __VA_ARGS__(__FILE__, __LINE__)
 #define FatalIf(x, ...)                                                                            \
    if (x) {                                                                                        \
       Fatal().printf(__VA_ARGS__);                                                                 \
@@ -103,7 +103,7 @@ std::wostream &getWErrorStream();
 
 /**
  * LogType traits class. This is the protocol for defining traits
- * for various log types, like LogInfoType, etc.
+ * for various log types, like InfoLogType, etc.
  */
 template <int T>
 struct LogType {
@@ -120,7 +120,7 @@ struct LogType {
    static bool flushOutputStream();
 
    // Append prefix, file and line number? Used for suppressing
-   // this information for LogInfoType
+   // this information for InfoLogType
    static bool prependPrefix();
 
    // Should this log type print the file and line information?
@@ -130,153 +130,153 @@ struct LogType {
    static void exit();
 };
 
-typedef LogType<_LogInfo> LogInfoType;
-typedef LogType<_LogWarn> LogWarnType;
-typedef LogType<_LogError> LogErrorType;
-typedef LogType<_LogErrorNoExit> LogErrorNoExitType;
-typedef LogType<_LogDebug> LogDebugType;
-typedef LogType<_LogStackTrace> LogStackTraceType;
+typedef LogType<_LogInfo> InfoLogType;
+typedef LogType<_LogWarn> WarnLogType;
+typedef LogType<_LogError> FatalType;
+typedef LogType<_LogErrorNoExit> ErrorLogType;
+typedef LogType<_LogDebug> DebugLogType;
+typedef LogType<_LogStackTrace> StackTraceType;
 
 // LogType traits
 template <>
-inline std::string LogInfoType::prefix() {
+inline std::string InfoLogType::prefix() {
    return std::string("INFO");
 }
 template <>
-inline std::string LogWarnType::prefix() {
+inline std::string WarnLogType::prefix() {
    return std::string("WARN");
 }
 template <>
-inline std::string LogErrorType::prefix() {
+inline std::string FatalType::prefix() {
    return std::string("ERROR");
 }
 template <>
-inline std::string LogErrorNoExitType::prefix() {
+inline std::string ErrorLogType::prefix() {
    return std::string("ERROR");
 }
 template <>
-inline std::string LogDebugType::prefix() {
+inline std::string DebugLogType::prefix() {
    return std::string("DEBUG");
 }
 template <>
-inline std::string LogStackTraceType::prefix() {
+inline std::string StackTraceType::prefix() {
    return std::string("");
 }
 
 template <>
-inline bool LogInfoType::output() {
+inline bool InfoLogType::output() {
    return true;
 }
 template <>
-inline bool LogWarnType::output() {
+inline bool WarnLogType::output() {
    return true;
 }
 template <>
-inline bool LogErrorType::output() {
+inline bool FatalType::output() {
    return true;
 }
 template <>
-inline bool LogErrorNoExitType::output() {
+inline bool ErrorLogType::output() {
    return true;
 }
 template <>
-inline bool LogStackTraceType::output() {
+inline bool StackTraceType::output() {
    return true;
 }
 template <>
-inline bool LogDebugType::output() {
+inline bool DebugLogType::output() {
    return DEBUG_LOG_TEST_CONDITION;
 }
 
 template <>
-inline bool LogInfoType::flushOutputStream() {
+inline bool InfoLogType::flushOutputStream() {
    return false;
 }
 template <>
-inline bool LogWarnType::flushOutputStream() {
+inline bool WarnLogType::flushOutputStream() {
    return false;
 }
 template <>
-inline bool LogErrorType::flushOutputStream() {
+inline bool FatalType::flushOutputStream() {
    return true;
 }
 template <>
-inline bool LogErrorNoExitType::flushOutputStream() {
+inline bool ErrorLogType::flushOutputStream() {
    return true;
 }
 template <>
-inline bool LogStackTraceType::flushOutputStream() {
+inline bool StackTraceType::flushOutputStream() {
    return true;
 }
 template <>
-inline bool LogDebugType::flushOutputStream() {
+inline bool DebugLogType::flushOutputStream() {
    return true;
 }
 
 template <>
-inline bool LogInfoType::prependPrefix() {
+inline bool InfoLogType::prependPrefix() {
    return false;
 }
 template <>
-inline bool LogWarnType::prependPrefix() {
+inline bool WarnLogType::prependPrefix() {
    return true;
 }
 template <>
-inline bool LogErrorType::prependPrefix() {
+inline bool FatalType::prependPrefix() {
    return true;
 }
 template <>
-inline bool LogErrorNoExitType::prependPrefix() {
+inline bool ErrorLogType::prependPrefix() {
    return true;
 }
 template <>
-inline bool LogStackTraceType::prependPrefix() {
+inline bool StackTraceType::prependPrefix() {
    return false;
 }
 template <>
-inline bool LogDebugType::prependPrefix() {
+inline bool DebugLogType::prependPrefix() {
    return true;
 }
 
 template <>
-inline bool LogInfoType::outputFileLine() {
+inline bool InfoLogType::outputFileLine() {
    return false;
 }
 template <>
-inline bool LogWarnType::outputFileLine() {
+inline bool WarnLogType::outputFileLine() {
    return false;
 }
 template <>
-inline bool LogErrorType::outputFileLine() {
+inline bool FatalType::outputFileLine() {
    return true;
 }
 template <>
-inline bool LogErrorNoExitType::outputFileLine() {
+inline bool ErrorLogType::outputFileLine() {
    return true;
 }
 template <>
-inline bool LogStackTraceType::outputFileLine() {
+inline bool StackTraceType::outputFileLine() {
    return false;
 }
 template <>
-inline bool LogDebugType::outputFileLine() {
+inline bool DebugLogType::outputFileLine() {
    return true;
 }
 
 template <>
-inline void LogInfoType::exit() {}
+inline void InfoLogType::exit() {}
 template <>
-inline void LogWarnType::exit() {}
+inline void WarnLogType::exit() {}
 template <>
-inline void LogErrorType::exit() {
+inline void FatalType::exit() {
    ::exit(EXIT_FAILURE);
 }
 template <>
-inline void LogErrorNoExitType::exit() {}
+inline void ErrorLogType::exit() {}
 template <>
-inline void LogStackTraceType::exit() {}
+inline void StackTraceType::exit() {}
 template <>
-inline void LogDebugType::exit() {}
+inline void DebugLogType::exit() {}
 
 // Log traits, for definining the stream to be used by the logger
 template <typename C, typename LT, typename T = std::char_traits<C>>
@@ -289,51 +289,51 @@ struct LogStreamTraits {
 };
 
 template <>
-inline std::ostream &LogStreamTraits<char, LogInfoType>::stream() {
+inline std::ostream &LogStreamTraits<char, InfoLogType>::stream() {
    return getOutputStream();
 }
 template <>
-inline std::wostream &LogStreamTraits<wchar_t, LogInfoType>::stream() {
+inline std::wostream &LogStreamTraits<wchar_t, InfoLogType>::stream() {
    return getWOutputStream();
 }
 template <>
-inline std::ostream &LogStreamTraits<char, LogWarnType>::stream() {
+inline std::ostream &LogStreamTraits<char, WarnLogType>::stream() {
    return getErrorStream();
 }
 template <>
-inline std::wostream &LogStreamTraits<wchar_t, LogWarnType>::stream() {
+inline std::wostream &LogStreamTraits<wchar_t, WarnLogType>::stream() {
    return getWErrorStream();
 }
 template <>
-inline std::ostream &LogStreamTraits<char, LogErrorType>::stream() {
+inline std::ostream &LogStreamTraits<char, FatalType>::stream() {
    return getErrorStream();
 }
 template <>
-inline std::wostream &LogStreamTraits<wchar_t, LogErrorNoExitType>::stream() {
+inline std::wostream &LogStreamTraits<wchar_t, ErrorLogType>::stream() {
    return getWErrorStream();
 }
 template <>
-inline std::ostream &LogStreamTraits<char, LogErrorNoExitType>::stream() {
+inline std::ostream &LogStreamTraits<char, ErrorLogType>::stream() {
    return getErrorStream();
 }
 template <>
-inline std::wostream &LogStreamTraits<wchar_t, LogErrorType>::stream() {
+inline std::wostream &LogStreamTraits<wchar_t, FatalType>::stream() {
    return getWErrorStream();
 }
 template <>
-inline std::ostream &LogStreamTraits<char, LogDebugType>::stream() {
+inline std::ostream &LogStreamTraits<char, DebugLogType>::stream() {
    return getOutputStream();
 }
 template <>
-inline std::wostream &LogStreamTraits<wchar_t, LogDebugType>::stream() {
+inline std::wostream &LogStreamTraits<wchar_t, DebugLogType>::stream() {
    return getWOutputStream();
 }
 template <>
-inline std::ostream &LogStreamTraits<char, LogStackTraceType>::stream() {
+inline std::ostream &LogStreamTraits<char, StackTraceType>::stream() {
    return getErrorStream();
 }
 template <>
-inline std::wostream &LogStreamTraits<wchar_t, LogStackTraceType>::stream() {
+inline std::wostream &LogStreamTraits<wchar_t, StackTraceType>::stream() {
    return getWErrorStream();
 }
 
@@ -428,36 +428,36 @@ struct Log {
 
 #ifdef __GNUC__
 // Macros that call these functions defined outside of namespace
-typedef Log<char, LogDebugType> _Debug;
-typedef Log<char, LogInfoType> _Info;
-typedef Log<char, LogWarnType> _Warn;
-typedef Log<char, LogErrorType> _Error;
-typedef Log<char, LogErrorNoExitType> _ErrorNoExit;
-typedef Log<char, LogStackTraceType> _StackTrace;
+typedef Log<char, DebugLogType> DebugLog;
+typedef Log<char, InfoLogType> InfoLog;
+typedef Log<char, WarnLogType> WarnLog;
+typedef Log<char, FatalType> Fatal;
+typedef Log<char, ErrorLogType> ErrorLog;
+typedef Log<char, StackTraceType> StackTrace;
 
-typedef Log<wchar_t, LogDebugType> _WDebug;
-typedef Log<wchar_t, LogInfoType> _WInfo;
-typedef Log<wchar_t, LogWarnType> _WWarn;
-typedef Log<wchar_t, LogErrorType> _WError;
-typedef Log<char, LogErrorNoExitType> _WErrorNoExit;
-typedef Log<wchar_t, LogStackTraceType> _WStackTrace;
+typedef Log<wchar_t, DebugLogType> WDebug;
+typedef Log<wchar_t, InfoLogType> WInfo;
+typedef Log<wchar_t, WarnLogType> WWarn;
+typedef Log<wchar_t, FatalType> WFatal;
+typedef Log<char, ErrorLogType> WError;
+typedef Log<wchar_t, StackTraceType> WStackTrace;
 
 #else
 // Clang __FILE__ and __LINE__ evalaute to the caller of the function
 // thus the macros aren't needed
-typedef Log<char, LogDebugType> Debug;
-typedef Log<char, LogInfoType> Info;
-typedef Log<char, LogWarnType> Warn;
-typedef Log<char, LogErrorType> Error;
-typedef Log<char, LogErrorNoExitType> ErrorNoExit;
-typedef Log<char, LogStackTraceType> StackTrace;
+typedef Log<char, DebugLogType> Debug;
+typedef Log<char, InfoLogType> Info;
+typedef Log<char, WarnLogType> Warn;
+typedef Log<char, FatalType> Error;
+typedef Log<char, ErrorLogType> ErrorNoExit;
+typedef Log<char, StackTraceType> StackTrace;
 
-typedef Log<wchar_t, LogDebugType> WDebug;
-typedef Log<wchar_t, LogInfoType> WInfo;
-typedef Log<wchar_t, LogWarnType> WWarn;
-typedef Log<wchar_t, LogErrorType> WError;
-typedef Log<wchar_t, LogErrorNoExitType> WErrorNoExit;
-typedef Log<wchar_t, LogStackTraceType> WStackTrace;
+typedef Log<wchar_t, DebugLogType> WDebug;
+typedef Log<wchar_t, InfoLogType> WInfo;
+typedef Log<wchar_t, WarnLogType> WWarn;
+typedef Log<wchar_t, FatalType> WFatal;
+typedef Log<wchar_t, ErrorLogType> WError;
+typedef Log<wchar_t, StackTraceType> WStackTrace;
 #endif // __GNUC__
 
 // setLogFile sets the file that the DebugLog, InfoLog, WarnLog, and Fatal streams write to.
