@@ -7,6 +7,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/InputLayer.cpp
    ${SUBDIR}/BaseLayer.cpp
    ${SUBDIR}/BinningLayer.cpp
+   ${SUBDIR}/DropoutLayer.cpp
    ${SUBDIR}/CloneVLayer.cpp
    ${SUBDIR}/ConstantLayer.cpp
    ${SUBDIR}/FilenameParsingGroundTruthLayer.cpp
@@ -49,6 +50,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/BaseLayer.hpp
    ${SUBDIR}/BinningLayer.hpp
    ${SUBDIR}/CloneVLayer.hpp
+   ${SUBDIR}/DropoutLayer.hpp
    ${SUBDIR}/ConstantLayer.hpp
    ${SUBDIR}/FilenameParsingGroundTruthLayer.hpp
    ${SUBDIR}/GapLayer.hpp

@@ -17,6 +17,7 @@
 #include "layers/BackgroundLayer.hpp"
 #include "layers/BinningLayer.hpp"
 #include "layers/CloneVLayer.hpp"
+#include "layers/DropoutLayer.hpp"
 #include "layers/ConstantLayer.hpp"
 #include "layers/FilenameParsingGroundTruthLayer.hpp"
 #include "layers/GapLayer.hpp"
@@ -121,6 +122,7 @@ int Factory::registerCoreKeywords() {
    registerKeyword("BinningLayer", Factory::create<BinningLayer>);
    registerKeyword("CloneVLayer", Factory::create<CloneVLayer>);
    registerKeyword("ConstantLayer", Factory::create<ConstantLayer>);
+   registerKeyword("DropoutLayer", Factory::create<DropoutLayer>);
    registerKeyword(
          "FilenameParsingGroundTruthLayer", Factory::create<FilenameParsingGroundTruthLayer>);
    registerKeyword("GapLayer", Factory::create<GapLayer>);
