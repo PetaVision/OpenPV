@@ -38,17 +38,6 @@ HyPerConn::HyPerConn(char const *name, HyPerCol *hc) {
    initialize(name, hc);
 }
 
-// Deprecated June 22, 2016.  Use PV_Init::create("HyPerConn", name, hc) instead, which calls the
-// constructor taking (name, hc) as arguments.
-HyPerConn::HyPerConn(
-      const char *name,
-      HyPerCol *hc,
-      InitWeights *weightInitializer,
-      NormalizeBase *weightNormalizer) {
-   initialize_base();
-   initialize(name, hc, weightInitializer, weightNormalizer);
-}
-
 HyPerConn::~HyPerConn() {
    delete io_timer;
    io_timer = NULL;
@@ -389,19 +378,6 @@ int HyPerConn::shrinkPatch(int kExt, int arborId) {
    return 0;
 }
 
-// Deprecated June 22, 2016.  Use HyPerConn::initialize(name, hc) as arguments.  ioParamsFillGroup
-// will create the InitWeights and WeightNormalizer object.
-int HyPerConn::initialize(
-      const char *name,
-      HyPerCol *hc,
-      InitWeights *weightInitializer,
-      NormalizeBase *weightNormalizer) {
-   this->weightInitializer = weightInitializer;
-   normalizer              = weightNormalizer;
-
-   return initialize(name, hc);
-}
-
 int HyPerConn::initialize(char const *name, HyPerCol *hc) {
    int status = BaseConnection::initialize(name, hc);
 
@@ -631,10 +607,7 @@ void HyPerConn::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
 void HyPerConn::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamString(
          ioFlag, name, "weightInitType", &weightInitTypeString, NULL, true /*warnIfAbsent*/);
-   // The constructor that took a weightInitializer as an argument was deprecated June 22, 2022.
-   // Once that constructor is removed, the weightInitializer==NULL part of the if-statement below
-   // can be removed.
-   if (ioFlag == PARAMS_IO_READ && weightInitializer == NULL) {
+   if (ioFlag == PARAMS_IO_READ) {
       int status = setWeightInitializer();
       pvAssertMessage(
             status == PV_SUCCESS,
@@ -933,10 +906,7 @@ void HyPerConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
          free(normalizeMethod);
          normalizeMethod = strdup("none");
       }
-      // The constructor that took a normalizer as an argument was deprecated June 22, 2022.
-      // Once that constructor is removed, the normalizer==NULL part of the if-statement below can
-      // be removed.
-      if (normalizer == nullptr && strcmp(normalizeMethod, "none")) {
+      if (strcmp(normalizeMethod, "none")) {
          int status = setWeightNormalizer();
          if (status != PV_SUCCESS) {
             pvError().printf(
@@ -1334,17 +1304,6 @@ int HyPerConn::communicateInitInfo() {
       }
    }
 #endif
-
-   // No batches with non-shared weights
-   if (parent->getNBatch() > 1 && !sharedWeights) {
-      if (parent->columnId() == 0) {
-         pvErrorNoExit().printf(
-               "%s error: Non-shared weights with batches not implemented yet.\n",
-               getDescription_c());
-      }
-      MPI_Barrier(parent->getCommunicator()->communicator());
-      exit(EXIT_FAILURE);
-   }
 
    return status;
 }
@@ -2455,6 +2414,9 @@ int HyPerConn::reduce_dW(int arborId) {
          pvAssert(kernel_status == activation_status);
       }
    }
+   else {
+      reduceAcrossBatch(arborId);
+   }
    return kernel_status;
 }
 
@@ -2488,16 +2450,27 @@ int HyPerConn::reduceKernels(int arborID) {
    const int nProcs   = nxProcs * nyProcs * nbProcs;
    if (nProcs != 1) {
       const MPI_Comm mpi_comm = comm->globalCommunicator();
+      const int numPatches    = getNumDataPatches();
+      const size_t patchSize  = (size_t)nxp * (size_t)nyp * (size_t)nfp;
+      const size_t localSize  = (size_t)numPatches * (size_t)patchSize;
+      const size_t arborSize  = localSize * (size_t)numberOfAxonalArborLists();
       int ierr;
-      const int numPatches   = getNumDataPatches();
-      const size_t patchSize = (size_t)nxp * (size_t)nyp * (size_t)nfp;
-      const size_t localSize = numPatches * patchSize;
-      const size_t arborSize = localSize * numberOfAxonalArborLists();
-      ierr                   = MPI_Allreduce(
+      ierr = MPI_Allreduce(
             MPI_IN_PLACE, get_dwDataStart(arborID), arborSize, MPI_FLOAT, MPI_SUM, mpi_comm);
    }
 
    return PV_BREAK;
+}
+
+void HyPerConn::reduceAcrossBatch(int arborID) {
+   if (parent->getCommunicator()->numCommBatches() != 1) {
+      pvwdata_t *dwArborStart  = get_dwDataStart(arborID);
+      size_t const patchSize   = (size_t)nxp * (size_t)nyp * (size_t)nfp;
+      size_t const localSize   = (size_t)getNumDataPatches() * (size_t)patchSize;
+      size_t const arborSize   = localSize * (size_t)numberOfAxonalArborLists();
+      MPI_Comm const batchComm = parent->getCommunicator()->batchCommunicator();
+      MPI_Allreduce(MPI_IN_PLACE, dwArborStart, arborSize, MPI_FLOAT, MPI_SUM, batchComm);
+   }
 }
 
 int HyPerConn::calc_dW() {
@@ -4887,55 +4860,6 @@ void HyPerConn::deliverOnePostNeuronActivitySparseWeights(
       }
       *gSynPatchPos += dtFactor * dv;
    }
-}
-
-// Deprecated June 22, 2016.  The weight initializer is created by HyPerConn::ioParam_weightInitType
-InitWeights *getWeightInitializer(char const *name, HyPerCol *hc) {
-   if (hc == NULL) {
-      return NULL;
-   }
-   InitWeights *weightInitializer = NULL;
-   char const *weightInitStr =
-         hc->parameters()->stringValue(name, "weightInitType", false /*warnIfAbsent*/);
-   if (weightInitStr != NULL) {
-      BaseObject *baseObj = Factory::instance()->createByKeyword(weightInitStr, name, hc);
-      weightInitializer   = dynamic_cast<InitWeights *>(baseObj);
-      if (weightInitializer == NULL) {
-         if (hc->columnId() == 0) {
-            pvError().printf(
-                  "HyPerConn \"%s\" error: weightInitType \"%s\" is not recognized.\n",
-                  name,
-                  weightInitStr);
-         }
-      }
-   }
-   return weightInitializer;
-}
-
-// Deprecated June 22, 2016.  The weight normalizer is created by HyPerConn::ioParam_normalizeMethod
-NormalizeBase *getWeightNormalizer(char const *name, HyPerCol *hc) {
-   if (hc == nullptr) {
-      return nullptr;
-   }
-   char const *weightNormalizerStr =
-         hc->parameters()->stringValue(name, "normalizeMethod", false /*warnIfAbsent*/);
-   if (weightNormalizerStr[0] == '\0' || !strcmp(weightNormalizerStr, "none")) {
-      return nullptr;
-   }
-   NormalizeBase *weightNormalizer = nullptr;
-   if (weightNormalizerStr != nullptr) {
-      BaseObject *baseObj = Factory::instance()->createByKeyword(weightNormalizerStr, name, hc);
-      weightNormalizer    = dynamic_cast<NormalizeBase *>(baseObj);
-      if (weightNormalizerStr == nullptr) {
-         if (hc->columnId() == 0) {
-            pvError().printf(
-                  "HyPerConn \"%s\" error: normalizeMethod \"%s\" is not recognized.\n",
-                  name,
-                  weightNormalizerStr);
-         }
-      }
-   }
-   return weightNormalizer;
 }
 
 } // namespace PV

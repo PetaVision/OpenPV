@@ -117,6 +117,8 @@ Communicator::Communicator(PV_Arguments *argumentList) {
    localRank = globalToLocalRank(globalRank, batchWidth, numRows, numCols);
    // Make new local communicator
    MPI_Comm_split(globalIcComm, batchColIdx, localRank, &localIcComm);
+   // Make new batch communicator
+   MPI_Comm_split(globalIcComm, localRank, batchColIdx, &batchIcComm);
 #else // PV_USE_MPI
    globalSize  = 1;
    localRank   = 0;

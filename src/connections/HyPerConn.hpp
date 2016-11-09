@@ -70,15 +70,6 @@ class HyPerConn : public BaseConnection {
 
    HyPerConn(const char *name, HyPerCol *hc);
 
-   /**
-    * Deprecated constructor.  Instead, call PV_Init::create("HyPerConn", name, hc), which calls
-    * HyPerConn(name, hc).
-    */
-   HyPerConn(
-         const char *name,
-         HyPerCol *hc,
-         InitWeights *weightInitializer,
-         NormalizeBase *weightNormalizer); // Deprecated June 22, 2016.
    virtual ~HyPerConn();
    virtual int communicateInitInfo() override;
    virtual int allocateDataStructures() override;
@@ -571,15 +562,6 @@ class HyPerConn : public BaseConnection {
    virtual int constructWeights();
 
    /**
-    * Deprecated in favor of initialize(name, hc)
-    */
-   int initialize(
-         const char *name,
-         HyPerCol *hc,
-         InitWeights *weightInitializer,
-         NormalizeBase *weightNormalizer); // Deprecated June 22, 2016.
-
-   /**
     * Initializes the connection.  This routine should be called by the initialize method of classes
     * derived from HyPerConn.
     * It is not called by the default HyPerConn constructor.
@@ -919,6 +901,12 @@ class HyPerConn : public BaseConnection {
    virtual int reduce_dW(int arborId);
    virtual int reduceKernels(int arborID);
    virtual int reduceActivations(int arborID);
+
+   /**
+    * Used when batch size is greater than one, plasticityFlag is on, and shared weights are off.
+    * Sums the dW across all elements in the batch (both local and MPI).
+    */
+   void reduceAcrossBatch(int arborID);
 
    /**
     * Normalizes all dW by dividing dW by activations
