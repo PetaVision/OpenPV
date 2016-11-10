@@ -16,13 +16,17 @@ int main(int argc, char *argv[]) {
    std::string const paramsFile("input/CheckpointWeightTest.params");
    std::string const connectionName("InputToOutput");
 
+   PV::PV_Init pv_initObj{&argc, &argv, false /*do not allow unrecognized arguments*/};
+
    // Delete checkpointDirectory, if present, to start fresh
-   std::string rmrfcommand("rm -rf ");
-   rmrfcommand.append(checkpointDirectory);
-   system(rmrfcommand.c_str());
+   if (pv_initObj.getCommunicator()->commRank()==0) {
+      std::string rmrfcommand("rm -rf ");
+      rmrfcommand.append(checkpointDirectory);
+      int status = system(rmrfcommand.c_str());
+      pvErrorIf(status, "%s failed to delete %s\n", argv[0], checkpointDirectory.c_str());
+   }
 
    // Create and run the column, and then retrieve the connection
-   PV::PV_Init pv_initObj{&argc, &argv, false /*do not allow unrecognized arguments*/};
    PV::HyPerCol *hc = createHyPerCol(&pv_initObj);
    pvErrorIf(hc == nullptr, "Failed to create HyPerCol.\n");
    hc->run();
