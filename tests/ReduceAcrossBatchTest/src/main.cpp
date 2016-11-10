@@ -1,0 +1,65 @@
+/*
+ * main.cpp for ReduceAcrossBatchTest.cpp
+ *
+ * This test depends on the ReduceAcrossBatchTest.params file, and the
+ * working of the test is described there.
+ */
+
+#include <columns/PV_Init.hpp>
+#include <columns/buildandrun.hpp>
+
+int checkWeights(HyPerCol *hc, int argc, char *argv[]);
+
+int main(int argc, char *argv[]) {
+   int status = PV_SUCCESS;
+   PV::PV_Init pv_initObj(&argc, &argv, false /*do not allow unrecognized arguments*/);
+   if (pv_initObj.getNumRows() > 0) {
+      if (pv_initObj.getWorldRank() == 0) {
+         pvError() << argv[0] << " should be run without the -rows option.\n";
+      }
+      status = PV_FAILURE;
+   }
+   if (pv_initObj.getNumColumns() > 0) {
+      if (pv_initObj.getWorldRank() == 0) {
+         pvError() << argv[0] << " should be run without the -columns option.\n";
+      }
+      status = PV_FAILURE;
+   }
+   if (pv_initObj.getBatchWidth() > 0) {
+      if (pv_initObj.getWorldRank() == 0) {
+         pvError() << argv[0] << " should be run without the -batchwidth option.\n";
+      }
+      status = PV_FAILURE;
+   }
+   if (status != PV_SUCCESS) {
+      MPI_Barrier(pv_initObj.getCommunicator()->globalCommunicator());
+      return EXIT_FAILURE;
+   }
+   // Set batch width to the number of processes, and rows and columns to 1.
+   pv_initObj.setMPIConfiguration(1 /*rows*/, 1 /*columns*/, 0 /*compute the batchWidth*/);
+   status = buildandrun(&pv_initObj, NULL, &checkWeights);
+   return status == PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
+}
+
+int checkWeights(HyPerCol *hc, int argc, char *argv[]) {
+   HyPerConn *conn = dynamic_cast<HyPerConn *>(hc->getConnFromName("InputToOutput"));
+   pvErrorIf(conn == nullptr, "No HyPerConn named \"InputToOutput\" in column.\n");
+   HyPerLayer *correctValuesLayer = hc->getLayerFromName("SumInputs");
+   pvErrorIf(correctValuesLayer == nullptr, "No layer named \"SumInputs\" in column.\n");
+
+   int const N = correctValuesLayer->getNumExtended();
+   pvErrorIf(
+         conn->getNumDataPatches() != N,
+         "connection InputToOutput and layer SumInputs have different sizes.\n");
+   pvdata_t const *weights       = conn->get_wDataStart(0);
+   pvdata_t const *correctValues = correctValuesLayer->getLayerData(0);
+   int status                    = PV_SUCCESS;
+   for (int k = 0; k < N; k++) {
+      if (weights[k] != correctValues[k]) {
+         status = PV_FAILURE;
+         pvErrorNoExit() << "Weight index " << k << ": expected " << correctValues[k]
+                         << "; value was " << weights[k] << "\n";
+      }
+   }
+   return PV_SUCCESS;
+}
