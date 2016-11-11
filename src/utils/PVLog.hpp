@@ -74,7 +74,7 @@
 #endif // __GNUC__
 
 namespace PV {
-enum LogTypeEnum { _LogInfo, _LogWarn, _LogError, _LogErrorNoExit, _LogDebug, _LogStackTrace };
+enum LogTypeEnum { LogInfoType, LogWarnType, LogFatalType, LogErrorType, LogDebugType, LogStackTraceType };
 
 /**
  * Returns the stream used by InfoLog and, DebugLog
@@ -130,12 +130,12 @@ struct LogType {
    static void exit();
 };
 
-typedef LogType<_LogInfo> InfoLogType;
-typedef LogType<_LogWarn> WarnLogType;
-typedef LogType<_LogError> FatalType;
-typedef LogType<_LogErrorNoExit> ErrorLogType;
-typedef LogType<_LogDebug> DebugLogType;
-typedef LogType<_LogStackTrace> StackTraceType;
+typedef LogType<LogInfoType> InfoLogType;
+typedef LogType<LogWarnType> WarnLogType;
+typedef LogType<LogFatalType> FatalType;
+typedef LogType<LogErrorType> ErrorLogType;
+typedef LogType<LogDebugType> DebugLogType;
+typedef LogType<LogStackTraceType> StackTraceType;
 
 // LogType traits
 template <>
