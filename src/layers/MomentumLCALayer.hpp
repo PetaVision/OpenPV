@@ -45,7 +45,7 @@ class MomentumLCALayer : public PV::HyPerLCALayer {
 #endif
 
    float LCAMomentumRate;
-   pvdata_t *prevDrive;
+   float *prevDrive;
 #ifdef PV_USE_CUDA
    PVCuda::CudaBuffer *d_prevDrive;
 #endif

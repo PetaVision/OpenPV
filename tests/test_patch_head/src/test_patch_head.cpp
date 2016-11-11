@@ -74,7 +74,7 @@ int main(int argc, char *argv[]) {
       kh    = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
       kBack = zPatchHead(kh, nPatch, scaleLog2Post, scaleLog2Pre) + nPatch - 1;
       if (kh != kpre - nPatch / 2 || kBack != kpre) {
-         pvError().printf(
+         Fatal().printf(
                "FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n",
                test,
                kpre,
@@ -89,7 +89,7 @@ int main(int argc, char *argv[]) {
       kh    = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
       kBack = zPatchHead(kh, nPatch, scaleLog2Post, scaleLog2Pre) + nPatch - 1;
       if (kh != kpre - nPatch / 2 || kBack != kpre) {
-         pvError().printf(
+         Fatal().printf(
                "FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n",
                test,
                kpre,
@@ -104,7 +104,7 @@ int main(int argc, char *argv[]) {
       kh    = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
       kBack = zPatchHead(kh, nPatch, scaleLog2Post, scaleLog2Pre) + nPatch - 1;
       if (kh != kpre - nPatch / 2 || kBack != kpre) {
-         pvError().printf(
+         Fatal().printf(
                "FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n",
                test,
                kpre,
@@ -135,7 +135,7 @@ int main(int argc, char *argv[]) {
       kBack = zPatchHead(kh, nPatch * ainv, scaleLog2Post, scaleLog2Pre) + nPatch * ainv - ainv
               + kmod;
       if (kh != ans || kBack != kpre) {
-         pvError().printf(
+         Fatal().printf(
                "FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d kmod=%d\n",
                test,
                kpre,
@@ -163,7 +163,7 @@ int main(int argc, char *argv[]) {
       kBack = zPatchHead(kh, nPatch * ainv, scaleLog2Post, scaleLog2Pre) + nPatch * ainv - ainv
               + kmod;
       if (kh != ans || kBack != kpre) {
-         pvInfo().printf(
+         InfoLog().printf(
                "FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d kmod=%d\n",
                test,
                kpre,
@@ -194,7 +194,7 @@ int main(int argc, char *argv[]) {
       kBack = zPatchHead(kh, nPatch * ainv, scaleLog2Post, scaleLog2Pre) + nPatch * ainv - ainv
               + kmod;
       if (kh != ans || kBack != kpre) {
-         pvError().printf(
+         Fatal().printf(
                "FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d kmod=%d\n",
                test,
                kpre,
@@ -222,7 +222,7 @@ int main(int argc, char *argv[]) {
       kBack = zPatchHead(kh, nPatch * ainv, scaleLog2Post, scaleLog2Pre) + nPatch * ainv - ainv
               + kmod;
       if (kh != ans || kBack != kpre) {
-         pvError().printf(
+         Fatal().printf(
                "TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d kmod=%d\n",
                test,
                kpre,
@@ -248,7 +248,7 @@ int main(int argc, char *argv[]) {
               + (kpre % 2 == 0);
       kBack = kpre;
       if (kh != ans || kBack != kpre) {
-         pvError().printf(
+         Fatal().printf(
                "FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n",
                test,
                kpre,
@@ -270,7 +270,7 @@ int main(int argc, char *argv[]) {
               + (kpre % 2 == 0);
       kBack = kpre;
       if (kh != ans || kBack != kpre) {
-         pvError().printf(
+         Fatal().printf(
                "FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n",
                test,
                kpre,
@@ -292,7 +292,7 @@ int main(int argc, char *argv[]) {
               + (kpre % 2 == 0);
       kBack = kpre;
       if (kh != ans || kBack != kpre) {
-         pvError().printf(
+         Fatal().printf(
                "FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n",
                test,
                kpre,
@@ -317,7 +317,7 @@ int main(int argc, char *argv[]) {
               + (kpre % 2 == 0);
       kBack = kpre;
       if (kh != ans || kBack != kpre) {
-         pvError().printf(
+         Fatal().printf(
                "FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n",
                test,
                kpre,
@@ -336,7 +336,7 @@ int main(int argc, char *argv[]) {
               + (kpre % 2 == 0);
       kBack = kpre;
       if (kh != ans || kBack != kpre) {
-         pvError().printf(
+         Fatal().printf(
                "FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n",
                test,
                kpre,
@@ -355,7 +355,7 @@ int main(int argc, char *argv[]) {
               + (kpre % 2 == 0);
       kBack = kpre;
       if (kh != ans || kBack != kpre) {
-         pvError().printf(
+         Fatal().printf(
                "FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n",
                test,
                kpre,

@@ -172,7 +172,7 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
    mParams       = mPVInitObj->getParams();
    if (mParams == nullptr) {
       if (mCommunicator->globalCommRank() == 0) {
-         pvErrorNoExit() << "HyPerCol::initialize: params have not been set." << std::endl;
+         ErrorLog() << "HyPerCol::initialize: params have not been set." << std::endl;
          MPI_Barrier(mCommunicator->communicator());
       }
       exit(EXIT_FAILURE);
@@ -196,7 +196,7 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
    if (columnId() == 0 && working_dir != "") {
       int status = chdir(working_dir.c_str());
       if (status) {
-         pvError(chdirMessage);
+         Fatal(chdirMessage);
          chdirMessage.printf("Unable to switch directory to \"%s\"\n", working_dir.c_str());
          chdirMessage.printf("chdir error: %s\n", strerror(errno));
       }
@@ -220,7 +220,7 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
 
    if (mPVInitObj->getOutputPath()) {
       mOutputPath = strdup(expandLeadingTilde(mPVInitObj->getOutputPath()).c_str());
-      pvErrorIf(mOutputPath == nullptr, "HyPerCol::initialize unable to copy output path.\n");
+      FatalIf(mOutputPath == nullptr, "HyPerCol::initialize unable to copy output path.\n");
    }
 
    mRandomSeed = mPVInitObj->getRandomSeed();
@@ -292,14 +292,14 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
          if (PV_stat(cpDirString.c_str(), &statbuf) == 0) {
             if (statbuf.st_mode & S_IFDIR) {
                strncpy(mCheckpointReadDir, cpDirString.c_str(), PV_PATH_MAX);
-               pvErrorIf(
+               FatalIf(
                      mCheckpointReadDir[PV_PATH_MAX - 1],
                      "%s error: checkpoint read directory \"%s\" too long.\n",
                      programName,
                      cpDirString.c_str());
             }
             else {
-               pvError().printf(
+               Fatal().printf(
                      "%s error: checkpoint read directory \"%s\" is not "
                      "a directory.\n",
                      programName,
@@ -332,7 +332,7 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
                         }
                      }
                   }
-                  pvErrorIf(
+                  FatalIf(
                         !found,
                         "%s: restarting but Last directory does not exist and "
                         "checkpointWriteDir "
@@ -345,14 +345,14 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
                         "%sCheckpoint%ld",
                         cpDirString.c_str(),
                         cp_index);
-                  pvErrorIf(
+                  FatalIf(
                         pathlen > PV_PATH_MAX,
                         "%s error: checkpoint read directory \"%s\" too long.\n",
                         programName,
                         cpDirString.c_str());
                }
                else {
-                  pvError().printf(
+                  Fatal().printf(
                         "%s error: checkpoint read directory \"%s\" is "
                         "not a directory.\n",
                         programName,
@@ -360,7 +360,7 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
                }
             }
             else if (errno == ENOENT) {
-               pvError().printf(
+               Fatal().printf(
                      "%s error: restarting but neither Last nor "
                      "checkpointWriteDir directory "
                      "\"%s\" exists.\n",
@@ -369,7 +369,7 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
             }
          }
          else {
-            pvError().printf(
+            Fatal().printf(
                   "%s: restarting but Last directory does not exist and "
                   "checkpointWriteDir is not "
                   "defined (checkpointWrite=false)\n",
@@ -387,7 +387,7 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
       while (tmp != nullptr) {
          splitCheckpoint[count] = strdup(tmp);
          count++;
-         pvErrorIf(
+         FatalIf(
                count > mCommunicator->numCommBatches(),
                "Checkpoint read parsing error: Too many colon seperated "
                "checkpoint read "
@@ -396,7 +396,7 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
          tmp = strtok(nullptr, ":");
       }
       // Make sure number matches up
-      pvErrorIf(
+      FatalIf(
             count != mCommunicator->numCommBatches(),
             "Checkpoint read parsing error: Not enough colon seperated "
             "checkpoint read "
@@ -418,7 +418,7 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
       free(splitCheckpoint);
       free(origChkPtr);
 
-      pvInfo().printf(
+      InfoLog().printf(
             "Global Rank %d process setting checkpointReadDir to %s.\n",
             globalRank(),
             mCheckpointReadDir);
@@ -517,8 +517,8 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    // if any of those parameters were found.
    if (mObsoleteParameterFound) {
       if (getCommunicator()->commRank() == 0) {
-         pvErrorNoExit() << "Exiting due to obsolete HyPerCol parameters in the "
-                            "params file.\n";
+         ErrorLog() << "Exiting due to obsolete HyPerCol parameters in the "
+                       "params file.\n";
       }
       MPI_Barrier(getCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -550,8 +550,8 @@ void HyPerCol::ioParam_dt(enum ParamsIOFlag ioFlag) {
 void HyPerCol::ioParam_dtAdaptController(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ && mParams->stringPresent(mName, "dtAdaptController")) {
       if (columnId() == 0) {
-         pvErrorNoExit() << "The dtAdaptController parameter is obsolete.  Use the "
-                            "AdaptiveTimeScaleProbe targetName parameter.\n";
+         ErrorLog() << "The dtAdaptController parameter is obsolete.  Use the "
+                       "AdaptiveTimeScaleProbe targetName parameter.\n";
       }
       mObsoleteParameterFound = true;
    }
@@ -561,8 +561,8 @@ void HyPerCol::ioParam_dtAdaptFlag(enum ParamsIOFlag ioFlag) {
    // dtAdaptFlag was deprecated Feb 1, 2016 and marked obsolete Aug 18, 2016.
    if (ioFlag == PARAMS_IO_READ && mParams->present(mName, "dtAdaptFlag")) {
       if (columnId() == 0) {
-         pvErrorNoExit() << "The dtAdaptFlag parameter is obsolete.  Define an "
-                            "AdaptiveTimeScaleProbe\n";
+         ErrorLog() << "The dtAdaptFlag parameter is obsolete.  Define an "
+                       "AdaptiveTimeScaleProbe\n";
       }
       mObsoleteParameterFound = true;
    }
@@ -574,8 +574,7 @@ void HyPerCol::ioParam_dtAdaptFlag(enum ParamsIOFlag ioFlag) {
 void HyPerCol::paramMovedToColumnEnergyProbe(enum ParamsIOFlag ioFlag, char const *paramName) {
    if (ioFlag == PARAMS_IO_READ && mParams->present(mName, paramName)) {
       if (columnId() == 0) {
-         pvErrorNoExit() << "The " << paramName
-                         << " parameter is now part of AdaptiveTimeScaleProbe.\n";
+         ErrorLog() << "The " << paramName << " parameter is now part of AdaptiveTimeScaleProbe.\n";
       }
       mObsoleteParameterFound = true;
    }
@@ -584,9 +583,9 @@ void HyPerCol::paramMovedToColumnEnergyProbe(enum ParamsIOFlag ioFlag, char cons
 void HyPerCol::ioParam_writeTimescales(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ && mParams->present(mName, "dtAdaptTriggerOffset")) {
       if (columnId() == 0) {
-         pvErrorNoExit() << "The dtAdaptTriggerOffset parameter is obsolete.  Use the "
-                            "AdaptiveTimeScaleProbe writeTimeScales parameter (note capital "
-                            "S).\n";
+         ErrorLog() << "The dtAdaptTriggerOffset parameter is obsolete.  Use the "
+                       "AdaptiveTimeScaleProbe writeTimeScales parameter (note capital "
+                       "S).\n";
       }
       mObsoleteParameterFound = true;
    }
@@ -599,9 +598,9 @@ void HyPerCol::ioParam_writeTimeScaleFieldnames(enum ParamsIOFlag ioFlag) {
 void HyPerCol::ioParam_useAdaptMethodExp1stOrder(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ && mParams->present(mName, "useAdaptMethodExp1stOrder")) {
       if (columnId() == 0) {
-         pvErrorNoExit() << "The useAdaptMethodExp1stOrder parameter is obsolete. "
-                            " Adapting the "
-                            "timestep always uses the Exp1stOrder method.\n";
+         ErrorLog() << "The useAdaptMethodExp1stOrder parameter is obsolete. "
+                       " Adapting the "
+                       "timestep always uses the Exp1stOrder method.\n";
       }
       mObsoleteParameterFound = true;
    }
@@ -610,8 +609,8 @@ void HyPerCol::ioParam_useAdaptMethodExp1stOrder(enum ParamsIOFlag ioFlag) {
 void HyPerCol::ioParam_dtAdaptTriggerLayerName(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ && mParams->stringPresent(mName, "dtAdaptTriggerLayerName")) {
       if (columnId() == 0) {
-         pvErrorNoExit() << "The dtAdaptTriggerLayerName parameter obsolete.  Use the "
-                            "AdaptiveTimeScaleProbe triggerLayerName parameter.\n";
+         ErrorLog() << "The dtAdaptTriggerLayerName parameter obsolete.  Use the "
+                       "AdaptiveTimeScaleProbe triggerLayerName parameter.\n";
       }
       mObsoleteParameterFound = true;
    }
@@ -620,8 +619,8 @@ void HyPerCol::ioParam_dtAdaptTriggerLayerName(enum ParamsIOFlag ioFlag) {
 void HyPerCol::ioParam_dtAdaptTriggerOffset(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ && mParams->present(mName, "dtAdaptTriggerOffset")) {
       if (columnId() == 0) {
-         pvErrorNoExit() << "The dtAdaptTriggerOffset parameter is obsolete.  Use the "
-                            "AdaptiveTimeScaleProbe triggerOffset parameter\n";
+         ErrorLog() << "The dtAdaptTriggerOffset parameter is obsolete.  Use the "
+                       "AdaptiveTimeScaleProbe triggerOffset parameter\n";
       }
       mObsoleteParameterFound = true;
    }
@@ -630,9 +629,9 @@ void HyPerCol::ioParam_dtAdaptTriggerOffset(enum ParamsIOFlag ioFlag) {
 void HyPerCol::ioParam_dtScaleMax(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ && mParams->present(mName, "dtScaleMax")) {
       if (columnId() == 0) {
-         pvErrorNoExit() << "The dtScaleMax parameter is obsolete.  Use the "
-                            "AdaptiveTimeScaleProbe "
-                            "baseMax parameter\n";
+         ErrorLog() << "The dtScaleMax parameter is obsolete.  Use the "
+                       "AdaptiveTimeScaleProbe "
+                       "baseMax parameter\n";
       }
       mObsoleteParameterFound = true;
    }
@@ -641,7 +640,7 @@ void HyPerCol::ioParam_dtScaleMax(enum ParamsIOFlag ioFlag) {
 void HyPerCol::ioParam_dtScaleMax2(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ && mParams->present(mName, "dtAdaptTriggerOffset")) {
       if (columnId() == 0) {
-         pvErrorNoExit() << "The dtScaleMax2 parameter has been removed.\n";
+         ErrorLog() << "The dtScaleMax2 parameter has been removed.\n";
       }
       mObsoleteParameterFound = true;
    }
@@ -650,9 +649,9 @@ void HyPerCol::ioParam_dtScaleMax2(enum ParamsIOFlag ioFlag) {
 void HyPerCol::ioParam_dtScaleMin(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ && mParams->present(mName, "dtScaleMin")) {
       if (columnId() == 0) {
-         pvErrorNoExit() << "The dtScaleMin parameter is obsolete.  Use the "
-                            "AdaptiveTimeScaleProbe "
-                            "baseMin parameter\n";
+         ErrorLog() << "The dtScaleMin parameter is obsolete.  Use the "
+                       "AdaptiveTimeScaleProbe "
+                       "baseMin parameter\n";
       }
       mObsoleteParameterFound = true;
    }
@@ -661,7 +660,7 @@ void HyPerCol::ioParam_dtScaleMin(enum ParamsIOFlag ioFlag) {
 void HyPerCol::ioParam_dtMinToleratedTimeScale(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ && mParams->present(mName, "dtScaleMin")) {
       if (columnId() == 0) {
-         pvErrorNoExit() << "The dtMinToleratedTimeScale parameter has been removed.\n";
+         ErrorLog() << "The dtMinToleratedTimeScale parameter has been removed.\n";
       }
       mObsoleteParameterFound = true;
    }
@@ -670,8 +669,8 @@ void HyPerCol::ioParam_dtMinToleratedTimeScale(enum ParamsIOFlag ioFlag) {
 void HyPerCol::ioParam_dtChangeMax(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ && mParams->present(mName, "dtChangeMax")) {
       if (columnId() == 0) {
-         pvErrorNoExit() << "The dtChangeMax parameter is obsolete.  Use the "
-                            "AdaptiveTimeScaleProbe tauFactor parameter\n";
+         ErrorLog() << "The dtChangeMax parameter is obsolete.  Use the "
+                       "AdaptiveTimeScaleProbe tauFactor parameter\n";
       }
       mObsoleteParameterFound = true;
    }
@@ -680,8 +679,8 @@ void HyPerCol::ioParam_dtChangeMax(enum ParamsIOFlag ioFlag) {
 void HyPerCol::ioParam_dtChangeMin(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ && mParams->present(mName, "dtChangeMax")) {
       if (columnId() == 0) {
-         pvErrorNoExit() << "The dtChangeMin parameter is obsolete.  Use the "
-                            "AdaptiveTimeScaleProbe growthFactor parameter\n";
+         ErrorLog() << "The dtChangeMin parameter is obsolete.  Use the "
+                       "AdaptiveTimeScaleProbe growthFactor parameter\n";
       }
       mObsoleteParameterFound = true;
    }
@@ -695,8 +694,8 @@ void HyPerCol::ioParam_stopTime(enum ParamsIOFlag ioFlag) {
       long int numSteps = mParams->value(mName, "numSteps");
       mStopTime         = mStartTime + numSteps * mDeltaTime;
       if (globalRank() == 0) {
-         pvError() << "numSteps is obsolete.  Use startTime, stopTime and dt instead.\n"
-                   << "    stopTime set to " << mStopTime << "\n";
+         Fatal() << "numSteps is obsolete.  Use startTime, stopTime and dt instead.\n"
+                 << "    stopTime set to " << mStopTime << "\n";
       }
       MPI_Barrier(getCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -714,7 +713,7 @@ void HyPerCol::ioParam_progressInterval(enum ParamsIOFlag ioFlag) {
       long int progressStep = (long int)mParams->value(mName, "progressStep");
       mProgressInterval     = progressStep / mDeltaTime;
       if (globalRank() == 0) {
-         pvErrorNoExit() << "progressStep is obsolete.  Use progressInterval instead.\n";
+         ErrorLog() << "progressStep is obsolete.  Use progressInterval instead.\n";
       }
       MPI_Barrier(getCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -750,7 +749,7 @@ void HyPerCol::ioParam_outputPath(enum ParamsIOFlag ioFlag) {
             else {
                mOutputPath = strdup(DEFAULT_OUTPUT_PATH);
                pvAssert(mOutputPath != nullptr);
-               pvWarn().printf(
+               WarnLog().printf(
                      "Output path specified neither in command line nor in "
                      "params file.\n"
                      "Output path set to default \"%s\"\n",
@@ -768,7 +767,7 @@ void HyPerCol::ioParam_printParamsFilename(enum ParamsIOFlag ioFlag) {
          ioFlag, mName, "printParamsFilename", &mPrintParamsFilename, "pv.params");
    if (mPrintParamsFilename == nullptr || mPrintParamsFilename[0] == '\0') {
       if (columnId() == 0) {
-         pvErrorNoExit().printf("printParamsFilename cannot be null or the empty string.\n");
+         ErrorLog().printf("printParamsFilename cannot be null or the empty string.\n");
       }
       MPI_Barrier(getCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -790,7 +789,7 @@ void HyPerCol::ioParam_randomSeed(enum ParamsIOFlag ioFlag) {
             }
          }
          if (mRandomSeed < RandomSeed::minSeed) {
-            pvError().printf(
+            Fatal().printf(
                   "Error: random seed %u is too small. Use a seed of at "
                   "least 10000000.\n",
                   mRandomSeed);
@@ -813,7 +812,7 @@ void HyPerCol::ioParam_nBatch(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(ioFlag, mName, "nbatch", &mNumBatchGlobal, mNumBatchGlobal);
    // Make sure numCommBatches is a multiple of mNumBatch specified in the params
    // file
-   pvErrorIf(
+   FatalIf(
          mNumBatchGlobal % mCommunicator->numCommBatches() != 0,
          "The total number of batches (%d) must be a multiple of the batch "
          "width (%d)\n",
@@ -830,10 +829,10 @@ void HyPerCol::ioParam_filenamesContainLayerNames(enum ParamsIOFlag ioFlag) {
       msg.append("Layer output pvp files have the format \"NameOfConnection.pvp\"\n");
       msg.append("(corresponding to filenamesContainLayerNames=2).\n");
       if (fccnValue == 2) {
-         pvWarn() << msg;
+         WarnLog() << msg;
       }
       else {
-         pvError() << msg;
+         Fatal() << msg;
       }
    }
 }
@@ -850,10 +849,10 @@ void HyPerCol::ioParam_filenamesContainConnectionNames(enum ParamsIOFlag ioFlag)
             "\"NameOfConnection.pvp\"\n");
       msg.append("(corresponding to filenamesContainConnectionNames=2).\n");
       if (fccnValue == 2) {
-         pvWarn() << msg;
+         WarnLog() << msg;
       }
       else {
-         pvError() << msg;
+         Fatal() << msg;
       }
    }
 }
@@ -881,8 +880,8 @@ void HyPerCol::ioParam_defaultInitializeFromCheckpointFlag(enum ParamsIOFlag ioF
 void HyPerCol::ioParam_checkpointRead(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ && mParams->stringPresent(mName, "checkpointRead")) {
       if (columnId() == 0) {
-         pvErrorNoExit() << "The checkpointRead params file parameter is obsolete."
-                         << "  Instead, set the checkpoint directory on the command line.\n";
+         ErrorLog() << "The checkpointRead params file parameter is obsolete."
+                    << "  Instead, set the checkpoint directory on the command line.\n";
       }
       MPI_Barrier(getCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -937,7 +936,7 @@ void HyPerCol::ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag) {
          }
          else {
             if (globalRank() == 0) {
-               pvErrorNoExit().printf(
+               ErrorLog().printf(
                      "HyPerCol \"%s\": checkpointWriteTriggerMode "
                      "\"%s\" is not recognized.\n",
                      mName,
@@ -1031,7 +1030,7 @@ void HyPerCol::ioParam_checkpointWriteClockUnit(enum ParamsIOFlag ioFlag) {
             }
             else {
                if (globalRank() == 0) {
-                  pvErrorNoExit().printf(
+                  ErrorLog().printf(
                         "checkpointWriteClockUnit \"%s\" is "
                         "unrecognized.  Use \"seconds\", "
                         "\"minutes\", \"hours\", or \"days\".\n",
@@ -1040,7 +1039,7 @@ void HyPerCol::ioParam_checkpointWriteClockUnit(enum ParamsIOFlag ioFlag) {
                MPI_Barrier(getCommunicator()->globalCommunicator());
                exit(EXIT_FAILURE);
             }
-            pvErrorIf(
+            FatalIf(
                   mCheckpointWriteClockUnit == nullptr,
                   "Error in global rank %d process converting "
                   "checkpointWriteClockUnit: %s\n",
@@ -1140,7 +1139,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
       status = processParams(printParamsFileString.c_str());
       MPI_Barrier(getCommunicator()->communicator());
 
-      pvErrorIf(status != PV_SUCCESS, "HyPerCol \"%s\" failed to run.\n", mName);
+      FatalIf(status != PV_SUCCESS, "HyPerCol \"%s\" failed to run.\n", mName);
       if (mPVInitObj->getDryRunFlag()) {
          return PV_SUCCESS;
       }
@@ -1172,8 +1171,8 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
 
 #ifdef DEBUG_OUTPUT
       if (columnId() == 0) {
-         pvInfo().printf("[0]: HyPerCol: running...\n");
-         pvInfo().flush();
+         InfoLog().printf("[0]: HyPerCol: running...\n");
+         InfoLog().flush();
       }
 #endif
 
@@ -1235,8 +1234,8 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
 
 #ifdef DEBUG_OUTPUT
    if (columnId() == 0) {
-      pvInfo().printf("[0]: HyPerCol::run done...\n");
-      pvInfo().flush();
+      InfoLog().printf("[0]: HyPerCol::run done...\n");
+      InfoLog().flush();
    }
 #endif
 
@@ -1266,7 +1265,7 @@ int HyPerCol::setNumThreads(bool printMessagesFlag) {
    int max_threads = mPVInitObj->getMaxThreads();
    int comm_size   = mCommunicator->globalCommSize();
    if (printMsgs0) {
-      pvInfo().printf(
+      InfoLog().printf(
             "Maximum number of OpenMP threads%s is %d\nNumber of MPI "
             "processes is %d.\n",
             comm_size == 1 ? "" : " (over all processes)",
@@ -1278,7 +1277,7 @@ int HyPerCol::setNumThreads(bool printMessagesFlag) {
       if (num_threads == 0) {
          num_threads = 1;
          if (printMsgs0) {
-            pvWarn().printf(
+            WarnLog().printf(
                   "Warning: more MPI processes than available threads.  "
                   "Processors may "
                   "be oversubscribed.\n");
@@ -1290,13 +1289,13 @@ int HyPerCol::setNumThreads(bool printMessagesFlag) {
    }
    if (num_threads > 0) {
       if (printMsgs0) {
-         pvInfo().printf("Number of threads used is %d\n", num_threads);
+         InfoLog().printf("Number of threads used is %d\n", num_threads);
       }
    }
    else if (num_threads == 0) {
       thread_status = PV_FAILURE;
       if (printMsgs0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s: number of threads must be positive (was set to zero)\n",
                mPVInitObj->getProgramName());
       }
@@ -1305,7 +1304,7 @@ int HyPerCol::setNumThreads(bool printMessagesFlag) {
       assert(num_threads < 0);
       thread_status = PV_FAILURE;
       if (printMsgs0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s was compiled with PV_USE_OPENMP_THREADS; "
                "therefore the \"-t\" argument is "
                "required.\n",
@@ -1316,7 +1315,7 @@ int HyPerCol::setNumThreads(bool printMessagesFlag) {
    if (mPVInitObj->getUseDefaultNumThreads()) {
       num_threads = 1;
       if (printMsgs0) {
-         pvInfo().printf("Number of threads used is 1 (Compiled without OpenMP.\n");
+         InfoLog().printf("Number of threads used is 1 (Compiled without OpenMP.\n");
       }
    }
    else {
@@ -1330,7 +1329,7 @@ int HyPerCol::setNumThreads(bool printMessagesFlag) {
    }
    if (printMsgs0) {
       if (thread_status != PV_SUCCESS) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s error: PetaVision must be compiled with "
                "OpenMP to run with threads.\n",
                mPVInitObj->getProgramName());
@@ -1356,7 +1355,7 @@ int HyPerCol::processParams(char const *path) {
    }
    else {
       if (globalRank() == 0) {
-         pvInfo().printf(
+         InfoLog().printf(
                "HyPerCol \"%s\": path for printing parameters file was "
                "empty or null.\n",
                mName);
@@ -1374,7 +1373,7 @@ int HyPerCol::normalizeWeights() {
          status = normalizer->normalizeWeightsWrapper();
       }
       if (status != PV_SUCCESS) {
-         pvErrorNoExit().printf("Normalizer \"%s\" failed.\n", mNormalizers[n]->getName());
+         ErrorLog().printf("Normalizer \"%s\" failed.\n", mNormalizers[n]->getName());
       }
    }
    return status;
@@ -1514,21 +1513,21 @@ int HyPerCol::outputParams(char const *path) {
    char *tmp = strdup(path); // duplicate string since dirname() is allowed to
    // modify its argument
    if (tmp == nullptr) {
-      pvError().printf("HyPerCol::outputParams unable to allocate memory: %s\n", strerror(errno));
+      Fatal().printf("HyPerCol::outputParams unable to allocate memory: %s\n", strerror(errno));
    }
    char *containingdir = dirname(tmp);
    status = ensureDirExists(getCommunicator(), containingdir); // must be called by all processes,
    // even though only rank 0 creates
    // the directory
    if (status != PV_SUCCESS) {
-      pvErrorNoExit().printf(
+      ErrorLog().printf(
             "HyPerCol::outputParams unable to create directory \"%s\"\n", containingdir);
    }
    free(tmp);
    if (rank == 0) {
       if (strlen(path) + 4 /*allow room for .lua at end, and string terminator*/
           > (size_t)PV_PATH_MAX) {
-         pvWarn().printf(
+         WarnLog().printf(
                "outputParams called with too long a filename.  "
                "Parameters will not be printed.\n");
          status = ENAMETOOLONG;
@@ -1537,7 +1536,7 @@ int HyPerCol::outputParams(char const *path) {
          mPrintParamsStream = PV_fopen(path, "w", getVerifyWrites());
          if (mPrintParamsStream == nullptr) {
             status = errno;
-            pvErrorNoExit().printf(
+            ErrorLog().printf(
                   "outputParams error opening \"%s\" for writing: %s\n", path, strerror(errno));
          }
          // Get new lua path
@@ -1547,7 +1546,7 @@ int HyPerCol::outputParams(char const *path) {
          mLuaPrintParamsStream = PV_fopen(luapath, "w", getVerifyWrites());
          if (mLuaPrintParamsStream == nullptr) {
             status = errno;
-            pvErrorNoExit().printf(
+            ErrorLog().printf(
                   "outputParams failed to open \"%s\" for writing: %s\n", luapath, strerror(errno));
          }
       }
@@ -1573,7 +1572,7 @@ int HyPerCol::outputParams(char const *path) {
    // Parent HyPerCol params
    status = ioParams(PARAMS_IO_WRITE);
    if (status != PV_SUCCESS) {
-      pvError().printf("outputParams: Error copying params to \"%s\"\n", printParamsPath);
+      Fatal().printf("outputParams: Error copying params to \"%s\"\n", printParamsPath);
    }
 
    // HyPerLayer params
@@ -1581,7 +1580,7 @@ int HyPerCol::outputParams(char const *path) {
       HyPerLayer *layer = mLayers.at(l);
       status            = layer->ioParams(PARAMS_IO_WRITE);
       if (status != PV_SUCCESS) {
-         pvError().printf("outputParams: Error copying params to \"%s\"\n", printParamsPath);
+         Fatal().printf("outputParams: Error copying params to \"%s\"\n", printParamsPath);
       }
    }
 
@@ -1589,7 +1588,7 @@ int HyPerCol::outputParams(char const *path) {
    for (auto c : mConnections) {
       status = c->ioParams(PARAMS_IO_WRITE);
       if (status != PV_SUCCESS) {
-         pvError().printf("outputParams: Error copying params to \"%s\"\n", printParamsPath);
+         Fatal().printf("outputParams: Error copying params to \"%s\"\n", printParamsPath);
       }
    }
 
@@ -1694,7 +1693,7 @@ char *HyPerCol::pathInCheckpoint(const char *cpDir, const char *objectName, cons
               + (size_t)1; // the +1 leaves room for the terminating null
    char *filename = (char *)malloc(n);
    if (filename == nullptr) {
-      pvError().printf(
+      Fatal().printf(
             "Error: rank %d process unable to allocate filename \"%s/%s%s\": %s\n",
             columnId(),
             cpDir,
@@ -1772,7 +1771,7 @@ int HyPerCol::getAutoGPUDevice() {
          int maxGpus = rankToMaxGpu[rankVec[0]];
          // Warnings for overloading/underloading gpus
          if (numRanksPerHost != maxGpus) {
-            pvWarn(assignGpuWarning);
+            WarnLog(assignGpuWarning);
             assignGpuWarning.printf(
                   "HyPerCol::getAutoGPUDevice: Host \"%s\" (rank[s] ", host.first.c_str());
             for (int v_i = 0; v_i < numRanksPerHost; v_i++) {
@@ -1798,8 +1797,8 @@ int HyPerCol::getAutoGPUDevice() {
 
       // MPI sends to each process to specify which gpu the rank should use
       for (int rank = 0; rank < numMpi; rank++) {
-         pvInfo() << "Rank " << rank << " on host \"" << rankToHost[rank] << "\" ("
-                  << rankToMaxGpu[rank] << " GPU[s]) using GPU index " << rankToGpu[rank] << "\n";
+         InfoLog() << "Rank " << rank << " on host \"" << rankToHost[rank] << "\" ("
+                   << rankToMaxGpu[rank] << " GPU[s]) using GPU index " << rankToGpu[rank] << "\n";
          if (rank == 0) {
             returnGpuIdx = rankToGpu[rank];
          }
@@ -1839,7 +1838,7 @@ int HyPerCol::initializeThreads(char const *in_device) {
 
    // default value
    if (in_device == nullptr) {
-      pvInfo() << "Auto assigning GPUs\n";
+      InfoLog() << "Auto assigning GPUs\n";
       device = getAutoGPUDevice();
    }
    else {
@@ -1851,7 +1850,7 @@ int HyPerCol::initializeThreads(char const *in_device) {
          // Convert stoken to integer
          for (auto &ch : stoken) {
             if (!isdigit(ch)) {
-               pvError().printf(
+               Fatal().printf(
                      "Device specification error: %s contains "
                      "unrecognized characters. Must be "
                      "comma separated integers greater or equal to 0 "
@@ -1873,15 +1872,15 @@ int HyPerCol::initializeThreads(char const *in_device) {
          device = deviceVec[mCommunicator->globalCommRank()];
       }
       else {
-         pvError().printf(
+         Fatal().printf(
                "Device specification error: Number of devices "
                "specified (%zu) must be either 1 or "
                ">= than number of mpi processes (%d).\n",
                deviceVec.size(),
                numMpi);
       }
-      pvInfo() << "Global MPI Process " << mCommunicator->globalCommRank() << " using device "
-               << device << "\n";
+      InfoLog() << "Global MPI Process " << mCommunicator->globalCommRank() << " using device "
+                << device << "\n";
    }
 
 #ifdef PV_USE_CUDA
@@ -1923,7 +1922,7 @@ void HyPerCol::addObject(BaseObject *obj) {
    bool succeeded = mObjectHierarchy.addObject(obj->getName(), obj);
    if (!succeeded) {
       if (columnId() == 0) {
-         pvError() << "Adding " << obj->getDescription() << "failed.\n";
+         Fatal() << "Adding " << obj->getDescription() << "failed.\n";
       }
       MPI_Barrier(getCommunicator()->communicator());
       exit(PV_FAILURE);
@@ -2038,18 +2037,18 @@ unsigned int HyPerCol::seedRandomFromWallClock() {
 HyPerCol *createHyPerCol(PV_Init *pv_initObj) {
    PVParams *params = pv_initObj->getParams();
    if (params == nullptr) {
-      pvErrorNoExit() << "createHyPerCol called without having set params.\n";
+      ErrorLog() << "createHyPerCol called without having set params.\n";
       return nullptr;
    }
    int numGroups = params->numberOfGroups();
    if (numGroups == 0) {
-      pvErrorNoExit() << "Params \"" << pv_initObj->getParamsFile()
-                      << "\" does not define any groups.\n";
+      ErrorLog() << "Params \"" << pv_initObj->getParamsFile()
+                 << "\" does not define any groups.\n";
       return nullptr;
    }
    if (strcmp(params->groupKeywordFromIndex(0), "HyPerCol")) {
-      pvErrorNoExit() << "First group in the params \"" << pv_initObj->getParamsFile()
-                      << "\" does not define a HyPerCol.\n";
+      ErrorLog() << "First group in the params \"" << pv_initObj->getParamsFile()
+                 << "\" does not define a HyPerCol.\n";
       return nullptr;
    }
    char const *colName = params->groupNameFromIndex(0);
@@ -2064,9 +2063,9 @@ HyPerCol *createHyPerCol(PV_Init *pv_initObj) {
          }
          else {
             if (hc->columnId() == 0) {
-               pvErrorNoExit() << "Group " << k + 1 << " in params file (\""
-                               << pv_initObj->getParamsFile()
-                               << "\") is a HyPerCol; only the first group can be a HyPercol.\n";
+               ErrorLog() << "Group " << k + 1 << " in params file (\""
+                          << pv_initObj->getParamsFile()
+                          << "\") is a HyPerCol; only the first group can be a HyPercol.\n";
             }
             delete hc;
             return nullptr;
@@ -2076,7 +2075,7 @@ HyPerCol *createHyPerCol(PV_Init *pv_initObj) {
          BaseObject *addedObject = Factory::instance()->createByKeyword(kw, name, hc);
          if (addedObject == nullptr) {
             if (hc->globalRank() == 0) {
-               pvErrorNoExit().printf("Unable to create %s \"%s\".\n", kw, name);
+               ErrorLog().printf("Unable to create %s \"%s\".\n", kw, name);
             }
             delete hc;
             return nullptr;

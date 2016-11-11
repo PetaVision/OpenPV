@@ -20,7 +20,7 @@ class HyPerConnDebugInitWeights : public PV::HyPerConn {
 
    virtual int communicateInitInfo();
    virtual PVPatch ***
-   initializeWeights(PVPatch ***arbors, pvdata_t **dataStart, int numPatches, const char *filename);
+   initializeWeights(PVPatch ***arbors, float **dataStart, int numPatches, const char *filename);
 
   protected:
    int initialize(const char *name, HyPerCol *hc);
@@ -29,10 +29,10 @@ class HyPerConnDebugInitWeights : public PV::HyPerConn {
    virtual void ioParam_copiedConn(enum ParamsIOFlag ioFlag);
    virtual void readChannelCode(PVParams *params) { channel = CHANNEL_INH; }
 
-   PVPatch **initializeGaussian2DWeights(PVPatch **patches, pvdata_t *dataStart, int numPatches);
+   PVPatch **initializeGaussian2DWeights(PVPatch **patches, float *dataStart, int numPatches);
    virtual int gauss2DCalcWeights(
          PVPatch *wp,
-         pvdata_t *dataStart,
+         float *dataStart,
          int kPre,
          int noPost,
          int numFlanks,
@@ -47,10 +47,10 @@ class HyPerConnDebugInitWeights : public PV::HyPerConn {
          float thetaMax,
          float bowtieFlag,
          float bowtieAngle);
-   PVPatch **initializeCocircWeights(PVPatch **patches, pvdata_t *dataStart, int numPatches);
+   PVPatch **initializeCocircWeights(PVPatch **patches, float *dataStart, int numPatches);
    virtual int cocircCalcWeights(
          PVPatch *wp,
-         pvdata_t *dataStart,
+         float *dataStart,
          int kPre,
          int noPre,
          int noPost,
@@ -67,11 +67,11 @@ class HyPerConnDebugInitWeights : public PV::HyPerConn {
          float sigma,
          float r2Max,
          float strength);
-   PVPatch **initializeSmartWeights(PVPatch **patches, pvdata_t *dataStart, int numPatches);
-   int smartWeights(PVPatch *wp, pvdata_t *dataStart, int k);
+   PVPatch **initializeSmartWeights(PVPatch **patches, float *dataStart, int numPatches);
+   int smartWeights(PVPatch *wp, float *dataStart, int k);
    int gaborWeights(
          PVPatch *wp,
-         pvdata_t *dataStart,
+         float *dataStart,
          int xScale,
          int yScale,
          float aspect,
@@ -80,7 +80,7 @@ class HyPerConnDebugInitWeights : public PV::HyPerConn {
          float lambda,
          float strength,
          float phi);
-   PVPatch **initializeGaborWeights(PVPatch **patches, pvdata_t *dataStart, int numPatches);
+   PVPatch **initializeGaborWeights(PVPatch **patches, float *dataStart, int numPatches);
    int copyToWeightPatch(PVPatch *sourcepatch, int arbor, int patchindex);
 
   private:

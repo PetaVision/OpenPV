@@ -75,7 +75,7 @@ int PointProbe::communicateInitInfo() {
    const PVLayerLoc *loc = getTargetLayer()->getLayerLoc();
    bool isRoot           = getParent()->getCommunicator()->commRank() == 0;
    if ((xLoc < 0 || xLoc > loc->nxGlobal) && isRoot) {
-      pvErrorNoExit().printf(
+      ErrorLog().printf(
             "PointProbe on layer %s: xLoc coordinate %d is out "
             "of bounds (layer has %d neurons in "
             "the x-direction.\n",
@@ -85,7 +85,7 @@ int PointProbe::communicateInitInfo() {
       status = PV_FAILURE;
    }
    if ((yLoc < 0 || yLoc > loc->nyGlobal) && isRoot) {
-      pvErrorNoExit().printf(
+      ErrorLog().printf(
             "PointProbe on layer %s: yLoc coordinate %d is out "
             "of bounds (layer has %d neurons in "
             "the y-direction.\n",
@@ -95,7 +95,7 @@ int PointProbe::communicateInitInfo() {
       status = PV_FAILURE;
    }
    if ((fLoc < 0 || fLoc > loc->nf) && isRoot) {
-      pvErrorNoExit().printf(
+      ErrorLog().printf(
             "PointProbe on layer %s: fLoc coordinate %d is out "
             "of bounds (layer has %d features.\n",
             getTargetLayer()->getName(),
@@ -104,7 +104,7 @@ int PointProbe::communicateInitInfo() {
       status = PV_FAILURE;
    }
    if ((batchLoc < 0 || batchLoc > loc->nbatch) && isRoot) {
-      pvErrorNoExit().printf(
+      ErrorLog().printf(
             "PointProbe on layer %s: batchLoc coordinate %d is "
             "out of bounds (layer has %d "
             "batches.\n",
@@ -162,8 +162,8 @@ int PointProbe::calcValues(double timevalue) {
    // if in bounds
    if (xLocLocal >= 0 && xLocLocal < nx && yLocLocal >= 0 && yLocLocal < ny && nbatchLocal >= 0
        && nbatchLocal < nbatch) {
-      const pvdata_t *V        = getTargetLayer()->getV();
-      const pvdata_t *activity = getTargetLayer()->getLayerData();
+      const float *V        = getTargetLayer()->getV();
+      const float *activity = getTargetLayer()->getLayerData();
       // Send V and A to root
       const int k = kIndex(xLocLocal, yLocLocal, fLoc, nx, ny, nf);
       if (V) {

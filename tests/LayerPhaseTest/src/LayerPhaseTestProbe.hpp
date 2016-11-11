@@ -32,7 +32,7 @@ class LayerPhaseTestProbe : public PV::StatsProbe {
    int initLayerPhaseTestProbe_base();
 
   protected:
-   pvdata_t equilibriumValue;
+   float equilibriumValue;
    double equilibriumTime;
 };
 

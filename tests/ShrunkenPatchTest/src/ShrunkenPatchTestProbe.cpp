@@ -80,24 +80,24 @@ int ShrunkenPatchTestProbe::outputState(double timed) {
 
    if (correctValues == NULL) {
       int nx        = loc->nx;
-      correctValues = (pvdata_t *)malloc((size_t)nx * sizeof(pvdata_t));
+      correctValues = (float *)malloc((size_t)nx * sizeof(float));
 
       int xScaleLog2 = getTargetLayer()->getCLayer()->xScale;
 
       if (xScaleLog2 >= 0) {
-         pvError().printf(
+         Fatal().printf(
                "%s: layer \"%s\" must have nxScale > 1.\n", getDescription_c(), l->getName());
       }
       int cell_size = (int)nearbyintf(powf(2.0f, -xScaleLog2));
       int kx0       = (loc->kx0) / cell_size;
-      pvErrorIf(!(kx0 * cell_size == loc->kx0), "Test failed.\n");
+      FatalIf(!(kx0 * cell_size == loc->kx0), "Test failed.\n");
       int half_cell_size = cell_size / 2;
-      pvErrorIf(!(half_cell_size * 2 == cell_size), "Test failed.\n");
+      FatalIf(!(half_cell_size * 2 == cell_size), "Test failed.\n");
       int num_half_cells = nx / half_cell_size;
-      pvErrorIf(!(num_half_cells * half_cell_size == nx), "Test failed.\n");
+      FatalIf(!(num_half_cells * half_cell_size == nx), "Test failed.\n");
       int cells_in_patch = nxpShrunken / cell_size;
       if (nxpShrunken != cells_in_patch * cell_size) {
-         pvError().printf(
+         Fatal().printf(
                "ShrunkenPatchTestProbe \"%s\" error: nxpShrunken must be an integer multiple of "
                "layer \"%s\" nxScale=%d.\n",
                probeName,
@@ -108,20 +108,20 @@ int ShrunkenPatchTestProbe::outputState(double timed) {
 
       int idx = 0;
       for (int hc = 0; hc < num_half_cells; hc++) {
-         int m                  = 2 * ((hc + 1 - nxp_size_parity) / 2) + nxp_size_parity;
-         pvdata_t correct_value = kx0 + 0.5f * (pvdata_t)m;
+         int m               = 2 * ((hc + 1 - nxp_size_parity) / 2) + nxp_size_parity;
+         float correct_value = kx0 + 0.5f * (float)m;
          for (int k = 0; k < half_cell_size; k++) {
             correctValues[idx++] = correct_value;
          }
       }
-      pvErrorIf(!(idx == nx), "Test failed.\n");
+      FatalIf(!(idx == nx), "Test failed.\n");
    }
-   pvErrorIf(!(correctValues != NULL), "Test failed.\n");
+   FatalIf(!(correctValues != NULL), "Test failed.\n");
 
    int status = StatsProbe::outputState(timed);
    float tol  = 1e-4f;
 
-   const pvdata_t *buf = getTargetLayer()->getLayerData();
+   const float *buf = getTargetLayer()->getLayerData();
 
    if (timed >= 3.0) {
       for (int k = 0; k < num_neurons; k++) {
@@ -138,7 +138,7 @@ int ShrunkenPatchTestProbe::outputState(double timed) {
          if (fabsf(buf[kex] - correctValues[x]) > tol) {
             int y = kyPos(k, loc->nx, loc->ny, loc->nf);
             int f = featureIndex(k, loc->nx, loc->ny, loc->nf);
-            pvError().printf(
+            Fatal().printf(
                   "%s: Incorrect value %f (should be %f) in process %d, x=%d, y=%d, f=%d\n",
                   l->getDescription_c(),
                   (double)buf[kex],

@@ -21,9 +21,9 @@ int main(int argc, char *argv[]) {
    if (comm->commRank() == 0) {
       std::string rmcommand("rm -rf ");
       rmcommand.append(directory).append("/*");
-      pvInfo() << "Cleaning output directory with \"" << rmcommand << "\".\n";
+      InfoLog() << "Cleaning output directory with \"" << rmcommand << "\".\n";
       int rmstatus = system(rmcommand.c_str());
-      pvErrorIf(
+      FatalIf(
             rmstatus,
             "Error executing \"%s\": status code was %d\n",
             rmcommand.c_str(),

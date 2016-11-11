@@ -32,7 +32,7 @@ public:
    FrameServer() {
       mTmpDir = strdup("/tmp/OpenPVFrameServer-XXXXXX");
       if (mkdtemp(mTmpDir)==NULL) {
-         pvError() << "FrameServer unable to create temporary directory: " << strerror(errno);
+         Fatal() << "FrameServer unable to create temporary directory: " << strerror(errno);
          pvExitFailure("");
       }
       mListOfFrames.clear();
@@ -76,12 +76,12 @@ public:
       cmdString += mFilenameSuffix;
       int cmdStatus = system(cmdString.c_str());
       if (cmdStatus) {
-         pvError() << "FrameServer: command \"" << cmdString << "\" returned " << WEXITSTATUS(cmdStatus) << "." << std::endl;
+         Fatal() << "FrameServer: command \"" << cmdString << "\" returned " << WEXITSTATUS(cmdStatus) << "." << std::endl;
          exit(EXIT_FAILURE);
       }
       DIR * dirPtr = opendir(mTmpDir);
       if (dirPtr==NULL) {
-         pvError() << "FrameServer::feedVideoToDragonsGapingMaw unable to open directory \"" << mTmpDir << "\": "<< strerror(errno);
+         Fatal() << "FrameServer::feedVideoToDragonsGapingMaw unable to open directory \"" << mTmpDir << "\": "<< strerror(errno);
          pvExitFailure("");
       }
       for (struct dirent * entry = readdir(dirPtr); entry; entry = readdir(dirPtr)) {
@@ -100,7 +100,7 @@ public:
    void clearFrames() {
       for (auto& s : mListOfFrames) {
          if (unlink(s.c_str())) {
-            pvError() << "FrameServer::clearFrames unable to delete \"" << s << "\": " << strerror(errno);
+            Fatal() << "FrameServer::clearFrames unable to delete \"" << s << "\": " << strerror(errno);
          }
       }
       mListOfFrames.clear();
@@ -183,7 +183,7 @@ int main(int argc, char* argv[])
    }
    if (!foundHarness && hc->columnId()==0) {
       runWithoutHarnessFlag = false;
-      pvInfo() << "Params file does not have a group with keyword Harness.  PetaVision will run the params file as a normal run.\n";
+      InfoLog() << "Params file does not have a group with keyword Harness.  PetaVision will run the params file as a normal run.\n";
    }
 
    status = runWithoutHarnessFlag ? runWithoutHarness(hc) : runWithHarness(hc, frameInterval);
@@ -214,7 +214,7 @@ int runWithHarness(PV::HyPerCol * hc, int frameInterval) {
       if (img_buffer_layer) {
          if (imageLayer!=NULL) {
             if (hc->columnId()==0) {
-               pvErrorNoExit().printf("%s error: More than one ImageFromMemoryBuffer (\"%s\" and \"%s\").\n",
+               ErrorLog().printf("%s error: More than one ImageFromMemoryBuffer (\"%s\" and \"%s\").\n",
                      progName, imageLayer->getName(), img_buffer_layer->getName());
             }
             MPI_Barrier(icComm->communicator());
@@ -233,7 +233,7 @@ int runWithHarness(PV::HyPerCol * hc, int frameInterval) {
       if (localization_probe) {
          if (localizationProbe != NULL) {
             if (hc->columnId()==0) {
-               pvErrorNoExit().printf("%s error: More than one LocalizationProbe (\"%s\" and \"%s\").\n",
+               ErrorLog().printf("%s error: More than one LocalizationProbe (\"%s\" and \"%s\").\n",
                      progName, localizationProbe->getName(), localization_probe->getName());
             }
             MPI_Barrier(icComm->communicator());
@@ -300,7 +300,7 @@ int runWithHarness(PV::HyPerCol * hc, int frameInterval) {
          filenameBase += "_frame";
          int sizeCheck = snprintf(frameNumberStr, (size_t) 5, "%04u", f);
          if (sizeCheck>=5) {
-            pvError() << "Number of frames exceeds 10000.  Exiting.";
+            Fatal() << "Number of frames exceeds 10000.  Exiting.";
             pvExitFailure("");
          }
          filenameBase += frameNumberStr;
@@ -317,7 +317,7 @@ int runWithHarness(PV::HyPerCol * hc, int frameInterval) {
          status = hc->run(startTime, stopTime, dt);
          if (status != PV_SUCCESS) {
             if (rank==0) {
-               pvError() << "Run failed at t=" << hc->simulationTime() <<
+               Fatal() << "Run failed at t=" << hc->simulationTime() <<
                      " (startTime was " << startTime << "; stopTime was " << stopTime << ").";
             }
          }
@@ -388,7 +388,7 @@ int setImageLayerMemoryBuffer(PV::Communicator * icComm, char const * imageFile,
       bool usingTempFile = false;
       char * path = NULL;
       if (strstr(imageFile, "://") != NULL) {
-         pvInfo().printf("Image from URL \"%s\"\n", imageFile);
+         InfoLog().printf("Image from URL \"%s\"\n", imageFile);
          usingTempFile = true;
          std::string pathstring = "/tmp/temp.XXXXXX";
          const char * ext = strrchr(imageFile, '.');
@@ -397,7 +397,7 @@ int setImageLayerMemoryBuffer(PV::Communicator * icComm, char const * imageFile,
          int fid;
          fid=mkstemps(path, strlen(ext));
          if (fid<0) {
-            pvError().printf("Cannot create temp image file for image \"%s\".\n", imageFile);
+            Fatal().printf("Cannot create temp image file for image \"%s\".\n", imageFile);
          }   
          close(fid);
          std::string systemstring;
@@ -420,10 +420,10 @@ int setImageLayerMemoryBuffer(PV::Communicator * icComm, char const * imageFile,
             int status = system(systemstring.c_str());
             if(status != 0){ 
                if(attemptNum == numAttempts - 1){ 
-                  pvError().printf("download command \"%s\" failed: %s.  Exiting\n", systemstring.c_str(), strerror(errno));
+                  Fatal().printf("download command \"%s\" failed: %s.  Exiting\n", systemstring.c_str(), strerror(errno));
                }   
                else{
-                  pvWarn().printf("download command \"%s\" failed: %s.  Retrying %d out of %d.\n", systemstring.c_str(), strerror(errno), attemptNum+1, numAttempts);
+                  WarnLog().printf("download command \"%s\" failed: %s.  Retrying %d out of %d.\n", systemstring.c_str(), strerror(errno), attemptNum+1, numAttempts);
                   sleep(1);
                }
             }
@@ -433,13 +433,13 @@ int setImageLayerMemoryBuffer(PV::Communicator * icComm, char const * imageFile,
          }
       }
       else {
-         pvInfo().printf("Image from file \"%s\"\n", imageFile);
+         InfoLog().printf("Image from file \"%s\"\n", imageFile);
          path = strdup(imageFile);
       }
       GDALDataset * gdalDataset = (GDALDataset*)GDALOpen(path, GA_ReadOnly);
       if (gdalDataset==NULL)
       {
-         pvError().printf("setImageLayerMemoryBuffer: GDALOpen failed for image \"%s\".\n", imageFile);
+         Fatal().printf("setImageLayerMemoryBuffer: GDALOpen failed for image \"%s\".\n", imageFile);
       }
       imageNx= gdalDataset->GetRasterXSize();
       imageNy = gdalDataset->GetRasterYSize();
@@ -453,7 +453,7 @@ int setImageLayerMemoryBuffer(PV::Communicator * icComm, char const * imageFile,
          imageBuffer = (uint8_t *) realloc(imageBuffer, imageBufferSize*sizeof(uint8_t));
          if (imageBuffer==NULL)
          {
-            pvError().printf("setImageLayerMemoryBuffer: Unable to create image buffer of size %d-by-%d-by-%d for image \"%s\": %s\n",
+            Fatal().printf("setImageLayerMemoryBuffer: Unable to create image buffer of size %d-by-%d-by-%d for image \"%s\": %s\n",
                   imageNx, imageNy, imageNf, imageFile, strerror(errno));
          }
       }
@@ -482,7 +482,7 @@ int setImageLayerMemoryBuffer(PV::Communicator * icComm, char const * imageFile,
          GDALDataType dataType = gdalDataset->GetRasterBand(iBand+1)->GetRasterDataType(); // Why are we using both GDALGetRasterBand and GDALDataset::GetRasterBand?
          if (dataType != GDT_Byte)
          {
-            pvError().printf("setImageLayerMemoryBuffer: Image file \"%s\", band %d, is not GDT_Byte type.\n", imageFile, iBand+1);
+            Fatal().printf("setImageLayerMemoryBuffer: Image file \"%s\", band %d, is not GDT_Byte type.\n", imageFile, iBand+1);
          }
       }
 
@@ -504,7 +504,7 @@ int setImageLayerMemoryBuffer(PV::Communicator * icComm, char const * imageFile,
       if (usingTempFile) {
          int rmstatus = remove(path);
          if (rmstatus) {
-            pvError().printf("remove(\"%s\") failed.  Exiting.\n", path);
+            Fatal().printf("remove(\"%s\") failed.  Exiting.\n", path);
          }    
       }
       free(path);

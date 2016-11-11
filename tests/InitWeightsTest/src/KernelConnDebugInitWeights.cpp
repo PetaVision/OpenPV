@@ -61,7 +61,7 @@ int KernelConnDebugInitWeights::communicateInitInfo() {
    BaseConnection *baseConn = parent->getConnFromName(otherConnName);
    otherConn                = dynamic_cast<HyPerConn *>(baseConn);
    if (otherConn == NULL) {
-      pvError().printf(
+      Fatal().printf(
             "KernelConnDebugInitWeights \"%s\" error in rank %d process: copiedConn \"%s\" is not "
             "a connection in the column.\n",
             name,
@@ -69,7 +69,7 @@ int KernelConnDebugInitWeights::communicateInitInfo() {
             otherConnName);
    }
    if (otherConn->usingSharedWeights() == false) {
-      pvError().printf(
+      Fatal().printf(
             "KernelConnDebugInitWeights \"%s\" error in rank %d process: copiedConn \"%s\" does "
             "not use shared weights.\n",
             name,
@@ -81,7 +81,7 @@ int KernelConnDebugInitWeights::communicateInitInfo() {
 
 PVPatch ***KernelConnDebugInitWeights::initializeWeights(
       PVPatch ***arbors,
-      pvdata_t **dataStart,
+      float **dataStart,
       int numPatches,
       const char *filename) {
    // TODO  Implement InitWeightsMethod class.  The constructor for HyPerConn would take an
@@ -92,13 +92,13 @@ PVPatch ***KernelConnDebugInitWeights::initializeWeights(
    PVParams *inputParams = parent->parameters();
 
    // PVPatch ** kpatches = arbors[0]; // getKernelPatches(0);
-   pvdata_t *arborStart = dataStart[0];
+   float *arborStart    = dataStart[0];
    int numKernelPatches = getNumDataPatches();
 
    int initFromLastFlag = inputParams->value(getName(), "initFromLastFlag", 0.0f, false) != 0;
 
    if (initFromLastFlag) {
-      pvError().printf(
+      Fatal().printf(
             "This method is for testing weight initialization!  It does not support "
             "load from file!\n");
    }
@@ -129,7 +129,7 @@ PVPatch ***KernelConnDebugInitWeights::initializeWeights(
 
 PVPatch **KernelConnDebugInitWeights::initializeSmartWeights(
       PVPatch **patches,
-      pvdata_t *dataStart,
+      float *dataStart,
       int numPatches) {
 
    for (int k = 0; k < numPatches; k++) {
@@ -137,8 +137,8 @@ PVPatch **KernelConnDebugInitWeights::initializeSmartWeights(
    }
    return patches;
 }
-int KernelConnDebugInitWeights::smartWeights(pvdata_t *dataStart, int k) {
-   pvdata_t *w = dataStart; // wp->data;
+int KernelConnDebugInitWeights::smartWeights(float *dataStart, int k) {
+   float *w = dataStart; // wp->data;
 
    // const int nxp = (int) wp->nx;
    // const int nyp = (int) wp->ny;
@@ -162,7 +162,7 @@ int KernelConnDebugInitWeights::smartWeights(pvdata_t *dataStart, int k) {
 
 PVPatch **KernelConnDebugInitWeights::initializeCocircWeights(
       PVPatch **patches,
-      pvdata_t *dataStart,
+      float *dataStart,
       int numPatches) {
    PVParams *params = parent->parameters();
    float aspect     = 1.0f; // circular (not line oriented)
@@ -187,13 +187,13 @@ PVPatch **KernelConnDebugInitWeights::initializeCocircWeights(
 
    int noPre = pre->getLayerLoc()->nf;
    noPre     = (int)params->value(name, "noPre", noPre);
-   pvErrorIf(!(noPre > 0), "Test failed.\n");
-   pvErrorIf(!(noPre <= pre->getLayerLoc()->nf), "Test failed.\n");
+   FatalIf(!(noPre > 0), "Test failed.\n");
+   FatalIf(!(noPre <= pre->getLayerLoc()->nf), "Test failed.\n");
 
    int noPost = post->getLayerLoc()->nf;
    noPost     = (int)params->value(name, "noPost", noPost);
-   pvErrorIf(!(noPost > 0), "Test failed.\n");
-   pvErrorIf(!(noPost <= post->getLayerLoc()->nf), "Test failed.\n");
+   FatalIf(!(noPost > 0), "Test failed.\n");
+   FatalIf(!(noPost <= post->getLayerLoc()->nf), "Test failed.\n");
 
    float sigma_cocirc = PI / 2.0f;
    sigma_cocirc       = params->value(name, "sigmaCocirc", sigma_cocirc);
@@ -240,7 +240,7 @@ PVPatch **KernelConnDebugInitWeights::initializeCocircWeights(
    return patches;
 }
 int KernelConnDebugInitWeights::cocircCalcWeights(
-      pvdata_t *dataStart,
+      float *dataStart,
       int dataPatchIndex,
       int noPre,
       int noPost,
@@ -257,7 +257,7 @@ int KernelConnDebugInitWeights::cocircCalcWeights(
       float sigma,
       float r2Max,
       float strength) {
-   // pvdata_t * w = wp->data;
+   // float * w = wp->data;
 
    const float min_weight    = 0.0f; // read in as param
    const float sigma2        = 2 * sigma * sigma;
@@ -272,16 +272,16 @@ int KernelConnDebugInitWeights::cocircCalcWeights(
 
    // get strides of (potentially shrunken) patch
    const int sx = xPatchStride();
-   pvErrorIf(!(sx == nfPatch), "Test failed.\n");
+   FatalIf(!(sx == nfPatch), "Test failed.\n");
    // const int sy = yPatchStride(); // no assert here because patch may be shrunken
    const int sf = fPatchStride();
-   pvErrorIf(!(sf == 1), "Test failed.\n");
+   FatalIf(!(sf == 1), "Test failed.\n");
 
    // make full sized temporary patch, positioned around center of unit cell
    // PVPatch * wp_tmp;
    // wp_tmp = pvpatch_inplace_new(nxp, nyp, nfp);
-   // pvdata_t * w_tmp = wp_tmp->data;
-   pvdata_t *w_tmp = dataStart;
+   // float * w_tmp = wp_tmp->data;
+   float *w_tmp = dataStart;
 
    // get/check dimensions and strides of full sized temporary patch
    const int nxPatch_tmp = nxp; // wp_tmp->nx;
@@ -296,11 +296,11 @@ int KernelConnDebugInitWeights::cocircCalcWeights(
    const int kyPre_tmp = kyKerneIndex;
    //   const int kfPre_tmp = kfKernelIndex;
    const int sx_tmp = xPatchStride();
-   pvErrorIf(!(sx_tmp == fPatchSize()), "Test failed.\n");
+   FatalIf(!(sx_tmp == fPatchSize()), "Test failed.\n");
    const int sy_tmp = yPatchStride();
-   pvErrorIf(!(sy_tmp == fPatchSize() * nxPatch_tmp), "Test failed.\n");
+   FatalIf(!(sy_tmp == fPatchSize() * nxPatch_tmp), "Test failed.\n");
    const int sf_tmp = fPatchStride();
-   pvErrorIf(!(sf_tmp == 1), "Test failed.\n");
+   FatalIf(!(sf_tmp == 1), "Test failed.\n");
 
    // get distances to nearest neighbor in post synaptic layer
    float xDistNNPreUnits;
@@ -365,10 +365,10 @@ int KernelConnDebugInitWeights::cocircCalcWeights(
    float kurvePre    = (radKurvPre != 0.0f) ? 1 / radKurvPre : 1.0f;
    int iKvPreAdj     = iKvPre;
    if (POS_KURVE_FLAG) {
-      pvErrorIf(!(nKurvePre >= 2), "Test failed.\n");
+      FatalIf(!(nKurvePre >= 2), "Test failed.\n");
       iPosKurvePre = iKvPre >= (int)(nKurvePre / 2);
       if (SADDLE_FLAG) {
-         pvErrorIf(!(nKurvePre >= 4), "Test failed.\n");
+         FatalIf(!(nKurvePre >= 4), "Test failed.\n");
          iSaddlePre = (iKvPre % 2 == 0) ? 0 : 1;
          iKvPreAdj  = ((iKvPre % (nKurvePre / 2)) / 2);
       }
@@ -396,10 +396,10 @@ int KernelConnDebugInitWeights::cocircCalcWeights(
       float kurvePost    = (radKurvPost != 0.0f) ? 1 / radKurvPost : 1.0f;
       int iKvPostAdj     = iKvPost;
       if (POS_KURVE_FLAG) {
-         pvErrorIf(!(nKurvePost >= 2), "Test failed.\n");
+         FatalIf(!(nKurvePost >= 2), "Test failed.\n");
          iPosKurvePost = iKvPost >= (int)(nKurvePost / 2);
          if (SADDLE_FLAG) {
-            pvErrorIf(!(nKurvePost >= 4), "Test failed.\n");
+            FatalIf(!(nKurvePost >= 4), "Test failed.\n");
             iSaddlePost = (iKvPost % 2 == 0) ? 0 : 1;
             iKvPostAdj  = ((iKvPost % (nKurvePost / 2)) / 2);
          }
@@ -599,7 +599,7 @@ int KernelConnDebugInitWeights::cocircCalcWeights(
 
 PVPatch **KernelConnDebugInitWeights::initializeGaussian2DWeights(
       PVPatch **patches,
-      pvdata_t *dataStart,
+      float *dataStart,
       int numPatches) {
    PVParams *params = parent->parameters();
 
@@ -661,7 +661,7 @@ PVPatch **KernelConnDebugInitWeights::initializeGaussian2DWeights(
    return patches;
 }
 int KernelConnDebugInitWeights::gauss2DCalcWeights(
-      pvdata_t *dataStart,
+      float *dataStart,
       int dataPatchIndex,
       int no,
       int numFlanks,
@@ -689,20 +689,20 @@ int KernelConnDebugInitWeights::gauss2DCalcWeights(
       return 0; // reduced patch size is zero
    }
 
-   // pvdata_t * w = wp->data;
+   // float * w = wp->data;
 
    // get strides of (potentially shrunken) patch
    const int sx = xPatchStride();
-   pvErrorIf(!(sx == nfPatch), "Test failed.\n");
+   FatalIf(!(sx == nfPatch), "Test failed.\n");
    // const int sy = yPatchStride(); // no assert here because patch may be shrunken
    const int sf = fPatchStride();
-   pvErrorIf(!(sf == 1), "Test failed.\n");
+   FatalIf(!(sf == 1), "Test failed.\n");
 
    // make full sized temporary patch, positioned around center of unit cell
    // PVPatch * wp_tmp;
    // wp_tmp = pvpatch_inplace_new(nxp, nyp, nfp);
-   // pvdata_t * w_tmp = wp_tmp->data;
-   pvdata_t *w_tmp = dataStart; // wp_tmp->data;
+   // float * w_tmp = wp_tmp->data;
+   float *w_tmp = dataStart; // wp_tmp->data;
 
    // get/check dimensions and strides of full sized temporary patch
    const int nxPatch_tmp = nxp; // wp_tmp->nx;
@@ -717,11 +717,11 @@ int KernelConnDebugInitWeights::gauss2DCalcWeights(
    const int kyPre_tmp = kyKernelIndex;
    const int kfPre_tmp = kfKernelIndex;
    const int sx_tmp    = xPatchStride();
-   pvErrorIf(!(sx_tmp == fPatchSize()), "Test failed.\n");
+   FatalIf(!(sx_tmp == fPatchSize()), "Test failed.\n");
    const int sy_tmp = yPatchStride();
-   pvErrorIf(!(sy_tmp == fPatchSize() * nxPatch_tmp), "Test failed.\n");
+   FatalIf(!(sy_tmp == fPatchSize() * nxPatch_tmp), "Test failed.\n");
    const int sf_tmp = fPatchStride();
-   pvErrorIf(!(sf_tmp == 1), "Test failed.\n");
+   FatalIf(!(sf_tmp == 1), "Test failed.\n");
 
    // get distances to nearest neighbor in post synaptic layer (measured relative to pre-synaptic
    // cell)
@@ -774,7 +774,7 @@ int KernelConnDebugInitWeights::gauss2DCalcWeights(
    const float dthPre  = PI * thetaMax / (float)noPre;
    const float th0Pre  = rotate * dthPre / 2.0f;
    const int fPre      = dataPatchIndex % pre->getLayerLoc()->nf;
-   pvErrorIf(!(fPre == kfPre_tmp), "Test failed.\n");
+   FatalIf(!(fPre == kfPre_tmp), "Test failed.\n");
    const int iThPre  = dataPatchIndex % noPre;
    const float thPre = th0Pre + iThPre * dthPre;
 
@@ -835,7 +835,7 @@ int KernelConnDebugInitWeights::gauss2DCalcWeights(
 
 PVPatch **KernelConnDebugInitWeights::initializeGaborWeights(
       PVPatch **patches,
-      pvdata_t *dataStart,
+      float *dataStart,
       int numPatches) {
 
    const int xScale = post->getXScale() - pre->getXScale();
@@ -876,7 +876,7 @@ PVPatch **KernelConnDebugInitWeights::initializeGaborWeights(
 }
 
 int KernelConnDebugInitWeights::gaborWeights(
-      pvdata_t *dataStart,
+      float *dataStart,
       int xScale,
       int yScale,
       float aspect,
@@ -894,7 +894,7 @@ int KernelConnDebugInitWeights::gaborWeights(
    if (params->present(name, "invert"))
       invert = params->value(name, "invert");
 
-   pvdata_t *w = dataStart; // wp->data;
+   float *w = dataStart; // wp->data;
 
    // const float phi = 3.1416;  // phase
 
@@ -902,9 +902,9 @@ int KernelConnDebugInitWeights::gaborWeights(
    const int ny = yPatchSize(); //(int) wp->ny;
    const int nf = fPatchSize();
 
-   const int sx = xPatchStride(); // pvErrorIf(!(sx == nf), "Test failed.\n");
-   const int sy = yPatchStride(); // pvErrorIf(!(sy == nf*nx), "Test failed.\n");
-   const int sf = fPatchStride(); // pvErrorIf(!(sf == 1), "Test failed.\n");
+   const int sx = xPatchStride(); // FatalIf(!(sx == nf), "Test failed.\n");
+   const int sy = yPatchStride(); // FatalIf(!(sy == nf*nx), "Test failed.\n");
+   const int sf = fPatchStride(); // FatalIf(!(sf == 1), "Test failed.\n");
 
    const float dx = powf(2, xScale);
    const float dy = powf(2, yScale);
@@ -940,7 +940,7 @@ int KernelConnDebugInitWeights::gaborWeights(
 
 #ifdef DEBUG_OUTPUT
             if (j == 0)
-               pvInfo().printf("x=%f fac=%f w=%f\n", xp, factor, wt);
+               InfoLog().printf("x=%f fac=%f w=%f\n", xp, factor, wt);
 #endif
             if (xp * xp + yp * yp > r2Max) {
                w[i * sx + j * sy + f * sf] = 0.0f;

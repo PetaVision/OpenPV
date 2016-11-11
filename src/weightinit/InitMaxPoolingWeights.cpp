@@ -32,14 +32,14 @@ InitWeightsParams *InitMaxPoolingWeights::createNewWeightParams() {
 }
 
 int InitMaxPoolingWeights::calcWeights(
-      /* PVPatch * patch */ pvdata_t *dataStart,
+      /* PVPatch * patch */ float *dataStart,
       int patchIndex,
       int arborId) {
    InitMaxPoolingWeightsParams *weightParamPtr =
          dynamic_cast<InitMaxPoolingWeightsParams *>(weightParams);
 
    if (weightParamPtr == NULL) {
-      pvError().printf("Failed to recast pointer to weightsParam!  Exiting...");
+      Fatal().printf("Failed to recast pointer to weightsParam!  Exiting...");
    }
 
    return PV_SUCCESS;

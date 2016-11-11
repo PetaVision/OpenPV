@@ -66,7 +66,7 @@ int main(int argc, char *argv[]) {
    }
    if (generateFlag && (testrunFlag || testcheckpointFlag || testioparamsFlag)) {
       if (rank == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s error: --generate option conflicts with the --test* options.\n", argv[0]);
       }
       MPI_Barrier(MPI_COMM_WORLD); // Make sure no child processes take down the MPI environment
@@ -75,7 +75,7 @@ int main(int argc, char *argv[]) {
    }
    if (!(generateFlag || testrunFlag || testcheckpointFlag || testioparamsFlag)) {
       if (rank == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s error: At least one of \"--generate\", \"--testrun\", \"--testcheckpoint\", "
                "\"--testioparams\" must be selected.\n",
                argv[0]);
@@ -84,7 +84,7 @@ int main(int argc, char *argv[]) {
       // before root process prints error message.
       exit(EXIT_FAILURE);
    }
-   pvErrorIf(
+   FatalIf(
          !(generateFlag || testrunFlag || testcheckpointFlag || testioparamsFlag),
          "Test failed.\n");
 
@@ -93,7 +93,7 @@ int main(int argc, char *argv[]) {
       if (generate(&initObj, rank) != PV_SUCCESS) {
          status = PV_FAILURE;
          if (rank == 0) {
-            pvErrorNoExit().printf("%s: generate failed.\n", initObj.getProgramName());
+            ErrorLog().printf("%s: generate failed.\n", initObj.getProgramName());
          }
       }
    }
@@ -101,7 +101,7 @@ int main(int argc, char *argv[]) {
       if (testrun(&initObj, rank) != PV_SUCCESS) {
          status = PV_FAILURE;
          if (rank == 0) {
-            pvErrorNoExit().printf("%s: testrun failed.\n", initObj.getProgramName());
+            ErrorLog().printf("%s: testrun failed.\n", initObj.getProgramName());
          }
       }
    }
@@ -109,7 +109,7 @@ int main(int argc, char *argv[]) {
       if (testcheckpoint(&initObj, rank) != PV_SUCCESS) {
          status = PV_FAILURE;
          if (rank == 0) {
-            pvErrorNoExit().printf("%s: testcheckpoint failed.\n", initObj.getProgramName());
+            ErrorLog().printf("%s: testcheckpoint failed.\n", initObj.getProgramName());
          }
       }
    }
@@ -117,7 +117,7 @@ int main(int argc, char *argv[]) {
       if (testioparams(&initObj, rank) != PV_SUCCESS) {
          status = PV_FAILURE;
          if (rank == 0) {
-            pvErrorNoExit().printf("%s: testioparams failed.\n", initObj.getProgramName());
+            ErrorLog().printf("%s: testioparams failed.\n", initObj.getProgramName());
          }
       }
    }
@@ -130,7 +130,7 @@ int generate(PV_Init *initObj, int rank) {
    initObj->setRestartFlag(false);
    initObj->setCheckpointReadDir(NULL);
    if (rank == 0) {
-      pvInfo().printf("Running --generate with effective command line");
+      InfoLog().printf("Running --generate with effective command line");
       initObj->printState();
    }
    if (rank == 0) {
@@ -162,7 +162,7 @@ int generate(PV_Init *initObj, int rank) {
                          0};
       size_t numwritten = PV_fwrite(emptydata, sizeof(int), 23, emptyinfile);
       if (numwritten != 23) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s: failure to write placeholder data into input/correct.pvp file.\n",
                initObj->getProgramName());
       }
@@ -183,7 +183,7 @@ int copyCorrectOutput(HyPerCol *hc, int argc, char *argv[]) {
    const char *destPath = correctLayer->getInputPath().c_str();
    if (strcmp(&destPath[strlen(destPath) - 4], ".pvp") != 0) {
       if (hc->columnId() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "Running --generate: This system test assumes that the layer \"correct\" is a Movie "
                "layer with imageListPath ending in \".pvp\".\n",
                argv[0]);
@@ -193,19 +193,19 @@ int copyCorrectOutput(HyPerCol *hc, int argc, char *argv[]) {
    }
    if (hc->columnId() == 0) {
       PV_Stream *infile = PV_fopen(sourcePath, "r", false /*verifyWrites*/);
-      pvErrorIf(!(infile), "Test failed.\n");
+      FatalIf(!(infile), "Test failed.\n");
       PV_fseek(infile, 0L, SEEK_END);
       long int filelength = PV_ftell(infile);
       PV_fseek(infile, 0L, SEEK_SET);
       char *buf        = (char *)malloc((size_t)filelength);
       size_t charsread = PV_fread(buf, sizeof(char), (size_t)filelength, infile);
-      pvErrorIf(!(charsread == (size_t)filelength), "Test failed.\n");
+      FatalIf(!(charsread == (size_t)filelength), "Test failed.\n");
       PV_fclose(infile);
       infile             = NULL;
       PV_Stream *outfile = PV_fopen(destPath, "w", false /*verifyWrites*/);
-      pvErrorIf(!(outfile), "Test failed.\n");
+      FatalIf(!(outfile), "Test failed.\n");
       size_t charswritten = PV_fwrite(buf, sizeof(char), (size_t)filelength, outfile);
-      pvErrorIf(!(charswritten == (size_t)filelength), "Test failed.\n");
+      FatalIf(!(charswritten == (size_t)filelength), "Test failed.\n");
       PV_fclose(outfile);
       outfile = NULL;
       free(buf);
@@ -220,7 +220,7 @@ int testrun(PV_Init *initObj, int rank) {
    initObj->setRestartFlag(false);
    initObj->setCheckpointReadDir(NULL);
    if (rank == 0) {
-      pvInfo().printf("Running --testrun with effective command line");
+      InfoLog().printf("Running --testrun with effective command line");
       initObj->printState();
    }
    int status = rebuildandrun(initObj, NULL, &assertAllZeroes);
@@ -234,7 +234,7 @@ int testcheckpoint(PV_Init *initObj, int rank) {
    bool hasrestart = (initObj->getRestartFlag() || initObj->getCheckpointReadDir() != NULL);
    if (!hasrestart) {
       if (rank == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s error: --testcheckpoint requires either the -r or the -c option.\n",
                initObj->getProgramName());
       }
@@ -242,7 +242,7 @@ int testcheckpoint(PV_Init *initObj, int rank) {
       exit(EXIT_FAILURE);
    }
    if (rank == 0) {
-      pvInfo().printf("Running --testcheckpoint with effective command line");
+      InfoLog().printf("Running --testcheckpoint with effective command line");
       initObj->printState();
    }
    int status = rebuildandrun(initObj, NULL, &assertAllZeroes);
@@ -256,11 +256,11 @@ int testioparams(PV_Init *initObj, int rank) {
    initObj->setCheckpointReadDir(NULL);
    HyPerCol *hc = build(initObj);
    if (hc == NULL) {
-      pvError().printf("testioparams error: unable to build HyPerCol.\n");
+      Fatal().printf("testioparams error: unable to build HyPerCol.\n");
    }
    int status = hc->run(); // Needed to generate pv.params file
    if (status != PV_SUCCESS) {
-      pvError().printf("testioparams error: run to generate pv.params file failed.\n");
+      Fatal().printf("testioparams error: run to generate pv.params file failed.\n");
    }
    const char *paramsfile       = hc->getPrintParamsFilename();
    std::string paramsfileString = paramsfile;
@@ -273,7 +273,7 @@ int testioparams(PV_Init *initObj, int rank) {
 
    initObj->setParams(paramsfileString.c_str());
    if (rank == 0) {
-      pvInfo().printf("Running --testioparams with effective command line");
+      InfoLog().printf("Running --testioparams with effective command line");
       initObj->printState();
    }
    status = rebuildandrun(initObj, NULL, &assertAllZeroes);
@@ -283,7 +283,7 @@ int testioparams(PV_Init *initObj, int rank) {
 int assertAllZeroes(HyPerCol *hc, int argc, char *argv[]) {
    const char *targetLayerName = "comparison";
    HyPerLayer *layer           = hc->getLayerFromName(targetLayerName);
-   pvErrorIf(!(layer), "Test failed.\n");
+   FatalIf(!(layer), "Test failed.\n");
    LayerProbe *probe = NULL;
    int np            = layer->getNumProbes();
    for (int p = 0; p < np; p++) {
@@ -293,11 +293,11 @@ int assertAllZeroes(HyPerCol *hc, int argc, char *argv[]) {
       }
    }
    RequireAllZeroActivityProbe *allzeroProbe = dynamic_cast<RequireAllZeroActivityProbe *>(probe);
-   pvErrorIf(!(allzeroProbe), "Test failed.\n");
+   FatalIf(!(allzeroProbe), "Test failed.\n");
    if (allzeroProbe->getNonzeroFound()) {
       if (hc->columnId() == 0) {
          double t = allzeroProbe->getNonzeroTime();
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s had at least one nonzero activity value, beginning at time %f\n",
                layer->getDescription_c(),
                t);

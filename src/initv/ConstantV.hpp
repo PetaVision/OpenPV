@@ -30,7 +30,7 @@ class ConstantV : public BaseInitV {
    ConstantV(const char *name, HyPerCol *hc);
    virtual ~ConstantV();
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-   virtual int calcV(pvdata_t *V, PVLayerLoc const *loc) override;
+   virtual int calcV(float *V, PVLayerLoc const *loc) override;
 
   protected:
    ConstantV();
@@ -41,7 +41,7 @@ class ConstantV : public BaseInitV {
 
    // Data members
   protected:
-   pvdata_t mValueV;
+   float mValueV;
 }; // end class ConstantV
 
 } // end namespace PV

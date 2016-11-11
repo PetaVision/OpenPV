@@ -22,7 +22,7 @@
 #include <columns/PV_Init.hpp>
 #include <io/fileio.hpp>
 
-static int check_borders(pvdata_t *buf, PV::Communicator *comm, PVLayerLoc loc);
+static int check_borders(float *buf, PV::Communicator *comm, PVLayerLoc loc);
 
 int main(int argc, char *argv[]) {
    PV::PV_Init *initObj   = new PV::PV_Init(&argc, &argv, true /*allowUnrecognizedArguments*/);
@@ -37,7 +37,7 @@ int main(int argc, char *argv[]) {
    int commRow = comm->commRow();
    int commCol = comm->commColumn();
 
-   pvInfo().printf(
+   InfoLog().printf(
          "[%d]: nxProc==%d nyProc==%d commRow==%d commCol==%d numNeighbors==%d\n",
          comm->commRank(),
          nxProc,
@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
          commRow,
          commCol,
          comm->numberOfNeighbors());
-   pvInfo().flush();
+   InfoLog().flush();
 
    loc.nbatch = 1;
    loc.nx     = 128;
@@ -90,23 +90,23 @@ int main(int argc, char *argv[]) {
    if (err == 0) {
       err = comm->exchange(image, datatypes, &loc, req);
       if (err != 0) {
-         pvErrorNoExit().printf("[%d]: Communicator::exchange failed\n", comm->commRank());
+         ErrorLog().printf("[%d]: Communicator::exchange failed\n", comm->commRank());
       }
    }
    if (err == 0) {
       err = comm->wait(req);
       if (err != 0) {
-         pvErrorNoExit().printf("[%d]: Communicator::waitForExchange failed\n", comm->commRank());
+         ErrorLog().printf("[%d]: Communicator::waitForExchange failed\n", comm->commRank());
       }
    }
 
    if (err == 0) {
       err = check_borders(image, comm, loc);
       if (err != 0) {
-         pvErrorNoExit().printf("[%d]: check_borders failed\n", comm->commRank());
+         ErrorLog().printf("[%d]: check_borders failed\n", comm->commRank());
       }
       else {
-         pvInfo().printf("[%d]: check_borders succeeded\n", comm->commRank());
+         InfoLog().printf("[%d]: check_borders succeeded\n", comm->commRank());
       }
    }
 
@@ -117,7 +117,7 @@ int main(int argc, char *argv[]) {
    return err;
 }
 
-static int check_borders(pvdata_t *image, PV::Communicator *comm, PVLayerLoc loc) {
+static int check_borders(float *image, PV::Communicator *comm, PVLayerLoc loc) {
    int err = 0;
 
    const int nx       = (int)loc.nx;
@@ -148,7 +148,7 @@ static int check_borders(pvdata_t *image, PV::Communicator *comm, PVLayerLoc loc
             float *buf = image + ky * sy;
             for (int kx = 0; kx < halo->lt; kx++) {
                if ((int)buf[kx] != k++) {
-                  pvErrorNoExit().printf(
+                  ErrorLog().printf(
                         "[?]: northwest check_borders failed kx==%d ky==%d observed==%f "
                         "correct==%d addr==%p\n",
                         kx,
@@ -166,7 +166,7 @@ static int check_borders(pvdata_t *image, PV::Communicator *comm, PVLayerLoc loc
             float *buf = image + ky * sy;
             for (int kx = 0; kx < halo->lt; kx++) {
                if ((int)buf[kx] != 0) {
-                  pvErrorNoExit().printf(
+                  ErrorLog().printf(
                         "[?]: northwest check_borders failed kx==%d ky==%d observed==%f correct==0 "
                         "addr==%p\n",
                         kx,
@@ -187,7 +187,7 @@ static int check_borders(pvdata_t *image, PV::Communicator *comm, PVLayerLoc loc
          float *buf = image + (ky + halo->up) * sy;
          for (int kx = 0; kx < halo->lt; kx++) {
             if ((int)buf[kx] != k++) {
-               pvErrorNoExit().printf(
+               ErrorLog().printf(
                      "[?]: check_borders failed kx==%d ky==%d k0==%d observed==%f correct==%d "
                      "addr==%p\n",
                      kx,
@@ -209,7 +209,7 @@ static int check_borders(pvdata_t *image, PV::Communicator *comm, PVLayerLoc loc
          float *buf = image + (nx + halo->lt) + (ky + halo->up) * sy;
          for (int kx = 0; kx < halo->rt; kx++) {
             if ((int)buf[kx] != k++) {
-               pvErrorNoExit().printf(
+               ErrorLog().printf(
                      "[?]: check_borders failed kx==%d ky==%d k0==%d observed==%f correct==%d "
                      "addr==%p\n",
                      kx,

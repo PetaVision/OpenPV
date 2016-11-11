@@ -15,9 +15,9 @@
 #endif // CPTEST_UPDATESTATEFUNCTIONS_H_
 
 // Prototypes
-static inline int updateV_CPTestInputLayer(int nbatch, int numNeurons, pvdata_t *V);
+static inline int updateV_CPTestInputLayer(int nbatch, int numNeurons, float *V);
 
-static inline int updateV_CPTestInputLayer(int nbatch, int numNeurons, pvdata_t *V) {
+static inline int updateV_CPTestInputLayer(int nbatch, int numNeurons, float *V) {
    int k;
    for (k = 0; k < numNeurons * nbatch; k++) {
       V[k] += 1;

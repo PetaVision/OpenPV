@@ -38,7 +38,7 @@ class privateTransposeConn : public HyPerConn {
    virtual int setPatchSize();
    virtual int setNeededRNGSeeds() { return 0; }
    virtual int setInitialValues();
-   virtual PVPatch ***initializeWeights(PVPatch ***arbors, pvwdata_t **dataStart);
+   virtual PVPatch ***initializeWeights(PVPatch ***arbors, float **dataStart);
    int transpose(int arborId);
    virtual int calc_dW(int arborId) { return PV_BREAK; };
    virtual int reduceKernels(int arborID);

@@ -85,8 +85,8 @@ void HyPerLCALayer::ioParam_timeConstantTau(enum ParamsIOFlag ioFlag) {
 void HyPerLCALayer::ioParam_selfInteract(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValue(ioFlag, name, "selfInteract", &selfInteract, selfInteract);
    if (ioFlag == PARAMS_IO_READ && parent->columnId() == 0) {
-      pvInfo() << getDescription() << ": selfInteract flag is " << (selfInteract ? "true" : "false")
-               << std::endl;
+      InfoLog() << getDescription() << ": selfInteract flag is "
+                << (selfInteract ? "true" : "false") << std::endl;
    }
 }
 
@@ -103,7 +103,7 @@ void HyPerLCALayer::ioParam_adaptiveTimeScaleProbe(enum ParamsIOFlag ioFlag) {
 int HyPerLCALayer::requireChannel(int channelNeeded, int *numChannelsResult) {
    int status = HyPerLayer::requireChannel(channelNeeded, numChannelsResult);
    if (channelNeeded >= 2 && parent->columnId() == 0) {
-      pvWarn().printf(
+      WarnLog().printf(
             "HyPerLCALayer \"%s\": connection on channel %d, but HyPerLCA only uses channels 0 and "
             "1.\n",
             name,
@@ -118,8 +118,8 @@ int HyPerLCALayer::communicateInitInfo() {
             parent->getColProbeFromName(mAdaptiveTimeScaleProbeName));
       if (mAdaptiveTimeScaleProbe == nullptr) {
          if (parent->getCommunicator()->commRank() == 0) {
-            pvErrorNoExit() << description << ": adaptiveTimeScaleProbe \""
-                            << mAdaptiveTimeScaleProbeName << "\" is not in the column.\n";
+            ErrorLog() << description << ": adaptiveTimeScaleProbe \""
+                       << mAdaptiveTimeScaleProbeName << "\" is not in the column.\n";
          }
          MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
@@ -218,10 +218,10 @@ double HyPerLCALayer::getDeltaUpdateTime() { return parent->getDeltaTime(); }
 
 int HyPerLCALayer::updateState(double time, double dt) {
    const PVLayerLoc *loc = getLayerLoc();
-   pvdata_t *A           = clayer->activity->data;
-   pvdata_t *V           = getV();
+   float *A              = clayer->activity->data;
+   float *V              = getV();
    int num_channels      = getNumChannels();
-   pvdata_t *gSynHead    = GSyn == NULL ? NULL : GSyn[0];
+   float *gSynHead       = GSyn == NULL ? NULL : GSyn[0];
    {
       int nx          = loc->nx;
       int ny          = loc->ny;

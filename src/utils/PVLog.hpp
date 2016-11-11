@@ -7,26 +7,6 @@
 #include <string>
 #include <type_traits>
 
-#ifdef NDEBUG
-// Not DEBUG build
-#ifdef PV_DEBUG_OUTPUT
-// Release build, but logDebug output was requested
-#define _PV_DEBUG_OUTPUT 1
-#else
-// Release build, no debug output
-#undef _PV_DEBUG_OUTPUT
-#endif // PV_DEBUG_OUTPUT
-#else
-// Debug build, logDebug output needed
-#define _PV_DEBUG_OUTPUT 1
-#endif // NDEBUG
-
-#if defined(_PV_DEBUG_OUTPUT)
-#define DEBUG_LOG_TEST_CONDITION true
-#else
-#define DEBUG_LOG_TEST_CONDITION false
-#endif // defined(_PV_DEBUG_OUTPUT)
-
 //
 // Logging with the C++ builder pattern.
 //
@@ -35,52 +15,49 @@
 // This way, the file will go to stdout or stderr if the -l option is not used,
 // but will go to the log file if it is.
 //
-// pvInfo() << "Some info" << std::endl;
-// pvWarn() << "Print a warning" << std::endl;
-// pvError() << "Print an error" << std::endl;
-// pvErrorNoExit() << "Print an error" << std::endl;
-// pvDebug() << "Some" << "stuff" << "to log" << std::endl;
+// InfoLog() << "Some info" << std::endl;
+// WarnLog() << "Print a warning" << std::endl;
+// Fatal() << "Print an error" << std::endl;
+// ErrorLog() << "Print an error" << std::endl;
+// DebugLog() << "Some" << "stuff" << "to log" << std::endl;
 //
-// pvErrorIf uses printf style formatting:
-// pvErrorIf(condition == true, "Condition %s was true.\n", conditionName);
+// FatalIf uses printf style formatting:
+// FatalIf(condition == true, "Condition %s was true. Exiting.\n", conditionName);
 //
-// These macros create objects that send to the stream returned one of by PV::getOutputStream() or
-// PV::getErrorStream().
-// pvInfo() sends its output to the output stream.
-// pvWarn() prepends its output with "WARN " and sends to the error stream.
-// pvError() prepends its output with "ERROR <file,line>: " and sends to the error stream, then
-// exits.
-// pvError() prepends its output with "ERROR <file,line>: " and sends to the error stream, without
-// exiting.
-// pvDebug() prepends its output with "DEBUG <file,line>: " and sends to the output stream.
-// In release versions, pvDebug() does not print any output, unless PetaVision was built using
-// cmake -DPV_LOG_DEBUG:Bool=ON.
+// These macros create objets that send to the stream returned one of by
+// PV::getOutputStream() or PV::getErrorStream().
+// InfoLog() sends its output to the output stream.
+// WarnLog() prepends its output with "WARN " and sends to the error stream.
+// Fatal() prepends its output to the error stream with "ERROR <file,line>: ", then exits.
+// ErrorLog() prepends its output to the error stream with "ERROR <file,line>: "
+// DebugLog() prepends its output with "DEBUG <file,line>: " and sends to the output stream.
+// In release versions, DebugLog() does not print any output,
+// unless PetaVision was built using cmake -DPV_LOG_DEBUG:Bool=ON.
 //
-// The <file,line> returned by several of these macros gives the basename of the file where the
-// macro was invoked,
-// and the line number within that file.
+// The <file,line> returned by several of these macros gives the basename of the file where
+// the macro was invoked, and the line number within that file.
 
 // Because __LINE__ and __FILE__ evaluate to *this* file, not
 // the file where the inline function is called. This is different
 // from Clang, which puts in the __FILE__ and __LINE__ of the caller
 #ifdef __GNUC__
-#define pvInfo(...) PV::_Info __VA_ARGS__(__FILE__, __LINE__)
-#define pvWarn(...) PV::_Warn __VA_ARGS__(__FILE__, __LINE__)
-#define pvError(...) PV::_Error __VA_ARGS__(__FILE__, __LINE__)
-#define pvErrorNoExit(...) PV::_ErrorNoExit __VA_ARGS__(__FILE__, __LINE__)
-#define pvDebug(...) PV::_Debug __VA_ARGS__(__FILE__, __LINE__)
-#define pvStackTrace(...) PV::_StackTrace __VA_ARGS__(__FILE__, __LINE__)
-#define pvErrorIf(x, ...)                                                                          \
+#define InfoLog(...) PV::InfoLog __VA_ARGS__(__FILE__, __LINE__)
+#define WarnLog(...) PV::WarnLog __VA_ARGS__(__FILE__, __LINE__)
+#define Fatal(...) PV::Fatal __VA_ARGS__(__FILE__, __LINE__)
+#define ErrorLog(...) PV::ErrorLog __VA_ARGS__(__FILE__, __LINE__)
+#define DebugLog(...) PV::DebugLog __VA_ARGS__(__FILE__, __LINE__)
+#define StackTrace(...) PV::StackTrace __VA_ARGS__(__FILE__, __LINE__)
+#define FatalIf(x, ...)                                                                            \
    if (x) {                                                                                        \
-      pvError().printf(__VA_ARGS__);                                                               \
+      Fatal().printf(__VA_ARGS__);                                                                 \
    }
 #endif // __GNUC__
 
 namespace PV {
-enum LogTypeEnum { _LogInfo, _LogWarn, _LogError, _LogErrorNoExit, _LogDebug, _LogStackTrace };
+enum LogTypeEnum { LogInfoType, LogWarnType, LogFatalType, LogErrorType, LogDebugType, LogStackTraceType };
 
 /**
- * Returns the stream used by pvInfo and, pvDebug
+ * Returns the stream used by InfoLog and, DebugLog
  * Typically, if a log file is set, the file is opened with write access and
  * getOutputStream() returns the resulting fstream.
  * If a log file is not set, this function returns std::cout.
@@ -88,7 +65,7 @@ enum LogTypeEnum { _LogInfo, _LogWarn, _LogError, _LogErrorNoExit, _LogDebug, _L
 std::ostream &getOutputStream();
 
 /**
- * Returns the stream used by pvWarn, pvError, and pvErrorNoExit.
+ * Returns the stream used by WarnLog, Fatal, and ErrorLog.
  * Typically, if a log file is set, this returns the same ostream as getOutputStream(),
  * and if a log file is not set, this returns std::cerr.
  */
@@ -106,7 +83,7 @@ std::wostream &getWErrorStream();
 
 /**
  * LogType traits class. This is the protocol for defining traits
- * for various log types, like LogInfoType, etc.
+ * for various log types, like InfoLogType, etc.
  */
 template <int T>
 struct LogType {
@@ -123,7 +100,7 @@ struct LogType {
    static bool flushOutputStream();
 
    // Append prefix, file and line number? Used for suppressing
-   // this information for LogInfoType
+   // this information for InfoLogType
    static bool prependPrefix();
 
    // Should this log type print the file and line information?
@@ -133,153 +110,157 @@ struct LogType {
    static void exit();
 };
 
-typedef LogType<_LogInfo> LogInfoType;
-typedef LogType<_LogWarn> LogWarnType;
-typedef LogType<_LogError> LogErrorType;
-typedef LogType<_LogErrorNoExit> LogErrorNoExitType;
-typedef LogType<_LogDebug> LogDebugType;
-typedef LogType<_LogStackTrace> LogStackTraceType;
+typedef LogType<LogInfoType> InfoLogType;
+typedef LogType<LogWarnType> WarnLogType;
+typedef LogType<LogFatalType> FatalType;
+typedef LogType<LogErrorType> ErrorLogType;
+typedef LogType<LogDebugType> DebugLogType;
+typedef LogType<LogStackTraceType> StackTraceType;
 
 // LogType traits
 template <>
-inline std::string LogInfoType::prefix() {
+inline std::string InfoLogType::prefix() {
    return std::string("INFO");
 }
 template <>
-inline std::string LogWarnType::prefix() {
+inline std::string WarnLogType::prefix() {
    return std::string("WARN");
 }
 template <>
-inline std::string LogErrorType::prefix() {
+inline std::string FatalType::prefix() {
    return std::string("ERROR");
 }
 template <>
-inline std::string LogErrorNoExitType::prefix() {
+inline std::string ErrorLogType::prefix() {
    return std::string("ERROR");
 }
 template <>
-inline std::string LogDebugType::prefix() {
+inline std::string DebugLogType::prefix() {
    return std::string("DEBUG");
 }
 template <>
-inline std::string LogStackTraceType::prefix() {
+inline std::string StackTraceType::prefix() {
    return std::string("");
 }
 
 template <>
-inline bool LogInfoType::output() {
+inline bool InfoLogType::output() {
    return true;
 }
 template <>
-inline bool LogWarnType::output() {
+inline bool WarnLogType::output() {
    return true;
 }
 template <>
-inline bool LogErrorType::output() {
+inline bool FatalType::output() {
    return true;
 }
 template <>
-inline bool LogErrorNoExitType::output() {
+inline bool ErrorLogType::output() {
    return true;
 }
 template <>
-inline bool LogStackTraceType::output() {
+inline bool StackTraceType::output() {
    return true;
 }
 template <>
-inline bool LogDebugType::output() {
-   return DEBUG_LOG_TEST_CONDITION;
+inline bool DebugLogType::output() {
+#if defined(NDEBUG) || defined(PV_DEBUG_OUTPUT)
+   return true;
+#else
+   return false;
+#endif // defined(NDEBUG) || defined(PV_DEBUG_OUTPUT)
 }
 
 template <>
-inline bool LogInfoType::flushOutputStream() {
+inline bool InfoLogType::flushOutputStream() {
    return false;
 }
 template <>
-inline bool LogWarnType::flushOutputStream() {
+inline bool WarnLogType::flushOutputStream() {
    return false;
 }
 template <>
-inline bool LogErrorType::flushOutputStream() {
+inline bool FatalType::flushOutputStream() {
    return true;
 }
 template <>
-inline bool LogErrorNoExitType::flushOutputStream() {
+inline bool ErrorLogType::flushOutputStream() {
    return true;
 }
 template <>
-inline bool LogStackTraceType::flushOutputStream() {
+inline bool StackTraceType::flushOutputStream() {
    return true;
 }
 template <>
-inline bool LogDebugType::flushOutputStream() {
-   return true;
-}
-
-template <>
-inline bool LogInfoType::prependPrefix() {
-   return false;
-}
-template <>
-inline bool LogWarnType::prependPrefix() {
-   return true;
-}
-template <>
-inline bool LogErrorType::prependPrefix() {
-   return true;
-}
-template <>
-inline bool LogErrorNoExitType::prependPrefix() {
-   return true;
-}
-template <>
-inline bool LogStackTraceType::prependPrefix() {
-   return false;
-}
-template <>
-inline bool LogDebugType::prependPrefix() {
+inline bool DebugLogType::flushOutputStream() {
    return true;
 }
 
 template <>
-inline bool LogInfoType::outputFileLine() {
+inline bool InfoLogType::prependPrefix() {
    return false;
 }
 template <>
-inline bool LogWarnType::outputFileLine() {
-   return false;
-}
-template <>
-inline bool LogErrorType::outputFileLine() {
+inline bool WarnLogType::prependPrefix() {
    return true;
 }
 template <>
-inline bool LogErrorNoExitType::outputFileLine() {
+inline bool FatalType::prependPrefix() {
    return true;
 }
 template <>
-inline bool LogStackTraceType::outputFileLine() {
+inline bool ErrorLogType::prependPrefix() {
+   return true;
+}
+template <>
+inline bool StackTraceType::prependPrefix() {
    return false;
 }
 template <>
-inline bool LogDebugType::outputFileLine() {
+inline bool DebugLogType::prependPrefix() {
    return true;
 }
 
 template <>
-inline void LogInfoType::exit() {}
+inline bool InfoLogType::outputFileLine() {
+   return false;
+}
 template <>
-inline void LogWarnType::exit() {}
+inline bool WarnLogType::outputFileLine() {
+   return false;
+}
 template <>
-inline void LogErrorType::exit() {
+inline bool FatalType::outputFileLine() {
+   return true;
+}
+template <>
+inline bool ErrorLogType::outputFileLine() {
+   return true;
+}
+template <>
+inline bool StackTraceType::outputFileLine() {
+   return false;
+}
+template <>
+inline bool DebugLogType::outputFileLine() {
+   return true;
+}
+
+template <>
+inline void InfoLogType::exit() {}
+template <>
+inline void WarnLogType::exit() {}
+template <>
+inline void FatalType::exit() {
    ::exit(EXIT_FAILURE);
 }
 template <>
-inline void LogErrorNoExitType::exit() {}
+inline void ErrorLogType::exit() {}
 template <>
-inline void LogStackTraceType::exit() {}
+inline void StackTraceType::exit() {}
 template <>
-inline void LogDebugType::exit() {}
+inline void DebugLogType::exit() {}
 
 // Log traits, for definining the stream to be used by the logger
 template <typename C, typename LT, typename T = std::char_traits<C>>
@@ -292,70 +273,70 @@ struct LogStreamTraits {
 };
 
 template <>
-inline std::ostream &LogStreamTraits<char, LogInfoType>::stream() {
+inline std::ostream &LogStreamTraits<char, InfoLogType>::stream() {
    return getOutputStream();
 }
 template <>
-inline std::wostream &LogStreamTraits<wchar_t, LogInfoType>::stream() {
+inline std::wostream &LogStreamTraits<wchar_t, InfoLogType>::stream() {
    return getWOutputStream();
 }
 template <>
-inline std::ostream &LogStreamTraits<char, LogWarnType>::stream() {
+inline std::ostream &LogStreamTraits<char, WarnLogType>::stream() {
    return getErrorStream();
 }
 template <>
-inline std::wostream &LogStreamTraits<wchar_t, LogWarnType>::stream() {
+inline std::wostream &LogStreamTraits<wchar_t, WarnLogType>::stream() {
    return getWErrorStream();
 }
 template <>
-inline std::ostream &LogStreamTraits<char, LogErrorType>::stream() {
+inline std::ostream &LogStreamTraits<char, FatalType>::stream() {
    return getErrorStream();
 }
 template <>
-inline std::wostream &LogStreamTraits<wchar_t, LogErrorNoExitType>::stream() {
+inline std::wostream &LogStreamTraits<wchar_t, ErrorLogType>::stream() {
    return getWErrorStream();
 }
 template <>
-inline std::ostream &LogStreamTraits<char, LogErrorNoExitType>::stream() {
+inline std::ostream &LogStreamTraits<char, ErrorLogType>::stream() {
    return getErrorStream();
 }
 template <>
-inline std::wostream &LogStreamTraits<wchar_t, LogErrorType>::stream() {
+inline std::wostream &LogStreamTraits<wchar_t, FatalType>::stream() {
    return getWErrorStream();
 }
 template <>
-inline std::ostream &LogStreamTraits<char, LogDebugType>::stream() {
+inline std::ostream &LogStreamTraits<char, DebugLogType>::stream() {
    return getOutputStream();
 }
 template <>
-inline std::wostream &LogStreamTraits<wchar_t, LogDebugType>::stream() {
+inline std::wostream &LogStreamTraits<wchar_t, DebugLogType>::stream() {
    return getWOutputStream();
 }
 template <>
-inline std::ostream &LogStreamTraits<char, LogStackTraceType>::stream() {
+inline std::ostream &LogStreamTraits<char, StackTraceType>::stream() {
    return getErrorStream();
 }
 template <>
-inline std::wostream &LogStreamTraits<wchar_t, LogStackTraceType>::stream() {
+inline std::wostream &LogStreamTraits<wchar_t, StackTraceType>::stream() {
    return getWErrorStream();
 }
 
 template <typename C, typename LT, typename T = std::char_traits<C>>
-struct _Log {
+struct Log {
    typedef std::basic_ostream<C, T> basic_ostream;
    typedef LogStreamTraits<C, LT, T> LogStreamType;
    typedef LT LogType;
 
-   _Log(const char *file = __FILE__, int line = __LINE__) : _stream(LogStreamType::stream()) {
+   Log(const char *file = __FILE__, int line = __LINE__) : _stream(LogStreamType::stream()) {
       outputPrefix(file, line);
    }
 
-   _Log(basic_ostream &s, const char *file = __FILE__, int line = __LINE__)
+   Log(basic_ostream &s, const char *file = __FILE__, int line = __LINE__)
          : _stream(LogStreamType::stream()) {
       outputPrefix(file, line);
    }
 
-   ~_Log() { LogType::exit(); }
+   ~Log() { LogType::exit(); }
 
    void outputPrefix(const char *file, int line) {
       // In release this is optimised away if log type is debug
@@ -373,21 +354,21 @@ struct _Log {
    }
 
    template <typename V>
-   _Log &operator<<(V const &value) {
+   Log &operator<<(V const &value) {
       if (LogType::output()) {
          _stream << value;
       }
       return *this;
    }
 
-   _Log &operator<<(typename LogStreamType::StrFunc func) {
+   Log &operator<<(typename LogStreamType::StrFunc func) {
       if (LogType::output()) {
          func(_stream);
       }
       return *this;
    }
 
-   _Log &flush() {
+   Log &flush() {
       if (LogType::output()) {
          _stream.flush();
       }
@@ -399,9 +380,9 @@ struct _Log {
     * statements
     * to versions that use the PVLog facilities.
     * To have output recorded in the logfile, replace printf(format,...) with
-    * pvInfo().printf(format,...)
+    * InfoLog().printf(format,...)
     * and fprintf(stderr,format,...) with pvXXXX().printf(format,...), with pvXXXX replaced by
-    * pvWarn, pvError, or pvErrorNoExit depending on the desired behavior.
+    * WarnLog, Fatal, or ErrorLog depending on the desired behavior.
     */
    int printf(char const *fmt, ...) {
       int chars_printed;
@@ -431,121 +412,42 @@ struct _Log {
 
 #ifdef __GNUC__
 // Macros that call these functions defined outside of namespace
-typedef _Log<char, LogDebugType> _Debug;
-typedef _Log<char, LogInfoType> _Info;
-typedef _Log<char, LogWarnType> _Warn;
-typedef _Log<char, LogErrorType> _Error;
-typedef _Log<char, LogErrorNoExitType> _ErrorNoExit;
-typedef _Log<char, LogStackTraceType> _StackTrace;
+typedef Log<char, DebugLogType> DebugLog;
+typedef Log<char, InfoLogType> InfoLog;
+typedef Log<char, WarnLogType> WarnLog;
+typedef Log<char, FatalType> Fatal;
+typedef Log<char, ErrorLogType> ErrorLog;
+typedef Log<char, StackTraceType> StackTrace;
 
-typedef _Log<wchar_t, LogDebugType> _WDebug;
-typedef _Log<wchar_t, LogInfoType> _WInfo;
-typedef _Log<wchar_t, LogWarnType> _WWarn;
-typedef _Log<wchar_t, LogErrorType> _WError;
-typedef _Log<char, LogErrorNoExitType> _WErrorNoExit;
-typedef _Log<wchar_t, LogStackTraceType> _WStackTrace;
+typedef Log<wchar_t, DebugLogType> WDebug;
+typedef Log<wchar_t, InfoLogType> WInfo;
+typedef Log<wchar_t, WarnLogType> WWarn;
+typedef Log<wchar_t, FatalType> WFatal;
+typedef Log<char, ErrorLogType> WError;
+typedef Log<wchar_t, StackTraceType> WStackTrace;
 
 #else
 // Clang __FILE__ and __LINE__ evalaute to the caller of the function
 // thus the macros aren't needed
-typedef _Log<char, LogDebugType> Debug;
-typedef _Log<char, LogInfoType> Info;
-typedef _Log<char, LogWarnType> Warn;
-typedef _Log<char, LogErrorType> Error;
-typedef _Log<char, LogErrorNoExitType> ErrorNoExit;
-typedef _Log<char, LogStackTraceType> StackTrace;
+typedef Log<char, DebugLogType> Debug;
+typedef Log<char, InfoLogType> Info;
+typedef Log<char, WarnLogType> Warn;
+typedef Log<char, FatalType> Error;
+typedef Log<char, ErrorLogType> ErrorNoExit;
+typedef Log<char, StackTraceType> StackTrace;
 
-typedef _Log<wchar_t, LogDebugType> WDebug;
-typedef _Log<wchar_t, LogInfoType> WInfo;
-typedef _Log<wchar_t, LogWarnType> WWarn;
-typedef _Log<wchar_t, LogErrorType> WError;
-typedef _Log<wchar_t, LogErrorNoExitType> WErrorNoExit;
-typedef _Log<wchar_t, LogStackTraceType> WStackTrace;
+typedef Log<wchar_t, DebugLogType> WDebug;
+typedef Log<wchar_t, InfoLogType> WInfo;
+typedef Log<wchar_t, WarnLogType> WWarn;
+typedef Log<wchar_t, FatalType> WFatal;
+typedef Log<wchar_t, ErrorLogType> WError;
+typedef Log<wchar_t, StackTraceType> WStackTrace;
 #endif // __GNUC__
 
-// setLogFile sets the file that the pvDebug, pvInfo, pvWarn, and pvError streams write to.
+// setLogFile sets the file that the DebugLog, InfoLog, WarnLog, and Fatal streams write to.
 void setLogFile(char const *logFile, std::ios_base::openmode mode = std::ios_base::out);
 void setWLogFile(char const *logFile, std::ios_base::openmode mode = std::ios_base::out);
 
 } // end namespace PV
-
-// Older, deprecated versions that use C-style FILE* streams instead of C++ ostreams.
-
-#ifdef _PV_DEBUG_OUTPUT
-/**
- * pvLogDebug is deprecated.  Use pvDebug methods instead.
- */
-#define pvLogDebug(fmt, ...) PV::pv_log_debug(__FILE__, __LINE__, fmt, ##__VA_ARGS__)
-#else
-#define pvLogDebug(fmt, ...)
-#endif // _PV_DEBUG_OUTPUT
-
-/*
- * pvLogInfo is deprecated.  Use pvInfo methods instead.
- */
-#define pvLogInfo(fmt, ...) PV::pv_log_info(__FILE__, __LINE__, fmt, ##__VA_ARGS__)
-
-/*
- * pvLogWarn is deprecated.  Use pvWarn methods instead.
- */
-#define pvLogWarn(fmt, ...) PV::pv_log_warn(__FILE__, __LINE__, fmt, ##__VA_ARGS__)
-
-/*
- * pvLogWarn is deprecated.  Use pvWarn methods instead.
- */
-#define pvLogError(fmt, ...) PV::pv_log_error(__FILE__, __LINE__, fmt, ##__VA_ARGS__)
-
-/*
- * pvExitFailure is deprecated.  Use pvLogError (or, preferably, pvError) instead.
- */
-#define pvExitFailure(fmt, ...) PV::pv_exit_failure(__FILE__, __LINE__, fmt, ##__VA_ARGS__)
-
-namespace PV {
-/**
- * pv_log_info is deprecated.  Use pvInfo methods instead.
- */
-void pv_log_info(const char *file, int line, const char *fmt, ...);
-
-/**
- * pv_log_warn is deprecated.  Use pvWarn methods instead.
- */
-void pv_log_warn(const char *file, int line, const char *fmt, ...);
-
-/**
- * pv_log_error is deprecated.  Use pvError methods instead.
- */
-void pv_log_error(const char *file, int line, const char *fmt, ...);
-
-/**
- * pv_log_error_noexit is deprecated.  Use pvErrorNoExit methods instead.
- */
-void pv_log_error_noexit(const char *file, int line, const char *fmt, ...);
-
-/**
- * pv_log_debug is deprecated.  Use pvDebug methods instead.
- */
-void pv_log_debug(const char *file, int line, const char *fmt, ...);
-
-/**
- * pv_exit_failure is deprecated.  Use pvError methods instead.
- */
-void pv_exit_failure(const char *file, int line, const char *fmt, ...);
-
-// Commented out June 16, 2016.  The only functions to call these functions
-// are deprecated and in contained in PVLog.cpp.
-// If it becomes desirable to use the capability provided by these functions,
-// we should add a vprintf method to _Log instead of reactivating these declarations.
-
-// // Non-varargs versions, used internally, but exposed just in case
-// // some other program wants to use them.
-// void vpv_log_error(const char *file, int line, const char *fmt, va_list args);
-// void vpv_log_debug(const char *file, int line, const char *fmt, va_list args);
-
-} // end namespace PV
-
-// Clean up preprocessor
-#ifdef _PV_DEBUG_OUTPUT
-#undef _PV_DEBUG_OUTPUT
-#endif // _PV_DEBUG_OUTPUT
 
 #endif // PVLOG_HPP_

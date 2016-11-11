@@ -70,9 +70,9 @@ int GapLayer::updateState(
       double timef,
       double dt,
       const PVLayerLoc *loc,
-      pvdata_t *A,
-      pvdata_t *V,
-      pvdata_t *checkActive) {
+      float *A,
+      float *V,
+      float *checkActive) {
    int nx          = loc->nx;
    int ny          = loc->ny;
    int nf          = loc->nf;

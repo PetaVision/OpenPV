@@ -19,16 +19,16 @@ int main(int argc, char *argv[]) {
 
 int customexit(HyPerCol *hc, int argc, char *argv[]) {
    HyPerLayer *l = hc->getLayerFromName("TestLayer");
-   pvErrorIf(!(l), "Test failed.\n");
-   pvErrorIf(!(l->getNumProbes() == 1), "Test failed.\n");
+   FatalIf(!(l), "Test failed.\n");
+   FatalIf(!(l->getNumProbes() == 1), "Test failed.\n");
    LayerProbe *p = l->getProbe(0);
-   pvErrorIf(!(!strcmp(p->getName(), "TestProbe")), "Test failed.\n");
+   FatalIf(!(!strcmp(p->getName(), "TestProbe")), "Test failed.\n");
    ResetStateOnTriggerTestProbe *rsProbe = dynamic_cast<ResetStateOnTriggerTestProbe *>(p);
-   pvErrorIf(!(rsProbe), "Test failed.\n");
+   FatalIf(!(rsProbe), "Test failed.\n");
    int status = PV_SUCCESS;
    if (rsProbe->getProbeStatus()) {
       if (hc->columnId() == 0) {
-         pvErrorNoExit().printf("%s failed at time %f\n", argv[0], rsProbe->getFirstFailureTime());
+         ErrorLog().printf("%s failed at time %f\n", argv[0], rsProbe->getFirstFailureTime());
       }
       status = PV_FAILURE;
    }

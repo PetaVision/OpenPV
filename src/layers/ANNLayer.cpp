@@ -112,14 +112,14 @@ void ANNLayer::ioParam_verticesV(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       if (numVerticesTmp == 0) {
          if (this->getParent()->columnId() == 0) {
-            pvErrorNoExit().printf("%s: verticesV cannot be empty\n", getDescription_c());
+            ErrorLog().printf("%s: verticesV cannot be empty\n", getDescription_c());
          }
          MPI_Barrier(this->getParent()->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
       if (numVertices != 0 && numVerticesTmp != numVertices) {
          if (this->getParent()->columnId() == 0) {
-            pvErrorNoExit().printf(
+            ErrorLog().printf(
                   "%s: verticesV (%d elements) and verticesA (%d elements) must have the same "
                   "lengths.\n",
                   getDescription_c(),
@@ -142,14 +142,14 @@ void ANNLayer::ioParam_verticesA(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       if (numVerticesA == 0) {
          if (this->getParent()->columnId() == 0) {
-            pvErrorNoExit().printf("%s: verticesA cannot be empty\n", getDescription_c());
+            ErrorLog().printf("%s: verticesA cannot be empty\n", getDescription_c());
          }
          MPI_Barrier(this->getParent()->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
       if (numVertices != 0 && numVerticesA != numVertices) {
          if (this->getParent()->columnId() == 0) {
-            pvErrorNoExit().printf(
+            ErrorLog().printf(
                   "%s: verticesV (%d elements) and verticesA (%d elements) must have the same "
                   "lengths.\n",
                   getDescription_c(),
@@ -215,18 +215,18 @@ void ANNLayer::ioParam_clearGSynInterval(enum ParamsIOFlag ioFlag) {
             ioFlag, name, "clearGSynInterval", &clearGSynInterval);
       if (clearGSynInterval) {
          if (parent->getCommunicator()->commRank() == 0) {
-            pvErrorNoExit() << getDescription() << ": the clearGSynInterval parameter is obsolete. "
-                                                   " Value 0 specified in params file will be "
-                                                   "ignored.\n";
+            ErrorLog() << getDescription() << ": the clearGSynInterval parameter is obsolete. "
+                                              " Value 0 specified in params file will be "
+                                              "ignored.\n";
          }
          MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
       else {
          if (parent->getCommunicator()->commRank() == 0) {
-            pvWarn() << getDescription() << ": the clearGSynInterval parameter is obsolete.  "
-                                            "Nonzero values of clearGSynInterval must be "
-                                            "removed.\n";
+            WarnLog() << getDescription() << ": the clearGSynInterval parameter is obsolete.  "
+                                             "Nonzero values of clearGSynInterval must be "
+                                             "removed.\n";
          }
       }
    }
@@ -238,7 +238,7 @@ int ANNLayer::setVertices() {
       VThresh += VWidth;
       VWidth = -VWidth;
       if (parent->columnId() == 0) {
-         pvWarn().printf(
+         WarnLog().printf(
                "%s: interpreting negative VWidth as setting VThresh=%f and VWidth=%f\n",
                getDescription_c(),
                (double)VThresh,
@@ -246,14 +246,14 @@ int ANNLayer::setVertices() {
       }
    }
 
-   pvdata_t limfromright = VThresh + VWidth - AShift;
+   float limfromright = VThresh + VWidth - AShift;
    if (AMax < limfromright)
       limfromright = AMax;
 
    if (AMin > limfromright) {
       if (parent->columnId() == 0) {
          if (VWidth == 0) {
-            pvWarn().printf(
+            WarnLog().printf(
                   "%s: nonmonotonic transfer function, jumping from %f to %f at Vthresh=%f\n",
                   getDescription_c(),
                   (double)AMin,
@@ -261,7 +261,7 @@ int ANNLayer::setVertices() {
                   (double)VThresh);
          }
          else {
-            pvWarn().printf(
+            WarnLog().printf(
                   "%s: nonmonotonic transfer function, changing from %f to %f as V goes from "
                   "VThresh=%f to VThresh+VWidth=%f\n",
                   getDescription_c(),
@@ -276,21 +276,20 @@ int ANNLayer::setVertices() {
    // Initialize slopes to NaN so that we can tell whether they've been initialized.
    slopeNegInf = std::numeric_limits<double>::quiet_NaN();
    slopePosInf = std::numeric_limits<double>::quiet_NaN();
-   std::vector<pvpotentialdata_t> vectorV;
-   std::vector<pvadata_t> vectorA;
+   std::vector<float> vectorV;
+   std::vector<float> vectorA;
 
    slopePosInf = 1.0f;
-   if (VThresh <= -(pvdata_t)0.999 * max_pvvdata_t) {
+   if (VThresh <= -(float)0.999 * FLT_MAX) {
       numVertices = 1;
-      vectorV.push_back((pvpotentialdata_t)0);
+      vectorV.push_back((float)0);
       vectorA.push_back(-AShift);
       slopeNegInf = 1.0f;
    }
    else {
-      assert(VWidth >= (pvpotentialdata_t)0);
-      if (VWidth == (pvpotentialdata_t)0
-          && (pvadata_t)VThresh - AShift
-                   == AMin) { // Should there be a tolerance instead of strict ==?
+      assert(VWidth >= (float)0);
+      if (VWidth == (float)0
+          && (float)VThresh - AShift == AMin) { // Should there be a tolerance instead of strict ==?
          numVertices = 1;
          vectorV.push_back(VThresh);
          vectorA.push_back(AMin);
@@ -304,11 +303,11 @@ int ANNLayer::setVertices() {
       }
       slopeNegInf = 0.0f;
    }
-   if (AMax < (pvdata_t)0.999 * max_pvadata_t) {
+   if (AMax < (float)0.999 * FLT_MAX) {
       assert(slopePosInf == 1.0f);
       if (vectorA[numVertices - 1] < AMax) {
-         pvadata_t interval = AMax - vectorA[numVertices - 1];
-         vectorV.push_back(vectorV[numVertices - 1] + (pvpotentialdata_t)interval);
+         float interval = AMax - vectorA[numVertices - 1];
+         vectorV.push_back(vectorV[numVertices - 1] + (float)interval);
          vectorA.push_back(AMax);
          numVertices++;
       }
@@ -324,11 +323,11 @@ int ANNLayer::setVertices() {
          }
          if (found) {
             assert(v + 1 < numVertices && vectorA[v] < AMax && vectorA[v + 1] >= AMax);
-            pvadata_t interval = AMax - vectorA[v];
-            numVertices        = v + 1;
+            float interval = AMax - vectorA[v];
+            numVertices    = v + 1;
             vectorA.resize(numVertices);
             vectorV.resize(numVertices);
-            vectorV.push_back(vectorV[v] + (pvpotentialdata_t)interval);
+            vectorV.push_back(vectorV[v] + (float)interval);
             vectorA.push_back(AMax);
             // In principle, there could be a case where a vertex n has A[n]>AMax but A[n-1] and
             // A[n+1] are both < AMax.
@@ -343,17 +342,17 @@ int ANNLayer::setVertices() {
             vectorA.resize(numVertices);
             vectorV.resize(numVertices);
             if (slopeNegInf > 0) {
-               pvadata_t intervalA         = vectorA[0] - AMax;
-               pvpotentialdata_t intervalV = (pvpotentialdata_t)(intervalA / slopeNegInf);
-               vectorV[0]                  = vectorV[0] - intervalV;
-               vectorA[0]                  = AMax;
+               float intervalA = vectorA[0] - AMax;
+               float intervalV = (float)(intervalA / slopeNegInf);
+               vectorV[0]      = vectorV[0] - intervalV;
+               vectorA[0]      = AMax;
             }
             else {
                // Everything everywhere is above AMax, so make the transfer function a constant
                // A=AMax.
                vectorA.resize(1);
                vectorV.resize(1);
-               vectorV[0]  = (pvpotentialdata_t)0;
+               vectorV[0]  = (float)0;
                vectorA[0]  = AMax;
                numVertices = 1;
                slopeNegInf = 0;
@@ -364,10 +363,10 @@ int ANNLayer::setVertices() {
    }
    assert(!isnan(slopeNegInf) && !isnan(slopePosInf) && numVertices > 0);
    assert(vectorA.size() == numVertices && vectorV.size() == numVertices);
-   verticesV = (pvpotentialdata_t *)malloc((size_t)numVertices * sizeof(*verticesV));
-   verticesA = (pvadata_t *)malloc((size_t)numVertices * sizeof(*verticesA));
+   verticesV = (float *)malloc((size_t)numVertices * sizeof(*verticesV));
+   verticesA = (float *)malloc((size_t)numVertices * sizeof(*verticesA));
    if (verticesV == NULL || verticesA == NULL) {
-      pvErrorNoExit().printf(
+      ErrorLog().printf(
             "%s: unable to allocate memory for vertices:%s\n", getDescription_c(), strerror(errno));
       exit(EXIT_FAILURE);
    }
@@ -410,7 +409,7 @@ int ANNLayer::checkVertices() const {
       if (verticesV[v] < verticesV[v - 1]) {
          status = PV_FAILURE;
          if (this->getParent()->columnId() == 0) {
-            pvErrorNoExit().printf(
+            ErrorLog().printf(
                   "%s: vertices %d and %d: V-coordinates decrease from %f to %f.\n",
                   getDescription_c(),
                   v,
@@ -421,7 +420,7 @@ int ANNLayer::checkVertices() const {
       }
       if (verticesA[v] < verticesA[v - 1]) {
          if (this->getParent()->columnId() == 0) {
-            pvWarn().printf(
+            WarnLog().printf(
                   "%s: vertices %d and %d: A-coordinates decrease from %f to %f.\n",
                   getDescription_c(),
                   v,
@@ -440,10 +439,10 @@ int ANNLayer::resetGSynBuffers(double timef, double dt) {
 
 int ANNLayer::updateState(double time, double dt) {
    const PVLayerLoc *loc = getLayerLoc();
-   pvdata_t *A           = clayer->activity->data;
-   pvdata_t *V           = getV();
+   float *A              = clayer->activity->data;
+   float *V              = getV();
    int num_channels      = getNumChannels();
-   pvdata_t *gSynHead    = GSyn == NULL ? NULL : GSyn[0];
+   float *gSynHead       = GSyn == NULL ? NULL : GSyn[0];
    int nx                = loc->nx;
    int ny                = loc->ny;
    int nf                = loc->nf;

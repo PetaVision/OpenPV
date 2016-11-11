@@ -30,7 +30,7 @@ class LeakyIntegrator : public PV::ANNLayer {
 
    // Member Variables
   protected:
-   pvdata_t integrationTime;
+   float integrationTime;
 }; // class LeakyIntegrator
 
 } /* namespace PV */

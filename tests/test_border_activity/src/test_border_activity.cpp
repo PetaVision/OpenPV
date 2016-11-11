@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
 
    if (initObj->getParamsFile() != NULL) {
       if (rank == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s does not take -p as an option.  Instead the necessary params file is "
                "hard-coded.\n",
                argv[0]);
@@ -64,9 +64,9 @@ int main(int argc, char *argv[]) {
    assert(l1);
 
    HyPerConn *conn1 = new HyPerConn("test_border_activity connection 1", hc);
-   pvErrorIf(!(conn1), "Test failed.\n");
+   FatalIf(!(conn1), "Test failed.\n");
    HyPerConn *conn2 = new HyPerConn("test_border_activity connection 2", hc);
-   pvErrorIf(!(conn2), "Test failed.\n");
+   FatalIf(!(conn2), "Test failed.\n");
 
 #ifdef DEBUG_OUTPUT
    PointProbe *p1 = new PointProbe(0, 0, 0, "L1 (0,0,0):");
@@ -95,14 +95,13 @@ int check_activity(HyPerLayer *l) {
    const int nf = l->clayer->loc.nf;
 
    const int nk = l->clayer->numNeurons;
-   pvErrorIf(!(nk == nx * ny * nf), "Test failed.\n");
+   FatalIf(!(nk == nx * ny * nf), "Test failed.\n");
 
    for (int k = 0; k < nk; k++) {
       int a = (int)l->clayer->activity->data[k];
       if (a != UNIFORM_ACTIVITY_VALUE) {
          status = -1;
-         pvErrorNoExit().printf(
-               "test_border_activity: activity==%d != %d\n", a, UNIFORM_ACTIVITY_VALUE);
+         ErrorLog().printf("test_border_activity: activity==%d != %d\n", a, UNIFORM_ACTIVITY_VALUE);
          return status;
       }
    }

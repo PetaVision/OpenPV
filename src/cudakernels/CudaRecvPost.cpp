@@ -160,7 +160,7 @@ void CudaRecvPost::setArgs(
 
       // Patch sizes must be odd multiple of many
       if (nxp % 2 == 0 || nyp % 2 == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "cuDNN: Running on a one to many connection with CUDNN must have patch size (%d, "
                "%d) be an odd muliple of many (%d, %d)\n",
                nxp * params.manyScaleX,
@@ -213,8 +213,8 @@ void CudaRecvPost::setArgs(
                - 2 * params.diffX); // Width of each feature map
    if (status != CUDNN_STATUS_SUCCESS) {
       switch (status) {
-         case CUDNN_STATUS_BAD_PARAM: pvError().printf("cuDNN bad parameter\n"); break;
-         default: pvError().printf("cuDNN unknown error code %d\n", status);
+         case CUDNN_STATUS_BAD_PARAM: Fatal().printf("cuDNN bad parameter\n"); break;
+         default: Fatal().printf("cuDNN unknown error code %d\n", status);
       }
       pvAssert(0);
    }
@@ -294,7 +294,7 @@ void CudaRecvPost::setArgs(
              << nf * params.manyScaleX * params.manyScaleY << "\n";
       errmsg << "Actual dimensions of output PV layer (n, y, x, f): " << nbatch << ", " << nyRes
              << ", " << nxRes << ", " << nf << "\n";
-      pvError() << errmsg.str() << std::endl;
+      Fatal() << errmsg.str() << std::endl;
    }
 
    // Set up output descriptor

@@ -24,7 +24,7 @@ class InitCocircWeights : public PV::InitGauss2DWeights {
    InitCocircWeights(char const *name, HyPerCol *hc);
    virtual ~InitCocircWeights();
 
-   virtual int calcWeights(pvdata_t *dataStart, int patchIndex, int arborId);
+   virtual int calcWeights(float *dataStart, int patchIndex, int arborId);
    virtual InitWeightsParams *createNewWeightParams();
 
   protected:
@@ -39,7 +39,7 @@ class InitCocircWeights : public PV::InitGauss2DWeights {
          int kfPost,
          InitCocircWeightsParams *weightParamPtr,
          float thPost);
-   int cocircCalcWeights(pvdata_t *w_tmp, InitCocircWeightsParams *weightParamPtr);
+   int cocircCalcWeights(float *w_tmp, InitCocircWeightsParams *weightParamPtr);
 }; // class InitCocircWeights
 
 } /* namespace PV */

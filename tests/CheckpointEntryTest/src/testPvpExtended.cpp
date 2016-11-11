@@ -15,14 +15,14 @@ void testPvpExtended(PV::Communicator *comm, std::string const &directory) {
    loc.halo.up      = 2;
    loc.nbatch       = 1;
    loc.kb0          = comm->commBatch();
-   pvErrorIf(
+   FatalIf(
          loc.nxGlobal % comm->numCommColumns(),
          "Global width %d is not a multiple of the number of MPI columns %d\n",
          loc.nxGlobal,
          comm->numCommColumns());
    loc.nx  = loc.nxGlobal / comm->numCommColumns();
    loc.kx0 = loc.nx * comm->commColumn();
-   pvErrorIf(
+   FatalIf(
          loc.nyGlobal % comm->numCommRows(),
          "Global height %d is not a multiple of the number of MPI rows %d\n",
          loc.nyGlobal,
@@ -73,14 +73,14 @@ void testPvpExtended(PV::Communicator *comm, std::string const &directory) {
 
    // Verify the read, noting that checkpointWrite only saves the restricted portion and
    // checkpointRead sets the the extended portion to zero.
-   pvErrorIf(readTime != simTime, "Read timestamp %f; expected %f.\n", readTime, simTime);
+   FatalIf(readTime != simTime, "Read timestamp %f; expected %f.\n", readTime, simTime);
    for (int k = 0; k < localExtendedSize; k++) {
       int kxGlobalExt = kxPos(k, nxLocalExt, nyLocalExt, loc.nf) + loc.kx0;
       int kyGlobalExt = kyPos(k, nxLocalExt, nyLocalExt, loc.nf) + loc.ky0;
       bool inBorder   = kxGlobalExt < loc.halo.lt || kxGlobalExt >= loc.nxGlobal + loc.halo.lt
                       || kyGlobalExt < loc.halo.up || kyGlobalExt >= loc.nyGlobal + loc.halo.up;
       float correctValue = inBorder ? 0.0f : correctData.at(k);
-      pvErrorIf(
+      FatalIf(
             checkpointData.at(k) != correctValue,
             "testDataPvp failed: data at rank %d, index %d is %f, but should be %f\n",
             comm->commRank(),
@@ -89,5 +89,5 @@ void testPvpExtended(PV::Communicator *comm, std::string const &directory) {
             (double)correctValue);
    }
    MPI_Barrier(comm->communicator());
-   pvInfo() << "testDataPvpExtended passed.\n";
+   InfoLog() << "testDataPvpExtended passed.\n";
 }

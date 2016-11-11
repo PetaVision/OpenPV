@@ -52,7 +52,7 @@ void SegmentLayer::ioParam_segmentMethod(enum ParamsIOFlag ioFlag) {
    // How do we segment across MPI margins?
    else {
       if (parent->columnId() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s: segmentMethod %s not recognized. Current options are \"none\".\n",
                getDescription_c(),
                segmentMethod);
@@ -68,7 +68,7 @@ void SegmentLayer::ioParam_originalLayerName(enum ParamsIOFlag ioFlag) {
    assert(originalLayerName);
    if (ioFlag == PARAMS_IO_READ && originalLayerName[0] == '\0') {
       if (parent->columnId() == 0) {
-         pvErrorNoExit().printf("%s: originalLayerName must be set.\n", getDescription_c());
+         ErrorLog().printf("%s: originalLayerName must be set.\n", getDescription_c());
       }
       MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -81,7 +81,7 @@ int SegmentLayer::communicateInitInfo() {
    originalLayer = parent->getLayerFromName(originalLayerName);
    if (originalLayer == NULL) {
       if (parent->columnId() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s: originalLayerName \"%s\" is not a layer in the HyPerCol.\n",
                getDescription_c(),
                originalLayerName);
@@ -104,7 +104,7 @@ int SegmentLayer::communicateInitInfo() {
    // Original layer must be the same x/y size as this layer
    if (srcLoc->nxGlobal != thisLoc->nxGlobal || srcLoc->nyGlobal != thisLoc->nyGlobal) {
       if (parent->columnId() == 0) {
-         pvErrorNoExit(errorMessage);
+         ErrorLog(errorMessage);
          errorMessage.printf(
                "%s: originalLayer \"%s\" does not have the same x and y dimensions as this "
                "layer.\n",
@@ -124,7 +124,7 @@ int SegmentLayer::communicateInitInfo() {
    // This layer must have only 1 feature
    if (thisLoc->nf != 1) {
       if (parent->columnId() == 0) {
-         pvErrorNoExit().printf("%s: SegmentLayer must have 1 feature.\n", getDescription_c());
+         ErrorLog().printf("%s: SegmentLayer must have 1 feature.\n", getDescription_c());
       }
       MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -133,7 +133,7 @@ int SegmentLayer::communicateInitInfo() {
    // If segmentMethod is none, we also need to make sure the srcLayer also has nf == 1
    if (strcmp(segmentMethod, "none") == 0 && srcLoc->nf != 1) {
       if (parent->columnId() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s: Source layer must have 1 feature with segmentation method \"none\".\n",
                getDescription_c());
       }
@@ -241,8 +241,8 @@ int SegmentLayer::initializeV() {
 int SegmentLayer::initializeActivity() { return PV_SUCCESS; }
 
 int SegmentLayer::updateState(double timef, double dt) {
-   pvdata_t *srcA  = originalLayer->getActivity();
-   pvdata_t *thisA = getActivity();
+   float *srcA  = originalLayer->getActivity();
+   float *thisA = getActivity();
    assert(srcA);
    assert(thisA);
 
@@ -253,7 +253,7 @@ int SegmentLayer::updateState(double timef, double dt) {
       int numBatchExtended = getNumExtendedAllBatches();
       // Copy activity over
       // Since both buffers should be identical size, we can do a memcpy here
-      memcpy(thisA, srcA, numBatchExtended * sizeof(pvdata_t));
+      memcpy(thisA, srcA, numBatchExtended * sizeof(float));
    }
    else {
       // This case should never happen
@@ -268,7 +268,7 @@ int SegmentLayer::updateState(double timef, double dt) {
    }
 
    for (int bi = 0; bi < loc->nbatch; bi++) {
-      pvdata_t *batchA = thisA + bi * getNumExtended();
+      float *batchA = thisA + bi * getNumExtended();
       // Reset max/min buffers
       maxX.clear();
       maxY.clear();

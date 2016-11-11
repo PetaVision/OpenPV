@@ -23,7 +23,7 @@ int FirmThresholdCostFnLCAProbe::communicateInitInfo() {
    HyPerLCALayer *targetLCALayer = dynamic_cast<HyPerLCALayer *>(targetLayer);
    if (targetLCALayer == nullptr) {
       if (parent->columnId() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s: targetLayer \"%s\" is not an LCA layer.\n",
                getDescription_c(),
                getTargetName());
@@ -33,7 +33,7 @@ int FirmThresholdCostFnLCAProbe::communicateInitInfo() {
    }
    if (targetLCALayer->layerListsVerticesInParams() == true) {
       if (parent->columnId() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s: LCAProbes require targetLayer \"%s\" to use "
                "VThresh etc. instead of "
                "verticesV/verticesV.\n",

@@ -42,14 +42,14 @@ void GaussianRandomV::ioParam_sigmaV(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValue(ioFlag, name, "maxV", &sigmaV, sigmaV);
 }
 
-int GaussianRandomV::calcV(pvdata_t *V, PVLayerLoc const *loc) {
+int GaussianRandomV::calcV(float *V, PVLayerLoc const *loc) {
    PVLayerLoc flatLoc;
    memcpy(&flatLoc, loc, sizeof(PVLayerLoc));
    flatLoc.nf = 1;
    GaussianRandom randState{&flatLoc, false /*not extended*/};
    const int nxny = flatLoc.nx * flatLoc.ny;
    for (int b = 0; b < loc->nbatch; b++) {
-      pvdata_t *VBatch = V + b * loc->nx * loc->ny * loc->nf;
+      float *VBatch = V + b * loc->nx * loc->ny * loc->nf;
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif

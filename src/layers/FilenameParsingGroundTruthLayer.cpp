@@ -49,7 +49,7 @@ void FilenameParsingGroundTruthLayer::ioParam_classes(enum ParamsIOFlag ioFlag) 
    std::string outPath = parent->getOutputPath();
    outPath             = outPath + "/classes.txt";
    mInputFile.open(outPath.c_str(), std::ifstream::in);
-   pvErrorIf(!mInputFile.is_open(), "%s: Unable to open file %s\n", getName(), outPath.c_str());
+   FatalIf(!mInputFile.is_open(), "%s: Unable to open file %s\n", getName(), outPath.c_str());
 
    mClasses.clear();
    std::string line;
@@ -61,12 +61,12 @@ void FilenameParsingGroundTruthLayer::ioParam_classes(enum ParamsIOFlag ioFlag) 
 
 int FilenameParsingGroundTruthLayer::communicateInitInfo() {
    mInputLayer = dynamic_cast<InputLayer *>(parent->getLayerFromName(mInputLayerName));
-   pvErrorIf(
+   FatalIf(
          mInputLayer == nullptr && parent->columnId() == 0,
          "%s: inputLayerName \"%s\" is not a layer in the HyPerCol.\n",
          getDescription_c(),
          mInputLayerName);
-   pvErrorIf(
+   FatalIf(
          mInputLayer->getPhase() <= getPhase(),
          "%s: The phase of layer %s (%d) must be greater than the phase of the "
          "FilenameParsingGroundTruthLayer (%d)\n",
@@ -83,10 +83,10 @@ bool FilenameParsingGroundTruthLayer::needUpdate(double time, double dt) {
 
 int FilenameParsingGroundTruthLayer::updateState(double time, double dt) {
    update_timer->start();
-   pvdata_t *A           = getCLayer()->activity->data;
+   float *A              = getCLayer()->activity->data;
    const PVLayerLoc *loc = getLayerLoc();
    int num_neurons       = getNumNeurons();
-   pvErrorIf(
+   FatalIf(
          num_neurons != mClasses.size(),
          "The number of neurons in %s is not equal to the number of classes specified in "
          "%s/classes.txt\n",
@@ -121,8 +121,8 @@ int FilenameParsingGroundTruthLayer::updateState(double time, double dt) {
                parent->getCommunicator()->communicator());
       }
 
-      std::string fil  = currentFilename;
-      pvdata_t *ABatch = A + b * getNumExtended();
+      std::string fil = currentFilename;
+      float *ABatch   = A + b * getNumExtended();
       for (int i = 0; i < num_neurons; i++) {
          int nExt = kIndexExtended(
                i,

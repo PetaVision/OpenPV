@@ -18,7 +18,7 @@ namespace PVCuda {
 #include <builtin_types.h>
 
 typedef struct PVPatch_ {
-   // pvdata_t * __attribute__ ((aligned)) data;
+   // float * __attribute__ ((aligned)) data;
    unsigned int offset;
    unsigned short nx, ny;
 } PVPatch;

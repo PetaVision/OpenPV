@@ -32,7 +32,7 @@ void CheckpointEntry::deleteFile(
       if (statstatus == 0) {
          int unlinkstatus = unlink(path.c_str());
          if (unlinkstatus != 0) {
-            pvError().printf("Failure deleting \"%s\": %s\n", path.c_str(), strerror(errno));
+            Fatal().printf("Failure deleting \"%s\": %s\n", path.c_str(), strerror(errno));
          }
       }
    }

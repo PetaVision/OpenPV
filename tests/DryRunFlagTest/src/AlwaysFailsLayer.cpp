@@ -21,8 +21,8 @@ bool AlwaysFailsLayer::needUpdate(double simTime, double dt) {
    // The params file should be run with the -n flag, which causes HyPerCol::run() to exit before
    // entering the advanceTime loop.
    // Therefore neither updateState, nor updateStateGpu, should ever be called.
-   pvError() << getDescription()
-             << ": needUpdate was called, and should never be called during DryRunFlagTest.\n";
+   Fatal() << getDescription()
+           << ": needUpdate was called, and should never be called during DryRunFlagTest.\n";
    return false;
 }
 

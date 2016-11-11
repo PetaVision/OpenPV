@@ -26,7 +26,7 @@ int main(int argc, char *argv[]) {
       float kx = kxPos(kl, nxLocal, nyLocal, nf);
 
       if (kx != (float)kxx) {
-         pvError().printf("FAILED:TEST_KXPOS: (k,kx) = (%d,%f)\n", kl, (double)kx);
+         Fatal().printf("FAILED:TEST_KXPOS: (k,kx) = (%d,%f)\n", kl, (double)kx);
       }
    }
 
@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
       float kx = kxPos(kl, nxLocal, nyLocal, nf);
 
       if ((int)kx - kxx != 0) {
-         pvError().printf("FAILED:TEST_KXPOS: (k,kx) = (%d,%f)\n", kl, (double)kx);
+         Fatal().printf("FAILED:TEST_KXPOS: (k,kx) = (%d,%f)\n", kl, (double)kx);
       }
    }
 
@@ -71,7 +71,7 @@ int main(int argc, char *argv[]) {
       float kx = kxPos(kl, nxLocal, nyLocal, nf);
 
       if ((int)kx - kxx != 0) {
-         pvError().printf("FAILED:TEST_KXPOS: (k,kx) = (%d,%f)\n", kl, (double)kx);
+         Fatal().printf("FAILED:TEST_KXPOS: (k,kx) = (%d,%f)\n", kl, (double)kx);
       }
    }
 
@@ -95,7 +95,7 @@ int main(int argc, char *argv[]) {
       float kx = kxPos(kl, nxLocal, nyLocal, nf);
 
       if ((int)kx - kxx != 0) {
-         pvError().printf("FAILED:TEST_KXPOS: (k,kx) = (%d,%f)\n", kl, (double)kx);
+         Fatal().printf("FAILED:TEST_KXPOS: (k,kx) = (%d,%f)\n", kl, (double)kx);
       }
    }
 

@@ -30,7 +30,7 @@ class InitVFromFile : public BaseInitV {
    InitVFromFile(char const *name, HyPerCol *hc);
    virtual ~InitVFromFile();
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-   virtual int calcV(pvdata_t *V, PVLayerLoc const *loc) override;
+   virtual int calcV(float *V, PVLayerLoc const *loc) override;
 
   protected:
    InitVFromFile();

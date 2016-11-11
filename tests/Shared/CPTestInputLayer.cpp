@@ -46,7 +46,7 @@ int CPTestInputLayer::allocateDataStructures() {
 
    status = initializeV();
    if (status != PV_SUCCESS) {
-      pvErrorNoExit().printf(
+      ErrorLog().printf(
             "CPTestInputLayer \"%s\" in rank %d process: initializeV failed.\n",
             name,
             parent->columnId());
@@ -55,19 +55,19 @@ int CPTestInputLayer::allocateDataStructures() {
 }
 
 int CPTestInputLayer::initializeV() {
-   pvErrorIf(
+   FatalIf(
          !(parent->parameters()->value(name, "restart", 0.0, false) == 0.0),
          "Test failed.\n"); // initializeV should only be called if restart is false
    const PVLayerLoc *loc = getLayerLoc();
    for (int b = 0; b < parent->getNBatch(); b++) {
-      pvdata_t *VBatch = getV() + b * getNumNeurons();
+      float *VBatch = getV() + b * getNumNeurons();
       for (int k = 0; k < getNumNeurons(); k++) {
          int kx = kxPos(k, loc->nx, loc->nx, loc->nf);
          int ky = kyPos(k, loc->nx, loc->ny, loc->nf);
          int kf = featureIndex(k, loc->nx, loc->ny, loc->nf);
          int kGlobal =
                kIndex(loc->kx0 + kx, loc->ky0 + ky, kf, loc->nxGlobal, loc->nyGlobal, loc->nf);
-         VBatch[k] = (pvdata_t)kGlobal;
+         VBatch[k] = (float)kGlobal;
       }
    }
    return PV_SUCCESS;
@@ -82,9 +82,9 @@ int CPTestInputLayer::updateState(double timed, double dt) {
    const int numNeurons = getNumNeurons();
    const int nbatch     = clayer->loc.nbatch;
 
-   pvdata_t *GSynHead = GSyn[0];
-   pvdata_t *V        = getV();
-   pvdata_t *activity = clayer->activity->data;
+   float *GSynHead = GSyn[0];
+   float *V        = getV();
+   float *activity = clayer->activity->data;
 
    CPTestInputLayer_update_state(
          nbatch,

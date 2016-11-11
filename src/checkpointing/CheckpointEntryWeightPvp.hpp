@@ -10,7 +10,6 @@
 
 #include "checkpointing/CheckpointEntry.hpp"
 #include "columns/Communicator.hpp"
-#include "include/pv_datatypes.h"
 #include <string>
 
 namespace PV {
@@ -24,7 +23,7 @@ class CheckpointEntryWeightPvp : public CheckpointEntry {
          bool sharedWeights,
          PVPatch ***patchData,
          int patchDataSize,
-         pvdata_t **weightData,
+         float **weightData,
          int weightDataSize,
          int nxp,
          int nyp,
@@ -55,7 +54,7 @@ class CheckpointEntryWeightPvp : public CheckpointEntry {
          bool sharedWeights,
          PVPatch ***patchData,
          int patchDataSize,
-         pvdata_t **weightData,
+         float **weightData,
          int weightDataSize,
          int nxp,
          int nyp,
@@ -89,7 +88,7 @@ class CheckpointEntryWeightPvp : public CheckpointEntry {
          bool sharedWeights,
          PVPatch ***patchData,
          int patchDataSize,
-         pvdata_t **weightData,
+         float **weightData,
          int weightDataSize,
          int nxp,
          int nyp,
@@ -103,7 +102,7 @@ class CheckpointEntryWeightPvp : public CheckpointEntry {
   private:
    bool mSharedWeights;
    PVPatch ***mPatchData;
-   pvdata_t **mWeightData;
+   float **mWeightData;
    int mPatchDataSize;
    int mWeightDataSize;
    int mNumArbors;

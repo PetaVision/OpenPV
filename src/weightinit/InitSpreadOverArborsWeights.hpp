@@ -21,7 +21,7 @@ class InitSpreadOverArborsWeights : public PV::InitGauss2DWeights {
    virtual ~InitSpreadOverArborsWeights();
    virtual InitWeightsParams *createNewWeightParams();
 
-   virtual int calcWeights(/* PVPatch * patch */ pvdata_t *dataStart, int patchIndex, int arborId);
+   virtual int calcWeights(/* PVPatch * patch */ float *dataStart, int patchIndex, int arborId);
 
   protected:
    InitSpreadOverArborsWeights();
@@ -30,7 +30,7 @@ class InitSpreadOverArborsWeights : public PV::InitGauss2DWeights {
   private:
    int initialize_base();
    int spreadOverArborsWeights(
-         /* PVPatch * patch */ pvdata_t *dataStart,
+         /* PVPatch * patch */ float *dataStart,
          int arborId,
          InitSpreadOverArborsWeightsParams *weightParamPtr);
 };

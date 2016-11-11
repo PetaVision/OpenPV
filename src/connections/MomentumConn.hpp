@@ -30,7 +30,7 @@ class MomentumConn : public HyPerConn {
 
    virtual int registerData(Checkpointer *checkpointer, std::string const &objName) override;
 
-   inline pvwdata_t *get_prev_dwDataHead(int arborId, int dataIndex) {
+   inline float *get_prev_dwDataHead(int arborId, int dataIndex) {
       return &prev_dwDataStart[arborId][dataIndex * nxp * nyp * nfp];
    }
 
@@ -39,7 +39,7 @@ class MomentumConn : public HyPerConn {
 
   private:
    int initialize_base();
-   pvwdata_t **prev_dwDataStart;
+   float **prev_dwDataStart;
    float momentumTau;
    float momentumDecay;
    char *momentumMethod;

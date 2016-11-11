@@ -29,7 +29,7 @@ using namespace PV;
 
 int checkLoc(HyPerCol *hc, const PVLayerLoc *loc);
 
-int checkInput(const PVLayerLoc *loc, const pvdata_t *data, pvdata_t val, bool extended);
+int checkInput(const PVLayerLoc *loc, const float *data, float val, bool extended);
 
 const char filename[] = "output/test_layer_direct.bin";
 const char outfile[]  = "output/test_layer_direct_out.bin";
@@ -72,41 +72,41 @@ int main(int argc, char *argv[]) {
 
    const int rank = hc->columnId();
 #ifdef DEBUG_OUTPUT
-   pvDebug().printf("[%d]: column: ", rank);
+   DebugLog().printf("[%d]: column: ", rank);
    printLoc(hc->getImageLoc());
-   pvDebug().printf("[%d]: image : ", rank);
+   DebugLog().printf("[%d]: image : ", rank);
    printLoc(image->getImageLoc());
-   pvDebug().printf("[%d]: retina: ", rank);
+   DebugLog().printf("[%d]: retina: ", rank);
    printLoc(*retina->getLayerLoc());
-   pvDebug().printf("[%d]: l1    : ", rank);
+   DebugLog().printf("[%d]: l1    : ", rank);
    printLoc(*l1->getLayerLoc());
 #endif
 
    status = checkLoc(hc, image->getLayerLoc());
    if (status != PV_SUCCESS) {
-      pvError().printf("[%d]: test_constant_input: ERROR in image loc\n", rank);
+      Fatal().printf("[%d]: test_constant_input: ERROR in image loc\n", rank);
    }
 
    status = checkLoc(hc, retina->getLayerLoc());
    if (status != PV_SUCCESS) {
-      pvError().printf("[%d]: test_constant_input: ERROR in retina loc\n", rank);
+      Fatal().printf("[%d]: test_constant_input: ERROR in retina loc\n", rank);
    }
 
    status = checkInput(image->getLayerLoc(), image->getActivity(), image->getConstantVal(), true);
    if (status != PV_SUCCESS) {
-      pvError().printf("[%d]: test_constant_input: ERROR in image data\n", rank);
+      Fatal().printf("[%d]: test_constant_input: ERROR in image data\n", rank);
    }
 
    float retinaVal = sumOfWeights * image->getConstantVal();
 
    status = checkInput(retina->getLayerLoc(), retina->getActivity(), retinaVal, false);
    if (status != 0) {
-      pvError().printf("[%d]: test_constant_input: ERROR in retina data\n", rank);
+      Fatal().printf("[%d]: test_constant_input: ERROR in retina data\n", rank);
    }
 
    status = checkInput(retina->getLayerLoc(), retina->getLayerData(), retinaVal, true);
    if (status != 0) {
-      pvError().printf("[%d]: test_constant_input: ERROR in retina data\n", rank);
+      Fatal().printf("[%d]: test_constant_input: ERROR in retina data\n", rank);
    }
 
    delete hc;
@@ -115,7 +115,7 @@ int main(int argc, char *argv[]) {
    return status;
 }
 
-int checkInput(const PVLayerLoc *loc, const pvdata_t *data, pvdata_t val, bool extended) {
+int checkInput(const PVLayerLoc *loc, const float *data, float val, bool extended) {
    int status = 0;
 
    const PVHalo *halo = &loc->halo;
@@ -143,21 +143,21 @@ int createTestFile(const char *filename, int nTotal, float *buf) {
    result = fwrite(buf, sizeof(float), nTotal, fd);
    fclose(fd);
    if ((int)result != nTotal) {
-      pvErrorNoExit().printf("[ ]: createTestFile: failure to write to file %s\n", filename);
+      ErrorLog().printf("[ ]: createTestFile: failure to write to file %s\n", filename);
    }
 
    fd     = fopen(filename, "rb");
    result = fread(buf, sizeof(float), nTotal, fd);
    fclose(fd);
    if ((int)result != nTotal) {
-      pvErrorNoExit().printf("[ ]: createTestFile: unable to read from file %s\n", filename);
+      ErrorLog().printf("[ ]: createTestFile: unable to read from file %s\n", filename);
    }
 
    err = 0;
    for (i = 0; i < nTotal; i++) {
       if (buf[i] != (float)i) {
          err = 1;
-         pvErrorNoExit().printf("%s file is incorrect at %d\n", filename, i);
+         ErrorLog().printf("%s file is incorrect at %d\n", filename, i);
       }
    }
 
@@ -165,7 +165,7 @@ int createTestFile(const char *filename, int nTotal, float *buf) {
 }
 
 int printLoc(const PVLayerLoc *loc) {
-   pvInfo().printf(
+   InfoLog().printf(
          "nxGlobal==%d nyGlobal==%d nx==%d ny==%d kx0==%d ky0==%d halo==(%d,%d,%d,%d) nf==%d\n",
          loc->nxGlobal,
          loc->nyGlobal,
@@ -178,7 +178,7 @@ int printLoc(const PVLayerLoc *loc) {
          loc->halo.dn,
          loc->halo.up,
          loc->nf);
-   pvInfo().flush();
+   InfoLog().flush();
    return 0;
 }
 

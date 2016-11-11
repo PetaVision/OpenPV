@@ -48,7 +48,7 @@ int MaskFromMemoryBuffer::communicateInitInfo() {
    HyPerLayer * hyperLayer = parent->getLayerFromName(imageLayerName);
    if (hyperLayer==NULL) {
       if (parent->columnId()==0) {
-         pvErrorNoExit().printf("%s: imageLayerName \"%s\" is not a layer in the HyPerCol.\n",
+         ErrorLog().printf("%s: imageLayerName \"%s\" is not a layer in the HyPerCol.\n",
                  getDescription_c(), imageLayerName);
       }
       status = PV_FAILURE;
@@ -57,7 +57,7 @@ int MaskFromMemoryBuffer::communicateInitInfo() {
       imageLayer = dynamic_cast<PV::BaseInput *>(hyperLayer);
       if (imageLayer==NULL) {
          if (parent->columnId()==0) {
-         pvErrorNoExit().printf("%s: imageLayerName \"%s\" is not an BaseInput-derived layer.\n",
+         ErrorLog().printf("%s: imageLayerName \"%s\" is not an BaseInput-derived layer.\n",
                getDescription_c(), imageLayerName);
          }
          status = PV_FAILURE;
@@ -66,7 +66,7 @@ int MaskFromMemoryBuffer::communicateInitInfo() {
    MPI_Barrier(parent->getCommunicator()->communicator());
    if (!imageLayer->getInitInfoCommunicatedFlag()) {
       if (parent->columnId()==0) {
-         pvInfo().printf("%s must wait until imageLayer \"%s\" has finished its communicateInitInfo stage.\n", getDescription_c(), imageLayerName);
+         InfoLog().printf("%s must wait until imageLayer \"%s\" has finished its communicateInitInfo stage.\n", getDescription_c(), imageLayerName);
       }
       return PV_POSTPONE;
    }
@@ -74,7 +74,7 @@ int MaskFromMemoryBuffer::communicateInitInfo() {
    PVLayerLoc const * loc = getLayerLoc();
    if (imageLayerLoc->nx != loc->nx || imageLayerLoc->ny != loc->ny) {
       if (parent->columnId()==0) {
-         pvErrorNoExit().printf("%s: dimensions (%d-by-%d) do not agree with dimensions of image layer \"%s\" (%d-by-%d)n", getDescription_c(), loc->nx, loc->ny, imageLayerName, imageLayerLoc->nx, imageLayerLoc->ny);
+         ErrorLog().printf("%s: dimensions (%d-by-%d) do not agree with dimensions of image layer \"%s\" (%d-by-%d)n", getDescription_c(), loc->nx, loc->ny, imageLayerName, imageLayerLoc->nx, imageLayerLoc->ny);
       }
       status = PV_FAILURE;
    }
@@ -102,7 +102,7 @@ int MaskFromMemoryBuffer::updateState(double time, double dt)
 
    PVLayerLoc const * loc = getLayerLoc();
    for(int b = 0; b < loc->nbatch; b++){
-      pvdata_t * ABatch = getActivity() + b * getNumExtended();
+      float * ABatch = getActivity() + b * getNumExtended();
       int const num_neurons = getNumNeurons();
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
@@ -114,7 +114,7 @@ int MaskFromMemoryBuffer::updateState(double time, double dt)
          int const nf = loc->nf;
          int x = kxPos(ni, nx, ny, nf);
          int y = kyPos(ni, nx, ny, nf);
-         pvadata_t a = (pvadata_t) (x>=dataLeft && x < dataRight && y >= dataTop && y < dataBottom);
+         float a = (float) (x>=dataLeft && x < dataRight && y >= dataTop && y < dataBottom);
          int nExt = kIndexExtended(ni, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
          ABatch[nExt] = a;
       }

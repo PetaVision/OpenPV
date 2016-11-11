@@ -38,7 +38,7 @@ int InputLayer::allocateDataStructures() {
          if (getParent()->getCheckpointReadFlag()) {
             struct stat statbuf;
             if (PV_stat(timestampFilename.c_str(), &statbuf) != 0) {
-               pvWarn().printf(
+               WarnLog().printf(
                      "%s: timestamp file \"%s\" unable to be found.  Creating new file.\n",
                      getDescription_c(),
                      timestampFilename.c_str());
@@ -74,7 +74,7 @@ int InputLayer::allocateDataStructures() {
       // Calculate file positions for beginning of each frame
       if (mUsingFileList) {
          populateFileList();
-         pvInfo() << "File " << mInputPath << " contains " << mFileList.size() << " frames\n";
+         InfoLog() << "File " << mInputPath << " contains " << mFileList.size() << " frames\n";
       }
 
       mInputData.resize(numBatch);
@@ -176,13 +176,13 @@ void InputLayer::nextInput(double timef, double dt) {
 }
 
 int InputLayer::scatterInput(int batchIndex) {
-   const int rank            = parent->columnId();
-   MPI_Comm mpiComm          = parent->getCommunicator()->communicator();
-   pvadata_t *activityBuffer = getActivity() + batchIndex * getNumExtended();
-   const PVLayerLoc *loc     = getLayerLoc();
-   const PVHalo *halo        = &loc->halo;
-   int activityWidth         = loc->nx + (mUseInputBCflag ? halo->lt + halo->rt : 0);
-   int activityHeight        = loc->ny + (mUseInputBCflag ? halo->up + halo->dn : 0);
+   const int rank        = parent->columnId();
+   MPI_Comm mpiComm      = parent->getCommunicator()->communicator();
+   float *activityBuffer = getActivity() + batchIndex * getNumExtended();
+   const PVLayerLoc *loc = getLayerLoc();
+   const PVHalo *halo    = &loc->halo;
+   int activityWidth     = loc->nx + (mUseInputBCflag ? halo->lt + halo->rt : 0);
+   int activityHeight    = loc->ny + (mUseInputBCflag ? halo->up + halo->dn : 0);
    Buffer<float> croppedBuffer;
 
    if (rank == 0) {
@@ -226,7 +226,7 @@ void InputLayer::fitBufferToLayer(Buffer<float> &buffer) {
    const int targetWidth  = loc->nxGlobal + (mUseInputBCflag ? (halo->lt + halo->rt) : 0);
    const int targetHeight = loc->nyGlobal + (mUseInputBCflag ? (halo->dn + halo->up) : 0);
 
-   pvErrorIf(
+   FatalIf(
          buffer.getFeatures() != loc->nf,
          "ERROR: Input for layer %s has %d features, but layer has %d\n.",
          getName(),
@@ -363,7 +363,7 @@ double InputLayer::getDeltaUpdateTime() { return mDisplayPeriod > 0 ? mDisplayPe
 
 int InputLayer::requireChannel(int channelNeeded, int *numChannelsResult) {
    if (parent->columnId() == 0) {
-      pvErrorNoExit().printf("%s cannot be a post-synaptic layer.\n", getDescription_c());
+      ErrorLog().printf("%s cannot be a post-synaptic layer.\n", getDescription_c());
    }
    *numChannelsResult = 0;
    return PV_FAILURE;
@@ -385,7 +385,7 @@ void InputLayer::populateFileList() {
    if (mUsingFileList && parent->columnId() == 0) {
       std::string line;
       mFileList.clear();
-      pvInfo() << "Reading list: " << mInputPath << "\n";
+      InfoLog() << "Reading list: " << mInputPath << "\n";
       std::ifstream infile(mInputPath, std::ios_base::in);
       while (getline(infile, line, '\n')) {
          std::string noWhiteSpace = line;
@@ -488,7 +488,7 @@ void InputLayer::ioParam_offsetAnchor(enum ParamsIOFlag ioFlag) {
       char *offsetAnchor = nullptr;
       parent->parameters()->ioParamString(ioFlag, name, "offsetAnchor", &offsetAnchor, "tl");
       if (checkValidAnchorString(offsetAnchor) == PV_FAILURE) {
-         pvError() << "Invalid value for offsetAnchor\n";
+         Fatal() << "Invalid value for offsetAnchor\n";
       }
       if (strcmp(offsetAnchor, "tl") == 0) {
          mAnchor = Buffer<float>::NORTHWEST;
@@ -519,7 +519,7 @@ void InputLayer::ioParam_offsetAnchor(enum ParamsIOFlag ioFlag) {
       }
       else {
          if (parent->columnId() == 0) {
-            pvErrorNoExit().printf(
+            ErrorLog().printf(
                   "%s: offsetAnchor must be a two-letter string.  The first character must be "
                   "\"t\", \"c\", or \"b\" (for top, center or bottom); and the second character "
                   "must be \"l\", \"c\", or \"r\" (for left, center or right).\n",
@@ -592,7 +592,7 @@ void InputLayer::ioParam_aspectRatioAdjustment(enum ParamsIOFlag ioFlag) {
       }
       else {
          if (parent->columnId() == 0) {
-            pvErrorNoExit().printf(
+            ErrorLog().printf(
                   "%s: aspectRatioAdjustment must be either \"crop\" or \"pad\".\n",
                   getDescription_c());
          }
@@ -628,7 +628,7 @@ void InputLayer::ioParam_interpolationMethod(enum ParamsIOFlag ioFlag) {
          }
          else {
             if (parent->columnId() == 0) {
-               pvErrorNoExit().printf(
+               ErrorLog().printf(
                      "%s: interpolationMethod must be either \"bicubic\" or \"nearestNeighbor\".\n",
                      getDescription_c());
             }
@@ -717,9 +717,9 @@ void InputLayer::ioParam_batchMethod(enum ParamsIOFlag ioFlag) {
       mBatchMethod = BatchIndexer::RANDOM;
    }
    else {
-      pvError() << getName() << ": Input layer " << name
-                << " batchMethod not recognized. Options "
-                   "are \"byFile\", \"byList\", bySpecified, and random.\n";
+      Fatal() << getName() << ": Input layer " << name
+              << " batchMethod not recognized. Options "
+                 "are \"byFile\", \"byList\", bySpecified, and random.\n";
    }
    free(batchMethod);
 }
@@ -742,7 +742,7 @@ void InputLayer::ioParam_start_frame_index(enum ParamsIOFlag ioFlag) {
    }
    this->getParent()->parameters()->ioParamArray(
          ioFlag, this->getName(), "start_frame_index", &paramsStartFrameIndex, &length);
-   pvErrorIf(
+   FatalIf(
          length > 0 && length != parent->getNBatchGlobal(),
          "%s: start_frame_index requires either 0 or nbatch values.\n",
          getName());
@@ -773,11 +773,11 @@ void InputLayer::ioParam_skip_frame_index(enum ParamsIOFlag ioFlag) {
    }
    this->getParent()->parameters()->ioParamArray(
          ioFlag, this->getName(), "skip_frame_index", &paramsSkipFrameIndex, &length);
-   pvErrorIf(
+   FatalIf(
          length != 0 && mBatchMethod != BatchIndexer::BYSPECIFIED,
          "%s: skip_frame_index requires batchMethod == bySpecified.\n",
          getName());
-   pvErrorIf(
+   FatalIf(
          mBatchMethod == BatchIndexer::BYSPECIFIED && length != parent->getNBatchGlobal(),
          "%s: skip_frame_index requires nbatch values.\n",
          getName());
@@ -802,24 +802,24 @@ void InputLayer::ioParam_resetToStartOnLoop(enum ParamsIOFlag ioFlag) {
 }
 
 BaseInputDeprecatedError::BaseInputDeprecatedError(const char *name, HyPerCol *hc) {
-   pvError() << "Movie, Image, MoviePvp, and ImagePvp are deprecated.\n"
-             << "Use ImageLayer or PvpLayer instead. These replacements\n"
-             << "accept the same parameters with the following changes:\n"
-             << "  - ImageLayer assumes any inputPath ending in .txt is\n"
-             << "    a Movie, and behaves accordingly. Set displayPeriod\n"
-             << "    to 0 to display a single image within a file list.\n"
-             << "    If inputPath ends in .png, .jpg, or .bmp, the layer\n"
-             << "    displays a single Image.\n"
-             << "  - PvpLayer no longer has the parameter pvpFrameIndex.\n"
-             << "    Instead, use start_frame_index to specify which\n"
-             << "    index to display. If displayPeriod != 0, PvpLayer\n"
-             << "    behaves like a MoviePvp instead of an ImagePvp.\n"
-             << "  - Jitter has been removed. Parameters related to it\n"
-             << "    will be ignored.\n"
-             << "  - useImageBCFlag is now useInputBCFlag.\n"
-             << "  - batchMethod now expects byFile or byList instead of\n"
-             << "    byImage or byMovie. bySpecified has not changed.\n"
-             << "  - FilenameParsingGroundTruthLayer now acceps a param\n"
-             << "    called inputLayerName instead of movieLayerName.\n";
+   Fatal() << "Movie, Image, MoviePvp, and ImagePvp are deprecated.\n"
+           << "Use ImageLayer or PvpLayer instead. These replacements\n"
+           << "accept the same parameters with the following changes:\n"
+           << "  - ImageLayer assumes any inputPath ending in .txt is\n"
+           << "    a Movie, and behaves accordingly. Set displayPeriod\n"
+           << "    to 0 to display a single image within a file list.\n"
+           << "    If inputPath ends in .png, .jpg, or .bmp, the layer\n"
+           << "    displays a single Image.\n"
+           << "  - PvpLayer no longer has the parameter pvpFrameIndex.\n"
+           << "    Instead, use start_frame_index to specify which\n"
+           << "    index to display. If displayPeriod != 0, PvpLayer\n"
+           << "    behaves like a MoviePvp instead of an ImagePvp.\n"
+           << "  - Jitter has been removed. Parameters related to it\n"
+           << "    will be ignored.\n"
+           << "  - useImageBCFlag is now useInputBCFlag.\n"
+           << "  - batchMethod now expects byFile or byList instead of\n"
+           << "    byImage or byMovie. bySpecified has not changed.\n"
+           << "  - FilenameParsingGroundTruthLayer now acceps a param\n"
+           << "    called inputLayerName instead of movieLayerName.\n";
 }
 }

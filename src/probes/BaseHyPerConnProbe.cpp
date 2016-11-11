@@ -31,7 +31,7 @@ int BaseHyPerConnProbe::communicateInitInfo() {
    targetHyPerConn = dynamic_cast<HyPerConn *>(targetConn);
    if (targetHyPerConn == NULL) {
       if (parent->columnId() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s: targetConn \"%s\" must be a HyPerConn or "
                "HyPerConn-derived class.\n",
                getDescription_c(),

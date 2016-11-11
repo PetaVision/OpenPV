@@ -17,8 +17,8 @@ int MoviePvpTestLayer::updateState(double time, double dt) {
    int numBatchPerProc   = parent->numCommBatches();
 
    for (int b = 0; b < nbatch; b++) {
-      pvdata_t *dataBatch = getActivity() + b * getNumExtended();
-      int frameIdx        = 0;
+      float *dataBatch = getActivity() + b * getNumExtended();
+      int frameIdx     = 0;
       if (mBatchMethod == BatchIndexer::BYFILE || mBatchMethod == BatchIndexer::BYSPECIFIED) {
          frameIdx = (time - 1) * nbatchGlobal + commBatch * numBatchPerProc + b;
       }
@@ -30,17 +30,17 @@ int MoviePvpTestLayer::updateState(double time, double dt) {
          int nkExt = kIndexExtended(
                nkRes, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
          // checkVal is the value from batch index 0
-         pvdata_t checkVal = dataBatch[nkExt];
+         float checkVal = dataBatch[nkExt];
 
          int kxGlobal = kxPos(nkRes, nx, ny, nf) + loc->kx0;
          int kyGlobal = kyPos(nkRes, nx, ny, nf) + loc->ky0;
          int kf       = featureIndex(nkRes, nx, ny, nf);
 
-         pvdata_t expectedVal =
+         float expectedVal =
                kIndex(kxGlobal, kyGlobal, kf, loc->nxGlobal, loc->nyGlobal, nf) + frameIdx * 192;
          if (fabs(checkVal - expectedVal) >= 1e-5) {
-            pvErrorNoExit() << "ImageFileIO " << name << " test Expected: " << expectedVal
-                            << " Actual: " << checkVal << "\n";
+            ErrorLog() << "ImageFileIO " << name << " test Expected: " << expectedVal
+                       << " Actual: " << checkVal << "\n";
          }
       }
    }

@@ -62,7 +62,7 @@ void scatter(
       // This set of conversions could be greatly reduced by giving Buffer
       // a constructor that accepts raw memory.
       T *tempMem = (T *)calloc(buffer.getTotalElements(), dataSize);
-      pvErrorIf(
+      FatalIf(
             tempMem == nullptr,
             "Could not allocate a receive buffer of %d bytes.\n",
             buffer.getTotalElements() * dataSize);
@@ -98,7 +98,7 @@ gather(Communicator *comm, Buffer<T> buffer, unsigned int localWidth, unsigned i
 
       // Receive each slice of our full buffer from each MPI process
       T *tempMem = (T *)calloc(numElements, dataSize);
-      pvErrorIf(
+      FatalIf(
             tempMem == nullptr,
             "Could not allocate a receive buffer of %d bytes.\n",
             numElements * dataSize);
@@ -169,7 +169,7 @@ SparseList<T> gatherSparse(Communicator *comm, SparseList<T> list) {
             if (numToRecv > 0) {
                struct SparseList<T>::Entry *recvBuffer =
                      (struct SparseList<T>::Entry *)calloc(numToRecv, entrySize);
-               pvErrorIf(
+               FatalIf(
                      recvBuffer == nullptr,
                      "Could not allocate a receive buffer of %d bytes.\n",
                      numToRecv * entrySize);

@@ -23,16 +23,15 @@ int main(int argc, char *argv[]) {
       std::string rmrfcommand("rm -rf ");
       rmrfcommand.append(checkpointDirectory);
       int status = system(rmrfcommand.c_str());
-      pvErrorIf(status, "%s failed to delete %s\n", argv[0], checkpointDirectory.c_str());
+      FatalIf(status, "%s failed to delete %s\n", argv[0], checkpointDirectory.c_str());
    }
 
    // Create and run the column, and then retrieve the connection
    PV::HyPerCol *hc = createHyPerCol(&pv_initObj);
-   pvErrorIf(hc == nullptr, "Failed to create HyPerCol.\n");
+   FatalIf(hc == nullptr, "Failed to create HyPerCol.\n");
    hc->run();
    PV::HyPerConn *conn = dynamic_cast<PV::HyPerConn *>(hc->getConnFromName(connectionName.c_str()));
-   pvErrorIf(
-         conn == nullptr, "No connection named % in %s\n", connectionName.c_str(), hc->getName());
+   FatalIf(conn == nullptr, "No connection named % in %s\n", connectionName.c_str(), hc->getName());
 
    int const numArbors      = conn->numberOfAxonalArborLists();
    int const patchDataSize  = conn->getNumWeightPatches();
@@ -53,15 +52,15 @@ int main(int argc, char *argv[]) {
    }
 
    // Copy the weight data
-   std::vector<std::vector<pvdata_t>> weights{(std::size_t)numArbors};
+   std::vector<std::vector<float>> weights{(std::size_t)numArbors};
    for (int a = 0; a < numArbors; a++) {
-      std::vector<pvdata_t> &w = weights.at(a);
+      std::vector<float> &w = weights.at(a);
       w.resize(weightDataSize * nxp * nyp * nfp);
-      pvdata_t *destWeights         = w.data();
-      pvdata_t const *sourceWeights = conn->get_wDataStart(a);
-      memcpy(destWeights, sourceWeights, sizeof(pvdata_t) * weightDataSize * nxp * nyp * nfp);
+      float *destWeights         = w.data();
+      float const *sourceWeights = conn->get_wDataStart(a);
+      memcpy(destWeights, sourceWeights, sizeof(float) * weightDataSize * nxp * nyp * nfp);
    }
-   std::vector<pvdata_t *> weightPointers{(std::size_t)numArbors};
+   std::vector<float *> weightPointers{(std::size_t)numArbors};
    for (int a = 0; a < numArbors; a++) {
       weightPointers[a] = weights[a].data();
    }
@@ -88,9 +87,9 @@ int main(int argc, char *argv[]) {
 
    // Overwrite the data
    for (int a = 0; a < numArbors; a++) {
-      std::vector<pvdata_t> &w = weights.at(a);
+      std::vector<float> &w = weights.at(a);
       for (std::size_t d = 0; d < w.size(); d++) {
-         w[d] = (w[d] == (pvdata_t)d) ? (pvdata_t)-1.0 : (pvdata_t)d;
+         w[d] = (w[d] == (float)d) ? (float)-1.0 : (float)d;
       }
    }
 
@@ -99,11 +98,11 @@ int main(int argc, char *argv[]) {
 
    // Compare the weight data
    for (int a = 0; a < numArbors; a++) {
-      std::vector<pvdata_t> &w      = weights.at(a);
-      pvdata_t *destWeights         = w.data();
-      pvdata_t const *sourceWeights = conn->get_wDataStart(a);
+      std::vector<float> &w      = weights.at(a);
+      float *destWeights         = w.data();
+      float const *sourceWeights = conn->get_wDataStart(a);
       for (int k = 0; k < weightDataSize * nxp * nyp * nfp; k++) {
-         pvErrorIf(destWeights[k] != sourceWeights[k], "%s failed.\n", argv[0]);
+         FatalIf(destWeights[k] != sourceWeights[k], "%s failed.\n", argv[0]);
       }
    }
 

@@ -20,7 +20,7 @@ int AvgPoolTestInputLayer::updateState(double timef, double dt) {
    int ky0               = loc->ky0;
 
    for (int b = 0; b < parent->getNBatch(); b++) {
-      pvdata_t *A = getActivity() + b * getNumExtended();
+      float *A = getActivity() + b * getNumExtended();
       // looping over ext
       for (int iY = 0; iY < ny + loc->halo.up + loc->halo.dn; iY++) {
          for (int iX = 0; iX < nx + loc->halo.lt + loc->halo.rt; iX++) {

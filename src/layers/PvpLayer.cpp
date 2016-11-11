@@ -19,7 +19,7 @@ int PvpLayer::allocateDataStructures() {
       return status;
    }
    if (parent->columnId() == 0) {
-      pvErrorIf(
+      FatalIf(
             getUsingFileList(),
             "%s: PvpLayer does not support using a list of files.\n",
             getName());

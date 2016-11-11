@@ -37,7 +37,7 @@ class ShrunkenPatchTestProbe : public PV::StatsProbe {
    char *probeName;
    int nxpShrunken;
    int nypShrunken;
-   pvdata_t *correctValues;
+   float *correctValues;
 }; // end class ShrunkenPatchTestProbe
 
 } // end namespace PV

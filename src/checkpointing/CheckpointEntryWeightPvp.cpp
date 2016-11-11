@@ -19,7 +19,7 @@ void CheckpointEntryWeightPvp::initialize(
       bool sharedWeights,
       PVPatch ***patchData,
       int patchDataSize,
-      pvdata_t **weightData,
+      float **weightData,
       int weightDataSize,
       int nxp,
       int nyp,

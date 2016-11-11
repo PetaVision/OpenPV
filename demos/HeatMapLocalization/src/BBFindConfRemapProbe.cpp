@@ -286,7 +286,7 @@ int BBFindConfRemapProbe::allocateDataStructures() {
    }
    montageImageLocal = (unsigned char *) pvCallocError(imageLocalSize, sizeof(*montageImageLocal),
          "%s allocation for heat map image in rank %d\n", getDescription_c(), parent->columnId());
-   grayScaleImage = (pvadata_t *) pvCallocError(imageLoc->nx*imageLoc->ny, sizeof(pvadata_t),
+   grayScaleImage = (float *) pvCallocError(imageLoc->nx*imageLoc->ny, sizeof(float),
          "%s allocation for background image in rank %d\n", getDescription_c(), parent->columnId());
    return PV_SUCCESS;
 }
@@ -440,20 +440,20 @@ void BBFindConfRemapProbe::makeGrayScaleImage(int b) {
    int const ny = imageLoc->ny;
    int const nf = imageLoc->nf;
    int const N = nx * ny;
-   pvadata_t const * imageActivity = imageLayer->getLayerData()+b*imageLayer->getNumExtended();
+   float const * imageActivity = imageLayer->getLayerData()+b*imageLayer->getNumExtended();
    for (int kxy = 0; kxy < N; kxy++) {
-      pvadata_t a = (pvadata_t) 0;
+      float a = (float) 0;
       int nExt0 = kIndexExtended(kxy * nf, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
-      pvadata_t const * imageDataXY = &imageActivity[nExt0];
+      float const * imageDataXY = &imageActivity[nExt0];
       for (int f=0; f<nf; f++) {
          a += imageDataXY[f];
       }
-      grayScaleImage[kxy] = a/(pvadata_t) nf;
+      grayScaleImage[kxy] = a/(float) nf;
    }
-   pvadata_t minValue = std::numeric_limits<pvadata_t>::infinity();
-   pvadata_t maxValue = -std::numeric_limits<pvadata_t>::infinity();
+   float minValue = std::numeric_limits<float>::infinity();
+   float maxValue = -std::numeric_limits<float>::infinity();
    for (int kxy = 0; kxy < N; kxy++) {
-      pvadata_t a = grayScaleImage[kxy];
+      float a = grayScaleImage[kxy];
       if (a < minValue) { minValue = a; }
       if (a > maxValue) { maxValue = a; }
    }
@@ -467,17 +467,17 @@ void BBFindConfRemapProbe::makeGrayScaleImage(int b) {
       }
    }
    else {
-      pvadata_t scaleFactor = (pvadata_t) 1.0/(maxValue-minValue);
+      float scaleFactor = (float) 1.0/(maxValue-minValue);
       for (int kxy = 0; kxy < N; kxy++) {
-         pvadata_t * pixloc = &grayScaleImage[kxy];
+         float * pixloc = &grayScaleImage[kxy];
          *pixloc = scaleFactor * (*pixloc - minValue);
       }
    }
 }
 
 void BBFindConfRemapProbe::drawHeatMaps(int b) {
-   pvadata_t thresholdColor[] = {0.5f, 0.5f, 0.5f}; // rgb color of heat map when activity is at or below detectionThreshold
-   pvadata_t heatMapColor[] = {0.0f, 1.0f, 0.0f};   // rgb color of heat map when activity is at or above heatMapMaximum
+   float thresholdColor[] = {0.5f, 0.5f, 0.5f}; // rgb color of heat map when activity is at or below detectionThreshold
+   float heatMapColor[] = {0.0f, 1.0f, 0.0f};   // rgb color of heat map when activity is at or above heatMapMaximum
 
    PVLayerLoc const * targetLoc = targetLayer->getLayerLoc();
    PVHalo const * targetHalo = &targetLoc->halo;
@@ -493,7 +493,7 @@ void BBFindConfRemapProbe::drawHeatMaps(int b) {
    }
 
    double maxConfByCategory[targetLoc->nf];
-   for (int f=0; f<targetLoc->nf; f++) { maxConfByCategory[f] = -std::numeric_limits<pvadata_t>::infinity(); }
+   for (int f=0; f<targetLoc->nf; f++) { maxConfByCategory[f] = -std::numeric_limits<float>::infinity(); }
    for (size_t d=0; d<numDetections; d++) {
       int f = winningFeature[d];
       double a = boxConfidence[d];
@@ -511,12 +511,12 @@ void BBFindConfRemapProbe::drawHeatMaps(int b) {
       int f = category-1; // category is 1-indexed; f is zero-indexed.
       for (int y=0; y<ny; y++) {
          for (int x=0; x<nx; x++) {
-            pvadata_t backgroundLevel = grayScaleImage[x + nx * y];
+            float backgroundLevel = grayScaleImage[x + nx * y];
             int xTarget = (int) ((double) x/imageDilationX);
             int yTarget = (int) ((double) y/imageDilationY);
             int targetIdx = kIndex(xTarget, yTarget, f, targetLoc->nx, targetLoc->ny, targetLoc->nf);
             int targetIdxExt = kIndexExtended(targetIdx, targetLoc->nx, targetLoc->ny, targetLoc->nf, targetHalo->lt, targetHalo->rt, targetHalo->dn, targetHalo->up);
-            pvadata_t heatMapLevel = targetLayer->getLayerData()[targetIdxExt];
+            float heatMapLevel = targetLayer->getLayerData()[targetIdxExt];
 
             // Only show values if they are the highest category
             for(int idx2=0; idx2<numDisplayedCategories; idx2++) {
@@ -527,12 +527,12 @@ void BBFindConfRemapProbe::drawHeatMaps(int b) {
             float heatMapThresh = heatMapThreshold[idx];
             float heatMapMax = heatMapMaximum[idx];
             heatMapLevel = (heatMapLevel - heatMapThresh)/(heatMapMax-heatMapThresh);
-            heatMapLevel = heatMapLevel < (pvadata_t) 0 ? (pvadata_t) 0 : heatMapLevel > (pvadata_t) 1 ? (pvadata_t) 1 : heatMapLevel;
+            heatMapLevel = heatMapLevel < (float) 0 ? (float) 0 : heatMapLevel > (float) 1 ? (float) 1 : heatMapLevel;
             int montageIdx = kIndex(x, y, 0, nx, ny, 3);
             for(int rgb=0; rgb<3; rgb++) {
-               pvadata_t h = heatMapLevel * heatMapColor[rgb] + (1-heatMapLevel) * thresholdColor[rgb];
-               pvadata_t g = imageBlendCoeff * backgroundLevel + (1-imageBlendCoeff) * h;
-               assert(g>=(pvadata_t) -0.001 && g <= (pvadata_t) 1.001);
+               float h = heatMapLevel * heatMapColor[rgb] + (1-heatMapLevel) * thresholdColor[rgb];
+               float g = imageBlendCoeff * backgroundLevel + (1-imageBlendCoeff) * h;
+               assert(g>=(float) -0.001 && g <= (float) 1.001);
                g = nearbyintf(255*g);
                unsigned char gchar = (unsigned char) g;
                assert(montageIdx>=0 && montageIdx+rgb<nx*ny*3);
@@ -679,9 +679,9 @@ void BBFindConfRemapProbe::insertFileIntoMontage(char const * labelFilename, int
    GDALClose(dataset);
 }
 
-void BBFindConfRemapProbe::insertImageIntoMontage(int xStart, int yStart, pvadata_t const * sourceData, PVLayerLoc const * loc, bool extended) {
-   pvadata_t minValue = std::numeric_limits<pvadata_t>::infinity();
-   pvadata_t maxValue = -std::numeric_limits<pvadata_t>::infinity();
+void BBFindConfRemapProbe::insertImageIntoMontage(int xStart, int yStart, float const * sourceData, PVLayerLoc const * loc, bool extended) {
+   float minValue = std::numeric_limits<float>::infinity();
+   float maxValue = -std::numeric_limits<float>::infinity();
    int const nx = loc->nx;
    int const ny = loc->ny;
    int const nf = loc->nf;
@@ -690,14 +690,14 @@ void BBFindConfRemapProbe::insertImageIntoMontage(int xStart, int yStart, pvadat
    if (extended) {
       for (int k=0; k<numImageNeurons; k++) {
          int const kExt = kIndexExtended(k, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
-         pvadata_t a = sourceData[kExt];
+         float a = sourceData[kExt];
          minValue = a < minValue ? a : minValue;
          maxValue = a > maxValue ? a : maxValue;
       }
    }
    else {
       for (int k=0; k<numImageNeurons; k++) {
-         pvadata_t a = sourceData[k];
+         float a = sourceData[k];
          minValue = a < minValue ? a : minValue;
          maxValue = a > maxValue ? a : maxValue;
       }
@@ -711,14 +711,14 @@ void BBFindConfRemapProbe::insertImageIntoMontage(int xStart, int yStart, pvadat
       }
    }
    else {
-      pvadata_t scale = (pvadata_t) 1/(maxValue-minValue);
-      pvadata_t shift = minValue;
+      float scale = (float) 1/(maxValue-minValue);
+      float shift = minValue;
       for (int k=0; k<numImageNeurons; k++) {
          int const kx = kxPos(k, nx, ny, nf);
          int const ky = kyPos(k, nx, ny, nf);
          int const kf = featureIndex(k, nx, ny, nf);
          int const kImageExt = kIndexExtended(k, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
-         pvadata_t a = sourceData[kImageExt];
+         float a = sourceData[kImageExt];
          a = nearbyintf(255*(a-shift)*scale);
          unsigned char aChar = (unsigned char) (int) a;
          montageImageLocal[k] = aChar;

@@ -38,7 +38,7 @@ int LIFTestProbe::initLIFTestProbe(const char *probeName, HyPerCol *hc) {
    stddevs     = (double *)calloc(LIFTESTPROBE_BINS, sizeof(double));
    counts      = (int *)calloc(LIFTESTPROBE_BINS, sizeof(int));
    if (radii == NULL || rates == NULL || targetrates == NULL) {
-      pvError().printf(
+      Fatal().printf(
             "LIFTestProbe::initLIFTestProbe \"%s\": unable to allocate memory for radii and "
             "rates.\n",
             getName());
@@ -112,7 +112,7 @@ int LIFTestProbe::communicateInitInfo() {
 int LIFTestProbe::allocateDataStructures() {
    int status = StatsProbe::allocateDataStructures();
    if (status == PV_SUCCESS && getParent()->columnId() == 0) {
-      pvErrorIf(!outputStream, "Test failed.\n");
+      FatalIf(!outputStream, "Test failed.\n");
       outputStream->printf("%s Correct: ", getMessage());
       for (int k = 0; k < LIFTESTPROBE_BINS; k++) {
          outputStream->printf(" %f", targetrates[k]);
@@ -154,7 +154,7 @@ int LIFTestProbe::outputState(double timed) {
             MPI_SUM,
             root_proc,
             icComm->communicator());
-      pvInfo(dumpRates);
+      InfoLog(dumpRates);
       dumpRates.printf("%s t=%f:", getMessage(), timed);
       for (int j = 0; j < LIFTESTPROBE_BINS; j++) {
          rates[j] /= (double)counts[j] * timed / 1000.0;
@@ -167,7 +167,7 @@ int LIFTestProbe::outputState(double timed) {
             double scaledstdev = stddevs[j] / stdfactor;
             double observed    = (rates[j] - targetrates[j]) / scaledstdev;
             if (std::fabs(observed) > tolerance) {
-               pvErrorNoExit().printf(
+               ErrorLog().printf(
                      "Bin number %d failed at time %f: %f standard deviations off, with tolerance "
                      "%f.\n",
                      j,

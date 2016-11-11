@@ -41,8 +41,8 @@ int verifyEqual(
       const char *name2,
       int status_in);
 int testDataPatchEqual(
-      pvdata_t *w1,
-      pvdata_t *w2,
+      float *w1,
+      float *w2,
       int patchSize,
       const char *name1,
       const char *name2,
@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
    if (initObj->getParamsFile() != NULL) {
       int rank = icComm->globalCommRank();
       if (rank == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s does not take -p as an option.  Instead the necessary params file is "
                "hard-coded.\n",
                initObj->getProgramName());
@@ -81,7 +81,7 @@ int main(int argc, char *argv[]) {
    BaseConnection *baseConn;
    baseConn    = hc->getConnFromName("Original Map for One to One Test");
    originalMap = dynamic_cast<HyPerConn *>(baseConn);
-   // pvErrorIf(!(originalMap->usingSharedWeights()), "Test failed.\n");
+   // FatalIf(!(originalMap->usingSharedWeights()), "Test failed.\n");
    transpose = dynamic_cast<TransposeConn *>(
          hc->getConnFromName("Transpose for One to One Test of TransposeConn"));
    transposeOfTranspose = dynamic_cast<TransposeConn *>(
@@ -91,7 +91,7 @@ int main(int argc, char *argv[]) {
 
    baseConn    = hc->getConnFromName("Original Map for Many to One Test");
    originalMap = dynamic_cast<HyPerConn *>(baseConn);
-   // pvErrorIf(!(originalMap->usingSharedWeights()), "Test failed.\n");
+   // FatalIf(!(originalMap->usingSharedWeights()), "Test failed.\n");
    transpose = dynamic_cast<TransposeConn *>(
          hc->getConnFromName("Transpose for Many to One Test of TransposeConn"));
    transposeOfTranspose = dynamic_cast<TransposeConn *>(
@@ -101,7 +101,7 @@ int main(int argc, char *argv[]) {
 
    baseConn    = hc->getConnFromName("Original Map for One to Many Test");
    originalMap = dynamic_cast<HyPerConn *>(baseConn);
-   // pvErrorIf(!(originalMap->usingSharedWeights()), "Test failed.\n");
+   // FatalIf(!(originalMap->usingSharedWeights()), "Test failed.\n");
    transpose = dynamic_cast<TransposeConn *>(
          hc->getConnFromName("Transpose for One to Many Test of TransposeConn"));
    transposeOfTranspose = dynamic_cast<TransposeConn *>(
@@ -111,7 +111,7 @@ int main(int argc, char *argv[]) {
 
    baseConn    = hc->getConnFromName("Original Map for One to One Test");
    originalMap = dynamic_cast<HyPerConn *>(baseConn);
-   // pvErrorIf(!(originalMap->usingSharedWeights()), "Test failed.\n");
+   // FatalIf(!(originalMap->usingSharedWeights()), "Test failed.\n");
    transpose = dynamic_cast<TransposeConn *>(
          hc->getConnFromName("Transpose for One to One Test of FeedbackConn"));
    transposeOfTranspose = dynamic_cast<TransposeConn *>(
@@ -121,7 +121,7 @@ int main(int argc, char *argv[]) {
 
    baseConn    = hc->getConnFromName("Original Map for Many to One Test");
    originalMap = dynamic_cast<HyPerConn *>(baseConn);
-   // pvErrorIf(!(originalMap->usingSharedWeights()), "Test failed.\n");
+   // FatalIf(!(originalMap->usingSharedWeights()), "Test failed.\n");
    transpose = dynamic_cast<TransposeConn *>(
          hc->getConnFromName("Transpose for Many to One Test of FeedbackConn"));
    transposeOfTranspose = dynamic_cast<TransposeConn *>(
@@ -131,7 +131,7 @@ int main(int argc, char *argv[]) {
 
    baseConn    = hc->getConnFromName("Original Map for One to Many Test");
    originalMap = dynamic_cast<HyPerConn *>(baseConn);
-   // pvErrorIf(!(originalMap->usingSharedWeights()), "Test failed.\n");
+   // FatalIf(!(originalMap->usingSharedWeights()), "Test failed.\n");
    transpose = dynamic_cast<TransposeConn *>(
          hc->getConnFromName("Transpose for One to Many Test of FeedbackConn"));
    transposeOfTranspose = dynamic_cast<TransposeConn *>(
@@ -151,13 +151,13 @@ int testTransposeOfTransposeWeights(
       const char *message) {
    int status = testWeightsEqual(originalMap, transposeOfTranspose);
    if (status == PV_SUCCESS) {
-      pvInfo().printf("%s: TestTransposeConn passed.\n", message);
+      InfoLog().printf("%s: TestTransposeConn passed.\n", message);
    }
    else {
       dumpWeights(originalMap);
       dumpWeights(transpose);
       dumpWeights(transposeOfTranspose);
-      pvErrorNoExit().printf("%s: TestTransposeConn failed.\n", message);
+      ErrorLog().printf("%s: TestTransposeConn failed.\n", message);
    }
    return status;
 }
@@ -212,7 +212,7 @@ int testWeightsEqual(HyPerConn *conn1, HyPerConn *conn2) {
       return status;
 
    int numWeightPatches = conn1->getNumWeightPatches();
-   pvErrorIf(!(numWeightPatches == conn2->getNumWeightPatches()), "Test failed.\n");
+   FatalIf(!(numWeightPatches == conn2->getNumWeightPatches()), "Test failed.\n");
    for (int patchindex = 0; patchindex < numWeightPatches; patchindex++) {
       int status1 = testPatchesEqual(
             conn1->getWeights(patchindex, Communicator::LOCAL),
@@ -230,17 +230,17 @@ int testWeightsEqual(HyPerConn *conn1, HyPerConn *conn2) {
       return status;
 
    int numArbors = conn1->numberOfAxonalArborLists();
-   pvErrorIf(!(numArbors == conn2->numberOfAxonalArborLists()), "Test failed.\n");
+   FatalIf(!(numArbors == conn2->numberOfAxonalArborLists()), "Test failed.\n");
    int numDataPatches = conn1->getNumDataPatches();
-   pvErrorIf(!(numDataPatches == conn2->getNumDataPatches()), "Test failed.\n");
+   FatalIf(!(numDataPatches == conn2->getNumDataPatches()), "Test failed.\n");
    int patchSize = conn1->xPatchSize() * conn1->yPatchSize() * conn1->fPatchSize();
-   pvErrorIf(
+   FatalIf(
          !(patchSize == conn2->xPatchSize() * conn2->yPatchSize() * conn2->fPatchSize()),
          "Test failed.\n");
    for (int arbor = 0; arbor < numArbors; arbor++) {
       for (int dataindex = 0; dataindex < numDataPatches; dataindex++) {
-         pvwdata_t *w1 = conn1->get_wDataStart(arbor) + patchSize * dataindex;
-         pvwdata_t *w2 = conn2->get_wDataStart(arbor) + patchSize * dataindex;
+         float *w1 = conn1->get_wDataStart(arbor) + patchSize * dataindex;
+         float *w2 = conn2->get_wDataStart(arbor) + patchSize * dataindex;
          status = testDataPatchEqual(w1, w2, patchSize, conn1->getName(), conn2->getName(), status);
          if (status != PV_SUCCESS)
             break;
@@ -272,7 +272,7 @@ int verifyEqual(
       int status_in) {
    int status_out = status_in;
    if (val1 != val2) {
-      pvErrorNoExit().printf(
+      ErrorLog().printf(
             "TransposeHyPerConnTest: %s of \"%s\" and \"%s\" are not equal (%d versus %d).\n",
             description,
             name1,
@@ -285,23 +285,23 @@ int verifyEqual(
 }
 
 int testDataPatchEqual(
-      pvdata_t *wgts1,
-      pvdata_t *wgts2,
+      float *wgts1,
+      float *wgts2,
       int patchSize,
       const char *name1,
       const char *name2,
       int status_in) {
    int status_out = status_in;
    for (int w = 0; w < patchSize; w++) {
-      pvdata_t w1 = wgts1[w];
-      pvErrorIf(!(w1), "Test failed.\n"); // All original weights should be in the range [1,2]
+      float w1 = wgts1[w];
+      FatalIf(!(w1), "Test failed.\n"); // All original weights should be in the range [1,2]
       // (values of wMinInit and wMaxInit)
-      pvdata_t w2 = wgts2[w];
+      float w2 = wgts2[w];
       // w2 will be either 0 or in the range [1,2].  It's nonzero iff the weight has any pre-neurons
       // in restricted space.
       if (w2 && w1 != w2) { // If the weight is from an extended neuron, and sharedWeights is off,
          // the transpose will be zero.
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "TransposeHyPerConnTest: value %d of \"%s\" and \"%s\" are not equal (%f versus "
                "%f).\n",
                w,
@@ -318,12 +318,12 @@ int testDataPatchEqual(
 }
 
 int dumpWeights(HyPerConn *conn) {
-   pvErrorNoExit().printf("Dumping weights for connection %s\n", conn->getName());
+   ErrorLog().printf("Dumping weights for connection %s\n", conn->getName());
    int nxp       = conn->xPatchSize();
    int nyp       = conn->yPatchSize();
    int nfp       = conn->fPatchSize();
    int numArbors = conn->numberOfAxonalArborLists();
-   pvErrorNoExit().printf(
+   ErrorLog().printf(
          "    nxp = %d, nyp = %d, nfp = %d, numAxonalArbors = %d\n", nxp, nyp, nfp, numArbors);
    int numPatches = conn->getNumWeightPatches();
    for (int arbor = 0; arbor < numArbors; arbor++) {
@@ -332,15 +332,14 @@ int dumpWeights(HyPerConn *conn) {
          int nx      = kp->nx;
          int ny      = kp->ny;
          int offset  = kp->offset;
-         pvErrorNoExit().printf(
-               "    Weight Patch %d: nx=%d, ny=%d, offset=%d\n", kn, nx, ny, offset);
+         ErrorLog().printf("    Weight Patch %d: nx=%d, ny=%d, offset=%d\n", kn, nx, ny, offset);
       }
    }
    int numDataPatches = conn->getNumDataPatches();
    for (int arbor = 0; arbor < numArbors; arbor++) {
       for (int n = 0; n < numDataPatches; n++) {
          for (int k = 0; k < nxp * nyp * nfp; k++) {
-            pvErrorNoExit().printf(
+            ErrorLog().printf(
                   "    Arbor %d, Data Patch %d, Index %4d, (x=%3d, y=%3d, f=%3d): Value %g\n",
                   arbor,
                   n,

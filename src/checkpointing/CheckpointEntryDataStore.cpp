@@ -28,7 +28,7 @@ void CheckpointEntryDataStore::write(
       std::string path   = generatePath(checkpointDirectory, "pvp");
       fileStream         = new FileStream(path.c_str(), std::ios_base::out, verifyWritesFlag);
       int const numBands = numBuffers * numLevels;
-      BufferUtils::ActivityHeader header = BufferUtils::buildActivityHeader<pvdata_t>(
+      BufferUtils::ActivityHeader header = BufferUtils::buildActivityHeader<float>(
             mLayerLoc->nxGlobal, mLayerLoc->nyGlobal, mLayerLoc->nf, numBands);
       BufferUtils::writeActivityHeader(*fileStream, header);
    }
@@ -38,10 +38,10 @@ void CheckpointEntryDataStore::write(
    int const numElements = nxExt * nyExt * nf;
    for (int b = 0; b < numBuffers; b++) {
       for (int l = 0; l < numLevels; l++) {
-         double lastUpdateTime            = mDataStore->getLastUpdateTime(b, l);
-         pvdata_t const *localData        = mDataStore->buffer(b, l);
-         Buffer<pvdata_t> localPvpBuffer  = Buffer<pvdata_t>{localData, nxExt, nyExt, nf};
-         Buffer<pvdata_t> globalPvpBuffer = BufferUtils::gather<pvdata_t>(
+         double lastUpdateTime         = mDataStore->getLastUpdateTime(b, l);
+         float const *localData        = mDataStore->buffer(b, l);
+         Buffer<float> localPvpBuffer  = Buffer<float>{localData, nxExt, nyExt, nf};
+         Buffer<float> globalPvpBuffer = BufferUtils::gather<float>(
                getCommunicator(), localPvpBuffer, mLayerLoc->nx, mLayerLoc->ny);
          if (fileStream) {
             BufferUtils::writeFrame(*fileStream, &globalPvpBuffer, lastUpdateTime);
@@ -61,7 +61,7 @@ void CheckpointEntryDataStore::read(std::string const &checkpointDirectory, doub
       std::string path = generatePath(checkpointDirectory, "pvp");
       fileStream       = new FileStream(path.c_str(), std::ios_base::in, false);
       struct BufferUtils::ActivityHeader header = BufferUtils::readActivityHeader(*fileStream);
-      pvErrorIf(
+      FatalIf(
             header.nBands != numBands,
             "readDataStoreFromFile error reading \"%s\": delays*batchwidth in file is %d, "
             "but delays*batchwidth in layer is %d\n",
@@ -72,7 +72,7 @@ void CheckpointEntryDataStore::read(std::string const &checkpointDirectory, doub
    int const nxExtGlobal = mLayerLoc->nxGlobal + mLayerLoc->halo.lt + mLayerLoc->halo.rt;
    int const nyExtGlobal = mLayerLoc->nyGlobal + mLayerLoc->halo.dn + mLayerLoc->halo.up;
    int const nf          = mLayerLoc->nf;
-   Buffer<pvdata_t> pvpBuffer;
+   Buffer<float> pvpBuffer;
    std::vector<double> updateTimes;
    updateTimes.resize(numBands);
    for (int b = 0; b < numBuffers; b++) {
@@ -88,11 +88,11 @@ void CheckpointEntryDataStore::read(std::string const &checkpointDirectory, doub
             pvpBuffer.resize(nxExtLocal, nyExtLocal, nf);
          }
          BufferUtils::scatter(getCommunicator(), pvpBuffer, mLayerLoc->nx, mLayerLoc->ny);
-         pvdata_t *localData = mDataStore->buffer(b, l);
+         float *localData = mDataStore->buffer(b, l);
          memcpy(
                localData,
                pvpBuffer.asVector().data(),
-               (std::size_t)pvpBuffer.getTotalElements() * sizeof(pvdata_t));
+               (std::size_t)pvpBuffer.getTotalElements() * sizeof(float));
       }
    }
    MPI_Bcast(

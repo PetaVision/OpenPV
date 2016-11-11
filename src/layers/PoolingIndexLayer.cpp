@@ -28,7 +28,7 @@ int PoolingIndexLayer::initialize(const char *name, HyPerCol *hc) {
    int status = HyPerLayer::initialize(name, hc);
    // This layer is storing it's buffers as ints. This is a check to make sure the sizes are the
    // same
-   assert(sizeof(int) == sizeof(pvdata_t));
+   assert(sizeof(int) == sizeof(float));
    assert(status == PV_SUCCESS);
    return status;
 }
@@ -48,7 +48,7 @@ void PoolingIndexLayer::ioParam_dataType(enum ParamsIOFlag ioFlag) {
 // This function should never be called, since this layer should never be a post layer and only
 // accessed from PoolingConn.
 int PoolingIndexLayer::requireChannel(int channelNeeded, int *numChannelsResult) {
-   pvError() << "PoolingIndexLayer cannot be a post layer\n";
+   Fatal() << "PoolingIndexLayer cannot be a post layer\n";
    return PV_SUCCESS;
 }
 

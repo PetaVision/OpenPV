@@ -37,7 +37,7 @@ int BackgroundLayer::communicateInitInfo() {
    originalLayer = parent->getLayerFromName(originalLayerName);
    if (originalLayer == NULL) {
       if (parent->columnId() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s: originalLayerName \"%s\" is not a layer in the HyPerCol.\n",
                getDescription_c(),
                originalLayerName);
@@ -50,7 +50,7 @@ int BackgroundLayer::communicateInitInfo() {
    assert(srcLoc != NULL && loc != NULL);
    if (srcLoc->nxGlobal != loc->nxGlobal || srcLoc->nyGlobal != loc->nyGlobal) {
       if (parent->columnId() == 0) {
-         pvErrorNoExit(errorMessage);
+         ErrorLog(errorMessage);
          errorMessage.printf(
                "%s: originalLayerName \"%s\" does not have the same X/Y dimensions.\n",
                getDescription_c(),
@@ -69,7 +69,7 @@ int BackgroundLayer::communicateInitInfo() {
    }
    if ((srcLoc->nf + 1) * repFeatureNum != loc->nf) {
       if (parent->columnId() == 0) {
-         pvErrorNoExit(errorMessage);
+         ErrorLog(errorMessage);
          errorMessage.printf(
                "%s: nf must have (n+1)*repFeatureNum (%d) features in BackgroundLayer \"%s\", "
                "where n is the orig layer number of features.\n",
@@ -101,8 +101,8 @@ int BackgroundLayer::allocateV() {
 void BackgroundLayer::ioParam_repFeatureNum(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValue(ioFlag, name, "repFeatureNum", &repFeatureNum, repFeatureNum);
    if (repFeatureNum <= 0) {
-      pvError() << "BackgroundLayer " << name << ": repFeatureNum must an integer greater or equal "
-                                                 "to 1 (1 feature means no replication)\n";
+      Fatal() << "BackgroundLayer " << name << ": repFeatureNum must an integer greater or equal "
+                                               "to 1 (1 feature means no replication)\n";
    }
 }
 
@@ -113,15 +113,15 @@ int BackgroundLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 int BackgroundLayer::setActivity() {
-   pvdata_t *activity = clayer->activity->data;
-   memset(activity, 0, sizeof(pvdata_t) * clayer->numExtendedAllBatches);
+   float *activity = clayer->activity->data;
+   memset(activity, 0, sizeof(float) * clayer->numExtendedAllBatches);
    return 0;
 }
 
 int BackgroundLayer::updateState(double timef, double dt) {
    int status                    = PV_SUCCESS;
-   pvdata_t *A                   = clayer->activity->data;
-   const pvdata_t *originalA     = originalLayer->getCLayer()->activity->data;
+   float *A                      = clayer->activity->data;
+   const float *originalA        = originalLayer->getCLayer()->activity->data;
    const PVLayerLoc *loc         = getLayerLoc();
    const PVLayerLoc *locOriginal = originalLayer->getLayerLoc();
 
@@ -140,8 +140,8 @@ int BackgroundLayer::updateState(double timef, double dt) {
    PVHalo const *haloOrig = &locOriginal->halo;
 
    for (int b = 0; b < nbatch; b++) {
-      pvdata_t *ABatch               = A + b * getNumExtended();
-      const pvdata_t *originalABatch = originalA + b * originalLayer->getNumExtended();
+      float *ABatch               = A + b * getNumExtended();
+      const float *originalABatch = originalA + b * originalLayer->getNumExtended();
 
 // Loop through all nx and ny
 // each y value specifies a different target so ok to thread here (sum, sumsq are defined inside

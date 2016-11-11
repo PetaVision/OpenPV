@@ -50,9 +50,9 @@ int ANNSquaredLayer::updateState(double time, double dt) {
    const int nf     = clayer->loc.nf;
    const int nbatch = clayer->loc.nbatch;
 
-   pvdata_t *GSynHead = GSyn[0];
-   pvdata_t *V        = getV();
-   pvdata_t *activity = clayer->activity->data;
+   float *GSynHead = GSyn[0];
+   float *V        = getV();
+   float *activity = clayer->activity->data;
 
    ANNSquaredLayer_update_state(
          nbatch,

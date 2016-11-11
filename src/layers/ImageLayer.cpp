@@ -27,8 +27,8 @@ Buffer<float> ImageLayer::retrieveData(std::string filename, int batchIndex) {
             mImage->convertToColor(true);
             break;
          default:
-            pvError() << "Failed to read " << filename << ": Could not convert "
-                      << mImage->getFeatures() << " channels to " << getLayerLoc()->nf << std::endl;
+            Fatal() << "Failed to read " << filename << ": Could not convert "
+                    << mImage->getFeatures() << " channels to " << getLayerLoc()->nf << std::endl;
             break;
       }
    }
@@ -51,7 +51,7 @@ void ImageLayer::readImage(std::string filename) {
       strcpy(tempStr, pathstring.c_str());
       int tempFileID = mkstemps(tempStr, extension.size());
       pathstring     = std::string(tempStr);
-      pvErrorIf(tempFileID < 0, "Cannot create temp image file.\n");
+      FatalIf(tempFileID < 0, "Cannot create temp image file.\n");
       std::string systemstring;
 
       if (filename.find("s3://") != std::string::npos) {
@@ -69,7 +69,7 @@ void ImageLayer::readImage(std::string filename) {
             break;
          }
          sleep(1);
-         pvErrorIf(
+         FatalIf(
                attemptNum == numAttempts - 1,
                "download command \"%s\" failed: %s.  Exiting\n",
                systemstring.c_str(),
@@ -79,7 +79,7 @@ void ImageLayer::readImage(std::string filename) {
 
    mImage = std::unique_ptr<Image>(new Image(std::string(filename)));
 
-   pvErrorIf(
+   FatalIf(
          usingTempFile && remove(filename.c_str()),
          "remove(\"%s\") failed.  Exiting.\n",
          filename.c_str());

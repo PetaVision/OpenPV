@@ -97,7 +97,7 @@ int Retina::initialize(const char *name, HyPerCol *hc) {
 int Retina::communicateInitInfo() {
    int status = HyPerLayer::communicateInitInfo();
    if (parent->getNBatch() != 1) {
-      pvError() << "Retina does not support batches yet, TODO\n";
+      Fatal() << "Retina does not support batches yet, TODO\n";
    }
    return status;
 }
@@ -160,7 +160,7 @@ void Retina::ioParam_foregroundRate(enum ParamsIOFlag ioFlag) {
       if (params->present(name, "noiseOnFreq")) {
          probStimParam = params->value(name, "noiseOnFreq");
          if (parent->columnId() == 0) {
-            pvError().printf("noiseOnFreq is obsolete.  Use foregroundRate instead.\n");
+            Fatal().printf("noiseOnFreq is obsolete.  Use foregroundRate instead.\n");
          }
          MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
@@ -168,7 +168,7 @@ void Retina::ioParam_foregroundRate(enum ParamsIOFlag ioFlag) {
       if (params->present(name, "poissonEdgeProb")) {
          probStimParam = params->value(name, "poissonEdgeProb");
          if (parent->columnId() == 0) {
-            pvError().printf("poissonEdgeProb is deprecated.  Use foregroundRate instead.\n");
+            Fatal().printf("poissonEdgeProb is deprecated.  Use foregroundRate instead.\n");
          }
          MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
@@ -186,7 +186,7 @@ void Retina::ioParam_backgroundRate(enum ParamsIOFlag ioFlag) {
       if (params->present(name, "noiseOffFreq")) {
          probBaseParam = params->value(name, "noiseOffFreq");
          if (parent->columnId() == 0) {
-            pvWarn().printf("noiseOffFreq is deprecated.  Use backgroundRate instead.\n");
+            WarnLog().printf("noiseOffFreq is deprecated.  Use backgroundRate instead.\n");
          }
          MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
@@ -194,7 +194,7 @@ void Retina::ioParam_backgroundRate(enum ParamsIOFlag ioFlag) {
       if (params->present(name, "poissonBlankProb")) {
          probBaseParam = params->value(name, "poissonBlankProb");
          if (parent->columnId() == 0) {
-            pvWarn().printf("poissonEdgeProb is deprecated.  Use backgroundRate instead.\n");
+            WarnLog().printf("poissonEdgeProb is deprecated.  Use backgroundRate instead.\n");
          }
          MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
@@ -209,7 +209,7 @@ void Retina::ioParam_backgroundRate(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       assert(!parent->parameters()->presentAndNotBeenRead(name, "foregroundRate"));
       if (probBaseParam > probStimParam) {
-         pvError().printf(
+         Fatal().printf(
                "%s: backgroundRate cannot be greater than foregroundRate.\n", getDescription_c());
          exit(EXIT_FAILURE);
       }
@@ -256,7 +256,6 @@ void Retina::ioParam_absRefractoryPeriod(enum ParamsIOFlag ioFlag) {
 }
 
 int Retina::setRetinaParams(PVParams *p) {
-   clayer->params = &rParams;
 
    float dt_sec   = (float)parent->getDeltaTime() * 0.001f; // seconds
    float probStim = probStimParam * dt_sec;
@@ -334,8 +333,8 @@ int Retina::updateState(double timed, double dt) {
    const int nbatch   = clayer->loc.nbatch;
    const PVHalo *halo = &clayer->loc.halo;
 
-   pvdata_t *GSynHead = GSyn[0];
-   pvdata_t *activity = clayer->activity->data;
+   float *GSynHead = GSyn[0];
+   float *activity = clayer->activity->data;
 
    if (spikingFlag == 1) {
       Retina_spiking_update_state(
@@ -379,7 +378,7 @@ int Retina::updateState(double timed, double dt) {
    sprintf(filename, "r_%d.tiff", (int)(2 * timed));
    this->writeActivity(filename, timed);
 
-   pvDebug(debugRetina);
+   DebugLog(debugRetina);
    debugRetina().printf("----------------\n");
    for (int k = 0; k < 6; k++) {
       debugRetina().printf("host:: k==%d h_exc==%f h_inh==%f\n", k, phiExc[k], phiInh[k]);

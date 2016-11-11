@@ -32,8 +32,8 @@ void StochasticReleaseTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
 
 int StochasticReleaseTestProbe::communicateInitInfo() {
    int status = StatsProbe::communicateInitInfo();
-   pvErrorIf(!(getTargetLayer()), ": %s did not set target layer.\n", getDescription_c());
-   pvErrorIf(
+   FatalIf(!(getTargetLayer()), ": %s did not set target layer.\n", getDescription_c());
+   FatalIf(
          conn != nullptr,
          ": %s, communicateInitInfo called with connection already set.\n",
          getDescription_c());
@@ -41,7 +41,7 @@ int StochasticReleaseTestProbe::communicateInitInfo() {
    for (int c = 0; c < numconns; c++) {
       BaseConnection *baseConn = getParent()->getConnection(c);
       if (!strcmp(baseConn->getPostLayerName(), getTargetLayer()->getName())) {
-         pvErrorIf(
+         FatalIf(
                conn != nullptr,
                ": %s cannot have more than one connnection going to target %s.\n",
                getDescription_c(),
@@ -49,7 +49,7 @@ int StochasticReleaseTestProbe::communicateInitInfo() {
          conn = dynamic_cast<HyPerConn *>(baseConn);
       }
    }
-   pvErrorIf(
+   FatalIf(
          !(conn != nullptr),
          ": %s requires a connection going to target %s.\n",
          getDescription_c(),
@@ -72,25 +72,25 @@ bool compar(double const &a, double const &b) {
 }
 
 int StochasticReleaseTestProbe::outputState(double timed) {
-   pvErrorIf(
+   FatalIf(
          !(conn->numberOfAxonalArborLists() == 1),
          ": %s connection %s has %d arbors; only one is allowed.\n",
          getDescription_c(),
          conn->getName(),
          conn->numberOfAxonalArborLists());
-   pvErrorIf(
+   FatalIf(
          !(conn->xPatchSize() == 1),
          ": %s connection %s has nxp=%d, nxp=1 is required.\n",
          getDescription_c(),
          conn->getName(),
          conn->xPatchSize());
-   pvErrorIf(
+   FatalIf(
          !(conn->yPatchSize() == 1),
          ": %s connection %s has nyp=%d, nyp=1 is required.\n",
          getDescription_c(),
          conn->getName(),
          conn->yPatchSize());
-   pvErrorIf(
+   FatalIf(
          !(conn->getNumDataPatches() == conn->fPatchSize()),
          ": %s connection %s must have number of data patches (%d) and nfp equal (%d).\n",
          getDescription_c(),
@@ -98,7 +98,7 @@ int StochasticReleaseTestProbe::outputState(double timed) {
          conn->getNumDataPatches(),
          conn->fPatchSize());
    int status = StatsProbe::outputState(timed);
-   pvErrorIf(
+   FatalIf(
          !(status == PV_SUCCESS),
          ": %s failed in StatsProbe::outputState at time %f.\n",
          getDescription_c(),
@@ -119,7 +119,7 @@ int StochasticReleaseTestProbe::outputState(double timed) {
          for (size_t k = 0; k < N; k++) {
             double hbCorr = pvalues.at(k) * (double)(N - k);
             if (hbCorr < 0.05) {
-               pvErrorNoExit().printf(
+               ErrorLog().printf(
                      "%s: p-value %zu out of %zu (ordered by size) with Holm-Bonferroni correction "
                      "= %f\n",
                      getTargetLayer()->getDescription_c(),
@@ -131,7 +131,7 @@ int StochasticReleaseTestProbe::outputState(double timed) {
          }
       }
    }
-   pvErrorIf(
+   FatalIf(
          status != PV_SUCCESS,
          ": %s failed in StochasticReleaseTestProbe::outputState at time %f.\n",
          timed);
@@ -144,15 +144,15 @@ void StochasticReleaseTestProbe::computePValues() {
    pvalues.resize(oldsize + nf);
    for (int f = 0; f < nf; f++) {
       int nf = getTargetLayer()->getLayerLoc()->nf;
-      pvErrorIf(!(f >= 0 && f < nf), "Test failed.\n");
-      pvwdata_t wgt = conn->get_wDataStart(0)[f * (nf + 1)]; // weights should be one-to-one weights
+      FatalIf(!(f >= 0 && f < nf), "Test failed.\n");
+      float wgt = conn->get_wDataStart(0)[f * (nf + 1)]; // weights should be one-to-one weights
 
-      HyPerLayer *pre           = conn->preSynapticLayer();
-      const pvdata_t *preactPtr = pre->getLayerData();
-      const PVLayerLoc *preLoc  = pre->getLayerLoc();
-      const int numPreNeurons   = pre->getNumNeurons();
-      bool found                = false;
-      pvdata_t preact           = 0.0f;
+      HyPerLayer *pre          = conn->preSynapticLayer();
+      const float *preactPtr   = pre->getLayerData();
+      const PVLayerLoc *preLoc = pre->getLayerLoc();
+      const int numPreNeurons  = pre->getNumNeurons();
+      bool found               = false;
+      float preact             = 0.0f;
       for (int n = f; n < numPreNeurons; n += nf) {
          int nExt = kIndexExtended(
                n,
@@ -163,10 +163,10 @@ void StochasticReleaseTestProbe::computePValues() {
                preLoc->halo.rt,
                preLoc->halo.dn,
                preLoc->halo.up);
-         pvdata_t a = preactPtr[nExt];
+         float a = preactPtr[nExt];
          if (a != 0.0f) {
             if (found) {
-               pvErrorIf(!(preact == a), "Test failed.\n");
+               FatalIf(!(preact == a), "Test failed.\n");
             }
             else {
                found  = true;
@@ -179,10 +179,10 @@ void StochasticReleaseTestProbe::computePValues() {
       if (preact > 1.0f)
          preact = 1.0f;
 
-      const PVLayerLoc *loc    = getTargetLayer()->getLayerLoc();
-      const pvdata_t *activity = getTargetLayer()->getLayerData();
-      int nnzf                 = 0;
-      const int numNeurons     = getTargetLayer()->getNumNeurons();
+      const PVLayerLoc *loc = getTargetLayer()->getLayerLoc();
+      const float *activity = getTargetLayer()->getLayerData();
+      int nnzf              = 0;
+      const int numNeurons  = getTargetLayer()->getNumNeurons();
       for (int n = f; n < numNeurons; n += nf) {
          int nExt = kIndexExtended(
                n,
@@ -193,7 +193,7 @@ void StochasticReleaseTestProbe::computePValues() {
                loc->halo.rt,
                loc->halo.dn,
                loc->halo.up);
-         pvErrorIf(!(activity[nExt] == 0 || activity[nExt] == wgt), "Test failed.\n");
+         FatalIf(!(activity[nExt] == 0 || activity[nExt] == wgt), "Test failed.\n");
          if (activity[nExt] != 0)
             nnzf++;
       }

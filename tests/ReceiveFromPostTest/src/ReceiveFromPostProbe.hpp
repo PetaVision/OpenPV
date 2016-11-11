@@ -26,7 +26,7 @@ class ReceiveFromPostProbe : public PV::StatsProbe {
 
    // Member variables
   protected:
-   pvadata_t tolerance;
+   float tolerance;
 
 }; // end class ReceiveFromPostProbe
 

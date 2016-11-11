@@ -43,7 +43,7 @@ void FileStream::openFile(char const *path, std::ios_base::openmode mode, bool v
          break;
       }
       attempts++;
-      pvWarn() << "Failed to open \"" << fullPath << "\" on attempt " << attempts << "\n";
+      WarnLog() << "Failed to open \"" << fullPath << "\" on attempt " << attempts << "\n";
       if (attempts < mMaxAttempts) {
          sleep(1);
       }
@@ -52,12 +52,12 @@ void FileStream::openFile(char const *path, std::ios_base::openmode mode, bool v
       }
    }
    if (!mFStream.is_open()) {
-      pvError() << "FileStream::openFile failure for \"" << fullPath
-                << "\": MAX_FILESYSTEMCALL_TRIES = " << mMaxAttempts << " exceeded.\n";
+      Fatal() << "FileStream::openFile failure for \"" << fullPath
+              << "\": MAX_FILESYSTEMCALL_TRIES = " << mMaxAttempts << " exceeded.\n";
    }
    else if (attempts > 0) {
-      pvWarn() << "FileStream::openFile succeeded for \"" << fullPath << "\" on attempt "
-               << attempts + 1 << "\n";
+      WarnLog() << "FileStream::openFile succeeded for \"" << fullPath << "\" on attempt "
+                << attempts + 1 << "\n";
    }
    verifyFlags("openFile");
    if (verifyWrites) {
@@ -72,10 +72,10 @@ void FileStream::openFile(char const *path, std::ios_base::openmode mode, bool v
 }
 
 void FileStream::verifyFlags(const char *caller) {
-   pvErrorIf(mFStream.fail(), "%s: Logical error.\n", caller);
-   pvErrorIf(mFStream.bad(), "%s: Read / Write error.\n", caller);
-   pvErrorIf(writeable() && getOutPos() == -1, "%s: out pos == -1\n", caller);
-   pvErrorIf(readable() && getInPos() == -1, "%s: in pos == -1\n", caller);
+   FatalIf(mFStream.fail(), "%s: Logical error.\n", caller);
+   FatalIf(mFStream.bad(), "%s: Read / Write error.\n", caller);
+   FatalIf(writeable() && getOutPos() == -1, "%s: out pos == -1\n", caller);
+   FatalIf(readable() && getInPos() == -1, "%s: in pos == -1\n", caller);
 }
 
 void FileStream::write(void const *data, long length) {
@@ -85,7 +85,7 @@ void FileStream::write(void const *data, long length) {
 
    verifyFlags("write");
    if (mVerifyWrites) {
-      pvErrorIf(mWriteVerifier == nullptr, "Write Verifier is null.\n");
+      FatalIf(mWriteVerifier == nullptr, "Write Verifier is null.\n");
       // Set the input position to the location we wrote to
       mWriteVerifier->setInPos(startPos, true);
       uint8_t check[length];
@@ -93,18 +93,18 @@ void FileStream::write(void const *data, long length) {
       // Read from the location we wrote to and compare
       mWriteVerifier->read(check, length);
       if (memcmp(check, data, length) != 0) {
-         pvError() << "Verify write failed when writing " << length << " bytes to position "
-                   << startPos << "\n";
+         Fatal() << "Verify write failed when writing " << length << " bytes to position "
+                 << startPos << "\n";
       }
    }
 }
 
 void FileStream::read(void *data, long length) {
-   pvErrorIf(mFStream.eof(), "Attempting to read after EOF.\n");
+   FatalIf(mFStream.eof(), "Attempting to read after EOF.\n");
    long startPos = getInPos();
    mFStream.read((char *)data, length);
    long numRead = mFStream.gcount();
-   pvErrorIf(
+   FatalIf(
          numRead != length,
          "Expected to read %d bytes at %d, read %d instead.\n"
          "New read position: %d\n",

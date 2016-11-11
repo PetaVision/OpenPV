@@ -21,13 +21,13 @@ bool LayerArchive::operator==(LayerArchive const &comparison) const {
    areEqual &= compareFields("Layers", "kx0 values", layerLoc.kx0, comparison.layerLoc.kx0);
    areEqual &= compareFields("Layers", "ky0 values", layerLoc.ky0, comparison.layerLoc.ky0);
    // Can have different halos.
-   int const nx         = layerLoc.nx;
-   int const ny         = layerLoc.ny;
-   int const nf         = layerLoc.nf;
-   PVHalo const &halo1  = layerLoc.halo;
-   PVHalo const &halo2  = comparison.layerLoc.halo;
-   pvdata_t const *dat1 = data.data();
-   pvdata_t const *dat2 = comparison.data.data();
+   int const nx        = layerLoc.nx;
+   int const ny        = layerLoc.ny;
+   int const nf        = layerLoc.nf;
+   PVHalo const &halo1 = layerLoc.halo;
+   PVHalo const &halo2 = comparison.layerLoc.halo;
+   float const *dat1   = data.data();
+   float const *dat2   = comparison.data.data();
    if (areEqual) {
       for (int b = 0; b < layerLoc.nbatch; b++) {
          int const N = layerLoc.nx * layerLoc.ny * layerLoc.nf;
@@ -63,11 +63,11 @@ bool ConnArchive::operator==(ConnArchive const &comparison) const {
    if (areEqual) {
       int const patchSize = nxp * nyp * nfp;
       for (int arborIdx = 0; arborIdx < numArbors; arborIdx++) {
-         std::vector<pvwdata_t> const &arbor1 = data.at(arborIdx);
-         std::vector<pvwdata_t> const &arbor2 = comparison.data.at(arborIdx);
+         std::vector<float> const &arbor1 = data.at(arborIdx);
+         std::vector<float> const &arbor2 = comparison.data.at(arborIdx);
          for (int patchIdx = 0; patchIdx < numDataPatches; patchIdx++) {
-            pvwdata_t const *patchdata1 = &arbor1.data()[patchIdx * patchSize];
-            pvwdata_t const *patchdata2 = &arbor2.data()[patchIdx * patchSize];
+            float const *patchdata1 = &arbor1.data()[patchIdx * patchSize];
+            float const *patchdata2 = &arbor2.data()[patchIdx * patchSize];
             for (int widx; widx < patchSize; widx++) {
                if (std::fabs(patchdata1[widx] - patchdata2[widx]) > tolerance) {
                   int const x = kxPos(widx, nxp, nyp, nfp);
@@ -103,8 +103,7 @@ bool ColumnArchive::operator==(ColumnArchive const &comparison) const {
          }
       }
       if (!found) {
-         pvErrorNoExit() << "Column 1 has a layer \"" << layer1.name
-                         << " \" but column 2 does not.\n";
+         ErrorLog() << "Column 1 has a layer \"" << layer1.name << " \" but column 2 does not.\n";
          areEqual = false;
       }
    }
@@ -124,27 +123,27 @@ bool ColumnArchive::operator==(ColumnArchive const &comparison) const {
          }
       }
       if (!found) {
-         pvErrorNoExit() << "Column 1 has a connection \"" << conn1.name
-                         << " \" but column 2 does not.\n";
+         ErrorLog() << "Column 1 has a connection \"" << conn1.name
+                    << " \" but column 2 does not.\n";
          areEqual = false;
       }
    }
    return areEqual;
 }
 
-void ColumnArchive::addLayer(PV::HyPerLayer *layer, pvdata_t layerTolerance) {
+void ColumnArchive::addLayer(PV::HyPerLayer *layer, float layerTolerance) {
    std::vector<LayerArchive>::size_type sz = m_layerdata.size();
    m_layerdata.resize(sz + 1);
-   LayerArchive &latestLayer  = m_layerdata.at(sz);
-   latestLayer.name           = layer->getName();
-   latestLayer.layerLoc       = layer->getLayerLoc()[0];
-   pvdata_t const *ldatastart = layer->getLayerData();
-   pvdata_t const *ldataend   = &ldatastart[layer->getNumExtendedAllBatches()];
-   latestLayer.data           = std::vector<pvdata_t>(ldatastart, ldataend);
-   latestLayer.tolerance      = layerTolerance;
+   LayerArchive &latestLayer = m_layerdata.at(sz);
+   latestLayer.name          = layer->getName();
+   latestLayer.layerLoc      = layer->getLayerLoc()[0];
+   float const *ldatastart   = layer->getLayerData();
+   float const *ldataend     = &ldatastart[layer->getNumExtendedAllBatches()];
+   latestLayer.data          = std::vector<float>(ldatastart, ldataend);
+   latestLayer.tolerance     = layerTolerance;
 }
 
-void ColumnArchive::addConn(PV::HyPerConn *conn, pvwdata_t connTolerance) {
+void ColumnArchive::addConn(PV::HyPerConn *conn, float connTolerance) {
    std::vector<ConnArchive>::size_type sz = m_conndata.size();
    m_conndata.resize(sz + 1);
    ConnArchive &latestConnection = m_conndata.at(sz);
@@ -159,20 +158,20 @@ void ColumnArchive::addConn(PV::HyPerConn *conn, pvwdata_t connTolerance) {
    int const datasize = latestConnection.nxp * latestConnection.nyp * latestConnection.nfp
                         * latestConnection.numDataPatches;
    for (int arbor = 0; arbor < numArbors; arbor++) {
-      pvwdata_t const *cdatastart     = conn->get_wDataStart(arbor);
-      pvwdata_t const *cdataend       = &cdatastart[datasize];
-      latestConnection.data.at(arbor) = std::vector<pvwdata_t>(cdatastart, cdataend);
+      float const *cdatastart         = conn->get_wDataStart(arbor);
+      float const *cdataend           = &cdatastart[datasize];
+      latestConnection.data.at(arbor) = std::vector<float>(cdatastart, cdataend);
    }
    latestConnection.tolerance = connTolerance;
 }
 
-void ColumnArchive::addCol(PV::HyPerCol *hc, pvdata_t layerTolerance, pvwdata_t connTolerance) {
+void ColumnArchive::addCol(PV::HyPerCol *hc, float layerTolerance, float connTolerance) {
    int const nl = hc->numberOfLayers();
    m_layerdata.reserve(nl);
    for (int l = 0; l < nl; l++) {
       PV::HyPerLayer *layer = hc->getLayer(l);
       if (layer == nullptr) {
-         pvError() << "Layer with index " << l << " is null.\n";
+         Fatal() << "Layer with index " << l << " is null.\n";
       }
       addLayer(layer, layerTolerance);
    }
@@ -182,11 +181,11 @@ void ColumnArchive::addCol(PV::HyPerCol *hc, pvdata_t layerTolerance, pvwdata_t 
    for (int c = 0; c < nc; c++) {
       PV::BaseConnection *baseConn = hc->getConnection(c);
       if (baseConn == nullptr) {
-         pvError() << "Connection with index " << c << " is null.\n";
+         Fatal() << "Connection with index " << c << " is null.\n";
       }
       PV::HyPerConn *conn = dynamic_cast<PV::HyPerConn *>(baseConn);
       if (conn == nullptr) {
-         pvError() << baseConn->getDescription() << " is not a HyPerConn.\n";
+         Fatal() << baseConn->getDescription() << " is not a HyPerConn.\n";
       }
       addConn(conn, connTolerance);
    }

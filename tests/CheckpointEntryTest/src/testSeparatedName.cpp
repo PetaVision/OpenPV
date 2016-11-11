@@ -10,7 +10,7 @@ void testSeparatedName(PV::Communicator *comm) {
          "separated", "name", comm, (float *)nullptr, (size_t)0, false /*no broadcast*/};
 
    std::string const &entryDataName = separatedNameEntryData.getName();
-   pvErrorIf(
+   FatalIf(
          entryDataName != correctName,
          "testSeparatedName failed: name was \"%s\" instead of \"%s\".\n",
          entryDataName.c_str(),
@@ -24,11 +24,11 @@ void testSeparatedName(PV::Communicator *comm) {
                                                        false /*no broadcast*/};
 
    std::string const &entryPvpName = separatedNameEntryPvp.getName();
-   pvErrorIf(
+   FatalIf(
          entryPvpName != correctName,
          "testSeparatedName failed: name was \"%s\" instead of \"%s\".\n",
          entryPvpName.c_str(),
          correctName.c_str());
 
-   pvInfo() << "testSeparatedName passed.\n";
+   InfoLog() << "testSeparatedName passed.\n";
 }

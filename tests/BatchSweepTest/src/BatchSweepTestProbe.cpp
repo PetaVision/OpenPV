@@ -50,9 +50,9 @@ int BatchSweepTestProbe::outputState(double timed) {
    }
    for (int b = 0; b < parent->getNBatch(); b++) {
       if (timed >= 3.0) {
-         pvErrorIf(!(fabs(expectedSum - sum[b]) < 1e-6), "Test failed.\n");
-         pvErrorIf(!(fabs(expectedMin - fMin[b]) < 1e-6), "Test failed.\n");
-         pvErrorIf(!(fabs(expectedMax - fMax[b]) < 1e-6), "Test failed.\n");
+         FatalIf(!(fabs(expectedSum - sum[b]) < 1e-6), "Test failed.\n");
+         FatalIf(!(fabs(expectedMin - fMin[b]) < 1e-6), "Test failed.\n");
+         FatalIf(!(fabs(expectedMax - fMax[b]) < 1e-6), "Test failed.\n");
       }
    }
    return status;

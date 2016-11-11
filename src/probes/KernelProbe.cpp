@@ -68,7 +68,7 @@ int KernelProbe::communicateInitInfo() {
    assert(targetHyPerConn);
    if (getTargetHyPerConn()->usingSharedWeights() == false) {
       if (parent->columnId() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s: %s is not using shared weights.\n",
                getDescription_c(),
                targetConn->getDescription_c());
@@ -86,7 +86,7 @@ int KernelProbe::allocateDataStructures() {
    int status = BaseHyPerConnProbe::allocateDataStructures();
    assert(getTargetConn());
    if (getKernelIndex() < 0 || getKernelIndex() >= getTargetHyPerConn()->getNumDataPatches()) {
-      pvError().printf(
+      Fatal().printf(
             "KernelProbe \"%s\": kernelIndex %d is out of bounds.  "
             "(min 0, max %d)\n",
             name,
@@ -94,7 +94,7 @@ int KernelProbe::allocateDataStructures() {
             getTargetHyPerConn()->getNumDataPatches() - 1);
    }
    if (getArbor() < 0 || getArbor() >= getTargetConn()->numberOfAxonalArborLists()) {
-      pvError().printf(
+      Fatal().printf(
             "KernelProbe \"%s\": arborId %d is out of bounds. (min 0, max %d)\n",
             name,
             getArbor(),
@@ -123,8 +123,8 @@ int KernelProbe::outputState(double timed) {
    int nfp       = getTargetHyPerConn()->fPatchSize();
    int patchSize = nxp * nyp * nfp;
 
-   const pvwdata_t *wdata = getTargetHyPerConn()->get_wDataStart(arborID) + patchSize * kernelIndex;
-   const pvwdata_t *dwdata =
+   const float *wdata = getTargetHyPerConn()->get_wDataStart(arborID) + patchSize * kernelIndex;
+   const float *dwdata =
          outputPlasticIncr
                ? getTargetHyPerConn()->get_dwDataStart(arborID) + patchSize * kernelIndex
                : NULL;

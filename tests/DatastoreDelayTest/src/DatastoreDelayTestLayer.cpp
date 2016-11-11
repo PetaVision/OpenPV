@@ -48,8 +48,8 @@ int DatastoreDelayTestLayer::updateState(
       double timef,
       double dt,
       int num_neurons,
-      pvdata_t *V,
-      pvdata_t *A,
+      float *V,
+      float *A,
       int nx,
       int ny,
       int nf,
@@ -69,17 +69,17 @@ int DatastoreDelayTestLayer::updateState(
 int DatastoreDelayTestLayer::updateV_DatastoreDelayTestLayer(
       const PVLayerLoc *loc,
       bool *inited,
-      pvdata_t *V,
+      float *V,
       int period) {
    if (*inited) {
       for (int b = 0; b < loc->nbatch; b++) {
-         pvdata_t *VBatch = V + b * loc->nx * loc->ny * loc->nf;
+         float *VBatch = V + b * loc->nx * loc->ny * loc->nf;
          // Rotate values by one row.
          // Move everything down one row; clobbering row 0 in the process
          for (int y = loc->ny - 1; y > 0; y--) {
             for (int x = 0; x < loc->nx; x++) {
                for (int f = 0; f < loc->nf; f++) {
-                  pvdata_t *V1 = &VBatch[kIndex(x, y, f, loc->nx, loc->ny, loc->nf)];
+                  float *V1 = &VBatch[kIndex(x, y, f, loc->nx, loc->ny, loc->nf)];
                   (*V1)--;
                   if (*V1 == 0)
                      *V1 = period;
@@ -97,13 +97,13 @@ int DatastoreDelayTestLayer::updateV_DatastoreDelayTestLayer(
    }
    else {
       for (int b = 0; b < loc->nbatch; b++) {
-         pvdata_t *VBatch = V + b * loc->nx * loc->ny * loc->nf;
+         float *VBatch = V + b * loc->nx * loc->ny * loc->nf;
          if (loc->ny < period) {
             int rank;
             MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
             if (rank == 0) {
-               pvErrorNoExit().printf(
+               ErrorLog().printf(
                      "DatastoreDelayTestLayer: number of rows (%d) must be >= period (%d).  "
                      "Exiting.\n",
                      loc->ny,

@@ -52,7 +52,7 @@ int HyPerConnDebugInitWeights::communicateInitInfo() {
    BaseConnection *baseConn = parent->getConnFromName(otherConnName);
    otherConn                = dynamic_cast<HyPerConn *>(baseConn);
    if (otherConn == NULL) {
-      pvError().printf(
+      Fatal().printf(
             "HyPerConnDebugInitWeights \"%s\" error in rank %d process: copiedConn \"%s\" is not a "
             "connection in the column.\n",
             name,
@@ -64,7 +64,7 @@ int HyPerConnDebugInitWeights::communicateInitInfo() {
 
 PVPatch ***HyPerConnDebugInitWeights::initializeWeights(
       PVPatch ***arbors,
-      pvdata_t **dataStart,
+      float **dataStart,
       int numPatches,
       const char *filename) {
    // TODO  Implement InitWeightsMethod class.  The constructor for HyPerConn would take an
@@ -74,13 +74,13 @@ PVPatch ***HyPerConnDebugInitWeights::initializeWeights(
    //       of InitWeightsMethod.
    PVParams *inputParams = parent->parameters();
    PVPatch **patches     = arbors[0];
-   pvdata_t *arborStart  = dataStart[0];
+   float *arborStart     = dataStart[0];
    numPatches            = getNumDataPatches();
 
    int initFromLastFlag = inputParams->value(getName(), "initFromLastFlag", 0.0f, false) != 0;
 
    if (initFromLastFlag) {
-      pvError().printf(
+      Fatal().printf(
             "This method is for testing weight initialization!  It does not support "
             "load from file!\n");
    }
@@ -111,7 +111,7 @@ PVPatch ***HyPerConnDebugInitWeights::initializeWeights(
 
 PVPatch **HyPerConnDebugInitWeights::initializeSmartWeights(
       PVPatch **patches,
-      pvdata_t *dataStart,
+      float *dataStart,
       int numPatches) {
 
    for (int k = 0; k < numPatches; k++) {
@@ -119,8 +119,8 @@ PVPatch **HyPerConnDebugInitWeights::initializeSmartWeights(
    }
    return patches;
 }
-int HyPerConnDebugInitWeights::smartWeights(PVPatch *wp, pvdata_t *dataStart, int k) {
-   pvdata_t *w = dataStart; // wp->data;
+int HyPerConnDebugInitWeights::smartWeights(PVPatch *wp, float *dataStart, int k) {
+   float *w = dataStart; // wp->data;
 
    const int nxp = (int)wp->nx;
    const int nyp = (int)wp->ny;
@@ -144,7 +144,7 @@ int HyPerConnDebugInitWeights::smartWeights(PVPatch *wp, pvdata_t *dataStart, in
 
 PVPatch **HyPerConnDebugInitWeights::initializeCocircWeights(
       PVPatch **patches,
-      pvdata_t *dataStart,
+      float *dataStart,
       int numDataPatches) {
    PVParams *params = parent->parameters();
    float aspect     = 1.0f; // circular (not line oriented)
@@ -169,13 +169,13 @@ PVPatch **HyPerConnDebugInitWeights::initializeCocircWeights(
 
    int noPre = pre->getLayerLoc()->nf;
    noPre     = (int)params->value(name, "noPre", noPre);
-   pvErrorIf(!(noPre > 0), "Test failed.\n");
-   pvErrorIf(!(noPre <= pre->getLayerLoc()->nf), "Test failed.\n");
+   FatalIf(!(noPre > 0), "Test failed.\n");
+   FatalIf(!(noPre <= pre->getLayerLoc()->nf), "Test failed.\n");
 
    int noPost = post->getLayerLoc()->nf;
    noPost     = (int)params->value(name, "noPost", noPost);
-   pvErrorIf(!(noPost > 0), "Test failed.\n");
-   pvErrorIf(!(noPost <= post->getLayerLoc()->nf), "Test failed.\n");
+   FatalIf(!(noPost > 0), "Test failed.\n");
+   FatalIf(!(noPost <= post->getLayerLoc()->nf), "Test failed.\n");
 
    float sigma_cocirc = PI / 2.0f;
    sigma_cocirc       = params->value(name, "sigmaCocirc", sigma_cocirc);
@@ -199,7 +199,7 @@ PVPatch **HyPerConnDebugInitWeights::initializeCocircWeights(
    delta_radius_curvature = params->value(name, "deltaRadiusCurvature", delta_radius_curvature);
 
    for (int patchIndex = 0; patchIndex < numDataPatches; patchIndex++) {
-      pvdata_t *patchDataStart = &dataStart[patchIndex * nxp * nyp * nfp];
+      float *patchDataStart = &dataStart[patchIndex * nxp * nyp * nfp];
       cocircCalcWeights(
             patches[patchIndex],
             patchDataStart,
@@ -225,7 +225,7 @@ PVPatch **HyPerConnDebugInitWeights::initializeCocircWeights(
 }
 int HyPerConnDebugInitWeights::cocircCalcWeights(
       PVPatch *wp,
-      pvdata_t *dataStart,
+      float *dataStart,
       int dataPatchIndex,
       int noPre,
       int noPost,
@@ -242,7 +242,7 @@ int HyPerConnDebugInitWeights::cocircCalcWeights(
       float sigma,
       float r2Max,
       float strength) {
-   // pvdata_t * w = wp->data;
+   // float * w = wp->data;
 
    const float min_weight    = 0.0f; // read in as param
    const float sigma2        = 2 * sigma * sigma;
@@ -257,16 +257,16 @@ int HyPerConnDebugInitWeights::cocircCalcWeights(
 
    // get strides of (potentially shrunken) patch
    const int sx = xPatchStride();
-   pvErrorIf(!(sx == nfPatch), "Test failed.\n");
+   FatalIf(!(sx == nfPatch), "Test failed.\n");
    // const int sy = yPatchStride(); // no assert here because patch may be shrunken
    const int sf = fPatchStride();
-   pvErrorIf(!(sf == 1), "Test failed.\n");
+   FatalIf(!(sf == 1), "Test failed.\n");
 
    // make full sized temporary patch, positioned around center of unit cell
    // PVPatch * wp_tmp;
    // wp_tmp = pvpatch_inplace_new(nxp, nyp, nfp);
-   // pvdata_t * w_tmp = wp_tmp->data;
-   pvdata_t *w_tmp = dataStart;
+   // float * w_tmp = wp_tmp->data;
+   float *w_tmp = dataStart;
 
    // get/check dimensions and strides of full sized temporary patch
    const int nxPatch_tmp = nxp; // wp_tmp->nx;
@@ -282,11 +282,11 @@ int HyPerConnDebugInitWeights::cocircCalcWeights(
    const int kyPre_tmp = kyKerneIndex;
    //   const int kfPre_tmp = kfKernelIndex;
    const int sx_tmp = xPatchStride();
-   pvErrorIf(!(sx_tmp == fPatchSize()), "Test failed.\n");
+   FatalIf(!(sx_tmp == fPatchSize()), "Test failed.\n");
    const int sy_tmp = yPatchStride();
-   pvErrorIf(!(sy_tmp == fPatchSize() * nxPatch_tmp), "Test failed.\n");
+   FatalIf(!(sy_tmp == fPatchSize() * nxPatch_tmp), "Test failed.\n");
    const int sf_tmp = fPatchStride();
-   pvErrorIf(!(sf_tmp == 1), "Test failed.\n");
+   FatalIf(!(sf_tmp == 1), "Test failed.\n");
 
    // get distances to nearest neighbor in post synaptic layer
    float xDistNNPreUnits;
@@ -351,10 +351,10 @@ int HyPerConnDebugInitWeights::cocircCalcWeights(
    float kurvePre    = (radKurvPre != 0.0f) ? 1 / radKurvPre : 1.0f;
    int iKvPreAdj     = iKvPre;
    if (POS_KURVE_FLAG) {
-      pvErrorIf(!(nKurvePre >= 2), "Test failed.\n");
+      FatalIf(!(nKurvePre >= 2), "Test failed.\n");
       iPosKurvePre = iKvPre >= (int)(nKurvePre / 2);
       if (SADDLE_FLAG) {
-         pvErrorIf(!(nKurvePre >= 4), "Test failed.\n");
+         FatalIf(!(nKurvePre >= 4), "Test failed.\n");
          iSaddlePre = (iKvPre % 2 == 0) ? 0 : 1;
          iKvPreAdj  = ((iKvPre % (nKurvePre / 2)) / 2);
       }
@@ -382,10 +382,10 @@ int HyPerConnDebugInitWeights::cocircCalcWeights(
       float kurvePost    = (radKurvPost != 0.0f) ? 1 / radKurvPost : 1.0f;
       int iKvPostAdj     = iKvPost;
       if (POS_KURVE_FLAG) {
-         pvErrorIf(!(nKurvePost >= 2), "Test failed.\n");
+         FatalIf(!(nKurvePost >= 2), "Test failed.\n");
          iPosKurvePost = iKvPost >= (int)(nKurvePost / 2);
          if (SADDLE_FLAG) {
-            pvErrorIf(!(nKurvePost >= 4), "Test failed.\n");
+            FatalIf(!(nKurvePost >= 4), "Test failed.\n");
             iSaddlePost = (iKvPost % 2 == 0) ? 0 : 1;
             iKvPostAdj  = ((iKvPost % (nKurvePost / 2)) / 2);
          }
@@ -585,7 +585,7 @@ int HyPerConnDebugInitWeights::cocircCalcWeights(
 
 PVPatch **HyPerConnDebugInitWeights::initializeGaussian2DWeights(
       PVPatch **patches,
-      pvdata_t *dataStart,
+      float *dataStart,
       int numPatches) {
    PVParams *params = parent->parameters();
 
@@ -649,7 +649,7 @@ PVPatch **HyPerConnDebugInitWeights::initializeGaussian2DWeights(
 }
 int HyPerConnDebugInitWeights::gauss2DCalcWeights(
       PVPatch *wp,
-      pvdata_t *dataStart,
+      float *dataStart,
       int dataPatchIndex,
       int no,
       int numFlanks,
@@ -677,19 +677,19 @@ int HyPerConnDebugInitWeights::gauss2DCalcWeights(
       return 0; // reduced patch size is zero
    }
 
-   // pvdata_t * w = wp->data;
+   // float * w = wp->data;
 
    // get strides of (potentially shrunken) patch
    const int sx = xPatchStride();
-   pvErrorIf(!(sx == nfPatch), "Test failed.\n");
+   FatalIf(!(sx == nfPatch), "Test failed.\n");
    // const int sy = yPatchStride(); // no assert here because patch may be shrunken
    const int sf = fPatchStride();
-   pvErrorIf(!(sf == 1), "Test failed.\n");
+   FatalIf(!(sf == 1), "Test failed.\n");
 
    // make full sized temporary patch, positioned around center of unit cell
    // PVPatch * wp_tmp;
    // wp_tmp = pvpatch_inplace_new(nxp, nyp, nfp);
-   pvdata_t *w_tmp = dataStart; // wp_tmp->data;
+   float *w_tmp = dataStart; // wp_tmp->data;
 
    // get/check dimensions and strides of full sized temporary patch
    const int nxPatch_tmp = nxp; // wp_tmp->nx;
@@ -704,11 +704,11 @@ int HyPerConnDebugInitWeights::gauss2DCalcWeights(
    const int kyPre_tmp = kyKernelIndex;
    const int kfPre_tmp = kfKernelIndex;
    const int sx_tmp    = xPatchStride();
-   pvErrorIf(!(sx_tmp == fPatchSize()), "Test failed.\n");
+   FatalIf(!(sx_tmp == fPatchSize()), "Test failed.\n");
    const int sy_tmp = yPatchStride();
-   pvErrorIf(!(sy_tmp == fPatchSize() * nxPatch_tmp), "Test failed.\n");
+   FatalIf(!(sy_tmp == fPatchSize() * nxPatch_tmp), "Test failed.\n");
    const int sf_tmp = fPatchStride();
-   pvErrorIf(!(sf_tmp == 1), "Test failed.\n");
+   FatalIf(!(sf_tmp == 1), "Test failed.\n");
 
    // get distances to nearest neighbor in post synaptic layer (measured relative to pre-synaptic
    // cell)
@@ -761,7 +761,7 @@ int HyPerConnDebugInitWeights::gauss2DCalcWeights(
    const float dthPre  = PI * thetaMax / (float)noPre;
    const float th0Pre  = rotate * dthPre / 2.0f;
    const int fPre      = dataPatchIndex % pre->getLayerLoc()->nf;
-   pvErrorIf(!(fPre == kfPre_tmp), "Test failed.\n");
+   FatalIf(!(fPre == kfPre_tmp), "Test failed.\n");
    const int iThPre  = dataPatchIndex % noPre;
    const float thPre = th0Pre + iThPre * dthPre;
 
@@ -821,7 +821,7 @@ int HyPerConnDebugInitWeights::gauss2DCalcWeights(
 
 PVPatch **HyPerConnDebugInitWeights::initializeGaborWeights(
       PVPatch **patches,
-      pvdata_t *dataStart,
+      float *dataStart,
       int numPatches) {
 
    const int xScale = post->getXScale() - pre->getXScale();
@@ -864,7 +864,7 @@ PVPatch **HyPerConnDebugInitWeights::initializeGaborWeights(
 
 int HyPerConnDebugInitWeights::gaborWeights(
       PVPatch *wp,
-      pvdata_t *dataStart,
+      float *dataStart,
       int xScale,
       int yScale,
       float aspect,
@@ -882,7 +882,7 @@ int HyPerConnDebugInitWeights::gaborWeights(
    if (params->present(name, "invert"))
       invert = params->value(name, "invert");
 
-   pvdata_t *w = dataStart; // wp->data;
+   float *w = dataStart; // wp->data;
 
    // const float phi = 3.1416;  // phase
 
@@ -890,9 +890,9 @@ int HyPerConnDebugInitWeights::gaborWeights(
    const int ny = (int)wp->ny;
    const int nf = fPatchSize();
 
-   const int sx = xPatchStride(); // pvErrorIf(!(sx == nf), "Test failed.\n");
-   const int sy = yPatchStride(); // pvErrorIf(!(sy == nf*nx), "Test failed.\n");
-   const int sf = fPatchStride(); // pvErrorIf(!(sf == 1), "Test failed.\n");
+   const int sx = xPatchStride(); // FatalIf(!(sx == nf), "Test failed.\n");
+   const int sy = yPatchStride(); // FatalIf(!(sy == nf*nx), "Test failed.\n");
+   const int sf = fPatchStride(); // FatalIf(!(sf == 1), "Test failed.\n");
 
    const float dx = powf(2, xScale);
    const float dy = powf(2, yScale);
@@ -928,7 +928,7 @@ int HyPerConnDebugInitWeights::gaborWeights(
 
 #ifdef DEBUG_OUTPUT
             if (j == 0)
-               pvInfo().printf("x=%f fac=%f w=%f\n", xp, factor, wt);
+               InfoLog().printf("x=%f fac=%f w=%f\n", xp, factor, wt);
 #endif
             if (xp * xp + yp * yp > r2Max) {
                w[i * sx + j * sy + f * sf] = 0.0f;

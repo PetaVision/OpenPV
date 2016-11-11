@@ -40,11 +40,11 @@ class DataStore {
 
    // Level (delay) spins slower than bufferId (batch element)
 
-   pvdata_t *buffer(int bufferId, int level) {
+   float *buffer(int bufferId, int level) {
       return mBuffer->getBuffer(level, bufferId * mNumItems);
    }
 
-   pvdata_t *buffer(int bufferId) { return mBuffer->getBuffer(bufferId * mNumItems); }
+   float *buffer(int bufferId) { return mBuffer->getBuffer(bufferId * mNumItems); }
 
    double getLastUpdateTime(int bufferId, int level) const {
       return *mLastUpdateTimes->getBuffer(level, bufferId);
@@ -83,7 +83,7 @@ class DataStore {
    int mNumBuffers;
    bool mSparseFlag;
 
-   RingBuffer<pvdata_t> *mBuffer            = nullptr;
+   RingBuffer<float> *mBuffer               = nullptr;
    RingBuffer<double> *mLastUpdateTimes     = nullptr;
    RingBuffer<long> *mNumActive             = nullptr;
    RingBuffer<unsigned int> *mActiveIndices = nullptr;

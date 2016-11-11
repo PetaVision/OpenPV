@@ -15,7 +15,7 @@ InitCloneKernelWeights::~InitCloneKernelWeights() {}
 int InitCloneKernelWeights::initialize_base() { return PV_SUCCESS; }
 
 int InitCloneKernelWeights::calcWeights(
-      /*PVPatch * patch*/ pvdata_t *patchDataStart,
+      /*PVPatch * patch*/ float *patchDataStart,
       int patchIndex,
       int arborId) {
    // Don't modify anything; CloneKernelConn doesn't allocate new weights,

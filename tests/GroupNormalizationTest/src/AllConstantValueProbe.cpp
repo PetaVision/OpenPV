@@ -15,7 +15,7 @@ AllConstantValueProbe::AllConstantValueProbe(char const *probeName, HyPerCol *hc
 AllConstantValueProbe::AllConstantValueProbe() { initialize_base(); }
 
 int AllConstantValueProbe::initialize_base() {
-   correctValue = (pvadata_t)0;
+   correctValue = (float)0;
    return PV_SUCCESS;
 }
 
@@ -42,7 +42,7 @@ int AllConstantValueProbe::outputState(double timed) {
              && (fMin[b] < correctValue - nnzThreshold || fMax[b] > correctValue + nnzThreshold)) {
             outputStream->printf(
                   "     Values outside of tolerance nnzThreshold=%f\n", (double)nnzThreshold);
-            pvErrorNoExit().printf(
+            ErrorLog().printf(
                   "t=%f: fMin=%f, fMax=%f; values more than nnzThreshold=%g away from correct "
                   "value %f\n",
                   timed,

@@ -15,7 +15,7 @@ CloneKernelConn::CloneKernelConn(const char *name, HyPerCol *hc) { initialize(na
 int CloneKernelConn::initialize(const char *name, HyPerCol *hc) {
    int status = CloneConn::initialize(name, hc);
    if (hc->columnId() == 0) {
-      pvError().printf(
+      Fatal().printf(
             "%s: CloneKernelConn is obsolete.  Use CloneConn with sharedWeights=true.\n",
             getDescription_c());
    }

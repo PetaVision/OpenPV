@@ -24,9 +24,9 @@ class LCALIFLayer : public PV::LIFGap {
 
    inline float getTargetRate() { return targetRateHz; }
    const float *getVadpt() { return Vadpt; }
-   const pvdata_t *getIntegratedSpikeCount() { return integratedSpikeCount; }
-   const pvdata_t *getVattained() { return Vattained; }
-   const pvdata_t *getVmeminf() { return Vmeminf; }
+   const float *getIntegratedSpikeCount() { return integratedSpikeCount; }
+   const float *getVattained() { return Vattained; }
+   const float *getVmeminf() { return Vmeminf; }
 
   protected:
    LCALIFLayer();
@@ -43,14 +43,13 @@ class LCALIFLayer : public PV::LIFGap {
 
    int allocateBuffers() override;
 
-   pvdata_t *integratedSpikeCount; // plasticity decrement variable for postsynaptic layer
-   pvdata_t *G_Norm; // Copy of GSyn[CHANNEL_NORM] to be written out during checkpointing
-   pvdata_t
-         *GSynExcEffective; // What is used as GSynExc, after normalizing, stored for checkpointing
-   pvdata_t *GSynInhEffective; // What is used as GSynInh
-   pvdata_t *excitatoryNoise;
-   pvdata_t *inhibitoryNoise;
-   pvdata_t *inhibNoiseB;
+   float *integratedSpikeCount; // plasticity decrement variable for postsynaptic layer
+   float *G_Norm; // Copy of GSyn[CHANNEL_NORM] to be written out during checkpointing
+   float *GSynExcEffective; // What is used as GSynExc, after normalizing, stored for checkpointing
+   float *GSynInhEffective; // What is used as GSynInh
+   float *excitatoryNoise;
+   float *inhibitoryNoise;
+   float *inhibNoiseB;
    float tauTHR;
    float targetRateHz;
    float Vscale;

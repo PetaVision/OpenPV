@@ -12,21 +12,21 @@ void testPvpBatch(PV::Communicator *comm, std::string const &directory) {
    loc.halo.rt      = 0;
    loc.halo.dn      = 0;
    loc.halo.up      = 0;
-   pvErrorIf(
+   FatalIf(
          loc.nbatchGlobal % comm->numCommBatches(),
          "Global batch size %d is not a multiple of batch width %d\n",
          loc.nbatchGlobal,
          comm->numCommBatches());
    loc.nbatch = loc.nbatchGlobal / comm->numCommBatches();
    loc.kb0    = loc.nbatchGlobal * comm->commBatch();
-   pvErrorIf(
+   FatalIf(
          loc.nxGlobal % comm->numCommColumns(),
          "Global width %d is not a multiple of the number of MPI columns %d\n",
          loc.nxGlobal,
          comm->numCommColumns());
    loc.nx  = loc.nxGlobal / comm->numCommColumns();
    loc.kx0 = loc.nx * comm->commColumn();
-   pvErrorIf(
+   FatalIf(
          loc.nyGlobal % comm->numCommRows(),
          "Global height %d is not a multiple of the number of MPI rows %d\n",
          loc.nyGlobal,
@@ -79,9 +79,9 @@ void testPvpBatch(PV::Communicator *comm, std::string const &directory) {
    checkpointEntryPvp.read(directory, &readTime);
 
    // Verify the read
-   pvErrorIf(readTime != simTime, "Read timestamp %f; expected %f.\n", readTime, simTime);
+   FatalIf(readTime != simTime, "Read timestamp %f; expected %f.\n", readTime, simTime);
    for (int k = 0; k < localSize; k++) {
-      pvErrorIf(
+      FatalIf(
             checkpointData.at(k) != correctData.at(k),
             "testDataPvp failed: data at rank %d, index %d is %f, but should be %f\n",
             comm->commRank(),
@@ -90,5 +90,5 @@ void testPvpBatch(PV::Communicator *comm, std::string const &directory) {
             (double)correctData.at(k));
    }
    MPI_Barrier(comm->communicator());
-   pvInfo() << "testDataPvpBatch passed.\n";
+   InfoLog() << "testDataPvpBatch passed.\n";
 }

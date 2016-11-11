@@ -74,13 +74,13 @@ int CloneConn::constructWeights() {
 }
 
 void CloneConn::constructWeightsOutOfMemory() {
-   pvError().printf(
+   Fatal().printf(
          "Out of memory error in CloneConn::constructWeightsOutOfMemory() for \"%s\"\n", name);
 }
 
 int CloneConn::createAxonalArbors(int arborId) { return PV_SUCCESS; }
 
-PVPatch ***CloneConn::initializeWeights(PVPatch ***patches, pvdata_t **dataStart) {
+PVPatch ***CloneConn::initializeWeights(PVPatch ***patches, float **dataStart) {
    return patches;
    // nothing to be done as the weight patches point to originalConn's space.
 }
@@ -177,7 +177,7 @@ int CloneConn::communicateInitInfo() {
    BaseConnection *originalConnBase = parent->getConnFromName(originalConnName);
    if (originalConnBase == NULL) {
       if (parent->columnId() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s: originalConnName \"%s\" is not a connection in the column.\n",
                getDescription_c(),
                originalConnName);
@@ -188,7 +188,7 @@ int CloneConn::communicateInitInfo() {
    originalConn = dynamic_cast<HyPerConn *>(originalConnBase);
    if (originalConn == NULL) {
       if (parent->columnId() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s: originalConnName \"%s\" is not a HyPerConn or HyPerConn-derived class.\n",
                getDescription_c(),
                originalConnName);
@@ -196,7 +196,7 @@ int CloneConn::communicateInitInfo() {
    }
    if (!originalConn->getInitInfoCommunicatedFlag()) {
       if (parent->columnId() == 0) {
-         pvInfo().printf(
+         InfoLog().printf(
                "%s must wait until original connection \"%s\" has finished its communicateInitInfo "
                "stage.\n",
                getDescription_c(),
@@ -236,7 +236,7 @@ int CloneConn::communicateInitInfo() {
    if (preLoc->nx != origPreLoc->nx || preLoc->ny != origPreLoc->ny
        || preLoc->nf != origPreLoc->nf) {
       if (parent->getCommunicator()->commRank() == 0) {
-         pvErrorNoExit(errorMessage);
+         ErrorLog(errorMessage);
          errorMessage.printf(
                "%s: CloneConn and originalConn \"%s\" must have presynaptic layers with the same "
                "nx,ny,nf.\n",
@@ -281,7 +281,7 @@ int CloneConn::allocatePostConn() {
 int CloneConn::allocateDataStructures() {
    if (!originalConn->getDataStructuresAllocatedFlag()) {
       if (parent->columnId() == 0) {
-         pvInfo().printf(
+         InfoLog().printf(
                "%s must wait until original connection \"%s\" has finished its communicateInitInfo "
                "stage.\n",
                getDescription_c(),

@@ -73,7 +73,7 @@ Timer::Timer(const char *objname, const char *objtype, const char *timertype, do
          snprintf(&dummy, 1, "%32s: total time in %6s %10s: ", objname, objtype, timertype);
    message = (char *)malloc(charsneeded + 1);
    if (message == NULL) {
-      pvError().printf(
+      Fatal().printf(
             "Timer::setMessage unable to allocate memory for Timer message: called with name=%s, "
             "objtype=%s, timertype=%s\n",
             objname,

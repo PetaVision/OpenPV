@@ -5,19 +5,14 @@
 #include "include/pv_types.h"
 #include "utils/cl_random.h"
 
-int pvpatch_accumulate(int kPreRes, int nk, float *v, float a, pvwdata_t *w, void *auxPtr, int sf);
-int pvpatch_accumulate2(
-      int nk,
-      float *RESTRICT v,
-      float a,
-      pvwdata_t *RESTRICT w,
-      float *RESTRICT m);
+int pvpatch_accumulate(int kPreRes, int nk, float *v, float a, float *w, void *auxPtr, int sf);
+int pvpatch_accumulate2(int nk, float *RESTRICT v, float a, float *RESTRICT w, float *RESTRICT m);
 int pvpatch_accumulate_stochastic(
       int kPreRes,
       int nk,
       float *RESTRICT v,
       float a,
-      pvwdata_t *RESTRICT w,
+      float *RESTRICT w,
       void *auxPtr,
       int sf);
 int pvpatch_max_pooling(
@@ -25,7 +20,7 @@ int pvpatch_max_pooling(
       int nk,
       float *RESTRICT v,
       float a,
-      pvwdata_t *RESTRICT w,
+      float *RESTRICT w,
       void *auxPtr,
       int sf);
 int pvpatch_sum_pooling(
@@ -33,7 +28,7 @@ int pvpatch_sum_pooling(
       int nk,
       float *RESTRICT v,
       float a,
-      pvwdata_t *RESTRICT w,
+      float *RESTRICT w,
       void *auxPtr,
       int sf);
 
@@ -42,7 +37,7 @@ int pvpatch_accumulate_from_post(
       int nk,
       float *v,
       float *a,
-      pvwdata_t *w,
+      float *w,
       float dt_factor,
       void *auxPtr,
       int sf);
@@ -51,7 +46,7 @@ int pvpatch_accumulate_stochastic_from_post(
       int nk,
       float *v,
       float *a,
-      pvwdata_t *w,
+      float *w,
       float dt_factor,
       void *auxPtr,
       int sf);
@@ -60,7 +55,7 @@ int pvpatch_max_pooling_from_post(
       int nk,
       float *v,
       float *a,
-      pvwdata_t *w,
+      float *w,
       float dt_factor,
       void *auxPtr,
       int sf);
@@ -69,7 +64,7 @@ int pvpatch_sumpooling_from_post(
       int nk,
       float *RESTRICT v,
       float *RESTRICT a,
-      pvwdata_t *RESTRICT w,
+      float *RESTRICT w,
       float dt_factor,
       void *auxPtr,
       int sf);

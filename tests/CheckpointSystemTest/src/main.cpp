@@ -19,26 +19,26 @@ int main(int argc, char *argv[]) {
    int status             = PV_SUCCESS;
    if (pv_getopt_str(argc, argv, "-p", NULL, NULL) == 0) {
       if (rank == 0) {
-         pvErrorNoExit().printf("%s should be run without the params file argument.\n", argv[0]);
+         ErrorLog().printf("%s should be run without the params file argument.\n", argv[0]);
       }
       status = PV_FAILURE;
    }
    if (pv_getopt_str(argc, argv, "-c", NULL, NULL) == 0) {
       if (rank == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s should be run without the checkpoint directory argument.\n", argv[0]);
       }
       status = PV_FAILURE;
    }
    if (pv_getopt(argc, argv, "-r", NULL) == 0) {
       if (rank == 0) {
-         pvErrorNoExit().printf("%s should be run without the restart flag.\n", argv[0]);
+         ErrorLog().printf("%s should be run without the restart flag.\n", argv[0]);
       }
       status = PV_FAILURE;
    }
    if (status != PV_SUCCESS) {
       if (rank == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "This test uses two hard-coded params files, %s and %s. The second run is started "
                "from a checkpoint from the first run, and the results of the two runs are "
                "compared.\n",
@@ -53,7 +53,7 @@ int main(int argc, char *argv[]) {
       char const *rmcommand = "rm -rf checkpoints1 checkpoints2 output";
       status                = system(rmcommand);
       if (status != 0) {
-         pvError().printf(
+         Fatal().printf(
                "deleting old checkpoints and output directories failed: \"%s\" returned %d\n",
                rmcommand,
                status);
@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
 
    status = rebuildandrun(&initObj);
    if (status != PV_SUCCESS) {
-      pvError().printf(
+      Fatal().printf(
             "%s: rank %d running with params file %s returned error %d.\n",
             initObj.getProgramName(),
             rank,
@@ -80,7 +80,7 @@ int main(int argc, char *argv[]) {
 
    status = rebuildandrun(&initObj);
    if (status != PV_SUCCESS) {
-      pvError().printf(
+      Fatal().printf(
             "%s: rank %d running with params file %s returned status code %d.\n",
             initObj.getProgramName(),
             rank,
@@ -100,7 +100,7 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
       const char *cpdir1 = "checkpoints1";
       const char *cpdir2 = hc->parameters()->stringValue("column", "checkpointWriteDir");
       if (cpdir1 == NULL || cpdir2 == NULL) {
-         pvError().printf(
+         Fatal().printf(
                "%s: unable to allocate memory for names of checkpoint directories", argv[0]);
       }
       const int max_buf_len = 1024;
@@ -110,7 +110,7 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
       snprintf(shellcommand, max_buf_len, fmtstr, cpdir1, index, cpdir2, index);
       status = system(shellcommand);
       if (status != 0) {
-         pvErrorNoExit().printf("system(\"%s\") returned %d\n", shellcommand, WEXITSTATUS(status));
+         ErrorLog().printf("system(\"%s\") returned %d\n", shellcommand, WEXITSTATUS(status));
          status = PV_FAILURE;
       }
    }

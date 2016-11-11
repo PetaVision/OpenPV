@@ -27,7 +27,7 @@ int InitSmartWeights::initialize(char const *name, HyPerCol *hc) {
 }
 
 int InitSmartWeights::calcWeights(
-      /* PVPatch * patch */ pvdata_t *dataStart,
+      /* PVPatch * patch */ float *dataStart,
       int patchIndex,
       int arborId) {
    // smart weights doesn't have any params to load and is too simple to
@@ -43,7 +43,7 @@ InitWeightsParams *InitSmartWeights::createNewWeightParams() {
 }
 
 int InitSmartWeights::smartWeights(
-      /* PVPatch * wp */ pvdata_t *dataStart,
+      /* PVPatch * wp */ float *dataStart,
       int k,
       InitWeightsParams *weightParams) {
 

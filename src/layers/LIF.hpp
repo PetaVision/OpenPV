@@ -62,7 +62,7 @@ class LIF : public PV::HyPerLayer {
    virtual int updateState(double time, double dt) override;
    virtual int setActivity() override;
 
-   pvdata_t *getVth() { return Vth; }
+   float *getVth() { return Vth; }
    virtual pvconductance_t *getConductance(ChannelType ch) {
       return ch < this->numChannels ? G_E + ch * getNumNeurons() : NULL;
    }
@@ -76,7 +76,7 @@ class LIF : public PV::HyPerLayer {
   protected:
    LIF_params lParams;
    Random *randState;
-   pvdata_t *Vth; // threshold potential
+   float *Vth; // threshold potential
    pvconductance_t *G_E; // excitatory conductance
    pvconductance_t *G_I; // inhibitory conductance
    pvconductance_t *G_IB;
