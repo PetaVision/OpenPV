@@ -12,14 +12,10 @@ namespace PV {
 
 KernelConnDebugInitWeights::KernelConnDebugInitWeights() { initialize_base(); }
 
-KernelConnDebugInitWeights::KernelConnDebugInitWeights(
-      const char *name,
-      HyPerCol *hc,
-      InitWeights *weightInitializer,
-      NormalizeBase *weightNormalizer)
+KernelConnDebugInitWeights::KernelConnDebugInitWeights(const char *name, HyPerCol *hc)
       : HyPerConn() {
    initialize_base();
-   KernelConnDebugInitWeights::initialize(name, hc, weightInitializer, weightNormalizer);
+   KernelConnDebugInitWeights::initialize(name, hc);
 }
 
 KernelConnDebugInitWeights::~KernelConnDebugInitWeights() { free(otherConnName); }
@@ -29,12 +25,8 @@ int KernelConnDebugInitWeights::initialize_base() {
    return PV_SUCCESS;
 }
 
-int KernelConnDebugInitWeights::initialize(
-      const char *name,
-      HyPerCol *hc,
-      InitWeights *weightInitializer,
-      NormalizeBase *weightNormalizer) {
-   HyPerConn::initialize(name, hc, weightInitializer, weightNormalizer);
+int KernelConnDebugInitWeights::initialize(const char *name, HyPerCol *hc) {
+   HyPerConn::initialize(name, hc);
    return PV_SUCCESS;
 }
 

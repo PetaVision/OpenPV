@@ -12,14 +12,9 @@ namespace PV {
 
 MomentumConn::MomentumConn() { initialize_base(); }
 
-MomentumConn::MomentumConn(
-      const char *name,
-      HyPerCol *hc,
-      InitWeights *weightInitializer,
-      NormalizeBase *weightNormalizer)
-      : HyPerConn() {
+MomentumConn::MomentumConn(const char *name, HyPerCol *hc) : HyPerConn() {
    initialize_base();
-   initialize(name, hc, weightInitializer, weightNormalizer);
+   initialize(name, hc);
 }
 
 MomentumConn::~MomentumConn() {

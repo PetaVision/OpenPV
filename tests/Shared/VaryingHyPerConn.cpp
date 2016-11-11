@@ -9,23 +9,14 @@
 
 namespace PV {
 
-VaryingHyPerConn::VaryingHyPerConn(
-      const char *name,
-      HyPerCol *hc,
-      InitWeights *weightInitializer,
-      NormalizeBase *weightNormalizer)
-      : HyPerConn() {
-   initialize(name, hc, weightInitializer, weightNormalizer);
+VaryingHyPerConn::VaryingHyPerConn(const char *name, HyPerCol *hc) : HyPerConn() {
+   initialize(name, hc);
 }
 
 VaryingHyPerConn::~VaryingHyPerConn() {}
 
-int VaryingHyPerConn::initialize(
-      const char *name,
-      HyPerCol *hc,
-      InitWeights *weightInitializer,
-      NormalizeBase *weightNormalizer) {
-   return HyPerConn::initialize(name, hc, weightInitializer, weightNormalizer);
+int VaryingHyPerConn::initialize(const char *name, HyPerCol *hc) {
+   return HyPerConn::initialize(name, hc);
 }
 
 int VaryingHyPerConn::allocateDataStructures() {

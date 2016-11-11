@@ -7,12 +7,8 @@
 #include <utils/PVLog.hpp>
 
 namespace PV {
-TriggerTestConn::TriggerTestConn(
-      const char *name,
-      HyPerCol *hc,
-      InitWeights *weightInitializer,
-      NormalizeBase *weightNormalizer) {
-   HyPerConn::initialize(name, hc, weightInitializer, weightNormalizer);
+TriggerTestConn::TriggerTestConn(const char *name, HyPerCol *hc) {
+   HyPerConn::initialize(name, hc);
 }
 
 int TriggerTestConn::updateState(double time, double dt) {

@@ -15,11 +15,7 @@ class MomentumConn : public HyPerConn {
 
   public:
    MomentumConn();
-   MomentumConn(
-         const char *name,
-         HyPerCol *hc,
-         InitWeights *weightInitializer  = NULL,
-         NormalizeBase *weightNormalizer = NULL);
+   MomentumConn(const char *name, HyPerCol *hc);
    virtual ~MomentumConn();
    virtual int allocateDataStructures();
 

@@ -21,7 +21,7 @@ int CloneConn::initialize_base() {
 }
 
 int CloneConn::initialize(const char *name, HyPerCol *hc) {
-   int status = HyPerConn::initialize(name, hc, NULL, NULL);
+   int status = HyPerConn::initialize(name, hc);
    return status;
 }
 

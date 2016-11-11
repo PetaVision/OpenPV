@@ -46,7 +46,7 @@ int TransposeConn::initialize_base() {
 int TransposeConn::initialize(const char *name, HyPerCol *hc) {
    int status = PV_SUCCESS;
    if (status == PV_SUCCESS)
-      status = HyPerConn::initialize(name, hc, NULL, NULL);
+      status = HyPerConn::initialize(name, hc);
    return status;
 }
 
