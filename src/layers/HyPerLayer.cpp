@@ -2216,25 +2216,19 @@ int HyPerLayer::readStateFromCheckpoint(Checkpointer *checkpointer) {
 }
 
 int HyPerLayer::readActivityFromCheckpoint(Checkpointer *checkpointer) {
-   std::string checkpointEntryName(name);
-   checkpointEntryName.append("_A");
-   checkpointer->readNamedCheckpointEntry(checkpointEntryName);
+   checkpointer->readNamedCheckpointEntry(std::string(name), std::string("A"));
    return PV_SUCCESS;
 }
 
 int HyPerLayer::readVFromCheckpoint(Checkpointer *checkpointer) {
    if (getV() != nullptr) {
-      std::string checkpointEntryName(name);
-      checkpointEntryName.append("_V");
-      checkpointer->readNamedCheckpointEntry(checkpointEntryName);
+      checkpointer->readNamedCheckpointEntry(std::string(name), std::string("V"));
    }
    return PV_SUCCESS;
 }
 
 int HyPerLayer::readDelaysFromCheckpoint(Checkpointer *checkpointer) {
-   std::string checkpointEntryName(name);
-   checkpointEntryName.append("_Delays");
-   checkpointer->readNamedCheckpointEntry(checkpointEntryName);
+   checkpointer->readNamedCheckpointEntry(std::string(name), std::string("Delays"));
    return PV_SUCCESS;
 }
 

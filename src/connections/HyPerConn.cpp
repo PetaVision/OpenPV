@@ -2077,12 +2077,7 @@ int HyPerConn::writeTextWeights(const char *filename, int k) {
 }
 
 int HyPerConn::readStateFromCheckpoint(Checkpointer *checkpointer) {
-   // If timeptr is NULL, the timestamps in the pvp files are ignored.  If non-null, they are
-   // compared to the value of *timeptr and
-   // a warning is issued if there is a discrepancy.
-   std::string checkpointEntryName(name);
-   checkpointEntryName.append("_W");
-   checkpointer->readNamedCheckpointEntry(checkpointEntryName);
+   checkpointer->readNamedCheckpointEntry(std::string(name), std::string("W"));
    return PV_SUCCESS;
 }
 

@@ -360,37 +360,27 @@ int LIF::readStateFromCheckpoint(Checkpointer *checkpointer) {
 }
 
 int LIF::readVthFromCheckpoint(Checkpointer *checkpointer) {
-   std::string checkpointEntryName(name);
-   checkpointEntryName.append("_Vth.pvp");
-   checkpointer->readNamedCheckpointEntry(checkpointEntryName);
+   checkpointer->readNamedCheckpointEntry(std::string(name), "Vth");
    return PV_SUCCESS;
 }
 
 int LIF::readG_EFromCheckpoint(Checkpointer *checkpointer) {
-   std::string checkpointEntryName(name);
-   checkpointEntryName.append("_G_E.pvp");
-   checkpointer->readNamedCheckpointEntry(checkpointEntryName);
+   checkpointer->readNamedCheckpointEntry(std::string(name), "G_E");
    return PV_SUCCESS;
 }
 
 int LIF::readG_IFromCheckpoint(Checkpointer *checkpointer) {
-   std::string checkpointEntryName(name);
-   checkpointEntryName.append("_G_I.pvp");
-   checkpointer->readNamedCheckpointEntry(checkpointEntryName);
+   checkpointer->readNamedCheckpointEntry(std::string(name), "G_I");
    return PV_SUCCESS;
 }
 
 int LIF::readG_IBFromCheckpoint(Checkpointer *checkpointer) {
-   std::string checkpointEntryName(name);
-   checkpointEntryName.append("_G_IB.pvp");
-   checkpointer->readNamedCheckpointEntry(checkpointEntryName);
+   checkpointer->readNamedCheckpointEntry(std::string(name), "G_IB");
    return PV_SUCCESS;
 }
 
 int LIF::readRandStateFromCheckpoint(Checkpointer *checkpointer) {
-   std::string checkpointEntryName(name);
-   checkpointEntryName.append("_rand_state.pvp");
-   checkpointer->readNamedCheckpointEntry(checkpointEntryName);
+   checkpointer->readNamedCheckpointEntry(std::string(name), "rand_state");
    return PV_SUCCESS;
 }
 

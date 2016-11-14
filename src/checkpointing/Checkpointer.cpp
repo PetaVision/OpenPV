@@ -432,7 +432,9 @@ void Checkpointer::registerTimer(Timer const *timer) { mTimers.push_back(timer);
 
 void Checkpointer::readNamedCheckpointEntry(std::string objName, std::string dataName) {
    std::string checkpointEntryName(objName);
-   if (!(objName.empty() || dataName.empty())) { checkpointEntryName.append("_"); }
+   if (!(objName.empty() || dataName.empty())) {
+      checkpointEntryName.append("_");
+   }
    checkpointEntryName.append(dataName);
    readNamedCheckpointEntry(checkpointEntryName);
 }

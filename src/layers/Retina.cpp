@@ -284,9 +284,7 @@ int Retina::readStateFromCheckpoint(Checkpointer *checkpointer) {
 }
 
 int Retina::readRandStateFromCheckpoint(Checkpointer *checkpointer) {
-   std::string checkpointEntryName(name);
-   checkpointEntryName.append("_rand_state.pvp");
-   checkpointer->readNamedCheckpointEntry(checkpointEntryName);
+   checkpointer->readNamedCheckpointEntry(std::string(name), std::string("rand_state.pvp"));
    return PV_SUCCESS;
 }
 

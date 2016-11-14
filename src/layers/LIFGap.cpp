@@ -199,9 +199,7 @@ int LIFGap::readStateFromCheckpoint(Checkpointer *checkpointer) {
 }
 
 int LIFGap::readGapStrengthFromCheckpoint(Checkpointer *checkpointer) {
-   std::string checkpointEntryName(name);
-   checkpointEntryName.append("_gapStrength.pvp");
-   checkpointer->readNamedCheckpointEntry(checkpointEntryName);
+   checkpointer->readNamedCheckpointEntry(std::string(name), std::string("gapStrength"));
 }
 
 int LIFGap::updateState(double time, double dt) {
