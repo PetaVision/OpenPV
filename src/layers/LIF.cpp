@@ -349,61 +349,48 @@ int LIF::allocateConductances(int num_channels) {
    return PV_SUCCESS;
 }
 
-int LIF::readStateFromCheckpoint(const char *cpDir, double *timeptr) {
-   HyPerLayer::readStateFromCheckpoint(cpDir, timeptr);
-   readVthFromCheckpoint(cpDir, timeptr);
-   readG_EFromCheckpoint(cpDir, timeptr);
-   readG_IFromCheckpoint(cpDir, timeptr);
-   readG_IBFromCheckpoint(cpDir, timeptr);
-   readRandStateFromCheckpoint(cpDir, timeptr);
+int LIF::readStateFromCheckpoint(Checkpointer *checkpointer) {
+   HyPerLayer::readStateFromCheckpoint(checkpointer);
+   readVthFromCheckpoint(checkpointer);
+   readG_EFromCheckpoint(checkpointer);
+   readG_IFromCheckpoint(checkpointer);
+   readG_IBFromCheckpoint(checkpointer);
+   readRandStateFromCheckpoint(checkpointer);
    return PV_SUCCESS;
 }
 
-int LIF::readVthFromCheckpoint(const char *cpDir, double *timeptr) {
-   char *filename = parent->pathInCheckpoint(cpDir, getName(), "_Vth.pvp");
-   int status     = readBufferFile(
-         filename, parent->getCommunicator(), timeptr, &Vth, 1, /*extended*/ true, getLayerLoc());
-   assert(status == PV_SUCCESS);
-   free(filename);
-   return status;
+int LIF::readVthFromCheckpoint(Checkpointer *checkpointer) {
+   std::string checkpointEntryName(name);
+   checkpointEntryName.append("_Vth.pvp");
+   checkpointer->initializeFromCheckpointDir(checkpointEntryName);
+   return PV_SUCCESS;
 }
 
-int LIF::readG_EFromCheckpoint(const char *cpDir, double *timeptr) {
-   char *filename = parent->pathInCheckpoint(cpDir, getName(), "_G_E.pvp");
-   int status     = readBufferFile(
-         filename, parent->getCommunicator(), timeptr, &G_E, 1, /*extended*/ true, getLayerLoc());
-   assert(status == PV_SUCCESS);
-   free(filename);
-   return status;
+int LIF::readG_EFromCheckpoint(Checkpointer *checkpointer) {
+   std::string checkpointEntryName(name);
+   checkpointEntryName.append("_G_E.pvp");
+   checkpointer->initializeFromCheckpointDir(checkpointEntryName);
+   return PV_SUCCESS;
 }
 
-int LIF::readG_IFromCheckpoint(const char *cpDir, double *timeptr) {
-   char *filename = parent->pathInCheckpoint(cpDir, getName(), "_G_I.pvp");
-   int status     = readBufferFile(
-         filename, parent->getCommunicator(), timeptr, &G_I, 1, /*extended*/ true, getLayerLoc());
-   assert(status == PV_SUCCESS);
-   free(filename);
-   return status;
+int LIF::readG_IFromCheckpoint(Checkpointer *checkpointer) {
+   std::string checkpointEntryName(name);
+   checkpointEntryName.append("_G_I.pvp");
+   checkpointer->initializeFromCheckpointDir(checkpointEntryName);
+   return PV_SUCCESS;
 }
 
-int LIF::readG_IBFromCheckpoint(const char *cpDir, double *timeptr) {
-   char *filename = parent->pathInCheckpoint(cpDir, getName(), "_G_IB.pvp");
-   int status     = readBufferFile(
-         filename, parent->getCommunicator(), timeptr, &G_IB, 1, /*extended*/ true, getLayerLoc());
-   assert(status == PV_SUCCESS);
-   free(filename);
-   return status;
+int LIF::readG_IBFromCheckpoint(Checkpointer *checkpointer) {
+   std::string checkpointEntryName(name);
+   checkpointEntryName.append("_G_IB.pvp");
+   checkpointer->initializeFromCheckpointDir(checkpointEntryName);
+   return PV_SUCCESS;
 }
 
-int LIF::readRandStateFromCheckpoint(const char *cpDir, double *timeptr) {
-   char *filename = parent->pathInCheckpoint(cpDir, getName(), "_rand_state.pvp");
-   *timeptr       = readRandState(
-         filename,
-         parent->getCommunicator(),
-         randState->getRNG(0),
-         getLayerLoc(),
-         false /*extended*/);
-   free(filename);
+int LIF::readRandStateFromCheckpoint(Checkpointer *checkpointer) {
+   std::string checkpointEntryName(name);
+   checkpointEntryName.append("_rand_state.pvp");
+   checkpointer->initializeFromCheckpointDir(checkpointEntryName);
    return PV_SUCCESS;
 }
 

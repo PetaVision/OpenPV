@@ -258,30 +258,24 @@ int LCALIFLayer::updateState(double timed, double dt) {
    return PV_SUCCESS;
 }
 
-int LCALIFLayer::readStateFromCheckpoint(const char *cpDir, double *timeptr) {
-   int status      = LIFGap::readStateFromCheckpoint(cpDir, timeptr);
+int LCALIFLayer::readStateFromCheckpoint(Checkpointer *checkpointer) {
+   int status      = LIFGap::readStateFromCheckpoint(checkpointer);
    double filetime = 0.0;
-   status          = read_integratedSpikeCountFromCheckpoint(cpDir, timeptr);
-   status          = readVadptFromCheckpoint(cpDir, timeptr);
+   status          = read_integratedSpikeCountFromCheckpoint(checkpointer);
+   status          = readVadptFromCheckpoint(checkpointer);
    return status;
 }
 
-int LCALIFLayer::read_integratedSpikeCountFromCheckpoint(const char *cpDir, double *timeptr) {
-   char *filename = parent->pathInCheckpoint(cpDir, getName(), "_integratedSpikeCount.pvp");
-   int status     = readBufferFile(
-         filename, parent->getCommunicator(), timeptr, &Vth, 1, /*extended*/ true, getLayerLoc());
-   assert(status == PV_SUCCESS);
-   free(filename);
-   return status;
+int LCALIFLayer::read_integratedSpikeCountFromCheckpoint(Checkpointer *checkpointer) {
+   std::string checkpointEntryName(name);
+   checkpointEntryName.append("_integratedSpikeCount.pvp");
+   return PV_SUCCESS;
 }
 
-int LCALIFLayer::readVadptFromCheckpoint(const char *cpDir, double *timeptr) {
-   char *filename = parent->pathInCheckpoint(cpDir, getName(), "_Vadpt.pvp");
-   int status     = readBufferFile(
-         filename, parent->getCommunicator(), timeptr, &Vth, 1, /*extended*/ true, getLayerLoc());
-   assert(status == PV_SUCCESS);
-   free(filename);
-   return status;
+int LCALIFLayer::readVadptFromCheckpoint(Checkpointer *checkpointer) {
+   std::string checkpointEntryName(name);
+   checkpointEntryName.append("_Vadpt.pvp");
+   return PV_SUCCESS;
 }
 
 } // namespace PV

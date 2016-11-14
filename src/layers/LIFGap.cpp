@@ -192,27 +192,18 @@ int LIFGap::registerData(Checkpointer *checkpointer, std::string const &objName)
    return status;
 }
 
-int LIFGap::readStateFromCheckpoint(const char *cpDir, double *timeptr) {
-   int status = LIF::readStateFromCheckpoint(cpDir, timeptr);
-   status     = readGapStrengthFromCheckpoint(cpDir, timeptr);
+int LIFGap::readStateFromCheckpoint(Checkpointer *checkpointer) {
+   int status = LIF::readStateFromCheckpoint(checkpointer);
+   status     = readGapStrengthFromCheckpoint(checkpointer);
    return status;
 }
 
-int LIFGap::readGapStrengthFromCheckpoint(const char *cpDir, double *timeptr) {
-   char *filename = parent->pathInCheckpoint(cpDir, getName(), "_gapStrength.pvp");
-   int status     = readBufferFile(
-         filename,
-         parent->getCommunicator(),
-         timeptr,
-         &gapStrength,
-         1,
-         /*extended*/ false,
-         getLayerLoc());
-   assert(status == PV_SUCCESS);
-   free(filename);
-   gapStrengthInitialized = true;
-   return status;
+int LIFGap::readGapStrengthFromCheckpoint(Checkpointer *checkpointer) {
+   std::string checkpointEntryName(name);
+   checkpointEntryName.append("_gapStrength.pvp");
+   checkpointer->initializeFromCheckpointDir(checkpointEntryName);
 }
+
 int LIFGap::updateState(double time, double dt) {
    int status = PV_SUCCESS;
 
