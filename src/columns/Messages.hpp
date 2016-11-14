@@ -47,9 +47,7 @@ class RegisterDataMessage : public BaseMessage {
 template <typename T> // In practice, T is always Checkpointer.
 class InitializeStateMessage : public BaseMessage {
   public:
-   InitializeStateMessage(T *dataRegistry) {
-      setMessageType("InitializeState");
-   }
+   InitializeStateMessage(T *dataRegistry) { setMessageType("InitializeState"); }
    T *mDataRegistry;
 };
 

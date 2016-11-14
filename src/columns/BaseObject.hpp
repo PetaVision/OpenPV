@@ -85,7 +85,7 @@ class BaseObject : public Observer, public CheckpointerDataInterface {
 
    virtual int communicateInitInfo() { return PV_SUCCESS; }
    virtual int allocateDataStructures() { return PV_SUCCESS; }
-   virtual int initializeState() { return PV_SUCCESS; }
+   virtual int initializeState(Checkpointer *checkpointer) { return PV_SUCCESS; }
    virtual int processCheckpointRead() { return PV_SUCCESS; }
    virtual int prepareCheckpointWrite() { return PV_SUCCESS; }
 

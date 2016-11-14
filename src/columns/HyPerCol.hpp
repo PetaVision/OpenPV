@@ -381,7 +381,9 @@ class HyPerCol : public Subject, Observer {
    BaseProbe *getBaseProbe(int which) { return mBaseProbes.at(which); }
    bool getVerifyWrites() { return mVerifyWrites; }
    bool warmStartup() const { return mWarmStart; }
-   bool getDefaultInitializeFromCheckpointFlag() { return mCheckpointer->getDefaultInitializeFromCheckpointFlag(); }
+   bool getDefaultInitializeFromCheckpointFlag() {
+      return mCheckpointer->getDefaultInitializeFromCheckpointFlag();
+   }
    bool getCheckpointReadFlag() const { return mCheckpointReadFlag; }
    bool getCheckpointWriteFlag() const { return mCheckpointWriteFlag; }
    bool getSuppressLastOutputFlag() const { return mSuppressLastOutput; }
@@ -389,7 +391,9 @@ class HyPerCol : public Subject, Observer {
    bool getWriteTimescales() const { return mWriteTimescales; }
    const char *getName() { return mName; }
    const char *getOutputPath() { return mOutputPath; }
-   const char *getInitializeFromCheckpointDir() const { return mCheckpointer->getInitializeFromCheckpointDir(); }
+   const char *getInitializeFromCheckpointDir() const {
+      return mCheckpointer->getInitializeFromCheckpointDir();
+   }
    const char *getCheckpointReadDir() const { return mCheckpointReadDir; }
    const char *getPrintParamsFilename() const { return mPrintParamsFilename; }
    ColProbe *getColProbe(int which) { return mColProbes.at(which); }

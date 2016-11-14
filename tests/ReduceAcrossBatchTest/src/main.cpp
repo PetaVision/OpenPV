@@ -57,8 +57,8 @@ int checkWeights(HyPerCol *hc, int argc, char *argv[]) {
    for (int k = 0; k < N; k++) {
       if (weights[k] != correctValues[k]) {
          status = PV_FAILURE;
-         ErrorLog() << "Weight index " << k << ": expected " << correctValues[k]
-                         << "; value was " << weights[k] << "\n";
+         ErrorLog() << "Weight index " << k << ": expected " << correctValues[k] << "; value was "
+                    << weights[k] << "\n";
       }
    }
    return PV_SUCCESS;

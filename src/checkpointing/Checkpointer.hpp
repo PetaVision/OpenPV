@@ -58,7 +58,8 @@ class Checkpointer : public Subject {
     * based off of initializeFromCheckpointDir. Only used if
     * initializeFromCheckpointDir is set.
     */
-   virtual void ioParam_defaultInitializeFromCheckpointFlag(enum ParamsIOFlag ioFlag, PVParams *params);
+   virtual void
+   ioParam_defaultInitializeFromCheckpointFlag(enum ParamsIOFlag ioFlag, PVParams *params);
    /** @} */
 
    enum CheckpointWriteTriggerMode { NONE, STEP, SIMTIME, WALLCLOCK };
@@ -113,7 +114,9 @@ class Checkpointer : public Subject {
    bool getSuppressNonplasticCheckpoints() const { return mSuppressNonplasticCheckpoints; }
    bool getSuppressLastOutput() const { return mSuppressLastOutput; }
    char const *getInitializeFromCheckpointDir() const { return mInitializeFromCheckpointDir; }
-   bool getDefaultInitializeFromCheckpointFlag() const { return mDefaultInitializeFromCheckpointFlag; }
+   bool getDefaultInitializeFromCheckpointFlag() const {
+      return mDefaultInitializeFromCheckpointFlag;
+   }
 
   private:
    void initialize();

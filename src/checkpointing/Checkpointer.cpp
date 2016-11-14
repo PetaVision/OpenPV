@@ -379,10 +379,17 @@ void Checkpointer::ioParam_suppressLastOutput(enum ParamsIOFlag ioFlag, PVParams
 
 void Checkpointer::ioParam_initializeFromCheckpointDir(enum ParamsIOFlag ioFlag, PVParams *params) {
    params->ioParamString(
-         ioFlag, mName.c_str(), "initializeFromCheckpointDir", &mInitializeFromCheckpointDir, "", true);
+         ioFlag,
+         mName.c_str(),
+         "initializeFromCheckpointDir",
+         &mInitializeFromCheckpointDir,
+         "",
+         true);
 }
 
-void Checkpointer::ioParam_defaultInitializeFromCheckpointFlag(enum ParamsIOFlag ioFlag, PVParams *params) {
+void Checkpointer::ioParam_defaultInitializeFromCheckpointFlag(
+      enum ParamsIOFlag ioFlag,
+      PVParams *params) {
    assert(!params->presentAndNotBeenRead(mName.c_str(), "initializeFromCheckpointDir"));
    if (mInitializeFromCheckpointDir != nullptr && mInitializeFromCheckpointDir[0] != '\0') {
       params->ioParamValue(
@@ -429,7 +436,8 @@ void Checkpointer::initializeFromCheckpointDir(std::string checkpointEntryName) 
          return;
       }
    }
-   Fatal() << "initializeFromCheckpoint failed to find checkpointEntryName " << checkpointEntryName << "\n";
+   Fatal() << "initializeFromCheckpoint failed to find checkpointEntryName " << checkpointEntryName
+           << "\n";
 }
 
 void Checkpointer::checkpointRead(

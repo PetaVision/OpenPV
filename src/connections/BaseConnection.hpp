@@ -89,9 +89,10 @@ class BaseConnection : public BaseObject {
     * is
     * usually done in HyPerCol::run.
     */
-   virtual int initializeState() override final; // Not overridable because all connections should
-   // initializeState in the same way.  BaseConnection::initializeState() calls
-   // either checkpointRead() or setInitialValues(), both of which are virtual.
+   virtual int initializeState(Checkpointer *checkpointer) override final;
+   // Not overridable because all connections should initializeState in the same way.
+   // BaseConnection::initializeState() calls either checkpointRead() or setInitialValues(),
+   // both of which are virtual.
 
    /**
     * A pure virtual function for writing the state of the connection to file(s) in the output

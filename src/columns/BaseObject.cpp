@@ -147,7 +147,7 @@ int BaseObject::respondInitializeState(InitializeStateMessage<Checkpointer> cons
    if (getInitialValuesSetFlag()) {
       return status;
    }
-   status = initializeState();
+   status = initializeState(message->mDataRegistry);
    if (status == PV_SUCCESS) {
       setInitialValuesSetFlag();
    }

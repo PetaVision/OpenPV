@@ -574,7 +574,7 @@ void HyPerLayer::checkpointRandState(
          bufferName);
 }
 
-int HyPerLayer::initializeState() {
+int HyPerLayer::initializeState(Checkpointer *checkpointer) {
    int status       = PV_SUCCESS;
    PVParams *params = parent->parameters();
 

@@ -475,9 +475,10 @@ class HyPerLayer : public BaseLayer {
    virtual int communicateInitInfo() override;
    virtual int allocateDataStructures() override;
    virtual int registerData(Checkpointer *checkpointer, std::string const &objName) override;
-   virtual int initializeState() final; // Not overridable since all layers should respond to
-   // initializeFromCheckpointFlag and (deprecated) restartFlag in the same way.
-   // initializeState calls the virtual methods readStateFromCheckpoint() and setInitialValues().
+   virtual int initializeState(Checkpointer *checkpointer) override final;
+   // Not overridable since all layers should respond to initializeFromCheckpointFlag and
+   // (deprecated) restartFlag in the same way. initializeState calls the virtual methods
+   // readStateFromCheckpoint() and setInitialValues().
 
    int openOutputStateFile();
 /* static methods called by updateState({long_argument_list})*/

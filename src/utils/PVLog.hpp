@@ -54,7 +54,14 @@
 #endif // __GNUC__
 
 namespace PV {
-enum LogTypeEnum { LogInfoType, LogWarnType, LogFatalType, LogErrorType, LogDebugType, LogStackTraceType };
+enum LogTypeEnum {
+   LogInfoType,
+   LogWarnType,
+   LogFatalType,
+   LogErrorType,
+   LogDebugType,
+   LogStackTraceType
+};
 
 /**
  * Returns the stream used by InfoLog and, DebugLog

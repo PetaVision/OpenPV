@@ -642,7 +642,7 @@ void BaseConnection::setDelay(int arborId, double delay) {
    delays[arborId] = (int)(intDelay);
 }
 
-int BaseConnection::initializeState() {
+int BaseConnection::initializeState(Checkpointer *checkpointer) {
    int status = PV_SUCCESS;
    status     = setInitialValues();
    if (initializeFromCheckpointFlag && getPlasticityFlag()) {

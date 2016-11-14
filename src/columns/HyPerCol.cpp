@@ -101,30 +101,30 @@ int HyPerCol::initialize_base() {
    // Initialize all member variables to safe values.  They will be set to their
    // actual values in
    // initialize()
-   mWarmStart                           = false;
-   mReadyFlag                           = false;
-   mParamsProcessedFlag                 = false;
-   mNumPhases                           = 0;
-   mCheckpointReadFlag                  = false;
-   mCheckpointWriteFlag                 = false;
-   mCheckpointReadDir                   = nullptr;
-   mCheckpointReadDirBase               = nullptr;
-   mCpReadDirIndex                      = -1L;
-   mCheckpointWriteDir                  = nullptr;
-   mCheckpointWriteTriggerMode          = CPWRITE_TRIGGER_STEP;
-   mCpWriteStepInterval                 = -1L;
-   mNextCpWriteStep                     = 0L;
-   mCpWriteTimeInterval                 = -1.0;
-   mNextCpWriteTime                     = 0.0;
-   mCpWriteClockInterval                = -1.0;
-   mDeleteOlderCheckpoints              = false;
-   mSuppressLastOutput                  = false;
-   mSuppressNonplasticCheckpoints       = false;
-   mCheckpointIndexWidth                = -1; // defaults to automatically determine index width
-   mStartTime                           = 0.0;
-   mStopTime                            = 0.0;
-   mDeltaTime                           = DEFAULT_DELTA_T;
-   mWriteTimeScaleFieldnames            = true;
+   mWarmStart                     = false;
+   mReadyFlag                     = false;
+   mParamsProcessedFlag           = false;
+   mNumPhases                     = 0;
+   mCheckpointReadFlag            = false;
+   mCheckpointWriteFlag           = false;
+   mCheckpointReadDir             = nullptr;
+   mCheckpointReadDirBase         = nullptr;
+   mCpReadDirIndex                = -1L;
+   mCheckpointWriteDir            = nullptr;
+   mCheckpointWriteTriggerMode    = CPWRITE_TRIGGER_STEP;
+   mCpWriteStepInterval           = -1L;
+   mNextCpWriteStep               = 0L;
+   mCpWriteTimeInterval           = -1.0;
+   mNextCpWriteTime               = 0.0;
+   mCpWriteClockInterval          = -1.0;
+   mDeleteOlderCheckpoints        = false;
+   mSuppressLastOutput            = false;
+   mSuppressNonplasticCheckpoints = false;
+   mCheckpointIndexWidth          = -1; // defaults to automatically determine index width
+   mStartTime                     = 0.0;
+   mStopTime                      = 0.0;
+   mDeltaTime                     = DEFAULT_DELTA_T;
+   mWriteTimeScaleFieldnames      = true;
    // Sep 26, 2016: Adaptive timestep routines and member variables have been
    // moved to
    // AdaptiveTimeScaleProbe.
