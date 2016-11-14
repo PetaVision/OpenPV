@@ -91,8 +91,8 @@ int BaseObject::respond(std::shared_ptr<BaseMessage const> message) {
       return respondRegisterData(castMessage);
    }
    else if (
-         InitializeStateMessage const *castMessage =
-               dynamic_cast<InitializeStateMessage const *>(message.get())) {
+         InitializeStateMessage<Checkpointer> const *castMessage =
+               dynamic_cast<InitializeStateMessage<Checkpointer> const *>(message.get())) {
       return respondInitializeState(castMessage);
    }
    else if (
@@ -142,7 +142,7 @@ int BaseObject::respondRegisterData(RegisterDataMessage<Checkpointer> const *mes
    return status;
 }
 
-int BaseObject::respondInitializeState(InitializeStateMessage const *message) {
+int BaseObject::respondInitializeState(InitializeStateMessage<Checkpointer> const *message) {
    int status = PV_SUCCESS;
    if (getInitialValuesSetFlag()) {
       return status;
