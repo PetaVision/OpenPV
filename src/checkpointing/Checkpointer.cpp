@@ -423,6 +423,15 @@ bool Checkpointer::registerCheckpointEntry(
 
 void Checkpointer::registerTimer(Timer const *timer) { mTimers.push_back(timer); }
 
+void Checkpointer::initializeFromCheckpointDir(std::string checkpointEntryName) {
+   for (auto &c : mCheckpointRegistry) {
+      if (c->getName() == checkpointEntryName) {
+         return;
+      }
+   }
+   Fatal() << "initializeFromCheckpoint failed to find checkpointEntryName " << checkpointEntryName << "\n";
+}
+
 void Checkpointer::checkpointRead(
       std::string const &checkpointReadDir,
       double *simTimePointer,

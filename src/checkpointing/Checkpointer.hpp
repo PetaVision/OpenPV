@@ -89,6 +89,8 @@ class Checkpointer : public Subject {
          bool constantEntireRun = false);
    void registerTimer(Timer const *timer);
    virtual void addObserver(Observer *observer, BaseMessage const &message) override;
+
+   void initializeFromCheckpointDir(std::string checkpointEntryName);
    void checkpointRead(
          std::string const &checkpointReadDir,
          double *simTimePointer,
