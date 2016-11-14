@@ -2082,7 +2082,7 @@ int HyPerConn::readStateFromCheckpoint(Checkpointer *checkpointer) {
    // a warning is issued if there is a discrepancy.
    std::string checkpointEntryName(name);
    checkpointEntryName.append("_W");
-   checkpointer->initializeFromCheckpointDir(checkpointEntryName);
+   checkpointer->readNamedCheckpointEntry(checkpointEntryName);
    return PV_SUCCESS;
 }
 

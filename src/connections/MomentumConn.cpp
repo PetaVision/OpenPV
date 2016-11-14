@@ -263,7 +263,7 @@ int MomentumConn::readStateFromCheckpoint(Checkpointer *checkpointer) {
    int status = HyPerConn::readStateFromCheckpoint(checkpointer);
    std::string checkpointEntryName(name);
    checkpointEntryName.append("_prev_dW");
-   checkpointer->initializeFromCheckpointDir(checkpointEntryName);
+   checkpointer->readNamedCheckpointEntry(checkpointEntryName);
    return status;
 }
 

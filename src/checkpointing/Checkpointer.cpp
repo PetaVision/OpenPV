@@ -430,7 +430,14 @@ bool Checkpointer::registerCheckpointEntry(
 
 void Checkpointer::registerTimer(Timer const *timer) { mTimers.push_back(timer); }
 
-void Checkpointer::initializeFromCheckpointDir(std::string checkpointEntryName) {
+void Checkpointer::readNamedCheckpointEntry(std::string objName, std::string dataName) {
+   std::string checkpointEntryName(objName);
+   if (!(objName.empty() || dataName.empty())) { checkpointEntryName.append("_"); }
+   checkpointEntryName.append(dataName);
+   readNamedCheckpointEntry(checkpointEntryName);
+}
+
+void Checkpointer::readNamedCheckpointEntry(std::string checkpointEntryName) {
    for (auto &c : mCheckpointRegistry) {
       if (c->getName() == checkpointEntryName) {
          double timestamp = 0.0; // not used
