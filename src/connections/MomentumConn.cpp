@@ -259,4 +259,12 @@ int MomentumConn::registerData(Checkpointer *checkpointer, std::string const &ob
    return status;
 }
 
+int MomentumConn::readStateFromCheckpoint(Checkpointer *checkpointer) {
+   int status = HyPerConn::readStateFromCheckpoint(checkpointer);
+   std::string checkpointEntryName(name);
+   checkpointEntryName.append("_prev_dW");
+   checkpointer->initializeFromCheckpointDir(checkpointEntryName);
+   return status;
+}
+
 } // end namespace PV

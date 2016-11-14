@@ -433,6 +433,8 @@ void Checkpointer::registerTimer(Timer const *timer) { mTimers.push_back(timer);
 void Checkpointer::initializeFromCheckpointDir(std::string checkpointEntryName) {
    for (auto &c : mCheckpointRegistry) {
       if (c->getName() == checkpointEntryName) {
+         double timestamp = 0.0; // not used
+         c->read(mInitializeFromCheckpointDir, &timestamp);
          return;
       }
    }

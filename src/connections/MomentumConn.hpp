@@ -29,6 +29,7 @@ class MomentumConn : public HyPerConn {
    virtual void ioParam_batchPeriod(enum ParamsIOFlag ioFlag);
 
    virtual int registerData(Checkpointer *checkpointer, std::string const &objName) override;
+   virtual int readStateFromCheckpoint(Checkpointer *checkpointer) override;
 
    inline float *get_prev_dwDataHead(int arborId, int dataIndex) {
       return &prev_dwDataStart[arborId][dataIndex * nxp * nyp * nfp];
