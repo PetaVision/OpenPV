@@ -44,18 +44,17 @@ class Checkpointer : public Subject {
    virtual void ioParam_numCheckpointsKept(enum ParamsIOFlag ioFlag, PVParams *params);
 
    /**
-    * @brief mFilenamesContainLayerNames is obsolete.
-    * The file produced by outputState has the form NameOfLayer.pvp
+    * @brief initializeFromCheckpointDir: Sets directory used by
+    * Checkpointer::initializeFromCheckpoint(). Layers and connections use this
+    * directory if they set their initializeFromCheckpointFlag parameter.
     */
    virtual void ioParam_initializeFromCheckpointDir(enum ParamsIOFlag ioFlag, PVParams *params);
 
    /**
     * @brief defaultInitializeFromCheckpointFlag: Flag to set the default for
-    * layers and
-    * connections.
+    * layers and connections.
     * @details Sets the default for layers and connections to use for initialize
-    * from checkpoint
-    * based off of initializeFromCheckpointDir. Only used if
+    * from checkpoint based off of initializeFromCheckpointDir. Only used if
     * initializeFromCheckpointDir is set.
     */
    virtual void
