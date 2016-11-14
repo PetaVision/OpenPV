@@ -83,7 +83,6 @@ HyPerCol::~HyPerCol() {
    // TODO: Change these old C strings into std::string
    free(mPrintParamsFilename);
    free(mOutputPath);
-   free(mInitializeFromCheckpointDir);
    if (mCheckpointWriteFlag) {
       free(mCheckpointWriteDir);
       mCheckpointWriteDir = nullptr;
@@ -119,7 +118,6 @@ int HyPerCol::initialize_base() {
    mNextCpWriteTime                     = 0.0;
    mCpWriteClockInterval                = -1.0;
    mDeleteOlderCheckpoints              = false;
-   mDefaultInitializeFromCheckpointFlag = false;
    mSuppressLastOutput                  = false;
    mSuppressNonplasticCheckpoints       = false;
    mCheckpointIndexWidth                = -1; // defaults to automatically determine index width
@@ -503,8 +501,6 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_nBatch(ioFlag);
    ioParam_filenamesContainLayerNames(ioFlag);
    ioParam_filenamesContainConnectionNames(ioFlag);
-   ioParam_initializeFromCheckpointDir(ioFlag);
-   ioParam_defaultInitializeFromCheckpointFlag(ioFlag);
    ioParam_checkpointRead(ioFlag); // checkpointRead is obsolete as of June 27, 2016.
    ioParam_writeTimescales(ioFlag);
    ioParam_errorOnNotANumber(ioFlag);
@@ -854,24 +850,6 @@ void HyPerCol::ioParam_filenamesContainConnectionNames(enum ParamsIOFlag ioFlag)
       else {
          Fatal() << msg;
       }
-   }
-}
-
-void HyPerCol::ioParam_initializeFromCheckpointDir(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamString(
-         ioFlag, mName, "initializeFromCheckpointDir", &mInitializeFromCheckpointDir, "", true);
-}
-
-void HyPerCol::ioParam_defaultInitializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
-   assert(!mParams->presentAndNotBeenRead(mName, "initializeFromCheckpointDir"));
-   if (mInitializeFromCheckpointDir != nullptr && mInitializeFromCheckpointDir[0] != '\0') {
-      parameters()->ioParamValue(
-            ioFlag,
-            mName,
-            "defaultInitializeFromCheckpointFlag",
-            &mDefaultInitializeFromCheckpointFlag,
-            mDefaultInitializeFromCheckpointFlag,
-            true);
    }
 }
 

@@ -42,6 +42,23 @@ class Checkpointer : public Subject {
     * Default is 1 (delete a checkpoint when a newer checkpoint is written.)
     */
    virtual void ioParam_numCheckpointsKept(enum ParamsIOFlag ioFlag, PVParams *params);
+
+   /**
+    * @brief mFilenamesContainLayerNames is obsolete.
+    * The file produced by outputState has the form NameOfLayer.pvp
+    */
+   virtual void ioParam_initializeFromCheckpointDir(enum ParamsIOFlag ioFlag, PVParams *params);
+
+   /**
+    * @brief defaultInitializeFromCheckpointFlag: Flag to set the default for
+    * layers and
+    * connections.
+    * @details Sets the default for layers and connections to use for initialize
+    * from checkpoint
+    * based off of initializeFromCheckpointDir. Only used if
+    * initializeFromCheckpointDir is set.
+    */
+   virtual void ioParam_defaultInitializeFromCheckpointFlag(enum ParamsIOFlag ioFlag, PVParams *params);
    /** @} */
 
    enum CheckpointWriteTriggerMode { NONE, STEP, SIMTIME, WALLCLOCK };
@@ -93,6 +110,8 @@ class Checkpointer : public Subject {
    int getCheckpointIndexWidth() const { return mCheckpointIndexWidth; }
    bool getSuppressNonplasticCheckpoints() const { return mSuppressNonplasticCheckpoints; }
    bool getSuppressLastOutput() const { return mSuppressLastOutput; }
+   char const *getInitializeFromCheckpointDir() const { return mInitializeFromCheckpointDir; }
+   bool getDefaultInitializeFromCheckpointFlag() const { return mDefaultInitializeFromCheckpointFlag; }
 
   private:
    void initialize();
@@ -143,6 +162,8 @@ class Checkpointer : public Subject {
    bool mDeleteOlderCheckpoints                                            = false;
    int mNumCheckpointsKept                                                 = 2;
    bool mSuppressLastOutput                                                = false;
+   char *mInitializeFromCheckpointDir                                      = nullptr;
+   bool mDefaultInitializeFromCheckpointFlag                               = false;
    std::string mCheckpointReadDirectory;
    int mCheckpointSignal                = 0;
    long int mNextCheckpointStep         = 0L; // kept only for consistency with HyPerCol
