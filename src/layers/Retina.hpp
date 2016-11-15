@@ -68,8 +68,8 @@ class Retina : public PV::HyPerLayer {
    virtual int registerData(Checkpointer *checkpointer, std::string const &objName);
    virtual int initializeV();
    virtual int initializeActivity();
-   virtual int readStateFromCheckpoint(const char *cpDir, double *timeptr);
-   virtual int readRandStateFromCheckpoint(const char *cpDir);
+   virtual int readStateFromCheckpoint(Checkpointer *checkpointer) override;
+   virtual int readRandStateFromCheckpoint(Checkpointer *checkpointer);
 
    bool spikingFlag; // specifies that layer is spiking
    Retina_params rParams; // used in update state

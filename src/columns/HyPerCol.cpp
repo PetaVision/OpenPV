@@ -83,7 +83,6 @@ HyPerCol::~HyPerCol() {
    // TODO: Change these old C strings into std::string
    free(mPrintParamsFilename);
    free(mOutputPath);
-   free(mInitializeFromCheckpointDir);
    if (mCheckpointWriteFlag) {
       free(mCheckpointWriteDir);
       mCheckpointWriteDir = nullptr;
@@ -102,31 +101,30 @@ int HyPerCol::initialize_base() {
    // Initialize all member variables to safe values.  They will be set to their
    // actual values in
    // initialize()
-   mWarmStart                           = false;
-   mReadyFlag                           = false;
-   mParamsProcessedFlag                 = false;
-   mNumPhases                           = 0;
-   mCheckpointReadFlag                  = false;
-   mCheckpointWriteFlag                 = false;
-   mCheckpointReadDir                   = nullptr;
-   mCheckpointReadDirBase               = nullptr;
-   mCpReadDirIndex                      = -1L;
-   mCheckpointWriteDir                  = nullptr;
-   mCheckpointWriteTriggerMode          = CPWRITE_TRIGGER_STEP;
-   mCpWriteStepInterval                 = -1L;
-   mNextCpWriteStep                     = 0L;
-   mCpWriteTimeInterval                 = -1.0;
-   mNextCpWriteTime                     = 0.0;
-   mCpWriteClockInterval                = -1.0;
-   mDeleteOlderCheckpoints              = false;
-   mDefaultInitializeFromCheckpointFlag = false;
-   mSuppressLastOutput                  = false;
-   mSuppressNonplasticCheckpoints       = false;
-   mCheckpointIndexWidth                = -1; // defaults to automatically determine index width
-   mStartTime                           = 0.0;
-   mStopTime                            = 0.0;
-   mDeltaTime                           = DEFAULT_DELTA_T;
-   mWriteTimeScaleFieldnames            = true;
+   mWarmStart                     = false;
+   mReadyFlag                     = false;
+   mParamsProcessedFlag           = false;
+   mNumPhases                     = 0;
+   mCheckpointReadFlag            = false;
+   mCheckpointWriteFlag           = false;
+   mCheckpointReadDir             = nullptr;
+   mCheckpointReadDirBase         = nullptr;
+   mCpReadDirIndex                = -1L;
+   mCheckpointWriteDir            = nullptr;
+   mCheckpointWriteTriggerMode    = CPWRITE_TRIGGER_STEP;
+   mCpWriteStepInterval           = -1L;
+   mNextCpWriteStep               = 0L;
+   mCpWriteTimeInterval           = -1.0;
+   mNextCpWriteTime               = 0.0;
+   mCpWriteClockInterval          = -1.0;
+   mDeleteOlderCheckpoints        = false;
+   mSuppressLastOutput            = false;
+   mSuppressNonplasticCheckpoints = false;
+   mCheckpointIndexWidth          = -1; // defaults to automatically determine index width
+   mStartTime                     = 0.0;
+   mStopTime                      = 0.0;
+   mDeltaTime                     = DEFAULT_DELTA_T;
+   mWriteTimeScaleFieldnames      = true;
    // Sep 26, 2016: Adaptive timestep routines and member variables have been
    // moved to
    // AdaptiveTimeScaleProbe.
@@ -503,8 +501,6 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_nBatch(ioFlag);
    ioParam_filenamesContainLayerNames(ioFlag);
    ioParam_filenamesContainConnectionNames(ioFlag);
-   ioParam_initializeFromCheckpointDir(ioFlag);
-   ioParam_defaultInitializeFromCheckpointFlag(ioFlag);
    ioParam_checkpointRead(ioFlag); // checkpointRead is obsolete as of June 27, 2016.
    ioParam_writeTimescales(ioFlag);
    ioParam_errorOnNotANumber(ioFlag);
@@ -857,24 +853,6 @@ void HyPerCol::ioParam_filenamesContainConnectionNames(enum ParamsIOFlag ioFlag)
    }
 }
 
-void HyPerCol::ioParam_initializeFromCheckpointDir(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamString(
-         ioFlag, mName, "initializeFromCheckpointDir", &mInitializeFromCheckpointDir, "", true);
-}
-
-void HyPerCol::ioParam_defaultInitializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
-   assert(!mParams->presentAndNotBeenRead(mName, "initializeFromCheckpointDir"));
-   if (mInitializeFromCheckpointDir != nullptr && mInitializeFromCheckpointDir[0] != '\0') {
-      parameters()->ioParamValue(
-            ioFlag,
-            mName,
-            "defaultInitializeFromCheckpointFlag",
-            &mDefaultInitializeFromCheckpointFlag,
-            mDefaultInitializeFromCheckpointFlag,
-            true);
-   }
-}
-
 // Error out if someone uses obsolete checkpointRead flag in params.
 // After a reasonable fade time, this function can be removed.
 void HyPerCol::ioParam_checkpointRead(enum ParamsIOFlag ioFlag) {
@@ -1181,10 +1159,13 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
       // This needs to happen after initPublishers so that we can initialize
       // the values in the data stores, and before the mLayers' publish calls
       // so that the data in border regions gets copied correctly.
-      notify(std::make_shared<InitializeStateMessage>());
+      notify(std::make_shared<InitializeStateMessage<Checkpointer>>(mCheckpointer));
       if (mCheckpointReadFlag) {
          mCheckpointer->checkpointRead(mCheckpointReadDir, &mSimTime, &mCurrentStep);
       }
+      // Note: ideally, in checkpointReadFlag is set, calling InitializeState should
+      // be unnecessary. However, currently initializeState does some CUDA kernel
+      // initializations that still need to happen when reading from checkpoint.
 
       // Initial normalization moved here to facilitate normalizations of groups
       // of HyPerConns

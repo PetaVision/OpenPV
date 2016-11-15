@@ -68,6 +68,8 @@ void Checkpointer::ioParamsFillGroup(enum ParamsIOFlag ioFlag, PVParams *params)
    ioParam_deleteOlderCheckpoints(ioFlag, params);
    ioParam_numCheckpointsKept(ioFlag, params);
    ioParam_suppressLastOutput(ioFlag, params);
+   ioParam_initializeFromCheckpointDir(ioFlag, params);
+   ioParam_defaultInitializeFromCheckpointFlag(ioFlag, params);
 }
 
 void Checkpointer::ioParam_verifyWrites(enum ParamsIOFlag ioFlag, PVParams *params) {
@@ -375,6 +377,31 @@ void Checkpointer::ioParam_suppressLastOutput(enum ParamsIOFlag ioFlag, PVParams
    }
 }
 
+void Checkpointer::ioParam_initializeFromCheckpointDir(enum ParamsIOFlag ioFlag, PVParams *params) {
+   params->ioParamString(
+         ioFlag,
+         mName.c_str(),
+         "initializeFromCheckpointDir",
+         &mInitializeFromCheckpointDir,
+         "",
+         true);
+}
+
+void Checkpointer::ioParam_defaultInitializeFromCheckpointFlag(
+      enum ParamsIOFlag ioFlag,
+      PVParams *params) {
+   assert(!params->presentAndNotBeenRead(mName.c_str(), "initializeFromCheckpointDir"));
+   if (mInitializeFromCheckpointDir != nullptr && mInitializeFromCheckpointDir[0] != '\0') {
+      params->ioParamValue(
+            ioFlag,
+            mName.c_str(),
+            "defaultInitializeFromCheckpointFlag",
+            &mDefaultInitializeFromCheckpointFlag,
+            mDefaultInitializeFromCheckpointFlag,
+            true);
+   }
+}
+
 void Checkpointer::provideFinalStep(long int finalStep) {
    if (mCheckpointIndexWidth < 0) {
       mWidthOfFinalStepNumber = (int)std::floor(std::log10((float)finalStep)) + 1;
@@ -402,6 +429,28 @@ bool Checkpointer::registerCheckpointEntry(
 }
 
 void Checkpointer::registerTimer(Timer const *timer) { mTimers.push_back(timer); }
+
+void Checkpointer::readNamedCheckpointEntry(std::string const &objName, std::string const &dataName)
+      const {
+   std::string checkpointEntryName(objName);
+   if (!(objName.empty() || dataName.empty())) {
+      checkpointEntryName.append("_");
+   }
+   checkpointEntryName.append(dataName);
+   readNamedCheckpointEntry(checkpointEntryName);
+}
+
+void Checkpointer::readNamedCheckpointEntry(std::string const &checkpointEntryName) const {
+   for (auto &c : mCheckpointRegistry) {
+      if (c->getName() == checkpointEntryName) {
+         double timestamp = 0.0; // not used
+         c->read(mInitializeFromCheckpointDir, &timestamp);
+         return;
+      }
+   }
+   Fatal() << "initializeFromCheckpoint failed to find checkpointEntryName " << checkpointEntryName
+           << "\n";
+}
 
 void Checkpointer::checkpointRead(
       std::string const &checkpointReadDir,

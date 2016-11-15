@@ -42,6 +42,23 @@ class Checkpointer : public Subject {
     * Default is 1 (delete a checkpoint when a newer checkpoint is written.)
     */
    virtual void ioParam_numCheckpointsKept(enum ParamsIOFlag ioFlag, PVParams *params);
+
+   /**
+    * @brief initializeFromCheckpointDir: Sets directory used by
+    * Checkpointer::initializeFromCheckpoint(). Layers and connections use this
+    * directory if they set their initializeFromCheckpointFlag parameter.
+    */
+   virtual void ioParam_initializeFromCheckpointDir(enum ParamsIOFlag ioFlag, PVParams *params);
+
+   /**
+    * @brief defaultInitializeFromCheckpointFlag: Flag to set the default for
+    * layers and connections.
+    * @details Sets the default for layers and connections to use for initialize
+    * from checkpoint based off of initializeFromCheckpointDir. Only used if
+    * initializeFromCheckpointDir is set.
+    */
+   virtual void
+   ioParam_defaultInitializeFromCheckpointFlag(enum ParamsIOFlag ioFlag, PVParams *params);
    /** @} */
 
    enum CheckpointWriteTriggerMode { NONE, STEP, SIMTIME, WALLCLOCK };
@@ -72,6 +89,9 @@ class Checkpointer : public Subject {
          bool constantEntireRun = false);
    void registerTimer(Timer const *timer);
    virtual void addObserver(Observer *observer, BaseMessage const &message) override;
+
+   void readNamedCheckpointEntry(std::string const &objName, std::string const &dataName) const;
+   void readNamedCheckpointEntry(std::string const &checkpointEntryName) const;
    void checkpointRead(
          std::string const &checkpointReadDir,
          double *simTimePointer,
@@ -93,6 +113,10 @@ class Checkpointer : public Subject {
    int getCheckpointIndexWidth() const { return mCheckpointIndexWidth; }
    bool getSuppressNonplasticCheckpoints() const { return mSuppressNonplasticCheckpoints; }
    bool getSuppressLastOutput() const { return mSuppressLastOutput; }
+   char const *getInitializeFromCheckpointDir() const { return mInitializeFromCheckpointDir; }
+   bool getDefaultInitializeFromCheckpointFlag() const {
+      return mDefaultInitializeFromCheckpointFlag;
+   }
 
   private:
    void initialize();
@@ -143,6 +167,8 @@ class Checkpointer : public Subject {
    bool mDeleteOlderCheckpoints                                            = false;
    int mNumCheckpointsKept                                                 = 2;
    bool mSuppressLastOutput                                                = false;
+   char *mInitializeFromCheckpointDir                                      = nullptr;
+   bool mDefaultInitializeFromCheckpointFlag                               = false;
    std::string mCheckpointReadDirectory;
    int mCheckpointSignal                = 0;
    long int mNextCheckpointStep         = 0L; // kept only for consistency with HyPerCol

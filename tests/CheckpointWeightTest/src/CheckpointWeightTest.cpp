@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
    PV::PV_Init pv_initObj{&argc, &argv, false /*do not allow unrecognized arguments*/};
 
    // Delete checkpointDirectory, if present, to start fresh
-   if (pv_initObj.getCommunicator()->commRank()==0) {
+   if (pv_initObj.getCommunicator()->commRank() == 0) {
       std::string rmrfcommand("rm -rf ");
       rmrfcommand.append(checkpointDirectory);
       int status = system(rmrfcommand.c_str());

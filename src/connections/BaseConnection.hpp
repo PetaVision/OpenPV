@@ -89,9 +89,10 @@ class BaseConnection : public BaseObject {
     * is
     * usually done in HyPerCol::run.
     */
-   virtual int initializeState() override final; // Not overridable because all connections should
-   // initializeState in the same way.  BaseConnection::initializeState() calls
-   // either checkpointRead() or setInitialValues(), both of which are virtual.
+   virtual int initializeState(Checkpointer *checkpointer) override final;
+   // Not overridable because all connections should initializeState in the same way.
+   // BaseConnection::initializeState() calls either checkpointRead() or setInitialValues(),
+   // both of which are virtual.
 
    /**
     * A pure virtual function for writing the state of the connection to file(s) in the output
@@ -389,13 +390,11 @@ class BaseConnection : public BaseObject {
    virtual void ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag);
 
    /**
-    * A pure virtual method that uses an existing checkpoint to
-    * initialize the connection.  BaseConnection::initializeState calls it
-    * when initializeFromCheckpointFlag is true.  A Subclass may also
-    * call this method as part of the implementation of checkpointRead
-    * (for example, HyPerConn does this).
+    * A pure virtual method that calls a Checkpointer's initializeFromCheckpointDir
+    * method to initialize the connection.  BaseConnection::initializeState calls it
+    * when initializeFromCheckpointFlag is true.
     */
-   virtual int readStateFromCheckpoint(const char *cpDir, double *timeptr) = 0;
+   virtual int readStateFromCheckpoint(Checkpointer *checkpointer) = 0;
 
    /**
     * A pure virtual method for initializing the connection if we are neither

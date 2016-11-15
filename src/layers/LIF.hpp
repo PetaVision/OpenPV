@@ -109,12 +109,12 @@ class LIF : public PV::HyPerLayer {
    virtual void ioParam_method(enum ParamsIOFlag ioFlag);
    virtual int allocateBuffers() override;
    virtual int allocateConductances(int num_channels);
-   virtual int readStateFromCheckpoint(const char *cpDir, double *timeptr) override;
-   virtual int readVthFromCheckpoint(const char *cpDir, double *timeptr);
-   virtual int readG_EFromCheckpoint(const char *cpDir, double *timeptr);
-   virtual int readG_IFromCheckpoint(const char *cpDir, double *timeptr);
-   virtual int readG_IBFromCheckpoint(const char *cpDir, double *timeptr);
-   virtual int readRandStateFromCheckpoint(const char *cpDir, double *timeptr);
+   virtual int readStateFromCheckpoint(Checkpointer *checkpointer) override;
+   virtual int readVthFromCheckpoint(Checkpointer *checkpointer);
+   virtual int readG_EFromCheckpoint(Checkpointer *checkpointer);
+   virtual int readG_IFromCheckpoint(Checkpointer *checkpointer);
+   virtual int readG_IBFromCheckpoint(Checkpointer *checkpointer);
+   virtual int readRandStateFromCheckpoint(Checkpointer *checkpointer);
 
   private:
    int initialize_base();

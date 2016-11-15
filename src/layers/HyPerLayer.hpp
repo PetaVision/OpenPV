@@ -255,10 +255,10 @@ class HyPerLayer : public BaseLayer {
 
    virtual int initializeV();
    virtual int initializeActivity();
-   virtual int readStateFromCheckpoint(const char *cpDir, double *timeptr);
-   virtual int readActivityFromCheckpoint(const char *cpDir, double *timeptr);
-   virtual int readVFromCheckpoint(const char *cpDir, double *timeptr);
-   virtual int readDelaysFromCheckpoint(const char *cpDir, double *timeptr);
+   virtual int readStateFromCheckpoint(Checkpointer *checkpointer);
+   virtual int readActivityFromCheckpoint(Checkpointer *checkpointer);
+   virtual int readVFromCheckpoint(Checkpointer *checkpointer);
+   virtual int readDelaysFromCheckpoint(Checkpointer *checkpointer);
 #ifdef PV_USE_CUDA
    virtual int copyInitialStateToGPU();
 #endif // PV_USE_CUDA
@@ -475,9 +475,10 @@ class HyPerLayer : public BaseLayer {
    virtual int communicateInitInfo() override;
    virtual int allocateDataStructures() override;
    virtual int registerData(Checkpointer *checkpointer, std::string const &objName) override;
-   virtual int initializeState() final; // Not overridable since all layers should respond to
-   // initializeFromCheckpointFlag and (deprecated) restartFlag in the same way.
-   // initializeState calls the virtual methods readStateFromCheckpoint() and setInitialValues().
+   virtual int initializeState(Checkpointer *checkpointer) override final;
+   // Not overridable since all layers should respond to initializeFromCheckpointFlag and
+   // (deprecated) restartFlag in the same way. initializeState calls the virtual methods
+   // readStateFromCheckpoint() and setInitialValues().
 
    int openOutputStateFile();
 /* static methods called by updateState({long_argument_list})*/

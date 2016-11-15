@@ -259,4 +259,9 @@ int MomentumConn::registerData(Checkpointer *checkpointer, std::string const &ob
    return status;
 }
 
+int MomentumConn::readStateFromCheckpoint(Checkpointer *checkpointer) {
+   checkpointer->readNamedCheckpointEntry(std::string(name), std::string("prev_dW"));
+   return PV_SUCCESS;
+}
+
 } // end namespace PV

@@ -2076,41 +2076,9 @@ int HyPerConn::writeTextWeights(const char *filename, int k) {
    return 0;
 }
 
-int HyPerConn::readStateFromCheckpoint(const char *cpDir, double *timeptr) {
-   // If timeptr is NULL, the timestamps in the pvp files are ignored.  If non-null, they are
-   // compared to the value of *timeptr and
-   // a warning is issued if there is a discrepancy.
-   int status = PV_SUCCESS;
-   status     = readWeightsFromCheckpoint(cpDir, timeptr);
-   return status;
-}
-
-int HyPerConn::readWeightsFromCheckpoint(const char *cpDir, double *timeptr) {
-   clearWeights(get_wDataStart(), getNumDataPatches(), nxp, nyp, nfp);
-   char *path             = parent->pathInCheckpoint(cpDir, getName(), "_W.pvp");
-   PVPatch ***patches_arg = sharedWeights ? NULL : wPatches;
-   double filetime        = 0.0;
-   int status             = PV::readWeights(
-         patches_arg,
-         get_wDataStart(),
-         numberOfAxonalArborLists(),
-         getNumDataPatches(),
-         nxp,
-         nyp,
-         nfp,
-         path,
-         parent->getCommunicator(),
-         &filetime,
-         pre->getLayerLoc());
-   if (parent->columnId() == 0 && timeptr && *timeptr != filetime) {
-      WarnLog().printf(
-            "\"%s\" checkpoint has timestamp %g instead of the expected value %g.\n",
-            path,
-            filetime,
-            *timeptr);
-   }
-   free(path);
-   return status;
+int HyPerConn::readStateFromCheckpoint(Checkpointer *checkpointer) {
+   checkpointer->readNamedCheckpointEntry(std::string(name), std::string("W"));
+   return PV_SUCCESS;
 }
 
 void HyPerConn::checkpointWeightPvp(

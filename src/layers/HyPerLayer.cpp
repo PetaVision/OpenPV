@@ -574,7 +574,7 @@ void HyPerLayer::checkpointRandState(
          bufferName);
 }
 
-int HyPerLayer::initializeState() {
+int HyPerLayer::initializeState(Checkpointer *checkpointer) {
    int status       = PV_SUCCESS;
    PVParams *params = parent->parameters();
 
@@ -585,7 +585,7 @@ int HyPerLayer::initializeState() {
          parent->getInitializeFromCheckpointDir() && parent->getInitializeFromCheckpointDir()[0]) {
       assert(!params->presentAndNotBeenRead(name, "initializeFromCheckpointFlag"));
       if (initializeFromCheckpointFlag) {
-         status = readStateFromCheckpoint(parent->getInitializeFromCheckpointDir(), NULL);
+         status = readStateFromCheckpoint(checkpointer);
       }
       else {
          status = setInitialValues();
@@ -2204,52 +2204,32 @@ int HyPerLayer::outputState(double timef, bool last) {
    return status;
 }
 
-int HyPerLayer::readStateFromCheckpoint(const char *cpDir, double *timeptr) {
+int HyPerLayer::readStateFromCheckpoint(Checkpointer *checkpointer) {
    // If timeptr is NULL, the timestamps in the pvp files are ignored.  If non-null, they are
    // compared to the value of *timeptr and
    // a warning is issued if there is a discrepancy.
    int status = PV_SUCCESS;
-   status     = readActivityFromCheckpoint(cpDir, timeptr);
-   status     = readVFromCheckpoint(cpDir, timeptr);
-   status     = readDelaysFromCheckpoint(cpDir, timeptr);
+   status     = readActivityFromCheckpoint(checkpointer);
+   status     = readVFromCheckpoint(checkpointer);
+   status     = readDelaysFromCheckpoint(checkpointer);
    return status;
 }
 
-int HyPerLayer::readActivityFromCheckpoint(const char *cpDir, double *timeptr) {
-   char *filename = parent->pathInCheckpoint(cpDir, getName(), "_A.pvp");
-   int status     = readBufferFile(
-         filename,
-         parent->getCommunicator(),
-         timeptr,
-         &clayer->activity->data,
-         1,
-         /*extended*/ true,
-         getLayerLoc());
-   assert(status == PV_SUCCESS);
-   free(filename);
-   assert(status == PV_SUCCESS);
-   return status;
+int HyPerLayer::readActivityFromCheckpoint(Checkpointer *checkpointer) {
+   checkpointer->readNamedCheckpointEntry(std::string(name), std::string("A"));
+   return PV_SUCCESS;
 }
 
-int HyPerLayer::readVFromCheckpoint(const char *cpDir, double *timeptr) {
-   int status = PV_SUCCESS;
-   if (getV() != NULL) {
-      char *filename = parent->pathInCheckpoint(cpDir, getName(), "_V.pvp");
-      float *V       = getV();
-      status         = readBufferFile(
-            filename, parent->getCommunicator(), timeptr, &V, 1, /*extended*/ false, getLayerLoc());
-      assert(status == PV_SUCCESS);
-      free(filename);
+int HyPerLayer::readVFromCheckpoint(Checkpointer *checkpointer) {
+   if (getV() != nullptr) {
+      checkpointer->readNamedCheckpointEntry(std::string(name), std::string("V"));
    }
-   return status;
+   return PV_SUCCESS;
 }
 
-int HyPerLayer::readDelaysFromCheckpoint(const char *cpDir, double *timeptr) {
-   char *filename = parent->pathInCheckpoint(cpDir, getName(), "_Delays.pvp");
-   int status     = readDataStoreFromFile(filename, parent->getCommunicator(), timeptr);
-   assert(status == PV_SUCCESS);
-   free(filename);
-   return status;
+int HyPerLayer::readDelaysFromCheckpoint(Checkpointer *checkpointer) {
+   checkpointer->readNamedCheckpointEntry(std::string(name), std::string("Delays"));
+   return PV_SUCCESS;
 }
 
 template <class T>

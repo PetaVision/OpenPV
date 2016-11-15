@@ -8,7 +8,7 @@
 //  There is an image as an input layer, and two connections from that
 //  input to two output layers.  The connections both use InitWeightsMethod
 //  to set strength 1, but one of them uses initializeFromCheckpointFlag
-//  to set load from a checkpoint where the strength is two.
+//  to load from a checkpoint where the strength is two.
 //  After the run, the output layers should have value 1 and two, respectively.
 //
 

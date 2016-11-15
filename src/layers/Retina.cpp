@@ -276,26 +276,16 @@ int Retina::setRetinaParams(PVParams *p) {
    return 0;
 }
 
-int Retina::readStateFromCheckpoint(const char *cpDir, double *timeptr) {
-   int status      = HyPerLayer::readStateFromCheckpoint(cpDir, timeptr);
+int Retina::readStateFromCheckpoint(Checkpointer *checkpointer) {
+   int status      = HyPerLayer::readStateFromCheckpoint(checkpointer);
    double filetime = 0.0;
-   readRandStateFromCheckpoint(cpDir);
+   readRandStateFromCheckpoint(checkpointer);
    return status;
 }
 
-int Retina::readRandStateFromCheckpoint(const char *cpDir) {
-   int status = PV_SUCCESS;
-   if (spikingFlag) {
-      char *filename = parent->pathInCheckpoint(cpDir, getName(), "_rand_state.pvp");
-      readRandState(
-            filename,
-            parent->getCommunicator(),
-            randState->getRNG(0),
-            getLayerLoc(),
-            true /*isExtended*/);
-      free(filename);
-   }
-   return status;
+int Retina::readRandStateFromCheckpoint(Checkpointer *checkpointer) {
+   checkpointer->readNamedCheckpointEntry(std::string(name), std::string("rand_state.pvp"));
+   return PV_SUCCESS;
 }
 
 int Retina::registerData(Checkpointer *checkpointer, std::string const &objName) {
