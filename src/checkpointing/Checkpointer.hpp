@@ -90,8 +90,8 @@ class Checkpointer : public Subject {
    void registerTimer(Timer const *timer);
    virtual void addObserver(Observer *observer, BaseMessage const &message) override;
 
-   void readNamedCheckpointEntry(std::string objName, std::string dataName) const;
-   void readNamedCheckpointEntry(std::string checkpointEntryName) const;
+   void readNamedCheckpointEntry(std::string const &objName, std::string const &dataName) const;
+   void readNamedCheckpointEntry(std::string const &checkpointEntryName) const;
    void checkpointRead(
          std::string const &checkpointReadDir,
          double *simTimePointer,
