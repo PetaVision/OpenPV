@@ -2081,34 +2081,6 @@ int HyPerConn::readStateFromCheckpoint(Checkpointer *checkpointer) {
    return PV_SUCCESS;
 }
 
-int HyPerConn::readWeightsFromCheckpoint(const char *cpDir, double *timeptr) {
-   clearWeights(get_wDataStart(), getNumDataPatches(), nxp, nyp, nfp);
-   char *path             = parent->pathInCheckpoint(cpDir, getName(), "_W.pvp");
-   PVPatch ***patches_arg = sharedWeights ? NULL : wPatches;
-   double filetime        = 0.0;
-   int status             = PV::readWeights(
-         patches_arg,
-         get_wDataStart(),
-         numberOfAxonalArborLists(),
-         getNumDataPatches(),
-         nxp,
-         nyp,
-         nfp,
-         path,
-         parent->getCommunicator(),
-         &filetime,
-         pre->getLayerLoc());
-   if (parent->columnId() == 0 && timeptr && *timeptr != filetime) {
-      WarnLog().printf(
-            "\"%s\" checkpoint has timestamp %g instead of the expected value %g.\n",
-            path,
-            filetime,
-            *timeptr);
-   }
-   free(path);
-   return status;
-}
-
 void HyPerConn::checkpointWeightPvp(
       Checkpointer *checkpointer,
       char const *bufferName,

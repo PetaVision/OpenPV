@@ -866,7 +866,6 @@ class HyPerConn : public BaseConnection {
          int arborId);
    virtual int adjustAxonalArbors(int arborId);
    virtual int readStateFromCheckpoint(Checkpointer *checkpointer) override;
-   virtual int readWeightsFromCheckpoint(const char *cpDir, double *timeptr);
    void checkpointWeightPvp(
          Checkpointer *checkpointer,
          char const *bufferName,
