@@ -1014,7 +1014,7 @@ bool PVParams::hasSweepValue(const char *inParamName) {
       ParameterGroup *gp     = group(group_name);
       if (gp == NULL) {
          Fatal().printf(
-               "PVParams::parseBuffer error: ParameterSweep %d (zero-indexed) refers to "
+               "PVParams::hasSweepValue error: ParameterSweep %d (zero-indexed) refers to "
                "non-existent group \"%s\"\n",
                k,
                group_name);
@@ -1033,7 +1033,7 @@ bool PVParams::hasSweepValue(const char *inParamName) {
          ParameterGroup *gp     = group(group_name);
          if (gp == NULL) {
             Fatal().printf(
-                  "PVParams::parseBuffer error: BatchSweep %d (zero-indexed) refers to "
+                  "PVParams::hasSweepValue error: BatchSweep %d (zero-indexed) refers to "
                   "non-existent group \"%s\"\n",
                   k,
                   group_name);
@@ -1166,93 +1166,79 @@ int PVParams::parseBuffer(char const *buffer, long int bufferLength) {
    }
 
    if (icComm->numCommBatches() > 1) {
+      ParameterGroup *hypercolGroup = nullptr;
+      for (int g = 0; g < numGroups; g++) {
+         ParameterGroup *group = groups[g];
+         if (!strcmp(group->getGroupKeyword(), "HyPerCol")) {
+            hypercolGroup = group;
+            break;
+         }
+      }
+      if (hypercolGroup == nullptr) {
+         Fatal() << "PVParams::parseBuffer: no HyPerCol group\n";
+      }
       // This checks if there is a batch sweep of outputPath
       if (!hasSweepValue("outputPath")) {
-         const char *hypercolgroupname = NULL;
-         const char *outputPathName    = NULL;
-         for (int g = 0; g < numGroups; g++) {
-            if (groups[g]->getGroupKeyword(), "HyPerCol") {
-               hypercolgroupname = groups[g]->name();
-               outputPathName    = groups[g]->stringValue("outputPath");
-               if (outputPathName == NULL) {
-                  Fatal().printf(
-                        "PVParams::outputPath must be specified if batchSweep does not "
-                        "sweep over outputPath\n");
-               }
-               break;
-            }
+         char const *outputPathName = hypercolGroup->stringValue("outputPath");
+         if (outputPathName == nullptr) {
+            Fatal() << "PVParams::outputPath must be specified if "
+                       "batchSweep does not sweep over outputPath\n";
          }
-         if (hypercolgroupname == NULL) {
-            ErrorLog().printf("PVParams::parseBuffer: no HyPerCol group\n");
-            abort();
-         }
-         char dummy;
-         int lenserialno = snprintf(&dummy, 0, "%d", batchSweepSize - 1);
-         int len         = snprintf(
-                         &dummy,
-                         0,
-                         "%s/batchsweep_%0*d/",
-                         outputPathName,
-                         lenserialno,
-                         icComm->numCommBatches() - 1)
-                   + 1;
-         char *outputPathStr = (char *)calloc(len, sizeof(char));
-         if (outputPathStr == NULL)
-            abort();
 
+         std::size_t lengthLargestBatchIndex = std::to_string(batchSweepSize - 1).size();
          for (int i = 0; i < icComm->numCommBatches(); i++) {
-            int chars_needed = snprintf(
-                  outputPathStr, len, "%s/batchsweep_%0*d/", outputPathName, lenserialno, i);
-            assert(chars_needed < len);
-            activeBatchSweep->pushStringValue(outputPathStr);
+            std::string outputPathStr{outputPathName};
+            outputPathStr.append("/batchsweep_");
+            std::string batchIndexAsString = std::to_string(i);
+            std::size_t lengthBatchIndex   = batchIndexAsString.size();
+            if (lengthBatchIndex < lengthLargestBatchIndex) {
+               outputPathStr.append(lengthLargestBatchIndex - lengthBatchIndex, '0');
+            }
+            outputPathStr.append(batchIndexAsString);
+            outputPathStr.append("/");
+            activeBatchSweep->pushStringValue(outputPathStr.c_str());
          }
-         free(outputPathStr);
-         outputPathStr = NULL;
-         addActiveBatchSweep(hypercolgroupname, "outputPath");
+         addActiveBatchSweep(hypercolGroup->name(), "outputPath");
       }
 
       if (!hasSweepValue("checkpointWriteDir")) {
-         const char *hypercolgroupname  = NULL;
-         const char *checkpointWriteDir = NULL;
-         for (int g = 0; g < numGroups; g++) {
-            if (groups[g]->getGroupKeyword(), "HyPerCol") {
-               hypercolgroupname  = groups[g]->name();
-               checkpointWriteDir = groups[g]->stringValue("checkpointWriteDir");
-               break;
-            }
-         }
-         if (hypercolgroupname == NULL) {
-            ErrorLog().printf("PVParams::parseBuffer: no HyPerCol group\n");
-            abort();
-         }
+         char const *checkpointWriteDir = hypercolGroup->stringValue("checkpointWriteDir");
          if (checkpointWriteDir) {
-            char dummy;
-            int lenserialno = snprintf(&dummy, 0, "%d", batchSweepSize - 1);
-            int len         = snprintf(
-                            &dummy,
-                            0,
-                            "%s/batchsweep_%0*d/",
-                            checkpointWriteDir,
-                            lenserialno,
-                            parameterSweepSize - 1)
-                      + 1;
-            char *checkpointPathStr = (char *)calloc(len, sizeof(char));
-            if (checkpointPathStr == NULL)
-               abort();
+            std::size_t lengthLargestBatchIndex = std::to_string(batchSweepSize - 1).size();
             for (int i = 0; i < icComm->numCommBatches(); i++) {
-               int chars_needed = snprintf(
-                     checkpointPathStr,
-                     len,
-                     "%s/batchsweep_%0*d/",
-                     checkpointWriteDir,
-                     lenserialno,
-                     i);
-               assert(chars_needed < len);
-               activeBatchSweep->pushStringValue(checkpointPathStr);
+               std::string checkpointPathStr{checkpointWriteDir};
+               checkpointPathStr.append("/batchsweep_");
+               std::string batchIndexAsString = std::to_string(i);
+               std::size_t lengthBatchIndex   = batchIndexAsString.size();
+               if (lengthBatchIndex < lengthLargestBatchIndex) {
+                  checkpointPathStr.append(lengthLargestBatchIndex - lengthBatchIndex, '0');
+               }
+               checkpointPathStr.append(batchIndexAsString);
+               checkpointPathStr.append("/");
+               activeBatchSweep->pushStringValue(checkpointPathStr.c_str());
             }
-            free(checkpointPathStr);
-            checkpointPathStr = NULL;
-            addActiveBatchSweep(hypercolgroupname, "checkpointWriteDir");
+            addActiveBatchSweep(hypercolGroup->name(), "checkpointWriteDir");
+         }
+      }
+
+      if (!hasSweepValue("initializeFromCheckpointDir")) {
+         char const *initializeFromCheckpointDir =
+               hypercolGroup->stringValue("initializeFromCheckpointDir");
+         if (initializeFromCheckpointDir) {
+            std::size_t lengthLargestBatchIndex = std::to_string(batchSweepSize - 1).size();
+            for (int i = 0; i < icComm->numCommBatches(); i++) {
+               std::string checkpointPathStr{initializeFromCheckpointDir};
+               checkpointPathStr.append("/batchsweep_");
+               std::string batchIndexAsString = std::to_string(i);
+               std::size_t lengthBatchIndex   = batchIndexAsString.size();
+               if (lengthBatchIndex < lengthLargestBatchIndex) {
+                  checkpointPathStr.append(lengthLargestBatchIndex - lengthBatchIndex, '0');
+               }
+               checkpointPathStr.append(batchIndexAsString);
+               checkpointPathStr.append("/");
+               activeBatchSweep->pushStringValue(checkpointPathStr.c_str());
+            }
+            addActiveBatchSweep(hypercolGroup->name(), "initializeFromCheckpointDir");
          }
       }
    }
