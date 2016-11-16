@@ -255,41 +255,7 @@ int pv_getopt_str(int argc, char *argv[], const char *opt, char **sVal, bool *pa
    return -1; // not found
 }
 
-/**
- * @V
- * @nx0
- * @ny0
- * @nx
- * @ny
- */
-int pv_center_image(float *V, int nx0, int ny0, int nx, int ny) {
-   int i0, j0, i, j, ii;
-
-   float *buf = (float *)malloc(nx0 * ny0 * sizeof(float));
-   assert(buf != NULL);
-
-   assert(nx0 <= nx);
-   assert(ny0 <= ny);
-
-   memcpy(buf, V, nx0 * nx0 * sizeof(float));
-
-   i0 = nx / 2 - nx0 / 2;
-   j0 = ny / 2 - ny0 / 2;
-
-   for (i = 0; i < nx * ny; i++) {
-      V[i] = 0;
-   }
-
-   ii = 0;
-   for (j = j0; j < j0 + ny0; j++) {
-      for (i = i0; i < i0 + nx0; i++) {
-         V[i + nx * j] = buf[ii++];
-      }
-   }
-   free(buf);
-
-   return 0;
-}
+// Unused function pv_center_image() removed Nov 16, 2016.
 
 std::string expandLeadingTilde(char const *path) {
    if (path == NULL) {

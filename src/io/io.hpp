@@ -98,7 +98,7 @@ int pv_getopt_unsigned(
 
 int readFile(const char *filename, float *buf, int *nx, int *ny);
 
-int pv_center_image(float *V, int nx0, int ny0, int nx, int ny);
+// Unused function pv_center_image() removed Nov 16, 2016.
 
 int parse_options(
       int argc,
