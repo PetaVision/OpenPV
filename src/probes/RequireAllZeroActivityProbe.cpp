@@ -58,8 +58,7 @@ void RequireAllZeroActivityProbe::ioParam_immediateExitOnFailure(enum ParamsIOFl
 int RequireAllZeroActivityProbe::outputState(double timed) {
    int status = StatsProbe::outputState(timed);
    if (status != PV_SUCCESS) {
-      pvError() << getDescription() << ": StatsProbe::outputState failed at time " << timed
-                << ".\n";
+      Fatal() << getDescription() << ": StatsProbe::outputState failed at time " << timed << ".\n";
    }
    for (int b = 0; b < getParent()->getNBatch(); b++) {
       if (nnz[b] != 0) {
@@ -81,10 +80,10 @@ void RequireAllZeroActivityProbe::nonzeroFoundMessage(
       std::stringstream message("");
       message << getDescription_c() << ": Nonzero activity found at time " << badTime << "\n";
       if (fatalError) {
-         pvError() << message.str();
+         Fatal() << message.str();
       }
       else {
-         pvWarn() << message.str();
+         WarnLog() << message.str();
       }
    }
    if (fatalError) {

@@ -26,8 +26,8 @@ class DatastoreDelayTestLayer : public ANNLayer {
          double timed,
          double dt,
          int numNeurons,
-         pvdata_t *V,
-         pvdata_t *A,
+         float *V,
+         float *A,
          int nx,
          int ny,
          int nf,
@@ -37,7 +37,7 @@ class DatastoreDelayTestLayer : public ANNLayer {
          int up);
 
    static int
-   updateV_DatastoreDelayTestLayer(const PVLayerLoc *loc, bool *inited, pvdata_t *V, int period);
+   updateV_DatastoreDelayTestLayer(const PVLayerLoc *loc, bool *inited, float *V, int period);
 
   protected:
    bool inited;

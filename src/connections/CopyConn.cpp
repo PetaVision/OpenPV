@@ -143,7 +143,7 @@ int CopyConn::communicateInitInfo() {
    BaseConnection *originalConnBase = parent->getConnFromName(this->originalConnName);
    if (originalConnBase == NULL) {
       if (parent->columnId() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s: originalConnName \"%s\" does not refer to "
                "any connection in the column.\n",
                getDescription_c(),
@@ -155,7 +155,7 @@ int CopyConn::communicateInitInfo() {
    this->originalConn = dynamic_cast<HyPerConn *>(originalConnBase);
    if (originalConn == NULL) {
       if (parent->columnId() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s: originalConnName \"%s\" is not an existing connection.\n",
                getDescription_c(),
                originalConnName);
@@ -167,7 +167,7 @@ int CopyConn::communicateInitInfo() {
 
    if (!originalConn->getInitInfoCommunicatedFlag()) {
       if (parent->columnId() == 0) {
-         pvInfo().printf(
+         InfoLog().printf(
                "%s must wait until original connection \"%s\" has "
                "finished its communicateInitInfo "
                "stage.\n",
@@ -212,7 +212,7 @@ int CopyConn::setInitialValues() {
    return status;
 }
 
-PVPatch ***CopyConn::initializeWeights(PVPatch ***patches, pvwdata_t **dataStart) {
+PVPatch ***CopyConn::initializeWeights(PVPatch ***patches, float **dataStart) {
    assert(originalConn->getInitialValuesSetFlag()); // setInitialValues shouldn't
    // call this function
    // unless original conn has set its own initial
@@ -246,8 +246,8 @@ int CopyConn::updateWeights(int axonID) {
 } // end of CopyConn::updateWeights(int);
 
 int CopyConn::copy(int arborId) {
-   size_t arborsize = (size_t)(xPatchSize() * yPatchSize() * fPatchSize() * getNumDataPatches())
-                      * sizeof(pvwdata_t);
+   size_t arborsize =
+         (size_t)(xPatchSize() * yPatchSize() * fPatchSize() * getNumDataPatches()) * sizeof(float);
    memcpy(get_wDataStart(arborId), originalConn->get_wDataStart(arborId), arborsize);
    return PV_SUCCESS;
 }

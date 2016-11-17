@@ -33,10 +33,10 @@ InitWeights::~InitWeights() {
 
 int InitWeights::initialize(char const *name, HyPerCol *hc) {
    if (name == NULL) {
-      pvError().printf("InitWeights::initialize called with a name argument of null.\n");
+      Fatal().printf("InitWeights::initialize called with a name argument of null.\n");
    }
    if (hc == NULL) {
-      pvError().printf("InitWeights::initialize called with a HyPerCol argument of null.\n");
+      Fatal().printf("InitWeights::initialize called with a HyPerCol argument of null.\n");
    }
    int status  = BaseObject::initialize(name, hc);
    callingConn = NULL; // will be set during communicateInitInfo stage.
@@ -85,7 +85,7 @@ int InitWeights::communicateParamsInfo() {
       if (baseCallingConn == NULL) {
          status = PV_FAILURE;
          if (parent->columnId() == 0) {
-            pvErrorNoExit().printf(
+            ErrorLog().printf(
                   "InitWeights error: \"%s\" is not a connection in the column.\n", name);
          }
       }
@@ -94,7 +94,7 @@ int InitWeights::communicateParamsInfo() {
          if (callingConn == NULL) {
             status = PV_FAILURE;
             if (parent->columnId() == 0) {
-               pvErrorNoExit().printf("InitWeights error: \"%s\" is not a HyPerConn.\n", name);
+               ErrorLog().printf("InitWeights error: \"%s\" is not a HyPerConn.\n", name);
             }
          }
       }
@@ -115,18 +115,17 @@ int InitWeights::communicateParamsInfo() {
  */
 int InitWeights::initializeWeights(
       PVPatch ***patches,
-      pvwdata_t **dataStart,
+      float **dataStart,
       double *timef /*default NULL*/) {
    PVParams *inputParams = callingConn->getParent()->parameters();
    int numPatches        = callingConn->getNumDataPatches();
    if (inputParams->present(callingConn->getName(), "initFromLastFlag")) {
       if (callingConn->getParent()->columnId() == 0) {
-         pvErrorNoExit().printf(
-               "%s: initFromLastFlag is obsolete.\n", callingConn->getDescription_c());
+         ErrorLog().printf("%s: initFromLastFlag is obsolete.\n", callingConn->getDescription_c());
       }
       if (inputParams->value(callingConn->getName(), "initFromLastFlag")) {
          if (callingConn->getParent()->columnId() == 0) {
-            pvErrorNoExit().printf(
+            ErrorLog().printf(
                   "Instead, use weightInitType=\"FileWeight\" or set HyPerCol "
                   "initializeFromCheckpointDir and set "
                   "initializeFromCheckpointFlag to true\n");
@@ -144,7 +143,7 @@ int InitWeights::initializeWeights(
    } // filename != null
    int successFlag = zeroWeightsOutsideShrunkenPatch(patches);
    if (successFlag != PV_SUCCESS) {
-      pvError().printf(
+      Fatal().printf(
             "Failed to zero annulus around shrunken patch for %s! Exiting...\n",
             callingConn->getName());
    }
@@ -160,13 +159,13 @@ int InitWeights::zeroWeightsOutsideShrunkenPatch(PVPatch ***patches) {
    }
    int numArbors = callingConn->numberOfAxonalArborLists();
    // initialize full sized patch dimensions
-   int nxPatch           = callingConn->xPatchSize();
-   int nyPatch           = callingConn->yPatchSize();
-   int nkPatch           = callingConn->fPatchSize() * nxPatch;
-   int syPatch           = callingConn->yPatchStride(); // stride in patch
-   int offsetPatch       = 0;
-   pvwdata_t *wData_head = NULL;
-   int delta_offset      = 0;
+   int nxPatch       = callingConn->xPatchSize();
+   int nyPatch       = callingConn->yPatchSize();
+   int nkPatch       = callingConn->fPatchSize() * nxPatch;
+   int syPatch       = callingConn->yPatchStride(); // stride in patch
+   int offsetPatch   = 0;
+   float *wData_head = NULL;
+   int delta_offset  = 0;
    for (int arborID = 0; arborID < numArbors; arborID++) {
       for (int kPre = 0; kPre < callingConn->getNumDataPatches(); kPre++) {
          wData_head = callingConn->get_wDataHead(arborID, kPre);
@@ -175,7 +174,7 @@ int InitWeights::zeroWeightsOutsideShrunkenPatch(PVPatch ***patches) {
             nxPatch              = weightPatch->nx;
             nyPatch              = weightPatch->ny;
             offsetPatch          = weightPatch->offset;
-            pvwdata_t *wData     = callingConn->get_wData(arborID, kPre);
+            float *wData         = callingConn->get_wData(arborID, kPre);
             delta_offset         = wData - wData_head;
          }
          else { // callingConn uses shared weights
@@ -197,7 +196,7 @@ int InitWeights::zeroWeightsOutsideShrunkenPatch(PVPatch ***patches) {
          assert(dx_east >= 0);
          assert(dx_east <= callingConn->xPatchSize());
          // zero north border
-         pvwdata_t *outside_weights = wData_head;
+         float *outside_weights = wData_head;
          for (int ky = 0; ky < dy_north; ky++) {
             for (int kPatch = 0; kPatch < syPatch; kPatch++) {
                outside_weights[kPatch] = 0;
@@ -250,8 +249,7 @@ int InitWeights::calcWeights() {
          int successFlag = calcWeights(
                callingConn->get_wDataHead(arbor, dataPatchIndex), dataPatchIndex, arbor);
          if (successFlag != PV_SUCCESS) {
-            pvError().printf(
-                  "Failed to create weights for %s! Exiting...\n", callingConn->getName());
+            Fatal().printf("Failed to create weights for %s! Exiting...\n", callingConn->getName());
          }
       }
    }
@@ -260,7 +258,7 @@ int InitWeights::calcWeights() {
 
 // Override this function to calculate the weights in a single patch, given the arbor index, patch
 // index and the pointer to the data
-int InitWeights::calcWeights(pvwdata_t *dataStart, int dataPatchIndex, int arborId) {
+int InitWeights::calcWeights(float *dataStart, int dataPatchIndex, int arborId) {
    return PV_SUCCESS;
 }
 
@@ -272,7 +270,7 @@ int InitWeights::initialize_base() {
 
 int InitWeights::readWeights(
       PVPatch ***patches,
-      pvwdata_t **dataStart,
+      float **dataStart,
       int numPatches,
       const char *filename,
       double *timeptr /*default=NULL*/) {
@@ -308,7 +306,7 @@ int InitWeights::readWeights(
             preLoc);
    }
    if (status != PV_SUCCESS) {
-      pvError().printf(
+      Fatal().printf(
             "PV::readWeights: problem reading weight file %s for connection %s, SHUTTING DOWN\n",
             filename,
             callingConn->getName());
@@ -320,7 +318,7 @@ int InitWeights::readWeights(
 
 int InitWeights::readListOfArborFiles(
       PVPatch ***patches,
-      pvwdata_t **dataStart,
+      float **dataStart,
       int numPatches,
       const char *listOfArborsFilename,
       double *timef) {
@@ -339,7 +337,7 @@ int InitWeights::readListOfArborFiles(
          if (fgetsstatus == NULL) {
             bool endoffile = feof(arborstream->fp) != 0;
             if (endoffile) {
-               pvError().printf(
+               Fatal().printf(
                      "File of arbor files \"%s\" reached end of file before all %d arbors were "
                      "read.  Exiting.\n",
                      listOfArborsFilename,
@@ -348,7 +346,7 @@ int InitWeights::readListOfArborFiles(
             else {
                int error = ferror(arborstream->fp);
                assert(error);
-               pvError().printf("File of arbor files: error %d while reading.  Exiting.\n", error);
+               Fatal().printf("File of arbor files: error %d while reading.  Exiting.\n", error);
             }
          }
          else {
@@ -384,7 +382,7 @@ int InitWeights::readListOfArborFiles(
             &timed,
             preLoc);
       if (status != PV_SUCCESS) {
-         pvError().printf(
+         Fatal().printf(
                "PV::InitWeights::readWeights: problem reading arbor file %s, SHUTTING DOWN\n",
                arborfilename);
       }
@@ -396,7 +394,7 @@ int InitWeights::readListOfArborFiles(
 
 int InitWeights::readCombinedWeightFiles(
       PVPatch ***patches,
-      pvwdata_t **dataStart,
+      float **dataStart,
       int numPatches,
       const char *fileOfWeightFiles,
       double *timef) {
@@ -410,7 +408,7 @@ int InitWeights::readCombinedWeightFiles(
    int file_count          = 0;
    PV_Stream *weightstream = pvp_open_read_file(fileOfWeightFiles, icComm);
    if ((weightstream == NULL) && (icComm->commRank() == rootproc)) {
-      pvError().printf("Cannot open file of weight files \"%s\".  Exiting.\n", fileOfWeightFiles);
+      Fatal().printf("Cannot open file of weight files \"%s\".  Exiting.\n", fileOfWeightFiles);
    }
 
    char weightsfilename[PV_PATH_MAX];
@@ -420,7 +418,7 @@ int InitWeights::readCombinedWeightFiles(
          if (fgetsstatus == NULL) {
             bool endoffile = feof(weightstream->fp) != 0;
             if (endoffile) {
-               pvError().printf(
+               Fatal().printf(
                      "File of weight files \"%s\" reached end of file before all %d weight files "
                      "were read.  Exiting.\n",
                      fileOfWeightFiles,
@@ -429,7 +427,7 @@ int InitWeights::readCombinedWeightFiles(
             else {
                int error = ferror(weightstream->fp);
                assert(error);
-               pvError().printf("File of weight files: error %d while reading.  Exiting.\n", error);
+               Fatal().printf("File of weight files: error %d while reading.  Exiting.\n", error);
             }
          }
          else {
@@ -463,7 +461,7 @@ int InitWeights::readCombinedWeightFiles(
             &timed,
             preLoc);
       if (status != PV_SUCCESS) {
-         pvError().printf(
+         Fatal().printf(
                "PV::InitWeights::readWeights: problem reading arbor file %s, SHUTTING DOWN\n",
                weightsfilename);
       }

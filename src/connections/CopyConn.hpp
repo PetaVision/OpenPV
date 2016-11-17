@@ -122,7 +122,7 @@ class CopyConn : public HyPerConn {
    virtual int setPatchSize();
 
    virtual int setInitialValues();
-   virtual PVPatch ***initializeWeights(PVPatch ***arbors, pvwdata_t **dataStart);
+   virtual PVPatch ***initializeWeights(PVPatch ***arbors, float **dataStart);
 
    virtual int updateWeights(int arborId = 0);
    int copy(int arborId = 0);

@@ -16,7 +16,7 @@ class TestImage : public HyPerLayer {
   public:
    TestImage(const char *name, HyPerCol *hc);
    virtual int updateState(double timed, double dt);
-   const pvdata_t getConstantVal() { return val; }
+   const float getConstantVal() { return val; }
    virtual bool activityIsSpiking() { return false; }
    virtual ~TestImage();
 
@@ -34,7 +34,7 @@ class TestImage : public HyPerLayer {
 
    // Member variables
   private:
-   pvdata_t val;
+   float val;
 };
 }
 

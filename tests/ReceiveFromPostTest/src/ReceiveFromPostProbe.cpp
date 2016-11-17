@@ -16,7 +16,7 @@ ReceiveFromPostProbe::ReceiveFromPostProbe(const char *probeName, HyPerCol *hc) 
 }
 
 int ReceiveFromPostProbe::initReceiveFromPostProbe_base() {
-   tolerance = (pvadata_t)1e-3f;
+   tolerance = (float)1e-3f;
    return PV_SUCCESS;
 }
 
@@ -40,7 +40,7 @@ int ReceiveFromPostProbe::outputState(double timed) {
    int status            = StatsProbe::outputState(timed);
    const PVLayerLoc *loc = getTargetLayer()->getLayerLoc();
    int numExtNeurons     = getTargetLayer()->getNumExtended();
-   const pvdata_t *A     = getTargetLayer()->getLayerData();
+   const float *A        = getTargetLayer()->getLayerData();
    for (int i = 0; i < numExtNeurons; i++) {
       if (fabsf(A[i]) != 0) {
          int xpos =
@@ -58,12 +58,13 @@ int ReceiveFromPostProbe::outputState(double timed) {
                loc->nx + loc->halo.lt + loc->halo.rt,
                loc->ny + loc->halo.dn + loc->halo.up,
                loc->nf);
-         // pvInfo() << "[" << xpos << "," << ypos << "," << fpos << "] = " << std::fixed << A[i] <<
+         // InfoLog() << "[" << xpos << "," << ypos << "," << fpos << "] = " << std::fixed << A[i]
+         // <<
          // "\n";
       }
       // For roundoff errors
       if (fabsf(A[i]) >= tolerance) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s %s activity outside of tolerance %f: extended index %d has activity %f\n",
                getMessage(),
                getTargetLayer()->getDescription_c(),

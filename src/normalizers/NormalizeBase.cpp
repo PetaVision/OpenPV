@@ -135,12 +135,12 @@ int NormalizeBase::normalizeWeights() {
    return status;
 }
 
-int NormalizeBase::accumulateSum(pvwdata_t *dataPatchStart, int weights_in_patch, float *sum) {
+int NormalizeBase::accumulateSum(float *dataPatchStart, int weights_in_patch, float *sum) {
    // Do not call with sum uninitialized.
    // sum, sumsq, max are not cleared inside this routine so that you can accumulate the stats over
    // several patches with multiple calls
    for (int k = 0; k < weights_in_patch; k++) {
-      pvwdata_t w = dataPatchStart[k];
+      float w = dataPatchStart[k];
       // TODO-CER-2014.4.4 - weight conversion
       *sum += w;
    }
@@ -148,7 +148,7 @@ int NormalizeBase::accumulateSum(pvwdata_t *dataPatchStart, int weights_in_patch
 }
 
 int NormalizeBase::accumulateSumShrunken(
-      pvwdata_t *dataPatchStart,
+      float *dataPatchStart,
       float *sum,
       int nxpShrunken,
       int nypShrunken,
@@ -158,11 +158,11 @@ int NormalizeBase::accumulateSumShrunken(
    // Do not call with sumsq uninitialized.
    // sum, sumsq, max are not cleared inside this routine so that you can accumulate the stats over
    // several patches with multiple calls
-   pvwdata_t *dataPatchStartOffset = dataPatchStart + offsetShrunken;
-   int weights_in_row              = xPatchStride * nxpShrunken;
+   float *dataPatchStartOffset = dataPatchStart + offsetShrunken;
+   int weights_in_row          = xPatchStride * nxpShrunken;
    for (int ky = 0; ky < nypShrunken; ky++) {
       for (int k = 0; k < weights_in_row; k++) {
-         pvwdata_t w = dataPatchStartOffset[k];
+         float w = dataPatchStartOffset[k];
          *sum += w;
       }
       dataPatchStartOffset += yPatchStride;
@@ -170,22 +170,19 @@ int NormalizeBase::accumulateSumShrunken(
    return PV_SUCCESS;
 }
 
-int NormalizeBase::accumulateSumSquared(
-      pvwdata_t *dataPatchStart,
-      int weights_in_patch,
-      float *sumsq) {
+int NormalizeBase::accumulateSumSquared(float *dataPatchStart, int weights_in_patch, float *sumsq) {
    // Do not call with sumsq uninitialized.
    // sum, sumsq, max are not cleared inside this routine so that you can accumulate the stats over
    // several patches with multiple calls
    for (int k = 0; k < weights_in_patch; k++) {
-      pvwdata_t w = dataPatchStart[k];
+      float w = dataPatchStart[k];
       *sumsq += w * w;
    }
    return PV_SUCCESS;
 }
 
 int NormalizeBase::accumulateSumSquaredShrunken(
-      pvwdata_t *dataPatchStart,
+      float *dataPatchStart,
       float *sumsq,
       int nxpShrunken,
       int nypShrunken,
@@ -195,11 +192,11 @@ int NormalizeBase::accumulateSumSquaredShrunken(
    // Do not call with sumsq uninitialized.
    // sum, sumsq, max are not cleared inside this routine so that you can accumulate the stats over
    // several patches with multiple calls
-   pvwdata_t *dataPatchStartOffset = dataPatchStart + offsetShrunken;
-   int weights_in_row              = xPatchStride * nxpShrunken;
+   float *dataPatchStartOffset = dataPatchStart + offsetShrunken;
+   int weights_in_row          = xPatchStride * nxpShrunken;
    for (int ky = 0; ky < nypShrunken; ky++) {
       for (int k = 0; k < weights_in_row; k++) {
-         pvwdata_t w = dataPatchStartOffset[k];
+         float w = dataPatchStartOffset[k];
          *sumsq += w * w;
       }
       dataPatchStartOffset += yPatchStride;
@@ -207,13 +204,13 @@ int NormalizeBase::accumulateSumSquaredShrunken(
    return PV_SUCCESS;
 }
 
-int NormalizeBase::accumulateMaxAbs(pvwdata_t *dataPatchStart, int weights_in_patch, float *max) {
+int NormalizeBase::accumulateMaxAbs(float *dataPatchStart, int weights_in_patch, float *max) {
    // Do not call with max uninitialized.
    // sum, sumsq, max are not cleared inside this routine so that you can accumulate the stats over
    // several patches with multiple calls
    float newmax = *max;
    for (int k = 0; k < weights_in_patch; k++) {
-      pvwdata_t w = fabsf(dataPatchStart[k]);
+      float w = fabsf(dataPatchStart[k]);
       if (w > newmax)
          newmax = w;
    }
@@ -221,13 +218,13 @@ int NormalizeBase::accumulateMaxAbs(pvwdata_t *dataPatchStart, int weights_in_pa
    return PV_SUCCESS;
 }
 
-int NormalizeBase::accumulateMax(pvwdata_t *dataPatchStart, int weights_in_patch, float *max) {
+int NormalizeBase::accumulateMax(float *dataPatchStart, int weights_in_patch, float *max) {
    // Do not call with max uninitialized.
    // sum, sumsq, max are not cleared inside this routine so that you can accumulate the stats over
    // several patches with multiple calls
    float newmax = *max;
    for (int k = 0; k < weights_in_patch; k++) {
-      pvwdata_t w = dataPatchStart[k];
+      float w = dataPatchStart[k];
       if (w > newmax)
          newmax = w;
    }
@@ -235,13 +232,13 @@ int NormalizeBase::accumulateMax(pvwdata_t *dataPatchStart, int weights_in_patch
    return PV_SUCCESS;
 }
 
-int NormalizeBase::accumulateMin(pvwdata_t *dataPatchStart, int weights_in_patch, float *min) {
+int NormalizeBase::accumulateMin(float *dataPatchStart, int weights_in_patch, float *min) {
    // Do not call with min uninitialized.
    // min is cleared inside this routine so that you can accumulate the stats over several patches
    // with multiple calls
    float newmin = *min;
    for (int k = 0; k < weights_in_patch; k++) {
-      pvwdata_t w = dataPatchStart[k];
+      float w = dataPatchStart[k];
       if (w < newmin)
          newmin = w;
    }
@@ -259,7 +256,7 @@ int NormalizeBase::addConnToList(HyPerConn *newConn) {
       newList = (HyPerConn **)malloc(sizeof(*connectionList) * (numConnections + 1));
    }
    if (newList == NULL) {
-      pvError().printf(
+      Fatal().printf(
             "%s unable to add %s as connection number %d : %s\n",
             getDescription_c(),
             newConn->getDescription_c(),
@@ -270,7 +267,7 @@ int NormalizeBase::addConnToList(HyPerConn *newConn) {
    connectionList[numConnections] = newConn;
    numConnections++;
    if (parent->columnId() == 0) {
-      pvInfo().printf(
+      InfoLog().printf(
             "Adding %s to normalizer group \"%s\".\n",
             newConn->getDescription_c(),
             this->getName());
@@ -278,10 +275,7 @@ int NormalizeBase::addConnToList(HyPerConn *newConn) {
    return PV_SUCCESS;
 }
 
-void NormalizeBase::normalizePatch(
-      pvwdata_t *dataStartPatch,
-      int weights_per_patch,
-      float multiplier) {
+void NormalizeBase::normalizePatch(float *dataStartPatch, int weights_per_patch, float multiplier) {
    for (int k = 0; k < weights_per_patch; k++)
       dataStartPatch[k] *= multiplier;
 }

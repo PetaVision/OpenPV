@@ -60,7 +60,7 @@ int ColumnEnergyProbe::addTerm(BaseProbe *probe) {
       if (newNumValues < 0) {
          status = PV_FAILURE;
          if (parent->columnId() == 0) {
-            pvErrorNoExit().printf(
+            ErrorLog().printf(
                   "%s: %s cannot be used as a term of the energy "
                   "probe (getNumValue() returned a "
                   "negative number).\n",
@@ -73,7 +73,7 @@ int ColumnEnergyProbe::addTerm(BaseProbe *probe) {
       if (newNumValues != this->getNumValues()) {
          status = setNumValues(newNumValues);
          if (status != PV_SUCCESS) {
-            pvErrorNoExit().printf(
+            ErrorLog().printf(
                   "%s: unable to allocate memory for %d probe values: %s\n",
                   getDescription_c(),
                   newNumValues,
@@ -85,7 +85,7 @@ int ColumnEnergyProbe::addTerm(BaseProbe *probe) {
    else {
       if (probe->getNumValues() != this->getNumValues()) {
          if (this->getParent()->columnId() == 0) {
-            pvErrorNoExit().printf(
+            ErrorLog().printf(
                   "Failed to add terms to %s:  new probe \"%s\" "
                   "returns %d values, but previous "
                   "probes return %d values\n",
@@ -102,7 +102,7 @@ int ColumnEnergyProbe::addTerm(BaseProbe *probe) {
    int newNumTerms = numTerms + (size_t)1;
    if (newNumTerms <= numTerms) {
       if (this->getParent()->columnId() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "How did you manage to add %zu terms to %s?  "
                "Unable to add any more!\n",
                numTerms,
@@ -114,7 +114,7 @@ int ColumnEnergyProbe::addTerm(BaseProbe *probe) {
    BaseProbe **newTermsArray =
          (BaseProbe **)realloc(terms, (numTerms + (size_t)1) * sizeof(BaseProbe *));
    if (newTermsArray == NULL) {
-      pvErrorNoExit().printf(
+      ErrorLog().printf(
             "%s: unable to add term %zu (\"%s\"): %s\n",
             getDescription_c(),
             numTerms + (size_t)1,

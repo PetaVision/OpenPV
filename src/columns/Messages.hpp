@@ -44,9 +44,11 @@ class RegisterDataMessage : public BaseMessage {
    T *mDataRegistry;
 };
 
+template <typename T> // In practice, T is always Checkpointer.
 class InitializeStateMessage : public BaseMessage {
   public:
-   InitializeStateMessage() { setMessageType("InitializeState"); }
+   InitializeStateMessage(T *dataRegistry) { setMessageType("InitializeState"); }
+   T *mDataRegistry;
 };
 
 class AdaptTimestepMessage : public BaseMessage {

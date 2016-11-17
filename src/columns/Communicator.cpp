@@ -58,7 +58,7 @@ Communicator::Communicator(PV_Arguments *argumentList) {
       double r = std::sqrt(procsLeft);
       numRows  = (int)r;
       if (numRows == 0) {
-         pvError() << "Not enough processes left\n";
+         Fatal() << "Not enough processes left\n";
       }
       numCols = (int)ceil(procsLeft / numRows);
    }
@@ -67,13 +67,13 @@ Communicator::Communicator(PV_Arguments *argumentList) {
 
    // For debugging
    if (globalRank == 0) {
-      pvInfo() << "Running with batchWidth=" << batchWidth << ", numRows=" << numRows
-               << ", and numCols=" << numCols << "\n";
+      InfoLog() << "Running with batchWidth=" << batchWidth << ", numRows=" << numRows
+                << ", and numCols=" << numCols << "\n";
    }
 
    if (commSize > totalSize) {
-      pvError() << "Total number of specified processes (" << commSize
-                << ") must be bigger than the number of processes launched (" << totalSize << ")\n";
+      Fatal() << "Total number of specified processes (" << commSize
+              << ") must be bigger than the number of processes launched (" << totalSize << ")\n";
    }
 
 #ifdef PV_USE_MPI
@@ -81,8 +81,8 @@ Communicator::Communicator(PV_Arguments *argumentList) {
    isExtra = globalRank >= commSize ? 1 : 0;
    MPI_Comm_split(MPI_COMM_WORLD, isExtra, globalRank % commSize, &globalIcComm);
    if (isExtra) {
-      pvWarn() << "Global process rank " << globalRank << " is extra, as only " << commSize
-               << " mpiProcesses are required. Process exiting\n";
+      WarnLog() << "Global process rank " << globalRank << " is extra, as only " << commSize
+                << " mpiProcesses are required. Process exiting\n";
       return;
    }
 #else // PV_USE_MPI
@@ -126,7 +126,7 @@ Communicator::Communicator(PV_Arguments *argumentList) {
 #endif // PV_USE_MPI
 
    //#ifdef DEBUG_OUTPUT
-   //      pvDebug().printf("[%2d]: Formed resized communicator, size==%d
+   //      DebugLog().printf("[%2d]: Formed resized communicator, size==%d
    //      cols==%d rows==%d\n",
    //      icRank, icSize, numCols, numRows);
    //#endif // DEBUG_OUTPUT
@@ -192,7 +192,7 @@ int Communicator::neighborInit() {
          neighbors[i]                     = n;
          remoteNeighbors[num_neighbors++] = n;
 #ifdef DEBUG_OUTPUT
-         pvDebug().printf(
+         DebugLog().printf(
                "[%2d]: neighborInit: remote[%d] of %d is %d, i=%d, neighbor=%d\n",
                localRank,
                num_neighbors - 1,
@@ -204,7 +204,7 @@ int Communicator::neighborInit() {
       }
       else {
 #ifdef DEBUG_OUTPUT
-         pvDebug().printf("[%2d]: neighborInit: i=%d, neighbor=%d\n", localRank, i, neighbors[i]);
+         DebugLog().printf("[%2d]: neighborInit: i=%d, neighbor=%d\n", localRank, i, neighbors[i]);
 #endif // DEBUG_OUTPUT
       }
       this->tags[i] = tags[i];
@@ -431,7 +431,7 @@ int Communicator::neighborIndex(int commId, int direction) {
       case SOUTHWEST: /* southwest */ return southwest(row, column);
       case SOUTH: /* south */ return south(row, column);
       case SOUTHEAST: /* southeast */ return southeast(row, column);
-      default: pvErrorNoExit().printf("neighborIndex %d: bad index\n", direction); return -1;
+      default: ErrorLog().printf("neighborIndex %d: bad index\n", direction); return -1;
    }
 }
 
@@ -515,7 +515,7 @@ int Communicator::reverseDirection(int commId, int direction) {
          }
          break;
       default:
-         pvErrorNoExit().printf("neighborIndex %d: bad index\n", direction);
+         ErrorLog().printf("neighborIndex %d: bad index\n", direction);
          revdir = -1;
          break;
    }
@@ -546,7 +546,7 @@ size_t Communicator::recvOffset(int n, const PVLayerLoc *loc) {
       case SOUTHWEST: return (+sy * (topBorder + ny));
       case SOUTH: return (sx * leftBorder + sy * (topBorder + ny));
       case SOUTHEAST: return (sx * leftBorder + sx * nx + sy * (topBorder + ny));
-      default: pvErrorNoExit().printf("recvOffset: bad neighbor index %d\n", n); return (size_t)0;
+      default: ErrorLog().printf("recvOffset: bad neighbor index %d\n", n); return (size_t)0;
    }
 }
 
@@ -581,7 +581,7 @@ size_t Communicator::sendOffset(int n, const PVLayerLoc *loc) {
       case SOUTH: return (sx * leftBorder + sy * ny);
       case SOUTHEAST:
          return (sx * (nx + !has_east_nbr * leftBorder) + sy * (ny + !has_south_nbr * topBorder));
-      default: pvErrorNoExit().printf("sendOffset: bad neighbor index %d\n", n); return 0;
+      default: ErrorLog().printf("sendOffset: bad neighbor index %d\n", n); return 0;
    }
 }
 
@@ -683,7 +683,7 @@ int Communicator::freeDatatypes(MPI_Datatype *mpi_datatypes) {
  *   - do irecv first so there is a location for send data to be received
  */
 int Communicator::exchange(
-      pvdata_t *data,
+      float *data,
       const MPI_Datatype neighborDatatypes[],
       const PVLayerLoc *loc,
       std::vector<MPI_Request> &req) {
@@ -698,9 +698,9 @@ int Communicator::exchange(
    for (int n = 1; n < NUM_NEIGHBORHOOD; n++) {
       if (neighbors[n] == localRank)
          continue; // don't send interior/self
-      pvdata_t *recvBuf = data + recvOffset(n, loc);
+      float *recvBuf = data + recvOffset(n, loc);
 #ifdef DEBUG_OUTPUT
-      pvInfo().printf(
+      InfoLog().printf(
             "[%2d]: recv,send to %d, n=%d recvOffset==%ld "
             "sendOffset==%ld send[0]==%f\n",
             localRank,
@@ -709,7 +709,7 @@ int Communicator::exchange(
             recvOffset(n, loc),
             sendOffset(n, loc),
             sendBuf[0]);
-      pvInfo().flush();
+      InfoLog().flush();
 #endif // DEBUG_OUTPUT
       auto sz = req.size();
       req.resize(sz + 1);
@@ -726,9 +726,9 @@ int Communicator::exchange(
    for (int n = 1; n < NUM_NEIGHBORHOOD; n++) {
       if (neighbors[n] == localRank)
          continue; // don't send interior/self
-      pvdata_t *sendBuf = data + sendOffset(n, loc);
+      float *sendBuf = data + sendOffset(n, loc);
 #ifdef DEBUG_OUTPUT
-      pvInfo().printf(
+      InfoLog().printf(
             "[%2d]: recv,send to %d, n=%d recvOffset==%ld "
             "sendOffset==%ld send[0]==%f\n",
             localRank,
@@ -737,7 +737,7 @@ int Communicator::exchange(
             recvOffset(n, loc),
             sendOffset(n, loc),
             sendBuf[0]);
-      pvInfo().flush();
+      InfoLog().flush();
 #endif // DEBUG_OUTPUT
       auto sz = req.size();
       req.resize(sz + 1);
@@ -753,8 +753,8 @@ int Communicator::exchange(
 
 // don't recv interior
 #ifdef DEBUG_OUTPUT
-   pvInfo().printf("[%2d]: waiting for data, count==%d\n", localRank, nreq);
-   pvInfo().flush();
+   InfoLog().printf("[%2d]: waiting for data, count==%d\n", localRank, nreq);
+   InfoLog().flush();
 #endif // DEBUG_OUTPUT
 
 #endif // PV_USE_MPI

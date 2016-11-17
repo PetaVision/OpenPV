@@ -19,7 +19,7 @@ int MaskTestInputLayer::updateState(double timef, double dt) {
    int kx0               = loc->kx0;
    int ky0               = loc->ky0;
 
-   pvdata_t *A = getActivity();
+   float *A = getActivity();
    // looping over ext
    for (int iY = 0; iY < ny + loc->halo.up + loc->halo.dn; iY++) {
       for (int iX = 0; iX < nx + loc->halo.lt + loc->halo.rt; iX++) {

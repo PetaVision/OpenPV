@@ -11,7 +11,7 @@ int main(int argc, char *argv[]) {
    for (kPre = 0; kPre < 7; kPre++) {
       dx = deltaPosLayers(kPre, scale);
       if (dx != 0.0f) {
-         pvError().printf(
+         Fatal().printf(
                "FAILED:TEST_DELTA_POS: scale=%d, kPre=%d, dx=%f\n", scale, kPre, (double)dx);
       }
    }
@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
       dx        = deltaPosLayers(kPre, scale);
       float val = (kPre % 2) ? -0.25f : 0.25f;
       if (dx != val) {
-         pvError().printf(
+         Fatal().printf(
                "FAILED:TEST_DELTA_POS: scale=%d, kPre=%d, dx=%f\n", scale, kPre, (double)dx);
       }
    }
@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
       if (kPre % 4 == 3)
          val = -3.0f * val;
       if (dx != val) {
-         pvError().printf(
+         Fatal().printf(
                "FAILED:TEST_DELTA_POS: scale=%d, kPre=%d, dx=%f\n", scale, kPre, (double)dx);
       }
    }
@@ -49,7 +49,7 @@ int main(int argc, char *argv[]) {
       dx        = deltaPosLayers(kPre, scale);
       float val = -0.5f;
       if (dx != val) {
-         pvError().printf(
+         Fatal().printf(
                "FAILED:TEST_DELTA_POS: scale=%d, kPre=%d, dx=%f\n", scale, kPre, (double)dx);
       }
    }
@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
       dx        = deltaPosLayers(kPre, scale);
       float val = -1.5f;
       if (dx != val) {
-         pvError().printf(
+         Fatal().printf(
                "FAILED:TEST_DELTA_POS: scale=%d, kPre=%d, dx=%f\n", scale, kPre, (double)dx);
       }
    }

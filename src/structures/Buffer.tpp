@@ -41,7 +41,7 @@ void Buffer<T>::set(int x, int y, int feature, T value) {
 
 template <class T>
 void Buffer<T>::set(const std::vector<T> &vector, int width, int height, int features) {
-   pvErrorIf(
+   FatalIf(
          vector.size() != width * height * features,
          "Invalid vector size: Expected %d elements, vector contained %d elements.\n",
          width * height * features,

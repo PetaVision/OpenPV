@@ -21,7 +21,7 @@ void testRestricted(int argc, char **argv) {
    Communicator *comm = new Communicator(args);
    int rank           = comm->commRank();
 
-   pvInfo() << "Setup complete on rank " << rank << ". Running test.\n";
+   InfoLog() << "Setup complete on rank " << rank << ". Running test.\n";
 
    unsigned int sliceX = 4 / comm->numCommColumns();
    unsigned int sliceY = 4 / comm->numCommRows();
@@ -41,14 +41,14 @@ void testRestricted(int argc, char **argv) {
    }
    result = dataBuffer.asVector();
 
-   pvInfo() << "Scatter complete on rank " << rank << ".\n";
+   InfoLog() << "Scatter complete on rank " << rank << ".\n";
 
    // Check to make sure the chunk of data we received is correct
    if (comm->commSize() == 1) {
-      pvErrorIf(result.size() != 16, "Failed. Expected 16 values, found %d.\n", result.size());
+      FatalIf(result.size() != 16, "Failed. Expected 16 values, found %d.\n", result.size());
       vector<float> expected = {0, 0, 1, 1, 0, 0, 1, 1, 2, 2, 3, 3, 2, 2, 3, 3};
       for (size_t i = 0; i < result.size(); ++i) {
-         pvErrorIf(
+         FatalIf(
                result.at(i) != expected.at(i),
                "Failed. Expected to find %d, found %d instead.\n",
                (int)expected.at(i),
@@ -56,11 +56,11 @@ void testRestricted(int argc, char **argv) {
       }
    }
    else if (comm->commSize() == 2) {
-      pvErrorIf(result.size() != 8, "Failed. Expected 8 values, found %d.\n", result.size());
+      FatalIf(result.size() != 8, "Failed. Expected 8 values, found %d.\n", result.size());
       vector<float> expected = {0, 0, 1, 1, 0, 0, 1, 1};
       for (size_t i = 0; i < result.size(); ++i) {
          // We expect 0s and 1s on rank 0, 2s and 3s on rank 1
-         pvErrorIf(
+         FatalIf(
                result.at(i) != rank * 2 + expected.at(i),
                "Failed. Expected to find %d, found %d instead.\n",
                rank * 2 + (int)expected.at(i),
@@ -68,9 +68,9 @@ void testRestricted(int argc, char **argv) {
       }
    }
    else if (comm->commSize() == 4) {
-      pvErrorIf(result.size() != 4, "Failed. Expected 4 values, found %d.\n", result.size());
+      FatalIf(result.size() != 4, "Failed. Expected 4 values, found %d.\n", result.size());
       for (size_t i = 0; i < result.size(); ++i) {
-         pvErrorIf(
+         FatalIf(
                result.at(i) != rank,
                "Failed. Expected to find %d, found %d instead.\n",
                rank,
@@ -78,19 +78,19 @@ void testRestricted(int argc, char **argv) {
       }
    }
    else {
-      pvError() << "Failed. Must test using 1, 2, or 4 MPI processes.\n";
+      Fatal() << "Failed. Must test using 1, 2, or 4 MPI processes.\n";
    }
 
-   pvInfo() << "Beginning gather on rank " << rank << "\n";
+   InfoLog() << "Beginning gather on rank " << rank << "\n";
 
    dataBuffer.set(BufferUtils::gather<float>(comm, dataBuffer, sliceX, sliceY));
    result = dataBuffer.asVector();
 
    if (rank == 0) {
       vector<float> expected = {0, 0, 1, 1, 0, 0, 1, 1, 2, 2, 3, 3, 2, 2, 3, 3};
-      pvErrorIf(result.size() != 16, "Failed. Expected 16 values, found %d.\n", result.size());
+      FatalIf(result.size() != 16, "Failed. Expected 16 values, found %d.\n", result.size());
       for (size_t i = 0; i < result.size(); ++i) {
-         pvErrorIf(
+         FatalIf(
                result.at(i) != expected.at(i),
                "Failed. Expected to find %d, found %d instead.\n",
                (int)expected.at(i),
@@ -106,7 +106,7 @@ void testExtended(int argc, char **argv) {
    Communicator *comm = new Communicator(args);
    int rank           = comm->commRank();
 
-   pvInfo() << "Setup complete on rank " << rank << ". Running test.\n";
+   InfoLog() << "Setup complete on rank " << rank << ". Running test.\n";
 
    unsigned int sliceX = 4 / comm->numCommColumns();
    unsigned int sliceY = 4 / comm->numCommRows();
@@ -129,15 +129,15 @@ void testExtended(int argc, char **argv) {
    }
    result = dataBuffer.asVector();
 
-   pvInfo() << "Scatter complete on rank " << rank << ".\n";
+   InfoLog() << "Scatter complete on rank " << rank << ".\n";
 
    // Check to make sure the chunk of data we received is correct
    if (comm->commSize() == 1) {
-      pvErrorIf(result.size() != 6 * 6, "Failed. Expected 36 values, found %d.\n", result.size());
+      FatalIf(result.size() != 6 * 6, "Failed. Expected 36 values, found %d.\n", result.size());
       vector<float> expected = {9, 9, 9, 9, 9, 9, 9, 0, 0, 1, 1, 9, 9, 0, 0, 1, 1, 9,
                                 9, 2, 2, 3, 3, 9, 9, 2, 2, 3, 3, 9, 9, 9, 9, 9, 9, 9};
       for (size_t i = 0; i < result.size(); ++i) {
-         pvErrorIf(
+         FatalIf(
                result.at(i) != expected.at(i),
                "Failed. Expected to find %d, found %d instead.\n",
                (int)expected.at(i),
@@ -145,7 +145,7 @@ void testExtended(int argc, char **argv) {
       }
    }
    else if (comm->commSize() == 2) {
-      pvErrorIf(result.size() != 4 * 6, "Failed. Expected 24 values, found %d.\n", result.size());
+      FatalIf(result.size() != 4 * 6, "Failed. Expected 24 values, found %d.\n", result.size());
 
       vector<float> expected;
       switch (rank) {
@@ -155,11 +155,11 @@ void testExtended(int argc, char **argv) {
          case 1:
             expected = {9, 0, 0, 1, 1, 9, 9, 2, 2, 3, 3, 9, 9, 2, 2, 3, 3, 9, 9, 9, 9, 9, 9, 9};
             break;
-         default: pvError() << "Invalid rank.\n";
+         default: Fatal() << "Invalid rank.\n";
       }
 
       for (size_t i = 0; i < result.size(); ++i) {
-         pvErrorIf(
+         FatalIf(
                result.at(i) != expected.at(i),
                "Failed. Expected to find %d, found %d instead.\n",
                (int)expected.at(i),
@@ -167,7 +167,7 @@ void testExtended(int argc, char **argv) {
       }
    }
    else if (comm->commSize() == 4) {
-      pvErrorIf(result.size() != 4 * 4, "Failed. Expected 16 values, found %d.\n", result.size());
+      FatalIf(result.size() != 4 * 4, "Failed. Expected 16 values, found %d.\n", result.size());
 
       vector<float> expected;
       switch (rank) {
@@ -175,11 +175,11 @@ void testExtended(int argc, char **argv) {
          case 1: expected = {9, 9, 9, 9, 0, 1, 1, 9, 0, 1, 1, 9, 2, 3, 3, 9}; break;
          case 2: expected = {9, 0, 0, 1, 9, 2, 2, 3, 9, 2, 2, 3, 9, 9, 9, 9}; break;
          case 3: expected = {0, 1, 1, 9, 2, 3, 3, 9, 2, 3, 3, 9, 9, 9, 9, 9}; break;
-         default: pvError() << "Invalid rank.\n";
+         default: Fatal() << "Invalid rank.\n";
       }
 
       for (size_t i = 0; i < result.size(); ++i) {
-         pvErrorIf(
+         FatalIf(
                result.at(i) != expected.at(i),
                "Failed. Expected to find %d, found %d instead.\n",
                (int)expected.at(i),
@@ -187,10 +187,10 @@ void testExtended(int argc, char **argv) {
       }
    }
    else {
-      pvError() << "Failed. Must test using 1, 2, or 4 MPI processes.\n";
+      Fatal() << "Failed. Must test using 1, 2, or 4 MPI processes.\n";
    }
 
-   pvInfo() << "Beginning gather on rank " << rank << "\n";
+   InfoLog() << "Beginning gather on rank " << rank << "\n";
 
    dataBuffer.set(BufferUtils::gather(comm, dataBuffer, sliceX, sliceY));
    result = dataBuffer.asVector();
@@ -198,9 +198,9 @@ void testExtended(int argc, char **argv) {
    if (rank == 0) {
       vector<float> expected = {9, 9, 9, 9, 9, 9, 9, 0, 0, 1, 1, 9, 9, 0, 0, 1, 1, 9,
                                 9, 2, 2, 3, 3, 9, 9, 2, 2, 3, 3, 9, 9, 9, 9, 9, 9, 9};
-      pvErrorIf(result.size() != 6 * 6, "Failed. Expected 36 values, found %d.\n", result.size());
+      FatalIf(result.size() != 6 * 6, "Failed. Expected 36 values, found %d.\n", result.size());
       for (size_t i = 0; i < result.size(); ++i) {
-         pvErrorIf(
+         FatalIf(
                result.at(i) != expected.at(i),
                "Failed. Expected to find %d, found %d instead.\n",
                (int)expected.at(i),
@@ -226,15 +226,15 @@ int main(int argc, char **argv) {
    args[3] = strdup("-columns");
    args[4] = numProcs != 4 ? strdup("1") : strdup("2");
 
-   pvInfo() << "Rank " << rank
-            << ": Testing restricted BufferUtils::scatter() and BufferUtils::gather():\n";
+   InfoLog() << "Rank " << rank
+             << ": Testing restricted BufferUtils::scatter() and BufferUtils::gather():\n";
    testRestricted(5, args);
-   pvInfo() << "Rank " << rank << ": Completed.\n";
+   InfoLog() << "Rank " << rank << ": Completed.\n";
 
-   pvInfo() << "Rank " << rank
-            << ": Testing extended BufferUtils::scatter() and BufferUtils::gather():\n";
+   InfoLog() << "Rank " << rank
+             << ": Testing extended BufferUtils::scatter() and BufferUtils::gather():\n";
    testExtended(5, args);
-   pvInfo() << "Rank " << rank << ": Completed.\n";
+   InfoLog() << "Rank " << rank << ": Completed.\n";
 
    MPI_Finalize();
 
@@ -243,6 +243,6 @@ int main(int argc, char **argv) {
    free(args[3]);
    free(args[4]);
 
-   pvInfo() << "BufferUtilsMPI tests completed successfully!\n";
+   InfoLog() << "BufferUtilsMPI tests completed successfully!\n";
    return EXIT_SUCCESS;
 }

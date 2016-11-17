@@ -45,12 +45,12 @@ int MomentumConnTestProbe::outputState(double timed) {
    if (icComm->commRank() != rcvProc) {
       return PV_SUCCESS;
    }
-   pvErrorIf(!(getTargetConn() != NULL), "Test failed.\n");
+   FatalIf(!(getTargetConn() != NULL), "Test failed.\n");
    outputStream->printf("    Time %f, %s:\n", timed, getTargetConn()->getDescription_c());
-   const pvwdata_t *w = c->get_wDataHead(getArbor(), getKernelIndex());
-   const pvdata_t *dw = c->get_dwDataHead(getArbor(), getKernelIndex());
+   const float *w  = c->get_wDataHead(getArbor(), getKernelIndex());
+   const float *dw = c->get_dwDataHead(getArbor(), getKernelIndex());
    if (getOutputPlasticIncr() && dw == NULL) {
-      pvError().printf(
+      Fatal().printf(
             "%s: %s has dKernelData(%d,%d) set to null.\n",
             getDescription_c(),
             getTargetConn()->getDescription_c(),
@@ -62,9 +62,9 @@ int MomentumConnTestProbe::outputState(double timed) {
    int nfp    = c->fPatchSize();
    int status = PV_SUCCESS;
    for (int k = 0; k < nxp * nyp * nfp; k++) {
-      pvdata_t wObserved = w[k];
+      float wObserved = w[k];
       // Pulse happens at time 3
-      pvdata_t wCorrect;
+      float wCorrect;
 
       if (timed < 3) {
          wCorrect = 0;

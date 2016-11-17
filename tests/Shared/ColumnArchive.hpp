@@ -11,16 +11,15 @@
 #include <columns/HyPerCol.hpp>
 #include <connections/HyPerConn.hpp>
 #include <include/PVLayerLoc.h>
-#include <include/pv_datatypes.h>
 #include <layers/HyPerLayer.hpp>
 
 struct LayerArchive {
    std::string name;
    PVLayerLoc layerLoc;
-   std::vector<pvdata_t> data;
+   std::vector<float> data;
    bool operator==(LayerArchive const &comparison) const;
    bool operator!=(LayerArchive const &comparison) const { return !(operator==(comparison)); }
-   pvdata_t tolerance;
+   float tolerance;
 };
 
 struct ConnArchive {
@@ -31,16 +30,16 @@ struct ConnArchive {
    int nxp;
    int nyp;
    int nfp;
-   std::vector<std::vector<pvwdata_t>> data; // outer index is arbors, inner index is individual
+   std::vector<std::vector<float>> data; // outer index is arbors, inner index is individual
    // weights, with nxp,nyp,nfp,numDataPatches squashed.
    bool operator==(ConnArchive const &comparison) const;
    bool operator!=(ConnArchive const &comparison) const { return !(operator==(comparison)); }
-   pvwdata_t tolerance;
+   float tolerance;
 };
 
 class ColumnArchive {
   public:
-   ColumnArchive(PV::HyPerCol *hc, pvdata_t layerTolerance, pvwdata_t connTolerance) {
+   ColumnArchive(PV::HyPerCol *hc, float layerTolerance, float connTolerance) {
       addCol(hc, layerTolerance, connTolerance);
    }
    virtual ~ColumnArchive() {}
@@ -58,9 +57,9 @@ class ColumnArchive {
 
   private:
    ColumnArchive() {}
-   void addCol(PV::HyPerCol *hc, pvdata_t layerTolerance, pvwdata_t connTolerance);
-   void addLayer(PV::HyPerLayer *layer, pvdata_t layerTolerance);
-   void addConn(PV::HyPerConn *conn, pvwdata_t connTolerance);
+   void addCol(PV::HyPerCol *hc, float layerTolerance, float connTolerance);
+   void addLayer(PV::HyPerLayer *layer, float layerTolerance);
+   void addConn(PV::HyPerConn *conn, float connTolerance);
 
   private:
    std::vector<LayerArchive> m_layerdata;
@@ -70,8 +69,8 @@ class ColumnArchive {
 template <typename T>
 bool compareFields(char const *type, char const *field, T val1, T val2) {
    if (val1 != val2) {
-      pvErrorNoExit() << type << " have different " << field << ": " << val1 << " versus " << val2
-                      << ".\n";
+      ErrorLog() << type << " have different " << field << ": " << val1 << " versus " << val2
+                 << ".\n";
       return false;
    }
    else {

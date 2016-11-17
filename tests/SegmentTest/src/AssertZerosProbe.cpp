@@ -25,18 +25,18 @@ void AssertZerosProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) { requireType(Bu
 
 // 2 tests: max difference can be 5e-4, max std is 5e-5
 int AssertZerosProbe::outputState(double timed) {
-   int status             = StatsProbe::outputState(timed);
-   const PVLayerLoc *loc  = getTargetLayer()->getLayerLoc();
-   int numExtNeurons      = getTargetLayer()->getNumExtendedAllBatches();
-   int numResNeurons      = getTargetLayer()->getNumNeuronsAllBatches();
-   const pvdata_t *A      = getTargetLayer()->getLayerData();
-   const pvdata_t *GSyn_E = getTargetLayer()->getChannel(CHANNEL_EXC);
-   const pvdata_t *GSyn_I = getTargetLayer()->getChannel(CHANNEL_INH);
+   int status            = StatsProbe::outputState(timed);
+   const PVLayerLoc *loc = getTargetLayer()->getLayerLoc();
+   int numExtNeurons     = getTargetLayer()->getNumExtendedAllBatches();
+   int numResNeurons     = getTargetLayer()->getNumNeuronsAllBatches();
+   const float *A        = getTargetLayer()->getLayerData();
+   const float *GSyn_E   = getTargetLayer()->getChannel(CHANNEL_EXC);
+   const float *GSyn_I   = getTargetLayer()->getChannel(CHANNEL_INH);
 
    // getOutputStream().precision(15);
    float sumsq = 0;
    for (int i = 0; i < numExtNeurons; i++) {
-      pvErrorIf(!(fabsf(A[i]) < 5e-4f), "Test failed.\n");
+      FatalIf(!(fabsf(A[i]) < 5e-4f), "Test failed.\n");
    }
 
    if (timed > 0) {
@@ -48,13 +48,13 @@ int AssertZerosProbe::outputState(double timed) {
          sum_I += GSyn_I[i];
       }
 
-      pvErrorIf(!(sum_E != 0), "Test failed.\n");
-      pvErrorIf(!(sum_I != 0), "Test failed.\n");
+      FatalIf(!(sum_E != 0), "Test failed.\n");
+      FatalIf(!(sum_I != 0), "Test failed.\n");
    }
 
    for (int b = 0; b < loc->nbatch; b++) {
       // For max std of 5e-5
-      pvErrorIf(!(sigma[b] <= 5e-5f), "Test failed.\n");
+      FatalIf(!(sigma[b] <= 5e-5f), "Test failed.\n");
    }
 
    return status;

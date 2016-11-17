@@ -117,7 +117,7 @@ private:
    int drawTextOnMontage(char const * backgroundColor, char const * textColor, char const * labelText, int xOffset, int yOffset, int width, int height);
    int drawTextIntoFile(char const * labelName, char const * backgroundColor, char const * textColor, char const * labelText, int width, int height=32);
    int insertFileIntoMontage(char const * labelname, int xOffset, int yOffset, int xExpectedSize, int yExpectedSize);
-   int insertImageIntoMontage(int xStart, int yStart, pvadata_t const * sourceData, PVLayerLoc const * loc, bool extended);
+   int insertImageIntoMontage(int xStart, int yStart, float const * sourceData, PVLayerLoc const * loc, bool extended);
 
    int makeGrayScaleImage();
    int drawHeatMaps();
@@ -165,11 +165,11 @@ protected:
    int numMontageColumns;
    int montageDimX;
    int montageDimY;
-   pvadata_t * grayScaleImage;
+   float * grayScaleImage;
    unsigned char * montageImage;
    unsigned char * montageImageLocal;
    unsigned char * montageImageComm;
-   pvadata_t imageBlendCoeff; // heatmap image will be imageBlendCoeff * imagedata plus (1-imageBlendCoeff) * heatmap data
+   float imageBlendCoeff; // heatmap image will be imageBlendCoeff * imagedata plus (1-imageBlendCoeff) * heatmap data
    int featurefieldwidth; // how many digits it takes to print the features (e.g. if nf was 100, the last feature is 99, which needs 2 digits)  Set in communicateInitInfo.  All processes compute this, although only the root process uses it
    long int mStepNumber; // The current step number, based on the values of timed and dt passed to outputState.  Should be the same as the number of times HyPerCol::advanceTime has been called, but we want to avoid calling HyPerCol methods.
 }; /* class LocalizationProbe */

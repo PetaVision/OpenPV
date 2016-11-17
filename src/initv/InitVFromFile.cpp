@@ -35,7 +35,7 @@ void InitVFromFile::ioParam_Vfilename(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamString(
          ioFlag, name, "Vfilename", &mVfilename, nullptr, true /*warnIfAbsent*/);
    if (mVfilename == nullptr) {
-      pvError().printf(
+      Fatal().printf(
             "InitVFromFile::initialize, group \"%s\": for InitVFromFile, string parameter "
             "\"Vfilename\" "
             "must be defined.  Exiting\n",
@@ -43,7 +43,7 @@ void InitVFromFile::ioParam_Vfilename(enum ParamsIOFlag ioFlag) {
    }
 }
 
-int InitVFromFile::calcV(pvdata_t *V, const PVLayerLoc *loc) {
+int InitVFromFile::calcV(float *V, const PVLayerLoc *loc) {
    int status = PV_SUCCESS;
    PVLayerLoc fileLoc;
    bool isRootProc = parent->getCommunicator()->commRank() == 0;
@@ -53,7 +53,7 @@ int InitVFromFile::calcV(pvdata_t *V, const PVLayerLoc *loc) {
       PV_Stream *readFile = pvp_open_read_file(mVfilename, parent->getCommunicator());
       if (parent->getCommunicator()->commRank() == 0) {
          if (readFile == NULL) {
-            pvError().printf(
+            Fatal().printf(
                   "InitVFromFile::calcVFromFile error: path \"%s\" could not be opened: %s.  "
                   "Exiting.\n",
                   mVfilename,
@@ -83,7 +83,7 @@ int InitVFromFile::calcV(pvdata_t *V, const PVLayerLoc *loc) {
             params[INDEX_NY_GLOBAL]);
       if (status != PV_SUCCESS) {
          if (parent->getCommunicator()->commRank() == 0) {
-            pvErrorNoExit().printf(
+            ErrorLog().printf(
                   "InitVFromFilename: dimensions of \"%s\" (x=%d,y=%d,f=%d) do not agree with "
                   "layer dimensions (x=%d,y=%d,f=%d).\n",
                   mVfilename,
@@ -106,7 +106,7 @@ int InitVFromFile::calcV(pvdata_t *V, const PVLayerLoc *loc) {
       fileLoc.ky0      = 0;
       if (params[INDEX_NX_PROCS] != 1 || params[INDEX_NY_PROCS] != 1) {
          if (parent->getCommunicator()->commRank() == 0) {
-            pvErrorNoExit().printf(
+            ErrorLog().printf(
                   "HyPerLayer::readBufferFile: file \"%s\" appears to be in an obsolete version of "
                   "the .pvp format.\n",
                   mVfilename);
@@ -115,18 +115,18 @@ int InitVFromFile::calcV(pvdata_t *V, const PVLayerLoc *loc) {
       }
 
       for (int b = 0; b < loc->nbatch; b++) {
-         pvdata_t *VBatch = V + b * (loc->nx * loc->ny * loc->nf);
+         float *VBatch = V + b * (loc->nx * loc->ny * loc->nf);
          switch (filetype) {
             case PVP_FILE_TYPE:
                if (isRootProc) {
-                  pvError().printf(
+                  Fatal().printf(
                         "calcVFromFile for file \"%s\": \"PVP_FILE_TYPE\" files is obsolete.\n",
                         this->mVfilename);
                }
                break;
             case PVP_ACT_FILE_TYPE:
                if (isRootProc)
-                  pvErrorNoExit().printf(
+                  ErrorLog().printf(
                         "calcVFromFile for file \"%s\": sparse activity files are not yet "
                         "implemented for initializing V buffers.\n",
                         this->mVfilename);
@@ -146,7 +146,7 @@ int InitVFromFile::calcV(pvdata_t *V, const PVLayerLoc *loc) {
                break;
             default:
                if (isRootProc)
-                  pvErrorNoExit().printf(
+                  ErrorLog().printf(
                         "calcVFromFile: file \"%s\" is not an activity pvp file.\n",
                         this->mVfilename);
                abort();
@@ -158,8 +158,7 @@ int InitVFromFile::calcV(pvdata_t *V, const PVLayerLoc *loc) {
    }
    else { // Treat as an image file
       if (isRootProc)
-         pvErrorNoExit().printf(
-               "calcVFromFile: file \"%s\" is not a pvp file.\n", this->mVfilename);
+         ErrorLog().printf("calcVFromFile: file \"%s\" is not a pvp file.\n", this->mVfilename);
       abort();
    }
    return status;
@@ -186,7 +185,7 @@ int InitVFromFile::checkLocValue(int fromParams, int fromFile, const char *field
    int status = PV_SUCCESS;
    if (fromParams != fromFile) {
       if (parent->getCommunicator()->commRank() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "InitVFromFile: Incompatible %s: parameter group \"%s\" gives %d; "
                "filename \"%s\" gives %d\n",
                field,

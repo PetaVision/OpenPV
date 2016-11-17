@@ -51,7 +51,7 @@ void AdaptiveTimeScaleProbe::ioParam_dtMinToleratedTimeScale(enum ParamsIOFlag i
    if (ioFlag == PARAMS_IO_READ
        && parent->parameters()->present(getName(), "dtMinToleratedTimeScale")) {
       if (parent->getCommunicator()->commRank() == 0) {
-         pvErrorNoExit() << "The dtMinToleratedTimeScale parameter has been removed.\n";
+         ErrorLog() << "The dtMinToleratedTimeScale parameter has been removed.\n";
       }
       MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -88,8 +88,8 @@ int AdaptiveTimeScaleProbe::communicateInitInfo() {
    mTargetProbe = parent->getBaseProbeFromName(targetName);
    if (mTargetProbe == nullptr) {
       if (parent->getCommunicator()->commRank() == 0) {
-         pvError() << getDescription() << ": targetName \"" << targetName
-                   << "\" is not a probe in the HyPerCol.\n";
+         Fatal() << getDescription() << ": targetName \"" << targetName
+                 << "\" is not a probe in the HyPerCol.\n";
       }
       MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -101,9 +101,9 @@ int AdaptiveTimeScaleProbe::allocateDataStructures() {
    int status = ColProbe::allocateDataStructures();
    if (mTargetProbe->getNumValues() != getNumValues()) {
       if (parent->getCommunicator()->commRank() == 0) {
-         pvError() << getDescription() << ": target probe \"" << mTargetProbe->getDescription()
-                   << "\" does not have the correct numValues (" << mTargetProbe->getNumValues()
-                   << " instead of " << getNumValues() << ").\n";
+         Fatal() << getDescription() << ": target probe \"" << mTargetProbe->getDescription()
+                 << "\" does not have the correct numValues (" << mTargetProbe->getNumValues()
+                 << " instead of " << getNumValues() << ").\n";
       }
       MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);

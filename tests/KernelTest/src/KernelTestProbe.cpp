@@ -34,9 +34,9 @@ int KernelTestProbe::outputState(double timed) {
    }
    for (int b = 0; b < parent->getNBatch(); b++) {
       if (timed > 2.0) {
-         pvErrorIf(!((fMin[b] > 0.99f) && (fMin[b] < 1.010f)), "Test failed.\n");
-         pvErrorIf(!((fMax[b] > 0.99f) && (fMax[b] < 1.010f)), "Test failed.\n");
-         pvErrorIf(!((avg[b] > 0.99f) && (avg[b] < 1.010f)), "Test failed.\n");
+         FatalIf(!((fMin[b] > 0.99f) && (fMin[b] < 1.010f)), "Test failed.\n");
+         FatalIf(!((fMax[b] > 0.99f) && (fMax[b] < 1.010f)), "Test failed.\n");
+         FatalIf(!((avg[b] > 0.99f) && (avg[b] < 1.010f)), "Test failed.\n");
       }
    }
 

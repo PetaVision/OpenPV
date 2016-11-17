@@ -37,12 +37,12 @@ void LCALIF_update_state(
       const int dn,
       const int up,
 
-      pvdata_t Vscale,
-      pvdata_t *Vadpt,
+      float Vscale,
+      float *Vadpt,
       const float tauTHR,
       const float targetRateHz,
 
-      pvdata_t *integratedSpikeCount,
+      float *integratedSpikeCount,
 
       LIF_params *params,
       taus_uint4 *rnd,
@@ -54,7 +54,7 @@ void LCALIF_update_state(
       float *GSynHead,
       float *activity,
 
-      const pvgsyndata_t *gapStrength,
+      const float *gapStrength,
       float *Vattained,
       float *Vmeminf,
       const int normalizeInputFlag,
@@ -96,7 +96,7 @@ int LCALIFLayer::initialize(const char *name, HyPerCol *hc, const char *kernel_n
    Vscale                   = defaultDynVthScale > 0 ? defaultDynVthScale : DEFAULT_DYNVTHSCALE;
    if (Vscale <= 0) {
       if (hc->columnId() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "LCALIFLayer \"%s\": Vscale must be positive (value in params is %f).\n",
                name,
                (double)Vscale);
@@ -258,30 +258,24 @@ int LCALIFLayer::updateState(double timed, double dt) {
    return PV_SUCCESS;
 }
 
-int LCALIFLayer::readStateFromCheckpoint(const char *cpDir, double *timeptr) {
-   int status      = LIFGap::readStateFromCheckpoint(cpDir, timeptr);
+int LCALIFLayer::readStateFromCheckpoint(Checkpointer *checkpointer) {
+   int status      = LIFGap::readStateFromCheckpoint(checkpointer);
    double filetime = 0.0;
-   status          = read_integratedSpikeCountFromCheckpoint(cpDir, timeptr);
-   status          = readVadptFromCheckpoint(cpDir, timeptr);
+   status          = read_integratedSpikeCountFromCheckpoint(checkpointer);
+   status          = readVadptFromCheckpoint(checkpointer);
    return status;
 }
 
-int LCALIFLayer::read_integratedSpikeCountFromCheckpoint(const char *cpDir, double *timeptr) {
-   char *filename = parent->pathInCheckpoint(cpDir, getName(), "_integratedSpikeCount.pvp");
-   int status     = readBufferFile(
-         filename, parent->getCommunicator(), timeptr, &Vth, 1, /*extended*/ true, getLayerLoc());
-   assert(status == PV_SUCCESS);
-   free(filename);
-   return status;
+int LCALIFLayer::read_integratedSpikeCountFromCheckpoint(Checkpointer *checkpointer) {
+   std::string checkpointEntryName(name);
+   checkpointEntryName.append("_integratedSpikeCount.pvp");
+   return PV_SUCCESS;
 }
 
-int LCALIFLayer::readVadptFromCheckpoint(const char *cpDir, double *timeptr) {
-   char *filename = parent->pathInCheckpoint(cpDir, getName(), "_Vadpt.pvp");
-   int status     = readBufferFile(
-         filename, parent->getCommunicator(), timeptr, &Vth, 1, /*extended*/ true, getLayerLoc());
-   assert(status == PV_SUCCESS);
-   free(filename);
-   return status;
+int LCALIFLayer::readVadptFromCheckpoint(Checkpointer *checkpointer) {
+   std::string checkpointEntryName(name);
+   checkpointEntryName.append("_Vadpt.pvp");
+   return PV_SUCCESS;
 }
 
 } // namespace PV
@@ -293,7 +287,7 @@ inline float LCALIF_tauInf(
       const float G_E,
       const float G_I,
       const float G_IB,
-      const pvgsyndata_t sum_gap) {
+      const float sum_gap) {
    return tau / (1 + G_E + G_I + G_IB + sum_gap);
 }
 
@@ -306,7 +300,7 @@ inline float LCALIF_VmemInf(
       const float G_I,
       const float G_B,
       const float G_gap,
-      const pvgsyndata_t sumgap) {
+      const float sumgap) {
    return (Vrest + V_E * G_E + V_I * G_I + V_B * G_B + G_gap) / (1 + G_E + G_I + G_B + sumgap);
 }
 
@@ -347,7 +341,7 @@ void LCALIF_update_state(
       float *GSynHead,
       float *activity,
 
-      const pvgsyndata_t *gapStrength,
+      const float *gapStrength,
       float *Vattained,
       float *Vmeminf,
       const int normalizeInputFlag,
@@ -393,10 +387,10 @@ void LCALIF_update_state(
       // The correction factors to the conductances are so that if l_GSyn_* is the same every
       // timestep,
       // then the asymptotic value of l_G_* will be l_GSyn_*
-      float l_G_E                = G_E[k];
-      float l_G_I                = G_I[k];
-      float l_G_IB               = G_IB[k];
-      pvgsyndata_t l_gapStrength = gapStrength[k];
+      float l_G_E         = G_E[k];
+      float l_G_I         = G_I[k];
+      float l_G_IB        = G_IB[k];
+      float l_gapStrength = gapStrength[k];
 
 #define CHANNEL_NORM (CHANNEL_GAP + 1)
       float *GSynExc   = &GSynHead[CHANNEL_EXC * nbatch * numNeurons];
@@ -423,7 +417,7 @@ void LCALIF_update_state(
       deltaGIB = params->deltaGIB;
 
       if (normalizeInputFlag && l_GSynNorm == 0 && l_GSynExc != 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "time = %f, k = %d, normalizeInputFlag is true but GSynNorm is zero and l_GSynExc = "
                "%f\n",
                timed,

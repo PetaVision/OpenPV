@@ -20,7 +20,7 @@ class InitIdentWeights : public PV::InitOneToOneWeights {
    InitIdentWeights(char const *name, HyPerCol *hc);
    virtual ~InitIdentWeights();
 
-   virtual int calcWeights(/* PVPatch * patch */ pvdata_t *dataStart, int patchIndex, int arborId);
+   virtual int calcWeights(/* PVPatch * patch */ float *dataStart, int patchIndex, int arborId);
    virtual InitWeightsParams *createNewWeightParams();
    void calcOtherParams(int patchIndex);
 

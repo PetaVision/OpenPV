@@ -71,14 +71,14 @@ int privateTransposeConn::setDescription() {
 
 // Private transpose conn will have no parameters, will be set by parent connection
 int privateTransposeConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   pvError() << "Fatal: privateTransposeConn ioParamsFillGroup called\n";
-   return PV_FAILURE; // never returns since pvError exits
+   Fatal() << "Fatal: privateTransposeConn ioParamsFillGroup called\n";
+   return PV_FAILURE; // never returns since Fatal exits
 }
 
 int privateTransposeConn::communicateInitInfo() {
    // Should never be called
-   pvError() << "Fatal: privateTransposeConn communicate called\n";
-   return PV_FAILURE; // never returns since pvError exits
+   Fatal() << "Fatal: privateTransposeConn communicate called\n";
+   return PV_FAILURE; // never returns since Fatal exits
 }
 
 int privateTransposeConn::setPatchSize() {
@@ -184,7 +184,7 @@ int privateTransposeConn::setInitialValues() {
    return status;
 }
 
-PVPatch ***privateTransposeConn::initializeWeights(PVPatch ***patches, pvwdata_t **dataStart) {
+PVPatch ***privateTransposeConn::initializeWeights(PVPatch ***patches, float **dataStart) {
    // privateTransposeConn must wait until after postConn has been normalized, so weight
    // initialization doesn't take place until HyPerCol::run calls finalizeUpdate
    return patches;
@@ -245,8 +245,8 @@ int privateTransposeConn::transposeNonsharedWeights(int arborId) {
    const PVLayerLoc *postLocTranspose = postSynapticLayer()->getLayerLoc();
 #ifdef PV_USE_MPI
    Communicator *icComm = parent->getCommunicator();
-   pvwdata_t *sendbuf[NUM_NEIGHBORHOOD];
-   pvwdata_t *recvbuf[NUM_NEIGHBORHOOD];
+   float *sendbuf[NUM_NEIGHBORHOOD];
+   float *recvbuf[NUM_NEIGHBORHOOD];
    int size[NUM_NEIGHBORHOOD];
    int startx[NUM_NEIGHBORHOOD];
    int starty[NUM_NEIGHBORHOOD];
@@ -286,17 +286,17 @@ int privateTransposeConn::transposeNonsharedWeights(int arborId) {
                &stopy[neighbor],
                &blocksize[neighbor],
                &buffersize[neighbor]);
-         sendbuf[neighbor] = (pvwdata_t *)malloc(buffersize[neighbor]);
+         sendbuf[neighbor] = (float *)malloc(buffersize[neighbor]);
          if (sendbuf[neighbor] == NULL) {
-            pvError().printf(
+            Fatal().printf(
                   "%s: Rank %d process unable to allocate memory for Transpose send buffer: %s\n",
                   getDescription_c(),
                   parent->columnId(),
                   strerror(errno));
          }
-         recvbuf[neighbor] = (pvwdata_t *)malloc(buffersize[neighbor]);
+         recvbuf[neighbor] = (float *)malloc(buffersize[neighbor]);
          if (recvbuf[neighbor] == NULL) {
-            pvError().printf(
+            Fatal().printf(
                   "%s: Rank %d process unable to allocate memory for Transpose receive buffer: "
                   "%s\n",
                   getDescription_c(),
@@ -332,7 +332,7 @@ int privateTransposeConn::transposeNonsharedWeights(int arborId) {
             if (xGlobalRes >= preLocOrig->kx0 && xGlobalRes < preLocOrig->kx0 + preLocOrig->nx
                 && yGlobalRes >= preLocOrig->ky0
                 && yGlobalRes < preLocOrig->ky0 + preLocOrig->ny) {
-               pvError(errorMessage);
+               Fatal(errorMessage);
                errorMessage.printf(
                      "Rank %d, %s, x=%d, y=%d, neighbor=%d: xGlobalRes = %d, preLocOrig->kx0 = %d, "
                      "preLocOrig->nx = %d\n",
@@ -384,8 +384,8 @@ int privateTransposeConn::transposeNonsharedWeights(int arborId) {
             memcpy(
                   b,
                   postConn->get_wDataHead(arborId, idxExt),
-                  (size_t)blocksize[neighbor] * sizeof(pvwdata_t));
-            b += blocksize[neighbor] * sizeof(pvwdata_t);
+                  (size_t)blocksize[neighbor] * sizeof(float));
+            b += blocksize[neighbor] * sizeof(float);
          }
       }
       assert(b == ((char *)sendbuf[neighbor]) + buffersize[neighbor]);
@@ -416,12 +416,12 @@ int privateTransposeConn::transposeNonsharedWeights(int arborId) {
       PVPatch *patchOrig           = postConn->getWeights(kPreExtendedOrig, arborId);
       int nk                       = patchOrig->nx * postConn->fPatchSize();
       int ny                       = patchOrig->ny;
-      pvwdata_t *weightvaluesorig  = postConn->get_wData(arborId, kPreExtendedOrig);
+      float *weightvaluesorig      = postConn->get_wData(arborId, kPreExtendedOrig);
       int kPostRestrictedOrigBase  = (int)postConn->getGSynPatchStart(kPreExtendedOrig, arborId);
       int kPostRestrictedTranspose = kPreRestrictedOrig;
       for (int y = 0; y < ny; y++) {
          for (int k = 0; k < nk; k++) {
-            pvwdata_t w                 = weightvaluesorig[y * postConn->yPatchStride() + k];
+            float w                     = weightvaluesorig[y * postConn->yPatchStride() + k];
             int kPostRestrictedOrig     = kPostRestrictedOrigBase + y * nkRestrictedOrig + k;
             int kPreRestrictedTranspose = kPostRestrictedOrig;
             int kPreExtendedTranspose   = kIndexExtended(
@@ -478,7 +478,7 @@ int privateTransposeConn::transposeNonsharedWeights(int arborId) {
             for (int y = 0; y < patch.ny; y++) {
                for (int k = 0; k < patch.nx * postConn->fPatchSize(); k++) {
                   int origPostIndex = postIdxGlobalRes + y * postGlobalResStrideY + k;
-                  pvwdata_t w = ((pvwdata_t *)b)[patch.offset + y * postConn->yPatchStride() + k];
+                  float w           = ((float *)b)[patch.offset + y * postConn->yPatchStride() + k];
 
                   int transposePreGlobalRes = origPostIndex;
                   int transposePreGlobalXRes =
@@ -549,7 +549,7 @@ int privateTransposeConn::transposeNonsharedWeights(int arborId) {
                   get_wData(arborId, transposePreLocalExt)[yt * syp + kt] = w;
                }
             }
-            b += sizeof(pvwdata_t) * postConn->xPatchSize() * postConn->yPatchSize()
+            b += sizeof(float) * postConn->xPatchSize() * postConn->yPatchSize()
                  * postConn->fPatchSize();
          }
       }
@@ -662,7 +662,7 @@ int privateTransposeConn::mpiexchangesize(
    // for each block.  This assumes that each of the preLocOrig->nf patches for a given (x,y) site
    // has the same aPostOffset and PVPatch values.
    *buffersize = (size_t)*size * (sizeof(int) + sizeof(PVPatch) + sizeof(int)
-                                  + (size_t)*blocksize * sizeof(pvwdata_t));
+                                  + (size_t)*blocksize * sizeof(float));
    return PV_SUCCESS;
 }
 
@@ -693,8 +693,8 @@ int privateTransposeConn::transposeSharedWeights(int arborId) {
       }
 
       for (int kernelnumberFB = 0; kernelnumberFB < numFBKernelPatches; kernelnumberFB++) {
-         pvwdata_t *dataStartFB = get_wDataHead(arborId, kernelnumberFB);
-         int nfFB               = nfp;
+         float *dataStartFB = get_wDataHead(arborId, kernelnumberFB);
+         int nfFB           = nfp;
          assert(numFFKernelPatches == nfFB);
          int nxFB = nxp;
          int nyFB = nyp;
@@ -704,11 +704,11 @@ int privateTransposeConn::transposeSharedWeights(int arborId) {
          for (int kyFB = 0; kyFB < nyFB; kyFB++) {
             for (int kxFB = 0; kxFB < nxFB; kxFB++) {
                for (int kfFB = 0; kfFB < nfFB; kfFB++) {
-                  int kIndexFB           = kIndex(kxFB, kyFB, kfFB, nxFB, nyFB, nfFB);
-                  int kernelnumberFF     = kfFB;
-                  pvwdata_t *dataStartFF = postConn->get_wDataHead(arborId, kernelnumberFF);
-                  int nxpFF              = postConn->xPatchSize();
-                  int nypFF              = postConn->yPatchSize();
+                  int kIndexFB       = kIndex(kxFB, kyFB, kfFB, nxFB, nyFB, nfFB);
+                  int kernelnumberFF = kfFB;
+                  float *dataStartFF = postConn->get_wDataHead(arborId, kernelnumberFF);
+                  int nxpFF          = postConn->xPatchSize();
+                  int nypFF          = postConn->yPatchSize();
                   assert(numFBKernelPatches == postConn->fPatchSize() * xscaleq * yscaleq);
                   int kfFF = featureIndex(kernelnumberFB, xscaleq, yscaleq, postConn->fPatchSize());
 
@@ -748,20 +748,20 @@ int privateTransposeConn::transposeSharedWeights(int arborId) {
       }
 
       for (int kernelnumberFB = 0; kernelnumberFB < numFBKernelPatches; kernelnumberFB++) {
-         pvwdata_t *dataStartFB = get_wDataHead(arborId, kernelnumberFB);
-         int nxFB               = nxp;
-         int nyFB               = nyp;
-         int nfFB               = nfp;
+         float *dataStartFB = get_wDataHead(arborId, kernelnumberFB);
+         int nxFB           = nxp;
+         int nyFB           = nyp;
+         int nfFB           = nfp;
          for (int kyFB = 0; kyFB < nyFB; kyFB++) {
             int precelloffsety = (kyFB + kerneloffsety) % yscaleq;
             for (int kxFB = 0; kxFB < nxFB; kxFB++) {
                int precelloffsetx = (kxFB + kerneloffsetx) % xscaleq;
                for (int kfFB = 0; kfFB < nfFB; kfFB++) {
                   int kernelnumberFF = (precelloffsety * xscaleq + precelloffsetx) * nfFB + kfFB;
-                  pvwdata_t *dataStartFF = postConn->get_wDataHead(arborId, kernelnumberFF);
-                  int nxpFF              = postConn->xPatchSize();
-                  int nypFF              = postConn->yPatchSize();
-                  int kxFF               = (nxp - kxFB - 1) / xscaleq;
+                  float *dataStartFF = postConn->get_wDataHead(arborId, kernelnumberFF);
+                  int nxpFF          = postConn->xPatchSize();
+                  int nypFF          = postConn->yPatchSize();
+                  int kxFF           = (nxp - kxFB - 1) / xscaleq;
                   assert(kxFF >= 0 && kxFF < postConn->xPatchSize());
                   int kyFF = (nyp - kyFB - 1) / yscaleq;
                   assert(kyFF >= 0 && kyFF < postConn->yPatchSize());
@@ -776,7 +776,7 @@ int privateTransposeConn::transposeSharedWeights(int arborId) {
       }
    }
    else {
-      pvError().printf(
+      Fatal().printf(
             "xscalediff = %d, yscalediff = %d: the case of many-to-one in one dimension and "
             "one-to-many in the other"
             "has not yet been implemented.\n",
@@ -796,8 +796,8 @@ int privateTransposeConn::reduceKernels(int arborID) {
 
 int privateTransposeConn::deliver() {
    // Sanity check, this should NEVER get called
-   pvError() << "Fatal: privateTransposeConn deliver got called\n";
-   return PV_FAILURE; // never returns since pvError exits
+   Fatal() << "Fatal: privateTransposeConn deliver got called\n";
+   return PV_FAILURE; // never returns since Fatal exits
 }
 
 } // end namespace PV

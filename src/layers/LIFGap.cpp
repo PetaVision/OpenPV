@@ -10,7 +10,6 @@
 #include "../include/default_params.h"
 #include "../include/pv_common.h"
 #include "../io/fileio.hpp"
-#include "include/pv_datatypes.h"
 #include "utils/cl_random.h"
 
 #include <assert.h>
@@ -45,7 +44,7 @@ void LIFGap_update_state_original(
       float *GSynHead,
       float *activity,
 
-      const pvgsyndata_t *gapStrength);
+      const float *gapStrength);
 
 void LIFGap_update_state_beginning(
       const int nbatch,
@@ -72,7 +71,7 @@ void LIFGap_update_state_beginning(
       float *GSynHead,
       float *activity,
 
-      const pvgsyndata_t *gapStrength);
+      const float *gapStrength);
 
 void LIFGap_update_state_arma(
       const int nbatch,
@@ -99,7 +98,7 @@ void LIFGap_update_state_arma(
       float *GSynHead,
       float *activity,
 
-      const pvgsyndata_t *gapStrength);
+      const float *gapStrength);
 
 namespace PV {
 
@@ -131,9 +130,9 @@ int LIFGap::initialize(const char *name, HyPerCol *hc, const char *kernel_name) 
 int LIFGap::allocateConductances(int num_channels) {
    int status = LIF::allocateConductances(
          num_channels - 1); // CHANNEL_GAP doesn't have a conductance per se.
-   gapStrength = (pvgsyndata_t *)calloc((size_t)getNumNeuronsAllBatches(), sizeof(*gapStrength));
+   gapStrength = (float *)calloc((size_t)getNumNeuronsAllBatches(), sizeof(*gapStrength));
    if (gapStrength == NULL) {
-      pvError().printf(
+      Fatal().printf(
             "%s: rank %d process unable to allocate memory for gapStrength: %s\n",
             getDescription_c(),
             parent->columnId(),
@@ -161,7 +160,7 @@ int LIFGap::calcGapStrength() {
    }
 
    for (int k = 0; k < getNumNeuronsAllBatches(); k++) {
-      gapStrength[k] = (pvgsyndata_t)0;
+      gapStrength[k] = (float)0;
    }
    for (int c = 0; c < parent->numberOfConnections(); c++) {
       HyPerConn *conn = dynamic_cast<HyPerConn *>(parent->getConnection(c));
@@ -169,7 +168,7 @@ int LIFGap::calcGapStrength() {
          continue;
       }
       if (conn->getPlasticityFlag() && parent->columnId() == 0) {
-         pvWarn().printf(
+         WarnLog().printf(
                "%s: %s on CHANNEL_GAP has plasticity flag set to true\n",
                getDescription_c(),
                conn->getDescription_c());
@@ -179,7 +178,7 @@ int LIFGap::calcGapStrength() {
       const int syw   = conn->yPatchStride();
       for (int arbor = 0; arbor < conn->numberOfAxonalArborLists(); arbor++) {
          for (int k = 0; k < pre->getNumExtendedAllBatches(); k++) {
-            conn->deliverOnePreNeuronActivity(k, arbor, (pvadata_t)1.0, gapStrength, NULL);
+            conn->deliverOnePreNeuronActivity(k, arbor, (float)1.0, gapStrength, NULL);
          }
       }
    }
@@ -193,27 +192,16 @@ int LIFGap::registerData(Checkpointer *checkpointer, std::string const &objName)
    return status;
 }
 
-int LIFGap::readStateFromCheckpoint(const char *cpDir, double *timeptr) {
-   int status = LIF::readStateFromCheckpoint(cpDir, timeptr);
-   status     = readGapStrengthFromCheckpoint(cpDir, timeptr);
+int LIFGap::readStateFromCheckpoint(Checkpointer *checkpointer) {
+   int status = LIF::readStateFromCheckpoint(checkpointer);
+   status     = readGapStrengthFromCheckpoint(checkpointer);
    return status;
 }
 
-int LIFGap::readGapStrengthFromCheckpoint(const char *cpDir, double *timeptr) {
-   char *filename = parent->pathInCheckpoint(cpDir, getName(), "_gapStrength.pvp");
-   int status     = readBufferFile(
-         filename,
-         parent->getCommunicator(),
-         timeptr,
-         &gapStrength,
-         1,
-         /*extended*/ false,
-         getLayerLoc());
-   assert(status == PV_SUCCESS);
-   free(filename);
-   gapStrengthInitialized = true;
-   return status;
+int LIFGap::readGapStrengthFromCheckpoint(Checkpointer *checkpointer) {
+   checkpointer->readNamedCheckpointEntry(std::string(name), std::string("gapStrength"));
 }
+
 int LIFGap::updateState(double time, double dt) {
    int status = PV_SUCCESS;
 
@@ -225,8 +213,8 @@ int LIFGap::updateState(double time, double dt) {
    const PVHalo *halo = &clayer->loc.halo;
    const int nbatch   = clayer->loc.nbatch;
 
-   pvdata_t *GSynHead = GSyn[0];
-   pvdata_t *activity = clayer->activity->data;
+   float *GSynHead = GSyn[0];
+   float *activity = clayer->activity->data;
 
    switch (method) {
       case 'a':
@@ -322,7 +310,7 @@ inline float LIFGap_Vmem_derivative(
       const float V_E,
       const float V_I,
       const float V_IB,
-      const pvgsyndata_t sum_gap,
+      const float sum_gap,
       const float Vrest,
       const float tau) {
    float totalconductance = 1.0f + G_E + G_I + G_IB + sum_gap;
@@ -366,7 +354,7 @@ void LIFGap_update_state_original(
       float *GSynHead,
       float *activity,
 
-      const pvgsyndata_t *gapStrength) {
+      const float *gapStrength) {
    int k;
 
    const float exp_tauE   = expf(-dt / params->tauE);
@@ -394,10 +382,10 @@ void LIFGap_update_state_original(
       float l_V   = V[k];
       float l_Vth = Vth[k];
 
-      float l_G_E                = G_E[k];
-      float l_G_I                = G_I[k];
-      float l_G_IB               = G_IB[k];
-      pvgsyndata_t l_gapStrength = gapStrength[k];
+      float l_G_E         = G_E[k];
+      float l_G_I         = G_I[k];
+      float l_G_IB        = G_IB[k];
+      float l_gapStrength = gapStrength[k];
 
       float *GSynExc   = &GSynHead[CHANNEL_EXC * nbatch * numNeurons];
       float *GSynInh   = &GSynHead[CHANNEL_INH * nbatch * numNeurons];
@@ -522,7 +510,7 @@ void LIFGap_update_state_beginning(
       float *GSynHead,
       float *activity,
 
-      const pvgsyndata_t *gapStrength) {
+      const float *gapStrength) {
    int k;
 
    const float exp_tauE   = expf(-dt / params->tauE);
@@ -553,10 +541,10 @@ void LIFGap_update_state_beginning(
       // The correction factors to the conductances are so that if l_GSyn_* is the same every
       // timestep,
       // then the asymptotic value of l_G_* will be l_GSyn_*
-      float l_G_E                = G_E[k];
-      float l_G_I                = G_I[k];
-      float l_G_IB               = G_IB[k];
-      pvgsyndata_t l_gapStrength = gapStrength[k];
+      float l_G_E         = G_E[k];
+      float l_G_I         = G_I[k];
+      float l_G_IB        = G_IB[k];
+      float l_gapStrength = gapStrength[k];
 
       float *GSynExc   = &GSynHead[CHANNEL_EXC * nbatch * numNeurons];
       float *GSynInh   = &GSynHead[CHANNEL_INH * nbatch * numNeurons];
@@ -708,7 +696,7 @@ void LIFGap_update_state_arma(
       float *GSynHead,
       float *activity,
 
-      const pvgsyndata_t *gapStrength) {
+      const float *gapStrength) {
    int k;
 
    const float exp_tauE   = expf(-dt / params->tauE);
@@ -741,10 +729,10 @@ void LIFGap_update_state_arma(
       // The correction factors to the conductances are so that if l_GSyn_* is the same every
       // timestep,
       // then the asymptotic value of l_G_* will be l_GSyn_*
-      float l_G_E                = G_E[k];
-      float l_G_I                = G_I[k];
-      float l_G_IB               = G_IB[k];
-      pvgsyndata_t l_gapStrength = gapStrength[k];
+      float l_G_E         = G_E[k];
+      float l_G_I         = G_I[k];
+      float l_G_IB        = G_IB[k];
+      float l_gapStrength = gapStrength[k];
 
       float *GSynExc   = &GSynHead[CHANNEL_EXC * nbatch * numNeurons];
       float *GSynInh   = &GSynHead[CHANNEL_INH * nbatch * numNeurons];

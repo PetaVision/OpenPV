@@ -174,7 +174,7 @@ int MomentumLCALayer::allocateUpdateKernel() {
 
 int MomentumLCALayer::updateStateGpu(double time, double dt) {
    if (triggerLayer != NULL) {
-      pvError().printf("HyPerLayer::Trigger reset of V does not work on GPUs\n");
+      Fatal().printf("HyPerLayer::Trigger reset of V does not work on GPUs\n");
    }
    // Copy over d_dtAdapt
    d_dtAdapt->copyToDevice(deltaTimes());
@@ -191,10 +191,10 @@ int MomentumLCALayer::updateStateGpu(double time, double dt) {
 
 int MomentumLCALayer::updateState(double time, double dt) {
    const PVLayerLoc *loc = getLayerLoc();
-   pvdata_t *A           = clayer->activity->data;
-   pvdata_t *V           = getV();
+   float *A              = clayer->activity->data;
+   float *V              = getV();
    int num_channels      = getNumChannels();
-   pvdata_t *gSynHead    = GSyn == NULL ? NULL : GSyn[0];
+   float *gSynHead       = GSyn == NULL ? NULL : GSyn[0];
    int nx                = loc->nx;
    int ny                = loc->ny;
    int nf                = loc->nf;

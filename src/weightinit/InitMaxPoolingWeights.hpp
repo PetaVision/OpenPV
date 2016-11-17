@@ -19,7 +19,7 @@ class InitMaxPoolingWeights : public PV::InitWeights {
    virtual ~InitMaxPoolingWeights();
    virtual InitWeightsParams *createNewWeightParams();
 
-   virtual int calcWeights(pvdata_t *dataStart, int patchIndex, int arborId);
+   virtual int calcWeights(float *dataStart, int patchIndex, int arborId);
 
   protected:
    InitMaxPoolingWeights();

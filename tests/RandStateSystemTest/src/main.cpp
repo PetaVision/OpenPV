@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
 
    if (initObj.getParamsFile() != NULL) {
       if (rank == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s does not take -p as an option.  Instead the necessary params files are "
                "hard-coded.\n",
                initObj.getProgramName());
@@ -35,7 +35,7 @@ int main(int argc, char *argv[]) {
    HyPerCol *hc1 = build(&initObj);
    int status1   = hc1->run();
    if (status1 != PV_SUCCESS) {
-      pvError().printf(
+      Fatal().printf(
             "%s failed to run on param file %s with return code %d.\n",
             initObj.getProgramName(),
             paramfile1,
@@ -48,14 +48,14 @@ int main(int argc, char *argv[]) {
    HyPerCol *hc2 = build(&initObj);
    int status2   = hc2->run();
    if (status2 != PV_SUCCESS) {
-      pvErrorNoExit().printf(
+      ErrorLog().printf(
             "%s failed to run on param file %s.\n", initObj.getProgramName(), paramfile2);
    }
    ColumnArchive columnArchive2(hc1, tolerance, tolerance);
 
    int status3 = columnArchive1 == columnArchive2 ? PV_SUCCESS : PV_FAILURE;
    if (status3 != PV_SUCCESS) {
-      pvErrorNoExit().printf(
+      ErrorLog().printf(
             "%s failed comparing params files %s and %s.\n",
             initObj.getProgramName(),
             paramfile1,
@@ -67,19 +67,19 @@ int main(int argc, char *argv[]) {
 
 #ifdef PV_USE_MPI
    if (status == EXIT_SUCCESS) {
-      pvInfo().printf(
+      InfoLog().printf(
             "Test complete.  %s passed on process rank %d.\n", initObj.getProgramName(), rank);
    }
    else {
-      pvErrorNoExit().printf(
+      ErrorLog().printf(
             "Test complete.  %s FAILED on process rank %d.\n", initObj.getProgramName(), rank);
    }
 #else
    if (status == EXIT_SUCCESS) {
-      pvInfo().printf("Test complete.  %s passed.\n", initObj.getProgramName());
+      InfoLog().printf("Test complete.  %s passed.\n", initObj.getProgramName());
    }
    else {
-      pvErrorNoExit().printf("Test complete.  %s FAILED.\n", initObj.getProgramName());
+      ErrorLog().printf("Test complete.  %s FAILED.\n", initObj.getProgramName());
    }
 #endif // PV_USE_MPI
 

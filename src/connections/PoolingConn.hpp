@@ -91,7 +91,7 @@ class PoolingConn : public HyPerConn {
   private:
    int initialize_base();
    void unsetAccumulateType();
-   pvdata_t **thread_gateIdxBuffer;
+   float **thread_gateIdxBuffer;
    bool needPostIndexLayer;
    char *postIndexLayerName;
    PoolingIndexLayer *postIndexLayer;

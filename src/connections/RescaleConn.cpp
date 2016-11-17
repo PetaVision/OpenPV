@@ -59,7 +59,7 @@ int RescaleConn::deliverPresynapticPerspective(PVLayerCube const *activity, int 
 #ifdef DEBUG_OUTPUT
    int rank;
    MPI_Comm_rank(parent->icCommunicator()->communicator(), &rank);
-   pvDebug(debugMessage);
+   DebugLog(debugMessage);
    debugMessage.printf(
          "[%d]: HyPerLayr::recvSyn: neighbor=%d num=%d actv=%p this=%p conn=%p\n",
          rank,
@@ -72,11 +72,11 @@ int RescaleConn::deliverPresynapticPerspective(PVLayerCube const *activity, int 
 #endif // DEBUG_OUTPUT
 
    for (int b = 0; b < parent->getNBatch(); b++) {
-      pvdata_t *activityBatch = activity->data
-                                + b * (preLoc->nx + preLoc->halo.rt + preLoc->halo.lt)
-                                        * (preLoc->ny + preLoc->halo.up + preLoc->halo.dn)
-                                        * preLoc->nf;
-      pvdata_t *gSynPatchHeadBatch =
+      float *activityBatch = activity->data
+                             + b * (preLoc->nx + preLoc->halo.rt + preLoc->halo.lt)
+                                     * (preLoc->ny + preLoc->halo.up + preLoc->halo.dn)
+                                     * preLoc->nf;
+      float *gSynPatchHeadBatch =
             post->getChannel(getChannel()) + b * postLoc->nx * postLoc->ny * postLoc->nf;
 
       if (activity->isSparse) {
@@ -98,8 +98,7 @@ int RescaleConn::deliverPresynapticPerspective(PVLayerCube const *activity, int 
                // into account, but
                // for feature index,
                // shouldn't matter.
-               pvgsyndata_t *postPatchStart =
-                     gSynPatchHeadBatch + getGSynPatchStart(kPre, arborID) + f;
+               float *postPatchStart = gSynPatchHeadBatch + getGSynPatchStart(kPre, arborID) + f;
                *postPatchStart += a;
             }
          }
@@ -112,10 +111,10 @@ int RescaleConn::deliverPresynapticPerspective(PVLayerCube const *activity, int 
 #pragma omp parallel for
 #endif
          for (int y = 0; y < loc->ny; y++) {
-            pvdata_t *lineStartPreActivity =
+            float *lineStartPreActivity =
                   &activityBatch[(y + halo->up) * lineSizeExt + halo->lt * loc->nf];
-            int nk                      = loc->nx * loc->nf;
-            pvdata_t *lineStartPostGSyn = &gSynPatchHeadBatch[y * nk];
+            int nk                   = loc->nx * loc->nf;
+            float *lineStartPostGSyn = &gSynPatchHeadBatch[y * nk];
             for (int k = 0; k < nk; k++) {
                lineStartPostGSyn[k] += scale * lineStartPreActivity[k];
             }

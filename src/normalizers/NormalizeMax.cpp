@@ -45,7 +45,7 @@ int NormalizeMax::normalizeWeights() {
    float scale_factor = 1.0f;
    if (normalizeFromPostPerspective) {
       if (conn0->usingSharedWeights() == false) {
-         pvError().printf(
+         Fatal().printf(
                "NormalizeMax error for %s: normalizeFromPostPerspective is true but connection "
                "does not use shared weights.\n",
                getDescription_c());
@@ -65,16 +65,16 @@ int NormalizeMax::normalizeWeights() {
          for (int patchindex = 0; patchindex < numDataPatches; patchindex++) {
             float max = 0.0f;
             for (int c = 0; c < numConnections; c++) {
-               HyPerConn *conn           = connectionList[c];
-               int nxp                   = conn->xPatchSize();
-               int nyp                   = conn->yPatchSize();
-               int nfp                   = conn->fPatchSize();
-               int weights_per_patch     = nxp * nyp * nfp;
-               pvwdata_t *dataStartPatch = conn->get_wDataHead(arborID, patchindex);
+               HyPerConn *conn       = connectionList[c];
+               int nxp               = conn->xPatchSize();
+               int nyp               = conn->yPatchSize();
+               int nfp               = conn->fPatchSize();
+               int weights_per_patch = nxp * nyp * nfp;
+               float *dataStartPatch = conn->get_wDataHead(arborID, patchindex);
                accumulateMax(dataStartPatch, weights_per_patch, &max);
             }
             if (max <= minMaxTolerated) {
-               pvWarn().printf(
+               WarnLog().printf(
                      "for NormalizeMax \"%s\": max of weights in patch %d of arbor %d is within "
                      "minMaxTolerated=%f of zero.  Weights in this patch unchanged.\n",
                      getName(),
@@ -84,12 +84,12 @@ int NormalizeMax::normalizeWeights() {
                continue;
             }
             for (int c = 0; c < numConnections; c++) {
-               HyPerConn *conn           = connectionList[c];
-               int nxp                   = conn->xPatchSize();
-               int nyp                   = conn->yPatchSize();
-               int nfp                   = conn->fPatchSize();
-               int weights_per_patch     = nxp * nyp * nfp;
-               pvwdata_t *dataStartPatch = conn->get_wDataHead(arborID, patchindex);
+               HyPerConn *conn       = connectionList[c];
+               int nxp               = conn->xPatchSize();
+               int nyp               = conn->yPatchSize();
+               int nfp               = conn->fPatchSize();
+               int weights_per_patch = nxp * nyp * nfp;
+               float *dataStartPatch = conn->get_wDataHead(arborID, patchindex);
                normalizePatch(dataStartPatch, weights_per_patch, scale_factor / max);
             }
          }
@@ -100,17 +100,17 @@ int NormalizeMax::normalizeWeights() {
          float max = 0.0;
          for (int arborID = 0; arborID < nArbors; arborID++) {
             for (int c = 0; c < numConnections; c++) {
-               HyPerConn *conn           = connectionList[c];
-               int nxp                   = conn->xPatchSize();
-               int nyp                   = conn->yPatchSize();
-               int nfp                   = conn->fPatchSize();
-               int weights_per_patch     = nxp * nyp * nfp;
-               pvwdata_t *dataStartPatch = conn->get_wDataHead(arborID, patchindex);
+               HyPerConn *conn       = connectionList[c];
+               int nxp               = conn->xPatchSize();
+               int nyp               = conn->yPatchSize();
+               int nfp               = conn->fPatchSize();
+               int weights_per_patch = nxp * nyp * nfp;
+               float *dataStartPatch = conn->get_wDataHead(arborID, patchindex);
                accumulateMax(dataStartPatch, weights_per_patch, &max);
             }
          }
          if (max <= minMaxTolerated) {
-            pvWarn().printf(
+            WarnLog().printf(
                   "for NormalizeMax \"%s\": max of weights in patch %d is within "
                   "minMaxTolerated=%f of zero. Weights in this patch unchanged.\n",
                   getName(),
@@ -120,12 +120,12 @@ int NormalizeMax::normalizeWeights() {
          }
          for (int arborID = 0; arborID < nArbors; arborID++) {
             for (int c = 0; c < numConnections; c++) {
-               HyPerConn *conn           = connectionList[c];
-               int nxp                   = conn->xPatchSize();
-               int nyp                   = conn->yPatchSize();
-               int nfp                   = conn->fPatchSize();
-               int weights_per_patch     = nxp * nyp * nfp;
-               pvwdata_t *dataStartPatch = conn->get_wDataHead(arborID, patchindex);
+               HyPerConn *conn       = connectionList[c];
+               int nxp               = conn->xPatchSize();
+               int nyp               = conn->yPatchSize();
+               int nfp               = conn->fPatchSize();
+               int weights_per_patch = nxp * nyp * nfp;
+               float *dataStartPatch = conn->get_wDataHead(arborID, patchindex);
                normalizePatch(dataStartPatch, weights_per_patch, scale_factor / max);
             }
          }

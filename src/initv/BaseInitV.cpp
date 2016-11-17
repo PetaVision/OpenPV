@@ -26,6 +26,6 @@ int BaseInitV::initialize(char const *name, HyPerCol *hc) {
 
 int BaseInitV::ioParamsFillGroup(enum ParamsIOFlag ioFlag) { return PV_SUCCESS; }
 
-int BaseInitV::calcV(pvdata_t *V, PVLayerLoc const *loc) { return PV_SUCCESS; }
+int BaseInitV::calcV(float *V, PVLayerLoc const *loc) { return PV_SUCCESS; }
 
 } // end namespace PV

@@ -19,7 +19,7 @@ class InitUniformWeights : public PV::InitWeights {
    virtual ~InitUniformWeights();
    virtual InitWeightsParams *createNewWeightParams();
 
-   virtual int calcWeights(pvdata_t *dataStart, int patchIndex, int arborId);
+   virtual int calcWeights(float *dataStart, int patchIndex, int arborId);
 
   protected:
    InitUniformWeights();
@@ -28,7 +28,7 @@ class InitUniformWeights : public PV::InitWeights {
 
   private:
    int uniformWeights(
-         pvdata_t *dataStart,
+         float *dataStart,
          float iWeight,
          int kf,
          InitUniformWeightsParams *weightParamPtr,

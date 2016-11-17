@@ -41,12 +41,12 @@ void CudaPoolingDeliverKernel::setArgs(
       CudaBuffer *gSynBuffer,
       int channel) {
 
-   pvErrorIf(
+   FatalIf(
          preLoc->nx < postLoc->nx,
          "Pooling is not defined for one-to-many connections (pre->nx=%d, post->nx=%d\n",
          preLoc->nx,
          postLoc->nx);
-   pvErrorIf(
+   FatalIf(
          preLoc->ny < postLoc->ny,
          "Pooling is not defined for one-to-many connections (pre->ny=%d, post->ny=%d\n",
          preLoc->ny,

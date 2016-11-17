@@ -60,7 +60,7 @@ int buildandrun(
          if (progName == NULL) {
             progName = "PetaVision";
          }
-         pvErrorNoExit().printf("%s was called without having set a params file\n", progName);
+         ErrorLog().printf("%s was called without having set a params file\n", progName);
       }
       MPI_Barrier(initObj->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -72,7 +72,8 @@ int buildandrun(
    if (numParamSweepValues) {
       for (int k = 0; k < numParamSweepValues; k++) {
          if (initObj->getWorldRank() == 0) {
-            pvInfo().printf("Parameter sweep: starting run %d of %d\n", k + 1, numParamSweepValues);
+            InfoLog().printf(
+                  "Parameter sweep: starting run %d of %d\n", k + 1, numParamSweepValues);
          }
          status = buildandrun1paramset(initObj, custominit, customexit, k) == PV_SUCCESS
                         ? status
@@ -121,20 +122,20 @@ int buildandrun1paramset(
    if (custominit != NULL) {
       status = (*custominit)(hc, argc, argv);
       if (status != PV_SUCCESS) {
-         pvErrorNoExit().printf("custominit function failed with return value %d\n", status);
+         ErrorLog().printf("custominit function failed with return value %d\n", status);
       }
    }
 
    if (status == PV_SUCCESS && hc->getInitialStep() < hc->getFinalStep()) {
       status = hc->run();
       if (status != PV_SUCCESS) {
-         pvErrorNoExit().printf("HyPerCol::run() returned with error code %d\n", status);
+         ErrorLog().printf("HyPerCol::run() returned with error code %d\n", status);
       }
    }
    if (status == PV_SUCCESS && customexit != NULL) {
       status = (*customexit)(hc, argc, argv);
       if (status != PV_SUCCESS) {
-         pvErrorNoExit().printf("customexit function failed with return value %d\n", status);
+         ErrorLog().printf("customexit function failed with return value %d\n", status);
       }
    }
    if (custominit || customexit) {

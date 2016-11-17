@@ -74,7 +74,7 @@ class ISTALayer : public PV::ANNLayer {
 
    // Data members
   protected:
-   pvdata_t timeConstantTau;
+   float timeConstantTau;
    bool selfInteract;
    char *mAdaptiveTimeScaleProbeName               = nullptr;
    AdaptiveTimeScaleProbe *mAdaptiveTimeScaleProbe = nullptr;

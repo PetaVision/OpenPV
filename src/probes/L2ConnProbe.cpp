@@ -32,7 +32,7 @@ int L2ConnProbe::outputState(double timed) {
    int numKern = getTargetHyPerConn()->getNumDataPatches();
 
    if (numKern != getTargetHyPerConn()->preSynapticLayer()->getLayerLoc()->nf) {
-      pvError().printf(
+      Fatal().printf(
             "L2ConnProbe %s: L2ConnProbe only works for 1-to-many or "
             "1-to-1 weights.\n",
             name);
@@ -42,8 +42,7 @@ int L2ConnProbe::outputState(double timed) {
 #pragma omp parallel for schedule(guided)
 #endif
    for (int kernelIndex = 0; kernelIndex < numKern; ++kernelIndex) {
-      const pvwdata_t *wdata =
-            getTargetHyPerConn()->get_wDataStart(arborID) + patchSize * kernelIndex;
+      const float *wdata = getTargetHyPerConn()->get_wDataStart(arborID) + patchSize * kernelIndex;
 
       float sumsq = 0;
 

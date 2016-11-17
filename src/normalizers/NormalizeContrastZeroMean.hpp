@@ -29,12 +29,12 @@ class NormalizeContrastZeroMean : public PV::NormalizeBase {
    virtual void ioParam_normalizeFromPostPerspective(enum ParamsIOFlag ioFlag);
 
    static void subtractOffsetAndNormalize(
-         pvwdata_t *dataStartPatch,
+         float *dataStartPatch,
          int weights_per_patch,
          float offset,
          float normalizer);
    int accumulateSumAndSumSquared(
-         pvwdata_t *dataPatchStart,
+         float *dataPatchStart,
          int weights_in_patch,
          float *sum,
          float *sumsq);

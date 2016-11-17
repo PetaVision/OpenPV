@@ -39,7 +39,7 @@ float SegmentifyTest::getTargetVal(int yi, int xi, int fi) {
    }
    else {
       // Should never get here
-      pvErrorIf(!(0), "Test failed.\n");
+      FatalIf(!(0), "Test failed.\n");
    }
    return returnLabel;
 }
@@ -73,14 +73,14 @@ int SegmentifyTest::checkOutputVals(int yi, int xi, int fi, float targetVal, flo
       }
 
       if (xi == centX && yi == centY) {
-         pvErrorIf(!(actualVal == targetVal), "Test failed.\n");
+         FatalIf(!(actualVal == targetVal), "Test failed.\n");
       }
       else {
-         pvErrorIf(!(actualVal == 0), "Test failed.\n");
+         FatalIf(!(actualVal == 0), "Test failed.\n");
       }
    }
    else if (strcmp(outputMethod, "fill") == 0) {
-      pvErrorIf(!(actualVal == targetVal), "Test failed.\n");
+      FatalIf(!(actualVal == targetVal), "Test failed.\n");
    }
    return PV_SUCCESS;
 }
@@ -89,11 +89,11 @@ int SegmentifyTest::updateState(double timef, double dt) {
    // Do update state first
    Segmentify::updateState(timef, dt);
    const PVLayerLoc *loc = getLayerLoc();
-   pvdata_t *A           = getActivity();
-   pvErrorIf(!(A), "Test failed.\n");
+   float *A              = getActivity();
+   FatalIf(!(A), "Test failed.\n");
 
    for (int bi = 0; bi < loc->nbatch; bi++) {
-      pvdata_t *batchA = A + bi * getNumExtended();
+      float *batchA = A + bi * getNumExtended();
       for (int yi = 0; yi < loc->ny; yi++) {
          for (int xi = 0; xi < loc->nx; xi++) {
             for (int fi = 0; fi < loc->nf; fi++) {
@@ -103,7 +103,7 @@ int SegmentifyTest::updateState(double timef, double dt) {
                float targetVal = getTargetVal(yi + loc->ky0, xi + loc->kx0, fi);
                checkOutputVals(yi + loc->ky0, xi + loc->kx0, fi, targetVal, actualVal);
 
-               // pvInfo() << "Idx: (" << bi << "," << yi << "," << xi << "," << fi << ") Val: " <<
+               // InfoLog() << "Idx: (" << bi << "," << yi << "," << xi << "," << fi << ") Val: " <<
                // actualVal << " Target: " << targetVal << "\n";
             }
          }

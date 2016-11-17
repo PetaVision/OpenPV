@@ -31,7 +31,7 @@ void MaskTestLayer::ioParam_maskMethod(enum ParamsIOFlag ioFlag) {
    }
    else {
       if (parent->columnId() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s: \"%s\" is not a valid maskMethod. Options are \"invertLayer\", "
                "\"maskFeatures\", or \"noMaskFeatures\".\n",
                getDescription_c(),
@@ -52,48 +52,48 @@ int MaskTestLayer::updateState(double timef, double dt) {
 
    bool isCorrect = true;
    for (int b = 0; b < loc->nbatch; b++) {
-      pvdata_t *GSynExt  = getChannel(CHANNEL_EXC) + b * getNumNeurons(); // gated
-      pvdata_t *GSynInh  = getChannel(CHANNEL_INH) + b * getNumNeurons(); // gt
-      pvdata_t *GSynInhB = getChannel(CHANNEL_INHB) + b * getNumNeurons(); // mask
+      float *GSynExt  = getChannel(CHANNEL_EXC) + b * getNumNeurons(); // gated
+      float *GSynInh  = getChannel(CHANNEL_INH) + b * getNumNeurons(); // gt
+      float *GSynInhB = getChannel(CHANNEL_INHB) + b * getNumNeurons(); // mask
 
       // Grab the activity layer of current layer
       // We only care about restricted space
 
       for (int k = 0; k < getNumNeurons(); k++) {
          if (strcmp(maskMethod, "layer") == 0) {
-            // pvErrorNoExit() << "Connection " << name << " Mismatch at " << k << ": actual value:
+            // ErrorLog() << "Connection " << name << " Mismatch at " << k << ": actual value:
             // " << GSynExt[k] << " Expected value: " << GSynInh[k] << ".\n";
             if (GSynInhB[k]) {
                if (GSynExt[k] != GSynInh[k]) {
-                  pvErrorNoExit() << "Connection " << name << " Mismatch at " << k
-                                  << ": actual value: " << GSynExt[k]
-                                  << " Expected value: " << GSynInh[k] << ".\n";
+                  ErrorLog() << "Connection " << name << " Mismatch at " << k
+                             << ": actual value: " << GSynExt[k]
+                             << " Expected value: " << GSynInh[k] << ".\n";
                   isCorrect = false;
                }
             }
             else {
                if (GSynExt[k] != 0) {
-                  pvErrorNoExit() << "Connection " << name << " Mismatch at " << k
-                                  << ": actual value: " << GSynExt[k] << " Expected value: 0.\n";
+                  ErrorLog() << "Connection " << name << " Mismatch at " << k
+                             << ": actual value: " << GSynExt[k] << " Expected value: 0.\n";
                   isCorrect = false;
                }
             }
          }
          else if (strcmp(maskMethod, "invertLayer") == 0) {
-            // pvErrorNoExit() << "Connection " << name << " Mismatch at " << k << ": actual value:
+            // ErrorLog() << "Connection " << name << " Mismatch at " << k << ": actual value:
             // " << GSynExt[k] << " Expected value: " << GSynInh[k] << ".\n";
             if (!GSynInhB[k]) {
                if (GSynExt[k] != GSynInh[k]) {
-                  pvErrorNoExit() << "Connection " << name << " Mismatch at " << k
-                                  << ": actual value: " << GSynExt[k]
-                                  << " Expected value: " << GSynInh[k] << ".\n";
+                  ErrorLog() << "Connection " << name << " Mismatch at " << k
+                             << ": actual value: " << GSynExt[k]
+                             << " Expected value: " << GSynInh[k] << ".\n";
                   isCorrect = false;
                }
             }
             else {
                if (GSynExt[k] != 0) {
-                  pvErrorNoExit() << "Connection " << name << " Mismatch at " << k
-                                  << ": actual value: " << GSynExt[k] << " Expected value: 0.\n";
+                  ErrorLog() << "Connection " << name << " Mismatch at " << k
+                             << ": actual value: " << GSynExt[k] << " Expected value: 0.\n";
                   isCorrect = false;
                }
             }
@@ -103,16 +103,16 @@ int MaskTestLayer::updateState(double timef, double dt) {
             // Param files specifies idxs 0 and 2 out of 3 total features
             if (featureIdx == 0 || featureIdx == 2) {
                if (GSynExt[k] != 0) {
-                  pvErrorNoExit() << "Connection " << name << " Mismatch at " << k
-                                  << ": actual value: " << GSynExt[k] << " Expected value: 0.\n";
+                  ErrorLog() << "Connection " << name << " Mismatch at " << k
+                             << ": actual value: " << GSynExt[k] << " Expected value: 0.\n";
                   isCorrect = false;
                }
             }
             else {
                if (GSynExt[k] != GSynInh[k]) {
-                  pvErrorNoExit() << "Connection " << name << " Mismatch at " << k
-                                  << ": actual value: " << GSynExt[k]
-                                  << " Expected value: " << GSynInh[k] << ".\n";
+                  ErrorLog() << "Connection " << name << " Mismatch at " << k
+                             << ": actual value: " << GSynExt[k]
+                             << " Expected value: " << GSynInh[k] << ".\n";
                   isCorrect = false;
                }
             }
@@ -122,16 +122,16 @@ int MaskTestLayer::updateState(double timef, double dt) {
             // Param files specifies idxs 0 and 2 out of 3 total features
             if (featureIdx == 0 || featureIdx == 2) {
                if (GSynExt[k] != GSynInh[k]) {
-                  pvErrorNoExit() << "Connection " << name << " Mismatch at " << k
-                                  << ": actual value: " << GSynExt[k]
-                                  << " Expected value: " << GSynInh[k] << ".\n";
+                  ErrorLog() << "Connection " << name << " Mismatch at " << k
+                             << ": actual value: " << GSynExt[k]
+                             << " Expected value: " << GSynInh[k] << ".\n";
                   isCorrect = false;
                }
             }
             else {
                if (GSynExt[k] != 0) {
-                  pvErrorNoExit() << "Connection " << name << " Mismatch at " << k
-                                  << ": actual value: " << GSynExt[k] << " Expected value: 0.\n";
+                  ErrorLog() << "Connection " << name << " Mismatch at " << k
+                             << ": actual value: " << GSynExt[k] << " Expected value: 0.\n";
                   isCorrect = false;
                }
             }

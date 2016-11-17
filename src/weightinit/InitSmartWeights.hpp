@@ -21,15 +21,14 @@ class InitSmartWeights : public PV::InitWeights {
 
    virtual InitWeightsParams *createNewWeightParams();
 
-   virtual int calcWeights(/* PVPatch * patch */ pvdata_t *dataStart, int patchIndex, int arborId);
+   virtual int calcWeights(/* PVPatch * patch */ float *dataStart, int patchIndex, int arborId);
 
   protected:
    int initialize(char const *name, HyPerCol *hc);
 
   private:
    int initialize_base();
-   int
-   smartWeights(/* PVPatch * patch */ pvdata_t *dataStart, int k, InitWeightsParams *weightParams);
+   int smartWeights(/* PVPatch * patch */ float *dataStart, int k, InitWeightsParams *weightParams);
 }; // class InitSmartWeights
 
 } /* namespace PV */

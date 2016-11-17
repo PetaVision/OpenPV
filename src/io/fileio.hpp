@@ -25,7 +25,7 @@ namespace PV {
 // index/value pairs used by writeActivitySparseNonspiking()
 typedef struct indexvaluepair_ {
    unsigned int index;
-   pvdata_t value;
+   float value;
 } indexvaluepair;
 
 void timeToParams(double time, void *params);
@@ -148,7 +148,7 @@ int writeActivitySparse(
 
 int readWeights(
       PVPatch ***patches,
-      pvwdata_t **dataStart,
+      float **dataStart,
       int numArbors,
       int numPatches,
       int nxp,
@@ -162,7 +162,7 @@ int readWeights(
 int pv_text_write_patch(
       PrintStream *pvstream,
       PVPatch *patch,
-      pvwdata_t *data,
+      float *data,
       int nf,
       int sx,
       int sy,
@@ -181,7 +181,7 @@ int writeWeights(
       float minVal,
       float maxVal,
       PVPatch ***patches,
-      pvwdata_t **dataStart,
+      float **dataStart,
       int numPatches,
       int numArbors,
       bool compress = true,

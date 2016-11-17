@@ -50,7 +50,7 @@ void Segmentify::ioParam_inputMethod(enum ParamsIOFlag ioFlag) {
    }
    else {
       if (parent->columnId() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s: inputMethod must be \"average\", \"sum\", or \"max\".\n", getDescription_c());
       }
       MPI_Barrier(parent->getCommunicator()->communicator());
@@ -66,7 +66,7 @@ void Segmentify::ioParam_outputMethod(enum ParamsIOFlag ioFlag) {
    }
    else {
       if (parent->columnId() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s: outputMethod must be \"centriod\" or \"fill\".\n", getDescription_c());
       }
       MPI_Barrier(parent->getCommunicator()->communicator());
@@ -80,7 +80,7 @@ void Segmentify::ioParam_originalLayerName(enum ParamsIOFlag ioFlag) {
    assert(originalLayerName);
    if (ioFlag == PARAMS_IO_READ && originalLayerName[0] == '\0') {
       if (parent->columnId() == 0) {
-         pvErrorNoExit().printf("%s: originalLayerName must be set.\n", getDescription_c());
+         ErrorLog().printf("%s: originalLayerName must be set.\n", getDescription_c());
       }
       MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -92,7 +92,7 @@ void Segmentify::ioParam_segmentLayerName(enum ParamsIOFlag ioFlag) {
    assert(segmentLayerName);
    if (ioFlag == PARAMS_IO_READ && segmentLayerName[0] == '\0') {
       if (parent->columnId() == 0) {
-         pvErrorNoExit().printf("%s: segmentLayerName must be set.\n", getDescription_c());
+         ErrorLog().printf("%s: segmentLayerName must be set.\n", getDescription_c());
       }
       MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -106,7 +106,7 @@ int Segmentify::communicateInitInfo() {
    originalLayer = parent->getLayerFromName(originalLayerName);
    if (originalLayer == NULL) {
       if (parent->columnId() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s: originalLayerName \"%s\" is not a layer in the HyPerCol.\n",
                getDescription_c(),
                originalLayerName);
@@ -122,7 +122,7 @@ int Segmentify::communicateInitInfo() {
    HyPerLayer *tmpLayer = parent->getLayerFromName(segmentLayerName);
    if (tmpLayer == NULL) {
       if (parent->columnId() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s: segmentLayerName \"%s\" is not a layer in the HyPerCol.\n",
                getDescription_c(),
                segmentLayerName);
@@ -133,7 +133,7 @@ int Segmentify::communicateInitInfo() {
    segmentLayer = dynamic_cast<SegmentLayer *>(tmpLayer);
    if (segmentLayer == NULL) {
       if (parent->columnId() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s: segmentLayerName \"%s\" is not a SegmentLayer.\n",
                getDescription_c(),
                segmentLayerName);
@@ -159,7 +159,7 @@ int Segmentify::communicateInitInfo() {
    // Src layer must have the same number of features as this layer
    if (srcLoc->nf != thisLoc->nf) {
       if (parent->columnId() == 0) {
-         pvErrorNoExit(errorMessage);
+         ErrorLog(errorMessage);
          errorMessage.printf(
                "%s: originalLayer \"%s\" does not have the same feature dimension as this layer.\n",
                getDescription_c(),
@@ -173,7 +173,7 @@ int Segmentify::communicateInitInfo() {
    // Segment layer must have 1 feature
    if (segLoc->nf != 1) {
       if (parent->columnId() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s: segmentLayer \"%s\" can only have 1 feature.\n",
                getDescription_c(),
                segmentLayerName);
@@ -288,14 +288,14 @@ int Segmentify::calculateLabelVals(int batchIdx) {
 
    assert(segLoc->nf == 1);
 
-   pvdata_t *srcA = originalLayer->getActivity();
-   pvdata_t *segA = segmentLayer->getActivity();
+   float *srcA = originalLayer->getActivity();
+   float *segA = segmentLayer->getActivity();
 
    assert(srcA);
    assert(segA);
 
-   pvdata_t *srcBatchA = srcA + batchIdx * originalLayer->getNumExtended();
-   pvdata_t *segBatchA = segA + batchIdx * segmentLayer->getNumExtended();
+   float *srcBatchA = srcA + batchIdx * originalLayer->getNumExtended();
+   float *segBatchA = segA + batchIdx * segmentLayer->getNumExtended();
 
    // Loop through source values
    // As segments are restricted only, we loop through restricted activity
@@ -374,14 +374,14 @@ int Segmentify::setOutputVals(int batchIdx) {
 
    assert(segLoc->nf == 1);
 
-   pvdata_t *segA  = segmentLayer->getActivity();
-   pvdata_t *thisA = getActivity();
+   float *segA  = segmentLayer->getActivity();
+   float *thisA = getActivity();
 
    assert(thisA);
    assert(segA);
 
-   pvdata_t *segBatchA  = segA + batchIdx * segmentLayer->getNumExtended();
-   pvdata_t *thisBatchA = thisA + batchIdx * getNumExtended();
+   float *segBatchA  = segA + batchIdx * segmentLayer->getNumExtended();
+   float *thisBatchA = thisA + batchIdx * getNumExtended();
 
    // Reset activity values
    for (int ni = 0; ni < getNumExtended(); ni++) {

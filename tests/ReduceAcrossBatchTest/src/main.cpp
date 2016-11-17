@@ -15,19 +15,19 @@ int main(int argc, char *argv[]) {
    PV::PV_Init pv_initObj(&argc, &argv, false /*do not allow unrecognized arguments*/);
    if (pv_initObj.getNumRows() > 0) {
       if (pv_initObj.getWorldRank() == 0) {
-         pvError() << argv[0] << " should be run without the -rows option.\n";
+         Fatal() << argv[0] << " should be run without the -rows option.\n";
       }
       status = PV_FAILURE;
    }
    if (pv_initObj.getNumColumns() > 0) {
       if (pv_initObj.getWorldRank() == 0) {
-         pvError() << argv[0] << " should be run without the -columns option.\n";
+         Fatal() << argv[0] << " should be run without the -columns option.\n";
       }
       status = PV_FAILURE;
    }
    if (pv_initObj.getBatchWidth() > 0) {
       if (pv_initObj.getWorldRank() == 0) {
-         pvError() << argv[0] << " should be run without the -batchwidth option.\n";
+         Fatal() << argv[0] << " should be run without the -batchwidth option.\n";
       }
       status = PV_FAILURE;
    }
@@ -43,22 +43,22 @@ int main(int argc, char *argv[]) {
 
 int checkWeights(HyPerCol *hc, int argc, char *argv[]) {
    HyPerConn *conn = dynamic_cast<HyPerConn *>(hc->getConnFromName("InputToOutput"));
-   pvErrorIf(conn == nullptr, "No HyPerConn named \"InputToOutput\" in column.\n");
+   FatalIf(conn == nullptr, "No HyPerConn named \"InputToOutput\" in column.\n");
    HyPerLayer *correctValuesLayer = hc->getLayerFromName("SumInputs");
-   pvErrorIf(correctValuesLayer == nullptr, "No layer named \"SumInputs\" in column.\n");
+   FatalIf(correctValuesLayer == nullptr, "No layer named \"SumInputs\" in column.\n");
 
    int const N = correctValuesLayer->getNumExtended();
-   pvErrorIf(
+   FatalIf(
          conn->getNumDataPatches() != N,
          "connection InputToOutput and layer SumInputs have different sizes.\n");
-   pvdata_t const *weights       = conn->get_wDataStart(0);
-   pvdata_t const *correctValues = correctValuesLayer->getLayerData(0);
-   int status                    = PV_SUCCESS;
+   float const *weights       = conn->get_wDataStart(0);
+   float const *correctValues = correctValuesLayer->getLayerData(0);
+   int status                 = PV_SUCCESS;
    for (int k = 0; k < N; k++) {
       if (weights[k] != correctValues[k]) {
          status = PV_FAILURE;
-         pvErrorNoExit() << "Weight index " << k << ": expected " << correctValues[k]
-                         << "; value was " << weights[k] << "\n";
+         ErrorLog() << "Weight index " << k << ": expected " << correctValues[k] << "; value was "
+                    << weights[k] << "\n";
       }
    }
    return PV_SUCCESS;

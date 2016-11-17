@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
    int status             = PV_SUCCESS;
    if (initObj.getParams() != NULL) {
       if (rank == 0) {
-         pvErrorNoExit(errorMessage);
+         ErrorLog(errorMessage);
          errorMessage.printf(
                "%s should be run without the params file argument.\n", initObj.getProgramName());
          errorMessage.printf(
@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
       char const *rmcommand = "rm -rf outputGenerate outputTest";
       status                = system(rmcommand);
       if (status != 0) {
-         pvError().printf(
+         Fatal().printf(
                "deleting old output directories failed: \"%s\" returned %d\n", rmcommand, status);
       }
    }
@@ -49,7 +49,7 @@ int main(int argc, char *argv[]) {
    initObj.setParams(paramFile1);
    status = rebuildandrun(&initObj);
    if (status != PV_SUCCESS) {
-      pvError().printf(
+      Fatal().printf(
             "%s: rank %d running with params file %s returned error %d.\n",
             initObj.getProgramName(),
             rank,
@@ -61,7 +61,7 @@ int main(int argc, char *argv[]) {
 
    status = rebuildandrun(&initObj, NULL, &checkProbesOnExit);
    if (status != PV_SUCCESS) {
-      pvErrorNoExit().printf(
+      ErrorLog().printf(
             "%s: rank %d running with params file %s returned status %d.\n",
             initObj.getProgramName(),
             rank,
@@ -84,16 +84,16 @@ int main(int argc, char *argv[]) {
 // nonzero input is best left for a different test.
 int checkProbesOnExit(HyPerCol *hc, int argc, char *argv[]) {
    BaseLayer *layer = hc->getLayerFromName("OriginalMovie");
-   pvErrorIf(!(layer), "Test failed.\n");
+   FatalIf(!(layer), "Test failed.\n");
    HyPerLayer *originalMovieLayer = dynamic_cast<HyPerLayer *>(layer);
-   pvErrorIf(!(originalMovieLayer), "Test failed.\n");
+   FatalIf(!(originalMovieLayer), "Test failed.\n");
    int numProbes = originalMovieLayer->getNumProbes();
-   pvErrorIf(!(numProbes == 1), "Test failed.\n");
+   FatalIf(!(numProbes == 1), "Test failed.\n");
    LayerProbe *originalMovieProbe = originalMovieLayer->getProbe(0);
-   pvErrorIf(!(originalMovieProbe), "Test failed.\n");
+   FatalIf(!(originalMovieProbe), "Test failed.\n");
    TestNotAlwaysAllZerosProbe *testNonzero =
          dynamic_cast<TestNotAlwaysAllZerosProbe *>(originalMovieProbe);
-   pvErrorIf(!(testNonzero->nonzeroValueHasOccurred()), "Test failed.\n");
+   FatalIf(!(testNonzero->nonzeroValueHasOccurred()), "Test failed.\n");
 
    return PV_SUCCESS;
 }

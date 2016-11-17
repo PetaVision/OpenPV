@@ -49,7 +49,7 @@ void BinningLayer::ioParam_originalLayerName(enum ParamsIOFlag ioFlag) {
    assert(originalLayerName);
    if (ioFlag == PARAMS_IO_READ && originalLayerName[0] == '\0') {
       if (parent->columnId() == 0) {
-         pvErrorNoExit().printf("%s: originalLayerName must be set.\n", getDescription_c());
+         ErrorLog().printf("%s: originalLayerName must be set.\n", getDescription_c());
       }
       MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -61,7 +61,7 @@ void BinningLayer::ioParam_binMaxMin(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValue(ioFlag, name, "binMin", &binMin, binMin);
    if (ioFlag == PARAMS_IO_READ && binMax <= binMin) {
       if (parent->columnId() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s: binMax (%f) must be greater than binMin (%f).\n",
                getDescription_c(),
                (double)binMax,
@@ -99,7 +99,7 @@ int BinningLayer::communicateInitInfo() {
    originalLayer = parent->getLayerFromName(originalLayerName);
    if (originalLayer == NULL) {
       if (parent->columnId() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s: originalLayerName \"%s\" is not a layer in the HyPerCol.\n",
                getDescription_c(),
                originalLayerName);
@@ -117,7 +117,7 @@ int BinningLayer::communicateInitInfo() {
    assert(srcLoc != NULL && loc != NULL);
    if (srcLoc->nxGlobal != loc->nxGlobal || srcLoc->nyGlobal != loc->nyGlobal) {
       if (parent->columnId() == 0) {
-         pvErrorNoExit(errorMessage);
+         ErrorLog(errorMessage);
          errorMessage.printf(
                "%s: originalLayerName \"%s\" does not have the same dimensions.\n",
                getDescription_c(),
@@ -133,7 +133,7 @@ int BinningLayer::communicateInitInfo() {
       exit(EXIT_FAILURE);
    }
    if (srcLoc->nf != 1) {
-      pvErrorNoExit().printf(
+      ErrorLog().printf(
             "%s: originalLayerName \"%s\" can only have 1 feature.\n",
             getDescription_c(),
             originalLayerName);
@@ -169,7 +169,7 @@ int BinningLayer::initializeActivity() { return PV_SUCCESS; }
 int BinningLayer::updateState(double timef, double dt) {
    int status;
    assert(GSyn == NULL);
-   pvdata_t *gSynHead = NULL;
+   float *gSynHead = NULL;
 
    status = doUpdateState(
          timef,
@@ -188,8 +188,8 @@ int BinningLayer::doUpdateState(
       double dt,
       const PVLayerLoc *origLoc,
       const PVLayerLoc *currLoc,
-      const pvdata_t *origData,
-      pvdata_t *currA,
+      const float *origData,
+      float *currA,
       float binMax,
       float binMin) {
    int status  = PV_SUCCESS;
@@ -209,14 +209,14 @@ int BinningLayer::doUpdateState(
    int nbatch         = currLoc->nbatch;
 
    for (int b = 0; b < nbatch; b++) {
-      const pvdata_t *origDataBatch = origData
-                                      + b * (origLoc->nx + origLoc->halo.lt + origLoc->halo.rt)
-                                              * (origLoc->ny + origLoc->halo.up + origLoc->halo.dn)
-                                              * origLoc->nf;
-      pvdata_t *currABatch = currA
-                             + b * (currLoc->nx + currLoc->halo.lt + currLoc->halo.rt)
-                                     * (currLoc->ny + currLoc->halo.up + currLoc->halo.dn)
-                                     * currLoc->nf;
+      const float *origDataBatch = origData
+                                   + b * (origLoc->nx + origLoc->halo.lt + origLoc->halo.rt)
+                                           * (origLoc->ny + origLoc->halo.up + origLoc->halo.dn)
+                                           * origLoc->nf;
+      float *currABatch = currA
+                          + b * (currLoc->nx + currLoc->halo.lt + currLoc->halo.rt)
+                                  * (currLoc->ny + currLoc->halo.up + currLoc->halo.dn)
+                                  * currLoc->nf;
 
 // each y value specifies a different target so ok to thread here (sum, sumsq are defined inside
 // loop)

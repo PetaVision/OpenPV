@@ -163,7 +163,7 @@ void Image::convertToColor(bool alphaChannel) {
 void Image::read(std::string filename) {
    int width = 0, height = 0, channels = 0;
    uint8_t *data = stbi_load(filename.c_str(), &width, &height, &channels, 0);
-   pvErrorIf(data == nullptr, " File not found: %s\n", filename.c_str());
+   FatalIf(data == nullptr, " File not found: %s\n", filename.c_str());
    resize(height, width, channels);
 
    for (int y = 0; y < height; ++y) {

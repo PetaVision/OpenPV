@@ -76,7 +76,7 @@ int RescaleLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    else if (strcmp(rescaleMethod, "logreg") == 0) {
    }
    else {
-      pvError().printf(
+      Fatal().printf(
             "RescaleLayer \"%s\": rescaleMethod does not exist. Current implemented methods are "
             "maxmin, meanstd, pointmeanstd, pointResponseNormalization, softmax, l2, l2NoMean, and "
             "logreg.\n",
@@ -125,8 +125,8 @@ void RescaleLayer::ioParam_patchSize(enum ParamsIOFlag ioFlag) {
 }
 
 int RescaleLayer::setActivity() {
-   pvdata_t *activity = clayer->activity->data;
-   memset(activity, 0, sizeof(pvdata_t) * clayer->numExtendedAllBatches);
+   float *activity = clayer->activity->data;
+   memset(activity, 0, sizeof(float) * clayer->numExtendedAllBatches);
    return 0;
 }
 
@@ -135,8 +135,8 @@ int RescaleLayer::updateState(double timef, double dt) {
    int status = PV_SUCCESS;
 
    int numNeurons                = originalLayer->getNumNeurons();
-   pvdata_t *A                   = clayer->activity->data;
-   const pvdata_t *originalA     = originalLayer->getCLayer()->activity->data;
+   float *A                      = clayer->activity->data;
+   const float *originalA        = originalLayer->getCLayer()->activity->data;
    const PVLayerLoc *loc         = getLayerLoc();
    const PVLayerLoc *locOriginal = originalLayer->getLayerLoc();
    int nbatch                    = loc->nbatch;
@@ -146,8 +146,8 @@ int RescaleLayer::updateState(double timef, double dt) {
    assert(locOriginal->nf == loc->nf);
 
    for (int b = 0; b < nbatch; b++) {
-      const pvdata_t *originalABatch = originalA + b * originalLayer->getNumExtended();
-      pvdata_t *ABatch               = A + b * getNumExtended();
+      const float *originalABatch = originalA + b * originalLayer->getNumExtended();
+      float *ABatch               = A + b * getNumExtended();
 
       if (strcmp(rescaleMethod, "maxmin") == 0) {
          float maxA = -1000000000;
@@ -229,7 +229,7 @@ int RescaleLayer::updateState(double timef, double dt) {
                      loc->halo.rt,
                      loc->halo.dn,
                      loc->halo.up);
-               ABatch[kExt] = (pvadata_t)0;
+               ABatch[kExt] = (float)0;
             }
          }
       }
@@ -434,8 +434,8 @@ int RescaleLayer::updateState(double timef, double dt) {
             }
          }
          else {
-            pvWarn() << "std of layer " << originalLayer->getName()
-                     << " is 0, layer remains unchanged\n";
+            WarnLog() << "std of layer " << originalLayer->getName()
+                      << " is 0, layer remains unchanged\n";
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
@@ -523,8 +523,8 @@ int RescaleLayer::updateState(double timef, double dt) {
             }
          }
          else {
-            pvWarn() << "std of layer " << originalLayer->getName()
-                     << " is 0, layer remains unchanged\n";
+            WarnLog() << "std of layer " << originalLayer->getName()
+                      << " is 0, layer remains unchanged\n";
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif

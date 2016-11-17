@@ -62,7 +62,7 @@ class LIF : public PV::HyPerLayer {
    virtual int updateState(double time, double dt) override;
    virtual int setActivity() override;
 
-   pvdata_t *getVth() { return Vth; }
+   float *getVth() { return Vth; }
    virtual pvconductance_t *getConductance(ChannelType ch) {
       return ch < this->numChannels ? G_E + ch * getNumNeurons() : NULL;
    }
@@ -76,7 +76,7 @@ class LIF : public PV::HyPerLayer {
   protected:
    LIF_params lParams;
    Random *randState;
-   pvdata_t *Vth; // threshold potential
+   float *Vth; // threshold potential
    pvconductance_t *G_E; // excitatory conductance
    pvconductance_t *G_I; // inhibitory conductance
    pvconductance_t *G_IB;
@@ -109,12 +109,12 @@ class LIF : public PV::HyPerLayer {
    virtual void ioParam_method(enum ParamsIOFlag ioFlag);
    virtual int allocateBuffers() override;
    virtual int allocateConductances(int num_channels);
-   virtual int readStateFromCheckpoint(const char *cpDir, double *timeptr) override;
-   virtual int readVthFromCheckpoint(const char *cpDir, double *timeptr);
-   virtual int readG_EFromCheckpoint(const char *cpDir, double *timeptr);
-   virtual int readG_IFromCheckpoint(const char *cpDir, double *timeptr);
-   virtual int readG_IBFromCheckpoint(const char *cpDir, double *timeptr);
-   virtual int readRandStateFromCheckpoint(const char *cpDir, double *timeptr);
+   virtual int readStateFromCheckpoint(Checkpointer *checkpointer) override;
+   virtual int readVthFromCheckpoint(Checkpointer *checkpointer);
+   virtual int readG_EFromCheckpoint(Checkpointer *checkpointer);
+   virtual int readG_IFromCheckpoint(Checkpointer *checkpointer);
+   virtual int readG_IBFromCheckpoint(Checkpointer *checkpointer);
+   virtual int readRandStateFromCheckpoint(Checkpointer *checkpointer);
 
   private:
    int initialize_base();

@@ -20,17 +20,17 @@
 namespace PV {
 
 void usage() {
-   pvInfo().printf("\nUsage:\n");
-   pvInfo().printf(" -p <parameters filename>\n");
-   pvInfo().printf(" [-o <output directory>\n");
-   pvInfo().printf(" [-s <random number generator seed>]\n");
-   pvInfo().printf(" [-d [<GPU device>,<GPU device>,...]]\n");
-   pvInfo().printf(" [-l <output log file>]\n");
-   pvInfo().printf(" [-w <working directory>]\n");
-   pvInfo().printf(" [-r|-c <checkpoint directory>]\n");
+   InfoLog().printf("\nUsage:\n");
+   InfoLog().printf(" -p <parameters filename>\n");
+   InfoLog().printf(" [-o <output directory>\n");
+   InfoLog().printf(" [-s <random number generator seed>]\n");
+   InfoLog().printf(" [-d [<GPU device>,<GPU device>,...]]\n");
+   InfoLog().printf(" [-l <output log file>]\n");
+   InfoLog().printf(" [-w <working directory>]\n");
+   InfoLog().printf(" [-r|-c <checkpoint directory>]\n");
 #ifdef PV_USE_OPENMP_THREADS
-   pvInfo().printf(" [-t [number of threads]\n");
-   pvInfo().printf(" [-n]\n");
+   InfoLog().printf(" [-t [number of threads]\n");
+   InfoLog().printf(" [-n]\n");
 #endif // PV_USE_OPENMP_THREADS
 }
 
@@ -301,7 +301,7 @@ std::string expandLeadingTilde(char const *path) {
       if (len == 1 && path[0] == '~') {
          newpath = strdup(getenv("HOME"));
          if (newpath == NULL) {
-            pvError().printf(
+            Fatal().printf(
                   "Unable to expand \"%s\": "
                   "home directory not defined\n",
                   path);
@@ -311,7 +311,7 @@ std::string expandLeadingTilde(char const *path) {
       else if (len > 1 && path[0] == '~' && path[1] == '/') {
          char *homedir = getenv("HOME");
          if (homedir == NULL) {
-            pvError().printf(
+            Fatal().printf(
                   "Unable to expand \"%s\": "
                   "home directory not defined\n",
                   path);
@@ -320,7 +320,7 @@ std::string expandLeadingTilde(char const *path) {
          int chars_needed = snprintf(&dummy, 0, "%s/%s", homedir, &path[2]);
          newpath          = (char *)malloc(chars_needed + 1);
          if (newpath == NULL) {
-            pvError().printf("Unable to allocate memory for path \"%s/%s\"\n", homedir, &path[2]);
+            Fatal().printf("Unable to allocate memory for path \"%s/%s\"\n", homedir, &path[2]);
          }
          int chars_used = snprintf(newpath, chars_needed + 1, "%s/%s", homedir, &path[2]);
          assert(chars_used == chars_needed);
@@ -329,7 +329,7 @@ std::string expandLeadingTilde(char const *path) {
          newpath = strdup(path);
       }
    }
-   pvErrorIf(newpath == NULL, "Could not expand path: %s\n", path);
+   FatalIf(newpath == NULL, "Could not expand path: %s\n", path);
    std::string result(newpath);
    free(newpath);
    return result;

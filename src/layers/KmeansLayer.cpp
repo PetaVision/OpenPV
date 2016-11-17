@@ -33,16 +33,16 @@ int KmeansLayer::initialize_base() {
 
 int KmeansLayer::updateState(double time, double dt) {
    const PVLayerLoc *loc = getLayerLoc();
-   pvdata_t *A           = clayer->activity->data;
-   pvdata_t *V           = getV();
+   float *A              = clayer->activity->data;
+   float *V              = getV();
    int num_channels      = getNumChannels();
 
-   pvdata_t *gSynHead = GSyn == NULL ? NULL : GSyn[0];
-   int nx             = loc->nx;
-   int ny             = loc->ny;
-   int nf             = loc->nf;
-   int num_neurons    = nx * ny * nf;
-   int nbatch         = loc->nbatch;
+   float *gSynHead = GSyn == NULL ? NULL : GSyn[0];
+   int nx          = loc->nx;
+   int ny          = loc->ny;
+   int nf          = loc->nf;
+   int num_neurons = nx * ny * nf;
+   int nbatch      = loc->nbatch;
 
    setActivity_KmeansLayer(
          nbatch,

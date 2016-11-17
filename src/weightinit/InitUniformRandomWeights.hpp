@@ -23,7 +23,7 @@ class InitUniformRandomWeights : public PV::InitRandomWeights {
   protected:
    InitUniformRandomWeights();
    int initialize(char const *name, HyPerCol *hc);
-   int randomWeights(pvdata_t *patchDataStart, InitWeightsParams *weightParams, int patchIndex);
+   int randomWeights(float *patchDataStart, InitWeightsParams *weightParams, int patchIndex);
 
   private:
    int initialize_base();

@@ -229,23 +229,6 @@ class HyPerCol : public Subject, Observer {
    virtual void ioParam_filenamesContainConnectionNames(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief mFilenamesContainLayerNames is obsolete.
-    * The file produced by outputState has the form NameOfLayer.pvp
-    */
-   virtual void ioParam_initializeFromCheckpointDir(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief defaultInitializeFromCheckpointFlag: Flag to set the default for
-    * layers and
-    * connections.
-    * @details Sets the default for layers and connections to use for initialize
-    * from checkpoint
-    * based off of initializeFromCheckpointDir. Only used if
-    * initializeFromCheckpointDir is set.
-    */
-   virtual void ioParam_defaultInitializeFromCheckpointFlag(enum ParamsIOFlag ioFlag);
-
-   /**
     * @brief checkpointRead is obsolete.  Instead use -c foo/Checkpoint100 on the
     * command line.
     */
@@ -398,7 +381,9 @@ class HyPerCol : public Subject, Observer {
    BaseProbe *getBaseProbe(int which) { return mBaseProbes.at(which); }
    bool getVerifyWrites() { return mVerifyWrites; }
    bool warmStartup() const { return mWarmStart; }
-   bool getDefaultInitializeFromCheckpointFlag() { return mDefaultInitializeFromCheckpointFlag; }
+   bool getDefaultInitializeFromCheckpointFlag() {
+      return mCheckpointer->getDefaultInitializeFromCheckpointFlag();
+   }
    bool getCheckpointReadFlag() const { return mCheckpointReadFlag; }
    bool getCheckpointWriteFlag() const { return mCheckpointWriteFlag; }
    bool getSuppressLastOutputFlag() const { return mSuppressLastOutput; }
@@ -406,7 +391,9 @@ class HyPerCol : public Subject, Observer {
    bool getWriteTimescales() const { return mWriteTimescales; }
    const char *getName() { return mName; }
    const char *getOutputPath() { return mOutputPath; }
-   const char *getInitializeFromCheckpointDir() const { return mInitializeFromCheckpointDir; }
+   const char *getInitializeFromCheckpointDir() const {
+      return mCheckpointer->getInitializeFromCheckpointDir();
+   }
    const char *getCheckpointReadDir() const { return mCheckpointReadDir; }
    const char *getPrintParamsFilename() const { return mPrintParamsFilename; }
    ColProbe *getColProbe(int which) { return mColProbes.at(which); }
@@ -506,10 +493,6 @@ class HyPerCol : public Subject, Observer {
    bool mErrorOnNotANumber; // If true, check each layer's activity buffer for
    // not-a-numbers and
    // exit with an error if any appear
-   bool mDefaultInitializeFromCheckpointFlag; // Each Layer and connection can
-   // individually set its
-   // own initializeFromCheckpointFlag.  This sets the
-   // default value for those flags.
    bool mWarmStart; // whether to start from a checkpoint
    bool mCheckpointReadFlag; // whether to load from a checkpoint directory
    bool mCheckpointWriteFlag; // whether to write from a checkpoint directory
@@ -558,11 +541,6 @@ class HyPerCol : public Subject, Observer {
    char *mPrintParamsFilename; // filename for outputting the mParams, including
    // defaults and
    // excluding unread mParams
-   char *mInitializeFromCheckpointDir; // If nonempty, mLayers and mConnections
-   // can load from this
-   // directory as in checkpointRead, by setting their
-   // initializeFromCheckpointFlag parameter, but the run still
-   // starts at mSimTime=mStartTime
    std::vector<ColProbe *> mColProbes; // ColProbe ** mColProbes;
    double mStartTime;
    double mSimTime;

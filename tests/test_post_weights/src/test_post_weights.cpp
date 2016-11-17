@@ -22,7 +22,7 @@
 using namespace PV;
 
 static int set_weights_to_source_index(HyPerConn *c);
-static int check_weights(HyPerConn *c, PVPatch **postWeights, pvdata_t *dataStart);
+static int check_weights(HyPerConn *c, PVPatch **postWeights, float *dataStart);
 
 int main(int argc, char *argv[]) {
    PV_Init *initObj = new PV_Init(&argc, &argv, false /*allowUnrecognizedArguments*/);
@@ -35,23 +35,23 @@ int main(int argc, char *argv[]) {
    const char *l3name = "test_post_weights L3";
    HyPerCol *hc       = new HyPerCol("column", initObj);
    Example *l1        = new Example(l1name, hc);
-   pvErrorIf(!(l1), "Test failed.\n");
+   FatalIf(!(l1), "Test failed.\n");
    Example *l2 = new Example(l2name, hc);
-   pvErrorIf(!(l2), "Test failed.\n");
+   FatalIf(!(l2), "Test failed.\n");
    Example *l3 = new Example(l3name, hc);
-   pvErrorIf(!(l3), "Test failed.\n");
+   FatalIf(!(l3), "Test failed.\n");
 
    HyPerConn *c1 = new HyPerConn("test_post_weights L1 to L1", hc);
-   pvErrorIf(!(c1), "Test failed.\n");
-   pvErrorIf(!(c1->numberOfAxonalArborLists() == 1), "Test failed.\n");
+   FatalIf(!(c1), "Test failed.\n");
+   FatalIf(!(c1->numberOfAxonalArborLists() == 1), "Test failed.\n");
 
    HyPerConn *c2 = new HyPerConn("test_post_weights L2 to L3", hc);
-   pvErrorIf(!(c2), "Test failed.\n");
-   pvErrorIf(!(c2->numberOfAxonalArborLists() == 1), "Test failed.\n");
+   FatalIf(!(c2), "Test failed.\n");
+   FatalIf(!(c2->numberOfAxonalArborLists() == 1), "Test failed.\n");
 
    HyPerConn *c3 = new HyPerConn("test_post_weights L3 to L2", hc);
-   pvErrorIf(!(c3), "Test failed.\n");
-   pvErrorIf(!(c3->numberOfAxonalArborLists() == 1), "Test failed.\n");
+   FatalIf(!(c3), "Test failed.\n");
+   FatalIf(!(c3->numberOfAxonalArborLists() == 1), "Test failed.\n");
 
    // We're not calling hc->run() because we don't execute any timesteps.
    // But we still need to allocate the weights, so we call the
@@ -64,12 +64,12 @@ int main(int argc, char *argv[]) {
    for (int l = 0; l < hc->numberOfLayers(); l++) {
       HyPerLayer *layer = hc->getLayer(l);
       int status        = layer->respond(commMessagePtr);
-      pvErrorIf(!(status == PV_SUCCESS), "Test failed.\n");
+      FatalIf(!(status == PV_SUCCESS), "Test failed.\n");
    }
    for (int c = 0; c < hc->numberOfConnections(); c++) {
       BaseConnection *conn = hc->getConnection(c);
       int status           = conn->respond(commMessagePtr);
-      pvErrorIf(!(status == PV_SUCCESS), "Test failed.\n");
+      FatalIf(!(status == PV_SUCCESS), "Test failed.\n");
    }
    delete objectMap;
 
@@ -77,13 +77,13 @@ int main(int argc, char *argv[]) {
    for (int l = 0; l < hc->numberOfLayers(); l++) {
       HyPerLayer *layer = hc->getLayer(l);
       int status        = layer->respond(allocateMessagePtr);
-      pvErrorIf(!(status == PV_SUCCESS), "Test failed.\n");
+      FatalIf(!(status == PV_SUCCESS), "Test failed.\n");
    }
 
    for (int c = 0; c < hc->numberOfConnections(); c++) {
       BaseConnection *conn = hc->getConnection(c);
       int status           = conn->respond(allocateMessagePtr);
-      pvErrorIf(!(status == PV_SUCCESS), "Test failed.\n");
+      FatalIf(!(status == PV_SUCCESS), "Test failed.\n");
    }
 
    // Don't need to call initializeState methods:
@@ -130,7 +130,7 @@ int main(int argc, char *argv[]) {
    return status;
 }
 
-static int check_weights(HyPerConn *c, PVPatch **postWeights, pvdata_t *postDataStart) {
+static int check_weights(HyPerConn *c, PVPatch **postWeights, float *postDataStart) {
    int status = 0;
 
    const int nxPre    = c->preSynapticLayer()->clayer->loc.nx;
@@ -166,7 +166,7 @@ static int check_weights(HyPerConn *c, PVPatch **postWeights, pvdata_t *postData
       const int sf = c->fPatchStride(); // p->sf;
 
       const int postPatchSize = c->xPostPatchSize() * c->yPostPatchSize() * c->fPostPatchSize();
-      pvdata_t *w             = &postDataStart[kPost * postPatchSize + p->offset]; // p->data;
+      float *w                = &postDataStart[kPost * postPatchSize + p->offset]; // p->data;
 
       c->preSynapticPatchHead(kxPost, kyPost, kfPost, &kxPre, &kyPre);
 
@@ -201,7 +201,7 @@ static int check_weights(HyPerConn *c, PVPatch **postWeights, pvdata_t *postData
 
                if (kPre != kPreObserved || kPost != kPostObserved) {
                   status = -1;
-                  pvErrorNoExit(errorMessage);
+                  ErrorLog(errorMessage);
                   errorMessage.printf(
                         "check_weights: connection %s, kPost==%d kPre==%d kp==%d, expected %d != "
                         "w==%d\n",
@@ -230,7 +230,7 @@ static int set_weights_to_source_index(HyPerConn *c) {
    int status = 0;
    int arbor  = 0;
 
-   pvErrorIf(!(sizeof(short) == 2), "Test failed.\n");
+   FatalIf(!(sizeof(short) == 2), "Test failed.\n");
 
    const PVLayer *lPost = c->postSynapticLayer()->clayer;
 
@@ -253,15 +253,15 @@ static int set_weights_to_source_index(HyPerConn *c) {
 
       const int nfp = c->fPatchSize(); // p->nf;
 
-      pvErrorIf(!(nxp == p->nx), "Test failed.\n");
-      pvErrorIf(!(nyp == p->ny), "Test failed.\n");
-      pvErrorIf(!(nfp == lPost->loc.nf), "Test failed.\n");
+      FatalIf(!(nxp == p->nx), "Test failed.\n");
+      FatalIf(!(nyp == p->ny), "Test failed.\n");
+      FatalIf(!(nfp == lPost->loc.nf), "Test failed.\n");
 
       const int sxp = c->xPatchStride(); // p->sx;
       const int syp = c->yPatchStride(); // p->sy;
       const int sfp = c->fPatchStride(); // p->sf;
 
-      pvwdata_t *w = c->get_wData(arbor, kPre); // p->data;
+      float *w = c->get_wData(arbor, kPre); // p->data;
 
       for (int y = 0; y < nyp; y++) {
          for (int x = 0; x < nxp; x++) {

@@ -15,13 +15,13 @@ int TestLayer::updateState(double timef, double dt) {
    int nf                = loc->nf;
    int kx0               = loc->kx0;
    int ky0               = loc->ky0;
-   pvErrorIf(!(nf == 3), "Test failed.\n");
-   pvErrorIf(!(loc->nxGlobal == 8), "Test failed.\n");
-   pvErrorIf(!(loc->nyGlobal == 8), "Test failed.\n");
+   FatalIf(!(nf == 3), "Test failed.\n");
+   FatalIf(!(loc->nxGlobal == 8), "Test failed.\n");
+   FatalIf(!(loc->nyGlobal == 8), "Test failed.\n");
 
    bool isCorrect = true;
    // Grab the activity layer of current layer
-   const pvdata_t *A = getActivity();
+   const float *A = getActivity();
    // We only care about restricted space
    for (int iY = loc->halo.up; iY < ny + loc->halo.up; iY++) {
       for (int iX = loc->halo.lt; iX < nx + loc->halo.lt; iX++) {
@@ -79,9 +79,9 @@ int TestLayer::updateState(double timef, double dt) {
             }
 
             if (actualvalue != expectedvalue) {
-               pvErrorNoExit() << "Connection " << name << " Mismatch at (" << xval << "," << yval
-                               << ") : actual value: " << actualvalue
-                               << " Expected value: " << expectedvalue << ".\n";
+               ErrorLog() << "Connection " << name << " Mismatch at (" << xval << "," << yval
+                          << ") : actual value: " << actualvalue
+                          << " Expected value: " << expectedvalue << ".\n";
                isCorrect = false;
             }
          }

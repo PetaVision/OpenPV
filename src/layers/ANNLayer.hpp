@@ -29,11 +29,11 @@ class ANNLayer : public HyPerLayer {
     */
    bool layerListsVerticesInParams() const { return verticesListInParams; }
 
-   pvdata_t getVThresh() const { return VThresh; }
-   pvdata_t getAMax() const { return AMax; }
-   pvdata_t getAMin() const { return AMin; }
-   pvdata_t getAShift() const { return AShift; }
-   pvdata_t getVWidth() const { return VWidth; }
+   float getVThresh() const { return VThresh; }
+   float getAMax() const { return AMax; }
+   float getAMin() const { return AMin; }
+   float getAShift() const { return AShift; }
+   float getVWidth() const { return VWidth; }
 
    /**
     * Returns the number of points in verticesV and verticesA.
@@ -44,7 +44,7 @@ class ANNLayer : public HyPerLayer {
     * Returns the V-coordinate of the the nth vertex (zero-indexed).
     * If n is out of bounds, returns NaN.
     */
-   pvdata_t getVertexV(int n) const {
+   float getVertexV(int n) const {
       if (n >= 0 && n < numVertices) {
          return verticesV[n];
       }
@@ -57,7 +57,7 @@ class ANNLayer : public HyPerLayer {
     * Returns the V-coordinate of the the nth vertex (zero-indexed).
     * If n is out of bounds, returns NaN.
     */
-   pvdata_t getVertexA(int n) const {
+   float getVertexA(int n) const {
       if (n >= 0 && n < numVertices) {
          return verticesA[n];
       }
@@ -65,8 +65,8 @@ class ANNLayer : public HyPerLayer {
          return nan("");
       }
    }
-   pvdata_t getSlopeNegInf() const { return slopeNegInf; }
-   pvdata_t getSlopePosInf() const { return slopePosInf; }
+   float getSlopeNegInf() const { return slopeNegInf; }
+   float getSlopePosInf() const { return slopePosInf; }
 
    virtual bool activityIsSpiking() { return false; }
 
@@ -196,23 +196,22 @@ class ANNLayer : public HyPerLayer {
    // Data members, initialized to default values.
    bool verticesListInParams =
          false; // True if verticesV/verticesA were specified in params explicitly; false otherwise
-   int numVertices              = 0;
-   pvpotentialdata_t *verticesV = nullptr;
-   pvadata_t *verticesA         = nullptr;
-   float *slopes = nullptr; // slopes[0]=slopeNegInf; slopes[numVertices]=slopePosInf;
+   int numVertices  = 0;
+   float *verticesV = nullptr;
+   float *verticesA = nullptr;
+   float *slopes    = nullptr; // slopes[0]=slopeNegInf; slopes[numVertices]=slopePosInf;
    // slopes[k]=slope from vertex k-1 to vertex k
    float slopeNegInf = 1.0f;
    float slopePosInf = 1.0f;
 
-   pvdata_t VThresh =
-         -max_pvvdata_t; // threshold potential, values smaller than VThresh are set to AMin
-   pvdata_t AMax = max_pvvdata_t; // maximum membrane potential, larger values are set to AMax
-   pvdata_t AMin = -max_pvvdata_t; // minimum membrane potential, smaller values are set to AMin
-   pvdata_t AShift =
-         (pvdata_t)0; // shift potential, values above VThresh are shifted downward by this amount
+   float VThresh = -FLT_MAX; // threshold potential, values smaller than VThresh are set to AMin
+   float AMax    = FLT_MAX; // maximum membrane potential, larger values are set to AMax
+   float AMin    = -FLT_MAX; // minimum membrane potential, smaller values are set to AMin
+   float AShift =
+         (float)0; // shift potential, values above VThresh are shifted downward by this amount
    // AShift == 0, hard threshold condition
    // AShift == VThresh, soft threshold condition
-   pvdata_t VWidth = (pvdata_t)0; // The thresholding occurs linearly over the region
+   float VWidth = (float)0; // The thresholding occurs linearly over the region
    // [VThresh,VThresh+VWidth].  VWidth=0,AShift=0 is standard
    // hard-thresholding
 

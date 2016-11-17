@@ -5,7 +5,7 @@ namespace PV {
 TestConnProbe::TestConnProbe(const char *probename, HyPerCol *hc) {
    initialize_base();
    int status = initialize(probename, hc);
-   pvErrorIf(!(status == PV_SUCCESS), "Test failed.\n");
+   FatalIf(!(status == PV_SUCCESS), "Test failed.\n");
 }
 
 TestConnProbe::TestConnProbe() { initialize_base(); }
@@ -26,22 +26,22 @@ int TestConnProbe::outputState(double timed) {
       PVPatch *weights = conn->getWeights(kPre, 0);
       int nk           = conn->fPatchSize() * weights->nx;
 
-      pvwdata_t *data = conn->get_wData(0, kPre);
-      int ny          = weights->ny;
+      float *data = conn->get_wData(0, kPre);
+      int ny      = weights->ny;
       for (int y = 0; y < ny; y++) {
-         pvwdata_t *dataYStart = data + y * syw;
+         float *dataYStart = data + y * syw;
          for (int k = 0; k < nk; k++) {
             if (fabs(timed - 0) < (parent->getDeltaTime() / 2)) {
                if (fabsf(dataYStart[k] - 1) > 0.01f) {
-                  pvError() << "dataYStart[k]: " << dataYStart[k] << "\n";
+                  Fatal() << "dataYStart[k]: " << dataYStart[k] << "\n";
                }
-               pvErrorIf(!(fabsf(dataYStart[k] - 1) <= 0.01f), "Test failed.\n");
+               FatalIf(!(fabsf(dataYStart[k] - 1) <= 0.01f), "Test failed.\n");
             }
             else if (fabs(timed - 1) < (parent->getDeltaTime() / 2)) {
                if (fabsf(dataYStart[k] - 1.375f) > 0.01f) {
-                  pvError() << "dataYStart[k]: " << dataYStart[k] << "\n";
+                  Fatal() << "dataYStart[k]: " << dataYStart[k] << "\n";
                }
-               pvErrorIf(!(fabsf(dataYStart[k] - 1.375f) <= 0.01f), "Test failed.\n");
+               FatalIf(!(fabsf(dataYStart[k] - 1.375f) <= 0.01f), "Test failed.\n");
             }
          }
       }

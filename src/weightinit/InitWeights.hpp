@@ -38,15 +38,15 @@ class InitWeights : public BaseObject {
     * so it is more convenient and efficient to handle all the weights
     * together than to call one patch at a time.
     */
-   int initializeWeights(PVPatch ***patches, pvwdata_t **dataStart, double *timef = NULL);
+   int initializeWeights(PVPatch ***patches, float **dataStart, double *timef = NULL);
    virtual InitWeightsParams *createNewWeightParams();
 
    virtual int calcWeights();
-   virtual int calcWeights(pvwdata_t *dataStart, int patchIndex, int arborId);
+   virtual int calcWeights(float *dataStart, int patchIndex, int arborId);
 
    virtual int readWeights(
          PVPatch ***patches,
-         pvwdata_t **dataStart,
+         float **dataStart,
          int numPatches,
          const char *filename,
          double *time = NULL);
@@ -59,13 +59,13 @@ class InitWeights : public BaseObject {
    virtual int zeroWeightsOutsideShrunkenPatch(PVPatch ***patches);
    virtual int readListOfArborFiles(
          PVPatch ***patches,
-         pvwdata_t **dataStart,
+         float **dataStart,
          int numPatches,
          const char *listOfArborsFilename,
          double *timef = NULL);
    virtual int readCombinedWeightFiles(
          PVPatch ***patches,
-         pvwdata_t **dataStart,
+         float **dataStart,
          int numPatches,
          const char *fileOfWeightFiles,
          double *timef = NULL);

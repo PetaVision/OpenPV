@@ -52,9 +52,9 @@ int MomentumConn::allocateDataStructures() {
    const int numAxons = numberOfAxonalArborLists();
 
    // Allocate dw buffer for previous dw
-   prev_dwDataStart       = (pvwdata_t **)pvCalloc(numAxons, sizeof(pvwdata_t *));
+   prev_dwDataStart       = (float **)pvCalloc(numAxons, sizeof(float *));
    std::size_t numWeights = (std::size_t)(numAxons * nxp * nyp * nfp) * (std::size_t)nPatches;
-   prev_dwDataStart[0]    = (pvwdata_t *)pvCalloc(numWeights, sizeof(pvwdata_t));
+   prev_dwDataStart[0]    = (float *)pvCalloc(numWeights, sizeof(float));
    for (int arborId = 0; arborId < numAxons; arborId++) {
       prev_dwDataStart[arborId] = (prev_dwDataStart[0] + sp * nPatches * arborId);
       pvAssert(prev_dwDataStart[arborId] != NULL);
@@ -103,8 +103,8 @@ void MomentumConn::ioParam_momentumMethod(enum ParamsIOFlag ioFlag) {
       parent->parameters()->ioParamStringRequired(ioFlag, name, "momentumMethod", &momentumMethod);
       if (strcmp(momentumMethod, "simple") != 0 && strcmp(momentumMethod, "viscosity") != 0
           && strcmp(momentumMethod, "alex")) {
-         pvError() << "MomentumConn " << name << ": momentumMethod of " << momentumMethod
-                   << " is not known, options are \"simple\", \"viscosity\", and \"alex\"\n";
+         Fatal() << "MomentumConn " << name << ": momentumMethod of " << momentumMethod
+                 << " is not known, options are \"simple\", \"viscosity\", and \"alex\"\n";
       }
    }
 }
@@ -115,8 +115,8 @@ void MomentumConn::ioParam_momentumDecay(enum ParamsIOFlag ioFlag) {
       parent->parameters()->ioParamValue(
             ioFlag, name, "momentumDecay", &momentumDecay, momentumDecay);
       if (momentumDecay < 0 || momentumDecay > 1) {
-         pvError() << "MomentumConn " << name
-                   << ": momentumDecay must be between 0 and 1 inclusive\n";
+         Fatal() << "MomentumConn " << name
+                 << ": momentumDecay must be between 0 and 1 inclusive\n";
       }
    }
 }
@@ -204,11 +204,11 @@ int MomentumConn::updateWeights(int arborId) {
    std::memcpy(
          *prev_dwDataStart,
          *get_dwDataStart(),
-         sizeof(pvwdata_t) * numberOfAxonalArborLists() * nxp * nyp * nfp * getNumDataPatches());
+         sizeof(float) * numberOfAxonalArborLists() * nxp * nyp * nfp * getNumDataPatches());
 
    // add dw to w
    for (int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++) {
-      pvwdata_t *w_data_start = get_wDataStart(kArbor);
+      float *w_data_start = get_wDataStart(kArbor);
       for (long int k = 0; k < patchStartIndex(getNumDataPatches()); k++) {
          w_data_start[k] += get_dwDataStart(kArbor)[k];
       }
@@ -225,9 +225,9 @@ int MomentumConn::applyMomentum(int arbor_ID) {
 #pragma omp parallel for
 #endif
    for (int kernelIdx = 0; kernelIdx < numKernels; kernelIdx++) {
-      pvwdata_t *dwdata_start  = get_dwDataHead(arbor_ID, kernelIdx);
-      pvwdata_t *prev_dw_start = get_prev_dwDataHead(arbor_ID, kernelIdx);
-      pvwdata_t *wdata_start   = get_wDataHead(arbor_ID, kernelIdx);
+      float *dwdata_start  = get_dwDataHead(arbor_ID, kernelIdx);
+      float *prev_dw_start = get_prev_dwDataHead(arbor_ID, kernelIdx);
+      float *wdata_start   = get_wDataHead(arbor_ID, kernelIdx);
       if (!strcmp(momentumMethod, "simple")) {
          for (int k = 0; k < nxp * nyp * nfp; k++) {
             dwdata_start[k] += momentumTau * prev_dw_start[k] - momentumDecay * wdata_start[k];
@@ -257,6 +257,11 @@ int MomentumConn::registerData(Checkpointer *checkpointer, std::string const &ob
    }
    checkpointWeightPvp(checkpointer, "prev_dW", prev_dwDataStart);
    return status;
+}
+
+int MomentumConn::readStateFromCheckpoint(Checkpointer *checkpointer) {
+   checkpointer->readNamedCheckpointEntry(std::string(name), std::string("prev_dW"));
+   return PV_SUCCESS;
 }
 
 } // end namespace PV

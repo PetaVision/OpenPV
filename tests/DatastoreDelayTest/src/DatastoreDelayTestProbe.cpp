@@ -43,11 +43,11 @@ int DatastoreDelayTestProbe::outputState(double timed) {
    if (icComm->commRank() != rcvProc) {
       return PV_SUCCESS;
    }
-   int status            = PV_SUCCESS;
-   int numDelayLevels    = l->getParent()->getLayer(0)->getNumDelayLevels();
-   pvdata_t correctValue = numDelayLevels * (numDelayLevels + 1) / 2;
+   int status         = PV_SUCCESS;
+   int numDelayLevels = l->getParent()->getLayer(0)->getNumDelayLevels();
+   float correctValue = numDelayLevels * (numDelayLevels + 1) / 2;
    if (timed >= numDelayLevels + 2) {
-      pvdata_t *V = l->getV();
+      float *V = l->getV();
       for (int k = 0; k < l->getNumNeuronsAllBatches(); k++) {
          if (V[k] != correctValue) {
             outputStream->printf(
@@ -68,7 +68,7 @@ int DatastoreDelayTestProbe::outputState(double timed) {
                (int)correctValue);
       }
    }
-   pvErrorIf(!(status == PV_SUCCESS), "Test failed.\n");
+   FatalIf(!(status == PV_SUCCESS), "Test failed.\n");
    return PV_SUCCESS;
 }
 

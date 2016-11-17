@@ -98,7 +98,7 @@ int PV_Init::commInit(int *argc, char ***argv) {
       MPI_Init(argc, argv);
    }
    else {
-      pvError() << "PV_Init communicator already initialized\n";
+      Fatal() << "PV_Init communicator already initialized\n";
    }
 
    return 0;
@@ -157,7 +157,7 @@ int PV_Init::setParams(char const *params_file) {
    }
    char const *newParamsFile = arguments->setParamsFile(params_file);
    if (newParamsFile == NULL) {
-      pvErrorNoExit().printf("PV_Init unable to set new params file: %s\n", strerror(errno));
+      ErrorLog().printf("PV_Init unable to set new params file: %s\n", strerror(errno));
       return PV_FAILURE;
    }
    initialize();
@@ -202,9 +202,9 @@ int PV_Init::setMPIConfiguration(int rows, int columns, int batchWidth) {
 
 void PV_Init::printInitMessage() {
    time_t currentTime = time(nullptr);
-   pvInfo() << "PetaVision initialized at "
-            << ctime(&currentTime); // string returned by ctime contains a trailing \n.
-   pvInfo() << "Command line arguments are:\n";
+   InfoLog() << "PetaVision initialized at "
+             << ctime(&currentTime); // string returned by ctime contains a trailing \n.
+   InfoLog() << "Command line arguments are:\n";
    printState();
 }
 
@@ -214,7 +214,7 @@ int PV_Init::registerKeyword(char const *keyword, ObjectCreateFn creator) {
    int status = Factory::instance()->registerKeyword(keyword, creator);
    if (status != PV_SUCCESS) {
       if (getWorldRank() == 0) {
-         pvErrorNoExit().printf("PV_Init: keyword \"%s\" has already been registered.\n", keyword);
+         ErrorLog().printf("PV_Init: keyword \"%s\" has already been registered.\n", keyword);
       }
    }
    return status;

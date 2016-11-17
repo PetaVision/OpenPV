@@ -42,12 +42,16 @@ void LeakyIntegrator::ioParam_integrationTime(enum ParamsIOFlag ioFlag) {
 }
 
 int LeakyIntegrator::updateState(double timed, double dt) {
-   pvdata_t *V          = getV();
-   pvdata_t *gSyn       = GSyn[0];
-   pvdata_t decayfactor = std::exp(-(pvdata_t)dt / integrationTime);
+   float *V          = getV();
+   float *gSyn       = GSyn[0];
+
+   float decayfactor = std::exp(-(float)dt / integrationTime);
    for (int k = 0; k < getNumNeuronsAllBatches(); k++) {
       V[k] *= decayfactor;
-      V[k] += gSyn[k];
+      V[k] += GSyn[0][k];
+      if (numChannels > 1) {
+         V[k] -= GSyn[1][k];
+      }
    }
    int nx     = getLayerLoc()->nx;
    int ny     = getLayerLoc()->ny;
@@ -55,7 +59,7 @@ int LeakyIntegrator::updateState(double timed, double dt) {
    int nbatch = getLayerLoc()->nbatch;
 
    PVHalo const *halo = &getLayerLoc()->halo;
-   pvdata_t *A        = getActivity();
+   float *A           = getActivity();
    int status         = setActivity_PtwiseLinearTransferLayer(
          nbatch,
          getNumNeurons(),

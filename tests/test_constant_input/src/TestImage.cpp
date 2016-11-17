@@ -36,11 +36,11 @@ void TestImage::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
 }
 
 void TestImage::ioParam_constantVal(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "constantVal", &val, (pvdata_t)1);
+   parent->parameters()->ioParamValue(ioFlag, name, "constantVal", &val, (float)1);
 }
 
 int TestImage::allocateV() {
-   pvErrorIf(!(getV() == NULL), "Test failed.\n");
+   FatalIf(!(getV() == NULL), "Test failed.\n");
    return PV_SUCCESS;
 }
 

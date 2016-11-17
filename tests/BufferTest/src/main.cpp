@@ -11,7 +11,7 @@ namespace BufferUtils = PV::BufferUtils;
 // Buffer::set(int x, int y, int feature, float value)
 void testAtSet() {
    Buffer<float> testBuffer(3, 2, 4);
-   pvErrorIf(testBuffer.at(1, 1, 1) != 0.0f, "Failed.\n");
+   FatalIf(testBuffer.at(1, 1, 1) != 0.0f, "Failed.\n");
 
    float v = 0;
    for (int y = 0; y < 2; ++y) {
@@ -22,9 +22,9 @@ void testAtSet() {
       }
    }
 
-   pvErrorIf(testBuffer.at(0, 0, 0) != 0.0f, "Failed.\n");
-   pvErrorIf(testBuffer.at(2, 0, 0) != 8.0f, "Failed.\n");
-   pvErrorIf(testBuffer.at(2, 1, 3) != 23.0f, "Failed.\n");
+   FatalIf(testBuffer.at(0, 0, 0) != 0.0f, "Failed.\n");
+   FatalIf(testBuffer.at(2, 0, 0) != 8.0f, "Failed.\n");
+   FatalIf(testBuffer.at(2, 1, 3) != 23.0f, "Failed.\n");
 }
 
 // Buffer::set(const std::vector<float> &vector)
@@ -35,7 +35,7 @@ void testSetVector() {
    for (int y = 0; y < 2; ++y) {
       for (int x = 0; x < 2; ++x) {
          for (int f = 0; f < 2; ++f) {
-            pvErrorIf(
+            FatalIf(
                   testBuffer.at(x, y, f) != v++,
                   "Failed. Expected %f, found %f instead.\n",
                   (double)v - 1,
@@ -61,14 +61,14 @@ void testAsVector() {
    }
 
    std::vector<float> comparison = testBuffer.asVector();
-   pvErrorIf(
+   FatalIf(
          comparison.size() != testVector.size(),
          "Failed: Expected a vector of size %d, found %d instead.\n",
          testVector.size(),
          comparison.size());
 
    for (int i = 0; i < testVector.size(); ++i) {
-      pvErrorIf(
+      FatalIf(
             testVector.at(i) != comparison.at(i),
             "Failed: Expected %f, found %f at index %d.\n",
             (double)testVector.at(i),
@@ -80,15 +80,15 @@ void testAsVector() {
 // Buffer::resize(int width, int height, int features)
 void testResize() {
    Buffer<float> testBuffer(3, 4, 2);
-   pvErrorIf(
+   FatalIf(
          testBuffer.getHeight() != 4,
          "Failed (height): expected 4, found %d instead.\n",
          testBuffer.getHeight());
-   pvErrorIf(
+   FatalIf(
          testBuffer.getWidth() != 3,
          "Failed (width): expected 3, found %d instead.\n",
          testBuffer.getWidth());
-   pvErrorIf(
+   FatalIf(
          testBuffer.getFeatures() != 2,
          "Failed (features): expected 2, found %d instead.\n",
          testBuffer.getFeatures());
@@ -106,15 +106,15 @@ void testResize() {
    }
    testBuffer.resize(4, 5, 3);
 
-   pvErrorIf(
+   FatalIf(
          testBuffer.getHeight() != 5,
          "Failed (height): expected 5, found %d instead.\n",
          testBuffer.getHeight());
-   pvErrorIf(
+   FatalIf(
          testBuffer.getWidth() != 4,
          "Failed (width): expected 4, found %d instead.\n",
          testBuffer.getWidth());
-   pvErrorIf(
+   FatalIf(
          testBuffer.getFeatures() != 3,
          "Failed (features): expected 3, found %d instead.\n",
          testBuffer.getFeatures());
@@ -128,7 +128,7 @@ void testResize() {
       }
    }
 
-   pvErrorIf(v != 0.0f, "Failed: Found non-zero value after resizing.\n");
+   FatalIf(v != 0.0f, "Failed: Found non-zero value after resizing.\n");
 }
 
 // Buffer::crop(int targetWidth, int targetHeight, enum OffsetAnchor offsetAnchor, int offsetX, int
@@ -169,82 +169,80 @@ void testCrop() {
       testBuffer.crop(4, 4, anchor);
       std::vector<float> contents = testBuffer.asVector();
       for (int i = 0; i < contents.size(); ++i) {
-         pvErrorIf(contents.at(i) != bufferContents.at(i), "Failed (same size crop).");
+         FatalIf(contents.at(i) != bufferContents.at(i), "Failed (same size crop).");
       }
    }
 
    // Test each offset anchor
    testBuffer.set(bufferContents, 4, 4, 1);
    testBuffer.crop(2, 2, Buffer<float>::NORTH);
-   pvErrorIf(testBuffer.at(0, 0, 0) != 2.0f || testBuffer.at(1, 0, 0) != 3.0f, "Failed (north).\n");
+   FatalIf(testBuffer.at(0, 0, 0) != 2.0f || testBuffer.at(1, 0, 0) != 3.0f, "Failed (north).\n");
 
    testBuffer.set(bufferContents, 4, 4, 1);
    testBuffer.crop(2, 2, Buffer<float>::NORTHEAST);
-   pvErrorIf(
+   FatalIf(
          testBuffer.at(0, 0, 0) != 3.0f || testBuffer.at(1, 1, 0) != 8.0f, "Failed (northeast).\n");
 
    testBuffer.set(bufferContents, 4, 4, 1);
    testBuffer.crop(2, 2, Buffer<float>::EAST);
-   pvErrorIf(testBuffer.at(1, 0, 0) != 8.0f || testBuffer.at(1, 1, 0) != 12.0f, "Failed (east).\n");
+   FatalIf(testBuffer.at(1, 0, 0) != 8.0f || testBuffer.at(1, 1, 0) != 12.0f, "Failed (east).\n");
 
    testBuffer.set(bufferContents, 4, 4, 1);
    testBuffer.crop(2, 2, Buffer<float>::SOUTHEAST);
-   pvErrorIf(
+   FatalIf(
          testBuffer.at(1, 0, 0) != 12.0f || testBuffer.at(0, 1, 0) != 15.0f,
          "Failed (southeast).\n");
 
    testBuffer.set(bufferContents, 4, 4, 1);
    testBuffer.crop(2, 2, Buffer<float>::SOUTH);
-   pvErrorIf(
-         testBuffer.at(0, 1, 0) != 14.0f || testBuffer.at(1, 1, 0) != 15.0f, "Failed (south).\n");
+   FatalIf(testBuffer.at(0, 1, 0) != 14.0f || testBuffer.at(1, 1, 0) != 15.0f, "Failed (south).\n");
 
    testBuffer.set(bufferContents, 4, 4, 1);
    testBuffer.crop(2, 2, Buffer<float>::SOUTHWEST);
-   pvErrorIf(
+   FatalIf(
          testBuffer.at(0, 0, 0) != 9.0f || testBuffer.at(1, 1, 0) != 14.0f,
          "Failed (southwest).\n");
 
    testBuffer.set(bufferContents, 4, 4, 1);
    testBuffer.crop(2, 2, Buffer<float>::WEST);
-   pvErrorIf(testBuffer.at(0, 0, 0) != 5.0f || testBuffer.at(0, 1, 0) != 9.0f, "Failed (west).\n");
+   FatalIf(testBuffer.at(0, 0, 0) != 5.0f || testBuffer.at(0, 1, 0) != 9.0f, "Failed (west).\n");
 
    testBuffer.set(bufferContents, 4, 4, 1);
    testBuffer.crop(2, 2, Buffer<float>::NORTHWEST);
-   pvErrorIf(
+   FatalIf(
          testBuffer.at(0, 1, 0) != 5.0f || testBuffer.at(1, 0, 0) != 2.0f, "Failed (northwest).\n");
 
    testBuffer.set(bufferContents, 4, 4, 1);
    testBuffer.crop(2, 2, Buffer<float>::CENTER);
-   pvErrorIf(
-         testBuffer.at(0, 0, 0) != 6.0f || testBuffer.at(1, 1, 0) != 11.0f, "Failed (center).\n");
+   FatalIf(testBuffer.at(0, 0, 0) != 6.0f || testBuffer.at(1, 1, 0) != 11.0f, "Failed (center).\n");
 
    // Test offsetX and offsetY
 
    testBuffer.set(bufferContents, 4, 4, 1);
    testBuffer.translate(-1, 0);
    testBuffer.crop(2, 2, Buffer<float>::CENTER);
-   pvErrorIf(
+   FatalIf(
          testBuffer.at(0, 0, 0) != 7.0f || testBuffer.at(1, 1, 0) != 12.0f,
          "Failed (offsetX = 1).\n");
 
    testBuffer.set(bufferContents, 4, 4, 1);
    testBuffer.translate(1, 0);
    testBuffer.crop(2, 2, Buffer<float>::EAST);
-   pvErrorIf(
+   FatalIf(
          testBuffer.at(0, 0, 0) != 6.0f || testBuffer.at(1, 1, 0) != 11.0f,
          "Failed (offsetX = -1).\n");
 
    testBuffer.set(bufferContents, 4, 4, 1);
    testBuffer.translate(0, -1);
    testBuffer.crop(2, 2, Buffer<float>::NORTHWEST);
-   pvErrorIf(
+   FatalIf(
          testBuffer.at(0, 0, 0) != 5.0f || testBuffer.at(1, 1, 0) != 10.0f,
          "Failed (offsetY = 1).\n");
 
    testBuffer.set(bufferContents, 4, 4, 1);
    testBuffer.translate(0, 1);
    testBuffer.crop(2, 2, Buffer<float>::SOUTH);
-   pvErrorIf(
+   FatalIf(
          testBuffer.at(0, 0, 0) != 6.0f || testBuffer.at(1, 1, 0) != 11.0f,
          "Failed (offsetY = -1).\n");
 }
@@ -295,13 +293,13 @@ void testRescale() {
          testBuffer, 4, 4, BufferUtils::PAD, BufferUtils::NEAREST, Buffer<float>::CENTER);
    std::vector<float> nearest = testBuffer.asVector();
 
-   pvErrorIf(
+   FatalIf(
          nearest.size() != answerNearest.size(),
          "Failed (Size). Expected %d elements, found %d.\n",
          answerNearest.size(),
          nearest.size());
    for (int i = 0; i < nearest.size(); ++i) {
-      pvErrorIf(
+      FatalIf(
             nearest.at(i) != answerNearest.at(i),
             "Failed (Nearest). Expected %f at index %d, found %f.\n",
             (double)answerNearest.at(i),
@@ -314,13 +312,13 @@ void testRescale() {
    BufferUtils::rescale(
          testBuffer, 8, 4, BufferUtils::CROP, BufferUtils::NEAREST, Buffer<float>::CENTER);
    std::vector<float> cropped = testBuffer.asVector();
-   pvErrorIf(
+   FatalIf(
          cropped.size() != answerCrop.size(),
          "Failed (Size). Expected %d elements, found %d.\n",
          answerCrop.size(),
          cropped.size());
    for (int i = 0; i < cropped.size(); ++i) {
-      pvErrorIf(
+      FatalIf(
             cropped.at(i) != answerCrop.at(i),
             "Failed (Crop). Expected %f at index %d, found %f.\n",
             (double)answerCrop.at(i),
@@ -333,13 +331,13 @@ void testRescale() {
    BufferUtils::rescale(
          testBuffer, 4, 8, BufferUtils::PAD, BufferUtils::NEAREST, Buffer<float>::CENTER);
    std::vector<float> padded = testBuffer.asVector();
-   pvErrorIf(
+   FatalIf(
          padded.size() != answerPad.size(),
          "Failed (Size). Expected %d elements, found %d.\n",
          answerPad.size(),
          padded.size());
    for (int i = 0; i < padded.size(); ++i) {
-      pvErrorIf(
+      FatalIf(
             padded.at(i) != answerPad.at(i),
             "Failed (Pad). Expected %f at index %d, found %f.\n",
             (double)answerPad.at(i),
@@ -349,30 +347,30 @@ void testRescale() {
 }
 
 int main(int argc, char **argv) {
-   pvInfo() << "Testing Buffer::at(): ";
+   InfoLog() << "Testing Buffer::at(): ";
    testAtSet();
-   pvInfo() << "Completed.\n";
+   InfoLog() << "Completed.\n";
 
-   pvInfo() << "Testing Buffer::set(): ";
+   InfoLog() << "Testing Buffer::set(): ";
    testSetVector();
-   pvInfo() << "Completed.\n";
+   InfoLog() << "Completed.\n";
 
-   pvInfo() << "Testing Buffer::asVector(): ";
+   InfoLog() << "Testing Buffer::asVector(): ";
    testAsVector();
-   pvInfo() << "Completed.\n";
+   InfoLog() << "Completed.\n";
 
-   pvInfo() << "Testing Buffer::resize(): ";
+   InfoLog() << "Testing Buffer::resize(): ";
    testResize();
-   pvInfo() << "Completed.\n";
+   InfoLog() << "Completed.\n";
 
-   pvInfo() << "Testing Buffer::crop(): ";
+   InfoLog() << "Testing Buffer::crop(): ";
    testCrop();
-   pvInfo() << "Completed.\n";
+   InfoLog() << "Completed.\n";
 
-   pvInfo() << "Testing BufferUtils::rescale(): ";
+   InfoLog() << "Testing BufferUtils::rescale(): ";
    testRescale();
-   pvInfo() << "Completed.\n";
+   InfoLog() << "Completed.\n";
 
-   pvInfo() << "Buffer tests completed successfully!\n";
+   InfoLog() << "Buffer tests completed successfully!\n";
    return EXIT_SUCCESS;
 }

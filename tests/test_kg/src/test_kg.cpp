@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
       kg = globalIndexFromLocal_nompi(kl, loc);
 
       if (kg != kl) {
-         pvError().printf("FAILED:TEST_KG: (kl,kg) = (%d,%d)\n", kl, kg);
+         Fatal().printf("FAILED:TEST_KG: (kl,kg) = (%d,%d)\n", kl, kg);
       }
    }
 
@@ -65,7 +65,7 @@ int main(int argc, char *argv[]) {
          kfg = featureIndex(kg, loc.nxGlobal, loc.nyGlobal, nf);
 
          if ((kg - kl) != loc.kx0 + (loc.ky0 + kyg) * loc.nx + kf * nx * ny) {
-            pvError().printf("FAILED:TEST_KG: right (kl,kg) = (%d,%d)\n", kl, kg);
+            Fatal().printf("FAILED:TEST_KG: right (kl,kg) = (%d,%d)\n", kl, kg);
          }
       }
    }
@@ -80,12 +80,12 @@ int main(int argc, char *argv[]) {
       kyg = kyPos(kg, loc.nxGlobal, loc.nyGlobal, nf);
       kfg = featureIndex(kg, loc.nxGlobal, loc.nyGlobal, nf);
 
-      pvErrorIf(!(loc.kx0 + kx == kxg), "Test failed.\n");
-      pvErrorIf(!(ky == kyg), "Test failed.\n");
-      pvErrorIf(!(kf == kfg), "Test failed.\n");
+      FatalIf(!(loc.kx0 + kx == kxg), "Test failed.\n");
+      FatalIf(!(ky == kyg), "Test failed.\n");
+      FatalIf(!(kf == kfg), "Test failed.\n");
 
       if ((kg - kl) != loc.kx0 * nf * (1 + ky)) {
-         pvError().printf("FAILED:TEST_KG: right (kl,kg) = (%d,%d)\n", kl, kg);
+         Fatal().printf("FAILED:TEST_KG: right (kl,kg) = (%d,%d)\n", kl, kg);
       }
    }
 #endif
@@ -115,7 +115,7 @@ int main(int argc, char *argv[]) {
          // kg = ky0*nxGlobal + kf*nxGlobal*nyGlobal
          // kl = kf*nx*ny
          if ((kg - kl) != nx * loc.ky0 + kf * nx * (loc.nyGlobal - ny)) {
-            pvError().printf("FAILED:TEST_KG: bottom (kl,kg) = (%d,%d)\n", kl, kg);
+            Fatal().printf("FAILED:TEST_KG: bottom (kl,kg) = (%d,%d)\n", kl, kg);
          }
       }
    }
@@ -130,12 +130,12 @@ int main(int argc, char *argv[]) {
       kyg = kyPos(kg, loc.nxGlobal, loc.nyGlobal, nf);
       kfg = featureIndex(kg, loc.nxGlobal, loc.nyGlobal, nf);
 
-      pvErrorIf(!(loc.kx0 + kx == kxg), "Test failed.\n");
-      pvErrorIf(!(loc.ky0 + ky == kyg), "Test failed.\n");
-      pvErrorIf(!(kf == kfg), "Test failed.\n");
+      FatalIf(!(loc.kx0 + kx == kxg), "Test failed.\n");
+      FatalIf(!(loc.ky0 + ky == kyg), "Test failed.\n");
+      FatalIf(!(kf == kfg), "Test failed.\n");
 
       if ((kg - kl) != loc.ky0 * nf * nx) {
-         pvError().printf("FAILED:TEST_KG: bottom (kl,kg) = (%d,%d)\n", kl, kg);
+         Fatal().printf("FAILED:TEST_KG: bottom (kl,kg) = (%d,%d)\n", kl, kg);
       }
    }
 #endif
@@ -155,7 +155,7 @@ int main(int argc, char *argv[]) {
       kg = globalIndexFromLocal_nompi(kl, loc);
 
       if (kg != kl) {
-         pvError().printf("FAILED:TEST_KG: max ny (kl,kg) = (%d,%d)\n", kl, kg);
+         Fatal().printf("FAILED:TEST_KG: max ny (kl,kg) = (%d,%d)\n", kl, kg);
       }
    }
 

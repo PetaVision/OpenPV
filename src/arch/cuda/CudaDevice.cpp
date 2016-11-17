@@ -65,7 +65,7 @@ int CudaDevice::initialize(int device) {
    cudnnHandle_t tmpHandle;
    cudnnStatus_t cudnnStatus = cudnnCreate(&tmpHandle);
    if (cudnnStatus != CUDNN_STATUS_SUCCESS) {
-      pvError(cudnnCreateError);
+      Fatal(cudnnCreateError);
       switch (cudnnStatus) {
          case CUDNN_STATUS_NOT_INITIALIZED:
             cudnnCreateError.printf("cuDNN Runtime API initialization failed\n");
@@ -81,7 +81,7 @@ int CudaDevice::initialize(int device) {
    }
    cudnnStatus = cudnnSetStream(tmpHandle, stream);
    if (cudnnStatus != CUDNN_STATUS_SUCCESS) {
-      pvError().printf("cudnnSetStream error: %s\n", cudnnGetErrorString(cudnnStatus));
+      Fatal().printf("cudnnSetStream error: %s\n", cudnnGetErrorString(cudnnStatus));
    }
 
    this->handle = (void *)tmpHandle;
@@ -96,9 +96,9 @@ void CudaDevice::syncDevice() { handleError(cudaDeviceSynchronize(), "Synchroniz
 int CudaDevice::query_device_info() {
    // query and print information about the devices found
    //
-   pvInfo().printf("\n");
-   pvInfo().printf("Number of Cuda devices found: %d\n", num_devices);
-   pvInfo().printf("\n");
+   InfoLog().printf("\n");
+   InfoLog().printf("Number of Cuda devices found: %d\n", num_devices);
+   InfoLog().printf("\n");
 
    for (unsigned int i = 0; i < num_devices; i++) {
       query_device(i);
@@ -108,14 +108,14 @@ int CudaDevice::query_device_info() {
 
 CudaBuffer *CudaDevice::createBuffer(size_t size, std::string const *str) {
    long memLeft = reserveMem(size);
-   pvInfo() << "Reserving " << size << " bytes of VRAM";
+   InfoLog() << "Reserving " << size << " bytes of VRAM";
    if (str) {
-      pvInfo() << " (" << *str << ")";
+      InfoLog() << " (" << *str << ")";
    }
-   pvInfo() << ". " << deviceMem << " bytes remaining.\n";
+   InfoLog() << ". " << deviceMem << " bytes remaining.\n";
    if (memLeft < 0) {
-      pvInfo().flush();
-      pvError().printf("CudaDevice createBuffer: out of memory\n");
+      InfoLog().flush();
+      Fatal().printf("CudaDevice createBuffer: out of memory\n");
    }
    return (new CudaBuffer(size, this, stream));
 }
@@ -130,36 +130,36 @@ void CudaDevice::query_device(int id) {
    else {
       handleError(cudaGetDeviceProperties(&props, id), "Getting device properties");
    }
-   pvInfo().printf("device: %d\n", id);
-   pvInfo().printf("CUDA Device # %d == %s\n", id, props.name);
+   InfoLog().printf("device: %d\n", id);
+   InfoLog().printf("CUDA Device # %d == %s\n", id, props.name);
 
-   pvInfo().printf("with %d units/cores", props.multiProcessorCount);
+   InfoLog().printf("with %d units/cores", props.multiProcessorCount);
 
-   pvInfo().printf(" at %f MHz\n", (double)props.clockRate * 0.001);
+   InfoLog().printf(" at %f MHz\n", (double)props.clockRate * 0.001);
 
-   pvInfo().printf("\tMaximum threads group size == %d\n", props.maxThreadsPerBlock);
+   InfoLog().printf("\tMaximum threads group size == %d\n", props.maxThreadsPerBlock);
 
-   pvInfo().printf("\tMaximum grid sizes == (");
+   InfoLog().printf("\tMaximum grid sizes == (");
    for (unsigned int i = 0; i < 3; i++)
-      pvInfo().printf(" %d", props.maxGridSize[i]);
-   pvInfo().printf(" )\n");
+      InfoLog().printf(" %d", props.maxGridSize[i]);
+   InfoLog().printf(" )\n");
 
-   pvInfo().printf("\tMaximum threads sizes == (");
+   InfoLog().printf("\tMaximum threads sizes == (");
    for (unsigned int i = 0; i < 3; i++)
-      pvInfo().printf(" %d", props.maxThreadsDim[i]);
-   pvInfo().printf(" )\n");
+      InfoLog().printf(" %d", props.maxThreadsDim[i]);
+   InfoLog().printf(" )\n");
 
-   pvInfo().printf("\tLocal mem size == %zu\n", props.sharedMemPerBlock);
+   InfoLog().printf("\tLocal mem size == %zu\n", props.sharedMemPerBlock);
 
-   pvInfo().printf("\tGlobal mem size == %zu\n", props.totalGlobalMem);
+   InfoLog().printf("\tGlobal mem size == %zu\n", props.totalGlobalMem);
 
-   pvInfo().printf("\tConst mem size == %zu\n", props.totalConstMem);
+   InfoLog().printf("\tConst mem size == %zu\n", props.totalConstMem);
 
-   pvInfo().printf("\tRegisters per block == %d\n", props.regsPerBlock);
+   InfoLog().printf("\tRegisters per block == %d\n", props.regsPerBlock);
 
-   pvInfo().printf("\tWarp size == %d\n", props.warpSize);
+   InfoLog().printf("\tWarp size == %d\n", props.warpSize);
 
-   pvInfo().printf("\n");
+   InfoLog().printf("\n");
 }
 
 int CudaDevice::get_max_threads() { return device_props.maxThreadsPerBlock; }

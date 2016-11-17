@@ -14,36 +14,36 @@ int main(int argc, char *argv[]) {
 }
 
 int customexit(HyPerCol *hc, int argc, char **argv) {
-   pvadata_t correctvalue = 0.5f;
-   pvadata_t tolerance    = 1.0e-3f;
+   float correctvalue = 0.5f;
+   float tolerance    = 1.0e-3f;
 
    if (hc->columnId() == 0) {
-      pvInfo().printf(
+      InfoLog().printf(
             "Checking whether input layer has all values equal to %f ...\n", (double)correctvalue);
    }
    HyPerLayer *inputlayer = hc->getLayerFromName("input");
-   pvErrorIf(!(inputlayer), "Test failed.\n");
+   FatalIf(!(inputlayer), "Test failed.\n");
    PVLayerLoc const *loc = inputlayer->getLayerLoc();
-   pvErrorIf(!(loc->nf == 1), "Test failed.\n");
+   FatalIf(!(loc->nf == 1), "Test failed.\n");
    const int numNeurons = inputlayer->getNumNeurons();
-   pvErrorIf(!(numNeurons > 0), "Test failed.\n");
+   FatalIf(!(numNeurons > 0), "Test failed.\n");
    int status = PV_SUCCESS;
 
-   int numExtended            = inputlayer->getNumExtended();
-   Communicator *icComm       = hc->getCommunicator();
-   pvadata_t const *layerData = inputlayer->getLayerData();
-   int rootproc               = 0;
+   int numExtended        = inputlayer->getNumExtended();
+   Communicator *icComm   = hc->getCommunicator();
+   float const *layerData = inputlayer->getLayerData();
+   int rootproc           = 0;
    if (icComm->commRank() == rootproc) {
-      pvadata_t *databuffer = (pvadata_t *)malloc(numExtended * sizeof(pvadata_t));
-      pvErrorIf(!(databuffer), "Test failed.\n");
+      float *databuffer = (float *)malloc(numExtended * sizeof(float));
+      FatalIf(!(databuffer), "Test failed.\n");
       for (int proc = 0; proc < icComm->commSize(); proc++) {
          if (proc == rootproc) {
-            memcpy(databuffer, layerData, numExtended * sizeof(pvadata_t));
+            memcpy(databuffer, layerData, numExtended * sizeof(float));
          }
          else {
             MPI_Recv(
                   databuffer,
-                  numExtended * sizeof(pvadata_t),
+                  numExtended * sizeof(float),
                   MPI_BYTE,
                   proc,
                   15,
@@ -61,9 +61,9 @@ int customexit(HyPerCol *hc, int argc, char **argv) {
                   loc->halo.rt,
                   loc->halo.dn,
                   loc->halo.up);
-            pvadata_t value = databuffer[kExt];
+            float value = databuffer[kExt];
             if (fabsf(value - correctvalue) >= tolerance) {
-               pvErrorNoExit().printf(
+               ErrorLog().printf(
                      "Rank %d, restricted index %d, extended index %d, value is %f instead of %f\n",
                      proc,
                      k,
@@ -76,18 +76,18 @@ int customexit(HyPerCol *hc, int argc, char **argv) {
       }
       free(databuffer);
       if (status == PV_SUCCESS) {
-         pvInfo().printf("%s succeeded.\n", argv[0]);
+         InfoLog().printf("%s succeeded.\n", argv[0]);
       }
       else {
-         pvError().printf("%s failed.\n", argv[0]);
+         Fatal().printf("%s failed.\n", argv[0]);
       }
    }
    else {
       // const_cast necessary because older versions of MPI define MPI_Send with first arg as void*,
       // not void const*.
       MPI_Send(
-            const_cast<pvadata_t *>(layerData),
-            numExtended * sizeof(pvadata_t),
+            const_cast<float *>(layerData),
+            numExtended * sizeof(float),
             MPI_BYTE,
             rootproc,
             15,

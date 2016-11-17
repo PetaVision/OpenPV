@@ -62,7 +62,7 @@ class NormalizeMultiply : public NormalizeBase {
    int initialize(const char *name, HyPerCol *hc);
 
    int applyThreshold(
-         pvwdata_t *dataPatchStart,
+         float *dataPatchStart,
          int weights_in_patch,
          float wMax); // weights less than normalize_cutoff*max(weights) are zeroed out
 
@@ -78,7 +78,7 @@ class NormalizeMultiply : public NormalizeBase {
     * rectangle are not changed.
     */
    int applyRMin(
-         pvwdata_t *dataPatchStart,
+         float *dataPatchStart,
          float rMinX,
          float rMinY,
          int nxp,

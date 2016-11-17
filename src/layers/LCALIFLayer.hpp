@@ -24,9 +24,9 @@ class LCALIFLayer : public PV::LIFGap {
 
    inline float getTargetRate() { return targetRateHz; }
    const float *getVadpt() { return Vadpt; }
-   const pvdata_t *getIntegratedSpikeCount() { return integratedSpikeCount; }
-   const pvdata_t *getVattained() { return Vattained; }
-   const pvdata_t *getVmeminf() { return Vmeminf; }
+   const float *getIntegratedSpikeCount() { return integratedSpikeCount; }
+   const float *getVattained() { return Vattained; }
+   const float *getVmeminf() { return Vmeminf; }
 
   protected:
    LCALIFLayer();
@@ -37,20 +37,19 @@ class LCALIFLayer : public PV::LIFGap {
    virtual void ioParam_normalizeInput(enum ParamsIOFlag ioFlag);
    virtual void ioParam_Vscale(enum ParamsIOFlag ioFlag);
    virtual int registerData(Checkpointer *checkpointer, std::string const &objName) override;
-   virtual int readStateFromCheckpoint(const char *cpDir, double *timeptr) override;
-   virtual int read_integratedSpikeCountFromCheckpoint(const char *cpDir, double *timeptr);
-   virtual int readVadptFromCheckpoint(const char *cpDir, double *timeptr);
+   virtual int readStateFromCheckpoint(Checkpointer *checkpointer) override;
+   virtual int read_integratedSpikeCountFromCheckpoint(Checkpointer *checkpointer);
+   virtual int readVadptFromCheckpoint(Checkpointer *checkpointer);
 
    int allocateBuffers() override;
 
-   pvdata_t *integratedSpikeCount; // plasticity decrement variable for postsynaptic layer
-   pvdata_t *G_Norm; // Copy of GSyn[CHANNEL_NORM] to be written out during checkpointing
-   pvdata_t
-         *GSynExcEffective; // What is used as GSynExc, after normalizing, stored for checkpointing
-   pvdata_t *GSynInhEffective; // What is used as GSynInh
-   pvdata_t *excitatoryNoise;
-   pvdata_t *inhibitoryNoise;
-   pvdata_t *inhibNoiseB;
+   float *integratedSpikeCount; // plasticity decrement variable for postsynaptic layer
+   float *G_Norm; // Copy of GSyn[CHANNEL_NORM] to be written out during checkpointing
+   float *GSynExcEffective; // What is used as GSynExc, after normalizing, stored for checkpointing
+   float *GSynInhEffective; // What is used as GSynInh
+   float *excitatoryNoise;
+   float *inhibitoryNoise;
+   float *inhibNoiseB;
    float tauTHR;
    float targetRateHz;
    float Vscale;

@@ -15,22 +15,22 @@ int main(int argc, char *argv[]) {
 
    s = sign(3.3f);
    if (!zero(1.0f - s)) {
-      pvError().printf("FAILED:TEST_SIGN: (3.3)\n");
+      Fatal().printf("FAILED:TEST_SIGN: (3.3)\n");
    }
 
    s = sign(0.001f);
    if (!zero(1.0f - s)) {
-      pvError().printf("FAILED:TEST_SIGN: (.001)\n");
+      Fatal().printf("FAILED:TEST_SIGN: (.001)\n");
    }
 
    s = sign(-0.001f);
    if (!zero(-1.0f - s)) {
-      pvError().printf("FAILED:TEST_SIGN: (-.001)\n");
+      Fatal().printf("FAILED:TEST_SIGN: (-.001)\n");
    }
 
    s = sign(0.0f);
    if (!zero(1.0f - s)) {
-      pvError().printf("FAILED:TEST_SIGN: (0.0)\n");
+      Fatal().printf("FAILED:TEST_SIGN: (0.0)\n");
    }
 
    return 0;

@@ -34,12 +34,12 @@ int PlasticConnTestProbe::outputState(double timed) {
    if (icComm->commRank() != rcvProc) {
       return PV_SUCCESS;
    }
-   pvErrorIf(!(getTargetConn() != NULL), "Test failed.\n");
+   FatalIf(!(getTargetConn() != NULL), "Test failed.\n");
    outputStream->printf("    Time %f, %s:\n", timed, getTargetConn()->getDescription_c());
-   const pvwdata_t *w = c->get_wDataHead(getArbor(), getKernelIndex());
-   const pvdata_t *dw = c->get_dwDataHead(getArbor(), getKernelIndex());
+   const float *w  = c->get_wDataHead(getArbor(), getKernelIndex());
+   const float *dw = c->get_dwDataHead(getArbor(), getKernelIndex());
    if (getOutputPlasticIncr() && dw == NULL) {
-      pvError().printf(
+      Fatal().printf(
             "%s: %s has dKernelData(%d,%d) set to null.\n",
             getDescription_c(),
             getTargetConn()->getDescription_c(),
@@ -54,8 +54,8 @@ int PlasticConnTestProbe::outputState(double timed) {
       int x  = kxPos(k, nxp, nyp, nfp);
       int wx = (nxp - 1) / 2 - x; // assumes connection is one-to-one
       if (getOutputWeights()) {
-         pvdata_t wCorrect  = timed * wx;
-         pvdata_t wObserved = w[k];
+         float wCorrect  = timed * wx;
+         float wObserved = w[k];
          if (fabs(((double)(wObserved - wCorrect)) / timed) > 1e-4) {
             int y = kyPos(k, nxp, nyp, nfp);
             int f = featureIndex(k, nxp, nyp, nfp);
@@ -70,8 +70,8 @@ int PlasticConnTestProbe::outputState(double timed) {
          }
       }
       if (timed > 0 && getOutputPlasticIncr() && dw != NULL) {
-         pvdata_t dwCorrect  = wx;
-         pvdata_t dwObserved = dw[k];
+         float dwCorrect  = wx;
+         float dwObserved = dw[k];
          if (dwObserved != dwCorrect) {
             int y = kyPos(k, nxp, nyp, nfp);
             int f = featureIndex(k, nxp, nyp, nfp);
@@ -86,7 +86,7 @@ int PlasticConnTestProbe::outputState(double timed) {
          }
       }
    }
-   pvErrorIf(!(status == PV_SUCCESS), "Test failed.\n");
+   FatalIf(!(status == PV_SUCCESS), "Test failed.\n");
    if (status == PV_SUCCESS) {
       if (getOutputWeights()) {
          outputStream->printf("        All weights are correct.\n");

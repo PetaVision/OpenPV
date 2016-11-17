@@ -28,14 +28,14 @@ int SigmoidLayer::initialize(const char *name, HyPerCol *hc) {
 
    if (parent->columnId() == 0) {
       if (InverseFlag)
-         pvInfo().printf("SigmoidLayer: Inverse flag is set\n");
+         InfoLog().printf("SigmoidLayer: Inverse flag is set\n");
       if (SigmoidFlag)
-         pvInfo().printf("SigmoidLayer: True Sigmoid flag is set\n");
+         InfoLog().printf("SigmoidLayer: True Sigmoid flag is set\n");
    }
 
    if (SigmoidAlpha < 0.0f || SigmoidAlpha > 1.0f) {
       if (parent->columnId() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s: SigmoidAlpha cannot be negative or greater than 1.\n", getDescription_c());
       }
       MPI_Barrier(parent->getCommunicator()->communicator());
@@ -87,8 +87,8 @@ int SigmoidLayer::allocateDataStructures() {
 }
 
 int SigmoidLayer::setActivity() {
-   pvdata_t *activity = clayer->activity->data;
-   memset(activity, 0, sizeof(pvdata_t) * clayer->numExtendedAllBatches);
+   float *activity = clayer->activity->data;
+   memset(activity, 0, sizeof(float) * clayer->numExtendedAllBatches);
    return 0;
 }
 
@@ -114,10 +114,10 @@ int SigmoidLayer::updateState(
       double timef,
       double dt,
       const PVLayerLoc *loc,
-      pvdata_t *A,
-      pvdata_t *V,
+      float *A,
+      float *V,
       int num_channels,
-      pvdata_t *gSynHead,
+      float *gSynHead,
       float Vth,
       float V0,
       float sigmoid_alpha,

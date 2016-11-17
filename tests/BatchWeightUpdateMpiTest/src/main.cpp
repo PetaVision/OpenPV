@@ -16,7 +16,7 @@ int main(int argc, char *argv[]) {
    MPI_Comm_size(MPI_COMM_WORLD, &size);
 
    // if(size != 5){
-   //   pvError() << "BatchWeightUpdateMpiTest must be ran with 16 mpi processes\n";
+   //   Fatal() << "BatchWeightUpdateMpiTest must be ran with 16 mpi processes\n";
    //}
 
    char const *paramFile1 = "input/timeBatch.params";
@@ -24,14 +24,14 @@ int main(int argc, char *argv[]) {
    int status             = PV_SUCCESS;
    if (initObj.getParamsFile() != NULL) {
       if (rank == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s should be run without the params file argument.\n", initObj.getProgramName());
       }
       status = PV_FAILURE;
    }
    if (initObj.getCheckpointReadDir() != NULL) {
       if (rank == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s should be run without the checkpoint directory argument.\n",
                initObj.getProgramName());
       }
@@ -39,35 +39,35 @@ int main(int argc, char *argv[]) {
    }
    if (initObj.getRestartFlag()) {
       if (rank == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s should be run without the restart flag.\n", initObj.getProgramName());
       }
       status = PV_FAILURE;
    }
    if (initObj.getNumRows() != 0) {
       if (rank == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s should be run without the rows argument.\n", initObj.getProgramName());
       }
       status = PV_FAILURE;
    }
    if (initObj.getNumColumns() != 0) {
       if (rank == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s should be run without the columns argument.\n", initObj.getProgramName());
       }
       status = PV_FAILURE;
    }
    if (initObj.getBatchWidth() != 0) {
       if (rank == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s should be run without the batchwidth argument.\n", initObj.getProgramName());
       }
       status = PV_FAILURE;
    }
    if (status != PV_SUCCESS) {
       if (rank == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "This test uses two hard-coded params files, %s and %s. The second run is started "
                "from a checkpoint from the first run, and the results of the two runs are "
                "compared.\n",
@@ -82,7 +82,7 @@ int main(int argc, char *argv[]) {
       char const *rmcommand = "rm -rf checkpoints1 checkpoints2 output";
       status                = system(rmcommand);
       if (status != 0) {
-         pvError().printf(
+         Fatal().printf(
                "deleting old checkpoints and output directories failed: \"%s\" returned %d\n",
                rmcommand,
                status);
@@ -94,7 +94,7 @@ int main(int argc, char *argv[]) {
 
    status = buildandrun(&initObj);
    if (status != PV_SUCCESS) {
-      pvError().printf(
+      Fatal().printf(
             "%s: rank %d running with params file %s returned status %d.\n",
             initObj.getProgramName(),
             rank,
@@ -108,7 +108,7 @@ int main(int argc, char *argv[]) {
 
    status = buildandrun(&initObj);
    if (status != PV_SUCCESS) {
-      pvError().printf(
+      Fatal().printf(
             "%s: rank %d running with params file %s returned status %d.\n",
             initObj.getProgramName(),
             rank,
@@ -121,26 +121,26 @@ int main(int argc, char *argv[]) {
 
 int compareFiles(const char *file1, const char *file2) {
    if (file1 == NULL || file2 == NULL) {
-      pvError().printf("Unable to allocate memory for names of checkpoint directories");
+      Fatal().printf("Unable to allocate memory for names of checkpoint directories");
    }
 
    FILE *fp1 = fopen(file1, "r");
    if (!fp1) {
-      pvWarn() << "Unable to open file " << file1 << ": " << strerror(errno) << ". Retrying.\n";
+      WarnLog() << "Unable to open file " << file1 << ": " << strerror(errno) << ". Retrying.\n";
       fp1 = fopen(file1, "r");
       if (!fp1) {
          sleep(1U);
-         pvErrorNoExit() << "Still unable to open file " << file1 << ": " << strerror(errno)
-                         << ". Test failed.\n";
+         ErrorLog() << "Still unable to open file " << file1 << ": " << strerror(errno)
+                    << ". Test failed.\n";
       }
    }
    FILE *fp2 = fopen(file2, "r");
    if (!fp2) {
-      pvWarn() << "Unable to open file " << file2 << ": " << strerror(errno) << ". Retrying.\n";
+      WarnLog() << "Unable to open file " << file2 << ": " << strerror(errno) << ". Retrying.\n";
       if (!fp2) {
          sleep(1U);
-         pvErrorNoExit() << "Still unable to open file " << file2 << ": " << strerror(errno)
-                         << ". Test failed.\n";
+         ErrorLog() << "Still unable to open file " << file2 << ": " << strerror(errno)
+                    << ". Test failed.\n";
       }
    }
    if (!fp1 || !fp2) {
@@ -162,12 +162,12 @@ int compareFiles(const char *file1, const char *file2) {
          break;
       }
       if (check1 != 1) {
-         pvError() << "Value returned from fread of file \"" << file1 << "\" is " << check1
-                   << " as opposed to 1\n";
+         Fatal() << "Value returned from fread of file \"" << file1 << "\" is " << check1
+                 << " as opposed to 1\n";
       }
       if (check2 != 1) {
-         pvError() << "Value returned from fread of file \"" << file2 << "\" is " << check2
-                   << " as opposed to 1\n";
+         Fatal() << "Value returned from fread of file \"" << file2 << "\" is " << check2
+                 << " as opposed to 1\n";
       }
       // Floating piont comparison
       if (fabs(f1 - f2) <= 1e-5) {
@@ -176,7 +176,7 @@ int compareFiles(const char *file1, const char *file2) {
       }
       // If characters do not match up
       else {
-         pvError() << "File " << file1 << " and " << file2 << " are different\n";
+         Fatal() << "File " << file1 << " and " << file2 << " are different\n";
       }
    }
    return PV_SUCCESS;

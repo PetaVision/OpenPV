@@ -27,7 +27,7 @@ class InitGaussianRandomWeights : public PV::InitRandomWeights {
    int initialize(char const *name, HyPerCol *hc);
    virtual int initRNGs(bool isKernel);
    virtual int
-   randomWeights(pvdata_t *patchDataStart, InitWeightsParams *weightParamPtr, int patchIndex);
+   randomWeights(float *patchDataStart, InitWeightsParams *weightParamPtr, int patchIndex);
 
   private:
    int initialize_base();

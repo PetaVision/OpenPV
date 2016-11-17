@@ -48,7 +48,7 @@ int BaseObject::setName(char const *name) {
    int status = PV_SUCCESS;
    this->name = strdup(name);
    if (this->name == NULL) {
-      pvErrorNoExit().printf("could not set name \"%s\": %s\n", name, strerror(errno));
+      ErrorLog().printf("could not set name \"%s\": %s\n", name, strerror(errno));
       status = PV_FAILURE;
    }
    return status;
@@ -91,8 +91,8 @@ int BaseObject::respond(std::shared_ptr<BaseMessage const> message) {
       return respondRegisterData(castMessage);
    }
    else if (
-         InitializeStateMessage const *castMessage =
-               dynamic_cast<InitializeStateMessage const *>(message.get())) {
+         InitializeStateMessage<Checkpointer> const *castMessage =
+               dynamic_cast<InitializeStateMessage<Checkpointer> const *>(message.get())) {
       return respondInitializeState(castMessage);
    }
    else if (
@@ -137,17 +137,17 @@ int BaseObject::respondAllocateData(AllocateDataMessage const *message) {
 int BaseObject::respondRegisterData(RegisterDataMessage<Checkpointer> const *message) {
    int status = registerData(message->mDataRegistry, name);
    if (status != PV_SUCCESS) {
-      pvError() << getDescription() << ": registerData failed.\n";
+      Fatal() << getDescription() << ": registerData failed.\n";
    }
    return status;
 }
 
-int BaseObject::respondInitializeState(InitializeStateMessage const *message) {
+int BaseObject::respondInitializeState(InitializeStateMessage<Checkpointer> const *message) {
    int status = PV_SUCCESS;
    if (getInitialValuesSetFlag()) {
       return status;
    }
-   status = initializeState();
+   status = initializeState(message->mDataRegistry);
    if (status == PV_SUCCESS) {
       setInitialValuesSetFlag();
    }

@@ -49,7 +49,7 @@ int RunningAverageLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_numImagesToAverage(ioFlag);
 
    if (numImagesToAverage <= 0) {
-      pvError().printf(
+      Fatal().printf(
             "RunningAverageLayer: numImagesToAverage must be an integer greater than 0.\n");
    }
    return PV_SUCCESS;
@@ -61,8 +61,8 @@ void RunningAverageLayer::ioParam_numImagesToAverage(enum ParamsIOFlag ioFlag) {
 }
 
 int RunningAverageLayer::setActivity() {
-   pvdata_t *activity = clayer->activity->data;
-   memset(activity, 0, sizeof(pvdata_t) * clayer->numExtendedAllBatches);
+   float *activity = clayer->activity->data;
+   memset(activity, 0, sizeof(float) * clayer->numExtendedAllBatches);
    return 0;
 }
 
@@ -72,8 +72,8 @@ int RunningAverageLayer::updateState(double timef, double dt) {
    // Check if an update is needed
    // Done in cloneVLayer
    int numNeurons                = originalLayer->getNumNeurons();
-   pvdata_t *A                   = clayer->activity->data;
-   const pvdata_t *originalA     = originalLayer->getCLayer()->activity->data;
+   float *A                      = clayer->activity->data;
+   const float *originalA        = originalLayer->getCLayer()->activity->data;
    const PVLayerLoc *loc         = getLayerLoc();
    const PVLayerLoc *locOriginal = originalLayer->getLayerLoc();
    int nbatch                    = loc->nbatch;
@@ -83,8 +83,8 @@ int RunningAverageLayer::updateState(double timef, double dt) {
    assert(locOriginal->nf == loc->nf);
 
    for (int b = 0; b < nbatch; b++) {
-      const pvdata_t *originalABatch = originalA + b * originalLayer->getNumExtended();
-      pvdata_t *ABatch               = A + b * getNumExtended();
+      const float *originalABatch = originalA + b * originalLayer->getNumExtended();
+      float *ABatch               = A + b * getNumExtended();
       if (numUpdateTimes < numImagesToAverage * dt) {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for

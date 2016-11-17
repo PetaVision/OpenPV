@@ -17,7 +17,7 @@ int main(int argc, char *argv[]) {
    PV::PVParams *params = new PV::PVParams("input/CheckpointerClassTest.params", 1, comm);
 
    char const *checkpointWriteDir = params->stringValue("checkpointer", "checkpointWriteDir");
-   pvErrorIf(
+   FatalIf(
          checkpointWriteDir == nullptr,
          "Group \"checkpointer\" must have a checkpointWriteDir string parameter.\n");
    std::string checkpointWriteDirectory(checkpointWriteDir);
@@ -27,10 +27,10 @@ int main(int argc, char *argv[]) {
    if (comm->commRank() == 0) {
       std::string rmcommand("rm -rf ");
       rmcommand.append(checkpointWriteDirectory).append("/*");
-      pvInfo() << "Cleaning directory \"" << checkpointWriteDirectory << "\" with \"" << rmcommand
-               << "\".\n";
+      InfoLog() << "Cleaning directory \"" << checkpointWriteDirectory << "\" with \"" << rmcommand
+                << "\".\n";
       int rmstatus = system(rmcommand.c_str());
-      pvErrorIf(
+      FatalIf(
             rmstatus,
             "Error executing \"%s\": status code was %d\n",
             rmcommand.c_str(),

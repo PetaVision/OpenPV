@@ -249,7 +249,7 @@ int TransposePoolingConn::communicateInitInfo() {
    BaseConnection *originalConnBase = parent->getConnFromName(this->mOriginalConnName);
    if (originalConnBase == NULL) {
       if (parent->columnId() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s: originalConnName \"%s\" does not refer to any connection in the column.\n",
                getDescription_c(),
                this->mOriginalConnName);
@@ -260,7 +260,7 @@ int TransposePoolingConn::communicateInitInfo() {
    mOriginalConn = dynamic_cast<PoolingConn *>(originalConnBase);
    if (mOriginalConn == NULL) {
       if (parent->columnId() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s: originalConnName \"%s\" is not a PoolingConn.\n",
                getDescription_c(),
                mOriginalConnName);
@@ -272,7 +272,7 @@ int TransposePoolingConn::communicateInitInfo() {
 
    if (!mOriginalConn->getInitInfoCommunicatedFlag()) {
       if (parent->columnId() == 0) {
-         pvInfo().printf(
+         InfoLog().printf(
                "%s must wait until original connection \"%s\" has finished its communicateInitInfo "
                "stage.\n",
                getDescription_c(),
@@ -297,7 +297,7 @@ int TransposePoolingConn::communicateInitInfo() {
 
    if (mOriginalConn->getShrinkPatches_flag()) {
       if (parent->columnId() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "TransposePoolingConn \"%s\": original conn \"%s\" has shrinkPatches set to true.  "
                "TransposePoolingConn has not been implemented for that case.\n",
                name,
@@ -313,7 +313,7 @@ int TransposePoolingConn::communicateInitInfo() {
 
    // Check post layer phases to make sure it matches
    if (mOriginalConn->postSynapticLayer()->getPhase() >= post->getPhase()) {
-      pvWarn().printf(
+      WarnLog().printf(
             "TransposePoolingConn \"%s\": originalConn's post layer phase is greater or equal than "
             "this layer's post. Behavior undefined.\n",
             name);
@@ -324,9 +324,8 @@ int TransposePoolingConn::communicateInitInfo() {
       char const *checkStringPresent =
             parent->parameters()->stringValue(name, "pvpatchAccumulateType");
       if (PoolingConn::parseAccumulateTypeString(checkStringPresent) != mPoolingType) {
-         pvError()
-               << getDescription()
-               << ": originalConn accumulateType does not match this layer's accumulate type.\n";
+         Fatal() << getDescription()
+                 << ": originalConn accumulateType does not match this layer's accumulate type.\n";
       }
    }
    if (mPoolingType == PoolingConn::MAX && !mOriginalConn->needPostIndex()) {
@@ -336,7 +335,7 @@ int TransposePoolingConn::communicateInitInfo() {
 #endif // PV_USE_CUDA
       {
          if (parent->columnId() == 0) {
-            pvErrorNoExit().printf(
+            ErrorLog().printf(
                   "TransposePoolingConn \"%s\": original pooling conn \"%s\" needs to have a "
                   "postIndexLayer if unmax pooling.\n",
                   name,
@@ -353,7 +352,7 @@ int TransposePoolingConn::communicateInitInfo() {
    if (preLoc->nx != origPostLoc->nx || preLoc->ny != origPostLoc->ny
        || preLoc->nf != origPostLoc->nf) {
       if (parent->columnId() == 0) {
-         pvErrorNoExit(errorMessage);
+         ErrorLog(errorMessage);
          errorMessage.printf(
                "%s: transpose's pre layer and original connection's post layer must have the same "
                "dimensions.\n",
@@ -375,7 +374,7 @@ int TransposePoolingConn::communicateInitInfo() {
    if (postLoc->nx != origPreLoc->nx || postLoc->ny != origPreLoc->ny
        || postLoc->nf != origPreLoc->nf) {
       if (parent->columnId() == 0) {
-         pvErrorNoExit(errorMessage);
+         ErrorLog(errorMessage);
          errorMessage.printf(
                "%s: transpose's post layer and original connection's pre layer must have the same "
                "dimensions.\n",
@@ -415,7 +414,7 @@ int TransposePoolingConn::communicateInitInfo() {
       int allowedDelay = mOriginalConn->getPostIndexLayer()->increaseDelayLevels(maxDelaySteps());
       if (allowedDelay < getDelayArraySize()) {
          if (this->getParent()->columnId() == 0) {
-            pvErrorNoExit().printf(
+            ErrorLog().printf(
                   "%s: attempt to set delay to %d, but the maximum allowed delay is %d.  Exiting\n",
                   this->getDescription_c(),
                   getDelayArraySize(),
@@ -473,7 +472,7 @@ int TransposePoolingConn::setPatchSize() {
 int TransposePoolingConn::allocateDataStructures() {
    if (!mOriginalConn->getDataStructuresAllocatedFlag()) {
       if (parent->columnId() == 0) {
-         pvInfo().printf(
+         InfoLog().printf(
                "%s must wait until original connection \"%s\" has finished its "
                "allocateDataStructures stage.\n",
                getDescription_c(),
@@ -591,9 +590,9 @@ double TransposePoolingConn::computeNewWeightUpdateTime(double time, double curr
 }
 
 int TransposePoolingConn::deliverPostsynapticPerspective(PVLayerCube const *activity, int arborID) {
-   pvError()
+   Fatal()
          << "Delivering from PostSynapticPerspective for TransposePoolingConn not implented yet\n";
-   return PV_FAILURE; // suppresses warning in compilers that don't recognize pvError always exits.
+   return PV_FAILURE; // suppresses warning in compilers that don't recognize Fatal always exits.
 }
 
 int TransposePoolingConn::deliverPresynapticPerspective(PVLayerCube const *activity, int arborID) {
@@ -610,7 +609,7 @@ int TransposePoolingConn::deliverPresynapticPerspective(PVLayerCube const *activ
    const int numExtended = activity->numItems;
 
    // Grab postIdxLayer's data
-   pvdata_t *postIdxData = nullptr;
+   float *postIdxData = nullptr;
    if (mPoolingType == PoolingConn::MAX) {
       PoolingIndexLayer *postIndexLayer = mOriginalConn->getPostIndexLayer();
       assert(postIndexLayer);
@@ -623,13 +622,13 @@ int TransposePoolingConn::deliverPresynapticPerspective(PVLayerCube const *activ
    }
 
    for (int b = 0; b < parent->getNBatch(); b++) {
-      pvdata_t *activityBatch = activity->data
-                                + b * (preLoc->nx + preLoc->halo.rt + preLoc->halo.lt)
-                                        * (preLoc->ny + preLoc->halo.up + preLoc->halo.dn)
-                                        * preLoc->nf;
-      pvdata_t *gSynPatchHeadBatch =
+      float *activityBatch = activity->data
+                             + b * (preLoc->nx + preLoc->halo.rt + preLoc->halo.lt)
+                                     * (preLoc->ny + preLoc->halo.up + preLoc->halo.dn)
+                                     * preLoc->nf;
+      float *gSynPatchHeadBatch =
             post->getChannel(getChannel()) + b * postLoc->nx * postLoc->ny * postLoc->nf;
-      pvdata_t *postIdxDataBatch = nullptr;
+      float *postIdxDataBatch = nullptr;
       if (mPoolingType == PoolingConn::MAX) {
          postIdxDataBatch = postIdxData + b * mOriginalConn->getPostIndexLayer()->getNumExtended();
       }
@@ -682,7 +681,7 @@ int TransposePoolingConn::deliverPresynapticPerspective(PVLayerCube const *activ
             continue;
 
          // If we're using thread_gSyn, set this here
-         pvdata_t *gSynPatchHead;
+         float *gSynPatchHead;
 #ifdef PV_USE_OPENMP_THREADS
          if (thread_gSyn) {
             int ti        = omp_get_thread_num();
@@ -767,16 +766,16 @@ int TransposePoolingConn::deliverPresynapticPerspective(PVLayerCube const *activ
             }
          }
          else {
-            PVPatch *weights             = getWeights(kPreExt, arborID);
-            const int nk                 = weights->nx * fPatchSize();
-            const int ny                 = weights->ny;
-            pvgsyndata_t *postPatchStart = gSynPatchHead + getGSynPatchStart(kPreExt, arborID);
-            const int sy                 = getPostNonextStrides()->sy; // stride in layer
+            PVPatch *weights      = getWeights(kPreExt, arborID);
+            const int nk          = weights->nx * fPatchSize();
+            const int ny          = weights->ny;
+            float *postPatchStart = gSynPatchHead + getGSynPatchStart(kPreExt, arborID);
+            const int sy          = getPostNonextStrides()->sy; // stride in layer
 
             int offset = kfPre;
             int sf     = fPatchSize();
 
-            pvwdata_t w = 1.0f;
+            float w = 1.0f;
             if (mPoolingType == PoolingConn::MAX) {
                w = 1.0f;
             }
@@ -797,8 +796,8 @@ int TransposePoolingConn::deliverPresynapticPerspective(PVLayerCube const *activ
 #ifdef PV_USE_OPENMP_THREADS
       // Set back into gSyn
       if (thread_gSyn) {
-         pvdata_t *gSynPatchHead = gSynPatchHeadBatch;
-         int numNeurons          = post->getNumNeurons();
+         float *gSynPatchHead = gSynPatchHeadBatch;
+         int numNeurons       = post->getNumNeurons();
 // Looping over neurons first to be thread safe
 #pragma omp parallel for
          for (int ni = 0; ni < numNeurons; ni++) {

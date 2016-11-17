@@ -136,7 +136,7 @@ int BBFindConfRemapLayer::communicateInitInfo() {
       imageLayer = parent->getLayerFromName(imageLayerName);
       if (imageLayer==nullptr) {
          if (parent->columnId()==0) {
-            pvError() << getDescription_c() << ": imageLayer \"" << imageLayerName << "\" does not refer to a layer in the column." << std::endl;
+            Fatal() << getDescription_c() << ": imageLayer \"" << imageLayerName << "\" does not refer to a layer in the column." << std::endl;
          }
          MPI_Barrier(parent->getCommunicator()->communicator());
          pvExitFailure("");
@@ -161,7 +161,7 @@ int BBFindConfRemapLayer::communicateInitInfo() {
          int cat = displayedCategories[k];
          if (cat <=0 || cat > getLayerLoc()->nf) {
             if (parent->columnId()==0) {
-               pvError() << getDescription_c() << ": displayedCategories element " << k+1 << " is " << cat << ", outside the range [1," << getLayerLoc()->nf << "]." << std::endl;
+               Fatal() << getDescription_c() << ": displayedCategories element " << k+1 << " is " << cat << ", outside the range [1," << getLayerLoc()->nf << "]." << std::endl;
             }
             MPI_Barrier(parent->getCommunicator()->communicator());
             pvExitFailure("");
@@ -220,7 +220,7 @@ int BBFindConfRemapLayer::updateState(double t, double dt) {
    }
 
    // Gather the V buffers into root process for BBFind, then scatter the activity.
-   pvadata_t confidenceLocal[getNumNeurons()];
+   float confidenceLocal[getNumNeurons()];
    PV::Communicator * icComm = parent->getCommunicator();
    PVLayerLoc const * loc = getLayerLoc();
    PVHalo const * halo = &loc->halo;
@@ -233,12 +233,12 @@ int BBFindConfRemapLayer::updateState(double t, double dt) {
       if (parent->columnId()==rootProcess) {
          int const nxGlobal = loc->nxGlobal;
          int const nyGlobal = loc->nyGlobal;
-         pvdata_t confidenceGlobal[getNumGlobalNeurons()];
+         float confidenceGlobal[getNumGlobalNeurons()];
          PVLayerLoc const * imageLoc = imageLayer->getLayerLoc();
          for (int rank=0; rank<icComm->commSize(); rank++) {
             int const kx0 = columnFromRank(rank, icComm->numCommRows(), icComm->numCommColumns())*nx;
             int const ky0 = rowFromRank(rank, icComm->numCommRows(), icComm->numCommColumns())*ny;
-            pvadata_t const * localPart = nullptr;
+            float const * localPart = nullptr;
             if (rank==rootProcess) {
                localPart = getV()+b*getNumNeurons();
             }
@@ -249,7 +249,7 @@ int BBFindConfRemapLayer::updateState(double t, double dt) {
             for (int y=0; y<ny; y++) {
                int localStart = kIndex(halo->lt, y+halo->up, 0, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, nf);
                int globalStart = kIndex(kx0, y+ky0, 0, nxGlobal, nyGlobal, nf);
-               memcpy(&confidenceGlobal[globalStart], &localPart[localStart], sizeof(pvadata_t)*nx*nf);
+               memcpy(&confidenceGlobal[globalStart], &localPart[localStart], sizeof(float)*nx*nf);
             }
 
             boundingboxFinder[b].giveMap(BBFind::bufferToMap3(confidenceGlobal, nxGlobal, nyGlobal, nf, displayedCategories, numDisplayedCategories));
@@ -274,11 +274,11 @@ int BBFindConfRemapLayer::updateState(double t, double dt) {
          }
       }
       else {
-         pvdata_t * buf = getV()+b*getNumNeurons(); // should be "pvdata_t const *" but older versions of MPI declare MPI_Send to use void* instead of void const*.
+         float * buf = getV()+b*getNumNeurons(); // should be "float const *" but older versions of MPI declare MPI_Send to use void* instead of void const*.
          MPI_Send(buf, getNumNeurons(), MPI_FLOAT, 0, 137, icComm->communicator());
          MPI_Recv(confidenceLocal, getNumNeurons(), MPI_FLOAT, 0, 138, icComm->communicator(), MPI_STATUS_IGNORE);
       }
-      pvadata_t * A = clayer->activity->data+b*getNumExtended();
+      float * A = clayer->activity->data+b*getNumExtended();
       for (int y=0; y<ny; y++) {
          int kRes = kIndex(0, y, 0, nx, ny, nf);
          int kExt = kIndex(halo->lt, y+halo->up, 0, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, nf);

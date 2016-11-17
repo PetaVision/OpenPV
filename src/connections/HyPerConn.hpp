@@ -38,7 +38,7 @@ namespace PV {
 
 struct SparseWeightInfo {
    unsigned long size;
-   pvwdata_t thresholdWeight;
+   float thresholdWeight;
    float percentile;
 };
 
@@ -86,7 +86,7 @@ class HyPerConn : public BaseConnection {
    virtual int writeWeights(const char *filename);
    virtual int writeWeights(
          PVPatch ***patches,
-         pvwdata_t **dataStart,
+         float **dataStart,
          int numPatches,
          const char *filename,
          double timef,
@@ -107,15 +107,15 @@ class HyPerConn : public BaseConnection {
    virtual void deliverOnePreNeuronActivity(
          int patchIndex,
          int arbor,
-         pvadata_t a,
-         pvgsyndata_t *postBufferStart,
+         float a,
+         float *postBufferStart,
          void *auxPtr);
    virtual void deliverOnePostNeuronActivity(
          int arborID,
          int kTargetExt,
          int inSy,
          float *activityStartBuf,
-         pvdata_t *gSynPatchPos,
+         float *gSynPatchPos,
          float dt_factor,
          taus_uint4 *rngPtr);
 
@@ -125,7 +125,7 @@ class HyPerConn : public BaseConnection {
          int nk,
          float *v,
          float a,
-         pvwdata_t *w,
+         float *w,
          void *auxPtr,
          int sf);
    int (*accumulateFunctionFromPostPointer)(
@@ -133,7 +133,7 @@ class HyPerConn : public BaseConnection {
          int nk,
          float *v,
          float *a,
-         pvwdata_t *w,
+         float *w,
          float dt_factor,
          void *auxPtr,
          int sf);
@@ -201,7 +201,7 @@ class HyPerConn : public BaseConnection {
 
    virtual PVPatch *getWeights(int kPre, int arborId);
 
-   inline pvwdata_t *getPlasticIncr(int kPre, int arborId) {
+   inline float *getPlasticIncr(int kPre, int arborId) {
       return plasticityFlag
                    ? &dwDataStart[arborId][patchStartIndex(kPre) + wPatches[arborId][kPre]->offset]
                    : NULL;
@@ -211,22 +211,22 @@ class HyPerConn : public BaseConnection {
 
    inline const PVPatchStrides *getPostNonextStrides() { return &postNonextStrides; }
 
-   inline pvwdata_t *get_wDataStart(int arborId) { return wDataStart[arborId]; }
+   inline float *get_wDataStart(int arborId) { return wDataStart[arborId]; }
 
-   inline pvwdata_t *get_wDataHead(int arborId, int dataIndex) {
+   inline float *get_wDataHead(int arborId, int dataIndex) {
       return &wDataStart[arborId][patchStartIndex(dataIndex)];
    }
 
-   inline pvwdata_t *get_wData(int arborId, int patchIndex) {
+   inline float *get_wData(int arborId, int patchIndex) {
       return &wDataStart[arborId][patchStartIndex(patchToDataLUT(patchIndex))
                                   + wPatches[arborId][patchIndex]->offset];
    }
 
-   inline pvwdata_t *get_dwDataStart(int arborId) { return dwDataStart[arborId]; }
+   inline float *get_dwDataStart(int arborId) { return dwDataStart[arborId]; }
 
    inline long *get_activations(int arborId) { return numKernelActivations[arborId]; }
 
-   inline pvwdata_t *get_dwDataHead(int arborId, int dataIndex) {
+   inline float *get_dwDataHead(int arborId, int dataIndex) {
       return &dwDataStart[arborId][patchStartIndex(dataIndex)];
    }
 
@@ -234,7 +234,7 @@ class HyPerConn : public BaseConnection {
       return &numKernelActivations[arborId][patchStartIndex(dataIndex)];
    }
 
-   inline pvwdata_t *get_dwData(int arborId, int patchIndex) {
+   inline float *get_dwData(int arborId, int patchIndex) {
       return &dwDataStart[arborId][patchStartIndex(patchToDataLUT(patchIndex))
                                    + wPatches[arborId][patchIndex]->offset];
    }
@@ -248,12 +248,12 @@ class HyPerConn : public BaseConnection {
       return wPostPatches[arbor][patchIndex];
    }
 
-   inline pvwdata_t *getWPostData(int arbor, int patchIndex) {
+   inline float *getWPostData(int arbor, int patchIndex) {
       return &wPostDataStart[arbor][postPatchStartIndex(patchIndex)]
              + wPostPatches[arbor][patchIndex]->offset;
    }
 
-   inline pvwdata_t *getWPostData(int arbor) { return wPostDataStart[arbor]; }
+   inline float *getWPostData(int arbor) { return wPostDataStart[arbor]; }
 
    int getNumWeightPatches() { return numWeightPatches; }
 
@@ -292,7 +292,7 @@ class HyPerConn : public BaseConnection {
          int nx,
          int ny,
          int offset,
-         pvwdata_t *dataStart,
+         float *dataStart,
          double *sum,
          double *sum2,
          float *maxVal);
@@ -317,7 +317,7 @@ class HyPerConn : public BaseConnection {
   protected:
    int fileparams[NUM_WGT_PARAMS]; // The header of the file named by the filename member variable
    int numWeightPatches; // Number of PVPatch structures in buffer pointed to by wPatches[arbor]
-   int numDataPatches; // Number of blocks of pvwdata_t's in buffer pointed to by wDataStart[arbor]
+   int numDataPatches; // Number of blocks of float's in buffer pointed to by wDataStart[arbor]
    bool needAllocPostWeights;
 
    std::vector<PlasticCloneConn *>
@@ -335,9 +335,9 @@ class HyPerConn : public BaseConnection {
          postExtStrides; // sx,sy,sf for a patch mapping into an extended post-synaptic layer
    PVPatchStrides
          postNonextStrides; // sx,sy,sf for a patch mapping into a non-extended post-synaptic layer
-   pvwdata_t **wDataStart; // now that data for all patches are allocated to one continuous block of
+   float **wDataStart; // now that data for all patches are allocated to one continuous block of
    // memory, this pointer saves the starting address of that array
-   pvwdata_t **dwDataStart; // now that data for all patches are allocated to one continuous block
+   float **dwDataStart; // now that data for all patches are allocated to one continuous block
    // of memory, this pointer saves the starting address of that array
    bool strengthParamHasBeenWritten;
    int *patch2datalookuptable;
@@ -348,7 +348,7 @@ class HyPerConn : public BaseConnection {
    // value is used to decide whether to create postConn.
 
    // All weights that are above the threshold
-   typedef pvwdata_t WeightType;
+   typedef float WeightType;
    typedef std::vector<WeightType> WeightListType;
    typedef std::vector<int> IndexListType;
 
@@ -394,22 +394,22 @@ class HyPerConn : public BaseConnection {
    SparseWeightInfo calculateSparseWeightInfo() const;
    SparseWeightInfo findPercentileThreshold(
          float percentile,
-         pvwdata_t **wDataStart,
+         float **wDataStart,
          size_t numAxonalArborLists,
          size_t numPatches,
          size_t patchSize) const;
    void deliverOnePreNeuronActivitySparseWeights(
          int kPreExt,
          int arbor,
-         pvadata_t a,
-         pvgsyndata_t *postBufferStart,
+         float a,
+         float *postBufferStart,
          void *auxPtr);
    void deliverOnePostNeuronActivitySparseWeights(
          int arborID,
          int kTargetExt,
          int inSy,
          float *activityStartBuf,
-         pvdata_t *gSynPatchPos,
+         float *gSynPatchPos,
          float dt_factor,
          taus_uint4 *rngPtr);
 
@@ -429,10 +429,10 @@ class HyPerConn : public BaseConnection {
    int sxp, syp, sfp; // stride in x,y,features
    PVPatch ***wPostPatches; // post-synaptic linkage of weights // This is being deprecated in favor
    // of TransposeConn
-   pvwdata_t **wPostDataStart;
+   float **wPostDataStart;
 
    PVPatch ****wPostPatchesp; // Pointer to wPatches, but from the postsynaptic perspective
-   pvwdata_t ***wPostDataStartp; // Pointer to wDataStart, but from the postsynaptic perspective
+   float ***wPostDataStartp; // Pointer to wDataStart, but from the postsynaptic perspective
 
    int nxpPost, nypPost, nfpPost;
    int numParams;
@@ -485,7 +485,7 @@ class HyPerConn : public BaseConnection {
    bool combineWeightFiles;
    bool updateGSynFromPostPerspective;
 
-   pvdata_t **thread_gSyn; // Accumulate buffer for each thread, only used if numThreads > 1 // Move
+   float **thread_gSyn; // Accumulate buffer for each thread, only used if numThreads > 1 // Move
    // back to HyPerLayer?
 
    double weightUpdatePeriod;
@@ -522,21 +522,19 @@ class HyPerConn : public BaseConnection {
 
    inline void setAPostOffset(size_t **postoffset) { aPostOffset = postoffset; }
 
-   inline pvwdata_t **get_wDataStart() { return wDataStart; }
+   inline float **get_wDataStart() { return wDataStart; }
 
-   inline void set_wDataStart(pvwdata_t **datastart) { wDataStart = datastart; }
+   inline void set_wDataStart(float **datastart) { wDataStart = datastart; }
 
-   inline void set_wDataStart(int arborId, pvwdata_t *pDataStart) {
-      wDataStart[arborId] = pDataStart;
-   }
+   inline void set_wDataStart(int arborId, float *pDataStart) { wDataStart[arborId] = pDataStart; }
 
-   inline pvwdata_t **get_dwDataStart() { return dwDataStart; }
+   inline float **get_dwDataStart() { return dwDataStart; }
 
    inline long **get_activations() { return numKernelActivations; }
 
-   inline void set_dwDataStart(pvwdata_t **datastart) { dwDataStart = datastart; }
+   inline void set_dwDataStart(float **datastart) { dwDataStart = datastart; }
 
-   inline void set_dwDataStart(int arborId, pvwdata_t *pIncrStart) {
+   inline void set_dwDataStart(int arborId, float *pIncrStart) {
       dwDataStart[arborId] = pIncrStart;
    }
 
@@ -837,7 +835,7 @@ class HyPerConn : public BaseConnection {
    // communicateInitInfo().
    virtual void
    handleDefaultSelfFlag(); // If selfFlag was not set in params, set it in this function.
-   virtual PVPatch ***initializeWeights(PVPatch ***arbors, pvwdata_t **dataStart);
+   virtual PVPatch ***initializeWeights(PVPatch ***arbors, float **dataStart);
    virtual InitWeights *getDefaultInitWeightsMethod(const char *keyword);
    virtual int createWeights(
          PVPatch ***patches,
@@ -848,11 +846,11 @@ class HyPerConn : public BaseConnection {
          int nfPatch,
          int arborId);
    int createWeights(PVPatch ***patches, int arborId);
-   virtual pvwdata_t *allocWeights(int nPatches, int nxPatch, int nyPatch, int nfPatch);
+   virtual float *allocWeights(int nPatches, int nxPatch, int nyPatch, int nfPatch);
    virtual int allocatePostToPreBuffer();
    virtual int allocatePostConn();
 
-   int clearWeights(pvwdata_t **dataStart, int numPatches, int nx, int ny, int nf);
+   int clearWeights(float **dataStart, int numPatches, int nx, int ny, int nf);
    virtual int adjustAllPatches(
          int nxPre,
          int nyPre,
@@ -867,12 +865,11 @@ class HyPerConn : public BaseConnection {
          size_t **inAPostOffset,
          int arborId);
    virtual int adjustAxonalArbors(int arborId);
-   virtual int readStateFromCheckpoint(const char *cpDir, double *timeptr) override;
-   virtual int readWeightsFromCheckpoint(const char *cpDir, double *timeptr);
+   virtual int readStateFromCheckpoint(Checkpointer *checkpointer) override;
    void checkpointWeightPvp(
          Checkpointer *checkpointer,
          char const *bufferName,
-         pvdata_t **weightDataBuffer);
+         float **weightDataBuffer);
    virtual int setInitialValues() override; // returns PV_SUCCESS if successful,
    // or PV_POSTPONE if it needs to wait on other objects
    // (e.g. TransposeConn has to wait for original conn)
@@ -892,9 +889,9 @@ class HyPerConn : public BaseConnection {
     * Updates the dW buffer
     */
    virtual int update_dW(int arborId);
-   virtual pvdata_t updateRule_dW(pvdata_t pre, pvdata_t post);
+   virtual float updateRule_dW(float pre, float post);
    virtual int updateWeights(int arborId = 0);
-   virtual bool skipPre(pvdata_t preact) { return preact == 0.0f; };
+   virtual bool skipPre(float preact) { return preact == 0.0f; };
    /**
     * Reduces all dW and activations across MPI
     */
@@ -1009,7 +1006,7 @@ class HyPerConn : public BaseConnection {
 #endif // PV_USE_CUDA
 
   private:
-   int clearWeights(pvwdata_t *arborDataStart, int numPatches, int nx, int ny, int nf);
+   int clearWeights(float *arborDataStart, int numPatches, int nx, int ny, int nf);
    int deleteWeights();
    void unsetAccumulateType();
 

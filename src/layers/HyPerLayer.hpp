@@ -227,12 +227,12 @@ class HyPerLayer : public BaseLayer {
    /**
     * Allocates a restricted buffer (that is, buffer's length is getNumNeuronsAllBatches()).
     */
-   int allocateRestrictedBuffer(pvdata_t **buf, const char *bufname);
+   int allocateRestrictedBuffer(float **buf, const char *bufname);
 
    /**
     * Allocates an extended buffer (that is, buffer's length is getNumExtendedAllBatches()).
     */
-   int allocateExtendedBuffer(pvdata_t **buf, const char *bufname);
+   int allocateExtendedBuffer(float **buf, const char *bufname);
 
    int allocateCube();
    virtual int allocateV();
@@ -255,10 +255,10 @@ class HyPerLayer : public BaseLayer {
 
    virtual int initializeV();
    virtual int initializeActivity();
-   virtual int readStateFromCheckpoint(const char *cpDir, double *timeptr);
-   virtual int readActivityFromCheckpoint(const char *cpDir, double *timeptr);
-   virtual int readVFromCheckpoint(const char *cpDir, double *timeptr);
-   virtual int readDelaysFromCheckpoint(const char *cpDir, double *timeptr);
+   virtual int readStateFromCheckpoint(Checkpointer *checkpointer);
+   virtual int readActivityFromCheckpoint(Checkpointer *checkpointer);
+   virtual int readVFromCheckpoint(Checkpointer *checkpointer);
+   virtual int readDelaysFromCheckpoint(Checkpointer *checkpointer);
 #ifdef PV_USE_CUDA
    virtual int copyInitialStateToGPU();
 #endif // PV_USE_CUDA
@@ -293,18 +293,18 @@ class HyPerLayer : public BaseLayer {
     * Note that there is no checking whether the buffer was created by allocateRestrictedBuffer(),
     * or any other allocateBuffer()-related method.
     */
-   int freeRestrictedBuffer(pvdata_t **buf);
+   int freeRestrictedBuffer(float **buf);
 
    /**
     * Frees a buffer created by allocateRestrictedBuffer().
     * Note that there is no checking whether the buffer was created by allocateExtendedBuffer(),
     * or any other allocateBuffer()-related method.
     */
-   int freeExtendedBuffer(pvdata_t **buf);
+   int freeExtendedBuffer(float **buf);
 
   public:
    HyPerLayer(const char *name, HyPerCol *hc);
-   pvdata_t *getActivity() {
+   float *getActivity() {
       return clayer->activity->data;
    } // TODO: access to clayer->activity->data should not be public
    virtual double getTimeScale(int batchIdx) { return -1.0; };
@@ -385,7 +385,7 @@ class HyPerLayer : public BaseLayer {
 
    virtual int updateAllActiveIndices();
    virtual int updateActiveIndices();
-   int resetBuffer(pvdata_t *buf, int numItems);
+   int resetBuffer(float *buf, int numItems);
 
    static bool localDimensionsEqual(PVLayerLoc const *loc1, PVLayerLoc const *loc2);
    int mirrorInteriorToBorder(PVLayerCube *cube, PVLayerCube *borderCube);
@@ -443,9 +443,9 @@ class HyPerLayer : public BaseLayer {
    virtual int requireChannel(int channelNeeded, int *numChannelsResult);
 
    PVLayer *getCLayer() { return clayer; }
-   pvdata_t *getV() { return clayer->V; } // name query
+   float *getV() { return clayer->V; } // name query
    int getNumChannels() { return numChannels; }
-   pvdata_t *getChannel(ChannelType ch) { // name query
+   float *getChannel(ChannelType ch) { // name query
       return (ch < this->numChannels && ch >= 0) ? GSyn[ch] : NULL;
    }
    virtual float getChannelTimeConst(enum ChannelType channel_type) { return 0.0f; };
@@ -453,7 +453,7 @@ class HyPerLayer : public BaseLayer {
    int getYScale() { return clayer->yScale; }
 
    bool useMirrorBCs() { return this->mirrorBCflag; }
-   pvdata_t getValueBC() { return this->valueBC; }
+   float getValueBC() { return this->valueBC; }
 
    bool getSparseFlag() { return this->sparseLayer; }
 
@@ -461,7 +461,7 @@ class HyPerLayer : public BaseLayer {
 
    // implementation of LayerDataInterface interface
    //
-   const pvdata_t *getLayerData(int delay = 0);
+   const float *getLayerData(int delay = 0);
    const PVLayerLoc *getLayerLoc() { return &(clayer->loc); }
    bool isExtended() { return true; }
 
@@ -475,9 +475,10 @@ class HyPerLayer : public BaseLayer {
    virtual int communicateInitInfo() override;
    virtual int allocateDataStructures() override;
    virtual int registerData(Checkpointer *checkpointer, std::string const &objName) override;
-   virtual int initializeState() final; // Not overridable since all layers should respond to
-   // initializeFromCheckpointFlag and (deprecated) restartFlag in the same way.
-   // initializeState calls the virtual methods readStateFromCheckpoint() and setInitialValues().
+   virtual int initializeState(Checkpointer *checkpointer) override final;
+   // Not overridable since all layers should respond to initializeFromCheckpointFlag and
+   // (deprecated) restartFlag in the same way. initializeState calls the virtual methods
+   // readStateFromCheckpoint() and setInitialValues().
 
    int openOutputStateFile();
 /* static methods called by updateState({long_argument_list})*/
@@ -493,7 +494,7 @@ class HyPerLayer : public BaseLayer {
    // layerId was removed Aug 12, 2016.
 
    int numChannels; // number of channels
-   pvdata_t **GSyn; // of dynamic length numChannels
+   float **GSyn; // of dynamic length numChannels
    Publisher *publisher = nullptr;
 
    float nxScale, nyScale; // Size of layer relative to column
@@ -512,7 +513,7 @@ class HyPerLayer : public BaseLayer {
    // timesteps for connections with delays
 
    bool mirrorBCflag; // true when mirror BC are to be applied
-   pvdata_t valueBC; // If mirrorBCflag is false, the value of A to fill extended cells with
+   float valueBC; // If mirrorBCflag is false, the value of A to fill extended cells with
 
    int ioAppend; // controls opening of binary files
    double initialWriteTime; // time of next output
@@ -570,7 +571,7 @@ class HyPerLayer : public BaseLayer {
    double mLastUpdateTime;
    double mLastTriggerTime;
 
-   pvdata_t **thread_gSyn; // Accumulate buffer for each thread, only used if numThreads > 1
+   float **thread_gSyn; // Accumulate buffer for each thread, only used if numThreads > 1
    std::vector<BaseConnection *> recvConns;
 
 // GPU variables

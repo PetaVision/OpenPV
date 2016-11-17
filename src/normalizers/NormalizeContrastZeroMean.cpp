@@ -37,7 +37,7 @@ void NormalizeContrastZeroMean::ioParam_normalizeFromPostPerspective(enum Params
    if (ioFlag == PARAMS_IO_READ) {
       if (parent->parameters()->present(name, "normalizeFromPostPerspective")) {
          if (parent->columnId() == 0) {
-            pvWarn().printf(
+            WarnLog().printf(
                   "%s \"%s\": normalizeMethod \"normalizeContrastZeroMean\" doesn't use "
                   "normalizeFromPostPerspective parameter.\n",
                   parent->parameters()->groupKeywordFromName(name),
@@ -61,7 +61,7 @@ int NormalizeContrastZeroMean::normalizeWeights() {
       HyPerConn *conn = connectionList[c];
       if (conn->numberOfAxonalArborLists() != conn0->numberOfAxonalArborLists()) {
          if (parent->columnId() == 0) {
-            pvErrorNoExit().printf(
+            ErrorLog().printf(
                   "%s: All connections in the normalization group must have the same number of "
                   "arbors (%s has %d; %s has %d).\n",
                   getDescription_c(),
@@ -74,7 +74,7 @@ int NormalizeContrastZeroMean::normalizeWeights() {
       }
       if (conn->getNumDataPatches() != conn0->getNumDataPatches()) {
          if (parent->columnId() == 0) {
-            pvErrorNoExit().printf(
+            ErrorLog().printf(
                   "%s: All connections in the normalization group must have the same number of "
                   "data patches (%s has %d; %s has %d).\n",
                   getDescription_c(),
@@ -110,12 +110,12 @@ int NormalizeContrastZeroMean::normalizeWeights() {
                int nyp         = conn0->yPatchSize();
                int nfp         = conn0->fPatchSize();
                weights_per_patch += nxp * nyp * nfp;
-               pvwdata_t *dataStartPatch =
+               float *dataStartPatch =
                      conn->get_wDataStart(arborID) + patchindex * weights_per_patch;
                accumulateSumAndSumSquared(dataStartPatch, weights_per_patch, &sum, &sumsq);
             }
             if (fabsf(sum) <= minSumTolerated) {
-               pvWarn().printf(
+               WarnLog().printf(
                      "for NormalizeContrastZeroMean \"%s\": sum of weights in patch %d of arbor %d "
                      "is within minSumTolerated=%f of zero. Weights in this patch unchanged.\n",
                      this->getName(),
@@ -128,7 +128,7 @@ int NormalizeContrastZeroMean::normalizeWeights() {
             float var  = sumsq / weights_per_patch - mean * mean;
             for (int c = 0; c < numConnections; c++) {
                HyPerConn *conn = connectionList[c];
-               pvwdata_t *dataStartPatch =
+               float *dataStartPatch =
                      conn->get_wDataStart(arborID) + patchindex * weights_per_patch;
                subtractOffsetAndNormalize(
                      dataStartPatch,
@@ -151,13 +151,13 @@ int NormalizeContrastZeroMean::normalizeWeights() {
                int nyp         = conn0->yPatchSize();
                int nfp         = conn0->fPatchSize();
                weights_per_patch += nxp * nyp * nfp;
-               pvwdata_t *dataStartPatch =
+               float *dataStartPatch =
                      conn->get_wDataStart(arborID) + patchindex * weights_per_patch;
                accumulateSumAndSumSquared(dataStartPatch, weights_per_patch, &sum, &sumsq);
             }
          }
          if (fabsf(sum) <= minSumTolerated) {
-            pvWarn().printf(
+            WarnLog().printf(
                   "for NormalizeContrastZeroMean \"%s\": sum of weights in patch %d is within "
                   "minSumTolerated=%f of zero. Weights in this patch unchanged.\n",
                   getName(),
@@ -171,7 +171,7 @@ int NormalizeContrastZeroMean::normalizeWeights() {
          for (int arborID = 0; arborID < nArbors; arborID++) {
             for (int c = 0; c < numConnections; c++) {
                HyPerConn *conn = connectionList[c];
-               pvwdata_t *dataStartPatch =
+               float *dataStartPatch =
                      conn->get_wDataStart(arborID) + patchindex * weights_per_patch;
                subtractOffsetAndNormalize(
                      dataStartPatch, weights_per_patch, mean, sqrtf(var) / scale_factor);
@@ -184,7 +184,7 @@ int NormalizeContrastZeroMean::normalizeWeights() {
 }
 
 void NormalizeContrastZeroMean::subtractOffsetAndNormalize(
-      pvwdata_t *dataStartPatch,
+      float *dataStartPatch,
       int weights_per_patch,
       float offset,
       float normalizer) {
@@ -195,7 +195,7 @@ void NormalizeContrastZeroMean::subtractOffsetAndNormalize(
 }
 
 int NormalizeContrastZeroMean::accumulateSumAndSumSquared(
-      pvwdata_t *dataPatchStart,
+      float *dataPatchStart,
       int weights_in_patch,
       float *sum,
       float *sumsq) {
@@ -203,7 +203,7 @@ int NormalizeContrastZeroMean::accumulateSumAndSumSquared(
    // sum, sumsq, max are not cleared inside this routine so that you can accumulate the stats over
    // several patches with multiple calls
    for (int k = 0; k < weights_in_patch; k++) {
-      pvdata_t w = dataPatchStart[k];
+      float w = dataPatchStart[k];
       *sum += w;
       *sumsq += w * w;
    }

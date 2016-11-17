@@ -32,7 +32,7 @@ int IdentConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 
    // April 15, 2016: Scale moved from IdentConn to RescaleConn.
    if (!strcmp(getKeyword(), "IdentConn") && parent->parameters()->present(name, "scale")) {
-      pvErrorNoExit().printf(
+      ErrorLog().printf(
             "IdentConn \"%s\": IdentConn does not take a scale parameter.  Use RescaleConn "
             "instead.\n",
             name);
@@ -109,7 +109,7 @@ void IdentConn::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
                ioFlag, name, "writeStep", &writeStep, -1.0 /*default*/, false /*warnIfAbsent*/);
          if (writeStep >= 0) {
             if (parent->columnId() == 0) {
-               pvErrorNoExit().printf(
+               ErrorLog().printf(
                      "%s does not use writeStep, but the parameters file sets it to %f.\n",
                      getDescription_c(),
                      writeStep);
@@ -229,7 +229,7 @@ void IdentConn::ioParam_updateGSynFromPostPerspective(enum ParamsIOFlag ioFlag) 
 int IdentConn::setWeightInitializer() {
    weightInitializer = (InitWeights *)new InitIdentWeights(name, parent);
    if (weightInitializer == NULL) {
-      pvError().printf(
+      Fatal().printf(
             "IdentConn \"%s\": Rank %d process unable to create InitIdentWeights object.  "
             "Exiting.\n",
             name,
@@ -245,7 +245,7 @@ int IdentConn::communicateInitInfo() {
    const PVLayerLoc *postLoc = post->getLayerLoc();
    if (preLoc->nx != postLoc->nx || preLoc->ny != postLoc->ny || preLoc->nf != postLoc->nf) {
       if (parent->columnId() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "IdentConn \"%s\" Error: %s and %s do not have the same dimensions.\n Dims: "
                "%dx%dx%d vs. %dx%dx%d\n",
                name,
@@ -286,7 +286,7 @@ int IdentConn::deliverPresynapticPerspective(PVLayerCube const *activity, int ar
 #ifdef DEBUG_OUTPUT
    int rank;
    MPI_Comm_rank(parent->getCommunicator()->communicator(), &rank);
-   pvDebug(debugMessage);
+   DebugLog(debugMessage);
    debugMessage.printf(
          "[%d]: HyPerLayr::recvSyn: neighbor=%d num=%d actv=%p this=%p conn=%p\n",
          rank,
@@ -299,11 +299,11 @@ int IdentConn::deliverPresynapticPerspective(PVLayerCube const *activity, int ar
 #endif // DEBUG_OUTPUT
 
    for (int b = 0; b < parent->getNBatch(); b++) {
-      pvdata_t *activityBatch = activity->data
-                                + b * (preLoc->nx + preLoc->halo.rt + preLoc->halo.lt)
-                                        * (preLoc->ny + preLoc->halo.up + preLoc->halo.dn)
-                                        * preLoc->nf;
-      pvdata_t *gSynPatchHeadBatch =
+      float *activityBatch = activity->data
+                             + b * (preLoc->nx + preLoc->halo.rt + preLoc->halo.lt)
+                                     * (preLoc->ny + preLoc->halo.up + preLoc->halo.dn)
+                                     * preLoc->nf;
+      float *gSynPatchHeadBatch =
             post->getChannel(getChannel()) + b * postLoc->nx * postLoc->ny * postLoc->nf;
 
       if (activity->isSparse) {
@@ -325,8 +325,7 @@ int IdentConn::deliverPresynapticPerspective(PVLayerCube const *activity, int ar
                // into account, but
                // for feature index,
                // shouldn't matter.
-               pvgsyndata_t *postPatchStart =
-                     gSynPatchHeadBatch + getGSynPatchStart(kPre, arborID) + f;
+               float *postPatchStart = gSynPatchHeadBatch + getGSynPatchStart(kPre, arborID) + f;
                *postPatchStart += a;
             }
          }
@@ -340,10 +339,10 @@ int IdentConn::deliverPresynapticPerspective(PVLayerCube const *activity, int ar
 #pragma omp parallel for
 #endif
          for (int y = 0; y < loc->ny; y++) {
-            pvdata_t *lineStartPreActivity =
+            float *lineStartPreActivity =
                   &activityBatch[(y + halo->up) * lineSizeExt + halo->lt * loc->nf];
-            int nk                      = loc->nx * loc->nf;
-            pvdata_t *lineStartPostGSyn = &gSynPatchHeadBatch[y * nk];
+            int nk                   = loc->nx * loc->nf;
+            float *lineStartPostGSyn = &gSynPatchHeadBatch[y * nk];
             for (int k = 0; k < nk; k++) {
                lineStartPostGSyn[k] += lineStartPreActivity[k];
             }

@@ -133,7 +133,7 @@ class ImageFromMemoryBuffer : public ImageLayer {
    int initialize_base();
 
    template <typename pixeltype>
-   pvadata_t pixelTypeConvert(pixeltype q, pixeltype zeroval, pixeltype oneval);
+   float pixelTypeConvert(pixeltype q, pixeltype zeroval, pixeltype oneval);
 
    // Member variables
   protected:

@@ -58,7 +58,7 @@ int StatsProbe::initStatsProbe_base() {
    iotimer      = NULL;
    mpitimer     = NULL;
    comptimer    = NULL;
-   nnzThreshold = (pvdata_t)0;
+   nnzThreshold = (float)0;
    return PV_SUCCESS;
 }
 
@@ -129,7 +129,7 @@ void StatsProbe::requireType(PVBufType requiredType) {
          }
          if (type != BufV) {
             if (getParent()->columnId() == 0) {
-               pvErrorNoExit().printf(
+               ErrorLog().printf(
                      "   Value \"%s\" is inconsistent with allowed values %s.\n",
                      params->stringValue(getName(), "buffer"),
                      requiredString);
@@ -169,7 +169,7 @@ void StatsProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
             const char *bufnameinparams =
                   getParent()->parameters()->stringValue(getName(), "buffer");
             assert(bufnameinparams);
-            pvErrorNoExit().printf(
+            ErrorLog().printf(
                   "%s: buffer \"%s\" is not recognized.\n", getDescription_c(), bufnameinparams);
          }
          MPI_Barrier(getParent()->getCommunicator()->communicator());
@@ -202,7 +202,7 @@ int StatsProbe::outputState(double timed) {
 #endif // PV_USE_MPI
 
    int nk;
-   const pvdata_t *buf;
+   const float *buf;
    resetStats();
 
    nk = getTargetLayer()->getNumNeurons();

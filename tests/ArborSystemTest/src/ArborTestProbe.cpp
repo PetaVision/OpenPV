@@ -33,14 +33,14 @@ void ArborTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
       if (params->present(name, "buffer")) {
          params->handleUnnecessaryStringParameter(name, "buffer");
          char const *buffer = params->stringValue(name, "buffer");
-         pvErrorIf(!(buffer != NULL), "Test failed.\n");
+         FatalIf(!(buffer != NULL), "Test failed.\n");
          char *bufferlc = strdup(buffer);
          for (int c = 0; c < (int)strlen(bufferlc); c++) {
             bufferlc[c] = tolower(bufferlc[c]);
          }
          if (strcmp(bufferlc, "a") != 0 && strcmp(bufferlc, "activity") != 0) {
             if (parent->columnId() == 0) {
-               pvErrorNoExit().printf(
+               ErrorLog().printf(
                      "   Value \"%s\" is inconsistent with correct value \"a\" or \"activity\".  "
                      "Exiting.\n",
                      buffer);
@@ -62,18 +62,18 @@ int ArborTestProbe::outputState(double timed) {
    }
    for (int b = 0; b < getParent()->getNBatch(); b++) {
       if (timed == 1.0) {
-         pvErrorIf(!((avg[b] > 0.2499f) && (avg[b] < 0.2501f)), "Test failed.\n");
+         FatalIf(!((avg[b] > 0.2499f) && (avg[b] < 0.2501f)), "Test failed.\n");
       }
       else if (timed == 2.0) {
-         pvErrorIf(!((avg[b] > 0.4999f) && (avg[b] < 0.5001f)), "Test failed.\n");
+         FatalIf(!((avg[b] > 0.4999f) && (avg[b] < 0.5001f)), "Test failed.\n");
       }
       else if (timed == 3.0) {
-         pvErrorIf(!((avg[b] > 0.7499f) && (avg[b] < 0.7501f)), "Test failed.\n");
+         FatalIf(!((avg[b] > 0.7499f) && (avg[b] < 0.7501f)), "Test failed.\n");
       }
       else if (timed > 3.0) {
-         pvErrorIf(!((fMin[b] > 0.9999f) && (fMin[b] < 1.001f)), "Test failed.\n");
-         pvErrorIf(!((fMax[b] > 0.9999f) && (fMax[b] < 1.001f)), "Test failed.\n");
-         pvErrorIf(!((avg[b] > 0.9999f) && (avg[b] < 1.001f)), "Test failed.\n");
+         FatalIf(!((fMin[b] > 0.9999f) && (fMin[b] < 1.001f)), "Test failed.\n");
+         FatalIf(!((fMax[b] > 0.9999f) && (fMax[b] < 1.001f)), "Test failed.\n");
+         FatalIf(!((avg[b] > 0.9999f) && (avg[b] < 1.001f)), "Test failed.\n");
       }
    }
 

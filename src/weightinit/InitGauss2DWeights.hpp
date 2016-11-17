@@ -20,7 +20,7 @@ class InitGauss2DWeights : public PV::InitWeights {
 
    virtual InitWeightsParams *createNewWeightParams();
 
-   virtual int calcWeights(pvwdata_t *dataStart, int patchIndex, int arborId);
+   virtual int calcWeights(float *dataStart, int patchIndex, int arborId);
 
   protected:
    InitGauss2DWeights();
@@ -28,7 +28,7 @@ class InitGauss2DWeights : public PV::InitWeights {
    int initialize(char const *name, HyPerCol *hc);
 
   private:
-   int gauss2DCalcWeights(pvwdata_t *dataStart, InitGauss2DWeightsParams *weightParamPtr);
+   int gauss2DCalcWeights(float *dataStart, InitGauss2DWeightsParams *weightParamPtr);
 
 }; // class InitGauss2DWeights
 

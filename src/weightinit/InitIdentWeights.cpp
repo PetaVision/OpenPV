@@ -31,12 +31,12 @@ InitWeightsParams *InitIdentWeights::createNewWeightParams() {
    return tempPtr;
 }
 
-int InitIdentWeights::calcWeights(pvdata_t *dataStart, int patchIndex, int arborId) {
+int InitIdentWeights::calcWeights(float *dataStart, int patchIndex, int arborId) {
 
    InitIdentWeightsParams *weightParamPtr = dynamic_cast<InitIdentWeightsParams *>(weightParams);
 
    if (weightParamPtr == NULL) {
-      pvError().printf("Failed to recast pointer to weightsParam!  Exiting...");
+      Fatal().printf("Failed to recast pointer to weightsParam!  Exiting...");
    }
 
    weightParamPtr->calcOtherParams(patchIndex);

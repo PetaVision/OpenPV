@@ -17,14 +17,14 @@ Example::Example(const char *name, HyPerCol *hc) {
 
 int Example::updateState(double time, double dt) {
 #ifdef DEBUG_OUTPUT
-   pvDebug().printf("[%d]: Example::updateState:", clayer->columnId);
+   DebugLog().printf("[%d]: Example::updateState:", clayer->columnId);
 #endif // DEBUG_OUTPUT
 
    // just copy accumulation buffer to membrane potential
    // and activity buffer (nonspiking)
 
-   pvdata_t *phi      = getChannel(CHANNEL_EXC);
-   pvdata_t *activity = clayer->activity->data;
+   float *phi      = getChannel(CHANNEL_EXC);
+   float *activity = clayer->activity->data;
 
    const int nx       = clayer->loc.nx;
    const int ny       = clayer->loc.ny;
@@ -50,7 +50,7 @@ int Example::updateState(double time, double dt) {
 
 int Example::initFinish(int colId, int colRow, int colCol) {
 #ifdef DEBUG_OUTPUT
-   pvDebug().printf(
+   DebugLog().printf(
          "[%d]: Example::initFinish: colId=%d colRow=%d, colCol=%d",
          clayer->columnId,
          colId,
@@ -62,7 +62,7 @@ int Example::initFinish(int colId, int colRow, int colCol) {
 
 int Example::outputState(double timef, bool last) {
 #ifdef DEBUG_OUTPUT
-   pvDebug().printf("[%d]: Example::outputState:", clayer->columnId);
+   DebugLog().printf("[%d]: Example::outputState:", clayer->columnId);
 #endif // DEBUG_OUTPUT
 
    // use implementation in base class

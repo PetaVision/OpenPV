@@ -230,8 +230,8 @@ int Factory::registerKeyword(char const *keyword, ObjectCreateFn creator) {
 BaseObject *Factory::createByKeyword(char const *keyword, char const *name, HyPerCol *hc) const {
    // Sep 21, 2016: PtwiseLinearTransferLayer marked obsolete.
    if (!strcmp(keyword, "PtwiseLinearTransferLayer")) {
-      pvError() << keyword << " \"" << name
-                << "\": PtwiseLinearTransferLayer is obsolete. Use ANNLayer instead.\n";
+      Fatal() << keyword << " \"" << name
+              << "\": PtwiseLinearTransferLayer is obsolete. Use ANNLayer instead.\n";
    }
    KeywordHandler const *keywordHandler = getKeywordHandler(keyword);
    if (keywordHandler == nullptr) {

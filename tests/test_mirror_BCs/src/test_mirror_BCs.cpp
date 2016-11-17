@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
             int k            = (ky - kyFirst) * sy + (kx - kxFirst) * nf + kf;
             sCube->data[kex] = k;
 #ifdef DEBUG_PRINT
-            pvDebug().printf(
+            DebugLog().printf(
                   "sCube val = %5i:, kex = %5i:, k = %5i\n", (int)sCube->data[kex], kex, k);
 #endif
          }
@@ -68,11 +68,11 @@ int main(int argc, char *argv[]) {
       for (int ky = 0; ky < ny; ky++) {
          for (int kx = 0; kx < nx; kx++) {
             int kex = ky * syex + kx * nf + kf;
-            pvDebug().printf("%5i ", (int)sCube->data[kex]);
+            DebugLog().printf("%5i ", (int)sCube->data[kex]);
          }
-         pvDebug().printf("\n");
+         DebugLog().printf("\n");
       }
-      pvDebug().printf("\n");
+      DebugLog().printf("\n");
    }
 #endif
 
@@ -85,11 +85,11 @@ int main(int argc, char *argv[]) {
       for (int ky = 0; ky < ny; ky++) {
          for (int kx = 0; kx < nx; kx++) {
             int kex = ky * syex + kx * nf + kf;
-            pvDebug().printf("%5i ", (int)sCube->data[kex]);
+            DebugLog().printf("%5i ", (int)sCube->data[kex]);
          }
-         pvDebug().printf("\n");
+         DebugLog().printf("\n");
       }
-      pvDebug().printf("\n");
+      DebugLog().printf("\n");
    }
 #endif
 
@@ -107,7 +107,7 @@ int main(int argc, char *argv[]) {
             int kmirror   = kymirror * syex + kxmirror * nf + kf;
             int mirrorVal = bCube->data[kmirror];
             if (mirrorVal != k) {
-               pvError().printf(
+               Fatal().printf(
                      "ERROR:northwest mirror value at %i from %i = %i, should be %i\n",
                      kmirror,
                      kex,
@@ -129,7 +129,7 @@ int main(int argc, char *argv[]) {
             int kmirror   = kymirror * syex + kxmirror * nf + kf;
             int mirrorVal = bCube->data[kmirror];
             if (mirrorVal != k) {
-               pvError().printf(
+               Fatal().printf(
                      "ERROR:north mirror value at %i from %i = %i, should be %i\n",
                      kmirror,
                      kex,
@@ -151,7 +151,7 @@ int main(int argc, char *argv[]) {
             int kmirror   = kymirror * syex + kxmirror * nf + kf;
             int mirrorVal = bCube->data[kmirror];
             if (mirrorVal != k) {
-               pvError().printf(
+               Fatal().printf(
                      "ERROR:northeast mirror value at %i from %i = %i, should be %i\n",
                      kmirror,
                      kex,
@@ -173,7 +173,7 @@ int main(int argc, char *argv[]) {
             int kmirror   = kymirror * syex + kxmirror * nf + kf;
             int mirrorVal = bCube->data[kmirror];
             if (mirrorVal != k) {
-               pvError().printf(
+               Fatal().printf(
                      "ERROR:west mirror value at %i from %i = %i, should be %i\n",
                      kmirror,
                      kex,
@@ -195,7 +195,7 @@ int main(int argc, char *argv[]) {
             int kmirror   = kymirror * syex + kxmirror * nf + kf;
             int mirrorVal = bCube->data[kmirror];
             if (mirrorVal != k) {
-               pvError().printf(
+               Fatal().printf(
                      "ERROR:east mirror value at %i from %i = %i, should be %i\n",
                      kmirror,
                      kex,
@@ -217,7 +217,7 @@ int main(int argc, char *argv[]) {
             int kmirror   = kymirror * syex + kxmirror * nf + kf;
             int mirrorVal = bCube->data[kmirror];
             if (mirrorVal != k) {
-               pvError().printf(
+               Fatal().printf(
                      "ERROR:southwest mirror value at %i from %i = %i, should be %i\n",
                      kmirror,
                      kex,
@@ -239,7 +239,7 @@ int main(int argc, char *argv[]) {
             int kmirror   = kymirror * syex + kxmirror * nf + kf;
             int mirrorVal = bCube->data[kmirror];
             if (mirrorVal != k) {
-               pvError().printf(
+               Fatal().printf(
                      "ERROR:south mirror value at %i from %i = %i, should be %i\n",
                      kmirror,
                      kex,
@@ -261,7 +261,7 @@ int main(int argc, char *argv[]) {
             int kmirror   = kymirror * syex + kxmirror * nf + kf;
             int mirrorVal = bCube->data[kmirror];
             if (mirrorVal != k) {
-               pvError().printf(
+               Fatal().printf(
                      "ERROR:southeast mirror value at %i from %i = %i, should be %i\n",
                      kmirror,
                      kex,

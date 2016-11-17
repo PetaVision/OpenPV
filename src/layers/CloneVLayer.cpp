@@ -53,7 +53,7 @@ int CloneVLayer::communicateInitInfo() {
    originalLayer = parent->getLayerFromName(originalLayerName);
    if (originalLayer == NULL) {
       if (parent->columnId() == 0) {
-         pvErrorNoExit().printf(
+         ErrorLog().printf(
                "%s: originalLayerName \"%s\" is not a layer in the HyPerCol.\n",
                getDescription_c(),
                originalLayerName);
@@ -67,7 +67,7 @@ int CloneVLayer::communicateInitInfo() {
    if (srcLoc->nxGlobal != loc->nxGlobal || srcLoc->nyGlobal != loc->nyGlobal
        || srcLoc->nf != loc->nf) {
       if (parent->columnId() == 0) {
-         pvErrorNoExit(errorMessage);
+         ErrorLog(errorMessage);
          errorMessage.printf(
                "%s: originalLayerName \"%s\" does not have the same dimensions.\n",
                getDescription_c(),
@@ -112,7 +112,7 @@ int CloneVLayer::allocateV() {
    assert(originalLayer && originalLayer->getCLayer());
    clayer->V = originalLayer->getV();
    if (getV() == NULL) {
-      pvError().printf(
+      Fatal().printf(
             "%s: originalLayer \"%s\" has a null V buffer in rank %d process.\n",
             getDescription_c(),
             originalLayerName,
@@ -123,7 +123,7 @@ int CloneVLayer::allocateV() {
 
 int CloneVLayer::requireChannel(int channelNeeded, int *numChannelsResult) {
    if (parent->columnId() == 0) {
-      pvErrorNoExit().printf(
+      ErrorLog().printf(
             "%s: layers derived from CloneVLayer do not have GSyn channels (requireChannel called "
             "with channel %d)\n",
             getDescription_c(),
@@ -139,25 +139,25 @@ int CloneVLayer::allocateGSyn() {
 
 int CloneVLayer::initializeV() { return PV_SUCCESS; }
 
-int CloneVLayer::readVFromCheckpoint(const char *cpDir, double *timeptr) {
+int CloneVLayer::readVFromCheckpoint(Checkpointer *checkpointer) {
    // If we just inherit HyPerLayer::readVFromCheckpoint, we checkpoint V since it is non-null.
    // This is redundant since V is a clone.
    return PV_SUCCESS;
 }
 
 int CloneVLayer::registerData(Checkpointer *checkpointer, std::string const &objName) {
-   pvdata_t *V = clayer->V;
-   int status  = HyPerLayer::registerData(checkpointer, objName);
-   clayer->V   = V;
+   float *V   = clayer->V;
+   int status = HyPerLayer::registerData(checkpointer, objName);
+   clayer->V  = V;
    return status;
 }
 
 int CloneVLayer::updateState(double timed, double dt) {
    const PVLayerLoc *loc = getLayerLoc();
-   pvdata_t *A           = clayer->activity->data;
-   pvdata_t *V           = getV();
+   float *A              = clayer->activity->data;
+   float *V              = getV();
    int num_channels      = getNumChannels();
-   pvdata_t *gSynHead    = GSyn == NULL ? NULL : GSyn[0];
+   float *gSynHead       = GSyn == NULL ? NULL : GSyn[0];
    int nx                = loc->nx;
    int ny                = loc->ny;
    int nf                = loc->nf;

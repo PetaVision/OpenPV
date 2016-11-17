@@ -81,9 +81,9 @@ class CloneConn : public HyPerConn {
    virtual void ioParam_writeCompressedWeights(enum ParamsIOFlag ioFlag);
    virtual void ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFlag);
    virtual int setWeightInitializer();
-   virtual PVPatch ***initializeWeights(PVPatch ***patches, pvdata_t **dataStart);
+   virtual PVPatch ***initializeWeights(PVPatch ***patches, float **dataStart);
    virtual int cloneParameters();
-   virtual int readStateFromCheckpoint(const char *cpDir, double *timeptr) { return PV_SUCCESS; }
+   virtual int readStateFromCheckpoint(Checkpointer *checkpointer) { return PV_SUCCESS; }
    virtual int constructWeights();
    void constructWeightsOutOfMemory();
    virtual int createAxonalArbors(int arborId);

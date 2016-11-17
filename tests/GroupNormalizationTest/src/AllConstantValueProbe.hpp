@@ -16,7 +16,7 @@ class AllConstantValueProbe : public StatsProbe {
    AllConstantValueProbe(const char *probeName, HyPerCol *hc);
    ~AllConstantValueProbe();
 
-   pvadata_t getCorrectValue() { return correctValue; }
+   float getCorrectValue() { return correctValue; }
 
    int outputState(double timed);
 
@@ -30,7 +30,7 @@ class AllConstantValueProbe : public StatsProbe {
    int initialize_base();
 
    // Member variables
-   pvadata_t correctValue;
+   float correctValue;
 }; // class AllConstantValueProbe
 
 } // namespace PV

@@ -18,7 +18,7 @@ class PlasticTestConn : public HyPerConn {
    virtual ~PlasticTestConn();
 
   protected:
-   virtual pvdata_t updateRule_dW(pvdata_t pre, pvdata_t post);
+   virtual float updateRule_dW(float pre, float post);
 }; // end class PlasticTestConn
 
 } // end namespace PV
