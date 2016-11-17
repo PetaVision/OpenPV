@@ -51,6 +51,7 @@ int LeakyIntegrator::updateState(double timed, double dt) {
       V[k] += GSyn[0][k];
       if (numChannels > 1) {
          V[k] -= GSyn[1][k];
+      }
    }
    int nx     = getLayerLoc()->nx;
    int ny     = getLayerLoc()->ny;
