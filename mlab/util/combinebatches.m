@@ -76,6 +76,8 @@ function combinebatches(directory, layer_name, num_batch, batch_method, batch_wi
       fflush(stdout);
    endif
 
+   disp("Writing output file...");
+
    if file_type == 4
       writepvpactivityfile([layer_name, ".pvp"], result);
    elseif file_type == 6
