@@ -609,7 +609,7 @@ void Checkpointer::checkpointToDirectory(std::string const &directory) {
       if (statstatus == 0) {
          WarnLog() << "Checkpoint directory \"" << directory
                    << "\" has existing timeinfo.bin, which is now being deleted.\n";
-         mTimeInfoCheckpointEntry->remove(timeinfoFilename);
+         mTimeInfoCheckpointEntry->remove(directory);
       }
    }
    notify(mObserverTable, std::make_shared<PrepareCheckpointWriteMessage const>(directory));
