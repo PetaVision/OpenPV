@@ -13,6 +13,7 @@ HyPerCol "column" = {
     ny = 60; // so nx and ny must be divisible by 6.
     outputPath = "./output/";
     checkpointWrite = false;
+    suppressLastOutput = false;
 };
 
 ANNLayer "layer" = {

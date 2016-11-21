@@ -15,6 +15,7 @@ HyPerCol "column" = {
     initializeFromCheckpointDir         = "";
     checkpointWrite                     = false;
     deleteOlderCheckpoints              = false;
+    suppressLastOutput                  = false;
     suppressNonplasticCheckpoints       = false;
     errorOnNotANumber                   = false;
     nbatch                              = 1; 
