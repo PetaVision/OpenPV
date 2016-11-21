@@ -42,7 +42,7 @@ HyPerCol "column" = {
     nx                                  = 8;
     ny                                  = 8;
     checkpointWrite                     = false;
-    suppressLastOutput                  = false;
+    lastCheckpointDir                   = "outputTest/Last";
     errorOnNotANumber                   = true;
     nbatch = 2;
 };

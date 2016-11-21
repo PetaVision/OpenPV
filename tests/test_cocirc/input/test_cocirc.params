@@ -2,6 +2,9 @@
 HyPerCol "test_cocirc column" = {
    nx = 16;
    ny = 16;
+   checkpointWrite = false;
+   outputPath = "output";
+   lastCheckpointDir = "output/Last";
 };
 
 HyPerLayer "test_cocirc pre" = {

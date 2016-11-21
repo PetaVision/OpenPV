@@ -23,7 +23,7 @@ HyPerCol "column" = {
    printParamsFilename = "pv.params";
    initializeFromCheckpointDir = "";
    checkpointWrite = false;
-   suppressLastOutput = false;
+   lastCheckpointDir = "output/test_kernel_normalizepost_shrunken/Last";
    errorOnNotANumber = false;
    nbatch = 2;
 };

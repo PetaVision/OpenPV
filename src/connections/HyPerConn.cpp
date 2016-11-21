@@ -770,7 +770,7 @@ void HyPerConn::ioParam_writeCompressedWeights(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerConn::ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFlag) {
-   if (parent->getCheckpointWriteFlag() || !parent->getSuppressLastOutputFlag()) {
+   if (parent->getCheckpointWriteFlag() || parent->getLastCheckpointDir()) {
       parent->parameters()->ioParamValue(
             ioFlag,
             name,

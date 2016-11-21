@@ -24,7 +24,7 @@ HyPerCol "column" = {
    printParamsFilename = "pv.params";
    initializeFromCheckpointDir = "";
    checkpointWrite = false;
-   suppressLastOutput = false;
+   // lastCheckpointDir set in parameter sweep
 };
 
 //
@@ -209,4 +209,13 @@ ParameterSweep "column":outputPath = {
     "output/nyp_larger_two_to_one";
     "output/nxp_larger_one_to_two";
     "output/nyp_larger_one_to_two";
+};
+
+ParameterSweep "column":lastCheckpointDir = {
+    "output/nxp_larger_one_to_one/Last";
+    "output/nyp_larger_one_to_one/Last";
+    "output/nxp_larger_two_to_one/Last";
+    "output/nyp_larger_two_to_one/Last";
+    "output/nxp_larger_one_to_two/Last";
+    "output/nyp_larger_one_to_two/Last";
 };

@@ -379,7 +379,7 @@ class HyPerCol : public Subject, Observer {
    }
    bool getCheckpointReadFlag() const { return mCheckpointReadFlag; }
    bool getCheckpointWriteFlag() const { return mCheckpointWriteFlag; }
-   bool getSuppressLastOutputFlag() const { return mCheckpointer->getSuppressLastOutput(); }
+   char const *getLastCheckpointDir() const { return mCheckpointer->getLastCheckpointDir(); }
    bool getSuppressNonplasticCheckpoints() const { return mSuppressNonplasticCheckpoints; }
    bool getWriteTimescales() const { return mWriteTimescales; }
    const char *getName() { return mName; }

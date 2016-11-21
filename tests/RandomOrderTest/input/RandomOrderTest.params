@@ -12,7 +12,7 @@ HyPerCol "column" = {
    writeProgressToErr = false;  
    outputPath         = "output/";
    checkpointWrite    = false;
-   suppressLastOutput = false;
+   lastCheckpointDir = "output/Last";
 };
 
 // Both layers should have the same order because they have the same seed

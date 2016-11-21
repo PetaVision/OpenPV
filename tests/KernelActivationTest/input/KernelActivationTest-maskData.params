@@ -15,7 +15,7 @@ HyPerCol "column" = {
     outputPath = "output-maskData/";
     outputNamesOfLayersAndConns = "NamesOfLayersAndConns.txt";
     checkpointWrite = false;
-    suppressLastOutput = false;
+    lastCheckpointDir = "output-maskData/Last";
 };
 
 PvpLayer "8x8Images" = {

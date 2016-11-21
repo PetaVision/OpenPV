@@ -61,11 +61,12 @@ class Checkpointer : public Subject {
    ioParam_defaultInitializeFromCheckpointFlag(enum ParamsIOFlag ioFlag, PVParams *params);
 
    /**
-    * @brief supressLastOutput: If checkpointWrite, specifies if the run should
-    * supress the final
-    * written checkpoint for the end of the run.
+    * @brief lastCheckpointDir: If checkpointWrite is not set, this required parameter specifies
+    * the directory to write a final written checkpoint at the end of the run.
+    * Writing the last checkpoint can be suppressed by setting this string to the empty string.
+    * Relative paths are relative to the working directory.
     */
-   void ioParam_suppressLastOutput(enum ParamsIOFlag ioFlag, PVParams *params);
+   void ioParam_lastCheckpointDir(enum ParamsIOFlag ioFlag, PVParams *params);
    /** @} */
 
    enum CheckpointWriteTriggerMode { NONE, STEP, SIMTIME, WALLCLOCK };
@@ -119,7 +120,7 @@ class Checkpointer : public Subject {
    double getCheckpointWriteSimtimeInterval() const { return mCheckpointWriteSimtimeInterval; }
    int getCheckpointIndexWidth() const { return mCheckpointIndexWidth; }
    bool getSuppressNonplasticCheckpoints() const { return mSuppressNonplasticCheckpoints; }
-   bool getSuppressLastOutput() const { return mSuppressLastOutput; }
+   char const *getLastCheckpointDir() const { return mLastCheckpointDir; }
    char const *getInitializeFromCheckpointDir() const { return mInitializeFromCheckpointDir; }
    bool getDefaultInitializeFromCheckpointFlag() const {
       return mDefaultInitializeFromCheckpointFlag;
@@ -172,7 +173,7 @@ class Checkpointer : public Subject {
    bool mSuppressNonplasticCheckpoints                                     = false;
    bool mDeleteOlderCheckpoints                                            = false;
    int mNumCheckpointsKept                                                 = 2;
-   bool mSuppressLastOutput                                                = false;
+   char *mLastCheckpointDir                                                = nullptr;
    char *mInitializeFromCheckpointDir                                      = nullptr;
    bool mDefaultInitializeFromCheckpointFlag                               = false;
    std::string mCheckpointReadDirectory;

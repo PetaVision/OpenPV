@@ -17,7 +17,7 @@ HyPerCol "test_constant_input column" = {
     checkpointWriteTriggerMethod = "step";
     checkpointWriteStepInterval = 1;
     deleteOlderCheckpoints = false;
-    // suppressLastOutput = false;
+    // lastCheckpointDir = "output/Last";
 };
 
 TestImage "test_constant_input image" = {

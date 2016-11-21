@@ -67,7 +67,7 @@ void Checkpointer::ioParamsFillGroup(enum ParamsIOFlag ioFlag, PVParams *params)
    ioParam_suppressNonplasticCheckpoints(ioFlag, params);
    ioParam_deleteOlderCheckpoints(ioFlag, params);
    ioParam_numCheckpointsKept(ioFlag, params);
-   ioParam_suppressLastOutput(ioFlag, params);
+   ioParam_lastCheckpointDir(ioFlag, params);
    ioParam_initializeFromCheckpointDir(ioFlag, params);
    ioParam_defaultInitializeFromCheckpointFlag(ioFlag, params);
 }
@@ -369,11 +369,11 @@ void Checkpointer::ioParam_suppressNonplasticCheckpoints(
    }
 }
 
-void Checkpointer::ioParam_suppressLastOutput(enum ParamsIOFlag ioFlag, PVParams *params) {
+void Checkpointer::ioParam_lastCheckpointDir(enum ParamsIOFlag ioFlag, PVParams *params) {
    assert(!params->presentAndNotBeenRead(mName.c_str(), "checkpointWrite"));
    if (!mCheckpointWriteFlag) {
-      params->ioParamValue(
-            ioFlag, mName.c_str(), "suppressLastOutput", &mSuppressLastOutput, mSuppressLastOutput);
+      params->ioParamStringRequired(
+            ioFlag, mName.c_str(), "lastCheckpointDir", &mLastCheckpointDir);
    }
 }
 
@@ -629,10 +629,8 @@ void Checkpointer::finalCheckpoint(double simTime) {
    if (mCheckpointWriteFlag) {
       checkpointNow();
    }
-   else if (!mSuppressLastOutput) {
-      std::string finalCheckpointDir{mOutputPath};
-      finalCheckpointDir.append("/Last");
-      checkpointToDirectory(finalCheckpointDir);
+   else if (mLastCheckpointDir!=nullptr && mLastCheckpointDir[0] != '\0') {
+      checkpointToDirectory(std::string(mLastCheckpointDir));
    }
 }
 
