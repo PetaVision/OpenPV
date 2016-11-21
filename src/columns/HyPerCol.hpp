@@ -287,13 +287,6 @@ class HyPerCol : public Subject, Observer {
    virtual void ioParam_checkpointWriteClockUnit(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief supressLastOutput: If checkpointWrite, specifies if the run should
-    * supress the final
-    * written checkpoint for the end of the run.
-    */
-   virtual void ioParam_suppressLastOutput(enum ParamsIOFlag ioFlag);
-
-   /**
     * If checkpointWrite is true and this flag is true, connections'
     * checkpointWrite method will
     * only be called for connections with plasticityFlag=false.
@@ -386,7 +379,7 @@ class HyPerCol : public Subject, Observer {
    }
    bool getCheckpointReadFlag() const { return mCheckpointReadFlag; }
    bool getCheckpointWriteFlag() const { return mCheckpointWriteFlag; }
-   bool getSuppressLastOutputFlag() const { return mSuppressLastOutput; }
+   bool getSuppressLastOutputFlag() const { return mCheckpointer->getSuppressLastOutput(); }
    bool getSuppressNonplasticCheckpoints() const { return mSuppressNonplasticCheckpoints; }
    bool getWriteTimescales() const { return mWriteTimescales; }
    const char *getName() { return mName; }
@@ -499,14 +492,6 @@ class HyPerCol : public Subject, Observer {
    bool mDeleteOlderCheckpoints; // If true, whenever a checkpoint other than the
    // first is written,
    // the preceding checkpoint is deleted. Default is false.
-   bool mSuppressLastOutput; // If mCheckpointWriteFlag is false and this flag is
-   // false, on exit a
-   // checkpoint is sent to the {mOutputPath}/Last directory.
-   // If mCheckpointWriteFlag is false and this flag is true, no checkpoint is
-   // done on exit.
-   // The flag has no effect if mCheckpointWriteFlag is true (in which case a
-   // checkpoint is written
-   // on exit to the next directory in mCheckpointWriteDir
    bool mSuppressNonplasticCheckpoints; // If mSuppressNonplasticCheckpoints is
    // true, only weights
    // with plasticityFlag true will be checkpointed.  If false,

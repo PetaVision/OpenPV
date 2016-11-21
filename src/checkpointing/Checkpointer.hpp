@@ -59,6 +59,13 @@ class Checkpointer : public Subject {
     */
    virtual void
    ioParam_defaultInitializeFromCheckpointFlag(enum ParamsIOFlag ioFlag, PVParams *params);
+
+   /**
+    * @brief supressLastOutput: If checkpointWrite, specifies if the run should
+    * supress the final
+    * written checkpoint for the end of the run.
+    */
+   void ioParam_suppressLastOutput(enum ParamsIOFlag ioFlag, PVParams *params);
    /** @} */
 
    enum CheckpointWriteTriggerMode { NONE, STEP, SIMTIME, WALLCLOCK };
@@ -131,7 +138,6 @@ class Checkpointer : public Subject {
    void ioParam_checkpointWriteClockUnit(enum ParamsIOFlag ioFlag, PVParams *params);
    void ioParam_checkpointIndexWidth(enum ParamsIOFlag ioFlag, PVParams *params);
    void ioParam_suppressNonplasticCheckpoints(enum ParamsIOFlag ioFlag, PVParams *params);
-   void ioParam_suppressLastOutput(enum ParamsIOFlag ioFlag, PVParams *params);
    bool checkpointWriteSignal();
    void checkpointWriteStep();
    void checkpointWriteSimtime();
