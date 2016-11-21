@@ -23,7 +23,6 @@ HyPerCol "column" = {
    checkpointWrite = true;
    checkpointWriteDir = "output/Checkpoints/";
    checkpointWriteStepInterval = 1;
-   suppressLastOutput = false; //Save the last output as checkpoint.
 };
 
 //
