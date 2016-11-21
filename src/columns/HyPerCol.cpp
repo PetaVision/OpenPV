@@ -395,7 +395,7 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
       }
       // Make sure number matches up
       FatalIf(
-            count != mCommunicator->numCommBatches(),
+            count != mCommunicator->numCommBatches() && count != 1,
             "Checkpoint read parsing error: Not enough colon seperated "
             "checkpoint read "
             "directories. Running with %d batch MPIs but only %zu colon "
@@ -404,10 +404,10 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
             mCommunicator->numCommBatches(),
             count);
 
-      // Grab this rank's actual mCheckpointReadDir and replace with
-      // mCheckpointReadDir
+      // Grab the directory for this rank and use as mCheckpointReadDir
+      int const splitCheckpointIndex = count > 1 ? mCommunicator->commBatch() : 0;
       mCheckpointReadDir =
-            strdup(expandLeadingTilde(splitCheckpoint[mCommunicator->commBatch()]).c_str());
+            strdup(expandLeadingTilde(splitCheckpoint[splitCheckpointIndex]).c_str());
       pvAssert(mCheckpointReadDir);
       // Free all tmp memories
       for (int i = 0; i < mCommunicator->numCommBatches(); i++) {
