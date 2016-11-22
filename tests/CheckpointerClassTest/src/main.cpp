@@ -82,7 +82,8 @@ int main(int argc, char *argv[]) {
 
    std::string checkpointReadDir(checkpointWriteDirectory);
    checkpointReadDir.append("/Checkpoint04");
-   checkpointer->checkpointRead(checkpointReadDir, &readTime, &readStep);
+   checkpointer->setCheckpointReadDirectory(checkpointReadDir);
+   checkpointer->checkpointRead(&readTime, &readStep);
 
    delete checkpointer;
    delete comm;

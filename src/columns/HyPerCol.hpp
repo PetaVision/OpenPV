@@ -387,7 +387,6 @@ class HyPerCol : public Subject, Observer {
    const char *getInitializeFromCheckpointDir() const {
       return mCheckpointer->getInitializeFromCheckpointDir();
    }
-   const char *getCheckpointReadDir() const { return mCheckpointReadDir; }
    const char *getPrintParamsFilename() const { return mPrintParamsFilename; }
    ColProbe *getColProbe(int which) { return mColProbes.at(which); }
    double getDeltaTime() const { return mDeltaTime; }
@@ -511,11 +510,6 @@ class HyPerCol : public Subject, Observer {
    // passed in the
    // constructor
    bool mWriteTimescales;
-   char *mCheckpointReadDir; // name of the directory to read an initializing
-   // checkpoint from
-   char *mCheckpointReadDirBase; // name of the directory containing checkpoint
-   // read from (used by
-   // deprecated mParams-based method for loading from checkpoint)
    char *mCheckpointWriteDir; // name of the directory to write checkpoints to
    char *mCheckpointWriteTriggerModeString;
    char *mCheckpointWriteClockUnit; // If checkpoint mode is clock, the string
@@ -569,7 +563,6 @@ class HyPerCol : public Subject, Observer {
 
    Checkpointer *mCheckpointer = nullptr; // manages checkpointing and, eventually,
    // will manage outputState output.
-   long int mCpReadDirIndex; // checkpoint number within mCheckpointReadDir to read
    long int mCpWriteStepInterval;
    long int mNextCpWriteStep;
    long int mInitialStep;

@@ -6,8 +6,12 @@
  */
 
 #include "Checkpointer.hpp"
+#include <climits>
 #include <cmath>
+#include <fts.h>
 #include <signal.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 namespace PV {
 
@@ -452,23 +456,147 @@ void Checkpointer::readNamedCheckpointEntry(std::string const &checkpointEntryNa
            << "\n";
 }
 
-void Checkpointer::checkpointRead(
-      std::string const &checkpointReadDir,
-      double *simTimePointer,
-      long int *currentStepPointer) {
-   mCheckpointReadDirectory = checkpointReadDir;
+void Checkpointer::findWarmStartDirectory() {
+   char warmStartDirectoryBuffer[PV_PATH_MAX];
+   if (mCommunicator->commRank() == 0) {
+      if (mCheckpointWriteFlag) {
+         // Look for largest indexed Checkpointnnnnnn directory in checkpointWriteDir
+         pvAssert(mCheckpointWriteDir);
+         std::string cpDirString = mCheckpointWriteDir;
+         if (cpDirString.c_str()[cpDirString.length() - 1] != '/') {
+            cpDirString += "/";
+         }
+         struct stat statbuf;
+         int statstatus = PV_stat(cpDirString.c_str(), &statbuf);
+         if (statstatus == 0) {
+            if (statbuf.st_mode & S_IFDIR) {
+               char *dirs[]     = {mCheckpointWriteDir, nullptr};
+               FTS *fts         = fts_open(dirs, FTS_LOGICAL, nullptr);
+               FTSENT *ftsent   = fts_read(fts);
+               bool found       = false;
+               long int cpIndex = LONG_MIN;
+               std::string indexedDir;
+               for (ftsent = fts_children(fts, 0); ftsent != nullptr; ftsent = ftsent->fts_link) {
+                  if (ftsent->fts_statp->st_mode & S_IFDIR) {
+                     long int x;
+                     int k = sscanf(ftsent->fts_name, "Checkpoint%ld", &x);
+                     if (x > cpIndex) {
+                        cpIndex    = x;
+                        indexedDir = ftsent->fts_name;
+                        found      = true;
+                     }
+                  }
+               }
+               FatalIf(
+                     !found,
+                     "restarting but checkpointWriteFlag is set and "
+                     "checkpointWriteDir directory \"%s\" does not have any "
+                     "checkpoints\n",
+                     mCheckpointWriteDir);
+               mCheckpointReadDirectory = cpDirString;
+               mCheckpointReadDirectory.append(indexedDir);
+            }
+            else {
+               Fatal().printf(
+                     "checkpoint read directory \"%s\" is "
+                     "not a directory.\n",
+                     mCheckpointWriteDir);
+            }
+         }
+         else if (errno == ENOENT) {
+            Fatal().printf(
+                  "restarting but neither Last nor checkpointWriteDir "
+                  "directory \"%s\" exists.\n",
+                  mCheckpointWriteDir);
+         }
+      }
+      else {
+         pvAssert(mLastCheckpointDir);
+         FatalIf(
+               mLastCheckpointDir[0] = '\0',
+               "Restart flag set, but unable to determine restart directory.\n");
+         mCheckpointReadDirectory = strdup(mLastCheckpointDir);
+      }
+      FatalIf(
+            mCheckpointReadDirectory.size() >= PV_PATH_MAX,
+            "Restart flag set, but inferred checkpoint read directory is too long (%zu bytes).\n",
+            mCheckpointReadDirectory.size());
+      memcpy(
+            warmStartDirectoryBuffer,
+            mCheckpointReadDirectory.c_str(),
+            mCheckpointReadDirectory.size());
+      warmStartDirectoryBuffer[mCheckpointReadDirectory.size()] = '\0';
+   }
+   MPI_Bcast(warmStartDirectoryBuffer, PV_PATH_MAX, MPI_CHAR, 0, mCommunicator->communicator());
+   if (mCommunicator->commRank() != 0) {
+      mCheckpointReadDirectory = warmStartDirectoryBuffer;
+   }
+}
+
+void Checkpointer::setCheckpointReadDirectory() {
+   if (mCheckpointWriteFlag) {
+      findWarmStartDirectory();
+   }
+   else {
+      mCheckpointReadDirectory = mLastCheckpointDir;
+   }
+}
+
+void Checkpointer::setCheckpointReadDirectory(std::string const &checkpointReadDir) {
+   std::vector<std::string> checkpointReadDirs;
+   checkpointReadDirs.reserve(mCommunicator->numCommBatches());
+   std::size_t dirStart = (std::size_t)0;
+   while (dirStart < checkpointReadDir.size()) {
+      std::size_t dirStop = checkpointReadDir.find(':', dirStart);
+      if (dirStop == std::string::npos) {
+         dirStop = checkpointReadDir.size();
+      }
+      checkpointReadDirs.push_back(checkpointReadDir.substr(dirStart, dirStop - dirStart));
+      FatalIf(
+            checkpointReadDirs.size() > (std::size_t)mCommunicator->numCommBatches(),
+            "Checkpoint read parsing error: Too many colon separated "
+            "checkpoint read directories. "
+            "Only specify %d checkpoint directories.\n",
+            mCommunicator->numCommBatches());
+      dirStart = dirStop + 1;
+   }
+   // Make sure number matches up
+   int const count = (int)checkpointReadDirs.size();
+   FatalIf(
+         count != mCommunicator->numCommBatches() && count != 1,
+         "Checkpoint read parsing error: Not enough colon separated "
+         "checkpoint read directories. "
+         "Running with %d batch MPIs but only %d colon separated checkpoint "
+         "directories.\n",
+         mCommunicator->numCommBatches(),
+         count);
+   // Grab the directory for this rank and use as mCheckpointReadDir
+   int const checkpointIndex = count == 1 ? 0 : mCommunicator->commBatch();
+   std::string dirString     = expandLeadingTilde(checkpointReadDirs[checkpointIndex].c_str());
+   mCheckpointReadDirectory  = strdup(dirString.c_str());
+   pvAssert(!mCheckpointReadDirectory.empty());
+
+   InfoLog().printf(
+         "Global Rank %d process setting checkpointReadDir to %s.\n",
+         mCommunicator->globalCommRank(),
+         mCheckpointReadDirectory);
+}
+
+void Checkpointer::checkpointRead(double *simTimePointer, long int *currentStepPointer) {
    double readTime;
    for (auto &c : mCheckpointRegistry) {
-      c->read(checkpointReadDir, &readTime);
+      c->read(mCheckpointReadDirectory, &readTime);
    }
-   mTimeInfoCheckpointEntry->read(checkpointReadDir.c_str(), &readTime);
+   mTimeInfoCheckpointEntry->read(mCheckpointReadDirectory.c_str(), &readTime);
    if (simTimePointer) {
       *simTimePointer = mTimeInfo.mSimTime;
    }
    if (currentStepPointer) {
       *currentStepPointer = mTimeInfo.mCurrentCheckpointStep;
    }
-   notify(mObserverTable, std::make_shared<ProcessCheckpointReadMessage const>(checkpointReadDir));
+   notify(
+         mObserverTable,
+         std::make_shared<ProcessCheckpointReadMessage const>(mCheckpointReadDirectory));
 }
 
 void Checkpointer::checkpointWrite(double simTime) {
@@ -629,7 +757,7 @@ void Checkpointer::finalCheckpoint(double simTime) {
    if (mCheckpointWriteFlag) {
       checkpointNow();
    }
-   else if (mLastCheckpointDir!=nullptr && mLastCheckpointDir[0] != '\0') {
+   else if (mLastCheckpointDir != nullptr && mLastCheckpointDir[0] != '\0') {
       checkpointToDirectory(std::string(mLastCheckpointDir));
    }
 }

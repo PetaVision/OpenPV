@@ -89,12 +89,6 @@ HyPerCol::~HyPerCol() {
       free(mCheckpointWriteTriggerModeString);
       mCheckpointWriteTriggerModeString = nullptr;
    }
-   if (mCheckpointReadFlag) {
-      free(mCheckpointReadDir);
-      mCheckpointReadDir = nullptr;
-      free(mCheckpointReadDirBase);
-      mCheckpointReadDirBase = nullptr;
-   }
 }
 
 int HyPerCol::initialize_base() {
@@ -107,9 +101,6 @@ int HyPerCol::initialize_base() {
    mNumPhases                     = 0;
    mCheckpointReadFlag            = false;
    mCheckpointWriteFlag           = false;
-   mCheckpointReadDir             = nullptr;
-   mCheckpointReadDirBase         = nullptr;
-   mCpReadDirIndex                = -1L;
    mCheckpointWriteDir            = nullptr;
    mCheckpointWriteTriggerMode    = CPWRITE_TRIGGER_STEP;
    mCpWriteStepInterval           = -1L;
@@ -274,149 +265,12 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
    char const *checkpoint_read_dir = mPVInitObj->getCheckpointReadDir();
    pvAssert(!(mWarmStart && checkpoint_read_dir));
    if (mWarmStart) {
-      mCheckpointReadDir = (char *)pvCallocError(
-            PV_PATH_MAX,
-            sizeof(char),
-            "%s error: unable to allocate memory for "
-            "path to checkpoint read directory.\n",
-            programName);
-      if (columnId() == 0) {
-         struct stat statbuf;
-         // Look for directory "Last" in mOutputPath directory
-         std::string cpDirString = mOutputPath;
-         cpDirString += "/";
-         cpDirString += "Last";
-         if (PV_stat(cpDirString.c_str(), &statbuf) == 0) {
-            if (statbuf.st_mode & S_IFDIR) {
-               strncpy(mCheckpointReadDir, cpDirString.c_str(), PV_PATH_MAX);
-               FatalIf(
-                     mCheckpointReadDir[PV_PATH_MAX - 1],
-                     "%s error: checkpoint read directory \"%s\" too long.\n",
-                     programName,
-                     cpDirString.c_str());
-            }
-            else {
-               Fatal().printf(
-                     "%s error: checkpoint read directory \"%s\" is not "
-                     "a directory.\n",
-                     programName,
-                     cpDirString.c_str());
-            }
-         }
-         else if (mCheckpointWriteFlag) {
-            // Last directory didn't exist; now look for mCheckpointWriteDir
-            assert(mCheckpointWriteDir);
-            cpDirString = mCheckpointWriteDir;
-            if (cpDirString.c_str()[cpDirString.length() - 1] != '/') {
-               cpDirString += "/";
-            }
-            int statstatus = PV_stat(cpDirString.c_str(), &statbuf);
-            if (statstatus == 0) {
-               if (statbuf.st_mode & S_IFDIR) {
-                  char *dirs[]      = {mCheckpointWriteDir, nullptr};
-                  FTS *fts          = fts_open(dirs, FTS_LOGICAL, nullptr);
-                  FTSENT *ftsent    = fts_read(fts);
-                  bool found        = false;
-                  long int cp_index = LONG_MIN;
-                  for (ftsent = fts_children(fts, 0); ftsent != nullptr;
-                       ftsent = ftsent->fts_link) {
-                     if (ftsent->fts_statp->st_mode & S_IFDIR) {
-                        long int x;
-                        int k = sscanf(ftsent->fts_name, "Checkpoint%ld", &x);
-                        if (x > cp_index) {
-                           cp_index = x;
-                           found    = true;
-                        }
-                     }
-                  }
-                  FatalIf(
-                        !found,
-                        "%s: restarting but Last directory does not exist and "
-                        "checkpointWriteDir "
-                        "directory \"%s\" does not have any checkpoints\n",
-                        programName,
-                        mCheckpointWriteDir);
-                  int pathlen = snprintf(
-                        mCheckpointReadDir,
-                        PV_PATH_MAX,
-                        "%sCheckpoint%ld",
-                        cpDirString.c_str(),
-                        cp_index);
-                  FatalIf(
-                        pathlen > PV_PATH_MAX,
-                        "%s error: checkpoint read directory \"%s\" too long.\n",
-                        programName,
-                        cpDirString.c_str());
-               }
-               else {
-                  Fatal().printf(
-                        "%s error: checkpoint read directory \"%s\" is "
-                        "not a directory.\n",
-                        programName,
-                        mCheckpointWriteDir);
-               }
-            }
-            else if (errno == ENOENT) {
-               Fatal().printf(
-                     "%s error: restarting but neither Last nor "
-                     "checkpointWriteDir directory "
-                     "\"%s\" exists.\n",
-                     programName,
-                     mCheckpointWriteDir);
-            }
-         }
-         else {
-            Fatal().printf(
-                  "%s: restarting but Last directory does not exist and "
-                  "checkpointWriteDir is not "
-                  "defined (checkpointWrite=false)\n",
-                  programName);
-         }
-      }
-      MPI_Bcast(mCheckpointReadDir, PV_PATH_MAX, MPI_CHAR, 0, mCommunicator->communicator());
+      mCheckpointer->setCheckpointReadDirectory();
    }
    if (checkpoint_read_dir) {
-      std::string colonSeparatedList{mPVInitObj->getCheckpointReadDir()};
-      std::vector<std::string> checkpointReadDirs;
-      checkpointReadDirs.reserve(mCommunicator->numCommBatches());
-      std::size_t dirStart = (std::size_t)0;
-      while (dirStart < colonSeparatedList.size()) {
-         std::size_t dirStop = colonSeparatedList.find(':', dirStart);
-         if (dirStop == std::string::npos) {
-            dirStop = colonSeparatedList.size();
-         }
-         checkpointReadDirs.push_back(colonSeparatedList.substr(dirStart, dirStop - dirStart));
-         FatalIf(
-               checkpointReadDirs.size() > (std::size_t)mCommunicator->numCommBatches(),
-               "Checkpoint read parsing error: Too many colon separated "
-               "checkpoint read directories. "
-               "Only specify %d checkpoint directories.\n",
-               mCommunicator->numCommBatches());
-         dirStart = dirStop + 1;
-      }
-      // Make sure number matches up
-      int const count = (int)checkpointReadDirs.size();
-      FatalIf(
-            count != mCommunicator->numCommBatches() && count != 1,
-            "Checkpoint read parsing error: Not enough colon separated "
-            "checkpoint read directories. "
-            "Running with %d batch MPIs but only %d colon separated checkpoint "
-            "directories.\n",
-            mCommunicator->numCommBatches(),
-            count);
-
-      // Grab the directory for this rank and use as mCheckpointReadDir
-      int const checkpointIndex = count == 1 ? 0 : mCommunicator->commBatch();
-      std::string dirString     = expandLeadingTilde(checkpointReadDirs[checkpointIndex].c_str());
-      mCheckpointReadDir        = strdup(dirString.c_str());
-      pvAssert(mCheckpointReadDir);
-
-      InfoLog().printf(
-            "Global Rank %d process setting checkpointReadDir to %s.\n",
-            globalRank(),
-            mCheckpointReadDir);
+      mCheckpointer->setCheckpointReadDirectory(std::string(checkpoint_read_dir));
    }
-   mCheckpointReadFlag = mCheckpointReadDir != nullptr;
+   mCheckpointReadFlag = !mCheckpointer->getCheckpointReadDirectory().empty();
 
 // run only on GPU for now
 #ifdef PV_USE_CUDA
@@ -1147,7 +1001,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
       // so that the data in border regions gets copied correctly.
       notify(std::make_shared<InitializeStateMessage<Checkpointer>>(mCheckpointer));
       if (mCheckpointReadFlag) {
-         mCheckpointer->checkpointRead(mCheckpointReadDir, &mSimTime, &mCurrentStep);
+         mCheckpointer->checkpointRead(&mSimTime, &mCurrentStep);
       }
       // Note: ideally, in checkpointReadFlag is set, calling InitializeState should
       // be unnecessary. However, currently initializeState does some CUDA kernel
@@ -1643,7 +1497,11 @@ int HyPerCol::outputParamsHeadComments(FILE *fp, char const *commentToken) {
    }
 #endif // PV_USE_OPENMP_THREADS
    if (mCheckpointReadFlag) {
-      fprintf(fp, "%s Started from checkpoint \"%s\"\n", commentToken, mCheckpointReadDir);
+      fprintf(
+            fp,
+            "%s Started from checkpoint \"%s\"\n",
+            commentToken,
+            mCheckpointer->getCheckpointReadDirectory().c_str());
    }
    return PV_SUCCESS;
 }

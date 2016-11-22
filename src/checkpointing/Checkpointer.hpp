@@ -98,12 +98,11 @@ class Checkpointer : public Subject {
    void registerTimer(Timer const *timer);
    virtual void addObserver(Observer *observer, BaseMessage const &message) override;
 
+   void setCheckpointReadDirectory();
+   void setCheckpointReadDirectory(std::string const &checkpointReadDirectory);
    void readNamedCheckpointEntry(std::string const &objName, std::string const &dataName) const;
    void readNamedCheckpointEntry(std::string const &checkpointEntryName) const;
-   void checkpointRead(
-         std::string const &checkpointReadDir,
-         double *simTimePointer,
-         long int *currentStepPointer);
+   void checkpointRead(double *simTimePointer, long int *currentStepPointer);
    void checkpointWrite(double simTime);
    void finalCheckpoint(double simTime);
    void writeTimers(PrintStream &stream) const;
@@ -120,6 +119,7 @@ class Checkpointer : public Subject {
    double getCheckpointWriteSimtimeInterval() const { return mCheckpointWriteSimtimeInterval; }
    int getCheckpointIndexWidth() const { return mCheckpointIndexWidth; }
    bool getSuppressNonplasticCheckpoints() const { return mSuppressNonplasticCheckpoints; }
+   std::string const &getCheckpointReadDirectory() const { return mCheckpointReadDirectory; }
    char const *getLastCheckpointDir() const { return mLastCheckpointDir; }
    char const *getInitializeFromCheckpointDir() const { return mInitializeFromCheckpointDir; }
    bool getDefaultInitializeFromCheckpointFlag() const {
@@ -139,6 +139,7 @@ class Checkpointer : public Subject {
    void ioParam_checkpointWriteClockUnit(enum ParamsIOFlag ioFlag, PVParams *params);
    void ioParam_checkpointIndexWidth(enum ParamsIOFlag ioFlag, PVParams *params);
    void ioParam_suppressNonplasticCheckpoints(enum ParamsIOFlag ioFlag, PVParams *params);
+   void findWarmStartDirectory();
    bool checkpointWriteSignal();
    void checkpointWriteStep();
    void checkpointWriteSimtime();
