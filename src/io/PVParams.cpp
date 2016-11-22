@@ -1637,7 +1637,9 @@ void PVParams::ioParamStringRequired(
                   groupName,
                   strerror(errno));
          }
-         else {
+         else if (!stringPresent(groupName, paramName)) {
+            // Setting the param to NULL explicitly is allowed;
+            // if the string parameter is not present at all, error out.
             if (icComm->globalCommRank() == 0) {
                ErrorLog().printf(
                      "%s \"%s\": string parameter \"%s\" is required.\n",
@@ -1647,6 +1649,9 @@ void PVParams::ioParamStringRequired(
             }
             MPI_Barrier(icComm->globalCommunicator());
             exit(EXIT_FAILURE);
+         }
+         else {
+            *paramStringValue = nullptr;
          }
          break;
       case PARAMS_IO_WRITE: writeParamString(paramName, *paramStringValue);
