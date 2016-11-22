@@ -43,7 +43,7 @@ HyPerCol "column" = {
    printParamsFilename = "pv.params";
    initializeFromCheckpointDir = "";
    checkpointWrite = false;
-   suppressLastOutput = false; //Save the last output as checkpoint.
+   lastCheckpointDir = "output/Last"; //Save the last output as checkpoint.
    errorOnNotANumber = false;
 };
 

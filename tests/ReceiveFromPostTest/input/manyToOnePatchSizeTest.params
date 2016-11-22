@@ -10,7 +10,7 @@ HyPerCol "column" = {
     progressInterval = 1.0;
     outputPath = "output/manyToOnePatchSizeTest";
     checkpointWrite = false;
-    suppressLastOutput = true;
+    lastCheckpointDir = "output/manyToOnePatchSizeTest/Last";
     writeProgressToErr = true;
 };
 

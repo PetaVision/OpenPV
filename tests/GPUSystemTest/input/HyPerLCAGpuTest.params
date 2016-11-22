@@ -13,7 +13,7 @@ HyPerCol "column" = {
     checkpointWrite = true;
     checkpointWriteDir = "output/checkpoints/";
     checkpointWriteStepInterval = 1;
-    suppressLastOutput = false;
+    lastCheckpointDir = "output/HyPerLCAGpuTest/Last";
     writeProgressToErr = true;
     nbatch = 2;
 };

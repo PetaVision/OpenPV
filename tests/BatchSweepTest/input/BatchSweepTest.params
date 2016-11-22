@@ -21,7 +21,6 @@ HyPerCol "column" = {
    verifyWrites = true;
    printParamsFilename = "pv.params";
    checkpointWrite = false;
-   suppressLastOutput = false;
    nbatch = 4;
 };
 
@@ -491,4 +490,11 @@ BatchSweep "column":outputPath = {
     "output3/";
     "output5/";
     "output7/";
+};
+
+BatchSweep "column":lastCheckpointDir = {
+    "output1/Last";
+    "output3/Last";
+    "output5/Last";
+    "output7/Last";
 };

@@ -20,7 +20,7 @@ HyPerCol "column" = {
    writeProgressToErr = false;
    outputPath = "output/test_kernel";
    checkpointWrite = false;
-   suppressLastOutput = false;
+   lastCheckpointDir = "output/test_kernel/Last";
    nbatch = 2;
 };
 

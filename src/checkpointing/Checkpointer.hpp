@@ -59,6 +59,14 @@ class Checkpointer : public Subject {
     */
    virtual void
    ioParam_defaultInitializeFromCheckpointFlag(enum ParamsIOFlag ioFlag, PVParams *params);
+
+   /**
+    * @brief lastCheckpointDir: If checkpointWrite is not set, this required parameter specifies
+    * the directory to write a final written checkpoint at the end of the run.
+    * Writing the last checkpoint can be suppressed by setting this string to the empty string.
+    * Relative paths are relative to the working directory.
+    */
+   void ioParam_lastCheckpointDir(enum ParamsIOFlag ioFlag, PVParams *params);
    /** @} */
 
    enum CheckpointWriteTriggerMode { NONE, STEP, SIMTIME, WALLCLOCK };
@@ -90,12 +98,11 @@ class Checkpointer : public Subject {
    void registerTimer(Timer const *timer);
    virtual void addObserver(Observer *observer, BaseMessage const &message) override;
 
+   void setCheckpointReadDirectory();
+   void setCheckpointReadDirectory(std::string const &checkpointReadDirectory);
    void readNamedCheckpointEntry(std::string const &objName, std::string const &dataName) const;
    void readNamedCheckpointEntry(std::string const &checkpointEntryName) const;
-   void checkpointRead(
-         std::string const &checkpointReadDir,
-         double *simTimePointer,
-         long int *currentStepPointer);
+   void checkpointRead(double *simTimePointer, long int *currentStepPointer);
    void checkpointWrite(double simTime);
    void finalCheckpoint(double simTime);
    void writeTimers(PrintStream &stream) const;
@@ -112,7 +119,8 @@ class Checkpointer : public Subject {
    double getCheckpointWriteSimtimeInterval() const { return mCheckpointWriteSimtimeInterval; }
    int getCheckpointIndexWidth() const { return mCheckpointIndexWidth; }
    bool getSuppressNonplasticCheckpoints() const { return mSuppressNonplasticCheckpoints; }
-   bool getSuppressLastOutput() const { return mSuppressLastOutput; }
+   std::string const &getCheckpointReadDirectory() const { return mCheckpointReadDirectory; }
+   char const *getLastCheckpointDir() const { return mLastCheckpointDir; }
    char const *getInitializeFromCheckpointDir() const { return mInitializeFromCheckpointDir; }
    bool getDefaultInitializeFromCheckpointFlag() const {
       return mDefaultInitializeFromCheckpointFlag;
@@ -131,7 +139,7 @@ class Checkpointer : public Subject {
    void ioParam_checkpointWriteClockUnit(enum ParamsIOFlag ioFlag, PVParams *params);
    void ioParam_checkpointIndexWidth(enum ParamsIOFlag ioFlag, PVParams *params);
    void ioParam_suppressNonplasticCheckpoints(enum ParamsIOFlag ioFlag, PVParams *params);
-   void ioParam_suppressLastOutput(enum ParamsIOFlag ioFlag, PVParams *params);
+   void findWarmStartDirectory();
    bool checkpointWriteSignal();
    void checkpointWriteStep();
    void checkpointWriteSimtime();
@@ -166,7 +174,7 @@ class Checkpointer : public Subject {
    bool mSuppressNonplasticCheckpoints                                     = false;
    bool mDeleteOlderCheckpoints                                            = false;
    int mNumCheckpointsKept                                                 = 2;
-   bool mSuppressLastOutput                                                = false;
+   char *mLastCheckpointDir                                                = nullptr;
    char *mInitializeFromCheckpointDir                                      = nullptr;
    bool mDefaultInitializeFromCheckpointFlag                               = false;
    std::string mCheckpointReadDirectory;

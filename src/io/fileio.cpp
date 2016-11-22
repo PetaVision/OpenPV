@@ -528,28 +528,20 @@ int checkDirExists(Communicator *comm, const char *dirname, struct stat *pathsta
    // check if the given directory name exists for the rank zero process
    // the return value is zero if a successful stat(2) call and the error
    // if unsuccessful.  pathstat contains the result of the buffer from the stat call.
-   // The rank zero process is the only one that calls stat(); it then Bcasts the
-   // result to the rest of the processes.
+   // The rank zero process is the only one that calls stat();
+   // nonzero rank processes return PV_SUCCESS immediately.
    pvAssert(pathstat);
 
    int rank = comm->commRank();
+   if (rank != 0) {
+      return 0;
+   }
    int status;
    int errorcode;
-   if (rank == 0) {
-      char *expandedDirName = strdup(expandLeadingTilde(dirname).c_str());
-      status                = stat(dirname, pathstat);
-      free(expandedDirName);
-      if (status)
-         errorcode = errno;
-   }
-#ifdef PV_USE_MPI
-   MPI_Bcast(&status, 1, MPI_INT, 0, comm->communicator());
-   if (status) {
-      MPI_Bcast(&errorcode, 1, MPI_INT, 0, comm->communicator());
-   }
-   MPI_Bcast(pathstat, sizeof(struct stat), MPI_CHAR, 0, comm->communicator());
-#endif // PV_USE_MPI
-   return status ? errorcode : 0;
+   char *expandedDirName = strdup(expandLeadingTilde(dirname).c_str());
+   status                = stat(dirname, pathstat);
+   free(expandedDirName);
+   return status ? errno : 0;
 }
 
 static inline int makeDirectory(char const *dir) {
@@ -580,11 +572,12 @@ static inline int makeDirectory(char const *dir) {
 }
 
 int ensureDirExists(Communicator *comm, char const *dirname) {
-   // see if path exists, and try to create it if it doesn't.
-   // Since only rank 0 process should be reading and writing, only rank 0 does the mkdir call
+   // If rank zero, see if path exists, and try to create it if it doesn't.
+   // If not rank zero, the routine does nothing.
    int rank = comm->commRank();
    struct stat pathstat;
    int resultcode = checkDirExists(comm, dirname, &pathstat);
+
    if (resultcode == 0) { // mOutputPath exists; now check if it's a directory.
       FatalIf(
             !(pathstat.st_mode & S_IFDIR) && rank == 0,

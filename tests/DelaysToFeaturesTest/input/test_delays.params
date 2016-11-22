@@ -22,7 +22,7 @@ HyPerCol "column" = {
    outputPath = "output/";
    printParamsFilename = "pv.params";
    checkpointWrite = false;
-   suppressLastOutput = false;
+   lastCheckpointDir = "output/Last";
    nbatch = 2;
 };
 

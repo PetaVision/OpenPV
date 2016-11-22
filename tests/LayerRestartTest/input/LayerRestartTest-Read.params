@@ -19,7 +19,7 @@ HyPerCol "column" = {
     initializeFromCheckpointDir = "output/Last"; 
     defaultInitializeFromCheckpointFlag = false;
     checkpointWrite = false;
-    suppressLastOutput = false;
+    lastCheckpointDir = "output/Last";
     
 };
 

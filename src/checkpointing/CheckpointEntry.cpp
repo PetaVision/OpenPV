@@ -6,6 +6,7 @@
  */
 
 #include "CheckpointEntry.hpp"
+#include "io/fileio.hpp"
 #include "utils/PVLog.hpp"
 #include <cerrno>
 #include <cstring>
@@ -18,6 +19,19 @@ std::string CheckpointEntry::generatePath(
       std::string const &checkpointDirectory,
       std::string const &extension) const {
    std::string path(checkpointDirectory);
+   int batchWidth = getCommunicator()->numCommBatches();
+   if (batchWidth > 1) {
+      path.append("/batchsweep_");
+      std::size_t lengthLargestBatchIndex = std::to_string(batchWidth - 1).size();
+      std::string batchIndexAsString      = std::to_string(getCommunicator()->commBatch());
+      std::size_t lengthBatchIndex        = batchIndexAsString.size();
+      if (lengthBatchIndex < lengthLargestBatchIndex) {
+         path.append(lengthLargestBatchIndex - lengthBatchIndex, '0');
+      }
+      path.append(batchIndexAsString);
+      path.append("/");
+   }
+   ensureDirExists(getCommunicator(), path.c_str());
    path.append("/").append(getName()).append(".").append(extension);
    return path;
 }

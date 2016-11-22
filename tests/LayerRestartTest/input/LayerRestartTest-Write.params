@@ -18,7 +18,7 @@ HyPerCol "column" = {
     printParamsFilename = "pv.params";
     initializeFromCheckpointDir = "";
     checkpointWrite = false;
-    suppressLastOutput = false;
+    lastCheckpointDir = "output/Last";
 };
 
 // 4 layers:

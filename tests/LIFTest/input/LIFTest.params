@@ -30,7 +30,7 @@ HyPerCol "column" = {
    checkpointWriteTriggerMode       = "time";
    checkpointWriteTimeInterval      = 100.0;
    deleteOlderCheckpoints           = false;
-   // suppressLastOutput               = false;
+   // lastCheckpointDir                = "output/Last";
    suppressNonplasticCheckpoints    = false;
    checkpointIndexWidth             = -1; // negative means determine width automatically
 };

@@ -25,7 +25,7 @@ HyPerCol "column" = {
    checkpointWriteDir           = "checkpoints2";
    checkpointWriteStepInterval  = 5;
    deleteOlderCheckpoints       = false;
-   // suppressLastOutput           = false;
+   // lastCheckpointDir            = "output2/Last";
 };
 
 //

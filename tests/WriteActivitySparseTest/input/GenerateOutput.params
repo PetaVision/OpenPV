@@ -25,7 +25,7 @@ HyPerCol "column" = {
    outputPath = "outputGenerate/";
    printParamsFilename = "pv.params"; // A record of the parameters used, including defaults and excluding unused params, will be written to this file.
    checkpointWrite = false;
-   suppressLastOutput = false; //If true, save the last output as checkpoint.
+   lastCheckpointDir = "outputGenerate/Last"; //If true, save the last output as checkpoint.
    nbatch = 2;
 };
 
