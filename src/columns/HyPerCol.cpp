@@ -376,44 +376,40 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
       MPI_Bcast(mCheckpointReadDir, PV_PATH_MAX, MPI_CHAR, 0, mCommunicator->communicator());
    }
    if (checkpoint_read_dir) {
-      char *origChkPtr       = strdup(mPVInitObj->getCheckpointReadDir());
-      char **splitCheckpoint = (char **)pvCalloc(mCommunicator->numCommBatches(), sizeof(char *));
-      size_t count           = 0;
-      char *tmp              = nullptr;
-      tmp                    = strtok(origChkPtr, ":");
-      while (tmp != nullptr) {
-         splitCheckpoint[count] = strdup(tmp);
-         count++;
+      std::string colonSeparatedList{mPVInitObj->getCheckpointReadDir()};
+      std::vector<std::string> checkpointReadDirs;
+      checkpointReadDirs.reserve(mCommunicator->numCommBatches());
+      std::size_t dirStart = (std::size_t)0;
+      while (dirStart < colonSeparatedList.size()) {
+         std::size_t dirStop = colonSeparatedList.find(':', dirStart);
+         if (dirStop == std::string::npos) {
+            dirStop = colonSeparatedList.size();
+         }
+         checkpointReadDirs.push_back(colonSeparatedList.substr(dirStart, dirStop - dirStart));
          FatalIf(
-               count > mCommunicator->numCommBatches(),
-               "Checkpoint read parsing error: Too many colon seperated "
-               "checkpoint read "
-               "directories. Only specify %d checkpoint directories.\n",
+               checkpointReadDirs.size() > (std::size_t)mCommunicator->numCommBatches(),
+               "Checkpoint read parsing error: Too many colon separated "
+               "checkpoint read directories. "
+               "Only specify %d checkpoint directories.\n",
                mCommunicator->numCommBatches());
-         tmp = strtok(nullptr, ":");
+         dirStart = dirStop + 1;
       }
       // Make sure number matches up
+      int const count = (int)checkpointReadDirs.size();
       FatalIf(
             count != mCommunicator->numCommBatches() && count != 1,
-            "Checkpoint read parsing error: Not enough colon seperated "
-            "checkpoint read "
-            "directories. Running with %d batch MPIs but only %zu colon "
-            "seperated checkpoint "
+            "Checkpoint read parsing error: Not enough colon separated "
+            "checkpoint read directories. "
+            "Running with %d batch MPIs but only %d colon separated checkpoint "
             "directories.\n",
             mCommunicator->numCommBatches(),
             count);
 
       // Grab the directory for this rank and use as mCheckpointReadDir
-      int const splitCheckpointIndex = count > 1 ? mCommunicator->commBatch() : 0;
-      mCheckpointReadDir =
-            strdup(expandLeadingTilde(splitCheckpoint[splitCheckpointIndex]).c_str());
+      int const checkpointIndex = count == 1 ? 0 : mCommunicator->commBatch();
+      std::string dirString     = expandLeadingTilde(checkpointReadDirs[checkpointIndex].c_str());
+      mCheckpointReadDir        = strdup(dirString.c_str());
       pvAssert(mCheckpointReadDir);
-      // Free all tmp memories
-      for (int i = 0; i < mCommunicator->numCommBatches(); i++) {
-         free(splitCheckpoint[i]);
-      }
-      free(splitCheckpoint);
-      free(origChkPtr);
 
       InfoLog().printf(
             "Global Rank %d process setting checkpointReadDir to %s.\n",
@@ -1816,7 +1812,7 @@ int HyPerCol::initializeThreads(char const *in_device) {
       std::vector<int> deviceVec;
       std::stringstream ss(in_device);
       std::string stoken;
-      // Grabs strings from ss into item, seperated by commas
+      // Grabs strings from ss into item, separated by commas
       while (std::getline(ss, stoken, ',')) {
          // Convert stoken to integer
          for (auto &ch : stoken) {
