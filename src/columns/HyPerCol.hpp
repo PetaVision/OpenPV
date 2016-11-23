@@ -265,13 +265,6 @@ class HyPerCol : public Subject, Observer {
    virtual void ioParam_checkpointWriteStepInterval(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief checkpointWriteTimeInteval: If checkpointWrite on time, specifies
-    * the amount of
-    * simulation time between checkpoints.
-    */
-   virtual void ioParam_checkpointWriteTimeInterval(enum ParamsIOFlag ioFlag);
-
-   /**
     * @brief writeTimescales:  Obsolete.  This parameter is now handled by
     * AdaptiveTimeScaleProbe,
     * as writeTimeScales.
@@ -479,9 +472,6 @@ class HyPerCol : public Subject, Observer {
    double mSimTime;
    double mStopTime; // time to stop time
    double mDeltaTime; // time step interval
-   double mCpWriteTimeInterval;
-   double mNextCpWriteTime;
-   // in the units specified by checkpointWriteClockUnit
    double mProgressInterval; // Output progress after mSimTime increases by this
    // amount.
    double mNextProgressTime; // Next time to output a progress message

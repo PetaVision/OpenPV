@@ -35,6 +35,12 @@ class Checkpointer : public Subject {
    void ioParam_checkpointWriteDir(enum ParamsIOFlag ioFlag, PVParams *params);
    void ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag, PVParams *params);
    void ioParam_checkpointWriteStepInterval(enum ParamsIOFlag ioFlag, PVParams *params);
+
+   /**
+    * @brief checkpointWriteTimeInteval: If checkpointWrite on time, specifies
+    * the amount of
+    * simulation time between checkpoints.
+    */
    void ioParam_checkpointWriteTimeInterval(enum ParamsIOFlag ioFlag, PVParams *params);
 
    /**

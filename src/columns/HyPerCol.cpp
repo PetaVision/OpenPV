@@ -105,8 +105,6 @@ int HyPerCol::initialize_base() {
    mCheckpointWriteTriggerMode    = CPWRITE_TRIGGER_STEP;
    mCpWriteStepInterval           = -1L;
    mNextCpWriteStep               = 0L;
-   mCpWriteTimeInterval           = -1.0;
-   mNextCpWriteTime               = 0.0;
    mDeleteOlderCheckpoints        = false;
    mStartTime                     = 0.0;
    mStopTime                      = 0.0;
@@ -227,16 +225,12 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
       switch (mCheckpointWriteTriggerMode) {
          case CPWRITE_TRIGGER_STEP:
             mNextCpWriteStep      = mInitialStep;
-            mNextCpWriteTime      = mStartTime; // Should be unnecessary
-            mCpWriteTimeInterval  = -1;
             break;
          case CPWRITE_TRIGGER_TIME:
             mNextCpWriteStep      = mInitialStep; // Should be unnecessary
-            mNextCpWriteTime      = mStartTime;
             mCpWriteStepInterval  = -1;
             break;
          case CPWRITE_TRIGGER_CLOCK:
-            mCpWriteTimeInterval = -1;
             mCpWriteStepInterval = -1;
             break;
          default:
@@ -327,7 +321,6 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
       ioParam_checkpointWriteDir(ioFlag);
       ioParam_checkpointWriteTriggerMode(ioFlag);
       ioParam_checkpointWriteStepInterval(ioFlag);
-      ioParam_checkpointWriteTimeInterval(ioFlag);
    }
    ioParam_printParamsFilename(ioFlag);
    ioParam_randomSeed(ioFlag);
@@ -769,17 +762,6 @@ void HyPerCol::ioParam_checkpointWriteStepInterval(enum ParamsIOFlag ioFlag) {
       if (mCheckpointWriteTriggerMode == CPWRITE_TRIGGER_STEP) {
          parameters()->ioParamValue(
                ioFlag, mName, "checkpointWriteStepInterval", &mCpWriteStepInterval, 1L);
-      }
-   }
-}
-
-void HyPerCol::ioParam_checkpointWriteTimeInterval(enum ParamsIOFlag ioFlag) {
-   assert(!mParams->presentAndNotBeenRead(mName, "checkpointWrite"));
-   if (mCheckpointWriteFlag) {
-      pvAssert(!mParams->presentAndNotBeenRead(mName, "checkpointWriteTriggerMode"));
-      if (mCheckpointWriteTriggerMode == CPWRITE_TRIGGER_TIME) {
-         parameters()->ioParamValue(
-               ioFlag, mName, "checkpointWriteTimeInterval", &mCpWriteTimeInterval, mDeltaTime);
       }
    }
 }
