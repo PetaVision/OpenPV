@@ -468,9 +468,6 @@ class HyPerCol : public Subject, Observer {
    std::vector<HyPerLayer *> mUpdateLayerBuffer;
    Timer *mRunTimer;
    std::vector<Timer *> mPhaseRecvTimers; // Timer ** mPhaseRecvTimers;
-   time_t mCpWriteClockSeconds; // If checkpoint mode is clock, the clock time
-   // between checkpoints,
-   // in seconds
    unsigned int mRandomSeed;
 #ifdef PV_USE_CUDA
    // The list of GPU group showing which connection's buffer to use
