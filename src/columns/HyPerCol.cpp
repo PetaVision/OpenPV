@@ -277,13 +277,9 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_progressInterval(ioFlag);
    ioParam_writeProgressToErr(ioFlag);
    ioParam_outputPath(ioFlag);
+   ioParam_verifyWrites(ioFlag);
+   mCheckpointer->setVerifyWrites(mVerifyWrites);
    mCheckpointer->ioParamsFillGroup(ioFlag, parameters());
-   if (ioFlag == PARAMS_IO_READ) {
-      // These parameters are read and written by mCheckpointer.
-      // During the transition of checkpointing from HyPerCol to Checkpointer,
-      // HyPerCol will redundantly read these parameters but not write them.
-      ioParam_verifyWrites(ioFlag);
-   }
    ioParam_printParamsFilename(ioFlag);
    ioParam_randomSeed(ioFlag);
    ioParam_nx(ioFlag);

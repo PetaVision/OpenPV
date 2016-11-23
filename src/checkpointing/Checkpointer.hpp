@@ -30,8 +30,6 @@ class Checkpointer : public Subject {
     * @{
     */
 
-   void ioParam_verifyWrites(enum ParamsIOFlag ioFlag, PVParams *params);
-
    /**
     * @brief checkpointWrite: Flag to determine if the run writes checkpoints.
     */
@@ -168,6 +166,7 @@ class Checkpointer : public Subject {
    void registerTimer(Timer const *timer);
    virtual void addObserver(Observer *observer, BaseMessage const &message) override;
 
+   void setVerifyWrites(bool verifyWritesFlag) { mVerifyWritesFlag = verifyWritesFlag; }
    void setCheckpointReadDirectory();
    void setCheckpointReadDirectory(std::string const &checkpointReadDirectory);
    void readNamedCheckpointEntry(std::string const &objName, std::string const &dataName) const;

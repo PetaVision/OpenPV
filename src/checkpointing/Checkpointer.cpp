@@ -36,7 +36,6 @@ void Checkpointer::initialize() {
 }
 
 void Checkpointer::ioParamsFillGroup(enum ParamsIOFlag ioFlag, PVParams *params) {
-   ioParam_verifyWrites(ioFlag, params);
    ioParam_checkpointWrite(ioFlag, params);
    ioParam_checkpointWriteDir(ioFlag, params);
    ioParam_checkpointWriteTriggerMode(ioFlag, params);
@@ -51,11 +50,6 @@ void Checkpointer::ioParamsFillGroup(enum ParamsIOFlag ioFlag, PVParams *params)
    ioParam_lastCheckpointDir(ioFlag, params);
    ioParam_initializeFromCheckpointDir(ioFlag, params);
    ioParam_defaultInitializeFromCheckpointFlag(ioFlag, params);
-}
-
-void Checkpointer::ioParam_verifyWrites(enum ParamsIOFlag ioFlag, PVParams *params) {
-   params->ioParamValue(
-         ioFlag, mName.c_str(), "verifyWrites", &mVerifyWritesFlag, mVerifyWritesFlag);
 }
 
 void Checkpointer::ioParam_checkpointWrite(enum ParamsIOFlag ioFlag, PVParams *params) {
