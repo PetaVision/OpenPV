@@ -86,8 +86,6 @@ HyPerCol::~HyPerCol() {
    if (mCheckpointWriteFlag) {
       free(mCheckpointWriteDir);
       mCheckpointWriteDir = nullptr;
-      free(mCheckpointWriteTriggerModeString);
-      mCheckpointWriteTriggerModeString = nullptr;
    }
 }
 
@@ -102,7 +100,6 @@ int HyPerCol::initialize_base() {
    mCheckpointReadFlag            = false;
    mCheckpointWriteFlag           = false;
    mCheckpointWriteDir            = nullptr;
-   mCheckpointWriteTriggerMode    = CPWRITE_TRIGGER_STEP;
    mDeleteOlderCheckpoints        = false;
    mStartTime                     = 0.0;
    mStopTime                      = 0.0;
@@ -219,21 +216,6 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
 
    RandomSeed::instance()->initialize(mRandomSeed);
 
-   if (mCheckpointWriteFlag) {
-      switch (mCheckpointWriteTriggerMode) {
-         case CPWRITE_TRIGGER_STEP:
-            break;
-         case CPWRITE_TRIGGER_TIME:
-            break;
-         case CPWRITE_TRIGGER_CLOCK:
-            break;
-         default:
-            assert(0); // All cases of mCheckpointWriteTriggerMode should have been
-            // covered above.
-            break;
-      }
-   }
-
    mRunTimer = new Timer(mName, "column", "run    ");
    mCheckpointer->registerTimer(mRunTimer);
    mCheckpointer->registerCheckpointData(
@@ -313,7 +295,6 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
       ioParam_verifyWrites(ioFlag);
       ioParam_checkpointWrite(ioFlag);
       ioParam_checkpointWriteDir(ioFlag);
-      ioParam_checkpointWriteTriggerMode(ioFlag);
    }
    ioParam_printParamsFilename(ioFlag);
    ioParam_randomSeed(ioFlag);
@@ -702,49 +683,6 @@ void HyPerCol::ioParam_checkpointWriteDir(enum ParamsIOFlag ioFlag) {
    }
    else {
       mCheckpointWriteDir = nullptr;
-   }
-}
-
-void HyPerCol::ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag) {
-   pvAssert(!mParams->presentAndNotBeenRead(mName, "checkpointWrite"));
-   if (mCheckpointWriteFlag) {
-      parameters()->ioParamString(
-            ioFlag,
-            mName,
-            "checkpointWriteTriggerMode",
-            &mCheckpointWriteTriggerModeString,
-            "step");
-      if (ioFlag == PARAMS_IO_READ) {
-         pvAssert(mCheckpointWriteTriggerModeString);
-         if (!strcmp(mCheckpointWriteTriggerModeString, "step")
-             || !strcmp(mCheckpointWriteTriggerModeString, "Step")
-             || !strcmp(mCheckpointWriteTriggerModeString, "STEP")) {
-            mCheckpointWriteTriggerMode = CPWRITE_TRIGGER_STEP;
-         }
-         else if (
-               !strcmp(mCheckpointWriteTriggerModeString, "time")
-               || !strcmp(mCheckpointWriteTriggerModeString, "Time")
-               || !strcmp(mCheckpointWriteTriggerModeString, "TIME")) {
-            mCheckpointWriteTriggerMode = CPWRITE_TRIGGER_TIME;
-         }
-         else if (
-               !strcmp(mCheckpointWriteTriggerModeString, "clock")
-               || !strcmp(mCheckpointWriteTriggerModeString, "Clock")
-               || !strcmp(mCheckpointWriteTriggerModeString, "CLOCK")) {
-            mCheckpointWriteTriggerMode = CPWRITE_TRIGGER_CLOCK;
-         }
-         else {
-            if (globalRank() == 0) {
-               ErrorLog().printf(
-                     "HyPerCol \"%s\": checkpointWriteTriggerMode "
-                     "\"%s\" is not recognized.\n",
-                     mName,
-                     mCheckpointWriteTriggerModeString);
-            }
-            MPI_Barrier(getCommunicator()->globalCommunicator());
-            exit(EXIT_FAILURE);
-         }
-      }
    }
 }
 

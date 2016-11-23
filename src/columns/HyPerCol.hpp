@@ -39,14 +39,6 @@
 
 namespace PV {
 
-enum CheckpointWriteTriggerMode {
-   CPWRITE_TRIGGER_STEP,
-   CPWRITE_TRIGGER_TIME,
-   CPWRITE_TRIGGER_CLOCK
-};
-
-enum TimeUnit { CLOCK_SECOND, CLOCK_MINUTE, CLOCK_HOUR, CLOCK_DAY };
-
 class ColProbe;
 class BaseProbe;
 class PVParams;
@@ -247,17 +239,6 @@ class HyPerCol : public Subject, Observer {
    virtual void ioParam_checkpointWriteDir(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief mCheckpointWriteTriggerMode: If checkpointWrite is set, specifies
-    * the method to
-    * checkpoint.
-    * @details Possible choices include
-    * - step: Checkpoint off of timesteps
-    * - time: Checkpoint off of simulation time
-    * - clock: Checkpoint off of clock time. Not implemented yet.
-    */
-   virtual void ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag);
-
-   /**
     * @brief writeTimescales:  Obsolete.  This parameter is now handled by
     * AdaptiveTimeScaleProbe,
     * as writeTimeScales.
@@ -454,7 +435,6 @@ class HyPerCol : public Subject, Observer {
    // constructor
    bool mWriteTimescales;
    char *mCheckpointWriteDir; // name of the directory to write checkpoints to
-   char *mCheckpointWriteTriggerModeString;
    char *mName;
    char *mOutputPath; // path to output file directory
    char *mPrintParamsFilename; // filename for outputting the mParams, including
@@ -471,7 +451,6 @@ class HyPerCol : public Subject, Observer {
    // Sep 26, 2016: Adaptive timestep routines and member variables have been
    // moved to
    // AdaptiveTimeScaleProbe.
-   enum CheckpointWriteTriggerMode mCheckpointWriteTriggerMode;
    std::vector<HyPerLayer *> mLayers; // HyPerLayer ** mLayers;
    int mNumPhases;
    int mCheckpointSignal; // whether the process should checkpoint in response to

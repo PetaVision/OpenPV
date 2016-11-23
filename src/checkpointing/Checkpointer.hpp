@@ -33,6 +33,16 @@ class Checkpointer : public Subject {
    void ioParam_verifyWrites(enum ParamsIOFlag ioFlag, PVParams *params);
    void ioParam_checkpointWrite(enum ParamsIOFlag ioFlag, PVParams *params);
    void ioParam_checkpointWriteDir(enum ParamsIOFlag ioFlag, PVParams *params);
+
+   /**
+    * @brief mCheckpointWriteTriggerMode: If checkpointWrite is set, specifies
+    * the method to
+    * checkpoint.
+    * @details Possible choices include
+    * - step: Checkpoint off of timesteps
+    * - time: Checkpoint off of simulation time
+    * - clock: Checkpoint off of clock time. Not implemented yet.
+    */
    void ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag, PVParams *params);
 
    /**
