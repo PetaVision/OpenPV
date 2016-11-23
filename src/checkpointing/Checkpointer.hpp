@@ -80,7 +80,6 @@ class Checkpointer : public Subject {
    Checkpointer(std::string const &name, Communicator *comm);
    ~Checkpointer();
 
-   void setOutputPath(std::string const &outputPath);
    void ioParamsFillGroup(enum ParamsIOFlag ioFlag, PVParams *params);
    void provideFinalStep(long int finalStep);
 
@@ -109,7 +108,6 @@ class Checkpointer : public Subject {
 
    Communicator *getCommunicator() { return mCommunicator; }
    bool doesVerifyWrites() { return mVerifyWritesFlag; }
-   char const *getOutputPath() const { return mOutputPath; }
    bool getCheckpointWriteFlag() const { return mCheckpointWriteFlag; }
    char const *getcheckpointWriteDir() const { return mCheckpointWriteDir; }
    enum CheckpointWriteTriggerMode getCheckpointWriteTriggerMode() const {
@@ -129,7 +127,6 @@ class Checkpointer : public Subject {
   private:
    void initialize();
    void ioParam_verifyWrites(enum ParamsIOFlag ioFlag, PVParams *params);
-   void ioParam_outputPath(enum ParamsIOFlag ioFlag, PVParams *params);
    void ioParam_checkpointWrite(enum ParamsIOFlag ioFlag, PVParams *params);
    void ioParam_checkpointWriteDir(enum ParamsIOFlag ioFlag, PVParams *params);
    void ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag, PVParams *params);
@@ -160,7 +157,6 @@ class Checkpointer : public Subject {
    TimeInfo mTimeInfo;
    std::shared_ptr<CheckpointEntryData<TimeInfo>> mTimeInfoCheckpointEntry = nullptr;
    bool mVerifyWritesFlag                                                  = true;
-   char *mOutputPath                                                       = nullptr;
    bool mCheckpointWriteFlag                                               = false;
    char *mCheckpointWriteDir                                               = nullptr;
    char *mCheckpointWriteTriggerModeString                                 = nullptr;

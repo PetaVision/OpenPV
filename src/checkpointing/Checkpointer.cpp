@@ -21,7 +21,6 @@ Checkpointer::Checkpointer(std::string const &name, Communicator *comm)
 }
 
 Checkpointer::~Checkpointer() {
-   free(mOutputPath);
    free(mCheckpointWriteDir);
    free(mCheckpointWriteTriggerModeString);
    free(mCheckpointWriteWallclockUnit);
@@ -36,30 +35,8 @@ void Checkpointer::initialize() {
    registerTimer(mCheckpointTimer);
 }
 
-void Checkpointer::setOutputPath(std::string const &outputPath) {
-   if (mOutputPath) {
-      WarnLog(changingOutputPath);
-      changingOutputPath << "\"" << mName << "\": changing output path from \"" << mOutputPath
-                         << "\" to ";
-      if (!outputPath.empty()) {
-         changingOutputPath << "\"" << outputPath << "\".\n";
-      }
-      else {
-         changingOutputPath << "null.\n";
-      }
-   }
-   if (!outputPath.empty()) {
-      mOutputPath = strdup(expandLeadingTilde(outputPath.c_str()).c_str());
-      FatalIf(mOutputPath == nullptr, "Checkpointer::setOutputPath unable to copy output path.\n");
-   }
-   else {
-      mOutputPath = nullptr;
-   }
-}
-
 void Checkpointer::ioParamsFillGroup(enum ParamsIOFlag ioFlag, PVParams *params) {
    ioParam_verifyWrites(ioFlag, params);
-   ioParam_outputPath(ioFlag, params);
    ioParam_checkpointWrite(ioFlag, params);
    ioParam_checkpointWriteDir(ioFlag, params);
    ioParam_checkpointWriteTriggerMode(ioFlag, params);
@@ -79,35 +56,6 @@ void Checkpointer::ioParamsFillGroup(enum ParamsIOFlag ioFlag, PVParams *params)
 void Checkpointer::ioParam_verifyWrites(enum ParamsIOFlag ioFlag, PVParams *params) {
    params->ioParamValue(
          ioFlag, mName.c_str(), "verifyWrites", &mVerifyWritesFlag, mVerifyWritesFlag);
-}
-
-void Checkpointer::ioParam_outputPath(enum ParamsIOFlag ioFlag, PVParams *params) {
-   switch (ioFlag) {
-      case PARAMS_IO_READ:
-         // To use make use of the -o option on the command line, call Checkpointer::setOutputPath()
-         // before Checkpointer::ioParamsFillGroup(), as HyPerCol::initialize() does.
-         if (mOutputPath == nullptr) {
-            if (!params->stringPresent(mName.c_str(), "outputPath")) {
-               WarnLog() << "Output path specified neither in command line nor in params file.\n";
-            }
-            params->ioParamString(
-                  ioFlag,
-                  mName.c_str(),
-                  "outputPath",
-                  &mOutputPath,
-                  mDefaultOutputPath.c_str(),
-                  true);
-         }
-         else {
-            if (params->stringPresent(mName.c_str(), "outputPath")) {
-               InfoLog() << "Output path \"" << mOutputPath
-                         << "\" specified on command line; value in params file will be ignored.\n";
-            }
-         }
-         break;
-      case PARAMS_IO_WRITE: params->writeParamString("outputPath", mOutputPath); break;
-      default: pvAssert(0); break;
-   }
 }
 
 void Checkpointer::ioParam_checkpointWrite(enum ParamsIOFlag ioFlag, PVParams *params) {
