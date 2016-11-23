@@ -54,6 +54,11 @@ class Checkpointer : public Subject {
     * The default value is -1 (infer the width).
     */
    void ioParam_checkpointIndexWidth(enum ParamsIOFlag ioFlag, PVParams *params);
+
+   /**
+    * If checkpointWrite is true and this flag is true,
+    * connections will only checkpoint if plasticityFlag=true.
+    */
    void ioParam_suppressNonplasticCheckpoints(enum ParamsIOFlag ioFlag, PVParams *params);
 
    /**

@@ -287,13 +287,6 @@ class HyPerCol : public Subject, Observer {
    virtual void ioParam_checkpointWriteClockUnit(enum ParamsIOFlag ioFlag);
 
    /**
-    * If checkpointWrite is true and this flag is true, connections'
-    * checkpointWrite method will
-    * only be called for connections with plasticityFlag=false.
-    */
-   virtual void ioParam_suppressNonplasticCheckpoints(enum ParamsIOFlag ioFlag);
-
-   /**
     * @brief writeTimescales:  Obsolete.  This parameter is now handled by
     * AdaptiveTimeScaleProbe,
     * as writeTimeScales.
@@ -364,7 +357,6 @@ class HyPerCol : public Subject, Observer {
    bool getCheckpointReadFlag() const { return mCheckpointReadFlag; }
    bool getCheckpointWriteFlag() const { return mCheckpointWriteFlag; }
    char const *getLastCheckpointDir() const { return mCheckpointer->getLastCheckpointDir(); }
-   bool getSuppressNonplasticCheckpoints() const { return mSuppressNonplasticCheckpoints; }
    bool getWriteTimescales() const { return mWriteTimescales; }
    const char *getName() { return mName; }
    const char *getOutputPath() { return mOutputPath; }
@@ -475,10 +467,6 @@ class HyPerCol : public Subject, Observer {
    bool mDeleteOlderCheckpoints; // If true, whenever a checkpoint other than the
    // first is written,
    // the preceding checkpoint is deleted. Default is false.
-   bool mSuppressNonplasticCheckpoints; // If mSuppressNonplasticCheckpoints is
-   // true, only weights
-   // with plasticityFlag true will be checkpointed.  If false,
-   // all weights will be checkpointed.
    bool mReadyFlag; // Initially false; set to true when communicateInitInfo,
    // allocateDataStructures, and setInitialValues stages are completed
    bool mParamsProcessedFlag; // Initially false; set to true when processParams
