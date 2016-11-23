@@ -94,7 +94,6 @@ int HyPerCol::initialize_base() {
    mParamsProcessedFlag           = false;
    mNumPhases                     = 0;
    mCheckpointReadFlag            = false;
-   mCheckpointWriteFlag           = false;
    mDeleteOlderCheckpoints        = false;
    mStartTime                     = 0.0;
    mStopTime                      = 0.0;
@@ -288,7 +287,6 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
       // During the transition of checkpointing from HyPerCol to Checkpointer,
       // HyPerCol will redundantly read these parameters but not write them.
       ioParam_verifyWrites(ioFlag);
-      ioParam_checkpointWrite(ioFlag);
    }
    ioParam_printParamsFilename(ioFlag);
    ioParam_randomSeed(ioFlag);
@@ -664,10 +662,6 @@ void HyPerCol::ioParam_checkpointRead(enum ParamsIOFlag ioFlag) {
 
 // athresher, July 20th
 // Removed ioParam_checkpointRead(). It was marked obsolete.
-
-void HyPerCol::ioParam_checkpointWrite(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, mName, "checkpointWrite", &mCheckpointWriteFlag, false);
-}
 
 void HyPerCol::ioParam_errorOnNotANumber(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(

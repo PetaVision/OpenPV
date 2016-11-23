@@ -31,6 +31,10 @@ class Checkpointer : public Subject {
     */
 
    void ioParam_verifyWrites(enum ParamsIOFlag ioFlag, PVParams *params);
+
+   /**
+    * @brief checkpointWrite: Flag to determine if the run writes checkpoints.
+    */
    void ioParam_checkpointWrite(enum ParamsIOFlag ioFlag, PVParams *params);
 
    /**

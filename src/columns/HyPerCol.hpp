@@ -227,11 +227,6 @@ class HyPerCol : public Subject, Observer {
    virtual void ioParam_checkpointRead(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief checkpointWrite: Flag to determine if the run writes checkpoints.
-    */
-   virtual void ioParam_checkpointWrite(enum ParamsIOFlag ioFlag);
-
-   /**
     * @brief writeTimescales:  Obsolete.  This parameter is now handled by
     * AdaptiveTimeScaleProbe,
     * as writeTimeScales.
@@ -300,7 +295,7 @@ class HyPerCol : public Subject, Observer {
       return mCheckpointer->getDefaultInitializeFromCheckpointFlag();
    }
    bool getCheckpointReadFlag() const { return mCheckpointReadFlag; }
-   bool getCheckpointWriteFlag() const { return mCheckpointWriteFlag; }
+   bool getCheckpointWriteFlag() const { return mCheckpointer->getCheckpointWriteFlag(); }
    char const *getLastCheckpointDir() const { return mCheckpointer->getLastCheckpointDir(); }
    bool getWriteTimescales() const { return mWriteTimescales; }
    const char *getName() { return mName; }
@@ -408,7 +403,6 @@ class HyPerCol : public Subject, Observer {
    // exit with an error if any appear
    bool mWarmStart; // whether to start from a checkpoint
    bool mCheckpointReadFlag; // whether to load from a checkpoint directory
-   bool mCheckpointWriteFlag; // whether to write from a checkpoint directory
    bool mDeleteOlderCheckpoints; // If true, whenever a checkpoint other than the
    // first is written,
    // the preceding checkpoint is deleted. Default is false.
