@@ -103,8 +103,6 @@ int HyPerCol::initialize_base() {
    mCheckpointWriteFlag           = false;
    mCheckpointWriteDir            = nullptr;
    mCheckpointWriteTriggerMode    = CPWRITE_TRIGGER_STEP;
-   mCpWriteStepInterval           = -1L;
-   mNextCpWriteStep               = 0L;
    mDeleteOlderCheckpoints        = false;
    mStartTime                     = 0.0;
    mStopTime                      = 0.0;
@@ -224,14 +222,10 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
    if (mCheckpointWriteFlag) {
       switch (mCheckpointWriteTriggerMode) {
          case CPWRITE_TRIGGER_STEP:
-            mNextCpWriteStep      = mInitialStep;
             break;
          case CPWRITE_TRIGGER_TIME:
-            mNextCpWriteStep      = mInitialStep; // Should be unnecessary
-            mCpWriteStepInterval  = -1;
             break;
          case CPWRITE_TRIGGER_CLOCK:
-            mCpWriteStepInterval = -1;
             break;
          default:
             assert(0); // All cases of mCheckpointWriteTriggerMode should have been
@@ -320,7 +314,6 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
       ioParam_checkpointWrite(ioFlag);
       ioParam_checkpointWriteDir(ioFlag);
       ioParam_checkpointWriteTriggerMode(ioFlag);
-      ioParam_checkpointWriteStepInterval(ioFlag);
    }
    ioParam_printParamsFilename(ioFlag);
    ioParam_randomSeed(ioFlag);
@@ -751,17 +744,6 @@ void HyPerCol::ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag) {
             MPI_Barrier(getCommunicator()->globalCommunicator());
             exit(EXIT_FAILURE);
          }
-      }
-   }
-}
-
-void HyPerCol::ioParam_checkpointWriteStepInterval(enum ParamsIOFlag ioFlag) {
-   assert(!mParams->presentAndNotBeenRead(mName, "checkpointWrite"));
-   if (mCheckpointWriteFlag) {
-      pvAssert(!mParams->presentAndNotBeenRead(mName, "checkpointWriteTriggerMode"));
-      if (mCheckpointWriteTriggerMode == CPWRITE_TRIGGER_STEP) {
-         parameters()->ioParamValue(
-               ioFlag, mName, "checkpointWriteStepInterval", &mCpWriteStepInterval, 1L);
       }
    }
 }

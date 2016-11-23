@@ -258,13 +258,6 @@ class HyPerCol : public Subject, Observer {
    virtual void ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief checkpointWriteStepInterval: If checkpointWrite on step, specifies
-    * the number of steps
-    * between checkpoints.
-    */
-   virtual void ioParam_checkpointWriteStepInterval(enum ParamsIOFlag ioFlag);
-
-   /**
     * @brief writeTimescales:  Obsolete.  This parameter is now handled by
     * AdaptiveTimeScaleProbe,
     * as writeTimeScales.
@@ -502,8 +495,6 @@ class HyPerCol : public Subject, Observer {
 
    Checkpointer *mCheckpointer = nullptr; // manages checkpointing and, eventually,
    // will manage outputState output.
-   long int mCpWriteStepInterval;
-   long int mNextCpWriteStep;
    long int mInitialStep;
    long int mCurrentStep;
    long int mFinalStep;
