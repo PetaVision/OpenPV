@@ -94,7 +94,6 @@ int HyPerCol::initialize_base() {
    mParamsProcessedFlag           = false;
    mNumPhases                     = 0;
    mCheckpointReadFlag            = false;
-   mDeleteOlderCheckpoints        = false;
    mStartTime                     = 0.0;
    mStopTime                      = 0.0;
    mDeltaTime                     = DEFAULT_DELTA_T;
@@ -200,7 +199,6 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
    mCheckpointer = new Checkpointer(std::string(mName), mCommunicator);
    mCheckpointer->addObserver(this, BaseMessage{});
    ioParams(PARAMS_IO_READ);
-   mCheckpointSignal = 0;
    mSimTime          = mStartTime;
    mInitialStep      = (long int)nearbyint(mStartTime / mDeltaTime);
    mCurrentStep      = mInitialStep;

@@ -403,9 +403,6 @@ class HyPerCol : public Subject, Observer {
    // exit with an error if any appear
    bool mWarmStart; // whether to start from a checkpoint
    bool mCheckpointReadFlag; // whether to load from a checkpoint directory
-   bool mDeleteOlderCheckpoints; // If true, whenever a checkpoint other than the
-   // first is written,
-   // the preceding checkpoint is deleted. Default is false.
    bool mReadyFlag; // Initially false; set to true when communicateInitInfo,
    // allocateDataStructures, and setInitialValues stages are completed
    bool mParamsProcessedFlag; // Initially false; set to true when processParams
@@ -439,12 +436,6 @@ class HyPerCol : public Subject, Observer {
    // AdaptiveTimeScaleProbe.
    std::vector<HyPerLayer *> mLayers; // HyPerLayer ** mLayers;
    int mNumPhases;
-   int mCheckpointSignal; // whether the process should checkpoint in response to
-   // an external signal
-   int mNumCheckpointsKept; // If mDeleteOlderCheckpoints is true, does not
-   // delete a checkpoint
-   // until the specified number of more recent checkpoints have been
-   // written.  Default is 2.
    int mNumXGlobal;
    int mNumYGlobal;
    int mNumBatch;
@@ -472,8 +463,6 @@ class HyPerCol : public Subject, Observer {
    size_t mLayerArraySize;
    size_t mConnectionArraySize;
    size_t mNormalizerArraySize;
-   std::vector<std::string> mOldCheckpointDirectories; // A ring buffer of existing checkpoints,
-   // used if mDeleteOlderCheckpoints is true.
    std::ofstream mTimeScaleStream;
    std::vector<HyPerLayer *> mRecvLayerBuffer;
    std::vector<HyPerLayer *> mUpdateLayerBufferGpu;
