@@ -32,6 +32,12 @@ class Checkpointer : public Subject {
 
    void ioParam_verifyWrites(enum ParamsIOFlag ioFlag, PVParams *params);
    void ioParam_checkpointWrite(enum ParamsIOFlag ioFlag, PVParams *params);
+
+   /**
+    * @brief checkpointWriteDir: If checkpointWrite is set, specifies the output
+    * checkpoint
+    * directory.
+    */
    void ioParam_checkpointWriteDir(enum ParamsIOFlag ioFlag, PVParams *params);
 
    /**

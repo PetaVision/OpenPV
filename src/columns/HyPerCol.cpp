@@ -83,10 +83,6 @@ HyPerCol::~HyPerCol() {
    // TODO: Change these old C strings into std::string
    free(mPrintParamsFilename);
    free(mOutputPath);
-   if (mCheckpointWriteFlag) {
-      free(mCheckpointWriteDir);
-      mCheckpointWriteDir = nullptr;
-   }
 }
 
 int HyPerCol::initialize_base() {
@@ -99,7 +95,6 @@ int HyPerCol::initialize_base() {
    mNumPhases                     = 0;
    mCheckpointReadFlag            = false;
    mCheckpointWriteFlag           = false;
-   mCheckpointWriteDir            = nullptr;
    mDeleteOlderCheckpoints        = false;
    mStartTime                     = 0.0;
    mStopTime                      = 0.0;
@@ -294,7 +289,6 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
       // HyPerCol will redundantly read these parameters but not write them.
       ioParam_verifyWrites(ioFlag);
       ioParam_checkpointWrite(ioFlag);
-      ioParam_checkpointWriteDir(ioFlag);
    }
    ioParam_printParamsFilename(ioFlag);
    ioParam_randomSeed(ioFlag);
@@ -673,17 +667,6 @@ void HyPerCol::ioParam_checkpointRead(enum ParamsIOFlag ioFlag) {
 
 void HyPerCol::ioParam_checkpointWrite(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(ioFlag, mName, "checkpointWrite", &mCheckpointWriteFlag, false);
-}
-
-void HyPerCol::ioParam_checkpointWriteDir(enum ParamsIOFlag ioFlag) {
-   pvAssert(!mParams->presentAndNotBeenRead(mName, "checkpointWrite"));
-   if (mCheckpointWriteFlag) {
-      parameters()->ioParamStringRequired(
-            ioFlag, mName, "checkpointWriteDir", &mCheckpointWriteDir);
-   }
-   else {
-      mCheckpointWriteDir = nullptr;
-   }
 }
 
 void HyPerCol::ioParam_errorOnNotANumber(enum ParamsIOFlag ioFlag) {

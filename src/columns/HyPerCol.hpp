@@ -232,13 +232,6 @@ class HyPerCol : public Subject, Observer {
    virtual void ioParam_checkpointWrite(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief checkpointWriteDir: If checkpointWrite is set, specifies the output
-    * checkpoint
-    * directory.
-    */
-   virtual void ioParam_checkpointWriteDir(enum ParamsIOFlag ioFlag);
-
-   /**
     * @brief writeTimescales:  Obsolete.  This parameter is now handled by
     * AdaptiveTimeScaleProbe,
     * as writeTimeScales.
@@ -434,7 +427,6 @@ class HyPerCol : public Subject, Observer {
    // passed in the
    // constructor
    bool mWriteTimescales;
-   char *mCheckpointWriteDir; // name of the directory to write checkpoints to
    char *mName;
    char *mOutputPath; // path to output file directory
    char *mPrintParamsFilename; // filename for outputting the mParams, including
