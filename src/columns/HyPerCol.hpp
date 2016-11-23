@@ -289,7 +289,6 @@ class HyPerCol : public Subject, Observer {
    BaseConnection *getConnection(int which) { return mConnections.at(which); }
    BaseProbe *getBaseProbe(int which) { return mBaseProbes.at(which); }
    bool getVerifyWrites() { return mVerifyWrites; }
-   bool warmStartup() const { return mWarmStart; }
    bool getDefaultInitializeFromCheckpointFlag() {
       return mCheckpointer->getDefaultInitializeFromCheckpointFlag();
    }
@@ -400,7 +399,6 @@ class HyPerCol : public Subject, Observer {
    bool mErrorOnNotANumber; // If true, check each layer's activity buffer for
    // not-a-numbers and
    // exit with an error if any appear
-   bool mWarmStart; // whether to start from a checkpoint
    bool mCheckpointReadFlag; // whether to load from a checkpoint directory
    bool mReadyFlag; // Initially false; set to true when communicateInitInfo,
    // allocateDataStructures, and setInitialValues stages are completed

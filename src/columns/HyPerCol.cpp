@@ -89,7 +89,6 @@ int HyPerCol::initialize_base() {
    // Initialize all member variables to safe values.  They will be set to their
    // actual values in
    // initialize()
-   mWarmStart                     = false;
    mReadyFlag                     = false;
    mParamsProcessedFlag           = false;
    mNumPhases                     = 0;
@@ -151,7 +150,6 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
    int rank                = mCommunicator->globalCommRank();
    const char *gpu_devices = mPVInitObj->getGPUDevices();
    std::string working_dir = expandLeadingTilde(mPVInitObj->getWorkingDir());
-   mWarmStart              = mPVInitObj->getRestartFlag();
 
    // Sep 27, 2016: handling --require-return has been moved to the Communicator
    // constructor.
@@ -213,11 +211,11 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
    mCheckpointer->registerCheckpointData(
          mName, "nextProgressTime", &mNextProgressTime, (std::size_t)1, true /*broadcast*/);
 
-   // mWarmStart is set if command line sets the -r option.  PV_Arguments should
-   // prevent -r and -c from being both set.
+   // PV_Arguments should prevent -r and -c from both being set.
+   bool warmStart = mPVInitObj->getRestartFlag();
    char const *checkpoint_read_dir = mPVInitObj->getCheckpointReadDir();
-   pvAssert(!(mWarmStart && checkpoint_read_dir));
-   if (mWarmStart) {
+   pvAssert(!(warmStart && checkpoint_read_dir));
+   if (warmStart) {
       mCheckpointer->setCheckpointReadDirectory();
    }
    if (checkpoint_read_dir) {
