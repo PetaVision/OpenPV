@@ -36,6 +36,13 @@ class Checkpointer : public Subject {
    void ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag, PVParams *params);
    void ioParam_checkpointWriteStepInterval(enum ParamsIOFlag ioFlag, PVParams *params);
    void ioParam_checkpointWriteTimeInterval(enum ParamsIOFlag ioFlag, PVParams *params);
+
+   /**
+    * @brief checkpointWriteClockInteval: If checkpointWrite on clock, specifies
+    * the amount of clock
+    * time between checkpoints.  The units are specified using the parameter
+    * checkpointWriteClockUnit
+    */
    void ioParam_checkpointWriteClockInterval(enum ParamsIOFlag ioFlag, PVParams *params);
 
    /**
@@ -46,11 +53,9 @@ class Checkpointer : public Subject {
 
    /**
     * @brief If checkpointWrite is true, checkpointIndexWidth specifies the
-    * minimum width for the
-    * step number appearing in the checkpoint directory.
+    * minimum width for the step number appearing in the checkpoint directory.
     * @details If the step number needs fewer digits than checkpointIndexWidth,
-    * it is padded with
-    * zeroes.  If the step number needs more, the full
+    * it is padded with zeroes.  If the step number needs more, the full
     * step number is still printed.  Hence, setting checkpointWrite to zero means
     * that there are
     * never any padded zeroes.
