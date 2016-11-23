@@ -1271,30 +1271,7 @@ int HyPerCol::outputParamsHeadComments(FILE *fp, char const *commentToken) {
    return PV_SUCCESS;
 }
 
-// Uses the arguments cpDir, objectName, and suffix to create a path of the form
-// [cpDir]/[objectName][suffix]
-// (the brackets are not in the created path, but the slash is)
-// The string returned is allocated with malloc, and the calling routine is
-// responsible for freeing
-// the string.
-char *HyPerCol::pathInCheckpoint(const char *cpDir, const char *objectName, const char *suffix) {
-   assert(cpDir != nullptr && suffix != nullptr);
-   size_t n = strlen(cpDir) + strlen("/") + strlen(objectName) + strlen(suffix)
-              + (size_t)1; // the +1 leaves room for the terminating null
-   char *filename = (char *)malloc(n);
-   if (filename == nullptr) {
-      Fatal().printf(
-            "Error: rank %d process unable to allocate filename \"%s/%s%s\": %s\n",
-            columnId(),
-            cpDir,
-            objectName,
-            suffix,
-            strerror(errno));
-   }
-   int chars_needed = snprintf(filename, n, "%s/%s%s", cpDir, objectName, suffix);
-   assert(chars_needed < n);
-   return filename;
-}
+// Nov 22, 2016: pathInCheckpoint removed. Made unnecessary by the Checkpointer refactor.
 
 int HyPerCol::getAutoGPUDevice() {
    int returnGpuIdx = -1;

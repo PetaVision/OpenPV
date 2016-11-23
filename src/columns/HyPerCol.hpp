@@ -250,7 +250,6 @@ class HyPerCol : public Subject, Observer {
    virtual int respond(std::shared_ptr<BaseMessage const> message) override;
    BaseConnection *getConnFromName(const char *connectionName);
    BaseProbe *getBaseProbeFromName(const char *probeName);
-   char *pathInCheckpoint(const char *cpDir, const char *objectName, const char *suffix);
    ColProbe *getColProbeFromName(const char *probeName);
    HyPerLayer *getLayerFromName(const char *layerName);
 
