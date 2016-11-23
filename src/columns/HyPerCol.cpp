@@ -110,7 +110,6 @@ int HyPerCol::initialize_base() {
    mCpWriteClockInterval          = -1.0;
    mDeleteOlderCheckpoints        = false;
    mSuppressNonplasticCheckpoints = false;
-   mCheckpointIndexWidth          = -1; // defaults to automatically determine index width
    mStartTime                     = 0.0;
    mStopTime                      = 0.0;
    mDeltaTime                     = DEFAULT_DELTA_T;
@@ -336,7 +335,6 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
       ioParam_checkpointWriteTimeInterval(ioFlag);
       ioParam_checkpointWriteClockInterval(ioFlag);
       ioParam_checkpointWriteClockUnit(ioFlag);
-      ioParam_checkpointIndexWidth(ioFlag);
       ioParam_suppressNonplasticCheckpoints(ioFlag);
    }
    ioParam_printParamsFilename(ioFlag);
@@ -882,14 +880,6 @@ void HyPerCol::ioParam_suppressNonplasticCheckpoints(enum ParamsIOFlag ioFlag) {
             "suppressNonplasticCheckpoints",
             &mSuppressNonplasticCheckpoints,
             mSuppressNonplasticCheckpoints);
-   }
-}
-
-void HyPerCol::ioParam_checkpointIndexWidth(enum ParamsIOFlag ioFlag) {
-   assert(!mParams->presentAndNotBeenRead(mName, "checkpointWrite"));
-   if (mCheckpointWriteFlag) {
-      parameters()->ioParamValue(
-            ioFlag, mName, "checkpointIndexWidth", &mCheckpointIndexWidth, mCheckpointIndexWidth);
    }
 }
 

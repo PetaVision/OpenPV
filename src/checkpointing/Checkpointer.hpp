@@ -30,6 +30,32 @@ class Checkpointer : public Subject {
     * @{
     */
 
+   void ioParam_verifyWrites(enum ParamsIOFlag ioFlag, PVParams *params);
+   void ioParam_checkpointWrite(enum ParamsIOFlag ioFlag, PVParams *params);
+   void ioParam_checkpointWriteDir(enum ParamsIOFlag ioFlag, PVParams *params);
+   void ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag, PVParams *params);
+   void ioParam_checkpointWriteStepInterval(enum ParamsIOFlag ioFlag, PVParams *params);
+   void ioParam_checkpointWriteTimeInterval(enum ParamsIOFlag ioFlag, PVParams *params);
+   void ioParam_checkpointWriteClockInterval(enum ParamsIOFlag ioFlag, PVParams *params);
+   void ioParam_checkpointWriteClockUnit(enum ParamsIOFlag ioFlag, PVParams *params);
+
+   /**
+    * @brief If checkpointWrite is true, checkpointIndexWidth specifies the
+    * minimum width for the
+    * step number appearing in the checkpoint directory.
+    * @details If the step number needs fewer digits than checkpointIndexWidth,
+    * it is padded with
+    * zeroes.  If the step number needs more, the full
+    * step number is still printed.  Hence, setting checkpointWrite to zero means
+    * that there are
+    * never any padded zeroes.
+    * If set to a negative number, the width will be inferred from startTime,
+    * stopTime and dt.
+    * The default value is -1 (infer the width).
+    */
+   void ioParam_checkpointIndexWidth(enum ParamsIOFlag ioFlag, PVParams *params);
+   void ioParam_suppressNonplasticCheckpoints(enum ParamsIOFlag ioFlag, PVParams *params);
+
    /**
     * @brief deleteOlderCheckpoints: If checkpointWrite, specifies if the run
     * should delete older checkpoints when writing new ones.
@@ -115,7 +141,6 @@ class Checkpointer : public Subject {
    }
    long int getCheckpointWriteStepInterval() const { return mCheckpointWriteStepInterval; }
    double getCheckpointWriteSimtimeInterval() const { return mCheckpointWriteSimtimeInterval; }
-   int getCheckpointIndexWidth() const { return mCheckpointIndexWidth; }
    bool getSuppressNonplasticCheckpoints() const { return mSuppressNonplasticCheckpoints; }
    std::string const &getCheckpointReadDirectory() const { return mCheckpointReadDirectory; }
    char const *getLastCheckpointDir() const { return mLastCheckpointDir; }
@@ -126,16 +151,6 @@ class Checkpointer : public Subject {
 
   private:
    void initialize();
-   void ioParam_verifyWrites(enum ParamsIOFlag ioFlag, PVParams *params);
-   void ioParam_checkpointWrite(enum ParamsIOFlag ioFlag, PVParams *params);
-   void ioParam_checkpointWriteDir(enum ParamsIOFlag ioFlag, PVParams *params);
-   void ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag, PVParams *params);
-   void ioParam_checkpointWriteStepInterval(enum ParamsIOFlag ioFlag, PVParams *params);
-   void ioParam_checkpointWriteTimeInterval(enum ParamsIOFlag ioFlag, PVParams *params);
-   void ioParam_checkpointWriteClockInterval(enum ParamsIOFlag ioFlag, PVParams *params);
-   void ioParam_checkpointWriteClockUnit(enum ParamsIOFlag ioFlag, PVParams *params);
-   void ioParam_checkpointIndexWidth(enum ParamsIOFlag ioFlag, PVParams *params);
-   void ioParam_suppressNonplasticCheckpoints(enum ParamsIOFlag ioFlag, PVParams *params);
    void findWarmStartDirectory();
    bool checkpointWriteSignal();
    void checkpointWriteStep();

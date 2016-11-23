@@ -294,22 +294,6 @@ class HyPerCol : public Subject, Observer {
    virtual void ioParam_suppressNonplasticCheckpoints(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief If checkpointWrite is true, checkpointIndexWidth specifies the
-    * minimum width for the
-    * step number appearing in the checkpoint directory.
-    * @details If the step number needs fewer digits than checkpointIndexWidth,
-    * it is padded with
-    * zeroes.  If the step number needs more, the full
-    * step number is still printed.  Hence, setting checkpointWrite to zero means
-    * that there are
-    * never any padded zeroes.
-    * If set to a negative number, the width will be inferred from startTime,
-    * stopTime and dt.
-    * The default value is -1 (infer the width).
-    */
-   virtual void ioParam_checkpointIndexWidth(enum ParamsIOFlag ioFlag);
-
-   /**
     * @brief writeTimescales:  Obsolete.  This parameter is now handled by
     * AdaptiveTimeScaleProbe,
     * as writeTimeScales.
@@ -545,9 +529,6 @@ class HyPerCol : public Subject, Observer {
    // delete a checkpoint
    // until the specified number of more recent checkpoints have been
    // written.  Default is 2.
-   int mCheckpointIndexWidth; // minimum width of the step number field in the
-   // name of a checkpoint
-   // directory; if needed the step number is padded with zeros.
    int mNumXGlobal;
    int mNumYGlobal;
    int mNumBatch;
