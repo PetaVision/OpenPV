@@ -37,6 +37,11 @@ class Checkpointer : public Subject {
    void ioParam_checkpointWriteStepInterval(enum ParamsIOFlag ioFlag, PVParams *params);
    void ioParam_checkpointWriteTimeInterval(enum ParamsIOFlag ioFlag, PVParams *params);
    void ioParam_checkpointWriteClockInterval(enum ParamsIOFlag ioFlag, PVParams *params);
+
+   /**
+    * @brief checkpointWriteClockInteval: If checkpointWrite on clock, specifies
+    * the units used in checkpointWriteClockInterval.
+    */
    void ioParam_checkpointWriteClockUnit(enum ParamsIOFlag ioFlag, PVParams *params);
 
    /**

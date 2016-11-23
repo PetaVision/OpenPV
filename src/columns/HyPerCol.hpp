@@ -280,13 +280,6 @@ class HyPerCol : public Subject, Observer {
    virtual void ioParam_checkpointWriteClockInterval(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief checkpointWriteClockInteval: If checkpointWrite on clock, specifies
-    * the units used in
-    * checkpointWriteClockInterval.
-    */
-   virtual void ioParam_checkpointWriteClockUnit(enum ParamsIOFlag ioFlag);
-
-   /**
     * @brief writeTimescales:  Obsolete.  This parameter is now handled by
     * AdaptiveTimeScaleProbe,
     * as writeTimeScales.
@@ -484,9 +477,6 @@ class HyPerCol : public Subject, Observer {
    bool mWriteTimescales;
    char *mCheckpointWriteDir; // name of the directory to write checkpoints to
    char *mCheckpointWriteTriggerModeString;
-   char *mCheckpointWriteClockUnit; // If checkpoint mode is clock, the string
-   // that specifies the
-   // units.  "seconds", "minutes", "hours", or "days".
    char *mName;
    char *mOutputPath; // path to output file directory
    char *mPrintParamsFilename; // filename for outputting the mParams, including
@@ -557,7 +547,6 @@ class HyPerCol : public Subject, Observer {
    time_t mCpWriteClockSeconds; // If checkpoint mode is clock, the clock time
    // between checkpoints,
    // in seconds
-   time_t mNextCpWriteClock;
    unsigned int mRandomSeed;
 #ifdef PV_USE_CUDA
    // The list of GPU group showing which connection's buffer to use

@@ -239,7 +239,6 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
             mCpWriteClockInterval = -1.0;
             break;
          case CPWRITE_TRIGGER_CLOCK:
-            mNextCpWriteClock    = time(nullptr);
             mCpWriteTimeInterval = -1;
             mCpWriteStepInterval = -1;
             break;
@@ -333,7 +332,6 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
       ioParam_checkpointWriteStepInterval(ioFlag);
       ioParam_checkpointWriteTimeInterval(ioFlag);
       ioParam_checkpointWriteClockInterval(ioFlag);
-      ioParam_checkpointWriteClockUnit(ioFlag);
    }
    ioParam_printParamsFilename(ioFlag);
    ioParam_randomSeed(ioFlag);
@@ -797,74 +795,6 @@ void HyPerCol::ioParam_checkpointWriteClockInterval(enum ParamsIOFlag ioFlag) {
       if (mCheckpointWriteTriggerMode == CPWRITE_TRIGGER_CLOCK) {
          parameters()->ioParamValueRequired(
                ioFlag, mName, "checkpointWriteClockInterval", &mCpWriteClockInterval);
-      }
-   }
-}
-
-void HyPerCol::ioParam_checkpointWriteClockUnit(enum ParamsIOFlag ioFlag) {
-   pvAssert(!mParams->presentAndNotBeenRead(mName, "checkpointWrite"));
-   if (mCheckpointWriteFlag) {
-      pvAssert(!mParams->presentAndNotBeenRead(mName, "checkpointWriteTriggerMode"));
-      if (mCheckpointWriteTriggerMode == CPWRITE_TRIGGER_CLOCK) {
-         assert(!mParams->presentAndNotBeenRead(mName, "checkpointWriteTriggerClockInterval"));
-         parameters()->ioParamString(
-               ioFlag, mName, "checkpointWriteClockUnit", &mCheckpointWriteClockUnit, "seconds");
-         if (ioFlag == PARAMS_IO_READ) {
-            pvAssert(mCheckpointWriteClockUnit);
-            for (size_t n = 0; n < strlen(mCheckpointWriteClockUnit); n++) {
-               mCheckpointWriteClockUnit[n] = tolower(mCheckpointWriteClockUnit[n]);
-            }
-            if (!strcmp(mCheckpointWriteClockUnit, "second")
-                || !strcmp(mCheckpointWriteClockUnit, "seconds")
-                || !strcmp(mCheckpointWriteClockUnit, "sec")
-                || !strcmp(mCheckpointWriteClockUnit, "s")) {
-               free(mCheckpointWriteClockUnit);
-               mCheckpointWriteClockUnit = strdup("seconds");
-               mCpWriteClockSeconds      = (time_t)mCpWriteClockInterval;
-            }
-            else if (
-                  !strcmp(mCheckpointWriteClockUnit, "minute")
-                  || !strcmp(mCheckpointWriteClockUnit, "minutes")
-                  || !strcmp(mCheckpointWriteClockUnit, "min")
-                  || !strcmp(mCheckpointWriteClockUnit, "m")) {
-               free(mCheckpointWriteClockUnit);
-               mCheckpointWriteClockUnit = strdup("minutes");
-               mCpWriteClockSeconds      = (time_t)(60.0 * mCpWriteTimeInterval);
-            }
-            else if (
-                  !strcmp(mCheckpointWriteClockUnit, "hour")
-                  || !strcmp(mCheckpointWriteClockUnit, "hours")
-                  || !strcmp(mCheckpointWriteClockUnit, "hr")
-                  || !strcmp(mCheckpointWriteClockUnit, "h")) {
-               free(mCheckpointWriteClockUnit);
-               mCheckpointWriteClockUnit = strdup("hours");
-               mCpWriteClockSeconds      = (time_t)(3600.0 * mCpWriteTimeInterval);
-            }
-            else if (
-                  !strcmp(mCheckpointWriteClockUnit, "day")
-                  || !strcmp(mCheckpointWriteClockUnit, "days")) {
-               free(mCheckpointWriteClockUnit);
-               mCheckpointWriteClockUnit = strdup("days");
-               mCpWriteClockSeconds      = (time_t)(86400.0 * mCpWriteTimeInterval);
-            }
-            else {
-               if (globalRank() == 0) {
-                  ErrorLog().printf(
-                        "checkpointWriteClockUnit \"%s\" is "
-                        "unrecognized.  Use \"seconds\", "
-                        "\"minutes\", \"hours\", or \"days\".\n",
-                        mCheckpointWriteClockUnit);
-               }
-               MPI_Barrier(getCommunicator()->globalCommunicator());
-               exit(EXIT_FAILURE);
-            }
-            FatalIf(
-                  mCheckpointWriteClockUnit == nullptr,
-                  "Error in global rank %d process converting "
-                  "checkpointWriteClockUnit: %s\n",
-                  globalRank(),
-                  strerror(errno));
-         }
       }
    }
 }
