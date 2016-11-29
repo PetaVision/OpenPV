@@ -17,14 +17,14 @@ int main(int argc, char *argv[]) {
    char const *paramFile1 = "input/CheckpointParameters1.params";
    char const *paramFile2 = "input/CheckpointParameters2.params";
    int status             = PV_SUCCESS;
-   if (initObj.getParamsFile() != NULL) {
+   if (initObj.getParams() != nullptr) {
       if (rank == 0) {
          ErrorLog().printf(
                "%s should be run without the params file argument.\n", initObj.getProgramName());
       }
       status = PV_FAILURE;
    }
-   if (initObj.getCheckpointReadDir() != NULL) {
+   if (initObj.getCheckpointReadDir() != nullptr && initObj.getCheckpointReadDir()[0] != '\0') {
       if (rank == 0) {
          ErrorLog().printf(
                "%s should be run without the checkpoint directory argument.\n", argv[0]);

@@ -162,7 +162,7 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
    // but that should not be a problem.
    char const *programName = mPVInitObj->getProgramName();
 
-   if (columnId() == 0 && working_dir != "") {
+   if (columnId() == 0 && !working_dir.empty()) {
       int status = chdir(working_dir.c_str());
       if (status) {
          Fatal(chdirMessage);
@@ -187,8 +187,9 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
       exit(parsedStatus);
    }
 
-   if (mPVInitObj->getOutputPath()) {
-      mOutputPath = strdup(expandLeadingTilde(mPVInitObj->getOutputPath()).c_str());
+   std::string const &pvinit_outputPath = mPVInitObj->getOutputPath();
+   if (!pvinit_outputPath.empty()) {
+      mOutputPath = strdup(expandLeadingTilde(pvinit_outputPath.c_str()).c_str());
       FatalIf(mOutputPath == nullptr, "HyPerCol::initialize unable to copy output path.\n");
    }
 
@@ -211,15 +212,15 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
    mCheckpointer->registerCheckpointData(
          mName, "nextProgressTime", &mNextProgressTime, (std::size_t)1, true /*broadcast*/);
 
-   // PV_Arguments should prevent -r and -c from both being set.
+   // Arguments should prevent -r and -c from both being set.
    bool warmStart = mPVInitObj->getRestartFlag();
-   char const *checkpoint_read_dir = mPVInitObj->getCheckpointReadDir();
-   pvAssert(!(warmStart && checkpoint_read_dir));
+   std::string const &checkpoint_read_dir = mPVInitObj->getCheckpointReadDir();
+   pvAssert(!warmStart || checkpoint_read_dir.empty());
    if (warmStart) {
       mCheckpointer->setCheckpointReadDirectory();
    }
-   if (checkpoint_read_dir) {
-      mCheckpointer->setCheckpointReadDirectory(std::string(checkpoint_read_dir));
+   if (!checkpoint_read_dir.empty()) {
+      mCheckpointer->setCheckpointReadDirectory(checkpoint_read_dir);
    }
    mCheckpointReadFlag = !mCheckpointer->getCheckpointReadDirectory().empty();
 
@@ -518,7 +519,7 @@ void HyPerCol::ioParam_verifyWrites(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerCol::ioParam_outputPath(enum ParamsIOFlag ioFlag) {
-   // mOutputPath can be set on the command line.
+   // If mOutputPath is set on the command line, it overrides params file.
    switch (ioFlag) {
       case PARAMS_IO_READ:
          if (mOutputPath == nullptr) {
@@ -530,7 +531,7 @@ void HyPerCol::ioParam_outputPath(enum ParamsIOFlag ioFlag) {
             }
             else {
                mOutputPath = strdup(DEFAULT_OUTPUT_PATH);
-               pvAssert(mOutputPath != nullptr);
+               FatalIf(mOutputPath == nullptr, "Unable to copy default output path\n");
                WarnLog().printf(
                      "Output path specified neither in command line nor in "
                      "params file.\n"
@@ -846,8 +847,8 @@ int HyPerCol::setNumThreads(bool printMessagesFlag) {
    int comm_size   = mCommunicator->globalCommSize();
    if (printMsgs0) {
       InfoLog().printf(
-            "Maximum number of OpenMP threads%s is %d\nNumber of MPI "
-            "processes is %d.\n",
+            "Maximum number of OpenMP threads%s is %d\n"
+            "Number of MPI processes is %d.\n",
             comm_size == 1 ? "" : " (over all processes)",
             max_threads,
             comm_size);
@@ -859,8 +860,7 @@ int HyPerCol::setNumThreads(bool printMessagesFlag) {
          if (printMsgs0) {
             WarnLog().printf(
                   "Warning: more MPI processes than available threads.  "
-                  "Processors may "
-                  "be oversubscribed.\n");
+                  "Processors may be oversubscribed.\n");
          }
       }
    }
@@ -1398,7 +1398,7 @@ int HyPerCol::initializeThreads(char const *in_device) {
    int device;
 
    // default value
-   if (in_device == nullptr) {
+   if (in_device == nullptr || in_device[0] == '\0') {
       InfoLog() << "Auto assigning GPUs\n";
       device = getAutoGPUDevice();
    }

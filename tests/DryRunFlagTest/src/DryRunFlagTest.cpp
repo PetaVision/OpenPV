@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
    }
 
    FatalIf(
-         pv_obj.getParamsFile() != nullptr,
+         pv_obj.getParams() != nullptr,
          "%s should be called without the -p argument; the necessary params file is hard-coded.\n");
    pv_obj.setParams("input/DryRunFlagTest.params");
 

@@ -1,6 +1,6 @@
 #include "arch/mpi/mpi.h"
+#include "columns/CommandLineArguments.hpp"
 #include "columns/Communicator.hpp"
-#include "columns/PV_Arguments.hpp"
 #include "structures/Buffer.hpp"
 #include "utils/BufferUtilsMPI.hpp"
 #include "utils/PVLog.hpp"
@@ -8,7 +8,7 @@
 #include <vector>
 
 using PV::Buffer;
-using PV::PV_Arguments;
+using PV::CommandLineArguments;
 using PV::Communicator;
 using std::vector;
 
@@ -17,7 +17,7 @@ namespace BufferUtils = PV::BufferUtils;
 // BufferSlicer::scatter(Buffer &buffer, uint sliceStrideX, uint sliceStrideY)
 // BufferSlicer::gather(Buffer &buffer, uint sliceStrideX, uint sliceStrideY)
 void testRestricted(int argc, char **argv) {
-   PV_Arguments *args = new PV_Arguments(argc, argv, false);
+   CommandLineArguments *args = new CommandLineArguments(argc, argv, false);
    Communicator *comm = new Communicator(args);
    int rank           = comm->commRank();
 
@@ -102,7 +102,7 @@ void testRestricted(int argc, char **argv) {
 // BufferSlicer::scatter(Buffer &buffer, uint sliceStrideX, uint sliceStrideY)
 // BufferSlicer::gather(Buffer &buffer, uint sliceStrideX, uint sliceStrideY)
 void testExtended(int argc, char **argv) {
-   PV_Arguments *args = new PV_Arguments(argc, argv, false);
+   CommandLineArguments *args = new CommandLineArguments(argc, argv, false);
    Communicator *comm = new Communicator(args);
    int rank           = comm->commRank();
 

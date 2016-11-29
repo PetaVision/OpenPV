@@ -9,7 +9,7 @@ int customexit(HyPerCol *hc, int argc, char *argv[]);
 
 int main(int argc, char *argv[]) {
    PV_Init initObj(&argc, &argv, false /*allowUnrecognizedArguments*/);
-   if (initObj.getParamsFile() == NULL) {
+   if (initObj.getParams() == nullptr) {
       initObj.setParams("input/CloneVLayerTest.params");
    }
 

@@ -5,7 +5,7 @@
 #ifndef COMMUNICATOR_HPP_
 #define COMMUNICATOR_HPP_
 
-#include "PV_Arguments.hpp"
+#include "Arguments.hpp"
 #include "include/pv_arch.h"
 #include "include/pv_types.h"
 #include <cstdio>
@@ -25,7 +25,7 @@ class Communicator {
    static MPI_Datatype *newDatatypes(const PVLayerLoc *loc);
    static int freeDatatypes(MPI_Datatype *mpi_datatypes);
 
-   Communicator(PV_Arguments *argumentList);
+   Communicator(Arguments *argumentList);
    virtual ~Communicator();
 
    char *name() { return commName; }

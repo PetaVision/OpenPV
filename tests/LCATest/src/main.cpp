@@ -239,7 +239,7 @@ int testrun(PV_Init *initObj, int rank) {
 
 int testcheckpoint(PV_Init *initObj, int rank) {
    initObj->resetState();
-   // Make sure either restartFlag or checkpointReadDir are set (both cannot be set or PV_Arguments
+   // Make sure either restartFlag or checkpointReadDir are set (both cannot be set or ConfigParser
    // will error out).
    bool hasrestart = (initObj->getRestartFlag() || initObj->getCheckpointReadDir() != NULL);
    if (!hasrestart) {
