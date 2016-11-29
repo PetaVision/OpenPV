@@ -178,11 +178,11 @@ int PV_Init::setParams(char const *params_file) {
 }
 
 int PV_Init::createParams() {
-   char const *params_file = arguments->getParamsFile().c_str();
-   if (params_file[0]) {
+   std::string const &params_file = arguments->getParamsFile();
+   if (!params_file.empty()) {
       delete params;
       params = new PVParams(
-            params_file,
+            params_file.c_str(),
             2 * (INITIAL_LAYER_ARRAY_SIZE + INITIAL_CONNECTION_ARRAY_SIZE),
             mCommunicator);
       return PV_SUCCESS;

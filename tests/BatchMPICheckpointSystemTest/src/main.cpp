@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
       }
       status = PV_FAILURE;
    }
-   if (initObj.getCheckpointReadDir() != nullptr && initObj.getCheckpointReadDir()[0] != '\0') {
+   if (!initObj.getCheckpointReadDir().empty()) {
       if (rank == 0) {
          ErrorLog().printf(
                "%s should be run without the checkpoint directory argument.\n", argv[0]);

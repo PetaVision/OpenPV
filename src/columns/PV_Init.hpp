@@ -88,12 +88,12 @@ class PV_Init {
    /**
     * Returns the output path string.
     */
-   char const *getOutputPath() const { return arguments->getOutputPath().c_str(); }
+   std::string const &getOutputPath() const { return arguments->getOutputPath(); }
 
    /**
     * Returns the params file string.
     */
-   char const *getParamsFile() const { return arguments->getParamsFile().c_str(); }
+   std::string const &getParamsFile() const { return arguments->getParamsFile(); }
 
    /**
     * getParams() returns a pointer to the PVParams object created from the
@@ -104,12 +104,12 @@ class PV_Init {
    /**
     * Returns the log file string.
     */
-   char const *getLogFile() const { return arguments->getLogFile().c_str(); }
+   std::string const &getLogFile() const { return arguments->getLogFile(); }
 
    /**
     * Returns the gpu devices string.
     */
-   char const *getGPUDevices() const { return arguments->getGPUDevices().c_str(); }
+   std::string const &getGPUDevices() const { return arguments->getGPUDevices(); }
 
    /**
     * Returns the random seed.
@@ -119,7 +119,7 @@ class PV_Init {
    /**
     * Returns the working directory string.
     */
-   char const *getWorkingDir() const { return arguments->getWorkingDir().c_str(); }
+   std::string const &getWorkingDir() const { return arguments->getWorkingDir(); }
 
    /**
     * Returns true if the restart flag was set.
@@ -129,7 +129,7 @@ class PV_Init {
    /**
     * Returns the checkpointRead directory string.
     */
-   char const *getCheckpointReadDir() const { return arguments->getCheckpointReadDir().c_str(); }
+   std::string const &getCheckpointReadDir() const { return arguments->getCheckpointReadDir(); }
 
    /**
     * Returns the useDefaultNumThreads flag.

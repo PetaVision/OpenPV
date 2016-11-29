@@ -148,7 +148,6 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
       exit(EXIT_FAILURE);
    }
    int rank                = mCommunicator->globalCommRank();
-   const char *gpu_devices = mPVInitObj->getGPUDevices();
    std::string working_dir = expandLeadingTilde(mPVInitObj->getWorkingDir());
 
    // Sep 27, 2016: handling --require-return has been moved to the Communicator
@@ -189,7 +188,7 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
 
    std::string const &pvinit_outputPath = mPVInitObj->getOutputPath();
    if (!pvinit_outputPath.empty()) {
-      mOutputPath = strdup(expandLeadingTilde(pvinit_outputPath.c_str()).c_str());
+      mOutputPath = strdup(expandLeadingTilde(pvinit_outputPath).c_str());
       FatalIf(mOutputPath == nullptr, "HyPerCol::initialize unable to copy output path.\n");
    }
 
@@ -227,9 +226,9 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
 // run only on GPU for now
 #ifdef PV_USE_CUDA
    // Default to auto assign gpus
-   initializeThreads(gpu_devices);
+   std::string const &gpu_devices = mPVInitObj->getGPUDevices();
+   initializeThreads(gpu_devices.c_str());
 #endif
-   gpu_devices = nullptr;
 
    // Only print rank for comm rank 0
    if (globalRank() == 0) {
