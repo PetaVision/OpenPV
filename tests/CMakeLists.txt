@@ -30,6 +30,7 @@ add_subdirectory(BufferUtilsPvpTest)
 add_subdirectory(CheckpointEntryTest)
 add_subdirectory(CheckpointerClassTest)
 add_subdirectory(CheckpointWeightTest)
+add_subdirectory(ConfigParserTest)
 add_subdirectory(DeleteOlderCheckpointsTest)
 add_subdirectory(ImageTest)
 
