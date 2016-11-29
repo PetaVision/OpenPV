@@ -1,0 +1,134 @@
+//
+// ConfigFileTest.params
+//
+// created by peteschultz: Nov 10, 2011
+//
+
+//  A simple params file with two layers and one connection,
+//  to check whether using a config file works (as opposed to
+//  setting configuration options on the command line).
+
+debugParsing = false;
+
+HyPerCol "column" = {
+   nx = 32;
+   ny = 32;
+   nbatch = 1;
+   dt = 1.0;
+   randomSeed = 1234567890;
+   startTime = 0.0;
+   stopTime = 10.0;  
+   errorOnNotANumber = true;
+   progressInterval = 10.0;
+   writeProgressToErr = false;
+   verifyWrites = false;
+   outputPath = "output/";
+   printParamsFilename = "pv.params";
+   initializeFromCheckpointDir = "";
+   checkpointWrite = false;
+   lastCheckpointDir = "output/Last";
+};
+
+//
+// layers
+//
+
+PvpLayer "Input" = {
+    nxScale = 1;
+    nyScale = 1;
+    	      	
+    inputPath = "input/sampleimage.pvp";
+    nf = 1;
+    phase = 0;
+    writeStep = -1;
+    sparseLayer = false;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    useInputBCflag = false;
+    updateGpu = false;
+    inverseFlag = false; 
+    normalizeLuminanceFlag = false;
+    autoResizeFlag = false;
+    offsetAnchor = "tl";
+    offsetX = 0;
+    offsetY = 0;
+    padValue = false;
+};
+
+ANNLayer "Output" = {
+    nxScale = 1; 
+    nyScale = 1;
+    nf = 8;
+    phase = 1;
+    triggerLayerName = NULL;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 1;
+    sparseLayer = false;
+    updateGpu = false;
+
+    InitVType = "ZeroV";
+
+    VThresh = -infinity;   
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
+    VWidth = 0.0;
+};
+
+//
+// Connections
+//
+
+HyPerConn "InputToOutput" = {
+    preLayerName = "Input";
+    postLayerName = "Output";
+    channelCode = 0;
+
+// we have a 32*32 image, an input layer with nf = 1 and an output layer with nf = 8. So we have 32*32*8 outputs.
+// the connection layer defines nxp * nyp (i.e. 7*7) edges from each pixel in input layer to 7*7 vertexs of 1 out of 8 images
+// and these vertexs are chosen from the nearest ones around the pixel
+    nxp = 7;
+    nyp = 7;
+    nfp = 8; 
+    numAxonalArbors = 1;
+    sharedWeights = true;
+    writeStep = -1;
+    
+    weightInitType = "Gauss2DWeight";
+    deltaThetaMax = 6.283185;
+    thetaMax = 1.0;
+    numFlanks = 1;
+    flankShift = 0;
+    rotate = false;
+    bowtieFlag = false;
+    aspect = 3;
+    sigma = 1;
+    rMax  = infinity;
+    rMin = 0;
+    numOrientationsPost = 8;
+      
+    strength = 4.0;
+    normalizeMethod = "normalizeSum";
+    normalizeArborsIndividually = false;
+    normalizeOnInitialize = true;
+    normalizeOnWeightUpdate = true;
+    normalize_cutoff = 0;
+    convertRateToSpikeCount = false;
+    receiveGpu = false;
+    minSumTolerated = 0.0;
+    normalizeFromPostPerspective = false;
+    rMinX = 0.0;
+    rMinY = 0.0;
+    nonnegativeConstraintFlag = false;
+
+    writeCompressedCheckpoints = false;
+    plasticityFlag = false;
+    selfFlag = false;
+
+    delay = 0;
+
+    pvpatchAccumulateType = "Convolve";
+    shrinkPatches = false;
+    updateGSynFromPostPerspective = false;
+};
