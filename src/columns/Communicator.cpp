@@ -26,7 +26,7 @@ int Communicator::gcd(int a, int b) {
    return b;
 }
 
-Communicator::Communicator(PV_Arguments *argumentList) {
+Communicator::Communicator(Arguments *argumentList) {
    int totalSize;
    localIcComm  = NULL;
    globalIcComm = NULL;

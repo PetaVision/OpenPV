@@ -10,7 +10,7 @@
 
 #include <arch/mpi/mpi.h>
 #include <columns/Factory.hpp>
-#include <columns/PV_Arguments.hpp>
+#include <columns/Arguments.hpp>
 #include <io/PVParams.hpp>
 #include <io/io.hpp>
 #include <iostream>
@@ -28,7 +28,7 @@ class HyPerCol; // Included only to allow obsolete (as of Jul 19, 2016)
 class PV_Init {
   public:
    /**
-    * The constructor creates a PV_Arguments object from the input arguments
+    * The constructor creates an Arguments object from the input arguments
     * and if MPI has not already been initialized, calls MPI_Init.
     * Note that it does not call initialize, so the PVParams and Communicator
     * objects are not initialized on instantiation.
@@ -56,7 +56,7 @@ class PV_Init {
    int initialize();
 
    // Below are get-methods for retrieving command line arguments from the
-   // PV_Arguments object.  Note that there are both getParams and
+   // Arguments object.  Note that there are both getParams and
    // getParamsFile methods.
 
    /**
@@ -67,35 +67,33 @@ class PV_Init {
     * static method PV_Argument::freeArgs)
     * The length of the returned array is argc+1, and getArgs()[argc] is NULL.
     */
-   char **getArgsCopy() const { return arguments->getArgsCopy(); }
+   char **getArgsCopy() const;
 
    /**
     * Deallocates an array, assuming it was created by a call to getArgsCopy().
     * It frees argv[0], argv[1], ..., argv[argc-1], and then frees argv.
     */
-   static void freeArgs(int argc, char **argv) { PV_Arguments::freeArgs(argc, argv); }
+   static void freeArgs(int argc, char **argv);
 
    /**
-    * Returns the length of the array returned by getUnusedArgArray(); i.e. the
-    * argc argument passed
-    * to the constructor.
+    * Returns the argc argument passed to the constructor.
     */
-   int getNumArgs() const { return arguments->getNumArgs(); }
+   int getNumArgs() const { return mArgC; }
 
    /**
     * Returns true if the require-return flag was set.
     */
-   char const *getProgramName() const { return arguments->getProgramName(); }
+   char const *getProgramName() const { return mArgV[0]; }
 
    /**
     * Returns the output path string.
     */
-   char const *getOutputPath() const { return arguments->getOutputPath(); }
+   char const *getOutputPath() const { return arguments->getOutputPath().c_str(); }
 
    /**
     * Returns the params file string.
     */
-   char const *getParamsFile() const { return arguments->getParamsFile(); }
+   char const *getParamsFile() const { return arguments->getParamsFile().c_str(); }
 
    /**
     * getParams() returns a pointer to the PVParams object created from the
@@ -106,12 +104,12 @@ class PV_Init {
    /**
     * Returns the log file string.
     */
-   char const *getLogFile() const { return arguments->getLogFile(); }
+   char const *getLogFile() const { return arguments->getLogFile().c_str(); }
 
    /**
     * Returns the gpu devices string.
     */
-   char const *getGPUDevices() const { return arguments->getGPUDevices(); }
+   char const *getGPUDevices() const { return arguments->getGPUDevices().c_str(); }
 
    /**
     * Returns the random seed.
@@ -121,7 +119,7 @@ class PV_Init {
    /**
     * Returns the working directory string.
     */
-   char const *getWorkingDir() const { return arguments->getWorkingDir(); }
+   char const *getWorkingDir() const { return arguments->getWorkingDir().c_str(); }
 
    /**
     * Returns true if the restart flag was set.
@@ -131,7 +129,7 @@ class PV_Init {
    /**
     * Returns the checkpointRead directory string.
     */
-   char const *getCheckpointReadDir() const { return arguments->getCheckpointReadDir(); }
+   char const *getCheckpointReadDir() const { return arguments->getCheckpointReadDir().c_str(); }
 
    /**
     * Returns the useDefaultNumThreads flag.
@@ -171,7 +169,7 @@ class PV_Init {
    void printState() const { arguments->printState(); }
 
    // Below are set-methods for changing changing command line arguments
-   // stored in the PV_Arguments object, and doing any necessary
+   // stored in the Arguments object, and doing any necessary
    // operations required by the change.
 
    /**
@@ -184,11 +182,10 @@ class PV_Init {
 
    /**
     * Sets the value of the output path string.
-    * Return value is PV_SUCCESS or PV_FAILURE.
-    * If the routine fails, output path is unchanged.
     */
    int setOutputPath(char const *val) {
-      return arguments->setOutputPath(val) ? PV_SUCCESS : PV_FAILURE;
+      arguments->setOutputPath(val);
+      return PV_SUCCESS;
    }
 
    /**
@@ -211,12 +208,11 @@ class PV_Init {
 
    /**
     * Sets the value of the gpu devices string to a copy of the input argument.
-    * Return value is PV_SUCCESS or PV_FAILURE.
-    * If the routine fails, the gpu devices string remains unchanged.
     * Note that this only changes the string; it doesn't touch the GPUs.
     */
    int setGPUDevices(char const *val) {
-      return arguments->setGPUDevices(val) ? PV_SUCCESS : PV_FAILURE;
+      arguments->setGPUDevices(val);
+      return PV_SUCCESS;
    }
 
    /**
@@ -236,7 +232,8 @@ class PV_Init {
     * TODO: PV_Init should handle the working directory, not HyPerCol.
     */
    int setWorkingDir(char const *val) {
-      return arguments->setWorkingDir(val) ? PV_SUCCESS : PV_FAILURE;
+      arguments->setWorkingDir(val);
+      return PV_SUCCESS;
    }
 
    /**
@@ -255,7 +252,8 @@ class PV_Init {
     * Note that this only changes the string; it doesn't examine the directory.
     */
    int setCheckpointReadDir(char const *val) {
-      return arguments->setCheckpointReadDir(val) ? PV_SUCCESS : PV_FAILURE;
+      arguments->setCheckpointReadDir(val);
+      return PV_SUCCESS;
    }
 
    /**
@@ -383,7 +381,7 @@ class PV_Init {
     * error streams.
     *
     * After setting the log file streams, initLogFile() writes the time stamp
-    * to InfoLog() and calls PV_Arguments::printState(), which writes the
+    * to InfoLog() and calls Arguments::printState(), which writes the
     * effective
     * command line to InfoLog().
     */
@@ -408,8 +406,11 @@ class PV_Init {
    void printInitMessage();
 
    int commFinalize();
+
+   int mArgC = 0;
+   char **mArgV = nullptr;
    PVParams *params;
-   PV_Arguments *arguments;
+   Arguments *arguments;
    int maxThreads;
    Communicator *mCommunicator;
 };

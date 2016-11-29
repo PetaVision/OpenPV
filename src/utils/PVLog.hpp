@@ -452,7 +452,9 @@ typedef Log<wchar_t, StackTraceType> WStackTrace;
 #endif // __GNUC__
 
 // setLogFile sets the file that the DebugLog, InfoLog, WarnLog, and Fatal streams write to.
+void setLogFile(std::string const &logFile, std::ios_base::openmode mode = std::ios_base::out);
 void setLogFile(char const *logFile, std::ios_base::openmode mode = std::ios_base::out);
+void setWLogFile(std::wstring const &logFile, std::ios_base::openmode mode = std::ios_base::out);
 void setWLogFile(char const *logFile, std::ios_base::openmode mode = std::ios_base::out);
 
 } // end namespace PV

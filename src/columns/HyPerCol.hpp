@@ -382,9 +382,9 @@ class HyPerCol : public Subject, Observer {
    int calcTimeScaleTrue();
    /**
     * Sets the mNumThreads member variable based on whether PV_USE_OPENMP is set
-    * and the -t option in the PV_Arguments object.
-    * If printMessagesFlag is true, it may print to the output and/or error
-    * stream.
+    * and the NumThreads argument in the ConfigFile (-t option if using the
+    * command line).  If printMessagesFlag is true, it may print to the output
+    * and/or error stream.
     * If printMessagesFlag is false, these messages are suppressed.
     */
    int setNumThreads(bool printMessagesFlag);

@@ -13,7 +13,7 @@ int runparamsfile(PV_Init *initObj, char const *paramsfile);
 int main(int argc, char *argv[]) {
    int rank         = 0;
    PV_Init *initObj = new PV_Init(&argc, &argv, false /*allowUnrecognizedArguments*/);
-   if (initObj->getParamsFile()) {
+   if (initObj->getParams()) {
       if (initObj->getWorldRank() == 0) {
          ErrorLog() << argv[0] << " should be run without the params file argument.\n"
                     << "This test uses several hard-coded params files\n";

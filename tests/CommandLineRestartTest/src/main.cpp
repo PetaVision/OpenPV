@@ -18,7 +18,7 @@ int main(int argc, char *argv[]) {
    status = pv_init.registerKeyword(
          "FailBeforeExpectedStartTimeLayer", Factory::create<FailBeforeExpectedStartTimeLayer>);
    FatalIf(status != PV_SUCCESS, "Unable to add FailBeforeExpectedStartTimeLayer\n");
-   if (pv_init.getCheckpointReadDir() != nullptr) {
+   if (pv_init.getCheckpointReadDir() != nullptr && pv_init.getCheckpointReadDir()[0] != '\0') {
       if (pv_init.getCommunicator()->commRank() == 0) {
          ErrorLog() << argv[0] << " cannot be run with the -c argument.\n";
       }
