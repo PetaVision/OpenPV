@@ -134,52 +134,22 @@ void Arguments::clearState() {
 }
 
 int Arguments::printState() const {
-   if (mRequireReturnFlag) {
-      InfoLog().printf("RequireReturn:true\n");
-   }
-   if (!mOutputPath.empty()) {
-      InfoLog().printf("OutputPath:%s\n", mOutputPath.c_str());
-   }
-   if (!mParamsFile.empty()) {
-      InfoLog().printf("ParamsFile:%s\n", mParamsFile.c_str());
-   }
-   if (!mLogFile.empty()) {
-      InfoLog().printf("LogFile:%s\n", mLogFile.c_str());
-   }
-   if (!mGpuDevices.empty()) {
-      InfoLog().printf("GPUDevices:%s\n", mGpuDevices.c_str());
-   }
-   if (mRandomSeed) {
-      InfoLog().printf("RandomSeed:%u\n", mRandomSeed);
-   }
-   if (!mWorkingDir.empty()) {
-      InfoLog().printf("WorkingDirectory:%s\n", mWorkingDir.c_str());
-   }
-   pvAssert(!mRestartFlag || mCheckpointReadDir.empty());
-   if (mRestartFlag) {
-      InfoLog().printf("Restart:true\n");
-   }
-   if (!mCheckpointReadDir.empty()) {
-      InfoLog().printf("CheckpointReadDirectory:%s\n", mCheckpointReadDir.c_str());
-   }
-   if (mUseDefaultNumThreads) {
-      InfoLog().printf("NumThreads:-\n");
-   }
-   else if (mNumThreads >= 0) {
-      InfoLog().printf("NumThreads:%d\n", mNumThreads);
-   }
-   if (mNumRows) {
-      InfoLog().printf("NumRows:%d\n", mNumRows);
-   }
-   if (mNumColumns) {
-      InfoLog().printf("NumColumns:%d\n", mNumColumns);
-   }
-   if (mBatchWidth) {
-      InfoLog().printf("BatchWidth:%d\n", mBatchWidth);
-   }
-   if (mDryRunFlag) {
-      InfoLog().printf("DryRun:true\n");
-   }
+   InfoLog() << ConfigParser::createString(
+      mRequireReturnFlag,
+      mOutputPath,
+      mParamsFile,
+      mLogFile,
+      mGpuDevices,
+      mRandomSeed,
+      mWorkingDir,
+      mRestartFlag,
+      mCheckpointReadDir,
+      mUseDefaultNumThreads,
+      mNumThreads,
+      mNumRows,
+      mNumColumns,
+      mBatchWidth,
+      mDryRunFlag);
    return PV_SUCCESS;
 }
 

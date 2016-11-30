@@ -37,10 +37,10 @@ class CommandLineArguments : public Arguments {
 
    /**
     * Reinitializes the object's state based on the given argv array.
-    * The argv array is scanned to create a string in the format understood
-    * by the ConfigParser class.
+    * The argv array is scanned to create a configuration stream that
+    * is then used as if passed to the constructor of the Arguments class.
     * The strings argv[0], argv[1], ..., argv[argc-1] are processed as follows:
-    * argv[0] is ignored (but can be retrieved using the getProgramName method).
+    * argv[0] (the program name) is ignored.
     * argv[1] through argv[argc-1] are scanned for an exact match with each of
     * the following:
     *    "-c": the next argument is used as the CheckpointReadDirectory string.
@@ -48,13 +48,14 @@ class CommandLineArguments : public Arguments {
     *    "-l": the next argument is used as the LogFile string.
     *    "-o": the next argument is used as the OutputPath string.
     *    "-p": the next argument is used as the ParamsFile string.
-    *    "-r": the line "Restart:true" is added to the configuration.
+    *    "-r": the Restart flag is set to true.
     *    "-s": the next argument is parsed as an unsigned integer and used as
     * the RandomSeed setting.
     *    "-t": if the next argument is a nonnegative integer, it is used as the
-    * NumThreads setting. If the next argument is not a nonnegative argument
-    * or "-t" is the last argument, "NumThreads:-" is added to the
-    * configuration.
+    * NumThreads setting and the UseDefaultNumThreads is set to false.
+    * If the next argument is not a nonnegative argument or if "-t" is the last
+    * argument, UseDefaultNumThreads is set to true and NumThreads is set to -1
+    * (although NumThreads should not be used if UseDefaultNumThreads is true).
     *    "-w": the next argument is used as the WorkingDirectory string.
     *    "-rows": the next argument is parsed as an integer and used as the
     * NumRows setting.
@@ -62,9 +63,8 @@ class CommandLineArguments : public Arguments {
     * NumColumns setting.
     *    "-batchwidth": the next argument is parsed as an integer and used as
     * the BatchWidth setting.
-    *    "-n": the line "DryRun:true" is added to the configuration.
-    *    "--require-return": the line "RequireReturn:true" is added to the
-    * configuration.
+    *    "-n": the DryRun flag is set to true.
+    *    "--require-return": the RequireReturn flag is set to true.
     * It is an error to have both the -r and -c options.
     *
     * Note that all arguments have a single hyphen, except for

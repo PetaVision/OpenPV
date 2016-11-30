@@ -32,7 +32,7 @@ void CommandLineArguments::resetState(int argc, char *argv[], bool allowUnrecogn
    bool paramUsage[argc];
    bool requireReturn = false;
    char *outputPath = nullptr;
-   char *paramFile = nullptr;
+   char *paramsFile = nullptr;
    char *logFile = nullptr;
    char *gpuDevices = nullptr;
    unsigned int randomSeed = 0U;
@@ -51,7 +51,7 @@ void CommandLineArguments::resetState(int argc, char *argv[], bool allowUnrecogn
       paramUsage,
       &requireReturn,
       &outputPath,
-      &paramFile,
+      &paramsFile,
       &logFile,
       &gpuDevices,
       &randomSeed,
@@ -64,53 +64,28 @@ void CommandLineArguments::resetState(int argc, char *argv[], bool allowUnrecogn
       &numColumns,
       &batchWidth,
       &dryRun);
-   std::string configString;
-   if (requireReturn) {
-      configString.append("RequireReturn:true\n");
-   }
-   if (outputPath) {
-      configString.append("OutputPath:").append(outputPath).append("\n");
-   }
-   if (paramFile) {
-      configString.append("ParamsFile:").append(paramFile).append("\n");
-   }
-   if (logFile) {
-      configString.append("LogFile:").append(logFile).append("\n");
-   }
-   if (gpuDevices) {
-      configString.append("GpuDevices:").append(gpuDevices).append("\n");
-   }
-   if (randomSeed) {
-      configString.append("RandomSeed:").append(std::to_string(randomSeed)).append("\n");
-   }
-   if (workingDir) {
-      configString.append("WorkingDirectory:").append(workingDir).append("\n");
-   }
-   if (restart) {
-      configString.append("Restart:true\n");
-   }
-   if (checkpointReadDir) {
-      configString.append("CheckpointReadDirectory:").append(checkpointReadDir).append("\n");
-   }
-   if (useDefaultNumThreads) {
-      configString.append("NumThreads:-\n");
-   }
-   else {
-      configString.append("NumThreads:").append(std::to_string(numThreads)).append("\n");
-   }
-   if (numRows) {
-      configString.append("NumRows:").append(std::to_string(numRows)).append("\n");
-   }
-   if (numColumns) {
-      configString.append("NumColumns:").append(std::to_string(numColumns)).append("\n");
-   }
-   if (batchWidth) {
-      configString.append("BatchWidth:").append(std::to_string(batchWidth)).append("\n");
-   }
-   if (dryRun) {
-      configString.append("DryRun:true\n");
-   }
-
+   std::string outputPathString{outputPath ? outputPath : ""};
+   std::string paramsFileString{paramsFile ? paramsFile : ""};
+   std::string logFileString{logFile ? logFile : ""};
+   std::string gpuDevicesString{gpuDevices ? gpuDevices : ""};
+   std::string workingDirString{workingDir ? workingDir : ""};
+   std::string checkpointReadDirString{checkpointReadDir ? checkpointReadDir : ""};
+   std::string configString = ConfigParser::createString(
+      requireReturn,
+      outputPathString,
+      paramsFileString,
+      logFileString,
+      gpuDevicesString,
+      randomSeed,
+      workingDirString,
+      restart,
+      checkpointReadDirString,
+      useDefaultNumThreads,
+      numThreads,
+      numRows,
+      numColumns,
+      batchWidth,
+      dryRun);
    std::istringstream configStream{configString};
    Arguments::resetState(configStream, allowUnrecognizedArguments);
 }

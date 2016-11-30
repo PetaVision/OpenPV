@@ -104,6 +104,29 @@ public:
     */
    std::string const &getCheckpointReadDir() const { return mCheckpointReadDir; }
 
+   /**
+    * A static method for creating an string based on the given arguments
+    * The return value can be used to instantiate a ConfigParser object.
+    * Its main use is to have the same class that parses a config stream be
+    * the class that generates a string in the format it expects.
+    */
+   static std::string createString(
+      bool requireReturnFlag,
+      std::string const &outputPath,
+      std::string const &paramsFile,
+      std::string const &logFile,
+      std::string const &gpuDevices,
+      unsigned int randomSeed,
+      std::string const &workingDir,
+      bool restartFlag,
+      std::string const &checkpointReadDir,
+      bool useDefaultNumThreads,
+      int numThreads,
+      int numRows,
+      int numColumns,
+      int batchWidth,
+      bool dryRunFlag);
+
 private:
 
    /**

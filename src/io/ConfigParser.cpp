@@ -175,4 +175,70 @@ std::string ConfigParser::stripLeadingTrailingWhitespace(std::string const &inSt
    return outString;
 }
 
+std::string ConfigParser::createString(
+      bool requireReturnFlag,
+      std::string const &outputPath,
+      std::string const &paramsFile,
+      std::string const &logFile,
+      std::string const &gpuDevices,
+      unsigned int randomSeed,
+      std::string const &workingDir,
+      bool restartFlag,
+      std::string const &checkpointReadDir,
+      bool useDefaultNumThreads,
+      int numThreads,
+      int numRows,
+      int numColumns,
+      int batchWidth,
+      bool dryRunFlag) {
+   std::string configString;
+   FatalIf(restartFlag && !checkpointReadDir.empty(), "ConfigParser::createStream called with both Restart and CheckpointReadDirectory set.\n");
+   if (requireReturnFlag) {
+      configString.append("RequireReturn:true\n");
+   }
+   if (!outputPath.empty()) {
+      configString.append("OutputPath:").append(outputPath).append("\n");
+   }
+   if (!paramsFile.empty()) {
+      configString.append("ParamsFile:").append(paramsFile).append("\n");
+   }
+   if (!logFile.empty()) {
+      configString.append("LogFile:").append(logFile).append("\n");
+   }
+   if (!gpuDevices.empty()) {
+      configString.append("GPUDevices:").append(gpuDevices).append("\n");
+   }
+   if (randomSeed) {
+      configString.append("RandomSeed:").append(std::to_string(randomSeed)).append("\n");
+   }
+   if (!workingDir.empty()) {
+      configString.append("WorkingDirectory:").append(workingDir).append("\n");
+   }
+   if (restartFlag) {
+      configString.append("Restart:true\n");
+   }
+   if (!checkpointReadDir.empty()) {
+      configString.append("CheckpointReadDirectory:").append(checkpointReadDir).append("\n");
+   }
+   if (useDefaultNumThreads) {
+      configString.append("NumThreads:-\n");
+   }
+   else if (numThreads >= 0) {
+      configString.append("NumThreads:").append(std::to_string(numThreads)).append("\n");
+   }
+   if (numRows) {
+      configString.append("NumRows:").append(std::to_string(numRows)).append("\n");
+   }
+   if (numColumns) {
+      configString.append("NumColumns:").append(std::to_string(numColumns)).append("\n");
+   }
+   if (batchWidth) {
+      configString.append("BatchWidth:").append(std::to_string(batchWidth)).append("\n");
+   }
+   if (dryRunFlag) {
+      configString.append("DryRun:true\n");
+   }
+   return configString;
+}
+
 } // namespace PV
