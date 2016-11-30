@@ -64,7 +64,7 @@ class PV_Init {
     * is responsible for freeing getArgs()[k] for each k and for freeing
     * getArgs()
     * (the simplest way to free all the memory at once is to call the
-    * static method PV_Argument::freeArgs)
+    * static method Argument::freeArgs)
     * The length of the returned array is argc+1, and getArgs()[argc] is NULL.
     */
    char **getArgsCopy() const;
