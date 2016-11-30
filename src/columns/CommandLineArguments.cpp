@@ -29,12 +29,6 @@ int CommandLineArguments::initialize(int argc, char *argv[], bool allowUnrecogni
 }
 
 void CommandLineArguments::resetState(int argc, char *argv[], bool allowUnrecognizedArguments) {
-   mArgV.clear();
-   mArgC = argc;
-   mArgV.resize(argc);
-   for (int a=0; a < argc; a++) {
-      mArgV[a] = argv[a];
-   }
    bool paramUsage[argc];
    bool requireReturn = false;
    char *outputPath = nullptr;

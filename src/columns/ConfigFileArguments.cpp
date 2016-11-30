@@ -27,7 +27,7 @@ int ConfigFileArguments::initialize(std::string const &configFile, MPI_Comm comm
 }
 
 void ConfigFileArguments::resetState(std::string const &configFile, MPI_Comm communicator, bool allowUnrecognizedArguments) {
-   mConfigContents.clear();
+   std::string configContents;
    unsigned int fileSize = 0U;
    int rank;
    MPI_Comm_rank(communicator, &rank);
@@ -35,18 +35,18 @@ void ConfigFileArguments::resetState(std::string const &configFile, MPI_Comm com
       std::ifstream configFileStream{configFile};
       configFileStream.seekg(0, std::ios_base::end);
       fileSize = (unsigned int) configFileStream.tellg();
-      mConfigContents.resize(fileSize);
+      configContents.resize(fileSize);
       configFileStream.seekg(0, std::ios_base::beg);
-      configFileStream.read(&mConfigContents.at(0), fileSize);
+      configFileStream.read(&configContents.at(0), fileSize);
       MPI_Bcast(&fileSize, 1, MPI_UNSIGNED, 0, communicator);
-      MPI_Bcast(&mConfigContents.at(0), (int) fileSize, MPI_CHAR, 0, communicator);
+      MPI_Bcast(&configContents.at(0), (int) fileSize, MPI_CHAR, 0, communicator);
    }
    else {
       MPI_Bcast(&fileSize, 1, MPI_UNSIGNED, 0, communicator);
-      mConfigContents.resize(fileSize);
-      MPI_Bcast(&mConfigContents.at(0), (int) fileSize, MPI_CHAR, 0, communicator);
+      configContents.resize(fileSize);
+      MPI_Bcast(&configContents.at(0), (int) fileSize, MPI_CHAR, 0, communicator);
    }
-   std::istringstream configStream{mConfigContents};
+   std::istringstream configStream{configContents};
    Arguments::resetState(configStream, allowUnrecognizedArguments);
 }
 

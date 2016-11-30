@@ -14,25 +14,23 @@
 namespace PV {
 
 /**
- * A class for parsing a config file and storing the results.
+ * A class for parsing a configuration and storing the results.
  * Internally, the Arguments object contains a require-return flag,
  * an output path string, a params file string, a log file string,
  * a gpu devices string, a working directory string, a checkpointRead directory
- * string,
- * a restart flag, an unsigned integer indicating a random seed,
+ * string, a restart flag, an unsigned integer indicating a random seed,
  * and integers indicating the number of threads, the number of MPI rows,
  * the number of MPI columns, and the batch width.
  * After initialization, individual settings can be modified with set-methods,
- * or reset to the original argc/argv settings.
+ * or reset to the original settings.
  *
  * It is an error to set both the restart flag and the checkpointRead directory
  * string.
  * Arguments does not check whether directory strings point at existing
- * directories,
- * or do any other sanity checking of the arguments.
+ * directories, or do any other sanity checking of the arguments.
  * Typically under MPI, each mpi process will call PV_Init with the same
  * arguments, and each process's PV_Init object creates a Arguments object
- * that it, HyPerCol, and other objects can use to get the command-line
+ * that it, HyPerCol, and other objects can use to get the configuration
  * arguments.
  */
 class Arguments {
@@ -216,19 +214,23 @@ class Arguments {
    bool setDryRunFlag(bool val);
 
    /**
-    * Reinitializes the object's state based on the given input stream.
+    * Sets the object's state based on the given input stream.
     * The allowUnrecognizedArguments flag has the same effect as in the
-    * constructor. Any previous pointers returned by get-methods become
-    * invalid.
+    * constructor.
+    *
+    * This method creates a ConfigParser object from its arguments,
+    * and sets the Arguments data members according to the ConfigParser's
+    * get-methods. See ConfigParser::initialize() for a description of
+    * how the configuration stream is parsed.
     */
    void resetState(std::istream &configStream, bool allowUnrecognizedArguments);
 
    /**
     * Resets all member variables to their state at the time the object was
-    * instantiated. That is, the arguments in argv are parsed but the effect
-    * of any set-method that had been called is discarded.  Any previous
-    * pointers returned by get-methods, except for getArgs or getArgsCopy
-    * are no longer valid.
+    * instantiated or reinitialized using resetState(istream, bool).
+    * That is, the arguments are retrieved from the ConfigParser arguments,
+    * and the effect of any set-method that had been called since then is
+    * discarded.
     */
    void resetState();
 
@@ -247,53 +249,8 @@ class Arguments {
    Arguments() { initialize_base(); }
 
    /**
-    * initialize() is called by the constructor, and sets the data members.
-    * The given config stream is parsed using ParseConfigFile().
-    * The lines of the config file are processed as follows:
-    * Lines consisting of all whitespace or whose first nonwhitespace
-    * character is '#' are ignored.
-    * Other lines must be in the format
-    * argumentName ':' argumentValue 
-    * argumentName and argumentValue can have leading or trailing whitespace,
-    * which is ignored.
-    * The recognized argumentNames are:
-    *    RequireReturn
-    *    OutputPath
-    *    ParamsFile
-    *    LogFile
-    *    GPUDevices
-    *    RandomSeed
-    *    WorkingDirectory
-    *    Restart
-    *    CheckpointReadDirectory
-    *    NumThreads
-    *    NumRows
-    *    NumColumns
-    *    BatchWidth
-    *    DryRun
-    * The argument values can be retrieved using getRequireReturn(), etc.
-    *
-    * RequireReturn, Restart, and DryRun are boolean (see parseBoolean()).
-    * RandomSeed is an unsigned integer (see parseUnsignedInt()).
-    * NumRows, NumColumns, and BatchWidth are integers (see parseInteger()).
-    * OutputPath, ParamsFile, LogFile, WorkingDirectory, and
-    *    CheckpointReadDirectory are strings (see parseString()).
-    * NumThreads can be either an integer, the empty string, or the string "-".
-    *    In the latter two cases, getUseDefaultNumThreads() returns true
-    *    and getNumThreads() returns zero. The expectation is that the calling
-    *    routine will determine the optimal number of threads.
-    *    If NumThreads parses as an integer, getUseDefaultNumThreads() retuns
-    *    false and getNumThreads() returns the given value.
-    *
-    * It is an error for the config file to set both Restart and
-    *    CheckpointReadDirectory
-    *
-    * If an argument occurs more than once, later instances supersede earlier
-    * instances.
-    *
-    * If allowUnrecognizedArguments is set to false, the constructor fails if any
-    * argument in the config file is not recognized.
-    * If it is set to true, any unrecognized arguments are silently skipped.
+    * initialize() is called by the constructor, and calls
+    * the resetState(istream, bool) method to set the data members.
     */
    int initialize(std::istream &configStream, bool allowUnrecognizedArguments);
 

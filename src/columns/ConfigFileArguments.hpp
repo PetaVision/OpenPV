@@ -15,8 +15,7 @@ namespace PV {
 
 /**
  * A subclass of Arguments whose constructor takes a filename as an argument.
- * An input filestream is created from the filename and passed to
- * Arguments::initialize().
+ * The arguments are passed to initialize(), which calls resetState().
  */
 class ConfigFileArguments : public Arguments {
   public:
@@ -27,26 +26,35 @@ class ConfigFileArguments : public Arguments {
     */
    ConfigFileArguments(std::string const &configFile, MPI_Comm communicator, bool allowUnrecognizedArguments);
 
-   /*
+   /**
     * The destructor for ConfigFileArguments.
     */
    virtual ~ConfigFileArguments() {}
 
+   /**
+    * resetState is called during instantiation, and can also be called as a
+    * public method to discard the results of any set-methods and to use a new
+    * file for the base configuration.
+    *
+    * The root process of the communicator reads the file specified by
+    * configFile into a string, and broadcasts it to the other processes of
+    * the communicator.  That string is then converted to an input stringstream
+    * which is passed to Arguments::resetState.
+    */
    void resetState(std::string const &configFile, MPI_Comm communicator, bool allowUnrecognizedArguments);
 
   protected:
+   /**
+    * Called by the ConfigFileArguments constructor. It calls resetState with its arguments.
+    */
    int initialize(std::string const &configFile, MPI_Comm communicator, bool allowUnrecognizedArguments);
 
   private:
    /**
     * initialize_base() is called by the constructor to initialize the internal
-    * variables
-    * to false for flags, zero for integers, and nullptr for strings.
+    * variables to false for flags, zero for integers, and nullptr for strings.
     */
    int initialize_base();
-
-  private:
-   std::string mConfigContents;
 };
 
 } /* namespace PV */
