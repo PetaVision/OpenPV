@@ -49,10 +49,15 @@ PvpLayer "Input" = {
     inverseFlag = false; 
     normalizeLuminanceFlag = false;
     autoResizeFlag = false;
+    displayPeriod = 0;
     offsetAnchor = "tl";
     offsetX = 0;
     offsetY = 0;
     padValue = false;
+    batchMethod = "byFile";
+    start_frame_index = 0;
+    writeFrameToTimestamp = false;
+    resetToStartOnLoop = false;
 };
 
 ANNLayer "Output" = {
