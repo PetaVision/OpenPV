@@ -73,12 +73,19 @@ int InitUniformRandomWeights::randomWeights(
    const int nyp       = weightParamPtr->getnyPatch();
    const int nfp       = weightParamPtr->getnfPatch();
    const int patchSize = nxp * nyp * nfp;
+
+   // Never allocate an all zero patch
+   int zeroesLeft = patchSize - 1; 
+   // Start from a random index so that we don't always run out of zeros in the same place
+   int startIndex = randomUInt(patchIndex);
+
    for (int n = 0; n < patchSize; n++) {
       float data = (float)(minwgt + (p * (double)randState->randomUInt(patchIndex)));
-      if ((double)randState->randomUInt(patchIndex) < (double)sparseFraction) {
+      if (zeroesLeft > 0 && (double)randState->randomUInt(patchIndex) < (double)sparseFraction) {
          data = 0.0f;
+         --zeroesLeft;
       }
-      patchDataStart[n] = data;
+      patchDataStart[(n + startIndex) % patchSize] = data;
    }
 
    return PV_SUCCESS;
