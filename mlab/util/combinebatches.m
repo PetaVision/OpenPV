@@ -62,6 +62,9 @@ function combinebatches(directory, layer_name, num_batch, batch_method, batch_wi
             result{result_index}.time   = source_data{source_index}.time;
             result_index++;
             source_index++;
+            if rem(f, 1000) == 0
+               disp(f);
+            end
          endfor
          i--;
       endwhile
@@ -77,11 +80,12 @@ function combinebatches(directory, layer_name, num_batch, batch_method, batch_wi
    endif
 
    disp("Writing output file...");
+   fflush(stdout);
 
    if file_type == 4
-      writepvpactivityfile([layer_name, ".pvp"], result);
+      writepvpactivityfile([layer_name, ".pvp"], result, true);
    elseif file_type == 6
-      writepvpsparsevaluesfile([layer_name, ".pvp"], result, nx, ny, nf);
+      writepvpsparsevaluesfile([layer_name, ".pvp"], result, nx, ny, nf, true);
    else
       printf("Error: Unsupported filetype %d\n", file_type);
       return;

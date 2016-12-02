@@ -77,7 +77,7 @@ int InitUniformRandomWeights::randomWeights(
    // Never allocate an all zero patch
    int zeroesLeft = patchSize - 1; 
    // Start from a random index so that we don't always run out of zeros in the same place
-   int startIndex = randomUInt(patchIndex);
+   int startIndex = randState->randomUInt(patchIndex) % patchSize;
 
    for (int n = 0; n < patchSize; n++) {
       float data = (float)(minwgt + (p * (double)randState->randomUInt(patchIndex)));
