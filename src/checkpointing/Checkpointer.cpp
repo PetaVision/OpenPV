@@ -521,7 +521,7 @@ void Checkpointer::setCheckpointReadDirectory(std::string const &checkpointReadD
    InfoLog().printf(
          "Global Rank %d process setting checkpointReadDir to %s.\n",
          mCommunicator->globalCommRank(),
-         mCheckpointReadDirectory);
+         mCheckpointReadDirectory.c_str());
 }
 
 void Checkpointer::checkpointRead(double *simTimePointer, long int *currentStepPointer) {

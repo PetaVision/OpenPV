@@ -153,14 +153,14 @@ int Arguments::printState() const {
       InfoLog().printf("RandomSeed:%u\n", mRandomSeed);
    }
    if (!mWorkingDir.empty()) {
-      InfoLog().printf("WorkingDirectory:%s\n", mWorkingDir);
+      InfoLog().printf("WorkingDirectory:%s\n", mWorkingDir.c_str());
    }
    pvAssert(!mRestartFlag || mCheckpointReadDir.empty());
    if (mRestartFlag) {
       InfoLog().printf("Restart:true\n");
    }
    if (!mCheckpointReadDir.empty()) {
-      InfoLog().printf("CheckpointReadDirectory:%s\n", mCheckpointReadDir);
+      InfoLog().printf("CheckpointReadDirectory:%s\n", mCheckpointReadDir.c_str());
    }
    if (mUseDefaultNumThreads) {
       InfoLog().printf("NumThreads:-\n");
