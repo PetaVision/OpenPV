@@ -2851,11 +2851,11 @@ int HyPerConn::deliverPresynapticPerspectiveConvolve(PVLayerCube const *activity
       // Clear all thread gsyn buffer
       if (thread_gSyn) {
          int numNeurons = post->getNumNeurons();
-#pragma omp parallel for
-         for (int i = 0; i < parent->getNumThreads() * numNeurons; i++) {
-            int ti              = i / numNeurons;
-            int ni              = i % numNeurons;
-            thread_gSyn[ti][ni] = 0;
+#pragma omp parallel for schedule(static)
+         for (int ti = 0; ti < parent->getNumThreads(); ++ti) {
+           for (int ni = 0; ni < numNeurons; ++ni) {
+             thread_gSyn[ti][ni] = 0.0;
+           }
          }
       }
 #endif
