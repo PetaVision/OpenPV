@@ -59,7 +59,7 @@ function writepvpactivityfile(filename, data, show_progress = false)
    hdr(19:20) = typecast(double(data{1}.time),'uint32'); % timestamp
    fwrite(fid,hdr,'uint32');
 
-   progress_timer = length(data) / 10;
+   progress_timer = length(data) / 100;
    progress_amount = 0;
    for frameno=1:length(data)   % allows either row vector or column vector.  isvector(data) was verified above
        fwrite(fid,data{frameno}.time,'double');
@@ -69,7 +69,7 @@ function writepvpactivityfile(filename, data, show_progress = false)
            progress_timer -= 1;
            if progress_timer <= 0
               progress_amount += 10;
-              progress_timer = length(data) / 10;
+              progress_timer = length(data) / 100;
               printf("%d%% ", progress_amount);
               fflush(stdout);
            end

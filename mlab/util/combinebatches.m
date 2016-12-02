@@ -26,7 +26,11 @@ function combinebatches(directory, layer_name, num_batch, batch_method, batch_wi
          source_index = 1;
          per_batch_left = per_batch;
          for f = 1:num_frames
-            result{result_index}.values = source_data{source_index}.values;
+            if rem(f, 5000) == 0
+               disp(f);
+               fflush(stdout);
+            end
+             result{result_index}.values = source_data{source_index}.values;
             result{result_index}.time   = source_data{source_index}.time;
             source_index++;
             per_batch_left--;
@@ -58,14 +62,15 @@ function combinebatches(directory, layer_name, num_batch, batch_method, batch_wi
          fflush(stdout);
          source_index = 1;
          for f = 1:num_frames
+            if rem(f, 5000) == 0
+               disp(f);
+               fflush(stdout);
+            end
             result{result_index}.values = source_data{source_index}.values;
             result{result_index}.time   = source_data{source_index}.time;
             result_index++;
             source_index++;
-            if rem(f, 1000) == 0
-               disp(f);
-            end
-         endfor
+        endfor
          i--;
       endwhile
 
