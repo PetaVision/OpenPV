@@ -11,6 +11,7 @@
 #include <exception>
 #include <fstream>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 
 namespace PV {
