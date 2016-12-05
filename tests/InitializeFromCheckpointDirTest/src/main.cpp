@@ -17,21 +17,21 @@ int main(int argc, char *argv[]) {
                     << " must be run without params files. The necessary files are hard-coded.\n";
       }
    }
-   if (pv_initObj.getNumRows() != 0) {
+   if (pv_initObj.getIntegerArgument("NumRows") != 0) {
       status = PV_FAILURE;
       if (pv_initObj.getCommunicator()->commRank() == 0) {
          ErrorLog() << argv[0]
                     << " must be run without setting rows. The necessary value is computed.\n";
       }
    }
-   if (pv_initObj.getNumColumns() != 0) {
+   if (pv_initObj.getIntegerArgument("NumColumns") != 0) {
       status = PV_FAILURE;
       if (pv_initObj.getCommunicator()->commRank() == 0) {
          ErrorLog() << argv[0]
                     << " must be run without setting columns. The necessary value is computed.\n";
       }
    }
-   if (pv_initObj.getBatchWidth() != 0) {
+   if (pv_initObj.getIntegerArgument("BatchWidth") != 0) {
       status = PV_FAILURE;
       if (pv_initObj.getCommunicator()->commRank() == 0) {
          ErrorLog()

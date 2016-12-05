@@ -76,7 +76,7 @@ int main(int argc, char *argv[]) {
    }
 
    initObj.setParams(paramFile2);
-   initObj.setCheckpointReadDir("checkpoints1/Checkpoint12");
+   initObj.setStringArgument("CheckpointReadDirectory", "checkpoints1/Checkpoint12");
 
    status = rebuildandrun(&initObj);
    if (status != PV_SUCCESS) {

@@ -44,7 +44,7 @@ int main(int argc, char *argv[]) {
    ColumnArchive columnArchive1(hc1, tolerance, tolerance);
 
    initObj.setParams(paramfile2);
-   initObj.setCheckpointReadDir("checkpoints1/Checkpoint05");
+   initObj.setStringArgument("CheckpointReadDir", "checkpoints1/Checkpoint05");
    HyPerCol *hc2 = build(&initObj);
    int status2   = hc2->run();
    if (status2 != PV_SUCCESS) {

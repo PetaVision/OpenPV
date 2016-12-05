@@ -44,7 +44,7 @@ int main(int argc, char *argv[]) {
    PV::PV_Init pv_obj(&argc, &argv, false /*allowUnrecognizedArguments*/);
    pv_obj.registerKeyword("AlwaysFailsLayer", Factory::create<AlwaysFailsLayer>);
 
-   pv_obj.setDryRunFlag(true);
+   pv_obj.setBooleanArgument("DryRun", true);
 
    if (pv_obj.isExtraProc()) {
       return EXIT_SUCCESS;

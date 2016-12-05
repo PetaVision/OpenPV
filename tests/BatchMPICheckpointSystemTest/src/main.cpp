@@ -24,14 +24,14 @@ int main(int argc, char *argv[]) {
       }
       status = PV_FAILURE;
    }
-   if (!initObj.getCheckpointReadDir().empty()) {
+   if (!initObj.getStringArgument("CheckpointReadDirectory").empty()) {
       if (rank == 0) {
          ErrorLog().printf(
                "%s should be run without the checkpoint directory argument.\n", argv[0]);
       }
       status = PV_FAILURE;
    }
-   if (initObj.getRestartFlag()) {
+   if (initObj.getBooleanArgument("Restart")) {
       if (rank == 0) {
          ErrorLog().printf("%s should be run without the restart flag.\n", argv[0]);
       }
@@ -79,7 +79,7 @@ int main(int argc, char *argv[]) {
    }
 
    initObj.setParams(paramFile2);
-   initObj.setCheckpointReadDir("checkpoints1/Checkpoint12");
+   initObj.setStringArgument("CheckpointReadDirectory", "checkpoints1/Checkpoint12");
 
    status = rebuildandrun(&initObj);
    if (status != PV_SUCCESS) {

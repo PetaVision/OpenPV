@@ -9,6 +9,7 @@
 #define ARGUMENTS_HPP_
 
 #include "io/ConfigParser.hpp"
+#include "io/Configuration.hpp"
 #include <string>
 
 namespace PV {
@@ -40,178 +41,108 @@ class Arguments {
     */
    Arguments(std::istream &configStream, bool allowUnrecognizedArguments);
 
-   /*
+   /**
     * The destructor for Arguments.
     */
    virtual ~Arguments();
 
    /**
-    * Returns true if the require-return flag was set.
+    * Returns the type for the given string:
+    * unrecognized, boolean, integer, unsigned, string, or optional integer.
     */
-   bool getRequireReturnFlag() const { return mRequireReturnFlag; }
+   Configuration::ConfigurationType getType(std::string const &name) const {
+      return mCurrentConfig.getType(name);
+   }
 
    /**
-    * Returns the output path string.
+    * Returns the value of the specified Boolean value in the current
+    * configuration. Throws an invalid_argument exception if the input
+    * argument does not refer to a Boolean.
     */
-   std::string const &getOutputPath() const { return mOutputPath; }
+   bool const &getBooleanArgument(std::string const &name) const {
+      return mCurrentConfig.getBooleanArgument(name);
+   }
 
    /**
-    * Returns the params file string.
+    * Returns the value of the specified integer in the current configuration.
+    * Throws an invalid_argument exception if the input argument does not
+    * refer to an integer.
     */
-   std::string const &getParamsFile() const { return mParamsFile; }
+   int const &getIntegerArgument(std::string const &name) const {
+      return mCurrentConfig.getIntegerArgument(name);
+   }
 
    /**
-    * Returns the log file string.
+    * Returns the value of the specified unsigned integer in the current
+    * configuration. Throws an invalid_argument exception if the input
+    * argument does not refer to an unsigned integer.
     */
-   std::string const &getLogFile() const { return mLogFile; }
+   unsigned int const &getUnsignedIntArgument(std::string const &name) const {
+      return mCurrentConfig.getUnsignedIntArgument(name);
+   }
 
    /**
-    * Returns the gpu devices string.
+    * Returns the value of the specified string in the current configuration.
+    * Throws an invalid_argument exception if the input argument does not
+    * refer to a string in the configruation.
     */
-   std::string const &getGPUDevices() const { return mGpuDevices; }
+   std::string const &getStringArgument(std::string const &name) const {
+      return mCurrentConfig.getStringArgument(name);
+   }
 
    /**
-    * Returns the random seed.
+    * Returns the value of the specified optional integer in the current
+    * configuration. Throws an invalid_argument exception if the input
+    * argument does not refer to an optional integer.
     */
-   unsigned int getRandomSeed() const { return mRandomSeed; }
+   Configuration::IntOptional const &getIntOptionalArgument(std::string const &name) const {
+      return mCurrentConfig.getIntOptionalArgument(name);
+   }
 
    /**
-    * Returns the working directory string.
+    * Sets the indicated Boolean value in the current configuration to the
+    * indicated value. If the configuration does not have a Boolean
+    * with the indicated name, the method does nothing.
     */
-   std::string const &getWorkingDir() const { return mWorkingDir; }
+   bool setBooleanArgument(std::string const &name, bool const &value) {
+      return mCurrentConfig.setBooleanArgument(name, value);
+   }
 
    /**
-    * Returns true if the restart flag was set.
+    * Sets the indicated integer in the current configuration to the
+    * indicated value. If the configuration does not have an integer
+    * with the indicated name, the method does nothing.
     */
-   bool getRestartFlag() const { return mRestartFlag; }
+   bool setIntegerArgument(std::string const &name, int const &value) {
+      return mCurrentConfig.setIntegerArgument(name, value);
+   }
 
    /**
-    * Returns the checkpointRead directory string.
+    * Sets the indicated unsigned integer in the current configuration to the
+    * indicated value. If the configuration does not have an unsigned integer
+    * with the indicated name, the method does nothing.
     */
-   std::string const &getCheckpointReadDir() const { return mCheckpointReadDir; }
+   bool setUnsignedIntArgument(std::string const &name, unsigned int const &value) {
+      return mCurrentConfig.setUnsignedIntArgument(name, value);
+   }
 
    /**
-    * Returns the useDefaultNumThreads flag.
+    * Sets the indicated string in the current configuration to the
+    * indicated value. If the configuration does not have a string
+    * with the indicated name, the method does nothing.
     */
-   bool getUseDefaultNumThreads() const { return mUseDefaultNumThreads; }
+   bool setStringArgument(std::string const &name, std::string const &value) {
+      return mCurrentConfig.setStringArgument(name, value);
+   }
 
    /**
-    * Returns the number of threads.
+    * Sets the indicated optional integer in the current configuration to the
+    * indicated value. If the configuration does not have an optional integer
+    * with the indicated name, the method does nothing.
     */
-   int getNumThreads() const { return mNumThreads; }
-
-   /**
-    * Returns the number of rows.
-    */
-   int getNumRows() const { return mNumRows; }
-
-   /**
-    * Returns the number of columns.
-    */
-   int getNumColumns() const { return mNumColumns; }
-
-   /**
-    * Returns the batch width.
-    */
-   int getBatchWidth() const { return mBatchWidth; }
-
-   /**
-    * Returns true if the dry-run flag was set.
-    */
-   bool getDryRunFlag() const { return mDryRunFlag; }
-
-   /**
-    * Sets the value of the require-return flag.
-    * The return value is the new value of the require-return flag.
-    */
-   bool setRequireReturnFlag(bool val);
-
-   /**
-    * Sets the value of the output path string.
-    */
-   void setOutputPath(char const *val);
-
-   /**
-    * Sets the value of the params file string to a copy of the input argument.
-    */
-   void setParamsFile(char const *val);
-
-   /**
-    * Sets the value of the log file string to a copy of the input argument.
-    */
-   void setLogFile(char const *val);
-
-   /**
-    * Sets the value of the gpu devices string to a copy of the input argument.
-    */
-   void setGPUDevices(char const *val);
-
-   /**
-    * Sets the value of the random seed to the input argument.  The old value is
-    * discarded.
-    * The return value is the new value of the random seed.
-    */
-   unsigned int setRandomSeed(unsigned int val);
-
-   /**
-    * Sets the value of the working directory string to a copy of the input
-    * argument.
-    */
-   void setWorkingDir(char const *val);
-
-   /**
-    * Sets the value of the restart flag.
-    * The return value is the new value of the restart flag.
-    */
-   bool setRestartFlag(bool val);
-
-   /**
-    * Sets the value of the checkpointRead directory string to a copy of the
-    * input argument.
-    */
-   void setCheckpointReadDir(char const *val);
-
-   /**
-    * Sets the useDefaultNumThreads flag to the given argument.  The old value is
-    * discarded.
-    * The return value is the new useDefaultNumThreads flag.
-    * If the argument is true, numThreads is set to zero.
-    */
-   bool setUseDefaultNumThreads(bool val);
-
-   /**
-    * Sets the number of threads to the input argument.  The old value is
-    * discarded.
-    * The return value is the new number of threads.
-    * Additionally, the useDefaultNumThreads flag is set to false.
-    */
-   int setNumThreads(int val);
-
-   /**
-    * Sets the number of rows to the input argument.  The old value is discarded.
-    * The return value is the new number of rows.
-    */
-   int setNumRows(int val);
-
-   /**
-    * Sets the number of columns to the input argument.  The old value is
-    * discarded.
-    * The return value is the new number of columns.
-    */
-   int setNumColumns(int val);
-
-   /**
-    * Sets the batch width to the input argument.  The old value is discarded.
-    * The return value is the new batch width.
-    */
-   int setBatchWidth(int val);
-
-   /**
-    * Sets the dry-run flag to the new argument.  The old value is discarded.
-    * The return value is the new value of the dry-run flag.
-    *
-    */
-   bool setDryRunFlag(bool val);
+   bool setIntOptionalArgument(std::string const &name, Configuration::IntOptional const &value) {
+      return mCurrentConfig.setIntOptionalArgument(name, value);
+   }
 
    /**
     * Sets the object's state based on the given input stream.
@@ -262,31 +193,10 @@ class Arguments {
     */
    int initialize_base();
 
-   /**
-    * clearState() frees all memory allocated for member variables except for the
-    * copy of argv, and resets all member variables to their default values
-    * (booleans to false, integers to zero, strings to empty).
-    */
-   void clearState();
-
    // Member variables
   private:
    ConfigParser *mConfigFromStream = nullptr;
-   bool mRequireReturnFlag;
-   bool mRestartFlag;
-   bool mDryRunFlag;
-   unsigned int mRandomSeed;
-   int mNumThreads;
-   bool mUseDefaultNumThreads;
-   int mNumRows;
-   int mNumColumns;
-   int mBatchWidth;
-   std::string mOutputPath;
-   std::string mParamsFile;
-   std::string mLogFile;
-   std::string mGpuDevices;
-   std::string mWorkingDir;
-   std::string mCheckpointReadDir;
+   Configuration mCurrentConfig;
 };
 
 } /* namespace PV */

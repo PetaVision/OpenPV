@@ -1,6 +1,7 @@
 #ifndef CONFIGPARSER_HPP_
 #define CONFIGPARSER_HPP_
 
+#include "io/Configuration.hpp"
 #include <istream>
 #include <string>
 
@@ -8,9 +9,17 @@ namespace PV {
 
 /**
  * A class to parse an input stream for configuration options.
+ * The main data member is a Configuration object. ConfigParser
+ * has get-methods which are passed to the Configuration object,
+ * but it does not have set-methods because the object, once
+ * instantiated should always reflect the configuration of the
+ * input stream. The intended use case is to allow the Arguments
+ * class to modify some configuration settings but be able, at
+ * any time, to reset to the state from the original stream
+ * (using the Arguments::resetState(void) method).
  */
 class ConfigParser {
-public:
+  public:
    /**
     * The public constructor for ConfigParser.
     * configStream is an input stream with the contents of the configuration.
@@ -27,89 +36,62 @@ public:
    bool getAllowUnrecognizedArguments() const { return mAllowUnrecognizedArguments; }
 
    /**
-    * Returns the boolean value associated with RequireReturn in the configuration.
+    * If the configuration recognizes the string in 'name' as a boolean
+    * argument, this method returns the value of that argument.
+    * If the name is not a boolean argument, throws an invalid_argument
+    * exception.
     */
-   bool getRequireReturn() const { return mRequireReturn; }
+   bool const &getBooleanArgument(std::string const &name) const {
+      return mConfig.getBooleanArgument(name);
+   }
 
    /**
-    * Returns the boolean value associated with Restart in the configuration.
+    * If the configuration recognizes the string in 'name' as an integer
+    * argument, this method returns the value of that argument.
+    * If the name is not an integer argument, throws an invalid_argument
+    * exception.
     */
-   bool getRestart() const { return mRestart; }
+   int const &getIntegerArgument(std::string const &name) const {
+      return mConfig.getIntegerArgument(name);
+   }
 
    /**
-    * Returns the boolean value associated with DryRun in the configuration.
+    * If the configuration recognizes the string in 'name' as an unsigned
+    * integer argument, this method returns the value of that argument.
+    * If the name is not an unsigned integer argument, throws an
+    * invalid_argument exception.
     */
-   bool getDryRun() const { return mDryRun; }
+   unsigned int const &getUnsignedIntArgument(std::string const &name) const {
+      return mConfig.getUnsignedIntArgument(name);
+   }
 
    /**
-    * Returns the unsigned integer associated with RandomSeed in the configuration.
+    * If the configuration recognizes the string in 'name' as a string
+    * argument, this method returns the value of that argument.
+    * If the name is not a string argument, throws an
+    * invalid_argument exception.
     */
-   unsigned int getRandomSeed() const { return mRandomSeed; }
+   std::string getStringArgument(std::string const &name) const {
+      return mConfig.getStringArgument(name);
+   }
 
    /**
-    * Returns true if the configuration specified to use the default number of threads;
-    * false if the configuration left it unspecified or specified a specific number.
+    * If the configuration recognizes the string in 'name' as an integer
+    * argument with a default option, this method returns the value of that
+    * argument. If the name is not an integer-with-default argument,
+    * throws an invalid_argument exception.
     */
-   bool getUseDefaultNumThreads() const { return mUseDefaultNumThreads; }
+   Configuration::IntOptional getIntOptionalArgument(std::string const &name) const {
+      return mConfig.getIntOptionalArgument(name);
+   }
 
    /**
-    * Returns the integer value associated with NumThreads in the configuration.
-    * If the configuration specified to use the default number of threads, or if
-    * the configuration left NumThreads unspecified, this method returns -1.
+    * Returns a string consisting of all the configuration settings.
+    * If this string is converted to an input stream, it can be used to
+    * instantiate another ConfigParser object.
     */
-   int getNumThreads() const { return mNumThreads; }
+   std::string printConfig() const { return mConfig.printConfig(); }
 
-   /**
-    * Returns the integer associated with NumRows in the configuration.
-    */
-   int getNumRows() const { return mNumRows; }
-
-   /**
-    * Returns the integer associated with NumColumns in the configuration.
-    */
-   int getNumColumns() const { return mNumColumns; }
-
-   /**
-    * Returns the integer associated with BatchWidth in the configuration.
-    */
-   int getBatchWidth() const { return mBatchWidth; }
-
-   /**
-    * Returns the string associated with OutputPath in the configuration.
-    */
-   std::string const &getOutputPath() const { return mOutputPath; }
-
-   /**
-    * Returns the string associated with ParamsFile in the configuration.
-    */
-   std::string const &getParamsFile() const { return mParamsFile; }
-
-   /**
-    * Returns the string associated with LogFile in the configuration.
-    */
-   std::string const &getLogFile() const { return mLogFile; }
-
-   /**
-    * Returns the string associated with GpuDevices in the configuration.
-    */
-   std::string const &getGpuDevices() const { return mGpuDevices; }
-
-   /**
-    * Returns the string associated with WorkingDirectory in the configuration.
-    */
-   std::string const &getWorkingDir() const { return mWorkingDir; }
-
-   /**
-    * Returns the string associated with CheckpointReadDirectory in the configuration.
-    */
-   std::string const &getCheckpointReadDir() const { return mCheckpointReadDir; }
-
-   /**
-    * A static method for creating an string based on the given arguments
-    * The return value can be used to instantiate a ConfigParser object.
-    * Its main use is to have the same class that parses a config stream be
-    * the class that generates a string in the format it expects.
-    */
    static std::string createString(
       bool requireReturnFlag,
       std::string const &outputPath,
@@ -127,8 +109,12 @@ public:
       int batchWidth,
       bool dryRunFlag);
 
-private:
+   /**
+    * Returns a constant reference to the underlying Configuration object.
+    */
+   Configuration const &getConfig() const { return mConfig; }
 
+  private:
    /**
     * Called by the ConfigParser constructor.
     * Each line is read until the end of the inputStream, and processed as
@@ -165,147 +151,22 @@ private:
     */
    void initialize(std::istream &inputStream, bool allowUnrecognizedArguments);
 
-/**
- * A method called by initialize() to read a boolean value.
- * argument is the argument name retrieved from the configuration stream.
- * selectedArgument is the argument name to check for.
- * configValue is the argument value retrieved from the configuration stream.
- * returnValue points to the variable to hold the result of parsing the value.
- *
- * If selectedArgument and argument are not the same, the program returns
- * false with returnValue unchanged.
- * If selectedArgument and argument are equal, configValue must be equal to one
- * of the following strings (case-sensitive):
- * "true", "T", "1" for true, or "false", "F", or "0" for false.
- * returnValue is set accordingly and the routine returns true.
- *
- * If configValue is not one of the above strings, parseBoolean() throws an
- * exception.
- */
-bool parseBoolean(
-      std::string const &argument,
-      char const *selectedArgument,
-      std::string const &configValue,
-      bool *returnValue);
+   /**
+    * If allowUnrecognizedArguments is true, this routine does nothing.
+    * If it is false, it exits with an error message containing the arguments.
+    */
+   void handleUnrecognized(std::string const &argument, std::string const &value, int linenumber);
 
-/**
- * A method called by initialize() to read a integer value.
- * argument is the argument name retrieved from the configuration stream.
- * selectedArgument is the argument name to check for.
- * configValue is the argument value retrieved from the configuration stream.
- * returnValue points to the variable to hold the result of parsing the value.
- *
- * If selectedArgument and argument are not the same, the program returns
- * false with returnValue unchanged.
- * If selectedArgument and argument are equal, configValue is converted to
- * an integer using the C++11 std::stoi function. Any exceptions thrown by
- * stoi are passed up to the calling function. If stoi succeeds, the converted
- * value is placed in returnValue and the function returns true.
- */
-bool parseInteger(
-      std::string const &argument,
-      char const *selectedArgument,
-      std::string const &configValue,
-      int *returnValue);
+   /**
+    * This method returns a string whose contents are the input string,
+    * with any whitespace at the beginning or end of the string removed.
+    * Whitespace in the middle of the string remains untouched.
+    */
+   std::string stripLeadingTrailingWhitespace(std::string const &inString);
 
-/**
- * A method called by initialize() to read an unsigned integer value.
- * argument is the argument name retrieved from the configuration stream.
- * selectedArgument is the argument name to check for.
- * configValue is the argument value retrieved from the configuration stream.
- * returnValue points to the variable to hold the result of parsing the value.
- *
- * If selectedArgument and argument are not the same, the program returns
- * false with returnValue unchanged.
- * If selectedArgument and argument are equal, configValue is converted to
- * an integer using the C++11 std::stoul function. Any exceptions thrown by
- * stoul are passed up to the calling function. If stoul succeeds, the converted
- * value is cast to unsigned int and placed in returnValue and the function
- * returns true.
- */
-bool parseUnsignedInt(
-      std::string const &argument,
-      char const *selectedArgument,
-      std::string const &configValue,
-      unsigned int *returnValue);
-
-/**
- * A method called by initialize() to read a string.
- * argument is the argument name retrieved from the configuration stream.
- * selectedArgument is the argument name to check for.
- * configValue is the argument value retrieved from the configuration stream.
- * returnValue points to the string to hold the result of parsing the value.
- *
- * If selectedArgument and argument are not the same, the program returns
- * false with returnValue unchanged.
- * If selectedArgument and argument are equal, configValue is copied into
- * *returnValue and the method returns true.
- */
-bool parseString(
-      std::string const &argument,
-      char const *selectedArgument,
-      std::string const &configValue,
-      std::string *returnValue);
-
-/**
- * A method called by initialize() to read an integer, when a default
- * value can be specified. Note that the default is not handled by
- * the ConfigParser class; it is up to the calling routine to interpret
- * the meaning of the default setting.
- *
- * argument is the argument name retrieved from the configuration stream.
- * selectedArgument is the argument name to check for.
- * configValue is the argument value retrieved from the configuration stream.
- * returnValue points to the integer to hold the result of parsing the value.
- * usingDefault points to the boolean that tells whether the default
- * should be used.
- *
- * If selectedArgument and argument are not the same, the program returns
- * false with returnValue and usingDefault unchanged.
- * If selectedArgument and argument are equal, configValue must be either:
- * - a string that can be converted to an integer using std::stoi, or
- * - the empty string, or
- * - the string consisting of a single hyphen "-".
- *
- * In the first instance, usingDefault is set to false and returnValue is
- * set to the value of the string.
- * In the other two instances, usingDefault is set to true and returnValue
- * is set to -1 (although the value should not be used if usingDefault is true)
- * The method then returns true.
- */
-bool parseIntOptional(
-      std::string const &argument,
-      char const *selectedArgument,
-      std::string const &configValue,
-      int *returnValue,
-      bool *usingDefault);
-
-/**
- * This method returns a string whose contents are the input string,
- * with any whitespace at the beginning or end of the string removed.
- * Whitespace in the middle of the string remains untouched.
- */
-std::string stripLeadingTrailingWhitespace(std::string const &inString);
-
-private:
-      bool mAllowUnrecognizedArguments = false;
-
-      // parsed values
-      bool mRequireReturn = false;
-      bool mRestart = false;
-      bool mDryRun = false;
-      unsigned int mRandomSeed = 0U;
-      bool mUseDefaultNumThreads = false;
-      int mNumThreads = -1;
-      int mNumRows = 0;
-      int mNumColumns = 0;
-      int mBatchWidth = 0;
-      std::string mOutputPath;
-      std::string mParamsFile;
-      std::string mLogFile;
-      std::string mGpuDevices;
-      std::string mWorkingDir;
-      std::string mCheckpointReadDir;
+  private:
+   bool mAllowUnrecognizedArguments = false;
+   Configuration mConfig;
 };
 
 } // end namespace PV

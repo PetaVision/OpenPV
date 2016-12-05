@@ -11,6 +11,7 @@
 #include "utils/PVAssert.hpp"
 #include "utils/PVLog.hpp"
 #include <sstream>
+#include <string>
 
 namespace PV {
 
@@ -64,28 +65,22 @@ void CommandLineArguments::resetState(int argc, char *argv[], bool allowUnrecogn
       &numColumns,
       &batchWidth,
       &dryRun);
-   std::string outputPathString{outputPath ? outputPath : ""};
-   std::string paramsFileString{paramsFile ? paramsFile : ""};
-   std::string logFileString{logFile ? logFile : ""};
-   std::string gpuDevicesString{gpuDevices ? gpuDevices : ""};
-   std::string workingDirString{workingDir ? workingDir : ""};
-   std::string checkpointReadDirString{checkpointReadDir ? checkpointReadDir : ""};
    std::string configString = ConfigParser::createString(
       requireReturn,
-      outputPathString,
-      paramsFileString,
-      logFileString,
-      gpuDevicesString,
+      std::string{outputPath ? outputPath : ""},
+      std::string{paramsFile ? paramsFile : ""},
+      std::string{logFile ? logFile : ""},
+      std::string{gpuDevices ? gpuDevices : ""},
       randomSeed,
-      workingDirString,
-      restart,
-      checkpointReadDirString,
+      std::string{workingDir ? workingDir : ""},
+      (bool) restart,
+      std::string{checkpointReadDir ? checkpointReadDir : ""},
       useDefaultNumThreads,
       numThreads,
       numRows,
       numColumns,
       batchWidth,
-      dryRun);
+      (bool) dryRun);
    std::istringstream configStream{configString};
    Arguments::resetState(configStream, allowUnrecognizedArguments);
 }

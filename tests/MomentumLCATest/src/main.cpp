@@ -126,8 +126,8 @@ int main(int argc, char *argv[]) {
 
 int generate(PV_Init *initObj, int rank) {
    // Remove -r and -c
-   initObj->setRestartFlag(false);
-   initObj->setCheckpointReadDir(NULL);
+   initObj->setBooleanArgument("Restart", false);
+   initObj->setStringArgument("CheckpointReadDirectory", "");
    if (rank == 0) {
       InfoLog().printf(
             "Running--generate with effective command line\n", initObj->getProgramName());
@@ -217,8 +217,8 @@ int copyCorrectOutput(HyPerCol *hc, int argc, char *argv[]) {
 int testrun(PV_Init *initObj, int rank) {
    initObj->resetState();
    // Ignore restart flag and checkpoint directory
-   initObj->setRestartFlag(false);
-   initObj->setCheckpointReadDir(NULL);
+   initObj->setBooleanArgument("Restart", false);
+   initObj->setStringArgument("CheckpointReadDirectory", "");
    if (rank == 0) {
       InfoLog().printf("Running --testrun running with effective command line\n");
       initObj->printState();
@@ -231,7 +231,7 @@ int testcheckpoint(PV_Init *initObj, int rank) {
    initObj->resetState();
    // Make sure either restartFlag or checkpointReadDir are set (both cannot be set or ConfigParser
    // will error out).
-   bool hasrestart = (initObj->getRestartFlag() || !initObj->getCheckpointReadDir().empty());
+   bool hasrestart = (initObj->getBooleanArgument("Restart") || !initObj->getStringArgument("CheckpointReadDirectory").empty());
    if (!hasrestart) {
       if (rank == 0) {
          ErrorLog().printf(
@@ -253,8 +253,8 @@ int testcheckpoint(PV_Init *initObj, int rank) {
 int testioparams(PV_Init *initObj, int rank) {
    initObj->resetState();
    // Ignore -r and -c switches
-   initObj->setRestartFlag(false);
-   initObj->setCheckpointReadDir(NULL);
+   initObj->setBooleanArgument("Restart", false);
+   initObj->setStringArgument("CheckpointReadDirectory", "");
    HyPerCol *hc = build(initObj);
    if (hc == NULL) {
       Fatal().printf("testioparams: unable to build HyPerCol.\n");

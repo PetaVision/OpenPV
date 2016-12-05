@@ -147,8 +147,8 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
       }
       exit(EXIT_FAILURE);
    }
-   int rank                = mCommunicator->globalCommRank();
-   std::string working_dir = expandLeadingTilde(mPVInitObj->getWorkingDir());
+   std::string working_dir = mPVInitObj->getStringArgument("WorkingDirectory");
+   working_dir = expandLeadingTilde(working_dir);
 
    // Sep 27, 2016: handling --require-return has been moved to the Communicator
    // constructor.
@@ -186,13 +186,13 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
       exit(parsedStatus);
    }
 
-   std::string const &pvinit_outputPath = mPVInitObj->getOutputPath();
+   std::string pvinit_outputPath = mPVInitObj->getStringArgument("OutputPath");
    if (!pvinit_outputPath.empty()) {
       mOutputPath = strdup(expandLeadingTilde(pvinit_outputPath).c_str());
       FatalIf(mOutputPath == nullptr, "HyPerCol::initialize unable to copy output path.\n");
    }
 
-   mRandomSeed = mPVInitObj->getRandomSeed();
+   mRandomSeed = mPVInitObj->getUnsignedIntArgument("RandomSeed");
 
    mCheckpointer = new Checkpointer(std::string(mName), mCommunicator);
    mCheckpointer->addObserver(this, BaseMessage{});
@@ -212,8 +212,8 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
          mName, "nextProgressTime", &mNextProgressTime, (std::size_t)1, true /*broadcast*/);
 
    // Arguments should prevent -r and -c from both being set.
-   bool warmStart = mPVInitObj->getRestartFlag();
-   std::string const &checkpoint_read_dir = mPVInitObj->getCheckpointReadDir();
+   bool warmStart = mPVInitObj->getBooleanArgument("Restart");
+   std::string checkpoint_read_dir = mPVInitObj->getStringArgument("CheckpointReadDirectory");
    pvAssert(!warmStart || checkpoint_read_dir.empty());
    if (warmStart) {
       mCheckpointer->setCheckpointReadDirectory();
@@ -717,7 +717,8 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
       MPI_Barrier(getCommunicator()->communicator());
 
       FatalIf(status != PV_SUCCESS, "HyPerCol \"%s\" failed to run.\n", mName);
-      if (mPVInitObj->getDryRunFlag()) {
+      bool dryRunFlag = mPVInitObj->getBooleanArgument("DryRun");
+      if (dryRunFlag) {
          return PV_SUCCESS;
       }
       int thread_status =
@@ -852,7 +853,8 @@ int HyPerCol::setNumThreads(bool printMessagesFlag) {
             max_threads,
             comm_size);
    }
-   if (mPVInitObj->getUseDefaultNumThreads()) {
+   Configuration::IntOptional numThreadsArg = mPVInitObj->getIntOptionalArgument("NumThreads");
+   if (numThreadsArg.mUseDefault) {
       num_threads = max_threads / comm_size; // integer arithmetic
       if (num_threads == 0) {
          num_threads = 1;
@@ -864,7 +866,7 @@ int HyPerCol::setNumThreads(bool printMessagesFlag) {
       }
    }
    else {
-      num_threads = mPVInitObj->getNumThreads();
+      num_threads = numThreadsArg.mValue;
    }
    if (num_threads > 0) {
       if (printMsgs0) {
@@ -1602,12 +1604,14 @@ HyPerCol *createHyPerCol(PV_Init *pv_initObj) {
    }
    int numGroups = params->numberOfGroups();
    if (numGroups == 0) {
-      ErrorLog() << "Params \"" << pv_initObj->getParamsFile()
+      std::string paramsFile = pv_initObj->getStringArgument("ParamsFile");
+      ErrorLog() << "Params \"" << paramsFile
                  << "\" does not define any groups.\n";
       return nullptr;
    }
    if (strcmp(params->groupKeywordFromIndex(0), "HyPerCol")) {
-      ErrorLog() << "First group in the params \"" << pv_initObj->getParamsFile()
+      std::string paramsFile = pv_initObj->getStringArgument("ParamsFile");
+      ErrorLog() << "First group in the params \"" << paramsFile
                  << "\" does not define a HyPerCol.\n";
       return nullptr;
    }
@@ -1623,8 +1627,9 @@ HyPerCol *createHyPerCol(PV_Init *pv_initObj) {
          }
          else {
             if (hc->columnId() == 0) {
+               std::string paramsFile = pv_initObj->getStringArgument("ParamsFile");
                ErrorLog() << "Group " << k + 1 << " in params file (\""
-                          << pv_initObj->getParamsFile()
+                          << paramsFile
                           << "\") is a HyPerCol; only the first group can be a HyPercol.\n";
             }
             delete hc;
