@@ -27,20 +27,21 @@ int main(int argc, char *argv[]) {
    FatalIf(inputStream.fail(), "failed to open %s\n", configFile);
    PV::ConfigParser configParser{inputStream, false /*do not allow unrecognized arguments*/};
 
-   FatalIf(configParser.getRequireReturn()!=true, "Parsing RequireReturn failed.\n");
-   FatalIf(configParser.getRestart()!=false, "Parsing Restart failed.\n");
-   FatalIf(configParser.getDryRun()!=true, "Parsing DryRun failed.\n");
-   FatalIf(configParser.getRandomSeed()!=1234565432U, "Parsing RandomSeed failed.\n");
-   FatalIf(configParser.getUseDefaultNumThreads()!=false, "Parsing NumThreads failed.\n");
-   FatalIf(configParser.getNumThreads()!=8, "Parsing NumThreads failed.\n");
-   FatalIf(configParser.getNumRows()!=2, "Parsing NumRows failed.\n");
-   FatalIf(configParser.getNumColumns()!=3, "Parsing NumColumns failed.\n");
-   FatalIf(configParser.getBatchWidth()!=4, "Parsing BatchWidth failed.\n");
-   FatalIf(configParser.getOutputPath()!= "outputPath", "Parsing OutputPath failed.\n");
-   FatalIf(configParser.getParamsFile()!= "input/pv.params", "Parsing ParamsFile failed.\n");
-   FatalIf(configParser.getLogFile()!= "test.log", "Parsing LogFile failed.\n");
-   FatalIf(configParser.getGpuDevices()!= "0,1", "Parsing GpuDevices failed.\n");
-   FatalIf(configParser.getWorkingDir()!= ".", "Parsing WorkingDir failed.\n");
-   FatalIf(configParser.getCheckpointReadDir()!= "outputPath/checkpoints", "Parsing CheckpointReadDirectory failed.\n");
+   FatalIf(configParser.getBooleanArgument("RequireReturn")!=true, "Parsing RequireReturn failed.\n");
+   FatalIf(configParser.getBooleanArgument("Restart")!=false, "Parsing Restart failed.\n");
+   FatalIf(configParser.getBooleanArgument("DryRun")!=true, "Parsing DryRun failed.\n");
+   FatalIf(configParser.getUnsignedIntArgument("RandomSeed")!=1234565432U, "Parsing RandomSeed failed.\n");
+   PV::Configuration::IntOptional numThreads = configParser.getIntOptionalArgument("NumThreads");
+   FatalIf(numThreads.mUseDefault!=false, "Parsing NumThreads failed.\n");
+   FatalIf(numThreads.mValue!=8, "Parsing NumThreads failed.\n");
+   FatalIf(configParser.getIntegerArgument("NumRows")!=2, "Parsing NumRows failed.\n");
+   FatalIf(configParser.getIntegerArgument("NumColumns")!=3, "Parsing NumColumns failed.\n");
+   FatalIf(configParser.getIntegerArgument("BatchWidth")!=4, "Parsing BatchWidth failed.\n");
+   FatalIf(configParser.getStringArgument("OutputPath")!= "outputPath", "Parsing OutputPath failed.\n");
+   FatalIf(configParser.getStringArgument("ParamsFile")!= "input/pv.params", "Parsing ParamsFile failed.\n");
+   FatalIf(configParser.getStringArgument("LogFile")!= "test.log", "Parsing LogFile failed.\n");
+   FatalIf(configParser.getStringArgument("GPUDevices")!= "0,1", "Parsing GpuDevices failed.\n");
+   FatalIf(configParser.getStringArgument("WorkingDirectory")!= ".", "Parsing WorkingDir failed.\n");
+   FatalIf(configParser.getStringArgument("CheckpointReadDirectory")!= "outputPath/checkpoints", "Parsing CheckpointReadDirectory failed.\n");
    return 0;
 }

@@ -9,8 +9,8 @@
 #define PV_INIT_HPP_
 
 #include <arch/mpi/mpi.h>
-#include <columns/Factory.hpp>
 #include <columns/Arguments.hpp>
+#include <columns/Factory.hpp>
 #include <io/PVParams.hpp>
 #include <io/io.hpp>
 #include <iostream>
@@ -64,7 +64,7 @@ class PV_Init {
     * is responsible for freeing getArgs()[k] for each k and for freeing
     * getArgs()
     * (the simplest way to free all the memory at once is to call the
-    * static method PV_Argument::freeArgs)
+    * static method Argument::freeArgs)
     * The length of the returned array is argc+1, and getArgs()[argc] is NULL.
     */
    char **getArgsCopy() const;
@@ -85,81 +85,31 @@ class PV_Init {
     */
    char const *getProgramName() const { return mArgV[0]; }
 
-   /**
-    * Returns the output path string.
-    */
-   char const *getOutputPath() const { return arguments->getOutputPath().c_str(); }
+   bool const &getBooleanArgument(std::string const &name) const {
+      return arguments->getBooleanArgument(name);
+   }
 
-   /**
-    * Returns the params file string.
-    */
-   char const *getParamsFile() const { return arguments->getParamsFile().c_str(); }
+   int const &getIntegerArgument(std::string const &name) const {
+      return arguments->getIntegerArgument(name);
+   }
+
+   unsigned int const &getUnsignedIntArgument(std::string const &name) const {
+      return arguments->getUnsignedIntArgument(name);
+   }
+
+   std::string const &getStringArgument(std::string const &name) const {
+      return arguments->getStringArgument(name);
+   }
+
+   Configuration::IntOptional const &getIntOptionalArgument(std::string const &name) const {
+      return arguments->getIntOptionalArgument(name);
+   }
 
    /**
     * getParams() returns a pointer to the PVParams object created from the
     * params file.
     */
    PVParams *getParams() { return params; }
-
-   /**
-    * Returns the log file string.
-    */
-   char const *getLogFile() const { return arguments->getLogFile().c_str(); }
-
-   /**
-    * Returns the gpu devices string.
-    */
-   char const *getGPUDevices() const { return arguments->getGPUDevices().c_str(); }
-
-   /**
-    * Returns the random seed.
-    */
-   unsigned int getRandomSeed() const { return arguments->getRandomSeed(); }
-
-   /**
-    * Returns the working directory string.
-    */
-   char const *getWorkingDir() const { return arguments->getWorkingDir().c_str(); }
-
-   /**
-    * Returns true if the restart flag was set.
-    */
-   bool getRestartFlag() const { return arguments->getRestartFlag(); }
-
-   /**
-    * Returns the checkpointRead directory string.
-    */
-   char const *getCheckpointReadDir() const { return arguments->getCheckpointReadDir().c_str(); }
-
-   /**
-    * Returns the useDefaultNumThreads flag.
-    */
-   bool getUseDefaultNumThreads() const { return arguments->getUseDefaultNumThreads(); }
-
-   /**
-    * Returns the number of threads.
-    */
-   int getNumThreads() const { return arguments->getNumThreads(); }
-
-   /**
-    * Returns the number of rows.
-    */
-   int getNumRows() const { return arguments->getNumRows(); }
-
-   /**
-    * Returns the number of columns.
-    */
-   int getNumColumns() const { return arguments->getNumColumns(); }
-
-   /**
-    * Returns the batch width.
-    */
-   int getBatchWidth() const { return arguments->getBatchWidth(); }
-
-   /**
-    * Returns true if the dry-run flag was set.
-    */
-   bool getDryRunFlag() const { return arguments->getDryRunFlag(); }
 
    /**
     * Prints the effective command line based on the argc/argv arguments used in
@@ -172,20 +122,24 @@ class PV_Init {
    // stored in the Arguments object, and doing any necessary
    // operations required by the change.
 
-   /**
-    * Sets the value of the require-return flag.  Always returns PV_SUCCESS.
-    */
-   int setRequireReturnFlag(bool val) {
-      arguments->setRequireReturnFlag(val);
-      return PV_SUCCESS;
+   bool setBooleanArgument(std::string const &name, bool const &value) {
+      return arguments->setBooleanArgument(name, value);
    }
 
-   /**
-    * Sets the value of the output path string.
-    */
-   int setOutputPath(char const *val) {
-      arguments->setOutputPath(val);
-      return PV_SUCCESS;
+   bool setIntegerArgument(std::string const &name, int const &value) {
+      return arguments->setIntegerArgument(name, value);
+   }
+
+   bool setUnsignedIntArgument(std::string const &name, unsigned int const &value) {
+      return arguments->setUnsignedIntArgument(name, value);
+   }
+
+   bool setStringArgument(std::string const &name, std::string const &value) {
+      return arguments->setStringArgument(name, value);
+   }
+
+   bool setIntOptionalArgument(std::string const &name, Configuration::IntOptional const &value) {
+      return arguments->setIntOptionalArgument(name, value);
    }
 
    /**
@@ -207,77 +161,6 @@ class PV_Init {
    int setLogFile(char const *val, bool appendFlag = false);
 
    /**
-    * Sets the value of the gpu devices string to a copy of the input argument.
-    * Note that this only changes the string; it doesn't touch the GPUs.
-    */
-   int setGPUDevices(char const *val) {
-      arguments->setGPUDevices(val);
-      return PV_SUCCESS;
-   }
-
-   /**
-    * Sets the value of the random seed to the input argument.
-    * The return value is always PV_SUCCESS.
-    */
-   unsigned int setRandomSeed(unsigned int val) {
-      arguments->setRandomSeed(val);
-      return PV_SUCCESS;
-   }
-
-   /**
-    * Sets the value of the working directory string to a copy of the input
-    * argument.
-    * Return value is PV_SUCCESS or PV_FAILURE.
-    * If the routine fails, the working directory string remains unchanged.
-    * TODO: PV_Init should handle the working directory, not HyPerCol.
-    */
-   int setWorkingDir(char const *val) {
-      arguments->setWorkingDir(val);
-      return PV_SUCCESS;
-   }
-
-   /**
-    * Sets the value of the restart flag.
-    * The return value is always PV_SUCCESS
-    */
-   int setRestartFlag(bool val) {
-      arguments->setRestartFlag(val);
-      return PV_SUCCESS;
-   }
-
-   /**
-    * Sets the value of the checkpointRead directory string.
-    * Return value is PV_SUCCESS or PV_FAILURE.
-    * If the routine fails, the checkpointRead directory string is unchanged.
-    * Note that this only changes the string; it doesn't examine the directory.
-    */
-   int setCheckpointReadDir(char const *val) {
-      arguments->setCheckpointReadDir(val);
-      return PV_SUCCESS;
-   }
-
-   /**
-     * Turns on the useDefaultNumThreads flag, and sets numThreads to zero.
-    * (Should be
-    * maxthreads/numProcesses)
-     * The return value is always PV_SUCCESS
-     */
-   int setUseDefaultNumThreads() {
-      arguments->setUseDefaultNumThreads(true);
-      return PV_SUCCESS;
-   }
-
-   /**
-    * Sets the number of threads to the input argument.
-    * Additionally, turns off the useDefaultNumThreads.
-    * The return value is always PV_SUCCESS
-    */
-   int setNumThreads(int val) {
-      arguments->setNumThreads(val);
-      return PV_SUCCESS;
-   }
-
-   /**
     * Sets the number of rows, columns, and batch elements.
     * If any of these values are zero, they will be inferred
     * from the other values (as if the relevant command line option was absent.)
@@ -288,15 +171,6 @@ class PV_Init {
     * Returns PV_SUCCESS if successful; exits on an error if it fails.
     */
    int setMPIConfiguration(int rows, int columns, int batchwidth);
-
-   /**
-    * Sets the dry-run flag to the new argument.
-    * The return value is always PV_SUCCESS
-    */
-   int setDryRunFlag(bool val) {
-      arguments->setDryRunFlag(val);
-      return PV_SUCCESS;
-   }
 
    /**
     * Resets all member variables to their state at the time the object was
@@ -407,7 +281,7 @@ class PV_Init {
 
    int commFinalize();
 
-   int mArgC = 0;
+   int mArgC    = 0;
    char **mArgV = nullptr;
    PVParams *params;
    Arguments *arguments;

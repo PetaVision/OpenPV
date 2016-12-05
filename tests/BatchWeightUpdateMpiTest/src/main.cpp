@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
       }
       status = PV_FAILURE;
    }
-   if (initObj.getCheckpointReadDir() != nullptr && initObj.getCheckpointReadDir()[0] != '\0') {
+   if (!initObj.getStringArgument("CheckpointReadDirectory").empty()) {
       if (rank == 0) {
          ErrorLog().printf(
                "%s should be run without the checkpoint directory argument.\n",
@@ -37,28 +37,28 @@ int main(int argc, char *argv[]) {
       }
       status = PV_FAILURE;
    }
-   if (initObj.getRestartFlag()) {
+   if (initObj.getBooleanArgument("Restart")) {
       if (rank == 0) {
          ErrorLog().printf(
                "%s should be run without the restart flag.\n", initObj.getProgramName());
       }
       status = PV_FAILURE;
    }
-   if (initObj.getNumRows() != 0) {
+   if (initObj.getIntegerArgument("NumRows") != 0) {
       if (rank == 0) {
          ErrorLog().printf(
                "%s should be run without the rows argument.\n", initObj.getProgramName());
       }
       status = PV_FAILURE;
    }
-   if (initObj.getNumColumns() != 0) {
+   if (initObj.getIntegerArgument("NumColumns") != 0) {
       if (rank == 0) {
          ErrorLog().printf(
                "%s should be run without the columns argument.\n", initObj.getProgramName());
       }
       status = PV_FAILURE;
    }
-   if (initObj.getBatchWidth() != 0) {
+   if (initObj.getIntegerArgument("BatchWidth") != 0) {
       if (rank == 0) {
          ErrorLog().printf(
                "%s should be run without the batchwidth argument.\n", initObj.getProgramName());

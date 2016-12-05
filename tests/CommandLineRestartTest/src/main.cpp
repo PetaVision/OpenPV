@@ -18,13 +18,13 @@ int main(int argc, char *argv[]) {
    status = pv_init.registerKeyword(
          "FailBeforeExpectedStartTimeLayer", Factory::create<FailBeforeExpectedStartTimeLayer>);
    FatalIf(status != PV_SUCCESS, "Unable to add FailBeforeExpectedStartTimeLayer\n");
-   if (pv_init.getCheckpointReadDir() != nullptr && pv_init.getCheckpointReadDir()[0] != '\0') {
+   if (!pv_init.getStringArgument("CheckpointReadDirectory").empty()) {
       if (pv_init.getCommunicator()->commRank() == 0) {
          ErrorLog() << argv[0] << " cannot be run with the -c argument.\n";
       }
       status = PV_FAILURE;
    }
-   if (pv_init.getRestartFlag()) {
+   if (pv_init.getBooleanArgument("Restart")) {
       if (pv_init.getCommunicator()->commRank() == 0) {
          ErrorLog() << argv[0] << " cannot be run with the -r flag.\n";
       }
@@ -61,7 +61,7 @@ int main(int argc, char *argv[]) {
    FatalIf(status != PV_SUCCESS, "HyPerCol::run failed with arguments (0.0, 5.0, 1.0).\n");
    delete hc;
 
-   pv_init.setRestartFlag(true);
+   pv_init.setBooleanArgument("Restart", true);
    hc = createHyPerCol(&pv_init);
    FatalIf(hc == nullptr, "failed to create HyPerCol.\n");
    outputLayer = dynamic_cast<FailBeforeExpectedStartTimeLayer *>(hc->getLayerFromName("Output"));

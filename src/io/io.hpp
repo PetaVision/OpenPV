@@ -129,6 +129,10 @@ int parse_options(
  * if the input string needs to be free()'ed, the calling routine has that responsibility
  * as well.
  */
+std::string expandLeadingTilde(std::string const &path);
+
+/** An overload of expandLeadingTilde to take a C-style string instead of a C++ std::string.
+ */
 std::string expandLeadingTilde(char const *path);
 
 } // end namespace PV

@@ -80,8 +80,9 @@ int PV_Init::initialize() {
    // It is okay to initialize without there being a params file.
    // setParams() can be called later.
    delete params;
-   params = NULL;
-   if (!arguments->getParamsFile().empty()) {
+   params = nullptr;
+   std::string paramsFile = arguments->getStringArgument("ParamsFile");
+   if (!paramsFile.empty()) {
       status = createParams();
    }
    printInitMessage();
@@ -133,7 +134,7 @@ void PV_Init::initLogFile(bool appendFlag) {
    // deliberate, as the
    // nonzero ranks
    // should be MPI-ing the data to the zero rank.
-   std::string const &logFile  = arguments->getLogFile();
+   std::string logFile = arguments->getStringArgument("LogFile");
    int const globalRootProcess = 0;
    int globalRank;
    MPI_Comm_rank(MPI_COMM_WORLD, &globalRank);
@@ -169,20 +170,20 @@ void PV_Init::initLogFile(bool appendFlag) {
 }
 
 int PV_Init::setParams(char const *params_file) {
-   if (params_file == NULL) {
+   if (params_file == nullptr) {
       return PV_FAILURE;
    }
-   arguments->setParamsFile(params_file);
+   arguments->setStringArgument("ParamsFile", std::string{params_file});
    initialize();
    return createParams();
 }
 
 int PV_Init::createParams() {
-   char const *params_file = arguments->getParamsFile().c_str();
-   if (params_file[0]) {
+   std::string paramsFile = arguments->getStringArgument("ParamsFile");
+   if (!paramsFile.empty()) {
       delete params;
       params = new PVParams(
-            params_file,
+            paramsFile.c_str(),
             2 * (INITIAL_LAYER_ARRAY_SIZE + INITIAL_CONNECTION_ARRAY_SIZE),
             mCommunicator);
       return PV_SUCCESS;
@@ -192,8 +193,9 @@ int PV_Init::createParams() {
    }
 }
 
-int PV_Init::setLogFile(char const *log_file, bool appendFlag) {
-   arguments->setLogFile(log_file);
+int PV_Init::setLogFile(char const *logFile, bool appendFlag) {
+   std::string logFileString{logFile};
+   arguments->setStringArgument("LogFile", logFileString);
    initLogFile(appendFlag);
    printInitMessage();
    return PV_SUCCESS;
@@ -201,13 +203,13 @@ int PV_Init::setLogFile(char const *log_file, bool appendFlag) {
 
 int PV_Init::setMPIConfiguration(int rows, int columns, int batchWidth) {
    if (rows >= 0) {
-      arguments->setNumRows(rows);
+      arguments->setIntegerArgument("NumRows", rows);
    }
    if (columns >= 0) {
-      arguments->setNumColumns(columns);
+      arguments->setIntegerArgument("NumColumns", columns);
    }
    if (batchWidth >= 0) {
-      arguments->setBatchWidth(batchWidth);
+      arguments->setIntegerArgument("BatchWidth", batchWidth);
    }
    initialize();
    return PV_SUCCESS;
