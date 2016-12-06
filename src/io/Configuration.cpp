@@ -23,7 +23,7 @@ Configuration::Configuration() {
 
 void Configuration::registerArgument(std::string const &name, ConfigurationType type) {
    auto insertion = mConfigTypeMap.insert(std::make_pair(name, type));
-   FatalIf(!insertion.second, "failed to register configuration argument %s\n", name);
+   FatalIf(!insertion.second, "failed to register configuration argument %s\n", name.c_str());
    mConfigArguments.push_back(name);
 }
 
@@ -31,35 +31,35 @@ void Configuration::registerBooleanArgument(std::string const &name) {
    registerArgument(name, CONFIG_BOOL);
    bool defaultValue = false;
    auto insertion = mBooleanConfigMap.insert(std::make_pair(name, defaultValue));
-   FatalIf(!insertion.second, "failed to register boolean configuration argument %s\n", name);
+   FatalIf(!insertion.second, "failed to register boolean configuration argument %s\n", name.c_str());
 }
 
 void Configuration::registerIntegerArgument(std::string const &name) {
    registerArgument(name, CONFIG_INT);
    int defaultValue = 0;
    auto insertion = mIntegerConfigMap.insert(std::make_pair(name, defaultValue));
-   FatalIf(!insertion.second, "failed to register integer configuration argument %s\n", name);
+   FatalIf(!insertion.second, "failed to register integer configuration argument %s\n", name.c_str());
 }
 
 void Configuration::registerUnsignedIntArgument(std::string const &name) {
    registerArgument(name, CONFIG_UNSIGNED);
    unsigned int defaultValue = 0U;
    auto insertion = mUnsignedIntConfigMap.insert(std::make_pair(name, defaultValue));
-   FatalIf(!insertion.second, "failed to register unsigned int configuration argument %s\n", name);
+   FatalIf(!insertion.second, "failed to register unsigned int configuration argument %s\n", name.c_str());
 }
 
 void Configuration::registerStringArgument(std::string const &name) {
    registerArgument(name, CONFIG_STRING);
    std::string defaultValue{};
    auto insertion = mStringConfigMap.insert(std::make_pair(name, defaultValue));
-   FatalIf(!insertion.second, "failed to register string configuration argument %s\n", name);
+   FatalIf(!insertion.second, "failed to register string configuration argument %s\n", name.c_str());
 }
 
 void Configuration::registerIntOptionalArgument(std::string const &name) {
    registerArgument(name, CONFIG_INT_OPTIONAL);
    IntOptional defaultValue;
    auto insertion = mIntOptionalConfigMap.insert(std::make_pair(name, defaultValue));
-   FatalIf(!insertion.second, "failed to register optional int configuration argument %s\n", name);
+   FatalIf(!insertion.second, "failed to register optional int configuration argument %s\n", name.c_str());
 }
 
 Configuration::ConfigurationType Configuration::getType(std::string const &name) const {

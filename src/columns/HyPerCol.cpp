@@ -226,7 +226,7 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
 // run only on GPU for now
 #ifdef PV_USE_CUDA
    // Default to auto assign gpus
-   std::string const &gpu_devices = mPVInitObj->getGPUDevices();
+   std::string const &gpu_devices = mPVInitObj->getStringArgument("GPUDevices");
    initializeThreads(gpu_devices.c_str());
 #endif
 
