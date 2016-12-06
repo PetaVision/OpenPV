@@ -7,6 +7,9 @@
 
 #include "ConfigFileArguments.hpp"
 #include "include/pv_common.h"
+#include "utils/PVLog.hpp"
+#include <cerrno>
+#include <cstring>
 #include <fstream>
 #include <sstream>
 
@@ -32,7 +35,13 @@ void ConfigFileArguments::resetState(std::string const &configFile, MPI_Comm com
    int rank;
    MPI_Comm_rank(communicator, &rank);
    if (rank == 0) {
+      errno = 0;
       std::ifstream configFileStream{configFile};
+      FatalIf(
+            configFileStream.fail(),
+            "ConfigFileArguments unable to open \"%s\" for reading: %s\n",
+            configFile.c_str(),
+            strerror(errno));
       configFileStream.seekg(0, std::ios_base::end);
       fileSize = (unsigned int) configFileStream.tellg();
       configContents.resize(fileSize);
