@@ -6,12 +6,15 @@
  */
 
 #include "Checkpointer.hpp"
+#include <cerrno>
 #include <climits>
 #include <cmath>
+#include <cstring>
 #include <fts.h>
 #include <signal.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <unistd.h>
 
 namespace PV {
 
@@ -377,7 +380,7 @@ bool Checkpointer::registerCheckpointEntry(
 void Checkpointer::registerTimer(Timer const *timer) { mTimers.push_back(timer); }
 
 void Checkpointer::readNamedCheckpointEntry(std::string const &objName, std::string const &dataName)
-      const {
+      {
    std::string checkpointEntryName(objName);
    if (!(objName.empty() || dataName.empty())) {
       checkpointEntryName.append("_");
@@ -386,11 +389,12 @@ void Checkpointer::readNamedCheckpointEntry(std::string const &objName, std::str
    readNamedCheckpointEntry(checkpointEntryName);
 }
 
-void Checkpointer::readNamedCheckpointEntry(std::string const &checkpointEntryName) const {
+void Checkpointer::readNamedCheckpointEntry(std::string const &checkpointEntryName) {
+   std::string checkpointDirectory = generateDirectory(mInitializeFromCheckpointDir);
    for (auto &c : mCheckpointRegistry) {
       if (c->getName() == checkpointEntryName) {
          double timestamp = 0.0; // not used
-         c->read(mInitializeFromCheckpointDir, &timestamp);
+         c->read(checkpointDirectory, &timestamp);
          return;
       }
    }
@@ -525,11 +529,12 @@ void Checkpointer::setCheckpointReadDirectory(std::string const &checkpointReadD
 }
 
 void Checkpointer::checkpointRead(double *simTimePointer, long int *currentStepPointer) {
+   std::string checkpointReadDirectory = generateDirectory(mCheckpointReadDirectory);
    double readTime;
    for (auto &c : mCheckpointRegistry) {
-      c->read(mCheckpointReadDirectory, &readTime);
+      c->read(checkpointReadDirectory, &readTime);
    }
-   mTimeInfoCheckpointEntry->read(mCheckpointReadDirectory.c_str(), &readTime);
+   mTimeInfoCheckpointEntry->read(checkpointReadDirectory.c_str(), &readTime);
    if (simTimePointer) {
       *simTimePointer = mTimeInfo.mSimTime;
    }
@@ -538,11 +543,10 @@ void Checkpointer::checkpointRead(double *simTimePointer, long int *currentStepP
    }
    notify(
          mObserverTable,
-         std::make_shared<ProcessCheckpointReadMessage const>(mCheckpointReadDirectory));
+         std::make_shared<ProcessCheckpointReadMessage const>(checkpointReadDirectory));
 }
 
 void Checkpointer::checkpointWrite(double simTime) {
-   std::string checkpointWriteDir;
    mTimeInfo.mSimTime = simTime;
    // set mSimTime here so that it is available in routines called by checkpointWrite.
    if (!mCheckpointWriteFlag) {
@@ -640,7 +644,7 @@ void Checkpointer::checkpointNow() {
    checkpointDirStream.width(fieldWidth);
    checkpointDirStream << mTimeInfo.mCurrentCheckpointStep;
    std::string checkpointDirectory = checkpointDirStream.str();
-   if (strcmp(checkpointDirectory.c_str(), mCheckpointReadDirectory.c_str())) {
+   if (checkpointDirectory != mCheckpointReadDirectory) {
       /* Note: the strcmp isn't perfect, since there are multiple ways to specify a path that
        * points to the same directory.  Should use realpath, but that breaks under OS X. */
       if (mCommunicator->globalCommRank() == 0) {
@@ -668,29 +672,30 @@ void Checkpointer::checkpointNow() {
 }
 
 void Checkpointer::checkpointToDirectory(std::string const &directory) {
+   std::string checkpointDirectory = generateDirectory(directory);
    mCheckpointTimer->start();
    if (getCommunicator()->commRank() == 0) {
-      InfoLog() << "Checkpointing to directory \"" << directory
+      InfoLog() << "Checkpointing to directory \"" << checkpointDirectory
                 << "\" at simTime = " << mTimeInfo.mSimTime << "\n";
       struct stat timeinfostat;
-      std::string timeinfoFilename(directory);
+      std::string timeinfoFilename(checkpointDirectory);
       timeinfoFilename.append("/timeinfo.bin");
       int statstatus = stat(timeinfoFilename.c_str(), &timeinfostat);
       if (statstatus == 0) {
-         WarnLog() << "Checkpoint directory \"" << directory
+         WarnLog() << "Checkpoint directory \"" << checkpointDirectory
                    << "\" has existing timeinfo.bin, which is now being deleted.\n";
-         mTimeInfoCheckpointEntry->remove(directory);
+         mTimeInfoCheckpointEntry->remove(checkpointDirectory);
       }
    }
-   notify(mObserverTable, std::make_shared<PrepareCheckpointWriteMessage const>(directory));
-   ensureDirExists(getCommunicator(), directory.c_str());
+   notify(mObserverTable, std::make_shared<PrepareCheckpointWriteMessage const>(checkpointDirectory));
+   ensureDirExists(getCommunicator(), checkpointDirectory.c_str());
    for (auto &c : mCheckpointRegistry) {
-      c->write(directory, mTimeInfo.mSimTime, mVerifyWritesFlag);
+      c->write(checkpointDirectory, mTimeInfo.mSimTime, mVerifyWritesFlag);
    }
-   mTimeInfoCheckpointEntry->write(directory, mTimeInfo.mSimTime, mVerifyWritesFlag);
+   mTimeInfoCheckpointEntry->write(checkpointDirectory, mTimeInfo.mSimTime, mVerifyWritesFlag);
    mCheckpointTimer->stop();
    mCheckpointTimer->start();
-   writeTimers(directory);
+   writeTimers(checkpointDirectory);
    mCheckpointTimer->stop();
 }
 
@@ -708,30 +713,43 @@ void Checkpointer::rotateOldCheckpoints(std::string const &newCheckpointDirector
    std::string &oldestCheckpointDir = mOldCheckpointDirectories[mOldCheckpointDirectoriesIndex];
    if (!oldestCheckpointDir.empty()) {
       if (mCommunicator->commRank() == 0) {
+         std::string targetDirectory = generateDirectory(oldestCheckpointDir);
          struct stat lcp_stat;
-         int statstatus = stat(oldestCheckpointDir.c_str(), &lcp_stat);
+         int statstatus = stat(targetDirectory.c_str(), &lcp_stat);
          if (statstatus != 0 || !(lcp_stat.st_mode & S_IFDIR)) {
             if (statstatus == 0) {
                ErrorLog().printf(
                      "Failed to delete older checkpoint: failed to stat \"%s\": %s.\n",
-                     oldestCheckpointDir.c_str(),
+                     targetDirectory.c_str(),
                      strerror(errno));
             }
             else {
                ErrorLog().printf(
                      "Deleting older checkpoint: \"%s\" exists but is not a directory.\n",
-                     oldestCheckpointDir.c_str());
+                     targetDirectory.c_str());
             }
          }
          sync();
          std::string rmrf_string("");
-         rmrf_string     = rmrf_string + "rm -r '" + oldestCheckpointDir + "'";
+         rmrf_string     = rmrf_string + "rm -r '" + targetDirectory + "'";
          int rmrf_result = system(rmrf_string.c_str());
          if (rmrf_result != 0) {
             WarnLog().printf(
                   "unable to delete older checkpoint \"%s\": rm command returned %d\n",
-                  oldestCheckpointDir.c_str(),
+                  targetDirectory.c_str(),
                   WEXITSTATUS(rmrf_result));
+         }
+      }
+      MPI_Barrier(mCommunicator->globalCommunicator());
+      if (mCommunicator->globalCommRank() == 0) {
+         sync();
+         struct stat oldcp_stat;
+         int statstatus = stat(oldestCheckpointDir.c_str(), &oldcp_stat);
+         if (statstatus == 0 && (oldcp_stat.st_mode & S_IFDIR)) {
+            int rmdirstatus = rmdir(oldestCheckpointDir.c_str());
+            if (rmdirstatus) {
+               ErrorLog().printf("Unable to delete older checkpoint \"%s\": rmdir command returned %d (%s)\n", oldestCheckpointDir, errno, std::strerror(errno));
+            }
          }
       }
    }
@@ -746,6 +764,23 @@ void Checkpointer::writeTimers(PrintStream &stream) const {
    for (auto timer : mTimers) {
       timer->fprint_time(stream);
    }
+}
+
+std::string Checkpointer::generateDirectory(std::string const &baseDirectory) {
+   std::string path(baseDirectory);
+   int batchWidth = getCommunicator()->numCommBatches();
+   if (batchWidth > 1) {
+      path.append("/batchsweep_");
+      std::size_t lengthLargestBatchIndex = std::to_string(batchWidth - 1).size();
+      std::string batchIndexAsString      = std::to_string(getCommunicator()->commBatch());
+      std::size_t lengthBatchIndex        = batchIndexAsString.size();
+      if (lengthBatchIndex < lengthLargestBatchIndex) {
+         path.append(lengthLargestBatchIndex - lengthBatchIndex, '0');
+      }
+      path.append(batchIndexAsString);
+   }
+   ensureDirExists(getCommunicator(), path.c_str());
+   return path;
 }
 
 void Checkpointer::writeTimers(std::string const &directory) {

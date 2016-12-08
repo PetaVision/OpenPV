@@ -169,8 +169,8 @@ class Checkpointer : public Subject {
    void setVerifyWrites(bool verifyWritesFlag) { mVerifyWritesFlag = verifyWritesFlag; }
    void setCheckpointReadDirectory();
    void setCheckpointReadDirectory(std::string const &checkpointReadDirectory);
-   void readNamedCheckpointEntry(std::string const &objName, std::string const &dataName) const;
-   void readNamedCheckpointEntry(std::string const &checkpointEntryName) const;
+   void readNamedCheckpointEntry(std::string const &objName, std::string const &dataName);
+   void readNamedCheckpointEntry(std::string const &checkpointEntryName);
    void checkpointRead(double *simTimePointer, long int *currentStepPointer);
    void checkpointWrite(double simTime);
    void finalCheckpoint(double simTime);
@@ -204,6 +204,7 @@ class Checkpointer : public Subject {
    void checkpointToDirectory(std::string const &checkpointDirectory);
    void rotateOldCheckpoints(std::string const &newCheckpointDirectory);
    void writeTimers(std::string const &directory);
+   std::string generateDirectory(std::string const &baseDirectory);
 
   private:
    std::string mName;
