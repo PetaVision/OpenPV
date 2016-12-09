@@ -281,8 +281,8 @@ class PV_Init {
 
    int commFinalize();
 
-   int mArgC    = 0;
-   char **mArgV = nullptr;
+   int mArgC = 0;
+   std::vector<char const *> mArgV;
    PVParams *params;
    Arguments *arguments;
    int maxThreads;

@@ -15,72 +15,79 @@
 
 namespace PV {
 
-CommandLineArguments::CommandLineArguments(int argc, char *argv[], bool allowUnrecognizedArguments) {
+CommandLineArguments::CommandLineArguments(
+      int argc,
+      char const *const *argv,
+      bool allowUnrecognizedArguments) {
    initialize_base();
    initialize(argc, argv, allowUnrecognizedArguments);
 }
 
-int CommandLineArguments::initialize_base() {
-   return PV_SUCCESS;
-}
+int CommandLineArguments::initialize_base() { return PV_SUCCESS; }
 
-int CommandLineArguments::initialize(int argc, char *argv[], bool allowUnrecognizedArguments) {
+int CommandLineArguments::initialize(
+      int argc,
+      char const *const *argv,
+      bool allowUnrecognizedArguments) {
    resetState(argc, argv, allowUnrecognizedArguments);
    return PV_SUCCESS;
 }
 
-void CommandLineArguments::resetState(int argc, char *argv[], bool allowUnrecognizedArguments) {
+void CommandLineArguments::resetState(
+      int argc,
+      char const *const *argv,
+      bool allowUnrecognizedArguments) {
    bool paramUsage[argc];
-   bool requireReturn = false;
-   char *outputPath = nullptr;
-   char *paramsFile = nullptr;
-   char *logFile = nullptr;
-   char *gpuDevices = nullptr;
-   unsigned int randomSeed = 0U;
-   char *workingDir = nullptr;
-   int restart = 0;
-   char *checkpointReadDir = nullptr;
+   bool requireReturn        = false;
+   char *outputPath          = nullptr;
+   char *paramsFile          = nullptr;
+   char *logFile             = nullptr;
+   char *gpuDevices          = nullptr;
+   unsigned int randomSeed   = 0U;
+   char *workingDir          = nullptr;
+   int restart               = 0;
+   char *checkpointReadDir   = nullptr;
    bool useDefaultNumThreads = false;
-   int numThreads = 0;
-   int numRows = 0;
-   int numColumns = 0;
-   int batchWidth = 0;
-   int dryRun = 0;
+   int numThreads            = 0;
+   int numRows               = 0;
+   int numColumns            = 0;
+   int batchWidth            = 0;
+   int dryRun                = 0;
    parse_options(
-      argc,
-      argv,
-      paramUsage,
-      &requireReturn,
-      &outputPath,
-      &paramsFile,
-      &logFile,
-      &gpuDevices,
-      &randomSeed,
-      &workingDir,
-      &restart,
-      &checkpointReadDir,
-      &useDefaultNumThreads,
-      &numThreads,
-      &numRows,
-      &numColumns,
-      &batchWidth,
-      &dryRun);
+         argc,
+         argv,
+         paramUsage,
+         &requireReturn,
+         &outputPath,
+         &paramsFile,
+         &logFile,
+         &gpuDevices,
+         &randomSeed,
+         &workingDir,
+         &restart,
+         &checkpointReadDir,
+         &useDefaultNumThreads,
+         &numThreads,
+         &numRows,
+         &numColumns,
+         &batchWidth,
+         &dryRun);
    std::string configString = ConfigParser::createString(
-      requireReturn,
-      std::string{outputPath ? outputPath : ""},
-      std::string{paramsFile ? paramsFile : ""},
-      std::string{logFile ? logFile : ""},
-      std::string{gpuDevices ? gpuDevices : ""},
-      randomSeed,
-      std::string{workingDir ? workingDir : ""},
-      (bool) restart,
-      std::string{checkpointReadDir ? checkpointReadDir : ""},
-      useDefaultNumThreads,
-      numThreads,
-      numRows,
-      numColumns,
-      batchWidth,
-      (bool) dryRun);
+         requireReturn,
+         std::string{outputPath ? outputPath : ""},
+         std::string{paramsFile ? paramsFile : ""},
+         std::string{logFile ? logFile : ""},
+         std::string{gpuDevices ? gpuDevices : ""},
+         randomSeed,
+         std::string{workingDir ? workingDir : ""},
+         (bool)restart,
+         std::string{checkpointReadDir ? checkpointReadDir : ""},
+         useDefaultNumThreads,
+         numThreads,
+         numRows,
+         numColumns,
+         batchWidth,
+         (bool)dryRun);
    std::istringstream configStream{configString};
    Arguments::resetState(configStream, allowUnrecognizedArguments);
 }

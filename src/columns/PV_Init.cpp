@@ -23,31 +23,37 @@ PV_Init::PV_Init(int *argc, char **argv[], bool allowUnrecognizedArguments) {
    commInit(argc, argv);
    initMaxThreads();
    mArgC = *argc;
-   mArgV = (char **)pvMallocError((size_t)(mArgC + 1) * sizeof(char *), "PV_Init failed to allocate memory for %d arguments: %s\n", mArgC, strerror(errno));
-   for (int a=0; a<mArgC; a++) {
-      mArgV[a] = strdup(argv[0][a]);
-      FatalIf(mArgV[a]==nullptr, "PV_Init unable to copy argument %d: %s\n", a, strerror(errno));
+   mArgV.resize(mArgC + 1);
+   for (int a = 0; a < mArgC; a++) {
+      mArgV[a] = argv[0][a];
    }
-   mArgV[mArgC]  = nullptr;
    params        = nullptr;
    mCommunicator = nullptr;
+
+   // If first argument starts with a non-hyphen character, take it to be a config file.
+   // Otherwise, assume config options are being set on the command line.
    if (mArgC >= 2 && mArgV[1] != nullptr && mArgV[1][0] != '-') {
-      // Communicator doesn't get set until call to initialize(), which we can't call until rows, columns, etc.
+      // Communicator doesn't get set until call to initialize(), which we can't call until rows,
+      // columns, etc.
       // are set. We therefore need to use MPI_COMM_WORLD as the MPI communicator.
-      arguments = new ConfigFileArguments(std::string{mArgV[1]}, MPI_COMM_WORLD, allowUnrecognizedArguments);
+      arguments = new ConfigFileArguments(
+            std::string{mArgV[1]}, MPI_COMM_WORLD, allowUnrecognizedArguments);
+
+      // Check if "--require-return" was set.
+      for (int arg = 2; arg < mArgC; arg++) {
+         if (pv_getopt(mArgC, mArgV.data(), "--require-return", nullptr) == 0) {
+            arguments->setBooleanArgument("RequireReturn", true);
+         }
+      }
    }
    else {
-      arguments = new CommandLineArguments(mArgC, mArgV, allowUnrecognizedArguments);
+      arguments = new CommandLineArguments(mArgC, mArgV.data(), allowUnrecognizedArguments);
    }
    initLogFile(false /*appendFlag*/);
    initialize(); // must be called after initialization of arguments data member.
 }
 
 PV_Init::~PV_Init() {
-   for (int a=0; a<mArgC; a++) {
-      free(mArgV[a]);
-   }
-   free(mArgV);
    delete params;
    delete mCommunicator;
    delete arguments;
@@ -80,7 +86,7 @@ int PV_Init::initialize() {
    // It is okay to initialize without there being a params file.
    // setParams() can be called later.
    delete params;
-   params = nullptr;
+   params                 = nullptr;
    std::string paramsFile = arguments->getStringArgument("ParamsFile");
    if (!paramsFile.empty()) {
       status = createParams();
@@ -134,7 +140,7 @@ void PV_Init::initLogFile(bool appendFlag) {
    // deliberate, as the
    // nonzero ranks
    // should be MPI-ing the data to the zero rank.
-   std::string logFile = arguments->getStringArgument("LogFile");
+   std::string logFile         = arguments->getStringArgument("LogFile");
    int const globalRootProcess = 0;
    int globalRank;
    MPI_Comm_rank(MPI_COMM_WORLD, &globalRank);
@@ -224,7 +230,10 @@ void PV_Init::printInitMessage() {
    InfoLog().printf("----------------\n");
 }
 
-int PV_Init::resetState() { arguments->resetState(); return PV_SUCCESS; }
+int PV_Init::resetState() {
+   arguments->resetState();
+   return PV_SUCCESS;
+}
 
 int PV_Init::registerKeyword(char const *keyword, ObjectCreateFn creator) {
    int status = Factory::instance()->registerKeyword(keyword, creator);
@@ -237,7 +246,11 @@ int PV_Init::registerKeyword(char const *keyword, ObjectCreateFn creator) {
 }
 
 char **PV_Init::getArgsCopy() const {
-   char **argumentArray = (char **)pvMallocError((size_t)(mArgC + 1) * sizeof(char *), "PV_Init::getArgsCopy  allocate memory for %d arguments: %s\n", mArgC, strerror(errno));
+   char **argumentArray = (char **)pvMallocError(
+         (size_t)(mArgC + 1) * sizeof(char *),
+         "PV_Init::getArgsCopy  allocate memory for %d arguments: %s\n",
+         mArgC,
+         strerror(errno));
    for (int a = 0; a < mArgC; a++) {
       char const *arga = mArgV[a];
       if (arga) {
