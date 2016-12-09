@@ -35,6 +35,13 @@ PV_Init::PV_Init(int *argc, char **argv[], bool allowUnrecognizedArguments) {
       // Communicator doesn't get set until call to initialize(), which we can't call until rows, columns, etc.
       // are set. We therefore need to use MPI_COMM_WORLD as the MPI communicator.
       arguments = new ConfigFileArguments(std::string{mArgV[1]}, MPI_COMM_WORLD, allowUnrecognizedArguments);
+
+      // Check if "--require-return" was set.
+      for (int arg = 2; arg < mArgC; arg++) {
+         if (pv_getopt(mArgC, mArgV, "--require-return", nullptr) == 0) {
+            arguments->setBooleanArgument("RequireReturn", true);
+         }
+      }
    }
    else {
       arguments = new CommandLineArguments(mArgC, mArgV, allowUnrecognizedArguments);
