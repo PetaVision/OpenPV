@@ -78,20 +78,30 @@ namespace PV {
 
 enum ParamsIOFlag { PARAMS_IO_READ, PARAMS_IO_WRITE };
 
-int pv_getopt(int argc, char *argv[], const char *opt, bool *paramusage);
-int pv_getopt_int(int argc, char *argv[], const char *opt, int *iVal, bool *paramusage);
+int pv_getopt(int argc, char const *const *argv, const char *opt, bool *paramusage);
+int pv_getopt_int(int argc, char const *const *argv, const char *opt, int *iVal, bool *paramusage);
 int pv_getoptionalopt_int(
       int argc,
-      char *argv[],
+      char const *const *argv,
       const char *opt,
       int *iVal,
       bool *defaultVal,
       bool *paramusage);
-int pv_getopt_str(int argc, char *argv[], const char *opt, char **sVal, bool *paramusage);
-int pv_getopt_long(int argc, char *argv[], const char *opt, long int *ulVal, bool *paramusage);
+int pv_getopt_str(
+      int argc,
+      char const *const *argv,
+      const char *opt,
+      char **sVal,
+      bool *paramusage);
+int pv_getopt_long(
+      int argc,
+      char const *const *argv,
+      const char *opt,
+      long int *ulVal,
+      bool *paramusage);
 int pv_getopt_unsigned(
       int argc,
-      char *argv[],
+      char const *const *argv,
       const char *opt,
       unsigned int *uVal,
       bool *paramusage);
@@ -102,7 +112,7 @@ int readFile(const char *filename, float *buf, int *nx, int *ny);
 
 int parse_options(
       int argc,
-      char *argv[],
+      char const *const *argv,
       bool *paramusage,
       bool *require_return,
       char **output_path,
