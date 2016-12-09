@@ -23,12 +23,11 @@ PV_Init::PV_Init(int *argc, char **argv[], bool allowUnrecognizedArguments) {
    commInit(argc, argv);
    initMaxThreads();
    mArgC = *argc;
-   mArgV = (char **)pvMallocError((size_t)(mArgC + 1) * sizeof(char *), "PV_Init failed to allocate memory for %d arguments: %s\n", mArgC, strerror(errno));
+   mArgV.resize(mArgC + 1);
    for (int a=0; a<mArgC; a++) {
       mArgV[a] = strdup(argv[0][a]);
       FatalIf(mArgV[a]==nullptr, "PV_Init unable to copy argument %d: %s\n", a, strerror(errno));
    }
-   mArgV[mArgC]  = nullptr;
    params        = nullptr;
    mCommunicator = nullptr;
    if (mArgC >= 2 && mArgV[1] != nullptr && mArgV[1][0] != '-') {
@@ -38,13 +37,13 @@ PV_Init::PV_Init(int *argc, char **argv[], bool allowUnrecognizedArguments) {
 
       // Check if "--require-return" was set.
       for (int arg = 2; arg < mArgC; arg++) {
-         if (pv_getopt(mArgC, mArgV, "--require-return", nullptr) == 0) {
+         if (pv_getopt(mArgC, mArgV.data(), "--require-return", nullptr) == 0) {
             arguments->setBooleanArgument("RequireReturn", true);
          }
       }
    }
    else {
-      arguments = new CommandLineArguments(mArgC, mArgV, allowUnrecognizedArguments);
+      arguments = new CommandLineArguments(mArgC, mArgV.data(), allowUnrecognizedArguments);
    }
    initLogFile(false /*appendFlag*/);
    initialize(); // must be called after initialization of arguments data member.
@@ -54,7 +53,6 @@ PV_Init::~PV_Init() {
    for (int a=0; a<mArgC; a++) {
       free(mArgV[a]);
    }
-   free(mArgV);
    delete params;
    delete mCommunicator;
    delete arguments;
