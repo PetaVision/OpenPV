@@ -28,7 +28,7 @@ class CommandLineArguments : public Arguments {
     * See resetState(int, char **, bool) for details on how the argv array
     * is interpreted.
     */
-   CommandLineArguments(int argc, char *argv[], bool allowUnrecognizedArguments);
+   CommandLineArguments(int argc, char const *const *argv, bool allowUnrecognizedArguments);
 
    /*
     * The destructor for CommandLineArguments.
@@ -81,7 +81,7 @@ class CommandLineArguments : public Arguments {
     * If allowUnrecognizedArguments is set to false, the constructor fails if any
     * string in the argv array is not recoginzed.
     */
-   void resetState(int argc, char *argv[], bool allowUnrecognizedArguments);
+   void resetState(int argc, char const *const *argv, bool allowUnrecognizedArguments);
 
   private:
    /**
@@ -94,7 +94,7 @@ class CommandLineArguments : public Arguments {
     * initialize() is called by the constructor. It calls resetState
     * to set the initial values of the Arguments data members.
     */
-   int initialize(int argc, char *argv[], bool allowUnrecognizedArguments);
+   int initialize(int argc, char const *const *argv, bool allowUnrecognizedArguments);
 };
 
 } /* namespace PV */
