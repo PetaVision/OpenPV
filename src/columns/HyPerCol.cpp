@@ -89,14 +89,14 @@ int HyPerCol::initialize_base() {
    // Initialize all member variables to safe values.  They will be set to their
    // actual values in
    // initialize()
-   mReadyFlag                     = false;
-   mParamsProcessedFlag           = false;
-   mNumPhases                     = 0;
-   mCheckpointReadFlag            = false;
-   mStartTime                     = 0.0;
-   mStopTime                      = 0.0;
-   mDeltaTime                     = DEFAULT_DELTA_T;
-   mWriteTimeScaleFieldnames      = true;
+   mReadyFlag                = false;
+   mParamsProcessedFlag      = false;
+   mNumPhases                = 0;
+   mCheckpointReadFlag       = false;
+   mStartTime                = 0.0;
+   mStopTime                 = 0.0;
+   mDeltaTime                = DEFAULT_DELTA_T;
+   mWriteTimeScaleFieldnames = true;
    // Sep 26, 2016: Adaptive timestep routines and member variables have been
    // moved to
    // AdaptiveTimeScaleProbe.
@@ -148,12 +148,13 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
       exit(EXIT_FAILURE);
    }
    std::string working_dir = mPVInitObj->getStringArgument("WorkingDirectory");
-   working_dir = expandLeadingTilde(working_dir);
+   working_dir             = expandLeadingTilde(working_dir);
 
    // Sep 27, 2016: handling --require-return has been moved to the Communicator
    // constructor.
 
    mName = strdup(name);
+   setDescription();
 
    // mNumThreads will not be set, or used until HyPerCol::run.
    // This means that threading cannot happen in the initialization or
@@ -197,10 +198,10 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
    mCheckpointer = new Checkpointer(std::string(mName), mCommunicator);
    mCheckpointer->addObserver(this, BaseMessage{});
    ioParams(PARAMS_IO_READ);
-   mSimTime          = mStartTime;
-   mInitialStep      = (long int)nearbyint(mStartTime / mDeltaTime);
-   mCurrentStep      = mInitialStep;
-   mFinalStep        = (long int)nearbyint(mStopTime / mDeltaTime);
+   mSimTime     = mStartTime;
+   mInitialStep = (long int)nearbyint(mStartTime / mDeltaTime);
+   mCurrentStep = mInitialStep;
+   mFinalStep   = (long int)nearbyint(mStopTime / mDeltaTime);
    mCheckpointer->provideFinalStep(mFinalStep);
    mNextProgressTime = mStartTime + mProgressInterval;
 
@@ -212,7 +213,7 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
          mName, "nextProgressTime", &mNextProgressTime, (std::size_t)1, true /*broadcast*/);
 
    // Arguments should prevent -r and -c from both being set.
-   bool warmStart = mPVInitObj->getBooleanArgument("Restart");
+   bool warmStart                  = mPVInitObj->getBooleanArgument("Restart");
    std::string checkpoint_read_dir = mPVInitObj->getStringArgument("CheckpointReadDirectory");
    pvAssert(!warmStart || checkpoint_read_dir.empty());
    if (warmStart) {
@@ -237,6 +238,11 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
 #endif
    }
    return PV_SUCCESS;
+}
+
+void HyPerCol::setDescription() {
+   description = "HyPerCol \"";
+   description.append(getName()).append("\"");
 }
 
 int HyPerCol::ioParams(enum ParamsIOFlag ioFlag) {
@@ -1605,8 +1611,7 @@ HyPerCol *createHyPerCol(PV_Init *pv_initObj) {
    int numGroups = params->numberOfGroups();
    if (numGroups == 0) {
       std::string paramsFile = pv_initObj->getStringArgument("ParamsFile");
-      ErrorLog() << "Params \"" << paramsFile
-                 << "\" does not define any groups.\n";
+      ErrorLog() << "Params \"" << paramsFile << "\" does not define any groups.\n";
       return nullptr;
    }
    if (strcmp(params->groupKeywordFromIndex(0), "HyPerCol")) {
@@ -1628,8 +1633,7 @@ HyPerCol *createHyPerCol(PV_Init *pv_initObj) {
          else {
             if (hc->columnId() == 0) {
                std::string paramsFile = pv_initObj->getStringArgument("ParamsFile");
-               ErrorLog() << "Group " << k + 1 << " in params file (\""
-                          << paramsFile
+               ErrorLog() << "Group " << k + 1 << " in params file (\"" << paramsFile
                           << "\") is a HyPerCol; only the first group can be a HyPercol.\n";
             }
             delete hc;

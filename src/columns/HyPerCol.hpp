@@ -362,6 +362,7 @@ class HyPerCol : public Subject, Observer {
    // Private functions
 
   private:
+   void setDescription();
    int initializeThreads(char const *in_device);
    int initialize_base();
    int initialize(const char *name, PV_Init *initObj);
