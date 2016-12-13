@@ -5,15 +5,15 @@
 #include "testPvpRestricted.hpp"
 #include "testSeparatedName.hpp"
 
+#include "columns/CommandLineArguments.hpp"
 #include "columns/Communicator.hpp"
-#include "columns/PV_Arguments.hpp"
 #include "io/fileio.hpp"
 #include "utils/PVLog.hpp"
 
 int main(int argc, char *argv[]) {
-   PV::PV_Arguments pvArguments{argc, argv, false /*do not allow unrecognized arguments*/};
+   PV::CommandLineArguments arguments{argc, argv, false /*do not allow unrecognized arguments*/};
    MPI_Init(&argc, &argv);
-   PV::Communicator *comm = new PV::Communicator(&pvArguments);
+   PV::Communicator *comm = new PV::Communicator(&arguments);
 
    std::string directory("checkpoints");
    ensureDirExists(comm, directory.c_str()); // Must be called by all processes, because it

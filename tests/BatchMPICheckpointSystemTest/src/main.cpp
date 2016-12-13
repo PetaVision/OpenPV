@@ -17,21 +17,21 @@ int main(int argc, char *argv[]) {
    char const *paramFile1 = "input/CheckpointParameters1.params";
    char const *paramFile2 = "input/CheckpointParameters2.params";
    int status             = PV_SUCCESS;
-   if (initObj.getParamsFile() != NULL) {
+   if (initObj.getParams() != nullptr) {
       if (rank == 0) {
          ErrorLog().printf(
                "%s should be run without the params file argument.\n", initObj.getProgramName());
       }
       status = PV_FAILURE;
    }
-   if (initObj.getCheckpointReadDir() != NULL) {
+   if (!initObj.getStringArgument("CheckpointReadDirectory").empty()) {
       if (rank == 0) {
          ErrorLog().printf(
                "%s should be run without the checkpoint directory argument.\n", argv[0]);
       }
       status = PV_FAILURE;
    }
-   if (initObj.getRestartFlag()) {
+   if (initObj.getBooleanArgument("Restart")) {
       if (rank == 0) {
          ErrorLog().printf("%s should be run without the restart flag.\n", argv[0]);
       }
@@ -79,8 +79,7 @@ int main(int argc, char *argv[]) {
    }
 
    initObj.setParams(paramFile2);
-   initObj.setCheckpointReadDir(
-         "checkpoints1/batchsweep_00/Checkpoint12:checkpoints1/batchsweep_01/Checkpoint12");
+   initObj.setStringArgument("CheckpointReadDirectory", "checkpoints1/Checkpoint12");
 
    status = rebuildandrun(&initObj);
    if (status != PV_SUCCESS) {

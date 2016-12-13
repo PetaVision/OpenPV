@@ -13,19 +13,19 @@ int checkWeights(HyPerCol *hc, int argc, char *argv[]);
 int main(int argc, char *argv[]) {
    int status = PV_SUCCESS;
    PV::PV_Init pv_initObj(&argc, &argv, false /*do not allow unrecognized arguments*/);
-   if (pv_initObj.getNumRows() > 0) {
+   if (pv_initObj.getIntegerArgument("NumRows") > 0) {
       if (pv_initObj.getWorldRank() == 0) {
          Fatal() << argv[0] << " should be run without the -rows option.\n";
       }
       status = PV_FAILURE;
    }
-   if (pv_initObj.getNumColumns() > 0) {
+   if (pv_initObj.getIntegerArgument("NumColumns") > 0) {
       if (pv_initObj.getWorldRank() == 0) {
          Fatal() << argv[0] << " should be run without the -columns option.\n";
       }
       status = PV_FAILURE;
    }
-   if (pv_initObj.getBatchWidth() > 0) {
+   if (pv_initObj.getIntegerArgument("BatchWidth") > 0) {
       if (pv_initObj.getWorldRank() == 0) {
          Fatal() << argv[0] << " should be run without the -batchwidth option.\n";
       }

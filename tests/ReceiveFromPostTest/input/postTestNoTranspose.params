@@ -12,7 +12,7 @@ HyPerCol "column" = {
     outputPath = "output/postTestNoTranspose";
     checkpointWrite = false;
     // deleteOlderCheckpoints = false;
-    suppressLastOutput = true;
+    lastCheckpointDir = "output/postTestNoTranspose/Last";
     writeProgressToErr = true;
 };
 

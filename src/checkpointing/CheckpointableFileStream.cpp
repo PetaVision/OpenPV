@@ -8,9 +8,32 @@ CheckpointableFileStream::CheckpointableFileStream(
       string objName,
       bool verifyWrites) {
    mObjName = objName;
+   setDescription();
    setOutStream(mFStream);
    openFile(path, mode, verifyWrites);
    updateFilePos();
+}
+
+void CheckpointableFileStream::setDescription() {
+   description = "CheckpointableFileStream \"";
+   description.append(mObjName).append("\"");
+}
+
+int CheckpointableFileStream::respond(std::shared_ptr<BaseMessage const> message) {
+   if (message == nullptr) {
+      return PV_SUCCESS;
+   }
+   else if (
+         ProcessCheckpointReadMessage const *castMessage =
+               dynamic_cast<ProcessCheckpointReadMessage const *>(message.get())) {
+      return respondProcessCheckpointRead(castMessage);
+   }
+}
+
+int CheckpointableFileStream::respondProcessCheckpointRead(
+      ProcessCheckpointReadMessage const *message) {
+   syncFilePos();
+   return PV_SUCCESS;
 }
 
 int CheckpointableFileStream::registerData(Checkpointer *checkpointer, const string objName) {
@@ -18,6 +41,7 @@ int CheckpointableFileStream::registerData(Checkpointer *checkpointer, const str
          mObjName, std::string("FileStreamRead"), &mFileReadPos, (std::size_t)1, false);
    checkpointer->registerCheckpointData<long>(
          mObjName, std::string("FileStreamWrite"), &mFileWritePos, (std::size_t)1, false);
+   checkpointer->addObserver(this, BaseMessage{});
    return PV_SUCCESS;
 }
 

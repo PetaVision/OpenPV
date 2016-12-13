@@ -26,16 +26,16 @@ int Communicator::gcd(int a, int b) {
    return b;
 }
 
-Communicator::Communicator(PV_Arguments *argumentList) {
+Communicator::Communicator(Arguments *argumentList) {
    int totalSize;
    localIcComm  = NULL;
    globalIcComm = NULL;
    MPI_Comm_rank(MPI_COMM_WORLD, &globalRank);
    MPI_Comm_size(MPI_COMM_WORLD, &totalSize);
 
-   numRows    = argumentList->getNumRows();
-   numCols    = argumentList->getNumColumns();
-   batchWidth = argumentList->getBatchWidth();
+   numRows = argumentList->getIntegerArgument("NumRows");
+   numCols = argumentList->getIntegerArgument("NumColumns");
+   batchWidth = argumentList->getIntegerArgument("BatchWidth");
 
    bool rowsDefined  = numRows != 0;
    bool colsDefined  = numCols != 0;
@@ -93,7 +93,8 @@ Communicator::Communicator(PV_Arguments *argumentList) {
 
    // If --require-return was set, wait until global root process gets keyboard
    // input.
-   if (argumentList->getRequireReturnFlag()) {
+   bool requireReturn = argumentList->getBooleanArgument("RequireReturn");
+   if (requireReturn) {
       fflush(stdout);
       MPI_Barrier(globalIcComm);
       if (globalRank == 0) {

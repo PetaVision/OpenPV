@@ -37,7 +37,7 @@ int main(int argc, char *argv[]) {
    int rank = 0;
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-   if (initObj.getParamsFile() != NULL) {
+   if (initObj.getParams() != nullptr) {
       if (rank == 0) {
          ErrorLog().printf(
                "%s runs a number of params files in sequence.  Do not include a '-p' option when "

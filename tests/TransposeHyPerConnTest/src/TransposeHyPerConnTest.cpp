@@ -53,7 +53,7 @@ int main(int argc, char *argv[]) {
    PV_Init *initObj     = new PV_Init(&argc, &argv, false /*allowUnrecognizedArguments*/);
    Communicator *icComm = initObj->getCommunicator();
 
-   if (initObj->getParamsFile() != NULL) {
+   if (initObj->getParams() != nullptr) {
       int rank = icComm->globalCommRank();
       if (rank == 0) {
          ErrorLog().printf(

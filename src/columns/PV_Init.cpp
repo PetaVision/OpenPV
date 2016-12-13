@@ -10,6 +10,8 @@
 #include <omp.h>
 #endif // PV_USE_OPENMP_THREADS
 #include "PV_Init.hpp"
+#include "columns/CommandLineArguments.hpp"
+#include "columns/ConfigFileArguments.hpp"
 #include "columns/HyPerCol.hpp"
 #include "utils/PVLog.hpp"
 
@@ -20,11 +22,35 @@ PV_Init::PV_Init(int *argc, char **argv[], bool allowUnrecognizedArguments) {
    initSignalHandler();
    commInit(argc, argv);
    initMaxThreads();
+   mArgC = *argc;
+   mArgV.resize(mArgC + 1);
+   for (int a = 0; a < mArgC; a++) {
+      mArgV[a] = argv[0][a];
+   }
    params        = nullptr;
    mCommunicator = nullptr;
-   arguments     = new PV_Arguments(*argc, *argv, allowUnrecognizedArguments);
+
+   // If first argument starts with a non-hyphen character, take it to be a config file.
+   // Otherwise, assume config options are being set on the command line.
+   if (mArgC >= 2 && mArgV[1] != nullptr && mArgV[1][0] != '-') {
+      // Communicator doesn't get set until call to initialize(), which we can't call until rows,
+      // columns, etc.
+      // are set. We therefore need to use MPI_COMM_WORLD as the MPI communicator.
+      arguments = new ConfigFileArguments(
+            std::string{mArgV[1]}, MPI_COMM_WORLD, allowUnrecognizedArguments);
+
+      // Check if "--require-return" was set.
+      for (int arg = 2; arg < mArgC; arg++) {
+         if (pv_getopt(mArgC, mArgV.data(), "--require-return", nullptr) == 0) {
+            arguments->setBooleanArgument("RequireReturn", true);
+         }
+      }
+   }
+   else {
+      arguments = new CommandLineArguments(mArgC, mArgV.data(), allowUnrecognizedArguments);
+   }
    initLogFile(false /*appendFlag*/);
-   initialize(); // must follow initialization of arguments data member.
+   initialize(); // must be called after initialization of arguments data member.
 }
 
 PV_Init::~PV_Init() {
@@ -36,18 +62,15 @@ PV_Init::~PV_Init() {
 
 int PV_Init::initSignalHandler() {
    // Block SIGUSR1.  root process checks for SIGUSR1 during advanceTime() and
-   // broadcasts sends to
-   // all processes,
+   // broadcasts sends to all processes,
    // which saves the result in the checkpointSignal member variable.
    // When run() checks whether to call checkpointWrite, it looks at
    // checkpointSignal, and writes a
    // checkpoint if checkpointWriteFlag is true, regardless of whether the next
-   // scheduled checkpoint
-   // time has arrived.
+   // scheduled checkpoint time has arrived.
    //
    // This routine must be called before MPI_Initialize; otherwise a thread
-   // created by MPI will not
-   // get the signal handler
+   // created by MPI will not get the signal handler
    // but will get the signal and the job will terminate.
    sigset_t blockusr1;
    sigemptyset(&blockusr1);
@@ -63,8 +86,9 @@ int PV_Init::initialize() {
    // It is okay to initialize without there being a params file.
    // setParams() can be called later.
    delete params;
-   params = NULL;
-   if (arguments->getParamsFile()) {
+   params                 = nullptr;
+   std::string paramsFile = arguments->getStringArgument("ParamsFile");
+   if (!paramsFile.empty()) {
       status = createParams();
    }
    printInitMessage();
@@ -116,13 +140,13 @@ void PV_Init::initLogFile(bool appendFlag) {
    // deliberate, as the
    // nonzero ranks
    // should be MPI-ing the data to the zero rank.
-   char const *logFile         = arguments->getLogFile();
+   std::string logFile         = arguments->getStringArgument("LogFile");
    int const globalRootProcess = 0;
    int globalRank;
    MPI_Comm_rank(MPI_COMM_WORLD, &globalRank);
    std::ios_base::openmode mode =
          appendFlag ? std::ios_base::out | std::ios_base::app : std::ios_base::out;
-   if (logFile && globalRank != globalRootProcess) {
+   if (!logFile.empty() && globalRank != globalRootProcess) {
       // To prevent collisions caused by multiple processes opening the same file
       // for logging,
       // processes with global rank other than zero append the rank to the log
@@ -144,7 +168,7 @@ void PV_Init::initLogFile(bool appendFlag) {
       std::string insertion("_");
       insertion.append(std::to_string(globalRank));
       logFileString.insert(insertionPoint, insertion);
-      PV::setLogFile(logFileString.c_str(), mode);
+      PV::setLogFile(logFileString, mode);
    }
    else {
       PV::setLogFile(logFile, mode);
@@ -152,24 +176,20 @@ void PV_Init::initLogFile(bool appendFlag) {
 }
 
 int PV_Init::setParams(char const *params_file) {
-   if (params_file == NULL) {
+   if (params_file == nullptr) {
       return PV_FAILURE;
    }
-   char const *newParamsFile = arguments->setParamsFile(params_file);
-   if (newParamsFile == NULL) {
-      ErrorLog().printf("PV_Init unable to set new params file: %s\n", strerror(errno));
-      return PV_FAILURE;
-   }
+   arguments->setStringArgument("ParamsFile", std::string{params_file});
    initialize();
    return createParams();
 }
 
 int PV_Init::createParams() {
-   char const *params_file = arguments->getParamsFile();
-   if (params_file) {
+   std::string paramsFile = arguments->getStringArgument("ParamsFile");
+   if (!paramsFile.empty()) {
       delete params;
       params = new PVParams(
-            params_file,
+            paramsFile.c_str(),
             2 * (INITIAL_LAYER_ARRAY_SIZE + INITIAL_CONNECTION_ARRAY_SIZE),
             mCommunicator);
       return PV_SUCCESS;
@@ -179,8 +199,9 @@ int PV_Init::createParams() {
    }
 }
 
-int PV_Init::setLogFile(char const *log_file, bool appendFlag) {
-   arguments->setLogFile(log_file);
+int PV_Init::setLogFile(char const *logFile, bool appendFlag) {
+   std::string logFileString{logFile};
+   arguments->setStringArgument("LogFile", logFileString);
    initLogFile(appendFlag);
    printInitMessage();
    return PV_SUCCESS;
@@ -188,13 +209,13 @@ int PV_Init::setLogFile(char const *log_file, bool appendFlag) {
 
 int PV_Init::setMPIConfiguration(int rows, int columns, int batchWidth) {
    if (rows >= 0) {
-      arguments->setNumRows(rows);
+      arguments->setIntegerArgument("NumRows", rows);
    }
    if (columns >= 0) {
-      arguments->setNumColumns(columns);
+      arguments->setIntegerArgument("NumColumns", columns);
    }
    if (batchWidth >= 0) {
-      arguments->setBatchWidth(batchWidth);
+      arguments->setIntegerArgument("BatchWidth", batchWidth);
    }
    initialize();
    return PV_SUCCESS;
@@ -204,11 +225,15 @@ void PV_Init::printInitMessage() {
    time_t currentTime = time(nullptr);
    InfoLog() << "PetaVision initialized at "
              << ctime(&currentTime); // string returned by ctime contains a trailing \n.
-   InfoLog() << "Command line arguments are:\n";
+   InfoLog() << "Configuration is:\n";
    printState();
+   InfoLog().printf("----------------\n");
 }
 
-int PV_Init::resetState() { return arguments->resetState(); }
+int PV_Init::resetState() {
+   arguments->resetState();
+   return PV_SUCCESS;
+}
 
 int PV_Init::registerKeyword(char const *keyword, ObjectCreateFn creator) {
    int status = Factory::instance()->registerKeyword(keyword, creator);
@@ -218,6 +243,37 @@ int PV_Init::registerKeyword(char const *keyword, ObjectCreateFn creator) {
       }
    }
    return status;
+}
+
+char **PV_Init::getArgsCopy() const {
+   char **argumentArray = (char **)pvMallocError(
+         (size_t)(mArgC + 1) * sizeof(char *),
+         "PV_Init::getArgsCopy  allocate memory for %d arguments: %s\n",
+         mArgC,
+         strerror(errno));
+   for (int a = 0; a < mArgC; a++) {
+      char const *arga = mArgV[a];
+      if (arga) {
+         char *copied = strdup(arga);
+         if (!copied) {
+            ErrorLog().printf("PV_Init unable to store argument %d: %s\n", a, strerror(errno));
+            Fatal().printf("Argument was \"%s\".\n", arga);
+         }
+         argumentArray[a] = copied;
+      }
+      else {
+         argumentArray[a] = nullptr;
+      }
+   }
+   argumentArray[mArgC] = nullptr;
+   return argumentArray;
+}
+
+void PV_Init::freeArgs(int argc, char **argv) {
+   for (int k = 0; k < argc; k++) {
+      free(argv[k]);
+   }
+   free(argv);
 }
 
 // PV_Init::build() was marked obsolete Jul 19, 2016 and deleted Sep 27, 2016.

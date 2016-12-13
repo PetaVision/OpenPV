@@ -22,14 +22,14 @@ int main(int argc, char *argv[]) {
    char const *paramFile1 = "input/timeBatch.params";
    char const *paramFile2 = "input/dimBatch.params";
    int status             = PV_SUCCESS;
-   if (initObj.getParamsFile() != NULL) {
+   if (initObj.getParams() != nullptr) {
       if (rank == 0) {
          ErrorLog().printf(
                "%s should be run without the params file argument.\n", initObj.getProgramName());
       }
       status = PV_FAILURE;
    }
-   if (initObj.getCheckpointReadDir() != NULL) {
+   if (!initObj.getStringArgument("CheckpointReadDirectory").empty()) {
       if (rank == 0) {
          ErrorLog().printf(
                "%s should be run without the checkpoint directory argument.\n",
@@ -37,28 +37,28 @@ int main(int argc, char *argv[]) {
       }
       status = PV_FAILURE;
    }
-   if (initObj.getRestartFlag()) {
+   if (initObj.getBooleanArgument("Restart")) {
       if (rank == 0) {
          ErrorLog().printf(
                "%s should be run without the restart flag.\n", initObj.getProgramName());
       }
       status = PV_FAILURE;
    }
-   if (initObj.getNumRows() != 0) {
+   if (initObj.getIntegerArgument("NumRows") != 0) {
       if (rank == 0) {
          ErrorLog().printf(
                "%s should be run without the rows argument.\n", initObj.getProgramName());
       }
       status = PV_FAILURE;
    }
-   if (initObj.getNumColumns() != 0) {
+   if (initObj.getIntegerArgument("NumColumns") != 0) {
       if (rank == 0) {
          ErrorLog().printf(
                "%s should be run without the columns argument.\n", initObj.getProgramName());
       }
       status = PV_FAILURE;
    }
-   if (initObj.getBatchWidth() != 0) {
+   if (initObj.getIntegerArgument("BatchWidth") != 0) {
       if (rank == 0) {
          ErrorLog().printf(
                "%s should be run without the batchwidth argument.\n", initObj.getProgramName());

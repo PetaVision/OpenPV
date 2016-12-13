@@ -20,7 +20,7 @@ int check_kernel_vs_hyper(HyPerConn *cHyPer, HyPerConn *cKernel, int kPre, int a
 
 int main(int argc, char *argv[]) {
    PV_Init *initObj = new PV_Init(&argc, &argv, false /*allowUnrecognizedArguments*/);
-   if (initObj->getParamsFile() == NULL) {
+   if (initObj->getParams() == nullptr) {
       int rank = 0;
       MPI_Comm_rank(MPI_COMM_WORLD, &rank);
       if (rank == 0) {

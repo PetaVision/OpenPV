@@ -1,0 +1,20 @@
+# Test config file.
+# Lines have the form Argument:Value
+# Whitespace before and after Argument and Value are ignored.
+OutputPath             :outputPath
+  # Lines whose first nonwhitespace character is '#' are comments.
+NumRows                :2
+RequireReturn          :true
+# Blank lines and lines containing only whitespace are skipped.
+  
+DryRun                 :1
+NumThreads             :8
+NumColumns             : 3
+LogFile                : test.log
+WorkingDirectory       :.
+ParamsFile             :input/pv.params
+RandomSeed             :1234565432
+# There is a space at the end of the BatchWidth line. It should be ignored.
+BatchWidth             :4 
+GPUDevices             :0,1
+CheckpointReadDirectory:outputPath/checkpoints

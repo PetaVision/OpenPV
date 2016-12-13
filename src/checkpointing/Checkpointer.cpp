@@ -6,8 +6,15 @@
  */
 
 #include "Checkpointer.hpp"
+#include <cerrno>
+#include <climits>
 #include <cmath>
+#include <cstring>
+#include <fts.h>
 #include <signal.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 namespace PV {
 
@@ -17,7 +24,6 @@ Checkpointer::Checkpointer(std::string const &name, Communicator *comm)
 }
 
 Checkpointer::~Checkpointer() {
-   free(mOutputPath);
    free(mCheckpointWriteDir);
    free(mCheckpointWriteTriggerModeString);
    free(mCheckpointWriteWallclockUnit);
@@ -32,30 +38,7 @@ void Checkpointer::initialize() {
    registerTimer(mCheckpointTimer);
 }
 
-void Checkpointer::setOutputPath(std::string const &outputPath) {
-   if (mOutputPath) {
-      WarnLog(changingOutputPath);
-      changingOutputPath << "\"" << mName << "\": changing output path from \"" << mOutputPath
-                         << "\" to ";
-      if (!outputPath.empty()) {
-         changingOutputPath << "\"" << outputPath << "\".\n";
-      }
-      else {
-         changingOutputPath << "null.\n";
-      }
-   }
-   if (!outputPath.empty()) {
-      mOutputPath = strdup(expandLeadingTilde(outputPath.c_str()).c_str());
-      FatalIf(mOutputPath == nullptr, "Checkpointer::setOutputPath unable to copy output path.\n");
-   }
-   else {
-      mOutputPath = nullptr;
-   }
-}
-
 void Checkpointer::ioParamsFillGroup(enum ParamsIOFlag ioFlag, PVParams *params) {
-   ioParam_verifyWrites(ioFlag, params);
-   ioParam_outputPath(ioFlag, params);
    ioParam_checkpointWrite(ioFlag, params);
    ioParam_checkpointWriteDir(ioFlag, params);
    ioParam_checkpointWriteTriggerMode(ioFlag, params);
@@ -67,43 +50,9 @@ void Checkpointer::ioParamsFillGroup(enum ParamsIOFlag ioFlag, PVParams *params)
    ioParam_suppressNonplasticCheckpoints(ioFlag, params);
    ioParam_deleteOlderCheckpoints(ioFlag, params);
    ioParam_numCheckpointsKept(ioFlag, params);
-   ioParam_suppressLastOutput(ioFlag, params);
+   ioParam_lastCheckpointDir(ioFlag, params);
    ioParam_initializeFromCheckpointDir(ioFlag, params);
    ioParam_defaultInitializeFromCheckpointFlag(ioFlag, params);
-}
-
-void Checkpointer::ioParam_verifyWrites(enum ParamsIOFlag ioFlag, PVParams *params) {
-   params->ioParamValue(
-         ioFlag, mName.c_str(), "verifyWrites", &mVerifyWritesFlag, mVerifyWritesFlag);
-}
-
-void Checkpointer::ioParam_outputPath(enum ParamsIOFlag ioFlag, PVParams *params) {
-   switch (ioFlag) {
-      case PARAMS_IO_READ:
-         // To use make use of the -o option on the command line, call Checkpointer::setOutputPath()
-         // before Checkpointer::ioParamsFillGroup(), as HyPerCol::initialize() does.
-         if (mOutputPath == nullptr) {
-            if (!params->stringPresent(mName.c_str(), "outputPath")) {
-               WarnLog() << "Output path specified neither in command line nor in params file.\n";
-            }
-            params->ioParamString(
-                  ioFlag,
-                  mName.c_str(),
-                  "outputPath",
-                  &mOutputPath,
-                  mDefaultOutputPath.c_str(),
-                  true);
-         }
-         else {
-            if (params->stringPresent(mName.c_str(), "outputPath")) {
-               InfoLog() << "Output path \"" << mOutputPath
-                         << "\" specified on command line; value in params file will be ignored.\n";
-            }
-         }
-         break;
-      case PARAMS_IO_WRITE: params->writeParamString("outputPath", mOutputPath); break;
-      default: pvAssert(0); break;
-   }
 }
 
 void Checkpointer::ioParam_checkpointWrite(enum ParamsIOFlag ioFlag, PVParams *params) {
@@ -369,11 +318,11 @@ void Checkpointer::ioParam_suppressNonplasticCheckpoints(
    }
 }
 
-void Checkpointer::ioParam_suppressLastOutput(enum ParamsIOFlag ioFlag, PVParams *params) {
+void Checkpointer::ioParam_lastCheckpointDir(enum ParamsIOFlag ioFlag, PVParams *params) {
    assert(!params->presentAndNotBeenRead(mName.c_str(), "checkpointWrite"));
    if (!mCheckpointWriteFlag) {
-      params->ioParamValue(
-            ioFlag, mName.c_str(), "suppressLastOutput", &mSuppressLastOutput, mSuppressLastOutput);
+      params->ioParamStringRequired(
+            ioFlag, mName.c_str(), "lastCheckpointDir", &mLastCheckpointDir);
    }
 }
 
@@ -431,7 +380,7 @@ bool Checkpointer::registerCheckpointEntry(
 void Checkpointer::registerTimer(Timer const *timer) { mTimers.push_back(timer); }
 
 void Checkpointer::readNamedCheckpointEntry(std::string const &objName, std::string const &dataName)
-      const {
+      {
    std::string checkpointEntryName(objName);
    if (!(objName.empty() || dataName.empty())) {
       checkpointEntryName.append("_");
@@ -440,11 +389,12 @@ void Checkpointer::readNamedCheckpointEntry(std::string const &objName, std::str
    readNamedCheckpointEntry(checkpointEntryName);
 }
 
-void Checkpointer::readNamedCheckpointEntry(std::string const &checkpointEntryName) const {
+void Checkpointer::readNamedCheckpointEntry(std::string const &checkpointEntryName) {
+   std::string checkpointDirectory = generateDirectory(mInitializeFromCheckpointDir);
    for (auto &c : mCheckpointRegistry) {
       if (c->getName() == checkpointEntryName) {
          double timestamp = 0.0; // not used
-         c->read(mInitializeFromCheckpointDir, &timestamp);
+         c->read(checkpointDirectory, &timestamp);
          return;
       }
    }
@@ -452,27 +402,151 @@ void Checkpointer::readNamedCheckpointEntry(std::string const &checkpointEntryNa
            << "\n";
 }
 
-void Checkpointer::checkpointRead(
-      std::string const &checkpointReadDir,
-      double *simTimePointer,
-      long int *currentStepPointer) {
-   mCheckpointReadDirectory = checkpointReadDir;
+void Checkpointer::findWarmStartDirectory() {
+   char warmStartDirectoryBuffer[PV_PATH_MAX];
+   if (mCommunicator->commRank() == 0) {
+      if (mCheckpointWriteFlag) {
+         // Look for largest indexed Checkpointnnnnnn directory in checkpointWriteDir
+         pvAssert(mCheckpointWriteDir);
+         std::string cpDirString = mCheckpointWriteDir;
+         if (cpDirString.c_str()[cpDirString.length() - 1] != '/') {
+            cpDirString += "/";
+         }
+         struct stat statbuf;
+         int statstatus = PV_stat(cpDirString.c_str(), &statbuf);
+         if (statstatus == 0) {
+            if (statbuf.st_mode & S_IFDIR) {
+               char *dirs[]     = {mCheckpointWriteDir, nullptr};
+               FTS *fts         = fts_open(dirs, FTS_LOGICAL, nullptr);
+               FTSENT *ftsent   = fts_read(fts);
+               bool found       = false;
+               long int cpIndex = LONG_MIN;
+               std::string indexedDir;
+               for (ftsent = fts_children(fts, 0); ftsent != nullptr; ftsent = ftsent->fts_link) {
+                  if (ftsent->fts_statp->st_mode & S_IFDIR) {
+                     long int x;
+                     int k = sscanf(ftsent->fts_name, "Checkpoint%ld", &x);
+                     if (x > cpIndex) {
+                        cpIndex    = x;
+                        indexedDir = ftsent->fts_name;
+                        found      = true;
+                     }
+                  }
+               }
+               FatalIf(
+                     !found,
+                     "restarting but checkpointWriteFlag is set and "
+                     "checkpointWriteDir directory \"%s\" does not have any "
+                     "checkpoints\n",
+                     mCheckpointWriteDir);
+               mCheckpointReadDirectory = cpDirString;
+               mCheckpointReadDirectory.append(indexedDir);
+            }
+            else {
+               Fatal().printf(
+                     "checkpoint read directory \"%s\" is "
+                     "not a directory.\n",
+                     mCheckpointWriteDir);
+            }
+         }
+         else if (errno == ENOENT) {
+            Fatal().printf(
+                  "restarting but neither Last nor checkpointWriteDir "
+                  "directory \"%s\" exists.\n",
+                  mCheckpointWriteDir);
+         }
+      }
+      else {
+         pvAssert(mLastCheckpointDir);
+         FatalIf(
+               mLastCheckpointDir[0] = '\0',
+               "Restart flag set, but unable to determine restart directory.\n");
+         mCheckpointReadDirectory = strdup(mLastCheckpointDir);
+      }
+      FatalIf(
+            mCheckpointReadDirectory.size() >= PV_PATH_MAX,
+            "Restart flag set, but inferred checkpoint read directory is too long (%zu bytes).\n",
+            mCheckpointReadDirectory.size());
+      memcpy(
+            warmStartDirectoryBuffer,
+            mCheckpointReadDirectory.c_str(),
+            mCheckpointReadDirectory.size());
+      warmStartDirectoryBuffer[mCheckpointReadDirectory.size()] = '\0';
+   }
+   MPI_Bcast(warmStartDirectoryBuffer, PV_PATH_MAX, MPI_CHAR, 0, mCommunicator->communicator());
+   if (mCommunicator->commRank() != 0) {
+      mCheckpointReadDirectory = warmStartDirectoryBuffer;
+   }
+}
+
+void Checkpointer::setCheckpointReadDirectory() {
+   if (mCheckpointWriteFlag) {
+      findWarmStartDirectory();
+   }
+   else {
+      mCheckpointReadDirectory = mLastCheckpointDir;
+   }
+}
+
+void Checkpointer::setCheckpointReadDirectory(std::string const &checkpointReadDir) {
+   std::vector<std::string> checkpointReadDirs;
+   checkpointReadDirs.reserve(mCommunicator->numCommBatches());
+   std::size_t dirStart = (std::size_t)0;
+   while (dirStart < checkpointReadDir.size()) {
+      std::size_t dirStop = checkpointReadDir.find(':', dirStart);
+      if (dirStop == std::string::npos) {
+         dirStop = checkpointReadDir.size();
+      }
+      checkpointReadDirs.push_back(checkpointReadDir.substr(dirStart, dirStop - dirStart));
+      FatalIf(
+            checkpointReadDirs.size() > (std::size_t)mCommunicator->numCommBatches(),
+            "Checkpoint read parsing error: Too many colon separated "
+            "checkpoint read directories. "
+            "Only specify %d checkpoint directories.\n",
+            mCommunicator->numCommBatches());
+      dirStart = dirStop + 1;
+   }
+   // Make sure number matches up
+   int const count = (int)checkpointReadDirs.size();
+   FatalIf(
+         count != mCommunicator->numCommBatches() && count != 1,
+         "Checkpoint read parsing error: Not enough colon separated "
+         "checkpoint read directories. "
+         "Running with %d batch MPIs but only %d colon separated checkpoint "
+         "directories.\n",
+         mCommunicator->numCommBatches(),
+         count);
+   // Grab the directory for this rank and use as mCheckpointReadDir
+   int const checkpointIndex = count == 1 ? 0 : mCommunicator->commBatch();
+   std::string dirString     = expandLeadingTilde(checkpointReadDirs[checkpointIndex].c_str());
+   mCheckpointReadDirectory  = strdup(dirString.c_str());
+   pvAssert(!mCheckpointReadDirectory.empty());
+
+   InfoLog().printf(
+         "Global Rank %d process setting checkpointReadDir to %s.\n",
+         mCommunicator->globalCommRank(),
+         mCheckpointReadDirectory.c_str());
+}
+
+void Checkpointer::checkpointRead(double *simTimePointer, long int *currentStepPointer) {
+   std::string checkpointReadDirectory = generateDirectory(mCheckpointReadDirectory);
    double readTime;
    for (auto &c : mCheckpointRegistry) {
-      c->read(checkpointReadDir, &readTime);
+      c->read(checkpointReadDirectory, &readTime);
    }
-   mTimeInfoCheckpointEntry->read(checkpointReadDir.c_str(), &readTime);
+   mTimeInfoCheckpointEntry->read(checkpointReadDirectory.c_str(), &readTime);
    if (simTimePointer) {
       *simTimePointer = mTimeInfo.mSimTime;
    }
    if (currentStepPointer) {
       *currentStepPointer = mTimeInfo.mCurrentCheckpointStep;
    }
-   notify(mObserverTable, std::make_shared<ProcessCheckpointReadMessage const>(checkpointReadDir));
+   notify(
+         mObserverTable,
+         std::make_shared<ProcessCheckpointReadMessage const>(checkpointReadDirectory));
 }
 
 void Checkpointer::checkpointWrite(double simTime) {
-   std::string checkpointWriteDir;
    mTimeInfo.mSimTime = simTime;
    // set mSimTime here so that it is available in routines called by checkpointWrite.
    if (!mCheckpointWriteFlag) {
@@ -570,7 +644,7 @@ void Checkpointer::checkpointNow() {
    checkpointDirStream.width(fieldWidth);
    checkpointDirStream << mTimeInfo.mCurrentCheckpointStep;
    std::string checkpointDirectory = checkpointDirStream.str();
-   if (strcmp(checkpointDirectory.c_str(), mCheckpointReadDirectory.c_str())) {
+   if (checkpointDirectory != mCheckpointReadDirectory) {
       /* Note: the strcmp isn't perfect, since there are multiple ways to specify a path that
        * points to the same directory.  Should use realpath, but that breaks under OS X. */
       if (mCommunicator->globalCommRank() == 0) {
@@ -598,29 +672,30 @@ void Checkpointer::checkpointNow() {
 }
 
 void Checkpointer::checkpointToDirectory(std::string const &directory) {
+   std::string checkpointDirectory = generateDirectory(directory);
    mCheckpointTimer->start();
    if (getCommunicator()->commRank() == 0) {
-      InfoLog() << "Checkpointing to directory \"" << directory
+      InfoLog() << "Checkpointing to directory \"" << checkpointDirectory
                 << "\" at simTime = " << mTimeInfo.mSimTime << "\n";
       struct stat timeinfostat;
-      std::string timeinfoFilename(directory);
+      std::string timeinfoFilename(checkpointDirectory);
       timeinfoFilename.append("/timeinfo.bin");
       int statstatus = stat(timeinfoFilename.c_str(), &timeinfostat);
       if (statstatus == 0) {
-         WarnLog() << "Checkpoint directory \"" << directory
+         WarnLog() << "Checkpoint directory \"" << checkpointDirectory
                    << "\" has existing timeinfo.bin, which is now being deleted.\n";
-         mTimeInfoCheckpointEntry->remove(timeinfoFilename);
+         mTimeInfoCheckpointEntry->remove(checkpointDirectory);
       }
    }
-   notify(mObserverTable, std::make_shared<PrepareCheckpointWriteMessage const>(directory));
-   ensureDirExists(getCommunicator(), directory.c_str());
+   notify(mObserverTable, std::make_shared<PrepareCheckpointWriteMessage const>(checkpointDirectory));
+   ensureDirExists(getCommunicator(), checkpointDirectory.c_str());
    for (auto &c : mCheckpointRegistry) {
-      c->write(directory, mTimeInfo.mSimTime, mVerifyWritesFlag);
+      c->write(checkpointDirectory, mTimeInfo.mSimTime, mVerifyWritesFlag);
    }
-   mTimeInfoCheckpointEntry->write(directory, mTimeInfo.mSimTime, mVerifyWritesFlag);
+   mTimeInfoCheckpointEntry->write(checkpointDirectory, mTimeInfo.mSimTime, mVerifyWritesFlag);
    mCheckpointTimer->stop();
    mCheckpointTimer->start();
-   writeTimers(directory);
+   writeTimers(checkpointDirectory);
    mCheckpointTimer->stop();
 }
 
@@ -629,10 +704,8 @@ void Checkpointer::finalCheckpoint(double simTime) {
    if (mCheckpointWriteFlag) {
       checkpointNow();
    }
-   else if (!mSuppressLastOutput) {
-      std::string finalCheckpointDir{mOutputPath};
-      finalCheckpointDir.append("/Last");
-      checkpointToDirectory(finalCheckpointDir);
+   else if (mLastCheckpointDir != nullptr && mLastCheckpointDir[0] != '\0') {
+      checkpointToDirectory(std::string(mLastCheckpointDir));
    }
 }
 
@@ -640,30 +713,43 @@ void Checkpointer::rotateOldCheckpoints(std::string const &newCheckpointDirector
    std::string &oldestCheckpointDir = mOldCheckpointDirectories[mOldCheckpointDirectoriesIndex];
    if (!oldestCheckpointDir.empty()) {
       if (mCommunicator->commRank() == 0) {
+         std::string targetDirectory = generateDirectory(oldestCheckpointDir);
          struct stat lcp_stat;
-         int statstatus = stat(oldestCheckpointDir.c_str(), &lcp_stat);
+         int statstatus = stat(targetDirectory.c_str(), &lcp_stat);
          if (statstatus != 0 || !(lcp_stat.st_mode & S_IFDIR)) {
             if (statstatus == 0) {
                ErrorLog().printf(
                      "Failed to delete older checkpoint: failed to stat \"%s\": %s.\n",
-                     oldestCheckpointDir.c_str(),
+                     targetDirectory.c_str(),
                      strerror(errno));
             }
             else {
                ErrorLog().printf(
                      "Deleting older checkpoint: \"%s\" exists but is not a directory.\n",
-                     oldestCheckpointDir.c_str());
+                     targetDirectory.c_str());
             }
          }
          sync();
          std::string rmrf_string("");
-         rmrf_string     = rmrf_string + "rm -r '" + oldestCheckpointDir + "'";
+         rmrf_string     = rmrf_string + "rm -r '" + targetDirectory + "'";
          int rmrf_result = system(rmrf_string.c_str());
          if (rmrf_result != 0) {
             WarnLog().printf(
                   "unable to delete older checkpoint \"%s\": rm command returned %d\n",
-                  oldestCheckpointDir.c_str(),
+                  targetDirectory.c_str(),
                   WEXITSTATUS(rmrf_result));
+         }
+      }
+      MPI_Barrier(mCommunicator->globalCommunicator());
+      if (mCommunicator->globalCommRank() == 0) {
+         sync();
+         struct stat oldcp_stat;
+         int statstatus = stat(oldestCheckpointDir.c_str(), &oldcp_stat);
+         if (statstatus == 0 && (oldcp_stat.st_mode & S_IFDIR)) {
+            int rmdirstatus = rmdir(oldestCheckpointDir.c_str());
+            if (rmdirstatus) {
+               ErrorLog().printf("Unable to delete older checkpoint \"%s\": rmdir command returned %d (%s)\n", oldestCheckpointDir, errno, std::strerror(errno));
+            }
          }
       }
    }
@@ -678,6 +764,23 @@ void Checkpointer::writeTimers(PrintStream &stream) const {
    for (auto timer : mTimers) {
       timer->fprint_time(stream);
    }
+}
+
+std::string Checkpointer::generateDirectory(std::string const &baseDirectory) {
+   std::string path(baseDirectory);
+   int batchWidth = getCommunicator()->numCommBatches();
+   if (batchWidth > 1) {
+      path.append("/batchsweep_");
+      std::size_t lengthLargestBatchIndex = std::to_string(batchWidth - 1).size();
+      std::string batchIndexAsString      = std::to_string(getCommunicator()->commBatch());
+      std::size_t lengthBatchIndex        = batchIndexAsString.size();
+      if (lengthBatchIndex < lengthLargestBatchIndex) {
+         path.append(lengthLargestBatchIndex - lengthBatchIndex, '0');
+      }
+      path.append(batchIndexAsString);
+   }
+   ensureDirExists(getCommunicator(), path.c_str());
+   return path;
 }
 
 void Checkpointer::writeTimers(std::string const &directory) {

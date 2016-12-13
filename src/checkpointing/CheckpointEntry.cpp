@@ -6,6 +6,7 @@
  */
 
 #include "CheckpointEntry.hpp"
+#include "io/fileio.hpp"
 #include "utils/PVLog.hpp"
 #include <cerrno>
 #include <cstring>
@@ -17,7 +18,7 @@ namespace PV {
 std::string CheckpointEntry::generatePath(
       std::string const &checkpointDirectory,
       std::string const &extension) const {
-   std::string path(checkpointDirectory);
+   std::string path{checkpointDirectory};
    path.append("/").append(getName()).append(".").append(extension);
    return path;
 }

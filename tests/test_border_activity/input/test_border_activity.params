@@ -11,7 +11,7 @@ HyPerCol "column" = {
    outputPath = "output/test_border_activity/";
    printParamsFilename = "pv.params";
    checkpointWrite = false;
-   suppressLastOutput = false;
+   lastCheckpointDir = "output/test_border_activity/Last";
 };
 
 PvpLayer "test_border_activity image" = {

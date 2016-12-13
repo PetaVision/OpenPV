@@ -77,6 +77,12 @@ std::ostream &getOutputStream() { return outputLogFileStream.getStream(); }
 std::wostream &getWErrorStream() { return errorLogFileWStream.getStream(); }
 std::wostream &getWOutputStream() { return outputLogFileWStream.getStream(); }
 
+void setLogFile(std::string const &logFile, std::ios_base::openmode mode) {
+   if (!logFile.empty()) {
+      setLogFile(logFile.c_str(), mode);
+   }
+}
+
 void setLogFile(char const *logFile, std::ios_base::openmode mode) {
    outputLogFileStream.setStream(logFile, mode);
    if (logFile) {
@@ -84,6 +90,12 @@ void setLogFile(char const *logFile, std::ios_base::openmode mode) {
    }
    else {
       errorLogFileStream.setStream(logFile, mode);
+   }
+}
+
+void setWLogFile(std::wstring const &logFile, std::ios_base::openmode mode) {
+   if (!logFile.empty()) {
+      setWLogFile(logFile.c_str(), mode);
    }
 }
 

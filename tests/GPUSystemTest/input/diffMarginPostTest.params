@@ -12,7 +12,7 @@ HyPerCol "column" = {
     outputPath = "output/postTest/";
     checkpointWrite = false;
     // deleteOlderCheckpoints = false;
-    suppressLastOutput = false;
+    lastCheckpointDir = "output/postTest/Last";
     writeProgressToErr = true;
 };
 

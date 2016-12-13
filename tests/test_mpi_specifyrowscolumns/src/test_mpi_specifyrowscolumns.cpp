@@ -36,7 +36,6 @@ int main(int argc, char *argv[]) {
    int numProcs     = 0;
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
    MPI_Comm_size(MPI_COMM_WORLD, &numProcs);
-   // int numProcs = initObj->getWorldSize();
 
    if (numProcs != 6) {
       // TODO Greater than six should be permissible, with the excess over 6 being idle
@@ -48,21 +47,21 @@ int main(int argc, char *argv[]) {
       exit(EXIT_FAILURE);
    }
 
-   if (initObj->getParamsFile() != NULL) {
+   if (initObj->getParams() != nullptr) {
       if (rank == 0) {
          ErrorLog().printf(
                "%s should be run without the params file argument.\n", initObj->getProgramName());
       }
       status = PV_FAILURE;
    }
-   if (initObj->getNumRows() != 0) {
+   if (initObj->getIntegerArgument("NumRows") != 0) {
       if (rank == 0) {
          ErrorLog().printf(
                "%s should be run without the rows argument.\n", initObj->getProgramName());
       }
       status = PV_FAILURE;
    }
-   if (initObj->getNumColumns() != 0) {
+   if (initObj->getIntegerArgument("NumColumns") != 0) {
       if (rank == 0) {
          ErrorLog().printf(
                "%s should be run without the columns argument.\n", initObj->getProgramName());
@@ -91,8 +90,8 @@ int main(int argc, char *argv[]) {
 int buildandverify(PV::PV_Init *initObj) {
    PV::HyPerCol *hc = new PV::HyPerCol("column", initObj);
    /* PV::ANNLayer * layer = */ new PV::ANNLayer("layer", hc);
-   int rows    = initObj->getNumRows();
-   int columns = initObj->getNumColumns();
+   int rows    = initObj->getIntegerArgument("NumRows");
+   int columns = initObj->getIntegerArgument("NumColumns");
    FatalIf(!(rows > 0 && columns > 0), "Test failed.\n");
    int status = verifyLoc(hc, rows, columns);
    delete hc;

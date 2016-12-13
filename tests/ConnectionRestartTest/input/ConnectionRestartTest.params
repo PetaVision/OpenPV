@@ -31,7 +31,7 @@ HyPerCol "column" = {
    initializeFromCheckpointDir = "input/restartDir";
    defaultInitializeFromCheckpointFlag = false;
    checkpointWrite = false;
-   suppressLastOutput = false; 
+   lastCheckpointDir = "output/Last"; 
 };
 
 PvpLayer "input" = {

@@ -18,7 +18,7 @@ int main(int argc, char *argv[]) {
    MPI_Comm_rank(MPI_COMM_WORLD, &rank); /* Can't use `initObj.getComm()->communicator()` because
                                             initObj.initialize hasn't been called. */
 
-   if (initObj.getParamsFile() != NULL) {
+   if (initObj.getParams() != nullptr) {
       if (rank == 0) {
          ErrorLog().printf(
                "%s does not take -p as an option.  Instead the necessary params files are "
@@ -44,7 +44,7 @@ int main(int argc, char *argv[]) {
    ColumnArchive columnArchive1(hc1, tolerance, tolerance);
 
    initObj.setParams(paramfile2);
-   initObj.setCheckpointReadDir("checkpoints1/Checkpoint05");
+   initObj.setStringArgument("CheckpointReadDir", "checkpoints1/Checkpoint05");
    HyPerCol *hc2 = build(&initObj);
    int status2   = hc2->run();
    if (status2 != PV_SUCCESS) {

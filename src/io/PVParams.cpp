@@ -1200,47 +1200,6 @@ int PVParams::parseBuffer(char const *buffer, long int bufferLength) {
          }
          addActiveBatchSweep(hypercolGroup->name(), "outputPath");
       }
-
-      if (!hasSweepValue("checkpointWriteDir")) {
-         char const *checkpointWriteDir = hypercolGroup->stringValue("checkpointWriteDir");
-         if (checkpointWriteDir) {
-            std::size_t lengthLargestBatchIndex = std::to_string(batchSweepSize - 1).size();
-            for (int i = 0; i < icComm->numCommBatches(); i++) {
-               std::string checkpointPathStr{checkpointWriteDir};
-               checkpointPathStr.append("/batchsweep_");
-               std::string batchIndexAsString = std::to_string(i);
-               std::size_t lengthBatchIndex   = batchIndexAsString.size();
-               if (lengthBatchIndex < lengthLargestBatchIndex) {
-                  checkpointPathStr.append(lengthLargestBatchIndex - lengthBatchIndex, '0');
-               }
-               checkpointPathStr.append(batchIndexAsString);
-               checkpointPathStr.append("/");
-               activeBatchSweep->pushStringValue(checkpointPathStr.c_str());
-            }
-            addActiveBatchSweep(hypercolGroup->name(), "checkpointWriteDir");
-         }
-      }
-
-      if (!hasSweepValue("initializeFromCheckpointDir")) {
-         char const *initializeFromCheckpointDir =
-               hypercolGroup->stringValue("initializeFromCheckpointDir");
-         if (initializeFromCheckpointDir) {
-            std::size_t lengthLargestBatchIndex = std::to_string(batchSweepSize - 1).size();
-            for (int i = 0; i < icComm->numCommBatches(); i++) {
-               std::string checkpointPathStr{initializeFromCheckpointDir};
-               checkpointPathStr.append("/batchsweep_");
-               std::string batchIndexAsString = std::to_string(i);
-               std::size_t lengthBatchIndex   = batchIndexAsString.size();
-               if (lengthBatchIndex < lengthLargestBatchIndex) {
-                  checkpointPathStr.append(lengthLargestBatchIndex - lengthBatchIndex, '0');
-               }
-               checkpointPathStr.append(batchIndexAsString);
-               checkpointPathStr.append("/");
-               activeBatchSweep->pushStringValue(checkpointPathStr.c_str());
-            }
-            addActiveBatchSweep(hypercolGroup->name(), "initializeFromCheckpointDir");
-         }
-      }
    }
 
    // Each ParameterSweep needs to have its group/parameter pair added to the database, if it's not
@@ -1678,7 +1637,9 @@ void PVParams::ioParamStringRequired(
                   groupName,
                   strerror(errno));
          }
-         else {
+         else if (!stringPresent(groupName, paramName)) {
+            // Setting the param to NULL explicitly is allowed;
+            // if the string parameter is not present at all, error out.
             if (icComm->globalCommRank() == 0) {
                ErrorLog().printf(
                      "%s \"%s\": string parameter \"%s\" is required.\n",
@@ -1688,6 +1649,9 @@ void PVParams::ioParamStringRequired(
             }
             MPI_Barrier(icComm->globalCommunicator());
             exit(EXIT_FAILURE);
+         }
+         else {
+            *paramStringValue = nullptr;
          }
          break;
       case PARAMS_IO_WRITE: writeParamString(paramName, *paramStringValue);

@@ -15,7 +15,7 @@ HyPerCol "Column" = {
     nbatch                              = 1;
     initializeFromCheckpointDir         = "";
     checkpointWrite                     = false;
-    suppressLastOutput                  = false;
+    lastCheckpointDir                   = "output/TransposePoolingNonoverapping/Last";
     errorOnNotANumber                   = false;
 };
 

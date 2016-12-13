@@ -29,7 +29,7 @@ HyPerCol "column" = {
    checkpointWriteTriggerMode = "step";
    checkpointWriteStepInterval = 1;
    deleteOlderCheckpoints = false;
-   // suppressLastOutput = false; //Save the last output as checkpoint.
+   // lastCheckpointDir = "output1/Last"; //Save the last output as checkpoint.
    checkpointIndexWidth = -1;
 };
 

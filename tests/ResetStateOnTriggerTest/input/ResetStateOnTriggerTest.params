@@ -44,7 +44,7 @@ HyPerCol "column" = {
     ny                                  = 8;
     nbatch                              = 1;
     checkpointWrite                     = false;
-    suppressLastOutput                  = false;
+    lastCheckpointDir                   = "output/Last";
     errorOnNotANumber                   = true;
 };
 

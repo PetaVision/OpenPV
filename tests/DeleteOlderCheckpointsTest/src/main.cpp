@@ -1,7 +1,7 @@
 #include "checkpointing/CheckpointEntry.hpp"
 #include "checkpointing/Checkpointer.hpp"
+#include "columns/CommandLineArguments.hpp"
 #include "columns/Communicator.hpp"
-#include "columns/PV_Arguments.hpp"
 #include "io/PVParams.hpp"
 #include "io/io.hpp"
 #include "utils/PVLog.hpp"
@@ -15,9 +15,9 @@
 
 int main(int argc, char *argv[]) {
    // Initialize PetaVision environment
-   PV::PV_Arguments pvArguments{argc, argv, false /*do not allow unrecognized arguments*/};
+   PV::CommandLineArguments arguments{argc, argv, false /*do not allow unrecognized arguments*/};
    MPI_Init(&argc, &argv);
-   PV::Communicator *comm = new PV::Communicator(&pvArguments);
+   PV::Communicator *comm = new PV::Communicator(&arguments);
 
    // Params file
    PV::PVParams *params = new PV::PVParams("input/DeleteOldCheckpointsTest.params", 1, comm);

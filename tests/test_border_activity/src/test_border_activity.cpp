@@ -37,7 +37,7 @@ int main(int argc, char *argv[]) {
    int rank         = 0;
    PV_Init *initObj = new PV_Init(&argc, &argv, false /*allowUnrecognizedArguments*/);
 
-   if (initObj->getParamsFile() != NULL) {
+   if (initObj->getParams() != nullptr) {
       if (rank == 0) {
          ErrorLog().printf(
                "%s does not take -p as an option.  Instead the necessary params file is "

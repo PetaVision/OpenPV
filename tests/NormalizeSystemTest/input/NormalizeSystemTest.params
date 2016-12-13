@@ -23,7 +23,7 @@ HyPerCol "column" = {
    writeProgressToErr = false;
    outputPath = "output";
    checkpointWrite = false;
-   suppressLastOutput = false;
+   lastCheckpointDir = "output/Last";
 };
 
 //

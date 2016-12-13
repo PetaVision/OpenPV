@@ -44,7 +44,7 @@ void usage() {
  */
 int parse_options(
       int argc,
-      char *argv[],
+      char const *const *argv,
       bool *paramusage,
       bool *require_return,
       char **output_path,
@@ -96,7 +96,7 @@ int parse_options(
  * @argv
  * @opt
  */
-int pv_getopt(int argc, char *argv[], const char *opt, bool *paramusage) {
+int pv_getopt(int argc, char const *const *argv, char const *opt, bool *paramusage) {
    int i;
    for (i = 1; i < argc; i++) {
       if (strcmp(argv[i], opt) == 0) {
@@ -115,7 +115,7 @@ int pv_getopt(int argc, char *argv[], const char *opt, bool *paramusage) {
  * @opt
  * @iVal
  */
-int pv_getopt_int(int argc, char *argv[], const char *opt, int *iVal, bool *paramusage) {
+int pv_getopt_int(int argc, char const *const *argv, char const *opt, int *iVal, bool *paramusage) {
    int i;
    for (i = 1; i < argc; i += 1) {
       if (i + 1 < argc && strcmp(argv[i], opt) == 0) {
@@ -133,8 +133,8 @@ int pv_getopt_int(int argc, char *argv[], const char *opt, int *iVal, bool *para
 
 int pv_getoptionalopt_int(
       int argc,
-      char *argv[],
-      const char *opt,
+      char const *const *argv,
+      char const *opt,
       int *iVal,
       bool *useDefaultVal,
       bool *paramusage) {
@@ -183,7 +183,12 @@ int pv_getoptionalopt_int(
  * @opt
  * @iVal
  */
-int pv_getopt_long(int argc, char *argv[], const char *opt, long int *iVal, bool *paramusage) {
+int pv_getopt_long(
+      int argc,
+      char const *const *argv,
+      char const *opt,
+      long int *iVal,
+      bool *paramusage) {
    int i;
    for (i = 1; i < argc; i += 1) {
       if (i + 1 < argc && strcmp(argv[i], opt) == 0) {
@@ -207,8 +212,8 @@ int pv_getopt_long(int argc, char *argv[], const char *opt, long int *iVal, bool
  */
 int pv_getopt_unsigned(
       int argc,
-      char *argv[],
-      const char *opt,
+      char const *const *argv,
+      char const *opt,
       unsigned int *uVal,
       bool *paramusage) {
    int i;
@@ -232,7 +237,12 @@ int pv_getopt_unsigned(
  * @opt
  * @sVal
  */
-int pv_getopt_str(int argc, char *argv[], const char *opt, char **sVal, bool *paramusage) {
+int pv_getopt_str(
+      int argc,
+      char const *const *argv,
+      char const *opt,
+      char **sVal,
+      bool *paramusage) {
    // sVal can be NULL.  If sVal is not null and the option is found,
    // the value of the option is put into sVal and the calling routine is
    // responsible for freeing it.
@@ -255,41 +265,9 @@ int pv_getopt_str(int argc, char *argv[], const char *opt, char **sVal, bool *pa
    return -1; // not found
 }
 
-/**
- * @V
- * @nx0
- * @ny0
- * @nx
- * @ny
- */
-int pv_center_image(float *V, int nx0, int ny0, int nx, int ny) {
-   int i0, j0, i, j, ii;
+// Unused function pv_center_image() removed Nov 16, 2016.
 
-   float *buf = (float *)malloc(nx0 * ny0 * sizeof(float));
-   assert(buf != NULL);
-
-   assert(nx0 <= nx);
-   assert(ny0 <= ny);
-
-   memcpy(buf, V, nx0 * nx0 * sizeof(float));
-
-   i0 = nx / 2 - nx0 / 2;
-   j0 = ny / 2 - ny0 / 2;
-
-   for (i = 0; i < nx * ny; i++) {
-      V[i] = 0;
-   }
-
-   ii = 0;
-   for (j = j0; j < j0 + ny0; j++) {
-      for (i = i0; i < i0 + nx0; i++) {
-         V[i + nx * j] = buf[ii++];
-      }
-   }
-   free(buf);
-
-   return 0;
-}
+std::string expandLeadingTilde(std::string const &path) { return path.c_str(); }
 
 std::string expandLeadingTilde(char const *path) {
    if (path == NULL) {

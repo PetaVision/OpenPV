@@ -14,7 +14,7 @@ HyPerCol "column" = {
    checkpointWrite = false;
    outputPath = "output/test_post_weights";
    printParamsFilename = "pv.params";
-   suppressLastOutput = false;
+   lastCheckpointDir = "output/test_post_weights/Last";
    errorOnNotANumber = false;
 };
 

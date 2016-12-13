@@ -11,6 +11,8 @@ HyPerCol "test_mirror_BCs column" = {
    outputPath = "output/";
    nx = 8;
    ny = 8;
+   checkpointWrite = false;
+   lastCheckpointDir = "output/Last";
 };
 
 HyPerLayer "test_mirror_BCs layer" = {

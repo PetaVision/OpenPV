@@ -78,31 +78,41 @@ namespace PV {
 
 enum ParamsIOFlag { PARAMS_IO_READ, PARAMS_IO_WRITE };
 
-int pv_getopt(int argc, char *argv[], const char *opt, bool *paramusage);
-int pv_getopt_int(int argc, char *argv[], const char *opt, int *iVal, bool *paramusage);
+int pv_getopt(int argc, char const *const *argv, const char *opt, bool *paramusage);
+int pv_getopt_int(int argc, char const *const *argv, const char *opt, int *iVal, bool *paramusage);
 int pv_getoptionalopt_int(
       int argc,
-      char *argv[],
+      char const *const *argv,
       const char *opt,
       int *iVal,
       bool *defaultVal,
       bool *paramusage);
-int pv_getopt_str(int argc, char *argv[], const char *opt, char **sVal, bool *paramusage);
-int pv_getopt_long(int argc, char *argv[], const char *opt, long int *ulVal, bool *paramusage);
+int pv_getopt_str(
+      int argc,
+      char const *const *argv,
+      const char *opt,
+      char **sVal,
+      bool *paramusage);
+int pv_getopt_long(
+      int argc,
+      char const *const *argv,
+      const char *opt,
+      long int *ulVal,
+      bool *paramusage);
 int pv_getopt_unsigned(
       int argc,
-      char *argv[],
+      char const *const *argv,
       const char *opt,
       unsigned int *uVal,
       bool *paramusage);
 
 int readFile(const char *filename, float *buf, int *nx, int *ny);
 
-int pv_center_image(float *V, int nx0, int ny0, int nx, int ny);
+// Unused function pv_center_image() removed Nov 16, 2016.
 
 int parse_options(
       int argc,
-      char *argv[],
+      char const *const *argv,
       bool *paramusage,
       bool *require_return,
       char **output_path,
@@ -128,6 +138,10 @@ int parse_options(
  * The calling routine has the responsibility for freeing the return value, and
  * if the input string needs to be free()'ed, the calling routine has that responsibility
  * as well.
+ */
+std::string expandLeadingTilde(std::string const &path);
+
+/** An overload of expandLeadingTilde to take a C-style string instead of a C++ std::string.
  */
 std::string expandLeadingTilde(char const *path);
 

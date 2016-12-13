@@ -1,16 +1,16 @@
 #include "checkpointing/CheckpointEntry.hpp"
 #include "checkpointing/Checkpointer.hpp"
+#include "columns/CommandLineArguments.hpp"
 #include "columns/Communicator.hpp"
-#include "columns/PV_Arguments.hpp"
 #include "io/PVParams.hpp"
 #include "io/io.hpp"
 #include "utils/PVLog.hpp"
 #include <vector>
 
 int main(int argc, char *argv[]) {
-   PV::PV_Arguments pvArguments{argc, argv, false /*do not allow unrecognized arguments*/};
+   PV::CommandLineArguments arguments{argc, argv, false /*do not allow unrecognized arguments*/};
    MPI_Init(&argc, &argv);
-   PV::Communicator *comm = new PV::Communicator(&pvArguments);
+   PV::Communicator *comm = new PV::Communicator(&arguments);
 
    PV::Checkpointer *checkpointer = new PV::Checkpointer("checkpointer", comm);
 
@@ -82,7 +82,8 @@ int main(int argc, char *argv[]) {
 
    std::string checkpointReadDir(checkpointWriteDirectory);
    checkpointReadDir.append("/Checkpoint04");
-   checkpointer->checkpointRead(checkpointReadDir, &readTime, &readStep);
+   checkpointer->setCheckpointReadDirectory(checkpointReadDir);
+   checkpointer->checkpointRead(&readTime, &readStep);
 
    delete checkpointer;
    delete comm;

@@ -1,4 +1,6 @@
 set (PVLibSrcCpp ${PVLibSrcCpp}
+   ${SUBDIR}/ConfigParser.cpp
+   ${SUBDIR}/Configuration.cpp
    ${SUBDIR}/fileio.cpp
    ${SUBDIR}/FileStream.cpp
    ${SUBDIR}/io.cpp
@@ -7,6 +9,8 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
 )
 
 set (PVLibSrcHpp ${PVLibSrcHpp}
+   ${SUBDIR}/ConfigParser.hpp
+   ${SUBDIR}/Configuration.hpp
    ${SUBDIR}/fileio.hpp
    ${SUBDIR}/PrintStream.hpp
    ${SUBDIR}/FileStream.hpp
