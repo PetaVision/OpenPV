@@ -44,6 +44,7 @@ void CheckpointEntryDataStore::write(
          Buffer<float> globalPvpBuffer = BufferUtils::gather<float>(
                getCommunicator(), localPvpBuffer, mLayerLoc->nx, mLayerLoc->ny);
          if (fileStream) {
+            globalPvpBuffer.crop(mLayerLoc->nxGlobal, mLayerLoc->nyGlobal, Buffer<float>::CENTER);
             BufferUtils::writeFrame(*fileStream, &globalPvpBuffer, lastUpdateTime);
          }
       }
@@ -78,8 +79,9 @@ void CheckpointEntryDataStore::read(std::string const &checkpointDirectory, doub
    for (int b = 0; b < numBuffers; b++) {
       for (int l = 0; l < numLevels; l++) {
          if (fileStream) {
-            pvpBuffer.resize(nxExtGlobal, nyExtGlobal, nf);
-            double updateTime                 = BufferUtils::readFrame(*fileStream, &pvpBuffer);
+            pvpBuffer.resize(mLayerLoc->nxGlobal, mLayerLoc->nyGlobal, nf);
+            double updateTime = BufferUtils::readFrame(*fileStream, &pvpBuffer);
+            pvpBuffer.grow(nxExtGlobal, nyExtGlobal, Buffer<float>::CENTER);
             updateTimes.at(b * numLevels + l) = updateTime;
          }
          else {
