@@ -102,6 +102,7 @@ class AdaptiveTimeScaleProbe : public ColProbe {
    double referenceUpdateTime() const override { return parent->simulationTime(); }
    int calcValues(double timeValue) override;
    virtual bool needUpdate(double timeValue, double dt) override { return true; }
+   virtual void allocateTimeScaleController();
 
   protected:
    double mBaseMax                = 1.0;

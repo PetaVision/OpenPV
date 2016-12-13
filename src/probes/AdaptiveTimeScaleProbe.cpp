@@ -108,6 +108,11 @@ int AdaptiveTimeScaleProbe::allocateDataStructures() {
       MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
+   allocateTimeScaleController();
+   return status;
+}
+
+void AdaptiveTimeScaleProbe::allocateTimeScaleController() {
    mAdaptiveTimeScaleController = new AdaptiveTimeScaleController(
          getName(),
          getNumValues(),
@@ -119,7 +124,6 @@ int AdaptiveTimeScaleProbe::allocateDataStructures() {
          mWriteTimeScaleFieldnames,
          parent->getCommunicator(),
          parent->getVerifyWrites());
-   return status;
 }
 
 int AdaptiveTimeScaleProbe::registerData(Checkpointer *checkpointer, std::string const &objName) {
@@ -163,7 +167,7 @@ int AdaptiveTimeScaleProbe::calcValues(double timeValue) {
    }
    pvAssert(rawProbeValues.size() == getNumValues()); // In allocateDataStructures, we checked that
    // mTargetProbe has a compatible size.
-   std::vector<double> const &timeSteps =
+   std::vector<double> timeSteps =
          mAdaptiveTimeScaleController->calcTimesteps(timeValue, rawProbeValues);
    memcpy(getValuesBuffer(), timeSteps.data(), sizeof(double) * getNumValues());
    return PV_SUCCESS;

@@ -54,13 +54,11 @@ int AdaptiveTimeScaleController::registerData(
    return PV_SUCCESS;
 }
 
-std::vector<double> const &AdaptiveTimeScaleController::calcTimesteps(
+std::vector<double> AdaptiveTimeScaleController::calcTimesteps(
       double timeValue,
       std::vector<double> const &rawTimeScales) {
    mOldTimeScaleInfo             = mTimeScaleInfo;
    mTimeScaleInfo.mTimeScaleTrue = rawTimeScales;
-   const float MAX_TIME_SCALE = 0.5;
-   const float MAX_GROWTH_FACTOR = 0.01;
    for (int b = 0; b < mBatchWidth; b++) {
       double E_dt         = mTimeScaleInfo.mTimeScaleTrue[b];
       double E_0          = mOldTimeScaleInfo.mTimeScaleTrue[b];
@@ -79,19 +77,16 @@ std::vector<double> const &AdaptiveTimeScaleController::calcTimesteps(
                (mTimeScaleInfo.mTimeScale[b] <= mTimeScaleInfo.mTimeScaleMax[b])
                      ? mTimeScaleInfo.mTimeScale[b]
                      : mTimeScaleInfo.mTimeScaleMax[b];
-         //mTimeScaleInfo.mTimeScale[b] =
-         //      (mTimeScaleInfo.mTimeScale[b] < mBaseMin) ? mBaseMin : mTimeScaleInfo.mTimeScale[b];
+         mTimeScaleInfo.mTimeScale[b] =
+               (mTimeScaleInfo.mTimeScale[b] < mBaseMin)
+                     ? mBaseMin
+                     : mTimeScaleInfo.mTimeScale[b];
 
          if (mTimeScaleInfo.mTimeScale[b] == mTimeScaleInfo.mTimeScaleMax[b]) {
-	   if (mTimeScaleInfo.mTimeScale[b] <= MAX_TIME_SCALE) {
 	     mTimeScaleInfo.mTimeScaleMax[b] = (1 + mGrowthFactor) * mTimeScaleInfo.mTimeScaleMax[b];
-	   }
-	   else{
-	     mTimeScaleInfo.mTimeScaleMax[b] = (1 + MAX_GROWTH_FACTOR*mGrowthFactor) * mTimeScaleInfo.mTimeScaleMax[b];
-	   }
 	 }
       }
-   } // for b < mBatchWidth
+   }
    return mTimeScaleInfo.mTimeScale;
 }
 
