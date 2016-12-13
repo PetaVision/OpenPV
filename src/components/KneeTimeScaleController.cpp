@@ -35,10 +35,17 @@ KneeTimeScaleController::calcTimesteps(
       std::vector<double> const &rawTimeScales) {
    std::vector<double> timeScales(AdaptiveTimeScaleController::calcTimesteps(timeValue, rawTimeScales));
 
-   for (auto& ts : timeScales) {
-      ts = (ts < mKneeThresh)
-         ? ts
-         : mKneeThresh + (ts - mKneeThresh) * mKneeSlope;
+   for (int i = 0; i < timeScales.size(); ++i) {
+      // Scale timescalemax if it's above the knee
+      double tsMax = mTimeScaleInfo.mTimeScaleMax.at(i);
+   
+      tsMax = (tsMax < mKneeThresh)
+         ? tsMax
+         : mKneeThresh + (tsMax - mKneeThresh) * mKneeSlope;
+      mTimeScaleInfo.mTimeScaleMax.at(i) = tsMax;
+
+      // Cap our timescale to the newly calculated max
+      timeScales.at(i) = std::min(timeScales.at(i), tsMax);
    }
    return timeScales;
 }
