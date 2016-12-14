@@ -73,17 +73,9 @@ std::vector<double> AdaptiveTimeScaleController::calcTimesteps(
 
          // dt := mTimeScaleMaxBase * tau_eff
          mTimeScaleInfo.mTimeScale[b] = mTauFactor * tau_eff_scaled;
-         mTimeScaleInfo.mTimeScale[b] =
-               (mTimeScaleInfo.mTimeScale[b] <= mTimeScaleInfo.mTimeScaleMax[b])
-                     ? mTimeScaleInfo.mTimeScale[b]
-                     : mTimeScaleInfo.mTimeScaleMax[b];
-         mTimeScaleInfo.mTimeScale[b] =
-               (mTimeScaleInfo.mTimeScale[b] < mBaseMin)
-                     ? mBaseMin
-                     : mTimeScaleInfo.mTimeScale[b];
-
-         if (mTimeScaleInfo.mTimeScale[b] == mTimeScaleInfo.mTimeScaleMax[b]) {
-	     mTimeScaleInfo.mTimeScaleMax[b] = (1 + mGrowthFactor) * mTimeScaleInfo.mTimeScaleMax[b];
+         if (mTimeScaleInfo.mTimeScale[b] >= mTimeScaleInfo.mTimeScaleMax[b]) {
+            mTimeScaleInfo.mTimeScale[b] = mTimeScaleInfo.mTimeScaleMax[b];
+	    mTimeScaleInfo.mTimeScaleMax[b] = (1 + mGrowthFactor) * mTimeScaleInfo.mTimeScaleMax[b];
 	 }
       }
    }
