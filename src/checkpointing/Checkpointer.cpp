@@ -748,7 +748,7 @@ void Checkpointer::rotateOldCheckpoints(std::string const &newCheckpointDirector
          if (statstatus == 0 && (oldcp_stat.st_mode & S_IFDIR)) {
             int rmdirstatus = rmdir(oldestCheckpointDir.c_str());
             if (rmdirstatus) {
-               ErrorLog().printf("Unable to delete older checkpoint \"%s\": rmdir command returned %d (%s)\n", oldestCheckpointDir, errno, std::strerror(errno));
+               ErrorLog().printf("Unable to delete older checkpoint \"%s\": rmdir command returned %d (%s)\n", oldestCheckpointDir.c_str(), errno, std::strerror(errno));
             }
          }
       }

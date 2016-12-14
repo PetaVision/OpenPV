@@ -792,8 +792,14 @@ void InputLayer::ioParam_skip_frame_index(enum ParamsIOFlag ioFlag) {
 }
 
 void InputLayer::ioParam_writeFrameToTimestamp(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
-         ioFlag, name, "writeFrameToTimestamp", &mWriteFrameToTimestamp, mWriteFrameToTimestamp);
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "displayPeriod"));
+   if (mDisplayPeriod > 0) {
+      parent->parameters()->ioParamValue(
+            ioFlag, name, "writeFrameToTimestamp", &mWriteFrameToTimestamp, mWriteFrameToTimestamp);
+   }
+   else {
+      mWriteFrameToTimestamp = false;
+   }
 }
 
 void InputLayer::ioParam_resetToStartOnLoop(enum ParamsIOFlag ioFlag) {
