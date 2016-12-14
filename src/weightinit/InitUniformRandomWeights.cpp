@@ -74,10 +74,16 @@ int InitUniformRandomWeights::randomWeights(
    const int nfp       = weightParamPtr->getnfPatch();
    const int patchSize = nxp * nyp * nfp;
 
-   // Never allocate an all zero patch
-   int zeroesLeft = patchSize - 1; 
+   // Force a minimum number of nonzero weights
+   int zeroesLeft = patchSize - weightParamPtr->getMinNNZ();
+
    // Start from a random index so that we don't always run out of zeros in the same place
-   int startIndex = randState->randomUInt(patchIndex) % patchSize;
+   int startIndex = 0;
+
+   // This line ensures we create the same weight patches for minNNZ = 0 as we did before
+   if (weightParamPtr->getMinNNZ() != 0) {
+      startIndex = randState->randomUInt(patchIndex) % patchSize;
+   }
 
    for (int n = 0; n < patchSize; n++) {
       float data = (float)(minwgt + (p * (double)randState->randomUInt(patchIndex)));

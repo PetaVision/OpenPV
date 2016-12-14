@@ -30,36 +30,45 @@ void Configuration::registerArgument(std::string const &name, ConfigurationType 
 void Configuration::registerBooleanArgument(std::string const &name) {
    registerArgument(name, CONFIG_BOOL);
    bool defaultValue = false;
-   auto insertion = mBooleanConfigMap.insert(std::make_pair(name, defaultValue));
-   FatalIf(!insertion.second, "failed to register boolean configuration argument %s\n", name.c_str());
+   auto insertion    = mBooleanConfigMap.insert(std::make_pair(name, defaultValue));
+   FatalIf(
+         !insertion.second, "failed to register boolean configuration argument %s\n", name.c_str());
 }
 
 void Configuration::registerIntegerArgument(std::string const &name) {
    registerArgument(name, CONFIG_INT);
    int defaultValue = 0;
-   auto insertion = mIntegerConfigMap.insert(std::make_pair(name, defaultValue));
-   FatalIf(!insertion.second, "failed to register integer configuration argument %s\n", name.c_str());
+   auto insertion   = mIntegerConfigMap.insert(std::make_pair(name, defaultValue));
+   FatalIf(
+         !insertion.second, "failed to register integer configuration argument %s\n", name.c_str());
 }
 
 void Configuration::registerUnsignedIntArgument(std::string const &name) {
    registerArgument(name, CONFIG_UNSIGNED);
    unsigned int defaultValue = 0U;
-   auto insertion = mUnsignedIntConfigMap.insert(std::make_pair(name, defaultValue));
-   FatalIf(!insertion.second, "failed to register unsigned int configuration argument %s\n", name.c_str());
+   auto insertion            = mUnsignedIntConfigMap.insert(std::make_pair(name, defaultValue));
+   FatalIf(
+         !insertion.second,
+         "failed to register unsigned int configuration argument %s\n",
+         name.c_str());
 }
 
 void Configuration::registerStringArgument(std::string const &name) {
    registerArgument(name, CONFIG_STRING);
    std::string defaultValue{};
    auto insertion = mStringConfigMap.insert(std::make_pair(name, defaultValue));
-   FatalIf(!insertion.second, "failed to register string configuration argument %s\n", name.c_str());
+   FatalIf(
+         !insertion.second, "failed to register string configuration argument %s\n", name.c_str());
 }
 
 void Configuration::registerIntOptionalArgument(std::string const &name) {
    registerArgument(name, CONFIG_INT_OPTIONAL);
    IntOptional defaultValue;
    auto insertion = mIntOptionalConfigMap.insert(std::make_pair(name, defaultValue));
-   FatalIf(!insertion.second, "failed to register optional int configuration argument %s\n", name.c_str());
+   FatalIf(
+         !insertion.second,
+         "failed to register optional int configuration argument %s\n",
+         name.c_str());
 }
 
 Configuration::ConfigurationType Configuration::getType(std::string const &name) const {
@@ -103,7 +112,8 @@ std::string const &Configuration::getStringArgument(std::string const &name) con
    return location->second;
 }
 
-Configuration::IntOptional const &Configuration::getIntOptionalArgument(std::string const &name) const {
+Configuration::IntOptional const &
+Configuration::getIntOptionalArgument(std::string const &name) const {
    if (getType(name) != CONFIG_INT_OPTIONAL) {
       throw std::invalid_argument("getIntOptionalArgument");
    }
@@ -131,8 +141,7 @@ Configuration::printUnsignedArgument(std::string const &name, unsigned int const
    return returnedString;
 }
 
-std::string
-Configuration::printStringArgument(std::string const &name, std::string const &value) {
+std::string Configuration::printStringArgument(std::string const &name, std::string const &value) {
    std::string returnedString(name);
    returnedString.append(":").append(value);
    return returnedString;
@@ -156,25 +165,17 @@ std::string Configuration::printArgument(std::string const &name) const {
    std::string returnString;
    bool status; // Used to verify the result of calling the get*Argument method.
    switch (type) {
-      case CONFIG_UNRECOGNIZED:
-         break;
-      case CONFIG_BOOL:
-         returnString = printBooleanArgument(name, getBooleanArgument(name));
-         break;
-      case CONFIG_INT:
-         returnString = printIntegerArgument(name, getIntegerArgument(name));
-         break;
+      case CONFIG_UNRECOGNIZED: break;
+      case CONFIG_BOOL: returnString = printBooleanArgument(name, getBooleanArgument(name)); break;
+      case CONFIG_INT: returnString  = printIntegerArgument(name, getIntegerArgument(name)); break;
       case CONFIG_UNSIGNED:
          returnString = printUnsignedArgument(name, getUnsignedIntArgument(name));
          break;
-      case CONFIG_STRING:
-         returnString = printStringArgument(name, getStringArgument(name));
-         break;
+      case CONFIG_STRING: returnString = printStringArgument(name, getStringArgument(name)); break;
       case CONFIG_INT_OPTIONAL:
          returnString = printIntOptionalArgument(name, getIntOptionalArgument(name));
          break;
-      default: pvAssert(0);
-         break;
+      default: pvAssert(0); break;
    }
    return returnString;
 }
@@ -216,7 +217,7 @@ bool Configuration::parseBoolean(std::string const &valueString) const {
 }
 
 int Configuration::parseInteger(std::string const &valueString) const {
-   int value   = std::stoi(valueString);
+   int value = std::stoi(valueString);
    return value;
 }
 
@@ -225,9 +226,7 @@ unsigned int Configuration::parseUnsignedInt(std::string const &valueString) con
    return value;
 }
 
-std::string Configuration::parseString(std::string const &valueString) const {
-   return valueString;
-}
+std::string Configuration::parseString(std::string const &valueString) const { return valueString; }
 
 Configuration::IntOptional Configuration::parseIntOptional(std::string const &valueString) const {
    IntOptional value;

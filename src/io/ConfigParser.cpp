@@ -59,9 +59,9 @@ void ConfigParser::initialize(std::istream &configStream, bool allowUnrecognized
                  << ":" << value << "\n";
       }
    }
-   bool restartFlag = mConfig.getBooleanArgument("Restart");
+   bool restartFlag                    = mConfig.getBooleanArgument("Restart");
    std::string checkpointReadDirectory = mConfig.getStringArgument("CheckpointReadDirectory");
-   bool checkpointReadConflict = restartFlag && !checkpointReadDirectory.empty();
+   bool checkpointReadConflict         = restartFlag && !checkpointReadDirectory.empty();
    FatalIf(
          checkpointReadConflict,
          "ConfigParser: cannot set both the restart flag and the checkpoint read directory.\n");

@@ -18,8 +18,8 @@ namespace BufferUtils = PV::BufferUtils;
 // BufferSlicer::gather(Buffer &buffer, uint sliceStrideX, uint sliceStrideY)
 void testRestricted(int argc, char **argv) {
    CommandLineArguments *args = new CommandLineArguments(argc, argv, false);
-   Communicator *comm = new Communicator(args);
-   int rank           = comm->commRank();
+   Communicator *comm         = new Communicator(args);
+   int rank                   = comm->commRank();
 
    InfoLog() << "Setup complete on rank " << rank << ". Running test.\n";
 
@@ -103,8 +103,8 @@ void testRestricted(int argc, char **argv) {
 // BufferSlicer::gather(Buffer &buffer, uint sliceStrideX, uint sliceStrideY)
 void testExtended(int argc, char **argv) {
    CommandLineArguments *args = new CommandLineArguments(argc, argv, false);
-   Communicator *comm = new Communicator(args);
-   int rank           = comm->commRank();
+   Communicator *comm         = new Communicator(args);
+   int rank                   = comm->commRank();
 
    InfoLog() << "Setup complete on rank " << rank << ". Running test.\n";
 

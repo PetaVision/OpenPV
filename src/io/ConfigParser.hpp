@@ -93,21 +93,21 @@ class ConfigParser {
    std::string printConfig() const { return mConfig.printConfig(); }
 
    static std::string createString(
-      bool requireReturnFlag,
-      std::string const &outputPath,
-      std::string const &paramsFile,
-      std::string const &logFile,
-      std::string const &gpuDevices,
-      unsigned int randomSeed,
-      std::string const &workingDir,
-      bool restartFlag,
-      std::string const &checkpointReadDir,
-      bool useDefaultNumThreads,
-      int numThreads,
-      int numRows,
-      int numColumns,
-      int batchWidth,
-      bool dryRunFlag);
+         bool requireReturnFlag,
+         std::string const &outputPath,
+         std::string const &paramsFile,
+         std::string const &logFile,
+         std::string const &gpuDevices,
+         unsigned int randomSeed,
+         std::string const &workingDir,
+         bool restartFlag,
+         std::string const &checkpointReadDir,
+         bool useDefaultNumThreads,
+         int numThreads,
+         int numRows,
+         int numColumns,
+         int batchWidth,
+         bool dryRunFlag);
 
    /**
     * Returns a constant reference to the underlying Configuration object.
