@@ -18,6 +18,7 @@
 #include "layers/BinningLayer.hpp"
 #include "layers/CloneVLayer.hpp"
 #include "layers/ConstantLayer.hpp"
+#include "layers/DropoutLayer.hpp"
 #include "layers/FilenameParsingGroundTruthLayer.hpp"
 #include "layers/GapLayer.hpp"
 #include "layers/HyPerLCALayer.hpp"
@@ -61,6 +62,7 @@
 #include "connections/TransposePoolingConn.hpp"
 
 #include "probes/AdaptiveTimeScaleProbe.hpp"
+#include "probes/KneeTimeScaleProbe.hpp"
 #include "probes/ColumnEnergyProbe.hpp"
 #include "probes/FirmThresholdCostFnLCAProbe.hpp"
 #include "probes/FirmThresholdCostFnProbe.hpp"
@@ -121,6 +123,7 @@ int Factory::registerCoreKeywords() {
    registerKeyword("BinningLayer", Factory::create<BinningLayer>);
    registerKeyword("CloneVLayer", Factory::create<CloneVLayer>);
    registerKeyword("ConstantLayer", Factory::create<ConstantLayer>);
+   registerKeyword("DropoutLayer", Factory::create<DropoutLayer>);
    registerKeyword(
          "FilenameParsingGroundTruthLayer", Factory::create<FilenameParsingGroundTruthLayer>);
    registerKeyword("GapLayer", Factory::create<GapLayer>);
@@ -165,6 +168,7 @@ int Factory::registerCoreKeywords() {
    registerKeyword("TransposeConn", Factory::create<TransposeConn>);
    registerKeyword("TransposePoolingConn", Factory::create<TransposePoolingConn>);
    registerKeyword("AdaptiveTimeScaleProbe", Factory::create<AdaptiveTimeScaleProbe>);
+   registerKeyword("KneeTimeScaleProbe", Factory::create<KneeTimeScaleProbe>);
    registerKeyword("ColumnEnergyProbe", Factory::create<ColumnEnergyProbe>);
    registerKeyword("FirmThresholdCostFnLCAProbe", Factory::create<FirmThresholdCostFnLCAProbe>);
    registerKeyword("FirmThresholdCostFnProbe", Factory::create<FirmThresholdCostFnProbe>);

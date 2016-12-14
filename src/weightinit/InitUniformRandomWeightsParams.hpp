@@ -20,9 +20,10 @@ class InitUniformRandomWeightsParams : public PV::InitRandomWeightsParams {
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
    // get-set methods:
-   inline float getWMin() { return wMin; }
-   inline float getWMax() { return wMax; }
-   inline float getSparseFraction() { return sparseFraction; }
+   inline float getWMin() { return mWMin; }
+   inline float getWMax() { return mWMax; }
+   inline float getSparseFraction() { return mSparseFraction; }
+   inline int getMinNNZ() { return mMinNNZ; }
 
   protected:
    int initialize_base();
@@ -30,12 +31,13 @@ class InitUniformRandomWeightsParams : public PV::InitRandomWeightsParams {
    virtual void ioParam_wMinInit(enum ParamsIOFlag ioFlag);
    virtual void ioParam_wMaxInit(enum ParamsIOFlag ioFlag);
    virtual void ioParam_sparseFraction(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_minNNZ(enum ParamsIOFlag ioFlag);
 
   private:
-   float wMin;
-   float wMax;
-   float sparseFraction; // fraction of weights identically zero:  0 (default) -> no sparseness, 1
-   // -> all weights == 0
+   float mWMin;
+   float mWMax;
+   float mSparseFraction; // Percent of zero values in weight patch
+   int mMinNNZ; // Minimum number of nonzero values
 };
 
 } /* namespace PV */

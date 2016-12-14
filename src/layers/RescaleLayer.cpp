@@ -715,8 +715,6 @@ int RescaleLayer::updateState(double timef, double dt) {
                         nf);
                   sumexpx += expf(originalABatch[kextOrig]);
                }
-               // Error checking for sumexpx = 0
-               assert(sumexpx != 0);
                // can't pragma omp parallel the for loops because it was already parallelized in the
                // outermost for-loop
                for (int iF = 0; iF < nf; iF++) {
@@ -729,7 +727,12 @@ int RescaleLayer::updateState(double timef, double dt) {
                         nf);
                   int kext =
                         kIndex(iX, iY, iF, nx + halo->lt + halo->rt, ny + halo->dn + halo->up, nf);
-                  ABatch[kext] = expf(originalABatch[kextOrig]) / sumexpx;
+                  if (sumexpx != 0.0f && sumexpx == sumexpx) { // Check for zero and NaN
+                     ABatch[kext] = expf(originalABatch[kextOrig]) / sumexpx;
+                  }
+                  else {
+                     ABatch[kext] = 0.0f;
+                  }
                   assert(ABatch[kext] >= 0 && ABatch[kext] <= 1);
                }
             }

@@ -234,7 +234,9 @@ int testcheckpoint(PV_Init *initObj, int rank) {
    initObj->resetState();
    // Make sure either restartFlag or checkpointReadDir are set (both cannot be set or ConfigParser
    // will error out).
-   bool hasrestart = (initObj->getBooleanArgument("Restart") || !initObj->getStringArgument("CheckpointReadDirectory").empty());
+   bool hasrestart =
+         (initObj->getBooleanArgument("Restart")
+          || !initObj->getStringArgument("CheckpointReadDirectory").empty());
    if (!hasrestart) {
       if (rank == 0) {
          ErrorLog().printf(

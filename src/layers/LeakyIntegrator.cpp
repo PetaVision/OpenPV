@@ -42,8 +42,8 @@ void LeakyIntegrator::ioParam_integrationTime(enum ParamsIOFlag ioFlag) {
 }
 
 int LeakyIntegrator::updateState(double timed, double dt) {
-   float *V          = getV();
-   float *gSyn       = GSyn[0];
+   float *V    = getV();
+   float *gSyn = GSyn[0];
 
    float decayfactor = std::exp(-(float)dt / integrationTime);
    for (int k = 0; k < getNumNeuronsAllBatches(); k++) {

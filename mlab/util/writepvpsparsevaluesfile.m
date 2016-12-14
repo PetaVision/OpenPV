@@ -1,4 +1,4 @@
-function writepvpsparsevaluesfile(filename, data, nx, ny, nf)
+function writepvpsparsevaluesfile(filename, data, nx, ny, nf, show_progress = false)
    %  writepvpsparsevaluesfile.m
    %    Pete Schultz
    % 
@@ -18,8 +18,8 @@ function writepvpsparsevaluesfile(filename, data, nx, ny, nf)
    %     The neuron with zero-indexed coordinates (x,y,f) in a layer with
    %     dimensions (nx,ny,nf) has index y*(nx*nf)+x*(nf)+f
    
-   if nargin ~= 5
-       error('writepvpsparsevaluesfile:missingargs', 'writepvpsparsevaluesfile requires 5 arguments');
+   if nargin < 5 || nargin > 6
+       error('writepvpsparsevaluesfile:missingargs', 'writepvpsparsevaluesfile requires 5 or 6 arguments');
    end%if
    
    if ~ischar(filename) || ~isvector(filename) || size(filename,1)~=1
@@ -94,6 +94,10 @@ function writepvpsparsevaluesfile(filename, data, nx, ny, nf)
    hdr(18) = length(data); % number of frames 
    hdr(19:20) = typecast(double(data{1}.time),'uint32'); % timestamp
    fwrite(fid,hdr,'uint32');
+
+   progress_timer = length(data) / 100;
+   progress_amount = 0;
+   
    for frameno=1:length(data)   % allows either row vector or column vector.  isvector(data) was verified above
        fwrite(fid,data{frameno}.time,'double');
        count = size(data{frameno}.values,1);
@@ -101,7 +105,16 @@ function writepvpsparsevaluesfile(filename, data, nx, ny, nf)
        for k=1:count
            fwrite(fid, data{frameno}.values(k,1),'uint32');
            fwrite(fid, data{frameno}.values(k,2),'single');
-       end%if
+       end%for
+       if show_progress
+           progress_timer -= 1;
+           if progress_timer <= 0
+              progress_amount += 10;
+              progress_timer = length(data) / 100;
+              printf("%d%% ", progress_amount);
+              fflush(stdout);
+           end
+       end
    end%for
    
    fclose(fid); clear fid;

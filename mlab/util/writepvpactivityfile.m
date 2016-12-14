@@ -1,4 +1,4 @@
-function writepvpactivityfile(filename, data)
+function writepvpactivityfile(filename, data, show_progress = false)
    %  writepvpactivityfile.m
    %    Dylan Paiton
    % 
@@ -59,9 +59,21 @@ function writepvpactivityfile(filename, data)
    hdr(19:20) = typecast(double(data{1}.time),'uint32'); % timestamp
    fwrite(fid,hdr,'uint32');
 
+   progress_timer = length(data) / 100;
+   progress_amount = 0;
    for frameno=1:length(data)   % allows either row vector or column vector.  isvector(data) was verified above
        fwrite(fid,data{frameno}.time,'double');
        fwrite(fid,permute(data{frameno}.values(:,:,:),[3 1 2]),'single');
+
+       if show_progress
+           progress_timer -= 1;
+           if progress_timer <= 0
+              progress_amount += 10;
+              progress_timer = length(data) / 100;
+              printf("%d%% ", progress_amount);
+              fflush(stdout);
+           end
+       end
    end%for
    
    fclose(fid); clear fid;

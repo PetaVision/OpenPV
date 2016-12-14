@@ -2853,9 +2853,9 @@ int HyPerConn::deliverPresynapticPerspectiveConvolve(PVLayerCube const *activity
          int numNeurons = post->getNumNeurons();
 #pragma omp parallel for schedule(static)
          for (int ti = 0; ti < parent->getNumThreads(); ++ti) {
-           for (int ni = 0; ni < numNeurons; ++ni) {
-             thread_gSyn[ti][ni] = 0.0;
-           }
+            for (int ni = 0; ni < numNeurons; ++ni) {
+               thread_gSyn[ti][ni] = 0.0;
+            }
          }
       }
 #endif

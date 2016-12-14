@@ -33,8 +33,8 @@ Communicator::Communicator(Arguments *argumentList) {
    MPI_Comm_rank(MPI_COMM_WORLD, &globalRank);
    MPI_Comm_size(MPI_COMM_WORLD, &totalSize);
 
-   numRows = argumentList->getIntegerArgument("NumRows");
-   numCols = argumentList->getIntegerArgument("NumColumns");
+   numRows    = argumentList->getIntegerArgument("NumRows");
+   numCols    = argumentList->getIntegerArgument("NumColumns");
    batchWidth = argumentList->getIntegerArgument("BatchWidth");
 
    bool rowsDefined  = numRows != 0;

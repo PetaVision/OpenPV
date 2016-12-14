@@ -379,8 +379,9 @@ bool Checkpointer::registerCheckpointEntry(
 
 void Checkpointer::registerTimer(Timer const *timer) { mTimers.push_back(timer); }
 
-void Checkpointer::readNamedCheckpointEntry(std::string const &objName, std::string const &dataName)
-      {
+void Checkpointer::readNamedCheckpointEntry(
+      std::string const &objName,
+      std::string const &dataName) {
    std::string checkpointEntryName(objName);
    if (!(objName.empty() || dataName.empty())) {
       checkpointEntryName.append("_");
@@ -687,7 +688,9 @@ void Checkpointer::checkpointToDirectory(std::string const &directory) {
          mTimeInfoCheckpointEntry->remove(checkpointDirectory);
       }
    }
-   notify(mObserverTable, std::make_shared<PrepareCheckpointWriteMessage const>(checkpointDirectory));
+   notify(
+         mObserverTable,
+         std::make_shared<PrepareCheckpointWriteMessage const>(checkpointDirectory));
    ensureDirExists(getCommunicator(), checkpointDirectory.c_str());
    for (auto &c : mCheckpointRegistry) {
       c->write(checkpointDirectory, mTimeInfo.mSimTime, mVerifyWritesFlag);
@@ -748,7 +751,11 @@ void Checkpointer::rotateOldCheckpoints(std::string const &newCheckpointDirector
          if (statstatus == 0 && (oldcp_stat.st_mode & S_IFDIR)) {
             int rmdirstatus = rmdir(oldestCheckpointDir.c_str());
             if (rmdirstatus) {
-               ErrorLog().printf("Unable to delete older checkpoint \"%s\": rmdir command returned %d (%s)\n", oldestCheckpointDir.c_str(), errno, std::strerror(errno));
+               ErrorLog().printf(
+                     "Unable to delete older checkpoint \"%s\": rmdir command returned %d (%s)\n",
+                     oldestCheckpointDir.c_str(),
+                     errno,
+                     std::strerror(errno));
             }
          }
       }

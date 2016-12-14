@@ -24,7 +24,10 @@ class ConfigFileArguments : public Arguments {
     * The given config file is opened as an ifstream and passed
     * to Arguments::initialize().
     */
-   ConfigFileArguments(std::string const &configFile, MPI_Comm communicator, bool allowUnrecognizedArguments);
+   ConfigFileArguments(
+         std::string const &configFile,
+         MPI_Comm communicator,
+         bool allowUnrecognizedArguments);
 
    /**
     * The destructor for ConfigFileArguments.
@@ -41,13 +44,19 @@ class ConfigFileArguments : public Arguments {
     * the communicator.  That string is then converted to an input stringstream
     * which is passed to Arguments::resetState.
     */
-   void resetState(std::string const &configFile, MPI_Comm communicator, bool allowUnrecognizedArguments);
+   void resetState(
+         std::string const &configFile,
+         MPI_Comm communicator,
+         bool allowUnrecognizedArguments);
 
   protected:
    /**
     * Called by the ConfigFileArguments constructor. It calls resetState with its arguments.
     */
-   int initialize(std::string const &configFile, MPI_Comm communicator, bool allowUnrecognizedArguments);
+   int initialize(
+         std::string const &configFile,
+         MPI_Comm communicator,
+         bool allowUnrecognizedArguments);
 
   private:
    /**
