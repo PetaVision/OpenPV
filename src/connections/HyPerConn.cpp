@@ -2101,7 +2101,9 @@ int HyPerConn::writeTextWeights(const char *filename, int k) {
 }
 
 int HyPerConn::readStateFromCheckpoint(Checkpointer *checkpointer) {
-   checkpointer->readNamedCheckpointEntry(std::string(name), std::string("W"));
+   if (initializeFromCheckpointFlag) {
+      checkpointer->readNamedCheckpointEntry(std::string(name), std::string("W"));
+   }
    return PV_SUCCESS;
 }
 

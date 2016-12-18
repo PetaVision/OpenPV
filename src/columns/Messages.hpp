@@ -44,14 +44,24 @@ class RegisterDataMessage : public BaseMessage {
    T *mDataRegistry;
 };
 
-template <typename T> // In practice, T is always Checkpointer.
 class InitializeStateMessage : public BaseMessage {
   public:
-   InitializeStateMessage(T *dataRegistry) {
-      setMessageType("InitializeState");
+   InitializeStateMessage() { setMessageType("InitializeState"); }
+};
+
+template <typename T> // In practice, T is always Checkpointer.
+class ReadStateFromCheckpointMessage : public BaseMessage {
+  public:
+   ReadStateFromCheckpointMessage(T *dataRegistry) {
+      setMessageType("ReadStateFromCheckpoint");
       mDataRegistry = dataRegistry;
    }
    T *mDataRegistry;
+};
+
+class CopyInitialStateToGPUMessage : public BaseMessage {
+  public:
+   CopyInitialStateToGPUMessage() { setMessageType("CopyInitialStateToGPU"); }
 };
 
 class AdaptTimestepMessage : public BaseMessage {

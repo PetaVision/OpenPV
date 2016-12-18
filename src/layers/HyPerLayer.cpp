@@ -575,29 +575,8 @@ void HyPerLayer::checkpointRandState(
          bufferName);
 }
 
-int HyPerLayer::initializeState(Checkpointer *checkpointer) {
-   int status       = PV_SUCCESS;
-   PVParams *params = parent->parameters();
-
-   if (parent->getCheckpointReadFlag()) {
-      // Oct 14, 2016. Layer checkpoint reading/writing now handled by registerData()
-   }
-   else if (
-         parent->getInitializeFromCheckpointDir() && parent->getInitializeFromCheckpointDir()[0]) {
-      assert(!params->presentAndNotBeenRead(name, "initializeFromCheckpointFlag"));
-      if (initializeFromCheckpointFlag) {
-         status = readStateFromCheckpoint(checkpointer);
-      }
-      else {
-         status = setInitialValues();
-      }
-   }
-   else {
-      status = setInitialValues();
-   }
-#ifdef PV_USE_CUDA
-   copyInitialStateToGPU();
-#endif // PV_USE_CUDA
+int HyPerLayer::initializeState() {
+   int status = setInitialValues();
    return status;
 }
 
@@ -2207,13 +2186,12 @@ int HyPerLayer::outputState(double timef, bool last) {
 }
 
 int HyPerLayer::readStateFromCheckpoint(Checkpointer *checkpointer) {
-   // If timeptr is NULL, the timestamps in the pvp files are ignored.  If non-null, they are
-   // compared to the value of *timeptr and
-   // a warning is issued if there is a discrepancy.
    int status = PV_SUCCESS;
-   status     = readActivityFromCheckpoint(checkpointer);
-   status     = readVFromCheckpoint(checkpointer);
-   status     = readDelaysFromCheckpoint(checkpointer);
+   if (initializeFromCheckpointFlag) {
+      status = readActivityFromCheckpoint(checkpointer);
+      status = readVFromCheckpoint(checkpointer);
+      status = readDelaysFromCheckpoint(checkpointer);
+   }
    return status;
 }
 

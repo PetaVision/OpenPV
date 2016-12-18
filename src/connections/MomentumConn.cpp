@@ -260,8 +260,11 @@ int MomentumConn::registerData(Checkpointer *checkpointer, std::string const &ob
 }
 
 int MomentumConn::readStateFromCheckpoint(Checkpointer *checkpointer) {
-   int status = HyPerConn::readStateFromCheckpoint(checkpointer);
-   checkpointer->readNamedCheckpointEntry(std::string(name), std::string("prev_dW"));
+   int status = PV_SUCCESS;
+   if (initializeFromCheckpointFlag) {
+      status = HyPerConn::readStateFromCheckpoint(checkpointer);
+      checkpointer->readNamedCheckpointEntry(std::string(name), std::string("prev_dW"));
+   }
    return status;
 }
 

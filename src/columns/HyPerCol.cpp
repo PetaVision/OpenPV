@@ -766,13 +766,20 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
       // This needs to happen after initPublishers so that we can initialize
       // the values in the data stores, and before the mLayers' publish calls
       // so that the data in border regions gets copied correctly.
-      notify(std::make_shared<InitializeStateMessage<Checkpointer>>(mCheckpointer));
+      notify(std::make_shared<InitializeStateMessage>());
       if (mCheckpointReadFlag) {
          mCheckpointer->checkpointRead(&mSimTime, &mCurrentStep);
       }
-      // Note: ideally, in checkpointReadFlag is set, calling InitializeState should
-      // be unnecessary. However, currently initializeState does some CUDA kernel
-      // initializations that still need to happen when reading from checkpoint.
+      else {
+         notify(std::make_shared<ReadStateFromCheckpointMessage<Checkpointer>>(mCheckpointer));
+      }
+// Note: ideally, in checkpointReadFlag is set, calling InitializeState should
+// be unnecessary. However, currently initializeState does some CUDA kernel
+// initializations that still need to happen when reading from checkpoint.
+
+#ifdef PV_USE_CUDA
+      notify(std::make_shared<CopyInitialStateToGPUMessage>());
+#endif // PV_USE_CUDA
 
       // Initial normalization moved here to facilitate normalizations of groups
       // of HyPerConns

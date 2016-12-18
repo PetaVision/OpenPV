@@ -193,13 +193,17 @@ int LIFGap::registerData(Checkpointer *checkpointer, std::string const &objName)
 }
 
 int LIFGap::readStateFromCheckpoint(Checkpointer *checkpointer) {
-   int status = LIF::readStateFromCheckpoint(checkpointer);
-   status     = readGapStrengthFromCheckpoint(checkpointer);
+   int status = PV_SUCCESS;
+   if (initializeFromCheckpointFlag) {
+      status = LIF::readStateFromCheckpoint(checkpointer);
+      status = readGapStrengthFromCheckpoint(checkpointer);
+   }
    return status;
 }
 
 int LIFGap::readGapStrengthFromCheckpoint(Checkpointer *checkpointer) {
    checkpointer->readNamedCheckpointEntry(std::string(name), std::string("gapStrength"));
+   return PV_SUCCESS;
 }
 
 int LIFGap::updateState(double time, double dt) {

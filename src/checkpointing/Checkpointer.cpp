@@ -393,6 +393,9 @@ void Checkpointer::readNamedCheckpointEntry(
 }
 
 void Checkpointer::readNamedCheckpointEntry(std::string const &checkpointEntryName) {
+   if (mInitializeFromCheckpointDir == nullptr or mInitializeFromCheckpointDir[0] == '\0') {
+      return;
+   }
    std::string checkpointDirectory = generateDirectory(mInitializeFromCheckpointDir);
    for (auto &c : mCheckpointRegistry) {
       if (c->getName() == checkpointEntryName) {
