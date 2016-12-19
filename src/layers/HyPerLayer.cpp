@@ -1073,11 +1073,12 @@ int HyPerLayer::respondLayerCheckNotANumber(LayerCheckNotANumberMessage const *m
       return status;
    }
    auto layerData = getLayerData();
-   int const N    = getNumExtended();
+   int const N    = getNumExtendedAllBatches();
    for (int n = 0; n < N; n++) {
       float a = layerData[n];
       if (a != a) {
          status = PV_FAILURE;
+         break;
       }
    }
    if (status != PV_SUCCESS) {

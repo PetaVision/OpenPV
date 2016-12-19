@@ -705,6 +705,7 @@ int RescaleLayer::updateState(double timef, double dt) {
          for (int iY = 0; iY < ny; iY++) {
             for (int iX = 0; iX < nx; iX++) {
                float sumexpx = 0;
+               float maxvalue = FLT_MIN; // To prevent overflow, we subtract the max raw value before taking the exponential
                for (int iF = 0; iF < nf; iF++) {
                   int kextOrig = kIndex(
                         iX,
@@ -713,7 +714,17 @@ int RescaleLayer::updateState(double timef, double dt) {
                         nx + haloOrig->lt + haloOrig->rt,
                         ny + haloOrig->dn + haloOrig->up,
                         nf);
-                  sumexpx += expf(originalABatch[kextOrig]);
+                  maxvalue = std::max(maxvalue, originalABatch[kextOrig]);
+               }
+               for (int iF = 0; iF < nf; iF++) {
+                  int kextOrig = kIndex(
+                        iX,
+                        iY,
+                        iF,
+                        nx + haloOrig->lt + haloOrig->rt,
+                        ny + haloOrig->dn + haloOrig->up,
+                        nf);
+                  sumexpx += expf(originalABatch[kextOrig] - maxvalue);
                }
                // can't pragma omp parallel the for loops because it was already parallelized in the
                // outermost for-loop
@@ -728,7 +739,7 @@ int RescaleLayer::updateState(double timef, double dt) {
                   int kext =
                         kIndex(iX, iY, iF, nx + halo->lt + halo->rt, ny + halo->dn + halo->up, nf);
                   if (sumexpx != 0.0f && sumexpx == sumexpx) { // Check for zero and NaN
-                     ABatch[kext] = expf(originalABatch[kextOrig]) / sumexpx;
+                     ABatch[kext] = expf(originalABatch[kextOrig] - maxvalue) / sumexpx;
                   }
                   else {
                      ABatch[kext] = 0.0f;

@@ -292,7 +292,7 @@ int InputLayer::postProcess(double timef, double dt) {
 
             // set std dev to 1
             float image_std = sqrtf(image_ave2 - image_ave * image_ave);
-            if (image_std == 0) {
+            if (image_std == 0 || image_std != image_std) {
                for (int k = 0; k < numExtended; k++) {
                   buf[k] = 0.0f;
                }
