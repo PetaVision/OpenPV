@@ -119,12 +119,12 @@ class Checkpointer : public Subject {
     */
    virtual void ioParam_initializeFromCheckpointDir(enum ParamsIOFlag ioFlag, PVParams *params);
 
+   // defaultInitializeFromCheckpointFlag was made obsolete Dec 18, 2016.
    /**
-    * @brief defaultInitializeFromCheckpointFlag: Flag to set the default for
-    * layers and connections.
-    * @details Sets the default for layers and connections to use for initialize
-    * from checkpoint based off of initializeFromCheckpointDir. Only used if
-    * initializeFromCheckpointDir is set.
+    * @brief defaultInitializeFromCheckpointFlag is obsolete. If
+    * initializeFromCheckpointDir is set to a nonempty string, all
+    * objects will initialize from the checkpoint unless they set their
+    * individual initializeFromCheckpointFlag to false.
     */
    virtual void
    ioParam_defaultInitializeFromCheckpointFlag(enum ParamsIOFlag ioFlag, PVParams *params);

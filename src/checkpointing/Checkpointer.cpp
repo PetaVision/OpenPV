@@ -336,20 +336,26 @@ void Checkpointer::ioParam_initializeFromCheckpointDir(enum ParamsIOFlag ioFlag,
          &mInitializeFromCheckpointDir,
          "",
          true);
+   mDefaultInitializeFromCheckpointFlag =
+         mInitializeFromCheckpointDir != nullptr and mInitializeFromCheckpointDir[0] != '\0';
 }
 
+// defaultInitializeFromCheckpointFlag was made obsolete Dec 18, 2016.
 void Checkpointer::ioParam_defaultInitializeFromCheckpointFlag(
       enum ParamsIOFlag ioFlag,
       PVParams *params) {
    assert(!params->presentAndNotBeenRead(mName.c_str(), "initializeFromCheckpointDir"));
    if (mInitializeFromCheckpointDir != nullptr && mInitializeFromCheckpointDir[0] != '\0') {
-      params->ioParamValue(
-            ioFlag,
-            mName.c_str(),
-            "defaultInitializeFromCheckpointFlag",
-            &mDefaultInitializeFromCheckpointFlag,
-            mDefaultInitializeFromCheckpointFlag,
-            true);
+      if (params->present(mName.c_str(), "defaultInitializeFromCheckpointFlag")) {
+         if (getCommunicator()->commRank() == 0) {
+            ErrorLog() << mName << ": defaultInitializeFromCheckpointFlag is obsolete.\n"
+                       << "If initializeFromCheckpointDir is non-empty, the objects in the\n"
+                       << "HyPerCol will initialize from checkpoint unless they set their\n"
+                       << "individual initializeFromCheckpointFlag parameter to false.\n";
+         }
+         MPI_Barrier(getCommunicator()->communicator());
+         exit(EXIT_FAILURE);
+      }
    }
 }
 
@@ -471,7 +477,8 @@ void Checkpointer::findWarmStartDirectory() {
       }
       FatalIf(
             mCheckpointReadDirectory.size() >= PV_PATH_MAX,
-            "Restart flag set, but inferred checkpoint read directory is too long (%zu bytes).\n",
+            "Restart flag set, but inferred checkpoint read directory is too long (%zu "
+            "bytes).\n",
             mCheckpointReadDirectory.size());
       memcpy(
             warmStartDirectoryBuffer,
@@ -757,7 +764,8 @@ void Checkpointer::rotateOldCheckpoints(std::string const &newCheckpointDirector
             int rmdirstatus = rmdir(oldestCheckpointDir.c_str());
             if (rmdirstatus) {
                ErrorLog().printf(
-                     "Unable to delete older checkpoint \"%s\": rmdir command returned %d (%s)\n",
+                     "Unable to delete older checkpoint \"%s\": rmdir command returned %d "
+                     "(%s)\n",
                      oldestCheckpointDir.c_str(),
                      errno,
                      std::strerror(errno));
