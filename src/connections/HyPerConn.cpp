@@ -652,8 +652,8 @@ void HyPerConn::ioParam_weightUpdatePeriod(enum ParamsIOFlag ioFlag) {
    if (plasticityFlag) {
       pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
       if (!triggerLayerName) {
-         parent->parameters()->ioParamValue(
-               ioFlag, name, "weightUpdatePeriod", &weightUpdatePeriod, parent->getDeltaTime());
+         parent->parameters()->ioParamValueRequired(
+               ioFlag, name, "weightUpdatePeriod", &weightUpdatePeriod);
       }
    }
 }

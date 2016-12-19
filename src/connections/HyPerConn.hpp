@@ -634,7 +634,10 @@ class HyPerConn : public BaseConnection {
    virtual void ioParam_weightInitType(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief weightUpdatePeriod: If plasticity flag is set, specifies the update period of weights
+    * @brief weightUpdatePeriod: If plasticity flag is set and there is no trigger layer,
+    * specifies the update period of weights. This parameter is required.
+    * To specify updating every time period, make the weightUpdatePeriod no bigger than
+    * the parent HyPerCol's dt parameter.
     */
    virtual void ioParam_weightUpdatePeriod(enum ParamsIOFlag ioFlag);
 
