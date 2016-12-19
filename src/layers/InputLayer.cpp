@@ -435,6 +435,19 @@ int InputLayer::registerData(Checkpointer *checkpointer, std::string const &objN
    return status;
 }
 
+int InputLayer::readStateFromCheckpoint(Checkpointer *checkpointer) {
+   int status = PV_SUCCESS;
+   if (initializeFromCheckpointFlag) {
+      int status = HyPerLayer::readStateFromCheckpoint(checkpointer);
+      if (mBatchIndexer) {
+         pvAssert(parent->getCommunicator()->commRank() == 0) {
+            mBatchIndexer->readStateFromCheckpoint(checkpointer);
+         }
+      }
+   }
+   return status;
+}
+
 int InputLayer::checkValidAnchorString(const char *offsetAnchor) {
    int status = PV_SUCCESS;
    if (offsetAnchor == NULL || strlen(offsetAnchor) != (size_t)2) {
