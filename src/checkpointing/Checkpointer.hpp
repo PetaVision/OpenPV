@@ -296,4 +296,6 @@ bool Checkpointer::registerCheckpointData(
 
 } // namespace PV
 
+#include "Checkpointer.tpp"
+
 #endif // CHECKPOINTER_HPP_

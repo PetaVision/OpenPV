@@ -809,16 +809,4 @@ void Checkpointer::writeTimers(std::string const &directory) {
 
 std::string const Checkpointer::mDefaultOutputPath = "output";
 
-namespace TextOutput {
-
-template <>
-void print(Checkpointer::TimeInfo const *dataPointer, size_t numValues, PrintStream &stream) {
-   for (size_t n = 0; n < numValues; n++) {
-      stream << "time = " << dataPointer[n].mSimTime << "\n";
-      stream << "timestep = " << dataPointer[n].mCurrentCheckpointStep << "\n";
-   }
-} // print()
-
-} // namespace TextOutput
-
 } // namespace PV
