@@ -182,7 +182,7 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
    }
    MPI_Bcast(&parsedStatus, 1, MPI_INT, rootproc, getCommunicator()->globalCommunicator());
 #else
-   int parsedStatus = this->mParams->getParseStatus();
+   int parsedStatus                         = this->mParams->getParseStatus();
 #endif
    if (parsedStatus != 0) {
       exit(parsedStatus);
@@ -907,14 +907,15 @@ int HyPerCol::setNumThreads(bool printMessagesFlag) {
       }
    }
 #else // PV_USE_OPENMP_THREADS
-   if (mPVInitObj->getUseDefaultNumThreads()) {
+   Configuration::IntOptional numThreadsArg = mPVInitObj->getIntOptionalArgument("NumThreads");
+   if (numThreadsArg.mUseDefault) {
       num_threads = 1;
       if (printMsgs0) {
          InfoLog().printf("Number of threads used is 1 (Compiled without OpenMP.\n");
       }
    }
    else {
-      num_threads = mPVInitObj->getNumThreads();
+      num_threads = numThreadsArg.mValue;
       if (num_threads < 0) {
          num_threads = 1;
       }
