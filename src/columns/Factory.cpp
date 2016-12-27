@@ -62,16 +62,17 @@
 #include "connections/TransposePoolingConn.hpp"
 
 #include "probes/AdaptiveTimeScaleProbe.hpp"
-#include "probes/KneeTimeScaleProbe.hpp"
 #include "probes/ColumnEnergyProbe.hpp"
 #include "probes/FirmThresholdCostFnLCAProbe.hpp"
 #include "probes/FirmThresholdCostFnProbe.hpp"
 #include "probes/KernelProbe.hpp"
+#include "probes/KneeTimeScaleProbe.hpp"
 #include "probes/L0NormLCAProbe.hpp"
 #include "probes/L0NormProbe.hpp"
 #include "probes/L1NormLCAProbe.hpp"
 #include "probes/L1NormProbe.hpp"
 #include "probes/L2NormProbe.hpp"
+#include "probes/LogTimeScaleProbe.hpp"
 #include "probes/PointLIFProbe.hpp"
 #include "probes/PointProbe.hpp"
 #include "probes/QuotientColProbe.hpp"
@@ -169,6 +170,7 @@ int Factory::registerCoreKeywords() {
    registerKeyword("TransposePoolingConn", Factory::create<TransposePoolingConn>);
    registerKeyword("AdaptiveTimeScaleProbe", Factory::create<AdaptiveTimeScaleProbe>);
    registerKeyword("KneeTimeScaleProbe", Factory::create<KneeTimeScaleProbe>);
+   registerKeyword("LogTimeScaleProbe", Factory::create<LogTimeScaleProbe>);
    registerKeyword("ColumnEnergyProbe", Factory::create<ColumnEnergyProbe>);
    registerKeyword("FirmThresholdCostFnLCAProbe", Factory::create<FirmThresholdCostFnLCAProbe>);
    registerKeyword("FirmThresholdCostFnProbe", Factory::create<FirmThresholdCostFnProbe>);

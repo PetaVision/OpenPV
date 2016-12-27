@@ -1,5 +1,6 @@
 set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/AbstractNormProbe.cpp
+   ${SUBDIR}/LogTimeScaleProbe.cpp
    ${SUBDIR}/KneeTimeScaleProbe.cpp
    ${SUBDIR}/AdaptiveTimeScaleProbe.cpp
    ${SUBDIR}/BaseConnectionProbe.cpp
@@ -27,6 +28,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
 set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/AbstractNormProbe.hpp
    ${SUBDIR}/AdaptiveTimeScaleProbe.hpp
+   ${SUBDIR}/LogTimeScaleProbe.hpp
    ${SUBDIR}/KneeTimeScaleProbe.hpp
    ${SUBDIR}/BaseConnectionProbe.hpp
    ${SUBDIR}/BaseHyPerConnProbe.hpp
