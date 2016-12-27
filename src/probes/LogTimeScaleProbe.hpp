@@ -21,7 +21,6 @@ class LogTimeScaleProbe : public AdaptiveTimeScaleProbe {
    double mLogThresh = DBL_MAX_EXP;
    double mLogSlope  = 1.0;
 };
-
 }
 
 #endif

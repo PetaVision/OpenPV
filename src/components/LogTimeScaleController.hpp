@@ -22,14 +22,13 @@ class LogTimeScaleController : public AdaptiveTimeScaleController {
          double logThresh,
          double logSlope);
 
-   virtual std::vector<double> 
+   virtual std::vector<double>
    calcTimesteps(double timeValue, std::vector<double> const &rawTimeScales);
 
   protected:
    double mLogThresh = DBL_MAX_EXP;
    double mLogSlope  = 1.0;
 };
-
 }
 
 #endif

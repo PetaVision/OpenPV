@@ -37,7 +37,7 @@ class AdaptiveTimeScaleController : public CheckpointerDataInterface {
          bool verifyWrites);
    virtual ~AdaptiveTimeScaleController();
    virtual int registerData(Checkpointer *checkpointer, std::string const &objName) override;
-   virtual std::vector<double> 
+   virtual std::vector<double>
    calcTimesteps(double timeValue, std::vector<double> const &rawTimeScales);
    void writeTimestepInfo(double timeValue, PrintStream &stream);
 

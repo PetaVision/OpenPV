@@ -3,9 +3,7 @@
 
 namespace PV {
 
-LogTimeScaleProbe::LogTimeScaleProbe(char const *name, HyPerCol *hc) {
-   initialize(name, hc);
-}
+LogTimeScaleProbe::LogTimeScaleProbe(char const *name, HyPerCol *hc) { initialize(name, hc); }
 
 int LogTimeScaleProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = AdaptiveTimeScaleProbe::ioParamsFillGroup(ioFlag);
@@ -37,5 +35,4 @@ void LogTimeScaleProbe::allocateTimeScaleController() {
          mLogThresh,
          mLogSlope);
 }
-
 }

@@ -20,7 +20,6 @@ class KneeTimeScaleProbe : public AdaptiveTimeScaleProbe {
    double mKneeThresh = 1.0;
    double mKneeSlope  = 1.0;
 };
-
 }
 
 #endif

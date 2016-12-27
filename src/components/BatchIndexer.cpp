@@ -105,11 +105,7 @@ int BatchIndexer::registerData(Checkpointer *checkpointer, std::string const &ob
          false /*do not broadcast*/);
    if (mBatchMethod == RANDOM) {
       checkpointer->registerCheckpointData<int>(
-            objName,
-            std::string("RandomSeed"),
-            &mRandomSeed,
-            1,
-            false /*do not broadcast*/);
+            objName, std::string("RandomSeed"), &mRandomSeed, 1, false /*do not broadcast*/);
    }
    return PV_SUCCESS;
 }
