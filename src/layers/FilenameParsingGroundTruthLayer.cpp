@@ -58,7 +58,7 @@ void FilenameParsingGroundTruthLayer::ioParam_classList(enum ParamsIOFlag ioFlag
 }
 
 int FilenameParsingGroundTruthLayer::allocateDataStructures() {
-   ANNLayer::allocateDataStructures();
+   int status = ANNLayer::allocateDataStructures();
 
    std::ifstream mInputFile;
    std::string outPath("");
@@ -80,6 +80,7 @@ int FilenameParsingGroundTruthLayer::allocateDataStructures() {
       mClasses.push_back(line);
    }
    mInputFile.close();
+   return status; 
 }
 
 int FilenameParsingGroundTruthLayer::communicateInitInfo() {
