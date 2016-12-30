@@ -12,7 +12,7 @@
 
 namespace PV {
 
-class FilenameParsingGroundTruthLayer : public PV::ANNLayer {
+class FilenameParsingGroundTruthLayer : public ANNLayer {
 
   public:
    FilenameParsingGroundTruthLayer(const char *name, HyPerCol *hc);
@@ -23,14 +23,17 @@ class FilenameParsingGroundTruthLayer : public PV::ANNLayer {
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
   private:
-   std::ifstream mInputFile;
+
    std::vector<std::string> mClasses;
    char *mInputLayerName    = nullptr;
+   char *mClassListFileName = nullptr;
    InputLayer *mInputLayer  = nullptr;
    float mGtClassTrueValue  = 1.0f;
    float mGtClassFalseValue = 0.0f;
 
   protected:
+   virtual int allocateDataStructures() override;
+
    /**
     * List of protected paramters needed from FilenameParsingGroundTruthLayer
     * @name FilenameParsingGroundTruthLayer Paramters
@@ -38,10 +41,10 @@ class FilenameParsingGroundTruthLayer : public PV::ANNLayer {
     */
 
    /**
-    * @brief classes: list the name of the .txt file that holds the list of imageListPath features
+    * @brief clasList: path to the .txt file that holds the list of imageListPath features
     * that will parse to different classifications
-    * @details classes.txt must be located in the output directory, the classifers separated by a
-    * new line, and must be discerning
+    * @details If this is not specified, the layer will attempt to use "classes.txt" in the output
+    * directory. The identifying strings must be separated by a new line, and mutually exclusive.
     * In the case of CIFAR images, the pictures are organized in folders /0/ /1/ /2/ ... etc,
     * therefore those are the classifers
     * When an image is passed to the movie layer, the classification is parsed and a corresponding
@@ -49,7 +52,7 @@ class FilenameParsingGroundTruthLayer : public PV::ANNLayer {
     * gtClassTrueValue and the remaining neurons are set to the value set by gtClassFalseValue
     */
 
-   virtual void ioParam_classes(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_classList(enum ParamsIOFlag ioFlag);
 
    /**
     * @brief movieLayerName: lists name of the movie layer from which the imageListPath is used to
