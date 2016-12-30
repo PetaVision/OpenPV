@@ -23,7 +23,6 @@ class FilenameParsingGroundTruthLayer : public ANNLayer {
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
   private:
-
    std::vector<std::string> mClasses;
    char *mInputLayerName    = nullptr;
    char *mClassListFileName = nullptr;

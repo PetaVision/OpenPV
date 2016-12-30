@@ -49,9 +49,11 @@ void FilenameParsingGroundTruthLayer::ioParam_inputLayerName(enum ParamsIOFlag i
 }
 
 void FilenameParsingGroundTruthLayer::ioParam_classList(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamString(ioFlag, name, "classList", &mClassListFileName, mClassListFileName, false);
+   parent->parameters()->ioParamString(
+         ioFlag, name, "classList", &mClassListFileName, mClassListFileName, false);
    if (mClassListFileName == nullptr) {
-      WarnLog() << getName() << ": No classList specified. Looking for classes.txt in output directory.\n";
+      WarnLog() << getName()
+                << ": No classList specified. Looking for classes.txt in output directory.\n";
    }
 }
 
@@ -61,7 +63,7 @@ int FilenameParsingGroundTruthLayer::allocateDataStructures() {
    std::ifstream mInputFile;
    std::string outPath("");
 
-   if (mClassListFileName != nullptr) {   
+   if (mClassListFileName != nullptr) {
       outPath += std::string(mClassListFileName);
    }
    else {
