@@ -706,19 +706,21 @@ void HyPerConn::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {
 
 void HyPerConn::ioParam_dWMaxDecayInterval(enum ParamsIOFlag ioFlag) {
    if (plasticityFlag) {
-      parent->parameters()->ioParamValue(ioFlag, name, "dWMaxDecayInterval", &mDWMaxDecayInterval, mDWMaxDecayInterval, false);
+      parent->parameters()->ioParamValue(
+            ioFlag, name, "dWMaxDecayInterval", &mDWMaxDecayInterval, mDWMaxDecayInterval, false);
    }
 }
 
 void HyPerConn::ioParam_dWMaxDecayFactor(enum ParamsIOFlag ioFlag) {
    if (plasticityFlag) {
-      parent->parameters()->ioParamValue(ioFlag, name, "dWMaxDecayFactor", &mDWMaxDecayFactor, mDWMaxDecayFactor, false);
-      FatalIf(mDWMaxDecayFactor < 0.0f || mDWMaxDecayFactor >= 1.0f,
-            "%s: dWMaxDecayFactor must be in the interval [0.0, 1.0)\n", getName());
+      parent->parameters()->ioParamValue(
+            ioFlag, name, "dWMaxDecayFactor", &mDWMaxDecayFactor, mDWMaxDecayFactor, false);
+      FatalIf(
+            mDWMaxDecayFactor < 0.0f || mDWMaxDecayFactor >= 1.0f,
+            "%s: dWMaxDecayFactor must be in the interval [0.0, 1.0)\n",
+            getName());
    }
 }
-
-
 
 void HyPerConn::unsetAccumulateType() {
    if (parent->columnId() == 0) {
@@ -2321,11 +2323,11 @@ int HyPerConn::updateState(double simTime, double dt) {
 
       if (mDWMaxDecayInterval > 0) {
          if (--mDWMaxDecayTimer < 0) {
-            float oldDWMax = dWMax;
+            float oldDWMax   = dWMax;
             mDWMaxDecayTimer = mDWMaxDecayInterval;
             dWMax *= 1.0f - mDWMaxDecayFactor;
-            InfoLog() << getName()
-               << ": dWMax decayed from " << oldDWMax << " to " << dWMax << "\n";
+            InfoLog() << getName() << ": dWMax decayed from " << oldDWMax << " to " << dWMax
+                      << "\n";
          }
       }
    }
