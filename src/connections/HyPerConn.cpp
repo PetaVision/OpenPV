@@ -705,13 +705,17 @@ void HyPerConn::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerConn::ioParam_dWMaxDecayInterval(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "dWMaxDecayInterval", &mDWMaxDecayInterval, mDWMaxDecayInterval, false);
+   if (plasticityFlag) {
+      parent->parameters()->ioParamValue(ioFlag, name, "dWMaxDecayInterval", &mDWMaxDecayInterval, mDWMaxDecayInterval, false);
+   }
 }
 
 void HyPerConn::ioParam_dWMaxDecayFactor(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "dWMaxDecayFactor", &mDWMaxDecayFactor, mDWMaxDecayFactor, false);
-   FatalIf(mDWMaxDecayFactor < 0.0f || mDWMaxDecayFactor >= 1.0f,
-         "%s: dWMaxDecayFactor must be in the interval [0.0, 1.0)\n", getName());
+   if (plasticityFlag) {
+      parent->parameters()->ioParamValue(ioFlag, name, "dWMaxDecayFactor", &mDWMaxDecayFactor, mDWMaxDecayFactor, false);
+      FatalIf(mDWMaxDecayFactor < 0.0f || mDWMaxDecayFactor >= 1.0f,
+            "%s: dWMaxDecayFactor must be in the interval [0.0, 1.0)\n", getName());
+   }
 }
 
 
