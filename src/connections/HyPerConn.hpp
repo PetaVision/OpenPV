@@ -500,6 +500,10 @@ class HyPerConn : public BaseConnection {
 
    Random *randState;
 
+   int mDWMaxDecayInterval = 0; // How many weight updates between each dWMax modification
+   int mDWMaxDecayTimer    = 0; // Number of updates left before next dWMax modification
+   float mDWMaxDecayFactor = 0.0f; // Each modification is dWMax = dWMax * (1.0 - decayFactor);
+
   protected:
    HyPerConn();
    virtual int initNumWeightPatches();
@@ -801,6 +805,7 @@ class HyPerConn : public BaseConnection {
     * @brief maskLayerName: If using mask, specifies which feature dim to use for the mask
     * @details Defaults to -1, which means point wise mask
     */
+
    virtual void ioParam_maskFeatureIdx(enum ParamsIOFlag ioFlag);
 
 #ifdef PV_USE_CUDA
@@ -819,6 +824,8 @@ class HyPerConn : public BaseConnection {
     */
    virtual void ioParam_weightSparsity(enum ParamsIOFlag ioFlag);
 
+   virtual void ioParam_dWMaxDecayInterval(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_dWMaxDecayFactor(enum ParamsIOFlag ioFlag);
    /** @} */
 
    int setPreLayerName(const char *pre_name);

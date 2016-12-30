@@ -551,6 +551,8 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_useMask(ioFlag);
    ioParam_maskLayerName(ioFlag);
    ioParam_maskFeatureIdx(ioFlag);
+   ioParam_dWMaxDecayInterval(ioFlag);
+   ioParam_dWMaxDecayFactor(ioFlag);
 
 #ifdef PV_USE_CUDA
    ioParam_gpuGroupIdx(ioFlag);
@@ -701,6 +703,18 @@ void HyPerConn::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {
       }
    }
 }
+
+void HyPerConn::ioParam_dWMaxDecayInterval(enum ParamsIOFlag ioFlag) {
+   parent->parameters()->ioParamValue(ioFlag, name, "dWMaxDecayInterval", &mDWMaxDecayInterval, mDWMaxDecayInterval, false);
+}
+
+void HyPerConn::ioParam_dWMaxDecayFactor(enum ParamsIOFlag ioFlag) {
+   parent->parameters()->ioParamValue(ioFlag, name, "dWMaxDecayFactor", &mDWMaxDecayFactor, mDWMaxDecayFactor, false);
+   FatalIf(mDWMaxDecayFactor < 0.0f || mDWMaxDecayFactor >= 1.0f,
+         "%s: dWMaxDecayFactor must be in the interval [0.0, 1.0)\n", getName());
+}
+
+
 
 void HyPerConn::unsetAccumulateType() {
    if (parent->columnId() == 0) {
@@ -1550,6 +1564,10 @@ int HyPerConn::allocateDataStructures() {
       batchSkip[i] = false;
    }
 
+   if (mDWMaxDecayInterval > 0) {
+      mDWMaxDecayTimer = mDWMaxDecayInterval;
+   }
+
    return status;
 }
 
@@ -2296,6 +2314,16 @@ int HyPerConn::updateState(double simTime, double dt) {
       lastUpdateTime = simTime;
       computeNewWeightUpdateTime(simTime, weightUpdateTime);
       needFinalize = true;
+
+      if (mDWMaxDecayInterval > 0) {
+         if (--mDWMaxDecayTimer < 0) {
+            float oldDWMax = dWMax;
+            mDWMaxDecayTimer = mDWMaxDecayInterval;
+            dWMax *= 1.0f - mDWMaxDecayFactor;
+            InfoLog() << getName()
+               << ": dWMax decayed from " << oldDWMax << " to " << dWMax << "\n";
+         }
+      }
    }
    update_timer->stop();
    lastTimeUpdateCalled = simTime;
