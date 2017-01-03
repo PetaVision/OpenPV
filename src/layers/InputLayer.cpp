@@ -119,6 +119,7 @@ void InputLayer::initializeBatchIndexer(int fileCount) {
             mSkipFrameIndex.at(globalBatchOffset + b));
       mBatchIndexer->initializeBatch(b);
    }
+   mBatchIndexer->setRandomSeed(mRandomSeed);
 }
 
 // Virtual method used to spend multiple display periods on one file.

@@ -21,7 +21,7 @@ class BatchIndexer : public CheckpointerDataInterface {
    void specifyBatching(int localBatchIndex, int startIndex, int skipAmount);
    void initializeBatch(int localBatchIndex);
    void shuffleLookupTable();
-   void setRandomSeed(int seed) { mRandomSeed = seed; }
+   void setRandomSeed(int seed);
    virtual int registerData(Checkpointer *checkpointer, std::string const &objName) override;
    void setIndices(const std::vector<int> &indices) { mIndices = indices; }
    void setWrapToStartIndex(bool value) { mWrapToStartIndex = value; }

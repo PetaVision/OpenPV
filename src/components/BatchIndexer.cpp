@@ -77,6 +77,10 @@ void BatchIndexer::initializeBatch(int localBatchIndex) {
    }
    mIndices.at(localBatchIndex) = mStartIndices.at(localBatchIndex);
 }
+void BatchIndexer::setRandomSeed(int seed) {
+   mRandomSeed = seed; 
+   shuffleLookupTable();
+}
 
 // This clears the current file index lookup table and fills it with
 // randomly ordered ints from 0 to mFileCount. The random seed is
