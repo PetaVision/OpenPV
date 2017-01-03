@@ -13,6 +13,7 @@ include(PVAddExecutable)
 set(TESTS_SHARED_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Shared")
 
 set(PV_SYSTEM_TEST_THREADS "" CACHE STRING "Defines the number of threads to use for system tests (empty string for max)")
+set(PV_SYSTEM_TEST_COMMAND "" CACHE STRING "Defines the program that should invoke the test (if empty, ctest calls the test directly)")
 
 # Make sure that PV_SYSTEM_TEST_THREADS is a number
 if("${PV_SYSTEM_TEST_THREADS}" MATCHES "^([0-9]+|)$")
