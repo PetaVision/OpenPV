@@ -704,9 +704,9 @@ int RescaleLayer::updateState(double timef, double dt) {
 #endif
          for (int iY = 0; iY < ny; iY++) {
             for (int iX = 0; iX < nx; iX++) {
-               float sumexpx  = 0;
-               float maxvalue = FLT_MIN; // To prevent overflow, we subtract the max raw value
-                                         // before taking the exponential
+               float sumexpx = 0;
+               // To prevent overflow, we subtract the max raw value before taking the exponential
+               float maxvalue = FLT_MIN;
                for (int iF = 0; iF < nf; iF++) {
                   int kextOrig = kIndex(
                         iX,

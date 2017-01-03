@@ -20,11 +20,14 @@ FilenameParsingGroundTruthLayer::FilenameParsingGroundTruthLayer(const char *nam
    initialize(name, hc);
 }
 
-FilenameParsingGroundTruthLayer::~FilenameParsingGroundTruthLayer() { free(mInputLayerName); }
+FilenameParsingGroundTruthLayer::~FilenameParsingGroundTruthLayer() {
+   free(mInputLayerName);
+   free(mClassListFileName);
+}
 
 int FilenameParsingGroundTruthLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = ANNLayer::ioParamsFillGroup(ioFlag);
-   ioParam_classes(ioFlag);
+   ioParam_classList(ioFlag);
    ioParam_inputLayerName(ioFlag);
    ioParam_gtClassTrueValue(ioFlag);
    ioParam_gtClassFalseValue(ioFlag);
@@ -45,9 +48,29 @@ void FilenameParsingGroundTruthLayer::ioParam_inputLayerName(enum ParamsIOFlag i
    parent->parameters()->ioParamStringRequired(ioFlag, name, "inputLayerName", &mInputLayerName);
 }
 
-void FilenameParsingGroundTruthLayer::ioParam_classes(enum ParamsIOFlag ioFlag) {
-   std::string outPath = parent->getOutputPath();
-   outPath             = outPath + "/classes.txt";
+void FilenameParsingGroundTruthLayer::ioParam_classList(enum ParamsIOFlag ioFlag) {
+   parent->parameters()->ioParamString(
+         ioFlag, name, "classList", &mClassListFileName, mClassListFileName, false);
+   if (mClassListFileName == nullptr) {
+      WarnLog() << getName()
+                << ": No classList specified. Looking for classes.txt in output directory.\n";
+   }
+}
+
+int FilenameParsingGroundTruthLayer::allocateDataStructures() {
+   int status = ANNLayer::allocateDataStructures();
+
+   std::ifstream mInputFile;
+   std::string outPath("");
+
+   if (mClassListFileName != nullptr) {
+      outPath += std::string(mClassListFileName);
+   }
+   else {
+      outPath += parent->getOutputPath();
+      outPath += "/classes.txt";
+   }
+
    mInputFile.open(outPath.c_str(), std::ifstream::in);
    FatalIf(!mInputFile.is_open(), "%s: Unable to open file %s\n", getName(), outPath.c_str());
 
@@ -57,6 +80,7 @@ void FilenameParsingGroundTruthLayer::ioParam_classes(enum ParamsIOFlag ioFlag) 
       mClasses.push_back(line);
    }
    mInputFile.close();
+   return status;
 }
 
 int FilenameParsingGroundTruthLayer::communicateInitInfo() {
