@@ -77,7 +77,7 @@ void BatchIndexer::initializeBatch(int localBatchIndex) {
    }
    mIndices.at(localBatchIndex) = mStartIndices.at(localBatchIndex);
 }
-void BatchIndexer::setRandomSeed(int seed) {
+void BatchIndexer::setRandomSeed(unsigned int seed) {
    mRandomSeed = seed; 
    shuffleLookupTable();
 }
@@ -108,7 +108,7 @@ int BatchIndexer::registerData(Checkpointer *checkpointer, std::string const &ob
          mIndices.size(),
          false /*do not broadcast*/);
    if (mBatchMethod == RANDOM) {
-      checkpointer->registerCheckpointData<int>(
+      checkpointer->registerCheckpointData<unsigned int>(
             objName, std::string("RandomSeed"), &mRandomSeed, 1, false /*do not broadcast*/);
    }
    return PV_SUCCESS;
