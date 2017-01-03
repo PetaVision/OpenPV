@@ -27,12 +27,10 @@ void RandomSeed::initialize(unsigned int initialSeed) {
                                                   " is too small. Use a seed of at least "
               << minSeed << ".\n";
    }
-
    mInitialized = true;
+   mInitialSeed = initialSeed;
    mNextSeed    = initialSeed;
-   if (mInitialized) {
-      InfoLog() << "RandomSeed initialized to " << mNextSeed << ".\n";
-   }
+   InfoLog() << "RandomSeed initialized to " << mNextSeed << ".\n";
 }
 
 unsigned int RandomSeed::allocate(unsigned int numRequested) {

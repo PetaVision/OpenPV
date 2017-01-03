@@ -5,6 +5,7 @@
 
 #include "InputLayer.hpp"
 #include "utils/BufferUtilsMPI.hpp"
+#include "columns/RandomSeed.hpp"
 
 #include <algorithm>
 #include <cfloat>
@@ -119,6 +120,7 @@ void InputLayer::initializeBatchIndexer(int fileCount) {
             mSkipFrameIndex.at(globalBatchOffset + b));
       mBatchIndexer->initializeBatch(b);
    }
+   mBatchIndexer->setRandomSeed(RandomSeed::instance()->getInitialSeed() + mRandomSeed);
 }
 
 // Virtual method used to spend multiple display periods on one file.
