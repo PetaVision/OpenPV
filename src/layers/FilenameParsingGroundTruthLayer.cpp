@@ -80,7 +80,7 @@ int FilenameParsingGroundTruthLayer::allocateDataStructures() {
       mClasses.push_back(line);
    }
    mInputFile.close();
-   return status; 
+   return status;
 }
 
 int FilenameParsingGroundTruthLayer::communicateInitInfo() {
