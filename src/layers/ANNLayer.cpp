@@ -59,7 +59,11 @@ ANNLayer::ANNLayer(const char *name, HyPerCol *hc) {
    initialize(name, hc);
 }
 
-ANNLayer::~ANNLayer() {}
+ANNLayer::~ANNLayer() {
+   free(verticesV);
+   free(verticesA);
+   free(slopes);
+}
 
 int ANNLayer::initialize_base() {
    // Data members were initialized in the class member-declarations
@@ -136,7 +140,7 @@ void ANNLayer::ioParam_verticesV(enum ParamsIOFlag ioFlag) {
 
 void ANNLayer::ioParam_verticesA(enum ParamsIOFlag ioFlag) {
    pvAssert(verticesListInParams);
-   int numVerticesA;
+   int numVerticesA = numVertices;
    this->getParent()->parameters()->ioParamArray(
          ioFlag, this->getName(), "verticesA", &verticesA, &numVerticesA);
    if (ioFlag == PARAMS_IO_READ) {

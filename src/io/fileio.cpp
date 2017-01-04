@@ -580,7 +580,7 @@ int ensureDirExists(Communicator *comm, char const *dirname) {
 
    if (resultcode == 0) { // mOutputPath exists; now check if it's a directory.
       FatalIf(
-            !(pathstat.st_mode & S_IFDIR) && rank == 0,
+            rank == 0 && !(pathstat.st_mode & S_IFDIR),
             "Path \"%s\" exists but is not a directory\n",
             dirname);
    }

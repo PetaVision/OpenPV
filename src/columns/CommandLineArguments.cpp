@@ -90,6 +90,12 @@ void CommandLineArguments::resetState(
          (bool)dryRun);
    std::istringstream configStream{configString};
    Arguments::resetState(configStream, allowUnrecognizedArguments);
+   free(outputPath);
+   free(paramsFile);
+   free(logFile);
+   free(gpuDevices);
+   free(workingDir);
+   free(checkpointReadDir);
 }
 
 } /* namespace PV */
