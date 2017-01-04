@@ -83,6 +83,7 @@ HyPerCol::~HyPerCol() {
    // TODO: Change these old C strings into std::string
    free(mPrintParamsFilename);
    free(mOutputPath);
+   free(mName);
 }
 
 int HyPerCol::initialize_base() {

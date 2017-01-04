@@ -59,7 +59,11 @@ ANNLayer::ANNLayer(const char *name, HyPerCol *hc) {
    initialize(name, hc);
 }
 
-ANNLayer::~ANNLayer() {}
+ANNLayer::~ANNLayer() {
+   free(verticesV);
+   free(verticesA);
+   free(slopes);
+}
 
 int ANNLayer::initialize_base() {
    // Data members were initialized in the class member-declarations

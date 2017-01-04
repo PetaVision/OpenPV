@@ -42,6 +42,8 @@ int Arguments::printState() const {
    return PV_SUCCESS;
 }
 
-Arguments::~Arguments() {}
+Arguments::~Arguments() {
+   delete mConfigFromStream;
+}
 
 } /* namespace PV */

@@ -27,6 +27,8 @@ Checkpointer::~Checkpointer() {
    free(mCheckpointWriteDir);
    free(mCheckpointWriteTriggerModeString);
    free(mCheckpointWriteWallclockUnit);
+   free(mLastCheckpointDir);
+   free(mInitializeFromCheckpointDir);
    delete mCheckpointTimer;
 }
 

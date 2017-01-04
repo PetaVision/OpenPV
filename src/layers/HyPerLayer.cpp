@@ -257,6 +257,7 @@ HyPerLayer::~HyPerLayer() {
    free(triggerLayerName);
    free(triggerBehavior);
    free(triggerResetLayerName);
+   free(initVTypeString);
 
    if (thread_gSyn) {
       for (int i = 0; i < parent->getNumThreads(); i++) {
