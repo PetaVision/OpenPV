@@ -13,6 +13,7 @@ extern "C" {
 #include <cstdio>
 #include <cstring>
 #include <string>
+#include <vector>
 
 #include "FileStream.hpp"
 #include "io/io.hpp"
@@ -88,11 +89,11 @@ void FileStream::write(void const *data, long length) {
       FatalIf(mWriteVerifier == nullptr, "Write Verifier is null.\n");
       // Set the input position to the location we wrote to
       mWriteVerifier->setInPos(startPos, true);
-      uint8_t check[length];
+      std::vector<uint8_t> check(length);
 
       // Read from the location we wrote to and compare
-      mWriteVerifier->read(check, length);
-      if (memcmp(check, data, length) != 0) {
+      mWriteVerifier->read(check.data(), length);
+      if (memcmp(check.data(), data, length) != 0) {
          Fatal() << "Verify write failed when writing " << length << " bytes to position "
                  << startPos << "\n";
       }
