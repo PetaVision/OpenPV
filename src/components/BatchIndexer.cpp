@@ -9,7 +9,7 @@ namespace PV {
 // Should this be the value of commBatch() instead?
 BatchIndexer::BatchIndexer(
       int globalBatchCount,
-      int globalBatchIndex,
+      int mpiBatchIndex,
       int batchWidth,
       int fileCount,
       enum BatchMethod batchMethod) {
@@ -17,7 +17,7 @@ BatchIndexer::BatchIndexer(
    mBatchMethod      = batchMethod;
    mFileCount        = fileCount;
    mBatchWidth       = batchWidth > 0 ? batchWidth : 1;
-   mBatchWidthIndex  = globalBatchIndex / mBatchWidth;
+   mBatchWidthIndex  = mpiBatchIndex;
    mIndices.resize(mGlobalBatchCount / mBatchWidth, 0);
    mStartIndices.resize(mGlobalBatchCount / mBatchWidth, 0);
    mSkipAmounts.resize(mGlobalBatchCount / mBatchWidth, 0);
@@ -53,7 +53,7 @@ void BatchIndexer::specifyBatching(int localBatchIndex, int startIndex, int skip
 }
 
 void BatchIndexer::initializeBatch(int localBatchIndex) {
-   int globalBatchIndex = mBatchWidthIndex * mBatchWidth + localBatchIndex;
+   int globalBatchIndex = mBatchWidthIndex * (mGlobalBatchCount / mBatchWidth) + localBatchIndex;
    switch (mBatchMethod) {
       case RANDOM:
       case BYFILE:

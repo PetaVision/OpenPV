@@ -109,7 +109,7 @@ void InputLayer::initializeBatchIndexer(int fileCount) {
    mBatchIndexer         = std::unique_ptr<BatchIndexer>(
          new BatchIndexer(
                parent->getNBatchGlobal(),
-               globalBatchOffset,
+               mpiBatchIndex,
                parent->numCommBatches(),
                fileCount,
                mBatchMethod));
