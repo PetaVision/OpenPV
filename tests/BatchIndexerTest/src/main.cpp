@@ -60,7 +60,7 @@ void testByFile() {
 
    batchIndexer = std::make_shared<BatchIndexer>(
          4, // 4 Batches total
-         2, // Batch 2 of 4 puts us in the second MPI batch
+         1, // Second MPI batch
          2, // 2 MPI batches total
          8, // 8 files to batch across
          BatchIndexer::BYFILE);
@@ -177,7 +177,7 @@ void testByList() {
 
    batchIndexer = std::make_shared<BatchIndexer>(
          4, // 4 Batches total
-         2, // Second MPI batch (global batch indices 2 and 3)
+         1, // Second MPI batch (global batch indices 2 and 3)
          2, // 2 local batches per MPI batch
          8, // 8 files to batch across
          BatchIndexer::BYLIST);
