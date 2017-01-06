@@ -52,6 +52,7 @@ class HyPerConnCheckpointerTestProbe : public PV::ColProbe {
    void initializeCorrectValues(double timevalue);
 
    bool verifyLayer(PV::HyPerLayer *layer, float correctValue, double timevalue);
+   bool verifyConnection(PV::HyPerConn *connection, float correctValue, double timevalue);
 
    // Data members
   protected:

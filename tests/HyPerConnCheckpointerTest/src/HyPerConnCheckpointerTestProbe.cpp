@@ -124,18 +124,7 @@ int HyPerConnCheckpointerTestProbe::outputState(double timevalue) {
 
    failed |= verifyLayer(mInputLayer, mCorrectInputLayerValue, timevalue);
    failed |= verifyLayer(mOutputLayer, mCorrectOutputLayerValue, timevalue);
-
-   if (parent->getCommunicator()->commRank() == 0) {
-      float observedWeightValue = mConnection->get_wDataStart(0)[0];
-      if (observedWeightValue != mCorrectWeightValue) {
-         outputStream->printf(
-               "Time %f, weight is %f, instead of the expected %f.\n",
-               timevalue,
-               (double)observedWeightValue,
-               (double)mCorrectWeightValue);
-         failed = true;
-      }
-   }
+   failed |= verifyConnection(mConnection, mCorrectWeightValue, timevalue);
 
    if (failed) {
       std::string errorMsg(getDescription() + " failed at t = " + std::to_string(timevalue) + "\n");
@@ -190,6 +179,26 @@ bool HyPerConnCheckpointerTestProbe::verifyLayer(
                   (double)correctValue);
             failed = true;
          }
+      }
+   }
+   return failed;
+}
+
+bool HyPerConnCheckpointerTestProbe::verifyConnection(
+      PV::HyPerConn *connection,
+      float correctValue,
+      double timevalue) {
+   bool failed = false;
+
+   if (parent->getCommunicator()->commRank() == 0) {
+      float observedWeightValue = connection->get_wDataStart(0)[0];
+      if (observedWeightValue != correctValue) {
+         outputStream->printf(
+               "Time %f, weight is %f, instead of the expected %f.\n",
+               timevalue,
+               (double)observedWeightValue,
+               (double)correctValue);
+         failed = true;
       }
    }
    return failed;
