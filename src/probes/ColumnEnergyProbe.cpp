@@ -133,6 +133,10 @@ bool ColumnEnergyProbe::needRecalc(double timevalue) { return true; }
 double ColumnEnergyProbe::referenceUpdateTime() const { return parent->simulationTime(); }
 
 int ColumnEnergyProbe::calcValues(double timevalue) {
+   if (--mSkipTimer > 0) {
+      return PV_SUCCESS;
+   }
+   mSkipTimer = mSkipInterval;
    double *valuesBuffer = getValuesBuffer();
    int numValues        = this->getNumValues();
    memset(valuesBuffer, 0, numValues * sizeof(*valuesBuffer));

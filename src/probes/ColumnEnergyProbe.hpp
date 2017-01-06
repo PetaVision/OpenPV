@@ -112,6 +112,9 @@ class ColumnEnergyProbe : public ColProbe {
     */
    int initialize_base();
 
+   int mSkipTimer = 0;
+   int mSkipInterval = 10;
+
 }; // end class ColumnEnergyProbe
 
 } // end namespace PV
