@@ -553,10 +553,10 @@ void InputLayer::ioParam_offsetAnchor(enum ParamsIOFlag ioFlag) {
          case Buffer<float>::SOUTH: offsetAnchor[1] = 'c'; break;
          case Buffer<float>::EAST:
          case Buffer<float>::NORTHEAST:
-         case Buffer<float>::SOUTHEAST: offsetAnchor[1] = 'l'; break;
+         case Buffer<float>::SOUTHEAST: offsetAnchor[1] = 'r'; break;
          case Buffer<float>::WEST:
          case Buffer<float>::NORTHWEST:
-         case Buffer<float>::SOUTHWEST: offsetAnchor[1] = 'r'; break;
+         case Buffer<float>::SOUTHWEST: offsetAnchor[1] = 'l'; break;
       }
       parent->parameters()->ioParamString(ioFlag, name, "offsetAnchor", &offsetAnchor, "tl");
       free(offsetAnchor);
