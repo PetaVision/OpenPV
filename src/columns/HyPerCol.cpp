@@ -773,7 +773,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
       else {
          notify(std::make_shared<ReadStateFromCheckpointMessage<Checkpointer>>(mCheckpointer));
       }
-// Note: ideally, in checkpointReadFlag is set, calling InitializeState should
+// Note: ideally, if checkpointReadFlag is set, calling InitializeState should
 // be unnecessary. However, currently initializeState does some CUDA kernel
 // initializations that still need to happen when reading from checkpoint.
 
