@@ -122,23 +122,13 @@ int HyPerConnCheckpointerTestProbe::calcUpdateNumber(double timevalue) {
 void HyPerConnCheckpointerTestProbe::initializeCorrectValues(double timevalue) {
    int const updateNumber = mStartingUpdateNumber + calcUpdateNumber(timevalue);
    if (updateNumber == 0) {
-      mCorrectWeightValue      = 1.0f;
-      mCorrectInputLayerValue  = 1.0f;
-      mCorrectOutputLayerValue = 2.0f;
-      mUpdateNumber            = 0;
+      mCorrectState = new CorrectState(0, 1.0f/*weight*/, 1.0f/*input*/, 2.0f/*output*/);
    }
    else {
-      mUpdateNumber           = 1;
-      mCorrectWeightValue     = 3.0f;
-      mCorrectInputLayerValue = 1.0f;
-      // Note: the for-loop below will update mCorrectInputLayerValue to
-      // (float)updateNumber. The reason for setting it to 1.0f here is
-      // so that after every call of nextValues, the mCorrect* values are
-      // all consistent with mUpdateNumber.
-      mCorrectOutputLayerValue = 3.0f;
+      mCorrectState = new CorrectState(1, 3.0f/*weight*/, 1.0f/*input*/, 3.0f/*output*/);
 
       for (int j = 2; j < updateNumber; j++) {
-         nextValues(j);
+         mCorrectState->update();
       }
       // Don't update for the current updateNumber; this will happen in outputState.
    }
@@ -150,15 +140,15 @@ int HyPerConnCheckpointerTestProbe::outputState(double timevalue) {
       mValuesSet = true;
    }
    int const updateNumber = mStartingUpdateNumber + calcUpdateNumber(timevalue);
-   if (updateNumber > mUpdateNumber) {
-      nextValues(updateNumber);
+   while(updateNumber > mCorrectState->getUpdateNumber()) {
+      mCorrectState->update();
    }
 
    bool failed = false;
 
-   failed |= verifyLayer(mInputLayer, mCorrectInputLayerValue, timevalue);
-   failed |= verifyLayer(mOutputLayer, mCorrectOutputLayerValue, timevalue);
-   failed |= verifyConnection(mConnection, mCorrectWeightValue, timevalue);
+   failed |= verifyConnection(mConnection, mCorrectState->getCorrectWeight(), timevalue);
+   failed |= verifyLayer(mInputLayer, mCorrectState->getCorrectInput(), timevalue);
+   failed |= verifyLayer(mOutputLayer, mCorrectState->getCorrectOutput(), timevalue);
 
    if (failed) {
       std::string errorMsg(getDescription() + " failed at t = " + std::to_string(timevalue) + "\n");
@@ -176,13 +166,6 @@ int HyPerConnCheckpointerTestProbe::outputState(double timevalue) {
                "%s found all correct values at time %f\n", getDescription_c(), timevalue);
       }
    }
-}
-
-void HyPerConnCheckpointerTestProbe::nextValues(int updateNumber) {
-   mCorrectWeightValue += mCorrectInputLayerValue * mCorrectOutputLayerValue;
-   mCorrectInputLayerValue  = (float)updateNumber;
-   mCorrectOutputLayerValue = mCorrectInputLayerValue * mCorrectWeightValue;
-   mUpdateNumber++;
 }
 
 bool HyPerConnCheckpointerTestProbe::verifyLayer(

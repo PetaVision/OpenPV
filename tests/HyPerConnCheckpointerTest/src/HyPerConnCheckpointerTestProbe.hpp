@@ -10,6 +10,7 @@
 
 #include "probes/ColProbe.hpp"
 
+#include "CorrectState.hpp"
 #include "connections/HyPerConn.hpp"
 #include "layers/HyPerLayer.hpp"
 #include "layers/InputLayer.hpp"
@@ -72,7 +73,6 @@ class HyPerConnCheckpointerTestProbe : public PV::ColProbe {
    int checkCommunicatedFlag(PV::BaseObject* dependencyObject);
 
    int calcUpdateNumber(double timevalue);
-   void nextValues(int j);
    void initializeCorrectValues(double timevalue);
 
    bool verifyLayer(PV::HyPerLayer *layer, float correctValue, double timevalue);
@@ -82,13 +82,10 @@ class HyPerConnCheckpointerTestProbe : public PV::ColProbe {
   protected:
    int mStartingUpdateNumber      = 0;
    bool mValuesSet                = 0.0;
-   int mUpdateNumber              = 0;
    PV::InputLayer *mInputLayer    = nullptr;
    PV::HyPerLayer *mOutputLayer   = nullptr;
    PV::HyPerConn *mConnection     = nullptr;
-   float mCorrectWeightValue      = 0.0f;
-   float mCorrectInputLayerValue  = 0.0f;
-   float mCorrectOutputLayerValue = 0.0f;
+   CorrectState *mCorrectState    = nullptr;
    bool mTestFailed               = false;
 };
 
