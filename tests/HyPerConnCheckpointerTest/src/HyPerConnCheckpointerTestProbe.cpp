@@ -25,7 +25,6 @@ int HyPerConnCheckpointerTestProbe::initialize_base() { return PV_SUCCESS; }
 int HyPerConnCheckpointerTestProbe::initialize(const char *probeName, PV::HyPerCol *hc) {
    int status = PV::ColProbe::initialize(probeName, hc);
    FatalIf(parent->getDeltaTime() != 1.0, "This test assumes that the HyPerCol dt is 1.0.\n");
-   mEffectiveStartTime = parent->getStartTime();
    return status;
 }
 
@@ -107,12 +106,13 @@ int HyPerConnCheckpointerTestProbe::readStateFromCheckpoint(PV::Checkpointer *ch
    std::string initializeFromCheckpointDir(checkpointer->getInitializeFromCheckpointDir());
    timeInfoCheckpointEntry.read(initializeFromCheckpointDir, nullptr);
 
-   mEffectiveStartTime = timeInfo.mSimTime - parent->getStartTime();
+   mStartingUpdateNumber = calcUpdateNumber(timeInfo.mSimTime);
 
    return PV_SUCCESS;
 }
 
 int HyPerConnCheckpointerTestProbe::calcUpdateNumber(double timevalue) {
+   pvAssert(timevalue >= parent->getStartTime());
    int const step = (int)std::nearbyint(timevalue - parent->getStartTime());
    pvAssert(step >= 0);
    int const updateNumber = (step + 3) / 4; // integer division
@@ -120,8 +120,8 @@ int HyPerConnCheckpointerTestProbe::calcUpdateNumber(double timevalue) {
 }
 
 void HyPerConnCheckpointerTestProbe::initializeCorrectValues(double timevalue) {
-   pvAssert(timevalue >= parent->getStartTime());
-   if (timevalue == parent->getStartTime()) {
+   int const updateNumber = mStartingUpdateNumber + calcUpdateNumber(timevalue);
+   if (updateNumber == 0) {
       mCorrectWeightValue      = 1.0f;
       mCorrectInputLayerValue  = 1.0f;
       mCorrectOutputLayerValue = 2.0f;
@@ -134,24 +134,22 @@ void HyPerConnCheckpointerTestProbe::initializeCorrectValues(double timevalue) {
       // Note: the for-loop below will update mCorrectInputLayerValue to
       // (float)updateNumber. The reason for setting it to 1.0f here is
       // so that after every call of nextValues, the mCorrect* values are
-      // all consistent with the updateNumber.
+      // all consistent with mUpdateNumber.
       mCorrectOutputLayerValue = 3.0f;
 
-      int const updateNumber = calcUpdateNumber(timevalue);
       for (int j = 2; j < updateNumber; j++) {
-         nextValues(j); // updates mCorrectWeightValue and mCorrectOutputLayerValue.
+         nextValues(j);
       }
       // Don't update for the current updateNumber; this will happen in outputState.
    }
 }
 
 int HyPerConnCheckpointerTestProbe::outputState(double timevalue) {
-   double effectiveTime = timevalue + mEffectiveStartTime;
    if (!mValuesSet) {
-      initializeCorrectValues(effectiveTime);
+      initializeCorrectValues(timevalue);
       mValuesSet = true;
    }
-   int const updateNumber = calcUpdateNumber(effectiveTime);
+   int const updateNumber = mStartingUpdateNumber + calcUpdateNumber(timevalue);
    if (updateNumber > mUpdateNumber) {
       nextValues(updateNumber);
    }

@@ -80,7 +80,7 @@ class HyPerConnCheckpointerTestProbe : public PV::ColProbe {
 
    // Data members
   protected:
-   double mEffectiveStartTime     = 0.0;
+   int mStartingUpdateNumber      = 0;
    bool mValuesSet                = 0.0;
    int mUpdateNumber              = 0;
    PV::InputLayer *mInputLayer    = nullptr;
