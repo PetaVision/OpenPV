@@ -43,7 +43,7 @@ class ColProbe : public BaseProbe {
    ColProbe(const char *probeName, HyPerCol *hc);
 
    /**
-    * Destructor for the ColumnEnergyProbe class.
+    * Destructor for the ColProbe class.
     */
    virtual ~ColProbe();
 
