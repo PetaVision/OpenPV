@@ -662,7 +662,6 @@ void HyPerConn::ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag) {
    pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (plasticityFlag) {
       pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
-      initialWeightUpdateTime = parent->getStartTime();
       if (!triggerLayerName) {
          parent->parameters()->ioParamValue(
                ioFlag,
@@ -1494,7 +1493,7 @@ int HyPerConn::allocateDataStructures() {
       }
    }
 
-   if (plasticityFlag) {
+   if (plasticityFlag && !triggerLayer) {
       // If checkpointReadFlag is true, the sanity check on weightUpdateTime is postponed until
       // HyPerConn::checkpointRead,
       // since HyPerCol::checkpointRead will change the simulation start time.
