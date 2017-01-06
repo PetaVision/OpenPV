@@ -771,7 +771,10 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
          mCheckpointer->checkpointRead(&mSimTime, &mCurrentStep);
       }
       else {
-         notify(std::make_shared<ReadStateFromCheckpointMessage<Checkpointer>>(mCheckpointer));
+         char const *initFromCheckpointDir = mCheckpointer->getInitializeFromCheckpointDir();
+         if (initFromCheckpointDir and initFromCheckpointDir[0]) {
+            notify(std::make_shared<ReadStateFromCheckpointMessage<Checkpointer>>(mCheckpointer));
+         }
       }
 // Note: ideally, if checkpointReadFlag is set, calling InitializeState should
 // be unnecessary. However, currently initializeState does some CUDA kernel
