@@ -206,8 +206,9 @@ bool HyPerConnCheckpointerTestProbe::verifyLayer(
       for (int k = 0; k < numInputNeurons; k++) {
          if (globalVector[k] != correctValue) {
             outputStream->printf(
-                  "Time %f, input layer neuron %d is %f, instead of the expected %f.\n",
+                  "Time %f, %s neuron %d is %f, instead of the expected %f.\n",
                   timevalue,
+                  layer->getName(),
                   k,
                   (double)globalVector[k],
                   (double)correctValue);
