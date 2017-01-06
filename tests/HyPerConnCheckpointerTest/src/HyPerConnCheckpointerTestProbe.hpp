@@ -47,6 +47,30 @@ class HyPerConnCheckpointerTestProbe : public PV::ColProbe {
    HyPerConnCheckpointerTestProbe();
    int initialize_base();
 
+   /**
+    * Sets the input layer data member, and checks that the input layer's parameters are
+    * consistent with those expected by the test. Returns either PV_SUCCESS or PV_POSTPONE.
+    */
+   int initInputLayer();
+
+   /**
+    * Sets the output layer data member, and checks that the output layer's parameters are
+    * consistent with those expected by the test. Returns either PV_SUCCESS or PV_POSTPONE.
+    */
+   int initOutputLayer();
+
+   /**
+    * Sets the connection data member, and checks that the connection's parameters are
+    * consistent with those expected by the test. Returns either PV_SUCCESS or PV_POSTPONE.
+    */
+   int initConnection();
+
+   /**
+    * Checks whether the given object has finished its communicateInitInfo stage, and
+    * returns PV_SUCCESS if it has, or PV_POSTPONE if it has not.
+    */
+   int checkCommunicatedFlag(PV::BaseObject* dependencyObject);
+
    int calcUpdateNumber(double timevalue);
    void nextValues(int j);
    void initializeCorrectValues(double timevalue);

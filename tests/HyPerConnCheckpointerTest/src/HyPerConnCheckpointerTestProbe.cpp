@@ -23,7 +23,8 @@ HyPerConnCheckpointerTestProbe::~HyPerConnCheckpointerTestProbe() {}
 int HyPerConnCheckpointerTestProbe::initialize_base() { return PV_SUCCESS; }
 
 int HyPerConnCheckpointerTestProbe::initialize(const char *probeName, PV::HyPerCol *hc) {
-   int status          = PV::ColProbe::initialize(probeName, hc);
+   int status = PV::ColProbe::initialize(probeName, hc);
+   FatalIf(parent->getDeltaTime() != 1.0, "This test assumes that the HyPerCol dt is 1.0.\n");
    mEffectiveStartTime = parent->getStartTime();
    return status;
 }
@@ -43,13 +44,56 @@ int HyPerConnCheckpointerTestProbe::communicateInitInfo() {
    int status = PV::ColProbe::communicateInitInfo();
    FatalIf(
          status != PV_SUCCESS, "%s failed in ColProbe::communicateInitInfo\n", getDescription_c());
+
+   if (initInputLayer() == PV_POSTPONE) { return PV_POSTPONE; }
+   if (initOutputLayer() == PV_POSTPONE) { return PV_POSTPONE; }
+   if (initConnection() == PV_POSTPONE) { return PV_POSTPONE; }
+   return status;
+}
+
+int HyPerConnCheckpointerTestProbe::initInputLayer() {
    mInputLayer = dynamic_cast<PV::InputLayer *>(parent->getLayerFromName("Input"));
    FatalIf(mInputLayer == nullptr, "column does not have an InputLayer named \"Input\".\n");
+   if (checkCommunicatedFlag(mInputLayer) == PV_POSTPONE) { return PV_POSTPONE; }
+
+   FatalIf(
+         mInputLayer->getDisplayPeriod() != 4.0,
+         "This test assumes that the display period is 4 (should really not be hard-coded.\n");
+}
+
+int HyPerConnCheckpointerTestProbe::initOutputLayer() {
    mOutputLayer = parent->getLayerFromName("Output");
    FatalIf(mOutputLayer == nullptr, "column does not have a HyPerLayer named \"Output\".\n");
+   if (checkCommunicatedFlag(mOutputLayer) == PV_POSTPONE) { return PV_POSTPONE; }
+}
+
+int HyPerConnCheckpointerTestProbe::initConnection() {
    mConnection = dynamic_cast<PV::HyPerConn *>(parent->getConnFromName("InputToOutput"));
    FatalIf(mConnection == nullptr, "column does not have a HyPerConn named \"InputToOutput\".\n");
-   return status;
+   if (checkCommunicatedFlag(mConnection) == PV_POSTPONE) { return PV_POSTPONE; }
+
+   FatalIf(
+         mConnection->numberOfAxonalArborLists() != 1,
+         "This test assumes that the connection has only 1 arbor.\n");
+   FatalIf(mConnection->getDelay(0) != 0.0, "This test assumes that the connection has zero delay.\n");
+   FatalIf(mConnection->xPatchSize() != 1, "This test assumes that the connection has nxp==1.\n");
+   FatalIf(mConnection->yPatchSize() != 1, "This test assumes that the connection has nyp==1.\n");
+   FatalIf(mConnection->fPatchSize() != 1, "This test assumes that the connection has nfp==1.\n");
+}
+
+int HyPerConnCheckpointerTestProbe::checkCommunicatedFlag(PV::BaseObject* dependencyObject) {
+   if (!dependencyObject->getInitInfoCommunicatedFlag()) {
+      if (parent->getCommunicator()->commRank() == 0) {
+         InfoLog().printf(
+               "%s must wait until \"%s\" has finished its communicateInitInfo stage.\n",
+               getDescription_c(),
+               dependencyObject->getName());
+      }
+      return PV_POSTPONE;
+   }
+   else {
+      return PV_SUCCESS;
+   }
 }
 
 int HyPerConnCheckpointerTestProbe::readStateFromCheckpoint(PV::Checkpointer *checkpointer) {
@@ -77,14 +121,6 @@ int HyPerConnCheckpointerTestProbe::calcUpdateNumber(double timevalue) {
 
 void HyPerConnCheckpointerTestProbe::initializeCorrectValues(double timevalue) {
    pvAssert(timevalue >= parent->getStartTime());
-   FatalIf(parent->getDeltaTime() != 1.0, "This test assumes that the HyPerCol dt is 1.0.\n");
-   FatalIf(
-         mConnection->numberOfAxonalArborLists() != 1,
-         "This test assumes that the connection has only 1 arbor "
-         "(should really not be hard-coded.\n");
-   FatalIf(
-         mInputLayer->getDisplayPeriod() != 4.0,
-         "This test assumes that the display period is 4 (should really not be hard-coded.\n");
    if (timevalue == parent->getStartTime()) {
       mCorrectWeightValue      = 1.0f;
       mCorrectInputLayerValue  = 1.0f;
