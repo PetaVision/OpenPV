@@ -79,13 +79,17 @@ class BaseObject : public Observer, public CheckpointerDataInterface {
    int respondCommunicateInitInfo(CommunicateInitInfoMessage const *message);
    int respondAllocateData(AllocateDataMessage const *message);
    int respondRegisterData(RegisterDataMessage<Checkpointer> const *message);
-   int respondInitializeState(InitializeStateMessage<Checkpointer> const *message);
+   int respondInitializeState(InitializeStateMessage const *message);
+   int respondReadStateFromCheckpoint(ReadStateFromCheckpointMessage<Checkpointer> const *message);
+   int respondCopyInitialStateToGPUMessage(CopyInitialStateToGPUMessage const *message);
    int respondProcessCheckpointRead(ProcessCheckpointReadMessage const *message);
    int respondPrepareCheckpointWrite(PrepareCheckpointWriteMessage const *message);
 
    virtual int communicateInitInfo() { return PV_SUCCESS; }
    virtual int allocateDataStructures() { return PV_SUCCESS; }
-   virtual int initializeState(Checkpointer *checkpointer) { return PV_SUCCESS; }
+   virtual int initializeState() { return PV_SUCCESS; }
+   virtual int readStateFromCheckpoint(Checkpointer *checkpointer) { return PV_SUCCESS; }
+   virtual int copyInitialStateToGPU() { return PV_SUCCESS; }
    virtual int processCheckpointRead() { return PV_SUCCESS; }
    virtual int prepareCheckpointWrite() { return PV_SUCCESS; }
 

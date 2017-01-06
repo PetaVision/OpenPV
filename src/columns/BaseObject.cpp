@@ -91,9 +91,19 @@ int BaseObject::respond(std::shared_ptr<BaseMessage const> message) {
       return respondRegisterData(castMessage);
    }
    else if (
-         InitializeStateMessage<Checkpointer> const *castMessage =
-               dynamic_cast<InitializeStateMessage<Checkpointer> const *>(message.get())) {
+         InitializeStateMessage const *castMessage =
+               dynamic_cast<InitializeStateMessage const *>(message.get())) {
       return respondInitializeState(castMessage);
+   }
+   else if (
+         ReadStateFromCheckpointMessage<Checkpointer> const *castMessage =
+               dynamic_cast<ReadStateFromCheckpointMessage<Checkpointer> const *>(message.get())) {
+      return respondReadStateFromCheckpoint(castMessage);
+   }
+   else if (
+         CopyInitialStateToGPUMessage const *castMessage =
+               dynamic_cast<CopyInitialStateToGPUMessage const *>(message.get())) {
+      return respondCopyInitialStateToGPUMessage(castMessage);
    }
    else if (
          ProcessCheckpointReadMessage const *castMessage =
@@ -142,16 +152,25 @@ int BaseObject::respondRegisterData(RegisterDataMessage<Checkpointer> const *mes
    return status;
 }
 
-int BaseObject::respondInitializeState(InitializeStateMessage<Checkpointer> const *message) {
+int BaseObject::respondInitializeState(InitializeStateMessage const *message) {
    int status = PV_SUCCESS;
    if (getInitialValuesSetFlag()) {
       return status;
    }
-   status = initializeState(message->mDataRegistry);
+   status = initializeState();
    if (status == PV_SUCCESS) {
       setInitialValuesSetFlag();
    }
    return status;
+}
+
+int BaseObject::respondReadStateFromCheckpoint(
+      ReadStateFromCheckpointMessage<Checkpointer> const *message) {
+   return readStateFromCheckpoint(message->mDataRegistry);
+}
+
+int BaseObject::respondCopyInitialStateToGPUMessage(CopyInitialStateToGPUMessage const *message) {
+   return copyInitialStateToGPU();
 }
 
 int BaseObject::respondProcessCheckpointRead(ProcessCheckpointReadMessage const *message) {

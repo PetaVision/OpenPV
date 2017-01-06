@@ -67,32 +67,12 @@ class BaseConnection : public BaseObject {
 
    /**
     * initializeState is used to set the initial values of the connection.
-    * If the parent HyPerCol's checkpointReadFlag is set, it calls checkpointRead()
-    * If not, but the connection's initializeFromCheckpointFlag is set, it calls
-    * readStateFromCheckpoint().
-    * If neither of these flags is set, it calls setInitialValues.
-    * Note that derived classes must implement the methods checkpointRead(),
-    * readStateFromCheckpoint(), and setInitialValues().
-    *
-    * After a connection is constructed, it is not properly initialized until communicateInitInfo(),
-    * allocateDataStructures(), and
-    * initializeState() have been called.
-    *
-    * Return values:
-    *    PV_POSTPONE means that initializeState() cannot be run until other layers'/connections' own
-    * initializeState()
-    *    have been run successfully.
-    *
-    *    PV_SUCCESS and PV_FAILURE have their usual meanings.
     *
     * initializeState() is typically called by passing an InitializeStateMessage to respond(), which
-    * is
-    * usually done in HyPerCol::run.
+    * is usually done in HyPerCol::run.
     */
-   virtual int initializeState(Checkpointer *checkpointer) override final;
-   // Not overridable because all connections should initializeState in the same way.
-   // BaseConnection::initializeState() calls either checkpointRead() or setInitialValues(),
-   // both of which are virtual.
+   virtual int initializeState() override final;
+   // Not overridable. BaseConnection::initializeState() calls setInitialValues(), which is virtual.
 
    /**
     * A pure virtual function for writing the state of the connection to file(s) in the output
@@ -388,13 +368,6 @@ class BaseConnection : public BaseObject {
     * @details Checkpoint read directory must be set in HyPerCol to initialize from checkpoint.
     */
    virtual void ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag);
-
-   /**
-    * A pure virtual method that calls a Checkpointer's initializeFromCheckpointDir
-    * method to initialize the connection.  BaseConnection::initializeState calls it
-    * when initializeFromCheckpointFlag is true.
-    */
-   virtual int readStateFromCheckpoint(Checkpointer *checkpointer) = 0;
 
    /**
     * A pure virtual method for initializing the connection if we are neither

@@ -1,0 +1,100 @@
+// PetaVision, git repository version 08c467b5ae9a043b46ab0448cdb6ec74228ebd64 (Wed Jan 4 17:51:05 2017 -0700) with local modifications
+// Run time Thu Jan  5 11:19:09 2017
+// Compiled with MPI and run using 1 rows and 1 columns.
+// Compiled without CUDA.
+// Compiled with OpenMP parallel code and run using 1 threads.
+
+HyPerCol "column" = {
+    startTime                           = 0;
+    dt                                  = 1;
+    stopTime                            = 20;
+    progressInterval                    = 100;
+    writeProgressToErr                  = false;
+    outputPath                          = "output/";
+    verifyWrites                        = false;
+    checkpointWrite                     = false;
+    lastCheckpointDir                   = "output/Last";
+    initializeFromCheckpointDir         = "";
+    printParamsFilename                 = "pv.params";
+    randomSeed                          = 1234567890;
+    nx                                  = 4;
+    ny                                  = 4;
+    nbatch                              = 1;
+    errorOnNotANumber                   = true;
+};
+
+PvpLayer "Input" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    writeStep                           = -1;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+    displayPeriod                       = 4;
+    inputPath                           = "input/inputframes.pvp";
+    offsetAnchor                        = "tl";
+    offsetX                             = 0;
+    offsetY                             = 0;
+    autoResizeFlag                      = false;
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = false;
+    useInputBCflag                      = false;
+    padValue                            = 0;
+    batchMethod                         = "byFile";
+    start_frame_index                   = [0.000000];
+    writeFrameToTimestamp               = true;
+    resetToStartOnLoop                  = false;
+};
+
+HyPerLayer "Output" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 1;
+    mirrorBCflag                        = true;
+    InitVType                           = "ZeroV";
+    triggerLayerName                    = NULL;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+};
+
+HyPerConn "InputToOutput" = {
+    preLayerName                        = "Input";
+    postLayerName                       = "Output";
+    channelCode                         = 0;
+    delay                               = [0.000000];
+    numAxonalArbors                     = 1;
+    plasticityFlag                      = true;
+    convertRateToSpikeCount             = false;
+    receiveGpu                          = false;
+    sharedWeights                       = true;
+    weightInitType                      = "IdentWeight";
+    initWeightsFile                     = NULL;
+    triggerLayerName                    = "Input";
+    triggerOffset                       = 0;
+    updateGSynFromPostPerspective       = false;
+    pvpatchAccumulateType               = "convolve";
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+    combine_dW_with_W_flag              = false;
+    nxp                                 = 1;
+    nyp                                 = 1;
+    nfp                                 = 1;
+    shrinkPatches                       = false;
+    normalizeMethod                     = "none";
+    dWMax                               = 1;
+    keepKernelsSynchronized             = true;
+    normalizeDw                         = true;
+    useMask                             = false;
+    dWMaxDecayInterval                  = 0;
+    dWMaxDecayFactor                    = 0;
+    weightSparsity                      = 0;
+};

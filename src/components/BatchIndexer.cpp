@@ -101,6 +101,7 @@ void BatchIndexer::shuffleLookupTable() {
 }
 
 int BatchIndexer::registerData(Checkpointer *checkpointer, std::string const &objName) {
+   mObjName = objName;
    checkpointer->registerCheckpointData<int>(
          objName,
          std::string("FrameNumbers"),
@@ -113,4 +114,9 @@ int BatchIndexer::registerData(Checkpointer *checkpointer, std::string const &ob
    }
    return PV_SUCCESS;
 }
+
+int BatchIndexer::readStateFromCheckpoint(Checkpointer *checkpointer) {
+   checkpointer->readNamedCheckpointEntry(mObjName, "FrameNumbers");
 }
+
+} // end namespace PV

@@ -23,12 +23,14 @@ class BatchIndexer : public CheckpointerDataInterface {
    void shuffleLookupTable();
    void setRandomSeed(unsigned int seed);
    virtual int registerData(Checkpointer *checkpointer, std::string const &objName) override;
+   virtual int readStateFromCheckpoint(Checkpointer *checkpointer) override;
    void setIndices(const std::vector<int> &indices) { mIndices = indices; }
    void setWrapToStartIndex(bool value) { mWrapToStartIndex = value; }
    bool getWrapToStartIndex() { return mWrapToStartIndex; }
    std::vector<int> getIndices() { return mIndices; }
 
   private:
+   std::string mObjName;
    int mGlobalBatchCount    = 0;
    int mFileCount           = 0;
    int mBatchWidth          = 0;

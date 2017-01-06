@@ -122,6 +122,7 @@ class InputLayer : public HyPerLayer {
    virtual int initializeActivity() override;
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual int registerData(Checkpointer *checkpointer, std::string const &objName) override;
+   virtual int readStateFromCheckpoint(Checkpointer *checkpointer) override;
    virtual double getDeltaUpdateTime() override;
 
    // Method that signals when to load the next file.

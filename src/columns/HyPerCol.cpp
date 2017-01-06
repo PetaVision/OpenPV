@@ -182,7 +182,7 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
    }
    MPI_Bcast(&parsedStatus, 1, MPI_INT, rootproc, getCommunicator()->globalCommunicator());
 #else
-   int parsedStatus = this->mParams->getParseStatus();
+   int parsedStatus                         = this->mParams->getParseStatus();
 #endif
    if (parsedStatus != 0) {
       exit(parsedStatus);
@@ -766,13 +766,23 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
       // This needs to happen after initPublishers so that we can initialize
       // the values in the data stores, and before the mLayers' publish calls
       // so that the data in border regions gets copied correctly.
-      notify(std::make_shared<InitializeStateMessage<Checkpointer>>(mCheckpointer));
+      notify(std::make_shared<InitializeStateMessage>());
       if (mCheckpointReadFlag) {
          mCheckpointer->checkpointRead(&mSimTime, &mCurrentStep);
       }
-      // Note: ideally, in checkpointReadFlag is set, calling InitializeState should
-      // be unnecessary. However, currently initializeState does some CUDA kernel
-      // initializations that still need to happen when reading from checkpoint.
+      else {
+         char const *initFromCheckpointDir = mCheckpointer->getInitializeFromCheckpointDir();
+         if (initFromCheckpointDir and initFromCheckpointDir[0]) {
+            notify(std::make_shared<ReadStateFromCheckpointMessage<Checkpointer>>(mCheckpointer));
+         }
+      }
+// Note: ideally, if checkpointReadFlag is set, calling InitializeState should
+// be unnecessary. However, currently initializeState does some CUDA kernel
+// initializations that still need to happen when reading from checkpoint.
+
+#ifdef PV_USE_CUDA
+      notify(std::make_shared<CopyInitialStateToGPUMessage>());
+#endif // PV_USE_CUDA
 
       // Initial normalization moved here to facilitate normalizations of groups
       // of HyPerConns
@@ -900,14 +910,15 @@ int HyPerCol::setNumThreads(bool printMessagesFlag) {
       }
    }
 #else // PV_USE_OPENMP_THREADS
-   if (mPVInitObj->getUseDefaultNumThreads()) {
+   Configuration::IntOptional numThreadsArg = mPVInitObj->getIntOptionalArgument("NumThreads");
+   if (numThreadsArg.mUseDefault) {
       num_threads = 1;
       if (printMsgs0) {
          InfoLog().printf("Number of threads used is 1 (Compiled without OpenMP.\n");
       }
    }
    else {
-      num_threads = mPVInitObj->getNumThreads();
+      num_threads = numThreadsArg.mValue;
       if (num_threads < 0) {
          num_threads = 1;
       }
