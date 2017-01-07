@@ -44,16 +44,24 @@ int HyPerConnCheckpointerTestProbe::communicateInitInfo() {
    FatalIf(
          status != PV_SUCCESS, "%s failed in ColProbe::communicateInitInfo\n", getDescription_c());
 
-   if (initInputLayer() == PV_POSTPONE) { return PV_POSTPONE; }
-   if (initOutputLayer() == PV_POSTPONE) { return PV_POSTPONE; }
-   if (initConnection() == PV_POSTPONE) { return PV_POSTPONE; }
+   if (initInputLayer() == PV_POSTPONE) {
+      return PV_POSTPONE;
+   }
+   if (initOutputLayer() == PV_POSTPONE) {
+      return PV_POSTPONE;
+   }
+   if (initConnection() == PV_POSTPONE) {
+      return PV_POSTPONE;
+   }
    return status;
 }
 
 int HyPerConnCheckpointerTestProbe::initInputLayer() {
    mInputLayer = dynamic_cast<PV::InputLayer *>(parent->getLayerFromName("Input"));
    FatalIf(mInputLayer == nullptr, "column does not have an InputLayer named \"Input\".\n");
-   if (checkCommunicatedFlag(mInputLayer) == PV_POSTPONE) { return PV_POSTPONE; }
+   if (checkCommunicatedFlag(mInputLayer) == PV_POSTPONE) {
+      return PV_POSTPONE;
+   }
 
    FatalIf(
          mInputLayer->getDisplayPeriod() != 4.0,
@@ -63,24 +71,36 @@ int HyPerConnCheckpointerTestProbe::initInputLayer() {
 int HyPerConnCheckpointerTestProbe::initOutputLayer() {
    mOutputLayer = parent->getLayerFromName("Output");
    FatalIf(mOutputLayer == nullptr, "column does not have a HyPerLayer named \"Output\".\n");
-   if (checkCommunicatedFlag(mOutputLayer) == PV_POSTPONE) { return PV_POSTPONE; }
+   if (checkCommunicatedFlag(mOutputLayer) == PV_POSTPONE) {
+      return PV_POSTPONE;
+   }
 }
 
 int HyPerConnCheckpointerTestProbe::initConnection() {
    mConnection = dynamic_cast<PV::HyPerConn *>(parent->getConnFromName("InputToOutput"));
    FatalIf(mConnection == nullptr, "column does not have a HyPerConn named \"InputToOutput\".\n");
-   if (checkCommunicatedFlag(mConnection) == PV_POSTPONE) { return PV_POSTPONE; }
+   if (checkCommunicatedFlag(mConnection) == PV_POSTPONE) {
+      return PV_POSTPONE;
+   }
 
    FatalIf(
          mConnection->numberOfAxonalArborLists() != 1,
          "This test assumes that the connection has only 1 arbor.\n");
-   FatalIf(mConnection->getDelay(0) != 0.0, "This test assumes that the connection has zero delay.\n");
+   FatalIf(
+         mConnection->getDelay(0) != 0.0,
+         "This test assumes that the connection has zero delay.\n");
+   FatalIf(
+         !mConnection->usingSharedWeights(),
+         "This test assumes that the connection is using shared weights.\n");
+   FatalIf(
+         mConnection->getDelay(0) != 0.0,
+         "This test assumes that the connection has zero delay.\n");
    FatalIf(mConnection->xPatchSize() != 1, "This test assumes that the connection has nxp==1.\n");
    FatalIf(mConnection->yPatchSize() != 1, "This test assumes that the connection has nyp==1.\n");
    FatalIf(mConnection->fPatchSize() != 1, "This test assumes that the connection has nfp==1.\n");
 }
 
-int HyPerConnCheckpointerTestProbe::checkCommunicatedFlag(PV::BaseObject* dependencyObject) {
+int HyPerConnCheckpointerTestProbe::checkCommunicatedFlag(PV::BaseObject *dependencyObject) {
    if (!dependencyObject->getInitInfoCommunicatedFlag()) {
       if (parent->getCommunicator()->commRank() == 0) {
          InfoLog().printf(
@@ -122,10 +142,10 @@ int HyPerConnCheckpointerTestProbe::calcUpdateNumber(double timevalue) {
 void HyPerConnCheckpointerTestProbe::initializeCorrectValues(double timevalue) {
    int const updateNumber = mStartingUpdateNumber + calcUpdateNumber(timevalue);
    if (updateNumber == 0) {
-      mCorrectState = new CorrectState(0, 1.0f/*weight*/, 1.0f/*input*/, 2.0f/*output*/);
+      mCorrectState = new CorrectState(0, 1.0f /*weight*/, 1.0f /*input*/, 2.0f /*output*/);
    }
    else {
-      mCorrectState = new CorrectState(1, 3.0f/*weight*/, 1.0f/*input*/, 3.0f/*output*/);
+      mCorrectState = new CorrectState(1, 3.0f /*weight*/, 1.0f /*input*/, 3.0f /*output*/);
 
       for (int j = 2; j < updateNumber; j++) {
          mCorrectState->update();
@@ -140,7 +160,7 @@ int HyPerConnCheckpointerTestProbe::outputState(double timevalue) {
       mValuesSet = true;
    }
    int const updateNumber = mStartingUpdateNumber + calcUpdateNumber(timevalue);
-   while(updateNumber > mCorrectState->getUpdateNumber()) {
+   while (updateNumber > mCorrectState->getUpdateNumber()) {
       mCorrectState->update();
    }
 
