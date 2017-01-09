@@ -53,6 +53,13 @@ int PoolingConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    return status;
 }
 
+void PoolingConn::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      initializeFromCheckpointFlag = false;
+      parent->parameters()->handleUnnecessaryParameter(name, "initializeFromCheckpointFlag");
+   }
+}
+
 void PoolingConn::ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       plasticityFlag = false;
