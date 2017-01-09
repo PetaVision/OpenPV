@@ -195,6 +195,7 @@ int MomentumConnSimpleCheckpointerTestProbe::outputState(double timevalue) {
                "%s found all correct values at time %f\n", getDescription_c(), timevalue);
       }
    }
+   return PV_SUCCESS; // Test runs all timesteps and then checks the mTestFailed flag at the end.
 }
 
 bool MomentumConnSimpleCheckpointerTestProbe::verifyConnection(
