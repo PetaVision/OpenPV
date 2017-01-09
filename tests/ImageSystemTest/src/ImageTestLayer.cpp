@@ -25,7 +25,7 @@ int ImageTestLayer::updateState(double time, double dt) {
          int kf       = featureIndex(nkRes, nx, ny, nf);
 
          float expectedVal = kIndex(kxGlobal, kyGlobal, kf, loc->nxGlobal, loc->nyGlobal, nf);
-         if (fabs(checkVal - expectedVal) >= 1e-5) {
+         if (std::fabs(checkVal - expectedVal) >= 1e-5f) {
             Fatal() << "ImageFileIO test Expected: " << expectedVal << " Actual: " << checkVal
                     << "\n";
          }

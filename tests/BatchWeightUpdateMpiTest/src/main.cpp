@@ -170,7 +170,7 @@ int compareFiles(const char *file1, const char *file2) {
                  << " as opposed to 1\n";
       }
       // Floating piont comparison
-      if (fabs(f1 - f2) <= 1e-5) {
+      if (std::fabs(f1 - f2) <= 1e-5f) {
          flag = 1;
          continue;
       }

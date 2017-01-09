@@ -64,7 +64,7 @@ double L1NormProbe::getValueInternal(double timevalue, int index) {
                for (int f = 0; f < nf; f++) {
                   int kex   = kIndexExtended(featureBase++, nx, ny, nf, lt, rt, dn, up);
                   float val = aBuffer[kex];
-                  sum += fabs(val);
+                  sum += (double)std::fabs(val);
                }
             }
          }
@@ -78,7 +78,7 @@ double L1NormProbe::getValueInternal(double timevalue, int index) {
             int kexMask = kIndexExtended(k, nx, ny, nf, maskLt, maskRt, maskDn, maskUp);
             if (maskLayerData[kexMask]) {
                float val = aBuffer[kex];
-               sum += fabs(val);
+               sum += std::fabs((double)val);
             }
          }
       }
