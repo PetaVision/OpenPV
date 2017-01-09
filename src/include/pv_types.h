@@ -30,7 +30,7 @@ enum PVDataType {
 typedef struct PVPatch_ {
    unsigned int offset;
    unsigned short nx, ny;
-} __attribute__((aligned)) PVPatch;
+} PVPatch __attribute__((aligned));
 
 typedef struct PVPatchStrides_ {
    int sx, sy, sf; // stride in x,y,features
