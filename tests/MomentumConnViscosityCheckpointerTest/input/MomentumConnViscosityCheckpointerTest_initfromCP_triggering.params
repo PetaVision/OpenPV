@@ -1,15 +1,16 @@
 //
-// HyPerConnCheckpointerTest_initfromCP_triggering.params
+// MomentumConnViscosityCheckpointerTest_initfromCP_triggering.params
 //
-// created by peteschultz: Jan 5, 2017
+// created by peteschultz: Jan 6, 2017
 //
 
-// A params file used by HyPerConnCheckpointerTest, which tests checkpointing
+// A params file used by MomentumConnViscosityCheckpointerTest, which tests checkpointing
 // and initializing from checkpoint. It tests connections that use triggering,
 // as well as connections that use weightUpdatePeriod.
 //
-// This params file has an InputLayer, an output HyPerLayer, and a HyPerConn
-// connecting them on the excitatory channel.
+// This params file has an InputLayer, an output HyPerLayer, and a MomentumConn
+// connecting them on the excitatory channel. The MomentumConn uses
+// momentumMethod "viscosity".
 //
 // See CorrectState.hpp in the src directory for a description of
 // the how the layers and connection are initialized, and the correct
@@ -86,7 +87,7 @@ HyPerLayer "Output" = {
     dataType                            = NULL;
 };
 
-HyPerConn "InputToOutput" = {
+MomentumConn "InputToOutput" = {
     preLayerName                        = "Input";
     postLayerName                       = "Output";
     channelCode                         = 0;
@@ -121,9 +122,13 @@ HyPerConn "InputToOutput" = {
     dWMaxDecayInterval                  = 0;
     dWMaxDecayFactor                    = 0;
     weightSparsity                      = 0;
+    momentumMethod                      = "viscosity";
+    momentumTau                         = 1.4426950408889634;
+    momentumDecay                       = 0;
+    batchPeriod                         = 1;
 };
 
-HyPerConnCheckpointerTestProbe "probe" = {
+MomentumConnViscosityCheckpointerTestProbe "probe" = {
     message                             = NULL;
     textOutputFlag                      = true;
     probeOutputFile                     = "probe.txt";

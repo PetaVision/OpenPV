@@ -28,6 +28,7 @@ int CheckpointableFileStream::respond(std::shared_ptr<BaseMessage const> message
                dynamic_cast<ProcessCheckpointReadMessage const *>(message.get())) {
       return respondProcessCheckpointRead(castMessage);
    }
+   return PV_SUCCESS;
 }
 
 int CheckpointableFileStream::respondProcessCheckpointRead(

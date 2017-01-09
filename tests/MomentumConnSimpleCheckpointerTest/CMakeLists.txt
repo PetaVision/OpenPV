@@ -1,11 +1,11 @@
 set(SRC_CPP
-  src/HyPerConnCheckpointerTest.cpp
-  src/HyPerConnCheckpointerTestProbe.cpp
+  src/MomentumConnSimpleCheckpointerTest.cpp
+  src/MomentumConnSimpleCheckpointerTestProbe.cpp
   src/CorrectState.cpp
 )
 
 set(SRC_HPP
-  src/HyPerConnCheckpointerTestProbe.hpp
+  src/MomentumConnSimpleCheckpointerTestProbe.hpp
   src/CorrectState.hpp
 )
 

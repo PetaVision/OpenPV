@@ -1,15 +1,16 @@
 //
-// HyPerConnCheckpointerTest_initfromCP_triggering.params
+// MomentumConnViscosityCheckpointerTest_freshstart_updateperiod.params
 //
-// created by peteschultz: Jan 5, 2017
+// created by peteschultz: Jan 6, 2017
 //
 
-// A params file used by HyPerConnCheckpointerTest, which tests checkpointing
+// A params file used by MomentumConnViscosityCheckpointerTest, which tests checkpointing
 // and initializing from checkpoint. It tests connections that use triggering,
 // as well as connections that use weightUpdatePeriod.
 //
-// This params file has an InputLayer, an output HyPerLayer, and a HyPerConn
-// connecting them on the excitatory channel.
+// This params file has an InputLayer, an output HyPerLayer, and a MomentumConn
+// connecting them on the excitatory channel. The MomentumConn uses
+// momentumMethod "viscosity".
 //
 // See CorrectState.hpp in the src directory for a description of
 // the how the layers and connection are initialized, and the correct
@@ -20,20 +21,20 @@ debugParsing = false;
 HyPerCol "column" = {
     startTime                           = 0;
     dt                                  = 1;
-    stopTime                            = 12;
+    stopTime                            = 20;
     progressInterval                    = 100;
     writeProgressToErr                  = false;
-    outputPath                          = "output_initfromCP_triggering/";
+    outputPath                          = "output_freshstart_updateperiod/";
     verifyWrites                        = false;
     checkpointWrite                     = true;
-    checkpointWriteDir                  = "output_initfromCP_triggering/checkpoints";
+    checkpointWriteDir                  = "output_freshstart_updateperiod/checkpoints";
     checkpointWriteTriggerMode          = "step";
     checkpointWriteStepInterval         = 1;
     checkpointIndexWidth                = -1;
     suppressNonplasticCheckpoints       = false;
     deleteOlderCheckpoints              = false;
-    initializeFromCheckpointDir         = "output_freshstart_triggering/checkpoints/Checkpoint08";
-    printParamsFilename                 = "pv_initfromCP_triggering.params";
+    initializeFromCheckpointDir         = "";
+    printParamsFilename                 = "pv_freshstart_updateperiod.params";
     randomSeed                          = 1234567890;
     nx                                  = 4;
     ny                                  = 4;
@@ -48,7 +49,6 @@ PvpLayer "Input" = {
     phase                               = 0;
     mirrorBCflag                        = false;
     valueBC                             = 0;
-    initializeFromCheckpointFlag        = true;
     writeStep                           = -1;
     sparseLayer                         = false;
     updateGpu                           = false;
@@ -75,7 +75,6 @@ HyPerLayer "Output" = {
     nf                                  = 1;
     phase                               = 1;
     mirrorBCflag                        = true;
-    initializeFromCheckpointFlag        = true;
     InitVType                           = "ConstantV";
     valueV                              = 2;
     triggerLayerName                    = NULL;
@@ -86,7 +85,7 @@ HyPerLayer "Output" = {
     dataType                            = NULL;
 };
 
-HyPerConn "InputToOutput" = {
+MomentumConn "InputToOutput" = {
     preLayerName                        = "Input";
     postLayerName                       = "Output";
     channelCode                         = 0;
@@ -98,9 +97,9 @@ HyPerConn "InputToOutput" = {
     sharedWeights                       = true;
     weightInitType                      = "IdentWeight";
     initWeightsFile                     = NULL;
-    initializeFromCheckpointFlag        = true;
-    triggerLayerName                    = "Input";
-    triggerOffset                       = 0;
+    triggerLayerName                    = NULL;
+    weightUpdatePeriod                  = 4;
+    initialWeightUpdateTime             = 1;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
     writeStep                           = 0;
@@ -121,9 +120,13 @@ HyPerConn "InputToOutput" = {
     dWMaxDecayInterval                  = 0;
     dWMaxDecayFactor                    = 0;
     weightSparsity                      = 0;
+    momentumMethod                      = "viscosity";
+    momentumTau                         = 1.4426950408889634;
+    momentumDecay                       = 0;
+    batchPeriod                         = 1;
 };
 
-HyPerConnCheckpointerTestProbe "probe" = {
+MomentumConnViscosityCheckpointerTestProbe "probe" = {
     message                             = NULL;
     textOutputFlag                      = true;
     probeOutputFile                     = "probe.txt";

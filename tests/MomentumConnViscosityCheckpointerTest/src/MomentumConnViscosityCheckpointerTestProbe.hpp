@@ -1,31 +1,31 @@
 /*
- * HyPerConnCheckpointerProbe.hpp
+ * MomentumConnSimpleCheckpointerProbe.hpp
  *
- *  Created on: Jan 5, 2017
+ *  Created on: Jan 6, 2017
  *      Author: pschultz
  */
 
-#ifndef HYPERCONNCHECKPOINTERTESTPROBE_HPP_
-#define HYPERCONNCHECKPOINTERTESTPROBE_HPP_
+#ifndef MOMENTUMCONNVISCOSITYCHECKPOINTERTESTPROBE_HPP_
+#define MOMENTUMCONNVISCOSITYCHECKPOINTERTESTPROBE_HPP_
 
 #include "probes/ColProbe.hpp"
 
 #include "CorrectState.hpp"
-#include "connections/HyPerConn.hpp"
+#include "connections/MomentumConn.hpp"
 #include "layers/HyPerLayer.hpp"
 #include "layers/InputLayer.hpp"
 
-class HyPerConnCheckpointerTestProbe : public PV::ColProbe {
+class MomentumConnViscosityCheckpointerTestProbe : public PV::ColProbe {
   public:
    /**
-    * Public constructor for the HyPerConnCheckpointerTestProbe class.
+    * Public constructor for the MomentumConnViscosityCheckpointerTestProbe class.
     */
-   HyPerConnCheckpointerTestProbe(const char *probeName, PV::HyPerCol *hc);
+   MomentumConnViscosityCheckpointerTestProbe(const char *probeName, PV::HyPerCol *hc);
 
    /**
-    * Destructor for the HyPerConnCheckpointerTestProbe class.
+    * Destructor for the MomentumConnViscosityCheckpointerTestProbe class.
     */
-   virtual ~HyPerConnCheckpointerTestProbe();
+   virtual ~MomentumConnViscosityCheckpointerTestProbe();
 
    /**
     * Implementation of the calcValues method. This probe does not compute
@@ -45,7 +45,7 @@ class HyPerConnCheckpointerTestProbe : public PV::ColProbe {
    virtual int outputState(double timevalue);
 
   private:
-   HyPerConnCheckpointerTestProbe();
+   MomentumConnViscosityCheckpointerTestProbe();
    int initialize_base();
 
    /**
@@ -70,23 +70,28 @@ class HyPerConnCheckpointerTestProbe : public PV::ColProbe {
     * Checks whether the given object has finished its communicateInitInfo stage, and
     * returns PV_SUCCESS if it has, or PV_POSTPONE if it has not.
     */
-   int checkCommunicatedFlag(PV::BaseObject* dependencyObject);
+   int checkCommunicatedFlag(PV::BaseObject *dependencyObject);
 
    int calcUpdateNumber(double timevalue);
    void initializeCorrectValues(double timevalue);
 
+   bool verifyConnection(
+         PV::MomentumConn *connection,
+         CorrectState const *correctState,
+         double timevalue);
+   bool
+   verifyConnValue(double timevalue, float observed, float correct, char const *valueDescription);
    bool verifyLayer(PV::HyPerLayer *layer, float correctValue, double timevalue);
-   bool verifyConnection(PV::HyPerConn *connection, float correctValue, double timevalue);
 
    // Data members
   protected:
-   int mStartingUpdateNumber      = 0;
-   bool mValuesSet                = 0.0;
-   PV::InputLayer *mInputLayer    = nullptr;
-   PV::HyPerLayer *mOutputLayer   = nullptr;
-   PV::HyPerConn *mConnection     = nullptr;
-   CorrectState *mCorrectState    = nullptr;
-   bool mTestFailed               = false;
+   int mStartingUpdateNumber     = 0;
+   bool mValuesSet               = 0.0;
+   PV::InputLayer *mInputLayer   = nullptr;
+   PV::HyPerLayer *mOutputLayer  = nullptr;
+   PV::MomentumConn *mConnection = nullptr;
+   CorrectState *mCorrectState   = nullptr;
+   bool mTestFailed              = false;
 };
 
-#endif // HYPERCONNCHECKPOINTERTESTPROBE_HPP_
+#endif // MOMENTUMCONNVISCOSITYCHECKPOINTERTESTPROBE_HPP_

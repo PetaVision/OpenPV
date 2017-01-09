@@ -1,45 +1,49 @@
 /*
- * HyPerConnCheckpointerTestProbe.cpp
+ * MomentumConnViscosityCheckpointerTestProbe.cpp
  *
- *  Created on: Jan 5, 2017
+ *  Created on: Jan 6, 2017
  *      Author: pschultz
  */
 
-#include "HyPerConnCheckpointerTestProbe.hpp"
+#include "MomentumConnViscosityCheckpointerTestProbe.hpp"
 #include <cmath>
 #include <utils/BufferUtilsMPI.hpp>
 
-HyPerConnCheckpointerTestProbe::HyPerConnCheckpointerTestProbe() { initialize_base(); }
+MomentumConnViscosityCheckpointerTestProbe::MomentumConnViscosityCheckpointerTestProbe() {
+   initialize_base();
+}
 
-HyPerConnCheckpointerTestProbe::HyPerConnCheckpointerTestProbe(
+MomentumConnViscosityCheckpointerTestProbe::MomentumConnViscosityCheckpointerTestProbe(
       const char *probeName,
       PV::HyPerCol *hc) {
    initialize_base();
    initialize(probeName, hc);
 }
 
-HyPerConnCheckpointerTestProbe::~HyPerConnCheckpointerTestProbe() {}
+MomentumConnViscosityCheckpointerTestProbe::~MomentumConnViscosityCheckpointerTestProbe() {}
 
-int HyPerConnCheckpointerTestProbe::initialize_base() { return PV_SUCCESS; }
+int MomentumConnViscosityCheckpointerTestProbe::initialize_base() { return PV_SUCCESS; }
 
-int HyPerConnCheckpointerTestProbe::initialize(const char *probeName, PV::HyPerCol *hc) {
+int MomentumConnViscosityCheckpointerTestProbe::initialize(
+      const char *probeName,
+      PV::HyPerCol *hc) {
    int status = PV::ColProbe::initialize(probeName, hc);
    FatalIf(parent->getDeltaTime() != 1.0, "This test assumes that the HyPerCol dt is 1.0.\n");
    return status;
 }
 
-void HyPerConnCheckpointerTestProbe::ioParam_textOutputFlag(enum PV::ParamsIOFlag ioFlag) {
+void MomentumConnViscosityCheckpointerTestProbe::ioParam_textOutputFlag(
+      enum PV::ParamsIOFlag ioFlag) {
    ColProbe::ioParam_textOutputFlag(ioFlag);
    if (ioFlag == PV::PARAMS_IO_READ && !getTextOutputFlag()) {
       if (parent->getCommunicator()->globalCommRank() == 0) {
-         ErrorLog()
-               << getDescription()
-               << ": HyPerConnCheckpointerTestProbe requires textOutputFlag to be set to true.\n";
+         ErrorLog() << getDescription() << ": MomentumConnViscosityCheckpointerTestProbe requires "
+                                           "textOutputFlag to be set to true.\n";
       }
    }
 }
 
-int HyPerConnCheckpointerTestProbe::communicateInitInfo() {
+int MomentumConnViscosityCheckpointerTestProbe::communicateInitInfo() {
    int status = PV::ColProbe::communicateInitInfo();
    FatalIf(
          status != PV_SUCCESS, "%s failed in ColProbe::communicateInitInfo\n", getDescription_c());
@@ -56,7 +60,7 @@ int HyPerConnCheckpointerTestProbe::communicateInitInfo() {
    return status;
 }
 
-int HyPerConnCheckpointerTestProbe::initInputLayer() {
+int MomentumConnViscosityCheckpointerTestProbe::initInputLayer() {
    mInputLayer = dynamic_cast<PV::InputLayer *>(parent->getLayerFromName("Input"));
    FatalIf(mInputLayer == nullptr, "column does not have an InputLayer named \"Input\".\n");
    if (checkCommunicatedFlag(mInputLayer) == PV_POSTPONE) {
@@ -69,7 +73,7 @@ int HyPerConnCheckpointerTestProbe::initInputLayer() {
    return PV_SUCCESS;
 }
 
-int HyPerConnCheckpointerTestProbe::initOutputLayer() {
+int MomentumConnViscosityCheckpointerTestProbe::initOutputLayer() {
    mOutputLayer = parent->getLayerFromName("Output");
    FatalIf(mOutputLayer == nullptr, "column does not have a HyPerLayer named \"Output\".\n");
    if (checkCommunicatedFlag(mOutputLayer) == PV_POSTPONE) {
@@ -78,9 +82,10 @@ int HyPerConnCheckpointerTestProbe::initOutputLayer() {
    return PV_SUCCESS;
 }
 
-int HyPerConnCheckpointerTestProbe::initConnection() {
-   mConnection = dynamic_cast<PV::HyPerConn *>(parent->getConnFromName("InputToOutput"));
-   FatalIf(mConnection == nullptr, "column does not have a HyPerConn named \"InputToOutput\".\n");
+int MomentumConnViscosityCheckpointerTestProbe::initConnection() {
+   mConnection = dynamic_cast<PV::MomentumConn *>(parent->getConnFromName("InputToOutput"));
+   FatalIf(
+         mConnection == nullptr, "column does not have a MomentumConn named \"InputToOutput\".\n");
    if (checkCommunicatedFlag(mConnection) == PV_POSTPONE) {
       return PV_POSTPONE;
    }
@@ -94,16 +99,17 @@ int HyPerConnCheckpointerTestProbe::initConnection() {
    FatalIf(
          !mConnection->usingSharedWeights(),
          "This test assumes that the connection is using shared weights.\n");
-   FatalIf(
-         mConnection->getDelay(0) != 0.0,
-         "This test assumes that the connection has zero delay.\n");
    FatalIf(mConnection->xPatchSize() != 1, "This test assumes that the connection has nxp==1.\n");
    FatalIf(mConnection->yPatchSize() != 1, "This test assumes that the connection has nyp==1.\n");
    FatalIf(mConnection->fPatchSize() != 1, "This test assumes that the connection has nfp==1.\n");
+   FatalIf(
+         std::strcmp(mConnection->getMomentumMethod(), "viscosity"),
+         "This test assumes that the connection has momentumMethod=\"viscosity\".\n");
    return PV_SUCCESS;
 }
 
-int HyPerConnCheckpointerTestProbe::checkCommunicatedFlag(PV::BaseObject *dependencyObject) {
+int MomentumConnViscosityCheckpointerTestProbe::checkCommunicatedFlag(
+      PV::BaseObject *dependencyObject) {
    if (!dependencyObject->getInitInfoCommunicatedFlag()) {
       if (parent->getCommunicator()->commRank() == 0) {
          InfoLog().printf(
@@ -118,7 +124,8 @@ int HyPerConnCheckpointerTestProbe::checkCommunicatedFlag(PV::BaseObject *depend
    }
 }
 
-int HyPerConnCheckpointerTestProbe::readStateFromCheckpoint(PV::Checkpointer *checkpointer) {
+int MomentumConnViscosityCheckpointerTestProbe::readStateFromCheckpoint(
+      PV::Checkpointer *checkpointer) {
    PV::Checkpointer::TimeInfo timeInfo;
    PV::CheckpointEntryData<PV::Checkpointer::TimeInfo> timeInfoCheckpointEntry(
          std::string("timeinfo"),
@@ -134,7 +141,7 @@ int HyPerConnCheckpointerTestProbe::readStateFromCheckpoint(PV::Checkpointer *ch
    return PV_SUCCESS;
 }
 
-int HyPerConnCheckpointerTestProbe::calcUpdateNumber(double timevalue) {
+int MomentumConnViscosityCheckpointerTestProbe::calcUpdateNumber(double timevalue) {
    pvAssert(timevalue >= parent->getStartTime());
    int const step = (int)std::nearbyint(timevalue - parent->getStartTime());
    pvAssert(step >= 0);
@@ -142,13 +149,15 @@ int HyPerConnCheckpointerTestProbe::calcUpdateNumber(double timevalue) {
    return updateNumber;
 }
 
-void HyPerConnCheckpointerTestProbe::initializeCorrectValues(double timevalue) {
+void MomentumConnViscosityCheckpointerTestProbe::initializeCorrectValues(double timevalue) {
    int const updateNumber = mStartingUpdateNumber + calcUpdateNumber(timevalue);
    if (updateNumber == 0) {
-      mCorrectState = new CorrectState(0, 1.0f /*weight*/, 1.0f /*input*/, 2.0f /*output*/);
+      mCorrectState =
+            new CorrectState(0, 1.0f /*weight*/, 0.0f /*dw*/, 1.0f /*input*/, 2.0f /*output*/);
    }
    else {
-      mCorrectState = new CorrectState(1, 3.0f /*weight*/, 1.0f /*input*/, 3.0f /*output*/);
+      mCorrectState =
+            new CorrectState(1, 3.0f /*weight*/, 2.0f /*dw*/, 1.0f /*input*/, 3.0f /*output*/);
 
       for (int j = 2; j < updateNumber; j++) {
          mCorrectState->update();
@@ -157,7 +166,7 @@ void HyPerConnCheckpointerTestProbe::initializeCorrectValues(double timevalue) {
    }
 }
 
-int HyPerConnCheckpointerTestProbe::outputState(double timevalue) {
+int MomentumConnViscosityCheckpointerTestProbe::outputState(double timevalue) {
    if (!mValuesSet) {
       initializeCorrectValues(timevalue);
       mValuesSet = true;
@@ -169,7 +178,7 @@ int HyPerConnCheckpointerTestProbe::outputState(double timevalue) {
 
    bool failed = false;
 
-   failed |= verifyConnection(mConnection, mCorrectState->getCorrectWeight(), timevalue);
+   failed |= verifyConnection(mConnection, mCorrectState, timevalue);
    failed |= verifyLayer(mInputLayer, mCorrectState->getCorrectInput(), timevalue);
    failed |= verifyLayer(mOutputLayer, mCorrectState->getCorrectOutput(), timevalue);
 
@@ -192,7 +201,46 @@ int HyPerConnCheckpointerTestProbe::outputState(double timevalue) {
    return PV_SUCCESS; // Test runs all timesteps and then checks the mTestFailed flag at the end.
 }
 
-bool HyPerConnCheckpointerTestProbe::verifyLayer(
+bool MomentumConnViscosityCheckpointerTestProbe::verifyConnection(
+      PV::MomentumConn *connection,
+      CorrectState const *correctState,
+      double timevalue) {
+   bool failed = false;
+
+   if (parent->getCommunicator()->commRank() == 0) {
+      float observedWeightValue = connection->get_wDataStart(0)[0];
+      float correctWeightValue  = correctState->getCorrectWeight();
+      failed |= verifyConnValue(timevalue, observedWeightValue, correctWeightValue, "weight");
+
+      float observed_dwValue = connection->get_dwDataStart(0)[0];
+      float correct_dwValue  = correctState->getCorrect_dw();
+      failed |= verifyConnValue(timevalue, observed_dwValue, correct_dwValue, "dw");
+   }
+   return failed;
+}
+
+bool MomentumConnViscosityCheckpointerTestProbe::verifyConnValue(
+      double timevalue,
+      float observed,
+      float correct,
+      char const *valueDescription) {
+   bool failed;
+   if (observed != correct) {
+      outputStream->printf(
+            "Time %f, %s is %f, instead of the expected %f.\n",
+            timevalue,
+            valueDescription,
+            (double)observed,
+            (double)correct);
+      failed = true;
+   }
+   else {
+      failed = false;
+   }
+   return failed;
+}
+
+bool MomentumConnViscosityCheckpointerTestProbe::verifyLayer(
       PV::HyPerLayer *layer,
       float correctValue,
       double timevalue) {
@@ -221,26 +269,6 @@ bool HyPerConnCheckpointerTestProbe::verifyLayer(
                   (double)correctValue);
             failed = true;
          }
-      }
-   }
-   return failed;
-}
-
-bool HyPerConnCheckpointerTestProbe::verifyConnection(
-      PV::HyPerConn *connection,
-      float correctValue,
-      double timevalue) {
-   bool failed = false;
-
-   if (parent->getCommunicator()->commRank() == 0) {
-      float observedWeightValue = connection->get_wDataStart(0)[0];
-      if (observedWeightValue != correctValue) {
-         outputStream->printf(
-               "Time %f, weight is %f, instead of the expected %f.\n",
-               timevalue,
-               (double)observedWeightValue,
-               (double)correctValue);
-         failed = true;
       }
    }
    return failed;

@@ -1,5 +1,5 @@
 //
-// HyPerConnCheckpointerTest_freshstart_triggering.params
+// HyPerConnCheckpointerTest_freshstart_updateperiod.params
 //
 // created by peteschultz: Jan 5, 2017
 //
@@ -8,39 +8,12 @@
 // and initializing from checkpoint. It tests connections that use triggering,
 // as well as connections that use weightUpdatePeriod.
 //
-// This params has an InputLayer, an output HyPerLayer, and a HyPerConn
+// This params file has an InputLayer, an output HyPerLayer, and a HyPerConn
 // connecting them on the excitatory channel.
 //
-// The input layer has a display period of 4, starts at 1, and increments
-// by 1 each display period.
-// The HyPerConn starts at 1, has dWMax=1, and triggers off the input layer.
-// The output layer is initialized as 2, and updates as input*connection.
-//
-// As connections update before layers, and the phase of the output is
-// higher than the phase of the input; the correct values are as follows:
-//
-//   time connection  input   output
-//     0        1       1         2
-//     1        3       1         3
-//     2        3       1         3
-//     3        3       1         3
-//     4        3       1         3
-//     5        6       2        12
-//     6        6       2        12
-//     7        6       2        12
-//     8        6       2        12
-//     9       30       3        90
-//    10       30       3        90
-//    11       30       3        90
-//    12       30       3        90
-//    13      300       4      1200
-//    14      300       4      1200
-//    15      300       4      1200
-//    16      300       4      1200
-//    17     5100       5     25500
-//    18     5100       5     25500
-//    19     5100       5     25500
-//    20     5100       5     25500
+// See CorrectState.hpp in the src directory for a description of
+// the how the layers and connection are initialized, and the correct
+// values at subsequent timesteps.
 
 debugParsing = false;
 

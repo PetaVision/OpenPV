@@ -129,6 +129,7 @@ void AdaptiveTimeScaleProbe::allocateTimeScaleController() {
 int AdaptiveTimeScaleProbe::registerData(Checkpointer *checkpointer, std::string const &objName) {
    int status = ColProbe::registerData(checkpointer, objName);
    mAdaptiveTimeScaleController->registerData(checkpointer, objName);
+   return status;
 }
 
 int AdaptiveTimeScaleProbe::respond(std::shared_ptr<BaseMessage const> message) {
