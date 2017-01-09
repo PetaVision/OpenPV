@@ -47,7 +47,7 @@ int GateSumPoolTestLayer::updateState(double timef, double dt) {
                expectedvalue = iFeature * 64 + yval * 16 + xval * 2 + 4.5;
                expectedvalue *= 4;
 
-               if (fabs(actualvalue - expectedvalue) >= 1e-4) {
+               if (fabs(actualvalue - expectedvalue) >= 1e-4f) {
                   ErrorLog() << "Connection " << name << " Mismatch at (" << iX << "," << iY
                              << ") : actual value: " << actualvalue
                              << " Expected value: " << expectedvalue

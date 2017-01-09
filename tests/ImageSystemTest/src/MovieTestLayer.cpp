@@ -35,7 +35,7 @@ int MovieTestLayer::updateState(double time, double dt) {
 
          float expectedVal =
                kIndex(kxGlobal, kyGlobal, kf, loc->nxGlobal, loc->nyGlobal, nf) + 10 * frameIdx;
-         if (fabs(checkVal - expectedVal) >= 1e-4) {
+         if (std::fabs(checkVal - expectedVal) >= 1e-4f) {
             Fatal() << name << " time: " << time << " batch: " << b << " Expected: " << expectedVal
                     << " Actual: " << checkVal << "\n";
          }

@@ -384,7 +384,7 @@ int HyPerLayer::setLayerLoc(
 
    float nxglobalfloat = nxScale * parent->getNxGlobal();
    layerLoc->nxGlobal  = (int)nearbyintf(nxglobalfloat);
-   if (fabs(nxglobalfloat - layerLoc->nxGlobal) > 0.0001) {
+   if (std::fabs(nxglobalfloat - layerLoc->nxGlobal) > 0.0001f) {
       if (parent->columnId() == 0) {
          ErrorLog(errorMessage);
          errorMessage.printf(
@@ -399,7 +399,7 @@ int HyPerLayer::setLayerLoc(
 
    float nyglobalfloat = nyScale * parent->getNyGlobal();
    layerLoc->nyGlobal  = (int)nearbyintf(nyglobalfloat);
-   if (fabs(nyglobalfloat - layerLoc->nyGlobal) > 0.0001) {
+   if (std::fabs(nyglobalfloat - layerLoc->nyGlobal) > 0.0001f) {
       if (parent->columnId() == 0) {
          ErrorLog(errorMessage);
          errorMessage.printf(
