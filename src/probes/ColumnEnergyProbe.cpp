@@ -36,6 +36,17 @@ int ColumnEnergyProbe::initialize_base() {
    return PV_SUCCESS;
 }
 
+int ColumnEnergyProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = ColProbe::ioParamsFillGroup(ioFlag);
+   ioParam_reductionInterval(ioFlag);
+   return status;
+}
+
+void ColumnEnergyProbe::ioParam_reductionInterval(enum ParamsIOFlag ioFlag) {
+   parent->parameters()->ioParamValue(
+         ioFlag, name, "reductionInterval", &mSkipInterval, mSkipInterval, false /*warnIfAbsent*/);
+}
+
 int ColumnEnergyProbe::initializeColumnEnergyProbe(const char *probename, HyPerCol *hc) {
    return ColProbe::initialize(probename, hc);
 }

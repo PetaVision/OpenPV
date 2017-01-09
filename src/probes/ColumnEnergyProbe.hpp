@@ -102,6 +102,9 @@ class ColumnEnergyProbe : public ColProbe {
     */
    virtual double referenceUpdateTime() const;
 
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_reductionInterval(enum ParamsIOFlag ioFlag);
+
    size_t numTerms;
    BaseProbe **terms;
 
@@ -113,7 +116,7 @@ class ColumnEnergyProbe : public ColProbe {
    int initialize_base();
 
    int mSkipTimer = 0;
-   int mSkipInterval = 10;
+   int mSkipInterval = 1;
 
 }; // end class ColumnEnergyProbe
 
