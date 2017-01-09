@@ -10,8 +10,8 @@
 #include "io.hpp"
 
 #include <assert.h>
+#include <cmath>
 #include <float.h> // FLT_MAX/MIN
-#include <math.h>
 #include <string.h> // memcpy
 #include <string>
 

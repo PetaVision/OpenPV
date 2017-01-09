@@ -13,7 +13,7 @@
 #include "utils/cl_random.h"
 
 #include <assert.h>
-#include <math.h>
+#include <cmath>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

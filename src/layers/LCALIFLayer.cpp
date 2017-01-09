@@ -7,8 +7,8 @@
 
 #include "LCALIFLayer.hpp"
 
+#include <cmath>
 #include <float.h>
-#include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>

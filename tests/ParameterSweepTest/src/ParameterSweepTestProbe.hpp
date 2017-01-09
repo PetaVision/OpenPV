@@ -11,7 +11,7 @@
 #include "layers/HyPerLayer.hpp"
 #include "probes/StatsProbe.hpp"
 #include "utils/PVLog.hpp"
-#include <math.h>
+#include <cmath>
 
 namespace PV {
 
