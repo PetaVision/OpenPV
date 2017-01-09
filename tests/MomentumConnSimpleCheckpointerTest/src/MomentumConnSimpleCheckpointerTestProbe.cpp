@@ -67,6 +67,7 @@ int MomentumConnSimpleCheckpointerTestProbe::initInputLayer() {
    FatalIf(
          mInputLayer->getDisplayPeriod() != 4.0,
          "This test assumes that the display period is 4 (should really not be hard-coded.\n");
+   return PV_SUCCESS;
 }
 
 int MomentumConnSimpleCheckpointerTestProbe::initOutputLayer() {
@@ -75,6 +76,7 @@ int MomentumConnSimpleCheckpointerTestProbe::initOutputLayer() {
    if (checkCommunicatedFlag(mOutputLayer) == PV_POSTPONE) {
       return PV_POSTPONE;
    }
+   return PV_SUCCESS;
 }
 
 int MomentumConnSimpleCheckpointerTestProbe::initConnection() {
@@ -100,6 +102,7 @@ int MomentumConnSimpleCheckpointerTestProbe::initConnection() {
    FatalIf(
          std::strcmp(mConnection->getMomentumMethod(), "simple"),
          "This test assumes that the connection has momentumMethod=\"simple\".\n");
+   return PV_SUCCESS;
 }
 
 int MomentumConnSimpleCheckpointerTestProbe::checkCommunicatedFlag(

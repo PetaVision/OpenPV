@@ -66,6 +66,7 @@ int HyPerConnCheckpointerTestProbe::initInputLayer() {
    FatalIf(
          mInputLayer->getDisplayPeriod() != 4.0,
          "This test assumes that the display period is 4 (should really not be hard-coded.\n");
+   return PV_SUCCESS;
 }
 
 int HyPerConnCheckpointerTestProbe::initOutputLayer() {
@@ -74,6 +75,7 @@ int HyPerConnCheckpointerTestProbe::initOutputLayer() {
    if (checkCommunicatedFlag(mOutputLayer) == PV_POSTPONE) {
       return PV_POSTPONE;
    }
+   return PV_SUCCESS;
 }
 
 int HyPerConnCheckpointerTestProbe::initConnection() {
@@ -98,6 +100,7 @@ int HyPerConnCheckpointerTestProbe::initConnection() {
    FatalIf(mConnection->xPatchSize() != 1, "This test assumes that the connection has nxp==1.\n");
    FatalIf(mConnection->yPatchSize() != 1, "This test assumes that the connection has nyp==1.\n");
    FatalIf(mConnection->fPatchSize() != 1, "This test assumes that the connection has nfp==1.\n");
+   return PV_SUCCESS;
 }
 
 int HyPerConnCheckpointerTestProbe::checkCommunicatedFlag(PV::BaseObject *dependencyObject) {
