@@ -5,6 +5,8 @@
  *      Author: pschultz
  */
 
+#include <cmath>
+
 #include "L1NormProbe.hpp"
 #include "../columns/HyPerCol.hpp"
 

@@ -1,5 +1,5 @@
 #include "SumPoolTestLayer.hpp"
-
+#include <cmath>
 namespace PV {
 
 SumPoolTestLayer::SumPoolTestLayer(const char *name, HyPerCol *hc) {
