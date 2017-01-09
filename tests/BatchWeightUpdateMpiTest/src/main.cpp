@@ -2,7 +2,7 @@
  * main .cpp file for CheckpointSystemTest
  *
  */
-
+#include <cmath>
 #include <columns/buildandrun.hpp>
 
 int customexit(HyPerCol *hc, int argc, char *argv[]);

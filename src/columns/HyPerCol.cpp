@@ -20,13 +20,13 @@
 #include "utils/Clock.hpp"
 
 #include <assert.h>
+#include <cmath>
 #include <csignal>
 #include <float.h>
 #include <fstream>
 #include <fts.h>
 #include <libgen.h>
 #include <limits>
-#include <math.h>
 #include <memory.h>
 #include <stdio.h>
 #include <stdlib.h>
