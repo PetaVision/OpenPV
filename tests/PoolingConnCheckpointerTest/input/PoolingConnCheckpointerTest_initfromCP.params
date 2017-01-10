@@ -1,0 +1,113 @@
+//
+// PoolingConnCheckpointerTest_initfromCP.params
+//
+// created by peteschultz: Jan 5, 2017
+//
+
+// A params file used by PoolingConnCheckpointerTest, which tests PoolingConn
+// when checkpointing and initializing from checkpoint. 
+//
+// This params file has an InputLayer, an output HyPerLayer, and a PoolingConn
+// connecting them on the excitatory channel.
+//
+// See CorrectState.hpp in the src directory for a description of
+// the how the layers and connection are initialized, and the correct
+// values at subsequent timesteps.
+
+debugParsing = false;
+
+HyPerCol "column" = {
+    startTime                           = 0;
+    dt                                  = 1;
+    stopTime                            = 12;
+    progressInterval                    = 100;
+    writeProgressToErr                  = false;
+    outputPath                          = "output_initfromCP/";
+    verifyWrites                        = false;
+    checkpointWrite                     = true;
+    checkpointWriteDir                  = "output_initfromCP/checkpoints";
+    checkpointWriteTriggerMode          = "step";
+    checkpointWriteStepInterval         = 1;
+    checkpointIndexWidth                = -1;
+    suppressNonplasticCheckpoints       = false;
+    deleteOlderCheckpoints              = false;
+    initializeFromCheckpointDir         = "output_freshstart/checkpoints/Checkpoint08";
+    printParamsFilename                 = "pv_initfromCP.params";
+    randomSeed                          = 1234567890;
+    nx                                  = 4;
+    ny                                  = 4;
+    nbatch                              = 1;
+    errorOnNotANumber                   = true;
+};
+
+PvpLayer "Input" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    initializeFromCheckpointFlag        = true;
+    writeStep                           = -1;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+    displayPeriod                       = 4;
+    inputPath                           = "input/inputframes.pvp";
+    offsetAnchor                        = "tl";
+    offsetX                             = 0;
+    offsetY                             = 0;
+    autoResizeFlag                      = false;
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = false;
+    useInputBCflag                      = false;
+    padValue                            = 0;
+    batchMethod                         = "byFile";
+    start_frame_index                   = [0.000000];
+    writeFrameToTimestamp               = true;
+    resetToStartOnLoop                  = false;
+};
+
+HyPerLayer "Output" = {
+    nxScale                             = 0.5;
+    nyScale                             = 0.5;
+    nf                                  = 1;
+    phase                               = 1;
+    mirrorBCflag                        = true;
+    initializeFromCheckpointFlag        = true;
+    InitVType                           = "ConstantV";
+    valueV                              = 2;
+    triggerLayerName                    = NULL;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+};
+
+PoolingConn "InputToOutput" = {
+    preLayerName                        = "Input";
+    postLayerName                       = "Output";
+    channelCode                         = 0;
+    delay                               = [0.000000];
+    numAxonalArbors                     = 1;
+    convertRateToSpikeCount             = false;
+    receiveGpu                          = false;
+    updateGSynFromPostPerspective       = false;
+    pvpatchAccumulateType               = "maxpooling";
+    selfFlag                            = false;
+    nxp                                 = 1;
+    nyp                                 = 1;
+    nfp                                 = 1;
+    shrinkPatches                       = false;
+    weightSparsity                      = 0;
+    needPostIndexLayer                  = false;
+};
+
+PoolingConnCheckpointerTestProbe "probe" = {
+    message                             = NULL;
+    textOutputFlag                      = true;
+    probeOutputFile                     = "probe.txt";
+    triggerLayerName                    = NULL;
+    energyProbe                         = NULL;
+};
