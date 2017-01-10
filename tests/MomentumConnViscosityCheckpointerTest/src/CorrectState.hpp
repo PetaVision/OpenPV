@@ -73,7 +73,7 @@ class CorrectState {
     * weight value, input value, and output value.
     */
    CorrectState(
-         int intialUpdateNumber,
+         int initialUpdateNumber,
          float initialWeight,
          float initial_dw,
          float initialInput,
