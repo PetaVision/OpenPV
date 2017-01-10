@@ -86,7 +86,7 @@ class MomentumConnSimpleCheckpointerTestProbe : public PV::ColProbe {
    // Data members
   protected:
    int mStartingUpdateNumber     = 0;
-   bool mValuesSet               = 0.0;
+   bool mValuesSet               = false;
    PV::InputLayer *mInputLayer   = nullptr;
    PV::HyPerLayer *mOutputLayer  = nullptr;
    PV::MomentumConn *mConnection = nullptr;
