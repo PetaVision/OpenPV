@@ -65,7 +65,7 @@ std::vector<double> AdaptiveTimeScaleController::calcTimesteps(
       double dE_dt_scaled = (E_0 - E_dt) / mTimeScaleInfo.mTimeScale[b];
 
       if (E_dt == E_0) {
-         return mTimeScaleInfo.mTimeScale;
+         continue;
       }
 
       if ((dE_dt_scaled < 0.0) || (E_0 <= 0) || (E_dt <= 0)) {
