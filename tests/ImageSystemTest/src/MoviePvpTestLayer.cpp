@@ -38,7 +38,7 @@ int MoviePvpTestLayer::updateState(double time, double dt) {
 
          float expectedVal =
                kIndex(kxGlobal, kyGlobal, kf, loc->nxGlobal, loc->nyGlobal, nf) + frameIdx * 192;
-         if (fabs(checkVal - expectedVal) >= 1e-5) {
+         if (std::fabs(checkVal - expectedVal) >= 1e-5f) {
             ErrorLog() << "ImageFileIO " << name << " test Expected: " << expectedVal
                        << " Actual: " << checkVal << "\n";
          }

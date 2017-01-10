@@ -1,3 +1,5 @@
+#include <cmath>
+
 #include "GateAvgPoolTestLayer.hpp"
 
 namespace PV {
@@ -46,7 +48,7 @@ int GateAvgPoolTestLayer::updateState(double timef, double dt) {
                float expectedvalue;
                expectedvalue = iFeature * 64 + yval * 16 + xval * 2 + 4.5;
 
-               if (fabs(actualvalue - expectedvalue) >= 1e-4) {
+               if (std::fabs(actualvalue - expectedvalue) >= 1e-4f) {
                   ErrorLog() << "Connection " << name << " Mismatch at (" << iX << "," << iY
                              << ") : actual value: " << actualvalue
                              << " Expected value: " << expectedvalue

@@ -1,6 +1,6 @@
 #include "layers/PVLayerCube.hpp"
 #include "utils/PVLog.hpp"
-#include <math.h>
+#include <cmath>
 #include <stdio.h>
 #include <stdlib.h>
 

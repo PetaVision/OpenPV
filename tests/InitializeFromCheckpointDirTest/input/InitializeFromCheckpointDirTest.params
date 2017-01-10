@@ -36,7 +36,6 @@ HyPerCol "column" = {
    checkpointIndexWidth = -1;
    suppressNonplasticCheckpoints = true;
    deleteOlderCheckpoints = false;
-   defaultInitializeFromCheckpointFlag = false;
    checkpointWriteTriggerMode = "step";
    checkpointWriteStepInterval = 1;
 };
@@ -58,6 +57,7 @@ PvpLayer "Input" = {
     valueBC = 0.0;
     useInputBCflag = false;
     updateGpu = false;
+    initializeFromCheckpointFlag = false;
     inverseFlag = false; 
     normalizeLuminanceFlag = false;
     autoResizeFlag = false;

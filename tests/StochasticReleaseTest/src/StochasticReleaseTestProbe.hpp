@@ -11,7 +11,7 @@
 #include "columns/HyPerCol.hpp"
 #include "columns/buildandrun.hpp"
 #include "probes/StatsProbe.hpp"
-#include <math.h>
+#include <cmath>
 #include <stdlib.h>
 
 namespace PV {

@@ -29,7 +29,6 @@ HyPerCol "column" = {
    outputPath = "output/";
    printParamsFilename = "pv.params"; 
    initializeFromCheckpointDir = "input/restartDir";
-   defaultInitializeFromCheckpointFlag = false;
    checkpointWrite = false;
    lastCheckpointDir = "output/Last"; 
 };

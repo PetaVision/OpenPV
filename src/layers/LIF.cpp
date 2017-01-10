@@ -350,12 +350,14 @@ int LIF::allocateConductances(int num_channels) {
 }
 
 int LIF::readStateFromCheckpoint(Checkpointer *checkpointer) {
-   HyPerLayer::readStateFromCheckpoint(checkpointer);
-   readVthFromCheckpoint(checkpointer);
-   readG_EFromCheckpoint(checkpointer);
-   readG_IFromCheckpoint(checkpointer);
-   readG_IBFromCheckpoint(checkpointer);
-   readRandStateFromCheckpoint(checkpointer);
+   if (initializeFromCheckpointFlag) {
+      HyPerLayer::readStateFromCheckpoint(checkpointer);
+      readVthFromCheckpoint(checkpointer);
+      readG_EFromCheckpoint(checkpointer);
+      readG_IFromCheckpoint(checkpointer);
+      readG_IBFromCheckpoint(checkpointer);
+      readRandStateFromCheckpoint(checkpointer);
+   }
    return PV_SUCCESS;
 }
 

@@ -78,7 +78,7 @@ void BatchIndexer::initializeBatch(int localBatchIndex) {
    mIndices.at(localBatchIndex) = mStartIndices.at(localBatchIndex);
 }
 void BatchIndexer::setRandomSeed(unsigned int seed) {
-   mRandomSeed = seed; 
+   mRandomSeed = seed;
    shuffleLookupTable();
 }
 
@@ -101,6 +101,7 @@ void BatchIndexer::shuffleLookupTable() {
 }
 
 int BatchIndexer::registerData(Checkpointer *checkpointer, std::string const &objName) {
+   mObjName = objName;
    checkpointer->registerCheckpointData<int>(
          objName,
          std::string("FrameNumbers"),
@@ -113,4 +114,10 @@ int BatchIndexer::registerData(Checkpointer *checkpointer, std::string const &ob
    }
    return PV_SUCCESS;
 }
+
+int BatchIndexer::readStateFromCheckpoint(Checkpointer *checkpointer) {
+   checkpointer->readNamedCheckpointEntry(mObjName, "FrameNumbers");
+   return PV_SUCCESS;
 }
+
+} // end namespace PV

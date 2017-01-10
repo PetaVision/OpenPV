@@ -95,7 +95,7 @@ void MomentumConn::ioParam_momentumTau(enum ParamsIOFlag ioFlag) {
  * @details Assuming a = dwMax * pre * post
  * simple: deltaW(t) = a + momentumTau * deltaW(t-1)
  * viscosity: deltaW(t) = (deltaW(t-1) * exp(-1/momentumTau)) + a
- * alex: deltaW(t) = momentumTau * delta(t-1) - momentumDecay * dwMax * w(t) - a
+ * alex: deltaW(t) = momentumTau * delta(t-1) - momentumDecay * dwMax * w(t) + a
  */
 void MomentumConn::ioParam_momentumMethod(enum ParamsIOFlag ioFlag) {
    pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
@@ -220,31 +220,52 @@ int MomentumConn::applyMomentum(int arbor_ID) {
    int nExt              = preSynapticLayer()->getNumExtended();
    const PVLayerLoc *loc = preSynapticLayer()->getLayerLoc();
    int numKernels        = getNumDataPatches();
-// Shared weights done in parallel, parallel in numkernels
+
+   // Shared weights done in parallel, parallel in numkernels
+   if (!strcmp(momentumMethod, "simple")) {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-   for (int kernelIdx = 0; kernelIdx < numKernels; kernelIdx++) {
-      float *dwdata_start  = get_dwDataHead(arbor_ID, kernelIdx);
-      float *prev_dw_start = get_prev_dwDataHead(arbor_ID, kernelIdx);
-      float *wdata_start   = get_wDataHead(arbor_ID, kernelIdx);
-      if (!strcmp(momentumMethod, "simple")) {
+      for (int kernelIdx = 0; kernelIdx < numKernels; kernelIdx++) {
+         float *dwdata_start        = get_dwDataHead(arbor_ID, kernelIdx);
+         float const *prev_dw_start = get_prev_dwDataHead(arbor_ID, kernelIdx);
+         float const *wdata_start   = get_wDataHead(arbor_ID, kernelIdx);
          for (int k = 0; k < nxp * nyp * nfp; k++) {
             dwdata_start[k] += momentumTau * prev_dw_start[k] - momentumDecay * wdata_start[k];
          }
       }
-      else if (!strcmp(momentumMethod, "viscosity")) {
+   }
+   else if (!strcmp(momentumMethod, "viscosity")) {
+      float const tauFactor = exp(-1.0f / momentumTau);
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for
+#endif
+      for (int kernelIdx = 0; kernelIdx < numKernels; kernelIdx++) {
+         float *dwdata_start        = get_dwDataHead(arbor_ID, kernelIdx);
+         float const *prev_dw_start = get_prev_dwDataHead(arbor_ID, kernelIdx);
+         float const *wdata_start   = get_wDataHead(arbor_ID, kernelIdx);
          for (int k = 0; k < nxp * nyp * nfp; k++) {
-            dwdata_start[k] = (prev_dw_start[k] * expf(-1.0f / momentumTau)) + dwdata_start[k]
-                              - momentumDecay * wdata_start[k];
+            dwdata_start[k] += tauFactor * prev_dw_start[k] - momentumDecay * wdata_start[k];
          }
       }
-      else if (!strcmp(momentumMethod, "alex")) {
+   }
+   else if (!strcmp(momentumMethod, "alex")) {
+      float const decayFactor = momentumDecay * getDWMax();
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for
+#endif
+      for (int kernelIdx = 0; kernelIdx < numKernels; kernelIdx++) {
+         float *dwdata_start        = get_dwDataHead(arbor_ID, kernelIdx);
+         float const *prev_dw_start = get_prev_dwDataHead(arbor_ID, kernelIdx);
+         float const *wdata_start   = get_wDataHead(arbor_ID, kernelIdx);
          for (int k = 0; k < nxp * nyp * nfp; k++) {
-            dwdata_start[k] = momentumTau * prev_dw_start[k]
-                              - momentumDecay * getDWMax() * wdata_start[k] + dwdata_start[k];
+            dwdata_start[k] +=
+                  momentumTau * prev_dw_start[k] - decayFactor * wdata_start[k];
          }
       }
+   }
+   else {
+      pvAssertMessage(0, "Unrecognized momentumMethod\n");
    }
    return PV_SUCCESS;
 }
@@ -260,8 +281,11 @@ int MomentumConn::registerData(Checkpointer *checkpointer, std::string const &ob
 }
 
 int MomentumConn::readStateFromCheckpoint(Checkpointer *checkpointer) {
-   int status = HyPerConn::readStateFromCheckpoint(checkpointer);
-   checkpointer->readNamedCheckpointEntry(std::string(name), std::string("prev_dW"));
+   int status = PV_SUCCESS;
+   if (initializeFromCheckpointFlag) {
+      status = HyPerConn::readStateFromCheckpoint(checkpointer);
+      checkpointer->readNamedCheckpointEntry(std::string(name), std::string("prev_dW"));
+   }
    return status;
 }
 

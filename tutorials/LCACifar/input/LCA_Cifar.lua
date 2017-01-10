@@ -60,7 +60,7 @@ local pvParameters = {
    };
 
    AdaptiveTimeScales = {
-      groupTpye = "AdaptiveTimeScaleProbe";
+      groupType = "AdaptiveTimeScaleProbe";
       targetName                          = "V1EnergyProbe";
       message                             = nil;
       textOutputFlag                      = true;

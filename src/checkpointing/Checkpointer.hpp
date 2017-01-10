@@ -119,12 +119,12 @@ class Checkpointer : public Subject {
     */
    virtual void ioParam_initializeFromCheckpointDir(enum ParamsIOFlag ioFlag, PVParams *params);
 
+   // defaultInitializeFromCheckpointFlag was made obsolete Dec 18, 2016.
    /**
-    * @brief defaultInitializeFromCheckpointFlag: Flag to set the default for
-    * layers and connections.
-    * @details Sets the default for layers and connections to use for initialize
-    * from checkpoint based off of initializeFromCheckpointDir. Only used if
-    * initializeFromCheckpointDir is set.
+    * @brief defaultInitializeFromCheckpointFlag is obsolete. If
+    * initializeFromCheckpointDir is set to a nonempty string, all
+    * objects will initialize from the checkpoint unless they set their
+    * individual initializeFromCheckpointFlag to false.
     */
    virtual void
    ioParam_defaultInitializeFromCheckpointFlag(enum ParamsIOFlag ioFlag, PVParams *params);
@@ -253,19 +253,33 @@ class Checkpointer : public Subject {
 /**
  * CheckpointerDataInterface provides a virtual method intended for interfacing
  * with Checkpointer register methods.  An object that does checkpointing should
- * derive from CheckpointerDataInterface, and override registerData to call
- * Checkpointer::registerCheckpointEntry once for each piece of checkpointable
- * data.
+ * derive from CheckpointerDataInterface and override the following methods:
+ *
+ * - registerData should call Checkpointer::registerCheckpointEntry
+ * once for each piece of data that should be read when restarting a run from
+ * a checkpoint. Note that for simple data, where CheckpointEntryData is the
+ * appropriate derived class of CheckpointEntry to use, it is convenient to
+ * use the Checkpointer::registerCheckpointData method template, which handles
+ * creating the shared_ptr needed by registerCheckpointEntry().
+ *
+ * - readStateFromCheckpoint should call one of the readNamedCheckpointEntry
+ * methods for each piece of data that should be read when the object's
+ * initializeFromCheckpointFlag is set. The data read by readStateFromCheckpoint
+ * must be a subset of the data registered by the registerData function member.
  *
  * BaseObject derives from CheckpointerDataInterface, and calls registerData
  * when it receives a RegisterDataMessage (which HyPerCol::run calls after
- * AllocateDataMessage and before InitializeStateMessage).
+ * AllocateDataMessage and before InitializeStateMessage); and calls
+ * readStateFromCheckpoint when it receives a ReadStateFromCheckpointMessage
+ * (which HyPerCol::run calls after InitializeStateMessage if
+ * CheckpointReadDirectory is not set).
  */
 class CheckpointerDataInterface {
   public:
    virtual int registerData(Checkpointer *checkpointer, std::string const &objName) {
       return PV_SUCCESS;
    }
+   virtual int readStateFromCheckpoint(Checkpointer *checkpointer) { return PV_SUCCESS; }
 };
 
 template <typename T>
@@ -281,5 +295,7 @@ bool Checkpointer::registerCheckpointData(
 }
 
 } // namespace PV
+
+#include "Checkpointer.tpp"
 
 #endif // CHECKPOINTER_HPP_

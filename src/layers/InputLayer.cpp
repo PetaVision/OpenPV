@@ -4,8 +4,8 @@
  */
 
 #include "InputLayer.hpp"
-#include "utils/BufferUtilsMPI.hpp"
 #include "columns/RandomSeed.hpp"
+#include "utils/BufferUtilsMPI.hpp"
 
 #include <algorithm>
 #include <cfloat>
@@ -435,6 +435,19 @@ int InputLayer::registerData(Checkpointer *checkpointer, std::string const &objN
    return status;
 }
 
+int InputLayer::readStateFromCheckpoint(Checkpointer *checkpointer) {
+   int status = PV_SUCCESS;
+   if (initializeFromCheckpointFlag) {
+      int status = HyPerLayer::readStateFromCheckpoint(checkpointer);
+      if (mBatchIndexer) {
+         pvAssert(parent->getCommunicator()->commRank() == 0) {
+            mBatchIndexer->readStateFromCheckpoint(checkpointer);
+         }
+      }
+   }
+   return status;
+}
+
 int InputLayer::checkValidAnchorString(const char *offsetAnchor) {
    int status = PV_SUCCESS;
    if (offsetAnchor == NULL || strlen(offsetAnchor) != (size_t)2) {
@@ -759,28 +772,27 @@ void InputLayer::ioParam_start_frame_index(enum ParamsIOFlag ioFlag) {
 }
 
 void InputLayer::ioParam_skip_frame_index(enum ParamsIOFlag ioFlag) {
+   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "batchMethod"));
+   if (mBatchMethod != BatchIndexer::BYSPECIFIED) {
+      mSkipFrameIndex.resize(parent->getNBatchGlobal(), 0);
+      // Earlier behavior made it a fatal error if skip_frame_index was used
+      // and batchMethod was not bySpecified. Now the parameter is skipped and
+      // a warning will be issued when params are scanned for unread values.
+      return;
+   }
    int *paramsSkipFrameIndex = nullptr;
    int length                = 0;
    if (ioFlag == PARAMS_IO_WRITE) {
-      if (mBatchMethod == BatchIndexer::BYSPECIFIED) {
-         length               = mSkipFrameIndex.size();
-         paramsSkipFrameIndex = static_cast<int *>(calloc(length, sizeof(int)));
-         for (int i = 0; i < length; ++i) {
-            paramsSkipFrameIndex[i] = mSkipFrameIndex.at(i);
-         }
-      }
-      else {
-         return;
+      length               = mSkipFrameIndex.size();
+      paramsSkipFrameIndex = static_cast<int *>(calloc(length, sizeof(int)));
+      for (int i = 0; i < length; ++i) {
+         paramsSkipFrameIndex[i] = mSkipFrameIndex.at(i);
       }
    }
    this->getParent()->parameters()->ioParamArray(
          ioFlag, this->getName(), "skip_frame_index", &paramsSkipFrameIndex, &length);
    FatalIf(
-         length != 0 && mBatchMethod != BatchIndexer::BYSPECIFIED,
-         "%s: skip_frame_index requires batchMethod == bySpecified.\n",
-         getName());
-   FatalIf(
-         mBatchMethod == BatchIndexer::BYSPECIFIED && length != parent->getNBatchGlobal(),
+         length != parent->getNBatchGlobal(),
          "%s: skip_frame_index requires nbatch values.\n",
          getName());
    mSkipFrameIndex.clear();
@@ -830,4 +842,5 @@ BaseInputDeprecatedError::BaseInputDeprecatedError(const char *name, HyPerCol *h
            << "  - FilenameParsingGroundTruthLayer now acceps a param\n"
            << "    called inputLayerName instead of movieLayerName.\n";
 }
-}
+
+} // end namespace PV

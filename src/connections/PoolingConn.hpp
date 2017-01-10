@@ -40,9 +40,10 @@ class PoolingConn : public HyPerConn {
          InitWeights *weightInitializer,
          NormalizeBase *weightNormalizer);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-   void ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) override;
-   void ioParam_weightInitType(enum ParamsIOFlag ioFlag) override;
-   void ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_weightInitType(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) override;
    void ioParam_needPostIndexLayer(enum ParamsIOFlag ioFlag);
    void ioParam_postIndexLayerName(enum ParamsIOFlag ioFlag);
 

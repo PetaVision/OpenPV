@@ -5,7 +5,7 @@
 #include <cstdlib>
 
 static int zero(float x) {
-   if (fabs(x) < .00001)
+   if (std::fabs(x) < .00001f)
       return 1;
    return 0;
 }

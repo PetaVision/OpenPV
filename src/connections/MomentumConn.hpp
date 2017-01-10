@@ -21,6 +21,9 @@ class MomentumConn : public HyPerConn {
 
    virtual int applyMomentum(int arbor_ID);
 
+   inline float const *get_prev_dwDataStart(int arborId) { return prev_dwDataStart[arborId]; }
+   inline char const *getMomentumMethod() { return momentumMethod; }
+
   protected:
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual void ioParam_momentumTau(enum ParamsIOFlag ioFlag);

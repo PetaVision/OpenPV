@@ -652,8 +652,8 @@ void HyPerConn::ioParam_weightUpdatePeriod(enum ParamsIOFlag ioFlag) {
    if (plasticityFlag) {
       pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
       if (!triggerLayerName) {
-         parent->parameters()->ioParamValue(
-               ioFlag, name, "weightUpdatePeriod", &weightUpdatePeriod, parent->getDeltaTime());
+         parent->parameters()->ioParamValueRequired(
+               ioFlag, name, "weightUpdatePeriod", &weightUpdatePeriod);
       }
    }
 }
@@ -2100,7 +2100,9 @@ int HyPerConn::writeTextWeights(const char *filename, int k) {
 }
 
 int HyPerConn::readStateFromCheckpoint(Checkpointer *checkpointer) {
-   checkpointer->readNamedCheckpointEntry(std::string(name), std::string("W"));
+   if (initializeFromCheckpointFlag) {
+      checkpointer->readNamedCheckpointEntry(std::string(name), std::string("W"));
+   }
    return PV_SUCCESS;
 }
 

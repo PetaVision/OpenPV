@@ -7,8 +7,8 @@
 
 #include "LCALIFLayer.hpp"
 
+#include <cmath>
 #include <float.h>
-#include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -259,10 +259,12 @@ int LCALIFLayer::updateState(double timed, double dt) {
 }
 
 int LCALIFLayer::readStateFromCheckpoint(Checkpointer *checkpointer) {
-   int status      = LIFGap::readStateFromCheckpoint(checkpointer);
-   double filetime = 0.0;
-   status          = read_integratedSpikeCountFromCheckpoint(checkpointer);
-   status          = readVadptFromCheckpoint(checkpointer);
+   int status = PV_SUCCESS;
+   if (initializeFromCheckpointFlag) {
+      status = LIFGap::readStateFromCheckpoint(checkpointer);
+      status = read_integratedSpikeCountFromCheckpoint(checkpointer);
+      status = readVadptFromCheckpoint(checkpointer);
+   }
    return status;
 }
 

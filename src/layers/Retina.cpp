@@ -13,7 +13,7 @@
 #include "utils/cl_random.h"
 
 #include <assert.h>
-#include <math.h>
+#include <cmath>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -277,9 +277,11 @@ int Retina::setRetinaParams(PVParams *p) {
 }
 
 int Retina::readStateFromCheckpoint(Checkpointer *checkpointer) {
-   int status      = HyPerLayer::readStateFromCheckpoint(checkpointer);
-   double filetime = 0.0;
-   readRandStateFromCheckpoint(checkpointer);
+   int status = PV_SUCCESS;
+   if (initializeFromCheckpointFlag) {
+      int status = HyPerLayer::readStateFromCheckpoint(checkpointer);
+      readRandStateFromCheckpoint(checkpointer);
+   }
    return status;
 }
 

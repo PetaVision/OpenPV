@@ -48,10 +48,14 @@ int LayerPhaseTestProbe::outputState(double timed) {
    }
    for (int b = 0; b < parent->getNBatch(); b++) {
       if (timed >= equilibriumTime) {
-         double tol = 1e-6;
-         FatalIf(!(fabs(fMin[b] - equilibriumValue) < tol), "Test failed.\n");
-         FatalIf(!(fabs(fMax[b] - equilibriumValue) < tol), "Test failed.\n");
-         FatalIf(!(fabs(avg[b] - equilibriumValue) < tol), "Test failed.\n");
+         float const tol = 1e-6f;
+         // TODO: std::fabs is preferred to fabsf. But we implicitly include
+         // math.h because the header includes HyPerLayer.hpp, which eventually
+         // includes cl_random.h. It seems iffy to include both math.h and cmath.
+         // We should convert cl_random.{c,h} to .cpp and .hpp.
+         FatalIf(fabsf(fMin[b] - equilibriumValue) >= tol, "Test failed.\n");
+         FatalIf(fabsf(fMax[b] - equilibriumValue) >= tol, "Test failed.\n");
+         FatalIf(fabsf(avg[b] - equilibriumValue) >= tol, "Test failed.\n");
       }
    }
 

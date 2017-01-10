@@ -1,5 +1,5 @@
 #include "SumPoolTestLayer.hpp"
-
+#include <cmath>
 namespace PV {
 
 SumPoolTestLayer::SumPoolTestLayer(const char *name, HyPerCol *hc) {
@@ -55,7 +55,7 @@ int SumPoolTestLayer::updateState(double timef, double dt) {
                   expectedvalue = iFeature * nxGlobal * nyGlobal + res_idx;
                   expectedvalue *= 3 * 3;
                }
-               if (fabs(actualvalue - expectedvalue) >= 1e-4) {
+               if (std::fabs(actualvalue - expectedvalue) >= 1e-4f) {
                   ErrorLog() << "Connection " << name << " Mismatch at (" << iX << "," << iY
                              << ") : actual value: " << actualvalue
                              << " Expected value: " << expectedvalue
