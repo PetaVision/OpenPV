@@ -389,6 +389,7 @@ void InputLayer::populateFileList() {
       mFileList.clear();
       InfoLog() << "Reading list: " << mInputPath << "\n";
       std::ifstream infile(mInputPath, std::ios_base::in);
+      FatalIf(infile.fail(), "Unable to open \"%s\": %s\n", mInputPath.c_str(), strerror(errno));
       while (getline(infile, line, '\n')) {
          std::string noWhiteSpace = line;
          noWhiteSpace.erase(
