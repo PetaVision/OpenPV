@@ -94,9 +94,6 @@ int HyPerConnCheckpointerTestProbe::initConnection() {
    FatalIf(
          !mConnection->usingSharedWeights(),
          "This test assumes that the connection is using shared weights.\n");
-   FatalIf(
-         mConnection->getDelay(0) != 0.0,
-         "This test assumes that the connection has zero delay.\n");
    FatalIf(mConnection->xPatchSize() != 1, "This test assumes that the connection has nxp==1.\n");
    FatalIf(mConnection->yPatchSize() != 1, "This test assumes that the connection has nyp==1.\n");
    FatalIf(mConnection->fPatchSize() != 1, "This test assumes that the connection has nfp==1.\n");
