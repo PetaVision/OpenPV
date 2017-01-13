@@ -36,6 +36,7 @@ class DataStore {
          mNumActive->newLevel();
          mActiveIndices->newLevel();
       }
+      mCurrentLevel = (mNumLevels + mCurrentLevel - 1) % mNumLevels;
    }
 
    // Level (delay) spins slower than bufferId (batch element)
