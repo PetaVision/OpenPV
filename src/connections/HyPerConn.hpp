@@ -493,11 +493,12 @@ class HyPerConn : public BaseConnection {
    double initialWeightUpdateTime;
    double lastUpdateTime;
    double lastTimeUpdateCalled;
-   bool mImmediateWeightUpdate = false;
+   bool mImmediateWeightUpdate = true;
 
    bool symmetrizeWeightsFlag;
    long **numKernelActivations;
    bool keepKernelsSynchronized_flag;
+   std::vector<MPI_Request> m_dWReduceRequests;
 
    Random *randState;
 
@@ -894,6 +895,9 @@ class HyPerConn : public BaseConnection {
    // or PV_POSTPONE if it needs to wait on other objects
    // (e.g. TransposeConn has to wait for original conn)
 
+   void updateWeightsImmediate(double simTime, double dt);
+   void updateWeightsDelayed(double simTime, double dt);
+
    /**
     * updateLocal_dW computes the contribution of the current process to dW,
     * before MPI reduction and normalization. The routine calls initialize_dW
@@ -1008,6 +1012,8 @@ class HyPerConn : public BaseConnection {
 #endif // PV_USE_CUDA
 
    double getConvertToRateDeltaTimeFactor();
+
+   void wait_dWReduceRequests();
 
 // GPU variables
 #ifdef PV_USE_CUDA

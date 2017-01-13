@@ -39,6 +39,7 @@ HyPerConn::HyPerConn(char const *name, HyPerCol *hc) {
 }
 
 HyPerConn::~HyPerConn() {
+   wait_dWReduceRequests();
    delete io_timer;
    io_timer = NULL;
    delete update_timer;
@@ -2318,10 +2319,13 @@ int HyPerConn::updateState(double simTime, double dt) {
    int status = PV_SUCCESS;
    if (plasticityFlag and needUpdate(simTime, dt)) {
       update_timer->start();
-      updateLocal_dW();
-      reduce_dW();
-      normalize_dW();
-      updateArbors();
+      if (mImmediateWeightUpdate) {
+        updateWeightsImmediate(simTime, dt);
+      }
+      else {
+        updateWeightsDelayed(simTime, dt);
+      }
+
       decay_dWMax();
 
       lastUpdateTime = simTime;
@@ -2331,6 +2335,22 @@ int HyPerConn::updateState(double simTime, double dt) {
    }
    lastTimeUpdateCalled = simTime;
    return status;
+}
+
+void HyPerConn::updateWeightsImmediate(double simTime, double dt) {
+   updateLocal_dW();
+   reduce_dW();
+   wait_dWReduceRequests();
+   normalize_dW();
+   updateArbors();
+}
+
+void HyPerConn::updateWeightsDelayed(double simTime, double dt) {
+   wait_dWReduceRequests();
+   normalize_dW();
+   updateArbors();
+   updateLocal_dW();
+   reduce_dW();
 }
 
 void HyPerConn::updateLocal_dW() {
@@ -2363,6 +2383,15 @@ void HyPerConn::reduce_dW() {
       }
    }
    pvAssert(status == PV_SUCCESS or status == PV_BREAK);
+}
+
+void HyPerConn::wait_dWReduceRequests() {
+   int status = MPI_SUCCESS;
+   if (!m_dWReduceRequests.empty()) {
+      status =
+            MPI_Waitall(m_dWReduceRequests.size(), m_dWReduceRequests.data(), MPI_STATUSES_IGNORE);
+      m_dWReduceRequests.clear();
+   }
 }
 
 void HyPerConn::normalize_dW() {
@@ -2495,13 +2524,15 @@ int HyPerConn::reduceActivations(int arborID) {
    const int nProcs   = nxProcs * nyProcs * nbProcs;
    if (numKernelActivations && nProcs != 1) {
       const MPI_Comm mpi_comm = comm->globalCommunicator();
-      int ierr;
       const int numPatches   = getNumDataPatches();
       const size_t patchSize = (size_t)nxp * (size_t)nyp * (size_t)nfp;
       const size_t localSize = numPatches * patchSize;
       const size_t arborSize = localSize * numberOfAxonalArborLists();
-      ierr                   = MPI_Allreduce(
-            MPI_IN_PLACE, get_activations(arborID), arborSize, MPI_LONG, MPI_SUM, mpi_comm);
+
+      auto sz = m_dWReduceRequests.size();
+      m_dWReduceRequests.resize(sz + 1);
+      MPI_Iallreduce(
+            MPI_IN_PLACE, get_activations(arborID), arborSize, MPI_LONG, MPI_SUM, mpi_comm, &(m_dWReduceRequests.data())[sz]);
    }
 
    return PV_BREAK;
@@ -2520,9 +2551,11 @@ int HyPerConn::reduceKernels(int arborID) {
       const size_t patchSize  = (size_t)nxp * (size_t)nyp * (size_t)nfp;
       const size_t localSize  = (size_t)numPatches * (size_t)patchSize;
       const size_t arborSize  = localSize * (size_t)numberOfAxonalArborLists();
-      int ierr;
-      ierr = MPI_Allreduce(
-            MPI_IN_PLACE, get_dwDataStart(arborID), arborSize, MPI_FLOAT, MPI_SUM, mpi_comm);
+
+      auto sz = m_dWReduceRequests.size();
+      m_dWReduceRequests.resize(sz + 1);
+      MPI_Iallreduce(
+            MPI_IN_PLACE, get_dwDataStart(arborID), arborSize, MPI_FLOAT, MPI_SUM, mpi_comm, &(m_dWReduceRequests.data())[sz]);
    }
 
    return PV_BREAK;
