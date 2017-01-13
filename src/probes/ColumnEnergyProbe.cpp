@@ -36,6 +36,17 @@ int ColumnEnergyProbe::initialize_base() {
    return PV_SUCCESS;
 }
 
+int ColumnEnergyProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = ColProbe::ioParamsFillGroup(ioFlag);
+   ioParam_reductionInterval(ioFlag);
+   return status;
+}
+
+void ColumnEnergyProbe::ioParam_reductionInterval(enum ParamsIOFlag ioFlag) {
+   parent->parameters()->ioParamValue(
+         ioFlag, name, "reductionInterval", &mSkipInterval, mSkipInterval, false /*warnIfAbsent*/);
+}
+
 int ColumnEnergyProbe::initializeColumnEnergyProbe(const char *probename, HyPerCol *hc) {
    return ColProbe::initialize(probename, hc);
 }
@@ -133,6 +144,11 @@ bool ColumnEnergyProbe::needRecalc(double timevalue) { return true; }
 double ColumnEnergyProbe::referenceUpdateTime() const { return parent->simulationTime(); }
 
 int ColumnEnergyProbe::calcValues(double timevalue) {
+   if (mLastTimeValue == timevalue || --mSkipTimer > 0) {
+      mLastTimeValue = timevalue;
+      return PV_SUCCESS;
+   }
+   mSkipTimer = mSkipInterval+1;
    double *valuesBuffer = getValuesBuffer();
    int numValues        = this->getNumValues();
    memset(valuesBuffer, 0, numValues * sizeof(*valuesBuffer));

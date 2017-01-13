@@ -64,7 +64,11 @@ std::vector<double> AdaptiveTimeScaleController::calcTimesteps(
       double E_0          = mOldTimeScaleInfo.mTimeScaleTrue[b];
       double dE_dt_scaled = (E_0 - E_dt) / mTimeScaleInfo.mTimeScale[b];
 
-      if ((dE_dt_scaled <= 0.0) || (E_0 <= 0) || (E_dt <= 0)) {
+      if (E_dt == E_0) {
+         continue;
+      }
+
+      if ((dE_dt_scaled < 0.0) || (E_0 <= 0) || (E_dt <= 0)) {
          mTimeScaleInfo.mTimeScale[b]    = mBaseMin;
          mTimeScaleInfo.mTimeScaleMax[b] = mBaseMax;
       }
