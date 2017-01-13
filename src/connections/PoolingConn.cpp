@@ -67,6 +67,13 @@ void PoolingConn::ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) {
    }
 }
 
+void PoolingConn::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      sharedWeights = false;
+      parent->parameters()->handleUnnecessaryParameter(name, "sharedWeights");
+   }
+}
+
 void PoolingConn::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       parent->parameters()->handleUnnecessaryStringParameter(name, "weightInitType", NULL);

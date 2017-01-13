@@ -65,7 +65,7 @@ class CorrectState {
     * Public constructor for the CorrectState class, setting the initial update number,
     * weight value, input value, and output value.
     */
-   CorrectState(int intialUpdateNumber, float initialWeight, float initialInput, float initialOutput);
+   CorrectState(int initialUpdateNumber, float initialWeight, float initialInput, float initialOutput);
 
    /**
     * Destructor for the CorrectState class.

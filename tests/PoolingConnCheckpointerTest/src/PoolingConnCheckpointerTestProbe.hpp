@@ -1,31 +1,31 @@
 /*
- * MomentumConnSimpleCheckpointerProbe.hpp
+ * HyPerConnCheckpointerProbe.hpp
  *
- *  Created on: Jan 6, 2017
+ *  Created on: Jan 5, 2017
  *      Author: pschultz
  */
 
-#ifndef MOMENTUMCONNVISCOSITYCHECKPOINTERTESTPROBE_HPP_
-#define MOMENTUMCONNVISCOSITYCHECKPOINTERTESTPROBE_HPP_
+#ifndef POOLINGCONNCHECKPOINTERTESTPROBE_HPP_
+#define POOLINGCONNCHECKPOINTERTESTPROBE_HPP_
 
 #include "probes/ColProbe.hpp"
 
 #include "CorrectState.hpp"
-#include "connections/MomentumConn.hpp"
+#include "connections/HyPerConn.hpp"
 #include "layers/HyPerLayer.hpp"
 #include "layers/InputLayer.hpp"
 
-class MomentumConnViscosityCheckpointerTestProbe : public PV::ColProbe {
+class PoolingConnCheckpointerTestProbe : public PV::ColProbe {
   public:
    /**
-    * Public constructor for the MomentumConnViscosityCheckpointerTestProbe class.
+    * Public constructor for the PoolingConnCheckpointerTestProbe class.
     */
-   MomentumConnViscosityCheckpointerTestProbe(const char *probeName, PV::HyPerCol *hc);
+   PoolingConnCheckpointerTestProbe(const char *probeName, PV::HyPerCol *hc);
 
    /**
-    * Destructor for the MomentumConnViscosityCheckpointerTestProbe class.
+    * Destructor for the PoolingConnCheckpointerTestProbe class.
     */
-   virtual ~MomentumConnViscosityCheckpointerTestProbe();
+   virtual ~PoolingConnCheckpointerTestProbe();
 
    /**
     * Implementation of the calcValues method. This probe does not compute
@@ -45,7 +45,7 @@ class MomentumConnViscosityCheckpointerTestProbe : public PV::ColProbe {
    virtual int outputState(double timevalue);
 
   private:
-   MomentumConnViscosityCheckpointerTestProbe();
+   PoolingConnCheckpointerTestProbe();
    int initialize_base();
 
    /**
@@ -75,23 +75,20 @@ class MomentumConnViscosityCheckpointerTestProbe : public PV::ColProbe {
    int calcUpdateNumber(double timevalue);
    void initializeCorrectValues(double timevalue);
 
-   bool verifyConnection(
-         PV::MomentumConn *connection,
-         CorrectState const *correctState,
+   bool verifyLayer(
+         PV::HyPerLayer *layer,
+         PV::Buffer<float> const &correctValueBuffer,
          double timevalue);
-   bool
-   verifyConnValue(double timevalue, float observed, float correct, char const *valueDescription);
-   bool verifyLayer(PV::HyPerLayer *layer, float correctValue, double timevalue);
 
    // Data members
   protected:
-   int mStartingUpdateNumber     = 0;
-   bool mValuesSet               = false;
-   PV::InputLayer *mInputLayer   = nullptr;
-   PV::HyPerLayer *mOutputLayer  = nullptr;
-   PV::MomentumConn *mConnection = nullptr;
-   CorrectState *mCorrectState   = nullptr;
-   bool mTestFailed              = false;
+   int mStartingUpdateNumber    = 0;
+   bool mValuesSet              = false;
+   PV::InputLayer *mInputLayer  = nullptr;
+   PV::HyPerLayer *mOutputLayer = nullptr;
+   PV::HyPerConn *mConnection   = nullptr;
+   CorrectState *mCorrectState  = nullptr;
+   bool mTestFailed             = false;
 };
 
-#endif // MOMENTUMCONNVISCOSITYCHECKPOINTERTESTPROBE_HPP_
+#endif // POOLINGCONNCHECKPOINTERTESTPROBE_HPP_
