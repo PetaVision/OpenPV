@@ -493,6 +493,7 @@ class HyPerConn : public BaseConnection {
    double initialWeightUpdateTime;
    double lastUpdateTime;
    double lastTimeUpdateCalled;
+   bool mImmediateWeightUpdate = false;
 
    bool symmetrizeWeightsFlag;
    long **numKernelActivations;
@@ -658,6 +659,15 @@ class HyPerConn : public BaseConnection {
     * @details Defaults to 0.
     */
    virtual void ioParam_triggerOffset(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief immediateWeightUpdate: This flag is read for plastic connections
+    * with shared weights. If set to true, the change in weights is applied to
+    * the weights immediately at the end of the weight update period. If set
+    * to false, the change in weights is applied at the end of the next weight
+    * update, to allow for concurrent reduction in the shared weights.
+    */
+   virtual void ioParam_immediateWeightUpdate(enum ParamsIOFlag ioFlag);
 
    /**
     * @brief pvpatchAccumulateType: Specifies the method to accumulate synaptic input

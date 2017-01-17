@@ -526,6 +526,7 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_triggerOffset(ioFlag);
    ioParam_weightUpdatePeriod(ioFlag);
    ioParam_initialWeightUpdateTime(ioFlag);
+   ioParam_immediateWeightUpdate(ioFlag);
    ioParam_updateGSynFromPostPerspective(ioFlag);
    ioParam_pvpatchAccumulateType(ioFlag);
    ioParam_writeStep(ioFlag);
@@ -674,6 +675,19 @@ void HyPerConn::ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag) {
    }
    if (ioFlag == PARAMS_IO_READ) {
       weightUpdateTime = initialWeightUpdateTime;
+   }
+}
+
+void HyPerConn::ioParam_immediateWeightUpdate(enum ParamsIOFlag ioFlag) {
+   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   if (plasticityFlag) {
+      parent->parameters()->ioParamValue(
+            ioFlag,
+            name,
+            "immediateWeightUpdate",
+            &mImmediateWeightUpdate,
+            mImmediateWeightUpdate,
+            true /*warnIfAbsent*/);
    }
 }
 
