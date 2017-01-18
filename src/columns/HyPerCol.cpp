@@ -815,6 +815,8 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
 
    advanceTimeLoop(runClock, 10 /*runClockStartingStep*/);
 
+   notify(std::make_shared<CleanupMessage>());
+
 #ifdef DEBUG_OUTPUT
    if (columnId() == 0) {
       InfoLog().printf("[0]: HyPerCol::run done...\n");

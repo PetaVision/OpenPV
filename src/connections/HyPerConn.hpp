@@ -1013,6 +1013,7 @@ class HyPerConn : public BaseConnection {
 
    double getConvertToRateDeltaTimeFactor();
 
+   virtual int cleanup() override;
    void wait_dWReduceRequests();
 
 // GPU variables

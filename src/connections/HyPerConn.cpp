@@ -2320,10 +2320,10 @@ int HyPerConn::updateState(double simTime, double dt) {
    if (plasticityFlag and needUpdate(simTime, dt)) {
       update_timer->start();
       if (mImmediateWeightUpdate) {
-        updateWeightsImmediate(simTime, dt);
+         updateWeightsImmediate(simTime, dt);
       }
       else {
-        updateWeightsDelayed(simTime, dt);
+         updateWeightsDelayed(simTime, dt);
       }
 
       decay_dWMax();
@@ -2524,15 +2524,21 @@ int HyPerConn::reduceActivations(int arborID) {
    const int nProcs   = nxProcs * nyProcs * nbProcs;
    if (numKernelActivations && nProcs != 1) {
       const MPI_Comm mpi_comm = comm->globalCommunicator();
-      const int numPatches   = getNumDataPatches();
-      const size_t patchSize = (size_t)nxp * (size_t)nyp * (size_t)nfp;
-      const size_t localSize = numPatches * patchSize;
-      const size_t arborSize = localSize * numberOfAxonalArborLists();
+      const int numPatches    = getNumDataPatches();
+      const size_t patchSize  = (size_t)nxp * (size_t)nyp * (size_t)nfp;
+      const size_t localSize  = numPatches * patchSize;
+      const size_t arborSize  = localSize * numberOfAxonalArborLists();
 
       auto sz = m_dWReduceRequests.size();
       m_dWReduceRequests.resize(sz + 1);
       MPI_Iallreduce(
-            MPI_IN_PLACE, get_activations(arborID), arborSize, MPI_LONG, MPI_SUM, mpi_comm, &(m_dWReduceRequests.data())[sz]);
+            MPI_IN_PLACE,
+            get_activations(arborID),
+            arborSize,
+            MPI_LONG,
+            MPI_SUM,
+            mpi_comm,
+            &(m_dWReduceRequests.data())[sz]);
    }
 
    return PV_BREAK;
@@ -2555,7 +2561,13 @@ int HyPerConn::reduceKernels(int arborID) {
       auto sz = m_dWReduceRequests.size();
       m_dWReduceRequests.resize(sz + 1);
       MPI_Iallreduce(
-            MPI_IN_PLACE, get_dwDataStart(arborID), arborSize, MPI_FLOAT, MPI_SUM, mpi_comm, &(m_dWReduceRequests.data())[sz]);
+            MPI_IN_PLACE,
+            get_dwDataStart(arborID),
+            arborSize,
+            MPI_FLOAT,
+            MPI_SUM,
+            mpi_comm,
+            &(m_dWReduceRequests.data())[sz]);
    }
 
    return PV_BREAK;
@@ -4922,6 +4934,11 @@ void HyPerConn::deliverOnePostNeuronActivitySparseWeights(
       }
       *gSynPatchPos += dtFactor * dv;
    }
+}
+
+int HyPerConn::cleanup() {
+   wait_dWReduceRequests();
+   return PV_SUCCESS;
 }
 
 } // namespace PV
