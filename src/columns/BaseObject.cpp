@@ -115,6 +115,10 @@ int BaseObject::respond(std::shared_ptr<BaseMessage const> message) {
                dynamic_cast<PrepareCheckpointWriteMessage const *>(message.get())) {
       return respondPrepareCheckpointWrite(castMessage);
    }
+   else if (
+         CleanupMessage const *castMessage = dynamic_cast<CleanupMessage const *>(message.get())) {
+      return respondCleanup(castMessage);
+   }
    else {
       return PV_SUCCESS;
    }
@@ -180,6 +184,8 @@ int BaseObject::respondProcessCheckpointRead(ProcessCheckpointReadMessage const 
 int BaseObject::respondPrepareCheckpointWrite(PrepareCheckpointWriteMessage const *message) {
    return prepareCheckpointWrite();
 }
+
+int BaseObject::respondCleanup(CleanupMessage const *message) { return cleanup(); }
 
 BaseObject::~BaseObject() { free(name); }
 

@@ -40,11 +40,6 @@ int VaryingHyPerConn::allocateDataStructures() {
    return PV_SUCCESS;
 }
 
-int VaryingHyPerConn::calc_dW(int axonId) {
-   // keep all dW's at one.
-   return PV_SUCCESS;
-}
-
 int VaryingHyPerConn::updateWeights(int axonId) {
    int syPatch = yPatchStride();
    for (int kPatch = 0; kPatch < getNumDataPatches(); kPatch++) {

@@ -216,6 +216,11 @@ class LayerCheckNotANumberMessage : public BaseMessage {
    int mPhase;
 };
 
+class CleanupMessage : public BaseMessage {
+  public:
+   CleanupMessage() { setMessageType("Cleanup"); }
+};
+
 } /* namespace PV */
 
 #endif /* MESSAGES_HPP_ */

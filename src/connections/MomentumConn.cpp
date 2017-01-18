@@ -32,8 +32,6 @@ int MomentumConn::initialize_base() {
    momentumTau      = .25;
    momentumMethod   = NULL;
    momentumDecay    = 0;
-   timeBatchPeriod  = 1;
-   timeBatchIdx     = -1;
    return PV_SUCCESS;
 }
 
@@ -121,79 +119,23 @@ void MomentumConn::ioParam_momentumDecay(enum ParamsIOFlag ioFlag) {
    }
 }
 
+// batchPeriod parameter was marked obsolete Jan 17, 2017.
 void MomentumConn::ioParam_batchPeriod(enum ParamsIOFlag ioFlag) {
    pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
-   if (plasticityFlag) {
-      parent->parameters()->ioParamValue(
-            ioFlag, name, "batchPeriod", &timeBatchPeriod, timeBatchPeriod);
-   }
-}
-
-int MomentumConn::calc_dW() {
-   pvAssert(plasticityFlag);
-   int status;
-   timeBatchIdx = (timeBatchIdx + 1) % timeBatchPeriod;
-
-   // Clear at time 0, update at time timeBatchPeriod - 1
-   bool need_update_w = false;
-   bool need_clear_dw = false;
-   if (timeBatchIdx == 0) {
-      need_clear_dw = true;
-   }
-
-   // If updating next timestep, update weights here
-   if ((timeBatchIdx + 1) % timeBatchPeriod == 0) {
-      need_update_w = true;
-   }
-
-   for (int arborId = 0; arborId < numberOfAxonalArborLists(); arborId++) {
-      // Clear every batch period
-      if (need_clear_dw) {
-         status = initialize_dW(arborId);
-         if (status == PV_BREAK) {
-            break;
+   if (plasticityFlag and parent->parameters()->present(name, "batchPeriod")) {
+      int obsoleteBatchPeriod = (int)parent->parameters()->value(name, "batchPeriod");
+      if (obsoleteBatchPeriod != 1) {
+         if (parent->getCommunicator()->globalCommRank() == 0) {
+            ErrorLog() << getDescription() << ": MomentumConn parameter batchPeriod is obsolete. "
+                       << "Instead use the HyPerCol nbatch parameter.\n";
          }
-         pvAssert(status == PV_SUCCESS);
+         MPI_Barrier(parent->getCommunicator()->globalCommunicator());
+         exit(EXIT_FAILURE);
       }
    }
-
-   for (int arborId = 0; arborId < numberOfAxonalArborLists(); arborId++) {
-      // Sum up parts every timestep
-      status = update_dW(arborId);
-      if (status == PV_BREAK) {
-         break;
-      }
-      pvAssert(status == PV_SUCCESS);
-   }
-
-   for (int arborId = 0; arborId < numberOfAxonalArborLists(); arborId++) {
-      // Reduce only when we need to update
-      if (need_update_w) {
-         status = reduce_dW(arborId);
-         if (status == PV_BREAK) {
-            break;
-         }
-         pvAssert(status == PV_SUCCESS);
-      }
-   }
-
-   for (int arborId = 0; arborId < numberOfAxonalArborLists(); arborId++) {
-      // Normalize only when reduced
-      if (need_update_w) {
-         status = normalize_dW(arborId);
-         if (status == PV_BREAK) {
-            break;
-         }
-         pvAssert(status == PV_SUCCESS);
-      }
-   }
-   return PV_SUCCESS;
 }
 
 int MomentumConn::updateWeights(int arborId) {
-   if (timeBatchIdx != timeBatchPeriod - 1) {
-      return PV_SUCCESS;
-   }
    // Add momentum right before updateWeights
    for (int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++) {
       applyMomentum(arborId);
@@ -259,8 +201,7 @@ int MomentumConn::applyMomentum(int arbor_ID) {
          float const *prev_dw_start = get_prev_dwDataHead(arbor_ID, kernelIdx);
          float const *wdata_start   = get_wDataHead(arbor_ID, kernelIdx);
          for (int k = 0; k < nxp * nyp * nfp; k++) {
-            dwdata_start[k] +=
-                  momentumTau * prev_dw_start[k] - decayFactor * wdata_start[k];
+            dwdata_start[k] += momentumTau * prev_dw_start[k] - decayFactor * wdata_start[k];
          }
       }
    }

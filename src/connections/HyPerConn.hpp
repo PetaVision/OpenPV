@@ -77,7 +77,7 @@ class HyPerConn : public BaseConnection {
    virtual int insertProbe(BaseConnectionProbe *p) override;
    int outputProbeParams() override;
    virtual int outputState(double time, bool last = false) override;
-   int updateState(double time, double dt) override;
+   virtual int updateState(double time, double dt) override;
    virtual int finalizeUpdate(double timed, double dt) override;
    virtual bool needUpdate(double time, double dt) override;
    virtual int updateInd_dW(int arbor_ID, int batch_ID, int kExt);
@@ -493,10 +493,12 @@ class HyPerConn : public BaseConnection {
    double initialWeightUpdateTime;
    double lastUpdateTime;
    double lastTimeUpdateCalled;
+   bool mImmediateWeightUpdate = true;
 
    bool symmetrizeWeightsFlag;
    long **numKernelActivations;
    bool keepKernelsSynchronized_flag;
+   std::vector<MPI_Request> m_dWReduceRequests;
 
    Random *randState;
 
@@ -658,6 +660,15 @@ class HyPerConn : public BaseConnection {
     * @details Defaults to 0.
     */
    virtual void ioParam_triggerOffset(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief immediateWeightUpdate: This flag is read for plastic connections
+    * with shared weights. If set to true, the change in weights is applied to
+    * the weights immediately at the end of the weight update period. If set
+    * to false, the change in weights is applied at the end of the next weight
+    * update, to allow for concurrent reduction in the shared weights.
+    */
+   virtual void ioParam_immediateWeightUpdate(enum ParamsIOFlag ioFlag);
 
    /**
     * @brief pvpatchAccumulateType: Specifies the method to accumulate synaptic input
@@ -884,10 +895,15 @@ class HyPerConn : public BaseConnection {
    // or PV_POSTPONE if it needs to wait on other objects
    // (e.g. TransposeConn has to wait for original conn)
 
+   void updateWeightsImmediate(double simTime, double dt);
+   void updateWeightsDelayed(double simTime, double dt);
+
    /**
-    * calc_dW is a function that calls initialze_dW, update_dW, reduce_dW, and normalize_dW
+    * updateLocal_dW computes the contribution of the current process to dW,
+    * before MPI reduction and normalization. The routine calls initialize_dW
+    * for each arbor, and then updateWeights for each arbor.
     */
-   virtual int calc_dW();
+   void updateLocal_dW();
 
    /**
     * Initializes dW. Default behaviour is to clear dW.
@@ -900,10 +916,32 @@ class HyPerConn : public BaseConnection {
     */
    virtual int update_dW(int arborId);
    virtual float updateRule_dW(float pre, float post);
+
+   /**
+    * Updates the weights in all arbors, by calling updateWeights(int) for each arbor index.
+    */
+   void updateArbors();
+
+   /**
+    * Updates the weights in one arbor. HyPerConn updates the weights using
+    * W_new = W_old + dW.
+    */
    virtual int updateWeights(int arborId = 0);
+
+   /**
+    * Decrements the counter for dWMaxDecayInterval, and if at the end of the interval,
+    * decays the dWMax value.
+    */
+   void decay_dWMax();
+
    virtual bool skipPre(float preact) { return preact == 0.0f; };
    /**
-    * Reduces all dW and activations across MPI
+    * Reduces dW and activations for all arbors across MPI
+    */
+   void reduce_dW();
+
+   /**
+    * Reduces dW and activations for one arbor across MPI
     */
    virtual int reduce_dW(int arborId);
    virtual int reduceKernels(int arborID);
@@ -916,7 +954,13 @@ class HyPerConn : public BaseConnection {
    void reduceAcrossBatch(int arborID);
 
    /**
-    * Normalizes all dW by dividing dW by activations
+    * Normalizes dW for all arbors, by calling normalize_dW(int) for each arbor index.
+    */
+   void normalize_dW();
+
+   /**
+    * Normalizes dW for one arbor.
+    * HyPerConn normalizes dW by dividing by the number of activations.
     */
    virtual int normalize_dW(int arbor_ID);
 
@@ -968,6 +1012,9 @@ class HyPerConn : public BaseConnection {
 #endif // PV_USE_CUDA
 
    double getConvertToRateDeltaTimeFactor();
+
+   virtual int cleanup() override;
+   void wait_dWReduceRequests();
 
 // GPU variables
 #ifdef PV_USE_CUDA

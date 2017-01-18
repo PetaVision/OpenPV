@@ -84,6 +84,7 @@ class BaseObject : public Observer, public CheckpointerDataInterface {
    int respondCopyInitialStateToGPUMessage(CopyInitialStateToGPUMessage const *message);
    int respondProcessCheckpointRead(ProcessCheckpointReadMessage const *message);
    int respondPrepareCheckpointWrite(PrepareCheckpointWriteMessage const *message);
+   int respondCleanup(CleanupMessage const *message);
 
    virtual int communicateInitInfo() { return PV_SUCCESS; }
    virtual int allocateDataStructures() { return PV_SUCCESS; }
@@ -92,6 +93,7 @@ class BaseObject : public Observer, public CheckpointerDataInterface {
    virtual int copyInitialStateToGPU() { return PV_SUCCESS; }
    virtual int processCheckpointRead() { return PV_SUCCESS; }
    virtual int prepareCheckpointWrite() { return PV_SUCCESS; }
+   virtual int cleanup() { return PV_SUCCESS; }
 
    /**
     * This method sets mInitInfoCommunicatedFlag to true.

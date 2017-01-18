@@ -39,6 +39,7 @@ HyPerConn::HyPerConn(char const *name, HyPerCol *hc) {
 }
 
 HyPerConn::~HyPerConn() {
+   wait_dWReduceRequests();
    delete io_timer;
    io_timer = NULL;
    delete update_timer;
@@ -526,6 +527,7 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_triggerOffset(ioFlag);
    ioParam_weightUpdatePeriod(ioFlag);
    ioParam_initialWeightUpdateTime(ioFlag);
+   ioParam_immediateWeightUpdate(ioFlag);
    ioParam_updateGSynFromPostPerspective(ioFlag);
    ioParam_pvpatchAccumulateType(ioFlag);
    ioParam_writeStep(ioFlag);
@@ -674,6 +676,19 @@ void HyPerConn::ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag) {
    }
    if (ioFlag == PARAMS_IO_READ) {
       weightUpdateTime = initialWeightUpdateTime;
+   }
+}
+
+void HyPerConn::ioParam_immediateWeightUpdate(enum ParamsIOFlag ioFlag) {
+   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   if (plasticityFlag) {
+      parent->parameters()->ioParamValue(
+            ioFlag,
+            name,
+            "immediateWeightUpdate",
+            &mImmediateWeightUpdate,
+            mImmediateWeightUpdate,
+            true /*warnIfAbsent*/);
    }
 }
 
@@ -2302,39 +2317,117 @@ bool HyPerConn::needUpdate(double simTime, double dt) {
 
 int HyPerConn::updateState(double simTime, double dt) {
    int status = PV_SUCCESS;
-   if (!plasticityFlag) {
-      lastTimeUpdateCalled = simTime;
-      return status;
-   }
-
-   update_timer->start();
-   if (needUpdate(simTime, dt)) {
-      status = calc_dW(); // Calculate changes in weights
-      for (int arborId = 0; arborId < numberOfAxonalArborLists(); arborId++) {
-         status = updateWeights(arborId); // Apply changes in weights
-         if (status == PV_BREAK) {
-            break;
-         }
-         pvAssert(status == PV_SUCCESS);
+   if (plasticityFlag and needUpdate(simTime, dt)) {
+      update_timer->start();
+      if (mImmediateWeightUpdate) {
+         updateWeightsImmediate(simTime, dt);
       }
+      else {
+         updateWeightsDelayed(simTime, dt);
+      }
+
+      decay_dWMax();
 
       lastUpdateTime = simTime;
       computeNewWeightUpdateTime(simTime, weightUpdateTime);
       needFinalize = true;
+      update_timer->stop();
+   }
+   lastTimeUpdateCalled = simTime;
+   return status;
+}
 
-      if (mDWMaxDecayInterval > 0) {
-         if (--mDWMaxDecayTimer < 0) {
-            float oldDWMax   = dWMax;
-            mDWMaxDecayTimer = mDWMaxDecayInterval;
-            dWMax *= 1.0f - mDWMaxDecayFactor;
-            InfoLog() << getName() << ": dWMax decayed from " << oldDWMax << " to " << dWMax
-                      << "\n";
+void HyPerConn::updateWeightsImmediate(double simTime, double dt) {
+   updateLocal_dW();
+   reduce_dW();
+   wait_dWReduceRequests();
+   normalize_dW();
+   updateArbors();
+}
+
+void HyPerConn::updateWeightsDelayed(double simTime, double dt) {
+   wait_dWReduceRequests();
+   normalize_dW();
+   updateArbors();
+   updateLocal_dW();
+   reduce_dW();
+}
+
+void HyPerConn::updateLocal_dW() {
+   pvAssert(plasticityFlag);
+   int status;
+   for (int arborId = 0; arborId < numberOfAxonalArborLists(); arborId++) {
+      status = initialize_dW(arborId);
+      if (status == PV_BREAK) {
+         status = PV_SUCCESS;
+         break;
+      }
+   }
+   pvAssert(status == PV_SUCCESS);
+
+   for (int arborId = 0; arborId < numberOfAxonalArborLists(); arborId++) {
+      status = update_dW(arborId);
+      if (status == PV_BREAK) {
+         break;
+      }
+   }
+   pvAssert(status == PV_SUCCESS or status == PV_BREAK);
+}
+
+void HyPerConn::reduce_dW() {
+   int status;
+   for (int arborId = 0; arborId < numberOfAxonalArborLists(); arborId++) {
+      status = reduce_dW(arborId);
+      if (status == PV_BREAK) {
+         break;
+      }
+   }
+   pvAssert(status == PV_SUCCESS or status == PV_BREAK);
+}
+
+void HyPerConn::wait_dWReduceRequests() {
+   int status = MPI_SUCCESS;
+   if (!m_dWReduceRequests.empty()) {
+      status =
+            MPI_Waitall(m_dWReduceRequests.size(), m_dWReduceRequests.data(), MPI_STATUSES_IGNORE);
+      m_dWReduceRequests.clear();
+   }
+}
+
+void HyPerConn::normalize_dW() {
+   int status = PV_SUCCESS;
+   if (normalizeDwFlag) {
+      for (int arborId = 0; arborId < numberOfAxonalArborLists(); arborId++) {
+         status = normalize_dW(arborId);
+         if (status == PV_BREAK) {
+            break;
          }
       }
    }
-   update_timer->stop();
-   lastTimeUpdateCalled = simTime;
-   return status;
+   pvAssert(status == PV_SUCCESS or status == PV_BREAK);
+}
+
+void HyPerConn::updateArbors() {
+   int status = PV_SUCCESS;
+   for (int arborId = 0; arborId < numberOfAxonalArborLists(); arborId++) {
+      status = updateWeights(arborId); // Apply changes in weights
+      if (status == PV_BREAK) {
+         status = PV_SUCCESS;
+         break;
+      }
+   }
+   pvAssert(status == PV_SUCCESS or status == PV_BREAK);
+}
+
+void HyPerConn::decay_dWMax() {
+   if (mDWMaxDecayInterval > 0) {
+      if (--mDWMaxDecayTimer < 0) {
+         float oldDWMax   = dWMax;
+         mDWMaxDecayTimer = mDWMaxDecayInterval;
+         dWMax *= 1.0f - mDWMaxDecayFactor;
+         InfoLog() << getName() << ": dWMax decayed from " << oldDWMax << " to " << dWMax << "\n";
+      }
+   }
 }
 
 int HyPerConn::clear_numActivations(int arborId) {
@@ -2431,13 +2524,21 @@ int HyPerConn::reduceActivations(int arborID) {
    const int nProcs   = nxProcs * nyProcs * nbProcs;
    if (numKernelActivations && nProcs != 1) {
       const MPI_Comm mpi_comm = comm->globalCommunicator();
-      int ierr;
-      const int numPatches   = getNumDataPatches();
-      const size_t patchSize = (size_t)nxp * (size_t)nyp * (size_t)nfp;
-      const size_t localSize = numPatches * patchSize;
-      const size_t arborSize = localSize * numberOfAxonalArborLists();
-      ierr                   = MPI_Allreduce(
-            MPI_IN_PLACE, get_activations(arborID), arborSize, MPI_LONG, MPI_SUM, mpi_comm);
+      const int numPatches    = getNumDataPatches();
+      const size_t patchSize  = (size_t)nxp * (size_t)nyp * (size_t)nfp;
+      const size_t localSize  = numPatches * patchSize;
+      const size_t arborSize  = localSize * numberOfAxonalArborLists();
+
+      auto sz = m_dWReduceRequests.size();
+      m_dWReduceRequests.resize(sz + 1);
+      MPI_Iallreduce(
+            MPI_IN_PLACE,
+            get_activations(arborID),
+            arborSize,
+            MPI_LONG,
+            MPI_SUM,
+            mpi_comm,
+            &(m_dWReduceRequests.data())[sz]);
    }
 
    return PV_BREAK;
@@ -2456,59 +2557,43 @@ int HyPerConn::reduceKernels(int arborID) {
       const size_t patchSize  = (size_t)nxp * (size_t)nyp * (size_t)nfp;
       const size_t localSize  = (size_t)numPatches * (size_t)patchSize;
       const size_t arborSize  = localSize * (size_t)numberOfAxonalArborLists();
-      int ierr;
-      ierr = MPI_Allreduce(
-            MPI_IN_PLACE, get_dwDataStart(arborID), arborSize, MPI_FLOAT, MPI_SUM, mpi_comm);
+
+      auto sz = m_dWReduceRequests.size();
+      m_dWReduceRequests.resize(sz + 1);
+      MPI_Iallreduce(
+            MPI_IN_PLACE,
+            get_dwDataStart(arborID),
+            arborSize,
+            MPI_FLOAT,
+            MPI_SUM,
+            mpi_comm,
+            &(m_dWReduceRequests.data())[sz]);
    }
 
    return PV_BREAK;
 }
 
 void HyPerConn::reduceAcrossBatch(int arborID) {
+   pvAssert(!sharedWeights && plasticityFlag);
    if (parent->getCommunicator()->numCommBatches() != 1) {
       float *dwArborStart      = get_dwDataStart(arborID);
       size_t const patchSize   = (size_t)nxp * (size_t)nyp * (size_t)nfp;
       size_t const localSize   = (size_t)getNumDataPatches() * (size_t)patchSize;
       size_t const arborSize   = localSize * (size_t)numberOfAxonalArborLists();
       MPI_Comm const batchComm = parent->getCommunicator()->batchCommunicator();
-      MPI_Allreduce(MPI_IN_PLACE, dwArborStart, arborSize, MPI_FLOAT, MPI_SUM, batchComm);
-   }
-}
 
-int HyPerConn::calc_dW() {
-   pvAssert(plasticityFlag);
-   int status;
-   for (int arborId = 0; arborId < numberOfAxonalArborLists(); arborId++) {
-      status = initialize_dW(arborId);
-      if (status == PV_BREAK) {
-         break;
-      }
-      pvAssert(status == PV_SUCCESS);
+      auto sz = m_dWReduceRequests.size();
+      m_dWReduceRequests.resize(sz + 1);
+      MPI_Allreduce(MPI_IN_PLACE, dwArborStart, arborSize, MPI_FLOAT, MPI_SUM, batchComm);
+      MPI_Iallreduce(
+            MPI_IN_PLACE,
+            get_dwDataStart(arborID),
+            arborSize,
+            MPI_FLOAT,
+            MPI_SUM,
+            batchComm,
+            &(m_dWReduceRequests.data())[sz]);
    }
-   for (int arborId = 0; arborId < numberOfAxonalArborLists(); arborId++) {
-      status = update_dW(arborId);
-      if (status == PV_BREAK) {
-         break;
-      }
-      pvAssert(status == PV_SUCCESS);
-   }
-   for (int arborId = 0; arborId < numberOfAxonalArborLists(); arborId++) {
-      status = reduce_dW(arborId);
-      if (status == PV_BREAK) {
-         break;
-      }
-      pvAssert(status == PV_SUCCESS);
-   }
-   if (normalizeDwFlag) {
-      for (int arborId = 0; arborId < numberOfAxonalArborLists(); arborId++) {
-         status = normalize_dW(arborId);
-         if (status == PV_BREAK) {
-            break;
-         }
-         pvAssert(status == PV_SUCCESS);
-      }
-   }
-   return status;
 }
 
 int HyPerConn::update_dW(int arbor_ID) {
@@ -4861,6 +4946,11 @@ void HyPerConn::deliverOnePostNeuronActivitySparseWeights(
       }
       *gSynPatchPos += dtFactor * dv;
    }
+}
+
+int HyPerConn::cleanup() {
+   wait_dWReduceRequests();
+   return PV_SUCCESS;
 }
 
 } // namespace PV

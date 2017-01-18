@@ -17,7 +17,6 @@
 #include "io/PrintStream.hpp"
 #include "io/io.hpp"
 #include "normalizers/NormalizeBase.hpp"
-#include "utils/Clock.hpp"
 
 #include <assert.h>
 #include <cmath>
@@ -813,22 +812,10 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
    Clock runClock;
    runClock.start_clock();
 #endif
-   // time loop
-   //
-   long int step = 0;
-   pvAssert(status == PV_SUCCESS);
-   while (mSimTime < mStopTime - mDeltaTime / 2.0) {
-      mCheckpointer->checkpointWrite(mSimTime);
-      status = advanceTime(mSimTime);
 
-      step += 1;
-#ifdef TIMER_ON
-      if (step == 10) {
-         runClock.start_clock();
-      }
-#endif
+   advanceTimeLoop(runClock, 10 /*runClockStartingStep*/);
 
-   } // end time loop
+   notify(std::make_shared<CleanupMessage>());
 
 #ifdef DEBUG_OUTPUT
    if (columnId() == 0) {
@@ -981,6 +968,24 @@ int HyPerCol::normalizeWeights() {
 // Sep 26, 2016: Adaptive timestep routines and member variables have been moved
 // to
 // AdaptiveTimeScaleProbe.
+
+void HyPerCol::advanceTimeLoop(Clock &runClock, int const runClockStartingStep) {
+   // time loop
+   //
+   long int step = 0;
+   while (mSimTime < mStopTime - mDeltaTime / 2.0) {
+      mCheckpointer->checkpointWrite(mSimTime);
+      advanceTime(mSimTime);
+
+      step += 1;
+#ifdef TIMER_ON
+      if (step == runClockStartingStep) {
+         runClock.start_clock();
+      }
+#endif
+
+   } // end time loop
+}
 
 int HyPerCol::advanceTime(double sim_time) {
    if (mSimTime >= mNextProgressTime) {

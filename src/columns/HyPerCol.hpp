@@ -21,6 +21,7 @@
 #include "observerpattern/ObserverTable.hpp"
 #include "observerpattern/Subject.hpp"
 #include "probes/ColProbe.hpp"
+#include "utils/Clock.hpp"
 #include "utils/Timer.hpp"
 #include <fstream>
 #include <memory>
@@ -266,6 +267,7 @@ class HyPerCol : public Subject, Observer {
    int addConnection(BaseConnection *conn);
    int addNormalizer(NormalizeBase *normalizer);
    int addLayer(HyPerLayer *l);
+   void advanceTimeLoop(Clock &runClock, int const runClockStartingStep);
    int advanceTime(double time);
    int insertProbe(ColProbe *p);
    int outputState(double time);
