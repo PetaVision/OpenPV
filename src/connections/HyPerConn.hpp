@@ -77,7 +77,7 @@ class HyPerConn : public BaseConnection {
    virtual int insertProbe(BaseConnectionProbe *p) override;
    int outputProbeParams() override;
    virtual int outputState(double time, bool last = false) override;
-   int updateState(double time, double dt) override;
+   virtual int updateState(double time, double dt) override;
    virtual int finalizeUpdate(double timed, double dt) override;
    virtual bool needUpdate(double time, double dt) override;
    virtual int updateInd_dW(int arbor_ID, int batch_ID, int kExt);
@@ -895,9 +895,11 @@ class HyPerConn : public BaseConnection {
    // (e.g. TransposeConn has to wait for original conn)
 
    /**
-    * calc_dW is a function that calls initialze_dW, update_dW, reduce_dW, and normalize_dW
+    * updateLocal_dW computes the contribution of the current process to dW,
+    * before MPI reduction and normalization. The routine calls initialize_dW
+    * for each arbor, and then updateWeights for each arbor.
     */
-   virtual int calc_dW();
+   void updateLocal_dW();
 
    /**
     * Initializes dW. Default behaviour is to clear dW.
@@ -910,10 +912,32 @@ class HyPerConn : public BaseConnection {
     */
    virtual int update_dW(int arborId);
    virtual float updateRule_dW(float pre, float post);
+
+   /**
+    * Updates the weights in all arbors, by calling updateWeights(int) for each arbor index.
+    */
+   void updateArbors();
+
+   /**
+    * Updates the weights in one arbor. HyPerConn updates the weights using
+    * W_new = W_old + dW.
+    */
    virtual int updateWeights(int arborId = 0);
+
+   /**
+    * Decrements the counter for dWMaxDecayInterval, and if at the end of the interval,
+    * decays the dWMax value.
+    */
+   void decay_dWMax();
+
    virtual bool skipPre(float preact) { return preact == 0.0f; };
    /**
-    * Reduces all dW and activations across MPI
+    * Reduces dW and activations for all arbors across MPI
+    */
+   void reduce_dW();
+
+   /**
+    * Reduces dW and activations for one arbor across MPI
     */
    virtual int reduce_dW(int arborId);
    virtual int reduceKernels(int arborID);
@@ -926,7 +950,13 @@ class HyPerConn : public BaseConnection {
    void reduceAcrossBatch(int arborID);
 
    /**
-    * Normalizes all dW by dividing dW by activations
+    * Normalizes dW for all arbors, by calling normalize_dW(int) for each arbor index.
+    */
+   void normalize_dW();
+
+   /**
+    * Normalizes dW for one arbor.
+    * HyPerConn normalizes dW by dividing by the number of activations.
     */
    virtual int normalize_dW(int arbor_ID);
 

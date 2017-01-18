@@ -134,45 +134,6 @@ void MomentumConn::ioParam_batchPeriod(enum ParamsIOFlag ioFlag) {
    }
 }
 
-int MomentumConn::calc_dW() {
-   pvAssert(plasticityFlag);
-   int status;
-
-   for (int arborId = 0; arborId < numberOfAxonalArborLists(); arborId++) {
-      status = initialize_dW(arborId);
-      if (status == PV_BREAK) {
-         break;
-      }
-      pvAssert(status == PV_SUCCESS);
-   }
-
-   for (int arborId = 0; arborId < numberOfAxonalArborLists(); arborId++) {
-      // Sum up parts every timestep
-      status = update_dW(arborId);
-      if (status == PV_BREAK) {
-         break;
-      }
-      pvAssert(status == PV_SUCCESS);
-   }
-
-   for (int arborId = 0; arborId < numberOfAxonalArborLists(); arborId++) {
-      status = reduce_dW(arborId);
-      if (status == PV_BREAK) {
-         break;
-      }
-      pvAssert(status == PV_SUCCESS);
-   }
-
-   for (int arborId = 0; arborId < numberOfAxonalArborLists(); arborId++) {
-      status = normalize_dW(arborId);
-      if (status == PV_BREAK) {
-         break;
-      }
-      pvAssert(status == PV_SUCCESS);
-   }
-   return PV_SUCCESS;
-}
-
 int MomentumConn::updateWeights(int arborId) {
    // Add momentum right before updateWeights
    for (int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++) {

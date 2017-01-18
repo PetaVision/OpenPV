@@ -23,7 +23,6 @@ class VaryingHyPerConn : public HyPerConn {
   protected:
    int initialize(const char *name, HyPerCol *hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-   virtual int calc_dW(int axonId);
 
 }; // end class VaryingHyPerConn
 

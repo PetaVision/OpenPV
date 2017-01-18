@@ -43,7 +43,6 @@ class MomentumConn : public HyPerConn {
       return &prev_dwDataStart[arborId][dataIndex * nxp * nyp * nfp];
    }
 
-   virtual int calc_dW();
    virtual int updateWeights(int arborId);
 
   private:
