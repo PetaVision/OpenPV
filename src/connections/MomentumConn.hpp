@@ -29,6 +29,11 @@ class MomentumConn : public HyPerConn {
    virtual void ioParam_momentumTau(enum ParamsIOFlag ioFlag);
    virtual void ioParam_momentumMethod(enum ParamsIOFlag ioFlag);
    virtual void ioParam_momentumDecay(enum ParamsIOFlag ioFlag);
+
+   // batchPeriod was marked obsolete Jan 17, 2017.
+   /**
+    * batchPeriod is obsolete. Use HyPerCol nbatch parameter instead.
+    */
    virtual void ioParam_batchPeriod(enum ParamsIOFlag ioFlag);
 
    virtual int registerData(Checkpointer *checkpointer, std::string const &objName) override;
@@ -47,8 +52,6 @@ class MomentumConn : public HyPerConn {
    float momentumTau;
    float momentumDecay;
    char *momentumMethod;
-   int timeBatchIdx;
-   int timeBatchPeriod;
 
 }; // end class MomentumConn
 
