@@ -2452,16 +2452,18 @@ int HyPerConn::clear_numActivations(int arborId) {
 int HyPerConn::clear_dW(int arborId) {
    // zero out all dW.
    // This also zeroes out the unused parts of shrunken patches
+   int const syPatch = syp;
+   int const nkPatch = nfp * nxp;
    for (int kArbor = 0; kArbor < numberOfAxonalArborLists(); kArbor++) {
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for 
+#endif
       for (int kKernel = 0; kKernel < getNumDataPatches(); kKernel++) {
-         int syPatch     = syp;
-         int nkPatch     = nfp * nxp;
          float *dWeights = get_dwDataHead(kArbor, kKernel);
          for (int kyPatch = 0; kyPatch < nyp; kyPatch++) {
             for (int kPatch = 0; kPatch < nkPatch; kPatch++) {
-               dWeights[kPatch] = 0.0f;
+               dWeights[kyPatch*syPatch + kPatch] = 0.0f;
             }
-            dWeights += syPatch;
          }
       }
    }
