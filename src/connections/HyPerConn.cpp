@@ -2574,13 +2574,25 @@ int HyPerConn::reduceKernels(int arborID) {
 }
 
 void HyPerConn::reduceAcrossBatch(int arborID) {
+   pvAssert(!sharedWeights && plasticityFlag);
    if (parent->getCommunicator()->numCommBatches() != 1) {
       float *dwArborStart      = get_dwDataStart(arborID);
       size_t const patchSize   = (size_t)nxp * (size_t)nyp * (size_t)nfp;
       size_t const localSize   = (size_t)getNumDataPatches() * (size_t)patchSize;
       size_t const arborSize   = localSize * (size_t)numberOfAxonalArborLists();
       MPI_Comm const batchComm = parent->getCommunicator()->batchCommunicator();
+
+      auto sz = m_dWReduceRequests.size();
+      m_dWReduceRequests.resize(sz + 1);
       MPI_Allreduce(MPI_IN_PLACE, dwArborStart, arborSize, MPI_FLOAT, MPI_SUM, batchComm);
+      MPI_Iallreduce(
+            MPI_IN_PLACE,
+            get_dwDataStart(arborID),
+            arborSize,
+            MPI_FLOAT,
+            MPI_SUM,
+            batchComm,
+            &(m_dWReduceRequests.data())[sz]);
    }
 }
 
