@@ -126,7 +126,8 @@ void MomentumConn::ioParam_batchPeriod(enum ParamsIOFlag ioFlag) {
       int obsoleteBatchPeriod = (int)parent->parameters()->value(name, "batchPeriod");
       if (obsoleteBatchPeriod != 1) {
          if (parent->getCommunicator()->globalCommRank() == 0) {
-            ErrorLog() << getDescription() << ": MomentumConn parameter batchPeriod is obsolete. " << "Instead use the HyPerCol nbatch parameter.\n";
+            ErrorLog() << getDescription() << ": MomentumConn parameter batchPeriod is obsolete. "
+                       << "Instead use the HyPerCol nbatch parameter.\n";
          }
          MPI_Barrier(parent->getCommunicator()->globalCommunicator());
          exit(EXIT_FAILURE);
@@ -200,8 +201,7 @@ int MomentumConn::applyMomentum(int arbor_ID) {
          float const *prev_dw_start = get_prev_dwDataHead(arbor_ID, kernelIdx);
          float const *wdata_start   = get_wDataHead(arbor_ID, kernelIdx);
          for (int k = 0; k < nxp * nyp * nfp; k++) {
-            dwdata_start[k] +=
-                  momentumTau * prev_dw_start[k] - decayFactor * wdata_start[k];
+            dwdata_start[k] += momentumTau * prev_dw_start[k] - decayFactor * wdata_start[k];
          }
       }
    }
