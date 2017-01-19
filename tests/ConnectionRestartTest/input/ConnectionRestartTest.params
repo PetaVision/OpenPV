@@ -135,35 +135,6 @@ HyPerConn "initializeFromInitWeights" = {
 };
 
 HyPerConn "initializeFromCheckpoint" = {
-    initializeFromCheckpointFlag = true;
-    preLayerName = "input";
-    postLayerName = "output_from_initializeFromCheckpoint";
-    channelCode = 0;
-
-    nxp = 1;
-    nyp = 1;
-    numAxonalArbors = 1;
-    sharedWeights = true;
-    writeStep = -1;
-    
-    weightInitType = "UniformWeight";
-    weightInit = 1.0;
-    connectOnlySameFeatures = false;
-
-    normalizeMethod = "none";
-
-    writeCompressedCheckpoints = false;
-    plasticityFlag = true;
-    dWMax = 1.0;
-    weightUpdatePeriod = 20;
-    initialWeightUpdateTime = 20;
-    combine_dW_with_W_flag = false;
-    selfFlag = false;  
-
-    delay = 0;
-
-    pvpatchAccumulateType = "Convolve";
-    convertRateToSpikeCount = false;
-    shrinkPatches = false; 
-    updateGSynFromPostPerspective = false; 
+    #include "initializeFromInitWeights";
+    @initializeFromCheckpointFlag = true;
 };
