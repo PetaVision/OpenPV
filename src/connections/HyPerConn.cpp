@@ -2599,7 +2599,6 @@ void HyPerConn::reduceAcrossBatch(int arborID) {
 
       auto sz = m_dWReduceRequests.size();
       m_dWReduceRequests.resize(sz + 1);
-      MPI_Allreduce(MPI_IN_PLACE, dwArborStart, arborSize, MPI_FLOAT, MPI_SUM, batchComm);
       MPI_Iallreduce(
             MPI_IN_PLACE,
             get_dwDataStart(arborID),
