@@ -13,7 +13,8 @@ namespace PV {
 
 void Subject::notify(
       ObserverTable const &table,
-      std::vector<std::shared_ptr<BaseMessage const>> messages) {
+      std::vector<std::shared_ptr<BaseMessage const>> messages,
+      bool printFlag) {
    auto needsUpdate    = table.getObjectVector();
    auto numNeedsUpdate = needsUpdate.size();
    while (numNeedsUpdate > 0) {
@@ -22,7 +23,7 @@ void Subject::notify(
       while (iter != needsUpdate.end()) {
          auto obj   = (*iter);
          int status = PV_SUCCESS;
-         for (auto msg : messages) {
+         for (auto &msg : messages) {
             status = obj->respond(msg);
             if (status == PV_BREAK) {
                status = PV_SUCCESS;
@@ -30,10 +31,7 @@ void Subject::notify(
             // connections' updateState?
             switch (status) {
                case PV_SUCCESS: continue; break;
-               case PV_POSTPONE:
-                  InfoLog() << obj->getDescription() << ": " << msg->getMessageType()
-                            << " postponed.\n";
-                  break;
+               case PV_POSTPONE: break;
                case PV_FAILURE:
                   Fatal() << obj->getDescription() << " failed " << msg->getMessageType() << ".\n";
                   break;
@@ -51,13 +49,26 @@ void Subject::notify(
       }
       numNeedsUpdate = needsUpdate.size();
       if (numNeedsUpdate == oldNumNeedsUpdate) {
-         ErrorLog() << "HyPerCol::notify has hung with " << numNeedsUpdate
-                    << " objects still postponed.\n";
-         for (auto &obj : needsUpdate) {
-            ErrorLog() << obj->getDescription() << " is still postponed.\n";
+         if (printFlag) {
+            ErrorLog() << "HyPerCol::notify has hung with " << numNeedsUpdate
+                       << " objects still postponed.\n";
+            for (auto &obj : needsUpdate) {
+               ErrorLog() << obj->getDescription() << " is still postponed.\n";
+            }
          }
          exit(EXIT_FAILURE);
          break;
+      }
+      else if (printFlag and numNeedsUpdate > 0) {
+         for (auto &msg : messages) {
+            if (numNeedsUpdate == 1) {
+               InfoLog() << "1 object has still postponed " << msg->getMessageType() << ".\n";
+            }
+            else {
+               InfoLog() << numNeedsUpdate << " objects have still postponed "
+                         << msg->getMessageType() << ".\n";
+            }
+         }
       }
    }
 }

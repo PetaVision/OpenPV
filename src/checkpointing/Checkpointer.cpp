@@ -556,7 +556,8 @@ void Checkpointer::checkpointRead(double *simTimePointer, long int *currentStepP
    }
    notify(
          mObserverTable,
-         std::make_shared<ProcessCheckpointReadMessage const>(checkpointReadDirectory));
+         std::make_shared<ProcessCheckpointReadMessage const>(checkpointReadDirectory),
+         getCommunicator()->commRank() == 0 /*printFlag*/);
 }
 
 void Checkpointer::checkpointWrite(double simTime) {
@@ -702,7 +703,8 @@ void Checkpointer::checkpointToDirectory(std::string const &directory) {
    }
    notify(
          mObserverTable,
-         std::make_shared<PrepareCheckpointWriteMessage const>(checkpointDirectory));
+         std::make_shared<PrepareCheckpointWriteMessage const>(checkpointDirectory),
+         getCommunicator()->commRank() == 0 /*printFlag*/);
    ensureDirExists(getCommunicator(), checkpointDirectory.c_str());
    for (auto &c : mCheckpointRegistry) {
       c->write(checkpointDirectory, mTimeInfo.mSimTime, mVerifyWritesFlag);

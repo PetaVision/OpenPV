@@ -373,7 +373,7 @@ class HyPerCol : public Subject, Observer {
    void paramMovedToColumnEnergyProbe(enum ParamsIOFlag ioFlag, char const *paramName);
    int checkDirExists(const char *dirname, struct stat *pathstat);
    inline void notify(std::vector<std::shared_ptr<BaseMessage const>> messages) {
-      Subject::notify(mObjectHierarchy, messages);
+      Subject::notify(mObjectHierarchy, messages, getCommunicator()->commRank() == 0 /*printFlag*/);
    }
    inline void notify(std::shared_ptr<BaseMessage const> message) {
       notify(std::vector<std::shared_ptr<BaseMessage const>>{message});
