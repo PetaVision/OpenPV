@@ -493,7 +493,7 @@ class HyPerConn : public BaseConnection {
    double initialWeightUpdateTime;
    double lastUpdateTime;
    double lastTimeUpdateCalled;
-   bool mImmediateWeightUpdate = false;
+   bool mImmediateWeightUpdate = true;
 
    bool symmetrizeWeightsFlag;
    long **numKernelActivations;
