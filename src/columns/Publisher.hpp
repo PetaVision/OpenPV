@@ -21,7 +21,20 @@ class Publisher {
   public:
    Publisher(Communicator *comm, PVLayerCube *cube, int numLevels, bool isSparse);
    virtual ~Publisher();
-   int publish(double currentTime, double lastUpdateTime);
+
+   /**
+    * Copies the data from the cube to the top level of the data store, and exchanges
+    * the border.
+    */
+   int publish(double lastUpdateTime);
+
+   /**
+    * Keeps the data store in sync if the time advances but the data doesn't change.
+    * If the number of levels is greater than one, copy the previous level to the
+    * current level; otherwise do nothing. Using this instead of publish() avoids
+    * an unnecessary border exchange.
+    */
+   void copyForward(double lastUpdateTime);
    int exchangeBorders(const PVLayerLoc *loc, int delay = 0);
    int wait();
 

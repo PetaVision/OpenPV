@@ -492,6 +492,8 @@ class HyPerLayer : public BaseLayer {
 
    // layerId was removed Aug 12, 2016.
 
+   bool mNeedToPublish = true;
+
    int numChannels; // number of channels
    float **GSyn; // of dynamic length numChannels
    Publisher *publisher = nullptr;

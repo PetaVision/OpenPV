@@ -89,7 +89,7 @@ int Publisher::calcActiveIndices() {
    return PV_SUCCESS;
 }
 
-int Publisher::publish(double currentTime, double lastUpdateTime) {
+int Publisher::publish(double lastUpdateTime) {
    //
    // Everyone publishes border region to neighbors even if no subscribers.
    // This means that everyone should wait as well.
@@ -100,26 +100,23 @@ int Publisher::publish(double currentTime, double lastUpdateTime) {
    float const *sendBuf = mLayerCube->data;
    float *recvBuf       = recvBuffer(0); // Grab all of the buffer, allocated continuously
 
-   if (lastUpdateTime >= currentTime) {
-      // copy entire layer and let neighbors overwrite
-      // Only need to exchange borders if layer was updated this timestep
-      memcpy(recvBuf, sendBuf, dataSize);
-      exchangeBorders(&mLayerCube->loc, 0);
-      store->setLastUpdateTime(Communicator::LOCAL /*bufferId*/, lastUpdateTime);
+   memcpy(recvBuf, sendBuf, dataSize);
+   exchangeBorders(&mLayerCube->loc, 0);
+   store->setLastUpdateTime(Communicator::LOCAL /*bufferId*/, lastUpdateTime);
 
-      // Updating active indices is done after MPI wait in HyPerCol
-      // to avoid race condition because exchangeBorders mpi is async
-   }
-   else if (store->getNumLevels() > 1) {
-      // If there are delays, copy last level's data to this level.
-      // TODO: we could use pointer indirection to cut down on the number of
-      // memcpy calls required,
-      // if this turns out to be an expensive step
+   // Updating active indices is done after MPI wait in HyPerCol
+   // to avoid race condition because exchangeBorders mpi is async
+
+   return PV_SUCCESS;
+}
+
+void Publisher::copyForward(double lastUpdateTime) {
+   if (store->getNumLevels() > 1) {
+      float *recvBuf  = recvBuffer(0); // Grab all of the buffer, allocated continuously
+      size_t dataSize = mLayerCube->numItems * sizeof(float);
       memcpy(recvBuf, recvBuffer(Communicator::LOCAL /*bufferId*/, 1), dataSize);
       store->setLastUpdateTime(Communicator::LOCAL /*bufferId*/, lastUpdateTime);
    }
-
-   return PV_SUCCESS;
 }
 
 int Publisher::exchangeBorders(const PVLayerLoc *loc, int delay /*default 0*/) {

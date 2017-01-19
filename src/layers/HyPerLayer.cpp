@@ -1818,7 +1818,7 @@ int HyPerLayer::callUpdateState(double simTime, double dt) {
       updatedDeviceDatastore = true;
 #endif
       update_timer->stop();
-
+      mNeedToPublish  = true;
       mLastUpdateTime = simTime;
    }
    return status;
@@ -2084,7 +2084,14 @@ int HyPerLayer::publish(Communicator *comm, double simTime) {
       mirrorInteriorToBorder(clayer->activity, clayer->activity);
    }
 
-   int status = publisher->publish(simTime, mLastUpdateTime);
+   int status = PV_SUCCESS;
+   if (mNeedToPublish) {
+      status         = publisher->publish(mLastUpdateTime);
+      mNeedToPublish = false;
+   }
+   else {
+      publisher->copyForward(mLastUpdateTime);
+   }
    publish_timer->stop();
    return status;
 }
