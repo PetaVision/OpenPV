@@ -493,12 +493,17 @@ class HyPerConn : public BaseConnection {
    double initialWeightUpdateTime;
    double lastUpdateTime;
    double lastTimeUpdateCalled;
-   bool mImmediateWeightUpdate = true;
+   bool mImmediateWeightUpdate = false;
 
    bool symmetrizeWeightsFlag;
    long **numKernelActivations;
    bool keepKernelsSynchronized_flag;
    std::vector<MPI_Request> m_dWReduceRequests;
+   bool mReductionPending = false;
+   // mReductionPending is set by reduce_dW() and cleared by
+   // blockingNormalize_dW(). We don't use the nonemptiness of
+   // m_dWReduceRequests as the signal to blockingNormalize_dW because the
+   // requests are not created if there is only a single MPI processes.
 
    Random *randState;
 
@@ -895,6 +900,11 @@ class HyPerConn : public BaseConnection {
    // or PV_POSTPONE if it needs to wait on other objects
    // (e.g. TransposeConn has to wait for original conn)
 
+   /**
+    * Calls blockingNormalize_dW.
+    */
+   virtual int prepareCheckpointWrite() override;
+
    void updateWeightsImmediate(double simTime, double dt);
    void updateWeightsDelayed(double simTime, double dt);
 
@@ -952,6 +962,15 @@ class HyPerConn : public BaseConnection {
     * Sums the dW across all elements in the batch (both local and MPI).
     */
    void reduceAcrossBatch(int arborID);
+
+   /**
+    * If there are outstanding MPI requests for reducing dW, wait for them to complete and
+    * then call normalize_dW(). This function is called in two situations: when writing a
+    * checkpoint * (so that we don't have to separately checkpoint the number of activation
+    * kernels) and in timesteps where the weights need to be updated (and now need the
+    * calculation of dW to be complete).
+    */
+   void blockingNormalize_dW();
 
    /**
     * Normalizes dW for all arbors, by calling normalize_dW(int) for each arbor index.

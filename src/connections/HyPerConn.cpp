@@ -39,7 +39,7 @@ HyPerConn::HyPerConn(char const *name, HyPerCol *hc) {
 }
 
 HyPerConn::~HyPerConn() {
-   wait_dWReduceRequests();
+   cleanup();
    delete io_timer;
    io_timer = NULL;
    delete update_timer;
@@ -2117,6 +2117,9 @@ int HyPerConn::writeTextWeights(const char *filename, int k) {
 int HyPerConn::readStateFromCheckpoint(Checkpointer *checkpointer) {
    if (initializeFromCheckpointFlag) {
       checkpointer->readNamedCheckpointEntry(std::string(name), std::string("W"));
+      if (plasticityFlag and !mImmediateWeightUpdate) {
+         checkpointer->readNamedCheckpointEntry(std::string(name), std::string("dW"));
+      }
    }
    return PV_SUCCESS;
 }
@@ -2153,6 +2156,12 @@ void HyPerConn::checkpointWeightPvp(
 int HyPerConn::registerData(Checkpointer *checkpointer, std::string const &objName) {
    int status = BaseConnection::registerData(checkpointer, objName);
    checkpointWeightPvp(checkpointer, "W", get_wDataStart());
+   if (plasticityFlag and !mImmediateWeightUpdate) {
+      checkpointWeightPvp(checkpointer, "dW", get_dwDataStart());
+      // If we checkpoint dW, we have to get PrepareCheckpointRead messages,
+      // in order to call blockingNormalize_dW() before the checkpoint.
+      checkpointer->addObserver(this, BaseMessage());
+   }
    checkpointer->registerCheckpointData(
          objName, "lastUpdateTime", &lastUpdateTime, (std::size_t)1, true /*broadcast*/);
    if (plasticityFlag && !triggerLayerName) {
@@ -2317,7 +2326,8 @@ bool HyPerConn::needUpdate(double simTime, double dt) {
 
 int HyPerConn::updateState(double simTime, double dt) {
    int status = PV_SUCCESS;
-   if (plasticityFlag and needUpdate(simTime, dt)) {
+   if (needUpdate(simTime, dt)) {
+      pvAssert(plasticityFlag);
       update_timer->start();
       if (mImmediateWeightUpdate) {
          updateWeightsImmediate(simTime, dt);
@@ -2340,14 +2350,12 @@ int HyPerConn::updateState(double simTime, double dt) {
 void HyPerConn::updateWeightsImmediate(double simTime, double dt) {
    updateLocal_dW();
    reduce_dW();
-   wait_dWReduceRequests();
-   normalize_dW();
+   blockingNormalize_dW();
    updateArbors();
 }
 
 void HyPerConn::updateWeightsDelayed(double simTime, double dt) {
-   wait_dWReduceRequests();
-   normalize_dW();
+   blockingNormalize_dW();
    updateArbors();
    updateLocal_dW();
    reduce_dW();
@@ -2383,15 +2391,20 @@ void HyPerConn::reduce_dW() {
       }
    }
    pvAssert(status == PV_SUCCESS or status == PV_BREAK);
+   mReductionPending = true;
+}
+
+void HyPerConn::blockingNormalize_dW() {
+   if (mReductionPending) {
+      wait_dWReduceRequests();
+      normalize_dW();
+      mReductionPending = false;
+   }
 }
 
 void HyPerConn::wait_dWReduceRequests() {
-   int status = MPI_SUCCESS;
-   if (!m_dWReduceRequests.empty()) {
-      status =
-            MPI_Waitall(m_dWReduceRequests.size(), m_dWReduceRequests.data(), MPI_STATUSES_IGNORE);
-      m_dWReduceRequests.clear();
-   }
+   MPI_Waitall(m_dWReduceRequests.size(), m_dWReduceRequests.data(), MPI_STATUSES_IGNORE);
+   m_dWReduceRequests.clear();
 }
 
 void HyPerConn::normalize_dW() {
@@ -4948,8 +4961,16 @@ void HyPerConn::deliverOnePostNeuronActivitySparseWeights(
    }
 }
 
+int HyPerConn::prepareCheckpointWrite() {
+   blockingNormalize_dW();
+   pvAssert(m_dWReduceRequests.empty());
+   return PV_SUCCESS;
+}
+
 int HyPerConn::cleanup() {
-   wait_dWReduceRequests();
+   if (!m_dWReduceRequests.empty()) {
+      wait_dWReduceRequests();
+   }
    return PV_SUCCESS;
 }
 
