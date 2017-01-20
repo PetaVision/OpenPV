@@ -568,7 +568,7 @@ int PoolingConn::deliverPresynapticPerspective(PVLayerCube const *activity, int 
                postIndexLayer->getChannel(CHANNEL_EXC) + b * postIndexLayer->getNumNeurons();
       }
 
-      unsigned int *activeIndicesBatch = NULL;
+      unsigned int const *activeIndicesBatch = NULL;
       if (activity->isSparse) {
          activeIndicesBatch = activity->activeIndices
                               + b * (preLoc->nx + preLoc->halo.rt + preLoc->halo.lt)

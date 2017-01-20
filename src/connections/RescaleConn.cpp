@@ -80,7 +80,7 @@ int RescaleConn::deliverPresynapticPerspective(PVLayerCube const *activity, int 
             post->getChannel(getChannel()) + b * postLoc->nx * postLoc->ny * postLoc->nf;
 
       if (activity->isSparse) {
-         unsigned int *activeIndicesBatch =
+         unsigned int const *activeIndicesBatch =
                activity->activeIndices
                + b * (preLoc->nx + preLoc->halo.rt + preLoc->halo.lt)
                        * (preLoc->ny + preLoc->halo.up + preLoc->halo.dn) * preLoc->nf;

@@ -2974,7 +2974,7 @@ int HyPerConn::deliverPresynapticPerspectiveConvolve(PVLayerCube const *activity
       float *activityBatch = activity->data + batchOffset;
       float *gSynPatchHeadBatch =
             post->getChannel(getChannel()) + b * postLoc->nx * postLoc->ny * postLoc->nf;
-      unsigned int *activeIndicesBatch = NULL;
+      unsigned int const *activeIndicesBatch = NULL;
       if (activity->isSparse) {
          activeIndicesBatch = activity->activeIndices + batchOffset;
       }
@@ -3090,7 +3090,7 @@ int HyPerConn::deliverPresynapticPerspectiveStochastic(PVLayerCube const *activi
       float *activityBatch = activity->data + batchOffset;
       float *gSynPatchHeadBatch =
             post->getChannel(getChannel()) + b * postLoc->nx * postLoc->ny * postLoc->nf;
-      unsigned int *activeIndicesBatch = NULL;
+      unsigned int const *activeIndicesBatch = NULL;
       if (activity->isSparse) {
          activeIndicesBatch = activity->activeIndices + batchOffset;
       }
@@ -3551,8 +3551,8 @@ int HyPerConn::deliverPresynapticPerspectiveGPU(PVLayerCube const *activity, int
          d_ActiveIndices = preSynapticLayer()->getDeviceActiveIndices();
          d_numActive     = preSynapticLayer()->getDeviceNumActive();
          pvAssert(d_ActiveIndices);
-         unsigned int *h_ActiveIndices = activity->activeIndices;
-         long *h_numActive             = activity->numActive;
+         unsigned int const *h_ActiveIndices = activity->activeIndices;
+         long const *h_numActive             = activity->numActive;
          pvAssert(h_ActiveIndices);
          d_numActive->copyToDevice(h_numActive);
          d_ActiveIndices->copyToDevice(h_ActiveIndices);
