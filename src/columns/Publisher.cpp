@@ -33,44 +33,22 @@ Publisher::~Publisher() {
 }
 
 int Publisher::updateAllActiveIndices() {
-   if (store->isSparse())
-      return calcAllActiveIndices();
-   else
-      return PV_SUCCESS;
-}
-
-int Publisher::updateActiveIndices(int delay) {
-   if (store->isSparse())
-      return calcActiveIndices(delay);
-   else
-      return PV_SUCCESS;
-}
-
-int Publisher::calcAllActiveIndices() {
-   for (int l = 0; l < store->getNumLevels(); l++) {
-      calcActiveIndices(l);
+   if (store->isSparse()) {
+      for (int l = 0; l < store->getNumLevels(); l++) {
+         updateActiveIndices(l);
+      }
    }
-
    return PV_SUCCESS;
 }
 
-int Publisher::calcActiveIndices(int delay) {
-   for (int b = 0; b < store->getNumBuffers(); b++) {
-      // Active indicies stored as local ext values
-      int numActive   = 0;
-      float *activity = store->buffer(b, delay);
-      ;
-      unsigned int *activeIndices = store->activeIndicesBuffer(b, delay);
-      long *numActiveBuf          = store->numActiveBuffer(b, delay);
-      for (int kex = 0; kex < store->getNumItems(); kex++) {
-         if (activity[kex] != 0.0f) {
-            activeIndices[numActive] = kex;
-            numActive++;
-         }
+int Publisher::updateActiveIndices(int delay) {
+   if (store->isSparse()) {
+      for (int b = 0; b < store->getNumBuffers(); b++) {
+         // Active indicies stored as local extended values
+         store->updateActiveIndices(b, delay);
       }
-      *numActiveBuf = numActive;
+      
    }
-
    return PV_SUCCESS;
 }
 

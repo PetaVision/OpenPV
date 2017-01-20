@@ -61,9 +61,6 @@ class Publisher {
       return store->activeIndicesBuffer(bufferId, delay);
    }
 
-   int calcAllActiveIndices();
-   int calcActiveIndices(int delay=0);
-
    DataStore *store;
 
    PVLayerCube *mLayerCube;
