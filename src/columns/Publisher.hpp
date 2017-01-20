@@ -43,7 +43,7 @@ class Publisher {
    DataStore *dataStore() { return store; }
 
    int updateAllActiveIndices();
-   int updateActiveIndices();
+   int updateActiveIndices(int delay=0);
 
   private:
    float *recvBuffer(int bufferId) { return store->buffer(bufferId); }
@@ -62,7 +62,7 @@ class Publisher {
    }
 
    int calcAllActiveIndices();
-   int calcActiveIndices();
+   int calcActiveIndices(int delay=0);
 
    DataStore *store;
 

@@ -1975,7 +1975,7 @@ int HyPerLayer::setActivity() {
 
 // Updates active indices for all levels (delays) here
 int HyPerLayer::updateAllActiveIndices() { return publisher->updateAllActiveIndices(); }
-int HyPerLayer::updateActiveIndices() { return publisher->updateActiveIndices(); }
+int HyPerLayer::updateActiveIndices() { return publisher->updateActiveIndices(0); }
 
 int HyPerLayer::recvAllSynapticInput() {
    int status = PV_SUCCESS;
