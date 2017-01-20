@@ -1722,6 +1722,10 @@ int HyPerLayer::registerData(Checkpointer *checkpointer, std::string const &objN
       mOutputStateStream->registerData(checkpointer, objName);
    }
 
+   if (getNumDelayLevels() > 1) {
+      checkpointer->addObserver(this, BaseMessage());
+   }
+
    checkpointer->registerTimer(recvsyn_timer);
    checkpointer->registerTimer(update_timer);
 #ifdef PV_USE_CUDA
@@ -2198,6 +2202,7 @@ int HyPerLayer::readStateFromCheckpoint(Checkpointer *checkpointer) {
       status = readActivityFromCheckpoint(checkpointer);
       status = readVFromCheckpoint(checkpointer);
       status = readDelaysFromCheckpoint(checkpointer);
+      updateAllActiveIndices();
    }
    return status;
 }
@@ -2390,6 +2395,10 @@ int HyPerLayer::readDataStoreFromFile(const char *filename, Communicator *comm, 
    assert(status == PV_SUCCESS);
    pvp_close_file(readFile, comm);
    return status;
+}
+
+int HyPerLayer::processCheckpointRead() {
+   return updateAllActiveIndices();
 }
 
 int HyPerLayer::writeActivitySparse(double timed, bool includeValues) {

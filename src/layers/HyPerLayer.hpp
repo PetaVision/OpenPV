@@ -264,6 +264,9 @@ class HyPerLayer : public BaseLayer {
 #endif // PV_USE_CUDA
    int readDataStoreFromFile(const char *filename, Communicator *comm, double *timed);
    int incrementNBands(int *numCalls);
+
+   virtual int processCheckpointRead() override;
+
    void calcNumExtended();
 
    /**
