@@ -1003,7 +1003,7 @@ void read_header_err(
       int *params) {
    if (comm->commRank() != 0) {
       ErrorLog(header_error);
-      header_error.printf("readBufferFile error while reading \"%s\"\n", filename);
+      header_error.printf("Error while reading header of \"%s\"\n", filename);
       switch (returned_num_params) {
          case 0:
             header_error.printf(
