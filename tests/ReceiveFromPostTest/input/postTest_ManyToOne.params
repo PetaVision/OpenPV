@@ -40,7 +40,7 @@ ANNLayer "outputRecvPre" = {
     nf = 3;
     writeStep = 1.0;
     initialWriteTime = 0.0;
-    mirrorBCflag = -1;
+    mirrorBCflag = true;
     sparseLayer = 0;
     //
     InitVType = "ZeroV";
@@ -60,7 +60,7 @@ ANNLayer "outputRecvPost" = {
     nf = 3;
     writeStep = 1.0;
     initialWriteTime = 0.0;
-    mirrorBCflag = -1;
+    mirrorBCflag = true;
     sparseLayer = 0;
     //
     InitVType = "ZeroV";
@@ -80,7 +80,7 @@ ANNLayer "outputTest" = {
     nf = 3;
     writeStep = 1.0;
     initialWriteTime = 0.0;
-    mirrorBCflag = -1;
+    mirrorBCflag = true;
     sparseLayer = 0;
     //
     InitVType = "ZeroV";
