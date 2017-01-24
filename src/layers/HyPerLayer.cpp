@@ -2093,14 +2093,11 @@ void HyPerLayer::copyAllActivityFromDevice() {
 int HyPerLayer::publish(Communicator *comm, double simTime) {
    publish_timer->start();
 
-   bool mirroring = useMirrorBCs();
-   mirroring      = mirroring ? (getLastUpdateTime() >= getParent()->simulationTime()) : false;
-   if (mirroring) {
-      mirrorInteriorToBorder(clayer->activity, clayer->activity);
-   }
-
    int status = PV_SUCCESS;
    if (mNeedToPublish) {
+      if (useMirrorBCs()) {
+         mirrorInteriorToBorder(clayer->activity, clayer->activity);
+      }
       status         = publisher->publish(mLastUpdateTime);
       mNeedToPublish = false;
    }
