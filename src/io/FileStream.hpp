@@ -35,7 +35,7 @@ class FileStream : public PrintStream {
    void openFile(char const *path, std::ios_base::openmode mode, bool verifyWrites);
 
    std::fstream mFStream;
-
+   std::string mFileName;
   private:
    bool mVerifyWrites         = false;
    int const mMaxAttempts     = 5;

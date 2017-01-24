@@ -37,6 +37,7 @@ FileStream::~FileStream() {
 
 void FileStream::openFile(char const *path, std::ios_base::openmode mode, bool verifyWrites) {
    string fullPath = expandLeadingTilde(path);
+   mFileName = fullPath;
    int attempts    = 0;
    while (!mFStream.is_open()) {
       mFStream.open(fullPath, mode);
@@ -65,8 +66,7 @@ void FileStream::openFile(char const *path, std::ios_base::openmode mode, bool v
       mVerifyWrites = true;
       if (binary()) {
          mWriteVerifier = new FileStream(path, std::ios_base::in | std::ios_base::binary, false);
-      }
-      else {
+      } else {
          mWriteVerifier = new FileStream(path, std::ios_base::in, false);
       }
    }
@@ -95,7 +95,7 @@ void FileStream::write(void const *data, long length) {
       mWriteVerifier->read(check.data(), length);
       if (memcmp(check.data(), data, length) != 0) {
          Fatal() << "Verify write failed when writing " << length << " bytes to position "
-                 << startPos << "\n";
+                 << startPos << "\n" << mFileName << "\n";
       }
    }
 }
@@ -108,11 +108,12 @@ void FileStream::read(void *data, long length) {
    FatalIf(
          numRead != length,
          "Expected to read %d bytes at %d, read %d instead.\n"
-         "New read position: %d\n",
+         "New read position: %d\n%s\n",
          length,
          startPos,
          numRead,
-         getInPos());
+         getInPos(),
+         mFileName.c_str());
    verifyFlags("read");
 }
 
