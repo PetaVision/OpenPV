@@ -963,6 +963,11 @@ int HyPerLayer::respond(std::shared_ptr<BaseMessage const> message) {
    }
 #endif // PV_USE_CUDA
    else if (
+         LayerAdvanceDataStoreMessage const *castMessage =
+               dynamic_cast<LayerAdvanceDataStoreMessage const *>(message.get())) {
+      return respondLayerAdvanceDataStore(castMessage);
+   }
+   else if (
          LayerPublishMessage const *castMessage =
                dynamic_cast<LayerPublishMessage const *>(message.get())) {
       return respondLayerPublish(castMessage);
@@ -1037,12 +1042,18 @@ int HyPerLayer::respondLayerCopyFromGpu(LayerCopyFromGpuMessage const *message) 
 }
 #endif // PV_USE_CUDA
 
+int HyPerLayer::respondLayerAdvanceDataStore(LayerAdvanceDataStoreMessage const *message) {
+   if (message->mPhase < 0 || message->mPhase == getPhase()) {
+      publisher->increaseTimeLevel();
+   }
+   return PV_SUCCESS;
+}
+
 int HyPerLayer::respondLayerPublish(LayerPublishMessage const *message) {
    int status = PV_SUCCESS;
    if (message->mPhase != getPhase()) {
       return status;
    }
-   publisher->increaseTimeLevel();
    publish(getParent()->getCommunicator(), message->mTime);
    return status;
 }
@@ -2228,9 +2239,7 @@ int HyPerLayer::readDelaysFromCheckpoint(Checkpointer *checkpointer) {
 // They were only used by checkpointing, which is now handled by the
 // CheckpointEntry class hierarchy.
 
-int HyPerLayer::processCheckpointRead() {
-   return updateAllActiveIndices();
-}
+int HyPerLayer::processCheckpointRead() { return updateAllActiveIndices(); }
 
 int HyPerLayer::writeActivitySparse(double timed, bool includeValues) {
    DataStore *store = publisher->dataStore();

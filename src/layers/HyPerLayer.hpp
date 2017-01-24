@@ -377,6 +377,7 @@ class HyPerLayer : public BaseLayer {
 #ifdef PV_USE_CUDA
    virtual int respondLayerCopyFromGpu(LayerCopyFromGpuMessage const *message);
 #endif // PV_USE_CUDA
+   virtual int respondLayerAdvanceDataStore(LayerAdvanceDataStoreMessage const *message);
    virtual int respondLayerPublish(LayerPublishMessage const *message);
    virtual int respondLayerCheckNotANumber(LayerCheckNotANumberMessage const *message);
    virtual int respondLayerUpdateActiveIndices(LayerUpdateActiveIndicesMessage const *message);
