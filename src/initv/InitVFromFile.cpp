@@ -107,7 +107,7 @@ int InitVFromFile::calcV(float *V, const PVLayerLoc *loc) {
       if (params[INDEX_NX_PROCS] != 1 || params[INDEX_NY_PROCS] != 1) {
          if (parent->getCommunicator()->commRank() == 0) {
             ErrorLog().printf(
-                  "HyPerLayer::readBufferFile: file \"%s\" appears to be in an obsolete version of "
+                  "InitVFromFile: file \"%s\" appears to be in an obsolete version of "
                   "the .pvp format.\n",
                   mVfilename);
          }

@@ -33,4 +33,22 @@ DataStore::DataStore(int numBuffers, int numItems, int numLevels, bool isSparse_
       mNumActive     = new RingBuffer<long>(numLevels, numBuffers);
    }
 }
+
+void DataStore::updateActiveIndices(int bufferId, int level) {
+   if (!mSparseFlag) { return; }
+   int numActive   = 0;
+   float *activity = buffer(bufferId, level);
+
+   unsigned int *activeIndices = activeIndicesBuffer(bufferId, level);
+   for (int kex = 0; kex < getNumItems(); kex++) {
+      if (activity[kex] != 0.0f) {
+         activeIndices[numActive] = kex;
+         numActive++;
+      }
+   }
+
+   long *numActiveBuf = numActiveBuffer(bufferId, level);
+   *numActiveBuf = numActive;
 }
+
+} // end namespace PV

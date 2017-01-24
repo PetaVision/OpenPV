@@ -1067,8 +1067,10 @@ int HyPerCol::advanceTime(double sim_time) {
              std::make_shared<LayerUpdateStateMessage>(phase, mSimTime, mDeltaTime)});
 #endif
 
-      // Rotate DataStore ring buffers, copy activity buffer to DataStore, and do
-      // MPI exchange.
+      // Rotate DataStore ring buffers
+      notify(std::make_shared<LayerAdvanceDataStoreMessage>(phase));
+
+      // copy activity buffer to DataStore, and do MPI exchange.
       notify(std::make_shared<LayerPublishMessage>(phase, mSimTime));
 
       // wait for all published data to arrive and call layer's outputState

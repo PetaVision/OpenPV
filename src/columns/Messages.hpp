@@ -176,6 +176,15 @@ class LayerCopyFromGpuMessage : public BaseMessage {
 };
 #endif // PV_USE_CUDA
 
+class LayerAdvanceDataStoreMessage : public BaseMessage {
+  public:
+   LayerAdvanceDataStoreMessage(int phase) {
+      setMessageType("LayerAdvanceDataStoreMessage");
+      mPhase = phase;
+   }
+   int mPhase;
+};
+
 class LayerPublishMessage : public BaseMessage {
   public:
    LayerPublishMessage(int phase, double simTime) {

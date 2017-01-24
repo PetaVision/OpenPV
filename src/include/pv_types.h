@@ -69,8 +69,8 @@ typedef struct PVLayerCube_ {
    // location of cube in global layer
    PVLayerLoc loc;
    int isSparse;
-   long *numActive;
-   unsigned int *activeIndices;
+   long const *numActive;
+   unsigned int const *activeIndices;
 } PVLayerCube;
 
 /**

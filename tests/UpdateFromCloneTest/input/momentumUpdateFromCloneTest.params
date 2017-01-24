@@ -71,7 +71,7 @@ ConstantLayer "origPost" = {
     nf = 1;
     writeStep = 1.0;
     initialWriteTime = 0.0;
-    mirrorBCflag = -1;
+    mirrorBCflag = true;
     sparseLayer = 0;
     //
     InitVType = "ConstantV";
@@ -87,7 +87,7 @@ ConstantLayer "clonePost" = {
     nf = 1;
     writeStep = -1.0;
     initialWriteTime = 0.0;
-    mirrorBCflag = -1;
+    mirrorBCflag = true;
     sparseLayer = 0;
     //
     InitVType = "ConstantV";

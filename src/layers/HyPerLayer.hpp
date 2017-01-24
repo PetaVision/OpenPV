@@ -262,8 +262,15 @@ class HyPerLayer : public BaseLayer {
 #ifdef PV_USE_CUDA
    virtual int copyInitialStateToGPU() override;
 #endif // PV_USE_CUDA
-   int readDataStoreFromFile(const char *filename, Communicator *comm, double *timed);
+
+   // readBufferFile and readDataStoreFromFile were removed Jan 23, 2017.
+   // They were only used by checkpointing, which is now handled by the
+   // CheckpointEntry class hierarchy.
+
    int incrementNBands(int *numCalls);
+
+   virtual int processCheckpointRead() override;
+
    void calcNumExtended();
 
    /**
@@ -370,6 +377,7 @@ class HyPerLayer : public BaseLayer {
 #ifdef PV_USE_CUDA
    virtual int respondLayerCopyFromGpu(LayerCopyFromGpuMessage const *message);
 #endif // PV_USE_CUDA
+   virtual int respondLayerAdvanceDataStore(LayerAdvanceDataStoreMessage const *message);
    virtual int respondLayerPublish(LayerPublishMessage const *message);
    virtual int respondLayerCheckNotANumber(LayerCheckNotANumberMessage const *message);
    virtual int respondLayerUpdateActiveIndices(LayerUpdateActiveIndicesMessage const *message);
@@ -388,16 +396,6 @@ class HyPerLayer : public BaseLayer {
 
    static bool localDimensionsEqual(PVLayerLoc const *loc1, PVLayerLoc const *loc2);
    int mirrorInteriorToBorder(PVLayerCube *cube, PVLayerCube *borderCube);
-
-   template <typename T>
-   static int readBufferFile(
-         const char *filename,
-         Communicator *comm,
-         double *timed,
-         T **buffers,
-         int numbands,
-         bool extended,
-         const PVLayerLoc *loc);
 
    virtual int outputState(double timef, bool last = false);
    virtual int writeActivity(double timed);
@@ -491,6 +489,8 @@ class HyPerLayer : public BaseLayer {
    void freeChannels();
 
    // layerId was removed Aug 12, 2016.
+
+   bool mNeedToPublish = true;
 
    int numChannels; // number of channels
    float **GSyn; // of dynamic length numChannels

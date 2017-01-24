@@ -64,7 +64,7 @@ void CheckpointEntryDataStore::read(std::string const &checkpointDirectory, doub
       struct BufferUtils::ActivityHeader header = BufferUtils::readActivityHeader(*fileStream);
       FatalIf(
             header.nBands != numBands,
-            "readDataStoreFromFile error reading \"%s\": delays*batchwidth in file is %d, "
+            "CheckpointEntryDataStore::read error reading \"%s\": delays*batchwidth in file is %d, "
             "but delays*batchwidth in layer is %d\n",
             path.c_str(),
             header.nBands,

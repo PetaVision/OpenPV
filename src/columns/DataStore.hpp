@@ -75,6 +75,8 @@ class DataStore {
 
    long *numActiveBuffer(int bufferId) { return mNumActive->getBuffer(bufferId); }
 
+   void updateActiveIndices(int bufferId, int level);
+
    int getNumItems() const { return mNumItems; }
 
   private:

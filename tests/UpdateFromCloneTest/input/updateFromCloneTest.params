@@ -72,7 +72,7 @@ ANNLayer "origPost" = {
     nf = 1;
     writeStep = 1.0;
     initialWriteTime = 0.0;
-    mirrorBCflag = -1;
+    mirrorBCflag = true;
     sparseLayer = 0;
     //
     InitVType = "ConstantV";
@@ -93,7 +93,7 @@ ANNLayer "clonePost" = {
     nf = 1;
     writeStep = -1.0;
     initialWriteTime = 0.0;
-    mirrorBCflag = -1;
+    mirrorBCflag = true;
     sparseLayer = 0;
     //
     InitVType = "ConstantV";

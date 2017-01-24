@@ -633,7 +633,7 @@ int TransposePoolingConn::deliverPresynapticPerspective(PVLayerCube const *activ
          postIdxDataBatch = postIdxData + b * mOriginalConn->getPostIndexLayer()->getNumExtended();
       }
 
-      unsigned int *activeIndicesBatch = NULL;
+      unsigned int const *activeIndicesBatch = NULL;
       if (activity->isSparse) {
          activeIndicesBatch = activity->activeIndices
                               + b * (preLoc->nx + preLoc->halo.rt + preLoc->halo.lt)

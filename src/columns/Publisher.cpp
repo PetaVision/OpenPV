@@ -33,63 +33,26 @@ Publisher::~Publisher() {
 }
 
 int Publisher::updateAllActiveIndices() {
-   if (store->isSparse())
-      return calcAllActiveIndices();
-   else
-      return PV_SUCCESS;
+   if (store->isSparse()) {
+      for (int l = 0; l < store->getNumLevels(); l++) {
+         updateActiveIndices(l);
+      }
+   }
+   return PV_SUCCESS;
 }
 
-int Publisher::updateActiveIndices() {
-   if (store->isSparse())
-      return calcActiveIndices();
-   else
-      return PV_SUCCESS;
-}
-
-int Publisher::calcAllActiveIndices() {
-   for (int l = 0; l < store->getNumLevels(); l++) {
+int Publisher::updateActiveIndices(int delay) {
+   if (store->isSparse()) {
       for (int b = 0; b < store->getNumBuffers(); b++) {
-         // Active indicies stored as local ext values
-         int numActive   = 0;
-         float *activity = store->buffer(b, l);
-         ;
-         unsigned int *activeIndices = store->activeIndicesBuffer(b, l);
-         long *numActiveBuf          = store->numActiveBuffer(b, l);
-
-         for (int kex = 0; kex < store->getNumItems(); kex++) {
-            if (activity[kex] != 0.0f) {
-               activeIndices[numActive] = kex;
-               numActive++;
-            }
-         }
-         *numActiveBuf = numActive;
+         // Active indicies stored as local extended values
+         store->updateActiveIndices(b, delay);
       }
+      
    }
-
    return PV_SUCCESS;
 }
 
-int Publisher::calcActiveIndices() {
-   for (int b = 0; b < store->getNumBuffers(); b++) {
-      // Active indicies stored as local ext values
-      int numActive   = 0;
-      float *activity = store->buffer(b);
-      ;
-      unsigned int *activeIndices = store->activeIndicesBuffer(b);
-      long *numActiveBuf          = store->numActiveBuffer(b);
-      for (int kex = 0; kex < store->getNumItems(); kex++) {
-         if (activity[kex] != 0.0f) {
-            activeIndices[numActive] = kex;
-            numActive++;
-         }
-      }
-      *numActiveBuf = numActive;
-   }
-
-   return PV_SUCCESS;
-}
-
-int Publisher::publish(double currentTime, double lastUpdateTime) {
+int Publisher::publish(double lastUpdateTime) {
    //
    // Everyone publishes border region to neighbors even if no subscribers.
    // This means that everyone should wait as well.
@@ -100,26 +63,23 @@ int Publisher::publish(double currentTime, double lastUpdateTime) {
    float const *sendBuf = mLayerCube->data;
    float *recvBuf       = recvBuffer(0); // Grab all of the buffer, allocated continuously
 
-   if (lastUpdateTime >= currentTime) {
-      // copy entire layer and let neighbors overwrite
-      // Only need to exchange borders if layer was updated this timestep
-      memcpy(recvBuf, sendBuf, dataSize);
-      exchangeBorders(&mLayerCube->loc, 0);
-      store->setLastUpdateTime(Communicator::LOCAL /*bufferId*/, lastUpdateTime);
+   memcpy(recvBuf, sendBuf, dataSize);
+   exchangeBorders(&mLayerCube->loc, 0);
+   store->setLastUpdateTime(Communicator::LOCAL /*bufferId*/, lastUpdateTime);
 
-      // Updating active indices is done after MPI wait in HyPerCol
-      // to avoid race condition because exchangeBorders mpi is async
-   }
-   else if (store->getNumLevels() > 1) {
-      // If there are delays, copy last level's data to this level.
-      // TODO: we could use pointer indirection to cut down on the number of
-      // memcpy calls required,
-      // if this turns out to be an expensive step
+   // Updating active indices is done after MPI wait in HyPerCol
+   // to avoid race condition because exchangeBorders mpi is async
+
+   return PV_SUCCESS;
+}
+
+void Publisher::copyForward(double lastUpdateTime) {
+   if (store->getNumLevels() > 1) {
+      float *recvBuf  = recvBuffer(0); // Grab all of the buffer, allocated continuously
+      size_t dataSize = mLayerCube->numItems * sizeof(float);
       memcpy(recvBuf, recvBuffer(Communicator::LOCAL /*bufferId*/, 1), dataSize);
       store->setLastUpdateTime(Communicator::LOCAL /*bufferId*/, lastUpdateTime);
    }
-
-   return PV_SUCCESS;
 }
 
 int Publisher::exchangeBorders(const PVLayerLoc *loc, int delay /*default 0*/) {

@@ -963,6 +963,11 @@ int HyPerLayer::respond(std::shared_ptr<BaseMessage const> message) {
    }
 #endif // PV_USE_CUDA
    else if (
+         LayerAdvanceDataStoreMessage const *castMessage =
+               dynamic_cast<LayerAdvanceDataStoreMessage const *>(message.get())) {
+      return respondLayerAdvanceDataStore(castMessage);
+   }
+   else if (
          LayerPublishMessage const *castMessage =
                dynamic_cast<LayerPublishMessage const *>(message.get())) {
       return respondLayerPublish(castMessage);
@@ -1037,12 +1042,18 @@ int HyPerLayer::respondLayerCopyFromGpu(LayerCopyFromGpuMessage const *message) 
 }
 #endif // PV_USE_CUDA
 
+int HyPerLayer::respondLayerAdvanceDataStore(LayerAdvanceDataStoreMessage const *message) {
+   if (message->mPhase < 0 || message->mPhase == getPhase()) {
+      publisher->increaseTimeLevel();
+   }
+   return PV_SUCCESS;
+}
+
 int HyPerLayer::respondLayerPublish(LayerPublishMessage const *message) {
    int status = PV_SUCCESS;
    if (message->mPhase != getPhase()) {
       return status;
    }
-   publisher->increaseTimeLevel();
    publish(getParent()->getCommunicator(), message->mTime);
    return status;
 }
@@ -1722,6 +1733,10 @@ int HyPerLayer::registerData(Checkpointer *checkpointer, std::string const &objN
       mOutputStateStream->registerData(checkpointer, objName);
    }
 
+   if (getNumDelayLevels() > 1) {
+      checkpointer->addObserver(this, BaseMessage());
+   }
+
    checkpointer->registerTimer(recvsyn_timer);
    checkpointer->registerTimer(update_timer);
 #ifdef PV_USE_CUDA
@@ -1818,7 +1833,7 @@ int HyPerLayer::callUpdateState(double simTime, double dt) {
       updatedDeviceDatastore = true;
 #endif
       update_timer->stop();
-
+      mNeedToPublish  = true;
       mLastUpdateTime = simTime;
    }
    return status;
@@ -1975,7 +1990,7 @@ int HyPerLayer::setActivity() {
 
 // Updates active indices for all levels (delays) here
 int HyPerLayer::updateAllActiveIndices() { return publisher->updateAllActiveIndices(); }
-int HyPerLayer::updateActiveIndices() { return publisher->updateActiveIndices(); }
+int HyPerLayer::updateActiveIndices() { return publisher->updateActiveIndices(0); }
 
 int HyPerLayer::recvAllSynapticInput() {
    int status = PV_SUCCESS;
@@ -2078,13 +2093,17 @@ void HyPerLayer::copyAllActivityFromDevice() {
 int HyPerLayer::publish(Communicator *comm, double simTime) {
    publish_timer->start();
 
-   bool mirroring = useMirrorBCs();
-   mirroring      = mirroring ? (getLastUpdateTime() >= getParent()->simulationTime()) : false;
-   if (mirroring) {
-      mirrorInteriorToBorder(clayer->activity, clayer->activity);
+   int status = PV_SUCCESS;
+   if (mNeedToPublish) {
+      if (useMirrorBCs()) {
+         mirrorInteriorToBorder(clayer->activity, clayer->activity);
+      }
+      status         = publisher->publish(mLastUpdateTime);
+      mNeedToPublish = false;
    }
-
-   int status = publisher->publish(simTime, mLastUpdateTime);
+   else {
+      publisher->copyForward(mLastUpdateTime);
+   }
    publish_timer->stop();
    return status;
 }
@@ -2191,6 +2210,7 @@ int HyPerLayer::readStateFromCheckpoint(Checkpointer *checkpointer) {
       status = readActivityFromCheckpoint(checkpointer);
       status = readVFromCheckpoint(checkpointer);
       status = readDelaysFromCheckpoint(checkpointer);
+      updateAllActiveIndices();
    }
    return status;
 }
@@ -2212,178 +2232,11 @@ int HyPerLayer::readDelaysFromCheckpoint(Checkpointer *checkpointer) {
    return PV_SUCCESS;
 }
 
-template <class T>
-int HyPerLayer::readBufferFile(
-      const char *filename,
-      Communicator *comm,
-      double *timeptr,
-      T **buffers,
-      int numbands,
-      bool extended,
-      const PVLayerLoc *loc) {
-   PV_Stream *readFile = pvp_open_read_file(filename, comm);
-   int rank            = comm->commRank();
-   assert((readFile != NULL && rank == 0) || (readFile == NULL && rank != 0));
-   int numParams = NUM_BIN_PARAMS;
-   int params[NUM_BIN_PARAMS];
-   int status = pvp_read_header(readFile, comm, params, &numParams);
-   if (status != PV_SUCCESS) {
-      read_header_err(filename, comm, numParams, params);
-   }
+// readBufferFile and readDataStoreFromFile were removed Jan 23, 2017.
+// They were only used by checkpointing, which is now handled by the
+// CheckpointEntry class hierarchy.
 
-   for (int band = 0; band < numbands; band++) {
-      for (int b = 0; b < loc->nbatch; b++) {
-         T *bufferBatch;
-         if (extended) {
-            bufferBatch = buffers[band]
-                          + b * (loc->nx + loc->halo.rt + loc->halo.lt)
-                                  * (loc->ny + loc->halo.up + loc->halo.dn) * loc->nf;
-         }
-         else {
-            bufferBatch = buffers[band] + b * loc->nx * loc->ny * loc->nf;
-         }
-
-         double filetime = 0.0;
-         switch (params[INDEX_FILE_TYPE]) {
-            case PVP_FILE_TYPE: Fatal().printf("Obsolete filetype %d\n", PVP_FILE_TYPE); break;
-            case PVP_ACT_FILE_TYPE:
-               status = pvp_read_time(readFile, comm, 0 /*root process*/, &filetime);
-               FatalIf(
-                     status != PV_SUCCESS,
-                     "HyPerLayer::readBufferFile error reading timestamp in file \"%s\"\n",
-                     filename);
-               if (rank == 0) {
-                  ErrorLog().printf(
-                        "HyPerLayer::readBufferFile: filename \"%s\" is a compressed spiking file, "
-                        "but this filetype has not yet been implemented in this case.\n",
-                        filename);
-               }
-               status = PV_FAILURE;
-               break;
-            case PVP_NONSPIKING_ACT_FILE_TYPE:
-               status = pvp_read_time(readFile, comm, 0 /*root process*/, &filetime);
-               FatalIf(
-                     status != PV_SUCCESS,
-                     "HyPerLayer::readBufferFile error reading timestamp in file \"%s\"\n",
-                     filename);
-               break;
-            case PVP_WGT_FILE_TYPE:
-            case PVP_KERNEL_FILE_TYPE:
-               if (rank == 0) {
-                  ErrorLog().printf(
-                        "HyPerLayer::readBufferFile: filename \"%s\" is a weight file (type %d) "
-                        "but a layer file is expected.\n",
-                        filename,
-                        params[INDEX_FILE_TYPE]);
-               }
-               status = PV_FAILURE;
-               break;
-            default:
-               if (rank == 0) {
-                  ErrorLog().printf(
-                        "HyPerLayer::readBufferFile: filename \"%s\" has unrecognized pvp file "
-                        "type %d\n",
-                        filename,
-                        params[INDEX_FILE_TYPE]);
-               }
-               status = PV_FAILURE;
-               break;
-         }
-         if (params[INDEX_NX_PROCS] != 1 || params[INDEX_NY_PROCS] != 1) {
-            if (rank == 0) {
-               ErrorLog().printf(
-                     "HyPerLayer::readBufferFile: file \"%s\" appears to be in an obsolete version "
-                     "of the .pvp format.\n",
-                     filename);
-            }
-            abort();
-         }
-         if (status == PV_SUCCESS) {
-            status =
-                  scatterActivity(readFile, comm, 0 /*root process*/, bufferBatch, loc, extended);
-         }
-         assert(status == PV_SUCCESS);
-         if (rank == 0 && timeptr && *timeptr != filetime) {
-            WarnLog().printf(
-                  "\"%s\" checkpoint has timestamp %g instead of the expected value %g.\n",
-                  filename,
-                  filetime,
-                  *timeptr);
-         }
-      }
-   }
-   pvp_close_file(readFile, comm);
-   readFile = NULL;
-   return status;
-}
-// Declare the instantiations of readScalarToFile that occur in other .cpp files; otherwise you'll
-// get linker errors.
-template int HyPerLayer::readBufferFile<float>(
-      const char *filename,
-      Communicator *comm,
-      double *timeptr,
-      float **buffers,
-      int numbands,
-      bool extended,
-      const PVLayerLoc *loc);
-
-int HyPerLayer::readDataStoreFromFile(const char *filename, Communicator *comm, double *timeptr) {
-   PV_Stream *readFile = pvp_open_read_file(filename, comm);
-   assert(
-         (readFile != NULL && comm->commRank() == 0)
-         || (readFile == NULL && comm->commRank() != 0));
-   int numParams = NUM_BIN_PARAMS;
-   int params[NUM_BIN_PARAMS];
-   int status = pvp_read_header(readFile, comm, params, &numParams);
-   if (status != PV_SUCCESS) {
-      read_header_err(filename, comm, numParams, params);
-   }
-   if (params[INDEX_NX_PROCS] != 1 || params[INDEX_NY_PROCS] != 1) {
-      if (comm->commRank() == 0) {
-         ErrorLog().printf(
-               "HyPerLayer::readBufferFile: file \"%s\" appears to be in an obsolete version of "
-               "the .pvp format.\n",
-               filename);
-      }
-      abort();
-   }
-   DataStore *datastore = publisher->dataStore();
-   int numlevels        = datastore->getNumLevels();
-   int numbuffers       = datastore->getNumBuffers();
-   if (params[INDEX_NBANDS] != numlevels * numbuffers) {
-      Fatal().printf(
-            "readDataStoreFromFile error reading \"%s\": number of delays + batches in file is %d, "
-            "but number of delays + batches in layer is %d\n",
-            filename,
-            params[INDEX_NBANDS],
-            numlevels * numbuffers);
-   }
-   for (int b = 0; b < numbuffers; b++) {
-      for (int l = 0; l < numlevels; l++) {
-         double tlevel;
-         pvp_read_time(readFile, comm, 0 /*root process*/, &tlevel);
-         datastore->setLastUpdateTime(b /*bufferId*/, l, tlevel);
-         float *buffer = datastore->buffer(b, l);
-         int status1   = scatterActivity(
-               readFile,
-               comm,
-               0 /*root process*/,
-               buffer,
-               getLayerLoc(),
-               true,
-               NULL,
-               0,
-               0,
-               PVP_NONSPIKING_ACT_FILE_TYPE,
-               0);
-         if (status1 != PV_SUCCESS)
-            status = PV_FAILURE;
-      }
-   }
-   assert(status == PV_SUCCESS);
-   pvp_close_file(readFile, comm);
-   return status;
-}
+int HyPerLayer::processCheckpointRead() { return updateAllActiveIndices(); }
 
 int HyPerLayer::writeActivitySparse(double timed, bool includeValues) {
    DataStore *store = publisher->dataStore();
