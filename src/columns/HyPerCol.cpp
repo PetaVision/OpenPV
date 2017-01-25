@@ -730,6 +730,42 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
       MPI_Barrier(getCommunicator()->communicator());
 
       FatalIf(status != PV_SUCCESS, "HyPerCol \"%s\" failed to run.\n", mName);
+
+      // If immediateLayerPublish is false, a connection's delay cannot be zero
+      // if the presynaptic layer's phase is greater than or equal to that of
+      // the post layer. Error out if this happens.
+      if (!mImmediateLayerPublish) {
+         for (auto &c : mConnections) {
+            int prePhase  = c->preSynapticLayer()->getPhase();
+            int postPhase = c->postSynapticLayer()->getPhase();
+            if (prePhase < postPhase) {
+               continue;
+            }
+            for (int a = 0; a < c->numberOfAxonalArborLists(); a++) {
+               if (c->getDelay(a) == 0) {
+                  status = PV_FAILURE;
+                  if (getCommunicator()->commRank() == 0) {
+                     ErrorLog().printf(
+                           "ImmediateLayerPublish flag is false, and %s has presynaptic phase %d "
+                           "greater than or equal to postsynaptic phase %d, but arbor %d has delay "
+                           "of zero.\n",
+                           c->getDescription_c(),
+                           prePhase,
+                           postPhase,
+                           a);
+                  }
+               }
+            }
+         }
+         if (status != PV_SUCCESS) {
+            if (getCommunicator()->commRank() == 0) {
+               Fatal() << "Zero-delay error(s) with immediateLayerPublish set to false.\n";
+            }
+            MPI_Barrier(getCommunicator()->communicator());
+            exit(EXIT_FAILURE);
+         }
+      }
+
       bool dryRunFlag = mPVInitObj->getBooleanArgument("DryRun");
       if (dryRunFlag) {
          return PV_SUCCESS;
