@@ -124,9 +124,10 @@ int HyPerCol::initialize_base() {
    mPhaseRecvTimers.clear();
    mColProbes.clear();
    mBaseProbes.clear();
-   mRandomSeed        = 0U;
-   mErrorOnNotANumber = false;
-   mNumThreads        = 1;
+   mRandomSeed            = 0U;
+   mErrorOnNotANumber     = false;
+   mImmediateLayerPublish = true;
+   mNumThreads            = 1;
    mRecvLayerBuffer.clear();
    mVerifyWrites = true; // Default for reading back and verifying when calling PV_fwrite
 #ifdef PV_USE_CUDA
@@ -296,6 +297,7 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_checkpointRead(ioFlag); // checkpointRead is obsolete as of June 27, 2016.
    ioParam_writeTimescales(ioFlag);
    ioParam_errorOnNotANumber(ioFlag);
+   ioParam_immediateLayerPublish(ioFlag);
 
    // Aug 18, 2016.  Several HyPerCol parameters have moved to
    // AdaptiveTimeScaleProbe.
@@ -666,6 +668,11 @@ void HyPerCol::ioParam_errorOnNotANumber(enum ParamsIOFlag ioFlag) {
          ioFlag, mName, "errorOnNotANumber", &mErrorOnNotANumber, mErrorOnNotANumber);
 }
 
+void HyPerCol::ioParam_immediateLayerPublish(enum ParamsIOFlag ioFlag) {
+   parameters()->ioParamValue(
+         ioFlag, mName, "immediateLayerPublish", &mImmediateLayerPublish, mImmediateLayerPublish);
+}
+
 // Sep 26, 2016: HyPerCol methods for parameter input/output have been moved to
 // PVParams.
 // Sep 27, 2016: ensureDirExists has been moved to fileio.cpp.
@@ -1029,6 +1036,14 @@ int HyPerCol::advanceTime(double sim_time) {
    // Each layer's phase establishes a priority for updating
    for (int phase = 0; phase < mNumPhases; phase++) {
 
+      if (!mImmediateLayerPublish) {
+         // Rotate DataStore ring buffers
+         notify(std::make_shared<LayerAdvanceDataStoreMessage>(phase));
+
+         // copy activity buffer to DataStore, and do MPI exchange.
+         notify(std::make_shared<LayerPublishMessage>(phase, mSimTime));
+      }
+
 // Ordering needs to go recvGpu, if(recvGpu and upGpu)update, recvNoGpu, update
 // rest
 #ifdef PV_USE_CUDA
@@ -1067,14 +1082,15 @@ int HyPerCol::advanceTime(double sim_time) {
              std::make_shared<LayerUpdateStateMessage>(phase, mSimTime, mDeltaTime)});
 #endif
 
-      // Rotate DataStore ring buffers
-      notify(std::make_shared<LayerAdvanceDataStoreMessage>(phase));
+      if (mImmediateLayerPublish) {
+         // Rotate DataStore ring buffers
+         notify(std::make_shared<LayerAdvanceDataStoreMessage>(phase));
 
-      // copy activity buffer to DataStore, and do MPI exchange.
-      notify(std::make_shared<LayerPublishMessage>(phase, mSimTime));
+         // copy activity buffer to DataStore, and do MPI exchange.
+         notify(std::make_shared<LayerPublishMessage>(phase, mSimTime));
+      }
 
       // wait for all published data to arrive and call layer's outputState
-
       std::vector<std::shared_ptr<BaseMessage const>> messageVector = {
             std::make_shared<LayerUpdateActiveIndicesMessage>(phase),
             std::make_shared<LayerOutputStateMessage>(phase, mSimTime)};

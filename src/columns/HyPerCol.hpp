@@ -236,10 +236,16 @@ class HyPerCol : public Subject, Observer {
 
    /**
     * @brief errorOnNotANumber: Specifies if the run should check on each
-    * timestep for nans in
-    * activity.
+    * timestep for nans in activity.
     */
    virtual void ioParam_errorOnNotANumber(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief immediateLayerPublish: If set to true, layers publish their
+    * activity to their data store immediately after updateState.
+    * If false, they wait until the next timestep to do so.
+    */
+   virtual void ioParam_immediateLayerPublish(enum ParamsIOFlag ioFlag);
    /** @} */
 
   public:
@@ -418,6 +424,8 @@ class HyPerCol : public Subject, Observer {
    // passed in the
    // constructor
    bool mWriteTimescales;
+   bool mImmediateLayerPublish; // If true, do MPI border exchange immediately
+   // after layer update; if false, wait until the start of the next timestep.
    char *mName;
    char *mOutputPath; // path to output file directory
    char *mPrintParamsFilename; // filename for outputting the mParams, including

@@ -7,17 +7,18 @@ HyPerCol "column" = {
     stopTime                            = 10;
     progressInterval                    = 10;
     writeProgressToErr                  = false;
-    verifyWrites                        = false;
     outputPath                          = "output/";
+    verifyWrites                        = false;
+    checkpointWrite                     = false;
+    lastCheckpointDir                   = "output/Last";
+    initializeFromCheckpointDir         = "";
     printParamsFilename                 = "pv.params";
     randomSeed                          = 1234567890;
     nx                                  = 32;
     ny                                  = 32;
     nbatch                              = 1;
-    initializeFromCheckpointDir         = "";
-    checkpointWrite                     = false;
-    lastCheckpointDir                   = "output/Last";
     errorOnNotANumber                   = true;
+    immediateLayerPublish               = true;
 };
 
 PvpLayer "Input" = {
