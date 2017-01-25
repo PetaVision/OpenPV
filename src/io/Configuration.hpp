@@ -2,6 +2,7 @@
 #define CONFIGURATION_HPP_
 
 #include <map>
+#include <string>
 #include <vector>
 
 namespace PV {

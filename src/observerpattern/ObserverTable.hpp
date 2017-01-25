@@ -10,6 +10,7 @@
 
 #include "observerpattern/Observer.hpp"
 #include <map>
+#include <string>
 #include <vector>
 
 namespace PV {

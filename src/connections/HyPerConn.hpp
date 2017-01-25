@@ -23,6 +23,7 @@
 #include <map>
 #include <set>
 #include <stdlib.h>
+#include <string>
 #include <vector>
 
 #ifdef PV_USE_CUDA
