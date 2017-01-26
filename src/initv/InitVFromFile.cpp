@@ -7,6 +7,8 @@
 
 #include "InitVFromFile.hpp"
 #include "columns/HyPerCol.hpp"
+#include "utils/BufferUtilsMPI.hpp"
+#include "utils/BufferUtilsPvp.hpp"
 
 namespace PV {
 InitVFromFile::InitVFromFile() { initialize_base(); }
@@ -46,120 +48,31 @@ void InitVFromFile::ioParam_Vfilename(enum ParamsIOFlag ioFlag) {
 int InitVFromFile::calcV(float *V, const PVLayerLoc *loc) {
    int status = PV_SUCCESS;
    PVLayerLoc fileLoc;
-   bool isRootProc = parent->getCommunicator()->commRank() == 0;
+   Communicator *comm = parent->getCommunicator();
+   bool isRootProc = comm->commRank() == 0;
    char const *ext = strrchr(mVfilename, '.');
    bool isPvpFile  = (ext && strcmp(ext, ".pvp") == 0);
    if (isPvpFile) {
-      PV_Stream *readFile = pvp_open_read_file(mVfilename, parent->getCommunicator());
-      if (parent->getCommunicator()->commRank() == 0) {
-         if (readFile == NULL) {
-            Fatal().printf(
-                  "InitVFromFile::calcVFromFile error: path \"%s\" could not be opened: %s.  "
-                  "Exiting.\n",
-                  mVfilename,
-                  strerror(errno));
-         }
-      }
-      else {
-         assert(readFile == NULL); // Only root process should be doing input/output
-      }
-      assert(parent->getCommunicator()->commRank() == 0 || readFile == NULL);
-      assert(
-            (readFile != NULL && parent->getCommunicator()->commRank() == 0)
-            || (readFile == NULL && parent->getCommunicator()->commRank() != 0));
-      int numParams = NUM_BIN_PARAMS;
-      int params[NUM_BIN_PARAMS];
-      int status = pvp_read_header(readFile, parent->getCommunicator(), params, &numParams);
-      if (status != PV_SUCCESS) {
-         read_header_err(mVfilename, parent->getCommunicator(), numParams, params);
-      }
-      int filetype = params[INDEX_FILE_TYPE];
-      status       = checkLoc(
-            loc,
-            params[INDEX_NX],
-            params[INDEX_NY],
-            params[INDEX_NF],
-            params[INDEX_NX_GLOBAL],
-            params[INDEX_NY_GLOBAL]);
-      if (status != PV_SUCCESS) {
-         if (parent->getCommunicator()->commRank() == 0) {
-            ErrorLog().printf(
-                  "InitVFromFilename: dimensions of \"%s\" (x=%d,y=%d,f=%d) do not agree with "
-                  "layer dimensions (x=%d,y=%d,f=%d).\n",
-                  mVfilename,
-                  params[INDEX_NX_GLOBAL],
-                  params[INDEX_NY_GLOBAL],
-                  params[INDEX_NF],
-                  loc->nxGlobal,
-                  loc->nyGlobal,
-                  loc->nf);
-         }
-         MPI_Barrier(parent->getCommunicator()->communicator());
-         exit(EXIT_FAILURE);
-      }
-      fileLoc.nx       = params[INDEX_NX];
-      fileLoc.ny       = params[INDEX_NY];
-      fileLoc.nf       = params[INDEX_NF];
-      fileLoc.nxGlobal = params[INDEX_NX_GLOBAL];
-      fileLoc.nyGlobal = params[INDEX_NY_GLOBAL];
-      fileLoc.kx0      = 0;
-      fileLoc.ky0      = 0;
-      if (params[INDEX_NX_PROCS] != 1 || params[INDEX_NY_PROCS] != 1) {
-         if (parent->getCommunicator()->commRank() == 0) {
-            ErrorLog().printf(
-                  "InitVFromFile: file \"%s\" appears to be in an obsolete version of "
-                  "the .pvp format.\n",
-                  mVfilename);
-         }
-         abort();
-      }
-
       for (int b = 0; b < loc->nbatch; b++) {
-         float *VBatch = V + b * (loc->nx * loc->ny * loc->nf);
-         switch (filetype) {
-            case PVP_FILE_TYPE:
-               if (isRootProc) {
-                  Fatal().printf(
-                        "calcVFromFile for file \"%s\": \"PVP_FILE_TYPE\" files is obsolete.\n",
-                        this->mVfilename);
-               }
-               break;
-            case PVP_ACT_FILE_TYPE:
-               if (isRootProc)
-                  ErrorLog().printf(
-                        "calcVFromFile for file \"%s\": sparse activity files are not yet "
-                        "implemented for initializing V buffers.\n",
-                        this->mVfilename);
-               exit(EXIT_FAILURE);
-               break;
-            case PVP_NONSPIKING_ACT_FILE_TYPE:
-               double dummytime;
-               pvp_read_time(readFile, parent->getCommunicator(), 0 /*root process*/, &dummytime);
-               status = scatterActivity(
-                     readFile,
-                     parent->getCommunicator(),
-                     0 /*root process*/,
-                     VBatch,
-                     loc,
-                     false /*extended*/,
-                     &fileLoc);
-               break;
-            default:
-               if (isRootProc)
-                  ErrorLog().printf(
-                        "calcVFromFile: file \"%s\" is not an activity pvp file.\n",
-                        this->mVfilename);
-               abort();
-               break;
+         float *Vbatch = V + b * (loc->nx * loc->ny * loc->nf);
+         Buffer<float> pvpBuffer;
+         if (isRootProc) {
+            BufferUtils::readFromPvp(mVfilename, &pvpBuffer, b);
          }
+         else {
+            pvpBuffer.resize(loc->nx, loc->ny, loc->nf);
+         }
+         BufferUtils::scatter(comm, pvpBuffer, loc->nx, loc->ny);
+         std::vector<float> bufferData = pvpBuffer.asVector();
+         std::memcpy(Vbatch, bufferData.data(), sizeof(float) * pvpBuffer.getTotalElements());
       }
-      pvp_close_file(readFile, parent->getCommunicator());
-      readFile = NULL;
    }
-   else { // Treat as an image file
-      if (isRootProc)
-         ErrorLog().printf("calcVFromFile: file \"%s\" is not a pvp file.\n", this->mVfilename);
-      abort();
+   else { // TODO: Treat as an image file
+      if (isRootProc) {
+         ErrorLog().printf("InitVFromFile: file \"%s\" is not a pvp file.\n", this->mVfilename);
+      }
+      MPI_Barrier(parent->getCommunicator()->communicator());
+      exit(EXIT_FAILURE);
    }
    return status;
 }
