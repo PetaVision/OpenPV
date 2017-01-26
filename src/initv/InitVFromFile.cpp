@@ -57,7 +57,7 @@ int InitVFromFile::calcV(float *V, const PVLayerLoc *loc) {
          float *Vbatch = V + b * (loc->nx * loc->ny * loc->nf);
          Buffer<float> pvpBuffer;
          if (isRootProc) {
-            BufferUtils::readFromPvp(mVfilename, &pvpBuffer, b);
+            BufferUtils::readDenseFromPvp(mVfilename, &pvpBuffer, b);
          }
          else {
             pvpBuffer.resize(loc->nx, loc->ny, loc->nf);

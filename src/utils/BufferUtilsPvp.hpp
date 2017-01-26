@@ -70,7 +70,7 @@ void appendToPvp(
       bool verifyWrites = false);
 
 template <typename T>
-double readFromPvp(const char *fName, Buffer<T> *buffer, int frameReadIndex);
+double readDenseFromPvp(const char *fName, Buffer<T> *buffer, int frameReadIndex);
 
 template <typename T>
 void writeSparseFrame(FileStream &fStream, SparseList<T> *list, double timeStamp);

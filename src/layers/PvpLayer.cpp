@@ -69,7 +69,7 @@ Buffer<float> PvpLayer::retrieveData(std::string filename, int batchIndex) {
 
    switch (mFileType) {
       case PVP_NONSPIKING_ACT_FILE_TYPE:
-         BufferUtils::readFromPvp<float>(filename.c_str(), &result, frameNumber);
+         BufferUtils::readDenseFromPvp<float>(filename.c_str(), &result, frameNumber);
          break;
       case PVP_ACT_SPARSEVALUES_FILE_TYPE:
          BufferUtils::readSparseFromPvp<float>(filename.c_str(), &list, frameNumber, &sparseTable);

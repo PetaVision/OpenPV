@@ -141,12 +141,12 @@ void appendToPvp(
 }
 
 template <typename T>
-double readFromPvp(const char *fName, Buffer<T> *buffer, int frameReadIndex) {
+double readDenseFromPvp(const char *fName, Buffer<T> *buffer, int frameReadIndex) {
    FileStream fStream(fName, std::ios_base::in | std::ios_base::binary, false);
    struct ActivityHeader header = readActivityHeader(fStream);
    FatalIf(
          header.fileType != PVP_NONSPIKING_ACT_FILE_TYPE,
-         "readFromPvp() can only be used on non-sparse activity pvps "
+         "readDenseFromPvp() can only be used on non-sparse activity pvps "
          "(PVP_NONSPIKING_ACT_FILE_TYPE)\n");
    buffer->resize(header.nx, header.ny, header.nf);
    long frameOffset = frameReadIndex * (header.recordSize * header.dataSize + sizeof(double));
