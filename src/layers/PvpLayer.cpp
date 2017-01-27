@@ -64,26 +64,11 @@ Buffer<float> PvpLayer::retrieveData(std::string filename, int batchIndex) {
       frameNumber = getStartIndex(batchIndex);
    }
 
-   SparseList<float> list;
-   Buffer<float> result(mInputNx, mInputNy, mInputNf);
-
-   switch (mFileType) {
-      case PVP_NONSPIKING_ACT_FILE_TYPE:
-         BufferUtils::readFromPvp<float>(filename.c_str(), &result, frameNumber);
-         break;
-      case PVP_ACT_SPARSEVALUES_FILE_TYPE:
-         BufferUtils::readSparseFromPvp<float>(filename.c_str(), &list, frameNumber, &sparseTable);
-         // This is a hack. We should only ever be
-         // calling this with T == float.
-         list.toBuffer(result, {0});
-         break;
-      case PVP_ACT_FILE_TYPE:
-         // The {1} and {0} are the same hack.
-         BufferUtils::readSparseBinaryFromPvp<float>(
-               filename.c_str(), &list, frameNumber, {1}, &sparseTable);
-         list.toBuffer(result, {0});
-         break;
-   }
+   Buffer<float> result;
+   BufferUtils::readActivityFromPvp<float>(filename.c_str(), &result, frameNumber);
+   pvAssert(result.getWidth() == mInputNx);
+   pvAssert(result.getHeight() == mInputNy);
+   pvAssert(result.getFeatures() == mInputNf);
 
    return result;
 }

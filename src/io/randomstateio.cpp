@@ -24,7 +24,7 @@ double readRandState(
    Buffer<taus_uint4> buffer{nxGlobal, nyGlobal, nf};
    double timestamp;
    if (comm->commRank() == 0) {
-      timestamp = BufferUtils::readFromPvp(path.c_str(), &buffer, 0 /*frameReadIndex*/);
+      timestamp = BufferUtils::readDenseFromPvp(path.c_str(), &buffer, 0 /*frameReadIndex*/);
    }
    BufferUtils::scatter(comm, buffer, loc->nx, loc->ny);
    int nxLocal = loc->nx;
