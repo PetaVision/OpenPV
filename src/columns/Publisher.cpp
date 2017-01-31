@@ -124,6 +124,23 @@ int Publisher::exchangeBorders(const PVLayerLoc *loc, int delay /*default 0*/) {
    return status;
 }
 
+int Publisher::isExchangeFinished(int delay /* default 0*/) {
+   bool isReady;
+   auto *requestsVector = mpiRequestsBuffer->getBuffer(delay, 0);
+   if (requestsVector->empty()) {
+      isReady = true;
+   }
+   else {
+      int test;
+      MPI_Testall((int)requestsVector->size(), requestsVector->data(), &test, MPI_STATUSES_IGNORE);
+      if (test) {
+         requestsVector->clear();
+      }
+      isReady = (bool)test;
+   }
+   return isReady;
+}
+
 /**
  * wait until all outstanding published messages have arrived
  */

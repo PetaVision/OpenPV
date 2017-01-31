@@ -36,6 +36,7 @@ class Publisher {
     */
    void copyForward(double lastUpdateTime);
    int exchangeBorders(const PVLayerLoc *loc, int delay = 0);
+   int isExchangeFinished(int delay = 0);
    int wait(int delay = 0);
 
    void increaseTimeLevel();
