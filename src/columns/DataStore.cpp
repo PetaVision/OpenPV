@@ -34,6 +34,12 @@ DataStore::DataStore(int numBuffers, int numItems, int numLevels, bool isSparse_
    }
 }
 
+void DataStore::markActiveIndicesOutOfSync(int bufferId, int level) {
+   if (!mSparseFlag) { return; }
+   long *numActiveBuf = numActiveBuffer(bufferId, level);
+   *numActiveBuf = -1;
+}
+
 void DataStore::updateActiveIndices(int bufferId, int level) {
    if (!mSparseFlag) { return; }
    int numActive   = 0;

@@ -75,6 +75,8 @@ class DataStore {
 
    long *numActiveBuffer(int bufferId) { return mNumActive->getBuffer(bufferId); }
 
+   void markActiveIndicesOutOfSync(int bufferId, int level);
+
    void updateActiveIndices(int bufferId, int level);
 
    int getNumItems() const { return mNumItems; }

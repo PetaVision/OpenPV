@@ -51,7 +51,11 @@ int Publisher::updateActiveIndices(int delay) {
    if (store->isSparse()) {
       for (int b = 0; b < store->getNumBuffers(); b++) {
          // Active indicies stored as local extended values
-         store->updateActiveIndices(b, delay);
+         if (*store->numActiveBuffer(b, delay) < 0L)
+         {
+            store->updateActiveIndices(b, delay);
+         }
+         pvAssert(*store->numActiveBuffer(b, delay) >= 0L);
       }
       
    }
@@ -73,6 +77,9 @@ int Publisher::publish(double lastUpdateTime) {
    exchangeBorders(&mLayerCube->loc, 0);
    store->setLastUpdateTime(Communicator::LOCAL /*bufferId*/, lastUpdateTime);
 
+   for (int b = 0; b < store->getNumBuffers(); b++) {
+      store->markActiveIndicesOutOfSync(b, 0);
+   }
    // Updating active indices is done after MPI wait in HyPerCol
    // to avoid race condition because exchangeBorders mpi is async
 
@@ -85,6 +92,7 @@ void Publisher::copyForward(double lastUpdateTime) {
       size_t dataSize = mLayerCube->numItems * sizeof(float);
       memcpy(recvBuf, recvBuffer(Communicator::LOCAL /*bufferId*/, 1), dataSize);
       store->setLastUpdateTime(Communicator::LOCAL /*bufferId*/, lastUpdateTime);
+      updateActiveIndices(0); // alternately, could copy active indices forward as well.
    }
 }
 
@@ -135,6 +143,7 @@ int Publisher::isExchangeFinished(int delay /* default 0*/) {
       MPI_Testall((int)requestsVector->size(), requestsVector->data(), &test, MPI_STATUSES_IGNORE);
       if (test) {
          requestsVector->clear();
+         updateActiveIndices(delay);
       }
       isReady = (bool)test;
    }
@@ -155,6 +164,8 @@ int Publisher::wait(int delay /*default 0*/) {
    if (!requestsVector->empty()) {
       mComm->wait(*requestsVector);
    }
+   pvAssert(requestsVector->empty());
+   updateActiveIndices(delay);
 #endif // PV_USE_MPI
 
    return 0;
