@@ -1992,6 +1992,20 @@ int HyPerLayer::setActivity() {
 int HyPerLayer::updateAllActiveIndices() { return publisher->updateAllActiveIndices(); }
 int HyPerLayer::updateActiveIndices() { return publisher->updateActiveIndices(0); }
 
+bool HyPerLayer::isExchangeFinished(int delay ) {
+   return publisher->isExchangeFinished(delay);
+}
+
+bool HyPerLayer::isAllInputReady() {
+   bool isReady = true;
+   for (auto &c : recvConns) {
+      for (int a = 0; a < c->numberOfAxonalArborLists(); a++) {
+         isReady &= c->getPre()->isExchangeFinished(c->getDelay(a));
+      }
+   }
+   return isReady;
+}
+
 int HyPerLayer::recvAllSynapticInput() {
    int status = PV_SUCCESS;
    // Only recvAllSynapticInput if we need an update

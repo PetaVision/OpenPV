@@ -404,6 +404,19 @@ class HyPerLayer : public BaseLayer {
    virtual int insertProbe(LayerProbe *probe);
    int outputProbeParams();
 
+   /**
+    * Returns true if the MPI exchange for the specified delay has finished;
+    * false if it is still in process.
+    */
+   bool isExchangeFinished(int delay = 0);
+
+   /**
+    * Returns true if each layer that delivers input to this layer
+    * has finished its MPI exchange for its delay; false if any of
+    * them has not.
+    */
+   bool isAllInputReady();
+
    int getNumProbes() { return numProbes; }
    LayerProbe *getProbe(int n) { return (n >= 0 && n < numProbes) ? probes[n] : NULL; }
 
