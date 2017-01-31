@@ -381,11 +381,6 @@ int Retina::updateState(double timed, double dt) {
    return 0;
 }
 
-int Retina::outputState(double time, bool last) {
-   // HyPerLayer::outputState already has an io timer so don't duplicate
-   return HyPerLayer::outputState(time, last);
-}
-
 } // namespace PV
 
 ///////////////////////////////////////////////////////

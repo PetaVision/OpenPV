@@ -97,11 +97,6 @@ class ImageFromMemoryBuffer : public ImageLayer {
        */
    virtual int updateState(double time, double dt);
 
-   /**
-    * ImageFromMemoryBuffer uses the same outputState as HyPerLayer
-    */
-   virtual int outputState(double time, bool last = false);
-
   protected:
    ImageFromMemoryBuffer();
 
