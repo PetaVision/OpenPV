@@ -173,17 +173,14 @@ int Communicator::neighborInit() {
    // (local borders and remote neighbors form the complete neighborhood)
 
    this->numNeighbors = numberOfNeighbors();
-   int tags[9]        = {0, 33, 34, 35, 34, 34, 35, 34, 33};
-   // NW and SE corners have tag 33; edges have tag 34; NE and SW corners have
-   // tag 35.
+   int tags[9]        = {0, 1, 2, 3, 2, 2, 3, 2, 1};
+   // NW and SE corners have tag 1; edges have tag 2; NE and SW corners have
+   // tag 3.
    // In the top row of processes in the hypercolumn, a process is both the
    // northeast and east neighbor of the process to its left.  If there is only
-   // one
-   // row, a process is the northeast, east, and southeast neighbor of the
-   // process
-   // to its left.  The numbering of tags ensures that the MPI_Send/MPI_Irecv
-   // calls
-   // can be distinguished.
+   // one row, a process is the northeast, east, and southeast neighbor of the
+   // process to its left.  The numbering of tags ensures that the
+   // MPI_Send/MPI_Irecv pairs can be distinguished.
 
    for (int i = 0; i < NUM_NEIGHBORHOOD; i++) {
       int n              = neighborIndex(localRank, i);
@@ -688,11 +685,15 @@ int Communicator::exchange(
       const MPI_Datatype neighborDatatypes[],
       const PVLayerLoc *loc,
       std::vector<MPI_Request> &req) {
+   
 #ifdef PV_USE_MPI
    PVHalo const *halo = &loc->halo;
    if (halo->lt == 0 && halo->rt == 0 && halo->dn == 0 && halo->up == 0) {
       return PV_SUCCESS;
    }
+
+   exchangeCounter++;
+   if (exchangeCounter == 2048) { exchangeCounter = 1; }
 
    req.clear();
    // don't send interior
@@ -709,7 +710,7 @@ int Communicator::exchange(
             n,
             recvOffset(n, loc),
             sendOffset(n, loc),
-            sendBuf[0]);
+            (double)recvBuf[0]);
       InfoLog().flush();
 #endif // DEBUG_OUTPUT
       auto sz = req.size();
@@ -719,7 +720,7 @@ int Communicator::exchange(
             1,
             neighborDatatypes[n],
             neighbors[n],
-            getReverseTag(n),
+            exchangeCounter * 16 + getReverseTag(n),
             localIcComm,
             &(req.data())[sz]);
    }
@@ -737,7 +738,7 @@ int Communicator::exchange(
             n,
             recvOffset(n, loc),
             sendOffset(n, loc),
-            sendBuf[0]);
+            (double)sendBuf[0]);
       InfoLog().flush();
 #endif // DEBUG_OUTPUT
       auto sz = req.size();
@@ -747,14 +748,14 @@ int Communicator::exchange(
             1,
             neighborDatatypes[n],
             neighbors[n],
-            getTag(n),
+            exchangeCounter * 16 + getTag(n),
             localIcComm,
             &(req.data())[sz]);
    }
 
 // don't recv interior
 #ifdef DEBUG_OUTPUT
-   InfoLog().printf("[%2d]: waiting for data, count==%d\n", localRank, nreq);
+   InfoLog().printf("[%2d]: waiting for data, count==%zu\n", localRank, req.size());
    InfoLog().flush();
 #endif // DEBUG_OUTPUT
 
