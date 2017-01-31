@@ -36,9 +36,9 @@ class Publisher {
     */
    void copyForward(double lastUpdateTime);
    int exchangeBorders(const PVLayerLoc *loc, int delay = 0);
-   int wait();
+   int wait(int delay = 0);
 
-   void increaseTimeLevel() { store->newLevelIndex(); }
+   void increaseTimeLevel();
 
    DataStore *dataStore() { return store; }
 
@@ -67,7 +67,8 @@ class Publisher {
 
    Communicator *mComm;
 
-   std::vector<MPI_Request> requests;
+   RingBuffer<std::vector<MPI_Request>> *mpiRequestsBuffer = nullptr;
+   //std::vector<MPI_Request> requests;
    MPI_Datatype *neighborDatatypes;
 };
 

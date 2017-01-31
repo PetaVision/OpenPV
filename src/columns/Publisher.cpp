@@ -22,11 +22,17 @@ Publisher::Publisher(Communicator *comm, PVLayerCube *cube, int numLevels, bool 
 
    this->neighborDatatypes = Communicator::newDatatypes(&cube->loc);
 
-   requests.clear();
-   requests.reserve((NUM_NEIGHBORHOOD - 1) * numBuffers);
+   mpiRequestsBuffer = new RingBuffer<std::vector<MPI_Request>>(numLevels, 1);
+   for (int l = 0; l < numLevels; l++) {
+      auto *v = mpiRequestsBuffer->getBuffer(l, 0);
+      v->clear();
+      v->reserve((NUM_NEIGHBORHOOD - 1) * numBuffers);
+   }
 }
 
 Publisher::~Publisher() {
+   for (int l = 0; l < mpiRequestsBuffer->getNumLevels(); l++) { wait(l); }
+   delete mpiRequestsBuffer;
    delete store;
    Communicator::freeDatatypes(neighborDatatypes);
    neighborDatatypes = nullptr;
@@ -90,7 +96,8 @@ int Publisher::exchangeBorders(const PVLayerLoc *loc, int delay /*default 0*/) {
    int status = PV_SUCCESS;
 
 #ifdef PV_USE_MPI
-   pvAssert(requests.empty());
+   auto *requestsVector = mpiRequestsBuffer->getBuffer(delay, 0);
+   pvAssert(requestsVector->empty());
    // Using local ranks and communicators for border exchange
    int icRank       = mComm->commRank();
    MPI_Comm mpiComm = mComm->communicator();
@@ -102,14 +109,14 @@ int Publisher::exchangeBorders(const PVLayerLoc *loc, int delay /*default 0*/) {
    int exchangeVectorSize = 2 * (mComm->numberOfNeighbors() - 1);
    for (int b = 0; b < loc->nbatch; b++) {
       // don't send interior
-      pvAssert(requests.size() == b * exchangeVectorSize);
+      pvAssert(requestsVector->size() == b * exchangeVectorSize);
 
       float *data = recvBuffer(b, delay);
       std::vector<MPI_Request> batchElementMPIRequest{};
       mComm->exchange(data, neighborDatatypes, loc, batchElementMPIRequest);
       pvAssert(batchElementMPIRequest.size() == exchangeVectorSize);
-      requests.insert(requests.end(), batchElementMPIRequest.begin(), batchElementMPIRequest.end());
-      pvAssert(requests.size() == (b + 1) * exchangeVectorSize);
+      requestsVector->insert(requestsVector->end(), batchElementMPIRequest.begin(), batchElementMPIRequest.end());
+      pvAssert(requestsVector->size() == (b + 1) * exchangeVectorSize);
    }
 
 #endif // PV_USE_MPI
@@ -120,19 +127,26 @@ int Publisher::exchangeBorders(const PVLayerLoc *loc, int delay /*default 0*/) {
 /**
  * wait until all outstanding published messages have arrived
  */
-int Publisher::wait() {
+int Publisher::wait(int delay /*default 0*/) {
 #ifdef PV_USE_MPI
 #ifdef DEBUG_OUTPUT
    InfoLog().printf("[%2d]: waiting for data, num_requests==%d\n", mComm->commRank(), numRemote);
    InfoLog().flush();
 #endif // DEBUG_OUTPUT
 
-   if (!requests.empty()) {
-      mComm->wait(requests);
+   auto *requestsVector = mpiRequestsBuffer->getBuffer(delay, 0);
+   if (!requestsVector->empty()) {
+      mComm->wait(*requestsVector);
    }
 #endif // PV_USE_MPI
 
    return 0;
+}
+
+void Publisher::increaseTimeLevel() {
+   wait(mpiRequestsBuffer->getNumLevels() - 1);
+   mpiRequestsBuffer->newLevel();
+   store->newLevelIndex();
 }
 
 } /* namespace PV */
