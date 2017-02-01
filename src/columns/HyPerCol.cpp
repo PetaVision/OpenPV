@@ -1086,6 +1086,8 @@ int HyPerCol::advanceTime(double sim_time) {
 // Ordering needs to go recvGpu, if(recvGpu and upGpu)update, recvNoGpu, update
 // rest
 #ifdef PV_USE_CUDA
+      // TODO: bypass notify for LayerRecvSynapticInput/LayerUpdateState when using CUDA
+      // along the lines as in the #else block.
       notify(
             {std::make_shared<LayerRecvSynapticInputMessage>(
                    phase, mPhaseRecvTimers.at(phase), true /*recvGpuFlag*/, mSimTime, mDeltaTime),
@@ -1115,10 +1117,41 @@ int HyPerCol::advanceTime(double sim_time) {
             std::make_shared<LayerUpdateStateMessage>(
                   phase, true /*recvOnGpuFlag*/, false /*updateOnGpuFlag*/, mSimTime, mDeltaTime));
 #else
-      notify(
-            {std::make_shared<LayerRecvSynapticInputMessage>(
-                   phase, mPhaseRecvTimers.at(phase), mSimTime, mDeltaTime),
-             std::make_shared<LayerUpdateStateMessage>(phase, mSimTime, mDeltaTime)});
+      // Bypassing the notify method to allow for more concurrency
+      auto recvMessage = std::make_shared<LayerRecvSynapticInputMessage>(
+            phase, mPhaseRecvTimers.at(phase), mSimTime, mDeltaTime);
+      auto updateMessage = std::make_shared<LayerUpdateStateMessage>(
+            phase, mSimTime, mDeltaTime);
+
+      bool allUpdated = false;
+      while(!allUpdated) {
+         bool anyUpdated = false;
+
+         for (auto &l : mLayers) {
+            if (l->getPhase() == phase && !l->getHasReceived() && l->isAllInputReady()) {
+               l->respond(recvMessage);
+               anyUpdated = true;
+               break;
+            }
+         }
+         if (anyUpdated) { continue; }
+
+         for (auto &l : mLayers) {
+            if (l->getPhase() == phase && !l->getHasUpdated() && l->getHasReceived()) {
+               l->respond(updateMessage);
+               anyUpdated = true;
+               break;
+            }
+         }
+         if (anyUpdated) { continue; }
+         // TODO (maybe?) Waitany logic goes here.
+         allUpdated = true;
+         for (auto &l : mLayers) {
+            if (l->getPhase() == phase) {
+               allUpdated &= l->getHasUpdated();
+            }
+         }
+      }
 #endif
       if (mImmediateLayerPublish) {
          // Rotate DataStore ring buffers
