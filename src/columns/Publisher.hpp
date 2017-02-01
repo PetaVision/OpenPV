@@ -37,6 +37,13 @@ class Publisher {
    void copyForward(double lastUpdateTime);
    int exchangeBorders(const PVLayerLoc *loc, int delay = 0);
    int isExchangeFinished(int delay = 0);
+
+   /**
+    * creates a PVLayerCube pointing to the data in the data store at the given delay.
+    * This method blocks until any pending border exchange for that delay level are completed.
+    */
+   PVLayerCube createCube(int delay = 0);
+
    int wait(int delay = 0);
 
    void increaseTimeLevel();
@@ -44,7 +51,7 @@ class Publisher {
    DataStore *dataStore() { return store; }
 
    int updateAllActiveIndices();
-   int updateActiveIndices(int delay=0);
+   int updateActiveIndices(int delay = 0);
 
   private:
    float *recvBuffer(int bufferId) { return store->buffer(bufferId); }
@@ -69,7 +76,7 @@ class Publisher {
    Communicator *mComm;
 
    RingBuffer<std::vector<MPI_Request>> *mpiRequestsBuffer = nullptr;
-   //std::vector<MPI_Request> requests;
+   // std::vector<MPI_Request> requests;
    MPI_Datatype *neighborDatatypes;
 };
 

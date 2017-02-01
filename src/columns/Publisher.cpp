@@ -31,7 +31,9 @@ Publisher::Publisher(Communicator *comm, PVLayerCube *cube, int numLevels, bool 
 }
 
 Publisher::~Publisher() {
-   for (int l = 0; l < mpiRequestsBuffer->getNumLevels(); l++) { wait(l); }
+   for (int l = 0; l < mpiRequestsBuffer->getNumLevels(); l++) {
+      wait(l);
+   }
    delete mpiRequestsBuffer;
    delete store;
    Communicator::freeDatatypes(neighborDatatypes);
@@ -47,17 +49,20 @@ int Publisher::updateAllActiveIndices() {
    return PV_SUCCESS;
 }
 
+PVLayerCube Publisher::createCube(int delay) {
+   wait(delay);
+   return store->createCube(mLayerCube->loc, delay);
+}
+
 int Publisher::updateActiveIndices(int delay) {
    if (store->isSparse()) {
       for (int b = 0; b < store->getNumBuffers(); b++) {
          // Active indicies stored as local extended values
-         if (*store->numActiveBuffer(b, delay) < 0L)
-         {
+         if (*store->numActiveBuffer(b, delay) < 0L) {
             store->updateActiveIndices(b, delay);
          }
          pvAssert(*store->numActiveBuffer(b, delay) >= 0L);
       }
-      
    }
    return PV_SUCCESS;
 }
@@ -123,7 +128,8 @@ int Publisher::exchangeBorders(const PVLayerLoc *loc, int delay /*default 0*/) {
       std::vector<MPI_Request> batchElementMPIRequest{};
       mComm->exchange(data, neighborDatatypes, loc, batchElementMPIRequest);
       pvAssert(batchElementMPIRequest.size() == exchangeVectorSize);
-      requestsVector->insert(requestsVector->end(), batchElementMPIRequest.begin(), batchElementMPIRequest.end());
+      requestsVector->insert(
+            requestsVector->end(), batchElementMPIRequest.begin(), batchElementMPIRequest.end());
       pvAssert(requestsVector->size() == (b + 1) * exchangeVectorSize);
    }
 
@@ -163,8 +169,8 @@ int Publisher::wait(int delay /*default 0*/) {
    auto *requestsVector = mpiRequestsBuffer->getBuffer(delay, 0);
    if (!requestsVector->empty()) {
       mComm->wait(*requestsVector);
+      pvAssert(requestsVector->empty());
    }
-   pvAssert(requestsVector->empty());
    updateActiveIndices(delay);
 #endif // PV_USE_MPI
 
