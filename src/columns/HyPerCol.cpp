@@ -1071,6 +1071,9 @@ int HyPerCol::advanceTime(double sim_time) {
 
    // Each layer's phase establishes a priority for updating
    for (int phase = 0; phase < mNumPhases; phase++) {
+      for (auto &l : mLayers) { // TODO: use notify/respond
+         l->clearProgressFlags();
+      }
 
       if (!mImmediateLayerPublish) {
          // Rotate DataStore ring buffers
@@ -1117,7 +1120,6 @@ int HyPerCol::advanceTime(double sim_time) {
                    phase, mPhaseRecvTimers.at(phase), mSimTime, mDeltaTime),
              std::make_shared<LayerUpdateStateMessage>(phase, mSimTime, mDeltaTime)});
 #endif
-
       if (mImmediateLayerPublish) {
          // Rotate DataStore ring buffers
          notify(std::make_shared<LayerAdvanceDataStoreMessage>(phase));

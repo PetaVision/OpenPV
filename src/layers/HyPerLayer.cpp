@@ -1002,10 +1002,17 @@ int HyPerLayer::respondLayerRecvSynapticInput(LayerRecvSynapticInputMessage cons
       return status;
    }
 #endif // PV_USE_CUDA
+   if (mHasReceived) {
+      return status;
+   }
+   if (!isAllInputReady()) {
+      return PV_POSTPONE;
+   }
    resetGSynBuffers(message->mTime, message->mDeltaT); // deltaTimeAdapt is not used
    message->mTimer->start();
    recvAllSynapticInput();
    message->mTimer->stop();
+   mHasReceived = true;
    return status;
 }
 
@@ -1022,7 +1029,11 @@ int HyPerLayer::respondLayerUpdateState(LayerUpdateStateMessage const *message) 
       return status;
    }
 #endif // PV_USE_CUDA
+   if (!mHasReceived) {
+      return PV_POSTPONE;
+   }
    status = callUpdateState(message->mTime, message->mDeltaT);
+   mHasUpdated = true;
    return status;
 }
 
@@ -1100,6 +1111,11 @@ int HyPerLayer::respondLayerOutputState(LayerOutputStateMessage const *message) 
    }
    status = outputState(message->mTime); // also calls layer probes' outputState
    return status;
+}
+
+void HyPerLayer::clearProgressFlags() {
+   mHasReceived = false;
+   mHasUpdated = false;
 }
 
 #ifdef PV_USE_CUDA

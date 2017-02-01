@@ -410,6 +410,8 @@ class HyPerLayer : public BaseLayer {
     */
    bool isExchangeFinished(int delay = 0);
 
+   void clearProgressFlags();
+
    /**
     * Returns true if each layer that delivers input to this layer
     * has finished its MPI exchange for its delay; false if any of
@@ -480,6 +482,10 @@ class HyPerLayer : public BaseLayer {
    float getMaxRate() { return maxRate; }
 
    Publisher *getPublisher() { return publisher; }
+
+   bool getHasReceived() { return mHasReceived; }
+
+   bool getHasUpdated() { return mHasUpdated; }
 
   protected:
    virtual int communicateInitInfo() override;
@@ -585,6 +591,9 @@ class HyPerLayer : public BaseLayer {
 
    float **thread_gSyn; // Accumulate buffer for each thread, only used if numThreads > 1
    std::vector<BaseConnection *> recvConns;
+
+   bool mHasReceived = false;
+   bool mHasUpdated = false;
 
 // GPU variables
 #ifdef PV_USE_CUDA
