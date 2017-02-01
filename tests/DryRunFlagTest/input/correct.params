@@ -18,7 +18,6 @@ HyPerCol "column" = {
     ny                                  = 32;
     nbatch                              = 1;
     errorOnNotANumber                   = true;
-    immediateLayerPublish               = true;
 };
 
 PvpLayer "Input" = {

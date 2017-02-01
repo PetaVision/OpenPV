@@ -126,7 +126,6 @@ int HyPerCol::initialize_base() {
    mBaseProbes.clear();
    mRandomSeed            = 0U;
    mErrorOnNotANumber     = false;
-   mImmediateLayerPublish = true;
    mNumThreads            = 1;
    mRecvLayerBuffer.clear();
    mVerifyWrites = true; // Default for reading back and verifying when calling PV_fwrite
@@ -297,7 +296,6 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_checkpointRead(ioFlag); // checkpointRead is obsolete as of June 27, 2016.
    ioParam_writeTimescales(ioFlag);
    ioParam_errorOnNotANumber(ioFlag);
-   ioParam_immediateLayerPublish(ioFlag);
 
    // Aug 18, 2016.  Several HyPerCol parameters have moved to
    // AdaptiveTimeScaleProbe.
@@ -668,11 +666,6 @@ void HyPerCol::ioParam_errorOnNotANumber(enum ParamsIOFlag ioFlag) {
          ioFlag, mName, "errorOnNotANumber", &mErrorOnNotANumber, mErrorOnNotANumber);
 }
 
-void HyPerCol::ioParam_immediateLayerPublish(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
-         ioFlag, mName, "immediateLayerPublish", &mImmediateLayerPublish, mImmediateLayerPublish);
-}
-
 // Sep 26, 2016: HyPerCol methods for parameter input/output have been moved to
 // PVParams.
 // Sep 27, 2016: ensureDirExists has been moved to fileio.cpp.
@@ -730,41 +723,6 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
       MPI_Barrier(getCommunicator()->communicator());
 
       FatalIf(status != PV_SUCCESS, "HyPerCol \"%s\" failed to run.\n", mName);
-
-      // If immediateLayerPublish is false, a connection's delay cannot be zero
-      // if the presynaptic layer's phase is greater than or equal to that of
-      // the post layer. Error out if this happens.
-      if (!mImmediateLayerPublish) {
-         for (auto &c : mConnections) {
-            int prePhase  = c->preSynapticLayer()->getPhase();
-            int postPhase = c->postSynapticLayer()->getPhase();
-            if (prePhase < postPhase) {
-               continue;
-            }
-            for (int a = 0; a < c->numberOfAxonalArborLists(); a++) {
-               if (c->getDelay(a) == 0) {
-                  status = PV_FAILURE;
-                  if (getCommunicator()->commRank() == 0) {
-                     ErrorLog().printf(
-                           "ImmediateLayerPublish flag is false, and %s has presynaptic phase %d "
-                           "greater than or equal to postsynaptic phase %d, but arbor %d has delay "
-                           "of zero.\n",
-                           c->getDescription_c(),
-                           prePhase,
-                           postPhase,
-                           a);
-                  }
-               }
-            }
-         }
-         if (status != PV_SUCCESS) {
-            if (getCommunicator()->commRank() == 0) {
-               Fatal() << "Zero-delay error(s) with immediateLayerPublish set to false.\n";
-            }
-            MPI_Barrier(getCommunicator()->communicator());
-            exit(EXIT_FAILURE);
-         }
-      }
 
       bool dryRunFlag = mPVInitObj->getBooleanArgument("DryRun");
       if (dryRunFlag) {
@@ -1075,14 +1033,6 @@ int HyPerCol::advanceTime(double sim_time) {
          l->clearProgressFlags();
       }
 
-      if (!mImmediateLayerPublish) {
-         // Rotate DataStore ring buffers
-         notify(std::make_shared<LayerAdvanceDataStoreMessage>(phase));
-
-         // copy activity buffer to DataStore, and do MPI exchange.
-         notify(std::make_shared<LayerPublishMessage>(phase, mSimTime));
-      }
-
 // Ordering needs to go recvGpu, if(recvGpu and upGpu)update, recvNoGpu, update
 // rest
 #ifdef PV_USE_CUDA
@@ -1153,13 +1103,11 @@ int HyPerCol::advanceTime(double sim_time) {
          }
       }
 #endif
-      if (mImmediateLayerPublish) {
-         // Rotate DataStore ring buffers
-         notify(std::make_shared<LayerAdvanceDataStoreMessage>(phase));
+      // Rotate DataStore ring buffers
+      notify(std::make_shared<LayerAdvanceDataStoreMessage>(phase));
 
-         // copy activity buffer to DataStore, and do MPI exchange.
-         notify(std::make_shared<LayerPublishMessage>(phase, mSimTime));
-      }
+      // copy activity buffer to DataStore, and do MPI exchange.
+      notify(std::make_shared<LayerPublishMessage>(phase, mSimTime));
 
       // wait for all published data to arrive and call layer's outputState
       std::vector<std::shared_ptr<BaseMessage const>> messageVector = {
