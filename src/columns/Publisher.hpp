@@ -52,8 +52,6 @@ class Publisher {
 
    void increaseTimeLevel();
 
-   DataStore *dataStore() { return store; }
-
    int updateAllActiveIndices();
    int updateActiveIndices(int delay = 0);
 
