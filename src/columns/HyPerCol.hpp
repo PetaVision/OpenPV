@@ -267,6 +267,9 @@ class HyPerCol : public Subject, Observer {
    int addLayer(HyPerLayer *l);
    void advanceTimeLoop(Clock &runClock, int const runClockStartingStep);
    int advanceTime(double time);
+   void nonblockingLayerUpdate(
+         std::shared_ptr<LayerRecvSynapticInputMessage const> recvMessage,
+         std::shared_ptr<LayerUpdateStateMessage const> updateMessage);
    int insertProbe(ColProbe *p);
    int outputState(double time);
    int processParams(char const *path);

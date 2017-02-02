@@ -1072,45 +1072,7 @@ int HyPerCol::advanceTime(double sim_time) {
             phase, mPhaseRecvTimers.at(phase), mSimTime, mDeltaTime);
       auto updateMessage = std::make_shared<LayerUpdateStateMessage>(phase, mSimTime, mDeltaTime);
 
-      long int idleCounter = 0;
-      bool allUpdated      = false;
-      while (!allUpdated) {
-         bool anyUpdated = false;
-
-         for (auto &l : mLayers) {
-            if (l->getPhase() == phase && !l->getHasReceived() && l->isAllInputReady()) {
-               l->respond(recvMessage);
-               anyUpdated = true;
-               break;
-            }
-         }
-         if (anyUpdated) {
-            continue;
-         }
-
-         for (auto &l : mLayers) {
-            if (l->getPhase() == phase && !l->getHasUpdated() && l->getHasReceived()) {
-               l->respond(updateMessage);
-               anyUpdated = true;
-               break;
-            }
-         }
-         if (anyUpdated) {
-            continue;
-         }
-
-         idleCounter++;
-         // TODO (maybe?) Waitany logic goes here.
-         allUpdated = true;
-         for (auto &l : mLayers) {
-            if (l->getPhase() == phase) {
-               allUpdated &= l->getHasUpdated();
-            }
-         }
-      }
-      if (idleCounter > 0L) {
-         InfoLog() << "t = " << mSimTime << ", phase " << phase << ", idle count " << idleCounter << "\n";
-      }
+      nonblockingLayerUpdate(recvMessage, updateMessage);
 #endif
       // Rotate DataStore ring buffers
       notify(std::make_shared<LayerAdvanceDataStoreMessage>(phase));
@@ -1131,6 +1093,52 @@ int HyPerCol::advanceTime(double sim_time) {
    outputState(mSimTime);
 
    return status;
+}
+
+void HyPerCol::nonblockingLayerUpdate(
+      std::shared_ptr<LayerRecvSynapticInputMessage const> recvMessage,
+      std::shared_ptr<LayerUpdateStateMessage const> updateMessage) {
+   long int idleCounter = 0;
+   bool allUpdated      = false;
+   int phase = recvMessage->mPhase;
+   pvAssert(phase == updateMessage->mPhase);
+   while (!allUpdated) {
+      bool anyUpdated = false;
+
+      for (auto &l : mLayers) {
+         if (l->getPhase() == phase && !l->getHasReceived() && l->isAllInputReady()) {
+            l->respond(recvMessage);
+            anyUpdated = true;
+            break;
+         }
+      }
+      if (anyUpdated) {
+         continue;
+      }
+
+      for (auto &l : mLayers) {
+         if (l->getPhase() == phase && !l->getHasUpdated() && l->getHasReceived()) {
+            l->respond(updateMessage);
+            anyUpdated = true;
+            break;
+         }
+      }
+      if (anyUpdated) {
+         continue;
+      }
+
+      idleCounter++;
+      // TODO (maybe?) Waitany logic goes here.
+      allUpdated = true;
+      for (auto &l : mLayers) {
+         if (l->getPhase() == phase) {
+            allUpdated &= l->getHasUpdated();
+         }
+      }
+   }
+   if (idleCounter > 0L) {
+      InfoLog() << "t = " << mSimTime << ", phase " << phase << ", idle count " << idleCounter << "\n";
+   }
 }
 
 // Oct 3, 2016.  writeTimers moved to Checkpointer class
