@@ -2882,25 +2882,14 @@ int HyPerConn::deliver() {
 
    // Check if updating from post perspective
    HyPerLayer *pre = preSynapticLayer();
-   PVLayerCube cube;
-   memcpy(&cube.loc, pre->getLayerLoc(), sizeof(PVLayerLoc));
-   cube.numItems = pre->getNumExtended();
-   cube.size     = sizeof(PVLayerCube);
-
-   DataStore *store = pre->getPublisher()->dataStore();
-   int numArbors    = numberOfAxonalArborLists();
+   int numArbors   = numberOfAxonalArborLists();
 
    for (int arbor = 0; arbor < numArbors; arbor++) {
       int delay = getDelay(arbor);
-      cube.data = store->buffer(
-            0,
-            delay); // First element is batch, but since it's a continuous buffer, 0 here is alright
+      PVLayerCube cube = pre->getPublisher()->createCube(delay);
+      cube.numItems /= cube.loc.nbatch;
+      // hack; should make sure deliver*Perspective* methods expect numItems to include batching.
       if (!getUpdateGSynFromPostPerspective()) {
-         cube.isSparse = store->isSparse();
-         if (cube.isSparse) {
-            cube.numActive     = store->numActiveBuffer(0, delay);
-            cube.activeIndices = store->activeIndicesBuffer(0, delay);
-         }
 #ifdef PV_USE_CUDA
          if (getReceiveGpu()) {
             status = deliverPresynapticPerspectiveGPU(&cube, arbor);
