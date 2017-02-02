@@ -616,11 +616,14 @@ int PoolingConn::deliverPresynapticPerspective(PVLayerCube const *activity, int 
          int kPreExt;
          float a = dt_factor;
          if (activity->isSparse) {
+            kPreExt = activeIndicesBatch[loopIndex].index;
             a *= activeIndicesBatch[loopIndex].value;
          }
          else {
-            a *= activityBatch[loopIndex];
+            kPreExt = loopIndex;
+            a *= activityBatch[kPreExt];
          }
+
 
          // If we're using thread_gSyn, set this here
          float *gSynPatchHead;
