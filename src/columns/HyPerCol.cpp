@@ -124,9 +124,9 @@ int HyPerCol::initialize_base() {
    mPhaseRecvTimers.clear();
    mColProbes.clear();
    mBaseProbes.clear();
-   mRandomSeed            = 0U;
-   mErrorOnNotANumber     = false;
-   mNumThreads            = 1;
+   mRandomSeed        = 0U;
+   mErrorOnNotANumber = false;
+   mNumThreads        = 1;
    mRecvLayerBuffer.clear();
    mVerifyWrites = true; // Default for reading back and verifying when calling PV_fwrite
 #ifdef PV_USE_CUDA
@@ -1070,11 +1070,11 @@ int HyPerCol::advanceTime(double sim_time) {
       // Bypassing the notify method to allow for more concurrency
       auto recvMessage = std::make_shared<LayerRecvSynapticInputMessage>(
             phase, mPhaseRecvTimers.at(phase), mSimTime, mDeltaTime);
-      auto updateMessage = std::make_shared<LayerUpdateStateMessage>(
-            phase, mSimTime, mDeltaTime);
+      auto updateMessage = std::make_shared<LayerUpdateStateMessage>(phase, mSimTime, mDeltaTime);
 
-      bool allUpdated = false;
-      while(!allUpdated) {
+      long int idleCounter = 0;
+      bool allUpdated      = false;
+      while (!allUpdated) {
          bool anyUpdated = false;
 
          for (auto &l : mLayers) {
@@ -1084,7 +1084,9 @@ int HyPerCol::advanceTime(double sim_time) {
                break;
             }
          }
-         if (anyUpdated) { continue; }
+         if (anyUpdated) {
+            continue;
+         }
 
          for (auto &l : mLayers) {
             if (l->getPhase() == phase && !l->getHasUpdated() && l->getHasReceived()) {
@@ -1093,7 +1095,11 @@ int HyPerCol::advanceTime(double sim_time) {
                break;
             }
          }
-         if (anyUpdated) { continue; }
+         if (anyUpdated) {
+            continue;
+         }
+
+         idleCounter++;
          // TODO (maybe?) Waitany logic goes here.
          allUpdated = true;
          for (auto &l : mLayers) {
@@ -1102,6 +1108,9 @@ int HyPerCol::advanceTime(double sim_time) {
             }
          }
       }
+      if (idleCounter > 0L) {
+         InfoLog() << "t = " << mSimTime << ", phase " << phase << ", idle count " << idleCounter << "\n";
+      }
 #endif
       // Rotate DataStore ring buffers
       notify(std::make_shared<LayerAdvanceDataStoreMessage>(phase));
@@ -1109,8 +1118,8 @@ int HyPerCol::advanceTime(double sim_time) {
       // copy activity buffer to DataStore, and do MPI exchange.
       notify(std::make_shared<LayerPublishMessage>(phase, mSimTime));
 
-      // wait for all published data to arrive and call layer's outputState
-      notify(std::make_shared<LayerUpdateActiveIndicesMessage>(phase));
+      // Feb 2, 2017: waiting and updating active indices have been moved into
+      // OutputState and CheckNotANumber, where they are called if needed.
       notify(std::make_shared<LayerOutputStateMessage>(phase, mSimTime));
       if (mErrorOnNotANumber) {
          notify(std::make_shared<LayerCheckNotANumberMessage>(phase));
