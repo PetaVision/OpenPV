@@ -633,9 +633,9 @@ int TransposePoolingConn::deliverPresynapticPerspective(PVLayerCube const *activ
          postIdxDataBatch = postIdxData + b * mOriginalConn->getPostIndexLayer()->getNumExtended();
       }
 
-      unsigned int const *activeIndicesBatch = NULL;
+      SparseList<float>::Entry const *activeIndicesBatch = NULL;
       if (activity->isSparse) {
-         activeIndicesBatch = activity->activeIndices
+         activeIndicesBatch = (SparseList<float>::Entry*)activity->activeIndices
                               + b * (preLoc->nx + preLoc->halo.rt + preLoc->halo.lt)
                                       * (preLoc->ny + preLoc->halo.up + preLoc->halo.dn)
                                       * preLoc->nf;
@@ -668,17 +668,18 @@ int TransposePoolingConn::deliverPresynapticPerspective(PVLayerCube const *activ
 #pragma omp parallel for schedule(static)
 #endif
       for (int loopIndex = 0; loopIndex < numLoop; loopIndex++) {
-         int kPreExt;
+         float a = 0.0f;
+         int kPreExt = loopIndex;
          if (activity->isSparse) {
-            kPreExt = activeIndicesBatch[loopIndex];
+            a = activeIndicesBatch[loopIndex].value;
+            kPreExt = activeIndicesBatch[loopIndex].index;
          }
          else {
-            kPreExt = loopIndex;
+            a = activityBatch[loopIndex];
          }
-
-         float a = activityBatch[kPreExt];
-         if (a == 0.0f)
+         if (a == 0.0f) {
             continue;
+         }
 
          // If we're using thread_gSyn, set this here
          float *gSynPatchHead;

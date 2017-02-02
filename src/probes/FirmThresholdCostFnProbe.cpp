@@ -159,12 +159,12 @@ double FirmThresholdCostFnProbe::getValueInternal(double timevalue, int index) {
       if (getTargetLayer()->getSparseFlag()) {
          DataStore *store               = getTargetLayer()->getPublisher()->dataStore();
          int numActive                  = (int)store->numActiveBuffer(index)[0];
-         unsigned int const *activeList = store->activeIndicesBuffer(index);
+         SparseList<float>::Entry const *activeList = store->activeIndicesBuffer(index);
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for reduction(+ : sum)
 #endif // PV_USE_OPENMP_THREADS
          for (int k = 0; k < numActive; k++) {
-            int extIndex     = activeList[k];
+            int extIndex     = activeList[k].index;
             int inRestricted = !extendedIndexInBorderRegion(
                   extIndex, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
             double a = inRestricted * (double)fabs(aBuffer[extIndex]);

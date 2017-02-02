@@ -11,6 +11,7 @@
 #include "include/pv_arch.h"
 #include "include/pv_types.h"
 #include "structures/RingBuffer.hpp"
+#include "structures/SparseList.hpp"
 #include <cstdlib>
 #include <cstring>
 
@@ -61,11 +62,11 @@ class DataStore {
 
    bool isSparse() const { return mSparseFlag; }
 
-   unsigned int *activeIndicesBuffer(int bufferId, int level) {
+   SparseList<float>::Entry *activeIndicesBuffer(int bufferId, int level) {
       return mActiveIndices->getBuffer(level, bufferId * mNumItems);
    }
 
-   unsigned int *activeIndicesBuffer(int bufferId) {
+   SparseList<float>::Entry *activeIndicesBuffer(int bufferId) {
       return mActiveIndices->getBuffer(bufferId * mNumItems);
    }
 
@@ -89,7 +90,7 @@ class DataStore {
    RingBuffer<float> *mBuffer               = nullptr;
    RingBuffer<double> *mLastUpdateTimes     = nullptr;
    RingBuffer<long> *mNumActive             = nullptr;
-   RingBuffer<unsigned int> *mActiveIndices = nullptr;
+   RingBuffer<SparseList<float>::Entry> *mActiveIndices = nullptr;
 };
 
 } // NAMESPACE

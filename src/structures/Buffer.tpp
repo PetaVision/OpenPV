@@ -1,5 +1,5 @@
 #include "utils/PVLog.hpp"
-#include "utils/conversions.h"
+//#include "utils/conversions.h"
 
 #include <cmath>
 #include <cstring>
@@ -163,7 +163,7 @@ int Buffer<T>::getAnchorX(enum Anchor anchor, int smallerWidth, int biggerWidth)
       case NORTHEAST:
       case EAST:
       case SOUTHEAST: return biggerWidth - smallerWidth;
-      default: assert(0);
+      default: return 0;
    }
    return 0; // Statement included to suppress warnings about missing return type.
 }
@@ -180,7 +180,7 @@ int Buffer<T>::getAnchorY(enum Anchor anchor, int smallerHeight, int biggerHeigh
       case SOUTHWEST:
       case SOUTH:
       case SOUTHEAST: return biggerHeight - smallerHeight;
-      default: assert(0);
+      default: return 0;
    }
    return 0; // Statement included to suppress warnings about missing return type.
 }

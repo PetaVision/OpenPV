@@ -2974,9 +2974,9 @@ int HyPerConn::deliverPresynapticPerspectiveConvolve(PVLayerCube const *activity
       float *activityBatch = activity->data + batchOffset;
       float *gSynPatchHeadBatch =
             post->getChannel(getChannel()) + b * postLoc->nx * postLoc->ny * postLoc->nf;
-      unsigned int const *activeIndicesBatch = NULL;
+      SparseList<float>::Entry const *activeIndicesBatch = NULL;
       if (activity->isSparse) {
-         activeIndicesBatch = activity->activeIndices + batchOffset;
+         activeIndicesBatch = (SparseList<float>::Entry*)activity->activeIndices + batchOffset;
       }
 
       int numNeurons = activity->isSparse ? activity->numActive[b] : numExtended;
@@ -2994,46 +2994,92 @@ int HyPerConn::deliverPresynapticPerspectiveConvolve(PVLayerCube const *activity
       }
 #endif
 
-      for (int y = 0; y < nyp; y++) {
+      if (!activity->isSparse) {
+         for (int y = 0; y < nyp; y++) {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(guided)
 #endif
-         for (int idx = 0; idx < numNeurons; idx++) {
-            int kPreExt = activity->isSparse ? activeIndicesBatch[idx] : idx;
+            for (int idx = 0; idx < numNeurons; idx++) {
+               int kPreExt = idx;
 
-            // Weight
-            PVPatch *weights = getWeights(kPreExt, arbor);
+               // Weight
+               PVPatch *weights = getWeights(kPreExt, arbor);
 
-            if (y >= weights->ny)
-               continue;
+               if (y >= weights->ny) {
+                  continue;
+               }
 
-            // Activity
-            float a = activityBatch[kPreExt] * dtFactor;
-            if (a == 0.0f)
-               continue;
+               // Activity
+               float a = activityBatch[kPreExt] * dtFactor;
+               if (a == 0.0f) {
+                  continue;
+               }
 
-            // gSyn
-            float *gSynPatchHead = gSynPatchHeadBatch;
+               // gSyn
+               float *gSynPatchHead = gSynPatchHeadBatch;
 
 #ifdef PV_USE_OPENMP_THREADS
-            if (thread_gSyn) {
-               gSynPatchHead = thread_gSyn[omp_get_thread_num()];
-            }
+               if (thread_gSyn) {
+                  gSynPatchHead = thread_gSyn[omp_get_thread_num()];
+               }
 #endif // PV_USE_OPENMP_THREADS
 
-            float *postPatchStart = gSynPatchHead + getGSynPatchStart(kPreExt, arbor);
+               float *postPatchStart = gSynPatchHead + getGSynPatchStart(kPreExt, arbor);
 
-            const int nk           = weights->nx * fPatchSize();
-            float *weightDataStart = get_wData(arbor, kPreExt); // make this a float const *?
+               const int nk           = weights->nx * fPatchSize();
+               float *weightDataStart = get_wData(arbor, kPreExt); // make this a float const *?
 
-            float *v = postPatchStart + y * sy;
-            float *w = weightDataStart + y * syw;
-            for (int k = 0; k < nk; k++) {
-               v[k] += a * w[k];
+               float *v = postPatchStart + y * sy;
+               float *w = weightDataStart + y * syw;
+               for (int k = 0; k < nk; k++) {
+                  v[k] += a * w[k];
+               }
             }
          }
       }
+      else { // Sparse, use the stored activity / index pairs
+         for (int y = 0; y < nyp; y++) {
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for schedule(guided)
+#endif
+            for (int idx = 0; idx < numNeurons; idx++) {
+               int kPreExt = activeIndicesBatch[idx].index;
 
+               // Weight
+               PVPatch *weights = getWeights(kPreExt, arbor);
+
+               if (y >= weights->ny) {
+                  continue;
+               }
+
+               // Activity
+               float a = activeIndicesBatch[idx].value;
+               if (a == 0.0f) {
+                  continue;
+               }
+
+               // gSyn
+               float *gSynPatchHead = gSynPatchHeadBatch;
+
+#ifdef PV_USE_OPENMP_THREADS
+               if (thread_gSyn) {
+                  gSynPatchHead = thread_gSyn[omp_get_thread_num()];
+               }
+#endif // PV_USE_OPENMP_THREADS
+
+               float *postPatchStart = gSynPatchHead + getGSynPatchStart(kPreExt, arbor);
+
+               const int nk           = weights->nx * fPatchSize();
+               float *weightDataStart = get_wData(arbor, kPreExt); // make this a float const *?
+               a *= dtFactor;
+               float *v = postPatchStart + y * sy;
+               float *w = weightDataStart + y * syw;
+               for (int k = 0; k < nk; k++) {
+                  v[k] += a * w[k];
+               }
+            }
+         }
+      }
 #ifdef PV_USE_OPENMP_THREADS
       // Accumulate back into gSyn // Should this be done in HyPerLayer where it can be done once,
       // as opposed to once per connection?
@@ -3090,9 +3136,9 @@ int HyPerConn::deliverPresynapticPerspectiveStochastic(PVLayerCube const *activi
       float *activityBatch = activity->data + batchOffset;
       float *gSynPatchHeadBatch =
             post->getChannel(getChannel()) + b * postLoc->nx * postLoc->ny * postLoc->nf;
-      unsigned int const *activeIndicesBatch = NULL;
+      SparseList<taus_uint4>::Entry const *activeIndicesBatch = NULL;
       if (activity->isSparse) {
-         activeIndicesBatch = activity->activeIndices + batchOffset;
+         activeIndicesBatch = (SparseList<taus_uint4>::Entry*)activity->activeIndices + batchOffset;
       }
 
       int numNeurons = activity->isSparse ? activity->numActive[b] : numExtended;
@@ -3112,7 +3158,7 @@ int HyPerConn::deliverPresynapticPerspectiveStochastic(PVLayerCube const *activi
 #pragma omp parallel for schedule(guided)
 #endif
       for (int idx = 0; idx < numNeurons; idx++) {
-         int kPreExt = activity->isSparse ? activeIndicesBatch[idx] : idx;
+         int kPreExt = activity->isSparse ? activeIndicesBatch[idx].index : idx;
 
          // Activity
          float a = activityBatch[kPreExt] * dtFactor;
@@ -3551,7 +3597,7 @@ int HyPerConn::deliverPresynapticPerspectiveGPU(PVLayerCube const *activity, int
          d_ActiveIndices = preSynapticLayer()->getDeviceActiveIndices();
          d_numActive     = preSynapticLayer()->getDeviceNumActive();
          pvAssert(d_ActiveIndices);
-         unsigned int const *h_ActiveIndices = activity->activeIndices;
+         SparseList<float>::Entry const *h_ActiveIndices = (SparseList<float>::Entry*)activity->activeIndices;
          long const *h_numActive             = activity->numActive;
          pvAssert(h_ActiveIndices);
          d_numActive->copyToDevice(h_numActive);

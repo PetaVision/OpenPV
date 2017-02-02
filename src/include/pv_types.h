@@ -70,7 +70,7 @@ typedef struct PVLayerCube_ {
    PVLayerLoc loc;
    int isSparse;
    long const *numActive;
-   unsigned int const *activeIndices;
+   void const *activeIndices;
 } PVLayerCube;
 
 /**

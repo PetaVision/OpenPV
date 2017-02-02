@@ -29,7 +29,7 @@ DataStore::DataStore(int numBuffers, int numItems, int numLevels, bool isSparse_
 
    mSparseFlag = isSparse_flag;
    if (mSparseFlag) {
-      mActiveIndices = new RingBuffer<unsigned int>(numLevels, numBuffers * numItems);
+      mActiveIndices = new RingBuffer<SparseList<float>::Entry>(numLevels, numBuffers * numItems, {0,0});
       mNumActive     = new RingBuffer<long>(numLevels, numBuffers);
    }
 }
@@ -39,10 +39,13 @@ void DataStore::updateActiveIndices(int bufferId, int level) {
    int numActive   = 0;
    float *activity = buffer(bufferId, level);
 
-   unsigned int *activeIndices = activeIndicesBuffer(bufferId, level);
+   SparseList<float>::Entry *activeIndices = activeIndicesBuffer(bufferId, level);
+//   unsigned int *activeIndices = activeIndicesBuffer(bufferId, level);
    for (int kex = 0; kex < getNumItems(); kex++) {
-      if (activity[kex] != 0.0f) {
-         activeIndices[numActive] = kex;
+      float a = activity[kex];
+      if (a != 0.0f) {
+         activeIndices[numActive].index = kex;
+         activeIndices[numActive].value = a;
          numActive++;
       }
    }

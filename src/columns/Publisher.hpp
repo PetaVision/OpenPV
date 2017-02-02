@@ -54,10 +54,10 @@ class Publisher {
       return store->numActiveBuffer(bufferId, delay);
    }
 
-   unsigned int *recvActiveIndicesBuffer(int bufferId) {
+   SparseList<float>::Entry *recvActiveIndicesBuffer(int bufferId) {
       return store->activeIndicesBuffer(bufferId);
    }
-   unsigned int *recvActiveIndicesBuffer(int bufferId, int delay) {
+   SparseList<float>::Entry *recvActiveIndicesBuffer(int bufferId, int delay) {
       return store->activeIndicesBuffer(bufferId, delay);
    }
 

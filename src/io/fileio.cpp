@@ -1526,7 +1526,7 @@ int writeActivitySparse(
    for (int b = 0; b < loc->nbatch; b++) {
 
       int localActive       = *(store->numActiveBuffer(b));
-      unsigned int *indices = store->activeIndicesBuffer(b);
+      indexvaluepair *localpairs = (indexvaluepair*)store->activeIndicesBuffer(b);
       float *valueData      = store->buffer(b);
 
       indexvaluepair *indexvaluepairs = NULL;
@@ -1564,13 +1564,13 @@ int writeActivitySparse(
             }
             int pairsIdx = 0;
             for (int j = 0; j < localActive; j++) {
-               int localExtK  = indices[j];
+               int localExtK  = localpairs[j].index;
                int globalResK = localExtToGlobalRes(localExtK, loc);
                if (globalResK == -1) {
                   continue;
                }
                indexvaluepairs[pairsIdx].index = globalResK;
-               indexvaluepairs[pairsIdx].value = valueData[localExtK];
+               indexvaluepairs[pairsIdx].value = localpairs[j].value;
                pairsIdx++;
             }
             data           = (void *)indexvaluepairs;
@@ -1582,7 +1582,7 @@ int writeActivitySparse(
             globalResIndices = (unsigned int *)malloc(localActive * sizeof(unsigned int));
             int indiciesIdx  = 0;
             for (int j = 0; j < localActive; j++) {
-               int localExtK  = indices[j];
+               int localExtK  = localpairs[j].index;
                int globalResK = localExtToGlobalRes(localExtK, loc);
                if (globalResK == -1) {
                   continue;
@@ -1623,13 +1623,13 @@ int writeActivitySparse(
 
                int pairsIdx = 0;
                for (int k = 0; k < localActive; k++) {
-                  int localExtK  = indices[k];
+                  int localExtK  = localpairs[k].index;
                   int globalResK = localExtToGlobalRes(localExtK, loc);
                   if (globalResK == -1) {
                      continue;
                   }
                   indexvaluepairs[pairsIdx].index = globalResK;
-                  indexvaluepairs[pairsIdx].value = valueData[localExtK];
+                  indexvaluepairs[pairsIdx].value = localpairs[k].value;
                   pairsIdx++;
                }
                localResActive = pairsIdx;
@@ -1639,7 +1639,7 @@ int writeActivitySparse(
                globalResIndices = (unsigned int *)malloc(localActive * sizeof(unsigned int));
                int indiciesIdx  = 0;
                for (int j = 0; j < localActive; j++) {
-                  int localExtK  = indices[j];
+                  int localExtK  = localpairs[j].index;
                   int globalResK = localExtToGlobalRes(localExtK, loc);
                   if (globalResK == -1) {
                      continue;

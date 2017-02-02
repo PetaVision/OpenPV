@@ -8,7 +8,7 @@
 #ifndef CONVERSIONS_H_
 #define CONVERSIONS_H_
 
-#include "../include/pv_types.h"
+#include "include/pv_types.h"
 
 #include <math.h>
 #include <stdio.h>
