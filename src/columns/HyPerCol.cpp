@@ -1110,13 +1110,11 @@ int HyPerCol::advanceTime(double sim_time) {
       notify(std::make_shared<LayerPublishMessage>(phase, mSimTime));
 
       // wait for all published data to arrive and call layer's outputState
-      std::vector<std::shared_ptr<BaseMessage const>> messageVector = {
-            std::make_shared<LayerUpdateActiveIndicesMessage>(phase),
-            std::make_shared<LayerOutputStateMessage>(phase, mSimTime)};
+      notify(std::make_shared<LayerUpdateActiveIndicesMessage>(phase));
+      notify(std::make_shared<LayerOutputStateMessage>(phase, mSimTime));
       if (mErrorOnNotANumber) {
-         messageVector.push_back(std::make_shared<LayerCheckNotANumberMessage>(phase));
+         notify(std::make_shared<LayerCheckNotANumberMessage>(phase));
       }
-      notify(messageVector);
    }
 
    mRunTimer->stop();
