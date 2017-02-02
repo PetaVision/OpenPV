@@ -7,8 +7,8 @@
 
 #include <cmath>
 
-#include "L1NormProbe.hpp"
 #include "../columns/HyPerCol.hpp"
+#include "L1NormProbe.hpp"
 
 namespace PV {
 
@@ -87,9 +87,10 @@ double L1NormProbe::getValueInternal(double timevalue, int index) {
    }
    else {
       if (getTargetLayer()->getSparseFlag()) {
-         DataStore *store               = getTargetLayer()->getPublisher()->dataStore();
-         int numActive                  = (int)store->numActiveBuffer(index)[0];
-         unsigned int const *activeList = store->activeIndicesBuffer(index);
+         PVLayerCube cube               = getTargetLayer()->getPublisher()->createCube();
+         long int numActive             = cube.numActive[index];
+         int numItems                   = cube.numItems / cube.loc.nbatch;
+         unsigned int const *activeList = &cube.activeIndices[index * numItems];
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for reduction(+ : sum)
 #endif // PV_USE_OPENMP_THREADS

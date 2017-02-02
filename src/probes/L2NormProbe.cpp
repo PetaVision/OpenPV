@@ -116,9 +116,10 @@ double L2NormProbe::getValueInternal(double timevalue, int index) {
    }
    else {
       if (getTargetLayer()->getSparseFlag()) {
-         DataStore *store               = getTargetLayer()->getPublisher()->dataStore();
-         int numActive                  = (int)store->numActiveBuffer(index)[0];
-         unsigned int const *activeList = store->activeIndicesBuffer(index);
+         PVLayerCube cube               = getTargetLayer()->getPublisher()->createCube();
+         long int numActive             = cube.numActive[index];
+         int numItems                   = cube.numItems / cube.loc.nbatch;
+         unsigned int const *activeList = &cube.activeIndices[index * numItems];
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for reduction(+ : l2normsq)
 #endif // PV_USE_OPENMP_THREADS
