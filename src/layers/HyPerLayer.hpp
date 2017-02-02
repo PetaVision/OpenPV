@@ -245,8 +245,7 @@ class HyPerLayer : public BaseLayer {
          char const *bufferName,
          float *pvpBuffer,
          bool extended);
-   void
-   checkpointDataStore(Checkpointer *checkpointer, char const *bufferName, DataStore *datastore);
+
    void checkpointRandState(
          Checkpointer *checkpointer,
          char const *bufferName,
@@ -593,7 +592,7 @@ class HyPerLayer : public BaseLayer {
    std::vector<BaseConnection *> recvConns;
 
    bool mHasReceived = false;
-   bool mHasUpdated = false;
+   bool mHasUpdated  = false;
 
 // GPU variables
 #ifdef PV_USE_CUDA

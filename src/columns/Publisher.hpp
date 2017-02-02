@@ -8,7 +8,8 @@
 #ifndef PUBLISHER_HPP_
 #define PUBLISHER_HPP_
 
-#include "../arch/mpi/mpi.h"
+#include "arch/mpi/mpi.h"
+#include "checkpointing/Checkpointer.hpp"
 #include "columns/Communicator.hpp"
 #include "columns/DataStore.hpp"
 #include "include/PVLayerLoc.h"
@@ -21,6 +22,9 @@ class Publisher {
   public:
    Publisher(Communicator *comm, PVLayerCube *cube, int numLevels, bool isSparse);
    virtual ~Publisher();
+
+   void
+   checkpointDataStore(Checkpointer *checkpointer, char const *objectName, char const *bufferName);
 
    /**
     * Copies the data from the cube to the top level of the data store, and exchanges

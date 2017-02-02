@@ -13,7 +13,6 @@
 */
 
 #include "HyPerLayer.hpp"
-#include "checkpointing/CheckpointEntryDataStore.hpp"
 #include "checkpointing/CheckpointEntryPvp.hpp"
 #include "checkpointing/CheckpointEntryRandState.hpp"
 #include "columns/HyPerCol.hpp"
@@ -544,15 +543,6 @@ void HyPerLayer::checkpointPvpActivityFloat(
          "%s failed to register %s for checkpointing.\n",
          getDescription_c(),
          bufferName);
-}
-
-void HyPerLayer::checkpointDataStore(
-      Checkpointer *checkpointer,
-      char const *bufferName,
-      DataStore *datastore) {
-   bool registerSucceeded = checkpointer->registerCheckpointEntry(
-         std::make_shared<CheckpointEntryDataStore>(
-               getName(), bufferName, parent->getCommunicator(), datastore, getLayerLoc()));
 }
 
 void HyPerLayer::checkpointRandState(
@@ -1713,7 +1703,7 @@ int HyPerLayer::registerData(Checkpointer *checkpointer, std::string const &objN
    if (getV() != nullptr) {
       checkpointPvpActivityFloat(checkpointer, "V", getV(), false /*not extended*/);
    }
-   checkpointDataStore(checkpointer, "Delays", publisher->dataStore());
+   publisher->checkpointDataStore(checkpointer, getName(), "Delays");
    checkpointer->registerCheckpointData(
          std::string(getName()),
          std::string("lastUpdateTime"),

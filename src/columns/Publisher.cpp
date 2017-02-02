@@ -6,6 +6,7 @@
  */
 
 #include "Publisher.hpp"
+#include "checkpointing/CheckpointEntryDataStore.hpp"
 #include "include/pv_common.h"
 #include "utils/PVAssert.hpp"
 
@@ -38,6 +39,15 @@ Publisher::~Publisher() {
    delete store;
    Communicator::freeDatatypes(neighborDatatypes);
    neighborDatatypes = nullptr;
+}
+
+void Publisher::checkpointDataStore(
+      Checkpointer *checkpointer,
+      char const *objectName,
+      char const *bufferName) {
+   bool registerSucceeded = checkpointer->registerCheckpointEntry(
+         std::make_shared<CheckpointEntryDataStore>(
+               objectName, bufferName, mComm, store, &mLayerCube->loc));
 }
 
 int Publisher::updateAllActiveIndices() {
