@@ -1688,8 +1688,8 @@ int HyPerLayer::requireChannel(int channelNeeded, int *numChannelsResult) {
  * extended space (with margins).
  */
 const float *HyPerLayer::getLayerData(int delay) {
-   DataStore *store = publisher->dataStore();
-   return store->buffer(0, delay);
+   PVLayerCube cube = publisher->createCube(delay);
+   return cube.data;
 }
 
 int HyPerLayer::mirrorInteriorToBorder(PVLayerCube *cube, PVLayerCube *border) {
