@@ -1032,7 +1032,7 @@ int HyPerLayer::respondLayerUpdateState(LayerUpdateStateMessage const *message) 
    if (!mHasReceived) {
       return PV_POSTPONE;
    }
-   status = callUpdateState(message->mTime, message->mDeltaT);
+   status      = callUpdateState(message->mTime, message->mDeltaT);
    mHasUpdated = true;
    return status;
 }
@@ -1115,7 +1115,7 @@ int HyPerLayer::respondLayerOutputState(LayerOutputStateMessage const *message) 
 
 void HyPerLayer::clearProgressFlags() {
    mHasReceived = false;
-   mHasUpdated = false;
+   mHasUpdated  = false;
 }
 
 #ifdef PV_USE_CUDA
@@ -2008,9 +2008,7 @@ int HyPerLayer::setActivity() {
 int HyPerLayer::updateAllActiveIndices() { return publisher->updateAllActiveIndices(); }
 int HyPerLayer::updateActiveIndices() { return publisher->updateActiveIndices(0); }
 
-bool HyPerLayer::isExchangeFinished(int delay ) {
-   return publisher->isExchangeFinished(delay);
-}
+bool HyPerLayer::isExchangeFinished(int delay) { return publisher->isExchangeFinished(delay); }
 
 bool HyPerLayer::isAllInputReady() {
    bool isReady = true;
@@ -2269,9 +2267,9 @@ int HyPerLayer::readDelaysFromCheckpoint(Checkpointer *checkpointer) {
 int HyPerLayer::processCheckpointRead() { return updateAllActiveIndices(); }
 
 int HyPerLayer::writeActivitySparse(double timed, bool includeValues) {
-   DataStore *store = publisher->dataStore();
+   PVLayerCube cube = publisher->createCube(0);
    int status       = PV::writeActivitySparse(
-         mOutputStateStream, parent->getCommunicator(), timed, store, getLayerLoc(), includeValues);
+         mOutputStateStream, parent->getCommunicator(), timed, &cube, includeValues);
 
    if (status == PV_SUCCESS) {
       status = incrementNBands(&writeActivitySparseCalls);
@@ -2281,10 +2279,9 @@ int HyPerLayer::writeActivitySparse(double timed, bool includeValues) {
 
 // write non-spiking activity
 int HyPerLayer::writeActivity(double timed) {
-   DataStore *store = publisher->dataStore();
+   PVLayerCube cube = publisher->createCube(0);
 
-   int status = PV::writeActivity(
-         mOutputStateStream, parent->getCommunicator(), timed, store, getLayerLoc());
+   int status = PV::writeActivity(mOutputStateStream, parent->getCommunicator(), timed, &cube);
    if (status == PV_SUCCESS) {
       status = incrementNBands(&writeActivityCalls);
    }

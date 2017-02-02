@@ -11,7 +11,6 @@
 #include "FileStream.hpp"
 #include "arch/mpi/mpi.h"
 #include "columns/Communicator.hpp"
-#include "columns/DataStore.hpp"
 #include "include/PVLayerLoc.h"
 #include "include/pv_types.h"
 #include "io.hpp"
@@ -131,19 +130,13 @@ int set_weight_params(int *params, int nxp, int nyp, int nfp, float min, float m
 
 int pvp_read_time(PV_Stream *pvstream, Communicator *comm, int root_process, double *timed);
 
-int writeActivity(
-      FileStream *fileStream,
-      Communicator *comm,
-      double timed,
-      DataStore *store,
-      const PVLayerLoc *loc);
+int writeActivity(FileStream *fileStream, Communicator *comm, double timed, PVLayerCube *cube);
 
 int writeActivitySparse(
       FileStream *fileStream,
       Communicator *comm,
       double timed,
-      DataStore *store,
-      const PVLayerLoc *loc,
+      PVLayerCube *cube,
       bool includeValues);
 
 int readWeights(
