@@ -2469,13 +2469,13 @@ int HyPerConn::clear_dW(int arborId) {
    int const nkPatch = nfp * nxp;
    for (int kArbor = 0; kArbor < numberOfAxonalArborLists(); kArbor++) {
 #ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for 
+#pragma omp parallel for
 #endif
       for (int kKernel = 0; kKernel < getNumDataPatches(); kKernel++) {
          float *dWeights = get_dwDataHead(kArbor, kKernel);
          for (int kyPatch = 0; kyPatch < nyp; kyPatch++) {
             for (int kPatch = 0; kPatch < nkPatch; kPatch++) {
-               dWeights[kyPatch*syPatch + kPatch] = 0.0f;
+               dWeights[kyPatch * syPatch + kPatch] = 0.0f;
             }
          }
       }
@@ -2610,13 +2610,16 @@ void HyPerConn::reduceAcrossBatch(int arborID) {
    }
 }
 
-int HyPerConn::update_dW(int arbor_ID) {
+int HyPerConn::update_dW(int arborID) {
    // compute dW but don't add them to the weights yet.
    // That takes place in reduceKernels, so that the output is
    // independent of the number of processors.
    int nExt              = preSynapticLayer()->getNumExtended();
    const PVLayerLoc *loc = preSynapticLayer()->getLayerLoc();
    int nbatch            = loc->nbatch;
+
+   float const *preactbufHead  = preSynapticLayer()->getLayerData(getDelay(arborID));
+   float const *postactbufHead = postSynapticLayer()->getLayerData();
 
    if (sharedWeights) {
       // Calculate x and y cell size
@@ -2649,7 +2652,7 @@ int HyPerConn::update_dW(int arbor_ID) {
                while (kxIdx < nxExt) {
                   // Calculate kExt from ky, kx, and kf
                   int kExt = kIndex(kxIdx, kyIdx, kfIdx, nxExt, nyExt, nf);
-                  updateInd_dW(arbor_ID, b, kExt);
+                  updateInd_dW(arborID, b, preactbufHead, postactbufHead, kExt);
                   xCellIdx++;
                   kxIdx = kxCellIdx + xCellIdx * xCellSize;
                }
@@ -2666,7 +2669,7 @@ int HyPerConn::update_dW(int arbor_ID) {
 #pragma omp parallel for
 #endif
          for (int kExt = 0; kExt < nExt; kExt++) {
-            updateInd_dW(arbor_ID, b, kExt);
+            updateInd_dW(arborID, b, preactbufHead, postactbufHead, kExt);
          }
       }
    }
@@ -2675,9 +2678,11 @@ int HyPerConn::update_dW(int arbor_ID) {
    // Updates on all PlasticClones
    for (int clonei = 0; clonei < clones.size(); clonei++) {
       pvAssert(clones[clonei]->preSynapticLayer()->getNumExtended() == nExt);
+      float const *clonePre = clones[clonei]->preSynapticLayer()->getLayerData(getDelay(arborID));
+      float const *clonePost = clones[clonei]->postSynapticLayer()->getLayerData();
       for (int b = 0; b < parent->getNBatch(); b++) {
          for (int kExt = 0; kExt < nExt; kExt++) {
-            clones[clonei]->updateInd_dW(arbor_ID, b, kExt);
+            clones[clonei]->updateInd_dW(arborID, b, clonePre, clonePost, kExt);
          }
       }
    }
@@ -2685,19 +2690,21 @@ int HyPerConn::update_dW(int arbor_ID) {
    return PV_SUCCESS;
 }
 
-int HyPerConn::updateInd_dW(int arbor_ID, int batch_ID, int kExt) {
+int HyPerConn::updateInd_dW(
+      int arborID,
+      int batchID,
+      float const *preLayerData,
+      float const *postLayerData,
+      int kExt) {
    const PVLayerLoc *postLoc = post->getLayerLoc();
-
-   const float *preactbufHead  = preSynapticLayer()->getLayerData(getDelay(arbor_ID));
-   const float *postactbufHead = postSynapticLayer()->getLayerData();
 
    const float *maskactbuf = NULL;
    if (useMask) {
       const float *maskactbufHead = mask->getLayerData();
-      maskactbuf                  = maskactbufHead + batch_ID * mask->getNumExtended();
+      maskactbuf                  = maskactbufHead + batchID * mask->getNumExtended();
    }
-   const float *preactbuf  = preactbufHead + batch_ID * preSynapticLayer()->getNumExtended();
-   const float *postactbuf = postactbufHead + batch_ID * postSynapticLayer()->getNumExtended();
+   const float *preactbuf  = preLayerData + batchID * preSynapticLayer()->getNumExtended();
+   const float *postactbuf = postLayerData + batchID * postSynapticLayer()->getNumExtended();
 
    int sya =
          (post->getLayerLoc()->nf * (post->getLayerLoc()->nx + post->getLayerLoc()->halo.lt
@@ -2707,14 +2714,14 @@ int HyPerConn::updateInd_dW(int arbor_ID, int batch_ID, int kExt) {
    if (skipPre(preact))
       return PV_CONTINUE;
 
-   PVPatch *weights = getWeights(kExt, arbor_ID);
+   PVPatch *weights = getWeights(kExt, arborID);
    int ny           = weights->ny;
    int nk           = weights->nx * nfp;
    if (ny == 0 || nk == 0) {
       return PV_SUCCESS;
    }
 
-   size_t offset           = getAPostOffset(kExt, arbor_ID);
+   size_t offset           = getAPostOffset(kExt, arborID);
    const float *postactRef = &postactbuf[offset];
 
    int sym                 = 0;
@@ -2756,10 +2763,10 @@ int HyPerConn::updateInd_dW(int arbor_ID, int batch_ID, int kExt) {
       sym        = (maskLoc->nf * (maskLoc->nx + maskLoc->halo.lt + maskLoc->halo.rt));
    }
 
-   float *dwdata     = get_dwData(arbor_ID, kExt);
+   float *dwdata     = get_dwData(arborID, kExt);
    long *activations = NULL;
    if (sharedWeights && normalizeDwFlag) {
-      activations = get_activations(arbor_ID, kExt);
+      activations = get_activations(arborID, kExt);
    }
 
    int lineoffsetw = 0;
@@ -2885,7 +2892,7 @@ int HyPerConn::deliver() {
    int numArbors   = numberOfAxonalArborLists();
 
    for (int arbor = 0; arbor < numArbors; arbor++) {
-      int delay = getDelay(arbor);
+      int delay        = getDelay(arbor);
       PVLayerCube cube = pre->getPublisher()->createCube(delay);
       cube.numItems /= cube.loc.nbatch;
       // hack; should make sure deliver*Perspective* methods expect numItems to include batching.

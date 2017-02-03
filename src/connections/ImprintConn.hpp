@@ -23,7 +23,7 @@ class ImprintConn : public HyPerConn {
   protected:
    virtual int initialize_dW(int arborId);
    virtual int registerData(Checkpointer *checkpointer, std::string const &objName) override;
-   virtual int update_dW(int arbor_ID);
+   virtual int update_dW(int arborID);
    virtual int updateWeights(int arbor_ID);
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
