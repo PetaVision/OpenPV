@@ -1033,24 +1033,21 @@ int HyPerCol::advanceTime(double sim_time) {
          l->clearProgressFlags();
       }
 
-// Ordering needs to go recvGpu, if(recvGpu and upGpu)update, recvNoGpu, update
-// rest
+// nonblockingLayerUpdate allows for more concurrency than notify.
 #ifdef PV_USE_CUDA
-      // TODO: bypass notify for LayerRecvSynapticInput/LayerUpdateState when using CUDA
-      // along the lines as in the #else block.
-      notify(
-            {std::make_shared<LayerRecvSynapticInputMessage>(
-                   phase, mPhaseRecvTimers.at(phase), true /*recvGpuFlag*/, mSimTime, mDeltaTime),
-             std::make_shared<LayerUpdateStateMessage>(
-                   phase, true /*recvGpuFlag*/, true /*updateGpuFlag*/, mSimTime, mDeltaTime)});
+      // Ordering needs to go recvGpu, if(recvGpu and upGpu)update, recvNoGpu,
+      // update rest
+      auto recvMessage = std::make_shared<LayerRecvSynapticInputMessage>(
+            phase, mPhaseRecvTimers.at(phase), true /*recvGpuFlag*/, mSimTime, mDeltaTime);
+      auto updateMessage = std::make_shared<LayerUpdateStateMessage>(
+            phase, true /*recvGpuFlag*/, true /*updateGpuFlag*/, mSimTime, mDeltaTime);
+      nonblockingLayerUpdate(recvMessage, updateMessage);
 
-      notify(
-            {std::make_shared<LayerRecvSynapticInputMessage>(
-                   phase, mPhaseRecvTimers.at(phase), false /*recvGpuFlag*/, mSimTime, mDeltaTime),
-             std::make_shared<LayerUpdateStateMessage>(
-                   phase, false /*recvGpuFlag*/, false /*updateGpuFlag*/, mSimTime, mDeltaTime)
-
-            });
+      recvMessage = std::make_shared<LayerRecvSynapticInputMessage>(
+            phase, mPhaseRecvTimers.at(phase), false /*recvGpuFlag*/, mSimTime, mDeltaTime);
+      updateMessage = std::make_shared<LayerUpdateStateMessage>(
+            phase, false /*recvGpuFlag*/, false /*updateGpuFlag*/, mSimTime, mDeltaTime);
+      nonblockingLayerUpdate(recvMessage, updateMessage);
 
       getDevice()->syncDevice();
 
@@ -1067,11 +1064,9 @@ int HyPerCol::advanceTime(double sim_time) {
             std::make_shared<LayerUpdateStateMessage>(
                   phase, true /*recvOnGpuFlag*/, false /*updateOnGpuFlag*/, mSimTime, mDeltaTime));
 #else
-      // Bypassing the notify method to allow for more concurrency
       auto recvMessage = std::make_shared<LayerRecvSynapticInputMessage>(
             phase, mPhaseRecvTimers.at(phase), mSimTime, mDeltaTime);
       auto updateMessage = std::make_shared<LayerUpdateStateMessage>(phase, mSimTime, mDeltaTime);
-
       nonblockingLayerUpdate(recvMessage, updateMessage);
 #endif
       // Rotate DataStore ring buffers
@@ -1106,6 +1101,9 @@ void HyPerCol::nonblockingLayerUpdate(
       bool anyUpdated = false;
 
       for (auto &l : mLayers) {
+#ifdef PV_USE_CUDA
+         if (l->getRecvGpu() != recvMessage->mRecvOnGpuFlag) { continue;}
+#endif // PV_USE_CUDA
          if (l->getPhase() == phase && !l->getHasReceived() && l->isAllInputReady()) {
             l->respond(recvMessage);
             anyUpdated = true;
@@ -1117,6 +1115,10 @@ void HyPerCol::nonblockingLayerUpdate(
       }
 
       for (auto &l : mLayers) {
+#ifdef PV_USE_CUDA
+         if (l->getRecvGpu() != updateMessage->mRecvOnGpuFlag) { continue;}
+         if (l->getUpdateGpu() != updateMessage->mUpdateOnGpuFlag) { continue;}
+#endif // PV_USE_CUDA
          if (l->getPhase() == phase && !l->getHasUpdated() && l->getHasReceived()) {
             l->respond(updateMessage);
             anyUpdated = true;
@@ -1131,6 +1133,10 @@ void HyPerCol::nonblockingLayerUpdate(
       // TODO (maybe?) Waitany logic goes here.
       allUpdated = true;
       for (auto &l : mLayers) {
+#ifdef PV_USE_CUDA
+         if (l->getRecvGpu() != updateMessage->mRecvOnGpuFlag) { continue;}
+         if (l->getUpdateGpu() != updateMessage->mUpdateOnGpuFlag) { continue;}
+#endif // PV_USE_CUDA
          if (l->getPhase() == phase) {
             allUpdated &= l->getHasUpdated();
          }
