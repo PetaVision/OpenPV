@@ -196,14 +196,9 @@ class LayerPublishMessage : public BaseMessage {
    double mTime;
 };
 
-class LayerUpdateActiveIndicesMessage : public BaseMessage {
-  public:
-   LayerUpdateActiveIndicesMessage(int phase) {
-      setMessageType("LayerUpdateActiveIndices");
-      mPhase = phase;
-   }
-   int mPhase;
-};
+// LayerUpdateActiveIndices message removed Feb 3, 2017.
+// Active indices are updated by waitOnPublish, and by isExchangeFinished if
+// the MPI exchange has completed.
 
 class LayerOutputStateMessage : public BaseMessage {
   public:

@@ -379,7 +379,8 @@ class HyPerLayer : public BaseLayer {
    virtual int respondLayerAdvanceDataStore(LayerAdvanceDataStoreMessage const *message);
    virtual int respondLayerPublish(LayerPublishMessage const *message);
    virtual int respondLayerCheckNotANumber(LayerCheckNotANumberMessage const *message);
-   virtual int respondLayerUpdateActiveIndices(LayerUpdateActiveIndicesMessage const *message);
+   // respondLayerUpdateActiveIndices removed Feb 3, 2017. Layers update active indices
+   // in response to other messages, when needed.
    virtual int respondLayerOutputState(LayerOutputStateMessage const *message);
    virtual int publish(Communicator *comm, double simTime);
    virtual int resetGSynBuffers(double timef, double dt);

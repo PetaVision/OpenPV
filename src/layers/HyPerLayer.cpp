@@ -963,11 +963,6 @@ int HyPerLayer::respond(std::shared_ptr<BaseMessage const> message) {
       return respondLayerPublish(castMessage);
    }
    else if (
-         LayerUpdateActiveIndicesMessage const *castMessage =
-               dynamic_cast<LayerUpdateActiveIndicesMessage const *>(message.get())) {
-      return respondLayerUpdateActiveIndices(castMessage);
-   }
-   else if (
          LayerOutputStateMessage const *castMessage =
                dynamic_cast<LayerOutputStateMessage const *>(message.get())) {
       return respondLayerOutputState(castMessage);
@@ -1081,16 +1076,6 @@ int HyPerLayer::respondLayerCheckNotANumber(LayerCheckNotANumberMessage const *m
       MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
-   return status;
-}
-
-int HyPerLayer::respondLayerUpdateActiveIndices(LayerUpdateActiveIndicesMessage const *message) {
-   int status = PV_SUCCESS;
-   if (message->mPhase != getPhase()) {
-      return status;
-   }
-   waitOnPublish(getParent()->getCommunicator());
-   status = updateActiveIndices();
    return status;
 }
 
