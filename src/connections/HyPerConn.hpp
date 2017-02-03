@@ -81,7 +81,7 @@ class HyPerConn : public BaseConnection {
    virtual int updateState(double time, double dt) override;
    virtual int finalizeUpdate(double timed, double dt) override;
    virtual bool needUpdate(double time, double dt) override;
-   virtual int updateInd_dW(int arbor_ID, int batch_ID, int kExt);
+   int updateInd_dW(int arbor_ID, int batch_ID, int kExt);
    virtual double computeNewWeightUpdateTime(double time, double currentUpdateTime);
    virtual int writeWeights(double timed, bool last = false);
    virtual int writeWeights(const char *filename);
