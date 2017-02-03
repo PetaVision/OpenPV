@@ -794,10 +794,8 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
          notify(std::make_shared<LayerPublishMessage>(phase, mSimTime));
       }
 
-      // wait for all published data to arrive and update active indices;
-      for (int phase = 0; phase < mNumPhases; phase++) {
-         notify(std::make_shared<LayerUpdateActiveIndicesMessage>(phase));
-      }
+      // Feb 2, 2017: waiting and updating active indices have been moved into
+      // OutputState and CheckNotANumber, where they are called if needed.
 
       // output initial conditions
       if (!mCheckpointReadFlag) {
@@ -1095,14 +1093,16 @@ void HyPerCol::nonblockingLayerUpdate(
       std::shared_ptr<LayerUpdateStateMessage const> updateMessage) {
    long int idleCounter = 0;
    bool allUpdated      = false;
-   int phase = recvMessage->mPhase;
+   int phase            = recvMessage->mPhase;
    pvAssert(phase == updateMessage->mPhase);
    while (!allUpdated) {
       bool anyUpdated = false;
 
       for (auto &l : mLayers) {
 #ifdef PV_USE_CUDA
-         if (l->getRecvGpu() != recvMessage->mRecvOnGpuFlag) { continue;}
+         if (l->getRecvGpu() != recvMessage->mRecvOnGpuFlag) {
+            continue;
+         }
 #endif // PV_USE_CUDA
          if (l->getPhase() == phase && !l->getHasReceived() && l->isAllInputReady()) {
             l->respond(recvMessage);
@@ -1116,8 +1116,12 @@ void HyPerCol::nonblockingLayerUpdate(
 
       for (auto &l : mLayers) {
 #ifdef PV_USE_CUDA
-         if (l->getRecvGpu() != updateMessage->mRecvOnGpuFlag) { continue;}
-         if (l->getUpdateGpu() != updateMessage->mUpdateOnGpuFlag) { continue;}
+         if (l->getRecvGpu() != updateMessage->mRecvOnGpuFlag) {
+            continue;
+         }
+         if (l->getUpdateGpu() != updateMessage->mUpdateOnGpuFlag) {
+            continue;
+         }
 #endif // PV_USE_CUDA
          if (l->getPhase() == phase && !l->getHasUpdated() && l->getHasReceived()) {
             l->respond(updateMessage);
@@ -1134,8 +1138,12 @@ void HyPerCol::nonblockingLayerUpdate(
       allUpdated = true;
       for (auto &l : mLayers) {
 #ifdef PV_USE_CUDA
-         if (l->getRecvGpu() != updateMessage->mRecvOnGpuFlag) { continue;}
-         if (l->getUpdateGpu() != updateMessage->mUpdateOnGpuFlag) { continue;}
+         if (l->getRecvGpu() != updateMessage->mRecvOnGpuFlag) {
+            continue;
+         }
+         if (l->getUpdateGpu() != updateMessage->mUpdateOnGpuFlag) {
+            continue;
+         }
 #endif // PV_USE_CUDA
          if (l->getPhase() == phase) {
             allUpdated &= l->getHasUpdated();
@@ -1143,7 +1151,8 @@ void HyPerCol::nonblockingLayerUpdate(
       }
    }
    if (idleCounter > 0L) {
-      InfoLog() << "t = " << mSimTime << ", phase " << phase << ", idle count " << idleCounter << "\n";
+      InfoLog() << "t = " << mSimTime << ", phase " << phase << ", idle count " << idleCounter
+                << "\n";
    }
 }
 
