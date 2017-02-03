@@ -170,7 +170,6 @@ int Publisher::isExchangeFinished(int delay /* default 0*/) {
  * wait until all outstanding published messages have arrived
  */
 int Publisher::wait(int delay /*default 0*/) {
-#ifdef PV_USE_MPI
 #ifdef DEBUG_OUTPUT
    InfoLog().printf("[%2d]: waiting for data, num_requests==%d\n", mComm->commRank(), numRemote);
    InfoLog().flush();
@@ -182,7 +181,6 @@ int Publisher::wait(int delay /*default 0*/) {
       pvAssert(requestsVector->empty());
    }
    updateActiveIndices(delay);
-#endif // PV_USE_MPI
 
    return 0;
 }

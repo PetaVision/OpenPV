@@ -29,9 +29,19 @@ typedef void *voidptr;
 #define MPI_STATUS_IGNORE 0
 #define MPI_STATUSES_IGNORE NULL
 #define MPI_IN_PLACE ((voidptr)1)
-#define MPI_MAX 0
-#define MPI_MIN 1
-#define MPI_SUM 2
+#define MPI_MAX 1
+#define MPI_MIN 2
+#define MPI_SUM 3
+#define MPI_PROD 4
+#define MPI_LAND 5
+#define MPI_BAND 6
+#define MPI_LOR 7
+#define MPI_BOR 8
+#define MPI_LXOR 9
+#define MPI_BXOR 10
+#define MPI_MAXLOC 11
+#define MPI_MINLOC 12
+#define MPI_REPLACE 13
 
 #ifdef __cplusplus
 extern "C" {
@@ -44,6 +54,15 @@ int MPI_Finalize();
 int MPI_Barrier(MPI_Comm comm);
 
 int MPI_Bcast(void *buffer, int count, MPI_Datatype datatype, int root, MPI_Comm comm);
+
+int MPI_Iallreduce(
+      void *sendbuf,
+      void *recvbuf,
+      int count,
+      MPI_Datatype datatype,
+      MPI_Op op,
+      MPI_Comm comm,
+      MPI_Request *request);
 
 int MPI_Allreduce(
       void *sendbuf,
@@ -90,6 +109,7 @@ int MPI_Isend(
       MPI_Comm comm,
       MPI_Request *request);
 int MPI_Send(void *buf, int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm);
+int MPI_Testall(int count, MPI_Request *reqs, int *flag, MPI_Status *stats);
 int MPI_Waitall(int count, MPI_Request array_of_requests[], MPI_Status array_of_statuses[]);
 
 double MPI_Wtime();
