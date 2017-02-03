@@ -13,7 +13,6 @@
 */
 
 #include "HyPerLayer.hpp"
-#include "checkpointing/CheckpointEntryDataStore.hpp"
 #include "checkpointing/CheckpointEntryPvp.hpp"
 #include "checkpointing/CheckpointEntryRandState.hpp"
 #include "columns/HyPerCol.hpp"
@@ -546,15 +545,6 @@ void HyPerLayer::checkpointPvpActivityFloat(
          bufferName);
 }
 
-void HyPerLayer::checkpointDataStore(
-      Checkpointer *checkpointer,
-      char const *bufferName,
-      DataStore *datastore) {
-   bool registerSucceeded = checkpointer->registerCheckpointEntry(
-         std::make_shared<CheckpointEntryDataStore>(
-               getName(), bufferName, parent->getCommunicator(), datastore, getLayerLoc()));
-}
-
 void HyPerLayer::checkpointRandState(
       Checkpointer *checkpointer,
       char const *bufferName,
@@ -973,11 +963,6 @@ int HyPerLayer::respond(std::shared_ptr<BaseMessage const> message) {
       return respondLayerPublish(castMessage);
    }
    else if (
-         LayerUpdateActiveIndicesMessage const *castMessage =
-               dynamic_cast<LayerUpdateActiveIndicesMessage const *>(message.get())) {
-      return respondLayerUpdateActiveIndices(castMessage);
-   }
-   else if (
          LayerOutputStateMessage const *castMessage =
                dynamic_cast<LayerOutputStateMessage const *>(message.get())) {
       return respondLayerOutputState(castMessage);
@@ -1002,10 +987,17 @@ int HyPerLayer::respondLayerRecvSynapticInput(LayerRecvSynapticInputMessage cons
       return status;
    }
 #endif // PV_USE_CUDA
+   if (mHasReceived) {
+      return status;
+   }
+   if (!isAllInputReady()) {
+      return PV_POSTPONE;
+   }
    resetGSynBuffers(message->mTime, message->mDeltaT); // deltaTimeAdapt is not used
    message->mTimer->start();
    recvAllSynapticInput();
    message->mTimer->stop();
+   mHasReceived = true;
    return status;
 }
 
@@ -1022,7 +1014,11 @@ int HyPerLayer::respondLayerUpdateState(LayerUpdateStateMessage const *message) 
       return status;
    }
 #endif // PV_USE_CUDA
-   status = callUpdateState(message->mTime, message->mDeltaT);
+   if (!mHasReceived) {
+      return PV_POSTPONE;
+   }
+   status      = callUpdateState(message->mTime, message->mDeltaT);
+   mHasUpdated = true;
    return status;
 }
 
@@ -1083,16 +1079,6 @@ int HyPerLayer::respondLayerCheckNotANumber(LayerCheckNotANumberMessage const *m
    return status;
 }
 
-int HyPerLayer::respondLayerUpdateActiveIndices(LayerUpdateActiveIndicesMessage const *message) {
-   int status = PV_SUCCESS;
-   if (message->mPhase != getPhase()) {
-      return status;
-   }
-   waitOnPublish(getParent()->getCommunicator());
-   status = updateActiveIndices();
-   return status;
-}
-
 int HyPerLayer::respondLayerOutputState(LayerOutputStateMessage const *message) {
    int status = PV_SUCCESS;
    if (message->mPhase != getPhase()) {
@@ -1100,6 +1086,11 @@ int HyPerLayer::respondLayerOutputState(LayerOutputStateMessage const *message) 
    }
    status = outputState(message->mTime); // also calls layer probes' outputState
    return status;
+}
+
+void HyPerLayer::clearProgressFlags() {
+   mHasReceived = false;
+   mHasUpdated  = false;
 }
 
 #ifdef PV_USE_CUDA
@@ -1672,8 +1663,8 @@ int HyPerLayer::requireChannel(int channelNeeded, int *numChannelsResult) {
  * extended space (with margins).
  */
 const float *HyPerLayer::getLayerData(int delay) {
-   DataStore *store = publisher->dataStore();
-   return store->buffer(0, delay);
+   PVLayerCube cube = publisher->createCube(delay);
+   return cube.data;
 }
 
 int HyPerLayer::mirrorInteriorToBorder(PVLayerCube *cube, PVLayerCube *border) {
@@ -1697,7 +1688,7 @@ int HyPerLayer::registerData(Checkpointer *checkpointer, std::string const &objN
    if (getV() != nullptr) {
       checkpointPvpActivityFloat(checkpointer, "V", getV(), false /*not extended*/);
    }
-   checkpointDataStore(checkpointer, "Delays", publisher->dataStore());
+   publisher->checkpointDataStore(checkpointer, getName(), "Delays");
    checkpointer->registerCheckpointData(
          std::string(getName()),
          std::string("lastUpdateTime"),
@@ -1992,6 +1983,18 @@ int HyPerLayer::setActivity() {
 int HyPerLayer::updateAllActiveIndices() { return publisher->updateAllActiveIndices(); }
 int HyPerLayer::updateActiveIndices() { return publisher->updateActiveIndices(0); }
 
+bool HyPerLayer::isExchangeFinished(int delay) { return publisher->isExchangeFinished(delay); }
+
+bool HyPerLayer::isAllInputReady() {
+   bool isReady = true;
+   for (auto &c : recvConns) {
+      for (int a = 0; a < c->numberOfAxonalArborLists(); a++) {
+         isReady &= c->getPre()->isExchangeFinished(c->getDelay(a));
+      }
+   }
+   return isReady;
+}
+
 int HyPerLayer::recvAllSynapticInput() {
    int status = PV_SUCCESS;
    // Only recvAllSynapticInput if we need an update
@@ -2239,9 +2242,9 @@ int HyPerLayer::readDelaysFromCheckpoint(Checkpointer *checkpointer) {
 int HyPerLayer::processCheckpointRead() { return updateAllActiveIndices(); }
 
 int HyPerLayer::writeActivitySparse(double timed, bool includeValues) {
-   DataStore *store = publisher->dataStore();
+   PVLayerCube cube = publisher->createCube(0);
    int status       = PV::writeActivitySparse(
-         mOutputStateStream, parent->getCommunicator(), timed, store, getLayerLoc(), includeValues);
+         mOutputStateStream, parent->getCommunicator(), timed, &cube, includeValues);
 
    if (status == PV_SUCCESS) {
       status = incrementNBands(&writeActivitySparseCalls);
@@ -2251,10 +2254,9 @@ int HyPerLayer::writeActivitySparse(double timed, bool includeValues) {
 
 // write non-spiking activity
 int HyPerLayer::writeActivity(double timed) {
-   DataStore *store = publisher->dataStore();
+   PVLayerCube cube = publisher->createCube(0);
 
-   int status = PV::writeActivity(
-         mOutputStateStream, parent->getCommunicator(), timed, store, getLayerLoc());
+   int status = PV::writeActivity(mOutputStateStream, parent->getCommunicator(), timed, &cube);
    if (status == PV_SUCCESS) {
       status = incrementNBands(&writeActivityCalls);
    }

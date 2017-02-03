@@ -240,14 +240,6 @@ class HyPerCol : public Subject, Observer {
     */
    virtual void ioParam_errorOnNotANumber(enum ParamsIOFlag ioFlag);
 
-   /**
-    * @brief immediateLayerPublish: If set to true, layers publish their
-    * activity to their data store immediately after updateState.
-    * If false, they wait until the next timestep to do so.
-    */
-   virtual void ioParam_immediateLayerPublish(enum ParamsIOFlag ioFlag);
-   /** @} */
-
   public:
    HyPerCol(const char *name, PV_Init *initObj);
    virtual ~HyPerCol();
@@ -275,6 +267,9 @@ class HyPerCol : public Subject, Observer {
    int addLayer(HyPerLayer *l);
    void advanceTimeLoop(Clock &runClock, int const runClockStartingStep);
    int advanceTime(double time);
+   void nonblockingLayerUpdate(
+         std::shared_ptr<LayerRecvSynapticInputMessage const> recvMessage,
+         std::shared_ptr<LayerUpdateStateMessage const> updateMessage);
    int insertProbe(ColProbe *p);
    int outputState(double time);
    int processParams(char const *path);
@@ -424,8 +419,6 @@ class HyPerCol : public Subject, Observer {
    // passed in the
    // constructor
    bool mWriteTimescales;
-   bool mImmediateLayerPublish; // If true, do MPI border exchange immediately
-   // after layer update; if false, wait until the start of the next timestep.
    char *mName;
    char *mOutputPath; // path to output file directory
    char *mPrintParamsFilename; // filename for outputting the mParams, including

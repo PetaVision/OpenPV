@@ -10,6 +10,7 @@
 
 #include "include/pv_arch.h"
 #include "include/pv_types.h"
+#include "layers/PVLayerCube.hpp"
 #include "structures/RingBuffer.hpp"
 #include <cstdlib>
 #include <cstring>
@@ -75,9 +76,18 @@ class DataStore {
 
    long *numActiveBuffer(int bufferId) { return mNumActive->getBuffer(bufferId); }
 
+   void markActiveIndicesOutOfSync(int bufferId, int level);
+
    void updateActiveIndices(int bufferId, int level);
 
    int getNumItems() const { return mNumItems; }
+
+   /**
+    * Returns a PVLayerCube pointing to the data at the given delay.
+    * It does not check whether the PVLayerLoc is consistent with the
+    * DataStore's numItems or numBuffers.
+    */
+   PVLayerCube createCube(PVLayerLoc const &loc, int delay);
 
   private:
    int mNumItems;

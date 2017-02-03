@@ -245,8 +245,7 @@ class HyPerLayer : public BaseLayer {
          char const *bufferName,
          float *pvpBuffer,
          bool extended);
-   void
-   checkpointDataStore(Checkpointer *checkpointer, char const *bufferName, DataStore *datastore);
+
    void checkpointRandState(
          Checkpointer *checkpointer,
          char const *bufferName,
@@ -380,7 +379,8 @@ class HyPerLayer : public BaseLayer {
    virtual int respondLayerAdvanceDataStore(LayerAdvanceDataStoreMessage const *message);
    virtual int respondLayerPublish(LayerPublishMessage const *message);
    virtual int respondLayerCheckNotANumber(LayerCheckNotANumberMessage const *message);
-   virtual int respondLayerUpdateActiveIndices(LayerUpdateActiveIndicesMessage const *message);
+   // respondLayerUpdateActiveIndices removed Feb 3, 2017. Layers update active indices
+   // in response to other messages, when needed.
    virtual int respondLayerOutputState(LayerOutputStateMessage const *message);
    virtual int publish(Communicator *comm, double simTime);
    virtual int resetGSynBuffers(double timef, double dt);
@@ -403,6 +403,21 @@ class HyPerLayer : public BaseLayer {
 
    virtual int insertProbe(LayerProbe *probe);
    int outputProbeParams();
+
+   /**
+    * Returns true if the MPI exchange for the specified delay has finished;
+    * false if it is still in process.
+    */
+   bool isExchangeFinished(int delay = 0);
+
+   void clearProgressFlags();
+
+   /**
+    * Returns true if each layer that delivers input to this layer
+    * has finished its MPI exchange for its delay; false if any of
+    * them has not.
+    */
+   bool isAllInputReady();
 
    int getNumProbes() { return numProbes; }
    LayerProbe *getProbe(int n) { return (n >= 0 && n < numProbes) ? probes[n] : NULL; }
@@ -467,6 +482,10 @@ class HyPerLayer : public BaseLayer {
    float getMaxRate() { return maxRate; }
 
    Publisher *getPublisher() { return publisher; }
+
+   bool getHasReceived() { return mHasReceived; }
+
+   bool getHasUpdated() { return mHasUpdated; }
 
   protected:
    virtual int communicateInitInfo() override;
@@ -572,6 +591,9 @@ class HyPerLayer : public BaseLayer {
 
    float **thread_gSyn; // Accumulate buffer for each thread, only used if numThreads > 1
    std::vector<BaseConnection *> recvConns;
+
+   bool mHasReceived = false;
+   bool mHasUpdated  = false;
 
 // GPU variables
 #ifdef PV_USE_CUDA

@@ -175,10 +175,6 @@ double ImageFromMemoryBuffer::getDeltaUpdateTime() {
    return parent->getStopTime() - parent->getStartTime();
 }
 
-int ImageFromMemoryBuffer::outputState(double time, bool last) {
-   return HyPerLayer::outputState(time, last);
-}
-
 ImageFromMemoryBuffer::~ImageFromMemoryBuffer() {}
 
 } // namespace PV

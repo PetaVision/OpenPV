@@ -124,10 +124,9 @@ int HyPerCol::initialize_base() {
    mPhaseRecvTimers.clear();
    mColProbes.clear();
    mBaseProbes.clear();
-   mRandomSeed            = 0U;
-   mErrorOnNotANumber     = false;
-   mImmediateLayerPublish = true;
-   mNumThreads            = 1;
+   mRandomSeed        = 0U;
+   mErrorOnNotANumber = false;
+   mNumThreads        = 1;
    mRecvLayerBuffer.clear();
    mVerifyWrites = true; // Default for reading back and verifying when calling PV_fwrite
 #ifdef PV_USE_CUDA
@@ -297,7 +296,6 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_checkpointRead(ioFlag); // checkpointRead is obsolete as of June 27, 2016.
    ioParam_writeTimescales(ioFlag);
    ioParam_errorOnNotANumber(ioFlag);
-   ioParam_immediateLayerPublish(ioFlag);
 
    // Aug 18, 2016.  Several HyPerCol parameters have moved to
    // AdaptiveTimeScaleProbe.
@@ -668,11 +666,6 @@ void HyPerCol::ioParam_errorOnNotANumber(enum ParamsIOFlag ioFlag) {
          ioFlag, mName, "errorOnNotANumber", &mErrorOnNotANumber, mErrorOnNotANumber);
 }
 
-void HyPerCol::ioParam_immediateLayerPublish(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
-         ioFlag, mName, "immediateLayerPublish", &mImmediateLayerPublish, mImmediateLayerPublish);
-}
-
 // Sep 26, 2016: HyPerCol methods for parameter input/output have been moved to
 // PVParams.
 // Sep 27, 2016: ensureDirExists has been moved to fileio.cpp.
@@ -730,41 +723,6 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
       MPI_Barrier(getCommunicator()->communicator());
 
       FatalIf(status != PV_SUCCESS, "HyPerCol \"%s\" failed to run.\n", mName);
-
-      // If immediateLayerPublish is false, a connection's delay cannot be zero
-      // if the presynaptic layer's phase is greater than or equal to that of
-      // the post layer. Error out if this happens.
-      if (!mImmediateLayerPublish) {
-         for (auto &c : mConnections) {
-            int prePhase  = c->preSynapticLayer()->getPhase();
-            int postPhase = c->postSynapticLayer()->getPhase();
-            if (prePhase < postPhase) {
-               continue;
-            }
-            for (int a = 0; a < c->numberOfAxonalArborLists(); a++) {
-               if (c->getDelay(a) == 0) {
-                  status = PV_FAILURE;
-                  if (getCommunicator()->commRank() == 0) {
-                     ErrorLog().printf(
-                           "ImmediateLayerPublish flag is false, and %s has presynaptic phase %d "
-                           "greater than or equal to postsynaptic phase %d, but arbor %d has delay "
-                           "of zero.\n",
-                           c->getDescription_c(),
-                           prePhase,
-                           postPhase,
-                           a);
-                  }
-               }
-            }
-         }
-         if (status != PV_SUCCESS) {
-            if (getCommunicator()->commRank() == 0) {
-               Fatal() << "Zero-delay error(s) with immediateLayerPublish set to false.\n";
-            }
-            MPI_Barrier(getCommunicator()->communicator());
-            exit(EXIT_FAILURE);
-         }
-      }
 
       bool dryRunFlag = mPVInitObj->getBooleanArgument("DryRun");
       if (dryRunFlag) {
@@ -836,10 +794,8 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
          notify(std::make_shared<LayerPublishMessage>(phase, mSimTime));
       }
 
-      // wait for all published data to arrive and update active indices;
-      for (int phase = 0; phase < mNumPhases; phase++) {
-         notify(std::make_shared<LayerUpdateActiveIndicesMessage>(phase));
-      }
+      // Feb 2, 2017: waiting and updating active indices have been moved into
+      // OutputState and CheckNotANumber, where they are called if needed.
 
       // output initial conditions
       if (!mCheckpointReadFlag) {
@@ -1071,31 +1027,25 @@ int HyPerCol::advanceTime(double sim_time) {
 
    // Each layer's phase establishes a priority for updating
    for (int phase = 0; phase < mNumPhases; phase++) {
-
-      if (!mImmediateLayerPublish) {
-         // Rotate DataStore ring buffers
-         notify(std::make_shared<LayerAdvanceDataStoreMessage>(phase));
-
-         // copy activity buffer to DataStore, and do MPI exchange.
-         notify(std::make_shared<LayerPublishMessage>(phase, mSimTime));
+      for (auto &l : mLayers) { // TODO: use notify/respond
+         l->clearProgressFlags();
       }
 
-// Ordering needs to go recvGpu, if(recvGpu and upGpu)update, recvNoGpu, update
-// rest
+// nonblockingLayerUpdate allows for more concurrency than notify.
 #ifdef PV_USE_CUDA
-      notify(
-            {std::make_shared<LayerRecvSynapticInputMessage>(
-                   phase, mPhaseRecvTimers.at(phase), true /*recvGpuFlag*/, mSimTime, mDeltaTime),
-             std::make_shared<LayerUpdateStateMessage>(
-                   phase, true /*recvGpuFlag*/, true /*updateGpuFlag*/, mSimTime, mDeltaTime)});
+      // Ordering needs to go recvGpu, if(recvGpu and upGpu)update, recvNoGpu,
+      // update rest
+      auto recvMessage = std::make_shared<LayerRecvSynapticInputMessage>(
+            phase, mPhaseRecvTimers.at(phase), true /*recvGpuFlag*/, mSimTime, mDeltaTime);
+      auto updateMessage = std::make_shared<LayerUpdateStateMessage>(
+            phase, true /*recvGpuFlag*/, true /*updateGpuFlag*/, mSimTime, mDeltaTime);
+      nonblockingLayerUpdate(recvMessage, updateMessage);
 
-      notify(
-            {std::make_shared<LayerRecvSynapticInputMessage>(
-                   phase, mPhaseRecvTimers.at(phase), false /*recvGpuFlag*/, mSimTime, mDeltaTime),
-             std::make_shared<LayerUpdateStateMessage>(
-                   phase, false /*recvGpuFlag*/, false /*updateGpuFlag*/, mSimTime, mDeltaTime)
-
-            });
+      recvMessage = std::make_shared<LayerRecvSynapticInputMessage>(
+            phase, mPhaseRecvTimers.at(phase), false /*recvGpuFlag*/, mSimTime, mDeltaTime);
+      updateMessage = std::make_shared<LayerUpdateStateMessage>(
+            phase, false /*recvGpuFlag*/, false /*updateGpuFlag*/, mSimTime, mDeltaTime);
+      nonblockingLayerUpdate(recvMessage, updateMessage);
 
       getDevice()->syncDevice();
 
@@ -1112,28 +1062,23 @@ int HyPerCol::advanceTime(double sim_time) {
             std::make_shared<LayerUpdateStateMessage>(
                   phase, true /*recvOnGpuFlag*/, false /*updateOnGpuFlag*/, mSimTime, mDeltaTime));
 #else
-      notify(
-            {std::make_shared<LayerRecvSynapticInputMessage>(
-                   phase, mPhaseRecvTimers.at(phase), mSimTime, mDeltaTime),
-             std::make_shared<LayerUpdateStateMessage>(phase, mSimTime, mDeltaTime)});
+      auto recvMessage = std::make_shared<LayerRecvSynapticInputMessage>(
+            phase, mPhaseRecvTimers.at(phase), mSimTime, mDeltaTime);
+      auto updateMessage = std::make_shared<LayerUpdateStateMessage>(phase, mSimTime, mDeltaTime);
+      nonblockingLayerUpdate(recvMessage, updateMessage);
 #endif
+      // Rotate DataStore ring buffers
+      notify(std::make_shared<LayerAdvanceDataStoreMessage>(phase));
 
-      if (mImmediateLayerPublish) {
-         // Rotate DataStore ring buffers
-         notify(std::make_shared<LayerAdvanceDataStoreMessage>(phase));
+      // copy activity buffer to DataStore, and do MPI exchange.
+      notify(std::make_shared<LayerPublishMessage>(phase, mSimTime));
 
-         // copy activity buffer to DataStore, and do MPI exchange.
-         notify(std::make_shared<LayerPublishMessage>(phase, mSimTime));
-      }
-
-      // wait for all published data to arrive and call layer's outputState
-      std::vector<std::shared_ptr<BaseMessage const>> messageVector = {
-            std::make_shared<LayerUpdateActiveIndicesMessage>(phase),
-            std::make_shared<LayerOutputStateMessage>(phase, mSimTime)};
+      // Feb 2, 2017: waiting and updating active indices have been moved into
+      // OutputState and CheckNotANumber, where they are called if needed.
+      notify(std::make_shared<LayerOutputStateMessage>(phase, mSimTime));
       if (mErrorOnNotANumber) {
-         messageVector.push_back(std::make_shared<LayerCheckNotANumberMessage>(phase));
+         notify(std::make_shared<LayerCheckNotANumberMessage>(phase));
       }
-      notify(messageVector);
    }
 
    mRunTimer->stop();
@@ -1141,6 +1086,74 @@ int HyPerCol::advanceTime(double sim_time) {
    outputState(mSimTime);
 
    return status;
+}
+
+void HyPerCol::nonblockingLayerUpdate(
+      std::shared_ptr<LayerRecvSynapticInputMessage const> recvMessage,
+      std::shared_ptr<LayerUpdateStateMessage const> updateMessage) {
+   long int idleCounter = 0;
+   bool allUpdated      = false;
+   int phase            = recvMessage->mPhase;
+   pvAssert(phase == updateMessage->mPhase);
+   while (!allUpdated) {
+      bool anyUpdated = false;
+
+      for (auto &l : mLayers) {
+#ifdef PV_USE_CUDA
+         if (l->getRecvGpu() != recvMessage->mRecvOnGpuFlag) {
+            continue;
+         }
+#endif // PV_USE_CUDA
+         if (l->getPhase() == phase && !l->getHasReceived() && l->isAllInputReady()) {
+            l->respond(recvMessage);
+            anyUpdated = true;
+            break;
+         }
+      }
+      if (anyUpdated) {
+         continue;
+      }
+
+      for (auto &l : mLayers) {
+#ifdef PV_USE_CUDA
+         if (l->getRecvGpu() != updateMessage->mRecvOnGpuFlag) {
+            continue;
+         }
+         if (l->getUpdateGpu() != updateMessage->mUpdateOnGpuFlag) {
+            continue;
+         }
+#endif // PV_USE_CUDA
+         if (l->getPhase() == phase && !l->getHasUpdated() && l->getHasReceived()) {
+            l->respond(updateMessage);
+            anyUpdated = true;
+            break;
+         }
+      }
+      if (anyUpdated) {
+         continue;
+      }
+
+      idleCounter++;
+      // TODO (maybe?) Waitany logic goes here.
+      allUpdated = true;
+      for (auto &l : mLayers) {
+#ifdef PV_USE_CUDA
+         if (l->getRecvGpu() != updateMessage->mRecvOnGpuFlag) {
+            continue;
+         }
+         if (l->getUpdateGpu() != updateMessage->mUpdateOnGpuFlag) {
+            continue;
+         }
+#endif // PV_USE_CUDA
+         if (l->getPhase() == phase) {
+            allUpdated &= l->getHasUpdated();
+         }
+      }
+   }
+   if (idleCounter > 0L) {
+      InfoLog() << "t = " << mSimTime << ", phase " << phase << ", idle count " << idleCounter
+                << "\n";
+   }
 }
 
 // Oct 3, 2016.  writeTimers moved to Checkpointer class

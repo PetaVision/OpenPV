@@ -47,6 +47,25 @@ int MPI_Barrier(MPI_Comm comm) { return 0; }
 int MPI_Bcast(void *buffer, int count, MPI_Datatype datatype, int root, MPI_Comm comm) { return 0; }
 
 /**
+ * A stub for MPI_Iallreduce when PV_USE_MPI is off.  Copies recvbuf into
+ * sendbuf (if MPI_IN_PLACE is used or if sendbuf==recvbuf, returns
+ * immediately). The MPI_Request argument is not changed.
+ */
+int MPI_Iallreduce(
+      void *sendbuf,
+      void *recvbuf,
+      int count,
+      MPI_Datatype datatype,
+      MPI_Op op,
+      MPI_Comm comm,
+      MPI_Request *request) {
+   if (sendbuf != MPI_IN_PLACE && sendbuf != recvbuf) {
+      memmove(recvbuf, sendbuf, count * datatype);
+   }
+   return 0;
+}
+
+/**
  * A stub for MPI_Allreduce when PV_USE_MPI is off.  Copies recvbuf into sendbuf
  * (if MPI_IN_PLACE is used or if sendbuf==recvbuf, returns immediately).
  */
@@ -64,7 +83,7 @@ int MPI_Allreduce(
 }
 
 /**
- * A stub for MPI_Allreduce when PV_USE_MPI is off.  Copies recvbuf into sendbuf
+ * A stub for MPI_Reduce when PV_USE_MPI is off.  Copies recvbuf into sendbuf
  * (if MPI_IN_PLACE is used or if sendbuf==recvbuf, returns immediately).
  * The root argument is not read.
  */
@@ -161,6 +180,14 @@ int MPI_Isend(
  * would need to be implemented if that's ever something we find convenient to do.
  */
 int MPI_Send(void *buf, int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm) {
+   return 0;
+}
+
+/**
+ * A stub for MPI_Testall when PV_USE_MPI is off. Always sets the result flag to true.
+ */
+int MPI_Testall(int count, MPI_Request *reqs, int *flag, MPI_Status *stats) {
+   *flag = 1;
    return 0;
 }
 
