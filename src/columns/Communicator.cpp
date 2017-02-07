@@ -693,7 +693,7 @@ int Communicator::exchange(
    }
 
    exchangeCounter++;
-   if (exchangeCounter == 2048) { exchangeCounter = 1; }
+   if (exchangeCounter == 2048) { exchangeCounter = 1024; }
 
    req.clear();
    // don't send interior
