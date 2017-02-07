@@ -111,7 +111,7 @@ gather(Communicator *comm, Buffer<T> buffer, unsigned int localWidth, unsigned i
                   numElements * dataSize,
                   MPI_BYTE,
                   recvRank,
-                  171 + recvRank, // Unique tag for each rank
+                  32,
                   comm->communicator(),
                   MPI_STATUS_IGNORE);
             smallBuffer.set(tempMem, buffer.getWidth(), buffer.getHeight(), buffer.getFeatures());
@@ -143,7 +143,7 @@ gather(Communicator *comm, Buffer<T> buffer, unsigned int localWidth, unsigned i
             buffer.getTotalElements() * dataSize,
             MPI_BYTE,
             0,
-            171 + comm->commRank(),
+            32,
             comm->communicator());
    }
    return buffer;
@@ -163,7 +163,7 @@ SparseList<T> gatherSparse(Communicator *comm, SparseList<T> list) {
                   1,
                   MPI_INT,
                   recvRank,
-                  171 + recvRank * 2, // Odd tag for numToRecv
+                  33,
                   comm->communicator(),
                   MPI_STATUS_IGNORE);
             if (numToRecv > 0) {
@@ -178,7 +178,7 @@ SparseList<T> gatherSparse(Communicator *comm, SparseList<T> list) {
                      numToRecv * entrySize,
                      MPI_BYTE,
                      recvRank,
-                     172 + recvRank * 2, // Even tag for data
+                     34,
                      comm->communicator(),
                      MPI_STATUS_IGNORE);
                for (uint32_t i = 0; i < numToRecv; ++i) {
@@ -197,14 +197,14 @@ SparseList<T> gatherSparse(Communicator *comm, SparseList<T> list) {
    else {
       vector<struct SparseList<T>::Entry> toSend = list.getContents();
       uint32_t numToSend                         = toSend.size();
-      MPI_Send(&numToSend, 1, MPI_INT, 0, 171 + comm->commRank() * 2, comm->communicator());
+      MPI_Send(&numToSend, 1, MPI_INT, 0, 33, comm->communicator());
       if (numToSend > 0) {
          MPI_Send(
                toSend.data(),
                numToSend * entrySize,
                MPI_BYTE,
                0,
-               172 + comm->commRank() * 2,
+               34,
                comm->communicator());
       }
    }
