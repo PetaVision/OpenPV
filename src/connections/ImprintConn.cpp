@@ -156,14 +156,14 @@ int ImprintConn::initialize_dW(int arborId) {
    return PV_BREAK;
 }
 
-int ImprintConn::update_dW(int arbor_ID) {
+int ImprintConn::update_dW(int arborID) {
    // That takes place in reduceKernels, so that the output is
    // independent of the number of processors.
    int nExt               = preSynapticLayer()->getNumExtended();
    int numKernelIndices   = getNumDataPatches();
    const PVLayerLoc *loc  = pre->getLayerLoc();
-   const float *preactbuf = preSynapticLayer()->getLayerData(getDelay(arbor_ID));
-   int arborStart         = arbor_ID * numKernelIndices;
+   const float *preactbuf = preSynapticLayer()->getLayerData(getDelay(arborID));
+   int arborStart         = arborID * numKernelIndices;
    int patchSize          = nxp * nyp * nfp;
    int nbatch             = loc->nbatch;
 
@@ -174,6 +174,9 @@ int ImprintConn::update_dW(int arbor_ID) {
    int nyExt      = loc->ny + loc->halo.up + loc->halo.dn;
    int nf         = loc->nf;
    int numKernels = getNumDataPatches();
+
+   float const *preactbufHead  = preSynapticLayer()->getLayerData(getDelay(arborID));
+   float const *postactbufHead = postSynapticLayer()->getLayerData();
 
    for (int b = 0; b < nbatch; b++) {
 // Shared weights done in parallel, parallel in numkernels
@@ -190,7 +193,7 @@ int ImprintConn::update_dW(int arbor_ID) {
              > imprintTimeThresh) {
             imprinted[arborStart + kernelIdx]      = true;
             lastActiveTime[arborStart + kernelIdx] = parent->simulationTime();
-            InfoLog() << "Imprinted feature: Arbor " << arbor_ID << " kernel " << kernelIdx << "\n";
+            InfoLog() << "Imprinted feature: Arbor " << arborID << " kernel " << kernelIdx << "\n";
          }
 
          // Loop over all cells in pre ext
@@ -203,10 +206,10 @@ int ImprintConn::update_dW(int arbor_ID) {
                // Calculate kExt from ky, kx, and kf
                int kExt = kIndex(kxIdx, kyIdx, kfIdx, nxExt, nyExt, nf);
                if (imprinted[arborStart + kernelIdx]) {
-                  imprintFeature(arbor_ID, b, kExt);
+                  imprintFeature(arborID, b, kExt);
                }
                else {
-                  int status = updateInd_dW(arbor_ID, b, kExt);
+                  int status = updateInd_dW(arborID, b, preactbufHead, postactbufHead, kExt);
                   // Status will be PV_CONTINUE if preact is 0 (not active)
                   if (status == PV_SUCCESS) {
                      lastActiveTime[arborStart + kernelIdx] = parent->simulationTime();
@@ -227,7 +230,7 @@ int ImprintConn::update_dW(int arbor_ID) {
          for (int kExt = 0; kExt < nExt; kExt++) {
             int kernelIndex = clones[clonei]->patchIndexToDataIndex(kExt);
             if (!imprinted[arborStart + kernelIndex]) {
-               clones[clonei]->updateInd_dW(arbor_ID, b, kExt);
+               clones[clonei]->updateInd_dW(arborID, b, preactbufHead, postactbufHead, kExt);
             }
          }
       }

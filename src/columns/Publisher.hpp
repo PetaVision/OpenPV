@@ -8,7 +8,8 @@
 #ifndef PUBLISHER_HPP_
 #define PUBLISHER_HPP_
 
-#include "../arch/mpi/mpi.h"
+#include "arch/mpi/mpi.h"
+#include "checkpointing/Checkpointer.hpp"
 #include "columns/Communicator.hpp"
 #include "columns/DataStore.hpp"
 #include "include/PVLayerLoc.h"
@@ -21,6 +22,9 @@ class Publisher {
   public:
    Publisher(Communicator *comm, PVLayerCube *cube, int numLevels, bool isSparse);
    virtual ~Publisher();
+
+   void
+   checkpointDataStore(Checkpointer *checkpointer, char const *objectName, char const *bufferName);
 
    /**
     * Copies the data from the cube to the top level of the data store, and exchanges
@@ -36,14 +40,20 @@ class Publisher {
     */
    void copyForward(double lastUpdateTime);
    int exchangeBorders(const PVLayerLoc *loc, int delay = 0);
-   int wait();
+   int isExchangeFinished(int delay = 0);
 
-   void increaseTimeLevel() { store->newLevelIndex(); }
+   /**
+    * creates a PVLayerCube pointing to the data in the data store at the given delay.
+    * This method blocks until any pending border exchange for that delay level are completed.
+    */
+   PVLayerCube createCube(int delay = 0);
 
-   DataStore *dataStore() { return store; }
+   int wait(int delay = 0);
+
+   void increaseTimeLevel();
 
    int updateAllActiveIndices();
-   int updateActiveIndices(int delay=0);
+   int updateActiveIndices(int delay = 0);
 
   private:
    float *recvBuffer(int bufferId) { return store->buffer(bufferId); }
@@ -67,7 +77,8 @@ class Publisher {
 
    Communicator *mComm;
 
-   std::vector<MPI_Request> requests;
+   RingBuffer<std::vector<MPI_Request>> *mpiRequestsBuffer = nullptr;
+   // std::vector<MPI_Request> requests;
    MPI_Datatype *neighborDatatypes;
 };
 

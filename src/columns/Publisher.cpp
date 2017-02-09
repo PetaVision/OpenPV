@@ -6,6 +6,7 @@
  */
 
 #include "Publisher.hpp"
+#include "checkpointing/CheckpointEntryDataStore.hpp"
 #include "include/pv_common.h"
 #include "utils/PVAssert.hpp"
 
@@ -22,14 +23,31 @@ Publisher::Publisher(Communicator *comm, PVLayerCube *cube, int numLevels, bool 
 
    this->neighborDatatypes = Communicator::newDatatypes(&cube->loc);
 
-   requests.clear();
-   requests.reserve((NUM_NEIGHBORHOOD - 1) * numBuffers);
+   mpiRequestsBuffer = new RingBuffer<std::vector<MPI_Request>>(numLevels, 1);
+   for (int l = 0; l < numLevels; l++) {
+      auto *v = mpiRequestsBuffer->getBuffer(l, 0);
+      v->clear();
+      v->reserve((NUM_NEIGHBORHOOD - 1) * numBuffers);
+   }
 }
 
 Publisher::~Publisher() {
+   for (int l = 0; l < mpiRequestsBuffer->getNumLevels(); l++) {
+      wait(l);
+   }
+   delete mpiRequestsBuffer;
    delete store;
    Communicator::freeDatatypes(neighborDatatypes);
    neighborDatatypes = nullptr;
+}
+
+void Publisher::checkpointDataStore(
+      Checkpointer *checkpointer,
+      char const *objectName,
+      char const *bufferName) {
+   bool registerSucceeded = checkpointer->registerCheckpointEntry(
+         std::make_shared<CheckpointEntryDataStore>(
+               objectName, bufferName, mComm, store, &mLayerCube->loc));
 }
 
 int Publisher::updateAllActiveIndices() {
@@ -41,13 +59,20 @@ int Publisher::updateAllActiveIndices() {
    return PV_SUCCESS;
 }
 
+PVLayerCube Publisher::createCube(int delay) {
+   wait(delay);
+   return store->createCube(mLayerCube->loc, delay);
+}
+
 int Publisher::updateActiveIndices(int delay) {
    if (store->isSparse()) {
       for (int b = 0; b < store->getNumBuffers(); b++) {
          // Active indicies stored as local extended values
-         store->updateActiveIndices(b, delay);
+         if (*store->numActiveBuffer(b, delay) < 0L) {
+            store->updateActiveIndices(b, delay);
+         }
+         pvAssert(*store->numActiveBuffer(b, delay) >= 0L);
       }
-      
    }
    return PV_SUCCESS;
 }
@@ -67,6 +92,9 @@ int Publisher::publish(double lastUpdateTime) {
    exchangeBorders(&mLayerCube->loc, 0);
    store->setLastUpdateTime(Communicator::LOCAL /*bufferId*/, lastUpdateTime);
 
+   for (int b = 0; b < store->getNumBuffers(); b++) {
+      store->markActiveIndicesOutOfSync(b, 0);
+   }
    // Updating active indices is done after MPI wait in HyPerCol
    // to avoid race condition because exchangeBorders mpi is async
 
@@ -79,6 +107,7 @@ void Publisher::copyForward(double lastUpdateTime) {
       size_t dataSize = mLayerCube->numItems * sizeof(float);
       memcpy(recvBuf, recvBuffer(Communicator::LOCAL /*bufferId*/, 1), dataSize);
       store->setLastUpdateTime(Communicator::LOCAL /*bufferId*/, lastUpdateTime);
+      updateActiveIndices(0); // alternately, could copy active indices forward as well.
    }
 }
 
@@ -90,7 +119,8 @@ int Publisher::exchangeBorders(const PVLayerLoc *loc, int delay /*default 0*/) {
    int status = PV_SUCCESS;
 
 #ifdef PV_USE_MPI
-   pvAssert(requests.empty());
+   auto *requestsVector = mpiRequestsBuffer->getBuffer(delay, 0);
+   pvAssert(requestsVector->empty());
    // Using local ranks and communicators for border exchange
    int icRank       = mComm->commRank();
    MPI_Comm mpiComm = mComm->communicator();
@@ -102,14 +132,15 @@ int Publisher::exchangeBorders(const PVLayerLoc *loc, int delay /*default 0*/) {
    int exchangeVectorSize = 2 * (mComm->numberOfNeighbors() - 1);
    for (int b = 0; b < loc->nbatch; b++) {
       // don't send interior
-      pvAssert(requests.size() == b * exchangeVectorSize);
+      pvAssert(requestsVector->size() == b * exchangeVectorSize);
 
       float *data = recvBuffer(b, delay);
       std::vector<MPI_Request> batchElementMPIRequest{};
       mComm->exchange(data, neighborDatatypes, loc, batchElementMPIRequest);
       pvAssert(batchElementMPIRequest.size() == exchangeVectorSize);
-      requests.insert(requests.end(), batchElementMPIRequest.begin(), batchElementMPIRequest.end());
-      pvAssert(requests.size() == (b + 1) * exchangeVectorSize);
+      requestsVector->insert(
+            requestsVector->end(), batchElementMPIRequest.begin(), batchElementMPIRequest.end());
+      pvAssert(requestsVector->size() == (b + 1) * exchangeVectorSize);
    }
 
 #endif // PV_USE_MPI
@@ -117,22 +148,47 @@ int Publisher::exchangeBorders(const PVLayerLoc *loc, int delay /*default 0*/) {
    return status;
 }
 
+int Publisher::isExchangeFinished(int delay /* default 0*/) {
+   bool isReady;
+   auto *requestsVector = mpiRequestsBuffer->getBuffer(delay, 0);
+   if (requestsVector->empty()) {
+      isReady = true;
+   }
+   else {
+      int test;
+      MPI_Testall((int)requestsVector->size(), requestsVector->data(), &test, MPI_STATUSES_IGNORE);
+      if (test) {
+         requestsVector->clear();
+         updateActiveIndices(delay);
+      }
+      isReady = (bool)test;
+   }
+   return isReady;
+}
+
 /**
  * wait until all outstanding published messages have arrived
  */
-int Publisher::wait() {
-#ifdef PV_USE_MPI
+int Publisher::wait(int delay /*default 0*/) {
 #ifdef DEBUG_OUTPUT
    InfoLog().printf("[%2d]: waiting for data, num_requests==%d\n", mComm->commRank(), numRemote);
    InfoLog().flush();
 #endif // DEBUG_OUTPUT
 
-   if (!requests.empty()) {
-      mComm->wait(requests);
+   auto *requestsVector = mpiRequestsBuffer->getBuffer(delay, 0);
+   if (!requestsVector->empty()) {
+      mComm->wait(*requestsVector);
+      pvAssert(requestsVector->empty());
    }
-#endif // PV_USE_MPI
+   updateActiveIndices(delay);
 
    return 0;
+}
+
+void Publisher::increaseTimeLevel() {
+   wait(mpiRequestsBuffer->getNumLevels() - 1);
+   mpiRequestsBuffer->newLevel();
+   store->newLevelIndex();
 }
 
 } /* namespace PV */

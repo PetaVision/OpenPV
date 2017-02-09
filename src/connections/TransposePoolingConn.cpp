@@ -615,10 +615,9 @@ int TransposePoolingConn::deliverPresynapticPerspective(PVLayerCube const *activ
       assert(postIndexLayer);
       // Make sure this layer is an integer layer
       assert(postIndexLayer->getDataType() == PV_INT);
-      DataStore *store = postIndexLayer->getPublisher()->dataStore();
       int delay        = getDelay(arborID);
-
-      postIdxData = store->buffer(Communicator::LOCAL, delay);
+      PVLayerCube cube = postIndexLayer->getPublisher()->createCube(delay);
+      postIdxData      = cube.data;
    }
 
    for (int b = 0; b < parent->getNBatch(); b++) {

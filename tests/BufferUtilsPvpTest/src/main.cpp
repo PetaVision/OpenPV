@@ -23,7 +23,7 @@ void testReadFromPvp() {
       }
       Buffer<float> testBuffer;
       double timeVal =
-            BufferUtils::readFromPvp<float>("input/input_8x4x2_x3.pvp", &testBuffer, frame);
+            BufferUtils::readDenseFromPvp<float>("input/input_8x4x2_x3.pvp", &testBuffer, frame);
 
       FatalIf(
             timeVal != (double)frame + 1,
@@ -94,7 +94,7 @@ void testWriteToPvp() {
    // and check that it's correct
    for (int frame = 0; frame < 3; ++frame) {
       Buffer<float> testBuffer;
-      double timeVal             = BufferUtils::readFromPvp<float>("test.pvp", &testBuffer, frame);
+      double timeVal             = BufferUtils::readDenseFromPvp<float>("test.pvp", &testBuffer, frame);
       vector<float> expectedData = allFrames.at(frame);
 
       FatalIf(
@@ -264,7 +264,7 @@ void testReadFromSparseBinaryPvp() {
 }
 int main(int argc, char **argv) {
 
-   InfoLog() << "Testing BufferUtils:readFromPvp(): ";
+   InfoLog() << "Testing BufferUtils:readDenseFromPvp(): ";
    testReadFromPvp();
    InfoLog() << "Completed.\n";
 

@@ -236,11 +236,9 @@ class HyPerCol : public Subject, Observer {
 
    /**
     * @brief errorOnNotANumber: Specifies if the run should check on each
-    * timestep for nans in
-    * activity.
+    * timestep for nans in activity.
     */
    virtual void ioParam_errorOnNotANumber(enum ParamsIOFlag ioFlag);
-   /** @} */
 
   public:
    HyPerCol(const char *name, PV_Init *initObj);
@@ -269,6 +267,9 @@ class HyPerCol : public Subject, Observer {
    int addLayer(HyPerLayer *l);
    void advanceTimeLoop(Clock &runClock, int const runClockStartingStep);
    int advanceTime(double time);
+   void nonblockingLayerUpdate(
+         std::shared_ptr<LayerRecvSynapticInputMessage const> recvMessage,
+         std::shared_ptr<LayerUpdateStateMessage const> updateMessage);
    int insertProbe(ColProbe *p);
    int outputState(double time);
    int processParams(char const *path);

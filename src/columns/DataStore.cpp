@@ -34,6 +34,12 @@ DataStore::DataStore(int numBuffers, int numItems, int numLevels, bool isSparse_
    }
 }
 
+void DataStore::markActiveIndicesOutOfSync(int bufferId, int level) {
+   if (!mSparseFlag) { return; }
+   long *numActiveBuf = numActiveBuffer(bufferId, level);
+   *numActiveBuf = -1;
+}
+
 void DataStore::updateActiveIndices(int bufferId, int level) {
    if (!mSparseFlag) { return; }
    int numActive   = 0;
@@ -52,6 +58,22 @@ void DataStore::updateActiveIndices(int bufferId, int level) {
 
    long *numActiveBuf = numActiveBuffer(bufferId, level);
    *numActiveBuf = numActive;
+}
+
+PVLayerCube DataStore::createCube(PVLayerLoc const &loc, int delay) {
+   PVLayerCube cube;
+   cube.size = sizeof(PVLayerCube);
+   cube.numItems = mNumItems * mNumBuffers;
+   cube.data = buffer(0 /*batch element*/, delay);
+   // All batch elements allocated contiguously, so the numItems and data fields cover all
+   // batch elements.
+   cube.loc = loc;
+   cube.isSparse = isSparse();
+   if (isSparse()) {
+      cube.numActive     = numActiveBuffer(0, delay);
+      cube.activeIndices = activeIndicesBuffer(0, delay);
+   }
+   return cube;
 }
 
 } // end namespace PV

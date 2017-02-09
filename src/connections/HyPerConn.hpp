@@ -23,6 +23,7 @@
 #include <map>
 #include <set>
 #include <stdlib.h>
+#include <string>
 #include <vector>
 
 #ifdef PV_USE_CUDA
@@ -80,7 +81,16 @@ class HyPerConn : public BaseConnection {
    virtual int updateState(double time, double dt) override;
    virtual int finalizeUpdate(double timed, double dt) override;
    virtual bool needUpdate(double time, double dt) override;
-   virtual int updateInd_dW(int arbor_ID, int batch_ID, int kExt);
+
+   // preLayerData and postLayerData point to the data for pre and post over all batch elements
+   // (batchID argument is used to navigate to the correct part of the buffers)
+   int updateInd_dW(
+         int arborID,
+         int batchID,
+         float const *preLayerData,
+         float const *postLayerData,
+         int kExt);
+
    virtual double computeNewWeightUpdateTime(double time, double currentUpdateTime);
    virtual int writeWeights(double timed, bool last = false);
    virtual int writeWeights(const char *filename);
@@ -924,7 +934,7 @@ class HyPerConn : public BaseConnection {
    /**
     * Updates the dW buffer
     */
-   virtual int update_dW(int arborId);
+   virtual int update_dW(int arborID);
    virtual float updateRule_dW(float pre, float post);
 
    /**

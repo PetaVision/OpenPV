@@ -1463,19 +1463,20 @@ int pvp_read_time(PV_Stream *pvstream, Communicator *comm, int root_process, dou
    return status;
 }
 
-int writeActivity(
-      FileStream *fileStream,
-      Communicator *comm,
-      double timed,
-      DataStore *store,
-      const PVLayerLoc *loc) {
+int writeActivity(FileStream *fileStream, Communicator *comm, double timed, PVLayerCube *cube) {
    int status = PV_SUCCESS;
 
    // write header, but only at the beginning
    int rank = comm->commRank();
 
+   PVLayerLoc const *loc = &cube->loc;
+   PVHalo const &halo    = loc->halo;
+   int const nxExt       = loc->nx + halo.lt + halo.rt;
+   int const nyExt       = loc->ny + halo.dn + halo.up;
+   int const nf          = loc->nf;
+   pvAssert(cube->numItems == nxExt * nyExt * nf * loc->nbatch);
+
    for (int b = 0; b < loc->nbatch; b++) {
-      float *data = store->buffer(b);
       if (rank == 0) {
          long fpos = fileStream->getOutPos();
          if (fpos == 0L) {
@@ -1493,10 +1494,7 @@ int writeActivity(
          //
          fileStream->write(&timed, (long int)sizeof(timed));
       }
-      PVHalo const &halo   = loc->halo;
-      int const nxExt      = loc->nx + halo.lt + halo.rt;
-      int const nyExt      = loc->ny + halo.dn + halo.up;
-      int const nf         = loc->nf;
+      float const *data    = &cube->data[b * nxExt * nyExt * nf];
       auto pvpBuffer       = Buffer<float>(data, nxExt, nyExt, nf);
       auto pvpBufferGlobal = BufferUtils::gather(comm, pvpBuffer, loc->nx, loc->ny);
       if (rank == 0) {
@@ -1513,8 +1511,7 @@ int writeActivitySparse(
       FileStream *fileStream,
       Communicator *comm,
       double timed,
-      DataStore *store,
-      const PVLayerLoc *loc,
+      PVLayerCube *cube,
       bool includeValues) {
    int status = PV_SUCCESS;
 
@@ -1523,11 +1520,18 @@ int writeActivitySparse(
    const int icRoot = 0;
    const int icRank = comm->commRank();
 
+   PVLayerLoc const *loc = &cube->loc;
+   PVHalo const &halo    = loc->halo;
+   int const nxExt       = loc->nx + halo.lt + halo.rt;
+   int const nyExt       = loc->ny + halo.dn + halo.up;
+   int const nf          = loc->nf;
+   const int numNeurons  = nxExt * nyExt * nf;
+
    for (int b = 0; b < loc->nbatch; b++) {
 
-      int localActive       = *(store->numActiveBuffer(b));
-      indexvaluepair *localpairs = (indexvaluepair*)store->activeIndicesBuffer(b);
-      float *valueData      = store->buffer(b);
+      int const localActive       = cube->numActive[b];
+      indexvaluepair *localpairs = &((indexvaluepair*)cube->activeIndices)[b * numNeurons];
+      float const *valueData      = &cube->data[b * numNeurons];
 
       indexvaluepair *indexvaluepairs = NULL;
       unsigned int *globalResIndices  = NULL;

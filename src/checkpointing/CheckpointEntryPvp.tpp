@@ -61,7 +61,7 @@ void CheckpointEntryPvp<T>::read(std::string const &checkpointDirectory, double 
    for (int b = 0; b < mLayerLoc->nbatch; b++) {
       Buffer<T> pvpBuffer;
       if (getCommunicator()->commRank() == 0) {
-         *simTimePtr = BufferUtils::readFromPvp(path.c_str(), &pvpBuffer, b);
+         *simTimePtr = BufferUtils::readDenseFromPvp(path.c_str(), &pvpBuffer, b);
       }
       else {
          pvpBuffer.resize(mLayerLoc->nx, mLayerLoc->ny, mLayerLoc->nf);

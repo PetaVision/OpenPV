@@ -91,6 +91,7 @@ class Communicator {
    int neighbors[NUM_NEIGHBORHOOD]; // [0] is interior (local)
    int remoteNeighbors[NUM_NEIGHBORHOOD];
    int tags[NUM_NEIGHBORHOOD]; // diagonal communication needs a different tag
+   int exchangeCounter = 1024;
    // from left/right or
    // up/down communication.
 
