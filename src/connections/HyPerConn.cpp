@@ -2025,7 +2025,7 @@ int HyPerConn::writeWeights(
 
    status = PV::writeWeights(
          path,
-         comm,
+         comm->getLocalMPIBlock(),
          (double)timed,
          append,
          preLoc,
@@ -2132,7 +2132,7 @@ void HyPerConn::checkpointWeightPvp(
          std::make_shared<CheckpointEntryWeightPvp>(
                getName(),
                bufferName,
-               parent->getCommunicator(),
+               checkpointer->getMPIBlock(),
                numberOfAxonalArborLists(),
                usingSharedWeights(),
                get_wPatches(),
@@ -2678,7 +2678,7 @@ int HyPerConn::update_dW(int arborID) {
    // Updates on all PlasticClones
    for (int clonei = 0; clonei < clones.size(); clonei++) {
       pvAssert(clones[clonei]->preSynapticLayer()->getNumExtended() == nExt);
-      float const *clonePre = clones[clonei]->preSynapticLayer()->getLayerData(getDelay(arborID));
+      float const *clonePre  = clones[clonei]->preSynapticLayer()->getLayerData(getDelay(arborID));
       float const *clonePost = clones[clonei]->postSynapticLayer()->getLayerData();
       for (int b = 0; b < parent->getNBatch(); b++) {
          for (int kExt = 0; kExt < nExt; kExt++) {
@@ -4440,7 +4440,7 @@ int HyPerConn::writePostSynapticWeights(double timef, bool last) {
 
    status = PV::writeWeights(
          path,
-         comm,
+         comm->getLocalMPIBlock(),
          (double)timef,
          append,
          postLoc,

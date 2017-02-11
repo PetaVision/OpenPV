@@ -1,13 +1,14 @@
 #include "testSeparatedName.hpp"
 #include "checkpointing/CheckpointEntryData.hpp"
 #include "checkpointing/CheckpointEntryPvp.hpp"
+#include "include/PVLayerLoc.h"
 #include "utils/PVLog.hpp"
 
-void testSeparatedName(PV::Communicator *comm) {
+void testSeparatedName(PV::MPIBlock const *mpiBlock) {
    std::string const correctName("separated_name");
 
    PV::CheckpointEntryData<float> separatedNameEntryData{
-         "separated", "name", comm, (float *)nullptr, (size_t)0, false /*no broadcast*/};
+         "separated", "name", mpiBlock, (float *)nullptr, (size_t)0, false /*no broadcast*/};
 
    std::string const &entryDataName = separatedNameEntryData.getName();
    FatalIf(
@@ -18,7 +19,7 @@ void testSeparatedName(PV::Communicator *comm) {
 
    PV::CheckpointEntryPvp<float> separatedNameEntryPvp{"separated",
                                                        "name",
-                                                       comm,
+                                                       mpiBlock,
                                                        (float *)nullptr,
                                                        (PVLayerLoc const *)nullptr,
                                                        false /*no broadcast*/};

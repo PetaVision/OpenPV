@@ -28,6 +28,7 @@ class FileStream : public PrintStream {
    bool readwrite() { return readable() && writeable(); }
    long getOutPos();
    long getInPos();
+   std::string const &getFileName() const { return mFileName; }
 
   protected:
    FileStream() {}
@@ -36,6 +37,7 @@ class FileStream : public PrintStream {
 
    std::fstream mFStream;
    std::string mFileName;
+
   private:
    bool mVerifyWrites         = false;
    int const mMaxAttempts     = 5;

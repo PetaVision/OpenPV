@@ -1,11 +1,13 @@
 #include "testPvpExtended.hpp"
 #include "checkpointing/CheckpointEntryPvp.hpp"
+#include "include/PVLayerLoc.h"
 #include "utils/PVLog.hpp"
 #include "utils/conversions.h"
+#include <vector>
 
-void testPvpExtended(PV::Communicator *comm, std::string const &directory) {
+void testPvpExtended(PV::MPIBlock const *mpiBlock, std::string const &directory) {
    PVLayerLoc loc;
-   loc.nbatchGlobal = comm->numCommBatches();
+   loc.nbatchGlobal = mpiBlock->getBatchDimension();
    loc.nxGlobal     = 16;
    loc.nyGlobal     = 4;
    loc.nf           = 4;
@@ -14,21 +16,21 @@ void testPvpExtended(PV::Communicator *comm, std::string const &directory) {
    loc.halo.dn      = 2;
    loc.halo.up      = 2;
    loc.nbatch       = 1;
-   loc.kb0          = comm->commBatch();
+   loc.kb0          = mpiBlock->getBatchIndex();
    FatalIf(
-         loc.nxGlobal % comm->numCommColumns(),
+         loc.nxGlobal % mpiBlock->getNumColumns(),
          "Global width %d is not a multiple of the number of MPI columns %d\n",
          loc.nxGlobal,
-         comm->numCommColumns());
-   loc.nx  = loc.nxGlobal / comm->numCommColumns();
-   loc.kx0 = loc.nx * comm->commColumn();
+         mpiBlock->getNumColumns());
+   loc.nx  = loc.nxGlobal / mpiBlock->getNumColumns();
+   loc.kx0 = loc.nx * mpiBlock->getColumnIndex();
    FatalIf(
-         loc.nyGlobal % comm->numCommRows(),
+         loc.nyGlobal % mpiBlock->getNumRows(),
          "Global height %d is not a multiple of the number of MPI rows %d\n",
          loc.nyGlobal,
-         comm->numCommRows());
-   loc.ny  = loc.nyGlobal / comm->numCommRows();
-   loc.ky0 = loc.ny * comm->commRow();
+         mpiBlock->getNumRows());
+   loc.ny  = loc.nyGlobal / mpiBlock->getNumRows();
+   loc.ky0 = loc.ny * mpiBlock->getRowIndex();
 
    int const nxLocalExt        = loc.nx + loc.halo.lt + loc.halo.rt;
    int const nyLocalExt        = loc.ny + loc.halo.dn + loc.halo.up;
@@ -49,7 +51,7 @@ void testPvpExtended(PV::Communicator *comm, std::string const &directory) {
    // CheckpointEntryPvp's mDataPointer doesn't change with it.
    std::vector<float> checkpointData(correctData.size());
    PV::CheckpointEntryPvp<float> checkpointEntryPvp{
-         "checkpointEntryPvpExtended", comm, checkpointData.data(), &loc, true /*extended*/};
+         "checkpointEntryPvpExtended", mpiBlock, checkpointData.data(), &loc, true /*extended*/};
 
    double const simTime = 10.0;
    // Copy correct data into checkpoint data.
@@ -83,11 +85,11 @@ void testPvpExtended(PV::Communicator *comm, std::string const &directory) {
       FatalIf(
             checkpointData.at(k) != correctValue,
             "testDataPvp failed: data at rank %d, index %d is %f, but should be %f\n",
-            comm->commRank(),
+            mpiBlock->getRank(),
             k,
             (double)checkpointData.at(k),
             (double)correctValue);
    }
-   MPI_Barrier(comm->communicator());
+   MPI_Barrier(mpiBlock->getComm());
    InfoLog() << "testDataPvpExtended passed.\n";
 }

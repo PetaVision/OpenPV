@@ -1,9 +1,9 @@
 #ifndef TESTDATANOBROADCAST_HPP_
 #define TESTDATANOBROADCAST_HPP_
 
-#include "columns/Communicator.hpp"
+#include "structures/MPIBlock.hpp"
 #include <string>
 
-void testDataNoBroadcast(PV::Communicator *comm, std::string const &directory);
+void testDataNoBroadcast(PV::MPIBlock const *mpiBlock, std::string const &directory);
 
 #endif // TESTDATANOBROADCAST_HPP_

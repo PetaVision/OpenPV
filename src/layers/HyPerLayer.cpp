@@ -534,7 +534,7 @@ void HyPerLayer::checkpointPvpActivityFloat(
          std::make_shared<CheckpointEntryPvp<float>>(
                getName(),
                bufferName,
-               parent->getCommunicator(),
+               checkpointer->getMPIBlock(),
                pvpBuffer,
                getLayerLoc(),
                extended));
@@ -554,7 +554,7 @@ void HyPerLayer::checkpointRandState(
          std::make_shared<CheckpointEntryRandState>(
                getName(),
                bufferName,
-               parent->getCommunicator(),
+               checkpointer->getMPIBlock(),
                randState->getRNG(0),
                getLayerLoc(),
                extendedFlag));

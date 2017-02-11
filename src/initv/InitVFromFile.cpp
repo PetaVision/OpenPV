@@ -48,33 +48,35 @@ void InitVFromFile::ioParam_Vfilename(enum ParamsIOFlag ioFlag) {
 int InitVFromFile::calcV(float *V, const PVLayerLoc *loc) {
    int status = PV_SUCCESS;
    PVLayerLoc fileLoc;
-   Communicator *comm = parent->getCommunicator();
-   bool isRootProc = comm->commRank() == 0;
-   char const *ext = strrchr(mVfilename, '.');
-   bool isPvpFile  = (ext && strcmp(ext, ".pvp") == 0);
+   MPIBlock const *mpiBlock = parent->getCommunicator()->getLocalMPIBlock();
+   bool isRootProc          = mpiBlock->getRank() == 0;
+   char const *ext          = strrchr(mVfilename, '.');
+   bool isPvpFile           = (ext && strcmp(ext, ".pvp") == 0);
    if (isPvpFile) {
       FileStream headerStream(mVfilename, std::ios_base::in | std::ios_base::binary, false);
       struct BufferUtils::ActivityHeader header = BufferUtils::readActivityHeader(headerStream);
-      int fileType = header.fileType;
-      for (int b = 0; b < loc->nbatch; b++) {
-         float *Vbatch = V + b * (loc->nx * loc->ny * loc->nf);
-         Buffer<float> pvpBuffer;
-         if (isRootProc) {
-            BufferUtils::readDenseFromPvp(mVfilename, &pvpBuffer, b);
+      int fileType                              = header.fileType;
+      for (int m = 0; m < mpiBlock->getBatchDimension(); m++) {
+         for (int b = 0; b < loc->nbatch; b++) {
+            float *Vbatch = V + b * (loc->nx * loc->ny * loc->nf);
+            Buffer<float> pvpBuffer;
+            if (isRootProc) {
+               BufferUtils::readDenseFromPvp(mVfilename, &pvpBuffer, b);
+            }
+            else {
+               pvpBuffer.resize(loc->nx, loc->ny, loc->nf);
+            }
+            BufferUtils::scatter(mpiBlock, pvpBuffer, loc->nx, loc->ny, m, 0);
+            std::vector<float> bufferData = pvpBuffer.asVector();
+            std::memcpy(Vbatch, bufferData.data(), sizeof(float) * pvpBuffer.getTotalElements());
          }
-         else {
-            pvpBuffer.resize(loc->nx, loc->ny, loc->nf);
-         }
-         BufferUtils::scatter(comm, pvpBuffer, loc->nx, loc->ny);
-         std::vector<float> bufferData = pvpBuffer.asVector();
-         std::memcpy(Vbatch, bufferData.data(), sizeof(float) * pvpBuffer.getTotalElements());
       }
    }
    else { // TODO: Treat as an image file
       if (isRootProc) {
          ErrorLog().printf("InitVFromFile: file \"%s\" is not a pvp file.\n", this->mVfilename);
       }
-      MPI_Barrier(parent->getCommunicator()->communicator());
+      MPI_Barrier(mpiBlock->getComm());
       exit(EXIT_FAILURE);
    }
    return status;

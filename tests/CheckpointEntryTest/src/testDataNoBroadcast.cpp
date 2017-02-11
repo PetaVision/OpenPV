@@ -1,18 +1,19 @@
 #include "testDataNoBroadcast.hpp"
 #include "checkpointing/CheckpointEntryData.hpp"
 #include "utils/PVLog.hpp"
+#include <vector>
 
-void testDataNoBroadcast(PV::Communicator *comm, std::string const &directory) {
+void testDataNoBroadcast(PV::MPIBlock const *mpiBlock, std::string const &directory) {
    int const vectorLength = 32;
    std::vector<float> checkpointData(vectorLength, 0);
-   int const rank = comm->commRank();
+   int const rank = mpiBlock->getRank();
    if (rank == 0) {
       for (int i = 0; i < vectorLength; i++) {
          checkpointData.at(i) = (float)i;
       }
    }
    PV::CheckpointEntryData<float> checkpointEntryNoBroadcast{"checkpointEntryNoBroadcast",
-                                                             comm,
+                                                             mpiBlock,
                                                              checkpointData.data(),
                                                              checkpointData.size(),
                                                              false /*no broadcast*/};

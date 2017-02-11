@@ -66,7 +66,7 @@ int main(int argc, char *argv[]) {
 
    int status = 0;
 
-   ensureDirExists(hc->getCommunicator(), hc->getOutputPath());
+   ensureDirExists(hc->getCommunicator()->getLocalMPIBlock(), hc->getOutputPath());
 
    auto objectMap      = hc->copyObjectMap();
    auto commMessagePtr = std::make_shared<CommunicateInitInfoMessage>(*objectMap);

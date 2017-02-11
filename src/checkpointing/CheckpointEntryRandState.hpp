@@ -17,22 +17,22 @@ class CheckpointEntryRandState : public CheckpointEntry {
   public:
    CheckpointEntryRandState(
          std::string const &dataName,
-         Communicator *communicator,
+         MPIBlock const *mpiBlock,
          taus_uint4 *dataPointer,
          PVLayerLoc *layerLoc,
          bool extendedFlag)
-         : CheckpointEntry(dataName, communicator),
+         : CheckpointEntry(dataName, mpiBlock),
            mDataPointer(dataPointer),
            mLayerLoc(layerLoc),
            mExtendedFlag(extendedFlag) {}
    CheckpointEntryRandState(
          std::string const &objName,
          std::string const &dataName,
-         Communicator *communicator,
+         MPIBlock const *mpiBlock,
          taus_uint4 *dataPointer,
          PVLayerLoc const *layerLoc,
          bool extendedFlag)
-         : CheckpointEntry(objName, dataName, communicator),
+         : CheckpointEntry(objName, dataName, mpiBlock),
            mDataPointer(dataPointer),
            mLayerLoc(layerLoc),
            mExtendedFlag(extendedFlag) {}

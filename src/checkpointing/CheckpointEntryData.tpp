@@ -18,7 +18,7 @@ void CheckpointEntryData<T>::write(
       std::string const &checkpointDirectory,
       double simTime,
       bool verifyWritesFlag) const {
-   if (getCommunicator()->commRank() == 0) {
+   if (getMPIBlock()->getRank() == 0) {
       std::string path = generatePath(checkpointDirectory, "bin");
       FileStream fileStream{path.c_str(), std::ios_base::out, verifyWritesFlag};
       fileStream.write(mDataPointer, sizeof(T) * (std::size_t)mNumValues);
@@ -31,7 +31,7 @@ void CheckpointEntryData<T>::write(
 template <typename T>
 void CheckpointEntryData<T>::read(std::string const &checkpointDirectory, double *simTimePtr)
       const {
-   if (getCommunicator()->commRank() == 0) {
+   if (getMPIBlock()->getRank() == 0) {
       std::string path = generatePath(checkpointDirectory, "bin");
       FileStream fileStream{path.c_str(), std::ios_base::in, false /*verifyWrites not needed*/};
       fileStream.read(mDataPointer, sizeof(T) * (std::size_t)mNumValues);
@@ -42,8 +42,7 @@ void CheckpointEntryData<T>::read(std::string const &checkpointDirectory, double
             mNumValues * sizeof(T),
             MPI_CHAR,
             0,
-            getCommunicator()
-                  ->communicator()); // TODO: Pack all MPI_Bcasts into a single broadcast.
+            getMPIBlock()->getComm()); // TODO: Pack all MPI_Bcasts into a single broadcast.
    }
 }
 

@@ -126,7 +126,7 @@ int MomentumConnSimpleCheckpointerTestProbe::readStateFromCheckpoint(
    PV::Checkpointer::TimeInfo timeInfo;
    PV::CheckpointEntryData<PV::Checkpointer::TimeInfo> timeInfoCheckpointEntry(
          std::string("timeinfo"),
-         parent->getCommunicator(),
+         parent->getCommunicator()->getLocalMPIBlock(),
          &timeInfo,
          (size_t)1,
          true /*broadcast*/);
@@ -248,9 +248,9 @@ bool MomentumConnSimpleCheckpointerTestProbe::verifyLayer(
    int const inputNxExt       = inputLoc->nx + inputHalo->lt + inputHalo->rt;
    int const inputNyExt       = inputLoc->ny + inputHalo->dn + inputHalo->up;
    PV::Buffer<float> localBuffer(layer->getLayerData(0), inputNxExt, inputNyExt, inputLoc->nf);
-   PV::Communicator *comm = parent->getCommunicator();
-   PV::Buffer<float> globalBuffer =
-         PV::BufferUtils::gather(comm, localBuffer, inputLoc->nx, inputLoc->ny);
+   PV::Communicator *comm         = parent->getCommunicator();
+   PV::Buffer<float> globalBuffer = PV::BufferUtils::gather(
+         comm->getLocalMPIBlock(), localBuffer, inputLoc->nx, inputLoc->ny, 0, 0);
    if (comm->commRank() == 0) {
       globalBuffer.crop(inputLoc->nxGlobal, inputLoc->nyGlobal, PV::Buffer<float>::CENTER);
       std::vector<float> globalVector = globalBuffer.asVector();

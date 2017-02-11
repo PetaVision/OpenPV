@@ -14,7 +14,7 @@ namespace PV {
 
 InputLayer::InputLayer(const char *name, HyPerCol *hc) { initialize(name, hc); }
 
-InputLayer::~InputLayer() { Communicator::freeDatatypes(mDatatypes); }
+InputLayer::~InputLayer() { delete mBorderExchanger; }
 
 int InputLayer::initialize(const char *name, HyPerCol *hc) {
    int status = HyPerLayer::initialize(name, hc);
@@ -30,7 +30,7 @@ int InputLayer::allocateDataStructures() {
    if (mWriteFrameToTimestamp) {
       std::string timestampFilename =
             std::string(parent->getOutputPath()) + std::string("/timestamps/");
-      ensureDirExists(parent->getCommunicator(), timestampFilename.c_str());
+      ensureDirExists(parent->getCommunicator()->getLocalMPIBlock(), timestampFilename.c_str());
       timestampFilename += name + std::string(".txt");
       if (getParent()->getCommunicator()->commRank() == 0) {
          std::string cpFileStreamLabel(getName());
@@ -96,7 +96,8 @@ int InputLayer::allocateDataStructures() {
    }
 
    // create mpi_datatypes for border transfer
-   mDatatypes = Communicator::newDatatypes(getLayerLoc());
+   mBorderExchanger =
+         new BorderExchange(parent->getCommunicator()->getLocalMPIBlock()[0], getLayerLoc()[0]);
    exchange();
 
    return PV_SUCCESS;
@@ -187,14 +188,14 @@ int InputLayer::scatterInput(int batchIndex) {
    int activityHeight    = loc->ny + (mUseInputBCflag ? halo->up + halo->dn : 0);
    Buffer<float> croppedBuffer;
 
+   MPIBlock const *mpiBlock = parent->getCommunicator()->getLocalMPIBlock();
    if (rank == 0) {
       croppedBuffer = mInputData.at(batchIndex);
-      BufferUtils::scatter<float>(parent->getCommunicator(), croppedBuffer, loc->nx, loc->ny);
    }
    else {
       croppedBuffer.resize(activityWidth, activityHeight, loc->nf);
-      BufferUtils::scatter<float>(parent->getCommunicator(), croppedBuffer, loc->nx, loc->ny);
    }
+   BufferUtils::scatter<float>(mpiBlock, croppedBuffer, loc->nx, loc->ny, 0, 0);
 
    // At this point, croppedBuffer has the correct data for this
    // process, regardless of if we are root or not. Clear the current
@@ -354,9 +355,8 @@ int InputLayer::postProcess(double timef, double dt) {
 void InputLayer::exchange() {
    std::vector<MPI_Request> req{};
    for (int b = 0; b < getLayerLoc()->nbatch; ++b) {
-      parent->getCommunicator()->exchange(
-            getActivity() + b * getNumExtended(), mDatatypes, getLayerLoc(), req);
-      parent->getCommunicator()->wait(req);
+      mBorderExchanger->exchange(getActivity() + b * getNumExtended(), req);
+      mBorderExchanger->wait(req);
       pvAssert(req.empty());
    }
 }

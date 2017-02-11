@@ -26,7 +26,7 @@ std::string CheckpointEntry::generatePath(
 void CheckpointEntry::deleteFile(
       std::string const &checkpointDirectory,
       std::string const &extension) const {
-   if (getCommunicator()->commRank() == 0) {
+   if (getMPIBlock()->getRank() == 0) {
       std::string path = generatePath(checkpointDirectory, extension);
       struct stat pathStat;
       int statstatus = stat(path.c_str(), &pathStat);
@@ -38,4 +38,4 @@ void CheckpointEntry::deleteFile(
       }
    }
 }
-}
+} // end namespace PV
