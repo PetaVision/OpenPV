@@ -18,6 +18,9 @@ Configuration::Configuration() {
    registerIntegerArgument("NumRows");
    registerIntegerArgument("NumColumns");
    registerIntegerArgument("BatchWidth");
+   registerIntegerArgument("CheckpointCellNumRows");
+   registerIntegerArgument("CheckpointCellNumColumns");
+   registerIntegerArgument("CheckpointCellBatchDimension");
    registerBooleanArgument("DryRun");
 }
 
