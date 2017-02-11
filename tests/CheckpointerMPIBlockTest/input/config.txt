@@ -1,0 +1,12 @@
+# Configuration file for ConfigFileSystemTest with 1 MPI process.
+# If modifying this file, you may also need make corresponding changes
+# to the files with 2 or 4 MPI processes.
+ParamsFile:input/ConfigFileSystemTest.params
+NumThreads:-
+LogFile:CheckpointerMPIBlockTest_32.log
+NumRows:4
+NumColumns:4
+BatchWidth:2
+CheckpointCellNumRows:2
+CheckpointCellNumColumns:2
+CheckpointCellBatchDimension:2
