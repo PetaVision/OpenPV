@@ -65,10 +65,11 @@ int main(int argc, char *argv[]) {
       weightPointers[a] = weights[a].data();
    }
 
+   PV::MPIBlock const *mpiBlock = pv_initObj.getCommunicator()->getLocalMPIBlock();
    // Create the CheckpointEntry.
    auto checkpointEntry = std::make_shared<PV::CheckpointEntryWeightPvp>(
          std::string(connectionName.c_str()),
-         pv_initObj.getCommunicator(),
+         mpiBlock,
          numArbors,
          conn->usingSharedWeights(),
          patches.data(),
@@ -82,7 +83,7 @@ int main(int argc, char *argv[]) {
          conn->postSynapticLayer()->getLayerLoc(),
          false /*do not compress*/);
 
-   PV::ensureDirExists(pv_initObj.getCommunicator(), checkpointDirectory.c_str());
+   PV::ensureDirExists(mpiBlock, checkpointDirectory.c_str());
    checkpointEntry->write(checkpointDirectory.c_str(), hc->simulationTime(), false);
 
    // Overwrite the data

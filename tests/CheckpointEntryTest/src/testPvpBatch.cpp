@@ -1,8 +1,10 @@
 #include "testPvpBatch.hpp"
 #include "checkpointing/CheckpointEntryPvp.hpp"
+#include "include/PVLayerLoc.h"
 #include "utils/conversions.h"
+#include <vector>
 
-void testPvpBatch(PV::Communicator *comm, std::string const &directory) {
+void testPvpBatch(PV::MPIBlock const *mpiBlock, std::string const &directory) {
    PVLayerLoc loc;
    loc.nbatchGlobal = 4;
    loc.nxGlobal     = 16;
@@ -13,26 +15,26 @@ void testPvpBatch(PV::Communicator *comm, std::string const &directory) {
    loc.halo.dn      = 0;
    loc.halo.up      = 0;
    FatalIf(
-         loc.nbatchGlobal % comm->numCommBatches(),
+         loc.nbatchGlobal % mpiBlock->getBatchDimension(),
          "Global batch size %d is not a multiple of batch width %d\n",
          loc.nbatchGlobal,
-         comm->numCommBatches());
-   loc.nbatch = loc.nbatchGlobal / comm->numCommBatches();
-   loc.kb0    = loc.nbatchGlobal * comm->commBatch();
+         mpiBlock->getBatchDimension());
+   loc.nbatch = loc.nbatchGlobal / mpiBlock->getBatchDimension();
+   loc.kb0    = loc.nbatchGlobal * mpiBlock->getBatchIndex();
    FatalIf(
-         loc.nxGlobal % comm->numCommColumns(),
+         loc.nxGlobal % mpiBlock->getNumColumns(),
          "Global width %d is not a multiple of the number of MPI columns %d\n",
          loc.nxGlobal,
-         comm->numCommColumns());
-   loc.nx  = loc.nxGlobal / comm->numCommColumns();
-   loc.kx0 = loc.nx * comm->commColumn();
+         mpiBlock->getNumColumns());
+   loc.nx  = loc.nxGlobal / mpiBlock->getNumColumns();
+   loc.kx0 = loc.nx * mpiBlock->getColumnIndex();
    FatalIf(
-         loc.nyGlobal % comm->numCommRows(),
+         loc.nyGlobal % mpiBlock->getNumRows(),
          "Global height %d is not a multiple of the number of MPI rows %d\n",
          loc.nyGlobal,
-         comm->numCommRows());
-   loc.ny  = loc.nyGlobal / comm->numCommRows();
-   loc.ky0 = loc.ny * comm->commRow();
+         mpiBlock->getNumRows());
+   loc.ny  = loc.nyGlobal / mpiBlock->getNumRows();
+   loc.ky0 = loc.ny * mpiBlock->getRowIndex();
 
    int const localSize = loc.nbatch * loc.nx * loc.ny * loc.nf;
    std::vector<float> correctData(localSize);
@@ -58,7 +60,7 @@ void testPvpBatch(PV::Communicator *comm, std::string const &directory) {
    // CheckpointEntryPvp's mDataPointer doesn't change with it.
    std::vector<float> checkpointData(correctData.size());
    PV::CheckpointEntryPvp<float> checkpointEntryPvp{
-         "checkpointEntryPvpBatch", comm, checkpointData.data(), &loc, false /*not extended*/};
+         "checkpointEntryPvpBatch", mpiBlock, checkpointData.data(), &loc, false /*not extended*/};
 
    double const simTime = 10.0;
    // Copy correct data into checkpoint data.
@@ -84,11 +86,11 @@ void testPvpBatch(PV::Communicator *comm, std::string const &directory) {
       FatalIf(
             checkpointData.at(k) != correctData.at(k),
             "testDataPvp failed: data at rank %d, index %d is %f, but should be %f\n",
-            comm->commRank(),
+            mpiBlock->getRank(),
             k,
             (double)checkpointData.at(k),
             (double)correctData.at(k));
    }
-   MPI_Barrier(comm->communicator());
+   MPI_Barrier(mpiBlock->getComm());
    InfoLog() << "testDataPvpBatch passed.\n";
 }

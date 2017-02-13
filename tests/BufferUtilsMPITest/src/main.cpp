@@ -16,10 +16,8 @@ namespace BufferUtils = PV::BufferUtils;
 
 // BufferSlicer::scatter(Buffer &buffer, uint sliceStrideX, uint sliceStrideY)
 // BufferSlicer::gather(Buffer &buffer, uint sliceStrideX, uint sliceStrideY)
-void testRestricted(int argc, char **argv) {
-   CommandLineArguments *args = new CommandLineArguments(argc, argv, false);
-   Communicator *comm         = new Communicator(args);
-   int rank                   = comm->commRank();
+void testRestricted(Communicator *comm) {
+   int rank = comm->commRank();
 
    InfoLog() << "Setup complete on rank " << rank << ". Running test.\n";
 
@@ -33,11 +31,11 @@ void testRestricted(int argc, char **argv) {
    if (rank == 0) {
       vector<float> testData = {0, 0, 1, 1, 0, 0, 1, 1, 2, 2, 3, 3, 2, 2, 3, 3};
       dataBuffer.set(testData, 4, 4, 1);
-      BufferUtils::scatter<float>(comm, dataBuffer, sliceX, sliceY);
+      BufferUtils::scatter<float>(comm->getLocalMPIBlock(), dataBuffer, sliceX, sliceY, 0, 0);
    }
    else {
       dataBuffer.resize(sliceX, sliceY, 1);
-      BufferUtils::scatter<float>(comm, dataBuffer, sliceX, sliceY);
+      BufferUtils::scatter<float>(comm->getLocalMPIBlock(), dataBuffer, sliceX, sliceY, 0, 0);
    }
    result = dataBuffer.asVector();
 
@@ -83,7 +81,8 @@ void testRestricted(int argc, char **argv) {
 
    InfoLog() << "Beginning gather on rank " << rank << "\n";
 
-   dataBuffer.set(BufferUtils::gather<float>(comm, dataBuffer, sliceX, sliceY));
+   dataBuffer.set(
+         BufferUtils::gather<float>(comm->getLocalMPIBlock(), dataBuffer, sliceX, sliceY, 0, 0));
    result = dataBuffer.asVector();
 
    if (rank == 0) {
@@ -101,10 +100,8 @@ void testRestricted(int argc, char **argv) {
 
 // BufferSlicer::scatter(Buffer &buffer, uint sliceStrideX, uint sliceStrideY)
 // BufferSlicer::gather(Buffer &buffer, uint sliceStrideX, uint sliceStrideY)
-void testExtended(int argc, char **argv) {
-   CommandLineArguments *args = new CommandLineArguments(argc, argv, false);
-   Communicator *comm         = new Communicator(args);
-   int rank                   = comm->commRank();
+void testExtended(Communicator *comm) {
+   int rank = comm->commRank();
 
    InfoLog() << "Setup complete on rank " << rank << ". Running test.\n";
 
@@ -120,12 +117,12 @@ void testExtended(int argc, char **argv) {
                                 9, 2, 2, 3, 3, 9, 9, 2, 2, 3, 3, 9, 9, 9, 9, 9, 9, 9};
 
       dataBuffer.set(testData, 6, 6, 1);
-      BufferUtils::scatter<float>(comm, dataBuffer, sliceX, sliceY);
+      BufferUtils::scatter<float>(comm->getLocalMPIBlock(), dataBuffer, sliceX, sliceY, 0, 0);
    }
    else {
       // We have a 1 element margin on each side
       dataBuffer.resize(sliceX + 2, sliceY + 2, 1);
-      BufferUtils::scatter<float>(comm, dataBuffer, sliceX, sliceY);
+      BufferUtils::scatter<float>(comm->getLocalMPIBlock(), dataBuffer, sliceX, sliceY, 0, 0);
    }
    result = dataBuffer.asVector();
 
@@ -192,7 +189,7 @@ void testExtended(int argc, char **argv) {
 
    InfoLog() << "Beginning gather on rank " << rank << "\n";
 
-   dataBuffer.set(BufferUtils::gather(comm, dataBuffer, sliceX, sliceY));
+   dataBuffer.set(BufferUtils::gather(comm->getLocalMPIBlock(), dataBuffer, sliceX, sliceY, 0, 0));
    result = dataBuffer.asVector();
 
    if (rank == 0) {
@@ -219,29 +216,24 @@ int main(int argc, char **argv) {
    assert(rank != -1);
    assert(numProcs == 1 || numProcs == 2 || numProcs == 4);
 
-   char *args[5];
-   args[0] = argv[0];
-   args[1] = strdup("-rows");
-   args[2] = numProcs == 1 ? strdup("1") : strdup("2");
-   args[3] = strdup("-columns");
-   args[4] = numProcs != 4 ? strdup("1") : strdup("2");
+   CommandLineArguments *args = new CommandLineArguments(argc, argv, false);
+   args->setIntegerArgument("NumRows", numProcs == 1 ? 1 : 2);
+   args->setIntegerArgument("NumColumns", numProcs != 4 ? 1 : 2);
+   Communicator *comm = new Communicator(args);
 
    InfoLog() << "Rank " << rank
              << ": Testing restricted BufferUtils::scatter() and BufferUtils::gather():\n";
-   testRestricted(5, args);
+   testRestricted(comm);
    InfoLog() << "Rank " << rank << ": Completed.\n";
 
    InfoLog() << "Rank " << rank
              << ": Testing extended BufferUtils::scatter() and BufferUtils::gather():\n";
-   testExtended(5, args);
+   testExtended(comm);
    InfoLog() << "Rank " << rank << ": Completed.\n";
 
    MPI_Finalize();
 
-   free(args[1]);
-   free(args[2]);
-   free(args[3]);
-   free(args[4]);
+   delete args;
 
    InfoLog() << "BufferUtilsMPI tests completed successfully!\n";
    return EXIT_SUCCESS;

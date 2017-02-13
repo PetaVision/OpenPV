@@ -122,7 +122,7 @@ int PoolingConnCheckpointerTestProbe::readStateFromCheckpoint(PV::Checkpointer *
    PV::Checkpointer::TimeInfo timeInfo;
    PV::CheckpointEntryData<PV::Checkpointer::TimeInfo> timeInfoCheckpointEntry(
          std::string("timeinfo"),
-         parent->getCommunicator(),
+         parent->getCommunicator()->getLocalMPIBlock(),
          &timeInfo,
          (size_t)1,
          true /*broadcast*/);

@@ -9,7 +9,6 @@
 #define CHECKPOINTENTRYDATASTORE_HPP_
 
 #include "checkpointing/CheckpointEntry.hpp"
-#include "columns/Communicator.hpp"
 #include "columns/DataStore.hpp"
 #include <string>
 
@@ -19,19 +18,19 @@ class CheckpointEntryDataStore : public CheckpointEntry {
   public:
    CheckpointEntryDataStore(
          std::string const &name,
-         Communicator *communicator,
+         MPIBlock const *mpiBlock,
          DataStore *dataStore,
          PVLayerLoc const *layerLoc)
-         : CheckpointEntry(name, communicator) {
+         : CheckpointEntry(name, mpiBlock) {
       initialize(dataStore, layerLoc);
    }
    CheckpointEntryDataStore(
          std::string const &objName,
          std::string const &dataName,
-         Communicator *communicator,
+         MPIBlock const *mpiBlock,
          DataStore *dataStore,
          PVLayerLoc const *layerLoc)
-         : CheckpointEntry(objName, dataName, communicator) {
+         : CheckpointEntry(objName, dataName, mpiBlock) {
       initialize(dataStore, layerLoc);
    }
    virtual void write(std::string const &checkpointDirectory, double simTime, bool verifyWritesFlag)

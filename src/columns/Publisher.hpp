@@ -14,6 +14,7 @@
 #include "columns/DataStore.hpp"
 #include "include/PVLayerLoc.h"
 #include "include/pv_types.h"
+#include "utils/BorderExchange.hpp"
 
 namespace PV {
 
@@ -74,6 +75,8 @@ class Publisher {
    DataStore *store;
 
    PVLayerCube *mLayerCube;
+
+   BorderExchange *mBorderExchanger = nullptr;
 
    Communicator *mComm;
 

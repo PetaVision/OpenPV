@@ -8,6 +8,7 @@
 #include "Arguments.hpp"
 #include "include/pv_arch.h"
 #include "include/pv_types.h"
+#include "structures/MPIBlock.hpp"
 #include <cstdio>
 #include <vector>
 
@@ -19,16 +20,17 @@ namespace PV {
 
 class Communicator {
   public:
-   size_t recvOffset(int n, const PVLayerLoc *loc);
-   size_t sendOffset(int n, const PVLayerLoc *loc);
-
-   static MPI_Datatype *newDatatypes(const PVLayerLoc *loc);
-   static int freeDatatypes(MPI_Datatype *mpi_datatypes);
+   // The following Communicator methods related to border exchange were moved to
+   // the BorderExchange class in utils/BorderExchange.{c,h}pp Feb 6, 2017.
+   //     newDatatypes
+   //     freeDatatypes
+   //     exchange
+   //     wait
+   //     recvOffset
+   //     sendOffset
 
    Communicator(Arguments *argumentList);
    virtual ~Communicator();
-
-   char *name() { return commName; }
 
    // Previous names of MPI getter functions now default to local ranks and sizes
    int commRank() { return localRank; }
@@ -36,9 +38,13 @@ class Communicator {
    int commSize() { return localSize; }
    int globalCommSize() { return globalSize; }
 
-   MPI_Comm communicator() { return localIcComm; }
-   MPI_Comm batchCommunicator() { return batchIcComm; }
-   MPI_Comm globalCommunicator() { return globalIcComm; }
+   MPI_Comm communicator() const { return localMPIBlock->getComm(); }
+   MPI_Comm batchCommunicator() const { return batchMPIBlock->getComm(); }
+   MPI_Comm globalCommunicator() const { return globalMPIBlock->getComm(); }
+
+   MPIBlock const *getLocalMPIBlock() const { return localMPIBlock; }
+   MPIBlock const *getBatchMPIBlock() const { return batchMPIBlock; }
+   MPIBlock const *getGlobalMPIBlock() const { return globalMPIBlock; }
 
    int numberOfNeighbors(); // includes interior (self) as a neighbor
 
@@ -52,13 +58,6 @@ class Communicator {
    int numCommRows() { return numRows; }
    int numCommColumns() { return numCols; }
    int numCommBatches() { return batchWidth; }
-
-   int exchange(
-         float *data,
-         const MPI_Datatype neighborDatatypes[],
-         const PVLayerLoc *loc,
-         std::vector<MPI_Request> &req);
-   int wait(std::vector<MPI_Request> &req);
 
    int getTag(int neighbor) { return tags[neighbor]; }
    int getReverseTag(int neighbor) { return tags[reverseDirection(localRank, neighbor)]; }
@@ -86,10 +85,9 @@ class Communicator {
    // which uses negative values to mark directions where there is no remote
    // neighbor.
 
-   int isExtra; // Defines if the process is an extra process
+   bool isExtra; // Defines if the process is an extra process
 
    int neighbors[NUM_NEIGHBORHOOD]; // [0] is interior (local)
-   int remoteNeighbors[NUM_NEIGHBORHOOD];
    int tags[NUM_NEIGHBORHOOD]; // diagonal communication needs a different tag
    int exchangeCounter = 1024;
    // from left/right or
@@ -107,11 +105,9 @@ class Communicator {
    int numCols;
    int batchWidth;
 
-   char commName[COMMNAME_MAXLENGTH];
-
-   MPI_Comm localIcComm;
-   MPI_Comm batchIcComm;
-   MPI_Comm globalIcComm;
+   MPIBlock *localMPIBlock  = nullptr;
+   MPIBlock *batchMPIBlock  = nullptr;
+   MPIBlock *globalMPIBlock = nullptr;
 
    // These methods are private for now, move to public as needed
 

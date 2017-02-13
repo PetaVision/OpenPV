@@ -1,0 +1,24 @@
+// Params file for CheckpointerMPIBlockTest.
+// The test creates a Checkpointer using the "checkpointer" params group,
+// and checks whether it can write to and read from a checkpoint, using
+// the configuration parameters in config.txt.
+//
+// Because the test uses MPI batching, PVParams requires a HyPerCol group
+// with the outputPath specified either in the group or in a batchsweep.
+// The test does not build a HyPerCol.
+
+HyPerCol "column" = {
+    outputPath = "output";
+};
+
+Checkpointer "checkpointer" = {
+    checkpointWrite = true;
+    checkpointWriteDir = "checkpoints";
+    checkpointWriteTriggerMode = "step";
+    checkpointWriteStepInterval = 1;
+    checkpointIndexWidth = 1;
+    suppressNonplasticCheckpoints = false;
+    deleteOlderCheckpoints = false;
+    initializeFromCheckpointDir = "";
+    lastCheckpointDir = "";
+};

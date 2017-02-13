@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
    PV::HyPerConn *cCocirc2to1 = new HyPerConn("test_cocirc cocircconn 2 to 1", hc);
    FatalIf(!(cCocirc2to1), "Test failed.\n");
 
-   ensureDirExists(hc->getCommunicator(), hc->getOutputPath());
+   ensureDirExists(hc->getCommunicator()->getLocalMPIBlock(), hc->getOutputPath());
 
    auto objectMap      = hc->copyObjectMap();
    auto commMessagePtr = std::make_shared<CommunicateInitInfoMessage>(*objectMap);

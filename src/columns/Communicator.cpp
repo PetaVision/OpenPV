@@ -11,6 +11,7 @@
 
 #include "Communicator.hpp"
 #include "io/io.hpp"
+#include "utils/PVAssert.hpp"
 #include "utils/PVLog.hpp"
 #include "utils/conversions.h"
 
@@ -28,8 +29,6 @@ int Communicator::gcd(int a, int b) {
 
 Communicator::Communicator(Arguments *argumentList) {
    int totalSize;
-   localIcComm  = NULL;
-   globalIcComm = NULL;
    MPI_Comm_rank(MPI_COMM_WORLD, &globalRank);
    MPI_Comm_size(MPI_COMM_WORLD, &totalSize);
 
@@ -40,8 +39,6 @@ Communicator::Communicator(Arguments *argumentList) {
    bool rowsDefined  = numRows != 0;
    bool colsDefined  = numCols != 0;
    bool batchDefined = batchWidth != 0;
-
-   bool inferingDim = !rowsDefined || !colsDefined || !batchDefined;
 
    if (!batchDefined) {
       batchWidth = 1;
@@ -76,27 +73,21 @@ Communicator::Communicator(Arguments *argumentList) {
               << ") must be bigger than the number of processes launched (" << totalSize << ")\n";
    }
 
-#ifdef PV_USE_MPI
-   // Create a new split of useful mpi processes vs extras
-   isExtra = globalRank >= commSize ? 1 : 0;
-   MPI_Comm_split(MPI_COMM_WORLD, isExtra, globalRank % commSize, &globalIcComm);
+   globalMPIBlock =
+         new MPIBlock(MPI_COMM_WORLD, numRows, numCols, batchWidth, numRows, numCols, batchWidth);
+   isExtra = (globalRank >= commSize);
    if (isExtra) {
       WarnLog() << "Global process rank " << globalRank << " is extra, as only " << commSize
                 << " mpiProcesses are required. Process exiting\n";
       return;
    }
-#else // PV_USE_MPI
-   isExtra      = 0;
-   globalIcComm = MPI_COMM_WORLD;
-#endif // PV_USE_MPI
-   // globalIcComm is now a communicator with only useful mpi processes
+   // globalMPIBlock's communicator now has only useful mpi processes
 
-   // If --require-return was set, wait until global root process gets keyboard
-   // input.
+   // If RequireReturn was set, wait until global root process gets keyboard input.
    bool requireReturn = argumentList->getBooleanArgument("RequireReturn");
    if (requireReturn) {
       fflush(stdout);
-      MPI_Barrier(globalIcComm);
+      MPI_Barrier(globalCommunicator());
       if (globalRank == 0) {
          std::printf("Hit enter to begin! ");
          fflush(stdout);
@@ -105,26 +96,20 @@ Communicator::Communicator(Arguments *argumentList) {
             charhit = std::getc(stdin);
          }
       }
-      MPI_Barrier(globalIcComm);
+      MPI_Barrier(globalCommunicator());
    }
 
-#ifdef PV_USE_MPI
    // Grab globalSize now that extra processes have been exited
-   MPI_Comm_size(globalIcComm, &globalSize);
+   MPI_Comm_size(globalCommunicator(), &globalSize);
 
-   // Calculate the batch idx from global rank
-   int batchColIdx = commBatch(globalRank);
-   // Set local rank
-   localRank = globalToLocalRank(globalRank, batchWidth, numRows, numCols);
    // Make new local communicator
-   MPI_Comm_split(globalIcComm, batchColIdx, localRank, &localIcComm);
+   localMPIBlock =
+         new MPIBlock{globalCommunicator(), numRows, numCols, batchWidth, numRows, numCols, 1};
+   // Set local rank
+   localRank = localMPIBlock->getRank();
    // Make new batch communicator
-   MPI_Comm_split(globalIcComm, localRank, batchColIdx, &batchIcComm);
-#else // PV_USE_MPI
-   globalSize  = 1;
-   localRank   = 0;
-   localIcComm = MPI_COMM_WORLD;
-#endif // PV_USE_MPI
+   batchMPIBlock =
+         new MPIBlock{globalCommunicator(), numRows, numCols, batchWidth, 1, 1, batchWidth};
 
    //#ifdef DEBUG_OUTPUT
    //      DebugLog().printf("[%2d]: Formed resized communicator, size==%d
@@ -134,32 +119,24 @@ Communicator::Communicator(Arguments *argumentList) {
 
    // Grab local rank and check for errors
    int tmpLocalRank;
-   MPI_Comm_size(localIcComm, &localSize);
-   MPI_Comm_rank(localIcComm, &tmpLocalRank);
+   MPI_Comm_size(communicator(), &localSize);
+   MPI_Comm_rank(communicator(), &tmpLocalRank);
    // This should be equiv
-   assert(tmpLocalRank == localRank);
-
-   commName[0] = '\0';
-   if (globalSize > 1) {
-      snprintf(commName, COMMNAME_MAXLENGTH, "[%2d]: ", globalRank);
-   }
+   pvAssert(tmpLocalRank == localRank);
 
    if (globalSize > 0) {
       neighborInit();
    }
-   MPI_Barrier(globalIcComm);
+   MPI_Barrier(globalCommunicator());
 }
 
 Communicator::~Communicator() {
 #ifdef PV_USE_MPI
-   MPI_Barrier(globalIcComm);
-   if (localIcComm) {
-      MPI_Comm_free(&localIcComm);
-   }
-   if (globalIcComm) {
-      MPI_Comm_free(&globalIcComm);
-   }
+   MPI_Barrier(globalCommunicator());
 #endif
+   delete localMPIBlock;
+   delete batchMPIBlock;
+   delete globalMPIBlock;
 }
 
 /**
@@ -185,10 +162,9 @@ int Communicator::neighborInit() {
    for (int i = 0; i < NUM_NEIGHBORHOOD; i++) {
       int n              = neighborIndex(localRank, i);
       neighbors[i]       = localRank; // default neighbor is self
-      remoteNeighbors[i] = 0;
       if (n >= 0) {
-         neighbors[i]                     = n;
-         remoteNeighbors[num_neighbors++] = n;
+         neighbors[i] = n;
+         num_neighbors++;
 #ifdef DEBUG_OUTPUT
          DebugLog().printf(
                "[%2d]: neighborInit: remote[%d] of %d is %d, i=%d, neighbor=%d\n",
@@ -520,254 +496,13 @@ int Communicator::reverseDirection(int commId, int direction) {
    return revdir;
 }
 
-/**
- * Returns the recv data offset for the given neighbor
- *  - recv into borders
- */
-size_t Communicator::recvOffset(int n, const PVLayerLoc *loc) {
-   // This check should make sure n is a local rank
-   const int nx         = loc->nx;
-   const int ny         = loc->ny;
-   const int leftBorder = loc->halo.lt;
-   const int topBorder  = loc->halo.dn;
-
-   const int sx = strideXExtended(loc);
-   const int sy = strideYExtended(loc);
-
-   switch (n) {
-      case LOCAL: return (sx * leftBorder + sy * topBorder);
-      case NORTHWEST: return ((size_t)0);
-      case NORTH: return (sx * leftBorder);
-      case NORTHEAST: return (sx * leftBorder + sx * nx);
-      case WEST: return (sy * topBorder);
-      case EAST: return (sx * leftBorder + sx * nx + sy * topBorder);
-      case SOUTHWEST: return (+sy * (topBorder + ny));
-      case SOUTH: return (sx * leftBorder + sy * (topBorder + ny));
-      case SOUTHEAST: return (sx * leftBorder + sx * nx + sy * (topBorder + ny));
-      default: ErrorLog().printf("recvOffset: bad neighbor index %d\n", n); return (size_t)0;
-   }
-}
-
-/**
- * Returns the send data offset for the given neighbor
- *  - send from interior
- */
-size_t Communicator::sendOffset(int n, const PVLayerLoc *loc) {
-   const size_t nx         = loc->nx;
-   const size_t ny         = loc->ny;
-   const size_t leftBorder = loc->halo.lt;
-   const size_t topBorder  = loc->halo.up;
-
-   const size_t sx = strideXExtended(loc);
-   const size_t sy = strideYExtended(loc);
-
-   bool has_north_nbr = hasNorthernNeighbor(commRow(), commColumn());
-   bool has_west_nbr  = hasWesternNeighbor(commRow(), commColumn());
-   bool has_east_nbr  = hasEasternNeighbor(commRow(), commColumn());
-   bool has_south_nbr = hasSouthernNeighbor(commRow(), commColumn());
-
-   switch (n) {
-      case LOCAL: return (sx * leftBorder + sy * topBorder);
-      case NORTHWEST: return (sx * has_west_nbr * leftBorder + sy * has_north_nbr * topBorder);
-      case NORTH: return (sx * leftBorder + sy * topBorder);
-      case NORTHEAST:
-         return (sx * (nx + !has_east_nbr * leftBorder) + sy * has_north_nbr * topBorder);
-      case WEST: return (sx * leftBorder + sy * topBorder);
-      case EAST: return (sx * nx + sy * topBorder);
-      case SOUTHWEST:
-         return (sx * has_west_nbr * leftBorder + sy * (ny + !has_south_nbr * topBorder));
-      case SOUTH: return (sx * leftBorder + sy * ny);
-      case SOUTHEAST:
-         return (sx * (nx + !has_east_nbr * leftBorder) + sy * (ny + !has_south_nbr * topBorder));
-      default: ErrorLog().printf("sendOffset: bad neighbor index %d\n", n); return 0;
-   }
-}
-
-/**
- * Create a set of data types for inter-neighbor communication
- *   - caller should delete the MPI_Datatype array by calling
- * Communicator::freeDatatypes
- */
-MPI_Datatype *Communicator::newDatatypes(const PVLayerLoc *loc) {
-#ifdef PV_USE_MPI
-   int count, blocklength, stride;
-
-   MPI_Datatype *comms = new MPI_Datatype[NUM_NEIGHBORHOOD];
-
-   const int leftBorder   = loc->halo.lt;
-   const int rightBorder  = loc->halo.rt;
-   const int bottomBorder = loc->halo.dn;
-   const int topBorder    = loc->halo.up;
-
-   const int nf = loc->nf;
-
-   count       = loc->ny;
-   blocklength = nf * loc->nx;
-   stride      = nf * (loc->nx + leftBorder + rightBorder);
-
-   /* local interior */
-   MPI_Type_vector(count, blocklength, stride, MPI_FLOAT, &comms[LOCAL]);
-   MPI_Type_commit(&comms[LOCAL]);
-
-   count = topBorder;
-
-   /* northwest */
-   blocklength = nf * leftBorder;
-   MPI_Type_vector(count, blocklength, stride, MPI_FLOAT, &comms[NORTHWEST]);
-   MPI_Type_commit(&comms[NORTHWEST]);
-
-   /* north */
-   blocklength = nf * loc->nx;
-   MPI_Type_vector(count, blocklength, stride, MPI_FLOAT, &comms[NORTH]);
-   MPI_Type_commit(&comms[NORTH]);
-
-   /* northeast */
-   blocklength = nf * rightBorder;
-   MPI_Type_vector(count, blocklength, stride, MPI_FLOAT, &comms[NORTHEAST]);
-   MPI_Type_commit(&comms[NORTHEAST]);
-
-   count = loc->ny;
-
-   /* west */
-   blocklength = nf * leftBorder;
-   MPI_Type_vector(count, blocklength, stride, MPI_FLOAT, &comms[WEST]);
-   MPI_Type_commit(&comms[WEST]);
-
-   /* east */
-   blocklength = nf * rightBorder;
-   MPI_Type_vector(count, blocklength, stride, MPI_FLOAT, &comms[EAST]);
-   MPI_Type_commit(&comms[EAST]);
-
-   count = bottomBorder;
-
-   /* southwest */
-   blocklength = nf * leftBorder;
-   MPI_Type_vector(count, blocklength, stride, MPI_FLOAT, &comms[SOUTHWEST]);
-   MPI_Type_commit(&comms[SOUTHWEST]);
-
-   /* south */
-   blocklength = nf * loc->nx;
-   MPI_Type_vector(count, blocklength, stride, MPI_FLOAT, &comms[SOUTH]);
-   MPI_Type_commit(&comms[SOUTH]);
-
-   /* southeast */
-   blocklength = nf * rightBorder;
-   MPI_Type_vector(count, blocklength, stride, MPI_FLOAT, &comms[SOUTHEAST]);
-   MPI_Type_commit(&comms[SOUTHEAST]);
-
-   return comms;
-#else // PV_USE_MPI
-   return NULL;
-#endif // PV_USE_MPI
-}
-
-/* Frees an MPI_Datatype array previously created with
- * Communicator::newDatatypes */
-int Communicator::freeDatatypes(MPI_Datatype *mpi_datatypes) {
-#ifdef PV_USE_MPI
-   if (mpi_datatypes) {
-      for (int n = 0; n < NUM_NEIGHBORHOOD; n++) {
-         MPI_Type_free(&mpi_datatypes[n]);
-      }
-      delete[] mpi_datatypes;
-   }
-#endif // PV_USE_MPI
-   return PV_SUCCESS;
-}
-
-/**
- * Exchange data with neighbors
- *   - the data regions to be sent are described by the datatypes
- *   - do irecv first so there is a location for send data to be received
- */
-int Communicator::exchange(
-      float *data,
-      const MPI_Datatype neighborDatatypes[],
-      const PVLayerLoc *loc,
-      std::vector<MPI_Request> &req) {
-   
-#ifdef PV_USE_MPI
-   PVHalo const *halo = &loc->halo;
-   if (halo->lt == 0 && halo->rt == 0 && halo->dn == 0 && halo->up == 0) {
-      return PV_SUCCESS;
-   }
-
-   exchangeCounter++;
-   if (exchangeCounter == 2048) { exchangeCounter = 1024; }
-
-   req.clear();
-   // don't send interior
-   for (int n = 1; n < NUM_NEIGHBORHOOD; n++) {
-      if (neighbors[n] == localRank)
-         continue; // don't send interior/self
-      float *recvBuf = data + recvOffset(n, loc);
-#ifdef DEBUG_OUTPUT
-      InfoLog().printf(
-            "[%2d]: recv,send to %d, n=%d recvOffset==%ld "
-            "sendOffset==%ld send[0]==%f\n",
-            localRank,
-            neighbors[n],
-            n,
-            recvOffset(n, loc),
-            sendOffset(n, loc),
-            (double)recvBuf[0]);
-      InfoLog().flush();
-#endif // DEBUG_OUTPUT
-      auto sz = req.size();
-      req.resize(sz + 1);
-      MPI_Irecv(
-            recvBuf,
-            1,
-            neighborDatatypes[n],
-            neighbors[n],
-            exchangeCounter * 16 + getReverseTag(n),
-            localIcComm,
-            &(req.data())[sz]);
-   }
-
-   for (int n = 1; n < NUM_NEIGHBORHOOD; n++) {
-      if (neighbors[n] == localRank)
-         continue; // don't send interior/self
-      float *sendBuf = data + sendOffset(n, loc);
-#ifdef DEBUG_OUTPUT
-      InfoLog().printf(
-            "[%2d]: recv,send to %d, n=%d recvOffset==%ld "
-            "sendOffset==%ld send[0]==%f\n",
-            localRank,
-            neighbors[n],
-            n,
-            recvOffset(n, loc),
-            sendOffset(n, loc),
-            (double)sendBuf[0]);
-      InfoLog().flush();
-#endif // DEBUG_OUTPUT
-      auto sz = req.size();
-      req.resize(sz + 1);
-      MPI_Isend(
-            sendBuf,
-            1,
-            neighborDatatypes[n],
-            neighbors[n],
-            exchangeCounter * 16 + getTag(n),
-            localIcComm,
-            &(req.data())[sz]);
-   }
-
-// don't recv interior
-#ifdef DEBUG_OUTPUT
-   InfoLog().printf("[%2d]: waiting for data, count==%zu\n", localRank, req.size());
-   InfoLog().flush();
-#endif // DEBUG_OUTPUT
-
-#endif // PV_USE_MPI
-
-   return PV_SUCCESS;
-}
-
-int Communicator::wait(std::vector<MPI_Request> &req) {
-   int status = MPI_Waitall(req.size(), req.data(), MPI_STATUSES_IGNORE);
-   req.clear();
-   return status;
-}
+// The following Communicator methods related to border exchange were moved to
+// the BorderExchange class in utils/BorderExchange.{c,h}pp Feb 6, 2017.
+//     newDatatypes
+//     freeDatatypes
+//     exchange
+//     wait
+//     recvOffset
+//     sendOffset
 
 } // end namespace PV

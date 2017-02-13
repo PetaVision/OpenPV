@@ -301,7 +301,7 @@ int InitWeights::readWeights(
             nyp,
             nfp,
             filename,
-            icComm,
+            icComm->getLocalMPIBlock(),
             &timed,
             preLoc);
    }
@@ -327,7 +327,7 @@ int InitWeights::readListOfArborFiles(
    int numArbors            = callingConn->numberOfAxonalArborLists();
    const PVLayerLoc *preLoc = callingConn->preSynapticLayer()->getLayerLoc();
    double timed;
-   PV_Stream *arborstream = pvp_open_read_file(listOfArborsFilename, icComm);
+   PV_Stream *arborstream = pvp_open_read_file(listOfArborsFilename, icComm->getLocalMPIBlock());
 
    int rootproc = 0;
    char arborfilename[PV_PATH_MAX];
@@ -363,7 +363,14 @@ int InitWeights::readListOfArborFiles(
       int filetype, datatype;
       int numParams = NUM_BIN_PARAMS + NUM_WGT_EXTRA_PARAMS;
       int params[NUM_BIN_PARAMS + NUM_WGT_EXTRA_PARAMS];
-      pvp_read_header(arborfilename, icComm, &timed, &filetype, &datatype, params, &numParams);
+      pvp_read_header(
+            arborfilename,
+            icComm->getLocalMPIBlock(),
+            &timed,
+            &filetype,
+            &datatype,
+            params,
+            &numParams);
       int thisfilearbors = params[INDEX_NBANDS];
       const int nxp      = callingConn->xPatchSize();
       const int nyp      = callingConn->yPatchSize();
@@ -378,7 +385,7 @@ int InitWeights::readListOfArborFiles(
             nyp,
             nfp,
             arborfilename,
-            icComm,
+            icComm->getLocalMPIBlock(),
             &timed,
             preLoc);
       if (status != PV_SUCCESS) {
@@ -388,7 +395,7 @@ int InitWeights::readListOfArborFiles(
       }
       arbor += thisfilearbors;
    } // while
-   pvp_close_file(arborstream, icComm);
+   pvp_close_file(arborstream, icComm->getLocalMPIBlock());
    return PV_SUCCESS;
 }
 
@@ -406,7 +413,7 @@ int InitWeights::readCombinedWeightFiles(
    int max_weight_files    = 1; // arbitrary limit...
    int num_weight_files    = weightParams->getNumWeightFiles();
    int file_count          = 0;
-   PV_Stream *weightstream = pvp_open_read_file(fileOfWeightFiles, icComm);
+   PV_Stream *weightstream = pvp_open_read_file(fileOfWeightFiles, icComm->getLocalMPIBlock());
    if ((weightstream == NULL) && (icComm->commRank() == rootproc)) {
       Fatal().printf("Cannot open file of weight files \"%s\".  Exiting.\n", fileOfWeightFiles);
    }
@@ -444,7 +451,14 @@ int InitWeights::readCombinedWeightFiles(
       int filetype, datatype;
       int numParams = NUM_BIN_PARAMS + NUM_WGT_EXTRA_PARAMS;
       int params[NUM_BIN_PARAMS + NUM_WGT_EXTRA_PARAMS];
-      pvp_read_header(weightsfilename, icComm, &timed, &filetype, &datatype, params, &numParams);
+      pvp_read_header(
+            weightsfilename,
+            icComm->getLocalMPIBlock(),
+            &timed,
+            &filetype,
+            &datatype,
+            params,
+            &numParams);
       const int nxp = callingConn->xPatchSize();
       const int nyp = callingConn->yPatchSize();
       const int nfp = callingConn->fPatchSize();
@@ -457,7 +471,7 @@ int InitWeights::readCombinedWeightFiles(
             nyp,
             nfp,
             weightsfilename,
-            icComm,
+            icComm->getLocalMPIBlock(),
             &timed,
             preLoc);
       if (status != PV_SUCCESS) {
