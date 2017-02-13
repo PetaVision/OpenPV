@@ -42,8 +42,16 @@ class CheckpointEntryDataStore : public CheckpointEntry {
    void initialize(DataStore *dataStore, PVLayerLoc const *layerLoc);
 
   private:
-   DataStore *mDataStore;
+   int getNumFrames() const;
+   float *calcBatchElementStart(int frame) const;
+   int calcMPIBatchIndex(int frame) const;
+   void setLastUpdateTimes(std::vector<double> const &timestamps) const;
+
+  private:
+   DataStore *mDataStore       = nullptr;
    PVLayerLoc const *mLayerLoc = nullptr;
+   int mXMargins               = 0;
+   int mYMargins               = 0;
 };
 
 } // end namespace PV

@@ -22,34 +22,32 @@ class CheckpointEntryPvp : public CheckpointEntry {
          MPIBlock const *mpiBlock,
          T *dataPtr,
          PVLayerLoc const *layerLoc,
-         bool extended)
-         : CheckpointEntry(name, mpiBlock),
-           mDataPointer(dataPtr),
-           mLayerLoc(layerLoc),
-           mExtended(extended) {}
+         bool extended);
    CheckpointEntryPvp(
          std::string const &objName,
          std::string const &dataName,
          MPIBlock const *mpiBlock,
          T *dataPtr,
          PVLayerLoc const *layerLoc,
-         bool extended)
-         : CheckpointEntry(objName, dataName, mpiBlock),
-           mDataPointer(dataPtr),
-           mLayerLoc(layerLoc),
-           mExtended(extended) {}
+         bool extended);
    virtual void write(std::string const &checkpointDirectory, double simTime, bool verifyWritesFlag)
          const override;
    virtual void read(std::string const &checkpointDirectory, double *simTimePtr) const override;
    virtual void remove(std::string const &checkpointDirectory) const override;
 
-  private:
-   T *calcBatchElementStart(int batchElement) const;
+  protected:
+   void initialize(T *dataPtr, PVLayerLoc const *layerLoc, bool extended);
 
   private:
-   T *mDataPointer;
+   int getNumFrames() const;
+   T *calcBatchElementStart(int batchElement) const;
+   int calcMPIBatchIndex(int frame) const;
+
+  private:
+   T *mDataPointer             = nullptr;
    PVLayerLoc const *mLayerLoc = nullptr;
-   bool mExtended              = false;
+   int mXMargins               = 0; // If extended is true, use mLayerLoc's halo for the margins.
+   int mYMargins               = 0; // If extended is false, use zero for the margins.
 };
 
 } // end namespace PV
