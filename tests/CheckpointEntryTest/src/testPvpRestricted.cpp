@@ -1,5 +1,5 @@
 #include "testPvpRestricted.hpp"
-#include "checkpointing/CheckpointEntryPvp.hpp"
+#include "checkpointing/CheckpointEntryPvpBuffer.hpp"
 #include "include/PVLayerLoc.h"
 #include "utils/conversions.h"
 #include <vector>
@@ -43,9 +43,9 @@ void testPvpRestricted(PV::MPIBlock const *mpiBlock, std::string const &director
 
    // Initialize checkpointData as a vector with the same size as correctData.
    // Need to make sure that checkpointData.data() never gets relocated, since the
-   // CheckpointEntryPvp's mDataPointer doesn't change with it.
+   // CheckpointEntryPvpBuffer's mDataPointer doesn't change with it.
    std::vector<float> checkpointData(correctData.size());
-   PV::CheckpointEntryPvp<float> checkpointEntryPvp{"checkpointEntryPvpRestricted",
+   PV::CheckpointEntryPvpBuffer<float> checkpointEntryPvp{"checkpointEntryPvpRestricted",
                                                     mpiBlock,
                                                     checkpointData.data(),
                                                     &loc,

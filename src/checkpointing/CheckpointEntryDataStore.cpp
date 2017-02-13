@@ -13,7 +13,7 @@
 
 namespace PV {
 
-// TODO: many commonalities between CheckpointEntryPvp and CheckpointEntryDataStore.
+// TODO: many commonalities between CheckpointEntryPvpBuffer and CheckpointEntryDataStore.
 // Refactor to eliminate code duplication
 
 void CheckpointEntryDataStore::initialize(DataStore *dataStore, PVLayerLoc const *layerLoc) {

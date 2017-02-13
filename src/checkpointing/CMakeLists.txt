@@ -11,7 +11,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/CheckpointEntry.hpp
    ${SUBDIR}/CheckpointEntryData.hpp
    ${SUBDIR}/CheckpointEntryDataStore.hpp
-   ${SUBDIR}/CheckpointEntryPvp.hpp
+   ${SUBDIR}/CheckpointEntryPvpBuffer.hpp
    ${SUBDIR}/CheckpointEntryRandState.hpp
    ${SUBDIR}/CheckpointEntryWeightPvp.hpp
    ${SUBDIR}/CheckpointableFileStream.hpp

@@ -1,9 +1,9 @@
 /*
- * CheckpointEntryPvp.tpp
+ * CheckpointEntryPvpBuffer.tpp
  *
  *  Created on Sep 27, 2016
  *      Author: Pete Schultz
- *  template implementations for CheckpointEntryPvp class.
+ *  template implementations for CheckpointEntryPvpBuffer class.
  *  Note that the .hpp includes this .tpp file at the end;
  *  the .tpp file does not include the .hpp file.
  */
@@ -18,11 +18,11 @@
 
 namespace PV {
 
-// TODO: many commonalities between CheckpointEntryPvp and CheckpointEntryDataStore.
+// TODO: many commonalities between CheckpointEntryPvpBuffer and CheckpointEntryDataStore.
 // Refactor to eliminate code duplication
 
 template <typename T>
-CheckpointEntryPvp<T>::CheckpointEntryPvp(
+CheckpointEntryPvpBuffer<T>::CheckpointEntryPvpBuffer(
       std::string const &name,
       MPIBlock const *mpiBlock,
       T *dataPtr,
@@ -33,7 +33,7 @@ CheckpointEntryPvp<T>::CheckpointEntryPvp(
 }
 
 template <typename T>
-CheckpointEntryPvp<T>::CheckpointEntryPvp(
+CheckpointEntryPvpBuffer<T>::CheckpointEntryPvpBuffer(
       std::string const &objName,
       std::string const &dataName,
       MPIBlock const *mpiBlock,
@@ -45,7 +45,7 @@ CheckpointEntryPvp<T>::CheckpointEntryPvp(
 }
 
 template <typename T>
-void CheckpointEntryPvp<T>::initialize(T *dataPtr, PVLayerLoc const *layerLoc, bool extended) {
+void CheckpointEntryPvpBuffer<T>::initialize(T *dataPtr, PVLayerLoc const *layerLoc, bool extended) {
    mDataPointer = dataPtr;
    mLayerLoc    = layerLoc;
    if (extended) {
@@ -59,7 +59,7 @@ void CheckpointEntryPvp<T>::initialize(T *dataPtr, PVLayerLoc const *layerLoc, b
 }
 
 template <typename T>
-void CheckpointEntryPvp<T>::write(
+void CheckpointEntryPvpBuffer<T>::write(
       std::string const &checkpointDirectory,
       double simTime,
       bool verifyWritesFlag) const {
@@ -103,7 +103,7 @@ void CheckpointEntryPvp<T>::write(
 }
 
 template <typename T>
-void CheckpointEntryPvp<T>::read(std::string const &checkpointDirectory, double *simTimePtr) const {
+void CheckpointEntryPvpBuffer<T>::read(std::string const &checkpointDirectory, double *simTimePtr) const {
    int const numFrames = getNumFrames();
    int const nxBlock   = mLayerLoc->nx * getMPIBlock()->getNumColumns();
    int const nyBlock   = mLayerLoc->ny * getMPIBlock()->getNumRows();
@@ -157,12 +157,12 @@ void CheckpointEntryPvp<T>::read(std::string const &checkpointDirectory, double 
 }
 
 template <typename T>
-int CheckpointEntryPvp<T>::getNumFrames() const {
+int CheckpointEntryPvpBuffer<T>::getNumFrames() const {
    return getMPIBlock()->getBatchDimension() * mLayerLoc->nbatch;
 }
 
 template <typename T>
-T *CheckpointEntryPvp<T>::calcBatchElementStart(int frame) const {
+T *CheckpointEntryPvpBuffer<T>::calcBatchElementStart(int frame) const {
    int const localBatchIndex = frame % mLayerLoc->nbatch;
    int const nx              = mLayerLoc->nx + mXMargins;
    int const ny              = mLayerLoc->ny + mYMargins;
@@ -170,12 +170,12 @@ T *CheckpointEntryPvp<T>::calcBatchElementStart(int frame) const {
 }
 
 template <typename T>
-int CheckpointEntryPvp<T>::calcMPIBatchIndex(int frame) const {
+int CheckpointEntryPvpBuffer<T>::calcMPIBatchIndex(int frame) const {
    return frame / mLayerLoc->nbatch; // Integer division
 }
 
 template <typename T>
-void CheckpointEntryPvp<T>::remove(std::string const &checkpointDirectory) const {
+void CheckpointEntryPvpBuffer<T>::remove(std::string const &checkpointDirectory) const {
    deleteFile(checkpointDirectory, "pvp");
 }
 } // end namespace PV

@@ -1,12 +1,12 @@
 /*
- * CheckpointEntryPvp.hpp
+ * CheckpointEntryPvpBuffer.hpp
  *
  *  Created on Sep 27, 2016
  *      Author: Pete Schultz
  */
 
-#ifndef CHECKPOINTENTRYPVP_HPP_
-#define CHECKPOINTENTRYPVP_HPP_
+#ifndef CHECKPOINTENTRYPVPBUFFER_HPP_
+#define CHECKPOINTENTRYPVPBUFFER_HPP_
 
 #include "CheckpointEntry.hpp"
 #include "include/PVLayerLoc.h"
@@ -15,15 +15,15 @@
 namespace PV {
 
 template <typename T>
-class CheckpointEntryPvp : public CheckpointEntry {
+class CheckpointEntryPvpBuffer : public CheckpointEntry {
   public:
-   CheckpointEntryPvp(
+   CheckpointEntryPvpBuffer(
          std::string const &name,
          MPIBlock const *mpiBlock,
          T *dataPtr,
          PVLayerLoc const *layerLoc,
          bool extended);
-   CheckpointEntryPvp(
+   CheckpointEntryPvpBuffer(
          std::string const &objName,
          std::string const &dataName,
          MPIBlock const *mpiBlock,
@@ -52,6 +52,6 @@ class CheckpointEntryPvp : public CheckpointEntry {
 
 } // end namespace PV
 
-#include "CheckpointEntryPvp.tpp"
+#include "CheckpointEntryPvpBuffer.tpp"
 
-#endif // CHECKPOINTENTRYPVP_HPP_
+#endif // CHECKPOINTENTRYPVPBUFFER_HPP_
