@@ -85,6 +85,12 @@ class PV_Init {
     */
    char const *getProgramName() const { return mArgV[0]; }
 
+   /**
+    * Returns a pointer to the Arguments. Declared const, so the arguments
+    * cannot be changed using the result of this function.
+    */
+   Arguments const *getArguments() const { return arguments; }
+
    bool const &getBooleanArgument(std::string const &name) const {
       return arguments->getBooleanArgument(name);
    }
@@ -206,7 +212,7 @@ class PV_Init {
       }
    }
 
-   int isExtraProc() { return mCommunicator->isExtraProc(); }
+   bool isExtraProc() { return mCommunicator->isExtraProc(); }
 
    /**
     * If using PV_USE_OPENMP_THREADS, returns the value returned by

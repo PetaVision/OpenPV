@@ -63,8 +63,7 @@ void CheckpointEntryWeightPvp::calcMinMaxWeights(float *minWeightPtr, float *max
       float extrema[2];
       extrema[0] = minWeight;
       extrema[1] = -maxWeight;
-      MPI_Allreduce(
-            MPI_IN_PLACE, extrema, 2, MPI_FLOAT, MPI_MIN, getCommunicator()->communicator());
+      MPI_Allreduce(MPI_IN_PLACE, extrema, 2, MPI_FLOAT, MPI_MIN, getMPIBlock()->getComm());
       minWeight = extrema[0];
       maxWeight = -extrema[1];
    }
@@ -90,7 +89,7 @@ void CheckpointEntryWeightPvp::write(
    }
    writeWeights(
          path.c_str(),
-         getCommunicator(),
+         getMPIBlock(),
          simTime,
          false /*do not append*/,
          mPreLoc,
@@ -137,7 +136,7 @@ void CheckpointEntryWeightPvp::read(std::string const &checkpointDirectory, doub
          mPatchSizeY,
          mPatchSizeF,
          path.c_str(),
-         getCommunicator(),
+         getMPIBlock(),
          simTimePtr,
          mPreLoc);
 }

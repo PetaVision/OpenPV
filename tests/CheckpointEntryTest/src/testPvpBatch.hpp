@@ -1,9 +1,9 @@
 #ifndef TESTPVPBATCH_HPP_
 #define TESTPVPBATCH_HPP_
 
-#include "columns/Communicator.hpp"
+#include "structures/MPIBlock.hpp"
 #include <string>
 
-void testPvpBatch(PV::Communicator *comm, std::string const &directory);
+void testPvpBatch(PV::MPIBlock const *mpiBlock, std::string const &directory);
 
 #endif // TESTPVPBATCH_HPP_

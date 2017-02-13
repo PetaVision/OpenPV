@@ -1,9 +1,9 @@
 #ifndef TESTPVPRESTRICTED_HPP_
 #define TESTPVPRESTRICTED_HPP_
 
-#include "columns/Communicator.hpp"
+#include "structures/MPIBlock.hpp"
 #include <string>
 
-void testPvpRestricted(PV::Communicator *comm, std::string const &directory);
+void testPvpRestricted(PV::MPIBlock const *mpiBlock, std::string const &directory);
 
 #endif // TESTPVPRESTRICTED_HPP_

@@ -195,7 +195,8 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
 
    mRandomSeed = mPVInitObj->getUnsignedIntArgument("RandomSeed");
 
-   mCheckpointer = new Checkpointer(std::string(mName), mCommunicator);
+   mCheckpointer = new Checkpointer(
+         std::string(mName), mCommunicator->getGlobalMPIBlock(), mPVInitObj->getArguments());
    mCheckpointer->addObserver(this, BaseMessage{});
    ioParams(PARAMS_IO_READ);
    mSimTime     = mStartTime;
@@ -212,16 +213,6 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
    mCheckpointer->registerCheckpointData(
          mName, "nextProgressTime", &mNextProgressTime, (std::size_t)1, true /*broadcast*/);
 
-   // Arguments should prevent -r and -c from both being set.
-   bool warmStart                  = mPVInitObj->getBooleanArgument("Restart");
-   std::string checkpoint_read_dir = mPVInitObj->getStringArgument("CheckpointReadDirectory");
-   pvAssert(!warmStart || checkpoint_read_dir.empty());
-   if (warmStart) {
-      mCheckpointer->setCheckpointReadDirectory();
-   }
-   if (!checkpoint_read_dir.empty()) {
-      mCheckpointer->setCheckpointReadDirectory(checkpoint_read_dir);
-   }
    mCheckpointReadFlag = !mCheckpointer->getCheckpointReadDirectory().empty();
 
 // run only on GPU for now
@@ -285,7 +276,7 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_outputPath(ioFlag);
    ioParam_verifyWrites(ioFlag);
    mCheckpointer->setVerifyWrites(mVerifyWrites);
-   mCheckpointer->ioParamsFillGroup(ioFlag, parameters());
+   mCheckpointer->ioParams(ioFlag, parameters());
    ioParam_printParamsFilename(ioFlag);
    ioParam_randomSeed(ioFlag);
    ioParam_nx(ioFlag);
@@ -1187,9 +1178,7 @@ int HyPerCol::outputParams(char const *path) {
       Fatal().printf("HyPerCol::outputParams unable to allocate memory: %s\n", strerror(errno));
    }
    char *containingdir = dirname(tmp);
-   status = ensureDirExists(getCommunicator(), containingdir); // must be called by all processes,
-   // even though only rank 0 creates
-   // the directory
+   status              = ensureDirExists(getCommunicator()->getLocalMPIBlock(), containingdir);
    if (status != PV_SUCCESS) {
       ErrorLog().printf(
             "HyPerCol::outputParams unable to create directory \"%s\"\n", containingdir);

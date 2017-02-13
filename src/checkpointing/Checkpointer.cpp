@@ -18,9 +18,25 @@
 
 namespace PV {
 
-Checkpointer::Checkpointer(std::string const &name, Communicator *comm)
-      : mName(name), mCommunicator(comm) {
-   initialize();
+Checkpointer::Checkpointer(
+      std::string const &name,
+      MPIBlock const *globalMPIBlock,
+      Arguments const *arguments)
+      : mName(name) {
+   initMPIBlock(globalMPIBlock, arguments);
+   initBlockDirectoryName();
+
+   mWarmStart               = arguments->getBooleanArgument("Restart");
+   mCheckpointReadDirectory = arguments->getStringArgument("CheckpointReadDirectory");
+   if (!mCheckpointReadDirectory.empty()) {
+      extractCheckpointReadDirectory();
+   }
+
+   mTimeInfoCheckpointEntry = std::make_shared<CheckpointEntryData<Checkpointer::TimeInfo>>(
+         std::string("timeinfo"), mMPIBlock, &mTimeInfo, (size_t)1, true /*broadcast*/);
+   // This doesn't get put into mCheckpointRegistry because we handle the timeinfo separately.
+   mCheckpointTimer = new Timer(mName.c_str(), "column", "checkpoint");
+   registerTimer(mCheckpointTimer);
 }
 
 Checkpointer::~Checkpointer() {
@@ -30,14 +46,58 @@ Checkpointer::~Checkpointer() {
    free(mLastCheckpointDir);
    free(mInitializeFromCheckpointDir);
    delete mCheckpointTimer;
+   delete mMPIBlock;
 }
 
-void Checkpointer::initialize() {
-   mTimeInfoCheckpointEntry = std::make_shared<CheckpointEntryData<Checkpointer::TimeInfo>>(
-         std::string("timeinfo"), getCommunicator(), &mTimeInfo, (size_t)1, true /*broadcast*/);
-   // This doesn't get put into mCheckpointRegistry because we handle the timeinfo separately.
-   mCheckpointTimer = new Timer(mName.c_str(), "column", "checkpoint");
-   registerTimer(mCheckpointTimer);
+void Checkpointer::initMPIBlock(MPIBlock const *globalMPIBlock, Arguments const *arguments) {
+   pvAssert(mMPIBlock == nullptr);
+   int cellNumRows        = arguments->getIntegerArgument("CheckpointCellNumRows");
+   int cellNumColumns     = arguments->getIntegerArgument("CheckpointCellNumColumns");
+   int cellBatchDimension = arguments->getIntegerArgument("CheckpointCellBatchDimension");
+   // If using batching, mCheckpointReadDir might be a comma-separated list of directories
+   mMPIBlock = new MPIBlock(
+         globalMPIBlock->getComm(),
+         globalMPIBlock->getNumRows(),
+         globalMPIBlock->getNumColumns(),
+         globalMPIBlock->getBatchDimension(),
+         cellNumRows,
+         cellNumColumns,
+         cellBatchDimension);
+}
+
+void Checkpointer::initBlockDirectoryName() {
+   mBlockDirectoryName.clear();
+   if (mMPIBlock->getGlobalNumRows() != mMPIBlock->getNumRows()
+       or mMPIBlock->getGlobalNumColumns() != mMPIBlock->getNumColumns()
+       or mMPIBlock->getGlobalBatchDimension() != mMPIBlock->getBatchDimension()) {
+      int const blockColumnIndex = mMPIBlock->getStartColumn() / mMPIBlock->getNumColumns();
+      int const blockRowIndex    = mMPIBlock->getStartRow() / mMPIBlock->getNumRows();
+      int const blockBatchIndex  = mMPIBlock->getStartBatch() / mMPIBlock->getBatchDimension();
+      mBlockDirectoryName.append("block_");
+      mBlockDirectoryName.append("col" + std::to_string(blockColumnIndex));
+      mBlockDirectoryName.append("row" + std::to_string(blockRowIndex));
+      mBlockDirectoryName.append("elem" + std::to_string(blockBatchIndex));
+   }
+}
+
+void Checkpointer::ioParams(enum ParamsIOFlag ioFlag, PVParams *params) {
+   ioParamsFillGroup(ioFlag, params);
+
+   // If WarmStart is set and CheckpointWrite is false, CheckpointReadDirectory
+   // is LastCheckpointDir. If WarmStart is set and CheckpointWrite is true, we
+   // CheckpointReadDirectory is the last checkpoint in CheckpointWriteDir.
+   // Hence we cannot set CheckpointReadDirectory until we've read the params.
+   if (mWarmStart and ioFlag == PARAMS_IO_READ) {
+      // Arguments class should prevent -r and -c from both being set.
+      pvAssert(mCheckpointReadDirectory.empty());
+      if (mCheckpointWriteFlag) {
+         // Set mCheckpointReadDirectory to the last checkpoint in the CheckpointWrite directory.
+         findWarmStartDirectory();
+      }
+      else {
+         mCheckpointReadDirectory = mLastCheckpointDir;
+      }
+   }
 }
 
 void Checkpointer::ioParamsFillGroup(enum ParamsIOFlag ioFlag, PVParams *params) {
@@ -68,7 +128,7 @@ void Checkpointer::ioParam_checkpointWriteDir(enum ParamsIOFlag ioFlag, PVParams
       params->ioParamStringRequired(
             ioFlag, mName.c_str(), "checkpointWriteDir", &mCheckpointWriteDir);
       if (ioFlag == PARAMS_IO_READ) {
-         ensureDirExists(getCommunicator(), mCheckpointWriteDir);
+         ensureDirExists(mMPIBlock, mCheckpointWriteDir);
       }
    }
 }
@@ -114,11 +174,11 @@ void Checkpointer::ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag, 
             mCheckpointWriteTriggerMode = WALLCLOCK;
          }
          else {
-            if (mCommunicator->globalCommRank() == 0) {
+            if (mMPIBlock->getRank() == 0) {
                ErrorLog() << "Parameter group \"" << mName << "\" checkpointWriteTriggerMode \""
                           << mCheckpointWriteTriggerModeString << "\" is not recognized.\n";
             }
-            MPI_Barrier(mCommunicator->globalCommunicator());
+            MPI_Barrier(mMPIBlock->getComm());
             exit(EXIT_FAILURE);
          }
       }
@@ -227,19 +287,19 @@ void Checkpointer::ioParam_checkpointWriteClockUnit(enum ParamsIOFlag ioFlag, PV
                      mCheckpointWriteWallclockInterval * (time_t)86400;
             }
             else {
-               if (getCommunicator()->globalCommRank() == 0) {
+               if (mMPIBlock->getRank() == 0) {
                   ErrorLog().printf(
                         "checkpointWriteClockUnit \"%s\" is unrecognized.  Use \"seconds\", "
                         "\"minutes\", \"hours\", or \"days\".\n",
                         mCheckpointWriteWallclockUnit);
                }
-               MPI_Barrier(getCommunicator()->globalCommunicator());
+               MPI_Barrier(mMPIBlock->getComm());
                exit(EXIT_FAILURE);
             }
             FatalIf(
                   mCheckpointWriteWallclockUnit == nullptr,
                   "Error in global rank %d process converting checkpointWriteClockUnit: %s\n",
-                  getCommunicator()->globalCommRank(),
+                  mMPIBlock->getRank(),
                   strerror(errno));
          }
       }
@@ -265,22 +325,22 @@ void Checkpointer::ioParam_numCheckpointsKept(enum ParamsIOFlag ioFlag, PVParams
       if (mDeleteOlderCheckpoints) {
          params->ioParamValue(ioFlag, mName.c_str(), "numCheckpointsKept", &mNumCheckpointsKept, 1);
          if (ioFlag == PARAMS_IO_READ && mNumCheckpointsKept <= 0) {
-            if (getCommunicator()->commRank() == 0) {
+            if (mMPIBlock->getRank() == 0) {
                ErrorLog() << "HyPerCol \"" << mName
                           << "\": numCheckpointsKept must be positive (value was "
                           << mNumCheckpointsKept << ")\n";
             }
-            MPI_Barrier(mCommunicator->communicator());
+            MPI_Barrier(mMPIBlock->getComm());
             exit(EXIT_FAILURE);
          }
          if (ioFlag == PARAMS_IO_READ) {
             if (mNumCheckpointsKept < 0) {
-               if (getCommunicator()->globalCommRank() == 0) {
+               if (mMPIBlock->getRank() == 0) {
                   ErrorLog() << "HyPerCol \"" << mName
                              << "\": numCheckpointsKept must be positive (value was "
                              << mNumCheckpointsKept << ")\n";
                }
-               MPI_Barrier(mCommunicator->globalCommunicator());
+               MPI_Barrier(mMPIBlock->getComm());
                exit(EXIT_FAILURE);
             }
             if (mOldCheckpointDirectories.size() != 0) {
@@ -347,13 +407,13 @@ void Checkpointer::ioParam_defaultInitializeFromCheckpointFlag(
    assert(!params->presentAndNotBeenRead(mName.c_str(), "initializeFromCheckpointDir"));
    if (mInitializeFromCheckpointDir != nullptr && mInitializeFromCheckpointDir[0] != '\0') {
       if (params->present(mName.c_str(), "defaultInitializeFromCheckpointFlag")) {
-         if (getCommunicator()->commRank() == 0) {
+         if (mMPIBlock->getRank() == 0) {
             ErrorLog() << mName << ": defaultInitializeFromCheckpointFlag is obsolete.\n"
                        << "If initializeFromCheckpointDir is non-empty, the objects in the\n"
                        << "HyPerCol will initialize from checkpoint unless they set their\n"
                        << "individual initializeFromCheckpointFlag parameter to false.\n";
          }
-         MPI_Barrier(getCommunicator()->communicator());
+         MPI_Barrier(mMPIBlock->getComm());
          exit(EXIT_FAILURE);
       }
    }
@@ -399,10 +459,8 @@ void Checkpointer::readNamedCheckpointEntry(
 }
 
 void Checkpointer::readNamedCheckpointEntry(std::string const &checkpointEntryName) {
-   if (mInitializeFromCheckpointDir == nullptr or mInitializeFromCheckpointDir[0] == '\0') {
-      return;
-   }
-   std::string checkpointDirectory = generateDirectory(mInitializeFromCheckpointDir);
+   verifyDirectory(mInitializeFromCheckpointDir, "InitializeFromCheckpointDir.\n");
+   std::string checkpointDirectory = generateBlockPath(mInitializeFromCheckpointDir);
    for (auto &c : mCheckpointRegistry) {
       if (c->getName() == checkpointEntryName) {
          double timestamp = 0.0; // not used
@@ -416,7 +474,7 @@ void Checkpointer::readNamedCheckpointEntry(std::string const &checkpointEntryNa
 
 void Checkpointer::findWarmStartDirectory() {
    char warmStartDirectoryBuffer[PV_PATH_MAX];
-   if (mCommunicator->commRank() == 0) {
+   if (mMPIBlock->getRank() == 0) {
       if (mCheckpointWriteFlag) {
          // Look for largest indexed Checkpointnnnnnn directory in checkpointWriteDir
          pvAssert(mCheckpointWriteDir);
@@ -486,63 +544,55 @@ void Checkpointer::findWarmStartDirectory() {
             mCheckpointReadDirectory.size());
       warmStartDirectoryBuffer[mCheckpointReadDirectory.size()] = '\0';
    }
-   MPI_Bcast(warmStartDirectoryBuffer, PV_PATH_MAX, MPI_CHAR, 0, mCommunicator->communicator());
-   if (mCommunicator->commRank() != 0) {
+   MPI_Bcast(warmStartDirectoryBuffer, PV_PATH_MAX, MPI_CHAR, 0, mMPIBlock->getComm());
+   if (mMPIBlock->getRank() != 0) {
       mCheckpointReadDirectory = warmStartDirectoryBuffer;
    }
 }
 
-void Checkpointer::setCheckpointReadDirectory() {
-   if (mCheckpointWriteFlag) {
-      findWarmStartDirectory();
-   }
-   else {
-      mCheckpointReadDirectory = mLastCheckpointDir;
-   }
-}
-
-void Checkpointer::setCheckpointReadDirectory(std::string const &checkpointReadDir) {
+void Checkpointer::extractCheckpointReadDirectory() {
    std::vector<std::string> checkpointReadDirs;
-   checkpointReadDirs.reserve(mCommunicator->numCommBatches());
+   checkpointReadDirs.reserve(mMPIBlock->getBatchDimension());
    std::size_t dirStart = (std::size_t)0;
-   while (dirStart < checkpointReadDir.size()) {
-      std::size_t dirStop = checkpointReadDir.find(':', dirStart);
+   while (dirStart < mCheckpointReadDirectory.size()) {
+      std::size_t dirStop = mCheckpointReadDirectory.find(':', dirStart);
       if (dirStop == std::string::npos) {
-         dirStop = checkpointReadDir.size();
+         dirStop = mCheckpointReadDirectory.size();
       }
-      checkpointReadDirs.push_back(checkpointReadDir.substr(dirStart, dirStop - dirStart));
+      checkpointReadDirs.push_back(mCheckpointReadDirectory.substr(dirStart, dirStop - dirStart));
       FatalIf(
-            checkpointReadDirs.size() > (std::size_t)mCommunicator->numCommBatches(),
+            checkpointReadDirs.size() > (std::size_t)mMPIBlock->getBatchDimension(),
             "Checkpoint read parsing error: Too many colon separated "
             "checkpoint read directories. "
             "Only specify %d checkpoint directories.\n",
-            mCommunicator->numCommBatches());
+            mMPIBlock->getBatchDimension());
       dirStart = dirStop + 1;
    }
    // Make sure number matches up
    int const count = (int)checkpointReadDirs.size();
    FatalIf(
-         count != mCommunicator->numCommBatches() && count != 1,
+         count != mMPIBlock->getBatchDimension() && count != 1,
          "Checkpoint read parsing error: Not enough colon separated "
          "checkpoint read directories. "
          "Running with %d batch MPIs but only %d colon separated checkpoint "
          "directories.\n",
-         mCommunicator->numCommBatches(),
+         mMPIBlock->getBatchDimension(),
          count);
    // Grab the directory for this rank and use as mCheckpointReadDir
-   int const checkpointIndex = count == 1 ? 0 : mCommunicator->commBatch();
+   int const checkpointIndex = count == 1 ? 0 : mMPIBlock->getBatchIndex();
    std::string dirString     = expandLeadingTilde(checkpointReadDirs[checkpointIndex].c_str());
-   mCheckpointReadDirectory  = strdup(dirString.c_str());
+   mCheckpointReadDirectory  = dirString.c_str();
    pvAssert(!mCheckpointReadDirectory.empty());
 
    InfoLog().printf(
-         "Global Rank %d process setting checkpointReadDir to %s.\n",
-         mCommunicator->globalCommRank(),
+         "Global Rank %d process setting CheckpointReadDirectory to %s.\n",
+         mMPIBlock->getGlobalRank(),
          mCheckpointReadDirectory.c_str());
 }
 
 void Checkpointer::checkpointRead(double *simTimePointer, long int *currentStepPointer) {
-   std::string checkpointReadDirectory = generateDirectory(mCheckpointReadDirectory);
+   verifyDirectory(mCheckpointReadDirectory.c_str(), "CheckpointReadDirectory");
+   std::string checkpointReadDirectory = generateBlockPath(mCheckpointReadDirectory);
    double readTime;
    for (auto &c : mCheckpointRegistry) {
       c->read(checkpointReadDirectory, &readTime);
@@ -557,7 +607,7 @@ void Checkpointer::checkpointRead(double *simTimePointer, long int *currentStepP
    notify(
          mObserverTable,
          std::make_shared<ProcessCheckpointReadMessage const>(checkpointReadDirectory),
-         getCommunicator()->commRank() == 0 /*printFlag*/);
+         mMPIBlock->getRank() == 0 /*printFlag*/);
 }
 
 void Checkpointer::checkpointWrite(double simTime) {
@@ -569,7 +619,7 @@ void Checkpointer::checkpointWrite(double simTime) {
    if (checkpointWriteSignal()) {
       InfoLog().printf(
             "Global rank %d: checkpointing in response to SIGUSR1 at time %f.\n",
-            getCommunicator()->globalCommRank(),
+            mMPIBlock->getGlobalRank(),
             simTime);
       mCheckpointSignal = 0;
       checkpointNow();
@@ -590,7 +640,7 @@ void Checkpointer::checkpointWrite(double simTime) {
 }
 
 bool Checkpointer::checkpointWriteSignal() {
-   if (getCommunicator()->globalCommRank() == 0) {
+   if (mMPIBlock->getGlobalRank() == 0) {
       int sigstatus = PV_SUCCESS;
       sigset_t pollusr1;
 
@@ -608,12 +658,12 @@ bool Checkpointer::checkpointWriteSignal() {
          assert(result == SIGUSR1);
       }
    }
-   MPI_Bcast(&mCheckpointSignal, 1 /*count*/, MPI_INT, 0, mCommunicator->globalCommunicator());
+   MPI_Bcast(&mCheckpointSignal, 1 /*count*/, MPI_INT, 0, mMPIBlock->getGlobalComm());
    bool signaled = (mCheckpointSignal != 0);
    if (signaled) {
       InfoLog().printf(
             "Global rank %d: checkpointing in response to SIGUSR1 at time %f.\n",
-            getCommunicator()->globalCommRank(),
+            mMPIBlock->getGlobalRank(),
             mTimeInfo.mSimTime);
       mCheckpointSignal = 0;
       checkpointNow();
@@ -661,13 +711,13 @@ void Checkpointer::checkpointNow() {
    if (checkpointDirectory != mCheckpointReadDirectory) {
       /* Note: the strcmp isn't perfect, since there are multiple ways to specify a path that
        * points to the same directory.  Should use realpath, but that breaks under OS X. */
-      if (mCommunicator->globalCommRank() == 0) {
+      if (mMPIBlock->getGlobalRank() == 0) {
          InfoLog() << "Checkpointing to \"" << checkpointDirectory
                    << "\", simTime = " << mTimeInfo.mSimTime << "\n";
       }
    }
    else {
-      if (mCommunicator->globalCommRank() == 0) {
+      if (mMPIBlock->getGlobalRank() == 0) {
          InfoLog().printf(
                "Skipping checkpoint to \"%s\","
                " which would clobber the checkpointRead checkpoint.\n",
@@ -676,7 +726,7 @@ void Checkpointer::checkpointNow() {
       return;
    }
    checkpointToDirectory(checkpointDirectory);
-   if (mCommunicator->commRank() == 0) {
+   if (mMPIBlock->getRank() == 0) {
       InfoLog().printf("checkpointWrite complete. simTime = %f\n", mTimeInfo.mSimTime);
    }
 
@@ -686,9 +736,9 @@ void Checkpointer::checkpointNow() {
 }
 
 void Checkpointer::checkpointToDirectory(std::string const &directory) {
-   std::string checkpointDirectory = generateDirectory(directory);
+   std::string checkpointDirectory = generateBlockPath(directory);
    mCheckpointTimer->start();
-   if (getCommunicator()->commRank() == 0) {
+   if (mMPIBlock->getRank() == 0) {
       InfoLog() << "Checkpointing to directory \"" << checkpointDirectory
                 << "\" at simTime = " << mTimeInfo.mSimTime << "\n";
       struct stat timeinfostat;
@@ -704,8 +754,8 @@ void Checkpointer::checkpointToDirectory(std::string const &directory) {
    notify(
          mObserverTable,
          std::make_shared<PrepareCheckpointWriteMessage const>(checkpointDirectory),
-         getCommunicator()->commRank() == 0 /*printFlag*/);
-   ensureDirExists(getCommunicator(), checkpointDirectory.c_str());
+         mMPIBlock->getRank() == 0 /*printFlag*/);
+   ensureDirExists(mMPIBlock, checkpointDirectory.c_str());
    for (auto &c : mCheckpointRegistry) {
       c->write(checkpointDirectory, mTimeInfo.mSimTime, mVerifyWritesFlag);
    }
@@ -729,8 +779,8 @@ void Checkpointer::finalCheckpoint(double simTime) {
 void Checkpointer::rotateOldCheckpoints(std::string const &newCheckpointDirectory) {
    std::string &oldestCheckpointDir = mOldCheckpointDirectories[mOldCheckpointDirectoriesIndex];
    if (!oldestCheckpointDir.empty()) {
-      if (mCommunicator->commRank() == 0) {
-         std::string targetDirectory = generateDirectory(oldestCheckpointDir);
+      if (mMPIBlock->getRank() == 0) {
+         std::string targetDirectory = generateBlockPath(oldestCheckpointDir);
          struct stat lcp_stat;
          int statstatus = stat(targetDirectory.c_str(), &lcp_stat);
          if (statstatus != 0 || !(lcp_stat.st_mode & S_IFDIR)) {
@@ -757,8 +807,8 @@ void Checkpointer::rotateOldCheckpoints(std::string const &newCheckpointDirector
                   WEXITSTATUS(rmrf_result));
          }
       }
-      MPI_Barrier(mCommunicator->globalCommunicator());
-      if (mCommunicator->globalCommRank() == 0) {
+      MPI_Barrier(mMPIBlock->getGlobalComm());
+      if (mMPIBlock->getGlobalRank() == 0) {
          sync();
          struct stat oldcp_stat;
          int statstatus = stat(oldestCheckpointDir.c_str(), &oldcp_stat);
@@ -788,25 +838,41 @@ void Checkpointer::writeTimers(PrintStream &stream) const {
    }
 }
 
-std::string Checkpointer::generateDirectory(std::string const &baseDirectory) {
+std::string Checkpointer::generateBlockPath(std::string const &baseDirectory) {
    std::string path(baseDirectory);
-   int batchWidth = getCommunicator()->numCommBatches();
-   if (batchWidth > 1) {
-      path.append("/batchsweep_");
-      std::size_t lengthLargestBatchIndex = std::to_string(batchWidth - 1).size();
-      std::string batchIndexAsString      = std::to_string(getCommunicator()->commBatch());
-      std::size_t lengthBatchIndex        = batchIndexAsString.size();
-      if (lengthBatchIndex < lengthLargestBatchIndex) {
-         path.append(lengthLargestBatchIndex - lengthBatchIndex, '0');
-      }
-      path.append(batchIndexAsString);
+   if (!mBlockDirectoryName.empty()) {
+      path.append("/").append(mBlockDirectoryName);
    }
-   ensureDirExists(getCommunicator(), path.c_str());
    return path;
 }
 
+void Checkpointer::verifyDirectory(char const *directory, std::string const &description) {
+   int status = PV_SUCCESS;
+   if (mMPIBlock->getRank() == 0) {
+      if (directory == nullptr || directory[0] == '\0') {
+         ErrorLog() << "Checkpointer \"" << mName << "\": " << description << " is not set.\n";
+         status = PV_FAILURE;
+      }
+      struct stat directoryStat;
+      int statResult = stat(directory, &directoryStat);
+      if (statResult != 0) {
+         ErrorLog() << "Checkpointer \"" << mName << "\": checking status of " << description
+                    << " \"" << directory << "\" returned error \"" << strerror(errno) << "\".\n";
+         status = PV_FAILURE;
+      }
+      bool isDirectory = S_ISDIR(directoryStat.st_mode);
+      if (!isDirectory) {
+         ErrorLog() << "Checkpointer \"" << mName << "\": " << description << " \"" << directory
+                    << " is not a directory.\n";
+      }
+      if (status) {
+         exit(EXIT_FAILURE);
+      }
+   }
+}
+
 void Checkpointer::writeTimers(std::string const &directory) {
-   if (getCommunicator()->commRank() == 0) {
+   if (mMPIBlock->getRank() == 0) {
       std::string timerpathstring = directory;
       timerpathstring += "/";
       timerpathstring += "timers.txt";

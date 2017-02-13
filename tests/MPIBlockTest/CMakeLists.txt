@@ -1,0 +1,5 @@
+set(SRC_CPP
+  src/MPIBlockTest.cpp
+)
+
+pv_add_test(NO_PARAMS MPI_ONLY MIN_MPI_COPIES 24 MAX_MPI_COPIES 24 SRCFILES ${SRC_CPP} ${SRC_HPP} ${SRC_C} ${SRC_H})

@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 /**
- * Tests copying boundary regions over MPI using Communicator::exchange()
+ * Tests copying boundary regions over MPI using the BorderExchange class.
  *
  * This test does not create a HyPerCol, and all command line arguments
  * are ignored except --require-return.
@@ -12,7 +12,7 @@
  * in each MPI process.  The restricted part of the buffer is filled with
  * the global restricted index, and the border regions are zero.
  *
- * Then Communicator::exchange() is called with the buffer and the PVLayerLoc,
+ * Then BorderExchange::exchange() is called with the buffer and the PVLayerLoc,
  * and the values in the extended region are checked.
  */
 
@@ -21,31 +21,22 @@
 #include <columns/Communicator.hpp>
 #include <columns/PV_Init.hpp>
 #include <io/fileio.hpp>
+#include <utils/BorderExchange.hpp>
 
-static int check_borders(float *buf, PV::Communicator *comm, PVLayerLoc loc);
+static int check_borders(float *buf, PV::BorderExchange *borderExchanger, PVLayerLoc loc);
 
 int main(int argc, char *argv[]) {
    PV::PV_Init *initObj   = new PV::PV_Init(&argc, &argv, true /*allowUnrecognizedArguments*/);
    PV::Communicator *comm = initObj->getCommunicator();
+   PV::MPIBlock const *mpiBlock = comm->getLocalMPIBlock();
 
-   int err = 0;
    PVLayerLoc loc;
 
-   int nxProc = comm->numCommColumns();
-   int nyProc = comm->numCommRows();
+   int nxProc = mpiBlock->getNumColumns();
+   int nyProc = mpiBlock->getNumRows();
 
-   int commRow = comm->commRow();
-   int commCol = comm->commColumn();
-
-   InfoLog().printf(
-         "[%d]: nxProc==%d nyProc==%d commRow==%d commCol==%d numNeighbors==%d\n",
-         comm->commRank(),
-         nxProc,
-         nyProc,
-         commRow,
-         commCol,
-         comm->numberOfNeighbors());
-   InfoLog().flush();
+   int rowIndex    = mpiBlock->getRowIndex();
+   int columnIndex = mpiBlock->getColumnIndex();
 
    loc.nbatch = 1;
    loc.nx     = 128;
@@ -58,8 +49,8 @@ int main(int argc, char *argv[]) {
 
    // this info not used for send/recv
    loc.kb0 = 0;
-   loc.kx0 = commCol * loc.nx;
-   loc.ky0 = commRow * loc.ny;
+   loc.kx0 = columnIndex * loc.nx;
+   loc.ky0 = rowIndex * loc.ny;
 
    const int nxBorder = 16;
    loc.halo.lt        = nxBorder;
@@ -69,12 +60,11 @@ int main(int argc, char *argv[]) {
    loc.halo.up        = nyBorder;
 
    int numItems            = (2 * nxBorder + loc.nx) * (2 * nyBorder + loc.ny);
-   MPI_Datatype *datatypes = comm->newDatatypes(&loc);
 
    // create a local portion of the "image"
    float *image = new float[numItems];
 
-   int k0 = commCol * loc.nx + commRow * loc.ny * loc.nxGlobal;
+   int k0 = columnIndex * loc.nx + rowIndex * loc.ny * loc.nxGlobal;
    int sy = 2 * nxBorder + loc.nx;
 
    for (int ky = 0; ky < loc.ny; ky++) {
@@ -86,50 +76,57 @@ int main(int argc, char *argv[]) {
    }
 
    // send and recv the "image"
+   PV::BorderExchange *borderExchanger = new PV::BorderExchange(*mpiBlock, loc);
+   InfoLog().printf(
+         "[%d]: nxProc==%d nyProc==%d rowIndex==%d columnIndex==%d numNeighbors==%d\n",
+         mpiBlock->getRank(),
+         nxProc,
+         nyProc,
+         rowIndex,
+         columnIndex,
+         borderExchanger->getNumNeighbors());
+   InfoLog().flush();
+
    std::vector<MPI_Request> req;
-   if (err == 0) {
-      err = comm->exchange(image, datatypes, &loc, req);
-      if (err != 0) {
-         ErrorLog().printf("[%d]: Communicator::exchange failed\n", comm->commRank());
-      }
-   }
-   if (err == 0) {
-      err = comm->wait(req);
-      if (err != 0) {
-         ErrorLog().printf("[%d]: Communicator::waitForExchange failed\n", comm->commRank());
-      }
+   borderExchanger->exchange(image, req);
+   int err = borderExchanger->wait(req);
+   if (err != 0) {
+      ErrorLog().printf("[%d]: BorderExchange::wait failed\n", mpiBlock->getRank());
    }
 
    if (err == 0) {
-      err = check_borders(image, comm, loc);
+      err = check_borders(image, borderExchanger, loc);
       if (err != 0) {
-         ErrorLog().printf("[%d]: check_borders failed\n", comm->commRank());
+         ErrorLog().printf("[%d]: check_borders failed\n", mpiBlock->getRank());
       }
       else {
-         InfoLog().printf("[%d]: check_borders succeeded\n", comm->commRank());
+         InfoLog().printf("[%d]: check_borders succeeded\n", mpiBlock->getRank());
       }
    }
 
-   comm->freeDatatypes(datatypes);
-
+   delete borderExchanger;
    delete initObj;
 
    return err;
 }
 
-static int check_borders(float *image, PV::Communicator *comm, PVLayerLoc loc) {
+static int check_borders(float *image, PV::BorderExchange *borderExchanger, PVLayerLoc loc) {
    int err = 0;
 
    const int nx       = (int)loc.nx;
    const int ny       = (int)loc.ny;
    const PVHalo *halo = &loc.halo;
 
-   const int commRow = comm->commRow();
-   const int commCol = comm->commColumn();
+   PV::MPIBlock const *mpiBlock = borderExchanger->getMPIBlock();
 
-   int k0   = commCol * nx + commRow * ny * loc.nxGlobal;
+   const int rowIndex    = mpiBlock->getRowIndex();
+   const int columnIndex = mpiBlock->getColumnIndex();
+   int const numRows     = mpiBlock->getNumRows();
+   int const numColumns  = mpiBlock->getNumColumns();
+
+   int k0   = columnIndex * nx + rowIndex * ny * loc.nxGlobal;
    int sy   = nx + halo->lt + halo->rt;
-   int rank = comm->commRank();
+   int rank = mpiBlock->getRank();
 
    // northwest
    // Note that if this MPI process is on the northern edge of the MPI quilt,
@@ -138,11 +135,11 @@ static int check_borders(float *image, PV::Communicator *comm, PVLayerLoc loc) {
    // hence all zeroes.  Only if the northwest neighbor is distinct from the
    // northern neighbor and from the western neighbor will the data the neighbor
    // sent be from the restricted region.
-   if (comm->hasNeighbor(PV::Communicator::NORTHWEST)) {
-      if (comm->neighborIndex(rank, PV::Communicator::NORTHWEST)
-                != comm->neighborIndex(rank, PV::Communicator::NORTH)
-          && comm->neighborIndex(rank, PV::Communicator::NORTHWEST)
-                   != comm->neighborIndex(rank, PV::Communicator::WEST)) {
+   if (borderExchanger->hasNorthwesternNeighbor(rowIndex, columnIndex, numRows, numColumns)) {
+      int northwestIndex = borderExchanger->northwest(rowIndex, columnIndex, numRows, numColumns);
+      int northIndex     = borderExchanger->north(rowIndex, columnIndex, numRows, numColumns);
+      int westIndex      = borderExchanger->west(rowIndex, columnIndex, numRows, numColumns);
+      if (northwestIndex != northIndex && northwestIndex != westIndex) {
          for (int ky = 0; ky < halo->up; ky++) {
             int k      = (k0 - halo->lt) + (ky - halo->up) * loc.nxGlobal;
             float *buf = image + ky * sy;
@@ -181,7 +178,7 @@ static int check_borders(float *image, PV::Communicator *comm, PVLayerLoc loc) {
    }
 
    // west
-   if (comm->hasNeighbor(PV::Communicator::WEST)) {
+   if (borderExchanger->hasWesternNeighbor(rowIndex, columnIndex, numRows, numColumns)) {
       for (int ky = 0; ky < ny; ky++) {
          int k      = k0 - halo->up + ky * loc.nxGlobal;
          float *buf = image + (ky + halo->up) * sy;
@@ -203,7 +200,7 @@ static int check_borders(float *image, PV::Communicator *comm, PVLayerLoc loc) {
    }
 
    // east
-   if (comm->hasNeighbor(PV::Communicator::EAST)) {
+   if (borderExchanger->hasEasternNeighbor(rowIndex, columnIndex, numRows, numColumns)) {
       for (int ky = 0; ky < ny; ky++) {
          int k      = k0 + nx + ky * loc.nxGlobal;
          float *buf = image + (nx + halo->lt) + (ky + halo->up) * sy;

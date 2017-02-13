@@ -12,6 +12,7 @@
 #include "checkpointing/Checkpointer.hpp"
 #include "columns/Communicator.hpp"
 #include "io/PrintStream.hpp"
+#include "structures/MPIBlock.hpp"
 #include <vector>
 
 namespace PV {
@@ -66,15 +67,15 @@ class CheckpointEntryTimeScaleInfo : public CheckpointEntry {
   public:
    CheckpointEntryTimeScaleInfo(
          std::string const &name,
-         Communicator *communicator,
+         MPIBlock const *mpiBlock,
          AdaptiveTimeScaleController::TimeScaleInfo *timeScaleInfoPtr)
-         : CheckpointEntry(name, communicator), mTimeScaleInfoPtr(timeScaleInfoPtr) {}
+         : CheckpointEntry(name, mpiBlock), mTimeScaleInfoPtr(timeScaleInfoPtr) {}
    CheckpointEntryTimeScaleInfo(
          std::string const &objName,
          std::string const &dataName,
-         Communicator *communicator,
+         MPIBlock const *mpiBlock,
          AdaptiveTimeScaleController::TimeScaleInfo *timeScaleInfoPtr)
-         : CheckpointEntry(objName, dataName, communicator), mTimeScaleInfoPtr(timeScaleInfoPtr) {}
+         : CheckpointEntry(objName, dataName, mpiBlock), mTimeScaleInfoPtr(timeScaleInfoPtr) {}
    virtual void write(std::string const &checkpointDirectory, double simTime, bool verifyWritesFlag)
          const override;
    virtual void read(std::string const &checkpointDirectory, double *simTimePtr) const override;

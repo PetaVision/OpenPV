@@ -9,6 +9,7 @@
 #include "columns/HyPerCol.hpp"
 #include "components/BatchIndexer.hpp"
 #include "structures/Buffer.hpp"
+#include "utils/BorderExchange.hpp"
 #include "utils/BufferUtilsRescale.hpp"
 
 #include <memory>
@@ -198,8 +199,8 @@ class InputLayer : public HyPerLayer {
    // Raw data read from disk, one per batch
    std::vector<Buffer<float>> mInputData;
 
-   // MPI datatypes for boundary exchange
-   MPI_Datatype *mDatatypes = nullptr;
+   // BorderExchange object for boundary exchange
+   BorderExchange *mBorderExchanger = nullptr;
 
    // Value to fill empty region with when using padding
    float mPadValue = 0.0f;

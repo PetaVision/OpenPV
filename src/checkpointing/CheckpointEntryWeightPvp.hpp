@@ -9,7 +9,7 @@
 #define CHECKPOINTENTRYDATASTORE_HPP_
 
 #include "checkpointing/CheckpointEntry.hpp"
-#include "columns/Communicator.hpp"
+#include "include/pv_types.h"
 #include <string>
 
 namespace PV {
@@ -18,7 +18,7 @@ class CheckpointEntryWeightPvp : public CheckpointEntry {
   public:
    CheckpointEntryWeightPvp(
          std::string const &name,
-         Communicator *communicator,
+         MPIBlock const *mpiBlock,
          int numArbors,
          bool sharedWeights,
          PVPatch ***patchData,
@@ -31,7 +31,7 @@ class CheckpointEntryWeightPvp : public CheckpointEntry {
          PVLayerLoc const *preLoc,
          PVLayerLoc const *postLoc,
          bool compressFlag)
-         : CheckpointEntry(name, communicator) {
+         : CheckpointEntry(name, mpiBlock) {
       initialize(
             numArbors,
             sharedWeights,
@@ -49,7 +49,7 @@ class CheckpointEntryWeightPvp : public CheckpointEntry {
    CheckpointEntryWeightPvp(
          std::string const &objName,
          std::string const &dataName,
-         Communicator *communicator,
+         MPIBlock const *mpiBlock,
          int numArbors,
          bool sharedWeights,
          PVPatch ***patchData,
@@ -62,7 +62,7 @@ class CheckpointEntryWeightPvp : public CheckpointEntry {
          PVLayerLoc const *preLoc,
          PVLayerLoc const *postLoc,
          bool compressFlag)
-         : CheckpointEntry(objName, dataName, communicator) {
+         : CheckpointEntry(objName, dataName, mpiBlock) {
       initialize(
             numArbors,
             sharedWeights,

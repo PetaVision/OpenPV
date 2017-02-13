@@ -14,6 +14,7 @@
 #include "include/PVLayerLoc.h"
 #include "include/pv_types.h"
 #include "io.hpp"
+#include "structures/MPIBlock.hpp"
 
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -42,18 +43,18 @@ size_t
 PV_fwrite(const void *RESTRICT ptr, size_t size, size_t nitems, PV_Stream *RESTRICT pvstream);
 size_t PV_fread(void *RESTRICT ptr, size_t size, size_t nitems, PV_Stream *RESTRICT pvstream);
 int PV_fclose(PV_Stream *pvstream);
-int ensureDirExists(Communicator *comm, char const *dirname);
+int ensureDirExists(MPIBlock const *mpiBlock, char const *dirname);
 
-PV_Stream *pvp_open_read_file(const char *filename, Communicator *comm);
+PV_Stream *pvp_open_read_file(const char *filename, MPIBlock const *mpiBlock);
 
-PV_Stream *pvp_open_write_file(const char *filename, Communicator *comm, bool append);
+PV_Stream *pvp_open_write_file(const char *filename, MPIBlock const *mpiBlock, bool append);
 
-int pvp_close_file(PV_Stream *pvstream, Communicator *comm);
+int pvp_close_file(PV_Stream *pvstream, MPIBlock const *mpiBlock);
 
-int pvp_read_header(PV_Stream *pvstream, Communicator *comm, int *params, int *numParams);
+int pvp_read_header(PV_Stream *pvstream, MPIBlock const *mpiBlock, int *params, int *numParams);
 int pvp_read_header(
       const char *filename,
-      Communicator *comm,
+      MPIBlock const *mpiBlock,
       double *time,
       int *filetype,
       int *datatype,
@@ -72,12 +73,12 @@ void read_header_err(
       Communicator *comm,
       int returned_num_params,
       int *params);
-int pvp_write_header(PV_Stream *pvstream, Communicator *comm, int *params, int numParams);
+int pvp_write_header(PV_Stream *pvstream, MPIBlock const *mpiBlock, int *params, int numParams);
 
 // The pvp_write_header below will go away in favor of the pvp_write_header above.
 int pvp_write_header(
       PV_Stream *pvstream,
-      Communicator *comm,
+      MPIBlock const *mpiBlock,
       double time,
       const PVLayerLoc *loc,
       int filetype,
@@ -89,42 +90,9 @@ int pvp_write_header(
       size_t recordSize);
 
 // Oct 21, 2016. pvp_set_file_params removed, as filetype PVP_FILE_TYPE is obsolete.
-int *pvp_set_activity_params(
-      Communicator *comm,
-      double timed,
-      const PVLayerLoc *loc,
-      int datatype,
-      int numbands);
-int *pvp_set_weight_params(
-      Communicator *comm,
-      double timed,
-      const PVLayerLoc *loc,
-      int datatype,
-      int numbands,
-      int nxp,
-      int nyp,
-      int nfp,
-      float min,
-      float max,
-      int numPatches);
-int *pvp_set_nonspiking_act_params(
-      Communicator *comm,
-      double timed,
-      const PVLayerLoc *loc,
-      int datatype,
-      int numbands);
-int *pvp_set_kernel_params(
-      Communicator *comm,
-      double timed,
-      const PVLayerLoc *loc,
-      int datatype,
-      int numbands,
-      int nxp,
-      int nyp,
-      int nfp,
-      float min,
-      float max,
-      int numPatches);
+
+// pvp_set_activity_params was removed Jan 26, 2017.
+
 int *alloc_params(int numParams);
 int set_weight_params(int *params, int nxp, int nyp, int nfp, float min, float max, int numPatches);
 
@@ -148,7 +116,7 @@ int readWeights(
       int nyp,
       int nfp,
       const char *filename,
-      Communicator *comm,
+      MPIBlock const *mpiBlock,
       double *timed,
       const PVLayerLoc *loc);
 
@@ -163,7 +131,7 @@ int pv_text_write_patch(
 
 int writeWeights(
       const char *filename,
-      Communicator *comm,
+      MPIBlock const *mpiBlock,
       double timed,
       bool append,
       const PVLayerLoc *preLoc,
@@ -180,7 +148,11 @@ int writeWeights(
       bool compress = true,
       int file_type = PVP_WGT_FILE_TYPE);
 
-int pvp_check_file_header(Communicator *comm, const PVLayerLoc *loc, int params[], int numParams);
+int pvp_check_file_header(
+      MPIBlock const *mpiBlock,
+      const PVLayerLoc *loc,
+      int params[],
+      int numParams);
 
 template <typename T>
 int gatherActivity(

@@ -11,10 +11,10 @@
 #include "checkpointing/CheckpointEntry.hpp"
 #include "checkpointing/CheckpointEntryData.hpp"
 #include "checkpointing/CheckpointingMessages.hpp"
-#include "columns/Communicator.hpp"
 #include "io/PVParams.hpp"
 #include "io/io.hpp"
 #include "observerpattern/Subject.hpp"
+#include "structures/MPIBlock.hpp"
 #include "utils/Timer.hpp"
 #include <ctime>
 #include <map>
@@ -104,21 +104,21 @@ class Checkpointer : public Subject {
     * @brief deleteOlderCheckpoints: If checkpointWrite, specifies if the run
     * should delete older checkpoints when writing new ones.
     */
-   virtual void ioParam_deleteOlderCheckpoints(enum ParamsIOFlag ioFlag, PVParams *params);
+   void ioParam_deleteOlderCheckpoints(enum ParamsIOFlag ioFlag, PVParams *params);
 
    /**
     * @brief mNumCheckpointsKept: If mDeleteOlderCheckpoints is set,
     * keep this many checkpoints before deleting the checkpoint.
     * Default is 1 (delete a checkpoint when a newer checkpoint is written.)
     */
-   virtual void ioParam_numCheckpointsKept(enum ParamsIOFlag ioFlag, PVParams *params);
+   void ioParam_numCheckpointsKept(enum ParamsIOFlag ioFlag, PVParams *params);
 
    /**
     * @brief initializeFromCheckpointDir: Sets directory used by
     * Checkpointer::initializeFromCheckpoint(). Layers and connections use this
     * directory if they set their initializeFromCheckpointFlag parameter.
     */
-   virtual void ioParam_initializeFromCheckpointDir(enum ParamsIOFlag ioFlag, PVParams *params);
+   void ioParam_initializeFromCheckpointDir(enum ParamsIOFlag ioFlag, PVParams *params);
 
    // defaultInitializeFromCheckpointFlag was made obsolete Dec 18, 2016.
    /**
@@ -127,8 +127,7 @@ class Checkpointer : public Subject {
     * objects will initialize from the checkpoint unless they set their
     * individual initializeFromCheckpointFlag to false.
     */
-   virtual void
-   ioParam_defaultInitializeFromCheckpointFlag(enum ParamsIOFlag ioFlag, PVParams *params);
+   void ioParam_defaultInitializeFromCheckpointFlag(enum ParamsIOFlag ioFlag, PVParams *params);
 
    /**
     * @brief lastCheckpointDir: If checkpointWrite is not set, this required parameter specifies
@@ -147,10 +146,13 @@ class Checkpointer : public Subject {
       double mSimTime                 = 0.0;
       long int mCurrentCheckpointStep = 0L;
    };
-   Checkpointer(std::string const &name, Communicator *comm);
+   Checkpointer(
+         std::string const &name,
+         MPIBlock const *globalMPIBlock,
+         Arguments const *arguments);
    ~Checkpointer();
 
-   void ioParamsFillGroup(enum ParamsIOFlag ioFlag, PVParams *params);
+   void ioParams(enum ParamsIOFlag ioFlag, PVParams *params);
    void provideFinalStep(long int finalStep);
 
    template <typename T>
@@ -168,8 +170,6 @@ class Checkpointer : public Subject {
    virtual void addObserver(Observer *observer, BaseMessage const &message) override;
 
    void setVerifyWrites(bool verifyWritesFlag) { mVerifyWritesFlag = verifyWritesFlag; }
-   void setCheckpointReadDirectory();
-   void setCheckpointReadDirectory(std::string const &checkpointReadDirectory);
    void readNamedCheckpointEntry(std::string const &objName, std::string const &dataName);
    void readNamedCheckpointEntry(std::string const &checkpointEntryName);
    void checkpointRead(double *simTimePointer, long int *currentStepPointer);
@@ -177,10 +177,10 @@ class Checkpointer : public Subject {
    void finalCheckpoint(double simTime);
    void writeTimers(PrintStream &stream) const;
 
-   Communicator *getCommunicator() { return mCommunicator; }
+   MPIBlock const *getMPIBlock() { return mMPIBlock; }
    bool doesVerifyWrites() { return mVerifyWritesFlag; }
    bool getCheckpointWriteFlag() const { return mCheckpointWriteFlag; }
-   char const *getcheckpointWriteDir() const { return mCheckpointWriteDir; }
+   char const *getCheckpointWriteDir() const { return mCheckpointWriteDir; }
    enum CheckpointWriteTriggerMode getCheckpointWriteTriggerMode() const {
       return mCheckpointWriteTriggerMode;
    }
@@ -195,7 +195,20 @@ class Checkpointer : public Subject {
    }
 
   private:
-   void initialize();
+   void initMPIBlock(MPIBlock const *globalMPIBlock, Arguments const *arguments);
+   void initBlockDirectoryName();
+   void ioParamsFillGroup(enum ParamsIOFlag ioFlag, PVParams *params);
+
+   /**
+    * If called when mCheckpointReadDirectory is a colon-separated list of
+    * paths, extracts the entry corresponding to the process's batch index
+    * and replaces mCheckpointReadDirectory with that entry. Called by
+    * configCheckpointReadDirectory. If mCheckpointReadDirectory is not a
+    * colon-separated list, it is left unchanged. If it is a colon-separated
+    * list, the number of entries must agree with
+    *
+    */
+   void extractCheckpointReadDirectory();
    void findWarmStartDirectory();
    bool checkpointWriteSignal();
    void checkpointWriteStep();
@@ -205,11 +218,13 @@ class Checkpointer : public Subject {
    void checkpointToDirectory(std::string const &checkpointDirectory);
    void rotateOldCheckpoints(std::string const &newCheckpointDirectory);
    void writeTimers(std::string const &directory);
-   std::string generateDirectory(std::string const &baseDirectory);
+   std::string generateBlockPath(std::string const &baseDirectory);
+   void verifyDirectory(char const *directory, std::string const &description);
 
   private:
    std::string mName;
-   Communicator *mCommunicator = nullptr;
+   MPIBlock *mMPIBlock = nullptr;
+   std::string mBlockDirectoryName;
    std::vector<std::shared_ptr<CheckpointEntry>> mCheckpointRegistry; // Needs to be a vector so
    // that each MPI process
    // iterates over the entries
@@ -217,6 +232,7 @@ class Checkpointer : public Subject {
    ObserverTable mObserverTable;
    TimeInfo mTimeInfo;
    std::shared_ptr<CheckpointEntryData<TimeInfo>> mTimeInfoCheckpointEntry = nullptr;
+   bool mWarmStart                                                         = false;
    bool mVerifyWritesFlag                                                  = true;
    bool mCheckpointWriteFlag                                               = false;
    char *mCheckpointWriteDir                                               = nullptr;
@@ -292,7 +308,7 @@ bool Checkpointer::registerCheckpointData(
       bool broadcast) {
    return registerCheckpointEntry(
          std::make_shared<CheckpointEntryData<T>>(
-               objName, dataName, getCommunicator(), dataPointer, numValues, broadcast));
+               objName, dataName, getMPIBlock(), dataPointer, numValues, broadcast));
 }
 
 } // namespace PV

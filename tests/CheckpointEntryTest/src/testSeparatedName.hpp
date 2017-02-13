@@ -1,9 +1,9 @@
 #ifndef TESTSEPARATEDNAME_HPP_
 #define TESTSEPARATEDNAME_HPP_
 
-#include "columns/Communicator.hpp"
+#include "structures/MPIBlock.hpp"
 #include <string>
 
-void testSeparatedName(PV::Communicator *comm);
+void testSeparatedName(PV::MPIBlock const *mpiBlock);
 
 #endif // TESTSEPARATEDNAME_HPP_

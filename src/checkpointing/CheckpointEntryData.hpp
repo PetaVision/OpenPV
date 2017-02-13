@@ -9,7 +9,6 @@
 #define CHECKPOINTENTRYDATA_HPP_
 
 #include "CheckpointEntry.hpp"
-#include "columns/Communicator.hpp"
 #include "io/PrintStream.hpp"
 #include <string>
 
@@ -20,22 +19,22 @@ class CheckpointEntryData : public CheckpointEntry {
   public:
    CheckpointEntryData(
          std::string const &name,
-         Communicator *communicator,
+         MPIBlock const *mpiBlock,
          T *dataPtr,
          size_t numValues,
          bool broadcastingFlag)
-         : CheckpointEntry(name, communicator),
+         : CheckpointEntry(name, mpiBlock),
            mDataPointer(dataPtr),
            mNumValues(numValues),
            mBroadcastingFlag(broadcastingFlag) {}
    CheckpointEntryData(
          std::string const &objName,
          std::string const &dataName,
-         Communicator *communicator,
+         MPIBlock const *mpiBlock,
          T *dataPtr,
          size_t numValues,
          bool broadcastingFlag)
-         : CheckpointEntry(objName, dataName, communicator),
+         : CheckpointEntry(objName, dataName, mpiBlock),
            mDataPointer(dataPtr),
            mNumValues(numValues),
            mBroadcastingFlag(broadcastingFlag) {}

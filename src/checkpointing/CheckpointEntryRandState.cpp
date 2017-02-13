@@ -16,19 +16,13 @@ void CheckpointEntryRandState::write(
       bool verifyWritesFlag) const {
    std::string path = generatePath(checkpointDirectory, "pvp");
    writeRandState(
-         path,
-         getCommunicator(),
-         mDataPointer,
-         mLayerLoc,
-         mExtendedFlag,
-         simTime,
-         verifyWritesFlag);
+         path, getMPIBlock(), mDataPointer, mLayerLoc, mExtendedFlag, simTime, verifyWritesFlag);
 }
 
 void CheckpointEntryRandState::read(std::string const &checkpointDirectory, double *simTimePtr)
       const {
    std::string path = generatePath(checkpointDirectory, "pvp");
-   *simTimePtr = readRandState(path, getCommunicator(), mDataPointer, mLayerLoc, mExtendedFlag);
+   *simTimePtr      = readRandState(path, getMPIBlock(), mDataPointer, mLayerLoc, mExtendedFlag);
 }
 
 void CheckpointEntryRandState::remove(std::string const &checkpointDirectory) const {

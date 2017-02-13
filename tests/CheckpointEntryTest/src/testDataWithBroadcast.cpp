@@ -1,15 +1,16 @@
 #include "testDataWithBroadcast.hpp"
 #include "checkpointing/CheckpointEntryData.hpp"
 #include "utils/PVLog.hpp"
+#include <vector>
 
-void testDataWithBroadcast(PV::Communicator *comm, std::string const &directory) {
+void testDataWithBroadcast(PV::MPIBlock const *mpiBlock, std::string const &directory) {
    int const vectorLength = 32;
    std::vector<float> correctData(vectorLength, 0);
    for (int i = 0; i < vectorLength; i++) {
       correctData.at(i) = (float)i;
    }
    std::vector<float> checkpointData;
-   int const rank = comm->commRank();
+   int const rank = mpiBlock->getRank();
    if (rank == 0) {
       checkpointData = correctData;
    }
@@ -23,7 +24,7 @@ void testDataWithBroadcast(PV::Communicator *comm, std::string const &directory)
          vectorLength);
    PV::CheckpointEntryData<float> checkpointEntryWithBroadcast{
          "checkpointEntryWithBroadcast",
-         comm,
+         mpiBlock,
          checkpointData.data(),
          checkpointData.size(),
          true /*broadcasting read to all processes*/};
@@ -50,6 +51,6 @@ void testDataWithBroadcast(PV::Communicator *comm, std::string const &directory)
             (double)checkpointData.at(i),
             (double)correctData.at(i));
    }
-   MPI_Barrier(comm->communicator());
+   MPI_Barrier(mpiBlock->getComm());
    InfoLog() << "testDataWithBroadcast passed.\n";
 }

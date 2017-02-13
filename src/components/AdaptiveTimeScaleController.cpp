@@ -49,7 +49,7 @@ int AdaptiveTimeScaleController::registerData(
       Checkpointer *checkpointer,
       std::string const &objName) {
    auto ptr = std::make_shared<CheckpointEntryTimeScaleInfo>(
-         objName, "timescaleinfo", mCommunicator, &mTimeScaleInfo);
+         objName, "timescaleinfo", checkpointer->getMPIBlock(), &mTimeScaleInfo);
    checkpointer->registerCheckpointEntry(ptr);
    return PV_SUCCESS;
 }
@@ -122,7 +122,7 @@ void CheckpointEntryTimeScaleInfo::write(
       std::string const &checkpointDirectory,
       double simTime,
       bool verifyWritesFlag) const {
-   if (getCommunicator()->commRank() == 0) {
+   if (getMPIBlock()->getRank() == 0) {
       int batchWidth   = (int)mTimeScaleInfoPtr->mTimeScale.size();
       std::string path = generatePath(checkpointDirectory, "bin");
       FileStream fileStream{path.c_str(), std::ios_base::out, verifyWritesFlag};
@@ -133,7 +133,7 @@ void CheckpointEntryTimeScaleInfo::write(
       }
       path = generatePath(checkpointDirectory, "txt");
       FileStream txtFileStream{path.c_str(), std::ios_base::out, verifyWritesFlag};
-      int kb0 = getCommunicator()->commBatch() * batchWidth;
+      int kb0 = getMPIBlock()->getBatchIndex() * batchWidth;
       for (std::size_t b = 0; b < batchWidth; b++) {
          txtFileStream << "batch index = " << b + kb0 << "\n";
          txtFileStream << "time = " << simTime << "\n";
@@ -152,7 +152,7 @@ void CheckpointEntryTimeScaleInfo::remove(std::string const &checkpointDirectory
 void CheckpointEntryTimeScaleInfo::read(std::string const &checkpointDirectory, double *simTimePtr)
       const {
    int batchWidth = (int)mTimeScaleInfoPtr->mTimeScale.size();
-   if (getCommunicator()->commRank() == 0) {
+   if (getMPIBlock()->getRank() == 0) {
       std::string path = generatePath(checkpointDirectory, "bin");
       FileStream fileStream{path.c_str(), std::ios_base::in, false};
       for (std::size_t b = 0; b < batchWidth; b++) {
@@ -162,23 +162,19 @@ void CheckpointEntryTimeScaleInfo::read(std::string const &checkpointDirectory, 
       }
    }
    MPI_Bcast(
-         mTimeScaleInfoPtr->mTimeScale.data(),
-         batchWidth,
-         MPI_DOUBLE,
-         0,
-         getCommunicator()->communicator());
+         mTimeScaleInfoPtr->mTimeScale.data(), batchWidth, MPI_DOUBLE, 0, getMPIBlock()->getComm());
    MPI_Bcast(
          mTimeScaleInfoPtr->mTimeScaleTrue.data(),
          batchWidth,
          MPI_DOUBLE,
          0,
-         getCommunicator()->communicator());
+         getMPIBlock()->getComm());
    MPI_Bcast(
          mTimeScaleInfoPtr->mTimeScaleMax.data(),
          batchWidth,
          MPI_DOUBLE,
          0,
-         getCommunicator()->communicator());
+         getMPIBlock()->getComm());
 }
 
 } /* namespace PV */

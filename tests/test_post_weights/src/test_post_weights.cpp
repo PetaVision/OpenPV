@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
    // But we still need to allocate the weights, so we call the
    // layers' and connections' communicate and allocate methods externally.
 
-   ensureDirExists(hc->getCommunicator(), hc->getOutputPath());
+   ensureDirExists(hc->getCommunicator()->getLocalMPIBlock(), hc->getOutputPath());
 
    auto objectMap      = hc->copyObjectMap();
    auto commMessagePtr = std::make_shared<CommunicateInitInfoMessage>(*objectMap);

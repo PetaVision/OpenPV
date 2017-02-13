@@ -17,7 +17,8 @@ int main(int argc, char *argv[]) {
    // Initialize PetaVision environment
    PV::CommandLineArguments arguments{argc, argv, false /*do not allow unrecognized arguments*/};
    MPI_Init(&argc, &argv);
-   PV::Communicator *comm = new PV::Communicator(&arguments);
+   PV::Communicator *comm       = new PV::Communicator(&arguments);
+   PV::MPIBlock const *mpiBlock = comm->getLocalMPIBlock();
 
    // Params file
    PV::PVParams *params = new PV::PVParams("input/DeleteOldCheckpointsTest.params", 1, comm);
@@ -28,10 +29,8 @@ int main(int argc, char *argv[]) {
          checkpointWriteDir == nullptr,
          "Group \"checkpointer\" must have a checkpointWriteDir string parameter.\n");
    std::string checkpointWriteDirectory(checkpointWriteDir);
-   ensureDirExists(comm, checkpointWriteDirectory.c_str()); // Must be called by all processes,
-   // because it broadcasts the result of
-   // the stat() call.
-   if (comm->commRank() == 0) {
+   ensureDirExists(mpiBlock, checkpointWriteDirectory.c_str());
+   if (mpiBlock->getRank() == 0) {
       std::string rmcommand("rm -rf ");
       rmcommand.append(checkpointWriteDirectory).append("/*");
       InfoLog() << "Cleaning directory \"" << checkpointWriteDirectory << "\" with \"" << rmcommand
@@ -43,7 +42,7 @@ int main(int argc, char *argv[]) {
             rmcommand.c_str(),
             WEXITSTATUS(rmstatus));
    }
-   if (comm->numCommBatches() > 1) {
+   if (mpiBlock->getBatchDimension() > 1) {
       params->setBatchSweepValues();
       checkpointWriteDirectory =
             std::string(params->stringValue("checkpointer", "checkpointWriteDir"));
@@ -54,15 +53,15 @@ int main(int argc, char *argv[]) {
    std::size_t const numKept = (std::size_t)params->valueInt("checkpointer", "numCheckpointsKept");
 
    // Initialize Checkpointer object
-   PV::Checkpointer *checkpointer = new PV::Checkpointer("checkpointer", comm);
-   checkpointer->ioParamsFillGroup(PV::PARAMS_IO_READ, params);
+   PV::Checkpointer *checkpointer = new PV::Checkpointer("checkpointer", mpiBlock, &arguments);
+   checkpointer->ioParams(PV::PARAMS_IO_READ, params);
    delete params;
 
    int status = PV_SUCCESS;
    std::vector<std::string> checkpointsCreated;
    for (double t = 0; t < 10; t++) {
       checkpointer->checkpointWrite(t);
-      if (comm->commRank() == 0) {
+      if (mpiBlock->getRank() == 0) {
          auto iter = checkpointsCreated.emplace(
                checkpointsCreated.end(), std::string(checkpointWriteDirectory));
          std::string &newCheckpoint = *iter;
@@ -107,7 +106,7 @@ int main(int argc, char *argv[]) {
          }
       }
    }
-   MPI_Bcast(&status, 1 /*count*/, MPI_INT, 0, comm->communicator());
+   MPI_Bcast(&status, 1 /*count*/, MPI_INT, 0, mpiBlock->getComm());
 
    delete checkpointer;
    delete comm;

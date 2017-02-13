@@ -8,25 +8,25 @@
 #ifndef CHECKPOINTENTRY_HPP_
 #define CHECKPOINTENTRY_HPP_
 
-#include "columns/Communicator.hpp"
+#include "structures/MPIBlock.hpp"
 #include <string>
 
 namespace PV {
 
 class CheckpointEntry {
   public:
-   CheckpointEntry(std::string const &name, Communicator *communicator)
-         : mName(name), mCommunicator(communicator) {}
+   CheckpointEntry(std::string const &name, MPIBlock const *mpiBlock)
+         : mName(name), mMPIBlock(mpiBlock) {}
    CheckpointEntry(
          std::string const &objName,
          std::string const &dataName,
-         Communicator *communicator) {
+         MPIBlock const *mpiBlock) {
       mName = objName;
       if (!(objName.empty() || dataName.empty())) {
          mName.append("_");
       }
       mName.append(dataName);
-      mCommunicator = communicator;
+      mMPIBlock = mpiBlock;
    }
    virtual void
    write(std::string const &checkpointDirectory, double simTime, bool verifyWritesFlag) const {
@@ -40,12 +40,12 @@ class CheckpointEntry {
    std::string
    generatePath(std::string const &checkpointDirectory, std::string const &extension) const;
    void deleteFile(std::string const &checkpointDirectory, std::string const &extension) const;
-   Communicator *getCommunicator() const { return mCommunicator; }
+   MPIBlock const *getMPIBlock() const { return mMPIBlock; }
 
    // data members
   private:
    std::string mName;
-   Communicator *mCommunicator;
+   MPIBlock const *mMPIBlock;
 };
 
 } // end namespace PV

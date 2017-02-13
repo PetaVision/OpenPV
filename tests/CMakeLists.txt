@@ -30,11 +30,13 @@ add_subdirectory(BufferUtilsMPITest)
 add_subdirectory(BufferUtilsPvpTest)
 add_subdirectory(CheckpointEntryTest)
 add_subdirectory(CheckpointerClassTest)
+add_subdirectory(CheckpointerMPIBlockTest)
 add_subdirectory(CheckpointWeightTest)
 add_subdirectory(ConfigParserTest)
 add_subdirectory(DataStoreTest)
 add_subdirectory(DeleteOlderCheckpointsTest)
 add_subdirectory(ImageTest)
+add_subdirectory(MPIBlockTest)
 
 # System tests that involve starting up a full instance of PetaVision happen next.
 add_subdirectory(BasicSystemTest)

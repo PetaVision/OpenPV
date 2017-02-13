@@ -524,7 +524,7 @@ int PV_fclose(PV_Stream *pvstream) {
    return status;
 }
 
-int checkDirExists(Communicator *comm, const char *dirname, struct stat *pathstat) {
+int checkDirExists(MPIBlock const *mpiBlock, const char *dirname, struct stat *pathstat) {
    // check if the given directory name exists for the rank zero process
    // the return value is zero if a successful stat(2) call and the error
    // if unsuccessful.  pathstat contains the result of the buffer from the stat call.
@@ -532,7 +532,7 @@ int checkDirExists(Communicator *comm, const char *dirname, struct stat *pathsta
    // nonzero rank processes return PV_SUCCESS immediately.
    pvAssert(pathstat);
 
-   int rank = comm->commRank();
+   int rank = mpiBlock->getRank();
    if (rank != 0) {
       return 0;
    }
@@ -571,12 +571,12 @@ static inline int makeDirectory(char const *dir) {
    return status;
 }
 
-int ensureDirExists(Communicator *comm, char const *dirname) {
+int ensureDirExists(MPIBlock const *mpiBlock, char const *dirname) {
    // If rank zero, see if path exists, and try to create it if it doesn't.
    // If not rank zero, the routine does nothing.
-   int rank = comm->commRank();
+   int rank = mpiBlock->getRank();
    struct stat pathstat;
-   int resultcode = checkDirExists(comm, dirname, &pathstat);
+   int resultcode = checkDirExists(mpiBlock, dirname, &pathstat);
 
    if (resultcode == 0) { // mOutputPath exists; now check if it's a directory.
       FatalIf(
@@ -774,9 +774,9 @@ int pvp_set_patches(
    return PV_SUCCESS;
 }
 
-PV_Stream *pvp_open_read_file(const char *filename, Communicator *comm) {
+PV_Stream *pvp_open_read_file(const char *filename, MPIBlock const *mpiBlock) {
    PV_Stream *pvstream = NULL;
-   if (comm->commRank() == 0) {
+   if (mpiBlock->getRank() == 0) {
       pvstream = PV_fopen(filename, "rb", false /*verifyWrites*/);
       if (pvstream == NULL) {
          ErrorLog().printf("pvp_open_read_file failed for \"%s\": %s\n", filename, strerror(errno));
@@ -785,9 +785,9 @@ PV_Stream *pvp_open_read_file(const char *filename, Communicator *comm) {
    return pvstream;
 }
 
-PV_Stream *pvp_open_write_file(const char *filename, Communicator *comm, bool append) {
+PV_Stream *pvp_open_write_file(const char *filename, MPIBlock const *mpiBlock, bool append) {
    PV_Stream *pvstream = NULL;
-   if (comm->commRank() == 0) {
+   if (mpiBlock->getRank() == 0) {
       bool rwmode = false;
       if (append) {
          // If the file exists, need to use read/write mode (r+) since we'll navigate back to the
@@ -829,20 +829,24 @@ PV_Stream *pvp_open_write_file(const char *filename, Communicator *comm, bool ap
    return pvstream;
 }
 
-int pvp_close_file(PV_Stream *pvstream, Communicator *comm) {
+int pvp_close_file(PV_Stream *pvstream, MPIBlock const *mpiBlock) {
    int status = PV_SUCCESS;
-   if (comm->commRank() == 0) {
+   if (mpiBlock->getRank() == 0) {
       status = PV_fclose(pvstream);
    }
    return status;
 }
 
-int pvp_check_file_header(Communicator *comm, const PVLayerLoc *loc, int params[], int numParams) {
+int pvp_check_file_header(
+      MPIBlock const *mpiBlock,
+      const PVLayerLoc *loc,
+      int params[],
+      int numParams) {
    int status = PV_SUCCESS;
 
-   int nxProcs = comm->numCommColumns();
-   int nyProcs = comm->numCommRows();
-   int rank    = comm->commRank();
+   int nxProcs = mpiBlock->getNumColumns();
+   int nyProcs = mpiBlock->getNumRows();
+   int rank    = mpiBlock->getRank();
 
    if (params[INDEX_NX_PROCS] != 1) {
       status = PV_FAILURE;
@@ -923,7 +927,7 @@ int pvp_check_file_header(Communicator *comm, const PVLayerLoc *loc, int params[
    return status;
 } // pvp_check_file_header
 
-int pvp_read_header(PV_Stream *pvstream, Communicator *comm, int *params, int *numParams) {
+int pvp_read_header(PV_Stream *pvstream, MPIBlock const *mpiBlock, int *params, int *numParams) {
    // Under MPI, called by all processes; nonroot processes should have pvstream==NULL
    // On entry, numParams is the size of the params buffer.
    // All process should have the same numParams on entry.
@@ -935,7 +939,7 @@ int pvp_read_header(PV_Stream *pvstream, Communicator *comm, int *params, int *n
    int status        = PV_SUCCESS;
    int numParamsRead = 0;
    int *mpi_buffer   = (int *)calloc((size_t)(*numParams + 2), sizeof(int));
-   if (comm->commRank() == 0) {
+   if (mpiBlock->getRank() == 0) {
       if (pvstream == NULL) {
          ErrorLog().printf("pvp_read_header: pvstream==NULL for rank zero");
          status = PV_FAILURE;
@@ -984,10 +988,10 @@ int pvp_read_header(PV_Stream *pvstream, Communicator *comm, int *params, int *n
       mpi_buffer[0] = status;
       mpi_buffer[1] = numParamsRead;
       memcpy(&mpi_buffer[2], params, sizeof(int) * (*numParams));
-      MPI_Bcast(mpi_buffer, 22, MPI_INT, 0 /*root*/, comm->communicator());
-   } // comm->communicator()==0
+      MPI_Bcast(mpi_buffer, 22, MPI_INT, 0 /*root*/, mpiBlock->getComm());
+   } // mpiBlock->getRank()==0
    else {
-      MPI_Bcast(mpi_buffer, 22, MPI_INT, 0 /*root*/, comm->communicator());
+      MPI_Bcast(mpi_buffer, 22, MPI_INT, 0 /*root*/, mpiBlock->getComm());
       status = mpi_buffer[0];
       memcpy(params, &mpi_buffer[2], sizeof(int) * (*numParams));
    }
@@ -1083,26 +1087,26 @@ int pvp_read_header(
 
 int pvp_read_header(
       const char *filename,
-      Communicator *comm,
+      MPIBlock const *mpiBlock,
       double *time,
       int *filetype,
       int *datatype,
       int params[],
       int *numParams) {
    int status       = PV_SUCCESS;
-   const int icRank = comm->commRank();
+   const int icRank = mpiBlock->getRank();
 
    if (icRank == 0) {
-      PV_Stream *pvstream = pvp_open_read_file(filename, comm);
+      PV_Stream *pvstream = pvp_open_read_file(filename, mpiBlock);
       if (pvstream == NULL) {
          Fatal().printf(
                "[%2d]: pvp_read_header: pvp_open_read_file failed to open file \"%s\"\n",
-               comm->commRank(),
+               mpiBlock->getRank(),
                filename);
       }
 
       status = pvp_read_header(pvstream, time, filetype, datatype, params, numParams);
-      pvp_close_file(pvstream, comm);
+      pvp_close_file(pvstream, mpiBlock);
       if (status != 0)
          return status;
    }
@@ -1110,15 +1114,17 @@ int pvp_read_header(
    const int icRoot = 0;
 #ifdef DEBUG_OUTPUT
    DebugLog().printf(
-         "[%2d]: pvp_read_header: will broadcast, numParams==%d\n", comm->commRank(), *numParams);
+         "[%2d]: pvp_read_header: will broadcast, numParams==%d\n",
+         mpiBlock->getRank(),
+         *numParams);
 #endif // DEBUG_OUTPUT
 
-   status = MPI_Bcast(params, *numParams, MPI_INT, icRoot, comm->communicator());
+   status = MPI_Bcast(params, *numParams, MPI_INT, icRoot, mpiBlock->getComm());
 
 #ifdef DEBUG_OUTPUT
    DebugLog().printf(
          "[%2d]: pvp_read_header: broadcast completed, numParams==%d\n",
-         comm->commRank(),
+         mpiBlock->getRank(),
          *numParams);
 #endif // DEBUG_OUTPUT
 
@@ -1129,10 +1135,10 @@ int pvp_read_header(
    return status;
 }
 
-int pvp_write_header(PV_Stream *pvstream, Communicator *comm, int *params, int numParams) {
+int pvp_write_header(PV_Stream *pvstream, MPIBlock const *mpiBlock, int *params, int numParams) {
    int status   = PV_SUCCESS;
    int rootproc = 0;
-   int rank     = comm->commRank();
+   int rank     = mpiBlock->getRank();
    if (rank == rootproc) {
       if ((int)PV_fwrite(params, sizeof(int), numParams, pvstream) != numParams) {
          status = -1;
@@ -1144,7 +1150,7 @@ int pvp_write_header(PV_Stream *pvstream, Communicator *comm, int *params, int n
 
 int pvp_write_header(
       PV_Stream *pvstream,
-      Communicator *comm,
+      MPIBlock const *mpiBlock,
       double time,
       const PVLayerLoc *loc,
       int filetype,
@@ -1158,13 +1164,13 @@ int pvp_write_header(
    int nxBlocks, nyBlocks;
    int params[NUM_BIN_PARAMS];
 
-   if (comm->commRank() != 0)
+   if (mpiBlock->getRank() != 0)
       return status;
 
    const int headerSize = numParams * sizeof(int);
 
-   const int nxProcs = comm->numCommColumns();
-   const int nyProcs = comm->numCommRows();
+   const int nxProcs = mpiBlock->getNumColumns();
+   const int nyProcs = mpiBlock->getNumRows();
 
    if (contiguous) {
       nxBlocks = 1;
@@ -1225,78 +1231,8 @@ int pvp_write_header(
    return status;
 }
 
-int *pvp_set_activity_params(
-      Communicator *comm,
-      double timed,
-      const PVLayerLoc *loc,
-      int datatype,
-      int numbands) {
-   int numParams = NUM_BIN_PARAMS;
-   int *params   = alloc_params(numParams);
-   assert(params != NULL);
-   params[INDEX_FILE_TYPE]   = PVP_ACT_FILE_TYPE;
-   params[INDEX_NX]          = loc->nxGlobal;
-   params[INDEX_NY]          = loc->nyGlobal;
-   params[INDEX_NF]          = loc->nf;
-   params[INDEX_NUM_RECORDS] = 1;
-   int datasize              = pv_sizeof(datatype);
-   params[INDEX_RECORD_SIZE] = loc->nxGlobal * loc->nyGlobal * loc->nf
-                               * datasize; // does not represent the size of the record in the file,
-   // but the size of the buffer
-   params[INDEX_DATA_SIZE] = datasize;
-   params[INDEX_DATA_TYPE] = datatype;
-   params[INDEX_NX_PROCS]  = 1;
-   params[INDEX_NY_PROCS]  = 1;
-   params[INDEX_NX_GLOBAL] = loc->nxGlobal;
-   params[INDEX_NY_GLOBAL] = loc->nyGlobal;
-   params[INDEX_KX0]       = 0;
-   params[INDEX_KY0]       = 0;
-   params[INDEX_NBANDS]    = numbands * loc->nbatch;
-   params[INDEX_NBATCH]    = loc->nbatch;
-   timeToParams(timed, &params[INDEX_TIME]);
-   return params;
-}
-
-int *pvp_set_weight_params(
-      Communicator *comm,
-      double timed,
-      const PVLayerLoc *loc,
-      int datatype,
-      int numbands,
-      int nxp,
-      int nyp,
-      int nfp,
-      float min,
-      float max,
-      int numPatches) {
-   // numPatches in argument list is the number of patches per process, but what's saved in
-   // numPatches to the file is number of patches across all processes.
-   int numParams = NUM_BIN_PARAMS + NUM_WGT_EXTRA_PARAMS;
-   int *params   = alloc_params(numParams);
-   assert(params != NULL);
-   params[INDEX_FILE_TYPE]   = PVP_WGT_FILE_TYPE;
-   params[INDEX_NX]          = loc->nx; // not yet contiguous
-   params[INDEX_NY]          = loc->ny;
-   params[INDEX_NF]          = loc->nf;
-   int nxProcs               = comm->numCommColumns();
-   int nyProcs               = comm->numCommRows();
-   int datasize              = pv_sizeof(datatype);
-   params[INDEX_NUM_RECORDS] = numbands * nxProcs * nyProcs;
-   params[INDEX_RECORD_SIZE] = numPatches * (8 + datasize * nxp * nyp * nfp);
-   params[INDEX_DATA_SIZE]   = datasize;
-   params[INDEX_DATA_TYPE]   = datatype;
-   params[INDEX_NX_PROCS]    = nxProcs;
-   params[INDEX_NY_PROCS]    = nyProcs;
-   params[INDEX_NX_GLOBAL]   = loc->nxGlobal;
-   params[INDEX_NY_GLOBAL]   = loc->nyGlobal;
-   params[INDEX_KX0]         = 0;
-   params[INDEX_KY0]         = 0;
-   params[INDEX_NBATCH]      = loc->nbatch;
-   params[INDEX_NBANDS]      = numbands;
-   timeToParams(timed, &params[INDEX_TIME]);
-   set_weight_params(params, nxp, nyp, nfp, min, max, numPatches);
-   return params;
-}
+// Unused function pvp_set_activity_params was removed Jan 26, 2017.
+// Unused function pvp_set_weight_params was removed Jan 26, 2017.
 
 int *pvp_set_nonspiking_act_params(
       Communicator *comm,
@@ -1494,9 +1430,10 @@ int writeActivity(FileStream *fileStream, Communicator *comm, double timed, PVLa
          //
          fileStream->write(&timed, (long int)sizeof(timed));
       }
-      float const *data    = &cube->data[b * nxExt * nyExt * nf];
-      auto pvpBuffer       = Buffer<float>(data, nxExt, nyExt, nf);
-      auto pvpBufferGlobal = BufferUtils::gather(comm, pvpBuffer, loc->nx, loc->ny);
+      float const *data = &cube->data[b * nxExt * nyExt * nf];
+      auto pvpBuffer    = Buffer<float>(data, nxExt, nyExt, nf);
+      auto pvpBufferGlobal =
+            BufferUtils::gather(comm->getLocalMPIBlock(), pvpBuffer, loc->nx, loc->ny, 0, 0);
       if (rank == 0) {
          pvpBufferGlobal.crop(loc->nxGlobal, loc->nyGlobal, Buffer<float>::CENTER);
          fileStream->write(
@@ -1777,7 +1714,7 @@ int readWeights(
       int nyp,
       int nfp,
       const char *filename,
-      Communicator *comm,
+      MPIBlock const *mpiBlock,
       double *timed,
       const PVLayerLoc *loc) {
    int header_data_type;
@@ -1787,11 +1724,11 @@ int readWeights(
    int params[NUM_WGT_PARAMS];
    int *wgtParams = &params[NUM_BIN_PARAMS];
    int status     = pvp_read_header(
-         filename, comm, timed, &header_file_type, &header_data_type, params, &numParams);
+         filename, mpiBlock, timed, &header_file_type, &header_data_type, params, &numParams);
 
    // rank zero process broadcasts params to all processes, so it's enough for rank zero process to
    // do the error checking
-   if (comm->commRank() == 0) {
+   if (mpiBlock->getRank() == 0) {
       if (numParams != NUM_WGT_PARAMS) {
          Fatal().printf(
                "Reading weights file \"%s\": expected %zu parameters in header but received %d\n",
@@ -1814,12 +1751,12 @@ int readWeights(
    const int nxFileBlocks = params[INDEX_NX_PROCS];
    const int nyFileBlocks = params[INDEX_NY_PROCS];
 
-   status = pvp_check_file_header(comm, loc, params, numParams);
+   status = pvp_check_file_header(mpiBlock, loc, params, numParams);
 
    if (status != 0) {
       ErrorLog().printf(
             "[%2d]: readWeights: failed in pvp_check_file_header, numParams==%d\n",
-            comm->commRank(),
+            mpiBlock->getRank(),
             numParams);
       return status;
    }
@@ -1845,7 +1782,7 @@ int readWeights(
    float maxVal = 0.0f;
    memcpy(&maxVal, &wgtParams[INDEX_WGT_MAX], sizeof(float));
 
-   const int icRank = comm->commRank();
+   const int icRank = mpiBlock->getRank();
 
    bool compress       = header_data_type == BufferUtils::BYTE;
    unsigned char *cbuf = (unsigned char *)malloc(localSize);
@@ -1868,7 +1805,7 @@ int readWeights(
    const int expected_file_type = patches == NULL ? PVP_KERNEL_FILE_TYPE : PVP_WGT_FILE_TYPE;
    const int tagbase            = expected_file_type;
 #ifdef PV_USE_MPI
-   const MPI_Comm mpi_comm = comm->communicator();
+   const MPI_Comm mpi_comm = mpiBlock->getComm();
 #else
    const MPI_Comm mpi_comm = NULL;
 #endif // PV_USE_MPI
@@ -1895,7 +1832,7 @@ int readWeights(
             DebugLog().printf(
                   "[%2d]: readWeights: bcast from %d, arbor %d, numPatchItems %d, numPatches==%d, "
                   "localSize==%zu\n",
-                  comm->commRank(),
+                  mpiBlock->getRank(),
                   src,
                   arbor,
                   numPatchItems,
@@ -1910,7 +1847,7 @@ int readWeights(
             DebugLog().printf(
                   "[%2d]: readWeights: recv from %d, arbor %d, numPatchItems %d, numPatches==%d, "
                   "localSize==%zu\n",
-                  comm->commRank(),
+                  mpiBlock->getRank(),
                   src,
                   arbor,
                   numPatchItems,
@@ -1934,7 +1871,7 @@ int readWeights(
 #endif // PV_USE_MPI
    } // icRank > 0
    else /*icRank == 0*/ {
-      PV_Stream *pvstream  = pvp_open_read_file(filename, comm);
+      PV_Stream *pvstream  = pvp_open_read_file(filename, mpiBlock);
       const int headerSize = numParams * sizeof(int);
       for (int arbor = 0; arbor < params[INDEX_NBANDS]; arbor++) {
          long int arborStart = headerSize + localSize * arbor;
@@ -1954,32 +1891,34 @@ int readWeights(
             DebugLog().printf(
                   "[%2d]: readWeights: bcast from %d, arbor %d, numPatchItems %d, numPatches==%d, "
                   "localSize==%zu\n",
-                  comm->commRank(),
+                  mpiBlock->getRank(),
                   src,
                   arbor,
                   numPatchItems,
                   numPatches,
                   localSize);
 #endif // DEBUG_OUTPUT
-            if (comm->commSize() > 1) {
+            if (mpiBlock->getSize() > 1) {
                MPI_Bcast(cbuf, localSize, MPI_BYTE, src, mpi_comm);
             }
          }
          else {
             assert(header_file_type == PVP_WGT_FILE_TYPE);
             int globalSize = patchSize * wgtParams[INDEX_WGT_NUMPATCHES];
-            for (int proc = 0; proc <= comm->commSize(); proc++) {
+            for (int proc = 0; proc <= mpiBlock->getSize(); proc++) {
                if (proc == src) {
                   continue;
                } // Do local section last
                int procrow, proccolumn;
-               if (proc == comm->commSize()) {
-                  procrow    = rowFromRank(src, comm->numCommRows(), comm->numCommColumns());
-                  proccolumn = columnFromRank(src, comm->numCommRows(), comm->numCommColumns());
+               if (proc == mpiBlock->getSize()) {
+                  procrow = rowFromRank(src, mpiBlock->getNumRows(), mpiBlock->getNumColumns());
+                  proccolumn =
+                        columnFromRank(src, mpiBlock->getNumRows(), mpiBlock->getNumColumns());
                }
                else {
-                  procrow    = rowFromRank(proc, comm->numCommRows(), comm->numCommColumns());
-                  proccolumn = columnFromRank(proc, comm->numCommRows(), comm->numCommColumns());
+                  procrow = rowFromRank(proc, mpiBlock->getNumRows(), mpiBlock->getNumColumns());
+                  proccolumn =
+                        columnFromRank(proc, mpiBlock->getNumRows(), mpiBlock->getNumColumns());
                }
                for (int k = 0; k < numPatches; k++) {
                   // TODO: don't have to read each patch singly; can read all patches for a single y
@@ -2014,13 +1953,13 @@ int readWeights(
                            filename);
                   }
                } // Loop over patches
-               if (proc != comm->commSize()) {
+               if (proc != mpiBlock->getSize()) {
                   MPI_Send(cbuf, localSize, MPI_BYTE, proc, tagbase + arbor, mpi_comm);
 #ifdef DEBUG_OUTPUT
                   DebugLog().printf(
                         "[%2d]: readWeights: recv from %d, arbor %d, numPatchItems %d, "
                         "numPatches==%d, localSize==%zu\n",
-                        comm->commRank(),
+                        mpiBlock->getRank(),
                         src,
                         arbor,
                         numPatchItems,
@@ -2043,7 +1982,7 @@ int readWeights(
                maxVal,
                compress);
       } // loop over arbors
-      pvp_close_file(pvstream, comm);
+      pvp_close_file(pvstream, mpiBlock);
    } // if-statement for icRank
 
    free(cbuf);
@@ -2086,7 +2025,7 @@ int pv_text_write_patch(
 
 int writeWeights(
       const char *filename,
-      Communicator *comm,
+      MPIBlock const *mpiBlock,
       double timed,
       bool append,
       const PVLayerLoc *preLoc,
@@ -2106,7 +2045,7 @@ int writeWeights(
 
    int datatype = compress ? BufferUtils::BYTE : BufferUtils::FLOAT;
 
-   const int icRank = comm->commRank();
+   const int icRank = mpiBlock->getRank();
 
    const int numPatchItems = nxp * nyp * nfp;
    const size_t patchSize  = pv_sizeof_patch(numPatchItems, datatype);
@@ -2131,7 +2070,7 @@ int writeWeights(
 
 #ifdef PV_USE_MPI
    const int tagbase       = file_type; // PVP_WGT_FILE_TYPE;
-   const MPI_Comm mpi_comm = comm->communicator();
+   const MPI_Comm mpi_comm = mpiBlock->getComm();
 #endif // PV_USE_MPI
    if (icRank > 0) {
 #ifdef PV_USE_MPI
@@ -2156,7 +2095,7 @@ int writeWeights(
 #ifdef DEBUG_OUTPUT
             DebugLog().printf(
                   "[%2d]: writeWeights: sent to 0, nxBlocks==%d nyBlocks==%d numPatches==%d\n",
-                  comm->commRank(),
+                  mpiBlock->getRank(),
                   nxBlocks,
                   nyBlocks,
                   numPatches);
@@ -2178,7 +2117,7 @@ int writeWeights(
 
       int numParams = NUM_WGT_PARAMS;
 
-      PV_Stream *pvstream = pvp_open_write_file(filename, comm, append);
+      PV_Stream *pvstream = pvp_open_write_file(filename, mpiBlock, append);
 
       if (pvstream == NULL) {
          ErrorLog().printf("PV::writeWeights: unable to open file \"%s\"\n", filename);
@@ -2228,7 +2167,7 @@ int writeWeights(
       size_t globalSize = numGlobalPatches * patchSize;
       status            = pvp_write_header(
             pvstream,
-            comm,
+            mpiBlock,
             timed,
             preLoc,
             file_type,
@@ -2293,7 +2232,7 @@ int writeWeights(
             char endarborchar = (char)0;
             PV_fwrite(&endarborchar, 1, 1, pvstream); // Makes sure the file is the correct length
             // even if the last patch is shrunken
-            for (int proc = 0; proc < comm->commSize(); proc++) {
+            for (int proc = 0; proc < mpiBlock->getSize(); proc++) {
 #ifdef PV_USE_MPI
                if (proc == 0) /*local portion*/ {
                   pvp_copy_patches(
@@ -2332,8 +2271,9 @@ int writeWeights(
                      maxVal,
                      compress);
 #endif // PV_USE_MPI
-               int procrow    = rowFromRank(proc, comm->numCommRows(), comm->numCommColumns());
-               int proccolumn = columnFromRank(proc, comm->numCommRows(), comm->numCommColumns());
+               int procrow = rowFromRank(proc, mpiBlock->getNumRows(), mpiBlock->getNumColumns());
+               int proccolumn =
+                     columnFromRank(proc, mpiBlock->getNumRows(), mpiBlock->getNumColumns());
                for (int k = 0; k < numPatches; k++) {
                   unsigned char *cbufpatch = &cbuf[k * patchSize];
                   int globalIndex;
@@ -2405,7 +2345,7 @@ int writeWeights(
             PV_fseek(pvstream, arborendfile, SEEK_SET);
          } // if-statement for file_type
       } // loop over arbors
-      pvp_close_file(pvstream, comm);
+      pvp_close_file(pvstream, mpiBlock);
    } // if-statement for process rank
 
    free(cbuf);

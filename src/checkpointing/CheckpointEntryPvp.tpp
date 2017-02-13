@@ -1,9 +1,9 @@
 /*
- * CheckpointEntry.tpp
+ * CheckpointEntryPvp.tpp
  *
  *  Created on Sep 27, 2016
  *      Author: Pete Schultz
- *  template implementations for CheckpointEntry class hierarchy.
+ *  template implementations for CheckpointEntryPvp class.
  *  Note that the .hpp includes this .tpp file at the end;
  *  the .tpp file does not include the .hpp file.
  */
@@ -18,36 +18,50 @@
 
 namespace PV {
 
+// TODO: many commonalities between CheckpointEntryPvp and CheckpointEntryDataStore.
+// Refactor to eliminate code duplication
+
 template <typename T>
 void CheckpointEntryPvp<T>::write(
       std::string const &checkpointDirectory,
       double simTime,
       bool verifyWritesFlag) const {
+   int const numFrames = getMPIBlock()->getBatchDimension() * mLayerLoc->nbatch;
+   int const nxBlock   = mLayerLoc->nx * getMPIBlock()->getNumColumns();
+   int const nyBlock   = mLayerLoc->ny * getMPIBlock()->getNumRows();
+
    FileStream *fileStream = nullptr;
-   if (getCommunicator()->commRank() == 0) {
+   if (getMPIBlock()->getRank() == 0) {
       std::string path = generatePath(checkpointDirectory, "pvp");
       fileStream       = new FileStream(path.c_str(), std::ios_base::out, verifyWritesFlag);
-      BufferUtils::ActivityHeader header = BufferUtils::buildActivityHeader<T>(
-            mLayerLoc->nxGlobal, mLayerLoc->nyGlobal, mLayerLoc->nf, mLayerLoc->nbatch);
+      BufferUtils::ActivityHeader header =
+            BufferUtils::buildActivityHeader<T>(nxBlock, nyBlock, mLayerLoc->nf, numFrames);
       BufferUtils::writeActivityHeader(*fileStream, header);
    }
-   for (int b = 0; b < mLayerLoc->nbatch; b++) {
-      T *batchElementStart = calcBatchElementStart(b);
-      int nxLocal          = mLayerLoc->nx;
-      int nyLocal          = mLayerLoc->ny;
-      int nf               = mLayerLoc->nf;
-      if (mExtended) {
-         nxLocal += mLayerLoc->halo.lt + mLayerLoc->halo.rt;
-         nyLocal += mLayerLoc->halo.dn + mLayerLoc->halo.up;
-      }
-      Buffer<T> pvpBuffer{batchElementStart, nxLocal, nyLocal, nf};
+   PVHalo const &halo   = mLayerLoc->halo;
+   int const nxExtLocal = mLayerLoc->nx + (mExtended ? halo.lt + halo.rt : 0);
+   int const nyExtLocal = mLayerLoc->ny + (mExtended ? halo.dn + halo.up : 0);
+   int const nf         = mLayerLoc->nf;
+
+   for (int frame = 0; frame < numFrames; frame++) {
+      int const localBatchIndex = frame % mLayerLoc->nbatch;
+      int const mpiBatchIndex   = frame / mLayerLoc->nbatch; // Integer division
+
+      T *localData = calcBatchElementStart(localBatchIndex);
+      Buffer<T> pvpBuffer{localData, nxExtLocal, nyExtLocal, nf};
       pvpBuffer.crop(mLayerLoc->nx, mLayerLoc->ny, Buffer<T>::CENTER);
-      Buffer<T> pvpBufferGlobal =
-            BufferUtils::gather(getCommunicator(), pvpBuffer, mLayerLoc->nx, mLayerLoc->ny);
-      if (fileStream) {
-         fileStream->write(&simTime, sizeof(simTime));
-         fileStream->write(
-               pvpBufferGlobal.asVector().data(), sizeof(T) * pvpBufferGlobal.getTotalElements());
+
+      // All ranks with BatchIndex==mpiBatchIndex must call gather; so must
+      // the root process (which may or may not have BatchIndex==mpiBatchIndex).
+      // Other ranks will return from gather() immediately.
+      Buffer<T> globalPvpBuffer = BufferUtils::gather(
+            getMPIBlock(), pvpBuffer, mLayerLoc->nx, mLayerLoc->ny, mpiBatchIndex, 0);
+
+      if (getMPIBlock()->getRank() == 0) {
+         pvAssert(fileStream);
+         pvAssert(globalPvpBuffer.getWidth() == nxBlock);
+         pvAssert(globalPvpBuffer.getHeight() == nyBlock);
+         BufferUtils::writeFrame(*fileStream, &globalPvpBuffer, simTime);
       }
    }
    delete fileStream;
@@ -55,34 +69,42 @@ void CheckpointEntryPvp<T>::write(
 
 template <typename T>
 void CheckpointEntryPvp<T>::read(std::string const &checkpointDirectory, double *simTimePtr) const {
+   int const numFrames = getMPIBlock()->getBatchDimension() * mLayerLoc->nbatch;
+   int const nxBlock   = mLayerLoc->nx * getMPIBlock()->getNumColumns();
+   int const nyBlock   = mLayerLoc->ny * getMPIBlock()->getNumRows();
+
+   PVHalo const &halo    = mLayerLoc->halo;
+   int const nxExtLocal  = mLayerLoc->nx + (mExtended ? halo.lt + halo.rt : 0);
+   int const nyExtLocal  = mLayerLoc->ny + (mExtended ? halo.dn + halo.up : 0);
+   int const nxExtGlobal = nxBlock + (mExtended ? halo.lt + halo.rt : 0);
+   int const nyExtGlobal = nyBlock + (mExtended ? halo.dn + halo.up : 0);
+
    std::string path = generatePath(checkpointDirectory, "pvp");
-   MPI_Datatype *exchangeDatatypes =
-         mExtended ? getCommunicator()->newDatatypes(mLayerLoc) : nullptr;
-   for (int b = 0; b < mLayerLoc->nbatch; b++) {
-      Buffer<T> pvpBuffer;
-      if (getCommunicator()->commRank() == 0) {
-         *simTimePtr = BufferUtils::readDenseFromPvp(path.c_str(), &pvpBuffer, b);
+   Buffer<T> pvpBuffer;
+   for (int frame = 0; frame < numFrames; frame++) {
+      int const localBatchIndex = frame % mLayerLoc->nbatch;
+      int const mpiBatchIndex   = frame / mLayerLoc->nbatch; // Integer division
+
+      if (getMPIBlock()->getRank() == 0) {
+         *simTimePtr = BufferUtils::readActivityFromPvp(path.c_str(), &pvpBuffer, frame);
+         pvpBuffer.grow(nxExtGlobal, nyExtGlobal, Buffer<float>::CENTER);
       }
-      else {
-         pvpBuffer.resize(mLayerLoc->nx, mLayerLoc->ny, mLayerLoc->nf);
+      else if (mpiBatchIndex == getMPIBlock()->getBatchIndex()) {
+         pvpBuffer.resize(nxExtLocal, nyExtLocal, mLayerLoc->nf);
       }
-      BufferUtils::scatter(getCommunicator(), pvpBuffer, mLayerLoc->nx, mLayerLoc->ny);
-      if (mExtended) {
-         int const nxExt = mLayerLoc->nx + mLayerLoc->halo.lt + mLayerLoc->halo.rt;
-         int const nyExt = mLayerLoc->ny + mLayerLoc->halo.dn + mLayerLoc->halo.up;
-         pvpBuffer.grow(nxExt, nyExt, Buffer<T>::CENTER);
-      }
-      std::vector<T> bufferData = pvpBuffer.asVector();
-      T *batchElementStart      = calcBatchElementStart(b);
-      std::memcpy(batchElementStart, bufferData.data(), sizeof(T) * pvpBuffer.getTotalElements());
-      if (mExtended) {
-         std::vector<MPI_Request> req{};
-         getCommunicator()->exchange(batchElementStart, exchangeDatatypes, mLayerLoc, req);
-         getCommunicator()->wait(req);
+      // All ranks with BatchIndex==mpiBatchIndex must call scatter; so must
+      // the root process (which may or may not have BatchIndex==mpiBatchIndex).
+      // Other ranks will return from scatter() immediately.
+      BufferUtils::scatter(
+            getMPIBlock(), pvpBuffer, mLayerLoc->nx, mLayerLoc->ny, mpiBatchIndex, 0);
+      if (mpiBatchIndex == getMPIBlock()->getBatchIndex()) {
+         std::vector<T> bufferData = pvpBuffer.asVector();
+         T *localData              = calcBatchElementStart(localBatchIndex);
+         std::memcpy(
+               localData, bufferData.data(), (std::size_t)pvpBuffer.getTotalElements() * sizeof(T));
       }
    }
-   MPI_Bcast(simTimePtr, 1, MPI_DOUBLE, 0, getCommunicator()->communicator());
-   getCommunicator()->freeDatatypes(exchangeDatatypes);
+   MPI_Bcast(simTimePtr, 1, MPI_DOUBLE, 0, getMPIBlock()->getComm());
 }
 
 template <typename T>
