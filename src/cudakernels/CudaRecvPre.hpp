@@ -10,6 +10,7 @@
 
 #include "../arch/cuda/CudaBuffer.hpp"
 #include "../arch/cuda/CudaKernel.hpp"
+#include "../structures/SparseList.hpp"
 //#include "../arch/cuda/Cuda3dFloatTextureBuffer.hpp"
 //#include "../utils/conversions.h"
 //#include "../layers/accumulate_functions.h"
@@ -48,7 +49,7 @@ struct recv_pre_params {
 
    bool isSparse;
    long *numActive;
-   unsigned int *activeIndices;
+   PV::SparseList<float>::Entry *activeIndices;
 };
 
 class CudaRecvPre : public CudaKernel {

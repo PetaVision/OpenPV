@@ -31,12 +31,18 @@ __global__ void HyPerLayer_recv_pre(recv_pre_params params, int batchIdx) {
 
    int preBatchOffset = batchIdx * params.numPreExt;
    if (params.isSparse) {
-      kPreExt = params.activeIndices[neuronIndex + preBatchOffset];
+      kPreExt = params.activeIndices[neuronIndex + preBatchOffset].index;
+      a = params.activeIndices[neuronIndex + preBatchOffset].value;
    }
    else {
       kPreExt = neuronIndex;
+      a = params.preData[kPreExt + preBatchOffset] * params.dt_factor;
    }
-   a = params.preData[kPreExt + preBatchOffset] * params.dt_factor;
+
+   if (a == 0) {
+      return;
+   }
+ 
    int kernelIndex;
    if (params.sharedWeights == 1) {
       kernelIndex = params.patch2datalookuptable[kPreExt];
@@ -44,15 +50,13 @@ __global__ void HyPerLayer_recv_pre(recv_pre_params params, int batchIdx) {
    else {
       kernelIndex = kPreExt;
    }
+
    // Grab weight patches
    patch                 = params.patches[kPreExt];
    wIdx                  = kernelIndex * fullPatchSize + patch.offset;
    numberShrunkenWeights = params.nfp * patch.nx * patch.ny;
 
    //__syncthreads();
-
-   if (a == 0)
-      return;
    // patch may be shrunken, if thread oob, return
    int patchIndex = tIndex % fullPatchSize;
    if (patchIndex >= numberShrunkenWeights) {
@@ -72,7 +76,7 @@ __global__ void HyPerLayer_recv_pre(recv_pre_params params, int batchIdx) {
    float weightVal = params.weights[wIdx + ky * params.syw + k];
 
    // Multiply values
-   float outVal = a * weightVal;
+   float outVal = a * weightVal * params.dt_factor;
 
    // Atomic add into postGSyn
    atomicAdd(gSynPtr, outVal);
