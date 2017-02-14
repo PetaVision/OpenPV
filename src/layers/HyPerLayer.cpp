@@ -1239,48 +1239,28 @@ int HyPerLayer::communicateInitInfo() {
    return status;
 }
 
-int HyPerLayer::openOutputStateFile(bool &appendFlag) {
+int HyPerLayer::openOutputStateFile(Checkpointer *checkpointer) {
    pvAssert(writeStep >= 0);
+   mOutputStateMPIBlock = checkpointer->getMPIBlock();
 
-   // If the communicator's batchwidth is greater than one, each local communicator creates an
-   // outputState file.
-   // To prevent filename collisions, the global rank is inserted into the filename, just before the
-   // ".pvp" extension.
-   // If the batchwidth is one, however, there is no need to insert the global rank.
-   char appendCommBatchIdx[32];
-   int numCommBatches = parent->getCommunicator()->numCommBatches();
-   if (numCommBatches != 1) {
-      int sz = snprintf(appendCommBatchIdx, 32, "_%d", parent->commBatch());
-      if (sz >= 32) {
-         Fatal().printf(
-               "%s: Unable to create file name for outputState file: comm batch index %d is too "
-               "long.\n",
-               getDescription_c(),
-               parent->commBatch());
+   if (checkpointer->getMPIBlock()->getRank() == 0) {
+      std::string outputStatePath(parent->getOutputPath());
+      outputStatePath.append("/");
+      std::string const &blockDirectoryName = checkpointer->getBlockDirectoryName();
+      if (!blockDirectoryName.empty()) {
+         outputStatePath.append(blockDirectoryName).append("/");
       }
-   }
-   else { // numCommBatches is one; insert the empty string instead.
-      appendCommBatchIdx[0] = 0; // appendCommBatchIdx is the empty string
-   }
-   char filename[PV_PATH_MAX];
-   char posFilename[PV_PATH_MAX];
-   int sz = snprintf(
-         filename, PV_PATH_MAX, "%s/%s%s.pvp", parent->getOutputPath(), name, appendCommBatchIdx);
-   if (sz >= PV_PATH_MAX) {
-      Fatal().printf(
-            "%s: Unable to create file name for outputState file: file name with comm batch index "
-            "%d is too long.\n",
-            getDescription_c(),
-            parent->commBatch());
-   }
+      outputStatePath.append(name);
+      outputStatePath.append(".pvp");
 
-   // initialize writeActivityCalls and writeSparseActivityCalls
-   // only the root process needs these member variables so we don't need to do any MPI.
-   int rootproc = 0;
-   if (parent->getCommunicator()->commRank() == 0) {
+      // If the file at outputStatePath already exists, append to it, and
+      // and initialize writeActivityCalls or writeSparseActivityCalls with
+      // the value in the header.
+      // Only the root process uses these member variables so we don't need to do any MPI.
+      bool appendFlag = !checkpointer->getCheckpointReadDirectory().empty();
       if (appendFlag) {
          struct stat statbuffer;
-         int filestatus = stat(filename, &statbuffer);
+         int filestatus = stat(outputStatePath.c_str(), &statbuffer);
          if (filestatus == 0) {
             if (statbuffer.st_size == (off_t)0) {
                appendFlag = false;
@@ -1292,13 +1272,16 @@ int HyPerLayer::openOutputStateFile(bool &appendFlag) {
             }
             else {
                ErrorLog().printf(
-                     "HyPerLayer::initializeLayerId: stat \"%s\": %s\n", filename, strerror(errno));
+                     "HyPerLayer::openOutputStateFile: stat \"%s\": %s\n",
+                     outputStatePath.c_str(),
+                     strerror(errno));
                abort();
             }
          }
       }
       if (appendFlag) {
-         FileStream fileStream(filename, std::ios_base::in, false /*do not verify writes*/);
+         FileStream fileStream(
+               outputStatePath.c_str(), std::ios_base::in, false /*do not verify writes*/);
          BufferUtils::ActivityHeader header = BufferUtils::readActivityHeader(fileStream);
          if (sparseLayer) {
             writeActivitySparseCalls = header.nBands;
@@ -1314,7 +1297,7 @@ int HyPerLayer::openOutputStateFile(bool &appendFlag) {
       std::string checkpointLabel(getName());
       checkpointLabel.append("_filepos");
       mOutputStateStream = new CheckpointableFileStream(
-            filename, mode, checkpointLabel, parent->getVerifyWrites());
+            outputStatePath.c_str(), mode, checkpointLabel, parent->getVerifyWrites());
    }
    return PV_SUCCESS;
 }
@@ -1683,8 +1666,7 @@ int HyPerLayer::registerData(Checkpointer *checkpointer, std::string const &objN
          true /*broadcast*/);
 
    if (writeStep >= 0.0) {
-      bool appendFlag = !checkpointer->getCheckpointReadDirectory().empty();
-      openOutputStateFile(appendFlag);
+      openOutputStateFile(checkpointer);
       if (sparseLayer) {
          checkpointer->registerCheckpointData(
                std::string(getName()),
@@ -2226,7 +2208,7 @@ int HyPerLayer::processCheckpointRead() { return updateAllActiveIndices(); }
 int HyPerLayer::writeActivitySparse(double timed, bool includeValues) {
    PVLayerCube cube = publisher->createCube(0);
    int status       = PV::writeActivitySparse(
-         mOutputStateStream, parent->getCommunicator()->getLocalMPIBlock(), timed, &cube, includeValues);
+         mOutputStateStream, mOutputStateMPIBlock, timed, &cube, includeValues);
 
    if (status == PV_SUCCESS) {
       status = incrementNBands(&writeActivitySparseCalls);
@@ -2238,7 +2220,7 @@ int HyPerLayer::writeActivitySparse(double timed, bool includeValues) {
 int HyPerLayer::writeActivity(double timed) {
    PVLayerCube cube = publisher->createCube(0);
 
-   int status = PV::writeActivity(mOutputStateStream, parent->getCommunicator()->getLocalMPIBlock(), timed, &cube);
+   int status = PV::writeActivity(mOutputStateStream, mOutputStateMPIBlock, timed, &cube);
    if (status == PV_SUCCESS) {
       status = incrementNBands(&writeActivityCalls);
    }

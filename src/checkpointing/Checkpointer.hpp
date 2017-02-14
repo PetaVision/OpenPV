@@ -193,6 +193,7 @@ class Checkpointer : public Subject {
    bool getDefaultInitializeFromCheckpointFlag() const {
       return mDefaultInitializeFromCheckpointFlag;
    }
+   std::string const &getBlockDirectoryName() const { return mBlockDirectoryName; }
 
   private:
    void initMPIBlock(MPIBlock const *globalMPIBlock, Arguments const *arguments);
