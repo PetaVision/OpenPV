@@ -1129,7 +1129,8 @@ int HyPerLayer::allocateDeviceBuffers() {
 
    if (allocDeviceActiveIndices) {
       d_numActive     = device->createBuffer(parent->getNBatch() * sizeof(long), &description);
-      d_ActiveIndices = device->createBuffer(getNumExtendedAllBatches() * sizeof(SparseList<float>::Entry), &description);
+      d_ActiveIndices = device->createBuffer(
+            getNumExtendedAllBatches() * sizeof(SparseList<float>::Entry), &description);
       assert(d_ActiveIndices);
    }
 

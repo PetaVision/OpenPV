@@ -148,7 +148,7 @@ int ColumnEnergyProbe::calcValues(double timevalue) {
       mLastTimeValue = timevalue;
       return PV_SUCCESS;
    }
-   mSkipTimer = mSkipInterval+1;
+   mSkipTimer           = mSkipInterval + 1;
    double *valuesBuffer = getValuesBuffer();
    int numValues        = this->getNumValues();
    memset(valuesBuffer, 0, numValues * sizeof(*valuesBuffer));

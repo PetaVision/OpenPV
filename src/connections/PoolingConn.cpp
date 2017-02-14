@@ -570,7 +570,7 @@ int PoolingConn::deliverPresynapticPerspective(PVLayerCube const *activity, int 
 
       SparseList<float>::Entry const *activeIndicesBatch = NULL;
       if (activity->isSparse) {
-         activeIndicesBatch = (SparseList<float>::Entry*)activity->activeIndices
+         activeIndicesBatch = (SparseList<float>::Entry *)activity->activeIndices
                               + b * (preLoc->nx + preLoc->halo.rt + preLoc->halo.lt)
                                       * (preLoc->ny + preLoc->halo.up + preLoc->halo.dn)
                                       * preLoc->nf;
@@ -623,7 +623,6 @@ int PoolingConn::deliverPresynapticPerspective(PVLayerCube const *activity, int 
             kPreExt = loopIndex;
             a *= activityBatch[kPreExt];
          }
-
 
          // If we're using thread_gSyn, set this here
          float *gSynPatchHead;

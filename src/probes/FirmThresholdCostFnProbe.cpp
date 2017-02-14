@@ -157,10 +157,11 @@ double FirmThresholdCostFnProbe::getValueInternal(double timevalue, int index) {
    }
    else {
       if (getTargetLayer()->getSparseFlag()) {
-         PVLayerCube cube               = getTargetLayer()->getPublisher()->createCube();
-         long int numActive             = cube.numActive[index];
-         int numItems                   = cube.numItems / cube.loc.nbatch;
-         SparseList<float>::Entry const *activeList = &((SparseList<float>::Entry*)cube.activeIndices)[index * numItems];
+         PVLayerCube cube   = getTargetLayer()->getPublisher()->createCube();
+         long int numActive = cube.numActive[index];
+         int numItems       = cube.numItems / cube.loc.nbatch;
+         SparseList<float>::Entry const *activeList =
+               &((SparseList<float>::Entry *)cube.activeIndices)[index * numItems];
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for reduction(+ : sum)
 #endif // PV_USE_OPENMP_THREADS

@@ -1466,9 +1466,9 @@ int writeActivitySparse(
 
    for (int b = 0; b < loc->nbatch; b++) {
 
-      int const localActive       = cube->numActive[b];
-      indexvaluepair *localpairs = &((indexvaluepair*)cube->activeIndices)[b * numNeurons];
-      float const *valueData      = &cube->data[b * numNeurons];
+      int const localActive      = cube->numActive[b];
+      indexvaluepair *localpairs = &((indexvaluepair *)cube->activeIndices)[b * numNeurons];
+      float const *valueData     = &cube->data[b * numNeurons];
 
       indexvaluepair *indexvaluepairs = NULL;
       unsigned int *globalResIndices  = NULL;

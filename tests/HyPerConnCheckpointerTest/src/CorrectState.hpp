@@ -57,7 +57,7 @@
  *    18     5      5100       5     25500
  *    19     5      5100       5     25500
  *    20     5      5100       5     25500
- * 
+ *
  */
 class CorrectState {
   public:
@@ -65,7 +65,11 @@ class CorrectState {
     * Public constructor for the CorrectState class, setting the initial update number,
     * weight value, input value, and output value.
     */
-   CorrectState(int initialUpdateNumber, float initialWeight, float initialInput, float initialOutput);
+   CorrectState(
+         int initialUpdateNumber,
+         float initialWeight,
+         float initialInput,
+         float initialOutput);
 
    /**
     * Destructor for the CorrectState class.

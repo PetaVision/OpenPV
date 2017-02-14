@@ -2972,7 +2972,7 @@ int HyPerConn::deliverPresynapticPerspectiveConvolve(PVLayerCube const *activity
             post->getChannel(getChannel()) + b * postLoc->nx * postLoc->ny * postLoc->nf;
       SparseList<float>::Entry const *activeIndicesBatch = NULL;
       if (activity->isSparse) {
-         activeIndicesBatch = (SparseList<float>::Entry*)activity->activeIndices + batchOffset;
+         activeIndicesBatch = (SparseList<float>::Entry *)activity->activeIndices + batchOffset;
       }
 
       int numNeurons = activity->isSparse ? activity->numActive[b] : numExtended;
@@ -3134,7 +3134,8 @@ int HyPerConn::deliverPresynapticPerspectiveStochastic(PVLayerCube const *activi
             post->getChannel(getChannel()) + b * postLoc->nx * postLoc->ny * postLoc->nf;
       SparseList<taus_uint4>::Entry const *activeIndicesBatch = NULL;
       if (activity->isSparse) {
-         activeIndicesBatch = (SparseList<taus_uint4>::Entry*)activity->activeIndices + batchOffset;
+         activeIndicesBatch =
+               (SparseList<taus_uint4>::Entry *)activity->activeIndices + batchOffset;
       }
 
       int numNeurons = activity->isSparse ? activity->numActive[b] : numExtended;
@@ -3593,8 +3594,9 @@ int HyPerConn::deliverPresynapticPerspectiveGPU(PVLayerCube const *activity, int
          d_ActiveIndices = preSynapticLayer()->getDeviceActiveIndices();
          d_numActive     = preSynapticLayer()->getDeviceNumActive();
          pvAssert(d_ActiveIndices);
-         SparseList<float>::Entry const *h_ActiveIndices = (SparseList<float>::Entry*)activity->activeIndices;
-         long const *h_numActive             = activity->numActive;
+         SparseList<float>::Entry const *h_ActiveIndices =
+               (SparseList<float>::Entry *)activity->activeIndices;
+         long const *h_numActive = activity->numActive;
          pvAssert(h_ActiveIndices);
          d_numActive->copyToDevice(h_numActive);
          d_ActiveIndices->copyToDevice(h_ActiveIndices);

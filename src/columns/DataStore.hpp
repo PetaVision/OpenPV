@@ -97,9 +97,9 @@ class DataStore {
    int mNumBuffers;
    bool mSparseFlag;
 
-   RingBuffer<float> *mBuffer               = nullptr;
-   RingBuffer<double> *mLastUpdateTimes     = nullptr;
-   RingBuffer<long> *mNumActive             = nullptr;
+   RingBuffer<float> *mBuffer                           = nullptr;
+   RingBuffer<double> *mLastUpdateTimes                 = nullptr;
+   RingBuffer<long> *mNumActive                         = nullptr;
    RingBuffer<SparseList<float>::Entry> *mActiveIndices = nullptr;
 };
 

@@ -634,7 +634,7 @@ int TransposePoolingConn::deliverPresynapticPerspective(PVLayerCube const *activ
 
       SparseList<float>::Entry const *activeIndicesBatch = NULL;
       if (activity->isSparse) {
-         activeIndicesBatch = (SparseList<float>::Entry*)activity->activeIndices
+         activeIndicesBatch = (SparseList<float>::Entry *)activity->activeIndices
                               + b * (preLoc->nx + preLoc->halo.rt + preLoc->halo.lt)
                                       * (preLoc->ny + preLoc->halo.up + preLoc->halo.dn)
                                       * preLoc->nf;
@@ -667,10 +667,10 @@ int TransposePoolingConn::deliverPresynapticPerspective(PVLayerCube const *activ
 #pragma omp parallel for schedule(static)
 #endif
       for (int loopIndex = 0; loopIndex < numLoop; loopIndex++) {
-         float a = 0.0f;
+         float a     = 0.0f;
          int kPreExt = loopIndex;
          if (activity->isSparse) {
-            a = activeIndicesBatch[loopIndex].value;
+            a       = activeIndicesBatch[loopIndex].value;
             kPreExt = activeIndicesBatch[loopIndex].index;
          }
          else {

@@ -160,8 +160,8 @@ int Communicator::neighborInit() {
    // MPI_Send/MPI_Irecv pairs can be distinguished.
 
    for (int i = 0; i < NUM_NEIGHBORHOOD; i++) {
-      int n              = neighborIndex(localRank, i);
-      neighbors[i]       = localRank; // default neighbor is self
+      int n        = neighborIndex(localRank, i);
+      neighbors[i] = localRank; // default neighbor is self
       if (n >= 0) {
          neighbors[i] = n;
          num_neighbors++;

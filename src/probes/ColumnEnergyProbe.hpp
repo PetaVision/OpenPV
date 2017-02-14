@@ -115,8 +115,8 @@ class ColumnEnergyProbe : public ColProbe {
     */
    int initialize_base();
 
-   int mSkipTimer = 0;
-   int mSkipInterval = 0;
+   int mSkipTimer        = 0;
+   int mSkipInterval     = 0;
    double mLastTimeValue = -1;
 }; // end class ColumnEnergyProbe
 

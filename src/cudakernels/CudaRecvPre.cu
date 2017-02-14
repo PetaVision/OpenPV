@@ -32,17 +32,17 @@ __global__ void HyPerLayer_recv_pre(recv_pre_params params, int batchIdx) {
    int preBatchOffset = batchIdx * params.numPreExt;
    if (params.isSparse) {
       kPreExt = params.activeIndices[neuronIndex + preBatchOffset].index;
-      a = params.activeIndices[neuronIndex + preBatchOffset].value;
+      a       = params.activeIndices[neuronIndex + preBatchOffset].value;
    }
    else {
       kPreExt = neuronIndex;
-      a = params.preData[kPreExt + preBatchOffset] * params.dt_factor;
+      a       = params.preData[kPreExt + preBatchOffset] * params.dt_factor;
    }
 
    if (a == 0) {
       return;
    }
- 
+
    int kernelIndex;
    if (params.sharedWeights == 1) {
       kernelIndex = params.patch2datalookuptable[kPreExt];

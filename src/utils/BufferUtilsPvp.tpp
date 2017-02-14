@@ -147,9 +147,9 @@ double readActivityFromPvp(char const *fName, Buffer<T> *buffer, int frameReadIn
    {
       FileStream headerStream(fName, std::ios_base::in | std::ios_base::binary, false);
       struct BufferUtils::ActivityHeader header = BufferUtils::readActivityHeader(headerStream);
-      fileType = header.fileType;
+      fileType                                  = header.fileType;
    }
-   switch(fileType) {
+   switch (fileType) {
       case PVP_NONSPIKING_ACT_FILE_TYPE:
          timestamp = BufferUtils::readDenseFromPvp<T>(fName, buffer, frameReadIndex);
          break;
@@ -160,7 +160,11 @@ double readActivityFromPvp(char const *fName, Buffer<T> *buffer, int frameReadIn
          timestamp = BufferUtils::readDenseFromSparseBinaryPvp<T>(fName, buffer, frameReadIndex);
          break;
       default:
-         Fatal().printf("readActivityFromPvp: \"%s\" has file type %d, which is not an activity file type.\n", fName, fileType);
+         Fatal().printf(
+               "readActivityFromPvp: \"%s\" has file type %d, which is not an activity file "
+               "type.\n",
+               fName,
+               fileType);
          break;
    }
    return timestamp;
