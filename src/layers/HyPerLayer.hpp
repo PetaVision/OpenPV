@@ -496,7 +496,7 @@ class HyPerLayer : public BaseLayer {
    // (deprecated) restartFlag in the same way. initializeState calls the virtual methods
    // readStateFromCheckpoint() and setInitialValues().
 
-   int openOutputStateFile();
+   int openOutputStateFile(bool &appendFlag);
 /* static methods called by updateState({long_argument_list})*/
 
 #ifdef PV_USE_CUDA
@@ -533,7 +533,6 @@ class HyPerLayer : public BaseLayer {
    bool mirrorBCflag; // true when mirror BC are to be applied
    float valueBC; // If mirrorBCflag is false, the value of A to fill extended cells with
 
-   int ioAppend; // controls opening of binary files
    double initialWriteTime; // time of next output
    double writeTime; // time of next output
    double writeStep; // output time interval

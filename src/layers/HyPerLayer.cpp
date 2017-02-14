@@ -54,7 +54,6 @@ int HyPerLayer::initialize_base() {
    xmargin                      = 0;
    ymargin                      = 0;
    numProbes                    = 0;
-   ioAppend                     = 0;
    numChannels                  = 2;
    clayer                       = NULL;
    GSyn                         = NULL;
@@ -162,10 +161,6 @@ int HyPerLayer::initialize(const char *name, HyPerCol *hc) {
    maxRate = 1000.0f / (float)hc->getDeltaTime();
 
    initClayer();
-
-   // must set ioAppend before addLayer is called (addLayer causes activity file to be opened using
-   // layerid)
-   ioAppend = hc->getCheckpointReadFlag() ? 1 : 0;
 
    hc->addLayer(this);
 
@@ -1244,11 +1239,8 @@ int HyPerLayer::communicateInitInfo() {
    return status;
 }
 
-int HyPerLayer::openOutputStateFile() {
-   if (writeStep < 0) {
-      ioAppend = false;
-      return PV_SUCCESS;
-   }
+int HyPerLayer::openOutputStateFile(bool &appendFlag) {
+   pvAssert(writeStep >= 0);
 
    // If the communicator's batchwidth is greater than one, each local communicator creates an
    // outputState file.
@@ -1286,17 +1278,17 @@ int HyPerLayer::openOutputStateFile() {
    // only the root process needs these member variables so we don't need to do any MPI.
    int rootproc = 0;
    if (parent->getCommunicator()->commRank() == 0) {
-      if (ioAppend) {
+      if (appendFlag) {
          struct stat statbuffer;
          int filestatus = stat(filename, &statbuffer);
          if (filestatus == 0) {
             if (statbuffer.st_size == (off_t)0) {
-               ioAppend = false;
+               appendFlag = false;
             }
          }
          else {
             if (errno == ENOENT) {
-               ioAppend = false;
+               appendFlag = false;
             }
             else {
                ErrorLog().printf(
@@ -1305,7 +1297,7 @@ int HyPerLayer::openOutputStateFile() {
             }
          }
       }
-      if (ioAppend) {
+      if (appendFlag) {
          FileStream fileStream(filename, std::ios_base::in, false /*do not verify writes*/);
          BufferUtils::ActivityHeader header = BufferUtils::readActivityHeader(fileStream);
          if (sparseLayer) {
@@ -1316,7 +1308,7 @@ int HyPerLayer::openOutputStateFile() {
          }
       }
       std::ios_base::openmode mode = std::ios_base::out;
-      if (ioAppend) {
+      if (appendFlag) {
          mode |= std::ios_base::in;
       }
       std::string checkpointLabel(getName());
@@ -1324,8 +1316,6 @@ int HyPerLayer::openOutputStateFile() {
       mOutputStateStream = new CheckpointableFileStream(
             filename, mode, checkpointLabel, parent->getVerifyWrites());
    }
-   Communicator *icComm = parent->getCommunicator();
-   MPI_Bcast(&ioAppend, 1, MPI_INT, 0 /*root*/, icComm->communicator());
    return PV_SUCCESS;
 }
 
@@ -1549,10 +1539,6 @@ int HyPerLayer::allocateDataStructures() {
       }
    }
 
-   if (status == PV_SUCCESS) {
-      status = openOutputStateFile();
-   }
-
    addPublisher();
 
    return status;
@@ -1697,6 +1683,8 @@ int HyPerLayer::registerData(Checkpointer *checkpointer, std::string const &objN
          true /*broadcast*/);
 
    if (writeStep >= 0.0) {
+      bool appendFlag = !checkpointer->getCheckpointReadDirectory().empty();
+      openOutputStateFile(appendFlag);
       if (sparseLayer) {
          checkpointer->registerCheckpointData(
                std::string(getName()),
