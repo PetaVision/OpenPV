@@ -10,10 +10,10 @@
 
 #include "arch/mpi/mpi.h"
 #include "checkpointing/Checkpointer.hpp"
-#include "columns/Communicator.hpp"
 #include "columns/DataStore.hpp"
 #include "include/PVLayerLoc.h"
 #include "include/pv_types.h"
+#include "structures/MPIBlock.hpp"
 #include "utils/BorderExchange.hpp"
 
 namespace PV {
@@ -21,7 +21,7 @@ namespace PV {
 class Publisher {
 
   public:
-   Publisher(Communicator *comm, PVLayerCube *cube, int numLevels, bool isSparse);
+   Publisher(MPIBlock const &mpiBlock, PVLayerCube *cube, int numLevels, bool isSparse);
    virtual ~Publisher();
 
    void
@@ -77,8 +77,6 @@ class Publisher {
    PVLayerCube *mLayerCube;
 
    BorderExchange *mBorderExchanger = nullptr;
-
-   Communicator *mComm;
 
    RingBuffer<std::vector<MPI_Request>> *mpiRequestsBuffer = nullptr;
    // std::vector<MPI_Request> requests;

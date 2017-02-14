@@ -516,8 +516,8 @@ int HyPerLayer::allocateGSyn() {
 }
 
 void HyPerLayer::addPublisher() {
-   Communicator *icComm = parent->getCommunicator();
-   publisher = new Publisher(icComm, clayer->activity, getNumDelayLevels(), getSparseFlag());
+   MPIBlock const *mpiBlock = parent->getCommunicator()->getLocalMPIBlock();
+   publisher = new Publisher(*mpiBlock, clayer->activity, getNumDelayLevels(), getSparseFlag());
 }
 
 void HyPerLayer::checkpointPvpActivityFloat(
