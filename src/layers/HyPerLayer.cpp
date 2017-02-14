@@ -20,7 +20,7 @@
 #include "connections/TransposeConn.hpp"
 #include "include/default_params.h"
 #include "include/pv_common.h"
-#include "io/fileio.hpp"
+#include "io/FileStream.hpp"
 #include "io/io.hpp"
 #include <assert.h>
 #include <iostream>
@@ -1304,22 +1304,15 @@ int HyPerLayer::openOutputStateFile() {
                abort();
             }
          }
-         PV_Stream *pvstream = PV_fopen(filename, "r", false /*verifyWrites*/);
-         if (pvstream) {
-            int params[NUM_BIN_PARAMS];
-            int numread = PV_fread(params, sizeof(int), NUM_BIN_PARAMS, pvstream);
-            if (numread == NUM_BIN_PARAMS) {
-               if (sparseLayer) {
-                  writeActivitySparseCalls = params[INDEX_NBANDS];
-               }
-               else {
-                  writeActivityCalls = params[INDEX_NBANDS];
-               }
-            }
-            PV_fclose(pvstream);
+      }
+      if (ioAppend) {
+         FileStream fileStream(filename, std::ios_base::in, false /*do not verify writes*/);
+         BufferUtils::ActivityHeader header = BufferUtils::readActivityHeader(fileStream);
+         if (sparseLayer) {
+            writeActivitySparseCalls = header.nBands;
          }
          else {
-            ioAppend = false;
+            writeActivityCalls = header.nBands;
          }
       }
       std::ios_base::openmode mode = std::ios_base::out;
