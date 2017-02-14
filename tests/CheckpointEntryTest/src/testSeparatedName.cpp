@@ -1,6 +1,6 @@
 #include "testSeparatedName.hpp"
 #include "checkpointing/CheckpointEntryData.hpp"
-#include "checkpointing/CheckpointEntryPvp.hpp"
+#include "checkpointing/CheckpointEntryPvpBuffer.hpp"
 #include "include/PVLayerLoc.h"
 #include "utils/PVLog.hpp"
 
@@ -17,7 +17,7 @@ void testSeparatedName(PV::MPIBlock const *mpiBlock) {
          entryDataName.c_str(),
          correctName.c_str());
 
-   PV::CheckpointEntryPvp<float> separatedNameEntryPvp{"separated",
+   PV::CheckpointEntryPvpBuffer<float> separatedNameEntryPvp{"separated",
                                                        "name",
                                                        mpiBlock,
                                                        (float *)nullptr,

@@ -4,7 +4,7 @@
  */
 #include "checkpointing/Checkpointer.hpp"
 #include "arch/mpi/mpi.h"
-#include "checkpointing/CheckpointEntryPvp.hpp"
+#include "checkpointing/CheckpointEntryPvpBuffer.hpp"
 #include "columns/ConfigFileArguments.hpp"
 #include "include/pv_common.h"
 #include "utils/PVLog.hpp"
@@ -147,7 +147,7 @@ int run(int argc, char *argv[]) {
    // Copy correctValues to a separate vector, write it to checkpoint, read it back, and compare.
    auto testValues = correctValues;
 
-   auto checkpointEntry = std::make_shared<PV::CheckpointEntryPvp<float>>(
+   auto checkpointEntry = std::make_shared<PV::CheckpointEntryPvpBuffer<float>>(
          std::string("TestBuffer"),
          checkpointer->getMPIBlock(),
          testValues.data(),

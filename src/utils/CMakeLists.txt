@@ -20,6 +20,11 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/Timer.hpp
 )
 
+set (PVLibSrcHpp ${PVLibSrcHpp}
+   ${SUBDIR}/BufferUtilsMPI.tpp
+   ${SUBDIR}/BufferUtilsPvp.tpp
+)
+
 set (PVLibSrcC ${PVLibSrcC}
    ${SUBDIR}/cl_random.c
    ${SUBDIR}/conversions.c

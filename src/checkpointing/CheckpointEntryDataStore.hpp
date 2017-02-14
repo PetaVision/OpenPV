@@ -8,42 +8,44 @@
 #ifndef CHECKPOINTENTRYDATASTORE_HPP_
 #define CHECKPOINTENTRYDATASTORE_HPP_
 
-#include "checkpointing/CheckpointEntry.hpp"
+#include "checkpointing/CheckpointEntryPvp.hpp"
 #include "columns/DataStore.hpp"
 #include <string>
 
 namespace PV {
 
-class CheckpointEntryDataStore : public CheckpointEntry {
+class CheckpointEntryDataStore : public CheckpointEntryPvp<float> {
   public:
    CheckpointEntryDataStore(
          std::string const &name,
          MPIBlock const *mpiBlock,
          DataStore *dataStore,
          PVLayerLoc const *layerLoc)
-         : CheckpointEntry(name, mpiBlock) {
-      initialize(dataStore, layerLoc);
-   }
+         : CheckpointEntryPvp<float>(name, mpiBlock, layerLoc, true), mDataStore(dataStore) {}
    CheckpointEntryDataStore(
          std::string const &objName,
          std::string const &dataName,
          MPIBlock const *mpiBlock,
          DataStore *dataStore,
          PVLayerLoc const *layerLoc)
-         : CheckpointEntry(objName, dataName, mpiBlock) {
-      initialize(dataStore, layerLoc);
-   }
-   virtual void write(std::string const &checkpointDirectory, double simTime, bool verifyWritesFlag)
-         const override;
-   virtual void read(std::string const &checkpointDirectory, double *simTimePtr) const override;
-   virtual void remove(std::string const &checkpointDirectory) const override;
+         : CheckpointEntryPvp<float>(objName, dataName, mpiBlock, layerLoc, true),
+           mDataStore(dataStore) {}
 
   protected:
-   void initialize(DataStore *dataStore, PVLayerLoc const *layerLoc);
+   virtual int getNumFrames() const override;
+   virtual float *calcBatchElementStart(int batchElement) const override;
+   virtual int calcMPIBatchIndex(int frame) const override;
+   virtual void applyTimestamps(std::vector<double> const &timestamps) const override {
+      setLastUpdateTimes(timestamps);
+   }
+
+   DataStore *getDataStore() const { return mDataStore; }
 
   private:
-   DataStore *mDataStore;
-   PVLayerLoc const *mLayerLoc = nullptr;
+   void setLastUpdateTimes(std::vector<double> const &timestamps) const;
+
+  private:
+   DataStore *mDataStore = nullptr;
 };
 
 } // end namespace PV

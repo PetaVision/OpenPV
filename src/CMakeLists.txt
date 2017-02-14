@@ -62,7 +62,7 @@ foreach(SUBDIR ${SRC_SUBDIRS})
   include("${SUBDIR}/CMakeLists.txt")
 endforeach()
 
-set(PVLibSrc ${PVLibSrcCpp} ${PVLibSrcHpp} ${PVLibSrcC} ${PVLibSrcH})
+set(PVLibSrc ${PVLibSrcCpp} ${PVLibSrcHpp} ${PVLibSrcTpp} ${PVLibSrcC} ${PVLibSrcH})
 
 include(PVGitRevision)
 

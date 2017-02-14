@@ -13,7 +13,7 @@
 */
 
 #include "HyPerLayer.hpp"
-#include "checkpointing/CheckpointEntryPvp.hpp"
+#include "checkpointing/CheckpointEntryPvpBuffer.hpp"
 #include "checkpointing/CheckpointEntryRandState.hpp"
 #include "columns/HyPerCol.hpp"
 #include "connections/BaseConnection.hpp"
@@ -531,7 +531,7 @@ void HyPerLayer::checkpointPvpActivityFloat(
       float *pvpBuffer,
       bool extended) {
    bool registerSucceeded = checkpointer->registerCheckpointEntry(
-         std::make_shared<CheckpointEntryPvp<float>>(
+         std::make_shared<CheckpointEntryPvpBuffer<float>>(
                getName(),
                bufferName,
                checkpointer->getMPIBlock(),

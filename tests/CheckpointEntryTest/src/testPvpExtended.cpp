@@ -1,5 +1,5 @@
 #include "testPvpExtended.hpp"
-#include "checkpointing/CheckpointEntryPvp.hpp"
+#include "checkpointing/CheckpointEntryPvpBuffer.hpp"
 #include "include/PVLayerLoc.h"
 #include "utils/PVLog.hpp"
 #include "utils/conversions.h"
@@ -48,9 +48,9 @@ void testPvpExtended(PV::MPIBlock const *mpiBlock, std::string const &directory)
 
    // Initialize checkpointData as a vector with the same size as correctData.
    // Need to make sure that checkpointData.data() never gets relocated, since the
-   // CheckpointEntryPvp's mDataPointer doesn't change with it.
+   // CheckpointEntryPvpBuffer's mDataPointer doesn't change with it.
    std::vector<float> checkpointData(correctData.size());
-   PV::CheckpointEntryPvp<float> checkpointEntryPvp{
+   PV::CheckpointEntryPvpBuffer<float> checkpointEntryPvp{
          "checkpointEntryPvpExtended", mpiBlock, checkpointData.data(), &loc, true /*extended*/};
 
    double const simTime = 10.0;

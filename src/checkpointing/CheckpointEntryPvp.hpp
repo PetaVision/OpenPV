@@ -1,7 +1,7 @@
 /*
  * CheckpointEntryPvp.hpp
  *
- *  Created on Sep 27, 2016
+ *  Created on Feb 13, 2017
  *      Author: Pete Schultz
  */
 
@@ -11,6 +11,7 @@
 #include "CheckpointEntry.hpp"
 #include "include/PVLayerLoc.h"
 #include <string>
+#include <vector>
 
 namespace PV {
 
@@ -20,36 +21,40 @@ class CheckpointEntryPvp : public CheckpointEntry {
    CheckpointEntryPvp(
          std::string const &name,
          MPIBlock const *mpiBlock,
-         T *dataPtr,
          PVLayerLoc const *layerLoc,
-         bool extended)
-         : CheckpointEntry(name, mpiBlock),
-           mDataPointer(dataPtr),
-           mLayerLoc(layerLoc),
-           mExtended(extended) {}
+         bool extended);
    CheckpointEntryPvp(
          std::string const &objName,
          std::string const &dataName,
          MPIBlock const *mpiBlock,
-         T *dataPtr,
          PVLayerLoc const *layerLoc,
-         bool extended)
-         : CheckpointEntry(objName, dataName, mpiBlock),
-           mDataPointer(dataPtr),
-           mLayerLoc(layerLoc),
-           mExtended(extended) {}
+         bool extended);
    virtual void write(std::string const &checkpointDirectory, double simTime, bool verifyWritesFlag)
          const override;
    virtual void read(std::string const &checkpointDirectory, double *simTimePtr) const override;
    virtual void remove(std::string const &checkpointDirectory) const override;
 
-  private:
-   T *calcBatchElementStart(int batchElement) const;
+  protected:
+   void initialize(PVLayerLoc const *layerLoc, bool extended);
+
+   virtual int getNumFrames() const                         = 0;
+   virtual T *calcBatchElementStart(int batchElement) const = 0;
+   virtual int calcMPIBatchIndex(int frame) const           = 0;
+   virtual void applyTimestamps(std::vector<double> const &timestamps) const {}
+
+   T *getDataPointer() const { return mDataPointer; }
+   PVLayerLoc const *getLayerLoc() const { return mLayerLoc; }
+   int getXMargins() const { return mXMargins; }
+   int getYMargins() const { return mYMargins; }
 
   private:
-   T *mDataPointer;
+   T *mDataPointer             = nullptr;
    PVLayerLoc const *mLayerLoc = nullptr;
-   bool mExtended              = false;
+
+   // If extended is true (reading/writing an extended buffer), use mLayerLoc->halo for the margins
+   // If extended is false (reading/writing a restricted buffer), use 0 for the margins.
+   int mXMargins = 0;
+   int mYMargins = 0;
 };
 
 } // end namespace PV
