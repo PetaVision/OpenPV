@@ -1002,10 +1002,10 @@ int pvp_read_header(PV_Stream *pvstream, MPIBlock const *mpiBlock, int *params, 
 
 void read_header_err(
       const char *filename,
-      Communicator *comm,
+      MPIBlock const *mpiBlock,
       int returned_num_params,
       int *params) {
-   if (comm->commRank() != 0) {
+   if (mpiBlock->getRank() != 0) {
       ErrorLog(header_error);
       header_error.printf("Error while reading header of \"%s\"\n", filename);
       switch (returned_num_params) {
@@ -1235,7 +1235,7 @@ int pvp_write_header(
 // Unused function pvp_set_weight_params was removed Jan 26, 2017.
 
 int *pvp_set_nonspiking_act_params(
-      Communicator *comm,
+      MPIBlock const *mpiBlock,
       double timed,
       const PVLayerLoc *loc,
       int datatype,
@@ -1265,7 +1265,7 @@ int *pvp_set_nonspiking_act_params(
 }
 
 int *pvp_set_kernel_params(
-      Communicator *comm,
+      MPIBlock const *mpiBlock,
       double timed,
       const PVLayerLoc *loc,
       int datatype,
@@ -1301,7 +1301,7 @@ int *pvp_set_kernel_params(
 }
 
 int *pvp_set_nonspiking_sparse_act_params(
-      Communicator *comm,
+      MPIBlock const *mpiBlock,
       double timed,
       const PVLayerLoc *loc,
       int datatype,
@@ -1373,7 +1373,7 @@ int set_weight_params(
    return PV_SUCCESS;
 }
 
-int pvp_read_time(PV_Stream *pvstream, Communicator *comm, int root_process, double *timed) {
+int pvp_read_time(PV_Stream *pvstream, MPIBlock const *mpiBlock, int root_process, double *timed) {
    // All processes call this routine simultaneously.
    // from the file at the current location, loaded into the variable timed, and
    // broadcast to all processes.  All processes have the same return value:
@@ -1384,7 +1384,7 @@ int pvp_read_time(PV_Stream *pvstream, Communicator *comm, int root_process, dou
       double time;
    };
    struct timeandstatus mpi_data;
-   if (comm->commRank() == root_process) {
+   if (mpiBlock->getRank() == root_process) {
       if (pvstream == NULL) {
          ErrorLog().printf("pvp_read_time: root process called with null stream argument.\n");
          abort();
@@ -1393,17 +1393,21 @@ int pvp_read_time(PV_Stream *pvstream, Communicator *comm, int root_process, dou
       mpi_data.status = (numread == 1) ? PV_SUCCESS : PV_FAILURE;
       mpi_data.time   = *timed;
    }
-   MPI_Bcast(&mpi_data, (int)sizeof(timeandstatus), MPI_CHAR, root_process, comm->communicator());
+   MPI_Bcast(&mpi_data, (int)sizeof(timeandstatus), MPI_CHAR, root_process, mpiBlock->getComm());
    status = mpi_data.status;
    *timed = mpi_data.time;
    return status;
 }
 
-int writeActivity(FileStream *fileStream, Communicator *comm, double timed, PVLayerCube *cube) {
+int writeActivity(
+      FileStream *fileStream,
+      MPIBlock const *mpiBlock,
+      double timed,
+      PVLayerCube *cube) {
    int status = PV_SUCCESS;
 
    // write header, but only at the beginning
-   int rank = comm->commRank();
+   int rank = mpiBlock->getRank();
 
    PVLayerLoc const *loc = &cube->loc;
    PVHalo const &halo    = loc->halo;
@@ -1417,7 +1421,7 @@ int writeActivity(FileStream *fileStream, Communicator *comm, double timed, PVLa
          long fpos = fileStream->getOutPos();
          if (fpos == 0L) {
             int *params = pvp_set_nonspiking_act_params(
-                  comm, timed, loc, BufferUtils::FLOAT, 1 /*numbands*/);
+                  mpiBlock, timed, loc, BufferUtils::FLOAT, 1 /*numbands*/);
             assert(params && params[1] == NUM_BIN_PARAMS);
             long int numParams = (long int)params[1];
             fileStream->write(params, (long int)sizeof(*params) * numParams);
@@ -1430,10 +1434,9 @@ int writeActivity(FileStream *fileStream, Communicator *comm, double timed, PVLa
          //
          fileStream->write(&timed, (long int)sizeof(timed));
       }
-      float const *data = &cube->data[b * nxExt * nyExt * nf];
-      auto pvpBuffer    = Buffer<float>(data, nxExt, nyExt, nf);
-      auto pvpBufferGlobal =
-            BufferUtils::gather(comm->getLocalMPIBlock(), pvpBuffer, loc->nx, loc->ny, 0, 0);
+      float const *data    = &cube->data[b * nxExt * nyExt * nf];
+      auto pvpBuffer       = Buffer<float>(data, nxExt, nyExt, nf);
+      auto pvpBufferGlobal = BufferUtils::gather(mpiBlock, pvpBuffer, loc->nx, loc->ny, 0, 0);
       if (rank == 0) {
          pvpBufferGlobal.crop(loc->nxGlobal, loc->nyGlobal, Buffer<float>::CENTER);
          fileStream->write(
@@ -1446,16 +1449,16 @@ int writeActivity(FileStream *fileStream, Communicator *comm, double timed, PVLa
 
 int writeActivitySparse(
       FileStream *fileStream,
-      Communicator *comm,
+      MPIBlock const *mpiBlock,
       double timed,
       PVLayerCube *cube,
       bool includeValues) {
    int status = PV_SUCCESS;
 
-   // Grab active indices and local active from datastore comm
+   // Grab active indices and local active from PVLayerCube
 
    const int icRoot = 0;
-   const int icRank = comm->commRank();
+   const int icRank = mpiBlock->getRank();
 
    PVLayerLoc const *loc = &cube->loc;
    PVHalo const &halo    = loc->halo;
@@ -1476,7 +1479,7 @@ int writeActivitySparse(
 
 #ifdef PV_USE_MPI
       const int tag           = includeValues ? PVP_ACT_SPARSEVALUES_FILE_TYPE : PVP_ACT_FILE_TYPE;
-      const MPI_Comm mpi_comm = comm->communicator();
+      const MPI_Comm mpi_comm = mpiBlock->getComm();
 #endif // PV_USE_MPI
 
       if (icRank != icRoot) {
@@ -1486,7 +1489,7 @@ int writeActivitySparse(
 #ifdef DEBUG_OUTPUT
          DebugLog().printf(
                "[%2d]: writeActivitySparseNonspiking: sent localActive value of %d to %d\n",
-               comm->commRank,
+               mpiBlock->getRank(),
                localActive,
                dest);
 #endif // DEBUG_OUTPUT
@@ -1543,7 +1546,7 @@ int writeActivitySparse(
          DebugLog(debugWriteActivitySparseSent);
          debugWriteActivitySparseSent.printf(
                "[%2d]: writeActivitySparse: sent to %d, localActive==%d\n",
-               comm->commRank(),
+               mpiBlock->getRank(),
                dest,
                localResActive);
          debugWriteActivitySparse.flush();
@@ -1599,7 +1602,7 @@ int writeActivitySparse(
          // get the number active from each process
          //
          unsigned int *numActive = NULL;
-         const int icSize        = comm->commSize();
+         const int icSize        = mpiBlock->getSize();
 
          if (icSize > 1) {
             // otherwise numActive is not used
@@ -1617,7 +1620,7 @@ int writeActivitySparse(
 #ifdef DEBUG_OUTPUT
             DebugLog().printf(
                   "[%2d]: writeActivitySparseNonspiking: receiving numActive value from %d\n",
-                  comm->commRank(),
+                  mpiBlock->getRank(),
                   p);
 #endif // DEBUG_OUTPUT
             MPI_Status mpi_status;
@@ -1682,7 +1685,7 @@ int writeActivitySparse(
             DebugLog(debugWriteActivitySparseReceiving);
             debugWriteActivitySparseReceiving.printf(
                   "[%2d]: writeActivitySparse: receiving from %d, numActive==%d\n",
-                  comm->commRank(),
+                  mpiBlock->getRank(),
                   p,
                   numActive[p]);
             debugWriteActivitySparseReceiving.flush();
@@ -2357,7 +2360,7 @@ int writeWeights(
 template <typename T>
 int gatherActivity(
       PV_Stream *pvstream,
-      Communicator *comm,
+      MPIBlock const *mpiBlock,
       int rootproc,
       T *buffer,
       const PVLayerLoc *layerLoc,
@@ -2397,7 +2400,7 @@ int gatherActivity(
       Fatal().printf("gatherActivity unable to allocate memory for temp_buffer.\n");
    }
 
-   int rank = comm->commRank();
+   int rank = mpiBlock->getRank();
    if (rank == rootproc) {
       if (pvstream == NULL) {
          status = PV_FAILURE;
@@ -2412,7 +2415,7 @@ int gatherActivity(
 
       // Write zeroes to make sure the file is big enough since we'll
       // write nonsequentially under MPI. This may not be necessary.
-      int comm_size = comm->commSize();
+      int comm_size = mpiBlock->getSize();
       for (int r = 0; r < comm_size; r++) {
          int numwritten = PV_fwrite(temp_buffer, datasize, numLocalNeurons, pvstream);
          if (numwritten != numLocalNeurons) {
@@ -2452,14 +2455,16 @@ int gatherActivity(
                   MPI_BYTE,
                   r,
                   171 + r /*tag*/,
-                  comm->communicator(),
+                  mpiBlock->getComm(),
                   MPI_STATUS_IGNORE);
          }
 
          // Data to be written is in temp_buffer, which is nonextend.
          for (int y = 0; y < layerLoc->ny; y++) {
-            int ky0 = layerLoc->ny * rowFromRank(r, comm->numCommRows(), comm->numCommColumns());
-            int kx0 = layerLoc->nx * columnFromRank(r, comm->numCommRows(), comm->numCommColumns());
+            int ky0 =
+                  layerLoc->ny * rowFromRank(r, mpiBlock->getNumRows(), mpiBlock->getNumColumns());
+            int kx0 = layerLoc->nx
+                      * columnFromRank(r, mpiBlock->getNumRows(), mpiBlock->getNumColumns());
             int k_local = kIndex(0, y, 0, layerLoc->nx, layerLoc->ny, layerLoc->nf);
             int k_global =
                   kIndex(kx0, y + ky0, 0, layerLoc->nxGlobal, layerLoc->nyGlobal, layerLoc->nf);
@@ -2500,7 +2505,7 @@ int gatherActivity(
                MPI_BYTE,
                rootproc,
                171 + rank /*tag*/,
-               comm->communicator());
+               mpiBlock->getComm());
       }
       else {
          MPI_Send(
@@ -2509,7 +2514,7 @@ int gatherActivity(
                MPI_BYTE,
                rootproc,
                171 + rank /*tag*/,
-               comm->communicator());
+               mpiBlock->getComm());
       }
    }
 
@@ -2519,21 +2524,21 @@ int gatherActivity(
 
 template int gatherActivity<unsigned char>(
       PV_Stream *pvstream,
-      Communicator *comm,
+      MPIBlock const *mpiBlock,
       int rootproc,
       unsigned char *buffer,
       const PVLayerLoc *layerLoc,
       bool extended);
 template int gatherActivity<float>(
       PV_Stream *pvstream,
-      Communicator *comm,
+      MPIBlock const *mpiBlock,
       int rootproc,
       float *buffer,
       const PVLayerLoc *layerLoc,
       bool extended);
 template int gatherActivity<taus_uint4>(
       PV_Stream *pvstream,
-      Communicator *comm,
+      MPIBlock const *mpiBlock,
       int rootproc,
       taus_uint4 *buffer,
       const PVLayerLoc *layerLoc,
@@ -2542,7 +2547,7 @@ template int gatherActivity<taus_uint4>(
 template <typename T>
 int scatterActivity(
       PV_Stream *pvstream,
-      Communicator *comm,
+      MPIBlock const *mpiBlock,
       int rootproc,
       T *buffer,
       const PVLayerLoc *layerLoc,
@@ -2593,7 +2598,7 @@ int scatterActivity(
    TBuff    = (T *)calloc(numLocalNeurons, datasize);
    FatalIf(TBuff == NULL, "scatterActivity unable to allocate memory for temp_buffer.\n");
 
-   int localRank = comm->commRank();
+   int localRank = mpiBlock->getRank();
    if (localRank == rootproc) {
       FatalIf(pvstream == NULL, "scatterActivity: file pointer on root process is NULL.\n");
 
@@ -2609,7 +2614,7 @@ int scatterActivity(
             layerLoc->nf,
             fileLoc->nf);
 
-      int comm_size = comm->commSize();
+      int comm_size = mpiBlock->getSize();
 
       switch (filetype) {
          case PVP_NONSPIKING_ACT_FILE_TYPE:
@@ -2625,10 +2630,10 @@ int scatterActivity(
 
             for (int r = comm_size - 1; r >= 0; --r) {
                for (int y = 0; y < layerLoc->ny; ++y) {
-                  int ky0 =
-                        layerLoc->ny * rowFromRank(r, comm->numCommRows(), comm->numCommColumns());
+                  int ky0 = layerLoc->ny
+                            * rowFromRank(r, mpiBlock->getNumRows(), mpiBlock->getNumColumns());
                   int kx0 = layerLoc->nx
-                            * columnFromRank(r, comm->numCommRows(), comm->numCommColumns());
+                            * columnFromRank(r, mpiBlock->getNumRows(), mpiBlock->getNumColumns());
                   int k_inmemory = kIndex(0, y, 0, layerLoc->nx, layerLoc->ny, layerLoc->nf);
                   int k_infile   = kIndex(
                         offsetX + kx0,
@@ -2654,7 +2659,7 @@ int scatterActivity(
                         MPI_BYTE,
                         r,
                         171 + r,
-                        comm->communicator());
+                        mpiBlock->getComm());
                }
             }
             PV_fseek(pvstream, startpos + numLocalNeurons * datasize * comm_size, SEEK_SET);
@@ -2669,8 +2674,10 @@ int scatterActivity(
             for (int r = comm_size; r >= 0; --r) {
 
                // Global X and Y coordinates of "top left" of process
-               ky0 = layerLoc->ny * rowFromRank(r, comm->numCommRows(), comm->numCommColumns());
-               kx0 = layerLoc->nx * columnFromRank(r, comm->numCommRows(), comm->numCommColumns());
+               ky0 = layerLoc->ny
+                     * rowFromRank(r, mpiBlock->getNumRows(), mpiBlock->getNumColumns());
+               kx0 = layerLoc->nx
+                     * columnFromRank(r, mpiBlock->getNumRows(), mpiBlock->getNumColumns());
 
                // Loop through active neurons, calculate their global
                // coordinates, if process contains a position of an
@@ -2701,7 +2708,7 @@ int scatterActivity(
                         MPI_BYTE,
                         r,
                         171 + r,
-                        comm->communicator());
+                        mpiBlock->getComm());
 
                   // Clear the buffer so rootproc can calculate
                   // the next process's buffer.
@@ -2739,8 +2746,10 @@ int scatterActivity(
             // Root process constructs buffers of other processes
             for (int r = comm_size - 1; r >= 0; --r) {
                // Global X and Y coordinates of "top left" of process
-               ky0 = layerLoc->ny * rowFromRank(r, comm->numCommRows(), comm->numCommColumns());
-               kx0 = layerLoc->nx * columnFromRank(r, comm->numCommRows(), comm->numCommColumns());
+               ky0 = layerLoc->ny
+                     * rowFromRank(r, mpiBlock->getNumRows(), mpiBlock->getNumColumns());
+               kx0 = layerLoc->nx
+                     * columnFromRank(r, mpiBlock->getNumRows(), mpiBlock->getNumColumns());
                // Loop through active neurons, calculate their global
                // coordinates. if process contains a position of an active
                // neuron, set its value
@@ -2766,7 +2775,7 @@ int scatterActivity(
                         MPI_BYTE,
                         r,
                         171 + r,
-                        comm->communicator());
+                        mpiBlock->getComm());
                   // Clear the buffer for the next process
                   for (int i = 0; i < numLocalNeurons; ++i) {
                      TBuff[i] = {0};
@@ -2785,7 +2794,7 @@ int scatterActivity(
             MPI_BYTE,
             rootproc,
             171 + localRank,
-            comm->communicator(),
+            mpiBlock->getComm(),
             MPI_STATUS_IGNORE);
    }
 
@@ -2810,7 +2819,7 @@ int scatterActivity(
 
 template int scatterActivity<float>(
       PV_Stream *pvstream,
-      Communicator *icComm,
+      MPIBlock const *mpiBlock,
       int rootproc,
       float *buffer,
       const PVLayerLoc *layerLoc,
@@ -2822,7 +2831,7 @@ template int scatterActivity<float>(
       int numActive);
 template int scatterActivity<taus_uint4>(
       PV_Stream *pvstream,
-      Communicator *icComm,
+      MPIBlock const *mpiBlock,
       int rootproc,
       taus_uint4 *buffer,
       const PVLayerLoc *layerLoc,

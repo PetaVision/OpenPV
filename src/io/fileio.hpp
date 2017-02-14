@@ -10,7 +10,6 @@
 
 #include "FileStream.hpp"
 #include "arch/mpi/mpi.h"
-#include "columns/Communicator.hpp"
 #include "include/PVLayerLoc.h"
 #include "include/pv_types.h"
 #include "io.hpp"
@@ -70,7 +69,7 @@ int pvp_read_header(
 
 void read_header_err(
       const char *filename,
-      Communicator *comm,
+      MPIBlock const *mpiBlock,
       int returned_num_params,
       int *params);
 int pvp_write_header(PV_Stream *pvstream, MPIBlock const *mpiBlock, int *params, int numParams);
@@ -96,13 +95,17 @@ int pvp_write_header(
 int *alloc_params(int numParams);
 int set_weight_params(int *params, int nxp, int nyp, int nfp, float min, float max, int numPatches);
 
-int pvp_read_time(PV_Stream *pvstream, Communicator *comm, int root_process, double *timed);
+int pvp_read_time(PV_Stream *pvstream, MPIBlock const *mpiBlock, int root_process, double *timed);
 
-int writeActivity(FileStream *fileStream, Communicator *comm, double timed, PVLayerCube *cube);
+int writeActivity(
+      FileStream *fileStream,
+      MPIBlock const *mpiBlock,
+      double timed,
+      PVLayerCube *cube);
 
 int writeActivitySparse(
       FileStream *fileStream,
-      Communicator *comm,
+      MPIBlock const *mpiBlock,
       double timed,
       PVLayerCube *cube,
       bool includeValues);
@@ -157,7 +160,7 @@ int pvp_check_file_header(
 template <typename T>
 int gatherActivity(
       PV_Stream *pvstream,
-      Communicator *comm,
+      MPIBlock const *mpiBlock,
       int rootproc,
       T *buffer,
       const PVLayerLoc *layerLoc,
@@ -165,7 +168,7 @@ int gatherActivity(
 template <typename T>
 int scatterActivity(
       PV_Stream *pvstream,
-      Communicator *comm,
+      MPIBlock const *mpiBlock,
       int rootproc,
       T *buffer,
       const PVLayerLoc *layerLoc,

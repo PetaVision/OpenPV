@@ -2226,7 +2226,7 @@ int HyPerLayer::processCheckpointRead() { return updateAllActiveIndices(); }
 int HyPerLayer::writeActivitySparse(double timed, bool includeValues) {
    PVLayerCube cube = publisher->createCube(0);
    int status       = PV::writeActivitySparse(
-         mOutputStateStream, parent->getCommunicator(), timed, &cube, includeValues);
+         mOutputStateStream, parent->getCommunicator()->getLocalMPIBlock(), timed, &cube, includeValues);
 
    if (status == PV_SUCCESS) {
       status = incrementNBands(&writeActivitySparseCalls);
@@ -2238,7 +2238,7 @@ int HyPerLayer::writeActivitySparse(double timed, bool includeValues) {
 int HyPerLayer::writeActivity(double timed) {
    PVLayerCube cube = publisher->createCube(0);
 
-   int status = PV::writeActivity(mOutputStateStream, parent->getCommunicator(), timed, &cube);
+   int status = PV::writeActivity(mOutputStateStream, parent->getCommunicator()->getLocalMPIBlock(), timed, &cube);
    if (status == PV_SUCCESS) {
       status = incrementNBands(&writeActivityCalls);
    }
