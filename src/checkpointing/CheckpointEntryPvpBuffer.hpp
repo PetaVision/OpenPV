@@ -8,46 +8,41 @@
 #ifndef CHECKPOINTENTRYPVPBUFFER_HPP_
 #define CHECKPOINTENTRYPVPBUFFER_HPP_
 
-#include "CheckpointEntry.hpp"
+#include "CheckpointEntryPvp.hpp"
 #include "include/PVLayerLoc.h"
 #include <string>
 
 namespace PV {
 
 template <typename T>
-class CheckpointEntryPvpBuffer : public CheckpointEntry {
+class CheckpointEntryPvpBuffer : public CheckpointEntryPvp<T> {
   public:
    CheckpointEntryPvpBuffer(
          std::string const &name,
          MPIBlock const *mpiBlock,
          T *dataPtr,
          PVLayerLoc const *layerLoc,
-         bool extended);
+         bool extended)
+         : CheckpointEntryPvp<T>(name, mpiBlock, layerLoc, extended), mDataPointer(dataPtr) {}
    CheckpointEntryPvpBuffer(
          std::string const &objName,
          std::string const &dataName,
          MPIBlock const *mpiBlock,
          T *dataPtr,
          PVLayerLoc const *layerLoc,
-         bool extended);
-   virtual void write(std::string const &checkpointDirectory, double simTime, bool verifyWritesFlag)
-         const override;
-   virtual void read(std::string const &checkpointDirectory, double *simTimePtr) const override;
-   virtual void remove(std::string const &checkpointDirectory) const override;
+         bool extended)
+         : CheckpointEntryPvp<T>(objName, dataName, mpiBlock, layerLoc, extended),
+           mDataPointer(dataPtr) {}
 
   protected:
-   void initialize(T *dataPtr, PVLayerLoc const *layerLoc, bool extended);
+   virtual int getNumFrames() const override;
+   virtual T *calcBatchElementStart(int batchElement) const override;
+   virtual int calcMPIBatchIndex(int frame) const override;
+
+   T *getDataPointer() const { return mDataPointer; }
 
   private:
-   int getNumFrames() const;
-   T *calcBatchElementStart(int batchElement) const;
-   int calcMPIBatchIndex(int frame) const;
-
-  private:
-   T *mDataPointer             = nullptr;
-   PVLayerLoc const *mLayerLoc = nullptr;
-   int mXMargins               = 0; // If extended is true, use mLayerLoc's halo for the margins.
-   int mYMargins               = 0; // If extended is false, use zero for the margins.
+   T *mDataPointer = nullptr;
 };
 
 } // end namespace PV
