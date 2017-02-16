@@ -72,7 +72,7 @@ int run(int argc, char *argv[]) {
                FatalIf(
                      systemResult != 0,
                      "Removing previously existing checkpoint directory with \"%s\" failed.\n",
-                     rmrcommand);
+                     rmrcommand.c_str());
             }
             else {
                FatalIf(
