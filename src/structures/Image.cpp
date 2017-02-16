@@ -174,7 +174,7 @@ void Image::read(std::string filename) {
                filename.c_str());
       }
       else {
-         Fatal().printf("Unable to load \"%s\": %s\n", stbi_failure_reason());
+         Fatal().printf("Unable to load \"%s\": %s.\n", filename.c_str(), stbi_failure_reason());
       }
    }
    FatalIf(data == nullptr, " File not found: %s\n", filename.c_str());
