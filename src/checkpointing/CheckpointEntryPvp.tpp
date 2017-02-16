@@ -127,7 +127,7 @@ void CheckpointEntryPvp<T>::read(std::string const &checkpointDirectory, double 
       int const mpiBatchIndex = calcMPIBatchIndex(frame);
       if (getMPIBlock()->getRank() == 0) {
          frameTimestamps.at(frame) =
-               BufferUtils::readActivityFromPvp(path.c_str(), &pvpBuffer, frame);
+               BufferUtils::readActivityFromPvp(path.c_str(), &pvpBuffer, frame, nullptr);
          pvpBuffer.grow(nxExtGlobal, nyExtGlobal, Buffer<float>::CENTER);
       }
       else if (mpiBatchIndex == getMPIBlock()->getBatchIndex()) {

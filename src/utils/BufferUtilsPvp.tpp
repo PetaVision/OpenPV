@@ -140,8 +140,15 @@ void appendToPvp(
    writeFrame<T>(fStream, buffer, timeStamp);
 }
 
+/*
+double readSparseFromPvp(
+      const char *fName,
+      SparseList<T> *list,
+      int frameReadIndex,
+      SparseFileTable *cachedTable);
+ */
 template <typename T>
-double readActivityFromPvp(char const *fName, Buffer<T> *buffer, int frameReadIndex) {
+double readActivityFromPvp(char const *fName, Buffer<T> *buffer, int frameReadIndex, BufferUtils::SparseFileTable *sparseFileTable) {
    double timestamp;
    int fileType;
    {
@@ -154,10 +161,10 @@ double readActivityFromPvp(char const *fName, Buffer<T> *buffer, int frameReadIn
          timestamp = BufferUtils::readDenseFromPvp<T>(fName, buffer, frameReadIndex);
          break;
       case PVP_ACT_SPARSEVALUES_FILE_TYPE:
-         timestamp = BufferUtils::readDenseFromSparsePvp<T>(fName, buffer, frameReadIndex);
+         timestamp = BufferUtils::readDenseFromSparsePvp<T>(fName, buffer, frameReadIndex, sparseFileTable);
          break;
       case PVP_ACT_FILE_TYPE:
-         timestamp = BufferUtils::readDenseFromSparseBinaryPvp<T>(fName, buffer, frameReadIndex);
+         timestamp = BufferUtils::readDenseFromSparseBinaryPvp<T>(fName, buffer, frameReadIndex, sparseFileTable);
          break;
       default:
          Fatal().printf("readActivityFromPvp: \"%s\" has file type %d, which is not an activity file type.\n", fName, fileType);
@@ -345,9 +352,9 @@ double readSparseFromPvp(
 }
 
 template <typename T>
-double readDenseFromSparsePvp(char const *fName, Buffer<T> *buffer, int frameReadIndex) {
+double readDenseFromSparsePvp(char const *fName, Buffer<T> *buffer, int frameReadIndex, SparseFileTable *sparseFileTable) {
    SparseList<T> list;
-   double timestamp = readSparseFromPvp(fName, &list, frameReadIndex, nullptr);
+   double timestamp = readSparseFromPvp(fName, &list, frameReadIndex, sparseFileTable);
 
    FileStream fStream(fName, std::ios_base::in | std::ios_base::binary, false);
    struct ActivityHeader header = readActivityHeader(fStream);
@@ -391,9 +398,9 @@ double readSparseBinaryFromPvp(
 }
 
 template <typename T>
-double readDenseFromSparseBinaryPvp(char const *fName, Buffer<T> *buffer, int frameReadIndex) {
+double readDenseFromSparseBinaryPvp(char const *fName, Buffer<T> *buffer, int frameReadIndex, SparseFileTable *sparseFileTable) {
    SparseList<T> list;
-   double timestamp = readSparseBinaryFromPvp(fName, &list, frameReadIndex, (T)1, nullptr);
+   double timestamp = readSparseBinaryFromPvp(fName, &list, frameReadIndex, (T)1, sparseFileTable);
 
    FileStream fStream(fName, std::ios_base::in | std::ios_base::binary, false);
    struct ActivityHeader header = readActivityHeader(fStream);

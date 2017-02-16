@@ -72,9 +72,13 @@ void appendToPvp(
 /**
  * Reads a frame from an activity layer of any activity file type into a buffer.
  * The buffer will be resized to the size indicated in the pvp file's header.
+ * If the SparseFileTable pointer is null, it is ignored. If it is not null and
+ * the path points to a sparse-binary or sparse-values activity file, the table
+ * is used to speed navigation of the pvp file. If the SparseFileTable is empty
+ * it is initialized.
  */
 template <typename T>
-double readActivityFromPvp(char const *fName, Buffer<T> *buffer, int frameReadIndex);
+double readActivityFromPvp(char const *fName, Buffer<T> *buffer, int frameReadIndex, BufferUtils::SparseFileTable *const sparseFileTable);
 
 /**
  * Reads a frame from a nonspiking activity layer into a buffer. If the file type
@@ -123,7 +127,7 @@ double readSparseFromPvp(
  * Use the readSparseFromPvp function to get the SparseList or SparseFileTable.
  */
 template <typename T>
-double readDenseFromSparsePvp(char const *fName, Buffer<T> *buffer, int frameReadIndex);
+double readDenseFromSparsePvp(char const *fName, Buffer<T> *buffer, int frameReadIndex, SparseFileTable *sparseFileTable);
 
 template <typename T>
 double readSparseBinaryFromPvp(
@@ -139,7 +143,7 @@ double readSparseBinaryFromPvp(
  * Use the readSparseBinaryFromPvp function to get the SparseList or SparseFileTable.
  */
 template <typename T>
-double readDenseFromSparseBinaryPvp(char const *fName, Buffer<T> *buffer, int frameReadIndex);
+double readDenseFromSparseBinaryPvp(char const *fName, Buffer<T> *buffer, int frameReadIndex, SparseFileTable *sparseFileTable);
 
 static void writeActivityHeader(FileStream &fStream, struct ActivityHeader const &header);
 static struct ActivityHeader readActivityHeader(FileStream &fStream);
