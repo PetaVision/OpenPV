@@ -12,6 +12,8 @@
 #include "io/stb_image_write.h"
 #endif
 
+#include <cstring>
+
 namespace PV {
 
 Image::Image(std::string filename) { read(filename); }
@@ -163,6 +165,18 @@ void Image::convertToColor(bool alphaChannel) {
 void Image::read(std::string filename) {
    int width = 0, height = 0, channels = 0;
    uint8_t *data = stbi_load(filename.c_str(), &width, &height, &channels, 0);
+   if (data == nullptr) {
+      if (!std::strcmp(stbi_failure_reason(), "unknown image type")) {
+         Fatal().printf(
+               " File \"%s\" is an unknown image type.\n"
+               " (A list of image files must have a .txt extension;"
+               " an individual image file must be readable by the stb_image library.)\n",
+               filename.c_str());
+      }
+      else {
+         Fatal().printf("Unable to load \"%s\": %s\n", stbi_failure_reason());
+      }
+   }
    FatalIf(data == nullptr, " File not found: %s\n", filename.c_str());
    resize(width, height, channels);
 
