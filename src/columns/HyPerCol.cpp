@@ -1141,7 +1141,7 @@ void HyPerCol::nonblockingLayerUpdate(
          }
       }
    }
-   if (idleCounter > 0L) {
+   if (idleCounter > 1L) {
       InfoLog() << "t = " << mSimTime << ", phase " << phase << ", idle count " << idleCounter
                 << "\n";
    }
