@@ -80,8 +80,8 @@ int RescaleConn::deliverPresynapticPerspective(PVLayerCube const *activity, int 
             post->getChannel(getChannel()) + b * postLoc->nx * postLoc->ny * postLoc->nf;
 
       if (activity->isSparse) {
-         unsigned int const *activeIndicesBatch =
-               activity->activeIndices
+         SparseList<float>::Entry const *activeIndicesBatch =
+               (SparseList<float>::Entry *)activity->activeIndices
                + b * (preLoc->nx + preLoc->halo.rt + preLoc->halo.lt)
                        * (preLoc->ny + preLoc->halo.up + preLoc->halo.dn) * preLoc->nf;
          int numLoop = activity->numActive[b];
@@ -89,9 +89,8 @@ int RescaleConn::deliverPresynapticPerspective(PVLayerCube const *activity, int 
 #pragma omp parallel for
 #endif
          for (int loopIndex = 0; loopIndex < numLoop; loopIndex++) {
-            int kPre = activeIndicesBatch[loopIndex];
-
-            float a          = scale * activityBatch[kPre];
+            int kPre         = activeIndicesBatch[loopIndex].index;
+            float a          = scale * activeIndicesBatch[loopIndex].value;
             PVPatch *weights = getWeights(kPre, arborID);
             if (weights->nx > 0 && weights->ny > 0) {
                int f = featureIndex(kPre, preLoc->nx, preLoc->ny, preLoc->nf); // Not taking halo

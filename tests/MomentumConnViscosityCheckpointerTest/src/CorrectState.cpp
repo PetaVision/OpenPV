@@ -21,7 +21,7 @@ CorrectState::CorrectState(
 
 void CorrectState::update() {
    mUpdateNumber++;
-   mCorrect_dw = 0.5f*mCorrect_dw + (mCorrectInput * mCorrectOutput);
+   mCorrect_dw = 0.5f * mCorrect_dw + (mCorrectInput * mCorrectOutput);
    mCorrectWeight += mCorrect_dw;
    mCorrectInput  = (float)mUpdateNumber;
    mCorrectOutput = mCorrectInput * mCorrectWeight;

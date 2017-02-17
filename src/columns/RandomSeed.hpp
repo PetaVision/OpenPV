@@ -16,6 +16,7 @@ class RandomSeed {
    void initialize(unsigned int initialSeed);
    unsigned int allocate(unsigned int numRequested);
    unsigned int getInitialSeed() { return mInitialSeed; }
+
   private:
    RandomSeed();
    virtual ~RandomSeed() {}

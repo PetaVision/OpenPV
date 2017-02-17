@@ -7,7 +7,11 @@
 
 #include "CorrectState.hpp"
 
-CorrectState::CorrectState(int initialUpdateNumber, float initialWeight, float initialInput, float initialOutput)
+CorrectState::CorrectState(
+      int initialUpdateNumber,
+      float initialWeight,
+      float initialInput,
+      float initialOutput)
       : mUpdateNumber(initialUpdateNumber),
         mCorrectWeight(initialWeight),
         mCorrectInput(initialInput),

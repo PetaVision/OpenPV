@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
    loc.halo.dn        = nyBorder;
    loc.halo.up        = nyBorder;
 
-   int numItems            = (2 * nxBorder + loc.nx) * (2 * nyBorder + loc.ny);
+   int numItems = (2 * nxBorder + loc.nx) * (2 * nyBorder + loc.ny);
 
    // create a local portion of the "image"
    float *image = new float[numItems];

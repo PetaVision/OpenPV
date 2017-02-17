@@ -24,7 +24,7 @@ namespace PV {
 
 // index/value pairs used by writeActivitySparseNonspiking()
 typedef struct indexvaluepair_ {
-   unsigned int index;
+   uint32_t index;
    float value;
 } indexvaluepair;
 

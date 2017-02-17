@@ -70,7 +70,7 @@ class HyPerConnCheckpointerTestProbe : public PV::ColProbe {
     * Checks whether the given object has finished its communicateInitInfo stage, and
     * returns PV_SUCCESS if it has, or PV_POSTPONE if it has not.
     */
-   int checkCommunicatedFlag(PV::BaseObject* dependencyObject);
+   int checkCommunicatedFlag(PV::BaseObject *dependencyObject);
 
    int calcUpdateNumber(double timevalue);
    void initializeCorrectValues(double timevalue);
@@ -80,13 +80,13 @@ class HyPerConnCheckpointerTestProbe : public PV::ColProbe {
 
    // Data members
   protected:
-   int mStartingUpdateNumber      = 0;
-   bool mValuesSet                = false;
-   PV::InputLayer *mInputLayer    = nullptr;
-   PV::HyPerLayer *mOutputLayer   = nullptr;
-   PV::HyPerConn *mConnection     = nullptr;
-   CorrectState *mCorrectState    = nullptr;
-   bool mTestFailed               = false;
+   int mStartingUpdateNumber    = 0;
+   bool mValuesSet              = false;
+   PV::InputLayer *mInputLayer  = nullptr;
+   PV::HyPerLayer *mOutputLayer = nullptr;
+   PV::HyPerConn *mConnection   = nullptr;
+   CorrectState *mCorrectState  = nullptr;
+   bool mTestFailed             = false;
 };
 
 #endif // HYPERCONNCHECKPOINTERTESTPROBE_HPP_

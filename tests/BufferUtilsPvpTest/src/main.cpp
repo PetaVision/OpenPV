@@ -94,7 +94,7 @@ void testWriteToPvp() {
    // and check that it's correct
    for (int frame = 0; frame < 3; ++frame) {
       Buffer<float> testBuffer;
-      double timeVal             = BufferUtils::readDenseFromPvp<float>("test.pvp", &testBuffer, frame);
+      double timeVal = BufferUtils::readDenseFromPvp<float>("test.pvp", &testBuffer, frame);
       vector<float> expectedData = allFrames.at(frame);
 
       FatalIf(

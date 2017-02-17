@@ -365,7 +365,8 @@ int ANNLayer::setVertices() {
       }
       slopePosInf = 0.0f;
    }
-   assert(!isnan(slopeNegInf) && !isnan(slopePosInf) && numVertices > 0);
+   // Check for NaN
+   assert(slopeNegInf == slopeNegInf && slopePosInf == slopePosInf && numVertices > 0);
    assert(vectorA.size() == numVertices && vectorV.size() == numVertices);
    verticesV = (float *)malloc((size_t)numVertices * sizeof(*verticesV));
    verticesA = (float *)malloc((size_t)numVertices * sizeof(*verticesA));
