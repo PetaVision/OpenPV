@@ -46,7 +46,7 @@ Buffer<T> gather(
 
 template <typename T>
 SparseList<T>
-gatherSparse(MPIBlock const *mpiBlock, SparseList<T> list, int batchIndex, int rootProcess);
+gatherSparse(MPIBlock const *mpiBlock, SparseList<T> list, int mpiBatchIndex, int rootProcess);
 
 } // end namespace BufferUtils
 

@@ -266,7 +266,7 @@ class HyPerLayer : public BaseLayer {
    // They were only used by checkpointing, which is now handled by the
    // CheckpointEntry class hierarchy.
 
-   int incrementNBands(int *numCalls);
+   void updateNBands(int numCalls);
 
    virtual int processCheckpointRead() override;
 

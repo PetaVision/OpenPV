@@ -2206,39 +2206,99 @@ int HyPerLayer::readDelaysFromCheckpoint(Checkpointer *checkpointer) {
 int HyPerLayer::processCheckpointRead() { return updateAllActiveIndices(); }
 
 int HyPerLayer::writeActivitySparse(double timed, bool includeValues) {
-   PVLayerCube cube = publisher->createCube(0);
-   int status       = PV::writeActivitySparse(
-         mOutputStateStream, mOutputStateMPIBlock, timed, &cube, includeValues);
+   PVLayerCube cube      = publisher->createCube(0);
+   PVLayerLoc const *loc = getLayerLoc();
+   pvAssert(cube.numItems == loc->nbatch * getNumExtended());
 
-   if (status == PV_SUCCESS) {
-      status = incrementNBands(&writeActivitySparseCalls);
+   int const mpiBatchDimension = mOutputStateMPIBlock->getBatchDimension();
+   int const numFrames         = mpiBatchDimension * loc->nbatch;
+   for (int frame = 0; frame < numFrames; frame++) {
+      int const localBatchIndex = frame % loc->nbatch;
+      int const mpiBatchIndex   = frame / loc->nbatch; // Integer division
+      pvAssert(mpiBatchIndex * loc->nbatch + localBatchIndex == frame);
+
+      SparseList<float> list;
+      SparseList<float>::Entry entry;
+      for (long int k = 0; k < cube.numActive[localBatchIndex]; k++) {
+         float *activeIndices = (float *)cube.activeIndices;
+         entry.index          = (uint32_t)activeIndices[localBatchIndex * getNumExtended()];
+         entry.value          = cube.data[localBatchIndex * getNumExtended() + entry.index];
+         list.addEntry(entry);
+      }
+      BufferUtils::gatherSparse(mOutputStateMPIBlock, list, mpiBatchIndex, 0 /*root process*/);
+      if (mOutputStateMPIBlock->getRank() == 0) {
+         long fpos = mOutputStateStream->getOutPos();
+         if (fpos == 0L) {
+            BufferUtils::ActivityHeader header = BufferUtils::buildActivityHeader<float>(
+                  loc->nx * mOutputStateMPIBlock->getNumColumns(),
+                  loc->ny * mOutputStateMPIBlock->getNumRows(),
+                  loc->nf,
+                  0 /* numBands */); // numBands will be set by call to incrementNBands.
+            header.timestamp = timed;
+            BufferUtils::writeActivityHeader(*mOutputStateStream, header);
+         }
+         BufferUtils::writeSparseFrame(*mOutputStateStream, &list, timed);
+      }
    }
-   return status;
+   writeActivitySparseCalls += numFrames;
+   updateNBands(writeActivitySparseCalls);
+   return PV_SUCCESS;
 }
 
 // write non-spiking activity
 int HyPerLayer::writeActivity(double timed) {
-   PVLayerCube cube = publisher->createCube(0);
+   PVLayerCube cube      = publisher->createCube(0);
+   PVLayerLoc const *loc = getLayerLoc();
+   pvAssert(cube.numItems == loc->nbatch * getNumExtended());
 
-   int status = PV::writeActivity(mOutputStateStream, mOutputStateMPIBlock, timed, &cube);
-   if (status == PV_SUCCESS) {
-      status = incrementNBands(&writeActivityCalls);
+   PVHalo const &halo   = loc->halo;
+   int const nxExtLocal = loc->nx + halo.lt + halo.rt;
+   int const nyExtLocal = loc->ny + halo.dn + halo.up;
+   int const nf         = loc->nf;
+
+   int const mpiBatchDimension = mOutputStateMPIBlock->getBatchDimension();
+   int const numFrames         = mpiBatchDimension * loc->nbatch;
+   for (int frame = 0; frame < numFrames; frame++) {
+      int const localBatchIndex = frame % loc->nbatch;
+      int const mpiBatchIndex   = frame / loc->nbatch; // Integer division
+      pvAssert(mpiBatchIndex * loc->nbatch + localBatchIndex == frame);
+
+      float *data = &cube.data[localBatchIndex * getNumExtended()];
+      Buffer<float> localBuffer(data, nxExtLocal, nyExtLocal, nf);
+      localBuffer.crop(loc->nx, loc->ny, Buffer<float>::CENTER);
+      Buffer<float> blockBuffer = BufferUtils::gather<float>(
+            mOutputStateMPIBlock, localBuffer, loc->nx, loc->ny, mpiBatchIndex, 0 /*root process*/);
+      // At this point, the rank-zero process has the entire block for the batch element,
+      // regardless of what the mpiBatchIndex is.
+      if (mOutputStateMPIBlock->getRank() == 0) {
+         long fpos = mOutputStateStream->getOutPos();
+         if (fpos == 0L) {
+            BufferUtils::ActivityHeader header = BufferUtils::buildActivityHeader<float>(
+                  loc->nx * mOutputStateMPIBlock->getNumColumns(),
+                  loc->ny * mOutputStateMPIBlock->getNumRows(),
+                  loc->nf,
+                  0 /* numBands */); // numBands will be set by call to incrementNBands.
+            header.timestamp = timed;
+            BufferUtils::writeActivityHeader(*mOutputStateStream, header);
+         }
+         BufferUtils::writeFrame<float>(*mOutputStateStream, &blockBuffer, timed);
+      }
    }
-   return status;
+   writeActivityCalls += numFrames;
+   updateNBands(writeActivityCalls);
+   return PV_SUCCESS;
 }
 
-int HyPerLayer::incrementNBands(int *numCalls) {
+void HyPerLayer::updateNBands(int const numCalls) {
    // Only the root process needs to maintain INDEX_NBANDS, so only the root process modifies
    // numCalls
    // This way, writeActivityCalls does not need to be coordinated across MPI
    if (mOutputStateStream != nullptr) {
-      (*numCalls)   = (*numCalls) + parent->getNBatch();
       long int fpos = mOutputStateStream->getOutPos();
       mOutputStateStream->setOutPos(sizeof(int) * INDEX_NBANDS, true /*fromBeginning*/);
-      mOutputStateStream->write(numCalls, (long)sizeof(*numCalls));
+      mOutputStateStream->write(&numCalls, (long)sizeof(numCalls));
       mOutputStateStream->setOutPos(fpos, true /*fromBeginning*/);
    }
-   return PV_SUCCESS;
 }
 
 bool HyPerLayer::localDimensionsEqual(PVLayerLoc const *loc1, PVLayerLoc const *loc2) {

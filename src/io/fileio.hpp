@@ -21,12 +21,6 @@
 
 namespace PV {
 
-// index/value pairs used by writeActivitySparseNonspiking()
-typedef struct indexvaluepair_ {
-   uint32_t index;
-   float value;
-} indexvaluepair;
-
 void timeToParams(double time, void *params);
 double timeFromParams(void *params);
 
@@ -97,18 +91,10 @@ int set_weight_params(int *params, int nxp, int nyp, int nfp, float min, float m
 
 int pvp_read_time(PV_Stream *pvstream, MPIBlock const *mpiBlock, int root_process, double *timed);
 
-int writeActivity(
-      FileStream *fileStream,
-      MPIBlock const *mpiBlock,
-      double timed,
-      PVLayerCube *cube);
-
-int writeActivitySparse(
-      FileStream *fileStream,
-      MPIBlock const *mpiBlock,
-      double timed,
-      PVLayerCube *cube,
-      bool includeValues);
+// writeActivity and writeActivitySparse removed Feb 17, 2017.
+// Corresponding HyPerLayer methods now use BufferUtils routines
+// gatherActivity and scatterActivity were also removed.
+// Use BufferUtils::gather and BufferUtils::scatter instead.
 
 int readWeights(
       PVPatch ***patches,
@@ -156,28 +142,6 @@ int pvp_check_file_header(
       const PVLayerLoc *loc,
       int params[],
       int numParams);
-
-template <typename T>
-int gatherActivity(
-      PV_Stream *pvstream,
-      MPIBlock const *mpiBlock,
-      int rootproc,
-      T *buffer,
-      const PVLayerLoc *layerLoc,
-      bool extended);
-template <typename T>
-int scatterActivity(
-      PV_Stream *pvstream,
-      MPIBlock const *mpiBlock,
-      int rootproc,
-      T *buffer,
-      const PVLayerLoc *layerLoc,
-      bool extended,
-      const PVLayerLoc *fileLoc = NULL,
-      int offsetX               = 0,
-      int offsetY               = 0,
-      int filetype              = PVP_NONSPIKING_ACT_FILE_TYPE,
-      int numActive             = 0);
 } // namespace PV
 
 #endif /* FILEIO_HPP_ */

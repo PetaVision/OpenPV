@@ -171,14 +171,12 @@ Buffer<T> gather(
 template <typename T>
 SparseList<T>
 gatherSparse(MPIBlock const *mpiBlock, SparseList<T> list, int mpiBatchIndex, int destProcess) {
-   size_t entrySize     = sizeof(SparseList<T>::Entry);
-   int batchElementRoot = mpiBlock->calcRankFromRowColBatch(0, 0, mpiBlock->getBatchIndex());
+   size_t entrySize = sizeof(typename SparseList<T>::Entry);
    if (mpiBlock->getRank() == destProcess) {
       SparseList<T> globalList;
       for (int recvColumn = mpiBlock->getNumColumns() - 1; recvColumn >= 0; --recvColumn) {
          for (int recvRow = mpiBlock->getNumRows() - 1; recvRow >= 0; --recvRow) {
-            int recvRank =
-                  mpiBlock->calcRankFromRowColBatch(recvRow, recvColumn, mpiBlock->getBatchIndex());
+            int recvRank = mpiBlock->calcRankFromRowColBatch(recvRow, recvColumn, mpiBatchIndex);
             SparseList<T> listChunk;
             if (recvRank != destProcess) {
                uint32_t numToRecv = 0;
@@ -216,9 +214,16 @@ gatherSparse(MPIBlock const *mpiBlock, SparseList<T> list, int mpiBatchIndex, in
    else if (mpiBlock->getBatchIndex() == mpiBatchIndex) {
       vector<struct SparseList<T>::Entry> toSend = list.getContents();
       uint32_t numToSend                         = toSend.size();
-      MPI_Send(&numToSend, 1, MPI_INT, batchElementRoot, 33, mpiBlock->getComm());
+      int batchElementRoot = mpiBlock->calcRankFromRowColBatch(0, 0, mpiBlock->getBatchIndex());
+      MPI_Send(&numToSend, 1, MPI_INT, destProcess, 33, mpiBlock->getComm());
       if (numToSend > 0) {
-         MPI_Send(toSend.data(), numToSend * entrySize, MPI_BYTE, 0, 34, mpiBlock->getComm());
+         MPI_Send(
+               toSend.data(),
+               numToSend * entrySize,
+               MPI_BYTE,
+               destProcess,
+               34,
+               mpiBlock->getComm());
       }
    }
    return list;
