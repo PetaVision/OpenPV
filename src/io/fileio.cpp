@@ -202,12 +202,6 @@ long int PV_ftell_primitive(PV_Stream *pvstream) {
 
 long int getPV_StreamFilepos(PV_Stream *pvstream) { return pvstream->filepos; }
 
-long int updatePV_StreamFilepos(PV_Stream *pvstream) {
-   long int filepos  = PV_ftell_primitive(pvstream);
-   pvstream->filepos = filepos;
-   return filepos;
-}
-
 // Use getPV_StreamFilepos instead of PV_ftell whenever possible, since NMC cluster's ftell is
 // currently unreliable
 long int PV_ftell(PV_Stream *pvstream) {
@@ -1000,46 +994,6 @@ int pvp_read_header(PV_Stream *pvstream, MPIBlock const *mpiBlock, int *params, 
    return status;
 }
 
-void read_header_err(
-      const char *filename,
-      MPIBlock const *mpiBlock,
-      int returned_num_params,
-      int *params) {
-   if (mpiBlock->getRank() != 0) {
-      ErrorLog(header_error);
-      header_error.printf("Error while reading header of \"%s\"\n", filename);
-      switch (returned_num_params) {
-         case 0:
-            header_error.printf(
-                  "   Called with fewer than 2 params (%d); at least two are required.\n",
-                  returned_num_params);
-            break;
-         case -1: header_error.printf("   Error reading first two params from file"); break;
-         case -2:
-            header_error.printf(
-                  "   Header size %d and number of params %d in file are not compatible.\n",
-                  params[INDEX_HEADER_SIZE],
-                  params[INDEX_NUM_PARAMS]);
-            break;
-         default:
-            if (returned_num_params < (int)NUM_BIN_PARAMS) {
-               header_error.printf(
-                     "   Called with %d params but only %d params could be read from file.\n",
-                     (int)NUM_BIN_PARAMS,
-                     returned_num_params);
-            }
-            else {
-               header_error.printf(
-                     "   Called with %d params but file contains %d params.\n",
-                     (int)NUM_BIN_PARAMS,
-                     returned_num_params);
-            }
-            break;
-      }
-   }
-   abort();
-}
-
 int pvp_read_header(
       PV_Stream *pvstream,
       double *time,
@@ -1233,171 +1187,9 @@ int pvp_write_header(
 
 // Unused function pvp_set_activity_params was removed Jan 26, 2017.
 // Unused function pvp_set_weight_params was removed Jan 26, 2017.
-
-int *pvp_set_nonspiking_act_params(
-      MPIBlock const *mpiBlock,
-      double timed,
-      const PVLayerLoc *loc,
-      int datatype,
-      int numbands) {
-   int numParams = NUM_BIN_PARAMS;
-   int *params   = alloc_params(numParams);
-   assert(params != NULL);
-   params[INDEX_FILE_TYPE]   = PVP_NONSPIKING_ACT_FILE_TYPE;
-   params[INDEX_NX]          = loc->nxGlobal;
-   params[INDEX_NY]          = loc->nyGlobal;
-   params[INDEX_NF]          = loc->nf;
-   params[INDEX_NUM_RECORDS] = 1;
-   int datasize              = pv_sizeof(datatype);
-   params[INDEX_RECORD_SIZE] = loc->nxGlobal * loc->nyGlobal * loc->nf;
-   params[INDEX_DATA_SIZE]   = datasize;
-   params[INDEX_DATA_TYPE]   = datatype;
-   params[INDEX_NX_PROCS]    = 1;
-   params[INDEX_NY_PROCS]    = 1;
-   params[INDEX_NX_GLOBAL]   = loc->nxGlobal;
-   params[INDEX_NY_GLOBAL]   = loc->nyGlobal;
-   params[INDEX_KX0]         = 0;
-   params[INDEX_KY0]         = 0;
-   params[INDEX_NBATCH]      = loc->nbatch;
-   params[INDEX_NBANDS]      = numbands * loc->nbatch;
-   timeToParams(timed, &params[INDEX_TIME]);
-   return params;
-}
-
-int *pvp_set_kernel_params(
-      MPIBlock const *mpiBlock,
-      double timed,
-      const PVLayerLoc *loc,
-      int datatype,
-      int numbands,
-      int nxp,
-      int nyp,
-      int nfp,
-      float min,
-      float max,
-      int numPatches) {
-   int numParams = NUM_BIN_PARAMS;
-   int *params   = alloc_params(numParams);
-   assert(params != NULL);
-   params[INDEX_FILE_TYPE]   = PVP_KERNEL_FILE_TYPE;
-   params[INDEX_NX]          = loc->nxGlobal;
-   params[INDEX_NY]          = loc->nyGlobal;
-   params[INDEX_NF]          = loc->nf;
-   int datasize              = pv_sizeof(datatype);
-   params[INDEX_NUM_RECORDS] = numbands;
-   params[INDEX_RECORD_SIZE] = numPatches * (8 + datasize * nxp * nyp * nfp);
-   params[INDEX_DATA_SIZE]   = datasize;
-   params[INDEX_DATA_TYPE]   = datatype;
-   params[INDEX_NX_PROCS]    = 1;
-   params[INDEX_NY_PROCS]    = 1;
-   params[INDEX_NX_GLOBAL]   = loc->nxGlobal;
-   params[INDEX_NY_GLOBAL]   = loc->nyGlobal;
-   params[INDEX_KX0]         = 0;
-   params[INDEX_KY0]         = 0;
-   params[INDEX_NBATCH]      = loc->nbatch;
-   timeToParams(timed, &params[INDEX_TIME]);
-   set_weight_params(params, nxp, nyp, nfp, min, max, numPatches);
-   return params;
-}
-
-int *pvp_set_nonspiking_sparse_act_params(
-      MPIBlock const *mpiBlock,
-      double timed,
-      const PVLayerLoc *loc,
-      int datatype,
-      int numbands) {
-   int numParams = NUM_BIN_PARAMS;
-   int *params   = alloc_params(numParams);
-   assert(params != NULL);
-   params[INDEX_FILE_TYPE]   = PVP_ACT_SPARSEVALUES_FILE_TYPE;
-   params[INDEX_NX]          = loc->nxGlobal;
-   params[INDEX_NY]          = loc->nyGlobal;
-   params[INDEX_NF]          = loc->nf;
-   params[INDEX_NUM_RECORDS] = 1;
-   int datasize              = pv_sizeof(datatype);
-   params[INDEX_RECORD_SIZE] = loc->nxGlobal * loc->nyGlobal * loc->nf
-                               * datasize; // does not represent the size of the record in the file,
-   // but the size of the buffer
-   params[INDEX_DATA_SIZE] = datasize;
-   params[INDEX_DATA_TYPE] = datatype;
-   params[INDEX_NX_PROCS]  = 1;
-   params[INDEX_NY_PROCS]  = 1;
-   params[INDEX_NX_GLOBAL] = loc->nxGlobal;
-   params[INDEX_NY_GLOBAL] = loc->nyGlobal;
-   params[INDEX_KX0]       = 0;
-   params[INDEX_KY0]       = 0;
-   params[INDEX_NBANDS]    = numbands * loc->nbatch;
-   params[INDEX_NBATCH]    = loc->nbatch;
-   timeToParams(timed, &params[INDEX_TIME]);
-   return params;
-}
-
-int *alloc_params(int numParams) {
-   int *params = NULL;
-   if (numParams < 2) {
-      Fatal().printf(
-            "alloc_params must be called with at least two params (called with %d).\n", numParams);
-   }
-   params = (int *)calloc((size_t)numParams, sizeof(int));
-   if (params == NULL) {
-      Fatal().printf("alloc_params unable to allocate %d params: %s\n", numParams, strerror(errno));
-   }
-   params[INDEX_HEADER_SIZE] = sizeof(int) * numParams;
-   params[INDEX_NUM_PARAMS]  = numParams;
-   return params;
-}
-
-int set_weight_params(
-      int *params,
-      int nxp,
-      int nyp,
-      int nfp,
-      float min,
-      float max,
-      int numPatches) {
-   int *wgtParams           = &params[NUM_BIN_PARAMS];
-   wgtParams[INDEX_WGT_NXP] = nxp;
-   wgtParams[INDEX_WGT_NYP] = nyp;
-   wgtParams[INDEX_WGT_NFP] = nfp;
-   assert(sizeof(int) == sizeof(float));
-   union float_as_int {
-      float f;
-      int i;
-   };
-   union float_as_int p;
-   p.f                             = min;
-   wgtParams[INDEX_WGT_MIN]        = p.i;
-   p.f                             = max;
-   wgtParams[INDEX_WGT_MAX]        = p.i;
-   wgtParams[INDEX_WGT_NUMPATCHES] = numPatches;
-   return PV_SUCCESS;
-}
-
-int pvp_read_time(PV_Stream *pvstream, MPIBlock const *mpiBlock, int root_process, double *timed) {
-   // All processes call this routine simultaneously.
-   // from the file at the current location, loaded into the variable timed, and
-   // broadcast to all processes.  All processes have the same return value:
-   // PV_SUCCESS if the read was successful, PV_FAILURE if not.
-   int status = PV_SUCCESS;
-   struct timeandstatus {
-      int status;
-      double time;
-   };
-   struct timeandstatus mpi_data;
-   if (mpiBlock->getRank() == root_process) {
-      if (pvstream == NULL) {
-         ErrorLog().printf("pvp_read_time: root process called with null stream argument.\n");
-         abort();
-      }
-      int numread     = PV_fread(timed, sizeof(*timed), 1, pvstream);
-      mpi_data.status = (numread == 1) ? PV_SUCCESS : PV_FAILURE;
-      mpi_data.time   = *timed;
-   }
-   MPI_Bcast(&mpi_data, (int)sizeof(timeandstatus), MPI_CHAR, root_process, mpiBlock->getComm());
-   status = mpi_data.status;
-   *timed = mpi_data.time;
-   return status;
-}
+// Unused function pvp_set_nonspiking_act_params was removed Feb 21, 2017.
+// Unused function pvp_set_nonspiking_sparse_act_params was removed Feb 21, 2017.
+// Unused function alloc_params was removed Feb 21, 2017.
 
 // writeActivity and writeActivitySparse removed Feb 17, 2017.
 // Corresponding HyPerLayer methods now use BufferUtils routines

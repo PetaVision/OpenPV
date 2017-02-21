@@ -29,7 +29,6 @@ size_t pv_sizeof(int datatype);
 PV_Stream *PV_fopen(const char *path, const char *mode, bool verifyWrites);
 int PV_stat(const char *path, struct stat *buf);
 long int getPV_StreamFilepos(PV_Stream *pvstream);
-long int updatePV_StreamFilepos(PV_Stream *pvstream);
 long int PV_ftell(PV_Stream *pvstream);
 int PV_fseek(PV_Stream *pvstream, long int offset, int whence);
 size_t
@@ -61,11 +60,6 @@ int pvp_read_header(
       int params[],
       int *numParams);
 
-void read_header_err(
-      const char *filename,
-      MPIBlock const *mpiBlock,
-      int returned_num_params,
-      int *params);
 int pvp_write_header(PV_Stream *pvstream, MPIBlock const *mpiBlock, int *params, int numParams);
 
 // The pvp_write_header below will go away in favor of the pvp_write_header above.
@@ -84,12 +78,8 @@ int pvp_write_header(
 
 // Oct 21, 2016. pvp_set_file_params removed, as filetype PVP_FILE_TYPE is obsolete.
 
-// pvp_set_activity_params was removed Jan 26, 2017.
-
-int *alloc_params(int numParams);
-int set_weight_params(int *params, int nxp, int nyp, int nfp, float min, float max, int numPatches);
-
-int pvp_read_time(PV_Stream *pvstream, MPIBlock const *mpiBlock, int root_process, double *timed);
+// Unused function pvp_set_activity_params was removed Jan 26, 2017.
+// Unused function alloc_params was removed Feb 21, 2017.
 
 // writeActivity and writeActivitySparse removed Feb 17, 2017.
 // Corresponding HyPerLayer methods now use BufferUtils routines
