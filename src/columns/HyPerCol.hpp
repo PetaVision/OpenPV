@@ -164,22 +164,9 @@ class HyPerCol : public Subject, Observer {
    virtual void ioParam_writeProgressToErr(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief verifyWrites: If true, calls to PV_fwrite are checked by opening the
-    * file in read mode
-    * and reading back the data and comparing it to the data just written.
-    */
-   virtual void ioParam_verifyWrites(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief mOutputPath: Specifies the absolute or relative output path of the
-    * run
-    */
-   virtual void ioParam_outputPath(enum ParamsIOFlag ioFlag);
-
-   /**
     * @brief mPrintParamsFilename: Specifies the output mParams filename.
-    * @details Defaults to pv.mParams. The output mParams file will be put into
-    * mOutputPath.
+    * @details Defaults to pv.params. Relative paths are relative to
+    * the OutputPath.
     */
    virtual void ioParam_printParamsFilename(enum ParamsIOFlag ioFlag);
 
@@ -291,7 +278,7 @@ class HyPerCol : public Subject, Observer {
 
    BaseConnection *getConnection(int which) { return mConnections.at(which); }
    BaseProbe *getBaseProbe(int which) { return mBaseProbes.at(which); }
-   bool getVerifyWrites() { return mVerifyWrites; }
+   bool getVerifyWrites() { return mCheckpointer->doesVerifyWrites(); }
    bool getDefaultInitializeFromCheckpointFlag() {
       return mCheckpointer->getDefaultInitializeFromCheckpointFlag();
    }
@@ -300,7 +287,7 @@ class HyPerCol : public Subject, Observer {
    char const *getLastCheckpointDir() const { return mCheckpointer->getLastCheckpointDir(); }
    bool getWriteTimescales() const { return mWriteTimescales; }
    const char *getName() { return mName; }
-   const char *getOutputPath() { return mOutputPath; }
+   const char *getOutputPath() { return mCheckpointer->getOutputPath().c_str(); }
    const char *getInitializeFromCheckpointDir() const {
       return mCheckpointer->getInitializeFromCheckpointDir();
    }
@@ -413,14 +400,11 @@ class HyPerCol : public Subject, Observer {
    bool mWriteProgressToErr; // Whether to write progress step to standard error
    // (True) or standard
    // output (False) (default is output)
-   bool mVerifyWrites; // Flag to indicate whether calls to PV_fwrite do a
-   // readback check
    bool mOwnsCommunicator; // True if icComm was created by initialize, false if
    // passed in the
    // constructor
    bool mWriteTimescales;
    char *mName;
-   char *mOutputPath; // path to output file directory
    char *mPrintParamsFilename; // filename for outputting the mParams, including
    // defaults and
    // excluding unread mParams

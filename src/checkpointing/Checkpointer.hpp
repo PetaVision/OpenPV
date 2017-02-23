@@ -32,6 +32,19 @@ class Checkpointer : public Subject {
     */
 
    /**
+    * @brief verifyWrites: If true, calls to PV_fwrite are checked by opening the
+    * file in read mode
+    * and reading back the data and comparing it to the data just written.
+    */
+   virtual void ioParam_verifyWrites(enum ParamsIOFlag ioFlag, PVParams *params);
+
+   /**
+    * @brief mOutputPath: Specifies the absolute or relative output path of the
+    * run
+    */
+   virtual void ioParam_outputPath(enum ParamsIOFlag ioFlag, PVParams *params);
+
+   /**
     * @brief checkpointWrite: Flag to determine if the run writes checkpoints.
     */
    void ioParam_checkpointWrite(enum ParamsIOFlag ioFlag, PVParams *params);
@@ -169,7 +182,6 @@ class Checkpointer : public Subject {
    void registerTimer(Timer const *timer);
    virtual void addObserver(Observer *observer, BaseMessage const &message) override;
 
-   void setVerifyWrites(bool verifyWritesFlag) { mVerifyWritesFlag = verifyWritesFlag; }
    void readNamedCheckpointEntry(std::string const &objName, std::string const &dataName);
    void readNamedCheckpointEntry(std::string const &checkpointEntryName);
    void checkpointRead(double *simTimePointer, long int *currentStepPointer);
@@ -178,7 +190,8 @@ class Checkpointer : public Subject {
    void writeTimers(PrintStream &stream) const;
 
    MPIBlock const *getMPIBlock() { return mMPIBlock; }
-   bool doesVerifyWrites() { return mVerifyWritesFlag; }
+   bool doesVerifyWrites() { return mVerifyWrites; }
+   std::string const &getOutputPath() { return mOutputPath; }
    bool getCheckpointWriteFlag() const { return mCheckpointWriteFlag; }
    char const *getCheckpointWriteDir() const { return mCheckpointWriteDir; }
    enum CheckpointWriteTriggerMode getCheckpointWriteTriggerMode() const {
@@ -234,7 +247,8 @@ class Checkpointer : public Subject {
    TimeInfo mTimeInfo;
    std::shared_ptr<CheckpointEntryData<TimeInfo>> mTimeInfoCheckpointEntry = nullptr;
    bool mWarmStart                                                         = false;
-   bool mVerifyWritesFlag                                                  = true;
+   bool mVerifyWrites                                                      = true;
+   std::string mOutputPath                                                 = "";
    bool mCheckpointWriteFlag                                               = false;
    char *mCheckpointWriteDir                                               = nullptr;
    char *mCheckpointWriteTriggerModeString                                 = nullptr;

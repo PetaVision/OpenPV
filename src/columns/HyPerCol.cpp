@@ -6,9 +6,7 @@
  */
 
 #define TIMER_ON
-#define DEFAULT_OUTPUT_PATH "output/"
 #define DEFAULT_DELTA_T 1.0 // time step size (msec)
-#define DEFAULT_NUMSTEPS 1
 
 #include "HyPerCol.hpp"
 #include "columns/Communicator.hpp"
@@ -81,7 +79,6 @@ HyPerCol::~HyPerCol() {
    delete mRunTimer;
    // TODO: Change these old C strings into std::string
    free(mPrintParamsFilename);
-   free(mOutputPath);
    free(mName);
 }
 
@@ -109,7 +106,6 @@ int HyPerCol::initialize_base() {
    mNormalizers.clear(); // Pretty sure these aren't necessary
    mLayerStatus          = nullptr;
    mConnectionStatus     = nullptr;
-   mOutputPath           = nullptr;
    mPrintParamsFilename  = nullptr;
    mPrintParamsStream    = nullptr;
    mLuaPrintParamsStream = nullptr;
@@ -128,7 +124,6 @@ int HyPerCol::initialize_base() {
    mErrorOnNotANumber = false;
    mNumThreads        = 1;
    mRecvLayerBuffer.clear();
-   mVerifyWrites = true; // Default for reading back and verifying when calling PV_fwrite
 #ifdef PV_USE_CUDA
    mCudaDevice = nullptr;
    mGpuGroupConns.clear();
@@ -185,12 +180,6 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
 #endif
    if (parsedStatus != 0) {
       exit(parsedStatus);
-   }
-
-   std::string pvinit_outputPath = mPVInitObj->getStringArgument("OutputPath");
-   if (!pvinit_outputPath.empty()) {
-      mOutputPath = strdup(expandLeadingTilde(pvinit_outputPath).c_str());
-      FatalIf(mOutputPath == nullptr, "HyPerCol::initialize unable to copy output path.\n");
    }
 
    mRandomSeed = mPVInitObj->getUnsignedIntArgument("RandomSeed");
@@ -273,9 +262,6 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_stopTime(ioFlag);
    ioParam_progressInterval(ioFlag);
    ioParam_writeProgressToErr(ioFlag);
-   ioParam_outputPath(ioFlag);
-   ioParam_verifyWrites(ioFlag);
-   mCheckpointer->setVerifyWrites(mVerifyWrites);
    mCheckpointer->ioParams(ioFlag, parameters());
    ioParam_printParamsFilename(ioFlag);
    ioParam_randomSeed(ioFlag);
@@ -510,37 +496,6 @@ void HyPerCol::ioParam_writeProgressToErr(enum ParamsIOFlag ioFlag) {
          ioFlag, mName, "writeProgressToErr", &mWriteProgressToErr, mWriteProgressToErr);
 }
 
-void HyPerCol::ioParam_verifyWrites(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, mName, "verifyWrites", &mVerifyWrites, mVerifyWrites);
-}
-
-void HyPerCol::ioParam_outputPath(enum ParamsIOFlag ioFlag) {
-   // If mOutputPath is set on the command line, it overrides params file.
-   switch (ioFlag) {
-      case PARAMS_IO_READ:
-         if (mOutputPath == nullptr) {
-            if (mParams->stringPresent(mName, "outputPath")) {
-               const char *strval = mParams->stringValue(mName, "outputPath");
-               pvAssert(strval);
-               mOutputPath = strdup(strval);
-               pvAssert(mOutputPath != nullptr);
-            }
-            else {
-               mOutputPath = strdup(DEFAULT_OUTPUT_PATH);
-               FatalIf(mOutputPath == nullptr, "Unable to copy default output path\n");
-               WarnLog().printf(
-                     "Output path specified neither in command line nor in "
-                     "params file.\n"
-                     "Output path set to default \"%s\"\n",
-                     DEFAULT_OUTPUT_PATH);
-            }
-         }
-         break;
-      case PARAMS_IO_WRITE: parameters()->writeParamString("outputPath", mOutputPath); break;
-      default: break;
-   }
-}
-
 void HyPerCol::ioParam_printParamsFilename(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamString(
          ioFlag, mName, "printParamsFilename", &mPrintParamsFilename, "pv.params");
@@ -692,7 +647,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
       pvAssert(mPrintParamsFilename && mPrintParamsFilename[0]);
       std::string printParamsFileString("");
       if (mPrintParamsFilename[0] != '/') {
-         printParamsFileString += mOutputPath;
+         printParamsFileString += mCheckpointer->getOutputPath();
          printParamsFileString += "/";
       }
       printParamsFileString += mPrintParamsFilename;

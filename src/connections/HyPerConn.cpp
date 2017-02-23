@@ -1989,7 +1989,6 @@ int HyPerConn::writeWeights(
       bool compressWeights,
       bool last) {
    int status = PV_SUCCESS;
-   char path[PV_PATH_MAX];
 
    float minVal = FLT_MAX;
    float maxVal = -FLT_MAX;
@@ -2005,27 +2004,23 @@ int HyPerConn::writeWeights(
    const PVLayerLoc *preLoc  = pre->getLayerLoc();
    const PVLayerLoc *postLoc = post->getLayerLoc();
 
-   int chars_needed = 0;
-   if (filename == NULL) {
-      chars_needed = snprintf(path, PV_PATH_MAX, "%s/%s.pvp", parent->getOutputPath(), name);
+   std::string path;
+   if (filename == nullptr) {
+      path = parent->getOutputPath();
+      path.append("/").append(name).append(".pvp");
    }
    else {
-      chars_needed = snprintf(path, PV_PATH_MAX, "%s", filename);
-   }
-   if (chars_needed >= PV_PATH_MAX) {
-      Fatal().printf(
-            "HyPerConn::writeWeights in %s: path is too long (it would be cut off as \"%s\")\n",
-            getDescription_c(),
-            path);
+      path = filename;
    }
 
-   Communicator *comm = parent->getCommunicator();
+   MPIBlock const *mpiBlock = parent->getCommunicator()->getLocalMPIBlock();
+   Communicator *comm       = parent->getCommunicator();
 
    bool append = last ? false : ioAppend;
 
    status = PV::writeWeights(
-         path,
-         comm->getLocalMPIBlock(),
+         path.c_str(),
+         mpiBlock,
          (double)timed,
          append,
          preLoc,
@@ -2048,7 +2043,7 @@ int HyPerConn::writeWeights(
    return status;
 }
 
-int HyPerConn::writeTextWeights(const char *filename, int k) {
+int HyPerConn::writeTextWeights(const char *path, int k) {
    if (parent->getCommunicator()->commSize() > 1) {
       Fatal().printf(
             "writeTextWeights error for %s: writeTextWeights is not compatible with MPI",
@@ -2058,17 +2053,11 @@ int HyPerConn::writeTextWeights(const char *filename, int k) {
    }
    PrintStream *outStream = nullptr;
 
-   if (filename != nullptr) {
-      char outfile[PV_PATH_MAX];
-      snprintf(outfile, PV_PATH_MAX - 1, "%s/%s", parent->getOutputPath(), filename);
-      outStream = new FileStream(outfile, std::ios_base::out, parent->getVerifyWrites());
+   if (path != nullptr) {
+      outStream = new FileStream(path, std::ios_base::out, parent->getVerifyWrites());
    }
    else {
       outStream = new PrintStream(getOutputStream());
-   }
-   if (outStream == nullptr) {
-      ErrorLog().printf("writeWeights: unable to open file \"%s\"\n", filename);
-      return PV_FAILURE;
    }
 
    outStream->printf("Weights for %s, neuron %d\n", getDescription_c(), k);
@@ -4450,7 +4439,6 @@ int HyPerConn::postSynapticPatchHead(
 
 int HyPerConn::writePostSynapticWeights(double timef, bool last) {
    int status = PV_SUCCESS;
-   char path[PV_PATH_MAX];
 
    const PVLayerLoc *preLoc = pre->getLayerLoc();
 
@@ -4478,8 +4466,8 @@ int HyPerConn::writePostSynapticWeights(double timef, bool last) {
 
    const char *last_str = (last) ? "_last" : "";
 
-   int chars_needed = snprintf(
-         path, PV_PATH_MAX - 1, "%s/%s_post%s.pvp", parent->getOutputPath(), name, last_str);
+   std::string path(parent->getOutputPath());
+   path.append("/").append(name).append("_post").append(last_str).append(".pvp");
 
    const PVLayerLoc *postLoc = post->getLayerLoc();
    Communicator *comm        = parent->getCommunicator();
@@ -4487,7 +4475,7 @@ int HyPerConn::writePostSynapticWeights(double timef, bool last) {
    bool append = (last) ? false : ioAppend;
 
    status = PV::writeWeights(
-         path,
+         path.c_str(),
          comm->getLocalMPIBlock(),
          (double)timef,
          append,
