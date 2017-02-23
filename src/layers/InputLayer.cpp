@@ -27,47 +27,6 @@ int InputLayer::allocateDataStructures() {
       return status;
    }
 
-   if (mWriteFrameToTimestamp) {
-      std::string timestampFilename =
-            std::string(parent->getOutputPath()) + std::string("/timestamps/");
-      ensureDirExists(parent->getCommunicator()->getLocalMPIBlock(), timestampFilename.c_str());
-      timestampFilename += name + std::string(".txt");
-      if (getParent()->getCommunicator()->commRank() == 0) {
-         std::string cpFileStreamLabel(getName());
-         cpFileStreamLabel.append("_TimestampState");
-         // If checkpoint read is set, append, otherwise, clobber
-         if (getParent()->getCheckpointReadFlag()) {
-            struct stat statbuf;
-            if (PV_stat(timestampFilename.c_str(), &statbuf) != 0) {
-               WarnLog().printf(
-                     "%s: timestamp file \"%s\" unable to be found.  Creating new file.\n",
-                     getDescription_c(),
-                     timestampFilename.c_str());
-               mTimestampStream = new CheckpointableFileStream(
-                     timestampFilename.c_str(),
-                     std::ios_base::out,
-                     cpFileStreamLabel,
-                     parent->getVerifyWrites());
-            }
-            else {
-               mTimestampStream = new CheckpointableFileStream(
-                     timestampFilename.c_str(),
-                     std::ios_base::in | std::ios_base::out,
-                     cpFileStreamLabel,
-                     false);
-            }
-         }
-         else {
-            mTimestampStream = new CheckpointableFileStream(
-                  timestampFilename.c_str(),
-                  std::ios_base::out,
-                  cpFileStreamLabel,
-                  parent->getVerifyWrites());
-         }
-         pvAssert(mTimestampStream);
-      }
-   }
-
    int numBatch = parent->getNBatch();
 
    if (parent->columnId() == 0) {
@@ -133,11 +92,10 @@ bool InputLayer::readyForNextFile() {
 }
 
 int InputLayer::updateState(double time, double dt) {
-   Communicator *icComm = getParent()->getCommunicator();
    if (readyForNextFile()) {
 
       // Write file path to timestamp file
-      if (icComm->commRank() == 0 && mTimestampStream) {
+      if (mTimestampStream) {
          std::ostringstream outStrStream;
          outStrStream.precision(15);
          int kb0 = getLayerLoc()->kb0;
@@ -430,8 +388,17 @@ int InputLayer::registerData(Checkpointer *checkpointer, std::string const &objN
    if (parent->getCommunicator()->commRank() == 0) {
       mBatchIndexer->registerData(checkpointer, objName);
    }
-   if (mTimestampStream) {
-      mTimestampStream->registerData(checkpointer, objName);
+
+   if (mWriteFrameToTimestamp) {
+      if (checkpointer->getMPIBlock()->getRank() == 0) {
+         std::string timestampFilename = std::string("timestamps/");
+         timestampFilename += name + std::string(".txt");
+         std::string cpFileStreamLabel(getName());
+         cpFileStreamLabel.append("_TimestampState");
+         bool needToCreateFile = checkpointer->getCheckpointReadDirectory().empty();
+         mTimestampStream      = new CheckpointableFileStream(
+               timestampFilename, needToCreateFile, checkpointer, cpFileStreamLabel);
+      }
    }
    return status;
 }

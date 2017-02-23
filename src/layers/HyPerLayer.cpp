@@ -1244,60 +1244,15 @@ int HyPerLayer::openOutputStateFile(Checkpointer *checkpointer) {
    mOutputStateMPIBlock = checkpointer->getMPIBlock();
 
    if (checkpointer->getMPIBlock()->getRank() == 0) {
-      std::string outputStatePath(parent->getOutputPath());
-      outputStatePath.append("/");
-      std::string const &blockDirectoryName = checkpointer->getBlockDirectoryName();
-      if (!blockDirectoryName.empty()) {
-         outputStatePath.append(blockDirectoryName).append("/");
-      }
-      outputStatePath.append(name);
+      std::string outputStatePath(getName());
       outputStatePath.append(".pvp");
 
-      // If the file at outputStatePath already exists, append to it, and
-      // and initialize writeActivityCalls or writeSparseActivityCalls with
-      // the value in the header.
-      // Only the root process uses these member variables so we don't need to do any MPI.
-      bool appendFlag = !checkpointer->getCheckpointReadDirectory().empty();
-      if (appendFlag) {
-         struct stat statbuffer;
-         int filestatus = stat(outputStatePath.c_str(), &statbuffer);
-         if (filestatus == 0) {
-            if (statbuffer.st_size == (off_t)0) {
-               appendFlag = false;
-            }
-         }
-         else {
-            if (errno == ENOENT) {
-               appendFlag = false;
-            }
-            else {
-               ErrorLog().printf(
-                     "HyPerLayer::openOutputStateFile: stat \"%s\": %s\n",
-                     outputStatePath.c_str(),
-                     strerror(errno));
-               abort();
-            }
-         }
-      }
-      if (appendFlag) {
-         FileStream fileStream(
-               outputStatePath.c_str(), std::ios_base::in, false /*do not verify writes*/);
-         BufferUtils::ActivityHeader header = BufferUtils::readActivityHeader(fileStream);
-         if (sparseLayer) {
-            writeActivitySparseCalls = header.nBands;
-         }
-         else {
-            writeActivityCalls = header.nBands;
-         }
-      }
-      std::ios_base::openmode mode = std::ios_base::out;
-      if (appendFlag) {
-         mode |= std::ios_base::in;
-      }
       std::string checkpointLabel(getName());
       checkpointLabel.append("_filepos");
+
+      bool createFlag    = checkpointer->getCheckpointReadDirectory().empty();
       mOutputStateStream = new CheckpointableFileStream(
-            outputStatePath.c_str(), mode, checkpointLabel, parent->getVerifyWrites());
+            outputStatePath.c_str(), createFlag, checkpointer, checkpointLabel);
    }
    return PV_SUCCESS;
 }
@@ -1683,9 +1638,6 @@ int HyPerLayer::registerData(Checkpointer *checkpointer, std::string const &objN
                (std::size_t)1,
                true /*broadcast*/);
       }
-   }
-   if (mOutputStateStream) {
-      mOutputStateStream->registerData(checkpointer, objName);
    }
 
    if (getNumDelayLevels() > 1) {
@@ -2203,7 +2155,22 @@ int HyPerLayer::readDelaysFromCheckpoint(Checkpointer *checkpointer) {
 // They were only used by checkpointing, which is now handled by the
 // CheckpointEntry class hierarchy.
 
-int HyPerLayer::processCheckpointRead() { return updateAllActiveIndices(); }
+int HyPerLayer::processCheckpointRead() {
+   if (mOutputStateStream) {
+      long fpos = mOutputStateStream->getInPos();
+      if (fpos > 0L) {
+         BufferUtils::ActivityHeader header = BufferUtils::readActivityHeader(*mOutputStateStream);
+         if (sparseLayer) {
+            writeActivitySparseCalls = header.nBands;
+         }
+         else {
+            writeActivityCalls = header.nBands;
+         }
+      }
+      mOutputStateStream->setInPos(fpos, true);
+   }
+   return updateAllActiveIndices();
+}
 
 int HyPerLayer::writeActivitySparse(double timed, bool includeValues) {
    PVLayerCube cube      = publisher->createCube(0);

@@ -82,6 +82,16 @@ void Checkpointer::initBlockDirectoryName() {
    }
 }
 
+std::string Checkpointer::makeOutputPathFilename(std::string const &path) {
+   FatalIf(path[0] == '/', "makeOutputPathFilename called with absolute path argument\n");
+   std::string fullPath(mOutputPath);
+   if (!mBlockDirectoryName.empty()) {
+      fullPath.append("/").append(mBlockDirectoryName);
+   }
+   fullPath.append("/").append(path);
+   return fullPath;
+}
+
 void Checkpointer::ioParams(enum ParamsIOFlag ioFlag, PVParams *params) {
    ioParamsFillGroup(ioFlag, params);
 

@@ -165,6 +165,14 @@ class Checkpointer : public Subject {
          Arguments const *arguments);
    ~Checkpointer();
 
+   /**
+    * Given a relative path, returns a full path consisting of the effective
+    * output directory for the process's checkpoint cell, followed by "/",
+    * followed by the given relative path. It is a fatal error for the path to
+    * be an absolute path (i.e. starting with '/').
+    */
+   std::string makeOutputPathFilename(std::string const &path);
+
    void ioParams(enum ParamsIOFlag ioFlag, PVParams *params);
    void provideFinalStep(long int finalStep);
 
@@ -179,6 +187,7 @@ class Checkpointer : public Subject {
    bool registerCheckpointEntry(
          std::shared_ptr<CheckpointEntry> checkpointEntry,
          bool constantEntireRun = false);
+
    void registerTimer(Timer const *timer);
    virtual void addObserver(Observer *observer, BaseMessage const &message) override;
 
