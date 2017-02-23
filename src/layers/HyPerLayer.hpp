@@ -397,7 +397,7 @@ class HyPerLayer : public BaseLayer {
    static bool localDimensionsEqual(PVLayerLoc const *loc1, PVLayerLoc const *loc2);
    int mirrorInteriorToBorder(PVLayerCube *cube, PVLayerCube *borderCube);
 
-   virtual int outputState(double timef, bool last = false);
+   virtual int outputState(double timef);
    virtual int writeActivity(double timed);
    virtual int writeActivitySparse(double timed, bool includeValues);
 

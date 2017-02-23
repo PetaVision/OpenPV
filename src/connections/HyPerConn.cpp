@@ -1956,7 +1956,7 @@ int HyPerConn::initializeReceivePostKernelArgs() {
 }
 #endif
 
-int HyPerConn::writeWeights(double timed, bool last) {
+int HyPerConn::writeWeights(double timed) {
    PVPatch ***patches_arg = sharedWeights ? NULL : wPatches;
    return writeWeights(
          patches_arg,
@@ -1965,7 +1965,7 @@ int HyPerConn::writeWeights(double timed, bool last) {
          NULL,
          timed,
          writeCompressedWeights,
-         last);
+         false);
 }
 
 int HyPerConn::writeWeights(const char *filename) {
@@ -2270,24 +2270,18 @@ int HyPerConn::outputProbeParams() {
    return status;
 }
 
-int HyPerConn::outputState(double timef, bool last) {
+int HyPerConn::outputState(double timef) {
    int status = 0;
    io_timer->start();
 
-   if (!last) {
-      for (int i = 0; i < numProbes; i++) {
-         probes[i]->outputStateWrapper(timef, parent->getDeltaTime());
-      }
+   for (int i = 0; i < numProbes; i++) {
+      probes[i]->outputStateWrapper(timef, parent->getDeltaTime());
    }
 
-   if (last) {
-      status = writeWeights(timef, last);
-      pvAssert(status == 0);
-   }
-   else if ((writeStep >= 0) && (timef >= writeTime)) {
+   if ((writeStep >= 0) && (timef >= writeTime)) {
       writeTime += writeStep;
 
-      status = writeWeights(timef, last);
+      status = writeWeights(timef);
       pvAssert(status == 0);
 
       // append to output file after original open

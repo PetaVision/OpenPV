@@ -80,7 +80,7 @@ class BaseConnection : public BaseObject {
     * For example, HyPerConn writes the weights to a .pvp file with a schedule defined by
     * writeStep and initialWriteTime.
     */
-   virtual int outputState(double timed, bool last = false) = 0;
+   virtual int outputState(double timed) = 0;
 
    /**
     * A pure virtual function for updating the state of the connection.

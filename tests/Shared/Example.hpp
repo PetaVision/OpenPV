@@ -21,7 +21,7 @@ class Example : public PV::HyPerLayer {
 
    virtual int initFinish(int colId, int colRow, int colCol);
 
-   virtual int outputState(double timef, bool last = false);
+   virtual int outputState(double timef);
 };
 }
 

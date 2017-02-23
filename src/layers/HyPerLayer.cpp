@@ -2096,7 +2096,7 @@ int HyPerLayer::outputProbeParams() {
    return status;
 }
 
-int HyPerLayer::outputState(double timef, bool last) {
+int HyPerLayer::outputState(double timef) {
    int status = PV_SUCCESS;
 
    io_timer->start();

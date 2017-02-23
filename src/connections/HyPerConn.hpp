@@ -77,7 +77,7 @@ class HyPerConn : public BaseConnection {
 
    virtual int insertProbe(BaseConnectionProbe *p) override;
    int outputProbeParams() override;
-   virtual int outputState(double time, bool last = false) override;
+   virtual int outputState(double time) override;
    virtual int updateState(double time, double dt) override;
    virtual int finalizeUpdate(double timed, double dt) override;
    virtual bool needUpdate(double time, double dt) override;
@@ -92,7 +92,7 @@ class HyPerConn : public BaseConnection {
          int kExt);
 
    virtual double computeNewWeightUpdateTime(double time, double currentUpdateTime);
-   virtual int writeWeights(double timed, bool last = false);
+   virtual int writeWeights(double timed);
    virtual int writeWeights(const char *filename);
    virtual int writeWeights(
          PVPatch ***patches,
