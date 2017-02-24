@@ -647,7 +647,7 @@ int getNumGlobalPatches(PVLayerLoc const *loc, bool asPostWeights) {
 int pvp_copy_patches(
       unsigned char *buf,
       PVPatch **patches,
-      float *dataStart,
+      float const *dataStart,
       int numDataPatches,
       int nxp,
       int nyp,
@@ -1089,19 +1089,6 @@ int pvp_read_header(
    return status;
 }
 
-int pvp_write_header(PV_Stream *pvstream, MPIBlock const *mpiBlock, int *params, int numParams) {
-   int status   = PV_SUCCESS;
-   int rootproc = 0;
-   int rank     = mpiBlock->getRank();
-   if (rank == rootproc) {
-      if ((int)PV_fwrite(params, sizeof(int), numParams, pvstream) != numParams) {
-         status = -1;
-      }
-   }
-
-   return status;
-}
-
 int pvp_write_header(
       PV_Stream *pvstream,
       MPIBlock const *mpiBlock,
@@ -1280,7 +1267,7 @@ int readWeights(
    if (cbuf == NULL) {
       Fatal(errorMessage);
       errorMessage.printf(
-            "Rank %d: writeWeights unable to allocate memory to write to \"%s\": %s",
+            "Rank %d: readWeights unable to allocate memory to write to \"%s\": %s",
             icRank,
             filename,
             strerror(errno));
@@ -1512,6 +1499,53 @@ int pv_text_write_patch(
    }
 
    return 0;
+}
+
+void writeSharedWeights(
+      FileStream *fileStream,
+      MPIBlock const *mpiBlock,
+      double timed,
+      PVLayerLoc const *preLoc,
+      int nxp,
+      int nyp,
+      int nfp,
+      float minVal,
+      float maxVal,
+      float **dataStart,
+      int numPatches,
+      int numArbors,
+      bool compress) {
+   if (fileStream == nullptr) {
+      return;
+   }
+
+   PVHalo const &halo = preLoc->halo;
+   int const nx       = preLoc->nx * mpiBlock->getNumColumns() * halo.lt + halo.rt;
+   int const ny       = preLoc->nx * mpiBlock->getNumRows() * halo.dn + halo.up;
+   int const nf       = preLoc->nf;
+   int const nbatch   = preLoc->nbatch * mpiBlock->getBatchDimension();
+   BufferUtils::WeightHeader header;
+   std::size_t patchSize;
+   if (compress) {
+      header = BufferUtils::buildWeightHeader<unsigned char>(
+            nxp, nyp, nfp, numPatches, numArbors, true, nx, ny, nf, nbatch, minVal, maxVal);
+      patchSize = BufferUtils::weightPatchSize<unsigned char>(nxp * nyp * nfp);
+   }
+   else {
+      header = BufferUtils::buildWeightHeader<float>(
+            nxp, nyp, nfp, numPatches, numArbors, true, nx, ny, nf, nbatch, minVal, maxVal);
+      patchSize = BufferUtils::weightPatchSize<float>(nxp * nyp * nfp);
+   }
+   fileStream->write(&header, sizeof(header));
+
+   std::size_t const localSize = (std::size_t)numPatches * patchSize;
+   std::vector<unsigned char> cbuf(localSize);
+   for (int arbor = 0; arbor < numArbors; arbor++) {
+      float const *arborStart = dataStart[arbor];
+      pvp_copy_patches(
+            cbuf.data(), nullptr, arborStart, numPatches, nxp, nyp, nfp, minVal, maxVal, compress);
+      fileStream->write(cbuf.data(), cbuf.size());
+   }
 }
 
 int writeWeights(

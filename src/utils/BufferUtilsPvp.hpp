@@ -43,6 +43,13 @@ struct ActivityHeader {
    double timestamp;
 };
 
+struct WeightHeader {
+   ActivityHeader baseHeader;
+   int nxp, nyp, nfp;
+   float minVal, maxVal;
+   int numPatches;
+};
+
 template <typename T>
 void writeFrame(FileStream &fStream, Buffer<T> *buffer, double timeStamp);
 
@@ -53,10 +60,10 @@ template <typename T>
 BufferUtils::HeaderDataType returnDataType();
 
 template <typename T>
-struct ActivityHeader buildActivityHeader(int width, int height, int features, int numFrames);
+ActivityHeader buildActivityHeader(int width, int height, int features, int numFrames);
 
 template <typename T>
-struct ActivityHeader buildSparseActivityHeader(int width, int height, int features, int numFrames);
+ActivityHeader buildSparseActivityHeader(int width, int height, int features, int numFrames);
 
 template <typename T>
 void writeToPvp(const char *fName, Buffer<T> *buffer, double timeStamp, bool verifyWrites = false);
@@ -78,7 +85,11 @@ void appendToPvp(
  * it is initialized.
  */
 template <typename T>
-double readActivityFromPvp(char const *fName, Buffer<T> *buffer, int frameReadIndex, BufferUtils::SparseFileTable *const sparseFileTable);
+double readActivityFromPvp(
+      char const *fName,
+      Buffer<T> *buffer,
+      int frameReadIndex,
+      BufferUtils::SparseFileTable *const sparseFileTable);
 
 /**
  * Reads a frame from a nonspiking activity layer into a buffer. If the file type
@@ -127,7 +138,11 @@ double readSparseFromPvp(
  * Use the readSparseFromPvp function to get the SparseList or SparseFileTable.
  */
 template <typename T>
-double readDenseFromSparsePvp(char const *fName, Buffer<T> *buffer, int frameReadIndex, SparseFileTable *sparseFileTable);
+double readDenseFromSparsePvp(
+      char const *fName,
+      Buffer<T> *buffer,
+      int frameReadIndex,
+      SparseFileTable *sparseFileTable);
 
 template <typename T>
 double readSparseBinaryFromPvp(
@@ -143,11 +158,33 @@ double readSparseBinaryFromPvp(
  * Use the readSparseBinaryFromPvp function to get the SparseList or SparseFileTable.
  */
 template <typename T>
-double readDenseFromSparseBinaryPvp(char const *fName, Buffer<T> *buffer, int frameReadIndex, SparseFileTable *sparseFileTable);
+double readDenseFromSparseBinaryPvp(
+      char const *fName,
+      Buffer<T> *buffer,
+      int frameReadIndex,
+      SparseFileTable *sparseFileTable);
 
-static void writeActivityHeader(FileStream &fStream, struct ActivityHeader const &header);
-static struct ActivityHeader readActivityHeader(FileStream &fStream);
+static void writeActivityHeader(FileStream &fStream, ActivityHeader const &header);
+static ActivityHeader readActivityHeader(FileStream &fStream);
 static SparseFileTable buildSparseFileTable(FileStream &fStream, int upToIndex);
+
+template <typename T>
+std::size_t weightPatchSize(int numWeightsInPatch);
+
+template <typename T>
+WeightHeader buildWeightHeader(
+      int nxp,
+      int nyp,
+      int nfp,
+      int numPatches,
+      int numArbors,
+      bool shared,
+      int preLayerWidth,
+      int preLayerHeight,
+      int preLayerFeatures,
+      int batchWidth,
+      float minVal,
+      float maxVal);
 }
 }
 

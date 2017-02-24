@@ -2018,24 +2018,50 @@ int HyPerConn::writeWeights(
 
    bool append = last ? false : ioAppend;
 
-   status = PV::writeWeights(
-         path.c_str(),
-         mpiBlock,
-         (double)timed,
-         append,
-         preLoc,
-         postLoc,
-         nxp,
-         nyp,
-         nfp,
-         minVal,
-         maxVal,
-         patches,
-         dataStart,
-         numPatches,
-         numberOfAxonalArborLists(),
-         compressWeights,
-         fileType);
+   if (sharedWeights) {
+      if (mpiBlock->getRank() == 0) {
+         std::ios_base::openmode mode = std::ios_base::out;
+         if (append) {
+            mode |= std::ios_base::app;
+         }
+         FileStream fileStream(path.c_str(), mode, parent->getVerifyWrites());
+         writeSharedWeights(
+               &fileStream,
+               mpiBlock,
+               timed,
+               preLoc,
+               nxp,
+               nyp,
+               nfp,
+               minVal,
+               maxVal,
+               dataStart,
+               numPatches,
+               numberOfAxonalArborLists(),
+               compressWeights);
+      }
+   }
+   else {
+      status = PV::writeWeights(
+            path.c_str(),
+            mpiBlock,
+            (double)timed,
+            append,
+            preLoc,
+            postLoc,
+            nxp,
+            nyp,
+            nfp,
+            minVal,
+            maxVal,
+            patches,
+            dataStart,
+            numPatches,
+            numberOfAxonalArborLists(),
+            compressWeights,
+            fileType);
+   }
+
    if (status != PV_SUCCESS) {
       Fatal().printf("%s error in writing weights.\n", getDescription_c());
    }

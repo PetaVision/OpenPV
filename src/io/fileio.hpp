@@ -60,9 +60,6 @@ int pvp_read_header(
       int params[],
       int *numParams);
 
-int pvp_write_header(PV_Stream *pvstream, MPIBlock const *mpiBlock, int *params, int numParams);
-
-// The pvp_write_header below will go away in favor of the pvp_write_header above.
 int pvp_write_header(
       PV_Stream *pvstream,
       MPIBlock const *mpiBlock,
@@ -107,6 +104,21 @@ int pv_text_write_patch(
       int sx,
       int sy,
       int sf);
+
+void writeSharedWeights(
+      FileStream *fileStream,
+      MPIBlock const *mpiBlock,
+      double timed,
+      PVLayerLoc const *preLoc,
+      int nxp,
+      int nyp,
+      int nfp,
+      float minVal,
+      float maxVal,
+      float **dataStart,
+      int numPatches,
+      int numArbors,
+      bool compress);
 
 int writeWeights(
       const char *filename,

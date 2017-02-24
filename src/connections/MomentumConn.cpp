@@ -217,6 +217,7 @@ int MomentumConn::registerData(Checkpointer *checkpointer, std::string const &ob
    if (plasticityFlag) {
       checkpointWeightPvp(checkpointer, "prev_dW", prev_dwDataStart);
    }
+   return status;
 }
 
 int MomentumConn::readStateFromCheckpoint(Checkpointer *checkpointer) {
