@@ -328,6 +328,9 @@ class HyPerConn : public BaseConnection {
    int fileparams[NUM_WGT_PARAMS]; // The header of the file named by the filename member variable
    int numWeightPatches; // Number of PVPatch structures in buffer pointed to by wPatches[arbor]
    int numDataPatches; // Number of blocks of float's in buffer pointed to by wDataStart[arbor]
+   int mNumDataPatchesX; // Number of data patches in the x-dimension
+   int mNumDataPatchesY; // Number of data patches in the y-dimension
+   int mNumDataPatchesF; // Number of data patches in the feature dimension
    bool needAllocPostWeights;
 
    std::vector<PlasticCloneConn *>

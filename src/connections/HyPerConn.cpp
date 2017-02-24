@@ -466,18 +466,21 @@ int HyPerConn::initNumWeightPatches() {
 
 int HyPerConn::initNumDataPatches() {
    if (sharedWeights) {
-      int nxKernel = (pre->getXScale() < post->getXScale())
-                           ? (int)pow(2, post->getXScale() - pre->getXScale())
-                           : 1;
-      int nyKernel = (pre->getYScale() < post->getYScale())
-                           ? (int)pow(2, post->getYScale() - pre->getYScale())
-                           : 1;
-      numDataPatches = pre->getLayerLoc()->nf * nxKernel * nyKernel;
-      return PV_SUCCESS;
+      mNumDataPatchesX = (pre->getXScale() < post->getXScale())
+                               ? (int)pow(2, post->getXScale() - pre->getXScale())
+                               : 1;
+      mNumDataPatchesY = (pre->getYScale() < post->getYScale())
+                               ? (int)pow(2, post->getYScale() - pre->getYScale())
+                               : 1;
    }
    else {
-      numDataPatches = getNumWeightPatches();
+      PVHalo const &preHalo = pre->getLayerLoc()->halo;
+      mNumDataPatchesX      = pre->getLayerLoc()->nx + preHalo.lt + preHalo.rt;
+      mNumDataPatchesY      = pre->getLayerLoc()->ny + preHalo.dn + preHalo.up;
    }
+   mNumDataPatchesF = pre->getLayerLoc()->nf;
+   numDataPatches   = mNumDataPatchesX * mNumDataPatchesY * mNumDataPatchesF;
+   pvAssert(sharedWeights or (numDataPatches == pre->getNumExtended()));
    return PV_SUCCESS;
 }
 
@@ -2036,7 +2039,9 @@ int HyPerConn::writeWeights(
                minVal,
                maxVal,
                dataStart,
-               numPatches,
+               mNumDataPatchesX,
+               mNumDataPatchesY,
+               mNumDataPatchesF,
                numberOfAxonalArborLists(),
                compressWeights);
       }

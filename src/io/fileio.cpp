@@ -1512,13 +1512,16 @@ void writeSharedWeights(
       float minVal,
       float maxVal,
       float **dataStart,
-      int numPatches,
+      int nxPatches,
+      int nyPatches,
+      int nfPatches,
       int numArbors,
       bool compress) {
    if (fileStream == nullptr) {
       return;
    }
 
+   int const numPatches             = nxPatches * nyPatches * nfPatches;
    BufferUtils::WeightHeader header = BufferUtils::buildWeightHeader(
          nxp,
          nyp,
@@ -1540,7 +1543,16 @@ void writeSharedWeights(
    for (int arbor = 0; arbor < numArbors; arbor++) {
       float const *arborStart = dataStart[arbor];
       pvp_copy_patches(
-            arborData.data(), nullptr, arborStart, numPatches, nxp, nyp, nfp, minVal, maxVal, compress);
+            arborData.data(),
+            nullptr,
+            arborStart,
+            numPatches,
+            nxp,
+            nyp,
+            nfp,
+            minVal,
+            maxVal,
+            compress);
       fileStream->write(arborData.data(), arborData.size());
    }
 }

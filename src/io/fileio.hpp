@@ -116,7 +116,9 @@ void writeSharedWeights(
       float minVal,
       float maxVal,
       float **dataStart,
-      int numPatches,
+      int nxPatches,
+      int nyPatches,
+      int nfPatches,
       int numArbors,
       bool compress);
 
