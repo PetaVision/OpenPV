@@ -1519,32 +1519,29 @@ void writeSharedWeights(
       return;
    }
 
-   PVHalo const &halo = preLoc->halo;
-   int const nx       = preLoc->nx * mpiBlock->getNumColumns() * halo.lt + halo.rt;
-   int const ny       = preLoc->nx * mpiBlock->getNumRows() * halo.dn + halo.up;
-   int const nf       = preLoc->nf;
-   int const nbatch   = preLoc->nbatch * mpiBlock->getBatchDimension();
-   BufferUtils::WeightHeader header;
-   std::size_t patchSize;
-   if (compress) {
-      header = BufferUtils::buildWeightHeader<unsigned char>(
-            nxp, nyp, nfp, numPatches, numArbors, true, nx, ny, nf, nbatch, minVal, maxVal);
-      patchSize = BufferUtils::weightPatchSize<unsigned char>(nxp * nyp * nfp);
-   }
-   else {
-      header = BufferUtils::buildWeightHeader<float>(
-            nxp, nyp, nfp, numPatches, numArbors, true, nx, ny, nf, nbatch, minVal, maxVal);
-      patchSize = BufferUtils::weightPatchSize<float>(nxp * nyp * nfp);
-   }
+   BufferUtils::WeightHeader header = BufferUtils::buildWeightHeader(
+         nxp,
+         nyp,
+         nfp,
+         numArbors,
+         numPatches,
+         true /*shared*/,
+         timed,
+         preLoc,
+         mpiBlock->getNumColumns(),
+         mpiBlock->getNumRows(),
+         minVal,
+         maxVal,
+         compress);
    fileStream->write(&header, sizeof(header));
 
-   std::size_t const localSize = (std::size_t)numPatches * patchSize;
-   std::vector<unsigned char> cbuf(localSize);
+   std::size_t const localSize = header.baseHeader.recordSize;
+   std::vector<unsigned char> arborData(localSize);
    for (int arbor = 0; arbor < numArbors; arbor++) {
       float const *arborStart = dataStart[arbor];
       pvp_copy_patches(
-            cbuf.data(), nullptr, arborStart, numPatches, nxp, nyp, nfp, minVal, maxVal, compress);
-      fileStream->write(cbuf.data(), cbuf.size());
+            arborData.data(), nullptr, arborStart, numPatches, nxp, nyp, nfp, minVal, maxVal, compress);
+      fileStream->write(arborData.data(), arborData.size());
    }
 }
 

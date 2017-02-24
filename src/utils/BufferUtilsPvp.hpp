@@ -171,22 +171,23 @@ static SparseFileTable buildSparseFileTable(FileStream &fStream, int upToIndex);
 template <typename T>
 std::size_t weightPatchSize(int numWeightsInPatch);
 
-template <typename T>
 WeightHeader buildWeightHeader(
       int nxp,
       int nyp,
       int nfp,
-      int numPatches,
       int numArbors,
+      int numPatches,
       bool shared,
-      int preLayerWidth,
-      int preLayerHeight,
-      int preLayerFeatures,
-      int batchWidth,
+      double timed,
+      PVLayerLoc const *preLayerLoc,
+      int numColumnProcesses,
+      int numRowProcesses,
       float minVal,
-      float maxVal);
-}
-}
+      float maxVal,
+      bool compress);
+
+} // end namespace BufferUtils
+} // end namespace PV
 
 #include "BufferUtilsPvp.tpp"
 
