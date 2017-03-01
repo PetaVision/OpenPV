@@ -21,6 +21,12 @@
 
 namespace PV {
 
+struct PatchHeader {
+   unsigned short int nx;
+   unsigned short int ny;
+   unsigned int offset;
+};
+
 void timeToParams(double time, void *params);
 double timeFromParams(void *params);
 
@@ -116,9 +122,27 @@ void writeSharedWeights(
       float minVal,
       float maxVal,
       float **dataStart,
-      int nxPatches,
-      int nyPatches,
-      int nfPatches,
+      int numPatchesX,
+      int numPatchesY,
+      int numPatchesF,
+      int numArbors,
+      bool compress);
+
+void writeNonsharedWeights(
+      FileStream *fileStream,
+      MPIBlock const *mpiBlock,
+      double timed,
+      const PVLayerLoc *preLoc,
+      int nxp,
+      int nyp,
+      int nfp,
+      float minVal,
+      float maxVal,
+      PVPatch ***patches,
+      float **dataStart,
+      int numPatchesX,
+      int numPatchesY,
+      int numPatchesF,
       int numArbors,
       bool compress);
 

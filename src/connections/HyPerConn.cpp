@@ -1991,7 +1991,6 @@ int HyPerConn::writeWeights(
       double timed,
       bool compressWeights,
       bool last) {
-   int status = PV_SUCCESS;
 
    float minVal = FLT_MAX;
    float maxVal = -FLT_MAX;
@@ -2021,39 +2020,38 @@ int HyPerConn::writeWeights(
 
    bool append = last ? false : ioAppend;
 
-   if (sharedWeights) {
-      if (mpiBlock->getRank() == 0) {
-         std::ios_base::openmode mode = std::ios_base::out;
-         if (append) {
-            mode |= std::ios_base::app;
-         }
-         FileStream fileStream(path.c_str(), mode, parent->getVerifyWrites());
-         writeSharedWeights(
-               &fileStream,
-               mpiBlock,
-               timed,
-               preLoc,
-               nxp,
-               nyp,
-               nfp,
-               minVal,
-               maxVal,
-               dataStart,
-               mNumDataPatchesX,
-               mNumDataPatchesY,
-               mNumDataPatchesF,
-               numberOfAxonalArborLists(),
-               compressWeights);
+   FileStream *fileStream = nullptr;
+   if (mpiBlock->getRank() == 0) {
+      std::ios_base::openmode mode = std::ios_base::out;
+      if (append) {
+         mode |= std::ios_base::in;
       }
+      fileStream = new FileStream(path.c_str(), mode, parent->getVerifyWrites());
+   }
+   if (sharedWeights) {
+      writeSharedWeights(
+            fileStream,
+            mpiBlock,
+            timed,
+            preLoc,
+            nxp,
+            nyp,
+            nfp,
+            minVal,
+            maxVal,
+            dataStart,
+            mNumDataPatchesX,
+            mNumDataPatchesY,
+            mNumDataPatchesF,
+            numberOfAxonalArborLists(),
+            compressWeights);
    }
    else {
-      status = PV::writeWeights(
-            path.c_str(),
+      writeNonsharedWeights(
+            fileStream,
             mpiBlock,
-            (double)timed,
-            append,
+            timed,
             preLoc,
-            postLoc,
             nxp,
             nyp,
             nfp,
@@ -2061,17 +2059,14 @@ int HyPerConn::writeWeights(
             maxVal,
             patches,
             dataStart,
-            numPatches,
+            mNumDataPatchesX,
+            mNumDataPatchesY,
+            mNumDataPatchesF,
             numberOfAxonalArborLists(),
-            compressWeights,
-            fileType);
+            compressWeights);
    }
 
-   if (status != PV_SUCCESS) {
-      Fatal().printf("%s error in writing weights.\n", getDescription_c());
-   }
-
-   return status;
+   return PV_SUCCESS;
 }
 
 int HyPerConn::writeTextWeights(const char *path, int k) {

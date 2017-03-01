@@ -1512,16 +1512,16 @@ void writeSharedWeights(
       float minVal,
       float maxVal,
       float **dataStart,
-      int nxPatches,
-      int nyPatches,
-      int nfPatches,
+      int numPatchesX,
+      int numPatchesY,
+      int numPatchesF,
       int numArbors,
       bool compress) {
    if (fileStream == nullptr) {
       return;
    }
 
-   int const numPatches             = nxPatches * nyPatches * nfPatches;
+   int const numPatches             = numPatchesX * numPatchesY * numPatchesF;
    BufferUtils::WeightHeader header = BufferUtils::buildWeightHeader(
          nxp,
          nyp,
@@ -1555,6 +1555,164 @@ void writeSharedWeights(
             compress);
       fileStream->write(arborData.data(), arborData.size());
    }
+}
+
+void writeNonsharedWeights(
+      FileStream *fileStream,
+      MPIBlock const *mpiBlock,
+      double timed,
+      const PVLayerLoc *preLoc,
+      int nxp,
+      int nyp,
+      int nfp,
+      float minVal,
+      float maxVal,
+      PVPatch ***patches,
+      float **dataStart,
+      int numPatchesX,
+      int numPatchesY,
+      int numPatchesF,
+      int numArbors,
+      bool compress) {
+   // Assume weights are the same for each batch element; only write for first element.
+   if (mpiBlock->getBatchIndex() != 0) {
+      return;
+   }
+
+   int const rootProcess = 0;
+   int const rank        = mpiBlock->getRank();
+   if (rank == rootProcess) {
+      pvAssert(fileStream != nullptr)
+   }
+   else {
+      pvAssert(fileStream == nullptr);
+   }
+
+   int const numPatches = numPatchesX * numPatchesY * numPatchesF;
+   // Write header, assuming that exactly one process with batch index zero has
+   // a non-null fileStream.
+   if (rank == rootProcess) {
+      BufferUtils::WeightHeader header = BufferUtils::buildWeightHeader(
+            nxp,
+            nyp,
+            nfp,
+            numArbors,
+            numPatches,
+            false /*not shared*/,
+            timed,
+            preLoc,
+            mpiBlock->getNumColumns(),
+            mpiBlock->getNumRows(),
+            minVal,
+            maxVal,
+            compress);
+      fileStream->write(&header, sizeof(header));
+   }
+
+   std::size_t patchSize;
+   if (compress) {
+      patchSize = BufferUtils::weightPatchSize<unsigned char>(nxp * nyp * nfp);
+   }
+   else {
+      patchSize = BufferUtils::weightPatchSize<float>(nxp * nyp * nfp);
+   }
+   std::size_t const localSize = (std::size_t)numPatches * patchSize;
+   std::vector<unsigned char> arborData(localSize);
+
+   int const tagbase = 500;
+   for (int arbor = 0; arbor < numArbors; arbor++) {
+      int const tag = tagbase + arbor;
+      if (rank != rootProcess) {
+         pvp_copy_patches(
+               arborData.data(),
+               nullptr,
+               dataStart[arbor],
+               numPatches,
+               nxp,
+               nyp,
+               nfp,
+               minVal,
+               maxVal,
+               compress);
+         MPI_Send(arborData.data(), localSize, MPI_BYTE, rootProcess, tag, mpiBlock->getComm());
+      }
+      else { // rank == rootProcess
+         long arborStartInFile    = fileStream->getOutPos();
+         int const rowsInBlock    = mpiBlock->getNumRows();
+         int const columnsInBlock = mpiBlock->getNumColumns();
+         for (int procRow = 0; procRow < rowsInBlock; procRow++) {
+            for (int procColumn = 0; procColumn < columnsInBlock; procColumn++) {
+               int sourceRank = mpiBlock->calcRankFromRowColBatch(procRow, procColumn, 0);
+               if (sourceRank == rootProcess) {
+                  pvp_copy_patches(
+                        arborData.data(),
+                        nullptr,
+                        dataStart[arbor],
+                        numPatches,
+                        nxp,
+                        nyp,
+                        nfp,
+                        minVal,
+                        maxVal,
+                        compress);
+               }
+               else {
+                  MPI_Recv(
+                        arborData.data(),
+                        localSize,
+                        MPI_BYTE,
+                        sourceRank,
+                        tag,
+                        mpiBlock->getComm(),
+                        MPI_STATUS_IGNORE);
+               }
+               // arborData now has the patch information from the remote process.
+               for (int patchIndex = 0; patchIndex < numPatches; patchIndex++) {
+                  unsigned char const *patchStart = &arborData[(std::size_t)patchIndex * patchSize];
+                  int const xIndex = kxPos(patchIndex, numPatchesX, numPatchesY, numPatchesF);
+                  int const yIndex = kyPos(patchIndex, numPatchesX, numPatchesY, numPatchesF);
+                  int const fIndex =
+                        featureIndex(patchIndex, numPatchesX, numPatchesY, numPatchesF);
+                  int const xIndexGlobal      = xIndex + preLoc->nx * procColumn;
+                  int const yIndexGlobal      = yIndex + preLoc->ny * procRow;
+                  int const numPatchesXGlobal = numPatchesX + (columnsInBlock - 1) * preLoc->nx;
+                  int const numPatchesYGlobal = numPatchesY + (rowsInBlock - 1) * preLoc->ny;
+                  int const patchIndexGlobal  = kIndex(
+                        xIndexGlobal,
+                        yIndexGlobal,
+                        fIndex,
+                        numPatchesXGlobal,
+                        numPatchesYGlobal,
+                        numPatchesF);
+                  long const offsetIntoArbor  = (long)patchSize * (long)patchIndexGlobal;
+                  long const patchStartInFile = arborStartInFile + offsetIntoArbor;
+                  PatchHeader patchHeader;
+                  pvAssert(
+                        sizeof(patchHeader) == 2 * sizeof(unsigned short) + sizeof(unsigned int));
+                  memcpy(&patchHeader, arborData.data(), sizeof(patchHeader));
+                  if (patchHeader.nx == nxp and patchHeader.ny == nyp) {
+                     fileStream->setOutPos(patchStartInFile, true /*from beginning of file*/);
+                     fileStream->write(patchStart, patchSize);
+                  }
+                  else { // handle shrunken patch
+                     PatchHeader unshrunken;
+                     unshrunken.nx     = (short int)nxp;
+                     unshrunken.ny     = (short int)nxp;
+                     unshrunken.offset = 0U;
+                     fileStream->write(&unshrunken, sizeof(unshrunken));
+                     int dataSize         = (int)(compress ? sizeof(unsigned char) : sizeof(float));
+                     std::size_t lineSize = (std::size_t)((int)patchHeader.nx * nfp * dataSize);
+                     for (short int y = 0; y < patchHeader.ny; y++) {
+                        long lineOffset = (long)kIndex((int)patchHeader.nx, y, 0, nxp, nyp, nfp);
+                        fileStream->setInPos(patchStartInFile + lineOffset * (long)dataSize, true);
+                        fileStream->write(&patchStart[lineOffset], lineSize);
+                     } // Loop over line within patch
+                  } // end handle shrunken patch
+               } // Loop over patchIndex
+            } // Loop over procColumn
+         } // Loop over procRow
+      } // end rank == rootProcess
+   } // Loop over arbor
 }
 
 int writeWeights(
