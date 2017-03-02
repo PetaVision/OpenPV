@@ -262,6 +262,17 @@ class HyPerCol : public Subject, Observer {
    int processParams(char const *path);
    int ioParamsFinishGroup(enum ParamsIOFlag);
    int ioParamsStartGroup(enum ParamsIOFlag ioFlag, const char *group_name);
+
+   /**
+    * This function tells each added object to perform the tasks necessary
+    * before calling advanceTimeLoop.
+    * Specifically, if mReadyFlag is not set, performs the CommunicateInitInfo,
+    * AllocateDataStructures, and RegisterData stages, and outputs the
+    * generated params file, and sets the mReadyFlag If mReadyFlag is set, does
+    * nothing, so that the above stages are not performed more than once.
+    * This method is called by the run() method.
+    */
+   void allocateColumn();
    int run() { return run(mStartTime, mStopTime, mDeltaTime); }
    int run(double mStartTime, double mStopTime, double dt);
    NormalizeBase *getNormalizerFromName(const char *normalizerName);

@@ -636,121 +636,124 @@ int HyPerCol::addNormalizer(NormalizeBase *normalizer) {
    // functions return an index?
 }
 
+void HyPerCol::allocateColumn() {
+   if (mReadyFlag) {
+      return;
+   }
+   pvAssert(mPrintParamsFilename && mPrintParamsFilename[0]);
+   std::string printParamsFileString("");
+   if (mPrintParamsFilename[0] != '/') {
+      printParamsFileString += mCheckpointer->getOutputPath();
+      printParamsFileString += "/";
+   }
+   printParamsFileString += mPrintParamsFilename;
+
+   setNumThreads(false);
+   // When we call processParams, the communicateInitInfo stage will run, which
+   // can put out a lot of messages.
+   // So if there's a problem with the -t option setting, the error message can
+   // be hard to find.
+   // Instead of printing the error messages here, we will call setNumThreads a
+   // second time after processParams(), and only then print messages.
+
+   // processParams function does communicateInitInfo stage, sets up adaptive
+   // time step, and
+   // prints params
+   int status = processParams(printParamsFileString.c_str());
+   MPI_Barrier(getCommunicator()->communicator());
+
+   FatalIf(status != PV_SUCCESS, "HyPerCol \"%s\" failed to run.\n", mName);
+
+   int thread_status =
+         setNumThreads(true /*now, print messages related to setting number of threads*/);
+   MPI_Barrier(mCommunicator->globalCommunicator());
+   if (thread_status != PV_SUCCESS) {
+      exit(EXIT_FAILURE);
+   }
+
+#ifdef PV_USE_OPENMP_THREADS
+   pvAssert(mNumThreads > 0); // setNumThreads should fail if it sets
+   // mNumThreads less than or equal to zero
+   omp_set_num_threads(mNumThreads);
+#endif // PV_USE_OPENMP_THREADS
+
+   notify(std::make_shared<AllocateDataMessage>());
+
+   mPhaseRecvTimers.clear();
+   for (int phase = 0; phase < mNumPhases; phase++) {
+      std::string timerTypeString("phRecv");
+      timerTypeString.append(std::to_string(phase));
+      Timer *phaseRecvTimer = new Timer(mName, "column", timerTypeString.c_str());
+      mPhaseRecvTimers.push_back(phaseRecvTimer);
+      mCheckpointer->registerTimer(phaseRecvTimer);
+   }
+
+   notify(std::make_shared<RegisterDataMessage<Checkpointer>>(mCheckpointer));
+
+#ifdef DEBUG_OUTPUT
+   if (columnId() == 0) {
+      InfoLog().printf("[0]: HyPerCol: running...\n");
+      InfoLog().flush();
+   }
+#endif
+
+   // Initialize the state of each object based on the params file,
+   // and then if reading from checkpoint, call the checkpointer.
+   // This needs to happen after initPublishers so that we can initialize
+   // the values in the data stores, and before the mLayers' publish calls
+   // so that the data in border regions gets copied correctly.
+   notify(std::make_shared<InitializeStateMessage>());
+   if (mCheckpointReadFlag) {
+      mCheckpointer->checkpointRead(&mSimTime, &mCurrentStep);
+   }
+   else {
+      char const *initFromCheckpointDir = mCheckpointer->getInitializeFromCheckpointDir();
+      if (initFromCheckpointDir and initFromCheckpointDir[0]) {
+         notify(std::make_shared<ReadStateFromCheckpointMessage<Checkpointer>>(mCheckpointer));
+      }
+   }
+// Note: ideally, if checkpointReadFlag is set, calling InitializeState should
+// be unnecessary. However, currently initializeState does some CUDA kernel
+// initializations that still need to happen when reading from checkpoint.
+
+#ifdef PV_USE_CUDA
+   notify(std::make_shared<CopyInitialStateToGPUMessage>());
+#endif // PV_USE_CUDA
+
+   // Initial normalization moved here to facilitate normalizations of groups
+   // of HyPerConns
+   normalizeWeights();
+   notify(std::make_shared<ConnectionFinalizeUpdateMessage>(mSimTime, mDeltaTime));
+
+   // publish initial conditions
+   for (int phase = 0; phase < mNumPhases; phase++) {
+      notify(std::make_shared<LayerPublishMessage>(phase, mSimTime));
+   }
+
+   // Feb 2, 2017: waiting and updating active indices have been moved into
+   // OutputState and CheckNotANumber, where they are called if needed.
+
+   // output initial conditions
+   if (!mCheckpointReadFlag) {
+      notify(std::make_shared<ConnectionOutputMessage>(mSimTime));
+      for (int phase = 0; phase < mNumPhases; phase++) {
+         notify(std::make_shared<LayerOutputStateMessage>(phase, mSimTime));
+      }
+   }
+   mReadyFlag = true;
+}
+
 // typically called by buildandrun via HyPerCol::run()
 int HyPerCol::run(double start_time, double stop_time, double dt) {
    mStartTime = start_time;
    mStopTime  = stop_time;
    mDeltaTime = dt;
 
-   int status = PV_SUCCESS;
-   if (!mReadyFlag) {
-      pvAssert(mPrintParamsFilename && mPrintParamsFilename[0]);
-      std::string printParamsFileString("");
-      if (mPrintParamsFilename[0] != '/') {
-         printParamsFileString += mCheckpointer->getOutputPath();
-         printParamsFileString += "/";
-      }
-      printParamsFileString += mPrintParamsFilename;
+   allocateColumn();
 
-      setNumThreads(false);
-      // When we call processParams, the communicateInitInfo stage will run, which
-      // can put out a lot
-      // of messages.
-      // So if there's a problem with the -t option setting, the error message can
-      // be hard to find.
-      // Instead of printing the error messages here, we will call setNumThreads a
-      // second time after
-      // processParams(), and only then print messages.
-
-      // processParams function does communicateInitInfo stage, sets up adaptive
-      // time step, and
-      // prints params
-      status = processParams(printParamsFileString.c_str());
-      MPI_Barrier(getCommunicator()->communicator());
-
-      FatalIf(status != PV_SUCCESS, "HyPerCol \"%s\" failed to run.\n", mName);
-
-      bool dryRunFlag = mPVInitObj->getBooleanArgument("DryRun");
-      if (dryRunFlag) {
-         return PV_SUCCESS;
-      }
-      int thread_status =
-            setNumThreads(true /*now, print messages related to setting number of threads*/);
-      MPI_Barrier(mCommunicator->globalCommunicator());
-      if (thread_status != PV_SUCCESS) {
-         exit(EXIT_FAILURE);
-      }
-
-#ifdef PV_USE_OPENMP_THREADS
-      pvAssert(mNumThreads > 0); // setNumThreads should fail if it sets
-      // mNumThreads less than or equal to zero
-      omp_set_num_threads(mNumThreads);
-#endif // PV_USE_OPENMP_THREADS
-
-      notify(std::make_shared<AllocateDataMessage>());
-
-      mPhaseRecvTimers.clear();
-      for (int phase = 0; phase < mNumPhases; phase++) {
-         std::string timerTypeString("phRecv");
-         timerTypeString.append(std::to_string(phase));
-         Timer *phaseRecvTimer = new Timer(mName, "column", timerTypeString.c_str());
-         mPhaseRecvTimers.push_back(phaseRecvTimer);
-         mCheckpointer->registerTimer(phaseRecvTimer);
-      }
-
-      notify(std::make_shared<RegisterDataMessage<Checkpointer>>(mCheckpointer));
-
-#ifdef DEBUG_OUTPUT
-      if (columnId() == 0) {
-         InfoLog().printf("[0]: HyPerCol: running...\n");
-         InfoLog().flush();
-      }
-#endif
-
-      // Initialize the state of each object based on the params file,
-      // and then if reading from checkpoint, call the checkpointer.
-      // This needs to happen after initPublishers so that we can initialize
-      // the values in the data stores, and before the mLayers' publish calls
-      // so that the data in border regions gets copied correctly.
-      notify(std::make_shared<InitializeStateMessage>());
-      if (mCheckpointReadFlag) {
-         mCheckpointer->checkpointRead(&mSimTime, &mCurrentStep);
-      }
-      else {
-         char const *initFromCheckpointDir = mCheckpointer->getInitializeFromCheckpointDir();
-         if (initFromCheckpointDir and initFromCheckpointDir[0]) {
-            notify(std::make_shared<ReadStateFromCheckpointMessage<Checkpointer>>(mCheckpointer));
-         }
-      }
-// Note: ideally, if checkpointReadFlag is set, calling InitializeState should
-// be unnecessary. However, currently initializeState does some CUDA kernel
-// initializations that still need to happen when reading from checkpoint.
-
-#ifdef PV_USE_CUDA
-      notify(std::make_shared<CopyInitialStateToGPUMessage>());
-#endif // PV_USE_CUDA
-
-      // Initial normalization moved here to facilitate normalizations of groups
-      // of HyPerConns
-      normalizeWeights();
-      notify(std::make_shared<ConnectionFinalizeUpdateMessage>(mSimTime, mDeltaTime));
-
-      // publish initial conditions
-      for (int phase = 0; phase < mNumPhases; phase++) {
-         notify(std::make_shared<LayerPublishMessage>(phase, mSimTime));
-      }
-
-      // Feb 2, 2017: waiting and updating active indices have been moved into
-      // OutputState and CheckNotANumber, where they are called if needed.
-
-      // output initial conditions
-      if (!mCheckpointReadFlag) {
-         notify(std::make_shared<ConnectionOutputMessage>(mSimTime));
-         for (int phase = 0; phase < mNumPhases; phase++) {
-            notify(std::make_shared<LayerOutputStateMessage>(phase, mSimTime));
-         }
-      }
-      mReadyFlag = true;
+   bool dryRunFlag = mPVInitObj->getBooleanArgument("DryRun");
+   if (dryRunFlag) {
+      return PV_SUCCESS;
    }
 
 #ifdef TIMER_ON
@@ -776,7 +779,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
    runClock.print_elapsed(getOutputStream());
 #endif
 
-   return status;
+   return PV_SUCCESS;
 }
 
 // Sep 26, 2016: Adaptive timestep routines and member variables have been moved
