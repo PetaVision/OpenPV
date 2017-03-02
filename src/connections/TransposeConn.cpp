@@ -391,6 +391,11 @@ int TransposeConn::allocateDataStructures() {
    return status;
 }
 
+int TransposeConn::registerData(Checkpointer *checkpointer, std::string const &objName) {
+   openOutputStateFile(checkpointer);
+   return PV_SUCCESS;
+}
+
 int TransposeConn::constructWeights() {
    if (originalConn->postConn) {
       setPatchStrides();

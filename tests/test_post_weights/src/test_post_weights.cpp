@@ -35,56 +35,24 @@ int main(int argc, char *argv[]) {
    const char *l3name = "test_post_weights L3";
    HyPerCol *hc       = new HyPerCol("column", initObj);
    Example *l1        = new Example(l1name, hc);
-   FatalIf(!(l1), "Test failed.\n");
-   Example *l2 = new Example(l2name, hc);
-   FatalIf(!(l2), "Test failed.\n");
-   Example *l3 = new Example(l3name, hc);
-   FatalIf(!(l3), "Test failed.\n");
+   Example *l2        = new Example(l2name, hc);
+   Example *l3        = new Example(l3name, hc);
 
    HyPerConn *c1 = new HyPerConn("test_post_weights L1 to L1", hc);
-   FatalIf(!(c1), "Test failed.\n");
-   FatalIf(!(c1->numberOfAxonalArborLists() == 1), "Test failed.\n");
+   FatalIf(c1->numberOfAxonalArborLists() != 1, "Test failed.\n");
 
    HyPerConn *c2 = new HyPerConn("test_post_weights L2 to L3", hc);
-   FatalIf(!(c2), "Test failed.\n");
-   FatalIf(!(c2->numberOfAxonalArborLists() == 1), "Test failed.\n");
+   FatalIf(c2->numberOfAxonalArborLists() != 1, "Test failed.\n");
 
    HyPerConn *c3 = new HyPerConn("test_post_weights L3 to L2", hc);
-   FatalIf(!(c3), "Test failed.\n");
-   FatalIf(!(c3->numberOfAxonalArborLists() == 1), "Test failed.\n");
+   FatalIf(c3->numberOfAxonalArborLists() != 1, "Test failed.\n");
+
+   // ensureDirExists(hc->getCommunicator()->getLocalMPIBlock(), hc->getOutputPath());
 
    // We're not calling hc->run() because we don't execute any timesteps.
    // But we still need to allocate the weights, so we call the
    // layers' and connections' communicate and allocate methods externally.
-
-   ensureDirExists(hc->getCommunicator()->getLocalMPIBlock(), hc->getOutputPath());
-
-   auto objectMap      = hc->copyObjectMap();
-   auto commMessagePtr = std::make_shared<CommunicateInitInfoMessage>(*objectMap);
-   for (int l = 0; l < hc->numberOfLayers(); l++) {
-      HyPerLayer *layer = hc->getLayer(l);
-      int status        = layer->respond(commMessagePtr);
-      FatalIf(!(status == PV_SUCCESS), "Test failed.\n");
-   }
-   for (int c = 0; c < hc->numberOfConnections(); c++) {
-      BaseConnection *conn = hc->getConnection(c);
-      int status           = conn->respond(commMessagePtr);
-      FatalIf(!(status == PV_SUCCESS), "Test failed.\n");
-   }
-   delete objectMap;
-
-   auto allocateMessagePtr = std::make_shared<AllocateDataMessage>();
-   for (int l = 0; l < hc->numberOfLayers(); l++) {
-      HyPerLayer *layer = hc->getLayer(l);
-      int status        = layer->respond(allocateMessagePtr);
-      FatalIf(!(status == PV_SUCCESS), "Test failed.\n");
-   }
-
-   for (int c = 0; c < hc->numberOfConnections(); c++) {
-      BaseConnection *conn = hc->getConnection(c);
-      int status           = conn->respond(allocateMessagePtr);
-      FatalIf(!(status == PV_SUCCESS), "Test failed.\n");
-   }
+   hc->allocateColumn();
 
    // Don't need to call initializeState methods:
    // we don't look at the layer values, and the weight values are
@@ -230,7 +198,7 @@ static int set_weights_to_source_index(HyPerConn *c) {
    int status = 0;
    int arbor  = 0;
 
-   FatalIf(!(sizeof(short) == 2), "Test failed.\n");
+   FatalIf(sizeof(short) != 2, "Test failed.\n");
 
    const PVLayer *lPost = c->postSynapticLayer()->clayer;
 
@@ -253,9 +221,9 @@ static int set_weights_to_source_index(HyPerConn *c) {
 
       const int nfp = c->fPatchSize(); // p->nf;
 
-      FatalIf(!(nxp == p->nx), "Test failed.\n");
-      FatalIf(!(nyp == p->ny), "Test failed.\n");
-      FatalIf(!(nfp == lPost->loc.nf), "Test failed.\n");
+      FatalIf(nxp != p->nx, "Test failed.\n");
+      FatalIf(nyp != p->ny, "Test failed.\n");
+      FatalIf(nfp != lPost->loc.nf, "Test failed.\n");
 
       const int sxp = c->xPatchStride(); // p->sx;
       const int syp = c->yPatchStride(); // p->sy;

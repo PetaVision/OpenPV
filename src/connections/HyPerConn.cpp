@@ -1965,7 +1965,7 @@ int HyPerConn::writeWeights(double timed) {
          patches_arg,
          get_wDataStart(),
          getNumDataPatches(),
-         NULL,
+         mOutputStateStream,
          timed,
          writeCompressedWeights,
          false);
@@ -1973,21 +1973,28 @@ int HyPerConn::writeWeights(double timed) {
 
 int HyPerConn::writeWeights(const char *filename) {
    PVPatch ***patches_arg = sharedWeights ? NULL : wPatches;
-   return writeWeights(
+   FileStream *fileStream = nullptr;
+   if (mOutputStateMPIBlock->getRank() == 0) {
+      fileStream = new FileStream(filename, std::ios_base::out, parent->getVerifyWrites());
+   }
+
+   int status = writeWeights(
          patches_arg,
          get_wDataStart(),
          getNumDataPatches(),
-         filename,
+         fileStream,
          parent->simulationTime(),
          writeCompressedWeights,
          true);
+   delete fileStream;
+   return 0;
 }
 
 int HyPerConn::writeWeights(
       PVPatch ***patches,
       float **dataStart,
       int numPatches,
-      const char *filename,
+      FileStream *fileStream,
       double timed,
       bool compressWeights,
       bool last) {
@@ -2006,32 +2013,10 @@ int HyPerConn::writeWeights(
    const PVLayerLoc *preLoc  = pre->getLayerLoc();
    const PVLayerLoc *postLoc = post->getLayerLoc();
 
-   std::string path;
-   if (filename == nullptr) {
-      path = parent->getOutputPath();
-      path.append("/").append(name).append(".pvp");
-   }
-   else {
-      path = filename;
-   }
-
-   MPIBlock const *mpiBlock = parent->getCommunicator()->getLocalMPIBlock();
-   Communicator *comm       = parent->getCommunicator();
-
-   bool append = last ? false : ioAppend;
-
-   FileStream *fileStream = nullptr;
-   if (mpiBlock->getRank() == 0) {
-      std::ios_base::openmode mode = std::ios_base::out;
-      if (append) {
-         mode |= std::ios_base::in;
-      }
-      fileStream = new FileStream(path.c_str(), mode, parent->getVerifyWrites());
-   }
    if (sharedWeights) {
       writeSharedWeights(
             fileStream,
-            mpiBlock,
+            mOutputStateMPIBlock,
             timed,
             preLoc,
             nxp,
@@ -2049,7 +2034,7 @@ int HyPerConn::writeWeights(
    else {
       writeNonsharedWeights(
             fileStream,
-            mpiBlock,
+            mOutputStateMPIBlock,
             timed,
             preLoc,
             nxp,
@@ -2185,9 +2170,33 @@ int HyPerConn::registerData(Checkpointer *checkpointer, std::string const &objNa
    }
    checkpointer->registerCheckpointData(
          objName, "nextWrite", &writeTime, (std::size_t)1, true /*broadcast*/);
+
+   openOutputStateFile(checkpointer);
+
    checkpointer->registerTimer(io_timer);
    checkpointer->registerTimer(update_timer);
    return status;
+}
+
+void HyPerConn::openOutputStateFile(Checkpointer *checkpointer) {
+   // Need mOutputStateMPIBlock to be set even if writeStep is turned off, because
+   // writeWeights(filename) or writePostSynapticWeights will still use the MPIBlock.
+   mOutputStateMPIBlock = checkpointer->getMPIBlock();
+
+   if (writeStep >= 0) {
+
+      if (checkpointer->getMPIBlock()->getRank() == 0) {
+         std::string outputStatePath(getName());
+         outputStatePath.append(".pvp");
+
+         std::string checkpointLabel(getName());
+         checkpointLabel.append("_filepos");
+
+         bool createFlag    = checkpointer->getCheckpointReadDirectory().empty();
+         mOutputStateStream = new CheckpointableFileStream(
+               outputStatePath.c_str(), createFlag, checkpointer, checkpointLabel);
+      }
+   }
 }
 
 float HyPerConn::minWeight(int arborId) {

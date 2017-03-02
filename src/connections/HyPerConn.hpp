@@ -98,7 +98,7 @@ class HyPerConn : public BaseConnection {
          PVPatch ***patches,
          float **dataStart,
          int numPatches,
-         const char *filename,
+         FileStream *fileStream,
          double timef,
          bool compressWeights,
          bool last);
@@ -524,6 +524,9 @@ class HyPerConn : public BaseConnection {
    int mDWMaxDecayTimer    = 0; // Number of updates left before next dWMax modification
    float mDWMaxDecayFactor = 0.0f; // Each modification is dWMax = dWMax * (1.0 - decayFactor);
 
+   CheckpointableFileStream *mOutputStateStream = nullptr; // weights file written by outputState
+   MPIBlock const *mOutputStateMPIBlock         = nullptr;
+
   protected:
    HyPerConn();
    virtual int initNumWeightPatches();
@@ -864,6 +867,14 @@ class HyPerConn : public BaseConnection {
    int setPostLayerName(const char *post_name);
    virtual int initPlasticityPatches();
    virtual int registerData(Checkpointer *checkpointer, std::string const &objName) override;
+   void openOutputStateFile(Checkpointer *checkpointer);
+
+   /**
+    * Called by registerData. If writeStep is nonnegative, opens the weights pvp file to be
+    * used by outputState, and registers its file position with the checkpointer.
+    */
+   void openOutpuStateFile(Checkpointer *checkpointer);
+
    virtual int setPatchSize(); // Sets nxp, nyp, nfp if weights are loaded from file.  Subclasses
    // override if they have specialized ways of setting patch size that
    // needs to go in the communicate stage.
