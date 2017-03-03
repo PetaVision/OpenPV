@@ -21,37 +21,16 @@ int VaryingHyPerConn::initialize(const char *name, HyPerCol *hc) {
 
 int VaryingHyPerConn::allocateDataStructures() {
    HyPerConn::allocateDataStructures();
-   // initialize all dW's to one.
-   int syPatch = yPatchStride();
-   for (int kAxon = 0; kAxon < numberOfAxonalArborLists(); kAxon++) {
-      for (int kPatch = 0; kPatch < getNumDataPatches(); kPatch++) {
-         PVPatch *W    = getWeights(kPatch, kAxon);
-         int nkPatch   = fPatchSize() * W->nx;
-         float *dWdata = get_dwData(kAxon, kPatch);
-         for (int kyPatch = 0; kyPatch < W->ny; kyPatch++) {
-            for (int kPatch = 0; kPatch < nkPatch; kPatch++) {
-               dWdata[kPatch] = 1.0f;
-            }
-            dWdata += syPatch;
-         }
-      }
-   }
-
    return PV_SUCCESS;
 }
 
 int VaryingHyPerConn::updateWeights(int axonId) {
-   int syPatch = yPatchStride();
-   for (int kPatch = 0; kPatch < getNumDataPatches(); kPatch++) {
-      PVPatch *W    = getWeights(kPatch, axonId);
-      int nkPatch   = fPatchSize() * W->nx;
-      float *Wdata  = get_wData(axonId, kPatch); // W->data;
-      float *dWdata = get_dwData(axonId, kPatch);
-      for (int kyPatch = 0; kyPatch < W->ny; kyPatch++) {
-         for (int kPatch = 0; kPatch < nkPatch; kPatch++) {
-            Wdata[kPatch] += dWdata[kPatch];
-         }
-         dWdata += syPatch;
+   int nPatch   = fPatchSize() * xPatchSize() * yPatchSize();
+   for (int patchIndex = 0; patchIndex  < getNumDataPatches(); patchIndex++) {
+      float *Wdata  = get_wDataHead(axonId, patchIndex);
+      float *dWdata = get_dwDataHead(axonId, patchIndex);
+      for (int k = 0; k < nPatch ; k++) {
+         Wdata[k] += 1.0f;
       }
    }
    return PV_SUCCESS;
@@ -59,10 +38,6 @@ int VaryingHyPerConn::updateWeights(int axonId) {
 
 int VaryingHyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    HyPerConn::ioParamsFillGroup(ioFlag);
-
-#ifdef USE_SHMGET
-   shmget_flag = false;
-#endif // USE_SHMGET
 
    return 0;
 }
