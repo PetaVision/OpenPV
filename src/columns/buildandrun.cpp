@@ -81,9 +81,6 @@ int buildandrun(
       }
    }
    else {
-      if (initObj->getCommunicator()->numCommBatches() > 1) {
-         initObj->getParams()->setBatchSweepValues();
-      }
       status = buildandrun1paramset(initObj, custominit, customexit) == PV_SUCCESS ? status
                                                                                    : PV_FAILURE;
    }

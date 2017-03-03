@@ -349,7 +349,6 @@ class PVParams {
       mPrintParamsStream = printParamsStream;
    }
    int setParameterSweepValues(int n);
-   int setBatchSweepValues();
 
    void action_pvparams_directive(char *id, double val);
    void action_parameter_group_name(char *keyword, char *name);
@@ -365,23 +364,15 @@ class PVParams {
    void action_parameter_filename_def_overwrite(const char *id, const char *stringval);
    void action_include_directive(const char *stringval);
 
-   void action_sweep_open(const char *groupname, const char *paramname);
+   void action_parameter_sweep_open(const char *groupname, const char *paramname);
    void action_parameter_sweep_close();
    void action_parameter_sweep_values_number(double val);
    void action_parameter_sweep_values_string(const char *stringval);
    void action_parameter_sweep_values_filename(const char *stringval);
 
-   void action_batch_sweep_close();
-   void action_batch_sweep_values_number(double val);
-   void action_batch_sweep_values_string(const char *stringval);
-   void action_batch_sweep_values_filename(const char *stringval);
-
    int numberOfGroups() { return numGroups; }
    int numberOfParameterSweeps() { return numParamSweeps; }
    int getParameterSweepSize() { return parameterSweepSize; }
-
-   int numberOfBatchSweeps() { return numBatchSweeps; }
-   int getBatchSweepSize() { return batchSweepSize; }
 
   private:
    int parseStatus;
@@ -406,13 +397,6 @@ class PVParams {
    // group in the params file must contain the same number of values, which
    // is sweepSize.
 
-   int numBatchSweeps; // The number of different parameters that are changed during the sweep.
-   ParameterSweep **batchSweeps;
-   ParameterSweep *activeBatchSweep;
-   int batchSweepSize; // The number of batch values sets in the sweep.  Each BatchSweep group in
-   // the params file must contain the same number of values, which is
-   // batchSweepSize.
-
    char *currGroupKeyword;
    char *currGroupName;
 
@@ -427,13 +411,10 @@ class PVParams {
    void loadParamBuffer(char const *filename, std::string &paramsFileString);
    int parseBuffer(const char *buffer, long int bufferLength);
    int setParameterSweepSize();
-   int setBatchSweepSize();
    void addGroup(char *keyword, char *name);
    void addActiveParamSweep(const char *group_name, const char *param_name);
-   void addActiveBatchSweep(const char *group_name, const char *param_name);
    int checkDuplicates(const char *paramName, double val);
    int newActiveParamSweep();
-   int newActiveBatchSweep();
    int clearHasBeenReadFlags();
    static char *stripQuotationMarks(const char *s);
    static char *stripOverwriteTag(const char *s);

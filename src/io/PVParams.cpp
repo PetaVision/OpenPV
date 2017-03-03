@@ -825,17 +825,11 @@ PVParams::~PVParams() {
    delete arrayStack;
    delete stringStack;
    delete this->activeParamSweep;
-   delete this->activeBatchSweep;
    for (int i = 0; i < numParamSweeps; i++) {
       delete paramSweeps[i];
    }
-   for (int i = 0; i < numBatchSweeps; i++) {
-      delete batchSweeps[i];
-   }
    free(paramSweeps);
    paramSweeps = NULL;
-   free(batchSweeps);
-   batchSweeps = NULL;
 }
 
 /*
@@ -856,11 +850,8 @@ int PVParams::initialize(size_t initialSize) {
    currentParamArray = new ParameterArray(PARAMETERARRAYSTACK_INITIALCOUNT);
 
    numParamSweeps = 0;
-   numBatchSweeps = 0;
    paramSweeps    = NULL;
-   batchSweeps    = NULL;
    newActiveParamSweep();
-   newActiveBatchSweep();
 #ifdef DEBUG_PARSING
    debugParsing = true;
 #else
@@ -868,9 +859,7 @@ int PVParams::initialize(size_t initialSize) {
 #endif // DEBUG_PARSING
    disable = false;
 
-   return (groups && stack && stringStack && activeParamSweep && activeBatchSweep /* && fnstack */)
-                ? PV_SUCCESS
-                : PV_FAILURE;
+   return (groups && stack && stringStack && activeParamSweep) ? PV_SUCCESS : PV_FAILURE;
 }
 
 int PVParams::newActiveParamSweep() {
@@ -878,16 +867,6 @@ int PVParams::newActiveParamSweep() {
    activeParamSweep = new ParameterSweep();
    if (activeParamSweep == NULL) {
       Fatal().printf("PVParams::newActiveParamSweep: unable to create activeParamSweep");
-      status = PV_FAILURE;
-   }
-   return status;
-}
-
-int PVParams::newActiveBatchSweep() {
-   int status       = PV_SUCCESS;
-   activeBatchSweep = new ParameterSweep();
-   if (activeBatchSweep == NULL) {
-      Fatal().printf("PVParams::newActiveBatchSweep: unable to create activeBatchSweep");
       status = PV_FAILURE;
    }
    return status;
@@ -1024,26 +1003,6 @@ bool PVParams::hasSweepValue(const char *inParamName) {
          break;
       }
    }
-
-   if (!out) {
-      for (int k = 0; k < numberOfBatchSweeps(); k++) {
-         ParameterSweep *sweep  = batchSweeps[k];
-         group_name             = sweep->getGroupName();
-         const char *param_name = sweep->getParamName();
-         ParameterGroup *gp     = group(group_name);
-         if (gp == NULL) {
-            Fatal().printf(
-                  "PVParams::hasSweepValue error: BatchSweep %d (zero-indexed) refers to "
-                  "non-existent group \"%s\"\n",
-                  k,
-                  group_name);
-         }
-         if (!strcmp(gp->getGroupKeyword(), "HyPerCol") && !strcmp(param_name, inParamName)) {
-            out = true;
-            break;
-         }
-      }
-   }
    return out;
 }
 
@@ -1062,17 +1021,12 @@ int PVParams::parseBuffer(char const *buffer, long int bufferLength) {
 
    setParameterSweepSize(); // Need to set sweepSize here, because if the outputPath sweep needs to
    // be created we need to know the size.
-   setBatchSweepSize(); // Need to set sweepSize here, because if the outputPath sweep needs to be
-   // created we need to know the size.
 
    // If there is at least one ParameterSweep  and none of them set outputPath, create a
    // parameterSweep that does set outputPath.
 
    // If both parameterSweep and batchSweep is set, must autoset output path, as there is no way to
    // specify both paramSweep and batchSweep
-   if (numberOfParameterSweeps() > 0 && numberOfBatchSweeps() > 0) {
-      Fatal().printf("PVParams::simultaneous batchSweep and parameterSweep not supported yet.\n");
-   }
    if (numberOfParameterSweeps() > 0) {
       if (!hasSweepValue("outputPath")) {
          const char *hypercolgroupname = NULL;
@@ -1177,29 +1131,6 @@ int PVParams::parseBuffer(char const *buffer, long int bufferLength) {
       if (hypercolGroup == nullptr) {
          Fatal() << "PVParams::parseBuffer: no HyPerCol group\n";
       }
-      // This checks if there is a batch sweep of outputPath
-      if (!hasSweepValue("outputPath")) {
-         char const *outputPathName = hypercolGroup->stringValue("outputPath");
-         if (outputPathName == nullptr) {
-            Fatal() << "PVParams::outputPath must be specified if "
-                       "batchSweep does not sweep over outputPath\n";
-         }
-
-         std::size_t lengthLargestBatchIndex = std::to_string(batchSweepSize - 1).size();
-         for (int i = 0; i < icComm->numCommBatches(); i++) {
-            std::string outputPathStr{outputPathName};
-            outputPathStr.append("/batchsweep_");
-            std::string batchIndexAsString = std::to_string(i);
-            std::size_t lengthBatchIndex   = batchIndexAsString.size();
-            if (lengthBatchIndex < lengthLargestBatchIndex) {
-               outputPathStr.append(lengthLargestBatchIndex - lengthBatchIndex, '0');
-            }
-            outputPathStr.append(batchIndexAsString);
-            outputPathStr.append("/");
-            activeBatchSweep->pushStringValue(outputPathStr.c_str());
-         }
-         addActiveBatchSweep(hypercolGroup->name(), "outputPath");
-      }
    }
 
    // Each ParameterSweep needs to have its group/parameter pair added to the database, if it's not
@@ -1231,66 +1162,9 @@ int PVParams::parseBuffer(char const *buffer, long int bufferLength) {
       }
    }
 
-   for (int k = 0; k < numberOfBatchSweeps(); k++) {
-      ParameterSweep *sweep  = batchSweeps[k];
-      const char *group_name = sweep->getGroupName();
-      const char *param_name = sweep->getParamName();
-      SweepType type         = sweep->getType();
-      ParameterGroup *g      = group(group_name);
-      if (g == NULL) {
-         ErrorLog().printf("BatchSweep: there is no group \"%s\"\n", group_name);
-         abort();
-      }
-      switch (type) {
-         case SWEEP_NUMBER:
-            if (!g->present(param_name)) {
-               Parameter *p = new Parameter(param_name, 0.0);
-               g->pushNumerical(p);
-            }
-            break;
-         case SWEEP_STRING:
-            if (!g->stringPresent(param_name)) {
-               ParameterString *p = new ParameterString(param_name, "");
-               g->pushString(p);
-            }
-            break;
-         default: assert(0); break;
-      }
-   }
-
    clearHasBeenReadFlags();
 
    return PV_SUCCESS;
-}
-
-int PVParams::setBatchSweepSize() {
-   batchSweepSize = -1;
-   for (int k = 0; k < numBatchSweeps; k++) {
-      if (batchSweepSize < 0) {
-         batchSweepSize = this->batchSweeps[k]->getNumValues();
-      }
-      else {
-         if (batchSweepSize != this->batchSweeps[k]->getNumValues()) {
-            ErrorLog().printf(
-                  "PVParams::setBatchSweepSize: all BatchSweeps in the parameters "
-                  "file must have the same number of entries.\n");
-            abort();
-         }
-      }
-   }
-   if (batchSweepSize < 0)
-      batchSweepSize = 0;
-   int batchWidth    = icComm->numCommBatches();
-   if (batchSweepSize) {
-      if (batchWidth != batchSweepSize) {
-         Fatal().printf(
-               "PVParams::setBatchSweepSize error: batchSweepSize %d must be the same as the MPI "
-               "batch width %d.\n",
-               batchSweepSize,
-               batchWidth);
-      }
-   }
-   return batchSweepSize;
 }
 
 // TODO other integer types should also use valueInt
@@ -1340,35 +1214,6 @@ int PVParams::setParameterSweepSize() {
    if (parameterSweepSize < 0)
       parameterSweepSize = 0;
    return parameterSweepSize;
-}
-
-int PVParams::setBatchSweepValues() {
-   int status = PV_SUCCESS;
-   // Set batch sweeps
-   // Use communicator to determine which values to use
-   int batchRank = icComm->commBatch();
-   for (int k = 0; k < numBatchSweeps; k++) {
-      ParameterSweep *batchSweep = batchSweeps[k];
-      SweepType type             = batchSweep->getType();
-      const char *group_name     = batchSweep->getGroupName();
-      const char *param_name     = batchSweep->getParamName();
-      ParameterGroup *gp         = group(group_name);
-      assert(gp != NULL);
-      const char *s;
-      double v = 0.0f;
-      switch (type) {
-         case SWEEP_NUMBER:
-            batchSweep->getNumericValue(batchRank, &v);
-            gp->setValue(param_name, v);
-            break;
-         case SWEEP_STRING:
-            s = batchSweep->getStringValue(batchRank);
-            gp->setStringValue(param_name, s);
-            break;
-         default: assert(0); break;
-      }
-   }
-   return status;
 }
 
 int PVParams::setParameterSweepValues(int n) {
@@ -1787,16 +1632,6 @@ void PVParams::addActiveParamSweep(const char *group_name, const char *param_nam
                param_name);
       }
    }
-   for (int b = 0; b < numBatchSweeps; b++) {
-      if (strcmp(batchSweeps[b]->getGroupName(), group_name) == 0
-          && strcmp(batchSweeps[b]->getParamName(), param_name) == 0) {
-         Fatal().printf(
-               "PVParams::addActiveParamSweep: Parameter sweep %s, %s already exists as a batch "
-               "sweep, cannot do both for same parameter.\n",
-               group_name,
-               param_name);
-      }
-   }
 
    activeParamSweep->setGroupAndParameter(group_name, param_name);
    ParameterSweep **newParamSweeps =
@@ -1813,45 +1648,6 @@ void PVParams::addActiveParamSweep(const char *group_name, const char *param_nam
    paramSweeps[numParamSweeps] = activeParamSweep;
    numParamSweeps++;
    newActiveParamSweep();
-}
-
-void PVParams::addActiveBatchSweep(const char *group_name, const char *param_name) {
-   // Search for group_name and param_name in both ParameterSweep and BatchSweep list of objects
-   for (int b = 0; b < numBatchSweeps; b++) {
-      if (strcmp(batchSweeps[b]->getGroupName(), group_name) == 0
-          && strcmp(batchSweeps[b]->getParamName(), param_name) == 0) {
-         Fatal().printf(
-               "PVParams::addActiveBatchSweep: Batch sweep %s, %s already exists\n",
-               group_name,
-               param_name);
-      }
-   }
-   for (int p = 0; p < numParamSweeps; p++) {
-      if (strcmp(paramSweeps[p]->getGroupName(), group_name) == 0
-          && strcmp(paramSweeps[p]->getParamName(), param_name) == 0) {
-         Fatal().printf(
-               "PVParams::addActiveParamSweep: Batch sweep %s, %s already exists as a parameter "
-               "sweep, cannot do both for same parameter.\n",
-               group_name,
-               param_name);
-      }
-   }
-
-   activeBatchSweep->setGroupAndParameter(group_name, param_name);
-   ParameterSweep **newBatchSweeps =
-         (ParameterSweep **)calloc(numBatchSweeps + 1, sizeof(ParameterSweep *));
-   if (newBatchSweeps == NULL) {
-      Fatal().printf(
-            "PVParams::action_parameter_sweep: unable to allocate memory for larger batchSweeps\n");
-   }
-   for (int k = 0; k < numBatchSweeps; k++) {
-      newBatchSweeps[k] = batchSweeps[k];
-   }
-   free(batchSweeps);
-   batchSweeps                 = newBatchSweeps;
-   batchSweeps[numBatchSweeps] = activeBatchSweep;
-   numBatchSweeps++;
-   newActiveBatchSweep();
 }
 
 int PVParams::warnUnread() {
@@ -2400,7 +2196,7 @@ void PVParams::action_include_directive(const char *stringval) {
    stringStack = includeGroup->copyStringStack();
 }
 
-void PVParams::action_sweep_open(const char *groupname, const char *paramname) {
+void PVParams::action_parameter_sweep_open(const char *groupname, const char *paramname) {
    if (disable)
       return;
    // strip quotation marks from groupname
@@ -2410,7 +2206,7 @@ void PVParams::action_sweep_open(const char *groupname, const char *paramname) {
    if (debugParsing && worldRank == 0) {
       InfoLog().flush();
       InfoLog().printf(
-            "action_batch_sweep_open: Sweep for group %s, parameter \"%s\" starting\n",
+            "action_parameter_sweep_open: Sweep for group %s, parameter \"%s\" starting\n",
             groupname,
             paramname);
       InfoLog().flush();
@@ -2433,22 +2229,6 @@ void PVParams::action_parameter_sweep_close() {
    free(currSweepParamName);
 }
 
-void PVParams::action_batch_sweep_close() {
-   if (disable)
-      return;
-   addActiveBatchSweep(currSweepGroupName, currSweepParamName);
-   if (debugParsing && worldRank == 0) {
-      InfoLog().printf(
-            "action_parameter_group: BatchSweep for %s \"%s\" parsed successfully.\n",
-            currSweepGroupName,
-            currSweepParamName);
-      InfoLog().flush();
-   }
-   // build a parameter group
-   free(currSweepGroupName);
-   free(currSweepParamName);
-}
-
 void PVParams::action_parameter_sweep_values_number(double val) {
    if (disable)
       return;
@@ -2458,17 +2238,6 @@ void PVParams::action_parameter_sweep_values_number(double val) {
       InfoLog().flush();
    }
    activeParamSweep->pushNumericValue(val);
-}
-
-void PVParams::action_batch_sweep_values_number(double val) {
-   if (disable)
-      return;
-   if (debugParsing && worldRank == 0) {
-      InfoLog().flush();
-      InfoLog().printf("action_batch_sweep_values_number: %f\n", val);
-      InfoLog().flush();
-   }
-   activeBatchSweep->pushNumericValue(val);
 }
 
 void PVParams::action_parameter_sweep_values_string(const char *stringval) {
@@ -2486,21 +2255,6 @@ void PVParams::action_parameter_sweep_values_string(const char *stringval) {
    free(string);
 }
 
-void PVParams::action_batch_sweep_values_string(const char *stringval) {
-   if (disable)
-      return;
-   if (debugParsing && worldRank == 0) {
-      InfoLog().flush();
-      InfoLog().printf("action_batch_values_string: %s\n", stringval);
-      InfoLog().flush();
-   }
-   char *string = stripQuotationMarks(stringval);
-   assert(!stringval || string); // stringval can be null, but if stringval is not null, string
-   // should also be non-null
-   activeBatchSweep->pushStringValue(string);
-   free(string);
-}
-
 void PVParams::action_parameter_sweep_values_filename(const char *stringval) {
    if (disable)
       return;
@@ -2512,20 +2266,6 @@ void PVParams::action_parameter_sweep_values_filename(const char *stringval) {
    char *filename = stripQuotationMarks(stringval);
    assert(filename);
    activeParamSweep->pushStringValue(filename);
-   free(filename);
-}
-
-void PVParams::action_batch_sweep_values_filename(const char *stringval) {
-   if (disable)
-      return;
-   if (debugParsing && worldRank == 0) {
-      InfoLog().flush();
-      InfoLog().printf("action_batch_sweep_values_filename: %s\n", stringval);
-      InfoLog().flush();
-   }
-   char *filename = stripQuotationMarks(stringval);
-   assert(filename);
-   activeBatchSweep->pushStringValue(filename);
    free(filename);
 }
 

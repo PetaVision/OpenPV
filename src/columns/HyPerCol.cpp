@@ -883,7 +883,6 @@ int HyPerCol::processParams(char const *path) {
    // Print a cleaned up version of params to the file given by
    // printParamsFilename
    parameters()->warnUnread();
-   std::string printParamsPath = "";
    if (path != nullptr && path[0] != '\0') {
       outputParams(path);
    }
@@ -1129,7 +1128,6 @@ int HyPerCol::outputParams(char const *path) {
    int status = PV_SUCCESS;
    int rank   = mCommunicator->commRank();
    assert(mPrintParamsStream == nullptr);
-   char printParamsPath[PV_PATH_MAX];
    char *tmp = strdup(path); // duplicate string since dirname() is allowed to
    // modify its argument
    if (tmp == nullptr) {
@@ -1190,7 +1188,7 @@ int HyPerCol::outputParams(char const *path) {
    // Parent HyPerCol params
    status = ioParams(PARAMS_IO_WRITE);
    if (status != PV_SUCCESS) {
-      Fatal().printf("outputParams: Error copying params to \"%s\"\n", printParamsPath);
+      Fatal().printf("outputParams: Error copying params to \"%s\"\n", path);
    }
 
    // HyPerLayer params
@@ -1198,7 +1196,7 @@ int HyPerCol::outputParams(char const *path) {
       HyPerLayer *layer = mLayers.at(l);
       status            = layer->ioParams(PARAMS_IO_WRITE);
       if (status != PV_SUCCESS) {
-         Fatal().printf("outputParams: Error copying params to \"%s\"\n", printParamsPath);
+         Fatal().printf("outputParams: Error copying params to \"%s\"\n", path);
       }
    }
 
@@ -1206,7 +1204,7 @@ int HyPerCol::outputParams(char const *path) {
    for (auto c : mConnections) {
       status = c->ioParams(PARAMS_IO_WRITE);
       if (status != PV_SUCCESS) {
-         Fatal().printf("outputParams: Error copying params to \"%s\"\n", printParamsPath);
+         Fatal().printf("outputParams: Error copying params to \"%s\"\n", path);
       }
    }
 
