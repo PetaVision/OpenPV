@@ -344,8 +344,8 @@ class PVParams {
          const char *correctValue,
          bool case_insensitive_flag = false);
 
-   void setPrintLuaStream(PV_Stream *printLuaStream) { mPrintLuaStream = printLuaStream; }
-   void setPrintParamsStream(PV_Stream *printParamsStream) {
+   void setPrintLuaStream(FileStream *printLuaStream) { mPrintLuaStream = printLuaStream; }
+   void setPrintParamsStream(FileStream *printParamsStream) {
       mPrintParamsStream = printParamsStream;
    }
    int setParameterSweepValues(int n);
@@ -403,8 +403,8 @@ class PVParams {
    char *currSweepGroupName;
    char *currSweepParamName;
 
-   PV_Stream *mPrintParamsStream = nullptr;
-   PV_Stream *mPrintLuaStream    = nullptr;
+   FileStream *mPrintParamsStream = nullptr;
+   FileStream *mPrintLuaStream    = nullptr;
 
    int initialize(size_t initialSize);
    int parseFile(const char *filename);
@@ -515,9 +515,8 @@ void PVParams::ioParamArray(
 
 template <typename T>
 void PVParams::writeParam(const char *paramName, T paramValue) {
-   if (icComm->commRank() == 0) {
-      pvAssert(mPrintParamsStream && mPrintParamsStream->fp);
-      pvAssert(mPrintLuaStream && mPrintLuaStream->fp);
+   if (mPrintParamsStream) {
+      pvAssert(mPrintLuaStream);
       std::stringstream vstr("");
       if (std::numeric_limits<T>::has_infinity) {
          if (paramValue == std::numeric_limits<T>::min()) {
@@ -533,27 +532,25 @@ void PVParams::writeParam(const char *paramName, T paramValue) {
       else {
          vstr << paramValue;
       }
-      fprintf(mPrintParamsStream->fp, "    %-35s = %s;\n", paramName, vstr.str().c_str());
-      fprintf(mPrintLuaStream->fp, "    %-35s = %s;\n", paramName, vstr.str().c_str());
+      mPrintParamsStream->printf("    %-35s = %s;\n", paramName, vstr.str().c_str());
+      mPrintLuaStream->printf("    %-35s = %s;\n", paramName, vstr.str().c_str());
    }
 }
 
 template <typename T>
 void PVParams::writeParamArray(const char *paramName, const T *array, int arraysize) {
-   if (icComm->commRank() == 0) {
-      pvAssert(
-            mPrintParamsStream != nullptr && mPrintParamsStream->fp != nullptr && arraysize >= 0);
-      pvAssert(mPrintLuaStream != nullptr && mPrintLuaStream->fp != nullptr);
+   if (mPrintParamsStream) {
+      pvAssert(mPrintLuaStream != nullptr);
       pvAssert(arraysize >= 0);
       if (arraysize > 0) {
-         fprintf(mPrintParamsStream->fp, "    %-35s = [", paramName);
-         fprintf(mPrintLuaStream->fp, "    %-35s = {", paramName);
+         mPrintParamsStream->printf("    %-35s = [", paramName);
+         mPrintLuaStream->printf("    %-35s = {", paramName);
          for (int k = 0; k < arraysize - 1; k++) {
-            fprintf(mPrintParamsStream->fp, "%f,", (double)array[k]);
-            fprintf(mPrintLuaStream->fp, "%f,", (double)array[k]);
+            mPrintParamsStream->printf("%f,", (double)array[k]);
+            mPrintLuaStream->printf("%f,", (double)array[k]);
          }
-         fprintf(mPrintParamsStream->fp, "%f];\n", (double)array[arraysize - 1]);
-         fprintf(mPrintLuaStream->fp, "%f};\n", (double)array[arraysize - 1]);
+         mPrintParamsStream->printf("%f];\n", (double)array[arraysize - 1]);
+         mPrintLuaStream->printf("%f};\n", (double)array[arraysize - 1]);
       }
    }
 }

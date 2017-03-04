@@ -336,7 +336,7 @@ class HyPerCol : public Subject, Observer {
    Communicator *getCommunicator() const { return mCommunicator; }
    NormalizeBase *getNormalizer(int which) { return mNormalizers.at(which); }
    PV_Init *getPV_InitObj() const { return mPVInitObj; }
-   PV_Stream *getPrintParamsStream() const { return mPrintParamsStream; }
+   FileStream *getPrintParamsStream() const { return mPrintParamsStream; }
    PVParams *parameters() const { return mParams; }
    long int getInitialStep() const { return mInitialStep; }
    long int getFinalStep() const { return mFinalStep; }
@@ -380,7 +380,7 @@ class HyPerCol : public Subject, Observer {
    int respondPrepareCheckpointWrite(PrepareCheckpointWriteMessage const *message);
    int normalizeWeights();
    int outputParams(char const *path);
-   int outputParamsHeadComments(FILE *fp, char const *commentToken);
+   int outputParamsHeadComments(FileStream *fileStream, char const *commentToken);
    int calcTimeScaleTrue();
    /**
     * Sets the mNumThreads member variable based on whether PV_USE_OPENMP is set
@@ -453,8 +453,8 @@ class HyPerCol : public Subject, Observer {
    std::vector<NormalizeBase *> mNormalizers; // NormalizeBase ** mNormalizers; // Objects for
    // normalizing mConnections or groups of mConnections
    PV_Init *mPVInitObj;
-   PV_Stream *mPrintParamsStream; // file pointer associated with mPrintParamsFilename
-   PV_Stream *mLuaPrintParamsStream; // file pointer associated with the output lua file
+   FileStream *mPrintParamsStream; // file pointer associated with mPrintParamsFilename
+   FileStream *mLuaPrintParamsStream; // file pointer associated with the output lua file
    PVParams *mParams; // manages input parameters
    size_t mLayerArraySize;
    size_t mConnectionArraySize;

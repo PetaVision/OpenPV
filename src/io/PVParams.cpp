@@ -1335,13 +1335,12 @@ double PVParams::value(
 
 template <>
 void PVParams::writeParam<bool>(const char *paramName, bool paramValue) {
-   if (icComm->commRank() == 0) {
-      pvAssert(mPrintParamsStream && mPrintParamsStream->fp);
-      pvAssert(mPrintLuaStream && mPrintLuaStream->fp);
+   if (mPrintParamsStream != nullptr) {
+      pvAssert(mPrintLuaStream);
       std::stringstream vstr("");
       vstr << (paramValue ? "true" : "false");
-      fprintf(mPrintParamsStream->fp, "    %-35s = %s;\n", paramName, vstr.str().c_str());
-      fprintf(mPrintLuaStream->fp, "    %-35s = %s;\n", paramName, vstr.str().c_str());
+      mPrintParamsStream->printf("    %-35s = %s;\n", paramName, vstr.str().c_str());
+      mPrintLuaStream->printf("    %-35s = %s;\n", paramName, vstr.str().c_str());
    }
 }
 
@@ -1427,7 +1426,7 @@ void PVParams::ioParamString(
          else {
             // parameter was not set in params file; use the default.  But default might or might
             // not be nullptr.
-            if (icComm->commRank() == 0 && warnIfAbsent == true) {
+            if (icComm->globalCommRank() == 0 && warnIfAbsent == true) {
                if (defaultValue != nullptr) {
                   WarnLog().printf(
                         "Using default value \"%s\" for string parameter \"%s\" in group \"%s\"\n",
@@ -1539,16 +1538,15 @@ PVParams::stringValue(const char *groupName, const char *paramStringName, bool w
 }
 
 void PVParams::writeParamString(const char *paramName, const char *svalue) {
-   if (icComm->commRank() == 0) {
-      pvAssert(mPrintParamsStream != nullptr && mPrintParamsStream->fp != nullptr);
-      pvAssert(mPrintLuaStream && mPrintLuaStream->fp);
+   if (mPrintParamsStream != nullptr) {
+      pvAssert(mPrintLuaStream);
       if (svalue != nullptr) {
-         fprintf(mPrintParamsStream->fp, "    %-35s = \"%s\";\n", paramName, svalue);
-         fprintf(mPrintLuaStream->fp, "    %-35s = \"%s\";\n", paramName, svalue);
+         mPrintParamsStream->printf("    %-35s = \"%s\";\n", paramName, svalue);
+         mPrintLuaStream->printf("    %-35s = \"%s\";\n", paramName, svalue);
       }
       else {
-         fprintf(mPrintParamsStream->fp, "    %-35s = NULL;\n", paramName);
-         fprintf(mPrintLuaStream->fp, "    %-35s = nil;\n", paramName);
+         mPrintParamsStream->printf("    %-35s = NULL;\n", paramName);
+         mPrintLuaStream->printf("    %-35s = nil;\n", paramName);
       }
    }
 }

@@ -233,14 +233,14 @@ int HyPerCol::ioParams(enum ParamsIOFlag ioFlag) {
 }
 
 int HyPerCol::ioParamsStartGroup(enum ParamsIOFlag ioFlag, const char *group_name) {
-   if (ioFlag == PARAMS_IO_WRITE && columnId() == 0) {
+   if (ioFlag == PARAMS_IO_WRITE && mCheckpointer->getMPIBlock()->getRank() == 0) {
       pvAssert(mPrintParamsStream);
       pvAssert(mLuaPrintParamsStream);
       const char *keyword = mParams->groupKeywordFromName(group_name);
-      fprintf(mPrintParamsStream->fp, "\n");
-      fprintf(mPrintParamsStream->fp, "%s \"%s\" = {\n", keyword, group_name);
-      fprintf(mLuaPrintParamsStream->fp, "%s = {\n", group_name);
-      fprintf(mLuaPrintParamsStream->fp, "groupType = \"%s\";\n", keyword);
+      mPrintParamsStream->printf("\n");
+      mPrintParamsStream->printf("%s \"%s\" = {\n", keyword, group_name);
+      mLuaPrintParamsStream->printf("%s = {\n", group_name);
+      mLuaPrintParamsStream->printf("groupType = \"%s\";\n", keyword);
    }
    return PV_SUCCESS;
 }
@@ -292,11 +292,10 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 int HyPerCol::ioParamsFinishGroup(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_WRITE && columnId() == 0) {
-      pvAssert(mPrintParamsStream);
+   if (ioFlag == PARAMS_IO_WRITE && mPrintParamsStream != nullptr) {
       pvAssert(mLuaPrintParamsStream);
-      fprintf(mPrintParamsStream->fp, "};\n");
-      fprintf(mLuaPrintParamsStream->fp, "};\n\n");
+      mPrintParamsStream->printf("};\n");
+      mLuaPrintParamsStream->printf("};\n\n");
    }
    return PV_SUCCESS;
 }
@@ -500,10 +499,10 @@ void HyPerCol::ioParam_printParamsFilename(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamString(
          ioFlag, mName, "printParamsFilename", &mPrintParamsFilename, "pv.params");
    if (mPrintParamsFilename == nullptr || mPrintParamsFilename[0] == '\0') {
-      if (columnId() == 0) {
+      if (mCheckpointer->getMPIBlock()->getRank() == 0) {
          ErrorLog().printf("printParamsFilename cannot be null or the empty string.\n");
       }
-      MPI_Barrier(getCommunicator()->communicator());
+      MPI_Barrier(mCheckpointer->getMPIBlock()->getComm());
       exit(EXIT_FAILURE);
    }
 }
@@ -640,13 +639,6 @@ void HyPerCol::allocateColumn() {
    if (mReadyFlag) {
       return;
    }
-   pvAssert(mPrintParamsFilename && mPrintParamsFilename[0]);
-   std::string printParamsFileString("");
-   if (mPrintParamsFilename[0] != '/') {
-      printParamsFileString += mCheckpointer->getOutputPath();
-      printParamsFileString += "/";
-   }
-   printParamsFileString += mPrintParamsFilename;
 
    setNumThreads(false);
    // When we call processParams, the communicateInitInfo stage will run, which
@@ -657,12 +649,19 @@ void HyPerCol::allocateColumn() {
    // second time after processParams(), and only then print messages.
 
    // processParams function does communicateInitInfo stage, sets up adaptive
-   // time step, and
-   // prints params
-   int status = processParams(printParamsFileString.c_str());
-   MPI_Barrier(getCommunicator()->communicator());
-
-   FatalIf(status != PV_SUCCESS, "HyPerCol \"%s\" failed to run.\n", mName);
+   // time step, and prints params
+   pvAssert(mPrintParamsFilename && mPrintParamsFilename[0]);
+   if (mPrintParamsFilename[0] != '/') {
+      std::string printParamsFilename(mPrintParamsFilename);
+      std::string printParamsPath = mCheckpointer->makeOutputPathFilename(printParamsFilename);
+      processParams(printParamsPath.c_str());
+   }
+   else {
+      // If using absolute path, only global rank 0 writes, to avoid collisions.
+      if (mCheckpointer->getMPIBlock()->getGlobalRank() == 0) {
+         processParams(mPrintParamsFilename);
+      }
+   }
 
    int thread_status =
          setNumThreads(true /*now, print messages related to setting number of threads*/);
@@ -691,10 +690,8 @@ void HyPerCol::allocateColumn() {
    notify(std::make_shared<RegisterDataMessage<Checkpointer>>(mCheckpointer));
 
 #ifdef DEBUG_OUTPUT
-   if (columnId() == 0) {
-      InfoLog().printf("[0]: HyPerCol: running...\n");
-      InfoLog().flush();
-   }
+   InfoLog().printf("[%d]: HyPerCol: running...\n", mCommunicator->globalCommRank());
+   InfoLog().flush();
 #endif
 
    // Initialize the state of each object based on the params file,
@@ -766,10 +763,8 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
    notify(std::make_shared<CleanupMessage>());
 
 #ifdef DEBUG_OUTPUT
-   if (columnId() == 0) {
-      InfoLog().printf("[0]: HyPerCol::run done...\n");
-      InfoLog().flush();
-   }
+   InfoLog().printf("[%d]: HyPerCol: done...\n", mCommunicator->globalCommRank());
+   InfoLog().flush();
 #endif
 
    mCheckpointer->finalCheckpoint(mSimTime);
@@ -937,7 +932,7 @@ void HyPerCol::advanceTimeLoop(Clock &runClock, int const runClockStartingStep) 
 int HyPerCol::advanceTime(double sim_time) {
    if (mSimTime >= mNextProgressTime) {
       mNextProgressTime += mProgressInterval;
-      if (columnId() == 0) {
+      if (mCommunicator->globalCommRank() == 0) {
          std::ostream &progressStream = mWriteProgressToErr ? getErrorStream() : getOutputStream();
          time_t current_time;
          time(&current_time);
@@ -1126,7 +1121,7 @@ int HyPerCol::respondPrepareCheckpointWrite(PrepareCheckpointWriteMessage const 
 int HyPerCol::outputParams(char const *path) {
    assert(path != nullptr && path[0] != '\0');
    int status = PV_SUCCESS;
-   int rank   = mCommunicator->commRank();
+   int rank   = mCheckpointer->getMPIBlock()->getRank();
    assert(mPrintParamsStream == nullptr);
    char *tmp = strdup(path); // duplicate string since dirname() is allowed to
    // modify its argument
@@ -1134,55 +1129,34 @@ int HyPerCol::outputParams(char const *path) {
       Fatal().printf("HyPerCol::outputParams unable to allocate memory: %s\n", strerror(errno));
    }
    char *containingdir = dirname(tmp);
-   status              = ensureDirExists(getCommunicator()->getLocalMPIBlock(), containingdir);
+   status              = ensureDirExists(mCheckpointer->getMPIBlock(), containingdir);
    if (status != PV_SUCCESS) {
       ErrorLog().printf(
             "HyPerCol::outputParams unable to create directory \"%s\"\n", containingdir);
    }
    free(tmp);
    if (rank == 0) {
-      if (strlen(path) + 4 /*allow room for .lua at end, and string terminator*/
-          > (size_t)PV_PATH_MAX) {
-         WarnLog().printf(
-               "outputParams called with too long a filename.  "
-               "Parameters will not be printed.\n");
-         status = ENAMETOOLONG;
-      }
-      else {
-         mPrintParamsStream = PV_fopen(path, "w", getVerifyWrites());
-         if (mPrintParamsStream == nullptr) {
-            status = errno;
-            ErrorLog().printf(
-                  "outputParams error opening \"%s\" for writing: %s\n", path, strerror(errno));
-         }
-         // Get new lua path
-         char luapath[PV_PATH_MAX];
-         strcpy(luapath, path);
-         strcat(luapath, ".lua");
-         mLuaPrintParamsStream = PV_fopen(luapath, "w", getVerifyWrites());
-         if (mLuaPrintParamsStream == nullptr) {
-            status = errno;
-            ErrorLog().printf(
-                  "outputParams failed to open \"%s\" for writing: %s\n", luapath, strerror(errno));
-         }
-      }
-      assert(mPrintParamsStream != nullptr);
-      assert(mLuaPrintParamsStream != nullptr);
+      mPrintParamsStream = new FileStream(path, std::ios_base::out, getVerifyWrites());
+      // Get new lua path
+      std::string luaPath(path);
+      luaPath.append(".lua");
+      char luapath[PV_PATH_MAX];
+      mLuaPrintParamsStream =
+            new FileStream(luaPath.c_str(), std::ios_base::out, getVerifyWrites());
       parameters()->setPrintParamsStream(mPrintParamsStream);
       parameters()->setPrintLuaStream(mLuaPrintParamsStream);
 
       // Params file output
-      outputParamsHeadComments(mPrintParamsStream->fp, "//");
+      outputParamsHeadComments(mPrintParamsStream, "//");
 
       // Lua file output
-      outputParamsHeadComments(mLuaPrintParamsStream->fp, "--");
+      outputParamsHeadComments(mLuaPrintParamsStream, "--");
       // Load util module based on PVPath
-      fprintf(
-            mLuaPrintParamsStream->fp,
+      mLuaPrintParamsStream->printf(
             "package.path = package.path .. \";\" .. \"" PV_DIR "/../parameterWrapper/?.lua\"\n");
-      fprintf(mLuaPrintParamsStream->fp, "local pv = require \"PVModule\"\n\n");
-      fprintf(mLuaPrintParamsStream->fp, "-- Base table variable to store\n");
-      fprintf(mLuaPrintParamsStream->fp, "local pvParameters = {\n");
+      mLuaPrintParamsStream->printf("local pv = require \"PVModule\"\n\n");
+      mLuaPrintParamsStream->printf("-- Base table variable to store\n");
+      mLuaPrintParamsStream->printf("local pvParameters = {\n");
    }
 
    // Parent HyPerCol params
@@ -1226,74 +1200,81 @@ int HyPerCol::outputParams(char const *path) {
    }
 
    if (rank == 0) {
-      fprintf(mLuaPrintParamsStream->fp, "} --End of pvParameters\n");
-      fprintf(
-            mLuaPrintParamsStream->fp,
+      mLuaPrintParamsStream->printf("} --End of pvParameters\n");
+      mLuaPrintParamsStream->printf(
             "\n-- Print out PetaVision approved parameter file to the console\n");
-      fprintf(
-            mLuaPrintParamsStream->fp,
-            "paramsFileString = pv.createParamsFileString(pvParameters)\n");
-      fprintf(mLuaPrintParamsStream->fp, "io.write(paramsFileString)\n");
+      mLuaPrintParamsStream->printf("paramsFileString = pv.createParamsFileString(pvParameters)\n");
+      mLuaPrintParamsStream->printf("io.write(paramsFileString)\n");
    }
 
    if (mPrintParamsStream) {
-      PV_fclose(mPrintParamsStream);
+      delete mPrintParamsStream;
       mPrintParamsStream = nullptr;
       parameters()->setPrintParamsStream(mPrintParamsStream);
    }
    if (mLuaPrintParamsStream) {
-      PV_fclose(mLuaPrintParamsStream);
+      delete mLuaPrintParamsStream;
       mLuaPrintParamsStream = nullptr;
       parameters()->setPrintLuaStream(mLuaPrintParamsStream);
    }
    return status;
 }
 
-int HyPerCol::outputParamsHeadComments(FILE *fp, char const *commentToken) {
+int HyPerCol::outputParamsHeadComments(FileStream *fileStream, char const *commentToken) {
    time_t t = time(nullptr);
-   fprintf(fp, "%s PetaVision, " PV_REVISION "\n", commentToken);
-   fprintf(fp, "%s Run time %s", commentToken, ctime(&t)); // newline is included in output of ctime
+   fileStream->printf("%s PetaVision, " PV_REVISION "\n", commentToken);
+   fileStream->printf("%s Run time %s", commentToken, ctime(&t)); // output of ctime contains \n
 #ifdef PV_USE_MPI
-   fprintf(
-         fp,
-         "%s Compiled with MPI and run using %d rows and %d columns.\n",
+   MPIBlock const *mpiBlock = mCheckpointer->getMPIBlock();
+   fileStream->printf(
+         "%s Compiled with MPI and run using %d rows, %d columns, and MPI batch dimension %d.\n",
          commentToken,
-         mCommunicator->numCommRows(),
-         mCommunicator->numCommColumns());
+         mpiBlock->getGlobalNumRows(),
+         mpiBlock->getGlobalNumColumns(),
+         mpiBlock->getGlobalBatchDimension());
+   if (mpiBlock->getNumRows() < mpiBlock->getGlobalNumRows()
+       or mpiBlock->getNumColumns() < mpiBlock->getGlobalNumColumns()
+       or mpiBlock->getBatchDimension() < mpiBlock->getGlobalBatchDimension()) {
+      fileStream->printf(
+            "CheckpointCells have %d rows, %d columns, and MPI batch dimension %d.\n",
+            mpiBlock->getNumRows(),
+            mpiBlock->getNumColumns(),
+            mpiBlock->getBatchDimension());
+   }
 #else // PV_USE_MPI
-   fprintf(fp, "%s Compiled without MPI.\n", commentToken);
+   fileStream->printf("%s Compiled without MPI.\n", commentToken);
 #endif // PV_USE_MPI
 #ifdef PV_USE_CUDA
-   fprintf(fp, "%s Compiled with CUDA.\n", commentToken);
+   fileStream->printf("%s Compiled with CUDA.\n", commentToken);
 #else
-   fprintf(fp, "%s Compiled without CUDA.\n", commentToken);
+   fileStream->printf("%s Compiled without CUDA.\n", commentToken);
 #endif
 #ifdef PV_USE_OPENMP_THREADS
-   fprintf(fp, "%s Compiled with OpenMP parallel code", commentToken);
+   fileStream->printf("%s Compiled with OpenMP parallel code", commentToken);
    if (mNumThreads > 0) {
-      fprintf(fp, " and run using %d threads.\n", mNumThreads);
+      fileStream->printf(" and run using %d threads.\n", mNumThreads);
    }
    else if (mNumThreads == 0) {
-      fprintf(fp, " but number of threads was set to zero (error).\n");
+      fileStream->printf(" but number of threads was set to zero (error).\n");
    }
    else {
-      fprintf(fp, " but the -t option was not specified.\n");
+      fileStream->printf(" but the -t option was not specified.\n");
    }
 #else
-   fprintf(fp, "%s Compiled without OpenMP parallel code", commentToken);
+   fileStream->printf("%s Compiled without OpenMP parallel code", commentToken);
    if (mNumThreads == 1) {
-      fprintf(fp, ".\n");
+      fileStream->printf(".\n");
    }
    else if (mNumThreads == 0) {
-      fprintf(fp, " but number of threads was set to zero (error).\n");
+      fileStream->printf(" but number of threads was set to zero (error).\n");
    }
    else {
-      fprintf(fp, " but number of threads specified was %d instead of 1. (error).\n", mNumThreads);
+      fileStream->printf(
+            " but number of threads specified was %d instead of 1. (error).\n", mNumThreads);
    }
 #endif // PV_USE_OPENMP_THREADS
    if (mCheckpointReadFlag) {
-      fprintf(
-            fp,
+      fileStream->printf(
             "%s Started from checkpoint \"%s\"\n",
             commentToken,
             mCheckpointer->getCheckpointReadDirectory().c_str());
@@ -1517,13 +1498,7 @@ int HyPerCol::insertProbe(ColProbe *p) {
 
 void HyPerCol::addObject(BaseObject *obj) {
    bool succeeded = mObjectHierarchy.addObject(obj->getName(), obj);
-   if (!succeeded) {
-      if (columnId() == 0) {
-         Fatal() << "Adding " << obj->getDescription() << "failed.\n";
-      }
-      MPI_Barrier(getCommunicator()->communicator());
-      exit(PV_FAILURE);
-   }
+   FatalIf(!succeeded, "Adding %s failed.\n", getDescription_c());
 }
 
 // BaseProbes include layer probes, connection probes, and column probes.
@@ -1624,10 +1599,10 @@ BaseProbe *HyPerCol::getBaseProbeFromName(const char *probeName) {
 unsigned int HyPerCol::seedRandomFromWallClock() {
    unsigned long t = 0UL;
    int rootproc    = 0;
-   if (columnId() == rootproc) {
+   if (mCommunicator->globalCommRank() == rootproc) {
       t = time((time_t *)nullptr);
    }
-   MPI_Bcast(&t, 1, MPI_UNSIGNED, rootproc, mCommunicator->communicator());
+   MPI_Bcast(&t, 1, MPI_UNSIGNED, rootproc, mCommunicator->globalCommunicator());
    return t;
 }
 
