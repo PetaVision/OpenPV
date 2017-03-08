@@ -77,7 +77,7 @@ class HyPerConn : public BaseConnection {
 
    virtual int insertProbe(BaseConnectionProbe *p) override;
    int outputProbeParams() override;
-   virtual int outputState(double time, bool last = false) override;
+   virtual int outputState(double time) override;
    virtual int updateState(double time, double dt) override;
    virtual int finalizeUpdate(double timed, double dt) override;
    virtual bool needUpdate(double time, double dt) override;
@@ -92,13 +92,13 @@ class HyPerConn : public BaseConnection {
          int kExt);
 
    virtual double computeNewWeightUpdateTime(double time, double currentUpdateTime);
-   virtual int writeWeights(double timed, bool last = false);
+   virtual int writeWeights(double timed);
    virtual int writeWeights(const char *filename);
    virtual int writeWeights(
          PVPatch ***patches,
          float **dataStart,
          int numPatches,
-         const char *filename,
+         FileStream *fileStream,
          double timef,
          bool compressWeights,
          bool last);
@@ -328,6 +328,9 @@ class HyPerConn : public BaseConnection {
    int fileparams[NUM_WGT_PARAMS]; // The header of the file named by the filename member variable
    int numWeightPatches; // Number of PVPatch structures in buffer pointed to by wPatches[arbor]
    int numDataPatches; // Number of blocks of float's in buffer pointed to by wDataStart[arbor]
+   int mNumDataPatchesX; // Number of data patches in the x-dimension
+   int mNumDataPatchesY; // Number of data patches in the y-dimension
+   int mNumDataPatchesF; // Number of data patches in the feature dimension
    bool needAllocPostWeights;
 
    std::vector<PlasticCloneConn *>
@@ -520,6 +523,9 @@ class HyPerConn : public BaseConnection {
    int mDWMaxDecayInterval = 0; // How many weight updates between each dWMax modification
    int mDWMaxDecayTimer    = 0; // Number of updates left before next dWMax modification
    float mDWMaxDecayFactor = 0.0f; // Each modification is dWMax = dWMax * (1.0 - decayFactor);
+
+   CheckpointableFileStream *mOutputStateStream = nullptr; // weights file written by outputState
+   MPIBlock const *mOutputStateMPIBlock         = nullptr;
 
   protected:
    HyPerConn();
@@ -861,6 +867,14 @@ class HyPerConn : public BaseConnection {
    int setPostLayerName(const char *post_name);
    virtual int initPlasticityPatches();
    virtual int registerData(Checkpointer *checkpointer, std::string const &objName) override;
+   void openOutputStateFile(Checkpointer *checkpointer);
+
+   /**
+    * Called by registerData. If writeStep is nonnegative, opens the weights pvp file to be
+    * used by outputState, and registers its file position with the checkpointer.
+    */
+   void openOutpuStateFile(Checkpointer *checkpointer);
+
    virtual int setPatchSize(); // Sets nxp, nyp, nfp if weights are loaded from file.  Subclasses
    // override if they have specialized ways of setting patch size that
    // needs to go in the communicate stage.

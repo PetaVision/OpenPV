@@ -10,7 +10,6 @@
 
 #include "FileStream.hpp"
 #include "arch/mpi/mpi.h"
-#include "columns/Communicator.hpp"
 #include "include/PVLayerLoc.h"
 #include "include/pv_types.h"
 #include "io.hpp"
@@ -22,11 +21,11 @@
 
 namespace PV {
 
-// index/value pairs used by writeActivitySparseNonspiking()
-typedef struct indexvaluepair_ {
-   uint32_t index;
-   float value;
-} indexvaluepair;
+struct PatchHeader {
+   unsigned short int nx;
+   unsigned short int ny;
+   unsigned int offset;
+};
 
 void timeToParams(double time, void *params);
 double timeFromParams(void *params);
@@ -36,7 +35,6 @@ size_t pv_sizeof(int datatype);
 PV_Stream *PV_fopen(const char *path, const char *mode, bool verifyWrites);
 int PV_stat(const char *path, struct stat *buf);
 long int getPV_StreamFilepos(PV_Stream *pvstream);
-long int updatePV_StreamFilepos(PV_Stream *pvstream);
 long int PV_ftell(PV_Stream *pvstream);
 int PV_fseek(PV_Stream *pvstream, long int offset, int whence);
 size_t
@@ -68,14 +66,6 @@ int pvp_read_header(
       int params[],
       int *numParams);
 
-void read_header_err(
-      const char *filename,
-      Communicator *comm,
-      int returned_num_params,
-      int *params);
-int pvp_write_header(PV_Stream *pvstream, MPIBlock const *mpiBlock, int *params, int numParams);
-
-// The pvp_write_header below will go away in favor of the pvp_write_header above.
 int pvp_write_header(
       PV_Stream *pvstream,
       MPIBlock const *mpiBlock,
@@ -91,21 +81,13 @@ int pvp_write_header(
 
 // Oct 21, 2016. pvp_set_file_params removed, as filetype PVP_FILE_TYPE is obsolete.
 
-// pvp_set_activity_params was removed Jan 26, 2017.
+// Unused function pvp_set_activity_params was removed Jan 26, 2017.
+// Unused function alloc_params was removed Feb 21, 2017.
 
-int *alloc_params(int numParams);
-int set_weight_params(int *params, int nxp, int nyp, int nfp, float min, float max, int numPatches);
-
-int pvp_read_time(PV_Stream *pvstream, Communicator *comm, int root_process, double *timed);
-
-int writeActivity(FileStream *fileStream, Communicator *comm, double timed, PVLayerCube *cube);
-
-int writeActivitySparse(
-      FileStream *fileStream,
-      Communicator *comm,
-      double timed,
-      PVLayerCube *cube,
-      bool includeValues);
+// writeActivity and writeActivitySparse removed Feb 17, 2017.
+// Corresponding HyPerLayer methods now use BufferUtils routines
+// gatherActivity and scatterActivity were also removed.
+// Use BufferUtils::gather and BufferUtils::scatter instead.
 
 int readWeights(
       PVPatch ***patches,
@@ -128,6 +110,41 @@ int pv_text_write_patch(
       int sx,
       int sy,
       int sf);
+
+void writeSharedWeights(
+      FileStream *fileStream,
+      MPIBlock const *mpiBlock,
+      double timed,
+      PVLayerLoc const *preLoc,
+      int nxp,
+      int nyp,
+      int nfp,
+      float minVal,
+      float maxVal,
+      float **dataStart,
+      int numPatchesX,
+      int numPatchesY,
+      int numPatchesF,
+      int numArbors,
+      bool compress);
+
+void writeNonsharedWeights(
+      FileStream *fileStream,
+      MPIBlock const *mpiBlock,
+      double timed,
+      const PVLayerLoc *preLoc,
+      int nxp,
+      int nyp,
+      int nfp,
+      float minVal,
+      float maxVal,
+      PVPatch ***patches,
+      float **dataStart,
+      int numPatchesX,
+      int numPatchesY,
+      int numPatchesF,
+      int numArbors,
+      bool compress);
 
 int writeWeights(
       const char *filename,
@@ -153,28 +170,6 @@ int pvp_check_file_header(
       const PVLayerLoc *loc,
       int params[],
       int numParams);
-
-template <typename T>
-int gatherActivity(
-      PV_Stream *pvstream,
-      Communicator *comm,
-      int rootproc,
-      T *buffer,
-      const PVLayerLoc *layerLoc,
-      bool extended);
-template <typename T>
-int scatterActivity(
-      PV_Stream *pvstream,
-      Communicator *comm,
-      int rootproc,
-      T *buffer,
-      const PVLayerLoc *layerLoc,
-      bool extended,
-      const PVLayerLoc *fileLoc = NULL,
-      int offsetX               = 0,
-      int offsetY               = 0,
-      int filetype              = PVP_NONSPIKING_ACT_FILE_TYPE,
-      int numActive             = 0);
 } // namespace PV
 
 #endif /* FILEIO_HPP_ */

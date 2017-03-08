@@ -3,15 +3,70 @@
 namespace PV {
 
 CheckpointableFileStream::CheckpointableFileStream(
-      char const *path,
-      std::ios_base::openmode mode,
-      string objName,
+      string const &path,
+      bool newFile,
+      Checkpointer *checkpointer,
+      string const &objName,
       bool verifyWrites) {
+   initialize(path, newFile, checkpointer, objName, verifyWrites);
+}
+
+CheckpointableFileStream::CheckpointableFileStream(
+      string const &path,
+      bool newFile,
+      Checkpointer *checkpointer,
+      string const &objName) {
+   initialize(path, newFile, checkpointer, objName, checkpointer->doesVerifyWrites());
+}
+
+void CheckpointableFileStream::initialize(
+      string const &path,
+      bool newFile,
+      Checkpointer *checkpointer,
+      string const &objName,
+      bool verifyWrites) {
+   FatalIf(
+         checkpointer->getMPIBlock()->getRank() != 0,
+         "CheckpointableFileStream (path \"%s\") called by non-root process.\n",
+         path.c_str());
+   string fullPath = makeOutputPathFilename(checkpointer, path);
+
+   bool createFile = newFile;
+   if (!newFile) {
+      // Test if file exists. If not, issue a warning and set createFile to true.
+      struct stat statbuf;
+      if (PV_stat(fullPath.c_str(), &statbuf) != 0) {
+         if (errno == ENOENT) {
+            WarnLog().printf(
+                  "%s: file \"%s\" does not exist.  Creating new file.\n",
+                  getDescription_c(),
+                  fullPath.c_str());
+            createFile = true;
+         }
+         else {
+            Fatal().printf(
+                  "%s: error checking whether file \"%s\" exists: %s \n",
+                  getDescription_c(),
+                  fullPath.c_str(),
+                  strerror(errno));
+         }
+      }
+   }
+   if (createFile) {
+      char fullPathCopy[fullPath.size() + 1];
+      std::memcpy(fullPathCopy, fullPath.c_str(), fullPath.size());
+      fullPathCopy[fullPath.size()] = '\0';
+      char *dirName                 = dirname(fullPathCopy);
+      ensureDirExists(checkpointer->getMPIBlock(), dirName);
+      FileStream fileStream(fullPath.c_str(), std::ios_base::out, verifyWrites);
+   }
+
    mObjName = objName;
    setDescription();
    setOutStream(mFStream);
-   openFile(path, mode, verifyWrites);
+   openFile(fullPath.c_str(), std::ios_base::in | std::ios_base::out, verifyWrites);
    updateFilePos();
+   registerData(checkpointer, objName);
 }
 
 void CheckpointableFileStream::setDescription() {
@@ -39,9 +94,9 @@ int CheckpointableFileStream::respondProcessCheckpointRead(
 
 int CheckpointableFileStream::registerData(Checkpointer *checkpointer, const string objName) {
    checkpointer->registerCheckpointData<long>(
-         mObjName, std::string("FileStreamRead"), &mFileReadPos, (std::size_t)1, false);
+         mObjName, string("FileStreamRead"), &mFileReadPos, (std::size_t)1, false);
    checkpointer->registerCheckpointData<long>(
-         mObjName, std::string("FileStreamWrite"), &mFileWritePos, (std::size_t)1, false);
+         mObjName, string("FileStreamWrite"), &mFileWritePos, (std::size_t)1, false);
    checkpointer->addObserver(this, BaseMessage{});
    return PV_SUCCESS;
 }
@@ -89,5 +144,11 @@ void CheckpointableFileStream::setInPos(long pos, bool fromBeginning) {
    }
    FileStream::setInPos(pos, fromBeginning);
    updateFilePos();
+}
+
+// Static method.
+string
+CheckpointableFileStream::makeOutputPathFilename(Checkpointer *checkpointer, string const &path) {
+   return checkpointer->makeOutputPathFilename(path);
 }
 }

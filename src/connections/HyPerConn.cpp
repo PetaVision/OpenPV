@@ -466,18 +466,21 @@ int HyPerConn::initNumWeightPatches() {
 
 int HyPerConn::initNumDataPatches() {
    if (sharedWeights) {
-      int nxKernel = (pre->getXScale() < post->getXScale())
-                           ? (int)pow(2, post->getXScale() - pre->getXScale())
-                           : 1;
-      int nyKernel = (pre->getYScale() < post->getYScale())
-                           ? (int)pow(2, post->getYScale() - pre->getYScale())
-                           : 1;
-      numDataPatches = pre->getLayerLoc()->nf * nxKernel * nyKernel;
-      return PV_SUCCESS;
+      mNumDataPatchesX = (pre->getXScale() < post->getXScale())
+                               ? (int)pow(2, post->getXScale() - pre->getXScale())
+                               : 1;
+      mNumDataPatchesY = (pre->getYScale() < post->getYScale())
+                               ? (int)pow(2, post->getYScale() - pre->getYScale())
+                               : 1;
    }
    else {
-      numDataPatches = getNumWeightPatches();
+      PVHalo const &preHalo = pre->getLayerLoc()->halo;
+      mNumDataPatchesX      = pre->getLayerLoc()->nx + preHalo.lt + preHalo.rt;
+      mNumDataPatchesY      = pre->getLayerLoc()->ny + preHalo.dn + preHalo.up;
    }
+   mNumDataPatchesF = pre->getLayerLoc()->nf;
+   numDataPatches   = mNumDataPatchesX * mNumDataPatchesY * mNumDataPatchesF;
+   pvAssert(sharedWeights or (numDataPatches == pre->getNumExtended()));
    return PV_SUCCESS;
 }
 
@@ -1956,40 +1959,45 @@ int HyPerConn::initializeReceivePostKernelArgs() {
 }
 #endif
 
-int HyPerConn::writeWeights(double timed, bool last) {
+int HyPerConn::writeWeights(double timed) {
    PVPatch ***patches_arg = sharedWeights ? NULL : wPatches;
    return writeWeights(
          patches_arg,
          get_wDataStart(),
          getNumDataPatches(),
-         NULL,
+         mOutputStateStream,
          timed,
          writeCompressedWeights,
-         last);
+         false);
 }
 
 int HyPerConn::writeWeights(const char *filename) {
    PVPatch ***patches_arg = sharedWeights ? NULL : wPatches;
-   return writeWeights(
+   FileStream *fileStream = nullptr;
+   if (mOutputStateMPIBlock->getRank() == 0) {
+      fileStream = new FileStream(filename, std::ios_base::out, parent->getVerifyWrites());
+   }
+
+   int status = writeWeights(
          patches_arg,
          get_wDataStart(),
          getNumDataPatches(),
-         filename,
+         fileStream,
          parent->simulationTime(),
          writeCompressedWeights,
          true);
+   delete fileStream;
+   return 0;
 }
 
 int HyPerConn::writeWeights(
       PVPatch ***patches,
       float **dataStart,
       int numPatches,
-      const char *filename,
+      FileStream *fileStream,
       double timed,
       bool compressWeights,
       bool last) {
-   int status = PV_SUCCESS;
-   char path[PV_PATH_MAX];
 
    float minVal = FLT_MAX;
    float maxVal = -FLT_MAX;
@@ -2005,50 +2013,48 @@ int HyPerConn::writeWeights(
    const PVLayerLoc *preLoc  = pre->getLayerLoc();
    const PVLayerLoc *postLoc = post->getLayerLoc();
 
-   int chars_needed = 0;
-   if (filename == NULL) {
-      chars_needed = snprintf(path, PV_PATH_MAX, "%s/%s.pvp", parent->getOutputPath(), name);
+   if (sharedWeights) {
+      writeSharedWeights(
+            fileStream,
+            mOutputStateMPIBlock,
+            timed,
+            preLoc,
+            nxp,
+            nyp,
+            nfp,
+            minVal,
+            maxVal,
+            dataStart,
+            mNumDataPatchesX,
+            mNumDataPatchesY,
+            mNumDataPatchesF,
+            numberOfAxonalArborLists(),
+            compressWeights);
    }
    else {
-      chars_needed = snprintf(path, PV_PATH_MAX, "%s", filename);
-   }
-   if (chars_needed >= PV_PATH_MAX) {
-      Fatal().printf(
-            "HyPerConn::writeWeights in %s: path is too long (it would be cut off as \"%s\")\n",
-            getDescription_c(),
-            path);
-   }
-
-   Communicator *comm = parent->getCommunicator();
-
-   bool append = last ? false : ioAppend;
-
-   status = PV::writeWeights(
-         path,
-         comm->getLocalMPIBlock(),
-         (double)timed,
-         append,
-         preLoc,
-         postLoc,
-         nxp,
-         nyp,
-         nfp,
-         minVal,
-         maxVal,
-         patches,
-         dataStart,
-         numPatches,
-         numberOfAxonalArborLists(),
-         compressWeights,
-         fileType);
-   if (status != PV_SUCCESS) {
-      Fatal().printf("%s error in writing weights.\n", getDescription_c());
+      writeNonsharedWeights(
+            fileStream,
+            mOutputStateMPIBlock,
+            timed,
+            preLoc,
+            nxp,
+            nyp,
+            nfp,
+            minVal,
+            maxVal,
+            patches,
+            dataStart,
+            mNumDataPatchesX,
+            mNumDataPatchesY,
+            mNumDataPatchesF,
+            numberOfAxonalArborLists(),
+            compressWeights);
    }
 
-   return status;
+   return PV_SUCCESS;
 }
 
-int HyPerConn::writeTextWeights(const char *filename, int k) {
+int HyPerConn::writeTextWeights(const char *path, int k) {
    if (parent->getCommunicator()->commSize() > 1) {
       Fatal().printf(
             "writeTextWeights error for %s: writeTextWeights is not compatible with MPI",
@@ -2058,17 +2064,11 @@ int HyPerConn::writeTextWeights(const char *filename, int k) {
    }
    PrintStream *outStream = nullptr;
 
-   if (filename != nullptr) {
-      char outfile[PV_PATH_MAX];
-      snprintf(outfile, PV_PATH_MAX - 1, "%s/%s", parent->getOutputPath(), filename);
-      outStream = new FileStream(outfile, std::ios_base::out, parent->getVerifyWrites());
+   if (path != nullptr) {
+      outStream = new FileStream(path, std::ios_base::out, parent->getVerifyWrites());
    }
    else {
       outStream = new PrintStream(getOutputStream());
-   }
-   if (outStream == nullptr) {
-      ErrorLog().printf("writeWeights: unable to open file \"%s\"\n", filename);
-      return PV_FAILURE;
    }
 
    outStream->printf("Weights for %s, neuron %d\n", getDescription_c(), k);
@@ -2170,9 +2170,33 @@ int HyPerConn::registerData(Checkpointer *checkpointer, std::string const &objNa
    }
    checkpointer->registerCheckpointData(
          objName, "nextWrite", &writeTime, (std::size_t)1, true /*broadcast*/);
+
+   openOutputStateFile(checkpointer);
+
    checkpointer->registerTimer(io_timer);
    checkpointer->registerTimer(update_timer);
    return status;
+}
+
+void HyPerConn::openOutputStateFile(Checkpointer *checkpointer) {
+   // Need mOutputStateMPIBlock to be set even if writeStep is turned off, because
+   // writeWeights(filename) or writePostSynapticWeights will still use the MPIBlock.
+   mOutputStateMPIBlock = checkpointer->getMPIBlock();
+
+   if (writeStep >= 0) {
+
+      if (checkpointer->getMPIBlock()->getRank() == 0) {
+         std::string outputStatePath(getName());
+         outputStatePath.append(".pvp");
+
+         std::string checkpointLabel(getName());
+         checkpointLabel.append("_filepos");
+
+         bool createFlag    = checkpointer->getCheckpointReadDirectory().empty();
+         mOutputStateStream = new CheckpointableFileStream(
+               outputStatePath.c_str(), createFlag, checkpointer, checkpointLabel);
+      }
+   }
 }
 
 float HyPerConn::minWeight(int arborId) {
@@ -2281,24 +2305,18 @@ int HyPerConn::outputProbeParams() {
    return status;
 }
 
-int HyPerConn::outputState(double timef, bool last) {
+int HyPerConn::outputState(double timef) {
    int status = 0;
    io_timer->start();
 
-   if (!last) {
-      for (int i = 0; i < numProbes; i++) {
-         probes[i]->outputStateWrapper(timef, parent->getDeltaTime());
-      }
+   for (int i = 0; i < numProbes; i++) {
+      probes[i]->outputStateWrapper(timef, parent->getDeltaTime());
    }
 
-   if (last) {
-      status = writeWeights(timef, last);
-      pvAssert(status == 0);
-   }
-   else if ((writeStep >= 0) && (timef >= writeTime)) {
+   if ((writeStep >= 0) && (timef >= writeTime)) {
       writeTime += writeStep;
 
-      status = writeWeights(timef, last);
+      status = writeWeights(timef);
       pvAssert(status == 0);
 
       // append to output file after original open
@@ -4450,7 +4468,6 @@ int HyPerConn::postSynapticPatchHead(
 
 int HyPerConn::writePostSynapticWeights(double timef, bool last) {
    int status = PV_SUCCESS;
-   char path[PV_PATH_MAX];
 
    const PVLayerLoc *preLoc = pre->getLayerLoc();
 
@@ -4478,8 +4495,8 @@ int HyPerConn::writePostSynapticWeights(double timef, bool last) {
 
    const char *last_str = (last) ? "_last" : "";
 
-   int chars_needed = snprintf(
-         path, PV_PATH_MAX - 1, "%s/%s_post%s.pvp", parent->getOutputPath(), name, last_str);
+   std::string path(parent->getOutputPath());
+   path.append("/").append(name).append("_post").append(last_str).append(".pvp");
 
    const PVLayerLoc *postLoc = post->getLayerLoc();
    Communicator *comm        = parent->getCommunicator();
@@ -4487,7 +4504,7 @@ int HyPerConn::writePostSynapticWeights(double timef, bool last) {
    bool append = (last) ? false : ioAppend;
 
    status = PV::writeWeights(
-         path,
+         path.c_str(),
          comm->getLocalMPIBlock(),
          (double)timef,
          append,

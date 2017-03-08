@@ -20,7 +20,7 @@
 #include "connections/TransposeConn.hpp"
 #include "include/default_params.h"
 #include "include/pv_common.h"
-#include "io/fileio.hpp"
+#include "io/FileStream.hpp"
 #include "io/io.hpp"
 #include <assert.h>
 #include <iostream>
@@ -54,7 +54,6 @@ int HyPerLayer::initialize_base() {
    xmargin                      = 0;
    ymargin                      = 0;
    numProbes                    = 0;
-   ioAppend                     = 0;
    numChannels                  = 2;
    clayer                       = NULL;
    GSyn                         = NULL;
@@ -162,10 +161,6 @@ int HyPerLayer::initialize(const char *name, HyPerCol *hc) {
    maxRate = 1000.0f / (float)hc->getDeltaTime();
 
    initClayer();
-
-   // must set ioAppend before addLayer is called (addLayer causes activity file to be opened using
-   // layerid)
-   ioAppend = hc->getCheckpointReadFlag() ? 1 : 0;
 
    hc->addLayer(this);
 
@@ -521,8 +516,8 @@ int HyPerLayer::allocateGSyn() {
 }
 
 void HyPerLayer::addPublisher() {
-   Communicator *icComm = parent->getCommunicator();
-   publisher = new Publisher(icComm, clayer->activity, getNumDelayLevels(), getSparseFlag());
+   MPIBlock const *mpiBlock = parent->getCommunicator()->getLocalMPIBlock();
+   publisher = new Publisher(*mpiBlock, clayer->activity, getNumDelayLevels(), getSparseFlag());
 }
 
 void HyPerLayer::checkpointPvpActivityFloat(
@@ -1244,95 +1239,21 @@ int HyPerLayer::communicateInitInfo() {
    return status;
 }
 
-int HyPerLayer::openOutputStateFile() {
-   if (writeStep < 0) {
-      ioAppend = false;
-      return PV_SUCCESS;
-   }
+int HyPerLayer::openOutputStateFile(Checkpointer *checkpointer) {
+   pvAssert(writeStep >= 0);
+   mOutputStateMPIBlock = checkpointer->getMPIBlock();
 
-   // If the communicator's batchwidth is greater than one, each local communicator creates an
-   // outputState file.
-   // To prevent filename collisions, the global rank is inserted into the filename, just before the
-   // ".pvp" extension.
-   // If the batchwidth is one, however, there is no need to insert the global rank.
-   char appendCommBatchIdx[32];
-   int numCommBatches = parent->getCommunicator()->numCommBatches();
-   if (numCommBatches != 1) {
-      int sz = snprintf(appendCommBatchIdx, 32, "_%d", parent->commBatch());
-      if (sz >= 32) {
-         Fatal().printf(
-               "%s: Unable to create file name for outputState file: comm batch index %d is too "
-               "long.\n",
-               getDescription_c(),
-               parent->commBatch());
-      }
-   }
-   else { // numCommBatches is one; insert the empty string instead.
-      appendCommBatchIdx[0] = 0; // appendCommBatchIdx is the empty string
-   }
-   char filename[PV_PATH_MAX];
-   char posFilename[PV_PATH_MAX];
-   int sz = snprintf(
-         filename, PV_PATH_MAX, "%s/%s%s.pvp", parent->getOutputPath(), name, appendCommBatchIdx);
-   if (sz >= PV_PATH_MAX) {
-      Fatal().printf(
-            "%s: Unable to create file name for outputState file: file name with comm batch index "
-            "%d is too long.\n",
-            getDescription_c(),
-            parent->commBatch());
-   }
+   if (checkpointer->getMPIBlock()->getRank() == 0) {
+      std::string outputStatePath(getName());
+      outputStatePath.append(".pvp");
 
-   // initialize writeActivityCalls and writeSparseActivityCalls
-   // only the root process needs these member variables so we don't need to do any MPI.
-   int rootproc = 0;
-   if (parent->getCommunicator()->commRank() == 0) {
-      if (ioAppend) {
-         struct stat statbuffer;
-         int filestatus = stat(filename, &statbuffer);
-         if (filestatus == 0) {
-            if (statbuffer.st_size == (off_t)0) {
-               ioAppend = false;
-            }
-         }
-         else {
-            if (errno == ENOENT) {
-               ioAppend = false;
-            }
-            else {
-               ErrorLog().printf(
-                     "HyPerLayer::initializeLayerId: stat \"%s\": %s\n", filename, strerror(errno));
-               abort();
-            }
-         }
-         PV_Stream *pvstream = PV_fopen(filename, "r", false /*verifyWrites*/);
-         if (pvstream) {
-            int params[NUM_BIN_PARAMS];
-            int numread = PV_fread(params, sizeof(int), NUM_BIN_PARAMS, pvstream);
-            if (numread == NUM_BIN_PARAMS) {
-               if (sparseLayer) {
-                  writeActivitySparseCalls = params[INDEX_NBANDS];
-               }
-               else {
-                  writeActivityCalls = params[INDEX_NBANDS];
-               }
-            }
-            PV_fclose(pvstream);
-         }
-         else {
-            ioAppend = false;
-         }
-      }
-      std::ios_base::openmode mode = std::ios_base::out;
-      if (ioAppend) {
-         mode |= std::ios_base::in;
-      }
       std::string checkpointLabel(getName());
       checkpointLabel.append("_filepos");
+
+      bool createFlag    = checkpointer->getCheckpointReadDirectory().empty();
       mOutputStateStream = new CheckpointableFileStream(
-            filename, mode, checkpointLabel, parent->getVerifyWrites());
+            outputStatePath.c_str(), createFlag, checkpointer, checkpointLabel);
    }
-   Communicator *icComm = parent->getCommunicator();
-   MPI_Bcast(&ioAppend, 1, MPI_INT, 0 /*root*/, icComm->communicator());
    return PV_SUCCESS;
 }
 
@@ -1556,10 +1477,6 @@ int HyPerLayer::allocateDataStructures() {
       }
    }
 
-   if (status == PV_SUCCESS) {
-      status = openOutputStateFile();
-   }
-
    addPublisher();
 
    return status;
@@ -1704,6 +1621,7 @@ int HyPerLayer::registerData(Checkpointer *checkpointer, std::string const &objN
          true /*broadcast*/);
 
    if (writeStep >= 0.0) {
+      openOutputStateFile(checkpointer);
       if (sparseLayer) {
          checkpointer->registerCheckpointData(
                std::string(getName()),
@@ -1720,9 +1638,6 @@ int HyPerLayer::registerData(Checkpointer *checkpointer, std::string const &objN
                (std::size_t)1,
                true /*broadcast*/);
       }
-   }
-   if (mOutputStateStream) {
-      mOutputStateStream->registerData(checkpointer, objName);
    }
 
    if (getNumDelayLevels() > 1) {
@@ -2181,7 +2096,7 @@ int HyPerLayer::outputProbeParams() {
    return status;
 }
 
-int HyPerLayer::outputState(double timef, bool last) {
+int HyPerLayer::outputState(double timef) {
    int status = PV_SUCCESS;
 
    io_timer->start();
@@ -2240,42 +2155,117 @@ int HyPerLayer::readDelaysFromCheckpoint(Checkpointer *checkpointer) {
 // They were only used by checkpointing, which is now handled by the
 // CheckpointEntry class hierarchy.
 
-int HyPerLayer::processCheckpointRead() { return updateAllActiveIndices(); }
+int HyPerLayer::processCheckpointRead() {
+   if (mOutputStateStream) {
+      long fpos = mOutputStateStream->getInPos();
+      if (fpos > 0L) {
+         BufferUtils::ActivityHeader header = BufferUtils::readActivityHeader(*mOutputStateStream);
+         if (sparseLayer) {
+            writeActivitySparseCalls = header.nBands;
+         }
+         else {
+            writeActivityCalls = header.nBands;
+         }
+      }
+      mOutputStateStream->setInPos(fpos, true);
+   }
+   return updateAllActiveIndices();
+}
 
 int HyPerLayer::writeActivitySparse(double timed, bool includeValues) {
-   PVLayerCube cube = publisher->createCube(0);
-   int status       = PV::writeActivitySparse(
-         mOutputStateStream, parent->getCommunicator(), timed, &cube, includeValues);
+   PVLayerCube cube      = publisher->createCube(0);
+   PVLayerLoc const *loc = getLayerLoc();
+   pvAssert(cube.numItems == loc->nbatch * getNumExtended());
 
-   if (status == PV_SUCCESS) {
-      status = incrementNBands(&writeActivitySparseCalls);
+   int const mpiBatchDimension = mOutputStateMPIBlock->getBatchDimension();
+   int const numFrames         = mpiBatchDimension * loc->nbatch;
+   for (int frame = 0; frame < numFrames; frame++) {
+      int const localBatchIndex = frame % loc->nbatch;
+      int const mpiBatchIndex   = frame / loc->nbatch; // Integer division
+      pvAssert(mpiBatchIndex * loc->nbatch + localBatchIndex == frame);
+
+      SparseList<float> list;
+      SparseList<float>::Entry entry;
+      for (long int k = 0; k < cube.numActive[localBatchIndex]; k++) {
+         float *activeIndices = (float *)cube.activeIndices;
+         entry.index          = (uint32_t)activeIndices[localBatchIndex * getNumExtended()];
+         entry.value          = cube.data[localBatchIndex * getNumExtended() + entry.index];
+         list.addEntry(entry);
+      }
+      BufferUtils::gatherSparse(mOutputStateMPIBlock, list, mpiBatchIndex, 0 /*root process*/);
+      if (mOutputStateMPIBlock->getRank() == 0) {
+         long fpos = mOutputStateStream->getOutPos();
+         if (fpos == 0L) {
+            BufferUtils::ActivityHeader header = BufferUtils::buildActivityHeader<float>(
+                  loc->nx * mOutputStateMPIBlock->getNumColumns(),
+                  loc->ny * mOutputStateMPIBlock->getNumRows(),
+                  loc->nf,
+                  0 /* numBands */); // numBands will be set by call to incrementNBands.
+            header.timestamp = timed;
+            BufferUtils::writeActivityHeader(*mOutputStateStream, header);
+         }
+         BufferUtils::writeSparseFrame(*mOutputStateStream, &list, timed);
+      }
    }
-   return status;
+   writeActivitySparseCalls += numFrames;
+   updateNBands(writeActivitySparseCalls);
+   return PV_SUCCESS;
 }
 
 // write non-spiking activity
 int HyPerLayer::writeActivity(double timed) {
-   PVLayerCube cube = publisher->createCube(0);
+   PVLayerCube cube      = publisher->createCube(0);
+   PVLayerLoc const *loc = getLayerLoc();
+   pvAssert(cube.numItems == loc->nbatch * getNumExtended());
 
-   int status = PV::writeActivity(mOutputStateStream, parent->getCommunicator(), timed, &cube);
-   if (status == PV_SUCCESS) {
-      status = incrementNBands(&writeActivityCalls);
+   PVHalo const &halo   = loc->halo;
+   int const nxExtLocal = loc->nx + halo.lt + halo.rt;
+   int const nyExtLocal = loc->ny + halo.dn + halo.up;
+   int const nf         = loc->nf;
+
+   int const mpiBatchDimension = mOutputStateMPIBlock->getBatchDimension();
+   int const numFrames         = mpiBatchDimension * loc->nbatch;
+   for (int frame = 0; frame < numFrames; frame++) {
+      int const localBatchIndex = frame % loc->nbatch;
+      int const mpiBatchIndex   = frame / loc->nbatch; // Integer division
+      pvAssert(mpiBatchIndex * loc->nbatch + localBatchIndex == frame);
+
+      float *data = &cube.data[localBatchIndex * getNumExtended()];
+      Buffer<float> localBuffer(data, nxExtLocal, nyExtLocal, nf);
+      localBuffer.crop(loc->nx, loc->ny, Buffer<float>::CENTER);
+      Buffer<float> blockBuffer = BufferUtils::gather<float>(
+            mOutputStateMPIBlock, localBuffer, loc->nx, loc->ny, mpiBatchIndex, 0 /*root process*/);
+      // At this point, the rank-zero process has the entire block for the batch element,
+      // regardless of what the mpiBatchIndex is.
+      if (mOutputStateMPIBlock->getRank() == 0) {
+         long fpos = mOutputStateStream->getOutPos();
+         if (fpos == 0L) {
+            BufferUtils::ActivityHeader header = BufferUtils::buildActivityHeader<float>(
+                  loc->nx * mOutputStateMPIBlock->getNumColumns(),
+                  loc->ny * mOutputStateMPIBlock->getNumRows(),
+                  loc->nf,
+                  0 /* numBands */); // numBands will be set by call to incrementNBands.
+            header.timestamp = timed;
+            BufferUtils::writeActivityHeader(*mOutputStateStream, header);
+         }
+         BufferUtils::writeFrame<float>(*mOutputStateStream, &blockBuffer, timed);
+      }
    }
-   return status;
+   writeActivityCalls += numFrames;
+   updateNBands(writeActivityCalls);
+   return PV_SUCCESS;
 }
 
-int HyPerLayer::incrementNBands(int *numCalls) {
+void HyPerLayer::updateNBands(int const numCalls) {
    // Only the root process needs to maintain INDEX_NBANDS, so only the root process modifies
    // numCalls
    // This way, writeActivityCalls does not need to be coordinated across MPI
    if (mOutputStateStream != nullptr) {
-      (*numCalls)   = (*numCalls) + parent->getNBatch();
       long int fpos = mOutputStateStream->getOutPos();
       mOutputStateStream->setOutPos(sizeof(int) * INDEX_NBANDS, true /*fromBeginning*/);
-      mOutputStateStream->write(numCalls, (long)sizeof(*numCalls));
+      mOutputStateStream->write(&numCalls, (long)sizeof(numCalls));
       mOutputStateStream->setOutPos(fpos, true /*fromBeginning*/);
    }
-   return PV_SUCCESS;
 }
 
 bool HyPerLayer::localDimensionsEqual(PVLayerLoc const *loc1, PVLayerLoc const *loc2) {

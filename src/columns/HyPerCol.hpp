@@ -164,22 +164,9 @@ class HyPerCol : public Subject, Observer {
    virtual void ioParam_writeProgressToErr(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief verifyWrites: If true, calls to PV_fwrite are checked by opening the
-    * file in read mode
-    * and reading back the data and comparing it to the data just written.
-    */
-   virtual void ioParam_verifyWrites(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief mOutputPath: Specifies the absolute or relative output path of the
-    * run
-    */
-   virtual void ioParam_outputPath(enum ParamsIOFlag ioFlag);
-
-   /**
     * @brief mPrintParamsFilename: Specifies the output mParams filename.
-    * @details Defaults to pv.mParams. The output mParams file will be put into
-    * mOutputPath.
+    * @details Defaults to pv.params. Relative paths are relative to
+    * the OutputPath.
     */
    virtual void ioParam_printParamsFilename(enum ParamsIOFlag ioFlag);
 
@@ -275,6 +262,17 @@ class HyPerCol : public Subject, Observer {
    int processParams(char const *path);
    int ioParamsFinishGroup(enum ParamsIOFlag);
    int ioParamsStartGroup(enum ParamsIOFlag ioFlag, const char *group_name);
+
+   /**
+    * This function tells each added object to perform the tasks necessary
+    * before calling advanceTimeLoop.
+    * Specifically, if mReadyFlag is not set, performs the CommunicateInitInfo,
+    * AllocateDataStructures, and RegisterData stages, and outputs the
+    * generated params file, and sets the mReadyFlag If mReadyFlag is set, does
+    * nothing, so that the above stages are not performed more than once.
+    * This method is called by the run() method.
+    */
+   void allocateColumn();
    int run() { return run(mStartTime, mStopTime, mDeltaTime); }
    int run(double mStartTime, double mStopTime, double dt);
    NormalizeBase *getNormalizerFromName(const char *normalizerName);
@@ -291,7 +289,7 @@ class HyPerCol : public Subject, Observer {
 
    BaseConnection *getConnection(int which) { return mConnections.at(which); }
    BaseProbe *getBaseProbe(int which) { return mBaseProbes.at(which); }
-   bool getVerifyWrites() { return mVerifyWrites; }
+   bool getVerifyWrites() { return mCheckpointer->doesVerifyWrites(); }
    bool getDefaultInitializeFromCheckpointFlag() {
       return mCheckpointer->getDefaultInitializeFromCheckpointFlag();
    }
@@ -300,7 +298,7 @@ class HyPerCol : public Subject, Observer {
    char const *getLastCheckpointDir() const { return mCheckpointer->getLastCheckpointDir(); }
    bool getWriteTimescales() const { return mWriteTimescales; }
    const char *getName() { return mName; }
-   const char *getOutputPath() { return mOutputPath; }
+   const char *getOutputPath() { return mCheckpointer->getOutputPath().c_str(); }
    const char *getInitializeFromCheckpointDir() const {
       return mCheckpointer->getInitializeFromCheckpointDir();
    }
@@ -338,7 +336,7 @@ class HyPerCol : public Subject, Observer {
    Communicator *getCommunicator() const { return mCommunicator; }
    NormalizeBase *getNormalizer(int which) { return mNormalizers.at(which); }
    PV_Init *getPV_InitObj() const { return mPVInitObj; }
-   PV_Stream *getPrintParamsStream() const { return mPrintParamsStream; }
+   FileStream *getPrintParamsStream() const { return mPrintParamsStream; }
    PVParams *parameters() const { return mParams; }
    long int getInitialStep() const { return mInitialStep; }
    long int getFinalStep() const { return mFinalStep; }
@@ -382,7 +380,7 @@ class HyPerCol : public Subject, Observer {
    int respondPrepareCheckpointWrite(PrepareCheckpointWriteMessage const *message);
    int normalizeWeights();
    int outputParams(char const *path);
-   int outputParamsHeadComments(FILE *fp, char const *commentToken);
+   int outputParamsHeadComments(FileStream *fileStream, char const *commentToken);
    int calcTimeScaleTrue();
    /**
     * Sets the mNumThreads member variable based on whether PV_USE_OPENMP is set
@@ -413,14 +411,11 @@ class HyPerCol : public Subject, Observer {
    bool mWriteProgressToErr; // Whether to write progress step to standard error
    // (True) or standard
    // output (False) (default is output)
-   bool mVerifyWrites; // Flag to indicate whether calls to PV_fwrite do a
-   // readback check
    bool mOwnsCommunicator; // True if icComm was created by initialize, false if
    // passed in the
    // constructor
    bool mWriteTimescales;
    char *mName;
-   char *mOutputPath; // path to output file directory
    char *mPrintParamsFilename; // filename for outputting the mParams, including
    // defaults and
    // excluding unread mParams
@@ -458,8 +453,8 @@ class HyPerCol : public Subject, Observer {
    std::vector<NormalizeBase *> mNormalizers; // NormalizeBase ** mNormalizers; // Objects for
    // normalizing mConnections or groups of mConnections
    PV_Init *mPVInitObj;
-   PV_Stream *mPrintParamsStream; // file pointer associated with mPrintParamsFilename
-   PV_Stream *mLuaPrintParamsStream; // file pointer associated with the output lua file
+   FileStream *mPrintParamsStream; // file pointer associated with mPrintParamsFilename
+   FileStream *mLuaPrintParamsStream; // file pointer associated with the output lua file
    PVParams *mParams; // manages input parameters
    size_t mLayerArraySize;
    size_t mConnectionArraySize;

@@ -32,6 +32,19 @@ class Checkpointer : public Subject {
     */
 
    /**
+    * @brief verifyWrites: If true, calls to PV_fwrite are checked by opening the
+    * file in read mode
+    * and reading back the data and comparing it to the data just written.
+    */
+   virtual void ioParam_verifyWrites(enum ParamsIOFlag ioFlag, PVParams *params);
+
+   /**
+    * @brief mOutputPath: Specifies the absolute or relative output path of the
+    * run
+    */
+   virtual void ioParam_outputPath(enum ParamsIOFlag ioFlag, PVParams *params);
+
+   /**
     * @brief checkpointWrite: Flag to determine if the run writes checkpoints.
     */
    void ioParam_checkpointWrite(enum ParamsIOFlag ioFlag, PVParams *params);
@@ -152,6 +165,14 @@ class Checkpointer : public Subject {
          Arguments const *arguments);
    ~Checkpointer();
 
+   /**
+    * Given a relative path, returns a full path consisting of the effective
+    * output directory for the process's checkpoint cell, followed by "/",
+    * followed by the given relative path. It is a fatal error for the path to
+    * be an absolute path (i.e. starting with '/').
+    */
+   std::string makeOutputPathFilename(std::string const &path);
+
    void ioParams(enum ParamsIOFlag ioFlag, PVParams *params);
    void provideFinalStep(long int finalStep);
 
@@ -166,10 +187,10 @@ class Checkpointer : public Subject {
    bool registerCheckpointEntry(
          std::shared_ptr<CheckpointEntry> checkpointEntry,
          bool constantEntireRun = false);
+
    void registerTimer(Timer const *timer);
    virtual void addObserver(Observer *observer, BaseMessage const &message) override;
 
-   void setVerifyWrites(bool verifyWritesFlag) { mVerifyWritesFlag = verifyWritesFlag; }
    void readNamedCheckpointEntry(std::string const &objName, std::string const &dataName);
    void readNamedCheckpointEntry(std::string const &checkpointEntryName);
    void checkpointRead(double *simTimePointer, long int *currentStepPointer);
@@ -178,7 +199,8 @@ class Checkpointer : public Subject {
    void writeTimers(PrintStream &stream) const;
 
    MPIBlock const *getMPIBlock() { return mMPIBlock; }
-   bool doesVerifyWrites() { return mVerifyWritesFlag; }
+   bool doesVerifyWrites() { return mVerifyWrites; }
+   std::string const &getOutputPath() { return mOutputPath; }
    bool getCheckpointWriteFlag() const { return mCheckpointWriteFlag; }
    char const *getCheckpointWriteDir() const { return mCheckpointWriteDir; }
    enum CheckpointWriteTriggerMode getCheckpointWriteTriggerMode() const {
@@ -193,6 +215,7 @@ class Checkpointer : public Subject {
    bool getDefaultInitializeFromCheckpointFlag() const {
       return mDefaultInitializeFromCheckpointFlag;
    }
+   std::string const &getBlockDirectoryName() const { return mBlockDirectoryName; }
 
   private:
    void initMPIBlock(MPIBlock const *globalMPIBlock, Arguments const *arguments);
@@ -233,7 +256,8 @@ class Checkpointer : public Subject {
    TimeInfo mTimeInfo;
    std::shared_ptr<CheckpointEntryData<TimeInfo>> mTimeInfoCheckpointEntry = nullptr;
    bool mWarmStart                                                         = false;
-   bool mVerifyWritesFlag                                                  = true;
+   bool mVerifyWrites                                                      = true;
+   std::string mOutputPath                                                 = "";
    bool mCheckpointWriteFlag                                               = false;
    char *mCheckpointWriteDir                                               = nullptr;
    char *mCheckpointWriteTriggerModeString                                 = nullptr;

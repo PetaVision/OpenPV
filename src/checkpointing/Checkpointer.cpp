@@ -15,6 +15,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#define DEFAULT_OUTPUT_PATH "output"
 
 namespace PV {
 
@@ -26,6 +27,7 @@ Checkpointer::Checkpointer(
    initMPIBlock(globalMPIBlock, arguments);
    initBlockDirectoryName();
 
+   mOutputPath              = arguments->getStringArgument("OutputPath");
    mWarmStart               = arguments->getBooleanArgument("Restart");
    mCheckpointReadDirectory = arguments->getStringArgument("CheckpointReadDirectory");
    if (!mCheckpointReadDirectory.empty()) {
@@ -80,6 +82,16 @@ void Checkpointer::initBlockDirectoryName() {
    }
 }
 
+std::string Checkpointer::makeOutputPathFilename(std::string const &path) {
+   FatalIf(path[0] == '/', "makeOutputPathFilename called with absolute path argument\n");
+   std::string fullPath(mOutputPath);
+   if (!mBlockDirectoryName.empty()) {
+      fullPath.append("/").append(mBlockDirectoryName);
+   }
+   fullPath.append("/").append(path);
+   return fullPath;
+}
+
 void Checkpointer::ioParams(enum ParamsIOFlag ioFlag, PVParams *params) {
    ioParamsFillGroup(ioFlag, params);
 
@@ -101,6 +113,8 @@ void Checkpointer::ioParams(enum ParamsIOFlag ioFlag, PVParams *params) {
 }
 
 void Checkpointer::ioParamsFillGroup(enum ParamsIOFlag ioFlag, PVParams *params) {
+   ioParam_outputPath(ioFlag, params);
+   ioParam_verifyWrites(ioFlag, params);
    ioParam_checkpointWrite(ioFlag, params);
    ioParam_checkpointWriteDir(ioFlag, params);
    ioParam_checkpointWriteTriggerMode(ioFlag, params);
@@ -115,6 +129,33 @@ void Checkpointer::ioParamsFillGroup(enum ParamsIOFlag ioFlag, PVParams *params)
    ioParam_lastCheckpointDir(ioFlag, params);
    ioParam_initializeFromCheckpointDir(ioFlag, params);
    ioParam_defaultInitializeFromCheckpointFlag(ioFlag, params);
+}
+
+void Checkpointer::ioParam_verifyWrites(enum ParamsIOFlag ioFlag, PVParams *params) {
+   params->ioParamValue(ioFlag, mName.c_str(), "verifyWrites", &mVerifyWrites, mVerifyWrites);
+}
+
+void Checkpointer::ioParam_outputPath(enum ParamsIOFlag ioFlag, PVParams *params) {
+   // If mOutputPath is set in the configuration, it overrides params file.
+   switch (ioFlag) {
+      case PARAMS_IO_READ:
+         if (mOutputPath.empty()) {
+            if (params->stringPresent(mName.c_str(), "outputPath")) {
+               mOutputPath = std::string(params->stringValue(mName.c_str(), "outputPath"));
+            }
+            else {
+               mOutputPath = std::string(DEFAULT_OUTPUT_PATH);
+               WarnLog().printf(
+                     "Output path specified neither in command line nor in "
+                     "params file.\n"
+                     "Output path set to default \"%s\"\n",
+                     DEFAULT_OUTPUT_PATH);
+            }
+         }
+         break;
+      case PARAMS_IO_WRITE: params->writeParamString("outputPath", mOutputPath.c_str()); break;
+      default: break;
+   }
 }
 
 void Checkpointer::ioParam_checkpointWrite(enum ParamsIOFlag ioFlag, PVParams *params) {
@@ -757,9 +798,9 @@ void Checkpointer::checkpointToDirectory(std::string const &directory) {
          mMPIBlock->getRank() == 0 /*printFlag*/);
    ensureDirExists(mMPIBlock, checkpointDirectory.c_str());
    for (auto &c : mCheckpointRegistry) {
-      c->write(checkpointDirectory, mTimeInfo.mSimTime, mVerifyWritesFlag);
+      c->write(checkpointDirectory, mTimeInfo.mSimTime, mVerifyWrites);
    }
-   mTimeInfoCheckpointEntry->write(checkpointDirectory, mTimeInfo.mSimTime, mVerifyWritesFlag);
+   mTimeInfoCheckpointEntry->write(checkpointDirectory, mTimeInfo.mSimTime, mVerifyWrites);
    mCheckpointTimer->stop();
    mCheckpointTimer->start();
    writeTimers(checkpointDirectory);
@@ -878,7 +919,7 @@ void Checkpointer::writeTimers(std::string const &directory) {
       timerpathstring += "timers.txt";
 
       const char *timerpath = timerpathstring.c_str();
-      FileStream timerstream(timerpath, std::ios_base::out, mVerifyWritesFlag);
+      FileStream timerstream(timerpath, std::ios_base::out, mVerifyWrites);
       writeTimers(timerstream);
    }
 }

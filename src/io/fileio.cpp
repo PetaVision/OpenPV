@@ -202,12 +202,6 @@ long int PV_ftell_primitive(PV_Stream *pvstream) {
 
 long int getPV_StreamFilepos(PV_Stream *pvstream) { return pvstream->filepos; }
 
-long int updatePV_StreamFilepos(PV_Stream *pvstream) {
-   long int filepos  = PV_ftell_primitive(pvstream);
-   pvstream->filepos = filepos;
-   return filepos;
-}
-
 // Use getPV_StreamFilepos instead of PV_ftell whenever possible, since NMC cluster's ftell is
 // currently unreliable
 long int PV_ftell(PV_Stream *pvstream) {
@@ -653,7 +647,7 @@ int getNumGlobalPatches(PVLayerLoc const *loc, bool asPostWeights) {
 int pvp_copy_patches(
       unsigned char *buf,
       PVPatch **patches,
-      float *dataStart,
+      float const *dataStart,
       int numDataPatches,
       int nxp,
       int nyp,
@@ -1000,46 +994,6 @@ int pvp_read_header(PV_Stream *pvstream, MPIBlock const *mpiBlock, int *params, 
    return status;
 }
 
-void read_header_err(
-      const char *filename,
-      Communicator *comm,
-      int returned_num_params,
-      int *params) {
-   if (comm->commRank() != 0) {
-      ErrorLog(header_error);
-      header_error.printf("Error while reading header of \"%s\"\n", filename);
-      switch (returned_num_params) {
-         case 0:
-            header_error.printf(
-                  "   Called with fewer than 2 params (%d); at least two are required.\n",
-                  returned_num_params);
-            break;
-         case -1: header_error.printf("   Error reading first two params from file"); break;
-         case -2:
-            header_error.printf(
-                  "   Header size %d and number of params %d in file are not compatible.\n",
-                  params[INDEX_HEADER_SIZE],
-                  params[INDEX_NUM_PARAMS]);
-            break;
-         default:
-            if (returned_num_params < (int)NUM_BIN_PARAMS) {
-               header_error.printf(
-                     "   Called with %d params but only %d params could be read from file.\n",
-                     (int)NUM_BIN_PARAMS,
-                     returned_num_params);
-            }
-            else {
-               header_error.printf(
-                     "   Called with %d params but file contains %d params.\n",
-                     (int)NUM_BIN_PARAMS,
-                     returned_num_params);
-            }
-            break;
-      }
-   }
-   abort();
-}
-
 int pvp_read_header(
       PV_Stream *pvstream,
       double *time,
@@ -1135,19 +1089,6 @@ int pvp_read_header(
    return status;
 }
 
-int pvp_write_header(PV_Stream *pvstream, MPIBlock const *mpiBlock, int *params, int numParams) {
-   int status   = PV_SUCCESS;
-   int rootproc = 0;
-   int rank     = mpiBlock->getRank();
-   if (rank == rootproc) {
-      if ((int)PV_fwrite(params, sizeof(int), numParams, pvstream) != numParams) {
-         status = -1;
-      }
-   }
-
-   return status;
-}
-
 int pvp_write_header(
       PV_Stream *pvstream,
       MPIBlock const *mpiBlock,
@@ -1233,477 +1174,14 @@ int pvp_write_header(
 
 // Unused function pvp_set_activity_params was removed Jan 26, 2017.
 // Unused function pvp_set_weight_params was removed Jan 26, 2017.
+// Unused function pvp_set_nonspiking_act_params was removed Feb 21, 2017.
+// Unused function pvp_set_nonspiking_sparse_act_params was removed Feb 21, 2017.
+// Unused function alloc_params was removed Feb 21, 2017.
 
-int *pvp_set_nonspiking_act_params(
-      Communicator *comm,
-      double timed,
-      const PVLayerLoc *loc,
-      int datatype,
-      int numbands) {
-   int numParams = NUM_BIN_PARAMS;
-   int *params   = alloc_params(numParams);
-   assert(params != NULL);
-   params[INDEX_FILE_TYPE]   = PVP_NONSPIKING_ACT_FILE_TYPE;
-   params[INDEX_NX]          = loc->nxGlobal;
-   params[INDEX_NY]          = loc->nyGlobal;
-   params[INDEX_NF]          = loc->nf;
-   params[INDEX_NUM_RECORDS] = 1;
-   int datasize              = pv_sizeof(datatype);
-   params[INDEX_RECORD_SIZE] = loc->nxGlobal * loc->nyGlobal * loc->nf;
-   params[INDEX_DATA_SIZE]   = datasize;
-   params[INDEX_DATA_TYPE]   = datatype;
-   params[INDEX_NX_PROCS]    = 1;
-   params[INDEX_NY_PROCS]    = 1;
-   params[INDEX_NX_GLOBAL]   = loc->nxGlobal;
-   params[INDEX_NY_GLOBAL]   = loc->nyGlobal;
-   params[INDEX_KX0]         = 0;
-   params[INDEX_KY0]         = 0;
-   params[INDEX_NBATCH]      = loc->nbatch;
-   params[INDEX_NBANDS]      = numbands * loc->nbatch;
-   timeToParams(timed, &params[INDEX_TIME]);
-   return params;
-}
-
-int *pvp_set_kernel_params(
-      Communicator *comm,
-      double timed,
-      const PVLayerLoc *loc,
-      int datatype,
-      int numbands,
-      int nxp,
-      int nyp,
-      int nfp,
-      float min,
-      float max,
-      int numPatches) {
-   int numParams = NUM_BIN_PARAMS;
-   int *params   = alloc_params(numParams);
-   assert(params != NULL);
-   params[INDEX_FILE_TYPE]   = PVP_KERNEL_FILE_TYPE;
-   params[INDEX_NX]          = loc->nxGlobal;
-   params[INDEX_NY]          = loc->nyGlobal;
-   params[INDEX_NF]          = loc->nf;
-   int datasize              = pv_sizeof(datatype);
-   params[INDEX_NUM_RECORDS] = numbands;
-   params[INDEX_RECORD_SIZE] = numPatches * (8 + datasize * nxp * nyp * nfp);
-   params[INDEX_DATA_SIZE]   = datasize;
-   params[INDEX_DATA_TYPE]   = datatype;
-   params[INDEX_NX_PROCS]    = 1;
-   params[INDEX_NY_PROCS]    = 1;
-   params[INDEX_NX_GLOBAL]   = loc->nxGlobal;
-   params[INDEX_NY_GLOBAL]   = loc->nyGlobal;
-   params[INDEX_KX0]         = 0;
-   params[INDEX_KY0]         = 0;
-   params[INDEX_NBATCH]      = loc->nbatch;
-   timeToParams(timed, &params[INDEX_TIME]);
-   set_weight_params(params, nxp, nyp, nfp, min, max, numPatches);
-   return params;
-}
-
-int *pvp_set_nonspiking_sparse_act_params(
-      Communicator *comm,
-      double timed,
-      const PVLayerLoc *loc,
-      int datatype,
-      int numbands) {
-   int numParams = NUM_BIN_PARAMS;
-   int *params   = alloc_params(numParams);
-   assert(params != NULL);
-   params[INDEX_FILE_TYPE]   = PVP_ACT_SPARSEVALUES_FILE_TYPE;
-   params[INDEX_NX]          = loc->nxGlobal;
-   params[INDEX_NY]          = loc->nyGlobal;
-   params[INDEX_NF]          = loc->nf;
-   params[INDEX_NUM_RECORDS] = 1;
-   int datasize              = pv_sizeof(datatype);
-   params[INDEX_RECORD_SIZE] = loc->nxGlobal * loc->nyGlobal * loc->nf
-                               * datasize; // does not represent the size of the record in the file,
-   // but the size of the buffer
-   params[INDEX_DATA_SIZE] = datasize;
-   params[INDEX_DATA_TYPE] = datatype;
-   params[INDEX_NX_PROCS]  = 1;
-   params[INDEX_NY_PROCS]  = 1;
-   params[INDEX_NX_GLOBAL] = loc->nxGlobal;
-   params[INDEX_NY_GLOBAL] = loc->nyGlobal;
-   params[INDEX_KX0]       = 0;
-   params[INDEX_KY0]       = 0;
-   params[INDEX_NBANDS]    = numbands * loc->nbatch;
-   params[INDEX_NBATCH]    = loc->nbatch;
-   timeToParams(timed, &params[INDEX_TIME]);
-   return params;
-}
-
-int *alloc_params(int numParams) {
-   int *params = NULL;
-   if (numParams < 2) {
-      Fatal().printf(
-            "alloc_params must be called with at least two params (called with %d).\n", numParams);
-   }
-   params = (int *)calloc((size_t)numParams, sizeof(int));
-   if (params == NULL) {
-      Fatal().printf("alloc_params unable to allocate %d params: %s\n", numParams, strerror(errno));
-   }
-   params[INDEX_HEADER_SIZE] = sizeof(int) * numParams;
-   params[INDEX_NUM_PARAMS]  = numParams;
-   return params;
-}
-
-int set_weight_params(
-      int *params,
-      int nxp,
-      int nyp,
-      int nfp,
-      float min,
-      float max,
-      int numPatches) {
-   int *wgtParams           = &params[NUM_BIN_PARAMS];
-   wgtParams[INDEX_WGT_NXP] = nxp;
-   wgtParams[INDEX_WGT_NYP] = nyp;
-   wgtParams[INDEX_WGT_NFP] = nfp;
-   assert(sizeof(int) == sizeof(float));
-   union float_as_int {
-      float f;
-      int i;
-   };
-   union float_as_int p;
-   p.f                             = min;
-   wgtParams[INDEX_WGT_MIN]        = p.i;
-   p.f                             = max;
-   wgtParams[INDEX_WGT_MAX]        = p.i;
-   wgtParams[INDEX_WGT_NUMPATCHES] = numPatches;
-   return PV_SUCCESS;
-}
-
-int pvp_read_time(PV_Stream *pvstream, Communicator *comm, int root_process, double *timed) {
-   // All processes call this routine simultaneously.
-   // from the file at the current location, loaded into the variable timed, and
-   // broadcast to all processes.  All processes have the same return value:
-   // PV_SUCCESS if the read was successful, PV_FAILURE if not.
-   int status = PV_SUCCESS;
-   struct timeandstatus {
-      int status;
-      double time;
-   };
-   struct timeandstatus mpi_data;
-   if (comm->commRank() == root_process) {
-      if (pvstream == NULL) {
-         ErrorLog().printf("pvp_read_time: root process called with null stream argument.\n");
-         abort();
-      }
-      int numread     = PV_fread(timed, sizeof(*timed), 1, pvstream);
-      mpi_data.status = (numread == 1) ? PV_SUCCESS : PV_FAILURE;
-      mpi_data.time   = *timed;
-   }
-   MPI_Bcast(&mpi_data, (int)sizeof(timeandstatus), MPI_CHAR, root_process, comm->communicator());
-   status = mpi_data.status;
-   *timed = mpi_data.time;
-   return status;
-}
-
-int writeActivity(FileStream *fileStream, Communicator *comm, double timed, PVLayerCube *cube) {
-   int status = PV_SUCCESS;
-
-   // write header, but only at the beginning
-   int rank = comm->commRank();
-
-   PVLayerLoc const *loc = &cube->loc;
-   PVHalo const &halo    = loc->halo;
-   int const nxExt       = loc->nx + halo.lt + halo.rt;
-   int const nyExt       = loc->ny + halo.dn + halo.up;
-   int const nf          = loc->nf;
-   pvAssert(cube->numItems == nxExt * nyExt * nf * loc->nbatch);
-
-   for (int b = 0; b < loc->nbatch; b++) {
-      if (rank == 0) {
-         long fpos = fileStream->getOutPos();
-         if (fpos == 0L) {
-            int *params = pvp_set_nonspiking_act_params(
-                  comm, timed, loc, BufferUtils::FLOAT, 1 /*numbands*/);
-            assert(params && params[1] == NUM_BIN_PARAMS);
-            long int numParams = (long int)params[1];
-            fileStream->write(params, (long int)sizeof(*params) * numParams);
-            free(params);
-         }
-         // HyPerLayer::writeActivity calls HyPerLayer::incrementNBands, which maintains the value
-         // of numbands in the header.
-
-         // write time
-         //
-         fileStream->write(&timed, (long int)sizeof(timed));
-      }
-      float const *data = &cube->data[b * nxExt * nyExt * nf];
-      auto pvpBuffer    = Buffer<float>(data, nxExt, nyExt, nf);
-      auto pvpBufferGlobal =
-            BufferUtils::gather(comm->getLocalMPIBlock(), pvpBuffer, loc->nx, loc->ny, 0, 0);
-      if (rank == 0) {
-         pvpBufferGlobal.crop(loc->nxGlobal, loc->nyGlobal, Buffer<float>::CENTER);
-         fileStream->write(
-               pvpBufferGlobal.asVector().data(),
-               pvpBufferGlobal.getTotalElements() * sizeof(float));
-      }
-   }
-   return status;
-}
-
-int writeActivitySparse(
-      FileStream *fileStream,
-      Communicator *comm,
-      double timed,
-      PVLayerCube *cube,
-      bool includeValues) {
-   int status = PV_SUCCESS;
-
-   // Grab active indices and local active from datastore comm
-
-   const int icRoot = 0;
-   const int icRank = comm->commRank();
-
-   PVLayerLoc const *loc = &cube->loc;
-   PVHalo const &halo    = loc->halo;
-   int const nxExt       = loc->nx + halo.lt + halo.rt;
-   int const nyExt       = loc->ny + halo.dn + halo.up;
-   int const nf          = loc->nf;
-   const int numNeurons  = nxExt * nyExt * nf;
-
-   for (int b = 0; b < loc->nbatch; b++) {
-
-      int const localActive      = cube->numActive[b];
-      indexvaluepair *localpairs = &((indexvaluepair *)cube->activeIndices)[b * numNeurons];
-      float const *valueData     = &cube->data[b * numNeurons];
-
-      indexvaluepair *indexvaluepairs = NULL;
-      unsigned int *globalResIndices  = NULL;
-      int localResActive              = 0;
-
-#ifdef PV_USE_MPI
-      const int tag           = includeValues ? PVP_ACT_SPARSEVALUES_FILE_TYPE : PVP_ACT_FILE_TYPE;
-      const MPI_Comm mpi_comm = comm->communicator();
-#endif // PV_USE_MPI
-
-      if (icRank != icRoot) {
-
-#ifdef PV_USE_MPI
-         const int dest = icRoot;
-#ifdef DEBUG_OUTPUT
-         DebugLog().printf(
-               "[%2d]: writeActivitySparseNonspiking: sent localActive value of %d to %d\n",
-               comm->commRank,
-               localActive,
-               dest);
-#endif // DEBUG_OUTPUT
-         void *data            = NULL;
-         size_t datasize       = 0UL;
-         MPI_Datatype mpi_type = NULL;
-         if (includeValues) {
-            indexvaluepairs = (indexvaluepair *)malloc(localActive * sizeof(indexvaluepair));
-            if (indexvaluepairs == NULL) {
-               ErrorLog().printf(
-                     "writeActivitySparseNonspiking: Rank %d process unable to allocate memory for "
-                     "indexvaluepairs: %s\n",
-                     icRank,
-                     strerror(errno));
-               exit(EXIT_FAILURE);
-            }
-            int pairsIdx = 0;
-            for (int j = 0; j < localActive; j++) {
-               int localExtK  = localpairs[j].index;
-               int globalResK = localExtToGlobalRes(localExtK, loc);
-               if (globalResK == -1) {
-                  continue;
-               }
-               indexvaluepairs[pairsIdx].index = globalResK;
-               indexvaluepairs[pairsIdx].value = localpairs[j].value;
-               pairsIdx++;
-            }
-            data           = (void *)indexvaluepairs;
-            datasize       = sizeof(indexvaluepair);
-            localResActive = pairsIdx;
-         }
-         else {
-            // Change local ext indices to global res index
-            globalResIndices = (unsigned int *)malloc(localActive * sizeof(unsigned int));
-            int indiciesIdx  = 0;
-            for (int j = 0; j < localActive; j++) {
-               int localExtK  = localpairs[j].index;
-               int globalResK = localExtToGlobalRes(localExtK, loc);
-               if (globalResK == -1) {
-                  continue;
-               }
-               globalResIndices[indiciesIdx] = globalResK;
-               indiciesIdx++;
-            }
-            data           = (void *)globalResIndices;
-            datasize       = sizeof(unsigned int);
-            localResActive = indiciesIdx;
-         }
-         MPI_Ssend(&localResActive, 1, MPI_INT, dest, tag, mpi_comm);
-
-         MPI_Ssend(data, localResActive * datasize, MPI_CHAR, dest, tag, mpi_comm);
-
-#ifdef DEBUG_OUTPUT
-         DebugLog(debugWriteActivitySparseSent);
-         debugWriteActivitySparseSent.printf(
-               "[%2d]: writeActivitySparse: sent to %d, localActive==%d\n",
-               comm->commRank(),
-               dest,
-               localResActive);
-         debugWriteActivitySparse.flush();
-#endif // DEBUG_OUTPUT
-#endif // PV_USE_MPI
-
-         // leaving not root-process section
-         //
-      }
-      else {
-         void *data = NULL;
-         // we are io root process
-         //
-         if (localActive > 0) {
-            if (includeValues) {
-               indexvaluepairs = (indexvaluepair *)malloc(localActive * sizeof(indexvaluepair));
-               assert(indexvaluepairs); /* lazy; fix with a proper error message */
-
-               int pairsIdx = 0;
-               for (int k = 0; k < localActive; k++) {
-                  int localExtK  = localpairs[k].index;
-                  int globalResK = localExtToGlobalRes(localExtK, loc);
-                  if (globalResK == -1) {
-                     continue;
-                  }
-                  indexvaluepairs[pairsIdx].index = globalResK;
-                  indexvaluepairs[pairsIdx].value = localpairs[k].value;
-                  pairsIdx++;
-               }
-               localResActive = pairsIdx;
-            }
-            else {
-               // Change local ext indices to global res index
-               globalResIndices = (unsigned int *)malloc(localActive * sizeof(unsigned int));
-               int indiciesIdx  = 0;
-               for (int j = 0; j < localActive; j++) {
-                  int localExtK  = localpairs[j].index;
-                  int globalResK = localExtToGlobalRes(localExtK, loc);
-                  if (globalResK == -1) {
-                     continue;
-                  }
-                  globalResIndices[indiciesIdx] = globalResK;
-                  indiciesIdx++;
-               }
-               localResActive = indiciesIdx;
-            }
-         }
-
-         // Need to calculate totalResActive of root process
-         unsigned int totalActive = localResActive;
-
-#ifdef PV_USE_MPI
-         // get the number active from each process
-         //
-         unsigned int *numActive = NULL;
-         const int icSize        = comm->commSize();
-
-         if (icSize > 1) {
-            // otherwise numActive is not used
-            numActive = (unsigned int *)malloc(icSize * sizeof(unsigned int));
-            if (numActive == NULL) {
-               ErrorLog().printf(
-                     "writeActivitySparseNonspiking: Root process unable to allocate memory for "
-                     "numActive array: %s\n",
-                     strerror(errno));
-               exit(EXIT_FAILURE);
-            }
-         }
-
-         for (int p = 1; p < icSize; p++) {
-#ifdef DEBUG_OUTPUT
-            DebugLog().printf(
-                  "[%2d]: writeActivitySparseNonspiking: receiving numActive value from %d\n",
-                  comm->commRank(),
-                  p);
-#endif // DEBUG_OUTPUT
-            MPI_Status mpi_status;
-            MPI_Recv(&numActive[p], 1, MPI_INT, p, tag, mpi_comm, &mpi_status);
-            totalActive += numActive[p];
-         }
-#endif // PV_USE_MPI
-
-         bool extended   = false;
-         bool contiguous = true;
-
-         // write activity header
-         //
-         long fpos = fileStream->getOutPos();
-         if (fpos == 0L) {
-            auto header = BufferUtils::buildSparseActivityHeader<float>(
-                  loc->nxGlobal, loc->nyGlobal, loc->nf, 1);
-            // Hack because buildHeader doesn't handle sparse binary type.
-            if (!includeValues) {
-               header.fileType = PVP_ACT_FILE_TYPE;
-               header.dataType = BufferUtils::INT;
-            }
-            fileStream->write(&header, sizeof(header));
-         }
-         // write time, total active count, and local activity
-         //
-         fileStream->write(&timed, sizeof(timed));
-         fileStream->write(&totalActive, sizeof(totalActive));
-
-         if (localResActive > 0) {
-            if (includeValues) {
-               fileStream->write(
-                     indexvaluepairs, (long)localResActive * (long)sizeof(indexvaluepair));
-            }
-            else {
-               fileStream->write(
-                     globalResIndices, (long)localResActive * (long)sizeof(unsigned int));
-            }
-         }
-
-// recv and write non-local activity
-//
-#ifdef PV_USE_MPI
-         for (int p = 1; p < icSize; p++) {
-            void *data      = NULL;
-            size_t datasize = 0UL;
-            if (includeValues) {
-               datasize = sizeof(indexvaluepair);
-               free(indexvaluepairs);
-               indexvaluepairs = (indexvaluepair *)malloc(numActive[p] * datasize);
-               assert(indexvaluepairs); /* lazy; fix with proper error message */
-               data = (void *)indexvaluepairs;
-            }
-            else {
-               datasize = sizeof(unsigned int);
-               free(globalResIndices);
-               globalResIndices = (unsigned int *)malloc(numActive[p] * datasize);
-               assert(globalResIndices);
-               data = (void *)globalResIndices;
-            }
-#ifdef DEBUG_OUTPUT
-            DebugLog(debugWriteActivitySparseReceiving);
-            debugWriteActivitySparseReceiving.printf(
-                  "[%2d]: writeActivitySparse: receiving from %d, numActive==%d\n",
-                  comm->commRank(),
-                  p,
-                  numActive[p]);
-            debugWriteActivitySparseReceiving.flush();
-#endif // DEBUG_OUTPUT
-
-            MPI_Status mpi_status;
-            MPI_Recv(data, numActive[p] * datasize, MPI_CHAR, p, tag, mpi_comm, &mpi_status);
-
-            fileStream->write(data, (long)datasize * (long)numActive[p]);
-         }
-         free(numActive);
-#endif // PV_USE_MPI
-
-         // leaving root-process section
-         //
-      }
-      free(indexvaluepairs);
-      free(globalResIndices);
-   }
-   return status;
-}
+// writeActivity and writeActivitySparse removed Feb 17, 2017.
+// Corresponding HyPerLayer methods now use BufferUtils routines
+// gatherActivity and scatterActivity were also removed.
+// Use BufferUtils::gather and BufferUtils::scatter instead.
 
 int readWeights(
       PVPatch ***patches,
@@ -1789,7 +1267,7 @@ int readWeights(
    if (cbuf == NULL) {
       Fatal(errorMessage);
       errorMessage.printf(
-            "Rank %d: writeWeights unable to allocate memory to write to \"%s\": %s",
+            "Rank %d: readWeights unable to allocate memory to write to \"%s\": %s",
             icRank,
             filename,
             strerror(errno));
@@ -2021,6 +1499,220 @@ int pv_text_write_patch(
    }
 
    return 0;
+}
+
+void writeSharedWeights(
+      FileStream *fileStream,
+      MPIBlock const *mpiBlock,
+      double timed,
+      PVLayerLoc const *preLoc,
+      int nxp,
+      int nyp,
+      int nfp,
+      float minVal,
+      float maxVal,
+      float **dataStart,
+      int numPatchesX,
+      int numPatchesY,
+      int numPatchesF,
+      int numArbors,
+      bool compress) {
+   if (fileStream == nullptr) {
+      return;
+   }
+
+   int const numPatches             = numPatchesX * numPatchesY * numPatchesF;
+   BufferUtils::WeightHeader header = BufferUtils::buildWeightHeader(
+         nxp,
+         nyp,
+         nfp,
+         numArbors,
+         numPatches,
+         true /*shared*/,
+         timed,
+         preLoc,
+         mpiBlock->getNumColumns(),
+         mpiBlock->getNumRows(),
+         minVal,
+         maxVal,
+         compress);
+   fileStream->write(&header, sizeof(header));
+
+   std::size_t const localSize = header.baseHeader.recordSize;
+   std::vector<unsigned char> arborData(localSize);
+   for (int arbor = 0; arbor < numArbors; arbor++) {
+      float const *arborStart = dataStart[arbor];
+      pvp_copy_patches(
+            arborData.data(),
+            nullptr,
+            arborStart,
+            numPatches,
+            nxp,
+            nyp,
+            nfp,
+            minVal,
+            maxVal,
+            compress);
+      fileStream->write(arborData.data(), arborData.size());
+   }
+}
+
+void writeNonsharedWeights(
+      FileStream *fileStream,
+      MPIBlock const *mpiBlock,
+      double timed,
+      const PVLayerLoc *preLoc,
+      int nxp,
+      int nyp,
+      int nfp,
+      float minVal,
+      float maxVal,
+      PVPatch ***patches,
+      float **dataStart,
+      int numPatchesX,
+      int numPatchesY,
+      int numPatchesF,
+      int numArbors,
+      bool compress) {
+   // Assume weights are the same for each batch element; only write for first element.
+   if (mpiBlock->getBatchIndex() != 0) {
+      return;
+   }
+
+   int const rootProcess = 0;
+   int const rank        = mpiBlock->getRank();
+   if (rank == rootProcess) {
+      pvAssert(fileStream != nullptr)
+   }
+   else {
+      pvAssert(fileStream == nullptr);
+   }
+
+   int const numPatches = numPatchesX * numPatchesY * numPatchesF;
+   // Write header, assuming that exactly one process with batch index zero has
+   // a non-null fileStream.
+   if (rank == rootProcess) {
+      BufferUtils::WeightHeader header = BufferUtils::buildWeightHeader(
+            nxp,
+            nyp,
+            nfp,
+            numArbors,
+            numPatches,
+            false /*not shared*/,
+            timed,
+            preLoc,
+            mpiBlock->getNumColumns(),
+            mpiBlock->getNumRows(),
+            minVal,
+            maxVal,
+            compress);
+      fileStream->write(&header, sizeof(header));
+   }
+
+   std::size_t patchSize;
+   if (compress) {
+      patchSize = BufferUtils::weightPatchSize<unsigned char>(nxp * nyp * nfp);
+   }
+   else {
+      patchSize = BufferUtils::weightPatchSize<float>(nxp * nyp * nfp);
+   }
+   std::size_t const localSize = (std::size_t)numPatches * patchSize;
+   std::vector<unsigned char> arborData(localSize);
+
+   int const tagbase = 500;
+   for (int arbor = 0; arbor < numArbors; arbor++) {
+      int const tag = tagbase + arbor;
+      if (rank != rootProcess) {
+         pvp_copy_patches(
+               arborData.data(),
+               nullptr,
+               dataStart[arbor],
+               numPatches,
+               nxp,
+               nyp,
+               nfp,
+               minVal,
+               maxVal,
+               compress);
+         MPI_Send(arborData.data(), localSize, MPI_BYTE, rootProcess, tag, mpiBlock->getComm());
+      }
+      else { // rank == rootProcess
+         long arborStartInFile    = fileStream->getOutPos();
+         int const rowsInBlock    = mpiBlock->getNumRows();
+         int const columnsInBlock = mpiBlock->getNumColumns();
+         for (int procRow = 0; procRow < rowsInBlock; procRow++) {
+            for (int procColumn = 0; procColumn < columnsInBlock; procColumn++) {
+               int sourceRank = mpiBlock->calcRankFromRowColBatch(procRow, procColumn, 0);
+               if (sourceRank == rootProcess) {
+                  pvp_copy_patches(
+                        arborData.data(),
+                        nullptr,
+                        dataStart[arbor],
+                        numPatches,
+                        nxp,
+                        nyp,
+                        nfp,
+                        minVal,
+                        maxVal,
+                        compress);
+               }
+               else {
+                  MPI_Recv(
+                        arborData.data(),
+                        localSize,
+                        MPI_BYTE,
+                        sourceRank,
+                        tag,
+                        mpiBlock->getComm(),
+                        MPI_STATUS_IGNORE);
+               }
+               // arborData now has the patch information from the remote process.
+               for (int patchIndex = 0; patchIndex < numPatches; patchIndex++) {
+                  unsigned char const *patchStart = &arborData[(std::size_t)patchIndex * patchSize];
+                  int const xIndex = kxPos(patchIndex, numPatchesX, numPatchesY, numPatchesF);
+                  int const yIndex = kyPos(patchIndex, numPatchesX, numPatchesY, numPatchesF);
+                  int const fIndex =
+                        featureIndex(patchIndex, numPatchesX, numPatchesY, numPatchesF);
+                  int const xIndexGlobal      = xIndex + preLoc->nx * procColumn;
+                  int const yIndexGlobal      = yIndex + preLoc->ny * procRow;
+                  int const numPatchesXGlobal = numPatchesX + (columnsInBlock - 1) * preLoc->nx;
+                  int const numPatchesYGlobal = numPatchesY + (rowsInBlock - 1) * preLoc->ny;
+                  int const patchIndexGlobal  = kIndex(
+                        xIndexGlobal,
+                        yIndexGlobal,
+                        fIndex,
+                        numPatchesXGlobal,
+                        numPatchesYGlobal,
+                        numPatchesF);
+                  long const offsetIntoArbor  = (long)patchSize * (long)patchIndexGlobal;
+                  long const patchStartInFile = arborStartInFile + offsetIntoArbor;
+                  PatchHeader patchHeader;
+                  pvAssert(
+                        sizeof(patchHeader) == 2 * sizeof(unsigned short) + sizeof(unsigned int));
+                  memcpy(&patchHeader, arborData.data(), sizeof(patchHeader));
+                  if (patchHeader.nx == nxp and patchHeader.ny == nyp) {
+                     fileStream->setOutPos(patchStartInFile, true /*from beginning of file*/);
+                     fileStream->write(patchStart, patchSize);
+                  }
+                  else { // handle shrunken patch
+                     PatchHeader unshrunken;
+                     unshrunken.nx     = (short int)nxp;
+                     unshrunken.ny     = (short int)nxp;
+                     unshrunken.offset = 0U;
+                     fileStream->write(&unshrunken, sizeof(unshrunken));
+                     int dataSize         = (int)(compress ? sizeof(unsigned char) : sizeof(float));
+                     std::size_t lineSize = (std::size_t)((int)patchHeader.nx * nfp * dataSize);
+                     for (short int y = 0; y < patchHeader.ny; y++) {
+                        long lineOffset = (long)kIndex((int)patchHeader.nx, y, 0, nxp, nyp, nfp);
+                        fileStream->setInPos(patchStartInFile + lineOffset * (long)dataSize, true);
+                        fileStream->write(&patchStart[lineOffset], lineSize);
+                     } // Loop over line within patch
+                  } // end handle shrunken patch
+               } // Loop over patchIndex
+            } // Loop over procColumn
+         } // Loop over procRow
+      } // end rank == rootProcess
+   } // Loop over arbor
 }
 
 int writeWeights(
@@ -2353,484 +2045,5 @@ int writeWeights(
 
    return status;
 }
-
-template <typename T>
-int gatherActivity(
-      PV_Stream *pvstream,
-      Communicator *comm,
-      int rootproc,
-      T *buffer,
-      const PVLayerLoc *layerLoc,
-      bool extended) {
-   // In MPI when this process is called, all processes must call it.
-   // Only the root process uses the file pointer.
-   int status          = PV_SUCCESS;
-   int numLocalNeurons = layerLoc->nx * layerLoc->ny * layerLoc->nf;
-   int xLineStart      = 0;
-   int yLineStart      = 0;
-   int xBufSize        = layerLoc->nx;
-   int yBufSize        = layerLoc->ny;
-   PVHalo halo;
-
-   if (extended) {
-      memcpy(&halo, &layerLoc->halo, sizeof(halo));
-      xLineStart = halo.lt;
-      yLineStart = halo.up;
-      xBufSize += halo.lt + halo.rt;
-      yBufSize += halo.dn + halo.up;
-   }
-   else {
-      halo.lt = halo.rt = halo.dn = halo.up = 0;
-   }
-
-   // All values across x and f for a specific y are
-   // contiguous; do a single write for each y
-   int linesize    = layerLoc->nx * layerLoc->nf;
-   size_t datasize = sizeof(T);
-
-   // read into a temporary buffer since buffer may be
-   // extended but the file only contains the restricted part.
-   T *temp_buffer = (T *)calloc(numLocalNeurons, datasize);
-
-   if (temp_buffer == NULL) {
-      status = PV_FAILURE;
-      Fatal().printf("gatherActivity unable to allocate memory for temp_buffer.\n");
-   }
-
-   int rank = comm->commRank();
-   if (rank == rootproc) {
-      if (pvstream == NULL) {
-         status = PV_FAILURE;
-         Fatal().printf("gatherActivity: file pointer on root process is null.\n");
-      }
-
-      long startpos = getPV_StreamFilepos(pvstream);
-      if (startpos == -1) {
-         status = PV_FAILURE;
-         ErrorLog().printf("gatherActivity: failure getting file position: %s\n", strerror(errno));
-      }
-
-      // Write zeroes to make sure the file is big enough since we'll
-      // write nonsequentially under MPI. This may not be necessary.
-      int comm_size = comm->commSize();
-      for (int r = 0; r < comm_size; r++) {
-         int numwritten = PV_fwrite(temp_buffer, datasize, numLocalNeurons, pvstream);
-         if (numwritten != numLocalNeurons) {
-            status = PV_FAILURE;
-            Fatal().printf(
-                  "gatherActivity error when writing: number of bytes "
-                  "attempted %d, number written %d\n",
-                  numwritten,
-                  numLocalNeurons);
-         }
-      }
-
-      int fseekstatus = PV_fseek(pvstream, startpos, SEEK_SET);
-      if (fseekstatus != 0) {
-         status = PV_FAILURE;
-         Fatal().printf("gatherActivity error when setting file position: %s\n", strerror(errno));
-      }
-
-      for (int r = 0; r < comm_size; r++) {
-         if (r == rootproc) {
-            if (extended) {
-               for (int y = 0; y < layerLoc->ny; y++) {
-                  int k_extended =
-                        kIndex(halo.lt, y + yLineStart, 0, xBufSize, yBufSize, layerLoc->nf);
-                  int k_restricted = kIndex(0, y, 0, layerLoc->nx, layerLoc->ny, layerLoc->nf);
-                  memcpy(&temp_buffer[k_restricted], &buffer[k_extended], datasize * linesize);
-               }
-            }
-            else {
-               memcpy(temp_buffer, buffer, (size_t)numLocalNeurons * datasize);
-            }
-         }
-         else {
-            MPI_Recv(
-                  temp_buffer,
-                  numLocalNeurons * (int)datasize,
-                  MPI_BYTE,
-                  r,
-                  171 + r /*tag*/,
-                  comm->communicator(),
-                  MPI_STATUS_IGNORE);
-         }
-
-         // Data to be written is in temp_buffer, which is nonextend.
-         for (int y = 0; y < layerLoc->ny; y++) {
-            int ky0 = layerLoc->ny * rowFromRank(r, comm->numCommRows(), comm->numCommColumns());
-            int kx0 = layerLoc->nx * columnFromRank(r, comm->numCommRows(), comm->numCommColumns());
-            int k_local = kIndex(0, y, 0, layerLoc->nx, layerLoc->ny, layerLoc->nf);
-            int k_global =
-                  kIndex(kx0, y + ky0, 0, layerLoc->nxGlobal, layerLoc->nyGlobal, layerLoc->nf);
-            int fseekstatus = PV_fseek(pvstream, startpos + k_global * datasize, SEEK_SET);
-            if (fseekstatus == 0) {
-               int numwritten = PV_fwrite(&temp_buffer[k_local], datasize, linesize, pvstream);
-               if (numwritten != linesize) {
-                  ErrorLog().printf(
-                        "gatherActivity failure writing to \"%s\": "
-                        "number of bytes attempted %zu, number written %d\n",
-                        pvstream->name,
-                        datasize * linesize,
-                        numwritten);
-                  status = PV_FAILURE;
-               }
-            }
-            else {
-               status = PV_FAILURE;
-               ErrorLog().printf(
-                     "gatherActivity failure setting file position: %s\n", strerror(errno));
-            }
-         }
-      }
-      PV_fseek(pvstream, startpos + numLocalNeurons * datasize * comm_size, SEEK_SET);
-   }
-   else {
-      if (halo.lt || halo.rt || halo.dn || halo.up) {
-         // temp_buffer is a restricted buffer, but if extended
-         // is true, buffer is an extended buffer.
-         for (int y = 0; y < layerLoc->ny; y++) {
-            int k_extended   = kIndex(halo.lt, y + yLineStart, 0, xBufSize, yBufSize, layerLoc->nf);
-            int k_restricted = kIndex(0, y, 0, layerLoc->nx, layerLoc->ny, layerLoc->nf);
-            memcpy(&temp_buffer[k_restricted], &buffer[k_extended], datasize * linesize);
-         }
-         MPI_Send(
-               temp_buffer,
-               numLocalNeurons * datasize,
-               MPI_BYTE,
-               rootproc,
-               171 + rank /*tag*/,
-               comm->communicator());
-      }
-      else {
-         MPI_Send(
-               buffer,
-               numLocalNeurons * datasize,
-               MPI_BYTE,
-               rootproc,
-               171 + rank /*tag*/,
-               comm->communicator());
-      }
-   }
-
-   free(temp_buffer);
-   return status;
-}
-
-template int gatherActivity<unsigned char>(
-      PV_Stream *pvstream,
-      Communicator *comm,
-      int rootproc,
-      unsigned char *buffer,
-      const PVLayerLoc *layerLoc,
-      bool extended);
-template int gatherActivity<float>(
-      PV_Stream *pvstream,
-      Communicator *comm,
-      int rootproc,
-      float *buffer,
-      const PVLayerLoc *layerLoc,
-      bool extended);
-template int gatherActivity<taus_uint4>(
-      PV_Stream *pvstream,
-      Communicator *comm,
-      int rootproc,
-      taus_uint4 *buffer,
-      const PVLayerLoc *layerLoc,
-      bool extended);
-
-template <typename T>
-int scatterActivity(
-      PV_Stream *pvstream,
-      Communicator *comm,
-      int rootproc,
-      T *buffer,
-      const PVLayerLoc *layerLoc,
-      bool extended,
-      const PVLayerLoc *fileLoc,
-      int offsetX,
-      int offsetY,
-      int filetype,
-      int numActive) {
-   // In MPI when this process is called, all processes must call it.
-   // Only the root process uses the file pointer fp or the file
-   // PVLayerLoc fileLoc.
-   //
-   // layerLoc refers to the PVLayerLoc of the layer being read into.
-   // fileLoc refers to the PVLayerLoc of the file being read from.
-   // They do not have to be the same. The position (0,0) of the layer
-   // corresponds to (offsetX, offsetY) of the file. fileLoc and layerLoc
-   // do not have to have the same nxGlobal or nyGlobal, but they must
-   // have the same nf.
-
-   // Potential improvements:
-   // Detect when you can do a single read of the whole block instead
-   // of layerLoc->ny smaller reads of one line each.
-   // If nb=0, don't need to allocate a temp buffer. Just read into buffer
-
-   size_t datasize     = sizeof(T);
-   int numLocalNeurons = layerLoc->nx * layerLoc->ny * layerLoc->nf;
-   int linesize        = layerLoc->nx * layerLoc->nf;
-   int xLineStart      = 0;
-   int yLineStart      = 0;
-   int xBufSize        = layerLoc->nx;
-   int yBufSize        = layerLoc->ny;
-   int kx0;
-   int ky0;
-   int *activeNeurons;
-   T *TBuff;
-   PVHalo halo;
-
-   if (extended) {
-      memcpy(&halo, &layerLoc->halo, sizeof(halo));
-      xLineStart = halo.lt;
-      yLineStart = halo.up;
-      xBufSize += halo.lt + halo.rt;
-      yBufSize += halo.dn + halo.up;
-   }
-
-   datasize = sizeof(T);
-   TBuff    = (T *)calloc(numLocalNeurons, datasize);
-   FatalIf(TBuff == NULL, "scatterActivity unable to allocate memory for temp_buffer.\n");
-
-   int localRank = comm->commRank();
-   if (localRank == rootproc) {
-      FatalIf(pvstream == NULL, "scatterActivity: file pointer on root process is NULL.\n");
-
-      long startpos = getPV_StreamFilepos(pvstream);
-      FatalIf(startpos == -1, "scatterActivity unable to get file position: %s\n", strerror(errno));
-
-      fileLoc = fileLoc == NULL ? layerLoc : fileLoc;
-
-      FatalIf(
-            fileLoc->nf != layerLoc->nf,
-            "scatterActivity: layerLoc->nf and fileLoc->nf must be equal "
-            "(they are %d and %d)\n",
-            layerLoc->nf,
-            fileLoc->nf);
-
-      int comm_size = comm->commSize();
-
-      switch (filetype) {
-         case PVP_NONSPIKING_ACT_FILE_TYPE:
-            if (offsetX < 0 || offsetX + layerLoc->nxGlobal > fileLoc->nxGlobal || offsetY < 0
-                || offsetY + layerLoc->nyGlobal > fileLoc->nyGlobal) {
-               Fatal().printf(
-                     "scatterActivity error: offset window does not completely "
-                     "fit inside frame defined by image file \"%s\". This case "
-                     "has not been implemented yet for nonspiking activity files."
-                     "\n",
-                     pvstream->name);
-            }
-
-            for (int r = comm_size - 1; r >= 0; --r) {
-               for (int y = 0; y < layerLoc->ny; ++y) {
-                  int ky0 =
-                        layerLoc->ny * rowFromRank(r, comm->numCommRows(), comm->numCommColumns());
-                  int kx0 = layerLoc->nx
-                            * columnFromRank(r, comm->numCommRows(), comm->numCommColumns());
-                  int k_inmemory = kIndex(0, y, 0, layerLoc->nx, layerLoc->ny, layerLoc->nf);
-                  int k_infile   = kIndex(
-                        offsetX + kx0,
-                        offsetY + ky0 + y,
-                        0,
-                        fileLoc->nxGlobal,
-                        fileLoc->nyGlobal,
-                        layerLoc->nf);
-                  PV_fseek(pvstream, startpos + k_infile * (long)datasize, SEEK_SET);
-                  int numread = PV_fread(&TBuff[k_inmemory], datasize, linesize, pvstream);
-                  if (numread != linesize) {
-                     Fatal().printf(
-                           "scatterActivity error when reading: number of bytes "
-                           "attempted %d, number read %d\n",
-                           numread,
-                           numLocalNeurons);
-                  }
-               }
-               if (r > 0) {
-                  MPI_Send(
-                        TBuff,
-                        numLocalNeurons * (int)datasize,
-                        MPI_BYTE,
-                        r,
-                        171 + r,
-                        comm->communicator());
-               }
-            }
-            PV_fseek(pvstream, startpos + numLocalNeurons * datasize * comm_size, SEEK_SET);
-            break;
-
-         case PVP_ACT_FILE_TYPE:
-            // Read list of active neurons
-            activeNeurons = (int *)calloc(numActive, datasize);
-            PV_fread(activeNeurons, datasize, numActive, pvstream);
-
-            // Root process constructs buffers of other processes
-            for (int r = comm_size; r >= 0; --r) {
-
-               // Global X and Y coordinates of "top left" of process
-               ky0 = layerLoc->ny * rowFromRank(r, comm->numCommRows(), comm->numCommColumns());
-               kx0 = layerLoc->nx * columnFromRank(r, comm->numCommRows(), comm->numCommColumns());
-
-               // Loop through active neurons, calculate their global
-               // coordinates, if process contains a position of an
-               // active neuron, set its value = 1
-               for (int i = 0; i < numActive; ++i) {
-                  int xpos =
-                        kxPos(activeNeurons[i], fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
-                  int ypos =
-                        kyPos(activeNeurons[i], fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
-                  if (xpos >= kx0 + offsetX && xpos < kx0 + layerLoc->nx + offsetX
-                      && ypos >= ky0 + offsetY
-                      && ypos < ky0 + layerLoc->ny + offsetY) {
-                     int fpos = featureIndex(
-                           activeNeurons[i], fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
-                     // The braces here are a hack to allow assigning
-                     // a value when T is taus_uint4. We should never
-                     // actually reach this branch when that is the
-                     // case, but this lets it compile.
-                     TBuff[(ypos - ky0 - offsetY) * linesize + (xpos - kx0 - offsetX) * layerLoc->nf
-                           + fpos] = {1};
-                  }
-               }
-               if (r > 0) {
-                  // Send buffer to appropriate mpi process
-                  MPI_Send(
-                        TBuff,
-                        numLocalNeurons * (int)datasize,
-                        MPI_BYTE,
-                        r,
-                        171 + r,
-                        comm->communicator());
-
-                  // Clear the buffer so rootproc can calculate
-                  // the next process's buffer.
-                  for (int i = 0; i < numLocalNeurons; ++i) {
-                     TBuff[i] = {0};
-                  }
-               }
-            }
-            free(activeNeurons);
-            break;
-
-         case PVP_ACT_SPARSEVALUES_FILE_TYPE:
-            // Read list of active neurons and their values
-            activeNeurons = (int *)calloc(numActive, datasize);
-            FatalIf(
-                  activeNeurons == NULL,
-                  "scatterActivity error for \"%s\": unable to allocate "
-                  "buffer for active neuron locations: %s\n",
-                  pvstream->name,
-                  strerror(errno));
-
-            T *vals = (T *)calloc(numActive, datasize);
-            FatalIf(
-                  activeNeurons == NULL,
-                  "scatterActivity error for \"%s\": unable to allocate "
-                  "buffer for active neuron values: %s\n",
-                  pvstream->name,
-                  strerror(errno));
-
-            for (int i = 0; i < numActive; ++i) {
-               PV_fread(&activeNeurons[i], datasize, 1, pvstream);
-               PV_fread(&vals[i], datasize, 1, pvstream);
-            }
-
-            // Root process constructs buffers of other processes
-            for (int r = comm_size - 1; r >= 0; --r) {
-               // Global X and Y coordinates of "top left" of process
-               ky0 = layerLoc->ny * rowFromRank(r, comm->numCommRows(), comm->numCommColumns());
-               kx0 = layerLoc->nx * columnFromRank(r, comm->numCommRows(), comm->numCommColumns());
-               // Loop through active neurons, calculate their global
-               // coordinates. if process contains a position of an active
-               // neuron, set its value
-               for (int i = 0; i < numActive; ++i) {
-                  int xpos =
-                        kxPos(activeNeurons[i], fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
-                  int ypos =
-                        kyPos(activeNeurons[i], fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
-                  if (xpos >= kx0 + offsetX && xpos < kx0 + layerLoc->nx + offsetX
-                      && ypos >= ky0 + offsetY
-                      && ypos < ky0 + layerLoc->ny + offsetY) {
-                     int fpos = featureIndex(
-                           activeNeurons[i], fileLoc->nxGlobal, fileLoc->nyGlobal, layerLoc->nf);
-                     TBuff[(ypos - ky0 - offsetY) * linesize + (xpos - kx0 - offsetX) * layerLoc->nf
-                           + fpos] = vals[i];
-                  }
-               }
-               if (r > 0) {
-                  // Send buffer to appropriate mpi process
-                  MPI_Send(
-                        TBuff,
-                        numLocalNeurons * (int)datasize,
-                        MPI_BYTE,
-                        r,
-                        171 + r,
-                        comm->communicator());
-                  // Clear the buffer for the next process
-                  for (int i = 0; i < numLocalNeurons; ++i) {
-                     TBuff[i] = {0};
-                  }
-               }
-            }
-            free(activeNeurons);
-            free(vals);
-            break;
-      }
-   }
-   else {
-      MPI_Recv(
-            TBuff,
-            datasize * numLocalNeurons,
-            MPI_BYTE,
-            rootproc,
-            171 + localRank,
-            comm->communicator(),
-            MPI_STATUS_IGNORE);
-   }
-
-   // At this point, each process has the data,
-   // as a restricted layer, in temp_buffer.
-   // Each process now copies the data to buffer,
-   // which may be extended.
-   if (extended) {
-      for (int y = 0; y < layerLoc->ny; ++y) {
-         int k_extended   = kIndex(xLineStart, y + yLineStart, 0, xBufSize, yBufSize, layerLoc->nf);
-         int k_restricted = kIndex(0, y, 0, layerLoc->nx, layerLoc->ny, layerLoc->nf);
-         memcpy(&buffer[k_extended], &TBuff[k_restricted], (size_t)linesize * datasize);
-      }
-   }
-   else {
-      memcpy(buffer, TBuff, (size_t)numLocalNeurons * datasize);
-   }
-
-   free(TBuff);
-   return PV_SUCCESS;
-}
-
-template int scatterActivity<float>(
-      PV_Stream *pvstream,
-      Communicator *icComm,
-      int rootproc,
-      float *buffer,
-      const PVLayerLoc *layerLoc,
-      bool extended,
-      const PVLayerLoc *fileLoc,
-      int offsetX,
-      int offsetY,
-      int filetype,
-      int numActive);
-template int scatterActivity<taus_uint4>(
-      PV_Stream *pvstream,
-      Communicator *icComm,
-      int rootproc,
-      taus_uint4 *buffer,
-      const PVLayerLoc *layerLoc,
-      bool extended,
-      const PVLayerLoc *fileLoc,
-      int offsetX,
-      int offsetY,
-      int filetype,
-      int numActive);
 
 } // namespace PV

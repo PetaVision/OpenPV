@@ -37,11 +37,6 @@ int main(int argc, char *argv[]) {
             rmcommand.c_str(),
             WEXITSTATUS(rmstatus));
    }
-   if (mpiBlock->getBatchDimension() > 1) {
-      params->setBatchSweepValues();
-      checkpointWriteDirectory =
-            std::string(params->stringValue("checkpointer", "checkpointWriteDir"));
-   }
    checkpointer->ioParams(PV::PARAMS_IO_READ, params);
    delete params;
 

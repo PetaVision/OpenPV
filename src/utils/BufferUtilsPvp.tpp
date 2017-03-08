@@ -45,13 +45,13 @@ HeaderDataType returnDataType() {
 // Write a pvp header to fStream. After finishing, outStream will be pointing
 // at the start of the first frame.
 template <typename T>
-struct ActivityHeader buildActivityHeader(int width, int height, int features, int numFrames) {
+ActivityHeader buildActivityHeader(int width, int height, int features, int numFrames) {
    HeaderDataType dataType = returnDataType<T>();
    FatalIf(
          dataType == UNRECOGNIZED_DATATYPE,
          "buildActivityHeader called with unrecognized data type.\n");
 
-   struct ActivityHeader result;
+   ActivityHeader result;
    result.headerSize = sizeof(result);
    result.numParams  = result.headerSize / 4;
    result.fileType   = PVP_NONSPIKING_ACT_FILE_TYPE;
@@ -75,27 +75,26 @@ struct ActivityHeader buildActivityHeader(int width, int height, int features, i
 }
 
 template <typename T>
-struct ActivityHeader
-buildSparseActivityHeader(int width, int height, int features, int numFrames) {
-   struct ActivityHeader header = buildActivityHeader<T>(width, height, features, numFrames);
-   header.dataSize              = sizeof(struct SparseList<T>::Entry);
-   header.fileType              = PVP_ACT_SPARSEVALUES_FILE_TYPE;
+ActivityHeader buildSparseActivityHeader(int width, int height, int features, int numFrames) {
+   ActivityHeader header = buildActivityHeader<T>(width, height, features, numFrames);
+   header.dataSize       = sizeof(struct SparseList<T>::Entry);
+   header.fileType       = PVP_ACT_SPARSEVALUES_FILE_TYPE;
    return header;
 }
 
-static void writeActivityHeader(FileStream &fStream, struct ActivityHeader const &header) {
+static void writeActivityHeader(FileStream &fStream, ActivityHeader const &header) {
    fStream.setOutPos(0, true);
    fStream.write(&header, sizeof(header));
 }
 
 // Reads a pvp header and returns it in vector format. Leaves inStream
 // pointing at the start of the first frame.
-static struct ActivityHeader readActivityHeader(FileStream &fStream) {
+static ActivityHeader readActivityHeader(FileStream &fStream) {
    fStream.setInPos(0, true);
    int headerSize = -1;
    fStream.read(&headerSize, sizeof(int));
    fStream.setInPos(0, true);
-   struct ActivityHeader header;
+   ActivityHeader header;
    fStream.read(&header, headerSize);
    return header;
 }
@@ -122,7 +121,7 @@ void appendToPvp(
          fName, std::ios_base::out | std::ios_base::in | std::ios_base::binary, verifyWrites);
 
    // Modify the number of records in the header
-   struct ActivityHeader header = readActivityHeader(fStream);
+   ActivityHeader header = readActivityHeader(fStream);
    FatalIf(
          frameWriteIndex > header.nBands,
          "Cannot write entry %d when only %d entries exist.\n",
@@ -148,7 +147,11 @@ double readSparseFromPvp(
       SparseFileTable *cachedTable);
  */
 template <typename T>
-double readActivityFromPvp(char const *fName, Buffer<T> *buffer, int frameReadIndex, BufferUtils::SparseFileTable *sparseFileTable) {
+double readActivityFromPvp(
+      char const *fName,
+      Buffer<T> *buffer,
+      int frameReadIndex,
+      BufferUtils::SparseFileTable *sparseFileTable) {
    double timestamp;
    int fileType;
    {
@@ -161,10 +164,12 @@ double readActivityFromPvp(char const *fName, Buffer<T> *buffer, int frameReadIn
          timestamp = BufferUtils::readDenseFromPvp<T>(fName, buffer, frameReadIndex);
          break;
       case PVP_ACT_SPARSEVALUES_FILE_TYPE:
-         timestamp = BufferUtils::readDenseFromSparsePvp<T>(fName, buffer, frameReadIndex, sparseFileTable);
+         timestamp = BufferUtils::readDenseFromSparsePvp<T>(
+               fName, buffer, frameReadIndex, sparseFileTable);
          break;
       case PVP_ACT_FILE_TYPE:
-         timestamp = BufferUtils::readDenseFromSparseBinaryPvp<T>(fName, buffer, frameReadIndex, sparseFileTable);
+         timestamp = BufferUtils::readDenseFromSparseBinaryPvp<T>(
+               fName, buffer, frameReadIndex, sparseFileTable);
          break;
       default:
          Fatal().printf(
@@ -180,7 +185,7 @@ double readActivityFromPvp(char const *fName, Buffer<T> *buffer, int frameReadIn
 template <typename T>
 double readDenseFromPvp(const char *fName, Buffer<T> *buffer, int frameReadIndex) {
    FileStream fStream(fName, std::ios_base::in | std::ios_base::binary, false);
-   struct ActivityHeader header = readActivityHeader(fStream);
+   ActivityHeader header = readActivityHeader(fStream);
    FatalIf(
          header.fileType != PVP_NONSPIKING_ACT_FILE_TYPE,
          "readDenseFromPvp() can only be used on non-sparse activity pvps "
@@ -253,7 +258,7 @@ double readSparseBinaryFrame(FileStream &fStream, SparseList<T> *list, T oneValu
 // stream pointing at the location where frame upToIndex would
 // begin.
 static SparseFileTable buildSparseFileTable(FileStream &fStream, int upToIndex) {
-   struct ActivityHeader header = readActivityHeader(fStream);
+   ActivityHeader header = readActivityHeader(fStream);
    FatalIf(
          upToIndex > header.nBands,
          "buildSparseFileTable requested frame %d / %d.\n",
@@ -306,7 +311,7 @@ void appendSparseToPvp(
          fName, std::ios_base::out | std::ios_base::in | std::ios_base::binary, verifyWrites);
 
    // Modify the number of records in the header
-   struct ActivityHeader header = readActivityHeader(fStream);
+   ActivityHeader header = readActivityHeader(fStream);
    FatalIf(
          frameWriteIndex > header.nBands,
          "Cannot write entry %d when only %d entries exist.\n",
@@ -331,7 +336,7 @@ double readSparseFromPvp(
       SparseFileTable *cachedTable) {
    FileStream fStream(fName, std::ios_base::in | std::ios_base::binary, false);
 
-   struct ActivityHeader header = readActivityHeader(fStream);
+   ActivityHeader header = readActivityHeader(fStream);
    FatalIf(
          header.fileType != PVP_ACT_SPARSEVALUES_FILE_TYPE,
          "readSparseFromPvp() can only be used on sparse activity pvps "
@@ -356,12 +361,16 @@ double readSparseFromPvp(
 }
 
 template <typename T>
-double readDenseFromSparsePvp(char const *fName, Buffer<T> *buffer, int frameReadIndex, SparseFileTable *sparseFileTable) {
+double readDenseFromSparsePvp(
+      char const *fName,
+      Buffer<T> *buffer,
+      int frameReadIndex,
+      SparseFileTable *sparseFileTable) {
    SparseList<T> list;
    double timestamp = readSparseFromPvp(fName, &list, frameReadIndex, sparseFileTable);
 
    FileStream fStream(fName, std::ios_base::in | std::ios_base::binary, false);
-   struct ActivityHeader header = readActivityHeader(fStream);
+   ActivityHeader header = readActivityHeader(fStream);
    buffer->resize(header.nx, header.ny, header.nf);
    list.toBuffer(*buffer, (T)0);
 
@@ -377,7 +386,7 @@ double readSparseBinaryFromPvp(
       SparseFileTable *cachedTable) {
    FileStream fStream(fName, std::ios_base::in | std::ios_base::binary, false);
 
-   struct ActivityHeader header = readActivityHeader(fStream);
+   ActivityHeader header = readActivityHeader(fStream);
    FatalIf(
          header.fileType != PVP_ACT_FILE_TYPE,
          "readSparseBinaryFromPvp() can only be used on sparse binary pvps "
@@ -402,16 +411,38 @@ double readSparseBinaryFromPvp(
 }
 
 template <typename T>
-double readDenseFromSparseBinaryPvp(char const *fName, Buffer<T> *buffer, int frameReadIndex, SparseFileTable *sparseFileTable) {
+double readDenseFromSparseBinaryPvp(
+      char const *fName,
+      Buffer<T> *buffer,
+      int frameReadIndex,
+      SparseFileTable *sparseFileTable) {
    SparseList<T> list;
    double timestamp = readSparseBinaryFromPvp(fName, &list, frameReadIndex, (T)1, sparseFileTable);
 
    FileStream fStream(fName, std::ios_base::in | std::ios_base::binary, false);
-   struct ActivityHeader header = readActivityHeader(fStream);
+   ActivityHeader header = readActivityHeader(fStream);
    buffer->resize(header.nx, header.ny, header.nf);
    list.toBuffer(*buffer, (T)0);
 
    return timestamp;
+}
+
+template <typename T>
+std::size_t weightPatchSize(int numWeightsInPatch) {
+   HeaderDataType dataType = returnDataType<T>();
+   FatalIf(
+         dataType == UNRECOGNIZED_DATATYPE,
+         "buildActivityHeader called with unrecognized data type.\n");
+
+   std::size_t sz;
+   switch (dataType) {
+      case UNRECOGNIZED_DATATYPE: sz = (std::size_t)(-1); break;
+      case BYTE: sz                  = sizeof(char); break;
+      case INT: sz                   = sizeof(int); break;
+      case FLOAT: sz                 = sizeof(float); break;
+      default: pvAssert(0); break;
+   }
+   return (2 * sizeof(unsigned short) + sizeof(unsigned int) + numWeightsInPatch * sz);
 }
 
 } // end namespace BufferUtils

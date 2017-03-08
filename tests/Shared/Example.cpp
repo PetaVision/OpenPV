@@ -60,7 +60,7 @@ int Example::initFinish(int colId, int colRow, int colCol) {
    return 0;
 }
 
-int Example::outputState(double timef, bool last) {
+int Example::outputState(double timef) {
 #ifdef DEBUG_OUTPUT
    DebugLog().printf("[%d]: Example::outputState:", clayer->columnId);
 #endif // DEBUG_OUTPUT

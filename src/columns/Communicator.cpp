@@ -69,8 +69,10 @@ Communicator::Communicator(Arguments *argumentList) {
    }
 
    if (commSize > totalSize) {
-      Fatal() << "Total number of specified processes (" << commSize
-              << ") must be bigger than the number of processes launched (" << totalSize << ")\n";
+      Fatal() << "Number of required processes (NumRows * NumColumns * BatchWidth = " << commSize
+              << ") should be the same as, and cannot be larger than, the number of processes "
+                 "launched ("
+              << totalSize << ")\n";
    }
 
    globalMPIBlock =

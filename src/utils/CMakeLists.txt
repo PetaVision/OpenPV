@@ -1,5 +1,6 @@
 set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/BorderExchange.cpp
+   ${SUBDIR}/BufferUtilsPvp.cpp
    ${SUBDIR}/BufferUtilsRescale.cpp
    ${SUBDIR}/Clock.cpp
    ${SUBDIR}/PVAssert.cpp

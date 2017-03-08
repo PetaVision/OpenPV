@@ -1,0 +1,126 @@
+//
+// MtoNOutputStateTest.params
+//
+// created by peteschultz: Mar 2, 2017
+//
+
+//  A params file MtoNOutputStateTest.
+//  T
+//  It serves as the basic template for systems tests, and tests the
+//  basic functionality
+//
+
+debugParsing = false;
+
+HyPerCol "column" = {
+    startTime                           = 0;
+    dt                                  = 1;
+    stopTime                            = 10;
+    progressInterval                    = 10;
+    writeProgressToErr                  = false;
+    outputPath                          = "output/";
+    verifyWrites                        = false;
+    checkpointWrite                     = false;
+    lastCheckpointDir                   = "output/Last";
+    initializeFromCheckpointDir         = "";
+    printParamsFilename                 = "pv.params";
+    randomSeed                          = 1234567890;
+    nx                                  = 32;
+    ny                                  = 32;
+    nbatch                              = 8;
+    errorOnNotANumber                   = true;
+};
+
+//
+// layers
+//
+
+ConstantLayer "Pre" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    InitVType                           = "ConstantV";
+    valueV                              = 1;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+};
+
+IndexLayer "Post" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 1;
+    mirrorBCflag                        = true;
+    InitVType                           = "ConstantV";
+    valueV                              = 1;
+    triggerLayerName                    = NULL;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+    VThresh                             = -3.40282e+38;
+    AMin                                = -3.40282e+38;
+    AMax                                = infinity;
+    AShift                              = 0;
+    VWidth                              = 0;
+    integrationTime                     = infinity;
+};
+
+//
+// connections
+//
+
+IdentConn "IdentConn" = {
+    preLayerName                        = "Pre";
+    postLayerName                       = "Post";
+    channelCode                         = 0;
+    delay                               = [0.000000];
+    receiveGpu                          = false;
+    initWeightsFile                     = NULL;
+    weightSparsity                      = 0;
+};
+
+IndexWeightConn "SharedWeights" = {
+    preLayerName                        = "Pre";
+    postLayerName                       = "Post";
+    channelCode                         = -1;
+    delay                               = [0.000000];
+    numAxonalArbors                     = 1;
+    plasticityFlag                      = true;
+    convertRateToSpikeCount             = false;
+    receiveGpu                          = false;
+    sharedWeights                       = true;
+    triggerLayerName                    = NULL;
+    weightUpdatePeriod                  = 1;
+    initialWeightUpdateTime             = 0;
+    immediateWeightUpdate               = true;
+    updateGSynFromPostPerspective       = false;
+    pvpatchAccumulateType               = "convolve";
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+    writeCompressedWeights              = false;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+    combine_dW_with_W_flag              = false;
+    nxp                                 = 3;
+    nyp                                 = 3;
+    nfp                                 = 1;
+    shrinkPatches                       = false;
+    normalizeMethod                     = "none";
+    dWMax                               = 1;
+    keepKernelsSynchronized             = true;
+    normalizeDw                         = true;
+    useMask                             = false;
+    dWMaxDecayInterval                  = 0;
+    dWMaxDecayFactor                    = 0;
+    weightSparsity                      = 0;
+};
+
+// TODO: NonsharedWeight

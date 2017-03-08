@@ -54,7 +54,7 @@ void FileStream::openFile(char const *path, std::ios_base::openmode mode, bool v
       }
    }
    if (!mFStream.is_open()) {
-      Fatal() << "FileStream::openFile failure for \"" << fullPath
+      Fatal() << "FileStream::openFile failure (" << strerror(errno) << ") for \"" << fullPath
               << "\": MAX_FILESYSTEMCALL_TRIES = " << mMaxAttempts << " exceeded.\n";
    }
    else if (attempts > 0) {

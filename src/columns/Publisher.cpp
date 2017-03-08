@@ -12,16 +12,15 @@
 
 namespace PV {
 
-Publisher::Publisher(Communicator *comm, PVLayerCube *cube, int numLevels, bool isSparse) {
+Publisher::Publisher(MPIBlock const &mpiBlock, PVLayerCube *cube, int numLevels, bool isSparse) {
    this->mLayerCube = cube;
-   this->mComm      = comm;
 
    int const numBuffers = cube->loc.nbatch;
    int const numItems   = cube->numItems / numBuffers; // number of items in one batch element.
 
    store = new DataStore(numBuffers, numItems, numLevels, isSparse);
 
-   mBorderExchanger = new BorderExchange(*comm->getLocalMPIBlock(), cube->loc);
+   mBorderExchanger = new BorderExchange(mpiBlock, cube->loc);
 
    mpiRequestsBuffer = new RingBuffer<std::vector<MPI_Request>>(numLevels, 1);
    for (int l = 0; l < numLevels; l++) {
