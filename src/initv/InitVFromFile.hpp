@@ -35,8 +35,6 @@ class InitVFromFile : public BaseInitV {
   protected:
    InitVFromFile();
    int initialize(char const *name, HyPerCol *hc);
-   int checkLoc(const PVLayerLoc *loc, int nx, int ny, int nf, int nxGlobal, int nyGlobal);
-   int checkLocValue(int fromParams, int fromFile, const char *field);
 
   private:
    int initialize_base();

@@ -82,39 +82,4 @@ int InitVFromFile::calcV(float *V, const PVLayerLoc *loc) {
    return status;
 }
 
-int InitVFromFile::checkLoc(
-      const PVLayerLoc *loc,
-      int nx,
-      int ny,
-      int nf,
-      int nxGlobal,
-      int nyGlobal) {
-   int status = PV_SUCCESS;
-   if (checkLocValue(loc->nxGlobal, nxGlobal, "nxGlobal") != PV_SUCCESS)
-      status = PV_FAILURE;
-   if (checkLocValue(loc->nyGlobal, nyGlobal, "nyGlobal") != PV_SUCCESS)
-      status = PV_FAILURE;
-   if (checkLocValue(loc->nf, nf, "nf") != PV_SUCCESS)
-      status = PV_FAILURE;
-   return status;
-}
-
-int InitVFromFile::checkLocValue(int fromParams, int fromFile, const char *field) {
-   int status = PV_SUCCESS;
-   if (fromParams != fromFile) {
-      if (parent->getCommunicator()->commRank() == 0) {
-         ErrorLog().printf(
-               "InitVFromFile: Incompatible %s: parameter group \"%s\" gives %d; "
-               "filename \"%s\" gives %d\n",
-               field,
-               name,
-               fromParams,
-               mVfilename,
-               fromFile);
-      }
-      status = PV_FAILURE;
-   }
-   return status;
-}
-
 } // end namespace PV
