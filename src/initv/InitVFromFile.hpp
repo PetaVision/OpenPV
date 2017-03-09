@@ -9,6 +9,7 @@
 #define INITVFROMFILE_HPP_
 
 #include "BaseInitV.hpp"
+#include "utils/BufferUtilsPvp.hpp"
 
 namespace PV {
 
@@ -35,12 +36,19 @@ class InitVFromFile : public BaseInitV {
   protected:
    InitVFromFile();
    int initialize(char const *name, HyPerCol *hc);
+   virtual int registerData(Checkpointer *checkpointer, std::string const &objName) override;
+   void readDenseActivityPvp(
+         float *V,
+         PVLayerLoc const *loc,
+         FileStream &fileStream,
+         BufferUtils::ActivityHeader const &header);
 
   private:
    int initialize_base();
 
   private:
-   char *mVfilename = nullptr;
+   char *mVfilename          = nullptr;
+   MPIBlock const *mMPIBlock = nullptr;
 }; // end class InitVFromFile
 
 } // end namespace PV

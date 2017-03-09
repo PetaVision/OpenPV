@@ -1657,6 +1657,12 @@ int HyPerLayer::registerData(Checkpointer *checkpointer, std::string const &objN
 
    io_timer        = new Timer(getName(), "layer", "io     ");
    checkpointer->registerTimer(io_timer);
+
+   if (mInitVObject) {
+      auto message = std::make_shared<RegisterDataMessage<Checkpointer>>(checkpointer);
+      mInitVObject->respond(message);
+   }
+
    return PV_SUCCESS;
 }
 

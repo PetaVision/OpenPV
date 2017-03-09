@@ -1,4 +1,5 @@
 #include "io/io.hpp"
+#include "utils/conversions.h"
 #include <limits>
 
 namespace PV {
@@ -27,6 +28,82 @@ double readFrame(FileStream &fStream, Buffer<T> *buffer) {
    fStream.read(data.data(), expected);
 
    buffer->set(data, buffer->getWidth(), buffer->getHeight(), buffer->getFeatures());
+   return timeStamp;
+}
+
+template <typename T>
+double readFrameWindow(
+      FileStream &fStream,
+      Buffer<T> *buffer,
+      ActivityHeader const &header,
+      int xStart,
+      int yStart,
+      int fStart) {
+   double timeStamp;
+   fStream.read(&timeStamp, sizeof(double));
+
+   long frameDataStart = fStream.getOutPos();
+
+   int const nx = buffer->getWidth();
+   int const ny = buffer->getHeight();
+   int const nf = buffer->getFeatures();
+
+   int const nxGlobal = header.nx;
+   int const nyGlobal = header.ny;
+   int const nfGlobal = header.nf;
+
+   FatalIf(xStart < 0, "readFrameWindow: window's left edge %d is negative.\n", xStart);
+   FatalIf(yStart < 0, "readFrameWindow: window's top edge %d is negative.\n", yStart);
+   FatalIf(fStart < 0, "readFrameWindow: starting feature %d cannot be negative.\n", fStart);
+
+   FatalIf(nx <= 0, "readFrameWindow: window's width %d must be positive.\n", nx);
+   FatalIf(ny <= 0, "readFrameWindow: window's height %d must be positive.\n", nx);
+   FatalIf(nf <= 0, "readFrameWindow: window's number of features %d must be positive.\n", nx);
+
+   FatalIf(
+         xStart + nx > nxGlobal,
+         "readFrameWindow: window's right edge %d exceeds file's width %d.\n",
+         xStart + nx,
+         nxGlobal);
+   FatalIf(
+         yStart + ny > nyGlobal,
+         "readFrameWindow: window's bottom edge %d exceeds file's width %d.\n",
+         yStart + ny,
+         nyGlobal);
+   FatalIf(
+         fStart + nf > nfGlobal,
+         "readFrameWindow: window's last feature %d exceeds file's number of features %d.\n",
+         fStart + nf,
+         nfGlobal);
+
+   vector<T> bufferData(nx * ny * nf);
+   if (nfGlobal == buffer->getFeatures()) {
+      std::size_t lineWidth = sizeof(T) * (std::size_t)(nfGlobal * buffer->getWidth());
+      for (int y = 0; y < buffer->getHeight(); y++) {
+         int fileIndex       = kIndex(xStart, y + yStart, fStart, nxGlobal, nyGlobal, nfGlobal);
+         int bufferIndex     = kIndex(0, y, 0, nx, ny, nf);
+         long currentFilePos = frameDataStart + (long)sizeof(T) * (long)fileIndex;
+         fStream.setOutPos(currentFilePos, true /*fromBeginning flag*/);
+         fStream.read(&bufferData[bufferIndex], lineWidth);
+      }
+   }
+   else { // nfGlobal != bufferData.getFeatures();
+      std::size_t dataWidth = sizeof(T) * (std::size_t)buffer->getFeatures();
+      for (int y = 0; y < buffer->getHeight(); y++) {
+         for (int x = 0; x < buffer->getWidth(); x++) {
+            int fileIndex       = kIndex(xStart, y + yStart, fStart, nxGlobal, nyGlobal, nfGlobal);
+            int bufferIndex     = kIndex(x, y, 0, nx, ny, nf);
+            long currentFilePos = frameDataStart + (long)sizeof(T) * (long)fileIndex;
+            fStream.setOutPos(currentFilePos, true /*fromBeginning flag*/);
+            fStream.read(&bufferData[bufferIndex], dataWidth);
+         }
+      }
+   }
+   buffer->set(bufferData, nx, ny, nf);
+
+   long frameDataEnd = frameDataStart + (long)sizeof(T) * (long)(nxGlobal * nyGlobal * nfGlobal);
+   fStream.setOutPos(frameDataEnd, true /*fromBeginning flag*/);
+
    return timeStamp;
 }
 

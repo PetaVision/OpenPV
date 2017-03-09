@@ -57,6 +57,15 @@ template <typename T>
 double readFrame(FileStream &fStream, Buffer<T> *buffer);
 
 template <typename T>
+double readFrameWindow(
+      FileStream &fStream,
+      Buffer<T> *buffer,
+      ActivityHeader const &header,
+      int xStart,
+      int yStart,
+      int fStart);
+
+template <typename T>
 BufferUtils::HeaderDataType returnDataType();
 
 template <typename T>
