@@ -9,7 +9,6 @@
 #define HYPERCONN_HPP_
 
 #include "BaseConnection.hpp"
-#include "columns/Communicator.hpp"
 #include "columns/HyPerCol.hpp"
 #include "columns/Random.hpp"
 #include "connections/accumulate_functions.hpp"
