@@ -246,7 +246,7 @@ void verifyOutputStateSharedWeights(std::string const &path, MPIBlock const &mpi
    // so we need to get the file size.
    struct stat fileStat;
    int statstatus = stat(path.c_str(), &fileStat);
-   FatalIf(statstatus != 0, "stat \"%s\" failed: %s\n", path, strerror(errno));
+   FatalIf(statstatus != 0, "stat \"%s\" failed: %s\n", path.c_str(), strerror(errno));
    FatalIf(!S_ISREG(fileStat.st_mode), "\"%s\" is not a regular file.\n", path.c_str());
    long const fileSize = (long)fileStat.st_size;
 
