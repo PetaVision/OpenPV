@@ -195,10 +195,9 @@ class HyPerLayer : public BaseLayer {
    virtual void ioParam_sparseLayer(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief writeSparseValues: If sparseLayer is set, specifies if the pvp file should write sparse
-    * value file
+    * @brief writeSparseValues: No longer used.
     */
-   virtual void ioParam_writeSparseValues(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_writeSparseValues(enum ParamsIOFlag ioFlag); // obsolete March 14, 2017.
    /** @} */
 
   private:
@@ -399,7 +398,7 @@ class HyPerLayer : public BaseLayer {
 
    virtual int outputState(double timef);
    virtual int writeActivity(double timed);
-   virtual int writeActivitySparse(double timed, bool includeValues);
+   virtual int writeActivitySparse(double timed);
 
    virtual int insertProbe(LayerProbe *probe);
    int outputProbeParams();
@@ -540,9 +539,7 @@ class HyPerLayer : public BaseLayer {
    MPIBlock const *mOutputStateMPIBlock         = nullptr;
 
    bool sparseLayer; // if true, only nonzero activities are saved; if false, all values are saved.
-   bool writeSparseValues; // if true, sparseLayer writes index-value pairs.  if false, sparseLayer
-   // writes indices only and values are assumed to be 1.  Not used if
-   // sparseLayer is false
+   // bool writeSparseValues; // removed March 14, 2017
    int writeActivityCalls; // Number of calls to writeActivity (written to nbands in the header of
    // the a%d.pvp file)
    int writeActivitySparseCalls; // Number of calls to writeActivitySparse (written to nbands in the

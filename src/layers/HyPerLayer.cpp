@@ -900,29 +900,27 @@ void HyPerLayer::ioParam_initialWriteTime(enum ParamsIOFlag ioFlag) {
 void HyPerLayer::ioParam_sparseLayer(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ && !parent->parameters()->present(name, "sparseLayer")
        && parent->parameters()->present(name, "writeSparseActivity")) {
-      parent->parameters()->ioParamValue(ioFlag, name, "writeSparseActivity", &sparseLayer, false);
-      if (parent->columnId() == 0) {
-         WarnLog().printf("writeSparseActivity is deprecated.  Use sparseLayer instead.\n");
-      }
-      return;
+      Fatal().printf("writeSparseActivity is obsolete. Use sparseLayer instead.\n");
    }
-   // writeSparseActivity was deprecated Nov 4, 2014
-   // When support for writeSparseActivity is removed entirely, remove the above if-statement and
-   // keep the ioParamValue call below.
+   // writeSparseActivity was deprecated Nov 4, 2014 and marked obsolete Mar 14, 2017.
    parent->parameters()->ioParamValue(ioFlag, name, "sparseLayer", &sparseLayer, false);
 }
 
+// writeSparseValues is obsolete as of Mar 14, 2017.
 void HyPerLayer::ioParam_writeSparseValues(enum ParamsIOFlag ioFlag) {
-   // writeSparseActivity was deprecated Nov 4, 2014
-   if (!parent->parameters()->present(name, "sparseLayer")) {
-      assert(!parent->parameters()->presentAndNotBeenRead(name, "writeSparseActivity"));
-   }
-   else {
+   if (ioFlag == PARAMS_IO_READ) {
       assert(!parent->parameters()->presentAndNotBeenRead(name, "sparseLayer"));
+      if (sparseLayer && parent->parameters()->present(name, "writeSparseValues")) {
+         WarnLog() << "writeSparseValues parameter, defined in " << getDescription()
+                   << ", is obsolete.\n";
+         bool writeSparseValues;
+         parent->parameters()->ioParamValue(
+               ioFlag, name, "writeSparseValues", &writeSparseValues, true /*default value*/);
+         if (!writeSparseValues) {
+            WarnLog() << "The sparse-values format is used for all sparse layers.\n";
+         }
+      }
    }
-   if (sparseLayer)
-      parent->parameters()->ioParamValue(
-            ioFlag, name, "writeSparseValues", &writeSparseValues, true /*default value*/);
 }
 
 int HyPerLayer::respond(std::shared_ptr<BaseMessage const> message) {
@@ -2108,7 +2106,7 @@ int HyPerLayer::outputState(double timef) {
    if (timef >= (writeTime - (parent->getDeltaTime() / 2)) && writeStep >= 0) {
       writeTime += writeStep;
       if (sparseLayer) {
-         status = writeActivitySparse(timef, writeSparseValues);
+         status = writeActivitySparse(timef);
       }
       else {
          status = writeActivity(timef);
@@ -2172,7 +2170,7 @@ int HyPerLayer::processCheckpointRead() {
    return updateAllActiveIndices();
 }
 
-int HyPerLayer::writeActivitySparse(double timed, bool includeValues) {
+int HyPerLayer::writeActivitySparse(double timed) {
    PVLayerCube cube      = publisher->createCube(0);
    PVLayerLoc const *loc = getLayerLoc();
    pvAssert(cube.numItems == loc->nbatch * getNumExtended());
@@ -2185,18 +2183,15 @@ int HyPerLayer::writeActivitySparse(double timed, bool includeValues) {
       pvAssert(mpiBatchIndex * loc->nbatch + localBatchIndex == frame);
 
       SparseList<float> list;
-      SparseList<float>::Entry entry;
+      auto *activeIndices = (SparseList<float>::Entry const *)cube.activeIndices;
       for (long int k = 0; k < cube.numActive[localBatchIndex]; k++) {
-         float *activeIndices = (float *)cube.activeIndices;
-         entry.index          = (uint32_t)activeIndices[localBatchIndex * getNumExtended()];
-         entry.value          = cube.data[localBatchIndex * getNumExtended() + entry.index];
-         list.addEntry(entry);
+         list.addEntry(activeIndices[k]);
       }
       BufferUtils::gatherSparse(mOutputStateMPIBlock, list, mpiBatchIndex, 0 /*root process*/);
       if (mOutputStateMPIBlock->getRank() == 0) {
          long fpos = mOutputStateStream->getOutPos();
          if (fpos == 0L) {
-            BufferUtils::ActivityHeader header = BufferUtils::buildActivityHeader<float>(
+            BufferUtils::ActivityHeader header = BufferUtils::buildSparseActivityHeader<float>(
                   loc->nx * mOutputStateMPIBlock->getNumColumns(),
                   loc->ny * mOutputStateMPIBlock->getNumRows(),
                   loc->nf,
