@@ -39,12 +39,36 @@ int PlasticCloneConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 // the parameter some way other than reading its own parameter
 // group's param directly.
 
+void PlasticCloneConn::ioParam_weightUpdatePeriod(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      parent->parameters()->handleUnnecessaryParameter(name, "weightUpdatePeriod");
+   }
+   // During the communication phase, weightUpdatePeriod will be copied
+   // from originalConn
+}
+
+void PlasticCloneConn::ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      parent->parameters()->handleUnnecessaryParameter(name, "initialWeightUpdateTime");
+   }
+   // During the communication phase, initialWeightUpdateTime will be copied
+   // from originalConn
+}
+
+void PlasticCloneConn::ioParam_dWMax(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      parent->parameters()->handleUnnecessaryParameter(name, "dWMax");
+   }
+   // During the communication phase, dWMax will be copied from
+   // originalConn
+}
+
 void PlasticCloneConn::ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       parent->parameters()->handleUnnecessaryParameter(name, "keepKernelsSynchronized");
    }
-   // During the communication phase, shrinkPatches_flag will be copied from
-   // originalConn
+   // During the communication phase, keepKernelsSynchronized will be copied
+   // from originalConn
 }
 
 void PlasticCloneConn::ioParam_normalizeDw(enum ParamsIOFlag ioFlag) {
@@ -86,16 +110,14 @@ int PlasticCloneConn::cloneParameters() {
    // called by CloneConn::communicateInitInfo, before it calls
    // HyPerConn::communicateInitInfo
    CloneConn::cloneParameters();
-#ifdef PV_USE_MPI
+
+   // CloneConn set plasticity flag to false; PlasticCloneConn needs it to be true.
+   plasticityFlag               = true;
+   weightUpdatePeriod           = originalConn->getWeightUpdatePeriod();
+   initialWeightUpdateTime      = originalConn->getWeightUpdatePeriod();
+   dWMax                        = originalConn->getDWMax();
    keepKernelsSynchronized_flag = originalConn->getKeepKernelsSynchronized();
-   parent->parameters()->handleUnnecessaryParameter(
-         name, "keepKernelsSynchronized", keepKernelsSynchronized_flag);
-#endif
-   // Set plasticity flag to true for allocate
-   plasticityFlag = true;
-   // Grab dwMax for calculation of weights
-   dWMax              = originalConn->getDWMax();
-   weightUpdatePeriod = originalConn->getWeightUpdatePeriod();
+   normalizeDwFlag              = originalConn->getNormalizeDwFlag();
 
    return PV_SUCCESS;
 }
