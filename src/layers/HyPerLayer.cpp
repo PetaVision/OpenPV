@@ -2183,11 +2183,31 @@ int HyPerLayer::writeActivitySparse(double timed) {
       pvAssert(mpiBatchIndex * loc->nbatch + localBatchIndex == frame);
 
       SparseList<float> list;
-      auto *activeIndices = (SparseList<float>::Entry const *)cube.activeIndices;
+      auto *activeIndices   = (SparseList<float>::Entry const *)cube.activeIndices;
+      PVLayerLoc const *loc = getLayerLoc();
+      int nxExt             = loc->nx + loc->halo.lt + loc->halo.rt;
+      int nyExt             = loc->ny + loc->halo.dn + loc->halo.up;
+      int nf                = loc->nf;
       for (long int k = 0; k < cube.numActive[localBatchIndex]; k++) {
-         list.addEntry(activeIndices[k]);
+         SparseList<float>::Entry entry = activeIndices[k];
+         int index                      = (int)entry.index;
+
+         // Location is local extended; need global restricted.
+         int x = kxPos(index, nxExt, nyExt, nf) - loc->halo.lt + loc->kx0;
+         if (x < 0 or x >= loc->nxGlobal) {
+            continue;
+         }
+         int y = kyPos(index, nxExt, nyExt, nf) - loc->halo.up + loc->ky0;
+         if (y < 0 or y >= loc->nyGlobal) {
+            continue;
+         }
+         int f = featureIndex(index, nxExt, nyExt, nf);
+
+         entry.index = (uint32_t)kIndex(x, y, f, loc->nxGlobal, loc->nyGlobal, nf);
+         list.addEntry(entry);
       }
-      BufferUtils::gatherSparse(mOutputStateMPIBlock, list, mpiBatchIndex, 0 /*root process*/);
+      auto gatheredList = BufferUtils::gatherSparse(
+            mOutputStateMPIBlock, list, mpiBatchIndex, 0 /*root process*/);
       if (mOutputStateMPIBlock->getRank() == 0) {
          long fpos = mOutputStateStream->getOutPos();
          if (fpos == 0L) {
@@ -2199,7 +2219,7 @@ int HyPerLayer::writeActivitySparse(double timed) {
             header.timestamp = timed;
             BufferUtils::writeActivityHeader(*mOutputStateStream, header);
          }
-         BufferUtils::writeSparseFrame(*mOutputStateStream, &list, timed);
+         BufferUtils::writeSparseFrame(*mOutputStateStream, &gatheredList, timed);
       }
    }
    writeActivitySparseCalls += numFrames;
