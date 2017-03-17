@@ -1705,7 +1705,9 @@ bool HyPerLayer::needReset(double simTime, double dt) {
    if (getDeltaTriggerTime() <= 0) {
       return false;
    }
-   if (simTime > mLastTriggerTime + getDeltaTriggerTime()) {
+   if (simTime >= mLastTriggerTime + getDeltaTriggerTime()) {
+      // TODO: test "simTime > mLastTriggerTime + getDeltaTriggerTime() - 0.5 * dt",
+      // to avoid roundoff issues.
       return true;
    }
    return false;
