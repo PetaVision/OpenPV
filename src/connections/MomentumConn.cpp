@@ -149,13 +149,7 @@ int MomentumConn::updateWeights(int arborId) {
          sizeof(float) * numberOfAxonalArborLists() * nxp * nyp * nfp * getNumDataPatches());
 
    // add dw to w
-   for (int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++) {
-      float *w_data_start = get_wDataStart(kArbor);
-      for (long int k = 0; k < patchStartIndex(getNumDataPatches()); k++) {
-         w_data_start[k] += get_dwDataStart(kArbor)[k];
-      }
-   }
-   return PV_BREAK;
+   return HyPerConn::updateWeights(arborId);
 }
 
 int MomentumConn::applyMomentum(int arbor_ID) {
