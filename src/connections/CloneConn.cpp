@@ -120,8 +120,8 @@ void CloneConn::ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) {
 
 void CloneConn::ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
-      plasticityFlag =
-            false; // CloneConn updates automatically, since it's done using pointer magic.
+      plasticityFlag = false;
+      // CloneConn updates automatically, since it's done using pointer magic.
       parent->parameters()->handleUnnecessaryParameter(name, "plasticityFlag", plasticityFlag);
    }
 }
