@@ -12,22 +12,16 @@
 namespace PV {
 
 class MomentumConn : public HyPerConn {
-
-  public:
-   MomentumConn();
-   MomentumConn(const char *name, HyPerCol *hc);
-   virtual ~MomentumConn();
-   virtual int allocateDataStructures();
-
-   virtual int applyMomentum(int arbor_ID);
-
-   inline float const *get_prev_dwDataStart(int arborId) { return prev_dwDataStart[arborId]; }
-   inline char const *getMomentumMethod() { return momentumMethod; }
-
   protected:
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_momentumTau(enum ParamsIOFlag ioFlag);
+   /**
+    * @brief momentumMethod: The momentum method to use
+    * @details Assuming a = dwMax * pre * post
+    * simple: deltaW(t) = a + momentumTau * deltaW(t-1)
+    * viscosity: deltaW(t) = (deltaW(t-1) * exp(-1/momentumTau)) + a
+    * alex: deltaW(t) = momentumTau * delta(t-1) - momentumDecay * dwMax * w(t) + a
+    */
    virtual void ioParam_momentumMethod(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_momentumTau(enum ParamsIOFlag ioFlag);
    virtual void ioParam_momentumDecay(enum ParamsIOFlag ioFlag);
 
    // batchPeriod was marked obsolete Jan 17, 2017.
@@ -36,8 +30,23 @@ class MomentumConn : public HyPerConn {
     */
    virtual void ioParam_batchPeriod(enum ParamsIOFlag ioFlag);
 
+  public:
+   MomentumConn();
+   MomentumConn(const char *name, HyPerCol *hc);
+   virtual ~MomentumConn();
+   virtual int allocateDataStructures();
+
+   inline float const *get_prev_dwDataStart(int arborId) { return prev_dwDataStart[arborId]; }
+   inline char const *getMomentumMethod() { return momentumMethod; }
+
+  protected:
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+
    virtual int registerData(Checkpointer *checkpointer, std::string const &objName) override;
    virtual int readStateFromCheckpoint(Checkpointer *checkpointer) override;
+
+   void applyMomentum(int arbor_ID);
+   void applyMomentum(int arbor_ID, float dwFactor, float wFactor);
 
    inline float *get_prev_dwDataHead(int arborId, int dataIndex) {
       return &prev_dwDataStart[arborId][dataIndex * nxp * nyp * nfp];
@@ -46,11 +55,15 @@ class MomentumConn : public HyPerConn {
    virtual int updateWeights(int arborId);
 
   private:
+   enum Method { SIMPLE, VISCOSITY, ALEX };
+
    int initialize_base();
+
    float **prev_dwDataStart;
+   char *momentumMethod;
    float momentumTau;
    float momentumDecay;
-   char *momentumMethod;
+   Method method;
 
 }; // end class MomentumConn
 

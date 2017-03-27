@@ -70,40 +70,39 @@ int MomentumConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    return status;
 }
 
-void MomentumConn::ioParam_momentumTau(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
-   if (plasticityFlag) {
-      float defaultVal = 0;
-      if (strcmp(momentumMethod, "simple") == 0) {
-         defaultVal = .25;
-      }
-      else if (strcmp(momentumMethod, "viscosity") == 0) {
-         defaultVal = 100;
-      }
-      else if (strcmp(momentumMethod, "alex") == 0) {
-         defaultVal = .9;
-      }
-
-      parent->parameters()->ioParamValue(ioFlag, name, "momentumTau", &momentumTau, defaultVal);
-   }
-}
-
-/**
- * @brief momentumMethod: The momentum method to use
- * @details Assuming a = dwMax * pre * post
- * simple: deltaW(t) = a + momentumTau * deltaW(t-1)
- * viscosity: deltaW(t) = (deltaW(t-1) * exp(-1/momentumTau)) + a
- * alex: deltaW(t) = momentumTau * delta(t-1) - momentumDecay * dwMax * w(t) + a
- */
 void MomentumConn::ioParam_momentumMethod(enum ParamsIOFlag ioFlag) {
    pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (plasticityFlag) {
       parent->parameters()->ioParamStringRequired(ioFlag, name, "momentumMethod", &momentumMethod);
-      if (strcmp(momentumMethod, "simple") != 0 && strcmp(momentumMethod, "viscosity") != 0
-          && strcmp(momentumMethod, "alex")) {
+      if (strcmp(momentumMethod, "simple") == 0) {
+         method = SIMPLE;
+      }
+      else if (strcmp(momentumMethod, "viscosity") == 0) {
+         method = VISCOSITY;
+      }
+      else if (strcmp(momentumMethod, "alex") == 0) {
+         method = ALEX;
+      }
+      else {
          Fatal() << "MomentumConn " << name << ": momentumMethod of " << momentumMethod
                  << " is not known, options are \"simple\", \"viscosity\", and \"alex\"\n";
       }
+   }
+}
+
+void MomentumConn::ioParam_momentumTau(enum ParamsIOFlag ioFlag) {
+   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   if (plasticityFlag) {
+      pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "momentumMethod"));
+      float defaultVal = 0;
+      switch (method) {
+         case SIMPLE: defaultVal    = 0.25f; break;
+         case VISCOSITY: defaultVal = 100.0f; break;
+         case ALEX: defaultVal      = 0.9f; break;
+         default: pvAssertMessage(0, "Unrecognized momentumMethod\n"); break;
+      }
+
+      parent->parameters()->ioParamValue(ioFlag, name, "momentumTau", &momentumTau, defaultVal);
    }
 }
 
@@ -152,57 +151,29 @@ int MomentumConn::updateWeights(int arborId) {
    return HyPerConn::updateWeights(arborId);
 }
 
-int MomentumConn::applyMomentum(int arbor_ID) {
-   int nExt              = preSynapticLayer()->getNumExtended();
-   const PVLayerLoc *loc = preSynapticLayer()->getLayerLoc();
-   int numKernels        = getNumDataPatches();
-
+void MomentumConn::applyMomentum(int arbor_ID) {
    // Shared weights done in parallel, parallel in numkernels
-   if (!strcmp(momentumMethod, "simple")) {
+   switch (method) {
+      case SIMPLE: applyMomentum(arbor_ID, momentumTau, momentumDecay); break;
+      case VISCOSITY: applyMomentum(arbor_ID, std::exp(-1.0f / momentumTau), momentumDecay); break;
+      case ALEX: applyMomentum(arbor_ID, momentumTau, momentumDecay * getDWMax()); break;
+      default: pvAssertMessage(0, "Unrecognized momentumMethod\n"); break;
+   }
+}
+
+void MomentumConn::applyMomentum(int arbor_ID, float dwFactor, float wFactor) {
+   int const numKernels = getNumDataPatches();
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-      for (int kernelIdx = 0; kernelIdx < numKernels; kernelIdx++) {
-         float *dwdata_start        = get_dwDataHead(arbor_ID, kernelIdx);
-         float const *prev_dw_start = get_prev_dwDataHead(arbor_ID, kernelIdx);
-         float const *wdata_start   = get_wDataHead(arbor_ID, kernelIdx);
-         for (int k = 0; k < nxp * nyp * nfp; k++) {
-            dwdata_start[k] += momentumTau * prev_dw_start[k] - momentumDecay * wdata_start[k];
-         }
+   for (int kernelIdx = 0; kernelIdx < numKernels; kernelIdx++) {
+      float *dwdata_start        = get_dwDataHead(arbor_ID, kernelIdx);
+      float const *prev_dw_start = get_prev_dwDataHead(arbor_ID, kernelIdx);
+      float const *wdata_start   = get_wDataHead(arbor_ID, kernelIdx);
+      for (int k = 0; k < nxp * nyp * nfp; k++) {
+         dwdata_start[k] += dwFactor * prev_dw_start[k] - wFactor * wdata_start[k];
       }
    }
-   else if (!strcmp(momentumMethod, "viscosity")) {
-      float const tauFactor = exp(-1.0f / momentumTau);
-#ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for
-#endif
-      for (int kernelIdx = 0; kernelIdx < numKernels; kernelIdx++) {
-         float *dwdata_start        = get_dwDataHead(arbor_ID, kernelIdx);
-         float const *prev_dw_start = get_prev_dwDataHead(arbor_ID, kernelIdx);
-         float const *wdata_start   = get_wDataHead(arbor_ID, kernelIdx);
-         for (int k = 0; k < nxp * nyp * nfp; k++) {
-            dwdata_start[k] += tauFactor * prev_dw_start[k] - momentumDecay * wdata_start[k];
-         }
-      }
-   }
-   else if (!strcmp(momentumMethod, "alex")) {
-      float const decayFactor = momentumDecay * getDWMax();
-#ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for
-#endif
-      for (int kernelIdx = 0; kernelIdx < numKernels; kernelIdx++) {
-         float *dwdata_start        = get_dwDataHead(arbor_ID, kernelIdx);
-         float const *prev_dw_start = get_prev_dwDataHead(arbor_ID, kernelIdx);
-         float const *wdata_start   = get_wDataHead(arbor_ID, kernelIdx);
-         for (int k = 0; k < nxp * nyp * nfp; k++) {
-            dwdata_start[k] += momentumTau * prev_dw_start[k] - decayFactor * wdata_start[k];
-         }
-      }
-   }
-   else {
-      pvAssertMessage(0, "Unrecognized momentumMethod\n");
-   }
-   return PV_SUCCESS;
 }
 
 // TODO checkpointing not working with batching, must write checkpoint exactly at period
