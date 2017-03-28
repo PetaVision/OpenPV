@@ -139,8 +139,19 @@ int InputLayer::scatterInput(int batchIndex) {
    float *activityBuffer = getActivity() + batchIndex * getNumExtended();
    const PVLayerLoc *loc = getLayerLoc();
    const PVHalo *halo    = &loc->halo;
-   int activityWidth     = loc->nx + (mUseInputBCflag ? halo->lt + halo->rt : 0);
-   int activityHeight    = loc->ny + (mUseInputBCflag ? halo->up + halo->dn : 0);
+   int activityWidth, activityHeight, activityLeft, activityTop;
+   if (mUseInputBCflag) {
+      activityWidth     = loc->nx + halo->lt + halo->rt;
+      activityHeight    = loc->ny + halo->up + halo->dn;
+      activityLeft      = 0;
+      activityTop       = 0;
+   }
+   else {
+      activityWidth     = loc->nx;
+      activityHeight    = loc->ny;
+      activityLeft      = halo->lt;
+      activityTop       = halo->up;
+   }
    Buffer<float> croppedBuffer;
 
    MPIBlock const *mpiBlock = parent->getCommunicator()->getLocalMPIBlock();
@@ -163,8 +174,8 @@ int InputLayer::scatterInput(int batchIndex) {
       for (int x = 0; x < activityWidth; ++x) {
          for (int f = 0; f < numFeatures; ++f) {
             int activityIndex = kIndex(
-                  halo->lt + x,
-                  halo->up + y,
+                  activityLeft + x,
+                  activityTop + y,
                   f,
                   loc->nx + halo->lt + halo->rt,
                   loc->ny + halo->up + halo->dn,
@@ -807,7 +818,7 @@ BaseInputDeprecatedError::BaseInputDeprecatedError(const char *name, HyPerCol *h
            << "    behaves like a MoviePvp instead of an ImagePvp.\n"
            << "  - Jitter has been removed. Parameters related to it\n"
            << "    will be ignored.\n"
-           << "  - useImageBCFlag is now useInputBCFlag.\n"
+           << "  - useImageBCflag is now useInputBCflag.\n"
            << "  - batchMethod now expects byFile or byList instead of\n"
            << "    byImage or byMovie. bySpecified has not changed.\n"
            << "  - FilenameParsingGroundTruthLayer now acceps a param\n"
