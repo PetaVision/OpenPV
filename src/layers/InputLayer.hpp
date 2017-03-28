@@ -105,8 +105,10 @@ class InputLayer : public HyPerLayer {
   protected:
    InputLayer() {}
 
-   // This method scatters the mInputData buffer to the activity buffers of the several MPI
-   // processes.
+   /**
+    * This method scatters the mInputData buffer to the activity buffers of the several MPI
+    * processes.
+    */
    int scatterInput(int batchIndex);
    int initialize(const char *name, HyPerCol *hc);
 
@@ -130,8 +132,12 @@ class InputLayer : public HyPerLayer {
    // Can be overridden for different file list logic in subclasses.
    virtual bool readyForNextFile();
 
-   // This pure virtual function gets called from nextInput by the root process only.
-   // Load the input file from disk in this method.
+   /**
+    * This pure virtual function gets called from nextInput by the root process
+    * only. Load the input file from disk in this method.
+    * Even if there are several MPI blocks in the x- and y-directions, this
+    * method should load the entire image.
+    */
    virtual Buffer<float> retrieveData(std::string filename, int batchIndex) = 0;
    void nextInput(double timef, double dt);
    void initializeBatchIndexer(int fileCount);
@@ -156,6 +162,12 @@ class InputLayer : public HyPerLayer {
 
   private:
    void populateFileList();
+
+   /**
+    * Resizes a buffer from the image size to the layer size. If autoResizeFlag is true, it
+    * calls BufferUtils::rescale. If autoResizeFlag is false, it calls Buffer methods grow,
+    * translate, and crop. This method is called only by the root process.
+    */
    void fitBufferToLayer(Buffer<float> &buffer);
 
   protected:
