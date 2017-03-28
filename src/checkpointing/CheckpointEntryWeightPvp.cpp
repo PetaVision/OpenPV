@@ -17,22 +17,21 @@ namespace PV {
 void CheckpointEntryWeightPvp::initialize(
       int numArbors,
       bool sharedWeights,
-      PVPatch ***patchData,
-      int patchDataSize,
       float **weightData,
-      int weightDataSize,
+      int numPatchesX,
+      int numPatchesY,
+      int numPatchesF,
       int nxp,
       int nyp,
       int nfp,
       PVLayerLoc const *preLoc,
       PVLayerLoc const *postLoc,
       bool compressFlag) {
-   mNumArbors      = numArbors;
-   mSharedWeights  = sharedWeights;
-   mPatchData      = patchData;
-   mPatchDataSize  = patchDataSize;
-   mWeightData     = weightData;
-   mWeightDataSize = weightDataSize;
+   mNumArbors     = numArbors;
+   mSharedWeights = sharedWeights;
+   mWeightData    = weightData;
+   mNumPatchesX = numPatchesX, mNumPatchesY = numPatchesY, mNumPatchesF = numPatchesF,
+   mWeightDataSize = numPatchesX * numPatchesY * numPatchesF;
    mPatchSizeX     = nxp;
    mPatchSizeY     = nyp;
    mPatchSizeF     = nfp;
@@ -77,68 +76,95 @@ void CheckpointEntryWeightPvp::write(
    path.append("/").append(getName()).append(".pvp");
    float minWeight, maxWeight;
    calcMinMaxWeights(&minWeight, &maxWeight);
-   int fileType;
-   PVPatch ***patchesArgument;
    if (mSharedWeights) {
-      fileType        = PVP_KERNEL_FILE_TYPE;
-      patchesArgument = nullptr;
+      if (getMPIBlock()->getRank() == 0) {
+         FileStream fileStream(path.c_str(), std::ios_base::out, verifyWritesFlag);
+         writeSharedWeights(
+               simTime,
+               &fileStream,
+               getMPIBlock(),
+               mPreLoc,
+               mPatchSizeX,
+               mPatchSizeY,
+               mPatchSizeF,
+               mNumArbors,
+               mWeightData,
+               mCompressFlag,
+               minWeight,
+               maxWeight,
+               mNumPatchesX,
+               mNumPatchesY,
+               mNumPatchesF);
+      }
    }
    else {
-      fileType        = PVP_WGT_FILE_TYPE;
-      patchesArgument = mPatchData;
+      FileStream *fileStream = nullptr;
+      if (getMPIBlock()->getRank() == 0) {
+         fileStream = new FileStream(path.c_str(), std::ios_base::out, verifyWritesFlag);
+      }
+      writeNonsharedWeights(
+            simTime,
+            fileStream,
+            getMPIBlock(),
+            mPreLoc,
+            mPatchSizeX,
+            mPatchSizeY,
+            mPatchSizeF,
+            mNumArbors,
+            mWeightData,
+            mCompressFlag,
+            minWeight,
+            maxWeight,
+            true /*extended*/,
+            mPostLoc);
+      delete fileStream;
    }
-   writeWeights(
-         path.c_str(),
-         getMPIBlock(),
-         simTime,
-         false /*do not append*/,
-         mPreLoc,
-         mPostLoc,
-         mPatchSizeX,
-         mPatchSizeY,
-         mPatchSizeF,
-         minWeight,
-         maxWeight,
-         patchesArgument,
-         mWeightData,
-         mWeightDataSize,
-         mNumArbors,
-         mCompressFlag,
-         fileType);
 }
 
 void CheckpointEntryWeightPvp::read(std::string const &checkpointDirectory, double *simTimePtr)
       const {
-   std::string path(checkpointDirectory);
-   path.append("/").append(getName()).append(".pvp");
-   int fileType;
-   PVPatch ***patchesArgument;
-   if (mSharedWeights) {
-      fileType        = PVP_KERNEL_FILE_TYPE;
-      patchesArgument = nullptr;
-   }
-   else {
-      fileType        = PVP_WGT_FILE_TYPE;
-      patchesArgument = mPatchData;
-   }
-
-   // Need to clear weights before reading because readWeights is increment-add, not assignment.
+   // Need to clear weights before reading because reading weights is increment-add, not assignment.
    for (int a = 0; a < mNumArbors; a++) {
       int const numWeightsInArbor = mWeightDataSize * mPatchSizeX * mPatchSizeY * mPatchSizeF;
       memset(mWeightData[a], 0, sizeof(mWeightData[a][0]) * (std::size_t)numWeightsInArbor);
    }
-   readWeights(
-         patchesArgument,
-         mWeightData,
-         mNumArbors,
-         mWeightDataSize,
-         mPatchSizeX,
-         mPatchSizeY,
-         mPatchSizeF,
-         path.c_str(),
-         getMPIBlock(),
-         simTimePtr,
-         mPreLoc);
+
+   std::string path(checkpointDirectory);
+   path.append("/").append(getName()).append(".pvp");
+   FileStream *fileStream = nullptr;
+   if (getMPIBlock()->getRank() == 0) {
+      fileStream = new FileStream(path.c_str(), std::ios_base::in, false);
+   }
+
+   if (mSharedWeights) {
+      readSharedWeights(
+            fileStream,
+            getMPIBlock(),
+            mPreLoc,
+            mPatchSizeX,
+            mPatchSizeY,
+            mPatchSizeF,
+            mNumArbors,
+            mWeightData,
+            mNumPatchesX,
+            mNumPatchesY,
+            mNumPatchesF);
+   }
+   else {
+      readNonsharedWeights(
+            fileStream,
+            getMPIBlock(),
+            mPreLoc,
+            mPatchSizeX,
+            mPatchSizeY,
+            mPatchSizeF,
+            mNumArbors,
+            mWeightData,
+            true /*extended*/,
+            mPostLoc,
+            0 /*offsetX*/,
+            0 /*offsetY*/);
+   }
 }
 
 void CheckpointEntryWeightPvp::remove(std::string const &checkpointDirectory) const {

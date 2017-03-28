@@ -45,11 +45,13 @@ class InitWeights : public BaseObject {
    virtual int calcWeights(float *dataStart, int patchIndex, int arborId);
 
    virtual int readWeights(
-         PVPatch ***patches,
+         bool sharedWeights,
          float **dataStart,
-         int numPatches,
+         int numPatchesX,
+         int numPatchesY,
+         int numPatchesF,
          const char *filename,
-         double *time = NULL);
+         double *timestampPtr = nullptr);
 
   protected:
    InitWeights();
@@ -57,18 +59,31 @@ class InitWeights : public BaseObject {
    virtual int setDescription();
    virtual int initRNGs(bool isKernel) { return PV_SUCCESS; }
    virtual int zeroWeightsOutsideShrunkenPatch(PVPatch ***patches);
-   virtual int readListOfArborFiles(
-         PVPatch ***patches,
+   void readListOfArborFiles(
+         bool sharedWeights,
          float **dataStart,
-         int numPatches,
+         int numPatchesX,
+         int numPatchesY,
+         int numPatchesF,
          const char *listOfArborsFilename,
-         double *timef = NULL);
-   virtual int readCombinedWeightFiles(
-         PVPatch ***patches,
+         double *timestampPtr = nullptr);
+   void readCombinedWeightFiles(
+         bool sharedWeights,
          float **dataStart,
-         int numPatches,
+         int numPatchesX,
+         int numPatchesY,
+         int numPatchesF,
          const char *fileOfWeightFiles,
-         double *timef = NULL);
+         double *timestampPtr = nullptr);
+   void readWeightPvpFile(
+         bool sharedWeights,
+         float **dataStart,
+         int numPatchesX,
+         int numPatchesY,
+         int numPatchesF,
+         const char *weightPvpFile,
+         int numArbors,
+         double *timestampPtr = nullptr);
 
   private:
    int initialize_base();

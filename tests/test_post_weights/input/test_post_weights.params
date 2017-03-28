@@ -18,7 +18,7 @@ HyPerCol "column" = {
    errorOnNotANumber = false;
 };
 
-HyPerLayer "test_post_weights L1" = {
+HyPerLayer "test_post_weights_L1" = {
    nxScale = 1;
    nyScale = 1;
    nf = 1;
@@ -32,7 +32,7 @@ HyPerLayer "test_post_weights L1" = {
    InitVType = "ZeroV";
 };
 
-HyPerLayer "test_post_weights L2" = {
+HyPerLayer "test_post_weights_L2" = {
    nxScale = 1;
    nyScale = 1;
    nf = 1;
@@ -46,7 +46,7 @@ HyPerLayer "test_post_weights L2" = {
    InitVType = "ZeroV";
 };
 
-HyPerLayer "test_post_weights L3" = {
+HyPerLayer "test_post_weights_L3" = {
    nxScale = 2;
    nyScale = 2;
    nf = 1;
@@ -60,9 +60,9 @@ HyPerLayer "test_post_weights L3" = {
    InitVType = "ZeroV";
 };
 
-HyPerConn "test_post_weights L1 to L1" = {
-   preLayerName = "test_post_weights L1";
-   postLayerName = "test_post_weights L1";
+HyPerConn "test_post_weights_L1_to_L1" = {
+   preLayerName = "test_post_weights_L1";
+   postLayerName = "test_post_weights_L1";
    nxp = 3;
    nyp = 3;
    nfp = 1;
@@ -86,9 +86,9 @@ HyPerConn "test_post_weights L1 to L1" = {
 };
 
 // patch size should be odd number times scale factor
-HyPerConn "test_post_weights L2 to L3" = {
-   preLayerName = "test_post_weights L2";
-   postLayerName = "test_post_weights L3";
+HyPerConn "test_post_weights_L2_to_L3" = {
+   preLayerName = "test_post_weights_L2";
+   postLayerName = "test_post_weights_L3";
    nxp = 10; //6; //8;
    nyp = 10; //6; //8;
    nfp = 1;
@@ -112,9 +112,9 @@ HyPerConn "test_post_weights L2 to L3" = {
 };
 
 // patch size should be odd number 
-HyPerConn "test_post_weights L3 to L2" = {
-   preLayerName = "test_post_weights L3";
-   postLayerName = "test_post_weights L2";
+HyPerConn "test_post_weights_L3_to_L2" = {
+   preLayerName = "test_post_weights_L3";
+   postLayerName = "test_post_weights_L2";
    nxp = 5; // 1/2 of forward weight patch
    nyp = 5;
    nfp = 1;

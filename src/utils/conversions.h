@@ -682,6 +682,44 @@ static inline int batchFromRank(int rank, int batchWidth, int numRows, int numCo
    return col;
 }
 
+/**
+ * For a convolution-based connection between two layers, computes the
+ * margin width the presynaptic layer must have, given the size of the
+ * presynaptic and postsynaptic layers, and the patch size (the number of
+ * postsynaptic neurons each presynaptic neuron connects to).
+ * If nPre and nPost are not the same, the larger must be an 2^k times the
+ * smaller for some positive integer k.
+ * If nPre == nPost, patchSize must be odd.
+ * If nPre > nPost (many-to-one), any patchSize is permissible.
+ * If nPost > nPre (one-to-many), patchSize must be a multiple of (nPost/nPre).
+ */
+static inline int requiredConvolveMargin(int nPre, int nPost, int patchSize) {
+   int margin = 0;
+   if (nPre == nPost) {
+      assert(patchSize % 2 == 1);
+      margin = (patchSize - 1) / 2;
+   }
+   else if (nPre > nPost) { // many-to-one
+      assert(nPre % nPost == 0);
+      int densityRatio = nPre / nPost;
+      assert(densityRatio % 2 == 0);
+      assert(pow(2.0, nearbyint(log2(densityRatio))) == (double)densityRatio);
+      margin = (patchSize - 1) * densityRatio / 2;
+   }
+   else {
+      assert(nPre < nPost); // one-to-many
+      assert(nPost % nPre == 0);
+      int densityRatio = nPost / nPre;
+      assert(densityRatio % 2 == 0);
+      assert(pow(2.0, nearbyint(log2(densityRatio))) == (double)densityRatio);
+      assert(patchSize % densityRatio == 0);
+      int numCells = patchSize / densityRatio;
+      margin       = numCells / 2;
+      // integer division is correct, no matter whether numCells is even or odd
+   }
+   return margin;
+}
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus

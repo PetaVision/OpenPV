@@ -1202,8 +1202,10 @@ int HyPerConn::communicateInitInfo() {
    status = setPatchSize();
    status = checkPatchDimensions();
 
+   PVLayerLoc const *preLoc  = pre->getLayerLoc();
+   PVLayerLoc const *postLoc = post->getLayerLoc();
    if (nfp == -1) {
-      nfp = post->getCLayer()->loc.nf;
+      nfp = postLoc->nf;
       if (warnDefaultNfp && parent->columnId() == 0) {
          InfoLog().printf(
                "%s setting nfp to number of postsynaptic features = %d.\n",
@@ -1211,15 +1213,13 @@ int HyPerConn::communicateInitInfo() {
                nfp);
       }
    }
-   if (nfp != post->getCLayer()->loc.nf) {
+   if (nfp != postLoc->nf) {
       if (parent->columnId() == 0) {
          ErrorLog(errorMessage);
          errorMessage.printf(
                "Params file specifies %d features for %s,\n", nfp, getDescription_c());
          errorMessage.printf(
-               "but %d features for post-synaptic layer %s\n",
-               post->getCLayer()->loc.nf,
-               post->getName());
+               "but %d features for post-synaptic layer %s\n", postLoc->nf, post->getName());
       }
       MPI_Barrier(parent->getCommunicator()->communicator());
       exit(PV_FAILURE);
@@ -1229,7 +1229,7 @@ int HyPerConn::communicateInitInfo() {
    // with each feature connecting to only a few nearby features.
    // Accordingly, we still keep readNfp.
 
-   int xmargin         = computeMargin(pre->getXScale(), post->getXScale(), nxp);
+   int xmargin         = requiredConvolveMargin(preLoc->nx, postLoc->nx, nxp);
    int receivedxmargin = 0;
    int statusx         = pre->requireMarginWidth(xmargin, &receivedxmargin, 'x');
    if (statusx != PV_SUCCESS) {
@@ -1242,7 +1242,7 @@ int HyPerConn::communicateInitInfo() {
             xmargin);
       status = PV_MARGINWIDTH_FAILURE;
    }
-   int ymargin         = computeMargin(pre->getYScale(), post->getYScale(), nyp);
+   int ymargin         = requiredConvolveMargin(preLoc->ny, postLoc->ny, nyp);
    int receivedymargin = 0;
    int statusy         = pre->requireMarginWidth(ymargin, &receivedymargin, 'y');
    if (statusy != PV_SUCCESS) {
@@ -2013,40 +2013,38 @@ int HyPerConn::writeWeights(
 
    if (sharedWeights) {
       writeSharedWeights(
+            timed,
             fileStream,
             mOutputStateMPIBlock,
-            timed,
             preLoc,
             nxp,
             nyp,
             nfp,
+            numberOfAxonalArborLists(),
+            dataStart,
+            compressWeights,
             minVal,
             maxVal,
-            dataStart,
             mNumDataPatchesX,
             mNumDataPatchesY,
-            mNumDataPatchesF,
-            numberOfAxonalArborLists(),
-            compressWeights);
+            mNumDataPatchesF);
    }
    else {
       writeNonsharedWeights(
+            timed,
             fileStream,
             mOutputStateMPIBlock,
-            timed,
             preLoc,
             nxp,
             nyp,
             nfp,
+            numberOfAxonalArborLists(),
+            dataStart,
+            compressWeights,
             minVal,
             maxVal,
-            patches,
-            dataStart,
-            mNumDataPatchesX,
-            mNumDataPatchesY,
-            mNumDataPatchesF,
-            numberOfAxonalArborLists(),
-            compressWeights);
+            true /*extended*/,
+            postLoc);
    }
 
    return PV_SUCCESS;
@@ -2133,10 +2131,10 @@ void HyPerConn::checkpointWeightPvp(
                checkpointer->getMPIBlock(),
                numberOfAxonalArborLists(),
                usingSharedWeights(),
-               get_wPatches(),
-               getNumWeightPatches(),
                weightDataBuffer,
-               getNumDataPatches(),
+               mNumDataPatchesX,
+               mNumDataPatchesY,
+               mNumDataPatchesF,
                nxp,
                nyp,
                nfp,
@@ -4498,7 +4496,7 @@ int HyPerConn::postSynapticPatchHead(
    return status;
 }
 
-int HyPerConn::writePostSynapticWeights(double timef, bool last) {
+int HyPerConn::writePostSynapticWeights(double timed, FileStream &fileStream) {
    int status = PV_SUCCESS;
 
    const PVLayerLoc *preLoc = pre->getLayerLoc();
@@ -4525,41 +4523,23 @@ int HyPerConn::writePostSynapticWeights(double timef, bool last) {
    const int nyPostPatch = (int)(nyp * powYScale);
    const int nfPostPatch = preLoc->nf;
 
-   const char *last_str = (last) ? "_last" : "";
-
-   std::string path(parent->getOutputPath());
-   path.append("/").append(name).append("_post").append(last_str).append(".pvp");
-
    const PVLayerLoc *postLoc = post->getLayerLoc();
-   Communicator *comm        = parent->getCommunicator();
 
-   bool append = (last) ? false : ioAppend;
-
-   status = PV::writeWeights(
-         path.c_str(),
-         comm->getLocalMPIBlock(),
-         (double)timef,
-         append,
+   writeNonsharedWeights(
+         timed,
+         &fileStream,
+         mOutputStateMPIBlock,
          postLoc,
-         preLoc,
          nxPostPatch,
          nyPostPatch,
          nfPostPatch,
+         numberOfAxonalArborLists(),
+         wPostDataStart,
+         writeCompressedWeights,
          minVal,
          maxVal,
-         wPostPatches,
-         wPostDataStart,
-         numPostPatches,
-         numberOfAxonalArborLists(),
-         writeCompressedWeights,
-         fileType);
-
-   if (status != PV_SUCCESS) {
-      Fatal().printf(
-            "%s: writePostSynapticWeights failed at time %f.  Exiting.\n",
-            getDescription_c(),
-            timef);
-   }
+         false /*post-weights are not extended*/,
+         preLoc);
 
    return PV_SUCCESS;
 }

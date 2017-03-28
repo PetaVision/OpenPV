@@ -14,6 +14,7 @@
 #include "include/pv_types.h"
 #include "io.hpp"
 #include "structures/MPIBlock.hpp"
+#include "utils/BufferUtilsPvp.hpp"
 
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -27,10 +28,14 @@ struct PatchHeader {
    unsigned int offset;
 };
 
-void timeToParams(double time, void *params);
-double timeFromParams(void *params);
+// Unused function timeToParams was removed Mar 10, 2017.
+// Unused function timeFromParams was removed Mar 15, 2017.
+// Read/write pvp header using ActivityHeader in utils/BufferUtilsPvp, instead
+// of as an array of ints. ActivityHeader declares timestamp as double.
 
-size_t pv_sizeof(int datatype);
+// Unused function pv_sizeof was removed Mar 15, 2017.
+// Unused function pv_sizeof_patch was removed Mar 15, 2017.
+// Instead, use BufferUtils::weightPatchSize template in utils/BufferUtilsPvp.
 
 PV_Stream *PV_fopen(const char *path, const char *mode, bool verifyWrites);
 int PV_stat(const char *path, struct stat *buf);
@@ -43,41 +48,12 @@ size_t PV_fread(void *RESTRICT ptr, size_t size, size_t nitems, PV_Stream *RESTR
 int PV_fclose(PV_Stream *pvstream);
 int ensureDirExists(MPIBlock const *mpiBlock, char const *dirname);
 
-PV_Stream *pvp_open_read_file(const char *filename, MPIBlock const *mpiBlock);
-
-PV_Stream *pvp_open_write_file(const char *filename, MPIBlock const *mpiBlock, bool append);
-
-int pvp_close_file(PV_Stream *pvstream, MPIBlock const *mpiBlock);
-
-int pvp_read_header(PV_Stream *pvstream, MPIBlock const *mpiBlock, int *params, int *numParams);
-int pvp_read_header(
-      const char *filename,
-      MPIBlock const *mpiBlock,
-      double *time,
-      int *filetype,
-      int *datatype,
-      int params[],
-      int *numParams);
-int pvp_read_header(
-      PV_Stream *pvstream,
-      double *time,
-      int *filetype,
-      int *datatype,
-      int params[],
-      int *numParams);
-
-int pvp_write_header(
-      PV_Stream *pvstream,
-      MPIBlock const *mpiBlock,
-      double time,
-      const PVLayerLoc *loc,
-      int filetype,
-      int datatype,
-      int numbands,
-      bool extended,
-      bool contiguous,
-      unsigned int numParams,
-      size_t recordSize);
+// Unused function pvp_open_read_file was removed Mar 23, 2017. Instead, construct a FileStream.
+// Unused function pvp_open_write_file was removed Mar 10, 2017. Instead, construct a FileStream.
+// Unused function pvp_close_file was removed Mar 23, 2017.
+// Unused functions pvp_read_header and pvp_write_header were removed Mar 15, 2017.
+// Instead, use the WeightHeader-returning functions in BufferUtils
+// together with FileStream::read and FileStream::write.
 
 // Oct 21, 2016. pvp_set_file_params removed, as filetype PVP_FILE_TYPE is obsolete.
 
@@ -89,18 +65,36 @@ int pvp_write_header(
 // gatherActivity and scatterActivity were also removed.
 // Use BufferUtils::gather and BufferUtils::scatter instead.
 
-int readWeights(
-      PVPatch ***patches,
-      float **dataStart,
-      int numArbors,
-      int numPatches,
+// readWeights was removed Mar 15, 2017. Use readSharedWeights or readNonsharedWeights instead.
+
+double readSharedWeights(
+      FileStream *fileStream,
+      MPIBlock const *mpiBlock,
+      PVLayerLoc const *preLoc,
       int nxp,
       int nyp,
       int nfp,
-      const char *filename,
+      int numArbors,
+      float **dataStart,
+      int numPatchesX,
+      int numPatchesY,
+      int numPatchesF);
+
+double readNonsharedWeights(
+      FileStream *fileStream,
       MPIBlock const *mpiBlock,
-      double *timed,
-      const PVLayerLoc *loc);
+      const PVLayerLoc *preLoc,
+      int nxp,
+      int nyp,
+      int nfp,
+      int numArbors,
+      float **dataStart,
+      bool extended,
+      const PVLayerLoc *postLoc,
+      int offsetX,
+      int offsetY);
+
+bool isCompressedHeader(BufferUtils::WeightHeader const &header, std::string const &filename);
 
 int pv_text_write_patch(
       PrintStream *pvstream,
@@ -112,64 +106,39 @@ int pv_text_write_patch(
       int sf);
 
 void writeSharedWeights(
+      double timed,
       FileStream *fileStream,
       MPIBlock const *mpiBlock,
-      double timed,
       PVLayerLoc const *preLoc,
       int nxp,
       int nyp,
       int nfp,
+      int numArbors,
+      float **dataStart,
+      bool compress,
       float minVal,
       float maxVal,
-      float **dataStart,
       int numPatchesX,
       int numPatchesY,
-      int numPatchesF,
-      int numArbors,
-      bool compress);
+      int numPatchesF);
 
 void writeNonsharedWeights(
+      double timed,
       FileStream *fileStream,
       MPIBlock const *mpiBlock,
-      double timed,
       const PVLayerLoc *preLoc,
       int nxp,
       int nyp,
       int nfp,
+      int numArbors,
+      float **dataStart,
+      bool compress,
       float minVal,
       float maxVal,
-      PVPatch ***patches,
-      float **dataStart,
-      int numPatchesX,
-      int numPatchesY,
-      int numPatchesF,
-      int numArbors,
-      bool compress);
+      bool extended,
+      const PVLayerLoc *postLoc);
 
-int writeWeights(
-      const char *filename,
-      MPIBlock const *mpiBlock,
-      double timed,
-      bool append,
-      const PVLayerLoc *preLoc,
-      const PVLayerLoc *postLoc,
-      int nxp,
-      int nyp,
-      int nfp,
-      float minVal,
-      float maxVal,
-      PVPatch ***patches,
-      float **dataStart,
-      int numPatches,
-      int numArbors,
-      bool compress = true,
-      int file_type = PVP_WGT_FILE_TYPE);
-
-int pvp_check_file_header(
-      MPIBlock const *mpiBlock,
-      const PVLayerLoc *loc,
-      int params[],
-      int numParams);
+// Unused function pvp_check_file_header was removed Mar 15, 2017.
 } // namespace PV
 
 #endif /* FILEIO_HPP_ */

@@ -32,9 +32,9 @@ class Checkpointer : public Subject {
     */
 
    /**
-    * @brief verifyWrites: If true, calls to PV_fwrite are checked by opening the
-    * file in read mode
-    * and reading back the data and comparing it to the data just written.
+    * @brief verifyWrites: If true, calls to FileStream::write are checked by
+    * opening the file in read mode and reading back the data and comparing it
+    * to the data just written.
     */
    virtual void ioParam_verifyWrites(enum ParamsIOFlag ioFlag, PVParams *params);
 

@@ -107,7 +107,7 @@ class HyPerConn : public BaseConnection {
       return PV_SUCCESS;
    }
 
-   virtual int writePostSynapticWeights(double time, bool last);
+   virtual int writePostSynapticWeights(double timed, FileStream &fileStream);
 
    /**
     * Uses presynaptic layer's activity to modify the postsynaptic GSyn or thread_gSyn
@@ -265,6 +265,12 @@ class HyPerConn : public BaseConnection {
    inline float *getWPostData(int arbor) { return wPostDataStart[arbor]; }
 
    int getNumWeightPatches() { return numWeightPatches; }
+
+   int getNumDataPatchesX() { return mNumDataPatchesX; }
+
+   int getNumDataPatchesY() { return mNumDataPatchesY; }
+
+   int getNumDataPatchesF() { return mNumDataPatchesF; }
 
    int getNumDataPatches() { return numDataPatches; }
 
@@ -1152,34 +1158,6 @@ class HyPerConn : public BaseConnection {
    }
 
   protected:
-   static inline int computeMargin(int prescale, int postscale, int patchsize) {
-      // 2^prescale is the distance between adjacent neurons in pre-layer, thus a smaller prescale
-      // means a layer with more neurons
-      int margin = 0;
-      if (prescale == postscale) {
-         assert(patchsize % 2 == 1);
-         margin = (patchsize - 1) / 2;
-      }
-      else if (prescale < postscale) { // Density of pre is greater than density of pre:
-         // many-to-one
-         // any patchsize is permissible
-         int densityratio = (int)powf(2.0f, (float)(postscale - prescale));
-         assert(densityratio % 2 == 0);
-         margin = (patchsize - 1) * densityratio / 2;
-      }
-      else {
-         assert(prescale > postscale); // one-to-many
-         int densityratio = (int)powf(2.0f, (float)(prescale - postscale));
-         int numcells     = patchsize / densityratio;
-         assert(
-               numcells * densityratio
-               == patchsize); // For one-to-many, patchsize must be a multiple of "many".
-         margin = numcells
-                  / 2; // integer division is correct, no matter whether numcells is even or odd
-      }
-      return margin;
-   }
-
    static inline int adjustedPatchDimension(
          int zPre,
          int preNeuronsPerPostNeuron,
