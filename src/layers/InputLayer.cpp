@@ -38,9 +38,6 @@ int InputLayer::allocateDataStructures() {
       }
 
       mInputData.resize(numBatch);
-      for (int b = 0; b < numBatch; ++b) {
-         mInputData.at(b).resize(getLayerLoc()->ny, getLayerLoc()->nx, getLayerLoc()->nf);
-      }
       initializeBatchIndexer(mFileList.size());
       mBatchIndexer->setWrapToStartIndex(mResetToStartOnLoop);
 
