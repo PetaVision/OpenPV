@@ -99,7 +99,7 @@ class InputLayer : public HyPerLayer {
    // Random seed used when batchMethod == random.
    virtual void ioParam_randomSeed(enum ParamsIOFlag ioFlag);
 
-   // useImageBCFlag: Specifies if the input should be scaled to fill margins
+   // useInputBCFlag: Specifies if the input should be scaled to fill margins
    virtual void ioParam_useInputBCflag(enum ParamsIOFlag ioFlag);
 
   protected:

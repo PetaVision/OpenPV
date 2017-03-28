@@ -42,7 +42,7 @@ ImagePvp "Input" = {
     inverseFlag                         = false;
     normalizeLuminanceFlag              = false;
     jitterFlag                          = 0;
-    useImageBCflag                      = false;
+    useInputBCflag                      = false;
     padValue                            = 0;
     pvpFrameIdx                         = 0;
 };

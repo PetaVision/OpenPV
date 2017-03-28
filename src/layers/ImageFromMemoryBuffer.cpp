@@ -29,7 +29,7 @@ int ImageFromMemoryBuffer::initialize(char const *name, HyPerCol *hc) {
    if (mUseInputBCflag && mAutoResizeFlag) {
       if (parent->columnId() == 0) {
          ErrorLog().printf(
-               "%s: setting both useImageBCflag and autoResizeFlag has not yet been implemented.\n",
+               "%s: setting both useInputBCflag and autoResizeFlag has not yet been implemented.\n",
                getDescription_c());
       }
       MPI_Barrier(parent->getCommunicator()->communicator());

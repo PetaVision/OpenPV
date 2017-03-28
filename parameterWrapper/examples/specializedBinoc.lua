@@ -92,7 +92,7 @@ local pvParams = {
       echoFramePathnameFlag = false;
       mirrorBCflag = true;
       jitterFlag = 0;
-      useImageBCflag = false;
+      useInputBCflag = false;
       inverseFlag = false;
       normalizeLuminanceFlag = true;
       writeImages = false;
@@ -184,7 +184,7 @@ pv.addMultiGroups(pvParams,
        echoFramePathnameFlag = true;
        mirrorBCflag = false;
        jitterFlag = 0;
-       useImageBCflag = false;
+       useInputBCflag = false;
        inverseFlag = false;
        normalizeLuminanceFlag = false;
        writeImages = false;
