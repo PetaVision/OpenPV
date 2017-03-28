@@ -140,13 +140,6 @@ void appendToPvp(
    writeFrame<T>(fStream, buffer, timeStamp);
 }
 
-/*
-double readSparseFromPvp(
-      const char *fName,
-      SparseList<T> *list,
-      int frameReadIndex,
-      SparseFileTable *cachedTable);
- */
 template <typename T>
 double readActivityFromPvp(
       char const *fName,
@@ -191,8 +184,13 @@ double readDenseFromPvp(const char *fName, Buffer<T> *buffer, int frameReadIndex
          header.fileType != PVP_NONSPIKING_ACT_FILE_TYPE,
          "readDenseFromPvp() can only be used on non-sparse activity pvps "
          "(PVP_NONSPIKING_ACT_FILE_TYPE)\n");
+   FatalIf(
+         header.nBands <= 0,
+         "\"%s\" header does not have a positive nbands field.\n",
+         fName);
    buffer->resize(header.nx, header.ny, header.nf);
-   long frameOffset = frameReadIndex * (header.recordSize * header.dataSize + sizeof(double));
+   int frameIndex   = frameReadIndex % header.nBands;
+   long frameOffset = frameIndex * (header.recordSize * header.dataSize + sizeof(double));
    fStream.setInPos(frameOffset, false);
    return readFrame<T>(fStream, buffer);
 }
@@ -343,6 +341,10 @@ double readSparseFromPvp(
          "readSparseFromPvp() can only be used on sparse activity pvps "
          "(PVP_ACT_SPARSEVALUES_FILE_TYPE)\n");
    FatalIf(
+         header.nBands <= 0,
+         "\"%s\" header does not have a positive nbands field.\n",
+         fName);
+   FatalIf(
          header.dataSize != sizeof(struct SparseList<T>::Entry),
          "Error: Expected data size %d, found %d.\n",
          sizeof(struct SparseList<T>::Entry),
@@ -392,6 +394,10 @@ double readSparseBinaryFromPvp(
          header.fileType != PVP_ACT_FILE_TYPE,
          "readSparseBinaryFromPvp() can only be used on sparse binary pvps "
          "(PVP_ACT_FILE_TYPE)\n");
+   FatalIf(
+         header.nBands <= 0,
+         "\"%s\" header does not have a positive nbands field.\n",
+         fName);
    FatalIf(
          header.dataSize != sizeof(int),
          "Error: Expected data size %d, found %d.\n",
