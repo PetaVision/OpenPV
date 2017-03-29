@@ -150,7 +150,6 @@ class InputLayer : public HyPerLayer {
    virtual int allocateDataStructures() override;
    virtual int updateState(double time, double dt) override;
    virtual bool activityIsSpiking() override { return false; }
-   void exchange();
    int getDisplayPeriod() { return mDisplayPeriod; }
    int getStartIndex(int batchIndex) { return mStartFrameIndex.at(batchIndex); }
    int getSkipIndex(int batchIndex) { return mSkipFrameIndex.at(batchIndex); }

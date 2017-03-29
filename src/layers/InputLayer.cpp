@@ -51,11 +51,6 @@ int InputLayer::allocateDataStructures() {
       nextInput(parent->simulationTime(), 0);
    }
 
-   // create mpi_datatypes for border transfer
-   mBorderExchanger =
-         new BorderExchange(parent->getCommunicator()->getLocalMPIBlock()[0], getLayerLoc()[0]);
-   exchange();
-
    return PV_SUCCESS;
 }
 
@@ -316,15 +311,6 @@ int InputLayer::postProcess(double timef, double dt) {
       }
    }
    return PV_SUCCESS;
-}
-
-void InputLayer::exchange() {
-   std::vector<MPI_Request> req{};
-   for (int b = 0; b < getLayerLoc()->nbatch; ++b) {
-      mBorderExchanger->exchange(getActivity() + b * getNumExtended(), req);
-      mBorderExchanger->wait(req);
-      pvAssert(req.empty());
-   }
 }
 
 double InputLayer::getDeltaUpdateTime() { return mDisplayPeriod > 0 ? mDisplayPeriod : DBL_MAX; }
