@@ -405,6 +405,11 @@ int PoolingConn::allocateDataStructures() {
    return PV_SUCCESS;
 }
 
+int PoolingConn::registerData(Checkpointer *checkpointer, std::string const &objName) {
+   registerTimers(checkpointer);
+   return PV_SUCCESS;
+}
+
 int PoolingConn::setInitialValues() {
 #ifdef PV_USE_CUDA
    if (receiveGpu) {

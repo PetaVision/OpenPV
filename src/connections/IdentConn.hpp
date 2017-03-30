@@ -62,9 +62,7 @@ class IdentConn : public HyPerConn {
 
    virtual void handleDefaultSelfFlag();
 
-   virtual int registerData(Checkpointer *checkpointer, std::string const &objName) override {
-      return PV_SUCCESS;
-   }
+   virtual int registerData(Checkpointer *checkpointer, std::string const &objName) override;
 
    virtual int deliverPresynapticPerspective(PVLayerCube const *activity, int arborID);
 }; // class IdentConn

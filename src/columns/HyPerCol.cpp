@@ -45,7 +45,7 @@ HyPerCol::HyPerCol(const char *mName, PV_Init *initObj) {
 
 HyPerCol::~HyPerCol() {
 #ifdef PV_USE_CUDA
-   finalizeThreads();
+   finalizeCUDA();
 #endif // PV_USE_CUDA
    PrintStream pStream(getOutputStream());
    mCheckpointer->writeTimers(pStream);
@@ -203,20 +203,6 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
          mName, "nextProgressTime", &mNextProgressTime, (std::size_t)1, true /*broadcast*/);
 
    mCheckpointReadFlag = !mCheckpointer->getCheckpointReadDirectory().empty();
-
-// run only on GPU for now
-#ifdef PV_USE_CUDA
-   // Default to auto assign gpus
-   std::string const &gpu_devices = mPVInitObj->getStringArgument("GPUDevices");
-   initializeThreads(gpu_devices.c_str());
-#endif
-
-   // Only print rank for comm rank 0
-   if (globalRank() == 0) {
-#ifdef PV_USE_CUDA
-      mCudaDevice->query_device_info();
-#endif
-   }
    return PV_SUCCESS;
 }
 
@@ -639,6 +625,12 @@ void HyPerCol::allocateColumn() {
    if (mReadyFlag) {
       return;
    }
+
+#ifdef PV_USE_CUDA
+   // Default to auto assign gpus
+   std::string const &gpu_devices = mPVInitObj->getStringArgument("GPUDevices");
+   initializeCUDA(gpu_devices);
+#endif
 
    setNumThreads(false);
    // When we call processParams, the communicateInitInfo stage will run, which
@@ -1410,12 +1402,24 @@ int HyPerCol::getAutoGPUDevice() {
    return returnGpuIdx;
 }
 
-int HyPerCol::initializeThreads(char const *in_device) {
+#ifdef PV_USE_CUDA
+void HyPerCol::initializeCUDA(std::string const &in_device) {
+   // Don't do anything unless some object needs CUDA.
+   bool needGPU = false;
+   auto &objectMap = mObjectHierarchy.getObjectMap();
+   for (auto &obj : objectMap) {
+      Observer *observer = obj.second;
+      BaseObject *object = dynamic_cast<BaseObject*>(observer);
+      pvAssert(object); // Only addObject(BaseObject*) can change the hierarchy.
+      if (object->isUsingGPU()) { needGPU = true; break; }
+   }
+   if (!needGPU) { return; }
+
    int numMpi = mCommunicator->globalCommSize();
    int device;
 
    // default value
-   if (in_device == nullptr || in_device[0] == '\0') {
+   if (in_device.empty()) {
       InfoLog() << "Auto assigning GPUs\n";
       device = getAutoGPUDevice();
    }
@@ -1434,7 +1438,7 @@ int HyPerCol::initializeThreads(char const *in_device) {
                      "comma separated integers greater or equal to 0 "
                      "with no other characters "
                      "allowed (including spaces).\n",
-                     in_device);
+                     in_device.c_str());
             }
          }
          deviceVec.push_back(atoi(stoken.c_str()));
@@ -1461,14 +1465,15 @@ int HyPerCol::initializeThreads(char const *in_device) {
                 << device << "\n";
    }
 
-#ifdef PV_USE_CUDA
    mCudaDevice = new PVCuda::CudaDevice(device);
-#endif
-   return 0;
+
+   // Only print rank for comm rank 0
+   if (globalRank() == 0) {
+      mCudaDevice->query_device_info();
+   }
 }
 
-#ifdef PV_USE_CUDA
-int HyPerCol::finalizeThreads() {
+int HyPerCol::finalizeCUDA() {
    delete mCudaDevice;
    for (auto iterator = mGpuGroupConns.begin(); iterator != mGpuGroupConns.end();) {
       delete *iterator;

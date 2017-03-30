@@ -69,6 +69,15 @@ class BaseObject : public Observer, public CheckpointerDataInterface {
     */
    bool getInitialValuesSetFlag() { return mInitialValuesSetFlag; }
 
+#ifdef PV_USE_CUDA
+   /**
+    * Returns true if the object requires the GPU; false otherwise.
+    * HyPerCol will not initialize the GPU unless one of the objects in its
+    * hierarchy returns true
+    */
+   bool isUsingGPU() const { return mUsingGPUFlag; }
+#endif // PV_USE_CUDA
+
   protected:
    BaseObject();
    int initialize(char const *name, HyPerCol *hc);
@@ -118,6 +127,9 @@ class BaseObject : public Observer, public CheckpointerDataInterface {
    bool mInitInfoCommunicatedFlag    = false;
    bool mDataStructuresAllocatedFlag = false;
    bool mInitialValuesSetFlag        = false;
+#ifdef PV_USE_CUDA
+   bool mUsingGPUFlag                = false;
+#endif // PV_USE_CUDA
 
   private:
    int initialize_base();

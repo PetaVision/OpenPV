@@ -393,6 +393,7 @@ int TransposeConn::allocateDataStructures() {
 
 int TransposeConn::registerData(Checkpointer *checkpointer, std::string const &objName) {
    openOutputStateFile(checkpointer);
+   registerTimers(checkpointer);
    return PV_SUCCESS;
 }
 

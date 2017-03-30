@@ -91,9 +91,7 @@ class CloneConn : public HyPerConn {
    virtual int setPatchSize(); // virtual int setPatchSize(const char * filename); // filename is
    // now a member variable.
 
-   virtual int registerData(Checkpointer *checkpointer, std::string const &objName) override {
-      return PV_SUCCESS;
-   }
+   virtual int registerData(Checkpointer *checkpointer, std::string const &objName) override;
 
    char *originalConnName;
    HyPerConn *originalConn;
