@@ -133,6 +133,12 @@ class InputLayer : public HyPerLayer {
    virtual bool readyForNextFile();
 
    /**
+    * This pure virtual function gets called by initializeBatchIndexer in order
+    * to give the BatchIndexer the number of input images.
+    */
+   virtual int countInputImages() = 0;
+
+   /**
     * This pure virtual function gets called from nextInput by the root process
     * only. Load the input file from disk in this method.
     * Even if there are several MPI blocks in the x- and y-directions, this
@@ -140,7 +146,7 @@ class InputLayer : public HyPerLayer {
     */
    virtual Buffer<float> retrieveData(std::string filename, int batchIndex) = 0;
    void nextInput(double timef, double dt);
-   void initializeBatchIndexer(int fileCount);
+   void initializeBatchIndexer();
 
   public:
    InputLayer(const char *name, HyPerCol *hc);
@@ -154,10 +160,11 @@ class InputLayer : public HyPerLayer {
    int getStartIndex(int batchIndex) { return mStartFrameIndex.at(batchIndex); }
    int getSkipIndex(int batchIndex) { return mSkipFrameIndex.at(batchIndex); }
    bool getUsingFileList() { return mUsingFileList; }
-   const std::string getInputPath() { return mInputPath; }
+   const std::string &getInputPath() const { return mInputPath; }
    std::string getFileName(int batchIndex) {
       return mBatchIndexer != nullptr ? mFileList.at(mBatchIndexer->getIndex(batchIndex)) : 0;
    }
+   int getNumFiles() { return mUsingFileList ? (int)mFileList.size() : 1; }
 
   private:
    void populateFileList();

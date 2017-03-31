@@ -10,7 +10,8 @@ class PvpLayer : public InputLayer {
 
   protected:
    PvpLayer() {}
-   virtual Buffer<float> retrieveData(std::string filename, int batchIndex);
+   virtual int countInputImages() override;
+   virtual Buffer<float> retrieveData(std::string filename, int batchIndex) override;
 
   public:
    PvpLayer(const char *name, HyPerCol *hc);
@@ -19,11 +20,6 @@ class PvpLayer : public InputLayer {
 
   private:
    struct BufferUtils::SparseFileTable sparseTable;
-   int mPvpFrameCount = -1;
-   int mInputNx       = 0;
-   int mInputNy       = 0;
-   int mInputNf       = 0;
-   int mFileType      = 0;
 };
 }
 

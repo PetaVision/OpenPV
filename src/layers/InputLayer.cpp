@@ -38,26 +38,18 @@ int InputLayer::allocateDataStructures() {
       }
 
       mInputData.resize(numBatch);
-      initializeBatchIndexer(mFileList.size());
+      initializeBatchIndexer();
       mBatchIndexer->setWrapToStartIndex(mResetToStartOnLoop);
-
-      // We want to fill the activity buffer with the initial data without actually advancing
-      // our indices, so this is a quick hack to "rewind" after the initial nextInput()
-      std::vector<int> tempIndices = mBatchIndexer->getIndices();
-      nextInput(parent->simulationTime(), 0);
-      mBatchIndexer->setIndices(tempIndices);
-   }
-   else {
-      nextInput(parent->simulationTime(), 0);
    }
 
    return PV_SUCCESS;
 }
 
-void InputLayer::initializeBatchIndexer(int fileCount) {
+void InputLayer::initializeBatchIndexer() {
    int localBatchCount   = parent->getNBatch();
    int mpiBatchIndex     = parent->commBatch();
    int globalBatchOffset = localBatchCount * mpiBatchIndex;
+   int fileCount         = countInputImages();
    mBatchIndexer         = std::unique_ptr<BatchIndexer>(
          new BatchIndexer(
                parent->getNBatchGlobal(),
@@ -333,7 +325,21 @@ int InputLayer::initializeV() {
    return PV_SUCCESS;
 }
 
-int InputLayer::initializeActivity() { return PV_SUCCESS; }
+int InputLayer::initializeActivity() {
+   if (parent->columnId() == 0) {
+
+      // We want to fill the activity buffer with the initial data without actually advancing
+      // our indices, so this is a quick hack to "rewind" after the initial nextInput()
+      std::vector<int> tempIndices = mBatchIndexer->getIndices();
+      nextInput(parent->simulationTime(), 0);
+      mBatchIndexer->setIndices(tempIndices);
+   }
+   else {
+      nextInput(parent->simulationTime(), 0);
+   }
+
+   return PV_SUCCESS;
+}
 
 void InputLayer::populateFileList() {
    if (mUsingFileList && parent->columnId() == 0) {

@@ -23,35 +23,23 @@ int PvpLayer::allocateDataStructures() {
             getUsingFileList(),
             "%s: PvpLayer does not support using a list of files.\n",
             getName());
-      initializeBatchIndexer(mPvpFrameCount);
    }
    return status;
 }
 
-Buffer<float> PvpLayer::retrieveData(std::string filename, int batchIndex) {
+int PvpLayer::countInputImages() {
+   FileStream headerStream(getInputPath().c_str(), std::ios_base::in | std::ios_base::binary, false);
+   struct BufferUtils::ActivityHeader header = BufferUtils::readActivityHeader(headerStream);
 
-   // This is present so that when nextInput() is called during
-   // InputLayer::allocateDataStructures, we correctly load the
-   // inital state of the layer. Then, after InputLayer::allocate
-   // is finished, PvpLayer::allocate reinitializes the BatchIndexer
-   // so that the first update state does not skip the first
-   // frame in the batch.
-   if (mPvpFrameCount == -1) {
-      FileStream headerStream(filename.c_str(), std::ios_base::in | std::ios_base::binary, false);
-      struct BufferUtils::ActivityHeader header = BufferUtils::readActivityHeader(headerStream);
-
-      mInputNx       = header.nx;
-      mInputNy       = header.ny;
-      mInputNf       = header.nf;
-      mFileType      = header.fileType;
-      mPvpFrameCount = header.nBands;
-      initializeBatchIndexer(mPvpFrameCount);
-      if (header.fileType == PVP_ACT_SPARSEVALUES_FILE_TYPE
-          || header.fileType == PVP_ACT_FILE_TYPE) {
-         sparseTable = BufferUtils::buildSparseFileTable(headerStream, mPvpFrameCount - 1);
-      }
+   int pvpFrameCount = header.nBands;
+   if (header.fileType == PVP_ACT_SPARSEVALUES_FILE_TYPE
+       || header.fileType == PVP_ACT_FILE_TYPE) {
+      sparseTable = BufferUtils::buildSparseFileTable(headerStream, pvpFrameCount - 1);
    }
+   return header.nBands;
+}
 
+Buffer<float> PvpLayer::retrieveData(std::string filename, int batchIndex) {
    int frameNumber = 0;
 
    // If we're playing through the pvp file like a movie, use
@@ -66,9 +54,6 @@ Buffer<float> PvpLayer::retrieveData(std::string filename, int batchIndex) {
 
    Buffer<float> result;
    BufferUtils::readActivityFromPvp<float>(filename.c_str(), &result, frameNumber, &sparseTable);
-   pvAssert(result.getWidth() == mInputNx);
-   pvAssert(result.getHeight() == mInputNy);
-   pvAssert(result.getFeatures() == mInputNf);
 
    return result;
 }

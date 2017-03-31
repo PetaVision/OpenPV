@@ -9,7 +9,8 @@ class ImageLayer : public InputLayer {
 
   protected:
    ImageLayer() {}
-   virtual Buffer<float> retrieveData(std::string filename, int batchIndex);
+   virtual int countInputImages() override;
+   virtual Buffer<float> retrieveData(std::string filename, int batchIndex) override;
    void readImage(std::string filename);
 
   public:

@@ -10,6 +10,10 @@ namespace PV {
 
 ImageLayer::ImageLayer(const char *name, HyPerCol *hc) { initialize(name, hc); }
 
+int ImageLayer::countInputImages() {
+   return getNumFiles();
+}
+
 Buffer<float> ImageLayer::retrieveData(std::string filename, int batchIndex) {
    readImage(filename);
    if (mImage->getFeatures() != getLayerLoc()->nf) {
