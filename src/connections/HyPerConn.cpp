@@ -3100,11 +3100,12 @@ int HyPerConn::deliverPresynapticPerspectiveConvolve(PVLayerCube const *activity
       if (thread_gSyn) {
          float *gSynPatchHead = gSynPatchHeadBatch;
          int numNeurons       = post->getNumNeurons();
-// Looping over neurons first to be thread safe
+         for (int ti = 0; ti < parent->getNumThreads(); ti++) {
+            float *onethread = thread_gSyn[ti];
+// Looping over neurons is thread safe
 #pragma omp parallel for
-         for (int ni = 0; ni < numNeurons; ni++) {
-            for (int ti = 0; ti < parent->getNumThreads(); ti++) {
-               gSynPatchHead[ni] += thread_gSyn[ti][ni];
+            for (int ni = 0; ni < numNeurons; ni++) {
+               gSynPatchHead[ni] += onethread[ni];
             }
          }
       }
