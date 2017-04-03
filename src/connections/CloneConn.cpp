@@ -131,6 +131,12 @@ void CloneConn::ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) {
    }
 }
 
+void CloneConn::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
+   triggerFlag      = false;
+   triggerLayerName = NULL;
+   parent->parameters()->handleUnnecessaryStringParameter(name, "triggerLayerName");
+}
+
 void CloneConn::ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       keepKernelsSynchronized_flag = false;
