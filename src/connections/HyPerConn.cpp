@@ -398,7 +398,7 @@ int HyPerConn::initialize(char const *name, HyPerCol *hc) {
       default: pvAssertMessage(0, "Unrecognized pvpatchAccumulate type"); break;
    }
 
-   ioAppend     = parent->getCheckpointReadFlag();
+   ioAppend = parent->getCheckpointReadFlag();
 
    mSparseWeightsAllocated.resize(numAxonalArborLists);
    std::fill(mSparseWeightsAllocated.begin(), mSparseWeightsAllocated.end(), false);
@@ -1230,7 +1230,6 @@ int HyPerConn::communicateInitInfo() {
    // Accordingly, we still keep readNfp.
 
    int xmargin         = computeMargin(pre->getXScale(), post->getXScale(), nxp);
-   int ymargin         = computeMargin(pre->getYScale(), post->getYScale(), nyp);
    int receivedxmargin = 0;
    int statusx         = pre->requireMarginWidth(xmargin, &receivedxmargin, 'x');
    if (statusx != PV_SUCCESS) {
@@ -1243,6 +1242,7 @@ int HyPerConn::communicateInitInfo() {
             xmargin);
       status = PV_MARGINWIDTH_FAILURE;
    }
+   int ymargin         = computeMargin(pre->getYScale(), post->getYScale(), nyp);
    int receivedymargin = 0;
    int statusy         = pre->requireMarginWidth(ymargin, &receivedymargin, 'y');
    if (statusy != PV_SUCCESS) {
@@ -2197,7 +2197,7 @@ void HyPerConn::openOutputStateFile(Checkpointer *checkpointer) {
 }
 
 void HyPerConn::registerTimers(Checkpointer *checkpointer) {
-   io_timer     = new Timer(getName(), "conn", "io     ");
+   io_timer = new Timer(getName(), "conn", "io     ");
    checkpointer->registerTimer(io_timer);
 
    update_timer = new Timer(getName(), "conn", "update ");
@@ -2841,6 +2841,32 @@ int HyPerConn::updateInd_dW(
 void HyPerConn::addClone(PlasticCloneConn *conn) {
    // Make sure that the origional conn is indeed this
    pvAssert(conn->getOriginalConn() == this);
+
+   // CloneConn's communicateInitInfo makes sure the pre layers' borders are in sync,
+   // but for PlasticCloneConns to apply the update rules correctly, we need the
+   // post layers' borders to be equal as well.
+
+   // Make sure new clone's post margins are at least as large as the original conn's.
+   PVHalo const &thisHalo = postSynapticLayer()->getLayerLoc()->halo;
+   int xMargin            = thisHalo.lt;
+   pvAssert(thisHalo.rt == xMargin);
+   int xMarginClone;
+   conn->postSynapticLayer()->requireMarginWidth(xMargin, &xMarginClone, 'x');
+   int yMargin = thisHalo.dn;
+   pvAssert(thisHalo.up == yMargin);
+   int yMarginClone;
+   conn->postSynapticLayer()->requireMarginWidth(yMargin, &yMarginClone, 'y');
+
+   // In case the clone conn's margins were larger, make sure that the original
+   // conn and all already-existing clones have the larger margin as well.
+   this->postSynapticLayer()->requireMarginWidth(xMarginClone, &xMargin, 'x');
+   this->postSynapticLayer()->requireMarginWidth(yMarginClone, &yMargin, 'y');
+   for (auto &clone : clones) {
+      clone->postSynapticLayer()->requireMarginWidth(xMarginClone, &xMargin, 'x');
+      clone->postSynapticLayer()->requireMarginWidth(yMarginClone, &yMargin, 'y');
+   }
+
+   // Add the new PlasticCloneConn to the list.
    clones.push_back(conn);
 }
 
