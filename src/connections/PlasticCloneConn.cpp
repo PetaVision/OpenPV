@@ -128,6 +128,9 @@ void PlasticCloneConn::ioParam_normalizeDw(enum ParamsIOFlag ioFlag) {
 
 int PlasticCloneConn::communicateInitInfo() {
    int status = CloneConn::communicateInitInfo();
+   if (status != PV_SUCCESS) {
+      return status;
+   }
    originalConn->addClone(this);
    normalizeDwFlag = originalConn->getNormalizeDwFlag();
 
