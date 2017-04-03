@@ -399,8 +399,6 @@ int HyPerConn::initialize(char const *name, HyPerCol *hc) {
    }
 
    ioAppend     = parent->getCheckpointReadFlag();
-   io_timer     = new Timer(getName(), "conn", "io     ");
-   update_timer = new Timer(getName(), "conn", "update ");
 
    mSparseWeightsAllocated.resize(numAxonalArborLists);
    std::fill(mSparseWeightsAllocated.begin(), mSparseWeightsAllocated.end(), false);
@@ -2172,9 +2170,8 @@ int HyPerConn::registerData(Checkpointer *checkpointer, std::string const &objNa
          objName, "nextWrite", &writeTime, (std::size_t)1, true /*broadcast*/);
 
    openOutputStateFile(checkpointer);
+   registerTimers(checkpointer);
 
-   checkpointer->registerTimer(io_timer);
-   checkpointer->registerTimer(update_timer);
    return status;
 }
 
@@ -2197,6 +2194,14 @@ void HyPerConn::openOutputStateFile(Checkpointer *checkpointer) {
                outputStatePath.c_str(), createFlag, checkpointer, checkpointLabel);
       }
    }
+}
+
+void HyPerConn::registerTimers(Checkpointer *checkpointer) {
+   io_timer     = new Timer(getName(), "conn", "io     ");
+   checkpointer->registerTimer(io_timer);
+
+   update_timer = new Timer(getName(), "conn", "update ");
+   checkpointer->registerTimer(update_timer);
 }
 
 float HyPerConn::minWeight(int arborId) {

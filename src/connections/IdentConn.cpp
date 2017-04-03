@@ -268,6 +268,11 @@ int IdentConn::communicateInitInfo() {
 
 void IdentConn::handleDefaultSelfFlag() { assert(selfFlag == false); }
 
+int IdentConn::registerData(Checkpointer *checkpointer, std::string const &objName) {
+   registerTimers(checkpointer);
+   return PV_SUCCESS;
+}
+
 int IdentConn::deliverPresynapticPerspective(PVLayerCube const *activity, int arborID) {
 
    // Check if we need to update based on connection's channel

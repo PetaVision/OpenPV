@@ -528,6 +528,11 @@ int TransposePoolingConn::deleteWeights() {
    return 0;
 }
 
+int TransposePoolingConn::registerData(Checkpointer *checkpointer, std::string const &objName) {
+   registerTimers(checkpointer);
+   return PV_SUCCESS;
+}
+
 int TransposePoolingConn::setInitialValues() {
 #ifdef PV_USE_CUDA
    if (receiveGpu) {

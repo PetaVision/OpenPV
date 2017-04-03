@@ -62,12 +62,10 @@ class TransposePoolingConn : public HyPerConn {
    virtual int allocateDeviceWeights() override { return PV_SUCCESS; }
    virtual int initializeReceivePostKernelArgs() override { return PV_SUCCESS; }
    virtual int initializeReceivePreKernelArgs() override { return PV_SUCCESS; }
-   virtual int registerData(Checkpointer *checkpointer, std::string const &objName) override {
-      return PV_SUCCESS;
-   }
    virtual void updateDeviceWeights() override {}
    int initializeTransposePoolingDeliverKernelArgs();
 #endif // PV_USE_CUDA
+   virtual int registerData(Checkpointer *checkpointer, std::string const &objName) override;
    virtual int setInitialValues() override;
    virtual int constructWeights() override;
    virtual int deliverPresynapticPerspective(PVLayerCube const *activity, int arborID) override;

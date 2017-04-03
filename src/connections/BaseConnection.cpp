@@ -395,6 +395,7 @@ void BaseConnection::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
 #ifdef PV_USE_CUDA
    parent->parameters()->ioParamValue(
          ioFlag, name, "receiveGpu", &receiveGpu, false /*default*/, true /*warn if absent*/);
+   mUsingGPUFlag = receiveGpu;
 #else
    receiveGpu = false;
    parent->parameters()->ioParamValue(

@@ -281,7 +281,6 @@ class HyPerCol : public Subject, Observer {
 // PVParams.
 
 #ifdef PV_USE_CUDA
-   int finalizeThreads();
    void addGpuGroup(BaseConnection *conn, int gpuGroupIdx);
 #endif // PV_USE_CUDA
 
@@ -364,7 +363,6 @@ class HyPerCol : public Subject, Observer {
 
   private:
    void setDescription();
-   int initializeThreads(char const *in_device);
    int initialize_base();
    int initialize(const char *name, PV_Init *initObj);
    int ioParams(enum ParamsIOFlag ioFlag);
@@ -378,6 +376,10 @@ class HyPerCol : public Subject, Observer {
       notify(std::vector<std::shared_ptr<BaseMessage const>>{message});
    }
    int respondPrepareCheckpointWrite(PrepareCheckpointWriteMessage const *message);
+#ifdef PV_USE_CUDA
+   void initializeCUDA(std::string const &in_device);
+   int finalizeCUDA();
+#endif // PV_USE_CUDA
    int normalizeWeights();
    int outputParams(char const *path);
    int outputParamsHeadComments(FileStream *fileStream, char const *commentToken);

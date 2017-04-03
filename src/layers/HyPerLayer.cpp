@@ -133,20 +133,6 @@ int HyPerLayer::initialize(const char *name, HyPerCol *hc) {
       return status;
    }
 
-   // Timers
-   update_timer    = new Timer(getName(), "layer", "update ");
-   recvsyn_timer   = new Timer(getName(), "layer", "recvsyn");
-   publish_timer   = new Timer(getName(), "layer", "publish");
-   timescale_timer = new Timer(getName(), "layer", "timescale");
-   io_timer        = new Timer(getName(), "layer", "io     ");
-
-#ifdef PV_USE_CUDA
-   gpu_recvsyn_timer = new PVCuda::CudaTimer(getName(), "layer", "gpurecvsyn");
-   gpu_recvsyn_timer->setStream(hc->getDevice()->getStream());
-   gpu_update_timer = new PVCuda::CudaTimer(getName(), "layer", "gpuupdate");
-   gpu_update_timer->setStream(hc->getDevice()->getStream());
-#endif
-
    PVParams *params = hc->parameters();
 
    status = ioParams(PARAMS_IO_READ);
@@ -668,6 +654,7 @@ void HyPerLayer::ioParam_updateGpu(enum ParamsIOFlag ioFlag) {
 #ifdef PV_USE_CUDA
    parent->parameters()->ioParamValue(
          ioFlag, name, "updateGpu", &updateGpu, updateGpu, true /*warnIfAbsent*/);
+   mUsingGPUFlag = updateGpu;
 #else // PV_USE_CUDA
    bool updateGpu = false;
    parent->parameters()->ioParamValue(
@@ -1642,14 +1629,33 @@ int HyPerLayer::registerData(Checkpointer *checkpointer, std::string const &objN
       checkpointer->addObserver(this, BaseMessage());
    }
 
-   checkpointer->registerTimer(recvsyn_timer);
+   // Timers
+
+   update_timer    = new Timer(getName(), "layer", "update ");
    checkpointer->registerTimer(update_timer);
+
+   recvsyn_timer   = new Timer(getName(), "layer", "recvsyn");
+   checkpointer->registerTimer(recvsyn_timer);
 #ifdef PV_USE_CUDA
-   checkpointer->registerTimer(gpu_recvsyn_timer);
-   checkpointer->registerTimer(gpu_update_timer);
+   auto cudaDevice = parent->getDevice();
+   if (cudaDevice) {
+      gpu_update_timer = new PVCuda::CudaTimer(getName(), "layer", "gpuupdate");
+      gpu_update_timer->setStream(cudaDevice->getStream());
+      checkpointer->registerTimer(gpu_update_timer);
+
+      gpu_recvsyn_timer = new PVCuda::CudaTimer(getName(), "layer", "gpurecvsyn");
+      gpu_recvsyn_timer->setStream(cudaDevice->getStream());
+      checkpointer->registerTimer(gpu_recvsyn_timer);
+   }
 #endif // PV_USE_CUDA
+
+   publish_timer   = new Timer(getName(), "layer", "publish");
    checkpointer->registerTimer(publish_timer);
+
+   timescale_timer = new Timer(getName(), "layer", "timescale");
    checkpointer->registerTimer(timescale_timer);
+
+   io_timer        = new Timer(getName(), "layer", "io     ");
    checkpointer->registerTimer(io_timer);
    return PV_SUCCESS;
 }

@@ -868,6 +868,7 @@ class HyPerConn : public BaseConnection {
    virtual int initPlasticityPatches();
    virtual int registerData(Checkpointer *checkpointer, std::string const &objName) override;
    void openOutputStateFile(Checkpointer *checkpointer);
+   void registerTimers(Checkpointer *checkpointer);
 
    /**
     * Called by registerData. If writeStep is nonnegative, opens the weights pvp file to be
