@@ -39,6 +39,29 @@ int PlasticCloneConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 // the parameter some way other than reading its own parameter
 // group's param directly.
 
+void PlasticCloneConn::ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      plasticityFlag = true;
+      // PlasticCloneConn needs plasticityFlag to be set, so that structures
+      // that the updateInd_dW method get initialized properly.
+      parent->parameters()->handleUnnecessaryParameter(name, "plasticityFlag", plasticityFlag);
+   }
+}
+
+void PlasticCloneConn::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      parent->parameters()->handleUnnecessaryStringParameter(name, "triggerLayerName");
+   }
+   // PlasticCloneConn does not use trigger layers.
+}
+
+void PlasticCloneConn::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      parent->parameters()->handleUnnecessaryParameter(name, "triggerOffset");
+   }
+   // PlasticCloneConn does not use trigger layers.
+}
+
 void PlasticCloneConn::ioParam_weightUpdatePeriod(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       parent->parameters()->handleUnnecessaryParameter(name, "weightUpdatePeriod");
@@ -55,11 +78,35 @@ void PlasticCloneConn::ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag)
    // from originalConn
 }
 
+void PlasticCloneConn::ioParam_immediateWeightUpdate(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      parent->parameters()->handleUnnecessaryParameter(name, "immediateWeightUpdate");
+   }
+   // During the communication phase, immediateWeightUpdate will be copied
+   // from originalConn
+}
+
 void PlasticCloneConn::ioParam_dWMax(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       parent->parameters()->handleUnnecessaryParameter(name, "dWMax");
    }
    // During the communication phase, dWMax will be copied from
+   // originalConn
+}
+
+void PlasticCloneConn::ioParam_dWMaxDecayInterval(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      parent->parameters()->handleUnnecessaryParameter(name, "dWMaxDecayInterval");
+   }
+   // During the communication phase, dWMaxDecayInterval will be copied from
+   // originalConn
+}
+
+void PlasticCloneConn::ioParam_dWMaxDecayFactor(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      parent->parameters()->handleUnnecessaryParameter(name, "dWMaxDecayFactor");
+   }
+   // During the communication phase, dWMaxDecayFactor will be copied from
    // originalConn
 }
 
@@ -111,10 +158,6 @@ int PlasticCloneConn::cloneParameters() {
    // HyPerConn::communicateInitInfo
    CloneConn::cloneParameters();
 
-   // CloneConn set plasticity flag to false; PlasticCloneConn needs it to be true.
-   plasticityFlag               = true;
-   weightUpdatePeriod           = originalConn->getWeightUpdatePeriod();
-   initialWeightUpdateTime      = originalConn->getWeightUpdatePeriod();
    dWMax                        = originalConn->getDWMax();
    keepKernelsSynchronized_flag = originalConn->getKeepKernelsSynchronized();
    normalizeDwFlag              = originalConn->getNormalizeDwFlag();

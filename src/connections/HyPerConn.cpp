@@ -2700,7 +2700,7 @@ int HyPerConn::update_dW(int arborID) {
       float const *clonePost = clones[clonei]->postSynapticLayer()->getLayerData();
       for (int b = 0; b < parent->getNBatch(); b++) {
          for (int kExt = 0; kExt < nExt; kExt++) {
-            clones[clonei]->updateInd_dW(arborID, b, clonePre, clonePost, kExt);
+            this->updateInd_dW(arborID, b, clonePre, clonePost, kExt);
          }
       }
    }
