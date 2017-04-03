@@ -1715,17 +1715,11 @@ void PVParams::handleUnnecessaryStringParameter(const char *group_name, const ch
                param_name);
       }
       const char *params_value =
-            stringValue(group_name, param_name, false /*warnIfAbsent*/); // marks param as read so
-      // that
-      // presentAndNotBeenRead
-      // doesn't trip up
-      assert(params_value);
+            stringValue(group_name, param_name, false /*warnIfAbsent*/);
+      // marks param as read so that presentAndNotBeenRead doesn't trip up
    }
-   const char *params_value =
-         stringValue(group_name, param_name, false /*warnIfAbsent*/); // marks param as read so that
-   // presentAndNotBeenRead
-   // doesn't trip up
 }
+
 void PVParams::handleUnnecessaryStringParameter(
       const char *group_name,
       const char *param_name,
@@ -1743,16 +1737,16 @@ void PVParams::handleUnnecessaryStringParameter(
                param_name);
       }
       const char *params_value =
-            stringValue(group_name, param_name, false /*warnIfAbsent*/); // marks param as read so
-      // that
-      // presentAndNotBeenRead
-      // doesn't trip up
-      if (params_value != NULL && correct_value != NULL) {
+            stringValue(group_name, param_name, false /*warnIfAbsent*/);
+      // marks param as read so that presentAndNotBeenRead doesn't trip up
+
+      // Check against correct value.
+      if (params_value != nullptr && correct_value != nullptr) {
          char *correct_value_i =
                strdup(correct_value); // need mutable strings for case-insensitive comparison
          char *params_value_i =
                strdup(params_value); // need mutable strings for case-insensitive comparison
-         if (correct_value_i == NULL) {
+         if (correct_value_i == nullptr) {
             status = PV_FAILURE;
             if (worldRank == 0) {
                ErrorLog().printf(
@@ -1763,7 +1757,7 @@ void PVParams::handleUnnecessaryStringParameter(
                      strerror(errno));
             }
          }
-         if (params_value_i == NULL) {
+         if (params_value_i == nullptr) {
             status = PV_FAILURE;
             if (worldRank == 0) {
                ErrorLog().printf(
@@ -1798,7 +1792,7 @@ void PVParams::handleUnnecessaryStringParameter(
          free(correct_value_i);
          free(params_value_i);
       }
-      else if (params_value == NULL && correct_value != NULL) {
+      else if (params_value == nullptr && correct_value != nullptr) {
          status = PV_FAILURE;
          if (worldRank == 0) {
             ErrorLog().printf(
@@ -1810,7 +1804,7 @@ void PVParams::handleUnnecessaryStringParameter(
                   correct_value);
          }
       }
-      else if (params_value != NULL && correct_value == NULL) {
+      else if (params_value != nullptr && correct_value == nullptr) {
          status = PV_FAILURE;
          if (worldRank == 0) {
             ErrorLog().printf(
@@ -1823,8 +1817,8 @@ void PVParams::handleUnnecessaryStringParameter(
          }
       }
       else {
-         assert(params_value == NULL && correct_value == NULL);
-         assert(status == PV_SUCCESS);
+         pvAssert(params_value == nullptr && correct_value == nullptr);
+         pvAssert(status == PV_SUCCESS);
       }
    }
    if (status != PV_SUCCESS) {
