@@ -25,6 +25,10 @@ ColumnEnergyProbe::ColumnEnergyProbe(const char *probename, HyPerCol *hc) : ColP
 } // end ColumnEnergyProbe::ColumnEnergyProbe(const char *, HyPerCol *)
 
 ColumnEnergyProbe::~ColumnEnergyProbe() {
+   for (int b = 0; b < mOutputBatchElements.size(); b++) {
+      delete mOutputBatchElements[b];
+   }
+
    // Don't delete terms[k]; the BaseProbes belong to the layer or connection.
    free(terms);
 } // end ColumnEnergyProbe::~ColumnEnergyProbe()
@@ -51,12 +55,48 @@ int ColumnEnergyProbe::initializeColumnEnergyProbe(const char *probename, HyPerC
    return ColProbe::initialize(probename, hc);
 }
 
-int ColumnEnergyProbe::outputHeader() {
-   if (outputStream) {
-      if (!isWritingToFile()) {
-         output() << "Probe_name,"; // lack of \n is deliberate
+int ColumnEnergyProbe::initOutputStream(const char *filename) { return PV_SUCCESS; }
+
+int ColumnEnergyProbe::registerData(Checkpointer *checkpointer, std::string const &objName) {
+   MPIBlock const *mpiBlock = checkpointer->getMPIBlock();
+   int blockColumnIndex     = mpiBlock->getColumnIndex();
+   int blockRowIndex        = mpiBlock->getRowIndex();
+   if (blockColumnIndex == 0 and blockRowIndex == 0) {
+      int localBatchWidth  = parent->getNBatch();
+      int mpiBatchIndex    = mpiBlock->getStartBatch() + mpiBlock->getBatchIndex();
+      int localBatchOffset = localBatchWidth * mpiBatchIndex;
+      mOutputBatchElements.resize(localBatchWidth);
+      char const *probeOutputFilename = getProbeOutputFilename();
+      if (probeOutputFilename) {
+         std::string path(probeOutputFilename);
+         auto extensionStart = path.rfind('.');
+         std::string extension;
+         if (extensionStart != std::string::npos) {
+            extension = path.substr(extensionStart);
+            path      = path.substr(0, extensionStart);
+         }
+         std::ios_base::openmode mode = std::ios_base::out;
+         bool append                  = parent->getCheckpointReadFlag();
+         if (append) {
+            mode |= std::ios_base::app;
+         }
+         for (int b = 0; b < localBatchWidth; b++) {
+            int globalBatchIndex         = b + localBatchOffset;
+            std::string batchPath        = path;
+            std::string batchIndexString = std::to_string(globalBatchIndex);
+            batchPath.append("_batchElement_").append(batchIndexString).append(extension);
+            batchPath = checkpointer->makeOutputPathFilename(batchPath);
+            auto fs   = new FileStream(batchPath.c_str(), mode, checkpointer->doesVerifyWrites());
+            mOutputBatchElements[b] = fs;
+            *fs << "time,index,energy\n";
+         }
       }
-      output() << "time,index,energy\n";
+      else {
+         for (int b = 0; b < localBatchWidth; b++) {
+            mOutputBatchElements[b] = new PrintStream(PV::getOutputStream());
+         }
+         *mOutputBatchElements[0] << "Probe_name,time,index,energy\n";
+      }
    }
    return PV_SUCCESS;
 }
@@ -166,23 +206,23 @@ int ColumnEnergyProbe::calcValues(double timevalue) {
 
 int ColumnEnergyProbe::outputState(double timevalue) {
    getValues(timevalue);
-   if (this->getParent()->getCommunicator()->commRank() != 0) {
+   if (mOutputBatchElements.empty()) {
       return PV_SUCCESS;
    }
 
-   // Root process should have outputStream defined.
-   // Non-root process should have outputStream==nullptr
-   pvAssert(outputStream);
    double *valuesBuffer = getValuesBuffer();
    int nbatch           = this->getNumValues();
+   pvAssert(nbatch == (int)mOutputBatchElements.size());
+   char const *probeOutputFilename = getProbeOutputFilename();
    for (int b = 0; b < nbatch; b++) {
-      if (!isWritingToFile()) {
-         output() << "\"" << name << "\","; // lack of \n is deliberate
+      auto stream = *mOutputBatchElements[b];
+      if (probeOutputFilename == nullptr) {
+         stream << "\"" << name << "\","; // lack of \n is deliberate
       }
-      output().printf("%10f, %d, %10.9f\n", timevalue, b, valuesBuffer[b]);
+      stream.printf("%10f, %d, %10.9f\n", timevalue, b, valuesBuffer[b]);
+      stream.flush();
    }
-   output().flush();
    return PV_SUCCESS;
-} // end ColumnEnergyProbe::outputState(float)
+} // end ColumnEnergyProbe::outputState(double)
 
 } // end namespace PV
