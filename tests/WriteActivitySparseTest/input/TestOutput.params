@@ -68,9 +68,8 @@ PvpLayer "OriginalMovie" = {
     padValue                            = 0;
     inputPath                           = "input/inputmovie.pvp";
     displayPeriod                       = 1;
-    batchMethod = "byImage";
+    batchMethod                         = "byFile";
     writeFrameToTimestamp               = false;
-    resetToStartOnLoop                  = false;
 };
 
 PvpLayer "GeneratedMovie" = {
@@ -94,9 +93,8 @@ PvpLayer "GeneratedMovie" = {
     padValue                            = 0;
     inputPath                           = "outputGenerate/Input.pvp";
     displayPeriod                       = 1;
-    batchMethod = "byImage";
+    batchMethod                         = "byFile";
     writeFrameToTimestamp               = false;
-    resetToStartOnLoop                  = false;
 };
 
 ANNLayer "Comparison" = {

@@ -64,7 +64,6 @@ PvpLayer "Input" = {
     batchMethod                         = "byFile";
     start_frame_index                   = [0.000000];
     writeFrameToTimestamp               = true;
-    resetToStartOnLoop                  = false;
 };
 
 HyPerLayer "Output" = {

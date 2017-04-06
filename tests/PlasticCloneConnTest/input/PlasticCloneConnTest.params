@@ -80,7 +80,6 @@ PvpLayer "InputA" = {
     batchMethod                         = "byFile";
     start_frame_index                   = [0.000000];
     writeFrameToTimestamp               = true;
-    resetToStartOnLoop                  = false;
 };
 
 PvpLayer "InputB" = {
@@ -108,7 +107,6 @@ PvpLayer "InputB" = {
     batchMethod                         = "byFile";
     start_frame_index                   = [0.000000];
     writeFrameToTimestamp               = true;
-    resetToStartOnLoop                  = false;
 };
 
 HyPerConn "ConnA" = {
@@ -195,7 +193,6 @@ PvpLayer "InputC" = {
     batchMethod                         = "byFile";
     start_frame_index                   = [0.000000];
     writeFrameToTimestamp               = true;
-    resetToStartOnLoop                  = false;
 };
 
 PvpLayer "InputD" = {
@@ -223,7 +220,6 @@ PvpLayer "InputD" = {
     batchMethod                         = "byFile";
     start_frame_index                   = [0.000000];
     writeFrameToTimestamp               = true;
-    resetToStartOnLoop                  = false;
 };
 
 HyPerConn "ConnC" = {

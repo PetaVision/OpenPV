@@ -61,7 +61,6 @@ PvpLayer "Input" = {
     displayPeriod                       = 20;
     batchMethod                         = "byFile";
     writeFrameToTimestamp               = true;
-    resetToStartOnLoop                  = false;
 };
 
 // CPU column

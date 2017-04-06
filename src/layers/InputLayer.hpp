@@ -220,6 +220,7 @@ class InputLayer : public HyPerLayer {
    bool mUsingFileList = false;
 
    // When reaching the end of the file list, do we reset to 0 or to start_index?
+   // This parameter is read only if using batchMethod=bySpecified
    bool mResetToStartOnLoop = false;
 
    // Flag to write filenames and batch indices to disk as they are loaded

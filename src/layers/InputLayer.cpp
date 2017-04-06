@@ -378,8 +378,8 @@ int InputLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_randomSeed(ioFlag);
    ioParam_start_frame_index(ioFlag);
    ioParam_skip_frame_index(ioFlag);
-   ioParam_writeFrameToTimestamp(ioFlag);
    ioParam_resetToStartOnLoop(ioFlag);
+   ioParam_writeFrameToTimestamp(ioFlag);
    return status;
 }
 
@@ -773,6 +773,17 @@ void InputLayer::ioParam_skip_frame_index(enum ParamsIOFlag ioFlag) {
    free(paramsSkipFrameIndex);
 }
 
+void InputLayer::ioParam_resetToStartOnLoop(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "batchMethod"));
+   if (mBatchMethod == BatchIndexer::BYSPECIFIED) {
+      parent->parameters()->ioParamValue(
+            ioFlag, name, "resetToStartOnLoop", &mResetToStartOnLoop, mResetToStartOnLoop);
+   }
+   else {
+      mResetToStartOnLoop = false;
+   }
+}
+
 void InputLayer::ioParam_writeFrameToTimestamp(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "displayPeriod"));
    if (mDisplayPeriod > 0) {
@@ -782,11 +793,6 @@ void InputLayer::ioParam_writeFrameToTimestamp(enum ParamsIOFlag ioFlag) {
    else {
       mWriteFrameToTimestamp = false;
    }
-}
-
-void InputLayer::ioParam_resetToStartOnLoop(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
-         ioFlag, name, "resetToStartOnLoop", &mResetToStartOnLoop, mResetToStartOnLoop);
 }
 
 BaseInputDeprecatedError::BaseInputDeprecatedError(const char *name, HyPerCol *hc) {

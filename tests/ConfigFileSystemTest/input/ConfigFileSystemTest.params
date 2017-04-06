@@ -57,7 +57,6 @@ PvpLayer "Input" = {
     batchMethod = "byFile";
     start_frame_index = 0;
     writeFrameToTimestamp = false;
-    resetToStartOnLoop = false;
 };
 
 ANNLayer "Output" = {

@@ -72,7 +72,6 @@ ImageLayer "input" = {
     displayPeriod                    = 5;
     start_frame_index                = [1];
     writeFrameToTimestamp            = true;
-    resetToStartOnLoop               = false;
 };
 
 ANNLayer "ganglion" = {
@@ -121,7 +120,6 @@ ImageLayer "correctoutput" = {
     start_frame_index                = [1];
     writeFrameToTimestamp            = true;
     flipOnTimescaleError             = true;
-    resetToStartOnLoop               = false;
 };
 
 ANNLayer "comparison" = {

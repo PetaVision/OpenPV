@@ -71,7 +71,6 @@ PvpLayer "input" = {
     displayPeriod                    = 5;
     start_frame_index                = [1];
     writeFrameToTimestamp            = true;
-    resetToStartOnLoop               = false;
 };
 
 ANNLayer "ganglion" = {
@@ -118,7 +117,6 @@ PvpLayer "correctoutput" = {
     displayPeriod                    = 5;
     start_frame_index                = [1];
     writeFrameToTimestamp            = true;
-    resetToStartOnLoop               = false;
 };
 
 ANNLayer "comparison" = {

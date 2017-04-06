@@ -63,7 +63,6 @@ PvpLayer "Input" = {
     displayPeriod                       = 20;
     batchMethod                         = "byFile";
     writeFrameToTimestamp               = true;
-    resetToStartOnLoop                  = false;
 };
 
 ANNErrorLayer "Residual" = {
@@ -155,7 +154,6 @@ PvpLayer "Correct" = {
     displayPeriod                       = 1;
     batchMethod                         = "byFile";
     writeFrameToTimestamp               = true;
-    resetToStartOnLoop                  = false;
 };
 
 ANNLayer "Comparison" = {

@@ -67,7 +67,6 @@ PvpLayer "input" = {
     displayPeriod = 1;
     batchMethod = "byFile";
     writeFrameToTimestamp = true;
-    resetToStartOnLoop = false;
 };
 
 //an output layer
@@ -116,7 +115,6 @@ PvpLayer "correct" = {
     displayPeriod = 1;
     batchMethod = "byFile";
     writeFrameToTimestamp = true;
-    resetToStartOnLoop = false;
 };
 
 ANNLayer "comparison" = {
