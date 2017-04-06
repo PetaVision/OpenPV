@@ -318,6 +318,11 @@ class BaseProbe : public BaseObject {
    int setNumValues(int n);
 
    /**
+    * Returns the probeOutputFilename parameter
+    */
+   char const *getProbeOutputFilename() { return probeOutputFilename; }
+
+   /**
     * Returns a pointer to the buffer containing the probeValues.
     */
    double *getValuesBuffer() { return probeValues; }

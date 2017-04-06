@@ -205,7 +205,6 @@ int BaseProbe::initOutputStream(const char *filename) {
          }
          path += filename;
          bool append                  = parent->getCheckpointReadFlag();
-         const char *fopenstring      = append ? "a" : "w";
          std::ios_base::openmode mode = std::ios_base::out;
          if (append) {
             mode |= std::ios_base::app;
