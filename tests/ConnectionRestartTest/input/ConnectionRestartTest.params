@@ -58,7 +58,6 @@ PvpLayer "input" = {
     batchMethod = "byFile";
     start_frame_index = 0;
     writeFrameToTimestamp = true;
-    resetToStartOnLoop = false;
 };
 
 

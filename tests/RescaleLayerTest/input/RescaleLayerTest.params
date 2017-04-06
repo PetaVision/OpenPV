@@ -51,9 +51,8 @@ PvpLayer "inputmovie" = {
    offsetY = 0;
    padValue = 0;
    displayPeriod = 1.0;
-   batchMethod = "byImage";
+   batchMethod = "byFile";
    writeFrameToTimestamp = true;
-   resetToStartOnLoop = false;
 };
 
 ANNLayer "unrescaledlayer" = {

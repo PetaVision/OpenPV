@@ -238,7 +238,6 @@ PvpLayer "Correct" = {
     padValue = 0;
     inverseFlag = false;
     normalizeLuminanceFlag = false;
-    resetToStartOnLoop = false;
     displayPeriod = 1;
     batchMethod = "byFile";
     writeFrameToTimestamp = true;

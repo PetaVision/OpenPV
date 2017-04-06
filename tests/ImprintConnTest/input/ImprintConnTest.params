@@ -62,7 +62,6 @@ PvpLayer "errInput" = {
     autoResizeFlag = 0;
     phase = 0;
     padValue = 0.0;
-    resetToStartOnLoop = true;
 };
 
 ANNLayer "error" = {

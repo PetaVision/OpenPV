@@ -51,9 +51,8 @@ PvpLayer "Input" = {
     padValue                            = 0;
     inputPath                           = "input/inputmovie.pvp";
     displayPeriod                       = 1;
-    batchMethod = "byImage";
+    batchMethod                         = "byFile";
     writeFrameToTimestamp               = false;
-    resetToStartOnLoop                  = false;
 };
 
 ANNLayer "Output" = {

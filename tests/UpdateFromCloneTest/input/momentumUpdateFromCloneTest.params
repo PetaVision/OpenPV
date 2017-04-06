@@ -37,7 +37,6 @@ PvpLayer "origPre" = {
     padValue                         = 0;
     displayPeriod                    = 1;
     writeFrameToTimestamp            = true;
-    resetToStartOnLoop               = false;
 };
 
 //This layer must have .25 activity for one timestep
@@ -61,7 +60,6 @@ PvpLayer "clonePre" = {
     padValue                         = 0;
     displayPeriod                    = 1;
     writeFrameToTimestamp            = true;
-    resetToStartOnLoop               = false;
 };
 
 ConstantLayer "origPost" = {

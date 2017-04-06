@@ -68,7 +68,6 @@ PvpLayer "Input" = {
     batchMethod = "byFile";
     start_frame_index = [0, 0, 0, 0];
     writeFrameToTimestamp = true;
-    resetToStartOnLoop = true;
 };
 
 PvpLayer "SumInputs" = {
@@ -96,7 +95,6 @@ PvpLayer "SumInputs" = {
     batchMethod = "byFile";
     start_frame_index = [0, 0, 0, 0];
     writeFrameToTimestamp = true;
-    resetToStartOnLoop = true;
 };
 
 ConstantLayer "Output" = {
