@@ -1,5 +1,5 @@
 //
-// BasicSystemTest.params
+// BaseRun.params
 //
 // created by peteschultz: Nov 10, 2011
 //
@@ -28,11 +28,11 @@ HyPerCol "column" = {
    progressInterval = 10.0;
    writeProgressToErr = false;
    verifyWrites = false;
-   outputPath = "output/";
+   outputPath = "output-BaseRun/";
    printParamsFilename = "pv.params";
    initializeFromCheckpointDir = "";
    checkpointWrite = true;
-   checkpointWriteDir = "checkpoints";
+   checkpointWriteDir = "output-BaseRun/checkpoints";
    checkpointIndexWidth = -1;
    suppressNonplasticCheckpoints = true;
    deleteOlderCheckpoints = false;

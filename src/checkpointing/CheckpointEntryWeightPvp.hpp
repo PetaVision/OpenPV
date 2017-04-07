@@ -21,10 +21,10 @@ class CheckpointEntryWeightPvp : public CheckpointEntry {
          MPIBlock const *mpiBlock,
          int numArbors,
          bool sharedWeights,
-         PVPatch ***patchData,
-         int patchDataSize,
          float **weightData,
-         int weightDataSize,
+         int numPatchesX,
+         int numPatchesY,
+         int numPatchesF,
          int nxp,
          int nyp,
          int nfp,
@@ -35,10 +35,10 @@ class CheckpointEntryWeightPvp : public CheckpointEntry {
       initialize(
             numArbors,
             sharedWeights,
-            patchData,
-            patchDataSize,
             weightData,
-            weightDataSize,
+            numPatchesX,
+            numPatchesY,
+            numPatchesF,
             nxp,
             nyp,
             nfp,
@@ -52,10 +52,10 @@ class CheckpointEntryWeightPvp : public CheckpointEntry {
          MPIBlock const *mpiBlock,
          int numArbors,
          bool sharedWeights,
-         PVPatch ***patchData,
-         int patchDataSize,
          float **weightData,
-         int weightDataSize,
+         int numPatchesX,
+         int numPatchesY,
+         int numPatchesF,
          int nxp,
          int nyp,
          int nfp,
@@ -66,10 +66,10 @@ class CheckpointEntryWeightPvp : public CheckpointEntry {
       initialize(
             numArbors,
             sharedWeights,
-            patchData,
-            patchDataSize,
             weightData,
-            weightDataSize,
+            numPatchesX,
+            numPatchesY,
+            numPatchesF,
             nxp,
             nyp,
             nfp,
@@ -86,10 +86,10 @@ class CheckpointEntryWeightPvp : public CheckpointEntry {
    void initialize(
          int numArbors,
          bool sharedWeights,
-         PVPatch ***patchData,
-         int patchDataSize,
          float **weightData,
-         int weightDataSize,
+         int numPatchesX,
+         int numPatchesY,
+         int numPatchesF,
          int nxp,
          int nyp,
          int nfp,
@@ -101,11 +101,12 @@ class CheckpointEntryWeightPvp : public CheckpointEntry {
 
   private:
    bool mSharedWeights;
-   PVPatch ***mPatchData;
-   float **mWeightData;
-   int mPatchDataSize;
-   int mWeightDataSize;
    int mNumArbors;
+   float **mWeightData;
+   int mNumPatchesX;
+   int mNumPatchesY;
+   int mNumPatchesF;
+   int mWeightDataSize;
    int mPatchSizeX;
    int mPatchSizeY;
    int mPatchSizeF;

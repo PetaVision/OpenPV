@@ -99,15 +99,17 @@ class InputLayer : public HyPerLayer {
    // Random seed used when batchMethod == random.
    virtual void ioParam_randomSeed(enum ParamsIOFlag ioFlag);
 
-   // useImageBCFlag: Specifies if the input should be scaled to fill margins
+   // useInputBCFlag: Specifies if the input should be scaled to fill margins
    virtual void ioParam_useInputBCflag(enum ParamsIOFlag ioFlag);
 
   protected:
    InputLayer() {}
 
-   // This method scatters the mInputData buffer to the activity buffers of the several MPI
-   // processes.
-   int scatterInput(int batchIndex);
+   /**
+    * This method scatters the mInputData buffer to the activity buffers of the several MPI
+    * processes.
+    */
+   int scatterInput(int localBatchIndex, int mpiBatchIndex);
    int initialize(const char *name, HyPerCol *hc);
 
    // Returns PV_SUCCESS if offsetAnchor is a valid anchor string, PV_FAILURE otherwise.
@@ -130,11 +132,40 @@ class InputLayer : public HyPerLayer {
    // Can be overridden for different file list logic in subclasses.
    virtual bool readyForNextFile();
 
-   // This pure virtual function gets called from nextInput by the root process only.
-   // Load the input file from disk in this method.
+   /**
+    * This pure virtual function gets called by initializeBatchIndexer in order
+    * to give the BatchIndexer the number of input images.
+    */
+   virtual int countInputImages() = 0;
+
+   /**
+    * (Deprecated) This pure virtual function gets called from nextInput by the root process
+    * only. Load the input file from disk in this method.
+    * Even if there are several MPI blocks in the x- and y-directions, this
+    * method should load the entire image.
+    */
    virtual Buffer<float> retrieveData(std::string filename, int batchIndex) = 0;
-   void nextInput(double timef, double dt);
-   void initializeBatchIndexer(int fileCount);
+
+   /**
+    * This pure virtual function gets called by the root process during
+    * initializeActivity and during updateState. It loads the entire input
+    * (scattering to nonroot processes is done by the scatterInput method)
+    * into a buffer. inputIndex is the (zero-indexed) index into the list of inputs.
+    */
+   virtual Buffer<float> retrieveData(int inputIndex, int batchElement) = 0;
+
+   /**
+    * Each batch element loads its data with the input specified by the current
+    * index for that batch element. The indices are not modified.
+    */
+   void retrieveInput(double timef, double dt);
+
+   /**
+    * Each batch element loads its input by calling retrieveInput(), and then
+    * advances its index by the amount specified by skip_frame_index.
+    */
+   void retrieveInputAndAdvanceIndex(double timef, double dt);
+   void initializeBatchIndexer();
 
   public:
    InputLayer(const char *name, HyPerCol *hc);
@@ -143,19 +174,30 @@ class InputLayer : public HyPerLayer {
    virtual int requireChannel(int channelNeeded, int *numChannelsResult) override;
    virtual int allocateDataStructures() override;
    virtual int updateState(double time, double dt) override;
+
+   /**
+    * This function is called by updateState if writeFrameToTimestamp is used.
+    * It provides the opportunity for a subclass to insert a description of the
+    * input, along with the timestamp and the name of the InputLayer.
+    * The input argument is the index into the list of input frames.
+    * The default is to return the empty string. However, ImageLayer overrides
+    * this so that, when a list of filenames is used, it returns the name of
+    * the filename for that index.
+    */
+   virtual std::string describeInput(int index) { return std::string(""); }
    virtual bool activityIsSpiking() override { return false; }
-   void exchange();
    int getDisplayPeriod() { return mDisplayPeriod; }
    int getStartIndex(int batchIndex) { return mStartFrameIndex.at(batchIndex); }
    int getSkipIndex(int batchIndex) { return mSkipFrameIndex.at(batchIndex); }
-   bool getUsingFileList() { return mUsingFileList; }
-   const std::string getInputPath() { return mInputPath; }
-   std::string getFileName(int batchIndex) {
-      return mBatchIndexer != nullptr ? mFileList.at(mBatchIndexer->getIndex(batchIndex)) : 0;
-   }
+   const std::string &getInputPath() const { return mInputPath; }
+   virtual std::string const &getCurrentFilename(int batchElement) const { return mInputPath; }
 
   private:
-   void populateFileList();
+   /**
+    * Resizes a buffer from the image size to the layer size. If autoResizeFlag is true, it
+    * calls BufferUtils::rescale. If autoResizeFlag is false, it calls Buffer methods grow,
+    * translate, and crop. This method is called only by the root process.
+    */
    void fitBufferToLayer(Buffer<float> &buffer);
 
   protected:
@@ -215,10 +257,6 @@ class InputLayer : public HyPerLayer {
    // file never changes.
    int mDisplayPeriod = 0;
 
-   // Automatically set if the inputPath ends in .txt. Determines whether this layer represents a
-   // collection of files.
-   bool mUsingFileList = false;
-
    // When reaching the end of the file list, do we reset to 0 or to start_index?
    // This parameter is read only if using batchMethod=bySpecified
    bool mResetToStartOnLoop = false;
@@ -231,9 +269,6 @@ class InputLayer : public HyPerLayer {
 
    // An array indicating how far to advance each index, one per batch
    std::vector<int> mSkipFrameIndex;
-
-   // List of filenames to iterate over
-   std::vector<std::string> mFileList;
 };
 
 class BaseInputDeprecatedError : public BaseObject {

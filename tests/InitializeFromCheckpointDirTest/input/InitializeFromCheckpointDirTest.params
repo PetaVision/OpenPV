@@ -1,5 +1,5 @@
 //
-// BasicSystemTest.params
+// InitializeFromCheckpointDirTest.params
 //
 // created by peteschultz: Nov 10, 2011
 //
@@ -28,11 +28,11 @@ HyPerCol "column" = {
    progressInterval = 10.0;
    writeProgressToErr = false;
    verifyWrites = false;
-   outputPath = "output/";
+   outputPath = "output-InitializeFromCheckpointDir/";
    printParamsFilename = "pv.params";
-   initializeFromCheckpointDir = "checkpoints/Checkpoint10";
+   initializeFromCheckpointDir = "output-BaseRun/checkpoints/Checkpoint10";
    checkpointWrite = true;
-   checkpointWriteDir = "checkpoints";
+   checkpointWriteDir = "output-InitializeFromCheckpointDir/checkpoints";
    checkpointIndexWidth = -1;
    suppressNonplasticCheckpoints = true;
    deleteOlderCheckpoints = false;

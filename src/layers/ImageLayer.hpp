@@ -9,14 +9,26 @@ class ImageLayer : public InputLayer {
 
   protected:
    ImageLayer() {}
-   virtual Buffer<float> retrieveData(std::string filename, int batchIndex);
+   virtual int countInputImages() override;
+   void populateFileList();
+   virtual Buffer<float> retrieveData(std::string filename, int batchIndex) override;
+   virtual Buffer<float> retrieveData(int inputIndex, int batchElement) override;
+   virtual std::string describeInput(int index) override;
    void readImage(std::string filename);
 
   public:
    ImageLayer(const char *name, HyPerCol *hc);
    virtual ~ImageLayer() {}
+   virtual std::string const &getCurrentFilename(int batchElement) const override;
 
   protected:
    std::unique_ptr<Image> mImage = nullptr;
-};
-}
+
+   // Automatically set if the inputPath ends in .txt. Determines whether this layer represents a
+   // collection of files.
+   bool mUsingFileList = false;
+
+   // List of filenames to iterate over
+   std::vector<std::string> mFileList;
+}; // end class ImageLayer
+} // end namespace PV

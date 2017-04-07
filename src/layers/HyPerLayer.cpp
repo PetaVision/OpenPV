@@ -1226,7 +1226,6 @@ int HyPerLayer::communicateInitInfo() {
 
 int HyPerLayer::openOutputStateFile(Checkpointer *checkpointer) {
    pvAssert(writeStep >= 0);
-   mOutputStateMPIBlock = checkpointer->getMPIBlock();
 
    if (checkpointer->getMPIBlock()->getRank() == 0) {
       std::string outputStatePath(getName());
@@ -1605,6 +1604,8 @@ int HyPerLayer::registerData(Checkpointer *checkpointer, std::string const &objN
          (std::size_t)1,
          true /*broadcast*/);
 
+   mMPIBlock = checkpointer->getMPIBlock();
+
    if (writeStep >= 0.0) {
       openOutputStateFile(checkpointer);
       if (sparseLayer) {
@@ -1631,10 +1632,10 @@ int HyPerLayer::registerData(Checkpointer *checkpointer, std::string const &objN
 
    // Timers
 
-   update_timer    = new Timer(getName(), "layer", "update ");
+   update_timer = new Timer(getName(), "layer", "update ");
    checkpointer->registerTimer(update_timer);
 
-   recvsyn_timer   = new Timer(getName(), "layer", "recvsyn");
+   recvsyn_timer = new Timer(getName(), "layer", "recvsyn");
    checkpointer->registerTimer(recvsyn_timer);
 #ifdef PV_USE_CUDA
    auto cudaDevice = parent->getDevice();
@@ -1649,14 +1650,20 @@ int HyPerLayer::registerData(Checkpointer *checkpointer, std::string const &objN
    }
 #endif // PV_USE_CUDA
 
-   publish_timer   = new Timer(getName(), "layer", "publish");
+   publish_timer = new Timer(getName(), "layer", "publish");
    checkpointer->registerTimer(publish_timer);
 
    timescale_timer = new Timer(getName(), "layer", "timescale");
    checkpointer->registerTimer(timescale_timer);
 
-   io_timer        = new Timer(getName(), "layer", "io     ");
+   io_timer = new Timer(getName(), "layer", "io     ");
    checkpointer->registerTimer(io_timer);
+
+   if (mInitVObject) {
+      auto message = std::make_shared<RegisterDataMessage<Checkpointer>>(checkpointer);
+      mInitVObject->respond(message);
+   }
+
    return PV_SUCCESS;
 }
 
@@ -2183,7 +2190,7 @@ int HyPerLayer::writeActivitySparse(double timed) {
    PVLayerLoc const *loc = getLayerLoc();
    pvAssert(cube.numItems == loc->nbatch * getNumExtended());
 
-   int const mpiBatchDimension = mOutputStateMPIBlock->getBatchDimension();
+   int const mpiBatchDimension = mMPIBlock->getBatchDimension();
    int const numFrames         = mpiBatchDimension * loc->nbatch;
    for (int frame = 0; frame < numFrames; frame++) {
       int const localBatchIndex = frame % loc->nbatch;
@@ -2214,14 +2221,14 @@ int HyPerLayer::writeActivitySparse(double timed) {
          entry.index = (uint32_t)kIndex(x, y, f, loc->nxGlobal, loc->nyGlobal, nf);
          list.addEntry(entry);
       }
-      auto gatheredList = BufferUtils::gatherSparse(
-            mOutputStateMPIBlock, list, mpiBatchIndex, 0 /*root process*/);
-      if (mOutputStateMPIBlock->getRank() == 0) {
+      auto gatheredList =
+            BufferUtils::gatherSparse(mMPIBlock, list, mpiBatchIndex, 0 /*root process*/);
+      if (mMPIBlock->getRank() == 0) {
          long fpos = mOutputStateStream->getOutPos();
          if (fpos == 0L) {
             BufferUtils::ActivityHeader header = BufferUtils::buildSparseActivityHeader<float>(
-                  loc->nx * mOutputStateMPIBlock->getNumColumns(),
-                  loc->ny * mOutputStateMPIBlock->getNumRows(),
+                  loc->nx * mMPIBlock->getNumColumns(),
+                  loc->ny * mMPIBlock->getNumRows(),
                   loc->nf,
                   0 /* numBands */); // numBands will be set by call to incrementNBands.
             header.timestamp = timed;
@@ -2246,7 +2253,7 @@ int HyPerLayer::writeActivity(double timed) {
    int const nyExtLocal = loc->ny + halo.dn + halo.up;
    int const nf         = loc->nf;
 
-   int const mpiBatchDimension = mOutputStateMPIBlock->getBatchDimension();
+   int const mpiBatchDimension = mMPIBlock->getBatchDimension();
    int const numFrames         = mpiBatchDimension * loc->nbatch;
    for (int frame = 0; frame < numFrames; frame++) {
       int const localBatchIndex = frame % loc->nbatch;
@@ -2257,15 +2264,15 @@ int HyPerLayer::writeActivity(double timed) {
       Buffer<float> localBuffer(data, nxExtLocal, nyExtLocal, nf);
       localBuffer.crop(loc->nx, loc->ny, Buffer<float>::CENTER);
       Buffer<float> blockBuffer = BufferUtils::gather<float>(
-            mOutputStateMPIBlock, localBuffer, loc->nx, loc->ny, mpiBatchIndex, 0 /*root process*/);
+            mMPIBlock, localBuffer, loc->nx, loc->ny, mpiBatchIndex, 0 /*root process*/);
       // At this point, the rank-zero process has the entire block for the batch element,
       // regardless of what the mpiBatchIndex is.
-      if (mOutputStateMPIBlock->getRank() == 0) {
+      if (mMPIBlock->getRank() == 0) {
          long fpos = mOutputStateStream->getOutPos();
          if (fpos == 0L) {
             BufferUtils::ActivityHeader header = BufferUtils::buildActivityHeader<float>(
-                  loc->nx * mOutputStateMPIBlock->getNumColumns(),
-                  loc->ny * mOutputStateMPIBlock->getNumRows(),
+                  loc->nx * mMPIBlock->getNumColumns(),
+                  loc->ny * mMPIBlock->getNumRows(),
                   loc->nf,
                   0 /* numBands */); // numBands will be set by call to incrementNBands.
             header.timestamp = timed;

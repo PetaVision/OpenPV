@@ -2093,15 +2093,7 @@ void PVParams::action_parameter_filename_def(const char *id, const char *stringv
    }
    char *param_value = stripQuotationMarks(stringval);
    assert(param_value);
-   ParameterString *pstr = NULL;
-   char *filename        = NULL;
-   if (param_value && param_value[0] == '~') {
-      pstr = new ParameterString(id, filename);
-      free(filename);
-   }
-   else {
-      pstr = new ParameterString(id, param_value);
-   }
+   ParameterString *pstr = new ParameterString(id, param_value);
    free(param_value);
    stringStack->push(pstr);
 }
@@ -2131,13 +2123,7 @@ void PVParams::action_parameter_filename_def_overwrite(const char *id, const cha
    }
    char *param_value = stripQuotationMarks(stringval);
    assert(param_value);
-   char *filename = NULL;
-   if (param_value && param_value[0] == '~') {
-      currParam->setValue(filename);
-   }
-   else {
-      currParam->setValue(param_value);
-   }
+   currParam->setValue(param_value);
    free(param_value);
 }
 

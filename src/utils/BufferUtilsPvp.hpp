@@ -57,6 +57,15 @@ template <typename T>
 double readFrame(FileStream &fStream, Buffer<T> *buffer);
 
 template <typename T>
+double readFrameWindow(
+      FileStream &fStream,
+      Buffer<T> *buffer,
+      ActivityHeader const &header,
+      int xStart,
+      int yStart,
+      int fStart);
+
+template <typename T>
 BufferUtils::HeaderDataType returnDataType();
 
 template <typename T>
@@ -171,14 +180,62 @@ static SparseFileTable buildSparseFileTable(FileStream &fStream, int upToIndex);
 template <typename T>
 std::size_t weightPatchSize(int numWeightsInPatch);
 
+/**
+ * Builds a header for weight files, either shared or nonshared, with
+ * minimal processing of arguments.
+ *
+ * The recordSize field is computed from nxp, nyp, nfp, numPatches and
+ * the compress flag. The fileType field is determined by the shared flag.
+ * Other header fields are copied from the appropriate argument.
+ * (For example, the preLayerNx argument is placed into the nx and nxGlobal
+ * fields).
+ *
+ * This function is called by both the buildSharedWeightHeader and
+ * buildNonsharedWeightHeader functions.
+ */
 WeightHeader buildWeightHeader(
+      bool shared,
+      int preLayerNx,
+      int preLayerNy,
+      int preLayerNf,
+      bool compress,
+      int numArbors,
+      double timestamp,
+      int nxp,
+      int nyp,
+      int nfp,
+      float minVal,
+      float maxVal,
+      int numPatches);
+
+/**
+ * Builds a header for shared-weight files.
+ * nxp, nyp, nfp are the dimensions of one patch.
+ * numArbors is the number of arbors.
+ * numPatchesX, numPatchesY, numPatchesF are the dimensions of the array of
+ * patches in one process.
+ *
+ * timestamp is value for the timestamp header field.
+ * preLayerLoc is the presynaptic layer's PVLayerLoc.
+ * numProcessesInColumn and numProcessesInRow are the dimensions of
+ * the MPIBlock being used with this header. These arguments are used to
+ * modify the nx, ny, nxGlobal, and nyGlobal header fields.
+ *
+ * minVal and maxVal are the values of the corresponding fields of
+ * the header.
+ *
+ * The compress flag indicates whether the weights will be byte or float
+ * values. It affects the datatype, datasize, and recordSize fields.
+ */
+WeightHeader buildSharedWeightHeader(
       int nxp,
       int nyp,
       int nfp,
       int numArbors,
-      int numPatches,
-      bool shared,
-      double timed,
+      int numPatchesX,
+      int numPatchesY,
+      int numPatchesF,
+      double timestamp,
       PVLayerLoc const *preLayerLoc,
       int numColumnProcesses,
       int numRowProcesses,
@@ -186,6 +243,53 @@ WeightHeader buildWeightHeader(
       float maxVal,
       bool compress);
 
+/**
+ * Builds a header for nonshared-weight files.
+ * nxp, nyp, nfp are the dimensions of one patch.
+ * numArbors is the number of arbors.
+ * If the extended flag is on, there is one patch for each presynaptic
+ * neuron in extended space (as defined by the preLayerLoc argument).
+ * Otherwise, there is one patch for each presynaptic neuron in the restricted
+ * space only.
+ *
+ * timestamp is value for the timestamp header field.
+ * preLayerLoc is the presynaptic layer's PVLayerLoc.
+ * numProcessesInColumn and numProcessesInRow are the dimensions of
+ * the MPIBlock being used with this header. These arguments are used to
+ * modify the nx, ny, nxGlobal, and nyGlobal header fields.
+ *
+ * minVal and maxVal are the values of the corresponding fields of
+ * the header.
+ *
+ * The compress flag indicates whether the weights will be byte or float
+ * values. It affects the datatype, datasize, and recordSize fields.
+ */
+WeightHeader buildNonsharedWeightHeader(
+      int nxp,
+      int nyp,
+      int nfp,
+      int numArbors,
+      bool extended,
+      double timestamp,
+      PVLayerLoc const *preLayerLoc,
+      PVLayerLoc const *postLayerLoc,
+      int numColumnProcesses,
+      int numRowProcesses,
+      float minVal,
+      float maxVal,
+      bool compress);
+
+void calcNumberOfPatches(
+      PVLayerLoc const *preLayerLoc,
+      PVLayerLoc const *postLayerLoc,
+      int numColumnProcesses,
+      int numRowProcesses,
+      bool extended,
+      int nxp,
+      int nyp,
+      int &numPatchesX,
+      int &numPatchesY,
+      int &numPatchesF);
 } // end namespace BufferUtils
 } // end namespace PV
 

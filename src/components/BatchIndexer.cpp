@@ -9,18 +9,18 @@ namespace PV {
 // Should this be the value of commBatch() instead?
 BatchIndexer::BatchIndexer(
       int globalBatchCount,
-      int mpiBatchIndex,
+      int batchOffset,
       int batchWidth,
       int fileCount,
       enum BatchMethod batchMethod) {
    mGlobalBatchCount = globalBatchCount;
    mBatchMethod      = batchMethod;
    mFileCount        = fileCount;
-   mBatchWidth       = batchWidth > 0 ? batchWidth : 1;
-   mBatchWidthIndex  = mpiBatchIndex;
-   mIndices.resize(mGlobalBatchCount / mBatchWidth, 0);
-   mStartIndices.resize(mGlobalBatchCount / mBatchWidth, 0);
-   mSkipAmounts.resize(mGlobalBatchCount / mBatchWidth, 0);
+   mBatchWidth       = batchWidth;
+   mBatchOffset      = batchOffset;
+   mIndices.resize(mBatchWidth, 0);
+   mStartIndices.resize(mBatchWidth, 0);
+   mSkipAmounts.resize(mBatchWidth, 0);
    shuffleLookupTable();
 }
 
@@ -37,7 +37,7 @@ int BatchIndexer::nextIndex(int localBatchIndex) {
       }
    }
    mIndices.at(localBatchIndex) = newIndex;
-   return result;
+   return newIndex;
 }
 
 int BatchIndexer::getIndex(int localBatchIndex) {
@@ -53,7 +53,7 @@ void BatchIndexer::specifyBatching(int localBatchIndex, int startIndex, int skip
 }
 
 void BatchIndexer::initializeBatch(int localBatchIndex) {
-   int globalBatchIndex = mBatchWidthIndex * (mGlobalBatchCount / mBatchWidth) + localBatchIndex;
+   int globalBatchIndex = mBatchOffset + localBatchIndex;
    switch (mBatchMethod) {
       case RANDOM:
       case BYFILE:
@@ -77,6 +77,7 @@ void BatchIndexer::initializeBatch(int localBatchIndex) {
    }
    mIndices.at(localBatchIndex) = mStartIndices.at(localBatchIndex);
 }
+
 void BatchIndexer::setRandomSeed(unsigned int seed) {
    mRandomSeed = seed;
    shuffleLookupTable();

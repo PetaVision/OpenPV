@@ -121,7 +121,7 @@ int FilenameParsingGroundTruthLayer::updateState(double time, double dt) {
       char *currentFilename = nullptr;
       int filenameLen       = 0;
       if (parent->getCommunicator()->commRank() == 0) {
-         currentFilename = strdup(mInputLayer->getFileName(b).c_str());
+         currentFilename = strdup(mInputLayer->getCurrentFilename(b).c_str());
          int filenameLen = (int)strlen(currentFilename) + 1; // +1 for the null terminator
          MPI_Bcast(&filenameLen, 1, MPI_INT, 0, parent->getCommunicator()->communicator());
          // Braodcast filename to all other local processes

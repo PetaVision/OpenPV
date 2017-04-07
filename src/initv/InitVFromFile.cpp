@@ -8,7 +8,6 @@
 #include "InitVFromFile.hpp"
 #include "columns/HyPerCol.hpp"
 #include "utils/BufferUtilsMPI.hpp"
-#include "utils/BufferUtilsPvp.hpp"
 
 namespace PV {
 InitVFromFile::InitVFromFile() { initialize_base(); }
@@ -45,76 +44,72 @@ void InitVFromFile::ioParam_Vfilename(enum ParamsIOFlag ioFlag) {
    }
 }
 
+int InitVFromFile::registerData(Checkpointer *checkpointer, std::string const &objName) {
+   /* nothing to checkpoint, but we need the MPIBlock to scatter the data in calcV. */
+   mMPIBlock = checkpointer->getMPIBlock();
+   return PV_SUCCESS;
+}
+
 int InitVFromFile::calcV(float *V, const PVLayerLoc *loc) {
-   int status = PV_SUCCESS;
-   PVLayerLoc fileLoc;
-   MPIBlock const *mpiBlock = parent->getCommunicator()->getLocalMPIBlock();
-   bool isRootProc          = mpiBlock->getRank() == 0;
-   char const *ext          = strrchr(mVfilename, '.');
-   bool isPvpFile           = (ext && strcmp(ext, ".pvp") == 0);
+   char const *ext = strrchr(mVfilename, '.');
+   bool isPvpFile  = (ext && strcmp(ext, ".pvp") == 0);
    if (isPvpFile) {
-      FileStream headerStream(mVfilename, std::ios_base::in | std::ios_base::binary, false);
-      struct BufferUtils::ActivityHeader header = BufferUtils::readActivityHeader(headerStream);
-      int fileType                              = header.fileType;
-      for (int m = 0; m < mpiBlock->getBatchDimension(); m++) {
-         for (int b = 0; b < loc->nbatch; b++) {
-            float *Vbatch = V + b * (loc->nx * loc->ny * loc->nf);
-            Buffer<float> pvpBuffer;
-            if (isRootProc) {
-               BufferUtils::readDenseFromPvp(mVfilename, &pvpBuffer, b);
-            }
-            else {
-               pvpBuffer.resize(loc->nx, loc->ny, loc->nf);
-            }
-            BufferUtils::scatter(mpiBlock, pvpBuffer, loc->nx, loc->ny, m, 0);
-            std::vector<float> bufferData = pvpBuffer.asVector();
-            std::memcpy(Vbatch, bufferData.data(), sizeof(float) * pvpBuffer.getTotalElements());
+      FileStream fileStream(mVfilename, std::ios_base::in | std::ios_base::binary, false);
+      BufferUtils::ActivityHeader header = BufferUtils::readActivityHeader(fileStream);
+      int fileType                       = header.fileType;
+      if (header.fileType == PVP_NONSPIKING_ACT_FILE_TYPE) {
+         readDenseActivityPvp(V, loc, fileStream, header);
+      }
+      else { // TODO: Handle sparse activity pvp files.
+         if (mMPIBlock->getRank() == 0) {
+            ErrorLog() << "InitVFromFile: filename \"" << mVfilename << "\" has fileType "
+                       << header.fileType << ", which is not supported for InitVFromFile.\n";
          }
+         MPI_Barrier(mMPIBlock->getComm());
+         MPI_Finalize();
+         exit(EXIT_FAILURE);
       }
    }
    else { // TODO: Treat as an image file
-      if (isRootProc) {
+      if (mMPIBlock->getRank() == 0) {
          ErrorLog().printf("InitVFromFile: file \"%s\" is not a pvp file.\n", this->mVfilename);
       }
-      MPI_Barrier(mpiBlock->getComm());
+      MPI_Barrier(mMPIBlock->getComm());
       exit(EXIT_FAILURE);
    }
-   return status;
+   return PV_SUCCESS;
 }
 
-int InitVFromFile::checkLoc(
-      const PVLayerLoc *loc,
-      int nx,
-      int ny,
-      int nf,
-      int nxGlobal,
-      int nyGlobal) {
-   int status = PV_SUCCESS;
-   if (checkLocValue(loc->nxGlobal, nxGlobal, "nxGlobal") != PV_SUCCESS)
-      status = PV_FAILURE;
-   if (checkLocValue(loc->nyGlobal, nyGlobal, "nyGlobal") != PV_SUCCESS)
-      status = PV_FAILURE;
-   if (checkLocValue(loc->nf, nf, "nf") != PV_SUCCESS)
-      status = PV_FAILURE;
-   return status;
-}
-
-int InitVFromFile::checkLocValue(int fromParams, int fromFile, const char *field) {
-   int status = PV_SUCCESS;
-   if (fromParams != fromFile) {
-      if (parent->getCommunicator()->commRank() == 0) {
-         ErrorLog().printf(
-               "InitVFromFile: Incompatible %s: parameter group \"%s\" gives %d; "
-               "filename \"%s\" gives %d\n",
-               field,
-               name,
-               fromParams,
-               mVfilename,
-               fromFile);
+void InitVFromFile::readDenseActivityPvp(
+      float *V,
+      PVLayerLoc const *loc,
+      FileStream &fileStream,
+      BufferUtils::ActivityHeader const &header) {
+   bool isRootProc         = mMPIBlock->getRank() == 0;
+   std::size_t frameSize   = (std::size_t)header.recordSize * sizeof(float) + sizeof(double);
+   int numFrames           = header.nBands;
+   int blockBatchDimension = mMPIBlock->getBatchDimension();
+   for (int m = 0; m < blockBatchDimension; m++) {
+      for (int b = 0; b < loc->nbatch; b++) {
+         int globalBatchIndex = (mMPIBlock->getStartBatch() + m) * loc->nbatch + b;
+         float *Vbatch        = V + b * (loc->nx * loc->ny * loc->nf);
+         Buffer<float> pvpBuffer;
+         if (isRootProc) {
+            int frameNumber = globalBatchIndex % numFrames;
+            fileStream.setOutPos(sizeof(header) + frameNumber * sizeof(float) * frameSize, true);
+            int xStart = header.nx * mMPIBlock->getStartColumn() / mMPIBlock->getNumColumns();
+            int yStart = header.ny * mMPIBlock->getStartRow() / mMPIBlock->getNumRows();
+            pvpBuffer.resize(header.nx, header.ny, header.nf);
+            BufferUtils::readFrameWindow(fileStream, &pvpBuffer, header, xStart, yStart, 0);
+         }
+         else {
+            pvpBuffer.resize(loc->nx, loc->ny, loc->nf);
+         }
+         BufferUtils::scatter(mMPIBlock, pvpBuffer, loc->nx, loc->ny, m, 0);
+         std::vector<float> bufferData = pvpBuffer.asVector();
+         std::memcpy(Vbatch, bufferData.data(), sizeof(float) * pvpBuffer.getTotalElements());
       }
-      status = PV_FAILURE;
    }
-   return status;
 }
 
 } // end namespace PV

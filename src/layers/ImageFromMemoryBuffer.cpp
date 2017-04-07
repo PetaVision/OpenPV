@@ -29,7 +29,7 @@ int ImageFromMemoryBuffer::initialize(char const *name, HyPerCol *hc) {
    if (mUseInputBCflag && mAutoResizeFlag) {
       if (parent->columnId() == 0) {
          ErrorLog().printf(
-               "%s: setting both useImageBCflag and autoResizeFlag has not yet been implemented.\n",
+               "%s: setting both useInputBCflag and autoResizeFlag has not yet been implemented.\n",
                getDescription_c());
       }
       MPI_Barrier(parent->getCommunicator()->communicator());
@@ -155,14 +155,14 @@ template float ImageFromMemoryBuffer::pixelTypeConvert<unsigned char>(
       unsigned char oneval);
 
 int ImageFromMemoryBuffer::initializeActivity(double time, double dt) {
-   nextInput(time, dt);
+   retrieveInput(time, dt);
    return PV_SUCCESS;
 }
 
 int ImageFromMemoryBuffer::updateState(double time, double dt) {
    assert(hasNewImageFlag); // updateState shouldn't have been called otherwise.
    hasNewImageFlag = false;
-   nextInput(time, dt);
+   retrieveInputAndAdvanceIndex(time, dt);
    return PV_SUCCESS;
 }
 

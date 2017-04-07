@@ -34,7 +34,7 @@
 #define INDEX_NY_GLOBAL   13
 #define INDEX_KX0         14
 #define INDEX_KY0         15
-#define INDEX_NB          16
+#define INDEX_NBATCH      16
 #define INDEX_NBANDS      17
 #define INDEX_TIME        18
 
@@ -151,7 +151,7 @@ int parseheader(FILE * fid)
     printf("    ny_Global                          = %d\n", params[INDEX_NY_GLOBAL]);
     printf("    kx0                                = %d\n", params[INDEX_KX0]);
     printf("    ky0                                = %d\n", params[INDEX_KY0]);
-    printf("    Number of boundary pixels          = %d\n", params[INDEX_NB]);
+    printf("    Batch width                        = %d\n", params[INDEX_NBATCH]);
     printf("    Number of bands                    = %d\n", params[INDEX_NBANDS]);
     double timestamp;
     memcpy(&timestamp, &params[INDEX_TIME], sizeof(double));

@@ -22,32 +22,42 @@
 using namespace PV;
 
 static int set_weights_to_source_index(HyPerConn *c);
+static int check_connection(HyPerConn *c, HyPerCol *hc);
 static int check_weights(HyPerConn *c, PVPatch **postWeights, float *dataStart);
 
 int main(int argc, char *argv[]) {
    PV_Init *initObj = new PV_Init(&argc, &argv, false /*allowUnrecognizedArguments*/);
-   PVPatch **postWeights;
 
    int status = 0;
 
-   const char *l1name = "test_post_weights L1";
-   const char *l2name = "test_post_weights L2";
-   const char *l3name = "test_post_weights L3";
+   const char *l1name = "test_post_weights_L1";
+   const char *l2name = "test_post_weights_L2";
+   const char *l3name = "test_post_weights_L3";
+   char const *c1name = "test_post_weights_L1_to_L1";
+   char const *c2name = "test_post_weights_L2_to_L3";
+   char const *c3name = "test_post_weights_L3_to_L2";
    HyPerCol *hc       = new HyPerCol("column", initObj);
    Example *l1        = new Example(l1name, hc);
    Example *l2        = new Example(l2name, hc);
    Example *l3        = new Example(l3name, hc);
 
-   HyPerConn *c1 = new HyPerConn("test_post_weights L1 to L1", hc);
-   FatalIf(c1->numberOfAxonalArborLists() != 1, "Test failed.\n");
+   HyPerConn *c1 = new HyPerConn(c1name, hc);
+   FatalIf(
+         c1->numberOfAxonalArborLists() != 1,
+         "Connection \"%s\" has more than one arbor.\n",
+         c1name);
 
-   HyPerConn *c2 = new HyPerConn("test_post_weights L2 to L3", hc);
-   FatalIf(c2->numberOfAxonalArborLists() != 1, "Test failed.\n");
+   HyPerConn *c2 = new HyPerConn(c2name, hc);
+   FatalIf(
+         c2->numberOfAxonalArborLists() != 1,
+         "Connection \"%s\" has more than one arbor.\n",
+         c2name);
 
-   HyPerConn *c3 = new HyPerConn("test_post_weights L3 to L2", hc);
-   FatalIf(c3->numberOfAxonalArborLists() != 1, "Test failed.\n");
-
-   // ensureDirExists(hc->getCommunicator()->getLocalMPIBlock(), hc->getOutputPath());
+   HyPerConn *c3 = new HyPerConn(c3name, hc);
+   FatalIf(
+         c3->numberOfAxonalArborLists() != 1,
+         "Connection \"%s\" has more than one arbor.\n",
+         c3name);
 
    // We're not calling hc->run() because we don't execute any timesteps.
    // But we still need to allocate the weights, so we call the
@@ -58,28 +68,20 @@ int main(int argc, char *argv[]) {
    // we don't look at the layer values, and the weight values are
    // set by calling set_weights_to_source_index
 
+   // FileStream to write the post weights to.
+   std::string postWeightsPath("");
+   FileStream *fileStream = nullptr;
+
    // set weights to be k index source in pre-synaptic layer
    //
-   status      = set_weights_to_source_index(c1);
-   postWeights = c1->convertPreSynapticWeights(0.0f)[0];
-   status      = c1->writePostSynapticWeights(c1->getParent()->simulationTime(), false);
-   status      = check_weights(c1, postWeights, c1->getWPostData(0, 0));
-   if (status)
-      return status;
+   status = check_connection(c1, hc);
+   FatalIf(status != PV_SUCCESS, "check_weights for %s failed.\n", c1name);
 
-   status      = set_weights_to_source_index(c2);
-   postWeights = c2->convertPreSynapticWeights(0.0f)[0];
-   status      = c2->writePostSynapticWeights(c2->getParent()->simulationTime(), false);
-   status      = check_weights(c2, postWeights, c2->getWPostData(0, 0));
-   if (status)
-      return status;
+   status = check_connection(c2, hc);
+   FatalIf(status != PV_SUCCESS, "check_weights for %s failed.\n", c2name);
 
-   status      = set_weights_to_source_index(c3);
-   postWeights = c3->convertPreSynapticWeights(0.0f)[0];
-   status      = c3->writePostSynapticWeights(c3->getParent()->simulationTime(), false);
-   status      = check_weights(c3, postWeights, c3->getWPostData(0, 0));
-   if (status)
-      return status;
+   status = check_connection(c3, hc);
+   FatalIf(status != PV_SUCCESS, "check_weights for %s failed.\n", c3name);
 
 #ifdef DEBUG_PRINT
    ConnectionProbe *cp = new ConnectionProbe(-1, -2, 0);
@@ -98,8 +100,32 @@ int main(int argc, char *argv[]) {
    return status;
 }
 
+static int check_connection(HyPerConn *c, HyPerCol *hc) {
+   int status = PV_SUCCESS;
+   if (status == PV_SUCCESS) {
+      status = set_weights_to_source_index(c);
+   }
+   PVPatch **postWeights;
+   if (status == PV_SUCCESS) {
+      postWeights            = c->convertPreSynapticWeights(0.0f)[0];
+      FileStream *fileStream = nullptr;
+      if (hc->columnId() == 0) {
+         std::string postWeightsPath =
+               std::string(hc->getOutputPath()) + "/" + c->getName() + "_post.pvp";
+         fileStream =
+               new FileStream(postWeightsPath.c_str(), std::ios_base::out, hc->getVerifyWrites());
+      }
+      status = c->writePostSynapticWeights(hc->simulationTime(), *fileStream);
+      delete fileStream;
+   }
+   if (status == PV_SUCCESS) {
+      status = check_weights(c, postWeights, c->getWPostData(0, 0));
+   }
+   return status;
+}
+
 static int check_weights(HyPerConn *c, PVPatch **postWeights, float *postDataStart) {
-   int status = 0;
+   int status = PV_SUCCESS;
 
    const int nxPre    = c->preSynapticLayer()->clayer->loc.nx;
    const int nyPre    = c->preSynapticLayer()->clayer->loc.ny;
@@ -146,10 +172,6 @@ static int check_weights(HyPerConn *c, PVPatch **postWeights, float *postDataSta
       int kPreHead = kIndex(
             kxPre, kyPre, kfPre, nxPre + halo->lt + halo->rt, nyPre + halo->dn + halo->up, nfPre);
 
-      // FIND OUT WHY THIS DOESN'T WORK
-      // int kPreHead = kIndex(kxPre, kyPre, kfPre, nxPre, nyPre, nfPre);
-      // kPreHead = kIndexExtended(kPreHead, nxPre, nyPre, nfPre, nPadPre);
-
       // loop over patch indices (writing out layer indices)
       //
       int kp = 0;
@@ -168,7 +190,7 @@ static int check_weights(HyPerConn *c, PVPatch **postWeights, float *postDataSta
                int kPreObserved  = (int)nearbyintf((ws - kPostObserved) / numPostPatches);
 
                if (kPre != kPreObserved || kPost != kPostObserved) {
-                  status = -1;
+                  status = PV_FAILURE;
                   ErrorLog(errorMessage);
                   errorMessage.printf(
                         "check_weights: connection %s, kPost==%d kPre==%d kp==%d, expected %d != "

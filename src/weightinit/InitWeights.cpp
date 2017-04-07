@@ -118,27 +118,22 @@ int InitWeights::initializeWeights(
       float **dataStart,
       double *timef /*default NULL*/) {
    PVParams *inputParams = callingConn->getParent()->parameters();
-   int numPatches        = callingConn->getNumDataPatches();
-   if (inputParams->present(callingConn->getName(), "initFromLastFlag")) {
-      if (callingConn->getParent()->columnId() == 0) {
-         ErrorLog().printf("%s: initFromLastFlag is obsolete.\n", callingConn->getDescription_c());
-      }
-      if (inputParams->value(callingConn->getName(), "initFromLastFlag")) {
-         if (callingConn->getParent()->columnId() == 0) {
-            ErrorLog().printf(
-                  "Instead, use weightInitType=\"FileWeight\" or set HyPerCol "
-                  "initializeFromCheckpointDir and set "
-                  "initializeFromCheckpointFlag to true\n");
-         }
-         MPI_Barrier(callingConn->getParent()->getCommunicator()->communicator());
-         exit(EXIT_FAILURE);
-      }
-   }
+   int numPatchesX       = callingConn->getNumDataPatchesX();
+   int numPatchesY       = callingConn->getNumDataPatchesY();
+   int numPatchesF       = callingConn->getNumDataPatchesF();
+   bool sharedWeights    = patches == nullptr;
    if (weightParams->getFilename() != NULL && weightParams->getFilename()[0]) {
-      readWeights(patches, dataStart, numPatches, weightParams->getFilename(), timef);
+      readWeights(
+            sharedWeights,
+            dataStart,
+            numPatchesX,
+            numPatchesY,
+            numPatchesF,
+            weightParams->getFilename(),
+            timef);
    }
    else {
-      initRNGs(patches == NULL);
+      initRNGs(sharedWeights);
       calcWeights();
    } // filename != null
    int successFlag = zeroWeightsOutsideShrunkenPatch(patches);
@@ -269,220 +264,236 @@ int InitWeights::initialize_base() {
 }
 
 int InitWeights::readWeights(
-      PVPatch ***patches,
+      bool sharedWeights,
       float **dataStart,
-      int numPatches,
+      int numPatchesX,
+      int numPatchesY,
+      int numPatchesF,
       const char *filename,
-      double *timeptr /*default=NULL*/) {
-   if (callingConn == NULL) {
+      double *timestampPtr /*default=nullptr*/) {
+   if (callingConn == nullptr) {
       callingConn = dynamic_cast<HyPerConn *>(parent->getConnFromName(name));
    }
-   Communicator *icComm     = callingConn->getParent()->getCommunicator();
-   int numArbors            = callingConn->numberOfAxonalArborLists();
-   const PVLayerLoc *preLoc = callingConn->preSynapticLayer()->getLayerLoc();
-   double timed;
-   const int nxp = callingConn->xPatchSize();
-   const int nyp = callingConn->yPatchSize();
-   const int nfp = callingConn->fPatchSize();
-   int status    = PV_SUCCESS;
+   double timestamp;
+   int status = PV_SUCCESS;
    if (weightParams->getUseListOfArborFiles()) {
-      status = this->readListOfArborFiles(patches, dataStart, numPatches, filename, timeptr);
+      this->readListOfArborFiles(
+            sharedWeights,
+            dataStart,
+            numPatchesX,
+            numPatchesY,
+            numPatchesF,
+            filename,
+            timestampPtr);
    }
    else if (weightParams->getCombineWeightFiles()) {
-      status = this->readCombinedWeightFiles(patches, dataStart, numPatches, filename, timeptr);
+      this->readCombinedWeightFiles(
+            sharedWeights,
+            dataStart,
+            numPatchesX,
+            numPatchesY,
+            numPatchesF,
+            filename,
+            timestampPtr);
    }
    else {
-      status = PV::readWeights(
-            patches,
+      readWeightPvpFile(
+            sharedWeights,
             dataStart,
-            numArbors,
-            numPatches,
-            nxp,
-            nyp,
-            nfp,
+            numPatchesX,
+            numPatchesY,
+            numPatchesF,
             filename,
-            icComm->getLocalMPIBlock(),
-            &timed,
-            preLoc);
+            callingConn->numberOfAxonalArborLists(),
+            timestampPtr);
    }
    if (status != PV_SUCCESS) {
       Fatal().printf(
-            "PV::readWeights: problem reading weight file %s for connection %s, SHUTTING DOWN\n",
+            "InitWeights::readWeights: failed to read weight file %s for connection %s.\n",
             filename,
             callingConn->getName());
    }
-   if (timeptr != NULL)
-      *timeptr = timed;
+   if (timestampPtr != nullptr) {
+      *timestampPtr = timestamp;
+   }
    return PV_SUCCESS;
 }
 
-int InitWeights::readListOfArborFiles(
-      PVPatch ***patches,
+void InitWeights::readListOfArborFiles(
+      bool sharedWeights,
       float **dataStart,
-      int numPatches,
+      int numPatchesX,
+      int numPatchesY,
+      int numPatchesF,
       const char *listOfArborsFilename,
-      double *timef) {
-   int arbor                = 0;
-   Communicator *icComm     = callingConn->getParent()->getCommunicator();
-   int numArbors            = callingConn->numberOfAxonalArborLists();
-   const PVLayerLoc *preLoc = callingConn->preSynapticLayer()->getLayerLoc();
-   double timed;
-   PV_Stream *arborstream = pvp_open_read_file(listOfArborsFilename, icComm->getLocalMPIBlock());
+      double *timestampPtr) {
+   int arbor            = 0;
+   Communicator *icComm = callingConn->getParent()->getCommunicator();
+   int numArbors        = callingConn->numberOfAxonalArborLists();
+   double timestamp;
 
+   std::ifstream *listOfArborsStream = nullptr;
    int rootproc = 0;
-   char arborfilename[PV_PATH_MAX];
+   int rank = icComm->commRank();
+   if (rank == rootproc) {
+      listOfArborsStream = new std::ifstream(listOfArborsFilename);
+      FatalIf(
+            listOfArborsStream->fail() or listOfArborsStream->bad(),
+            "Unable to open list of arbor files \"%s\": %s\n",
+            listOfArborsFilename,
+            std::strerror(errno));
+   }
    while (arbor < callingConn->numberOfAxonalArborLists()) {
-      if (icComm->commRank() == rootproc) {
-         char *fgetsstatus = fgets(arborfilename, PV_PATH_MAX, arborstream->fp);
-         if (fgetsstatus == NULL) {
-            bool endoffile = feof(arborstream->fp) != 0;
-            if (endoffile) {
-               Fatal().printf(
-                     "File of arbor files \"%s\" reached end of file before all %d arbors were "
-                     "read.  Exiting.\n",
-                     listOfArborsFilename,
-                     numArbors);
-            }
-            else {
-               int error = ferror(arborstream->fp);
-               assert(error);
-               Fatal().printf("File of arbor files: error %d while reading.  Exiting.\n", error);
-            }
-         }
-         else {
-            // Remove linefeed from end of string
-            arborfilename[PV_PATH_MAX - 1] = '\0';
-            int len                        = strlen(arborfilename);
-            if (len > 1) {
-               if (arborfilename[len - 1] == '\n') {
-                  arborfilename[len - 1] = '\0';
-               }
-            }
-         }
+      int arborsInFile;
+      std::string arborPath;
+      if (rank == rootproc) {
+         FatalIf(listOfArborsStream->eof(),
+               "File of arbor files \"%s\" ended before all %d arbors were read.\n",
+               listOfArborsFilename,
+               numArbors);
+         std::getline(*listOfArborsStream, arborPath);
+         FatalIf(listOfArborsStream->fail(),
+               "Unable to read list of arbor files \"%s\": %s\n",
+               listOfArborsFilename,
+               std::strerror(errno));
+         if (arborPath.empty()) { continue; }
+         FileStream arborFileStream(arborPath.c_str(), std::ios_base::in, false);
+         BufferUtils::WeightHeader header;
+         arborFileStream.read(&header, sizeof(header));
+         arborsInFile = header.baseHeader.nBands;
       } // commRank() == rootproc
-      int filetype, datatype;
-      int numParams = NUM_BIN_PARAMS + NUM_WGT_EXTRA_PARAMS;
-      int params[NUM_BIN_PARAMS + NUM_WGT_EXTRA_PARAMS];
-      pvp_read_header(
-            arborfilename,
-            icComm->getLocalMPIBlock(),
-            &timed,
-            &filetype,
-            &datatype,
-            params,
-            &numParams);
-      int thisfilearbors = params[INDEX_NBANDS];
-      const int nxp      = callingConn->xPatchSize();
-      const int nyp      = callingConn->yPatchSize();
-      const int nfp      = callingConn->fPatchSize();
+      MPI_Bcast(&arborsInFile, 1, MPI_INT, rootproc, icComm->getLocalMPIBlock()->getComm());
 
-      int status = PV::readWeights(
-            patches ? &patches[arbor] : NULL,
+      readWeightPvpFile(
+            sharedWeights,
             &dataStart[arbor],
-            numArbors - arbor,
-            numPatches,
-            nxp,
-            nyp,
-            nfp,
-            arborfilename,
-            icComm->getLocalMPIBlock(),
-            &timed,
-            preLoc);
-      if (status != PV_SUCCESS) {
-         Fatal().printf(
-               "PV::InitWeights::readWeights: problem reading arbor file %s, SHUTTING DOWN\n",
-               arborfilename);
-      }
-      arbor += thisfilearbors;
+            numPatchesX,
+            numPatchesY,
+            numPatchesF,
+            arborPath.c_str(),
+            arborsInFile,
+            &timestamp);
+      arbor += arborsInFile;
+      
    } // while
-   pvp_close_file(arborstream, icComm->getLocalMPIBlock());
-   return PV_SUCCESS;
+   if (rank == rootproc) {
+      delete listOfArborsStream;
+   }
+   if (timestampPtr != nullptr) {
+      *timestampPtr = timestamp;
+   }
 }
 
-int InitWeights::readCombinedWeightFiles(
-      PVPatch ***patches,
+void InitWeights::readCombinedWeightFiles(
+      bool sharedWeights,
       float **dataStart,
-      int numPatches,
+      int numPatchesX,
+      int numPatchesY,
+      int numPatchesF,
       const char *fileOfWeightFiles,
-      double *timef) {
+      double *timestampPtr) {
    Communicator *icComm     = callingConn->getParent()->getCommunicator();
    int numArbors            = callingConn->numberOfAxonalArborLists();
    const PVLayerLoc *preLoc = callingConn->preSynapticLayer()->getLayerLoc();
-   double timed;
-   int rootproc            = 0;
+   double timestamp;
    int max_weight_files    = 1; // arbitrary limit...
    int num_weight_files    = weightParams->getNumWeightFiles();
    int file_count          = 0;
-   PV_Stream *weightstream = pvp_open_read_file(fileOfWeightFiles, icComm->getLocalMPIBlock());
-   if ((weightstream == NULL) && (icComm->commRank() == rootproc)) {
-      Fatal().printf("Cannot open file of weight files \"%s\".  Exiting.\n", fileOfWeightFiles);
+
+   std::ifstream *listOfWeightFilesStream = nullptr;
+   int rootproc = 0;
+   int rank = icComm->commRank();
+   if (rank == rootproc) {
+      listOfWeightFilesStream = new std::ifstream(fileOfWeightFiles);
+      FatalIf(
+            listOfWeightFilesStream->fail() or listOfWeightFilesStream->bad(),
+            "Unable to open weight files \"%s\": %s\n",
+            fileOfWeightFiles,
+            std::strerror(errno));
+   }
+   while (file_count < num_weight_files) {
+      std::string weightFilePath;
+      if (rank == rootproc) {
+         FatalIf(listOfWeightFilesStream->eof(),
+               "File of weight files \"%s\" ended before all %d weight files were read.\n",
+               fileOfWeightFiles,
+               numArbors);
+         std::getline(*listOfWeightFilesStream, weightFilePath);
+         FatalIf(listOfWeightFilesStream->fail(),
+               "Unable to read list of weight files \"%s\": %s\n",
+               fileOfWeightFiles,
+               std::strerror(errno));
+         if (weightFilePath.empty()) { continue; }
+      } // commRank() == rootproc
+      readWeightPvpFile(
+            sharedWeights,
+            dataStart,
+            numPatchesX,
+            numPatchesY,
+            numPatchesF,
+            weightFilePath.c_str(),
+            callingConn->numberOfAxonalArborLists(),
+            &timestamp);
+      file_count++;
+   } // file_count < num_weight_files
+   if (rank == rootproc) {
+      delete listOfWeightFilesStream;
+   }
+   if (timestampPtr != nullptr) {
+      *timestampPtr = timestamp;
+   }
+}
+
+void InitWeights::readWeightPvpFile(
+      bool sharedWeights,
+      float **dataStart,
+      int numPatchesX,
+      int numPatchesY,
+      int numPatchesF,
+      const char *weightPvpFile,
+      int numArbors,
+      double *timestampPtr) {
+   double timestamp;
+   MPIBlock const *mpiBlock = callingConn->getParent()->getCommunicator()->getLocalMPIBlock();
+
+   FileStream *fileStream = nullptr;
+   if (mpiBlock->getRank() == 0) {
+      fileStream = new FileStream(weightPvpFile, std::ios_base::in, false);
    }
 
-   char weightsfilename[PV_PATH_MAX];
-   while (file_count < num_weight_files) {
-      if (icComm->commRank() == rootproc) {
-         char *fgetsstatus = fgets(weightsfilename, PV_PATH_MAX, weightstream->fp);
-         if (fgetsstatus == NULL) {
-            bool endoffile = feof(weightstream->fp) != 0;
-            if (endoffile) {
-               Fatal().printf(
-                     "File of weight files \"%s\" reached end of file before all %d weight files "
-                     "were read.  Exiting.\n",
-                     fileOfWeightFiles,
-                     num_weight_files);
-            }
-            else {
-               int error = ferror(weightstream->fp);
-               assert(error);
-               Fatal().printf("File of weight files: error %d while reading.  Exiting.\n", error);
-            }
-         }
-         else {
-            // Remove linefeed from end of string
-            weightsfilename[PV_PATH_MAX - 1] = '\0';
-            int len                          = strlen(weightsfilename);
-            if (len > 1) {
-               if (weightsfilename[len - 1] == '\n') {
-                  weightsfilename[len - 1] = '\0';
-               }
-            }
-         }
-      } // commRank() == rootproc
-      int filetype, datatype;
-      int numParams = NUM_BIN_PARAMS + NUM_WGT_EXTRA_PARAMS;
-      int params[NUM_BIN_PARAMS + NUM_WGT_EXTRA_PARAMS];
-      pvp_read_header(
-            weightsfilename,
-            icComm->getLocalMPIBlock(),
-            &timed,
-            &filetype,
-            &datatype,
-            params,
-            &numParams);
-      const int nxp = callingConn->xPatchSize();
-      const int nyp = callingConn->yPatchSize();
-      const int nfp = callingConn->fPatchSize();
-      int status    = PV::readWeights(
-            patches,
-            dataStart,
+   PVLayerLoc const *preLoc = callingConn->preSynapticLayer()->getLayerLoc();
+   if (sharedWeights) {
+      readSharedWeights(
+            fileStream,
+            mpiBlock,
+            preLoc,
+            callingConn->xPatchSize(),
+            callingConn->yPatchSize(),
+            callingConn->fPatchSize(),
             numArbors,
-            numPatches,
-            nxp,
-            nyp,
-            nfp,
-            weightsfilename,
-            icComm->getLocalMPIBlock(),
-            &timed,
-            preLoc);
-      if (status != PV_SUCCESS) {
-         Fatal().printf(
-               "PV::InitWeights::readWeights: problem reading arbor file %s, SHUTTING DOWN\n",
-               weightsfilename);
-      }
-      file_count += 1;
-   } // file_count < num_weight_files
-
-   return PV_SUCCESS;
+            dataStart,
+            numPatchesX,
+            numPatchesY,
+            numPatchesF);
+   }
+   else {
+      readNonsharedWeights(
+            fileStream,
+            mpiBlock,
+            preLoc,
+            callingConn->xPatchSize(),
+            callingConn->yPatchSize(),
+            callingConn->fPatchSize(),
+            numArbors,
+            dataStart,
+            true /*extended*/,
+            callingConn->postSynapticLayer()->getLayerLoc(),
+            mpiBlock->getStartColumn() * preLoc->nx,
+            mpiBlock->getStartRow() * preLoc->ny);
+   }
+   if (timestampPtr != nullptr) {
+      *timestampPtr = timestamp;
+   }
 }
 
 } /* namespace PV */
