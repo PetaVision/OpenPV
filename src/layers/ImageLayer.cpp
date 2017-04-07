@@ -2,16 +2,67 @@
 #include "../arch/mpi/mpi.h"
 #include "structures/Image.hpp"
 
-#include <assert.h>
+#include <algorithm>
+#include <cassert>
+#include <cstring>
 #include <iostream>
-#include <string.h>
 
 namespace PV {
 
 ImageLayer::ImageLayer(const char *name, HyPerCol *hc) { initialize(name, hc); }
 
 int ImageLayer::countInputImages() {
-   return getNumFiles();
+   // Check if the input path ends in ".txt" and enable the file list if so
+   std::string txt = ".txt";
+   if (getInputPath().size() > txt.size()
+       && getInputPath().compare(getInputPath().size() - txt.size(), txt.size(), txt) == 0) {
+      mUsingFileList = true;
+
+      // Calculate file positions for beginning of each frame
+      populateFileList();
+      InfoLog() << "File " << getInputPath() << " contains " << mFileList.size() << " frames\n";
+      return mFileList.size();
+   }
+   else {
+      mUsingFileList = false;
+      return 1;
+   }
+}
+
+std::string const &ImageLayer::getCurrentFilename(int batchElement) const {
+   if (mUsingFileList) {
+      return mFileList.at(mBatchIndexer->getIndex(batchElement));
+   }
+   else {
+      return getInputPath();
+   }
+}
+
+void ImageLayer::populateFileList() {
+   if (mMPIBlock->getRank() == 0) {
+      std::string line;
+      mFileList.clear();
+      InfoLog() << "Reading list: " << getInputPath() << "\n";
+      std::ifstream infile(getInputPath(), std::ios_base::in);
+      FatalIf(
+            infile.fail(), "Unable to open \"%s\": %s\n", getInputPath().c_str(), strerror(errno));
+      while (getline(infile, line, '\n')) {
+         std::string noWhiteSpace = line;
+         noWhiteSpace.erase(
+               std::remove_if(noWhiteSpace.begin(), noWhiteSpace.end(), ::isspace),
+               noWhiteSpace.end());
+         if (!noWhiteSpace.empty()) {
+            mFileList.push_back(noWhiteSpace);
+         }
+      }
+   }
+}
+
+Buffer<float> ImageLayer::retrieveData(int inputIndex, int batchElement) {
+   if (mUsingFileList) {
+      std::string const &filename = mFileList.at(inputIndex);
+   }
+   return retrieveData(getCurrentFilename(batchElement), batchElement);
 }
 
 Buffer<float> ImageLayer::retrieveData(std::string filename, int batchIndex) {
@@ -87,5 +138,13 @@ void ImageLayer::readImage(std::string filename) {
          usingTempFile && remove(filename.c_str()),
          "remove(\"%s\") failed.  Exiting.\n",
          filename.c_str());
+}
+
+std::string ImageLayer::describeInput(int index) {
+   std::string description("");
+   if (mUsingFileList) {
+      description = mFileList.at(index);
+   }
+   return description;
 }
 }

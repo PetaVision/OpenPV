@@ -155,14 +155,14 @@ template float ImageFromMemoryBuffer::pixelTypeConvert<unsigned char>(
       unsigned char oneval);
 
 int ImageFromMemoryBuffer::initializeActivity(double time, double dt) {
-   nextInput(time, dt);
+   retrieveInput(time, dt);
    return PV_SUCCESS;
 }
 
 int ImageFromMemoryBuffer::updateState(double time, double dt) {
    assert(hasNewImageFlag); // updateState shouldn't have been called otherwise.
    hasNewImageFlag = false;
-   nextInput(time, dt);
+   retrieveInputAndAdvanceIndex(time, dt);
    return PV_SUCCESS;
 }
 

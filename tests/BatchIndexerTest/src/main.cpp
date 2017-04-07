@@ -15,25 +15,25 @@ void testByFile() {
    // Test batchWidth == 1
 
    std::shared_ptr<BatchIndexer> batchIndexer = std::make_shared<BatchIndexer>(
-         2, // 2 Batches total
-         0, // First MPI batch
-         1, // 1 MPI batch total
+         2, // Global batch size 2
+         0, // This MPI block starts at batch element 0.
+         2, // 2 batch elements in MPI block (therefore, 1 MPI block).
          4, // 4 files to batch across
          BatchIndexer::BYFILE);
-   // This is not relevant when using BYFILE
    batchIndexer->setWrapToStartIndex(false);
    batchIndexer->initializeBatch(0);
    batchIndexer->initializeBatch(1);
 
-   // Test initial indices. The first call to nextIndex after
-   // initializeBatch just returns their initial value.
+   // Test initial indices.
    FatalIf(
-         (value = batchIndexer->nextIndex(0)) != 0,
-         "Failed. Expected 0, found %d instead.\n",
+         (value = batchIndexer->getIndex(0)) != 0,
+         "Failed. Expected %d, found %d instead.\n",
+         0,
          value);
    FatalIf(
-         (value = batchIndexer->nextIndex(1)) != 1,
-         "Failed. Expected 1, found %d instead.\n",
+         (value = batchIndexer->getIndex(1)) != 1,
+         "Failed. Expected %d, found %d instead.\n",
+         1,
          value);
 
    // Test nextIndex()
@@ -59,9 +59,9 @@ void testByFile() {
    // Test batchWidth > 1
 
    batchIndexer = std::make_shared<BatchIndexer>(
-         4, // 4 Batches total
-         1, // Second MPI batch
-         2, // 2 MPI batches total
+         4, // Global batch size 4
+         2, // This MPI block starts at batch element 2.
+         2, // 2 batch elements in MPI block (therefore, 2 MPI blocks and this is the second one)
          8, // 8 files to batch across
          BatchIndexer::BYFILE);
    batchIndexer->setWrapToStartIndex(false);
@@ -71,12 +71,12 @@ void testByFile() {
    // Test initial indices. The first call to nextIndex after
    // initializeBatch just returns their initial value.
    FatalIf(
-         (value = batchIndexer->nextIndex(0)) != 2,
-         "Failed. Expected 3, found %d instead.\n",
+         (value = batchIndexer->getIndex(0)) != 2,
+         "Failed. Expected 2, found %d instead.\n",
          value);
    FatalIf(
-         (value = batchIndexer->nextIndex(1)) != 3,
-         "Failed. Expected 4, found %d instead.\n",
+         (value = batchIndexer->getIndex(1)) != 3,
+         "Failed. Expected 3, found %d instead.\n",
          value);
 
    // Test nextIndex()
@@ -109,23 +109,22 @@ void testByList() {
    // Test batchWidth == 1
 
    std::shared_ptr<BatchIndexer> batchIndexer = std::make_shared<BatchIndexer>(
-         2, // 2 Batches total
-         0, // First MPI batch
-         1, // 1 MPI batch total
+         2, // Global batch size 2
+         0, // This MPI block starts at batch element 0.
+         2, // 2 batch elements in MPI block (therefore, 1 MPI block).
          4, // 4 files to batch across
          BatchIndexer::BYLIST);
    batchIndexer->setWrapToStartIndex(true);
    batchIndexer->initializeBatch(0);
    batchIndexer->initializeBatch(1);
 
-   // Test initial indices. The first call to nextIndex after
-   // initializeBatch just returns their initial value.
+   // Test initial indices.
    FatalIf(
-         (value = batchIndexer->nextIndex(0)) != 0,
+         (value = batchIndexer->getIndex(0)) != 0,
          "Failed. Expected 0, found %d instead.\n",
          value);
    FatalIf(
-         (value = batchIndexer->nextIndex(1)) != 2,
+         (value = batchIndexer->getIndex(1)) != 2,
          "Failed. Expected 2, found %d instead.\n",
          value);
 
@@ -176,23 +175,22 @@ void testByList() {
    // Test batchWidth > 1
 
    batchIndexer = std::make_shared<BatchIndexer>(
-         4, // 4 Batches total
-         1, // Second MPI batch (global batch indices 2 and 3)
-         2, // 2 local batches per MPI batch
+         4, // Global batch size 4
+         2, // This MPI block starts at batch element 2
+         2, // 2 batch elements in MPI block (therefore, 2 MPI blocks).
          8, // 8 files to batch across
          BatchIndexer::BYLIST);
    batchIndexer->setWrapToStartIndex(true);
    batchIndexer->initializeBatch(0);
    batchIndexer->initializeBatch(1);
 
-   // Test initial indices. The first call to nextIndex after
-   // initializeBatch just returns their initial value.
+   // Test initial indices.
    FatalIf(
-         (value = batchIndexer->nextIndex(0)) != 4,
+         (value = batchIndexer->getIndex(0)) != 4,
          "Failed. Expected 4, found %d instead.\n",
          value);
    FatalIf(
-         (value = batchIndexer->nextIndex(1)) != 6,
+         (value = batchIndexer->getIndex(1)) != 6,
          "Failed. Expected 6, found %d instead.\n",
          value);
 
@@ -247,9 +245,9 @@ void testByList() {
 void testBySpecified() {
    int value                                  = 0;
    std::shared_ptr<BatchIndexer> batchIndexer = std::make_shared<BatchIndexer>(
-         2, // 2 Batches total
-         0, // First MPI batch
-         1, // 1 MPI batch total
+         2, // Global batch size 2
+         0, // This MPI block starts at batch element 0
+         2, // 2 batch elements in MPI block (therefore, 1 MPI block)
          4, // 4 files to batch across
          BatchIndexer::BYSPECIFIED);
    batchIndexer->setWrapToStartIndex(true);
@@ -261,11 +259,11 @@ void testBySpecified() {
    // Test initial indices. The first call to nextIndex after
    // initializeBatch just returns their initial value.
    FatalIf(
-         (value = batchIndexer->nextIndex(0)) != 2,
+         (value = batchIndexer->getIndex(0)) != 2,
          "Failed. Expected 2, found %d instead.\n",
          value);
    FatalIf(
-         (value = batchIndexer->nextIndex(1)) != 0,
+         (value = batchIndexer->getIndex(1)) != 0,
          "Failed. Expected 0, found %d instead.\n",
          value);
 

@@ -7,7 +7,6 @@
 #include "columns/RandomSeed.hpp"
 #include "utils/BufferUtilsMPI.hpp"
 
-#include <algorithm>
 #include <cfloat>
 
 namespace PV {
@@ -27,41 +26,25 @@ int InputLayer::allocateDataStructures() {
       return status;
    }
 
-   int numBatch = parent->getNBatch();
-
-   if (parent->columnId() == 0) {
-
-      // Calculate file positions for beginning of each frame
-      if (mUsingFileList) {
-         populateFileList();
-         InfoLog() << "File " << mInputPath << " contains " << mFileList.size() << " frames\n";
-      }
-
-      mInputData.resize(numBatch);
-      initializeBatchIndexer();
-      mBatchIndexer->setWrapToStartIndex(mResetToStartOnLoop);
-   }
-
    return PV_SUCCESS;
 }
 
 void InputLayer::initializeBatchIndexer() {
-   int localBatchCount   = parent->getNBatch();
-   int mpiBatchIndex     = parent->commBatch();
-   int globalBatchOffset = localBatchCount * mpiBatchIndex;
-   int fileCount         = countInputImages();
-   mBatchIndexer         = std::unique_ptr<BatchIndexer>(
-         new BatchIndexer(
-               parent->getNBatchGlobal(),
-               mpiBatchIndex,
-               parent->numCommBatches(),
-               fileCount,
-               mBatchMethod));
-   for (int b = 0; b < localBatchCount; ++b) {
+   // TODO: move check of size of mStartFrameIndex and mSkipFrameIndex here.
+   pvAssert(mMPIBlock);
+   pvAssert(mMPIBlock->getRank() == 0);
+   int localBatchCount  = getLayerLoc()->nbatch;
+   int mpiBatchCount    = mMPIBlock->getBatchDimension();
+   int mpiGlobalCount   = mMPIBlock->getGlobalBatchDimension();
+   int globalBatchCount = localBatchCount * mpiGlobalCount;
+   int batchOffset      = localBatchCount * mMPIBlock->getStartBatch();
+   int blockBatchCount  = localBatchCount * mMPIBlock->getBatchDimension();
+   int fileCount        = countInputImages();
+   mBatchIndexer        = std::unique_ptr<BatchIndexer>(
+         new BatchIndexer(globalBatchCount, batchOffset, blockBatchCount, fileCount, mBatchMethod));
+   for (int b = 0; b < blockBatchCount; ++b) {
       mBatchIndexer->specifyBatching(
-            b,
-            mStartFrameIndex.at(globalBatchOffset + b),
-            mSkipFrameIndex.at(globalBatchOffset + b));
+            b, mStartFrameIndex.at(batchOffset + b), mSkipFrameIndex.at(batchOffset + b));
       mBatchIndexer->initializeBatch(b);
    }
    mBatchIndexer->setRandomSeed(RandomSeed::instance()->getInitialSeed() + mRandomSeed);
@@ -83,16 +66,12 @@ int InputLayer::updateState(double time, double dt) {
          std::ostringstream outStrStream;
          outStrStream.precision(15);
          int kb0 = getLayerLoc()->kb0;
-         for (int b = 0; b < parent->getNBatch(); ++b) {
-            if (mUsingFileList) {
-               outStrStream << "[" << getName() << "] time: " << time << ", batch: " << b + kb0
-                            << ", index: " << mBatchIndexer->getIndex(b) << ","
-                            << mFileList.at(mBatchIndexer->getIndex(b)) << "\n";
-            }
-            else {
-               outStrStream << "[" << getName() << "] time: " << time << ", batch: " << b + kb0
-                            << ", index: " << mBatchIndexer->getIndex(b) << "\n";
-            }
+         int blockBatchCount = getLayerLoc()->nbatch * mMPIBlock->getBatchDimension();
+         for (int b = 0; b < blockBatchCount; ++b) {
+            int index = mBatchIndexer->getIndex(b);
+            outStrStream << "[" << getName() << "] time: " << time << ", batch element: " << b + kb0
+                         << ", index: " << mBatchIndexer->getIndex(b) << ","
+                         << describeInput(mBatchIndexer->getIndex(b)) << "\n";
          }
          size_t len = outStrStream.str().length();
          mTimestampStream->write(outStrStream.str().c_str(), len);
@@ -100,59 +79,78 @@ int InputLayer::updateState(double time, double dt) {
       }
 
       // Read in the next file
-      nextInput(time, dt);
+      retrieveInputAndAdvanceIndex(time, dt);
    }
    return PV_SUCCESS;
 }
 
-void InputLayer::nextInput(double timef, double dt) {
-   for (int b = 0; b < parent->getNBatch(); b++) {
-      if (parent->columnId() == 0) {
-         std::string fileName = mInputPath;
-         if (mUsingFileList) {
-            fileName = mFileList.at(mBatchIndexer->nextIndex(b));
+void InputLayer::retrieveInput(double timef, double dt) {
+   int localNBatch = getLayerLoc()->nbatch;
+   for (int m = 0; m < mMPIBlock->getBatchDimension(); m++) {
+      for (int b = 0; b < localNBatch; b++) {
+         if (mMPIBlock->getRank() == 0) {
+            int blockBatchElement = b + localNBatch * m;
+            int inputIndex        = mBatchIndexer->getIndex(blockBatchElement);
+            mInputData.at(b)      = retrieveData(inputIndex, b);
+            fitBufferToLayer(mInputData.at(b));
          }
-         mInputData.at(b) = retrieveData(fileName, b);
-         fitBufferToLayer(mInputData.at(b));
+         scatterInput(b, m);
       }
-      scatterInput(b);
    }
    postProcess(timef, dt);
 }
 
-int InputLayer::scatterInput(int batchIndex) {
-   const int rank        = parent->columnId();
-   MPI_Comm mpiComm      = parent->getCommunicator()->communicator();
-   float *activityBuffer = getActivity() + batchIndex * getNumExtended();
-   const PVLayerLoc *loc = getLayerLoc();
-   const PVHalo *halo    = &loc->halo;
+// Note: we call retrieveInput and then nextIndex because we update on the
+// first timestep (even though we initialized in initializeActivity).
+// If we could skip the update on the first timestep, we could call
+// nextIndex first, and then call retrieveInput, which seems more natural.
+void InputLayer::retrieveInputAndAdvanceIndex(double timef, double dt) {
+   retrieveInput(timef, dt);
+   if (mBatchIndexer) {
+      int blockBatchCount  = getLayerLoc()->nbatch * mMPIBlock->getBatchDimension();
+      for (int b = 0; b < blockBatchCount; b++) {
+         mBatchIndexer->nextIndex(b);
+      }
+   }
+}
+
+int InputLayer::scatterInput(int localBatchIndex, int mpiBatchIndex) {
+   int const procBatchIndex = mMPIBlock->getBatchIndex();
+   if (procBatchIndex != 0 and procBatchIndex != mpiBatchIndex) {
+      return PV_SUCCESS;
+   }
+   PVLayerLoc const *loc = getLayerLoc();
+   PVHalo const *halo    = &loc->halo;
    int activityWidth, activityHeight, activityLeft, activityTop;
    if (mUseInputBCflag) {
-      activityWidth     = loc->nx + halo->lt + halo->rt;
-      activityHeight    = loc->ny + halo->up + halo->dn;
-      activityLeft      = 0;
-      activityTop       = 0;
+      activityWidth  = loc->nx + halo->lt + halo->rt;
+      activityHeight = loc->ny + halo->up + halo->dn;
+      activityLeft   = 0;
+      activityTop    = 0;
    }
    else {
-      activityWidth     = loc->nx;
-      activityHeight    = loc->ny;
-      activityLeft      = halo->lt;
-      activityTop       = halo->up;
+      activityWidth  = loc->nx;
+      activityHeight = loc->ny;
+      activityLeft   = halo->lt;
+      activityTop    = halo->up;
    }
-   Buffer<float> croppedBuffer;
+   Buffer<float> buffer;
 
-   MPIBlock const *mpiBlock = parent->getCommunicator()->getLocalMPIBlock();
-   if (rank == 0) {
-      croppedBuffer = mInputData.at(batchIndex);
+   if (mMPIBlock->getRank() == 0) {
+      buffer = mInputData.at(localBatchIndex);
    }
    else {
-      croppedBuffer.resize(activityWidth, activityHeight, loc->nf);
+      buffer.resize(activityWidth, activityHeight, loc->nf);
    }
-   BufferUtils::scatter<float>(mpiBlock, croppedBuffer, loc->nx, loc->ny, 0, 0);
+   BufferUtils::scatter<float>(mMPIBlock, buffer, loc->nx, loc->ny, mpiBatchIndex, 0);
+   if (procBatchIndex != mpiBatchIndex) {
+      return PV_SUCCESS;
+   }
 
-   // At this point, croppedBuffer has the correct data for this
-   // process, regardless of if we are root or not. Clear the current
-   // activity buffer, then copy the input data over row by row.
+   // All processes that make it to this point have the indicated MPI batch index,
+   // and buffer has the correct data for the indicated batch index.
+   // Clear the current activity for this batch element; then copy the input data over row by row.
+   float *activityBuffer = getActivity() + localBatchIndex * getNumExtended();
    for (int n = 0; n < getNumExtended(); ++n) {
       activityBuffer[n] = mPadValue;
    }
@@ -167,7 +165,7 @@ int InputLayer::scatterInput(int batchIndex) {
                   loc->nx + halo->lt + halo->rt,
                   loc->ny + halo->up + halo->dn,
                   numFeatures);
-            activityBuffer[activityIndex] = croppedBuffer.at(x, y, f);
+            activityBuffer[activityIndex] = buffer.at(x, y, f);
          }
       }
    }
@@ -176,7 +174,7 @@ int InputLayer::scatterInput(int batchIndex) {
 }
 
 void InputLayer::fitBufferToLayer(Buffer<float> &buffer) {
-   pvAssert(parent->columnId() == 0);
+   pvAssert(mMPIBlock->getRank() == 0);
    const PVLayerLoc *loc  = getLayerLoc();
    const PVHalo *halo     = &loc->halo;
    const int targetWidth  = loc->nxGlobal + (mUseInputBCflag ? (halo->lt + halo->rt) : 0);
@@ -184,7 +182,7 @@ void InputLayer::fitBufferToLayer(Buffer<float> &buffer) {
 
    FatalIf(
          buffer.getFeatures() != loc->nf,
-         "ERROR: Input for layer %s has %d features, but layer has %d\n.",
+         "ERROR: Input for layer %s has %d features, but layer has %d.\n",
          getName(),
          buffer.getFeatures(),
          loc->nf);
@@ -212,7 +210,7 @@ int InputLayer::postProcess(double timef, double dt) {
    //     if normalizeStdDev is false, then scale so that minimum is 0 and maximum is 1
    // if normalizeLuminanceFlag == true and the image in buffer is completely flat, force all values
    // to zero
-   for (int b = 0; b < parent->getNBatch(); b++) {
+   for (int b = 0; b < getLayerLoc()->nbatch; b++) {
       float *buf = getActivity() + b * numExtended;
       if (mNormalizeLuminanceFlag) {
          if (mNormalizeStdDev) {
@@ -308,7 +306,7 @@ int InputLayer::postProcess(double timef, double dt) {
 double InputLayer::getDeltaUpdateTime() { return mDisplayPeriod > 0 ? mDisplayPeriod : DBL_MAX; }
 
 int InputLayer::requireChannel(int channelNeeded, int *numChannelsResult) {
-   if (parent->columnId() == 0) {
+   if (parent->getCommunicator()->commRank() == 0) {
       ErrorLog().printf("%s cannot be a post-synaptic layer.\n", getDescription_c());
    }
    *numChannelsResult = 0;
@@ -326,38 +324,18 @@ int InputLayer::initializeV() {
 }
 
 int InputLayer::initializeActivity() {
-   if (parent->columnId() == 0) {
-
-      // We want to fill the activity buffer with the initial data without actually advancing
-      // our indices, so this is a quick hack to "rewind" after the initial nextInput()
-      std::vector<int> tempIndices = mBatchIndexer->getIndices();
-      nextInput(parent->simulationTime(), 0);
-      mBatchIndexer->setIndices(tempIndices);
+   if (mMPIBlock->getRank() == 0) {
+      // Fill the activity buffer, but don't advance the indices.
+      // (updateState advances the indices before retrieving the new data. That way,
+      // calling mBatchIndexer->getIndex gets the index corresponding to the
+      // current data.)
+      retrieveInput(parent->simulationTime(), 0);
    }
    else {
-      nextInput(parent->simulationTime(), 0);
+      retrieveInput(parent->simulationTime(), 0);
    }
 
    return PV_SUCCESS;
-}
-
-void InputLayer::populateFileList() {
-   if (mUsingFileList && parent->columnId() == 0) {
-      std::string line;
-      mFileList.clear();
-      InfoLog() << "Reading list: " << mInputPath << "\n";
-      std::ifstream infile(mInputPath, std::ios_base::in);
-      FatalIf(infile.fail(), "Unable to open \"%s\": %s\n", mInputPath.c_str(), strerror(errno));
-      while (getline(infile, line, '\n')) {
-         std::string noWhiteSpace = line;
-         noWhiteSpace.erase(
-               std::remove_if(noWhiteSpace.begin(), noWhiteSpace.end(), ::isspace),
-               noWhiteSpace.end());
-         if (!noWhiteSpace.empty()) {
-            mFileList.push_back(noWhiteSpace);
-         }
-      }
-   }
 }
 
 int InputLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -385,12 +363,14 @@ int InputLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 
 int InputLayer::registerData(Checkpointer *checkpointer, std::string const &objName) {
    int status = HyPerLayer::registerData(checkpointer, objName);
-   if (parent->getCommunicator()->commRank() == 0) {
+   if (checkpointer->getMPIBlock()->getRank() == 0) {
+      int numBatch = getLayerLoc()->nbatch;
+      mInputData.resize(numBatch);
+      initializeBatchIndexer();
+      mBatchIndexer->setWrapToStartIndex(mResetToStartOnLoop);
       mBatchIndexer->registerData(checkpointer, objName);
-   }
 
-   if (mWriteFrameToTimestamp) {
-      if (checkpointer->getMPIBlock()->getRank() == 0) {
+      if (mWriteFrameToTimestamp) {
          std::string timestampFilename = std::string("timestamps/");
          timestampFilename += name + std::string(".txt");
          std::string cpFileStreamLabel(getName());
@@ -408,9 +388,8 @@ int InputLayer::readStateFromCheckpoint(Checkpointer *checkpointer) {
    if (initializeFromCheckpointFlag) {
       int status = HyPerLayer::readStateFromCheckpoint(checkpointer);
       if (mBatchIndexer) {
-         pvAssert(parent->getCommunicator()->commRank() == 0) {
-            mBatchIndexer->readStateFromCheckpoint(checkpointer);
-         }
+         pvAssert(mMPIBlock->getRank() == 0);
+         mBatchIndexer->readStateFromCheckpoint(checkpointer);
       }
    }
    return status;
@@ -442,15 +421,6 @@ void InputLayer::ioParam_inputPath(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamStringRequired(ioFlag, name, "inputPath", &tempString);
    if (ioFlag == PARAMS_IO_READ) {
       mInputPath = std::string(tempString);
-      // Check if the input path ends in ".txt" and enable the file list if so
-      std::string txt = ".txt";
-      if (mInputPath.size() > txt.size()
-          && mInputPath.compare(mInputPath.size() - txt.size(), txt.size(), txt) == 0) {
-         mUsingFileList = true;
-      }
-      else {
-         mUsingFileList = false;
-      }
    }
    free(tempString);
 }
@@ -501,7 +471,7 @@ void InputLayer::ioParam_offsetAnchor(enum ParamsIOFlag ioFlag) {
          mAnchor = Buffer<float>::SOUTHEAST;
       }
       else {
-         if (parent->columnId() == 0) {
+         if (parent->getCommunicator()->commRank() == 0) {
             ErrorLog().printf(
                   "%s: offsetAnchor must be a two-letter string.  The first character must be "
                   "\"t\", \"c\", or \"b\" (for top, center or bottom); and the second character "
@@ -574,7 +544,7 @@ void InputLayer::ioParam_aspectRatioAdjustment(enum ParamsIOFlag ioFlag) {
          mRescaleMethod = BufferUtils::PAD;
       }
       else {
-         if (parent->columnId() == 0) {
+         if (parent->getCommunicator()->commRank() == 0) {
             ErrorLog().printf(
                   "%s: aspectRatioAdjustment must be either \"crop\" or \"pad\".\n",
                   getDescription_c());
@@ -610,7 +580,7 @@ void InputLayer::ioParam_interpolationMethod(enum ParamsIOFlag ioFlag) {
             mInterpolationMethod = BufferUtils::NEAREST;
          }
          else {
-            if (parent->columnId() == 0) {
+            if (parent->getCommunicator()->commRank() == 0) {
                ErrorLog().printf(
                      "%s: interpolationMethod must be either \"bicubic\" or \"nearestNeighbor\".\n",
                      getDescription_c());
@@ -726,11 +696,11 @@ void InputLayer::ioParam_start_frame_index(enum ParamsIOFlag ioFlag) {
    this->getParent()->parameters()->ioParamArray(
          ioFlag, this->getName(), "start_frame_index", &paramsStartFrameIndex, &length);
    FatalIf(
-         length > 0 && length != parent->getNBatchGlobal(),
+         length != 0 && length != parent->getNBatchGlobal(),
          "%s: start_frame_index requires either 0 or nbatch values.\n",
          getName());
    mStartFrameIndex.clear();
-   mStartFrameIndex.resize(length < parent->getNBatchGlobal() ? parent->getNBatchGlobal() : length);
+   mStartFrameIndex.resize(parent->getNBatchGlobal());
    if (length > 0) {
       for (int i = 0; i < length; ++i) {
          mStartFrameIndex.at(i) = paramsStartFrameIndex[i];
@@ -764,11 +734,9 @@ void InputLayer::ioParam_skip_frame_index(enum ParamsIOFlag ioFlag) {
          "%s: skip_frame_index requires nbatch values.\n",
          getName());
    mSkipFrameIndex.clear();
-   mSkipFrameIndex.resize(length < parent->getNBatchGlobal() ? parent->getNBatchGlobal() : length);
-   if (length > 0) {
-      for (int i = 0; i < length; ++i) {
-         mSkipFrameIndex.at(i) = paramsSkipFrameIndex[i];
-      }
+   mSkipFrameIndex.resize(length);
+   for (int i = 0; i < length; ++i) {
+      mSkipFrameIndex.at(i) = paramsSkipFrameIndex[i];
    }
    free(paramsSkipFrameIndex);
 }

@@ -34,7 +34,7 @@ class BatchIndexer : public CheckpointerDataInterface {
    int mGlobalBatchCount    = 0;
    int mFileCount           = 0;
    int mBatchWidth          = 0;
-   int mBatchWidthIndex     = 0;
+   int mBatchOffset         = 0;
    unsigned int mRandomSeed = 123456789;
    bool mWrapToStartIndex   = true;
    std::vector<int> mIndexLookupTable;
