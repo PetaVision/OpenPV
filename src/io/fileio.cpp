@@ -795,7 +795,7 @@ double readNonsharedWeights(
       FatalIf(
             header.baseHeader.fileType != PVP_WGT_FILE_TYPE,
             "readSharedWeights called with \"%s\", which is not a shared-weights file.\n",
-            fileStream->getFileName());
+            fileStream->getFileName().c_str());
       FatalIf(
             header.baseHeader.nBands < numArbors,
             "File \"%s\" has only %d arbors, but readSharedWeights was called with %d arbors.\n",
@@ -842,7 +842,7 @@ double readNonsharedWeights(
          offsetY < 0 or numPatchesYGlobal + offsetY > preLoc->nyGlobal + marginY + marginY,
          "File \"%s\" has nyGlobal = %d and ny = %d; "
          "inconsistent with offsetY = %d and mpiBlock->mNumRows = %d\n",
-         fileStream->getFileName(),
+         fileStream->getFileName().c_str(),
          preLoc->nyGlobal,
          preLoc->ny,
          offsetY,
