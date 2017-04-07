@@ -2186,7 +2186,7 @@ int HyPerLayer::processCheckpointRead() {
 }
 
 int HyPerLayer::writeActivitySparse(double timed) {
-   PVLayerCube cube      = publisher->createCube(0);
+   PVLayerCube cube      = publisher->createCube(0 /*delay*/);
    PVLayerLoc const *loc = getLayerLoc();
    pvAssert(cube.numItems == loc->nbatch * getNumExtended());
 
@@ -2198,13 +2198,14 @@ int HyPerLayer::writeActivitySparse(double timed) {
       pvAssert(mpiBatchIndex * loc->nbatch + localBatchIndex == frame);
 
       SparseList<float> list;
-      auto *activeIndices   = (SparseList<float>::Entry const *)cube.activeIndices;
+      auto *activeIndicesBatch   = (SparseList<float>::Entry const *)cube.activeIndices;
+      auto *activeIndicesElement = &activeIndicesBatch[localBatchIndex * getNumExtended()];
       PVLayerLoc const *loc = getLayerLoc();
       int nxExt             = loc->nx + loc->halo.lt + loc->halo.rt;
       int nyExt             = loc->ny + loc->halo.dn + loc->halo.up;
       int nf                = loc->nf;
       for (long int k = 0; k < cube.numActive[localBatchIndex]; k++) {
-         SparseList<float>::Entry entry = activeIndices[k];
+         SparseList<float>::Entry entry = activeIndicesElement[k];
          int index                      = (int)entry.index;
 
          // Location is local extended; need global restricted.
