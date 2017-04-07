@@ -267,7 +267,7 @@ int pv_getopt_str(
 
 // Unused function pv_center_image() removed Nov 16, 2016.
 
-std::string expandLeadingTilde(std::string const &path) { return path.c_str(); }
+std::string expandLeadingTilde(std::string const &path) { return expandLeadingTilde(path.c_str()); }
 
 std::string expandLeadingTilde(char const *path) {
    if (path == NULL) {
