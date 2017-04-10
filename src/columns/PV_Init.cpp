@@ -276,10 +276,6 @@ void PV_Init::freeArgs(int argc, char **argv) {
    free(argv);
 }
 
-// PV_Init::build() was marked obsolete Jul 19, 2016 and deleted Sep 27, 2016.
-// Use
-// hc=createHyPerCol(pv_init_ptr) instead of hc=pv_init_ptr->build().
-
 int PV_Init::commFinalize() {
    MPI_Finalize();
    return 0;
