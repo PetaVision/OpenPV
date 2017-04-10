@@ -166,14 +166,6 @@ void IdentConn::ioParam_combine_dW_with_W_flag(enum ParamsIOFlag ioFlag) {
    return;
 }
 
-void IdentConn::ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      keepKernelsSynchronized_flag = true;
-      parent->parameters()->handleUnnecessaryParameter(
-            name, "keepKernelsSynchronized", keepKernelsSynchronized_flag);
-   }
-}
-
 void IdentConn::ioParam_weightUpdatePeriod(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       weightUpdatePeriod = 1.0f;

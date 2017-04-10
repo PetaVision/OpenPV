@@ -193,7 +193,6 @@ int HyPerConn::initialize_base() {
    symmetrizeWeightsFlag        = false;
    patch2datalookuptable        = NULL;
    numKernelActivations         = NULL;
-   keepKernelsSynchronized_flag = false;
 
    normalizeDwFlag = true;
    useMask         = false;
@@ -548,7 +547,6 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
       normalizer->ioParamsFillGroup(ioFlag);
    }
    ioParam_dWMax(ioFlag);
-   ioParam_keepKernelsSynchronized(ioFlag);
 
    ioParam_normalizeDw(ioFlag);
    ioParam_useMask(ioFlag);
@@ -983,20 +981,6 @@ int HyPerConn::setWeightNormalizer() {
       exit(EXIT_FAILURE);
    }
    return PV_SUCCESS;
-}
-
-void HyPerConn::ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "sharedWeights"));
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
-   if (sharedWeights && plasticityFlag) {
-      parent->parameters()->ioParamValue(
-            ioFlag,
-            name,
-            "keepKernelsSynchronized",
-            &keepKernelsSynchronized_flag,
-            true /*default*/,
-            true /*warnIfAbsent*/);
-   }
 }
 
 void HyPerConn::ioParam_normalizeDw(enum ParamsIOFlag ioFlag) {

@@ -171,8 +171,6 @@ class HyPerConn : public BaseConnection {
 
    inline bool usingSharedWeights() { return sharedWeights; }
 
-   inline bool getKeepKernelsSynchronized() { return keepKernelsSynchronized_flag; }
-
    /** Actual mininum weight value */
    virtual float minWeight(int arborId = 0);
 
@@ -515,7 +513,6 @@ class HyPerConn : public BaseConnection {
 
    bool symmetrizeWeightsFlag;
    long **numKernelActivations;
-   bool keepKernelsSynchronized_flag;
    std::vector<MPI_Request> m_dWReduceRequests;
    bool mReductionPending = false;
    // mReductionPending is set by reduce_dW() and cleared by
@@ -818,12 +815,6 @@ class HyPerConn : public BaseConnection {
     * Further parameters are needed depending on initialization type.
     */
    virtual void ioParam_normalizeMethod(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief keepKernelsSynchronized: If using sharedWeights and plasticityFlag, sets if kernels
-    * should be synchronized during the run.
-    */
-   virtual void ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag);
 
    /**
     * @brief normalizeDw: Specifies if this connection is averaging gradients (true) or summing them

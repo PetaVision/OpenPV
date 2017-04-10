@@ -167,7 +167,6 @@ VaryingHyPerConn "conn no delay" = {
     shrinkPatches                       = false;
     normalizeMethod                     = "none";
     dWMax                               = 1;
-    keepKernelsSynchronized             = true;
     useMask                             = false;
     gpuGroupIdx                         = 0;
 };
@@ -212,7 +211,6 @@ VaryingHyPerConn "conn with delay" = {
     shrinkPatches                       = false;
     normalizeMethod                     = "none";
     dWMax                               = 1;
-    keepKernelsSynchronized             = true;
     useMask                             = false;
     gpuGroupIdx                         = 0;
 };

@@ -136,7 +136,6 @@ ANNLayer "outputTest" = {
 //
 //    updateGSynFromPostPerspective = false;
 //
-//    keepKernelsSynchronized             = true;
 //};
 
 HyPerConn "origConn" = {
@@ -182,7 +181,6 @@ HyPerConn "origConn" = {
 
     updateGSynFromPostPerspective = false;
 
-    keepKernelsSynchronized             = true;
 };
 
 TransposeConn "TransposeConn" = {

@@ -69,7 +69,6 @@ class CloneConn : public HyPerConn {
    ioParam_triggerFlag() { /* deprecated as of Aug 17, 2015.  See HyPerConn::ioParam_triggerFlag. */
    }
    virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) override;
-   virtual void ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag);
    virtual void ioParam_nxp(enum ParamsIOFlag ioFlag);
    virtual void ioParam_nyp(enum ParamsIOFlag ioFlag);
    virtual void ioParam_nfp(enum ParamsIOFlag ioFlag);

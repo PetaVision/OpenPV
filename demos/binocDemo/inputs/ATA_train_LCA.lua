@@ -182,7 +182,6 @@ local pvParams = {
        selfFlag = false;
        updateGSynFromPostPerspective = false;
        useWindowPost = false;
-       keepKernelsSynchronized             = true;
    };
 
    V1ToDepthGT = {
@@ -205,7 +204,6 @@ local pvParams = {
        normalizeFromPostPerspective = false;
        symmetrizeWeights = false;
        convertRateToSpikeCount = false;
-       keepKernelsSynchronized = true; 
        combine_dW_with_W_flag = false; 
        writeStep = -1;
        writeCompressedWeights = false;

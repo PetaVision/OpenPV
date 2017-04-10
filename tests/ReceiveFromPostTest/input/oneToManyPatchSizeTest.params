@@ -137,7 +137,6 @@ HyPerConn "origConn" = {
 
     updateGSynFromPostPerspective = false;
 
-    keepKernelsSynchronized             = true;
 };
 
 CloneConn "clone" = {

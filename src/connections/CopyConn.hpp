@@ -94,11 +94,6 @@ class CopyConn : public HyPerConn {
    virtual void ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief keepKernelsSynchronized is not used by CopyConn.
-    */
-   virtual void ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag);
-
-   /**
     * @brief dWMax is not used by CopyConn.
     */
    virtual void ioParam_dWMax(enum ParamsIOFlag ioFlag);

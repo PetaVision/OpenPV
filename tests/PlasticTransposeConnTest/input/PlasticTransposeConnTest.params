@@ -138,7 +138,6 @@ HyPerConn "original map" = {
     normalizeOnInitialize = true;
     normalizeOnWeightUpdate = true;
     dWMax = 0.1;
-    keepKernelsSynchronized = true;
 
     delay = 0;
 

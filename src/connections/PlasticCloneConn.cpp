@@ -110,14 +110,6 @@ void PlasticCloneConn::ioParam_dWMaxDecayFactor(enum ParamsIOFlag ioFlag) {
    // originalConn
 }
 
-void PlasticCloneConn::ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      parent->parameters()->handleUnnecessaryParameter(name, "keepKernelsSynchronized");
-   }
-   // During the communication phase, keepKernelsSynchronized will be copied
-   // from originalConn
-}
-
 void PlasticCloneConn::ioParam_normalizeDw(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       parent->parameters()->handleUnnecessaryParameter(name, "normalizeDw");
@@ -162,7 +154,6 @@ int PlasticCloneConn::cloneParameters() {
    CloneConn::cloneParameters();
 
    dWMax                        = originalConn->getDWMax();
-   keepKernelsSynchronized_flag = originalConn->getKeepKernelsSynchronized();
    normalizeDwFlag              = originalConn->getNormalizeDwFlag();
 
    return PV_SUCCESS;

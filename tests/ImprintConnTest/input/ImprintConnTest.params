@@ -156,7 +156,6 @@ ImprintConn "imprintConnection" = {
 
     updateGSynFromPostPerspective = false;
 
-    keepKernelsSynchronized             = true;
 
     imprintTimeThresh = 5;
 };

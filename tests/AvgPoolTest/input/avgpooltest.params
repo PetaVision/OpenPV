@@ -106,7 +106,6 @@ PoolingConn "input2avgPoolPre" = {
 
     updateGSynFromPostPerspective = false;
 
-    keepKernelsSynchronized             = true;
 
     needPostIndexLayer = false;
 };

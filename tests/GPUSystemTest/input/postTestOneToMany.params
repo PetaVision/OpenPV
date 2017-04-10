@@ -138,7 +138,6 @@ HyPerConn "origConn" = {
 
     updateGSynFromPostPerspective = false;
 
-    keepKernelsSynchronized             = true;
 };
 
 TransposeConn "TransposeConn" = {

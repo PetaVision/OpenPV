@@ -285,7 +285,6 @@ pv.addMultiGroups(pvParams,
       selfFlag = false;
       updateGSynFromPostPerspective = true;
       useWindowPost = false;
-      keepKernelsSynchronized = true;
    };
 } --End table constructor
 ) --End addMultiGroup function call
@@ -378,7 +377,6 @@ for i=0,numDepthBins do
       strength = 1;
       symmetrizeWeights = false;
       convertRateToSpikeCount = false;
-      keepKernelsSynchronized = true; 
       combine_dW_with_W_flag = false; 
       writeStep = -1;
       writeCompressedWeights = false;

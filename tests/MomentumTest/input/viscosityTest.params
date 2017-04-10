@@ -97,7 +97,6 @@ MomentumConn "preToPost" = {
 
     updateGSynFromPostPerspective = false;
 
-    keepKernelsSynchronized             = true;
 };
 
 StatsProbe "movieprobe" = {

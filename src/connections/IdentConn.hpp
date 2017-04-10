@@ -52,7 +52,6 @@ class IdentConn : public HyPerConn {
    virtual void ioParam_shrinkPatches(enum ParamsIOFlag ioFlag);
    virtual void ioParam_updateGSynFromPostPerspective(enum ParamsIOFlag ioFlag);
 
-   void ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag);
    void ioParam_weightUpdatePeriod(enum ParamsIOFlag ioFlag);
    void ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag);
 

@@ -153,7 +153,6 @@ HyPerConn "conn" = {
     convertRateToSpikeCount = false;
     selfFlag = false;
 
-    keepKernelsSynchronized             = true;
 
     updateGSynFromPostPerspective = false;
     receiveGpu = false;
