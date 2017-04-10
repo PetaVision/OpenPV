@@ -760,16 +760,6 @@ class HyPerConn : public BaseConnection {
    virtual void ioParam_nyp(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief nxpShrunken: Specifies a shrunken patch size (obsolete)
-    */
-   virtual void ioParam_nxpShrunken(enum ParamsIOFlag ioFlag); // Marked obsolete Jun 27, 2016
-
-   /**
-    * @brief nypShrunken: Specifies a shrunken patch size (obsolete)
-    */
-   virtual void ioParam_nypShrunken(enum ParamsIOFlag ioFlag); // Marked obsolete Jun 27, 2016
-
-   /**
     * @brief nfp: Specifies the post feature patch size
     */
    virtual void ioParam_nfp(enum ParamsIOFlag ioFlag);
