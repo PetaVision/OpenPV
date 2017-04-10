@@ -330,7 +330,6 @@ int IdentConn::deliverPresynapticPerspective(PVLayerCube const *activity, int ar
       else {
          PVLayerLoc const *loc = &activity->loc;
          PVHalo const *halo    = &loc->halo;
-         // The code below is a replacement for the block marked obsolete below it.  Jan 5, 2016
          int lineSizeExt = (loc->nx + halo->lt + halo->rt) * loc->nf;
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
@@ -344,26 +343,6 @@ int IdentConn::deliverPresynapticPerspective(PVLayerCube const *activity, int ar
                lineStartPostGSyn[k] += lineStartPreActivity[k];
             }
          }
-#ifdef OBSOLETE // Marked obsolete Jan 5, 2016.  IdentConn is simple enough that we shouldn't need
-         // to call kIndexExtended inside the inner loop.
-         int numRestricted = loc->nx * loc->ny * loc->nf;
-#ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for
-#endif
-         for (int kRestricted = 0; kRestricted < numRestricted; kRestricted++) {
-            int kExtended = kIndexExtended(
-                  kRestricted,
-                  loc->nx,
-                  loc->ny,
-                  loc->nf,
-                  loc->halo.lt,
-                  loc->halo.rt,
-                  loc->halo.dn,
-                  loc->halo.up);
-            float a = activityBatch[kExtended];
-            gSynPatchHeadBatch[kRestricted] += a;
-         }
-#endif // OBSOLETE // Marked obsolete Jan 5, 2016
       }
    }
    return PV_SUCCESS;
