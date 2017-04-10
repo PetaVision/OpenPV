@@ -437,23 +437,6 @@ void HyPerCol::ioParam_dtChangeMin(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerCol::ioParam_stopTime(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ && !mParams->present(mName, "stopTime")
-       && mParams->present(mName, "numSteps")) {
-      assert(!mParams->presentAndNotBeenRead(mName, "startTime"));
-      assert(!mParams->presentAndNotBeenRead(mName, "dt"));
-      long int numSteps = mParams->value(mName, "numSteps");
-      mStopTime         = mStartTime + numSteps * mDeltaTime;
-      if (globalRank() == 0) {
-         Fatal() << "numSteps is obsolete.  Use startTime, stopTime and dt instead.\n"
-                 << "    stopTime set to " << mStopTime << "\n";
-      }
-      MPI_Barrier(getCommunicator()->communicator());
-      exit(EXIT_FAILURE);
-   }
-   // numSteps was deprecated Dec 12, 2013 and marked obsolete Jun 27, 2016
-   // After a reasonable fade time, remove the above if-statement and keep the
-   // ioParamValue call
-   // below.
    parameters()->ioParamValue(ioFlag, mName, "stopTime", &mStopTime, mStopTime);
 }
 
