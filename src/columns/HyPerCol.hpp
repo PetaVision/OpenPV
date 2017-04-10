@@ -72,85 +72,6 @@ class HyPerCol : public Subject, Observer {
    virtual void ioParam_dt(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief dtAdaptController: Obsolete.  Adaptive timescale parameters have
-    * moved to
-    * AdaptiveTimeScaleProbe.
-    */
-   virtual void ioParam_dtAdaptController(enum ParamsIOFlag ioFlag);
-
-   /**
-     * @brief dtAdaptFlag: Obsolete.  Set the AdaptiveTimeScaleProbe
-    * useAdaptiveTimeScales parameter
-    * instead.
-     */
-   virtual void ioParam_dtAdaptFlag(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief useAdaptMethodExp1stOrder: Obsolete.  Exp1stOrder is currently the
-    * only supported
-    * adaptive timestep scheme.
-    */
-   virtual void ioParam_useAdaptMethodExp1stOrder(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief mDtAdaptTriggerLayerName: Obsolete.  This parameter is now handled
-    * by
-    * AdaptiveTimeScaleProbe.
-    */
-   virtual void ioParam_dtAdaptTriggerLayerName(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief triggerOffset: Obsolete.  This parameter is now handled by
-    * AdaptiveTimeScaleProbe.
-    */
-   virtual void ioParam_dtAdaptTriggerOffset(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief dtScaleMax: Obsolete.  This parameter is now in
-    * AdaptiveTimeScaleProbe, as baseMax.
-    */
-   virtual void ioParam_dtScaleMax(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief dtScaleMax2: Obsolete.  This parameter has been eliminated.
-    */
-   virtual void ioParam_dtScaleMax2(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief dtScaleMin: Obsolete.  This parameter is now handled by
-    * AdaptiveTimeScaleProbe, as
-    * baseMin.
-    */
-   virtual void ioParam_dtScaleMin(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief dtChangeMax: Obsolete.  This parameter is now handled by
-    * AdaptiveTimeScaleProbe, as
-    * tauFactor.
-    */
-   virtual void ioParam_dtChangeMax(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief dtChangeMin: Obsolete.  This parameter is now handled by
-    * AdaptiveTimeScaleProbe, as
-    * growthFactor.
-    */
-   virtual void ioParam_dtChangeMin(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief mDtMinToleratedTimeScale: Obsolete.  This parameter has been
-    * eliminated.
-    */
-   virtual void ioParam_dtMinToleratedTimeScale(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief writeTimeScaleFieldnames: Obsolete.  This parameter is now handled
-    * by
-    * AdaptiveTimeScaleProbe.
-    */
-   virtual void ioParam_writeTimeScaleFieldnames(enum ParamsIOFlag ioFlag);
-
-   /**
     * @brief mProgressInterval: Specifies how often a progress report prints out
     * @details Units of dt
     */
@@ -190,36 +111,6 @@ class HyPerCol : public Subject, Observer {
     * @brief ny: Specifies the batch size of the column
     */
    virtual void ioParam_nBatch(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief mFilenamesContainLayerNames: Specifies if layer names gets printed
-    * out to output
-    * connection pvp files
-    * @details Options are 0, 1, or 2.
-    * - 0: filenames have form a5.pvp
-    * - 1: filenames form a5_NameOfLayer.pvp
-    * - 2: filenames form NameOfLayer.pvp
-    */
-   virtual void ioParam_filenamesContainLayerNames(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief mFilenamesContainConnectionNames is obsolete.
-    * The file produced by outputState has the form NameOfConnection.pvp
-    */
-   virtual void ioParam_filenamesContainConnectionNames(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief checkpointRead is obsolete.  Instead use -c foo/Checkpoint100 on the
-    * command line.
-    */
-   virtual void ioParam_checkpointRead(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief writeTimescales:  Obsolete.  This parameter is now handled by
-    * AdaptiveTimeScaleProbe,
-    * as writeTimeScales.
-    */
-   virtual void ioParam_writeTimescales(enum ParamsIOFlag ioFlag);
 
    /**
     * @brief errorOnNotANumber: Specifies if the run should check on each
@@ -367,7 +258,6 @@ class HyPerCol : public Subject, Observer {
    int initialize(const char *name, PV_Init *initObj);
    int ioParams(enum ParamsIOFlag ioFlag);
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-   void paramMovedToColumnEnergyProbe(enum ParamsIOFlag ioFlag, char const *paramName);
    int checkDirExists(const char *dirname, struct stat *pathstat);
    inline void notify(std::vector<std::shared_ptr<BaseMessage const>> messages) {
       Subject::notify(mObjectHierarchy, messages, getCommunicator()->commRank() == 0 /*printFlag*/);
@@ -474,7 +364,6 @@ class HyPerCol : public Subject, Observer {
    int mNumGpuGroup;
    PVCuda::CudaDevice *mCudaDevice; // object for running kernels on OpenCL device
 #endif
-   bool mObsoleteParameterFound = false;
 
 }; // class HyPerCol
 

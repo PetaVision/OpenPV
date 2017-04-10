@@ -234,17 +234,6 @@ int HyPerCol::ioParamsStartGroup(enum ParamsIOFlag ioFlag, const char *group_nam
 int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_startTime(ioFlag);
    ioParam_dt(ioFlag);
-   ioParam_dtAdaptController(ioFlag);
-   ioParam_dtAdaptFlag(ioFlag);
-   ioParam_useAdaptMethodExp1stOrder(ioFlag);
-   ioParam_writeTimeScaleFieldnames(ioFlag);
-   ioParam_dtAdaptTriggerLayerName(ioFlag);
-   ioParam_dtAdaptTriggerOffset(ioFlag);
-   ioParam_dtScaleMax(ioFlag);
-   ioParam_dtScaleMin(ioFlag);
-   ioParam_dtChangeMax(ioFlag);
-   ioParam_dtChangeMin(ioFlag);
-   ioParam_dtMinToleratedTimeScale(ioFlag);
    ioParam_stopTime(ioFlag);
    ioParam_progressInterval(ioFlag);
    ioParam_writeProgressToErr(ioFlag);
@@ -254,26 +243,8 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_nx(ioFlag);
    ioParam_ny(ioFlag);
    ioParam_nBatch(ioFlag);
-   ioParam_filenamesContainLayerNames(ioFlag);
-   ioParam_filenamesContainConnectionNames(ioFlag);
-   ioParam_checkpointRead(ioFlag); // checkpointRead is obsolete as of June 27, 2016.
-   ioParam_writeTimescales(ioFlag);
    ioParam_errorOnNotANumber(ioFlag);
 
-   // Aug 18, 2016.  Several HyPerCol parameters have moved to
-   // AdaptiveTimeScaleProbe.
-   // The ioParam_* method for those parameters sets the mObsoleteParameterFound
-   // flag
-   // if the parameter is present in the HyPerCol group.  Exit with an error here
-   // if any of those parameters were found.
-   if (mObsoleteParameterFound) {
-      if (getCommunicator()->commRank() == 0) {
-         ErrorLog() << "Exiting due to obsolete HyPerCol parameters in the "
-                       "params file.\n";
-      }
-      MPI_Barrier(getCommunicator()->communicator());
-      exit(EXIT_FAILURE);
-   }
    return PV_SUCCESS;
 }
 
@@ -295,145 +266,6 @@ void HyPerCol::ioParam_startTime(enum ParamsIOFlag ioFlag) {
 
 void HyPerCol::ioParam_dt(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(ioFlag, mName, "dt", &mDeltaTime, mDeltaTime);
-}
-
-void HyPerCol::ioParam_dtAdaptController(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ && mParams->stringPresent(mName, "dtAdaptController")) {
-      if (columnId() == 0) {
-         ErrorLog() << "The dtAdaptController parameter is obsolete.  Use the "
-                       "AdaptiveTimeScaleProbe targetName parameter.\n";
-      }
-      mObsoleteParameterFound = true;
-   }
-}
-
-void HyPerCol::ioParam_dtAdaptFlag(enum ParamsIOFlag ioFlag) {
-   // dtAdaptFlag was deprecated Feb 1, 2016 and marked obsolete Aug 18, 2016.
-   if (ioFlag == PARAMS_IO_READ && mParams->present(mName, "dtAdaptFlag")) {
-      if (columnId() == 0) {
-         ErrorLog() << "The dtAdaptFlag parameter is obsolete.  Define an "
-                       "AdaptiveTimeScaleProbe\n";
-      }
-      mObsoleteParameterFound = true;
-   }
-}
-
-// Several HyPerCol parameters were moved to AdaptiveTimeScaleProbe and are
-// therefore obsolete as
-// HyPerCol Parameters, Aug 18, 2016.
-void HyPerCol::paramMovedToColumnEnergyProbe(enum ParamsIOFlag ioFlag, char const *paramName) {
-   if (ioFlag == PARAMS_IO_READ && mParams->present(mName, paramName)) {
-      if (columnId() == 0) {
-         ErrorLog() << "The " << paramName << " parameter is now part of AdaptiveTimeScaleProbe.\n";
-      }
-      mObsoleteParameterFound = true;
-   }
-}
-
-void HyPerCol::ioParam_writeTimescales(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ && mParams->present(mName, "dtAdaptTriggerOffset")) {
-      if (columnId() == 0) {
-         ErrorLog() << "The dtAdaptTriggerOffset parameter is obsolete.  Use the "
-                       "AdaptiveTimeScaleProbe writeTimeScales parameter (note capital "
-                       "S).\n";
-      }
-      mObsoleteParameterFound = true;
-   }
-}
-
-void HyPerCol::ioParam_writeTimeScaleFieldnames(enum ParamsIOFlag ioFlag) {
-   paramMovedToColumnEnergyProbe(ioFlag, "writeTimeScaleFieldnames");
-}
-
-void HyPerCol::ioParam_useAdaptMethodExp1stOrder(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ && mParams->present(mName, "useAdaptMethodExp1stOrder")) {
-      if (columnId() == 0) {
-         ErrorLog() << "The useAdaptMethodExp1stOrder parameter is obsolete. "
-                       " Adapting the "
-                       "timestep always uses the Exp1stOrder method.\n";
-      }
-      mObsoleteParameterFound = true;
-   }
-}
-
-void HyPerCol::ioParam_dtAdaptTriggerLayerName(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ && mParams->stringPresent(mName, "dtAdaptTriggerLayerName")) {
-      if (columnId() == 0) {
-         ErrorLog() << "The dtAdaptTriggerLayerName parameter obsolete.  Use the "
-                       "AdaptiveTimeScaleProbe triggerLayerName parameter.\n";
-      }
-      mObsoleteParameterFound = true;
-   }
-}
-
-void HyPerCol::ioParam_dtAdaptTriggerOffset(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ && mParams->present(mName, "dtAdaptTriggerOffset")) {
-      if (columnId() == 0) {
-         ErrorLog() << "The dtAdaptTriggerOffset parameter is obsolete.  Use the "
-                       "AdaptiveTimeScaleProbe triggerOffset parameter\n";
-      }
-      mObsoleteParameterFound = true;
-   }
-}
-
-void HyPerCol::ioParam_dtScaleMax(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ && mParams->present(mName, "dtScaleMax")) {
-      if (columnId() == 0) {
-         ErrorLog() << "The dtScaleMax parameter is obsolete.  Use the "
-                       "AdaptiveTimeScaleProbe "
-                       "baseMax parameter\n";
-      }
-      mObsoleteParameterFound = true;
-   }
-}
-
-void HyPerCol::ioParam_dtScaleMax2(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ && mParams->present(mName, "dtAdaptTriggerOffset")) {
-      if (columnId() == 0) {
-         ErrorLog() << "The dtScaleMax2 parameter has been removed.\n";
-      }
-      mObsoleteParameterFound = true;
-   }
-}
-
-void HyPerCol::ioParam_dtScaleMin(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ && mParams->present(mName, "dtScaleMin")) {
-      if (columnId() == 0) {
-         ErrorLog() << "The dtScaleMin parameter is obsolete.  Use the "
-                       "AdaptiveTimeScaleProbe "
-                       "baseMin parameter\n";
-      }
-      mObsoleteParameterFound = true;
-   }
-}
-
-void HyPerCol::ioParam_dtMinToleratedTimeScale(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ && mParams->present(mName, "dtScaleMin")) {
-      if (columnId() == 0) {
-         ErrorLog() << "The dtMinToleratedTimeScale parameter has been removed.\n";
-      }
-      mObsoleteParameterFound = true;
-   }
-}
-
-void HyPerCol::ioParam_dtChangeMax(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ && mParams->present(mName, "dtChangeMax")) {
-      if (columnId() == 0) {
-         ErrorLog() << "The dtChangeMax parameter is obsolete.  Use the "
-                       "AdaptiveTimeScaleProbe tauFactor parameter\n";
-      }
-      mObsoleteParameterFound = true;
-   }
-}
-
-void HyPerCol::ioParam_dtChangeMin(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ && mParams->present(mName, "dtChangeMax")) {
-      if (columnId() == 0) {
-         ErrorLog() << "The dtChangeMin parameter is obsolete.  Use the "
-                       "AdaptiveTimeScaleProbe growthFactor parameter\n";
-      }
-      mObsoleteParameterFound = true;
-   }
 }
 
 void HyPerCol::ioParam_stopTime(enum ParamsIOFlag ioFlag) {
@@ -522,58 +354,6 @@ void HyPerCol::ioParam_nBatch(enum ParamsIOFlag ioFlag) {
          mCommunicator->numCommBatches());
    mNumBatch = mNumBatchGlobal / mCommunicator->numCommBatches();
 }
-
-void HyPerCol::ioParam_filenamesContainLayerNames(enum ParamsIOFlag ioFlag) {
-   // filenamesContainConnectionNames was marked obsolete Aug 12, 2016.
-   if (parameters()->present(mName, "filenamesContainLayerNames")) {
-      double fccnValue = parameters()->value(mName, "filenamesContainLayerNames");
-      std::string msg("The HyPerCol parameter \"filenamesContainLayerNames\" is obsolete.\n");
-      msg.append("Layer output pvp files have the format \"NameOfConnection.pvp\"\n");
-      msg.append("(corresponding to filenamesContainLayerNames=2).\n");
-      if (fccnValue == 2) {
-         WarnLog() << msg;
-      }
-      else {
-         Fatal() << msg;
-      }
-   }
-}
-
-void HyPerCol::ioParam_filenamesContainConnectionNames(enum ParamsIOFlag ioFlag) {
-   // filenamesContainConnectionNames was marked obsolete Aug 12, 2016.
-   if (parameters()->present(mName, "filenamesContainConnectionNames")) {
-      double fccnValue = parameters()->value(mName, "filenamesContainConnectionNames");
-      std::string msg(
-            "The HyPerCol parameter "
-            "\"filenamesContainConnectionNames\" is obsolete.\n");
-      msg.append(
-            "Connection output pvp files have the format "
-            "\"NameOfConnection.pvp\"\n");
-      msg.append("(corresponding to filenamesContainConnectionNames=2).\n");
-      if (fccnValue == 2) {
-         WarnLog() << msg;
-      }
-      else {
-         Fatal() << msg;
-      }
-   }
-}
-
-// Error out if someone uses obsolete checkpointRead flag in params.
-// After a reasonable fade time, this function can be removed.
-void HyPerCol::ioParam_checkpointRead(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ && mParams->stringPresent(mName, "checkpointRead")) {
-      if (columnId() == 0) {
-         ErrorLog() << "The checkpointRead params file parameter is obsolete."
-                    << "  Instead, set the checkpoint directory on the command line.\n";
-      }
-      MPI_Barrier(getCommunicator()->communicator());
-      exit(EXIT_FAILURE);
-   }
-}
-
-// athresher, July 20th
-// Removed ioParam_checkpointRead(). It was marked obsolete.
 
 void HyPerCol::ioParam_errorOnNotANumber(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(
