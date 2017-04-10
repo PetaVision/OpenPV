@@ -315,7 +315,7 @@ int IdentConn::deliverPresynapticPerspective(PVLayerCube const *activity, int ar
          for (int loopIndex = 0; loopIndex < numLoop; loopIndex++) {
             int kPre = activeIndicesBatch[loopIndex].index;
 
-            float a = activeIndicesBatch[loopIndex].value; // activityBatch[kPre];
+            float a          = activeIndicesBatch[loopIndex].value; // activityBatch[kPre];
             PVPatch *weights = getWeights(kPre, arborID);
             if (weights->nx > 0 && weights->ny > 0) {
                int f = featureIndex(kPre, preLoc->nx, preLoc->ny, preLoc->nf); // Not taking halo
@@ -330,7 +330,7 @@ int IdentConn::deliverPresynapticPerspective(PVLayerCube const *activity, int ar
       else {
          PVLayerLoc const *loc = &activity->loc;
          PVHalo const *halo    = &loc->halo;
-         int lineSizeExt = (loc->nx + halo->lt + halo->rt) * loc->nf;
+         int lineSizeExt       = (loc->nx + halo->lt + halo->rt) * loc->nf;
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif

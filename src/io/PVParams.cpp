@@ -1714,8 +1714,7 @@ void PVParams::handleUnnecessaryStringParameter(const char *group_name, const ch
                group_name,
                param_name);
       }
-      const char *params_value =
-            stringValue(group_name, param_name, false /*warnIfAbsent*/);
+      const char *params_value = stringValue(group_name, param_name, false /*warnIfAbsent*/);
       // marks param as read so that presentAndNotBeenRead doesn't trip up
    }
 }
@@ -1736,8 +1735,7 @@ void PVParams::handleUnnecessaryStringParameter(
                group_name,
                param_name);
       }
-      const char *params_value =
-            stringValue(group_name, param_name, false /*warnIfAbsent*/);
+      const char *params_value = stringValue(group_name, param_name, false /*warnIfAbsent*/);
       // marks param as read so that presentAndNotBeenRead doesn't trip up
 
       // Check against correct value.

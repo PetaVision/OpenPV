@@ -188,11 +188,11 @@ int HyPerConn::initialize_base() {
    needFinalize         = true;
    needAllocPostWeights = true;
 
-   lastUpdateTime               = 0.0;
-   lastTimeUpdateCalled         = 0.0;
-   symmetrizeWeightsFlag        = false;
-   patch2datalookuptable        = NULL;
-   numKernelActivations         = NULL;
+   lastUpdateTime        = 0.0;
+   lastTimeUpdateCalled  = 0.0;
+   symmetrizeWeightsFlag = false;
+   patch2datalookuptable = NULL;
+   numKernelActivations  = NULL;
 
    normalizeDwFlag = true;
    useMask         = false;

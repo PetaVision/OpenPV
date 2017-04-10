@@ -1168,15 +1168,20 @@ int HyPerCol::getAutoGPUDevice() {
 #ifdef PV_USE_CUDA
 void HyPerCol::initializeCUDA(std::string const &in_device) {
    // Don't do anything unless some object needs CUDA.
-   bool needGPU = false;
+   bool needGPU    = false;
    auto &objectMap = mObjectHierarchy.getObjectMap();
    for (auto &obj : objectMap) {
       Observer *observer = obj.second;
-      BaseObject *object = dynamic_cast<BaseObject*>(observer);
+      BaseObject *object = dynamic_cast<BaseObject *>(observer);
       pvAssert(object); // Only addObject(BaseObject*) can change the hierarchy.
-      if (object->isUsingGPU()) { needGPU = true; break; }
+      if (object->isUsingGPU()) {
+         needGPU = true;
+         break;
+      }
    }
-   if (!needGPU) { return; }
+   if (!needGPU) {
+      return;
+   }
 
    int numMpi = mCommunicator->globalCommSize();
    int device;

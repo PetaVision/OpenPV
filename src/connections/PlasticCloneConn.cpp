@@ -153,8 +153,8 @@ int PlasticCloneConn::cloneParameters() {
    // HyPerConn::communicateInitInfo
    CloneConn::cloneParameters();
 
-   dWMax                        = originalConn->getDWMax();
-   normalizeDwFlag              = originalConn->getNormalizeDwFlag();
+   dWMax           = originalConn->getDWMax();
+   normalizeDwFlag = originalConn->getNormalizeDwFlag();
 
    return PV_SUCCESS;
 }
