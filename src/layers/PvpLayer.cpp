@@ -42,23 +42,4 @@ Buffer<float> PvpLayer::retrieveData(int inputIndex, int batchElement) {
 
    return result;
 }
-
-Buffer<float> PvpLayer::retrieveData(std::string filename, int batchIndex) {
-   int frameNumber = 0;
-
-   // If we're playing through the pvp file like a movie, use
-   // BatchIndexer to get the frame number. Otherwise, just use
-   // the start_frame_index value for this batch.
-   if (getDisplayPeriod() > 0) {
-      frameNumber = mBatchIndexer->nextIndex(batchIndex);
-   }
-   else {
-      frameNumber = getStartIndex(batchIndex);
-   }
-
-   Buffer<float> result;
-   BufferUtils::readActivityFromPvp<float>(filename.c_str(), &result, frameNumber, &sparseTable);
-
-   return result;
-}
-}
+} // end namespace PV

@@ -65,7 +65,7 @@ int InputLayer::updateState(double time, double dt) {
       if (mTimestampStream) {
          std::ostringstream outStrStream;
          outStrStream.precision(15);
-         int kb0 = getLayerLoc()->kb0;
+         int kb0             = getLayerLoc()->kb0;
          int blockBatchCount = getLayerLoc()->nbatch * mMPIBlock->getBatchDimension();
          for (int b = 0; b < blockBatchCount; ++b) {
             int index = mBatchIndexer->getIndex(b);
@@ -107,7 +107,7 @@ void InputLayer::retrieveInput(double timef, double dt) {
 void InputLayer::retrieveInputAndAdvanceIndex(double timef, double dt) {
    retrieveInput(timef, dt);
    if (mBatchIndexer) {
-      int blockBatchCount  = getLayerLoc()->nbatch * mMPIBlock->getBatchDimension();
+      int blockBatchCount = getLayerLoc()->nbatch * mMPIBlock->getBatchDimension();
       for (int b = 0; b < blockBatchCount; b++) {
          mBatchIndexer->nextIndex(b);
       }

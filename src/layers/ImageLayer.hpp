@@ -11,7 +11,6 @@ class ImageLayer : public InputLayer {
    ImageLayer() {}
    virtual int countInputImages() override;
    void populateFileList();
-   virtual Buffer<float> retrieveData(std::string filename, int batchIndex) override;
    virtual Buffer<float> retrieveData(int inputIndex, int batchElement) override;
    virtual std::string describeInput(int index) override;
    void readImage(std::string filename);

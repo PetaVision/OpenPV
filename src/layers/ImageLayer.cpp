@@ -66,11 +66,8 @@ Buffer<float> ImageLayer::retrieveData(int inputIndex, int batchElement) {
    else {
       filename = getInputPath();
    }
-   return retrieveData(filename, batchElement);
-}
-
-Buffer<float> ImageLayer::retrieveData(std::string filename, int batchIndex) {
    readImage(filename);
+
    if (mImage->getFeatures() != getLayerLoc()->nf) {
       switch (getLayerLoc()->nf) {
          case 1: // Grayscale

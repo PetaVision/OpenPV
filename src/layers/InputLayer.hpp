@@ -139,14 +139,6 @@ class InputLayer : public HyPerLayer {
    virtual int countInputImages() = 0;
 
    /**
-    * (Deprecated) This pure virtual function gets called from nextInput by the root process
-    * only. Load the input file from disk in this method.
-    * Even if there are several MPI blocks in the x- and y-directions, this
-    * method should load the entire image.
-    */
-   virtual Buffer<float> retrieveData(std::string filename, int batchIndex) = 0;
-
-   /**
     * This pure virtual function gets called by the root process during
     * initializeActivity and during updateState. It loads the entire input
     * (scattering to nonroot processes is done by the scatterInput method)
