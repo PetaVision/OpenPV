@@ -183,7 +183,6 @@ HyPerConn "V1_to_residual" = {
     normalizeArborsIndividually         = false;
     minL2NormTolerated                  = 0;
     dWMax                               = 10.0;
-    keepKernelsSynchronized             = true;
 };
 
 TransposeConn "residual_to_V1" = {

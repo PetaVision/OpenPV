@@ -126,7 +126,6 @@ HyPerConn "OriginalConn" = {
     normalizeFromPostPerspective        = false;
     minSumTolerated                     = 0;
     dWMax                               = 1;
-    keepKernelsSynchronized             = true;
     useMask                             = false;
 };
 

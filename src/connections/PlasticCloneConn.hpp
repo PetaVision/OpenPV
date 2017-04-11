@@ -73,12 +73,6 @@ class PlasticCloneConn : public CloneConn {
    virtual void ioParam_dWMaxDecayFactor(enum ParamsIOFlag ioFlag) override;
 
    /**
-    * @brief keepKernelsSynchronized: PlasticCloneConn does not do weight
-    * updates, since its weights are updated by the original conn.
-    */
-   virtual void ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag) override;
-
-   /**
     * @brief normalizeDw: PlasticCloneConn does not do weight updates,
     * since its weights are updated by the original conn.
     */

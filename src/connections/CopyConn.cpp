@@ -35,17 +35,6 @@ void CopyConn::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
    // communicateInitInfo
 }
 
-void CopyConn::ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      keepKernelsSynchronized_flag = false;
-      parent->parameters()->handleUnnecessaryParameter(name, "keepKernelsSynchronized");
-   }
-   // CopyConn doesn't use the keepKernelsSynchronized flag.
-   // It copies weights from original conn, so kernels will automatically
-   // synchronize
-   // whenever original the conn synchronizes.
-}
-
 void CopyConn::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
    // CopyConn doesn't use a weight initializer
    if (ioFlag == PARAMS_IO_READ) {

@@ -160,13 +160,6 @@ class ANNLayer : public HyPerLayer {
     */
    virtual void ioParam_VWidth(enum ParamsIOFlag ioFlag);
 
-   // Sep 21, 2016: clearGSynInterval removed.
-   /**
-    * @brief clearGSynInterval: this parameter is obsolete.  Setting the value to 0 (which was the
-    * default) produces a warning.
-    * Setting the value to a nonzero value produces an error.
-    */
-   virtual void ioParam_clearGSynInterval(enum ParamsIOFlag ioFlag);
    /** @} */
 
    /**

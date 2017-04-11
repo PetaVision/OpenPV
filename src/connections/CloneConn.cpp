@@ -131,14 +131,10 @@ void CloneConn::ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) {
    }
 }
 
-void CloneConn::ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      keepKernelsSynchronized_flag = false;
-      // CloneConns do not have to synchronize because the pointers keep them synchronized whenever
-      // the original is.
-      // We override this method because sharedWeights is not determined when this function is
-      // called.
-   }
+void CloneConn::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
+   triggerFlag      = false;
+   triggerLayerName = NULL;
+   parent->parameters()->handleUnnecessaryStringParameter(name, "triggerLayerName");
 }
 
 void CloneConn::ioParam_nxp(enum ParamsIOFlag ioFlag) {

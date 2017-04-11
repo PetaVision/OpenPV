@@ -137,7 +137,6 @@ HyPerConn "cpuConn" = {
     updateGSynFromPostPerspective = true;
     receiveGpu = false;
 
-    keepKernelsSynchronized             = true;
 };
 
 HyPerConn "gpuConn" = {
@@ -184,7 +183,6 @@ HyPerConn "gpuConn" = {
     updateGSynFromPostPerspective = true;
     receiveGpu = false;
 
-    keepKernelsSynchronized             = true;
 };
 
 IdentConn "RecvPostTest" = {

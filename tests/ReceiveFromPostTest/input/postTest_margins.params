@@ -292,7 +292,6 @@ HyPerConn "origConnPrePost" = {
 
     updateGSynFromPostPerspective = false;
 
-    keepKernelsSynchronized             = true;
 };
 
 TransposeConn "preTransposeConn" = {
@@ -364,7 +363,6 @@ HyPerConn "origConnKnown" = {
 
     updateGSynFromPostPerspective = false;
 
-    keepKernelsSynchronized             = true;
 };
 
 TransposeConn "knownTransposeConn" = {
@@ -421,7 +419,6 @@ HyPerConn "fakeConn" = {
 
     updateGSynFromPostPerspective = false;
 
-    keepKernelsSynchronized             = true;
 };
 
 IdentConn "PrePostConn1" = {

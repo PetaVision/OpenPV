@@ -102,7 +102,6 @@ PlasticTestConn "PreToPost" = {
     selfFlag = false;
     combine_dW_with_W_flag = false;
     dWMax = 1.0;
-    keepKernelsSynchronized = true;
     updateGSynFromPostPerspective = false;
 };
 

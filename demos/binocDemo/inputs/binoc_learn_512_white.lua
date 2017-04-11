@@ -59,8 +59,6 @@ local pvParams = {
       stopTime= stopTime;
       progressStep = progressStep;
       outputPath = outputPath;
-      filenamesContainLayerNames = 2;
-      filenamesContainConnectionNames = 2;
       checkpointRead = false;
       checkpointWrite = true;
       checkpointWriteDir = outputPath .. "/Checkpoints";
@@ -451,7 +449,6 @@ pv.addGroup(pvParams, "V1ToLeftError",
       normalizeFromPostPerspective = false;
       symmetrizeWeights = false;
       convertRateToSpikeCount = false;
-      keepKernelsSynchronized = true; 
       combine_dW_with_W_flag = false; 
       writeStep = -1;
       writeCompressedWeights = false;

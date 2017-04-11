@@ -17,10 +17,6 @@
 
 namespace PV {
 
-class HyPerCol; // Included only to allow obsolete (as of Jul 19, 2016)
-// HyPerCol* PV_Init::build()
-// method to print an error message.
-
 /**
  * PV_Init is an object that initializes MPI and parameters to pass to the
  * HyPerCol
@@ -235,16 +231,6 @@ class PV_Init {
     * new operator.
     */
    int registerKeyword(char const *keyword, ObjectCreateFn creator);
-
-   /**
-    * Obsolete.  Use createHyPerCol defined in HyPerCol.cpp instead.
-    */
-   HyPerCol *build() {
-      Fatal() << "PV_Init::build is obsolete.  " // marked obsolete July 19, 2016.
-              << "Use hc=createHyPerCol(pv_init_ptr) instead of "
-                 "hc=pv_init_ptr->build()\n";
-      return nullptr;
-   }
 
   private:
    int initSignalHandler();

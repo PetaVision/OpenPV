@@ -160,7 +160,6 @@ PoolingConn "input2sumPoolPre" = {
 
     updateGSynFromPostPerspective = false;
 
-    keepKernelsSynchronized             = true;
 };
 
 PoolingConn "input2sumPoolPost" = {

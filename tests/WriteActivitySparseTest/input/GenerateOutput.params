@@ -105,7 +105,6 @@ HyPerConn "InputToOutput" = {
     shrinkPatches                       = false;
     normalizeMethod                     = "none";
     dWMax                               = 1;
-    keepKernelsSynchronized             = true;
     useMask                             = false;
     gpuGroupIdx                         = 0;
 };

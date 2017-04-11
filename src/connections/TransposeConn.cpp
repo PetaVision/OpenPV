@@ -134,14 +134,6 @@ void TransposeConn::ioParam_dWMax(enum ParamsIOFlag ioFlag) {
    }
 }
 
-void TransposeConn::ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      keepKernelsSynchronized_flag = false;
-      parent->parameters()->handleUnnecessaryParameter(
-            name, "keepKernelsSynchronized", keepKernelsSynchronized_flag);
-   }
-}
-
 void TransposeConn::ioParam_weightUpdatePeriod(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       weightUpdatePeriod = parent->getDeltaTime();

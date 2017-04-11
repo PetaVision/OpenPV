@@ -188,12 +188,11 @@ int HyPerConn::initialize_base() {
    needFinalize         = true;
    needAllocPostWeights = true;
 
-   lastUpdateTime               = 0.0;
-   lastTimeUpdateCalled         = 0.0;
-   symmetrizeWeightsFlag        = false;
-   patch2datalookuptable        = NULL;
-   numKernelActivations         = NULL;
-   keepKernelsSynchronized_flag = false;
+   lastUpdateTime        = 0.0;
+   lastTimeUpdateCalled  = 0.0;
+   symmetrizeWeightsFlag = false;
+   patch2datalookuptable = NULL;
+   numKernelActivations  = NULL;
 
    normalizeDwFlag = true;
    useMask         = false;
@@ -539,8 +538,6 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_combine_dW_with_W_flag(ioFlag);
    ioParam_nxp(ioFlag);
    ioParam_nyp(ioFlag);
-   ioParam_nxpShrunken(ioFlag);
-   ioParam_nypShrunken(ioFlag);
    ioParam_nfp(ioFlag);
    ioParam_shrinkPatches(ioFlag);
    ioParam_normalizeMethod(ioFlag);
@@ -548,7 +545,6 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
       normalizer->ioParamsFillGroup(ioFlag);
    }
    ioParam_dWMax(ioFlag);
-   ioParam_keepKernelsSynchronized(ioFlag);
 
    ioParam_normalizeDw(ioFlag);
    ioParam_useMask(ioFlag);
@@ -848,46 +844,6 @@ void HyPerConn::ioParam_nyp(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValue(ioFlag, name, "nyp", &nyp, 1);
 }
 
-// nxpShrunken and nypShrunken were deprecated Feb 2, 2015 and marked obsolete Jun 27, 2016
-void HyPerConn::ioParam_nxpShrunken(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "nxp"));
-   if (ioFlag == PARAMS_IO_READ) {
-      if (parent->parameters()->present(name, "nxpShrunken")) {
-         int nxpShrunken;
-         parent->parameters()->ioParamValue(ioFlag, name, "nxpShrunken", &nxpShrunken, nxp);
-         if (parent->columnId() == 0) {
-            Fatal().printf(
-                  "%s: nxpShrunken is obsolete, as nxp can now take any of the values nxpShrunken "
-                  "could take before.  nxp will be set to %d and nxpShrunken will not be used.",
-                  getDescription_c(),
-                  nxp);
-            MPI_Barrier(parent->getCommunicator()->communicator());
-            exit(EXIT_FAILURE);
-         }
-      }
-   }
-}
-
-void HyPerConn::ioParam_nypShrunken(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "nyp"));
-   if (ioFlag == PARAMS_IO_READ) {
-      if (parent->parameters()->present(name, "nypShrunken")) {
-         int nypShrunken;
-         parent->parameters()->ioParamValue(ioFlag, name, "nypShrunken", &nypShrunken, nyp);
-         if (parent->columnId() == 0) {
-            WarnLog().printf(
-                  "%s: nypShrunken is deprecated, as nyp can now take any of the values "
-                  "nypShrunken could take before.  nyp will be set to %d and nypShrunken will not "
-                  "be used.",
-                  getDescription_c(),
-                  nyp);
-         }
-         MPI_Barrier(parent->getCommunicator()->communicator());
-         exit(EXIT_FAILURE);
-      }
-   }
-}
-
 void HyPerConn::ioParam_nfp(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValue(ioFlag, name, "nfp", &nfp, -1, false);
    if (ioFlag == PARAMS_IO_READ && nfp == -1 && !parent->parameters()->present(name, "nfp")
@@ -983,20 +939,6 @@ int HyPerConn::setWeightNormalizer() {
       exit(EXIT_FAILURE);
    }
    return PV_SUCCESS;
-}
-
-void HyPerConn::ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "sharedWeights"));
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
-   if (sharedWeights && plasticityFlag) {
-      parent->parameters()->ioParamValue(
-            ioFlag,
-            name,
-            "keepKernelsSynchronized",
-            &keepKernelsSynchronized_flag,
-            true /*default*/,
-            true /*warnIfAbsent*/);
-   }
 }
 
 void HyPerConn::ioParam_normalizeDw(enum ParamsIOFlag ioFlag) {

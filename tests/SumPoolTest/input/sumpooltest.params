@@ -107,7 +107,6 @@ PoolingConn "input2sumPoolPre" = {
 
     updateGSynFromPostPerspective = false;
 
-    keepKernelsSynchronized             = true;
 
     needPostIndexLayer = false;
 };

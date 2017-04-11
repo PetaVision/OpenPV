@@ -156,55 +156,11 @@ void Retina::ioParam_spikingFlag(enum ParamsIOFlag ioFlag) {
 
 void Retina::ioParam_foregroundRate(enum ParamsIOFlag ioFlag) {
    PVParams *params = parent->parameters();
-   if (ioFlag == PARAMS_IO_READ && !params->present(name, "foregroundRate")) {
-      if (params->present(name, "noiseOnFreq")) {
-         probStimParam = params->value(name, "noiseOnFreq");
-         if (parent->columnId() == 0) {
-            Fatal().printf("noiseOnFreq is obsolete.  Use foregroundRate instead.\n");
-         }
-         MPI_Barrier(parent->getCommunicator()->communicator());
-         exit(EXIT_FAILURE);
-      }
-      if (params->present(name, "poissonEdgeProb")) {
-         probStimParam = params->value(name, "poissonEdgeProb");
-         if (parent->columnId() == 0) {
-            Fatal().printf("poissonEdgeProb is deprecated.  Use foregroundRate instead.\n");
-         }
-         MPI_Barrier(parent->getCommunicator()->communicator());
-         exit(EXIT_FAILURE);
-      }
-   }
-   // noiseOnFreq and poissonEdgeProb were deprecated Jan 24, 2013 and marked obsolete Jun 27, 2016.
-   // After a reasonable fade time, remove the above if-statement and keep the ioParamValue call
-   // below.
    parent->parameters()->ioParamValue(ioFlag, name, "foregroundRate", &probStimParam, 1.0f);
 }
 
 void Retina::ioParam_backgroundRate(enum ParamsIOFlag ioFlag) {
    PVParams *params = parent->parameters();
-   if (ioFlag == PARAMS_IO_READ && !params->present(name, "backgroundRate")) {
-      if (params->present(name, "noiseOffFreq")) {
-         probBaseParam = params->value(name, "noiseOffFreq");
-         if (parent->columnId() == 0) {
-            WarnLog().printf("noiseOffFreq is deprecated.  Use backgroundRate instead.\n");
-         }
-         MPI_Barrier(parent->getCommunicator()->communicator());
-         exit(EXIT_FAILURE);
-      }
-      if (params->present(name, "poissonBlankProb")) {
-         probBaseParam = params->value(name, "poissonBlankProb");
-         if (parent->columnId() == 0) {
-            WarnLog().printf("poissonEdgeProb is deprecated.  Use backgroundRate instead.\n");
-         }
-         MPI_Barrier(parent->getCommunicator()->communicator());
-         exit(EXIT_FAILURE);
-      }
-   }
-   // noiseOffFreq and poissonBlankProb was deprecated Jan 24, 2013 and marked obsolete Jun 27,
-   // 2016.
-   // After a reasonable fade time, remove the above if-statement and keep the ioParamValue call
-   // below
-   // and the sanity check following it.
    parent->parameters()->ioParamValue(ioFlag, name, "backgroundRate", &probBaseParam, 0.0f);
    if (ioFlag == PARAMS_IO_READ) {
       assert(!parent->parameters()->presentAndNotBeenRead(name, "foregroundRate"));

@@ -115,7 +115,6 @@ HyPerConn "InputToOutput" = {
     shrinkPatches                       = false;
     normalizeMethod                     = "none";
     dWMax                               = 1;
-    keepKernelsSynchronized             = true;
     normalizeDw                         = true;
     useMask                             = false;
     dWMaxDecayInterval                  = 0;

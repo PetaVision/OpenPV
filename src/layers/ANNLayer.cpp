@@ -211,31 +211,6 @@ void ANNLayer::ioParam_VWidth(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValue(ioFlag, name, "VWidth", &VWidth, VWidth);
 }
 
-// clearGSynInterval parameter was made obsolete Sep 21, 2016.
-void ANNLayer::ioParam_clearGSynInterval(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ && parent->parameters()->present(name, "clearGSynInterval")) {
-      double clearGSynInterval;
-      parent->parameters()->ioParamValueRequired(
-            ioFlag, name, "clearGSynInterval", &clearGSynInterval);
-      if (clearGSynInterval) {
-         if (parent->getCommunicator()->commRank() == 0) {
-            ErrorLog() << getDescription() << ": the clearGSynInterval parameter is obsolete. "
-                                              " Value 0 specified in params file will be "
-                                              "ignored.\n";
-         }
-         MPI_Barrier(parent->getCommunicator()->communicator());
-         exit(EXIT_FAILURE);
-      }
-      else {
-         if (parent->getCommunicator()->commRank() == 0) {
-            WarnLog() << getDescription() << ": the clearGSynInterval parameter is obsolete.  "
-                                             "Nonzero values of clearGSynInterval must be "
-                                             "removed.\n";
-         }
-      }
-   }
-}
-
 int ANNLayer::setVertices() {
    pvAssert(!layerListsVerticesInParams());
    if (VWidth < 0) {

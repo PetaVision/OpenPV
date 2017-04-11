@@ -246,7 +246,6 @@ PoolingConn "input2maxPoolPre" = {
 
     updateGSynFromPostPerspective = false;
 
-    keepKernelsSynchronized             = true;
 };
 
 PoolingConn "input2maxPoolPost" = {
@@ -278,7 +277,6 @@ PoolingConn "input2maxPoolPost" = {
 
     updateGSynFromPostPerspective = true;
 
-    keepKernelsSynchronized             = true;
 };
 
 TransposePoolingConn "maxPoolPreToGatedMaxPoolPre" = {

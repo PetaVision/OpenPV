@@ -166,14 +166,6 @@ void IdentConn::ioParam_combine_dW_with_W_flag(enum ParamsIOFlag ioFlag) {
    return;
 }
 
-void IdentConn::ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      keepKernelsSynchronized_flag = true;
-      parent->parameters()->handleUnnecessaryParameter(
-            name, "keepKernelsSynchronized", keepKernelsSynchronized_flag);
-   }
-}
-
 void IdentConn::ioParam_weightUpdatePeriod(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       weightUpdatePeriod = 1.0f;
@@ -323,7 +315,7 @@ int IdentConn::deliverPresynapticPerspective(PVLayerCube const *activity, int ar
          for (int loopIndex = 0; loopIndex < numLoop; loopIndex++) {
             int kPre = activeIndicesBatch[loopIndex].index;
 
-            float a = activeIndicesBatch[loopIndex].value; // activityBatch[kPre];
+            float a          = activeIndicesBatch[loopIndex].value; // activityBatch[kPre];
             PVPatch *weights = getWeights(kPre, arborID);
             if (weights->nx > 0 && weights->ny > 0) {
                int f = featureIndex(kPre, preLoc->nx, preLoc->ny, preLoc->nf); // Not taking halo
@@ -338,8 +330,7 @@ int IdentConn::deliverPresynapticPerspective(PVLayerCube const *activity, int ar
       else {
          PVLayerLoc const *loc = &activity->loc;
          PVHalo const *halo    = &loc->halo;
-         // The code below is a replacement for the block marked obsolete below it.  Jan 5, 2016
-         int lineSizeExt = (loc->nx + halo->lt + halo->rt) * loc->nf;
+         int lineSizeExt       = (loc->nx + halo->lt + halo->rt) * loc->nf;
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
@@ -352,26 +343,6 @@ int IdentConn::deliverPresynapticPerspective(PVLayerCube const *activity, int ar
                lineStartPostGSyn[k] += lineStartPreActivity[k];
             }
          }
-#ifdef OBSOLETE // Marked obsolete Jan 5, 2016.  IdentConn is simple enough that we shouldn't need
-         // to call kIndexExtended inside the inner loop.
-         int numRestricted = loc->nx * loc->ny * loc->nf;
-#ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for
-#endif
-         for (int kRestricted = 0; kRestricted < numRestricted; kRestricted++) {
-            int kExtended = kIndexExtended(
-                  kRestricted,
-                  loc->nx,
-                  loc->ny,
-                  loc->nf,
-                  loc->halo.lt,
-                  loc->halo.rt,
-                  loc->halo.dn,
-                  loc->halo.up);
-            float a = activityBatch[kExtended];
-            gSynPatchHeadBatch[kRestricted] += a;
-         }
-#endif // OBSOLETE // Marked obsolete Jan 5, 2016
       }
    }
    return PV_SUCCESS;

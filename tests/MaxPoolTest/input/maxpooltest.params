@@ -113,7 +113,6 @@ PoolingConn "input2maxPoolPre" = {
 
     updateGSynFromPostPerspective = false;
 
-    keepKernelsSynchronized             = true;
 };
 
 PoolingConn "input2maxPoolPost" = {
