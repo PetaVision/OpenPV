@@ -59,10 +59,14 @@ void ImageLayer::populateFileList() {
 }
 
 Buffer<float> ImageLayer::retrieveData(int inputIndex, int batchElement) {
+   std::string filename;
    if (mUsingFileList) {
-      std::string const &filename = mFileList.at(inputIndex);
+      filename = mFileList.at(inputIndex);
    }
-   return retrieveData(getCurrentFilename(batchElement), batchElement);
+   else {
+      filename = getInputPath();
+   }
+   return retrieveData(filename, batchElement);
 }
 
 Buffer<float> ImageLayer::retrieveData(std::string filename, int batchIndex) {
