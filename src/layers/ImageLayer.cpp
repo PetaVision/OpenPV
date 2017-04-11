@@ -29,15 +29,6 @@ int ImageLayer::countInputImages() {
    }
 }
 
-std::string const &ImageLayer::getCurrentFilename(int batchElement) const {
-   if (mUsingFileList) {
-      return mFileList.at(mBatchIndexer->getIndex(batchElement));
-   }
-   else {
-      return getInputPath();
-   }
-}
-
 void ImageLayer::populateFileList() {
    if (mMPIBlock->getRank() == 0) {
       std::string line;
@@ -59,14 +50,15 @@ void ImageLayer::populateFileList() {
 }
 
 Buffer<float> ImageLayer::retrieveData(int inputIndex, int batchElement) {
+   std::string filename;
    if (mUsingFileList) {
-      std::string const &filename = mFileList.at(inputIndex);
+      filename = mFileList.at(inputIndex);
    }
-   return retrieveData(getCurrentFilename(batchElement), batchElement);
-}
-
-Buffer<float> ImageLayer::retrieveData(std::string filename, int batchIndex) {
+   else {
+      filename = getInputPath();
+   }
    readImage(filename);
+
    if (mImage->getFeatures() != getLayerLoc()->nf) {
       switch (getLayerLoc()->nf) {
          case 1: // Grayscale

@@ -11,7 +11,6 @@ class ImageLayer : public InputLayer {
    ImageLayer() {}
    virtual int countInputImages() override;
    void populateFileList();
-   virtual Buffer<float> retrieveData(std::string filename, int batchIndex) override;
    virtual Buffer<float> retrieveData(int inputIndex, int batchElement) override;
    virtual std::string describeInput(int index) override;
    void readImage(std::string filename);
@@ -19,7 +18,6 @@ class ImageLayer : public InputLayer {
   public:
    ImageLayer(const char *name, HyPerCol *hc);
    virtual ~ImageLayer() {}
-   virtual std::string const &getCurrentFilename(int batchElement) const override;
 
   protected:
    std::unique_ptr<Image> mImage = nullptr;

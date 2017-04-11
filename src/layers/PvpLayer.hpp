@@ -11,7 +11,6 @@ class PvpLayer : public InputLayer {
   protected:
    PvpLayer() {}
    virtual int countInputImages() override;
-   virtual Buffer<float> retrieveData(std::string filename, int batchIndex) override;
    virtual Buffer<float> retrieveData(int inputIndex, int batchIndex) override;
 
   public:

@@ -65,7 +65,7 @@ int InputLayer::updateState(double time, double dt) {
       if (mTimestampStream) {
          std::ostringstream outStrStream;
          outStrStream.precision(15);
-         int kb0 = getLayerLoc()->kb0;
+         int kb0             = getLayerLoc()->kb0;
          int blockBatchCount = getLayerLoc()->nbatch * mMPIBlock->getBatchDimension();
          for (int b = 0; b < blockBatchCount; ++b) {
             int index = mBatchIndexer->getIndex(b);
@@ -107,7 +107,7 @@ void InputLayer::retrieveInput(double timef, double dt) {
 void InputLayer::retrieveInputAndAdvanceIndex(double timef, double dt) {
    retrieveInput(timef, dt);
    if (mBatchIndexer) {
-      int blockBatchCount  = getLayerLoc()->nbatch * mMPIBlock->getBatchDimension();
+      int blockBatchCount = getLayerLoc()->nbatch * mMPIBlock->getBatchDimension();
       for (int b = 0; b < blockBatchCount; b++) {
          mBatchIndexer->nextIndex(b);
       }
@@ -324,17 +324,7 @@ int InputLayer::initializeV() {
 }
 
 int InputLayer::initializeActivity() {
-   if (mMPIBlock->getRank() == 0) {
-      // Fill the activity buffer, but don't advance the indices.
-      // (updateState advances the indices before retrieving the new data. That way,
-      // calling mBatchIndexer->getIndex gets the index corresponding to the
-      // current data.)
-      retrieveInput(parent->simulationTime(), 0);
-   }
-   else {
-      retrieveInput(parent->simulationTime(), 0);
-   }
-
+   retrieveInput(parent->simulationTime(), 0);
    return PV_SUCCESS;
 }
 
