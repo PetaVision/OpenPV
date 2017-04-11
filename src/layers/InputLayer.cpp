@@ -324,17 +324,7 @@ int InputLayer::initializeV() {
 }
 
 int InputLayer::initializeActivity() {
-   if (mMPIBlock->getRank() == 0) {
-      // Fill the activity buffer, but don't advance the indices.
-      // (updateState advances the indices before retrieving the new data. That way,
-      // calling mBatchIndexer->getIndex gets the index corresponding to the
-      // current data.)
-      retrieveInput(parent->simulationTime(), 0);
-   }
-   else {
-      retrieveInput(parent->simulationTime(), 0);
-   }
-
+   retrieveInput(parent->simulationTime(), 0);
    return PV_SUCCESS;
 }
 
