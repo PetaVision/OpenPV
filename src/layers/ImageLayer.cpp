@@ -29,15 +29,6 @@ int ImageLayer::countInputImages() {
    }
 }
 
-std::string const &ImageLayer::getCurrentFilename(int batchElement) const {
-   if (mUsingFileList) {
-      return mFileList.at(mBatchIndexer->getIndex(batchElement));
-   }
-   else {
-      return getInputPath();
-   }
-}
-
 void ImageLayer::populateFileList() {
    if (mMPIBlock->getRank() == 0) {
       std::string line;
