@@ -62,7 +62,7 @@ int main(int argc, char *argv[]) {
    int numItems = (2 * nxBorder + loc.nx) * (2 * nyBorder + loc.ny);
 
    // create a local portion of the "image"
-   float *image = new float[numItems];
+   float *image = new float[numItems]();
 
    int k0 = columnIndex * loc.nx + rowIndex * loc.ny * loc.nxGlobal;
    int sy = 2 * nxBorder + loc.nx;
