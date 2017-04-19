@@ -263,10 +263,6 @@ class InputLayer : public HyPerLayer {
    std::vector<int> mSkipFrameIndex;
 };
 
-class BaseInputDeprecatedError : public BaseObject {
-  public:
-   BaseInputDeprecatedError(const char *name, HyPerCol *hc);
-};
-}
+} // end namespace PV
 
 #endif

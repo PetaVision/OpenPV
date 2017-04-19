@@ -753,26 +753,4 @@ void InputLayer::ioParam_writeFrameToTimestamp(enum ParamsIOFlag ioFlag) {
    }
 }
 
-BaseInputDeprecatedError::BaseInputDeprecatedError(const char *name, HyPerCol *hc) {
-   Fatal() << "Movie, Image, MoviePvp, and ImagePvp are deprecated.\n"
-           << "Use ImageLayer or PvpLayer instead. These replacements\n"
-           << "accept the same parameters with the following changes:\n"
-           << "  - ImageLayer assumes any inputPath ending in .txt is\n"
-           << "    a Movie, and behaves accordingly. Set displayPeriod\n"
-           << "    to 0 to display a single image within a file list.\n"
-           << "    If inputPath ends in .png, .jpg, or .bmp, the layer\n"
-           << "    displays a single Image.\n"
-           << "  - PvpLayer no longer has the parameter pvpFrameIndex.\n"
-           << "    Instead, use start_frame_index to specify which\n"
-           << "    index to display. If displayPeriod != 0, PvpLayer\n"
-           << "    behaves like a MoviePvp instead of an ImagePvp.\n"
-           << "  - Jitter has been removed. Parameters related to it\n"
-           << "    will be ignored.\n"
-           << "  - useImageBCflag is now useInputBCflag.\n"
-           << "  - batchMethod now expects byFile or byList instead of\n"
-           << "    byImage or byMovie. bySpecified has not changed.\n"
-           << "  - FilenameParsingGroundTruthLayer now acceps a param\n"
-           << "    called inputLayerName instead of movieLayerName.\n";
-}
-
 } // end namespace PV
