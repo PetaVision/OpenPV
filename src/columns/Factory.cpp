@@ -111,11 +111,6 @@ Factory::Factory() { registerCoreKeywords(); }
 int Factory::registerCoreKeywords() {
    keywordHandlerList = std::vector<KeywordHandler *>();
 
-   registerKeyword("Image", Factory::create<BaseInputDeprecatedError>);
-   registerKeyword("Movie", Factory::create<BaseInputDeprecatedError>);
-   registerKeyword("ImagePvp", Factory::create<BaseInputDeprecatedError>);
-   registerKeyword("MoviePvp", Factory::create<BaseInputDeprecatedError>);
-
    registerKeyword("ANNErrorLayer", Factory::create<ANNErrorLayer>);
    registerKeyword("ANNLayer", Factory::create<ANNLayer>);
    registerKeyword("ANNSquaredLayer", Factory::create<ANNSquaredLayer>);
