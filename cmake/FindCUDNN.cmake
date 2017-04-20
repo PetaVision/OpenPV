@@ -31,28 +31,6 @@ foreach(PATH_HINT ${CUDNN_PATH})
   endif()
 endforeach()
 
-if (APPLE)
-  list(APPEND CUDNN_HEADER_SEARCH_PATHS /usr/local/cudnn-7.0/include)
-  list(APPEND CUDNN_HEADER_SEARCH_PATHS /usr/local/cudnn-6.5/include)
-
-  list(APPEND CUDNN_LIBRARY_SEARCH_PATHS /usr/local/cudnn-7.0/lib)
-  list(APPEND CUDNN_LIBRARY_SEARCH_PATHS /usr/local/cudnn-7.0/lib64)
-  list(APPEND CUDNN_LIBRARY_SEARCH_PATHS /usr/local/cudnn-6.5/lib)
-  list(APPEND CUDNN_LIBRARY_SEARCH_PATHS /usr/local/cudnn-6.5/lib64)
-
-else()
-  list(APPEND CUDNN_HEADER_SEARCH_PATHS /nh/compneuro/Data/cuDNN/cudnn-7.0-linux-x64-v4/include)
-  list(APPEND CUDNN_HEADER_SEARCH_PATHS /nh/compneuro/Data/cuDNN/cudnn-7.0-linux-x64-v3/include)
-  list(APPEND CUDNN_HEADER_SEARCH_PATHS /nh/compneuro/Data/cuDNN/cudnn-6.5-linux-x64-R2-rc1/include)
-
-  list(APPEND CUDNN_LIBRARY_SEARCH_PATHS /nh/compneuro/Data/cuDNN/cudnn-7.0-linux-x64-v4/lib)
-  list(APPEND CUDNN_LIBRARY_SEARCH_PATHS /nh/compneuro/Data/cuDNN/cudnn-7.0-linux-x64-v4/lib64)
-  list(APPEND CUDNN_LIBRARY_SEARCH_PATHS /nh/compneuro/Data/cuDNN/cudnn-7.0-linux-x64-v3/lib)
-  list(APPEND CUDNN_LIBRARY_SEARCH_PATHS /nh/compneuro/Data/cuDNN/cudnn-7.0-linux-x64-v3/lib64)
-  list(APPEND CUDNN_LIBRARY_SEARCH_PATHS /nh/compneuro/Data/cuDNN/cudnn-6.5-linux-x64-R2-rc1/lib)
-  list(APPEND CUDNN_LIBRARY_SEARCH_PATHS /nh/compneuro/Data/cuDNN/cudnn-6.5-linux-x64-R2-rc1/lib64)
-endif()
-
 find_path(CUDNN_INCLUDE_DIR
   NAMES cudnn.h
   PATHS ${CUDNN_HEADER_SEARCH_PATHS}

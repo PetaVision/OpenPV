@@ -46,8 +46,7 @@ macro(pv_config_project)
   set(CUDA_DEBUG_FLAGS "${CUDA_BASE_FLAGS};-Xptxas;-v;-keep;-lineinfo;-g;-G")
   
   # CUDNN path hints
-  set(APPLE_CUDNN_PATH_HINT "/usr/local/cudnn-7.0" "/usr/local/cudnn")
-  set(LINUX_CUDNN_PATH_HINT "/nh/compneuro/Data/cuDNN/cudnn-7.0-linux-x64-v4/" "/cuDNN/cudnn-7.0-linux-x64-v4" "/usr/local/cudnn")
+  set(CUDNN_PATH_HINT "/usr/local/cudnn")
   
   # Help strings
   set(PV_DIR_HELP "The core PetaVision directory")
@@ -223,11 +222,7 @@ macro(pv_config_project)
       message(WARNING "-- CUDA cannot be used with the default Xcode compiler. Disabling CUDA build")
       set(PV_USE_CUDA OFF)
     else()
-      if(APPLE)
-        set(CUDNN_PATH ${APPLE_CUDNN_PATH_HINT} CACHE PATH "${PV_CUDNN_PATH_HELP}")
-      else()
-        set(CUDNN_PATH ${LINUX_CUDNN_PATH_HINT} CACHE PATH "${PV_CUDNN_PATH_HELP}")
-      endif()
+      set(CUDNN_PATH ${CUDNN_PATH_HINT} CACHE PATH "${PV_CUDNN_PATH_HELP}")
       
       find_package(CUDA)
       find_package(CUDNN)
