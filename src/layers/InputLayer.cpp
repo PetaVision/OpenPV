@@ -31,14 +31,14 @@ int InputLayer::allocateDataStructures() {
 
 void InputLayer::initializeBatchIndexer() {
    // TODO: move check of size of mStartFrameIndex and mSkipFrameIndex here.
-   pvAssert(mMPIBlock);
-   pvAssert(mMPIBlock->getRank() == 0);
+   pvAssert(getMPIBlock());
+   pvAssert(getMPIBlock()->getRank() == 0);
    int localBatchCount  = getLayerLoc()->nbatch;
-   int mpiBatchCount    = mMPIBlock->getBatchDimension();
-   int mpiGlobalCount   = mMPIBlock->getGlobalBatchDimension();
+   int mpiBatchCount    = getMPIBlock()->getBatchDimension();
+   int mpiGlobalCount   = getMPIBlock()->getGlobalBatchDimension();
    int globalBatchCount = localBatchCount * mpiGlobalCount;
-   int batchOffset      = localBatchCount * mMPIBlock->getStartBatch();
-   int blockBatchCount  = localBatchCount * mMPIBlock->getBatchDimension();
+   int batchOffset      = localBatchCount * getMPIBlock()->getStartBatch();
+   int blockBatchCount  = localBatchCount * getMPIBlock()->getBatchDimension();
    int fileCount        = countInputImages();
    mBatchIndexer        = std::unique_ptr<BatchIndexer>(
          new BatchIndexer(globalBatchCount, batchOffset, blockBatchCount, fileCount, mBatchMethod));
@@ -66,7 +66,7 @@ int InputLayer::updateState(double time, double dt) {
          std::ostringstream outStrStream;
          outStrStream.precision(15);
          int kb0             = getLayerLoc()->kb0;
-         int blockBatchCount = getLayerLoc()->nbatch * mMPIBlock->getBatchDimension();
+         int blockBatchCount = getLayerLoc()->nbatch * getMPIBlock()->getBatchDimension();
          for (int b = 0; b < blockBatchCount; ++b) {
             int index = mBatchIndexer->getIndex(b);
             outStrStream << "[" << getName() << "] time: " << time << ", batch element: " << b + kb0
@@ -86,9 +86,9 @@ int InputLayer::updateState(double time, double dt) {
 
 void InputLayer::retrieveInput(double timef, double dt) {
    int localNBatch = getLayerLoc()->nbatch;
-   for (int m = 0; m < mMPIBlock->getBatchDimension(); m++) {
+   for (int m = 0; m < getMPIBlock()->getBatchDimension(); m++) {
       for (int b = 0; b < localNBatch; b++) {
-         if (mMPIBlock->getRank() == 0) {
+         if (getMPIBlock()->getRank() == 0) {
             int blockBatchElement = b + localNBatch * m;
             int inputIndex        = mBatchIndexer->getIndex(blockBatchElement);
             mInputData.at(b)      = retrieveData(inputIndex, b);
@@ -107,7 +107,7 @@ void InputLayer::retrieveInput(double timef, double dt) {
 void InputLayer::retrieveInputAndAdvanceIndex(double timef, double dt) {
    retrieveInput(timef, dt);
    if (mBatchIndexer) {
-      int blockBatchCount = getLayerLoc()->nbatch * mMPIBlock->getBatchDimension();
+      int blockBatchCount = getLayerLoc()->nbatch * getMPIBlock()->getBatchDimension();
       for (int b = 0; b < blockBatchCount; b++) {
          mBatchIndexer->nextIndex(b);
       }
@@ -115,7 +115,7 @@ void InputLayer::retrieveInputAndAdvanceIndex(double timef, double dt) {
 }
 
 int InputLayer::scatterInput(int localBatchIndex, int mpiBatchIndex) {
-   int const procBatchIndex = mMPIBlock->getBatchIndex();
+   int const procBatchIndex = getMPIBlock()->getBatchIndex();
    if (procBatchIndex != 0 and procBatchIndex != mpiBatchIndex) {
       return PV_SUCCESS;
    }
@@ -136,13 +136,13 @@ int InputLayer::scatterInput(int localBatchIndex, int mpiBatchIndex) {
    }
    Buffer<float> buffer;
 
-   if (mMPIBlock->getRank() == 0) {
+   if (getMPIBlock()->getRank() == 0) {
       buffer = mInputData.at(localBatchIndex);
    }
    else {
       buffer.resize(activityWidth, activityHeight, loc->nf);
    }
-   BufferUtils::scatter<float>(mMPIBlock, buffer, loc->nx, loc->ny, mpiBatchIndex, 0);
+   BufferUtils::scatter<float>(getMPIBlock(), buffer, loc->nx, loc->ny, mpiBatchIndex, 0);
    if (procBatchIndex != mpiBatchIndex) {
       return PV_SUCCESS;
    }
@@ -174,7 +174,7 @@ int InputLayer::scatterInput(int localBatchIndex, int mpiBatchIndex) {
 }
 
 void InputLayer::fitBufferToLayer(Buffer<float> &buffer) {
-   pvAssert(mMPIBlock->getRank() == 0);
+   pvAssert(getMPIBlock()->getRank() == 0);
    const PVLayerLoc *loc  = getLayerLoc();
    const PVHalo *halo     = &loc->halo;
    const int targetWidth  = loc->nxGlobal + (mUseInputBCflag ? (halo->lt + halo->rt) : 0);
@@ -378,7 +378,7 @@ int InputLayer::readStateFromCheckpoint(Checkpointer *checkpointer) {
    if (initializeFromCheckpointFlag) {
       int status = HyPerLayer::readStateFromCheckpoint(checkpointer);
       if (mBatchIndexer) {
-         pvAssert(mMPIBlock->getRank() == 0);
+         pvAssert(getMPIBlock()->getRank() == 0);
          mBatchIndexer->readStateFromCheckpoint(checkpointer);
       }
    }

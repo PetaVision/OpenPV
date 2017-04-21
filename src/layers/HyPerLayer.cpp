@@ -1604,8 +1604,6 @@ int HyPerLayer::registerData(Checkpointer *checkpointer, std::string const &objN
          (std::size_t)1,
          true /*broadcast*/);
 
-   mMPIBlock = checkpointer->getMPIBlock();
-
    if (writeStep >= 0.0) {
       openOutputStateFile(checkpointer);
       if (sparseLayer) {
@@ -2190,7 +2188,7 @@ int HyPerLayer::writeActivitySparse(double timed) {
    PVLayerLoc const *loc = getLayerLoc();
    pvAssert(cube.numItems == loc->nbatch * getNumExtended());
 
-   int const mpiBatchDimension = mMPIBlock->getBatchDimension();
+   int const mpiBatchDimension = getMPIBlock()->getBatchDimension();
    int const numFrames         = mpiBatchDimension * loc->nbatch;
    for (int frame = 0; frame < numFrames; frame++) {
       int const localBatchIndex = frame % loc->nbatch;
@@ -2200,10 +2198,10 @@ int HyPerLayer::writeActivitySparse(double timed) {
       SparseList<float> list;
       auto *activeIndicesBatch   = (SparseList<float>::Entry const *)cube.activeIndices;
       auto *activeIndicesElement = &activeIndicesBatch[localBatchIndex * getNumExtended()];
-      PVLayerLoc const *loc = getLayerLoc();
-      int nxExt             = loc->nx + loc->halo.lt + loc->halo.rt;
-      int nyExt             = loc->ny + loc->halo.dn + loc->halo.up;
-      int nf                = loc->nf;
+      PVLayerLoc const *loc      = getLayerLoc();
+      int nxExt                  = loc->nx + loc->halo.lt + loc->halo.rt;
+      int nyExt                  = loc->ny + loc->halo.dn + loc->halo.up;
+      int nf                     = loc->nf;
       for (long int k = 0; k < cube.numActive[localBatchIndex]; k++) {
          SparseList<float>::Entry entry = activeIndicesElement[k];
          int index                      = (int)entry.index;
@@ -2223,13 +2221,13 @@ int HyPerLayer::writeActivitySparse(double timed) {
          list.addEntry(entry);
       }
       auto gatheredList =
-            BufferUtils::gatherSparse(mMPIBlock, list, mpiBatchIndex, 0 /*root process*/);
-      if (mMPIBlock->getRank() == 0) {
+            BufferUtils::gatherSparse(getMPIBlock(), list, mpiBatchIndex, 0 /*root process*/);
+      if (getMPIBlock()->getRank() == 0) {
          long fpos = mOutputStateStream->getOutPos();
          if (fpos == 0L) {
             BufferUtils::ActivityHeader header = BufferUtils::buildSparseActivityHeader<float>(
-                  loc->nx * mMPIBlock->getNumColumns(),
-                  loc->ny * mMPIBlock->getNumRows(),
+                  loc->nx * getMPIBlock()->getNumColumns(),
+                  loc->ny * getMPIBlock()->getNumRows(),
                   loc->nf,
                   0 /* numBands */); // numBands will be set by call to incrementNBands.
             header.timestamp = timed;
@@ -2254,7 +2252,7 @@ int HyPerLayer::writeActivity(double timed) {
    int const nyExtLocal = loc->ny + halo.dn + halo.up;
    int const nf         = loc->nf;
 
-   int const mpiBatchDimension = mMPIBlock->getBatchDimension();
+   int const mpiBatchDimension = getMPIBlock()->getBatchDimension();
    int const numFrames         = mpiBatchDimension * loc->nbatch;
    for (int frame = 0; frame < numFrames; frame++) {
       int const localBatchIndex = frame % loc->nbatch;
@@ -2265,15 +2263,15 @@ int HyPerLayer::writeActivity(double timed) {
       Buffer<float> localBuffer(data, nxExtLocal, nyExtLocal, nf);
       localBuffer.crop(loc->nx, loc->ny, Buffer<float>::CENTER);
       Buffer<float> blockBuffer = BufferUtils::gather<float>(
-            mMPIBlock, localBuffer, loc->nx, loc->ny, mpiBatchIndex, 0 /*root process*/);
+            getMPIBlock(), localBuffer, loc->nx, loc->ny, mpiBatchIndex, 0 /*root process*/);
       // At this point, the rank-zero process has the entire block for the batch element,
       // regardless of what the mpiBatchIndex is.
-      if (mMPIBlock->getRank() == 0) {
+      if (getMPIBlock()->getRank() == 0) {
          long fpos = mOutputStateStream->getOutPos();
          if (fpos == 0L) {
             BufferUtils::ActivityHeader header = BufferUtils::buildActivityHeader<float>(
-                  loc->nx * mMPIBlock->getNumColumns(),
-                  loc->ny * mMPIBlock->getNumRows(),
+                  loc->nx * getMPIBlock()->getNumColumns(),
+                  loc->ny * getMPIBlock()->getNumRows(),
                   loc->nf,
                   0 /* numBands */); // numBands will be set by call to incrementNBands.
             header.timestamp = timed;

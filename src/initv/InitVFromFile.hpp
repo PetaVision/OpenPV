@@ -36,7 +36,6 @@ class InitVFromFile : public BaseInitV {
   protected:
    InitVFromFile();
    int initialize(char const *name, HyPerCol *hc);
-   virtual int registerData(Checkpointer *checkpointer, std::string const &objName) override;
    void readDenseActivityPvp(
          float *V,
          PVLayerLoc const *loc,
@@ -47,8 +46,7 @@ class InitVFromFile : public BaseInitV {
    int initialize_base();
 
   private:
-   char *mVfilename          = nullptr;
-   MPIBlock const *mMPIBlock = nullptr;
+   char *mVfilename = nullptr;
 }; // end class InitVFromFile
 
 } // end namespace PV

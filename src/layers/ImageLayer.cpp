@@ -39,7 +39,7 @@ std::string const &ImageLayer::getCurrentFilename(int batchElement) const {
 }
 
 void ImageLayer::populateFileList() {
-   if (mMPIBlock->getRank() == 0) {
+   if (getMPIBlock()->getRank() == 0) {
       std::string line;
       mFileList.clear();
       InfoLog() << "Reading list: " << getInputPath() << "\n";
