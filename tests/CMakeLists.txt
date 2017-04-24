@@ -64,6 +64,7 @@ add_subdirectory(CopyConnTest)
 add_subdirectory(DatastoreDelayTest)
 add_subdirectory(DelaysToFeaturesTest)
 add_subdirectory(DryRunFlagTest)
+add_subdirectory(FilenameParsingTest)
 add_subdirectory(GenericSystemTest)
 
 if (PV_USE_CUDA)
