@@ -144,7 +144,7 @@ class InputLayer : public HyPerLayer {
     * (scattering to nonroot processes is done by the scatterInput method)
     * into a buffer. inputIndex is the (zero-indexed) index into the list of inputs.
     */
-   virtual Buffer<float> retrieveData(int inputIndex, int batchElement) = 0;
+   virtual Buffer<float> retrieveData(int inputIndex) = 0;
 
    /**
     * Each batch element loads its data with the input specified by the current
@@ -182,7 +182,18 @@ class InputLayer : public HyPerLayer {
    int getStartIndex(int batchIndex) { return mStartFrameIndex.at(batchIndex); }
    int getSkipIndex(int batchIndex) { return mSkipFrameIndex.at(batchIndex); }
    const std::string &getInputPath() const { return mInputPath; }
-   virtual std::string const &getCurrentFilename(int batchElement) const { return mInputPath; }
+
+   /**
+    * A virtual method to return the filename containing the input of the current
+    * batch index. Caveats: updateState advances the batch indices after loading
+    * data, so this typically returns the filename that will belong to the *next*
+    * input to be loaded, not the current input.
+    * Since only the processes with MPIBlock rank zero do input/output,
+    * the result of this method is only reliable for those processes.
+    */
+   virtual std::string const &getCurrentFilename(int localBatchElement, int mpiBatchIndex) const {
+      return mInputPath;
+   }
 
   private:
    /**

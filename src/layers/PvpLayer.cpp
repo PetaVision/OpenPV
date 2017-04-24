@@ -30,15 +30,13 @@ int PvpLayer::countInputImages() {
    return header.nBands;
 }
 
-Buffer<float> PvpLayer::retrieveData(int inputIndex, int batchElement) {
+Buffer<float> PvpLayer::retrieveData(int inputIndex) {
    // If we're playing through the pvp file like a movie, use
    // BatchIndexer to get the frame number. Otherwise, just use
    // the start_frame_index value for this batch.
-   int frameNumber = getDisplayPeriod() > 0 ? inputIndex : getStartIndex(batchElement);
-
    Buffer<float> result;
    BufferUtils::readActivityFromPvp<float>(
-         getInputPath().c_str(), &result, frameNumber, &sparseTable);
+         getInputPath().c_str(), &result, inputIndex, &sparseTable);
 
    return result;
 }

@@ -11,7 +11,7 @@ class PvpLayer : public InputLayer {
   protected:
    PvpLayer() {}
    virtual int countInputImages() override;
-   virtual Buffer<float> retrieveData(int inputIndex, int batchIndex) override;
+   virtual Buffer<float> retrieveData(int inputIndex) override;
 
   public:
    PvpLayer(const char *name, HyPerCol *hc);

@@ -4,6 +4,18 @@ namespace PV {
 
 ImagePvpTestLayer::ImagePvpTestLayer(const char *name, HyPerCol *hc) { initialize(name, hc); }
 
+int ImagePvpTestLayer::registerData(Checkpointer *checkpointer, std::string const &objName) {
+   int status = PvpLayer::registerData(checkpointer, objName);
+   if (status != PV_SUCCESS) {
+      return status;
+   }
+   if (getMPIBlock()->getRank() == 0) {
+      mNumFrames = countInputImages();
+   }
+   MPI_Bcast(&mNumFrames, 1, MPI_INT, 0, getMPIBlock()->getComm());
+   return PV_SUCCESS;
+}
+
 int ImagePvpTestLayer::updateState(double time, double dt) {
    PvpLayer::updateState(time, dt);
    const PVLayerLoc *loc = getLayerLoc();
@@ -12,7 +24,7 @@ int ImagePvpTestLayer::updateState(double time, double dt) {
    int nf                = loc->nf;
    int nbatch            = loc->nbatch;
    for (int b = 0; b < nbatch; b++) {
-      int frameIdx     = getStartIndex(b);
+      int frameIdx     = (getStartIndex(b) + b) % mNumFrames;
       float *dataBatch = getActivity() + b * getNumExtended();
       for (int nkRes = 0; nkRes < getNumNeurons(); nkRes++) {
          // Calculate extended index
@@ -35,4 +47,5 @@ int ImagePvpTestLayer::updateState(double time, double dt) {
    }
    return PV_SUCCESS;
 }
-}
+
+} // end namespace PV

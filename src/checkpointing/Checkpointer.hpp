@@ -302,6 +302,9 @@ class Checkpointer : public Subject {
  * appropriate derived class of CheckpointEntry to use, it is convenient to
  * use the Checkpointer::registerCheckpointData method template, which handles
  * creating the shared_ptr needed by registerCheckpointEntry().
+ * Note that CheckpointerDataInterface::registerData sets mMPIBlock. Derived
+ * classes that override registerData should call
+ * CheckpointerDataInterface::registerData in order to use this data member.
  *
  * - readStateFromCheckpoint should call one of the readNamedCheckpointEntry
  * methods for each piece of data that should be read when the object's
@@ -318,9 +321,15 @@ class Checkpointer : public Subject {
 class CheckpointerDataInterface {
   public:
    virtual int registerData(Checkpointer *checkpointer, std::string const &objName) {
+      mMPIBlock = checkpointer->getMPIBlock();
       return PV_SUCCESS;
    }
    virtual int readStateFromCheckpoint(Checkpointer *checkpointer) { return PV_SUCCESS; }
+
+   MPIBlock const *getMPIBlock() { return mMPIBlock; }
+
+  private:
+   MPIBlock const *mMPIBlock = nullptr;
 };
 
 template <typename T>

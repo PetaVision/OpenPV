@@ -29,9 +29,11 @@ int ImageLayer::countInputImages() {
    }
 }
 
-std::string const &ImageLayer::getCurrentFilename(int batchElement) const {
+std::string const &ImageLayer::getCurrentFilename(int localBatchElement, int mpiBatchIndex) const {
    if (mUsingFileList) {
-      return mFileList.at(mBatchIndexer->getIndex(batchElement));
+      int blockBatchElement = localBatchElement + getLayerLoc()->nbatch * mpiBatchIndex;
+      int inputIndex        = mBatchIndexer->getIndex(blockBatchElement);
+      return mFileList.at(inputIndex);
    }
    else {
       return getInputPath();
@@ -39,7 +41,7 @@ std::string const &ImageLayer::getCurrentFilename(int batchElement) const {
 }
 
 void ImageLayer::populateFileList() {
-   if (mMPIBlock->getRank() == 0) {
+   if (getMPIBlock()->getRank() == 0) {
       std::string line;
       mFileList.clear();
       InfoLog() << "Reading list: " << getInputPath() << "\n";
@@ -58,7 +60,7 @@ void ImageLayer::populateFileList() {
    }
 }
 
-Buffer<float> ImageLayer::retrieveData(int inputIndex, int batchElement) {
+Buffer<float> ImageLayer::retrieveData(int inputIndex) {
    std::string filename;
    if (mUsingFileList) {
       filename = mFileList.at(inputIndex);

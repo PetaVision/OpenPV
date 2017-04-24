@@ -1,0 +1,83 @@
+//
+// FilenameParsingTest.params
+//
+// created by peteschultz: Apr 19, 2017
+//
+
+//  A params file to test FilenameParsingGroundTruthLayer
+//
+
+debugParsing = false;
+
+HyPerCol "column" = {
+    startTime                           = 0;
+    dt                                  = 1;
+    stopTime                            = 200;
+    progressInterval                    = 10;
+    writeProgressToErr                  = false;
+    outputPath                          = "output/";
+    verifyWrites                        = false;
+    checkpointWrite                     = false;
+    lastCheckpointDir                   = "output/Last";
+    initializeFromCheckpointDir         = "";
+    printParamsFilename                 = "pv.params";
+    randomSeed                          = 1234567890;
+    nx                                  = 4;
+    ny                                  = 4;
+    nbatch                              = 4;
+    errorOnNotANumber                   = true;
+};
+
+FilenameParsingGroundTruthLayer "GroundTruth" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 10;
+    phase                               = 0;
+    mirrorBCflag                        = true;
+    InitVType                           = "ZeroV";
+    triggerLayerName                    = NULL;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+    classList                           = "input/Classes.txt";
+    inputLayerName                      = "Input";
+    gtClassTrueValue                    = 1;
+    gtClassFalseValue                   = 0;
+};
+
+ImageLayer "Input" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 1;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    writeStep                           = -1;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+    displayPeriod                       = 10;
+    inputPath                           = "input/ImageList.txt";
+    offsetAnchor                        = "tl";
+    offsetX                             = 0;
+    offsetY                             = 0;
+    autoResizeFlag                      = false;
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = false;
+    useInputBCflag                      = false;
+    padValue                            = 0;
+    batchMethod                         = "byFile";
+    start_frame_index                   = [0, 0, 0, 0];
+    writeFrameToTimestamp               = true;
+};
+
+FilenameParsingProbe "Probe" = {
+    targetLayer                         = "GroundTruth";
+    message                             = NULL;
+    textOutputFlag                      = true;
+    probeOutputFile                     = NULL;
+    triggerLayerName                    = NULL;
+    energyProbe                         = NULL;
+};
