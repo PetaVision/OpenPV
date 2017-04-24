@@ -15,7 +15,7 @@ BatchIndexer::BatchIndexer(
       enum BatchMethod batchMethod) {
    mGlobalBatchCount = globalBatchCount;
    mBatchMethod      = batchMethod;
-   mFileCount        = fileCount;
+   mFileCount        = fileCount ? fileCount : 1;
    mBatchWidth       = batchWidth;
    mBatchOffset      = batchOffset;
    mIndices.resize(mBatchWidth, 0);
@@ -48,7 +48,7 @@ int BatchIndexer::getIndex(int localBatchIndex) {
 }
 
 void BatchIndexer::specifyBatching(int localBatchIndex, int startIndex, int skipAmount) {
-   mStartIndices.at(localBatchIndex) = startIndex;
+   mStartIndices.at(localBatchIndex) = startIndex % mFileCount;
    mSkipAmounts.at(localBatchIndex)  = skipAmount < 1 ? 1 : skipAmount;
 }
 

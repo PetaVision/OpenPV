@@ -91,7 +91,7 @@ void InputLayer::retrieveInput(double timef, double dt) {
          if (getMPIBlock()->getRank() == 0) {
             int blockBatchElement = b + localNBatch * m;
             int inputIndex        = mBatchIndexer->getIndex(blockBatchElement);
-            mInputData.at(b)      = retrieveData(inputIndex, b);
+            mInputData.at(b)      = retrieveData(inputIndex);
             fitBufferToLayer(mInputData.at(b));
          }
          scatterInput(b, m);
@@ -176,9 +176,10 @@ int InputLayer::scatterInput(int localBatchIndex, int mpiBatchIndex) {
 void InputLayer::fitBufferToLayer(Buffer<float> &buffer) {
    pvAssert(getMPIBlock()->getRank() == 0);
    const PVLayerLoc *loc  = getLayerLoc();
-   const PVHalo *halo     = &loc->halo;
-   const int targetWidth  = loc->nxGlobal + (mUseInputBCflag ? (halo->lt + halo->rt) : 0);
-   const int targetHeight = loc->nyGlobal + (mUseInputBCflag ? (halo->dn + halo->up) : 0);
+   int const xMargins     = mUseInputBCflag ? loc->halo.lt + loc->halo.rt : 0;
+   int const yMargins     = mUseInputBCflag ? loc->halo.dn + loc->halo.up : 0;
+   const int targetWidth  = loc->nxGlobal + xMargins;
+   const int targetHeight = loc->nyGlobal + yMargins;
 
    FatalIf(
          buffer.getFeatures() != loc->nf,
@@ -197,6 +198,15 @@ void InputLayer::fitBufferToLayer(Buffer<float> &buffer) {
       buffer.translate(-mOffsetX, -mOffsetY);
       buffer.crop(targetWidth, targetHeight, mAnchor);
    }
+   // Now buffer has the entire input. We need to crop it
+   // to the part of the image covered by the MPIBlock.
+   // Then scatterInput sends out the local portions.
+   int const startX = getMPIBlock()->getStartColumn() * loc->nx;
+   int const startY = getMPIBlock()->getStartRow() * loc->ny;
+   buffer.translate(-startX, -startY);
+   int const blockWidth  = getMPIBlock()->getNumColumns() * loc->nx + xMargins;
+   int const blockHeight = getMPIBlock()->getNumRows() * loc->ny + yMargins;
+   buffer.crop(blockWidth, blockHeight, Buffer<float>::NORTHWEST);
 }
 
 // Apply normalizeLuminanceFlag, normalizeStdDev, and inverseFlag, which can be done pixel-by-pixel

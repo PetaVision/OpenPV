@@ -122,8 +122,6 @@ class ImageFromMemoryBuffer : public ImageLayer {
     */
    virtual int initializeActivity(double time, double dt);
 
-   int retrieveData(double timef, double dt, int batchIndex);
-
   private:
    int initialize_base();
 

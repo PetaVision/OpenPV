@@ -26,7 +26,7 @@ FilenameParsingGroundTruthLayer::~FilenameParsingGroundTruthLayer() {
 }
 
 int FilenameParsingGroundTruthLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = ANNLayer::ioParamsFillGroup(ioFlag);
+   int status = HyPerLayer::ioParamsFillGroup(ioFlag);
    ioParam_classList(ioFlag);
    ioParam_inputLayerName(ioFlag);
    ioParam_gtClassTrueValue(ioFlag);
@@ -58,7 +58,7 @@ void FilenameParsingGroundTruthLayer::ioParam_classList(enum ParamsIOFlag ioFlag
 }
 
 int FilenameParsingGroundTruthLayer::allocateDataStructures() {
-   int status = ANNLayer::allocateDataStructures();
+   int status = HyPerLayer::allocateDataStructures();
 
    std::ifstream mInputFile;
    std::string outPath("");
@@ -80,6 +80,15 @@ int FilenameParsingGroundTruthLayer::allocateDataStructures() {
       mClasses.push_back(line);
    }
    mInputFile.close();
+
+   std::size_t numFeatures = (std::size_t)getLayerLoc()->nf;
+   FatalIf(
+         numFeatures != mClasses.size(),
+         "%s has %d features but classList \"%s\" has %zu categories.\n",
+         getDescription_c(),
+         getLayerLoc()->nf,
+         outPath.c_str(),
+         mClasses.size());
    return status;
 }
 
@@ -107,47 +116,35 @@ bool FilenameParsingGroundTruthLayer::needUpdate(double time, double dt) {
 
 int FilenameParsingGroundTruthLayer::updateState(double time, double dt) {
    update_timer->start();
-   float *A              = getCLayer()->activity->data;
-   const PVLayerLoc *loc = getLayerLoc();
-   int num_neurons       = getNumNeurons();
-   FatalIf(
-         num_neurons != mClasses.size(),
-         "The number of neurons in %s is not equal to the number of classes specified in "
-         "%s/classes.txt\n",
-         getName(),
-         parent->getOutputPath());
+   float *A                  = getCLayer()->activity->data;
+   const PVLayerLoc *loc     = getLayerLoc();
+   int numNeurons            = getNumNeurons();
+   int const localBatchWidth = getLayerLoc()->nbatch;
+   int const blockBatchWidth = getMPIBlock()->getBatchDimension() * localBatchWidth;
+   for (int b = 0; b < blockBatchWidth; b++) {
+      int const mpiBlockBatchIndex = b / localBatchWidth; // integer division
+      int const localBatchIndex    = b % localBatchWidth;
 
-   for (int b = 0; b < loc->nbatch; ++b) {
-      char *currentFilename = nullptr;
-      int filenameLen       = 0;
-      if (parent->getCommunicator()->commRank() == 0) {
-         currentFilename = strdup(mInputLayer->getCurrentFilename(b).c_str());
-         int filenameLen = (int)strlen(currentFilename) + 1; // +1 for the null terminator
-         MPI_Bcast(&filenameLen, 1, MPI_INT, 0, parent->getCommunicator()->communicator());
-         // Braodcast filename to all other local processes
-         MPI_Bcast(
-               currentFilename,
-               filenameLen,
-               MPI_CHAR,
-               0,
-               parent->getCommunicator()->communicator());
+      std::vector<float> fileMatches(mClasses.size());
+      if (getMPIBlock()->getRank() == 0) {
+         std::string currentFilename =
+               mInputLayer->getCurrentFilename(localBatchIndex, mpiBlockBatchIndex).c_str();
+         for (auto ci = (std::size_t)0; ci < mClasses.size(); ci++) {
+            std::size_t match = currentFilename.find(mClasses.at(ci));
+            fileMatches[ci]   = match != std::string::npos ? mGtClassTrueValue : mGtClassFalseValue;
+         }
       }
-      else {
-         // Receive broadcast about length of filename
-         MPI_Bcast(&filenameLen, 1, MPI_INT, 0, parent->getCommunicator()->communicator());
-         currentFilename = (char *)calloc(sizeof(char), filenameLen);
-         // Receive filename
-         MPI_Bcast(
-               currentFilename,
-               filenameLen,
-               MPI_CHAR,
-               0,
-               parent->getCommunicator()->communicator());
+      // It seems clunky to send each process all the fileMatches, when
+      // they'll only use only the fileMatches for the correct MPIBlock
+      // batch index.  Use MPI_Send/MPI_Recv?  Create more MPI_Comm's?
+      MPI_Bcast(fileMatches.data(), fileMatches.size(), MPI_FLOAT, 0, getMPIBlock()->getComm());
+
+      if (getMPIBlock()->getBatchIndex() != mpiBlockBatchIndex) {
+         continue;
       }
 
-      std::string fil = currentFilename;
-      float *ABatch   = A + b * getNumExtended();
-      for (int i = 0; i < num_neurons; i++) {
+      float *ABatch = A + localBatchIndex * getNumExtended();
+      for (int i = 0; i < numNeurons; i++) {
          int nExt = kIndexExtended(
                i,
                loc->nx,
@@ -162,17 +159,11 @@ int FilenameParsingGroundTruthLayer::updateState(double time, double dt) {
                loc->nx + loc->halo.rt + loc->halo.lt,
                loc->ny + loc->halo.dn + loc->halo.up,
                loc->nf);
-         int match = fil.find(mClasses.at(i));
-         if (0 <= match) {
-            ABatch[nExt] = mGtClassTrueValue;
-         }
-         else {
-            ABatch[nExt] = mGtClassFalseValue;
-         }
+         ABatch[nExt] = fileMatches[fi];
       }
-      free(currentFilename);
    }
    update_timer->stop();
    return PV_SUCCESS;
 }
-}
+
+} // end namespace PV

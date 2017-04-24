@@ -161,14 +161,11 @@ int ImageFromMemoryBuffer::initializeActivity(double time, double dt) {
 
 int ImageFromMemoryBuffer::updateState(double time, double dt) {
    assert(hasNewImageFlag); // updateState shouldn't have been called otherwise.
+   Fatal() << "ImageFromMemoryBuffer is currently broken.\n"; // Marked broken Apr 24, 2017.
    hasNewImageFlag = false;
-   retrieveInputAndAdvanceIndex(time, dt);
+   // TODO: Need to refactor ImageFromMemoryBuffer to reflect the refactoring of the rest of
+   // the InputLayer hierarchy.
    return PV_SUCCESS;
-}
-
-int ImageFromMemoryBuffer::retrieveData(double timef, double dt, int batchIndex) {
-   pvAssert(batchIndex == 0); // ImageFromMemoryBuffer is not batched.
-   return PV_SUCCESS; // imageData, imageLoc, imageColorType were already set in setMemoryBuffer
 }
 
 double ImageFromMemoryBuffer::getDeltaUpdateTime() {

@@ -473,7 +473,7 @@ class HyPerLayer : public BaseLayer {
    // implementation of LayerDataInterface interface
    //
    const float *getLayerData(int delay = 0);
-   const PVLayerLoc *getLayerLoc() { return &(clayer->loc); }
+   PVLayerLoc const *getLayerLoc() const { return &(clayer->loc); }
    bool isExtended() { return true; }
 
    double getLastUpdateTime() { return mLastUpdateTime; }

@@ -6,13 +6,13 @@
  */
 #pragma once
 
-#include "ANNLayer.hpp"
+#include "HyPerLayer.hpp"
 #include "InputLayer.hpp"
 #include <string>
 
 namespace PV {
 
-class FilenameParsingGroundTruthLayer : public ANNLayer {
+class FilenameParsingGroundTruthLayer : public HyPerLayer {
 
   public:
    FilenameParsingGroundTruthLayer(const char *name, HyPerCol *hc);
