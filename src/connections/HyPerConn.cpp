@@ -2786,27 +2786,10 @@ void HyPerConn::addClone(PlasticCloneConn *conn) {
    // but for PlasticCloneConns to apply the update rules correctly, we need the
    // post layers' borders to be equal as well.
 
-   // Make sure new clone's post margins are at least as large as the original conn's.
-   PVHalo const &thisHalo = postSynapticLayer()->getLayerLoc()->halo;
-   int xMargin            = thisHalo.lt;
-   pvAssert(thisHalo.rt == xMargin);
-   int xMarginClone;
-   conn->postSynapticLayer()->requireMarginWidth(xMargin, &xMarginClone, 'x');
-   int yMargin = thisHalo.dn;
-   pvAssert(thisHalo.up == yMargin);
-   int yMarginClone;
-   conn->postSynapticLayer()->requireMarginWidth(yMargin, &yMarginClone, 'y');
+   conn->postSynapticLayer()->synchronizeMarginWidth(this->postSynapticLayer());
+   this->postSynapticLayer()->synchronizeMarginWidth(conn->postSynapticLayer());
 
-   // In case the clone conn's margins were larger, make sure that the original
-   // conn and all already-existing clones have the larger margin as well.
-   this->postSynapticLayer()->requireMarginWidth(xMarginClone, &xMargin, 'x');
-   this->postSynapticLayer()->requireMarginWidth(yMarginClone, &yMargin, 'y');
-   for (auto &clone : clones) {
-      clone->postSynapticLayer()->requireMarginWidth(xMarginClone, &xMargin, 'x');
-      clone->postSynapticLayer()->requireMarginWidth(yMarginClone, &yMargin, 'y');
-   }
-
-   // Add the new PlasticCloneConn to the list.
+   // Add the new PlasticCloneConn to the list of clones.
    clones.push_back(conn);
 }
 
