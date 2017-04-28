@@ -1914,7 +1914,7 @@ int HyPerConn::writeWeights(double timed) {
 int HyPerConn::writeWeights(const char *filename) {
    PVPatch ***patches_arg = sharedWeights ? NULL : wPatches;
    FileStream *fileStream = nullptr;
-   if (mOutputStateMPIBlock->getRank() == 0) {
+   if (getMPIBlock()->getRank() == 0) {
       fileStream = new FileStream(filename, std::ios_base::out, parent->getVerifyWrites());
    }
 
@@ -1957,7 +1957,7 @@ int HyPerConn::writeWeights(
       writeSharedWeights(
             timed,
             fileStream,
-            mOutputStateMPIBlock,
+            getMPIBlock(),
             preLoc,
             nxp,
             nyp,
@@ -1975,7 +1975,7 @@ int HyPerConn::writeWeights(
       writeNonsharedWeights(
             timed,
             fileStream,
-            mOutputStateMPIBlock,
+            getMPIBlock(),
             preLoc,
             nxp,
             nyp,
@@ -1983,10 +1983,9 @@ int HyPerConn::writeWeights(
             numberOfAxonalArborLists(),
             dataStart,
             compressWeights,
-            minVal,
-            maxVal,
             true /*extended*/,
-            postLoc);
+            postLoc,
+            wPatches);
    }
 
    return PV_SUCCESS;
@@ -2073,6 +2072,7 @@ void HyPerConn::checkpointWeightPvp(
                checkpointer->getMPIBlock(),
                numberOfAxonalArborLists(),
                usingSharedWeights(),
+               get_wPatches(),
                weightDataBuffer,
                mNumDataPatchesX,
                mNumDataPatchesY,
@@ -2116,10 +2116,6 @@ int HyPerConn::registerData(Checkpointer *checkpointer, std::string const &objNa
 }
 
 void HyPerConn::openOutputStateFile(Checkpointer *checkpointer) {
-   // Need mOutputStateMPIBlock to be set even if writeStep is turned off, because
-   // writeWeights(filename) or writePostSynapticWeights will still use the MPIBlock.
-   mOutputStateMPIBlock = checkpointer->getMPIBlock();
-
    if (writeStep >= 0) {
 
       if (checkpointer->getMPIBlock()->getRank() == 0) {
@@ -4421,53 +4417,7 @@ int HyPerConn::postSynapticPatchHead(
    return status;
 }
 
-int HyPerConn::writePostSynapticWeights(double timed, FileStream &fileStream) {
-   int status = PV_SUCCESS;
-
-   const PVLayerLoc *preLoc = pre->getLayerLoc();
-
-   float minVal = FLT_MAX;
-   float maxVal = -FLT_MAX;
-   for (int arbor = 0; arbor < numberOfAxonalArborLists(); arbor++) {
-      float minVal1 = minWeight(arbor);
-      if (minVal1 < minVal)
-         minVal     = minVal1;
-      float maxVal1 = maxWeight(arbor);
-      if (maxVal1 > maxVal)
-         maxVal = maxVal1;
-   }
-
-   const int numPostPatches = post->getNumNeurons();
-
-   const int xScale       = post->getXScale() - pre->getXScale();
-   const int yScale       = post->getYScale() - pre->getYScale();
-   const double powXScale = pow(2, (double)xScale);
-   const double powYScale = pow(2, (double)yScale);
-
-   const int nxPostPatch = (int)(nxp * powXScale);
-   const int nyPostPatch = (int)(nyp * powYScale);
-   const int nfPostPatch = preLoc->nf;
-
-   const PVLayerLoc *postLoc = post->getLayerLoc();
-
-   writeNonsharedWeights(
-         timed,
-         &fileStream,
-         mOutputStateMPIBlock,
-         postLoc,
-         nxPostPatch,
-         nyPostPatch,
-         nfPostPatch,
-         numberOfAxonalArborLists(),
-         wPostDataStart,
-         writeCompressedWeights,
-         minVal,
-         maxVal,
-         false /*post-weights are not extended*/,
-         preLoc);
-
-   return PV_SUCCESS;
-}
+// writePostSynapticWeights was removed Apr 28, 2017. Create a TransposeConn if needed.
 
 int HyPerConn::sumWeights(
       int nx,

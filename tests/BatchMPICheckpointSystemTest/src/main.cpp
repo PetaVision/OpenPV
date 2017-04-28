@@ -81,7 +81,7 @@ int main(int argc, char *argv[]) {
    initObj.setParams(paramFile2);
    initObj.setStringArgument("CheckpointReadDirectory", "checkpoints1/Checkpoint12");
 
-   status = rebuildandrun(&initObj);
+   status = rebuildandrun(&initObj, nullptr, customexit);
    if (status != PV_SUCCESS) {
       Fatal().printf(
             "%s: rank %d running with params file %s returned error %d.\n",
@@ -118,24 +118,34 @@ int diffDirs(const char *cpdir1, const char *cpdir2, int index) {
 }
 
 int customexit(HyPerCol *hc, int argc, char *argv[]) {
-   int rank     = hc->getCommunicator()->commRank();
+   // Rank of the checkpointing MPI communicator does is not publicly accessible, so recreate it.
+   Arguments const *arguments = hc->getPV_InitObj()->getArguments();
+   int cellNumRows            = arguments->getIntegerArgument("CheckpointCellNumRows");
+   int cellNumColumns         = arguments->getIntegerArgument("CheckpointCellNumColumns");
+   int cellBatchDimension     = arguments->getIntegerArgument("CheckpointCellBatchDimension");
+   MPIBlock mpiBlock(
+         hc->getCommunicator()->globalCommunicator(),
+         arguments->getIntegerArgument("NumRows"),
+         arguments->getIntegerArgument("NumColumns"),
+         arguments->getIntegerArgument("BatchWidth"),
+         arguments->getIntegerArgument("CheckpointCellNumRows"),
+         arguments->getIntegerArgument("CheckpointCellNumColumns"),
+         arguments->getIntegerArgument("CheckpointCellBatchDimension"));
+   int rank     = mpiBlock.getRank();
    int rootproc = 0;
-   int status   = PV_SUCCESS;
+
+   int status = PV_SUCCESS;
    if (rank == rootproc) {
       int index          = hc->getFinalStep() - hc->getInitialStep();
-      const char *cpdir1 = "checkpoints1/batchsweep_00";
-      const char *cpdir2 = "checkpoints2/batchsweep_00";
+      const char *cpdir1 = "checkpoints1";
+      const char *cpdir2 = "checkpoints2";
       status             = diffDirs(cpdir1, cpdir2, index);
+      if (status != PV_SUCCESS) {
+         sync();
+         status = diffDirs(cpdir1, cpdir2, index);
+      }
    }
    MPI_Bcast(&status, 1, MPI_INT, rootproc, hc->getCommunicator()->communicator());
-   FatalIf(!(status == PV_SUCCESS), "Test failed.\n");
-   if (rank == rootproc) {
-      int index          = hc->getFinalStep() - hc->getInitialStep();
-      const char *cpdir1 = "checkpoints1/batchsweep_01";
-      const char *cpdir2 = "checkpoints2/batchsweep_01";
-      status             = diffDirs(cpdir1, cpdir2, index);
-   }
-   MPI_Bcast(&status, 1, MPI_INT, rootproc, hc->getCommunicator()->communicator());
-   FatalIf(!(status == PV_SUCCESS), "Test failed.\n");
+   FatalIf(status != PV_SUCCESS, "Test failed.\n");
    return status;
 }

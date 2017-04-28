@@ -12,21 +12,22 @@
 debugParsing = false;
 
 HyPerCol "column" = {
-   nx = 8;   //size of the whole networks
-   ny = 8;
-   dt = 1.0;  //time step in ms.
-   randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-   startTime = 0.0;
-   stopTime = 10.0;  
-   errorOnNotANumber = true;
-   progressInterval = 10.0; //Program will output its progress at each progressInterval
-   writeProgressToErr = false;
-   verifyWrites = false;
-   outputPath = "outputGenerate/";
-   printParamsFilename = "pv.params"; // A record of the parameters used, including defaults and excluding unused params, will be written to this file.
-   checkpointWrite = false;
-   lastCheckpointDir = "outputGenerate/Last"; //If true, save the last output as checkpoint.
-   nbatch = 2;
+    startTime                           = 0;
+    dt                                  = 1;
+    stopTime                            = 10;
+    progressInterval                    = 10;
+    writeProgressToErr                  = false;
+    outputPath                          = "outputGenerate/";
+    verifyWrites                        = false;
+    checkpointWrite                     = false;
+    lastCheckpointDir                   = "outputGenerate/Last";
+    initializeFromCheckpointDir         = "";
+    printParamsFilename                 = "pv.params";
+    randomSeed                          = 1234567890;
+    nx                                  = 8;
+    ny                                  = 8;
+    nbatch                              = 2;
+    errorOnNotANumber                   = true;
 };
 
 PvpLayer "Input" = {
@@ -38,24 +39,25 @@ PvpLayer "Input" = {
     valueBC                             = 0;
     writeStep                           = 1;
     initialWriteTime                    = 1;
-    sparseLayer                         = false;
+    sparseLayer                         = true;
     updateGpu                           = false;
+    dataType                            = NULL;
+    displayPeriod                       = 1;
+    inputPath                           = "input/inputmovie.pvp";
     offsetAnchor                        = "tl";
     offsetX                             = 0;
     offsetY                             = 0;
-    writeImages                         = 0;
-    useInputBCflag                      = false;
     autoResizeFlag                      = false;
     inverseFlag                         = false;
     normalizeLuminanceFlag              = false;
+    useInputBCflag                      = false;
     padValue                            = 0;
-    inputPath                           = "input/inputmovie.pvp";
-    displayPeriod                       = 1;
     batchMethod                         = "byFile";
-    writeFrameToTimestamp               = false;
+    start_frame_index                   = [0.000000,0.000000];
+    writeFrameToTimestamp               = true;
 };
 
-ANNLayer "Output" = {
+HyPerLayer "Output" = {
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 3;
@@ -64,35 +66,30 @@ ANNLayer "Output" = {
     InitVType                           = "ZeroV";
     triggerLayerName                    = NULL;
     writeStep                           = 1;
-    initialWriteTime                    = 0;
+    initialWriteTime                    = 1;
     sparseLayer                         = true;
-    writeSparseValues                   = false;
     updateGpu                           = false;
-    // dataType                            was set to (NULL);
-    VThresh                             = -infinity;
-    AMin                                = -infinity;
-    AMax                                = infinity;
-    AShift                              = 0;
-    VWidth                              = 0;
+    dataType                            = NULL;
 };
 
 HyPerConn "InputToOutput" = {
     preLayerName                        = "Input";
     postLayerName                       = "Output";
     channelCode                         = 0;
-    delay                               = 0.0;
+    delay                               = [0.000000];
     numAxonalArbors                     = 1;
     plasticityFlag                      = true;
     convertRateToSpikeCount             = false;
     receiveGpu                          = false;
     sharedWeights                       = true;
     weightInitType                      = "UniformWeight";
-    // initWeightsFile                     was set to (NULL);
+    initWeightsFile                     = NULL;
     weightInit                          = 0;
     connectOnlySameFeatures             = false;
     triggerLayerName                    = NULL;
     weightUpdatePeriod                  = 1;
     initialWeightUpdateTime             = 0;
+    immediateWeightUpdate               = true;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
     writeStep                           = -1;
@@ -105,7 +102,9 @@ HyPerConn "InputToOutput" = {
     shrinkPatches                       = false;
     normalizeMethod                     = "none";
     dWMax                               = 1;
+    normalizeDw                         = true;
     useMask                             = false;
-    gpuGroupIdx                         = 0;
+    dWMaxDecayInterval                  = 0;
+    dWMaxDecayFactor                    = 0;
+    weightSparsity                      = 0;
 };
-

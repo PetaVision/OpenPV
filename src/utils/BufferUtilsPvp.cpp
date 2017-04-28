@@ -10,15 +10,16 @@ WeightHeader buildWeightHeader(
       int preLayerNx,
       int preLayerNy,
       int preLayerNf,
+      int preLayerNxExt,
+      int preLayerNyExt,
       int numArbors,
-      bool compress,
       double timestamp,
       int nxp,
       int nyp,
       int nfp,
+      bool compress,
       float minVal,
-      float maxVal,
-      int numPatches) {
+      float maxVal) {
    WeightHeader weightHeader;
    ActivityHeader &baseHeader = weightHeader.baseHeader;
    baseHeader.headerSize      = (int)sizeof(weightHeader);
@@ -32,6 +33,7 @@ WeightHeader buildWeightHeader(
    baseHeader.numRecords = numArbors;
 
    int numPatchItems = nxp * nyp * nfp;
+   int numPatches    = preLayerNxExt * preLayerNyExt * preLayerNf;
    if (compress) {
       std::size_t const patchSize = weightPatchSize<unsigned char>(numPatchItems);
       baseHeader.recordSize       = numPatches * patchSize;
@@ -44,15 +46,15 @@ WeightHeader buildWeightHeader(
       baseHeader.dataSize         = (int)sizeof(float);
       baseHeader.dataType         = returnDataType<float>();
    }
-   baseHeader.nxProcs   = 1;
-   baseHeader.nyProcs   = 1;
-   baseHeader.nxGlobal  = baseHeader.nx;
-   baseHeader.nyGlobal  = baseHeader.ny;
-   baseHeader.kx0       = 0;
-   baseHeader.ky0       = 0;
-   baseHeader.nBatch    = 1;
-   baseHeader.nBands    = numArbors;
-   baseHeader.timestamp = timestamp;
+   baseHeader.nxProcs    = 1;
+   baseHeader.nyProcs    = 1;
+   baseHeader.nxExtended = preLayerNxExt;
+   baseHeader.nyExtended = preLayerNyExt;
+   baseHeader.kx0        = 0;
+   baseHeader.ky0        = 0;
+   baseHeader.nBatch     = 1;
+   baseHeader.nBands     = numArbors;
+   baseHeader.timestamp  = timestamp;
 
    weightHeader.nxp        = nxp;
    weightHeader.nyp        = nyp;
@@ -73,26 +75,24 @@ WeightHeader buildSharedWeightHeader(
       int numPatchesY,
       int numPatchesF,
       double timestamp,
-      PVLayerLoc const *preLayerLoc,
-      int numColumnProcesses,
-      int numRowProcesses,
+      bool compress,
       float minVal,
-      float maxVal,
-      bool compress) {
+      float maxVal) {
    WeightHeader weightHeader = buildWeightHeader(
          true /* shared weights*/,
          numPatchesX,
          numPatchesY,
          numPatchesF,
+         numPatchesX,
+         numPatchesY,
          numArbors,
-         compress,
          timestamp,
          nxp,
          nyp,
          nfp,
+         compress,
          minVal,
-         maxVal,
-         numPatchesX * numPatchesY * numPatchesF);
+         maxVal);
 
    return weightHeader;
 }
@@ -111,7 +111,7 @@ WeightHeader buildNonsharedWeightHeader(
       float minVal,
       float maxVal,
       bool compress) {
-   int numPatchesX, numPatchesY, numPatchesF;
+   int numPatchesX, numPatchesY, numPatchesF, numPatchesXExt, numPatchesYExt;
    calcNumberOfPatches(
          preLayerLoc,
          postLayerLoc,
@@ -122,23 +122,25 @@ WeightHeader buildNonsharedWeightHeader(
          nyp,
          numPatchesX,
          numPatchesY,
-         numPatchesF);
-   int numPatches = numPatchesX * numPatchesY * numPatchesF;
+         numPatchesF,
+         numPatchesXExt,
+         numPatchesYExt);
 
    WeightHeader weightHeader = buildWeightHeader(
          false /*non-shared weights*/,
          numPatchesX,
          numPatchesY,
-         preLayerLoc->nf,
+         numPatchesF,
+         numPatchesXExt,
+         numPatchesYExt,
          numArbors,
-         compress,
          timestamp,
          nxp,
          nyp,
          nfp,
+         compress,
          minVal,
-         maxVal,
-         numPatches);
+         maxVal);
 
    return weightHeader;
 }
@@ -153,17 +155,22 @@ void calcNumberOfPatches(
       int nyp,
       int &numPatchesX,
       int &numPatchesY,
-      int &numPatchesF) {
+      int &numPatchesF,
+      int &numPatchesXExt,
+      int &numPatchesYExt) {
    int nxPreRestricted = preLayerLoc->nx * numColumnProcesses;
    int nyPreRestricted = preLayerLoc->ny * numRowProcesses;
 
    numPatchesX = preLayerLoc->nx * numColumnProcesses;
    numPatchesY = preLayerLoc->ny * numRowProcesses;
+
+   numPatchesXExt = numPatchesX;
+   numPatchesYExt = numPatchesY;
    if (extended) {
       int marginX = requiredConvolveMargin(preLayerLoc->nx, postLayerLoc->nx, nxp);
-      numPatchesX += marginX + marginX;
+      numPatchesXExt += marginX + marginX;
       int marginY = requiredConvolveMargin(preLayerLoc->ny, postLayerLoc->ny, nyp);
-      numPatchesY += marginY + marginY;
+      numPatchesYExt += marginY + marginY;
    }
    numPatchesF = preLayerLoc->nf;
 }

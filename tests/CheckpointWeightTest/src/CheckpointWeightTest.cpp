@@ -65,13 +65,16 @@ int main(int argc, char *argv[]) {
    PV::Checkpointer *tempCheckpointer = new PV::Checkpointer("column", globalMPIBlock, arguments);
    PV::MPIBlock const mpiBlock        = *tempCheckpointer->getMPIBlock();
    delete tempCheckpointer;
-   delete hc;
 
-   // Recreate the PVPatch information.
+   // Copy over the PVPatch information, and delete the column.
    std::vector<PVPatch **> patches{(std::size_t)numArbors};
-   for (auto &p : patches) {
-      p = PV::HyPerConn::createPatches(patchDataSize, nxp, nyp);
+   for (int arbor = 0; arbor < numArbors; arbor++) {
+      patches[arbor] = PV::HyPerConn::createPatches(patchDataSize, nxp, nyp);
+      for (int patchIndex = 0; patchIndex < numDataPatches; patchIndex++) {
+         memcpy(patches[arbor][patchIndex], conn->getWeights(patchIndex, arbor), sizeof(PVPatch));
+      }
    }
+   delete hc;
 
    // Generate the weight data. For easier diagnosis of problems, we
    // do not use the weights specified in the params file, but use a formula
@@ -106,7 +109,7 @@ int main(int argc, char *argv[]) {
    }
 
    // For nonshared weights, set any weights outside shrunken patches to -1.
-   // This allows us to check than, when a patch is split among more than one
+   // This allows us to check that, when a patch is split among more than one
    // process, values outside a shrunken patch on one process are not clobbeing
    // values inside a shrunken patch on another.
    if (!shared) {
@@ -158,6 +161,7 @@ int main(int argc, char *argv[]) {
          &mpiBlock,
          numArbors,
          shared,
+         patches.data(),
          weightPointers.data(),
          numDataPatchesX,
          numDataPatchesY,
@@ -256,7 +260,7 @@ bool isActiveWeight(
       int nyp,
       int nfp) {
    int const x = kxPos(itemIndex, nxp, nyp, nfp);
-   int const y = kxPos(itemIndex, nxp, nyp, nfp);
+   int const y = kyPos(itemIndex, nxp, nyp, nfp);
 
    PVPatch const *patch = arborPatches[localPatchIndex];
    int const startx     = kxPos(patch->offset, nxp, nyp, nfp);

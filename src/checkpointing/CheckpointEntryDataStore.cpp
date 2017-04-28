@@ -14,7 +14,17 @@
 namespace PV {
 
 // Constructors defined in .hpp file.
-// Read, write and remove methods inherited from CheckpointEntryPvp.
+// Write and remove methods inherited from CheckpointEntryPvp.
+
+void CheckpointEntryDataStore::read(std::string const &checkpointDirectory, double *simTimePtr)
+      const {
+   CheckpointEntryPvp::read(checkpointDirectory, simTimePtr);
+   for (int bufferId = 0; bufferId < mDataStore->getNumBuffers(); bufferId++) {
+      for (int levelId = 0; levelId < mDataStore->getNumLevels(); levelId++) {
+         mDataStore->markActiveIndicesOutOfSync(bufferId, levelId);
+      }
+   }
+}
 
 int CheckpointEntryDataStore::getNumFrames() const {
    int const numBuffers  = getDataStore()->getNumBuffers();

@@ -31,6 +31,8 @@ class CheckpointEntryDataStore : public CheckpointEntryPvp<float> {
          : CheckpointEntryPvp<float>(objName, dataName, mpiBlock, layerLoc, true),
            mDataStore(dataStore) {}
 
+   virtual void read(std::string const &checkpointDirectory, double *simTimePtr) const override;
+
   protected:
    virtual int getNumFrames() const override;
    virtual float *calcBatchElementStart(int batchElement) const override;

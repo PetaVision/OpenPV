@@ -141,8 +141,8 @@ ActivityHeader buildActivityHeader(int width, int height, int features, int numF
    result.dataType   = dataType;
    result.nxProcs    = 1;
    result.nyProcs    = 1;
-   result.nxGlobal   = width;
-   result.nyGlobal   = height;
+   result.nxExtended = width;
+   result.nyExtended = height;
    result.kx0        = 0;
    result.ky0        = 0;
    result.nBatch     = 1;
@@ -261,10 +261,7 @@ double readDenseFromPvp(const char *fName, Buffer<T> *buffer, int frameReadIndex
          header.fileType != PVP_NONSPIKING_ACT_FILE_TYPE,
          "readDenseFromPvp() can only be used on non-sparse activity pvps "
          "(PVP_NONSPIKING_ACT_FILE_TYPE)\n");
-   FatalIf(
-         header.nBands <= 0,
-         "\"%s\" header does not have a positive nbands field.\n",
-         fName);
+   FatalIf(header.nBands <= 0, "\"%s\" header does not have a positive nbands field.\n", fName);
    buffer->resize(header.nx, header.ny, header.nf);
    int frameIndex   = frameReadIndex % header.nBands;
    long frameOffset = frameIndex * (header.recordSize * header.dataSize + sizeof(double));
@@ -417,10 +414,7 @@ double readSparseFromPvp(
          header.fileType != PVP_ACT_SPARSEVALUES_FILE_TYPE,
          "readSparseFromPvp() can only be used on sparse activity pvps "
          "(PVP_ACT_SPARSEVALUES_FILE_TYPE)\n");
-   FatalIf(
-         header.nBands <= 0,
-         "\"%s\" header does not have a positive nbands field.\n",
-         fName);
+   FatalIf(header.nBands <= 0, "\"%s\" header does not have a positive nbands field.\n", fName);
    FatalIf(
          header.dataSize != sizeof(struct SparseList<T>::Entry),
          "Error: Expected data size %d, found %d.\n",
@@ -471,10 +465,7 @@ double readSparseBinaryFromPvp(
          header.fileType != PVP_ACT_FILE_TYPE,
          "readSparseBinaryFromPvp() can only be used on sparse binary pvps "
          "(PVP_ACT_FILE_TYPE)\n");
-   FatalIf(
-         header.nBands <= 0,
-         "\"%s\" header does not have a positive nbands field.\n",
-         fName);
+   FatalIf(header.nBands <= 0, "\"%s\" header does not have a positive nbands field.\n", fName);
    FatalIf(
          header.dataSize != sizeof(int),
          "Error: Expected data size %d, found %d.\n",

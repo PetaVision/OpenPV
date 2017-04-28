@@ -38,14 +38,9 @@ CPTestInputLayer "input" = {
     sparseLayer                         = true;
     updateGpu                           = false;
     dataType                            = NULL;
-    VThresh                             = -3.40282e+38;
-    AMin                                = -3.40282e+38;
-    AMax                                = 3.40282e+38;
-    AShift                              = 0;
-    VWidth                              = 0;
 };
 
-ANNLayer "output no delay" = {
+HyPerLayer "output no delay" = {
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 1;
@@ -67,7 +62,7 @@ ANNLayer "output no delay" = {
     VWidth                              = 0;
 };
 
-ANNLayer "output with delay" = {
+HyPerLayer "output with delay" = {
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 1;
@@ -82,14 +77,9 @@ ANNLayer "output with delay" = {
     writeSparseValues                   = true;
     updateGpu                           = false;
     dataType                            = NULL;
-    VThresh                             = -3.40282e+38;
-    AMin                                = -3.40282e+38;
-    AMax                                = 3.40282e+38;
-    AShift                              = 0;
-    VWidth                              = 0;
 };
 
-ANNLayer "output arbor" = {
+HyPerLayer "output arbor" = {
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 1;
@@ -104,14 +94,9 @@ ANNLayer "output arbor" = {
     writeSparseValues                   = true;
     updateGpu                           = false;
     dataType                            = NULL;
-    VThresh                             = -3.40282e+38;
-    AMin                                = -3.40282e+38;
-    AMax                                = 3.40282e+38;
-    AShift                              = 0;
-    VWidth                              = 0;
 };
 
-ANNLayer "output from full hyperconn" = {
+HyPerLayer "output from full hyperconn" = {
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 1;
@@ -126,11 +111,6 @@ ANNLayer "output from full hyperconn" = {
     writeSparseValues                   = true;
     updateGpu                           = false;
     dataType                            = NULL;
-    VThresh                             = -3.40282e+38;
-    AMin                                = -3.40282e+38;
-    AMax                                = 3.40282e+38;
-    AShift                              = 0;
-    VWidth                              = 0;
 };
 
 VaryingHyPerConn "conn no delay" = {
