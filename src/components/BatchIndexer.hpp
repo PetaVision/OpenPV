@@ -1,4 +1,5 @@
-#pragma once
+#ifndef BATCHINDEXER_HPP_
+#define BATCHINDEXER_HPP_
 
 #include "checkpointing/Checkpointer.hpp"
 #include <vector>
@@ -44,3 +45,5 @@ class BatchIndexer : public CheckpointerDataInterface {
    BatchMethod mBatchMethod;
 };
 }
+
+#endif // BATCHINDEXER_HPP_

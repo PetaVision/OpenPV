@@ -1,4 +1,5 @@
-#pragma once
+#ifndef IMAGEPVPOFFSETTESTLAYER_HPP_
+#define IMAGEPVPOFFSETTESTLAYER_HPP_
 
 #include <layers/PvpLayer.hpp>
 
@@ -13,3 +14,5 @@ class ImagePvpOffsetTestLayer : public PV::PvpLayer {
    bool readyForNextFile();
 };
 }
+
+#endif // IMAGEPVPOFFSETTESTLAYER_HPP_
