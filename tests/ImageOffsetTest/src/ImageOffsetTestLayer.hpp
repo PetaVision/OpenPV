@@ -1,4 +1,5 @@
-#pragma once
+#ifndef IMAGEOFFSETTESTLAYER_HPP_
+#define IMAGEOFFSETTESTLAYER_HPP_
 
 #include <layers/ImageLayer.hpp>
 
@@ -14,3 +15,5 @@ class ImageOffsetTestLayer : public PV::ImageLayer {
 };
 
 } /* namespace PV */
+
+#endif // IMAGEOFFSETTESTLAYER_HPP_

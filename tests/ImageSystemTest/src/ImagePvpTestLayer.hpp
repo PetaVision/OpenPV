@@ -3,7 +3,8 @@
  * Author: slundquist
  */
 
-#pragma once
+#ifndef IMAGEPVPTESTLAYER_HPP_
+#define IMAGEPVPTESTLAYER_HPP_
 #include <layers/PvpLayer.hpp>
 
 namespace PV {
@@ -25,3 +26,5 @@ class ImagePvpTestLayer : public PV::PvpLayer {
    int mNumFrames = 0; // The number of frames in the pvp file at the input path.
 };
 }
+
+#endif // IMAGEPVPTESTLAYER_HPP_

@@ -35,16 +35,17 @@ HyPerCol "column" = {
     stopTime                            = 10;
     progressInterval                    = 10;
     writeProgressToErr                  = false;
-    verifyWrites                        = false;
     outputPath                          = "outputTest/";
+    verifyWrites                        = false;
+    checkpointWrite                     = false;
+    lastCheckpointDir                   = "outputTest/Last";
+    initializeFromCheckpointDir         = "";
     printParamsFilename                 = "pv.params";
     randomSeed                          = 1234567890;
     nx                                  = 8;
     ny                                  = 8;
-    checkpointWrite                     = false;
-    lastCheckpointDir                   = "outputTest/Last";
+    nbatch                              = 2;
     errorOnNotANumber                   = true;
-    nbatch = 2;
 };
 
 PvpLayer "OriginalMovie" = {
@@ -58,18 +59,20 @@ PvpLayer "OriginalMovie" = {
     initialWriteTime                    = 0;
     sparseLayer                         = false;
     updateGpu                           = false;
+    dataType                            = NULL;
+    displayPeriod                       = 1;
+    inputPath                           = "input/inputmovie.pvp";
     offsetAnchor                        = "tl";
     offsetX                             = 0;
     offsetY                             = 0;
-    useInputBCflag                      = false;
     autoResizeFlag                      = false;
     inverseFlag                         = false;
     normalizeLuminanceFlag              = false;
+    useInputBCflag                      = false;
     padValue                            = 0;
-    inputPath                           = "input/inputmovie.pvp";
-    displayPeriod                       = 1;
     batchMethod                         = "byFile";
-    writeFrameToTimestamp               = false;
+    start_frame_index                   = [0.000000,0.000000];
+    writeFrameToTimestamp               = true;
 };
 
 PvpLayer "GeneratedMovie" = {
@@ -83,21 +86,23 @@ PvpLayer "GeneratedMovie" = {
     initialWriteTime                    = 0;
     sparseLayer                         = false;
     updateGpu                           = false;
+    dataType                            = NULL;
+    displayPeriod                       = 1;
+    inputPath                           = "outputGenerate/Input.pvp";
     offsetAnchor                        = "tl";
     offsetX                             = 0;
     offsetY                             = 0;
-    useInputBCflag                      = false;
     autoResizeFlag                      = false;
     inverseFlag                         = false;
     normalizeLuminanceFlag              = false;
+    useInputBCflag                      = false;
     padValue                            = 0;
-    inputPath                           = "outputGenerate/Input.pvp";
-    displayPeriod                       = 1;
     batchMethod                         = "byFile";
+    start_frame_index                   = [0.000000,0.000000];
     writeFrameToTimestamp               = false;
 };
 
-ANNLayer "Comparison" = {
+HyPerLayer "Comparison" = {
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 3;
@@ -109,12 +114,7 @@ ANNLayer "Comparison" = {
     initialWriteTime                    = 0;
     sparseLayer                         = false;
     updateGpu                           = false;
-    // dataType                            was set to (NULL);
-    VThresh                             = -3.40282e+38;
-    AMin                                = -3.40282e+38;
-    AMax                                = 3.40282e+38;
-    AShift                              = 0;
-    VWidth                              = 0;
+    dataType                            = NULL;
 };
 
 IdentConn "GeneratedMovieToComparison" = {
@@ -122,10 +122,8 @@ IdentConn "GeneratedMovieToComparison" = {
     postLayerName                       = "Comparison";
     channelCode                         = 0;
     delay                               = [0.000000];
-    receiveGpu                          = false;
-    // initWeightsFile                     was set to (NULL);
-    writeStep                           = -1;
-    gpuGroupIdx                         = 0;
+    initWeightsFile                     = NULL;
+    weightSparsity                      = 0;
 };
 
 IdentConn "OriginalMovieToComparison" = {
@@ -133,24 +131,28 @@ IdentConn "OriginalMovieToComparison" = {
     postLayerName                       = "Comparison";
     channelCode                         = 1;
     delay                               = [0.000000];
-    receiveGpu                          = false;
-    // initWeightsFile                     was set to (NULL);
-    writeStep                           = -1;
-    gpuGroupIdx                         = 0;
+    initWeightsFile                     = NULL;
+    weightSparsity                      = 0;
 };
 
 TestNotAlwaysAllZerosProbe "OriginalMovieProbe" = {
     targetLayer                         = "OriginalMovie";
     message                             = "OriginalMovie ";
+    textOutputFlag                      = true;
     probeOutputFile                     = "OriginalMovieProbe.txt";
     triggerLayerName                    = NULL;
+    energyProbe                         = NULL;
     nnzThreshold                        = 0;
 };
 
 RequireAllZeroActivityProbe "ComparisonProbe" = {
     targetLayer                         = "Comparison";
     message                             = "Comparison    ";
+    textOutputFlag                      = true;
     probeOutputFile                     = "ComparisonProbe.txt";
     triggerLayerName                    = NULL;
+    energyProbe                         = NULL;
     nnzThreshold                        = 0;
+    exitOnFailure                       = true;
+    immediateExitOnFailure              = true;
 };

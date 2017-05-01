@@ -21,6 +21,7 @@ class CheckpointEntryWeightPvp : public CheckpointEntry {
          MPIBlock const *mpiBlock,
          int numArbors,
          bool sharedWeights,
+         PVPatch const *const *const *patchGeometry,
          float **weightData,
          int numPatchesX,
          int numPatchesY,
@@ -35,6 +36,7 @@ class CheckpointEntryWeightPvp : public CheckpointEntry {
       initialize(
             numArbors,
             sharedWeights,
+            patchGeometry,
             weightData,
             numPatchesX,
             numPatchesY,
@@ -52,6 +54,7 @@ class CheckpointEntryWeightPvp : public CheckpointEntry {
          MPIBlock const *mpiBlock,
          int numArbors,
          bool sharedWeights,
+         PVPatch const *const *const *patchGeometry,
          float **weightData,
          int numPatchesX,
          int numPatchesY,
@@ -66,6 +69,7 @@ class CheckpointEntryWeightPvp : public CheckpointEntry {
       initialize(
             numArbors,
             sharedWeights,
+            patchGeometry,
             weightData,
             numPatchesX,
             numPatchesY,
@@ -86,6 +90,7 @@ class CheckpointEntryWeightPvp : public CheckpointEntry {
    void initialize(
          int numArbors,
          bool sharedWeights,
+         PVPatch const *const *const *patchGeometry,
          float **weightData,
          int numPatchesX,
          int numPatchesY,
@@ -101,6 +106,7 @@ class CheckpointEntryWeightPvp : public CheckpointEntry {
 
   private:
    bool mSharedWeights;
+   PVPatch const *const *const *mPatchGeometry;
    int mNumArbors;
    float **mWeightData;
    int mNumPatchesX;

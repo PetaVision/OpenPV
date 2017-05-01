@@ -1,0 +1,10 @@
+input/images/0.png
+input/images/1.png
+input/images/2.png
+input/images/3.png
+input/images/4.png
+input/images/5.png
+input/images/6.png
+input/images/7.png
+input/images/8.png
+input/images/9.png

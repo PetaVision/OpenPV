@@ -4,7 +4,8 @@
  *  Created on: Nov 10, 2014
  *      Author: wchavez
  */
-#pragma once
+#ifndef FILENAMEPARSINGGROUNDTRUTHLAYER_HPP_
+#define FILENAMEPARSINGGROUNDTRUTHLAYER_HPP_
 
 #include "HyPerLayer.hpp"
 #include "InputLayer.hpp"
@@ -78,3 +79,5 @@ class FilenameParsingGroundTruthLayer : public HyPerLayer {
    /** @} */
 };
 }
+
+#endif // FILENAMEPARSINGGROUNDTRUTHLAYER_HPP_

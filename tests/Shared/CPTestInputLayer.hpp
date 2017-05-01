@@ -8,11 +8,11 @@
 #ifndef CPTESTINPUTLAYER_HPP_
 #define CPTESTINPUTLAYER_HPP_
 
-#include <layers/ANNLayer.hpp>
+#include <layers/HyPerLayer.hpp>
 
 namespace PV {
 
-class CPTestInputLayer : public ANNLayer {
+class CPTestInputLayer : public HyPerLayer {
 
   public:
    CPTestInputLayer(const char *name, HyPerCol *hc);

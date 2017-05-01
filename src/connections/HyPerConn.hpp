@@ -107,7 +107,7 @@ class HyPerConn : public BaseConnection {
       return PV_SUCCESS;
    }
 
-   virtual int writePostSynapticWeights(double timed, FileStream &fileStream);
+   // writePostSynapticWeights was removed Apr 28, 2017. Create a TransposeConn if needed.
 
    /**
     * Uses presynaptic layer's activity to modify the postsynaptic GSyn or thread_gSyn
@@ -527,7 +527,6 @@ class HyPerConn : public BaseConnection {
    float mDWMaxDecayFactor = 0.0f; // Each modification is dWMax = dWMax * (1.0 - decayFactor);
 
    CheckpointableFileStream *mOutputStateStream = nullptr; // weights file written by outputState
-   MPIBlock const *mOutputStateMPIBlock         = nullptr;
 
   protected:
    HyPerConn();

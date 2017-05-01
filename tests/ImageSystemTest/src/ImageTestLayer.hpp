@@ -3,7 +3,8 @@
  * Author: slundquist
  */
 
-#pragma once
+#ifndef IMAGETESTLAYER_HPP_
+#define IMAGETESTLAYER_HPP_
 #include <layers/ImageLayer.hpp>
 
 namespace PV {
@@ -14,3 +15,5 @@ class ImageTestLayer : public PV::ImageLayer {
    virtual int updateState(double time, double dt);
 };
 }
+
+#endif // IMAGETESTLAYER_HPP_

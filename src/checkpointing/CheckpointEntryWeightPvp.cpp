@@ -17,6 +17,7 @@ namespace PV {
 void CheckpointEntryWeightPvp::initialize(
       int numArbors,
       bool sharedWeights,
+      PVPatch const *const *const *patchGeometry,
       float **weightData,
       int numPatchesX,
       int numPatchesY,
@@ -29,6 +30,7 @@ void CheckpointEntryWeightPvp::initialize(
       bool compressFlag) {
    mNumArbors     = numArbors;
    mSharedWeights = sharedWeights;
+   mPatchGeometry = patchGeometry;
    mWeightData    = weightData;
    mNumPatchesX = numPatchesX, mNumPatchesY = numPatchesY, mNumPatchesF = numPatchesF,
    mWeightDataSize = numPatchesX * numPatchesY * numPatchesF;
@@ -45,7 +47,7 @@ void CheckpointEntryWeightPvp::calcMinMaxWeights(float *minWeightPtr, float *max
    float maxWeight = -std::numeric_limits<float>::infinity();
    for (int arbor = 0; arbor < mNumArbors; arbor++) {
       float const *arborStart = mWeightData[arbor];
-      int const numValues     = mPatchSizeX * mPatchSizeY * mPatchSizeF;
+      int const numValues     = mPatchSizeX * mPatchSizeY * mPatchSizeF * mWeightDataSize;
       for (int k = 0; k < numValues; k++) {
          float weight = arborStart[k];
          if (weight < minWeight) {
@@ -113,10 +115,9 @@ void CheckpointEntryWeightPvp::write(
             mNumArbors,
             mWeightData,
             mCompressFlag,
-            minWeight,
-            maxWeight,
             true /*extended*/,
-            mPostLoc);
+            mPostLoc,
+            mPatchGeometry);
       delete fileStream;
    }
 }

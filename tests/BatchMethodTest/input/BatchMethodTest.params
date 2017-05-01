@@ -1,0 +1,322 @@
+// BatchMethodTes.params
+//
+// created by peteschultz April 14, 2017.
+//
+// A test of the InputFile batchMethod parameter.
+// The input/images directory contains the images 0.png, 1.png, ..., 9.png,
+// which are 32x32 grayscale images of the digits 0 through 9.
+// input/images/imagelist.png is a list of these images.
+//
+// The column's batch size is 4.
+//
+// The layer "InputByFile" is an ImageLayer with batch method set to byFile,
+// pointing at the list of digits. At t=1, the contents of InputByFile's
+// batch elements should be 0, 1, 2, 3. At t=2, they are 4, 5, 6, 7. Etc.
+//
+// The layer "CheckInputByFile" is a custom layer that loads the expected
+// images without using the InputLayer's architecture.
+// The layer "ComparisonByFile" takes the difference of InputByFile and
+// CheckInputByFile, and the RequireAllZeroActivityProbe fails if the
+// difference is ever nonzero.
+//
+// The second part of the test checks the byList choice of batchMethod.
+// Since there are 4 batch elements and 10 images, the first batch element
+// starts at zero and moves through the list sequentially; the second batch
+// element starts at floor(10/4)=2 and moves through the list sequentially.
+// The third element starts at 2*floor(10/4)=4, and the last starts at
+// 3*floor(10/4)=6.
+// That is:
+// batch element   t=0, t=1, t=2, t=3, t=4, t=5, t=6, t=7, t=8, t=9, t=10, ...
+//             0     0    1    2    3    4    5    6    7    8    9    0,  ...
+//             1     2    3    4    5    6    7    8    9    0    1    2,  ...
+//             2     4    5    6    7    8    9    0    1    2    3    4,  ...
+//             3     6    7    8    9    0    1    2    3    4    5    6,  ...
+
+debugParsing = true;
+
+HyPerCol "column" = {
+    startTime                           = 0;
+    dt                                  = 1;
+    stopTime                            = 10;
+    progressInterval                    = 10;
+    writeProgressToErr                  = false;
+    outputPath                          = "output/";
+    verifyWrites                        = false;
+    checkpointWrite                     = false;
+    lastCheckpointDir                   = "output/Last";
+    initializeFromCheckpointDir         = "";
+    printParamsFilename                 = "pv.params";
+    randomSeed                          = 1234567890;
+    nx                                  = 32;
+    ny                                  = 32;
+    nbatch                              = 4;
+    errorOnNotANumber                   = true;
+};
+
+//
+// Check ByFile
+//
+
+ImageLayer "InputByFile" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    writeStep                           = 1;
+    initialWriteTime                    = 1;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+    displayPeriod                       = 1;
+    inputPath                           = "input/images/imagelist.txt";
+    offsetAnchor                        = "tl";
+    offsetX                             = 0;
+    offsetY                             = 0;
+    autoResizeFlag                      = false;
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = false;
+    useInputBCflag                      = false;
+    padValue                            = 0;
+    batchMethod                         = "byFile";
+    start_frame_index                   = [0.0,0.000000,0.000000,0.000000];
+    writeFrameToTimestamp               = true;
+};
+
+HyPerLayer "OutputByFile" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 1;
+    mirrorBCflag                        = true;
+    InitVType                           = "ZeroV";
+    triggerLayerName                    = NULL;
+    writeStep                           = 1;
+    initialWriteTime                    = 1;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+};
+
+FixedImageSequenceByFile "CheckInputByFile" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    InitVType                           = "ZeroV";
+    triggerLayerName                    = NULL;
+    writeStep                           = 1;
+    initialWriteTime                    = 1;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+};
+
+HyPerLayer "ComparisonByFile" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 1;
+    mirrorBCflag                        = true;
+    InitVType                           = "ZeroV";
+    triggerLayerName                    = NULL;
+    writeStep                           = 1;
+    initialWriteTime                    = 1;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+};
+
+HyPerConn "InputByFileToOutputByFile" = {
+    preLayerName                        = "InputByFile";
+    postLayerName                       = "OutputByFile";
+    channelCode                         = 0;
+    delay                               = [0.0];
+    numAxonalArbors                     = 1;
+    plasticityFlag                      = false;
+    convertRateToSpikeCount             = false;
+    receiveGpu                          = false;
+    sharedWeights                       = true;
+    weightInitType                      = "UniformWeight";
+    initWeightsFile                     = NULL;
+    weightInit                          = 0.111111;
+    connectOnlySameFeatures             = false;
+    updateGSynFromPostPerspective       = false;
+    pvpatchAccumulateType               = "convolve";
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+    nxp                                 = 3;
+    nyp                                 = 3;
+    nfp                                 = 1;
+    shrinkPatches                       = false;
+    normalizeMethod                     = "none";
+    weightSparsity                      = 0;
+};
+
+IdentConn "InputByFileToComparisonByFile" = {
+    preLayerName                        = "InputByFile";
+    postLayerName                       = "ComparisonByFile";
+    channelCode                         = 0;
+    delay                               = [0.0];
+    initWeightsFile                     = NULL;
+    weightSparsity                      = 0;
+};
+
+IdentConn "CheckInputByFileToComparisonByFile" = {
+    preLayerName                        = "CheckInputByFile";
+    postLayerName                       = "ComparisonByFile";
+    channelCode                         = 1;
+    delay                               = [0.0];
+    initWeightsFile                     = NULL;
+    weightSparsity                      = 0;
+};
+
+RequireAllZeroActivityProbe "ProbeByFile" = {
+    targetLayer                         = "ComparisonByFile";
+    message                             = NULL;
+    textOutputFlag                      = true;
+    probeOutputFile                     = "ProbeByFile.txt";
+    triggerLayerName                    = NULL;
+    energyProbe                         = NULL;
+    nnzThreshold                        = 0.0;
+    exitOnFailure                       = true;
+    immediateExitOnFailure              = false;
+};
+
+//
+// Check ByList
+//
+
+ImageLayer "InputByList" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    writeStep                           = 1;
+    initialWriteTime                    = 1;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+    displayPeriod                       = 1;
+    inputPath                           = "input/images/imagelist.txt";
+    offsetAnchor                        = "tl";
+    offsetX                             = 0;
+    offsetY                             = 0;
+    autoResizeFlag                      = false;
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = false;
+    useInputBCflag                      = false;
+    padValue                            = 0;
+    batchMethod                         = "byList";
+    start_frame_index                   = [0.0,0.000000,0.000000,0.000000];
+    writeFrameToTimestamp               = true;
+};
+
+HyPerLayer "OutputByList" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 1;
+    mirrorBCflag                        = true;
+    InitVType                           = "ZeroV";
+    triggerLayerName                    = NULL;
+    writeStep                           = 1;
+    initialWriteTime                    = 1;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+};
+
+FixedImageSequenceByList "CheckInputByList" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    InitVType                           = "ZeroV";
+    triggerLayerName                    = NULL;
+    writeStep                           = 1;
+    initialWriteTime                    = 1;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+};
+
+HyPerLayer "ComparisonByList" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 1;
+    mirrorBCflag                        = true;
+    InitVType                           = "ZeroV";
+    triggerLayerName                    = NULL;
+    writeStep                           = 1;
+    initialWriteTime                    = 1;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+};
+
+HyPerConn "InputByListToOutputByList" = {
+    preLayerName                        = "InputByList";
+    postLayerName                       = "OutputByList";
+    channelCode                         = 0;
+    delay                               = [0.0];
+    numAxonalArbors                     = 1;
+    plasticityFlag                      = false;
+    convertRateToSpikeCount             = false;
+    receiveGpu                          = false;
+    sharedWeights                       = true;
+    weightInitType                      = "UniformWeight";
+    initWeightsFile                     = NULL;
+    weightInit                          = 0.111111;
+    connectOnlySameFeatures             = false;
+    updateGSynFromPostPerspective       = false;
+    pvpatchAccumulateType               = "convolve";
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+    nxp                                 = 3;
+    nyp                                 = 3;
+    nfp                                 = 1;
+    shrinkPatches                       = false;
+    normalizeMethod                     = "none";
+    weightSparsity                      = 0;
+};
+
+IdentConn "InputByListToComparisonByList" = {
+    preLayerName                        = "InputByList";
+    postLayerName                       = "ComparisonByList";
+    channelCode                         = 0;
+    delay                               = [0.0];
+    initWeightsFile                     = NULL;
+    weightSparsity                      = 0;
+};
+
+IdentConn "CheckInputByListToComparisonByList" = {
+    preLayerName                        = "CheckInputByList";
+    postLayerName                       = "ComparisonByList";
+    channelCode                         = 1;
+    delay                               = [0.0];
+    initWeightsFile                     = NULL;
+    weightSparsity                      = 0;
+};
+
+RequireAllZeroActivityProbe "ProbeByList" = {
+    targetLayer                         = "ComparisonByList";
+    message                             = NULL;
+    textOutputFlag                      = true;
+    probeOutputFile                     = "ProbeByList.txt";
+    triggerLayerName                    = NULL;
+    energyProbe                         = NULL;
+    nnzThreshold                        = 0.0;
+    exitOnFailure                       = true;
+    immediateExitOnFailure              = false;
+};

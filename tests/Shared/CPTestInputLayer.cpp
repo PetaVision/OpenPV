@@ -20,12 +20,7 @@ void CPTestInputLayer_update_state(
       const int up,
 
       float *V,
-      const float Vth,
-      const float AMin,
-      const float AMax,
       float *GSynHead,
-      /*    float * GSynExc,
-    float * GSynInh,*/
       float *activity);
 
 namespace PV {
@@ -35,12 +30,12 @@ CPTestInputLayer::CPTestInputLayer(const char *name, HyPerCol *hc) { initialize(
 CPTestInputLayer::~CPTestInputLayer() {}
 
 int CPTestInputLayer::initialize(const char *name, HyPerCol *hc) {
-   ANNLayer::initialize(name, hc);
+   HyPerLayer::initialize(name, hc);
    return PV_SUCCESS;
 }
 
 int CPTestInputLayer::allocateDataStructures() {
-   int status = ANNLayer::allocateDataStructures();
+   int status = HyPerLayer::allocateDataStructures();
    if (status != PV_SUCCESS)
       return status;
 
@@ -97,9 +92,6 @@ int CPTestInputLayer::updateState(double timed, double dt) {
          halo->dn,
          halo->up,
          V,
-         VThresh,
-         AMin,
-         AMax,
          GSynHead,
          activity);
 
@@ -122,9 +114,6 @@ void CPTestInputLayer_update_state(
       const int up,
 
       float *V,
-      const float Vth,
-      const float AMin,
-      const float AMax,
       float *GSynHead,
       float *activity) {
    updateV_CPTestInputLayer(nbatch, numNeurons, V);

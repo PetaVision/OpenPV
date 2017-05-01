@@ -2166,22 +2166,7 @@ int HyPerLayer::readDelaysFromCheckpoint(Checkpointer *checkpointer) {
 // They were only used by checkpointing, which is now handled by the
 // CheckpointEntry class hierarchy.
 
-int HyPerLayer::processCheckpointRead() {
-   if (mOutputStateStream) {
-      long fpos = mOutputStateStream->getInPos();
-      if (fpos > 0L) {
-         BufferUtils::ActivityHeader header = BufferUtils::readActivityHeader(*mOutputStateStream);
-         if (sparseLayer) {
-            writeActivitySparseCalls = header.nBands;
-         }
-         else {
-            writeActivityCalls = header.nBands;
-         }
-      }
-      mOutputStateStream->setInPos(fpos, true);
-   }
-   return updateAllActiveIndices();
-}
+int HyPerLayer::processCheckpointRead() { return updateAllActiveIndices(); }
 
 int HyPerLayer::writeActivitySparse(double timed) {
    PVLayerCube cube      = publisher->createCube(0 /*delay*/);
@@ -2207,16 +2192,21 @@ int HyPerLayer::writeActivitySparse(double timed) {
          int index                      = (int)entry.index;
 
          // Location is local extended; need global restricted.
-         int x = kxPos(index, nxExt, nyExt, nf) - loc->halo.lt + loc->kx0;
-         if (x < 0 or x >= loc->nxGlobal) {
+         // Get local restricted coordinates.
+         int x = kxPos(index, nxExt, nyExt, nf) - loc->halo.lt;
+         if (x < 0 or x >= loc->nx) {
             continue;
          }
-         int y = kyPos(index, nxExt, nyExt, nf) - loc->halo.up + loc->ky0;
-         if (y < 0 or y >= loc->nyGlobal) {
+         int y = kyPos(index, nxExt, nyExt, nf) - loc->halo.up;
+         if (y < 0 or y >= loc->ny) {
             continue;
          }
+         // Convert to global restricted coordinates.
+         x += loc->kx0;
+         y += loc->ky0;
          int f = featureIndex(index, nxExt, nyExt, nf);
 
+         // Get global restricted index.
          entry.index = (uint32_t)kIndex(x, y, f, loc->nxGlobal, loc->nyGlobal, nf);
          list.addEntry(entry);
       }

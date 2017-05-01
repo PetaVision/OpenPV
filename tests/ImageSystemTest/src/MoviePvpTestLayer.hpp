@@ -3,7 +3,8 @@
  * Author: slundquist
  */
 
-#pragma once
+#ifndef MOVIEPVPTESTLAYER_HPP_
+#define MOVIEPVPTESTLAYER_HPP_
 #include <layers/PvpLayer.hpp>
 
 namespace PV {
@@ -15,3 +16,5 @@ class MoviePvpTestLayer : public PV::PvpLayer {
 };
 
 } // end namespace PV
+
+#endif // MOVIEPVPTESTLAYER_HPP_

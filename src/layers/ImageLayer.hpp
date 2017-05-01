@@ -1,4 +1,5 @@
-#pragma once
+#ifndef IMAGELAYER_HPP_
+#define IMAGELAYER_HPP_
 
 #include "InputLayer.hpp"
 #include "structures/Image.hpp"
@@ -32,3 +33,5 @@ class ImageLayer : public InputLayer {
    std::vector<std::string> mFileList;
 }; // end class ImageLayer
 } // end namespace PV
+
+#endif // IMAGELAYER_HPP_

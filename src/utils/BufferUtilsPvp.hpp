@@ -39,7 +39,7 @@ struct SparseFileTable {
 
 struct ActivityHeader {
    int headerSize, numParams, fileType, nx, ny, nf, numRecords, recordSize, dataSize, dataType,
-         nxProcs, nyProcs, nxGlobal, nyGlobal, kx0, ky0, nBatch, nBands;
+         nxProcs, nyProcs, nxExtended, nyExtended, kx0, ky0, nBatch, nBands;
    double timestamp;
 };
 
@@ -187,7 +187,7 @@ std::size_t weightPatchSize(int numWeightsInPatch);
  * The recordSize field is computed from nxp, nyp, nfp, numPatches and
  * the compress flag. The fileType field is determined by the shared flag.
  * Other header fields are copied from the appropriate argument.
- * (For example, the preLayerNx argument is placed into the nx and nxGlobal
+ * (For example, the preLayerNx argument is placed into the nx and nxExtended
  * fields).
  *
  * This function is called by both the buildSharedWeightHeader and
@@ -198,15 +198,16 @@ WeightHeader buildWeightHeader(
       int preLayerNx,
       int preLayerNy,
       int preLayerNf,
-      bool compress,
+      int preLayerNxExt,
+      int preLayerNyExt,
       int numArbors,
       double timestamp,
       int nxp,
       int nyp,
       int nfp,
+      bool compress,
       float minVal,
-      float maxVal,
-      int numPatches);
+      float maxVal);
 
 /**
  * Builds a header for shared-weight files.
@@ -236,12 +237,9 @@ WeightHeader buildSharedWeightHeader(
       int numPatchesY,
       int numPatchesF,
       double timestamp,
-      PVLayerLoc const *preLayerLoc,
-      int numColumnProcesses,
-      int numRowProcesses,
+      bool compress,
       float minVal,
-      float maxVal,
-      bool compress);
+      float maxVal);
 
 /**
  * Builds a header for nonshared-weight files.
@@ -289,7 +287,9 @@ void calcNumberOfPatches(
       int nyp,
       int &numPatchesX,
       int &numPatchesY,
-      int &numPatchesF);
+      int &numPatchesF,
+      int &numPatchesXExt,
+      int &numPatchesYExt);
 } // end namespace BufferUtils
 } // end namespace PV
 

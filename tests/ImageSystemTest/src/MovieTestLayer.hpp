@@ -3,7 +3,8 @@
  * Author: slundquist
  */
 
-#pragma once
+#ifndef MOVIETESTLAYER_HPP_
+#define MOVIETESTLAYER_HPP_
 #include <layers/ImageLayer.hpp>
 
 namespace PV {
@@ -14,3 +15,5 @@ class MovieTestLayer : public PV::ImageLayer {
    virtual int updateState(double time, double dt);
 };
 }
+
+#endif // MOVIETESTLAYER_HPP_

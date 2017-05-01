@@ -77,7 +77,7 @@ int main(int argc, char *argv[]) {
    initObj.setParams(paramFile2);
    initObj.setStringArgument("CheckpointReadDirectory", "checkpoints1/Checkpoint12");
 
-   status = rebuildandrun(&initObj);
+   status = rebuildandrun(&initObj, nullptr, customexit);
    if (status != PV_SUCCESS) {
       Fatal().printf(
             "%s: rank %d running with params file %s returned error %d.\n",
@@ -91,17 +91,27 @@ int main(int argc, char *argv[]) {
 }
 
 int customexit(HyPerCol *hc, int argc, char *argv[]) {
-   int status   = PV_SUCCESS;
-   int rank     = hc->getCommunicator()->commRank();
+   // Rank of the checkpointing MPI communicator does is not publicly accessible, so recreate it.
+   Arguments const *arguments = hc->getPV_InitObj()->getArguments();
+   int cellNumRows            = arguments->getIntegerArgument("CheckpointCellNumRows");
+   int cellNumColumns         = arguments->getIntegerArgument("CheckpointCellNumColumns");
+   int cellBatchDimension     = arguments->getIntegerArgument("CheckpointCellBatchDimension");
+   MPIBlock mpiBlock(
+         hc->getCommunicator()->globalCommunicator(),
+         arguments->getIntegerArgument("NumRows"),
+         arguments->getIntegerArgument("NumColumns"),
+         arguments->getIntegerArgument("BatchWidth"),
+         arguments->getIntegerArgument("CheckpointCellNumRows"),
+         arguments->getIntegerArgument("CheckpointCellNumColumns"),
+         arguments->getIntegerArgument("CheckpointCellBatchDimension"));
+   int rank     = mpiBlock.getRank();
    int rootproc = 0;
+
+   int status = PV_SUCCESS;
    if (rank == rootproc) {
-      int index          = hc->getFinalStep() - hc->getInitialStep();
-      const char *cpdir1 = "checkpoints1";
-      const char *cpdir2 = hc->parameters()->stringValue("column", "checkpointWriteDir");
-      if (cpdir1 == NULL || cpdir2 == NULL) {
-         Fatal().printf(
-               "%s: unable to allocate memory for names of checkpoint directories", argv[0]);
-      }
+      int index             = hc->getFinalStep() - hc->getInitialStep();
+      const char *cpdir1    = "checkpoints1";
+      const char *cpdir2    = hc->parameters()->stringValue("column", "checkpointWriteDir");
       const int max_buf_len = 1024;
       char shellcommand[max_buf_len];
       const char *fmtstr = "diff -r -q -x timers.txt -x pv.params -x pv.params.lua %s/Checkpoint%d "

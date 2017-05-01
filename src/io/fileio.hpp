@@ -19,6 +19,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <vector>
 
 namespace PV {
 
@@ -26,6 +27,39 @@ struct PatchHeader {
    unsigned short int nx;
    unsigned short int ny;
    unsigned int offset;
+};
+
+/**
+ * PatchListDescription is a struct that packages the description of a list of
+ * patch indices of interest. The standard use case is to generate the list of
+ * data patches of a HyPerConn that need to be considered in I/O. This list
+ * may differ from the list 0,1,...(numDataPatches-1) in the case of nonshared
+ * weights where the pre-synaptic layer has a larger border than the connection
+ * requires. In this case we want to look at only those patches the connection
+ * does require.
+ *
+ * The assumptions is that the patch indices of interest form a regular block
+ * within the complete list of patches, and that for any x-y location,
+ * either all features are to be considered or none are.
+ *
+ * mStartIndex is the first patch index of interest.
+ *
+ * mLineStride is the number of patches needed to step from a patch at (x,y,f)
+ *     to a patch at (x,y+1,f). It should also be a multiple of the number of
+ *     features.
+ *
+ * mNumPatchesX is the width of the block of patch indices of interest in the
+ *     x-direction.
+ * mNumPatchesY is the height of the block of patch indices of interest in the
+ *     y-direction.
+ * mNumPatchesF is the number of (pre-synaptic) features.
+ */
+struct PatchListDescription {
+   int mStartIndex;
+   int mStrideY;
+   int mNumPatchesX;
+   int mNumPatchesY;
+   int mNumPatchesF;
 };
 
 // Unused function timeToParams was removed Mar 10, 2017.
@@ -66,6 +100,57 @@ int ensureDirExists(MPIBlock const *mpiBlock, char const *dirname);
 // Use BufferUtils::gather and BufferUtils::scatter instead.
 
 // readWeights was removed Mar 15, 2017. Use readSharedWeights or readNonsharedWeights instead.
+
+PatchListDescription createPatchListDescription(
+      PVLayerLoc const *preLoc,
+      PVLayerLoc const *postLoc,
+      int nxp,
+      int nyp,
+      bool shared);
+
+/**
+ * Calculates the minimum of the value of minWeight and all the weights in the
+ * patch pointed to by patchData, and defined by nf, nx, ny, offset and syp.
+ * nf, nx, ny define the size of the patch, and offset defines the patch's
+ * start in patchData. syp is the stride between adjacent y-values.
+ * The stride in f is assumed to be 1, and the stride in x is assumed to be nf.
+ *
+ * It also calculates the maximum of the value of maxWeight and all the
+ * weights in the same patch.
+ *
+ * Note that calcMinMaxPatch does not initialize minWeight or maxWeight.
+ * This way the min/maximum of several patches in sequence is readily computed.
+ */
+void calcMinMaxPatch(
+      float &minWeight,
+      float &maxWeight,
+      float const *patchData,
+      unsigned int nf,
+      unsigned int nx,
+      unsigned int ny,
+      unsigned int offset,
+      unsigned int syp);
+
+void calcMinMaxNonsharedWeights(
+      float &minWeight,
+      float &maxWeight,
+      float const *const *patchData,
+      int numArbors,
+      int nxp,
+      int nyp,
+      int nfp,
+      PatchListDescription const &patchIndices,
+      PVPatch const *const *const *patchGeometry);
+
+void calcMinMaxSharedWeights(
+      float &minWeight,
+      float &maxWeight,
+      float const *const *patchData,
+      int numArbors,
+      int nxp,
+      int nyp,
+      int nfp,
+      PatchListDescription const &patchIndices);
 
 double readSharedWeights(
       FileStream *fileStream,
@@ -133,10 +218,9 @@ void writeNonsharedWeights(
       int numArbors,
       float **dataStart,
       bool compress,
-      float minVal,
-      float maxVal,
       bool extended,
-      const PVLayerLoc *postLoc);
+      const PVLayerLoc *postLoc,
+      PVPatch const *const *const *patchGeometry);
 
 // Unused function pvp_check_file_header was removed Mar 15, 2017.
 } // namespace PV
