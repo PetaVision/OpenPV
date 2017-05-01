@@ -10,9 +10,7 @@ using std::string;
 
 namespace PV {
 
-class CheckpointableFileStream : public FileStream,
-                                 public Observer,
-                                 public CheckpointerDataInterface {
+class CheckpointableFileStream : public FileStream, public CheckpointerDataInterface {
 
   public:
    /**

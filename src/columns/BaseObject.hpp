@@ -36,7 +36,7 @@ namespace PV {
 
 class HyPerCol;
 
-class BaseObject : public Observer, public CheckpointerDataInterface {
+class BaseObject : public CheckpointerDataInterface {
   public:
    inline char const *getName() const { return name; }
    inline HyPerCol *getParent() const { return parent; }
@@ -89,10 +89,7 @@ class BaseObject : public Observer, public CheckpointerDataInterface {
    int respondAllocateData(AllocateDataMessage const *message);
    int respondRegisterData(RegisterDataMessage<Checkpointer> const *message);
    int respondInitializeState(InitializeStateMessage const *message);
-   int respondReadStateFromCheckpoint(ReadStateFromCheckpointMessage<Checkpointer> const *message);
    int respondCopyInitialStateToGPUMessage(CopyInitialStateToGPUMessage const *message);
-   int respondProcessCheckpointRead(ProcessCheckpointReadMessage const *message);
-   int respondPrepareCheckpointWrite(PrepareCheckpointWriteMessage const *message);
    int respondCleanup(CleanupMessage const *message);
 
    virtual int communicateInitInfo() { return PV_SUCCESS; }
@@ -100,8 +97,6 @@ class BaseObject : public Observer, public CheckpointerDataInterface {
    virtual int initializeState() { return PV_SUCCESS; }
    virtual int readStateFromCheckpoint(Checkpointer *checkpointer) { return PV_SUCCESS; }
    virtual int copyInitialStateToGPU() { return PV_SUCCESS; }
-   virtual int processCheckpointRead() { return PV_SUCCESS; }
-   virtual int prepareCheckpointWrite() { return PV_SUCCESS; }
    virtual int cleanup() { return PV_SUCCESS; }
 
    /**

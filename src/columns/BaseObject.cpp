@@ -72,6 +72,10 @@ int BaseObject::setDescription() {
 
 int BaseObject::respond(std::shared_ptr<BaseMessage const> message) {
    // TODO: convert PV_SUCCESS, PV_FAILURE, etc. to enum
+   int status = CheckpointerDataInterface::respond(message);
+   if (status != PV_SUCCESS) {
+      return status;
+   }
    if (message == nullptr) {
       return PV_SUCCESS;
    }
@@ -96,24 +100,9 @@ int BaseObject::respond(std::shared_ptr<BaseMessage const> message) {
       return respondInitializeState(castMessage);
    }
    else if (
-         ReadStateFromCheckpointMessage<Checkpointer> const *castMessage =
-               dynamic_cast<ReadStateFromCheckpointMessage<Checkpointer> const *>(message.get())) {
-      return respondReadStateFromCheckpoint(castMessage);
-   }
-   else if (
          CopyInitialStateToGPUMessage const *castMessage =
                dynamic_cast<CopyInitialStateToGPUMessage const *>(message.get())) {
       return respondCopyInitialStateToGPUMessage(castMessage);
-   }
-   else if (
-         ProcessCheckpointReadMessage const *castMessage =
-               dynamic_cast<ProcessCheckpointReadMessage const *>(message.get())) {
-      return respondProcessCheckpointRead(castMessage);
-   }
-   else if (
-         PrepareCheckpointWriteMessage const *castMessage =
-               dynamic_cast<PrepareCheckpointWriteMessage const *>(message.get())) {
-      return respondPrepareCheckpointWrite(castMessage);
    }
    else if (
          CleanupMessage const *castMessage = dynamic_cast<CleanupMessage const *>(message.get())) {
@@ -168,21 +157,8 @@ int BaseObject::respondInitializeState(InitializeStateMessage const *message) {
    return status;
 }
 
-int BaseObject::respondReadStateFromCheckpoint(
-      ReadStateFromCheckpointMessage<Checkpointer> const *message) {
-   return readStateFromCheckpoint(message->mDataRegistry);
-}
-
 int BaseObject::respondCopyInitialStateToGPUMessage(CopyInitialStateToGPUMessage const *message) {
    return copyInitialStateToGPU();
-}
-
-int BaseObject::respondProcessCheckpointRead(ProcessCheckpointReadMessage const *message) {
-   return processCheckpointRead();
-}
-
-int BaseObject::respondPrepareCheckpointWrite(PrepareCheckpointWriteMessage const *message) {
-   return prepareCheckpointWrite();
 }
 
 int BaseObject::respondCleanup(CleanupMessage const *message) { return cleanup(); }
