@@ -383,9 +383,9 @@ int TransposeConn::allocateDataStructures() {
    return status;
 }
 
-int TransposeConn::registerData(Checkpointer *checkpointer, std::string const &objName) {
+int TransposeConn::registerData(Checkpointer *checkpointer) {
    // Skip over HyPerConn, because TransposeConn doesn't need to write any checkpoint files.
-   int status = BaseConnection::registerData(checkpointer, objName);
+   int status = BaseConnection::registerData(checkpointer);
    if (status != PV_SUCCESS) {
       return status;
    }

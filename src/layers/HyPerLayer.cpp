@@ -1584,8 +1584,8 @@ int HyPerLayer::mirrorInteriorToBorder(PVLayerCube *cube, PVLayerCube *border) {
    return 0;
 }
 
-int HyPerLayer::registerData(Checkpointer *checkpointer, std::string const &objName) {
-   int status = BaseLayer::registerData(checkpointer, objName);
+int HyPerLayer::registerData(Checkpointer *checkpointer) {
+   int status = BaseLayer::registerData(checkpointer);
    checkpointPvpActivityFloat(checkpointer, "A", getActivity(), true /*extended*/);
    if (getV() != nullptr) {
       checkpointPvpActivityFloat(checkpointer, "V", getV(), false /*not extended*/);
@@ -1622,10 +1622,6 @@ int HyPerLayer::registerData(Checkpointer *checkpointer, std::string const &objN
                (std::size_t)1,
                true /*broadcast*/);
       }
-   }
-
-   if (getNumDelayLevels() > 1) {
-      checkpointer->addObserver(this, BaseMessage());
    }
 
    // Timers

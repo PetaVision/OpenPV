@@ -126,9 +126,9 @@ void AdaptiveTimeScaleProbe::allocateTimeScaleController() {
          parent->getVerifyWrites());
 }
 
-int AdaptiveTimeScaleProbe::registerData(Checkpointer *checkpointer, std::string const &objName) {
-   int status = ColProbe::registerData(checkpointer, objName);
-   mAdaptiveTimeScaleController->registerData(checkpointer, objName);
+int AdaptiveTimeScaleProbe::registerData(Checkpointer *checkpointer) {
+   int status = ColProbe::registerData(checkpointer);
+   mAdaptiveTimeScaleController->registerData(checkpointer);
    return status;
 }
 

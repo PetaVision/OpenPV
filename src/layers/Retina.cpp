@@ -246,8 +246,8 @@ int Retina::readRandStateFromCheckpoint(Checkpointer *checkpointer) {
    return PV_SUCCESS;
 }
 
-int Retina::registerData(Checkpointer *checkpointer, std::string const &objName) {
-   int status = HyPerLayer::registerData(checkpointer, objName);
+int Retina::registerData(Checkpointer *checkpointer) {
+   int status = HyPerLayer::registerData(checkpointer);
    if (spikingFlag) {
       pvAssert(randState != nullptr);
       checkpointRandState(checkpointer, "rand_state", randState, true /*extended*/);

@@ -8,16 +8,20 @@ namespace PV {
 // This takes in the global batch index of local batch 0 for the second argument.
 // Should this be the value of commBatch() instead?
 BatchIndexer::BatchIndexer(
+      std::string const &objName,
       int globalBatchCount,
       int batchOffset,
       int batchWidth,
       int fileCount,
-      enum BatchMethod batchMethod) {
-   mGlobalBatchCount = globalBatchCount;
-   mBatchMethod      = batchMethod;
-   mFileCount        = fileCount ? fileCount : 1;
-   mBatchWidth       = batchWidth;
-   mBatchOffset      = batchOffset;
+      enum BatchMethod batchMethod,
+      bool initializeFromCheckpointFlag) {
+   mObjName                      = objName;
+   mGlobalBatchCount             = globalBatchCount;
+   mBatchMethod                  = batchMethod;
+   mFileCount                    = fileCount ? fileCount : 1;
+   mBatchWidth                   = batchWidth;
+   mBatchOffset                  = batchOffset;
+   mInitializeFromCheckpointFlag = initializeFromCheckpointFlag;
    mIndices.resize(mBatchWidth, 0);
    mStartIndices.resize(mBatchWidth, 0);
    mSkipAmounts.resize(mBatchWidth, 0);
@@ -101,24 +105,54 @@ void BatchIndexer::shuffleLookupTable() {
    std::shuffle(mIndexLookupTable.begin(), mIndexLookupTable.end(), rng);
 }
 
-int BatchIndexer::registerData(Checkpointer *checkpointer, std::string const &objName) {
-   mObjName = objName;
+int BatchIndexer::registerData(Checkpointer *checkpointer) {
+   int status = CheckpointerDataInterface::registerData(checkpointer);
+   if (status != PV_SUCCESS) {
+      return status;
+   }
    checkpointer->registerCheckpointData<int>(
-         objName,
+         mObjName,
          std::string("FrameNumbers"),
          mIndices.data(),
          mIndices.size(),
          false /*do not broadcast*/);
    if (mBatchMethod == RANDOM) {
       checkpointer->registerCheckpointData<unsigned int>(
-            objName, std::string("RandomSeed"), &mRandomSeed, 1, false /*do not broadcast*/);
+            mObjName, std::string("RandomSeed"), &mRandomSeed, 1, false /*do not broadcast*/);
    }
    return PV_SUCCESS;
 }
 
-int BatchIndexer::readStateFromCheckpoint(Checkpointer *checkpointer) {
-   checkpointer->readNamedCheckpointEntry(mObjName, "FrameNumbers");
+int BatchIndexer::processCheckpointRead() {
+   checkIndices();
    return PV_SUCCESS;
+}
+
+int BatchIndexer::readStateFromCheckpoint(Checkpointer *checkpointer) {
+   if (mInitializeFromCheckpointFlag) {
+      checkpointer->readNamedCheckpointEntry(mObjName, "FrameNumbers");
+      checkIndices();
+   }
+   return PV_SUCCESS;
+}
+
+void BatchIndexer::checkIndices() {
+   for (int k = 0; k < mBatchWidth; k++) {
+      int n = getIndex(k);
+      FatalIf(
+            n >= mFileCount,
+            "BatchIndexer \"%s\" has index %d=%d, but fileCount is only %d.\n",
+            mObjName.c_str(),
+            k,
+            n,
+            mFileCount);
+      FatalIf(
+            n < 0,
+            "BatchIndexer \"%s\" has index %d=%d. Indices cannot be negative.\n",
+            mObjName.c_str(),
+            k,
+            n);
+   }
 }
 
 } // end namespace PV

@@ -66,7 +66,7 @@ class CheckpointableFileStream : public FileStream, public CheckpointerDataInter
          string const &objName,
          bool verifyWrites);
    void setDescription();
-   virtual int registerData(Checkpointer *checkpointer, const string objName);
+   virtual int registerData(Checkpointer *checkpointer);
    int respondProcessCheckpointRead(ProcessCheckpointReadMessage const *message);
    void syncFilePos();
    void updateFilePos();

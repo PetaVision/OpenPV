@@ -57,7 +57,7 @@ int ColumnEnergyProbe::initializeColumnEnergyProbe(const char *probename, HyPerC
 
 int ColumnEnergyProbe::initOutputStream(const char *filename) { return PV_SUCCESS; }
 
-int ColumnEnergyProbe::registerData(Checkpointer *checkpointer, std::string const &objName) {
+int ColumnEnergyProbe::registerData(Checkpointer *checkpointer) {
    MPIBlock const *mpiBlock = checkpointer->getMPIBlock();
    int blockColumnIndex     = mpiBlock->getColumnIndex();
    int blockRowIndex        = mpiBlock->getRowIndex();

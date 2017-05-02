@@ -177,8 +177,8 @@ void MomentumConn::applyMomentum(int arbor_ID, float dwFactor, float wFactor) {
 }
 
 // TODO checkpointing not working with batching, must write checkpoint exactly at period
-int MomentumConn::registerData(Checkpointer *checkpointer, std::string const &objName) {
-   int status = HyPerConn::registerData(checkpointer, objName);
+int MomentumConn::registerData(Checkpointer *checkpointer) {
+   int status = HyPerConn::registerData(checkpointer);
    if (plasticityFlag) {
       checkpointWeightPvp(checkpointer, "prev_dW", prev_dwDataStart);
    }

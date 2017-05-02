@@ -459,10 +459,8 @@ void HyPerCol::allocateColumn() {
       mCheckpointer->checkpointRead(&mSimTime, &mCurrentStep);
    }
    else {
-      char const *initFromCheckpointDir = mCheckpointer->getInitializeFromCheckpointDir();
-      if (initFromCheckpointDir and initFromCheckpointDir[0]) {
-         notify(std::make_shared<ReadStateFromCheckpointMessage<Checkpointer>>(mCheckpointer));
-      }
+      mCheckpointer->readStateFromCheckpoint();
+      // readStateFromCheckpoint() does nothing if initializeFromCheckpointDir is empty or null.
    }
 // Note: ideally, if checkpointReadFlag is set, calling InitializeState should
 // be unnecessary. However, currently initializeState does some CUDA kernel

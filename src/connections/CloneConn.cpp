@@ -59,7 +59,7 @@ int CloneConn::setWeightInitializer() {
    return PV_SUCCESS;
 }
 
-int CloneConn::registerData(Checkpointer *checkpointer, std::string const &objName) {
+int CloneConn::registerData(Checkpointer *checkpointer) {
    registerTimers(checkpointer);
    return PV_SUCCESS;
 }

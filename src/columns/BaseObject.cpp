@@ -90,11 +90,6 @@ int BaseObject::respond(std::shared_ptr<BaseMessage const> message) {
       return respondAllocateData(castMessage);
    }
    else if (
-         RegisterDataMessage<Checkpointer> const *castMessage =
-               dynamic_cast<RegisterDataMessage<Checkpointer> const *>(message.get())) {
-      return respondRegisterData(castMessage);
-   }
-   else if (
          InitializeStateMessage const *castMessage =
                dynamic_cast<InitializeStateMessage const *>(message.get())) {
       return respondInitializeState(castMessage);
@@ -138,7 +133,7 @@ int BaseObject::respondAllocateData(AllocateDataMessage const *message) {
 }
 
 int BaseObject::respondRegisterData(RegisterDataMessage<Checkpointer> const *message) {
-   int status = registerData(message->mDataRegistry, name);
+   int status = registerData(message->mDataRegistry);
    if (status != PV_SUCCESS) {
       Fatal() << getDescription() << ": registerData failed.\n";
    }

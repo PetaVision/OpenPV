@@ -42,7 +42,7 @@ class MomentumConn : public HyPerConn {
   protected:
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
-   virtual int registerData(Checkpointer *checkpointer, std::string const &objName) override;
+   virtual int registerData(Checkpointer *checkpointer) override;
    virtual int readStateFromCheckpoint(Checkpointer *checkpointer) override;
 
    void applyMomentum(int arbor_ID);

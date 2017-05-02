@@ -73,7 +73,7 @@ class PoolingConn : public HyPerConn {
    int initializeDeliverKernelArgs();
 #endif // PV_USE_CUDA
 
-   virtual int registerData(Checkpointer *checkpointer, std::string const &objName) override;
+   virtual int registerData(Checkpointer *checkpointer) override;
 
    virtual int setInitialValues() override;
    virtual int constructWeights() override;

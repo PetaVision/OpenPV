@@ -193,8 +193,8 @@ int LCALIFLayer::allocateBuffers() {
    return LIFGap::allocateBuffers();
 }
 
-int LCALIFLayer::registerData(Checkpointer *checkpointer, std::string const &objName) {
-   int status = LIFGap::registerData(checkpointer, objName);
+int LCALIFLayer::registerData(Checkpointer *checkpointer) {
+   int status = LIFGap::registerData(checkpointer);
    checkpointPvpActivityFloat(
          checkpointer, "integratedSpikeCount", integratedSpikeCount, false /*not extended*/);
    checkpointPvpActivityFloat(checkpointer, "Vadpt", Vadpt, false /*not extended*/);

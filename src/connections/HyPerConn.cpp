@@ -2091,23 +2091,23 @@ void HyPerConn::checkpointWeightPvp(
          bufferName);
 }
 
-int HyPerConn::registerData(Checkpointer *checkpointer, std::string const &objName) {
-   int status = BaseConnection::registerData(checkpointer, objName);
+int HyPerConn::registerData(Checkpointer *checkpointer) {
+   int status = BaseConnection::registerData(checkpointer);
    checkpointWeightPvp(checkpointer, "W", get_wDataStart());
    if (plasticityFlag and !mImmediateWeightUpdate) {
       checkpointWeightPvp(checkpointer, "dW", get_dwDataStart());
       // If we checkpoint dW, we have to get PrepareCheckpointRead messages,
       // in order to call blockingNormalize_dW() before the checkpoint.
-      checkpointer->addObserver(this, BaseMessage());
    }
+   std::string nameString = std::string(name);
    checkpointer->registerCheckpointData(
-         objName, "lastUpdateTime", &lastUpdateTime, (std::size_t)1, true /*broadcast*/);
+         nameString, "lastUpdateTime", &lastUpdateTime, (std::size_t)1, true /*broadcast*/);
    if (plasticityFlag && !triggerLayerName) {
       checkpointer->registerCheckpointData(
-            objName, "weightUpdateTime", &weightUpdateTime, (std::size_t)1, true /*broadcast*/);
+            nameString, "weightUpdateTime", &weightUpdateTime, (std::size_t)1, true /*broadcast*/);
    }
    checkpointer->registerCheckpointData(
-         objName, "nextWrite", &writeTime, (std::size_t)1, true /*broadcast*/);
+         nameString, "nextWrite", &writeTime, (std::size_t)1, true /*broadcast*/);
 
    openOutputStateFile(checkpointer);
    registerTimers(checkpointer);

@@ -66,7 +66,7 @@ void CheckpointableFileStream::initialize(
    setOutStream(mFStream);
    openFile(fullPath.c_str(), std::ios_base::in | std::ios_base::out, verifyWrites);
    updateFilePos();
-   registerData(checkpointer, objName);
+   registerData(checkpointer);
 }
 
 void CheckpointableFileStream::setDescription() {
@@ -92,12 +92,15 @@ int CheckpointableFileStream::respondProcessCheckpointRead(
    return PV_SUCCESS;
 }
 
-int CheckpointableFileStream::registerData(Checkpointer *checkpointer, const string objName) {
+int CheckpointableFileStream::registerData(Checkpointer *checkpointer) {
+   int status = CheckpointerDataInterface::registerData(checkpointer);
+   if (status != PV_SUCCESS) {
+      return status;
+   }
    checkpointer->registerCheckpointData<long>(
          mObjName, string("FileStreamRead"), &mFileReadPos, (std::size_t)1, false);
    checkpointer->registerCheckpointData<long>(
          mObjName, string("FileStreamWrite"), &mFileWritePos, (std::size_t)1, false);
-   checkpointer->addObserver(this, BaseMessage{});
    return PV_SUCCESS;
 }
 

@@ -193,6 +193,7 @@ class Checkpointer : public Subject {
 
    void readNamedCheckpointEntry(std::string const &objName, std::string const &dataName);
    void readNamedCheckpointEntry(std::string const &checkpointEntryName);
+   void readStateFromCheckpoint();
    void checkpointRead(double *simTimePointer, long int *currentStepPointer);
    void checkpointWrite(double simTime);
    void finalCheckpoint(double simTime);
@@ -320,10 +321,8 @@ class Checkpointer : public Subject {
  */
 class CheckpointerDataInterface : public Observer {
   public:
-   virtual int registerData(Checkpointer *checkpointer, std::string const &objName) {
-      mMPIBlock = checkpointer->getMPIBlock();
-      return PV_SUCCESS;
-   }
+   virtual int registerData(Checkpointer *checkpointer);
+
    virtual int respond(std::shared_ptr<BaseMessage const> message) override;
 
    virtual int readStateFromCheckpoint(Checkpointer *checkpointer) { return PV_SUCCESS; }
@@ -331,6 +330,7 @@ class CheckpointerDataInterface : public Observer {
    MPIBlock const *getMPIBlock() { return mMPIBlock; }
 
   protected:
+   int respondRegisterData(RegisterDataMessage<Checkpointer> const *message);
    int respondReadStateFromCheckpoint(ReadStateFromCheckpointMessage<Checkpointer> const *message);
 
    int respondProcessCheckpointRead(ProcessCheckpointReadMessage const *message);
@@ -342,18 +342,6 @@ class CheckpointerDataInterface : public Observer {
   private:
    MPIBlock const *mMPIBlock = nullptr;
 };
-
-template <typename T>
-bool Checkpointer::registerCheckpointData(
-      std::string const &objName,
-      std::string const &dataName,
-      T *dataPointer,
-      std::size_t numValues,
-      bool broadcast) {
-   return registerCheckpointEntry(
-         std::make_shared<CheckpointEntryData<T>>(
-               objName, dataName, getMPIBlock(), dataPointer, numValues, broadcast));
-}
 
 } // namespace PV
 

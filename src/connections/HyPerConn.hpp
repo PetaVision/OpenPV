@@ -851,7 +851,7 @@ class HyPerConn : public BaseConnection {
    int setPreLayerName(const char *pre_name);
    int setPostLayerName(const char *post_name);
    virtual int initPlasticityPatches();
-   virtual int registerData(Checkpointer *checkpointer, std::string const &objName) override;
+   virtual int registerData(Checkpointer *checkpointer) override;
    void openOutputStateFile(Checkpointer *checkpointer);
    void registerTimers(Checkpointer *checkpointer);
 

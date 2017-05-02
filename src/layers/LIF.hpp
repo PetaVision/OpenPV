@@ -57,7 +57,7 @@ class LIF : public PV::HyPerLayer {
 
    virtual int communicateInitInfo() override;
    virtual int allocateDataStructures() override;
-   virtual int registerData(Checkpointer *checkpointer, std::string const &objName) override;
+   virtual int registerData(Checkpointer *checkpointer) override;
 
    virtual int updateState(double time, double dt) override;
    virtual int setActivity() override;

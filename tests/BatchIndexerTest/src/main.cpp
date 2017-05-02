@@ -15,11 +15,13 @@ void testByFile() {
    // Test batchWidth == 1
 
    std::shared_ptr<BatchIndexer> batchIndexer = std::make_shared<BatchIndexer>(
+         std::string("ByFile1"),
          2, // Global batch size 2
          0, // This MPI block starts at batch element 0.
          2, // 2 batch elements in MPI block (therefore, 1 MPI block).
          4, // 4 files to batch across
-         BatchIndexer::BYFILE);
+         BatchIndexer::BYFILE,
+         false /*initializeFromCheckpointFlag*/);
    batchIndexer->setWrapToStartIndex(false);
    batchIndexer->initializeBatch(0);
    batchIndexer->initializeBatch(1);
@@ -59,11 +61,13 @@ void testByFile() {
    // Test batchWidth > 1
 
    batchIndexer = std::make_shared<BatchIndexer>(
+         std::string("ByFile2"),
          4, // Global batch size 4
          2, // This MPI block starts at batch element 2.
          2, // 2 batch elements in MPI block (therefore, 2 MPI blocks and this is the second one)
          8, // 8 files to batch across
-         BatchIndexer::BYFILE);
+         BatchIndexer::BYFILE,
+         false /*initializeFromCheckpointFlag*/);
    batchIndexer->setWrapToStartIndex(false);
    batchIndexer->initializeBatch(0);
    batchIndexer->initializeBatch(1);
@@ -109,11 +113,13 @@ void testByList() {
    // Test batchWidth == 1
 
    std::shared_ptr<BatchIndexer> batchIndexer = std::make_shared<BatchIndexer>(
+         std::string("ByList1"),
          2, // Global batch size 2
          0, // This MPI block starts at batch element 0.
          2, // 2 batch elements in MPI block (therefore, 1 MPI block).
          4, // 4 files to batch across
-         BatchIndexer::BYLIST);
+         BatchIndexer::BYLIST,
+         false /*initializeFromCheckpointFlag*/);
    batchIndexer->setWrapToStartIndex(true);
    batchIndexer->initializeBatch(0);
    batchIndexer->initializeBatch(1);
@@ -175,11 +181,13 @@ void testByList() {
    // Test batchWidth > 1
 
    batchIndexer = std::make_shared<BatchIndexer>(
+         std::string("ByList2"),
          4, // Global batch size 4
          2, // This MPI block starts at batch element 2
          2, // 2 batch elements in MPI block (therefore, 2 MPI blocks).
          8, // 8 files to batch across
-         BatchIndexer::BYLIST);
+         BatchIndexer::BYLIST,
+         false /*initializeFromCheckpointFlag*/);
    batchIndexer->setWrapToStartIndex(true);
    batchIndexer->initializeBatch(0);
    batchIndexer->initializeBatch(1);
@@ -245,11 +253,13 @@ void testByList() {
 void testBySpecified() {
    int value                                  = 0;
    std::shared_ptr<BatchIndexer> batchIndexer = std::make_shared<BatchIndexer>(
+         std::string("BySpecified"),
          2, // Global batch size 2
          0, // This MPI block starts at batch element 0
          2, // 2 batch elements in MPI block (therefore, 1 MPI block)
          4, // 4 files to batch across
-         BatchIndexer::BYSPECIFIED);
+         BatchIndexer::BYSPECIFIED,
+         false /*initializeFromCheckpointFlag*/);
    batchIndexer->setWrapToStartIndex(true);
    batchIndexer->specifyBatching(0, 2, 1); // Start at 2, increment by 1
    batchIndexer->specifyBatching(1, 0, 2); // Start at 0, increment by 2
