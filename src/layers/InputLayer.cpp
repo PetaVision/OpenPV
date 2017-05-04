@@ -104,7 +104,6 @@ void InputLayer::retrieveInput(double timef, double dt) {
          scatterInput(b, m);
       }
    }
-   postProcess(timef, dt);
 }
 
 // Note: we call retrieveInput and then nextIndex because we update on the
@@ -205,9 +204,11 @@ void InputLayer::fitBufferToLayer(Buffer<float> &buffer) {
       buffer.translate(-mOffsetX, -mOffsetY);
       buffer.crop(targetWidth, targetHeight, mAnchor);
    }
-   // Now buffer has the entire input. We need to crop it
-   // to the part of the image covered by the MPIBlock.
-   // Then scatterInput sends out the local portions.
+   // Now buffer has the entire input.
+   // At this point, apply normalizeLuminanceFlag, etc.
+   normalizePixels(buffer);
+   // Finally, crop it to the part of the image covered by the MPIBlock.
+   // The calling routine then calls scatterInput to send the local portions.
    int const startX = getMPIBlock()->getStartColumn() * loc->nx;
    int const startY = getMPIBlock()->getStartRow() * loc->ny;
    buffer.translate(-startX, -startY);
@@ -216,108 +217,90 @@ void InputLayer::fitBufferToLayer(Buffer<float> &buffer) {
    buffer.crop(blockWidth, blockHeight, Buffer<float>::NORTHWEST);
 }
 
-// Apply normalizeLuminanceFlag, normalizeStdDev, and inverseFlag, which can be done pixel-by-pixel
-// after scattering.
-int InputLayer::postProcess(double timef, double dt) {
-   int numExtended = getNumExtended();
+void InputLayer::normalizePixels(Buffer<float> &buffer) {
+   int const totalElements = buffer.getTotalElements();
+   int const width         = buffer.getWidth();
+   int const height        = buffer.getHeight();
+   int const numFeatures   = buffer.getFeatures();
+   if (mNormalizeLuminanceFlag) {
+      if (mNormalizeStdDev) {
+         float imageSum   = 0.0f;
+         float imageSumSq = 0.0f;
+         for (int k = 0; k < totalElements; k++) {
+            float const v = buffer.at(k);
+            imageSum += v;
+            imageSumSq += v * v;
+         }
 
-   // if normalizeLuminanceFlag == true:
-   //     if normalizeStdDev is true, then scale so that average luminance to be 0 and std. dev. of
-   //     luminance to be 1.
-   //     if normalizeStdDev is false, then scale so that minimum is 0 and maximum is 1
-   // if normalizeLuminanceFlag == true and the image in buffer is completely flat, force all values
-   // to zero
-   for (int b = 0; b < getLayerLoc()->nbatch; b++) {
-      float *buf = getActivity() + b * numExtended;
-      if (mNormalizeLuminanceFlag) {
-         if (mNormalizeStdDev) {
-            float image_sum  = 0.0;
-            float image_sum2 = 0.0;
-            for (int k = 0; k < numExtended; k++) {
-               image_sum += buf[k];
-               image_sum2 += buf[k] * buf[k];
-            }
-            float image_ave  = image_sum / numExtended;
-            float image_ave2 = image_sum2 / numExtended;
-            MPI_Allreduce(
-                  MPI_IN_PLACE,
-                  &image_ave,
-                  1,
-                  MPI_FLOAT,
-                  MPI_SUM,
-                  parent->getCommunicator()->communicator());
-            image_ave /= parent->getCommunicator()->commSize();
-            MPI_Allreduce(
-                  MPI_IN_PLACE,
-                  &image_ave2,
-                  1,
-                  MPI_FLOAT,
-                  MPI_SUM,
-                  parent->getCommunicator()->communicator());
-            image_ave2 /= parent->getCommunicator()->commSize();
+         // set mean to zero
+         float imageAverage = imageSum / totalElements;
+         for (int k = 0; k < totalElements; k++) {
+            float const v = buffer.at(k);
+            buffer.set(k, v - imageAverage);
+         }
 
-            // set mean to zero
-            for (int k = 0; k < numExtended; k++) {
-               buf[k] -= image_ave;
-            }
-
-            // set std dev to 1
-            float image_std = sqrtf(image_ave2 - image_ave * image_ave);
-            if (image_std == 0 || image_std != image_std) {
-               for (int k = 0; k < numExtended; k++) {
-                  buf[k] = 0.0f;
-               }
-            }
-            else {
-               for (int k = 0; k < numExtended; k++) {
-                  buf[k] /= image_std;
-               }
+         // set std dev to 1
+         float imageVariance = imageSumSq / totalElements - imageAverage * imageAverage;
+         pvAssert(imageVariance >= 0);
+         if (imageVariance > 0) {
+            float imageStdDev = std::sqrt(imageVariance);
+            for (int k = 0; k < totalElements; k++) {
+               float const v = buffer.at(k) / imageStdDev;
+               buffer.set(k, v);
             }
          }
          else {
-            float image_max = -FLT_MAX;
-            float image_min = FLT_MAX;
-            for (int k = 0; k < numExtended; k++) {
-               image_max = buf[k] > image_max ? buf[k] : image_max;
-               image_min = buf[k] < image_min ? buf[k] : image_min;
-            }
-            MPI_Allreduce(
-                  MPI_IN_PLACE,
-                  &image_max,
-                  1,
-                  MPI_FLOAT,
-                  MPI_MAX,
-                  parent->getCommunicator()->communicator());
-            MPI_Allreduce(
-                  MPI_IN_PLACE,
-                  &image_min,
-                  1,
-                  MPI_FLOAT,
-                  MPI_MIN,
-                  parent->getCommunicator()->communicator());
-            if (image_max > image_min) {
-               float image_stretch = 1.0f / (image_max - image_min);
-               for (int k = 0; k < numExtended; k++) {
-                  buf[k] -= image_min;
-                  buf[k] *= image_stretch;
-               }
-            }
-            else {
-               for (int k = 0; k < numExtended; k++) {
-                  buf[k] = 0.0f;
-               }
+            // Image is flat; set to identically zero.
+            // This may not be necessary since we subtracted the mean,
+            // but maybe there could be roundoff issues?
+            for (int k = 0; k < totalElements; k++) {
+               buffer.set(k, 0.0f);
             }
          }
       }
-      if (mInverseFlag) {
-         for (int k = 0; k < numExtended; k++) {
-            // If normalizeLuminanceFlag is true, should the effect of inverseFlag be buf[k] =
-            // -buf[k]?
-            buf[k] = 1.0f - buf[k];
+      else { // mNormalizeStdDev is false; normalize so max is one and min is zero.
+         float imageMax = -std::numeric_limits<float>::max();
+         float imageMin = std::numeric_limits<float>::max();
+         for (int k = 0; k < totalElements; k++) {
+            float const v = buffer.at(k);
+            imageMax    = v > imageMax ? v : imageMax;
+            imageMin    = v < imageMin ? v : imageMin;
+         }
+         if (imageMax > imageMin) {
+            float imageStretch = 1.0f / (imageMax - imageMin);
+            for (int k = 0; k < totalElements; k++) {
+               float const v = (buffer.at(k) - imageMin) * imageStretch;
+               buffer.set(k, v);
+            }
+         }
+         else {
+            for (int k = 0; k < totalElements; k++) {
+               buffer.set(k, 0.0f);
+            }
          }
       }
    }
-   return PV_SUCCESS;
+   if (mInverseFlag) {
+      if (mNormalizeLuminanceFlag) {
+         for (int k = 0; k < totalElements; k++) {
+            float const v = -buffer.at(k);
+            buffer.set(k, v);
+         }
+      }
+      else {
+         float imageMax = -std::numeric_limits<float>::max();
+         float imageMin = std::numeric_limits<float>::max();
+         for (int k = 0; k < totalElements; k++) {
+            float const v = buffer.at(k);
+            imageMax    = v > imageMax ? v : imageMax;
+            imageMin    = v < imageMin ? v : imageMin;
+         }
+         for (int k = 0; k < totalElements; k++) {
+            float const v = imageMax + imageMin - buffer.at(k);
+            buffer.set(k, v);
+         }
+      }
+   }
 }
 
 double InputLayer::getDeltaUpdateTime() { return mDisplayPeriod > 0 ? mDisplayPeriod : DBL_MAX; }

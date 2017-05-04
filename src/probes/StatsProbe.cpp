@@ -28,7 +28,7 @@ StatsProbe::StatsProbe() : LayerProbe() {
 
 StatsProbe::~StatsProbe() {
    int rank = getParent()->columnId();
-   if (rank == 0) {
+   if (rank == 0 and outputStream) {
       iotimer->fprint_time(output());
       mpitimer->fprint_time(output());
       comptimer->fprint_time(output());

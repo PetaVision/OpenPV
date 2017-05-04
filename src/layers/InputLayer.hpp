@@ -41,7 +41,8 @@ class InputLayer : public HyPerLayer {
    // interpolationMethod: either "bicubic" or "nearestNeighbor".
    virtual void ioParam_interpolationMethod(enum ParamsIOFlag ioFlag);
 
-   // inverseFlag: If set to true, inverts the input
+   // inverseFlag: If set to true, inverts the input: pixels are mapped linearly
+   // so that the max pixel value is mapped to the min and vice versa.
    virtual void ioParam_inverseFlag(enum ParamsIOFlag ioFlag);
 
    // normalizeLuminanceFlag: If set to true, will normalize the image.
@@ -51,6 +52,7 @@ class InputLayer : public HyPerLayer {
    // normalizeStdDev: This flag is used if normalizeLuminanceFlag is true.
    // If normalizeStdDev is set to true, the image will normalize with a mean of 0 and std of 1
    // If normalizeStdDev is set to false, the image will normalize with a min of 0 and a max of 1
+   // If all pixels are equal, the image will normalize so that all pixels are zero.
    virtual void ioParam_normalizeStdDev(enum ParamsIOFlag ioFlag);
 
    // padValue: If the image is being padded (image smaller than layer), the value to use for
@@ -117,9 +119,10 @@ class InputLayer : public HyPerLayer {
    // 'c', or 'r')
    int checkValidAnchorString(const char *offsetAnchor);
 
-   // This method post processes the activity buffer after a file is loaded and scattered.
-   // Overload this to add additional post process steps in subclasses.
-   virtual int postProcess(double timef, double dt);
+   /** normalizePixels transforms the image based on the normalizeLuminanceFlag, normalizeStdDev,
+    * and inverseFlag parameters. Overload this to add additional post process steps in subclasses.
+    */
+   virtual void normalizePixels(Buffer<float> &buffer);
    virtual int allocateV() override;
    virtual int initializeV() override;
    virtual int initializeActivity() override;

@@ -30,13 +30,23 @@ Buffer<T>::Buffer(const T *data, int width, int height, int features) {
 }
 
 template <class T>
-const T Buffer<T>::at(int x, int y, int feature) const {
-   return mData.at(index(x, y, feature));
+T const Buffer<T>::at(int x, int y, int feature) const {
+   return at(index(x, y, feature));
+}
+
+template <class T>
+T const Buffer<T>::at(int k) const {
+   return mData.at(k);
 }
 
 template <class T>
 void Buffer<T>::set(int x, int y, int feature, T value) {
-   mData.at(index(x, y, feature)) = value;
+   set(index(x, y, feature), value);
+}
+
+template <class T>
+void Buffer<T>::set(int k, T value) {
+   mData.at(k) = value;
 }
 
 template <class T>

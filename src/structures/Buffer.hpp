@@ -14,8 +14,10 @@ class Buffer {
    Buffer();
    Buffer(const std::vector<T> &data, int width, int height, int features);
    Buffer(const T *data, int width, int height, int features);
-   const T at(int x, int y, int feature) const;
+   T const at(int x, int y, int feature) const;
+   T const at(int k) const;
    void set(int x, int y, int feature, T value);
+   void set(int k, T value);
    void set(const std::vector<T> &vector, int width, int height, int features);
    void set(const T *data, int width, int height, int features);
    void set(Buffer<T> other);
