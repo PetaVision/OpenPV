@@ -1,0 +1,127 @@
+//
+// InputLayerNormalize.params
+//
+// created by peteschultz: May 3, 2017
+//
+
+//  A params file to test the InputLayer parameters
+//  normalizeLuminanceFlag, normalizeStdDev, inverseFlag.
+
+debugParsing = false;
+
+HyPerCol "column" = {
+    startTime                           = 0;
+    dt                                  = 1;
+    stopTime                            = 1;
+    progressInterval                    = 10;
+    writeProgressToErr                  = false;
+    outputPath                          = "output/";
+    verifyWrites                        = false;
+    checkpointWrite                     = false;
+    lastCheckpointDir                   = "output/Last";
+    initializeFromCheckpointDir         = "";
+    printParamsFilename                 = "pv.params";
+    randomSeed                          = 1234567890;
+    nx                                  = 8;
+    ny                                  = 8;
+    nbatch                              = 1;
+    errorOnNotANumber                   = true;
+};
+
+// inverseFlag off, normalizeLuminanceFlag off.
+ImageLayer "Unnormalized" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 3;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    writeStep                           = -1;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+    displayPeriod                       = 0;
+    inputPath                           = "input/sampleimage.png";
+    offsetAnchor                        = "cc";
+    offsetX                             = 0;
+    offsetY                             = 0;
+    autoResizeFlag                      = false;
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = false;
+    useInputBCflag                      = false;
+    padValue                            = 0;
+    batchMethod                         = "byFile";
+    start_frame_index                   = [0.000000];
+};
+StatsProbe "UnnormalizedProbe" = {
+    targetLayer                         = "Unnormalized";
+    message                             = NULL;
+    textOutputFlag                      = true;
+    probeOutputFile                     = NULL;
+    triggerLayerName                    = NULL;
+    energyProbe                         = NULL;
+    buffer                              = "Activity";
+    nnzThreshold                        = 0;
+    correctMin                          = 0.043137256;
+    correctMax                          = 0.95294118;
+    correctMean                         = 0.48484492;
+    correctStd                          = 0.27286127;
+    tolerance                           = 2e-06;
+};
+
+// inverseFlag on
+ImageLayer "Inverse" = {
+    #include "Unnormalized";
+    @inverseFlag                        = true;
+};
+StatsProbe "InverseProbe" = {
+    #include "UnnormalizedProbe";
+    @targetLayer                        = "Inverse";
+    @correctMean                        = 0.51123351;
+};
+
+// normalizedLuminanceFlag on, normalizedStdDev off
+ImageLayer "LuminanceToMin0Max1" = {
+    #include "Unnormalized";
+    @normalizeLuminanceFlag             = true;
+    normalizeStdDev                     = false;
+};
+StatsProbe "LuminanceToMin0Max1Probe" = {
+    #include "UnnormalizedProbe";
+    @targetLayer                        = "LuminanceToMin0Max1";
+    @correctMin                         = 0.0;
+    @correctMax                         = 1.0;
+    @correctMean                        = 0.48549762;
+    @correctStd                         = 0.29991224;
+};
+
+// normalizedLuminanceFlag on, normalizedStdDev on
+ImageLayer "LuminanceToMean0Std1" = {
+    #include "Unnormalized";
+    @normalizeLuminanceFlag             = true;
+    normalizeStdDev                     = true;
+};
+StatsProbe "LuminanceToMean0Std1Probe" = {
+    #include "UnnormalizedProbe";
+    @targetLayer                        = "LuminanceToMean0Std1";
+    @correctMin                         = -1.6187996;
+    @correctMax                         = 1.7155099;
+    @correctMean                        = 0.0;
+    @correctStd                         = 1.0;
+};
+
+// normalizedLuminanceFlag on, normalizedStdDev on, inverse on
+ImageLayer "LuminanceToMean0Std1Inverse" = {
+    #include "Unnormalized";
+    @inverseFlag                        = true;
+    @normalizeLuminanceFlag             = true;
+    normalizeStdDev                     = true;
+};
+StatsProbe "LuminanceToMean0Std1ProbeInverse" = {
+    #include "UnnormalizedProbe";
+    @targetLayer                        = "LuminanceToMean0Std1Inverse";
+    @correctMin                         = -1.7155099;
+    @correctMax                         = 1.6187996;
+    @correctMean                        = 0.0;
+    @correctStd                         = 1.0;
+};
