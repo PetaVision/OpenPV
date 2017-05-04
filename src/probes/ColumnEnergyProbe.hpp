@@ -86,7 +86,7 @@ class ColumnEnergyProbe : public ColProbe {
 
    virtual int initOutputStream(const char *filename) override;
 
-   virtual int registerData(Checkpointer *checkpointer, std::string const &objName) override;
+   virtual int registerData(Checkpointer *checkpointer) override;
 
    /**
     * Implements the needRecalc method.  Always returns true, in the expectation

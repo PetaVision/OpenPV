@@ -386,8 +386,8 @@ int LIF::readRandStateFromCheckpoint(Checkpointer *checkpointer) {
    return PV_SUCCESS;
 }
 
-int LIF::registerData(Checkpointer *checkpointer, std::string const &objName) {
-   int status = HyPerLayer::registerData(checkpointer, objName);
+int LIF::registerData(Checkpointer *checkpointer) {
+   int status = HyPerLayer::registerData(checkpointer);
    checkpointPvpActivityFloat(checkpointer, "Vth", Vth, false /*not extended*/);
    checkpointPvpActivityFloat(checkpointer, "G_E", G_E, false /*not extended*/);
    checkpointPvpActivityFloat(checkpointer, "G_I", G_I, false /*not extended*/);

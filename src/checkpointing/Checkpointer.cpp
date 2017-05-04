@@ -591,6 +591,15 @@ void Checkpointer::findWarmStartDirectory() {
    }
 }
 
+void Checkpointer::readStateFromCheckpoint() {
+   if (getInitializeFromCheckpointDir() and getInitializeFromCheckpointDir()[0]) {
+      notify(
+            mObserverTable,
+            std::make_shared<ReadStateFromCheckpointMessage<Checkpointer>>(this),
+            mMPIBlock->getRank() == 0 /*printFlag*/);
+   }
+}
+
 void Checkpointer::extractCheckpointReadDirectory() {
    std::vector<std::string> checkpointReadDirs;
    checkpointReadDirs.reserve(mMPIBlock->getBatchDimension());
@@ -925,5 +934,60 @@ void Checkpointer::writeTimers(std::string const &directory) {
 }
 
 std::string const Checkpointer::mDefaultOutputPath = "output";
+
+int CheckpointerDataInterface::respond(std::shared_ptr<BaseMessage const> message) {
+   if (message == nullptr) {
+      return PV_SUCCESS;
+   }
+   else if (
+         RegisterDataMessage<Checkpointer> const *castMessage =
+               dynamic_cast<RegisterDataMessage<Checkpointer> const *>(message.get())) {
+      return respondRegisterData(castMessage);
+   }
+   else if (
+         ReadStateFromCheckpointMessage<Checkpointer> const *castMessage =
+               dynamic_cast<ReadStateFromCheckpointMessage<Checkpointer> const *>(message.get())) {
+      return respondReadStateFromCheckpoint(castMessage);
+   }
+   else if (
+         ProcessCheckpointReadMessage const *castMessage =
+               dynamic_cast<ProcessCheckpointReadMessage const *>(message.get())) {
+      return respondProcessCheckpointRead(castMessage);
+   }
+   else if (
+         PrepareCheckpointWriteMessage const *castMessage =
+               dynamic_cast<PrepareCheckpointWriteMessage const *>(message.get())) {
+      return respondPrepareCheckpointWrite(castMessage);
+   }
+   else {
+      return PV_SUCCESS;
+   }
+}
+
+int CheckpointerDataInterface::respondRegisterData(
+      RegisterDataMessage<Checkpointer> const *message) {
+   return registerData(message->mDataRegistry);
+}
+
+int CheckpointerDataInterface::respondReadStateFromCheckpoint(
+      ReadStateFromCheckpointMessage<Checkpointer> const *message) {
+   return readStateFromCheckpoint(message->mDataRegistry);
+}
+
+int CheckpointerDataInterface::respondProcessCheckpointRead(
+      ProcessCheckpointReadMessage const *message) {
+   return processCheckpointRead();
+}
+
+int CheckpointerDataInterface::respondPrepareCheckpointWrite(
+      PrepareCheckpointWriteMessage const *message) {
+   return prepareCheckpointWrite();
+}
+
+int CheckpointerDataInterface::registerData(Checkpointer *checkpointer) {
+   mMPIBlock = checkpointer->getMPIBlock();
+   checkpointer->addObserver(this, BaseMessage());
+   return PV_SUCCESS;
+}
 
 } // namespace PV

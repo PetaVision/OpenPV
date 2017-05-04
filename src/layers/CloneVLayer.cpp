@@ -145,9 +145,9 @@ int CloneVLayer::readVFromCheckpoint(Checkpointer *checkpointer) {
    return PV_SUCCESS;
 }
 
-int CloneVLayer::registerData(Checkpointer *checkpointer, std::string const &objName) {
+int CloneVLayer::registerData(Checkpointer *checkpointer) {
    float *V   = clayer->V;
-   int status = HyPerLayer::registerData(checkpointer, objName);
+   int status = HyPerLayer::registerData(checkpointer);
    clayer->V  = V;
    return status;
 }

@@ -260,7 +260,7 @@ int IdentConn::communicateInitInfo() {
 
 void IdentConn::handleDefaultSelfFlag() { assert(selfFlag == false); }
 
-int IdentConn::registerData(Checkpointer *checkpointer, std::string const &objName) {
+int IdentConn::registerData(Checkpointer *checkpointer) {
    registerTimers(checkpointer);
    return PV_SUCCESS;
 }

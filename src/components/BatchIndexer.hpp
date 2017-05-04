@@ -12,23 +12,34 @@ class BatchIndexer : public CheckpointerDataInterface {
    enum BatchMethod { BYFILE, BYLIST, BYSPECIFIED, RANDOM };
 
    BatchIndexer(
+         std::string const &objName,
          int globalBatchCount,
          int globalBatchIndex,
          int batchWidth,
          int fileCount,
-         enum BatchMethod batchMethod);
+         enum BatchMethod batchMethod,
+         bool initializeFromCheckpointFlag);
    int nextIndex(int localBatchIndex);
    int getIndex(int localBatchIndex);
    void specifyBatching(int localBatchIndex, int startIndex, int skipAmount);
    void initializeBatch(int localBatchIndex);
    void shuffleLookupTable();
    void setRandomSeed(unsigned int seed);
-   virtual int registerData(Checkpointer *checkpointer, std::string const &objName) override;
-   virtual int readStateFromCheckpoint(Checkpointer *checkpointer) override;
    void setIndices(const std::vector<int> &indices) { mIndices = indices; }
    void setWrapToStartIndex(bool value) { mWrapToStartIndex = value; }
    bool getWrapToStartIndex() { return mWrapToStartIndex; }
    std::vector<int> getIndices() { return mIndices; }
+
+   virtual int registerData(Checkpointer *checkpointer) override;
+
+  protected:
+   virtual int processCheckpointRead() override;
+   virtual int readStateFromCheckpoint(Checkpointer *checkpointer) override;
+
+   /** Exits with error if any of index is negative or >= fileCount.
+    *  Called when reading or initializing from checkpoint.
+    */
+   void checkIndices();
 
   private:
    std::string mObjName;
@@ -43,6 +54,12 @@ class BatchIndexer : public CheckpointerDataInterface {
    std::vector<int> mStartIndices;
    std::vector<int> mSkipAmounts;
    BatchMethod mBatchMethod;
+   bool mInitializeFromCheckpointFlag = false;
+   // mInitializeFromCheckpointFlag is a hack.
+   // BatchIndexer should load the indices from checkpoint when the InputLayer's
+   // initializeFromCheckpointFlag is true, and not when it's false.
+   // The problem is that BatchIndexer can't see the InputLayer, where the
+   // initializeFromCheckpointFlag is read.
 };
 }
 

@@ -3,7 +3,7 @@
  *
  *  Created on Dec 16, 2016
  *      Author: Pete Schultz
- *  template implementations for TextOutput::print<Checkpointer::TimeInfo>.
+ *  template implementations for Checkpointer class.
  *  Note that the .hpp includes this .tpp file at the end;
  *  the .tpp file does not include the .hpp file.
  */
@@ -11,6 +11,18 @@
 #include "io/PrintStream.hpp"
 
 namespace PV {
+
+template <typename T>
+bool Checkpointer::registerCheckpointData(
+      std::string const &objName,
+      std::string const &dataName,
+      T *dataPointer,
+      std::size_t numValues,
+      bool broadcast) {
+   return registerCheckpointEntry(
+         std::make_shared<CheckpointEntryData<T>>(
+               objName, dataName, getMPIBlock(), dataPointer, numValues, broadcast));
+}
 
 namespace TextOutput {
 

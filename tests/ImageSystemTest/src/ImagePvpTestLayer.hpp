@@ -20,7 +20,7 @@ class ImagePvpTestLayer : public PV::PvpLayer {
     * All processes need to know the number of input images in order to verify that
     * they received the correct data, but ordinarily, only the parent class knows.
     */
-   virtual int registerData(Checkpointer *checkpointer, std::string const &objName) override;
+   virtual int registerData(Checkpointer *checkpointer) override;
 
   private:
    int mNumFrames = 0; // The number of frames in the pvp file at the input path.

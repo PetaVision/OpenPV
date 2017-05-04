@@ -520,7 +520,7 @@ int TransposePoolingConn::deleteWeights() {
    return 0;
 }
 
-int TransposePoolingConn::registerData(Checkpointer *checkpointer, std::string const &objName) {
+int TransposePoolingConn::registerData(Checkpointer *checkpointer) {
    registerTimers(checkpointer);
    return PV_SUCCESS;
 }

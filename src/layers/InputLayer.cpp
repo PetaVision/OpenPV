@@ -41,7 +41,14 @@ void InputLayer::initializeBatchIndexer() {
    int blockBatchCount  = localBatchCount * getMPIBlock()->getBatchDimension();
    int fileCount        = countInputImages();
    mBatchIndexer        = std::unique_ptr<BatchIndexer>(
-         new BatchIndexer(globalBatchCount, batchOffset, blockBatchCount, fileCount, mBatchMethod));
+         new BatchIndexer(
+               std::string(name),
+               globalBatchCount,
+               batchOffset,
+               blockBatchCount,
+               fileCount,
+               mBatchMethod,
+               initializeFromCheckpointFlag));
    for (int b = 0; b < blockBatchCount; ++b) {
       mBatchIndexer->specifyBatching(
             b, mStartFrameIndex.at(batchOffset + b), mSkipFrameIndex.at(batchOffset + b));
@@ -361,14 +368,14 @@ int InputLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    return status;
 }
 
-int InputLayer::registerData(Checkpointer *checkpointer, std::string const &objName) {
-   int status = HyPerLayer::registerData(checkpointer, objName);
+int InputLayer::registerData(Checkpointer *checkpointer) {
+   int status = HyPerLayer::registerData(checkpointer);
    if (checkpointer->getMPIBlock()->getRank() == 0) {
       int numBatch = getLayerLoc()->nbatch;
       mInputData.resize(numBatch);
       initializeBatchIndexer();
       mBatchIndexer->setWrapToStartIndex(mResetToStartOnLoop);
-      mBatchIndexer->registerData(checkpointer, objName);
+      mBatchIndexer->registerData(checkpointer);
 
       if (mWriteFrameToTimestamp) {
          std::string timestampFilename = std::string("timestamps/");
@@ -389,7 +396,6 @@ int InputLayer::readStateFromCheckpoint(Checkpointer *checkpointer) {
       int status = HyPerLayer::readStateFromCheckpoint(checkpointer);
       if (mBatchIndexer) {
          pvAssert(getMPIBlock()->getRank() == 0);
-         mBatchIndexer->readStateFromCheckpoint(checkpointer);
       }
    }
    return status;

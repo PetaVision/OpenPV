@@ -405,7 +405,7 @@ int PoolingConn::allocateDataStructures() {
    return PV_SUCCESS;
 }
 
-int PoolingConn::registerData(Checkpointer *checkpointer, std::string const &objName) {
+int PoolingConn::registerData(Checkpointer *checkpointer) {
    registerTimers(checkpointer);
    return PV_SUCCESS;
 }

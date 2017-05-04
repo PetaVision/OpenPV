@@ -33,30 +33,9 @@ class AllocateDataMessage : public BaseMessage {
    AllocateDataMessage() { setMessageType("AllocateDataStructures"); }
 };
 
-template <typename T> // In practice, T is always Checkpointer.
-// Templated to avoid including Checkpointer.hpp in this file.
-class RegisterDataMessage : public BaseMessage {
-  public:
-   RegisterDataMessage(T *dataRegistry) {
-      setMessageType("RegisterCheckpointDataMessage");
-      mDataRegistry = dataRegistry;
-   }
-   T *mDataRegistry;
-};
-
 class InitializeStateMessage : public BaseMessage {
   public:
    InitializeStateMessage() { setMessageType("InitializeState"); }
-};
-
-template <typename T> // In practice, T is always Checkpointer.
-class ReadStateFromCheckpointMessage : public BaseMessage {
-  public:
-   ReadStateFromCheckpointMessage(T *dataRegistry) {
-      setMessageType("ReadStateFromCheckpoint");
-      mDataRegistry = dataRegistry;
-   }
-   T *mDataRegistry;
 };
 
 class CopyInitialStateToGPUMessage : public BaseMessage {

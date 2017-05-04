@@ -10,9 +10,7 @@ using std::string;
 
 namespace PV {
 
-class CheckpointableFileStream : public FileStream,
-                                 public Observer,
-                                 public CheckpointerDataInterface {
+class CheckpointableFileStream : public FileStream, public CheckpointerDataInterface {
 
   public:
    /**
@@ -68,7 +66,7 @@ class CheckpointableFileStream : public FileStream,
          string const &objName,
          bool verifyWrites);
    void setDescription();
-   virtual int registerData(Checkpointer *checkpointer, const string objName);
+   virtual int registerData(Checkpointer *checkpointer);
    int respondProcessCheckpointRead(ProcessCheckpointReadMessage const *message);
    void syncFilePos();
    void updateFilePos();
