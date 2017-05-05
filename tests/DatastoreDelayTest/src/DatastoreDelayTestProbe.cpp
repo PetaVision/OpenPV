@@ -46,26 +46,44 @@ int DatastoreDelayTestProbe::outputState(double timed) {
    int status         = PV_SUCCESS;
    int numDelayLevels = l->getParent()->getLayer(0)->getNumDelayLevels();
    float correctValue = numDelayLevels * (numDelayLevels + 1) / 2;
-   if (timed >= numDelayLevels + 2) {
+   for (int k = 0; k < l->getNumNeuronsAllBatches(); k++) {
       float *V = l->getV();
       for (int k = 0; k < l->getNumNeuronsAllBatches(); k++) {
-         if (V[k] != correctValue) {
+         float v = V[k];
+         if (v < correctValue) {
+            if (timed >= numDelayLevels + 1) {
+               outputStream->printf(
+                     "%s: time %f, neuron %d: value is %f instead of %d\n",
+                     l->getDescription_c(),
+                     timed,
+                     k,
+                     (double)V[k],
+                     (int)correctValue);
+               status = PV_FAILURE;
+            }
+         }
+         else if (v == correctValue) {
+            if (timed < numDelayLevels + 1) {
+               outputStream->printf(
+                     "%s: time %f, neuron %d has value %f, but should not reach it until %d\n",
+                     l->getDescription_c(),
+                     timed,
+                     k,
+                     (double)v,
+                     numDelayLevels + 1);
+               status = PV_FAILURE;
+            }
+         }
+         else { // v > correctValue
             outputStream->printf(
-                  "%s: timef = %f, neuron %d: value is %f instead of %d\n",
+                  "%s: time %f, neuron %d: value is %f but no neuron should ever get above %d\n",
                   l->getDescription_c(),
                   timed,
                   k,
-                  (double)V[k],
+                  (double)v,
                   (int)correctValue);
             status = PV_FAILURE;
          }
-      }
-      if (status == PV_SUCCESS) {
-         outputStream->printf(
-               "%s: timef = %f, all neurons have correct value %d\n",
-               l->getDescription_c(),
-               timed,
-               (int)correctValue);
       }
    }
    FatalIf(!(status == PV_SUCCESS), "Test failed.\n");
