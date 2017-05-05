@@ -170,7 +170,7 @@ if isempty(errorstring)
                                 data_tmp.offset{cellindex}(p,1) = patchoffset;
                             end%for
                             if hdr.datatype==1 % byte-type.  If float-type, no rescaling took place.
-                                data_tmp.values{cellindex} = data_tmp.values{1}/255*(hdr.wMax-hdr.wMin)+hdr.wMin;
+                                data_tmp.values{cellindex} = data_tmp.values{cellindex}/255*(hdr.wMax-hdr.wMin)+hdr.wMin;
                             elseif hdr.datatype ~= 3
                                 error('readpvpfile:baddatatype',...
                                     'Weight file type requires hdr.datatype of 1 or 3; received %d',...
@@ -257,7 +257,7 @@ if isempty(errorstring)
                         data_tmp.values{cellindex}(:,:,:,p) = tempdata;
                     end%for
                     if hdr.datatype==1 % byte-type.  If float-type, no rescaling took place.
-                        data_tmp.values{cellindex} = data_tmp.values{1}/255*(hdr.wMax-hdr.wMin)+hdr.wMin;
+                        data_tmp.values{cellindex} = data_tmp.values{cellindex}/255*(hdr.wMax-hdr.wMin)+hdr.wMin;
                     elseif hdr.datatype ~= 3
                         error('readpvpfile:baddatatype',...
                             'Weight file type requires hdr.datatype of 1 or 3; received %d',...
