@@ -26,8 +26,8 @@ int DelayTestProbe::initDelayTestProbe(const char *probeName, HyPerCol *hc) {
    return initStatsProbe(probeName, hc);
 }
 
-int DelayTestProbe::outputState(double timed) {
-   int status           = StatsProbe::outputState(timed);
+int DelayTestProbe::outputState(double timestamp) {
+   int status           = StatsProbe::outputState(timestamp);
    Communicator *icComm = getTargetLayer()->getParent()->getCommunicator();
    const int rcvProc    = 0;
    if (icComm->commRank() != rcvProc) {
@@ -42,14 +42,30 @@ int DelayTestProbe::outputState(double timed) {
    int nf = loc->nf;
 
    for (int b = 0; b < loc->nbatch; b++) {
-      if (timed == 0) {
-         assert(avg[b] == (float)(timed / nf));
-         assert(avg[b] == (float)nnz[b] / (nx * rows * ny * cols * nf));
+      float avgExpected;
+      int nnzExpected;
+      if (timestamp == 0) {
+         avgExpected = 0.0f;
+         nnzExpected = (int)std::nearbyint(timestamp) * nx * rows * ny * cols;
       }
       else {
-         assert(avg[b] == (float)((timed - 1) / nf));
-         assert(avg[b] == (float)nnz[b] / (nx * rows * ny * cols * nf));
+         avgExpected = (float)((timestamp - 1.0) / nf);
+         nnzExpected = ((int)std::nearbyint(timestamp) - 1) * nx * rows * ny * cols;
       }
+      FatalIf(
+            avg[b] != avgExpected,
+            "t = %f: Average for batch element %d: expected %f, received %f\n",
+            timestamp,
+            b,
+            (double)avgExpected,
+            (double)avg[b]);
+      FatalIf(
+            nnz[b] != nnzExpected,
+            "t = %f: number of nonzero elements for batch element %d: expected %d, received %d\n",
+            timestamp,
+            b,
+            nnzExpected,
+            nnz[b]);
    }
    return status;
 }
