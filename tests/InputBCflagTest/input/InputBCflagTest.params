@@ -5,9 +5,43 @@
 //
 
 //  A params file to test useInputBCflag
-//  It serves as the basic template for systems tests, and tests the
-//  basic functionality
 //
+//  The basic structure is
+//
+//  Input ---> Output \
+//                     +---> Comparison
+//     ExpectedOutput /
+//
+// The input image is 10x10, the input layer is 8x8 restricted and 10x10 extended.
+// The InputToOutput connection is 3x3 with weights all ones.
+//
+// On the first display period, the input image is zero on the 8x8 interior and ones in the border.
+// Since useInputBCFlag is set, the data delivered to the output layer is 5 on the corners, 3 on
+// the edges, and zero in the 6x6 interior:
+//
+// 5 3 3 3 3 3 3 5
+// 3 0 0 0 0 0 0 3
+// 3 0 0 0 0 0 0 3
+// 3 0 0 0 0 0 0 3
+// 3 0 0 0 0 0 0 3
+// 3 0 0 0 0 0 0 3
+// 3 0 0 0 0 0 0 3
+// 5 3 3 3 3 3 3 5
+//
+// This is the contents of the ExpectedOutput layer.
+// The Comparison layer takes the difference between Output and ExpectedOutput, and
+// the RequireAllZeroActivityProbe flags an error if the comparison does not agree.
+
+// On subsequent display periods, the border of the input images changes to 2, then 3, then 4.
+// The ExpectedOutput layer also increases proportionally.
+
+// The hierarchy above is replicated, this time with normalizeLuminanceFlag and
+// normalizeLuminanceStd set, in layers/connections/probe with "Normalized" in the name.
+// Now the input layer is 4/3 on the 36 border pixels and -3/4 on the 64 interior pixels.
+// These are the values for all display periods.
+//
+// ExpectedNormalizedOutput is therefore 11/3 on the corners, -1/2 on the edges, and -27/4 in the
+// interior.
 
 debugParsing = false;
 
@@ -101,7 +135,94 @@ PvpLayer "ExpectedOutput" = {
     resetToStartOnLoop                  = false;
 };
 
+PvpLayer "NormalizedInput" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+    displayPeriod                       = 1;
+    inputPath                           = "input/BorderImage.pvp";
+    offsetAnchor                        = "tl";
+    offsetX                             = 0;
+    offsetY                             = 0;
+    autoResizeFlag                      = false;
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = true;
+    normalizeLuminanceStd               = true;
+    useInputBCflag                      = true;
+    padValue                            = 0;
+    batchMethod                         = "byFile";
+    start_frame_index                   = [0.000000];
+    writeFrameToTimestamp               = true;
+    resetToStartOnLoop                  = false;
+};
+
+HyPerLayer "NormalizedOutput" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 1;
+    mirrorBCflag                        = true;
+    InitVType                           = "ZeroV";
+    triggerLayerName                    = NULL;
+    writeStep                           = 1;
+    initialWriteTime                    = 1;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+};
+
+PvpLayer "ExpectedNormalizedOutput" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+    displayPeriod                       = 1;
+    inputPath                           = "input/ExpectedNormalizedOutput.pvp";
+    offsetAnchor                        = "tl";
+    offsetX                             = 0;
+    offsetY                             = 0;
+    autoResizeFlag                      = false;
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = false;
+    useInputBCflag                      = false;
+    padValue                            = 0;
+    batchMethod                         = "byFile";
+    start_frame_index                   = [0.000000];
+    writeFrameToTimestamp               = true;
+    resetToStartOnLoop                  = false;
+};
+
 HyPerLayer "Comparison" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 2;
+    mirrorBCflag                        = true;
+    InitVType                           = "ZeroV";
+    triggerLayerName                    = NULL;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+};
+
+HyPerLayer "ComparisonNormalized" = {
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 1;
@@ -161,6 +282,51 @@ IdentConn "ExpectedOutputToComparison" = {
     weightSparsity                      = 0;
 };
 
+HyPerConn "NormalizedInputToNormalizedOutput" = {
+    preLayerName                        = "NormalizedInput";
+    postLayerName                       = "NormalizedOutput";
+    channelCode                         = 0;
+    delay                               = [0.000000];
+    numAxonalArbors                     = 1;
+    plasticityFlag                      = false;
+    convertRateToSpikeCount             = false;
+    receiveGpu                          = false;
+    sharedWeights                       = true;
+    weightInitType                      = "UniformWeight";
+    initWeightsFile                     = NULL;
+    weightInit                          = 1;
+    connectOnlySameFeatures             = false;
+    updateGSynFromPostPerspective       = false;
+    pvpatchAccumulateType               = "convolve";
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+    nxp                                 = 3;
+    nyp                                 = 3;
+    nfp                                 = 1;
+    shrinkPatches                       = false;
+    normalizeMethod                     = "none";
+    weightSparsity                      = 0;
+};
+
+IdentConn "NormalizedOutputToComparisonNormalized" = {
+    preLayerName                        = "NormalizedOutput";
+    postLayerName                       = "ComparisonNormalized";
+    channelCode                         = 0;
+    delay                               = [0.000000];
+    initWeightsFile                     = NULL;
+    weightSparsity                      = 0;
+};
+
+IdentConn "ExpectedNormalizedOutputToComparisonNormalized" = {
+    preLayerName                        = "ExpectedNormalizedOutput";
+    postLayerName                       = "ComparisonNormalized";
+    channelCode                         = 1;
+    delay                               = [0.000000];
+    initWeightsFile                     = NULL;
+    weightSparsity                      = 0;
+};
+
 RequireAllZeroActivityProbe "Probe" = {
     targetLayer                         = "Comparison";
     message                             = NULL;
@@ -169,6 +335,18 @@ RequireAllZeroActivityProbe "Probe" = {
     triggerLayerName                    = NULL;
     energyProbe                         = NULL;
     nnzThreshold                        = 0;
+    exitOnFailure                       = true;
+    immediateExitOnFailure              = false;
+};
+
+RequireAllZeroActivityProbe "ProbeNormalized" = {
+    targetLayer                         = "ComparisonNormalized";
+    message                             = NULL;
+    textOutputFlag                      = true;
+    probeOutputFile                     = NULL;
+    triggerLayerName                    = NULL;
+    energyProbe                         = NULL;
+    nnzThreshold                        = 1.0e-6;
     exitOnFailure                       = true;
     immediateExitOnFailure              = false;
 };
