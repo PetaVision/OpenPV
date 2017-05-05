@@ -163,8 +163,8 @@ DatastoreDelayTestProbe "probe" = {
     message = "probe           ";
 };
 
-//DatastoreDelayTestProbe "probeArbor" = {
-//    targetLayer = "outputArbor";
-//    probeOutputFile = "probeArbor.txt";
-//    message = "probeArbor      ";
-//};
+DatastoreDelayTestProbe "probeArbor" = {
+    targetLayer = "outputArbor";
+    probeOutputFile = "probeArbor.txt";
+    message = "probeArbor      ";
+};
