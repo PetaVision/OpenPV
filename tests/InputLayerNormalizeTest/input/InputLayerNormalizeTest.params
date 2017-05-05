@@ -53,7 +53,7 @@ ImageLayer "Unnormalized" = {
     batchMethod                         = "byFile";
     start_frame_index                   = [0.000000];
 };
-StatsProbe "UnnormalizedProbe" = {
+CheckStatsProbe "UnnormalizedProbe" = {
     targetLayer                         = "Unnormalized";
     message                             = NULL;
     textOutputFlag                      = true;
@@ -74,7 +74,7 @@ ImageLayer "Inverse" = {
     #include "Unnormalized";
     @inverseFlag                        = true;
 };
-StatsProbe "InverseProbe" = {
+CheckStatsProbe "InverseProbe" = {
     #include "UnnormalizedProbe";
     @targetLayer                        = "Inverse";
     @correctMean                        = 0.51123351;
@@ -86,7 +86,7 @@ ImageLayer "LuminanceToMin0Max1" = {
     @normalizeLuminanceFlag             = true;
     normalizeStdDev                     = false;
 };
-StatsProbe "LuminanceToMin0Max1Probe" = {
+CheckStatsProbe "LuminanceToMin0Max1Probe" = {
     #include "UnnormalizedProbe";
     @targetLayer                        = "LuminanceToMin0Max1";
     @correctMin                         = 0.0;
@@ -101,7 +101,7 @@ ImageLayer "LuminanceToMean0Std1" = {
     @normalizeLuminanceFlag             = true;
     normalizeStdDev                     = true;
 };
-StatsProbe "LuminanceToMean0Std1Probe" = {
+CheckStatsProbe "LuminanceToMean0Std1Probe" = {
     #include "UnnormalizedProbe";
     @targetLayer                        = "LuminanceToMean0Std1";
     @correctMin                         = -1.6187996;
@@ -117,7 +117,7 @@ ImageLayer "LuminanceToMean0Std1Inverse" = {
     @normalizeLuminanceFlag             = true;
     normalizeStdDev                     = true;
 };
-StatsProbe "LuminanceToMean0Std1ProbeInverse" = {
+CheckStatsProbe "LuminanceToMean0Std1ProbeInverse" = {
     #include "UnnormalizedProbe";
     @targetLayer                        = "LuminanceToMean0Std1Inverse";
     @correctMin                         = -1.7155099;

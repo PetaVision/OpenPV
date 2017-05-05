@@ -76,7 +76,7 @@ int CheckStatsProbe::outputState(double timestamp) {
       return status;
    }
    PV::Communicator *icComm = getTargetLayer()->getParent()->getCommunicator();
-   if (icComm->commRank() == 0) {
+   if (icComm->commRank() != 0) {
       return status;
    }
    FatalIf(
