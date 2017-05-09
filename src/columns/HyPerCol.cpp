@@ -989,7 +989,8 @@ int HyPerCol::outputParamsHeadComments(FileStream *fileStream, char const *comme
        or mpiBlock->getNumColumns() < mpiBlock->getGlobalNumColumns()
        or mpiBlock->getBatchDimension() < mpiBlock->getGlobalBatchDimension()) {
       fileStream->printf(
-            "CheckpointCells have %d rows, %d columns, and MPI batch dimension %d.\n",
+            "%s CheckpointCells have %d rows, %d columns, and MPI batch dimension %d.\n",
+            commentToken,
             mpiBlock->getNumRows(),
             mpiBlock->getNumColumns(),
             mpiBlock->getBatchDimension());
