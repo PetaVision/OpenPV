@@ -42,8 +42,9 @@ void MaskFromMemoryBuffer::ioParam_imageLayerName(enum PV::ParamsIOFlag ioFlag) 
 }
 
 int MaskFromMemoryBuffer::communicateInitInfo(CommunicateInitInfoMessage const *message) {
-   int status             = ANNLayer::communicateInitInfo(message);
-   HyPerLayer *hyperLayer = parent->getLayerFromName(imageLayerName);
+   int status = ANNLayer::communicateInitInfo(message);
+   HyPerLayer *hyperLayer =
+         dynamic_cast<HyPerLayer *>(message->lookup(std::string(imageLayerName)));
    if (hyperLayer == NULL) {
       if (parent->columnId() == 0) {
          ErrorLog().printf(

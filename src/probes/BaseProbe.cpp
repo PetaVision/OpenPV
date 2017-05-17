@@ -256,7 +256,7 @@ int BaseProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
 
    // Set up triggering.
    if (triggerFlag) {
-      triggerLayer = parent->getLayerFromName(triggerLayerName);
+      triggerLayer = dynamic_cast<HyPerLayer *>(message->lookup(std::string(triggerLayerName)));
       if (triggerLayer == NULL) {
          if (parent->columnId() == 0) {
             ErrorLog().printf(

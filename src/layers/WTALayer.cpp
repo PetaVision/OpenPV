@@ -28,7 +28,7 @@ int WTALayer::initialize_base() {
 
 int WTALayer::communicateInitInfo(CommunicateInitInfoMessage const *message) {
    int status    = HyPerLayer::communicateInitInfo(message);
-   originalLayer = parent->getLayerFromName(originalLayerName);
+   originalLayer = dynamic_cast<HyPerLayer *>(message->lookup(std::string(originalLayerName)));
    if (originalLayer == NULL) {
       if (parent->columnId() == 0) {
          ErrorLog().printf(

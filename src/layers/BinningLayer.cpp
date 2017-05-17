@@ -96,7 +96,7 @@ void BinningLayer::ioParam_normalDist(enum ParamsIOFlag ioFlag) {
 
 int BinningLayer::communicateInitInfo(CommunicateInitInfoMessage const *message) {
    int status    = HyPerLayer::communicateInitInfo(message);
-   originalLayer = parent->getLayerFromName(originalLayerName);
+   originalLayer = dynamic_cast<HyPerLayer *>(message->lookup(std::string(originalLayerName)));
    if (originalLayer == NULL) {
       if (parent->columnId() == 0) {
          ErrorLog().printf(

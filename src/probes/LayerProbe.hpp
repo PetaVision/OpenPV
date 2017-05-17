@@ -75,7 +75,6 @@ class LayerProbe : public BaseProbe {
 
   private:
    int initialize_base();
-   int setTargetLayer(const char *layerName);
 
    // Member variables
   protected:

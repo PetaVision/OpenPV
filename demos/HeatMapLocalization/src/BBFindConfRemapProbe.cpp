@@ -248,8 +248,9 @@ int BBFindConfRemapProbe::communicateInitInfo(CommunicateInitInfoMessage const *
          }
       }
       else {
-         printf("classNamesFile was not set in params file; Class names will be feature numbers "
-                "(one-indexed).\n");
+         printf(
+               "classNamesFile was not set in params file; Class names will be feature numbers "
+               "(one-indexed).\n");
          for (int k = 0; k < nf; k++) {
             std::stringstream classNameString("");
             classNameString << "Feature " << k + 1;
@@ -275,8 +276,9 @@ int BBFindConfRemapProbe::communicateInitInfo(CommunicateInitInfoMessage const *
 void BBFindConfRemapProbe::setLayerFromParam(
       PV::HyPerLayer **layer,
       char const *layerType,
-      char const *layerName) {
-   PV::HyPerLayer *l = parent->getLayerFromName(layerName);
+      char const *layerName,
+      CommunicateInitInfoMessage const *message) {
+   PV::HyPerLayer *l = dynamic_cast<PV::HyPerLayer *>(message->lookup(std::string(layerName)));
    if (l == NULL) {
       if (parent->columnId() == 0) {
          fprintf(
@@ -820,7 +822,7 @@ void BBFindConfRemapProbe::drawTextOnMontage(
       exit(EXIT_FAILURE);
    }
    int status = close(tempfd); // mkstemps opens the file to avoid race between finding unused
-                               // filename and opening it, but we don't need the file descriptor.
+   // filename and opening it, but we don't need the file descriptor.
    if (status != 0) {
       fprintf(
             stderr,

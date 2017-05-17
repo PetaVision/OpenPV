@@ -58,7 +58,7 @@ int AbstractNormProbe::communicateInitInfo(CommunicateInitInfoMessage const *mes
    int status = LayerProbe::communicateInitInfo(message);
    assert(targetLayer);
    if (maskLayerName && maskLayerName[0]) {
-      maskLayer = parent->getLayerFromName(maskLayerName);
+      maskLayer = dynamic_cast<HyPerLayer *>(message->lookup(std::string(maskLayerName)));
       if (maskLayer == NULL) {
          if (parent->columnId() == 0) {
             ErrorLog().printf(

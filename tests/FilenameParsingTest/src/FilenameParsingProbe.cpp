@@ -36,7 +36,7 @@ int FilenameParsingProbe::communicateInitInfo(PV::CommunicateInitInfoMessage con
          parent->parameters()->stringValue(getTargetName(), "inputLayerName", false);
    pvAssert(inputLayerName);
    PV::InputLayer *inputLayer =
-         dynamic_cast<PV::InputLayer *>(parent->getLayerFromName(inputLayerName));
+         dynamic_cast<PV::InputLayer *>(message->lookup(std::string(inputLayerName)));
    pvAssert(inputLayer);
    mInputDisplayPeriod = inputLayer->getDisplayPeriod();
    return PV_SUCCESS;

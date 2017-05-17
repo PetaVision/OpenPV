@@ -39,7 +39,7 @@ int LocalizationProbe::initialize_base() {
 
    outputPeriod   = 1.0;
    nextOutputTime = 0.0; // Warning: this does not get checkpointed but it should.  Probes have no
-                         // checkpointing infrastructure yet.
+   // checkpointing infrastructure yet.
    imageLayerName = NULL;
    imageLayer     = NULL;
    reconLayerName = NULL;
@@ -265,7 +265,7 @@ int LocalizationProbe::communicateInitInfo(CommunicateInitInfoMessage const *mes
    int status = PV::LayerProbe::communicateInitInfo(message);
    assert(targetLayer);
    int const nf = targetLayer->getLayerLoc()->nf;
-   imageLayer   = parent->getLayerFromName(imageLayerName);
+   imageLayer   = dynamic_cast<HyPerLayer *>(message->lookup(std::string(imageLayerName)));
    if (imageLayer == NULL) {
       if (parent->columnId() == 0) {
          ErrorLog().printf(
@@ -464,7 +464,7 @@ int LocalizationProbe::communicateInitInfo(CommunicateInitInfoMessage const *mes
       setOptimalMontage();
    }
 
-   reconLayer = parent->getLayerFromName(reconLayerName);
+   reconLayer = dynamic_cast<PV::HyPerLayer *>(message->lookup(std::string(reconLayerName)));
    if (reconLayer == NULL) {
       if (parent->columnId() == 0) {
          ErrorLog().printf(
@@ -820,7 +820,7 @@ int LocalizationProbe::drawTextOnMontage(
             getDescription_c());
    }
    int status = close(tempfd); // mkstemps opens the file to avoid race between finding unused
-                               // filename and opening it, but we don't need the file descriptor.
+   // filename and opening it, but we don't need the file descriptor.
    if (status != 0) {
       Fatal().printf(
             "%s: drawTextOnMontage failed to close temporory file %s: %s\n",

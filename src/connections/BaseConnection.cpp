@@ -88,40 +88,6 @@ void BaseConnection::setPostLayerName(const char *post_name) {
    }
 }
 
-void BaseConnection::setPreSynapticLayer(HyPerLayer *pre) {
-   assert(this->pre == NULL);
-   if (pre != NULL) {
-      this->pre = pre;
-   }
-   else {
-      if (parent->columnId() == 0) {
-         ErrorLog().printf(
-               "%s: pre layer \"%s\" does not exist in the params file.\n",
-               this->getDescription_c(),
-               this->preLayerName);
-      }
-      MPI_Barrier(parent->getCommunicator()->communicator());
-      exit(EXIT_FAILURE);
-   }
-}
-
-void BaseConnection::setPostSynapticLayer(HyPerLayer *post) {
-   assert(this->post == NULL);
-   if (post != NULL) {
-      this->post = post;
-   }
-   else {
-      if (parent->columnId() == 0) {
-         ErrorLog().printf(
-               "%s: post layer \"%s\" does not exist in the params file.\n",
-               this->getDescription_c(),
-               this->postLayerName);
-      }
-      MPI_Barrier(parent->getCommunicator()->communicator());
-      exit(EXIT_FAILURE);
-   }
-}
-
 void BaseConnection::setChannelType(ChannelType ch) {
    assert(!initInfoCommunicatedFlag);
    this->channel = ch;
@@ -516,8 +482,8 @@ int BaseConnection::communicateInitInfo(CommunicateInitInfoMessage const *messag
       }
       exit(EXIT_FAILURE);
    }
-   this->setPreSynapticLayer(this->getParent()->getLayerFromName(this->getPreLayerName()));
-   this->setPostSynapticLayer(this->getParent()->getLayerFromName(this->getPostLayerName()));
+   this->pre  = dynamic_cast<HyPerLayer *>(message->lookup(std::string(this->getPreLayerName())));
+   this->post = dynamic_cast<HyPerLayer *>(message->lookup(std::string(this->getPostLayerName())));
    if (this->preSynapticLayer() == NULL) {
       if (this->getParent()->columnId() == 0) {
          ErrorLog().printf(

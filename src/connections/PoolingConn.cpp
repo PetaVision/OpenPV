@@ -271,20 +271,8 @@ int PoolingConn::communicateInitInfo(CommunicateInitInfoMessage const *message) 
    }
 
    if (needPostIndexLayer) {
-      BaseLayer *basePostIndexLayer = parent->getLayerFromName(this->postIndexLayerName);
-      if (basePostIndexLayer == NULL) {
-         if (parent->columnId() == 0) {
-            ErrorLog().printf(
-                  "%s: postIndexLayerName \"%s\" does not refer "
-                  "to any layer in the column.\n",
-                  getDescription_c(),
-                  this->postIndexLayerName);
-         }
-         MPI_Barrier(parent->getCommunicator()->communicator());
-         exit(EXIT_FAILURE);
-      }
-
-      postIndexLayer = dynamic_cast<PoolingIndexLayer *>(basePostIndexLayer);
+      Observer *obs  = message->lookup(std::string(this->postIndexLayerName));
+      postIndexLayer = dynamic_cast<PoolingIndexLayer *>(obs);
       if (postIndexLayer == NULL) {
          if (parent->columnId() == 0) {
             ErrorLog().printf(

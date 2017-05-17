@@ -1053,7 +1053,7 @@ int HyPerConn::communicateInitInfo(CommunicateInitInfoMessage const *message) {
    handleDefaultSelfFlag();
 
    if (useMask) {
-      mask = getParent()->getLayerFromName(maskLayerName);
+      mask = dynamic_cast<HyPerLayer *>(message->lookup(std::string(maskLayerName)));
       if (mask == NULL) {
          if (getParent()->columnId() == 0) {
             ErrorLog().printf(
@@ -1062,7 +1062,7 @@ int HyPerConn::communicateInitInfo(CommunicateInitInfoMessage const *message) {
                   maskLayerName);
          }
          status = PV_FAILURE;
-         exit(-1);
+         exit(EXIT_FAILURE);
       }
       // Check mask with restricted post layer
       const PVLayerLoc *maskLoc = mask->getLayerLoc();
@@ -1083,7 +1083,7 @@ int HyPerConn::communicateInitInfo(CommunicateInitInfoMessage const *message) {
                   postLoc->nf);
          }
          status = PV_FAILURE;
-         exit(-1);
+         exit(EXIT_FAILURE);
       }
       // Make sure maskFeatureIdx is within bounds
       if (maskFeatureIdx >= maskLoc->nf || maskFeatureIdx < -1) {
@@ -1096,7 +1096,7 @@ int HyPerConn::communicateInitInfo(CommunicateInitInfoMessage const *message) {
                maskLoc->ny,
                maskLoc->nf);
          status = PV_FAILURE;
-         exit(-1);
+         exit(EXIT_FAILURE);
       }
 
       // This check is only required if a maskFeatureIdx is not specified, aka, pointwise masking
@@ -1117,7 +1117,7 @@ int HyPerConn::communicateInitInfo(CommunicateInitInfoMessage const *message) {
                      postLoc->nf);
             }
             status = PV_FAILURE;
-            exit(-1);
+            exit(EXIT_FAILURE);
          }
       }
    }
@@ -1138,7 +1138,7 @@ int HyPerConn::communicateInitInfo(CommunicateInitInfoMessage const *message) {
       }
       MPI_Barrier(getParent()->getCommunicator()->communicator());
       status = PV_FAILURE;
-      exit(-1);
+      exit(EXIT_FAILURE);
    }
 
    status = setPatchSize();
@@ -1202,7 +1202,7 @@ int HyPerConn::communicateInitInfo(CommunicateInitInfoMessage const *message) {
 
    // Trigger stuff
    if (triggerLayerName) {
-      triggerLayer = parent->getLayerFromName(triggerLayerName);
+      triggerLayer = dynamic_cast<HyPerLayer *>(message->lookup(std::string(triggerLayerName)));
       if (triggerLayer == NULL) {
          if (parent->columnId() == 0) {
             ErrorLog().printf(

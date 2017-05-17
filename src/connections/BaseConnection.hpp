@@ -213,18 +213,6 @@ class BaseConnection : public BaseObject {
    void setPostLayerName(const char *postName);
 
    /**
-    * Sets the presynaptic layer to the given layer.  It is an error to try to set preLayer
-    * after it has already been set, or to call setPreLayerName() with a NULL argument.
-    */
-   void setPreSynapticLayer(HyPerLayer *pre);
-
-   /**
-    * Sets the postsynaptic layer to the given layer.  It is an error to try to set postLayer
-    * after it has already been set, or to call setPostLayerName() with a NULL argument.
-    */
-   void setPostSynapticLayer(HyPerLayer *post);
-
-   /**
     * Sets the channel to the indicated argument.  It is an error to try to change channels
     * after communicateInitInfo() has completed successfully.
     */

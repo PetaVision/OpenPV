@@ -25,6 +25,10 @@ class CommunicateInitInfoMessage : public BaseMessage {
       setMessageType("CommunicateInitInfo");
       mHierarchy = hierarchy;
    }
+   Observer *lookup(std::string const &name) const {
+      auto search = mHierarchy.find(name);
+      return search == mHierarchy.end() ? nullptr : search->second;
+   }
    std::map<std::string, Observer *> mHierarchy;
 };
 

@@ -186,7 +186,7 @@ void BBFindConfRemapLayer::ioParam_internalMapHeight(enum PV::ParamsIOFlag ioFla
 
 int BBFindConfRemapLayer::communicateInitInfo(CommunicateInitInfoMessage const *message) {
    if (imageLayerName && imageLayerName[0]) {
-      imageLayer = parent->getLayerFromName(imageLayerName);
+      imageLayer = dynamic_cast<HyPerLayer *>(message->lookup(std::string(imageLayerName)));
       if (imageLayer == nullptr) {
          if (parent->columnId() == 0) {
             Fatal() << getDescription_c() << ": imageLayer \"" << imageLayerName
@@ -366,8 +366,8 @@ int BBFindConfRemapLayer::updateState(double t, double dt) {
       }
       else {
          float *buf = getV() + b * getNumNeurons(); // should be "float const *" but older versions
-                                                    // of MPI declare MPI_Send to use void* instead
-                                                    // of void const*.
+         // of MPI declare MPI_Send to use void* instead
+         // of void const*.
          MPI_Send(buf, getNumNeurons(), MPI_FLOAT, 0, 137, icComm->communicator());
          MPI_Recv(
                confidenceLocal,
