@@ -18,7 +18,7 @@ class HyPerConnDebugInitWeights : public PV::HyPerConn {
    HyPerConnDebugInitWeights(const char *name, HyPerCol *hc);
    virtual ~HyPerConnDebugInitWeights();
 
-   virtual int communicateInitInfo();
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message);
    virtual PVPatch ***
    initializeWeights(PVPatch ***arbors, float **dataStart, int numPatches, const char *filename);
 

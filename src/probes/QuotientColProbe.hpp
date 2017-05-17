@@ -83,7 +83,7 @@ class QuotientColProbe : public ColProbe {
 
    /** @} */ /* end of io functions for QuotientColProbe parameters */
 
-   virtual int communicateInitInfo();
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message);
 
    /**
     * A function to find a probe, whether it belongs to a layer, a connection, or

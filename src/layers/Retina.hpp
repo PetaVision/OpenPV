@@ -40,7 +40,7 @@ class Retina : public PV::HyPerLayer {
 
    Retina(const char *name, HyPerCol *hc);
    virtual ~Retina();
-   virtual int communicateInitInfo();
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message);
    virtual int allocateDataStructures();
 
    int setRetinaParams(PVParams *p);

@@ -22,7 +22,7 @@ namespace PV {
 class L1NormLCAProbe : public L1NormProbe {
   public:
    L1NormLCAProbe(const char *probeName, HyPerCol *hc);
-   virtual int communicateInitInfo();
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message);
    virtual ~L1NormLCAProbe() {}
 
   protected:

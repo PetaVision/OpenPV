@@ -83,7 +83,7 @@ class PlasticCloneConn : public CloneConn {
    PlasticCloneConn(const char *name, HyPerCol *hc);
    virtual ~PlasticCloneConn();
 
-   virtual int communicateInitInfo();
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message);
 
   protected:
    PlasticCloneConn();

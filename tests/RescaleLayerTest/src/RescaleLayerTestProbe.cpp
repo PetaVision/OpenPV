@@ -26,8 +26,8 @@ int RescaleLayerTestProbe::initRescaleLayerTestProbe(const char *probeName, HyPe
 
 void RescaleLayerTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) { requireType(BufActivity); }
 
-int RescaleLayerTestProbe::communicateInitInfo() {
-   int status = StatsProbe::communicateInitInfo();
+int RescaleLayerTestProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+   int status = StatsProbe::communicateInitInfo(message);
    FatalIf(!(getTargetLayer()), "Test failed.\n");
    RescaleLayer *targetRescaleLayer = dynamic_cast<RescaleLayer *>(getTargetLayer());
    if (targetRescaleLayer == NULL) {

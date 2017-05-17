@@ -15,7 +15,7 @@ namespace PV {
 class RescaleLayerTestProbe : public PV::StatsProbe {
   public:
    RescaleLayerTestProbe(const char *probeName, HyPerCol *hc);
-   virtual int communicateInitInfo();
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message);
 
    virtual int outputState(double timed);
 

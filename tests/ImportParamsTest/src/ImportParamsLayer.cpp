@@ -33,8 +33,8 @@ int ImportParamsLayer::initialize(const char *name, HyPerCol *hc) {
    return PV_SUCCESS;
 }
 
-int ImportParamsLayer::communicateInitInfo() {
-   int status = ANNLayer::communicateInitInfo();
+int ImportParamsLayer::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+   int status = ANNLayer::communicateInitInfo(message);
    return status;
 }
 

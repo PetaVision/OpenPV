@@ -50,8 +50,8 @@ void LayerProbe::ioParam_targetName(enum ParamsIOFlag ioFlag) {
    }
 }
 
-int LayerProbe::communicateInitInfo() {
-   BaseProbe::communicateInitInfo();
+int LayerProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+   BaseProbe::communicateInitInfo(message);
    // Set target layer
    int status = setTargetLayer(targetName);
    // Add to layer

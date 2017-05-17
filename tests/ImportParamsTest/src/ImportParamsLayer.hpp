@@ -8,7 +8,7 @@ namespace PV {
 class ImportParamsLayer : public PV::ANNLayer {
   public:
    ImportParamsLayer(const char *name, HyPerCol *hc);
-   virtual int communicateInitInfo();
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message);
    virtual int allocateDataStructures();
 
   private:

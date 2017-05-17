@@ -18,7 +18,7 @@ class LIFTestProbe : public StatsProbe {
    LIFTestProbe(const char *probeName, HyPerCol *hc);
    virtual ~LIFTestProbe();
 
-   virtual int communicateInitInfo();
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message);
    virtual int allocateDataStructures();
 
    virtual int outputState(double timed);

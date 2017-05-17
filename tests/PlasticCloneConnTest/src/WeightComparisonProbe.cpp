@@ -24,7 +24,7 @@ int WeightComparisonProbe::initialize(char const *name, PV::HyPerCol *hc) {
    return ColProbe::initialize(name, hc);
 }
 
-int WeightComparisonProbe::communicateInitInfo() {
+int WeightComparisonProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
    int const numConnections = parent->numberOfConnections();
    for (int c = 0; c < numConnections; c++) {
       auto *baseConn = parent->getConnection(c);

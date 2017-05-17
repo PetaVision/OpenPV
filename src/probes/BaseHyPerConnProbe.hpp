@@ -18,7 +18,7 @@ class BaseHyPerConnProbe : public BaseConnectionProbe {
    BaseHyPerConnProbe(const char *probeName, HyPerCol *hc);
    virtual ~BaseHyPerConnProbe();
 
-   virtual int communicateInitInfo();
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message);
 
    HyPerConn *getTargetHyPerConn() { return targetHyPerConn; }
 

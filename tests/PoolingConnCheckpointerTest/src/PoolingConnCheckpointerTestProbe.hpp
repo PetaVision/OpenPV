@@ -38,7 +38,7 @@ class PoolingConnCheckpointerTestProbe : public PV::ColProbe {
   protected:
    int initialize(const char *probeName, PV::HyPerCol *hc);
    virtual void ioParam_textOutputFlag(enum PV::ParamsIOFlag ioFlag) override;
-   virtual int communicateInitInfo() override;
+   virtual int communicateInitInfo(PV::CommunicateInitInfoMessage const *message) override;
    virtual int readStateFromCheckpoint(PV::Checkpointer *checkpointer) override;
    virtual bool needRecalc(double timevalue) override { return true; }
    virtual double referenceUpdateTime() const override { return parent->simulationTime(); }

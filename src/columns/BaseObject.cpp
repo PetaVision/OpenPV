@@ -113,7 +113,7 @@ int BaseObject::respondCommunicateInitInfo(CommunicateInitInfoMessage const *mes
    if (getInitInfoCommunicatedFlag()) {
       return status;
    }
-   status = communicateInitInfo();
+   status = communicateInitInfo(message);
    if (status == PV_SUCCESS) {
       setInitInfoCommunicatedFlag();
    }

@@ -73,8 +73,8 @@ void QuotientColProbe::ioParam_denominator(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamStringRequired(ioFlag, name, "denominator", &denominator);
 }
 
-int QuotientColProbe::communicateInitInfo() {
-   int status = ColProbe::communicateInitInfo();
+int QuotientColProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+   int status = ColProbe::communicateInitInfo(message);
    numerProbe = findProbe(numerator);
    denomProbe = findProbe(denominator);
    if (numerProbe == NULL || denomProbe == NULL) {

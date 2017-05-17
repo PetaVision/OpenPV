@@ -18,7 +18,7 @@ class FilenameParsingGroundTruthLayer : public HyPerLayer {
   public:
    FilenameParsingGroundTruthLayer(const char *name, HyPerCol *hc);
    virtual ~FilenameParsingGroundTruthLayer();
-   virtual int communicateInitInfo();
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message);
    virtual int updateState(double timef, double dt);
    virtual bool needUpdate(double time, double dt);
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);

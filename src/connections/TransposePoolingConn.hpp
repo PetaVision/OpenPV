@@ -43,7 +43,7 @@ class TransposePoolingConn : public HyPerConn {
    TransposePoolingConn();
    TransposePoolingConn(const char *name, HyPerCol *hc);
    virtual ~TransposePoolingConn();
-   virtual int communicateInitInfo() override;
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
    virtual int allocateDataStructures() override;
    inline PoolingConn *getOriginalConn() { return mOriginalConn; }
 

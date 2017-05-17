@@ -293,8 +293,8 @@ int LIF::setActivity() {
    return 0;
 }
 
-int LIF::communicateInitInfo() {
-   int status = HyPerLayer::communicateInitInfo();
+int LIF::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+   int status = HyPerLayer::communicateInitInfo(message);
 
    return status;
 }

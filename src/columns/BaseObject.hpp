@@ -92,7 +92,7 @@ class BaseObject : public CheckpointerDataInterface {
    int respondCopyInitialStateToGPUMessage(CopyInitialStateToGPUMessage const *message);
    int respondCleanup(CleanupMessage const *message);
 
-   virtual int communicateInitInfo() { return PV_SUCCESS; }
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) { return PV_SUCCESS; }
    virtual int allocateDataStructures() { return PV_SUCCESS; }
    virtual int initializeState() { return PV_SUCCESS; }
    virtual int readStateFromCheckpoint(Checkpointer *checkpointer) { return PV_SUCCESS; }
@@ -123,7 +123,7 @@ class BaseObject : public CheckpointerDataInterface {
    bool mDataStructuresAllocatedFlag = false;
    bool mInitialValuesSetFlag        = false;
 #ifdef PV_USE_CUDA
-   bool mUsingGPUFlag                = false;
+   bool mUsingGPUFlag = false;
 #endif // PV_USE_CUDA
 
   private:

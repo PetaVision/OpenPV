@@ -26,8 +26,8 @@ int WTALayer::initialize_base() {
    return PV_SUCCESS;
 }
 
-int WTALayer::communicateInitInfo() {
-   int status    = HyPerLayer::communicateInitInfo();
+int WTALayer::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+   int status    = HyPerLayer::communicateInitInfo(message);
    originalLayer = parent->getLayerFromName(originalLayerName);
    if (originalLayer == NULL) {
       if (parent->columnId() == 0) {

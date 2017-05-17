@@ -19,7 +19,7 @@ class CloneConn : public HyPerConn {
    CloneConn(const char *name, HyPerCol *hc);
    virtual ~CloneConn();
 
-   virtual int communicateInitInfo();
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message);
 
    virtual int updateState(double time, double dt);
 

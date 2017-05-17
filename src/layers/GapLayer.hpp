@@ -20,7 +20,7 @@ class GapLayer : public CloneVLayer {
    GapLayer(const char *name, HyPerCol *hc);
    virtual ~GapLayer();
 
-   virtual int communicateInitInfo();
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message);
    virtual int allocateDataStructures();
 
    virtual int updateState(double timef, double dt);

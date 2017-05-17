@@ -54,8 +54,8 @@ int FirmThresholdCostFnProbe::setNormDescription() {
    return setNormDescriptionToString("Cost function");
 }
 
-int FirmThresholdCostFnProbe::communicateInitInfo() {
-   AbstractNormProbe::communicateInitInfo();
+int FirmThresholdCostFnProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+   AbstractNormProbe::communicateInitInfo(message);
    ANNLayer *targetANNLayer = dynamic_cast<ANNLayer *>(getTargetLayer());
    if (targetANNLayer != NULL) {
       if (!getParent()->parameters()->present(getName(), "VThresh")) {

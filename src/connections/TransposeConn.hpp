@@ -17,7 +17,7 @@ class TransposeConn : public HyPerConn {
    TransposeConn();
    TransposeConn(const char *name, HyPerCol *hc);
    virtual ~TransposeConn();
-   virtual int communicateInitInfo();
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message);
    virtual int allocateDataStructures();
    inline HyPerConn *getOriginalConn() { return originalConn; }
 

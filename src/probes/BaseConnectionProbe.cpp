@@ -35,8 +35,8 @@ void BaseConnectionProbe::ioParam_targetName(enum ParamsIOFlag ioFlag) {
    }
 }
 
-int BaseConnectionProbe::communicateInitInfo() {
-   BaseProbe::communicateInitInfo();
+int BaseConnectionProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+   BaseProbe::communicateInitInfo(message);
    int status = setTargetConn(targetName);
    if (status == PV_SUCCESS) {
       targetConn->insertProbe(this);

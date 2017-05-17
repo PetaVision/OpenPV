@@ -1132,7 +1132,7 @@ int HyPerLayer::allocateDeviceBuffers() {
 
 #endif // PV_USE_CUDA
 
-int HyPerLayer::communicateInitInfo() {
+int HyPerLayer::communicateInitInfo(CommunicateInitInfoMessage const *message) {
    // HyPerLayers need to tell the parent HyPerCol how many random number
    // seeds they need.  At the start of HyPerCol::run, the parent HyPerCol
    // calls each layer's communicateInitInfo() sequentially in a repeatable order

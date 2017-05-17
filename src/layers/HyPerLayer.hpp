@@ -487,7 +487,7 @@ class HyPerLayer : public BaseLayer {
    bool getHasUpdated() { return mHasUpdated; }
 
   protected:
-   virtual int communicateInitInfo() override;
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
    virtual int allocateDataStructures() override;
    virtual int registerData(Checkpointer *checkpointer) override;
    virtual int initializeState() override final;

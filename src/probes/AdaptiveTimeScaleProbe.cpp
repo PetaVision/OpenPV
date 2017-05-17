@@ -83,8 +83,8 @@ void AdaptiveTimeScaleProbe::ioParam_writeTimeScaleFieldnames(enum ParamsIOFlag 
    }
 }
 
-int AdaptiveTimeScaleProbe::communicateInitInfo() {
-   int status   = ColProbe::communicateInitInfo();
+int AdaptiveTimeScaleProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+   int status   = ColProbe::communicateInitInfo(message);
    mTargetProbe = parent->getBaseProbeFromName(targetName);
    if (mTargetProbe == nullptr) {
       if (parent->getCommunicator()->commRank() == 0) {

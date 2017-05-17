@@ -43,8 +43,9 @@ void MomentumConnViscosityCheckpointerTestProbe::ioParam_textOutputFlag(
    }
 }
 
-int MomentumConnViscosityCheckpointerTestProbe::communicateInitInfo() {
-   int status = PV::ColProbe::communicateInitInfo();
+int MomentumConnViscosityCheckpointerTestProbe::communicateInitInfo(
+      PV::CommunicateInitInfoMessage const *message) {
+   int status = PV::ColProbe::communicateInitInfo(message);
    FatalIf(
          status != PV_SUCCESS, "%s failed in ColProbe::communicateInitInfo\n", getDescription_c());
 

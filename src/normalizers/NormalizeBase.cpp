@@ -92,7 +92,9 @@ void NormalizeBase::ioParam_normalizeOnWeightUpdate(enum ParamsIOFlag ioFlag) {
          normalizeOnWeightUpdate);
 }
 
-int NormalizeBase::communicateInitInfo() { return addConnToList(getTargetConn()); }
+int NormalizeBase::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+   return addConnToList(getTargetConn());
+}
 
 HyPerConn *NormalizeBase::getTargetConn() {
    BaseConnection *baseConn = parent->getConnFromName(name);

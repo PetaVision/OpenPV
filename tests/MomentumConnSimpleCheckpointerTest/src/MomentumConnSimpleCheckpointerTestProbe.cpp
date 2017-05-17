@@ -40,8 +40,9 @@ void MomentumConnSimpleCheckpointerTestProbe::ioParam_textOutputFlag(enum PV::Pa
    }
 }
 
-int MomentumConnSimpleCheckpointerTestProbe::communicateInitInfo() {
-   int status = PV::ColProbe::communicateInitInfo();
+int MomentumConnSimpleCheckpointerTestProbe::communicateInitInfo(
+      PV::CommunicateInitInfoMessage const *message) {
+   int status = PV::ColProbe::communicateInitInfo(message);
    FatalIf(
          status != PV_SUCCESS, "%s failed in ColProbe::communicateInitInfo\n", getDescription_c());
 

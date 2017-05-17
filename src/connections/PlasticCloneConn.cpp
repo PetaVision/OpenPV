@@ -118,8 +118,8 @@ void PlasticCloneConn::ioParam_normalizeDw(enum ParamsIOFlag ioFlag) {
    // originalConn
 }
 
-int PlasticCloneConn::communicateInitInfo() {
-   int status = CloneConn::communicateInitInfo();
+int PlasticCloneConn::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+   int status = CloneConn::communicateInitInfo(message);
    if (status != PV_SUCCESS) {
       return status;
    }

@@ -63,7 +63,7 @@ class BaseConnection : public BaseObject {
     * communicateInitInfo() is called by passing a CommunicateInitInfoMessage to respond(), which is
     * usually done in HyPerCol::run.
     */
-   virtual int communicateInitInfo() override;
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
 
    /**
     * initializeState is used to set the initial values of the connection.

@@ -21,7 +21,7 @@ class BaseConnectionProbe : public BaseProbe {
    BaseConnectionProbe(const char *probeName, HyPerCol *hc);
    virtual ~BaseConnectionProbe();
 
-   virtual int communicateInitInfo();
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message);
 
    BaseConnection *getTargetConn() { return targetConn; }
 

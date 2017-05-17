@@ -104,8 +104,8 @@ LIFTestProbe::~LIFTestProbe() {
    free(counts);
 }
 
-int LIFTestProbe::communicateInitInfo() {
-   int status = StatsProbe::communicateInitInfo();
+int LIFTestProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+   int status = StatsProbe::communicateInitInfo(message);
    return status;
 }
 

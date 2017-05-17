@@ -47,8 +47,8 @@ int HyPerConnDebugInitWeights::initialize_base() {
    return PV_SUCCESS;
 }
 
-int HyPerConnDebugInitWeights::communicateInitInfo() {
-   HyPerConn::communicateInitInfo();
+int HyPerConnDebugInitWeights::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+   HyPerConn::communicateInitInfo(message);
    BaseConnection *baseConn = parent->getConnFromName(otherConnName);
    otherConn                = dynamic_cast<HyPerConn *>(baseConn);
    if (otherConn == NULL) {

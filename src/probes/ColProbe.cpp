@@ -55,8 +55,8 @@ int ColProbe::initOutputStream(const char *filename) {
    return status;
 }
 
-int ColProbe::communicateInitInfo() {
-   int status = BaseProbe::communicateInitInfo();
+int ColProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+   int status = BaseProbe::communicateInitInfo(message);
    return status;
 }
 

@@ -40,7 +40,7 @@ class WeightComparisonProbe : public PV::ColProbe {
    /**
     * Assembles the list of HyPerConns in the column.
     */
-   virtual int communicateInitInfo() override;
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
 
    /**
     * Sets the number of arbors and the number of weights in each arbor,

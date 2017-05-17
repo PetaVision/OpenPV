@@ -251,7 +251,7 @@ int BaseProbe::setNumValues(int n) {
    return status;
 }
 
-int BaseProbe::communicateInitInfo() {
+int BaseProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
    int status = PV_SUCCESS;
 
    // Set up triggering.

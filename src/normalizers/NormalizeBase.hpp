@@ -33,7 +33,7 @@ class NormalizeBase : public BaseObject {
     * In particular, NormalizeGroup calls its group head's addConnToList
     * method from NormalizeGroup::communicateInitInfo method.
     */
-   virtual int communicateInitInfo();
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message);
 
    /**
     * The public interface for normalizing weights.

@@ -39,8 +39,9 @@ void HyPerConnCheckpointerTestProbe::ioParam_textOutputFlag(enum PV::ParamsIOFla
    }
 }
 
-int HyPerConnCheckpointerTestProbe::communicateInitInfo() {
-   int status = PV::ColProbe::communicateInitInfo();
+int HyPerConnCheckpointerTestProbe::communicateInitInfo(
+      PV::CommunicateInitInfoMessage const *message) {
+   int status = PV::ColProbe::communicateInitInfo(message);
    FatalIf(
          status != PV_SUCCESS, "%s failed in ColProbe::communicateInitInfo\n", getDescription_c());
 

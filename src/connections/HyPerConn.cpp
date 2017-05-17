@@ -1015,7 +1015,7 @@ int HyPerConn::setPostPatchSize() {
    return PV_SUCCESS;
 }
 
-int HyPerConn::communicateInitInfo() {
+int HyPerConn::communicateInitInfo(CommunicateInitInfoMessage const *message) {
    // HyPerConns need to tell the parent HyPerCol how many random number
    // seeds they need.  At the start of HyPerCol::run, the parent HyPerCol
    // calls each layer's and each connection's communicateInitInfo() sequentially in
@@ -1041,7 +1041,7 @@ int HyPerConn::communicateInitInfo() {
    // phase.  These subclasses should override communicateInitInfo(), and the
    // subclass's communicateInitInfo() should call the parent class's communicateInitInfo().
 
-   int status = BaseConnection::communicateInitInfo();
+   int status = BaseConnection::communicateInitInfo(message);
    if (status != PV_SUCCESS) {
       if (parent->columnId() == 0) {
          ErrorLog().printf("%s: communicateInitInfo failed.\n", getDescription_c());
@@ -1249,7 +1249,7 @@ int HyPerConn::communicateInitInfo() {
    }
 
    if (normalizer) {
-      normalizer->communicateInitInfo();
+      normalizer->communicateInitInfo(message);
    }
 
    // Check if need transpose

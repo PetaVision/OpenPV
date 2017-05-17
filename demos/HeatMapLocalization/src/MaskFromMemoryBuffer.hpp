@@ -11,13 +11,14 @@
 #include <layers/ANNLayer.hpp>
 #include <layers/ImageFromMemoryBuffer.hpp>
 
-class MaskFromMemoryBuffer: public PV::ANNLayer {
-public:
-   MaskFromMemoryBuffer(const char * name, PV::HyPerCol * hc);
+class MaskFromMemoryBuffer : public PV::ANNLayer {
+  public:
+   MaskFromMemoryBuffer(const char *name, PV::HyPerCol *hc);
    MaskFromMemoryBuffer();
    virtual ~MaskFromMemoryBuffer();
-   virtual int communicateInitInfo();
-protected:
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message);
+
+  protected:
    virtual int updateState(double time, double dt);
    virtual int ioParamsFillGroup(enum PV::ParamsIOFlag ioFlag);
 
@@ -28,12 +29,13 @@ protected:
     * to construct the mask.
     */
    virtual void ioParam_imageLayerName(enum PV::ParamsIOFlag ioFlag);
-private:
+
+  private:
    int initialize_base();
 
-// Member variables
-   char* imageLayerName;
-   PV::BaseInput * imageLayer;
+   // Member variables
+   char *imageLayerName;
+   PV::BaseInput *imageLayer;
    int dataLeft;
    int dataRight;
    int dataTop;
@@ -41,6 +43,6 @@ private:
 
 }; // class MaskFromMemoryBuffer
 
-PV::BaseObject * createMaskFromMemoryBuffer(char const * name, PV::HyPerCol * hc);
+PV::BaseObject *createMaskFromMemoryBuffer(char const *name, PV::HyPerCol *hc);
 
 #endif /* MASKFROMMEMORYBUFFER_HPP_ */

@@ -249,8 +249,8 @@ int PoolingConn::initialize(
    return status;
 }
 
-int PoolingConn::communicateInitInfo() {
-   int status = HyPerConn::communicateInitInfo();
+int PoolingConn::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+   int status = HyPerConn::communicateInitInfo(message);
 
    // Check pre/post connections here
    const PVLayerLoc *preLoc  = pre->getLayerLoc();

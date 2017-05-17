@@ -94,8 +94,8 @@ void BinningLayer::ioParam_normalDist(enum ParamsIOFlag ioFlag) {
 
 // TODO read params for gaussian over features
 
-int BinningLayer::communicateInitInfo() {
-   int status    = HyPerLayer::communicateInitInfo();
+int BinningLayer::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+   int status    = HyPerLayer::communicateInitInfo(message);
    originalLayer = parent->getLayerFromName(originalLayerName);
    if (originalLayer == NULL) {
       if (parent->columnId() == 0) {

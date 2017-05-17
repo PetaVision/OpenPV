@@ -20,7 +20,7 @@ class IdentConn : public HyPerConn {
   public:
    IdentConn(const char *name, HyPerCol *hc);
 
-   virtual int communicateInitInfo();
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message);
    virtual int updateWeights(int axonID) { return PV_SUCCESS; }
    // virtual int deliver();
 

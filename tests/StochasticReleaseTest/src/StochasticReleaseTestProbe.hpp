@@ -21,7 +21,7 @@ class StochasticReleaseTestProbe : public PV::StatsProbe {
    StochasticReleaseTestProbe(const char *name, HyPerCol *hc);
    virtual ~StochasticReleaseTestProbe();
 
-   virtual int communicateInitInfo() override;
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
 
    virtual int outputState(double timed) override;
 

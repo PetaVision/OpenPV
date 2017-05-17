@@ -8,38 +8,42 @@
 #ifndef LOCALIZATIONPROBE_HPP_
 #define LOCALIZATIONPROBE_HPP_
 
-#include <unistd.h>
-#include <limits>
-#include "probes/LayerProbe.hpp"
-#include "layers/ImageFromMemoryBuffer.hpp"
-#include "layers/HyPerLayer.hpp"
 #include "LocalizationData.hpp"
+#include "layers/HyPerLayer.hpp"
+#include "layers/ImageFromMemoryBuffer.hpp"
+#include "probes/LayerProbe.hpp"
+#include <limits>
+#include <unistd.h>
 
 /**
  * A probe to generate heat map montages.
  */
-class LocalizationProbe: public PV::LayerProbe {
-public:
-   LocalizationProbe(const char * probeName, PV::HyPerCol * hc);
+class LocalizationProbe : public PV::LayerProbe {
+  public:
+   LocalizationProbe(const char *probeName, PV::HyPerCol *hc);
    virtual ~LocalizationProbe();
 
-   char const * getImageLayerName() { return imageLayerName; }
-   char const * getReconLayerName() { return reconLayerName; }
-   char const * getClassNamesFile() { return classNamesFile; }
+   char const *getImageLayerName() { return imageLayerName; }
+   char const *getReconLayerName() { return reconLayerName; }
+   char const *getClassNamesFile() { return classNamesFile; }
 
    /**
     * The root process returns the name of the class corresponding to feature k (zero-indexed).
     * If k is out of bounds or a nonroot process calls this method, NULL is returned.
     */
-   char const * getClassName(int k);
-   char const * getHeatMapMontageDir() { return heatMapMontageDir; }
+   char const *getClassName(int k);
+   char const *getHeatMapMontageDir() { return heatMapMontageDir; }
    bool getDrawMontage() { return drawMontage; }
-   char const * getDisplayCommand() { return displayCommand; }
+   char const *getDisplayCommand() { return displayCommand; }
    double getImageDilationX() { return imageDilationX; }
    double getImageDilationY() { return imageDilationY; }
    inline int getNumDisplayedCategories() const { return numDisplayedCategories; }
-   inline float getDetectionThreshold(int idx) const { return (idx>=0 && idx<numDisplayedCategories) ? detectionThreshold[idx] : std::numeric_limits<float>::signaling_NaN(); }
-   virtual int communicateInitInfo();
+   inline float getDetectionThreshold(int idx) const {
+      return (idx >= 0 && idx < numDisplayedCategories)
+                   ? detectionThreshold[idx]
+                   : std::numeric_limits<float>::signaling_NaN();
+   }
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message);
    virtual int allocateDataStructures();
    virtual int outputStateWrapper(double timef, double dt);
 
@@ -48,12 +52,12 @@ public:
     * Throws an out_of_range exception if index is >= getNumDetections().
     * The bounding box values (left, right, top, bottom) are in imageLayer coordinates.
     */
-   inline LocalizationData const * getDetection(size_t index) { return &detections.at(index); }
+   inline LocalizationData const *getDetection(size_t index) { return &detections.at(index); }
 
    /**
     * Returns the vector of all detections that would be returned by getDetection(k)
     */
-   inline std::vector<LocalizationData> const * getDetections() { return &detections; }
+   inline std::vector<LocalizationData> const *getDetections() { return &detections; }
 
    /**
     * Sets the base of the output filename.  It takes everything after the
@@ -68,12 +72,12 @@ public:
     * Note that the input argument itself is not modified, only the
     * outputFilenameBase member variable.
     */
-   int setOutputFilenameBase(char const * fn);
-   char const * getOutputFilenameBase() { return outputFilenameBase; }
+   int setOutputFilenameBase(char const *fn);
+   char const *getOutputFilenameBase() { return outputFilenameBase; }
 
-protected:
+  protected:
    LocalizationProbe();
-   int initialize(const char * probeName, PV::HyPerCol * hc);
+   int initialize(const char *probeName, PV::HyPerCol *hc);
    virtual int ioParamsFillGroup(enum PV::ParamsIOFlag ioFlag);
    virtual void ioParam_imageLayer(enum PV::ParamsIOFlag ioFlag);
    virtual void ioParam_reconLayer(enum PV::ParamsIOFlag ioFlag);
@@ -109,15 +113,52 @@ protected:
 
    int makeMontage();
 
-private:
+  private:
    int initialize_base();
    int setOptimalMontage();
-   int findMaxLocation(int * winningFeature, int * winningIndex, int * xLocation, int * yLocation, float * maxActivity, float * buffer, PVLayerLoc const * loc);
-   int findBoundingBox(int winningFeature, int winningIndex, int xLocation, int yLocation, float const * buffer, PVLayerLoc const * loc, int * boundingBox);
-   int drawTextOnMontage(char const * backgroundColor, char const * textColor, char const * labelText, int xOffset, int yOffset, int width, int height);
-   int drawTextIntoFile(char const * labelName, char const * backgroundColor, char const * textColor, char const * labelText, int width, int height=32);
-   int insertFileIntoMontage(char const * labelname, int xOffset, int yOffset, int xExpectedSize, int yExpectedSize);
-   int insertImageIntoMontage(int xStart, int yStart, float const * sourceData, PVLayerLoc const * loc, bool extended);
+   int findMaxLocation(
+         int *winningFeature,
+         int *winningIndex,
+         int *xLocation,
+         int *yLocation,
+         float *maxActivity,
+         float *buffer,
+         PVLayerLoc const *loc);
+   int findBoundingBox(
+         int winningFeature,
+         int winningIndex,
+         int xLocation,
+         int yLocation,
+         float const *buffer,
+         PVLayerLoc const *loc,
+         int *boundingBox);
+   int drawTextOnMontage(
+         char const *backgroundColor,
+         char const *textColor,
+         char const *labelText,
+         int xOffset,
+         int yOffset,
+         int width,
+         int height);
+   int drawTextIntoFile(
+         char const *labelName,
+         char const *backgroundColor,
+         char const *textColor,
+         char const *labelText,
+         int width,
+         int height = 32);
+   int insertFileIntoMontage(
+         char const *labelname,
+         int xOffset,
+         int yOffset,
+         int xExpectedSize,
+         int yExpectedSize);
+   int insertImageIntoMontage(
+         int xStart,
+         int yStart,
+         float const *sourceData,
+         PVLayerLoc const *loc,
+         bool extended);
 
    int makeGrayScaleImage();
    int drawHeatMaps();
@@ -125,55 +166,65 @@ private:
    int drawProgressInformation();
    int writeMontage();
 
-// Member variables
-protected:
-   char * imageLayerName;
-   char * reconLayerName;
+   // Member variables
+  protected:
+   char *imageLayerName;
+   char *reconLayerName;
    int minBoundingBoxWidth;
    int minBoundingBoxHeight;
    bool drawMontage;
-   char * classNamesFile;
-   char ** classNames; // The array of strings giving the names of each category.  Only the root process creates or uses this array.
-   int * displayedCategories;
+   char *classNamesFile;
+   char **classNames; // The array of strings giving the names of each category.  Only the root
+                      // process creates or uses this array.
+   int *displayedCategories;
    int numDisplayedCategories;
    int displayCategoryIndexStart;
    int displayCategoryIndexEnd;
-   char * heatMapMontageDir;
+   char *heatMapMontageDir;
    std::vector<LocalizationData> detections;
    unsigned int maxDetections;
    int boundingBoxLineWidth;
-   char * displayCommand;
+   char *displayCommand;
 
-   PV::HyPerLayer * imageLayer;
-   PV::HyPerLayer * reconLayer;
+   PV::HyPerLayer *imageLayer;
+   PV::HyPerLayer *reconLayer;
 
    std::stringstream imagePVPFilePath;
    std::stringstream resultPVPFilePath;
-   std::stringstream  reconPVPFilePath;
+   std::stringstream reconPVPFilePath;
 
    double outputPeriod;
-   double nextOutputTime; // Warning: this does not get checkpointed but it should.  Probes have no checkpointing infrastructure yet.
+   double nextOutputTime; // Warning: this does not get checkpointed but it should.  Probes have no
+                          // checkpointing infrastructure yet.
 
-   char * outputFilenameBase;
+   char *outputFilenameBase;
    int numDetectionThresholds;
-   float * detectionThreshold;
+   float *detectionThreshold;
    int numHeatMapMaxima;
-   float * heatMapMaximum;
-   double imageDilationX; // The factor to multiply by to convert from targetLayer coordinates to imageLayer coordinates
-   double imageDilationY; // The factor to multiply by to convert from targetLayer coordinates to imageLayer coordinates
+   float *heatMapMaximum;
+   double imageDilationX; // The factor to multiply by to convert from targetLayer coordinates to
+                          // imageLayer coordinates
+   double imageDilationY; // The factor to multiply by to convert from targetLayer coordinates to
+                          // imageLayer coordinates
    int numMontageRows;
    int numMontageColumns;
    int montageDimX;
    int montageDimY;
-   float * grayScaleImage;
-   unsigned char * montageImage;
-   unsigned char * montageImageLocal;
-   unsigned char * montageImageComm;
-   float imageBlendCoeff; // heatmap image will be imageBlendCoeff * imagedata plus (1-imageBlendCoeff) * heatmap data
-   int featurefieldwidth; // how many digits it takes to print the features (e.g. if nf was 100, the last feature is 99, which needs 2 digits)  Set in communicateInitInfo.  All processes compute this, although only the root process uses it
-   long int mStepNumber; // The current step number, based on the values of timed and dt passed to outputState.  Should be the same as the number of times HyPerCol::advanceTime has been called, but we want to avoid calling HyPerCol methods.
+   float *grayScaleImage;
+   unsigned char *montageImage;
+   unsigned char *montageImageLocal;
+   unsigned char *montageImageComm;
+   float imageBlendCoeff; // heatmap image will be imageBlendCoeff * imagedata plus
+                          // (1-imageBlendCoeff) * heatmap data
+   int featurefieldwidth; // how many digits it takes to print the features (e.g. if nf was 100, the
+                          // last feature is 99, which needs 2 digits)  Set in communicateInitInfo.
+                          // All processes compute this, although only the root process uses it
+   long int mStepNumber; // The current step number, based on the values of timed and dt passed to
+                         // outputState.  Should be the same as the number of times
+                         // HyPerCol::advanceTime has been called, but we want to avoid calling
+                         // HyPerCol methods.
 }; /* class LocalizationProbe */
 
-PV::BaseObject * createLocalizationProbe(char const * name, PV::HyPerCol * hc);
+PV::BaseObject *createLocalizationProbe(char const *name, PV::HyPerCol *hc);
 
 #endif /* LOCALIZATIONPROBE_HPP_ */

@@ -19,7 +19,7 @@ class NormalizeGroup : public NormalizeBase {
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
-   virtual int communicateInitInfo();
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message);
 
   protected:
    NormalizeGroup();

@@ -23,7 +23,7 @@ class PoolingConn : public HyPerConn {
    PoolingConn();
    PoolingConn(const char *name, HyPerCol *hc);
    virtual ~PoolingConn();
-   virtual int communicateInitInfo() override;
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
    virtual int allocateDataStructures() override;
    virtual float minWeight(int arborId = 0) override;
    virtual float maxWeight(int arborId = 0) override;

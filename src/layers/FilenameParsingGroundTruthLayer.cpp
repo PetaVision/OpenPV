@@ -92,7 +92,8 @@ int FilenameParsingGroundTruthLayer::allocateDataStructures() {
    return status;
 }
 
-int FilenameParsingGroundTruthLayer::communicateInitInfo() {
+int FilenameParsingGroundTruthLayer::communicateInitInfo(
+      CommunicateInitInfoMessage const *message) {
    mInputLayer = dynamic_cast<InputLayer *>(parent->getLayerFromName(mInputLayerName));
    FatalIf(
          mInputLayer == nullptr && parent->columnId() == 0,
