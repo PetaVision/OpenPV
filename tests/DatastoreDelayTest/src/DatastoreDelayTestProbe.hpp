@@ -25,6 +25,11 @@ class DatastoreDelayTestProbe : public StatsProbe {
   protected:
    int initDatastoreDelayTestProbe(const char *probename, HyPerCol *hc);
    virtual void ioParam_buffer(enum ParamsIOFlag ioFlag);
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
+
+   // Data members
+  private:
+   int mNumDelayLevels = 0;
 };
 }
 
