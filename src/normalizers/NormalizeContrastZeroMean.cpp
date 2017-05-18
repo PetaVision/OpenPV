@@ -52,13 +52,12 @@ void NormalizeContrastZeroMean::ioParam_normalizeFromPostPerspective(enum Params
 int NormalizeContrastZeroMean::normalizeWeights() {
    int status = PV_SUCCESS;
 
-   assert(numConnections >= 1);
+   pvAssert(!connectionList.empty());
 
    // TODO: need to ensure that all connections in connectionList have same
    // nxp,nyp,nfp,numArbors,numDataPatches
    HyPerConn *conn0 = connectionList[0];
-   for (int c = 1; c < numConnections; c++) {
-      HyPerConn *conn = connectionList[c];
+   for (auto &conn : connectionList) {
       if (conn->numberOfAxonalArborLists() != conn0->numberOfAxonalArborLists()) {
          if (parent->columnId() == 0) {
             ErrorLog().printf(
@@ -104,11 +103,10 @@ int NormalizeContrastZeroMean::normalizeWeights() {
             float sum             = 0.0f;
             float sumsq           = 0.0f;
             int weights_per_patch = 0;
-            for (int c = 0; c < numConnections; c++) {
-               HyPerConn *conn = connectionList[c];
-               int nxp         = conn0->xPatchSize();
-               int nyp         = conn0->yPatchSize();
-               int nfp         = conn0->fPatchSize();
+            for (auto &conn : connectionList) {
+               int nxp = conn0->xPatchSize();
+               int nyp = conn0->yPatchSize();
+               int nfp = conn0->fPatchSize();
                weights_per_patch += nxp * nyp * nfp;
                float *dataStartPatch =
                      conn->get_wDataStart(arborID) + patchindex * weights_per_patch;
@@ -126,8 +124,7 @@ int NormalizeContrastZeroMean::normalizeWeights() {
             }
             float mean = sum / weights_per_patch;
             float var  = sumsq / weights_per_patch - mean * mean;
-            for (int c = 0; c < numConnections; c++) {
-               HyPerConn *conn = connectionList[c];
+            for (auto &conn : connectionList) {
                float *dataStartPatch =
                      conn->get_wDataStart(arborID) + patchindex * weights_per_patch;
                subtractOffsetAndNormalize(
@@ -145,11 +142,10 @@ int NormalizeContrastZeroMean::normalizeWeights() {
          float sumsq           = 0.0f;
          int weights_per_patch = 0;
          for (int arborID = 0; arborID < nArbors; arborID++) {
-            for (int c = 0; c < numConnections; c++) {
-               HyPerConn *conn = connectionList[c];
-               int nxp         = conn0->xPatchSize();
-               int nyp         = conn0->yPatchSize();
-               int nfp         = conn0->fPatchSize();
+            for (auto &conn : connectionList) {
+               int nxp = conn0->xPatchSize();
+               int nyp = conn0->yPatchSize();
+               int nfp = conn0->fPatchSize();
                weights_per_patch += nxp * nyp * nfp;
                float *dataStartPatch =
                      conn->get_wDataStart(arborID) + patchindex * weights_per_patch;
@@ -169,8 +165,7 @@ int NormalizeContrastZeroMean::normalizeWeights() {
          float mean = sum / count;
          float var  = sumsq / count - mean * mean;
          for (int arborID = 0; arborID < nArbors; arborID++) {
-            for (int c = 0; c < numConnections; c++) {
-               HyPerConn *conn = connectionList[c];
+            for (auto &conn : connectionList) {
                float *dataStartPatch =
                      conn->get_wDataStart(arborID) + patchindex * weights_per_patch;
                subtractOffsetAndNormalize(

@@ -37,7 +37,7 @@ void NormalizeSum::ioParam_minSumTolerated(enum ParamsIOFlag ioFlag) {
 int NormalizeSum::normalizeWeights() {
    int status = PV_SUCCESS;
 
-   assert(numConnections >= 1);
+   pvAssert(!connectionList.empty());
 
    // All connections in the group must have the same values of sharedWeights, numArbors, and
    // numDataPatches
@@ -65,8 +65,7 @@ int NormalizeSum::normalizeWeights() {
       for (int arborID = 0; arborID < nArbors; arborID++) {
          for (int patchindex = 0; patchindex < numDataPatches; patchindex++) {
             float sum = 0.0;
-            for (int c = 0; c < numConnections; c++) {
-               HyPerConn *conn       = connectionList[c];
+            for (auto &conn : connectionList) {
                int nxp               = conn->xPatchSize();
                int nyp               = conn->yPatchSize();
                int nfp               = conn->fPatchSize();
@@ -84,8 +83,7 @@ int NormalizeSum::normalizeWeights() {
                      (double)minSumTolerated);
                continue;
             }
-            for (int c = 0; c < numConnections; c++) {
-               HyPerConn *conn       = connectionList[c];
+            for (auto &conn : connectionList) {
                int nxp               = conn->xPatchSize();
                int nyp               = conn->yPatchSize();
                int nfp               = conn->fPatchSize();
@@ -100,8 +98,7 @@ int NormalizeSum::normalizeWeights() {
       for (int patchindex = 0; patchindex < numDataPatches; patchindex++) {
          float sum = 0.0;
          for (int arborID = 0; arborID < nArbors; arborID++) {
-            for (int c = 0; c < numConnections; c++) {
-               HyPerConn *conn       = connectionList[c];
+            for (auto &conn : connectionList) {
                int nxp               = conn->xPatchSize();
                int nyp               = conn->yPatchSize();
                int nfp               = conn->fPatchSize();
@@ -120,8 +117,7 @@ int NormalizeSum::normalizeWeights() {
             continue;
          }
          for (int arborID = 0; arborID < nArbors; arborID++) {
-            for (int c = 0; c < numConnections; c++) {
-               HyPerConn *conn       = connectionList[c];
+            for (auto &conn : connectionList) {
                int nxp               = conn->xPatchSize();
                int nyp               = conn->yPatchSize();
                int nfp               = conn->fPatchSize();

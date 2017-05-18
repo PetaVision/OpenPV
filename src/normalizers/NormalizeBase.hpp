@@ -43,8 +43,6 @@ class NormalizeBase : public BaseObject {
     */
    int normalizeWeightsWrapper();
 
-   HyPerConn *getTargetConn();
-
    float getStrength() const { return strength; }
    // normalizeFromPostPerspective,rMinX,rMinY,normalize_cutoff moved to NormalizeMultiply
    bool getNormalizeArborsIndividuallyFlag() const { return normalizeArborsIndividually; }
@@ -88,8 +86,7 @@ class NormalizeBase : public BaseObject {
 
    // Member variables
   protected:
-   HyPerConn **connectionList;
-   int numConnections;
+   std::vector<HyPerConn *> connectionList;
    float strength; // Value to normalize to; precise interpretation depends on normalization method
 
    bool normalizeArborsIndividually; // If true, each arbor is treated as its own connection.  If
