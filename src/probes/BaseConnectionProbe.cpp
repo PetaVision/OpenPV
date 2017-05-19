@@ -36,31 +36,26 @@ void BaseConnectionProbe::ioParam_targetName(enum ParamsIOFlag ioFlag) {
 }
 
 int BaseConnectionProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
-   BaseProbe::communicateInitInfo(message);
-   int status = setTargetConn(targetName);
-   if (status == PV_SUCCESS) {
-      targetConn->insertProbe(this);
+   int status = BaseProbe::communicateInitInfo(message);
+   if (status != PV_SUCCESS) {
+      return status;
    }
-   return status;
-}
-
-int BaseConnectionProbe::setTargetConn(const char *connName) {
-   int status = PV_SUCCESS;
-   targetConn = getParent()->getConnFromName(connName);
-   if (targetConn == NULL) {
+   targetConn = dynamic_cast<BaseConnection *>(message->lookup(std::string(targetName)));
+   if (targetConn == nullptr) {
       ErrorLog().printf(
             "%s, rank %d process: targetConnection \"%s\" is "
-            "not a connection in the HyPerCol.\n",
+            "not a connection in the column.\n",
             getDescription_c(),
             getParent()->columnId(),
-            connName);
+            targetName);
       status = PV_FAILURE;
    }
    MPI_Barrier(getParent()->getCommunicator()->communicator());
    if (status != PV_SUCCESS) {
       exit(EXIT_FAILURE);
    }
-   return PV_SUCCESS;
+   targetConn->insertProbe(this);
+   return status;
 }
 
 } // end of namespace PV

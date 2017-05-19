@@ -89,7 +89,7 @@ int PoolingConnCheckpointerTestProbe::initOutputLayer(
 
 int PoolingConnCheckpointerTestProbe::initConnection(
       PV::CommunicateInitInfoMessage const *message) {
-   mConnection = dynamic_cast<PV::HyPerConn *>(parent->getConnFromName("InputToOutput"));
+   mConnection = dynamic_cast<PV::HyPerConn *>(message->lookup(std::string("InputToOutput")));
    FatalIf(mConnection == nullptr, "column does not have a HyPerConn named \"InputToOutput\".\n");
    if (checkCommunicatedFlag(mConnection) == PV_POSTPONE) {
       return PV_POSTPONE;

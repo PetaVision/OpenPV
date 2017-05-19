@@ -58,8 +58,7 @@ void KernelConnDebugInitWeights::ioParam_copiedConn(enum ParamsIOFlag ioFlag) {
 
 int KernelConnDebugInitWeights::communicateInitInfo(CommunicateInitInfoMessage const *message) {
    HyPerConn::communicateInitInfo(message);
-   BaseConnection *baseConn = parent->getConnFromName(otherConnName);
-   otherConn                = dynamic_cast<HyPerConn *>(baseConn);
+   otherConn = dynamic_cast<HyPerConn *>(message->lookup(std::string(otherConnName)));
    if (otherConn == NULL) {
       Fatal().printf(
             "KernelConnDebugInitWeights \"%s\" error in rank %d process: copiedConn \"%s\" is not "

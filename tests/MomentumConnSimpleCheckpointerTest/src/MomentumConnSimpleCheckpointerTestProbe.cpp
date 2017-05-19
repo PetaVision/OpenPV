@@ -84,7 +84,7 @@ int MomentumConnSimpleCheckpointerTestProbe::initOutputLayer(
 
 int MomentumConnSimpleCheckpointerTestProbe::initConnection(
       PV::CommunicateInitInfoMessage const *message) {
-   mConnection = dynamic_cast<PV::MomentumConn *>(parent->getConnFromName("InputToOutput"));
+   mConnection = dynamic_cast<PV::MomentumConn *>(message->lookup(std::string("InputToOutput")));
    FatalIf(
          mConnection == nullptr, "column does not have a MomentumConn named \"InputToOutput\".\n");
    if (checkCommunicatedFlag(mConnection) == PV_POSTPONE) {

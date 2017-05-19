@@ -175,7 +175,8 @@ void CloneConn::ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFlag) {
 int CloneConn::communicateInitInfo(CommunicateInitInfoMessage const *message) {
    // Need to set originalConn before calling HyPerConn::communicate, since HyPerConn::communicate
    // calls setPatchSize, which needs originalConn.
-   BaseConnection *originalConnBase = parent->getConnFromName(originalConnName);
+   auto *objectLookup     = message->lookup(std::string(originalConnName));
+   auto *originalConnBase = dynamic_cast<BaseConnection *>(objectLookup);
    if (originalConnBase == NULL) {
       if (parent->columnId() == 0) {
          ErrorLog().printf(

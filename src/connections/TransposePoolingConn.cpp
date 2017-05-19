@@ -237,8 +237,9 @@ void TransposePoolingConn::ioParam_originalConnName(enum ParamsIOFlag ioFlag) {
 }
 
 int TransposePoolingConn::communicateInitInfo(CommunicateInitInfoMessage const *message) {
-   int status                       = PV_SUCCESS;
-   BaseConnection *originalConnBase = parent->getConnFromName(this->mOriginalConnName);
+   int status             = PV_SUCCESS;
+   auto *objectLookup     = message->lookup(std::string(mOriginalConnName));
+   auto *originalConnBase = dynamic_cast<BaseConnection *>(objectLookup);
    if (originalConnBase == NULL) {
       if (parent->columnId() == 0) {
          ErrorLog().printf(

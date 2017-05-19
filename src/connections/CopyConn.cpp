@@ -128,8 +128,9 @@ void CopyConn::ioParam_originalConnName(enum ParamsIOFlag ioFlag) {
 }
 
 int CopyConn::communicateInitInfo(CommunicateInitInfoMessage const *message) {
-   int status                       = PV_SUCCESS;
-   BaseConnection *originalConnBase = parent->getConnFromName(this->originalConnName);
+   int status             = PV_SUCCESS;
+   auto *objectLookup     = message->lookup(std::string(originalConnName));
+   auto *originalConnBase = dynamic_cast<BaseConnection *>(objectLookup);
    if (originalConnBase == NULL) {
       if (parent->columnId() == 0) {
          ErrorLog().printf(
