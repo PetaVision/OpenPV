@@ -431,6 +431,13 @@ class HyPerLayer : public BaseLayer {
    virtual int mirrorToSouth(PVLayerCube *dest, PVLayerCube *src);
    virtual int mirrorToSouthEast(PVLayerCube *dest, PVLayerCube *src);
 
+   /**
+    * Adds the given connection to the vector of connections to receive input from.
+    * The connection's post-synaptic layer must be the layer for which this
+    * member function is called.
+    */
+   void addRecvConn(BaseConnection *conn);
+
    // Public access functions:
 
    int getNumNeurons() { return clayer->numNeurons; }

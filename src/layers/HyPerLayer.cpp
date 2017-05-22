@@ -1225,6 +1225,28 @@ int HyPerLayer::communicateInitInfo(CommunicateInitInfoMessage const *message) {
    return status;
 }
 
+void HyPerLayer::addRecvConn(BaseConnection *conn) {
+   FatalIf(
+         conn->postSynapticLayer() != this,
+         "%s called addRecvConn for %s, but \"%s\" is not the post-synaptic layer for \"%s\"\n.",
+         conn->getDescription_c(), getDescription_c(), getName(), conn->getName());
+#ifdef PV_USE_CUDA
+   // CPU connections must run first to avoid race conditions
+   if (!conn->getReceiveGpu()) {
+      recvConns.insert(recvConns.begin(), conn);
+   }
+   // Otherwise, add to the back. If no gpus at all, just add to back
+   else
+#endif
+   {
+      recvConns.push_back(conn);
+#ifdef PV_USE_CUDA
+      // If it is receiving from gpu, set layer flag as such
+      recvGpu = true;
+#endif
+   }
+}
+
 int HyPerLayer::openOutputStateFile(Checkpointer *checkpointer) {
    pvAssert(writeStep >= 0);
 
@@ -1435,32 +1457,6 @@ int HyPerLayer::allocateDataStructures() {
       }
    }
 #endif
-
-   // Make a data structure that stores the connections (in order of execution) this layer needs to
-   // recv from
-   // CPU connections must run first to avoid race conditions
-   int numConnections = parent->numberOfConnections();
-   for (int c = 0; c < numConnections; c++) {
-      BaseConnection *baseConn = parent->getConnection(c);
-      HyPerConn *conn          = dynamic_cast<HyPerConn *>(baseConn);
-      if (conn->postSynapticLayer() != this)
-         continue;
-#ifdef PV_USE_CUDA
-      // If not recv from gpu, execute first
-      if (!conn->getReceiveGpu()) {
-         recvConns.insert(recvConns.begin(), conn);
-      }
-      // Otherwise, add to the back. If no gpus at all, just add to back
-      else
-#endif
-      {
-         recvConns.push_back(conn);
-#ifdef PV_USE_CUDA
-         // If it is receiving from gpu, set layer flag as such
-         recvGpu = true;
-#endif
-      }
-   }
 
    addPublisher();
 

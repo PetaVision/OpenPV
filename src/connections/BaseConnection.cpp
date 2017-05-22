@@ -530,14 +530,9 @@ int BaseConnection::communicateInitInfo(CommunicateInitInfoMessage const *messag
    if (ch >= 0) {
       status = this->postSynapticLayer()->requireChannel(ch, &num_channels_check);
    }
-   assert(status != PV_SUCCESS || num_channels_check > (int)this->getChannel()); // if
-   // requireChannel
-   // passes, layer's
-   // numChannels
-   // should be large
-   // enough for the
-   // connection's
-   // channel
+   pvAssert(status != PV_SUCCESS || num_channels_check > (int)this->getChannel());
+   // if requireChannel passes, layer's numChannels should be large enough for the
+   // connection's channel
    if (status != PV_SUCCESS) {
       if (parent->columnId() == 0) {
          ErrorLog().printf(
@@ -547,6 +542,8 @@ int BaseConnection::communicateInitInfo(CommunicateInitInfoMessage const *messag
                (int)this->getChannel());
       }
    }
+
+   this->postSynapticLayer()->addRecvConn(this);
    return status;
 }
 
