@@ -85,7 +85,7 @@ void AdaptiveTimeScaleProbe::ioParam_writeTimeScaleFieldnames(enum ParamsIOFlag 
 
 int AdaptiveTimeScaleProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
    int status   = ColProbe::communicateInitInfo(message);
-   mTargetProbe = parent->getBaseProbeFromName(targetName);
+   mTargetProbe = dynamic_cast<BaseProbe *>(message->lookup(std::string(targetName)));
    if (mTargetProbe == nullptr) {
       if (parent->getCommunicator()->commRank() == 0) {
          Fatal() << getDescription() << ": targetName \"" << targetName

@@ -272,8 +272,8 @@ int BaseProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
 
    // Add the probe to the ColumnEnergyProbe, if there is one.
    if (energyProbe && energyProbe[0]) {
-      BaseProbe *baseprobe     = getParent()->getBaseProbeFromName(energyProbe);
-      ColumnEnergyProbe *probe = dynamic_cast<ColumnEnergyProbe *>(baseprobe);
+      auto *obs                = message->lookup(std::string(energyProbe));
+      ColumnEnergyProbe *probe = dynamic_cast<ColumnEnergyProbe *>(obs);
       if (probe == NULL) {
          if (getParent()->columnId() == 0) {
             ErrorLog().printf(
