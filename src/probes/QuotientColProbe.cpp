@@ -75,8 +75,8 @@ void QuotientColProbe::ioParam_denominator(enum ParamsIOFlag ioFlag) {
 
 int QuotientColProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
    int status = ColProbe::communicateInitInfo(message);
-   numerProbe = findProbe(numerator);
-   denomProbe = findProbe(denominator);
+   numerProbe = dynamic_cast<BaseProbe *>(message->lookup(std::string(numerator)));
+   denomProbe = dynamic_cast<BaseProbe *>(message->lookup(std::string(denominator)));
    if (numerProbe == NULL || denomProbe == NULL) {
       status = PV_FAILURE;
       if (parent->columnId() == 0) {
@@ -127,17 +127,6 @@ int QuotientColProbe::communicateInitInfo(CommunicateInitInfoMessage const *mess
       exit(EXIT_FAILURE);
    }
    return status;
-}
-
-BaseProbe *QuotientColProbe::findProbe(char const *probeName) {
-   for (int p = 0; p < parent->numberOfBaseProbes(); p++) {
-      BaseProbe *probe = parent->getBaseProbe(p);
-      if (!strcmp(probe->getName(), probeName)) {
-         return probe;
-      }
-   }
-   // If you reach here, no probe with the given name was found.
-   return NULL;
 }
 
 int QuotientColProbe::calcValues(double timeValue) {

@@ -86,13 +86,6 @@ class QuotientColProbe : public ColProbe {
    virtual int communicateInitInfo(CommunicateInitInfoMessage const *message);
 
    /**
-    * A function to find a probe, whether it belongs to a layer, a connection, or
-    * the hypercol.
-    * Returns NULL if the probe cannot be found.
-    */
-   BaseProbe *findProbe(char const *probeName);
-
-   /**
     * Prints the energies to the output stream, formatted as a comma-separated
     * value:
     * "Name of probe",timevalue,index,energy
