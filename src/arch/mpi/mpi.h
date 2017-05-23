@@ -112,6 +112,8 @@ int MPI_Send(void *buf, int count, MPI_Datatype datatype, int dest, int tag, MPI
 int MPI_Testall(int count, MPI_Request *reqs, int *flag, MPI_Status *stats);
 int MPI_Waitall(int count, MPI_Request array_of_requests[], MPI_Status array_of_statuses[]);
 
+int MPI_Comm_split(MPI_Comm comm, int color, int key, MPI_Comm *newcomm);
+
 double MPI_Wtime();
 
 #ifdef __cplusplus
