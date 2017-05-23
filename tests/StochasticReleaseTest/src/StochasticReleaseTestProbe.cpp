@@ -37,16 +37,18 @@ int StochasticReleaseTestProbe::communicateInitInfo(CommunicateInitInfoMessage c
          conn != nullptr,
          ": %s, communicateInitInfo called with connection already set.\n",
          getDescription_c());
-   int numconns = getParent()->numberOfConnections();
-   for (int c = 0; c < numconns; c++) {
-      BaseConnection *baseConn = getParent()->getConnection(c);
-      if (!strcmp(baseConn->getPostLayerName(), getTargetLayer()->getName())) {
+   for (auto &obj : message->mHierarchy) {
+      HyPerConn *hyperconn = dynamic_cast<HyPerConn *>(obj.second);
+      if (hyperconn == nullptr) {
+         continue;
+      }
+      if (!strcmp(hyperconn->getPostLayerName(), getTargetLayer()->getName())) {
          FatalIf(
                conn != nullptr,
                ": %s cannot have more than one connnection going to target %s.\n",
                getDescription_c(),
                getTargetLayer()->getName());
-         conn = dynamic_cast<HyPerConn *>(baseConn);
+         conn = hyperconn;
       }
    }
    FatalIf(

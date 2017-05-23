@@ -25,14 +25,10 @@ int WeightComparisonProbe::initialize(char const *name, PV::HyPerCol *hc) {
 }
 
 int WeightComparisonProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
-   int const numConnections = parent->numberOfConnections();
-   for (int c = 0; c < numConnections; c++) {
-      auto *baseConn = parent->getConnection(c);
-      auto *conn     = dynamic_cast<PV::HyPerConn *>(baseConn);
-      if (conn) {
-         mConnectionList.push_back(conn);
-      }
-   }
+   mConnectionList.push_back(dynamic_cast<HyPerConn *>(message->lookup(std::string("ConnA"))));
+   mConnectionList.push_back(dynamic_cast<HyPerConn *>(message->lookup(std::string("ConnB"))));
+   mConnectionList.push_back(dynamic_cast<HyPerConn *>(message->lookup(std::string("ConnC"))));
+   mConnectionList.push_back(dynamic_cast<HyPerConn *>(message->lookup(std::string("ConnD"))));
    return PV_SUCCESS;
 }
 
