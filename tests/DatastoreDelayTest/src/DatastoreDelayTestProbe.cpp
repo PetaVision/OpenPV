@@ -51,7 +51,7 @@ int DatastoreDelayTestProbe::communicateInitInfo(CommunicateInitInfoMessage cons
  */
 int DatastoreDelayTestProbe::outputState(double timed) {
    HyPerLayer *l        = getTargetLayer();
-   Communicator *icComm = l->getParent()->getCommunicator();
+   Communicator *icComm = parent->getCommunicator();
    const int rcvProc    = 0;
    if (icComm->commRank() != rcvProc) {
       return PV_SUCCESS;

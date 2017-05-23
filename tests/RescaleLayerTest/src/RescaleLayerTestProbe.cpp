@@ -31,12 +31,12 @@ int RescaleLayerTestProbe::communicateInitInfo(CommunicateInitInfoMessage const 
    FatalIf(!(getTargetLayer()), "Test failed.\n");
    RescaleLayer *targetRescaleLayer = dynamic_cast<RescaleLayer *>(getTargetLayer());
    if (targetRescaleLayer == NULL) {
-      if (getParent()->columnId() == 0) {
+      if (parent->columnId() == 0) {
          ErrorLog().printf(
                "RescaleLayerTestProbe: targetLayer \"%s\" is not a RescaleLayer.\n",
                this->getTargetName());
       }
-      MPI_Barrier(getParent()->getCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    return status;
@@ -44,11 +44,11 @@ int RescaleLayerTestProbe::communicateInitInfo(CommunicateInitInfoMessage const 
 
 int RescaleLayerTestProbe::outputState(double timed) {
    int status = StatsProbe::outputState(timed);
-   if (timed == getParent()->getStartTime()) {
+   if (timed == parent->getStartTime()) {
       return PV_SUCCESS;
    }
    float tolerance      = 2.0e-5f;
-   Communicator *icComm = getTargetLayer()->getParent()->getCommunicator();
+   Communicator *icComm = parent->getCommunicator();
    bool isRoot          = icComm->commRank() == 0;
 
    RescaleLayer *targetRescaleLayer = dynamic_cast<RescaleLayer *>(getTargetLayer());
@@ -278,7 +278,7 @@ int RescaleLayerTestProbe::outputState(double timed) {
                      "starting at restricted neuron %d, has mean %f instead of target mean %f\n",
                      getName(),
                      targetRescaleLayer->getName(),
-                     getParent()->columnId(),
+                     parent->columnId(),
                      k,
                      (double)pointmean,
                      (double)targetMean);
@@ -291,7 +291,7 @@ int RescaleLayerTestProbe::outputState(double timed) {
                      "%f\n",
                      getName(),
                      targetRescaleLayer->getName(),
-                     getParent()->columnId(),
+                     parent->columnId(),
                      k,
                      (double)pointstd,
                      (double)targetStd);

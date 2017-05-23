@@ -107,8 +107,8 @@ int StochasticReleaseTestProbe::outputState(double timed) {
          timed);
    if (timed > 0.0) {
       computePValues();
-      if (getParent()->getCommunicator()->commRank() == 0
-          && timed + 0.5 * getParent()->getDeltaTime() >= getParent()->getStopTime()) {
+      if (parent->getCommunicator()->commRank() == 0
+          && timed + 0.5 * parent->getDeltaTime() >= parent->getStopTime()) {
          // This is the last timestep
          // sort the p-values and apply Holm-Bonferroni method since there is one for each timestep
          // and each feature.
@@ -201,13 +201,8 @@ void StochasticReleaseTestProbe::computePValues() {
       }
       HyPerLayer *l = getTargetLayer();
       MPI_Allreduce(
-            MPI_IN_PLACE,
-            &nnzf,
-            1,
-            MPI_INT,
-            MPI_SUM,
-            getParent()->getCommunicator()->communicator());
-      if (getParent()->getCommunicator()->commRank() == 0) {
+            MPI_IN_PLACE, &nnzf, 1, MPI_INT, MPI_SUM, parent->getCommunicator()->communicator());
+      if (parent->getCommunicator()->commRank() == 0) {
          const int neuronsPerFeature = l->getNumGlobalNeurons() / nf;
          double mean                 = preact * neuronsPerFeature;
          double stddev               = sqrt(neuronsPerFeature * preact * (1 - preact));

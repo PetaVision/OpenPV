@@ -42,12 +42,12 @@ int ShrunkenPatchTestProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 void ShrunkenPatchTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) { requireType(BufActivity); }
 
 void ShrunkenPatchTestProbe::ioParam_nxpShrunken(enum ParamsIOFlag ioFlag) {
-   getParent()->parameters()->ioParamValueRequired(ioFlag, getName(), "nxpShrunken", &nxpShrunken);
+   parent->parameters()->ioParamValueRequired(ioFlag, getName(), "nxpShrunken", &nxpShrunken);
    return;
 }
 
 void ShrunkenPatchTestProbe::ioParam_nypShrunken(enum ParamsIOFlag ioFlag) {
-   getParent()->parameters()->ioParamValueRequired(ioFlag, getName(), "nypShrunken", &nypShrunken);
+   parent->parameters()->ioParamValueRequired(ioFlag, getName(), "nypShrunken", &nypShrunken);
    return;
 }
 
@@ -143,7 +143,7 @@ int ShrunkenPatchTestProbe::outputState(double timed) {
                   l->getDescription_c(),
                   (double)buf[kex],
                   (double)correctValues[x],
-                  getTargetLayer()->getParent()->columnId(),
+                  parent->columnId(),
                   x,
                   y,
                   f);

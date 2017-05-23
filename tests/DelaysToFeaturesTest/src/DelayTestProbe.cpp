@@ -28,14 +28,14 @@ int DelayTestProbe::initDelayTestProbe(const char *probeName, HyPerCol *hc) {
 
 int DelayTestProbe::outputState(double timestamp) {
    int status           = StatsProbe::outputState(timestamp);
-   Communicator *icComm = getTargetLayer()->getParent()->getCommunicator();
+   Communicator *icComm = parent->getCommunicator();
    const int rcvProc    = 0;
    if (icComm->commRank() != rcvProc) {
       return 0;
    }
    const PVLayerLoc *loc = getTargetLayer()->getLayerLoc();
-   const int rows        = getTargetLayer()->getParent()->getCommunicator()->numCommRows();
-   const int cols        = getTargetLayer()->getParent()->getCommunicator()->numCommColumns();
+   const int rows        = icComm->numCommRows();
+   const int cols        = icComm->numCommColumns();
 
    int nx = loc->nx;
    int ny = loc->ny;

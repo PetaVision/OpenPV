@@ -31,7 +31,7 @@ int ColProbe::initialize_base() {
 int ColProbe::initialize(const char *probeName, HyPerCol *hc) {
    int status = BaseProbe::initialize(probeName, hc);
    if (status == PV_SUCCESS) {
-      this->getParent()->insertProbe(this);
+      this->parent->insertProbe(this);
    }
    return status;
 }
@@ -43,7 +43,7 @@ int ColProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 
 void ColProbe::ioParam_targetName(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
-      targetName = strdup(this->getParent()->getName());
+      targetName = strdup(this->parent->getName());
    }
 }
 

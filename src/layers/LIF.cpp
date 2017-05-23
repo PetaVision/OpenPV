@@ -266,7 +266,7 @@ void LIF::ioParam_method(enum ParamsIOFlag ioFlag) {
    method = methodString ? methodString[0]
                          : 'a'; // Default is ARMA; 'beginning' and 'original' are deprecated.
    if (method != 'o' && method != 'b' && method != 'a') {
-      if (getParent()->columnId() == 0) {
+      if (parent->columnId() == 0) {
          ErrorLog().printf(
                "LIF::setLIFParams error.  Layer \"%s\" has method \"%s\".  Allowable values are "
                "\"arma\", \"beginning\" and \"original\".",
@@ -277,7 +277,7 @@ void LIF::ioParam_method(enum ParamsIOFlag ioFlag) {
       exit(EXIT_FAILURE);
    }
    if (method != 'a') {
-      if (getParent()->columnId() == 0) {
+      if (parent->columnId() == 0) {
          WarnLog().printf(
                "LIF layer \"%s\" integration method \"%s\" is deprecated.  Method \"arma\" is "
                "preferred.\n",

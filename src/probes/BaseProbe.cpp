@@ -275,15 +275,15 @@ int BaseProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
       auto *obs                = message->lookup(std::string(energyProbe));
       ColumnEnergyProbe *probe = dynamic_cast<ColumnEnergyProbe *>(obs);
       if (probe == NULL) {
-         if (getParent()->columnId() == 0) {
+         if (parent->columnId() == 0) {
             ErrorLog().printf(
                   "%s \"%s\": energyProbe \"%s\" is not a ColumnEnergyProbe in the "
                   "column.\n",
-                  getParent()->parameters()->groupKeywordFromName(getName()),
+                  parent->parameters()->groupKeywordFromName(getName()),
                   getName(),
                   energyProbe);
          }
-         MPI_Barrier(getParent()->getCommunicator()->communicator());
+         MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
       status = probe->addTerm(this);

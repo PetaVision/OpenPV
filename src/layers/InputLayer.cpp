@@ -263,8 +263,8 @@ void InputLayer::normalizePixels(Buffer<float> &buffer) {
          float imageMin = std::numeric_limits<float>::max();
          for (int k = 0; k < totalElements; k++) {
             float const v = buffer.at(k);
-            imageMax    = v > imageMax ? v : imageMax;
-            imageMin    = v < imageMin ? v : imageMin;
+            imageMax      = v > imageMax ? v : imageMax;
+            imageMin      = v < imageMin ? v : imageMin;
          }
          if (imageMax > imageMin) {
             float imageStretch = 1.0f / (imageMax - imageMin);
@@ -292,8 +292,8 @@ void InputLayer::normalizePixels(Buffer<float> &buffer) {
          float imageMin = std::numeric_limits<float>::max();
          for (int k = 0; k < totalElements; k++) {
             float const v = buffer.at(k);
-            imageMax    = v > imageMax ? v : imageMax;
-            imageMin    = v < imageMin ? v : imageMin;
+            imageMax      = v > imageMax ? v : imageMax;
+            imageMin      = v < imageMin ? v : imageMin;
          }
          for (int k = 0; k < totalElements; k++) {
             float const v = imageMax + imageMin - buffer.at(k);
@@ -682,7 +682,7 @@ void InputLayer::ioParam_start_frame_index(enum ParamsIOFlag ioFlag) {
          paramsStartFrameIndex[i] = mStartFrameIndex.at(i);
       }
    }
-   this->getParent()->parameters()->ioParamArray(
+   this->parent->parameters()->ioParamArray(
          ioFlag, this->getName(), "start_frame_index", &paramsStartFrameIndex, &length);
    FatalIf(
          length != 0 && length != parent->getNBatchGlobal(),
@@ -716,7 +716,7 @@ void InputLayer::ioParam_skip_frame_index(enum ParamsIOFlag ioFlag) {
          paramsSkipFrameIndex[i] = mSkipFrameIndex.at(i);
       }
    }
-   this->getParent()->parameters()->ioParamArray(
+   this->parent->parameters()->ioParamArray(
          ioFlag, this->getName(), "skip_frame_index", &paramsSkipFrameIndex, &length);
    FatalIf(
          length != parent->getNBatchGlobal(),

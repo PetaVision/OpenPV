@@ -33,7 +33,7 @@ int ReceiveFromPostProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 void ReceiveFromPostProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) { requireType(BufActivity); }
 
 void ReceiveFromPostProbe::ioParam_tolerance(enum ParamsIOFlag ioFlag) {
-   getParent()->parameters()->ioParamValue(ioFlag, getName(), "tolerance", &tolerance, tolerance);
+   parent->parameters()->ioParamValue(ioFlag, getName(), "tolerance", &tolerance, tolerance);
 }
 
 int ReceiveFromPostProbe::outputState(double timed) {

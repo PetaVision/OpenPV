@@ -944,7 +944,7 @@ int HyPerConn::setWeightNormalizer() {
 void HyPerConn::ioParam_normalizeDw(enum ParamsIOFlag ioFlag) {
    pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (plasticityFlag) {
-      getParent()->parameters()->ioParamValue(
+      parent->parameters()->ioParamValue(
             ioFlag, getName(), "normalizeDw", &normalizeDwFlag, true, false /*warnIfAbsent*/);
    }
 }
@@ -952,7 +952,7 @@ void HyPerConn::ioParam_normalizeDw(enum ParamsIOFlag ioFlag) {
 void HyPerConn::ioParam_useMask(enum ParamsIOFlag ioFlag) {
    pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (plasticityFlag) {
-      getParent()->parameters()->ioParamValue(
+      parent->parameters()->ioParamValue(
             ioFlag, getName(), "useMask", &useMask, false, false /*warnIfAbsent*/);
    }
 }
@@ -1055,7 +1055,7 @@ int HyPerConn::communicateInitInfo(CommunicateInitInfoMessage const *message) {
    if (useMask) {
       mask = dynamic_cast<HyPerLayer *>(message->lookup(std::string(maskLayerName)));
       if (mask == NULL) {
-         if (getParent()->columnId() == 0) {
+         if (parent->columnId() == 0) {
             ErrorLog().printf(
                   "%s: maskLayerName \"%s\" does not correspond to a layer in the column.\n",
                   getDescription_c(),
@@ -1068,7 +1068,7 @@ int HyPerConn::communicateInitInfo(CommunicateInitInfoMessage const *message) {
       const PVLayerLoc *maskLoc = mask->getLayerLoc();
       const PVLayerLoc *postLoc = post->getLayerLoc();
       if (postLoc->nx != maskLoc->nx || postLoc->ny != maskLoc->ny) {
-         if (getParent()->columnId() == 0) {
+         if (parent->columnId() == 0) {
             ErrorLog().printf(
                   "%s: Mask \"%s\" (%d, %d, %d) must have the same x and y size as post layer "
                   "\"%s\" (%d, %d, %d).\n",
@@ -1102,7 +1102,7 @@ int HyPerConn::communicateInitInfo(CommunicateInitInfoMessage const *message) {
       // This check is only required if a maskFeatureIdx is not specified, aka, pointwise masking
       if (maskFeatureIdx == -1) {
          if (postLoc->nf != maskLoc->nf && maskLoc->nf != 1) {
-            if (getParent()->columnId() == 0) {
+            if (parent->columnId() == 0) {
                ErrorLog().printf(
                      "%s: Mask \"%s\" (%d, %d, %d) nf dimension must be either the same as post "
                      "layer \"%s\" (%d, %d, %d) or 1\n",
@@ -1136,7 +1136,7 @@ int HyPerConn::communicateInitInfo(CommunicateInitInfoMessage const *message) {
             errorMessage.printf("a spiking presynaptic layer \"%s\".\n", pre->getName());
          }
       }
-      MPI_Barrier(getParent()->getCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       status = PV_FAILURE;
       exit(EXIT_FAILURE);
    }
@@ -1433,7 +1433,7 @@ int HyPerConn::allocateDataStructures() {
       Fatal().printf(
             "%s: unable to allocate device memory in rank %d process: %s\n",
             getDescription_c(),
-            getParent()->columnId(),
+            parent->columnId(),
             strerror(errno));
    }
 #endif // PV_USE_CUDA
@@ -1492,7 +1492,7 @@ int HyPerConn::allocateDataStructures() {
       Fatal().printf(
             "%s: unable to allocate device memory in rank %d process: %s\n",
             getDescription_c(),
-            getParent()->columnId(),
+            parent->columnId(),
             strerror(errno));
    }
 #endif // PV_USE_CUDA
@@ -2915,7 +2915,7 @@ int HyPerConn::deliverPresynapticPerspectiveConvolve(PVLayerCube const *activity
 
    float dtFactor = getConvertToRateDeltaTimeFactor();
    if (getPvpatchAccumulateType() == STOCHASTIC) {
-      dtFactor = getParent()->getDeltaTime();
+      dtFactor = parent->getDeltaTime();
    }
 
    if (mWeightSparsity > 0.0f && !mSparseWeightsAllocated[arbor]) {
@@ -3078,7 +3078,7 @@ int HyPerConn::deliverPresynapticPerspectiveStochastic(PVLayerCube const *activi
 
    float dtFactor = getConvertToRateDeltaTimeFactor();
    if (getPvpatchAccumulateType() == STOCHASTIC) {
-      dtFactor = getParent()->getDeltaTime();
+      dtFactor = parent->getDeltaTime();
    }
 
    if (mWeightSparsity > 0.0f && !mSparseWeightsAllocated[arbor]) {
@@ -3204,7 +3204,7 @@ int HyPerConn::deliverPostsynapticPerspectiveConvolve(
 
    float dtFactor = getConvertToRateDeltaTimeFactor();
    if (getPvpatchAccumulateType() == STOCHASTIC) {
-      dtFactor = getParent()->getDeltaTime();
+      dtFactor = parent->getDeltaTime();
    }
 
    if (mWeightSparsity > 0.0f && !mSparseWeightsAllocated[arbor]) {
@@ -3383,7 +3383,7 @@ int HyPerConn::deliverPostsynapticPerspectiveStochastic(
 
    double dtFactor = getConvertToRateDeltaTimeFactor();
    if (getPvpatchAccumulateType() == STOCHASTIC) {
-      dtFactor = getParent()->getDeltaTime();
+      dtFactor = parent->getDeltaTime();
    }
 
    if (mWeightSparsity > 0.0f && !mSparseWeightsAllocated[arbor]) {
@@ -3512,7 +3512,7 @@ int HyPerConn::deliverPresynapticPerspectiveGPU(PVLayerCube const *activity, int
 
    float dtFactor;
    if (getPvpatchAccumulateType() == STOCHASTIC) {
-      dtFactor = getParent()->getDeltaTime();
+      dtFactor = parent->getDeltaTime();
    }
    else if (getPvpatchAccumulateType() == CONVOLVE) {
       dtFactor = getConvertToRateDeltaTimeFactor();
@@ -3614,7 +3614,7 @@ int HyPerConn::deliverPostsynapticPerspectiveGPU(PVLayerCube const *activity, in
 
    float dtFactor;
    if (getPvpatchAccumulateType() == STOCHASTIC) {
-      dtFactor = getParent()->getDeltaTime();
+      dtFactor = parent->getDeltaTime();
    }
    else if (getPvpatchAccumulateType() == CONVOLVE) {
       dtFactor = getConvertToRateDeltaTimeFactor();
@@ -3769,7 +3769,7 @@ double HyPerConn::getConvertToRateDeltaTimeFactor() {
    // on Dec 31, 2014
    if (convertRateToSpikeCount && !pre->activityIsSpiking()) {
       enum ChannelType channel_type = getChannel();
-      float dt                      = getParent()->getDeltaTime();
+      float dt                      = parent->getDeltaTime();
       float tau                     = post->getChannelTimeConst(channel_type);
       if (tau > 0) {
          double exp_dt_tau = exp(-dt / tau);

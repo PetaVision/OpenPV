@@ -43,7 +43,7 @@ int BaseConnection::initialize_base() {
 int BaseConnection::initialize(const char *name, HyPerCol *hc) {
    int status = BaseObject::initialize(name, hc);
 
-   this->getParent()->addConnection(this);
+   this->parent->addConnection(this);
    if (status == PV_SUCCESS)
       status = ioParams(PARAMS_IO_READ);
    return status;
@@ -54,7 +54,7 @@ int BaseConnection::setPreAndPostLayerNames() {
 }
 
 void BaseConnection::setPreLayerName(const char *pre_name) {
-   assert(this->getParent() != NULL);
+   assert(this->parent != NULL);
    assert(this->preLayerName == NULL);
    if (pre_name != NULL) {
       this->preLayerName = strdup(pre_name);
@@ -64,7 +64,7 @@ void BaseConnection::setPreLayerName(const char *pre_name) {
                "of presynaptic layer "
                "\"%s\": %s\n",
                getDescription_c(),
-               this->getParent()->columnId(),
+               this->parent->columnId(),
                pre_name,
                strerror(errno));
       }
@@ -81,7 +81,7 @@ void BaseConnection::setPostLayerName(const char *post_name) {
                "of postsynaptic layer "
                "\"%s\": %s\n",
                getDescription_c(),
-               this->getParent()->columnId(),
+               this->parent->columnId(),
                post_name,
                strerror(errno));
       }
@@ -105,7 +105,7 @@ void BaseConnection::setConvertRateToSpikeCount(bool convertRateToSpikeCountFlag
 
 int BaseConnection::handleMissingPreAndPostLayerNames() {
    return inferPreAndPostFromConnName(
-         this->getName(), this->getParent()->columnId(), &preLayerName, &postLayerName);
+         this->getName(), this->parent->columnId(), &preLayerName, &postLayerName);
 }
 
 int BaseConnection::inferPreAndPostFromConnName(
@@ -267,34 +267,32 @@ int BaseConnection::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void BaseConnection::ioParam_preLayerName(enum ParamsIOFlag ioFlag) {
-   this->getParent()->parameters()->ioParamString(
+   this->parent->parameters()->ioParamString(
          ioFlag, this->getName(), "preLayerName", &preLayerName, NULL, false /*warnIfAbsent*/);
 }
 
 void BaseConnection::ioParam_postLayerName(enum ParamsIOFlag ioFlag) {
-   this->getParent()->parameters()->ioParamString(
+   this->parent->parameters()->ioParamString(
          ioFlag, this->getName(), "postLayerName", &postLayerName, NULL, false /*warnIfAbsent*/);
 }
 
 void BaseConnection::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       int ch = 0;
-      this->getParent()->parameters()->ioParamValueRequired(
-            ioFlag, this->getName(), "channelCode", &ch);
+      this->parent->parameters()->ioParamValueRequired(ioFlag, this->getName(), "channelCode", &ch);
       int status = decodeChannel(ch, &channel);
       if (status != PV_SUCCESS) {
-         if (this->getParent()->columnId() == 0) {
+         if (this->parent->columnId() == 0) {
             ErrorLog().printf(
                   "%s: channelCode %d is not a valid channel.\n", this->getDescription_c(), ch);
          }
-         MPI_Barrier(this->getParent()->getCommunicator()->communicator());
+         MPI_Barrier(this->parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
    }
    else if (ioFlag == PARAMS_IO_WRITE) {
       int ch = (int)channel;
-      this->getParent()->parameters()->ioParamValueRequired(
-            ioFlag, this->getName(), "channelCode", &ch);
+      this->parent->parameters()->ioParamValueRequired(ioFlag, this->getName(), "channelCode", &ch);
    }
    else {
       assert(0); // All possibilities of ioFlag are covered above.
@@ -304,7 +302,7 @@ void BaseConnection::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
 void BaseConnection::ioParam_delay(enum ParamsIOFlag ioFlag) {
    // Grab delays in ms and load into fDelayArray.
    // initializeDelays() will convert the delays to timesteps store into delays.
-   this->getParent()->parameters()->ioParamArray(
+   this->parent->parameters()->ioParamArray(
          ioFlag, this->getName(), "delay", &fDelayArray, &delayArraySize);
    if (ioFlag == PARAMS_IO_READ && delayArraySize == 0) {
       assert(fDelayArray == NULL);
@@ -315,7 +313,7 @@ void BaseConnection::ioParam_delay(enum ParamsIOFlag ioFlag) {
       }
       *fDelayArray   = 0.0f; // Default delay
       delayArraySize = 1;
-      if (this->getParent()->columnId() == 0) {
+      if (this->parent->columnId() == 0) {
          InfoLog().printf("%s: Using default value of zero for delay.\n", this->getDescription_c());
       }
    }
@@ -323,12 +321,12 @@ void BaseConnection::ioParam_delay(enum ParamsIOFlag ioFlag) {
 
 void BaseConnection::ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) {
    int numArbors = this->numberOfAxonalArborLists();
-   this->getParent()->parameters()->ioParamValue(
+   this->parent->parameters()->ioParamValue(
          ioFlag, this->getName(), "numAxonalArbors", &numArbors, 1);
    if (ioFlag == PARAMS_IO_READ) {
       this->setNumberOfAxonalArborLists(numArbors);
       if (ioFlag == PARAMS_IO_READ && this->numberOfAxonalArborLists() == 0
-          && this->getParent()->columnId() == 0) {
+          && this->parent->columnId() == 0) {
          WarnLog().printf(
                "Connection %s: Variable numAxonalArbors is set to 0. No "
                "connections will be "
@@ -349,7 +347,7 @@ void BaseConnection::ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) {
 // removed on Aug 5, 2014.
 
 void BaseConnection::ioParam_convertRateToSpikeCount(enum ParamsIOFlag ioFlag) {
-   getParent()->parameters()->ioParamValue(
+   parent->parameters()->ioParamValue(
          ioFlag,
          this->getName(),
          "convertRateToSpikeCount",
@@ -472,10 +470,10 @@ int BaseConnection::communicateInitInfo(CommunicateInitInfoMessage const *messag
       assert(this->getPostLayerName() == NULL);
       status = handleMissingPreAndPostLayerNames();
    }
-   MPI_Barrier(this->getParent()->getCommunicator()->communicator());
+   MPI_Barrier(this->parent->getCommunicator()->communicator());
    if (status != PV_SUCCESS) {
       assert(this->getPreLayerName() == NULL && this->getPostLayerName() == NULL);
-      if (this->getParent()->columnId() == 0) {
+      if (this->parent->columnId() == 0) {
          ErrorLog().printf(
                "%s: Unable to determine pre- and post-layer names.  Exiting.\n",
                this->getDescription_c());
@@ -485,7 +483,7 @@ int BaseConnection::communicateInitInfo(CommunicateInitInfoMessage const *messag
    this->pre  = dynamic_cast<HyPerLayer *>(message->lookup(std::string(this->getPreLayerName())));
    this->post = dynamic_cast<HyPerLayer *>(message->lookup(std::string(this->getPostLayerName())));
    if (this->preSynapticLayer() == NULL) {
-      if (this->getParent()->columnId() == 0) {
+      if (this->parent->columnId() == 0) {
          ErrorLog().printf(
                "%s: preLayerName \"%s\" does not correspond to a "
                "layer in the column.\n",
@@ -495,7 +493,7 @@ int BaseConnection::communicateInitInfo(CommunicateInitInfoMessage const *messag
       status = PV_FAILURE;
    }
    if (this->postSynapticLayer() == NULL) {
-      if (this->getParent()->columnId() == 0) {
+      if (this->parent->columnId() == 0) {
          ErrorLog().printf(
                "%s: postLayerName \"%s\" does not correspond to "
                "a layer in the column.\n",
@@ -504,7 +502,7 @@ int BaseConnection::communicateInitInfo(CommunicateInitInfoMessage const *messag
       }
       status = PV_FAILURE;
    }
-   MPI_Barrier(this->getParent()->getCommunicator()->communicator());
+   MPI_Barrier(this->parent->getCommunicator()->communicator());
    if (status != PV_SUCCESS) {
       exit(EXIT_FAILURE);
    }
@@ -513,7 +511,7 @@ int BaseConnection::communicateInitInfo(CommunicateInitInfoMessage const *messag
    int maxDelay     = maxDelaySteps();
    int allowedDelay = this->preSynapticLayer()->increaseDelayLevels(maxDelay);
    if (allowedDelay < maxDelay) {
-      if (this->getParent()->columnId() == 0) {
+      if (this->parent->columnId() == 0) {
          ErrorLog().printf(
                "%s: attempt to set delay to %d, but the maximum "
                "allowed delay is %d.  Exiting\n",
@@ -549,9 +547,7 @@ int BaseConnection::communicateInitInfo(CommunicateInitInfoMessage const *messag
 
 int BaseConnection::initializeDelays(const float *fDelayArray, int size) {
    int status = PV_SUCCESS;
-   assert(
-         !this->getParent()->parameters()->presentAndNotBeenRead(
-               this->getName(), "numAxonalArbors"));
+   assert(!this->parent->parameters()->presentAndNotBeenRead(this->getName(), "numAxonalArbors"));
    // Allocate delay data structure
    delays = (int *)calloc(this->numberOfAxonalArborLists(), sizeof(int));
    if (delays == NULL) {
@@ -597,9 +593,9 @@ int BaseConnection::maxDelaySteps() {
 // Input delay is in ms
 void BaseConnection::setDelay(int arborId, double delay) {
    assert(arborId >= 0 && arborId < numberOfAxonalArborLists());
-   int intDelay = round(delay / getParent()->getDeltaTime());
-   if (fmod(delay, getParent()->getDeltaTime()) != 0) {
-      double actualDelay = intDelay * getParent()->getDeltaTime();
+   int intDelay = round(delay / parent->getDeltaTime());
+   if (fmod(delay, parent->getDeltaTime()) != 0) {
+      double actualDelay = intDelay * parent->getDeltaTime();
       WarnLog() << getName() << ": A delay of " << delay << " will be rounded to " << actualDelay
                 << "\n";
    }

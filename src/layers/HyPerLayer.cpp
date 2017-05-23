@@ -631,7 +631,7 @@ int HyPerLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerLayer::ioParam_dataType(enum ParamsIOFlag ioFlag) {
-   this->getParent()->parameters()->ioParamString(
+   this->parent->parameters()->ioParamString(
          ioFlag, this->getName(), "dataType", &dataTypeString, NULL, false /*warnIfAbsent*/);
    if (dataTypeString == NULL) {
       // Default value
@@ -1030,7 +1030,7 @@ int HyPerLayer::respondLayerPublish(LayerPublishMessage const *message) {
    if (message->mPhase != getPhase()) {
       return status;
    }
-   publish(getParent()->getCommunicator(), message->mTime);
+   publish(parent->getCommunicator(), message->mTime);
    return status;
 }
 
@@ -1229,7 +1229,10 @@ void HyPerLayer::addRecvConn(BaseConnection *conn) {
    FatalIf(
          conn->postSynapticLayer() != this,
          "%s called addRecvConn for %s, but \"%s\" is not the post-synaptic layer for \"%s\"\n.",
-         conn->getDescription_c(), getDescription_c(), getName(), conn->getName());
+         conn->getDescription_c(),
+         getDescription_c(),
+         getName(),
+         conn->getName());
 #ifdef PV_USE_CUDA
    // CPU connections must run first to avoid race conditions
    if (!conn->getReceiveGpu()) {
@@ -1309,7 +1312,7 @@ int HyPerLayer::equalizeMargins(HyPerLayer *layer1, HyPerLayer *layer2) {
       Fatal().printf(
             "Error in rank %d process: unable to synchronize x-margin widths of layers \"%s\" and "
             "\"%s\" to %d\n",
-            layer1->getParent()->columnId(),
+            layer1->parent->columnId(),
             layer1->getName(),
             layer2->getName(),
             maxborder);
@@ -1336,7 +1339,7 @@ int HyPerLayer::equalizeMargins(HyPerLayer *layer1, HyPerLayer *layer2) {
       Fatal().printf(
             "Error in rank %d process: unable to synchronize y-margin widths of layers \"%s\" and "
             "\"%s\" to %d\n",
-            layer1->getParent()->columnId(),
+            layer1->parent->columnId(),
             layer1->getName(),
             layer2->getName(),
             maxborder);
@@ -1446,7 +1449,7 @@ int HyPerLayer::allocateDataStructures() {
       Fatal().printf(
             "%s unable to allocate device memory in rank %d process: %s\n",
             getDescription_c(),
-            getParent()->columnId(),
+            parent->columnId(),
             strerror(errno));
    }
    if (updateGpu) {

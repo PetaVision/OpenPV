@@ -46,11 +46,11 @@ int BaseConnectionProbe::communicateInitInfo(CommunicateInitInfoMessage const *m
             "%s, rank %d process: targetConnection \"%s\" is "
             "not a connection in the column.\n",
             getDescription_c(),
-            getParent()->columnId(),
+            parent->columnId(),
             targetName);
       status = PV_FAILURE;
    }
-   MPI_Barrier(getParent()->getCommunicator()->communicator());
+   MPI_Barrier(parent->getCommunicator()->communicator());
    if (status != PV_SUCCESS) {
       exit(EXIT_FAILURE);
    }

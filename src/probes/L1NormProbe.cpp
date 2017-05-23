@@ -26,7 +26,7 @@ int L1NormProbe::initL1NormProbe(const char *probeName, HyPerCol *hc) {
 }
 
 double L1NormProbe::getValueInternal(double timevalue, int index) {
-   if (index < 0 || index >= getParent()->getNBatch()) {
+   if (index < 0 || index >= parent->getNBatch()) {
       return PV_FAILURE;
    }
    PVLayerLoc const *loc = getTargetLayer()->getLayerLoc();

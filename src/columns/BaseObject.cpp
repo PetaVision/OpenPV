@@ -40,7 +40,7 @@ int BaseObject::initialize(const char *name, HyPerCol *hc) {
 }
 
 char const *BaseObject::getKeyword() const {
-   return getParent()->parameters()->groupKeywordFromName(getName());
+   return parent->parameters()->groupKeywordFromName(getName());
 }
 
 int BaseObject::setName(char const *name) {

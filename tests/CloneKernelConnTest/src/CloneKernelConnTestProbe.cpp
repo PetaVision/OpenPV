@@ -27,13 +27,13 @@ int CloneKernelConnTestProbe::initCloneKernelConnTestProbe(const char *probeName
 
 int CloneKernelConnTestProbe::outputState(double timed) {
    int status           = StatsProbe::outputState(timed);
-   Communicator *icComm = getTargetLayer()->getParent()->getCommunicator();
+   Communicator *icComm = parent->getCommunicator();
    const int rcvProc    = 0;
    if (icComm->commRank() != rcvProc) {
       return 0;
    }
 
-   for (int b = 0; b < getParent()->getNBatch(); b++) {
+   for (int b = 0; b < parent->getNBatch(); b++) {
       if (timed > 2.0) {
          FatalIf(!(fabsf(fMin[b]) < 1e-6f), "Test failed.\n");
          FatalIf(!(fabsf(fMax[b]) < 1e-6f), "Test failed.\n");

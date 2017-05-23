@@ -52,19 +52,19 @@ int PointProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void PointProbe::ioParam_xLoc(enum ParamsIOFlag ioFlag) {
-   getParent()->parameters()->ioParamValueRequired(ioFlag, getName(), "xLoc", &xLoc);
+   parent->parameters()->ioParamValueRequired(ioFlag, getName(), "xLoc", &xLoc);
 }
 
 void PointProbe::ioParam_yLoc(enum ParamsIOFlag ioFlag) {
-   getParent()->parameters()->ioParamValueRequired(ioFlag, getName(), "yLoc", &yLoc);
+   parent->parameters()->ioParamValueRequired(ioFlag, getName(), "yLoc", &yLoc);
 }
 
 void PointProbe::ioParam_fLoc(enum ParamsIOFlag ioFlag) {
-   getParent()->parameters()->ioParamValueRequired(ioFlag, getName(), "fLoc", &fLoc);
+   parent->parameters()->ioParamValueRequired(ioFlag, getName(), "fLoc", &fLoc);
 }
 
 void PointProbe::ioParam_batchLoc(enum ParamsIOFlag ioFlag) {
-   getParent()->parameters()->ioParamValueRequired(ioFlag, getName(), "batchLoc", &batchLoc);
+   parent->parameters()->ioParamValueRequired(ioFlag, getName(), "batchLoc", &batchLoc);
 }
 
 int PointProbe::initNumValues() { return setNumValues(2); }
@@ -73,7 +73,7 @@ int PointProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
    int status = LayerProbe::communicateInitInfo(message);
    assert(getTargetLayer());
    const PVLayerLoc *loc = getTargetLayer()->getLayerLoc();
-   bool isRoot           = getParent()->getCommunicator()->commRank() == 0;
+   bool isRoot           = parent->getCommunicator()->commRank() == 0;
    if ((xLoc < 0 || xLoc > loc->nxGlobal) && isRoot) {
       ErrorLog().printf(
             "PointProbe on layer %s: xLoc coordinate %d is out "

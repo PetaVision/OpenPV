@@ -39,7 +39,8 @@ class HyPerCol;
 class BaseObject : public CheckpointerDataInterface {
   public:
    inline char const *getName() const { return name; }
-   inline HyPerCol *getParent() const { return parent; }
+   // No getParent method because we are refactoring away from having objects
+   // having access to their containing HyPerCol.
    char const *getKeyword() const;
    virtual int respond(std::shared_ptr<BaseMessage const> message) override; // TODO: should return
    // enum with values

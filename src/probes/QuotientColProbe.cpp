@@ -109,7 +109,7 @@ int QuotientColProbe::communicateInitInfo(CommunicateInitInfoMessage const *mess
                   nNumValues,
                   dNumValues);
          }
-         MPI_Barrier(this->getParent()->getCommunicator()->communicator());
+         MPI_Barrier(this->parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
       status = setNumValues(nNumValues);
@@ -152,7 +152,7 @@ double QuotientColProbe::referenceUpdateTime() const { return parent->simulation
 
 int QuotientColProbe::outputState(double timevalue) {
    getValues(timevalue);
-   if (this->getParent()->getCommunicator()->commRank() != 0)
+   if (this->parent->getCommunicator()->commRank() != 0)
       return PV_SUCCESS;
    double *valuesBuffer = getValuesBuffer();
    int numValues        = this->getNumValues();
