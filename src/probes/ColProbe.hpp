@@ -93,10 +93,9 @@ class ColProbe : public BaseProbe {
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief targetName: ColProbe overrides targetName since the only possible
-    * target
-    * is the parent HyPerCol.  On reading, it sets targetName.  Parameters are
-    * neither read nor written by this method.
+    * @brief targetName: ColProbe sets targetName to the empty string,
+    * since the only possible target is the parent HyPerCol. The targenName
+    * parameter is neither read nor written by this method.
     */
    virtual void ioParam_targetName(enum ParamsIOFlag ioFlag);
 

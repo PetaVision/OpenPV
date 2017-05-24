@@ -43,7 +43,7 @@ int ColProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 
 void ColProbe::ioParam_targetName(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
-      targetName = strdup(this->parent->getName());
+      targetName = strdup("");
    }
 }
 
