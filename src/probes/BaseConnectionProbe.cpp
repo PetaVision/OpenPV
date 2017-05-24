@@ -40,7 +40,7 @@ int BaseConnectionProbe::communicateInitInfo(CommunicateInitInfoMessage const *m
    if (status != PV_SUCCESS) {
       return status;
    }
-   targetConn = dynamic_cast<BaseConnection *>(message->lookup(std::string(targetName)));
+   targetConn = message->lookup<BaseConnection>(std::string(targetName));
    if (targetConn == nullptr) {
       ErrorLog().printf(
             "%s, rank %d process: targetConnection \"%s\" is "

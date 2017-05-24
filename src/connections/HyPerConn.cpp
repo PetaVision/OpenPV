@@ -1053,7 +1053,7 @@ int HyPerConn::communicateInitInfo(CommunicateInitInfoMessage const *message) {
    handleDefaultSelfFlag();
 
    if (useMask) {
-      mask = dynamic_cast<HyPerLayer *>(message->lookup(std::string(maskLayerName)));
+      mask = message->lookup<HyPerLayer>(std::string(maskLayerName));
       if (mask == NULL) {
          if (parent->columnId() == 0) {
             ErrorLog().printf(
@@ -1202,7 +1202,7 @@ int HyPerConn::communicateInitInfo(CommunicateInitInfoMessage const *message) {
 
    // Trigger stuff
    if (triggerLayerName) {
-      triggerLayer = dynamic_cast<HyPerLayer *>(message->lookup(std::string(triggerLayerName)));
+      triggerLayer = message->lookup<HyPerLayer>(std::string(triggerLayerName));
       if (triggerLayer == NULL) {
          if (parent->columnId() == 0) {
             ErrorLog().printf(

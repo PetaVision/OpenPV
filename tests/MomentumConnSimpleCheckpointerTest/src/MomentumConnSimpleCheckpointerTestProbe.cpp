@@ -60,7 +60,7 @@ int MomentumConnSimpleCheckpointerTestProbe::communicateInitInfo(
 
 int MomentumConnSimpleCheckpointerTestProbe::initInputLayer(
       PV::CommunicateInitInfoMessage const *message) {
-   mInputLayer = dynamic_cast<PV::InputLayer *>(message->lookup(std::string("Input")));
+   mInputLayer = message->lookup<PV::InputLayer>(std::string("Input"));
    FatalIf(mInputLayer == nullptr, "column does not have an InputLayer named \"Input\".\n");
    if (checkCommunicatedFlag(mInputLayer) == PV_POSTPONE) {
       return PV_POSTPONE;
@@ -74,7 +74,7 @@ int MomentumConnSimpleCheckpointerTestProbe::initInputLayer(
 
 int MomentumConnSimpleCheckpointerTestProbe::initOutputLayer(
       PV::CommunicateInitInfoMessage const *message) {
-   mOutputLayer = dynamic_cast<PV::HyPerLayer *>(message->lookup(std::string("Output")));
+   mOutputLayer = message->lookup<PV::HyPerLayer>(std::string("Output"));
    FatalIf(mOutputLayer == nullptr, "column does not have a HyPerLayer named \"Output\".\n");
    if (checkCommunicatedFlag(mOutputLayer) == PV_POSTPONE) {
       return PV_POSTPONE;
@@ -84,7 +84,7 @@ int MomentumConnSimpleCheckpointerTestProbe::initOutputLayer(
 
 int MomentumConnSimpleCheckpointerTestProbe::initConnection(
       PV::CommunicateInitInfoMessage const *message) {
-   mConnection = dynamic_cast<PV::MomentumConn *>(message->lookup(std::string("InputToOutput")));
+   mConnection = message->lookup<PV::MomentumConn>(std::string("InputToOutput"));
    FatalIf(
          mConnection == nullptr, "column does not have a MomentumConn named \"InputToOutput\".\n");
    if (checkCommunicatedFlag(mConnection) == PV_POSTPONE) {

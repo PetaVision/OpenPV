@@ -53,7 +53,7 @@ void LayerProbe::ioParam_targetName(enum ParamsIOFlag ioFlag) {
 int LayerProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
    BaseProbe::communicateInitInfo(message);
    // Set target layer
-   targetLayer = dynamic_cast<HyPerLayer *>(message->lookup(std::string(targetName)));
+   targetLayer = message->lookup<HyPerLayer>(std::string(targetName));
    if (targetLayer == NULL) {
       if (parent->columnId() == 0) {
          ErrorLog().printf(

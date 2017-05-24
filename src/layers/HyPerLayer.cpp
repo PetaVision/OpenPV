@@ -1148,7 +1148,7 @@ int HyPerLayer::communicateInitInfo(CommunicateInitInfoMessage const *message) {
    // methods, HyPerLayer knows its marginWidth before it has to allocate
    // anything.  So the margin width does not have to be specified in params.
    if (triggerFlag) {
-      triggerLayer = dynamic_cast<HyPerLayer *>(message->lookup(std::string(triggerLayerName)));
+      triggerLayer = message->lookup<HyPerLayer>(std::string(triggerLayerName));
       if (triggerLayer == NULL) {
          if (parent->columnId() == 0) {
             ErrorLog().printf(
@@ -1169,8 +1169,7 @@ int HyPerLayer::communicateInitInfo(CommunicateInitInfoMessage const *message) {
          }
          else {
             resetLayerName    = triggerResetLayerName;
-            Observer *obs     = message->lookup(std::string(triggerResetLayerName));
-            triggerResetLayer = dynamic_cast<HyPerLayer *>(obs);
+            triggerResetLayer = message->lookup<HyPerLayer>(std::string(triggerResetLayerName));
             if (triggerResetLayer == NULL) {
                if (parent->columnId() == 0) {
                   ErrorLog().printf(

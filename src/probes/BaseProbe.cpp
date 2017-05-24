@@ -256,7 +256,7 @@ int BaseProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
 
    // Set up triggering.
    if (triggerFlag) {
-      triggerLayer = dynamic_cast<HyPerLayer *>(message->lookup(std::string(triggerLayerName)));
+      triggerLayer = message->lookup<HyPerLayer>(std::string(triggerLayerName));
       if (triggerLayer == NULL) {
          if (parent->columnId() == 0) {
             ErrorLog().printf(
@@ -272,8 +272,7 @@ int BaseProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
 
    // Add the probe to the ColumnEnergyProbe, if there is one.
    if (energyProbe && energyProbe[0]) {
-      auto *obs                = message->lookup(std::string(energyProbe));
-      ColumnEnergyProbe *probe = dynamic_cast<ColumnEnergyProbe *>(obs);
+      ColumnEnergyProbe *probe = message->lookup<ColumnEnergyProbe>(std::string(energyProbe));
       if (probe == NULL) {
          if (parent->columnId() == 0) {
             ErrorLog().printf(

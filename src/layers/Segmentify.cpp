@@ -103,7 +103,7 @@ int Segmentify::communicateInitInfo(CommunicateInitInfoMessage const *message) {
    int status = HyPerLayer::communicateInitInfo(message);
 
    // Get original layer
-   originalLayer = dynamic_cast<HyPerLayer *>(message->lookup(std::string(originalLayerName)));
+   originalLayer = message->lookup<HyPerLayer>(std::string(originalLayerName));
    if (originalLayer == NULL) {
       if (parent->columnId() == 0) {
          ErrorLog().printf(
@@ -119,7 +119,7 @@ int Segmentify::communicateInitInfo(CommunicateInitInfoMessage const *message) {
    }
 
    // Get segment layer
-   segmentLayer = dynamic_cast<SegmentLayer *>(message->lookup(std::string(segmentLayerName)));
+   segmentLayer = message->lookup<SegmentLayer>(std::string(segmentLayerName));
    if (segmentLayer == NULL) {
       if (parent->columnId() == 0) {
          ErrorLog().printf(

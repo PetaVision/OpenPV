@@ -175,23 +175,11 @@ void CloneConn::ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFlag) {
 int CloneConn::communicateInitInfo(CommunicateInitInfoMessage const *message) {
    // Need to set originalConn before calling HyPerConn::communicate, since HyPerConn::communicate
    // calls setPatchSize, which needs originalConn.
-   auto *objectLookup     = message->lookup(std::string(originalConnName));
-   auto *originalConnBase = dynamic_cast<BaseConnection *>(objectLookup);
-   if (originalConnBase == NULL) {
-      if (parent->columnId() == 0) {
-         ErrorLog().printf(
-               "%s: originalConnName \"%s\" is not a connection in the column.\n",
-               getDescription_c(),
-               originalConnName);
-      }
-      MPI_Barrier(parent->getCommunicator()->communicator());
-      exit(EXIT_FAILURE);
-   }
-   originalConn = dynamic_cast<HyPerConn *>(originalConnBase);
+   originalConn = message->lookup<HyPerConn>(std::string(originalConnName));
    if (originalConn == NULL) {
       if (parent->columnId() == 0) {
          ErrorLog().printf(
-               "%s: originalConnName \"%s\" is not a HyPerConn or HyPerConn-derived class.\n",
+               "%s: originalConnName \"%s\" is not a HyPerConn or HyPerConn-derived object.\n",
                getDescription_c(),
                originalConnName);
       }

@@ -271,8 +271,7 @@ int PoolingConn::communicateInitInfo(CommunicateInitInfoMessage const *message) 
    }
 
    if (needPostIndexLayer) {
-      Observer *obs  = message->lookup(std::string(this->postIndexLayerName));
-      postIndexLayer = dynamic_cast<PoolingIndexLayer *>(obs);
+      postIndexLayer = message->lookup<PoolingIndexLayer>(std::string(this->postIndexLayerName));
       if (postIndexLayer == NULL) {
          if (parent->columnId() == 0) {
             ErrorLog().printf(

@@ -480,8 +480,8 @@ int BaseConnection::communicateInitInfo(CommunicateInitInfoMessage const *messag
       }
       exit(EXIT_FAILURE);
    }
-   this->pre  = dynamic_cast<HyPerLayer *>(message->lookup(std::string(this->getPreLayerName())));
-   this->post = dynamic_cast<HyPerLayer *>(message->lookup(std::string(this->getPostLayerName())));
+   this->pre  = message->lookup<HyPerLayer>(std::string(this->getPreLayerName()));
+   this->post = message->lookup<HyPerLayer>(std::string(this->getPostLayerName()));
    if (this->preSynapticLayer() == NULL) {
       if (this->parent->columnId() == 0) {
          ErrorLog().printf(

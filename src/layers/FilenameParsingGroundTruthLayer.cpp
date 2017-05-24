@@ -94,7 +94,7 @@ int FilenameParsingGroundTruthLayer::allocateDataStructures() {
 
 int FilenameParsingGroundTruthLayer::communicateInitInfo(
       CommunicateInitInfoMessage const *message) {
-   mInputLayer = dynamic_cast<InputLayer *>(message->lookup(std::string(mInputLayerName)));
+   mInputLayer = message->lookup<InputLayer>(std::string(mInputLayerName));
    FatalIf(
          mInputLayer == nullptr && parent->columnId() == 0,
          "%s: inputLayerName \"%s\" is not a layer in the HyPerCol.\n",

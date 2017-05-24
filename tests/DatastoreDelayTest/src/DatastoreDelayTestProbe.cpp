@@ -37,8 +37,7 @@ int DatastoreDelayTestProbe::communicateInitInfo(CommunicateInitInfoMessage cons
    if (status != PV_SUCCESS) {
       return status;
    }
-   Observer *inputObject  = message->lookup(std::string("input"));
-   HyPerLayer *inputLayer = dynamic_cast<HyPerLayer *>(inputObject);
+   HyPerLayer *inputLayer = message->lookup<HyPerLayer>(std::string("input"));
    FatalIf(inputLayer == nullptr, "Unable to find layer \"input\".\n");
    mNumDelayLevels = inputLayer->getNumDelayLevels();
 

@@ -50,7 +50,7 @@ void CloneVLayer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
 
 int CloneVLayer::communicateInitInfo(CommunicateInitInfoMessage const *message) {
    int status    = HyPerLayer::communicateInitInfo(message);
-   originalLayer = dynamic_cast<HyPerLayer *>(message->lookup(std::string(originalLayerName)));
+   originalLayer = message->lookup<HyPerLayer>(std::string(originalLayerName));
    if (originalLayer == NULL) {
       if (parent->columnId() == 0) {
          ErrorLog().printf(

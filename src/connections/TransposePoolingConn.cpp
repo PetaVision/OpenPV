@@ -237,20 +237,8 @@ void TransposePoolingConn::ioParam_originalConnName(enum ParamsIOFlag ioFlag) {
 }
 
 int TransposePoolingConn::communicateInitInfo(CommunicateInitInfoMessage const *message) {
-   int status             = PV_SUCCESS;
-   auto *objectLookup     = message->lookup(std::string(mOriginalConnName));
-   auto *originalConnBase = dynamic_cast<BaseConnection *>(objectLookup);
-   if (originalConnBase == NULL) {
-      if (parent->columnId() == 0) {
-         ErrorLog().printf(
-               "%s: originalConnName \"%s\" does not refer to any connection in the column.\n",
-               getDescription_c(),
-               this->mOriginalConnName);
-      }
-      MPI_Barrier(parent->getCommunicator()->communicator());
-      exit(EXIT_FAILURE);
-   }
-   mOriginalConn = dynamic_cast<PoolingConn *>(originalConnBase);
+   int status    = PV_SUCCESS;
+   mOriginalConn = message->lookup<PoolingConn>(std::string(mOriginalConnName));
    if (mOriginalConn == NULL) {
       if (parent->columnId() == 0) {
          ErrorLog().printf(

@@ -54,7 +54,7 @@ int NormalizeGroup::communicateInitInfo(CommunicateInitInfoMessage const *messag
       MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
-   HyPerConn *conn = dynamic_cast<HyPerConn *>(message->lookup(std::string(name)));
+   HyPerConn *conn = message->lookup<HyPerConn>(std::string(name));
    pvAssertMessage(conn != nullptr, "No connection \"%s\" for %s.\n", name, getDescription_c());
    return groupHead->addConnToList(conn);
 }

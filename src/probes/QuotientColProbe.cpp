@@ -75,8 +75,8 @@ void QuotientColProbe::ioParam_denominator(enum ParamsIOFlag ioFlag) {
 
 int QuotientColProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
    int status = ColProbe::communicateInitInfo(message);
-   numerProbe = dynamic_cast<BaseProbe *>(message->lookup(std::string(numerator)));
-   denomProbe = dynamic_cast<BaseProbe *>(message->lookup(std::string(denominator)));
+   numerProbe = message->lookup<BaseProbe>(std::string(numerator));
+   denomProbe = message->lookup<BaseProbe>(std::string(denominator));
    if (numerProbe == NULL || denomProbe == NULL) {
       status = PV_FAILURE;
       if (parent->columnId() == 0) {

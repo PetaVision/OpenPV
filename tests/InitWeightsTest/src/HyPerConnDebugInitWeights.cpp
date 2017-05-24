@@ -49,7 +49,7 @@ int HyPerConnDebugInitWeights::initialize_base() {
 
 int HyPerConnDebugInitWeights::communicateInitInfo(CommunicateInitInfoMessage const *message) {
    HyPerConn::communicateInitInfo(message);
-   otherConn = dynamic_cast<HyPerConn *>(message->lookup(std::string(otherConnName)));
+   otherConn = message->lookup<HyPerConn>(std::string(otherConnName));
    if (otherConn == NULL) {
       Fatal().printf(
             "HyPerConnDebugInitWeights \"%s\" error in rank %d process: copiedConn \"%s\" is not a "

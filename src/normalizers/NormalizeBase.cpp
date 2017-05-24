@@ -86,7 +86,7 @@ void NormalizeBase::ioParam_normalizeOnWeightUpdate(enum ParamsIOFlag ioFlag) {
 }
 
 int NormalizeBase::communicateInitInfo(CommunicateInitInfoMessage const *message) {
-   HyPerConn *conn = dynamic_cast<HyPerConn *>(message->lookup(std::string(name)));
+   HyPerConn *conn = message->lookup<HyPerConn>(std::string(name));
    pvAssertMessage(conn != nullptr, "No connection \"%s\" for %s.\n", name, getDescription_c());
    pvAssert(conn != nullptr);
    return addConnToList(conn);

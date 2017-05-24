@@ -114,8 +114,8 @@ int HyPerLCALayer::requireChannel(int channelNeeded, int *numChannelsResult) {
 
 int HyPerLCALayer::communicateInitInfo(CommunicateInitInfoMessage const *message) {
    if (mAdaptiveTimeScaleProbeName) {
-      mAdaptiveTimeScaleProbe = dynamic_cast<AdaptiveTimeScaleProbe *>(
-            message->lookup(std::string(mAdaptiveTimeScaleProbeName)));
+      mAdaptiveTimeScaleProbe =
+            message->lookup<AdaptiveTimeScaleProbe>(std::string(mAdaptiveTimeScaleProbeName));
       if (mAdaptiveTimeScaleProbe == nullptr) {
          if (parent->getCommunicator()->commRank() == 0) {
             ErrorLog() << description << ": adaptiveTimeScaleProbe \""

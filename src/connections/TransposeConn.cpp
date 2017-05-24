@@ -174,24 +174,12 @@ void TransposeConn::ioParam_originalConnName(enum ParamsIOFlag ioFlag) {
 }
 
 int TransposeConn::communicateInitInfo(CommunicateInitInfoMessage const *message) {
-   int status             = PV_SUCCESS;
-   auto *objectLookup     = message->lookup(std::string(originalConnName));
-   auto *originalConnBase = dynamic_cast<BaseConnection *>(objectLookup);
-   if (originalConnBase == NULL) {
-      if (parent->columnId() == 0) {
-         ErrorLog().printf(
-               "%s: originalConnName \"%s\" does not refer to any connection in the column.\n",
-               getDescription_c(),
-               this->originalConnName);
-      }
-      MPI_Barrier(parent->getCommunicator()->communicator());
-      exit(EXIT_FAILURE);
-   }
-   this->originalConn = dynamic_cast<HyPerConn *>(originalConnBase);
+   int status         = PV_SUCCESS;
+   this->originalConn = message->lookup<HyPerConn>(std::string(originalConnName));
    if (originalConn == NULL) {
       if (parent->columnId() == 0) {
          ErrorLog().printf(
-               "%s: originalConnName \"%s\" is not an existing connection.\n",
+               "%s: originalConnName \"%s\" is not an connection in the column.\n",
                getDescription_c(),
                originalConnName);
          status = PV_FAILURE;
