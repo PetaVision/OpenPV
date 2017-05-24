@@ -447,7 +447,10 @@ class BaseConnection : public BaseObject {
    bool convertRateToSpikeCount; // Whether to check if pre-layer is spiking and, if it is not,
    // scale activity by dt to convert it to a spike count
    bool receiveGpu; // Whether to use GPU acceleration in updating post's GSyn
-   bool initializeFromCheckpointFlag;
+
+   // If this flag is set and HyPerCol sets initializeFromCheckpointDir, load initiali state
+   // from the initializeFromCheckpointDir directory.
+   bool initializeFromCheckpointFlag = true;
 
    BaseConnectionProbe **probes; // probes used to output data
    int numProbes;

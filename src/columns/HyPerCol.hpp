@@ -180,9 +180,6 @@ class HyPerCol : public Subject, Observer {
    BaseConnection *getConnection(int which) { return mConnections.at(which); }
    BaseProbe *getBaseProbe(int which) { return mBaseProbes.at(which); }
    bool getVerifyWrites() { return mCheckpointer->doesVerifyWrites(); }
-   bool getDefaultInitializeFromCheckpointFlag() {
-      return mCheckpointer->getDefaultInitializeFromCheckpointFlag();
-   }
    bool getCheckpointReadFlag() const { return mCheckpointReadFlag; }
    bool getCheckpointWriteFlag() const { return mCheckpointer->getCheckpointWriteFlag(); }
    char const *getLastCheckpointDir() const { return mCheckpointer->getLastCheckpointDir(); }

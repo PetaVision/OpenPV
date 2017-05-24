@@ -437,8 +437,6 @@ void Checkpointer::ioParam_initializeFromCheckpointDir(enum ParamsIOFlag ioFlag,
          &mInitializeFromCheckpointDir,
          "",
          true);
-   mDefaultInitializeFromCheckpointFlag =
-         mInitializeFromCheckpointDir != nullptr and mInitializeFromCheckpointDir[0] != '\0';
 }
 
 // defaultInitializeFromCheckpointFlag was made obsolete Dec 18, 2016.

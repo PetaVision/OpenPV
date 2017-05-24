@@ -710,7 +710,7 @@ void HyPerLayer::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) 
             name,
             "initializeFromCheckpointFlag",
             &initializeFromCheckpointFlag,
-            parent->getDefaultInitializeFromCheckpointFlag(),
+            initializeFromCheckpointFlag,
             true /*warnIfAbsent*/);
    }
 }

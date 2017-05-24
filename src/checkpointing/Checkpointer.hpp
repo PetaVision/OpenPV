@@ -213,9 +213,6 @@ class Checkpointer : public Subject {
    std::string const &getCheckpointReadDirectory() const { return mCheckpointReadDirectory; }
    char const *getLastCheckpointDir() const { return mLastCheckpointDir; }
    char const *getInitializeFromCheckpointDir() const { return mInitializeFromCheckpointDir; }
-   bool getDefaultInitializeFromCheckpointFlag() const {
-      return mDefaultInitializeFromCheckpointFlag;
-   }
    std::string const &getBlockDirectoryName() const { return mBlockDirectoryName; }
 
   private:
@@ -274,7 +271,6 @@ class Checkpointer : public Subject {
    int mNumCheckpointsKept                                                 = 2;
    char *mLastCheckpointDir                                                = nullptr;
    char *mInitializeFromCheckpointDir                                      = nullptr;
-   bool mDefaultInitializeFromCheckpointFlag                               = false;
    std::string mCheckpointReadDirectory;
    int mCheckpointSignal                = 0;
    long int mNextCheckpointStep         = 0L; // kept only for consistency with HyPerCol

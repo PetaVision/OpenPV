@@ -385,7 +385,7 @@ void BaseConnection::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFl
             name,
             "initializeFromCheckpointFlag",
             &initializeFromCheckpointFlag,
-            parent->getDefaultInitializeFromCheckpointFlag(),
+            initializeFromCheckpointFlag,
             true /*warnIfAbsent*/);
    }
 }

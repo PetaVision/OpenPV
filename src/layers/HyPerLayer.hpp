@@ -525,8 +525,8 @@ class HyPerLayer : public BaseLayer {
    int numFeatures;
    int xmargin, ymargin;
 
-   bool initializeFromCheckpointFlag; // Whether to load initial state using directory
-   // parent->getInitializeFromCheckpoint()
+   bool initializeFromCheckpointFlag = true;
+   // Whether to load initial state using directory parent->getInitializeFromCheckpoint()
    bool restartFlag;
 
    int numProbes;
