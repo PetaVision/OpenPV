@@ -55,7 +55,9 @@ int ColumnEnergyProbe::initializeColumnEnergyProbe(const char *probename, HyPerC
    return ColProbe::initialize(probename, hc);
 }
 
-int ColumnEnergyProbe::initOutputStream(const char *filename) { return PV_SUCCESS; }
+int ColumnEnergyProbe::initOutputStream(const char *filename, Checkpointer *checkpointer) {
+   return PV_SUCCESS;
+}
 
 int ColumnEnergyProbe::registerData(Checkpointer *checkpointer) {
    MPIBlock const *mpiBlock = checkpointer->getMPIBlock();
@@ -76,8 +78,7 @@ int ColumnEnergyProbe::registerData(Checkpointer *checkpointer) {
             path      = path.substr(0, extensionStart);
          }
          std::ios_base::openmode mode = std::ios_base::out;
-         bool append                  = parent->getCheckpointReadFlag();
-         if (append) {
+         if (!checkpointer->getCheckpointReadDirectory().empty()) {
             mode |= std::ios_base::app;
          }
          for (int b = 0; b < localBatchWidth; b++) {

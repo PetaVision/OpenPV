@@ -109,8 +109,8 @@ int LIFTestProbe::communicateInitInfo(CommunicateInitInfoMessage const *message)
    return status;
 }
 
-int LIFTestProbe::allocateDataStructures() {
-   int status = StatsProbe::allocateDataStructures();
+int LIFTestProbe::initOutputStream(const char *filename, Checkpointer *checkpointer) {
+   int status = StatsProbe::initOutputStream(filename, checkpointer);
    if (status == PV_SUCCESS && parent->columnId() == 0) {
       FatalIf(!outputStream, "Test failed.\n");
       outputStream->printf("%s Correct: ", getMessage());

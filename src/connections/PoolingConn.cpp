@@ -241,8 +241,6 @@ int PoolingConn::initialize(
          break;
    }
 
-   ioAppend = parent->getCheckpointReadFlag();
-
    this->io_timer     = new Timer(getName(), "conn", "io     ");
    this->update_timer = new Timer(getName(), "conn", "update ");
 

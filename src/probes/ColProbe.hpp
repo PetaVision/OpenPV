@@ -102,7 +102,7 @@ class ColProbe : public BaseProbe {
    /**
     * Calls BaseProbe::initOutputStream and then calls outputHeader()
     */
-   virtual int initOutputStream(const char *filename);
+   virtual int initOutputStream(const char *filename, Checkpointer *checkpointer);
 
    /**
     * Called by initialize_stream after opening the stream member variable.

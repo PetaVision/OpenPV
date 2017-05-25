@@ -454,7 +454,6 @@ class HyPerConn : public BaseConnection {
    int numParams;
    float wMax;
    float wMin;
-   bool ioAppend; // controls opening of binary files
    double wPostTime; // time of last conversion to wPostPatches
    double initialWriteTime;
    double writeTime; // time of next output, initialized in params file parameter initialWriteTime

@@ -47,8 +47,8 @@ void ColProbe::ioParam_targetName(enum ParamsIOFlag ioFlag) {
    }
 }
 
-int ColProbe::initOutputStream(const char *filename) {
-   int status = BaseProbe::initOutputStream(filename);
+int ColProbe::initOutputStream(const char *filename, Checkpointer *checkpointer) {
+   int status = BaseProbe::initOutputStream(filename, checkpointer);
    if (status != PV_SUCCESS) {
       status = outputHeader();
    }

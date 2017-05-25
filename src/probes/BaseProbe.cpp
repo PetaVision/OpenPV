@@ -195,21 +195,21 @@ void BaseProbe::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
    }
 }
 
-int BaseProbe::initOutputStream(const char *filename) {
-   if (parent->columnId() == 0) {
+int BaseProbe::initOutputStream(const char *filename, Checkpointer *checkpointer) {
+   pvAssert(getMPIBlock());
+   if (getMPIBlock()->getRank() == 0) {
       if (filename != NULL) {
          std::string path("");
          if (filename[0] != '/') {
-            path += parent->getOutputPath();
+            path = checkpointer->makeOutputPathFilename(path);
             path += "/";
          }
          path += filename;
-         bool append                  = parent->getCheckpointReadFlag();
          std::ios_base::openmode mode = std::ios_base::out;
-         if (append) {
+         if (!checkpointer->getCheckpointReadDirectory().empty()) {
             mode |= std::ios_base::app;
          }
-         outputStream  = new FileStream(path.c_str(), mode, parent->getVerifyWrites());
+         outputStream  = new FileStream(path.c_str(), mode, checkpointer->doesVerifyWrites());
          writingToFile = true;
       }
       else {
@@ -218,12 +218,11 @@ int BaseProbe::initOutputStream(const char *filename) {
       }
    }
    else {
-      outputStream = NULL; // Only root process writes; if other processes need
-      // something written it
+      outputStream = NULL;
+      // Only root process writes; if other processes need something written it
       // should be sent to root.
       // Derived classes for which it makes sense for a different process to do
-      // the file i/o should
-      // override initOutputStream
+      // the file i/o should override initOutputStream
    }
    return PV_SUCCESS;
 }
@@ -290,15 +289,6 @@ int BaseProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
    return status;
 }
 
-int BaseProbe::allocateDataStructures() {
-   int status = PV_SUCCESS;
-
-   // Set up output stream
-   status = initOutputStream(probeOutputFilename);
-
-   return PV_SUCCESS;
-}
-
 int BaseProbe::initMessage(const char *msg) {
    assert(msgstring == NULL);
    int status = PV_SUCCESS;
@@ -335,6 +325,14 @@ bool BaseProbe::needUpdate(double simTime, double dt) {
       return triggerLayer->needUpdate(simTime + triggerOffset, dt);
    }
    return true;
+}
+
+int BaseProbe::registerData(Checkpointer *checkpointer) {
+   int status = BaseObject::registerData(checkpointer);
+   if (status == PV_SUCCESS) {
+      int status = initOutputStream(probeOutputFilename, checkpointer);
+   }
+   return status;
 }
 
 int BaseProbe::getValues(double timevalue) {

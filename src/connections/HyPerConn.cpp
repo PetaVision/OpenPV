@@ -116,11 +116,10 @@ int HyPerConn::initialize_base() {
    nfp            = -1; // A negative value for nfp will be converted to postsynaptic layer's nf.
    warnDefaultNfp = true; // Issue a warning if default value of nfp (post's nf) is used.  Derived
    // layers can set to false if only one nfp is allowed (e.g. IdentConn)
-   sxp      = 1;
-   syp      = 1;
-   sfp      = 1;
-   parent   = NULL;
-   ioAppend = false;
+   sxp    = 1;
+   syp    = 1;
+   sfp    = 1;
+   parent = NULL;
 
    weightInitTypeString = NULL;
    weightInitializer    = NULL;
@@ -396,8 +395,6 @@ int HyPerConn::initialize(char const *name, HyPerCol *hc) {
          break;
       default: pvAssertMessage(0, "Unrecognized pvpatchAccumulate type"); break;
    }
-
-   ioAppend = parent->getCheckpointReadFlag();
 
    mSparseWeightsAllocated.resize(numAxonalArborLists);
    std::fill(mSparseWeightsAllocated.begin(), mSparseWeightsAllocated.end(), false);
@@ -1452,10 +1449,7 @@ int HyPerConn::allocateDataStructures() {
    }
 
    if (plasticityFlag && !triggerLayer) {
-      // If checkpointReadFlag is true, the sanity check on weightUpdateTime is postponed until
-      // HyPerConn::checkpointRead,
-      // since HyPerCol::checkpointRead will change the simulation start time.
-      if (parent->getCheckpointReadFlag() == false && weightUpdateTime < parent->simulationTime()) {
+      if (weightUpdateTime < parent->simulationTime()) {
          while (weightUpdateTime <= parent->simulationTime()) {
             weightUpdateTime += weightUpdatePeriod;
          }
@@ -2259,9 +2253,6 @@ int HyPerConn::outputState(double timef) {
 
       status = writeWeights(timef);
       pvAssert(status == 0);
-
-      // append to output file after original open
-      ioAppend = true;
    }
    else if (writeStep < 0) { // If writeStep is negative, we never call writeWeights, but someone
       // might restart from a checkpoint with a different writeStep, so we

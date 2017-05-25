@@ -186,6 +186,7 @@ void StatsProbe::ioParam_nnzThreshold(enum ParamsIOFlag ioFlag) {
 int StatsProbe::initNumValues() { return setNumValues(-1); }
 
 int StatsProbe::registerData(Checkpointer *checkpointer) {
+   LayerProbe::registerData(checkpointer);
    checkpointer->registerTimer(iotimer);
    checkpointer->registerTimer(mpitimer);
    checkpointer->registerTimer(comptimer);

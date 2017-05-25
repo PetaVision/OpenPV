@@ -46,7 +46,7 @@ class BaseProbe : public BaseObject {
     * Derived classes that override this method should make sure to
     * call this method in their own allocateDataStructures methods.
     */
-   virtual int allocateDataStructures();
+   virtual int registerData(Checkpointer *checkpointer);
 
    /**
     * Returns the number of value indices the probe can compute (typically the
@@ -220,7 +220,7 @@ class BaseProbe : public BaseObject {
    virtual void ioParam_coefficient(enum ParamsIOFlag ioFlag);
    /** @} */
 
-   virtual int initOutputStream(const char *filename);
+   virtual int initOutputStream(const char *filename, Checkpointer *checkpointer);
 
    /**
     * A pure virtual method for that should return true if the quantities being
