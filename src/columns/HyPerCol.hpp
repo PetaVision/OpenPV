@@ -185,9 +185,6 @@ class HyPerCol : public Subject, Observer {
    bool getWriteTimescales() const { return mWriteTimescales; }
    const char *getName() { return mName; }
    const char *getOutputPath() { return mCheckpointer->getOutputPath().c_str(); }
-   const char *getInitializeFromCheckpointDir() const {
-      return mCheckpointer->getInitializeFromCheckpointDir();
-   }
    const char *getPrintParamsFilename() const { return mPrintParamsFilename; }
    ColProbe *getColProbe(int which) { return mColProbes.at(which); }
    double getDeltaTime() const { return mDeltaTime; }

@@ -498,9 +498,8 @@ class HyPerLayer : public BaseLayer {
    virtual int allocateDataStructures() override;
    virtual int registerData(Checkpointer *checkpointer) override;
    virtual int initializeState() override final;
-   // Not overridable since all layers should respond to initializeFromCheckpointFlag and
-   // (deprecated) restartFlag in the same way. initializeState calls the virtual methods
-   // readStateFromCheckpoint() and setInitialValues().
+   // Not overridable since all layers should respond to initializeFromCheckpointFlag the same way.
+   // initializeState calls the virtual methods readStateFromCheckpoint() and setInitialValues().
 
    int openOutputStateFile(Checkpointer *checkpointer);
 /* static methods called by updateState({long_argument_list})*/
@@ -526,8 +525,10 @@ class HyPerLayer : public BaseLayer {
    int xmargin, ymargin;
 
    bool initializeFromCheckpointFlag = true;
-   // Whether to load initial state using directory parent->getInitializeFromCheckpoint()
-   bool restartFlag;
+   // If parent HyPerCol sets initializeFromCheckpointDir and this flag is set,
+   // the initial state is loaded from the initializeFromCheckpointDir.
+   // If the flag is false or the parent's initializeFromCheckpointDir is empty,
+   // the initial siate is calculated using setInitialValues().
 
    int numProbes;
    LayerProbe **probes;

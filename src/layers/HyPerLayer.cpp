@@ -703,16 +703,13 @@ void HyPerLayer::ioParam_valueBC(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerLayer::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
-   assert(parent->getInitializeFromCheckpointDir());
-   if (parent->getInitializeFromCheckpointDir() && parent->getInitializeFromCheckpointDir()[0]) {
-      parent->parameters()->ioParamValue(
-            ioFlag,
-            name,
-            "initializeFromCheckpointFlag",
-            &initializeFromCheckpointFlag,
-            initializeFromCheckpointFlag,
-            true /*warnIfAbsent*/);
-   }
+   parent->parameters()->ioParamValue(
+         ioFlag,
+         name,
+         "initializeFromCheckpointFlag",
+         &initializeFromCheckpointFlag,
+         initializeFromCheckpointFlag,
+         true /*warnIfAbsent*/);
 }
 
 void HyPerLayer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {

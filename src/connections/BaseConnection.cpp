@@ -375,19 +375,13 @@ void BaseConnection::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
 }
 
 void BaseConnection::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
-   assert(parent->getInitializeFromCheckpointDir()); // If we're not initializing
-   // any layers or
-   // connections from a checkpoint, this should
-   // be the empty string, not null.
-   if (parent->getInitializeFromCheckpointDir() && parent->getInitializeFromCheckpointDir()[0]) {
-      parent->parameters()->ioParamValue(
-            ioFlag,
-            name,
-            "initializeFromCheckpointFlag",
-            &initializeFromCheckpointFlag,
-            initializeFromCheckpointFlag,
-            true /*warnIfAbsent*/);
-   }
+   parent->parameters()->ioParamValue(
+         ioFlag,
+         name,
+         "initializeFromCheckpointFlag",
+         &initializeFromCheckpointFlag,
+         initializeFromCheckpointFlag,
+         true /*warnIfAbsent*/);
 }
 
 int BaseConnection::insertProbe(BaseConnectionProbe *p) {
