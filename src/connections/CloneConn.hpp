@@ -24,7 +24,7 @@ class CloneConn : public HyPerConn {
    virtual int updateState(double time, double dt);
 
    virtual int writeWeights(double time) { return PV_SUCCESS; }
-   virtual int writeWeights(const char *filename) { return PV_SUCCESS; }
+   virtual int writeWeights(const char *filename, bool verifyWrites) override { return PV_SUCCESS; }
    virtual int outputState(double time) { return PV_SUCCESS; }
 
    HyPerConn *getOriginalConn() { return originalConn; }

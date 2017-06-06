@@ -1903,11 +1903,11 @@ int HyPerConn::writeWeights(double timed) {
          false);
 }
 
-int HyPerConn::writeWeights(const char *filename) {
+int HyPerConn::writeWeights(const char *filename, bool verifyWrites) {
    PVPatch ***patches_arg = sharedWeights ? NULL : wPatches;
    FileStream *fileStream = nullptr;
    if (getMPIBlock()->getRank() == 0) {
-      fileStream = new FileStream(filename, std::ios_base::out, parent->getVerifyWrites());
+      fileStream = new FileStream(filename, std::ios_base::out, verifyWrites);
    }
 
    int status = writeWeights(
@@ -1983,7 +1983,7 @@ int HyPerConn::writeWeights(
    return PV_SUCCESS;
 }
 
-int HyPerConn::writeTextWeights(const char *path, int k) {
+int HyPerConn::writeTextWeights(const char *path, bool verifyWrites, int k) {
    if (parent->getCommunicator()->commSize() > 1) {
       Fatal().printf(
             "writeTextWeights error for %s: writeTextWeights is not compatible with MPI",
@@ -1994,7 +1994,7 @@ int HyPerConn::writeTextWeights(const char *path, int k) {
    PrintStream *outStream = nullptr;
 
    if (path != nullptr) {
-      outStream = new FileStream(path, std::ios_base::out, parent->getVerifyWrites());
+      outStream = new FileStream(path, std::ios_base::out, verifyWrites);
    }
    else {
       outStream = new PrintStream(getOutputStream());

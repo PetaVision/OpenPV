@@ -141,9 +141,9 @@ int check_kernel_vs_hyper(HyPerConn *cHyPer, HyPerConn *cKernel, int kPre, int a
             errorMessage.printf("kernelweight %f\n", (double)kernelWeights[k]);
             errorMessage.printf("hyperWeights %f\n", (double)hyperWeights[k]);
             const char *cHyper_filename = "gauss2d_hyper.txt";
-            cHyPer->writeTextWeights(cHyper_filename, kPre);
+            cHyPer->writeTextWeights(cHyper_filename, false /*verifyWrites*/, kPre);
             const char *cKernel_filename = "gauss2d_kernel.txt";
-            cKernel->writeTextWeights(cKernel_filename, kPre);
+            cKernel->writeTextWeights(cKernel_filename, false /*verifyWrites*/, kPre);
             status = 1;
          }
       }

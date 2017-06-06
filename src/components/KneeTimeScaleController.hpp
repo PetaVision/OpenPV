@@ -17,7 +17,6 @@ class KneeTimeScaleController : public AdaptiveTimeScaleController {
          bool writeTimeScales,
          bool writeTimeScaleFieldnames,
          Communicator *comm,
-         bool verifyWrites,
          double kneeThresh,
          double kneeSlope);
 

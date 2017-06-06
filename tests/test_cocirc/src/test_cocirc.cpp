@@ -119,9 +119,9 @@ int check_cocirc_vs_hyper(HyPerConn *cHyPer, HyPerConn *cKernel, int kPre, int a
          test_cond = cocircWeights[k] - hyperWeights[k];
          if (fabsf(test_cond) > 0.001f) {
             const char *cHyper_filename = "cocirc_hyper.txt";
-            cHyPer->writeTextWeights(cHyper_filename, kPre);
+            cHyPer->writeTextWeights(cHyper_filename, false /*verifyWrites*/, kPre);
             const char *cKernel_filename = "cocirc_cocirc.txt";
-            cKernel->writeTextWeights(cKernel_filename, kPre);
+            cKernel->writeTextWeights(cKernel_filename, false /*verifyWrites*/, kPre);
          }
          FatalIf(!(fabsf(test_cond) <= 0.001f), "Test failed.\n");
       }

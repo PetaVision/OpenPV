@@ -122,8 +122,7 @@ void AdaptiveTimeScaleProbe::allocateTimeScaleController() {
          mGrowthFactor,
          mWriteTimeScales,
          mWriteTimeScaleFieldnames,
-         parent->getCommunicator(),
-         parent->getVerifyWrites());
+         parent->getCommunicator());
 }
 
 int AdaptiveTimeScaleProbe::registerData(Checkpointer *checkpointer) {

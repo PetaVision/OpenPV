@@ -92,7 +92,7 @@ class HyPerConn : public BaseConnection {
 
    virtual double computeNewWeightUpdateTime(double time, double currentUpdateTime);
    virtual int writeWeights(double timed);
-   virtual int writeWeights(const char *filename);
+   virtual int writeWeights(const char *filename, bool verifyWrites);
    virtual int writeWeights(
          PVPatch ***patches,
          float **dataStart,
@@ -101,7 +101,7 @@ class HyPerConn : public BaseConnection {
          double timef,
          bool compressWeights,
          bool last);
-   virtual int writeTextWeights(const char *filename, int k);
+   virtual int writeTextWeights(const char *filename, bool verifyWrites, int k);
 
    virtual int writeTextWeightsExtra(PrintStream *pvstream, int k, int arborID) {
       return PV_SUCCESS;

@@ -23,8 +23,7 @@ AdaptiveTimeScaleController::AdaptiveTimeScaleController(
       double growthFactor,
       bool writeTimeScales,
       bool writeTimeScaleFieldnames,
-      Communicator *communicator,
-      bool verifyWrites) {
+      Communicator *communicator) {
    mName                     = strdup(name);
    mBatchWidth               = batchWidth;
    mBaseMax                  = baseMax;
@@ -34,7 +33,6 @@ AdaptiveTimeScaleController::AdaptiveTimeScaleController(
    mWriteTimeScales          = writeTimeScales;
    mWriteTimeScaleFieldnames = writeTimeScaleFieldnames;
    mCommunicator             = communicator;
-   mVerifyWrites             = verifyWrites;
 
    mTimeScaleInfo.mTimeScale.assign(mBatchWidth, mBaseMin);
    mTimeScaleInfo.mTimeScaleMax.assign(mBatchWidth, mBaseMax);

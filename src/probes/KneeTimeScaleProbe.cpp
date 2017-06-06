@@ -31,7 +31,6 @@ void KneeTimeScaleProbe::allocateTimeScaleController() {
          mWriteTimeScales,
          mWriteTimeScaleFieldnames,
          parent->getCommunicator(),
-         parent->getVerifyWrites(),
          mKneeThresh,
          mKneeSlope);
 }

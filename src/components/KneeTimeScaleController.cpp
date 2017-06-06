@@ -12,7 +12,6 @@ KneeTimeScaleController::KneeTimeScaleController(
       bool writeTimeScales,
       bool writeTimeScaleFieldnames,
       Communicator *comm,
-      bool verifyWrites,
       double kneeThresh,
       double kneeSlope)
       : AdaptiveTimeScaleController(
@@ -24,8 +23,7 @@ KneeTimeScaleController::KneeTimeScaleController(
               growthFactor,
               writeTimeScales,
               writeTimeScaleFieldnames,
-              comm,
-              verifyWrites) {
+              comm) {
    mKneeThresh = kneeThresh;
    mKneeSlope  = kneeSlope;
 }
