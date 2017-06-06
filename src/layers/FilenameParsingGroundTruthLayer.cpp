@@ -57,29 +57,33 @@ void FilenameParsingGroundTruthLayer::ioParam_classList(enum ParamsIOFlag ioFlag
    }
 }
 
-int FilenameParsingGroundTruthLayer::allocateDataStructures() {
-   int status = HyPerLayer::allocateDataStructures();
+int FilenameParsingGroundTruthLayer::registerData(Checkpointer *checkpointer) {
+   // Belongs in registerData and not allocateDataStructures because the
+   // default path for the class list is the output path, which is available
+   // only in registerData through the checkpointer argument.
+   // But is this the best default?
+   int status = HyPerLayer::registerData(checkpointer);
 
-   std::ifstream mInputFile;
+   std::ifstream inputFile;
    std::string outPath("");
 
    if (mClassListFileName != nullptr) {
       outPath += std::string(mClassListFileName);
    }
    else {
-      outPath += parent->getOutputPath();
+      outPath += checkpointer->getOutputPath();
       outPath += "/classes.txt";
    }
 
-   mInputFile.open(outPath.c_str(), std::ifstream::in);
-   FatalIf(!mInputFile.is_open(), "%s: Unable to open file %s\n", getName(), outPath.c_str());
+   inputFile.open(outPath.c_str(), std::ifstream::in);
+   FatalIf(!inputFile.is_open(), "%s: Unable to open file %s\n", getName(), outPath.c_str());
 
    mClasses.clear();
    std::string line;
-   while (getline(mInputFile, line)) {
+   while (getline(inputFile, line)) {
       mClasses.push_back(line);
    }
-   mInputFile.close();
+   inputFile.close();
 
    std::size_t numFeatures = (std::size_t)getLayerLoc()->nf;
    FatalIf(

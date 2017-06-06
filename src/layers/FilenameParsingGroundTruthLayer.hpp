@@ -32,7 +32,7 @@ class FilenameParsingGroundTruthLayer : public HyPerLayer {
    float mGtClassFalseValue = 0.0f;
 
   protected:
-   virtual int allocateDataStructures() override;
+   virtual int registerData(Checkpointer *checkpointer) override;
 
    /**
     * List of protected paramters needed from FilenameParsingGroundTruthLayer
