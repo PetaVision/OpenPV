@@ -87,12 +87,12 @@ int LIFTestProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void LIFTestProbe::ioParam_endingTime(enum ParamsIOFlag ioFlag) {
-   getParent()->parameters()->ioParamValue(
+   parent->parameters()->ioParamValue(
          ioFlag, getName(), "endingTime", &endingTime, LIFTESTPROBE_DEFAULTENDINGTIME);
 }
 
 void LIFTestProbe::ioParam_tolerance(enum ParamsIOFlag ioFlag) {
-   getParent()->parameters()->ioParamValue(
+   parent->parameters()->ioParamValue(
          ioFlag, getName(), "tolerance", &tolerance, LIFTESTPROBE_DEFAULTTOLERANCE);
 }
 
@@ -104,14 +104,14 @@ LIFTestProbe::~LIFTestProbe() {
    free(counts);
 }
 
-int LIFTestProbe::communicateInitInfo() {
-   int status = StatsProbe::communicateInitInfo();
+int LIFTestProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+   int status = StatsProbe::communicateInitInfo(message);
    return status;
 }
 
-int LIFTestProbe::allocateDataStructures() {
-   int status = StatsProbe::allocateDataStructures();
-   if (status == PV_SUCCESS && getParent()->columnId() == 0) {
+int LIFTestProbe::initOutputStream(const char *filename, Checkpointer *checkpointer) {
+   int status = StatsProbe::initOutputStream(filename, checkpointer);
+   if (status == PV_SUCCESS && parent->columnId() == 0) {
       FatalIf(!outputStream, "Test failed.\n");
       outputStream->printf("%s Correct: ", getMessage());
       for (int k = 0; k < LIFTESTPROBE_BINS; k++) {
@@ -144,7 +144,7 @@ int LIFTestProbe::outputState(double timed) {
       }
    }
    int root_proc        = 0;
-   Communicator *icComm = l->getParent()->getCommunicator();
+   Communicator *icComm = parent->getCommunicator();
    if (icComm->commRank() == root_proc) {
       MPI_Reduce(
             MPI_IN_PLACE,

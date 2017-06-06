@@ -5,10 +5,10 @@ void CheckStatsProbe::ioParam_buffer(enum PV::ParamsIOFlag ioFlag) {
    if (ioFlag == PV::PARAMS_IO_READ) {
       type                  = PV::BufActivity;
       char const *paramName = "buffer";
-      PV::PVParams *params  = getParent()->parameters();
+      PV::PVParams *params  = parent->parameters();
       if (params->stringPresent(name, paramName)) {
          char *paramValue = nullptr;
-         getParent()->parameters()->ioParamString(
+         parent->parameters()->ioParamString(
                ioFlag, getName(), paramName, &paramValue, "Activity", false);
          pvAssert(paramValue);
          for (size_t c = 0; paramValue[c]; c++) {
@@ -75,7 +75,7 @@ int CheckStatsProbe::outputState(double timestamp) {
    if (status != PV_SUCCESS) {
       return status;
    }
-   PV::Communicator *icComm = getTargetLayer()->getParent()->getCommunicator();
+   PV::Communicator *icComm = parent->getCommunicator();
    if (icComm->commRank() != 0) {
       return status;
    }

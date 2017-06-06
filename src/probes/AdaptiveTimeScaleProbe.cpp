@@ -83,9 +83,9 @@ void AdaptiveTimeScaleProbe::ioParam_writeTimeScaleFieldnames(enum ParamsIOFlag 
    }
 }
 
-int AdaptiveTimeScaleProbe::communicateInitInfo() {
-   int status   = ColProbe::communicateInitInfo();
-   mTargetProbe = parent->getBaseProbeFromName(targetName);
+int AdaptiveTimeScaleProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+   int status   = ColProbe::communicateInitInfo(message);
+   mTargetProbe = message->lookup<BaseProbe>(std::string(targetName));
    if (mTargetProbe == nullptr) {
       if (parent->getCommunicator()->commRank() == 0) {
          Fatal() << getDescription() << ": targetName \"" << targetName
@@ -122,8 +122,7 @@ void AdaptiveTimeScaleProbe::allocateTimeScaleController() {
          mGrowthFactor,
          mWriteTimeScales,
          mWriteTimeScaleFieldnames,
-         parent->getCommunicator(),
-         parent->getVerifyWrites());
+         parent->getCommunicator());
 }
 
 int AdaptiveTimeScaleProbe::registerData(Checkpointer *checkpointer) {

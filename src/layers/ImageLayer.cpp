@@ -39,6 +39,15 @@ std::string const &ImageLayer::getCurrentFilename(int localBatchElement, int mpi
       return getInputPath();
    }
 }
+ 
+int ImageLayer::registerData(Checkpointer *checkpointer) {
+   int status = InputLayer::registerData(checkpointer);
+   if (status != PV_SUCCESS) {
+      return status;
+   }
+   mURLDownloadTemplate = checkpointer->getOutputPath() + "/temp.XXXXXX";
+   return status;
+}
 
 void ImageLayer::populateFileList() {
    if (getMPIBlock()->getRank() == 0) {
@@ -104,7 +113,7 @@ void ImageLayer::readImage(std::string filename) {
    if (filename.find("://") != std::string::npos) {
       usingTempFile          = true;
       std::string extension  = filename.substr(filename.find_last_of("."));
-      std::string pathstring = parent->getOutputPath() + std::string("/temp.XXXXXX") + extension;
+      std::string pathstring = mURLDownloadTemplate + extension;
       char tempStr[256];
       strcpy(tempStr, pathstring.c_str());
       int tempFileID = mkstemps(tempStr, extension.size());

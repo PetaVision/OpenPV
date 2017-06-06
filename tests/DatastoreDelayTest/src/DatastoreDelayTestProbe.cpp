@@ -32,26 +32,37 @@ void DatastoreDelayTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
    }
 }
 
+int DatastoreDelayTestProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+   int status = StatsProbe::communicateInitInfo(message);
+   if (status != PV_SUCCESS) {
+      return status;
+   }
+   HyPerLayer *inputLayer = message->lookup<HyPerLayer>(std::string("input"));
+   FatalIf(inputLayer == nullptr, "Unable to find layer \"input\".\n");
+   mNumDelayLevels = inputLayer->getNumDelayLevels();
+
+   return status;
+}
+
 /**
  * @time
  * @l
  */
 int DatastoreDelayTestProbe::outputState(double timed) {
    HyPerLayer *l        = getTargetLayer();
-   Communicator *icComm = l->getParent()->getCommunicator();
+   Communicator *icComm = parent->getCommunicator();
    const int rcvProc    = 0;
    if (icComm->commRank() != rcvProc) {
       return PV_SUCCESS;
    }
    int status         = PV_SUCCESS;
-   int numDelayLevels = l->getParent()->getLayer(0)->getNumDelayLevels();
-   float correctValue = numDelayLevels * (numDelayLevels + 1) / 2;
+   float correctValue = mNumDelayLevels * (mNumDelayLevels + 1) / 2;
    for (int k = 0; k < l->getNumNeuronsAllBatches(); k++) {
       float *V = l->getV();
       for (int k = 0; k < l->getNumNeuronsAllBatches(); k++) {
          float v = V[k];
          if (v < correctValue) {
-            if (timed >= numDelayLevels + 1) {
+            if (timed >= mNumDelayLevels + 1) {
                outputStream->printf(
                      "%s: time %f, neuron %d: value is %f instead of %d\n",
                      l->getDescription_c(),
@@ -63,14 +74,14 @@ int DatastoreDelayTestProbe::outputState(double timed) {
             }
          }
          else if (v == correctValue) {
-            if (timed < numDelayLevels + 1) {
+            if (timed < mNumDelayLevels + 1) {
                outputStream->printf(
                      "%s: time %f, neuron %d has value %f, but should not reach it until %d\n",
                      l->getDescription_c(),
                      timed,
                      k,
                      (double)v,
-                     numDelayLevels + 1);
+                     mNumDelayLevels + 1);
                status = PV_FAILURE;
             }
          }

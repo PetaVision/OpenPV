@@ -27,7 +27,7 @@ void InitWeightTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) { requireType
 
 int InitWeightTestProbe::outputState(double timed) {
    int status           = StatsProbe::outputState(timed);
-   Communicator *icComm = getTargetLayer()->getParent()->getCommunicator();
+   Communicator *icComm = parent->getCommunicator();
    const int rcvProc    = 0;
    if (icComm->commRank() != rcvProc) {
       return 0;

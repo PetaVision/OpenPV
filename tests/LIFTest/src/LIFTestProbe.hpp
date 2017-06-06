@@ -18,8 +18,7 @@ class LIFTestProbe : public StatsProbe {
    LIFTestProbe(const char *probeName, HyPerCol *hc);
    virtual ~LIFTestProbe();
 
-   virtual int communicateInitInfo();
-   virtual int allocateDataStructures();
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message);
 
    virtual int outputState(double timed);
 
@@ -29,6 +28,7 @@ class LIFTestProbe : public StatsProbe {
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual void ioParam_endingTime(enum ParamsIOFlag ioFlag);
    virtual void ioParam_tolerance(enum ParamsIOFlag ioFlag);
+   virtual int initOutputStream(const char *filename, Checkpointer *checkpointer) override;
 
   private:
    int initialize_base();

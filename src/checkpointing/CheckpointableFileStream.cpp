@@ -29,7 +29,7 @@ void CheckpointableFileStream::initialize(
          checkpointer->getMPIBlock()->getRank() != 0,
          "CheckpointableFileStream (path \"%s\") called by non-root process.\n",
          path.c_str());
-   string fullPath = makeOutputPathFilename(checkpointer, path);
+   string fullPath = checkpointer->makeOutputPathFilename(path);
 
    bool createFile = newFile;
    if (!newFile) {
@@ -148,10 +148,4 @@ void CheckpointableFileStream::setInPos(long pos, bool fromBeginning) {
    FileStream::setInPos(pos, fromBeginning);
    updateFilePos();
 }
-
-// Static method.
-string
-CheckpointableFileStream::makeOutputPathFilename(Checkpointer *checkpointer, string const &path) {
-   return checkpointer->makeOutputPathFilename(path);
-}
-}
+} // end namespace PV

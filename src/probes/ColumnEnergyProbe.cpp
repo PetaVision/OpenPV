@@ -55,7 +55,9 @@ int ColumnEnergyProbe::initializeColumnEnergyProbe(const char *probename, HyPerC
    return ColProbe::initialize(probename, hc);
 }
 
-int ColumnEnergyProbe::initOutputStream(const char *filename) { return PV_SUCCESS; }
+int ColumnEnergyProbe::initOutputStream(const char *filename, Checkpointer *checkpointer) {
+   return PV_SUCCESS;
+}
 
 int ColumnEnergyProbe::registerData(Checkpointer *checkpointer) {
    MPIBlock const *mpiBlock = checkpointer->getMPIBlock();
@@ -76,8 +78,7 @@ int ColumnEnergyProbe::registerData(Checkpointer *checkpointer) {
             path      = path.substr(0, extensionStart);
          }
          std::ios_base::openmode mode = std::ios_base::out;
-         bool append                  = parent->getCheckpointReadFlag();
-         if (append) {
+         if (!checkpointer->getCheckpointReadDirectory().empty()) {
             mode |= std::ios_base::app;
          }
          for (int b = 0; b < localBatchWidth; b++) {
@@ -135,7 +136,7 @@ int ColumnEnergyProbe::addTerm(BaseProbe *probe) {
    }
    else {
       if (probe->getNumValues() != this->getNumValues()) {
-         if (this->getParent()->columnId() == 0) {
+         if (this->parent->columnId() == 0) {
             ErrorLog().printf(
                   "Failed to add terms to %s:  new probe \"%s\" "
                   "returns %d values, but previous "
@@ -145,21 +146,21 @@ int ColumnEnergyProbe::addTerm(BaseProbe *probe) {
                   probe->getNumValues(),
                   this->getNumValues());
          }
-         MPI_Barrier(this->getParent()->getCommunicator()->communicator());
+         MPI_Barrier(this->parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
    }
    assert(probe->getNumValues() == getNumValues());
    int newNumTerms = numTerms + (size_t)1;
    if (newNumTerms <= numTerms) {
-      if (this->getParent()->columnId() == 0) {
+      if (this->parent->columnId() == 0) {
          ErrorLog().printf(
                "How did you manage to add %zu terms to %s?  "
                "Unable to add any more!\n",
                numTerms,
                getDescription_c());
       }
-      MPI_Barrier(this->getParent()->getCommunicator()->communicator());
+      MPI_Barrier(this->parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    BaseProbe **newTermsArray =

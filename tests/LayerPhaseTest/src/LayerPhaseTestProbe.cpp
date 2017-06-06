@@ -30,18 +30,18 @@ int LayerPhaseTestProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 void LayerPhaseTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) { requireType(BufV); }
 
 void LayerPhaseTestProbe::ioParam_equilibriumValue(enum ParamsIOFlag ioFlag) {
-   getParent()->parameters()->ioParamValue(
+   parent->parameters()->ioParamValue(
          ioFlag, getName(), "equilibriumValue", &equilibriumValue, 0.0f, true);
 }
 
 void LayerPhaseTestProbe::ioParam_equilibriumTime(enum ParamsIOFlag ioFlag) {
-   getParent()->parameters()->ioParamValue(
+   parent->parameters()->ioParamValue(
          ioFlag, getName(), "equilibriumTime", &equilibriumTime, 0.0, true);
 }
 
 int LayerPhaseTestProbe::outputState(double timed) {
    int status           = StatsProbe::outputState(timed);
-   Communicator *icComm = getTargetLayer()->getParent()->getCommunicator();
+   Communicator *icComm = parent->getCommunicator();
    const int rcvProc    = 0;
    if (icComm->commRank() != rcvProc) {
       return 0;

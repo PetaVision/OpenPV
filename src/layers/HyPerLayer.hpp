@@ -431,6 +431,13 @@ class HyPerLayer : public BaseLayer {
    virtual int mirrorToSouth(PVLayerCube *dest, PVLayerCube *src);
    virtual int mirrorToSouthEast(PVLayerCube *dest, PVLayerCube *src);
 
+   /**
+    * Adds the given connection to the vector of connections to receive input from.
+    * The connection's post-synaptic layer must be the layer for which this
+    * member function is called.
+    */
+   void addRecvConn(BaseConnection *conn);
+
    // Public access functions:
 
    int getNumNeurons() { return clayer->numNeurons; }
@@ -487,13 +494,12 @@ class HyPerLayer : public BaseLayer {
    bool getHasUpdated() { return mHasUpdated; }
 
   protected:
-   virtual int communicateInitInfo() override;
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
    virtual int allocateDataStructures() override;
    virtual int registerData(Checkpointer *checkpointer) override;
    virtual int initializeState() override final;
-   // Not overridable since all layers should respond to initializeFromCheckpointFlag and
-   // (deprecated) restartFlag in the same way. initializeState calls the virtual methods
-   // readStateFromCheckpoint() and setInitialValues().
+   // Not overridable since all layers should respond to initializeFromCheckpointFlag the same way.
+   // initializeState calls the virtual methods readStateFromCheckpoint() and setInitialValues().
 
    int openOutputStateFile(Checkpointer *checkpointer);
 /* static methods called by updateState({long_argument_list})*/
@@ -518,9 +524,11 @@ class HyPerLayer : public BaseLayer {
    int numFeatures;
    int xmargin, ymargin;
 
-   bool initializeFromCheckpointFlag; // Whether to load initial state using directory
-   // parent->getInitializeFromCheckpoint()
-   bool restartFlag;
+   bool initializeFromCheckpointFlag = true;
+   // If parent HyPerCol sets initializeFromCheckpointDir and this flag is set,
+   // the initial state is loaded from the initializeFromCheckpointDir.
+   // If the flag is false or the parent's initializeFromCheckpointDir is empty,
+   // the initial siate is calculated using setInitialValues().
 
    int numProbes;
    LayerProbe **probes;

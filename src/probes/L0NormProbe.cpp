@@ -30,12 +30,11 @@ int L0NormProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void L0NormProbe::ioParam_nnzThreshold(enum ParamsIOFlag ioFlag) {
-   getParent()->parameters()->ioParamValue(
-         ioFlag, getName(), "nnzThreshold", &nnzThreshold, (float)0);
+   parent->parameters()->ioParamValue(ioFlag, getName(), "nnzThreshold", &nnzThreshold, (float)0);
 }
 
 double L0NormProbe::getValueInternal(double timevalue, int index) {
-   if (index < 0 || index >= getParent()->getNBatch()) {
+   if (index < 0 || index >= parent->getNBatch()) {
       return PV_FAILURE;
    }
    PVLayerLoc const *loc = getTargetLayer()->getLayerLoc();

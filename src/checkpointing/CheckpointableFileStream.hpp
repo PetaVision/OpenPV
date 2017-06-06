@@ -50,14 +50,6 @@ class CheckpointableFileStream : public FileStream, public CheckpointerDataInter
    virtual void setOutPos(long pos, bool fromBeginning);
    virtual void setInPos(long pos, bool fromBeginning);
 
-   /**
-    * Returns the string for the path that would be generated if a CheckpointableFileStream
-    * is instantiated with the given arguments. This function is called during instantiation,
-    * and is also useful if the path is needed before creating the file; i.e. verifying that
-    * the file exists, or creating it.
-    */
-   static string makeOutputPathFilename(Checkpointer *checkpointer, string const &path);
-
   private:
    void initialize(
          string const &path,

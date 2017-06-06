@@ -40,7 +40,7 @@ int PointLIFProbe::initPointLIFProbe_base() {
 
 int PointLIFProbe::initialize(const char *probeName, HyPerCol *hc) {
    int status = PointProbe::initialize(probeName, hc);
-   writeTime  = getParent()->getStartTime();
+   writeTime  = parent->getStartTime();
    return status;
 }
 
@@ -51,8 +51,8 @@ int PointLIFProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void PointLIFProbe::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
-   writeStep = getParent()->getDeltaTime(); // Marian, don't change this default behavior
-   getParent()->parameters()->ioParamValue(
+   writeStep = parent->getDeltaTime(); // Marian, don't change this default behavior
+   parent->parameters()->ioParamValue(
          ioFlag, getName(), "writeStep", &writeStep, writeStep, true /*warnIfAbsent*/);
 }
 

@@ -41,7 +41,7 @@ int FirmThresholdCostFnProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void FirmThresholdCostFnProbe::ioParam_VThresh(enum ParamsIOFlag ioFlag) {
-   getParent()->parameters()->ioParamValue(
+   parent->parameters()->ioParamValue(
          ioFlag, name, "VThresh", &VThresh, VThresh /*default*/, false /*warnIfAbsent*/);
 }
 
@@ -54,14 +54,14 @@ int FirmThresholdCostFnProbe::setNormDescription() {
    return setNormDescriptionToString("Cost function");
 }
 
-int FirmThresholdCostFnProbe::communicateInitInfo() {
-   AbstractNormProbe::communicateInitInfo();
+int FirmThresholdCostFnProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+   AbstractNormProbe::communicateInitInfo(message);
    ANNLayer *targetANNLayer = dynamic_cast<ANNLayer *>(getTargetLayer());
    if (targetANNLayer != NULL) {
-      if (!getParent()->parameters()->present(getName(), "VThresh")) {
+      if (!parent->parameters()->present(getName(), "VThresh")) {
          VThresh = targetANNLayer->getVThresh();
       }
-      if (!getParent()->parameters()->present(getName(), "VWidth")) {
+      if (!parent->parameters()->present(getName(), "VWidth")) {
          VWidth = targetANNLayer->getVWidth();
       }
    }
@@ -77,7 +77,7 @@ int FirmThresholdCostFnProbe::communicateInitInfo() {
 }
 
 double FirmThresholdCostFnProbe::getValueInternal(double timevalue, int index) {
-   if (index < 0 || index >= getParent()->getNBatch()) {
+   if (index < 0 || index >= parent->getNBatch()) {
       return PV_FAILURE;
    }
    PVLayerLoc const *loc    = getTargetLayer()->getLayerLoc();

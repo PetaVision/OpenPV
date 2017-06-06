@@ -17,7 +17,7 @@ class PointProbe : public PV::LayerProbe {
    PointProbe(const char *probeName, HyPerCol *hc);
    virtual ~PointProbe();
 
-   virtual int communicateInitInfo();
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message);
 
    virtual int outputState(double timef);
 

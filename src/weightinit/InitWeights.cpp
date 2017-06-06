@@ -117,11 +117,10 @@ int InitWeights::initializeWeights(
       PVPatch ***patches,
       float **dataStart,
       double *timef /*default NULL*/) {
-   PVParams *inputParams = callingConn->getParent()->parameters();
-   int numPatchesX       = callingConn->getNumDataPatchesX();
-   int numPatchesY       = callingConn->getNumDataPatchesY();
-   int numPatchesF       = callingConn->getNumDataPatchesF();
-   bool sharedWeights    = patches == nullptr;
+   int numPatchesX    = callingConn->getNumDataPatchesX();
+   int numPatchesY    = callingConn->getNumDataPatchesY();
+   int numPatchesF    = callingConn->getNumDataPatchesF();
+   bool sharedWeights = patches == nullptr;
    if (weightParams->getFilename() != NULL && weightParams->getFilename()[0]) {
       readWeights(
             sharedWeights,
@@ -328,13 +327,13 @@ void InitWeights::readListOfArborFiles(
       const char *listOfArborsFilename,
       double *timestampPtr) {
    int arbor            = 0;
-   Communicator *icComm = callingConn->getParent()->getCommunicator();
+   Communicator *icComm = parent->getCommunicator();
    int numArbors        = callingConn->numberOfAxonalArborLists();
    double timestamp;
 
    std::ifstream *listOfArborsStream = nullptr;
-   int rootproc = 0;
-   int rank = icComm->commRank();
+   int rootproc                      = 0;
+   int rank                          = icComm->commRank();
    if (rank == rootproc) {
       listOfArborsStream = new std::ifstream(listOfArborsFilename);
       FatalIf(
@@ -347,16 +346,20 @@ void InitWeights::readListOfArborFiles(
       int arborsInFile;
       std::string arborPath;
       if (rank == rootproc) {
-         FatalIf(listOfArborsStream->eof(),
+         FatalIf(
+               listOfArborsStream->eof(),
                "File of arbor files \"%s\" ended before all %d arbors were read.\n",
                listOfArborsFilename,
                numArbors);
          std::getline(*listOfArborsStream, arborPath);
-         FatalIf(listOfArborsStream->fail(),
+         FatalIf(
+               listOfArborsStream->fail(),
                "Unable to read list of arbor files \"%s\": %s\n",
                listOfArborsFilename,
                std::strerror(errno));
-         if (arborPath.empty()) { continue; }
+         if (arborPath.empty()) {
+            continue;
+         }
          FileStream arborFileStream(arborPath.c_str(), std::ios_base::in, false);
          BufferUtils::WeightHeader header;
          arborFileStream.read(&header, sizeof(header));
@@ -374,7 +377,7 @@ void InitWeights::readListOfArborFiles(
             arborsInFile,
             &timestamp);
       arbor += arborsInFile;
-      
+
    } // while
    if (rank == rootproc) {
       delete listOfArborsStream;
@@ -392,17 +395,17 @@ void InitWeights::readCombinedWeightFiles(
       int numPatchesF,
       const char *fileOfWeightFiles,
       double *timestampPtr) {
-   Communicator *icComm     = callingConn->getParent()->getCommunicator();
+   Communicator *icComm     = parent->getCommunicator();
    int numArbors            = callingConn->numberOfAxonalArborLists();
    const PVLayerLoc *preLoc = callingConn->preSynapticLayer()->getLayerLoc();
    double timestamp;
-   int max_weight_files    = 1; // arbitrary limit...
-   int num_weight_files    = weightParams->getNumWeightFiles();
-   int file_count          = 0;
+   int max_weight_files = 1; // arbitrary limit...
+   int num_weight_files = weightParams->getNumWeightFiles();
+   int file_count       = 0;
 
    std::ifstream *listOfWeightFilesStream = nullptr;
-   int rootproc = 0;
-   int rank = icComm->commRank();
+   int rootproc                           = 0;
+   int rank                               = icComm->commRank();
    if (rank == rootproc) {
       listOfWeightFilesStream = new std::ifstream(fileOfWeightFiles);
       FatalIf(
@@ -414,16 +417,20 @@ void InitWeights::readCombinedWeightFiles(
    while (file_count < num_weight_files) {
       std::string weightFilePath;
       if (rank == rootproc) {
-         FatalIf(listOfWeightFilesStream->eof(),
+         FatalIf(
+               listOfWeightFilesStream->eof(),
                "File of weight files \"%s\" ended before all %d weight files were read.\n",
                fileOfWeightFiles,
                numArbors);
          std::getline(*listOfWeightFilesStream, weightFilePath);
-         FatalIf(listOfWeightFilesStream->fail(),
+         FatalIf(
+               listOfWeightFilesStream->fail(),
                "Unable to read list of weight files \"%s\": %s\n",
                fileOfWeightFiles,
                std::strerror(errno));
-         if (weightFilePath.empty()) { continue; }
+         if (weightFilePath.empty()) {
+            continue;
+         }
       } // commRank() == rootproc
       readWeightPvpFile(
             sharedWeights,
@@ -454,7 +461,7 @@ void InitWeights::readWeightPvpFile(
       int numArbors,
       double *timestampPtr) {
    double timestamp;
-   MPIBlock const *mpiBlock = callingConn->getParent()->getCommunicator()->getLocalMPIBlock();
+   MPIBlock const *mpiBlock = parent->getCommunicator()->getLocalMPIBlock();
 
    FileStream *fileStream = nullptr;
    if (mpiBlock->getRank() == 0) {

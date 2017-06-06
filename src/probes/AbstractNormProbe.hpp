@@ -111,7 +111,7 @@ class AbstractNormProbe : public LayerProbe {
     * Calls LayerProbe::communicateInitInfo to set up the targetLayer and
     * attach the probe; and then checks the masking layer if masking is used.
     */
-   virtual int communicateInitInfo();
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message);
 
    /**
     * Returns true if masking is used and the layer has multiple features but

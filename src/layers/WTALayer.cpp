@@ -26,9 +26,9 @@ int WTALayer::initialize_base() {
    return PV_SUCCESS;
 }
 
-int WTALayer::communicateInitInfo() {
-   int status    = HyPerLayer::communicateInitInfo();
-   originalLayer = parent->getLayerFromName(originalLayerName);
+int WTALayer::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+   int status    = HyPerLayer::communicateInitInfo(message);
+   originalLayer = message->lookup<HyPerLayer>(std::string(originalLayerName));
    if (originalLayer == NULL) {
       if (parent->columnId() == 0) {
          ErrorLog().printf(

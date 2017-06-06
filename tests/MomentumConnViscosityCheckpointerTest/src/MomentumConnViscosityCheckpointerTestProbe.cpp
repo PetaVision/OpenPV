@@ -43,25 +43,27 @@ void MomentumConnViscosityCheckpointerTestProbe::ioParam_textOutputFlag(
    }
 }
 
-int MomentumConnViscosityCheckpointerTestProbe::communicateInitInfo() {
-   int status = PV::ColProbe::communicateInitInfo();
+int MomentumConnViscosityCheckpointerTestProbe::communicateInitInfo(
+      PV::CommunicateInitInfoMessage const *message) {
+   int status = PV::ColProbe::communicateInitInfo(message);
    FatalIf(
          status != PV_SUCCESS, "%s failed in ColProbe::communicateInitInfo\n", getDescription_c());
 
-   if (initInputLayer() == PV_POSTPONE) {
+   if (initInputLayer(message) == PV_POSTPONE) {
       return PV_POSTPONE;
    }
-   if (initOutputLayer() == PV_POSTPONE) {
+   if (initOutputLayer(message) == PV_POSTPONE) {
       return PV_POSTPONE;
    }
-   if (initConnection() == PV_POSTPONE) {
+   if (initConnection(message) == PV_POSTPONE) {
       return PV_POSTPONE;
    }
    return status;
 }
 
-int MomentumConnViscosityCheckpointerTestProbe::initInputLayer() {
-   mInputLayer = dynamic_cast<PV::InputLayer *>(parent->getLayerFromName("Input"));
+int MomentumConnViscosityCheckpointerTestProbe::initInputLayer(
+      PV::CommunicateInitInfoMessage const *message) {
+   mInputLayer = message->lookup<PV::InputLayer>(std::string("Input"));
    FatalIf(mInputLayer == nullptr, "column does not have an InputLayer named \"Input\".\n");
    if (checkCommunicatedFlag(mInputLayer) == PV_POSTPONE) {
       return PV_POSTPONE;
@@ -73,8 +75,9 @@ int MomentumConnViscosityCheckpointerTestProbe::initInputLayer() {
    return PV_SUCCESS;
 }
 
-int MomentumConnViscosityCheckpointerTestProbe::initOutputLayer() {
-   mOutputLayer = parent->getLayerFromName("Output");
+int MomentumConnViscosityCheckpointerTestProbe::initOutputLayer(
+      PV::CommunicateInitInfoMessage const *message) {
+   mOutputLayer = message->lookup<PV::HyPerLayer>(std::string("Output"));
    FatalIf(mOutputLayer == nullptr, "column does not have a HyPerLayer named \"Output\".\n");
    if (checkCommunicatedFlag(mOutputLayer) == PV_POSTPONE) {
       return PV_POSTPONE;
@@ -82,8 +85,9 @@ int MomentumConnViscosityCheckpointerTestProbe::initOutputLayer() {
    return PV_SUCCESS;
 }
 
-int MomentumConnViscosityCheckpointerTestProbe::initConnection() {
-   mConnection = dynamic_cast<PV::MomentumConn *>(parent->getConnFromName("InputToOutput"));
+int MomentumConnViscosityCheckpointerTestProbe::initConnection(
+      PV::CommunicateInitInfoMessage const *message) {
+   mConnection = message->lookup<PV::MomentumConn>(std::string("InputToOutput"));
    FatalIf(
          mConnection == nullptr, "column does not have a MomentumConn named \"InputToOutput\".\n");
    if (checkCommunicatedFlag(mConnection) == PV_POSTPONE) {

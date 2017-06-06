@@ -17,8 +17,8 @@ L1NormLCAProbe::L1NormLCAProbe(const char *probeName, HyPerCol *hc) {
 
 L1NormLCAProbe::L1NormLCAProbe() { initialize_base(); }
 
-int L1NormLCAProbe::communicateInitInfo() {
-   int status = L1NormProbe::communicateInitInfo();
+int L1NormLCAProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+   int status = L1NormProbe::communicateInitInfo(message);
    assert(targetLayer);
    HyPerLCALayer *targetLCALayer = dynamic_cast<HyPerLCALayer *>(targetLayer);
    if (targetLCALayer == NULL) {

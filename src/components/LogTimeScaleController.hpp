@@ -18,7 +18,6 @@ class LogTimeScaleController : public AdaptiveTimeScaleController {
          bool writeTimeScales,
          bool writeTimeScaleFieldnames,
          Communicator *comm,
-         bool verifyWrites,
          double logThresh,
          double logSlope);
 

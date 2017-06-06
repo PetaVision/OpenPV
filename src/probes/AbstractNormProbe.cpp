@@ -54,11 +54,11 @@ void AbstractNormProbe::ioParam_maskLayerName(enum ParamsIOFlag ioFlag) {
          ioFlag, name, "maskLayerName", &maskLayerName, NULL, false /*warnIfAbsent*/);
 }
 
-int AbstractNormProbe::communicateInitInfo() {
-   int status = LayerProbe::communicateInitInfo();
+int AbstractNormProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+   int status = LayerProbe::communicateInitInfo(message);
    assert(targetLayer);
    if (maskLayerName && maskLayerName[0]) {
-      maskLayer = parent->getLayerFromName(maskLayerName);
+      maskLayer = message->lookup<HyPerLayer>(std::string(maskLayerName));
       if (maskLayer == NULL) {
          if (parent->columnId() == 0) {
             ErrorLog().printf(

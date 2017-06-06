@@ -112,10 +112,10 @@ int HyPerLCALayer::requireChannel(int channelNeeded, int *numChannelsResult) {
    return status;
 }
 
-int HyPerLCALayer::communicateInitInfo() {
+int HyPerLCALayer::communicateInitInfo(CommunicateInitInfoMessage const *message) {
    if (mAdaptiveTimeScaleProbeName) {
-      mAdaptiveTimeScaleProbe = dynamic_cast<AdaptiveTimeScaleProbe *>(
-            parent->getColProbeFromName(mAdaptiveTimeScaleProbeName));
+      mAdaptiveTimeScaleProbe =
+            message->lookup<AdaptiveTimeScaleProbe>(std::string(mAdaptiveTimeScaleProbeName));
       if (mAdaptiveTimeScaleProbe == nullptr) {
          if (parent->getCommunicator()->commRank() == 0) {
             ErrorLog() << description << ": adaptiveTimeScaleProbe \""
@@ -125,7 +125,7 @@ int HyPerLCALayer::communicateInitInfo() {
          exit(EXIT_FAILURE);
       }
    }
-   return ANNLayer::communicateInitInfo();
+   return ANNLayer::communicateInitInfo(message);
 }
 
 #ifdef PV_USE_CUDA

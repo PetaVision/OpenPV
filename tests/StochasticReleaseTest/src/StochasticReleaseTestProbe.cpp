@@ -30,23 +30,25 @@ void StochasticReleaseTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
    requireType(BufActivity);
 }
 
-int StochasticReleaseTestProbe::communicateInitInfo() {
-   int status = StatsProbe::communicateInitInfo();
+int StochasticReleaseTestProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+   int status = StatsProbe::communicateInitInfo(message);
    FatalIf(!(getTargetLayer()), ": %s did not set target layer.\n", getDescription_c());
    FatalIf(
          conn != nullptr,
          ": %s, communicateInitInfo called with connection already set.\n",
          getDescription_c());
-   int numconns = getParent()->numberOfConnections();
-   for (int c = 0; c < numconns; c++) {
-      BaseConnection *baseConn = getParent()->getConnection(c);
-      if (!strcmp(baseConn->getPostLayerName(), getTargetLayer()->getName())) {
+   for (auto &obj : message->mHierarchy) {
+      HyPerConn *hyperconn = dynamic_cast<HyPerConn *>(obj.second);
+      if (hyperconn == nullptr) {
+         continue;
+      }
+      if (!strcmp(hyperconn->getPostLayerName(), getTargetLayer()->getName())) {
          FatalIf(
                conn != nullptr,
                ": %s cannot have more than one connnection going to target %s.\n",
                getDescription_c(),
                getTargetLayer()->getName());
-         conn = dynamic_cast<HyPerConn *>(baseConn);
+         conn = hyperconn;
       }
    }
    FatalIf(
@@ -105,8 +107,8 @@ int StochasticReleaseTestProbe::outputState(double timed) {
          timed);
    if (timed > 0.0) {
       computePValues();
-      if (getParent()->getCommunicator()->commRank() == 0
-          && timed + 0.5 * getParent()->getDeltaTime() >= getParent()->getStopTime()) {
+      if (parent->getCommunicator()->commRank() == 0
+          && timed + 0.5 * parent->getDeltaTime() >= parent->getStopTime()) {
          // This is the last timestep
          // sort the p-values and apply Holm-Bonferroni method since there is one for each timestep
          // and each feature.
@@ -199,13 +201,8 @@ void StochasticReleaseTestProbe::computePValues() {
       }
       HyPerLayer *l = getTargetLayer();
       MPI_Allreduce(
-            MPI_IN_PLACE,
-            &nnzf,
-            1,
-            MPI_INT,
-            MPI_SUM,
-            getParent()->getCommunicator()->communicator());
-      if (getParent()->getCommunicator()->commRank() == 0) {
+            MPI_IN_PLACE, &nnzf, 1, MPI_INT, MPI_SUM, parent->getCommunicator()->communicator());
+      if (parent->getCommunicator()->commRank() == 0) {
          const int neuronsPerFeature = l->getNumGlobalNeurons() / nf;
          double mean                 = preact * neuronsPerFeature;
          double stddev               = sqrt(neuronsPerFeature * preact * (1 - preact));

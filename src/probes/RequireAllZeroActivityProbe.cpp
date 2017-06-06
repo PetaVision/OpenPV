@@ -60,7 +60,7 @@ int RequireAllZeroActivityProbe::outputState(double timed) {
    if (status != PV_SUCCESS) {
       Fatal() << getDescription() << ": StatsProbe::outputState failed at time " << timed << ".\n";
    }
-   for (int b = 0; b < getParent()->getNBatch(); b++) {
+   for (int b = 0; b < parent->getNBatch(); b++) {
       if (nnz[b] != 0) {
          if (!nonzeroFound) {
             nonzeroTime = timed;

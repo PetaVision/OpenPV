@@ -32,8 +32,8 @@ int RunningAverageLayer::initialize(const char *name, HyPerCol *hc) {
    return status_init;
 }
 
-int RunningAverageLayer::communicateInitInfo() {
-   int status = CloneVLayer::communicateInitInfo();
+int RunningAverageLayer::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+   int status = CloneVLayer::communicateInitInfo(message);
    // CloneVLayer sets originalLayer and errors out if originalLayerName is not valid
    return status;
 }

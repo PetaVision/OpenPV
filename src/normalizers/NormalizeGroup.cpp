@@ -42,7 +42,7 @@ void NormalizeGroup::ioParam_normalizeGroupName(enum ParamsIOFlag ioFlag) {
          ioFlag, name, "normalizeGroupName", &normalizeGroupName);
 }
 
-int NormalizeGroup::communicateInitInfo() {
+int NormalizeGroup::communicateInitInfo(CommunicateInitInfoMessage const *message) {
    groupHead = parent->getNormalizerFromName(normalizeGroupName);
    if (groupHead == nullptr) {
       if (parent->columnId() == 0) {
@@ -54,7 +54,8 @@ int NormalizeGroup::communicateInitInfo() {
       MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
-   HyPerConn *conn = getTargetConn();
+   HyPerConn *conn = message->lookup<HyPerConn>(std::string(name));
+   pvAssertMessage(conn != nullptr, "No connection \"%s\" for %s.\n", name, getDescription_c());
    return groupHead->addConnToList(conn);
 }
 

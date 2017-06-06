@@ -52,7 +52,7 @@ int InitRandomWeights::initRNGs(bool isKernel) {
       Fatal().printf(
             "InitRandomWeights error in rank %d process: unable to create object of class "
             "Random.\n",
-            callingConn->getParent()->columnId());
+            parent->columnId());
    }
    return status;
 }

@@ -96,10 +96,10 @@ void MaskLayer::ioParam_featureIdxs(enum ParamsIOFlag ioFlag) {
    }
 }
 
-int MaskLayer::communicateInitInfo() {
-   int status = ANNLayer::communicateInitInfo();
+int MaskLayer::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+   int status = ANNLayer::communicateInitInfo(message);
    if (strcmp(maskMethod, "layer") == 0 || strcmp(maskMethod, "invertLayer") == 0) {
-      maskLayer = parent->getLayerFromName(maskLayerName);
+      maskLayer = message->lookup<HyPerLayer>(std::string(maskLayerName));
       if (maskLayer == NULL) {
          if (parent->columnId() == 0) {
             ErrorLog().printf(

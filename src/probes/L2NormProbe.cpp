@@ -57,7 +57,7 @@ int L2NormProbe::setNormDescription() {
 };
 
 double L2NormProbe::getValueInternal(double timevalue, int index) {
-   if (index < 0 || index >= getParent()->getNBatch()) {
+   if (index < 0 || index >= parent->getNBatch()) {
       return PV_FAILURE;
    }
    PVLayerLoc const *loc = getTargetLayer()->getLayerLoc();

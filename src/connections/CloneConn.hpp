@@ -19,12 +19,12 @@ class CloneConn : public HyPerConn {
    CloneConn(const char *name, HyPerCol *hc);
    virtual ~CloneConn();
 
-   virtual int communicateInitInfo();
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message);
 
    virtual int updateState(double time, double dt);
 
    virtual int writeWeights(double time) { return PV_SUCCESS; }
-   virtual int writeWeights(const char *filename) { return PV_SUCCESS; }
+   virtual int writeWeights(const char *filename, bool verifyWrites) override { return PV_SUCCESS; }
    virtual int outputState(double time) { return PV_SUCCESS; }
 
    HyPerConn *getOriginalConn() { return originalConn; }

@@ -195,21 +195,21 @@ void BaseProbe::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
    }
 }
 
-int BaseProbe::initOutputStream(const char *filename) {
-   if (parent->columnId() == 0) {
+int BaseProbe::initOutputStream(const char *filename, Checkpointer *checkpointer) {
+   pvAssert(getMPIBlock());
+   if (getMPIBlock()->getRank() == 0) {
       if (filename != NULL) {
          std::string path("");
          if (filename[0] != '/') {
-            path += parent->getOutputPath();
+            path = checkpointer->makeOutputPathFilename(path);
             path += "/";
          }
          path += filename;
-         bool append                  = parent->getCheckpointReadFlag();
          std::ios_base::openmode mode = std::ios_base::out;
-         if (append) {
+         if (!checkpointer->getCheckpointReadDirectory().empty()) {
             mode |= std::ios_base::app;
          }
-         outputStream  = new FileStream(path.c_str(), mode, parent->getVerifyWrites());
+         outputStream  = new FileStream(path.c_str(), mode, checkpointer->doesVerifyWrites());
          writingToFile = true;
       }
       else {
@@ -218,12 +218,11 @@ int BaseProbe::initOutputStream(const char *filename) {
       }
    }
    else {
-      outputStream = NULL; // Only root process writes; if other processes need
-      // something written it
+      outputStream = NULL;
+      // Only root process writes; if other processes need something written it
       // should be sent to root.
       // Derived classes for which it makes sense for a different process to do
-      // the file i/o should
-      // override initOutputStream
+      // the file i/o should override initOutputStream
    }
    return PV_SUCCESS;
 }
@@ -251,12 +250,12 @@ int BaseProbe::setNumValues(int n) {
    return status;
 }
 
-int BaseProbe::communicateInitInfo() {
+int BaseProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
    int status = PV_SUCCESS;
 
    // Set up triggering.
    if (triggerFlag) {
-      triggerLayer = parent->getLayerFromName(triggerLayerName);
+      triggerLayer = message->lookup<HyPerLayer>(std::string(triggerLayerName));
       if (triggerLayer == NULL) {
          if (parent->columnId() == 0) {
             ErrorLog().printf(
@@ -272,32 +271,22 @@ int BaseProbe::communicateInitInfo() {
 
    // Add the probe to the ColumnEnergyProbe, if there is one.
    if (energyProbe && energyProbe[0]) {
-      BaseProbe *baseprobe     = getParent()->getBaseProbeFromName(energyProbe);
-      ColumnEnergyProbe *probe = dynamic_cast<ColumnEnergyProbe *>(baseprobe);
+      ColumnEnergyProbe *probe = message->lookup<ColumnEnergyProbe>(std::string(energyProbe));
       if (probe == NULL) {
-         if (getParent()->columnId() == 0) {
+         if (parent->columnId() == 0) {
             ErrorLog().printf(
                   "%s \"%s\": energyProbe \"%s\" is not a ColumnEnergyProbe in the "
                   "column.\n",
-                  getParent()->parameters()->groupKeywordFromName(getName()),
+                  parent->parameters()->groupKeywordFromName(getName()),
                   getName(),
                   energyProbe);
          }
-         MPI_Barrier(getParent()->getCommunicator()->communicator());
+         MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
       status = probe->addTerm(this);
    }
    return status;
-}
-
-int BaseProbe::allocateDataStructures() {
-   int status = PV_SUCCESS;
-
-   // Set up output stream
-   status = initOutputStream(probeOutputFilename);
-
-   return PV_SUCCESS;
 }
 
 int BaseProbe::initMessage(const char *msg) {
@@ -336,6 +325,14 @@ bool BaseProbe::needUpdate(double simTime, double dt) {
       return triggerLayer->needUpdate(simTime + triggerOffset, dt);
    }
    return true;
+}
+
+int BaseProbe::registerData(Checkpointer *checkpointer) {
+   int status = BaseObject::registerData(checkpointer);
+   if (status == PV_SUCCESS) {
+      int status = initOutputStream(probeOutputFilename, checkpointer);
+   }
+   return status;
 }
 
 int BaseProbe::getValues(double timevalue) {

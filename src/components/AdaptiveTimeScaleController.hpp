@@ -34,8 +34,7 @@ class AdaptiveTimeScaleController : public CheckpointerDataInterface {
          double growthFactor,
          bool writeTimeScales,
          bool writeTimeScaleFieldnames,
-         Communicator *comm,
-         bool verifyWrites);
+         Communicator *comm);
    virtual ~AdaptiveTimeScaleController();
    virtual int registerData(Checkpointer *checkpointer) override;
    virtual std::vector<double>
@@ -56,7 +55,6 @@ class AdaptiveTimeScaleController : public CheckpointerDataInterface {
    bool mWriteTimeScales;
    bool mWriteTimeScaleFieldnames;
    Communicator *mCommunicator;
-   bool mVerifyWrites;
 
    TimeScaleInfo mTimeScaleInfo, mOldTimeScaleInfo;
    std::vector<double> mOldTimeScale;

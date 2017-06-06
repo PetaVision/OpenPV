@@ -11,14 +11,9 @@ namespace PV {
 
 NormalizeBase::NormalizeBase() { initialize_base(); }
 
-NormalizeBase::~NormalizeBase() {
-   free(connectionList); // normalizer does not own the individual connections in the list, so don't
-   // free them
-}
+NormalizeBase::~NormalizeBase() {}
 
 int NormalizeBase::initialize_base() {
-   connectionList              = NULL;
-   numConnections              = 0;
    strength                    = 1.0f;
    normalizeArborsIndividually = false;
    normalizeOnInitialize       = true;
@@ -34,10 +29,8 @@ int NormalizeBase::initialize(const char *name, HyPerCol *hc) {
    // name is the name of a group in the PVParams object.  Parameters related to normalization
    // should be in the indicated group.
 
-   int status           = BaseObject::initialize(name, hc);
-   this->connectionList = NULL;
-   this->numConnections = 0;
-   status               = hc->addNormalizer(this);
+   int status = BaseObject::initialize(name, hc);
+   status     = hc->addNormalizer(this);
    return status;
 }
 
@@ -92,14 +85,11 @@ void NormalizeBase::ioParam_normalizeOnWeightUpdate(enum ParamsIOFlag ioFlag) {
          normalizeOnWeightUpdate);
 }
 
-int NormalizeBase::communicateInitInfo() { return addConnToList(getTargetConn()); }
-
-HyPerConn *NormalizeBase::getTargetConn() {
-   BaseConnection *baseConn = parent->getConnFromName(name);
-   HyPerConn *targetConn    = dynamic_cast<HyPerConn *>(baseConn);
-   pvAssertMessage(
-         targetConn, "%s: target connection \"%s\" is not a HyPerConn\n", getDescription_c(), name);
-   return targetConn;
+int NormalizeBase::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+   HyPerConn *conn = message->lookup<HyPerConn>(std::string(name));
+   pvAssertMessage(conn != nullptr, "No connection \"%s\" for %s.\n", name, getDescription_c());
+   pvAssert(conn != nullptr);
+   return addConnToList(conn);
 }
 
 int NormalizeBase::normalizeWeightsWrapper() {
@@ -113,9 +103,8 @@ int NormalizeBase::normalizeWeightsWrapper() {
       needUpdate = false;
    }
    else {
-      for (int k = 0; k < this->numConnections; k++) {
-         HyPerConn *callingConn = connectionList[k];
-         if (simTime == callingConn->getLastUpdateTime()) {
+      for (auto &c : connectionList) {
+         if (simTime == c->getLastUpdateTime()) {
             needUpdate = true;
          }
       }
@@ -129,8 +118,7 @@ int NormalizeBase::normalizeWeightsWrapper() {
 
 int NormalizeBase::normalizeWeights() {
    int status = PV_SUCCESS;
-   for (int c = 0; c < numConnections; c++) {
-      HyPerConn *conn = connectionList[c];
+   for (auto &c : connectionList) {
    }
    return status;
 }
@@ -247,25 +235,7 @@ int NormalizeBase::accumulateMin(float *dataPatchStart, int weights_in_patch, fl
 }
 
 int NormalizeBase::addConnToList(HyPerConn *newConn) {
-   HyPerConn **newList = NULL;
-   if (connectionList) {
-      newList =
-            (HyPerConn **)realloc(connectionList, sizeof(*connectionList) * (numConnections + 1));
-   }
-   else {
-      newList = (HyPerConn **)malloc(sizeof(*connectionList) * (numConnections + 1));
-   }
-   if (newList == NULL) {
-      Fatal().printf(
-            "%s unable to add %s as connection number %d : %s\n",
-            getDescription_c(),
-            newConn->getDescription_c(),
-            numConnections + 1,
-            strerror(errno));
-   }
-   connectionList                 = newList;
-   connectionList[numConnections] = newConn;
-   numConnections++;
+   connectionList.push_back(newConn);
    if (parent->columnId() == 0) {
       InfoLog().printf(
             "Adding %s to normalizer group \"%s\".\n",

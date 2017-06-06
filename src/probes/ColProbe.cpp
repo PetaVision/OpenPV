@@ -31,7 +31,7 @@ int ColProbe::initialize_base() {
 int ColProbe::initialize(const char *probeName, HyPerCol *hc) {
    int status = BaseProbe::initialize(probeName, hc);
    if (status == PV_SUCCESS) {
-      this->getParent()->insertProbe(this);
+      this->parent->insertProbe(this);
    }
    return status;
 }
@@ -43,20 +43,20 @@ int ColProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 
 void ColProbe::ioParam_targetName(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
-      targetName = strdup(this->getParent()->getName());
+      targetName = strdup("");
    }
 }
 
-int ColProbe::initOutputStream(const char *filename) {
-   int status = BaseProbe::initOutputStream(filename);
+int ColProbe::initOutputStream(const char *filename, Checkpointer *checkpointer) {
+   int status = BaseProbe::initOutputStream(filename, checkpointer);
    if (status != PV_SUCCESS) {
       status = outputHeader();
    }
    return status;
 }
 
-int ColProbe::communicateInitInfo() {
-   int status = BaseProbe::communicateInitInfo();
+int ColProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+   int status = BaseProbe::communicateInitInfo(message);
    return status;
 }
 

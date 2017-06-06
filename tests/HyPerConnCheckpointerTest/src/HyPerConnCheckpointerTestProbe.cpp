@@ -39,25 +39,26 @@ void HyPerConnCheckpointerTestProbe::ioParam_textOutputFlag(enum PV::ParamsIOFla
    }
 }
 
-int HyPerConnCheckpointerTestProbe::communicateInitInfo() {
-   int status = PV::ColProbe::communicateInitInfo();
+int HyPerConnCheckpointerTestProbe::communicateInitInfo(
+      PV::CommunicateInitInfoMessage const *message) {
+   int status = PV::ColProbe::communicateInitInfo(message);
    FatalIf(
          status != PV_SUCCESS, "%s failed in ColProbe::communicateInitInfo\n", getDescription_c());
 
-   if (initInputLayer() == PV_POSTPONE) {
+   if (initInputLayer(message) == PV_POSTPONE) {
       return PV_POSTPONE;
    }
-   if (initOutputLayer() == PV_POSTPONE) {
+   if (initOutputLayer(message) == PV_POSTPONE) {
       return PV_POSTPONE;
    }
-   if (initConnection() == PV_POSTPONE) {
+   if (initConnection(message) == PV_POSTPONE) {
       return PV_POSTPONE;
    }
    return status;
 }
 
-int HyPerConnCheckpointerTestProbe::initInputLayer() {
-   mInputLayer = dynamic_cast<PV::InputLayer *>(parent->getLayerFromName("Input"));
+int HyPerConnCheckpointerTestProbe::initInputLayer(PV::CommunicateInitInfoMessage const *message) {
+   mInputLayer = message->lookup<PV::InputLayer>(std::string("Input"));
    FatalIf(mInputLayer == nullptr, "column does not have an InputLayer named \"Input\".\n");
    if (checkCommunicatedFlag(mInputLayer) == PV_POSTPONE) {
       return PV_POSTPONE;
@@ -69,8 +70,8 @@ int HyPerConnCheckpointerTestProbe::initInputLayer() {
    return PV_SUCCESS;
 }
 
-int HyPerConnCheckpointerTestProbe::initOutputLayer() {
-   mOutputLayer = parent->getLayerFromName("Output");
+int HyPerConnCheckpointerTestProbe::initOutputLayer(PV::CommunicateInitInfoMessage const *message) {
+   mOutputLayer = message->lookup<PV::HyPerLayer>(std::string("Output"));
    FatalIf(mOutputLayer == nullptr, "column does not have a HyPerLayer named \"Output\".\n");
    if (checkCommunicatedFlag(mOutputLayer) == PV_POSTPONE) {
       return PV_POSTPONE;
@@ -78,8 +79,8 @@ int HyPerConnCheckpointerTestProbe::initOutputLayer() {
    return PV_SUCCESS;
 }
 
-int HyPerConnCheckpointerTestProbe::initConnection() {
-   mConnection = dynamic_cast<PV::HyPerConn *>(parent->getConnFromName("InputToOutput"));
+int HyPerConnCheckpointerTestProbe::initConnection(PV::CommunicateInitInfoMessage const *message) {
+   mConnection = message->lookup<PV::HyPerConn>(std::string("InputToOutput"));
    FatalIf(mConnection == nullptr, "column does not have a HyPerConn named \"InputToOutput\".\n");
    if (checkCommunicatedFlag(mConnection) == PV_POSTPONE) {
       return PV_POSTPONE;

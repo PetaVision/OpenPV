@@ -53,7 +53,7 @@ class ColProbe : public BaseProbe {
     * probe)
     * and then attaches to the parent HyPerCol by calling parent->insertProbe().
     */
-   virtual int communicateInitInfo();
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message);
 
    /**
     * The virtual method for outputting the quantities measured by the ColProbe.
@@ -93,17 +93,16 @@ class ColProbe : public BaseProbe {
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief targetName: ColProbe overrides targetName since the only possible
-    * target
-    * is the parent HyPerCol.  On reading, it sets targetName.  Parameters are
-    * neither read nor written by this method.
+    * @brief targetName: ColProbe sets targetName to the empty string,
+    * since the only possible target is the parent HyPerCol. The targenName
+    * parameter is neither read nor written by this method.
     */
    virtual void ioParam_targetName(enum ParamsIOFlag ioFlag);
 
    /**
     * Calls BaseProbe::initOutputStream and then calls outputHeader()
     */
-   virtual int initOutputStream(const char *filename);
+   virtual int initOutputStream(const char *filename, Checkpointer *checkpointer);
 
    /**
     * Called by initialize_stream after opening the stream member variable.

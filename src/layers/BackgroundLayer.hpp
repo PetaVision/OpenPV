@@ -19,7 +19,7 @@ class BackgroundLayer : public CloneVLayer {
   public:
    BackgroundLayer(const char *name, HyPerCol *hc);
    virtual ~BackgroundLayer();
-   virtual int communicateInitInfo();
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message);
    virtual int allocateV();
    virtual int updateState(double timef, double dt);
    virtual int setActivity();

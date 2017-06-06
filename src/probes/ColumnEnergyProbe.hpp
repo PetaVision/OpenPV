@@ -84,7 +84,7 @@ class ColumnEnergyProbe : public ColProbe {
     */
    int initializeColumnEnergyProbe(const char *probename, HyPerCol *hc);
 
-   virtual int initOutputStream(const char *filename) override;
+   virtual int initOutputStream(const char *filename, Checkpointer *checkpointer) override;
 
    virtual int registerData(Checkpointer *checkpointer) override;
 

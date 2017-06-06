@@ -21,7 +21,7 @@ class BaseConnectionProbe : public BaseProbe {
    BaseConnectionProbe(const char *probeName, HyPerCol *hc);
    virtual ~BaseConnectionProbe();
 
-   virtual int communicateInitInfo();
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message);
 
    BaseConnection *getTargetConn() { return targetConn; }
 
@@ -33,7 +33,6 @@ class BaseConnectionProbe : public BaseProbe {
 
   private:
    int initialize_base();
-   int setTargetConn(const char *connName);
 
    // Member Variables
   protected:

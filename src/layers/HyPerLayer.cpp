@@ -631,7 +631,7 @@ int HyPerLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerLayer::ioParam_dataType(enum ParamsIOFlag ioFlag) {
-   this->getParent()->parameters()->ioParamString(
+   this->parent->parameters()->ioParamString(
          ioFlag, this->getName(), "dataType", &dataTypeString, NULL, false /*warnIfAbsent*/);
    if (dataTypeString == NULL) {
       // Default value
@@ -703,16 +703,13 @@ void HyPerLayer::ioParam_valueBC(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerLayer::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
-   assert(parent->getInitializeFromCheckpointDir());
-   if (parent->getInitializeFromCheckpointDir() && parent->getInitializeFromCheckpointDir()[0]) {
-      parent->parameters()->ioParamValue(
-            ioFlag,
-            name,
-            "initializeFromCheckpointFlag",
-            &initializeFromCheckpointFlag,
-            parent->getDefaultInitializeFromCheckpointFlag(),
-            true /*warnIfAbsent*/);
-   }
+   parent->parameters()->ioParamValue(
+         ioFlag,
+         name,
+         "initializeFromCheckpointFlag",
+         &initializeFromCheckpointFlag,
+         initializeFromCheckpointFlag,
+         true /*warnIfAbsent*/);
 }
 
 void HyPerLayer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
@@ -1030,7 +1027,7 @@ int HyPerLayer::respondLayerPublish(LayerPublishMessage const *message) {
    if (message->mPhase != getPhase()) {
       return status;
    }
-   publish(getParent()->getCommunicator(), message->mTime);
+   publish(parent->getCommunicator(), message->mTime);
    return status;
 }
 
@@ -1132,7 +1129,7 @@ int HyPerLayer::allocateDeviceBuffers() {
 
 #endif // PV_USE_CUDA
 
-int HyPerLayer::communicateInitInfo() {
+int HyPerLayer::communicateInitInfo(CommunicateInitInfoMessage const *message) {
    // HyPerLayers need to tell the parent HyPerCol how many random number
    // seeds they need.  At the start of HyPerCol::run, the parent HyPerCol
    // calls each layer's communicateInitInfo() sequentially in a repeatable order
@@ -1148,7 +1145,7 @@ int HyPerLayer::communicateInitInfo() {
    // methods, HyPerLayer knows its marginWidth before it has to allocate
    // anything.  So the margin width does not have to be specified in params.
    if (triggerFlag) {
-      triggerLayer = parent->getLayerFromName(triggerLayerName);
+      triggerLayer = message->lookup<HyPerLayer>(std::string(triggerLayerName));
       if (triggerLayer == NULL) {
          if (parent->columnId() == 0) {
             ErrorLog().printf(
@@ -1169,7 +1166,7 @@ int HyPerLayer::communicateInitInfo() {
          }
          else {
             resetLayerName    = triggerResetLayerName;
-            triggerResetLayer = parent->getLayerFromName(triggerResetLayerName);
+            triggerResetLayer = message->lookup<HyPerLayer>(std::string(triggerResetLayerName));
             if (triggerResetLayer == NULL) {
                if (parent->columnId() == 0) {
                   ErrorLog().printf(
@@ -1222,6 +1219,31 @@ int HyPerLayer::communicateInitInfo() {
    int status = PV_SUCCESS;
 
    return status;
+}
+
+void HyPerLayer::addRecvConn(BaseConnection *conn) {
+   FatalIf(
+         conn->postSynapticLayer() != this,
+         "%s called addRecvConn for %s, but \"%s\" is not the post-synaptic layer for \"%s\"\n.",
+         conn->getDescription_c(),
+         getDescription_c(),
+         getName(),
+         conn->getName());
+#ifdef PV_USE_CUDA
+   // CPU connections must run first to avoid race conditions
+   if (!conn->getReceiveGpu()) {
+      recvConns.insert(recvConns.begin(), conn);
+   }
+   // Otherwise, add to the back. If no gpus at all, just add to back
+   else
+#endif
+   {
+      recvConns.push_back(conn);
+#ifdef PV_USE_CUDA
+      // If it is receiving from gpu, set layer flag as such
+      recvGpu = true;
+#endif
+   }
 }
 
 int HyPerLayer::openOutputStateFile(Checkpointer *checkpointer) {
@@ -1286,7 +1308,7 @@ int HyPerLayer::equalizeMargins(HyPerLayer *layer1, HyPerLayer *layer2) {
       Fatal().printf(
             "Error in rank %d process: unable to synchronize x-margin widths of layers \"%s\" and "
             "\"%s\" to %d\n",
-            layer1->getParent()->columnId(),
+            layer1->parent->columnId(),
             layer1->getName(),
             layer2->getName(),
             maxborder);
@@ -1313,7 +1335,7 @@ int HyPerLayer::equalizeMargins(HyPerLayer *layer1, HyPerLayer *layer2) {
       Fatal().printf(
             "Error in rank %d process: unable to synchronize y-margin widths of layers \"%s\" and "
             "\"%s\" to %d\n",
-            layer1->getParent()->columnId(),
+            layer1->parent->columnId(),
             layer1->getName(),
             layer2->getName(),
             maxborder);
@@ -1423,7 +1445,7 @@ int HyPerLayer::allocateDataStructures() {
       Fatal().printf(
             "%s unable to allocate device memory in rank %d process: %s\n",
             getDescription_c(),
-            getParent()->columnId(),
+            parent->columnId(),
             strerror(errno));
    }
    if (updateGpu) {
@@ -1434,32 +1456,6 @@ int HyPerLayer::allocateDataStructures() {
       }
    }
 #endif
-
-   // Make a data structure that stores the connections (in order of execution) this layer needs to
-   // recv from
-   // CPU connections must run first to avoid race conditions
-   int numConnections = parent->numberOfConnections();
-   for (int c = 0; c < numConnections; c++) {
-      BaseConnection *baseConn = parent->getConnection(c);
-      HyPerConn *conn          = dynamic_cast<HyPerConn *>(baseConn);
-      if (conn->postSynapticLayer() != this)
-         continue;
-#ifdef PV_USE_CUDA
-      // If not recv from gpu, execute first
-      if (!conn->getReceiveGpu()) {
-         recvConns.insert(recvConns.begin(), conn);
-      }
-      // Otherwise, add to the back. If no gpus at all, just add to back
-      else
-#endif
-      {
-         recvConns.push_back(conn);
-#ifdef PV_USE_CUDA
-         // If it is receiving from gpu, set layer flag as such
-         recvGpu = true;
-#endif
-      }
-   }
 
    addPublisher();
 

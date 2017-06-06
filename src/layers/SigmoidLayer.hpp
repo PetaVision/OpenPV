@@ -18,7 +18,7 @@ class SigmoidLayer : public CloneVLayer {
   public:
    SigmoidLayer(const char *name, HyPerCol *hc);
    virtual ~SigmoidLayer();
-   virtual int communicateInitInfo();
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message);
    virtual int allocateDataStructures();
    virtual int updateState(double timef, double dt);
    virtual int setActivity();

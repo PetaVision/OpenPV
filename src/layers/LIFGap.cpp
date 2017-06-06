@@ -144,12 +144,12 @@ int LIFGap::allocateConductances(int num_channels) {
 int LIFGap::calcGapStrength() {
    bool needsNewCalc = !gapStrengthInitialized;
    if (!needsNewCalc) {
-      for (int c = 0; c < parent->numberOfConnections(); c++) {
-         HyPerConn *conn = dynamic_cast<HyPerConn *>(parent->getConnection(c));
-         if (conn->postSynapticLayer() != this || conn->getChannel() != CHANNEL_GAP) {
+      for (auto &c : recvConns) {
+         HyPerConn *conn = dynamic_cast<HyPerConn *>(c);
+         if (conn != nullptr) {
             continue;
          }
-         if (mLastUpdateTime < conn->getLastUpdateTime()) {
+         if (conn->getChannel() == CHANNEL_GAP and mLastUpdateTime < conn->getLastUpdateTime()) {
             needsNewCalc = true;
             break;
          }
@@ -162,11 +162,12 @@ int LIFGap::calcGapStrength() {
    for (int k = 0; k < getNumNeuronsAllBatches(); k++) {
       gapStrength[k] = (float)0;
    }
-   for (int c = 0; c < parent->numberOfConnections(); c++) {
-      HyPerConn *conn = dynamic_cast<HyPerConn *>(parent->getConnection(c));
-      if (conn->postSynapticLayer() != this || conn->getChannel() != CHANNEL_GAP) {
+   for (auto &c : recvConns) {
+      HyPerConn *conn = dynamic_cast<HyPerConn *>(c);
+      if (conn == nullptr or conn->getChannel() != CHANNEL_GAP) {
          continue;
       }
+      pvAssert(conn->postSynapticLayer() == this);
       if (conn->getPlasticityFlag() && parent->columnId() == 0) {
          WarnLog().printf(
                "%s: %s on CHANNEL_GAP has plasticity flag set to true\n",

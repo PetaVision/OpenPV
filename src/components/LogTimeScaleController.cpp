@@ -13,7 +13,6 @@ LogTimeScaleController::LogTimeScaleController(
       bool writeTimeScales,
       bool writeTimeScaleFieldnames,
       Communicator *comm,
-      bool verifyWrites,
       double logThresh,
       double logSlope)
       : AdaptiveTimeScaleController(
@@ -25,8 +24,7 @@ LogTimeScaleController::LogTimeScaleController(
               growthFactor,
               writeTimeScales,
               writeTimeScaleFieldnames,
-              comm,
-              verifyWrites) {
+              comm) {
    mLogThresh = logThresh;
    mLogSlope  = -(logThresh - mBaseMax) / log(logSlope);
 }

@@ -27,7 +27,7 @@ StatsProbe::StatsProbe() : LayerProbe() {
 }
 
 StatsProbe::~StatsProbe() {
-   int rank = getParent()->columnId();
+   int rank = parent->columnId();
    if (rank == 0 and outputStream) {
       iotimer->fprint_time(output());
       mpitimer->fprint_time(output());
@@ -97,7 +97,7 @@ int StatsProbe::initStatsProbe(const char *probeName, HyPerCol *hc) {
 }
 
 void StatsProbe::resetStats() {
-   for (int b = 0; b < getParent()->getNBatch(); b++) {
+   for (int b = 0; b < parent->getNBatch(); b++) {
       fMin[b]  = FLT_MAX;
       fMax[b]  = -FLT_MAX;
       sum[b]   = 0.0f;
@@ -116,7 +116,7 @@ int StatsProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void StatsProbe::requireType(PVBufType requiredType) {
-   PVParams *params = getParent()->parameters();
+   PVParams *params = parent->parameters();
    if (params->stringPresent(getName(), "buffer")) {
       params->handleUnnecessaryStringParameter(getName(), "buffer");
       StatsProbe::ioParam_buffer(PARAMS_IO_READ);
@@ -128,7 +128,7 @@ void StatsProbe::requireType(PVBufType requiredType) {
             default: assert(0); break;
          }
          if (type != BufV) {
-            if (getParent()->columnId() == 0) {
+            if (parent->columnId() == 0) {
                ErrorLog().printf(
                      "   Value \"%s\" is inconsistent with allowed values %s.\n",
                      params->stringValue(getName(), "buffer"),
@@ -150,7 +150,7 @@ void StatsProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
          case BufActivity: buffer = strdup("Activity");
       }
    }
-   getParent()->parameters()->ioParamString(
+   parent->parameters()->ioParamString(
          ioFlag, getName(), "buffer", &buffer, "Activity", true /*warnIfAbsent*/);
    if (ioFlag == PARAMS_IO_READ) {
       assert(buffer);
@@ -165,14 +165,13 @@ void StatsProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
          type = BufActivity;
       }
       else {
-         if (getParent()->columnId() == 0) {
-            const char *bufnameinparams =
-                  getParent()->parameters()->stringValue(getName(), "buffer");
+         if (parent->columnId() == 0) {
+            const char *bufnameinparams = parent->parameters()->stringValue(getName(), "buffer");
             assert(bufnameinparams);
             ErrorLog().printf(
                   "%s: buffer \"%s\" is not recognized.\n", getDescription_c(), bufnameinparams);
          }
-         MPI_Barrier(getParent()->getCommunicator()->communicator());
+         MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
    }
@@ -181,12 +180,13 @@ void StatsProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
 }
 
 void StatsProbe::ioParam_nnzThreshold(enum ParamsIOFlag ioFlag) {
-   getParent()->parameters()->ioParamValue(ioFlag, getName(), "nnzThreshold", &nnzThreshold, 0.0f);
+   parent->parameters()->ioParamValue(ioFlag, getName(), "nnzThreshold", &nnzThreshold, 0.0f);
 }
 
 int StatsProbe::initNumValues() { return setNumValues(-1); }
 
 int StatsProbe::registerData(Checkpointer *checkpointer) {
+   LayerProbe::registerData(checkpointer);
    checkpointer->registerTimer(iotimer);
    checkpointer->registerTimer(mpitimer);
    checkpointer->registerTimer(comptimer);
@@ -195,7 +195,7 @@ int StatsProbe::registerData(Checkpointer *checkpointer) {
 
 int StatsProbe::outputState(double timed) {
 #ifdef PV_USE_MPI
-   Communicator *icComm = getTargetLayer()->getParent()->getCommunicator();
+   Communicator *icComm = parent->getCommunicator();
    MPI_Comm comm        = icComm->communicator();
    int rank             = icComm->commRank();
    const int rcvProc    = 0;
@@ -207,7 +207,7 @@ int StatsProbe::outputState(double timed) {
 
    nk = getTargetLayer()->getNumNeurons();
 
-   int nbatch = getTargetLayer()->getParent()->getNBatch();
+   int nbatch = getTargetLayer()->getLayerLoc()->nbatch;
 
    switch (type) {
       case BufV:
