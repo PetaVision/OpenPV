@@ -13,10 +13,10 @@ namespace PV {
 template <typename T>
 class SparseList {
   public:
-   typedef struct {
+   struct Entry {
       uint32_t index;
       T value;
-   } Entry;
+   };
 
    SparseList() {}
    SparseList(const Buffer<T> &source, T zeroVal) { fromBuffer(source, zeroVal); }
