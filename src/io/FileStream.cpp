@@ -74,10 +74,10 @@ void FileStream::openFile(char const *path, std::ios_base::openmode mode, bool v
 }
 
 void FileStream::verifyFlags(const char *caller) {
-   FatalIf(mFStream.fail(), "%s: Logical error.\n", caller);
-   FatalIf(mFStream.bad(), "%s: Read / Write error.\n", caller);
-   FatalIf(writeable() && getOutPos() == -1, "%s: out pos == -1\n", caller);
-   FatalIf(readable() && getInPos() == -1, "%s: in pos == -1\n", caller);
+   FatalIf(mFStream.fail(), "%s %s: Logical error.\n", mFileName.c_str(), caller);
+   FatalIf(mFStream.bad(), "%s %s: Read / Write error.\n", mFileName.c_str(), caller);
+   FatalIf(writeable() && getOutPos() == -1, "%s %s: out pos == -1\n", mFileName.c_str(), caller);
+   FatalIf(readable() && getInPos() == -1, "%s %s: in pos == -1\n", mFileName.c_str(), caller);
 }
 
 void FileStream::write(void const *data, long length) {
@@ -85,7 +85,9 @@ void FileStream::write(void const *data, long length) {
    mFStream.write((char *)data, length);
    mFStream.flush();
 
-   verifyFlags("write");
+   std::string errmsg;
+   errmsg.append("writing ").append(std::to_string(length)).append(" bytes");
+   verifyFlags(errmsg.c_str());
    if (mVerifyWrites) {
       FatalIf(mWriteVerifier == nullptr, "Write Verifier is null.\n");
       // Set the input position to the location we wrote to
