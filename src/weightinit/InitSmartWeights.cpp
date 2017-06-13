@@ -26,46 +26,31 @@ int InitSmartWeights::initialize(char const *name, HyPerCol *hc) {
    return status;
 }
 
-int InitSmartWeights::calcWeights(
-      /* PVPatch * patch */ float *dataStart,
-      int patchIndex,
-      int arborId) {
+void InitSmartWeights::calcWeights(float *dataStart, int patchIndex, int arborId) {
    // smart weights doesn't have any params to load and is too simple to
    // actually need to save anything to work on...
 
-   smartWeights(dataStart, patchIndex, weightParams);
-   return PV_SUCCESS;
+   smartWeights(dataStart, patchIndex);
 }
 
-InitWeightsParams *InitSmartWeights::createNewWeightParams() {
-   InitWeightsParams *tempPtr = new InitWeightsParams(name, parent);
-   return tempPtr;
-}
+void InitSmartWeights::smartWeights(float *dataStart, int k) {
 
-int InitSmartWeights::smartWeights(
-      /* PVPatch * wp */ float *dataStart,
-      int k,
-      InitWeightsParams *weightParams) {
+   const int nxp = mCallingConn->xPatchSize();
+   const int nyp = mCallingConn->yPatchSize();
+   const int nfp = mCallingConn->fPatchSize();
 
-   const int nxp = weightParams->getnxPatch();
-   const int nyp = weightParams->getnyPatch();
-   const int nfp = weightParams->getnfPatch();
-
-   const int sxp = weightParams->getsx();
-   const int syp = weightParams->getsy();
-   const int sfp = weightParams->getsf();
+   const int sxp = mCallingConn->xPatchStride();
+   const int syp = mCallingConn->yPatchStride();
+   const int sfp = mCallingConn->fPatchStride();
 
    // loop over all post-synaptic cells in patch
    for (int y = 0; y < nyp; y++) {
       for (int x = 0; x < nxp; x++) {
          for (int f = 0; f < nfp; f++) {
-            dataStart[x * sxp + y * syp + f * sfp] =
-                  weightParams->getParentConn()->dataIndexToUnitCellIndex(k);
+            dataStart[x * sxp + y * syp + f * sfp] = mCallingConn->dataIndexToUnitCellIndex(k);
          }
       }
    }
-
-   return 0;
 }
 
 } /* namespace PV */

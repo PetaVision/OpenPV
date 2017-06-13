@@ -9,7 +9,6 @@
 #define INITSMARTWEIGHTS_HPP_
 
 #include "InitWeights.hpp"
-#include "InitWeightsParams.hpp"
 
 namespace PV {
 
@@ -19,16 +18,14 @@ class InitSmartWeights : public PV::InitWeights {
    InitSmartWeights();
    virtual ~InitSmartWeights();
 
-   virtual InitWeightsParams *createNewWeightParams();
-
-   virtual int calcWeights(/* PVPatch * patch */ float *dataStart, int patchIndex, int arborId);
+   virtual void calcWeights(float *dataStart, int patchIndex, int arborId) override;
 
   protected:
    int initialize(char const *name, HyPerCol *hc);
 
   private:
    int initialize_base();
-   int smartWeights(/* PVPatch * patch */ float *dataStart, int k, InitWeightsParams *weightParams);
+   void smartWeights(float *dataStart, int k);
 }; // class InitSmartWeights
 
 } /* namespace PV */

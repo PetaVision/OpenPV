@@ -11,8 +11,13 @@ namespace PV {
 
 InitRandomWeights::InitRandomWeights() { initialize_base(); }
 
+InitRandomWeights::~InitRandomWeights() {
+   delete mRandState;
+   mRandState = nullptr;
+}
+
 int InitRandomWeights::initialize_base() {
-   randState = NULL;
+   mRandState = nullptr;
    return PV_SUCCESS;
 }
 
@@ -21,15 +26,13 @@ int InitRandomWeights::initialize(char const *name, HyPerCol *hc) {
    return status;
 }
 
-int InitRandomWeights::calcWeights(float *dataStart, int dataPatchIndex, int arborId) {
-   return randomWeights(
-         dataStart,
-         weightParams,
-         dataPatchIndex); // RNG depends on dataPatchIndex but not on arborId.
+void InitRandomWeights::calcWeights(float *dataStart, int dataPatchIndex, int arborId) {
+   randomWeights(dataStart, dataPatchIndex);
+   // RNG depends on dataPatchIndex but not on arborId.
 }
 
 /*
- * Each data patch has a unique random state in the randState object.
+ * Each data patch has a unique random state in the mRandState object.
  * For kernels, the data patch is seeded according to its patch index.
  * For non-kernels, the data patch is seeded according to the global index of its presynaptic neuron
  * (which is in extended space)
@@ -40,26 +43,21 @@ int InitRandomWeights::calcWeights(float *dataStart, int dataPatchIndex, int arb
  *     will be identical.  Hence this implementation is independent of the MPI configuration.
  */
 int InitRandomWeights::initRNGs(bool isKernel) {
-   assert(randState == NULL);
+   assert(mRandState == nullptr);
    int status = PV_SUCCESS;
    if (isKernel) {
-      randState = new Random(callingConn->getNumDataPatches());
+      mRandState = new Random(mCallingConn->getNumDataPatches());
    }
    else {
-      randState = new Random(callingConn->preSynapticLayer()->getLayerLoc(), true /*isExtended*/);
+      mRandState = new Random(mCallingConn->preSynapticLayer()->getLayerLoc(), true /*isExtended*/);
    }
-   if (randState == NULL) {
+   if (mRandState == nullptr) {
       Fatal().printf(
             "InitRandomWeights error in rank %d process: unable to create object of class "
             "Random.\n",
             parent->columnId());
    }
    return status;
-}
-
-InitRandomWeights::~InitRandomWeights() {
-   delete randState;
-   randState = NULL;
 }
 
 } /* namespace PV */

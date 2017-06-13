@@ -6,7 +6,6 @@
  */
 
 #include "InitUniformRandomWeights.hpp"
-#include "InitUniformRandomWeightsParams.hpp"
 
 namespace PV {
 
@@ -26,75 +25,79 @@ int InitUniformRandomWeights::initialize(char const *name, HyPerCol *hc) {
    return status;
 }
 
-InitWeightsParams *InitUniformRandomWeights::createNewWeightParams() {
-   InitWeightsParams *tempPtr = new InitUniformRandomWeightsParams(name, parent);
-   return tempPtr;
+int InitUniformRandomWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = InitRandomWeights::ioParamsFillGroup(ioFlag);
+   ioParam_wMinInit(ioFlag);
+   ioParam_wMaxInit(ioFlag);
+   ioParam_sparseFraction(ioFlag);
+   ioParam_minNNZ(ioFlag);
+   return status;
+}
+
+void InitUniformRandomWeights::ioParam_wMinInit(enum ParamsIOFlag ioFlag) {
+   parent->parameters()->ioParamValue(ioFlag, name, "wMinInit", &mWMin, mWMin);
+}
+
+void InitUniformRandomWeights::ioParam_wMaxInit(enum ParamsIOFlag ioFlag) {
+   parent->parameters()->ioParamValue(ioFlag, name, "wMaxInit", &mWMax, mWMax);
+}
+
+void InitUniformRandomWeights::ioParam_sparseFraction(enum ParamsIOFlag ioFlag) {
+   parent->parameters()->ioParamValue(
+         ioFlag, name, "sparseFraction", &mSparseFraction, mSparseFraction);
+}
+
+void InitUniformRandomWeights::ioParam_minNNZ(enum ParamsIOFlag ioFlag) {
+   parent->parameters()->ioParamValue(ioFlag, name, "minNNZ", &mMinNNZ, mMinNNZ);
 }
 
 /**
  * randomWeights() fills the full-size patch with random numbers, whether or not the patch is
  * shrunken.
  */
-int InitUniformRandomWeights::randomWeights(
-      float *patchDataStart,
-      InitWeightsParams *weightParams,
-      int patchIndex) {
-
-   InitUniformRandomWeightsParams *weightParamPtr =
-         dynamic_cast<InitUniformRandomWeightsParams *>(weightParams);
-
-   if (weightParamPtr == NULL) {
-      Fatal().printf("Failed to recast pointer to weightsParam!  Exiting...");
-   }
-
-   double minwgt        = weightParamPtr->getWMin();
-   double maxwgt        = weightParamPtr->getWMax();
-   float sparseFraction = weightParamPtr->getSparseFraction();
-
+void InitUniformRandomWeights::randomWeights(float *patchDataStart, int patchIndex) {
    double p;
-   if (maxwgt <= minwgt) {
-      if (maxwgt < minwgt) {
+   if (mWMax <= mWMin) {
+      if (mWMax < mWMin) {
          WarnLog().printf(
                "uniformWeights maximum less than minimum.  Changing max = %f to min value of %f\n",
-               maxwgt,
-               minwgt);
-         maxwgt = minwgt;
+               (double)mWMax,
+               (double)mWMin);
+         mWMax = mWMin;
       }
-      p = 0;
+      p = 0.0;
    }
    else {
-      p = (maxwgt - minwgt) / (1.0 + (double)CL_RANDOM_MAX);
+      p = (double)(mWMax - mWMin) / (1.0 + (double)CL_RANDOM_MAX);
    }
-   sparseFraction *= (float)(1.0 + (double)CL_RANDOM_MAX);
+   float sparseFraction = mSparseFraction * (float)(1.0 + (double)CL_RANDOM_MAX);
 
    // loop over all post-synaptic cells in patch
 
-   const int nxp       = weightParamPtr->getnxPatch();
-   const int nyp       = weightParamPtr->getnyPatch();
-   const int nfp       = weightParamPtr->getnfPatch();
+   const int nxp       = mCallingConn->xPatchSize();
+   const int nyp       = mCallingConn->yPatchSize();
+   const int nfp       = mCallingConn->fPatchSize();
    const int patchSize = nxp * nyp * nfp;
 
    // Force a minimum number of nonzero weights
-   int zeroesLeft = patchSize - weightParamPtr->getMinNNZ();
+   int zeroesLeft = patchSize - mMinNNZ;
 
    // Start from a random index so that we don't always run out of zeros in the same place
    int startIndex = 0;
 
    // This line ensures we create the same weight patches for minNNZ = 0 as we did before
-   if (weightParamPtr->getMinNNZ() != 0) {
-      startIndex = randState->randomUInt(patchIndex) % patchSize;
+   if (mMinNNZ != 0) {
+      startIndex = mRandState->randomUInt(patchIndex) % patchSize;
    }
 
    for (int n = 0; n < patchSize; n++) {
-      float data = (float)(minwgt + (p * (double)randState->randomUInt(patchIndex)));
-      if (zeroesLeft > 0 && (double)randState->randomUInt(patchIndex) < (double)sparseFraction) {
+      float data = (mWMin + (float)(p * (double)mRandState->randomUInt(patchIndex)));
+      if (zeroesLeft > 0 && (double)mRandState->randomUInt(patchIndex) < (double)sparseFraction) {
          data = 0.0f;
          --zeroesLeft;
       }
       patchDataStart[(n + startIndex) % patchSize] = data;
    }
-
-   return PV_SUCCESS;
 }
 
 } /* namespace PV */

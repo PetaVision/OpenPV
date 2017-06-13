@@ -6,7 +6,6 @@
  */
 
 #include "InitIdentWeights.hpp"
-#include "InitIdentWeightsParams.hpp"
 
 namespace PV {
 
@@ -26,22 +25,9 @@ int InitIdentWeights::initialize(char const *name, HyPerCol *hc) {
    return status;
 }
 
-InitWeightsParams *InitIdentWeights::createNewWeightParams() {
-   InitWeightsParams *tempPtr = new InitIdentWeightsParams(name, parent);
-   return tempPtr;
-}
-
-int InitIdentWeights::calcWeights(float *dataStart, int patchIndex, int arborId) {
-
-   InitIdentWeightsParams *weightParamPtr = dynamic_cast<InitIdentWeightsParams *>(weightParams);
-
-   if (weightParamPtr == NULL) {
-      Fatal().printf("Failed to recast pointer to weightsParam!  Exiting...");
-   }
-
-   weightParamPtr->calcOtherParams(patchIndex);
-
-   return createOneToOneConnection(dataStart, patchIndex, 1, weightParamPtr);
+void InitIdentWeights::ioParam_weightInit(enum ParamsIOFlag ioFlag) {
+   mWeightInit = 1.0f;
+   parent->parameters()->handleUnnecessaryParameter(name, "weightInit", 1.0f);
 }
 
 } /* namespace PV */

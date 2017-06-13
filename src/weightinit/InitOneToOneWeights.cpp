@@ -6,7 +6,6 @@
  */
 
 #include "InitOneToOneWeights.hpp"
-#include "InitOneToOneWeightsParams.hpp"
 
 namespace PV {
 
@@ -26,42 +25,34 @@ int InitOneToOneWeights::initialize(char const *name, HyPerCol *hc) {
    return status;
 }
 
-InitWeightsParams *InitOneToOneWeights::createNewWeightParams() {
-   InitWeightsParams *tempPtr = new InitOneToOneWeightsParams(name, parent);
-   return tempPtr;
+int InitOneToOneWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = InitWeights::ioParamsFillGroup(ioFlag);
+   ioParam_weightInit(ioFlag);
+   return status;
 }
 
-int InitOneToOneWeights::calcWeights(float *dataStart, int patchIndex, int arborId) {
+void InitOneToOneWeights::ioParam_weightInit(enum ParamsIOFlag ioFlag) {
+   parent->parameters()->ioParamValue(ioFlag, getName(), "weightInit", &mWeightInit, mWeightInit);
+}
 
-   InitOneToOneWeightsParams *weightParamPtr =
-         dynamic_cast<InitOneToOneWeightsParams *>(weightParams);
-
-   if (weightParamPtr == NULL) {
-      Fatal().printf("Failed to recast pointer to weightsParam!  Exiting...");
-   }
-
-   weightParamPtr->calcOtherParams(patchIndex);
-
-   const float iWeight = weightParamPtr->getInitWeight();
-
-   return createOneToOneConnection(dataStart, patchIndex, iWeight, weightParamPtr);
+void InitOneToOneWeights::calcWeights(float *dataStart, int patchIndex, int arborId) {
+   createOneToOneConnection(dataStart, patchIndex, mWeightInit);
 }
 
 int InitOneToOneWeights::createOneToOneConnection(
       float *dataStart,
       int dataPatchIndex,
-      float iWeight,
-      InitWeightsParams *weightParamPtr) {
+      float iWeight) {
 
-   int k = weightParamPtr->getParentConn()->dataIndexToUnitCellIndex(dataPatchIndex);
+   int k = mCallingConn->dataIndexToUnitCellIndex(dataPatchIndex);
 
-   const int nfp = weightParamPtr->getnfPatch();
-   const int nxp = weightParamPtr->getnxPatch();
-   const int nyp = weightParamPtr->getnyPatch();
+   const int nfp = mCallingConn->fPatchSize();
+   const int nxp = mCallingConn->xPatchSize();
+   const int nyp = mCallingConn->yPatchSize();
 
-   const int sxp = weightParamPtr->getsx();
-   const int syp = weightParamPtr->getsy();
-   const int sfp = weightParamPtr->getsf();
+   const int sxp = mCallingConn->xPatchStride();
+   const int syp = mCallingConn->yPatchStride();
+   const int sfp = mCallingConn->fPatchStride();
 
    // clear all weights in patch
    memset(dataStart, 0, nxp * nyp * nfp);
@@ -69,7 +60,7 @@ int InitOneToOneWeights::createOneToOneConnection(
    int x = (int)(nxp / 2);
    int y = (int)(nyp / 2);
    for (int f = 0; f < nfp; f++) {
-      dataStart[x * sxp + y * syp + f * sfp] = f == k ? iWeight : 0;
+      dataStart[x * sxp + y * syp + f * sfp] = f == k ? mWeightInit : 0;
    }
 
    return PV_SUCCESS;
