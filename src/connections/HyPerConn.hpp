@@ -592,7 +592,7 @@ class HyPerConn : public BaseConnection {
     * It is not called by the default HyPerConn constructor.
     */
    int initialize(char const *name, HyPerCol *hc);
-   virtual int setWeightInitializer(); // Note: no longer deprecated.
+   virtual int setWeightInitializer();
    virtual InitWeights *createInitWeightsObject(const char *weightInitTypeStr);
    int setWeightNormalizer(); // Note: no longer deprecated.
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;

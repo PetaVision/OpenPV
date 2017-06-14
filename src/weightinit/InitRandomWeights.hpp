@@ -8,22 +8,22 @@
 #ifndef INITRANDOMWEIGHTS_HPP_
 #define INITRANDOMWEIGHTS_HPP_
 
-#include "../columns/Random.hpp"
 #include "InitWeights.hpp"
+#include "columns/Random.hpp"
 
 namespace PV {
 
-class InitRandomWeights : public PV::InitWeights {
+class InitRandomWeights : public InitWeights {
   public:
-   virtual int calcWeights(/* PVPatch * patch */ float *dataStart, int patchIndex, int arborId);
+   // No public constructor, as this is a purely virtual class.
    virtual ~InitRandomWeights();
 
   protected:
    InitRandomWeights();
    int initialize(char const *name, HyPerCol *hc);
-   virtual int initRNGs(bool isKernel);
-   virtual int
-   randomWeights(float *patchDataStart, InitWeightsParams *weightParams, int patchIndex) = 0;
+   virtual int initRNGs(bool isKernel) override;
+   virtual void calcWeights(float *dataStart, int patchIndex, int arborId) override;
+   virtual void randomWeights(float *patchDataStart, int patchIndex) = 0;
    // Subclasses must implement randomWeights.
    // patchDataStart is a pointer to the beginning of a data patch.
    // patchIndex is the index for that patch.  The RNGs are accessed by calling randState's get
@@ -37,19 +37,19 @@ class InitRandomWeights : public PV::InitWeights {
   private:
    int initialize_base();
 
-   // Member variables
+   // Data members
   protected:
-   Random *randState;
+   Random *mRandState;
    // For HyPerConns, there will be an RNG for each presynaptic extended neuron.
-   // In MPI, if a presynaptic neuron is represented on more than one process, its RNG should be in
-   // the same state in each of these
-   // processes.  initRNGs handles that by using the presynaptic global extended index to seed the
-   // RNG.
+   // In MPI, if a presynaptic neuron is represented on more than one process, its RNG should be
+   // in the same state in each of these processes.
+   // initRNGs handles that by using the presynaptic global extended index to seed the RNG.
    //
    // For KernelConns, there will be an RNG for each data patch.
    // In MPI, the a given data patch should be in the same state across all MPI processes.
    // initRNGs handles that by using the data patch to seed the RNG.
-};
+
+}; /* class InitRandomWeights */
 
 } /* namespace PV */
 #endif /* INITRANDOMWEIGHTS_HPP_ */

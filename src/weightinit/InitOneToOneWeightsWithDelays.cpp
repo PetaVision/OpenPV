@@ -6,7 +6,6 @@
  */
 
 #include "InitOneToOneWeightsWithDelays.hpp"
-#include "InitOneToOneWeightsWithDelaysParams.hpp"
 
 namespace PV {
 
@@ -26,45 +25,36 @@ int InitOneToOneWeightsWithDelays::initialize(char const *name, HyPerCol *hc) {
    return status;
 }
 
-InitWeightsParams *InitOneToOneWeightsWithDelays::createNewWeightParams() {
-   InitWeightsParams *tempPtr = new InitOneToOneWeightsWithDelaysParams(name, parent);
-   return tempPtr;
+int InitOneToOneWeightsWithDelays::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = InitWeights::ioParamsFillGroup(ioFlag);
+   ioParam_weightInit(ioFlag);
+   return status;
 }
 
-int InitOneToOneWeightsWithDelays::calcWeights(float *dataStart, int patchIndex, int arborId) {
-
-   InitOneToOneWeightsWithDelaysParams *weightParamPtr =
-         dynamic_cast<InitOneToOneWeightsWithDelaysParams *>(weightParams);
-
-   if (weightParamPtr == NULL) {
-      Fatal().printf("Failed to recast pointer to weightsParam!  Exiting...");
-   }
-
-   weightParamPtr->calcOtherParams(patchIndex);
-
-   const float iWeight = weightParamPtr->getInitWeight();
-
-   return createOneToOneConnectionWithDelays(
-         dataStart, patchIndex, iWeight, weightParamPtr, arborId);
+void InitOneToOneWeightsWithDelays::ioParam_weightInit(enum ParamsIOFlag ioFlag) {
+   parent->parameters()->ioParamValue(ioFlag, getName(), "weightInit", &mWeightInit, mWeightInit);
 }
 
-int InitOneToOneWeightsWithDelays::createOneToOneConnectionWithDelays(
+void InitOneToOneWeightsWithDelays::calcWeights(float *dataStart, int patchIndex, int arborId) {
+   createOneToOneConnectionWithDelays(dataStart, patchIndex, mWeightInit, arborId);
+}
+
+void InitOneToOneWeightsWithDelays::createOneToOneConnectionWithDelays(
       float *dataStart,
       int dataPatchIndex,
       float iWeight,
-      InitWeightsParams *weightParamPtr,
       int arborId) {
 
-   const int nArbors = callingConn->numberOfAxonalArborLists();
-   int k             = weightParamPtr->getParentConn()->dataIndexToUnitCellIndex(dataPatchIndex);
+   const int nArbors = mCallingConn->numberOfAxonalArborLists();
+   int k             = mCallingConn->dataIndexToUnitCellIndex(dataPatchIndex);
 
-   const int nfp = weightParamPtr->getnfPatch();
-   const int nxp = weightParamPtr->getnxPatch();
-   const int nyp = weightParamPtr->getnyPatch();
+   const int nfp = mCallingConn->fPatchSize();
+   const int nxp = mCallingConn->xPatchSize();
+   const int nyp = mCallingConn->yPatchSize();
 
-   const int sxp = weightParamPtr->getsx();
-   const int syp = weightParamPtr->getsy();
-   const int sfp = weightParamPtr->getsf();
+   const int sxp = mCallingConn->xPatchStride();
+   const int syp = mCallingConn->yPatchStride();
+   const int sfp = mCallingConn->fPatchStride();
 
    // clear all weights in patch
    memset(dataStart, 0, nxp * nyp * nfp);
@@ -74,8 +64,6 @@ int InitOneToOneWeightsWithDelays::createOneToOneConnectionWithDelays(
    for (int f = 0; f < nfp; f++) {
       dataStart[x * sxp + y * syp + f * sfp] = f == nArbors * k + arborId ? iWeight : 0;
    }
-
-   return PV_SUCCESS;
 }
 
 } /* namespace PV */

@@ -6,7 +6,6 @@
  */
 
 #include "InitUniformWeights.hpp"
-#include "InitUniformWeightsParams.hpp"
 
 namespace PV {
 
@@ -26,67 +25,60 @@ int InitUniformWeights::initialize(char const *name, HyPerCol *hc) {
    return status;
 }
 
-InitWeightsParams *InitUniformWeights::createNewWeightParams() {
-   InitWeightsParams *tempPtr = new InitUniformWeightsParams(name, parent);
-   return tempPtr;
+int InitUniformWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = InitWeights::ioParamsFillGroup(ioFlag);
+   ioParam_weightInit(ioFlag);
+   ioParam_connectOnlySameFeatures(ioFlag);
+   return status;
 }
 
-int InitUniformWeights::calcWeights(
-      /* PVPatch * patch */ float *dataStart,
-      int patchIndex,
-      int arborId) {
-   InitUniformWeightsParams *weightParamPtr =
-         dynamic_cast<InitUniformWeightsParams *>(weightParams);
+void InitUniformWeights::ioParam_weightInit(enum ParamsIOFlag ioFlag) {
+   parent->parameters()->ioParamValue(ioFlag, name, "weightInit", &mWeightInit, mWeightInit);
+}
 
-   if (weightParamPtr == NULL) {
-      Fatal().printf("Failed to recast pointer to weightsParam!  Exiting...");
-   }
+void InitUniformWeights::ioParam_connectOnlySameFeatures(enum ParamsIOFlag ioFlag) {
+   parent->parameters()->ioParamValue(
+         ioFlag,
+         name,
+         "connectOnlySameFeatures",
+         &mConnectOnlySameFeatures,
+         mConnectOnlySameFeatures);
+}
 
-   const float iWeight                = weightParamPtr->getInitWeight();
-   const bool connectOnlySameFeatures = weightParamPtr->getConnectOnlySameFeatures();
+void InitUniformWeights::calcWeights(float *dataStart, int patchIndex, int arborId) {
 
-   const int nfp = weightParamPtr->getnfPatch();
+   const int nfp = mCallingConn->fPatchSize();
    const int kf  = patchIndex % nfp;
 
-   uniformWeights(dataStart, iWeight, kf, weightParamPtr, connectOnlySameFeatures);
-   return PV_SUCCESS;
+   uniformWeights(dataStart, mWeightInit, kf, mConnectOnlySameFeatures);
 }
 
-/**
- * Initializes all weights to iWeight
- *
- */
-int InitUniformWeights::uniformWeights(
+void InitUniformWeights::uniformWeights(
       float *dataStart,
-      float iWeight,
+      float weightInit,
       int kf,
-      InitUniformWeightsParams *weightParamPtr,
       bool connectOnlySameFeatures) {
-   // changed variable names to avoid confusion with data members this->wMin and this->wMax
+   const int nxp = mCallingConn->xPatchSize();
+   const int nyp = mCallingConn->yPatchSize();
+   const int nfp = mCallingConn->fPatchSize();
 
-   const int nxp = weightParamPtr->getnxPatch();
-   const int nyp = weightParamPtr->getnyPatch();
-   const int nfp = weightParamPtr->getnfPatch();
-
-   const int sxp = weightParamPtr->getsx();
-   const int syp = weightParamPtr->getsy();
-   const int sfp = weightParamPtr->getsf();
+   const int sxp = mCallingConn->xPatchStride();
+   const int syp = mCallingConn->yPatchStride();
+   const int sfp = mCallingConn->fPatchStride();
 
    // loop over all post-synaptic cells in patch
    for (int y = 0; y < nyp; y++) {
       for (int x = 0; x < nxp; x++) {
          for (int f = 0; f < nfp; f++) {
-            if ((connectOnlySameFeatures) && (kf != f)) {
+            if ((connectOnlySameFeatures) and (kf != f)) {
                dataStart[x * sxp + y * syp + f * sfp] = 0;
             }
             else {
-               dataStart[x * sxp + y * syp + f * sfp] = iWeight;
+               dataStart[x * sxp + y * syp + f * sfp] = weightInit;
             }
          }
       }
    }
-
-   return PV_SUCCESS;
 }
 
-} /* namespace PV */
+} /* end namespace PV */

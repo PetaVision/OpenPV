@@ -8,7 +8,6 @@
 #ifndef CLONECONN_HPP_
 #define CLONECONN_HPP_
 
-#include "../weightinit/InitCloneKernelWeights.hpp"
 #include "HyPerConn.hpp"
 
 namespace PV {

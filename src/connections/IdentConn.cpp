@@ -6,7 +6,6 @@
  */
 
 #include "IdentConn.hpp"
-#include "weightinit/InitIdentWeights.hpp"
 
 namespace PV {
 
@@ -71,7 +70,6 @@ void IdentConn::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
 
 void IdentConn::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
-      weightInitializer = new InitIdentWeights(name, parent);
       parent->parameters()->handleUnnecessaryStringParameter(name, "weightInitType", NULL);
    }
 }
@@ -219,14 +217,7 @@ void IdentConn::ioParam_updateGSynFromPostPerspective(enum ParamsIOFlag ioFlag) 
 }
 
 int IdentConn::setWeightInitializer() {
-   weightInitializer = (InitWeights *)new InitIdentWeights(name, parent);
-   if (weightInitializer == NULL) {
-      Fatal().printf(
-            "IdentConn \"%s\": Rank %d process unable to create InitIdentWeights object.  "
-            "Exiting.\n",
-            name,
-            parent->getCommunicator()->commRank());
-   }
+   weightInitializer = nullptr;
    return PV_SUCCESS;
 }
 

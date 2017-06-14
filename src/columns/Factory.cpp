@@ -89,7 +89,6 @@
 #include "weightinit/InitGauss2DWeights.hpp"
 #include "weightinit/InitGaussianRandomWeights.hpp"
 #include "weightinit/InitIdentWeights.hpp"
-#include "weightinit/InitMaxPoolingWeights.hpp"
 #include "weightinit/InitOneToOneWeights.hpp"
 #include "weightinit/InitOneToOneWeightsWithDelays.hpp"
 #include "weightinit/InitSmartWeights.hpp"
@@ -197,7 +196,6 @@ int Factory::registerCoreKeywords() {
    registerKeyword("OneToOneWeights", Factory::create<InitOneToOneWeights>);
    registerKeyword("OneToOneWeightsWithDelays", Factory::create<InitOneToOneWeightsWithDelays>);
    registerKeyword("SpreadOverArborsWeight", Factory::create<InitSpreadOverArborsWeights>);
-   registerKeyword("MaxPoolingWeight", Factory::create<InitMaxPoolingWeights>);
    registerKeyword("FileWeight", Factory::create<InitWeights>);
 
    registerKeyword("normalizeContrastZeroMean", Factory::create<NormalizeContrastZeroMean>);

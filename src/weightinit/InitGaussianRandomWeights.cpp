@@ -6,7 +6,6 @@
  */
 
 #include "InitGaussianRandomWeights.hpp"
-#include "InitGaussianRandomWeightsParams.hpp"
 
 namespace PV {
 
@@ -18,12 +17,13 @@ InitGaussianRandomWeights::InitGaussianRandomWeights(char const *name, HyPerCol 
 InitGaussianRandomWeights::InitGaussianRandomWeights() { initialize_base(); }
 
 InitGaussianRandomWeights::~InitGaussianRandomWeights() {
-   gaussianRandState = NULL; // Don't delete. base class deletes randState, which gaussianRandState
-   // is effectively a dynamic_cast of.
+   mGaussianRandState = nullptr;
+   // Don't delete. base class deletes mRandState,
+   // which mGaussianRandState is effectively a dynamic_cast of.
 }
 
 int InitGaussianRandomWeights::initialize_base() {
-   gaussianRandState = NULL;
+   mGaussianRandState = nullptr;
    return PV_SUCCESS;
 }
 
@@ -32,29 +32,39 @@ int InitGaussianRandomWeights::initialize(char const *name, HyPerCol *hc) {
    return status;
 }
 
-InitWeightsParams *InitGaussianRandomWeights::createNewWeightParams() {
-   InitWeightsParams *tempPtr = new InitGaussianRandomWeightsParams(name, parent);
-   return tempPtr;
+int InitGaussianRandomWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = InitRandomWeights::ioParamsFillGroup(ioFlag);
+   ioParam_wGaussMean(ioFlag);
+   ioParam_wGaussStdev(ioFlag);
+   return status;
+}
+
+void InitGaussianRandomWeights::ioParam_wGaussMean(enum ParamsIOFlag ioFlag) {
+   parent->parameters()->ioParamValue(ioFlag, name, "wGaussMean", &mWGaussMean, mWGaussMean);
+}
+
+void InitGaussianRandomWeights::ioParam_wGaussStdev(enum ParamsIOFlag ioFlag) {
+   parent->parameters()->ioParamValue(ioFlag, name, "wGaussStdev", &mWGaussStdev, mWGaussStdev);
 }
 
 int InitGaussianRandomWeights::initRNGs(bool isKernel) {
-   assert(randState == NULL && gaussianRandState == NULL);
+   pvAssert(mRandState == nullptr && mGaussianRandState == nullptr);
    int status = PV_SUCCESS;
    if (isKernel) {
-      gaussianRandState = new GaussianRandom(callingConn->getNumDataPatches());
+      mGaussianRandState = new GaussianRandom(mCallingConn->getNumDataPatches());
    }
    else {
-      gaussianRandState =
-            new GaussianRandom(callingConn->preSynapticLayer()->getLayerLoc(), true /*isExtended*/);
+      mGaussianRandState = new GaussianRandom(
+            mCallingConn->preSynapticLayer()->getLayerLoc(), true /*isExtended*/);
    }
 
-   if (gaussianRandState == NULL) {
+   if (mGaussianRandState == nullptr) {
       Fatal().printf(
             "InitRandomWeights error in rank %d process: unable to create object of class "
             "Random.\n",
             parent->columnId());
    }
-   randState = (Random *)gaussianRandState;
+   mRandState = (Random *)mGaussianRandState;
    return status;
 }
 
@@ -62,30 +72,15 @@ int InitGaussianRandomWeights::initRNGs(bool isKernel) {
  * randomWeights() fills the full-size patch with random numbers, whether or not the patch is
  * shrunken.
  */
-int InitGaussianRandomWeights::randomWeights(
-      float *patchDataStart,
-      InitWeightsParams *weightParams,
-      int patchIndex) {
-   InitGaussianRandomWeightsParams *weightParamPtr =
-         dynamic_cast<InitGaussianRandomWeightsParams *>(weightParams);
-
-   if (weightParamPtr == NULL) {
-      Fatal().printf("Failed to recast pointer to weightsParam!  Exiting...");
-   }
-
-   const float mean  = weightParamPtr->getMean();
-   const float stdev = weightParamPtr->getStDev();
-
-   const int nxp = weightParamPtr->getnxPatch();
-   const int nyp = weightParamPtr->getnyPatch();
-   const int nfp = weightParamPtr->getnfPatch();
+void InitGaussianRandomWeights::randomWeights(float *patchDataStart, int patchIndex) {
+   const int nxp = mCallingConn->xPatchSize();
+   const int nyp = mCallingConn->yPatchSize();
+   const int nfp = mCallingConn->fPatchSize();
 
    const int patchSize = nxp * nyp * nfp;
    for (int n = 0; n < patchSize; n++) {
-      patchDataStart[n] = gaussianRandState->gaussianDist(patchIndex, mean, stdev);
+      patchDataStart[n] = mGaussianRandState->gaussianDist(patchIndex, mWGaussMean, mWGaussStdev);
    }
-
-   return 0;
 }
 
 } /* namespace PV */

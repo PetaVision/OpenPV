@@ -55,7 +55,7 @@ void CloneConn::ioParam_originalConnName(enum ParamsIOFlag ioFlag) {
 }
 
 int CloneConn::setWeightInitializer() {
-   weightInitializer = new InitCloneKernelWeights();
+   weightInitializer = nullptr;
    return PV_SUCCESS;
 }
 

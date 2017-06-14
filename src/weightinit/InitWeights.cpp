@@ -7,14 +7,6 @@
 
 #include "InitWeights.hpp"
 
-#include <stdlib.h>
-
-#include "columns/Communicator.hpp"
-#include "include/default_params.h"
-#include "io/fileio.hpp"
-#include "io/io.hpp"
-#include "utils/conversions.h"
-
 namespace PV {
 
 InitWeights::InitWeights(char const *name, HyPerCol *hc) {
@@ -24,24 +16,18 @@ InitWeights::InitWeights(char const *name, HyPerCol *hc) {
 
 InitWeights::InitWeights() { initialize_base(); }
 
-InitWeights::~InitWeights() {
-   free(name);
-   name = NULL;
-   delete weightParams;
-   weightParams = NULL;
-}
+InitWeights::~InitWeights() {}
 
 int InitWeights::initialize(char const *name, HyPerCol *hc) {
-   if (name == NULL) {
+   if (name == nullptr) {
       Fatal().printf("InitWeights::initialize called with a name argument of null.\n");
    }
-   if (hc == NULL) {
+   if (hc == nullptr) {
       Fatal().printf("InitWeights::initialize called with a HyPerCol argument of null.\n");
    }
-   int status  = BaseObject::initialize(name, hc);
-   callingConn = NULL; // will be set during communicateInitInfo stage.
+   int status = BaseObject::initialize(name, hc);
 
-   return PV_SUCCESS;
+   return status;
 }
 
 int InitWeights::setDescription() {
@@ -49,7 +35,7 @@ int InitWeights::setDescription() {
    char const *initType =
          parent->parameters()->stringValue(name, "weightInitType", false /*do not warn if absent*/);
    if (initType == nullptr) {
-      description.append("weight initializer ");
+      description.append("Weight initializer ");
    }
    else {
       description.append(initType);
@@ -59,77 +45,101 @@ int InitWeights::setDescription() {
 }
 
 int InitWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   // Read/write any params from the params file, typically
-
-   if (ioFlag == PARAMS_IO_READ) {
-      weightParams = createNewWeightParams();
-   }
-   int status = PV_SUCCESS;
-   if (weightParams == NULL) {
-      status = PV_FAILURE;
-   }
-   else {
-      weightParams->ioParamsFillGroup(ioFlag);
-   }
-   return status;
+   ioParam_initWeightsFile(ioFlag);
+   ioParam_useListOfArborFiles(ioFlag);
+   ioParam_combineWeightFiles(ioFlag);
+   ioParam_numWeightFiles(ioFlag);
+   return PV_SUCCESS;
 }
 
-int InitWeights::communicateParamsInfo() {
-   // to be called during communicateInitInfo stage;
-   // set any member variables that depend on other objects
-   // having been initialized or communicateInitInfo'd
+void InitWeights::ioParam_initWeightsFile(enum ParamsIOFlag ioFlag) {
+   parent->parameters()->ioParamString(
+         ioFlag, name, "initWeightsFile", &mFilename, mFilename, false /*warnIfAbsent*/);
+}
 
-   int status = PV_SUCCESS;
-   if (callingConn == NULL) {
-      BaseConnection *baseCallingConn = parent->getConnFromName(name);
-      if (baseCallingConn == NULL) {
-         status = PV_FAILURE;
-         if (parent->columnId() == 0) {
-            ErrorLog().printf(
-                  "InitWeights error: \"%s\" is not a connection in the column.\n", name);
-         }
-      }
-      else {
-         callingConn = dynamic_cast<HyPerConn *>(baseCallingConn);
-         if (callingConn == NULL) {
-            status = PV_FAILURE;
-            if (parent->columnId() == 0) {
-               ErrorLog().printf("InitWeights error: \"%s\" is not a HyPerConn.\n", name);
-            }
-         }
+void InitWeights::ioParam_useListOfArborFiles(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "initWeightsFile"));
+   if (mFilename != nullptr) {
+      parent->parameters()->ioParamValue(
+            ioFlag,
+            name,
+            "useListOfArborFiles",
+            &mUseListOfArborFiles,
+            mUseListOfArborFiles,
+            true /*warnIfAbsent*/);
+   }
+}
+
+void InitWeights::ioParam_combineWeightFiles(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "initWeightsFile"));
+   if (mFilename != nullptr) {
+      parent->parameters()->ioParamValue(
+            ioFlag,
+            name,
+            "combineWeightFiles",
+            &mCombineWeightFiles,
+            mCombineWeightFiles,
+            true /*warnIfAbsent*/);
+   }
+}
+
+void InitWeights::ioParam_numWeightFiles(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "initWeightsFile"));
+   if (mFilename != nullptr) {
+      assert(!parent->parameters()->presentAndNotBeenRead(name, "combineWeightFiles"));
+      if (mCombineWeightFiles) {
+         parent->parameters()->ioParamValue(
+               ioFlag,
+               name,
+               "numWeightFiles",
+               &mNumWeightFiles,
+               mNumWeightFiles,
+               true /*warnIfAbsent*/);
       }
    }
-   MPI_Barrier(parent->getCommunicator()->communicator());
-   if (status == PV_FAILURE) {
-      exit(EXIT_FAILURE);
+}
+
+int InitWeights::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+   if (mCallingConn == nullptr) {
+      mCallingConn = message->lookup<HyPerConn>(std::string(name));
    }
-   return weightParams->communicateParamsInfo();
+   if (mCallingConn == nullptr) {
+      if (parent->columnId() == 0) {
+         ErrorLog().printf("InitWeights error: \"%s\" is not a HyPerConn.\n", name);
+      }
+      return PV_FAILURE;
+   }
+   mPreLayer  = mCallingConn->getPre();
+   mPostLayer = mCallingConn->getPost();
+   if (mPreLayer == nullptr or mPostLayer == nullptr) {
+      if (parent->columnId() == 0) {
+         ErrorLog().printf(
+               "InitWeights error: calling connection \"%s\" has not set pre and post layers.\n",
+               mCallingConn->getName());
+      }
+      return PV_FAILURE;
+   }
+   return PV_SUCCESS;
 }
 
 /*This method does the three steps involved in initializing weights.  Subclasses usually don't need
  * to override this method.
  * Instead they should override calcWeights to do their own type of weight initialization.
  *
- * For KernelConns (i.e., sharedWeights=true), patches should be NULL.
+ * For KernelConns (i.e., sharedWeights=true), patches should be nullptr.
  *
  */
 int InitWeights::initializeWeights(
       PVPatch ***patches,
       float **dataStart,
-      double *timef /*default NULL*/) {
-   int numPatchesX    = callingConn->getNumDataPatchesX();
-   int numPatchesY    = callingConn->getNumDataPatchesY();
-   int numPatchesF    = callingConn->getNumDataPatchesF();
+      double *timef /*default nullptr*/) {
+   int numPatchesX    = mCallingConn->getNumDataPatchesX();
+   int numPatchesY    = mCallingConn->getNumDataPatchesY();
+   int numPatchesF    = mCallingConn->getNumDataPatchesF();
    bool sharedWeights = patches == nullptr;
-   if (weightParams->getFilename() != NULL && weightParams->getFilename()[0]) {
+   if (mFilename && mFilename[0]) {
       readWeights(
-            sharedWeights,
-            dataStart,
-            numPatchesX,
-            numPatchesY,
-            numPatchesF,
-            weightParams->getFilename(),
-            timef);
+            sharedWeights, dataStart, numPatchesX, numPatchesY, numPatchesF, mFilename, timef);
    }
    else {
       initRNGs(sharedWeights);
@@ -139,7 +149,7 @@ int InitWeights::initializeWeights(
    if (successFlag != PV_SUCCESS) {
       Fatal().printf(
             "Failed to zero annulus around shrunken patch for %s! Exiting...\n",
-            callingConn->getName());
+            mCallingConn->getName());
    }
    return PV_SUCCESS;
 }
@@ -148,47 +158,47 @@ int InitWeights::zeroWeightsOutsideShrunkenPatch(PVPatch ***patches) {
    // hack to bypass HyPerConn's for now, because HyPerConn normalization currently needs "outside"
    // weights
    // correct solution is to implement normalization of HyPerConns from post POV
-   if (patches != NULL) {
+   if (patches != nullptr) {
       return PV_SUCCESS;
    }
-   int numArbors = callingConn->numberOfAxonalArborLists();
+   int numArbors = mCallingConn->numberOfAxonalArborLists();
    // initialize full sized patch dimensions
-   int nxPatch       = callingConn->xPatchSize();
-   int nyPatch       = callingConn->yPatchSize();
-   int nkPatch       = callingConn->fPatchSize() * nxPatch;
-   int syPatch       = callingConn->yPatchStride(); // stride in patch
+   int nxPatch       = mCallingConn->xPatchSize();
+   int nyPatch       = mCallingConn->yPatchSize();
+   int nkPatch       = mCallingConn->fPatchSize() * nxPatch;
+   int syPatch       = mCallingConn->yPatchStride(); // stride in patch
    int offsetPatch   = 0;
-   float *wData_head = NULL;
+   float *wData_head = nullptr;
    int delta_offset  = 0;
    for (int arborID = 0; arborID < numArbors; arborID++) {
-      for (int kPre = 0; kPre < callingConn->getNumDataPatches(); kPre++) {
-         wData_head = callingConn->get_wDataHead(arborID, kPre);
-         if (patches != NULL) { // callingConn does not use shared weights
-            PVPatch *weightPatch = callingConn->getWeights(kPre, arborID);
+      for (int kPre = 0; kPre < mCallingConn->getNumDataPatches(); kPre++) {
+         wData_head = mCallingConn->get_wDataHead(arborID, kPre);
+         if (patches != nullptr) { // mCallingConn does not use shared weights
+            PVPatch *weightPatch = mCallingConn->getWeights(kPre, arborID);
             nxPatch              = weightPatch->nx;
             nyPatch              = weightPatch->ny;
             offsetPatch          = weightPatch->offset;
-            float *wData         = callingConn->get_wData(arborID, kPre);
+            float *wData         = mCallingConn->get_wData(arborID, kPre);
             delta_offset         = wData - wData_head;
          }
-         else { // callingConn uses shared weights
+         else { // mCallingConn uses shared weights
             delta_offset = 0;
-            nxPatch      = callingConn->xPatchSize();
-            nyPatch      = callingConn->yPatchSize();
+            nxPatch      = mCallingConn->xPatchSize();
+            nyPatch      = mCallingConn->yPatchSize();
          }
-         nkPatch      = callingConn->fPatchSize() * nxPatch;
+         nkPatch      = mCallingConn->fPatchSize() * nxPatch;
          int dy_south = delta_offset / syPatch;
          assert(dy_south >= 0);
-         assert(dy_south <= callingConn->yPatchSize());
-         int dy_north = callingConn->yPatchSize() - nyPatch - dy_south;
+         assert(dy_south <= mCallingConn->yPatchSize());
+         int dy_north = mCallingConn->yPatchSize() - nyPatch - dy_south;
          assert(dy_north >= 0);
-         assert(dy_north <= callingConn->yPatchSize());
-         int dx_west = (delta_offset - dy_south * syPatch) / callingConn->fPatchSize();
+         assert(dy_north <= mCallingConn->yPatchSize());
+         int dx_west = (delta_offset - dy_south * syPatch) / mCallingConn->fPatchSize();
          assert(dx_west >= 0);
-         assert(dx_west <= callingConn->xPatchSize());
-         int dx_east = callingConn->xPatchSize() - nxPatch - dx_west;
+         assert(dx_west <= mCallingConn->xPatchSize());
+         int dx_east = mCallingConn->xPatchSize() - nxPatch - dx_west;
          assert(dx_east >= 0);
-         assert(dx_east <= callingConn->xPatchSize());
+         assert(dx_east <= mCallingConn->xPatchSize());
          // zero north border
          float *outside_weights = wData_head;
          for (int ky = 0; ky < dy_north; ky++) {
@@ -208,16 +218,16 @@ int InitWeights::zeroWeightsOutsideShrunkenPatch(PVPatch ***patches) {
          // zero west border
          outside_weights = wData_head + dy_north * syPatch;
          for (int ky = 0; ky < nyPatch; ky++) {
-            for (int kPatch = 0; kPatch < dx_west * callingConn->fPatchSize(); kPatch++) {
+            for (int kPatch = 0; kPatch < dx_west * mCallingConn->fPatchSize(); kPatch++) {
                outside_weights[kPatch] = 0;
             }
             outside_weights += syPatch;
          }
          // zero east border
          outside_weights =
-               wData_head + dy_north * syPatch + (dx_west + nxPatch) * callingConn->fPatchSize();
+               wData_head + dy_north * syPatch + (dx_west + nxPatch) * mCallingConn->fPatchSize();
          for (int ky = 0; ky < nyPatch; ky++) {
-            for (int kPatch = 0; kPatch < dx_east * callingConn->fPatchSize(); kPatch++) {
+            for (int kPatch = 0; kPatch < dx_east * mCallingConn->fPatchSize(); kPatch++) {
                outside_weights[kPatch] = 0;
             }
             outside_weights += syPatch;
@@ -227,40 +237,24 @@ int InitWeights::zeroWeightsOutsideShrunkenPatch(PVPatch ***patches) {
    return PV_SUCCESS;
 }
 
-InitWeightsParams *InitWeights::createNewWeightParams() {
-   InitWeightsParams *tempPtr = new InitWeightsParams(name, parent);
-   return tempPtr;
-}
-
 // Override this function to calculate weights over all patches.
 // The default loops over arbors and data patches, and calls calcWeights(dataStart, dataPatchIndex,
 // arborId)
-int InitWeights::calcWeights() {
-   int numArbors  = callingConn->numberOfAxonalArborLists();
-   int numPatches = callingConn->getNumDataPatches();
+void InitWeights::calcWeights() {
+   int numArbors  = mCallingConn->numberOfAxonalArborLists();
+   int numPatches = mCallingConn->getNumDataPatches();
    for (int arbor = 0; arbor < numArbors; arbor++) {
       for (int dataPatchIndex = 0; dataPatchIndex < numPatches; dataPatchIndex++) {
-         int successFlag = calcWeights(
-               callingConn->get_wDataHead(arbor, dataPatchIndex), dataPatchIndex, arbor);
-         if (successFlag != PV_SUCCESS) {
-            Fatal().printf("Failed to create weights for %s! Exiting...\n", callingConn->getName());
-         }
+         calcWeights(mCallingConn->get_wDataHead(arbor, dataPatchIndex), dataPatchIndex, arbor);
       }
    }
-   return PV_SUCCESS;
 }
 
 // Override this function to calculate the weights in a single patch, given the arbor index, patch
 // index and the pointer to the data
-int InitWeights::calcWeights(float *dataStart, int dataPatchIndex, int arborId) {
-   return PV_SUCCESS;
-}
+void InitWeights::calcWeights(float *dataStart, int dataPatchIndex, int arborId) {}
 
-int InitWeights::initialize_base() {
-   callingConn  = NULL;
-   weightParams = NULL;
-   return PV_SUCCESS;
-}
+int InitWeights::initialize_base() { return PV_SUCCESS; }
 
 int InitWeights::readWeights(
       bool sharedWeights,
@@ -270,12 +264,10 @@ int InitWeights::readWeights(
       int numPatchesF,
       const char *filename,
       double *timestampPtr /*default=nullptr*/) {
-   if (callingConn == nullptr) {
-      callingConn = dynamic_cast<HyPerConn *>(parent->getConnFromName(name));
-   }
+   pvAssert(mCallingConn);
    double timestamp;
    int status = PV_SUCCESS;
-   if (weightParams->getUseListOfArborFiles()) {
+   if (mUseListOfArborFiles) {
       this->readListOfArborFiles(
             sharedWeights,
             dataStart,
@@ -285,7 +277,7 @@ int InitWeights::readWeights(
             filename,
             timestampPtr);
    }
-   else if (weightParams->getCombineWeightFiles()) {
+   else if (mCombineWeightFiles) {
       this->readCombinedWeightFiles(
             sharedWeights,
             dataStart,
@@ -303,14 +295,14 @@ int InitWeights::readWeights(
             numPatchesY,
             numPatchesF,
             filename,
-            callingConn->numberOfAxonalArborLists(),
+            mCallingConn->numberOfAxonalArborLists(),
             timestampPtr);
    }
    if (status != PV_SUCCESS) {
       Fatal().printf(
             "InitWeights::readWeights: failed to read weight file %s for connection %s.\n",
             filename,
-            callingConn->getName());
+            mCallingConn->getName());
    }
    if (timestampPtr != nullptr) {
       *timestampPtr = timestamp;
@@ -328,7 +320,7 @@ void InitWeights::readListOfArborFiles(
       double *timestampPtr) {
    int arbor            = 0;
    Communicator *icComm = parent->getCommunicator();
-   int numArbors        = callingConn->numberOfAxonalArborLists();
+   int numArbors        = mCallingConn->numberOfAxonalArborLists();
    double timestamp;
 
    std::ifstream *listOfArborsStream = nullptr;
@@ -342,7 +334,7 @@ void InitWeights::readListOfArborFiles(
             listOfArborsFilename,
             std::strerror(errno));
    }
-   while (arbor < callingConn->numberOfAxonalArborLists()) {
+   while (arbor < mCallingConn->numberOfAxonalArborLists()) {
       int arborsInFile;
       std::string arborPath;
       if (rank == rootproc) {
@@ -396,12 +388,10 @@ void InitWeights::readCombinedWeightFiles(
       const char *fileOfWeightFiles,
       double *timestampPtr) {
    Communicator *icComm     = parent->getCommunicator();
-   int numArbors            = callingConn->numberOfAxonalArborLists();
-   const PVLayerLoc *preLoc = callingConn->preSynapticLayer()->getLayerLoc();
+   int numArbors            = mCallingConn->numberOfAxonalArborLists();
+   const PVLayerLoc *preLoc = mCallingConn->preSynapticLayer()->getLayerLoc();
    double timestamp;
-   int max_weight_files = 1; // arbitrary limit...
-   int num_weight_files = weightParams->getNumWeightFiles();
-   int file_count       = 0;
+   int fileCount = 0;
 
    std::ifstream *listOfWeightFilesStream = nullptr;
    int rootproc                           = 0;
@@ -414,7 +404,7 @@ void InitWeights::readCombinedWeightFiles(
             fileOfWeightFiles,
             std::strerror(errno));
    }
-   while (file_count < num_weight_files) {
+   while (fileCount < mNumWeightFiles) {
       std::string weightFilePath;
       if (rank == rootproc) {
          FatalIf(
@@ -439,10 +429,10 @@ void InitWeights::readCombinedWeightFiles(
             numPatchesY,
             numPatchesF,
             weightFilePath.c_str(),
-            callingConn->numberOfAxonalArborLists(),
+            mCallingConn->numberOfAxonalArborLists(),
             &timestamp);
-      file_count++;
-   } // file_count < num_weight_files
+      fileCount++;
+   } // fileCount < mNumWeightFiles
    if (rank == rootproc) {
       delete listOfWeightFilesStream;
    }
@@ -468,15 +458,15 @@ void InitWeights::readWeightPvpFile(
       fileStream = new FileStream(weightPvpFile, std::ios_base::in, false);
    }
 
-   PVLayerLoc const *preLoc = callingConn->preSynapticLayer()->getLayerLoc();
+   PVLayerLoc const *preLoc = mCallingConn->preSynapticLayer()->getLayerLoc();
    if (sharedWeights) {
       readSharedWeights(
             fileStream,
             mpiBlock,
             preLoc,
-            callingConn->xPatchSize(),
-            callingConn->yPatchSize(),
-            callingConn->fPatchSize(),
+            mCallingConn->xPatchSize(),
+            mCallingConn->yPatchSize(),
+            mCallingConn->fPatchSize(),
             numArbors,
             dataStart,
             numPatchesX,
@@ -488,19 +478,89 @@ void InitWeights::readWeightPvpFile(
             fileStream,
             mpiBlock,
             preLoc,
-            callingConn->xPatchSize(),
-            callingConn->yPatchSize(),
-            callingConn->fPatchSize(),
+            mCallingConn->xPatchSize(),
+            mCallingConn->yPatchSize(),
+            mCallingConn->fPatchSize(),
             numArbors,
             dataStart,
             true /*extended*/,
-            callingConn->postSynapticLayer()->getLayerLoc(),
+            mCallingConn->postSynapticLayer()->getLayerLoc(),
             mpiBlock->getStartColumn() * preLoc->nx,
             mpiBlock->getStartRow() * preLoc->ny);
    }
    if (timestampPtr != nullptr) {
       *timestampPtr = timestamp;
    }
+}
+int InitWeights::kernelIndexCalculations(int dataPatchIndex) {
+   // kernel index stuff:
+   int kxKernelIndex;
+   int kyKernelIndex;
+   int kfKernelIndex;
+   mCallingConn->dataIndexToUnitCellIndex(
+         dataPatchIndex, &kxKernelIndex, &kyKernelIndex, &kfKernelIndex);
+   const int kxPre = kxKernelIndex;
+   const int kyPre = kyKernelIndex;
+   const int kfPre = kfKernelIndex;
+
+   // get distances to nearest neighbor in post synaptic layer (meaured relative to pre-synatpic
+   // cell)
+   float xDistNNPreUnits;
+   float xDistNNPostUnits;
+   dist2NearestCell(
+         kxPre,
+         mPreLayer->getXScale(),
+         mPostLayer->getXScale(),
+         &xDistNNPreUnits,
+         &xDistNNPostUnits);
+   float yDistNNPreUnits;
+   float yDistNNPostUnits;
+   dist2NearestCell(
+         kyPre,
+         mPreLayer->getYScale(),
+         mPostLayer->getYScale(),
+         &yDistNNPreUnits,
+         &yDistNNPostUnits);
+
+   // get indices of nearest neighbor
+   int kxNN;
+   int kyNN;
+   kxNN = nearby_neighbor(kxPre, mPreLayer->getXScale(), mPostLayer->getXScale());
+   kyNN = nearby_neighbor(kyPre, mPreLayer->getYScale(), mPostLayer->getYScale());
+
+   // get indices of patch head
+   int kxHead;
+   int kyHead;
+   kxHead = zPatchHead(
+         kxPre, mCallingConn->xPatchSize(), mPreLayer->getXScale(), mPostLayer->getXScale());
+   kyHead = zPatchHead(
+         kyPre, mCallingConn->yPatchSize(), mPreLayer->getYScale(), mPostLayer->getYScale());
+
+   // get distance to patch head (measured relative to pre-synaptic cell)
+   float xDistHeadPostUnits;
+   xDistHeadPostUnits = xDistNNPostUnits + (kxHead - kxNN);
+   float yDistHeadPostUnits;
+   yDistHeadPostUnits = yDistNNPostUnits + (kyHead - kyNN);
+   float xRelativeScale =
+         xDistNNPreUnits == xDistNNPostUnits ? 1.0f : xDistNNPreUnits / xDistNNPostUnits;
+   mXDistHeadPreUnits = xDistHeadPostUnits * xRelativeScale;
+   float yRelativeScale =
+         yDistNNPreUnits == yDistNNPostUnits ? 1.0f : yDistNNPreUnits / yDistNNPostUnits;
+   mYDistHeadPreUnits = yDistHeadPostUnits * yRelativeScale;
+
+   // sigma is in units of pre-synaptic layer
+   mDxPost = xRelativeScale;
+   mDyPost = yRelativeScale;
+
+   return kfPre;
+}
+
+float InitWeights::calcYDelta(int jPost) { return calcDelta(jPost, mDyPost, mYDistHeadPreUnits); }
+
+float InitWeights::calcXDelta(int iPost) { return calcDelta(iPost, mDxPost, mXDistHeadPreUnits); }
+
+float InitWeights::calcDelta(int post, float dPost, float distHeadPreUnits) {
+   return distHeadPreUnits + post * dPost;
 }
 
 } /* namespace PV */

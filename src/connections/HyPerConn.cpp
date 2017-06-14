@@ -404,10 +404,10 @@ int HyPerConn::initialize(char const *name, HyPerCol *hc) {
 
 int HyPerConn::setWeightInitializer() {
    weightInitializer = createInitWeightsObject(weightInitTypeString);
-   if (weightInitializer == NULL) {
+   if (weightInitializer == nullptr) {
       weightInitializer = getDefaultInitWeightsMethod(getKeyword());
    }
-   return weightInitializer == NULL ? PV_FAILURE : PV_SUCCESS;
+   return weightInitializer == nullptr ? PV_FAILURE : PV_SUCCESS;
 }
 
 /*
@@ -415,9 +415,19 @@ int HyPerConn::setWeightInitializer() {
  * appropriate InitWeight object for the chosen weight initialization.
  */
 InitWeights *HyPerConn::createInitWeightsObject(const char *weightInitTypeStr) {
-   pvAssert(weightInitializer == NULL);
-   BaseObject *baseObject = Factory::instance()->createByKeyword(weightInitTypeStr, name, parent);
-   weightInitializer      = dynamic_cast<InitWeights *>(baseObject);
+   pvAssert(weightInitializer == nullptr);
+   BaseObject *baseObject = nullptr;
+   try {
+      baseObject = Factory::instance()->createByKeyword(weightInitTypeStr, name, parent);
+   } catch (const std::exception &e) {
+      Fatal() << getDescription() << " unable to create weightInitializer: " << e.what() << "\n";
+   }
+   weightInitializer = dynamic_cast<InitWeights *>(baseObject);
+   FatalIf(
+         weightInitializer == nullptr,
+         "%s unable to create weightInitializer: %s is not an InitWeights keyword.\n",
+         getDescription_c(),
+         weightInitTypeStr);
    return weightInitializer;
 }
 
@@ -1233,7 +1243,13 @@ int HyPerConn::communicateInitInfo(CommunicateInitInfoMessage const *message) {
    }
 
    if (weightInitializer) {
-      weightInitializer->communicateParamsInfo();
+      // TODO: try to make this even more clumsy a hack.
+      status = weightInitializer->respond(
+            std::make_shared<CommunicateInitInfoMessage>(message->mHierarchy));
+      FatalIf(
+            status != PV_SUCCESS,
+            "%s failed CommunicateInitInfo stage.\n",
+            weightInitializer->getDescription_c());
    }
 
    if (sharedWeights) {
@@ -1375,8 +1391,10 @@ int HyPerConn::setPatchSize() {
 
 // returns handle to initialized weight patches
 PVPatch ***HyPerConn::initializeWeights(PVPatch ***patches, float **dataStart) {
-   PVPatch ***patches_arg = sharedWeights ? NULL : patches;
-   weightInitializer->initializeWeights(patches_arg, dataStart);
+   if (weightInitializer) {
+      PVPatch ***patches_arg = sharedWeights ? nullptr : patches;
+      weightInitializer->initializeWeights(patches_arg, dataStart);
+   }
    return patches;
 }
 

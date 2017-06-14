@@ -6,7 +6,6 @@
  */
 
 #include "InitSpreadOverArborsWeights.hpp"
-#include "InitSpreadOverArborsWeightsParams.hpp"
 
 namespace PV {
 
@@ -26,58 +25,41 @@ int InitSpreadOverArborsWeights::initialize(char const *name, HyPerCol *hc) {
    return status;
 }
 
-InitWeightsParams *InitSpreadOverArborsWeights::createNewWeightParams() {
-   InitWeightsParams *tempPtr = new InitSpreadOverArborsWeightsParams(name, parent);
-   return tempPtr;
+int InitSpreadOverArborsWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = InitGauss2DWeights::ioParamsFillGroup(ioFlag);
+   ioParam_weightInit(ioFlag);
+   return status;
 }
 
-int InitSpreadOverArborsWeights::calcWeights(
-      /* PVPatch * patch */ float *dataStart,
-      int patchIndex,
-      int arborId) {
-   InitSpreadOverArborsWeightsParams *weightParamPtr =
-         dynamic_cast<InitSpreadOverArborsWeightsParams *>(weightParams);
-
-   if (weightParamPtr == NULL) {
-      Fatal().printf("Failed to recast pointer to weightsParam!  Exiting...");
-   }
-
-   weightParamPtr->calcOtherParams(patchIndex);
-
-   spreadOverArborsWeights(/* patch */ dataStart, arborId, weightParamPtr);
-
-   return PV_SUCCESS;
+void InitSpreadOverArborsWeights::ioParam_weightInit(enum ParamsIOFlag ioFlag) {
+   parent->parameters()->ioParamValue(ioFlag, name, "weightInit", &mWeightInit, mWeightInit);
 }
 
-/**
- * Initializes all weights to iWeight
- *
- */
-int InitSpreadOverArborsWeights::spreadOverArborsWeights(
-      /* PVPatch * patch */ float *dataStart,
-      int arborId,
-      InitSpreadOverArborsWeightsParams *weightParamPtr) {
+void InitSpreadOverArborsWeights::calcWeights(float *dataStart, int patchIndex, int arborId) {
+   calcOtherParams(patchIndex);
+   spreadOverArborsWeights(dataStart, arborId);
+}
 
+int InitSpreadOverArborsWeights::spreadOverArborsWeights(float *dataStart, int arborId) {
    // load necessary params:
-   int nfPatch_tmp = weightParamPtr->getnfPatch();
-   int nyPatch_tmp = weightParamPtr->getnyPatch();
-   int nxPatch_tmp = weightParamPtr->getnxPatch();
-   int sx_tmp      = weightParamPtr->getsx();
-   int sy_tmp      = weightParamPtr->getsy();
-   int sf_tmp      = weightParamPtr->getsf();
+   int nfPatch = mCallingConn->fPatchSize();
+   int nyPatch = mCallingConn->yPatchSize();
+   int nxPatch = mCallingConn->xPatchSize();
+   int sx      = mCallingConn->xPatchStride();
+   int sy      = mCallingConn->yPatchStride();
+   int sf      = mCallingConn->fPatchStride();
 
-   const float iWeight = weightParamPtr->getInitWeight();
-   const int nArbors   = callingConn->numberOfAxonalArborLists();
+   int const nArbors = mCallingConn->numberOfAxonalArborLists();
 
    // loop over all post-synaptic cells in temporary patch
-   for (int fPost = 0; fPost < nfPatch_tmp; fPost++) {
-      float thPost = weightParamPtr->calcThPost(fPost);
-      if (weightParamPtr->checkThetaDiff(thPost))
+   for (int fPost = 0; fPost < nfPatch; fPost++) {
+      float thPost = calcThPost(fPost);
+      if (checkThetaDiff(thPost))
          continue;
-      for (int jPost = 0; jPost < nyPatch_tmp; jPost++) {
-         float yDelta = weightParamPtr->calcYDelta(jPost);
-         for (int iPost = 0; iPost < nxPatch_tmp; iPost++) {
-            float xDelta = weightParamPtr->calcXDelta(iPost);
+      for (int jPost = 0; jPost < nyPatch; jPost++) {
+         float yDelta = calcYDelta(jPost);
+         for (int iPost = 0; iPost < nxPatch; iPost++) {
+            float xDelta = calcXDelta(iPost);
 
             // rotate the reference frame by th (change sign of thPost?)
             float xp = +xDelta * cosf(thPost) + yDelta * sinf(thPost);
@@ -85,7 +67,7 @@ int InitSpreadOverArborsWeights::spreadOverArborsWeights(
 
             float weight = 0;
             if (xp * xp + yp * yp < 1e-4f) {
-               weight = iWeight / nArbors;
+               weight = mWeightInit / nArbors;
             }
             else {
                float theta2pi = atan2f(yp, xp) / (2 * PI);
@@ -115,14 +97,14 @@ int InitSpreadOverArborsWeights::spreadOverArborsWeights(
                assert(intpart >= 0 && intpart < nArbors && fracpart >= 0 && fracpart < 1);
 
                if (intpart == arborId) {
-                  weight = iWeight * (1 - fracpart);
+                  weight = mWeightInit * (1 - fracpart);
                }
                else if ((int)(intpart - arborId + 1) % nArbors == 0) {
-                  weight = iWeight * fracpart;
+                  weight = mWeightInit * fracpart;
                }
             }
 
-            int index        = iPost * sx_tmp + jPost * sy_tmp + fPost * sf_tmp;
+            int index        = iPost * sx + jPost * sy + fPost * sf;
             dataStart[index] = weight;
          }
       }
