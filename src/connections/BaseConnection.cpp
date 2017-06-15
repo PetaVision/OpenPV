@@ -364,12 +364,12 @@ void BaseConnection::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
    receiveGpu = false;
    parent->parameters()->ioParamValue(
          ioFlag, name, "receiveGpu", &receiveGpu, receiveGpu /*default*/, false /*warn if absent*/);
-   if (ioFlag == PARAMS_IO_READ && receiveGpu) {
-      if (parent->columnId() == 0) {
-         WarnLog() << getDescription_c() << ": receiveGpu is set to true in params, but PetaVision "
-                                            "was compiled without GPU acceleration. receiveGpu has "
-                                            "been set to false.\n";
-      }
+   if (parent->columnId() == 0) {
+      FatalIf(
+            receiveGpu,
+            "%s: receiveGpu is set to true in params, but PetaVision was compiled without GPU "
+            "acceleration.\n",
+            getDescription_c());
    }
 #endif // PV_USE_CUDA
 }

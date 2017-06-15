@@ -659,13 +659,11 @@ void HyPerLayer::ioParam_updateGpu(enum ParamsIOFlag ioFlag) {
    bool updateGpu = false;
    parent->parameters()->ioParamValue(
          ioFlag, name, "updateGpu", &updateGpu, updateGpu, false /*warnIfAbsent*/);
-   if (ioFlag == PARAMS_IO_READ && updateGpu) {
-      if (parent->columnId() == 0) {
-         WarnLog().printf(
-               "%s: updateGpu is set to true, but PetaVision was compiled without GPU "
-               "acceleration.  uphadeGpu has been set to false.\n",
-               getDescription_c());
-      }
+   if (parent->columnId() == 0) {
+      FatalIf(
+            updateGpu,
+            "%s: updateGpu is set to true, but PetaVision was compiled without GPU acceleration.\n",
+            getDescription_c());
    }
 #endif // PV_USE_CUDA
 }
