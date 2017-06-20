@@ -29,11 +29,7 @@ FileStream::FileStream(char const *path, std::ios_base::openmode mode, bool veri
    openFile(path, mode, verifyWrites);
 }
 
-FileStream::~FileStream() {
-   if (mWriteVerifier != nullptr) {
-      delete mWriteVerifier;
-   }
-}
+FileStream::~FileStream() {}
 
 void FileStream::openFile(char const *path, std::ios_base::openmode mode, bool verifyWrites) {
    string fullPath = expandLeadingTilde(path);
@@ -62,15 +58,7 @@ void FileStream::openFile(char const *path, std::ios_base::openmode mode, bool v
                 << attempts + 1 << "\n";
    }
    verifyFlags("openFile");
-   if (verifyWrites) {
-      mVerifyWrites = true;
-      if (binary()) {
-         mWriteVerifier = new FileStream(path, std::ios_base::in | std::ios_base::binary, false);
-      }
-      else {
-         mWriteVerifier = new FileStream(path, std::ios_base::in, false);
-      }
-   }
+   mVerifyWrites = verifyWrites;
 }
 
 void FileStream::verifyFlags(const char *caller) {
@@ -89,13 +77,17 @@ void FileStream::write(void const *data, long length) {
    errmsg.append("writing ").append(std::to_string(length)).append(" bytes");
    verifyFlags(errmsg.c_str());
    if (mVerifyWrites) {
-      FatalIf(mWriteVerifier == nullptr, "Write Verifier is null.\n");
+      std::ios_base::openmode mode = std::ios_base::in;
+      if (binary()) {
+         mode |= std::ios_base::binary;
+      }
+      FileStream writeVerifier(mFileName.c_str(), mode, false);
       // Set the input position to the location we wrote to
-      mWriteVerifier->setInPos(startPos, true);
+      writeVerifier.setInPos(startPos, true);
       std::vector<uint8_t> check(length);
 
       // Read from the location we wrote to and compare
-      mWriteVerifier->read(check.data(), length);
+      writeVerifier.read(check.data(), length);
       if (memcmp(check.data(), data, length) != 0) {
          Fatal() << "Verify write failed when writing " << length << " bytes to position "
                  << startPos << "\n"

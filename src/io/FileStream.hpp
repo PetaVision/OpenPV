@@ -41,7 +41,6 @@ class FileStream : public PrintStream {
   private:
    bool mVerifyWrites         = false;
    int const mMaxAttempts     = 5;
-   FileStream *mWriteVerifier = nullptr;
 };
 
 } /* namespace PV */
