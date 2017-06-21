@@ -568,7 +568,7 @@ void Checkpointer::findWarmStartDirectory() {
       else {
          pvAssert(mLastCheckpointDir);
          FatalIf(
-               mLastCheckpointDir[0] = '\0',
+               mLastCheckpointDir[0] == '\0',
                "Restart flag set, but unable to determine restart directory.\n");
          mCheckpointReadDirectory = strdup(mLastCheckpointDir);
       }
