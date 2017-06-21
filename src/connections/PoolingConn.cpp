@@ -718,7 +718,6 @@ int PoolingConn::deliverPresynapticPerspective(PVLayerCube const *activity, int 
                      gSynPatchHead[ni] = thread_gSyn[ti][ni];
                      if (needPostIndexLayer && thread_gateIdxBuffer) {
                         gateIdxBuffer[ni] = thread_gateIdxBuffer[ti][ni];
-                        assert(gateIdxBuffer >= 0);
                      }
                   }
                }
