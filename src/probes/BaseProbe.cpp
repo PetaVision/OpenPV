@@ -139,13 +139,10 @@ void BaseProbe::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
    }
 }
 
-// triggerFlag was deprecated Oct 7, 2015.
-// Setting triggerLayerName to a nonempty string has the effect of
-// triggerFlag=true, and
+// triggerFlag was deprecated Oct 7, 2015, and marked obsolete Jun 9, 2017.
+// Setting triggerLayerName to a nonempty string has the effect of triggerFlag=true, and
 // setting triggerLayerName to NULL or "" has the effect of triggerFlag=false.
-// While triggerFlag is being deprecated, it is an error for triggerFlag to be
-// false
-// and triggerLayerName to be a nonempty string.
+// For a reasonable fade-out time, it is an error for triggerFlag to be defined in params.
 void BaseProbe::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
    if (ioFlag == PARAMS_IO_READ && parent->parameters()->present(name, "triggerFlag")) {
@@ -153,27 +150,13 @@ void BaseProbe::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
       parent->parameters()->ioParamValue(
             ioFlag, name, "triggerFlag", &flagFromParams, flagFromParams);
       if (parent->columnId() == 0) {
-         WarnLog(triggerFlagDeprecated);
-         triggerFlagDeprecated.printf("%s: triggerFlag has been deprecated.\n", getDescription_c());
+         Fatal(triggerFlagDeprecated);
          triggerFlagDeprecated.printf(
-               "   If triggerLayerName is a nonempty "
-               "string, triggering will be on;\n");
+               "%s: triggerFlag is obsolete for probes.\n", getDescription_c());
+         triggerFlagDeprecated.printf(
+               "   If triggerLayerName is a nonempty string, triggering will be on;\n");
          triggerFlagDeprecated.printf(
                "   if triggerLayerName is empty or null, triggering will be off.\n");
-         if (flagFromParams != triggerFlag) {
-            ErrorLog(triggerFlagError);
-            triggerFlagError.printf("%s: triggerLayerName=", getDescription_c());
-            if (triggerLayerName) {
-               triggerFlagError.printf("\"%s\"", triggerLayerName);
-            }
-            else {
-               triggerFlagError.printf("NULL");
-            }
-            triggerFlagError.printf(
-                  " implies triggerFlag=%s but triggerFlag was set in params to %s\n",
-                  triggerFlag ? "true" : "false",
-                  flagFromParams ? "true" : "false");
-         }
       }
    }
 }
