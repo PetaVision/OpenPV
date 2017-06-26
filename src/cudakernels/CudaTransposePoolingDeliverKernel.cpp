@@ -53,7 +53,7 @@ void CudaTransposePoolingDeliverKernel::setArgs(
    cudnnStatus_t status;
    status = cudnnCreatePoolingDescriptor(&mPoolingDescriptor);
    cudnnHandleError(status, "Create pooling descriptor");
-#if CUDNN_MAJOR == 5
+#if CUDNN_MAJOR >= 5
    status = cudnnSetPooling2dDescriptor(
          mPoolingDescriptor,
          poolingMode,
@@ -75,7 +75,7 @@ void CudaTransposePoolingDeliverKernel::setArgs(
          strideY,
          strideX);
 #else
-#error The cuDNN version is required to be either v4 or v5.
+#error The cuDNN version is required to be v4 or greater.\n
 #endif
 
    const PVHalo *preHalo = &mPreLoc->halo;
