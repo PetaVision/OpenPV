@@ -20,7 +20,7 @@ macro(pv_config_project)
   set(ICC_CPP_11X_FLAGS "")
 
   # Clang Compiler defaults
-  set(CLANG_OPENMP_FLAG -fopenmp=libiomp5)
+  set(CLANG_OPENMP_FLAG "")
   set(CLANG_CPP_11X_FLAGS "-std=c++11 -stdlib=libc++")
   set(CLANG_SANITIZE_ADDRESS_CXX_FLAGS "-g -fsanitize=address -fno-omit-frame-pointer")
   set(CLANG_SANITIZE_ADDRESS_LINKER_FLAGS -g;-fsanitize=address)
