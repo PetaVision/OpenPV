@@ -225,7 +225,7 @@ void CudaRecvPost::setArgs(
    cudnnFilterDescriptor_t filterDescriptor;
    status = cudnnCreateFilterDescriptor(&filterDescriptor);
    cudnnHandleError(status, "Create filter tensor descriptor");
-#if CUDNN_MAJOR == 5
+#if CUDNN_MAJOR >= 5
    status = cudnnSetFilter4dDescriptor(
          filterDescriptor,
          CUDNN_DATA_FLOAT,
@@ -247,7 +247,7 @@ void CudaRecvPost::setArgs(
          params.nyp, // Height of each filter
          params.nxp); // Width of each filter
 #else
-#error The cuDNN version is required to be either v4 or v5.\n
+#error The cuDNN version is required to be either v4 or greater.\n
 #endif
    cudnnHandleError(status, "Set filter tensor descriptor");
    params.v_filterDescriptor = (void *)filterDescriptor;
@@ -258,15 +258,18 @@ void CudaRecvPost::setArgs(
    cudnnHandleError(status, "Create convolution tensor descriptor");
    status = cudnnSetConvolution2dDescriptor(
          convDescriptor,
-         // params.nyp-params.preToPostScaleY-1,
-         // params.nxp-params.preToPostScaleX-1,  //zero-padding height and width
          0,
          0, // zero-padding height and width
          strideY, // Vertical filter stride
          strideX, // Horizontal filter stride
          1,
          1, // upscale the input in x/y direction
-         CUDNN_CONVOLUTION);
+         CUDNN_CONVOLUTION
+#if CUDNN_MAJOR >= 6
+         ,
+         CUDNN_DATA_FLOAT
+#endif
+         );
    cudnnHandleError(status, "Set convolution tensor descriptor");
    params.v_convDescriptor = (void *)convDescriptor;
 
