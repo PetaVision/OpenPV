@@ -17,9 +17,9 @@ class NormalizeGroup : public NormalizeBase {
    NormalizeGroup(char const *name, HyPerCol *hc);
    virtual ~NormalizeGroup();
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message);
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
 
   protected:
    NormalizeGroup();
@@ -28,25 +28,25 @@ class NormalizeGroup : public NormalizeBase {
    /**
     * NormalizeGroup does not read the strength parameter, but inherits it from its group head.
     */
-   virtual void ioParam_strength(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_strength(enum ParamsIOFlag ioFlag) override;
 
    /**
     * NormalizeGroup does not read the normalizeArborsIndividually parameter, but inherits it from
     * its group head.
     */
-   virtual void ioParam_normalizeArborsIndividually(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_normalizeArborsIndividually(enum ParamsIOFlag ioFlag) override;
 
    /**
     * NormalizeGroup does not read the normalizeOnInitialize parameter, but inherits it from its
     * group head.
     */
-   virtual void ioParam_normalizeOnInitialize(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_normalizeOnInitialize(enum ParamsIOFlag ioFlag) override;
 
    /**
     * NormalizeGroup does not read the normalizeOnWeightUpdate parameter, but inherits it from its
     * group head.
     */
-   virtual void ioParam_normalizeOnWeightUpdate(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_normalizeOnWeightUpdate(enum ParamsIOFlag ioFlag) override;
 
    /**
     * The name of the normalizer that serves as the normalizer group head.
@@ -59,7 +59,7 @@ class NormalizeGroup : public NormalizeBase {
     * Instead, when the group head's normalizeWeights method is called,
     * the weights of all connections in the group are normalized together.
     */
-   virtual int normalizeWeights();
+   virtual int normalizeWeights() override;
 
   private:
    int initialize_base();

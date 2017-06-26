@@ -27,7 +27,7 @@ class NormalizeGap : public PV::NormalizeSum {
   protected:
    NormalizeGap();
    int initialize(const char *name, HyPerCol *hc);
-   virtual void ioParam_normalizeFromPostPerspective(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_normalizeFromPostPerspective(enum ParamsIOFlag ioFlag) override;
 
   private:
    int initialize_base();

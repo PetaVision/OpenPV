@@ -15,9 +15,9 @@ namespace PV {
 class ShrunkenPatchTestLayer : public PV::ANNLayer {
   public:
    ShrunkenPatchTestLayer(const char *name, HyPerCol *hc);
-   virtual int allocateDataStructures();
-   virtual int updateState(double time, double dt);
-   virtual int publish(Communicator *comm, double timed);
+   virtual int allocateDataStructures() override;
+   virtual int updateState(double time, double dt) override;
+   virtual int publish(Communicator *comm, double timed) override;
    int setVtoGlobalPos();
    int setActivitytoGlobalPos();
 

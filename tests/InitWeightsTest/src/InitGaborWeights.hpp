@@ -22,9 +22,9 @@ class InitGaborWeights : public PV::InitGauss2DWeights {
    InitGaborWeights(char const *name, HyPerCol *hc);
    virtual ~InitGaborWeights();
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
-   virtual void calcWeights(float *dataStart, int patchIndex, int arborId);
+   virtual void calcWeights(float *dataStart, int patchIndex, int arborId) override;
    void calcOtherParams(int patchIndex);
 
   protected:

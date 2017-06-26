@@ -34,21 +34,21 @@ class L2NormProbe : public AbstractNormProbe {
     * the value of exponent.
     * Return values and errno are set by a call to setNormDescriptionToString.
     */
-   virtual int setNormDescription();
+   virtual int setNormDescription() override;
 
    /**
     * Overrides AbstractNormProbe::calcValues method to apply the exponent.
     */
-   virtual int calcValues(double timevalue);
+   virtual int calcValues(double timevalue) override;
 
    /**
     * Each MPI process returns the sum of the squares of the activities in its
     * restricted activity space.  Note that the exponent parameter is not applied
     * inside the call to getValueInternal.
     */
-   virtual double getValueInternal(double timevalue, int index);
+   virtual double getValueInternal(double timevalue, int index) override;
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    /**
     * List of parameters for the L2NormProbe class

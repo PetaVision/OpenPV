@@ -18,14 +18,14 @@ class LIFTestProbe : public StatsProbe {
    LIFTestProbe(const char *probeName, HyPerCol *hc);
    virtual ~LIFTestProbe();
 
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message);
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
 
-   virtual int outputState(double timed);
+   virtual int outputState(double timed) override;
 
   protected:
    LIFTestProbe();
    int initLIFTestProbe(const char *probeName, HyPerCol *hc);
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_endingTime(enum ParamsIOFlag ioFlag);
    virtual void ioParam_tolerance(enum ParamsIOFlag ioFlag);
    virtual int initOutputStream(const char *filename, Checkpointer *checkpointer) override;

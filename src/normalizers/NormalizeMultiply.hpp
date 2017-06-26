@@ -24,7 +24,7 @@ class NormalizeMultiply : public NormalizeBase {
    float getNormalizeCutoff() { return normalize_cutoff; }
    bool getNormalizeFromPostPerspectiveFlag() { return normalizeFromPostPerspective; }
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    /**
     * Sets the size in the x-direction of the rectangle zeroed out by applyRMin
@@ -55,7 +55,7 @@ class NormalizeMultiply : public NormalizeBase {
     */
    virtual void ioParam_normalizeFromPostPerspective(enum ParamsIOFlag ioFlag);
 
-   virtual int normalizeWeights();
+   virtual int normalizeWeights() override;
 
   protected:
    NormalizeMultiply();

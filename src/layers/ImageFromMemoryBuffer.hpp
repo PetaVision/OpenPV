@@ -83,26 +83,26 @@ class ImageFromMemoryBuffer : public ImageLayer {
     * activity buffer by a call to copyBuffer() (which is called by either updateState or
     * initializeActivity)
     */
-   virtual bool needUpdate(double time, double dt) { return hasNewImageFlag; }
+   virtual bool needUpdate(double time, double dt) override { return hasNewImageFlag; }
 
    /**
     * For ImageFromMemoryBuffer, the updateTime is the parent->getStopTime() -
     * parent->getStartTime().
     * Implemented to allow triggering off of an ImageFromMemoryBuffer layer.
     */
-   virtual double getDeltaUpdateTime();
+   virtual double getDeltaUpdateTime() override;
 
    /**
        * Overrides updateState
        */
-   virtual int updateState(double time, double dt);
+   virtual int updateState(double time, double dt) override;
 
   protected:
    ImageFromMemoryBuffer();
 
    int initialize(char const *name, HyPerCol *hc);
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    /**
     * List of parameters needed from the ImageFromMemoryBuffer class
@@ -115,7 +115,7 @@ class ImageFromMemoryBuffer : public ImageLayer {
     * @details ImageFromMemoryBuffer does not read the input from a path.  Instead, call
     * setMemoryBuffer()
     */
-   virtual void ioParam_inputPath(enum ParamsIOFlag ioFlag) { return; }
+   virtual void ioParam_inputPath(enum ParamsIOFlag ioFlag) override { return; }
 
    /**
     * Called by HyPerLayer::setActivity() during setInitialValues stage; calls copyBuffer()

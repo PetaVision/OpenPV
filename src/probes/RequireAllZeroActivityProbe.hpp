@@ -26,16 +26,16 @@ class RequireAllZeroActivityProbe : public PV::StatsProbe {
   public:
    RequireAllZeroActivityProbe(const char *probeName, HyPerCol *hc);
    virtual ~RequireAllZeroActivityProbe();
-   virtual int outputState(double timed);
+   virtual int outputState(double timed) override;
 
    bool getNonzeroFound() { return nonzeroFound; }
    double getNonzeroTime() { return nonzeroTime; }
 
   protected:
    RequireAllZeroActivityProbe();
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    int initRequireAllZeroActivityProbe(const char *probeName, HyPerCol *hc);
-   virtual void ioParam_buffer(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_buffer(enum ParamsIOFlag ioFlag) override;
 
    /**
     * List of parameters needed from the RequireAllZeroActivityProbe class

@@ -23,9 +23,9 @@ class InitCocircWeights : public PV::InitGauss2DWeights {
    InitCocircWeights(char const *name, HyPerCol *hc);
    virtual ~InitCocircWeights();
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
-   virtual void calcWeights(float *dataStart, int patchIndex, int arborId);
+   virtual void calcWeights(float *dataStart, int patchIndex, int arborId) override;
 
   protected:
    InitCocircWeights();

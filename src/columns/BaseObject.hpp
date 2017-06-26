@@ -96,7 +96,7 @@ class BaseObject : public CheckpointerDataInterface {
    virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) { return PV_SUCCESS; }
    virtual int allocateDataStructures() { return PV_SUCCESS; }
    virtual int initializeState() { return PV_SUCCESS; }
-   virtual int readStateFromCheckpoint(Checkpointer *checkpointer) { return PV_SUCCESS; }
+   virtual int readStateFromCheckpoint(Checkpointer *checkpointer) override { return PV_SUCCESS; }
    virtual int copyInitialStateToGPU() { return PV_SUCCESS; }
    virtual int cleanup() { return PV_SUCCESS; }
 

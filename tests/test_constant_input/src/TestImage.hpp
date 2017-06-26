@@ -15,19 +15,19 @@ namespace PV {
 class TestImage : public HyPerLayer {
   public:
    TestImage(const char *name, HyPerCol *hc);
-   virtual int updateState(double timed, double dt);
+   virtual int updateState(double timed, double dt) override;
    const float getConstantVal() { return val; }
-   virtual bool activityIsSpiking() { return false; }
+   virtual bool activityIsSpiking() override { return false; }
    virtual ~TestImage();
 
   protected:
    TestImage();
    int initialize(const char *name, HyPerCol *hc);
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_InitVType(enum ParamsIOFlag ioFlag);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_InitVType(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_constantVal(enum ParamsIOFlag ioFlag);
-   virtual int allocateV();
-   virtual int initializeActivity();
+   virtual int allocateV() override;
+   virtual int initializeActivity() override;
 
   private:
    int initialize_base();

@@ -19,12 +19,12 @@ class LayerPhaseTestProbe : public PV::StatsProbe {
   public:
    LayerPhaseTestProbe(const char *probeName, HyPerCol *hc);
 
-   virtual int outputState(double timed);
+   virtual int outputState(double timed) override;
 
   protected:
    int initLayerPhaseTestProbe(const char *probeName, HyPerCol *hc);
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_buffer(enum ParamsIOFlag ioFlag);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_buffer(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_equilibriumValue(enum ParamsIOFlag ioFlag);
    virtual void ioParam_equilibriumTime(enum ParamsIOFlag ioFlag);
 

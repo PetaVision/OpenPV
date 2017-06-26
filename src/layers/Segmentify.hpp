@@ -9,15 +9,15 @@ namespace PV {
 class Segmentify : public PV::HyPerLayer {
   public:
    Segmentify(const char *name, HyPerCol *hc);
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message);
-   virtual int allocateDataStructures();
-   virtual bool activityIsSpiking() { return false; }
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
+   virtual int allocateDataStructures() override;
+   virtual bool activityIsSpiking() override { return false; }
    virtual ~Segmentify();
 
   protected:
    Segmentify();
    int initialize(const char *name, HyPerCol *hc);
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    void ioParam_originalLayerName(enum ParamsIOFlag ioFlag);
    void ioParam_segmentLayerName(enum ParamsIOFlag ioFlag);
    // Defines the way to reduce values within a segment
@@ -26,11 +26,11 @@ class Segmentify : public PV::HyPerLayer {
    // Defines the way to fill the output segment with the
    // reduced scalar method. Options are "centroid" and "fill"
    void ioParam_outputMethod(enum ParamsIOFlag ioFlag);
-   int allocateV();
-   int initializeV();
-   virtual int initializeActivity();
+   int allocateV() override;
+   int initializeV() override;
+   virtual int initializeActivity() override;
 
-   virtual int updateState(double timef, double dt);
+   virtual int updateState(double timef, double dt) override;
 
    float calcNormDist(float xVal, float mean, float binSigma);
 

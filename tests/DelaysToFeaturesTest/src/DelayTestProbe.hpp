@@ -17,7 +17,7 @@ class DelayTestProbe : public PV::StatsProbe {
    DelayTestProbe(const char *probeName, HyPerCol *hc);
    virtual ~DelayTestProbe();
 
-   virtual int outputState(double timestamp);
+   virtual int outputState(double timestamp) override;
 
   protected:
    int initDelayTestProbe(const char *probeName, HyPerCol *hc);

@@ -37,11 +37,11 @@ class CudaTimer : public PV::Timer {
    /**
     * A function to put an instruction on the GPU queue to start timing
     */
-   virtual double start();
+   virtual double start() override;
    /**
     * A function to put an instruction on the GPU queue to stop timing
     */
-   virtual double stop();
+   virtual double stop() override;
    /**
     * A blocking function to accumulate to the final time between start and stop.
     * This function must be called after a pair of start/stops. Not doing so will clobber the

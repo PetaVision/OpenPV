@@ -12,11 +12,11 @@ class TestNotAlwaysAllZerosProbe : public StatsProbe {
    TestNotAlwaysAllZerosProbe(const char *probeName, HyPerCol *hc);
    bool nonzeroValueHasOccurred() { return nonzeroValueOccurred; }
 
-   virtual int outputState(double timed);
+   virtual int outputState(double timed) override;
 
   protected:
    int initTestNotAlwaysAllZerosProbe(const char *probeName, HyPerCol *hc);
-   virtual void ioParam_buffer(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_buffer(enum ParamsIOFlag ioFlag) override;
 
   private:
    int initTestNotAlwaysAllZerosProbe_base();

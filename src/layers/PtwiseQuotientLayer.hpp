@@ -24,8 +24,8 @@ class PtwiseQuotientLayer : public ANNLayer {
    PtwiseQuotientLayer(const char *name, HyPerCol *hc);
    virtual ~PtwiseQuotientLayer();
 
-   virtual int allocateDataStructures();
-   virtual int updateState(double timef, double dt);
+   virtual int allocateDataStructures() override;
+   virtual int updateState(double timef, double dt) override;
 
   protected:
    PtwiseQuotientLayer();

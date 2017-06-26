@@ -16,13 +16,13 @@ class AverageRateConn : public IdentConn {
   public:
    AverageRateConn(const char *name, HyPerCol *hc);
    virtual ~AverageRateConn();
-   virtual int updateState(double timed, double dt);
+   virtual int updateState(double timed, double dt) override;
 
   protected:
    AverageRateConn();
    int initialize(const char *name, HyPerCol *hc);
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_plasticityFlag(enum ParamsIOFlag ioFlag);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) override;
 
   private:
    int initialize_base();

@@ -17,7 +17,7 @@ class ArborTestForOnesProbe : public PV::StatsProbe {
    ArborTestForOnesProbe(const char *probeName, HyPerCol *hc);
    virtual ~ArborTestForOnesProbe();
 
-   virtual int outputState(double timed);
+   virtual int outputState(double timed) override;
 
   protected:
    int initArborTestForOnesProbe(const char *probeName, HyPerCol *hc);

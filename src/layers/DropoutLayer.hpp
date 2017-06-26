@@ -12,8 +12,8 @@ class DropoutLayer : public ANNLayer {
    virtual ~DropoutLayer();
 
   protected:
-   virtual int updateState(double timestamp, double dt);
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual int updateState(double timestamp, double dt) override;
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_probability(enum ParamsIOFlag ioFlag);
 
    int mProbability = 0; // Value from 0-99 indicating per-neuron chance of dropout

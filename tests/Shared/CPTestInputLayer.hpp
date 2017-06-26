@@ -17,12 +17,12 @@ class CPTestInputLayer : public HyPerLayer {
   public:
    CPTestInputLayer(const char *name, HyPerCol *hc);
    virtual ~CPTestInputLayer();
-   virtual int allocateDataStructures();
-   virtual int updateState(double timed, double dt);
+   virtual int allocateDataStructures() override;
+   virtual int updateState(double timed, double dt) override;
 
   protected:
    int initialize(const char *name, HyPerCol *hc);
-   virtual int initializeV();
+   virtual int initializeV() override;
 
 }; // end class CPTestInputLayer
 

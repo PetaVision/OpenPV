@@ -16,7 +16,7 @@ class ConstantLayer : public PV::HyPerLayer {
   public:
    ConstantLayer(const char *name, HyPerCol *hc);
    virtual ~ConstantLayer();
-   virtual bool needUpdate(double time, double dt);
+   virtual bool needUpdate(double time, double dt) override;
 
   protected:
    ConstantLayer();
@@ -31,10 +31,10 @@ class ConstantLayer : public PV::HyPerLayer {
    /**
     * @brief ConstantLayer does not use triggerLayerName.
     */
-   virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) override;
    /** @} */ // End list of ConstantLayer parameters
 
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message);
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
 
   private:
    int initialize_base();

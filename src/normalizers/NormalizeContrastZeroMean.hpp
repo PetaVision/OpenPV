@@ -18,8 +18,8 @@ class NormalizeContrastZeroMean : public PV::NormalizeBase {
    NormalizeContrastZeroMean(const char *name, HyPerCol *hc);
    virtual ~NormalizeContrastZeroMean();
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-   virtual int normalizeWeights();
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int normalizeWeights() override;
 
   protected:
    NormalizeContrastZeroMean();

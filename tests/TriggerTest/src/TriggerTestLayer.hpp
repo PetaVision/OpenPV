@@ -12,8 +12,8 @@ namespace PV {
 class TriggerTestLayer : public PV::HyPerLayer {
   public:
    TriggerTestLayer(const char *name, HyPerCol *hc);
-   virtual bool activityIsSpiking() { return false; }
-   int virtual updateState(double time, double dt);
+   virtual bool activityIsSpiking() override { return false; }
+   int virtual updateState(double time, double dt) override;
 };
 }
 #endif /* IMAGETESTPROBE_HPP */

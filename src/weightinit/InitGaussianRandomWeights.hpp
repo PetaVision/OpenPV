@@ -22,7 +22,7 @@ class InitGaussianRandomWeights : public PV::InitRandomWeights {
    InitGaussianRandomWeights(char const *name, HyPerCol *hc);
    virtual ~InitGaussianRandomWeights();
 
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
   protected:
    InitGaussianRandomWeights();

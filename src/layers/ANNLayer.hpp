@@ -68,15 +68,15 @@ class ANNLayer : public HyPerLayer {
    float getSlopeNegInf() const { return slopeNegInf; }
    float getSlopePosInf() const { return slopePosInf; }
 
-   virtual bool activityIsSpiking() { return false; }
+   virtual bool activityIsSpiking() override { return false; }
 
   protected:
    ANNLayer();
    int initialize(const char *name, HyPerCol *hc);
-   virtual int updateState(double time, double dt);
-   virtual int setActivity();
+   virtual int updateState(double time, double dt) override;
+   virtual int setActivity() override;
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    /**
     * List of parameters used by the ANNLayer class
@@ -184,7 +184,7 @@ class ANNLayer : public HyPerLayer {
     */
    void setSlopes();
 
-   virtual int resetGSynBuffers(double timef, double dt);
+   virtual int resetGSynBuffers(double timef, double dt) override;
 
    // Data members, initialized to default values.
    bool verticesListInParams =
