@@ -78,7 +78,7 @@ class InitWeights : public BaseObject {
    InitWeights();
    int initialize(const char *name, HyPerCol *hc);
 
-   virtual int setDescription();
+   virtual int setDescription() override;
    virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
    virtual void calcWeights();
    virtual void calcWeights(float *dataStart, int patchIndex, int arborId);

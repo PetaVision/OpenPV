@@ -17,11 +17,11 @@ class ArborTestProbe : public PV::StatsProbe {
    ArborTestProbe(const char *probeName, HyPerCol *hc);
    virtual ~ArborTestProbe();
 
-   virtual int outputState(double timed);
+   virtual int outputState(double timed) override;
 
   protected:
    int initArborTestProbe(const char *probeName, HyPerCol *hc);
-   virtual void ioParam_buffer(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_buffer(enum ParamsIOFlag ioFlag) override;
 
   private:
    int initArborTestProbe_base();

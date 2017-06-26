@@ -12,7 +12,7 @@ namespace PV {
 class ImagePvpTestLayer : public PV::PvpLayer {
   public:
    ImagePvpTestLayer(const char *name, HyPerCol *hc);
-   virtual int updateState(double time, double dt);
+   virtual int updateState(double time, double dt) override;
 
   protected:
    /**

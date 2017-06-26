@@ -33,7 +33,7 @@ class NormalizeBase : public BaseObject {
     * In particular, NormalizeGroup calls its group head's addConnToList
     * method from NormalizeGroup::communicateInitInfo method.
     */
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message);
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
 
    /**
     * The public interface for normalizing weights.
@@ -50,7 +50,7 @@ class NormalizeBase : public BaseObject {
   protected:
    NormalizeBase();
    int initialize(const char *name, HyPerCol *hc);
-   virtual int setDescription();
+   virtual int setDescription() override;
 
    virtual void ioParam_strength(enum ParamsIOFlag ioFlag);
    virtual void ioParam_normalizeArborsIndividually(enum ParamsIOFlag ioFlag);

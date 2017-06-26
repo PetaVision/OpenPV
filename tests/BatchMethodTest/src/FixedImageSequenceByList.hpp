@@ -11,7 +11,7 @@ class FixedImageSequenceByList : public FixedImageSequence {
   protected:
    FixedImageSequenceByList() {}
    int initialize(char const *name, PV::HyPerCol *hc);
-   virtual void defineImageSequence();
+   virtual void defineImageSequence() override;
 }; // end class FixedImageSequenceByList
 
 #endif // IMAGEBYLISTUSINGTIMESTAMP_HPP_

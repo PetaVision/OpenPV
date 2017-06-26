@@ -16,7 +16,7 @@ class LogTimeScaleProbe : public AdaptiveTimeScaleProbe {
 
   protected:
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-   virtual void allocateTimeScaleController();
+   virtual void allocateTimeScaleController() override;
 
    double mLogThresh = DBL_MAX_EXP;
    double mLogSlope  = 1.0;

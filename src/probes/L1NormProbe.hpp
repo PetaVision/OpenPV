@@ -27,14 +27,14 @@ class L1NormProbe : public AbstractNormProbe {
     * For each MPI process, getValueInternal returns the sum of the absolute
     * values of the activities in the restricted space of that MPI process.
     */
-   virtual double getValueInternal(double timevalue, int index);
+   virtual double getValueInternal(double timevalue, int index) override;
 
    /**
     * Overrides AbstractNormProbe::setNormDescription() to set normDescription to
     * "L1-norm".
     * Return values and errno are set by a call to setNormDescriptionToString.
     */
-   virtual int setNormDescription();
+   virtual int setNormDescription() override;
 
   private:
    int initL1NormProbe_base() { return PV_SUCCESS; }

@@ -15,7 +15,7 @@ class KneeTimeScaleProbe : public AdaptiveTimeScaleProbe {
 
   protected:
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-   virtual void allocateTimeScaleController();
+   virtual void allocateTimeScaleController() override;
 
    double mKneeThresh = 1.0;
    double mKneeSlope  = 1.0;

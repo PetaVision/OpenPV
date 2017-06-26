@@ -65,7 +65,7 @@ class AbstractNormProbe : public LayerProbe {
     */
    int setNormDescriptionToString(char const *s);
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    /**
     * List of parameters needed from the AbstractNormProbe class
@@ -94,7 +94,7 @@ class AbstractNormProbe : public LayerProbe {
     * Computes the norms.  Each MPI process calls getValueInternal to compute its
     * own contribution to the norms, and then calcValues calls MPI_Allreduce.
     */
-   virtual int calcValues(double timeValue);
+   virtual int calcValues(double timeValue) override;
 
    /**
     * getValueInternal(double, index) is a pure virtual function
@@ -111,7 +111,7 @@ class AbstractNormProbe : public LayerProbe {
     * Calls LayerProbe::communicateInitInfo to set up the targetLayer and
     * attach the probe; and then checks the masking layer if masking is used.
     */
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message);
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
 
    /**
     * Returns true if masking is used and the layer has multiple features but
@@ -128,7 +128,7 @@ class AbstractNormProbe : public LayerProbe {
     * and norm value for
     * each batch element.
     */
-   virtual int outputState(double timevalue);
+   virtual int outputState(double timevalue) override;
 
    char const *getNormDescription() { return normDescription; }
 

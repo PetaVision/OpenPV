@@ -18,8 +18,8 @@ class NormalizeMax : public PV::NormalizeMultiply {
    NormalizeMax(const char *name, HyPerCol *hc);
    virtual ~NormalizeMax();
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-   virtual int normalizeWeights();
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int normalizeWeights() override;
 
   protected:
    NormalizeMax();

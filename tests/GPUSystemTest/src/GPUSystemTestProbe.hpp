@@ -13,11 +13,11 @@ class GPUSystemTestProbe : public PV::StatsProbe {
   public:
    GPUSystemTestProbe(const char *probeName, HyPerCol *hc);
 
-   virtual int outputState(double timed);
+   virtual int outputState(double timed) override;
 
   protected:
    int initGPUSystemTestProbe(const char *probeName, HyPerCol *hc);
-   void ioParam_buffer(enum ParamsIOFlag ioFlag);
+   void ioParam_buffer(enum ParamsIOFlag ioFlag) override;
 
   private:
    int initGPUSystemTestProbe_base();

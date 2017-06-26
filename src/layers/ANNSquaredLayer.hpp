@@ -18,7 +18,7 @@ class ANNSquaredLayer : public PV::ANNLayer {
   public:
    ANNSquaredLayer(const char *name, HyPerCol *hc);
    virtual ~ANNSquaredLayer();
-   virtual int updateState(double time, double dt);
+   virtual int updateState(double time, double dt) override;
 
   protected:
    ANNSquaredLayer();

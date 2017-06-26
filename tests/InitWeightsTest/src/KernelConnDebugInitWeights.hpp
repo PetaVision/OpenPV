@@ -18,15 +18,15 @@ class KernelConnDebugInitWeights : public PV::HyPerConn {
    KernelConnDebugInitWeights(const char *name, HyPerCol *hc);
    virtual ~KernelConnDebugInitWeights();
 
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message);
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
    virtual PVPatch ***
    initializeWeights(PVPatch ***arbors, float **dataStart, int numPatches, const char *filename);
 
   protected:
    int initialize(const char *name, HyPerCol *hc);
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_channelCode(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_channelCode(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_copiedConn(enum ParamsIOFlag ioFlag);
    virtual void readChannelCode(PVParams *params) { channel = CHANNEL_INH; }
    PVPatch **initializeGaussian2DWeights(PVPatch **patches, float *dataStart, int numPatches);

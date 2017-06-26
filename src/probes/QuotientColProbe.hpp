@@ -40,7 +40,7 @@ class QuotientColProbe : public ColProbe {
     * added by
     * QuotientColProbe
     */
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    /**
     * List of QuotientColProbe parameters
@@ -83,7 +83,7 @@ class QuotientColProbe : public ColProbe {
 
    /** @} */ /* end of io functions for QuotientColProbe parameters */
 
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message);
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
 
    /**
     * Prints the energies to the output stream, formatted as a comma-separated
@@ -93,7 +93,7 @@ class QuotientColProbe : public ColProbe {
     * from 0 to
     * getVectorSize()-1.
     */
-   virtual int outputState(double timevalue);
+   virtual int outputState(double timevalue) override;
 
   protected:
    /**
@@ -108,17 +108,17 @@ class QuotientColProbe : public ColProbe {
     */
    int initializeQuotientColProbe(const char *probename, HyPerCol *hc);
 
-   virtual bool needRecalc(double timevalue) { return true; }
+   virtual bool needRecalc(double timevalue) override { return true; }
 
-   virtual double referenceUpdateTime() const;
+   virtual double referenceUpdateTime() const override;
 
    /**
     * Implements the needRecalc method.  Always returns true, in the expectation
     * that the hard work is done by the probes in the numerator and denominator.
     */
-   virtual int calcValues(double timeValue);
+   virtual int calcValues(double timeValue) override;
 
-   virtual int outputHeader();
+   virtual int outputHeader() override;
 
   private:
    /**

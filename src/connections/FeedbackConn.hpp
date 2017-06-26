@@ -25,11 +25,11 @@ class FeedbackConn : public TransposeConn {
    FeedbackConn();
    int initialize_base();
    int initialize(const char *name, HyPerCol *hc);
-   void ioParam_preLayerName(enum ParamsIOFlag ioFlag);
-   void ioParam_postLayerName(enum ParamsIOFlag ioFlag);
+   void ioParam_preLayerName(enum ParamsIOFlag ioFlag) override;
+   void ioParam_postLayerName(enum ParamsIOFlag ioFlag) override;
 
-   virtual int setPreAndPostLayerNames();
-   virtual int handleMissingPreAndPostLayerNames();
+   virtual int setPreAndPostLayerNames() override;
+   virtual int handleMissingPreAndPostLayerNames() override;
 }; // end class FeedbackConn
 
 } // end of block for namespace PV

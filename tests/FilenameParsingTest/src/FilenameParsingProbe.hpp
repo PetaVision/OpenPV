@@ -24,8 +24,8 @@ class FilenameParsingProbe : public PV::LayerProbe {
   protected:
    FilenameParsingProbe();
    int initialize(const char *probeName, PV::HyPerCol *hc);
-   virtual int communicateInitInfo(PV::CommunicateInitInfoMessage const *message);
-   virtual int calcValues(double timevalue) { return 0; }
+   virtual int communicateInitInfo(PV::CommunicateInitInfoMessage const *message) override;
+   virtual int calcValues(double timevalue) override { return 0; }
    virtual int outputState(double timestamp) override;
 
   private:

@@ -138,7 +138,7 @@ class CudaRecvPost : public CudaKernel {
 
   protected:
    // This is the function that should be overwritten in child classes
-   virtual int do_run();
+   virtual int do_run() override;
 
   private:
    recv_post_params params;

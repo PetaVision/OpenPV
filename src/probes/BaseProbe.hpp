@@ -38,7 +38,7 @@ class BaseProbe : public BaseObject {
     * the energy probe,
     * if either triggerFlag or energyProbe are set.
     */
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) = 0;
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override = 0;
 
    /**
     * Called during HyPerCol::run, during the allocateDataStructures stage.
@@ -46,7 +46,7 @@ class BaseProbe : public BaseObject {
     * Derived classes that override this method should make sure to
     * call this method in their own allocateDataStructures methods.
     */
-   virtual int registerData(Checkpointer *checkpointer);
+   virtual int registerData(Checkpointer *checkpointer) override;
 
    /**
     * Returns the number of value indices the probe can compute (typically the

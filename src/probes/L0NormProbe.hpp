@@ -25,9 +25,9 @@ class L0NormProbe : public AbstractNormProbe {
   protected:
    L0NormProbe();
    int initL0NormProbe(const char *probeName, HyPerCol *hc);
-   virtual double getValueInternal(double timevalue, int index);
+   virtual double getValueInternal(double timevalue, int index) override;
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    /**
     * List of parameters for the L0NormProbe class
     * @name L0NormProbe Parameters
@@ -47,7 +47,7 @@ class L0NormProbe : public AbstractNormProbe {
     * "L0-norm".
     * Return values and errno are set by a call to setNormDescriptionToString.
     */
-   virtual int setNormDescription();
+   virtual int setNormDescription() override;
 
   private:
    int initL0NormProbe_base() { return PV_SUCCESS; }

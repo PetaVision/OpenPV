@@ -18,14 +18,14 @@ class ISTALayer : public PV::ANNLayer {
   public:
    ISTALayer(const char *name, HyPerCol *hc);
    virtual ~ISTALayer();
-   virtual double getDeltaUpdateTime();
-   virtual int requireChannel(int channelNeeded, int *numChannelsResult);
+   virtual double getDeltaUpdateTime() override;
+   virtual int requireChannel(int channelNeeded, int *numChannelsResult) override;
 
   protected:
    ISTALayer();
    int initialize(const char *name, HyPerCol *hc);
-   virtual int allocateDataStructures();
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual int allocateDataStructures() override;
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    /**
     * List of parameters needed from the ISTALayer class
@@ -51,16 +51,18 @@ class ISTALayer : public PV::ANNLayer {
    virtual void ioParam_adaptiveTimeScaleProbe(enum ParamsIOFlag ioFlag);
    /** @} */
 
-   virtual int updateState(double time, double dt);
+   virtual int updateState(double time, double dt) override;
 
 #ifdef PV_USE_CUDA
-   virtual int updateStateGpu(double time, double dt);
+   virtual int updateStateGpu(double time, double dt) override;
 #endif
 
-   virtual float getChannelTimeConst(enum ChannelType channel_type) { return timeConstantTau; };
+   virtual float getChannelTimeConst(enum ChannelType channel_type) override {
+      return timeConstantTau;
+   }
 
 #ifdef PV_USE_CUDA
-   virtual int allocateUpdateKernel();
+   virtual int allocateUpdateKernel() override;
 #endif
 
    double *deltaTimes(); // TODO: make const-correct

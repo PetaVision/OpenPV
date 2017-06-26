@@ -16,7 +16,7 @@ class MPITestProbe : public PV::StatsProbe {
   public:
    MPITestProbe(const char *probeName, HyPerCol *hc);
 
-   virtual int outputState(double timed);
+   virtual int outputState(double timed) override;
 
   protected:
    int initMPITestProbe(const char *probeName, HyPerCol *hc);

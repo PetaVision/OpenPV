@@ -31,7 +31,7 @@ class MomentumConnSimpleCheckpointerTestProbe : public PV::ColProbe {
     * Implementation of the calcValues method. This probe does not compute
     * any values that are available to other objects through getValues().
     */
-   virtual int calcValues(double timevalue) { return PV_SUCCESS; }
+   virtual int calcValues(double timevalue) override { return PV_SUCCESS; }
 
    bool getTestFailed() const { return mTestFailed; }
 
@@ -42,7 +42,7 @@ class MomentumConnSimpleCheckpointerTestProbe : public PV::ColProbe {
    virtual int readStateFromCheckpoint(PV::Checkpointer *checkpointer) override;
    virtual bool needRecalc(double timevalue) override { return true; }
    virtual double referenceUpdateTime() const override { return parent->simulationTime(); }
-   virtual int outputState(double timevalue);
+   virtual int outputState(double timevalue) override;
 
   private:
    MomentumConnSimpleCheckpointerTestProbe();

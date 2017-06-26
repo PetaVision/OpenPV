@@ -21,7 +21,7 @@ class KneeTimeScaleController : public AdaptiveTimeScaleController {
          double kneeSlope);
 
    virtual std::vector<double>
-   calcTimesteps(double timeValue, std::vector<double> const &rawTimeScales);
+   calcTimesteps(double timeValue, std::vector<double> const &rawTimeScales) override;
 
   protected:
    double mKneeThresh = 1.0;

@@ -16,7 +16,7 @@ class CloneHyPerConnTestProbe : public PV::StatsProbe {
   public:
    CloneHyPerConnTestProbe(const char *probeName, HyPerCol *hc);
 
-   virtual int outputState(double timed);
+   virtual int outputState(double timed) override;
 
   protected:
    int initCloneHyPerConnTestProbe(const char *probeName, HyPerCol *hc);

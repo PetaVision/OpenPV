@@ -17,9 +17,9 @@ class PointProbe : public PV::LayerProbe {
    PointProbe(const char *probeName, HyPerCol *hc);
    virtual ~PointProbe();
 
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message);
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
 
-   virtual int outputState(double timef);
+   virtual int outputState(double timef) override;
 
   protected:
    int xLoc;
@@ -29,7 +29,7 @@ class PointProbe : public PV::LayerProbe {
 
    PointProbe();
    int initialize(const char *probeName, HyPerCol *hc);
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_xLoc(enum ParamsIOFlag ioFlag);
    virtual void ioParam_yLoc(enum ParamsIOFlag ioFlag);
    virtual void ioParam_fLoc(enum ParamsIOFlag ioFlag);
@@ -40,7 +40,7 @@ class PointProbe : public PV::LayerProbe {
     * Overrides initNumValues() to set numValues to 2 (membrane potential and
     * activity)
     */
-   virtual int initNumValues();
+   virtual int initNumValues() override;
 
    /**
     * Implements calcValues for PointProbe.  probeValues[0] is the point's
@@ -53,7 +53,7 @@ class PointProbe : public PV::LayerProbe {
     * contain
     * the values.
     */
-   virtual int calcValues(double timevalue);
+   virtual int calcValues(double timevalue) override;
 
   private:
    int initPointProbe_base();

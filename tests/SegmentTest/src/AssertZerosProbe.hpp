@@ -13,11 +13,11 @@ class AssertZerosProbe : public PV::StatsProbe {
   public:
    AssertZerosProbe(const char *probeName, HyPerCol *hc);
 
-   virtual int outputState(double timed);
+   virtual int outputState(double timed) override;
 
   protected:
    int initAssertZerosProbe(const char *probeName, HyPerCol *hc);
-   void ioParam_buffer(enum ParamsIOFlag ioFlag);
+   void ioParam_buffer(enum ParamsIOFlag ioFlag) override;
 
   private:
    int initAssertZerosProbe_base();

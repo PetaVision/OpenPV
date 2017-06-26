@@ -41,7 +41,7 @@ class InitUniformWeights : public PV::InitWeights {
    InitUniformWeights(const char *name, HyPerCol *hc);
    virtual ~InitUniformWeights();
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    float getWeightInit() const { return mWeightInit; }
    bool getConnectOnlySameFeatures() const { return mConnectOnlySameFeatures; }

@@ -24,7 +24,7 @@ namespace PV {
 class FirmThresholdCostFnLCAProbe : public FirmThresholdCostFnProbe {
   public:
    FirmThresholdCostFnLCAProbe(const char *probeName, HyPerCol *hc);
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message);
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
    virtual ~FirmThresholdCostFnLCAProbe() {}
 
   protected:
@@ -37,7 +37,7 @@ class FirmThresholdCostFnLCAProbe : public FirmThresholdCostFnProbe {
     * FirmThresholdCostFnLCAProbe does not read coefficient from params,
     * but computes it from VThresh of the target layer.
     */
-   virtual void ioParam_coefficient(enum ParamsIOFlag ioFlag) {
+   virtual void ioParam_coefficient(enum ParamsIOFlag ioFlag) override {
    } // coefficient is set from targetLayer during communicateInitInfo.
 
   private:

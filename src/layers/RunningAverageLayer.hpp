@@ -17,16 +17,16 @@ class RunningAverageLayer : public CloneVLayer {
   public:
    RunningAverageLayer(const char *name, HyPerCol *hc);
    virtual ~RunningAverageLayer();
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message);
-   virtual int allocateV();
-   virtual int updateState(double timef, double dt);
-   virtual int setActivity();
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
+   virtual int allocateV() override;
+   virtual int updateState(double timef, double dt) override;
+   virtual int setActivity() override;
    int getNumImagesToAverage() { return numImagesToAverage; }
 
   protected:
    RunningAverageLayer();
    int initialize(const char *name, HyPerCol *hc);
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    void ioParam_numImagesToAverage(enum ParamsIOFlag ioFlag);
 
   private:

@@ -21,7 +21,7 @@ class BaseConnectionProbe : public BaseProbe {
    BaseConnectionProbe(const char *probeName, HyPerCol *hc);
    virtual ~BaseConnectionProbe();
 
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message);
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
 
    BaseConnection *getTargetConn() { return targetConn; }
 
@@ -29,7 +29,7 @@ class BaseConnectionProbe : public BaseProbe {
    BaseConnectionProbe(); // Default constructor, can only be called by derived
    // classes
    int initialize(const char *probeName, HyPerCol *hc);
-   virtual void ioParam_targetName(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_targetName(enum ParamsIOFlag ioFlag) override;
 
   private:
    int initialize_base();

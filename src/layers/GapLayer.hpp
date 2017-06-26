@@ -20,16 +20,16 @@ class GapLayer : public CloneVLayer {
    GapLayer(const char *name, HyPerCol *hc);
    virtual ~GapLayer();
 
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message);
-   virtual int allocateDataStructures();
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
+   virtual int allocateDataStructures() override;
 
-   virtual int updateState(double timef, double dt);
+   virtual int updateState(double timef, double dt) override;
 
   protected:
    GapLayer();
    int initialize(const char *name, HyPerCol *hc);
    // use LIFGap as source layer instead (LIFGap updates gap junctions more accurately)
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_ampSpikelet(enum ParamsIOFlag ioFlag);
 
    /* static */ int updateState(
@@ -39,7 +39,7 @@ class GapLayer : public CloneVLayer {
          float *A,
          float *V,
          float *checkActive);
-   virtual int setActivity();
+   virtual int setActivity() override;
 
   private:
    int initialize_base();

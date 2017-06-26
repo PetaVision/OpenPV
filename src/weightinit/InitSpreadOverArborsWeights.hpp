@@ -20,7 +20,7 @@ class InitSpreadOverArborsWeights : public InitGauss2DWeights {
    InitSpreadOverArborsWeights(char const *name, HyPerCol *hc);
    virtual ~InitSpreadOverArborsWeights();
 
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    virtual void calcWeights(float *dataStart, int patchIndex, int arborId) override;
 

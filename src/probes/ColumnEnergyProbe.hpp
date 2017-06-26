@@ -67,9 +67,9 @@ class ColumnEnergyProbe : public ColProbe {
     * from 0 to
     * getVectorSize()-1.
     */
-   virtual int outputState(double timevalue);
+   virtual int outputState(double timevalue) override;
 
-   virtual int calcValues(double timevalue);
+   virtual int calcValues(double timevalue) override;
 
   protected:
    /**
@@ -92,15 +92,15 @@ class ColumnEnergyProbe : public ColProbe {
     * Implements the needRecalc method.  Always returns true, in the expectation
     * that the hard work is done by the probes in the constituent energy terms.
     */
-   virtual bool needRecalc(double timevalue);
+   virtual bool needRecalc(double timevalue) override;
 
    /**
     * Implementation of referenceUpdateTime().  Since ColumnEnergyProbe updates
     * every timestep, it uses current simulation time.
     */
-   virtual double referenceUpdateTime() const;
+   virtual double referenceUpdateTime() const override;
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_reductionInterval(enum ParamsIOFlag ioFlag);
 
    size_t numTerms;

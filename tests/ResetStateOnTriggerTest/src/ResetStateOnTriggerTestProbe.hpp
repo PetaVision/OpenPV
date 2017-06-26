@@ -27,9 +27,9 @@ class ResetStateOnTriggerTestProbe : public PV::LayerProbe {
    /**
     * Returns the number of neurons in the target layer that differ from the expected value.
     */
-   int calcValues(double timevalue);
+   int calcValues(double timevalue) override;
 
-   int outputState(double timevalue);
+   int outputState(double timevalue) override;
 
   private:
    int initialize_base();

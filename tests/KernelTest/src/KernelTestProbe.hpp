@@ -16,11 +16,11 @@ class KernelTestProbe : public PV::StatsProbe {
   public:
    KernelTestProbe(const char *probeName, HyPerCol *hc);
 
-   virtual int outputState(double timed);
+   virtual int outputState(double timed) override;
 
   protected:
    int initKernelTestProbe(const char *probeName, HyPerCol *hc);
-   void ioParam_buffer(enum ParamsIOFlag ioFlag);
+   void ioParam_buffer(enum ParamsIOFlag ioFlag) override;
 
   private:
    int initKernelTestProbe_base();

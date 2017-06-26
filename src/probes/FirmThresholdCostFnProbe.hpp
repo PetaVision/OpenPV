@@ -35,13 +35,13 @@ class FirmThresholdCostFnProbe : public AbstractNormProbe {
    FirmThresholdCostFnProbe(const char *probeName, HyPerCol *hc);
    virtual ~FirmThresholdCostFnProbe();
 
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message);
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
 
   protected:
    FirmThresholdCostFnProbe();
    int initFirmThresholdCostFnProbe(const char *probeName, HyPerCol *hc);
-   virtual double getValueInternal(double timevalue, int index);
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual double getValueInternal(double timevalue, int index) override;
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    /**
     * List of parameters for the FirmThresholdCostFnProbe class
@@ -71,7 +71,7 @@ class FirmThresholdCostFnProbe : public AbstractNormProbe {
     * "Cost function".
     * Return values and errno are set by a call to setNormDescriptionToString.
     */
-   virtual int setNormDescription();
+   virtual int setNormDescription() override;
 
   private:
    int initFirmThresholdCostFnProbe_base();

@@ -11,7 +11,7 @@ class FixedImageSequenceByFile : public FixedImageSequence {
   protected:
    FixedImageSequenceByFile() {}
    int initialize(char const *name, PV::HyPerCol *hc);
-   virtual void defineImageSequence();
+   virtual void defineImageSequence() override;
 }; // end class FixedImageSequenceByFile
 
 #endif // FIXEDIMAGESEQUENCEBYFILE_HPP_

@@ -10,7 +10,7 @@ class ImprintConnTestInputLayer : public PV::ANNLayer {
    ImprintConnTestInputLayer(const char *name, HyPerCol *hc);
 
   protected:
-   int updateState(double timef, double dt);
+   int updateState(double timef, double dt) override;
 
   private:
 };

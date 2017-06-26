@@ -125,7 +125,7 @@ class CudaUpdateHyPerLCALayer : public CudaKernel {
 
   protected:
    // This is the function that should be overwritten in child classes
-   virtual int do_run();
+   virtual int do_run() override;
 
   private:
    HyPerLCAParams params;
@@ -166,7 +166,7 @@ class CudaUpdateMomentumLCALayer : public CudaKernel {
 
   protected:
    // This is the function that should be overwritten in child classes
-   virtual int do_run();
+   virtual int do_run() override;
 
   private:
    MomentumLCAParams params;
@@ -201,7 +201,7 @@ class CudaUpdateISTALayer : public CudaKernel {
 
   protected:
    // This is the function that should be overwritten in child classes
-   virtual int do_run();
+   virtual int do_run() override;
 
   private:
    ISTAParams params;

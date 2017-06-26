@@ -18,8 +18,8 @@ class NormalizeL2 : public PV::NormalizeMultiply {
    NormalizeL2(const char *name, HyPerCol *hc);
    virtual ~NormalizeL2();
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-   virtual int normalizeWeights();
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int normalizeWeights() override;
 
   protected:
    NormalizeL2();

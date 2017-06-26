@@ -20,7 +20,7 @@ class ANNErrorLayer : public PV::ANNLayer {
   protected:
    ANNErrorLayer();
    int initialize(const char *name, HyPerCol *hc);
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    /**
     * List of parameters used by the ANNErrorLayer class
@@ -39,7 +39,7 @@ class ANNErrorLayer : public PV::ANNLayer {
     * @detail If VThresh is negative, no truncation takes place.  errScale is applied before
     * VThresh.
     */
-   virtual void ioParam_VThresh(enum ParamsIOFlag ioFlag) {
+   virtual void ioParam_VThresh(enum ParamsIOFlag ioFlag) override {
       ANNLayer::ioParam_VThresh(ioFlag);
       return;
    }
@@ -47,27 +47,27 @@ class ANNErrorLayer : public PV::ANNLayer {
    /**
     * @brief ANNErrorLayer does not use AMin.
     */
-   virtual void ioParam_AMin(enum ParamsIOFlag ioFlag) {}
+   virtual void ioParam_AMin(enum ParamsIOFlag ioFlag) override {}
 
    /**
     * @brief ANNErrorLayer does not use AMax.
     */
-   virtual void ioParam_AMax(enum ParamsIOFlag ioFlag) {}
+   virtual void ioParam_AMax(enum ParamsIOFlag ioFlag) override {}
 
    /**
     * @brief ANNErrorLayer does not use AShift.
     */
-   virtual void ioParam_AShift(enum ParamsIOFlag ioFlag) {}
+   virtual void ioParam_AShift(enum ParamsIOFlag ioFlag) override {}
 
    /**
     * @brief ANNErrorLayer does not use VWidth.
     */
-   virtual void ioParam_VWidth(enum ParamsIOFlag ioFlag) {}
+   virtual void ioParam_VWidth(enum ParamsIOFlag ioFlag) override {}
    /** @} */
 
-   virtual int setVertices();
-   virtual int checkVertices() const;
-   virtual int updateState(double time, double dt);
+   virtual int setVertices() override;
+   virtual int checkVertices() const override;
+   virtual int updateState(double time, double dt) override;
 
   private:
    int initialize_base();

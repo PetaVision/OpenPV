@@ -49,9 +49,9 @@ class WeightComparisonProbe : public PV::ColProbe {
     */
    virtual int allocateDataStructures() override;
 
-   virtual bool needRecalc(double timevalue) { return true; }
-   virtual double referenceUpdateTime() const { return parent->simulationTime(); }
-   virtual int calcValues(double timevalue) { return PV_SUCCESS; }
+   virtual bool needRecalc(double timevalue) override { return true; }
+   virtual double referenceUpdateTime() const override { return parent->simulationTime(); }
+   virtual int calcValues(double timevalue) override { return PV_SUCCESS; }
    /**
     * Exits with an error if any connections are found to be different
     * from each other.
