@@ -24,7 +24,7 @@ namespace PV {
 
 class RequireAllZeroActivityProbe : public PV::StatsProbe {
   public:
-   RequireAllZeroActivityProbe(const char *probeName, HyPerCol *hc);
+   RequireAllZeroActivityProbe(const char *name, HyPerCol *hc);
    virtual ~RequireAllZeroActivityProbe();
    virtual int outputState(double timed) override;
 
@@ -34,7 +34,7 @@ class RequireAllZeroActivityProbe : public PV::StatsProbe {
   protected:
    RequireAllZeroActivityProbe();
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-   int initRequireAllZeroActivityProbe(const char *probeName, HyPerCol *hc);
+   int initialize(const char *name, HyPerCol *hc);
    virtual void ioParam_buffer(enum ParamsIOFlag ioFlag) override;
 
    /**

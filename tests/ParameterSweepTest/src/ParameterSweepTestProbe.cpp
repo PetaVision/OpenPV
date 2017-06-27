@@ -9,14 +9,14 @@
 
 namespace PV {
 
-ParameterSweepTestProbe::ParameterSweepTestProbe(const char *probeName, HyPerCol *hc) {
-   initParameterSweepTestProbe(probeName, hc);
+ParameterSweepTestProbe::ParameterSweepTestProbe(const char *name, HyPerCol *hc) {
+   initialize(name, hc);
 }
 
 ParameterSweepTestProbe::~ParameterSweepTestProbe() {}
 
-int ParameterSweepTestProbe::initParameterSweepTestProbe(const char *probeName, HyPerCol *hc) {
-   int status = initStatsProbe(probeName, hc);
+int ParameterSweepTestProbe::initialize(const char *name, HyPerCol *hc) {
+   int status = StatsProbe::initialize(name, hc);
    return status;
 }
 

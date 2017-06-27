@@ -10,15 +10,15 @@
 #include <utils/PVLog.hpp>
 
 namespace PV {
-AssertZerosProbe::AssertZerosProbe(const char *probeName, HyPerCol *hc) : StatsProbe() {
-   initAssertZerosProbe_base();
-   initAssertZerosProbe(probeName, hc);
+AssertZerosProbe::AssertZerosProbe(const char *name, HyPerCol *hc) : StatsProbe() {
+   initialize_base();
+   initialize(name, hc);
 }
 
-int AssertZerosProbe::initAssertZerosProbe_base() { return PV_SUCCESS; }
+int AssertZerosProbe::initialize_base() { return PV_SUCCESS; }
 
-int AssertZerosProbe::initAssertZerosProbe(const char *probeName, HyPerCol *hc) {
-   return initStatsProbe(probeName, hc);
+int AssertZerosProbe::initialize(const char *name, HyPerCol *hc) {
+   return StatsProbe::initialize(name, hc);
 }
 
 void AssertZerosProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) { requireType(BufActivity); }

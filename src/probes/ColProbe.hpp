@@ -40,7 +40,7 @@ class ColProbe : public BaseProbe {
    /**
     * Public constructor for the ColProbe class.
     */
-   ColProbe(const char *probeName, HyPerCol *hc);
+   ColProbe(const char *name, HyPerCol *hc);
 
    /**
     * Destructor for the ColProbe class.
@@ -74,7 +74,7 @@ class ColProbe : public BaseProbe {
     * depend on other param groups.  It is called by the public constructor
     * and should be called by the initializer of any derived classes.
     */
-   int initialize(const char *probeName, HyPerCol *hc);
+   int initialize(const char *name, HyPerCol *hc);
 
    /**
     * Reads parameters from the params file/writes parameters to the output
@@ -100,16 +100,16 @@ class ColProbe : public BaseProbe {
    virtual void ioParam_targetName(enum ParamsIOFlag ioFlag) override;
 
    /**
-    * Calls BaseProbe::initOutputStream and then calls outputHeader()
+    * Calls BaseProbe::initOutputStreams and then calls outputHeader()
     */
-   virtual int initOutputStream(const char *filename, Checkpointer *checkpointer) override;
+   virtual void initOutputStreams(const char *filename, Checkpointer *checkpointer) override;
 
    /**
     * Called by initialize_stream after opening the stream member variable.
     * Derived classes can override this method to write header data to the output
     * file.
     */
-   virtual int outputHeader() { return PV_SUCCESS; }
+   virtual void outputHeader() {}
 
   private:
    /**

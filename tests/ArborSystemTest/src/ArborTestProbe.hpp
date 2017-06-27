@@ -14,17 +14,17 @@ namespace PV {
 
 class ArborTestProbe : public PV::StatsProbe {
   public:
-   ArborTestProbe(const char *probeName, HyPerCol *hc);
+   ArborTestProbe(const char *name, HyPerCol *hc);
    virtual ~ArborTestProbe();
 
    virtual int outputState(double timed) override;
 
   protected:
-   int initArborTestProbe(const char *probeName, HyPerCol *hc);
+   int initialize(const char *name, HyPerCol *hc);
    virtual void ioParam_buffer(enum ParamsIOFlag ioFlag) override;
 
   private:
-   int initArborTestProbe_base();
+   int initialize_base();
 };
 
 } /* namespace PV */

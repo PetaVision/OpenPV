@@ -19,7 +19,10 @@ BaseProbe::BaseProbe() {
 }
 
 BaseProbe::~BaseProbe() {
-   delete outputStream;
+   for (auto &s : mOutputStreams) {
+      delete s;
+   }
+   mOutputStreams.clear();
    free(targetName);
    targetName = NULL;
    free(msgparams);
@@ -37,7 +40,6 @@ BaseProbe::~BaseProbe() {
 }
 
 int BaseProbe::initialize_base() {
-   outputStream        = NULL;
    targetName          = NULL;
    msgparams           = NULL;
    msgstring           = NULL;
@@ -52,7 +54,6 @@ int BaseProbe::initialize_base() {
    numValues           = 0;
    probeValues         = NULL;
    lastUpdateTime      = 0.0;
-   writingToFile       = false;
    return PV_SUCCESS;
 }
 
@@ -60,8 +61,8 @@ int BaseProbe::initialize_base() {
  * @filename
  * @layer
  */
-int BaseProbe::initialize(const char *probeName, HyPerCol *hc) {
-   int status = BaseObject::initialize(probeName, hc);
+int BaseProbe::initialize(const char *name, HyPerCol *hc) {
+   int status = BaseObject::initialize(name, hc);
    if (status != PV_SUCCESS) {
       return status;
    }
@@ -178,36 +179,49 @@ void BaseProbe::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
    }
 }
 
-int BaseProbe::initOutputStream(const char *filename, Checkpointer *checkpointer) {
-   pvAssert(getMPIBlock());
-   if (getMPIBlock()->getRank() == 0) {
-      if (filename != NULL) {
-         std::string path("");
-         if (filename[0] != '/') {
-            path = checkpointer->makeOutputPathFilename(path);
-            path += "/";
+void BaseProbe::initOutputStreams(const char *filename, Checkpointer *checkpointer) {
+   MPIBlock const *mpiBlock = checkpointer->getMPIBlock();
+   int blockColumnIndex     = mpiBlock->getColumnIndex();
+   int blockRowIndex        = mpiBlock->getRowIndex();
+   if (blockColumnIndex == 0 and blockRowIndex == 0) {
+      int localBatchWidth  = parent->getNBatch();
+      int mpiBatchIndex    = mpiBlock->getStartBatch() + mpiBlock->getBatchIndex();
+      int localBatchOffset = localBatchWidth * mpiBatchIndex;
+      mOutputStreams.resize(localBatchWidth);
+      char const *probeOutputFilename = getProbeOutputFilename();
+      if (probeOutputFilename) {
+         std::string path(probeOutputFilename);
+         auto extensionStart = path.rfind('.');
+         std::string extension;
+         if (extensionStart != std::string::npos) {
+            extension = path.substr(extensionStart);
+            path      = path.substr(0, extensionStart);
          }
-         path += filename;
          std::ios_base::openmode mode = std::ios_base::out;
          if (!checkpointer->getCheckpointReadDirectory().empty()) {
             mode |= std::ios_base::app;
          }
-         outputStream  = new FileStream(path.c_str(), mode, checkpointer->doesVerifyWrites());
-         writingToFile = true;
+         for (int b = 0; b < localBatchWidth; b++) {
+            int globalBatchIndex         = b + localBatchOffset;
+            std::string batchPath        = path;
+            std::string batchIndexString = std::to_string(globalBatchIndex);
+            batchPath.append("_batchElement_").append(batchIndexString).append(extension);
+            if (batchPath[0] != '/') {
+               batchPath = checkpointer->makeOutputPathFilename(batchPath);
+            }
+            auto fs = new FileStream(batchPath.c_str(), mode, checkpointer->doesVerifyWrites());
+            mOutputStreams[b] = fs;
+         }
       }
       else {
-         outputStream  = new PrintStream(PV::getOutputStream());
-         writingToFile = false;
+         for (int b = 0; b < localBatchWidth; b++) {
+            mOutputStreams[b] = new PrintStream(PV::getOutputStream());
+         }
       }
    }
    else {
-      outputStream = NULL;
-      // Only root process writes; if other processes need something written it
-      // should be sent to root.
-      // Derived classes for which it makes sense for a different process to do
-      // the file i/o should override initOutputStream
+      mOutputStreams.clear();
    }
-   return PV_SUCCESS;
 }
 
 int BaseProbe::initNumValues() { return setNumValues(parent->getNBatch()); }
@@ -313,7 +327,7 @@ bool BaseProbe::needUpdate(double simTime, double dt) {
 int BaseProbe::registerData(Checkpointer *checkpointer) {
    int status = BaseObject::registerData(checkpointer);
    if (status == PV_SUCCESS) {
-      int status = initOutputStream(probeOutputFilename, checkpointer);
+      initOutputStreams(probeOutputFilename, checkpointer);
    }
    return status;
 }

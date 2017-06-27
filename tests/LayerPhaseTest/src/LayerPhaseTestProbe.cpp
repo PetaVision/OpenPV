@@ -9,15 +9,15 @@
 
 namespace PV {
 
-LayerPhaseTestProbe::LayerPhaseTestProbe(const char *probeName, HyPerCol *hc) : StatsProbe() {
-   initLayerPhaseTestProbe_base();
-   initLayerPhaseTestProbe(probeName, hc);
+LayerPhaseTestProbe::LayerPhaseTestProbe(const char *name, HyPerCol *hc) : StatsProbe() {
+   initialize_base();
+   initialize(name, hc);
 }
 
-int LayerPhaseTestProbe::initLayerPhaseTestProbe_base() { return PV_SUCCESS; }
+int LayerPhaseTestProbe::initialize_base() { return PV_SUCCESS; }
 
-int LayerPhaseTestProbe::initLayerPhaseTestProbe(const char *probeName, HyPerCol *hc) {
-   return initStatsProbe(probeName, hc);
+int LayerPhaseTestProbe::initialize(const char *name, HyPerCol *hc) {
+   return StatsProbe::initialize(name, hc);
 }
 
 int LayerPhaseTestProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {

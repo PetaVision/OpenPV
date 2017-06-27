@@ -5,7 +5,7 @@
 
 class ResetStateOnTriggerTestProbe : public PV::LayerProbe {
   public:
-   ResetStateOnTriggerTestProbe(char const *probeName, PV::HyPerCol *hc);
+   ResetStateOnTriggerTestProbe(char const *name, PV::HyPerCol *hc);
    virtual ~ResetStateOnTriggerTestProbe();
 
    /**
@@ -22,7 +22,7 @@ class ResetStateOnTriggerTestProbe : public PV::LayerProbe {
 
   protected:
    ResetStateOnTriggerTestProbe();
-   int initialize(char const *probeName, PV::HyPerCol *hc);
+   int initialize(char const *name, PV::HyPerCol *hc);
 
    /**
     * Returns the number of neurons in the target layer that differ from the expected value.

@@ -26,7 +26,7 @@ class LayerProbe : public BaseProbe {
 
    // Methods
   public:
-   LayerProbe(const char *probeName, HyPerCol *hc);
+   LayerProbe(const char *name, HyPerCol *hc);
    virtual ~LayerProbe();
 
    /**
@@ -42,7 +42,7 @@ class LayerProbe : public BaseProbe {
 
   protected:
    LayerProbe();
-   int initialize(const char *probeName, HyPerCol *hc);
+   int initialize(const char *name, HyPerCol *hc);
 
    /**
     * List of parameters for the LayerProbe class

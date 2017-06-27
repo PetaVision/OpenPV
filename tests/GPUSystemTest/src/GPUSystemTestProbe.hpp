@@ -11,16 +11,16 @@ namespace PV {
 
 class GPUSystemTestProbe : public PV::StatsProbe {
   public:
-   GPUSystemTestProbe(const char *probeName, HyPerCol *hc);
+   GPUSystemTestProbe(const char *name, HyPerCol *hc);
 
    virtual int outputState(double timed) override;
 
   protected:
-   int initGPUSystemTestProbe(const char *probeName, HyPerCol *hc);
+   int initialize(const char *name, HyPerCol *hc);
    void ioParam_buffer(enum ParamsIOFlag ioFlag) override;
 
   private:
-   int initGPUSystemTestProbe_base();
+   int initialize_base();
 };
 }
 #endif

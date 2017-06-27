@@ -10,18 +10,18 @@
 #include <utils/PVLog.hpp>
 
 namespace PV {
-ReceiveFromPostProbe::ReceiveFromPostProbe(const char *probeName, HyPerCol *hc) : StatsProbe() {
-   initReceiveFromPostProbe_base();
-   initReceiveFromPostProbe(probeName, hc);
+ReceiveFromPostProbe::ReceiveFromPostProbe(const char *name, HyPerCol *hc) : StatsProbe() {
+   initialize_base();
+   initialize(name, hc);
 }
 
-int ReceiveFromPostProbe::initReceiveFromPostProbe_base() {
+int ReceiveFromPostProbe::initialize_base() {
    tolerance = (float)1e-3f;
    return PV_SUCCESS;
 }
 
-int ReceiveFromPostProbe::initReceiveFromPostProbe(const char *probeName, HyPerCol *hc) {
-   return initStatsProbe(probeName, hc);
+int ReceiveFromPostProbe::initialize(const char *name, HyPerCol *hc) {
+   return StatsProbe::initialize(name, hc);
 }
 
 int ReceiveFromPostProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {

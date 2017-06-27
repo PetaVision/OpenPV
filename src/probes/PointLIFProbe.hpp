@@ -14,13 +14,11 @@ namespace PV {
 
 class PointLIFProbe : public PointProbe {
   public:
-   PointLIFProbe(const char *probeName, HyPerCol *hc);
-
-   virtual int writeState(double timed) override;
+   PointLIFProbe(const char *name, HyPerCol *hc);
 
   protected:
    PointLIFProbe();
-   int initialize(const char *probeName, HyPerCol *hc);
+   int initialize(const char *name, HyPerCol *hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_writeStep(enum ParamsIOFlag ioFlag);
 
@@ -40,8 +38,10 @@ class PointLIFProbe : public PointProbe {
     */
    virtual int calcValues(double timevalue) override;
 
+   virtual int writeState(double timevalue) override;
+
   private:
-   int initPointLIFProbe_base();
+   int initialize_base();
 
   protected:
    double writeTime; // time of next output

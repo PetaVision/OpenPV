@@ -16,9 +16,9 @@ ColProbe::ColProbe() { // Default constructor to be called by derived classes.
    initialize_base();
 }
 
-ColProbe::ColProbe(const char *probeName, HyPerCol *hc) {
+ColProbe::ColProbe(const char *name, HyPerCol *hc) {
    initialize_base();
-   initialize(probeName, hc);
+   initialize(name, hc);
 }
 
 ColProbe::~ColProbe() {}
@@ -28,8 +28,8 @@ int ColProbe::initialize_base() {
    return PV_SUCCESS;
 }
 
-int ColProbe::initialize(const char *probeName, HyPerCol *hc) {
-   int status = BaseProbe::initialize(probeName, hc);
+int ColProbe::initialize(const char *name, HyPerCol *hc) {
+   int status = BaseProbe::initialize(name, hc);
    if (status == PV_SUCCESS) {
       this->parent->insertProbe(this);
    }
@@ -47,12 +47,9 @@ void ColProbe::ioParam_targetName(enum ParamsIOFlag ioFlag) {
    }
 }
 
-int ColProbe::initOutputStream(const char *filename, Checkpointer *checkpointer) {
-   int status = BaseProbe::initOutputStream(filename, checkpointer);
-   if (status != PV_SUCCESS) {
-      status = outputHeader();
-   }
-   return status;
+void ColProbe::initOutputStreams(const char *filename, Checkpointer *checkpointer) {
+   BaseProbe::initOutputStreams(filename, checkpointer);
+   outputHeader();
 }
 
 int ColProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {

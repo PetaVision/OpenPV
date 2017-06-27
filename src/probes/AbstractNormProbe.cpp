@@ -11,11 +11,11 @@
 
 namespace PV {
 
-AbstractNormProbe::AbstractNormProbe() : LayerProbe() { initAbstractNormProbe_base(); }
+AbstractNormProbe::AbstractNormProbe() : LayerProbe() { initialize_base(); }
 
-AbstractNormProbe::AbstractNormProbe(const char *probeName, HyPerCol *hc) : LayerProbe() {
-   initAbstractNormProbe_base();
-   initAbstractNormProbe(probeName, hc);
+AbstractNormProbe::AbstractNormProbe(const char *name, HyPerCol *hc) : LayerProbe() {
+   initialize_base();
+   initialize(name, hc);
 }
 
 AbstractNormProbe::~AbstractNormProbe() {
@@ -26,7 +26,7 @@ AbstractNormProbe::~AbstractNormProbe() {
    // Don't free maskLayer, which belongs to the HyPerCol.
 }
 
-int AbstractNormProbe::initAbstractNormProbe_base() {
+int AbstractNormProbe::initialize_base() {
    normDescription   = NULL;
    maskLayerName     = NULL;
    maskLayer         = NULL;
@@ -35,8 +35,8 @@ int AbstractNormProbe::initAbstractNormProbe_base() {
    return PV_SUCCESS;
 }
 
-int AbstractNormProbe::initAbstractNormProbe(const char *probeName, HyPerCol *hc) {
-   int status = LayerProbe::initialize(probeName, hc);
+int AbstractNormProbe::initialize(const char *name, HyPerCol *hc) {
+   int status = LayerProbe::initialize(name, hc);
    if (status == PV_SUCCESS) {
       status = setNormDescription();
    }
@@ -146,11 +146,11 @@ int AbstractNormProbe::calcValues(double timeValue) {
 int AbstractNormProbe::outputState(double timevalue) {
    getValues(timevalue);
    double *valuesBuffer = this->getValuesBuffer();
-   if (outputStream != NULL) {
+   if (!mOutputStreams.empty()) {
       int nBatch = getNumValues();
       int nk     = getTargetLayer()->getNumGlobalNeurons();
       for (int b = 0; b < nBatch; b++) {
-         outputStream->printf(
+         output(b).printf(
                "%st = %6.3f b = %d numNeurons = %8d %s = %f",
                getMessage(),
                timevalue,
@@ -158,7 +158,7 @@ int AbstractNormProbe::outputState(double timevalue) {
                nk,
                getNormDescription(),
                valuesBuffer[b]);
-         output() << std::endl;
+         output(b) << std::endl;
       }
    }
    return PV_SUCCESS;

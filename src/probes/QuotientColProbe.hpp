@@ -118,7 +118,7 @@ class QuotientColProbe : public ColProbe {
     */
    virtual int calcValues(double timeValue) override;
 
-   virtual int outputHeader() override;
+   virtual void outputHeader() override;
 
   private:
    /**

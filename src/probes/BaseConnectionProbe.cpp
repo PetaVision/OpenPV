@@ -11,9 +11,9 @@ namespace PV {
 
 BaseConnectionProbe::BaseConnectionProbe() { initialize_base(); }
 
-BaseConnectionProbe::BaseConnectionProbe(const char *probeName, HyPerCol *hc) {
+BaseConnectionProbe::BaseConnectionProbe(const char *name, HyPerCol *hc) {
    initialize_base();
-   initialize(probeName, hc);
+   initialize(name, hc);
 }
 
 BaseConnectionProbe::~BaseConnectionProbe() {}
@@ -23,8 +23,8 @@ int BaseConnectionProbe::initialize_base() {
    return PV_SUCCESS;
 }
 
-int BaseConnectionProbe::initialize(const char *probeName, HyPerCol *hc) {
-   int status = BaseProbe::initialize(probeName, hc);
+int BaseConnectionProbe::initialize(const char *name, HyPerCol *hc) {
+   int status = BaseProbe::initialize(name, hc);
    return status;
 }
 
@@ -56,6 +56,32 @@ int BaseConnectionProbe::communicateInitInfo(CommunicateInitInfoMessage const *m
    }
    targetConn->insertProbe(this);
    return status;
+}
+
+void BaseConnectionProbe::initOutputStreams(const char *filename, Checkpointer *checkpointer) {
+   MPIBlock const *mpiBlock = checkpointer->getMPIBlock();
+   if (getMPIBlock()->getRank() == 0) {
+      char const *probeOutputFilename = getProbeOutputFilename();
+      if (probeOutputFilename) {
+         std::string path(probeOutputFilename);
+         std::ios_base::openmode mode = std::ios_base::out;
+         if (!checkpointer->getCheckpointReadDirectory().empty()) {
+            mode |= std::ios_base::app;
+         }
+         if (path[0] != '/') {
+            path = checkpointer->makeOutputPathFilename(path);
+         }
+         auto stream = new FileStream(path.c_str(), mode, checkpointer->doesVerifyWrites());
+         mOutputStreams.push_back(stream);
+      }
+      else {
+         auto stream = new PrintStream(PV::getOutputStream());
+         mOutputStreams.push_back(stream);
+      }
+   }
+   else {
+      mOutputStreams.clear();
+   }
 }
 
 } // end of namespace PV

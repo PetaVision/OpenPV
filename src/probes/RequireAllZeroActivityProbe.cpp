@@ -9,19 +9,17 @@
 
 namespace PV {
 
-RequireAllZeroActivityProbe::RequireAllZeroActivityProbe(const char *probeName, HyPerCol *hc) {
+RequireAllZeroActivityProbe::RequireAllZeroActivityProbe(const char *name, HyPerCol *hc) {
    initialize_base();
-   initRequireAllZeroActivityProbe(probeName, hc);
+   initialize(name, hc);
 }
 
 RequireAllZeroActivityProbe::RequireAllZeroActivityProbe() { initialize_base(); }
 
 int RequireAllZeroActivityProbe::initialize_base() { return PV_SUCCESS; }
 
-int RequireAllZeroActivityProbe::initRequireAllZeroActivityProbe(
-      const char *probeName,
-      HyPerCol *hc) {
-   int status = StatsProbe::initStatsProbe(probeName, hc);
+int RequireAllZeroActivityProbe::initialize(const char *name, HyPerCol *hc) {
+   int status = StatsProbe::initialize(name, hc);
    return status;
 }
 

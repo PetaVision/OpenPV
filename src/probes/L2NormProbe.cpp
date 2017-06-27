@@ -10,22 +10,22 @@
 
 namespace PV {
 
-L2NormProbe::L2NormProbe() : AbstractNormProbe() { initL2NormProbe_base(); }
+L2NormProbe::L2NormProbe() : AbstractNormProbe() { initialize_base(); }
 
-L2NormProbe::L2NormProbe(const char *probeName, HyPerCol *hc) : AbstractNormProbe() {
-   initL2NormProbe_base();
-   initL2NormProbe(probeName, hc);
+L2NormProbe::L2NormProbe(const char *name, HyPerCol *hc) : AbstractNormProbe() {
+   initialize_base();
+   initialize(name, hc);
 }
 
 L2NormProbe::~L2NormProbe() {}
 
-int L2NormProbe::initL2NormProbe_base() {
+int L2NormProbe::initialize_base() {
    exponent = 1.0;
    return PV_SUCCESS;
 }
 
-int L2NormProbe::initL2NormProbe(const char *probeName, HyPerCol *hc) {
-   return initAbstractNormProbe(probeName, hc);
+int L2NormProbe::initialize(const char *name, HyPerCol *hc) {
+   return AbstractNormProbe::initialize(name, hc);
 }
 
 int L2NormProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {

@@ -13,16 +13,15 @@
 
 namespace PV {
 
-CloneHyPerConnTestProbe::CloneHyPerConnTestProbe(const char *probeName, HyPerCol *hc)
-      : StatsProbe() {
-   initCloneHyPerConnTestProbe_base();
-   initCloneHyPerConnTestProbe(probeName, hc);
+CloneHyPerConnTestProbe::CloneHyPerConnTestProbe(const char *name, HyPerCol *hc) : StatsProbe() {
+   initialize_base();
+   initialize(name, hc);
 }
 
-int CloneHyPerConnTestProbe::initCloneHyPerConnTestProbe_base() { return PV_SUCCESS; }
+int CloneHyPerConnTestProbe::initialize_base() { return PV_SUCCESS; }
 
-int CloneHyPerConnTestProbe::initCloneHyPerConnTestProbe(const char *probeName, HyPerCol *hc) {
-   return initStatsProbe(probeName, hc);
+int CloneHyPerConnTestProbe::initialize(const char *name, HyPerCol *hc) {
+   return StatsProbe::initialize(name, hc);
 }
 
 int CloneHyPerConnTestProbe::outputState(double timed) {

@@ -13,9 +13,9 @@
 #define LIFTESTPROBE_BINS 5
 
 namespace PV {
-LIFTestProbe::LIFTestProbe(const char *probeName, HyPerCol *hc) : StatsProbe() {
+LIFTestProbe::LIFTestProbe(const char *name, HyPerCol *hc) : StatsProbe() {
    initialize_base();
-   initLIFTestProbe(probeName, hc);
+   initialize(name, hc);
 }
 
 LIFTestProbe::LIFTestProbe() : StatsProbe() { initialize_base(); }
@@ -28,9 +28,9 @@ int LIFTestProbe::initialize_base() {
    return PV_SUCCESS;
 }
 
-int LIFTestProbe::initLIFTestProbe(const char *probeName, HyPerCol *hc) {
+int LIFTestProbe::initialize(const char *name, HyPerCol *hc) {
 
-   int status = initStatsProbe(probeName, hc);
+   int status = StatsProbe::initialize(name, hc);
 
    radii       = (double *)calloc(LIFTESTPROBE_BINS, sizeof(double));
    rates       = (double *)calloc(LIFTESTPROBE_BINS, sizeof(double));
@@ -39,7 +39,7 @@ int LIFTestProbe::initLIFTestProbe(const char *probeName, HyPerCol *hc) {
    counts      = (int *)calloc(LIFTESTPROBE_BINS, sizeof(int));
    if (radii == NULL || rates == NULL || targetrates == NULL) {
       Fatal().printf(
-            "LIFTestProbe::initLIFTestProbe \"%s\": unable to allocate memory for radii and "
+            "LIFTestProbe::initialize \"%s\": unable to allocate memory for radii and "
             "rates.\n",
             getName());
    }
@@ -106,20 +106,22 @@ LIFTestProbe::~LIFTestProbe() {
 
 int LIFTestProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
    int status = StatsProbe::communicateInitInfo(message);
+   FatalIf(
+         getTargetLayer()->getLayerLoc()->nbatch != 1,
+         "%s requires nbatch = 1.\n",
+         getDescription_c());
    return status;
 }
 
-int LIFTestProbe::initOutputStream(const char *filename, Checkpointer *checkpointer) {
-   int status = StatsProbe::initOutputStream(filename, checkpointer);
-   if (status == PV_SUCCESS && parent->columnId() == 0) {
-      FatalIf(!outputStream, "Test failed.\n");
-      outputStream->printf("%s Correct: ", getMessage());
+void LIFTestProbe::initOutputStreams(const char *filename, Checkpointer *checkpointer) {
+   StatsProbe::initOutputStreams(filename, checkpointer);
+   if (!mOutputStreams.empty()) {
+      output(0).printf("%s Correct: ", getMessage());
       for (int k = 0; k < LIFTESTPROBE_BINS; k++) {
-         outputStream->printf(" %f", targetrates[k]);
+         output(0).printf(" %f", targetrates[k]);
       }
-      outputStream->printf("\n");
+      output(0).printf("\n");
    }
-   return status;
 }
 
 int LIFTestProbe::outputState(double timed) {

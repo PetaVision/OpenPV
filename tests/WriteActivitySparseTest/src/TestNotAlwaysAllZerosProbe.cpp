@@ -16,9 +16,9 @@
 
 namespace PV {
 
-TestNotAlwaysAllZerosProbe::TestNotAlwaysAllZerosProbe(const char *probeName, HyPerCol *hc) {
-   initTestNotAlwaysAllZerosProbe_base();
-   initTestNotAlwaysAllZerosProbe(probeName, hc);
+TestNotAlwaysAllZerosProbe::TestNotAlwaysAllZerosProbe(const char *name, HyPerCol *hc) {
+   initialize_base();
+   initialize(name, hc);
 }
 
 int TestNotAlwaysAllZerosProbe::outputState(double timed) {
@@ -37,15 +37,13 @@ int TestNotAlwaysAllZerosProbe::outputState(double timed) {
    return status;
 }
 
-int TestNotAlwaysAllZerosProbe::initTestNotAlwaysAllZerosProbe_base() {
+int TestNotAlwaysAllZerosProbe::initialize_base() {
    nonzeroValueOccurred = false;
    return PV_SUCCESS;
 }
 
-int TestNotAlwaysAllZerosProbe::initTestNotAlwaysAllZerosProbe(
-      const char *probeName,
-      HyPerCol *hc) {
-   return StatsProbe::initStatsProbe(probeName, hc);
+int TestNotAlwaysAllZerosProbe::initialize(const char *name, HyPerCol *hc) {
+   return StatsProbe::initialize(name, hc);
 }
 
 void TestNotAlwaysAllZerosProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {

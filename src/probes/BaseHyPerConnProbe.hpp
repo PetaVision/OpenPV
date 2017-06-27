@@ -15,7 +15,7 @@ namespace PV {
 
 class BaseHyPerConnProbe : public BaseConnectionProbe {
   public:
-   BaseHyPerConnProbe(const char *probeName, HyPerCol *hc);
+   BaseHyPerConnProbe(const char *name, HyPerCol *hc);
    virtual ~BaseHyPerConnProbe();
 
    virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
@@ -24,7 +24,7 @@ class BaseHyPerConnProbe : public BaseConnectionProbe {
 
   protected:
    BaseHyPerConnProbe();
-   int initialize(const char *probeName, HyPerCol *hc);
+   int initialize(const char *name, HyPerCol *hc);
    virtual bool needRecalc(double timevalue) override;
 
    /**

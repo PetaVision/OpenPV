@@ -84,9 +84,7 @@ class ColumnEnergyProbe : public ColProbe {
     */
    int initializeColumnEnergyProbe(const char *probename, HyPerCol *hc);
 
-   virtual int initOutputStream(const char *filename, Checkpointer *checkpointer) override;
-
-   virtual int registerData(Checkpointer *checkpointer) override;
+   virtual void outputHeader() override;
 
    /**
     * Implements the needRecalc method.  Always returns true, in the expectation
@@ -116,14 +114,6 @@ class ColumnEnergyProbe : public ColProbe {
    int mSkipTimer        = 0;
    int mSkipInterval     = 0;
    double mLastTimeValue = -1;
-
-   // A vector of PrintStreams, one for each batch element.
-   // This is a hack, to work around the problem arising with an MPI block with batch dimension > 1.
-   // In this situation, several processes have the outputStream defined in BaseProbe writing to
-   // the same file, causing collisions.
-   //
-   // The correct solution to fix this, and other issues, is to overhaul the interface for probes.
-   std::vector<PrintStream *> mOutputBatchElements;
 }; // end class ColumnEnergyProbe
 
 } // end namespace PV

@@ -10,15 +10,15 @@
 #include <utils/PVLog.hpp>
 
 namespace PV {
-GPUSystemTestProbe::GPUSystemTestProbe(const char *probeName, HyPerCol *hc) : StatsProbe() {
-   initGPUSystemTestProbe_base();
-   initGPUSystemTestProbe(probeName, hc);
+GPUSystemTestProbe::GPUSystemTestProbe(const char *name, HyPerCol *hc) : StatsProbe() {
+   initialize_base();
+   initialize(name, hc);
 }
 
-int GPUSystemTestProbe::initGPUSystemTestProbe_base() { return PV_SUCCESS; }
+int GPUSystemTestProbe::initialize_base() { return PV_SUCCESS; }
 
-int GPUSystemTestProbe::initGPUSystemTestProbe(const char *probeName, HyPerCol *hc) {
-   return initStatsProbe(probeName, hc);
+int GPUSystemTestProbe::initialize(const char *name, HyPerCol *hc) {
+   return StatsProbe::initialize(name, hc);
 }
 
 void GPUSystemTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) { requireType(BufActivity); }

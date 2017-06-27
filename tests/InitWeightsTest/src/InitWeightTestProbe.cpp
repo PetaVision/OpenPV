@@ -13,14 +13,14 @@
 
 namespace PV {
 
-InitWeightTestProbe::InitWeightTestProbe(const char *probeName, HyPerCol *hc) : StatsProbe() {
-   initInitWeightTestProbe(probeName, hc);
+InitWeightTestProbe::InitWeightTestProbe(const char *name, HyPerCol *hc) : StatsProbe() {
+   initialize(name, hc);
 }
 
-int InitWeightTestProbe::initInitWeightTestProbe_base() { return PV_SUCCESS; }
+int InitWeightTestProbe::initialize_base() { return PV_SUCCESS; }
 
-int InitWeightTestProbe::initInitWeightTestProbe(const char *probeName, HyPerCol *hc) {
-   return initStatsProbe(probeName, hc);
+int InitWeightTestProbe::initialize(const char *name, HyPerCol *hc) {
+   return StatsProbe::initialize(name, hc);
 }
 
 void InitWeightTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) { requireType(BufActivity); }

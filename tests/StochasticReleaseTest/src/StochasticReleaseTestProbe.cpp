@@ -13,16 +13,16 @@ namespace PV {
 
 StochasticReleaseTestProbe::StochasticReleaseTestProbe(const char *name, HyPerCol *hc) {
    initialize_base();
-   initStochasticReleaseTestProbe(name, hc);
+   initialize(name, hc);
 }
 
 StochasticReleaseTestProbe::StochasticReleaseTestProbe() { initialize_base(); }
 
 int StochasticReleaseTestProbe::initialize_base() { return PV_SUCCESS; }
 
-int StochasticReleaseTestProbe::initStochasticReleaseTestProbe(const char *name, HyPerCol *hc) {
+int StochasticReleaseTestProbe::initialize(const char *name, HyPerCol *hc) {
    pvAssert(hc->getInitialStep() == 0L);
-   int status = initStatsProbe(name, hc);
+   int status = StatsProbe::initialize(name, hc);
    return status;
 }
 
@@ -32,7 +32,11 @@ void StochasticReleaseTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
 
 int StochasticReleaseTestProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
    int status = StatsProbe::communicateInitInfo(message);
-   FatalIf(!(getTargetLayer()), ": %s did not set target layer.\n", getDescription_c());
+   FatalIf(!getTargetLayer(), ": %s did not set target layer.\n", getDescription_c());
+   FatalIf(
+         getTargetLayer()->getLayerLoc()->nbatch != 1,
+         "%s can only be used with nbatch = 1.\n",
+         getDescription_c());
    FatalIf(
          conn != nullptr,
          ": %s, communicateInitInfo called with connection already set.\n",
@@ -202,14 +206,15 @@ void StochasticReleaseTestProbe::computePValues() {
       HyPerLayer *l = getTargetLayer();
       MPI_Allreduce(
             MPI_IN_PLACE, &nnzf, 1, MPI_INT, MPI_SUM, parent->getCommunicator()->communicator());
-      if (parent->getCommunicator()->commRank() == 0) {
+      if (!mOutputStreams.empty()) {
+         pvAssert(mOutputStreams.size() == (std::size_t)1);
          const int neuronsPerFeature = l->getNumGlobalNeurons() / nf;
          double mean                 = preact * neuronsPerFeature;
          double stddev               = sqrt(neuronsPerFeature * preact * (1 - preact));
          double numdevs              = (nnzf - mean) / stddev;
          double pval                 = std::erfc(std::fabs(numdevs) / std::sqrt(2));
          pvalues.at(oldsize + f)     = pval;
-         outputStream->printf(
+         output(0).printf(
                "    Feature %d, nnz=%5d, expectation=%7.1f, std.dev.=%5.1f, discrepancy of %f "
                "deviations, p-value %f\n",
                f,

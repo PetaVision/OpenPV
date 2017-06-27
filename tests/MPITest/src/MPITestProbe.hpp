@@ -14,15 +14,15 @@ namespace PV {
 
 class MPITestProbe : public PV::StatsProbe {
   public:
-   MPITestProbe(const char *probeName, HyPerCol *hc);
+   MPITestProbe(const char *name, HyPerCol *hc);
 
    virtual int outputState(double timed) override;
 
   protected:
-   int initMPITestProbe(const char *probeName, HyPerCol *hc);
+   int initialize(const char *name, HyPerCol *hc);
 
   private:
-   int initMPITestProbe_base();
+   int initialize_base();
 }; // end class MPITestProbe
 
 } // end namespace PV

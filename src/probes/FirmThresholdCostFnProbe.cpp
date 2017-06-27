@@ -11,17 +11,15 @@
 
 namespace PV {
 
-FirmThresholdCostFnProbe::FirmThresholdCostFnProbe() : AbstractNormProbe() {
-   initFirmThresholdCostFnProbe_base();
-}
+FirmThresholdCostFnProbe::FirmThresholdCostFnProbe() : AbstractNormProbe() { initialize_base(); }
 
-FirmThresholdCostFnProbe::FirmThresholdCostFnProbe(const char *probeName, HyPerCol *hc)
+FirmThresholdCostFnProbe::FirmThresholdCostFnProbe(const char *name, HyPerCol *hc)
       : AbstractNormProbe() {
-   initFirmThresholdCostFnProbe_base();
-   initFirmThresholdCostFnProbe(probeName, hc);
+   initialize_base();
+   initialize(name, hc);
 }
 
-int FirmThresholdCostFnProbe::initFirmThresholdCostFnProbe_base() {
+int FirmThresholdCostFnProbe::initialize_base() {
    VThresh = (float)0;
    VWidth  = (float)0;
    return PV_SUCCESS;
@@ -29,8 +27,8 @@ int FirmThresholdCostFnProbe::initFirmThresholdCostFnProbe_base() {
 
 FirmThresholdCostFnProbe::~FirmThresholdCostFnProbe() {}
 
-int FirmThresholdCostFnProbe::initFirmThresholdCostFnProbe(const char *probeName, HyPerCol *hc) {
-   return initAbstractNormProbe(probeName, hc);
+int FirmThresholdCostFnProbe::initialize(const char *name, HyPerCol *hc) {
+   return AbstractNormProbe::initialize(name, hc);
 }
 
 int FirmThresholdCostFnProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {

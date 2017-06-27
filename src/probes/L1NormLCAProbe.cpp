@@ -10,9 +10,9 @@
 
 namespace PV {
 
-L1NormLCAProbe::L1NormLCAProbe(const char *probeName, HyPerCol *hc) {
+L1NormLCAProbe::L1NormLCAProbe(const char *name, HyPerCol *hc) {
    initialize_base();
-   initL1NormLCAProbe(probeName, hc);
+   initialize(name, hc);
 }
 
 L1NormLCAProbe::L1NormLCAProbe() { initialize_base(); }
