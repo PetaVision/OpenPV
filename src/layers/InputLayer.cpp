@@ -13,7 +13,10 @@ namespace PV {
 
 InputLayer::InputLayer(const char *name, HyPerCol *hc) { initialize(name, hc); }
 
-InputLayer::~InputLayer() { delete mBorderExchanger; }
+InputLayer::~InputLayer() {
+   delete mBorderExchanger;
+   delete mTimestampStream;
+}
 
 int InputLayer::initialize(const char *name, HyPerCol *hc) {
    int status = HyPerLayer::initialize(name, hc);

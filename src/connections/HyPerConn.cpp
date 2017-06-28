@@ -102,14 +102,10 @@ HyPerConn::~HyPerConn() {
    if (batchSkip) {
       free(batchSkip);
    }
+
+   delete mOutputStateStream;
 }
 
-//!
-/*!
- *
- *
- *
- */
 int HyPerConn::initialize_base() {
    nxp            = 1;
    nyp            = 1;
