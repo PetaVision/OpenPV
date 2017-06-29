@@ -12,7 +12,6 @@
 
 "#include" { return T_INCLUDE; }
 "ParameterSweep" {return T_PARAM_SWEEP; }
-"BatchSweep" {return T_BATCH_SWEEP; }
 "@"[a-zA-Z][a-zA-Z0-9_]* {
     yylval.sval = strdup(yytext);
     return T_ID_OVERWRITE;

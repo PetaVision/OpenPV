@@ -152,7 +152,6 @@ int pv_parseParameters(PV::PVParams * action_handler, const char * paramBuffer, 
 %token <sval> T_FILENAME
 %token <sval> T_INCLUDE
 %token <sval> T_PARAM_SWEEP
-%token <sval> T_BATCH_SWEEP
 
 %%
 
