@@ -168,9 +168,6 @@ class HyPerCol : public Subject, Observer {
    int run(double mStartTime, double mStopTime, double dt);
    NormalizeBase *getNormalizerFromName(const char *normalizerName);
 
-// Sep 26, 2016: HyPerCol methods for parameter input/output have been moved to
-// PVParams.
-
 #ifdef PV_USE_CUDA
    void addGpuGroup(BaseConnection *conn, int gpuGroupIdx);
 #endif // PV_USE_CUDA
@@ -188,9 +185,6 @@ class HyPerCol : public Subject, Observer {
    const char *getPrintParamsFilename() const { return mPrintParamsFilename; }
    ColProbe *getColProbe(int which) { return mColProbes.at(which); }
    double getDeltaTime() const { return mDeltaTime; }
-   // Sep 26, 2016: Adaptive timestep routines and member variables have been
-   // moved to
-   // AdaptiveTimeScaleProbe.
    double simulationTime() const { return mSimTime; }
    double getStartTime() const { return mStartTime; }
    double getStopTime() const { return mStopTime; }
@@ -312,17 +306,12 @@ class HyPerCol : public Subject, Observer {
    double mProgressInterval; // Output progress after mSimTime increases by this
    // amount.
    double mNextProgressTime; // Next time to output a progress message
-   // Sep 26, 2016: Adaptive timestep routines and member variables have been
-   // moved to
-   // AdaptiveTimeScaleProbe.
    std::vector<HyPerLayer *> mLayers; // HyPerLayer ** mLayers;
    int mNumPhases;
    int mNumXGlobal;
    int mNumYGlobal;
    int mNumBatch;
    int mNumBatchGlobal;
-   // mFilenamesContainLayerNames and mFilenamesContainConnectionNames were
-   // removed Aug 12, 2016.
    int mOrigStdOut;
    int mOrigStdErr;
    int mNumThreads;

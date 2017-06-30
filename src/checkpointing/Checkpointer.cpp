@@ -128,7 +128,6 @@ void Checkpointer::ioParamsFillGroup(enum ParamsIOFlag ioFlag, PVParams *params)
    ioParam_numCheckpointsKept(ioFlag, params);
    ioParam_lastCheckpointDir(ioFlag, params);
    ioParam_initializeFromCheckpointDir(ioFlag, params);
-   ioParam_defaultInitializeFromCheckpointFlag(ioFlag, params);
 }
 
 void Checkpointer::ioParam_verifyWrites(enum ParamsIOFlag ioFlag, PVParams *params) {
@@ -437,25 +436,6 @@ void Checkpointer::ioParam_initializeFromCheckpointDir(enum ParamsIOFlag ioFlag,
          &mInitializeFromCheckpointDir,
          "",
          true);
-}
-
-// defaultInitializeFromCheckpointFlag was made obsolete Dec 18, 2016.
-void Checkpointer::ioParam_defaultInitializeFromCheckpointFlag(
-      enum ParamsIOFlag ioFlag,
-      PVParams *params) {
-   assert(!params->presentAndNotBeenRead(mName.c_str(), "initializeFromCheckpointDir"));
-   if (mInitializeFromCheckpointDir != nullptr && mInitializeFromCheckpointDir[0] != '\0') {
-      if (params->present(mName.c_str(), "defaultInitializeFromCheckpointFlag")) {
-         if (mMPIBlock->getRank() == 0) {
-            ErrorLog() << mName << ": defaultInitializeFromCheckpointFlag is obsolete.\n"
-                       << "If initializeFromCheckpointDir is non-empty, the objects in the\n"
-                       << "HyPerCol will initialize from checkpoint unless they set their\n"
-                       << "individual initializeFromCheckpointFlag parameter to false.\n";
-         }
-         MPI_Barrier(mMPIBlock->getComm());
-         exit(EXIT_FAILURE);
-      }
-   }
 }
 
 void Checkpointer::provideFinalStep(long int finalStep) {

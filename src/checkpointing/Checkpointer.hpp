@@ -133,15 +133,6 @@ class Checkpointer : public Subject {
     */
    void ioParam_initializeFromCheckpointDir(enum ParamsIOFlag ioFlag, PVParams *params);
 
-   // defaultInitializeFromCheckpointFlag was made obsolete Dec 18, 2016.
-   /**
-    * @brief defaultInitializeFromCheckpointFlag is obsolete. If
-    * initializeFromCheckpointDir is set to a nonempty string, all
-    * objects will initialize from the checkpoint unless they set their
-    * individual initializeFromCheckpointFlag to false.
-    */
-   void ioParam_defaultInitializeFromCheckpointFlag(enum ParamsIOFlag ioFlag, PVParams *params);
-
    /**
     * @brief lastCheckpointDir: If checkpointWrite is not set, this required parameter specifies
     * the directory to write a final written checkpoint at the end of the run.

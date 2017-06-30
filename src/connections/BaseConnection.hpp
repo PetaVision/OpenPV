@@ -329,9 +329,6 @@ class BaseConnection : public BaseObject {
     */
    virtual void ioParam_plasticityFlag(enum ParamsIOFlag ioFlag);
 
-   // preActivityIsNotRate was replaced with convertRateToSpikeCount on Dec 31, 2014.
-   // The warning issued if the params file contained preActivityIsNotRate was removed Aug 5, 2016.
-
    /**
     * @brief convertRateToSpikeCount: If true, presynaptic activity should be converted from a rate
     * to a count.
@@ -436,7 +433,6 @@ class BaseConnection : public BaseObject {
 
    // member variables
   protected:
-   // connId was removed Aug 12, 2016.
    char *preLayerName;
    char *postLayerName;
    HyPerLayer *pre;

@@ -467,7 +467,7 @@ class HyPerConn : public BaseConnection {
    Timer *io_timer;
    Timer *update_timer;
 
-   bool sharedWeights; // Set to true for the old KernelConn behavior
+   bool sharedWeights;
    bool triggerFlag;
    char *triggerLayerName;
    double triggerOffset;
@@ -834,8 +834,6 @@ class HyPerConn : public BaseConnection {
     * This parameter is ignored if PetaVision was compiled without GPU acceleration.
     */
    virtual void ioParam_gpuGroupIdx(enum ParamsIOFlag ioFlag);
-
-// preDataLocal, numXLocal, numYLocal, and numFLocal were removed Sep 22, 2016.
 #endif // PV_USE_CUDA
 
    /**

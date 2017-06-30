@@ -1,8 +1,7 @@
 /**
  * This file tests weight initialization to a 2D Gaussian with sigma = 1.0 and normalized to 1.0
- * Test compares HyPerConn to KernelConn,
- * assumes kernelConn produces correct 2D Gaussian weights
- *
+ * Test compares behavior of sharedWeights=false to that of sharedWeights=true.
+ * assumes sharedWeights=true (the old kernelconn class) produces correct 2D Gaussian weights
  */
 
 #undef DEBUG_PRINT

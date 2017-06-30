@@ -1037,7 +1037,7 @@ int HyPerConn::communicateInitInfo(CommunicateInitInfoMessage const *message) {
    // the relative densities of the pre and post layers, and that nfp is
    // consistent with the number of features of post.
    //
-   // Subclasses (e.g. CloneKernelConn) may also need
+   // Subclasses (e.g. CloneConn) may also need
    // to send messages to related layers and connections before the allocation
    // phase.  These subclasses should override communicateInitInfo(), and the
    // subclass's communicateInitInfo() should call the parent class's communicateInitInfo().
@@ -1380,8 +1380,8 @@ void HyPerConn::handleDefaultSelfFlag() {
 int HyPerConn::setPatchSize() {
    int status = PV_SUCCESS;
    // Some subclasses determine some of {nxp, nyp, nfp} from other layers or connections (e.g.
-   // TransposeConn, CloneKernelConn)
-   // instead of reading them from params.  They should override setPatchSize() to set those params.
+   // TransposeConn, CloneConn) instead of reading them from params.
+   // They should override setPatchSize() to set those params.
    return status;
 }
 

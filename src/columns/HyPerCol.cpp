@@ -94,13 +94,10 @@ int HyPerCol::initialize_base() {
    mStopTime                 = 0.0;
    mDeltaTime                = DEFAULT_DELTA_T;
    mWriteTimeScaleFieldnames = true;
-   // Sep 26, 2016: Adaptive timestep routines and member variables have been
-   // moved to
-   // AdaptiveTimeScaleProbe.
-   mProgressInterval   = 1.0;
-   mWriteProgressToErr = false;
-   mOrigStdOut         = -1;
-   mOrigStdErr         = -1;
+   mProgressInterval         = 1.0;
+   mWriteProgressToErr       = false;
+   mOrigStdOut               = -1;
+   mOrigStdErr               = -1;
    mLayers.clear();
    mConnections.clear();
    mNormalizers.clear(); // Pretty sure these aren't necessary
@@ -144,9 +141,6 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
    }
    std::string working_dir = mPVInitObj->getStringArgument("WorkingDirectory");
    working_dir             = expandLeadingTilde(working_dir);
-
-   // Sep 27, 2016: handling --require-return has been moved to the Communicator
-   // constructor.
 
    mName = strdup(name);
    setDescription();
@@ -257,9 +251,6 @@ int HyPerCol::ioParamsFinishGroup(enum ParamsIOFlag ioFlag) {
    return PV_SUCCESS;
 }
 
-// Sep 26, 2016: HyPerCol methods for parameter input/output have been moved to
-// PVParams.
-
 void HyPerCol::ioParam_startTime(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(ioFlag, mName, "startTime", &mStartTime, mStartTime);
 }
@@ -273,20 +264,6 @@ void HyPerCol::ioParam_stopTime(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerCol::ioParam_progressInterval(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ && !mParams->present(mName, "progressInterval")
-       && mParams->present(mName, "progressStep")) {
-      long int progressStep = (long int)mParams->value(mName, "progressStep");
-      mProgressInterval     = progressStep / mDeltaTime;
-      if (globalRank() == 0) {
-         ErrorLog() << "progressStep is obsolete.  Use progressInterval instead.\n";
-      }
-      MPI_Barrier(getCommunicator()->communicator());
-      exit(EXIT_FAILURE);
-   }
-   // progressStep was deprecated Dec 18, 2013
-   // After a reasonable fade time, remove the above if-statement and keep the
-   // ioParamValue call
-   // below.
    parameters()->ioParamValue(
          ioFlag, mName, "progressInterval", &mProgressInterval, mProgressInterval);
 }
@@ -359,10 +336,6 @@ void HyPerCol::ioParam_errorOnNotANumber(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(
          ioFlag, mName, "errorOnNotANumber", &mErrorOnNotANumber, mErrorOnNotANumber);
 }
-
-// Sep 26, 2016: HyPerCol methods for parameter input/output have been moved to
-// PVParams.
-// Sep 27, 2016: ensureDirExists has been moved to fileio.cpp.
 
 int HyPerCol::addLayer(HyPerLayer *layer) {
    addObject(layer);
@@ -530,10 +503,6 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
    return PV_SUCCESS;
 }
 
-// Sep 26, 2016: Adaptive timestep routines and member variables have been moved
-// to
-// AdaptiveTimeScaleProbe.
-
 // This routine sets the mNumThreads member variable.  It should only be called
 // by the run() method,
 // and only inside the !ready if-statement.
@@ -660,10 +629,6 @@ int HyPerCol::normalizeWeights() {
    return status;
 }
 
-// Sep 26, 2016: Adaptive timestep routines and member variables have been moved
-// to
-// AdaptiveTimeScaleProbe.
-
 void HyPerCol::advanceTimeLoop(Clock &runClock, int const runClockStartingStep) {
    // time loop
    //
@@ -704,9 +669,6 @@ int HyPerCol::advanceTime(double sim_time) {
    mSimTime = sim_time + mDeltaTime;
 
    notify(std::make_shared<AdaptTimestepMessage>());
-   // Sep 26, 2016: Adaptive timestep routines and member variables have been
-   // moved to
-   // AdaptiveTimeScaleProbe.
 
    // At this point all activity from the previous time step has
    // been delivered to the data store.
@@ -852,8 +814,6 @@ void HyPerCol::nonblockingLayerUpdate(
    }
 }
 
-// Oct 3, 2016.  writeTimers moved to Checkpointer class
-
 int HyPerCol::respond(std::shared_ptr<BaseMessage const> message) {
    int status = PV_SUCCESS;
    if (PrepareCheckpointWriteMessage const *castMessage =
@@ -862,8 +822,6 @@ int HyPerCol::respond(std::shared_ptr<BaseMessage const> message) {
    }
    return status;
 }
-
-// Oct 20, 2016. checkpointWrite and checkpointRead functionality moved to Checkpointer class.
 
 int HyPerCol::respondPrepareCheckpointWrite(PrepareCheckpointWriteMessage const *message) {
    std::string path(message->mDirectory);
@@ -1035,8 +993,6 @@ int HyPerCol::outputParamsHeadComments(FileStream *fileStream, char const *comme
    }
    return PV_SUCCESS;
 }
-
-// Nov 22, 2016: pathInCheckpoint removed. Made unnecessary by the Checkpointer refactor.
 
 int HyPerCol::getAutoGPUDevice() {
    int returnGpuIdx = -1;

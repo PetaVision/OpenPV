@@ -59,7 +59,7 @@ int TransposeConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 // We override many ioParam-methods because TransposeConn will determine
 // the associated parameters from the originalConn's values.
 // communicateInitInfo will check if those parameters exist in params for
-// the CloneKernelConn group, and whether they are consistent with the
+// the TransposeConn group, and whether they are consistent with the
 // originalConn parameters.
 // If consistent, issue a warning that the param is unnecessary and continue.
 // If inconsistent, issue an error and quit.

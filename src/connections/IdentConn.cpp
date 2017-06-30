@@ -26,20 +26,6 @@ int IdentConn::initialize(const char *name, HyPerCol *hc) {
    return status;
 }
 
-int IdentConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = HyPerConn::ioParamsFillGroup(ioFlag);
-
-   // April 15, 2016: Scale moved from IdentConn to RescaleConn.
-   if (!strcmp(getKeyword(), "IdentConn") && parent->parameters()->present(name, "scale")) {
-      ErrorLog().printf(
-            "IdentConn \"%s\": IdentConn does not take a scale parameter.  Use RescaleConn "
-            "instead.\n",
-            name);
-   }
-
-   return status;
-}
-
 #ifdef PV_USE_CUDA
 void IdentConn::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
    // Never receive from gpu

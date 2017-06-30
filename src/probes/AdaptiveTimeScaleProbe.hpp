@@ -63,11 +63,6 @@ class AdaptiveTimeScaleProbe : public ColProbe {
    virtual void ioParam_growthFactor(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief mDtMinToleratedTimeScale: Obsolete. This parameter has been removed.
-    */
-   virtual void ioParam_dtMinToleratedTimeScale(enum ParamsIOFlag ioFlag);
-
-   /**
     * @brief writeTimeScales: Specifies if the timescales should be written
     * @details The timescales get written to
     * outputPath/[name_of_probe]_timescales.txt.

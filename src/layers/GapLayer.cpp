@@ -78,7 +78,7 @@ int GapLayer::updateState(
    int nf          = loc->nf;
    int num_neurons = nx * ny * nf;
    int nbatch      = loc->nbatch;
-   updateV_GapLayer();
+   // No need to update V since GapLayer is a CloneVLayer.
    setActivity_GapLayer(
          nbatch,
          num_neurons,

@@ -512,8 +512,6 @@ class HyPerLayer : public BaseLayer {
    virtual int setActivity();
    void freeChannels();
 
-   // layerId was removed Aug 12, 2016.
-
    bool mNeedToPublish = true;
 
    int numChannels; // number of channels

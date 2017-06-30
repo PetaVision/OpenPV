@@ -25,9 +25,6 @@
 
 #define PV_ERR_FILE_NOT_FOUND 1
 
-// Oct 31, 2016. Macros used in INDEX_DATA_TYPE have been changed to values of HeaderDataType
-// defined in utils/BufferUtilsPvp.hpp
-
 #define PVP_FILE_TYPE                                                                              \
    1 // File type of activities where there are no timestamps in the individual frames.  No longer
 // used.
@@ -105,8 +102,6 @@ int pv_getopt_unsigned(
       bool *paramusage);
 
 int readFile(const char *filename, float *buf, int *nx, int *ny);
-
-// Unused function pv_center_image() removed Nov 16, 2016.
 
 int parse_options(
       int argc,
