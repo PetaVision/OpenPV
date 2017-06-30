@@ -22,16 +22,21 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
    float tol = 1e-5;
 
    BaseConnection *baseConn;
-   baseConn                   = hc->getConnFromName("normalizeL3 connection");
+   baseConn                   = hc->getConnFromName("NormalizeL3Connection");
    HyPerConn *normalizeL3Conn = dynamic_cast<HyPerConn *>(baseConn);
-   FatalIf(!(normalizeL3Conn), "Test failed.\n");
+   FatalIf(normalizeL3Conn == nullptr, "Connection \"NormalizeL3Connection\" does not exist.\n");
    NormalizeBase *normalizeL3Normalizer = normalizeL3Conn->getNormalizer();
-   FatalIf(!(normalizeL3Normalizer), "Test failed.\n");
+   FatalIf(normalizeL3Normalizer == nullptr, "NormalizeL3Connection has no normalizer.\n");
    float normalizeL3Strength    = normalizeL3Normalizer->getStrength();
    float correctValue           = powf(normalizeL3Strength, 3.0f);
-   HyPerLayer *normalizeL3Check = hc->getLayerFromName("normalizeL3 check");
-   float normalizeL3Value       = normalizeL3Check->getLayerData()[0];
-   FatalIf(!(fabsf(normalizeL3Value - correctValue) < tol), "Test failed.\n");
+   HyPerLayer *normalizeL3Check = hc->getLayerFromName("NormalizeL3Check");
+   FatalIf(normalizeL3Check == nullptr, "Layer \"NormalizeL3Check\" does not exist.\n");
+   float normalizeL3Value = normalizeL3Check->getLayerData()[0];
+   FatalIf(
+         fabsf(normalizeL3Value - correctValue) >= tol,
+         "Result %f differs from %f by more than allowed tolerance.\n",
+         (double)normalizeL3Value,
+         (double)correctValue);
 
    return PV_SUCCESS;
 }

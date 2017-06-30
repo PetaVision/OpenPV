@@ -14,7 +14,7 @@ HyPerCol "column" = {
    lastCheckpointDir = "output/test_border_activity/Last";
 };
 
-PvpLayer "test_border_activity image" = {
+PvpLayer "test_border_activity_image" = {
    nxScale = 1;
    nyScale = 1;
    nf = 1;
@@ -34,7 +34,7 @@ PvpLayer "test_border_activity image" = {
    displayPeriod = 0;
 };
 
-Retina "test_border_activity retina" = {
+Retina "test_border_activity_retina" = {
    nxScale = 1;
    nyScale = 1;
    nf = 1;
@@ -55,7 +55,7 @@ Retina "test_border_activity retina" = {
    burstDuration = 20;
 };
 
-ANNLayer "test_border_activity layer" = {
+ANNLayer "test_border_activity_layer" = {
    nxScale = 1;
    nyScale = 1;
    nf = 1;
@@ -76,9 +76,9 @@ ANNLayer "test_border_activity layer" = {
    VWidth = 0.0;
 };
 
-HyPerConn "test_border_activity connection 1" = {
-   preLayerName = "test_border_activity image";
-   postLayerName = "test_border_activity retina";
+HyPerConn "test_border_activity_connection1" = {
+   preLayerName = "test_border_activity_image";
+   postLayerName = "test_border_activity_retina";
    nxp = 1;
    nyp = 1;
    nfp = 1;
@@ -100,9 +100,9 @@ HyPerConn "test_border_activity connection 1" = {
    writeCompressedCheckpoints = false;
 };
 
-HyPerConn "test_border_activity connection 2" = {
-   preLayerName = "test_border_activity retina";
-   postLayerName = "test_border_activity layer";
+HyPerConn "test_border_activity_connection2" = {
+   preLayerName = "test_border_activity_retina";
+   postLayerName = "test_border_activity_layer";
    nxp = 7;
    nyp = 7;
    nfp = 1;

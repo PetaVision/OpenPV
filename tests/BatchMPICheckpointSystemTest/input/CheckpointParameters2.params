@@ -23,7 +23,7 @@ HyPerCol "column" = {
     nbatch                              = 4;
 };
 
-CPTestInputLayer "input" = {
+CPTestInputLayer "Input" = {
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 1;
@@ -40,7 +40,7 @@ CPTestInputLayer "input" = {
     dataType                            = NULL;
 };
 
-HyPerLayer "output no delay" = {
+HyPerLayer "OutputNoDelay" = {
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 1;
@@ -57,7 +57,7 @@ HyPerLayer "output no delay" = {
     dataType                            = NULL;
 };
 
-HyPerLayer "output with delay" = {
+HyPerLayer "OutputWithDelay" = {
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 1;
@@ -74,7 +74,7 @@ HyPerLayer "output with delay" = {
     dataType                            = NULL;
 };
 
-HyPerLayer "output arbor" = {
+HyPerLayer "OutputArbor" = {
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 1;
@@ -91,7 +91,7 @@ HyPerLayer "output arbor" = {
     dataType                            = NULL;
 };
 
-HyPerLayer "output from full hyperconn" = {
+HyPerLayer "OutputFromFullHyPerConn" = {
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 1;
@@ -108,9 +108,9 @@ HyPerLayer "output from full hyperconn" = {
     dataType                            = NULL;
 };
 
-VaryingHyPerConn "conn no delay" = {
-    preLayerName                        = "input";
-    postLayerName                       = "output no delay";
+VaryingHyPerConn "ConnNoDelay" = {
+    preLayerName                        = "Input";
+    postLayerName                       = "OutputNoDelay";
     channelCode                         = 0;
     delay                               = [0.000000];
     numAxonalArbors                     = 1;
@@ -152,9 +152,9 @@ VaryingHyPerConn "conn no delay" = {
     gpuGroupIdx                         = 0;
 };
 
-VaryingHyPerConn "conn with delay" = {
-    preLayerName                        = "input";
-    postLayerName                       = "output with delay";
+VaryingHyPerConn "ConnWithDelay" = {
+    preLayerName                        = "Input";
+    postLayerName                       = "OutputWithDelay";
     channelCode                         = 0;
     delay                               = [2.000000];
     numAxonalArbors                     = 1;
@@ -196,9 +196,9 @@ VaryingHyPerConn "conn with delay" = {
     gpuGroupIdx                         = 0;
 };
 
-HyPerConn "input to output arbor" = {
-    preLayerName                        = "input";
-    postLayerName                       = "output arbor";
+HyPerConn "InputToOutputArbor" = {
+    preLayerName                        = "Input";
+    postLayerName                       = "OutputArbor";
     channelCode                         = 0;
     delay                               = [0.000000];
     numAxonalArbors                     = 4;
@@ -238,9 +238,9 @@ HyPerConn "input to output arbor" = {
     gpuGroupIdx                         = 0;
 };
 
-IdentConn "selfconnection for output with delay" = {
-    preLayerName                        = "output with delay";
-    postLayerName                       = "output with delay";
+IdentConn "SelfConnectionForOutputWithDelay" = {
+    preLayerName                        = "OutputWithDelay";
+    postLayerName                       = "OutputWithDelay";
     channelCode                         = 1;
     delay                               = [0.000000];
     receiveGpu                          = false;

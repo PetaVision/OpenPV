@@ -32,36 +32,36 @@ int main(int argc, char *argv[]) {
    }
 
    initObj->setParams("input/test_gauss2d.params");
-   const char *pre_layer_name   = "test_gauss2d pre";
-   const char *post_layer_name  = "test_gauss2d post";
-   const char *pre2_layer_name  = "test_gauss2d pre 2";
-   const char *post2_layer_name = "test_gauss2d post 2";
+   const char *pre_layer_name   = "test_gauss2d_pre";
+   const char *post_layer_name  = "test_gauss2d_post";
+   const char *pre2_layer_name  = "test_gauss2d_pre2";
+   const char *post2_layer_name = "test_gauss2d_post2";
 
-   PV::HyPerCol *hc = new PV::HyPerCol("test_gauss2d column", initObj);
+   PV::HyPerCol *hc = new PV::HyPerCol("test_gauss2d_column", initObj);
    PV::Example *pre = new PV::Example(pre_layer_name, hc);
    FatalIf(!(pre), "Test failed.\n");
    PV::Example *post = new PV::Example(post_layer_name, hc);
    FatalIf(!(post), "Test failed.\n");
 
-   PV::HyPerConn *cHyPer = new HyPerConn("test_gauss2d hyperconn", hc);
+   PV::HyPerConn *cHyPer = new HyPerConn("test_gauss2d_hyperconn", hc);
 
-   PV::HyPerConn *cKernel = new HyPerConn("test_gauss2d kernelconn", hc);
+   PV::HyPerConn *cKernel = new HyPerConn("test_gauss2d_kernelconn", hc);
 
    PV::Example *pre2 = new PV::Example(pre2_layer_name, hc);
    FatalIf(!(pre2), "Test failed.\n");
    PV::Example *post2 = new PV::Example(post2_layer_name, hc);
    FatalIf(!(post2), "Test failed.\n");
 
-   PV::HyPerConn *cHyPer1to2 = new HyPerConn("test_gauss2d hyperconn 1 to 2", hc);
+   PV::HyPerConn *cHyPer1to2 = new HyPerConn("test_gauss2d_hyperconn1to2", hc);
    FatalIf(!(cHyPer1to2), "Test failed.\n");
 
-   PV::HyPerConn *cKernel1to2 = new HyPerConn("test_gauss2d kernelconn 1 to 2", hc);
+   PV::HyPerConn *cKernel1to2 = new HyPerConn("test_gauss2d_kernelconn1to2", hc);
    FatalIf(!(cKernel1to2), "Test failed.\n");
 
-   PV::HyPerConn *cHyPer2to1 = new HyPerConn("test_gauss2d hyperconn 2 to 1", hc);
+   PV::HyPerConn *cHyPer2to1 = new HyPerConn("test_gauss2d_hyperconn2to1", hc);
    FatalIf(!(cHyPer2to1), "Test failed.\n");
 
-   PV::HyPerConn *cKernel2to1 = new HyPerConn("test_gauss2d kernelconn 2 to 1", hc);
+   PV::HyPerConn *cKernel2to1 = new HyPerConn("test_gauss2d_kernelconn2to1", hc);
    FatalIf(!(cKernel2to1), "Test failed.\n");
 
    int status = 0;

@@ -18,8 +18,8 @@ int main(int argc, char *argv[]) {
    PVLayerLoc sLoc, bLoc;
    PVLayerCube *sCube, *bCube;
 
-   PV::HyPerCol *hc = new PV::HyPerCol("test_mirror_BCs column", initObj);
-   PV::Example *l   = new PV::Example("test_mirror_BCs layer", hc);
+   PV::HyPerCol *hc = new PV::HyPerCol("test_mirror_BCs_column", initObj);
+   PV::Example *l   = new PV::Example("test_mirror_BCs_layer", hc);
 
    int nf             = l->clayer->loc.nf;
    PVHalo const *halo = &l->clayer->loc.halo;

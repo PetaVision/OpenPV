@@ -1,10 +1,10 @@
 //
-// test_kernel.params
+// test_arbors.params
 //
 // created by garkenyon: August 4, 2011
 //
 
-//  - input parameters for test_kernel.cpp for system level testing of kernels
+//  - input parameters for ArborSystemTest for system level testing of arbors
 //
 
 debugParsing = false;
@@ -221,7 +221,7 @@ ANNLayer "Lx1_4" = {
 
 //  connections: 
 
-HyPerConn "Retina to L0" = {
+HyPerConn "RetinaToL0" = {
     preLayerName = "Retina";
     postLayerName = "L0";
     channelCode = 0;
@@ -276,7 +276,7 @@ HyPerConn "Retina to L0" = {
 
 
 
-HyPerConn "L0 to Lx1" = {
+HyPerConn "L0ToLx1" = {
     preLayerName = "L0";
     postLayerName = "Lx1";
     channelCode = 0;
@@ -329,7 +329,7 @@ HyPerConn "L0 to Lx1" = {
 };
 
 
-HyPerConn "L0 to Lx2" = {
+HyPerConn "L0ToLx2" = {
     preLayerName = "L0";
     postLayerName = "Lx2";
     numAxonalArbors = 4;
@@ -382,7 +382,7 @@ HyPerConn "L0 to Lx2" = {
 };
 
 
-HyPerConn "L0 to Lx4" = {
+HyPerConn "L0ToLx4" = {
     preLayerName = "L0";
     postLayerName = "Lx4";
     numAxonalArbors = 4;
@@ -435,7 +435,7 @@ HyPerConn "L0 to Lx4" = {
 };
 
 
-HyPerConn "L0 to Lx1_2" = {
+HyPerConn "L0ToLx1_2" = {
     preLayerName = "L0";
     postLayerName = "Lx1_2";
     numAxonalArbors = 4;
@@ -488,7 +488,7 @@ HyPerConn "L0 to Lx1_2" = {
 };
 
 
-HyPerConn "L0 to Lx1_4" = {
+HyPerConn "L0ToLx1_4" = {
     preLayerName = "L0";
     postLayerName = "Lx1_4";
     numAxonalArbors = 4;
@@ -541,7 +541,7 @@ HyPerConn "L0 to Lx1_4" = {
 
 
 
-ArborTestForOnesProbe "Retina Stats File" = {
+ArborTestForOnesProbe "RetinaStatsFile" = {
     targetLayer = "Retina";
     probeOutputFile = "Retina_Stats.txt";
     message = "Retina Stats File              ";
@@ -549,7 +549,7 @@ ArborTestForOnesProbe "Retina Stats File" = {
     buffer = "Activity";
     nnzThreshold = 0;
 };
-ArborTestForOnesProbe "L0 Stats File" = {
+ArborTestForOnesProbe "L0StatsFile" = {
     targetLayer = "L0";
     probeOutputFile = "L0_Stats.txt";
     message = "L0 Stats File                 ";
@@ -557,35 +557,35 @@ ArborTestForOnesProbe "L0 Stats File" = {
     buffer = "Activity";
     nnzThreshold = 0;
 };
-ArborTestProbe "Lx1 Stats File" = {
+ArborTestProbe "Lx1StatsFile" = {
     targetLayer = "Lx1";
     probeOutputFile = "Lx1_Stats.txt";
     message = "Lx1 Stats File                ";
     triggerLayerName = NULL;
     nnzThreshold = 0;
 };
-ArborTestProbe "Lx2 Stats File" = {
+ArborTestProbe "Lx2StatsFile" = {
     targetLayer = "Lx2";
     probeOutputFile = "Lx2_Stats.txt";
     message = "Lx2 Stats File                ";
     triggerLayerName = NULL;
     nnzThreshold = 0;
 };
-ArborTestProbe "Lx4 Stats File" = {
+ArborTestProbe "Lx4StatsFile" = {
     targetLayer = "Lx4";
     probeOutputFile = "Lx4_Stats.txt";
     message = "Lx4 Stats File                ";
     triggerLayerName = NULL;
     nnzThreshold = 0;
 };
-ArborTestProbe "Lx1_2 Stats File" = {
+ArborTestProbe "Lx1_2StatsFile" = {
     targetLayer = "Lx1_2";
     probeOutputFile = "Lx1_2_Stats.txt";
     message = "Lx1_2 Stats File              ";
     triggerLayerName = NULL;
     nnzThreshold = 0;
 };
-ArborTestProbe "Lx1_4 Stats File" = {
+ArborTestProbe "Lx1_4StatsFile" = {
     targetLayer = "Lx1_4";
     probeOutputFile = "Lx1_4_Stats.txt";
     message = "Lx1_4 Stats File              ";
@@ -593,45 +593,45 @@ ArborTestProbe "Lx1_4 Stats File" = {
     nnzThreshold = 0;
 };
 
-ArborTestForOnesProbe "Retina Stats Screen" = {
+ArborTestForOnesProbe "RetinaStatsScreen" = {
     targetLayer = "Retina";
     message = "Retina Stats File             ";
     triggerLayerName = NULL;
     buffer = "Activity";
     nnzThreshold = 0;
 };
-ArborTestForOnesProbe "L0 Stats Screen" = {
+ArborTestForOnesProbe "L0StatsScreen" = {
     targetLayer = "L0";
     message = "L0 Stats Screen               ";
     triggerLayerName = NULL;
     buffer = "Activity";
     nnzThreshold = 0;
 };
-ArborTestProbe "Lx1 Stats Screen" = {
+ArborTestProbe "Lx1StatsScreen" = {
     targetLayer = "Lx1";
     message = "Lx1 Stats Screen              ";
     triggerLayerName = NULL;
     nnzThreshold = 0;
 };
-ArborTestProbe "Lx2 Stats Screen" = {
+ArborTestProbe "Lx2StatsScreen" = {
     targetLayer = "Lx2";
     message = "Lx1 Stats Screen              ";
     triggerLayerName = NULL;
     nnzThreshold = 0;
 };
-ArborTestProbe "Lx4 Stats Screen" = {
+ArborTestProbe "Lx4StatsScreen" = {
     targetLayer = "Lx4";
     message = "Lx4 Stats Screen              ";
     triggerLayerName = NULL;
     nnzThreshold = 0;
 };
-ArborTestProbe "Lx1_2 Stats Screen" = {
+ArborTestProbe "Lx1_2StatsScreen" = {
     targetLayer = "Lx1_2";
     message = "Lx1_2 Stats Screen            ";
     triggerLayerName = NULL;
     nnzThreshold = 0;
 };
-ArborTestProbe "Lx1_4 Stats Screen" = {
+ArborTestProbe "Lx1_4StatsScreen" = {
     targetLayer = "Lx1_4";
     message = "Lx1_4 Stats Screen            ";
     triggerLayerName = NULL;
