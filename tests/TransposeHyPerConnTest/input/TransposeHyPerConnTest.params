@@ -25,7 +25,7 @@ HyPerCol "column" = {
     errorOnNotANumber                   = false;
 };
 
-ANNLayer "Layer A" = {
+ANNLayer "LayerA" = {
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 4;
@@ -49,7 +49,7 @@ ANNLayer "Layer A" = {
     VWidth                              = 0.0;
 };
 
-ANNLayer "Layer B One to One" = {
+ANNLayer "LayerB_OneToOne" = {
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 4;
@@ -73,7 +73,7 @@ ANNLayer "Layer B One to One" = {
     VWidth                              = 0.0;
 };
 
-ANNLayer "Layer B Many to One" = {
+ANNLayer "LayerB_ManyToOne" = {
     nxScale                             = 0.25;
     nyScale                             = 0.25;
     nf                                  = 8;
@@ -97,7 +97,7 @@ ANNLayer "Layer B Many to One" = {
     VWidth                              = 0.0;
 };
 
-ANNLayer "Layer B One to Many" = {
+ANNLayer "LayerB_OneToMany" = {
     nxScale                             = 4;
     nyScale                             = 4;
     nf                                  = 2;
@@ -121,9 +121,9 @@ ANNLayer "Layer B One to Many" = {
     VWidth                              = 0.0;
 };
 
-HyPerConn "Original Map for One to One Test" = {
-    preLayerName                        = "Layer A";
-    postLayerName                       = "Layer B One to One";
+HyPerConn "OriginalMapForOneToOneTest" = {
+    preLayerName                        = "LayerA";
+    postLayerName                       = "LayerB_OneToOne";
     channelCode                         = 0;
     sharedWeights                       = false;
     nxp                                 = 7;
@@ -160,11 +160,11 @@ HyPerConn "Original Map for One to One Test" = {
     minSumTolerated                     = 0.0;  
 };
 
-TransposeConn "Transpose for One to One Test of TransposeConn" = {
-    preLayerName                        = "Layer B One to One";
-    postLayerName                       = "Layer A";
+TransposeConn "TransposeForOneToOneTestOfTransposeConn" = {
+    preLayerName                        = "LayerB_OneToOne";
+    postLayerName                       = "LayerA";
     channelCode                         = 0;
-    originalConnName                    = "Original Map for One to One Test";
+    originalConnName                    = "OriginalMapForOneToOneTest";
     delay                               = 0;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
@@ -174,11 +174,11 @@ TransposeConn "Transpose for One to One Test of TransposeConn" = {
     selfFlag                            = false;
 };
 
-TransposeConn "Transpose of Transpose for One to One Test of TransposeConn" = {
-    preLayerName                        = "Layer A";
-    postLayerName                       = "Layer B One to One";
+TransposeConn "TransposeOfTransposeForOneToOneTestOfTransposeConn" = {
+    preLayerName                        = "LayerA";
+    postLayerName                       = "LayerB_OneToOne";
     channelCode                         = 1;
-    originalConnName                    = "Transpose for One to One Test of TransposeConn";
+    originalConnName                    = "TransposeForOneToOneTestOfTransposeConn";
     delay                               = 0;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
@@ -188,9 +188,9 @@ TransposeConn "Transpose of Transpose for One to One Test of TransposeConn" = {
     selfFlag                            = false;
 };
 
-FeedbackConn "Transpose for One to One Test of FeedbackConn" = {
+FeedbackConn "TransposeForOneToOneTestOfFeedbackConn" = {
     channelCode                         = 0;
-    originalConnName                    = "Original Map for One to One Test";
+    originalConnName                    = "OriginalMapForOneToOneTest";
     delay                               = 0;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
@@ -200,9 +200,9 @@ FeedbackConn "Transpose for One to One Test of FeedbackConn" = {
     selfFlag                            = false;
 };
 
-FeedbackConn "Transpose of Transpose for One to One Test of FeedbackConn" = {
+FeedbackConn "TransposeOfTransposeForOneToOneTestOfFeedbackConn" = {
     channelCode                         = 1;
-    originalConnName                    = "Transpose for One to One Test of FeedbackConn";
+    originalConnName                    = "TransposeForOneToOneTestOfFeedbackConn";
     delay                               = 0;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
@@ -212,9 +212,9 @@ FeedbackConn "Transpose of Transpose for One to One Test of FeedbackConn" = {
     selfFlag                            = false;
 };
 
-HyPerConn "Original Map for Many to One Test" = {
-    preLayerName                        = "Layer A";
-    postLayerName                       = "Layer B Many to One";
+HyPerConn "OriginalMapForManyToOneTest" = {
+    preLayerName                        = "LayerA";
+    postLayerName                       = "LayerB_ManyToOne";
     channelCode                         = 0;
     sharedWeights                       = false;
     nxp                                 = 7;
@@ -251,11 +251,11 @@ HyPerConn "Original Map for Many to One Test" = {
     minSumTolerated                     = 0.0;  
 };
 
-TransposeConn "Transpose for Many to One Test of TransposeConn" = {
-    preLayerName                        = "Layer B Many to One";
-    postLayerName                       = "Layer A";
+TransposeConn "TransposeForManyToOneTestOfTransposeConn" = {
+    preLayerName                        = "LayerB_ManyToOne";
+    postLayerName                       = "LayerA";
     channelCode                         = 0;
-    originalConnName                    = "Original Map for Many to One Test";
+    originalConnName                    = "OriginalMapForManyToOneTest";
     delay                               = 0;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
@@ -265,11 +265,11 @@ TransposeConn "Transpose for Many to One Test of TransposeConn" = {
     selfFlag                            = false;
 };
 
-TransposeConn "Transpose of Transpose for Many to One Test of TransposeConn" = {
-    preLayerName                        = "Layer A";
-    postLayerName                       = "Layer B Many to One";
+TransposeConn "TransposeOfTransposeForManyToOneTestOfTransposeConn" = {
+    preLayerName                        = "LayerA";
+    postLayerName                       = "LayerB_ManyToOne";
     channelCode                         = 1;
-    originalConnName                    = "Transpose for Many to One Test of TransposeConn";
+    originalConnName                    = "TransposeForManyToOneTestOfTransposeConn";
     delay                               = 0;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
@@ -279,9 +279,9 @@ TransposeConn "Transpose of Transpose for Many to One Test of TransposeConn" = {
     selfFlag                            = false;
 };
 
-FeedbackConn "Transpose for Many to One Test of FeedbackConn" = {
+FeedbackConn "TransposeForManyToOneTestOfFeedbackConn" = {
     channelCode                         = 0;
-    originalConnName                    = "Original Map for Many to One Test";
+    originalConnName                    = "OriginalMapForManyToOneTest";
     delay                               = 0;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
@@ -291,9 +291,9 @@ FeedbackConn "Transpose for Many to One Test of FeedbackConn" = {
     selfFlag                            = false;
 };
 
-FeedbackConn "Transpose of Transpose for Many to One Test of FeedbackConn" = {
+FeedbackConn "TransposeOfTransposeForManyToOneTestOfFeedbackConn" = {
     channelCode                         = 1;
-    originalConnName                    = "Transpose for Many to One Test of FeedbackConn";
+    originalConnName                    = "TransposeForManyToOneTestOfFeedbackConn";
     delay                               = 0;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
@@ -303,9 +303,9 @@ FeedbackConn "Transpose of Transpose for Many to One Test of FeedbackConn" = {
     selfFlag                            = false;
 };
 
-HyPerConn "Original Map for One to Many Test" = {
-    preLayerName                        = "Layer A";
-    postLayerName                       = "Layer B One to Many";
+HyPerConn "OriginalMapForOneToManyTest" = {
+    preLayerName                        = "LayerA";
+    postLayerName                       = "LayerB_OneToMany";
     channelCode                         = 0;
     sharedWeights                       = false;
     nxp                                 = 28;
@@ -342,11 +342,11 @@ HyPerConn "Original Map for One to Many Test" = {
     minSumTolerated                     = 0.0;  
 };
 
-TransposeConn "Transpose for One to Many Test of TransposeConn" = {
-    preLayerName                        = "Layer B One to Many";
-    postLayerName                       = "Layer A";
+TransposeConn "TransposeForOneToManyTestOfTransposeConn" = {
+    preLayerName                        = "LayerB_OneToMany";
+    postLayerName                       = "LayerA";
     channelCode                         = 0;
-    originalConnName                    = "Original Map for One to Many Test";
+    originalConnName                    = "OriginalMapForOneToManyTest";
     delay                               = 0;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
@@ -356,11 +356,11 @@ TransposeConn "Transpose for One to Many Test of TransposeConn" = {
     selfFlag                            = false;
 };
 
-TransposeConn "Transpose of Transpose for One to Many Test of TransposeConn" = {
-    preLayerName                        = "Layer A";
-    postLayerName                       = "Layer B One to Many";
+TransposeConn "TransposeOfTransposeForOneToManyTestOfTransposeConn" = {
+    preLayerName                        = "LayerA";
+    postLayerName                       = "LayerB_OneToMany";
     channelCode                         = 1;
-    originalConnName                    = "Transpose for One to Many Test of TransposeConn";
+    originalConnName                    = "TransposeForOneToManyTestOfTransposeConn";
     delay                               = 0;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
@@ -370,9 +370,9 @@ TransposeConn "Transpose of Transpose for One to Many Test of TransposeConn" = {
     selfFlag                            = false;
 };
 
-FeedbackConn "Transpose for One to Many Test of FeedbackConn" = {
+FeedbackConn "TransposeForOneToManyTestOfFeedbackConn" = {
     channelCode                         = 0;
-    originalConnName                    = "Original Map for One to Many Test";
+    originalConnName                    = "OriginalMapForOneToManyTest";
     delay                               = 0;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
@@ -382,9 +382,9 @@ FeedbackConn "Transpose for One to Many Test of FeedbackConn" = {
     selfFlag                            = false;
 };
 
-FeedbackConn "Transpose of Transpose for One to Many Test of FeedbackConn" = {
+FeedbackConn "TransposeOfTransposeForOneToManyTestOfFeedbackConn" = {
     channelCode                         = 1;
-    originalConnName                    = "Transpose for One to Many Test of FeedbackConn";
+    originalConnName                    = "TransposeForOneToManyTestOfFeedbackConn";
     delay                               = 0;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";

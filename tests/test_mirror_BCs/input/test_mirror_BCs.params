@@ -4,7 +4,7 @@
 
 debugParsing = false;
 
-HyPerCol "test_mirror_BCs column" = {
+HyPerCol "test_mirror_BCs_column" = {
    startTime = 0.0;
    dt = 1.0;
    stopTime = 1.0;
@@ -15,7 +15,7 @@ HyPerCol "test_mirror_BCs column" = {
    lastCheckpointDir = "output/Last";
 };
 
-HyPerLayer "test_mirror_BCs layer" = {
+HyPerLayer "test_mirror_BCs_layer" = {
    restart = false;
    nxScale = 1;
    nyScale = 1;

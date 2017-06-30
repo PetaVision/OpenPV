@@ -39,7 +39,7 @@ HyPerCol "column" = {
    progressInterval = 10.0; //Program will output its progress at each progressInterval
    writeProgressToErr = false;  
    verifyWrites = true;
-   outputPath = "output";
+   outputPath = "Output";
    printParamsFilename = "pv.params";
    initializeFromCheckpointDir = "";
    checkpointWrite = false;
@@ -55,7 +55,7 @@ HyPerCol "column" = {
 
 
 // this is a input layer
-PvpLayer "input" = {
+PvpLayer "Input" = {
     nxScale = 1;  // this must be 2^n, n = ...,-2,-1,0,1,2,... 
     nyScale = 1;  // the scale is to decide how much area will be used as input. For exampel, nx * nxScale = 32. The size of input
     	      	  // cannot be larger than the input image size.
@@ -78,7 +78,7 @@ PvpLayer "input" = {
 };
 
 //an output layer
-ANNLayer "output" = {
+ANNLayer "Output" = {
     restart = 0;
     nxScale = 1; 
     nyScale = 1;
@@ -102,9 +102,9 @@ ANNLayer "output" = {
 
 //connection
 
-HyPerConn "input to output" = {
-    preLayerName = "input";
-    postLayerName = "output";
+HyPerConn "InputToOutput" = {
+    preLayerName = "Input";
+    postLayerName = "Output";
     channelCode = 0;
 
     sharedWeights = true;

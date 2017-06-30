@@ -1,6 +1,6 @@
 debugParsing = false;
 
-HyPerCol "test_constant_input column" = {
+HyPerCol "test_constant_input_column" = {
     nx = 16;
     ny = 16;
     startTime = 0.0;
@@ -20,7 +20,7 @@ HyPerCol "test_constant_input column" = {
     // lastCheckpointDir = "output/Last";
 };
 
-TestImage "test_constant_input image" = {
+TestImage "test_constant_input_image" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
@@ -33,7 +33,7 @@ TestImage "test_constant_input image" = {
     constantVal = 1.0;
 };
 
-Retina "test_constant_input retina" = {
+Retina "test_constant_input_retina" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
@@ -51,9 +51,9 @@ Retina "test_constant_input retina" = {
     endStim = infinity;
 };
 
-HyPerConn "test_constant_input connection" = {
-    preLayerName = "test_constant_input image";
-    postLayerName = "test_constant_input retina";
+HyPerConn "test_constant_input_connection" = {
+    preLayerName = "test_constant_input_image";
+    postLayerName = "test_constant_input_retina";
     channelCode = 0;
     sharedWeights = true;
     nxp = 3;

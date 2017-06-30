@@ -117,7 +117,7 @@ HyPerConn "delayArbor" = {
     convertRateToSpikeCount   = false;
 };
 
-DelayTestProbe "Output Stats File" = {
+DelayTestProbe "Output_Stats_File" = {
     targetLayer = "Output";
     probeOutputFile = "Output_Stats.txt";
     message = "Output Stats File             ";

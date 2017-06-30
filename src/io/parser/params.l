@@ -35,6 +35,7 @@
    return T_ID;
 }
 
+[\"][0-9A-Za-z][0-9A-Za-z_]*[\"] { yylval.sval = strdup(yytext); return T_GROUPID; }
 [\"][a-zA-Z0-9_ ]*[\"] { yylval.sval = strdup(yytext); return T_STRING; }
 [\"][a-zA-Z0-9_~+/.-]+[\"] { yylval.sval = strdup(yytext); return T_FILENAME; }
 

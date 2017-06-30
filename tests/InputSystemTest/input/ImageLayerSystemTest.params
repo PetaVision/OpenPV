@@ -191,7 +191,7 @@ IdentConn "correctoutput_to_comparison" = {
     writeStep                        = -1;
 };
 
-RequireAllZeroActivityProbe "comparison probe" = {
+RequireAllZeroActivityProbe "comparison_probe" = {
     targetLayer = "comparison";
     message = "comparison                    ";
     probeOutputFile = NULL;

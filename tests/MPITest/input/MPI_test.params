@@ -156,7 +156,7 @@ ANNLayer "Lx1_4" = {
 
 
 
-HyPerConn "L0 to Lx1" = {
+HyPerConn "L0ToLx1" = {
     preLayerName = "L0";
     postLayerName = "Lx1";
     channelCode = 0;
@@ -202,7 +202,7 @@ HyPerConn "L0 to Lx1" = {
 };
 
 
-HyPerConn "L0 to Lx2" = {
+HyPerConn "L0ToLx2" = {
     preLayerName = "L0";
     postLayerName = "Lx2";
     channelCode = 0;
@@ -248,7 +248,7 @@ HyPerConn "L0 to Lx2" = {
 };
 
 
-HyPerConn "L0 to Lx4" = {
+HyPerConn "L0ToLx4" = {
     preLayerName = "L0";
     postLayerName = "Lx4";
     channelCode = 0;
@@ -294,7 +294,7 @@ HyPerConn "L0 to Lx4" = {
 };
 
 
-HyPerConn "L0 to Lx1_2" = {
+HyPerConn "L0ToLx1_2" = {
     preLayerName = "L0";
     postLayerName = "Lx1_2";
     channelCode = 0;
@@ -340,7 +340,7 @@ HyPerConn "L0 to Lx1_2" = {
 };
 
 
-HyPerConn "L0 to Lx1_4" = {
+HyPerConn "L0ToLx1_4" = {
     preLayerName = "L0";
     postLayerName = "Lx1_4";
     channelCode = 0;
