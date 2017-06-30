@@ -19,9 +19,9 @@ LayerProbe::LayerProbe() {
 /**
  * @filename
  */
-LayerProbe::LayerProbe(const char *probeName, HyPerCol *hc) {
+LayerProbe::LayerProbe(const char *name, HyPerCol *hc) {
    initialize_base();
-   initialize(probeName, hc);
+   initialize(name, hc);
 }
 
 LayerProbe::~LayerProbe() {}
@@ -35,8 +35,8 @@ int LayerProbe::initialize_base() {
  * @filename
  * @layer
  */
-int LayerProbe::initialize(const char *probeName, HyPerCol *hc) {
-   int status = BaseProbe::initialize(probeName, hc);
+int LayerProbe::initialize(const char *name, HyPerCol *hc) {
+   int status = BaseProbe::initialize(name, hc);
    return status;
 }
 

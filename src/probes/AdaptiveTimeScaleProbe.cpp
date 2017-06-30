@@ -174,8 +174,8 @@ int AdaptiveTimeScaleProbe::calcValues(double timeValue) {
 }
 
 int AdaptiveTimeScaleProbe::outputState(double timeValue) {
-   if (outputStream) {
-      mAdaptiveTimeScaleController->writeTimestepInfo(timeValue, output());
+   if (!mOutputStreams.empty()) {
+      mAdaptiveTimeScaleController->writeTimestepInfo(timeValue, mOutputStreams);
    }
    return PV_SUCCESS;
 }

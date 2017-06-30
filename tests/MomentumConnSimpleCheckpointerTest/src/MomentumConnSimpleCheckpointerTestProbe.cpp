@@ -14,18 +14,18 @@ MomentumConnSimpleCheckpointerTestProbe::MomentumConnSimpleCheckpointerTestProbe
 }
 
 MomentumConnSimpleCheckpointerTestProbe::MomentumConnSimpleCheckpointerTestProbe(
-      const char *probeName,
+      const char *name,
       PV::HyPerCol *hc) {
    initialize_base();
-   initialize(probeName, hc);
+   initialize(name, hc);
 }
 
 MomentumConnSimpleCheckpointerTestProbe::~MomentumConnSimpleCheckpointerTestProbe() {}
 
 int MomentumConnSimpleCheckpointerTestProbe::initialize_base() { return PV_SUCCESS; }
 
-int MomentumConnSimpleCheckpointerTestProbe::initialize(const char *probeName, PV::HyPerCol *hc) {
-   int status = PV::ColProbe::initialize(probeName, hc);
+int MomentumConnSimpleCheckpointerTestProbe::initialize(const char *name, PV::HyPerCol *hc) {
+   int status = PV::ColProbe::initialize(name, hc);
    FatalIf(parent->getDeltaTime() != 1.0, "This test assumes that the HyPerCol dt is 1.0.\n");
    return status;
 }
@@ -185,8 +185,8 @@ int MomentumConnSimpleCheckpointerTestProbe::outputState(double timevalue) {
 
    if (failed) {
       std::string errorMsg(getDescription() + " failed at t = " + std::to_string(timevalue) + "\n");
-      if (outputStream) {
-         outputStream->printf(errorMsg.c_str());
+      if (!mOutputStreams.empty()) {
+         output(0).printf(errorMsg.c_str());
       }
       if (isWritingToFile()) { // print error message to screen/log file as well.
          ErrorLog() << errorMsg;
@@ -194,8 +194,8 @@ int MomentumConnSimpleCheckpointerTestProbe::outputState(double timevalue) {
       mTestFailed = true;
    }
    else {
-      if (outputStream) {
-         outputStream->printf(
+      if (!mOutputStreams.empty()) {
+         output(0).printf(
                "%s found all correct values at time %f\n", getDescription_c(), timevalue);
       }
    }
@@ -225,9 +225,17 @@ bool MomentumConnSimpleCheckpointerTestProbe::verifyConnValue(
       float observed,
       float correct,
       char const *valueDescription) {
+   FatalIf(
+         parent->getCommunicator()->commRank() != 0,
+         "%s called verifyConnValue from nonroot process.\n",
+         getDescription_c());
+   FatalIf(
+         mOutputStreams.empty(),
+         "%s has empty mOutputStreams in root process.\n",
+         getDescription_c());
    bool failed;
    if (observed != correct) {
-      outputStream->printf(
+      output(0).printf(
             "Time %f, %s is %f, instead of the expected %f.\n",
             timevalue,
             valueDescription,
@@ -256,12 +264,16 @@ bool MomentumConnSimpleCheckpointerTestProbe::verifyLayer(
    PV::Buffer<float> globalBuffer = PV::BufferUtils::gather(
          comm->getLocalMPIBlock(), localBuffer, inputLoc->nx, inputLoc->ny, 0, 0);
    if (comm->commRank() == 0) {
+      FatalIf(
+            mOutputStreams.empty(),
+            "%s has empty mOutputStreams in root process.\n",
+            getDescription_c());
       globalBuffer.crop(inputLoc->nxGlobal, inputLoc->nyGlobal, PV::Buffer<float>::CENTER);
       std::vector<float> globalVector = globalBuffer.asVector();
       int const numInputNeurons       = globalVector.size();
       for (int k = 0; k < numInputNeurons; k++) {
          if (globalVector[k] != correctValue) {
-            outputStream->printf(
+            output(0).printf(
                   "Time %f, %s neuron %d is %f, instead of the expected %f.\n",
                   timevalue,
                   layer->getName(),

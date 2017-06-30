@@ -14,14 +14,14 @@
 
 namespace PV {
 
-RescaleLayerTestProbe::RescaleLayerTestProbe(const char *probeName, HyPerCol *hc) : StatsProbe() {
-   initRescaleLayerTestProbe(probeName, hc);
+RescaleLayerTestProbe::RescaleLayerTestProbe(const char *name, HyPerCol *hc) : StatsProbe() {
+   initialize(name, hc);
 }
 
-int RescaleLayerTestProbe::initRescaleLayerTestProbe_base() { return PV_SUCCESS; }
+int RescaleLayerTestProbe::initialize_base() { return PV_SUCCESS; }
 
-int RescaleLayerTestProbe::initRescaleLayerTestProbe(const char *probeName, HyPerCol *hc) {
-   return initStatsProbe(probeName, hc);
+int RescaleLayerTestProbe::initialize(const char *name, HyPerCol *hc) {
+   return StatsProbe::initialize(name, hc);
 }
 
 void RescaleLayerTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) { requireType(BufActivity); }

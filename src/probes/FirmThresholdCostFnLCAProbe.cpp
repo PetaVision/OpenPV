@@ -10,9 +10,9 @@
 
 namespace PV {
 
-FirmThresholdCostFnLCAProbe::FirmThresholdCostFnLCAProbe(const char *probeName, HyPerCol *hc) {
+FirmThresholdCostFnLCAProbe::FirmThresholdCostFnLCAProbe(const char *name, HyPerCol *hc) {
    initialize_base();
-   initFirmThresholdCostFnLCAProbe(probeName, hc);
+   initialize(name, hc);
 }
 
 FirmThresholdCostFnLCAProbe::FirmThresholdCostFnLCAProbe() { initialize_base(); }

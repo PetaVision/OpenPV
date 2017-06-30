@@ -9,9 +9,9 @@
 
 namespace PV {
 
-BaseHyPerConnProbe::BaseHyPerConnProbe(const char *probeName, HyPerCol *hc) {
+BaseHyPerConnProbe::BaseHyPerConnProbe(const char *name, HyPerCol *hc) {
    initialize_base();
-   initialize(probeName, hc);
+   initialize(name, hc);
 }
 
 BaseHyPerConnProbe::BaseHyPerConnProbe() { initialize_base(); }
@@ -21,8 +21,8 @@ int BaseHyPerConnProbe::initialize_base() {
    return PV_SUCCESS;
 }
 
-int BaseHyPerConnProbe::initialize(const char *probeName, HyPerCol *hc) {
-   return BaseConnectionProbe::initialize(probeName, hc);
+int BaseHyPerConnProbe::initialize(const char *name, HyPerCol *hc) {
+   return BaseConnectionProbe::initialize(name, hc);
 }
 
 int BaseHyPerConnProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {

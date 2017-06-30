@@ -14,13 +14,13 @@ namespace PV {
 
 class RescaleLayerTestProbe : public PV::StatsProbe {
   public:
-   RescaleLayerTestProbe(const char *probeName, HyPerCol *hc);
+   RescaleLayerTestProbe(const char *name, HyPerCol *hc);
    virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
 
    virtual int outputState(double timed) override;
 
   protected:
-   int initRescaleLayerTestProbe(const char *probeName, HyPerCol *hc);
+   int initialize(const char *name, HyPerCol *hc);
    void ioParam_buffer(enum ParamsIOFlag ioFlag) override;
    bool colinear(
          int nx,
@@ -35,7 +35,7 @@ class RescaleLayerTestProbe : public PV::StatsProbe {
          double *stdB);
 
   private:
-   int initRescaleLayerTestProbe_base();
+   int initialize_base();
 
 }; // end class RescaleLayerTestProbe
 

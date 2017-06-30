@@ -15,16 +15,18 @@
 namespace PV {
 
 class DatastoreDelayTestProbe : public StatsProbe {
+  protected:
+   virtual void ioParam_buffer(enum ParamsIOFlag ioFlag) override;
+
   public:
-   DatastoreDelayTestProbe(const char *probename, HyPerCol *hc);
+   DatastoreDelayTestProbe(const char *name, HyPerCol *hc);
 
    virtual int outputState(double timed) override;
 
    virtual ~DatastoreDelayTestProbe();
 
   protected:
-   int initDatastoreDelayTestProbe(const char *probename, HyPerCol *hc);
-   virtual void ioParam_buffer(enum ParamsIOFlag ioFlag) override;
+   int initialize(const char *name, HyPerCol *hc);
    virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
 
    // Data members

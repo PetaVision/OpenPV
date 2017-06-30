@@ -23,14 +23,14 @@ namespace PV {
  */
 class FirmThresholdCostFnLCAProbe : public FirmThresholdCostFnProbe {
   public:
-   FirmThresholdCostFnLCAProbe(const char *probeName, HyPerCol *hc);
+   FirmThresholdCostFnLCAProbe(const char *name, HyPerCol *hc);
    virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
    virtual ~FirmThresholdCostFnLCAProbe() {}
 
   protected:
    FirmThresholdCostFnLCAProbe();
-   int initFirmThresholdCostFnLCAProbe(const char *probeName, HyPerCol *hc) {
-      return initFirmThresholdCostFnProbe(probeName, hc);
+   int initFirmThresholdCostFnLCAProbe(const char *name, HyPerCol *hc) {
+      return FirmThresholdCostFnProbe::initialize(name, hc);
    }
 
    /**

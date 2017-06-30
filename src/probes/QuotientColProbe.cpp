@@ -45,11 +45,10 @@ int QuotientColProbe::initializeQuotientColProbe(const char *probename, HyPerCol
    return ColProbe::initialize(probename, hc);
 }
 
-int QuotientColProbe::outputHeader() {
-   if (outputStream) {
-      output() << "Probe_name,time,index," << valueDescription;
+void QuotientColProbe::outputHeader() {
+   for (auto &s : mOutputStreams) {
+      *s << "Probe_name,time,index," << valueDescription;
    }
-   return PV_SUCCESS;
 }
 
 int QuotientColProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -152,17 +151,17 @@ double QuotientColProbe::referenceUpdateTime() const { return parent->simulation
 
 int QuotientColProbe::outputState(double timevalue) {
    getValues(timevalue);
-   if (this->parent->getCommunicator()->commRank() != 0)
+   if (mOutputStreams.empty()) {
       return PV_SUCCESS;
+   }
    double *valuesBuffer = getValuesBuffer();
    int numValues        = this->getNumValues();
    for (int b = 0; b < numValues; b++) {
       if (isWritingToFile()) {
-         output() << "\"" << valueDescription << "\",";
+         output(b) << "\"" << valueDescription << "\",";
       }
-      output() << timevalue << "," << b << "," << valuesBuffer[b] << "\n";
+      output(b) << timevalue << "," << b << "," << valuesBuffer[b] << std::endl;
    }
-   output().flush();
    return PV_SUCCESS;
 } // end QuotientColProbe::outputState(float, HyPerCol *)
 

@@ -1,11 +1,9 @@
 #include "ResetStateOnTriggerTestProbe.hpp"
 #include <layers/HyPerLayer.hpp>
 
-ResetStateOnTriggerTestProbe::ResetStateOnTriggerTestProbe(
-      char const *probeName,
-      PV::HyPerCol *hc) {
+ResetStateOnTriggerTestProbe::ResetStateOnTriggerTestProbe(char const *name, PV::HyPerCol *hc) {
    initialize_base();
-   initialize(probeName, hc);
+   initialize(name, hc);
 }
 
 ResetStateOnTriggerTestProbe::ResetStateOnTriggerTestProbe() { initialize_base(); }
@@ -16,9 +14,9 @@ int ResetStateOnTriggerTestProbe::initialize_base() {
    return PV_SUCCESS;
 }
 
-int ResetStateOnTriggerTestProbe::initialize(char const *probeName, PV::HyPerCol *hc) {
+int ResetStateOnTriggerTestProbe::initialize(char const *name, PV::HyPerCol *hc) {
    int status = PV_SUCCESS;
-   status     = PV::LayerProbe::initialize(probeName, hc);
+   status     = PV::LayerProbe::initialize(name, hc);
    return status;
 }
 
@@ -72,30 +70,36 @@ int ResetStateOnTriggerTestProbe::calcValues(double timevalue) {
 
 int ResetStateOnTriggerTestProbe::outputState(double timevalue) {
    getValues(timevalue); // calls calcValues
-   if (parent->columnId() != 0) {
+   if (mOutputStreams.empty()) {
       return PV_SUCCESS;
    }
    if (probeStatus != 0) {
       int nBatch = getNumValues();
-      if (nBatch == 1) {
-         int nnz = (int)nearbyint(getValuesBuffer()[0]);
-         outputStream->printf(
-               "%s t=%f, %d neuron%s the wrong value.\n",
-               getMessage(),
-               timevalue,
-               nnz,
-               nnz == 1 ? " has" : "s have");
-      }
-      else {
-         for (int k = 0; k < nBatch; k++) {
-            int nnz = (int)nearbyint(getValuesBuffer()[k]);
-            outputStream->printf(
-                  "%s t=%f, batch element %d, %d neuron%s the wrong value.\n",
-                  getMessage(),
-                  timevalue,
-                  k,
-                  nnz,
-                  nnz == 1 ? " has" : "s have");
+      pvAssert(nBatch == mOutputStreams.size());
+      int batchOffset = nBatch * (getMPIBlock()->getStartBatch() + getMPIBlock()->getBatchIndex());
+      int globalBatchSize = nBatch * getMPIBlock()->getGlobalBatchDimension();
+      for (int localBatchIndex = 0; localBatchIndex < nBatch; localBatchIndex++) {
+         int nnz = (int)nearbyint(getValuesBuffer()[localBatchIndex]);
+         if (globalBatchSize == 1) {
+            pvAssert(localBatchIndex == 0);
+            output(localBatchIndex)
+                  .printf(
+                        "%s t=%f, %d neuron%s the wrong value.\n",
+                        getMessage(),
+                        timevalue,
+                        nnz,
+                        nnz == 1 ? " has" : "s have");
+         }
+         else {
+            int globalBatchIndex = localBatchIndex + batchOffset;
+            output(localBatchIndex)
+                  .printf(
+                        "%s t=%f, batch element %d, %d neuron%s the wrong value.\n",
+                        getMessage(),
+                        timevalue,
+                        localBatchIndex,
+                        nnz,
+                        nnz == 1 ? " has" : "s have");
          }
       }
    }

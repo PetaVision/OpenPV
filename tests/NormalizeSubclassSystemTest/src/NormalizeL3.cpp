@@ -7,9 +7,9 @@
 
 namespace PV {
 
-NormalizeL3::NormalizeL3(char const *probeName, HyPerCol *hc) {
+NormalizeL3::NormalizeL3(char const *name, HyPerCol *hc) {
    initialize_base();
-   initialize(probeName, hc);
+   initialize(name, hc);
 }
 
 NormalizeL3::NormalizeL3() { initialize_base(); }

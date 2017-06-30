@@ -14,7 +14,7 @@ namespace PV {
 
 class StatsProbe : public PV::LayerProbe {
   public:
-   StatsProbe(const char *probeName, HyPerCol *hc);
+   StatsProbe(const char *name, HyPerCol *hc);
    virtual ~StatsProbe();
 
    virtual int outputState(double timef) override;
@@ -22,7 +22,7 @@ class StatsProbe : public PV::LayerProbe {
 
   protected:
    StatsProbe();
-   int initStatsProbe(const char *probeName, HyPerCol *hc);
+   int initialize(const char *name, HyPerCol *hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_buffer(enum ParamsIOFlag ioFlag);
    virtual void ioParam_nnzThreshold(enum ParamsIOFlag ioFlag);
@@ -70,7 +70,7 @@ class StatsProbe : public PV::LayerProbe {
    Timer *comptimer; // A timer for the basic computation of outputState
 
   private:
-   int initStatsProbe_base();
+   int initialize_base();
    void resetStats();
 }; // end class StatsProbe
 }

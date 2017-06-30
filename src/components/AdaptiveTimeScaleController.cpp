@@ -82,15 +82,13 @@ std::vector<double> AdaptiveTimeScaleController::calcTimesteps(
    return mTimeScaleInfo.mTimeScale;
 }
 
-void AdaptiveTimeScaleController::writeTimestepInfo(double timeValue, PrintStream &stream) {
-   if (mWriteTimeScaleFieldnames) {
-      stream.printf("sim_time = %f\n", timeValue);
-   }
-   else {
-      stream.printf("%f, ", timeValue);
-   }
+void AdaptiveTimeScaleController::writeTimestepInfo(
+      double timeValue,
+      std::vector<PrintStream *> &streams) {
    for (int b = 0; b < mBatchWidth; b++) {
+      auto stream = *streams.at(b);
       if (mWriteTimeScaleFieldnames) {
+         stream.printf("sim_time = %f\n", timeValue);
          stream.printf(
                "\tbatch = %d, timeScale = %10.8f, timeScaleTrue = %10.8f",
                b,
@@ -98,6 +96,7 @@ void AdaptiveTimeScaleController::writeTimestepInfo(double timeValue, PrintStrea
                mTimeScaleInfo.mTimeScaleTrue[b]);
       }
       else {
+         stream.printf("%f, ", timeValue);
          stream.printf(
                "%d, %10.8f, %10.8f",
                b,
@@ -110,8 +109,8 @@ void AdaptiveTimeScaleController::writeTimestepInfo(double timeValue, PrintStrea
       else {
          stream.printf(", %10.8f\n", mTimeScaleInfo.mTimeScaleMax[b]);
       }
+      stream.flush();
    }
-   stream.flush();
 }
 
 void CheckpointEntryTimeScaleInfo::write(

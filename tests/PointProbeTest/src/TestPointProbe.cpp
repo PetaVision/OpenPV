@@ -12,12 +12,12 @@
 namespace PV {
 
 TestPointProbe::TestPointProbe() {
-   // Default constructor for derived classes.  Derived classes should call initTestPointProbe from
+   // Default constructor for derived classes.  Derived classes should call initialize from
    // their init-method.
 }
 
-TestPointProbe::TestPointProbe(const char *probeName, HyPerCol *hc) : PointProbe() {
-   initialize(probeName, hc);
+TestPointProbe::TestPointProbe(const char *name, HyPerCol *hc) : PointProbe() {
+   initialize(name, hc);
 }
 
 TestPointProbe::~TestPointProbe() {}

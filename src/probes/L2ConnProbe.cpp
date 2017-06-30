@@ -20,8 +20,9 @@ int L2ConnProbe::initialize_base() { return PV_SUCCESS; }
 int L2ConnProbe::outputState(double timed) {
    Communicator *icComm = parent->getCommunicator();
    const int rank       = icComm->commRank();
-   if (rank != 0)
+   if (mOutputStreams.empty()) {
       return PV_SUCCESS;
+   }
    assert(getTargetConn() != NULL);
    int nxp       = getTargetHyPerConn()->xPatchSize();
    int nyp       = getTargetHyPerConn()->yPatchSize();
@@ -58,9 +59,10 @@ int L2ConnProbe::outputState(double timed) {
             }
          }
       }
-      output() << "t=" << timed << ", f=" << kernelIndex << ", squaredL2=" << sumsq << "\n";
+      output(0) << "t=" << timed << ", f=" << kernelIndex << ", squaredL2=" << sumsq << "\n";
    }
 
    return PV_SUCCESS;
 }
-};
+
+} // end namespace PV

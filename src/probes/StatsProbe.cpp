@@ -12,26 +12,22 @@
 
 namespace PV {
 
-/**
- * @probeName
- * @hc
- */
-StatsProbe::StatsProbe(const char *probeName, HyPerCol *hc) {
-   initStatsProbe_base();
-   initStatsProbe(probeName, hc);
+StatsProbe::StatsProbe(const char *name, HyPerCol *hc) {
+   initialize_base();
+   initialize(name, hc);
 }
 
 StatsProbe::StatsProbe() : LayerProbe() {
-   initStatsProbe_base();
-   // Derived classes should call initStatsProbe
+   initialize_base();
+   // Derived classes should call initialize
 }
 
 StatsProbe::~StatsProbe() {
    int rank = parent->columnId();
-   if (rank == 0 and outputStream) {
-      iotimer->fprint_time(output());
-      mpitimer->fprint_time(output());
-      comptimer->fprint_time(output());
+   if (rank == 0 and !mOutputStreams.empty()) {
+      iotimer->fprint_time(output(0));
+      mpitimer->fprint_time(output(0));
+      comptimer->fprint_time(output(0));
    }
    delete iotimer;
    delete mpitimer;
@@ -45,7 +41,7 @@ StatsProbe::~StatsProbe() {
    free(sigma);
 }
 
-int StatsProbe::initStatsProbe_base() {
+int StatsProbe::initialize_base() {
    fMin  = NULL;
    fMax  = NULL;
    sum   = NULL;
@@ -62,8 +58,8 @@ int StatsProbe::initStatsProbe_base() {
    return PV_SUCCESS;
 }
 
-int StatsProbe::initStatsProbe(const char *probeName, HyPerCol *hc) {
-   int status = LayerProbe::initialize(probeName, hc);
+int StatsProbe::initialize(const char *name, HyPerCol *hc) {
+   int status = LayerProbe::initialize(name, hc);
 
    assert(status == PV_SUCCESS);
    size_t timermessagelen = strlen("StatsProbe ") + strlen(getName()) + strlen(" Comp timer ");
@@ -209,9 +205,9 @@ int StatsProbe::outputState(double timed) {
 
    int nbatch = getTargetLayer()->getLayerLoc()->nbatch;
 
+   comptimer->start();
    switch (type) {
       case BufV:
-         comptimer->start();
          for (int b = 0; b < nbatch; b++) {
             buf = getTargetLayer()->getV() + b * getTargetLayer()->getNumNeurons();
             if (buf == NULL) {
@@ -220,7 +216,7 @@ int StatsProbe::outputState(double timed) {
                   return 0;
                }
 #endif // PV_USE_MPI
-               output() << getMessage() << "V buffer is NULL\n";
+               output(b) << getMessage() << "V buffer is NULL\n";
                return 0;
             }
             for (int k = 0; k < nk; k++) {
@@ -238,10 +234,8 @@ int StatsProbe::outputState(double timed) {
                }
             }
          }
-         comptimer->stop();
          break;
       case BufActivity:
-         comptimer->start();
          for (int b = 0; b < nbatch; b++) {
             buf = getTargetLayer()->getLayerData() + b * getTargetLayer()->getNumExtended();
             assert(buf != NULL);
@@ -273,35 +267,28 @@ int StatsProbe::outputState(double timed) {
                }
             }
          }
-         comptimer->stop();
          break;
-      default: assert(0); break;
+      default: pvAssert(0); break;
    }
+   comptimer->stop();
 
 #ifdef PV_USE_MPI
    mpitimer->start();
    int ierr;
 
    // In place reduction to prevent allocating a temp recv buffer
-   if (rank == rcvProc) {
-      ierr = MPI_Reduce(MPI_IN_PLACE, sum, nbatch, MPI_DOUBLE, MPI_SUM, rcvProc, comm);
-      ierr = MPI_Reduce(MPI_IN_PLACE, sum2, nbatch, MPI_DOUBLE, MPI_SUM, rcvProc, comm);
-      ierr = MPI_Reduce(MPI_IN_PLACE, nnz, nbatch, MPI_INT, MPI_SUM, rcvProc, comm);
-      ierr = MPI_Reduce(MPI_IN_PLACE, fMin, nbatch, MPI_FLOAT, MPI_MIN, rcvProc, comm);
-      ierr = MPI_Reduce(MPI_IN_PLACE, fMax, nbatch, MPI_FLOAT, MPI_MAX, rcvProc, comm);
-      ierr = MPI_Reduce(MPI_IN_PLACE, &nk, 1, MPI_INT, MPI_SUM, rcvProc, comm);
-   }
-   else {
-      ierr = MPI_Reduce(sum, sum, nbatch, MPI_DOUBLE, MPI_SUM, rcvProc, comm);
-      ierr = MPI_Reduce(sum2, sum2, nbatch, MPI_DOUBLE, MPI_SUM, rcvProc, comm);
-      ierr = MPI_Reduce(nnz, nnz, nbatch, MPI_INT, MPI_SUM, rcvProc, comm);
-      ierr = MPI_Reduce(fMin, fMin, nbatch, MPI_FLOAT, MPI_MIN, rcvProc, comm);
-      ierr = MPI_Reduce(fMax, fMax, nbatch, MPI_FLOAT, MPI_MAX, rcvProc, comm);
-      ierr = MPI_Reduce(&nk, &nk, 1, MPI_INT, MPI_SUM, rcvProc, comm);
+   ierr = MPI_Allreduce(MPI_IN_PLACE, sum, nbatch, MPI_DOUBLE, MPI_SUM, comm);
+   ierr = MPI_Allreduce(MPI_IN_PLACE, sum2, nbatch, MPI_DOUBLE, MPI_SUM, comm);
+   ierr = MPI_Allreduce(MPI_IN_PLACE, nnz, nbatch, MPI_INT, MPI_SUM, comm);
+   ierr = MPI_Allreduce(MPI_IN_PLACE, fMin, nbatch, MPI_FLOAT, MPI_MIN, comm);
+   ierr = MPI_Allreduce(MPI_IN_PLACE, fMax, nbatch, MPI_FLOAT, MPI_MAX, comm);
+   ierr = MPI_Allreduce(MPI_IN_PLACE, &nk, 1, MPI_INT, MPI_SUM, comm);
+
+   mpitimer->stop();
+   if (rank != rcvProc) {
       return 0;
    }
 
-   mpitimer->stop();
 #endif // PV_USE_MPI
    float divisor = nk;
 
@@ -319,7 +306,7 @@ int StatsProbe::outputState(double timed) {
          avgval  = avg[b];
          avgnote = "";
       }
-      outputStream->printf(
+      output(b).printf(
             "%st==%6.1f b==%d N==%d Total==%f Min==%f Avg==%f%s "
             "Max==%f sigma==%f nnz==%d",
             getMessage(),
@@ -333,7 +320,7 @@ int StatsProbe::outputState(double timed) {
             (double)fMax[b],
             (double)sigma[b],
             (int)nnz[b]);
-      output() << std::endl;
+      output(b) << std::endl;
    }
 
    iotimer->stop();

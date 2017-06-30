@@ -55,7 +55,7 @@ CheckStatsProbe::~CheckStatsProbe() {}
 int CheckStatsProbe::initialize_base() { return PV_SUCCESS; }
 
 int CheckStatsProbe::initialize(char const *name, PV::HyPerCol *hc) {
-   return StatsProbe::initStatsProbe(name, hc);
+   return StatsProbe::initialize(name, hc);
 }
 
 int CheckStatsProbe::ioParamsFillGroup(enum PV::ParamsIOFlag ioFlag) {

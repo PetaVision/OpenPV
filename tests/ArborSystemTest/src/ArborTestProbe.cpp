@@ -13,17 +13,17 @@
 
 namespace PV {
 
-ArborTestProbe::ArborTestProbe(const char *probeName, HyPerCol *hc) : StatsProbe() {
-   initArborTestProbe_base();
-   initArborTestProbe(probeName, hc);
+ArborTestProbe::ArborTestProbe(const char *name, HyPerCol *hc) : StatsProbe() {
+   initialize_base();
+   initialize(name, hc);
 }
 
 ArborTestProbe::~ArborTestProbe() {}
 
-int ArborTestProbe::initArborTestProbe_base() { return PV_SUCCESS; }
+int ArborTestProbe::initialize_base() { return PV_SUCCESS; }
 
-int ArborTestProbe::initArborTestProbe(const char *probeName, HyPerCol *hc) {
-   return initStatsProbe(probeName, hc);
+int ArborTestProbe::initialize(const char *name, HyPerCol *hc) {
+   return StatsProbe::initialize(name, hc);
 }
 
 void ArborTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {

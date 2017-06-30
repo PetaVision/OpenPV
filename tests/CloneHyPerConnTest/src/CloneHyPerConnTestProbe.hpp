@@ -14,15 +14,15 @@ namespace PV {
 
 class CloneHyPerConnTestProbe : public PV::StatsProbe {
   public:
-   CloneHyPerConnTestProbe(const char *probeName, HyPerCol *hc);
+   CloneHyPerConnTestProbe(const char *name, HyPerCol *hc);
 
    virtual int outputState(double timed) override;
 
   protected:
-   int initCloneHyPerConnTestProbe(const char *probeName, HyPerCol *hc);
+   int initialize(const char *name, HyPerCol *hc);
 
   private:
-   int initCloneHyPerConnTestProbe_base();
+   int initialize_base();
 };
 
 } /* namespace PV */
