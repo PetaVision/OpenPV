@@ -657,6 +657,12 @@ void HyPerConn::ioParam_weightUpdatePeriod(enum ParamsIOFlag ioFlag) {
          parent->parameters()->ioParamValueRequired(
                ioFlag, name, "weightUpdatePeriod", &weightUpdatePeriod);
       }
+      else
+         FatalIf(
+               parent->parameters()->present(name, "weightUpdatePeriod"),
+               "%s sets both triggerLayerName and weightUpdatePeriod; "
+               "only one of these can be set.\n",
+               getDescription_c());
    }
 }
 
