@@ -18,10 +18,12 @@ bool Checkpointer::registerCheckpointData(
       std::string const &dataName,
       T *dataPointer,
       std::size_t numValues,
-      bool broadcast) {
+      bool broadcast,
+      bool constantEntireRun) {
    return registerCheckpointEntry(
          std::make_shared<CheckpointEntryData<T>>(
-               objName, dataName, getMPIBlock(), dataPointer, numValues, broadcast));
+               objName, dataName, getMPIBlock(), dataPointer, numValues, broadcast),
+         constantEntireRun);
 }
 
 namespace TextOutput {

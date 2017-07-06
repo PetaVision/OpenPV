@@ -194,7 +194,8 @@ void Checkpointer::ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag, 
                   std::string("nextCheckpointStep"),
                   &mNextCheckpointStep,
                   (std::size_t)1,
-                  true /*broadcast*/);
+                  true /*broadcast*/,
+                  false /*not constant entire run*/);
          }
          else if (
                !strcmp(mCheckpointWriteTriggerModeString, "time")
@@ -206,7 +207,8 @@ void Checkpointer::ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag, 
                   std::string("nextCheckpointTime"),
                   &mNextCheckpointSimtime,
                   (std::size_t)1,
-                  true /*broadcast*/);
+                  true /*broadcast*/,
+                  false /*not constant entire run*/);
          }
          else if (
                !strcmp(mCheckpointWriteTriggerModeString, "clock")
@@ -488,16 +490,22 @@ void Checkpointer::registerTimer(Timer const *timer) { mTimers.push_back(timer);
 
 void Checkpointer::readNamedCheckpointEntry(
       std::string const &objName,
-      std::string const &dataName) {
+      std::string const &dataName,
+      bool constantEntireRun) {
    std::string checkpointEntryName(objName);
    if (!(objName.empty() || dataName.empty())) {
       checkpointEntryName.append("_");
    }
    checkpointEntryName.append(dataName);
-   readNamedCheckpointEntry(checkpointEntryName);
+   readNamedCheckpointEntry(checkpointEntryName, constantEntireRun);
 }
 
-void Checkpointer::readNamedCheckpointEntry(std::string const &checkpointEntryName) {
+void Checkpointer::readNamedCheckpointEntry(
+      std::string const &checkpointEntryName,
+      bool constantEntireRun) {
+   if (mSuppressNonplasticCheckpoints and constantEntireRun) {
+      return;
+   }
    verifyDirectory(mInitializeFromCheckpointDir, "InitializeFromCheckpointDir.\n");
    std::string checkpointDirectory = generateBlockPath(mInitializeFromCheckpointDir);
    for (auto &c : mCheckpointRegistry) {

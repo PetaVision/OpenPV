@@ -2065,9 +2065,10 @@ int HyPerConn::writeTextWeights(const char *path, bool verifyWrites, int k) {
 
 int HyPerConn::readStateFromCheckpoint(Checkpointer *checkpointer) {
    if (initializeFromCheckpointFlag) {
-      checkpointer->readNamedCheckpointEntry(std::string(name), std::string("W"));
+      checkpointer->readNamedCheckpointEntry(std::string(name), std::string("W"), !plasticityFlag);
       if (plasticityFlag and !mImmediateWeightUpdate) {
-         checkpointer->readNamedCheckpointEntry(std::string(name), std::string("dW"));
+         checkpointer->readNamedCheckpointEntry(
+               std::string(name), std::string("dW"), false /*not constant*/);
       }
    }
    return PV_SUCCESS;
@@ -2111,17 +2112,34 @@ int HyPerConn::registerData(Checkpointer *checkpointer) {
       // If we checkpoint dW, we have to get PrepareCheckpointRead messages,
       // in order to call blockingNormalize_dW() before the checkpoint.
    }
-   std::string nameString = std::string(name);
-   checkpointer->registerCheckpointData(
-         nameString, "lastUpdateTime", &lastUpdateTime, (std::size_t)1, true /*broadcast*/);
-   if (plasticityFlag && !triggerLayerName) {
+   if (writeStep >= 0) {
+      std::string nameString = std::string(name);
       checkpointer->registerCheckpointData(
-            nameString, "weightUpdateTime", &weightUpdateTime, (std::size_t)1, true /*broadcast*/);
-   }
-   checkpointer->registerCheckpointData(
-         nameString, "nextWrite", &writeTime, (std::size_t)1, true /*broadcast*/);
+            nameString,
+            "lastUpdateTime",
+            &lastUpdateTime,
+            (std::size_t)1,
+            true /*broadcast*/,
+            false /*not constant*/);
+      if (plasticityFlag && !triggerLayerName) {
+         checkpointer->registerCheckpointData(
+               nameString,
+               "weightUpdateTime",
+               &weightUpdateTime,
+               (std::size_t)1,
+               true /*broadcast*/,
+               false /*not constant*/);
+      }
+      checkpointer->registerCheckpointData(
+            nameString,
+            "nextWrite",
+            &writeTime,
+            (std::size_t)1,
+            true /*broadcast*/,
+            false /*not constant*/);
 
-   openOutputStateFile(checkpointer);
+      openOutputStateFile(checkpointer);
+   }
    registerTimers(checkpointer);
 
    return status;
