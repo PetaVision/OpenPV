@@ -118,8 +118,8 @@ int HyPerLCALayer::communicateInitInfo(CommunicateInitInfoMessage const *message
             message->lookup<AdaptiveTimeScaleProbe>(std::string(mAdaptiveTimeScaleProbeName));
       if (mAdaptiveTimeScaleProbe == nullptr) {
          if (parent->getCommunicator()->commRank() == 0) {
-            ErrorLog() << description << ": adaptiveTimeScaleProbe \""
-                       << mAdaptiveTimeScaleProbeName << "\" is not in the column.\n";
+            ErrorLog() << description << ": no AdaptiveTimeScaleProbe \""
+                       << mAdaptiveTimeScaleProbeName << "\" in the column.\n";
          }
          MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
