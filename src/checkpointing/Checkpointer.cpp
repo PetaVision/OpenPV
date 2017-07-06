@@ -439,6 +439,10 @@ void Checkpointer::ioParam_initializeFromCheckpointDir(enum ParamsIOFlag ioFlag,
          &mInitializeFromCheckpointDir,
          "",
          true);
+   if (ioFlag == PARAMS_IO_READ and mInitializeFromCheckpointDir != nullptr
+       and mInitializeFromCheckpointDir[0] != '\0') {
+      verifyDirectory(mInitializeFromCheckpointDir, "InitializeFromCheckpointDir.\n");
+   }
 }
 
 // defaultInitializeFromCheckpointFlag was made obsolete Dec 18, 2016.
@@ -506,7 +510,6 @@ void Checkpointer::readNamedCheckpointEntry(
    if (mSuppressNonplasticCheckpoints and constantEntireRun) {
       return;
    }
-   verifyDirectory(mInitializeFromCheckpointDir, "InitializeFromCheckpointDir.\n");
    std::string checkpointDirectory = generateBlockPath(mInitializeFromCheckpointDir);
    for (auto &c : mCheckpointRegistry) {
       if (c->getName() == checkpointEntryName) {
@@ -910,7 +913,7 @@ void Checkpointer::verifyDirectory(char const *directory, std::string const &des
          status = PV_FAILURE;
       }
       struct stat directoryStat;
-      int statResult = stat(directory, &directoryStat);
+      int statResult = stat(expandLeadingTilde(directory).c_str(), &directoryStat);
       if (statResult != 0) {
          ErrorLog() << "Checkpointer \"" << mName << "\": checking status of " << description
                     << " \"" << directory << "\" returned error \"" << strerror(errno) << "\".\n";
