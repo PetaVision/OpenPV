@@ -54,8 +54,10 @@ local pvParameters = {
       checkpointWriteDir                  = outputPath .. "/Checkpoints"; --The checkpoint output directory
       checkpointWriteTriggerMode          = "step";
       checkpointWriteStepInterval         = checkpointPeriod; --How often to checkpoint
+      checkpointIndexWidth                = -1; -- Automatically select width of index in checkpoint directory name
       deleteOlderCheckpoints              = false;
       suppressNonplasticCheckpoints       = false;
+      initializeFromCheckpointDir         = "";
       errorOnNotANumber                   = false;
    };
 
@@ -72,6 +74,7 @@ local pvParameters = {
       tauFactor                           = 0.1; -- determines fraction of tau_effective to which to set the time step, can be a small percentage as tau_eff can be huge
       growthFactor                        = 0.01; -- percentage increase in the maximum allowed time scale whenever the time scale equals the current maximum
       writeTimeScales                     = true;
+      writeTimeScalesFieldnames           = false;
    };
 
    Input = {
@@ -138,7 +141,6 @@ local pvParameters = {
       writeStep                           = writeStep;
       initialWriteTime                    = initialWriteTime;
       sparseLayer                         = true;
-      writeSparseValues                   = true;
       updateGpu                           = true;
       dataType                            = nil;
       VThresh                             = VThresh;
@@ -148,6 +150,7 @@ local pvParameters = {
       VWidth                              = VWidth;
       timeConstantTau                     = timeConstantTau;
       selfInteract                        = true;
+      adaptiveTimeScaleProbe              = "AdaptiveTimeScales";
    };
 
    InputRecon = {
@@ -212,6 +215,7 @@ local pvParameters = {
       wMinInit                            = -1;
       wMaxInit                            = 1;
       sparseFraction                      = 0.9;
+      minNNZ                              = 0;
       --weightInitType                      = "FileWeight";
       --initWeightsFile                     = basisVectorFile;
       useListOfArborFiles                 = false;
