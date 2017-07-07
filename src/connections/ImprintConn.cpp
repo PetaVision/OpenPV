@@ -274,7 +274,12 @@ int ImprintConn::registerData(Checkpointer *checkpointer) {
    int status         = HyPerConn::registerData(checkpointer);
    std::size_t numBuf = (std::size_t)(getNumDataPatches() * numberOfAxonalArborLists());
    checkpointer->registerCheckpointData(
-         std::string(name), "ImprintState", lastActiveTime, numBuf, true /*broadcast*/);
+         std::string(name),
+         "ImprintState",
+         lastActiveTime,
+         numBuf,
+         true /*broadcast*/,
+         false /*not constant*/);
    return PV_SUCCESS;
 }
 

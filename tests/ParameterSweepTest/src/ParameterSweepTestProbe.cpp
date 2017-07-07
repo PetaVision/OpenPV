@@ -9,14 +9,14 @@
 
 namespace PV {
 
-ParameterSweepTestProbe::ParameterSweepTestProbe(const char *probeName, HyPerCol *hc) {
-   initParameterSweepTestProbe(probeName, hc);
+ParameterSweepTestProbe::ParameterSweepTestProbe(const char *name, HyPerCol *hc) {
+   initialize(name, hc);
 }
 
 ParameterSweepTestProbe::~ParameterSweepTestProbe() {}
 
-int ParameterSweepTestProbe::initParameterSweepTestProbe(const char *probeName, HyPerCol *hc) {
-   int status = initStatsProbe(probeName, hc);
+int ParameterSweepTestProbe::initialize(const char *name, HyPerCol *hc) {
+   int status = StatsProbe::initialize(name, hc);
    return status;
 }
 
@@ -31,19 +31,19 @@ int ParameterSweepTestProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 void ParameterSweepTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) { requireType(BufActivity); }
 
 void ParameterSweepTestProbe::ioParam_expectedSum(enum ParamsIOFlag ioFlag) {
-   getParent()->parameters()->ioParamValue(ioFlag, getName(), "expectedSum", &expectedSum, 0.0);
+   parent->parameters()->ioParamValue(ioFlag, getName(), "expectedSum", &expectedSum, 0.0);
 }
 void ParameterSweepTestProbe::ioParam_expectedMin(enum ParamsIOFlag ioFlag) {
-   getParent()->parameters()->ioParamValue(ioFlag, getName(), "expectedMin", &expectedMin, 0.0f);
+   parent->parameters()->ioParamValue(ioFlag, getName(), "expectedMin", &expectedMin, 0.0f);
 }
 
 void ParameterSweepTestProbe::ioParam_expectedMax(enum ParamsIOFlag ioFlag) {
-   getParent()->parameters()->ioParamValue(ioFlag, getName(), "expectedMax", &expectedMax, 0.0f);
+   parent->parameters()->ioParamValue(ioFlag, getName(), "expectedMax", &expectedMax, 0.0f);
 }
 
 int ParameterSweepTestProbe::outputState(double timed) {
    int status           = StatsProbe::outputState(timed);
-   Communicator *icComm = getTargetLayer()->getParent()->getCommunicator();
+   Communicator *icComm = parent->getCommunicator();
    const int rcvProc    = 0;
    if (icComm->commRank() != rcvProc) {
       return 0;

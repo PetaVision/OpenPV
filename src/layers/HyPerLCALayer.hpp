@@ -23,7 +23,7 @@ class HyPerLCALayer : public PV::ANNLayer {
   protected:
    HyPerLCALayer();
    int initialize(const char *name, HyPerCol *hc);
-   virtual int communicateInitInfo() override;
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
    virtual int allocateDataStructures() override;
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
@@ -55,7 +55,7 @@ class HyPerLCALayer : public PV::ANNLayer {
    virtual int updateState(double time, double dt) override;
 
 #ifdef PV_USE_CUDA
-   virtual int updateStateGpu(double time, double dt);
+   virtual int updateStateGpu(double time, double dt) override;
 #endif
 
    virtual float getChannelTimeConst(enum ChannelType channel_type) override {
@@ -63,7 +63,7 @@ class HyPerLCALayer : public PV::ANNLayer {
    };
 
 #ifdef PV_USE_CUDA
-   virtual int allocateUpdateKernel();
+   virtual int allocateUpdateKernel() override;
 #endif
 
    double *deltaTimes(); // TODO: make const-correct

@@ -163,36 +163,38 @@ void Buffer<T>::translate(int xShift, int yShift) {
 
 template <class T>
 int Buffer<T>::getAnchorX(enum Anchor anchor, int smallerWidth, int biggerWidth) {
+   int resultX;
    switch (anchor) {
       case NORTHWEST:
       case WEST:
-      case SOUTHWEST: return 0;
+      case SOUTHWEST: resultX = 0; break;
       case NORTH:
       case CENTER:
-      case SOUTH: return biggerWidth / 2 - smallerWidth / 2;
+      case SOUTH: resultX = biggerWidth / 2 - smallerWidth / 2; break;
       case NORTHEAST:
       case EAST:
-      case SOUTHEAST: return biggerWidth - smallerWidth;
-      default: return 0;
+      case SOUTHEAST: resultX = biggerWidth - smallerWidth; break;
+      default: resultX        = 0; break;
    }
-   return 0; // Statement included to suppress warnings about missing return type.
+   return resultX;
 }
 
 template <class T>
 int Buffer<T>::getAnchorY(enum Anchor anchor, int smallerHeight, int biggerHeight) {
+   int resultY;
    switch (anchor) {
       case NORTHWEST:
       case NORTH:
-      case NORTHEAST: return 0;
+      case NORTHEAST: resultY = 0; break;
       case WEST:
       case CENTER:
-      case EAST: return biggerHeight / 2 - smallerHeight / 2;
+      case EAST: resultY = biggerHeight / 2 - smallerHeight / 2; break;
       case SOUTHWEST:
       case SOUTH:
-      case SOUTHEAST: return biggerHeight - smallerHeight;
-      default: return 0;
+      case SOUTHEAST: resultY = biggerHeight - smallerHeight; break;
+      default: resultY        = 0; break;
    }
-   return 0; // Statement included to suppress warnings about missing return type.
+   return resultY;
 }
 
 } // end namespace PV

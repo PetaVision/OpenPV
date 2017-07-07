@@ -45,11 +45,10 @@ int QuotientColProbe::initializeQuotientColProbe(const char *probename, HyPerCol
    return ColProbe::initialize(probename, hc);
 }
 
-int QuotientColProbe::outputHeader() {
-   if (outputStream) {
-      output() << "Probe_name,time,index," << valueDescription;
+void QuotientColProbe::outputHeader() {
+   for (auto &s : mOutputStreams) {
+      *s << "Probe_name,time,index," << valueDescription;
    }
-   return PV_SUCCESS;
 }
 
 int QuotientColProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -73,10 +72,10 @@ void QuotientColProbe::ioParam_denominator(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamStringRequired(ioFlag, name, "denominator", &denominator);
 }
 
-int QuotientColProbe::communicateInitInfo() {
-   int status = ColProbe::communicateInitInfo();
-   numerProbe = findProbe(numerator);
-   denomProbe = findProbe(denominator);
+int QuotientColProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+   int status = ColProbe::communicateInitInfo(message);
+   numerProbe = message->lookup<BaseProbe>(std::string(numerator));
+   denomProbe = message->lookup<BaseProbe>(std::string(denominator));
    if (numerProbe == NULL || denomProbe == NULL) {
       status = PV_FAILURE;
       if (parent->columnId() == 0) {
@@ -109,7 +108,7 @@ int QuotientColProbe::communicateInitInfo() {
                   nNumValues,
                   dNumValues);
          }
-         MPI_Barrier(this->getParent()->getCommunicator()->communicator());
+         MPI_Barrier(this->parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
       status = setNumValues(nNumValues);
@@ -127,17 +126,6 @@ int QuotientColProbe::communicateInitInfo() {
       exit(EXIT_FAILURE);
    }
    return status;
-}
-
-BaseProbe *QuotientColProbe::findProbe(char const *probeName) {
-   for (int p = 0; p < parent->numberOfBaseProbes(); p++) {
-      BaseProbe *probe = parent->getBaseProbe(p);
-      if (!strcmp(probe->getName(), probeName)) {
-         return probe;
-      }
-   }
-   // If you reach here, no probe with the given name was found.
-   return NULL;
 }
 
 int QuotientColProbe::calcValues(double timeValue) {
@@ -163,17 +151,17 @@ double QuotientColProbe::referenceUpdateTime() const { return parent->simulation
 
 int QuotientColProbe::outputState(double timevalue) {
    getValues(timevalue);
-   if (this->getParent()->getCommunicator()->commRank() != 0)
+   if (mOutputStreams.empty()) {
       return PV_SUCCESS;
+   }
    double *valuesBuffer = getValuesBuffer();
    int numValues        = this->getNumValues();
    for (int b = 0; b < numValues; b++) {
       if (isWritingToFile()) {
-         output() << "\"" << valueDescription << "\",";
+         output(b) << "\"" << valueDescription << "\",";
       }
-      output() << timevalue << "," << b << "," << valuesBuffer[b] << "\n";
+      output(b) << timevalue << "," << b << "," << valuesBuffer[b] << std::endl;
    }
-   output().flush();
    return PV_SUCCESS;
 } // end QuotientColProbe::outputState(float, HyPerCol *)
 

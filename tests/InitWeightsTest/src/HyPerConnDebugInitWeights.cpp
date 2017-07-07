@@ -47,10 +47,9 @@ int HyPerConnDebugInitWeights::initialize_base() {
    return PV_SUCCESS;
 }
 
-int HyPerConnDebugInitWeights::communicateInitInfo() {
-   HyPerConn::communicateInitInfo();
-   BaseConnection *baseConn = parent->getConnFromName(otherConnName);
-   otherConn                = dynamic_cast<HyPerConn *>(baseConn);
+int HyPerConnDebugInitWeights::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+   HyPerConn::communicateInitInfo(message);
+   otherConn = message->lookup<HyPerConn>(std::string(otherConnName));
    if (otherConn == NULL) {
       Fatal().printf(
             "HyPerConnDebugInitWeights \"%s\" error in rank %d process: copiedConn \"%s\" is not a "

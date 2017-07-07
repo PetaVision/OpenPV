@@ -3,7 +3,7 @@
 
 debugParsing = false;
 
-HyPerCol "test_gauss2d column" = {
+HyPerCol "test_gauss2d_column" = {
    nx = 16;
    ny = 16;
    startTime = 0.0;
@@ -20,7 +20,7 @@ HyPerCol "test_gauss2d column" = {
    errorOnNotANumber = false;
 };
 
-HyPerLayer "test_gauss2d pre" = {
+HyPerLayer "test_gauss2d_pre" = {
    restart = false;
    nxScale = 1;
    nyScale = 1;
@@ -35,7 +35,7 @@ HyPerLayer "test_gauss2d pre" = {
    sparseLayer = false;
 };
 
-HyPerLayer "test_gauss2d post" = {
+HyPerLayer "test_gauss2d_post" = {
    restart = false;
    nxScale = 1;
    nyScale = 1;
@@ -50,9 +50,9 @@ HyPerLayer "test_gauss2d post" = {
    sparseLayer = false;
 };
 
-HyPerConn "test_gauss2d hyperconn" = {
-   preLayerName = "test_gauss2d pre";
-   postLayerName = "test_gauss2d post";
+HyPerConn "test_gauss2d_hyperconn" = {
+   preLayerName = "test_gauss2d_pre";
+   postLayerName = "test_gauss2d_post";
    nxp = 5;
    nyp = 5;
    nfp = -1;
@@ -81,9 +81,9 @@ HyPerConn "test_gauss2d hyperconn" = {
    shrinkPatches = false;
 };
 
-HyPerConn "test_gauss2d kernelconn" = {
-   preLayerName = "test_gauss2d pre";
-   postLayerName = "test_gauss2d post";
+HyPerConn "test_gauss2d_kernelconn" = {
+   preLayerName = "test_gauss2d_pre";
+   postLayerName = "test_gauss2d_post";
    nxp = 5;
    nyp = 5;
    nfp = -1;
@@ -112,7 +112,7 @@ HyPerConn "test_gauss2d kernelconn" = {
    shrinkPatches = false;
 };
 
-HyPerLayer "test_gauss2d pre 2" = {
+HyPerLayer "test_gauss2d_pre2" = {
    restart = false;
    nxScale = 2;
    nyScale = 2;
@@ -127,7 +127,7 @@ HyPerLayer "test_gauss2d pre 2" = {
    sparseLayer = false;
 };
 
-HyPerLayer "test_gauss2d post 2" = {
+HyPerLayer "test_gauss2d_post2" = {
    restart = false;
    nxScale = 2;
    nyScale = 2;
@@ -142,9 +142,9 @@ HyPerLayer "test_gauss2d post 2" = {
    sparseLayer = false;
 };
 
-HyPerConn "test_gauss2d hyperconn 1 to 2" = {
-   preLayerName = "test_gauss2d pre";
-   postLayerName = "test_gauss2d post 2";
+HyPerConn "test_gauss2d_hyperconn1to2" = {
+   preLayerName = "test_gauss2d_pre";
+   postLayerName = "test_gauss2d_post2";
    nxp = 10;  // must be scale factor times odd number
    nyp = 10;
    nfp = -1;
@@ -174,9 +174,9 @@ HyPerConn "test_gauss2d hyperconn 1 to 2" = {
    shrinkPatches = false;
 };
 
-HyPerConn "test_gauss2d kernelconn 1 to 2" = {
-   preLayerName = "test_gauss2d pre";
-   postLayerName = "test_gauss2d post 2";
+HyPerConn "test_gauss2d_kernelconn1to2" = {
+   preLayerName = "test_gauss2d_pre";
+   postLayerName = "test_gauss2d_post2";
    nxp = 10;  // must be scale factor times odd number
    nyp = 10;
    nfp = -1;
@@ -206,9 +206,9 @@ HyPerConn "test_gauss2d kernelconn 1 to 2" = {
    shrinkPatches = false;
 };
 
-HyPerConn "test_gauss2d hyperconn 2 to 1" = {
-   preLayerName = "test_gauss2d pre 2";
-   postLayerName = "test_gauss2d post";
+HyPerConn "test_gauss2d_hyperconn2to1" = {
+   preLayerName = "test_gauss2d_pre2";
+   postLayerName = "test_gauss2d_post";
    nxp = 5; // must be odd
    nyp = 5;
    nfp = -1;
@@ -238,9 +238,9 @@ HyPerConn "test_gauss2d hyperconn 2 to 1" = {
    shrinkPatches = false;
 };
 
-HyPerConn "test_gauss2d kernelconn 2 to 1" = {
-   preLayerName = "test_gauss2d pre 2";
-   postLayerName = "test_gauss2d post";
+HyPerConn "test_gauss2d_kernelconn2to1" = {
+   preLayerName = "test_gauss2d_pre2";
+   postLayerName = "test_gauss2d_post";
    nxp = 5;
    nyp = 5;
    nfp = -1;

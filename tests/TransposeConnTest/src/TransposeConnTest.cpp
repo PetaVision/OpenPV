@@ -21,6 +21,11 @@
 
 using namespace PV;
 
+int testTransposeConn(
+      HyPerCol *hc,
+      char const *originalName,
+      char const *transposeName,
+      char const *transposeOfTransposeName);
 int testTransposeOfTransposeWeights(
       HyPerConn *originalMap,
       TransposeConn *transpose,
@@ -74,112 +79,65 @@ int main(int argc, char *argv[]) {
 
    int status = PV_SUCCESS;
 
-   HyPerConn *originalMap              = NULL;
-   TransposeConn *transpose            = NULL;
-   TransposeConn *transposeOfTranspose = NULL;
-
-   BaseConnection *baseConn;
-   baseConn    = hc->getConnFromName("Original Map for One to One Test");
-   originalMap = dynamic_cast<HyPerConn *>(baseConn);
-   FatalIf(!(originalMap->usingSharedWeights()), "Test failed.\n");
-   transpose = dynamic_cast<TransposeConn *>(
-         hc->getConnFromName("Transpose for One to One Test of TransposeConn"));
-   transposeOfTranspose = dynamic_cast<TransposeConn *>(
-         hc->getConnFromName("Transpose of Transpose for One to One Test of TransposeConn"));
-   status = testTransposeOfTransposeWeights(
-         originalMap, transpose, transposeOfTranspose, "One-to-one case, TransposeConn");
-
-   baseConn    = hc->getConnFromName("Original Map for Many to One Test");
-   originalMap = dynamic_cast<HyPerConn *>(baseConn);
-   FatalIf(!(originalMap->usingSharedWeights()), "Test failed.\n");
-   transpose = dynamic_cast<TransposeConn *>(
-         hc->getConnFromName("Transpose for Many to One Test of TransposeConn"));
-   transposeOfTranspose = dynamic_cast<TransposeConn *>(
-         hc->getConnFromName("Transpose of Transpose for Many to One Test of TransposeConn"));
-   status = testTransposeOfTransposeWeights(
-         originalMap, transpose, transposeOfTranspose, "Many-to-one case, TransposeConn");
-
-   baseConn    = hc->getConnFromName("Original Map for One to Many Test");
-   originalMap = dynamic_cast<HyPerConn *>(baseConn);
-   FatalIf(!(originalMap->usingSharedWeights()), "Test failed.\n");
-   transpose = dynamic_cast<TransposeConn *>(
-         hc->getConnFromName("Transpose for One to Many Test of TransposeConn"));
-   transposeOfTranspose = dynamic_cast<TransposeConn *>(
-         hc->getConnFromName("Transpose of Transpose for One to Many Test of TransposeConn"));
-   status = testTransposeOfTransposeWeights(
-         originalMap, transpose, transposeOfTranspose, "One-to-many case, TransposeConn");
-
-   baseConn    = hc->getConnFromName("Original Map for One to One Test");
-   originalMap = dynamic_cast<HyPerConn *>(baseConn);
-   FatalIf(!(originalMap->usingSharedWeights()), "Test failed.\n");
-   transpose = dynamic_cast<TransposeConn *>(
-         hc->getConnFromName("Transpose for One to One Test of FeedbackConn"));
-   transposeOfTranspose = dynamic_cast<TransposeConn *>(
-         hc->getConnFromName("Transpose of Transpose for One to One Test of FeedbackConn"));
-   status = testTransposeOfTransposeWeights(
-         originalMap, transpose, transposeOfTranspose, "One-to-one case, FeedbackConn");
-
-   baseConn    = hc->getConnFromName("Original Map for Many to One Test");
-   originalMap = dynamic_cast<HyPerConn *>(baseConn);
-   FatalIf(!(originalMap->usingSharedWeights()), "Test failed.\n");
-   transpose = dynamic_cast<TransposeConn *>(
-         hc->getConnFromName("Transpose for Many to One Test of FeedbackConn"));
-   transposeOfTranspose = dynamic_cast<TransposeConn *>(
-         hc->getConnFromName("Transpose of Transpose for Many to One Test of FeedbackConn"));
-   status = testTransposeOfTransposeWeights(
-         originalMap, transpose, transposeOfTranspose, "Many-to-one case, FeedbackConn");
-
-   baseConn    = hc->getConnFromName("Original Map for One to Many Test");
-   originalMap = dynamic_cast<HyPerConn *>(baseConn);
-   FatalIf(!(originalMap->usingSharedWeights()), "Test failed.\n");
-   transpose = dynamic_cast<TransposeConn *>(
-         hc->getConnFromName("Transpose for One to Many Test of FeedbackConn"));
-   transposeOfTranspose = dynamic_cast<TransposeConn *>(
-         hc->getConnFromName("Transpose of Transpose for One to Many Test of FeedbackConn"));
-   status = testTransposeOfTransposeWeights(
-         originalMap, transpose, transposeOfTranspose, "One-to-many case, FeedbackConn");
+   status = testTransposeConn(
+         hc,
+         "OriginalMapForOneToOneTest",
+         "TransposeForOneToOneTestOfTransposeConn",
+         "TransposeOfTransposeForOneToOneTestOfTransposeConn");
+   status = testTransposeConn(
+         hc,
+         "OriginalMapForManyToOneTest",
+         "TransposeForManyToOneTestOfTransposeConn",
+         "TransposeOfTransposeForManyToOneTestOfTransposeConn");
+   status = testTransposeConn(
+         hc,
+         "OriginalMapForOneToManyTest",
+         "TransposeForOneToManyTestOfTransposeConn",
+         "TransposeOfTransposeForOneToManyTestOfTransposeConn");
+   status = testTransposeConn(
+         hc,
+         "OriginalMapForOneToOneTest",
+         "TransposeForOneToOneTestOfFeedbackConn",
+         "TransposeOfTransposeForOneToOneTestOfFeedbackConn");
+   status = testTransposeConn(
+         hc,
+         "OriginalMapForManyToOneTest",
+         "TransposeForManyToOneTestOfFeedbackConn",
+         "TransposeOfTransposeForManyToOneTestOfFeedbackConn");
+   status = testTransposeConn(
+         hc,
+         "OriginalMapForOneToManyTest",
+         "TransposeForOneToManyTestOfFeedbackConn",
+         "TransposeOfTransposeForOneToManyTestOfFeedbackConn");
 
    delete hc;
    delete initObj;
    return status;
 }
 
-// int manyToOneForTransposeConn(int argc, char * argv[]) {
-//   HyPerCol * hc = new HyPerCol("column", argc, argv);
-//   // Layers
-//   const char * layerAname = "Layer A";
-//   const char * layerB1to1name = "Layer B One to one";
-//   const char * layerB_ManyTo1Name = "Layer B Many to one";
-//   const char * layerB1toManyName = "Layer B One to many";
-//   const char * originalConnName = "Many to one original map";
-//   const char * transposeConnName = "Many to one transpose";
-//   const char * transposeOfTransposeConnName = "Many to one double transpose";
-//
-//   ANNLayer * layerA = new ANNLayer(layerAname, hc);
-//   FatalIf(!(layerA), "Test failed.\n");
-//   ANNLayer * layerB_ManyTo1 = new ANNLayer(layerB_ManyTo1Name, hc);
-//   FatalIf(!(layerB_ManyTo1), "Test failed.\n");
-//   new ANNLayer(layerB1to1name, hc); // This layer and the next are unused in this test, but get
-//   created anyway
-//   new ANNLayer(layerB1toManyName, hc); // to cause the params to be read, so we don't get
-//   unused-parameter warnings.
-//
-//   // Connections
-//   HyPerConn * originalMapManyto1 = new HyPerConn(originalConnName, hc);
-//   FatalIf(!(originalMapManyto1), "Test failed.\n");
-//   TransposeConn * transposeManyto1 = new TransposeConn(transposeConnName, hc);
-//   FatalIf(!(transposeManyto1), "Test failed.\n");
-//   TransposeConn * transposeOfTransposeManyto1 = new TransposeConn(transposeOfTransposeConnName,
-//   hc);
-//   FatalIf(!(transposeOfTransposeManyto1), "Test failed.\n");
-//
-//   hc->run(); // Weight values are initialized when run calls allocateDataStructures
-//
-//   int status = testTransposeOfTransposeWeights(originalMapManyto1, transposeManyto1,
-//   transposeOfTransposeManyto1, "Many-to-one case, TransposeConn");
-//   delete hc;
-//   return status;
-//}
+int testTransposeConn(
+      HyPerCol *hc,
+      char const *originalName,
+      char const *transposeName,
+      char const *transposeOfTransposeName) {
+   HyPerConn *originalMap = dynamic_cast<HyPerConn *>(hc->getConnFromName(originalName));
+   FatalIf(!originalMap, "Connection \"%s\" does not exist.\n", originalName);
+   FatalIf(
+         !originalMap->usingSharedWeights(),
+         "%s does not use shared weights, but this test requires shared weights to be on.\n",
+         originalMap->getDescription_c());
+
+   TransposeConn *transpose = dynamic_cast<TransposeConn *>(hc->getConnFromName(transposeName));
+   FatalIf(!transpose, "Connection \"%s\" does not exist.\n", transposeName);
+
+   TransposeConn *transposeOfTranspose =
+         dynamic_cast<TransposeConn *>(hc->getConnFromName(transposeOfTransposeName));
+   FatalIf(!transposeOfTranspose, "Connection \"%s\" does not exist.\n", transposeOfTransposeName);
+
+   int status = testTransposeOfTransposeWeights(
+         originalMap, transpose, transposeOfTranspose, "One-to-one case, TransposeConn");
+   return status;
+}
 
 int testTransposeOfTransposeWeights(
       HyPerConn *originalMap,
@@ -194,7 +152,7 @@ int testTransposeOfTransposeWeights(
       dumpWeights(originalMap);
       dumpWeights(transpose);
       dumpWeights(transposeOfTranspose);
-      ErrorLog().printf("%s: TestTransposeConn failed.\n", message);
+      Fatal().printf("%s: TestTransposeConn failed.\n", message);
    }
    return status;
 }

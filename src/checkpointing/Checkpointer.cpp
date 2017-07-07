@@ -194,7 +194,8 @@ void Checkpointer::ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag, 
                   std::string("nextCheckpointStep"),
                   &mNextCheckpointStep,
                   (std::size_t)1,
-                  true /*broadcast*/);
+                  true /*broadcast*/,
+                  false /*not constant entire run*/);
          }
          else if (
                !strcmp(mCheckpointWriteTriggerModeString, "time")
@@ -206,7 +207,8 @@ void Checkpointer::ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag, 
                   std::string("nextCheckpointTime"),
                   &mNextCheckpointSimtime,
                   (std::size_t)1,
-                  true /*broadcast*/);
+                  true /*broadcast*/,
+                  false /*not constant entire run*/);
          }
          else if (
                !strcmp(mCheckpointWriteTriggerModeString, "clock")
@@ -437,8 +439,10 @@ void Checkpointer::ioParam_initializeFromCheckpointDir(enum ParamsIOFlag ioFlag,
          &mInitializeFromCheckpointDir,
          "",
          true);
-   mDefaultInitializeFromCheckpointFlag =
-         mInitializeFromCheckpointDir != nullptr and mInitializeFromCheckpointDir[0] != '\0';
+   if (ioFlag == PARAMS_IO_READ and mInitializeFromCheckpointDir != nullptr
+       and mInitializeFromCheckpointDir[0] != '\0') {
+      verifyDirectory(mInitializeFromCheckpointDir, "InitializeFromCheckpointDir.\n");
+   }
 }
 
 // defaultInitializeFromCheckpointFlag was made obsolete Dec 18, 2016.
@@ -490,17 +494,22 @@ void Checkpointer::registerTimer(Timer const *timer) { mTimers.push_back(timer);
 
 void Checkpointer::readNamedCheckpointEntry(
       std::string const &objName,
-      std::string const &dataName) {
+      std::string const &dataName,
+      bool constantEntireRun) {
    std::string checkpointEntryName(objName);
    if (!(objName.empty() || dataName.empty())) {
       checkpointEntryName.append("_");
    }
    checkpointEntryName.append(dataName);
-   readNamedCheckpointEntry(checkpointEntryName);
+   readNamedCheckpointEntry(checkpointEntryName, constantEntireRun);
 }
 
-void Checkpointer::readNamedCheckpointEntry(std::string const &checkpointEntryName) {
-   verifyDirectory(mInitializeFromCheckpointDir, "InitializeFromCheckpointDir.\n");
+void Checkpointer::readNamedCheckpointEntry(
+      std::string const &checkpointEntryName,
+      bool constantEntireRun) {
+   if (mSuppressNonplasticCheckpoints and constantEntireRun) {
+      return;
+   }
    std::string checkpointDirectory = generateBlockPath(mInitializeFromCheckpointDir);
    for (auto &c : mCheckpointRegistry) {
       if (c->getName() == checkpointEntryName) {
@@ -570,7 +579,7 @@ void Checkpointer::findWarmStartDirectory() {
       else {
          pvAssert(mLastCheckpointDir);
          FatalIf(
-               mLastCheckpointDir[0] = '\0',
+               mLastCheckpointDir[0] == '\0',
                "Restart flag set, but unable to determine restart directory.\n");
          mCheckpointReadDirectory = strdup(mLastCheckpointDir);
       }
@@ -904,7 +913,7 @@ void Checkpointer::verifyDirectory(char const *directory, std::string const &des
          status = PV_FAILURE;
       }
       struct stat directoryStat;
-      int statResult = stat(directory, &directoryStat);
+      int statResult = stat(expandLeadingTilde(directory).c_str(), &directoryStat);
       if (statResult != 0) {
          ErrorLog() << "Checkpointer \"" << mName << "\": checking status of " << description
                     << " \"" << directory << "\" returned error \"" << strerror(errno) << "\".\n";

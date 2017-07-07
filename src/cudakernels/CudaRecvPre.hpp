@@ -87,7 +87,7 @@ class CudaRecvPre : public CudaKernel {
 
   protected:
    // This is the function that should be overwritten in child classes
-   virtual int do_run();
+   virtual int do_run() override;
 
   private:
    void checkSharedMemSize(size_t sharedSize);

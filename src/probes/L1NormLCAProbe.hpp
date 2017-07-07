@@ -21,21 +21,19 @@ namespace PV {
  */
 class L1NormLCAProbe : public L1NormProbe {
   public:
-   L1NormLCAProbe(const char *probeName, HyPerCol *hc);
-   virtual int communicateInitInfo();
+   L1NormLCAProbe(const char *name, HyPerCol *hc);
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
    virtual ~L1NormLCAProbe() {}
 
   protected:
    L1NormLCAProbe();
-   int initL1NormLCAProbe(const char *probeName, HyPerCol *hc) {
-      return initL1NormProbe(probeName, hc);
-   }
+   int initialize(const char *name, HyPerCol *hc) { return L1NormProbe::initialize(name, hc); }
 
    /**
     * L1NormLCAProbe does not read coefficient from its own params group,
     * but takes it from VThresh of the target layer.
     */
-   virtual void ioParam_coefficient(enum ParamsIOFlag ioFlag) {
+   virtual void ioParam_coefficient(enum ParamsIOFlag ioFlag) override {
    } // coefficient is set from targetLayer during communicateInitInfo.
 
   private:

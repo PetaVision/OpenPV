@@ -18,12 +18,11 @@ class LogTimeScaleController : public AdaptiveTimeScaleController {
          bool writeTimeScales,
          bool writeTimeScaleFieldnames,
          Communicator *comm,
-         bool verifyWrites,
          double logThresh,
          double logSlope);
 
    virtual std::vector<double>
-   calcTimesteps(double timeValue, std::vector<double> const &rawTimeScales);
+   calcTimesteps(double timeValue, std::vector<double> const &rawTimeScales) override;
 
   protected:
    double mLogThresh = DBL_MAX_EXP;

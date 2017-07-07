@@ -18,15 +18,15 @@ class ShuffleLayer : public CloneVLayer {
   public:
    ShuffleLayer(const char *name, HyPerCol *hc);
    virtual ~ShuffleLayer();
-   virtual int communicateInitInfo();
-   virtual int allocateDataStructures();
-   virtual int updateState(double timef, double dt);
-   virtual int setActivity();
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
+   virtual int allocateDataStructures() override;
+   virtual int updateState(double timef, double dt) override;
+   virtual int setActivity() override;
 
   protected:
    ShuffleLayer();
    int initialize(const char *name, HyPerCol *hc);
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_shuffleMethod(enum ParamsIOFlag ioFlag);
    virtual void ioParam_readFreqFromFile(enum ParamsIOFlag ioFlag);
    virtual void ioParam_freqFilename(enum ParamsIOFlag ioFlag);

@@ -45,18 +45,10 @@ class CheckpointableFileStream : public FileStream, public CheckpointerDataInter
          Checkpointer *checkpointer,
          string const &objName);
    virtual int respond(std::shared_ptr<BaseMessage const> message) override;
-   virtual void write(void const *data, long length);
-   virtual void read(void *data, long length);
-   virtual void setOutPos(long pos, bool fromBeginning);
-   virtual void setInPos(long pos, bool fromBeginning);
-
-   /**
-    * Returns the string for the path that would be generated if a CheckpointableFileStream
-    * is instantiated with the given arguments. This function is called during instantiation,
-    * and is also useful if the path is needed before creating the file; i.e. verifying that
-    * the file exists, or creating it.
-    */
-   static string makeOutputPathFilename(Checkpointer *checkpointer, string const &path);
+   virtual void write(void const *data, long length) override;
+   virtual void read(void *data, long length) override;
+   virtual void setOutPos(long pos, bool fromBeginning) override;
+   virtual void setInPos(long pos, bool fromBeginning) override;
 
   private:
    void initialize(
@@ -66,7 +58,7 @@ class CheckpointableFileStream : public FileStream, public CheckpointerDataInter
          string const &objName,
          bool verifyWrites);
    void setDescription();
-   virtual int registerData(Checkpointer *checkpointer);
+   virtual int registerData(Checkpointer *checkpointer) override;
    int respondProcessCheckpointRead(ProcessCheckpointReadMessage const *message);
    void syncFilePos();
    void updateFilePos();

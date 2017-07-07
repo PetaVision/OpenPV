@@ -18,15 +18,15 @@ class SigmoidLayer : public CloneVLayer {
   public:
    SigmoidLayer(const char *name, HyPerCol *hc);
    virtual ~SigmoidLayer();
-   virtual int communicateInitInfo();
-   virtual int allocateDataStructures();
-   virtual int updateState(double timef, double dt);
-   virtual int setActivity();
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
+   virtual int allocateDataStructures() override;
+   virtual int updateState(double timef, double dt) override;
+   virtual int setActivity() override;
 
   protected:
    SigmoidLayer();
    int initialize(const char *name, HyPerCol *hc);
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_Vrest(enum ParamsIOFlag ioFlag);
    virtual void ioParam_VthRest(enum ParamsIOFlag ioFlag);
    virtual void ioParam_InverseFlag(enum ParamsIOFlag ioFlag);

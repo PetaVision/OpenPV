@@ -9,17 +9,17 @@ namespace PV {
 
 class TestNotAlwaysAllZerosProbe : public StatsProbe {
   public:
-   TestNotAlwaysAllZerosProbe(const char *probeName, HyPerCol *hc);
+   TestNotAlwaysAllZerosProbe(const char *name, HyPerCol *hc);
    bool nonzeroValueHasOccurred() { return nonzeroValueOccurred; }
 
-   virtual int outputState(double timed);
+   virtual int outputState(double timed) override;
 
   protected:
-   int initTestNotAlwaysAllZerosProbe(const char *probeName, HyPerCol *hc);
-   virtual void ioParam_buffer(enum ParamsIOFlag ioFlag);
+   int initialize(const char *name, HyPerCol *hc);
+   virtual void ioParam_buffer(enum ParamsIOFlag ioFlag) override;
 
   private:
-   int initTestNotAlwaysAllZerosProbe_base();
+   int initialize_base();
 
    // Member variables
   protected:

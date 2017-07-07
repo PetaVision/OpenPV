@@ -34,13 +34,13 @@ class MomentumConn : public HyPerConn {
    MomentumConn();
    MomentumConn(const char *name, HyPerCol *hc);
    virtual ~MomentumConn();
-   virtual int allocateDataStructures();
+   virtual int allocateDataStructures() override;
 
    inline float const *get_prev_dwDataStart(int arborId) { return prev_dwDataStart[arborId]; }
    inline char const *getMomentumMethod() { return momentumMethod; }
 
   protected:
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    virtual int registerData(Checkpointer *checkpointer) override;
    virtual int readStateFromCheckpoint(Checkpointer *checkpointer) override;
@@ -52,7 +52,7 @@ class MomentumConn : public HyPerConn {
       return &prev_dwDataStart[arborId][dataIndex * nxp * nyp * nfp];
    }
 
-   virtual int updateWeights(int arborId);
+   virtual int updateWeights(int arborId) override;
 
   private:
    enum Method { SIMPLE, VISCOSITY, ALEX };

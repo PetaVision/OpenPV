@@ -14,18 +14,18 @@
 PoolingConnCheckpointerTestProbe::PoolingConnCheckpointerTestProbe() { initialize_base(); }
 
 PoolingConnCheckpointerTestProbe::PoolingConnCheckpointerTestProbe(
-      const char *probeName,
+      const char *name,
       PV::HyPerCol *hc) {
    initialize_base();
-   initialize(probeName, hc);
+   initialize(name, hc);
 }
 
 PoolingConnCheckpointerTestProbe::~PoolingConnCheckpointerTestProbe() {}
 
 int PoolingConnCheckpointerTestProbe::initialize_base() { return PV_SUCCESS; }
 
-int PoolingConnCheckpointerTestProbe::initialize(const char *probeName, PV::HyPerCol *hc) {
-   int status = PV::ColProbe::initialize(probeName, hc);
+int PoolingConnCheckpointerTestProbe::initialize(const char *name, PV::HyPerCol *hc) {
+   int status = PV::ColProbe::initialize(name, hc);
    FatalIf(parent->getDeltaTime() != 1.0, "This test assumes that the HyPerCol dt is 1.0.\n");
    return status;
 }
@@ -41,25 +41,28 @@ void PoolingConnCheckpointerTestProbe::ioParam_textOutputFlag(enum PV::ParamsIOF
    }
 }
 
-int PoolingConnCheckpointerTestProbe::communicateInitInfo() {
-   int status = PV::ColProbe::communicateInitInfo();
+int PoolingConnCheckpointerTestProbe::communicateInitInfo(
+      PV::CommunicateInitInfoMessage const *message) {
+   int status = PV::ColProbe::communicateInitInfo(message);
    FatalIf(
          status != PV_SUCCESS, "%s failed in ColProbe::communicateInitInfo\n", getDescription_c());
 
-   if (initInputLayer() == PV_POSTPONE) {
+   if (initInputLayer(message) == PV_POSTPONE) {
       return PV_POSTPONE;
    }
-   if (initOutputLayer() == PV_POSTPONE) {
+   if (initOutputLayer(message) == PV_POSTPONE) {
       return PV_POSTPONE;
    }
-   if (initConnection() == PV_POSTPONE) {
+   if (initConnection(message) == PV_POSTPONE) {
       return PV_POSTPONE;
    }
+   FatalIf(parent->getNBatch() > 1, "PoolingConnCheckpointerTestProbe requires nbatch = 1.\n");
    return status;
 }
 
-int PoolingConnCheckpointerTestProbe::initInputLayer() {
-   mInputLayer = dynamic_cast<PV::InputLayer *>(parent->getLayerFromName("Input"));
+int PoolingConnCheckpointerTestProbe::initInputLayer(
+      PV::CommunicateInitInfoMessage const *message) {
+   mInputLayer = message->lookup<PV::InputLayer>(std::string("Input"));
    FatalIf(mInputLayer == nullptr, "column does not have an InputLayer named \"Input\".\n");
    if (checkCommunicatedFlag(mInputLayer) == PV_POSTPONE) {
       return PV_POSTPONE;
@@ -75,8 +78,9 @@ int PoolingConnCheckpointerTestProbe::initInputLayer() {
    return PV_SUCCESS;
 }
 
-int PoolingConnCheckpointerTestProbe::initOutputLayer() {
-   mOutputLayer = parent->getLayerFromName("Output");
+int PoolingConnCheckpointerTestProbe::initOutputLayer(
+      PV::CommunicateInitInfoMessage const *message) {
+   mOutputLayer = message->lookup<PV::HyPerLayer>(std::string("Output"));
    FatalIf(mOutputLayer == nullptr, "column does not have a HyPerLayer named \"Output\".\n");
    if (checkCommunicatedFlag(mOutputLayer) == PV_POSTPONE) {
       return PV_POSTPONE;
@@ -84,8 +88,9 @@ int PoolingConnCheckpointerTestProbe::initOutputLayer() {
    return PV_SUCCESS;
 }
 
-int PoolingConnCheckpointerTestProbe::initConnection() {
-   mConnection = dynamic_cast<PV::HyPerConn *>(parent->getConnFromName("InputToOutput"));
+int PoolingConnCheckpointerTestProbe::initConnection(
+      PV::CommunicateInitInfoMessage const *message) {
+   mConnection = message->lookup<PV::HyPerConn>(std::string("InputToOutput"));
    FatalIf(mConnection == nullptr, "column does not have a HyPerConn named \"InputToOutput\".\n");
    if (checkCommunicatedFlag(mConnection) == PV_POSTPONE) {
       return PV_POSTPONE;
@@ -167,8 +172,8 @@ int PoolingConnCheckpointerTestProbe::outputState(double timevalue) {
 
    if (failed) {
       std::string errorMsg(getDescription() + " failed at t = " + std::to_string(timevalue) + "\n");
-      if (outputStream) {
-         outputStream->printf(errorMsg.c_str());
+      if (!mOutputStreams.empty()) {
+         output(0).printf(errorMsg.c_str());
       }
       if (isWritingToFile()) { // print error message to screen/log file as well.
          ErrorLog() << errorMsg;
@@ -176,8 +181,8 @@ int PoolingConnCheckpointerTestProbe::outputState(double timevalue) {
       mTestFailed = true;
    }
    else {
-      if (outputStream) {
-         outputStream->printf(
+      if (!mOutputStreams.empty()) {
+         output(0).printf(
                "%s found all correct values at time %f\n", getDescription_c(), timevalue);
       }
    }

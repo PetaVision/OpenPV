@@ -26,7 +26,7 @@ class LayerProbe : public BaseProbe {
 
    // Methods
   public:
-   LayerProbe(const char *probeName, HyPerCol *hc);
+   LayerProbe(const char *name, HyPerCol *hc);
    virtual ~LayerProbe();
 
    /**
@@ -36,13 +36,13 @@ class LayerProbe : public BaseProbe {
     * HyPerCol,
     * and then calls the layer's insertProbe method.
     */
-   virtual int communicateInitInfo();
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
 
    HyPerLayer *getTargetLayer() { return targetLayer; }
 
   protected:
    LayerProbe();
-   int initialize(const char *probeName, HyPerCol *hc);
+   int initialize(const char *name, HyPerCol *hc);
 
    /**
     * List of parameters for the LayerProbe class
@@ -57,7 +57,7 @@ class LayerProbe : public BaseProbe {
     * looks for targetLayer first
     * and then targetName.
     */
-   virtual void ioParam_targetName(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_targetName(enum ParamsIOFlag ioFlag) override;
    /** @} */
 
    /**
@@ -65,17 +65,16 @@ class LayerProbe : public BaseProbe {
     * getLastUpdateTime method
     * is greater than the probe's lastUpdateTime member variable.
     */
-   virtual bool needRecalc(double timevalue);
+   virtual bool needRecalc(double timevalue) override;
 
    /**
     * Implements the referenceUpdateTime method.  Returns the last update time of
     * the target layer.
     */
-   virtual double referenceUpdateTime() const;
+   virtual double referenceUpdateTime() const override;
 
   private:
    int initialize_base();
-   int setTargetLayer(const char *layerName);
 
    // Member variables
   protected:

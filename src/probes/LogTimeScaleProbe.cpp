@@ -31,7 +31,6 @@ void LogTimeScaleProbe::allocateTimeScaleController() {
          mWriteTimeScales,
          mWriteTimeScaleFieldnames,
          parent->getCommunicator(),
-         parent->getVerifyWrites(),
          mLogThresh,
          mLogSlope);
 }

@@ -14,16 +14,16 @@ namespace PV {
 
 class DelayTestProbe : public PV::StatsProbe {
   public:
-   DelayTestProbe(const char *probeName, HyPerCol *hc);
+   DelayTestProbe(const char *name, HyPerCol *hc);
    virtual ~DelayTestProbe();
 
-   virtual int outputState(double timestamp);
+   virtual int outputState(double timestamp) override;
 
   protected:
-   int initDelayTestProbe(const char *probeName, HyPerCol *hc);
+   int initialize(const char *name, HyPerCol *hc);
 
   private:
-   int initDelayTestProbe_base();
+   int initialize_base();
 };
 
 } /* namespace PV */

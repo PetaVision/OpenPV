@@ -180,18 +180,11 @@ class HyPerCol : public Subject, Observer {
    BaseConnection *getConnection(int which) { return mConnections.at(which); }
    BaseProbe *getBaseProbe(int which) { return mBaseProbes.at(which); }
    bool getVerifyWrites() { return mCheckpointer->doesVerifyWrites(); }
-   bool getDefaultInitializeFromCheckpointFlag() {
-      return mCheckpointer->getDefaultInitializeFromCheckpointFlag();
-   }
-   bool getCheckpointReadFlag() const { return mCheckpointReadFlag; }
    bool getCheckpointWriteFlag() const { return mCheckpointer->getCheckpointWriteFlag(); }
    char const *getLastCheckpointDir() const { return mCheckpointer->getLastCheckpointDir(); }
    bool getWriteTimescales() const { return mWriteTimescales; }
    const char *getName() { return mName; }
    const char *getOutputPath() { return mCheckpointer->getOutputPath().c_str(); }
-   const char *getInitializeFromCheckpointDir() const {
-      return mCheckpointer->getInitializeFromCheckpointDir();
-   }
    const char *getPrintParamsFilename() const { return mPrintParamsFilename; }
    ColProbe *getColProbe(int which) { return mColProbes.at(which); }
    double getDeltaTime() const { return mDeltaTime; }

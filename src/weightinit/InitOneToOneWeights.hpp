@@ -12,17 +12,18 @@
 
 namespace PV {
 
-class InitWeightsParams;
-class InitOneToOneWeightsParams;
-
 // TODO make InitOneToOneWeights a derived class of InitUniformWeights
-class InitOneToOneWeights : public PV::InitWeights {
+class InitOneToOneWeights : public InitWeights {
+  protected:
+   virtual void ioParam_weightInit(enum ParamsIOFlag ioFlag);
+
   public:
    InitOneToOneWeights(char const *name, HyPerCol *hc);
    virtual ~InitOneToOneWeights();
 
-   virtual int calcWeights(/* PVPatch * patch */ float *dataStart, int patchIndex, int arborId);
-   virtual InitWeightsParams *createNewWeightParams();
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+
+   virtual void calcWeights(float *dataStart, int patchIndex, int arborId) override;
    void calcOtherParams(int patchIndex);
 
   protected:
@@ -31,11 +32,13 @@ class InitOneToOneWeights : public PV::InitWeights {
    int createOneToOneConnection(
          /* PVPatch * patch */ float *dataStart,
          int patchIndex,
-         float iWeight,
-         InitWeightsParams *weightParamPtr);
+         float iWeight);
 
   private:
    int initialize_base();
+
+  protected:
+   float mWeightInit;
 }; // class InitOneToOneWeights
 
 } /* namespace PV */

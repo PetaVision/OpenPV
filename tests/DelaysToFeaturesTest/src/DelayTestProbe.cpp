@@ -13,29 +13,29 @@
 
 namespace PV {
 
-DelayTestProbe::DelayTestProbe(const char *probeName, HyPerCol *hc) : StatsProbe() {
-   initDelayTestProbe_base();
-   initDelayTestProbe(probeName, hc);
+DelayTestProbe::DelayTestProbe(const char *name, HyPerCol *hc) : StatsProbe() {
+   initialize_base();
+   initialize(name, hc);
 }
 
 DelayTestProbe::~DelayTestProbe() {}
 
-int DelayTestProbe::initDelayTestProbe_base() { return PV_SUCCESS; }
+int DelayTestProbe::initialize_base() { return PV_SUCCESS; }
 
-int DelayTestProbe::initDelayTestProbe(const char *probeName, HyPerCol *hc) {
-   return initStatsProbe(probeName, hc);
+int DelayTestProbe::initialize(const char *name, HyPerCol *hc) {
+   return StatsProbe::initialize(name, hc);
 }
 
 int DelayTestProbe::outputState(double timestamp) {
    int status           = StatsProbe::outputState(timestamp);
-   Communicator *icComm = getTargetLayer()->getParent()->getCommunicator();
+   Communicator *icComm = parent->getCommunicator();
    const int rcvProc    = 0;
    if (icComm->commRank() != rcvProc) {
       return 0;
    }
    const PVLayerLoc *loc = getTargetLayer()->getLayerLoc();
-   const int rows        = getTargetLayer()->getParent()->getCommunicator()->numCommRows();
-   const int cols        = getTargetLayer()->getParent()->getCommunicator()->numCommColumns();
+   const int rows        = icComm->numCommRows();
+   const int cols        = icComm->numCommColumns();
 
    int nx = loc->nx;
    int ny = loc->ny;

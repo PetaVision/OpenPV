@@ -177,7 +177,7 @@ int CudaPoolingDeliverKernel::do_run() {
 
    cudnnPoolingMode_t checkMode;
    int h, w, vPad, hPad, vStride, hStride;
-#if CUDNN_MAJOR == 5
+#if CUDNN_MAJOR >= 5
    cudnnNanPropagation_t cudnnNanPropagation;
    cudnnGetPooling2dDescriptor(
          (cudnnPoolingDescriptor_t)mPoolingDescriptor,

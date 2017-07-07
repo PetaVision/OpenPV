@@ -71,7 +71,7 @@ class HyPerConn : public BaseConnection {
    HyPerConn(const char *name, HyPerCol *hc);
 
    virtual ~HyPerConn();
-   virtual int communicateInitInfo() override;
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
    virtual int allocateDataStructures() override;
 
    virtual int insertProbe(BaseConnectionProbe *p) override;
@@ -92,7 +92,7 @@ class HyPerConn : public BaseConnection {
 
    virtual double computeNewWeightUpdateTime(double time, double currentUpdateTime);
    virtual int writeWeights(double timed);
-   virtual int writeWeights(const char *filename);
+   virtual int writeWeights(const char *filename, bool verifyWrites);
    virtual int writeWeights(
          PVPatch ***patches,
          float **dataStart,
@@ -101,7 +101,7 @@ class HyPerConn : public BaseConnection {
          double timef,
          bool compressWeights,
          bool last);
-   virtual int writeTextWeights(const char *filename, int k);
+   virtual int writeTextWeights(const char *filename, bool verifyWrites, int k);
 
    virtual int writeTextWeightsExtra(PrintStream *pvstream, int k, int arborID) {
       return PV_SUCCESS;
@@ -454,7 +454,6 @@ class HyPerConn : public BaseConnection {
    int numParams;
    float wMax;
    float wMin;
-   bool ioAppend; // controls opening of binary files
    double wPostTime; // time of last conversion to wPostPatches
    double initialWriteTime;
    double writeTime; // time of next output, initialized in params file parameter initialWriteTime
@@ -593,7 +592,7 @@ class HyPerConn : public BaseConnection {
     * It is not called by the default HyPerConn constructor.
     */
    int initialize(char const *name, HyPerCol *hc);
-   virtual int setWeightInitializer(); // Note: no longer deprecated.
+   virtual int setWeightInitializer();
    virtual InitWeights *createInitWeightsObject(const char *weightInitTypeStr);
    int setWeightNormalizer(); // Note: no longer deprecated.
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;

@@ -19,9 +19,9 @@ LayerProbe::LayerProbe() {
 /**
  * @filename
  */
-LayerProbe::LayerProbe(const char *probeName, HyPerCol *hc) {
+LayerProbe::LayerProbe(const char *name, HyPerCol *hc) {
    initialize_base();
-   initialize(probeName, hc);
+   initialize(name, hc);
 }
 
 LayerProbe::~LayerProbe() {}
@@ -35,8 +35,8 @@ int LayerProbe::initialize_base() {
  * @filename
  * @layer
  */
-int LayerProbe::initialize(const char *probeName, HyPerCol *hc) {
-   int status = BaseProbe::initialize(probeName, hc);
+int LayerProbe::initialize(const char *name, HyPerCol *hc) {
+   int status = BaseProbe::initialize(name, hc);
    return status;
 }
 
@@ -50,29 +50,23 @@ void LayerProbe::ioParam_targetName(enum ParamsIOFlag ioFlag) {
    }
 }
 
-int LayerProbe::communicateInitInfo() {
-   BaseProbe::communicateInitInfo();
+int LayerProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+   BaseProbe::communicateInitInfo(message);
    // Set target layer
-   int status = setTargetLayer(targetName);
-   // Add to layer
-   if (status == PV_SUCCESS) {
-      targetLayer->insertProbe(this);
-   }
-   return status;
-}
-
-int LayerProbe::setTargetLayer(const char *layerName) {
-   targetLayer = parent->getLayerFromName(layerName);
+   targetLayer = message->lookup<HyPerLayer>(std::string(targetName));
    if (targetLayer == NULL) {
       if (parent->columnId() == 0) {
          ErrorLog().printf(
                "%s: targetLayer \"%s\" is not a layer in the column.\n",
                getDescription_c(),
-               layerName);
+               targetName);
       }
       MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
+
+   // Add to layer
+   targetLayer->insertProbe(this);
    return PV_SUCCESS;
 }
 

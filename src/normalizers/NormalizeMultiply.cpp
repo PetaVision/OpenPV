@@ -90,8 +90,7 @@ int NormalizeMultiply::normalizeWeights() {
    // All connections in the group must have the same values of sharedWeights, numArbors, and
    // numDataPatches
    HyPerConn *conn0 = connectionList[0];
-   for (int c = 1; c < numConnections; c++) {
-      HyPerConn *conn = connectionList[c];
+   for (auto &conn : connectionList) {
       // Do we need to require sharedWeights be the same for all connections in the group?
       if (conn->usingSharedWeights() != conn0->usingSharedWeights()) {
          if (parent->columnId() == 0) {
@@ -140,8 +139,7 @@ int NormalizeMultiply::normalizeWeights() {
 
    // Apply rMinX and rMinY
    if (rMinX > 0.5f && rMinY > 0.5f) {
-      for (int c = 0; c < numConnections; c++) {
-         HyPerConn *conn          = connectionList[c];
+      for (auto &conn : connectionList) {
          int num_arbors           = conn->numberOfAxonalArborLists();
          int num_patches          = conn->getNumDataPatches();
          int num_weights_in_patch = conn->xPatchSize() * conn->yPatchSize() * conn->fPatchSize();
@@ -163,8 +161,7 @@ int NormalizeMultiply::normalizeWeights() {
 
    // Apply nonnegativeConstraintFlag
    if (nonnegativeConstraintFlag) {
-      for (int c = 0; c < numConnections; c++) {
-         HyPerConn *conn          = connectionList[c];
+      for (auto &conn : connectionList) {
          int num_arbors           = conn->numberOfAxonalArborLists();
          int num_patches          = conn->getNumDataPatches();
          int num_weights_in_patch = conn->xPatchSize() * conn->yPatchSize() * conn->fPatchSize();
@@ -184,8 +181,7 @@ int NormalizeMultiply::normalizeWeights() {
    // Apply normalize_cutoff
    if (normalize_cutoff > 0) {
       float max = 0.0f;
-      for (int c = 0; c < numConnections; c++) {
-         HyPerConn *conn          = connectionList[c];
+      for (auto &conn : connectionList) {
          int num_arbors           = conn->numberOfAxonalArborLists();
          int num_patches          = conn->getNumDataPatches();
          int num_weights_in_patch = conn->xPatchSize() * conn->yPatchSize() * conn->fPatchSize();
@@ -197,8 +193,7 @@ int NormalizeMultiply::normalizeWeights() {
             }
          }
       }
-      for (int c = 0; c < numConnections; c++) {
-         HyPerConn *conn          = connectionList[c];
+      for (auto &conn : connectionList) {
          int num_arbors           = conn->numberOfAxonalArborLists();
          int num_patches          = conn->getNumDataPatches();
          int num_weights_in_patch = conn->xPatchSize() * conn->yPatchSize() * conn->fPatchSize();

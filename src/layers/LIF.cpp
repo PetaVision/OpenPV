@@ -266,7 +266,7 @@ void LIF::ioParam_method(enum ParamsIOFlag ioFlag) {
    method = methodString ? methodString[0]
                          : 'a'; // Default is ARMA; 'beginning' and 'original' are deprecated.
    if (method != 'o' && method != 'b' && method != 'a') {
-      if (getParent()->columnId() == 0) {
+      if (parent->columnId() == 0) {
          ErrorLog().printf(
                "LIF::setLIFParams error.  Layer \"%s\" has method \"%s\".  Allowable values are "
                "\"arma\", \"beginning\" and \"original\".",
@@ -277,7 +277,7 @@ void LIF::ioParam_method(enum ParamsIOFlag ioFlag) {
       exit(EXIT_FAILURE);
    }
    if (method != 'a') {
-      if (getParent()->columnId() == 0) {
+      if (parent->columnId() == 0) {
          WarnLog().printf(
                "LIF layer \"%s\" integration method \"%s\" is deprecated.  Method \"arma\" is "
                "preferred.\n",
@@ -293,8 +293,8 @@ int LIF::setActivity() {
    return 0;
 }
 
-int LIF::communicateInitInfo() {
-   int status = HyPerLayer::communicateInitInfo();
+int LIF::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+   int status = HyPerLayer::communicateInitInfo(message);
 
    return status;
 }
@@ -362,27 +362,27 @@ int LIF::readStateFromCheckpoint(Checkpointer *checkpointer) {
 }
 
 int LIF::readVthFromCheckpoint(Checkpointer *checkpointer) {
-   checkpointer->readNamedCheckpointEntry(std::string(name), "Vth");
+   checkpointer->readNamedCheckpointEntry(std::string(name), "Vth", false /*not constant*/);
    return PV_SUCCESS;
 }
 
 int LIF::readG_EFromCheckpoint(Checkpointer *checkpointer) {
-   checkpointer->readNamedCheckpointEntry(std::string(name), "G_E");
+   checkpointer->readNamedCheckpointEntry(std::string(name), "G_E", false /*not constant*/);
    return PV_SUCCESS;
 }
 
 int LIF::readG_IFromCheckpoint(Checkpointer *checkpointer) {
-   checkpointer->readNamedCheckpointEntry(std::string(name), "G_I");
+   checkpointer->readNamedCheckpointEntry(std::string(name), "G_I", false /*not constant*/);
    return PV_SUCCESS;
 }
 
 int LIF::readG_IBFromCheckpoint(Checkpointer *checkpointer) {
-   checkpointer->readNamedCheckpointEntry(std::string(name), "G_IB");
+   checkpointer->readNamedCheckpointEntry(std::string(name), "G_IB", false /*not constant*/);
    return PV_SUCCESS;
 }
 
 int LIF::readRandStateFromCheckpoint(Checkpointer *checkpointer) {
-   checkpointer->readNamedCheckpointEntry(std::string(name), "rand_state");
+   checkpointer->readNamedCheckpointEntry(std::string(name), "rand_state", false /*not constant*/);
    return PV_SUCCESS;
 }
 

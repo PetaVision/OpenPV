@@ -99,11 +99,11 @@ void Segmentify::ioParam_segmentLayerName(enum ParamsIOFlag ioFlag) {
    }
 }
 
-int Segmentify::communicateInitInfo() {
-   int status = HyPerLayer::communicateInitInfo();
+int Segmentify::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+   int status = HyPerLayer::communicateInitInfo(message);
 
    // Get original layer
-   originalLayer = parent->getLayerFromName(originalLayerName);
+   originalLayer = message->lookup<HyPerLayer>(std::string(originalLayerName));
    if (originalLayer == NULL) {
       if (parent->columnId() == 0) {
          ErrorLog().printf(
@@ -119,18 +119,7 @@ int Segmentify::communicateInitInfo() {
    }
 
    // Get segment layer
-   HyPerLayer *tmpLayer = parent->getLayerFromName(segmentLayerName);
-   if (tmpLayer == NULL) {
-      if (parent->columnId() == 0) {
-         ErrorLog().printf(
-               "%s: segmentLayerName \"%s\" is not a layer in the HyPerCol.\n",
-               getDescription_c(),
-               segmentLayerName);
-      }
-      MPI_Barrier(parent->getCommunicator()->communicator());
-      exit(EXIT_FAILURE);
-   }
-   segmentLayer = dynamic_cast<SegmentLayer *>(tmpLayer);
+   segmentLayer = message->lookup<SegmentLayer>(std::string(segmentLayerName));
    if (segmentLayer == NULL) {
       if (parent->columnId() == 0) {
          ErrorLog().printf(

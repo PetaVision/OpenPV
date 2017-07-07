@@ -14,20 +14,18 @@ namespace PV {
 
 class PointLIFProbe : public PointProbe {
   public:
-   PointLIFProbe(const char *probeName, HyPerCol *hc);
-
-   virtual int writeState(double timed);
+   PointLIFProbe(const char *name, HyPerCol *hc);
 
   protected:
    PointLIFProbe();
-   int initialize(const char *probeName, HyPerCol *hc);
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   int initialize(const char *name, HyPerCol *hc);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_writeStep(enum ParamsIOFlag ioFlag);
 
    /**
     * Overrides initNumValues to set numValues to 6 (G_E, G_I, G_IB, V, Vth, a)
     */
-   virtual int initNumValues();
+   virtual int initNumValues() override;
 
    /**
     * Overrides PointProbe::calcValues to report the conductances and threshold V
@@ -38,10 +36,12 @@ class PointLIFProbe : public PointProbe {
     * contain
     * the values.
     */
-   virtual int calcValues(double timevalue);
+   virtual int calcValues(double timevalue) override;
+
+   virtual int writeState(double timevalue) override;
 
   private:
-   int initPointLIFProbe_base();
+   int initialize_base();
 
   protected:
    double writeTime; // time of next output

@@ -89,10 +89,12 @@ void BorderExchange::newDatatypes() {
 }
 
 void BorderExchange::freeDatatypes() {
+#ifdef PV_USE_MPI
    for (auto &d : mDatatypes) {
       MPI_Type_free(&d);
    }
    mDatatypes.clear();
+#endif // PV_USE_MPI
 }
 
 void BorderExchange::initNeighbors() {

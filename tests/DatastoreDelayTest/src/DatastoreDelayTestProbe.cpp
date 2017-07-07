@@ -11,82 +11,80 @@
 
 namespace PV {
 
-/**
- * @filename
- * @type
- * @msg
- */
-DatastoreDelayTestProbe::DatastoreDelayTestProbe(const char *probeName, HyPerCol *hc)
-      : StatsProbe() {
-   initDatastoreDelayTestProbe(probeName, hc);
+DatastoreDelayTestProbe::DatastoreDelayTestProbe(const char *name, HyPerCol *hc) : StatsProbe() {
+   initialize(name, hc);
 }
 
-int DatastoreDelayTestProbe::initDatastoreDelayTestProbe(const char *probeName, HyPerCol *hc) {
-   initStatsProbe(probeName, hc);
+int DatastoreDelayTestProbe::initialize(const char *name, HyPerCol *hc) {
+   StatsProbe::initialize(name, hc);
    return PV_SUCCESS;
 }
 
 void DatastoreDelayTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
-      requireType(BufActivity);
+      requireType(BufV);
    }
 }
 
-/**
- * @time
- * @l
- */
+int DatastoreDelayTestProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+   int status = StatsProbe::communicateInitInfo(message);
+   if (status != PV_SUCCESS) {
+      return status;
+   }
+   HyPerLayer *inputLayer = message->lookup<HyPerLayer>(std::string("input"));
+   FatalIf(inputLayer == nullptr, "Unable to find layer \"input\".\n");
+   mNumDelayLevels = inputLayer->getNumDelayLevels();
+
+   return status;
+}
+
 int DatastoreDelayTestProbe::outputState(double timed) {
-   HyPerLayer *l        = getTargetLayer();
-   Communicator *icComm = l->getParent()->getCommunicator();
-   const int rcvProc    = 0;
-   if (icComm->commRank() != rcvProc) {
+   HyPerLayer *l = getTargetLayer();
+   if (mOutputStreams.empty()) {
       return PV_SUCCESS;
    }
-   int status         = PV_SUCCESS;
-   int numDelayLevels = l->getParent()->getLayer(0)->getNumDelayLevels();
-   float correctValue = numDelayLevels * (numDelayLevels + 1) / 2;
-   for (int k = 0; k < l->getNumNeuronsAllBatches(); k++) {
-      float *V = l->getV();
-      for (int k = 0; k < l->getNumNeuronsAllBatches(); k++) {
-         float v = V[k];
-         if (v < correctValue) {
-            if (timed >= numDelayLevels + 1) {
-               outputStream->printf(
-                     "%s: time %f, neuron %d: value is %f instead of %d\n",
-                     l->getDescription_c(),
-                     timed,
-                     k,
-                     (double)V[k],
-                     (int)correctValue);
-               status = PV_FAILURE;
-            }
-         }
-         else if (v == correctValue) {
-            if (timed < numDelayLevels + 1) {
-               outputStream->printf(
-                     "%s: time %f, neuron %d has value %f, but should not reach it until %d\n",
-                     l->getDescription_c(),
-                     timed,
-                     k,
-                     (double)v,
-                     numDelayLevels + 1);
-               status = PV_FAILURE;
-            }
-         }
-         else { // v > correctValue
-            outputStream->printf(
-                  "%s: time %f, neuron %d: value is %f but no neuron should ever get above %d\n",
-                  l->getDescription_c(),
-                  timed,
-                  k,
-                  (double)v,
-                  (int)correctValue);
-            status = PV_FAILURE;
-         }
+   int status          = PV_SUCCESS;
+   float correctValue  = mNumDelayLevels * (mNumDelayLevels + 1) / 2;
+   int localBatchWidth = getTargetLayer()->getLayerLoc()->nbatch;
+   int globalBatchOffset =
+         localBatchWidth * (getMPIBlock()->getStartBatch() + getMPIBlock()->getBatchIndex());
+   for (int b = 0; b < localBatchWidth; b++) {
+      int globalBatchIndex = b + globalBatchOffset;
+      if (fMax[b] > correctValue) {
+         output(0).printf(
+               "%s: time %f: batch element %d has a neuron with value %f but no neuron should ever "
+               "get above %d\n",
+               l->getDescription_c(),
+               timed,
+               globalBatchIndex,
+               (double)fMax[b],
+               (int)correctValue);
+         status = PV_FAILURE;
+      }
+      if (fMax[b] == correctValue and timed < mNumDelayLevels + 1) {
+         output(0).printf(
+               "%s: time %f: batch element %d has a neuron with value %f but should not reach it "
+               "until time %d\n",
+               l->getDescription_c(),
+               timed,
+               globalBatchIndex,
+               (double)fMax[b],
+               mNumDelayLevels + 1);
+         status = PV_FAILURE;
+      }
+      if (fMin[b] < correctValue and timed >= mNumDelayLevels + 1) {
+         output(b).printf(
+               "%s: time %f, a neuron in batch element %d has value %f instead of %d.\n",
+               l->getDescription_c(),
+               timed,
+               globalBatchIndex,
+               (double)fMin[b],
+               (int)correctValue);
+         status = PV_FAILURE;
       }
    }
-   FatalIf(!(status == PV_SUCCESS), "Test failed.\n");
+
+   FatalIf(status != PV_SUCCESS, "Test failed.\n");
    return PV_SUCCESS;
 }
 

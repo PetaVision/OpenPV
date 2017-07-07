@@ -41,19 +41,19 @@ int main(int argc, char *argv[]) {
 
    // create the managing hypercolumn
    //
-   HyPerCol *hc = new HyPerCol("test_constant_input column", initObj);
+   HyPerCol *hc = new HyPerCol("test_constant_input_column", initObj);
 
    // create the image
    //
-   TestImage *image = new TestImage("test_constant_input image", hc);
+   TestImage *image = new TestImage("test_constant_input_image", hc);
 
    // create the layers
    //
-   HyPerLayer *retina = new Retina("test_constant_input retina", hc);
+   HyPerLayer *retina = new Retina("test_constant_input_retina", hc);
 
    // create the connections
    //
-   HyPerConn *conn             = new HyPerConn("test_constant_input connection", hc);
+   HyPerConn *conn             = new HyPerConn("test_constant_input_connection", hc);
    const int nxp               = conn->xPatchSize();
    const int nyp               = conn->yPatchSize();
    const PVLayerLoc *imageLoc  = image->getLayerLoc();

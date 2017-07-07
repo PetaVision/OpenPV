@@ -17,30 +17,26 @@
 namespace PV {
 
 PointLIFProbe::PointLIFProbe() : PointProbe() {
-   initPointLIFProbe_base();
+   initialize_base();
    // Derived classes of PointLIFProbe should use this PointLIFProbe constructor,
    // and call
-   // initPointLIFProbe during their initialization.
+   // PointLIFProbe::initialize during their initialization.
 }
 
-/**
- * @probeName
- * @hc
- */
-PointLIFProbe::PointLIFProbe(const char *probeName, HyPerCol *hc) : PointProbe() {
-   initPointLIFProbe_base();
-   initialize(probeName, hc);
+PointLIFProbe::PointLIFProbe(const char *name, HyPerCol *hc) : PointProbe() {
+   initialize_base();
+   initialize(name, hc);
 }
 
-int PointLIFProbe::initPointLIFProbe_base() {
+int PointLIFProbe::initialize_base() {
    writeTime = 0.0;
    writeStep = 0.0;
    return PV_SUCCESS;
 }
 
-int PointLIFProbe::initialize(const char *probeName, HyPerCol *hc) {
-   int status = PointProbe::initialize(probeName, hc);
-   writeTime  = getParent()->getStartTime();
+int PointLIFProbe::initialize(const char *name, HyPerCol *hc) {
+   int status = PointProbe::initialize(name, hc);
+   writeTime  = parent->getStartTime();
    return status;
 }
 
@@ -51,8 +47,8 @@ int PointLIFProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void PointLIFProbe::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
-   writeStep = getParent()->getDeltaTime(); // Marian, don't change this default behavior
-   getParent()->parameters()->ioParamValue(
+   writeStep = parent->getDeltaTime(); // Marian, don't change this default behavior
+   parent->parameters()->ioParamValue(
          ioFlag, getName(), "writeStep", &writeStep, writeStep, true /*warnIfAbsent*/);
 }
 
@@ -161,20 +157,19 @@ int PointLIFProbe::calcValues(double timevalue) {
  * "restricted"
  *     frame.
  */
-int PointLIFProbe::writeState(double timed) {
-   if (parent->columnId() == 0 && timed >= writeTime) {
-      pvAssert(outputStream);
+int PointLIFProbe::writeState(double timevalue) {
+   if (!mOutputStreams.empty() and timevalue >= writeTime) {
       writeTime += writeStep;
       PVLayerLoc const *loc = getTargetLayer()->getLayerLoc();
       const int k           = kIndex(xLoc, yLoc, fLoc, loc->nxGlobal, loc->nyGlobal, loc->nf);
       double *valuesBuffer  = getValuesBuffer();
-      outputStream->printf(
+      output(0).printf(
             "%s t=%.1f %d"
             "G_E=" CONDUCTANCE_PRINT_FORMAT " G_I=" CONDUCTANCE_PRINT_FORMAT
             " G_IB=" CONDUCTANCE_PRINT_FORMAT " V=" CONDUCTANCE_PRINT_FORMAT
             " Vth=" CONDUCTANCE_PRINT_FORMAT " a=%.1f",
             getMessage(),
-            timed,
+            timevalue,
             k,
             valuesBuffer[0],
             valuesBuffer[1],
@@ -182,7 +177,7 @@ int PointLIFProbe::writeState(double timed) {
             valuesBuffer[3],
             valuesBuffer[4],
             valuesBuffer[5]);
-      output() << std::endl;
+      output(0) << std::endl;
    }
    return PV_SUCCESS;
 }

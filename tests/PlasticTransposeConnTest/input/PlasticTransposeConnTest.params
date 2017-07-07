@@ -41,7 +41,7 @@ HyPerCol "column" = {
 // layers
 //
 
-PvpLayer "pre" = {
+PvpLayer "Pre" = {
     // nxScale is set in parameter sweep
     // nyScale is set in parameter sweep
     // imagePath is set in parameter sweep
@@ -60,7 +60,7 @@ PvpLayer "pre" = {
 	displayPeriod = 0;
 };
 
-PvpLayer "post" = {
+PvpLayer "Post" = {
     // nxScale is set in parameter sweep
     // nyScale is set in parameter sweep
     // imagePath is set in parameter sweep
@@ -79,7 +79,7 @@ PvpLayer "post" = {
 	displayPeriod = 0;
 };
 
-ANNLayer "comparison" = {
+ANNLayer "Comparison" = {
     // nxScale is set in parameter sweep
     // nyScale is set in parameter sweep
     nf = 3;
@@ -99,9 +99,9 @@ ANNLayer "comparison" = {
     VWidth = 0.0;
 };
 
-HyPerConn "original map" = {
-    preLayerName = "pre";
-    postLayerName = "post";
+HyPerConn "OriginalMap" = {
+    preLayerName = "Pre";
+    postLayerName = "Post";
     channelCode = -1; // This connection does not modify post.
 
     // nxp is set in parameter sweep
@@ -146,12 +146,12 @@ HyPerConn "original map" = {
     updateGSynFromPostPerspective = false;
 };
 
-TransposeConn "transpose" = {
-    preLayerName = "post";
-    postLayerName = "pre";
+TransposeConn "Transpose" = {
+    preLayerName = "Post";
+    postLayerName = "Pre";
     channelCode = -1;
     delay = 0;
-    originalConnName = "original map";
+    originalConnName = "OriginalMap";
     updateGSynFromPostPerspective = false;
     pvpatchAccumulateType = "convolve";
     convertRateToSpikeCount = false;
@@ -161,12 +161,12 @@ TransposeConn "transpose" = {
     writeCompressedWeights = false;
 };
 
-TransposeConn "transpose of transpose" = {
-    preLayerName = "pre";
-    postLayerName = "comparison";
+TransposeConn "TransposeOfTranspose" = {
+    preLayerName = "Pre";
+    postLayerName = "Comparison";
     channelCode = 0;
     delay = 0;
-    originalConnName = "transpose";
+    originalConnName = "Transpose";
     updateGSynFromPostPerspective = false;
     pvpatchAccumulateType = "convolve";
     convertRateToSpikeCount = false;
@@ -176,12 +176,12 @@ TransposeConn "transpose of transpose" = {
     writeCompressedWeights = false;
 };
 
-CloneConn "clone of original" = {
-    preLayerName = "pre";
-    postLayerName = "comparison";
+CloneConn "CloneOfOriginal" = {
+    preLayerName = "Pre";
+    postLayerName = "Comparison";
     channelCode = 1;
     delay = 0;
-    originalConnName = "original map";
+    originalConnName = "OriginalMap";
     updateGSynFromPostPerspective = false;
     pvpatchAccumulateType = "convolve";
     convertRateToSpikeCount = false;
@@ -189,8 +189,8 @@ CloneConn "clone of original" = {
     writeCompressedCheckpoints = false;
 };
 
-RequireAllZeroActivityProbe "probe" = {
-    targetLayer = "comparison";
+RequireAllZeroActivityProbe "Probe" = {
+    targetLayer = "Comparison";
     triggerLayerName = NULL;
     nnzThreshold = 5.0e-4;
 };
@@ -213,15 +213,15 @@ ParameterSweep "column":lastCheckpointDir = {
     "output/sharedWeightsOn_OneToMany/Last";
 };
 
-ParameterSweep "pre":nxScale = {
+ParameterSweep "Pre":nxScale = {
     1; 1; 2; 2; 1; 1;
 };
 
-ParameterSweep "pre":nyScale = {
+ParameterSweep "Pre":nyScale = {
     1; 1; 2; 2; 1; 1;
 };
 
-ParameterSweep "pre":inputPath= {
+ParameterSweep "Pre":inputPath= {
     "input/8x8image.pvp";
     "input/8x8image.pvp";
     "input/16x16image.pvp";
@@ -230,15 +230,15 @@ ParameterSweep "pre":inputPath= {
     "input/8x8image.pvp";
 };
 
-ParameterSweep "post":nxScale = {
+ParameterSweep "Post":nxScale = {
     1; 1; 1; 1; 2; 2;
 };
 
-ParameterSweep "post":nyScale = {
+ParameterSweep "Post":nyScale = {
     1; 1; 1; 1; 2; 2;
 };
 
-ParameterSweep "post":inputPath= {
+ParameterSweep "Post":inputPath= {
     "input/8x8image.pvp";
     "input/8x8image.pvp";
     "input/8x8image.pvp";
@@ -247,22 +247,22 @@ ParameterSweep "post":inputPath= {
     "input/16x16image.pvp";
 };
 
-ParameterSweep "comparison":nxScale = {
+ParameterSweep "Comparison":nxScale = {
     1; 1; 1; 1; 2; 2;
 };
 
-ParameterSweep "comparison":nyScale = {
+ParameterSweep "Comparison":nyScale = {
     1; 1; 1; 1; 2; 2;
 };
 
-ParameterSweep "original map":nxp = {
+ParameterSweep "OriginalMap":nxp = {
     7; 7; 7; 7; 14; 14;
 };
 
-ParameterSweep "original map":nyp = {
+ParameterSweep "OriginalMap":nyp = {
     7; 7; 7; 7; 14; 14;
 };
 
-ParameterSweep "original map":sharedWeights = {
+ParameterSweep "OriginalMap":sharedWeights = {
     false; true; false; true; false; true;
 };

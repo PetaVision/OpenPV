@@ -19,7 +19,10 @@ BaseProbe::BaseProbe() {
 }
 
 BaseProbe::~BaseProbe() {
-   delete outputStream;
+   for (auto &s : mOutputStreams) {
+      delete s;
+   }
+   mOutputStreams.clear();
    free(targetName);
    targetName = NULL;
    free(msgparams);
@@ -37,7 +40,6 @@ BaseProbe::~BaseProbe() {
 }
 
 int BaseProbe::initialize_base() {
-   outputStream        = NULL;
    targetName          = NULL;
    msgparams           = NULL;
    msgstring           = NULL;
@@ -52,7 +54,6 @@ int BaseProbe::initialize_base() {
    numValues           = 0;
    probeValues         = NULL;
    lastUpdateTime      = 0.0;
-   writingToFile       = false;
    return PV_SUCCESS;
 }
 
@@ -60,8 +61,8 @@ int BaseProbe::initialize_base() {
  * @filename
  * @layer
  */
-int BaseProbe::initialize(const char *probeName, HyPerCol *hc) {
-   int status = BaseObject::initialize(probeName, hc);
+int BaseProbe::initialize(const char *name, HyPerCol *hc) {
+   int status = BaseObject::initialize(name, hc);
    if (status != PV_SUCCESS) {
       return status;
    }
@@ -139,13 +140,10 @@ void BaseProbe::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
    }
 }
 
-// triggerFlag was deprecated Oct 7, 2015.
-// Setting triggerLayerName to a nonempty string has the effect of
-// triggerFlag=true, and
+// triggerFlag was deprecated Oct 7, 2015, and marked obsolete Jun 9, 2017.
+// Setting triggerLayerName to a nonempty string has the effect of triggerFlag=true, and
 // setting triggerLayerName to NULL or "" has the effect of triggerFlag=false.
-// While triggerFlag is being deprecated, it is an error for triggerFlag to be
-// false
-// and triggerLayerName to be a nonempty string.
+// For a reasonable fade-out time, it is an error for triggerFlag to be defined in params.
 void BaseProbe::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
    if (ioFlag == PARAMS_IO_READ && parent->parameters()->present(name, "triggerFlag")) {
@@ -153,27 +151,13 @@ void BaseProbe::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
       parent->parameters()->ioParamValue(
             ioFlag, name, "triggerFlag", &flagFromParams, flagFromParams);
       if (parent->columnId() == 0) {
-         WarnLog(triggerFlagDeprecated);
-         triggerFlagDeprecated.printf("%s: triggerFlag has been deprecated.\n", getDescription_c());
+         Fatal(triggerFlagDeprecated);
          triggerFlagDeprecated.printf(
-               "   If triggerLayerName is a nonempty "
-               "string, triggering will be on;\n");
+               "%s: triggerFlag is obsolete for probes.\n", getDescription_c());
+         triggerFlagDeprecated.printf(
+               "   If triggerLayerName is a nonempty string, triggering will be on;\n");
          triggerFlagDeprecated.printf(
                "   if triggerLayerName is empty or null, triggering will be off.\n");
-         if (flagFromParams != triggerFlag) {
-            ErrorLog(triggerFlagError);
-            triggerFlagError.printf("%s: triggerLayerName=", getDescription_c());
-            if (triggerLayerName) {
-               triggerFlagError.printf("\"%s\"", triggerLayerName);
-            }
-            else {
-               triggerFlagError.printf("NULL");
-            }
-            triggerFlagError.printf(
-                  " implies triggerFlag=%s but triggerFlag was set in params to %s\n",
-                  triggerFlag ? "true" : "false",
-                  flagFromParams ? "true" : "false");
-         }
       }
    }
 }
@@ -195,37 +179,49 @@ void BaseProbe::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
    }
 }
 
-int BaseProbe::initOutputStream(const char *filename) {
-   if (parent->columnId() == 0) {
-      if (filename != NULL) {
-         std::string path("");
-         if (filename[0] != '/') {
-            path += parent->getOutputPath();
-            path += "/";
+void BaseProbe::initOutputStreams(const char *filename, Checkpointer *checkpointer) {
+   MPIBlock const *mpiBlock = checkpointer->getMPIBlock();
+   int blockColumnIndex     = mpiBlock->getColumnIndex();
+   int blockRowIndex        = mpiBlock->getRowIndex();
+   if (blockColumnIndex == 0 and blockRowIndex == 0) {
+      int localBatchWidth  = parent->getNBatch();
+      int mpiBatchIndex    = mpiBlock->getStartBatch() + mpiBlock->getBatchIndex();
+      int localBatchOffset = localBatchWidth * mpiBatchIndex;
+      mOutputStreams.resize(localBatchWidth);
+      char const *probeOutputFilename = getProbeOutputFilename();
+      if (probeOutputFilename) {
+         std::string path(probeOutputFilename);
+         auto extensionStart = path.rfind('.');
+         std::string extension;
+         if (extensionStart != std::string::npos) {
+            extension = path.substr(extensionStart);
+            path      = path.substr(0, extensionStart);
          }
-         path += filename;
-         bool append                  = parent->getCheckpointReadFlag();
          std::ios_base::openmode mode = std::ios_base::out;
-         if (append) {
+         if (!checkpointer->getCheckpointReadDirectory().empty()) {
             mode |= std::ios_base::app;
          }
-         outputStream  = new FileStream(path.c_str(), mode, parent->getVerifyWrites());
-         writingToFile = true;
+         for (int b = 0; b < localBatchWidth; b++) {
+            int globalBatchIndex         = b + localBatchOffset;
+            std::string batchPath        = path;
+            std::string batchIndexString = std::to_string(globalBatchIndex);
+            batchPath.append("_batchElement_").append(batchIndexString).append(extension);
+            if (batchPath[0] != '/') {
+               batchPath = checkpointer->makeOutputPathFilename(batchPath);
+            }
+            auto fs = new FileStream(batchPath.c_str(), mode, checkpointer->doesVerifyWrites());
+            mOutputStreams[b] = fs;
+         }
       }
       else {
-         outputStream  = new PrintStream(PV::getOutputStream());
-         writingToFile = false;
+         for (int b = 0; b < localBatchWidth; b++) {
+            mOutputStreams[b] = new PrintStream(PV::getOutputStream());
+         }
       }
    }
    else {
-      outputStream = NULL; // Only root process writes; if other processes need
-      // something written it
-      // should be sent to root.
-      // Derived classes for which it makes sense for a different process to do
-      // the file i/o should
-      // override initOutputStream
+      mOutputStreams.clear();
    }
-   return PV_SUCCESS;
 }
 
 int BaseProbe::initNumValues() { return setNumValues(parent->getNBatch()); }
@@ -251,12 +247,12 @@ int BaseProbe::setNumValues(int n) {
    return status;
 }
 
-int BaseProbe::communicateInitInfo() {
+int BaseProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
    int status = PV_SUCCESS;
 
    // Set up triggering.
    if (triggerFlag) {
-      triggerLayer = parent->getLayerFromName(triggerLayerName);
+      triggerLayer = message->lookup<HyPerLayer>(std::string(triggerLayerName));
       if (triggerLayer == NULL) {
          if (parent->columnId() == 0) {
             ErrorLog().printf(
@@ -272,32 +268,22 @@ int BaseProbe::communicateInitInfo() {
 
    // Add the probe to the ColumnEnergyProbe, if there is one.
    if (energyProbe && energyProbe[0]) {
-      BaseProbe *baseprobe     = getParent()->getBaseProbeFromName(energyProbe);
-      ColumnEnergyProbe *probe = dynamic_cast<ColumnEnergyProbe *>(baseprobe);
+      ColumnEnergyProbe *probe = message->lookup<ColumnEnergyProbe>(std::string(energyProbe));
       if (probe == NULL) {
-         if (getParent()->columnId() == 0) {
+         if (parent->columnId() == 0) {
             ErrorLog().printf(
                   "%s \"%s\": energyProbe \"%s\" is not a ColumnEnergyProbe in the "
                   "column.\n",
-                  getParent()->parameters()->groupKeywordFromName(getName()),
+                  parent->parameters()->groupKeywordFromName(getName()),
                   getName(),
                   energyProbe);
          }
-         MPI_Barrier(getParent()->getCommunicator()->communicator());
+         MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
       status = probe->addTerm(this);
    }
    return status;
-}
-
-int BaseProbe::allocateDataStructures() {
-   int status = PV_SUCCESS;
-
-   // Set up output stream
-   status = initOutputStream(probeOutputFilename);
-
-   return PV_SUCCESS;
 }
 
 int BaseProbe::initMessage(const char *msg) {
@@ -336,6 +322,14 @@ bool BaseProbe::needUpdate(double simTime, double dt) {
       return triggerLayer->needUpdate(simTime + triggerOffset, dt);
    }
    return true;
+}
+
+int BaseProbe::registerData(Checkpointer *checkpointer) {
+   int status = BaseObject::registerData(checkpointer);
+   if (status == PV_SUCCESS) {
+      initOutputStreams(probeOutputFilename, checkpointer);
+   }
+   return status;
 }
 
 int BaseProbe::getValues(double timevalue) {

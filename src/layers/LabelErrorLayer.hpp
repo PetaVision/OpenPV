@@ -20,10 +20,10 @@ class LabelErrorLayer : public PV::ANNLayer {
   protected:
    LabelErrorLayer();
    int initialize(const char *name, HyPerCol *hc);
-   virtual int updateState(double time, double dt);
+   virtual int updateState(double time, double dt) override;
    void ioParam_errScale(enum ParamsIOFlag ioFlag);
    void ioParam_isBinary(enum ParamsIOFlag ioFlag);
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
   private:
    int initialize_base();

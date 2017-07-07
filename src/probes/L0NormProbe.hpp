@@ -19,15 +19,15 @@ namespace PV {
  */
 class L0NormProbe : public AbstractNormProbe {
   public:
-   L0NormProbe(const char *probeName, HyPerCol *hc);
+   L0NormProbe(const char *name, HyPerCol *hc);
    virtual ~L0NormProbe();
 
   protected:
    L0NormProbe();
-   int initL0NormProbe(const char *probeName, HyPerCol *hc);
-   virtual double getValueInternal(double timevalue, int index);
+   int initialize(const char *name, HyPerCol *hc);
+   virtual double getValueInternal(double timevalue, int index) override;
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    /**
     * List of parameters for the L0NormProbe class
     * @name L0NormProbe Parameters
@@ -47,10 +47,10 @@ class L0NormProbe : public AbstractNormProbe {
     * "L0-norm".
     * Return values and errno are set by a call to setNormDescriptionToString.
     */
-   virtual int setNormDescription();
+   virtual int setNormDescription() override;
 
   private:
-   int initL0NormProbe_base() { return PV_SUCCESS; }
+   int initialize_base() { return PV_SUCCESS; }
 
   protected:
    float nnzThreshold;

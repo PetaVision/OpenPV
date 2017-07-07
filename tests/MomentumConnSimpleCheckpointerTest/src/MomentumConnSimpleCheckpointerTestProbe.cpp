@@ -14,18 +14,18 @@ MomentumConnSimpleCheckpointerTestProbe::MomentumConnSimpleCheckpointerTestProbe
 }
 
 MomentumConnSimpleCheckpointerTestProbe::MomentumConnSimpleCheckpointerTestProbe(
-      const char *probeName,
+      const char *name,
       PV::HyPerCol *hc) {
    initialize_base();
-   initialize(probeName, hc);
+   initialize(name, hc);
 }
 
 MomentumConnSimpleCheckpointerTestProbe::~MomentumConnSimpleCheckpointerTestProbe() {}
 
 int MomentumConnSimpleCheckpointerTestProbe::initialize_base() { return PV_SUCCESS; }
 
-int MomentumConnSimpleCheckpointerTestProbe::initialize(const char *probeName, PV::HyPerCol *hc) {
-   int status = PV::ColProbe::initialize(probeName, hc);
+int MomentumConnSimpleCheckpointerTestProbe::initialize(const char *name, PV::HyPerCol *hc) {
+   int status = PV::ColProbe::initialize(name, hc);
    FatalIf(parent->getDeltaTime() != 1.0, "This test assumes that the HyPerCol dt is 1.0.\n");
    return status;
 }
@@ -40,25 +40,27 @@ void MomentumConnSimpleCheckpointerTestProbe::ioParam_textOutputFlag(enum PV::Pa
    }
 }
 
-int MomentumConnSimpleCheckpointerTestProbe::communicateInitInfo() {
-   int status = PV::ColProbe::communicateInitInfo();
+int MomentumConnSimpleCheckpointerTestProbe::communicateInitInfo(
+      PV::CommunicateInitInfoMessage const *message) {
+   int status = PV::ColProbe::communicateInitInfo(message);
    FatalIf(
          status != PV_SUCCESS, "%s failed in ColProbe::communicateInitInfo\n", getDescription_c());
 
-   if (initInputLayer() == PV_POSTPONE) {
+   if (initInputLayer(message) == PV_POSTPONE) {
       return PV_POSTPONE;
    }
-   if (initOutputLayer() == PV_POSTPONE) {
+   if (initOutputLayer(message) == PV_POSTPONE) {
       return PV_POSTPONE;
    }
-   if (initConnection() == PV_POSTPONE) {
+   if (initConnection(message) == PV_POSTPONE) {
       return PV_POSTPONE;
    }
    return status;
 }
 
-int MomentumConnSimpleCheckpointerTestProbe::initInputLayer() {
-   mInputLayer = dynamic_cast<PV::InputLayer *>(parent->getLayerFromName("Input"));
+int MomentumConnSimpleCheckpointerTestProbe::initInputLayer(
+      PV::CommunicateInitInfoMessage const *message) {
+   mInputLayer = message->lookup<PV::InputLayer>(std::string("Input"));
    FatalIf(mInputLayer == nullptr, "column does not have an InputLayer named \"Input\".\n");
    if (checkCommunicatedFlag(mInputLayer) == PV_POSTPONE) {
       return PV_POSTPONE;
@@ -70,8 +72,9 @@ int MomentumConnSimpleCheckpointerTestProbe::initInputLayer() {
    return PV_SUCCESS;
 }
 
-int MomentumConnSimpleCheckpointerTestProbe::initOutputLayer() {
-   mOutputLayer = parent->getLayerFromName("Output");
+int MomentumConnSimpleCheckpointerTestProbe::initOutputLayer(
+      PV::CommunicateInitInfoMessage const *message) {
+   mOutputLayer = message->lookup<PV::HyPerLayer>(std::string("Output"));
    FatalIf(mOutputLayer == nullptr, "column does not have a HyPerLayer named \"Output\".\n");
    if (checkCommunicatedFlag(mOutputLayer) == PV_POSTPONE) {
       return PV_POSTPONE;
@@ -79,8 +82,9 @@ int MomentumConnSimpleCheckpointerTestProbe::initOutputLayer() {
    return PV_SUCCESS;
 }
 
-int MomentumConnSimpleCheckpointerTestProbe::initConnection() {
-   mConnection = dynamic_cast<PV::MomentumConn *>(parent->getConnFromName("InputToOutput"));
+int MomentumConnSimpleCheckpointerTestProbe::initConnection(
+      PV::CommunicateInitInfoMessage const *message) {
+   mConnection = message->lookup<PV::MomentumConn>(std::string("InputToOutput"));
    FatalIf(
          mConnection == nullptr, "column does not have a MomentumConn named \"InputToOutput\".\n");
    if (checkCommunicatedFlag(mConnection) == PV_POSTPONE) {
@@ -181,8 +185,8 @@ int MomentumConnSimpleCheckpointerTestProbe::outputState(double timevalue) {
 
    if (failed) {
       std::string errorMsg(getDescription() + " failed at t = " + std::to_string(timevalue) + "\n");
-      if (outputStream) {
-         outputStream->printf(errorMsg.c_str());
+      if (!mOutputStreams.empty()) {
+         output(0).printf(errorMsg.c_str());
       }
       if (isWritingToFile()) { // print error message to screen/log file as well.
          ErrorLog() << errorMsg;
@@ -190,8 +194,8 @@ int MomentumConnSimpleCheckpointerTestProbe::outputState(double timevalue) {
       mTestFailed = true;
    }
    else {
-      if (outputStream) {
-         outputStream->printf(
+      if (!mOutputStreams.empty()) {
+         output(0).printf(
                "%s found all correct values at time %f\n", getDescription_c(), timevalue);
       }
    }
@@ -221,9 +225,17 @@ bool MomentumConnSimpleCheckpointerTestProbe::verifyConnValue(
       float observed,
       float correct,
       char const *valueDescription) {
+   FatalIf(
+         parent->getCommunicator()->commRank() != 0,
+         "%s called verifyConnValue from nonroot process.\n",
+         getDescription_c());
+   FatalIf(
+         mOutputStreams.empty(),
+         "%s has empty mOutputStreams in root process.\n",
+         getDescription_c());
    bool failed;
    if (observed != correct) {
-      outputStream->printf(
+      output(0).printf(
             "Time %f, %s is %f, instead of the expected %f.\n",
             timevalue,
             valueDescription,
@@ -252,12 +264,16 @@ bool MomentumConnSimpleCheckpointerTestProbe::verifyLayer(
    PV::Buffer<float> globalBuffer = PV::BufferUtils::gather(
          comm->getLocalMPIBlock(), localBuffer, inputLoc->nx, inputLoc->ny, 0, 0);
    if (comm->commRank() == 0) {
+      FatalIf(
+            mOutputStreams.empty(),
+            "%s has empty mOutputStreams in root process.\n",
+            getDescription_c());
       globalBuffer.crop(inputLoc->nxGlobal, inputLoc->nyGlobal, PV::Buffer<float>::CENTER);
       std::vector<float> globalVector = globalBuffer.asVector();
       int const numInputNeurons       = globalVector.size();
       for (int k = 0; k < numInputNeurons; k++) {
          if (globalVector[k] != correctValue) {
-            outputStream->printf(
+            output(0).printf(
                   "Time %f, %s neuron %d is %f, instead of the expected %f.\n",
                   timevalue,
                   layer->getName(),

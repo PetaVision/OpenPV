@@ -11,6 +11,7 @@ class ImageLayer : public InputLayer {
   protected:
    ImageLayer() {}
    virtual int countInputImages() override;
+   virtual int registerData(Checkpointer *checkpointer) override;
    void populateFileList();
    virtual Buffer<float> retrieveData(int inputIndex) override;
    virtual std::string describeInput(int index) override;
@@ -31,6 +32,9 @@ class ImageLayer : public InputLayer {
 
    // List of filenames to iterate over
    std::vector<std::string> mFileList;
+
+   // Template for a temporary path for downloading URLs that appear in file list.
+   std::string mURLDownloadTemplate;
 }; // end class ImageLayer
 } // end namespace PV
 

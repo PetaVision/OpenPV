@@ -77,7 +77,6 @@ int dumpweights(HyPerCol *hc, int argc, char *argv[]) {
 int dumponeweight(HyPerConn *conn) {
    int status          = PV_SUCCESS;
    bool errorfound     = false;
-   int rank            = conn->getParent()->getCommunicator()->commRank();
    int nxp             = conn->xPatchSize();
    int nyp             = conn->yPatchSize();
    int nfp             = conn->fPatchSize();
@@ -86,7 +85,8 @@ int dumponeweight(HyPerConn *conn) {
    int nxpre           = conn->preSynapticLayer()->getLayerLoc()->nxGlobal;
    int nypre           = conn->preSynapticLayer()->getLayerLoc()->nyGlobal;
    bool usingMirrorBCs = conn->preSynapticLayer()->useMirrorBCs();
-
+   int rank;
+   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
    // If xScaleDiff > 0, it's a many-to-one connection.
    int xScaleDiff = conn->postSynapticLayer()->getXScale() - conn->preSynapticLayer()->getXScale();
    float xFalloff = powf(2, xScaleDiff);

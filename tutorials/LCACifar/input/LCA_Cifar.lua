@@ -1,14 +1,14 @@
+-- Path to OpenPV. Replace this with an absolute path.
 package.path = package.path .. ";" .. "../../../parameterWrapper/?.lua";
 local pv = require "PVModule";
---local subnets = require "PVSubnets";
 
-local nbatch           = 32;    --Batch size of learning
-local nxSize           = 32;    --Cifar is 32 x 32
+local nbatch           = 25;    --Number of images to process in parallel
+local nxSize           = 32;    --CIFAR images are 32 x 32
 local nySize           = 32;
-local patchSize        = 12;
+local patchSize        = 8;
 local stride           = 2
-local displayPeriod    = 400;   --Number of timesteps to find sparse approximation
-local numEpochs        = 4;     --Number of times to run through dataset
+local displayPeriod    = 250;   --Number of timesteps to find sparse approximation
+local numEpochs        = 1;     --Number of times to run through dataset
 local numImages        = 50000; --Total number of images in dataset
 local stopTime         = math.ceil((numImages  * numEpochs) / nbatch) * displayPeriod;
 local writeStep        = displayPeriod; 
@@ -18,18 +18,18 @@ local inputPath        = "../cifar-10-batches-mat/mixed_cifar.txt";
 local outputPath       = "../output/";
 local checkpointPeriod = (displayPeriod * 100); -- How often to write checkpoints
 
-local numBasisVectors  = 128;   --overcompleteness x (stride X) x (Stride Y) * (# color channels) * (2 if rectified) 
-local basisVectorFile  = nil;   --nil for initial weights, otherwise, specifies the weights file to load. Change init parameter in MomentumConn
-local plasticityFlag   = true;  --Determines if we are learning weights or holding them constant
-local momentumTau      = 200;   --The momentum parameter. A single weight update will last for momentumTau timesteps.
-local dWMax            = 10;    --The learning rate
-local VThresh          = .015;  -- .005; --The threshold, or lambda, of the network
+local dictionarySize   = 128;   --Number of patches/elements in dictionary 
+local dictionaryFile   = nil;   --nil for initial weights, otherwise, specifies the weights file to load.
+local plasticityFlag   = true;  --Determines if we are learning our dictionary or holding it constant
+local momentumTau      = 500;   --Weight momentum parameter. A single weight update will last for momentumTau timesteps.
+local dWMax            = 0.05;    --The learning rate
+local VThresh          = 0.1;  -- .005; --The threshold, or lambda, of the network
 local AMin             = 0;
 local AMax             = infinity;
-local AShift           = .015;  --This being equal to VThresh is a soft threshold
+local AShift           = VThresh;  --This being equal to VThresh is a soft threshold
 local VWidth           = 0; 
 local timeConstantTau  = 100;   --The integration tau for sparse approximation
-local weightInit       = math.sqrt((1/patchSize)*(1/patchSize)*(1/3));
+local weightInit       = 1.0;
 
 -- Base table variable to store
 local pvParameters = {
@@ -54,8 +54,10 @@ local pvParameters = {
       checkpointWriteDir                  = outputPath .. "/Checkpoints"; --The checkpoint output directory
       checkpointWriteTriggerMode          = "step";
       checkpointWriteStepInterval         = checkpointPeriod; --How often to checkpoint
+      checkpointIndexWidth                = -1; -- Automatically select width of index in checkpoint directory name
       deleteOlderCheckpoints              = false;
       suppressNonplasticCheckpoints       = false;
+      initializeFromCheckpointDir         = "";
       errorOnNotANumber                   = false;
    };
 
@@ -67,11 +69,12 @@ local pvParameters = {
       probeOutputFile                     = "AdaptiveTimeScales.txt";
       triggerLayerName                    = "Input";
       triggerOffset                       = 0;
-      baseMax                             = .1; --1.0; -- minimum value for the maximum time scale, regardless of tau_eff
-      baseMin                             = 0.01; -- default time scale to use after image flips or when something is wacky
-      tauFactor                           = 0.1; -- determines fraction of tau_effective to which to set the time step, can be a small percentage as tau_eff can be huge
-      growthFactor                        = 0.01; -- percentage increase in the maximum allowed time scale whenever the time scale equals the current maximum
+      baseMax                             = 0.06;  -- Initial upper bound for timescale growth
+      baseMin                             = 0.05;  -- Initial value for timescale growth
+      tauFactor                           = 0.03;  -- Percent of tau used as growth target
+      growthFactor                        = 0.025; -- Exponential growth factor. The smaller value between this and the above is chosen. 
       writeTimeScales                     = true;
+      writeTimeScalesFieldnames           = false;
    };
 
    Input = {
@@ -93,9 +96,7 @@ local pvParameters = {
       inverseFlag                         = false;
       normalizeLuminanceFlag              = true;
       normalizeStdDev                     = true;
-      jitterFlag                          = 0;
       useInputBCflag                      = false;
-      padValue                            = 0;
       autoResizeFlag                      = false;
       displayPeriod                       = displayPeriod;
       batchMethod                         = "byImage";
@@ -125,20 +126,17 @@ local pvParameters = {
       groupType = "HyPerLCALayer";
       nxScale                             = 1/stride;
       nyScale                             = 1/stride;
-      nf                                  = numBasisVectors;
+      nf                                  = dictionarySize;
       phase                               = 2;
       mirrorBCflag                        = false;
       valueBC                             = 0;
       initializeFromCheckpointFlag        = false;
       InitVType                           = "ConstantV";
       valueV                              = VThresh;
-      --InitVType                           = "InitVFromFile";
-      --Vfilename                           = "V1_V.pvp";
       triggerLayerName                    = NULL;
       writeStep                           = writeStep;
       initialWriteTime                    = initialWriteTime;
       sparseLayer                         = true;
-      writeSparseValues                   = true;
       updateGpu                           = true;
       dataType                            = nil;
       VThresh                             = VThresh;
@@ -148,6 +146,7 @@ local pvParameters = {
       VWidth                              = VWidth;
       timeConstantTau                     = timeConstantTau;
       selfInteract                        = true;
+      adaptiveTimeScaleProbe              = "AdaptiveTimeScales";
    };
 
    InputRecon = {
@@ -194,10 +193,10 @@ local pvParameters = {
       writeCompressedCheckpoints          = false;
       selfFlag                            = false;
       gpuGroupIdx                         = -1;
-      originalConnName                    = "V1ToError";
+      originalConnName                    = "V1ToInputError";
    };
 
-   V1ToError = {
+   V1ToInputError = {
       groupType = "MomentumConn";
       preLayerName                        = "V1";
       postLayerName                       = "InputError";
@@ -212,8 +211,7 @@ local pvParameters = {
       wMinInit                            = -1;
       wMaxInit                            = 1;
       sparseFraction                      = 0.9;
-      --weightInitType                      = "FileWeight";
-      --initWeightsFile                     = basisVectorFile;
+      minNNZ                              = 0;
       useListOfArborFiles                 = false;
       combineWeightFiles                  = false;
       initializeFromCheckpointFlag        = false;
@@ -258,7 +256,7 @@ local pvParameters = {
       pvpatchAccumulateType               = "convolve";
       writeCompressedCheckpoints          = false;
       selfFlag                            = false;
-      originalConnName                    = "V1ToError";
+      originalConnName                    = "V1ToInputError";
    };
 
    ReconToError = {
@@ -301,11 +299,15 @@ local pvParameters = {
       textOutputFlag                      = true;
       probeOutputFile                     = "V1L1NormEnergyProbe.txt";
       energyProbe                         = "V1EnergyProbe";
-      coefficient                         = 0.025;
+      coefficient                         = VThresh;
       maskLayerName                       = nil;
    };
 
 } --End of pvParameters
 
+if dictionaryFile ~= nil then
+   pvParameters.V1ToInputError.weightInitType  = "FileWeight";
+   pvParameters.V1ToInputError.initWeightsFile = dictionaryFile;
+end
 -- Print out PetaVision approved parameter file to the console
 pv.printConsole(pvParameters)

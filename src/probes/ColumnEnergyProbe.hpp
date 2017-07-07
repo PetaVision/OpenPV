@@ -67,9 +67,9 @@ class ColumnEnergyProbe : public ColProbe {
     * from 0 to
     * getVectorSize()-1.
     */
-   virtual int outputState(double timevalue);
+   virtual int outputState(double timevalue) override;
 
-   virtual int calcValues(double timevalue);
+   virtual int calcValues(double timevalue) override;
 
   protected:
    /**
@@ -84,23 +84,21 @@ class ColumnEnergyProbe : public ColProbe {
     */
    int initializeColumnEnergyProbe(const char *probename, HyPerCol *hc);
 
-   virtual int initOutputStream(const char *filename) override;
-
-   virtual int registerData(Checkpointer *checkpointer) override;
+   virtual void outputHeader() override;
 
    /**
     * Implements the needRecalc method.  Always returns true, in the expectation
     * that the hard work is done by the probes in the constituent energy terms.
     */
-   virtual bool needRecalc(double timevalue);
+   virtual bool needRecalc(double timevalue) override;
 
    /**
     * Implementation of referenceUpdateTime().  Since ColumnEnergyProbe updates
     * every timestep, it uses current simulation time.
     */
-   virtual double referenceUpdateTime() const;
+   virtual double referenceUpdateTime() const override;
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_reductionInterval(enum ParamsIOFlag ioFlag);
 
    size_t numTerms;
@@ -116,14 +114,6 @@ class ColumnEnergyProbe : public ColProbe {
    int mSkipTimer        = 0;
    int mSkipInterval     = 0;
    double mLastTimeValue = -1;
-
-   // A vector of PrintStreams, one for each batch element.
-   // This is a hack, to work around the problem arising with an MPI block with batch dimension > 1.
-   // In this situation, several processes have the outputStream defined in BaseProbe writing to
-   // the same file, causing collisions.
-   //
-   // The correct solution to fix this, and other issues, is to overhaul the interface for probes.
-   std::vector<PrintStream *> mOutputBatchElements;
 }; // end class ColumnEnergyProbe
 
 } // end namespace PV

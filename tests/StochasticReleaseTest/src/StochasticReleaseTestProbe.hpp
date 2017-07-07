@@ -21,13 +21,13 @@ class StochasticReleaseTestProbe : public PV::StatsProbe {
    StochasticReleaseTestProbe(const char *name, HyPerCol *hc);
    virtual ~StochasticReleaseTestProbe();
 
-   virtual int communicateInitInfo() override;
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
 
    virtual int outputState(double timed) override;
 
   protected:
    StochasticReleaseTestProbe();
-   int initStochasticReleaseTestProbe(const char *name, HyPerCol *hc);
+   int initialize(const char *name, HyPerCol *hc);
    virtual void ioParam_buffer(enum ParamsIOFlag ioFlag) override;
    void computePValues();
    void computePValues(int step, int f);

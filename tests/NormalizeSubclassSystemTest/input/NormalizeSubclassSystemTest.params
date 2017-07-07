@@ -58,7 +58,7 @@ Retina "input" = {
    absRefractoryPeriod = 0;
 };
 
-ANNLayer "normalizeL3 output" = {
+ANNLayer "NormalizeL3Output" = {
    nxScale = 1;
    nyScale = 1;
    nf = 4;
@@ -77,7 +77,7 @@ ANNLayer "normalizeL3 output" = {
    VWidth = 0.0;
 };
 
-PtwiseProductLayer "output squared" = {
+PtwiseProductLayer "OutputSquared" = {
    nxScale = 1;
    nyScale = 1;
    nf = 4;
@@ -96,7 +96,7 @@ PtwiseProductLayer "output squared" = {
    VWidth = 0.0;
 };
 
-PtwiseProductLayer "output cubed" = {
+PtwiseProductLayer "OutputCubed" = {
    nxScale = 1;
    nyScale = 1;
    nf = 4;
@@ -115,7 +115,7 @@ PtwiseProductLayer "output cubed" = {
    VWidth = 0.0;
 };
 
-ANNLayer "normalizeL3 check" = {
+ANNLayer "NormalizeL3Check" = {
    nxScale = 0.0625;
    nyScale = 0.0625;
    nf = 1;
@@ -138,9 +138,9 @@ ANNLayer "normalizeL3 check" = {
 // Connections
 //
 
-HyPerConn "normalizeL3 connection" = {
+HyPerConn "NormalizeL3Connection" = {
    preLayerName = "input";
-   postLayerName = "normalizeL3 output";
+   postLayerName = "NormalizeL3Output";
    channelCode = 0;
    numAxonalArbors = 1;
    delay = 0;
@@ -181,37 +181,37 @@ HyPerConn "normalizeL3 connection" = {
    minL3NormTolerated = 0;
 };
 
-IdentConn "normalizeL3 output to output squared on channel 0" = {
-   preLayerName = "normalizeL3 output";
-   postLayerName = "output squared";
+IdentConn "NormalizeL3OutputToOutputSquaredOnChannel0" = {
+   preLayerName = "NormalizeL3Output";
+   postLayerName = "OutputSquared";
    channelCode = 0;
    delay = 0;
 };
 
-IdentConn "normalizeL3 output to output squared on channel 1" = {
-   preLayerName = "normalizeL3 output";
-   postLayerName = "output squared";
+IdentConn "NormalizeL3OutputToOutputSquaredOnChannel1" = {
+   preLayerName = "NormalizeL3Output";
+   postLayerName = "OutputSquared";
    channelCode = 1;
    delay = 1;
 };
 
-IdentConn "normalizeL3 output to output cubed" = {
-   preLayerName = "normalizeL3 output";
-   postLayerName = "output cubed";
+IdentConn "NormalizeL3OutputToOutputCubed" = {
+   preLayerName = "NormalizeL3Output";
+   postLayerName = "OutputCubed";
    channelCode = 0;
    delay = 0;
 };
 
-IdentConn "output squared to output cubed" = {
-   preLayerName = "output squared";
-   postLayerName = "output cubed";
+IdentConn "OutputSquaredToOutputCubed" = {
+   preLayerName = "OutputSquared";
+   postLayerName = "OutputCubed";
    channelCode = 1;
    delay = 1;
 };
 
-HyPerConn "normalizeL3 check connection" = {
-   preLayerName = "output cubed";
-   postLayerName = "normalizeL3 check";
+HyPerConn "NormalizeL3CheckConnection" = {
+   preLayerName = "OutputCubed";
+   postLayerName = "NormalizeL3Check";
    channelCode = 0;
    numAxonalArbors = 1;
    delay = 0;

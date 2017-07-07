@@ -43,7 +43,7 @@ class TransposePoolingConn : public HyPerConn {
    TransposePoolingConn();
    TransposePoolingConn(const char *name, HyPerCol *hc);
    virtual ~TransposePoolingConn();
-   virtual int communicateInitInfo() override;
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
    virtual int allocateDataStructures() override;
    inline PoolingConn *getOriginalConn() { return mOriginalConn; }
 
@@ -70,8 +70,8 @@ class TransposePoolingConn : public HyPerConn {
    virtual int deliverPresynapticPerspective(PVLayerCube const *activity, int arborID) override;
    virtual int deliverPostsynapticPerspective(PVLayerCube const *activity, int arborID) override;
 #ifdef PV_USE_CUDA
-   virtual int deliverPresynapticPerspectiveGPU(PVLayerCube const *activity, int arborID);
-   virtual int deliverPostsynapticPerspectiveGPU(PVLayerCube const *activity, int arborID);
+   virtual int deliverPresynapticPerspectiveGPU(PVLayerCube const *activity, int arborID) override;
+   virtual int deliverPostsynapticPerspectiveGPU(PVLayerCube const *activity, int arborID) override;
    int deliverGPU(PVLayerCube const *activity, int arborID);
 #endif
 

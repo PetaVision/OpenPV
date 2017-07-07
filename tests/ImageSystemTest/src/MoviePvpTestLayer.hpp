@@ -12,7 +12,7 @@ namespace PV {
 class MoviePvpTestLayer : public PV::PvpLayer {
   public:
    MoviePvpTestLayer(const char *name, HyPerCol *hc);
-   virtual int updateState(double time, double dt);
+   virtual int updateState(double time, double dt) override;
 };
 
 } // end namespace PV

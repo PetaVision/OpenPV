@@ -38,7 +38,7 @@ class BaseProbe : public BaseObject {
     * the energy probe,
     * if either triggerFlag or energyProbe are set.
     */
-   virtual int communicateInitInfo() = 0;
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override = 0;
 
    /**
     * Called during HyPerCol::run, during the allocateDataStructures stage.
@@ -46,7 +46,7 @@ class BaseProbe : public BaseObject {
     * Derived classes that override this method should make sure to
     * call this method in their own allocateDataStructures methods.
     */
-   virtual int allocateDataStructures();
+   virtual int registerData(Checkpointer *checkpointer) override;
 
    /**
     * Returns the number of value indices the probe can compute (typically the
@@ -141,7 +141,7 @@ class BaseProbe : public BaseObject {
 
   protected:
    BaseProbe();
-   int initialize(const char *probeName, HyPerCol *hc);
+   int initialize(const char *name, HyPerCol *hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
    /**
@@ -209,59 +209,57 @@ class BaseProbe : public BaseObject {
 
    /**
     * @brief coefficient: If energyProbe is set, the coefficient parameter
-    * specifies
-    * that ColumnEnergyProbe multiplies the result of this probe's getValues()
-    * method
-    * by coefficient when computing the error.
+    * specifies that ColumnEnergyProbe multiplies the result of this probe's
+    * getValues() method by coefficient when computing the error.
     * @details Note that coefficient does not affect the value returned by the
-    * getValue() or
-    * getValues() method.
+    * getValue() or getValues() method.
     */
    virtual void ioParam_coefficient(enum ParamsIOFlag ioFlag);
    /** @} */
 
-   virtual int initOutputStream(const char *filename);
+   /**
+    * Called by registerData. If the MPIBlock row index and column index are
+    * zero, this method sets a vector of PrintStreams whose size is the local
+    * batch width. If probeOutputFile is being used, the elements of the vector
+    * are FileStreams with filenames based on probeOutputFile: the global batch
+    * index will be inserted in the probeOutputFile before the extension (or at
+    * the end if there is no extension). If the MPIBlock row and column indices
+    * are not both zero, the vector of PrintStreams will be empty - these
+    * processes should communicate with the row=0,column=0 as needed.
+    */
+   virtual void initOutputStreams(const char *filename, Checkpointer *checkpointer);
 
    /**
     * A pure virtual method for that should return true if the quantities being
-    * measured
-    * by the probe have changed since the last time the quantities were
+    * measured by the probe have changed since the last time the quantities were
     * calculated.
     * Typically, an implementation of needRecalc() will check the lastUpdateTime
-    * of
-    * the object being probed, and return true if that value is greater than the
-    * lastUpdateTime member variable.
+    * of the object being probed, and return true if that value is greater than
+    * the lastUpdateTime member variable.
     * needRecalc() is called by getValues(double) (and hence by getValue() and
-    * the other
-    * flavors of getValues).
+    * the other flavors of getValues).
     * Note that there is a single needRecalc that applies to all getNumValues()
     * quantities.
     */
    virtual bool needRecalc(double timevalue) = 0;
 
    /**
-    * A pure virtual method that should return the simulation time for the values
-    * that calcValues()
-    * would compute if it were called instead.  The reason that this time might
-    * be different from
-    * the simuluation time at which referenceUpdate was called, is that
-    * calcValues might be called
-    * either before or after the update of whatever object the probe is attached
-    * to.
+    * A pure virtual method that should return the simulation time for the
+    * values that calcValues() would compute if it were called instead.
+    * The reason that this time might be different from the simuluation time at
+    * which referenceUpdate was called, is that calcValues might be called
+    * either before or after the update of the object the probe is attached to.
     *
     * The getValues() method calls this function after calling calcValues(),
     * and stores the result in the lastUpdateTime member variable.  Typically,
-    * the implementation
-    * of needRecalc() will return true if lastUpdateTime is less than the value
-    * returned by
-    * referenceUpdateTime, and false otherwise.
+    * the implementation of needRecalc() will return true if lastUpdateTime is
+    * less than the value returned by referenceUpdateTime, and false otherwise.
     */
    virtual double referenceUpdateTime() const = 0;
 
    /**
     * A pure virtual method to calculate the values of the probe.  calcValues()
-    * can
-    * assume that needRecalc() has been called and returned true.
+    * can assume that needRecalc() has been called and returned true.
     * It should write the computed values into the buffer of member variable
     * 'probeValues'.
     */
@@ -269,9 +267,8 @@ class BaseProbe : public BaseObject {
 
    /**
     * If needRecalc() returns true, getValues(double) updates the probeValues
-    * buffer
-    * (by calling calcValues) and sets lastUpdateTime to the timevalue input
-    * argument.
+    * buffer (by calling calcValues) and sets lastUpdateTime to the timevalue
+    * input argument.
     */
    int getValues(double timevalue);
 
@@ -287,33 +284,25 @@ class BaseProbe : public BaseObject {
    virtual int initMessage(const char *msg);
 
    /**
-    * Returns a pointer to the PrintStream used by outputState.
+    * Returns a reference to the PrintStream for the given batch element
     */
-   PrintStream *getOutputStream() { return outputStream; }
-
-   /**
-    * Returns a reference to the ostream that outputState writes to.
-    */
-   PrintStream &output() { return *outputStream; }
+   PrintStream &output(int b) { return *mOutputStreams.at(b); }
 
    /**
     * initNumValues is called by initialize.
     * BaseProbe::initNumValues sets numValues to the parent HyPerCol's
     * getNBatch().
     * Derived classes can override initNumValues to initialize numValues to a
-    * different
-    * value.
+    * different value.
     */
    virtual int initNumValues();
 
    /**
     * Sets the numValues member variable (returned by getNumValues()) and
-    * reallocates
-    * the probeValues member variable to hold numValues double-precision values.
-    * If the reallocation fails, the probeValues buffer is left unchanged, errno
-    * is
-    * set (by a realloc() call), and PV_FAILURE is returned.
-    * Otherwise, PV_SUCCESS is returned.
+    * reallocates the probeValues member variable to hold numValues
+    * double-precision values. If the reallocation fails, the probeValues
+    * buffer is left unchanged, errno is set (by a realloc() call),
+    * and PV_FAILURE is returned. Otherwise, PV_SUCCESS is returned.
     */
    int setNumValues(int n);
 
@@ -336,7 +325,7 @@ class BaseProbe : public BaseObject {
     * Returns true if a probeOutputFile is being used.
     * Otherwise, returns false (indicating output is going to getOutputStream().
     */
-   inline bool isWritingToFile() const { return writingToFile; }
+   inline bool isWritingToFile() const { return probeOutputFilename != nullptr; }
 
    /**
     * If there is a triggering layer, needUpdate returns true when the triggering
@@ -355,7 +344,9 @@ class BaseProbe : public BaseObject {
 
    // Member variables
   protected:
-   PrintStream *outputStream;
+   // A vector of PrintStreams, one for each batch element.
+   std::vector<PrintStream *> mOutputStreams;
+
    bool triggerFlag;
    char *triggerLayerName;
    HyPerLayer *triggerLayer;
@@ -374,7 +365,6 @@ class BaseProbe : public BaseObject {
    double *probeValues;
    double lastUpdateTime; // The time of the last time calcValues was called.
    bool textOutputFlag;
-   bool writingToFile; // true outputStream is a FileStream
    bool mInitInfoCommunicatedFlag    = false;
    bool mDataStructuresAllocatedFlag = false;
 };

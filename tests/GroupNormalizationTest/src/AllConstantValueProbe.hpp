@@ -13,17 +13,17 @@ namespace PV {
 
 class AllConstantValueProbe : public StatsProbe {
   public:
-   AllConstantValueProbe(const char *probeName, HyPerCol *hc);
+   AllConstantValueProbe(const char *name, HyPerCol *hc);
    ~AllConstantValueProbe();
 
    float getCorrectValue() { return correctValue; }
 
-   int outputState(double timed);
+   int outputState(double timed) override;
 
   protected:
    AllConstantValueProbe();
-   int initAllConstantValueProbe(const char *probeName, HyPerCol *hc);
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   int initialize(const char *name, HyPerCol *hc);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_correctValue(enum ParamsIOFlag ioFlag);
 
   private:

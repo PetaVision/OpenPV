@@ -40,7 +40,7 @@ class ColProbe : public BaseProbe {
    /**
     * Public constructor for the ColProbe class.
     */
-   ColProbe(const char *probeName, HyPerCol *hc);
+   ColProbe(const char *name, HyPerCol *hc);
 
    /**
     * Destructor for the ColProbe class.
@@ -53,7 +53,7 @@ class ColProbe : public BaseProbe {
     * probe)
     * and then attaches to the parent HyPerCol by calling parent->insertProbe().
     */
-   virtual int communicateInitInfo();
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
 
    /**
     * The virtual method for outputting the quantities measured by the ColProbe.
@@ -61,7 +61,7 @@ class ColProbe : public BaseProbe {
     * will fprintf to outputstream->fp, where stream is the BaseProbe member
     * variable.
     */
-   virtual int outputState(double timed) { return PV_SUCCESS; }
+   virtual int outputState(double timed) override { return PV_SUCCESS; }
 
   protected:
    /**
@@ -74,7 +74,7 @@ class ColProbe : public BaseProbe {
     * depend on other param groups.  It is called by the public constructor
     * and should be called by the initializer of any derived classes.
     */
-   int initialize(const char *probeName, HyPerCol *hc);
+   int initialize(const char *name, HyPerCol *hc);
 
    /**
     * Reads parameters from the params file/writes parameters to the output
@@ -90,27 +90,26 @@ class ColProbe : public BaseProbe {
     * ioParamsFillGroup method should call its base class's ioParamsFillGroup
     * method.
     */
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    /**
-    * @brief targetName: ColProbe overrides targetName since the only possible
-    * target
-    * is the parent HyPerCol.  On reading, it sets targetName.  Parameters are
-    * neither read nor written by this method.
+    * @brief targetName: ColProbe sets targetName to the empty string,
+    * since the only possible target is the parent HyPerCol. The targenName
+    * parameter is neither read nor written by this method.
     */
-   virtual void ioParam_targetName(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_targetName(enum ParamsIOFlag ioFlag) override;
 
    /**
-    * Calls BaseProbe::initOutputStream and then calls outputHeader()
+    * Calls BaseProbe::initOutputStreams and then calls outputHeader()
     */
-   virtual int initOutputStream(const char *filename);
+   virtual void initOutputStreams(const char *filename, Checkpointer *checkpointer) override;
 
    /**
     * Called by initialize_stream after opening the stream member variable.
     * Derived classes can override this method to write header data to the output
     * file.
     */
-   virtual int outputHeader() { return PV_SUCCESS; }
+   virtual void outputHeader() {}
 
   private:
    /**

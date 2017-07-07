@@ -29,13 +29,13 @@ class PlasticCloneConn : public CloneConn {
     * @brief triggerLayerName: PlasticCloneConn does not use triggerLayerName,
     * since updating weights is managed by the original conn.
     */
-   virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) override;
 
    /**
     * @brief triggerOffset: PlasticCloneConn does not use triggerOffset,
     * since updating weights is managed by the original conn.
     */
-   virtual void ioParam_triggerOffset(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_triggerOffset(enum ParamsIOFlag ioFlag) override;
 
    /**
     * @brief weightUpdatePeriod: PlasticCloneConn does not do weight updates,
@@ -83,14 +83,14 @@ class PlasticCloneConn : public CloneConn {
    PlasticCloneConn(const char *name, HyPerCol *hc);
    virtual ~PlasticCloneConn();
 
-   virtual int communicateInitInfo();
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
 
   protected:
    PlasticCloneConn();
    int initialize(const char *name, HyPerCol *hc);
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-   virtual int cloneParameters();
-   virtual int constructWeights();
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int cloneParameters() override;
+   virtual int constructWeights() override;
    int deleteWeights();
 
   private:

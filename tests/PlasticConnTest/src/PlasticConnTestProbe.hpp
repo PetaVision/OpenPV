@@ -16,7 +16,7 @@ class PlasticConnTestProbe : public KernelProbe {
   public:
    PlasticConnTestProbe(const char *probename, HyPerCol *hc);
 
-   virtual int outputState(double timed);
+   virtual int outputState(double timed) override;
 
    virtual ~PlasticConnTestProbe();
 

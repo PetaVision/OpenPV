@@ -145,6 +145,7 @@ int pv_parseParameters(PV::PVParams * action_handler, const char * paramBuffer, 
 
 %union {char * sval; double dval; }
 %token <sval> T_STRING
+%token <sval> T_GROUPID
 %token <sval> T_ID
 %token <sval> T_ID_OVERWRITE
 %token <dval> T_NUMBER
@@ -152,7 +153,6 @@ int pv_parseParameters(PV::PVParams * action_handler, const char * paramBuffer, 
 %token <sval> T_FILENAME
 %token <sval> T_INCLUDE
 %token <sval> T_PARAM_SWEEP
-%token <sval> T_BATCH_SWEEP
 
 %%
 
@@ -171,7 +171,7 @@ pvparams_directive : T_ID '=' T_NUMBER ';'
                    */
                    ;
 
-parameter_group_id : T_ID T_STRING '='
+parameter_group_id : T_ID T_GROUPID '='
                       { handler->action_parameter_group_name($1, $2); }
                    ;
 
@@ -214,20 +214,28 @@ parameter_string_def : T_ID '=' T_STRING ';'
                         { handler->action_parameter_string_def($1,$3); }
                      | T_ID '=' T_FILENAME ';'
                         { handler->action_parameter_filename_def($1,$3); }
+                     | T_ID '=' T_GROUPID ';'
+                        { handler->action_parameter_filename_def($1,$3); }
                      | T_ID_OVERWRITE '=' T_STRING ';'
                         { handler->action_parameter_string_def_overwrite($1,$3); }
                      | T_ID_OVERWRITE '=' T_FILENAME ';'
+                        { handler->action_parameter_filename_def_overwrite($1,$3); }
+                     | T_ID_OVERWRITE '=' T_GROUPID ';'
                         { handler->action_parameter_filename_def_overwrite($1,$3); }
                      ;
 
 /*include_directive : T_INCLUDE T_ID ';'*/
 include_directive : T_INCLUDE T_STRING ';'
                         { handler->action_include_directive($2); }
+                  | T_INCLUDE T_FILENAME ';'
+                        { handler->action_include_directive($2); }
+                  | T_INCLUDE T_GROUPID ';'
+                        { handler->action_include_directive($2); }
                   ;
 
 
 /* Sweeps */
-parameter_sweep_id : T_PARAM_SWEEP T_STRING ':' T_ID '='
+parameter_sweep_id : T_PARAM_SWEEP T_GROUPID ':' T_ID '='
                       { handler->action_parameter_sweep_open($2, $4); }
 
 
@@ -237,6 +245,7 @@ parameter_sweep : parameter_sweep_id '{' parameter_sweep_values '}' ';'
 
 parameter_sweep_values : /* empty */
              | parameter_sweep_values_numbers
+             | parameter_sweep_values_groupids
              | parameter_sweep_values_strings
              | parameter_sweep_values_filenames
              ;
@@ -247,6 +256,14 @@ parameter_sweep_values_numbers : parameter_sweep_values_number
 
 parameter_sweep_values_number : T_NUMBER ';'
                        { handler->action_parameter_sweep_values_number($1); }
+                    ;
+
+parameter_sweep_values_groupids : parameter_sweep_values_groupid
+                     | parameter_sweep_values_groupids parameter_sweep_values_groupid
+                     ; /* empty not included because this leads to a reduce/reduce conflict if sweep_values is empty */
+
+parameter_sweep_values_groupid : T_GROUPID ';'
+                       { handler->action_parameter_sweep_values_string($1); }
                     ;
 
 parameter_sweep_values_strings : parameter_sweep_values_string

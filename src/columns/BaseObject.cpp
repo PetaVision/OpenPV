@@ -40,7 +40,7 @@ int BaseObject::initialize(const char *name, HyPerCol *hc) {
 }
 
 char const *BaseObject::getKeyword() const {
-   return getParent()->parameters()->groupKeywordFromName(getName());
+   return parent->parameters()->groupKeywordFromName(getName());
 }
 
 int BaseObject::setName(char const *name) {
@@ -113,7 +113,7 @@ int BaseObject::respondCommunicateInitInfo(CommunicateInitInfoMessage const *mes
    if (getInitInfoCommunicatedFlag()) {
       return status;
    }
-   status = communicateInitInfo();
+   status = communicateInitInfo(message);
    if (status == PV_SUCCESS) {
       setInitInfoCommunicatedFlag();
    }

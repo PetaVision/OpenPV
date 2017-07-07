@@ -241,16 +241,14 @@ int PoolingConn::initialize(
          break;
    }
 
-   ioAppend = parent->getCheckpointReadFlag();
-
    this->io_timer     = new Timer(getName(), "conn", "io     ");
    this->update_timer = new Timer(getName(), "conn", "update ");
 
    return status;
 }
 
-int PoolingConn::communicateInitInfo() {
-   int status = HyPerConn::communicateInitInfo();
+int PoolingConn::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+   int status = HyPerConn::communicateInitInfo(message);
 
    // Check pre/post connections here
    const PVLayerLoc *preLoc  = pre->getLayerLoc();
@@ -271,20 +269,7 @@ int PoolingConn::communicateInitInfo() {
    }
 
    if (needPostIndexLayer) {
-      BaseLayer *basePostIndexLayer = parent->getLayerFromName(this->postIndexLayerName);
-      if (basePostIndexLayer == NULL) {
-         if (parent->columnId() == 0) {
-            ErrorLog().printf(
-                  "%s: postIndexLayerName \"%s\" does not refer "
-                  "to any layer in the column.\n",
-                  getDescription_c(),
-                  this->postIndexLayerName);
-         }
-         MPI_Barrier(parent->getCommunicator()->communicator());
-         exit(EXIT_FAILURE);
-      }
-
-      postIndexLayer = dynamic_cast<PoolingIndexLayer *>(basePostIndexLayer);
+      postIndexLayer = message->lookup<PoolingIndexLayer>(std::string(this->postIndexLayerName));
       if (postIndexLayer == NULL) {
          if (parent->columnId() == 0) {
             ErrorLog().printf(
@@ -733,7 +718,6 @@ int PoolingConn::deliverPresynapticPerspective(PVLayerCube const *activity, int 
                      gSynPatchHead[ni] = thread_gSyn[ti][ni];
                      if (needPostIndexLayer && thread_gateIdxBuffer) {
                         gateIdxBuffer[ni] = thread_gateIdxBuffer[ti][ni];
-                        assert(gateIdxBuffer >= 0);
                      }
                   }
                }

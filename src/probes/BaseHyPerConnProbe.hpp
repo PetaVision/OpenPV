@@ -15,24 +15,24 @@ namespace PV {
 
 class BaseHyPerConnProbe : public BaseConnectionProbe {
   public:
-   BaseHyPerConnProbe(const char *probeName, HyPerCol *hc);
+   BaseHyPerConnProbe(const char *name, HyPerCol *hc);
    virtual ~BaseHyPerConnProbe();
 
-   virtual int communicateInitInfo();
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
 
    HyPerConn *getTargetHyPerConn() { return targetHyPerConn; }
 
   protected:
    BaseHyPerConnProbe();
-   int initialize(const char *probeName, HyPerCol *hc);
-   virtual bool needRecalc(double timevalue);
+   int initialize(const char *name, HyPerCol *hc);
+   virtual bool needRecalc(double timevalue) override;
 
    /**
     * Implements the referenceUpdateTime method.  Returns the last update time of
     * the target
     * HyPerConn.
     */
-   virtual double referenceUpdateTime() const;
+   virtual double referenceUpdateTime() const override;
 
   private:
    int initialize_base();

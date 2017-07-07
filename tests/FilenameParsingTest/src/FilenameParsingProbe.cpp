@@ -12,22 +12,22 @@ FilenameParsingProbe::FilenameParsingProbe() { initialize_base(); }
 /**
  * @filename
  */
-FilenameParsingProbe::FilenameParsingProbe(const char *probeName, PV::HyPerCol *hc) {
+FilenameParsingProbe::FilenameParsingProbe(const char *name, PV::HyPerCol *hc) {
    initialize_base();
-   initialize(probeName, hc);
+   initialize(name, hc);
 }
 
 FilenameParsingProbe::~FilenameParsingProbe() {}
 
 int FilenameParsingProbe::initialize_base() { return PV_SUCCESS; }
 
-int FilenameParsingProbe::initialize(const char *probeName, PV::HyPerCol *hc) {
-   int status = LayerProbe::initialize(probeName, hc);
+int FilenameParsingProbe::initialize(const char *name, PV::HyPerCol *hc) {
+   int status = LayerProbe::initialize(name, hc);
    return status;
 }
 
-int FilenameParsingProbe::communicateInitInfo() {
-   int status = PV::LayerProbe::communicateInitInfo();
+int FilenameParsingProbe::communicateInitInfo(PV::CommunicateInitInfoMessage const *message) {
+   int status = PV::LayerProbe::communicateInitInfo(message);
    if (status != PV_SUCCESS) {
       return status;
    }
@@ -35,8 +35,7 @@ int FilenameParsingProbe::communicateInitInfo() {
    char const *inputLayerName =
          parent->parameters()->stringValue(getTargetName(), "inputLayerName", false);
    pvAssert(inputLayerName);
-   PV::InputLayer *inputLayer =
-         dynamic_cast<PV::InputLayer *>(parent->getLayerFromName(inputLayerName));
+   PV::InputLayer *inputLayer = message->lookup<PV::InputLayer>(std::string(inputLayerName));
    pvAssert(inputLayer);
    mInputDisplayPeriod = inputLayer->getDisplayPeriod();
    return PV_SUCCESS;

@@ -236,20 +236,9 @@ void TransposePoolingConn::ioParam_originalConnName(enum ParamsIOFlag ioFlag) {
          ioFlag, name, "originalConnName", &mOriginalConnName);
 }
 
-int TransposePoolingConn::communicateInitInfo() {
-   int status                       = PV_SUCCESS;
-   BaseConnection *originalConnBase = parent->getConnFromName(this->mOriginalConnName);
-   if (originalConnBase == NULL) {
-      if (parent->columnId() == 0) {
-         ErrorLog().printf(
-               "%s: originalConnName \"%s\" does not refer to any connection in the column.\n",
-               getDescription_c(),
-               this->mOriginalConnName);
-      }
-      MPI_Barrier(parent->getCommunicator()->communicator());
-      exit(EXIT_FAILURE);
-   }
-   mOriginalConn = dynamic_cast<PoolingConn *>(originalConnBase);
+int TransposePoolingConn::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+   int status    = PV_SUCCESS;
+   mOriginalConn = message->lookup<PoolingConn>(std::string(mOriginalConnName));
    if (mOriginalConn == NULL) {
       if (parent->columnId() == 0) {
          ErrorLog().printf(
@@ -299,7 +288,7 @@ int TransposePoolingConn::communicateInitInfo() {
       exit(EXIT_FAILURE);
    }
 
-   status = HyPerConn::communicateInitInfo(); // calls setPatchSize()
+   status = HyPerConn::communicateInitInfo(message); // calls setPatchSize()
    if (status != PV_SUCCESS)
       return status;
 
@@ -405,7 +394,7 @@ int TransposePoolingConn::communicateInitInfo() {
       // Need to tell postIndexLayer the number of delays needed by this connection
       int allowedDelay = mOriginalConn->getPostIndexLayer()->increaseDelayLevels(maxDelaySteps());
       if (allowedDelay < getDelayArraySize()) {
-         if (this->getParent()->columnId() == 0) {
+         if (this->parent->columnId() == 0) {
             ErrorLog().printf(
                   "%s: attempt to set delay to %d, but the maximum allowed delay is %d.  Exiting\n",
                   this->getDescription_c(),

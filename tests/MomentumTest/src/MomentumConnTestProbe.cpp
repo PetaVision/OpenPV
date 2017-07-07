@@ -39,14 +39,12 @@ void MomentumConnTestProbe::ioParam_isViscosity(enum ParamsIOFlag ioFlag) {
  * @timef
  */
 int MomentumConnTestProbe::outputState(double timed) {
-   HyPerConn *c         = getTargetHyPerConn();
-   Communicator *icComm = c->getParent()->getCommunicator();
-   const int rcvProc    = 0;
-   if (icComm->commRank() != rcvProc) {
+   HyPerConn *c = getTargetHyPerConn();
+   FatalIf(c == nullptr, "%s has targetConnection set to null.\n", getDescription_c());
+   if (mOutputStreams.empty()) {
       return PV_SUCCESS;
    }
-   FatalIf(!(getTargetConn() != NULL), "Test failed.\n");
-   outputStream->printf("    Time %f, %s:\n", timed, getTargetConn()->getDescription_c());
+   output(0).printf("    Time %f, %s:\n", timed, getTargetConn()->getDescription_c());
    const float *w  = c->get_wDataHead(getArbor(), getKernelIndex());
    const float *dw = c->get_dwDataHead(getArbor(), getKernelIndex());
    if (getOutputPlasticIncr() && dw == NULL) {
@@ -84,8 +82,7 @@ int MomentumConnTestProbe::outputState(double timed) {
       if (fabs(((double)(wObserved - wCorrect)) / timed) > 1e-4) {
          int y = kyPos(k, nxp, nyp, nfp);
          int f = featureIndex(k, nxp, nyp, nfp);
-         outputStream->printf(
-               "        w = %f, should be %f\n", (double)wObserved, (double)wCorrect);
+         output(0).printf("        w = %f, should be %f\n", (double)wObserved, (double)wCorrect);
          exit(-1);
       }
    }

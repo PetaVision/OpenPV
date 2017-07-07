@@ -204,6 +204,15 @@ int MPI_Waitall(int count, MPI_Request array_of_requests[], MPI_Status array_of_
  */
 double MPI_Wtime() { return clock() / CLOCKS_PER_SEC; }
 
+/**
+ * A stub for MPI_Comm_split when PV_USE_MPI is off. The new communicator is the same as
+ * the old communicator, and 0 is returned.
+ */
+int MPI_Comm_split(MPI_Comm comm, int color, int key, MPI_Comm *newcomm) {
+   *newcomm = comm;
+   return 0;
+}
+
 #else
 
 void pv_mpi_noop() {}

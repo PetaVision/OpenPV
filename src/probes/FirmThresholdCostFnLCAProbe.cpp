@@ -10,15 +10,15 @@
 
 namespace PV {
 
-FirmThresholdCostFnLCAProbe::FirmThresholdCostFnLCAProbe(const char *probeName, HyPerCol *hc) {
+FirmThresholdCostFnLCAProbe::FirmThresholdCostFnLCAProbe(const char *name, HyPerCol *hc) {
    initialize_base();
-   initFirmThresholdCostFnLCAProbe(probeName, hc);
+   initialize(name, hc);
 }
 
 FirmThresholdCostFnLCAProbe::FirmThresholdCostFnLCAProbe() { initialize_base(); }
 
-int FirmThresholdCostFnLCAProbe::communicateInitInfo() {
-   int status = FirmThresholdCostFnProbe::communicateInitInfo();
+int FirmThresholdCostFnLCAProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+   int status = FirmThresholdCostFnProbe::communicateInitInfo(message);
    assert(targetLayer);
    HyPerLCALayer *targetLCALayer = dynamic_cast<HyPerLCALayer *>(targetLayer);
    if (targetLCALayer == nullptr) {

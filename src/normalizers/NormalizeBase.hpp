@@ -33,7 +33,7 @@ class NormalizeBase : public BaseObject {
     * In particular, NormalizeGroup calls its group head's addConnToList
     * method from NormalizeGroup::communicateInitInfo method.
     */
-   virtual int communicateInitInfo();
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
 
    /**
     * The public interface for normalizing weights.
@@ -43,8 +43,6 @@ class NormalizeBase : public BaseObject {
     */
    int normalizeWeightsWrapper();
 
-   HyPerConn *getTargetConn();
-
    float getStrength() const { return strength; }
    // normalizeFromPostPerspective,rMinX,rMinY,normalize_cutoff moved to NormalizeMultiply
    bool getNormalizeArborsIndividuallyFlag() const { return normalizeArborsIndividually; }
@@ -52,7 +50,7 @@ class NormalizeBase : public BaseObject {
   protected:
    NormalizeBase();
    int initialize(const char *name, HyPerCol *hc);
-   virtual int setDescription();
+   virtual int setDescription() override;
 
    virtual void ioParam_strength(enum ParamsIOFlag ioFlag);
    virtual void ioParam_normalizeArborsIndividually(enum ParamsIOFlag ioFlag);
@@ -88,8 +86,7 @@ class NormalizeBase : public BaseObject {
 
    // Member variables
   protected:
-   HyPerConn **connectionList;
-   int numConnections;
+   std::vector<HyPerConn *> connectionList;
    float strength; // Value to normalize to; precise interpretation depends on normalization method
 
    bool normalizeArborsIndividually; // If true, each arbor is treated as its own connection.  If

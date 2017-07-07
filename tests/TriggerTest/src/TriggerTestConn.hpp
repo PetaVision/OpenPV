@@ -12,7 +12,7 @@ namespace PV {
 class TriggerTestConn : public PV::HyPerConn {
   public:
    TriggerTestConn(const char *name, HyPerCol *hc);
-   int virtual updateState(double time, double dt);
+   int virtual updateState(double time, double dt) override;
 }; // end class TriggerTestConn
 
 } // end namespace PV

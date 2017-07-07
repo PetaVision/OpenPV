@@ -13,27 +13,26 @@
 
 namespace PV {
 
-CloneKernelConnTestProbe::CloneKernelConnTestProbe(const char *probeName, HyPerCol *hc)
-      : StatsProbe() {
-   initCloneKernelConnTestProbe_base();
-   initCloneKernelConnTestProbe(probeName, hc);
+CloneKernelConnTestProbe::CloneKernelConnTestProbe(const char *name, HyPerCol *hc) : StatsProbe() {
+   initialize_base();
+   initialize(name, hc);
 }
 
-int CloneKernelConnTestProbe::initCloneKernelConnTestProbe_base() { return PV_SUCCESS; }
+int CloneKernelConnTestProbe::initialize_base() { return PV_SUCCESS; }
 
-int CloneKernelConnTestProbe::initCloneKernelConnTestProbe(const char *probeName, HyPerCol *hc) {
-   return initStatsProbe(probeName, hc);
+int CloneKernelConnTestProbe::initialize(const char *name, HyPerCol *hc) {
+   return StatsProbe::initialize(name, hc);
 }
 
 int CloneKernelConnTestProbe::outputState(double timed) {
    int status           = StatsProbe::outputState(timed);
-   Communicator *icComm = getTargetLayer()->getParent()->getCommunicator();
+   Communicator *icComm = parent->getCommunicator();
    const int rcvProc    = 0;
    if (icComm->commRank() != rcvProc) {
       return 0;
    }
 
-   for (int b = 0; b < getParent()->getNBatch(); b++) {
+   for (int b = 0; b < parent->getNBatch(); b++) {
       if (timed > 2.0) {
          FatalIf(!(fabsf(fMin[b]) < 1e-6f), "Test failed.\n");
          FatalIf(!(fabsf(fMax[b]) < 1e-6f), "Test failed.\n");

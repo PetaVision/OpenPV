@@ -13,29 +13,17 @@
 
 namespace PV {
 
-/**
- * @probeName
- * @hc
- */
-MPITestProbe::MPITestProbe(const char *probeName, HyPerCol *hc) : StatsProbe() {
-   initMPITestProbe(probeName, hc);
+MPITestProbe::MPITestProbe(const char *name, HyPerCol *hc) : StatsProbe() { initialize(name, hc); }
+
+int MPITestProbe::initialize_base() { return PV_SUCCESS; }
+
+int MPITestProbe::initialize(const char *name, HyPerCol *hc) {
+   return StatsProbe::initialize(name, hc);
 }
 
-int MPITestProbe::initMPITestProbe_base() { return PV_SUCCESS; }
-
-int MPITestProbe::initMPITestProbe(const char *probeName, HyPerCol *hc) {
-   return initStatsProbe(probeName, hc);
-}
-
-/**
- * @time
- * @l
- */
 int MPITestProbe::outputState(double timed) {
-   int status           = StatsProbe::outputState(timed);
-   Communicator *icComm = getTargetLayer()->getParent()->getCommunicator();
-   const int rcvProc    = 0;
-   if (icComm->commRank() != rcvProc) {
+   int status = StatsProbe::outputState(timed);
+   if (mOutputStreams.empty()) {
       return status;
    }
    float tol = 1e-4f;
@@ -61,29 +49,34 @@ int MPITestProbe::outputState(double timed) {
    }
    float ave_global_xpos = (min_global_xpos + max_global_xpos) / 2.0f;
 
-   outputStream->printf(
-         "%s min_global_xpos==%f ave_global_xpos==%f max_global_xpos==%f",
-         getMessage(),
-         (double)min_global_xpos,
-         (double)ave_global_xpos,
-         (double)max_global_xpos);
-   output() << std::endl;
-   for (int b = 0; b < parent->getNBatch(); b++) {
+   for (int b = 0; b < (int)mOutputStreams.size(); b++) {
       if (timed > 3.0) {
+         output(b) << std::endl;
+         output(b).printf(
+               "%s min_global_xpos==%f ave_global_xpos==%f max_global_xpos==%f",
+               getMessage(),
+               (double)min_global_xpos,
+               (double)ave_global_xpos,
+               (double)max_global_xpos);
          FatalIf(
-               !((fMin[b] / min_global_xpos > (1 - tol))
-                 && (fMin[b] / min_global_xpos < (1 + tol))),
-               "Test failed.\n");
+               (fMin[b] / min_global_xpos <= (1 - tol)) or (fMin[b] / min_global_xpos >= (1 + tol)),
+               "%s fMin differs from %f.\n",
+               getDescription_c(),
+               (double)min_global_xpos);
          FatalIf(
-               !((fMax[b] / max_global_xpos > (1 - tol))
-                 && (fMax[b] / max_global_xpos < (1 + tol))),
-               "Test failed.\n");
+               (fMax[b] / max_global_xpos <= (1 - tol)) or (fMax[b] / max_global_xpos >= (1 + tol)),
+               "%s fMax differs from %f.\n",
+               getDescription_c(),
+               (double)max_global_xpos);
          FatalIf(
-               !((avg[b] / ave_global_xpos > (1 - tol)) && (avg[b] / ave_global_xpos < (1 + tol))),
-               "Test failed.\n");
+               (avg[b] / ave_global_xpos <= (1 - tol)) or (avg[b] / ave_global_xpos >= (1 + tol)),
+               "%s average differs from %f.\n",
+               getDescription_c(),
+               (double)ave_global_xpos);
       }
    }
 
    return status;
 }
-}
+
+} // end namespace PV

@@ -40,20 +40,20 @@ class Retina : public PV::HyPerLayer {
 
    Retina(const char *name, HyPerCol *hc);
    virtual ~Retina();
-   virtual int communicateInitInfo();
-   virtual int allocateDataStructures();
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
+   virtual int allocateDataStructures() override;
 
    int setRetinaParams(PVParams *p);
 
-   virtual int updateState(double time, double dt);
+   virtual int updateState(double time, double dt) override;
 
-   virtual bool activityIsSpiking() { return spikingFlag; }
+   virtual bool activityIsSpiking() override { return spikingFlag; }
 
   protected:
    Retina();
    int initialize(const char *name, HyPerCol *hc);
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_InitVType(enum ParamsIOFlag ioFlag);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_InitVType(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_spikingFlag(enum ParamsIOFlag ioFlag);
    virtual void ioParam_foregroundRate(enum ParamsIOFlag ioFlag);
    virtual void ioParam_backgroundRate(enum ParamsIOFlag ioFlag);
@@ -63,10 +63,10 @@ class Retina : public PV::HyPerLayer {
    virtual void ioParam_burstDuration(enum ParamsIOFlag ioFlag);
    virtual void ioParam_refractoryPeriod(enum ParamsIOFlag ioFlag);
    virtual void ioParam_absRefractoryPeriod(enum ParamsIOFlag ioFlag);
-   virtual int allocateV();
-   virtual int registerData(Checkpointer *checkpointer);
-   virtual int initializeV();
-   virtual int initializeActivity();
+   virtual int allocateV() override;
+   virtual int registerData(Checkpointer *checkpointer) override;
+   virtual int initializeV() override;
+   virtual int initializeActivity() override;
    virtual int readStateFromCheckpoint(Checkpointer *checkpointer) override;
    virtual int readRandStateFromCheckpoint(Checkpointer *checkpointer);
 

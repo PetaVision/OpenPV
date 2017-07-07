@@ -63,7 +63,7 @@ class BaseConnection : public BaseObject {
     * communicateInitInfo() is called by passing a CommunicateInitInfoMessage to respond(), which is
     * usually done in HyPerCol::run.
     */
-   virtual int communicateInitInfo() override;
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
 
    /**
     * initializeState is used to set the initial values of the connection.
@@ -211,18 +211,6 @@ class BaseConnection : public BaseObject {
     * after it has already been set, or to call setPostLayerName() with a NULL argument.
     */
    void setPostLayerName(const char *postName);
-
-   /**
-    * Sets the presynaptic layer to the given layer.  It is an error to try to set preLayer
-    * after it has already been set, or to call setPreLayerName() with a NULL argument.
-    */
-   void setPreSynapticLayer(HyPerLayer *pre);
-
-   /**
-    * Sets the postsynaptic layer to the given layer.  It is an error to try to set postLayer
-    * after it has already been set, or to call setPostLayerName() with a NULL argument.
-    */
-   void setPostSynapticLayer(HyPerLayer *post);
 
    /**
     * Sets the channel to the indicated argument.  It is an error to try to change channels
@@ -459,7 +447,10 @@ class BaseConnection : public BaseObject {
    bool convertRateToSpikeCount; // Whether to check if pre-layer is spiking and, if it is not,
    // scale activity by dt to convert it to a spike count
    bool receiveGpu; // Whether to use GPU acceleration in updating post's GSyn
-   bool initializeFromCheckpointFlag;
+
+   // If this flag is set and HyPerCol sets initializeFromCheckpointDir, load initiali state
+   // from the initializeFromCheckpointDir directory.
+   bool initializeFromCheckpointFlag = true;
 
    BaseConnectionProbe **probes; // probes used to output data
    int numProbes;

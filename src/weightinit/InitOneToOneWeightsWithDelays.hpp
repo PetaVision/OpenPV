@@ -12,32 +12,33 @@
 
 namespace PV {
 
-class InitWeightsParams;
-class InitOneToOneWeightsWithDelaysParams;
-
 // TODO make InitOneToOneWeightsWithDelays a derived class of InitOneToOneWeights
-class InitOneToOneWeightsWithDelays : public PV::InitWeights {
+class InitOneToOneWeightsWithDelays : public InitWeights {
+  protected:
+   virtual void ioParam_weightInit(enum ParamsIOFlag ioFlag);
+
   public:
    InitOneToOneWeightsWithDelays(char const *name, HyPerCol *hc);
    virtual ~InitOneToOneWeightsWithDelays();
 
-   virtual int calcWeights(float *dataStart, int patchIndex, int arborId);
-   virtual InitWeightsParams *createNewWeightParams();
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+
+   virtual void calcWeights(float *dataStart, int patchIndex, int arborId) override;
    void calcOtherParams(int patchIndex);
 
   protected:
    InitOneToOneWeightsWithDelays();
    int initialize(char const *name, HyPerCol *hc);
-   int createOneToOneConnectionWithDelays(
-         float *dataStart,
-         int patchIndex,
-         float iWeight,
-         InitWeightsParams *weightParamPtr,
-         int arborId);
+   void
+   createOneToOneConnectionWithDelays(float *dataStart, int patchIndex, float iWeight, int arborId);
 
   private:
    int initialize_base();
-};
 
-} /* namespace PV */
-#endif /* INITONETOONEWEIGHTSWITHDELAYS_HPP_ */
+  protected:
+   float mWeightInit = 1.0f;
+}; // class InitOneToOneWeightsWightDelays
+
+} // end namespace PV
+
+#endif // INITONETOONEWEIGHTSWITHDELAYS_HPP_

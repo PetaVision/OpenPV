@@ -9,21 +9,23 @@
 #define INITGABORWEIGHTS_HPP_
 
 #include <weightinit/InitGauss2DWeights.hpp>
-#include <weightinit/InitWeights.hpp>
 
 namespace PV {
 
-class InitWeightsParams;
-class InitGaborWeightsParams;
-
 class InitGaborWeights : public PV::InitGauss2DWeights {
+  protected:
+   virtual void ioParam_lambda(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_phi(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_invert(enum ParamsIOFlag ioFlag);
+
   public:
    InitGaborWeights(char const *name, HyPerCol *hc);
    virtual ~InitGaborWeights();
 
-   virtual int calcWeights(float *dataStart, int patchIndex, int arborId);
-   virtual InitWeightsParams *createNewWeightParams();
-   void calcOtherParams(PVPatch *patch, int patchIndex);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+
+   virtual void calcWeights(float *dataStart, int patchIndex, int arborId) override;
+   void calcOtherParams(int patchIndex);
 
   protected:
    InitGaborWeights();
@@ -31,7 +33,13 @@ class InitGaborWeights : public PV::InitGauss2DWeights {
 
   private:
    int initialize_base();
-   int gaborWeights(float *dataStart, InitGaborWeightsParams *weightParamPtr);
+   void gaborWeights(float *dataStart);
+
+  private:
+   // params variables:
+   int mLambda;
+   float mPhi;
+   bool mInvert;
 };
 
 } /* namespace PV */

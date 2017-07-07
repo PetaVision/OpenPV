@@ -12,7 +12,7 @@ class AvgPoolTestLayer : public PV::ANNLayer {
    //   virtual int checkpointWrite(const char * cpDir);
 
   protected:
-   int updateState(double timef, double dt);
+   int updateState(double timef, double dt) override;
 
   private:
 }; // end class AvgPoolTestLayer

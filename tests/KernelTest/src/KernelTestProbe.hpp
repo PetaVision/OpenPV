@@ -14,16 +14,16 @@ namespace PV {
 
 class KernelTestProbe : public PV::StatsProbe {
   public:
-   KernelTestProbe(const char *probeName, HyPerCol *hc);
+   KernelTestProbe(const char *name, HyPerCol *hc);
 
-   virtual int outputState(double timed);
+   virtual int outputState(double timed) override;
 
   protected:
-   int initKernelTestProbe(const char *probeName, HyPerCol *hc);
-   void ioParam_buffer(enum ParamsIOFlag ioFlag);
+   int initialize(const char *name, HyPerCol *hc);
+   void ioParam_buffer(enum ParamsIOFlag ioFlag) override;
 
   private:
-   int initKernelTestProbe_base();
+   int initialize_base();
 };
 
 } /* namespace PV */

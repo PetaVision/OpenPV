@@ -10,17 +10,17 @@
 
 namespace PV {
 
-L0NormProbe::L0NormProbe() : AbstractNormProbe() { initL0NormProbe_base(); }
+L0NormProbe::L0NormProbe() : AbstractNormProbe() { initialize_base(); }
 
-L0NormProbe::L0NormProbe(const char *probeName, HyPerCol *hc) : AbstractNormProbe() {
-   initL0NormProbe_base();
-   initL0NormProbe(probeName, hc);
+L0NormProbe::L0NormProbe(const char *name, HyPerCol *hc) : AbstractNormProbe() {
+   initialize_base();
+   initialize(name, hc);
 }
 
 L0NormProbe::~L0NormProbe() {}
 
-int L0NormProbe::initL0NormProbe(const char *probeName, HyPerCol *hc) {
-   return initAbstractNormProbe(probeName, hc);
+int L0NormProbe::initialize(const char *name, HyPerCol *hc) {
+   return AbstractNormProbe::initialize(name, hc);
 }
 
 int L0NormProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -30,12 +30,11 @@ int L0NormProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void L0NormProbe::ioParam_nnzThreshold(enum ParamsIOFlag ioFlag) {
-   getParent()->parameters()->ioParamValue(
-         ioFlag, getName(), "nnzThreshold", &nnzThreshold, (float)0);
+   parent->parameters()->ioParamValue(ioFlag, getName(), "nnzThreshold", &nnzThreshold, (float)0);
 }
 
 double L0NormProbe::getValueInternal(double timevalue, int index) {
-   if (index < 0 || index >= getParent()->getNBatch()) {
+   if (index < 0 || index >= parent->getNBatch()) {
       return PV_FAILURE;
    }
    PVLayerLoc const *loc = getTargetLayer()->getLayerLoc();

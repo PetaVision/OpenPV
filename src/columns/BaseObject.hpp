@@ -39,7 +39,8 @@ class HyPerCol;
 class BaseObject : public CheckpointerDataInterface {
   public:
    inline char const *getName() const { return name; }
-   inline HyPerCol *getParent() const { return parent; }
+   // No getParent method because we are refactoring away from having objects
+   // having access to their containing HyPerCol.
    char const *getKeyword() const;
    virtual int respond(std::shared_ptr<BaseMessage const> message) override; // TODO: should return
    // enum with values
@@ -92,10 +93,10 @@ class BaseObject : public CheckpointerDataInterface {
    int respondCopyInitialStateToGPUMessage(CopyInitialStateToGPUMessage const *message);
    int respondCleanup(CleanupMessage const *message);
 
-   virtual int communicateInitInfo() { return PV_SUCCESS; }
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) { return PV_SUCCESS; }
    virtual int allocateDataStructures() { return PV_SUCCESS; }
    virtual int initializeState() { return PV_SUCCESS; }
-   virtual int readStateFromCheckpoint(Checkpointer *checkpointer) { return PV_SUCCESS; }
+   virtual int readStateFromCheckpoint(Checkpointer *checkpointer) override { return PV_SUCCESS; }
    virtual int copyInitialStateToGPU() { return PV_SUCCESS; }
    virtual int cleanup() { return PV_SUCCESS; }
 
@@ -123,7 +124,7 @@ class BaseObject : public CheckpointerDataInterface {
    bool mDataStructuresAllocatedFlag = false;
    bool mInitialValuesSetFlag        = false;
 #ifdef PV_USE_CUDA
-   bool mUsingGPUFlag                = false;
+   bool mUsingGPUFlag = false;
 #endif // PV_USE_CUDA
 
   private:

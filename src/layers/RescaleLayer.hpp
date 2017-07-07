@@ -15,10 +15,10 @@ class RescaleLayer : public CloneVLayer {
   public:
    RescaleLayer(const char *name, HyPerCol *hc);
    virtual ~RescaleLayer();
-   virtual int communicateInitInfo();
-   virtual int allocateV();
-   virtual int updateState(double timef, double dt);
-   virtual int setActivity();
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
+   virtual int allocateV() override;
+   virtual int updateState(double timef, double dt) override;
+   virtual int setActivity() override;
 
    float getTargetMax() { return targetMax; }
    float getTargetMin() { return targetMin; }
@@ -30,7 +30,7 @@ class RescaleLayer : public CloneVLayer {
   protected:
    RescaleLayer();
    int initialize(const char *name, HyPerCol *hc);
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    void ioParam_targetMax(enum ParamsIOFlag ioFlag);
    void ioParam_targetMin(enum ParamsIOFlag ioFlag);

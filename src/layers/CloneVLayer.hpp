@@ -15,7 +15,7 @@ namespace PV {
 class CloneVLayer : public PV::HyPerLayer {
   public:
    CloneVLayer(const char *name, HyPerCol *hc);
-   virtual int communicateInitInfo() override;
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
    virtual int allocateDataStructures() override;
    virtual int requireChannel(int channelNeeded, int *numChannelsResult) override;
    virtual int allocateGSyn() override;

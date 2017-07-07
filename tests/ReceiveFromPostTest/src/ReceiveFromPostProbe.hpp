@@ -11,18 +11,18 @@ namespace PV {
 
 class ReceiveFromPostProbe : public PV::StatsProbe {
   public:
-   ReceiveFromPostProbe(const char *probeName, HyPerCol *hc);
+   ReceiveFromPostProbe(const char *name, HyPerCol *hc);
 
-   virtual int outputState(double timed);
+   virtual int outputState(double timed) override;
 
   protected:
-   int initReceiveFromPostProbe(const char *probeName, HyPerCol *hc);
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-   void ioParam_buffer(enum ParamsIOFlag ioFlag);
+   int initialize(const char *name, HyPerCol *hc);
+   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   void ioParam_buffer(enum ParamsIOFlag ioFlag) override;
    void ioParam_tolerance(enum ParamsIOFlag ioFlag);
 
   private:
-   int initReceiveFromPostProbe_base();
+   int initialize_base();
 
    // Member variables
   protected:

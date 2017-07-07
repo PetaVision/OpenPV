@@ -271,7 +271,7 @@ ANNLayer "L9" = {
 };
 
 // HyPerConn connections: 
-HyPerConn "Retina to L0" = {
+HyPerConn "RetinaToL0" = {
    preLayerName = "Retina";
    postLayerName = "L0";
    numAxonalArbors=1;
@@ -317,7 +317,7 @@ HyPerConn "Retina to L0" = {
    updateGSynFromPostPerspective = false;
 };
 
-HyPerConn "Retina to L1" = {
+HyPerConn "RetinaToL1" = {
    preLayerName = "Retina";
    postLayerName = "L1";
    numAxonalArbors=1;
@@ -365,7 +365,7 @@ HyPerConn "Retina to L1" = {
    updateGSynFromPostPerspective = false;
 };
 
-HyPerConn "Retina to L2" = {
+HyPerConn "RetinaToL2" = {
    preLayerName = "Retina";
    postLayerName = "L2";
    numAxonalArbors=1;
@@ -398,7 +398,7 @@ HyPerConn "Retina to L2" = {
    updateGSynFromPostPerspective = false;
 };
 
-// HyPerConn "Retina to L3" = {
+// HyPerConn "RetinaToL3" = {
 //    preLayerName = "Retina";
 //    postLayerName = "L3";
 //    numAxonalArbors=1;
@@ -454,7 +454,7 @@ HyPerConn "Retina to L2" = {
 
 // };
 // 
-// HyPerConn "Retina to L4" = {
+// HyPerConn "RetinaToL4" = {
 //    preLayerName = "Retina";
 //    postLayerName = "L4";
 //    numAxonalArbors=1;
@@ -509,7 +509,7 @@ HyPerConn "Retina to L2" = {
 // };
 
 // shared-weights connections: 
-HyPerConn "Retina to L5" = {
+HyPerConn "RetinaToL5" = {
    preLayerName = "Retina";
    postLayerName = "L5";
    numAxonalArbors=1;
@@ -554,7 +554,7 @@ HyPerConn "Retina to L5" = {
    updateGSynFromPostPerspective = false;
 };
 
-HyPerConn "Retina to L6" = {
+HyPerConn "RetinaToL6" = {
    preLayerName = "Retina";
    postLayerName = "L6";
    numAxonalArbors=1;
@@ -603,7 +603,7 @@ HyPerConn "Retina to L6" = {
    updateGSynFromPostPerspective = false;
 };
 
-HyPerConn "Retina to L7" = {
+HyPerConn "RetinaToL7" = {
    preLayerName = "Retina";
    postLayerName = "L7";
    numAxonalArbors=1;
@@ -630,7 +630,7 @@ HyPerConn "Retina to L7" = {
    updateGSynFromPostPerspective = false;
 };
 
-HyPerConn "Retina to L8" = {
+HyPerConn "RetinaToL8" = {
    preLayerName = "Retina";
    postLayerName = "L8";
    numAxonalArbors=1;
@@ -682,7 +682,7 @@ HyPerConn "Retina to L8" = {
    updateGSynFromPostPerspective = false;
 };
 
-HyPerConn "Retina to L9" = {
+HyPerConn "RetinaToL9" = {
    preLayerName = "Retina";
    postLayerName = "L9";
    numAxonalArbors=1;
@@ -734,10 +734,10 @@ HyPerConn "Retina to L9" = {
 };
 
 // HyPerConnDebugInitWeights connections: 
-HyPerConnDebugInitWeights "Retina to L0 check" = {
+HyPerConnDebugInitWeights "RetinaToL0Check" = {
    preLayerName = "Retina";
    postLayerName = "L0";
-   copiedConn = "Retina to L0";
+   copiedConn = "RetinaToL0";
    numAxonalArbors=1;
    nxp = 9; 
    nyp = 9; 
@@ -780,10 +780,10 @@ HyPerConnDebugInitWeights "Retina to L0 check" = {
    updateGSynFromPostPerspective = false;
 };
 
-HyPerConnDebugInitWeights "Retina to L1 check" = {
+HyPerConnDebugInitWeights "RetinaToL1Check" = {
    preLayerName = "Retina";
    postLayerName = "L1";
-   copiedConn = "Retina to L1";
+   copiedConn = "RetinaToL1";
    numAxonalArbors=1;
    nxp = 9; 
    nyp = 9; 
@@ -828,10 +828,10 @@ HyPerConnDebugInitWeights "Retina to L1 check" = {
    updateGSynFromPostPerspective = false;
 };
 
-HyPerConnDebugInitWeights "Retina to L2 check" = {
+HyPerConnDebugInitWeights "RetinaToL2Check" = {
    preLayerName = "Retina";
    postLayerName = "L2";
-   copiedConn = "Retina to L2";
+   copiedConn = "RetinaToL2";
    numAxonalArbors=1;
    nxp = 9; 
    nyp = 9; 
@@ -861,10 +861,10 @@ HyPerConnDebugInitWeights "Retina to L2 check" = {
    updateGSynFromPostPerspective = false;
 };
 
-// HyPerConnDebugInitWeights "Retina to L3 check" = {
+// HyPerConnDebugInitWeights "RetinaToL3Check" = {
 //    preLayerName = "Retina";
 //    postLayerName = "L3";
-//    copiedConn = "Retina to L3";
+//    copiedConn = "RetinaToL3";
 //    numAxonalArbors=1;
 //    nxp = 9; 
 //    nyp = 9; 
@@ -913,10 +913,10 @@ HyPerConnDebugInitWeights "Retina to L2 check" = {
 //    updateGSynFromPostPerspective = false;
 // };
 // 
-// HyPerConnDebugInitWeights "Retina to L4 check" = {
+// HyPerConnDebugInitWeights "RetinaToL4Check" = {
 //    preLayerName = "Retina";
 //    postLayerName = "L4";
-//    copiedConn = "Retina to L4";
+//    copiedConn = "RetinaToL4";
 //    numAxonalArbors=1;
 //    nxp = 9; 
 //    nyp = 9; 
@@ -966,10 +966,10 @@ HyPerConnDebugInitWeights "Retina to L2 check" = {
 // };
 
 // KernelConnDebugInitWeights connections: 
-KernelConnDebugInitWeights "Retina to L5 check" = {
+KernelConnDebugInitWeights "RetinaToL5Check" = {
    preLayerName = "Retina";
    postLayerName = "L5";
-   copiedConn = "Retina to L5";
+   copiedConn = "RetinaToL5";
    numAxonalArbors=1;
    nxp = 9; 
    nyp = 9; 
@@ -1010,10 +1010,10 @@ KernelConnDebugInitWeights "Retina to L5 check" = {
    updateGSynFromPostPerspective = false;
 };
 
-KernelConnDebugInitWeights "Retina to L6 check" = {
+KernelConnDebugInitWeights "RetinaToL6Check" = {
    preLayerName = "Retina";
    postLayerName = "L6";
-   copiedConn = "Retina to L6";
+   copiedConn = "RetinaToL6";
    numAxonalArbors=1;
    nxp = 9; 
    nyp = 9; 
@@ -1058,10 +1058,10 @@ KernelConnDebugInitWeights "Retina to L6 check" = {
    updateGSynFromPostPerspective = false;
 };
 
-KernelConnDebugInitWeights "Retina to L7 check" = {
+KernelConnDebugInitWeights "RetinaToL7Check" = {
    preLayerName = "Retina";
    postLayerName = "L7";
-   copiedConn = "Retina to L7";
+   copiedConn = "RetinaToL7";
    numAxonalArbors=1;
    nxp = 9; 
    nyp = 9; 
@@ -1084,10 +1084,10 @@ KernelConnDebugInitWeights "Retina to L7 check" = {
    updateGSynFromPostPerspective = false;
 };
 
-KernelConnDebugInitWeights "Retina to L8 check" = {
+KernelConnDebugInitWeights "RetinaToL8Check" = {
    preLayerName = "Retina";
    postLayerName = "L8";
-   copiedConn = "Retina to L8";
+   copiedConn = "RetinaToL8";
    numAxonalArbors=1;
    nxp = 9; 
    nyp = 9; 
@@ -1127,10 +1127,10 @@ KernelConnDebugInitWeights "Retina to L8 check" = {
    updateGSynFromPostPerspective = false;
 };
 
-KernelConnDebugInitWeights "Retina to L9 check" = {
+KernelConnDebugInitWeights "RetinaToL9Check" = {
    preLayerName = "Retina";
    postLayerName = "L9";
-   copiedConn = "Retina to L9";
+   copiedConn = "RetinaToL9";
    numAxonalArbors=1;
    nxp = 9; 
    nyp = 9; 
@@ -1170,22 +1170,22 @@ KernelConnDebugInitWeights "Retina to L9 check" = {
    updateGSynFromPostPerspective = false;
 };
 
-StatsProbe "Retina Stats File" = {
+StatsProbe "Retina_Stats_File" = {
     targetLayer = "Retina";
     probeOutputFile = "Retina_Stats.txt";
     message = "Retina Stats File      ";
 };
-InitWeightTestProbe "L0 Stats File" = {
+InitWeightTestProbe "L0StatsFile" = {
     targetLayer = "L0";
     probeOutputFile = "L0_Stats.txt";
     message = "L0 Stats File          ";
 };
-InitWeightTestProbe "L1 Stats File" = {
+InitWeightTestProbe "L1StatsFile" = {
     targetLayer = "L1";
     probeOutputFile = "L1_Stats.txt";
     message = "L1 Stats File          ";
 };
-InitWeightTestProbe "L2 Stats File" = {
+InitWeightTestProbe "L2StatsFile" = {
     targetLayer = "L2";
     probeOutputFile = "L2_Stats.txt";
     message = "L2 Stats File          ";
@@ -1200,45 +1200,45 @@ InitWeightTestProbe "L2 Stats File" = {
 //     probeOutputFile = "L4_Stats.txt";
 //     message = "L4 Stats File          ";
 // };
-InitWeightTestProbe "L5 Stats File" = {
+InitWeightTestProbe "L5StatsFile" = {
     targetLayer = "L5";
     probeOutputFile = "L5_Stats.txt";
     message = "L5 Stats File          ";
 };
-InitWeightTestProbe "L6 Stats File" = {
+InitWeightTestProbe "L6StatsFile" = {
     targetLayer = "L6";
     probeOutputFile = "L6_Stats.txt";
     message = "L6 Stats File          ";
 };
-StatsProbe "L7 Stats File" = {
+StatsProbe "L7StatsFile" = {
     targetLayer = "L7";
     probeOutputFile = "L7_Stats.txt";
     message = "L7 Stats File          ";
 };
-InitWeightTestProbe "L8 Stats File" = {
+InitWeightTestProbe "L8StatsFile" = {
     targetLayer = "L8";
     probeOutputFile = "L8_Stats.txt";
     message = "L8 Stats File          ";
 };
-InitWeightTestProbe "L9 Stats File" = {
+InitWeightTestProbe "L9StatsFile" = {
     targetLayer = "L9";
     probeOutputFile = "L9_Stats.txt";
     message = "L9 Stats File          ";
 };
 
-StatsProbe "Retina Stats Screen" = {
+StatsProbe "Retina_Stats_Screen" = {
     targetLayer = "Retina";
     message = "Retina Stats Screen    ";
 };
-InitWeightTestProbe "L0 Stats Screen" = {
+InitWeightTestProbe "L0StatsScreen" = {
     targetLayer = "L0";
     message = "L0 Stats Screen        ";
 };
-InitWeightTestProbe "L1 Stats Screen" = {
+InitWeightTestProbe "L1StatsScreen" = {
     targetLayer = "L1";
     message = "L1 Stats Screen        ";
 };
-InitWeightTestProbe "L2 Stats Screen" = {
+InitWeightTestProbe "L2StatsScreen" = {
     targetLayer = "L2";
     message = "L2 Stats Screen        ";
 };
@@ -1250,23 +1250,23 @@ InitWeightTestProbe "L2 Stats Screen" = {
 //     targetLayer = "L4";
 //     message = "L4 Stats Screen        ";
 // };
-InitWeightTestProbe "L5 Stats Screen" = {
+InitWeightTestProbe "L5StatsScreen" = {
     targetLayer = "L5";
     message = "L5 Stats Screen        ";
 };
-InitWeightTestProbe "L6 Stats Screen" = {
+InitWeightTestProbe "L6StatsScreen" = {
     targetLayer = "L6";
     message = "L6 Stats Screen        ";
 };
-StatsProbe "L7 Stats Screen" = {
+StatsProbe "L7StatsScreen" = {
     targetLayer = "L7";
     message = "L7 Stats Screen        ";
 };
-InitWeightTestProbe "L8 Stats Screen" = {
+InitWeightTestProbe "L8StatsScreen" = {
     targetLayer = "L8";
     message = "L8 Stats Screen        ";
 };
-InitWeightTestProbe "L9 Stats Screen" = {
+InitWeightTestProbe "L9StatsScreen" = {
     targetLayer = "L9";
     message = "L9 Stats Screen        ";
 };

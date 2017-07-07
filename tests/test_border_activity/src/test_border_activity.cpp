@@ -52,9 +52,9 @@ int main(int argc, char *argv[]) {
 
    HyPerCol *hc = new HyPerCol("column", initObj);
 
-   const char *imageLayerName  = "test_border_activity image";
-   const char *retinaLayerName = "test_border_activity retina";
-   const char *l1LayerName     = "test_border_activity layer";
+   const char *imageLayerName  = "test_border_activity_image";
+   const char *retinaLayerName = "test_border_activity_retina";
+   const char *l1LayerName     = "test_border_activity_layer";
 
    PvpLayer *image = new PvpLayer(imageLayerName, hc);
    assert(image);
@@ -63,9 +63,9 @@ int main(int argc, char *argv[]) {
    ANNLayer *l1 = new ANNLayer(l1LayerName, hc);
    assert(l1);
 
-   HyPerConn *conn1 = new HyPerConn("test_border_activity connection 1", hc);
+   HyPerConn *conn1 = new HyPerConn("test_border_activity_connection1", hc);
    FatalIf(!(conn1), "Test failed.\n");
-   HyPerConn *conn2 = new HyPerConn("test_border_activity connection 2", hc);
+   HyPerConn *conn2 = new HyPerConn("test_border_activity_connection2", hc);
    FatalIf(!(conn2), "Test failed.\n");
 
 #ifdef DEBUG_OUTPUT

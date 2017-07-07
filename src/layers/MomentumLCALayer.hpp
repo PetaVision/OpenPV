@@ -40,8 +40,8 @@ class MomentumLCALayer : public PV::HyPerLCALayer {
    virtual int updateState(double time, double dt) override;
 
 #ifdef PV_USE_CUDA
-   virtual int updateStateGpu(double time, double dt);
-   virtual int allocateUpdateKernel();
+   virtual int updateStateGpu(double time, double dt) override;
+   virtual int allocateUpdateKernel() override;
 #endif
 
    float LCAMomentumRate;

@@ -94,8 +94,8 @@ int Retina::initialize(const char *name, HyPerCol *hc) {
    return status;
 }
 
-int Retina::communicateInitInfo() {
-   int status = HyPerLayer::communicateInitInfo();
+int Retina::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+   int status = HyPerLayer::communicateInitInfo(message);
    if (parent->getNBatch() != 1) {
       Fatal() << "Retina does not support batches yet, TODO\n";
    }
@@ -242,7 +242,8 @@ int Retina::readStateFromCheckpoint(Checkpointer *checkpointer) {
 }
 
 int Retina::readRandStateFromCheckpoint(Checkpointer *checkpointer) {
-   checkpointer->readNamedCheckpointEntry(std::string(name), std::string("rand_state.pvp"));
+   checkpointer->readNamedCheckpointEntry(
+         std::string(name), std::string("rand_state.pvp"), false /*not constant*/);
    return PV_SUCCESS;
 }
 

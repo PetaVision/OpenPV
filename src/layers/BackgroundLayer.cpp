@@ -32,9 +32,9 @@ int BackgroundLayer::initialize(const char *name, HyPerCol *hc) {
    return status_init;
 }
 
-int BackgroundLayer::communicateInitInfo() {
-   int status    = HyPerLayer::communicateInitInfo();
-   originalLayer = parent->getLayerFromName(originalLayerName);
+int BackgroundLayer::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+   int status    = HyPerLayer::communicateInitInfo(message);
+   originalLayer = message->lookup<HyPerLayer>(std::string(originalLayerName));
    if (originalLayer == NULL) {
       if (parent->columnId() == 0) {
          ErrorLog().printf(

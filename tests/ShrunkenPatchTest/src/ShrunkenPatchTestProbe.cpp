@@ -19,16 +19,16 @@ namespace PV {
  * @type
  * @msg
  */
-ShrunkenPatchTestProbe::ShrunkenPatchTestProbe(const char *probename, HyPerCol *hc) : StatsProbe() {
-   initShrunkenPatchTestProbe_base();
-   initShrunkenPatchTestProbe(probename, hc);
+ShrunkenPatchTestProbe::ShrunkenPatchTestProbe(const char *name, HyPerCol *hc) : StatsProbe() {
+   initialize_base();
+   initialize(name, hc);
 }
 
-int ShrunkenPatchTestProbe::initShrunkenPatchTestProbe_base() { return PV_SUCCESS; }
+int ShrunkenPatchTestProbe::initialize_base() { return PV_SUCCESS; }
 
-int ShrunkenPatchTestProbe::initShrunkenPatchTestProbe(const char *probename, HyPerCol *hc) {
+int ShrunkenPatchTestProbe::initialize(const char *name, HyPerCol *hc) {
    correctValues = NULL;
-   int status    = StatsProbe::initStatsProbe(probename, hc);
+   int status    = StatsProbe::initialize(name, hc);
    return status;
 }
 
@@ -42,12 +42,12 @@ int ShrunkenPatchTestProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 void ShrunkenPatchTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) { requireType(BufActivity); }
 
 void ShrunkenPatchTestProbe::ioParam_nxpShrunken(enum ParamsIOFlag ioFlag) {
-   getParent()->parameters()->ioParamValueRequired(ioFlag, getName(), "nxpShrunken", &nxpShrunken);
+   parent->parameters()->ioParamValueRequired(ioFlag, getName(), "nxpShrunken", &nxpShrunken);
    return;
 }
 
 void ShrunkenPatchTestProbe::ioParam_nypShrunken(enum ParamsIOFlag ioFlag) {
-   getParent()->parameters()->ioParamValueRequired(ioFlag, getName(), "nypShrunken", &nypShrunken);
+   parent->parameters()->ioParamValueRequired(ioFlag, getName(), "nypShrunken", &nypShrunken);
    return;
 }
 
@@ -100,7 +100,7 @@ int ShrunkenPatchTestProbe::outputState(double timed) {
          Fatal().printf(
                "ShrunkenPatchTestProbe \"%s\" error: nxpShrunken must be an integer multiple of "
                "layer \"%s\" nxScale=%d.\n",
-               probeName,
+               name,
                l->getName(),
                cell_size);
       }
@@ -143,7 +143,7 @@ int ShrunkenPatchTestProbe::outputState(double timed) {
                   l->getDescription_c(),
                   (double)buf[kex],
                   (double)correctValues[x],
-                  getTargetLayer()->getParent()->columnId(),
+                  parent->columnId(),
                   x,
                   y,
                   f);
@@ -154,8 +154,5 @@ int ShrunkenPatchTestProbe::outputState(double timed) {
    return status;
 }
 
-ShrunkenPatchTestProbe::~ShrunkenPatchTestProbe() {
-   // free(probeName);
-   free(correctValues);
-}
+ShrunkenPatchTestProbe::~ShrunkenPatchTestProbe() { free(correctValues); }
 }

@@ -9,19 +9,20 @@
 #define INITSPREADOVERARBORSWEIGHTS_HPP_
 
 #include "InitGauss2DWeights.hpp"
-#include "InitWeights.hpp"
 
 namespace PV {
 
-class InitSpreadOverArborsWeightsParams;
+class InitSpreadOverArborsWeights : public InitGauss2DWeights {
+  protected:
+   virtual void ioParam_weightInit(enum ParamsIOFlag ioFlag);
 
-class InitSpreadOverArborsWeights : public PV::InitGauss2DWeights {
   public:
    InitSpreadOverArborsWeights(char const *name, HyPerCol *hc);
    virtual ~InitSpreadOverArborsWeights();
-   virtual InitWeightsParams *createNewWeightParams();
 
-   virtual int calcWeights(/* PVPatch * patch */ float *dataStart, int patchIndex, int arborId);
+   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+
+   virtual void calcWeights(float *dataStart, int patchIndex, int arborId) override;
 
   protected:
    InitSpreadOverArborsWeights();
@@ -29,10 +30,10 @@ class InitSpreadOverArborsWeights : public PV::InitGauss2DWeights {
 
   private:
    int initialize_base();
-   int spreadOverArborsWeights(
-         /* PVPatch * patch */ float *dataStart,
-         int arborId,
-         InitSpreadOverArborsWeightsParams *weightParamPtr);
+   int spreadOverArborsWeights(float *dataStart, int arborId);
+
+  private:
+   float mWeightInit = 1.0f;
 };
 
 } /* namespace PV */

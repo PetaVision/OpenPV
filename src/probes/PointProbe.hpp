@@ -14,12 +14,12 @@ namespace PV {
 
 class PointProbe : public PV::LayerProbe {
   public:
-   PointProbe(const char *probeName, HyPerCol *hc);
+   PointProbe(const char *name, HyPerCol *hc);
    virtual ~PointProbe();
 
-   virtual int communicateInitInfo();
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
 
-   virtual int outputState(double timef);
+   virtual int outputState(double timef) override;
 
   protected:
    int xLoc;
@@ -28,19 +28,27 @@ class PointProbe : public PV::LayerProbe {
    int batchLoc;
 
    PointProbe();
-   int initialize(const char *probeName, HyPerCol *hc);
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   int initialize(const char *name, HyPerCol *hc);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_xLoc(enum ParamsIOFlag ioFlag);
    virtual void ioParam_yLoc(enum ParamsIOFlag ioFlag);
    virtual void ioParam_fLoc(enum ParamsIOFlag ioFlag);
    virtual void ioParam_batchLoc(enum ParamsIOFlag ioFlag);
-   virtual int writeState(double timef);
+
+   /**
+    * Overrides initOutputStreams. A process whose restricted region contains
+    * the indicated point has an mOutputStreams vector whose length is the
+    * local batch width. Other processes have an empty mOutputStreams vector.
+    */
+   virtual void initOutputStreams(const char *filename, Checkpointer *checkpointer) override;
+
+   virtual int writeState(double timevalue);
 
    /**
     * Overrides initNumValues() to set numValues to 2 (membrane potential and
     * activity)
     */
-   virtual int initNumValues();
+   virtual int initNumValues() override;
 
    /**
     * Implements calcValues for PointProbe.  probeValues[0] is the point's
@@ -53,10 +61,10 @@ class PointProbe : public PV::LayerProbe {
     * contain
     * the values.
     */
-   virtual int calcValues(double timevalue);
+   virtual int calcValues(double timevalue) override;
 
   private:
-   int initPointProbe_base();
+   int initialize_base();
 
    /**
     * A convenience method to return probeValues[0] (the membrane potential).

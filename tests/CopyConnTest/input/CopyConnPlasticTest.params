@@ -42,7 +42,7 @@ PvpLayer "Input" = {
 	displayPeriod                       = 0;
 };
 
-ANNLayer "OriginalConn Output" = {
+ANNLayer "OriginalConn_Output" = {
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 8;
@@ -63,7 +63,7 @@ ANNLayer "OriginalConn Output" = {
     VWidth                              = 0;
 };
 
-ANNLayer "CopyConn Output" = {
+ANNLayer "CopyConn_Output" = {
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 8;
@@ -86,7 +86,7 @@ ANNLayer "CopyConn Output" = {
 
 HyPerConn "OriginalConn" = {
     preLayerName                        = "Input";
-    postLayerName                       = "OriginalConn Output";
+    postLayerName                       = "OriginalConn_Output";
     channelCode                         = 0;
     delay                               = [0.000000];
     numAxonalArbors                     = 1;
@@ -131,7 +131,7 @@ HyPerConn "OriginalConn" = {
 
 CopyConn "CopyConn" = {
     preLayerName                        = "Input";
-    postLayerName                       = "CopyConn Output";
+    postLayerName                       = "CopyConn_Output";
     channelCode                         = 0;
     delay                               = [0.000000];
     convertRateToSpikeCount             = false;

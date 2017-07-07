@@ -13,21 +13,21 @@
 
 namespace PV {
 
-KernelTestProbe::KernelTestProbe(const char *probeName, HyPerCol *hc) : StatsProbe() {
-   initKernelTestProbe(probeName, hc);
+KernelTestProbe::KernelTestProbe(const char *name, HyPerCol *hc) : StatsProbe() {
+   initialize(name, hc);
 }
 
-int KernelTestProbe::initKernelTestProbe_base() { return PV_SUCCESS; }
+int KernelTestProbe::initialize_base() { return PV_SUCCESS; }
 
-int KernelTestProbe::initKernelTestProbe(const char *probeName, HyPerCol *hc) {
-   return initStatsProbe(probeName, hc);
+int KernelTestProbe::initialize(const char *name, HyPerCol *hc) {
+   return StatsProbe::initialize(name, hc);
 }
 
 void KernelTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) { requireType(BufActivity); }
 
 int KernelTestProbe::outputState(double timed) {
    int status           = StatsProbe::outputState(timed);
-   Communicator *icComm = getTargetLayer()->getParent()->getCommunicator();
+   Communicator *icComm = parent->getCommunicator();
    const int rcvProc    = 0;
    if (icComm->commRank() != rcvProc) {
       return 0;

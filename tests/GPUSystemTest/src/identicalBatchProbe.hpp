@@ -11,13 +11,13 @@ namespace PV {
 
 class identicalBatchProbe : public PV::StatsProbe {
   public:
-   identicalBatchProbe(const char *probeName, HyPerCol *hc);
+   identicalBatchProbe(const char *name, HyPerCol *hc);
 
-   virtual int outputState(double timed);
+   virtual int outputState(double timed) override;
 
   protected:
-   int initidenticalBatchProbe(const char *probeName, HyPerCol *hc);
-   void ioParam_buffer(enum ParamsIOFlag ioFlag);
+   int initidenticalBatchProbe(const char *name, HyPerCol *hc);
+   void ioParam_buffer(enum ParamsIOFlag ioFlag) override;
 
   private:
    int initidenticalBatchProbe_base();

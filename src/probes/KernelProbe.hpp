@@ -18,14 +18,14 @@ class KernelProbe : public BaseHyPerConnProbe {
   public:
    KernelProbe(const char *probename, HyPerCol *hc);
    virtual ~KernelProbe();
-   virtual int communicateInitInfo();
-   virtual int allocateDataStructures();
-   virtual int outputState(double timef);
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
+   virtual int allocateDataStructures() override;
+   virtual int outputState(double timef) override;
 
   protected:
    KernelProbe(); // Default constructor, can only be called by derived classes
    int initialize(const char *probename, HyPerCol *hc);
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_kernelIndex(enum ParamsIOFlag ioFlag);
    virtual void ioParam_arborId(enum ParamsIOFlag ioFlag);
    virtual void ioParam_outputWeights(enum ParamsIOFlag ioFlag);
@@ -33,9 +33,9 @@ class KernelProbe : public BaseHyPerConnProbe {
    virtual void ioParam_outputPatchIndices(enum ParamsIOFlag ioFlag);
    int patchIndices(HyPerConn *conn);
 
-   virtual int initNumValues();
+   virtual int initNumValues() override;
 
-   virtual int calcValues(double timevalue) { return PV_FAILURE; }
+   virtual int calcValues(double timevalue) override { return PV_FAILURE; }
 
    int getKernelIndex() { return kernelIndex; }
    int getArbor() { return arborID; }

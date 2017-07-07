@@ -11,16 +11,16 @@ namespace PV {
 
 class AssertZerosProbe : public PV::StatsProbe {
   public:
-   AssertZerosProbe(const char *probeName, HyPerCol *hc);
+   AssertZerosProbe(const char *name, HyPerCol *hc);
 
-   virtual int outputState(double timed);
+   virtual int outputState(double timed) override;
 
   protected:
-   int initAssertZerosProbe(const char *probeName, HyPerCol *hc);
-   void ioParam_buffer(enum ParamsIOFlag ioFlag);
+   int initialize(const char *name, HyPerCol *hc);
+   void ioParam_buffer(enum ParamsIOFlag ioFlag) override;
 
   private:
-   int initAssertZerosProbe_base();
+   int initialize_base();
 
 }; // end class AssertZerosProbe
 

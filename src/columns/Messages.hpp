@@ -25,6 +25,17 @@ class CommunicateInitInfoMessage : public BaseMessage {
       setMessageType("CommunicateInitInfo");
       mHierarchy = hierarchy;
    }
+   template <typename T>
+   T *lookup(std::string const &name) const {
+      auto search = mHierarchy.find(name);
+      if (search == mHierarchy.end()) {
+         return nullptr;
+      }
+      else {
+         T *result = dynamic_cast<T *>(search->second);
+         return result;
+      }
+   }
    std::map<std::string, Observer *> mHierarchy;
 };
 

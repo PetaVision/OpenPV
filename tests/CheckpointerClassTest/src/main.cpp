@@ -57,8 +57,9 @@ int main(int argc, char *argv[]) {
    auto integerCheckpointEntry = std::make_shared<PV::CheckpointEntryData<int>>(
          std::string("integer"), mpiBlock, &integerCheckpoint, (size_t)1, true /*broadcasting*/);
 
-   checkpointer->registerCheckpointEntry(floatingpointCheckpointEntry);
-   checkpointer->registerCheckpointEntry(integerCheckpointEntry);
+   checkpointer->registerCheckpointEntry(
+         floatingpointCheckpointEntry, false /*treat as non-constant*/);
+   checkpointer->registerCheckpointEntry(integerCheckpointEntry, false /*treat as non-constant*/);
 
    checkpointer->checkpointWrite(0.0);
    checkpointer->checkpointWrite(1.0);
@@ -86,8 +87,9 @@ int main(int argc, char *argv[]) {
    checkpointReadDir.append("/Checkpoint04");
    arguments.setStringArgument("CheckpointReadDirectory", checkpointReadDir);
    checkpointer = new PV::Checkpointer("checkpointer", mpiBlock, &arguments);
-   checkpointer->registerCheckpointEntry(floatingpointCheckpointEntry);
-   checkpointer->registerCheckpointEntry(integerCheckpointEntry);
+   checkpointer->registerCheckpointEntry(
+         floatingpointCheckpointEntry, false /*treat as non-constant*/);
+   checkpointer->registerCheckpointEntry(integerCheckpointEntry, false /*treat as non-constant*/);
 
    // Read the values in from checkpoint.
    checkpointer->checkpointRead(&readTime, &readStep);

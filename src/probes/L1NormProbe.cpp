@@ -12,21 +12,21 @@
 
 namespace PV {
 
-L1NormProbe::L1NormProbe() : AbstractNormProbe() { initL1NormProbe_base(); }
+L1NormProbe::L1NormProbe() : AbstractNormProbe() { initialize_base(); }
 
-L1NormProbe::L1NormProbe(const char *probeName, HyPerCol *hc) : AbstractNormProbe() {
-   initL1NormProbe_base();
-   initL1NormProbe(probeName, hc);
+L1NormProbe::L1NormProbe(const char *name, HyPerCol *hc) : AbstractNormProbe() {
+   initialize_base();
+   initialize(name, hc);
 }
 
 L1NormProbe::~L1NormProbe() {}
 
-int L1NormProbe::initL1NormProbe(const char *probeName, HyPerCol *hc) {
-   return initAbstractNormProbe(probeName, hc);
+int L1NormProbe::initialize(const char *name, HyPerCol *hc) {
+   return AbstractNormProbe::initialize(name, hc);
 }
 
 double L1NormProbe::getValueInternal(double timevalue, int index) {
-   if (index < 0 || index >= getParent()->getNBatch()) {
+   if (index < 0 || index >= parent->getNBatch()) {
       return PV_FAILURE;
    }
    PVLayerLoc const *loc = getTargetLayer()->getLayerLoc();

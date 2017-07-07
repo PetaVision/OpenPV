@@ -182,17 +182,22 @@ class Checkpointer : public Subject {
          std::string const &dataName,
          T *dataPointer,
          size_t numValues,
-         bool broadcast);
+         bool broadcast,
+         bool constantEntireRun);
 
    bool registerCheckpointEntry(
          std::shared_ptr<CheckpointEntry> checkpointEntry,
-         bool constantEntireRun = false);
+         bool constantEntireRun);
 
    void registerTimer(Timer const *timer);
    virtual void addObserver(Observer *observer, BaseMessage const &message) override;
 
-   void readNamedCheckpointEntry(std::string const &objName, std::string const &dataName);
-   void readNamedCheckpointEntry(std::string const &checkpointEntryName);
+   void readNamedCheckpointEntry(
+         std::string const &objName,
+         std::string const &dataName,
+         bool constantEntireRun);
+   void
+   readNamedCheckpointEntry(std::string const &checkpointEntryName, bool constantEntireRun = false);
    void readStateFromCheckpoint();
    void checkpointRead(double *simTimePointer, long int *currentStepPointer);
    void checkpointWrite(double simTime);
@@ -213,9 +218,6 @@ class Checkpointer : public Subject {
    std::string const &getCheckpointReadDirectory() const { return mCheckpointReadDirectory; }
    char const *getLastCheckpointDir() const { return mLastCheckpointDir; }
    char const *getInitializeFromCheckpointDir() const { return mInitializeFromCheckpointDir; }
-   bool getDefaultInitializeFromCheckpointFlag() const {
-      return mDefaultInitializeFromCheckpointFlag;
-   }
    std::string const &getBlockDirectoryName() const { return mBlockDirectoryName; }
 
   private:
@@ -274,7 +276,6 @@ class Checkpointer : public Subject {
    int mNumCheckpointsKept                                                 = 2;
    char *mLastCheckpointDir                                                = nullptr;
    char *mInitializeFromCheckpointDir                                      = nullptr;
-   bool mDefaultInitializeFromCheckpointFlag                               = false;
    std::string mCheckpointReadDirectory;
    int mCheckpointSignal                = 0;
    long int mNextCheckpointStep         = 0L; // kept only for consistency with HyPerCol

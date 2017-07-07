@@ -20,7 +20,7 @@ class RescaleConn : public IdentConn {
   protected:
    RescaleConn();
    int initialize(char const *name, HyPerCol *hc);
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    /**
     * List of parameters needed from the HyPerConn class
@@ -37,7 +37,7 @@ class RescaleConn : public IdentConn {
    /** @} */
    // End of parameters needed from the RescaleConn class.
 
-   virtual int deliverPresynapticPerspective(PVLayerCube const *activity, int arborID);
+   virtual int deliverPresynapticPerspective(PVLayerCube const *activity, int arborID) override;
 
   private:
    int initialize_base();

@@ -7,11 +7,11 @@ namespace PV {
 class ImageOffsetTestLayer : public PV::ImageLayer {
   public:
    ImageOffsetTestLayer(const char *name, HyPerCol *hc);
-   virtual double getDeltaUpdateTime();
+   virtual double getDeltaUpdateTime() override;
 
   protected:
-   int updateState(double timef, double dt);
-   bool readyForNextFile();
+   int updateState(double timef, double dt) override;
+   bool readyForNextFile() override;
 };
 
 } /* namespace PV */

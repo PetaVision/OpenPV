@@ -20,29 +20,29 @@ class privateTransposeConn : public HyPerConn {
          HyPerConn *parentConn,
          bool needWeights = true);
    virtual ~privateTransposeConn();
-   virtual int communicateInitInfo();
-   virtual int allocateDataStructures();
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
+   virtual int allocateDataStructures() override;
    inline HyPerConn *getOriginalConn() { return postConn; }
 
-   virtual bool needUpdate(double timed, double dt);
-   virtual int updateState(double time, double dt);
-   virtual double computeNewWeightUpdateTime(double time, double currentUpdateTime);
-   virtual int finalizeUpdate(double time, double dt);
+   virtual bool needUpdate(double timed, double dt) override;
+   virtual int updateState(double time, double dt) override;
+   virtual double computeNewWeightUpdateTime(double time, double currentUpdateTime) override;
+   virtual int finalizeUpdate(double time, double dt) override;
 
-   virtual int deliver();
+   virtual int deliver() override;
 
   protected:
    int initialize(const char *name, HyPerCol *hc, HyPerConn *parentConn, bool needWeights);
-   virtual int setDescription();
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-   virtual int setPatchSize();
+   virtual int setDescription() override;
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int setPatchSize() override;
    virtual int setNeededRNGSeeds() { return 0; }
-   virtual int setInitialValues();
-   virtual PVPatch ***initializeWeights(PVPatch ***arbors, float **dataStart);
+   virtual int setInitialValues() override;
+   virtual PVPatch ***initializeWeights(PVPatch ***arbors, float **dataStart) override;
    int transpose(int arborId);
-   virtual int reduceKernels(int arborID);
-   virtual int initializeDelays(const float *fDelayArray, int size);
-   virtual int constructWeights();
+   virtual int reduceKernels(int arborID) override;
+   virtual int initializeDelays(const float *fDelayArray, int size) override;
+   virtual int constructWeights() override;
 
   private:
    int transposeSharedWeights(int arborId);

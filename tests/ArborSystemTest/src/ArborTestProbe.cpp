@@ -13,17 +13,17 @@
 
 namespace PV {
 
-ArborTestProbe::ArborTestProbe(const char *probeName, HyPerCol *hc) : StatsProbe() {
-   initArborTestProbe_base();
-   initArborTestProbe(probeName, hc);
+ArborTestProbe::ArborTestProbe(const char *name, HyPerCol *hc) : StatsProbe() {
+   initialize_base();
+   initialize(name, hc);
 }
 
 ArborTestProbe::~ArborTestProbe() {}
 
-int ArborTestProbe::initArborTestProbe_base() { return PV_SUCCESS; }
+int ArborTestProbe::initialize_base() { return PV_SUCCESS; }
 
-int ArborTestProbe::initArborTestProbe(const char *probeName, HyPerCol *hc) {
-   return initStatsProbe(probeName, hc);
+int ArborTestProbe::initialize(const char *name, HyPerCol *hc) {
+   return StatsProbe::initialize(name, hc);
 }
 
 void ArborTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
@@ -55,12 +55,12 @@ void ArborTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
 
 int ArborTestProbe::outputState(double timed) {
    int status           = StatsProbe::outputState(timed);
-   Communicator *icComm = getTargetLayer()->getParent()->getCommunicator();
+   Communicator *icComm = parent->getCommunicator();
    const int rcvProc    = 0;
    if (icComm->commRank() != rcvProc) {
       return 0;
    }
-   for (int b = 0; b < getParent()->getNBatch(); b++) {
+   for (int b = 0; b < parent->getNBatch(); b++) {
       if (timed == 1.0) {
          FatalIf(!((avg[b] > 0.2499f) && (avg[b] < 0.2501f)), "Test failed.\n");
       }

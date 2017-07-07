@@ -18,8 +18,8 @@ class NormalizeSum : public PV::NormalizeMultiply {
    NormalizeSum(const char *name, HyPerCol *hc);
    virtual ~NormalizeSum();
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-   virtual int normalizeWeights();
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int normalizeWeights() override;
 
   protected:
    NormalizeSum();

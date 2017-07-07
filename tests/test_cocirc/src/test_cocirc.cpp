@@ -21,31 +21,31 @@ int check_cocirc_vs_hyper(HyPerConn *cHyPer, HyPerConn *cKernel, int kPre, int a
 
 int main(int argc, char *argv[]) {
    PV_Init *initObj = new PV_Init(&argc, &argv, false /*allowUnrecognizedArguments*/);
-   PV::HyPerCol *hc = new PV::HyPerCol("test_cocirc column", initObj);
+   PV::HyPerCol *hc = new PV::HyPerCol("test_cocirc_column", initObj);
 
-   const char *preLayerName  = "test_cocirc pre";
-   const char *postLayerName = "test_cocirc post";
+   const char *preLayerName  = "test_cocirc_pre";
+   const char *postLayerName = "test_cocirc_post";
 
    PV::Example *pre = new PV::Example(preLayerName, hc);
    FatalIf(!(pre), "Test failed.\n");
    PV::Example *post = new PV::Example(postLayerName, hc);
    FatalIf(!(post), "Test failed.\n");
-   PV::HyPerConn *cHyPer = new HyPerConn("test_cocirc hyperconn", hc);
+   PV::HyPerConn *cHyPer = new HyPerConn("test_cocirc_hyperconn", hc);
    FatalIf(!(cHyPer), "Test failed.\n");
-   PV::HyPerConn *cCocirc = new HyPerConn("test_cocirc cocircconn", hc);
+   PV::HyPerConn *cCocirc = new HyPerConn("test_cocirc_cocircconn", hc);
    FatalIf(!(cCocirc), "Test failed.\n");
 
-   PV::Example *pre2 = new PV::Example("test_cocirc pre 2", hc);
+   PV::Example *pre2 = new PV::Example("test_cocirc_pre2", hc);
    FatalIf(!(pre2), "Test failed.\n");
-   PV::Example *post2 = new PV::Example("test_cocirc post 2", hc);
+   PV::Example *post2 = new PV::Example("test_cocirc_post2", hc);
    FatalIf(!(post2), "Test failed.\n");
-   PV::HyPerConn *cHyPer1to2 = new HyPerConn("test_cocirc hyperconn 1 to 2", hc);
+   PV::HyPerConn *cHyPer1to2 = new HyPerConn("test_cocirc_hyperconn1to2", hc);
    FatalIf(!(cHyPer1to2), "Test failed.\n");
-   PV::HyPerConn *cCocirc1to2 = new HyPerConn("test_cocirc cocircconn 1 to 2", hc);
+   PV::HyPerConn *cCocirc1to2 = new HyPerConn("test_cocirc_cocircconn1to2", hc);
    FatalIf(!(cCocirc1to2), "Test failed.\n");
-   PV::HyPerConn *cHyPer2to1 = new HyPerConn("test_cocirc hyperconn 2 to 1", hc);
+   PV::HyPerConn *cHyPer2to1 = new HyPerConn("test_cocirc_hyperconn2to1", hc);
    FatalIf(!(cHyPer2to1), "Test failed.\n");
-   PV::HyPerConn *cCocirc2to1 = new HyPerConn("test_cocirc cocircconn 2 to 1", hc);
+   PV::HyPerConn *cCocirc2to1 = new HyPerConn("test_cocirc_cocircconn2to1", hc);
    FatalIf(!(cCocirc2to1), "Test failed.\n");
 
    ensureDirExists(hc->getCommunicator()->getLocalMPIBlock(), hc->getOutputPath());
@@ -119,9 +119,9 @@ int check_cocirc_vs_hyper(HyPerConn *cHyPer, HyPerConn *cKernel, int kPre, int a
          test_cond = cocircWeights[k] - hyperWeights[k];
          if (fabsf(test_cond) > 0.001f) {
             const char *cHyper_filename = "cocirc_hyper.txt";
-            cHyPer->writeTextWeights(cHyper_filename, kPre);
+            cHyPer->writeTextWeights(cHyper_filename, false /*verifyWrites*/, kPre);
             const char *cKernel_filename = "cocirc_cocirc.txt";
-            cKernel->writeTextWeights(cKernel_filename, kPre);
+            cKernel->writeTextWeights(cKernel_filename, false /*verifyWrites*/, kPre);
          }
          FatalIf(!(fabsf(test_cond) <= 0.001f), "Test failed.\n");
       }

@@ -15,20 +15,20 @@ namespace PV {
 
 class LIFTestProbe : public StatsProbe {
   public:
-   LIFTestProbe(const char *probeName, HyPerCol *hc);
+   LIFTestProbe(const char *name, HyPerCol *hc);
    virtual ~LIFTestProbe();
 
-   virtual int communicateInitInfo();
-   virtual int allocateDataStructures();
+   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
 
-   virtual int outputState(double timed);
+   virtual int outputState(double timed) override;
 
   protected:
    LIFTestProbe();
-   int initLIFTestProbe(const char *probeName, HyPerCol *hc);
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   int initialize(const char *name, HyPerCol *hc);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_endingTime(enum ParamsIOFlag ioFlag);
    virtual void ioParam_tolerance(enum ParamsIOFlag ioFlag);
+   virtual void initOutputStreams(const char *filename, Checkpointer *checkpointer) override;
 
   private:
    int initialize_base();
