@@ -123,7 +123,6 @@ int HyPerCol::initialize_base() {
    mRecvLayerBuffer.clear();
 #ifdef PV_USE_CUDA
    mCudaDevice = nullptr;
-   mGpuGroupConns.clear();
 #endif
    return PV_SUCCESS;
 }
@@ -1199,23 +1198,9 @@ void HyPerCol::initializeCUDA(std::string const &in_device) {
 
 int HyPerCol::finalizeCUDA() {
    delete mCudaDevice;
-   for (auto iterator = mGpuGroupConns.begin(); iterator != mGpuGroupConns.end();) {
-      delete *iterator;
-      iterator = mGpuGroupConns.erase(iterator);
-   }
    return 0;
 }
 
-void HyPerCol::addGpuGroup(BaseConnection *conn, int gpuGroupIdx) {
-   // default gpuGroupIdx is -1, so do nothing if this is the case
-   if (gpuGroupIdx < 0) {
-      return;
-   }
-   mGpuGroupConns.reserve(gpuGroupIdx);
-   if (mGpuGroupConns.at(gpuGroupIdx) == nullptr) {
-      mGpuGroupConns.at(gpuGroupIdx) = conn;
-   }
-}
 #endif // PV_USE_CUDA
 
 int HyPerCol::insertProbe(ColProbe *p) {

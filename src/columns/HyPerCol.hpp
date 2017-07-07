@@ -168,10 +168,6 @@ class HyPerCol : public Subject, Observer {
    int run(double mStartTime, double mStopTime, double dt);
    NormalizeBase *getNormalizerFromName(const char *normalizerName);
 
-#ifdef PV_USE_CUDA
-   void addGpuGroup(BaseConnection *conn, int gpuGroupIdx);
-#endif // PV_USE_CUDA
-
    // Getters and setters
 
    BaseConnection *getConnection(int which) { return mConnections.at(which); }
@@ -233,7 +229,6 @@ class HyPerCol : public Subject, Observer {
 
 #ifdef PV_USE_CUDA
   public:
-   BaseConnection *getGpuGroupConn(int gpuGroupIdx) { return mGpuGroupConns.at(gpuGroupIdx); }
    PVCuda::CudaDevice *getDevice() { return mCudaDevice; }
 #endif
 
@@ -341,9 +336,6 @@ class HyPerCol : public Subject, Observer {
    std::vector<Timer *> mPhaseRecvTimers; // Timer ** mPhaseRecvTimers;
    unsigned int mRandomSeed;
 #ifdef PV_USE_CUDA
-   // The list of GPU group showing which connection's buffer to use
-   std::vector<BaseConnection *> mGpuGroupConns; // BaseConnection** mGpuGroupConns;
-   int mNumGpuGroup;
    PVCuda::CudaDevice *mCudaDevice; // object for running kernels on OpenCL device
 #endif
 
