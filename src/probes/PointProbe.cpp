@@ -64,7 +64,7 @@ void PointProbe::ioParam_batchLoc(enum ParamsIOFlag ioFlag) {
 
 int PointProbe::initNumValues() { return setNumValues(2); }
 
-int PointProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+int PointProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    int status = LayerProbe::communicateInitInfo(message);
    assert(getTargetLayer());
    const PVLayerLoc *loc = getTargetLayer()->getLayerLoc();

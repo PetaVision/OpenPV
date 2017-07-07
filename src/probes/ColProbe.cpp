@@ -52,7 +52,7 @@ void ColProbe::initOutputStreams(const char *filename, Checkpointer *checkpointe
    outputHeader();
 }
 
-int ColProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+int ColProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    int status = BaseProbe::communicateInitInfo(message);
    return status;
 }

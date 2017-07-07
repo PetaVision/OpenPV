@@ -173,7 +173,7 @@ void TransposeConn::ioParam_originalConnName(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamStringRequired(ioFlag, name, "originalConnName", &originalConnName);
 }
 
-int TransposeConn::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+int TransposeConn::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    int status         = PV_SUCCESS;
    this->originalConn = message->lookup<HyPerConn>(std::string(originalConnName));
    if (originalConn == NULL) {

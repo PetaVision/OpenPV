@@ -16,7 +16,8 @@ class CopyConn : public HyPerConn {
   public:
    CopyConn(char const *name, HyPerCol *hc);
    virtual ~CopyConn();
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual bool needUpdate(double time, double dt) override;
    virtual int updateState(double time, double dt) override;
    char const *getOriginalConnName() { return originalConnName; }

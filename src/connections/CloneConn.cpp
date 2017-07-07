@@ -172,7 +172,7 @@ void CloneConn::ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFlag) {
    // CloneConn does not checkpoint, so we don't need writeCompressedCheckpoints
 }
 
-int CloneConn::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+int CloneConn::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    // Need to set originalConn before calling HyPerConn::communicate, since HyPerConn::communicate
    // calls setPatchSize, which needs originalConn.
    originalConn = message->lookup<HyPerConn>(std::string(originalConnName));

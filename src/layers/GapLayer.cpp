@@ -41,7 +41,7 @@ void GapLayer::ioParam_ampSpikelet(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValue(ioFlag, name, "ampSpikelet", &ampSpikelet, ampSpikelet);
 }
 
-int GapLayer::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+int GapLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    int status = CloneVLayer::communicateInitInfo(message);
 
    // Handled by CloneVLayer

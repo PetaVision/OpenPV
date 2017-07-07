@@ -317,11 +317,12 @@ class CheckpointerDataInterface : public Observer {
    MPIBlock const *getMPIBlock() { return mMPIBlock; }
 
   protected:
-   int respondRegisterData(RegisterDataMessage<Checkpointer> const *message);
-   int respondReadStateFromCheckpoint(ReadStateFromCheckpointMessage<Checkpointer> const *message);
+   int respondRegisterData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message);
+   int respondReadStateFromCheckpoint(
+         std::shared_ptr<ReadStateFromCheckpointMessage<Checkpointer> const> message);
 
-   int respondProcessCheckpointRead(ProcessCheckpointReadMessage const *message);
-   int respondPrepareCheckpointWrite(PrepareCheckpointWriteMessage const *message);
+   int respondProcessCheckpointRead(std::shared_ptr<ProcessCheckpointReadMessage const> message);
+   int respondPrepareCheckpointWrite(std::shared_ptr<PrepareCheckpointWriteMessage const> message);
 
    virtual int processCheckpointRead() { return PV_SUCCESS; }
    virtual int prepareCheckpointWrite() { return PV_SUCCESS; }

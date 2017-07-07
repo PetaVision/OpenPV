@@ -85,7 +85,7 @@ void NormalizeBase::ioParam_normalizeOnWeightUpdate(enum ParamsIOFlag ioFlag) {
          normalizeOnWeightUpdate);
 }
 
-int NormalizeBase::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+int NormalizeBase::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    HyPerConn *conn = message->lookup<HyPerConn>(std::string(name));
    pvAssertMessage(conn != nullptr, "No connection \"%s\" for %s.\n", name, getDescription_c());
    pvAssert(conn != nullptr);

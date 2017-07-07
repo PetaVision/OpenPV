@@ -48,7 +48,7 @@ void CloneVLayer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
    }
 }
 
-int CloneVLayer::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+int CloneVLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    int status    = HyPerLayer::communicateInitInfo(message);
    originalLayer = message->lookup<HyPerLayer>(std::string(originalLayerName));
    if (originalLayer == NULL) {

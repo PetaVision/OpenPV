@@ -21,7 +21,8 @@ class BaseConnectionProbe : public BaseProbe {
    BaseConnectionProbe(const char *name, HyPerCol *hc);
    virtual ~BaseConnectionProbe();
 
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
    BaseConnection *getTargetConn() { return targetConn; }
 

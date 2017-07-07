@@ -426,19 +426,15 @@ int BaseConnection::respond(std::shared_ptr<BaseMessage const> message) {
    if (status != PV_SUCCESS) {
       return status;
    }
-   else if (
-         ConnectionUpdateMessage const *castMessage =
-               dynamic_cast<ConnectionUpdateMessage const *>(message.get())) {
+   else if (auto castMessage = std::dynamic_pointer_cast<ConnectionUpdateMessage const>(message)) {
       return respondConnectionUpdate(castMessage);
    }
    else if (
-         ConnectionFinalizeUpdateMessage const *castMessage =
-               dynamic_cast<ConnectionFinalizeUpdateMessage const *>(message.get())) {
+         auto castMessage =
+               std::dynamic_pointer_cast<ConnectionFinalizeUpdateMessage const>(message)) {
       return respondConnectionFinalizeUpdate(castMessage);
    }
-   else if (
-         ConnectionOutputMessage const *castMessage =
-               dynamic_cast<ConnectionOutputMessage const *>(message.get())) {
+   else if (auto castMessage = std::dynamic_pointer_cast<ConnectionOutputMessage const>(message)) {
       return respondConnectionOutput(castMessage);
    }
    else {
@@ -457,7 +453,7 @@ int BaseConnection::outputProbeParams() {
    return status;
 }
 
-int BaseConnection::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+int BaseConnection::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    int status = PV_SUCCESS;
 
    if (this->getPreLayerName() == NULL) {

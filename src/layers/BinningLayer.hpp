@@ -8,7 +8,8 @@ namespace PV {
 class BinningLayer : public PV::HyPerLayer {
   public:
    BinningLayer(const char *name, HyPerCol *hc);
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual int allocateDataStructures() override;
    virtual int
    requireMarginWidth(int marginWidthNeeded, int *marginWidthResult, char axis) override;

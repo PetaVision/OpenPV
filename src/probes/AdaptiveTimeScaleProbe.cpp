@@ -71,7 +71,8 @@ void AdaptiveTimeScaleProbe::ioParam_writeTimeScaleFieldnames(enum ParamsIOFlag 
    }
 }
 
-int AdaptiveTimeScaleProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+int AdaptiveTimeScaleProbe::communicateInitInfo(
+      std::shared_ptr<CommunicateInitInfoMessage const> message) {
    int status   = ColProbe::communicateInitInfo(message);
    mTargetProbe = message->lookup<BaseProbe>(std::string(targetName));
    if (mTargetProbe == nullptr) {
@@ -124,9 +125,7 @@ int AdaptiveTimeScaleProbe::respond(std::shared_ptr<BaseMessage const> message) 
    if (message == nullptr) {
       return status;
    }
-   else if (
-         AdaptTimestepMessage const *castMessage =
-               dynamic_cast<AdaptTimestepMessage const *>(message.get())) {
+   else if (auto castMessage = std::dynamic_pointer_cast<AdaptTimestepMessage const>(message)) {
       return respondAdaptTimestep(castMessage);
    }
    else {
@@ -134,7 +133,8 @@ int AdaptiveTimeScaleProbe::respond(std::shared_ptr<BaseMessage const> message) 
    }
 }
 
-int AdaptiveTimeScaleProbe::respondAdaptTimestep(AdaptTimestepMessage const *message) {
+int AdaptiveTimeScaleProbe::respondAdaptTimestep(
+      std::shared_ptr<AdaptTimestepMessage const> message) {
    return getValues(parent->simulationTime());
 }
 

@@ -30,7 +30,8 @@ void StochasticReleaseTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
    requireType(BufActivity);
 }
 
-int StochasticReleaseTestProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+int StochasticReleaseTestProbe::communicateInitInfo(
+      std::shared_ptr<CommunicateInitInfoMessage const> message) {
    int status = StatsProbe::communicateInitInfo(message);
    FatalIf(!getTargetLayer(), ": %s did not set target layer.\n", getDescription_c());
    FatalIf(

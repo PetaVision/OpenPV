@@ -247,7 +247,7 @@ int PoolingConn::initialize(
    return status;
 }
 
-int PoolingConn::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+int PoolingConn::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    int status = HyPerConn::communicateInitInfo(message);
 
    // Check pre/post connections here

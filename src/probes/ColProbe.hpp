@@ -53,7 +53,8 @@ class ColProbe : public BaseProbe {
     * probe)
     * and then attaches to the parent HyPerCol by calling parent->insertProbe().
     */
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
    /**
     * The virtual method for outputting the quantities measured by the ColProbe.

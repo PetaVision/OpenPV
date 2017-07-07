@@ -370,17 +370,20 @@ class HyPerLayer : public BaseLayer {
     */
    virtual double getDeltaTriggerTime();
 
-   virtual int respondLayerRecvSynapticInput(LayerRecvSynapticInputMessage const *message);
-   virtual int respondLayerUpdateState(LayerUpdateStateMessage const *message);
+   virtual int
+   respondLayerRecvSynapticInput(std::shared_ptr<LayerRecvSynapticInputMessage const> message);
+   virtual int respondLayerUpdateState(std::shared_ptr<LayerUpdateStateMessage const> message);
 #ifdef PV_USE_CUDA
-   virtual int respondLayerCopyFromGpu(LayerCopyFromGpuMessage const *message);
+   virtual int respondLayerCopyFromGpu(std::shared_ptr<LayerCopyFromGpuMessage const> message);
 #endif // PV_USE_CUDA
-   virtual int respondLayerAdvanceDataStore(LayerAdvanceDataStoreMessage const *message);
-   virtual int respondLayerPublish(LayerPublishMessage const *message);
-   virtual int respondLayerCheckNotANumber(LayerCheckNotANumberMessage const *message);
+   virtual int
+   respondLayerAdvanceDataStore(std::shared_ptr<LayerAdvanceDataStoreMessage const> message);
+   virtual int respondLayerPublish(std::shared_ptr<LayerPublishMessage const> message);
+   virtual int
+   respondLayerCheckNotANumber(std::shared_ptr<LayerCheckNotANumberMessage const> message);
    // respondLayerUpdateActiveIndices removed Feb 3, 2017. Layers update active indices
    // in response to other messages, when needed.
-   virtual int respondLayerOutputState(LayerOutputStateMessage const *message);
+   virtual int respondLayerOutputState(std::shared_ptr<LayerOutputStateMessage const> message);
    virtual int publish(Communicator *comm, double simTime);
    virtual int resetGSynBuffers(double timef, double dt);
    // ************************************************************************************//
@@ -494,7 +497,8 @@ class HyPerLayer : public BaseLayer {
    bool getHasUpdated() { return mHasUpdated; }
 
   protected:
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual int allocateDataStructures() override;
    virtual int registerData(Checkpointer *checkpointer) override;
    virtual int initializeState() override final;

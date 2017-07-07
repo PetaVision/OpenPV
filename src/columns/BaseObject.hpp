@@ -86,14 +86,17 @@ class BaseObject : public CheckpointerDataInterface {
    int setParent(HyPerCol *hc);
    virtual int setDescription();
 
-   int respondCommunicateInitInfo(CommunicateInitInfoMessage const *message);
-   int respondAllocateData(AllocateDataMessage const *message);
-   int respondRegisterData(RegisterDataMessage<Checkpointer> const *message);
-   int respondInitializeState(InitializeStateMessage const *message);
-   int respondCopyInitialStateToGPUMessage(CopyInitialStateToGPUMessage const *message);
-   int respondCleanup(CleanupMessage const *message);
+   int respondCommunicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message);
+   int respondAllocateData(std::shared_ptr<AllocateDataMessage const> message);
+   int respondRegisterData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message);
+   int respondInitializeState(std::shared_ptr<InitializeStateMessage const> message);
+   int
+   respondCopyInitialStateToGPUMessage(std::shared_ptr<CopyInitialStateToGPUMessage const> message);
+   int respondCleanup(std::shared_ptr<CleanupMessage const> message);
 
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) { return PV_SUCCESS; }
+   virtual int communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+      return PV_SUCCESS;
+   }
    virtual int allocateDataStructures() { return PV_SUCCESS; }
    virtual int initializeState() { return PV_SUCCESS; }
    virtual int readStateFromCheckpoint(Checkpointer *checkpointer) override { return PV_SUCCESS; }

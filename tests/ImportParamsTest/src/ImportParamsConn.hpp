@@ -8,7 +8,8 @@ namespace PV {
 class ImportParamsConn : public PV::HyPerConn {
   public:
    ImportParamsConn(const char *name, HyPerCol *hc);
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual int allocateDataStructures() override;
 
   private:

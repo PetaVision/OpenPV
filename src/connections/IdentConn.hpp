@@ -20,7 +20,8 @@ class IdentConn : public HyPerConn {
   public:
    IdentConn(const char *name, HyPerCol *hc);
 
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual int updateWeights(int axonID) override { return PV_SUCCESS; }
    // virtual int deliver();
 

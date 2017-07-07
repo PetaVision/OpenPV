@@ -918,23 +918,24 @@ int CheckpointerDataInterface::respond(std::shared_ptr<BaseMessage const> messag
       return PV_SUCCESS;
    }
    else if (
-         RegisterDataMessage<Checkpointer> const *castMessage =
-               dynamic_cast<RegisterDataMessage<Checkpointer> const *>(message.get())) {
+         auto castMessage =
+               std::dynamic_pointer_cast<RegisterDataMessage<Checkpointer> const>(message)) {
       return respondRegisterData(castMessage);
    }
    else if (
-         ReadStateFromCheckpointMessage<Checkpointer> const *castMessage =
-               dynamic_cast<ReadStateFromCheckpointMessage<Checkpointer> const *>(message.get())) {
+         auto castMessage =
+               std::dynamic_pointer_cast<ReadStateFromCheckpointMessage<Checkpointer> const>(
+                     message)) {
       return respondReadStateFromCheckpoint(castMessage);
    }
    else if (
-         ProcessCheckpointReadMessage const *castMessage =
-               dynamic_cast<ProcessCheckpointReadMessage const *>(message.get())) {
+         auto castMessage =
+               std::dynamic_pointer_cast<ProcessCheckpointReadMessage const>(message)) {
       return respondProcessCheckpointRead(castMessage);
    }
    else if (
-         PrepareCheckpointWriteMessage const *castMessage =
-               dynamic_cast<PrepareCheckpointWriteMessage const *>(message.get())) {
+         auto castMessage =
+               std::dynamic_pointer_cast<PrepareCheckpointWriteMessage const>(message)) {
       return respondPrepareCheckpointWrite(castMessage);
    }
    else {
@@ -943,22 +944,22 @@ int CheckpointerDataInterface::respond(std::shared_ptr<BaseMessage const> messag
 }
 
 int CheckpointerDataInterface::respondRegisterData(
-      RegisterDataMessage<Checkpointer> const *message) {
+      std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
    return registerData(message->mDataRegistry);
 }
 
 int CheckpointerDataInterface::respondReadStateFromCheckpoint(
-      ReadStateFromCheckpointMessage<Checkpointer> const *message) {
+      std::shared_ptr<ReadStateFromCheckpointMessage<Checkpointer> const> message) {
    return readStateFromCheckpoint(message->mDataRegistry);
 }
 
 int CheckpointerDataInterface::respondProcessCheckpointRead(
-      ProcessCheckpointReadMessage const *message) {
+      std::shared_ptr<ProcessCheckpointReadMessage const> message) {
    return processCheckpointRead();
 }
 
 int CheckpointerDataInterface::respondPrepareCheckpointWrite(
-      PrepareCheckpointWriteMessage const *message) {
+      std::shared_ptr<PrepareCheckpointWriteMessage const> message) {
    return prepareCheckpointWrite();
 }
 

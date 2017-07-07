@@ -910,41 +910,32 @@ int HyPerLayer::respond(std::shared_ptr<BaseMessage const> message) {
    if (status != PV_SUCCESS) {
       return status;
    }
-   else if (
-         LayerUpdateStateMessage const *castMessage =
-               dynamic_cast<LayerUpdateStateMessage const *>(message.get())) {
+   else if (auto castMessage = std::dynamic_pointer_cast<LayerUpdateStateMessage const>(message)) {
       return respondLayerUpdateState(castMessage);
    }
    else if (
-         LayerRecvSynapticInputMessage const *castMessage =
-               dynamic_cast<LayerRecvSynapticInputMessage const *>(message.get())) {
+         auto castMessage =
+               std::dynamic_pointer_cast<LayerRecvSynapticInputMessage const>(message)) {
       return respondLayerRecvSynapticInput(castMessage);
    }
 #ifdef PV_USE_CUDA
-   else if (
-         LayerCopyFromGpuMessage const *castMessage =
-               dynamic_cast<LayerCopyFromGpuMessage const *>(message.get())) {
+   else if (auto castMessage = std::dynamic_pointer_cast<LayerCopyFromGpuMessage const>(message)) {
       return respondLayerCopyFromGpu(castMessage);
    }
 #endif // PV_USE_CUDA
    else if (
-         LayerAdvanceDataStoreMessage const *castMessage =
-               dynamic_cast<LayerAdvanceDataStoreMessage const *>(message.get())) {
+         auto castMessage =
+               std::dynamic_pointer_cast<LayerAdvanceDataStoreMessage const>(message)) {
       return respondLayerAdvanceDataStore(castMessage);
    }
-   else if (
-         LayerPublishMessage const *castMessage =
-               dynamic_cast<LayerPublishMessage const *>(message.get())) {
+   else if (auto castMessage = std::dynamic_pointer_cast<LayerPublishMessage const>(message)) {
       return respondLayerPublish(castMessage);
    }
-   else if (
-         LayerOutputStateMessage const *castMessage =
-               dynamic_cast<LayerOutputStateMessage const *>(message.get())) {
+   else if (auto castMessage = std::dynamic_pointer_cast<LayerOutputStateMessage const>(message)) {
       return respondLayerOutputState(castMessage);
    }
    else if (
-         LayerCheckNotANumberMessage const *castMessage =
-               dynamic_cast<LayerCheckNotANumberMessage const *>(message.get())) {
+         auto castMessage = std::dynamic_pointer_cast<LayerCheckNotANumberMessage const>(message)) {
       return respondLayerCheckNotANumber(castMessage);
    }
    else {
@@ -952,7 +943,8 @@ int HyPerLayer::respond(std::shared_ptr<BaseMessage const> message) {
    }
 }
 
-int HyPerLayer::respondLayerRecvSynapticInput(LayerRecvSynapticInputMessage const *message) {
+int HyPerLayer::respondLayerRecvSynapticInput(
+      std::shared_ptr<LayerRecvSynapticInputMessage const> message) {
    int status = PV_SUCCESS;
    if (message->mPhase != getPhase()) {
       return status;
@@ -976,7 +968,7 @@ int HyPerLayer::respondLayerRecvSynapticInput(LayerRecvSynapticInputMessage cons
    return status;
 }
 
-int HyPerLayer::respondLayerUpdateState(LayerUpdateStateMessage const *message) {
+int HyPerLayer::respondLayerUpdateState(std::shared_ptr<LayerUpdateStateMessage const> message) {
    int status = PV_SUCCESS;
    if (message->mPhase != getPhase()) {
       return status;
@@ -998,7 +990,7 @@ int HyPerLayer::respondLayerUpdateState(LayerUpdateStateMessage const *message) 
 }
 
 #ifdef PV_USE_CUDA
-int HyPerLayer::respondLayerCopyFromGpu(LayerCopyFromGpuMessage const *message) {
+int HyPerLayer::respondLayerCopyFromGpu(std::shared_ptr<LayerCopyFromGpuMessage const> message) {
    int status = PV_SUCCESS;
    if (message->mPhase != getPhase()) {
       return status;
@@ -1013,14 +1005,15 @@ int HyPerLayer::respondLayerCopyFromGpu(LayerCopyFromGpuMessage const *message) 
 }
 #endif // PV_USE_CUDA
 
-int HyPerLayer::respondLayerAdvanceDataStore(LayerAdvanceDataStoreMessage const *message) {
+int HyPerLayer::respondLayerAdvanceDataStore(
+      std::shared_ptr<LayerAdvanceDataStoreMessage const> message) {
    if (message->mPhase < 0 || message->mPhase == getPhase()) {
       publisher->increaseTimeLevel();
    }
    return PV_SUCCESS;
 }
 
-int HyPerLayer::respondLayerPublish(LayerPublishMessage const *message) {
+int HyPerLayer::respondLayerPublish(std::shared_ptr<LayerPublishMessage const> message) {
    int status = PV_SUCCESS;
    if (message->mPhase != getPhase()) {
       return status;
@@ -1029,7 +1022,8 @@ int HyPerLayer::respondLayerPublish(LayerPublishMessage const *message) {
    return status;
 }
 
-int HyPerLayer::respondLayerCheckNotANumber(LayerCheckNotANumberMessage const *message) {
+int HyPerLayer::respondLayerCheckNotANumber(
+      std::shared_ptr<LayerCheckNotANumberMessage const> message) {
    int status = PV_SUCCESS;
    if (message->mPhase != getPhase()) {
       return status;
@@ -1054,7 +1048,7 @@ int HyPerLayer::respondLayerCheckNotANumber(LayerCheckNotANumberMessage const *m
    return status;
 }
 
-int HyPerLayer::respondLayerOutputState(LayerOutputStateMessage const *message) {
+int HyPerLayer::respondLayerOutputState(std::shared_ptr<LayerOutputStateMessage const> message) {
    int status = PV_SUCCESS;
    if (message->mPhase != getPhase()) {
       return status;
@@ -1127,7 +1121,7 @@ int HyPerLayer::allocateDeviceBuffers() {
 
 #endif // PV_USE_CUDA
 
-int HyPerLayer::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+int HyPerLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    // HyPerLayers need to tell the parent HyPerCol how many random number
    // seeds they need.  At the start of HyPerCol::run, the parent HyPerCol
    // calls each layer's communicateInitInfo() sequentially in a repeatable order

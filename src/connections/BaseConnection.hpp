@@ -63,7 +63,8 @@ class BaseConnection : public BaseObject {
     * communicateInitInfo() is called by passing a CommunicateInitInfoMessage to respond(), which is
     * usually done in HyPerCol::run.
     */
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
    /**
     * initializeState is used to set the initial values of the connection.
@@ -363,15 +364,16 @@ class BaseConnection : public BaseObject {
     */
    virtual int setInitialValues() = 0;
 
-   virtual int respondConnectionUpdate(ConnectionUpdateMessage const *message) {
+   virtual int respondConnectionUpdate(std::shared_ptr<ConnectionUpdateMessage const> message) {
       return updateState(message->mTime, message->mDeltaT);
    }
 
-   virtual int respondConnectionFinalizeUpdate(ConnectionFinalizeUpdateMessage const *message) {
+   virtual int
+   respondConnectionFinalizeUpdate(std::shared_ptr<ConnectionFinalizeUpdateMessage const> message) {
       return finalizeUpdate(message->mTime, message->mDeltaT);
    }
 
-   virtual int respondConnectionOutput(ConnectionOutputMessage const *message) {
+   virtual int respondConnectionOutput(std::shared_ptr<ConnectionOutputMessage const> message) {
       return outputState(message->mTime);
    }
 

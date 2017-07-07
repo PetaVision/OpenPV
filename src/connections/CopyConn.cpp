@@ -127,7 +127,7 @@ void CopyConn::ioParam_originalConnName(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamStringRequired(ioFlag, name, "originalConnName", &originalConnName);
 }
 
-int CopyConn::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+int CopyConn::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    int status         = PV_SUCCESS;
    this->originalConn = message->lookup<HyPerConn>(std::string(originalConnName));
    if (originalConn == nullptr) {

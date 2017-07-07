@@ -252,7 +252,7 @@ class HyPerCol : public Subject, Observer {
    inline void notify(std::shared_ptr<BaseMessage const> message) {
       notify(std::vector<std::shared_ptr<BaseMessage const>>{message});
    }
-   int respondPrepareCheckpointWrite(PrepareCheckpointWriteMessage const *message);
+   int respondPrepareCheckpointWrite(std::shared_ptr<PrepareCheckpointWriteMessage const> message);
 #ifdef PV_USE_CUDA
    void initializeCUDA(std::string const &in_device);
    int finalizeCUDA();

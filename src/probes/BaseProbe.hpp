@@ -38,7 +38,8 @@ class BaseProbe : public BaseObject {
     * the energy probe,
     * if either triggerFlag or energyProbe are set.
     */
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override = 0;
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override = 0;
 
    /**
     * Called during HyPerCol::run, during the allocateDataStructures stage.

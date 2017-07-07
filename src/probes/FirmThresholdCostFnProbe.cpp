@@ -52,7 +52,8 @@ int FirmThresholdCostFnProbe::setNormDescription() {
    return setNormDescriptionToString("Cost function");
 }
 
-int FirmThresholdCostFnProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+int FirmThresholdCostFnProbe::communicateInitInfo(
+      std::shared_ptr<CommunicateInitInfoMessage const> message) {
    AbstractNormProbe::communicateInitInfo(message);
    ANNLayer *targetANNLayer = dynamic_cast<ANNLayer *>(getTargetLayer());
    if (targetANNLayer != NULL) {

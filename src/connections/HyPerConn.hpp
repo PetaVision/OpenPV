@@ -71,7 +71,8 @@ class HyPerConn : public BaseConnection {
    HyPerConn(const char *name, HyPerCol *hc);
 
    virtual ~HyPerConn();
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual int allocateDataStructures() override;
 
    virtual int insertProbe(BaseConnectionProbe *p) override;

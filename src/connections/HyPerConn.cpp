@@ -1016,7 +1016,7 @@ int HyPerConn::setPostPatchSize() {
    return PV_SUCCESS;
 }
 
-int HyPerConn::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+int HyPerConn::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    // HyPerConns need to tell the parent HyPerCol how many random number
    // seeds they need.  At the start of HyPerCol::run, the parent HyPerCol
    // calls each layer's and each connection's communicateInitInfo() sequentially in
@@ -1239,9 +1239,10 @@ int HyPerConn::communicateInitInfo(CommunicateInitInfoMessage const *message) {
    }
 
    if (weightInitializer) {
-      // TODO: try to make this even more clumsy a hack.
-      status = weightInitializer->respond(
-            std::make_shared<CommunicateInitInfoMessage>(message->mHierarchy));
+      status = weightInitializer->respond(message);
+      // // TODO: try to make this even more clumsy a hack.
+      // status = weightInitializer->respond(
+      //       std::make_shared<CommunicateInitInfoMessage>(message->mHierarchy));
       FatalIf(
             status != PV_SUCCESS,
             "%s failed CommunicateInitInfo stage.\n",

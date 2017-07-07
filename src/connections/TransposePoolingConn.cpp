@@ -236,7 +236,8 @@ void TransposePoolingConn::ioParam_originalConnName(enum ParamsIOFlag ioFlag) {
          ioFlag, name, "originalConnName", &mOriginalConnName);
 }
 
-int TransposePoolingConn::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+int TransposePoolingConn::communicateInitInfo(
+      std::shared_ptr<CommunicateInitInfoMessage const> message) {
    int status    = PV_SUCCESS;
    mOriginalConn = message->lookup<PoolingConn>(std::string(mOriginalConnName));
    if (mOriginalConn == NULL) {

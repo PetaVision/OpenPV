@@ -42,7 +42,7 @@ void PoolingConnCheckpointerTestProbe::ioParam_textOutputFlag(enum PV::ParamsIOF
 }
 
 int PoolingConnCheckpointerTestProbe::communicateInitInfo(
-      PV::CommunicateInitInfoMessage const *message) {
+      std::shared_ptr<PV::CommunicateInitInfoMessage const> message) {
    int status = PV::ColProbe::communicateInitInfo(message);
    FatalIf(
          status != PV_SUCCESS, "%s failed in ColProbe::communicateInitInfo\n", getDescription_c());
@@ -61,7 +61,7 @@ int PoolingConnCheckpointerTestProbe::communicateInitInfo(
 }
 
 int PoolingConnCheckpointerTestProbe::initInputLayer(
-      PV::CommunicateInitInfoMessage const *message) {
+      std::shared_ptr<PV::CommunicateInitInfoMessage const> message) {
    mInputLayer = message->lookup<PV::InputLayer>(std::string("Input"));
    FatalIf(mInputLayer == nullptr, "column does not have an InputLayer named \"Input\".\n");
    if (checkCommunicatedFlag(mInputLayer) == PV_POSTPONE) {
@@ -79,7 +79,7 @@ int PoolingConnCheckpointerTestProbe::initInputLayer(
 }
 
 int PoolingConnCheckpointerTestProbe::initOutputLayer(
-      PV::CommunicateInitInfoMessage const *message) {
+      std::shared_ptr<PV::CommunicateInitInfoMessage const> message) {
    mOutputLayer = message->lookup<PV::HyPerLayer>(std::string("Output"));
    FatalIf(mOutputLayer == nullptr, "column does not have a HyPerLayer named \"Output\".\n");
    if (checkCommunicatedFlag(mOutputLayer) == PV_POSTPONE) {
@@ -89,7 +89,7 @@ int PoolingConnCheckpointerTestProbe::initOutputLayer(
 }
 
 int PoolingConnCheckpointerTestProbe::initConnection(
-      PV::CommunicateInitInfoMessage const *message) {
+      std::shared_ptr<PV::CommunicateInitInfoMessage const> message) {
    mConnection = message->lookup<PV::HyPerConn>(std::string("InputToOutput"));
    FatalIf(mConnection == nullptr, "column does not have a HyPerConn named \"InputToOutput\".\n");
    if (checkCommunicatedFlag(mConnection) == PV_POSTPONE) {

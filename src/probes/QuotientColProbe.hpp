@@ -83,7 +83,8 @@ class QuotientColProbe : public ColProbe {
 
    /** @} */ /* end of io functions for QuotientColProbe parameters */
 
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
    /**
     * Prints the energies to the output stream, formatted as a comma-separated
