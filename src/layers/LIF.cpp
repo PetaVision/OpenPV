@@ -362,27 +362,27 @@ int LIF::readStateFromCheckpoint(Checkpointer *checkpointer) {
 }
 
 int LIF::readVthFromCheckpoint(Checkpointer *checkpointer) {
-   checkpointer->readNamedCheckpointEntry(std::string(name), "Vth");
+   checkpointer->readNamedCheckpointEntry(std::string(name), "Vth", false /*not constant*/);
    return PV_SUCCESS;
 }
 
 int LIF::readG_EFromCheckpoint(Checkpointer *checkpointer) {
-   checkpointer->readNamedCheckpointEntry(std::string(name), "G_E");
+   checkpointer->readNamedCheckpointEntry(std::string(name), "G_E", false /*not constant*/);
    return PV_SUCCESS;
 }
 
 int LIF::readG_IFromCheckpoint(Checkpointer *checkpointer) {
-   checkpointer->readNamedCheckpointEntry(std::string(name), "G_I");
+   checkpointer->readNamedCheckpointEntry(std::string(name), "G_I", false /*not constant*/);
    return PV_SUCCESS;
 }
 
 int LIF::readG_IBFromCheckpoint(Checkpointer *checkpointer) {
-   checkpointer->readNamedCheckpointEntry(std::string(name), "G_IB");
+   checkpointer->readNamedCheckpointEntry(std::string(name), "G_IB", false /*not constant*/);
    return PV_SUCCESS;
 }
 
 int LIF::readRandStateFromCheckpoint(Checkpointer *checkpointer) {
-   checkpointer->readNamedCheckpointEntry(std::string(name), "rand_state");
+   checkpointer->readNamedCheckpointEntry(std::string(name), "rand_state", false /*not constant*/);
    return PV_SUCCESS;
 }
 

@@ -190,7 +190,8 @@ int MomentumConn::readStateFromCheckpoint(Checkpointer *checkpointer) {
    if (initializeFromCheckpointFlag) {
       status = HyPerConn::readStateFromCheckpoint(checkpointer);
       if (plasticityFlag) {
-         checkpointer->readNamedCheckpointEntry(std::string(name), std::string("prev_dW"));
+         checkpointer->readNamedCheckpointEntry(
+               std::string(name), std::string("prev_dW"), false /*not constant*/);
       }
    }
    return status;

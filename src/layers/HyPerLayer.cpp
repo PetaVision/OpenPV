@@ -518,7 +518,8 @@ void HyPerLayer::checkpointPvpActivityFloat(
                checkpointer->getMPIBlock(),
                pvpBuffer,
                getLayerLoc(),
-               extended));
+               extended),
+         false /*not constant*/);
    FatalIf(
          !registerSucceeded,
          "%s failed to register %s for checkpointing.\n",
@@ -538,7 +539,8 @@ void HyPerLayer::checkpointRandState(
                checkpointer->getMPIBlock(),
                randState->getRNG(0),
                getLayerLoc(),
-               extendedFlag));
+               extendedFlag),
+         false /*not constant*/);
    FatalIf(
          !registerSucceeded,
          "%s failed to register %s for checkpointing.\n",
@@ -1590,13 +1592,15 @@ int HyPerLayer::registerData(Checkpointer *checkpointer) {
          std::string("lastUpdateTime"),
          &mLastUpdateTime,
          (std::size_t)1,
-         true /*broadcast*/);
+         true /*broadcast*/,
+         false /*not constant*/);
    checkpointer->registerCheckpointData(
          std::string(getName()),
          std::string("nextWrite"),
          &writeTime,
          (std::size_t)1,
-         true /*broadcast*/);
+         true /*broadcast*/,
+         false /*not constant*/);
 
    if (writeStep >= 0.0) {
       openOutputStateFile(checkpointer);
@@ -1606,7 +1610,8 @@ int HyPerLayer::registerData(Checkpointer *checkpointer) {
                std::string("numframes_sparse"),
                &writeActivitySparseCalls,
                (std::size_t)1,
-               true /*broadcast*/);
+               true /*broadcast*/,
+               false /*not constant*/);
       }
       else {
          checkpointer->registerCheckpointData(
@@ -1614,7 +1619,8 @@ int HyPerLayer::registerData(Checkpointer *checkpointer) {
                std::string("numframes"),
                &writeActivityCalls,
                (std::size_t)1,
-               true /*broadcast*/);
+               true /*broadcast*/,
+               false /*not constant*/);
       }
    }
 
@@ -2136,19 +2142,19 @@ int HyPerLayer::readStateFromCheckpoint(Checkpointer *checkpointer) {
 }
 
 int HyPerLayer::readActivityFromCheckpoint(Checkpointer *checkpointer) {
-   checkpointer->readNamedCheckpointEntry(std::string(name), std::string("A"));
+   checkpointer->readNamedCheckpointEntry(std::string(name), std::string("A"), false);
    return PV_SUCCESS;
 }
 
 int HyPerLayer::readVFromCheckpoint(Checkpointer *checkpointer) {
    if (getV() != nullptr) {
-      checkpointer->readNamedCheckpointEntry(std::string(name), std::string("V"));
+      checkpointer->readNamedCheckpointEntry(std::string(name), std::string("V"), false);
    }
    return PV_SUCCESS;
 }
 
 int HyPerLayer::readDelaysFromCheckpoint(Checkpointer *checkpointer) {
-   checkpointer->readNamedCheckpointEntry(std::string(name), std::string("Delays"));
+   checkpointer->readNamedCheckpointEntry(std::string(name), std::string("Delays"), false);
    return PV_SUCCESS;
 }
 
