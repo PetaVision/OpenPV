@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
    HyPerCol *hc;
    FailBeforeExpectedStartTimeLayer *outputLayer;
 
-   hc = createHyPerCol(&pv_init);
+   hc = new HyPerCol(&pv_init);
    FatalIf(hc == nullptr, "failed to create HyPerCol.\n");
    outputLayer = dynamic_cast<FailBeforeExpectedStartTimeLayer *>(hc->getLayerFromName("Output"));
    FatalIf(
@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
    std::vector<float> withoutRestart = copyOutput(outputLayer);
    delete hc;
 
-   hc = createHyPerCol(&pv_init);
+   hc = new HyPerCol(&pv_init);
    FatalIf(hc == nullptr, "failed to create HyPerCol.\n");
    outputLayer = dynamic_cast<FailBeforeExpectedStartTimeLayer *>(hc->getLayerFromName("Output"));
    FatalIf(
@@ -62,7 +62,7 @@ int main(int argc, char *argv[]) {
    delete hc;
 
    pv_init.setBooleanArgument("Restart", true);
-   hc = createHyPerCol(&pv_init);
+   hc = new HyPerCol(&pv_init);
    FatalIf(hc == nullptr, "failed to create HyPerCol.\n");
    outputLayer = dynamic_cast<FailBeforeExpectedStartTimeLayer *>(hc->getLayerFromName("Output"));
    FatalIf(

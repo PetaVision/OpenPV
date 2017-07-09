@@ -88,10 +88,9 @@ int main(int argc, char *argv[]) {
 }
 
 int buildandverify(PV::PV_Init *initObj) {
-   PV::HyPerCol *hc = new PV::HyPerCol("column", initObj);
-   /* PV::ANNLayer * layer = */ new PV::ANNLayer("layer", hc);
-   int rows    = initObj->getIntegerArgument("NumRows");
-   int columns = initObj->getIntegerArgument("NumColumns");
+   PV::HyPerCol *hc = new PV::HyPerCol(initObj);
+   int rows         = initObj->getIntegerArgument("NumRows");
+   int columns      = initObj->getIntegerArgument("NumColumns");
    FatalIf(!(rows > 0 && columns > 0), "Test failed.\n");
    int status = verifyLoc(hc, rows, columns);
    delete hc;

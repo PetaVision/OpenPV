@@ -119,7 +119,7 @@ class HyPerCol : public Subject, Observer {
    virtual void ioParam_errorOnNotANumber(enum ParamsIOFlag ioFlag);
 
   public:
-   HyPerCol(const char *name, PV_Init *initObj);
+   HyPerCol(PV_Init *initObj);
    virtual ~HyPerCol();
 
    // Public functions
@@ -237,7 +237,7 @@ class HyPerCol : public Subject, Observer {
   private:
    void setDescription();
    int initialize_base();
-   int initialize(const char *name, PV_Init *initObj);
+   int initialize(PV_Init *initObj);
    int ioParams(enum ParamsIOFlag ioFlag);
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    int checkDirExists(const char *dirname, struct stat *pathstat);
@@ -341,7 +341,7 @@ class HyPerCol : public Subject, Observer {
 
 }; // class HyPerCol
 
-HyPerCol *createHyPerCol(PV_Init *pv_initObj);
+// July 7, 2017: Functionality of createHyPerCol() moved into HyPerCol::initialize()
 
 } // namespace PV
 

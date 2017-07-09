@@ -11,8 +11,6 @@
 #include "layers/HyPerLayer.hpp"
 #include <utils/PVLog.hpp>
 
-#include "Example.hpp"
-
 using namespace PV;
 
 int check_kernel_vs_hyper(HyPerConn *cHyPer, HyPerConn *cKernel, int kPre, int axonID);
@@ -20,47 +18,45 @@ int check_kernel_vs_hyper(HyPerConn *cHyPer, HyPerConn *cKernel, int kPre, int a
 int main(int argc, char *argv[]) {
    PV_Init *initObj = new PV_Init(&argc, &argv, false /*allowUnrecognizedArguments*/);
    if (initObj->getParams() == nullptr) {
-      int rank = 0;
-      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-      if (rank == 0) {
-         ErrorLog().printf(
-               "%s does not take a -p argument; the necessary param file is hardcoded.\n", argv[0]);
-      }
-      MPI_Barrier(MPI_COMM_WORLD);
-      exit(EXIT_FAILURE);
+      initObj->setParams("input/test_gauss2d.params");
    }
 
-   initObj->setParams("input/test_gauss2d.params");
-   const char *pre_layer_name   = "test_gauss2d_pre";
-   const char *post_layer_name  = "test_gauss2d_post";
-   const char *pre2_layer_name  = "test_gauss2d_pre2";
-   const char *post2_layer_name = "test_gauss2d_post2";
+   char const *pre_layer_name   = "test_gauss2d_pre";
+   char const *post_layer_name  = "test_gauss2d_post";
+   char const *pre2_layer_name  = "test_gauss2d_pre2";
+   char const *post2_layer_name = "test_gauss2d_post2";
+   char const *hyper1to1_name   = "test_gauss2d_hyperconn";
+   char const *kernel1to1_name  = "test_gauss2d_kernelconn";
+   char const *hyper1to2_name   = "test_gauss2d_hyperconn";
+   char const *kernel1to2_name  = "test_gauss2d_kernelconn";
+   char const *hyper2to1_name   = "test_gauss2d_hyperconn";
+   char const *kernel2to1_name  = "test_gauss2d_kernelconn";
 
-   PV::HyPerCol *hc = new PV::HyPerCol("test_gauss2d_column", initObj);
-   PV::Example *pre = new PV::Example(pre_layer_name, hc);
+   PV::HyPerCol *hc    = new PV::HyPerCol(initObj);
+   PV::HyPerLayer *pre = dynamic_cast<PV::HyPerLayer *>(hc->getLayerFromName(pre_layer_name));
    FatalIf(!(pre), "Test failed.\n");
-   PV::Example *post = new PV::Example(post_layer_name, hc);
+   PV::HyPerLayer *post = dynamic_cast<PV::HyPerLayer *>(hc->getLayerFromName(post_layer_name));
    FatalIf(!(post), "Test failed.\n");
 
-   PV::HyPerConn *cHyPer = new HyPerConn("test_gauss2d_hyperconn", hc);
+   PV::HyPerConn *cHyPer = dynamic_cast<HyPerConn *>(hc->getConnFromName(hyper1to1_name));
 
-   PV::HyPerConn *cKernel = new HyPerConn("test_gauss2d_kernelconn", hc);
+   PV::HyPerConn *cKernel = dynamic_cast<HyPerConn *>(hc->getConnFromName(kernel1to1_name));
 
-   PV::Example *pre2 = new PV::Example(pre2_layer_name, hc);
+   PV::HyPerLayer *pre2 = dynamic_cast<PV::HyPerLayer *>(hc->getLayerFromName(pre2_layer_name));
    FatalIf(!(pre2), "Test failed.\n");
-   PV::Example *post2 = new PV::Example(post2_layer_name, hc);
+   PV::HyPerLayer *post2 = dynamic_cast<PV::HyPerLayer *>(hc->getLayerFromName(post2_layer_name));
    FatalIf(!(post2), "Test failed.\n");
 
-   PV::HyPerConn *cHyPer1to2 = new HyPerConn("test_gauss2d_hyperconn1to2", hc);
+   PV::HyPerConn *cHyPer1to2 = dynamic_cast<HyPerConn *>(hc->getConnFromName(hyper1to2_name));
    FatalIf(!(cHyPer1to2), "Test failed.\n");
 
-   PV::HyPerConn *cKernel1to2 = new HyPerConn("test_gauss2d_kernelconn1to2", hc);
+   PV::HyPerConn *cKernel1to2 = dynamic_cast<HyPerConn *>(hc->getConnFromName(kernel1to2_name));
    FatalIf(!(cKernel1to2), "Test failed.\n");
 
-   PV::HyPerConn *cHyPer2to1 = new HyPerConn("test_gauss2d_hyperconn2to1", hc);
+   PV::HyPerConn *cHyPer2to1 = dynamic_cast<HyPerConn *>(hc->getConnFromName(hyper2to1_name));
    FatalIf(!(cHyPer2to1), "Test failed.\n");
 
-   PV::HyPerConn *cKernel2to1 = new HyPerConn("test_gauss2d_kernelconn2to1", hc);
+   PV::HyPerConn *cKernel2to1 = dynamic_cast<HyPerConn *>(hc->getConnFromName(kernel2to1_name));
    FatalIf(!(cKernel2to1), "Test failed.\n");
 
    int status = 0;

@@ -11,7 +11,7 @@
 
 int main(int argc, char *argv[]) {
    PV::PV_Init pv_initObj(&argc, &argv, false /*do not allow unrecognized arguments*/);
-   PV::HyPerCol *hc = createHyPerCol(&pv_initObj);
+   PV::HyPerCol *hc = new PV::HyPerCol(&pv_initObj);
    if (hc == nullptr) {
       return EXIT_FAILURE;
    }
@@ -56,12 +56,12 @@ int main(int argc, char *argv[]) {
       for (int y = yStart; y < yStart + patch->ny; y++) {
          for (int x = xStart; x < xStart + patch->nx; x++) {
             for (int f = 0; f < nf; f++) {
-               int k   = kIndex(x, y, f, nxp, nyp, nfp);
-               float w = weights[k];
+               int k                    = kIndex(x, y, f, nxp, nyp, nfp);
+               float w                  = weights[k];
                float indexObservedFloat = std::floor(w);
-               int   indexObserved      = (int)indexObservedFloat;
+               int indexObserved        = (int)indexObservedFloat;
                float kObservedFloat     = (w - indexObservedFloat) * numItemsInPatch;
-               int   kObserved          = (int)std::nearbyint(kObservedFloat);
+               int kObserved            = (int)std::nearbyint(kObservedFloat);
                if (kObserved != k or indexObserved != globalIndex) {
                   ErrorLog().printf(
                         "Rank %d, Patch %d (global index %d), (x,y,z)=(%d,%d,%d): "
@@ -72,7 +72,7 @@ int main(int argc, char *argv[]) {
                         x,
                         y,
                         f,
-                        (double)globalIndex + (double)k/(double)numItemsInPatch,
+                        (double)globalIndex + (double)k / (double)numItemsInPatch,
                         (double)w);
                   status = PV_FAILURE;
                }

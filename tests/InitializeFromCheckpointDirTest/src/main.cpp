@@ -59,13 +59,13 @@ int main(int argc, char *argv[]) {
    pv_initObj.setMPIConfiguration(-1, -1, pv_initObj.getWorldSize());
 
    pv_initObj.setParams("input/BaseRun.params");
-   PV::HyPerCol *hc1 = createHyPerCol(&pv_initObj);
+   PV::HyPerCol *hc1 = new PV::HyPerCol(&pv_initObj);
    status            = hc1->run();
    FatalIf(status != PV_SUCCESS, "buildandrun with BaseRun.params failed.\n");
    double const stopTime1 = hc1->getStopTime();
 
    pv_initObj.setParams("input/InitializeFromCheckpointDirTest.params");
-   PV::HyPerCol *hc2 = createHyPerCol(&pv_initObj);
+   PV::HyPerCol *hc2 = new PV::HyPerCol(&pv_initObj);
    status            = hc2->run();
    FatalIf(status != PV_SUCCESS, "run with InitializeFromCheckpointDirTest.params failed.\n");
    double const stopTime2 = hc2->getStopTime();

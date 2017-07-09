@@ -100,9 +100,7 @@ int buildandrun1paramset(
    if (sweepindex >= 0) {
       initObj->getParams()->setParameterSweepValues(sweepindex);
    }
-   HyPerCol *hc = createHyPerCol(initObj);
-   if (hc == nullptr)
-      return PV_FAILURE; // createHyPerCol() prints any error message
+   HyPerCol *hc = new HyPerCol(initObj);
 
    int status  = PV_SUCCESS;
    int argc    = 0;
@@ -138,4 +136,4 @@ int buildandrun1paramset(
    return status;
 }
 
-HyPerCol *build(PV_Init *initObj) { return initObj ? createHyPerCol(initObj) : nullptr; }
+HyPerCol *build(PV_Init *initObj) { return initObj ? new HyPerCol(initObj) : nullptr; }

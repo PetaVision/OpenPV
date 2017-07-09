@@ -38,9 +38,9 @@
 
 namespace PV {
 
-HyPerCol::HyPerCol(const char *mName, PV_Init *initObj) {
+HyPerCol::HyPerCol(PV_Init *initObj) {
    initialize_base();
-   initialize(mName, initObj);
+   initialize(initObj);
 }
 
 HyPerCol::~HyPerCol() {
@@ -127,7 +127,7 @@ int HyPerCol::initialize_base() {
    return PV_SUCCESS;
 }
 
-int HyPerCol::initialize(const char *name, PV_Init *initObj) {
+int HyPerCol::initialize(PV_Init *initObj) {
    mPVInitObj    = initObj;
    mCommunicator = mPVInitObj->getCommunicator();
    mParams       = mPVInitObj->getParams();
@@ -141,7 +141,19 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
    std::string working_dir = mPVInitObj->getStringArgument("WorkingDirectory");
    working_dir             = expandLeadingTilde(working_dir);
 
-   mName = strdup(name);
+   int numGroups          = mParams->numberOfGroups();
+   std::string paramsFile = initObj->getStringArgument("ParamsFile");
+   if (numGroups == 0) {
+      ErrorLog() << "Params \"" << paramsFile << "\" does not define any groups.\n";
+      return PV_FAILURE;
+   }
+   if (strcmp(mParams->groupKeywordFromIndex(0), "HyPerCol")) {
+      std::string paramsFile = initObj->getStringArgument("ParamsFile");
+      ErrorLog() << "First group in the params file \"" << paramsFile
+                 << "\" does not define a HyPerCol.\n";
+      return PV_FAILURE;
+   }
+   mName = strdup(mParams->groupNameFromIndex(0));
    setDescription();
 
    // mNumThreads will not be set, or used until HyPerCol::run.
@@ -196,6 +208,29 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
          mName, "nextProgressTime", &mNextProgressTime, (std::size_t)1, true /*broadcast*/);
 
    mCheckpointReadFlag = !mCheckpointer->getCheckpointReadDirectory().empty();
+
+   // Add layers, connections, etc.
+   for (int k = 1; k < numGroups; k++) {
+      const char *kw   = mParams->groupKeywordFromIndex(k);
+      const char *name = mParams->groupNameFromIndex(k);
+      if (!strcmp(kw, "HyPerCol")) {
+         if (globalRank() == 0) {
+            std::string paramsFile = initObj->getStringArgument("ParamsFile");
+            ErrorLog() << "Group " << k + 1 << " in params file (\"" << paramsFile
+                       << "\") is a HyPerCol; only the first group can be a HyPercol.\n";
+            return PV_FAILURE;
+         }
+      }
+      else {
+         BaseObject *addedObject = Factory::instance()->createByKeyword(kw, name, this);
+         if (addedObject == nullptr) {
+            if (globalRank() == 0) {
+               ErrorLog().printf("Unable to create %s \"%s\".\n", kw, name);
+            }
+            return PV_FAILURE;
+         }
+      }
+   } // for-loop over parameter groups
    return PV_SUCCESS;
 }
 
@@ -1318,59 +1353,6 @@ unsigned int HyPerCol::seedRandomFromWallClock() {
    }
    MPI_Bcast(&t, 1, MPI_UNSIGNED, rootproc, mCommunicator->globalCommunicator());
    return t;
-}
-
-HyPerCol *createHyPerCol(PV_Init *pv_initObj) {
-   PVParams *params = pv_initObj->getParams();
-   if (params == nullptr) {
-      ErrorLog() << "createHyPerCol called without having set params.\n";
-      return nullptr;
-   }
-   int numGroups = params->numberOfGroups();
-   if (numGroups == 0) {
-      std::string paramsFile = pv_initObj->getStringArgument("ParamsFile");
-      ErrorLog() << "Params \"" << paramsFile << "\" does not define any groups.\n";
-      return nullptr;
-   }
-   if (strcmp(params->groupKeywordFromIndex(0), "HyPerCol")) {
-      std::string paramsFile = pv_initObj->getStringArgument("ParamsFile");
-      ErrorLog() << "First group in the params \"" << paramsFile
-                 << "\" does not define a HyPerCol.\n";
-      return nullptr;
-   }
-   char const *colName = params->groupNameFromIndex(0);
-
-   HyPerCol *hc = new HyPerCol(colName, pv_initObj);
-   for (int k = 0; k < numGroups; k++) {
-      const char *kw   = params->groupKeywordFromIndex(k);
-      const char *name = params->groupNameFromIndex(k);
-      if (!strcmp(kw, "HyPerCol")) {
-         if (k == 0) {
-            continue;
-         }
-         else {
-            if (hc->columnId() == 0) {
-               std::string paramsFile = pv_initObj->getStringArgument("ParamsFile");
-               ErrorLog() << "Group " << k + 1 << " in params file (\"" << paramsFile
-                          << "\") is a HyPerCol; only the first group can be a HyPercol.\n";
-            }
-            delete hc;
-            return nullptr;
-         }
-      }
-      else {
-         BaseObject *addedObject = Factory::instance()->createByKeyword(kw, name, hc);
-         if (addedObject == nullptr) {
-            if (hc->globalRank() == 0) {
-               ErrorLog().printf("Unable to create %s \"%s\".\n", kw, name);
-            }
-            delete hc;
-            return nullptr;
-         }
-      }
-   }
-
-   return hc;
 }
 
 } // PV namespace
