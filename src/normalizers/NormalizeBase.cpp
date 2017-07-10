@@ -30,7 +30,7 @@ int NormalizeBase::initialize(const char *name, HyPerCol *hc) {
    // should be in the indicated group.
 
    int status = BaseObject::initialize(name, hc);
-   status     = hc->addNormalizer(this);
+   status     = parent->addNormalizer(this);
    return status;
 }
 

@@ -133,7 +133,7 @@ int HyPerLayer::initialize(const char *name, HyPerCol *hc) {
       return status;
    }
 
-   PVParams *params = hc->parameters();
+   PVParams *params = parent->parameters();
 
    status = ioParams(PARAMS_IO_READ);
    assert(status == PV_SUCCESS);
@@ -147,10 +147,10 @@ int HyPerLayer::initialize(const char *name, HyPerCol *hc) {
 
    initClayer();
 
-   hc->addLayer(this);
+   parent->addLayer(this);
 
-   mLastUpdateTime  = hc->getDeltaTime();
-   mLastTriggerTime = hc->getDeltaTime();
+   mLastUpdateTime  = parent->getDeltaTime();
+   mLastTriggerTime = parent->getDeltaTime();
    return PV_SUCCESS;
 }
 
