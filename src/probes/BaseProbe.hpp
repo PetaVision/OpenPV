@@ -29,8 +29,6 @@ class BaseProbe : public BaseObject {
   public:
    virtual ~BaseProbe();
 
-   int ioParams(enum ParamsIOFlag ioFlag);
-
    /**
     * A pure virtual function called during HyPerCol::run, during the
     * communicateInitInfo stage.
@@ -143,7 +141,7 @@ class BaseProbe : public BaseObject {
   protected:
    BaseProbe();
    int initialize(const char *name, HyPerCol *hc);
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    /**
     * List of parameters for the BaseProbe class

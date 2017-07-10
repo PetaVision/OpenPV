@@ -523,7 +523,7 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_sharedWeights(ioFlag);
    ioParam_weightInitType(ioFlag);
    if (weightInitializer != nullptr) {
-      weightInitializer->ioParamsFillGroup(ioFlag);
+      weightInitializer->ioParams(ioFlag, false, false);
    }
    ioParam_initializeFromCheckpointFlag(ioFlag);
    ioParam_triggerLayerName(ioFlag);
@@ -545,7 +545,7 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_shrinkPatches(ioFlag);
    ioParam_normalizeMethod(ioFlag);
    if (normalizer != nullptr && !strcmp(normalizer->getName(), getName())) {
-      normalizer->ioParamsFillGroup(ioFlag);
+      normalizer->ioParams(ioFlag, false, false);
    }
    ioParam_dWMax(ioFlag);
 
@@ -2262,7 +2262,7 @@ int HyPerConn::setInitialValues() {
 int HyPerConn::outputProbeParams() {
    int status = PV_SUCCESS;
    for (int p = 0; p < numProbes; p++) {
-      int status1 = probes[p]->ioParams(PARAMS_IO_WRITE);
+      int status1 = probes[p]->writeParams();
       if (status1 != PV_SUCCESS) {
          status = PV_FAILURE;
       }

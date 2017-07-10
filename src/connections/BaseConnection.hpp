@@ -32,15 +32,6 @@ class BaseConnection : public BaseObject {
     */
    virtual ~BaseConnection();
 
-   /**
-    * Method for reading or writing the params from group in the parent HyPerCol's parameters.
-    * The group from params is selected using the name of the connection.
-    *
-    * Note that ioParams is not virtual.  To add parameters in a derived class, override
-    * ioParamFillGroup.
-    */
-   int ioParams(enum ParamsIOFlag ioFlag);
-
    virtual int respond(std::shared_ptr<BaseMessage const> message) override;
 
    // manage the communicateInitInfo, allocateDataStructures, and initializeState stages.
@@ -270,21 +261,11 @@ class BaseConnection : public BaseObject {
    int getPreAndPostLayerNames(const char *name, char **preLayerNamePtr, char **postLayerNamePtr);
 
    /**
-    * The virtual method for reading parameters from the parent HyPerCol's parameters, and writing
-    * to the output params file.
-    *
-    * BaseConnection::ioParamsFillGroup reads/writes the paremeters
+    * BaseConnection::ioParamsFillGroup reads/writes the parameters
     * preLayerName, postLayerName, channelCode, delay, numAxonalArbors, and convertRateToSpikeCount.
     *
-    * Derived classes with additional parameters typically override ioParamsFillGroup to call the
-    * base class's ioParamsFillGroup
-    * method and then call ioParam_[parametername] for each of their parameters.
-    * The ioParam_[parametername] methods should call the parent HyPerCol's ioParamValue() and
-    * related methods,
-    * to ensure that all parameters that get read also get written to the outputParams-generated
-    * file.
     */
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    /**
     * List of parameters needed from the BaseConnection class

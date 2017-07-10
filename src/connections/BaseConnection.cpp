@@ -45,7 +45,7 @@ int BaseConnection::initialize(const char *name, HyPerCol *hc) {
 
    this->parent->addConnection(this);
    if (status == PV_SUCCESS)
-      status = ioParams(PARAMS_IO_READ);
+      status = readParams();
    return status;
 }
 
@@ -235,14 +235,6 @@ int BaseConnection::getPreAndPostLayerNames(
       exit(EXIT_FAILURE);
    }
    return status;
-}
-
-int BaseConnection::ioParams(enum ParamsIOFlag ioFlag) {
-   parent->ioParamsStartGroup(ioFlag, this->getName());
-   ioParamsFillGroup(ioFlag);
-   parent->ioParamsFinishGroup(ioFlag);
-
-   return PV_SUCCESS;
 }
 
 int BaseConnection::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -445,7 +437,7 @@ int BaseConnection::respond(std::shared_ptr<BaseMessage const> message) {
 int BaseConnection::outputProbeParams() {
    int status = PV_SUCCESS;
    for (int p = 0; p < numProbes; p++) {
-      int status1 = probes[p]->ioParams(PARAMS_IO_WRITE);
+      int status1 = probes[p]->writeParams();
       if (status1 != PV_SUCCESS) {
          status = PV_FAILURE;
       }

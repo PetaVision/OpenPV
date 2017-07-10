@@ -914,7 +914,7 @@ int HyPerCol::outputParams(char const *path) {
    // HyPerLayer params
    for (int l = 0; l < mLayers.size(); l++) {
       HyPerLayer *layer = mLayers.at(l);
-      status            = layer->ioParams(PARAMS_IO_WRITE);
+      status            = layer->writeParams();
       if (status != PV_SUCCESS) {
          Fatal().printf("outputParams: Error copying params to \"%s\"\n", path);
       }
@@ -922,7 +922,7 @@ int HyPerCol::outputParams(char const *path) {
 
    // BaseConnection params
    for (auto c : mConnections) {
-      status = c->ioParams(PARAMS_IO_WRITE);
+      status = c->writeParams();
       if (status != PV_SUCCESS) {
          Fatal().printf("outputParams: Error copying params to \"%s\"\n", path);
       }
@@ -932,7 +932,7 @@ int HyPerCol::outputParams(char const *path) {
 
    // ColProbes
    for (int p = 0; p < mColProbes.size(); p++) {
-      mColProbes.at(p)->ioParams(PARAMS_IO_WRITE);
+      mColProbes.at(p)->writeParams();
    }
 
    // LayerProbes

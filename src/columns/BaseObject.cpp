@@ -70,6 +70,18 @@ int BaseObject::setDescription() {
    return PV_SUCCESS;
 }
 
+int BaseObject::ioParams(enum ParamsIOFlag ioFlag, bool printHeader, bool printFooter) {
+   if (printHeader) {
+      parent->ioParamsStartGroup(ioFlag, name);
+   }
+   ioParamsFillGroup(ioFlag);
+   if (printFooter) {
+      parent->ioParamsFinishGroup(ioFlag);
+   }
+
+   return PV_SUCCESS;
+}
+
 int BaseObject::respond(std::shared_ptr<BaseMessage const> message) {
    // TODO: convert PV_SUCCESS, PV_FAILURE, etc. to enum
    int status = CheckpointerDataInterface::respond(message);

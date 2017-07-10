@@ -135,7 +135,7 @@ int HyPerLayer::initialize(const char *name, HyPerCol *hc) {
 
    PVParams *params = parent->parameters();
 
-   status = ioParams(PARAMS_IO_READ);
+   status = readParams();
    assert(status == PV_SUCCESS);
 
    writeTime                = initialWriteTime;
@@ -589,14 +589,6 @@ int HyPerLayer::initializeV() {
 int HyPerLayer::initializeActivity() {
    int status = setActivity();
    return status;
-}
-
-int HyPerLayer::ioParams(enum ParamsIOFlag ioFlag) {
-   parent->ioParamsStartGroup(ioFlag, name);
-   ioParamsFillGroup(ioFlag);
-   parent->ioParamsFinishGroup(ioFlag);
-
-   return PV_SUCCESS;
 }
 
 int HyPerLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -2082,7 +2074,7 @@ int HyPerLayer::insertProbe(LayerProbe *p) {
 int HyPerLayer::outputProbeParams() {
    int status = PV_SUCCESS;
    for (int p = 0; p < numProbes; p++) {
-      int status1 = probes[p]->ioParams(PARAMS_IO_WRITE);
+      int status1 = probes[p]->writeParams();
       if (status1 != PV_SUCCESS) {
          status = PV_FAILURE;
       }

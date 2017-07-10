@@ -320,7 +320,7 @@ class HyPerLayer : public BaseLayer {
    /**
     * The function that calls all ioParam functions
     */
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    static int equalizeMargins(HyPerLayer *layer1, HyPerLayer *layer2);
 
@@ -330,8 +330,6 @@ class HyPerLayer : public BaseLayer {
    virtual ~HyPerLayer();
 
    void synchronizeMarginWidth(HyPerLayer *layer);
-
-   int ioParams(enum ParamsIOFlag ioFlag);
 
    // TODO - make protected
    PVLayer *clayer;
