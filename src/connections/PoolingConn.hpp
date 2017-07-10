@@ -35,11 +35,7 @@ class PoolingConn : public HyPerConn {
    static AccumulateType parseAccumulateTypeString(char const *typeString);
 
   protected:
-   int initialize(
-         const char *name,
-         HyPerCol *hc,
-         InitWeights *weightInitializer,
-         NormalizeBase *weightNormalizer);
+   int initialize(const char *name, HyPerCol *hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) override;
