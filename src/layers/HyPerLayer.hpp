@@ -488,7 +488,6 @@ class HyPerLayer : public BaseLayer {
 
    double getLastUpdateTime() { return mLastUpdateTime; }
    double getNextUpdateTime() { return mLastUpdateTime + getDeltaUpdateTime(); }
-   float getMaxRate() { return maxRate; }
 
    Publisher *getPublisher() { return publisher; }
 
@@ -556,9 +555,6 @@ class HyPerLayer : public BaseLayer {
 
    int *marginIndices; // indices of neurons in margin
    int numMargin; // number of neurons in margin
-   float maxRate; // Maximum rate of activity.  HyPerLayer sets to 1/dt during initialize(); derived
-   // classes should override in their own initialize method after calling
-   // HyPerLayer's, if needed.
 
    unsigned int rngSeedBase; // The starting seed for rng.  The parent HyPerCol reserves
    // {rngSeedbase, rngSeedbase+1,...rngSeedbase+neededRNGSeeds-1} for use

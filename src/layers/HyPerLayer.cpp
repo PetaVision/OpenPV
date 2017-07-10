@@ -144,7 +144,6 @@ int HyPerLayer::initialize(const char *name, HyPerCol *hc) {
    numDelayLevels = 1; // If a connection has positive delay so that more delay levels are needed,
    // numDelayLevels is increased when BaseConnection::communicateInitInfo calls
    // increaseDelayLevels
-   maxRate = 1000.0f / (float)hc->getDeltaTime();
 
    initClayer();
 

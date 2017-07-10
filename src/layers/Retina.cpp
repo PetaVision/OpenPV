@@ -222,7 +222,6 @@ int Retina::setRetinaParams(PVParams *p) {
    if (probBase > 1.0f) {
       probBase = 1.0f;
    }
-   maxRate = probStim / dt_sec;
 
    // default parameters
    //
