@@ -50,10 +50,6 @@ HyPerCol::~HyPerCol() {
    PrintStream pStream(getOutputStream());
    mCheckpointer->writeTimers(pStream);
    delete mCheckpointer;
-   for (auto iterator = mConnections.begin(); iterator != mConnections.end();) {
-      delete *iterator;
-      iterator = mConnections.erase(iterator);
-   }
    for (auto iterator = mNormalizers.begin(); iterator != mNormalizers.end();) {
       delete *iterator;
       iterator = mNormalizers.erase(iterator);
@@ -62,18 +58,7 @@ HyPerCol::~HyPerCol() {
       delete *iterator;
       iterator = mPhaseRecvTimers.erase(iterator);
    }
-   for (auto iterator = mLayers.begin(); iterator != mLayers.end();) {
-      delete *iterator;
-      iterator = mLayers.erase(iterator);
-   }
 
-   // mColProbes[i] should not be deleted; it points to an entry in mBaseProbes
-   // and will
-   // be deleted when mBaseProbes is deleted
-   for (auto iterator = mBaseProbes.begin(); iterator != mBaseProbes.end();) {
-      delete *iterator;
-      iterator = mBaseProbes.erase(iterator);
-   }
    mColProbes.clear();
 
    delete mRunTimer;
@@ -98,8 +83,6 @@ int HyPerCol::initialize_base() {
    mWriteProgressToErr       = false;
    mOrigStdOut               = -1;
    mOrigStdErr               = -1;
-   mLayers.clear();
-   mConnections.clear();
    mNormalizers.clear(); // Pretty sure these aren't necessary
    mLayerStatus          = nullptr;
    mConnectionStatus     = nullptr;
@@ -116,7 +99,6 @@ int HyPerCol::initialize_base() {
    mRunTimer             = nullptr;
    mPhaseRecvTimers.clear();
    mColProbes.clear();
-   mBaseProbes.clear();
    mRandomSeed        = 0U;
    mErrorOnNotANumber = false;
    mNumThreads        = 1;
@@ -371,20 +353,6 @@ void HyPerCol::ioParam_errorOnNotANumber(enum ParamsIOFlag ioFlag) {
          ioFlag, mName, "errorOnNotANumber", &mErrorOnNotANumber, mErrorOnNotANumber);
 }
 
-int HyPerCol::addLayer(HyPerLayer *layer) {
-   addObject(layer);
-   mLayers.push_back(layer);
-   if (layer->getPhase() >= mNumPhases)
-      mNumPhases = layer->getPhase() + 1;
-   return mLayers.size() - 1;
-}
-
-int HyPerCol::addConnection(BaseConnection *conn) {
-   addObject(conn);
-   mConnections.push_back(conn);
-   return mConnections.size() - 1;
-}
-
 int HyPerCol::addNormalizer(NormalizeBase *normalizer) {
    mNormalizers.push_back(normalizer);
    return PV_SUCCESS; // Why does this return success when the other add
@@ -440,6 +408,9 @@ void HyPerCol::allocateColumn() {
 
    notify(std::make_shared<AllocateDataMessage>());
 
+   notify(std::make_shared<LayerSetMaxPhaseMessage>(&mNumPhases));
+   mNumPhases++;
+
    mPhaseRecvTimers.clear();
    for (int phase = 0; phase < mNumPhases; phase++) {
       std::string timerTypeString("phRecv");
@@ -459,7 +430,7 @@ void HyPerCol::allocateColumn() {
    // Initialize the state of each object based on the params file,
    // and then if reading from checkpoint, call the checkpointer.
    // This needs to happen after initPublishers so that we can initialize
-   // the values in the data stores, and before the mLayers' publish calls
+   // the values in the data stores, and before the layers' publish calls
    // so that the data in border regions gets copied correctly.
    notify(std::make_shared<InitializeStateMessage>());
    if (mCheckpointReadFlag) {
@@ -719,8 +690,11 @@ int HyPerCol::advanceTime(double sim_time) {
 
    // Each layer's phase establishes a priority for updating
    for (int phase = 0; phase < mNumPhases; phase++) {
-      for (auto &l : mLayers) { // TODO: use notify/respond
-         l->clearProgressFlags();
+      for (auto &obj : mObjectHierarchy.getObjectVector()) { // TODO: use notify/respond
+         HyPerLayer *l = dynamic_cast<HyPerLayer *>(obj);
+         if (l != nullptr) {
+            l->clearProgressFlags();
+         }
       }
 
 // nonblockingLayerUpdate allows for more concurrency than notify.
@@ -790,7 +764,11 @@ void HyPerCol::nonblockingLayerUpdate(
    while (!allUpdated) {
       bool anyUpdated = false;
 
-      for (auto &l : mLayers) {
+      for (auto &obj : mObjectHierarchy.getObjectVector()) {
+         HyPerLayer *l = dynamic_cast<HyPerLayer *>(obj);
+         if (l == nullptr) {
+            continue;
+         }
 #ifdef PV_USE_CUDA
          if (l->getRecvGpu() != recvMessage->mRecvOnGpuFlag) {
             continue;
@@ -806,7 +784,11 @@ void HyPerCol::nonblockingLayerUpdate(
          continue;
       }
 
-      for (auto &l : mLayers) {
+      for (auto &obj : mObjectHierarchy.getObjectVector()) {
+         HyPerLayer *l = dynamic_cast<HyPerLayer *>(obj);
+         if (l == nullptr) {
+            continue;
+         }
 #ifdef PV_USE_CUDA
          if (l->getRecvGpu() != updateMessage->mRecvOnGpuFlag) {
             continue;
@@ -828,7 +810,11 @@ void HyPerCol::nonblockingLayerUpdate(
       idleCounter++;
       // TODO (maybe?) Waitany logic goes here.
       allUpdated = true;
-      for (auto &l : mLayers) {
+      for (auto &obj : mObjectHierarchy.getObjectVector()) {
+         HyPerLayer *l = dynamic_cast<HyPerLayer *>(obj);
+         if (l == nullptr) {
+            continue;
+         }
 #ifdef PV_USE_CUDA
          if (l->getRecvGpu() != updateMessage->mRecvOnGpuFlag) {
             continue;
@@ -911,39 +897,14 @@ int HyPerCol::outputParams(char const *path) {
       Fatal().printf("outputParams: Error copying params to \"%s\"\n", path);
    }
 
-   // HyPerLayer params
-   for (int l = 0; l < mLayers.size(); l++) {
-      HyPerLayer *layer = mLayers.at(l);
-      status            = layer->writeParams();
-      if (status != PV_SUCCESS) {
-         Fatal().printf("outputParams: Error copying params to \"%s\"\n", path);
-      }
-   }
-
-   // BaseConnection params
-   for (auto c : mConnections) {
-      status = c->writeParams();
-      if (status != PV_SUCCESS) {
-         Fatal().printf("outputParams: Error copying params to \"%s\"\n", path);
-      }
-   }
-
-   // Probe params
-
-   // ColProbes
-   for (int p = 0; p < mColProbes.size(); p++) {
-      mColProbes.at(p)->writeParams();
-   }
-
-   // LayerProbes
-   for (int l = 0; l < mLayers.size(); l++) {
-      mLayers.at(l)->outputProbeParams();
-   }
-
-   // BaseConnectionProbes
-   for (auto c : mConnections) {
-      c->outputProbeParams();
-   }
+   // Splitting this up into five messages for backwards compatibility in preserving the order.
+   // If order preservation is not needed here, it would be better to replace with a single
+   // message that all five types respond to.
+   notify(std::make_shared<LayerWriteParamsMessage>());
+   notify(std::make_shared<ConnectionWriteParamsMessage>());
+   notify(std::make_shared<ColProbeWriteParamsMessage>());
+   notify(std::make_shared<LayerProbeWriteParamsMessage>());
+   notify(std::make_shared<ConnectionProbeWriteParamsMessage>());
 
    if (rank == 0) {
       mLuaPrintParamsStream->printf("} --End of pvParameters\n");
@@ -1250,49 +1211,11 @@ void HyPerCol::addObject(BaseObject *obj) {
    FatalIf(!succeeded, "Adding %s failed.\n", getDescription_c());
 }
 
-// BaseProbes include layer probes, connection probes, and column probes.
-int HyPerCol::addBaseProbe(BaseProbe *p) {
-   addObject(p);
-   mBaseProbes.push_back(p);
-   return mBaseProbes.size();
-}
-
 int HyPerCol::outputState(double time) {
    for (int n = 0; n < mColProbes.size(); n++) {
       mColProbes.at(n)->outputStateWrapper(time, mDeltaTime);
    }
    return PV_SUCCESS;
-}
-
-HyPerLayer *HyPerCol::getLayerFromName(const char *layerName) {
-   if (layerName == nullptr) {
-      return nullptr;
-   }
-   int n = numberOfLayers();
-   for (int i = 0; i < n; i++) {
-      HyPerLayer *curLayer = getLayer(i);
-      assert(curLayer);
-      const char *curLayerName = curLayer->getName();
-      assert(curLayerName);
-      if (!strcmp(curLayer->getName(), layerName))
-         return curLayer;
-   }
-   return nullptr;
-}
-
-BaseConnection *HyPerCol::getConnFromName(const char *connName) {
-   if (connName == nullptr)
-      return nullptr;
-   int n = numberOfConnections();
-   for (int i = 0; i < n; i++) {
-      BaseConnection *curConn = getConnection(i);
-      assert(curConn);
-      const char *curConnName = curConn->getName();
-      assert(curConnName);
-      if (!strcmp(curConn->getName(), connName))
-         return curConn;
-   }
-   return nullptr;
 }
 
 NormalizeBase *HyPerCol::getNormalizerFromName(const char *normalizerName) {
@@ -1310,39 +1233,37 @@ NormalizeBase *HyPerCol::getNormalizerFromName(const char *normalizerName) {
    return nullptr;
 }
 
-ColProbe *HyPerCol::getColProbeFromName(const char *probeName) {
-   if (probeName == nullptr)
-      return nullptr;
-   ColProbe *p = nullptr;
-   int n       = numberOfProbes();
-   for (int i = 0; i < n; i++) {
-      ColProbe *curColProbe = getColProbe(i);
-      const char *curName   = curColProbe->getName();
-      assert(curName);
-      if (!strcmp(curName, probeName)) {
-         p = curColProbe;
-         break;
-      }
-   }
-   return p;
+Observer *HyPerCol::getObjectFromName(std::string const &objectName) const {
+   auto &objectMap = mObjectHierarchy.getObjectMap();
+   auto search     = objectMap.find(objectName);
+   return search == objectMap.end() ? nullptr : search->second;
 }
 
-BaseProbe *HyPerCol::getBaseProbeFromName(const char *probeName) {
-   if (probeName == nullptr) {
-      return nullptr;
-   }
-   BaseProbe *p = nullptr;
-   int n        = numberOfBaseProbes();
-   for (int i = 0; i < n; i++) {
-      BaseProbe *curBaseProbe = getBaseProbe(i);
-      const char *curName     = curBaseProbe->getName();
-      assert(curName);
-      if (!strcmp(curName, probeName)) {
-         p = curBaseProbe;
-         break;
+Observer *HyPerCol::getNextObject(Observer const *currentObject) const {
+   if (mObjectHierarchy.getObjectVector().empty()) {
+      if (currentObject != nullptr) {
+         throw std::domain_error("HyPerCol::getNextObject called with empty hierarchy");
+      }
+      else {
+         return nullptr;
       }
    }
-   return p;
+   else {
+      auto objectVector = mObjectHierarchy.getObjectVector();
+      if (currentObject == nullptr) {
+         return objectVector[0];
+      }
+      else {
+         for (auto iterator = objectVector.begin(); iterator != objectVector.end(); iterator++) {
+            Observer *object = *iterator;
+            if (object == currentObject) {
+               iterator++;
+               return iterator == objectVector.end() ? nullptr : *iterator;
+            }
+         }
+         throw std::domain_error("HyPerCol::getNextObject argument not in hierarchy");
+      }
+   }
 }
 
 unsigned int HyPerCol::seedRandomFromWallClock() {

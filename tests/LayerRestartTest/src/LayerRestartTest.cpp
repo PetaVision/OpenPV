@@ -101,19 +101,9 @@ int main(int argc, char *argv[]) {
 }
 
 int checkComparisonNonzero(HyPerCol *hc, int argc, char *argv[]) {
-   int status    = PV_FAILURE;
-   int numLayers = hc->numberOfLayers();
-   int layerIndex;
-   HyPerLayer *layer;
-   for (layerIndex = 0; layerIndex < numLayers; layerIndex++) {
-      layer = hc->getLayer(layerIndex);
-      if (!strcmp(hc->getLayer(layerIndex)->getName(), "Comparison"))
-         break;
-   }
-   if (layerIndex >= numLayers) {
-      ErrorLog().printf("%s: couldn't find layer \"Comparison\".", argv[0]);
-      return PV_FAILURE;
-   }
+   int status        = PV_FAILURE;
+   HyPerLayer *layer = dynamic_cast<HyPerLayer *>(hc->getObjectFromName("Comparison"));
+   FatalIf(layer == nullptr, "No layer \"Comparison\".\n");
    float *V = layer->getV();
    for (int k = 0; k < layer->getNumNeurons(); k++) {
       if (V[k]) {
@@ -125,19 +115,9 @@ int checkComparisonNonzero(HyPerCol *hc, int argc, char *argv[]) {
 }
 
 int checkComparisonZero(HyPerCol *hc, int argc, char *argv[]) {
-   int status    = PV_SUCCESS;
-   int numLayers = hc->numberOfLayers();
-   int layerIndex;
-   HyPerLayer *layer;
-   for (layerIndex = 0; layerIndex < numLayers; layerIndex++) {
-      layer = hc->getLayer(layerIndex);
-      if (!strcmp(hc->getLayer(layerIndex)->getName(), "Comparison"))
-         break;
-   }
-   if (layerIndex >= numLayers) {
-      ErrorLog().printf("%s: couldn't find layer \"Comparison\".", argv[0]);
-      return PV_FAILURE;
-   }
+   int status        = PV_SUCCESS;
+   HyPerLayer *layer = dynamic_cast<HyPerLayer *>(hc->getObjectFromName("Comparison"));
+   FatalIf(layer == nullptr, "No layer \"Comparison\".\n");
    float *V = layer->getV();
    for (int k = 0; k < layer->getNumNeurons(); k++) {
       if (V[k]) {

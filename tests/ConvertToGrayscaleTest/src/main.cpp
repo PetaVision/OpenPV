@@ -21,7 +21,7 @@ int customexit(HyPerCol *hc, int argc, char **argv) {
       InfoLog().printf(
             "Checking whether input layer has all values equal to %f ...\n", (double)correctvalue);
    }
-   HyPerLayer *inputlayer = hc->getLayerFromName("input");
+   HyPerLayer *inputlayer = dynamic_cast<HyPerLayer *>(hc->getObjectFromName("input"));
    FatalIf(!(inputlayer), "Test failed.\n");
    PVLayerLoc const *loc = inputlayer->getLayerLoc();
    FatalIf(!(loc->nf == 1), "Test failed.\n");

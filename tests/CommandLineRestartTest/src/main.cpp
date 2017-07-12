@@ -40,7 +40,7 @@ int main(int argc, char *argv[]) {
 
    hc = new HyPerCol(&pv_init);
    FatalIf(hc == nullptr, "failed to create HyPerCol.\n");
-   outputLayer = dynamic_cast<FailBeforeExpectedStartTimeLayer *>(hc->getLayerFromName("Output"));
+   outputLayer = dynamic_cast<FailBeforeExpectedStartTimeLayer *>(hc->getObjectFromName("Output"));
    FatalIf(
          outputLayer == nullptr,
          "Params file does not have a FailBeforeExpectedStartTimeLayer called \"Output\".\n");
@@ -52,7 +52,7 @@ int main(int argc, char *argv[]) {
 
    hc = new HyPerCol(&pv_init);
    FatalIf(hc == nullptr, "failed to create HyPerCol.\n");
-   outputLayer = dynamic_cast<FailBeforeExpectedStartTimeLayer *>(hc->getLayerFromName("Output"));
+   outputLayer = dynamic_cast<FailBeforeExpectedStartTimeLayer *>(hc->getObjectFromName("Output"));
    FatalIf(
          outputLayer == nullptr,
          "Params file does not have a FailBeforeExpectedStartTimeLayer called \"Output\".\n");
@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
    pv_init.setBooleanArgument("Restart", true);
    hc = new HyPerCol(&pv_init);
    FatalIf(hc == nullptr, "failed to create HyPerCol.\n");
-   outputLayer = dynamic_cast<FailBeforeExpectedStartTimeLayer *>(hc->getLayerFromName("Output"));
+   outputLayer = dynamic_cast<FailBeforeExpectedStartTimeLayer *>(hc->getObjectFromName("Output"));
    FatalIf(
          outputLayer == nullptr,
          "Params file does not have a FailBeforeExpectedStartTimeLayer called \"Output\".\n");

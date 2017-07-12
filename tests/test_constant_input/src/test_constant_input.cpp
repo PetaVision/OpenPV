@@ -44,13 +44,14 @@ int main(int argc, char *argv[]) {
    //
    HyPerCol *hc = new HyPerCol(initObj);
 
-   TestImage *image = dynamic_cast<TestImage *>(hc->getLayerFromName("test_constant_input_image"));
+   TestImage *image = dynamic_cast<TestImage *>(
+         dynamic_cast<HyPerLayer *>(hc->getObjectFromName("test_constant_input_image")));
 
-   HyPerLayer *retina =
-         dynamic_cast<HyPerLayer *>(hc->getLayerFromName("test_constant_input_retina"));
+   HyPerLayer *retina = dynamic_cast<HyPerLayer *>(
+         dynamic_cast<HyPerLayer *>(hc->getObjectFromName("test_constant_input_retina")));
 
    HyPerConn *conn =
-         dynamic_cast<HyPerConn *>(hc->getConnFromName("test_constant_input_connection"));
+         dynamic_cast<HyPerConn *>(hc->getObjectFromName("test_constant_input_connection"));
 
    const int nxp               = conn->xPatchSize();
    const int nyp               = conn->yPatchSize();

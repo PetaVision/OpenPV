@@ -25,60 +25,47 @@ int main(int argc, char *argv[]) {
    const char *preLayerName  = "test_cocirc_pre";
    const char *postLayerName = "test_cocirc_post";
 
-   PV::HyPerLayer *pre = hc->getLayerFromName(preLayerName);
-   FatalIf(!(pre), "Test failed.\n");
-   PV::HyPerLayer *post = hc->getLayerFromName(postLayerName);
-   FatalIf(!(post), "Test failed.\n");
-   PV::HyPerConn *cHyPer = dynamic_cast<HyPerConn *>(hc->getConnFromName("test_cocirc_hyperconn"));
-   FatalIf(!(cHyPer), "Test failed.\n");
+   PV::HyPerLayer *pre = dynamic_cast<HyPerLayer *>(hc->getObjectFromName(preLayerName));
+   FatalIf(!pre, "No layer \"%s\" in the hierarchy.\n", preLayerName);
+   PV::HyPerLayer *post = dynamic_cast<HyPerLayer *>(hc->getObjectFromName(postLayerName));
+   FatalIf(!post, "No layer \"%s\" in the hierarchy.\n", postLayerName);
+   PV::HyPerConn *cHyPer =
+         dynamic_cast<HyPerConn *>(hc->getObjectFromName("test_cocirc_hyperconn"));
+   FatalIf(!cHyPer, "Test failed.\n");
    PV::HyPerConn *cCocirc =
-         dynamic_cast<HyPerConn *>(hc->getConnFromName("test_cocirc_cocircconn"));
+         dynamic_cast<HyPerConn *>(hc->getObjectFromName("test_cocirc_cocircconn"));
    FatalIf(!(cCocirc), "Test failed.\n");
 
-   PV::HyPerLayer *pre2 = hc->getLayerFromName("test_cocirc_pre2");
+   PV::HyPerLayer *pre2 = dynamic_cast<HyPerLayer *>(hc->getObjectFromName("test_cocirc_pre2"));
    FatalIf(!(pre2), "Test failed.\n");
-   PV::HyPerLayer *post2 = hc->getLayerFromName("test_cocirc_post2");
+   PV::HyPerLayer *post2 = dynamic_cast<HyPerLayer *>(hc->getObjectFromName("test_cocirc_post2"));
    FatalIf(!(post2), "Test failed.\n");
    PV::HyPerConn *cHyPer1to2 =
-         dynamic_cast<HyPerConn *>(hc->getConnFromName("test_cocirc_hyperconn1to2"));
+         dynamic_cast<HyPerConn *>(hc->getObjectFromName("test_cocirc_hyperconn1to2"));
    FatalIf(!(cHyPer1to2), "Test failed.\n");
    PV::HyPerConn *cCocirc1to2 =
-         dynamic_cast<HyPerConn *>(hc->getConnFromName("test_cocirc_cocircconn1to2"));
+         dynamic_cast<HyPerConn *>(hc->getObjectFromName("test_cocirc_cocircconn1to2"));
    FatalIf(!(cCocirc1to2), "Test failed.\n");
    PV::HyPerConn *cHyPer2to1 =
-         dynamic_cast<HyPerConn *>(hc->getConnFromName("test_cocirc_hyperconn2to1"));
+         dynamic_cast<HyPerConn *>(hc->getObjectFromName("test_cocirc_hyperconn2to1"));
    FatalIf(!(cHyPer2to1), "Test failed.\n");
    PV::HyPerConn *cCocirc2to1 =
-         dynamic_cast<HyPerConn *>(hc->getConnFromName("test_cocirc_cocircconn2to1"));
+         dynamic_cast<HyPerConn *>(hc->getObjectFromName("test_cocirc_cocircconn2to1"));
    FatalIf(!(cCocirc2to1), "Test failed.\n");
 
    ensureDirExists(hc->getCommunicator()->getLocalMPIBlock(), hc->getOutputPath());
 
    auto objectMap      = hc->copyObjectMap();
    auto commMessagePtr = std::make_shared<CommunicateInitInfoMessage>(*objectMap);
-   for (int l = 0; l < hc->numberOfLayers(); l++) {
-      HyPerLayer *layer = hc->getLayer(l);
-      int status        = layer->respond(commMessagePtr);
-      FatalIf(!(status == PV_SUCCESS), "Test failed.\n");
+   for (Observer *obj = hc->getNextObject(nullptr); obj != nullptr; obj = hc->getNextObject(obj)) {
+      int status = obj->respond(commMessagePtr);
+      FatalIf(status != PV_SUCCESS, "Test failed.\n");
    }
-   for (int c = 0; c < hc->numberOfConnections(); c++) {
-      BaseConnection *conn = hc->getConnection(c);
-      int status           = conn->respond(commMessagePtr);
-      FatalIf(!(status == PV_SUCCESS), "Test failed.\n");
-   }
-   delete objectMap;
 
    auto allocateMessagePtr = std::make_shared<AllocateDataMessage>();
-   for (int l = 0; l < hc->numberOfLayers(); l++) {
-      HyPerLayer *layer = hc->getLayer(l);
-      int status        = layer->respond(allocateMessagePtr);
-      FatalIf(!(status == PV_SUCCESS), "Test failed.\n");
-   }
-
-   for (int c = 0; c < hc->numberOfConnections(); c++) {
-      BaseConnection *conn = hc->getConnection(c);
-      int status           = conn->respond(allocateMessagePtr);
-      FatalIf(!(status == PV_SUCCESS), "Test failed.\n");
+   for (Observer *obj = hc->getNextObject(nullptr); obj != nullptr; obj = hc->getNextObject(obj)) {
+      int status = obj->respond(allocateMessagePtr);
+      FatalIf(status != PV_SUCCESS, "Test failed.\n");
    }
 
    const int axonID     = 0;

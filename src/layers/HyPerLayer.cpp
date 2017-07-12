@@ -147,7 +147,7 @@ int HyPerLayer::initialize(const char *name, HyPerCol *hc) {
 
    initClayer();
 
-   parent->addLayer(this);
+   parent->addObject(this);
 
    mLastUpdateTime  = parent->getDeltaTime();
    mLastTriggerTime = parent->getDeltaTime();
@@ -901,6 +901,17 @@ int HyPerLayer::respond(std::shared_ptr<BaseMessage const> message) {
    if (status != PV_SUCCESS) {
       return status;
    }
+   else if (auto castMessage = std::dynamic_pointer_cast<LayerSetMaxPhaseMessage const>(message)) {
+      return respondLayerSetMaxPhase(castMessage);
+   }
+   else if (auto castMessage = std::dynamic_pointer_cast<LayerWriteParamsMessage const>(message)) {
+      return respondLayerWriteParams(castMessage);
+   }
+   else if (
+         auto castMessage =
+               std::dynamic_pointer_cast<LayerProbeWriteParamsMessage const>(message)) {
+      return respondLayerProbeWriteParams(castMessage);
+   }
    else if (auto castMessage = std::dynamic_pointer_cast<LayerUpdateStateMessage const>(message)) {
       return respondLayerUpdateState(castMessage);
    }
@@ -932,6 +943,19 @@ int HyPerLayer::respond(std::shared_ptr<BaseMessage const> message) {
    else {
       return status;
    }
+}
+
+int HyPerLayer::respondLayerSetMaxPhase(std::shared_ptr<LayerSetMaxPhaseMessage const> message) {
+   return setMaxPhase(message->mMaxPhase);
+}
+
+int HyPerLayer::respondLayerWriteParams(std::shared_ptr<LayerWriteParamsMessage const> message) {
+   return writeParams();
+}
+
+int HyPerLayer::respondLayerProbeWriteParams(
+      std::shared_ptr<LayerProbeWriteParamsMessage const> message) {
+   return outputProbeParams();
 }
 
 int HyPerLayer::respondLayerRecvSynapticInput(
@@ -1202,6 +1226,13 @@ int HyPerLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
    int status = PV_SUCCESS;
 
    return status;
+}
+
+int HyPerLayer::setMaxPhase(int *maxPhase) {
+   if (*maxPhase < phase) {
+      *maxPhase = phase;
+   }
+   return PV_SUCCESS;
 }
 
 void HyPerLayer::addRecvConn(BaseConnection *conn) {

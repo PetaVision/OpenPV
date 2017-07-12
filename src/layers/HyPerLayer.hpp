@@ -368,20 +368,20 @@ class HyPerLayer : public BaseLayer {
     */
    virtual double getDeltaTriggerTime();
 
-   virtual int
-   respondLayerRecvSynapticInput(std::shared_ptr<LayerRecvSynapticInputMessage const> message);
-   virtual int respondLayerUpdateState(std::shared_ptr<LayerUpdateStateMessage const> message);
+   int respondLayerSetMaxPhase(std::shared_ptr<LayerSetMaxPhaseMessage const> message);
+   int respondLayerWriteParams(std::shared_ptr<LayerWriteParamsMessage const> message);
+   int respondLayerProbeWriteParams(std::shared_ptr<LayerProbeWriteParamsMessage const> message);
+   int respondLayerRecvSynapticInput(std::shared_ptr<LayerRecvSynapticInputMessage const> message);
+   int respondLayerUpdateState(std::shared_ptr<LayerUpdateStateMessage const> message);
 #ifdef PV_USE_CUDA
-   virtual int respondLayerCopyFromGpu(std::shared_ptr<LayerCopyFromGpuMessage const> message);
+   int respondLayerCopyFromGpu(std::shared_ptr<LayerCopyFromGpuMessage const> message);
 #endif // PV_USE_CUDA
-   virtual int
-   respondLayerAdvanceDataStore(std::shared_ptr<LayerAdvanceDataStoreMessage const> message);
-   virtual int respondLayerPublish(std::shared_ptr<LayerPublishMessage const> message);
-   virtual int
-   respondLayerCheckNotANumber(std::shared_ptr<LayerCheckNotANumberMessage const> message);
+   int respondLayerAdvanceDataStore(std::shared_ptr<LayerAdvanceDataStoreMessage const> message);
+   int respondLayerPublish(std::shared_ptr<LayerPublishMessage const> message);
+   int respondLayerCheckNotANumber(std::shared_ptr<LayerCheckNotANumberMessage const> message);
    // respondLayerUpdateActiveIndices removed Feb 3, 2017. Layers update active indices
    // in response to other messages, when needed.
-   virtual int respondLayerOutputState(std::shared_ptr<LayerOutputStateMessage const> message);
+   int respondLayerOutputState(std::shared_ptr<LayerOutputStateMessage const> message);
    virtual int publish(Communicator *comm, double simTime);
    virtual int resetGSynBuffers(double timef, double dt);
    // ************************************************************************************//
@@ -497,6 +497,7 @@ class HyPerLayer : public BaseLayer {
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual int allocateDataStructures() override;
+   virtual int setMaxPhase(int *maxPhase);
    virtual int registerData(Checkpointer *checkpointer) override;
    virtual int initializeState() override final;
    // Not overridable since all layers should respond to initializeFromCheckpointFlag the same way.

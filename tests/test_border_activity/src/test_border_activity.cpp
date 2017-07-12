@@ -56,18 +56,18 @@ int main(int argc, char *argv[]) {
    const char *retinaLayerName = "test_border_activity_retina";
    const char *l1LayerName     = "test_border_activity_layer";
 
-   PvpLayer *image = dynamic_cast<PvpLayer *>(hc->getLayerFromName(imageLayerName));
+   PvpLayer *image = dynamic_cast<PvpLayer *>(hc->getObjectFromName(imageLayerName));
    assert(image);
-   Retina *retina = dynamic_cast<Retina *>(hc->getLayerFromName(retinaLayerName));
+   Retina *retina = dynamic_cast<Retina *>(hc->getObjectFromName(retinaLayerName));
    assert(retina);
-   ANNLayer *l1 = dynamic_cast<ANNLayer *>(hc->getLayerFromName(l1LayerName));
+   ANNLayer *l1 = dynamic_cast<ANNLayer *>(hc->getObjectFromName(l1LayerName));
    assert(l1);
 
    HyPerConn *conn1 =
-         dynamic_cast<HyPerConn *>(hc->getConnFromName("test_border_activity_connection1"));
+         dynamic_cast<HyPerConn *>(hc->getObjectFromName("test_border_activity_connection1"));
    FatalIf(!(conn1), "Test failed.\n");
    HyPerConn *conn2 =
-         dynamic_cast<HyPerConn *>(hc->getConnFromName("test_border_activity_connection2"));
+         dynamic_cast<HyPerConn *>(hc->getObjectFromName("test_border_activity_connection2"));
    FatalIf(!(conn2), "Test failed.\n");
 
 #ifdef DEBUG_OUTPUT

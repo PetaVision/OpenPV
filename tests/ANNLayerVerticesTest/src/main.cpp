@@ -14,8 +14,8 @@ int main(int argc, char *argv[]) {
 }
 
 int customexit(HyPerCol *hc, int argc, char *argv[]) {
-   HyPerLayer *outputLayer = hc->getLayer(1);
-   FatalIf(!(!strcmp(outputLayer->getName(), "Output")), "Test failed.\n");
+   HyPerLayer *outputLayer = dynamic_cast<HyPerLayer *>(hc->getObjectFromName("Output"));
+   FatalIf(outputLayer == nullptr, "Test failed.\n");
    float const *V        = outputLayer->getV();
    float const *A        = outputLayer->getLayerData();
    PVLayerLoc const *loc = outputLayer->getLayerLoc();

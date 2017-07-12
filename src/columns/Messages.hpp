@@ -44,6 +44,37 @@ class AllocateDataMessage : public BaseMessage {
    AllocateDataMessage() { setMessageType("AllocateDataStructures"); }
 };
 
+class LayerSetMaxPhaseMessage : public BaseMessage {
+  public:
+   LayerSetMaxPhaseMessage(int *maxPhase) {
+      setMessageType("LayerSetPhase");
+      mMaxPhase = maxPhase;
+   }
+   int *mMaxPhase = nullptr;
+};
+
+class LayerWriteParamsMessage : public BaseMessage {
+  public:
+   LayerWriteParamsMessage() { setMessageType("LayerWriteParams"); }
+};
+
+class ConnectionWriteParamsMessage : public BaseMessage {
+  public:
+   ConnectionWriteParamsMessage() { setMessageType("ConnectionWriteParams"); }
+};
+class ColProbeWriteParamsMessage : public BaseMessage {
+  public:
+   ColProbeWriteParamsMessage() { setMessageType("ColProbeWriteParams"); }
+};
+class LayerProbeWriteParamsMessage : public BaseMessage {
+  public:
+   LayerProbeWriteParamsMessage() { setMessageType("LayerProbeWriteParams"); }
+};
+class ConnectionProbeWriteParamsMessage : public BaseMessage {
+  public:
+   ConnectionProbeWriteParamsMessage() { setMessageType("ConnectionProbeWriteParams"); }
+};
+
 class InitializeStateMessage : public BaseMessage {
   public:
    InitializeStateMessage() { setMessageType("InitializeState"); }
@@ -169,7 +200,7 @@ class LayerCopyFromGpuMessage : public BaseMessage {
 class LayerAdvanceDataStoreMessage : public BaseMessage {
   public:
    LayerAdvanceDataStoreMessage(int phase) {
-      setMessageType("LayerAdvanceDataStoreMessage");
+      setMessageType("LayerAdvanceDataStore");
       mPhase = phase;
    }
    int mPhase;

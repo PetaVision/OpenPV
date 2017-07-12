@@ -16,7 +16,7 @@ int custominit(HyPerCol *hc, int argc, char **argv);
 int customexit(HyPerCol *hc, int argc, char **argv);
 // customexit is for doing things after the run completes but before the HyPerCol is deleted.
 
-bool checkHalo(PVHalo const *halo, int lt, int rt, int dn, int up);
+bool checkHalo(HyPerCol *hc, std::string const &layerName, int lt, int rt, int dn, int up);
 
 int main(int argc, char *argv[]) {
 
@@ -27,37 +27,23 @@ int main(int argc, char *argv[]) {
 
 int custominit(HyPerCol *hc, int argc, char **argv) {
    PVHalo check;
-   FatalIf(
-         !(checkHalo(&hc->getLayerFromName("MarginsEqualImage")->getLayerLoc()->halo, 0, 0, 0, 0)),
-         "Test failed.\n");
-   FatalIf(
-         !(checkHalo(&hc->getLayerFromName("XMarginLargerImage")->getLayerLoc()->halo, 0, 0, 0, 0)),
-         "Test failed.\n");
-   FatalIf(
-         !(checkHalo(&hc->getLayerFromName("YMarginLargerImage")->getLayerLoc()->halo, 0, 0, 0, 0)),
-         "Test failed.\n");
-   FatalIf(
-         !(checkHalo(&hc->getLayerFromName("MultipleConnImage")->getLayerLoc()->halo, 0, 0, 0, 0)),
-         "Test failed.\n");
+   FatalIf(!checkHalo(hc, std::string("MarginsEqualImage"), 0, 0, 0, 0), "Test failed.\n");
+   FatalIf(!checkHalo(hc, std::string("XMarginLargerImage"), 0, 0, 0, 0), "Test failed.\n");
+   FatalIf(!checkHalo(hc, std::string("YMarginLargerImage"), 0, 0, 0, 0), "Test failed.\n");
+   FatalIf(!checkHalo(hc, std::string("MultipleConnImage"), 0, 0, 0, 0), "Test failed.\n");
    return PV_SUCCESS;
 }
 
 int customexit(HyPerCol *hc, int argc, char **argv) {
-   FatalIf(
-         !(checkHalo(&hc->getLayerFromName("MarginsEqualImage")->getLayerLoc()->halo, 2, 2, 2, 2)),
-         "Test failed.\n");
-   FatalIf(
-         !(checkHalo(&hc->getLayerFromName("XMarginLargerImage")->getLayerLoc()->halo, 3, 3, 1, 1)),
-         "Test failed.\n");
-   FatalIf(
-         !(checkHalo(&hc->getLayerFromName("YMarginLargerImage")->getLayerLoc()->halo, 1, 1, 3, 3)),
-         "Test failed.\n");
-   FatalIf(
-         !(checkHalo(&hc->getLayerFromName("MultipleConnImage")->getLayerLoc()->halo, 3, 3, 3, 3)),
-         "Test failed.\n");
+   FatalIf(!checkHalo(hc, std::string("MarginsEqualImage"), 2, 2, 2, 2), "Test failed.\n");
+   FatalIf(!checkHalo(hc, std::string("XMarginLargerImage"), 3, 3, 1, 1), "Test failed.\n");
+   FatalIf(!checkHalo(hc, std::string("YMarginLargerImage"), 1, 1, 3, 3), "Test failed.\n");
+   FatalIf(!checkHalo(hc, std::string("MultipleConnImage"), 3, 3, 3, 3), "Test failed.\n");
    return PV_SUCCESS;
 }
 
-bool checkHalo(PVHalo const *halo, int lt, int rt, int dn, int up) {
-   return halo->lt == lt && halo->rt == rt && halo->dn == dn && halo->up == up;
+bool checkHalo(HyPerCol *hc, std::string const &layerName, int lt, int rt, int dn, int up) {
+   HyPerLayer *layer  = dynamic_cast<HyPerLayer *>(hc->getObjectFromName(layerName));
+   PVHalo const &halo = layer->getLayerLoc()->halo;
+   return halo.lt == lt && halo.rt == rt && halo.dn == dn && halo.up == up;
 }

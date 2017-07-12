@@ -125,24 +125,33 @@ class HyPerCol : public Subject, Observer {
    // Public functions
 
    virtual int respond(std::shared_ptr<BaseMessage const> message) override;
-   BaseConnection *getConnFromName(const char *connectionName);
-   BaseProbe *getBaseProbeFromName(const char *probeName);
-   ColProbe *getColProbeFromName(const char *probeName);
-   HyPerLayer *getLayerFromName(const char *layerName);
+
+   /**
+    * Returns the object in the hierarchy with the given name, if any exists.
+    * Returns the null pointer if the string does not match any object.
+    * It is up to the calling function to determine if the returned object
+    * has the appropriate type.
+    */
+   Observer *getObjectFromName(std::string const &objectName) const;
+
+   /**
+    * Returns the object in the object hierarchy vector immediately following
+    * the object passed as an argument. To get the first object,
+    * pass the null pointer. If the last object is passed, the null
+    * pointer is returned. If a non-null pointer is passed but is not
+    * in the object hierarchy vector, an exception is thrown.
+    */
+   Observer *getNextObject(Observer const *currentObject) const;
 
    /**
     * Adds an object (layer, connection, etc.) to the hierarchy.
     * Exits with an error if adding the object failed.
     * The usual reason for failing to add the object is that the name is the same
     * as that of an earlier added object.
-    * Currently, addLayer, addConnection, and addBaseProbe call addObject;
-    * therefore it is usually not necessary to call addObject.
     */
    void addObject(BaseObject *obj);
    int addBaseProbe(BaseProbe *p);
-   int addConnection(BaseConnection *conn);
    int addNormalizer(NormalizeBase *normalizer);
-   int addLayer(HyPerLayer *l);
    void advanceTimeLoop(Clock &runClock, int const runClockStartingStep);
    int advanceTime(double time);
    void nonblockingLayerUpdate(
@@ -170,8 +179,6 @@ class HyPerCol : public Subject, Observer {
 
    // Getters and setters
 
-   BaseConnection *getConnection(int which) { return mConnections.at(which); }
-   BaseProbe *getBaseProbe(int which) { return mBaseProbes.at(which); }
    bool getVerifyWrites() { return mCheckpointer->doesVerifyWrites(); }
    bool getCheckpointWriteFlag() const { return mCheckpointer->getCheckpointWriteFlag(); }
    char const *getLastCheckpointDir() const { return mCheckpointer->getLastCheckpointDir(); }
@@ -179,12 +186,10 @@ class HyPerCol : public Subject, Observer {
    const char *getName() { return mName; }
    const char *getOutputPath() { return mCheckpointer->getOutputPath().c_str(); }
    const char *getPrintParamsFilename() const { return mPrintParamsFilename; }
-   ColProbe *getColProbe(int which) { return mColProbes.at(which); }
    double getDeltaTime() const { return mDeltaTime; }
    double simulationTime() const { return mSimTime; }
    double getStartTime() const { return mStartTime; }
    double getStopTime() const { return mStopTime; }
-   HyPerLayer *getLayer(int which) { return mLayers.at(which); }
    int globalRank() { return mCommunicator->globalCommRank(); }
    int columnId() { return mCommunicator->commRank(); }
    int getNxGlobal() { return mNumXGlobal; }
@@ -192,11 +197,7 @@ class HyPerCol : public Subject, Observer {
    int getNBatch() { return mNumBatch; }
    int getNBatchGlobal() { return mNumBatchGlobal; }
    int getNumThreads() const { return mNumThreads; }
-   int numberOfLayers() const { return mLayers.size(); }
-   int numberOfConnections() const { return mConnections.size(); }
    int numberOfNormalizers() const { return mNormalizers.size(); }
-   int numberOfProbes() const { return mColProbes.size(); }
-   int numberOfBaseProbes() const { return mBaseProbes.size(); }
    int numberOfBorderRegions() const { return MAX_NEIGHBORS; }
    int numberOfColumns() { return mCommunicator->commSize(); }
    int numberOfGlobalColumns() { return mCommunicator->globalCommSize(); }
@@ -268,9 +269,6 @@ class HyPerCol : public Subject, Observer {
    // Private variables
 
   private:
-   std::vector<BaseConnection *> mConnections; // BaseConnection  ** mConnections;
-   std::vector<BaseProbe *> mBaseProbes; // Why is this Base and not just
-   // mProbes? //BaseProbe ** mBaseProbes;
    ObserverTable mObjectHierarchy;
    bool mErrorOnNotANumber; // If true, check each layer's activity buffer for
    // not-a-numbers and
@@ -301,7 +299,6 @@ class HyPerCol : public Subject, Observer {
    double mProgressInterval; // Output progress after mSimTime increases by this
    // amount.
    double mNextProgressTime; // Next time to output a progress message
-   std::vector<HyPerLayer *> mLayers; // HyPerLayer ** mLayers;
    int mNumPhases;
    int mNumXGlobal;
    int mNumYGlobal;
@@ -320,7 +317,7 @@ class HyPerCol : public Subject, Observer {
    long int mCurrentStep;
    long int mFinalStep;
    std::vector<NormalizeBase *> mNormalizers; // NormalizeBase ** mNormalizers; // Objects for
-   // normalizing mConnections or groups of mConnections
+   // normalizing connections or groups of connections
    PV_Init *mPVInitObj;
    FileStream *mPrintParamsStream; // file pointer associated with mPrintParamsFilename
    FileStream *mLuaPrintParamsStream; // file pointer associated with the output lua file

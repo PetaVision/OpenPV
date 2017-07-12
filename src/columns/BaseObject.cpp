@@ -104,7 +104,7 @@ int BaseObject::respond(std::shared_ptr<BaseMessage const> message) {
    else if (
          auto castMessage =
                std::dynamic_pointer_cast<CopyInitialStateToGPUMessage const>(message)) {
-      return respondCopyInitialStateToGPUMessage(castMessage);
+      return respondCopyInitialStateToGPU(castMessage);
    }
    else if (auto castMessage = std::dynamic_pointer_cast<CleanupMessage const>(message)) {
       return respondCleanup(castMessage);
@@ -160,7 +160,7 @@ int BaseObject::respondInitializeState(std::shared_ptr<InitializeStateMessage co
    return status;
 }
 
-int BaseObject::respondCopyInitialStateToGPUMessage(
+int BaseObject::respondCopyInitialStateToGPU(
       std::shared_ptr<CopyInitialStateToGPUMessage const> message) {
    return copyInitialStateToGPU();
 }

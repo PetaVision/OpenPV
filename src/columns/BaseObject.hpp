@@ -133,8 +133,7 @@ class BaseObject : public CheckpointerDataInterface {
    int respondAllocateData(std::shared_ptr<AllocateDataMessage const> message);
    int respondRegisterData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message);
    int respondInitializeState(std::shared_ptr<InitializeStateMessage const> message);
-   int
-   respondCopyInitialStateToGPUMessage(std::shared_ptr<CopyInitialStateToGPUMessage const> message);
+   int respondCopyInitialStateToGPU(std::shared_ptr<CopyInitialStateToGPUMessage const> message);
    int respondCleanup(std::shared_ptr<CleanupMessage const> message);
 
    virtual int communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {

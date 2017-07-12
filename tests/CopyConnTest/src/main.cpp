@@ -80,7 +80,7 @@ int runparamsfile(PV_Init *initObj, char const *paramsfile) {
       return status;
    }
 
-   HyPerConn *origConn = dynamic_cast<HyPerConn *>(hc->getConnFromName("OriginalConn"));
+   HyPerConn *origConn = dynamic_cast<HyPerConn *>(hc->getObjectFromName("OriginalConn"));
    if (origConn == NULL) {
       if (rank == 0) {
          ErrorLog().printf(
@@ -89,7 +89,7 @@ int runparamsfile(PV_Init *initObj, char const *paramsfile) {
       }
       status = PV_FAILURE;
    }
-   CopyConn *copyConn = dynamic_cast<CopyConn *>(hc->getConnFromName("CopyConn"));
+   CopyConn *copyConn = dynamic_cast<CopyConn *>(hc->getObjectFromName("CopyConn"));
    if (origConn == NULL) {
       if (rank == 0) {
          ErrorLog().printf(

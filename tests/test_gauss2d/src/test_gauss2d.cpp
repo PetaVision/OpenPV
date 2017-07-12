@@ -33,31 +33,31 @@ int main(int argc, char *argv[]) {
    char const *kernel2to1_name  = "test_gauss2d_kernelconn";
 
    PV::HyPerCol *hc    = new PV::HyPerCol(initObj);
-   PV::HyPerLayer *pre = dynamic_cast<PV::HyPerLayer *>(hc->getLayerFromName(pre_layer_name));
-   FatalIf(!(pre), "Test failed.\n");
-   PV::HyPerLayer *post = dynamic_cast<PV::HyPerLayer *>(hc->getLayerFromName(post_layer_name));
-   FatalIf(!(post), "Test failed.\n");
+   PV::HyPerLayer *pre = dynamic_cast<PV::HyPerLayer *>(hc->getObjectFromName(pre_layer_name));
+   FatalIf(!pre, "Test failed.\n");
+   PV::HyPerLayer *post = dynamic_cast<PV::HyPerLayer *>(hc->getObjectFromName(post_layer_name));
+   FatalIf(!post, "Test failed.\n");
 
-   PV::HyPerConn *cHyPer = dynamic_cast<HyPerConn *>(hc->getConnFromName(hyper1to1_name));
+   PV::HyPerConn *cHyPer = dynamic_cast<HyPerConn *>(hc->getObjectFromName(hyper1to1_name));
 
-   PV::HyPerConn *cKernel = dynamic_cast<HyPerConn *>(hc->getConnFromName(kernel1to1_name));
+   PV::HyPerConn *cKernel = dynamic_cast<HyPerConn *>(hc->getObjectFromName(kernel1to1_name));
 
-   PV::HyPerLayer *pre2 = dynamic_cast<PV::HyPerLayer *>(hc->getLayerFromName(pre2_layer_name));
-   FatalIf(!(pre2), "Test failed.\n");
-   PV::HyPerLayer *post2 = dynamic_cast<PV::HyPerLayer *>(hc->getLayerFromName(post2_layer_name));
-   FatalIf(!(post2), "Test failed.\n");
+   PV::HyPerLayer *pre2 = dynamic_cast<PV::HyPerLayer *>(hc->getObjectFromName(pre2_layer_name));
+   FatalIf(!pre2, "Test failed.\n");
+   PV::HyPerLayer *post2 = dynamic_cast<PV::HyPerLayer *>(hc->getObjectFromName(post2_layer_name));
+   FatalIf(!post2, "Test failed.\n");
 
-   PV::HyPerConn *cHyPer1to2 = dynamic_cast<HyPerConn *>(hc->getConnFromName(hyper1to2_name));
-   FatalIf(!(cHyPer1to2), "Test failed.\n");
+   PV::HyPerConn *cHyPer1to2 = dynamic_cast<HyPerConn *>(hc->getObjectFromName(hyper1to2_name));
+   FatalIf(!cHyPer1to2, "Test failed.\n");
 
-   PV::HyPerConn *cKernel1to2 = dynamic_cast<HyPerConn *>(hc->getConnFromName(kernel1to2_name));
-   FatalIf(!(cKernel1to2), "Test failed.\n");
+   PV::HyPerConn *cKernel1to2 = dynamic_cast<HyPerConn *>(hc->getObjectFromName(kernel1to2_name));
+   FatalIf(!cKernel1to2, "Test failed.\n");
 
-   PV::HyPerConn *cHyPer2to1 = dynamic_cast<HyPerConn *>(hc->getConnFromName(hyper2to1_name));
-   FatalIf(!(cHyPer2to1), "Test failed.\n");
+   PV::HyPerConn *cHyPer2to1 = dynamic_cast<HyPerConn *>(hc->getObjectFromName(hyper2to1_name));
+   FatalIf(!cHyPer2to1, "Test failed.\n");
 
-   PV::HyPerConn *cKernel2to1 = dynamic_cast<HyPerConn *>(hc->getConnFromName(kernel2to1_name));
-   FatalIf(!(cKernel2to1), "Test failed.\n");
+   PV::HyPerConn *cKernel2to1 = dynamic_cast<HyPerConn *>(hc->getObjectFromName(kernel2to1_name));
+   FatalIf(!cKernel2to1, "Test failed.\n");
 
    int status = 0;
 
@@ -65,42 +65,29 @@ int main(int argc, char *argv[]) {
 
    auto objectMap      = hc->copyObjectMap();
    auto commMessagePtr = std::make_shared<CommunicateInitInfoMessage>(*objectMap);
-   for (int l = 0; l < hc->numberOfLayers(); l++) {
-      HyPerLayer *layer = hc->getLayer(l);
-      int status        = layer->respond(commMessagePtr);
-      FatalIf(!(status == PV_SUCCESS), "Test failed.\n");
-   }
-   for (int c = 0; c < hc->numberOfConnections(); c++) {
-      BaseConnection *conn = hc->getConnection(c);
-      int status           = conn->respond(commMessagePtr);
-      FatalIf(!(status == PV_SUCCESS), "Test failed.\n");
+   for (Observer *obj = hc->getNextObject(nullptr); obj != nullptr; obj = hc->getNextObject(obj)) {
+      int status = obj->respond(commMessagePtr);
+      FatalIf(status != PV_SUCCESS, "Test failed.\n");
    }
    delete objectMap;
 
    auto allocateMessagePtr = std::make_shared<AllocateDataMessage>();
-   for (int l = 0; l < hc->numberOfLayers(); l++) {
-      HyPerLayer *layer = hc->getLayer(l);
-      int status        = layer->respond(allocateMessagePtr);
-      FatalIf(!(status == PV_SUCCESS), "Test failed.\n");
-   }
-
-   for (int c = 0; c < hc->numberOfConnections(); c++) {
-      BaseConnection *conn = hc->getConnection(c);
-      int status           = conn->respond(allocateMessagePtr);
-      FatalIf(!(status == PV_SUCCESS), "Test failed.\n");
+   for (Observer *obj = hc->getNextObject(nullptr); obj != nullptr; obj = hc->getNextObject(obj)) {
+      int status = obj->respond(allocateMessagePtr);
+      FatalIf(status != PV_SUCCESS, "Test failed.\n");
    }
 
    const int axonID     = 0;
    int num_pre_extended = pre->clayer->numExtended;
-   FatalIf(!(num_pre_extended == cHyPer->getNumWeightPatches()), "Test failed.\n");
+   FatalIf(num_pre_extended != cHyPer->getNumWeightPatches(), "Test failed.\n");
 
    for (int kPre = 0; kPre < num_pre_extended; kPre++) {
       status = check_kernel_vs_hyper(cHyPer, cKernel, kPre, axonID);
-      FatalIf(!(status == 0), "Test failed.\n");
+      FatalIf(status != 0, "Test failed.\n");
       status = check_kernel_vs_hyper(cHyPer1to2, cKernel1to2, kPre, axonID);
-      FatalIf(!(status == 0), "Test failed.\n");
+      FatalIf(status != 0, "Test failed.\n");
       status = check_kernel_vs_hyper(cHyPer2to1, cKernel2to1, kPre, axonID);
-      FatalIf(!(status == 0), "Test failed.\n");
+      FatalIf(status != 0, "Test failed.\n");
    }
 
    delete hc;
@@ -109,8 +96,8 @@ int main(int argc, char *argv[]) {
 }
 
 int check_kernel_vs_hyper(HyPerConn *cHyPer, HyPerConn *cKernel, int kPre, int axonID) {
-   FatalIf(!(cKernel->usingSharedWeights() == true), "Test failed.\n");
-   FatalIf(!(cHyPer->usingSharedWeights() == false), "Test failed.\n");
+   FatalIf(cKernel->usingSharedWeights() == false, "Test failed.\n");
+   FatalIf(cHyPer->usingSharedWeights() == true, "Test failed.\n");
    int status           = 0;
    PVPatch *hyperPatch  = cHyPer->getWeights(kPre, axonID);
    PVPatch *kernelPatch = cKernel->getWeights(kPre, axonID);
@@ -118,11 +105,11 @@ int check_kernel_vs_hyper(HyPerConn *cHyPer, HyPerConn *cKernel, int kPre, int a
    int kernelDataIndex  = cKernel->patchIndexToDataIndex(kPre);
 
    int nk = cHyPer->fPatchSize() * (int)hyperPatch->nx;
-   FatalIf(!(nk == (cKernel->fPatchSize() * (int)kernelPatch->nx)), "Test failed.\n");
+   FatalIf(nk != (cKernel->fPatchSize() * (int)kernelPatch->nx), "Test failed.\n");
    int ny = hyperPatch->ny;
-   FatalIf(!(ny == kernelPatch->ny), "Test failed.\n");
+   FatalIf(ny != kernelPatch->ny, "Test failed.\n");
    int sy = cHyPer->yPatchStride();
-   FatalIf(!(sy == cKernel->yPatchStride()), "Test failed.\n");
+   FatalIf(sy != cKernel->yPatchStride(), "Test failed.\n");
    float *hyperWeights  = cHyPer->get_wData(axonID, hyPerDataIndex);
    float *kernelWeights = cKernel->get_wDataHead(axonID, kernelDataIndex) + hyperPatch->offset;
    float test_cond      = 0.0f;

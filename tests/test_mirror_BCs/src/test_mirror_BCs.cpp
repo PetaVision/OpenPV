@@ -17,8 +17,9 @@ int main(int argc, char *argv[]) {
    PVLayerLoc sLoc, bLoc;
    PVLayerCube *sCube, *bCube;
 
-   PV::HyPerCol *hc  = new PV::HyPerCol(initObj);
-   PV::HyPerLayer *l = hc->getLayerFromName("test_mirror_BCs_layer");
+   PV::HyPerCol *hc = new PV::HyPerCol(initObj);
+   PV::HyPerLayer *l =
+         dynamic_cast<PV::HyPerLayer *>(hc->getObjectFromName("test_mirror_BCs_layer"));
 
    int nf             = l->clayer->loc.nf;
    PVHalo const *halo = &l->clayer->loc.halo;

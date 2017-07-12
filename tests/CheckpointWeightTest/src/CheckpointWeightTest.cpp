@@ -40,7 +40,7 @@ int main(int argc, char *argv[]) {
    PV::HyPerCol *hc = new PV::HyPerCol(&pv_initObj);
    FatalIf(hc == nullptr, "Failed to create HyPerCol.\n");
    hc->allocateColumn();
-   PV::HyPerConn *conn = dynamic_cast<PV::HyPerConn *>(hc->getConnFromName(connectionName.c_str()));
+   PV::HyPerConn *conn = dynamic_cast<PV::HyPerConn *>(hc->getObjectFromName(connectionName));
    FatalIf(conn == nullptr, "No connection named % in %s\n", connectionName.c_str(), hc->getName());
 
    double const timestamp    = hc->getStopTime();

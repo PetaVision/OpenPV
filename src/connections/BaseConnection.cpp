@@ -43,7 +43,7 @@ int BaseConnection::initialize_base() {
 int BaseConnection::initialize(const char *name, HyPerCol *hc) {
    int status = BaseObject::initialize(name, hc);
 
-   this->parent->addConnection(this);
+   this->parent->addObject(this);
    if (status == PV_SUCCESS)
       status = readParams();
    return status;
@@ -418,6 +418,16 @@ int BaseConnection::respond(std::shared_ptr<BaseMessage const> message) {
    if (status != PV_SUCCESS) {
       return status;
    }
+   else if (
+         auto castMessage =
+               std::dynamic_pointer_cast<ConnectionWriteParamsMessage const>(message)) {
+      return respondConnectionWriteParams(castMessage);
+   }
+   else if (
+         auto castMessage =
+               std::dynamic_pointer_cast<ConnectionProbeWriteParamsMessage const>(message)) {
+      return respondConnectionProbeWriteParams(castMessage);
+   }
    else if (auto castMessage = std::dynamic_pointer_cast<ConnectionUpdateMessage const>(message)) {
       return respondConnectionUpdate(castMessage);
    }
@@ -432,6 +442,16 @@ int BaseConnection::respond(std::shared_ptr<BaseMessage const> message) {
    else {
       return status;
    }
+}
+
+int BaseConnection::respondConnectionWriteParams(
+      std::shared_ptr<ConnectionWriteParamsMessage const> message) {
+   return writeParams();
+}
+
+int BaseConnection::respondConnectionProbeWriteParams(
+      std::shared_ptr<ConnectionProbeWriteParamsMessage const> message) {
+   return outputProbeParams();
 }
 
 int BaseConnection::outputProbeParams() {

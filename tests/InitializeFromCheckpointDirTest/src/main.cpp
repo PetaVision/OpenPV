@@ -70,8 +70,8 @@ int main(int argc, char *argv[]) {
    FatalIf(status != PV_SUCCESS, "run with InitializeFromCheckpointDirTest.params failed.\n");
    double const stopTime2 = hc2->getStopTime();
 
-   PV::HyPerLayer *outputLayer = hc2->getLayerFromName("Output");
-   FatalIf(outputLayer == nullptr, "");
+   PV::HyPerLayer *outputLayer = dynamic_cast<PV::HyPerLayer *>(hc2->getObjectFromName("Output"));
+   FatalIf(outputLayer == nullptr, "No layer named \"Output\".");
 
    double const totalTime = stopTime1 + stopTime2;
    PVLayerLoc const *loc  = outputLayer->getLayerLoc();

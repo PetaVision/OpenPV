@@ -52,6 +52,25 @@ void ColProbe::initOutputStreams(const char *filename, Checkpointer *checkpointe
    outputHeader();
 }
 
+int ColProbe::respond(std::shared_ptr<BaseMessage const> message) {
+   int status = BaseProbe::respond(message);
+   if (status != PV_SUCCESS) {
+      return status;
+   }
+   else if (
+         auto castMessage = std::dynamic_pointer_cast<ColProbeWriteParamsMessage const>(message)) {
+      return respondColProbeWriteParams(castMessage);
+   }
+   else {
+      return status;
+   }
+}
+
+int ColProbe::respondColProbeWriteParams(
+      std::shared_ptr<ColProbeWriteParamsMessage const>(message)) {
+   return writeParams();
+}
+
 int ColProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    int status = BaseProbe::communicateInitInfo(message);
    return status;

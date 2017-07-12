@@ -16,7 +16,7 @@ int main(int argc, char *argv[]) {
       return EXIT_FAILURE;
    }
    hc->allocateColumn();
-   PV::HyPerConn *conn     = dynamic_cast<PV::HyPerConn *>(hc->getConnFromName("InputToOutput"));
+   PV::HyPerConn *conn     = dynamic_cast<PV::HyPerConn *>(hc->getObjectFromName("InputToOutput"));
    PV::HyPerLayer *pre     = conn->preSynapticLayer();
    PVLayerLoc const preLoc = *pre->getLayerLoc();
    int const numExtended   = pre->getNumExtended();

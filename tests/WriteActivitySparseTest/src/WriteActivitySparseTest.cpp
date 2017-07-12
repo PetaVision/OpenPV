@@ -83,17 +83,14 @@ int main(int argc, char *argv[]) {
 // The problem of what to do if comparison reports zero when given
 // nonzero input is best left for a different test.
 int checkProbesOnExit(HyPerCol *hc, int argc, char *argv[]) {
-   BaseLayer *layer = hc->getLayerFromName("OriginalMovie");
-   FatalIf(!(layer), "Test failed.\n");
-   HyPerLayer *originalMovieLayer = dynamic_cast<HyPerLayer *>(layer);
-   FatalIf(!(originalMovieLayer), "Test failed.\n");
-   int numProbes = originalMovieLayer->getNumProbes();
-   FatalIf(!(numProbes == 1), "Test failed.\n");
-   LayerProbe *originalMovieProbe = originalMovieLayer->getProbe(0);
-   FatalIf(!(originalMovieProbe), "Test failed.\n");
+   HyPerLayer *layer = dynamic_cast<HyPerLayer *>(hc->getObjectFromName("OriginalMovie"));
+   FatalIf(!layer, "No layer named \"OriginalMovie\".\n");
    TestNotAlwaysAllZerosProbe *testNonzero =
-         dynamic_cast<TestNotAlwaysAllZerosProbe *>(originalMovieProbe);
-   FatalIf(!(testNonzero->nonzeroValueHasOccurred()), "Test failed.\n");
+         dynamic_cast<TestNotAlwaysAllZerosProbe *>(hc->getObjectFromName("OriginalMovieProbe"));
+   FatalIf(
+         !testNonzero->nonzeroValueHasOccurred(),
+         "OriginalMovieProbe is always zero.\n",
+         layer->getDescription_c());
 
    return PV_SUCCESS;
 }

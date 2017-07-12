@@ -47,6 +47,8 @@ class ColProbe : public BaseProbe {
     */
    virtual ~ColProbe();
 
+   virtual int respond(std::shared_ptr<BaseMessage const> message) override;
+
    /**
     * Calls BaseProbe::communicateInitInfo (which sets up any triggering or
     * attaching to an energy
@@ -99,6 +101,8 @@ class ColProbe : public BaseProbe {
     * parameter is neither read nor written by this method.
     */
    virtual void ioParam_targetName(enum ParamsIOFlag ioFlag) override;
+
+   int respondColProbeWriteParams(std::shared_ptr<ColProbeWriteParamsMessage const>(message));
 
    /**
     * Calls BaseProbe::initOutputStreams and then calls outputHeader()

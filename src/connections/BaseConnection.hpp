@@ -345,16 +345,23 @@ class BaseConnection : public BaseObject {
     */
    virtual int setInitialValues() = 0;
 
-   virtual int respondConnectionUpdate(std::shared_ptr<ConnectionUpdateMessage const> message) {
+   int respondConnectionWriteParams(std::shared_ptr<ConnectionWriteParamsMessage const> message);
+
+   int respondConnectionProbeWriteParams(
+         std::shared_ptr<ConnectionProbeWriteParamsMessage const> message);
+
+   int respondLayerProbeWriteParams(std::shared_ptr<LayerWriteParamsMessage const> message);
+
+   int respondConnectionUpdate(std::shared_ptr<ConnectionUpdateMessage const> message) {
       return updateState(message->mTime, message->mDeltaT);
    }
 
-   virtual int
+   int
    respondConnectionFinalizeUpdate(std::shared_ptr<ConnectionFinalizeUpdateMessage const> message) {
       return finalizeUpdate(message->mTime, message->mDeltaT);
    }
 
-   virtual int respondConnectionOutput(std::shared_ptr<ConnectionOutputMessage const> message) {
+   int respondConnectionOutput(std::shared_ptr<ConnectionOutputMessage const> message) {
       return outputState(message->mTime);
    }
 
