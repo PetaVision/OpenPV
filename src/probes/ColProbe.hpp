@@ -51,9 +51,7 @@ class ColProbe : public BaseProbe {
 
    /**
     * Calls BaseProbe::communicateInitInfo (which sets up any triggering or
-    * attaching to an energy
-    * probe)
-    * and then attaches to the parent HyPerCol by calling parent->insertProbe().
+    * attaching to an energy probe)
     */
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
@@ -103,6 +101,7 @@ class ColProbe : public BaseProbe {
    virtual void ioParam_targetName(enum ParamsIOFlag ioFlag) override;
 
    int respondColProbeWriteParams(std::shared_ptr<ColProbeWriteParamsMessage const>(message));
+   int respondColProbeOutputState(std::shared_ptr<ColProbeOutputStateMessage const>(message));
 
    /**
     * Calls BaseProbe::initOutputStreams and then calls outputHeader()

@@ -13,14 +13,12 @@
 #include "columns/Communicator.hpp"
 #include "columns/Messages.hpp"
 #include "columns/PV_Init.hpp"
-#include "connections/BaseConnection.hpp"
 #include "include/pv_types.h"
 #include "io/PVParams.hpp"
 #include "layers/HyPerLayer.hpp"
 #include "observerpattern/Observer.hpp"
 #include "observerpattern/ObserverTable.hpp"
 #include "observerpattern/Subject.hpp"
-#include "probes/ColProbe.hpp"
 #include "utils/Clock.hpp"
 #include "utils/Timer.hpp"
 #include <fstream>
@@ -40,11 +38,10 @@
 
 namespace PV {
 
-class ColProbe;
-class BaseProbe;
-class PVParams;
+class HyPerLayer;
 class NormalizeBase;
 class PV_Init;
+class PVParams;
 
 class HyPerCol : public Subject, Observer {
 
@@ -150,15 +147,12 @@ class HyPerCol : public Subject, Observer {
     * as that of an earlier added object.
     */
    void addObject(BaseObject *obj);
-   int addBaseProbe(BaseProbe *p);
    int addNormalizer(NormalizeBase *normalizer);
    void advanceTimeLoop(Clock &runClock, int const runClockStartingStep);
    int advanceTime(double time);
    void nonblockingLayerUpdate(
          std::shared_ptr<LayerRecvSynapticInputMessage const> recvMessage,
          std::shared_ptr<LayerUpdateStateMessage const> updateMessage);
-   int insertProbe(ColProbe *p);
-   int outputState(double time);
    int processParams(char const *path);
    int ioParamsFinishGroup(enum ParamsIOFlag);
    int ioParamsStartGroup(enum ParamsIOFlag ioFlag, const char *group_name);
@@ -291,7 +285,6 @@ class HyPerCol : public Subject, Observer {
    char *mPrintParamsFilename; // filename for outputting the mParams, including
    // defaults and
    // excluding unread mParams
-   std::vector<ColProbe *> mColProbes; // ColProbe ** mColProbes;
    double mStartTime;
    double mSimTime;
    double mStopTime; // time to stop time
@@ -311,8 +304,7 @@ class HyPerCol : public Subject, Observer {
    int *mConnectionStatus;
    Communicator *mCommunicator; // manages communication between HyPerColumns};
 
-   Checkpointer *mCheckpointer = nullptr; // manages checkpointing and, eventually,
-   // will manage outputState output.
+   Checkpointer *mCheckpointer = nullptr; // manages checkpointing and outputState output
    long int mInitialStep;
    long int mCurrentStep;
    long int mFinalStep;

@@ -14,6 +14,7 @@
 #include "columns/RandomSeed.hpp"
 #include "io/PrintStream.hpp"
 #include "io/io.hpp"
+#include "layers/HyPerLayer.hpp"
 #include "normalizers/NormalizeBase.hpp"
 
 #include <assert.h>
@@ -59,8 +60,6 @@ HyPerCol::~HyPerCol() {
       iterator = mPhaseRecvTimers.erase(iterator);
    }
 
-   mColProbes.clear();
-
    delete mRunTimer;
    // TODO: Change these old C strings into std::string
    free(mPrintParamsFilename);
@@ -98,7 +97,6 @@ int HyPerCol::initialize_base() {
    mCommunicator         = nullptr;
    mRunTimer             = nullptr;
    mPhaseRecvTimers.clear();
-   mColProbes.clear();
    mRandomSeed        = 0U;
    mErrorOnNotANumber = false;
    mNumThreads        = 1;
@@ -749,7 +747,7 @@ int HyPerCol::advanceTime(double sim_time) {
 
    mRunTimer->stop();
 
-   outputState(mSimTime);
+   notify(std::make_shared<ColProbeOutputStateMessage>(mSimTime, mDeltaTime));
 
    return status;
 }
@@ -1199,23 +1197,9 @@ int HyPerCol::finalizeCUDA() {
 
 #endif // PV_USE_CUDA
 
-int HyPerCol::insertProbe(ColProbe *p) {
-   mColProbes.push_back(p);
-   return mColProbes.size(); // Other insert functions return the index of the
-   // inserted object. Is
-   // this correct here?
-}
-
 void HyPerCol::addObject(BaseObject *obj) {
    bool succeeded = mObjectHierarchy.addObject(obj->getName(), obj);
    FatalIf(!succeeded, "Adding %s failed.\n", getDescription_c());
-}
-
-int HyPerCol::outputState(double time) {
-   for (int n = 0; n < mColProbes.size(); n++) {
-      mColProbes.at(n)->outputStateWrapper(time, mDeltaTime);
-   }
-   return PV_SUCCESS;
 }
 
 NormalizeBase *HyPerCol::getNormalizerFromName(const char *normalizerName) {

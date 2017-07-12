@@ -241,6 +241,17 @@ class LayerCheckNotANumberMessage : public BaseMessage {
    int mPhase;
 };
 
+class ColProbeOutputStateMessage : public BaseMessage {
+  public:
+   ColProbeOutputStateMessage(double simTime, double deltaTime) {
+      setMessageType("ColProbeOutputState");
+      mTime      = simTime;
+      mDeltaTime = deltaTime;
+   }
+   double mTime;
+   double mDeltaTime;
+};
+
 class CleanupMessage : public BaseMessage {
   public:
    CleanupMessage() { setMessageType("Cleanup"); }

@@ -30,9 +30,6 @@ int ColProbe::initialize_base() {
 
 int ColProbe::initialize(const char *name, HyPerCol *hc) {
    int status = BaseProbe::initialize(name, hc);
-   if (status == PV_SUCCESS) {
-      this->parent->insertProbe(this);
-   }
    return status;
 }
 
@@ -58,6 +55,10 @@ int ColProbe::respond(std::shared_ptr<BaseMessage const> message) {
       return status;
    }
    else if (
+         auto castMessage = std::dynamic_pointer_cast<ColProbeOutputStateMessage const>(message)) {
+      return respondColProbeOutputState(castMessage);
+   }
+   else if (
          auto castMessage = std::dynamic_pointer_cast<ColProbeWriteParamsMessage const>(message)) {
       return respondColProbeWriteParams(castMessage);
    }
@@ -69,6 +70,11 @@ int ColProbe::respond(std::shared_ptr<BaseMessage const> message) {
 int ColProbe::respondColProbeWriteParams(
       std::shared_ptr<ColProbeWriteParamsMessage const>(message)) {
    return writeParams();
+}
+
+int ColProbe::respondColProbeOutputState(
+      std::shared_ptr<ColProbeOutputStateMessage const>(message)) {
+   return outputStateWrapper(message->mTime, message->mDeltaTime);
 }
 
 int ColProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
