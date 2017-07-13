@@ -43,7 +43,6 @@ int BaseConnection::initialize_base() {
 int BaseConnection::initialize(const char *name, HyPerCol *hc) {
    int status = BaseObject::initialize(name, hc);
 
-   this->parent->addObject(this);
    if (status == PV_SUCCESS)
       status = readParams();
    return status;

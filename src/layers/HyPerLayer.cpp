@@ -147,8 +147,6 @@ int HyPerLayer::initialize(const char *name, HyPerCol *hc) {
 
    initClayer();
 
-   parent->addObject(this);
-
    mLastUpdateTime  = parent->getDeltaTime();
    mLastTriggerTime = parent->getDeltaTime();
    return PV_SUCCESS;

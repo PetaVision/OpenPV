@@ -67,9 +67,6 @@ int BaseProbe::initialize(const char *name, HyPerCol *hc) {
       return status;
    }
    readParams();
-   // Add probe to list of probes
-   parent->addObject(this); // Adds probe to HyPerCol.  If needed, probe will be attached to
-   // layer or connection during communicateInitInfo
    status = initNumValues();
    return status;
 }

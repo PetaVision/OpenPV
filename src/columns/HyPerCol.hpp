@@ -146,7 +146,6 @@ class HyPerCol : public Subject, Observer {
     * The usual reason for failing to add the object is that the name is the same
     * as that of an earlier added object.
     */
-   void addObject(BaseObject *obj);
    int addNormalizer(NormalizeBase *normalizer);
    void advanceTimeLoop(Clock &runClock, int const runClockStartingStep);
    int advanceTime(double time);
@@ -235,6 +234,7 @@ class HyPerCol : public Subject, Observer {
    int initialize(PV_Init *initObj);
    int ioParams(enum ParamsIOFlag ioFlag);
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   void addObject(BaseObject *obj);
    int checkDirExists(const char *dirname, struct stat *pathstat);
    inline void notify(std::vector<std::shared_ptr<BaseMessage const>> messages) {
       Subject::notify(mObjectHierarchy, messages, getCommunicator()->commRank() == 0 /*printFlag*/);

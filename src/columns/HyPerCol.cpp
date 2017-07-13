@@ -51,6 +51,7 @@ HyPerCol::~HyPerCol() {
    PrintStream pStream(getOutputStream());
    mCheckpointer->writeTimers(pStream);
    delete mCheckpointer;
+   mObjectHierarchy.clear(true /*delete the objects in the hierarchy*/);
    for (auto iterator = mNormalizers.begin(); iterator != mNormalizers.end();) {
       delete *iterator;
       iterator = mNormalizers.erase(iterator);
@@ -189,7 +190,7 @@ int HyPerCol::initialize(PV_Init *initObj) {
    mCheckpointReadFlag = !mCheckpointer->getCheckpointReadDirectory().empty();
 
    // Add layers, connections, etc.
-   for (int k = 1; k < numGroups; k++) {
+   for (int k = 1; k < numGroups; k++) { // k = 0 is the HyPerCol itself.
       const char *kw   = mParams->groupKeywordFromIndex(k);
       const char *name = mParams->groupNameFromIndex(k);
       if (!strcmp(kw, "HyPerCol")) {
@@ -208,6 +209,7 @@ int HyPerCol::initialize(PV_Init *initObj) {
             }
             return PV_FAILURE;
          }
+         addObject(addedObject);
       }
    } // for-loop over parameter groups
    return PV_SUCCESS;
