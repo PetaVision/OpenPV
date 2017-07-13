@@ -318,9 +318,6 @@ class HyPerCol : public Subject, Observer {
    size_t mConnectionArraySize;
    size_t mNormalizerArraySize;
    std::ofstream mTimeScaleStream;
-   std::vector<HyPerLayer *> mRecvLayerBuffer;
-   std::vector<HyPerLayer *> mUpdateLayerBufferGpu;
-   std::vector<HyPerLayer *> mUpdateLayerBuffer;
    Timer *mRunTimer;
    std::vector<Timer *> mPhaseRecvTimers; // Timer ** mPhaseRecvTimers;
    unsigned int mRandomSeed;

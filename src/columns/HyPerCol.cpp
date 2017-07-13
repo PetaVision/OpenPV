@@ -100,7 +100,6 @@ int HyPerCol::initialize_base() {
    mRandomSeed        = 0U;
    mErrorOnNotANumber = false;
    mNumThreads        = 1;
-   mRecvLayerBuffer.clear();
 #ifdef PV_USE_CUDA
    mCudaDevice = nullptr;
 #endif
