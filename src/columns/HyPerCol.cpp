@@ -689,12 +689,7 @@ int HyPerCol::advanceTime(double sim_time) {
 
    // Each layer's phase establishes a priority for updating
    for (int phase = 0; phase < mNumPhases; phase++) {
-      for (auto &obj : mObjectHierarchy.getObjectVector()) { // TODO: use notify/respond
-         HyPerLayer *l = dynamic_cast<HyPerLayer *>(obj);
-         if (l != nullptr) {
-            l->clearProgressFlags();
-         }
-      }
+      notify(std::make_shared<LayerClearProgressFlagsMessage>());
 
 // nonblockingLayerUpdate allows for more concurrency than notify.
 #ifdef PV_USE_CUDA

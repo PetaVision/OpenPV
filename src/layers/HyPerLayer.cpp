@@ -910,6 +910,11 @@ int HyPerLayer::respond(std::shared_ptr<BaseMessage const> message) {
                std::dynamic_pointer_cast<LayerProbeWriteParamsMessage const>(message)) {
       return respondLayerProbeWriteParams(castMessage);
    }
+   else if (
+         auto castMessage =
+               std::dynamic_pointer_cast<LayerClearProgressFlagsMessage const>(message)) {
+      return respondLayerClearProgressFlags(castMessage);
+   }
    else if (auto castMessage = std::dynamic_pointer_cast<LayerUpdateStateMessage const>(message)) {
       return respondLayerUpdateState(castMessage);
    }
@@ -954,6 +959,11 @@ int HyPerLayer::respondLayerWriteParams(std::shared_ptr<LayerWriteParamsMessage 
 int HyPerLayer::respondLayerProbeWriteParams(
       std::shared_ptr<LayerProbeWriteParamsMessage const> message) {
    return outputProbeParams();
+}
+
+int HyPerLayer::respondLayerClearProgressFlags(
+      std::shared_ptr<LayerClearProgressFlagsMessage const> message) {
+   return clearProgressFlags();
 }
 
 int HyPerLayer::respondLayerRecvSynapticInput(
@@ -1070,9 +1080,10 @@ int HyPerLayer::respondLayerOutputState(std::shared_ptr<LayerOutputStateMessage 
    return status;
 }
 
-void HyPerLayer::clearProgressFlags() {
+int HyPerLayer::clearProgressFlags() {
    mHasReceived = false;
    mHasUpdated  = false;
+   return PV_SUCCESS;
 }
 
 #ifdef PV_USE_CUDA

@@ -123,6 +123,11 @@ class ConnectionOutputMessage : public BaseMessage {
    double mTime;
 };
 
+class LayerClearProgressFlagsMessage : public BaseMessage {
+  public:
+   LayerClearProgressFlagsMessage() { setMessageType("LayerClearProgressFlags"); }
+};
+
 class LayerRecvSynapticInputMessage : public BaseMessage {
   public:
    LayerRecvSynapticInputMessage(

@@ -371,6 +371,8 @@ class HyPerLayer : public BaseLayer {
    int respondLayerSetMaxPhase(std::shared_ptr<LayerSetMaxPhaseMessage const> message);
    int respondLayerWriteParams(std::shared_ptr<LayerWriteParamsMessage const> message);
    int respondLayerProbeWriteParams(std::shared_ptr<LayerProbeWriteParamsMessage const> message);
+   int
+   respondLayerClearProgressFlags(std::shared_ptr<LayerClearProgressFlagsMessage const> message);
    int respondLayerRecvSynapticInput(std::shared_ptr<LayerRecvSynapticInputMessage const> message);
    int respondLayerUpdateState(std::shared_ptr<LayerUpdateStateMessage const> message);
 #ifdef PV_USE_CUDA
@@ -410,7 +412,7 @@ class HyPerLayer : public BaseLayer {
     */
    bool isExchangeFinished(int delay = 0);
 
-   void clearProgressFlags();
+   int clearProgressFlags();
 
    /**
     * Returns true if each layer that delivers input to this layer

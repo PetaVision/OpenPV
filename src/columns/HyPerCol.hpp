@@ -38,7 +38,6 @@
 
 namespace PV {
 
-class HyPerLayer;
 class NormalizeBase;
 class PV_Init;
 class PVParams;
