@@ -55,8 +55,6 @@ class IdentConn : public HyPerConn {
    void ioParam_weightUpdatePeriod(enum ParamsIOFlag ioFlag) override;
    void ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag) override;
 
-   virtual int setWeightInitializer() override;
-
    // IdentConn does not need to checkpoint
 
    virtual void handleDefaultSelfFlag() override;
