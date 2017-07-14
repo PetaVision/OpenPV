@@ -115,9 +115,7 @@ HyPerConn "InputToOutput" = {
     
     weightInitType = "FileWeight";
     initWeightsFile = "input/weights.pvp";
-    useListOfArborFiles = false;
-    combineWeightFiles = false;
-      
+
     normalizeMethod = "none";
 
     writeCompressedCheckpoints = false;

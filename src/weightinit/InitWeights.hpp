@@ -33,26 +33,22 @@ class InitWeights : public BaseObject {
     */
    virtual void ioParam_initWeightsFile(enum ParamsIOFlag ioFlag);
 
+   // useListOfArborFiles, combineWeightFiles, and numWeightFiles were marked obsolete July 13,
+   // 2017.
    /**
-    * @brief useListOfArborFiles: A flag that indicates whether the
-    * initWeightsFile contains a single weight pvp file, or a list of files to
-    * be used for several arbors. The files inthe list can themselves have
-    * multiple arbors; each file isloaded in turn until the number of arbors
-    * in the connection is reached.
+    * @brief useListOfArborFiles is obsolete.
     */
    virtual void ioParam_useListOfArborFiles(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief combineWeightFiles: A flag that indicates whether the
-    * initWeightsFile is a list of weight files that should be combined.
+    * @brief combineWeightFiles is obsolete.
     */
    virtual void ioParam_combineWeightFiles(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief numWeightFiles: If combineWeightFiles is set, specifies the
-    * number of weight files in the list of files specified by initWeightsFile.
+    * @brief numWeightFiles is obsolete.
     */
-   virtual void ioParam_numWeightFiles(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_numWeightFiles(enum ParamsIOFlag ioFlag) {}
    /** @} */
 
   public:
@@ -77,6 +73,7 @@ class InitWeights : public BaseObject {
   protected:
    InitWeights();
    int initialize(const char *name, HyPerCol *hc);
+   void handleObsoleteFlag(std::string const &flagName);
 
    virtual int setDescription() override;
    virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
@@ -94,22 +91,6 @@ class InitWeights : public BaseObject {
 
    virtual int initRNGs(bool isKernel) { return PV_SUCCESS; }
    virtual int zeroWeightsOutsideShrunkenPatch(PVPatch ***patches);
-   void readListOfArborFiles(
-         bool sharedWeights,
-         float **dataStart,
-         int numPatchesX,
-         int numPatchesY,
-         int numPatchesF,
-         const char *listOfArborsFilename,
-         double *timestampPtr = nullptr);
-   void readCombinedWeightFiles(
-         bool sharedWeights,
-         float **dataStart,
-         int numPatchesX,
-         int numPatchesY,
-         int numPatchesF,
-         const char *fileOfWeightFiles,
-         double *timestampPtr = nullptr);
    void readWeightPvpFile(
          bool sharedWeights,
          float **dataStart,
@@ -129,13 +110,11 @@ class InitWeights : public BaseObject {
    int initialize_base();
 
   protected:
-   char *mFilename           = nullptr;
-   bool mUseListOfArborFiles = false;
-   bool mCombineWeightFiles  = false;
-   int mNumWeightFiles       = 1;
-   HyPerConn *mCallingConn   = nullptr;
-   HyPerLayer *mPreLayer     = nullptr;
-   HyPerLayer *mPostLayer    = nullptr;
+   char *mFilename         = nullptr;
+   int mNumWeightFiles     = 1;
+   HyPerConn *mCallingConn = nullptr;
+   HyPerLayer *mPreLayer   = nullptr;
+   HyPerLayer *mPostLayer  = nullptr;
    float mDxPost;
    float mDyPost;
    float mXDistHeadPreUnits;
