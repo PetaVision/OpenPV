@@ -71,6 +71,7 @@ void IdentConn::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
 void IdentConn::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       parent->parameters()->handleUnnecessaryStringParameter(name, "weightInitType", NULL);
+      weightInitializer = nullptr;
    }
 }
 
@@ -214,11 +215,6 @@ void IdentConn::ioParam_updateGSynFromPostPerspective(enum ParamsIOFlag ioFlag) 
       parent->parameters()->handleUnnecessaryParameter(
             name, "updateGSynFromPostPerspective", updateGSynFromPostPerspective);
    }
-}
-
-int IdentConn::setWeightInitializer() {
-   weightInitializer = nullptr;
-   return PV_SUCCESS;
 }
 
 int IdentConn::communicateInitInfo(CommunicateInitInfoMessage const *message) {

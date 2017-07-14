@@ -398,33 +398,26 @@ int HyPerConn::initialize(char const *name, HyPerCol *hc) {
    return status;
 }
 
-int HyPerConn::setWeightInitializer() {
-   weightInitializer = createInitWeightsObject(weightInitTypeString);
-   if (weightInitializer == nullptr) {
-      weightInitializer = getDefaultInitWeightsMethod(getKeyword());
-   }
-   return weightInitializer == nullptr ? PV_FAILURE : PV_SUCCESS;
-}
-
-/*
- * This method parses the weightInitType parameter and creates an
- * appropriate InitWeight object for the chosen weight initialization.
- */
-InitWeights *HyPerConn::createInitWeightsObject(const char *weightInitTypeStr) {
-   pvAssert(weightInitializer == nullptr);
-   BaseObject *baseObject = nullptr;
-   try {
-      baseObject = Factory::instance()->createByKeyword(weightInitTypeStr, name, parent);
-   } catch (const std::exception &e) {
-      Fatal() << getDescription() << " unable to create weightInitializer: " << e.what() << "\n";
-   }
-   weightInitializer = dynamic_cast<InitWeights *>(baseObject);
+void HyPerConn::setWeightInitializer() {
    FatalIf(
-         weightInitializer == nullptr,
-         "%s unable to create weightInitializer: %s is not an InitWeights keyword.\n",
-         getDescription_c(),
-         weightInitTypeStr);
-   return weightInitializer;
+         weightInitTypeString == nullptr or weightInitTypeString[0] == '\0',
+         "%s must set weightInitType.\n",
+         getDescription_c());
+   pvAssert(weightInitializer == nullptr);
+   {
+      BaseObject *baseObject = nullptr;
+      try {
+         baseObject = Factory::instance()->createByKeyword(weightInitTypeString, name, parent);
+      } catch (const std::exception &e) {
+         Fatal() << getDescription() << " unable to create weightInitializer: " << e.what() << "\n";
+      }
+      weightInitializer = dynamic_cast<InitWeights *>(baseObject);
+      FatalIf(
+            weightInitializer == nullptr,
+            "%s unable to create weightInitializer: %s is not an InitWeights keyword.\n",
+            getDescription_c(),
+            weightInitTypeString);
+   }
 }
 
 int HyPerConn::setPreLayerName(const char *pre_name) {
@@ -611,9 +604,9 @@ void HyPerConn::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamString(
          ioFlag, name, "weightInitType", &weightInitTypeString, NULL, true /*warnIfAbsent*/);
    if (ioFlag == PARAMS_IO_READ) {
-      int status = setWeightInitializer();
+      setWeightInitializer();
       pvAssertMessage(
-            status == PV_SUCCESS,
+            weightInitializer != nullptr,
             "%s: Rank %d process unable to construct weightInitializer",
             getDescription_c(),
             parent->columnId());
@@ -1569,17 +1562,6 @@ taus_uint4 *HyPerConn::getRandState(int index) {
       state = randState->getRNG(index);
    }
    return state;
-}
-
-InitWeights *HyPerConn::getDefaultInitWeightsMethod(const char *keyword) {
-   if (parent->columnId() == 0) {
-      ErrorLog().printf(
-            "%s: weightInitType \"%s\" not recognized.  Exiting\n",
-            getDescription_c(),
-            weightInitTypeString);
-   }
-   MPI_Barrier(parent->getCommunicator()->communicator());
-   exit(EXIT_FAILURE);
 }
 
 #ifdef PV_USE_CUDA

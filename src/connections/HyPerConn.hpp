@@ -592,9 +592,8 @@ class HyPerConn : public BaseConnection {
     * It is not called by the default HyPerConn constructor.
     */
    int initialize(char const *name, HyPerCol *hc);
-   virtual int setWeightInitializer();
-   virtual InitWeights *createInitWeightsObject(const char *weightInitTypeStr);
-   int setWeightNormalizer(); // Note: no longer deprecated.
+   void setWeightInitializer();
+   int setWeightNormalizer();
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    /**
@@ -871,7 +870,6 @@ class HyPerConn : public BaseConnection {
    virtual void
    handleDefaultSelfFlag(); // If selfFlag was not set in params, set it in this function.
    virtual PVPatch ***initializeWeights(PVPatch ***arbors, float **dataStart);
-   virtual InitWeights *getDefaultInitWeightsMethod(const char *keyword);
    virtual int createWeights(
          PVPatch ***patches,
          int nWeightPatches,

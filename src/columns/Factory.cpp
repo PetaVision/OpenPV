@@ -225,15 +225,20 @@ int Factory::registerKeyword(char const *keyword, ObjectCreateFn creator) {
 }
 
 BaseObject *Factory::createByKeyword(char const *keyword, char const *name, HyPerCol *hc) const {
+   if (keyword == nullptr) {
+      return nullptr;
+   }
    KeywordHandler const *keywordHandler = getKeywordHandler(keyword);
    if (keywordHandler == nullptr) {
-      auto errorString = std::string("Unrecognized keyword ").append(keyword);
+      auto errorString = std::string(keyword).append(" \"").append(name).append("\": ");
+      errorString.append("keyword \"").append(keyword).append("\" is unrecognized.");
       throw std::invalid_argument(errorString);
    }
    return keywordHandler ? keywordHandler->create(name, hc) : nullptr;
 }
 
 KeywordHandler const *Factory::getKeywordHandler(char const *keyword) const {
+   pvAssert(keyword != nullptr);
    for (auto &typeCreator : keywordHandlerList) {
       if (!strcmp(typeCreator->getKeyword(), keyword)) {
          return typeCreator;
