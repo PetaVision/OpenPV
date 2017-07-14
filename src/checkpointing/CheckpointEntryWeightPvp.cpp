@@ -140,6 +140,7 @@ void CheckpointEntryWeightPvp::read(std::string const &checkpointDirectory, doub
    if (mSharedWeights) {
       readSharedWeights(
             fileStream,
+            0 /*frameNumber*/,
             getMPIBlock(),
             mPreLoc,
             mPatchSizeX,
@@ -154,6 +155,7 @@ void CheckpointEntryWeightPvp::read(std::string const &checkpointDirectory, doub
    else {
       readNonsharedWeights(
             fileStream,
+            0 /*frameNumber*/,
             getMPIBlock(),
             mPreLoc,
             mPatchSizeX,

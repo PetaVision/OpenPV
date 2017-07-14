@@ -46,6 +46,7 @@ int InitWeights::setDescription() {
 
 int InitWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_initWeightsFile(ioFlag);
+   ioParam_frameNumber(ioFlag);
 
    // obsolete parameters; issue warnings/errors if they are set.
    ioParam_useListOfArborFiles(ioFlag);
@@ -56,6 +57,19 @@ int InitWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 void InitWeights::ioParam_initWeightsFile(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamString(
          ioFlag, name, "initWeightsFile", &mFilename, mFilename, false /*warnIfAbsent*/);
+}
+
+void InitWeights::ioParam_frameNumber(enum ParamsIOFlag ioFlag) {
+   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "initWeightsFile"));
+   if (mFilename and mFilename[0]) {
+      parent->parameters()->ioParamValue(
+            ioFlag,
+            name,
+            "frameNumber",
+            &mFrameNumber,
+            mFrameNumber /*default*/,
+            false /*warn if absent*/);
+   }
 }
 
 // useListOfArborFiles and combineWeightFiles were marked obsolete July 13, 2017.
@@ -132,7 +146,14 @@ int InitWeights::initializeWeights(
    bool sharedWeights = patches == nullptr;
    if (mFilename && mFilename[0]) {
       readWeights(
-            sharedWeights, dataStart, numPatchesX, numPatchesY, numPatchesF, mFilename, timef);
+            sharedWeights,
+            dataStart,
+            numPatchesX,
+            numPatchesY,
+            numPatchesF,
+            mFilename,
+            mFrameNumber,
+            timef);
    }
    else {
       initRNGs(sharedWeights);
@@ -256,52 +277,23 @@ int InitWeights::readWeights(
       int numPatchesY,
       int numPatchesF,
       const char *filename,
+      int frameNumber,
       double *timestampPtr /*default=nullptr*/) {
    pvAssert(mCallingConn);
-   double timestamp;
-   int status = PV_SUCCESS;
-   readWeightPvpFile(
-         sharedWeights,
-         dataStart,
-         numPatchesX,
-         numPatchesY,
-         numPatchesF,
-         filename,
-         mCallingConn->numberOfAxonalArborLists(),
-         timestampPtr);
-   if (status != PV_SUCCESS) {
-      Fatal().printf(
-            "InitWeights::readWeights: failed to read weight file %s for connection %s.\n",
-            filename,
-            mCallingConn->getName());
-   }
-   if (timestampPtr != nullptr) {
-      *timestampPtr = timestamp;
-   }
-   return PV_SUCCESS;
-}
-
-void InitWeights::readWeightPvpFile(
-      bool sharedWeights,
-      float **dataStart,
-      int numPatchesX,
-      int numPatchesY,
-      int numPatchesF,
-      const char *weightPvpFile,
-      int numArbors,
-      double *timestampPtr) {
    double timestamp;
    MPIBlock const *mpiBlock = parent->getCommunicator()->getLocalMPIBlock();
 
    FileStream *fileStream = nullptr;
    if (mpiBlock->getRank() == 0) {
-      fileStream = new FileStream(weightPvpFile, std::ios_base::in, false);
+      fileStream = new FileStream(filename, std::ios_base::in, false);
    }
 
    PVLayerLoc const *preLoc = mCallingConn->preSynapticLayer()->getLayerLoc();
+   int numArbors            = mCallingConn->numberOfAxonalArborLists();
    if (sharedWeights) {
       readSharedWeights(
             fileStream,
+            frameNumber,
             mpiBlock,
             preLoc,
             mCallingConn->xPatchSize(),
@@ -316,6 +308,7 @@ void InitWeights::readWeightPvpFile(
    else {
       readNonsharedWeights(
             fileStream,
+            frameNumber,
             mpiBlock,
             preLoc,
             mCallingConn->xPatchSize(),
@@ -331,7 +324,9 @@ void InitWeights::readWeightPvpFile(
    if (timestampPtr != nullptr) {
       *timestampPtr = timestamp;
    }
+   return PV_SUCCESS;
 }
+
 int InitWeights::kernelIndexCalculations(int dataPatchIndex) {
    // kernel index stuff:
    int kxKernelIndex;

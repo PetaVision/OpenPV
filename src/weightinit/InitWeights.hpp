@@ -33,6 +33,15 @@ class InitWeights : public BaseObject {
     */
    virtual void ioParam_initWeightsFile(enum ParamsIOFlag ioFlag);
 
+   /**
+    * @brief frameNumber: If initWeightsFile is set, the frameNumber parameter
+    * selects which frame of the pvp file to use. The default value is zero.
+    * Note that this parameter is zero-indexed: for example, if a pvp file
+    * has five frames, the allowable values of this parameter are 0 through 4,
+    * inclusive.
+    */
+   virtual void ioParam_frameNumber(enum ParamsIOFlag ioFlag);
+
    // useListOfArborFiles, combineWeightFiles, and numWeightFiles were marked obsolete July 13,
    // 2017.
    /**
@@ -87,19 +96,11 @@ class InitWeights : public BaseObject {
          int numPatchesY,
          int numPatchesF,
          const char *filename,
+         int frameNumber,
          double *timestampPtr = nullptr);
 
    virtual int initRNGs(bool isKernel) { return PV_SUCCESS; }
    virtual int zeroWeightsOutsideShrunkenPatch(PVPatch ***patches);
-   void readWeightPvpFile(
-         bool sharedWeights,
-         float **dataStart,
-         int numPatchesX,
-         int numPatchesY,
-         int numPatchesF,
-         const char *weightPvpFile,
-         int numArbors,
-         double *timestampPtr = nullptr);
 
    int kernelIndexCalculations(int patchIndex);
    float calcYDelta(int jPost);
@@ -111,7 +112,7 @@ class InitWeights : public BaseObject {
 
   protected:
    char *mFilename         = nullptr;
-   int mNumWeightFiles     = 1;
+   int mFrameNumber        = 0;
    HyPerConn *mCallingConn = nullptr;
    HyPerLayer *mPreLayer   = nullptr;
    HyPerLayer *mPostLayer  = nullptr;

@@ -886,6 +886,7 @@ void calcMinMaxSharedWeights(
 
 double readSharedWeights(
       FileStream *fileStream,
+      int frameNumber,
       MPIBlock const *mpiBlock,
       PVLayerLoc const *preLoc,
       int nxp,
@@ -899,7 +900,8 @@ double readSharedWeights(
    int const rootProc = 0;
    BufferUtils::WeightHeader header;
    if (mpiBlock->getRank() == rootProc) {
-      fileStream->read(&header, sizeof(header));
+      setInPosByFrame(header, fileStream, frameNumber);
+      // fileStream->read(&header, sizeof(header));
       FatalIf(
             header.baseHeader.fileType != PVP_KERNEL_FILE_TYPE,
             "readSharedWeights called with \"%s\", which is not a shared-weights file.\n",
@@ -945,6 +947,7 @@ double readSharedWeights(
 
 double readNonsharedWeights(
       FileStream *fileStream,
+      int frameNumber,
       MPIBlock const *mpiBlock,
       const PVLayerLoc *preLoc,
       int nxp,
@@ -960,7 +963,8 @@ double readNonsharedWeights(
    int const rank        = mpiBlock->getRank();
    BufferUtils::WeightHeader header;
    if (rank == rootProcess) {
-      fileStream->read(&header, sizeof(header));
+      setInPosByFrame(header, fileStream, frameNumber);
+      // fileStream->read(&header, sizeof(header));
       FatalIf(
             header.baseHeader.fileType != PVP_WGT_FILE_TYPE,
             "readSharedWeights called with \"%s\", which is not a shared-weights file.\n",
@@ -1093,6 +1097,16 @@ double readNonsharedWeights(
    }
 
    return header.baseHeader.timestamp;
+}
+
+void setInPosByFrame(BufferUtils::WeightHeader &header, FileStream *fileStream, int frameNumber) {
+   fileStream->setInPos(0L, true /*from beginning*/);
+   for (int f = 0; f < frameNumber; f++) {
+      fileStream->read(&header, sizeof(header));
+      long recordSize = (long)(header.baseHeader.recordSize * header.baseHeader.numRecords);
+      fileStream->setInPos(recordSize, false /*relative to current point*/);
+   }
+   fileStream->read(&header, sizeof(header));
 }
 
 bool isCompressedHeader(BufferUtils::WeightHeader const &header, std::string const &filename) {
