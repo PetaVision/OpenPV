@@ -29,6 +29,7 @@ int InitVFromFile::initialize(char const *name, HyPerCol *hc) {
 int InitVFromFile::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = BaseInitV::ioParamsFillGroup(ioFlag);
    ioParam_Vfilename(ioFlag);
+   ioParam_frameNumber(ioFlag);
    return status;
 }
 
@@ -42,6 +43,11 @@ void InitVFromFile::ioParam_Vfilename(enum ParamsIOFlag ioFlag) {
             "must be defined.  Exiting\n",
             name);
    }
+}
+
+void InitVFromFile::ioParam_frameNumber(enum ParamsIOFlag ioFlag) {
+   parent->parameters()->ioParamValue(
+         ioFlag, name, "frameNumber", &mFrameNumber, mFrameNumber, true /*warnIfAbsent*/);
 }
 
 int InitVFromFile::calcV(float *V, const PVLayerLoc *loc) {
@@ -90,8 +96,8 @@ void InitVFromFile::readDenseActivityPvp(
          float *Vbatch        = V + b * (loc->nx * loc->ny * loc->nf);
          Buffer<float> pvpBuffer;
          if (isRootProc) {
-            int frameNumber = globalBatchIndex % numFrames;
-            fileStream.setOutPos(sizeof(header) + frameNumber * sizeof(float) * frameSize, true);
+            int frameIndex = (mFrameNumber + globalBatchIndex) % numFrames;
+            fileStream.setOutPos(sizeof(header) + frameIndex * sizeof(float) * frameSize, true);
             int xStart = header.nx * mpiBlock->getStartColumn() / mpiBlock->getNumColumns();
             int yStart = header.ny * mpiBlock->getStartRow() / mpiBlock->getNumRows();
             pvpBuffer.resize(header.nx, header.ny, header.nf);

@@ -26,6 +26,17 @@ class InitVFromFile : public BaseInitV {
     * Relative paths are relative to the working directory.
     */
    virtual void ioParam_Vfilename(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief frameNumber: selects which frame of the pvp file to use.
+    * The default value is zero. Note that this parameter is zero-indexed:
+    * for example, if a pvp file has five frames, the allowable values of this
+    * parameter are 0 through 4, inclusive.
+    * When batching, the batch element 0 loads the indicated frame,
+    * batch element 1 loads frameNumber + 1, etc. If the number of frames in
+    * the file is exhausted, the file wraps around to the beginning.
+    */
+   virtual void ioParam_frameNumber(enum ParamsIOFlag ioFlag);
    /** @} */
   public:
    InitVFromFile(char const *name, HyPerCol *hc);
@@ -47,6 +58,7 @@ class InitVFromFile : public BaseInitV {
 
   private:
    char *mVfilename = nullptr;
+   int mFrameNumber = 0;
 }; // end class InitVFromFile
 
 } // end namespace PV
