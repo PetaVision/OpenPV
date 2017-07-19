@@ -96,8 +96,8 @@ int HyPerLayer::initialize_base() {
    updatedDeviceActivity    = true; // Start off always updating activity
    updatedDeviceDatastore   = true;
    updatedDeviceGSyn        = true;
-   recvGpu                  = false;
-   updateGpu                = false;
+   mRecvGpu                 = false;
+   mUpdateGpu               = false;
    krUpdate                 = NULL;
 #ifdef PV_USE_CUDNN
    cudnn_GSyn      = NULL;
@@ -550,7 +550,7 @@ int HyPerLayer::initializeState() {
 
 #ifdef PV_USE_CUDA
 int HyPerLayer::copyInitialStateToGPU() {
-   if (updateGpu) {
+   if (mUpdateGpu) {
       float *h_V = getV();
       if (h_V != NULL) {
          PVCuda::CudaBuffer *d_V = getDeviceV();
@@ -642,15 +642,15 @@ void HyPerLayer::ioParam_dataType(enum ParamsIOFlag ioFlag) {
 void HyPerLayer::ioParam_updateGpu(enum ParamsIOFlag ioFlag) {
 #ifdef PV_USE_CUDA
    parent->parameters()->ioParamValue(
-         ioFlag, name, "updateGpu", &updateGpu, updateGpu, true /*warnIfAbsent*/);
-   mUsingGPUFlag = updateGpu;
+         ioFlag, name, "updateGpu", &mUpdateGpu, mUpdateGpu, true /*warnIfAbsent*/);
+   mUsingGPUFlag = mUpdateGpu;
 #else // PV_USE_CUDA
-   bool updateGpu = false;
+   bool mUpdateGpu = false;
    parent->parameters()->ioParamValue(
-         ioFlag, name, "updateGpu", &updateGpu, updateGpu, false /*warnIfAbsent*/);
+         ioFlag, name, "updateGpu", &mUpdateGpu, mUpdateGpu, false /*warnIfAbsent*/);
    if (parent->columnId() == 0) {
       FatalIf(
-            updateGpu,
+            mUpdateGpu,
             "%s: updateGpu is set to true, but PetaVision was compiled without GPU acceleration.\n",
             getDescription_c());
    }
@@ -973,7 +973,7 @@ int HyPerLayer::respondLayerRecvSynapticInput(
       return status;
    }
 #ifdef PV_USE_CUDA
-   if (message->mRecvOnGpuFlag != getRecvGpu()) {
+   if (message->mRecvOnGpuFlag != mRecvGpu) {
       return status;
    }
 #endif // PV_USE_CUDA
@@ -1001,10 +1001,10 @@ int HyPerLayer::respondLayerUpdateState(std::shared_ptr<LayerUpdateStateMessage 
       return status;
    }
 #ifdef PV_USE_CUDA
-   if (message->mRecvOnGpuFlag != getRecvGpu()) {
+   if (message->mRecvOnGpuFlag != mRecvGpu) {
       return status;
    }
-   if (message->mUpdateOnGpuFlag != getUpdateGpu()) {
+   if (message->mUpdateOnGpuFlag != mUpdateGpu) {
       return status;
    }
 #endif // PV_USE_CUDA
@@ -1234,7 +1234,7 @@ int HyPerLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
 #ifdef PV_USE_CUDA
    // Here, the connection tells all participating recev layers to allocate memory on gpu
    // if receive from gpu is set. These buffers should be set in allocate
-   if (updateGpu) {
+   if (mUpdateGpu) {
       this->setAllocDeviceGSyn();
       this->setAllocDeviceV();
       this->setAllocDeviceActivity();
@@ -1273,7 +1273,7 @@ void HyPerLayer::addRecvConn(BaseConnection *conn) {
       recvConns.push_back(conn);
 #ifdef PV_USE_CUDA
       // If it is receiving from gpu, set layer flag as such
-      recvGpu = true;
+      mRecvGpu = true;
 #endif
    }
 }
@@ -1480,7 +1480,7 @@ int HyPerLayer::allocateDataStructures() {
             parent->columnId(),
             strerror(errno));
    }
-   if (updateGpu) {
+   if (mUpdateGpu) {
       // This function needs to be overwritten as needed on a subclass basis
       status = allocateUpdateKernel();
       if (status == 0) {
@@ -1758,10 +1758,10 @@ int HyPerLayer::callUpdateState(double simTime, double dt) {
 
       update_timer->start();
 #ifdef PV_USE_CUDA
-      if (updateGpu) {
+      if (mUpdateGpu) {
          gpu_update_timer->start();
          float *gSynHead = GSyn == NULL ? NULL : GSyn[0];
-         assert(updateGpu);
+         assert(mUpdateGpu);
          status = updateStateGpu(simTime, dt);
          gpu_update_timer->stop();
       }
@@ -1825,7 +1825,7 @@ int HyPerLayer::resetStateOnTrigger() {
 
 // Update V on GPU after CPU V gets set
 #ifdef PV_USE_CUDA
-   if (updateGpu) {
+   if (mUpdateGpu) {
       getDeviceV()->copyToDevice(V);
       // Right now, we're setting the activity on the CPU and memsetting the GPU memory
       // TODO calculate this on the GPU
@@ -1852,7 +1852,7 @@ int HyPerLayer::resetGSynBuffers(double timef, double dt) {
 int HyPerLayer::runUpdateKernel() {
 
 #ifdef PV_USE_CUDA
-   assert(updateGpu);
+   assert(mUpdateGpu);
    if (updatedDeviceGSyn) {
       copyAllGSynToDevice();
       updatedDeviceGSyn = false;
@@ -1983,23 +1983,23 @@ int HyPerLayer::recvAllSynapticInput() {
 double HyPerLayer::addGpuTimers() {
    double simTime    = 0;
    bool updateNeeded = needUpdate(parent->simulationTime(), parent->getDeltaTime());
-   if (recvGpu && updateNeeded) {
+   if (mRecvGpu && updateNeeded) {
       simTime += gpu_recvsyn_timer->accumulateTime();
    }
-   if (updateGpu && updateNeeded) {
+   if (mUpdateGpu && updateNeeded) {
       simTime += gpu_update_timer->accumulateTime();
    }
    return simTime;
 }
 
 void HyPerLayer::syncGpu() {
-   if (recvGpu || updateGpu) {
+   if (mRecvGpu || mUpdateGpu) {
       parent->getDevice()->syncDevice();
    }
 }
 
 void HyPerLayer::copyAllGSynToDevice() {
-   if (recvGpu || updateGpu) {
+   if (mRecvGpu || mUpdateGpu) {
       // Copy it to device
       // Allocated as a big chunk, this should work
       float *h_postGSyn              = GSyn[0];
@@ -2011,7 +2011,7 @@ void HyPerLayer::copyAllGSynToDevice() {
 
 void HyPerLayer::copyAllGSynFromDevice() {
    // Only copy if recving
-   if (recvGpu) {
+   if (mRecvGpu) {
       // Allocated as a big chunk, this should work
       float *h_postGSyn              = GSyn[0];
       PVCuda::CudaBuffer *d_postGSyn = this->getDeviceGSyn();
@@ -2022,7 +2022,7 @@ void HyPerLayer::copyAllGSynFromDevice() {
 
 void HyPerLayer::copyAllVFromDevice() {
    // Only copy if updating
-   if (updateGpu) {
+   if (mUpdateGpu) {
       // Allocated as a big chunk, this should work
       float *h_V              = getV();
       PVCuda::CudaBuffer *d_V = this->getDeviceV();
@@ -2033,7 +2033,7 @@ void HyPerLayer::copyAllVFromDevice() {
 
 void HyPerLayer::copyAllActivityFromDevice() {
    // Only copy if updating
-   if (updateGpu) {
+   if (mUpdateGpu) {
       // Allocated as a big chunk, this should work
       float *h_activity              = getCLayer()->activity->data;
       PVCuda::CudaBuffer *d_activity = this->getDeviceActivity();

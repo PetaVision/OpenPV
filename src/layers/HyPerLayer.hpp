@@ -306,6 +306,13 @@ class HyPerLayer : public BaseLayer {
     */
    int freeExtendedBuffer(float **buf);
 
+   /**
+    * Returns true if each layer that delivers input to this layer
+    * has finished its MPI exchange for its delay; false if any of
+    * them has not.
+    */
+   bool isAllInputReady();
+
   public:
    HyPerLayer(const char *name, HyPerCol *hc);
    float *getActivity() {
@@ -414,13 +421,6 @@ class HyPerLayer : public BaseLayer {
 
    int clearProgressFlags();
 
-   /**
-    * Returns true if each layer that delivers input to this layer
-    * has finished its MPI exchange for its delay; false if any of
-    * them has not.
-    */
-   bool isAllInputReady();
-
    int getNumProbes() { return numProbes; }
    LayerProbe *getProbe(int n) { return (n >= 0 && n < numProbes) ? probes[n] : NULL; }
 
@@ -490,10 +490,6 @@ class HyPerLayer : public BaseLayer {
    double getNextUpdateTime() { return mLastUpdateTime + getDeltaUpdateTime(); }
 
    Publisher *getPublisher() { return publisher; }
-
-   bool getHasReceived() { return mHasReceived; }
-
-   bool getHasUpdated() { return mHasUpdated; }
 
   protected:
    virtual int
@@ -647,10 +643,6 @@ class HyPerLayer : public BaseLayer {
 
    void setUpdatedDeviceGSynFlag(bool in) { updatedDeviceGSyn = in; }
 
-   bool getRecvGpu() { return recvGpu; }
-
-   bool getUpdateGpu() { return updateGpu; }
-
   protected:
    virtual int allocateUpdateKernel();
    virtual int allocateDeviceBuffers();
@@ -665,8 +657,8 @@ class HyPerLayer : public BaseLayer {
    bool updatedDeviceActivity;
    bool updatedDeviceDatastore;
    bool updatedDeviceGSyn;
-   bool recvGpu;
-   bool updateGpu;
+   bool mRecvGpu;
+   bool mUpdateGpu;
 
    PVCuda::CudaBuffer *d_V;
    PVCuda::CudaBuffer *d_GSyn;
