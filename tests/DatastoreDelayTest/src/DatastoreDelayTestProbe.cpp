@@ -6,6 +6,7 @@
  */
 
 #include "DatastoreDelayTestProbe.hpp"
+#include "layers/HyPerLayer.hpp"
 #include <string.h>
 #include <utils/PVLog.hpp>
 

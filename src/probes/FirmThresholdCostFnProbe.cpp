@@ -6,8 +6,8 @@
  */
 
 #include "FirmThresholdCostFnProbe.hpp"
-#include "../columns/HyPerCol.hpp"
-#include "../layers/ANNLayer.hpp" // To get VThresh and VWidth from targetLayer if it's an ANNLayer
+#include "columns/HyPerCol.hpp"
+#include "layers/ANNLayer.hpp" // To get VThresh and VWidth from targetLayer if it's an ANNLayer
 
 namespace PV {
 

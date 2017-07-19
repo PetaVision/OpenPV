@@ -15,7 +15,6 @@
 #include "columns/PV_Init.hpp"
 #include "include/pv_types.h"
 #include "io/PVParams.hpp"
-#include "layers/HyPerLayer.hpp"
 #include "observerpattern/Observer.hpp"
 #include "observerpattern/ObserverTable.hpp"
 #include "observerpattern/Subject.hpp"
@@ -148,6 +147,7 @@ class HyPerCol : public Subject, Observer {
    int addNormalizer(NormalizeBase *normalizer);
    void advanceTimeLoop(Clock &runClock, int const runClockStartingStep);
    int advanceTime(double time);
+   void nonblockingLayerUpdate(std::shared_ptr<LayerUpdateStateMessage const> updateMessage);
    void nonblockingLayerUpdate(
          std::shared_ptr<LayerRecvSynapticInputMessage const> recvMessage,
          std::shared_ptr<LayerUpdateStateMessage const> updateMessage);

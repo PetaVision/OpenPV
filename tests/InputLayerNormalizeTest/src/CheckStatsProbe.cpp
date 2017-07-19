@@ -1,5 +1,6 @@
 #include "CheckStatsProbe.hpp"
 #include <columns/HyPerCol.hpp>
+#include <layers/HyPerLayer.hpp>
 
 void CheckStatsProbe::ioParam_buffer(enum PV::ParamsIOFlag ioFlag) {
    if (ioFlag == PV::PARAMS_IO_READ) {

@@ -18,10 +18,10 @@
 #include "io/PVParams.hpp"
 #include "io/PrintStream.hpp"
 #include "io/io.hpp"
+#include "layers/HyPerLayer.hpp"
 
 namespace PV {
 
-class HyPerLayer;
 class BaseConnectionProbe;
 
 class BaseConnection : public BaseObject {

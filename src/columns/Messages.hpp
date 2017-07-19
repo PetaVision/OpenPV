@@ -137,24 +137,30 @@ class LayerRecvSynapticInputMessage : public BaseMessage {
          bool recvOnGpuFlag,
 #endif // PV_USE_CUDA
          double simTime,
-         double deltaTime) {
+         double deltaTime,
+         bool *someLayerIsPending,
+         bool *someLayerHasActed) {
       setMessageType("LayerRecvSynapticInput");
       mPhase = phase;
       mTimer = timer;
 #ifdef PV_USE_CUDA
       mRecvOnGpuFlag = recvOnGpuFlag;
 #endif // PV_USE_CUDA
-      mTime   = simTime;
-      mDeltaT = deltaTime;
+      mTime               = simTime;
+      mDeltaT             = deltaTime;
+      mSomeLayerIsPending = someLayerIsPending;
+      mSomeLayerHasActed  = someLayerHasActed;
    }
    int mPhase;
    Timer *mTimer;
 #ifdef PV_USE_CUDA
    bool mRecvOnGpuFlag;
 #endif // PV_USE_CUDA
-   float mTime;
-   float mDeltaT; // TODO: this should be the nbatch-sized vector of adaptive
+   double mTime;
+   double mDeltaT; // TODO: this should be the nbatch-sized vector of adaptive
    // timesteps
+   bool *mSomeLayerIsPending;
+   bool *mSomeLayerHasActed;
 };
 
 class LayerUpdateStateMessage : public BaseMessage {
@@ -169,24 +175,30 @@ class LayerUpdateStateMessage : public BaseMessage {
 // depends on it.
 #endif // PV_USE_CUDA
          double simTime,
-         double deltaTime) {
+         double deltaTime,
+         bool *someLayerIsPending,
+         bool *someLayerHasActed) {
       setMessageType("LayerUpdateState");
       mPhase = phase;
 #ifdef PV_USE_CUDA
       mRecvOnGpuFlag   = recvOnGpuFlag;
       mUpdateOnGpuFlag = updateOnGpuFlag;
 #endif // PV_USE_CUDA
-      mTime   = simTime;
-      mDeltaT = deltaTime;
+      mTime               = simTime;
+      mDeltaT             = deltaTime;
+      mSomeLayerIsPending = someLayerIsPending;
+      mSomeLayerHasActed  = someLayerHasActed;
    }
    int mPhase;
 #ifdef PV_USE_CUDA
    bool mRecvOnGpuFlag;
    bool mUpdateOnGpuFlag;
 #endif // PV_USE_CUDA
-   float mTime;
-   float mDeltaT; // TODO: this should be the nbatch-sized vector of adaptive
+   double mTime;
+   double mDeltaT; // TODO: this should be the nbatch-sized vector of adaptive
    // timesteps
+   bool *mSomeLayerIsPending;
+   bool *mSomeLayerHasActed;
 };
 
 #ifdef PV_USE_CUDA

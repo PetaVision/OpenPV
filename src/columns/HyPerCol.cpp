@@ -14,7 +14,6 @@
 #include "columns/RandomSeed.hpp"
 #include "io/PrintStream.hpp"
 #include "io/io.hpp"
-#include "layers/HyPerLayer.hpp"
 #include "normalizers/NormalizeBase.hpp"
 
 #include <assert.h>
@@ -691,40 +690,84 @@ int HyPerCol::advanceTime(double sim_time) {
    for (int phase = 0; phase < mNumPhases; phase++) {
       notify(std::make_shared<LayerClearProgressFlagsMessage>());
 
-// nonblockingLayerUpdate allows for more concurrency than notify.
+      // nonblockingLayerUpdate allows for more concurrency than notify.
+      bool someLayerIsPending = false;
+      bool someLayerHasActed  = false;
 #ifdef PV_USE_CUDA
       // Ordering needs to go recvGpu, if(recvGpu and upGpu)update, recvNoGpu,
       // update rest
       auto recvMessage = std::make_shared<LayerRecvSynapticInputMessage>(
-            phase, mPhaseRecvTimers.at(phase), true /*recvGpuFlag*/, mSimTime, mDeltaTime);
+            phase,
+            mPhaseRecvTimers.at(phase),
+            true /*recvGpuFlag*/,
+            mSimTime,
+            mDeltaTime,
+            &someLayerIsPending,
+            &someLayerHasActed);
       auto updateMessage = std::make_shared<LayerUpdateStateMessage>(
-            phase, true /*recvGpuFlag*/, true /*updateGpuFlag*/, mSimTime, mDeltaTime);
+            phase,
+            true /*recvGpuFlag*/,
+            true /*updateGpuFlag*/,
+            mSimTime,
+            mDeltaTime,
+            &someLayerIsPending,
+            &someLayerHasActed);
       nonblockingLayerUpdate(recvMessage, updateMessage);
 
       recvMessage = std::make_shared<LayerRecvSynapticInputMessage>(
-            phase, mPhaseRecvTimers.at(phase), false /*recvGpuFlag*/, mSimTime, mDeltaTime);
+            phase,
+            mPhaseRecvTimers.at(phase),
+            false /*recvGpuFlag*/,
+            mSimTime,
+            mDeltaTime,
+            &someLayerIsPending,
+            &someLayerHasActed);
       updateMessage = std::make_shared<LayerUpdateStateMessage>(
-            phase, false /*recvGpuFlag*/, false /*updateGpuFlag*/, mSimTime, mDeltaTime);
+            phase,
+            false /*recvGpuFlag*/,
+            false /*updateGpuFlag*/,
+            mSimTime,
+            mDeltaTime,
+            &someLayerIsPending,
+            &someLayerHasActed);
       nonblockingLayerUpdate(recvMessage, updateMessage);
 
       getDevice()->syncDevice();
 
       // Update for receiving on cpu and updating on gpu
-      notify(
+      nonblockingLayerUpdate(
             std::make_shared<LayerUpdateStateMessage>(
-                  phase, false /*recvOnGpuFlag*/, true /*updateOnGpuFlag*/, mSimTime, mDeltaTime));
+                  phase,
+                  false /*recvOnGpuFlag*/,
+                  true /*updateOnGpuFlag*/,
+                  mSimTime,
+                  mDeltaTime,
+                  &someLayerIsPending,
+                  &someLayerHasActed));
 
       getDevice()->syncDevice();
       notify(std::make_shared<LayerCopyFromGpuMessage>(phase, mPhaseRecvTimers.at(phase)));
 
       // Update for gpu recv and non gpu update
-      notify(
+      nonblockingLayerUpdate(
             std::make_shared<LayerUpdateStateMessage>(
-                  phase, true /*recvOnGpuFlag*/, false /*updateOnGpuFlag*/, mSimTime, mDeltaTime));
+                  phase,
+                  true /*recvOnGpuFlag*/,
+                  false /*updateOnGpuFlag*/,
+                  mSimTime,
+                  mDeltaTime,
+                  &someLayerIsPending,
+                  &someLayerHasActed));
 #else
       auto recvMessage = std::make_shared<LayerRecvSynapticInputMessage>(
-            phase, mPhaseRecvTimers.at(phase), mSimTime, mDeltaTime);
-      auto updateMessage = std::make_shared<LayerUpdateStateMessage>(phase, mSimTime, mDeltaTime);
+            phase,
+            mPhaseRecvTimers.at(phase),
+            mSimTime,
+            mDeltaTime,
+            &someLayerIsPending,
+            &someLayerHasActed);
+      auto updateMessage = std::make_shared<LayerUpdateStateMessage>(
+            phase, mSimTime, mDeltaTime, &someLayerIsPending, &someLayerHasActed);
       nonblockingLayerUpdate(recvMessage, updateMessage);
 #endif
       // Rotate DataStore ring buffers
@@ -749,82 +792,49 @@ int HyPerCol::advanceTime(double sim_time) {
 }
 
 void HyPerCol::nonblockingLayerUpdate(
-      std::shared_ptr<LayerRecvSynapticInputMessage const> recvMessage,
       std::shared_ptr<LayerUpdateStateMessage const> updateMessage) {
+
+   *(updateMessage->mSomeLayerIsPending) = true;
+   *(updateMessage->mSomeLayerHasActed)  = false;
+
    long int idleCounter = 0;
-   bool allUpdated      = false;
-   int phase            = recvMessage->mPhase;
-   pvAssert(phase == updateMessage->mPhase);
-   while (!allUpdated) {
-      bool anyUpdated = false;
-
-      for (auto &obj : mObjectHierarchy.getObjectVector()) {
-         HyPerLayer *l = dynamic_cast<HyPerLayer *>(obj);
-         if (l == nullptr) {
-            continue;
-         }
-#ifdef PV_USE_CUDA
-         if (l->getRecvGpu() != recvMessage->mRecvOnGpuFlag) {
-            continue;
-         }
-#endif // PV_USE_CUDA
-         if (l->getPhase() == phase && !l->getHasReceived() && l->isAllInputReady()) {
-            l->respond(recvMessage);
-            anyUpdated = true;
-            break;
-         }
-      }
-      if (anyUpdated) {
-         continue;
-      }
-
-      for (auto &obj : mObjectHierarchy.getObjectVector()) {
-         HyPerLayer *l = dynamic_cast<HyPerLayer *>(obj);
-         if (l == nullptr) {
-            continue;
-         }
-#ifdef PV_USE_CUDA
-         if (l->getRecvGpu() != updateMessage->mRecvOnGpuFlag) {
-            continue;
-         }
-         if (l->getUpdateGpu() != updateMessage->mUpdateOnGpuFlag) {
-            continue;
-         }
-#endif // PV_USE_CUDA
-         if (l->getPhase() == phase && !l->getHasUpdated() && l->getHasReceived()) {
-            l->respond(updateMessage);
-            anyUpdated = true;
-            break;
-         }
-      }
-      if (anyUpdated) {
-         continue;
-      }
+   while (*(updateMessage->mSomeLayerIsPending)) {
+      *(updateMessage->mSomeLayerIsPending) = false;
+      *(updateMessage->mSomeLayerHasActed)  = false;
+      notify(updateMessage);
 
       idleCounter++;
-      // TODO (maybe?) Waitany logic goes here.
-      allUpdated = true;
-      for (auto &obj : mObjectHierarchy.getObjectVector()) {
-         HyPerLayer *l = dynamic_cast<HyPerLayer *>(obj);
-         if (l == nullptr) {
-            continue;
-         }
-#ifdef PV_USE_CUDA
-         if (l->getRecvGpu() != updateMessage->mRecvOnGpuFlag) {
-            continue;
-         }
-         if (l->getUpdateGpu() != updateMessage->mUpdateOnGpuFlag) {
-            continue;
-         }
-#endif // PV_USE_CUDA
-         if (l->getPhase() == phase) {
-            allUpdated &= l->getHasUpdated();
-         }
-      }
    }
+
    if (idleCounter > 1L) {
-      InfoLog() << "t = " << mSimTime << ", phase " << phase << ", idle count " << idleCounter
-                << "\n";
+      InfoLog() << "t = " << mSimTime << ", phase " << updateMessage->mPhase << ", idle count "
+                << idleCounter << "\n";
+   }
+}
+
+void HyPerCol::nonblockingLayerUpdate(
+      std::shared_ptr<LayerRecvSynapticInputMessage const> recvMessage,
+      std::shared_ptr<LayerUpdateStateMessage const> updateMessage) {
+
+   pvAssert(recvMessage->mSomeLayerIsPending == updateMessage->mSomeLayerIsPending);
+   pvAssert(recvMessage->mSomeLayerHasActed == updateMessage->mSomeLayerHasActed);
+
+   *(updateMessage->mSomeLayerIsPending) = true;
+   *(updateMessage->mSomeLayerHasActed)  = false;
+
+   long int idleCounter = 0;
+   while (*(recvMessage->mSomeLayerIsPending)) {
+      *(updateMessage->mSomeLayerIsPending) = false;
+      *(updateMessage->mSomeLayerHasActed)  = false;
+      notify(recvMessage);
+      notify(updateMessage);
+
+      idleCounter++;
+   }
+
+   if (idleCounter > 1L) {
+      InfoLog() << "t = " << mSimTime << ", phase " << updateMessage->mPhase << ", idle count "
+                << idleCounter << "\n";
    }
 }
 

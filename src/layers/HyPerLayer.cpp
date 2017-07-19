@@ -980,14 +980,18 @@ int HyPerLayer::respondLayerRecvSynapticInput(
    if (mHasReceived) {
       return status;
    }
-   if (!isAllInputReady()) {
-      return PV_POSTPONE;
+   if (*(message->mSomeLayerHasActed) or !isAllInputReady()) {
+      *(message->mSomeLayerIsPending) = true;
+      return status;
    }
    resetGSynBuffers(message->mTime, message->mDeltaT); // deltaTimeAdapt is not used
+
    message->mTimer->start();
    recvAllSynapticInput();
+   mHasReceived                   = true;
+   *(message->mSomeLayerHasActed) = true;
    message->mTimer->stop();
-   mHasReceived = true;
+
    return status;
 }
 
@@ -1004,11 +1008,16 @@ int HyPerLayer::respondLayerUpdateState(std::shared_ptr<LayerUpdateStateMessage 
       return status;
    }
 #endif // PV_USE_CUDA
-   if (!mHasReceived) {
-      return PV_POSTPONE;
+   if (mHasUpdated) {
+      return status;
    }
-   status      = callUpdateState(message->mTime, message->mDeltaT);
-   mHasUpdated = true;
+   if (*(message->mSomeLayerHasActed) or !mHasReceived) {
+      *(message->mSomeLayerIsPending) = true;
+      return status;
+   }
+   status                         = callUpdateState(message->mTime, message->mDeltaT);
+   mHasUpdated                    = true;
+   *(message->mSomeLayerHasActed) = true;
    return status;
 }
 
