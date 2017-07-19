@@ -154,6 +154,7 @@ void calcMinMaxSharedWeights(
 
 double readSharedWeights(
       FileStream *fileStream,
+      int frameNumber,
       MPIBlock const *mpiBlock,
       PVLayerLoc const *preLoc,
       int nxp,
@@ -167,6 +168,7 @@ double readSharedWeights(
 
 double readNonsharedWeights(
       FileStream *fileStream,
+      int frameNumber,
       MPIBlock const *mpiBlock,
       const PVLayerLoc *preLoc,
       int nxp,
@@ -178,6 +180,13 @@ double readNonsharedWeights(
       const PVLayerLoc *postLoc,
       int offsetX,
       int offsetY);
+
+/**
+ * Positions a weight pvp file to the start of the data (i.e. just past the end of the header)
+ * of the indicated frame. The header for that frame is read into the buffer pointed by
+ * the first argument.
+ */
+void setInPosByFrame(BufferUtils::WeightHeader &header, FileStream *fileStream, int frameNumber);
 
 bool isCompressedHeader(BufferUtils::WeightHeader const &header, std::string const &filename);
 

@@ -103,13 +103,13 @@ void FileStream::read(void *data, long length) {
    long numRead = mFStream.gcount();
    FatalIf(
          numRead != length,
-         "Expected to read %d bytes at %d, read %d instead.\n"
-         "New read position: %d\n%s\n",
+         "Expected to read %d bytes from %s at position %d; read %d instead. "
+         "New read position: %d\n",
          length,
+         mFileName.c_str(),
          startPos,
          numRead,
-         getInPos(),
-         mFileName.c_str());
+         getInPos());
    verifyFlags("read");
 }
 
