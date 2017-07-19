@@ -173,17 +173,22 @@ class Checkpointer : public Subject {
          std::string const &dataName,
          T *dataPointer,
          size_t numValues,
-         bool broadcast);
+         bool broadcast,
+         bool constantEntireRun);
 
    bool registerCheckpointEntry(
          std::shared_ptr<CheckpointEntry> checkpointEntry,
-         bool constantEntireRun = false);
+         bool constantEntireRun);
 
    void registerTimer(Timer const *timer);
    virtual void addObserver(Observer *observer, BaseMessage const &message) override;
 
-   void readNamedCheckpointEntry(std::string const &objName, std::string const &dataName);
-   void readNamedCheckpointEntry(std::string const &checkpointEntryName);
+   void readNamedCheckpointEntry(
+         std::string const &objName,
+         std::string const &dataName,
+         bool constantEntireRun);
+   void
+   readNamedCheckpointEntry(std::string const &checkpointEntryName, bool constantEntireRun = false);
    void readStateFromCheckpoint();
    void checkpointRead(double *simTimePointer, long int *currentStepPointer);
    void checkpointWrite(double simTime);

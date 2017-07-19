@@ -13,7 +13,7 @@ Installation Instructions:
 
 * [AWS Installation](https://github.com/PetaVision/OpenPV/wiki/AWS-Installation)
 
-* [OS X Installation](https://github.com/PetaVision/OpenPV/wiki/OS-X-Installation)
+* [MacOS Installation](https://github.com/PetaVision/OpenPV/wiki/MacOS-Installation)
 
 * [Ubuntu Installation](https://github.com/PetaVision/OpenPV/wiki/Ubuntu-Installation)
 

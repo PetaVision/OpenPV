@@ -154,7 +154,8 @@ int run(int argc, char *argv[]) {
          &loc,
          false /*not extended*/);
 
-   bool registerSucceeded = checkpointer->registerCheckpointEntry(checkpointEntry);
+   bool registerSucceeded =
+         checkpointer->registerCheckpointEntry(checkpointEntry, false /*treat as non-constant*/);
    FatalIf(!registerSucceeded, "Checkpointer failed to register TestBuffer for checkpointing.\n");
 
    checkpointer->checkpointWrite(0.0);
@@ -173,7 +174,8 @@ int run(int argc, char *argv[]) {
    auto checkpointReader =
          new PV::Checkpointer(std::string("checkpointer"), globalMPIBlock, &arguments);
 
-   registerSucceeded = checkpointReader->registerCheckpointEntry(checkpointEntry);
+   registerSucceeded = checkpointReader->registerCheckpointEntry(
+         checkpointEntry, false /*treat as non-constant*/);
    FatalIf(!registerSucceeded, "Checkpointer failed to register TestBuffer for checkpointing.\n");
 
    // Read the values in from checkpoint.

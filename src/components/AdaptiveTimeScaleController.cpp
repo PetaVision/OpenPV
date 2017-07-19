@@ -46,7 +46,7 @@ AdaptiveTimeScaleController::~AdaptiveTimeScaleController() { free(mName); }
 int AdaptiveTimeScaleController::registerData(Checkpointer *checkpointer) {
    auto ptr = std::make_shared<CheckpointEntryTimeScaleInfo>(
          mName, "timescaleinfo", checkpointer->getMPIBlock(), &mTimeScaleInfo);
-   checkpointer->registerCheckpointEntry(ptr);
+   checkpointer->registerCheckpointEntry(ptr, false /*not constant*/);
    return PV_SUCCESS;
 }
 

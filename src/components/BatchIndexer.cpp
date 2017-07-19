@@ -115,10 +115,16 @@ int BatchIndexer::registerData(Checkpointer *checkpointer) {
          std::string("FrameNumbers"),
          mIndices.data(),
          mIndices.size(),
-         false /*do not broadcast*/);
+         false /*do not broadcast*/,
+         false /*not constant*/);
    if (mBatchMethod == RANDOM) {
       checkpointer->registerCheckpointData<unsigned int>(
-            mObjName, std::string("RandomSeed"), &mRandomSeed, 1, false /*do not broadcast*/);
+            mObjName,
+            std::string("RandomSeed"),
+            &mRandomSeed,
+            1,
+            false /*do not broadcast*/,
+            false /*not constant*/);
    }
    return PV_SUCCESS;
 }
@@ -130,7 +136,7 @@ int BatchIndexer::processCheckpointRead() {
 
 int BatchIndexer::readStateFromCheckpoint(Checkpointer *checkpointer) {
    if (mInitializeFromCheckpointFlag) {
-      checkpointer->readNamedCheckpointEntry(mObjName, "FrameNumbers");
+      checkpointer->readNamedCheckpointEntry(mObjName, "FrameNumbers", false /*not constant*/);
       checkIndices();
    }
    return PV_SUCCESS;

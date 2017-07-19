@@ -98,9 +98,9 @@ int CheckpointableFileStream::registerData(Checkpointer *checkpointer) {
       return status;
    }
    checkpointer->registerCheckpointData<long>(
-         mObjName, string("FileStreamRead"), &mFileReadPos, (std::size_t)1, false);
+         mObjName, string("FileStreamRead"), &mFileReadPos, (std::size_t)1, false, false);
    checkpointer->registerCheckpointData<long>(
-         mObjName, string("FileStreamWrite"), &mFileWritePos, (std::size_t)1, false);
+         mObjName, string("FileStreamWrite"), &mFileWritePos, (std::size_t)1, false, false);
    return PV_SUCCESS;
 }
 

@@ -184,7 +184,12 @@ int HyPerCol::initialize(PV_Init *initObj) {
    mRunTimer = new Timer(mName, "column", "run    ");
    mCheckpointer->registerTimer(mRunTimer);
    mCheckpointer->registerCheckpointData(
-         mName, "nextProgressTime", &mNextProgressTime, (std::size_t)1, true /*broadcast*/);
+         mName,
+         "nextProgressTime",
+         &mNextProgressTime,
+         (std::size_t)1,
+         true /*broadcast*/,
+         false /*not constant*/);
 
    mCheckpointReadFlag = !mCheckpointer->getCheckpointReadDirectory().empty();
 

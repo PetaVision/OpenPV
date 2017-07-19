@@ -114,6 +114,8 @@ class AbstractNormProbe : public LayerProbe {
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
+   virtual void initOutputStreams(const char *filename, Checkpointer *checkpointer) override;
+
    /**
     * Returns true if masking is used and the layer has multiple features but
     * the masking layer has a single feature.  In this case it is expected that

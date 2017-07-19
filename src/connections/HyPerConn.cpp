@@ -398,33 +398,26 @@ int HyPerConn::initialize(char const *name, HyPerCol *hc) {
    return status;
 }
 
-int HyPerConn::setWeightInitializer() {
-   weightInitializer = createInitWeightsObject(weightInitTypeString);
-   if (weightInitializer == nullptr) {
-      weightInitializer = getDefaultInitWeightsMethod(getKeyword());
-   }
-   return weightInitializer == nullptr ? PV_FAILURE : PV_SUCCESS;
-}
-
-/*
- * This method parses the weightInitType parameter and creates an
- * appropriate InitWeight object for the chosen weight initialization.
- */
-InitWeights *HyPerConn::createInitWeightsObject(const char *weightInitTypeStr) {
-   pvAssert(weightInitializer == nullptr);
-   BaseObject *baseObject = nullptr;
-   try {
-      baseObject = Factory::instance()->createByKeyword(weightInitTypeStr, name, parent);
-   } catch (const std::exception &e) {
-      Fatal() << getDescription() << " unable to create weightInitializer: " << e.what() << "\n";
-   }
-   weightInitializer = dynamic_cast<InitWeights *>(baseObject);
+void HyPerConn::setWeightInitializer() {
    FatalIf(
-         weightInitializer == nullptr,
-         "%s unable to create weightInitializer: %s is not an InitWeights keyword.\n",
-         getDescription_c(),
-         weightInitTypeStr);
-   return weightInitializer;
+         weightInitTypeString == nullptr or weightInitTypeString[0] == '\0',
+         "%s must set weightInitType.\n",
+         getDescription_c());
+   pvAssert(weightInitializer == nullptr);
+   {
+      BaseObject *baseObject = nullptr;
+      try {
+         baseObject = Factory::instance()->createByKeyword(weightInitTypeString, name, parent);
+      } catch (const std::exception &e) {
+         Fatal() << getDescription() << " unable to create weightInitializer: " << e.what() << "\n";
+      }
+      weightInitializer = dynamic_cast<InitWeights *>(baseObject);
+      FatalIf(
+            weightInitializer == nullptr,
+            "%s unable to create weightInitializer: %s is not an InitWeights keyword.\n",
+            getDescription_c(),
+            weightInitTypeString);
+   }
 }
 
 int HyPerConn::setPreLayerName(const char *pre_name) {
@@ -611,9 +604,9 @@ void HyPerConn::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamString(
          ioFlag, name, "weightInitType", &weightInitTypeString, NULL, true /*warnIfAbsent*/);
    if (ioFlag == PARAMS_IO_READ) {
-      int status = setWeightInitializer();
+      setWeightInitializer();
       pvAssertMessage(
-            status == PV_SUCCESS,
+            weightInitializer != nullptr,
             "%s: Rank %d process unable to construct weightInitializer",
             getDescription_c(),
             parent->columnId());
@@ -657,6 +650,12 @@ void HyPerConn::ioParam_weightUpdatePeriod(enum ParamsIOFlag ioFlag) {
          parent->parameters()->ioParamValueRequired(
                ioFlag, name, "weightUpdatePeriod", &weightUpdatePeriod);
       }
+      else
+         FatalIf(
+               parent->parameters()->present(name, "weightUpdatePeriod"),
+               "%s sets both triggerLayerName and weightUpdatePeriod; "
+               "only one of these can be set.\n",
+               getDescription_c());
    }
 }
 
@@ -1591,17 +1590,6 @@ taus_uint4 *HyPerConn::getRandState(int index) {
    return state;
 }
 
-InitWeights *HyPerConn::getDefaultInitWeightsMethod(const char *keyword) {
-   if (parent->columnId() == 0) {
-      ErrorLog().printf(
-            "%s: weightInitType \"%s\" not recognized.  Exiting\n",
-            getDescription_c(),
-            weightInitTypeString);
-   }
-   MPI_Barrier(parent->getCommunicator()->communicator());
-   exit(EXIT_FAILURE);
-}
-
 #ifdef PV_USE_CUDA
 
 int HyPerConn::allocatePostDeviceWeights() {
@@ -2077,9 +2065,10 @@ int HyPerConn::writeTextWeights(const char *path, bool verifyWrites, int k) {
 
 int HyPerConn::readStateFromCheckpoint(Checkpointer *checkpointer) {
    if (initializeFromCheckpointFlag) {
-      checkpointer->readNamedCheckpointEntry(std::string(name), std::string("W"));
+      checkpointer->readNamedCheckpointEntry(std::string(name), std::string("W"), !plasticityFlag);
       if (plasticityFlag and !mImmediateWeightUpdate) {
-         checkpointer->readNamedCheckpointEntry(std::string(name), std::string("dW"));
+         checkpointer->readNamedCheckpointEntry(
+               std::string(name), std::string("dW"), false /*not constant*/);
       }
    }
    return PV_SUCCESS;
@@ -2123,17 +2112,34 @@ int HyPerConn::registerData(Checkpointer *checkpointer) {
       // If we checkpoint dW, we have to get PrepareCheckpointRead messages,
       // in order to call blockingNormalize_dW() before the checkpoint.
    }
-   std::string nameString = std::string(name);
-   checkpointer->registerCheckpointData(
-         nameString, "lastUpdateTime", &lastUpdateTime, (std::size_t)1, true /*broadcast*/);
-   if (plasticityFlag && !triggerLayerName) {
+   if (writeStep >= 0) {
+      std::string nameString = std::string(name);
       checkpointer->registerCheckpointData(
-            nameString, "weightUpdateTime", &weightUpdateTime, (std::size_t)1, true /*broadcast*/);
-   }
-   checkpointer->registerCheckpointData(
-         nameString, "nextWrite", &writeTime, (std::size_t)1, true /*broadcast*/);
+            nameString,
+            "lastUpdateTime",
+            &lastUpdateTime,
+            (std::size_t)1,
+            true /*broadcast*/,
+            false /*not constant*/);
+      if (plasticityFlag && !triggerLayerName) {
+         checkpointer->registerCheckpointData(
+               nameString,
+               "weightUpdateTime",
+               &weightUpdateTime,
+               (std::size_t)1,
+               true /*broadcast*/,
+               false /*not constant*/);
+      }
+      checkpointer->registerCheckpointData(
+            nameString,
+            "nextWrite",
+            &writeTime,
+            (std::size_t)1,
+            true /*broadcast*/,
+            false /*not constant*/);
 
-   openOutputStateFile(checkpointer);
+      openOutputStateFile(checkpointer);
+   }
    registerTimers(checkpointer);
 
    return status;

@@ -118,8 +118,17 @@ int HyPerLCALayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessag
             message->lookup<AdaptiveTimeScaleProbe>(std::string(mAdaptiveTimeScaleProbeName));
       if (mAdaptiveTimeScaleProbe == nullptr) {
          if (parent->getCommunicator()->commRank() == 0) {
-            ErrorLog() << description << ": adaptiveTimeScaleProbe \""
-                       << mAdaptiveTimeScaleProbeName << "\" is not in the column.\n";
+            auto isBadType = message->lookup<BaseObject>(std::string(mAdaptiveTimeScaleProbeName));
+            if (isBadType != nullptr) {
+               ErrorLog() << description << ": adaptiveTimeScaleProbe parameter \""
+                          << mAdaptiveTimeScaleProbeName
+                          << "\" must be an AdaptiveTimeScaleProbe.\n";
+            }
+            else {
+               ErrorLog() << description << ": adaptiveTimeScaleProbe parameter \""
+                          << mAdaptiveTimeScaleProbeName
+                          << "\" is not an AdaptiveTimeScaleProbe in the column.\n";
+            }
          }
          MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
