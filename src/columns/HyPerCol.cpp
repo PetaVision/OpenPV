@@ -808,12 +808,15 @@ void HyPerCol::nonblockingLayerUpdate(
       *(updateMessage->mSomeLayerHasActed)  = false;
       notify(updateMessage);
 
-      idleCounter++;
+      if (!*(updateMessage->mSomeLayerHasActed)) {
+         idleCounter++;
+      }
    }
 
    if (idleCounter > 1L) {
-      InfoLog() << "t = " << mSimTime << ", phase " << updateMessage->mPhase << ", idle count "
-                << idleCounter << "\n";
+      InfoLog() << "t = " << mSimTime << ", phase " << updateMessage->mPhase << ", recvGpu"
+                << updateMessage->mRecvOnGpuFlag << ", updateGpu" << updateMessage->mUpdateOnGpuFlag
+                << ", idle count " << idleCounter << "\n";
    }
 }
 
@@ -834,12 +837,15 @@ void HyPerCol::nonblockingLayerUpdate(
       notify(recvMessage);
       notify(updateMessage);
 
-      idleCounter++;
+      if (!*(updateMessage->mSomeLayerHasActed)) {
+         idleCounter++;
+      }
    }
 
    if (idleCounter > 1L) {
-      InfoLog() << "t = " << mSimTime << ", phase " << updateMessage->mPhase << ", idle count "
-                << idleCounter << "\n";
+      InfoLog() << "t = " << mSimTime << ", phase " << updateMessage->mPhase << ", recvGpu"
+                << updateMessage->mRecvOnGpuFlag << ", updateGpu" << updateMessage->mUpdateOnGpuFlag
+                << ", idle count " << idleCounter << "\n";
    }
 }
 
