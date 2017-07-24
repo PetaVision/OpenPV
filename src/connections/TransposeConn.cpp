@@ -269,6 +269,9 @@ int TransposeConn::communicateInitInfo(CommunicateInitInfoMessage const *message
    if (!updateGSynFromPostPerspective) {
       originalConn->setNeedPost();
    }
+   if (writeStep >= 0) {
+      originalConn->setNeedPost();
+   }
 
 #ifdef PV_USE_CUDA
    if ((updateGSynFromPostPerspective && receiveGpu) || allocPostDeviceWeights) {
