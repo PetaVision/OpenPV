@@ -92,7 +92,6 @@ HyPerConn "InputToOutput" = {
     nxp                                 = 7;
     nyp                                 = 7;
     nfp                                 = 8;
-    shrinkPatches                       = false;
     normalizeMethod                     = "normalizeSum";
     strength                            = 4;
     normalizeArborsIndividually         = false;

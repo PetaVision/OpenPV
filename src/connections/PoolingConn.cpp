@@ -423,11 +423,6 @@ int PoolingConn::constructWeights() {
    int nPatches = getNumDataPatches();
    int status   = PV_SUCCESS;
 
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "shrinkPatches"));
-   // createArbors() uses the value of shrinkPatches.  It should have already
-   // been read in
-   // ioParamsFillGroup.
-   // allocate the arbor arrays:
    createArbors();
 
    setPatchStrides();
@@ -436,7 +431,7 @@ int PoolingConn::constructWeights() {
       PVPatch ***wPatches = get_wPatches();
       status              = createWeights(wPatches, arborId);
       assert(wPatches[arborId] != NULL);
-      if (shrinkPatches_flag || arborId == 0) {
+      if (arborId == 0) {
          status |= adjustAxonalArbors(arborId);
       }
    } // arborId
@@ -444,11 +439,6 @@ int PoolingConn::constructWeights() {
    // call to initializeWeights moved to BaseConnection::initializeState()
    status |= initPlasticityPatches();
    assert(status == 0);
-   if (shrinkPatches_flag) {
-      for (int arborId = 0; arborId < numAxonalArborLists; arborId++) {
-         shrinkPatches(arborId);
-      }
-   }
 
    return status;
 }

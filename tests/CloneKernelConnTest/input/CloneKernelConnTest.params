@@ -198,7 +198,6 @@ HyPerConn "Original" = {
     delay = 0;
 
     pvpatchAccumulateType = "convolve";
-    shrinkPatches = false;
     updateGSynFromPostPerspective = false;
 };
 

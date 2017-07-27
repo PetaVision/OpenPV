@@ -158,7 +158,6 @@ HyPerConn "V1CPUToResidualCPU" = {
     nxp                                 = 18;
     nyp                                 = 18;
     nfp                                 = 1;
-    shrinkPatches                       = false;
     normalizeMethod                     = "normalizeL2";
     strength                            = 1;
     normalizeArborsIndividually         = false;

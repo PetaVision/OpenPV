@@ -221,7 +221,6 @@ HyPerConn "MarginsEqual" = {
     delay = 0;
 
     pvpatchAccumulateType = "convolve";
-    shrinkPatches = false;
     
     updateGSynFromPostPerspective = false;
 };
@@ -262,7 +261,6 @@ HyPerConn "XMarginLarger" = {
     delay = 0;
 
     pvpatchAccumulateType = "convolve";
-    shrinkPatches = false;
     
     updateGSynFromPostPerspective = false;
 };
@@ -303,7 +301,6 @@ HyPerConn "YMarginLarger" = {
     delay = 0;
 
     pvpatchAccumulateType = "convolve";
-    shrinkPatches = false;
     
     updateGSynFromPostPerspective = false;
 };
@@ -344,7 +341,6 @@ HyPerConn "YLargerConnInMultiple" = {
     delay = 0;
 
     pvpatchAccumulateType = "convolve";
-    shrinkPatches = false;
     
     updateGSynFromPostPerspective = false;
 };
@@ -385,7 +381,6 @@ HyPerConn "XLargerConnInMultiple" = {
     delay = 0;
 
     pvpatchAccumulateType = "convolve";
-    shrinkPatches = false;
     
     updateGSynFromPostPerspective = false;
 };

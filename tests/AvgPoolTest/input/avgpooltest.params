@@ -96,7 +96,6 @@ PoolingConn "input2avgPoolPre" = {
     nyp = 3; 
     numAxonalArbors = 1;
     
-    shrinkPatches = false;
     pvpatchAccumulateType = "avgpooling";
      
     delay = 0;

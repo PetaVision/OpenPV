@@ -49,7 +49,6 @@ class IdentConn : public HyPerConn {
    virtual void ioParam_nxp(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_nyp(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_nfp(enum ParamsIOFlag ioFlag) override;
-   virtual void ioParam_shrinkPatches(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_updateGSynFromPostPerspective(enum ParamsIOFlag ioFlag) override;
 
    void ioParam_weightUpdatePeriod(enum ParamsIOFlag ioFlag) override;

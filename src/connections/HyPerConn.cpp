@@ -142,13 +142,10 @@ int HyPerConn::initialize_base() {
 
    selfFlag =
          false; // specifies whether connection is from a layer to itself (i.e. a self-connection)
-   combine_dW_with_W_flag = false;
-   normalizeMethod        = NULL;
-   normalizer             = NULL;
-   plasticityFlag         = false;
-   shrinkPatches_flag = false; // default value, overridden by params file parameter "shrinkPatches"
-   // in readShrinkPatches()
-   shrinkPatchesThresh         = 0;
+   combine_dW_with_W_flag      = false;
+   normalizeMethod             = NULL;
+   normalizer                  = NULL;
+   plasticityFlag              = false;
    dWMax                       = std::numeric_limits<float>::quiet_NaN();
    strengthParamHasBeenWritten = false;
 
@@ -213,8 +210,7 @@ int HyPerConn::initialize_base() {
 }
 
 int HyPerConn::createArbors() {
-   const int shrinkNum =
-         (shrinkPatches_flag ? numAxonalArborLists : 1) * preSynapticLayer()->getNumExtended();
+   const int shrinkNum = preSynapticLayer()->getNumExtended();
 
    wPatches = (PVPatch ***)pvCalloc(numAxonalArborLists, sizeof(PVPatch **));
    // GTK:  gSynPatchStart is offset from beginning of gSyn buffer for the corresponding channel
@@ -223,8 +219,7 @@ int HyPerConn::createArbors() {
    size_t *gSynPatchStartBuffer = (size_t *)pvCalloc(shrinkNum, sizeof(size_t));
 
    for (int k = 0; k < numAxonalArborLists; k++) {
-      gSynPatchStart[k] =
-            gSynPatchStartBuffer + shrinkPatches_flag * k * preSynapticLayer()->getNumExtended();
+      gSynPatchStart[k] = gSynPatchStartBuffer;
    }
 
    aPostOffset = (size_t **)pvCalloc(numAxonalArborLists, sizeof(size_t *));
@@ -232,8 +227,7 @@ int HyPerConn::createArbors() {
    size_t *aPostOffsetBuffer = (size_t *)pvCalloc(shrinkNum, sizeof(size_t));
 
    for (int k = 0; k < numAxonalArborLists; k++) {
-      aPostOffset[k] =
-            aPostOffsetBuffer + shrinkPatches_flag * k * preSynapticLayer()->getNumExtended();
+      aPostOffset[k] = aPostOffsetBuffer;
    }
 
    wDataStart = (float **)pvCalloc(numAxonalArborLists, sizeof(float *));
@@ -268,9 +262,6 @@ int HyPerConn::constructWeights() {
    int nPatches = getNumDataPatches();
    int status   = PV_SUCCESS;
 
-   // createArbors() uses the value of shrinkPatches.  It should have already been read in
-   // ioParamsFillGroup.
-   // allocate the arbor arrays:
    createArbors();
 
    setPatchStrides();
@@ -288,7 +279,7 @@ int HyPerConn::constructWeights() {
          wDataStart[arborId] = (get_wDataStart(0) + sp * nPatches * arborId);
          pvAssert(wDataStart[arborId] != NULL);
       }
-      if (shrinkPatches_flag || arborId == 0) {
+      if (arborId == 0) {
          status |= adjustAxonalArbors(arborId);
       }
    } // arborId
@@ -296,75 +287,8 @@ int HyPerConn::constructWeights() {
    // call to initializeWeights moved to BaseConnection::initializeState()
    status |= initPlasticityPatches();
    pvAssert(status == 0);
-   if (shrinkPatches_flag) {
-      for (int arborId = 0; arborId < numAxonalArborLists; arborId++) {
-         shrinkPatches(arborId);
-      }
-   }
 
    return status;
-}
-
-int HyPerConn::shrinkPatches(int arborId) {
-   int numPatches = getNumWeightPatches();
-   for (int kex = 0; kex < numPatches; kex++) {
-      shrinkPatch(kex, arborId /* arbor */);
-   } // loop over pre-synaptic neurons
-
-   return 0;
-}
-
-int HyPerConn::shrinkPatch(int kExt, int arborId) {
-
-   int kIndex = patchToDataLUT(kExt);
-
-   PVPatch *weights = getWeights(kExt, arborId);
-
-   float *w = &get_wDataStart(arborId)[patchStartIndex(kIndex) + weights->offset];
-
-   int nx = weights->nx;
-   int ny = weights->ny;
-
-   int maxnx = INT_MIN;
-   int minnx = INT_MAX;
-   int maxny = INT_MIN;
-   int minny = INT_MAX;
-
-   bool nonZeroWeightFound = false;
-   // loop over all post-synaptic cells in patch
-   for (int y = 0; y < ny; y++) {
-      for (int x = 0; x < nx; x++) {
-         for (int f = 0; f < nfp; f++) {
-            if (fabsf(w[x * sxp + y * syp + f * sfp]) <= shrinkPatchesThresh) {
-               nonZeroWeightFound = true;
-               maxnx              = maxnx < x ? x : maxnx;
-               minnx              = minnx > x ? x : minnx;
-               maxny              = maxny < y ? y : maxny;
-               minny              = minny > y ? y : minny;
-            }
-         }
-      }
-   }
-
-   if (nonZeroWeightFound) {
-      // Plus one to capture all of the patch
-      int nxNew = maxnx + 1 - minnx;
-      int nyNew = maxny + 1 - minny;
-      int dxNew = minnx;
-      int dyNew = minny;
-
-      // adjust patch size (shrink) to fit within interior of post-synaptic layer
-      //
-      pvpatch_adjust(weights, sxp, syp, nxNew, nyNew, dxNew, dyNew);
-
-      gSynPatchStart[arborId][kExt] +=
-            dxNew * getPostNonextStrides()->sx + dyNew * getPostNonextStrides()->sy;
-      aPostOffset[arborId][kExt] += dxNew * getPostExtStrides()->sx
-                                    + dyNew * getPostExtStrides()->sy; // Someone who uses these
-      // routines, please check
-      // that this is correct.
-   }
-   return 0;
 }
 
 int HyPerConn::initialize(char const *name, HyPerCol *hc) {
@@ -860,15 +784,9 @@ void HyPerConn::ioParam_nfp(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerConn::ioParam_shrinkPatches(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
-         ioFlag, name, "shrinkPatches", &shrinkPatches_flag, shrinkPatches_flag);
-}
-
-void HyPerConn::ioParam_shrinkPatchesThresh(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "shrinkPatches"));
-   if (shrinkPatches_flag) {
-      parent->parameters()->ioParamValue(
-            ioFlag, name, "shrinkPatchesThresh", &shrinkPatchesThresh, shrinkPatchesThresh);
+   // shrinkPatches was marked obsolete Jul 25, 2017
+   if (ioFlag == PARAMS_IO_READ and parent->parameters()->present(name, "shrinkPatches")) {
+      WarnLog() << "shrinkPatches flag is no longer used.\n";
    }
 }
 
@@ -1435,8 +1353,7 @@ int HyPerConn::allocatePostConn() {
       pvAssert(postConn);
       status = postConn->allocateDataStructures();
    }
-   // Can't do this with shrink patches flag
-   if (needPost && !shrinkPatches_flag) {
+   if (needPost) {
       status = allocatePostToPreBuffer();
       postConn->allocatePostToPreBuffer();
    }
@@ -3786,7 +3703,7 @@ int HyPerConn::createWeights(
       int arborId) {
    pvAssert(patches[arborId] == NULL);
 
-   if (shrinkPatches_flag || arborId == 0) {
+   if (arborId == 0) {
       patches[arborId] = createPatches(nWeightPatches, nxPatch, nyPatch);
       pvAssert(patches[arborId] != NULL);
    }
@@ -3854,7 +3771,7 @@ int HyPerConn::deleteWeights() {
    if (wPatches != NULL) {
       for (int arbor = 0; arbor < numAxonalArborLists; arbor++) {
          if (wPatches[arbor] != NULL) {
-            if (shrinkPatches_flag || arbor == 0) {
+            if (arbor == 0) {
                deletePatches(wPatches[arbor]);
             }
             wPatches[arbor] = NULL;
@@ -4038,6 +3955,7 @@ int HyPerConn::adjustAxonalArbors(int arborId) {
 // convertPreSynapticWeights was marked obsolete Jul 27, 2017.
 PVPatch ***HyPerConn::convertPreSynapticWeights(double simTime) {
    Fatal() << "convertPreSynapticWeights is obsolete.\n";
+   return nullptr;
 }
 
 /**

@@ -302,7 +302,6 @@ pv.addMultiGroups(pvParams,
       nxp                                 = 3;
       nyp                                 = 3;
       nfp                                 = 1;
-      shrinkPatches                       = false;
       normalizeMethod                     = "normalizeSum";
       normalizeArborsIndividually         = false;
       normalizeOnInitialize               = true;
@@ -340,7 +339,6 @@ pv.addMultiGroups(pvParams,
       nxp                                 = 1;
       nyp                                 = 1;
       nfp                                 = 1;
-      shrinkPatches                       = false;
       normalizeMethod                     = "normalizeSum";
       normalizeArborsIndividually         = false;
       normalizeOnInitialize               = true;
@@ -378,7 +376,6 @@ pv.addMultiGroups(pvParams,
       nxp                                 = 11;
       nyp                                 = 11;
       nfp                                 = 1;
-      shrinkPatches                       = false;
       normalizeMethod                     = "normalizeSum";
       normalizeArborsIndividually         = false;
       normalizeOnInitialize               = true;
@@ -441,7 +438,6 @@ pv.addGroup(pvParams, "V1ToLeftError",
       sharedWeights = true;
       nxp = dictPatchSize;
       nyp = dictPatchSize;
-      shrinkPatches = false;
       numAxonalArbors = 1;
       initFromLastFlag = 0;
       sharedWeights = true;

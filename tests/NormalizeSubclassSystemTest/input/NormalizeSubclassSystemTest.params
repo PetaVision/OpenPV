@@ -156,7 +156,6 @@ HyPerConn "NormalizeL3Connection" = {
    nxp = 16;
    nyp = 16;
    nfp = 4;
-   shrinkPatches = false;
    updateGSynFromPostPerspective = false;
 
    weightInitType = "Gauss2DWeight";
@@ -227,7 +226,6 @@ HyPerConn "NormalizeL3CheckConnection" = {
    nxp = 1;
    nyp = 1;
    nfp = 1;
-   shrinkPatches = false;
    updateGSynFromPostPerspective = false;
    
    weightInitType = "UniformWeight";

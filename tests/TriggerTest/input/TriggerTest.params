@@ -141,7 +141,6 @@ TriggerTestConn "inputToNoTrigger" = {
     delay = 0;
 
     pvpatchAccumulateType = "Convolve"; // "Convolve", "Stochastic", or "Maxpooling" (case-insensitive)
-    shrinkPatches = false; // If only a small part of connections whose weights are non-zero, then we could shrink the whole networks
     updateGSynFromPostPerspective = false; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
 
     //Triggering
@@ -175,7 +174,6 @@ TriggerTestConn "inputToTrigger0" = {
     delay = 0;
 
     pvpatchAccumulateType = "Convolve"; // "Convolve", "Stochastic", or "Maxpooling" (case-insensitive)
-    shrinkPatches = false; // If only a small part of connections whose weights are non-zero, then we could shrink the whole networks
     updateGSynFromPostPerspective = true; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
 
     //Triggering
@@ -208,7 +206,6 @@ TriggerTestConn "inputToTrigger1" = {
     delay = 0;
 
     pvpatchAccumulateType = "Convolve"; // "Convolve", "Stochastic", or "Maxpooling" (case-insensitive)
-    shrinkPatches = false; // If only a small part of connections whose weights are non-zero, then we could shrink the whole networks
     updateGSynFromPostPerspective = false; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
 
     //Triggering
@@ -241,7 +238,6 @@ TriggerTestConn "inputToTrigger2" = {
     delay = 0;
 
     pvpatchAccumulateType = "Convolve"; // "Convolve", "Stochastic", or "Maxpooling" (case-insensitive)
-    shrinkPatches = false; // If only a small part of connections whose weights are non-zero, then we could shrink the whole networks
     updateGSynFromPostPerspective = false; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
 
     //Triggering
@@ -275,7 +271,6 @@ TriggerTestConn "inputToPeriod0" = {
     delay = 0;
 
     pvpatchAccumulateType = "Convolve"; // "Convolve", "Stochastic", or "Maxpooling" (case-insensitive)
-    shrinkPatches = false; // If only a small part of connections whose weights are non-zero, then we could shrink the whole networks
     updateGSynFromPostPerspective = false; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
 
     //Triggering
@@ -310,7 +305,6 @@ TriggerTestConn "inputToPeriod1" = {
     delay = 0;
 
     pvpatchAccumulateType = "Convolve"; // "Convolve", "Stochastic", or "Maxpooling" (case-insensitive)
-    shrinkPatches = false; // If only a small part of connections whose weights are non-zero, then we could shrink the whole networks
     updateGSynFromPostPerspective = false; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
 
     //Triggering
@@ -345,7 +339,6 @@ TriggerTestConn "inputToPeriod2" = {
     delay = 0;
 
     pvpatchAccumulateType = "Convolve"; // "Convolve", "Stochastic", or "Maxpooling" (case-insensitive)
-    shrinkPatches = false; // If only a small part of connections whose weights are non-zero, then we could shrink the whole networks
     updateGSynFromPostPerspective = false; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
 
     //Triggering

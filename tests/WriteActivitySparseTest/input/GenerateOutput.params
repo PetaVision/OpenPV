@@ -99,7 +99,6 @@ HyPerConn "InputToOutput" = {
     nxp                                 = 5;
     nyp                                 = 5;
     nfp                                 = 3;
-    shrinkPatches                       = false;
     normalizeMethod                     = "none";
     dWMax                               = 1;
     normalizeDw                         = true;

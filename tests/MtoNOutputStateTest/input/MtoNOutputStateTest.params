@@ -112,7 +112,6 @@ IndexWeightConn "SharedWeights" = {
     nxp                                 = 3;
     nyp                                 = 3;
     nfp                                 = 1;
-    shrinkPatches                       = false;
     normalizeMethod                     = "none";
     dWMax                               = 1;
     normalizeDw                         = true;

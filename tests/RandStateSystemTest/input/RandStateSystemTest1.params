@@ -186,7 +186,6 @@ HyPerConn "InputToDownsampled" = {
    pvpatchAccumulateType        = "convolve";
    writeCompressedCheckpoints   = false;
    selfFlag                     = false;
-   shrinkPatches                = false;
    convertRateToSpikeCount         = false;
    updateGSynFromPostPerspective = false;
 };
@@ -223,7 +222,6 @@ HyPerConn "CenterOn" = {
    pvpatchAccumulateType        = "convolve";
    writeCompressedCheckpoints   = false;
    selfFlag                     = false;
-   shrinkPatches                = false;
    convertRateToSpikeCount         = false;
    updateGSynFromPostPerspective = false;
 };
@@ -258,7 +256,6 @@ HyPerConn "SurroundOn" = {
    pvpatchAccumulateType        = "convolve";
    writeCompressedCheckpoints   = false;
    selfFlag                     = false;
-   shrinkPatches                = false;
    convertRateToSpikeCount         = false;
    updateGSynFromPostPerspective = false;
 };
@@ -294,7 +291,6 @@ HyPerConn "CenterOff" = {
    pvpatchAccumulateType        = "convolve";
    writeCompressedCheckpoints   = false;
    selfFlag                     = false;
-   shrinkPatches                = false;
    convertRateToSpikeCount         = false;
    updateGSynFromPostPerspective = false;
 };
@@ -329,7 +325,6 @@ HyPerConn "SurroundOff" = {
    pvpatchAccumulateType        = "convolve";
    writeCompressedCheckpoints   = false;
    selfFlag                     = false;
-   shrinkPatches                = false;
    convertRateToSpikeCount         = false;
    updateGSynFromPostPerspective = false;
 };
@@ -353,7 +348,6 @@ HyPerConn "RetinaOnToLIFLayer" = {
    pvpatchAccumulateType        = "convolve";
    writeCompressedCheckpoints  = false;
    selfFlag                    = false;
-   shrinkPatches               = false;
    convertRateToSpikeCount        = false;
    updateGSynFromPostPerspective = false;
 };
@@ -377,7 +371,6 @@ HyPerConn "RetinaOffToLIFLayer" = {
    pvpatchAccumulateType        = "convolve";
    writeCompressedCheckpoints  = false;
    selfFlag                    = false;
-   shrinkPatches               = false;
    convertRateToSpikeCount        = false;
    updateGSynFromPostPerspective = false;
 };

@@ -198,7 +198,6 @@ HyPerConn "V1_to_residual" = {
     nxp                                 = 16;
     nyp                                 = 16;
     nfp                                 = 3;
-    shrinkPatches                       = false;
     normalizeMethod                     = "normalizeL2";
     strength                            = 1;
     normalizeArborsIndividually         = false;

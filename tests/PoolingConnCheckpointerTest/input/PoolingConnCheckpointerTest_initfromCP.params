@@ -98,7 +98,6 @@ PoolingConn "InputToOutput" = {
     nxp                                 = 1;
     nyp                                 = 1;
     nfp                                 = 1;
-    shrinkPatches                       = false;
     weightSparsity                      = 0;
     needPostIndexLayer                  = false;
 };

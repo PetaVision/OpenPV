@@ -44,9 +44,6 @@ int privateTransposeConn::initialize(
    plasticityFlag      = false;
    weightUpdatePeriod  = 1;
    weightUpdateTime    = parentConn->weightUpdateTime;
-   shrinkPatches_flag  = false;
-   // Cannot shrink patches with privateTransposeConn
-   assert(parentConn->getShrinkPatches_flag() == false);
 
    triggerFlag   = parentConn->triggerFlag;
    triggerLayer  = parentConn->triggerLayer;
@@ -135,9 +132,6 @@ int privateTransposeConn::constructWeights() {
    int nPatches = getNumDataPatches();
    int status   = PV_SUCCESS;
 
-   // createArbors() uses the value of shrinkPatches.  It should have already been read in
-   // ioParamsFillGroup.
-   // allocate the arbor arrays:
    createArbors();
 
    setPatchStrides();
@@ -158,7 +152,7 @@ int privateTransposeConn::constructWeights() {
             assert(this->wDataStart[arborId] != NULL);
          }
       }
-      if (shrinkPatches_flag || arborId == 0) {
+      if (arborId == 0) {
          status |= adjustAxonalArbors(arborId);
       }
    } // arborId
@@ -166,11 +160,6 @@ int privateTransposeConn::constructWeights() {
    // call to initializeWeights moved to BaseConnection::initializeState()
    status |= initPlasticityPatches();
    assert(status == 0);
-   if (shrinkPatches_flag) {
-      for (int arborId = 0; arborId < numAxonalArborLists; arborId++) {
-         shrinkPatches(arborId);
-      }
-   }
 
    return status;
 }

@@ -149,7 +149,6 @@ PoolingConn "input2sumPoolPre" = {
     //rMinY                               = 1.5;
     //normalize_cutoff                    = 0;
     
-    shrinkPatches = false;
     plasticityFlag = 0;
     pvpatchAccumulateType = "sumpooling";
      

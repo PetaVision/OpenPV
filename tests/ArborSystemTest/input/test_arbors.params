@@ -260,7 +260,6 @@ HyPerConn "RetinaToL0" = {
 
     pvpatchAccumulateType = "convolve";
     convertRateToSpikeCount = false;
-    shrinkPatches = false;
     updateGSynFromPostPerspective = false;
 
     // wMax = 1.0;
@@ -315,7 +314,6 @@ HyPerConn "L0ToLx1" = {
 
     pvpatchAccumulateType = "convolve";
     convertRateToSpikeCount = false;
-    shrinkPatches = false;
     updateGSynFromPostPerspective = false;
 
     // wMax = 1.0;
@@ -368,7 +366,6 @@ HyPerConn "L0ToLx2" = {
 
     pvpatchAccumulateType = "convolve";
     convertRateToSpikeCount = false;
-    shrinkPatches = false;
     updateGSynFromPostPerspective = false;
 
     // wMax = 1.0;
@@ -421,7 +418,6 @@ HyPerConn "L0ToLx4" = {
 
     pvpatchAccumulateType = "convolve";
     convertRateToSpikeCount = false;
-    shrinkPatches = false;
     updateGSynFromPostPerspective = false;
 
     // wMax = 1.0;
@@ -474,7 +470,6 @@ HyPerConn "L0ToLx1_2" = {
 
     pvpatchAccumulateType = "convolve";
     convertRateToSpikeCount = false;
-    shrinkPatches = false;
     updateGSynFromPostPerspective = false;
 
     // wMax = 1.0;
@@ -526,7 +521,6 @@ HyPerConn "L0ToLx1_4" = {
 
     pvpatchAccumulateType = "convolve";
     convertRateToSpikeCount = false;
-    shrinkPatches = false;
     updateGSynFromPostPerspective = false;
 
     // wMax = 1.0;

@@ -143,7 +143,6 @@ function preprocess.ds2_white_rescale(prefix, inputLayerName, inputLayer, output
       nxp                                 = 3;
       nyp                                 = 3;
       nfp                                 = 1;
-      shrinkPatches                       = false;
       normalizeMethod                     = "normalizeSum";
       normalizeArborsIndividually         = false;
       normalizeOnInitialize               = true;
@@ -180,7 +179,6 @@ function preprocess.ds2_white_rescale(prefix, inputLayerName, inputLayer, output
       selfFlag                            = false;
       nxp                                 = rcenter;
       nyp                                 = rcenter;
-      shrinkPatches                       = false;
       normalizeMethod                     = "normalizeSum";
       normalizeArborsIndividually         = false;
       normalizeOnInitialize               = true;
@@ -218,7 +216,6 @@ function preprocess.ds2_white_rescale(prefix, inputLayerName, inputLayer, output
       nxp                                 = rsurround;
       nyp                                 = rsurround;
       nfp                                 = 1;
-      shrinkPatches                       = false;
       normalizeMethod                     = "normalizeSum";
       normalizeArborsIndividually         = false;
       normalizeOnInitialize               = true;

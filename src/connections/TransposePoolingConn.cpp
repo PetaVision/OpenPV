@@ -202,13 +202,6 @@ void TransposePoolingConn::ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioF
    }
 }
 
-void TransposePoolingConn::ioParam_shrinkPatches(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      shrinkPatches_flag = false;
-      parent->parameters()->handleUnnecessaryParameter(name, "shrinkPatches", shrinkPatches_flag);
-   }
-}
-
 void TransposePoolingConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       normalizer      = NULL;
@@ -262,18 +255,6 @@ int TransposePoolingConn::communicateInitInfo(
 
    plasticityFlag = mOriginalConn->getPlasticityFlag();
    parent->parameters()->handleUnnecessaryParameter(name, "plasticityFlag", plasticityFlag);
-
-   if (mOriginalConn->getShrinkPatches_flag()) {
-      if (parent->columnId() == 0) {
-         ErrorLog().printf(
-               "TransposePoolingConn \"%s\": original conn \"%s\" has shrinkPatches set to true.  "
-               "TransposePoolingConn has not been implemented for that case.\n",
-               name,
-               mOriginalConn->getName());
-      }
-      MPI_Barrier(parent->getCommunicator()->communicator());
-      exit(EXIT_FAILURE);
-   }
 
    status = HyPerConn::communicateInitInfo(message); // calls setPatchSize()
    if (status != PV_SUCCESS)

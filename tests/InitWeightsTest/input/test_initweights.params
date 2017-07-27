@@ -281,7 +281,6 @@ HyPerConn "RetinaToL0" = {
    nfp = 8;
    
    pvpatchAccumulateType = "convolve";
-   shrinkPatches = false;
    
    writeStep = 1.0;
    initialWriteTime = 0.0;
@@ -327,7 +326,6 @@ HyPerConn "RetinaToL1" = {
    nfp = 8;
    
    pvpatchAccumulateType = "convolve";
-   shrinkPatches = false;
    
    writeStep = -1;
    writeCompressedCheckpoints = false;
@@ -375,7 +373,6 @@ HyPerConn "RetinaToL2" = {
    nfp = 4;
    
    pvpatchAccumulateType = "convolve";
-   shrinkPatches = false;
    
    writeStep = -1;
    writeCompressedCheckpoints = false;
@@ -408,7 +405,6 @@ HyPerConn "RetinaToL2" = {
 //    nfp = 8;
 //    
 //    pvpatchAccumulateType = "convolve";
-//    shrinkPatches = false;
 // 
 //    writeStep = -1;
 // 
@@ -464,7 +460,6 @@ HyPerConn "RetinaToL2" = {
 //    nfp = 8;
 //    
 //    pvpatchAccumulateType = "convolve";
-//    shrinkPatches = false;
 //    
 //    writeStep = -1;
 // 
@@ -520,7 +515,6 @@ HyPerConn "RetinaToL5" = {
    nfp = 8;
    
    pvpatchAccumulateType = "convolve";
-   shrinkPatches = false;
    
    writeStep = -1;
    writeCompressedCheckpoints = false;
@@ -565,7 +559,6 @@ HyPerConn "RetinaToL6" = {
    nfp = 8;
   
    pvpatchAccumulateType = "convolve";
-   shrinkPatches = false;
    
    writeStep = -1;
    writeCompressedCheckpoints = false;
@@ -614,7 +607,6 @@ HyPerConn "RetinaToL7" = {
    nfp = 4;
 
    pvpatchAccumulateType = "convolve";
-   shrinkPatches = false;
    
    writeStep = -1;
    writeCompressedCheckpoints = false;
@@ -641,7 +633,6 @@ HyPerConn "RetinaToL8" = {
    nfp = 8;
 
    pvpatchAccumulateType = "convolve";
-   shrinkPatches = false;
    
    writeStep = -1;
    writeCompressedCheckpoints = false;
@@ -693,7 +684,6 @@ HyPerConn "RetinaToL9" = {
    nfp = 8;
 
    pvpatchAccumulateType = "convolve";
-   shrinkPatches = false;
    
    writeStep = -1;
    writeCompressedCheckpoints = false;
@@ -744,7 +734,6 @@ HyPerConnDebugInitWeights "RetinaToL0Check" = {
    nfp = 8;
    
    pvpatchAccumulateType = "convolve";
-   shrinkPatches = false;
    
    writeStep = 1.0;
    initialWriteTime = 0.0;
@@ -790,7 +779,6 @@ HyPerConnDebugInitWeights "RetinaToL1Check" = {
    nfp = 8;
    
    pvpatchAccumulateType = "convolve";
-   shrinkPatches = false;
    
    writeStep = -1;
    writeCompressedCheckpoints = false;
@@ -838,7 +826,6 @@ HyPerConnDebugInitWeights "RetinaToL2Check" = {
    nfp = 4;
    
    pvpatchAccumulateType = "convolve";
-   shrinkPatches = false;
    
    writeStep = -1;
    writeCompressedCheckpoints = false;
@@ -871,7 +858,6 @@ HyPerConnDebugInitWeights "RetinaToL2Check" = {
 //    nfp = 8;
 //    
 //    pvpatchAccumulateType = "convolve";
-//    shrinkPatches = false;
 // 
 //    writeStep = -1;
 // 
@@ -923,7 +909,6 @@ HyPerConnDebugInitWeights "RetinaToL2Check" = {
 //    nfp = 8;
 //    
 //    pvpatchAccumulateType = "convolve";
-//    shrinkPatches = false;
 //    
 //    writeStep = -1;
 // 
@@ -976,7 +961,6 @@ KernelConnDebugInitWeights "RetinaToL5Check" = {
    nfp = 8;
    
    pvpatchAccumulateType = "convolve";
-   shrinkPatches = false;
    
    writeStep = -1;
    writeCompressedCheckpoints = false;
@@ -1020,7 +1004,6 @@ KernelConnDebugInitWeights "RetinaToL6Check" = {
    nfp = 8;
   
    pvpatchAccumulateType = "convolve";
-   shrinkPatches = false;
    
    writeStep = -1;
    writeCompressedCheckpoints = false;
@@ -1068,7 +1051,6 @@ KernelConnDebugInitWeights "RetinaToL7Check" = {
    nfp = 4;
 
    pvpatchAccumulateType = "convolve";
-   shrinkPatches = false;
    
    writeStep = -1;
    writeCompressedCheckpoints = false;
@@ -1094,7 +1076,6 @@ KernelConnDebugInitWeights "RetinaToL8Check" = {
    nfp = 8;
 
    pvpatchAccumulateType = "convolve";
-   shrinkPatches = false;
    
    writeStep = -1;
    writeCompressedCheckpoints = false;
@@ -1137,7 +1118,6 @@ KernelConnDebugInitWeights "RetinaToL9Check" = {
    nfp = 8;
 
    pvpatchAccumulateType = "convolve";
-   shrinkPatches = false;
    
    writeStep = -1;
    writeCompressedCheckpoints = false;

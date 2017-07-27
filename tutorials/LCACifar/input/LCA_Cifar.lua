@@ -224,7 +224,6 @@ local pvParameters = {
       selfFlag                            = false;
       nxp                                 = patchSize;
       nyp                                 = patchSize;
-      shrinkPatches                       = false;
       normalizeMethod                     = "normalizeL2";
       strength                            = 1;
       normalizeArborsIndividually         = false;

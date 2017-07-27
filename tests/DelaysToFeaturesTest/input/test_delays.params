@@ -112,7 +112,6 @@ HyPerConn "delayArbor" = {
     writeCompressedCheckpoints = true;
     writeCompressedWeights = true;
     selfFlag               = false;
-    shrinkPatches          = false;
     updateGSynFromPostPerspective = false;
     convertRateToSpikeCount   = false;
 };

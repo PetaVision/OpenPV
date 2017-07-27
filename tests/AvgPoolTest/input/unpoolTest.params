@@ -148,7 +148,6 @@ PoolingConn "input2avgPoolPre" = {
     //rMinY                               = 1.5;
     //normalize_cutoff                    = 0;
     
-    shrinkPatches = false;
     plasticityFlag = 0;
     pvpatchAccumulateType = "avgpooling";
      

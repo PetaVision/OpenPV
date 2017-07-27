@@ -63,7 +63,6 @@ class CloneConn : public HyPerConn {
    virtual void ioParam_writeStep(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) override;
-   virtual void ioParam_shrinkPatches(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) override;
    virtual void
    ioParam_triggerFlag() { /* deprecated as of Aug 17, 2015.  See HyPerConn::ioParam_triggerFlag. */

@@ -104,7 +104,6 @@ HyPerConn "InputToOutput" = {
     convertRateToSpikeCount = false;
     sharedWeights = true;
     pvpatchAccumulateType = "Stochastic"; // "Convolve" or "Stochastic" (case-insensitive)
-    shrinkPatches = false; //if only a small part of connections whose weights are non-zero, then we could shrink the whole networks
     updateGSynFromPostPerspective = false; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
 };
 

@@ -279,7 +279,6 @@ HyPerConn "origConnPrePost" = {
     normalizeFromPostPerspective = false;
     symmetrizeWeights = false;
     
-    shrinkPatches = false;
     //writeCompressedWeights = 0.0;
     writeCompressedCheckpoints = false;
     plasticityFlag = 0;
@@ -350,7 +349,6 @@ HyPerConn "origConnKnown" = {
     normalizeFromPostPerspective = false;
     symmetrizeWeights = false;
     
-    shrinkPatches = false;
     //writeCompressedWeights = 0.0;
     writeCompressedCheckpoints = false;
     plasticityFlag = 0;
@@ -406,7 +404,6 @@ HyPerConn "fakeConn" = {
     normalizeFromPostPerspective = false;
     symmetrizeWeights = false;
     
-    shrinkPatches = false;
     //writeCompressedWeights = 0.0;
     writeCompressedCheckpoints = false;
     plasticityFlag = 0;

@@ -142,7 +142,6 @@ HyPerConn "OriginalMap" = {
     delay = 0;
 
     pvpatchAccumulateType = "Convolve";
-    shrinkPatches = false;
     updateGSynFromPostPerspective = false;
 };
 

@@ -282,10 +282,6 @@ class HyPerConn : public BaseConnection {
          int *dyOut,
          int *nxpOut,
          int *nypOut);
-   virtual int shrinkPatches(int arborId);
-   int shrinkPatch(int kExt, int arborId);
-
-   bool getShrinkPatches_flag() { return shrinkPatches_flag; }
 
    bool getUpdateGSynFromPostPerspective() { return updateGSynFromPostPerspective; }
 
@@ -462,8 +458,7 @@ class HyPerConn : public BaseConnection {
    // may be separately instantiated)
    char *normalizeMethod;
    NormalizeBase *normalizer;
-   bool shrinkPatches_flag;
-   float shrinkPatchesThresh;
+
    // This object handles calculating weights.  All the initialize weights methods for all
    // connection classes
    // are being moved into subclasses of this object.  The default root InitWeights class will
@@ -745,15 +740,9 @@ class HyPerConn : public BaseConnection {
    virtual void ioParam_nfp(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief shrinkPatches: Optimization for shrinking a patch to it's non-zero values
+    * @brief shrinkPatches: This parameter is no longer used
     */
    virtual void ioParam_shrinkPatches(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief shrinkPatchesThresh: If shrinkPatches flag is set, specifies threshold to consider
-    * weight as zero
-    */
-   virtual void ioParam_shrinkPatchesThresh(enum ParamsIOFlag ioFlag);
 
    /**
     * @brief updateGSynFromPostPerspective: Specifies if the connection should push from pre or pull

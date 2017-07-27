@@ -140,7 +140,6 @@ ANNLayer "outputTest" = {
 //
 //    symmetrizeWeights = false;
 //    
-//    shrinkPatches = false;
 //    //writeCompressedWeights = 0.0;
 //    writeCompressedCheckpoints = false;
 //    plasticityFlag = 0;
@@ -185,7 +184,6 @@ HyPerConn "origConn1" = {
 
     symmetrizeWeights = false;
     
-    shrinkPatches = false;
     //writeCompressedWeights = 0.0;
     writeCompressedCheckpoints = false;
     plasticityFlag = 0;
@@ -230,7 +228,6 @@ HyPerConn "origConn2" = {
 
     symmetrizeWeights = false;
     
-    shrinkPatches = false;
     //writeCompressedWeights = 0.0;
     writeCompressedCheckpoints = false;
     plasticityFlag = 0;

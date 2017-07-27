@@ -70,7 +70,6 @@ int CloneConn::constructWeights() {
    dwDataStart    = this->originalConn->get_dwDataStart();
 
    // Don't call initPlasticityPatches since plasticityFlag is always false.
-   // Don't call shrinkPatches() since the original connection will have already shrunk patches
    return status;
 }
 
@@ -103,13 +102,6 @@ void CloneConn::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
       parent->parameters()->handleUnnecessaryParameter(name, "sharedWeights");
    }
    // During the communication phase, sharedWeights will be copied from originalConn
-}
-
-void CloneConn::ioParam_shrinkPatches(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      parent->parameters()->handleUnnecessaryParameter(name, "shrinkPatches");
-   }
-   // During the communication phase, shrinkPatches_flag will be copied from originalConn
 }
 
 void CloneConn::ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) {
@@ -297,7 +289,7 @@ int CloneConn::setPatchSize() {
 }
 
 int CloneConn::cloneParameters() {
-   // Copy sharedWeights, numAxonalArborLists, shrinkPatches_flag from originalConn
+   // Copy sharedWeights, numAxonalArborLists from originalConn
 
    PVParams *params = parent->parameters();
 
@@ -307,8 +299,6 @@ int CloneConn::cloneParameters() {
    numAxonalArborLists = originalConn->numberOfAxonalArborLists();
    params->handleUnnecessaryParameter(name, "numAxonalArbors", numAxonalArborLists);
 
-   shrinkPatches_flag = originalConn->getShrinkPatches_flag();
-   parent->parameters()->handleUnnecessaryParameter(name, "shrinkPatches", shrinkPatches_flag);
    return PV_SUCCESS;
 }
 

@@ -259,7 +259,6 @@ HyPerConn "InputToOutput" = {
     nxp                                 = 3;
     nyp                                 = 3;
     nfp                                 = 1;
-    shrinkPatches                       = false;
     normalizeMethod                     = "none";
     weightSparsity                      = 0;
 };
@@ -304,7 +303,6 @@ HyPerConn "NormalizedInputToNormalizedOutput" = {
     nxp                                 = 3;
     nyp                                 = 3;
     nfp                                 = 1;
-    shrinkPatches                       = false;
     normalizeMethod                     = "none";
     weightSparsity                      = 0;
 };

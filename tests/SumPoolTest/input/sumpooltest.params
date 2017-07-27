@@ -97,7 +97,6 @@ PoolingConn "input2sumPoolPre" = {
     nyp = 3; 
     numAxonalArbors = 1;
     
-    shrinkPatches = false;
     pvpatchAccumulateType = "sumpooling";
      
     delay = 0;

@@ -152,7 +152,6 @@ HyPerConn "InputByFileToOutputByFile" = {
     nxp                                 = 3;
     nyp                                 = 3;
     nfp                                 = 1;
-    shrinkPatches                       = false;
     normalizeMethod                     = "none";
     weightSparsity                      = 0;
 };
@@ -286,7 +285,6 @@ HyPerConn "InputByListToOutputByList" = {
     nxp                                 = 3;
     nyp                                 = 3;
     nfp                                 = 1;
-    shrinkPatches                       = false;
     normalizeMethod                     = "none";
     weightSparsity                      = 0;
 };

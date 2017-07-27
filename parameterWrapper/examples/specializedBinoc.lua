@@ -274,7 +274,6 @@ pv.addMultiGroups(pvParams,
       writeStep = -1;
       initialWriteTime = 0.0;
       writeCompressedWeights = false;
-      shrinkPatches = false;
       writeCompressedCheckpoints = false;
       plasticityFlag = 0;
       pvpatchAccumulateType = "maxpooling";
@@ -368,7 +367,6 @@ for i=0,numDepthBins do
       channelCode = 1; --Inhib connection to error
       nxp = dictPatchSize;
       nyp = dictPatchSize;
-      shrinkPatches = false;
       numAxonalArbors = 1;
       initFromLastFlag = 0;
       sharedWeights = true;

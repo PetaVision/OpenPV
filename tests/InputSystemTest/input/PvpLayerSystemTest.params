@@ -166,7 +166,6 @@ HyPerConn "input_to_ganglion" = {
     delay                            = 0;
 
     pvpatchAccumulateType            = "Convolve";
-    shrinkPatches                    = false;
     updateGSynFromPostPerspective    = false;
     convertRateToSpikeCount          = false;
     receiveGpu                       = false;

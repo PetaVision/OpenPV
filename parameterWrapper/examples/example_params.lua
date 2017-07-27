@@ -139,7 +139,6 @@ pv.addMultiGroups(basicParams,
       delay = 0;
 
       pvpatchAccumulateType = "Convolve";
-      shrinkPatches = false;
       updateGSynFromPostPerspective = false;
    };
 } --End of table constructor

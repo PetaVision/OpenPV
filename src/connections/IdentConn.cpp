@@ -188,13 +188,6 @@ void IdentConn::ioParam_nfp(enum ParamsIOFlag ioFlag) {
    }
 }
 
-void IdentConn::ioParam_shrinkPatches(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      shrinkPatches_flag = false;
-      parent->parameters()->handleUnnecessaryParameter(name, "shrinkPatches", shrinkPatches_flag);
-   }
-}
-
 void IdentConn::ioParam_updateGSynFromPostPerspective(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       updateGSynFromPostPerspective = false;

@@ -128,7 +128,6 @@ HyPerConn "origConn" = {
     normalizeMethod = "none";
     symmetrizeWeights = false;
     
-    shrinkPatches = false;
     //writeCompressedWeights = 0.0;
     writeCompressedCheckpoints = false;
     plasticityFlag = 1;

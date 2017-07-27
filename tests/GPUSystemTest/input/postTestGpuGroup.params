@@ -204,7 +204,6 @@ HyPerConn "origConn1" = {
         
     normalizeMethod                     = "none";
 
-    shrinkPatches = false;
     //writeCompressedWeights = 0.0;
     writeCompressedCheckpoints = false;
     plasticityFlag = 0;
@@ -284,7 +283,6 @@ HyPerConn "origConn2" = {
         
     normalizeMethod                     = "none";
 
-    shrinkPatches = false;
     //writeCompressedWeights = 0.0;
     writeCompressedCheckpoints = false;
     plasticityFlag = 0;

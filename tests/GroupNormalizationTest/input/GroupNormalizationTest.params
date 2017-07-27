@@ -153,7 +153,6 @@ HyPerConn "input_to_output1" = {
     delay = 0;
 
     pvpatchAccumulateType = "Convolve";
-    shrinkPatches = false;
     updateGSynFromPostPerspective = false;
 };
 
@@ -183,7 +182,6 @@ HyPerConn "input_to_output2" = {
     delay = 0;
 
     pvpatchAccumulateType = "Convolve";
-    shrinkPatches = false;
     updateGSynFromPostPerspective = false;
 };
 

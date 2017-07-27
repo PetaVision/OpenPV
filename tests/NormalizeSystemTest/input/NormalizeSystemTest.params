@@ -265,7 +265,6 @@ HyPerConn "NormalizeSumConnection" = {
    nxp = 16;
    nyp = 16;
    nfp = 4;
-   shrinkPatches = false;
    updateGSynFromPostPerspective = false;
 
    weightInitType = "Gauss2DWeight";
@@ -308,7 +307,6 @@ HyPerConn "NormalizeSumCheckConnection" = {
    nxp = 1;
    nyp = 1;
    nfp = 1;
-   shrinkPatches = false;
    updateGSynFromPostPerspective = false;
    
    weightInitType = "UniformWeight";
@@ -335,7 +333,6 @@ HyPerConn "NormalizeL2Connection" = {
    nxp = 16;
    nyp = 16;
    nfp = 4;
-   shrinkPatches = false;
    updateGSynFromPostPerspective = false;
 
    weightInitType = "Gauss2DWeight";
@@ -378,7 +375,6 @@ HyPerConn "NormalizeL2CheckConnection" = {
    nxp = 1;
    nyp = 1;
    nfp = 1;
-   shrinkPatches = false;
    updateGSynFromPostPerspective = false;
    
    weightInitType = "UniformWeight";
@@ -405,7 +401,6 @@ HyPerConn "NormalizeMaxConnection" = {
    nxp = 16;
    nyp = 16;
    nfp = 4;
-   shrinkPatches = false;
    updateGSynFromPostPerspective = false;
 
    weightInitType = "Gauss2DWeight";
@@ -443,7 +438,6 @@ PoolingConn "NormalizeMaxCheckConnection" = {
    nxp = 1;
    nyp = 1;
    nfp = 4;
-   shrinkPatches = false;
    updateGSynFromPostPerspective = false;
    
    //weightInitType = "MaxPoolingWeight"; //"UniformWeight";
@@ -470,7 +464,6 @@ HyPerConn "NormalizeContrastZeroMeanConnection" = {
    nxp = 16;
    nyp = 16;
    nfp = 4;
-   shrinkPatches = false;
    updateGSynFromPostPerspective = false;
 
    weightInitType = "Gauss2DWeight";
@@ -518,7 +511,6 @@ HyPerConn "NormalizeContrastZeroMeanCheckMeanConnection" = {
    nxp = 1;
    nyp = 1;
    nfp = 1;
-   shrinkPatches = false;
    updateGSynFromPostPerspective = false;
    
    weightInitType = "UniformWeight";
@@ -545,7 +537,6 @@ HyPerConn "NormalizeContrastZeroMeanCheckVarianceConnection" = {
    nxp = 1;
    nyp = 1;
    nfp = 1;
-   shrinkPatches = false;
    updateGSynFromPostPerspective = false;
    
    weightInitType = "UniformWeight";

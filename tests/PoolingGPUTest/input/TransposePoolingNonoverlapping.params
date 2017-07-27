@@ -114,7 +114,6 @@ PoolingConn "ForwardCPU" = {
     nxp                                 = 1;
     nyp                                 = 1;
     nfp                                 = 4;
-    shrinkPatches                       = false;
     weightSparsity                      = 0;
     needPostIndexLayer                  = true;
     postIndexLayerName                  = "PostIndexLayerCPU";
@@ -171,7 +170,6 @@ PoolingConn "ForwardGPU" = {
     nxp                                 = 1;
     nyp                                 = 1;
     nfp                                 = 4;
-    shrinkPatches                       = false;
     weightSparsity                      = 0;
     needPostIndexLayer                  = false;
 };

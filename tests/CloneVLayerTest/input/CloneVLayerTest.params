@@ -233,7 +233,6 @@ HyPerConn "InputToOutput" = {
     delay = 0;
 
     pvpatchAccumulateType = "Convolve"; // "Convolve" for ordinary convolution connections; "Stochastic" to have connections release stochastically; "Maxpooling" for the accumulation to use max over the patch instead of sum 
-    shrinkPatches = false; //if only a small part of connections whose weights are non-zero, then we could shrink the whole networks
     updateGSynFromPostPerspective = false; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
 };
 
@@ -267,7 +266,6 @@ HyPerConn "OutputToDuplicateSigmoid" = {
     delay = 0;
 
     pvpatchAccumulateType = "Convolve"; // "Convolve" for ordinary convolution connections; "Stochastic" to have connections release stochastically; "Maxpooling" for the accumulation to use max over the patch instead of sum
-    shrinkPatches = false; //if only a small part of connections whose weights are non-zero, then we could shrink the whole networks
     updateGSynFromPostPerspective = false; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
 };
 

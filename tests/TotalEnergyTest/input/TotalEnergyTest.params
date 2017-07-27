@@ -170,7 +170,6 @@ HyPerConn "V1_to_residual" = {
     nxp                                 = 18;
     nyp                                 = 18;
     nfp                                 = 1;
-    shrinkPatches                       = false;
     updateGSynFromPostPerspective       = false;
     normalizeMethod                     = "normalizeL2";
     strength                            = 1;

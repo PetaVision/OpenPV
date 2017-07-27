@@ -35,7 +35,6 @@ class TransposePoolingConn : public HyPerConn {
    virtual void ioParam_dWMax(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_weightUpdatePeriod(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag) override;
-   virtual void ioParam_shrinkPatches(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_originalConnName(enum ParamsIOFlag ioFlag);
 

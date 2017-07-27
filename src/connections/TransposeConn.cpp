@@ -154,13 +154,6 @@ void TransposeConn::ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag) {
    }
 }
 
-void TransposeConn::ioParam_shrinkPatches(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      shrinkPatches_flag = false;
-      parent->parameters()->handleUnnecessaryParameter(name, "shrinkPatches", shrinkPatches_flag);
-   }
-}
-
 void TransposeConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       normalizer      = NULL;
@@ -204,18 +197,6 @@ int TransposeConn::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessag
 
    numAxonalArborLists = originalConn->numberOfAxonalArborLists();
    parent->parameters()->handleUnnecessaryParameter(name, "numAxonalArbors", numAxonalArborLists);
-
-   if (originalConn->getShrinkPatches_flag()) {
-      if (parent->columnId() == 0) {
-         ErrorLog().printf(
-               "TransposeConn \"%s\": original conn \"%s\" has shrinkPatches set to true.  "
-               "TransposeConn has not been implemented for that case.\n",
-               name,
-               originalConn->getName());
-      }
-      MPI_Barrier(parent->getCommunicator()->communicator());
-      exit(EXIT_FAILURE);
-   }
 
    status = HyPerConn::communicateInitInfo(message); // calls setPatchSize()
    if (status != PV_SUCCESS)
@@ -346,8 +327,7 @@ int TransposeConn::allocatePostConn() {
    InfoLog() << "Connection " << name << " setting " << originalConn->getName() << " as postConn\n";
    postConn = originalConn;
 
-   // Can't do this with shrink patches flag
-   if (needPost && !shrinkPatches_flag) {
+   if (needPost) {
       allocatePostToPreBuffer();
    }
    return PV_SUCCESS;

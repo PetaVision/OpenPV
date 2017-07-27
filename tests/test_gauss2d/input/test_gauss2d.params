@@ -78,7 +78,6 @@ HyPerConn "test_gauss2d_hyperconn" = {
    selfFlag = false;
    updateGSynFromPostPerspective = false;
    delay = 0;
-   shrinkPatches = false;
 };
 
 HyPerConn "test_gauss2d_kernelconn" = {
@@ -109,7 +108,6 @@ HyPerConn "test_gauss2d_kernelconn" = {
    selfFlag = false;
    updateGSynFromPostPerspective = false;
    delay = 0;
-   shrinkPatches = false;
 };
 
 HyPerLayer "test_gauss2d_pre2" = {
@@ -171,7 +169,6 @@ HyPerConn "test_gauss2d_hyperconn1to2" = {
    updateGSynFromPostPerspective = false;
 
    delay = 0;
-   shrinkPatches = false;
 };
 
 HyPerConn "test_gauss2d_kernelconn1to2" = {
@@ -203,7 +200,6 @@ HyPerConn "test_gauss2d_kernelconn1to2" = {
    updateGSynFromPostPerspective = false;
 
    delay = 0;
-   shrinkPatches = false;
 };
 
 HyPerConn "test_gauss2d_hyperconn2to1" = {
@@ -235,7 +231,6 @@ HyPerConn "test_gauss2d_hyperconn2to1" = {
    updateGSynFromPostPerspective = false;
 
    delay = 0;
-   shrinkPatches = false;
 };
 
 HyPerConn "test_gauss2d_kernelconn2to1" = {
@@ -267,5 +262,4 @@ HyPerConn "test_gauss2d_kernelconn2to1" = {
    updateGSynFromPostPerspective = false;
 
    delay = 0;
-   shrinkPatches = false;
 };
