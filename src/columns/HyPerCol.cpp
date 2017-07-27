@@ -1199,7 +1199,13 @@ void HyPerCol::initializeCUDA(std::string const &in_device) {
                 << device << "\n";
    }
 
-   mCudaDevice = new PVCuda::CudaDevice(device);
+   int globalSize = mCommunicator->globalCommSize();
+   for (int r = 0; r < globalSize; r++) {
+      if (r == globalRank()) {
+         mCudaDevice = new PVCuda::CudaDevice(device);
+      }
+      MPI_Barrier(mCommunicator->globalCommunicator());
+   }
 
    // Only print rank for comm rank 0
    if (globalRank() == 0) {
