@@ -596,8 +596,17 @@ void HyPerConn::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerConn::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
+   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
    parent->parameters()->ioParamValue(
          ioFlag, name, "sharedWeights", &sharedWeights, true /*default*/, true /*warn if absent*/);
+   if (sharedWeights == false and receiveGpu == true) {
+      if (parent->getCommunicator()->globalCommRank() == 0) {
+         ErrorLog().printf("%s: sharedWeights must be true in order to receive on the GPU.\n", getDescription_c());
+      }
+      MPI_Barrier(parent->getCommunicator()->globalCommunicator());
+      MPI_Finalize();
+      exit(EXIT_FAILURE);
+   }
 }
 
 void HyPerConn::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
