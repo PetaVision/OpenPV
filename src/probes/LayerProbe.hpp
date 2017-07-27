@@ -36,7 +36,8 @@ class LayerProbe : public BaseProbe {
     * HyPerCol,
     * and then calls the layer's insertProbe method.
     */
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
    HyPerLayer *getTargetLayer() { return targetLayer; }
 

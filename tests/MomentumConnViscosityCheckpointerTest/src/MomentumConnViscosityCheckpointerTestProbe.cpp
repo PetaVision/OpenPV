@@ -42,7 +42,7 @@ void MomentumConnViscosityCheckpointerTestProbe::ioParam_textOutputFlag(
 }
 
 int MomentumConnViscosityCheckpointerTestProbe::communicateInitInfo(
-      PV::CommunicateInitInfoMessage const *message) {
+      std::shared_ptr<PV::CommunicateInitInfoMessage const> message) {
    int status = PV::ColProbe::communicateInitInfo(message);
    FatalIf(
          status != PV_SUCCESS, "%s failed in ColProbe::communicateInitInfo\n", getDescription_c());
@@ -60,7 +60,7 @@ int MomentumConnViscosityCheckpointerTestProbe::communicateInitInfo(
 }
 
 int MomentumConnViscosityCheckpointerTestProbe::initInputLayer(
-      PV::CommunicateInitInfoMessage const *message) {
+      std::shared_ptr<PV::CommunicateInitInfoMessage const> message) {
    mInputLayer = message->lookup<PV::InputLayer>(std::string("Input"));
    FatalIf(mInputLayer == nullptr, "column does not have an InputLayer named \"Input\".\n");
    if (checkCommunicatedFlag(mInputLayer) == PV_POSTPONE) {
@@ -74,7 +74,7 @@ int MomentumConnViscosityCheckpointerTestProbe::initInputLayer(
 }
 
 int MomentumConnViscosityCheckpointerTestProbe::initOutputLayer(
-      PV::CommunicateInitInfoMessage const *message) {
+      std::shared_ptr<PV::CommunicateInitInfoMessage const> message) {
    mOutputLayer = message->lookup<PV::HyPerLayer>(std::string("Output"));
    FatalIf(mOutputLayer == nullptr, "column does not have a HyPerLayer named \"Output\".\n");
    if (checkCommunicatedFlag(mOutputLayer) == PV_POSTPONE) {
@@ -84,7 +84,7 @@ int MomentumConnViscosityCheckpointerTestProbe::initOutputLayer(
 }
 
 int MomentumConnViscosityCheckpointerTestProbe::initConnection(
-      PV::CommunicateInitInfoMessage const *message) {
+      std::shared_ptr<PV::CommunicateInitInfoMessage const> message) {
    mConnection = message->lookup<PV::MomentumConn>(std::string("InputToOutput"));
    FatalIf(
          mConnection == nullptr, "column does not have a MomentumConn named \"InputToOutput\".\n");

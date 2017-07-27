@@ -2,14 +2,12 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/accumulate_functions.cpp
    ${SUBDIR}/BaseConnection.cpp
    ${SUBDIR}/CloneConn.cpp
-   ${SUBDIR}/CloneKernelConn.cpp
    ${SUBDIR}/CopyConn.cpp
    ${SUBDIR}/FeedbackConn.cpp
    ${SUBDIR}/GapConn.cpp
    ${SUBDIR}/HyPerConn.cpp
    ${SUBDIR}/IdentConn.cpp
    ${SUBDIR}/ImprintConn.cpp
-   ${SUBDIR}/KernelConn.cpp
    ${SUBDIR}/MomentumConn.cpp
    ${SUBDIR}/PlasticCloneConn.cpp
    ${SUBDIR}/PoolingConn.cpp
@@ -24,14 +22,12 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/BaseConnection.hpp
    ${SUBDIR}/BaseConnection.hpp
    ${SUBDIR}/CloneConn.hpp
-   ${SUBDIR}/CloneKernelConn.hpp
    ${SUBDIR}/CopyConn.hpp
    ${SUBDIR}/FeedbackConn.hpp
    ${SUBDIR}/GapConn.hpp
    ${SUBDIR}/HyPerConn.hpp
    ${SUBDIR}/IdentConn.hpp
    ${SUBDIR}/ImprintConn.hpp
-   ${SUBDIR}/KernelConn.hpp
    ${SUBDIR}/MomentumConn.hpp
    ${SUBDIR}/PlasticCloneConn.hpp
    ${SUBDIR}/PoolingConn.hpp

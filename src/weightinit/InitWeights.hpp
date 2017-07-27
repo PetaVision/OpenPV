@@ -85,7 +85,8 @@ class InitWeights : public BaseObject {
    void handleObsoleteFlag(std::string const &flagName);
 
    virtual int setDescription() override;
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual void calcWeights();
    virtual void calcWeights(float *dataStart, int patchIndex, int arborId);
 

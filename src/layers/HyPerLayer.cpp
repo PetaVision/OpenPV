@@ -96,8 +96,8 @@ int HyPerLayer::initialize_base() {
    updatedDeviceActivity    = true; // Start off always updating activity
    updatedDeviceDatastore   = true;
    updatedDeviceGSyn        = true;
-   recvGpu                  = false;
-   updateGpu                = false;
+   mRecvGpu                 = false;
+   mUpdateGpu               = false;
    krUpdate                 = NULL;
 #ifdef PV_USE_CUDNN
    cudnn_GSyn      = NULL;
@@ -133,9 +133,9 @@ int HyPerLayer::initialize(const char *name, HyPerCol *hc) {
       return status;
    }
 
-   PVParams *params = hc->parameters();
+   PVParams *params = parent->parameters();
 
-   status = ioParams(PARAMS_IO_READ);
+   status = readParams();
    assert(status == PV_SUCCESS);
 
    writeTime                = initialWriteTime;
@@ -144,14 +144,11 @@ int HyPerLayer::initialize(const char *name, HyPerCol *hc) {
    numDelayLevels = 1; // If a connection has positive delay so that more delay levels are needed,
    // numDelayLevels is increased when BaseConnection::communicateInitInfo calls
    // increaseDelayLevels
-   maxRate = 1000.0f / (float)hc->getDeltaTime();
 
    initClayer();
 
-   hc->addLayer(this);
-
-   mLastUpdateTime  = hc->getDeltaTime();
-   mLastTriggerTime = hc->getDeltaTime();
+   mLastUpdateTime  = parent->getDeltaTime();
+   mLastTriggerTime = parent->getDeltaTime();
    return PV_SUCCESS;
 }
 
@@ -555,7 +552,7 @@ int HyPerLayer::initializeState() {
 
 #ifdef PV_USE_CUDA
 int HyPerLayer::copyInitialStateToGPU() {
-   if (updateGpu) {
+   if (mUpdateGpu) {
       float *h_V = getV();
       if (h_V != NULL) {
          PVCuda::CudaBuffer *d_V = getDeviceV();
@@ -592,14 +589,6 @@ int HyPerLayer::initializeV() {
 int HyPerLayer::initializeActivity() {
    int status = setActivity();
    return status;
-}
-
-int HyPerLayer::ioParams(enum ParamsIOFlag ioFlag) {
-   parent->ioParamsStartGroup(ioFlag, name);
-   ioParamsFillGroup(ioFlag);
-   parent->ioParamsFinishGroup(ioFlag);
-
-   return PV_SUCCESS;
 }
 
 int HyPerLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -655,15 +644,15 @@ void HyPerLayer::ioParam_dataType(enum ParamsIOFlag ioFlag) {
 void HyPerLayer::ioParam_updateGpu(enum ParamsIOFlag ioFlag) {
 #ifdef PV_USE_CUDA
    parent->parameters()->ioParamValue(
-         ioFlag, name, "updateGpu", &updateGpu, updateGpu, true /*warnIfAbsent*/);
-   mUsingGPUFlag = updateGpu;
+         ioFlag, name, "updateGpu", &mUpdateGpu, mUpdateGpu, true /*warnIfAbsent*/);
+   mUsingGPUFlag = mUpdateGpu;
 #else // PV_USE_CUDA
-   bool updateGpu = false;
+   bool mUpdateGpu = false;
    parent->parameters()->ioParamValue(
-         ioFlag, name, "updateGpu", &updateGpu, updateGpu, false /*warnIfAbsent*/);
+         ioFlag, name, "updateGpu", &mUpdateGpu, mUpdateGpu, false /*warnIfAbsent*/);
    if (parent->columnId() == 0) {
       FatalIf(
-            updateGpu,
+            mUpdateGpu,
             "%s: updateGpu is set to true, but PetaVision was compiled without GPU acceleration.\n",
             getDescription_c());
    }
@@ -912,41 +901,48 @@ int HyPerLayer::respond(std::shared_ptr<BaseMessage const> message) {
    if (status != PV_SUCCESS) {
       return status;
    }
+   else if (auto castMessage = std::dynamic_pointer_cast<LayerSetMaxPhaseMessage const>(message)) {
+      return respondLayerSetMaxPhase(castMessage);
+   }
+   else if (auto castMessage = std::dynamic_pointer_cast<LayerWriteParamsMessage const>(message)) {
+      return respondLayerWriteParams(castMessage);
+   }
    else if (
-         LayerUpdateStateMessage const *castMessage =
-               dynamic_cast<LayerUpdateStateMessage const *>(message.get())) {
+         auto castMessage =
+               std::dynamic_pointer_cast<LayerProbeWriteParamsMessage const>(message)) {
+      return respondLayerProbeWriteParams(castMessage);
+   }
+   else if (
+         auto castMessage =
+               std::dynamic_pointer_cast<LayerClearProgressFlagsMessage const>(message)) {
+      return respondLayerClearProgressFlags(castMessage);
+   }
+   else if (auto castMessage = std::dynamic_pointer_cast<LayerUpdateStateMessage const>(message)) {
       return respondLayerUpdateState(castMessage);
    }
    else if (
-         LayerRecvSynapticInputMessage const *castMessage =
-               dynamic_cast<LayerRecvSynapticInputMessage const *>(message.get())) {
+         auto castMessage =
+               std::dynamic_pointer_cast<LayerRecvSynapticInputMessage const>(message)) {
       return respondLayerRecvSynapticInput(castMessage);
    }
 #ifdef PV_USE_CUDA
-   else if (
-         LayerCopyFromGpuMessage const *castMessage =
-               dynamic_cast<LayerCopyFromGpuMessage const *>(message.get())) {
+   else if (auto castMessage = std::dynamic_pointer_cast<LayerCopyFromGpuMessage const>(message)) {
       return respondLayerCopyFromGpu(castMessage);
    }
 #endif // PV_USE_CUDA
    else if (
-         LayerAdvanceDataStoreMessage const *castMessage =
-               dynamic_cast<LayerAdvanceDataStoreMessage const *>(message.get())) {
+         auto castMessage =
+               std::dynamic_pointer_cast<LayerAdvanceDataStoreMessage const>(message)) {
       return respondLayerAdvanceDataStore(castMessage);
    }
-   else if (
-         LayerPublishMessage const *castMessage =
-               dynamic_cast<LayerPublishMessage const *>(message.get())) {
+   else if (auto castMessage = std::dynamic_pointer_cast<LayerPublishMessage const>(message)) {
       return respondLayerPublish(castMessage);
    }
-   else if (
-         LayerOutputStateMessage const *castMessage =
-               dynamic_cast<LayerOutputStateMessage const *>(message.get())) {
+   else if (auto castMessage = std::dynamic_pointer_cast<LayerOutputStateMessage const>(message)) {
       return respondLayerOutputState(castMessage);
    }
    else if (
-         LayerCheckNotANumberMessage const *castMessage =
-               dynamic_cast<LayerCheckNotANumberMessage const *>(message.get())) {
+         auto castMessage = std::dynamic_pointer_cast<LayerCheckNotANumberMessage const>(message)) {
       return respondLayerCheckNotANumber(castMessage);
    }
    else {
@@ -954,53 +950,81 @@ int HyPerLayer::respond(std::shared_ptr<BaseMessage const> message) {
    }
 }
 
-int HyPerLayer::respondLayerRecvSynapticInput(LayerRecvSynapticInputMessage const *message) {
+int HyPerLayer::respondLayerSetMaxPhase(std::shared_ptr<LayerSetMaxPhaseMessage const> message) {
+   return setMaxPhase(message->mMaxPhase);
+}
+
+int HyPerLayer::respondLayerWriteParams(std::shared_ptr<LayerWriteParamsMessage const> message) {
+   return writeParams();
+}
+
+int HyPerLayer::respondLayerProbeWriteParams(
+      std::shared_ptr<LayerProbeWriteParamsMessage const> message) {
+   return outputProbeParams();
+}
+
+int HyPerLayer::respondLayerClearProgressFlags(
+      std::shared_ptr<LayerClearProgressFlagsMessage const> message) {
+   return clearProgressFlags();
+}
+
+int HyPerLayer::respondLayerRecvSynapticInput(
+      std::shared_ptr<LayerRecvSynapticInputMessage const> message) {
    int status = PV_SUCCESS;
    if (message->mPhase != getPhase()) {
       return status;
    }
 #ifdef PV_USE_CUDA
-   if (message->mRecvOnGpuFlag != getRecvGpu()) {
+   if (message->mRecvOnGpuFlag != mRecvGpu) {
       return status;
    }
 #endif // PV_USE_CUDA
    if (mHasReceived) {
       return status;
    }
-   if (!isAllInputReady()) {
-      return PV_POSTPONE;
+   if (*(message->mSomeLayerHasActed) or !isAllInputReady()) {
+      *(message->mSomeLayerIsPending) = true;
+      return status;
    }
    resetGSynBuffers(message->mTime, message->mDeltaT); // deltaTimeAdapt is not used
+
    message->mTimer->start();
    recvAllSynapticInput();
+   mHasReceived                   = true;
+   *(message->mSomeLayerHasActed) = true;
    message->mTimer->stop();
-   mHasReceived = true;
+
    return status;
 }
 
-int HyPerLayer::respondLayerUpdateState(LayerUpdateStateMessage const *message) {
+int HyPerLayer::respondLayerUpdateState(std::shared_ptr<LayerUpdateStateMessage const> message) {
    int status = PV_SUCCESS;
    if (message->mPhase != getPhase()) {
       return status;
    }
 #ifdef PV_USE_CUDA
-   if (message->mRecvOnGpuFlag != getRecvGpu()) {
+   if (message->mRecvOnGpuFlag != mRecvGpu) {
       return status;
    }
-   if (message->mUpdateOnGpuFlag != getUpdateGpu()) {
+   if (message->mUpdateOnGpuFlag != mUpdateGpu) {
       return status;
    }
 #endif // PV_USE_CUDA
-   if (!mHasReceived) {
-      return PV_POSTPONE;
+   if (mHasUpdated) {
+      return status;
    }
-   status      = callUpdateState(message->mTime, message->mDeltaT);
-   mHasUpdated = true;
+   if (*(message->mSomeLayerHasActed) or !mHasReceived) {
+      *(message->mSomeLayerIsPending) = true;
+      return status;
+   }
+   status                         = callUpdateState(message->mTime, message->mDeltaT);
+   mHasUpdated                    = true;
+   *(message->mSomeLayerHasActed) = true;
    return status;
 }
 
 #ifdef PV_USE_CUDA
-int HyPerLayer::respondLayerCopyFromGpu(LayerCopyFromGpuMessage const *message) {
+int HyPerLayer::respondLayerCopyFromGpu(std::shared_ptr<LayerCopyFromGpuMessage const> message) {
    int status = PV_SUCCESS;
    if (message->mPhase != getPhase()) {
       return status;
@@ -1015,14 +1039,15 @@ int HyPerLayer::respondLayerCopyFromGpu(LayerCopyFromGpuMessage const *message) 
 }
 #endif // PV_USE_CUDA
 
-int HyPerLayer::respondLayerAdvanceDataStore(LayerAdvanceDataStoreMessage const *message) {
+int HyPerLayer::respondLayerAdvanceDataStore(
+      std::shared_ptr<LayerAdvanceDataStoreMessage const> message) {
    if (message->mPhase < 0 || message->mPhase == getPhase()) {
       publisher->increaseTimeLevel();
    }
    return PV_SUCCESS;
 }
 
-int HyPerLayer::respondLayerPublish(LayerPublishMessage const *message) {
+int HyPerLayer::respondLayerPublish(std::shared_ptr<LayerPublishMessage const> message) {
    int status = PV_SUCCESS;
    if (message->mPhase != getPhase()) {
       return status;
@@ -1031,7 +1056,8 @@ int HyPerLayer::respondLayerPublish(LayerPublishMessage const *message) {
    return status;
 }
 
-int HyPerLayer::respondLayerCheckNotANumber(LayerCheckNotANumberMessage const *message) {
+int HyPerLayer::respondLayerCheckNotANumber(
+      std::shared_ptr<LayerCheckNotANumberMessage const> message) {
    int status = PV_SUCCESS;
    if (message->mPhase != getPhase()) {
       return status;
@@ -1056,7 +1082,7 @@ int HyPerLayer::respondLayerCheckNotANumber(LayerCheckNotANumberMessage const *m
    return status;
 }
 
-int HyPerLayer::respondLayerOutputState(LayerOutputStateMessage const *message) {
+int HyPerLayer::respondLayerOutputState(std::shared_ptr<LayerOutputStateMessage const> message) {
    int status = PV_SUCCESS;
    if (message->mPhase != getPhase()) {
       return status;
@@ -1065,9 +1091,10 @@ int HyPerLayer::respondLayerOutputState(LayerOutputStateMessage const *message) 
    return status;
 }
 
-void HyPerLayer::clearProgressFlags() {
+int HyPerLayer::clearProgressFlags() {
    mHasReceived = false;
    mHasUpdated  = false;
+   return PV_SUCCESS;
 }
 
 #ifdef PV_USE_CUDA
@@ -1129,7 +1156,7 @@ int HyPerLayer::allocateDeviceBuffers() {
 
 #endif // PV_USE_CUDA
 
-int HyPerLayer::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+int HyPerLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    // HyPerLayers need to tell the parent HyPerCol how many random number
    // seeds they need.  At the start of HyPerCol::run, the parent HyPerCol
    // calls each layer's communicateInitInfo() sequentially in a repeatable order
@@ -1209,7 +1236,7 @@ int HyPerLayer::communicateInitInfo(CommunicateInitInfoMessage const *message) {
 #ifdef PV_USE_CUDA
    // Here, the connection tells all participating recev layers to allocate memory on gpu
    // if receive from gpu is set. These buffers should be set in allocate
-   if (updateGpu) {
+   if (mUpdateGpu) {
       this->setAllocDeviceGSyn();
       this->setAllocDeviceV();
       this->setAllocDeviceActivity();
@@ -1219,6 +1246,13 @@ int HyPerLayer::communicateInitInfo(CommunicateInitInfoMessage const *message) {
    int status = PV_SUCCESS;
 
    return status;
+}
+
+int HyPerLayer::setMaxPhase(int *maxPhase) {
+   if (*maxPhase < phase) {
+      *maxPhase = phase;
+   }
+   return PV_SUCCESS;
 }
 
 void HyPerLayer::addRecvConn(BaseConnection *conn) {
@@ -1241,7 +1275,7 @@ void HyPerLayer::addRecvConn(BaseConnection *conn) {
       recvConns.push_back(conn);
 #ifdef PV_USE_CUDA
       // If it is receiving from gpu, set layer flag as such
-      recvGpu = true;
+      mRecvGpu = true;
 #endif
    }
 }
@@ -1448,7 +1482,7 @@ int HyPerLayer::allocateDataStructures() {
             parent->columnId(),
             strerror(errno));
    }
-   if (updateGpu) {
+   if (mUpdateGpu) {
       // This function needs to be overwritten as needed on a subclass basis
       status = allocateUpdateKernel();
       if (status == 0) {
@@ -1730,10 +1764,10 @@ int HyPerLayer::callUpdateState(double simTime, double dt) {
 
       update_timer->start();
 #ifdef PV_USE_CUDA
-      if (updateGpu) {
+      if (mUpdateGpu) {
          gpu_update_timer->start();
          float *gSynHead = GSyn == NULL ? NULL : GSyn[0];
-         assert(updateGpu);
+         assert(mUpdateGpu);
          status = updateStateGpu(simTime, dt);
          gpu_update_timer->stop();
       }
@@ -1797,7 +1831,7 @@ int HyPerLayer::resetStateOnTrigger() {
 
 // Update V on GPU after CPU V gets set
 #ifdef PV_USE_CUDA
-   if (updateGpu) {
+   if (mUpdateGpu) {
       getDeviceV()->copyToDevice(V);
       // Right now, we're setting the activity on the CPU and memsetting the GPU memory
       // TODO calculate this on the GPU
@@ -1824,7 +1858,7 @@ int HyPerLayer::resetGSynBuffers(double timef, double dt) {
 int HyPerLayer::runUpdateKernel() {
 
 #ifdef PV_USE_CUDA
-   assert(updateGpu);
+   assert(mUpdateGpu);
    if (updatedDeviceGSyn) {
       copyAllGSynToDevice();
       updatedDeviceGSyn = false;
@@ -1955,23 +1989,23 @@ int HyPerLayer::recvAllSynapticInput() {
 double HyPerLayer::addGpuTimers() {
    double simTime    = 0;
    bool updateNeeded = needUpdate(parent->simulationTime(), parent->getDeltaTime());
-   if (recvGpu && updateNeeded) {
+   if (mRecvGpu && updateNeeded) {
       simTime += gpu_recvsyn_timer->accumulateTime();
    }
-   if (updateGpu && updateNeeded) {
+   if (mUpdateGpu && updateNeeded) {
       simTime += gpu_update_timer->accumulateTime();
    }
    return simTime;
 }
 
 void HyPerLayer::syncGpu() {
-   if (recvGpu || updateGpu) {
+   if (mRecvGpu || mUpdateGpu) {
       parent->getDevice()->syncDevice();
    }
 }
 
 void HyPerLayer::copyAllGSynToDevice() {
-   if (recvGpu || updateGpu) {
+   if (mRecvGpu || mUpdateGpu) {
       // Copy it to device
       // Allocated as a big chunk, this should work
       float *h_postGSyn              = GSyn[0];
@@ -1983,7 +2017,7 @@ void HyPerLayer::copyAllGSynToDevice() {
 
 void HyPerLayer::copyAllGSynFromDevice() {
    // Only copy if recving
-   if (recvGpu) {
+   if (mRecvGpu) {
       // Allocated as a big chunk, this should work
       float *h_postGSyn              = GSyn[0];
       PVCuda::CudaBuffer *d_postGSyn = this->getDeviceGSyn();
@@ -1994,7 +2028,7 @@ void HyPerLayer::copyAllGSynFromDevice() {
 
 void HyPerLayer::copyAllVFromDevice() {
    // Only copy if updating
-   if (updateGpu) {
+   if (mUpdateGpu) {
       // Allocated as a big chunk, this should work
       float *h_V              = getV();
       PVCuda::CudaBuffer *d_V = this->getDeviceV();
@@ -2005,7 +2039,7 @@ void HyPerLayer::copyAllVFromDevice() {
 
 void HyPerLayer::copyAllActivityFromDevice() {
    // Only copy if updating
-   if (updateGpu) {
+   if (mUpdateGpu) {
       // Allocated as a big chunk, this should work
       float *h_activity              = getCLayer()->activity->data;
       PVCuda::CudaBuffer *d_activity = this->getDeviceActivity();
@@ -2095,7 +2129,7 @@ int HyPerLayer::insertProbe(LayerProbe *p) {
 int HyPerLayer::outputProbeParams() {
    int status = PV_SUCCESS;
    for (int p = 0; p < numProbes; p++) {
-      int status1 = probes[p]->ioParams(PARAMS_IO_WRITE);
+      int status1 = probes[p]->writeParams();
       if (status1 != PV_SUCCESS) {
          status = PV_FAILURE;
       }

@@ -94,7 +94,7 @@ int Retina::initialize(const char *name, HyPerCol *hc) {
    return status;
 }
 
-int Retina::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+int Retina::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    int status = HyPerLayer::communicateInitInfo(message);
    if (parent->getNBatch() != 1) {
       Fatal() << "Retina does not support batches yet, TODO\n";
@@ -222,7 +222,6 @@ int Retina::setRetinaParams(PVParams *p) {
    if (probBase > 1.0f) {
       probBase = 1.0f;
    }
-   maxRate = probStim / dt_sec;
 
    // default parameters
    //

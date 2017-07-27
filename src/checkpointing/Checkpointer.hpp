@@ -133,15 +133,6 @@ class Checkpointer : public Subject {
     */
    void ioParam_initializeFromCheckpointDir(enum ParamsIOFlag ioFlag, PVParams *params);
 
-   // defaultInitializeFromCheckpointFlag was made obsolete Dec 18, 2016.
-   /**
-    * @brief defaultInitializeFromCheckpointFlag is obsolete. If
-    * initializeFromCheckpointDir is set to a nonempty string, all
-    * objects will initialize from the checkpoint unless they set their
-    * individual initializeFromCheckpointFlag to false.
-    */
-   void ioParam_defaultInitializeFromCheckpointFlag(enum ParamsIOFlag ioFlag, PVParams *params);
-
    /**
     * @brief lastCheckpointDir: If checkpointWrite is not set, this required parameter specifies
     * the directory to write a final written checkpoint at the end of the run.
@@ -331,11 +322,12 @@ class CheckpointerDataInterface : public Observer {
    MPIBlock const *getMPIBlock() { return mMPIBlock; }
 
   protected:
-   int respondRegisterData(RegisterDataMessage<Checkpointer> const *message);
-   int respondReadStateFromCheckpoint(ReadStateFromCheckpointMessage<Checkpointer> const *message);
+   int respondRegisterData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message);
+   int respondReadStateFromCheckpoint(
+         std::shared_ptr<ReadStateFromCheckpointMessage<Checkpointer> const> message);
 
-   int respondProcessCheckpointRead(ProcessCheckpointReadMessage const *message);
-   int respondPrepareCheckpointWrite(PrepareCheckpointWriteMessage const *message);
+   int respondProcessCheckpointRead(std::shared_ptr<ProcessCheckpointReadMessage const> message);
+   int respondPrepareCheckpointWrite(std::shared_ptr<PrepareCheckpointWriteMessage const> message);
 
    virtual int processCheckpointRead() { return PV_SUCCESS; }
    virtual int prepareCheckpointWrite() { return PV_SUCCESS; }

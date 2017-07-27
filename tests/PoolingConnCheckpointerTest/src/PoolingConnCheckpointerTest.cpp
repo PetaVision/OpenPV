@@ -70,7 +70,7 @@ void checkConfiguration(PV::PV_Init &pv_initObj, char const *programName) {
 }
 
 int checkProbe(PV::HyPerCol *hc, int argc, char **argv) {
-   auto probe = dynamic_cast<PoolingConnCheckpointerTestProbe *>(hc->getColProbeFromName("probe"));
+   auto probe = dynamic_cast<PoolingConnCheckpointerTestProbe *>(hc->getObjectFromName("probe"));
    FatalIf(
          probe == nullptr,
          "Column does not have a PoolingConnCheckpointerTestProbe named \"probe\".\n");

@@ -35,7 +35,8 @@ void BaseConnectionProbe::ioParam_targetName(enum ParamsIOFlag ioFlag) {
    }
 }
 
-int BaseConnectionProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+int BaseConnectionProbe::communicateInitInfo(
+      std::shared_ptr<CommunicateInitInfoMessage const> message) {
    int status = BaseProbe::communicateInitInfo(message);
    if (status != PV_SUCCESS) {
       return status;

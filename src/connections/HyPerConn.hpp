@@ -71,7 +71,8 @@ class HyPerConn : public BaseConnection {
    HyPerConn(const char *name, HyPerCol *hc);
 
    virtual ~HyPerConn();
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual int allocateDataStructures() override;
 
    virtual int insertProbe(BaseConnectionProbe *p) override;
@@ -467,7 +468,7 @@ class HyPerConn : public BaseConnection {
    Timer *io_timer;
    Timer *update_timer;
 
-   bool sharedWeights; // Set to true for the old KernelConn behavior
+   bool sharedWeights;
    bool triggerFlag;
    char *triggerLayerName;
    double triggerOffset;
@@ -833,8 +834,6 @@ class HyPerConn : public BaseConnection {
     * This parameter is ignored if PetaVision was compiled without GPU acceleration.
     */
    virtual void ioParam_gpuGroupIdx(enum ParamsIOFlag ioFlag);
-
-// preDataLocal, numXLocal, numYLocal, and numFLocal were removed Sep 22, 2016.
 #endif // PV_USE_CUDA
 
    /**
@@ -1047,6 +1046,8 @@ class HyPerConn : public BaseConnection {
   public:
    bool getAllocDeviceWeights() { return allocDeviceWeights; }
    bool getAllocPostDeviceWeights() { return allocPostDeviceWeights; }
+   int getGpuGroupIdx() const { return mGpuGroupIdx; }
+   HyPerConn *getGpuGroupHead() const { return mGpuGroupHead; }
 
    virtual void setAllocDeviceWeights() { allocDeviceWeights = true; }
    virtual void setAllocPostDeviceWeights() { allocPostDeviceWeights = true; }
@@ -1084,7 +1085,8 @@ class HyPerConn : public BaseConnection {
    PVCuda::CudaBuffer *d_Patch2DataLookupTable;
    PVCuda::CudaRecvPost *krRecvPost; // Cuda kernel for update state call
    PVCuda::CudaRecvPre *krRecvPre; // Cuda kernel for update state call
-   int gpuGroupIdx;
+   int mGpuGroupIdx         = -1;
+   HyPerConn *mGpuGroupHead = nullptr;
 
 #endif // PV_USE_CUDA
 

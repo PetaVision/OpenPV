@@ -43,16 +43,14 @@ int main(int argc, char *argv[]) {
 int dumpweights(HyPerCol *hc, int argc, char *argv[]) {
    int status         = PV_SUCCESS;
    bool existsgenconn = false;
-   for (int k = 0; k < hc->numberOfConnections(); k++) {
-      HyPerConn *conn = dynamic_cast<HyPerConn *>(hc->getConnection(k));
+   for (Observer *obj = hc->getNextObject(nullptr); obj != nullptr; obj = hc->getNextObject(obj)) {
+      HyPerConn *conn = dynamic_cast<HyPerConn *>(obj);
       // Only test plastic conns
-      if (conn != NULL) {
-         if (conn->getPlasticityFlag()) {
-            existsgenconn = true;
-            int status1   = dumponeweight(conn);
-            if (status == PV_SUCCESS)
-               status = status1;
-         }
+      if (conn != nullptr and conn->getPlasticityFlag()) {
+         existsgenconn = true;
+         int status1   = dumponeweight(conn);
+         if (status == PV_SUCCESS)
+            status = status1;
       }
    }
    if (existsgenconn && status != PV_SUCCESS) {

@@ -166,27 +166,15 @@ void ColumnArchive::addConn(PV::HyPerConn *conn, float connTolerance) {
 }
 
 void ColumnArchive::addCol(PV::HyPerCol *hc, float layerTolerance, float connTolerance) {
-   int const nl = hc->numberOfLayers();
-   m_layerdata.reserve(nl);
-   for (int l = 0; l < nl; l++) {
-      PV::HyPerLayer *layer = hc->getLayer(l);
-      if (layer == nullptr) {
-         Fatal() << "Layer with index " << l << " is null.\n";
+   PV::Observer *firstObject = hc->getNextObject(nullptr);
+   for (PV::Observer *obj = firstObject; obj != nullptr; obj = hc->getNextObject(obj)) {
+      PV::HyPerLayer *layer = dynamic_cast<PV::HyPerLayer *>(obj);
+      if (layer != nullptr) {
+         addLayer(layer, layerTolerance);
       }
-      addLayer(layer, layerTolerance);
-   }
-
-   int const nc = hc->numberOfConnections();
-   m_conndata.reserve(nc);
-   for (int c = 0; c < nc; c++) {
-      PV::BaseConnection *baseConn = hc->getConnection(c);
-      if (baseConn == nullptr) {
-         Fatal() << "Connection with index " << c << " is null.\n";
+      PV::HyPerConn *conn = dynamic_cast<PV::HyPerConn *>(obj);
+      if (conn != nullptr) {
+         addConn(conn, connTolerance);
       }
-      PV::HyPerConn *conn = dynamic_cast<PV::HyPerConn *>(baseConn);
-      if (conn == nullptr) {
-         Fatal() << baseConn->getDescription() << " is not a HyPerConn.\n";
-      }
-      addConn(conn, connTolerance);
    }
 }

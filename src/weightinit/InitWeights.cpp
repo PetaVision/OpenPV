@@ -106,7 +106,7 @@ void InitWeights::handleObsoleteFlag(std::string const &flagName) {
    }
 }
 
-int InitWeights::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+int InitWeights::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    if (mCallingConn == nullptr) {
       mCallingConn = message->lookup<HyPerConn>(std::string(name));
    }

@@ -108,8 +108,8 @@ void checkConfiguration(PV::PV_Init &pv_initObj, char const *programName) {
 }
 
 int checkProbe(PV::HyPerCol *hc, int argc, char **argv) {
-   auto probe = dynamic_cast<MomentumConnViscosityCheckpointerTestProbe *>(
-         hc->getColProbeFromName("probe"));
+   auto probe =
+         dynamic_cast<MomentumConnViscosityCheckpointerTestProbe *>(hc->getObjectFromName("probe"));
    FatalIf(
          probe == nullptr,
          "Column does not have a MomentumConnViscosityCheckpointerTestProbe named \"probe\".\n");

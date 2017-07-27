@@ -24,8 +24,7 @@ int LeakyIntegrator::initialize_base() {
 }
 
 int LeakyIntegrator::initialize(const char *name, HyPerCol *hc) {
-   PVParams *params = hc->parameters();
-   int status       = ANNLayer::initialize(name, hc);
+   int status = ANNLayer::initialize(name, hc);
    assert(numChannels == 1);
    return status;
 }

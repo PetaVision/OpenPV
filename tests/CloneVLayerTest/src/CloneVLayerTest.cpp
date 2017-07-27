@@ -19,37 +19,21 @@ int main(int argc, char *argv[]) {
 }
 
 int customexit(HyPerCol *hc, int argc, char *argv[]) {
-   int check_clone_id   = -1;
-   int check_sigmoid_id = -1;
-   for (int k = 0; k < hc->numberOfLayers(); k++) {
-      if (!strcmp(hc->getLayer(k)->getName(), "CheckClone")) {
-         FatalIf(!(check_clone_id < 0), "Test failed.\n");
-         check_clone_id = k;
-      }
-      if (!strcmp(hc->getLayer(k)->getName(), "CheckSigmoid")) {
-         FatalIf(!(check_sigmoid_id < 0), "Test failed.\n");
-         check_sigmoid_id = k;
-      }
+   HyPerLayer *checkCloneLayer = dynamic_cast<HyPerLayer *>(hc->getObjectFromName("CheckClone"));
+   FatalIf(checkCloneLayer == nullptr, "No layer named \"CheckClone\"\n");
+   float const *checkCloneLayerData = checkCloneLayer->getLayerData();
+   int const numCloneLayerNeurons   = checkCloneLayer->getNumExtended();
+   for (int k = 0; k < numCloneLayerNeurons; k++) {
+      FatalIf(fabsf(checkCloneLayerData[k]) >= 1.0e-6f, "Test failed.\n");
    }
 
-   int N;
-
-   HyPerLayer *check_clone_layer = hc->getLayer(check_clone_id);
-   FatalIf(!(check_clone_layer != NULL), "Test failed.\n");
-   const float *check_clone_layer_data = check_clone_layer->getLayerData();
-   N                                   = check_clone_layer->getNumExtended();
-
-   for (int k = 0; k < N; k++) {
-      FatalIf(!(fabsf(check_clone_layer_data[k]) < 1e-6f), "Test failed.\n");
-   }
-
-   HyPerLayer *check_sigmoid_layer = hc->getLayer(check_sigmoid_id);
-   FatalIf(!(check_sigmoid_layer != NULL), "Test failed.\n");
-   const float *check_sigmoid_layer_data = check_sigmoid_layer->getLayerData();
-   N                                     = check_sigmoid_layer->getNumExtended();
-
-   for (int k = 0; k < N; k++) {
-      FatalIf(!(fabsf(check_sigmoid_layer_data[k]) < 1e-6f), "Test failed.\n");
+   HyPerLayer *checkSigmoidLayer =
+         dynamic_cast<HyPerLayer *>(hc->getObjectFromName("CheckSigmoid"));
+   FatalIf(checkSigmoidLayer == nullptr, "No layer named \"CheckSigmoid\"\n");
+   float const *checkSigmoidLayerData = checkSigmoidLayer->getLayerData();
+   int const numSigmoidLayerNeurons   = checkSigmoidLayer->getNumExtended();
+   for (int k = 0; k < numSigmoidLayerNeurons; k++) {
+      FatalIf(fabsf(checkSigmoidLayerData[k]) >= 1.0e-6f, "Test failed.\n");
    }
 
    if (hc->columnId() == 0) {

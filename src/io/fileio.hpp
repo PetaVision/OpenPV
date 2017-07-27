@@ -89,8 +89,6 @@ int ensureDirExists(MPIBlock const *mpiBlock, char const *dirname);
 // Instead, use the WeightHeader-returning functions in BufferUtils
 // together with FileStream::read and FileStream::write.
 
-// Oct 21, 2016. pvp_set_file_params removed, as filetype PVP_FILE_TYPE is obsolete.
-
 // Unused function pvp_set_activity_params was removed Jan 26, 2017.
 // Unused function alloc_params was removed Feb 21, 2017.
 

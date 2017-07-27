@@ -90,12 +90,11 @@ int LCALIFLayer::initialize_base() {
 
 int LCALIFLayer::initialize(const char *name, HyPerCol *hc, const char *kernel_name) {
    LIFGap::initialize(name, hc, kernel_name);
-   PVParams *params = hc->parameters();
 
    float defaultDynVthScale = lParams.VthRest - lParams.Vrest;
    Vscale                   = defaultDynVthScale > 0 ? defaultDynVthScale : DEFAULT_DYNVTHSCALE;
    if (Vscale <= 0) {
-      if (hc->columnId() == 0) {
+      if (parent->columnId() == 0) {
          ErrorLog().printf(
                "LCALIFLayer \"%s\": Vscale must be positive (value in params is %f).\n",
                name,

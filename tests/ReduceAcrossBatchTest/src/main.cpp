@@ -42,9 +42,9 @@ int main(int argc, char *argv[]) {
 }
 
 int checkWeights(HyPerCol *hc, int argc, char *argv[]) {
-   HyPerConn *conn = dynamic_cast<HyPerConn *>(hc->getConnFromName("InputToOutput"));
+   HyPerConn *conn = dynamic_cast<HyPerConn *>(hc->getObjectFromName("InputToOutput"));
    FatalIf(conn == nullptr, "No HyPerConn named \"InputToOutput\" in column.\n");
-   HyPerLayer *correctValuesLayer = hc->getLayerFromName("SumInputs");
+   HyPerLayer *correctValuesLayer = dynamic_cast<HyPerLayer *>(hc->getObjectFromName("SumInputs"));
    FatalIf(correctValuesLayer == nullptr, "No layer named \"SumInputs\" in column.\n");
 
    int const N = correctValuesLayer->getNumExtended();

@@ -83,6 +83,7 @@ int updateV_ANNLayer_vertices(
       int dn,
       int up);
 
+#ifdef OBSOLETE // Marked obsolete Jun 30, 2017. Use updateV_ANNLayer_vertices
 // updateV_PtwiseLinearTransferLayer was deprecated Jun 28, 2016, along with the
 // PtwiseLinearTransferLayer class.
 // Use ANNLayer with verticesA/verticesV/slopeNegInf/slopePosInf, and updateV_ANNLayer_vertices
@@ -125,6 +126,7 @@ int updateV_PtwiseLinearTransferLayer(
          dn,
          up);
 }
+#endif // OBSOLETE // Marked obsolete Jun 30, 2017. Use updateV_ANNLayer_vertices
 
 KERNEL
 int updateV_ANNLayer_threshminmax(
@@ -371,8 +373,6 @@ int updateV_PtwiseQuotientLayer(
       int numNeurons,
       MEM_GLOBAL float *V,
       MEM_GLOBAL float *GSynHead);
-KERNEL
-int updateV_GapLayer();
 KERNEL
 int updateV_SigmoidLayer();
 KERNEL
@@ -1582,14 +1582,6 @@ int updateV_PtwiseQuotientLayer(
    {
       V[k] = GSynExc[k] / GSynInh[k];
    }
-   return PV_SUCCESS;
-}
-
-KERNEL
-int updateV_GapLayer() {
-   // Contents of GapLayer::updateV() were marked obsolete at the time of refactoring.
-   // The comment there read,
-   // use LIFGap as source layer instead (LIFGap updates gap junctions more accurately)
    return PV_SUCCESS;
 }
 

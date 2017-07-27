@@ -41,7 +41,7 @@ void GapLayer::ioParam_ampSpikelet(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValue(ioFlag, name, "ampSpikelet", &ampSpikelet, ampSpikelet);
 }
 
-int GapLayer::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+int GapLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    int status = CloneVLayer::communicateInitInfo(message);
 
    // Handled by CloneVLayer
@@ -78,7 +78,7 @@ int GapLayer::updateState(
    int nf          = loc->nf;
    int num_neurons = nx * ny * nf;
    int nbatch      = loc->nbatch;
-   updateV_GapLayer();
+   // No need to update V since GapLayer is a CloneVLayer.
    setActivity_GapLayer(
          nbatch,
          num_neurons,

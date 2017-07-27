@@ -30,7 +30,7 @@ int NormalizeBase::initialize(const char *name, HyPerCol *hc) {
    // should be in the indicated group.
 
    int status = BaseObject::initialize(name, hc);
-   status     = hc->addNormalizer(this);
+   status     = parent->addNormalizer(this);
    return status;
 }
 
@@ -85,7 +85,7 @@ void NormalizeBase::ioParam_normalizeOnWeightUpdate(enum ParamsIOFlag ioFlag) {
          normalizeOnWeightUpdate);
 }
 
-int NormalizeBase::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+int NormalizeBase::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    HyPerConn *conn = message->lookup<HyPerConn>(std::string(name));
    pvAssertMessage(conn != nullptr, "No connection \"%s\" for %s.\n", name, getDescription_c());
    pvAssert(conn != nullptr);

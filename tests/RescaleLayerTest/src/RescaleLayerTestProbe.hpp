@@ -15,7 +15,8 @@ namespace PV {
 class RescaleLayerTestProbe : public PV::StatsProbe {
   public:
    RescaleLayerTestProbe(const char *name, HyPerCol *hc);
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
    virtual int outputState(double timed) override;
 

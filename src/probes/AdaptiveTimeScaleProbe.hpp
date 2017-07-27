@@ -63,11 +63,6 @@ class AdaptiveTimeScaleProbe : public ColProbe {
    virtual void ioParam_growthFactor(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief mDtMinToleratedTimeScale: Obsolete. This parameter has been removed.
-    */
-   virtual void ioParam_dtMinToleratedTimeScale(enum ParamsIOFlag ioFlag);
-
-   /**
     * @brief writeTimeScales: Specifies if the timescales should be written
     * @details The timescales get written to
     * outputPath/[name_of_probe]_timescales.txt.
@@ -86,7 +81,8 @@ class AdaptiveTimeScaleProbe : public ColProbe {
    AdaptiveTimeScaleProbe(char const *name, HyPerCol *hc);
    virtual ~AdaptiveTimeScaleProbe();
    virtual int respond(std::shared_ptr<BaseMessage const> message) override;
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual int allocateDataStructures() override;
    virtual int outputState(double timeValue) override;
 
@@ -95,7 +91,7 @@ class AdaptiveTimeScaleProbe : public ColProbe {
    int initialize(char const *name, HyPerCol *hc);
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual int registerData(Checkpointer *checkpointer) override;
-   int respondAdaptTimestep(AdaptTimestepMessage const *message);
+   int respondAdaptTimestep(std::shared_ptr<AdaptTimestepMessage const> message);
    bool needRecalc(double timeValue) override {
       return parent->simulationTime() > getLastUpdateTime();
    }

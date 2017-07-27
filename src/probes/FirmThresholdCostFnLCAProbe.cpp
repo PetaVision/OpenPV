@@ -17,7 +17,8 @@ FirmThresholdCostFnLCAProbe::FirmThresholdCostFnLCAProbe(const char *name, HyPer
 
 FirmThresholdCostFnLCAProbe::FirmThresholdCostFnLCAProbe() { initialize_base(); }
 
-int FirmThresholdCostFnLCAProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+int FirmThresholdCostFnLCAProbe::communicateInitInfo(
+      std::shared_ptr<CommunicateInitInfoMessage const> message) {
    int status = FirmThresholdCostFnProbe::communicateInitInfo(message);
    assert(targetLayer);
    HyPerLCALayer *targetLCALayer = dynamic_cast<HyPerLCALayer *>(targetLayer);

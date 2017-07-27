@@ -23,7 +23,8 @@ namespace PV {
 class L0NormLCAProbe : public L0NormProbe {
   public:
    L0NormLCAProbe(const char *name, HyPerCol *hc);
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual ~L0NormLCAProbe() {}
 
   protected:

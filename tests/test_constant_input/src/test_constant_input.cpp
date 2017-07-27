@@ -38,26 +38,25 @@ int main(int argc, char *argv[]) {
    int status = 0;
 
    PV_Init *initObj = new PV_Init(&argc, &argv, false /*allowUnrecognizedArguments*/);
+   initObj->registerKeyword("TestImage", Factory::create<TestImage>);
 
    // create the managing hypercolumn
    //
-   HyPerCol *hc = new HyPerCol("test_constant_input_column", initObj);
+   HyPerCol *hc = new HyPerCol(initObj);
 
-   // create the image
-   //
-   TestImage *image = new TestImage("test_constant_input_image", hc);
+   TestImage *image = dynamic_cast<TestImage *>(
+         dynamic_cast<HyPerLayer *>(hc->getObjectFromName("test_constant_input_image")));
 
-   // create the layers
-   //
-   HyPerLayer *retina = new Retina("test_constant_input_retina", hc);
+   HyPerLayer *retina = dynamic_cast<HyPerLayer *>(
+         dynamic_cast<HyPerLayer *>(hc->getObjectFromName("test_constant_input_retina")));
 
-   // create the connections
-   //
-   HyPerConn *conn             = new HyPerConn("test_constant_input_connection", hc);
+   HyPerConn *conn =
+         dynamic_cast<HyPerConn *>(hc->getObjectFromName("test_constant_input_connection"));
+
    const int nxp               = conn->xPatchSize();
    const int nyp               = conn->yPatchSize();
    const PVLayerLoc *imageLoc  = image->getLayerLoc();
-   const PVLayerLoc *retinaLoc = image->getLayerLoc();
+   const PVLayerLoc *retinaLoc = retina->getLayerLoc();
    const int nfPre             = imageLoc->nf;
 
    float sumOfWeights = (float)(nxp * nyp * nfPre);

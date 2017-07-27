@@ -59,19 +59,19 @@ int main(int argc, char *argv[]) {
    pv_initObj.setMPIConfiguration(-1, -1, pv_initObj.getWorldSize());
 
    pv_initObj.setParams("input/BaseRun.params");
-   PV::HyPerCol *hc1 = createHyPerCol(&pv_initObj);
+   PV::HyPerCol *hc1 = new PV::HyPerCol(&pv_initObj);
    status            = hc1->run();
    FatalIf(status != PV_SUCCESS, "buildandrun with BaseRun.params failed.\n");
    double const stopTime1 = hc1->getStopTime();
 
    pv_initObj.setParams("input/InitializeFromCheckpointDirTest.params");
-   PV::HyPerCol *hc2 = createHyPerCol(&pv_initObj);
+   PV::HyPerCol *hc2 = new PV::HyPerCol(&pv_initObj);
    status            = hc2->run();
    FatalIf(status != PV_SUCCESS, "run with InitializeFromCheckpointDirTest.params failed.\n");
    double const stopTime2 = hc2->getStopTime();
 
-   PV::HyPerLayer *outputLayer = hc2->getLayerFromName("Output");
-   FatalIf(outputLayer == nullptr, "");
+   PV::HyPerLayer *outputLayer = dynamic_cast<PV::HyPerLayer *>(hc2->getObjectFromName("Output"));
+   FatalIf(outputLayer == nullptr, "No layer named \"Output\".");
 
    double const totalTime = stopTime1 + stopTime2;
    PVLayerLoc const *loc  = outputLayer->getLayerLoc();

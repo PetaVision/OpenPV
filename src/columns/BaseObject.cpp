@@ -70,6 +70,18 @@ int BaseObject::setDescription() {
    return PV_SUCCESS;
 }
 
+int BaseObject::ioParams(enum ParamsIOFlag ioFlag, bool printHeader, bool printFooter) {
+   if (printHeader) {
+      parent->ioParamsStartGroup(ioFlag, name);
+   }
+   ioParamsFillGroup(ioFlag);
+   if (printFooter) {
+      parent->ioParamsFinishGroup(ioFlag);
+   }
+
+   return PV_SUCCESS;
+}
+
 int BaseObject::respond(std::shared_ptr<BaseMessage const> message) {
    // TODO: convert PV_SUCCESS, PV_FAILURE, etc. to enum
    int status = CheckpointerDataInterface::respond(message);
@@ -80,27 +92,21 @@ int BaseObject::respond(std::shared_ptr<BaseMessage const> message) {
       return PV_SUCCESS;
    }
    else if (
-         CommunicateInitInfoMessage const *castMessage =
-               dynamic_cast<CommunicateInitInfoMessage const *>(message.get())) {
+         auto castMessage = std::dynamic_pointer_cast<CommunicateInitInfoMessage const>(message)) {
       return respondCommunicateInitInfo(castMessage);
    }
-   else if (
-         AllocateDataMessage const *castMessage =
-               dynamic_cast<AllocateDataMessage const *>(message.get())) {
+   else if (auto castMessage = std::dynamic_pointer_cast<AllocateDataMessage const>(message)) {
       return respondAllocateData(castMessage);
    }
-   else if (
-         InitializeStateMessage const *castMessage =
-               dynamic_cast<InitializeStateMessage const *>(message.get())) {
+   else if (auto castMessage = std::dynamic_pointer_cast<InitializeStateMessage const>(message)) {
       return respondInitializeState(castMessage);
    }
    else if (
-         CopyInitialStateToGPUMessage const *castMessage =
-               dynamic_cast<CopyInitialStateToGPUMessage const *>(message.get())) {
-      return respondCopyInitialStateToGPUMessage(castMessage);
+         auto castMessage =
+               std::dynamic_pointer_cast<CopyInitialStateToGPUMessage const>(message)) {
+      return respondCopyInitialStateToGPU(castMessage);
    }
-   else if (
-         CleanupMessage const *castMessage = dynamic_cast<CleanupMessage const *>(message.get())) {
+   else if (auto castMessage = std::dynamic_pointer_cast<CleanupMessage const>(message)) {
       return respondCleanup(castMessage);
    }
    else {
@@ -108,7 +114,8 @@ int BaseObject::respond(std::shared_ptr<BaseMessage const> message) {
    }
 }
 
-int BaseObject::respondCommunicateInitInfo(CommunicateInitInfoMessage const *message) {
+int BaseObject::respondCommunicateInitInfo(
+      std::shared_ptr<CommunicateInitInfoMessage const> message) {
    int status = PV_SUCCESS;
    if (getInitInfoCommunicatedFlag()) {
       return status;
@@ -120,7 +127,7 @@ int BaseObject::respondCommunicateInitInfo(CommunicateInitInfoMessage const *mes
    return status;
 }
 
-int BaseObject::respondAllocateData(AllocateDataMessage const *message) {
+int BaseObject::respondAllocateData(std::shared_ptr<AllocateDataMessage const> message) {
    int status = PV_SUCCESS;
    if (getDataStructuresAllocatedFlag()) {
       return status;
@@ -132,7 +139,8 @@ int BaseObject::respondAllocateData(AllocateDataMessage const *message) {
    return status;
 }
 
-int BaseObject::respondRegisterData(RegisterDataMessage<Checkpointer> const *message) {
+int BaseObject::respondRegisterData(
+      std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
    int status = registerData(message->mDataRegistry);
    if (status != PV_SUCCESS) {
       Fatal() << getDescription() << ": registerData failed.\n";
@@ -140,7 +148,7 @@ int BaseObject::respondRegisterData(RegisterDataMessage<Checkpointer> const *mes
    return status;
 }
 
-int BaseObject::respondInitializeState(InitializeStateMessage const *message) {
+int BaseObject::respondInitializeState(std::shared_ptr<InitializeStateMessage const> message) {
    int status = PV_SUCCESS;
    if (getInitialValuesSetFlag()) {
       return status;
@@ -152,11 +160,12 @@ int BaseObject::respondInitializeState(InitializeStateMessage const *message) {
    return status;
 }
 
-int BaseObject::respondCopyInitialStateToGPUMessage(CopyInitialStateToGPUMessage const *message) {
+int BaseObject::respondCopyInitialStateToGPU(
+      std::shared_ptr<CopyInitialStateToGPUMessage const> message) {
    return copyInitialStateToGPU();
 }
 
-int BaseObject::respondCleanup(CleanupMessage const *message) { return cleanup(); }
+int BaseObject::respondCleanup(std::shared_ptr<CleanupMessage const> message) { return cleanup(); }
 
 BaseObject::~BaseObject() { free(name); }
 

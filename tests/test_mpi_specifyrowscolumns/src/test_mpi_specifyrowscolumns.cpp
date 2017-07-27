@@ -88,11 +88,10 @@ int main(int argc, char *argv[]) {
 }
 
 int buildandverify(PV::PV_Init *initObj) {
-   PV::HyPerCol *hc = new PV::HyPerCol("column", initObj);
-   /* PV::ANNLayer * layer = */ new PV::ANNLayer("layer", hc);
-   int rows    = initObj->getIntegerArgument("NumRows");
-   int columns = initObj->getIntegerArgument("NumColumns");
-   FatalIf(!(rows > 0 && columns > 0), "Test failed.\n");
+   PV::HyPerCol *hc = new PV::HyPerCol(initObj);
+   int rows         = initObj->getIntegerArgument("NumRows");
+   int columns      = initObj->getIntegerArgument("NumColumns");
+   FatalIf(rows <= 0 or columns <= 0, "Test failed.\n");
    int status = verifyLoc(hc, rows, columns);
    delete hc;
    return status;
@@ -101,10 +100,11 @@ int buildandverify(PV::PV_Init *initObj) {
 int verifyLoc(PV::HyPerCol *hc, int rows, int columns) {
    int status = PV_SUCCESS;
    int testpassed;
-   const PVLayerLoc *loc = hc->getLayer(0)->getLayerLoc();
+   HyPerLayer *layer     = dynamic_cast<HyPerLayer *>(hc->getObjectFromName("layer"));
+   const PVLayerLoc *loc = layer->getLayerLoc();
    int rank              = hc->getCommunicator()->commRank();
-   FatalIf(!(rows == hc->getCommunicator()->numCommRows()), "Test failed.\n");
-   FatalIf(!(columns == hc->getCommunicator()->numCommColumns()), "Test failed.\n");
+   FatalIf(rows != hc->getCommunicator()->numCommRows(), "Test failed.\n");
+   FatalIf(columns != hc->getCommunicator()->numCommColumns(), "Test failed.\n");
    PVParams *params     = hc->parameters();
    int nxGlobFromParams = params->value("column", "nx");
    int nyGlobFromParams = params->value("column", "ny");
@@ -162,7 +162,7 @@ int verifyLoc(PV::HyPerCol *hc, int rows, int columns) {
                &mpiLoc, sizeof(PVLayerLoc), MPI_CHAR, 0, 20, hc->getCommunicator()->communicator());
       }
    }
-   FatalIf(!(status == PV_SUCCESS), "Test failed.\n");
+   FatalIf(status != PV_SUCCESS, "Test failed.\n");
    return status;
 }
 

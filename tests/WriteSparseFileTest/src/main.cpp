@@ -180,7 +180,7 @@ int copyCorrectOutput(HyPerCol *hc, int argc, char *argv[]) {
    sourcePathString += "/"
                        "output.pvp";
    const char *sourcePath   = sourcePathString.c_str();
-   InputLayer *correctLayer = dynamic_cast<InputLayer *>(hc->getLayerFromName("correct"));
+   InputLayer *correctLayer = dynamic_cast<InputLayer *>(hc->getObjectFromName("correct"));
    assert(correctLayer);
    const char *destPath = correctLayer->getInputPath().c_str();
    if (strcmp(&destPath[strlen(destPath) - 4], ".pvp") != 0) {
@@ -288,7 +288,7 @@ int testioparams(PV_Init *initObj, int rank) {
 
 int assertAllZeroes(HyPerCol *hc, int argc, char *argv[]) {
    const char *targetLayerName = "comparison";
-   HyPerLayer *layer           = hc->getLayerFromName(targetLayerName);
+   HyPerLayer *layer           = dynamic_cast<HyPerLayer *>(hc->getObjectFromName(targetLayerName));
    FatalIf(!(layer), "Test failed.\n");
    LayerProbe *probe = NULL;
    int np            = layer->getNumProbes();

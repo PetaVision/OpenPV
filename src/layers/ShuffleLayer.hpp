@@ -18,7 +18,8 @@ class ShuffleLayer : public CloneVLayer {
   public:
    ShuffleLayer(const char *name, HyPerCol *hc);
    virtual ~ShuffleLayer();
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual int allocateDataStructures() override;
    virtual int updateState(double timef, double dt) override;
    virtual int setActivity() override;

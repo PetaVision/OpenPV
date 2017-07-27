@@ -9,7 +9,8 @@ namespace PV {
 class Segmentify : public PV::HyPerLayer {
   public:
    Segmentify(const char *name, HyPerCol *hc);
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual int allocateDataStructures() override;
    virtual bool activityIsSpiking() override { return false; }
    virtual ~Segmentify();

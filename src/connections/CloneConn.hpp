@@ -18,7 +18,8 @@ class CloneConn : public HyPerConn {
    CloneConn(const char *name, HyPerCol *hc);
    virtual ~CloneConn();
 
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
    virtual int updateState(double time, double dt) override;
 

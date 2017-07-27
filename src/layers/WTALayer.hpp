@@ -14,7 +14,8 @@ class WTALayer : public PV::HyPerLayer {
    WTALayer(const char *name, HyPerCol *hc);
    virtual ~WTALayer();
    virtual int updateState(double timef, double dt) override;
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual bool activityIsSpiking() override { return false; }
 
   protected:

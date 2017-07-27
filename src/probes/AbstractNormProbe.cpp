@@ -6,7 +6,8 @@
  */
 
 #include "AbstractNormProbe.hpp"
-#include "../columns/HyPerCol.hpp"
+#include "columns/HyPerCol.hpp"
+#include "layers/HyPerLayer.hpp"
 #include <limits>
 
 namespace PV {
@@ -54,7 +55,8 @@ void AbstractNormProbe::ioParam_maskLayerName(enum ParamsIOFlag ioFlag) {
          ioFlag, name, "maskLayerName", &maskLayerName, NULL, false /*warnIfAbsent*/);
 }
 
-int AbstractNormProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+int AbstractNormProbe::communicateInitInfo(
+      std::shared_ptr<CommunicateInitInfoMessage const> message) {
    int status = LayerProbe::communicateInitInfo(message);
    assert(targetLayer);
    if (maskLayerName && maskLayerName[0]) {

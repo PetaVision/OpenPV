@@ -96,7 +96,7 @@ int ShuffleLayer::allocateDataStructures() {
    return status;
 }
 
-int ShuffleLayer::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+int ShuffleLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    int status = CloneVLayer::communicateInitInfo(message);
    return status;
 }

@@ -97,7 +97,7 @@ int FilenameParsingGroundTruthLayer::registerData(Checkpointer *checkpointer) {
 }
 
 int FilenameParsingGroundTruthLayer::communicateInitInfo(
-      CommunicateInitInfoMessage const *message) {
+      std::shared_ptr<CommunicateInitInfoMessage const> message) {
    mInputLayer = message->lookup<InputLayer>(std::string(mInputLayerName));
    FatalIf(
          mInputLayer == nullptr && parent->columnId() == 0,

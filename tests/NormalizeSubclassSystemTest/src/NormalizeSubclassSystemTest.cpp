@@ -21,15 +21,17 @@ int main(int argc, char *argv[]) {
 int customexit(HyPerCol *hc, int argc, char *argv[]) {
    float tol = 1e-5;
 
-   BaseConnection *baseConn;
-   baseConn                   = hc->getConnFromName("NormalizeL3Connection");
-   HyPerConn *normalizeL3Conn = dynamic_cast<HyPerConn *>(baseConn);
+   Observer *baseObject;
+   baseObject                 = hc->getObjectFromName("NormalizeL3Connection");
+   HyPerConn *normalizeL3Conn = dynamic_cast<HyPerConn *>(baseObject);
    FatalIf(normalizeL3Conn == nullptr, "Connection \"NormalizeL3Connection\" does not exist.\n");
    NormalizeBase *normalizeL3Normalizer = normalizeL3Conn->getNormalizer();
    FatalIf(normalizeL3Normalizer == nullptr, "NormalizeL3Connection has no normalizer.\n");
-   float normalizeL3Strength    = normalizeL3Normalizer->getStrength();
-   float correctValue           = powf(normalizeL3Strength, 3.0f);
-   HyPerLayer *normalizeL3Check = hc->getLayerFromName("NormalizeL3Check");
+   float normalizeL3Strength = normalizeL3Normalizer->getStrength();
+   float correctValue        = powf(normalizeL3Strength, 3.0f);
+
+   baseObject                   = hc->getObjectFromName("NormalizeL3Check");
+   HyPerLayer *normalizeL3Check = dynamic_cast<HyPerLayer *>(baseObject);
    FatalIf(normalizeL3Check == nullptr, "Layer \"NormalizeL3Check\" does not exist.\n");
    float normalizeL3Value = normalizeL3Check->getLayerData()[0];
    FatalIf(

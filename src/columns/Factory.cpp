@@ -46,14 +46,12 @@
 #include "layers/WTALayer.hpp"
 
 #include "connections/CloneConn.hpp"
-#include "connections/CloneKernelConn.hpp"
 #include "connections/CopyConn.hpp"
 #include "connections/FeedbackConn.hpp"
 #include "connections/GapConn.hpp"
 #include "connections/HyPerConn.hpp"
 #include "connections/IdentConn.hpp"
 #include "connections/ImprintConn.hpp"
-#include "connections/KernelConn.hpp"
 #include "connections/MomentumConn.hpp"
 #include "connections/PlasticCloneConn.hpp"
 #include "connections/PoolingConn.hpp"
@@ -149,13 +147,11 @@ int Factory::registerCoreKeywords() {
 
    registerKeyword("HyPerConn", Factory::create<HyPerConn>);
    registerKeyword("CloneConn", Factory::create<CloneConn>);
-   registerKeyword("CloneKernelConn", Factory::create<CloneKernelConn>);
    registerKeyword("CopyConn", Factory::create<CopyConn>);
    registerKeyword("FeedbackConn", Factory::create<FeedbackConn>);
    registerKeyword("GapConn", Factory::create<GapConn>);
    registerKeyword("IdentConn", Factory::create<IdentConn>);
    registerKeyword("ImprintConn", Factory::create<ImprintConn>);
-   registerKeyword("KernelConn", Factory::create<KernelConn>);
    registerKeyword("MomentumConn", Factory::create<MomentumConn>);
    registerKeyword("PlasticCloneConn", Factory::create<PlasticCloneConn>);
    registerKeyword("PoolingConn", Factory::create<PoolingConn>);

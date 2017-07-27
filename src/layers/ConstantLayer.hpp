@@ -34,7 +34,8 @@ class ConstantLayer : public PV::HyPerLayer {
    virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) override;
    /** @} */ // End list of ConstantLayer parameters
 
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
   private:
    int initialize_base();

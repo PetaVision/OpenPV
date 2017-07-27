@@ -38,7 +38,8 @@ class MomentumConnViscosityCheckpointerTestProbe : public PV::ColProbe {
   protected:
    int initialize(const char *name, PV::HyPerCol *hc);
    virtual void ioParam_textOutputFlag(enum PV::ParamsIOFlag ioFlag) override;
-   virtual int communicateInitInfo(PV::CommunicateInitInfoMessage const *message) override;
+   virtual int
+   communicateInitInfo(std::shared_ptr<PV::CommunicateInitInfoMessage const> message) override;
    virtual int readStateFromCheckpoint(PV::Checkpointer *checkpointer) override;
    virtual bool needRecalc(double timevalue) override { return true; }
    virtual double referenceUpdateTime() const override { return parent->simulationTime(); }
@@ -52,19 +53,19 @@ class MomentumConnViscosityCheckpointerTestProbe : public PV::ColProbe {
     * Sets the input layer data member, and checks that the input layer's parameters are
     * consistent with those expected by the test. Returns either PV_SUCCESS or PV_POSTPONE.
     */
-   int initInputLayer(PV::CommunicateInitInfoMessage const *message);
+   int initInputLayer(std::shared_ptr<PV::CommunicateInitInfoMessage const> message);
 
    /**
     * Sets the output layer data member, and checks that the output layer's parameters are
     * consistent with those expected by the test. Returns either PV_SUCCESS or PV_POSTPONE.
     */
-   int initOutputLayer(PV::CommunicateInitInfoMessage const *message);
+   int initOutputLayer(std::shared_ptr<PV::CommunicateInitInfoMessage const> message);
 
    /**
     * Sets the connection data member, and checks that the connection's parameters are
     * consistent with those expected by the test. Returns either PV_SUCCESS or PV_POSTPONE.
     */
-   int initConnection(PV::CommunicateInitInfoMessage const *message);
+   int initConnection(std::shared_ptr<PV::CommunicateInitInfoMessage const> message);
 
    /**
     * Checks whether the given object has finished its communicateInitInfo stage, and

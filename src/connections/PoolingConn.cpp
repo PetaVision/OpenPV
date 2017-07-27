@@ -17,7 +17,7 @@ PoolingConn::PoolingConn() { initialize_base(); }
 
 PoolingConn::PoolingConn(const char *name, HyPerCol *hc) : HyPerConn() {
    initialize_base();
-   initialize(name, hc, NULL, NULL);
+   initialize(name, hc);
 }
 
 PoolingConn::~PoolingConn() {
@@ -178,31 +178,8 @@ void PoolingConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
    }
 }
 
-int PoolingConn::initialize(
-      const char *name,
-      HyPerCol *hc,
-      InitWeights *weightInitializer,
-      NormalizeBase *weightNormalizer) {
-   // It is okay for either of weightInitializer or weightNormalizer to be null
-   // at this point,
-   // either because we're in a subclass that doesn't need it, or because we are
-   // allowing for
-   // backward compatibility.
-   // The two lines needs to be before the call to BaseConnection::initialize,
-   // because that function
-   // calls ioParamsFillGroup,
-   // which will call ioParam_weightInitType and ioParam_normalizeMethod, which
-   // for reasons of
-   // backward compatibility
-   // will create the initializer and normalizer if those member variables are
-   // null.
-   this->weightInitializer = weightInitializer;
-   this->normalizer        = weightNormalizer;
-
-   int status = BaseConnection::initialize(name, hc); // BaseConnection should *NOT* take
-// weightInitializer or weightNormalizer as
-// arguments, as it does not know about
-// InitWeights or NormalizeBase
+int PoolingConn::initialize(const char *name, HyPerCol *hc) {
+   int status = BaseConnection::initialize(name, hc);
 
 #ifdef PV_USE_CUDA
    if (needPostIndexLayer && receiveGpu) {
@@ -247,7 +224,7 @@ int PoolingConn::initialize(
    return status;
 }
 
-int PoolingConn::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+int PoolingConn::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    int status = HyPerConn::communicateInitInfo(message);
 
    // Check pre/post connections here

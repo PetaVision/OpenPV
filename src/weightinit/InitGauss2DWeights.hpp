@@ -49,7 +49,8 @@ class InitGauss2DWeights : public PV::InitWeights {
    bool needAspectParams();
    void calcOtherParams(int patchIndex);
 
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
    virtual void calcWeights(float *dataStart, int dataPatchIndex, int arborId) override;
 

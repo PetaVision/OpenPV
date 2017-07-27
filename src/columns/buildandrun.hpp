@@ -22,8 +22,6 @@
 
 using namespace PV;
 
-// Deprecated versions of buildandrun, etc. were removed July 27, 2016.
-
 /**
  * The most basic function for creating and running a column from command line
  * settings.

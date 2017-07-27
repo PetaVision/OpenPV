@@ -43,9 +43,8 @@ int BaseConnection::initialize_base() {
 int BaseConnection::initialize(const char *name, HyPerCol *hc) {
    int status = BaseObject::initialize(name, hc);
 
-   this->parent->addConnection(this);
    if (status == PV_SUCCESS)
-      status = ioParams(PARAMS_IO_READ);
+      status = readParams();
    return status;
 }
 
@@ -237,14 +236,6 @@ int BaseConnection::getPreAndPostLayerNames(
    return status;
 }
 
-int BaseConnection::ioParams(enum ParamsIOFlag ioFlag) {
-   parent->ioParamsStartGroup(ioFlag, this->getName());
-   ioParamsFillGroup(ioFlag);
-   parent->ioParamsFinishGroup(ioFlag);
-
-   return PV_SUCCESS;
-}
-
 int BaseConnection::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = PV_SUCCESS;
    ioParam_preLayerName(ioFlag);
@@ -427,18 +418,24 @@ int BaseConnection::respond(std::shared_ptr<BaseMessage const> message) {
       return status;
    }
    else if (
-         ConnectionUpdateMessage const *castMessage =
-               dynamic_cast<ConnectionUpdateMessage const *>(message.get())) {
+         auto castMessage =
+               std::dynamic_pointer_cast<ConnectionWriteParamsMessage const>(message)) {
+      return respondConnectionWriteParams(castMessage);
+   }
+   else if (
+         auto castMessage =
+               std::dynamic_pointer_cast<ConnectionProbeWriteParamsMessage const>(message)) {
+      return respondConnectionProbeWriteParams(castMessage);
+   }
+   else if (auto castMessage = std::dynamic_pointer_cast<ConnectionUpdateMessage const>(message)) {
       return respondConnectionUpdate(castMessage);
    }
    else if (
-         ConnectionFinalizeUpdateMessage const *castMessage =
-               dynamic_cast<ConnectionFinalizeUpdateMessage const *>(message.get())) {
+         auto castMessage =
+               std::dynamic_pointer_cast<ConnectionFinalizeUpdateMessage const>(message)) {
       return respondConnectionFinalizeUpdate(castMessage);
    }
-   else if (
-         ConnectionOutputMessage const *castMessage =
-               dynamic_cast<ConnectionOutputMessage const *>(message.get())) {
+   else if (auto castMessage = std::dynamic_pointer_cast<ConnectionOutputMessage const>(message)) {
       return respondConnectionOutput(castMessage);
    }
    else {
@@ -446,10 +443,20 @@ int BaseConnection::respond(std::shared_ptr<BaseMessage const> message) {
    }
 }
 
+int BaseConnection::respondConnectionWriteParams(
+      std::shared_ptr<ConnectionWriteParamsMessage const> message) {
+   return writeParams();
+}
+
+int BaseConnection::respondConnectionProbeWriteParams(
+      std::shared_ptr<ConnectionProbeWriteParamsMessage const> message) {
+   return outputProbeParams();
+}
+
 int BaseConnection::outputProbeParams() {
    int status = PV_SUCCESS;
    for (int p = 0; p < numProbes; p++) {
-      int status1 = probes[p]->ioParams(PARAMS_IO_WRITE);
+      int status1 = probes[p]->writeParams();
       if (status1 != PV_SUCCESS) {
          status = PV_FAILURE;
       }
@@ -457,7 +464,7 @@ int BaseConnection::outputProbeParams() {
    return status;
 }
 
-int BaseConnection::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+int BaseConnection::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    int status = PV_SUCCESS;
 
    if (this->getPreLayerName() == NULL) {

@@ -29,7 +29,6 @@ int AdaptiveTimeScaleProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_baseMin(ioFlag);
    ioParam_tauFactor(ioFlag);
    ioParam_growthFactor(ioFlag);
-   ioParam_dtMinToleratedTimeScale(ioFlag);
    ioParam_writeTimeScales(ioFlag);
    ioParam_writeTimeScaleFieldnames(ioFlag);
    return status;
@@ -45,17 +44,6 @@ void AdaptiveTimeScaleProbe::ioParam_baseMax(enum ParamsIOFlag ioFlag) {
 
 void AdaptiveTimeScaleProbe::ioParam_baseMin(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValue(ioFlag, name, "baseMin", &mBaseMin, mBaseMin);
-}
-
-void AdaptiveTimeScaleProbe::ioParam_dtMinToleratedTimeScale(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ
-       && parent->parameters()->present(getName(), "dtMinToleratedTimeScale")) {
-      if (parent->getCommunicator()->commRank() == 0) {
-         ErrorLog() << "The dtMinToleratedTimeScale parameter has been removed.\n";
-      }
-      MPI_Barrier(parent->getCommunicator()->communicator());
-      exit(EXIT_FAILURE);
-   }
 }
 
 void AdaptiveTimeScaleProbe::ioParam_tauFactor(enum ParamsIOFlag ioFlag) {
@@ -83,7 +71,8 @@ void AdaptiveTimeScaleProbe::ioParam_writeTimeScaleFieldnames(enum ParamsIOFlag 
    }
 }
 
-int AdaptiveTimeScaleProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+int AdaptiveTimeScaleProbe::communicateInitInfo(
+      std::shared_ptr<CommunicateInitInfoMessage const> message) {
    int status   = ColProbe::communicateInitInfo(message);
    mTargetProbe = message->lookup<BaseProbe>(std::string(targetName));
    if (mTargetProbe == nullptr) {
@@ -136,9 +125,7 @@ int AdaptiveTimeScaleProbe::respond(std::shared_ptr<BaseMessage const> message) 
    if (message == nullptr) {
       return status;
    }
-   else if (
-         AdaptTimestepMessage const *castMessage =
-               dynamic_cast<AdaptTimestepMessage const *>(message.get())) {
+   else if (auto castMessage = std::dynamic_pointer_cast<AdaptTimestepMessage const>(message)) {
       return respondAdaptTimestep(castMessage);
    }
    else {
@@ -146,7 +133,8 @@ int AdaptiveTimeScaleProbe::respond(std::shared_ptr<BaseMessage const> message) 
    }
 }
 
-int AdaptiveTimeScaleProbe::respondAdaptTimestep(AdaptTimestepMessage const *message) {
+int AdaptiveTimeScaleProbe::respondAdaptTimestep(
+      std::shared_ptr<AdaptTimestepMessage const> message) {
    return getValues(parent->simulationTime());
 }
 

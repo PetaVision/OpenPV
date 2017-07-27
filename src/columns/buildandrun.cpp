@@ -31,11 +31,6 @@ using namespace PV;
 // and running it.  To add custom groups, instantiate a PV_Init object
 // and call PV_Init::registerKeyword with the create function (in most cases,
 // the static function template PV::Factory::create<CustomClass>.
-//
-// Older versions of buildandrun, that used the now-obsolete customgroups
-// function
-// pointer system or the now-obsolete ParamGroupHandler class, were removed
-// July 27, 2016.
 int buildandrun(
       int argc,
       char *argv[],
@@ -105,9 +100,7 @@ int buildandrun1paramset(
    if (sweepindex >= 0) {
       initObj->getParams()->setParameterSweepValues(sweepindex);
    }
-   HyPerCol *hc = createHyPerCol(initObj);
-   if (hc == nullptr)
-      return PV_FAILURE; // createHyPerCol() prints any error message
+   HyPerCol *hc = new HyPerCol(initObj);
 
    int status  = PV_SUCCESS;
    int argc    = 0;
@@ -143,4 +136,4 @@ int buildandrun1paramset(
    return status;
 }
 
-HyPerCol *build(PV_Init *initObj) { return initObj ? createHyPerCol(initObj) : nullptr; }
+HyPerCol *build(PV_Init *initObj) { return initObj ? new HyPerCol(initObj) : nullptr; }

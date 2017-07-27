@@ -21,8 +21,8 @@ StochasticReleaseTestProbe::StochasticReleaseTestProbe() { initialize_base(); }
 int StochasticReleaseTestProbe::initialize_base() { return PV_SUCCESS; }
 
 int StochasticReleaseTestProbe::initialize(const char *name, HyPerCol *hc) {
-   pvAssert(hc->getInitialStep() == 0L);
    int status = StatsProbe::initialize(name, hc);
+   pvAssert(parent->getInitialStep() == 0L);
    return status;
 }
 
@@ -30,7 +30,8 @@ void StochasticReleaseTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
    requireType(BufActivity);
 }
 
-int StochasticReleaseTestProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+int StochasticReleaseTestProbe::communicateInitInfo(
+      std::shared_ptr<CommunicateInitInfoMessage const> message) {
    int status = StatsProbe::communicateInitInfo(message);
    FatalIf(!getTargetLayer(), ": %s did not set target layer.\n", getDescription_c());
    FatalIf(

@@ -75,7 +75,7 @@ int MomentumLCALayer::allocateDataStructures() {
    }
 
 #ifdef PV_USE_CUDA
-   if (updateGpu) {
+   if (mUpdateGpu) {
       d_prevDrive->copyToDevice(prevDrive);
    }
 #endif
@@ -237,7 +237,7 @@ int MomentumLCALayer::registerData(Checkpointer *checkpointer) {
 int MomentumLCALayer::processCheckpointRead() {
 #ifdef PV_USE_CUDA
    // Copy prevDrive onto GPU
-   if (updateGpu) {
+   if (mUpdateGpu) {
       d_prevDrive->copyToDevice(prevDrive);
       parent->getDevice()->syncDevice();
    }
@@ -248,7 +248,7 @@ int MomentumLCALayer::processCheckpointRead() {
 int MomentumLCALayer::prepareCheckpointWrite() {
 #ifdef PV_USE_CUDA
    // Copy prevDrive from GPU
-   if (updateGpu) {
+   if (mUpdateGpu) {
       d_prevDrive->copyFromDevice(prevDrive);
       parent->getDevice()->syncDevice();
    }
