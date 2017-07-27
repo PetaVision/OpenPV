@@ -28,7 +28,6 @@ void KneeTimeScaleProbe::allocateTimeScaleController() {
          mBaseMin,
          tauFactor,
          mGrowthFactor,
-         mWriteTimeScales,
          mWriteTimeScaleFieldnames,
          parent->getCommunicator(),
          mKneeThresh,

@@ -224,7 +224,6 @@ AdaptiveTimeScaleProbe "AdaptiveTimeScalesCPU" = {
     baseMin                             = 0.5;
     tauFactor                           = 0.1;
     growthFactor                        = 0.01;
-    writeTimeScales                     = true;
     writeTimeScaleFieldnames            = true;
 };
 

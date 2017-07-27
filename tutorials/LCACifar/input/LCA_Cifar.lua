@@ -73,7 +73,6 @@ local pvParameters = {
       baseMin                             = 0.05;  -- Initial value for timescale growth
       tauFactor                           = 0.03;  -- Percent of tau used as growth target
       growthFactor                        = 0.025; -- Exponential growth factor. The smaller value between this and the above is chosen. 
-      writeTimeScales                     = true;
       writeTimeScalesFieldnames           = false;
    };
 

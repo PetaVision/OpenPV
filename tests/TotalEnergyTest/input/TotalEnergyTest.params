@@ -42,7 +42,6 @@ AdaptiveTimeScaleProbe "AdaptiveTimeScales" = {
    baseMin = 0.125;
    tauFactor = 0.05;
    growthFactor = 0;
-   writeTimeScales = true;
 };
 
 //
