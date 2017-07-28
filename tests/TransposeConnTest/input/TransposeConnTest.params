@@ -22,7 +22,6 @@ HyPerCol "column" = {
     // deleteOlderCheckpoints;
     // suppressNonplasticCheckpoints;
     lastCheckpointDir                   = "output/Last";
-    writeTimeScales                     = true;
     errorOnNotANumber                   = false;
 };
 

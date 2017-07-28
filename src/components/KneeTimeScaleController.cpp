@@ -9,7 +9,6 @@ KneeTimeScaleController::KneeTimeScaleController(
       double baseMin,
       double tauFactor,
       double growthFactor,
-      bool writeTimeScales,
       bool writeTimeScaleFieldnames,
       Communicator *comm,
       double kneeThresh,
@@ -21,7 +20,6 @@ KneeTimeScaleController::KneeTimeScaleController(
               baseMin,
               tauFactor,
               growthFactor,
-              writeTimeScales,
               writeTimeScaleFieldnames,
               comm) {
    mKneeThresh = kneeThresh;

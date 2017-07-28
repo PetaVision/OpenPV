@@ -54,14 +54,36 @@ void AdaptiveTimeScaleProbe::ioParam_growthFactor(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValue(ioFlag, name, "growthFactor", &mGrowthFactor, mGrowthFactor);
 }
 
+// writeTimeScales was marked obsolete Jul 27, 2017. Use textOutputFlag instead.
 void AdaptiveTimeScaleProbe::ioParam_writeTimeScales(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
-         ioFlag, name, "writeTimeScales", &mWriteTimeScales, mWriteTimeScales);
+   if (ioFlag != PARAMS_IO_READ) {
+      return;
+   }
+   pvAssert(!presentAndNotBeenRead(name, "textOutputFlag"));
+   if (parent->parameters()->present(name, "writeTimeScales")) {
+      bool writeTimeScales = (parent->parameters()->value(name, "writeTimeScales") != 0);
+      if (writeTimeScales == getTextOutputFlag()) {
+         WarnLog() << getDescription()
+                   << " sets writeTimeScales, which is obsolete. Use textOutputFlag instead.\n";
+      }
+      else if (parent->parameters()->present(name, "textOutputFlag")) {
+         Fatal() << "writeTimeScales is obsolete as it is redundant with textOutputFlag. "
+                 << getDescription() << " sets these flags to opposite values.\n";
+      }
+      else {
+         pvAssert(writeTimeScales != getTextOutputFlag());
+         Fatal() << "writeTimeScales is obsolete as it is redundant with textOutputFlag. "
+                 << getDescription() << " sets writeTimeScales to "
+                 << (writeTimeScales ? "true" : "false")
+                 << " but the default value of textOutputFlag is "
+                 << (getTextOutputFlag() ? "true" : "false") << "\n";
+      }
+   }
 }
 
 void AdaptiveTimeScaleProbe::ioParam_writeTimeScaleFieldnames(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "writeTimeScales"));
-   if (mWriteTimeScales) {
+   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "textOutputFlag"));
+   if (getTextOutputFlag()) {
       parent->parameters()->ioParamValue(
             ioFlag,
             name,
@@ -109,7 +131,6 @@ void AdaptiveTimeScaleProbe::allocateTimeScaleController() {
          mBaseMin,
          tauFactor,
          mGrowthFactor,
-         mWriteTimeScales,
          mWriteTimeScaleFieldnames,
          parent->getCommunicator());
 }

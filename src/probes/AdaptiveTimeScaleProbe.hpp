@@ -62,17 +62,16 @@ class AdaptiveTimeScaleProbe : public ColProbe {
     */
    virtual void ioParam_growthFactor(enum ParamsIOFlag ioFlag);
 
+   // writeTimeScales was marked obsolete Jul 27, 2017.
    /**
-    * @brief writeTimeScales: Specifies if the timescales should be written
-    * @details The timescales get written to
-    * outputPath/[name_of_probe]_timescales.txt.
+    * @brief writeTimeScales is obsolete, as it is redundant with textOutputFlag.
     */
    virtual void ioParam_writeTimeScales(enum ParamsIOFlag ioFlag);
 
    /**
     * @brief writeTimeScaleFieldnames: A flag to determine if fieldnames are
     * written to the
-    * HyPerCol_timescales file, if false, file is written as comma separated list
+    * HyPerCol_timescales file. If false, file is written as comma separated list
     */
    virtual void ioParam_writeTimeScaleFieldnames(enum ParamsIOFlag ioFlag);
    /** @} */
@@ -105,7 +104,6 @@ class AdaptiveTimeScaleProbe : public ColProbe {
    double mBaseMin                = 1.0;
    double tauFactor               = 1.0;
    double mGrowthFactor           = 1.0;
-   bool mWriteTimeScales          = true;
    bool mWriteTimeScaleFieldnames = true;
 
    BaseProbe *mTargetProbe                                   = nullptr;

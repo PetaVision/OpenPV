@@ -10,7 +10,6 @@ LogTimeScaleController::LogTimeScaleController(
       double baseMin,
       double tauFactor,
       double growthFactor,
-      bool writeTimeScales,
       bool writeTimeScaleFieldnames,
       Communicator *comm,
       double logThresh,
@@ -22,7 +21,6 @@ LogTimeScaleController::LogTimeScaleController(
               baseMin,
               tauFactor,
               growthFactor,
-              writeTimeScales,
               writeTimeScaleFieldnames,
               comm) {
    mLogThresh = logThresh;
