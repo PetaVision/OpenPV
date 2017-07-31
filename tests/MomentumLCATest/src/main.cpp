@@ -286,12 +286,12 @@ int testioparams(PV_Init *initObj, int rank) {
 int assertAllZeroes(HyPerCol *hc, int argc, char *argv[]) {
    std::string layerName("Comparison");
    HyPerLayer *layer = dynamic_cast<HyPerLayer *>(hc->getObjectFromName(layerName));
-   FatalIf(!layer, "No layer named \"%s\".\n", layerName);
+   FatalIf(!layer, "No layer named \"%s\".\n", layerName.c_str());
 
    std::string probeName("ComparisonTest");
    RequireAllZeroActivityProbe *allzeroProbe =
          dynamic_cast<RequireAllZeroActivityProbe *>(hc->getObjectFromName(probeName));
-   FatalIf(!allzeroProbe, "No probe named \"%s\".\n", probeName);
+   FatalIf(!allzeroProbe, "No probe named \"%s\".\n", probeName.c_str());
    if (allzeroProbe->getNonzeroFound()) {
       if (hc->columnId() == 0) {
          double t = allzeroProbe->getNonzeroTime();

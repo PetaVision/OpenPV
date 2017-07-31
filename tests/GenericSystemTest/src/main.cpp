@@ -285,7 +285,7 @@ int testioparams(PV_Init *initObj, int rank) {
 int assertAllZeroes(HyPerCol *hc, int argc, char *argv[]) {
    std::string const targetLayerName("comparison");
    HyPerLayer *layer = dynamic_cast<HyPerLayer *>(hc->getObjectFromName(targetLayerName));
-   FatalIf(!layer, "No layer named \"%s\".\n", targetLayerName);
+   FatalIf(!layer, "No layer named \"%s\".\n", targetLayerName.c_str());
 
    std::string const probeName("comparison_test");
    RequireAllZeroActivityProbe *probe =
