@@ -814,8 +814,11 @@ void HyPerCol::nonblockingLayerUpdate(
    }
 
    if (idleCounter > 1L) {
-      InfoLog() << "t = " << mSimTime << ", phase " << updateMessage->mPhase << ", recvGpu"
-                << updateMessage->mRecvOnGpuFlag << ", updateGpu" << updateMessage->mUpdateOnGpuFlag
+      InfoLog() << "t = " << mSimTime << ", phase " << updateMessage->mPhase
+#ifdef PV_USE_CUDA
+                << ", recvGpu" << updateMessage->mRecvOnGpuFlag
+                << ", updateGpu" << updateMessage->mUpdateOnGpuFlag
+#endif // PV_USE_CUDA
                 << ", idle count " << idleCounter << "\n";
    }
 }
@@ -843,8 +846,11 @@ void HyPerCol::nonblockingLayerUpdate(
    }
 
    if (idleCounter > 1L) {
-      InfoLog() << "t = " << mSimTime << ", phase " << updateMessage->mPhase << ", recvGpu"
-                << updateMessage->mRecvOnGpuFlag << ", updateGpu" << updateMessage->mUpdateOnGpuFlag
+      InfoLog() << "t = " << mSimTime << ", phase " << updateMessage->mPhase
+#ifdef PV_USE_CUDA
+                << ", recvGpu" << updateMessage->mRecvOnGpuFlag
+                << ", updateGpu" << updateMessage->mUpdateOnGpuFlag
+#endif // PV_USE_CUDA
                 << ", idle count " << idleCounter << "\n";
    }
 }
