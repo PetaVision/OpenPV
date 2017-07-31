@@ -59,7 +59,7 @@ void AdaptiveTimeScaleProbe::ioParam_writeTimeScales(enum ParamsIOFlag ioFlag) {
    if (ioFlag != PARAMS_IO_READ) {
       return;
    }
-   pvAssert(!presentAndNotBeenRead(name, "textOutputFlag"));
+   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "textOutputFlag"));
    if (parent->parameters()->present(name, "writeTimeScales")) {
       bool writeTimeScales = (parent->parameters()->value(name, "writeTimeScales") != 0);
       if (writeTimeScales == getTextOutputFlag()) {
