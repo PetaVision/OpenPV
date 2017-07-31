@@ -20,7 +20,7 @@ class NormalizeBase : public BaseObject {
    // no public constructor; only subclasses can be constructed directly
    virtual ~NormalizeBase() = 0;
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    /**
     * Appends the indicated connection to the list of connections for this normalizer

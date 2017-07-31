@@ -64,7 +64,7 @@ class InitWeights : public BaseObject {
    InitWeights(char const *name, HyPerCol *hc);
    virtual ~InitWeights();
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    /*
     * initializeWeights is not virtual.  It checks initFromLastFlag and then
