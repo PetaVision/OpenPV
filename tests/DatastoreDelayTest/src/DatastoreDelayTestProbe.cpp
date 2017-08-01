@@ -6,6 +6,7 @@
  */
 
 #include "DatastoreDelayTestProbe.hpp"
+#include "layers/HyPerLayer.hpp"
 #include <string.h>
 #include <utils/PVLog.hpp>
 
@@ -26,7 +27,8 @@ void DatastoreDelayTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
    }
 }
 
-int DatastoreDelayTestProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+int DatastoreDelayTestProbe::communicateInitInfo(
+      std::shared_ptr<CommunicateInitInfoMessage const> message) {
    int status = StatsProbe::communicateInitInfo(message);
    if (status != PV_SUCCESS) {
       return status;

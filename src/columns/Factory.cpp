@@ -46,14 +46,12 @@
 #include "layers/WTALayer.hpp"
 
 #include "connections/CloneConn.hpp"
-#include "connections/CloneKernelConn.hpp"
 #include "connections/CopyConn.hpp"
 #include "connections/FeedbackConn.hpp"
 #include "connections/GapConn.hpp"
 #include "connections/HyPerConn.hpp"
 #include "connections/IdentConn.hpp"
 #include "connections/ImprintConn.hpp"
-#include "connections/KernelConn.hpp"
 #include "connections/MomentumConn.hpp"
 #include "connections/PlasticCloneConn.hpp"
 #include "connections/PoolingConn.hpp"
@@ -149,13 +147,11 @@ int Factory::registerCoreKeywords() {
 
    registerKeyword("HyPerConn", Factory::create<HyPerConn>);
    registerKeyword("CloneConn", Factory::create<CloneConn>);
-   registerKeyword("CloneKernelConn", Factory::create<CloneKernelConn>);
    registerKeyword("CopyConn", Factory::create<CopyConn>);
    registerKeyword("FeedbackConn", Factory::create<FeedbackConn>);
    registerKeyword("GapConn", Factory::create<GapConn>);
    registerKeyword("IdentConn", Factory::create<IdentConn>);
    registerKeyword("ImprintConn", Factory::create<ImprintConn>);
-   registerKeyword("KernelConn", Factory::create<KernelConn>);
    registerKeyword("MomentumConn", Factory::create<MomentumConn>);
    registerKeyword("PlasticCloneConn", Factory::create<PlasticCloneConn>);
    registerKeyword("PoolingConn", Factory::create<PoolingConn>);
@@ -225,15 +221,20 @@ int Factory::registerKeyword(char const *keyword, ObjectCreateFn creator) {
 }
 
 BaseObject *Factory::createByKeyword(char const *keyword, char const *name, HyPerCol *hc) const {
+   if (keyword == nullptr) {
+      return nullptr;
+   }
    KeywordHandler const *keywordHandler = getKeywordHandler(keyword);
    if (keywordHandler == nullptr) {
-      auto errorString = std::string("Unrecognized keyword ").append(keyword);
+      auto errorString = std::string(keyword).append(" \"").append(name).append("\": ");
+      errorString.append("keyword \"").append(keyword).append("\" is unrecognized.");
       throw std::invalid_argument(errorString);
    }
    return keywordHandler ? keywordHandler->create(name, hc) : nullptr;
 }
 
 KeywordHandler const *Factory::getKeywordHandler(char const *keyword) const {
+   pvAssert(keyword != nullptr);
    for (auto &typeCreator : keywordHandlerList) {
       if (!strcmp(typeCreator->getKeyword(), keyword)) {
          return typeCreator;

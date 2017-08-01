@@ -59,7 +59,7 @@ int TransposeConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 // We override many ioParam-methods because TransposeConn will determine
 // the associated parameters from the originalConn's values.
 // communicateInitInfo will check if those parameters exist in params for
-// the CloneKernelConn group, and whether they are consistent with the
+// the TransposeConn group, and whether they are consistent with the
 // originalConn parameters.
 // If consistent, issue a warning that the param is unnecessary and continue.
 // If inconsistent, issue an error and quit.
@@ -173,7 +173,7 @@ void TransposeConn::ioParam_originalConnName(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamStringRequired(ioFlag, name, "originalConnName", &originalConnName);
 }
 
-int TransposeConn::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+int TransposeConn::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    int status         = PV_SUCCESS;
    this->originalConn = message->lookup<HyPerConn>(std::string(originalConnName));
    if (originalConn == NULL) {
@@ -267,6 +267,9 @@ int TransposeConn::communicateInitInfo(CommunicateInitInfoMessage const *message
    }
 
    if (!updateGSynFromPostPerspective) {
+      originalConn->setNeedPost();
+   }
+   if (writeStep >= 0) {
       originalConn->setNeedPost();
    }
 

@@ -147,7 +147,8 @@ bool InitGauss2DWeights::needAspectParams() {
    return (mAspect != 1.0f && ((mNumOrientationsPre <= 1) or (mNumOrientationsPost <= 1)));
 }
 
-int InitGauss2DWeights::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+int InitGauss2DWeights::communicateInitInfo(
+      std::shared_ptr<CommunicateInitInfoMessage const> message) {
    int status = InitWeights::communicateInitInfo(message);
    if (status != PV_SUCCESS) {
       return status;

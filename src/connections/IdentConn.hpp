@@ -20,7 +20,8 @@ class IdentConn : public HyPerConn {
   public:
    IdentConn(const char *name, HyPerCol *hc);
 
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual int updateWeights(int axonID) override { return PV_SUCCESS; }
    // virtual int deliver();
 
@@ -29,7 +30,6 @@ class IdentConn : public HyPerConn {
    int initialize_base();
    int initialize(const char *name, HyPerCol *hc);
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 #ifdef PV_USE_CUDA
    virtual void ioParam_receiveGpu(enum ParamsIOFlag ioFlag) override;
 #endif // PV_USE_CUDA
@@ -54,8 +54,6 @@ class IdentConn : public HyPerConn {
 
    void ioParam_weightUpdatePeriod(enum ParamsIOFlag ioFlag) override;
    void ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag) override;
-
-   virtual int setWeightInitializer() override;
 
    // IdentConn does not need to checkpoint
 

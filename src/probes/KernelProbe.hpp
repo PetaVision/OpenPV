@@ -18,7 +18,8 @@ class KernelProbe : public BaseHyPerConnProbe {
   public:
    KernelProbe(const char *probename, HyPerCol *hc);
    virtual ~KernelProbe();
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual int allocateDataStructures() override;
    virtual int outputState(double timef) override;
 

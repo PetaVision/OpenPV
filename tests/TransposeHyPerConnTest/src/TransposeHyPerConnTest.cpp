@@ -120,18 +120,18 @@ int testTransposeConn(
       char const *originalName,
       char const *transposeName,
       char const *transposeOfTransposeName) {
-   HyPerConn *originalMap = dynamic_cast<HyPerConn *>(hc->getConnFromName(originalName));
+   HyPerConn *originalMap = dynamic_cast<HyPerConn *>(hc->getObjectFromName(originalName));
    FatalIf(!originalMap, "Connection \"%s\" does not exist.\n", originalName);
    FatalIf(
          originalMap->usingSharedWeights(),
          "%s uses shared weights, but this test requires shared weights to be off.\n",
          originalMap->getDescription_c());
 
-   TransposeConn *transpose = dynamic_cast<TransposeConn *>(hc->getConnFromName(transposeName));
+   TransposeConn *transpose = dynamic_cast<TransposeConn *>(hc->getObjectFromName(transposeName));
    FatalIf(!transpose, "Connection \"%s\" does not exist.\n", transposeName);
 
    TransposeConn *transposeOfTranspose =
-         dynamic_cast<TransposeConn *>(hc->getConnFromName(transposeOfTransposeName));
+         dynamic_cast<TransposeConn *>(hc->getObjectFromName(transposeOfTransposeName));
    FatalIf(!transposeOfTranspose, "Connection \"%s\" does not exist.\n", transposeOfTransposeName);
 
    int status = testTransposeOfTransposeWeights(

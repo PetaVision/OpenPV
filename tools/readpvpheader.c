@@ -142,8 +142,8 @@ int parseheader(FILE *fid) {
    printf("    Data type                          = %d\n", params[INDEX_DATA_TYPE]);
    printf("    Number of processes in x-direction = %d\n", params[INDEX_NX_PROCS]);
    printf("    Number of processes in y-direction = %d\n", params[INDEX_NY_PROCS]);
-   printf("    nx_Global                          = %d\n", params[INDEX_NX_GLOBAL]);
-   printf("    ny_Global                          = %d\n", params[INDEX_NY_GLOBAL]);
+   printf("    nx_Global                          = %d\n", params[INDEX_NX_EXTENDED]);
+   printf("    ny_Global                          = %d\n", params[INDEX_NY_EXTENDED]);
    printf("    kx0                                = %d\n", params[INDEX_KX0]);
    printf("    ky0                                = %d\n", params[INDEX_KY0]);
    printf("    Batch width                        = %d\n", params[INDEX_NBATCH]);

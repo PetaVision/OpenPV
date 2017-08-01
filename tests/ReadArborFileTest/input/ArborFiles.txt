@@ -1,2 +1,0 @@
-input/part1.pvp
-input/part2.pvp

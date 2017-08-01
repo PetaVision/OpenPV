@@ -20,11 +20,10 @@ int checkoutput(HyPerCol *hc, int argc, char **argv) {
    // Column should have two layers and one connection
 
    int status = PV_SUCCESS;
-   FatalIf(!(hc->numberOfLayers() == 2 && hc->numberOfConnections() == 1), "Test failed.\n");
 
    // Input layer should be 2x2 with values 1, 2, 3, 4;
    // and have margin width 1 with mirror boundary conditions off.
-   HyPerLayer *inLayer     = hc->getLayer(0);
+   HyPerLayer *inLayer     = dynamic_cast<HyPerLayer *>(hc->getObjectFromName("Input"));
    const PVLayerLoc *inLoc = inLayer->getLayerLoc();
    FatalIf(!(inLoc->nxGlobal == 2 && inLoc->nyGlobal == 2 && inLoc->nf == 1), "Test failed.\n");
    assert(
@@ -78,11 +77,10 @@ int checkoutput(HyPerCol *hc, int argc, char **argv) {
    }
 
    // Connection should be a 3x3 kernel with values 0 through 8 in the weights
-   BaseConnection *baseConn = hc->getConnection(0);
-   HyPerConn *conn          = dynamic_cast<HyPerConn *>(baseConn);
+   HyPerConn *conn = dynamic_cast<HyPerConn *>(hc->getObjectFromName("InputToOutput"));
    FatalIf(
          !(conn->xPatchSize() == 3 && conn->yPatchSize() == 3 && conn->fPatchSize() == 1),
-         "Test failed.\n");
+         "Test failed. Connection \"InputToOutput\" must have patch size 3x3x1.\n");
    int patchSize = conn->xPatchSize() * conn->yPatchSize() * conn->fPatchSize();
    FatalIf(!(conn->numberOfAxonalArborLists() == 1), "Test failed.\n");
    FatalIf(!(conn->getNumDataPatches() == 1), "Test failed.\n");
@@ -105,7 +103,7 @@ int checkoutput(HyPerCol *hc, int argc, char **argv) {
    }
 
    // Finally, output layer should be 2x2 with values [13 23; 43 53].
-   HyPerLayer *outLayer     = hc->getLayer(1);
+   HyPerLayer *outLayer     = dynamic_cast<HyPerLayer *>(hc->getObjectFromName("Output"));
    const PVLayerLoc *outLoc = outLayer->getLayerLoc();
    FatalIf(!(outLoc->nxGlobal == 2 && outLoc->nyGlobal == 2 && outLoc->nf == 1), "Test failed.\n");
    assert(

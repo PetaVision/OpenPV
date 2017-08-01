@@ -6,7 +6,6 @@
 
 #undef DEBUG_PRINT
 
-#include "Example.hpp"
 #include "columns/PV_Init.hpp"
 #include "io/io.hpp"
 #include "layers/HyPerLayer.hpp"
@@ -18,8 +17,9 @@ int main(int argc, char *argv[]) {
    PVLayerLoc sLoc, bLoc;
    PVLayerCube *sCube, *bCube;
 
-   PV::HyPerCol *hc = new PV::HyPerCol("test_mirror_BCs_column", initObj);
-   PV::Example *l   = new PV::Example("test_mirror_BCs_layer", hc);
+   PV::HyPerCol *hc = new PV::HyPerCol(initObj);
+   PV::HyPerLayer *l =
+         dynamic_cast<PV::HyPerLayer *>(hc->getObjectFromName("test_mirror_BCs_layer"));
 
    int nf             = l->clayer->loc.nf;
    PVHalo const *halo = &l->clayer->loc.halo;

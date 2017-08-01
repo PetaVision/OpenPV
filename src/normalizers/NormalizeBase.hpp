@@ -20,7 +20,7 @@ class NormalizeBase : public BaseObject {
    // no public constructor; only subclasses can be constructed directly
    virtual ~NormalizeBase() = 0;
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    /**
     * Appends the indicated connection to the list of connections for this normalizer
@@ -33,7 +33,8 @@ class NormalizeBase : public BaseObject {
     * In particular, NormalizeGroup calls its group head's addConnToList
     * method from NormalizeGroup::communicateInitInfo method.
     */
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
    /**
     * The public interface for normalizing weights.

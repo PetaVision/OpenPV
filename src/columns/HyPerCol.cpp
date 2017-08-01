@@ -38,9 +38,9 @@
 
 namespace PV {
 
-HyPerCol::HyPerCol(const char *mName, PV_Init *initObj) {
+HyPerCol::HyPerCol(PV_Init *initObj) {
    initialize_base();
-   initialize(mName, initObj);
+   initialize(initObj);
 }
 
 HyPerCol::~HyPerCol() {
@@ -50,10 +50,7 @@ HyPerCol::~HyPerCol() {
    PrintStream pStream(getOutputStream());
    mCheckpointer->writeTimers(pStream);
    delete mCheckpointer;
-   for (auto iterator = mConnections.begin(); iterator != mConnections.end();) {
-      delete *iterator;
-      iterator = mConnections.erase(iterator);
-   }
+   mObjectHierarchy.clear(true /*delete the objects in the hierarchy*/);
    for (auto iterator = mNormalizers.begin(); iterator != mNormalizers.end();) {
       delete *iterator;
       iterator = mNormalizers.erase(iterator);
@@ -62,19 +59,6 @@ HyPerCol::~HyPerCol() {
       delete *iterator;
       iterator = mPhaseRecvTimers.erase(iterator);
    }
-   for (auto iterator = mLayers.begin(); iterator != mLayers.end();) {
-      delete *iterator;
-      iterator = mLayers.erase(iterator);
-   }
-
-   // mColProbes[i] should not be deleted; it points to an entry in mBaseProbes
-   // and will
-   // be deleted when mBaseProbes is deleted
-   for (auto iterator = mBaseProbes.begin(); iterator != mBaseProbes.end();) {
-      delete *iterator;
-      iterator = mBaseProbes.erase(iterator);
-   }
-   mColProbes.clear();
 
    delete mRunTimer;
    // TODO: Change these old C strings into std::string
@@ -94,15 +78,10 @@ int HyPerCol::initialize_base() {
    mStopTime                 = 0.0;
    mDeltaTime                = DEFAULT_DELTA_T;
    mWriteTimeScaleFieldnames = true;
-   // Sep 26, 2016: Adaptive timestep routines and member variables have been
-   // moved to
-   // AdaptiveTimeScaleProbe.
-   mProgressInterval   = 1.0;
-   mWriteProgressToErr = false;
-   mOrigStdOut         = -1;
-   mOrigStdErr         = -1;
-   mLayers.clear();
-   mConnections.clear();
+   mProgressInterval         = 1.0;
+   mWriteProgressToErr       = false;
+   mOrigStdOut               = -1;
+   mOrigStdErr               = -1;
    mNormalizers.clear(); // Pretty sure these aren't necessary
    mLayerStatus          = nullptr;
    mConnectionStatus     = nullptr;
@@ -118,20 +97,16 @@ int HyPerCol::initialize_base() {
    mCommunicator         = nullptr;
    mRunTimer             = nullptr;
    mPhaseRecvTimers.clear();
-   mColProbes.clear();
-   mBaseProbes.clear();
    mRandomSeed        = 0U;
    mErrorOnNotANumber = false;
    mNumThreads        = 1;
-   mRecvLayerBuffer.clear();
 #ifdef PV_USE_CUDA
    mCudaDevice = nullptr;
-   mGpuGroupConns.clear();
 #endif
    return PV_SUCCESS;
 }
 
-int HyPerCol::initialize(const char *name, PV_Init *initObj) {
+int HyPerCol::initialize(PV_Init *initObj) {
    mPVInitObj    = initObj;
    mCommunicator = mPVInitObj->getCommunicator();
    mParams       = mPVInitObj->getParams();
@@ -145,10 +120,19 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
    std::string working_dir = mPVInitObj->getStringArgument("WorkingDirectory");
    working_dir             = expandLeadingTilde(working_dir);
 
-   // Sep 27, 2016: handling --require-return has been moved to the Communicator
-   // constructor.
-
-   mName = strdup(name);
+   int numGroups          = mParams->numberOfGroups();
+   std::string paramsFile = initObj->getStringArgument("ParamsFile");
+   if (numGroups == 0) {
+      ErrorLog() << "Params \"" << paramsFile << "\" does not define any groups.\n";
+      return PV_FAILURE;
+   }
+   if (strcmp(mParams->groupKeywordFromIndex(0), "HyPerCol")) {
+      std::string paramsFile = initObj->getStringArgument("ParamsFile");
+      ErrorLog() << "First group in the params file \"" << paramsFile
+                 << "\" does not define a HyPerCol.\n";
+      return PV_FAILURE;
+   }
+   mName = strdup(mParams->groupNameFromIndex(0));
    setDescription();
 
    // mNumThreads will not be set, or used until HyPerCol::run.
@@ -208,6 +192,30 @@ int HyPerCol::initialize(const char *name, PV_Init *initObj) {
          false /*not constant*/);
 
    mCheckpointReadFlag = !mCheckpointer->getCheckpointReadDirectory().empty();
+
+   // Add layers, connections, etc.
+   for (int k = 1; k < numGroups; k++) { // k = 0 is the HyPerCol itself.
+      const char *kw   = mParams->groupKeywordFromIndex(k);
+      const char *name = mParams->groupNameFromIndex(k);
+      if (!strcmp(kw, "HyPerCol")) {
+         if (globalRank() == 0) {
+            std::string paramsFile = initObj->getStringArgument("ParamsFile");
+            ErrorLog() << "Group " << k + 1 << " in params file (\"" << paramsFile
+                       << "\") is a HyPerCol; only the first group can be a HyPercol.\n";
+            return PV_FAILURE;
+         }
+      }
+      else {
+         BaseObject *addedObject = Factory::instance()->createByKeyword(kw, name, this);
+         if (addedObject == nullptr) {
+            if (globalRank() == 0) {
+               ErrorLog().printf("Unable to create %s \"%s\".\n", kw, name);
+            }
+            return PV_FAILURE;
+         }
+         addObject(addedObject);
+      }
+   } // for-loop over parameter groups
    return PV_SUCCESS;
 }
 
@@ -262,9 +270,6 @@ int HyPerCol::ioParamsFinishGroup(enum ParamsIOFlag ioFlag) {
    return PV_SUCCESS;
 }
 
-// Sep 26, 2016: HyPerCol methods for parameter input/output have been moved to
-// PVParams.
-
 void HyPerCol::ioParam_startTime(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(ioFlag, mName, "startTime", &mStartTime, mStartTime);
 }
@@ -278,20 +283,6 @@ void HyPerCol::ioParam_stopTime(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerCol::ioParam_progressInterval(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ && !mParams->present(mName, "progressInterval")
-       && mParams->present(mName, "progressStep")) {
-      long int progressStep = (long int)mParams->value(mName, "progressStep");
-      mProgressInterval     = progressStep / mDeltaTime;
-      if (globalRank() == 0) {
-         ErrorLog() << "progressStep is obsolete.  Use progressInterval instead.\n";
-      }
-      MPI_Barrier(getCommunicator()->communicator());
-      exit(EXIT_FAILURE);
-   }
-   // progressStep was deprecated Dec 18, 2013
-   // After a reasonable fade time, remove the above if-statement and keep the
-   // ioParamValue call
-   // below.
    parameters()->ioParamValue(
          ioFlag, mName, "progressInterval", &mProgressInterval, mProgressInterval);
 }
@@ -365,24 +356,6 @@ void HyPerCol::ioParam_errorOnNotANumber(enum ParamsIOFlag ioFlag) {
          ioFlag, mName, "errorOnNotANumber", &mErrorOnNotANumber, mErrorOnNotANumber);
 }
 
-// Sep 26, 2016: HyPerCol methods for parameter input/output have been moved to
-// PVParams.
-// Sep 27, 2016: ensureDirExists has been moved to fileio.cpp.
-
-int HyPerCol::addLayer(HyPerLayer *layer) {
-   addObject(layer);
-   mLayers.push_back(layer);
-   if (layer->getPhase() >= mNumPhases)
-      mNumPhases = layer->getPhase() + 1;
-   return mLayers.size() - 1;
-}
-
-int HyPerCol::addConnection(BaseConnection *conn) {
-   addObject(conn);
-   mConnections.push_back(conn);
-   return mConnections.size() - 1;
-}
-
 int HyPerCol::addNormalizer(NormalizeBase *normalizer) {
    mNormalizers.push_back(normalizer);
    return PV_SUCCESS; // Why does this return success when the other add
@@ -438,6 +411,9 @@ void HyPerCol::allocateColumn() {
 
    notify(std::make_shared<AllocateDataMessage>());
 
+   notify(std::make_shared<LayerSetMaxPhaseMessage>(&mNumPhases));
+   mNumPhases++;
+
    mPhaseRecvTimers.clear();
    for (int phase = 0; phase < mNumPhases; phase++) {
       std::string timerTypeString("phRecv");
@@ -457,7 +433,7 @@ void HyPerCol::allocateColumn() {
    // Initialize the state of each object based on the params file,
    // and then if reading from checkpoint, call the checkpointer.
    // This needs to happen after initPublishers so that we can initialize
-   // the values in the data stores, and before the mLayers' publish calls
+   // the values in the data stores, and before the layers' publish calls
    // so that the data in border regions gets copied correctly.
    notify(std::make_shared<InitializeStateMessage>());
    if (mCheckpointReadFlag) {
@@ -534,10 +510,6 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
 
    return PV_SUCCESS;
 }
-
-// Sep 26, 2016: Adaptive timestep routines and member variables have been moved
-// to
-// AdaptiveTimeScaleProbe.
 
 // This routine sets the mNumThreads member variable.  It should only be called
 // by the run() method,
@@ -665,10 +637,6 @@ int HyPerCol::normalizeWeights() {
    return status;
 }
 
-// Sep 26, 2016: Adaptive timestep routines and member variables have been moved
-// to
-// AdaptiveTimeScaleProbe.
-
 void HyPerCol::advanceTimeLoop(Clock &runClock, int const runClockStartingStep) {
    // time loop
    //
@@ -709,9 +677,6 @@ int HyPerCol::advanceTime(double sim_time) {
    mSimTime = sim_time + mDeltaTime;
 
    notify(std::make_shared<AdaptTimestepMessage>());
-   // Sep 26, 2016: Adaptive timestep routines and member variables have been
-   // moved to
-   // AdaptiveTimeScaleProbe.
 
    // At this point all activity from the previous time step has
    // been delivered to the data store.
@@ -728,44 +693,86 @@ int HyPerCol::advanceTime(double sim_time) {
 
    // Each layer's phase establishes a priority for updating
    for (int phase = 0; phase < mNumPhases; phase++) {
-      for (auto &l : mLayers) { // TODO: use notify/respond
-         l->clearProgressFlags();
-      }
+      notify(std::make_shared<LayerClearProgressFlagsMessage>());
 
-// nonblockingLayerUpdate allows for more concurrency than notify.
+      // nonblockingLayerUpdate allows for more concurrency than notify.
+      bool someLayerIsPending = false;
+      bool someLayerHasActed  = false;
 #ifdef PV_USE_CUDA
       // Ordering needs to go recvGpu, if(recvGpu and upGpu)update, recvNoGpu,
       // update rest
       auto recvMessage = std::make_shared<LayerRecvSynapticInputMessage>(
-            phase, mPhaseRecvTimers.at(phase), true /*recvGpuFlag*/, mSimTime, mDeltaTime);
+            phase,
+            mPhaseRecvTimers.at(phase),
+            true /*recvGpuFlag*/,
+            mSimTime,
+            mDeltaTime,
+            &someLayerIsPending,
+            &someLayerHasActed);
       auto updateMessage = std::make_shared<LayerUpdateStateMessage>(
-            phase, true /*recvGpuFlag*/, true /*updateGpuFlag*/, mSimTime, mDeltaTime);
+            phase,
+            true /*recvGpuFlag*/,
+            true /*updateGpuFlag*/,
+            mSimTime,
+            mDeltaTime,
+            &someLayerIsPending,
+            &someLayerHasActed);
       nonblockingLayerUpdate(recvMessage, updateMessage);
 
       recvMessage = std::make_shared<LayerRecvSynapticInputMessage>(
-            phase, mPhaseRecvTimers.at(phase), false /*recvGpuFlag*/, mSimTime, mDeltaTime);
+            phase,
+            mPhaseRecvTimers.at(phase),
+            false /*recvGpuFlag*/,
+            mSimTime,
+            mDeltaTime,
+            &someLayerIsPending,
+            &someLayerHasActed);
       updateMessage = std::make_shared<LayerUpdateStateMessage>(
-            phase, false /*recvGpuFlag*/, false /*updateGpuFlag*/, mSimTime, mDeltaTime);
+            phase,
+            false /*recvGpuFlag*/,
+            false /*updateGpuFlag*/,
+            mSimTime,
+            mDeltaTime,
+            &someLayerIsPending,
+            &someLayerHasActed);
       nonblockingLayerUpdate(recvMessage, updateMessage);
 
       getDevice()->syncDevice();
 
       // Update for receiving on cpu and updating on gpu
-      notify(
+      nonblockingLayerUpdate(
             std::make_shared<LayerUpdateStateMessage>(
-                  phase, false /*recvOnGpuFlag*/, true /*updateOnGpuFlag*/, mSimTime, mDeltaTime));
+                  phase,
+                  false /*recvOnGpuFlag*/,
+                  true /*updateOnGpuFlag*/,
+                  mSimTime,
+                  mDeltaTime,
+                  &someLayerIsPending,
+                  &someLayerHasActed));
 
       getDevice()->syncDevice();
       notify(std::make_shared<LayerCopyFromGpuMessage>(phase, mPhaseRecvTimers.at(phase)));
 
       // Update for gpu recv and non gpu update
-      notify(
+      nonblockingLayerUpdate(
             std::make_shared<LayerUpdateStateMessage>(
-                  phase, true /*recvOnGpuFlag*/, false /*updateOnGpuFlag*/, mSimTime, mDeltaTime));
+                  phase,
+                  true /*recvOnGpuFlag*/,
+                  false /*updateOnGpuFlag*/,
+                  mSimTime,
+                  mDeltaTime,
+                  &someLayerIsPending,
+                  &someLayerHasActed));
 #else
       auto recvMessage = std::make_shared<LayerRecvSynapticInputMessage>(
-            phase, mPhaseRecvTimers.at(phase), mSimTime, mDeltaTime);
-      auto updateMessage = std::make_shared<LayerUpdateStateMessage>(phase, mSimTime, mDeltaTime);
+            phase,
+            mPhaseRecvTimers.at(phase),
+            mSimTime,
+            mDeltaTime,
+            &someLayerIsPending,
+            &someLayerHasActed);
+      auto updateMessage = std::make_shared<LayerUpdateStateMessage>(
+            phase, mSimTime, mDeltaTime, &someLayerIsPending, &someLayerHasActed);
       nonblockingLayerUpdate(recvMessage, updateMessage);
 #endif
       // Rotate DataStore ring buffers
@@ -784,93 +791,81 @@ int HyPerCol::advanceTime(double sim_time) {
 
    mRunTimer->stop();
 
-   outputState(mSimTime);
+   notify(std::make_shared<ColProbeOutputStateMessage>(mSimTime, mDeltaTime));
 
    return status;
 }
 
 void HyPerCol::nonblockingLayerUpdate(
+      std::shared_ptr<LayerUpdateStateMessage const> updateMessage) {
+
+   *(updateMessage->mSomeLayerIsPending) = true;
+   *(updateMessage->mSomeLayerHasActed)  = false;
+
+   long int idleCounter = 0;
+   while (*(updateMessage->mSomeLayerIsPending)) {
+      *(updateMessage->mSomeLayerIsPending) = false;
+      *(updateMessage->mSomeLayerHasActed)  = false;
+      notify(updateMessage);
+
+      if (!*(updateMessage->mSomeLayerHasActed)) {
+         idleCounter++;
+      }
+   }
+
+   if (idleCounter > 1L) {
+      InfoLog() << "t = " << mSimTime << ", phase " << updateMessage->mPhase
+#ifdef PV_USE_CUDA
+                << ", recvGpu" << updateMessage->mRecvOnGpuFlag
+                << ", updateGpu" << updateMessage->mUpdateOnGpuFlag
+#endif // PV_USE_CUDA
+                << ", idle count " << idleCounter << "\n";
+   }
+}
+
+void HyPerCol::nonblockingLayerUpdate(
       std::shared_ptr<LayerRecvSynapticInputMessage const> recvMessage,
       std::shared_ptr<LayerUpdateStateMessage const> updateMessage) {
+
+   pvAssert(recvMessage->mSomeLayerIsPending == updateMessage->mSomeLayerIsPending);
+   pvAssert(recvMessage->mSomeLayerHasActed == updateMessage->mSomeLayerHasActed);
+
+   *(updateMessage->mSomeLayerIsPending) = true;
+   *(updateMessage->mSomeLayerHasActed)  = false;
+
    long int idleCounter = 0;
-   bool allUpdated      = false;
-   int phase            = recvMessage->mPhase;
-   pvAssert(phase == updateMessage->mPhase);
-   while (!allUpdated) {
-      bool anyUpdated = false;
+   while (*(recvMessage->mSomeLayerIsPending)) {
+      *(updateMessage->mSomeLayerIsPending) = false;
+      *(updateMessage->mSomeLayerHasActed)  = false;
+      notify(recvMessage);
+      notify(updateMessage);
 
-      for (auto &l : mLayers) {
-#ifdef PV_USE_CUDA
-         if (l->getRecvGpu() != recvMessage->mRecvOnGpuFlag) {
-            continue;
-         }
-#endif // PV_USE_CUDA
-         if (l->getPhase() == phase && !l->getHasReceived() && l->isAllInputReady()) {
-            l->respond(recvMessage);
-            anyUpdated = true;
-            break;
-         }
-      }
-      if (anyUpdated) {
-         continue;
-      }
-
-      for (auto &l : mLayers) {
-#ifdef PV_USE_CUDA
-         if (l->getRecvGpu() != updateMessage->mRecvOnGpuFlag) {
-            continue;
-         }
-         if (l->getUpdateGpu() != updateMessage->mUpdateOnGpuFlag) {
-            continue;
-         }
-#endif // PV_USE_CUDA
-         if (l->getPhase() == phase && !l->getHasUpdated() && l->getHasReceived()) {
-            l->respond(updateMessage);
-            anyUpdated = true;
-            break;
-         }
-      }
-      if (anyUpdated) {
-         continue;
-      }
-
-      idleCounter++;
-      // TODO (maybe?) Waitany logic goes here.
-      allUpdated = true;
-      for (auto &l : mLayers) {
-#ifdef PV_USE_CUDA
-         if (l->getRecvGpu() != updateMessage->mRecvOnGpuFlag) {
-            continue;
-         }
-         if (l->getUpdateGpu() != updateMessage->mUpdateOnGpuFlag) {
-            continue;
-         }
-#endif // PV_USE_CUDA
-         if (l->getPhase() == phase) {
-            allUpdated &= l->getHasUpdated();
-         }
+      if (!*(updateMessage->mSomeLayerHasActed)) {
+         idleCounter++;
       }
    }
+
    if (idleCounter > 1L) {
-      InfoLog() << "t = " << mSimTime << ", phase " << phase << ", idle count " << idleCounter
-                << "\n";
+      InfoLog() << "t = " << mSimTime << ", phase " << updateMessage->mPhase
+#ifdef PV_USE_CUDA
+                << ", recvGpu" << updateMessage->mRecvOnGpuFlag
+                << ", updateGpu" << updateMessage->mUpdateOnGpuFlag
+#endif // PV_USE_CUDA
+                << ", idle count " << idleCounter << "\n";
    }
 }
-
-// Oct 3, 2016.  writeTimers moved to Checkpointer class
 
 int HyPerCol::respond(std::shared_ptr<BaseMessage const> message) {
-   int status = PV_SUCCESS;
-   if (PrepareCheckpointWriteMessage const *castMessage =
-             dynamic_cast<PrepareCheckpointWriteMessage const *>(message.get())) {
-      status = respondPrepareCheckpointWrite(castMessage);
+   if (auto castMessage = std::dynamic_pointer_cast<PrepareCheckpointWriteMessage const>(message)) {
+      return respondPrepareCheckpointWrite(castMessage);
    }
-   return status;
+   else {
+      return PV_SUCCESS;
+   }
 }
 
-// Oct 20, 2016. checkpointWrite and checkpointRead functionality moved to Checkpointer class.
-
-int HyPerCol::respondPrepareCheckpointWrite(PrepareCheckpointWriteMessage const *message) {
+int HyPerCol::respondPrepareCheckpointWrite(
+      std::shared_ptr<PrepareCheckpointWriteMessage const> message) {
    std::string path(message->mDirectory);
    path.append("/").append("pv.params");
    return outputParams(path.c_str());
@@ -923,39 +918,14 @@ int HyPerCol::outputParams(char const *path) {
       Fatal().printf("outputParams: Error copying params to \"%s\"\n", path);
    }
 
-   // HyPerLayer params
-   for (int l = 0; l < mLayers.size(); l++) {
-      HyPerLayer *layer = mLayers.at(l);
-      status            = layer->ioParams(PARAMS_IO_WRITE);
-      if (status != PV_SUCCESS) {
-         Fatal().printf("outputParams: Error copying params to \"%s\"\n", path);
-      }
-   }
-
-   // BaseConnection params
-   for (auto c : mConnections) {
-      status = c->ioParams(PARAMS_IO_WRITE);
-      if (status != PV_SUCCESS) {
-         Fatal().printf("outputParams: Error copying params to \"%s\"\n", path);
-      }
-   }
-
-   // Probe params
-
-   // ColProbes
-   for (int p = 0; p < mColProbes.size(); p++) {
-      mColProbes.at(p)->ioParams(PARAMS_IO_WRITE);
-   }
-
-   // LayerProbes
-   for (int l = 0; l < mLayers.size(); l++) {
-      mLayers.at(l)->outputProbeParams();
-   }
-
-   // BaseConnectionProbes
-   for (auto c : mConnections) {
-      c->outputProbeParams();
-   }
+   // Splitting this up into five messages for backwards compatibility in preserving the order.
+   // If order preservation is not needed here, it would be better to replace with a single
+   // message that all five types respond to.
+   notify(std::make_shared<LayerWriteParamsMessage>());
+   notify(std::make_shared<ConnectionWriteParamsMessage>());
+   notify(std::make_shared<ColProbeWriteParamsMessage>());
+   notify(std::make_shared<LayerProbeWriteParamsMessage>());
+   notify(std::make_shared<ConnectionProbeWriteParamsMessage>());
 
    if (rank == 0) {
       mLuaPrintParamsStream->printf("} --End of pvParameters\n");
@@ -1040,8 +1010,6 @@ int HyPerCol::outputParamsHeadComments(FileStream *fileStream, char const *comme
    }
    return PV_SUCCESS;
 }
-
-// Nov 22, 2016: pathInCheckpoint removed. Made unnecessary by the Checkpointer refactor.
 
 int HyPerCol::getAutoGPUDevice() {
    int returnGpuIdx = -1;
@@ -1237,7 +1205,13 @@ void HyPerCol::initializeCUDA(std::string const &in_device) {
                 << device << "\n";
    }
 
-   mCudaDevice = new PVCuda::CudaDevice(device);
+   int globalSize = mCommunicator->globalCommSize();
+   for (int r = 0; r < globalSize; r++) {
+      if (r == globalRank()) {
+         mCudaDevice = new PVCuda::CudaDevice(device);
+      }
+      MPI_Barrier(mCommunicator->globalCommunicator());
+   }
 
    // Only print rank for comm rank 0
    if (globalRank() == 0) {
@@ -1247,80 +1221,14 @@ void HyPerCol::initializeCUDA(std::string const &in_device) {
 
 int HyPerCol::finalizeCUDA() {
    delete mCudaDevice;
-   for (auto iterator = mGpuGroupConns.begin(); iterator != mGpuGroupConns.end();) {
-      delete *iterator;
-      iterator = mGpuGroupConns.erase(iterator);
-   }
    return 0;
 }
 
-void HyPerCol::addGpuGroup(BaseConnection *conn, int gpuGroupIdx) {
-   // default gpuGroupIdx is -1, so do nothing if this is the case
-   if (gpuGroupIdx < 0) {
-      return;
-   }
-   mGpuGroupConns.reserve(gpuGroupIdx);
-   if (mGpuGroupConns.at(gpuGroupIdx) == nullptr) {
-      mGpuGroupConns.at(gpuGroupIdx) = conn;
-   }
-}
 #endif // PV_USE_CUDA
-
-int HyPerCol::insertProbe(ColProbe *p) {
-   mColProbes.push_back(p);
-   return mColProbes.size(); // Other insert functions return the index of the
-   // inserted object. Is
-   // this correct here?
-}
 
 void HyPerCol::addObject(BaseObject *obj) {
    bool succeeded = mObjectHierarchy.addObject(obj->getName(), obj);
    FatalIf(!succeeded, "Adding %s failed.\n", getDescription_c());
-}
-
-// BaseProbes include layer probes, connection probes, and column probes.
-int HyPerCol::addBaseProbe(BaseProbe *p) {
-   addObject(p);
-   mBaseProbes.push_back(p);
-   return mBaseProbes.size();
-}
-
-int HyPerCol::outputState(double time) {
-   for (int n = 0; n < mColProbes.size(); n++) {
-      mColProbes.at(n)->outputStateWrapper(time, mDeltaTime);
-   }
-   return PV_SUCCESS;
-}
-
-HyPerLayer *HyPerCol::getLayerFromName(const char *layerName) {
-   if (layerName == nullptr) {
-      return nullptr;
-   }
-   int n = numberOfLayers();
-   for (int i = 0; i < n; i++) {
-      HyPerLayer *curLayer = getLayer(i);
-      assert(curLayer);
-      const char *curLayerName = curLayer->getName();
-      assert(curLayerName);
-      if (!strcmp(curLayer->getName(), layerName))
-         return curLayer;
-   }
-   return nullptr;
-}
-
-BaseConnection *HyPerCol::getConnFromName(const char *connName) {
-   if (connName == nullptr)
-      return nullptr;
-   int n = numberOfConnections();
-   for (int i = 0; i < n; i++) {
-      BaseConnection *curConn = getConnection(i);
-      assert(curConn);
-      const char *curConnName = curConn->getName();
-      assert(curConnName);
-      if (!strcmp(curConn->getName(), connName))
-         return curConn;
-   }
-   return nullptr;
 }
 
 NormalizeBase *HyPerCol::getNormalizerFromName(const char *normalizerName) {
@@ -1338,39 +1246,37 @@ NormalizeBase *HyPerCol::getNormalizerFromName(const char *normalizerName) {
    return nullptr;
 }
 
-ColProbe *HyPerCol::getColProbeFromName(const char *probeName) {
-   if (probeName == nullptr)
-      return nullptr;
-   ColProbe *p = nullptr;
-   int n       = numberOfProbes();
-   for (int i = 0; i < n; i++) {
-      ColProbe *curColProbe = getColProbe(i);
-      const char *curName   = curColProbe->getName();
-      assert(curName);
-      if (!strcmp(curName, probeName)) {
-         p = curColProbe;
-         break;
-      }
-   }
-   return p;
+Observer *HyPerCol::getObjectFromName(std::string const &objectName) const {
+   auto &objectMap = mObjectHierarchy.getObjectMap();
+   auto search     = objectMap.find(objectName);
+   return search == objectMap.end() ? nullptr : search->second;
 }
 
-BaseProbe *HyPerCol::getBaseProbeFromName(const char *probeName) {
-   if (probeName == nullptr) {
-      return nullptr;
-   }
-   BaseProbe *p = nullptr;
-   int n        = numberOfBaseProbes();
-   for (int i = 0; i < n; i++) {
-      BaseProbe *curBaseProbe = getBaseProbe(i);
-      const char *curName     = curBaseProbe->getName();
-      assert(curName);
-      if (!strcmp(curName, probeName)) {
-         p = curBaseProbe;
-         break;
+Observer *HyPerCol::getNextObject(Observer const *currentObject) const {
+   if (mObjectHierarchy.getObjectVector().empty()) {
+      if (currentObject != nullptr) {
+         throw std::domain_error("HyPerCol::getNextObject called with empty hierarchy");
+      }
+      else {
+         return nullptr;
       }
    }
-   return p;
+   else {
+      auto objectVector = mObjectHierarchy.getObjectVector();
+      if (currentObject == nullptr) {
+         return objectVector[0];
+      }
+      else {
+         for (auto iterator = objectVector.begin(); iterator != objectVector.end(); iterator++) {
+            Observer *object = *iterator;
+            if (object == currentObject) {
+               iterator++;
+               return iterator == objectVector.end() ? nullptr : *iterator;
+            }
+         }
+         throw std::domain_error("HyPerCol::getNextObject argument not in hierarchy");
+      }
+   }
 }
 
 unsigned int HyPerCol::seedRandomFromWallClock() {
@@ -1381,59 +1287,6 @@ unsigned int HyPerCol::seedRandomFromWallClock() {
    }
    MPI_Bcast(&t, 1, MPI_UNSIGNED, rootproc, mCommunicator->globalCommunicator());
    return t;
-}
-
-HyPerCol *createHyPerCol(PV_Init *pv_initObj) {
-   PVParams *params = pv_initObj->getParams();
-   if (params == nullptr) {
-      ErrorLog() << "createHyPerCol called without having set params.\n";
-      return nullptr;
-   }
-   int numGroups = params->numberOfGroups();
-   if (numGroups == 0) {
-      std::string paramsFile = pv_initObj->getStringArgument("ParamsFile");
-      ErrorLog() << "Params \"" << paramsFile << "\" does not define any groups.\n";
-      return nullptr;
-   }
-   if (strcmp(params->groupKeywordFromIndex(0), "HyPerCol")) {
-      std::string paramsFile = pv_initObj->getStringArgument("ParamsFile");
-      ErrorLog() << "First group in the params \"" << paramsFile
-                 << "\" does not define a HyPerCol.\n";
-      return nullptr;
-   }
-   char const *colName = params->groupNameFromIndex(0);
-
-   HyPerCol *hc = new HyPerCol(colName, pv_initObj);
-   for (int k = 0; k < numGroups; k++) {
-      const char *kw   = params->groupKeywordFromIndex(k);
-      const char *name = params->groupNameFromIndex(k);
-      if (!strcmp(kw, "HyPerCol")) {
-         if (k == 0) {
-            continue;
-         }
-         else {
-            if (hc->columnId() == 0) {
-               std::string paramsFile = pv_initObj->getStringArgument("ParamsFile");
-               ErrorLog() << "Group " << k + 1 << " in params file (\"" << paramsFile
-                          << "\") is a HyPerCol; only the first group can be a HyPercol.\n";
-            }
-            delete hc;
-            return nullptr;
-         }
-      }
-      else {
-         BaseObject *addedObject = Factory::instance()->createByKeyword(kw, name, hc);
-         if (addedObject == nullptr) {
-            if (hc->globalRank() == 0) {
-               ErrorLog().printf("Unable to create %s \"%s\".\n", kw, name);
-            }
-            delete hc;
-            return nullptr;
-         }
-      }
-   }
-
-   return hc;
 }
 
 } // PV namespace

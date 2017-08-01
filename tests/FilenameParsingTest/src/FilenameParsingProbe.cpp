@@ -26,7 +26,8 @@ int FilenameParsingProbe::initialize(const char *name, PV::HyPerCol *hc) {
    return status;
 }
 
-int FilenameParsingProbe::communicateInitInfo(PV::CommunicateInitInfoMessage const *message) {
+int FilenameParsingProbe::communicateInitInfo(
+      std::shared_ptr<PV::CommunicateInitInfoMessage const> message) {
    int status = PV::LayerProbe::communicateInitInfo(message);
    if (status != PV_SUCCESS) {
       return status;

@@ -18,7 +18,8 @@ class LIFTestProbe : public StatsProbe {
    LIFTestProbe(const char *name, HyPerCol *hc);
    virtual ~LIFTestProbe();
 
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
    virtual int outputState(double timed) override;
 

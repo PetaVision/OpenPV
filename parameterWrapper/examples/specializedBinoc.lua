@@ -465,7 +465,7 @@ for i=0,numDepthBins do
 
    pv.addGroup(v1Groups, "V1_spec_"..i.."ToLeftRecon_spec_"..i,
    {
-      groupType = "CloneKernelConn";
+      groupType = "CloneConn";
       preLayerName = "V1_spec_"..i;
       postLayerName = "LeftRecon_spec_"..i;
       channelCode = 0;

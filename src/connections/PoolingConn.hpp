@@ -23,7 +23,8 @@ class PoolingConn : public HyPerConn {
    PoolingConn();
    PoolingConn(const char *name, HyPerCol *hc);
    virtual ~PoolingConn();
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual int allocateDataStructures() override;
    virtual float minWeight(int arborId = 0) override;
    virtual float maxWeight(int arborId = 0) override;
@@ -34,11 +35,7 @@ class PoolingConn : public HyPerConn {
    static AccumulateType parseAccumulateTypeString(char const *typeString);
 
   protected:
-   int initialize(
-         const char *name,
-         HyPerCol *hc,
-         InitWeights *weightInitializer,
-         NormalizeBase *weightNormalizer);
+   int initialize(const char *name, HyPerCol *hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) override;

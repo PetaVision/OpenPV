@@ -26,20 +26,6 @@ int IdentConn::initialize(const char *name, HyPerCol *hc) {
    return status;
 }
 
-int IdentConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = HyPerConn::ioParamsFillGroup(ioFlag);
-
-   // April 15, 2016: Scale moved from IdentConn to RescaleConn.
-   if (!strcmp(getKeyword(), "IdentConn") && parent->parameters()->present(name, "scale")) {
-      ErrorLog().printf(
-            "IdentConn \"%s\": IdentConn does not take a scale parameter.  Use RescaleConn "
-            "instead.\n",
-            name);
-   }
-
-   return status;
-}
-
 #ifdef PV_USE_CUDA
 void IdentConn::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
    // Never receive from gpu
@@ -71,6 +57,7 @@ void IdentConn::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
 void IdentConn::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       parent->parameters()->handleUnnecessaryStringParameter(name, "weightInitType", NULL);
+      weightInitializer = nullptr;
    }
 }
 
@@ -216,12 +203,7 @@ void IdentConn::ioParam_updateGSynFromPostPerspective(enum ParamsIOFlag ioFlag) 
    }
 }
 
-int IdentConn::setWeightInitializer() {
-   weightInitializer = nullptr;
-   return PV_SUCCESS;
-}
-
-int IdentConn::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+int IdentConn::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    int status = HyPerConn::communicateInitInfo(message);
    assert(pre && post);
    const PVLayerLoc *preLoc  = pre->getLayerLoc();

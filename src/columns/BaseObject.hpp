@@ -42,6 +42,35 @@ class BaseObject : public CheckpointerDataInterface {
    // No getParent method because we are refactoring away from having objects
    // having access to their containing HyPerCol.
    char const *getKeyword() const;
+
+   /**
+    * A method that reads the parameters for the group whose name matches the name of the object.
+    * It, along with writeParams(), is a wrapper around ioParams, so that readParams and
+    * writeParams automatically run through the same parameters in the same order.
+    */
+   int readParams() { return ioParams(PARAMS_IO_READ, false, false); }
+
+   /**
+    * A method that writes the parameters for the group whose name matches the name of the object.
+    * It, along with readParams(), is a wrapper around ioParams, so that readParams and writeParams
+    * automatically run through the same parameters in the same order.
+    */
+   int writeParams() { return ioParams(PARAMS_IO_WRITE, true, true); }
+
+   /**
+    * Method for reading or writing the params from group in the parent HyPerCol's parameters.
+    * The group from params is selected using the name of the connection.
+    *
+    * If ioFlag is set to write, the printHeader and printFooter flags control whether
+    * a header and footer for the parameter group is produces. These flags are set to true
+    * for layers, connections, and probes; and set to false for weight initializers and
+    * normalizers. If ioFlag is set to read, the printHeader and printFooter flags are ignored.
+    *
+    * Note that ioParams is not virtual.  To add parameters in a derived class, override
+    * ioParamFillGroup.
+    */
+   int ioParams(enum ParamsIOFlag ioFlag, bool printHeader, bool printFooter);
+
    virtual int respond(std::shared_ptr<BaseMessage const> message) override; // TODO: should return
    // enum with values
    // corresponding to
@@ -86,14 +115,30 @@ class BaseObject : public CheckpointerDataInterface {
    int setParent(HyPerCol *hc);
    virtual int setDescription();
 
-   int respondCommunicateInitInfo(CommunicateInitInfoMessage const *message);
-   int respondAllocateData(AllocateDataMessage const *message);
-   int respondRegisterData(RegisterDataMessage<Checkpointer> const *message);
-   int respondInitializeState(InitializeStateMessage const *message);
-   int respondCopyInitialStateToGPUMessage(CopyInitialStateToGPUMessage const *message);
-   int respondCleanup(CleanupMessage const *message);
+   /**
+    * The virtual method for reading parameters from the parent HyPerCol's parameters, and writing
+    * to the output params file.
+    *
+    * Derived classes with additional parameters typically override ioParamsFillGroup to call the
+    * base class's ioParamsFillGroup
+    * method and then call ioParam_[parametername] for each of their parameters.
+    * The ioParam_[parametername] methods should call the parent HyPerCol's ioParamValue() and
+    * related methods,
+    * to ensure that all parameters that get read also get written to the outputParams-generated
+    * file.
+    */
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) { return PV_SUCCESS; }
 
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) { return PV_SUCCESS; }
+   int respondCommunicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message);
+   int respondAllocateData(std::shared_ptr<AllocateDataMessage const> message);
+   int respondRegisterData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message);
+   int respondInitializeState(std::shared_ptr<InitializeStateMessage const> message);
+   int respondCopyInitialStateToGPU(std::shared_ptr<CopyInitialStateToGPUMessage const> message);
+   int respondCleanup(std::shared_ptr<CleanupMessage const> message);
+
+   virtual int communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+      return PV_SUCCESS;
+   }
    virtual int allocateDataStructures() { return PV_SUCCESS; }
    virtual int initializeState() { return PV_SUCCESS; }
    virtual int readStateFromCheckpoint(Checkpointer *checkpointer) override { return PV_SUCCESS; }

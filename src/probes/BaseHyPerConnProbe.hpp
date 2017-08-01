@@ -18,7 +18,8 @@ class BaseHyPerConnProbe : public BaseConnectionProbe {
    BaseHyPerConnProbe(const char *name, HyPerCol *hc);
    virtual ~BaseHyPerConnProbe();
 
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
    HyPerConn *getTargetHyPerConn() { return targetHyPerConn; }
 

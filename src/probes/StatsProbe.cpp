@@ -78,7 +78,7 @@ int StatsProbe::initialize(const char *name, HyPerCol *hc) {
    assert(charsneeded <= timermessagelen);
    comptimer = new Timer(timermessage);
 
-   int nbatch = hc->getNBatch();
+   int nbatch = parent->getNBatch();
 
    fMin  = (float *)malloc(sizeof(float) * nbatch);
    fMax  = (float *)malloc(sizeof(float) * nbatch);

@@ -18,19 +18,18 @@ int main(int argc, char *argv[]) {
 
 int customexit(HyPerCol *hc, int argc, char *argv[]) {
    // Make sure comparison layer is all zeros
-   HyPerLayer *layer = hc->getLayerFromName("compare");
+   HyPerLayer *layer = dynamic_cast<HyPerLayer *>(hc->getObjectFromName("compare"));
    FatalIf(!(layer->getNumProbes() == 1), "Test failed.\n");
    LayerProbe *probe                   = layer->getProbe(0);
    RequireAllZeroActivityProbe *rProbe = dynamic_cast<RequireAllZeroActivityProbe *>(probe);
    FatalIf(!(!rProbe->getNonzeroFound()), "Test failed.\n");
 
    // Check halo of input layer
-   HyPerLayer *inlayer = hc->getLayerFromName("input");
+   HyPerLayer *inlayer = dynamic_cast<HyPerLayer *>(hc->getObjectFromName("input"));
    FatalIf(!(inlayer), "Test failed.\n");
-   HyPerLayer *outlayer = hc->getLayerFromName("output");
+   HyPerLayer *outlayer = dynamic_cast<HyPerLayer *>(hc->getObjectFromName("output"));
    FatalIf(!(outlayer), "Test failed.\n");
-   BaseConnection *baseConn = hc->getConnFromName("input_to_output");
-   HyPerConn *conn          = dynamic_cast<HyPerConn *>(baseConn);
+   HyPerConn *conn = dynamic_cast<HyPerConn *>(hc->getObjectFromName("input_to_output"));
 
    FatalIf(!(conn), "Test failed.\n");
 

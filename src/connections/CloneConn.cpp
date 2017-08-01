@@ -41,6 +41,7 @@ void CloneConn::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
 void CloneConn::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       parent->parameters()->handleUnnecessaryStringParameter(name, "weightInitType", NULL);
+      weightInitializer = nullptr;
    }
 }
 
@@ -52,11 +53,6 @@ void CloneConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
 
 void CloneConn::ioParam_originalConnName(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamStringRequired(ioFlag, name, "originalConnName", &originalConnName);
-}
-
-int CloneConn::setWeightInitializer() {
-   weightInitializer = nullptr;
-   return PV_SUCCESS;
 }
 
 int CloneConn::registerData(Checkpointer *checkpointer) {
@@ -172,7 +168,7 @@ void CloneConn::ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFlag) {
    // CloneConn does not checkpoint, so we don't need writeCompressedCheckpoints
 }
 
-int CloneConn::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+int CloneConn::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    // Need to set originalConn before calling HyPerConn::communicate, since HyPerConn::communicate
    // calls setPatchSize, which needs originalConn.
    originalConn = message->lookup<HyPerConn>(std::string(originalConnName));

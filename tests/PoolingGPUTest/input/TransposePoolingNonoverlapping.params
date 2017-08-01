@@ -106,7 +106,7 @@ PoolingConn "ForwardCPU" = {
     delay                               = [0.000000];
     numAxonalArbors                     = 1;
     convertRateToSpikeCount             = false;
-    receiveGpu                          = true;
+    receiveGpu                          = false;
     sharedWeights                       = true;
     updateGSynFromPostPerspective       = true;
     pvpatchAccumulateType               = "maxpooling";
@@ -116,8 +116,8 @@ PoolingConn "ForwardCPU" = {
     nfp                                 = 4;
     shrinkPatches                       = false;
     weightSparsity                      = 0;
-    needPostIndexLayer                  = false;
-    //postIndexLayerName                  = "PostIndexLayerCPU";
+    needPostIndexLayer                  = true;
+    postIndexLayerName                  = "PostIndexLayerCPU";
 };
 
 TransposePoolingConn "BackwardCPU" = {
@@ -174,7 +174,6 @@ PoolingConn "ForwardGPU" = {
     shrinkPatches                       = false;
     weightSparsity                      = 0;
     needPostIndexLayer                  = false;
-    // postIndexLayerName                  = "PostIndexLayer";
 };
 
 TransposePoolingConn "BackwardGPU" = {
@@ -212,7 +211,7 @@ IdentConn "BackwardPoolingDestinationCPUToComparison" = {
 
 IdentConn "BackwardPoolingDestinationGPUToComparison" = {
     #include "BackwardPoolingDestinationCPUToComparison";
-    @preLayerName = "BackwardPoolingDestinationCPU";
+    @preLayerName = "BackwardPoolingDestinationGPU";
     @channelCode = 0;
 };
 

@@ -14,11 +14,11 @@ int main(int argc, char *argv[]) {
 
 int customexit(HyPerCol *hc, int argc, char *argv[]) {
    FatalIf(hc == nullptr, "%s failed to build HyPerCol.\n", argv[0]);
-   HyPerLayer *inputLayer = hc->getLayerFromName("Input");
+   HyPerLayer *inputLayer = dynamic_cast<HyPerLayer *>(hc->getObjectFromName("Input"));
    FatalIf(inputLayer == nullptr, "%s failed to build input layer.\n", argv[0]);
-   HyPerLayer *outputLayer = hc->getLayerFromName("Output");
+   HyPerLayer *outputLayer = dynamic_cast<HyPerLayer *>(hc->getObjectFromName("Output"));
    FatalIf(outputLayer == nullptr, "%s failed to build output layer.\n", argv[0]);
-   BaseConnection *connection = hc->getConnFromName("InputToOutput");
+   HyPerConn *connection = dynamic_cast<HyPerConn *>(hc->getObjectFromName("InputToOutput"));
    FatalIf(connection == nullptr, "%s failed to build connection.\n", argv[0]);
    return PV_SUCCESS;
 }

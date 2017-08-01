@@ -21,7 +21,6 @@ AdaptiveTimeScaleController::AdaptiveTimeScaleController(
       double baseMin,
       double tauFactor,
       double growthFactor,
-      bool writeTimeScales,
       bool writeTimeScaleFieldnames,
       Communicator *communicator) {
    mName                     = strdup(name);
@@ -30,7 +29,6 @@ AdaptiveTimeScaleController::AdaptiveTimeScaleController(
    mBaseMin                  = baseMin;
    mTauFactor                = tauFactor;
    mGrowthFactor             = growthFactor;
-   mWriteTimeScales          = writeTimeScales;
    mWriteTimeScaleFieldnames = writeTimeScaleFieldnames;
    mCommunicator             = communicator;
 

@@ -26,7 +26,7 @@ int WTALayer::initialize_base() {
    return PV_SUCCESS;
 }
 
-int WTALayer::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+int WTALayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    int status    = HyPerLayer::communicateInitInfo(message);
    originalLayer = message->lookup<HyPerLayer>(std::string(originalLayerName));
    if (originalLayer == NULL) {

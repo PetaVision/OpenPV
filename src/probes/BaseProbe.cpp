@@ -66,19 +66,9 @@ int BaseProbe::initialize(const char *name, HyPerCol *hc) {
    if (status != PV_SUCCESS) {
       return status;
    }
-   ioParams(PARAMS_IO_READ);
-   // Add probe to list of probes
-   parent->addBaseProbe(this); // Adds probe to HyPerCol.  If needed, probe will be attached to
-   // layer or connection during communicateInitInfo
+   readParams();
    status = initNumValues();
    return status;
-}
-
-int BaseProbe::ioParams(enum ParamsIOFlag ioFlag) {
-   parent->ioParamsStartGroup(ioFlag, name);
-   ioParamsFillGroup(ioFlag);
-   parent->ioParamsFinishGroup(ioFlag);
-   return PV_SUCCESS;
 }
 
 int BaseProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -247,7 +237,7 @@ int BaseProbe::setNumValues(int n) {
    return status;
 }
 
-int BaseProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+int BaseProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    int status = PV_SUCCESS;
 
    // Set up triggering.

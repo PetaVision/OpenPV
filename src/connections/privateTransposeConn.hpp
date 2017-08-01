@@ -20,7 +20,8 @@ class privateTransposeConn : public HyPerConn {
          HyPerConn *parentConn,
          bool needWeights = true);
    virtual ~privateTransposeConn();
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual int allocateDataStructures() override;
    inline HyPerConn *getOriginalConn() { return postConn; }
 

@@ -18,7 +18,8 @@ class CloneConn : public HyPerConn {
    CloneConn(const char *name, HyPerCol *hc);
    virtual ~CloneConn();
 
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
    virtual int updateState(double time, double dt) override;
 
@@ -75,7 +76,6 @@ class CloneConn : public HyPerConn {
    virtual void ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_writeCompressedWeights(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFlag) override;
-   virtual int setWeightInitializer() override;
    virtual PVPatch ***initializeWeights(PVPatch ***patches, float **dataStart) override;
    virtual int cloneParameters();
    virtual int readStateFromCheckpoint(Checkpointer *checkpointer) override { return PV_SUCCESS; }

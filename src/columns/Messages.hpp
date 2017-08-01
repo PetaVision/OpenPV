@@ -44,6 +44,37 @@ class AllocateDataMessage : public BaseMessage {
    AllocateDataMessage() { setMessageType("AllocateDataStructures"); }
 };
 
+class LayerSetMaxPhaseMessage : public BaseMessage {
+  public:
+   LayerSetMaxPhaseMessage(int *maxPhase) {
+      setMessageType("LayerSetPhase");
+      mMaxPhase = maxPhase;
+   }
+   int *mMaxPhase = nullptr;
+};
+
+class LayerWriteParamsMessage : public BaseMessage {
+  public:
+   LayerWriteParamsMessage() { setMessageType("LayerWriteParams"); }
+};
+
+class ConnectionWriteParamsMessage : public BaseMessage {
+  public:
+   ConnectionWriteParamsMessage() { setMessageType("ConnectionWriteParams"); }
+};
+class ColProbeWriteParamsMessage : public BaseMessage {
+  public:
+   ColProbeWriteParamsMessage() { setMessageType("ColProbeWriteParams"); }
+};
+class LayerProbeWriteParamsMessage : public BaseMessage {
+  public:
+   LayerProbeWriteParamsMessage() { setMessageType("LayerProbeWriteParams"); }
+};
+class ConnectionProbeWriteParamsMessage : public BaseMessage {
+  public:
+   ConnectionProbeWriteParamsMessage() { setMessageType("ConnectionProbeWriteParams"); }
+};
+
 class InitializeStateMessage : public BaseMessage {
   public:
    InitializeStateMessage() { setMessageType("InitializeState"); }
@@ -92,6 +123,11 @@ class ConnectionOutputMessage : public BaseMessage {
    double mTime;
 };
 
+class LayerClearProgressFlagsMessage : public BaseMessage {
+  public:
+   LayerClearProgressFlagsMessage() { setMessageType("LayerClearProgressFlags"); }
+};
+
 class LayerRecvSynapticInputMessage : public BaseMessage {
   public:
    LayerRecvSynapticInputMessage(
@@ -101,24 +137,30 @@ class LayerRecvSynapticInputMessage : public BaseMessage {
          bool recvOnGpuFlag,
 #endif // PV_USE_CUDA
          double simTime,
-         double deltaTime) {
+         double deltaTime,
+         bool *someLayerIsPending,
+         bool *someLayerHasActed) {
       setMessageType("LayerRecvSynapticInput");
       mPhase = phase;
       mTimer = timer;
 #ifdef PV_USE_CUDA
       mRecvOnGpuFlag = recvOnGpuFlag;
 #endif // PV_USE_CUDA
-      mTime   = simTime;
-      mDeltaT = deltaTime;
+      mTime               = simTime;
+      mDeltaT             = deltaTime;
+      mSomeLayerIsPending = someLayerIsPending;
+      mSomeLayerHasActed  = someLayerHasActed;
    }
    int mPhase;
    Timer *mTimer;
 #ifdef PV_USE_CUDA
    bool mRecvOnGpuFlag;
 #endif // PV_USE_CUDA
-   float mTime;
-   float mDeltaT; // TODO: this should be the nbatch-sized vector of adaptive
+   double mTime;
+   double mDeltaT; // TODO: this should be the nbatch-sized vector of adaptive
    // timesteps
+   bool *mSomeLayerIsPending;
+   bool *mSomeLayerHasActed;
 };
 
 class LayerUpdateStateMessage : public BaseMessage {
@@ -133,24 +175,30 @@ class LayerUpdateStateMessage : public BaseMessage {
 // depends on it.
 #endif // PV_USE_CUDA
          double simTime,
-         double deltaTime) {
+         double deltaTime,
+         bool *someLayerIsPending,
+         bool *someLayerHasActed) {
       setMessageType("LayerUpdateState");
       mPhase = phase;
 #ifdef PV_USE_CUDA
       mRecvOnGpuFlag   = recvOnGpuFlag;
       mUpdateOnGpuFlag = updateOnGpuFlag;
 #endif // PV_USE_CUDA
-      mTime   = simTime;
-      mDeltaT = deltaTime;
+      mTime               = simTime;
+      mDeltaT             = deltaTime;
+      mSomeLayerIsPending = someLayerIsPending;
+      mSomeLayerHasActed  = someLayerHasActed;
    }
    int mPhase;
 #ifdef PV_USE_CUDA
    bool mRecvOnGpuFlag;
    bool mUpdateOnGpuFlag;
 #endif // PV_USE_CUDA
-   float mTime;
-   float mDeltaT; // TODO: this should be the nbatch-sized vector of adaptive
+   double mTime;
+   double mDeltaT; // TODO: this should be the nbatch-sized vector of adaptive
    // timesteps
+   bool *mSomeLayerIsPending;
+   bool *mSomeLayerHasActed;
 };
 
 #ifdef PV_USE_CUDA
@@ -169,7 +217,7 @@ class LayerCopyFromGpuMessage : public BaseMessage {
 class LayerAdvanceDataStoreMessage : public BaseMessage {
   public:
    LayerAdvanceDataStoreMessage(int phase) {
-      setMessageType("LayerAdvanceDataStoreMessage");
+      setMessageType("LayerAdvanceDataStore");
       mPhase = phase;
    }
    int mPhase;
@@ -208,6 +256,17 @@ class LayerCheckNotANumberMessage : public BaseMessage {
       mPhase = phase;
    }
    int mPhase;
+};
+
+class ColProbeOutputStateMessage : public BaseMessage {
+  public:
+   ColProbeOutputStateMessage(double simTime, double deltaTime) {
+      setMessageType("ColProbeOutputState");
+      mTime      = simTime;
+      mDeltaTime = deltaTime;
+   }
+   double mTime;
+   double mDeltaTime;
 };
 
 class CleanupMessage : public BaseMessage {

@@ -32,7 +32,6 @@ class AdaptiveTimeScaleController : public CheckpointerDataInterface {
          double baseMin,
          double tauFactor,
          double growthFactor,
-         bool writeTimeScales,
          bool writeTimeScaleFieldnames,
          Communicator *comm);
    virtual ~AdaptiveTimeScaleController();
@@ -52,7 +51,6 @@ class AdaptiveTimeScaleController : public CheckpointerDataInterface {
    double mBaseMin;
    double mTauFactor;
    double mGrowthFactor;
-   bool mWriteTimeScales;
    bool mWriteTimeScaleFieldnames;
    Communicator *mCommunicator;
 

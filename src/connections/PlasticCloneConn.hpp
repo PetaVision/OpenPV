@@ -83,7 +83,8 @@ class PlasticCloneConn : public CloneConn {
    PlasticCloneConn(const char *name, HyPerCol *hc);
    virtual ~PlasticCloneConn();
 
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
   protected:
    PlasticCloneConn();

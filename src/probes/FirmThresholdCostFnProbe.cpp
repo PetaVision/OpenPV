@@ -6,8 +6,8 @@
  */
 
 #include "FirmThresholdCostFnProbe.hpp"
-#include "../columns/HyPerCol.hpp"
-#include "../layers/ANNLayer.hpp" // To get VThresh and VWidth from targetLayer if it's an ANNLayer
+#include "columns/HyPerCol.hpp"
+#include "layers/ANNLayer.hpp" // To get VThresh and VWidth from targetLayer if it's an ANNLayer
 
 namespace PV {
 
@@ -52,7 +52,8 @@ int FirmThresholdCostFnProbe::setNormDescription() {
    return setNormDescriptionToString("Cost function");
 }
 
-int FirmThresholdCostFnProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+int FirmThresholdCostFnProbe::communicateInitInfo(
+      std::shared_ptr<CommunicateInitInfoMessage const> message) {
    AbstractNormProbe::communicateInitInfo(message);
    ANNLayer *targetANNLayer = dynamic_cast<ANNLayer *>(getTargetLayer());
    if (targetANNLayer != NULL) {

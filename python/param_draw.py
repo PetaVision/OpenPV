@@ -259,9 +259,11 @@ class Param_Parser(Param_Reader):
             conn = self.conn_dict[i]
             if 'originalConnName' in conn.params:
                 if conn['originalConnName'] in self.conn_dict:
+                    originalConnName = conn['originalConnName']
+                    originalConn = self.conn_dict[originalConnName]
                     conn.label = self.original_conn_label(conn)
                     if conn.type == 'TransposePoolingConn':
-                        pool_type = conn['pvpatchAccumulateType']
+                        pool_type = originalConn['pvpatchAccumulateType']
                         if pool_type == 'maxpooling':
                             conn.label = ('MAX_' + conn.label)
                         if pool_type == 'sumpooling':

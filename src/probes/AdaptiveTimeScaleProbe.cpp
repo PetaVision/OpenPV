@@ -29,7 +29,6 @@ int AdaptiveTimeScaleProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_baseMin(ioFlag);
    ioParam_tauFactor(ioFlag);
    ioParam_growthFactor(ioFlag);
-   ioParam_dtMinToleratedTimeScale(ioFlag);
    ioParam_writeTimeScales(ioFlag);
    ioParam_writeTimeScaleFieldnames(ioFlag);
    return status;
@@ -47,17 +46,6 @@ void AdaptiveTimeScaleProbe::ioParam_baseMin(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValue(ioFlag, name, "baseMin", &mBaseMin, mBaseMin);
 }
 
-void AdaptiveTimeScaleProbe::ioParam_dtMinToleratedTimeScale(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ
-       && parent->parameters()->present(getName(), "dtMinToleratedTimeScale")) {
-      if (parent->getCommunicator()->commRank() == 0) {
-         ErrorLog() << "The dtMinToleratedTimeScale parameter has been removed.\n";
-      }
-      MPI_Barrier(parent->getCommunicator()->communicator());
-      exit(EXIT_FAILURE);
-   }
-}
-
 void AdaptiveTimeScaleProbe::ioParam_tauFactor(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValue(ioFlag, name, "tauFactor", &tauFactor, tauFactor);
 }
@@ -66,14 +54,36 @@ void AdaptiveTimeScaleProbe::ioParam_growthFactor(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValue(ioFlag, name, "growthFactor", &mGrowthFactor, mGrowthFactor);
 }
 
+// writeTimeScales was marked obsolete Jul 27, 2017. Use textOutputFlag instead.
 void AdaptiveTimeScaleProbe::ioParam_writeTimeScales(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
-         ioFlag, name, "writeTimeScales", &mWriteTimeScales, mWriteTimeScales);
+   if (ioFlag != PARAMS_IO_READ) {
+      return;
+   }
+   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "textOutputFlag"));
+   if (parent->parameters()->present(name, "writeTimeScales")) {
+      bool writeTimeScales = (parent->parameters()->value(name, "writeTimeScales") != 0);
+      if (writeTimeScales == getTextOutputFlag()) {
+         WarnLog() << getDescription()
+                   << " sets writeTimeScales, which is obsolete. Use textOutputFlag instead.\n";
+      }
+      else if (parent->parameters()->present(name, "textOutputFlag")) {
+         Fatal() << "writeTimeScales is obsolete as it is redundant with textOutputFlag. "
+                 << getDescription() << " sets these flags to opposite values.\n";
+      }
+      else {
+         pvAssert(writeTimeScales != getTextOutputFlag());
+         Fatal() << "writeTimeScales is obsolete as it is redundant with textOutputFlag. "
+                 << getDescription() << " sets writeTimeScales to "
+                 << (writeTimeScales ? "true" : "false")
+                 << " but the default value of textOutputFlag is "
+                 << (getTextOutputFlag() ? "true" : "false") << "\n";
+      }
+   }
 }
 
 void AdaptiveTimeScaleProbe::ioParam_writeTimeScaleFieldnames(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "writeTimeScales"));
-   if (mWriteTimeScales) {
+   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "textOutputFlag"));
+   if (getTextOutputFlag()) {
       parent->parameters()->ioParamValue(
             ioFlag,
             name,
@@ -83,7 +93,8 @@ void AdaptiveTimeScaleProbe::ioParam_writeTimeScaleFieldnames(enum ParamsIOFlag 
    }
 }
 
-int AdaptiveTimeScaleProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+int AdaptiveTimeScaleProbe::communicateInitInfo(
+      std::shared_ptr<CommunicateInitInfoMessage const> message) {
    int status   = ColProbe::communicateInitInfo(message);
    mTargetProbe = message->lookup<BaseProbe>(std::string(targetName));
    if (mTargetProbe == nullptr) {
@@ -120,7 +131,6 @@ void AdaptiveTimeScaleProbe::allocateTimeScaleController() {
          mBaseMin,
          tauFactor,
          mGrowthFactor,
-         mWriteTimeScales,
          mWriteTimeScaleFieldnames,
          parent->getCommunicator());
 }
@@ -136,9 +146,7 @@ int AdaptiveTimeScaleProbe::respond(std::shared_ptr<BaseMessage const> message) 
    if (message == nullptr) {
       return status;
    }
-   else if (
-         AdaptTimestepMessage const *castMessage =
-               dynamic_cast<AdaptTimestepMessage const *>(message.get())) {
+   else if (auto castMessage = std::dynamic_pointer_cast<AdaptTimestepMessage const>(message)) {
       return respondAdaptTimestep(castMessage);
    }
    else {
@@ -146,7 +154,8 @@ int AdaptiveTimeScaleProbe::respond(std::shared_ptr<BaseMessage const> message) 
    }
 }
 
-int AdaptiveTimeScaleProbe::respondAdaptTimestep(AdaptTimestepMessage const *message) {
+int AdaptiveTimeScaleProbe::respondAdaptTimestep(
+      std::shared_ptr<AdaptTimestepMessage const> message) {
    return getValues(parent->simulationTime());
 }
 

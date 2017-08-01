@@ -24,7 +24,8 @@ int WeightComparisonProbe::initialize(char const *name, PV::HyPerCol *hc) {
    return ColProbe::initialize(name, hc);
 }
 
-int WeightComparisonProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+int WeightComparisonProbe::communicateInitInfo(
+      std::shared_ptr<CommunicateInitInfoMessage const> message) {
    mConnectionList.push_back(message->lookup<HyPerConn>(std::string("ConnA")));
    mConnectionList.push_back(message->lookup<HyPerConn>(std::string("ConnB")));
    mConnectionList.push_back(message->lookup<HyPerConn>(std::string("ConnC")));

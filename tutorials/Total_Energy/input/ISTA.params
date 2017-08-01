@@ -37,7 +37,7 @@ AdaptiveTimeScaleProbe "AdaptiveTimeScales" = {
     BaseMin                             = 0.125;
     tauFactor                           = 0.05;
     growthFactor                        = 0;
-    writeTimeScales                     = true;
+    textOutputFlag                      = true;
 };
 
 ImageLayer "input" = {

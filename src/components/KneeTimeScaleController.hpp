@@ -14,7 +14,6 @@ class KneeTimeScaleController : public AdaptiveTimeScaleController {
          double baseMin,
          double tauFactor,
          double growthFactor,
-         bool writeTimeScales,
          bool writeTimeScaleFieldnames,
          Communicator *comm,
          double kneeThresh,

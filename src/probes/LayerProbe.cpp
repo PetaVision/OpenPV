@@ -50,7 +50,7 @@ void LayerProbe::ioParam_targetName(enum ParamsIOFlag ioFlag) {
    }
 }
 
-int LayerProbe::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+int LayerProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    BaseProbe::communicateInitInfo(message);
    // Set target layer
    targetLayer = message->lookup<HyPerLayer>(std::string(targetName));

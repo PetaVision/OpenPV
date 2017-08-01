@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
             rmrfstatus);
    }
 
-   HyPerCol *hc          = createHyPerCol(&pv_init);
+   HyPerCol *hc          = new HyPerCol(&pv_init);
    int processBatchWidth = hc->getNBatchGlobal() / mpiBlock.getGlobalBatchDimension();
    int status            = hc->run();
 

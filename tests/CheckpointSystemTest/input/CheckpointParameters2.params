@@ -143,7 +143,6 @@ VaryingHyPerConn "ConnNoDelay" = {
     normalizeMethod                     = "none";
     dWMax                               = 1;
     useMask                             = false;
-    gpuGroupIdx                         = 0;
 };
 
 VaryingHyPerConn "ConnWithDelay" = {
@@ -187,7 +186,6 @@ VaryingHyPerConn "ConnWithDelay" = {
     normalizeMethod                     = "none";
     dWMax                               = 1;
     useMask                             = false;
-    gpuGroupIdx                         = 0;
 };
 
 HyPerConn "InputToOutputArbor" = {
@@ -229,7 +227,6 @@ HyPerConn "InputToOutputArbor" = {
     normalize_cutoff                    = 0;
     normalizeFromPostPerspective        = false;
     minSumTolerated                     = 0;
-    gpuGroupIdx                         = 0;
 };
 
 VaryingHyPerConn "FullHyPerConn" = {
@@ -262,7 +259,6 @@ VaryingHyPerConn "FullHyPerConn" = {
     normalizeMethod                     = "none";
     dWMax                               = 1;
     useMask                             = false;
-    gpuGroupIdx                         = 0;
 };
 
 IdentConn "SelfConnectionForOutputWithDelay" = {
@@ -273,5 +269,4 @@ IdentConn "SelfConnectionForOutputWithDelay" = {
     receiveGpu                          = false;
     initWeightsFile                     = NULL;
     writeStep                           = -1;
-    gpuGroupIdx                         = 0;
 };

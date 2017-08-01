@@ -306,6 +306,13 @@ class HyPerLayer : public BaseLayer {
     */
    int freeExtendedBuffer(float **buf);
 
+   /**
+    * Returns true if each layer that delivers input to this layer
+    * has finished its MPI exchange for its delay; false if any of
+    * them has not.
+    */
+   bool isAllInputReady();
+
   public:
    HyPerLayer(const char *name, HyPerCol *hc);
    float *getActivity() {
@@ -320,7 +327,7 @@ class HyPerLayer : public BaseLayer {
    /**
     * The function that calls all ioParam functions
     */
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    static int equalizeMargins(HyPerLayer *layer1, HyPerLayer *layer2);
 
@@ -330,8 +337,6 @@ class HyPerLayer : public BaseLayer {
    virtual ~HyPerLayer();
 
    void synchronizeMarginWidth(HyPerLayer *layer);
-
-   int ioParams(enum ParamsIOFlag ioFlag);
 
    // TODO - make protected
    PVLayer *clayer;
@@ -370,17 +375,22 @@ class HyPerLayer : public BaseLayer {
     */
    virtual double getDeltaTriggerTime();
 
-   virtual int respondLayerRecvSynapticInput(LayerRecvSynapticInputMessage const *message);
-   virtual int respondLayerUpdateState(LayerUpdateStateMessage const *message);
+   int respondLayerSetMaxPhase(std::shared_ptr<LayerSetMaxPhaseMessage const> message);
+   int respondLayerWriteParams(std::shared_ptr<LayerWriteParamsMessage const> message);
+   int respondLayerProbeWriteParams(std::shared_ptr<LayerProbeWriteParamsMessage const> message);
+   int
+   respondLayerClearProgressFlags(std::shared_ptr<LayerClearProgressFlagsMessage const> message);
+   int respondLayerRecvSynapticInput(std::shared_ptr<LayerRecvSynapticInputMessage const> message);
+   int respondLayerUpdateState(std::shared_ptr<LayerUpdateStateMessage const> message);
 #ifdef PV_USE_CUDA
-   virtual int respondLayerCopyFromGpu(LayerCopyFromGpuMessage const *message);
+   int respondLayerCopyFromGpu(std::shared_ptr<LayerCopyFromGpuMessage const> message);
 #endif // PV_USE_CUDA
-   virtual int respondLayerAdvanceDataStore(LayerAdvanceDataStoreMessage const *message);
-   virtual int respondLayerPublish(LayerPublishMessage const *message);
-   virtual int respondLayerCheckNotANumber(LayerCheckNotANumberMessage const *message);
+   int respondLayerAdvanceDataStore(std::shared_ptr<LayerAdvanceDataStoreMessage const> message);
+   int respondLayerPublish(std::shared_ptr<LayerPublishMessage const> message);
+   int respondLayerCheckNotANumber(std::shared_ptr<LayerCheckNotANumberMessage const> message);
    // respondLayerUpdateActiveIndices removed Feb 3, 2017. Layers update active indices
    // in response to other messages, when needed.
-   virtual int respondLayerOutputState(LayerOutputStateMessage const *message);
+   int respondLayerOutputState(std::shared_ptr<LayerOutputStateMessage const> message);
    virtual int publish(Communicator *comm, double simTime);
    virtual int resetGSynBuffers(double timef, double dt);
    // ************************************************************************************//
@@ -409,14 +419,7 @@ class HyPerLayer : public BaseLayer {
     */
    bool isExchangeFinished(int delay = 0);
 
-   void clearProgressFlags();
-
-   /**
-    * Returns true if each layer that delivers input to this layer
-    * has finished its MPI exchange for its delay; false if any of
-    * them has not.
-    */
-   bool isAllInputReady();
+   int clearProgressFlags();
 
    int getNumProbes() { return numProbes; }
    LayerProbe *getProbe(int n) { return (n >= 0 && n < numProbes) ? probes[n] : NULL; }
@@ -485,17 +488,14 @@ class HyPerLayer : public BaseLayer {
 
    double getLastUpdateTime() { return mLastUpdateTime; }
    double getNextUpdateTime() { return mLastUpdateTime + getDeltaUpdateTime(); }
-   float getMaxRate() { return maxRate; }
 
    Publisher *getPublisher() { return publisher; }
 
-   bool getHasReceived() { return mHasReceived; }
-
-   bool getHasUpdated() { return mHasUpdated; }
-
   protected:
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual int allocateDataStructures() override;
+   virtual int setMaxPhase(int *maxPhase);
    virtual int registerData(Checkpointer *checkpointer) override;
    virtual int initializeState() override final;
    // Not overridable since all layers should respond to initializeFromCheckpointFlag the same way.
@@ -511,8 +511,6 @@ class HyPerLayer : public BaseLayer {
    virtual int updateState(double timef, double dt);
    virtual int setActivity();
    void freeChannels();
-
-   // layerId was removed Aug 12, 2016.
 
    bool mNeedToPublish = true;
 
@@ -554,9 +552,6 @@ class HyPerLayer : public BaseLayer {
 
    int *marginIndices; // indices of neurons in margin
    int numMargin; // number of neurons in margin
-   float maxRate; // Maximum rate of activity.  HyPerLayer sets to 1/dt during initialize(); derived
-   // classes should override in their own initialize method after calling
-   // HyPerLayer's, if needed.
 
    unsigned int rngSeedBase; // The starting seed for rng.  The parent HyPerCol reserves
    // {rngSeedbase, rngSeedbase+1,...rngSeedbase+neededRNGSeeds-1} for use
@@ -648,10 +643,6 @@ class HyPerLayer : public BaseLayer {
 
    void setUpdatedDeviceGSynFlag(bool in) { updatedDeviceGSyn = in; }
 
-   bool getRecvGpu() { return recvGpu; }
-
-   bool getUpdateGpu() { return updateGpu; }
-
   protected:
    virtual int allocateUpdateKernel();
    virtual int allocateDeviceBuffers();
@@ -666,8 +657,8 @@ class HyPerLayer : public BaseLayer {
    bool updatedDeviceActivity;
    bool updatedDeviceDatastore;
    bool updatedDeviceGSyn;
-   bool recvGpu;
-   bool updateGpu;
+   bool mRecvGpu;
+   bool mUpdateGpu;
 
    PVCuda::CudaBuffer *d_V;
    PVCuda::CudaBuffer *d_GSyn;

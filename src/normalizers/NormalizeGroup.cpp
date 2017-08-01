@@ -42,7 +42,7 @@ void NormalizeGroup::ioParam_normalizeGroupName(enum ParamsIOFlag ioFlag) {
          ioFlag, name, "normalizeGroupName", &normalizeGroupName);
 }
 
-int NormalizeGroup::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+int NormalizeGroup::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    groupHead = parent->getNormalizerFromName(normalizeGroupName);
    if (groupHead == nullptr) {
       if (parent->columnId() == 0) {

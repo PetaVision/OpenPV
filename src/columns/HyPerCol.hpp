@@ -13,14 +13,11 @@
 #include "columns/Communicator.hpp"
 #include "columns/Messages.hpp"
 #include "columns/PV_Init.hpp"
-#include "connections/BaseConnection.hpp"
 #include "include/pv_types.h"
 #include "io/PVParams.hpp"
-#include "layers/HyPerLayer.hpp"
 #include "observerpattern/Observer.hpp"
 #include "observerpattern/ObserverTable.hpp"
 #include "observerpattern/Subject.hpp"
-#include "probes/ColProbe.hpp"
 #include "utils/Clock.hpp"
 #include "utils/Timer.hpp"
 #include <fstream>
@@ -40,11 +37,9 @@
 
 namespace PV {
 
-class ColProbe;
-class BaseProbe;
-class PVParams;
 class NormalizeBase;
 class PV_Init;
+class PVParams;
 
 class HyPerCol : public Subject, Observer {
 
@@ -119,37 +114,43 @@ class HyPerCol : public Subject, Observer {
    virtual void ioParam_errorOnNotANumber(enum ParamsIOFlag ioFlag);
 
   public:
-   HyPerCol(const char *name, PV_Init *initObj);
+   HyPerCol(PV_Init *initObj);
    virtual ~HyPerCol();
 
    // Public functions
 
    virtual int respond(std::shared_ptr<BaseMessage const> message) override;
-   BaseConnection *getConnFromName(const char *connectionName);
-   BaseProbe *getBaseProbeFromName(const char *probeName);
-   ColProbe *getColProbeFromName(const char *probeName);
-   HyPerLayer *getLayerFromName(const char *layerName);
+
+   /**
+    * Returns the object in the hierarchy with the given name, if any exists.
+    * Returns the null pointer if the string does not match any object.
+    * It is up to the calling function to determine if the returned object
+    * has the appropriate type.
+    */
+   Observer *getObjectFromName(std::string const &objectName) const;
+
+   /**
+    * Returns the object in the object hierarchy vector immediately following
+    * the object passed as an argument. To get the first object,
+    * pass the null pointer. If the last object is passed, the null
+    * pointer is returned. If a non-null pointer is passed but is not
+    * in the object hierarchy vector, an exception is thrown.
+    */
+   Observer *getNextObject(Observer const *currentObject) const;
 
    /**
     * Adds an object (layer, connection, etc.) to the hierarchy.
     * Exits with an error if adding the object failed.
     * The usual reason for failing to add the object is that the name is the same
     * as that of an earlier added object.
-    * Currently, addLayer, addConnection, and addBaseProbe call addObject;
-    * therefore it is usually not necessary to call addObject.
     */
-   void addObject(BaseObject *obj);
-   int addBaseProbe(BaseProbe *p);
-   int addConnection(BaseConnection *conn);
    int addNormalizer(NormalizeBase *normalizer);
-   int addLayer(HyPerLayer *l);
    void advanceTimeLoop(Clock &runClock, int const runClockStartingStep);
    int advanceTime(double time);
+   void nonblockingLayerUpdate(std::shared_ptr<LayerUpdateStateMessage const> updateMessage);
    void nonblockingLayerUpdate(
          std::shared_ptr<LayerRecvSynapticInputMessage const> recvMessage,
          std::shared_ptr<LayerUpdateStateMessage const> updateMessage);
-   int insertProbe(ColProbe *p);
-   int outputState(double time);
    int processParams(char const *path);
    int ioParamsFinishGroup(enum ParamsIOFlag);
    int ioParamsStartGroup(enum ParamsIOFlag ioFlag, const char *group_name);
@@ -168,17 +169,8 @@ class HyPerCol : public Subject, Observer {
    int run(double mStartTime, double mStopTime, double dt);
    NormalizeBase *getNormalizerFromName(const char *normalizerName);
 
-// Sep 26, 2016: HyPerCol methods for parameter input/output have been moved to
-// PVParams.
-
-#ifdef PV_USE_CUDA
-   void addGpuGroup(BaseConnection *conn, int gpuGroupIdx);
-#endif // PV_USE_CUDA
-
    // Getters and setters
 
-   BaseConnection *getConnection(int which) { return mConnections.at(which); }
-   BaseProbe *getBaseProbe(int which) { return mBaseProbes.at(which); }
    bool getVerifyWrites() { return mCheckpointer->doesVerifyWrites(); }
    bool getCheckpointWriteFlag() const { return mCheckpointer->getCheckpointWriteFlag(); }
    char const *getLastCheckpointDir() const { return mCheckpointer->getLastCheckpointDir(); }
@@ -186,15 +178,10 @@ class HyPerCol : public Subject, Observer {
    const char *getName() { return mName; }
    const char *getOutputPath() { return mCheckpointer->getOutputPath().c_str(); }
    const char *getPrintParamsFilename() const { return mPrintParamsFilename; }
-   ColProbe *getColProbe(int which) { return mColProbes.at(which); }
    double getDeltaTime() const { return mDeltaTime; }
-   // Sep 26, 2016: Adaptive timestep routines and member variables have been
-   // moved to
-   // AdaptiveTimeScaleProbe.
    double simulationTime() const { return mSimTime; }
    double getStartTime() const { return mStartTime; }
    double getStopTime() const { return mStopTime; }
-   HyPerLayer *getLayer(int which) { return mLayers.at(which); }
    int globalRank() { return mCommunicator->globalCommRank(); }
    int columnId() { return mCommunicator->commRank(); }
    int getNxGlobal() { return mNumXGlobal; }
@@ -202,11 +189,7 @@ class HyPerCol : public Subject, Observer {
    int getNBatch() { return mNumBatch; }
    int getNBatchGlobal() { return mNumBatchGlobal; }
    int getNumThreads() const { return mNumThreads; }
-   int numberOfLayers() const { return mLayers.size(); }
-   int numberOfConnections() const { return mConnections.size(); }
    int numberOfNormalizers() const { return mNormalizers.size(); }
-   int numberOfProbes() const { return mColProbes.size(); }
-   int numberOfBaseProbes() const { return mBaseProbes.size(); }
    int numberOfBorderRegions() const { return MAX_NEIGHBORS; }
    int numberOfColumns() { return mCommunicator->commSize(); }
    int numberOfGlobalColumns() { return mCommunicator->globalCommSize(); }
@@ -239,7 +222,6 @@ class HyPerCol : public Subject, Observer {
 
 #ifdef PV_USE_CUDA
   public:
-   BaseConnection *getGpuGroupConn(int gpuGroupIdx) { return mGpuGroupConns.at(gpuGroupIdx); }
    PVCuda::CudaDevice *getDevice() { return mCudaDevice; }
 #endif
 
@@ -248,9 +230,10 @@ class HyPerCol : public Subject, Observer {
   private:
    void setDescription();
    int initialize_base();
-   int initialize(const char *name, PV_Init *initObj);
+   int initialize(PV_Init *initObj);
    int ioParams(enum ParamsIOFlag ioFlag);
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   void addObject(BaseObject *obj);
    int checkDirExists(const char *dirname, struct stat *pathstat);
    inline void notify(std::vector<std::shared_ptr<BaseMessage const>> messages) {
       Subject::notify(mObjectHierarchy, messages, getCommunicator()->commRank() == 0 /*printFlag*/);
@@ -258,7 +241,7 @@ class HyPerCol : public Subject, Observer {
    inline void notify(std::shared_ptr<BaseMessage const> message) {
       notify(std::vector<std::shared_ptr<BaseMessage const>>{message});
    }
-   int respondPrepareCheckpointWrite(PrepareCheckpointWriteMessage const *message);
+   int respondPrepareCheckpointWrite(std::shared_ptr<PrepareCheckpointWriteMessage const> message);
 #ifdef PV_USE_CUDA
    void initializeCUDA(std::string const &in_device);
    int finalizeCUDA();
@@ -279,9 +262,6 @@ class HyPerCol : public Subject, Observer {
    // Private variables
 
   private:
-   std::vector<BaseConnection *> mConnections; // BaseConnection  ** mConnections;
-   std::vector<BaseProbe *> mBaseProbes; // Why is this Base and not just
-   // mProbes? //BaseProbe ** mBaseProbes;
    ObserverTable mObjectHierarchy;
    bool mErrorOnNotANumber; // If true, check each layer's activity buffer for
    // not-a-numbers and
@@ -304,7 +284,6 @@ class HyPerCol : public Subject, Observer {
    char *mPrintParamsFilename; // filename for outputting the mParams, including
    // defaults and
    // excluding unread mParams
-   std::vector<ColProbe *> mColProbes; // ColProbe ** mColProbes;
    double mStartTime;
    double mSimTime;
    double mStopTime; // time to stop time
@@ -312,17 +291,11 @@ class HyPerCol : public Subject, Observer {
    double mProgressInterval; // Output progress after mSimTime increases by this
    // amount.
    double mNextProgressTime; // Next time to output a progress message
-   // Sep 26, 2016: Adaptive timestep routines and member variables have been
-   // moved to
-   // AdaptiveTimeScaleProbe.
-   std::vector<HyPerLayer *> mLayers; // HyPerLayer ** mLayers;
    int mNumPhases;
    int mNumXGlobal;
    int mNumYGlobal;
    int mNumBatch;
    int mNumBatchGlobal;
-   // mFilenamesContainLayerNames and mFilenamesContainConnectionNames were
-   // removed Aug 12, 2016.
    int mOrigStdOut;
    int mOrigStdErr;
    int mNumThreads;
@@ -330,13 +303,12 @@ class HyPerCol : public Subject, Observer {
    int *mConnectionStatus;
    Communicator *mCommunicator; // manages communication between HyPerColumns};
 
-   Checkpointer *mCheckpointer = nullptr; // manages checkpointing and, eventually,
-   // will manage outputState output.
+   Checkpointer *mCheckpointer = nullptr; // manages checkpointing and outputState output
    long int mInitialStep;
    long int mCurrentStep;
    long int mFinalStep;
    std::vector<NormalizeBase *> mNormalizers; // NormalizeBase ** mNormalizers; // Objects for
-   // normalizing mConnections or groups of mConnections
+   // normalizing connections or groups of connections
    PV_Init *mPVInitObj;
    FileStream *mPrintParamsStream; // file pointer associated with mPrintParamsFilename
    FileStream *mLuaPrintParamsStream; // file pointer associated with the output lua file
@@ -345,22 +317,16 @@ class HyPerCol : public Subject, Observer {
    size_t mConnectionArraySize;
    size_t mNormalizerArraySize;
    std::ofstream mTimeScaleStream;
-   std::vector<HyPerLayer *> mRecvLayerBuffer;
-   std::vector<HyPerLayer *> mUpdateLayerBufferGpu;
-   std::vector<HyPerLayer *> mUpdateLayerBuffer;
    Timer *mRunTimer;
    std::vector<Timer *> mPhaseRecvTimers; // Timer ** mPhaseRecvTimers;
    unsigned int mRandomSeed;
 #ifdef PV_USE_CUDA
-   // The list of GPU group showing which connection's buffer to use
-   std::vector<BaseConnection *> mGpuGroupConns; // BaseConnection** mGpuGroupConns;
-   int mNumGpuGroup;
    PVCuda::CudaDevice *mCudaDevice; // object for running kernels on OpenCL device
 #endif
 
 }; // class HyPerCol
 
-HyPerCol *createHyPerCol(PV_Init *pv_initObj);
+// July 7, 2017: Functionality of createHyPerCol() moved into HyPerCol::initialize()
 
 } // namespace PV
 

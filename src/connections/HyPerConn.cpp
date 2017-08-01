@@ -208,7 +208,7 @@ int HyPerConn::initialize_base() {
    d_Patch2DataLookupTable = NULL;
    krRecvPost              = NULL;
    krRecvPre               = NULL;
-   gpuGroupIdx             = -1;
+   mGpuGroupIdx            = -1;
 #ifdef PV_USE_CUDNN
    cudnn_WData = NULL;
 #endif
@@ -398,33 +398,26 @@ int HyPerConn::initialize(char const *name, HyPerCol *hc) {
    return status;
 }
 
-int HyPerConn::setWeightInitializer() {
-   weightInitializer = createInitWeightsObject(weightInitTypeString);
-   if (weightInitializer == nullptr) {
-      weightInitializer = getDefaultInitWeightsMethod(getKeyword());
-   }
-   return weightInitializer == nullptr ? PV_FAILURE : PV_SUCCESS;
-}
-
-/*
- * This method parses the weightInitType parameter and creates an
- * appropriate InitWeight object for the chosen weight initialization.
- */
-InitWeights *HyPerConn::createInitWeightsObject(const char *weightInitTypeStr) {
-   pvAssert(weightInitializer == nullptr);
-   BaseObject *baseObject = nullptr;
-   try {
-      baseObject = Factory::instance()->createByKeyword(weightInitTypeStr, name, parent);
-   } catch (const std::exception &e) {
-      Fatal() << getDescription() << " unable to create weightInitializer: " << e.what() << "\n";
-   }
-   weightInitializer = dynamic_cast<InitWeights *>(baseObject);
+void HyPerConn::setWeightInitializer() {
    FatalIf(
-         weightInitializer == nullptr,
-         "%s unable to create weightInitializer: %s is not an InitWeights keyword.\n",
-         getDescription_c(),
-         weightInitTypeStr);
-   return weightInitializer;
+         weightInitTypeString == nullptr or weightInitTypeString[0] == '\0',
+         "%s must set weightInitType.\n",
+         getDescription_c());
+   pvAssert(weightInitializer == nullptr);
+   {
+      BaseObject *baseObject = nullptr;
+      try {
+         baseObject = Factory::instance()->createByKeyword(weightInitTypeString, name, parent);
+      } catch (const std::exception &e) {
+         Fatal() << getDescription() << " unable to create weightInitializer: " << e.what() << "\n";
+      }
+      weightInitializer = dynamic_cast<InitWeights *>(baseObject);
+      FatalIf(
+            weightInitializer == nullptr,
+            "%s unable to create weightInitializer: %s is not an InitWeights keyword.\n",
+            getDescription_c(),
+            weightInitTypeString);
+   }
 }
 
 int HyPerConn::setPreLayerName(const char *pre_name) {
@@ -523,7 +516,7 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_sharedWeights(ioFlag);
    ioParam_weightInitType(ioFlag);
    if (weightInitializer != nullptr) {
-      weightInitializer->ioParamsFillGroup(ioFlag);
+      weightInitializer->ioParams(ioFlag, false, false);
    }
    ioParam_initializeFromCheckpointFlag(ioFlag);
    ioParam_triggerLayerName(ioFlag);
@@ -545,7 +538,7 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_shrinkPatches(ioFlag);
    ioParam_normalizeMethod(ioFlag);
    if (normalizer != nullptr && !strcmp(normalizer->getName(), getName())) {
-      normalizer->ioParamsFillGroup(ioFlag);
+      normalizer->ioParams(ioFlag, false, false);
    }
    ioParam_dWMax(ioFlag);
 
@@ -572,8 +565,8 @@ void HyPerConn::ioParam_gpuGroupIdx(enum ParamsIOFlag ioFlag) {
             ioFlag,
             name,
             "gpuGroupIdx",
-            &gpuGroupIdx,
-            gpuGroupIdx /*default*/,
+            &mGpuGroupIdx,
+            mGpuGroupIdx /*default*/,
             false /*warn if absent*/);
    }
 }
@@ -603,17 +596,26 @@ void HyPerConn::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerConn::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
+   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
    parent->parameters()->ioParamValue(
          ioFlag, name, "sharedWeights", &sharedWeights, true /*default*/, true /*warn if absent*/);
+   if (sharedWeights == false and receiveGpu == true) {
+      if (parent->getCommunicator()->globalCommRank() == 0) {
+         ErrorLog().printf("%s: sharedWeights must be true in order to receive on the GPU.\n", getDescription_c());
+      }
+      MPI_Barrier(parent->getCommunicator()->globalCommunicator());
+      MPI_Finalize();
+      exit(EXIT_FAILURE);
+   }
 }
 
 void HyPerConn::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamString(
          ioFlag, name, "weightInitType", &weightInitTypeString, NULL, true /*warnIfAbsent*/);
    if (ioFlag == PARAMS_IO_READ) {
-      int status = setWeightInitializer();
+      setWeightInitializer();
       pvAssertMessage(
-            status == PV_SUCCESS,
+            weightInitializer != nullptr,
             "%s: Rank %d process unable to construct weightInitializer",
             getDescription_c(),
             parent->columnId());
@@ -1022,7 +1024,7 @@ int HyPerConn::setPostPatchSize() {
    return PV_SUCCESS;
 }
 
-int HyPerConn::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+int HyPerConn::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    // HyPerConns need to tell the parent HyPerCol how many random number
    // seeds they need.  At the start of HyPerCol::run, the parent HyPerCol
    // calls each layer's and each connection's communicateInitInfo() sequentially in
@@ -1043,7 +1045,7 @@ int HyPerConn::communicateInitInfo(CommunicateInitInfoMessage const *message) {
    // the relative densities of the pre and post layers, and that nfp is
    // consistent with the number of features of post.
    //
-   // Subclasses (e.g. CloneKernelConn) may also need
+   // Subclasses (e.g. CloneConn) may also need
    // to send messages to related layers and connections before the allocation
    // phase.  These subclasses should override communicateInitInfo(), and the
    // subclass's communicateInitInfo() should call the parent class's communicateInitInfo().
@@ -1245,9 +1247,10 @@ int HyPerConn::communicateInitInfo(CommunicateInitInfoMessage const *message) {
    }
 
    if (weightInitializer) {
-      // TODO: try to make this even more clumsy a hack.
-      status = weightInitializer->respond(
-            std::make_shared<CommunicateInitInfoMessage>(message->mHierarchy));
+      status = weightInitializer->respond(message);
+      // // TODO: try to make this even more clumsy a hack.
+      // status = weightInitializer->respond(
+      //       std::make_shared<CommunicateInitInfoMessage>(message->mHierarchy));
       FatalIf(
             status != PV_SUCCESS,
             "%s failed CommunicateInitInfo stage.\n",
@@ -1275,6 +1278,31 @@ int HyPerConn::communicateInitInfo(CommunicateInitInfoMessage const *message) {
    // Here, the connection tells all participating recev layers to allocate memory on gpu
    // if receive from gpu is set. These buffers should be set in allocate
    if (receiveGpu) {
+      if (mGpuGroupIdx >= 0) {
+         // Scan all the connections to see if any with this group index have set
+         // mGpuGroupHead. If so, set mGpuGroupHead to the same thing; otherwise,
+         // set mGpuGroupHead to itself (this depends on communicateInitInfo running serially).
+         for (auto &obj : message->mHierarchy) {
+            auto c = dynamic_cast<HyPerConn *>(obj.second);
+            if (c == nullptr) {
+               continue;
+            }
+            if (c == this) {
+               continue;
+            }
+            if (c->getGpuGroupIdx() == mGpuGroupIdx) {
+               HyPerConn *groupHead = c->getGpuGroupHead();
+               if (groupHead != nullptr) {
+                  mGpuGroupHead = groupHead;
+                  break;
+               }
+            }
+         }
+         if (mGpuGroupHead == nullptr) {
+            mGpuGroupHead == this;
+         }
+      }
+
       // we need pre datastore, this conn's weights, and post gsyn on the channel of this connection
       pre->setAllocDeviceDatastore();
       if (updateGSynFromPostPerspective) {
@@ -1386,8 +1414,8 @@ void HyPerConn::handleDefaultSelfFlag() {
 int HyPerConn::setPatchSize() {
    int status = PV_SUCCESS;
    // Some subclasses determine some of {nxp, nyp, nfp} from other layers or connections (e.g.
-   // TransposeConn, CloneKernelConn)
-   // instead of reading them from params.  They should override setPatchSize() to set those params.
+   // TransposeConn, CloneConn) instead of reading them from params.
+   // They should override setPatchSize() to set those params.
    return status;
 }
 
@@ -1571,17 +1599,6 @@ taus_uint4 *HyPerConn::getRandState(int index) {
    return state;
 }
 
-InitWeights *HyPerConn::getDefaultInitWeightsMethod(const char *keyword) {
-   if (parent->columnId() == 0) {
-      ErrorLog().printf(
-            "%s: weightInitType \"%s\" not recognized.  Exiting\n",
-            getDescription_c(),
-            weightInitTypeString);
-   }
-   MPI_Barrier(parent->getCommunicator()->communicator());
-   exit(EXIT_FAILURE);
-}
-
 #ifdef PV_USE_CUDA
 
 int HyPerConn::allocatePostDeviceWeights() {
@@ -1610,40 +1627,32 @@ int HyPerConn::allocateDeviceBuffers() {
    bool needAlloc = true;
    if (allocDeviceWeights || allocPostDeviceWeights) {
       // Check group here
-      if (gpuGroupIdx >= 0) {
-         // Add to group if set
-         parent->addGpuGroup(this, gpuGroupIdx);
-         BaseConnection *b_conn = parent->getGpuGroupConn(gpuGroupIdx);
-         // This connection must exist if gpuGroupIdx >= 0
-         pvAssert(b_conn);
-         HyPerConn *group_conn = dynamic_cast<HyPerConn *>(b_conn);
-         if (!group_conn) {
-            Fatal() << "FATAL: GPU group connection " << b_conn->getName()
-                    << " is not of type HyPerConn.\n";
-         }
+      if (mGpuGroupIdx >= 0) {
+         pvAssert(mGpuGroupHead);
          // If this connection is NOT the "base" group conn that allocates
          // check dims and don't allocate
-         if (group_conn != this) {
+         if (mGpuGroupHead != this) {
             // Different num arbors is okay, since GPU mem holds only one arbor at a time
             // nxp, nyp, nfp, numKernels all have to be the same
-            if (group_conn->xPatchSize() != xPatchSize() || group_conn->yPatchSize() != yPatchSize()
-                || group_conn->fPatchSize() != fPatchSize()
-                || group_conn->getNumDataPatches() != getNumDataPatches()
-                || group_conn->numberOfAxonalArborLists() != numberOfAxonalArborLists()) {
+            if (mGpuGroupHead->xPatchSize() != xPatchSize()
+                || mGpuGroupHead->yPatchSize() != yPatchSize()
+                || mGpuGroupHead->fPatchSize() != fPatchSize()
+                || mGpuGroupHead->getNumDataPatches() != getNumDataPatches()
+                || mGpuGroupHead->numberOfAxonalArborLists() != numberOfAxonalArborLists()) {
                Fatal() << "Connection " << getName() << " of size (" << numberOfAxonalArborLists()
                        << ", " << getNumDataPatches() << ", " << xPatchSize() << ", "
                        << yPatchSize() << ", " << fPatchSize()
-                       << ") does not match the gpuGroupConnection " << group_conn->getName()
-                       << " of size (" << group_conn->numberOfAxonalArborLists() << ", "
-                       << group_conn->getNumDataPatches() << ", " << group_conn->xPatchSize()
-                       << ", " << group_conn->yPatchSize() << ", " << group_conn->fPatchSize()
+                       << ") does not match the gpuGroupConnection " << mGpuGroupHead->getName()
+                       << " of size (" << mGpuGroupHead->numberOfAxonalArborLists() << ", "
+                       << mGpuGroupHead->getNumDataPatches() << ", " << mGpuGroupHead->xPatchSize()
+                       << ", " << mGpuGroupHead->yPatchSize() << ", " << mGpuGroupHead->fPatchSize()
                        << ").\n";
             }
             // set d_WData to the group's d_WData
-            d_WData = group_conn->getDeviceWData();
+            d_WData = mGpuGroupHead->getDeviceWData();
             pvAssert(d_WData);
 #ifdef PV_USE_CUDNN
-            cudnn_WData = group_conn->getCudnnWData();
+            cudnn_WData = mGpuGroupHead->getCudnnWData();
             pvAssert(cudnn_WData);
 #endif
             needAlloc = false;
@@ -2268,7 +2277,7 @@ int HyPerConn::setInitialValues() {
 int HyPerConn::outputProbeParams() {
    int status = PV_SUCCESS;
    for (int p = 0; p < numProbes; p++) {
-      int status1 = probes[p]->ioParams(PARAMS_IO_WRITE);
+      int status1 = probes[p]->writeParams();
       if (status1 != PV_SUCCESS) {
          status = PV_FAILURE;
       }

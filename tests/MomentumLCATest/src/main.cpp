@@ -178,7 +178,7 @@ int copyCorrectOutput(HyPerCol *hc, int argc, char *argv[]) {
    sourcePathString += "/"
                        "Reconstruction.pvp";
    const char *sourcePath   = sourcePathString.c_str();
-   InputLayer *correctLayer = dynamic_cast<InputLayer *>(hc->getLayerFromName("Correct"));
+   InputLayer *correctLayer = dynamic_cast<InputLayer *>(hc->getObjectFromName("Correct"));
    assert(correctLayer);
    const char *destPath = correctLayer->getInputPath().c_str();
    if (strcmp(&destPath[strlen(destPath) - 4], ".pvp") != 0) {
@@ -284,19 +284,14 @@ int testioparams(PV_Init *initObj, int rank) {
 }
 
 int assertAllZeroes(HyPerCol *hc, int argc, char *argv[]) {
-   const char *targetLayerName = "Comparison";
-   HyPerLayer *layer           = hc->getLayerFromName(targetLayerName);
-   FatalIf(!(layer), "Test failed.\n");
-   LayerProbe *probe = NULL;
-   int np            = layer->getNumProbes();
-   for (int p = 0; p < np; p++) {
-      if (!strcmp(layer->getProbe(p)->getName(), "ComparisonTest")) {
-         probe = layer->getProbe(p);
-         break;
-      }
-   }
-   RequireAllZeroActivityProbe *allzeroProbe = dynamic_cast<RequireAllZeroActivityProbe *>(probe);
-   FatalIf(!(allzeroProbe), "Test failed.\n");
+   std::string layerName("Comparison");
+   HyPerLayer *layer = dynamic_cast<HyPerLayer *>(hc->getObjectFromName(layerName));
+   FatalIf(!layer, "No layer named \"%s\".\n", layerName.c_str());
+
+   std::string probeName("ComparisonTest");
+   RequireAllZeroActivityProbe *allzeroProbe =
+         dynamic_cast<RequireAllZeroActivityProbe *>(hc->getObjectFromName(probeName));
+   FatalIf(!allzeroProbe, "No probe named \"%s\".\n", probeName.c_str());
    if (allzeroProbe->getNonzeroFound()) {
       if (hc->columnId() == 0) {
          double t = allzeroProbe->getNonzeroTime();

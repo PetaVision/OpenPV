@@ -526,7 +526,7 @@ void ANNLayer_vertices_update_state(
       int num_channels,
       float *GSynHead,
       float *activity) {
-   updateV_PtwiseLinearTransferLayer(
+   updateV_ANNLayer_vertices(
          nbatch,
          numNeurons,
          V,

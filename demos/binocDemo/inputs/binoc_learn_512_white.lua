@@ -278,7 +278,7 @@ pv.addGroup(pvParams, "V1",
 pv.addMultiGroups(pvParams, 
    {
    LeftImageToLeftBipolarCenter = {
-      groupType                           = "KernelConn";
+      groupType                           = "HyPerConn";
       preLayerName                        = "LeftImage";
       postLayerName                       = "LeftBipolar";
       channelCode                         = 0;
@@ -287,6 +287,7 @@ pv.addMultiGroups(pvParams,
       plasticityFlag                      = false;
       convertRateToSpikeCount             = false;
       receiveGpu                          = false;
+      sharedWeights                       = true;
       weightInitType                      = "Gauss2DWeight";
       aspect                              = 1;
       sigma                               = .5;
@@ -315,7 +316,7 @@ pv.addMultiGroups(pvParams,
    };
 
    LeftBipolarToLeftGanglionCenter = {
-      groupType                           = "KernelConn";
+      groupType                           = "HyPerConn";
       preLayerName                        = "LeftBipolar";
       postLayerName                       = "LeftGanglion";
       channelCode                         = 0;
@@ -324,6 +325,7 @@ pv.addMultiGroups(pvParams,
       plasticityFlag                      = false;
       convertRateToSpikeCount             = false;
       receiveGpu                          = false;
+      sharedWeights                       = true;
       weightInitType                      = "Gauss2DWeight";
       aspect                              = 1;
       sigma                               = 1;
@@ -352,7 +354,7 @@ pv.addMultiGroups(pvParams,
    };
 
    LeftBipolarToLeftGanglionSurround = {
-      groupType                           = "KernelConn";
+      groupType                           = "HyPerConn";
       preLayerName                        = "LeftBipolar";
       postLayerName                       = "LeftGanglion";
       channelCode                         = 1;
@@ -361,6 +363,7 @@ pv.addMultiGroups(pvParams,
       plasticityFlag                      = false;
       convertRateToSpikeCount             = false;
       receiveGpu                          = false;
+      sharedWeights                       = true;
       weightInitType                      = "Gauss2DWeight";
       aspect                              = 1;
       sigma                               = 5.5;
@@ -431,10 +434,11 @@ pv.addGroup(pvParams, "RightRescaleToRightError", pvParams["LeftRescaleToLeftErr
 --LCA connections
 pv.addGroup(pvParams, "V1ToLeftError", 
    {
-      groupType = useMomentum and "MomentumConn" or "KernelConn";
+      groupType = useMomentum and "MomentumConn" or "HyPerConn";
       preLayerName = "V1";
       postLayerName = "LeftError";
       channelCode = 1;
+      sharedWeights = true;
       nxp = dictPatchSize;
       nyp = dictPatchSize;
       shrinkPatches = false;
@@ -520,7 +524,7 @@ pv.addMultiGroups(pvParams,
    };
 
    V1ToLeftRecon = {
-      groupType = "CloneKernelConn";
+      groupType = "CloneConn";
       preLayerName = "V1";
       postLayerName = "LeftRecon";
       channelCode = 0;

@@ -62,22 +62,16 @@ class AdaptiveTimeScaleProbe : public ColProbe {
     */
    virtual void ioParam_growthFactor(enum ParamsIOFlag ioFlag);
 
+   // writeTimeScales was marked obsolete Jul 27, 2017.
    /**
-    * @brief mDtMinToleratedTimeScale: Obsolete. This parameter has been removed.
-    */
-   virtual void ioParam_dtMinToleratedTimeScale(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief writeTimeScales: Specifies if the timescales should be written
-    * @details The timescales get written to
-    * outputPath/[name_of_probe]_timescales.txt.
+    * @brief writeTimeScales is obsolete, as it is redundant with textOutputFlag.
     */
    virtual void ioParam_writeTimeScales(enum ParamsIOFlag ioFlag);
 
    /**
     * @brief writeTimeScaleFieldnames: A flag to determine if fieldnames are
     * written to the
-    * HyPerCol_timescales file, if false, file is written as comma separated list
+    * HyPerCol_timescales file. If false, file is written as comma separated list
     */
    virtual void ioParam_writeTimeScaleFieldnames(enum ParamsIOFlag ioFlag);
    /** @} */
@@ -86,7 +80,8 @@ class AdaptiveTimeScaleProbe : public ColProbe {
    AdaptiveTimeScaleProbe(char const *name, HyPerCol *hc);
    virtual ~AdaptiveTimeScaleProbe();
    virtual int respond(std::shared_ptr<BaseMessage const> message) override;
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual int allocateDataStructures() override;
    virtual int outputState(double timeValue) override;
 
@@ -95,7 +90,7 @@ class AdaptiveTimeScaleProbe : public ColProbe {
    int initialize(char const *name, HyPerCol *hc);
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual int registerData(Checkpointer *checkpointer) override;
-   int respondAdaptTimestep(AdaptTimestepMessage const *message);
+   int respondAdaptTimestep(std::shared_ptr<AdaptTimestepMessage const> message);
    bool needRecalc(double timeValue) override {
       return parent->simulationTime() > getLastUpdateTime();
    }
@@ -109,7 +104,6 @@ class AdaptiveTimeScaleProbe : public ColProbe {
    double mBaseMin                = 1.0;
    double tauFactor               = 1.0;
    double mGrowthFactor           = 1.0;
-   bool mWriteTimeScales          = true;
    bool mWriteTimeScaleFieldnames = true;
 
    BaseProbe *mTargetProbe                                   = nullptr;

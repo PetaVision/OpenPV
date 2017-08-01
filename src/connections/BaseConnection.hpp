@@ -18,10 +18,10 @@
 #include "io/PVParams.hpp"
 #include "io/PrintStream.hpp"
 #include "io/io.hpp"
+#include "layers/HyPerLayer.hpp"
 
 namespace PV {
 
-class HyPerLayer;
 class BaseConnectionProbe;
 
 class BaseConnection : public BaseObject {
@@ -31,15 +31,6 @@ class BaseConnection : public BaseObject {
     * Destructor for BaseConnection
     */
    virtual ~BaseConnection();
-
-   /**
-    * Method for reading or writing the params from group in the parent HyPerCol's parameters.
-    * The group from params is selected using the name of the connection.
-    *
-    * Note that ioParams is not virtual.  To add parameters in a derived class, override
-    * ioParamFillGroup.
-    */
-   int ioParams(enum ParamsIOFlag ioFlag);
 
    virtual int respond(std::shared_ptr<BaseMessage const> message) override;
 
@@ -63,7 +54,8 @@ class BaseConnection : public BaseObject {
     * communicateInitInfo() is called by passing a CommunicateInitInfoMessage to respond(), which is
     * usually done in HyPerCol::run.
     */
-   virtual int communicateInitInfo(CommunicateInitInfoMessage const *message) override;
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
    /**
     * initializeState is used to set the initial values of the connection.
@@ -269,21 +261,11 @@ class BaseConnection : public BaseObject {
    int getPreAndPostLayerNames(const char *name, char **preLayerNamePtr, char **postLayerNamePtr);
 
    /**
-    * The virtual method for reading parameters from the parent HyPerCol's parameters, and writing
-    * to the output params file.
-    *
-    * BaseConnection::ioParamsFillGroup reads/writes the paremeters
+    * BaseConnection::ioParamsFillGroup reads/writes the parameters
     * preLayerName, postLayerName, channelCode, delay, numAxonalArbors, and convertRateToSpikeCount.
     *
-    * Derived classes with additional parameters typically override ioParamsFillGroup to call the
-    * base class's ioParamsFillGroup
-    * method and then call ioParam_[parametername] for each of their parameters.
-    * The ioParam_[parametername] methods should call the parent HyPerCol's ioParamValue() and
-    * related methods,
-    * to ensure that all parameters that get read also get written to the outputParams-generated
-    * file.
     */
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    /**
     * List of parameters needed from the BaseConnection class
@@ -329,9 +311,6 @@ class BaseConnection : public BaseObject {
     */
    virtual void ioParam_plasticityFlag(enum ParamsIOFlag ioFlag);
 
-   // preActivityIsNotRate was replaced with convertRateToSpikeCount on Dec 31, 2014.
-   // The warning issued if the params file contained preActivityIsNotRate was removed Aug 5, 2016.
-
    /**
     * @brief convertRateToSpikeCount: If true, presynaptic activity should be converted from a rate
     * to a count.
@@ -366,15 +345,23 @@ class BaseConnection : public BaseObject {
     */
    virtual int setInitialValues() = 0;
 
-   virtual int respondConnectionUpdate(ConnectionUpdateMessage const *message) {
+   int respondConnectionWriteParams(std::shared_ptr<ConnectionWriteParamsMessage const> message);
+
+   int respondConnectionProbeWriteParams(
+         std::shared_ptr<ConnectionProbeWriteParamsMessage const> message);
+
+   int respondLayerProbeWriteParams(std::shared_ptr<LayerWriteParamsMessage const> message);
+
+   int respondConnectionUpdate(std::shared_ptr<ConnectionUpdateMessage const> message) {
       return updateState(message->mTime, message->mDeltaT);
    }
 
-   virtual int respondConnectionFinalizeUpdate(ConnectionFinalizeUpdateMessage const *message) {
+   int
+   respondConnectionFinalizeUpdate(std::shared_ptr<ConnectionFinalizeUpdateMessage const> message) {
       return finalizeUpdate(message->mTime, message->mDeltaT);
    }
 
-   virtual int respondConnectionOutput(ConnectionOutputMessage const *message) {
+   int respondConnectionOutput(std::shared_ptr<ConnectionOutputMessage const> message) {
       return outputState(message->mTime);
    }
 
@@ -436,7 +423,6 @@ class BaseConnection : public BaseObject {
 
    // member variables
   protected:
-   // connId was removed Aug 12, 2016.
    char *preLayerName;
    char *postLayerName;
    HyPerLayer *pre;

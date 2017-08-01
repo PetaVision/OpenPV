@@ -43,21 +43,7 @@ int TransposePoolingConn::initialize_base() {
 } // TransposePoolingConn::initialize_base()
 
 int TransposePoolingConn::initialize(const char *name, HyPerCol *hc) {
-   // It is okay for either of weightInitializer or weightNormalizer to be null at this point,
-   // either because we're in a subclass that doesn't need it, or because we are allowing for //
-   // backward compatibility.
-   // The two lines needs to be before the call to BaseConnection::initialize, because that function
-   // calls ioParamsFillGroup,
-   // which will call ioParam_weightInitType and ioParam_normalizeMethod, which for reasons of
-   // backward compatibility
-   // will create the initializer and normalizer if those member variables are null.
-   this->weightInitializer = NULL;
-   this->normalizer        = NULL;
-
-   int status = BaseConnection::initialize(name, hc); // BaseConnection should *NOT* take
-   // weightInitializer or weightNormalizer as
-   // arguments, as it does not know about
-   // InitWeights or NormalizeBase
+   int status = BaseConnection::initialize(name, hc);
 
    assert(parent);
    PVParams *inputParams = parent->parameters();
@@ -95,7 +81,7 @@ int TransposePoolingConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 // We override many ioParam-methods because TransposePoolingConn will determine
 // the associated parameters from the original connection's values.
 // communicateInitInfo will check if those parameters exist in params for
-// the CloneKernelConn group, and whether they are consistent with the
+// the TransposePoolingConn group, and whether they are consistent with the
 // originalConn parameters.
 // If consistent, issue a warning that the param is unnecessary and continue.
 // If inconsistent, issue an error and quit.
@@ -236,7 +222,8 @@ void TransposePoolingConn::ioParam_originalConnName(enum ParamsIOFlag ioFlag) {
          ioFlag, name, "originalConnName", &mOriginalConnName);
 }
 
-int TransposePoolingConn::communicateInitInfo(CommunicateInitInfoMessage const *message) {
+int TransposePoolingConn::communicateInitInfo(
+      std::shared_ptr<CommunicateInitInfoMessage const> message) {
    int status    = PV_SUCCESS;
    mOriginalConn = message->lookup<PoolingConn>(std::string(mOriginalConnName));
    if (mOriginalConn == NULL) {
