@@ -126,9 +126,6 @@ int HyPerConn::initialize_base() {
    postConn = NULL;
    needPost = false;
 
-   wPostTime                  = -1.0;
-   wPostPatches               = NULL;
-   wPostDataStart             = NULL;
    nxpPost                    = 0;
    nypPost                    = 0;
    nfpPost                    = 0;
@@ -3896,26 +3893,6 @@ int HyPerConn::deleteWeights() {
       free(numKernelActivations);
    }
 
-   if (wPostPatches != NULL) {
-      for (int arborID = 0; arborID < numberOfAxonalArborLists(); arborID++) {
-         if (wPostPatches[arborID] != NULL) {
-            if (shrinkPatches_flag || arborID == 0) {
-               deletePatches(wPostPatches[arborID]);
-            }
-            wPostPatches[arborID] = NULL;
-         }
-
-         if (wPostDataStart != NULL) {
-            free(wPostDataStart[arborID]);
-            wPostDataStart[arborID] = NULL;
-         }
-      }
-      free(wPostPatches);
-      wPostPatches = NULL;
-      free(wPostDataStart);
-      wPostDataStart = NULL;
-   } // wPostPatches != NULL
-
    if (gSynPatchStart != NULL) {
       free(gSynPatchStart[0]); // All gSynPatchStart[k]'s were allocated together in a single malloc
       // call.
@@ -4058,122 +4035,9 @@ int HyPerConn::adjustAxonalArbors(int arborId) {
          arborId);
 }
 
+// convertPreSynapticWeights was marked obsolete Jul 27, 2017.
 PVPatch ***HyPerConn::convertPreSynapticWeights(double simTime) {
-   if (simTime <= wPostTime) {
-      return wPostPatches;
-   }
-   wPostTime = simTime;
-
-   const PVLayerLoc *preLoc  = pre->getLayerLoc();
-   const PVLayerLoc *postLoc = post->getLayerLoc();
-
-   const int xScale       = post->getXScale() - pre->getXScale();
-   const int yScale       = post->getYScale() - pre->getYScale();
-   const double powXScale = pow(2.0f, (double)xScale);
-   const double powYScale = pow(2.0f, (double)yScale);
-
-   // pre-synaptic weights are in extended layer reference frame
-   const int nxPre = preLoc->nx + preLoc->halo.lt + preLoc->halo.rt;
-   const int nyPre = preLoc->ny + preLoc->halo.dn + preLoc->halo.up;
-   const int nfPre = preLoc->nf;
-
-   const int nxPost  = postLoc->nx;
-   const int nyPost  = postLoc->ny;
-   const int nfPost  = postLoc->nf;
-   const int numPost = post->getNumNeurons();
-
-   nxpPost = (int)(nxp * powXScale);
-   nypPost = (int)(nyp * powYScale);
-   nfpPost = preLoc->nf;
-
-   int sxPost = nfpPost;
-   int syPost = sxPost * nxpPost;
-   int spPost = syPost * nypPost;
-
-   // the number of features is the end-point value (normally post-synaptic)
-   const int numPostPatch = nxpPost * nypPost * nfpPost; // Post-synaptic weights are never shrunken
-
-   if (wPostPatches == NULL) {
-      wPostPatches = (PVPatch ***)pvCalloc(numAxonalArborLists, sizeof(PVPatch **));
-      pvAssert(wPostDataStart == NULL);
-      wPostDataStart    = (float **)pvCalloc(numAxonalArborLists, sizeof(float *));
-      wPostDataStart[0] = allocWeights(numPost, nxpPost, nypPost, nfpPost);
-      pvAssert(wPostDataStart[0] != NULL);
-      for (int arborID = 0; arborID < numberOfAxonalArborLists(); arborID++) {
-         int status =
-               createWeights(wPostPatches, numPost, numPost, nxpPost, nypPost, nfpPost, arborID);
-         pvAssert(status == PV_SUCCESS);
-         if (arborID > 0) { // wDataStart already allocated
-            wPostDataStart[arborID] = wPostDataStart[0] + spPost * numPost * arborID;
-            pvAssert(wPostDataStart[arborID] != NULL);
-         }
-      }
-   }
-
-   // loop through all axons:
-   for (int arborID = 0; arborID < numberOfAxonalArborLists(); arborID++) {
-
-      // loop through post-synaptic neurons (non-extended indices)
-
-      for (int kPost = 0; kPost < numPost; kPost++) {
-         int kxPost = kxPos(kPost, nxPost, nyPost, nfPost);
-         int kyPost = kyPos(kPost, nxPost, nyPost, nfPost);
-         int kfPost = featureIndex(kPost, nxPost, nyPost, nfPost);
-
-         int kxPreHead = zPatchHead(kxPost, nxpPost, post->getXScale(), pre->getXScale());
-         int kyPreHead = zPatchHead(kyPost, nypPost, post->getYScale(), pre->getYScale());
-
-         // convert kxPreHead and kyPreHead to extended indices
-         kxPreHead += preLoc->halo.lt;
-         kyPreHead += preLoc->halo.up;
-
-         float *postData = wPostDataStart[arborID] + nxpPost * nypPost * nfpPost * kPost
-                           + wPostPatches[arborID][kPost]->offset;
-         for (int kp = 0; kp < numPostPatch; kp++) {
-
-            // calculate extended indices of presynaptic neuron {kPre, kzPre}
-            int kxPostPatch = (int)kxPos(kp, nxpPost, nypPost, nfPre);
-            int kyPostPatch = (int)kyPos(kp, nxpPost, nypPost, nfPre);
-            int kfPostPatch = (int)featureIndex(kp, nxpPost, nypPost, nfPre);
-
-            int kxPre = kxPreHead + kxPostPatch;
-            int kyPre = kyPreHead + kyPostPatch;
-            int kfPre = kfPostPatch;
-            int kPre  = kIndex(kxPre, kyPre, kfPre, nxPre, nyPre, nfPre);
-
-            // if {kPre, kzPre} out of bounds, set post weight to zero
-            if (kxPre < 0 || kyPre < 0 || kxPre >= nxPre || kyPre >= nyPre) {
-               pvAssert(kxPre < 0 || kyPre < 0 || kxPre >= nxPre || kyPre >= nyPre);
-               postData[kp] = 0.0;
-            }
-            else {
-               // {kzPostHead} store the restricted indices of the postsynaptic patch head
-               int kxPostHead, kyPostHead, kfPostHead;
-               int nxp_post, nyp_post; // shrunken patch dimensions
-               int dx_nxp, dy_nyp; // shrinkage
-
-               postSynapticPatchHead(
-                     kPre,
-                     &kxPostHead,
-                     &kyPostHead,
-                     &kfPostHead,
-                     &dx_nxp,
-                     &dy_nyp,
-                     &nxp_post,
-                     &nyp_post);
-
-               int kxPrePatch, kyPrePatch; // relative index in shrunken patch
-               kxPrePatch     = kxPost - kxPostHead;
-               kyPrePatch     = kyPost - kyPostHead;
-               int kPrePatch  = kfPost * sfp + kxPrePatch * sxp + kyPrePatch * syp;
-               float *preData = get_wDataStart(arborID) + patchStartIndex(kPre)
-                                + getWeights(kPre, arborID)->offset;
-               postData[kp] = preData[kPrePatch];
-            }
-         }
-      }
-   }
-   return wPostPatches;
+   Fatal() << "convertPreSynapticWeights is obsolete.\n";
 }
 
 /**

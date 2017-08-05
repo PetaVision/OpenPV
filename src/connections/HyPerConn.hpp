@@ -252,17 +252,6 @@ class HyPerConn : public BaseConnection {
                                             + wPatches[arborId][patchIndex]->offset];
    }
 
-   inline PVPatch *getWPostPatches(int arbor, int patchIndex) {
-      return wPostPatches[arbor][patchIndex];
-   }
-
-   inline float *getWPostData(int arbor, int patchIndex) {
-      return &wPostDataStart[arbor][postPatchStartIndex(patchIndex)]
-             + wPostPatches[arbor][patchIndex]->offset;
-   }
-
-   inline float *getWPostData(int arbor) { return wPostDataStart[arbor]; }
-
    int getNumWeightPatches() { return numWeightPatches; }
 
    int getNumDataPatchesX() { return mNumDataPatchesX; }
@@ -281,6 +270,7 @@ class HyPerConn : public BaseConnection {
 
    bool getNormalizeDwFlag() { return normalizeDwFlag; }
 
+   // convertPreSynapticWeights was marked obsolete Jul 27, 2017.
    PVPatch ***convertPreSynapticWeights(double time);
    int preSynapticPatchHead(int kxPost, int kyPost, int kfPost, int *kxPre, int *kyPre);
    int postSynapticPatchHead(
@@ -443,15 +433,11 @@ class HyPerConn : public BaseConnection {
    int nxp, nyp, nfp; // size of weight dimensions
    bool warnDefaultNfp; // Whether to print a warning if the default nfp is used.
    int sxp, syp, sfp; // stride in x,y,features
-   PVPatch ***wPostPatches; // post-synaptic linkage of weights // This is being deprecated in favor
-   // of TransposeConn
-   float **wPostDataStart;
 
    int nxpPost, nypPost, nfpPost;
    int numParams;
    float wMax;
    float wMin;
-   double wPostTime; // time of last conversion to wPostPatches
    double initialWriteTime;
    double writeTime; // time of next output, initialized in params file parameter initialWriteTime
    double writeStep; // output time interval
