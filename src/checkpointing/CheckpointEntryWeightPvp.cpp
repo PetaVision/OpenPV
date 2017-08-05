@@ -28,11 +28,13 @@ void CheckpointEntryWeightPvp::initialize(
       PVLayerLoc const *preLoc,
       PVLayerLoc const *postLoc,
       bool compressFlag) {
-   mNumArbors     = numArbors;
-   mSharedWeights = sharedWeights;
-   mPatchGeometry = patchGeometry;
-   mWeightData    = weightData;
-   mNumPatchesX = numPatchesX, mNumPatchesY = numPatchesY, mNumPatchesF = numPatchesF,
+   mNumArbors      = numArbors;
+   mSharedWeights  = sharedWeights;
+   mPatchGeometry  = patchGeometry;
+   mWeightData     = weightData;
+   mNumPatchesX    = numPatchesX;
+   mNumPatchesY    = numPatchesY;
+   mNumPatchesF    = numPatchesF;
    mWeightDataSize = numPatchesX * numPatchesY * numPatchesF;
    mPatchSizeX     = nxp;
    mPatchSizeY     = nyp;
