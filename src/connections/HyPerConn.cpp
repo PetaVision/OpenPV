@@ -129,8 +129,6 @@ int HyPerConn::initialize_base() {
    wPostTime                  = -1.0;
    wPostPatches               = NULL;
    wPostDataStart             = NULL;
-   wPostPatchesp              = NULL;
-   wPostDataStartp            = NULL;
    nxpPost                    = 0;
    nypPost                    = 0;
    nfpPost                    = 0;
@@ -601,7 +599,9 @@ void HyPerConn::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
          ioFlag, name, "sharedWeights", &sharedWeights, true /*default*/, true /*warn if absent*/);
    if (sharedWeights == false and receiveGpu == true) {
       if (parent->getCommunicator()->globalCommRank() == 0) {
-         ErrorLog().printf("%s: sharedWeights must be true in order to receive on the GPU.\n", getDescription_c());
+         ErrorLog().printf(
+               "%s: sharedWeights must be true in order to receive on the GPU.\n",
+               getDescription_c());
       }
       MPI_Barrier(parent->getCommunicator()->globalCommunicator());
       MPI_Finalize();
@@ -4174,128 +4174,6 @@ PVPatch ***HyPerConn::convertPreSynapticWeights(double simTime) {
       }
    }
    return wPostPatches;
-}
-
-PVPatch ****HyPerConn::point2PreSynapticWeights() {
-
-   const PVLayerLoc *preLoc  = pre->getLayerLoc();
-   const PVLayerLoc *postLoc = post->getLayerLoc();
-
-   const int xScale       = post->getXScale() - pre->getXScale();
-   const int yScale       = post->getYScale() - pre->getYScale();
-   const double powXScale = pow(2.0f, (double)xScale);
-   const double powYScale = pow(2.0f, (double)yScale);
-
-   // pre-synaptic weights are in extended layer reference frame
-   const int nxPre = preLoc->nx + preLoc->halo.lt + preLoc->halo.rt;
-   const int nyPre = preLoc->ny + preLoc->halo.dn + preLoc->halo.up;
-   const int nfPre = preLoc->nf;
-
-   const int nxPost  = postLoc->nx;
-   const int nyPost  = postLoc->ny;
-   const int nfPost  = postLoc->nf;
-   const int numPost = post->getNumNeurons();
-
-   nxpPost = (int)(nxp * powXScale);
-   nypPost = (int)(nyp * powYScale);
-   nfpPost = preLoc->nf;
-   float z = 0;
-
-   // the number of features is the end-point value (normally post-synaptic)
-   const int numPostPatch = nxpPost * nypPost * nfpPost; // Post-synaptic weights are never shrunken
-
-   if (wPostPatchesp == NULL) {
-
-      // Return data structure
-      wPostPatchesp = (PVPatch ****)pvCalloc(numAxonalArborLists, sizeof(PVPatch ***));
-      pvAssert(wPostDataStartp == NULL);
-      wPostDataStartp = (float ***)pvCalloc(numAxonalArborLists, sizeof(float **));
-
-      for (int arborID = 0; arborID < numberOfAxonalArborLists(); arborID++) {
-
-         wPostPatchesp[arborID] = (PVPatch ***)pvCalloc(numPost, sizeof(PVPatch **));
-
-         int sx = nfpPost;
-         int sy = sx * nxpPost;
-         int sp = sy * nypPost;
-
-         size_t patchSize = sp * sizeof(float);
-         size_t dataSize  = numPost * patchSize;
-
-         wPostDataStartp[arborID] = (float **)pvCalloc(dataSize, sizeof(char *));
-
-         PVPatch **patcharray = (PVPatch **)pvCalloc(numPost, sizeof(PVPatch *));
-         PVPatch **curpatch   = patcharray;
-         for (int i = 0; i < numPost; i++) {
-            wPostPatchesp[arborID][i] = curpatch;
-            curpatch++;
-         }
-      }
-   }
-
-   // loop through all arbors:
-   for (int arborID = 0; arborID < numberOfAxonalArborLists(); arborID++) {
-
-      // loop through post-synaptic neurons (non-extended indices)
-      for (int kPost = 0; kPost < numPost; kPost++) {
-         int kxPost = kxPos(kPost, nxPost, nyPost, nfPost);
-         int kyPost = kyPos(kPost, nxPost, nyPost, nfPost);
-         int kfPost = featureIndex(kPost, nxPost, nyPost, nfPost);
-
-         int kxPreHead = zPatchHead(kxPost, nxpPost, post->getXScale(), pre->getXScale());
-         int kyPreHead = zPatchHead(kyPost, nypPost, post->getYScale(), pre->getYScale());
-
-         // convert kxPreHead and kyPreHead to extended indices
-         kxPreHead += preLoc->halo.lt;
-         kyPreHead += preLoc->halo.up;
-
-         // Accessing by patch offset through wPostDataStart by x,y,and feature of a patch
-         float **postData = wPostDataStartp[arborID] + nxpPost * nypPost * nfpPost * kPost + 0;
-         for (int kp = 0; kp < numPostPatch; kp++) {
-
-            // calculate extended indices of presynaptic neuron {kPre, kzPre}
-            int kxPostPatch = (int)kxPos(kp, nxpPost, nypPost, nfPre);
-            int kyPostPatch = (int)kyPos(kp, nxpPost, nypPost, nfPre);
-            int kfPostPatch = (int)featureIndex(kp, nxpPost, nypPost, nfPre);
-
-            int kxPre = kxPreHead + kxPostPatch;
-            int kyPre = kyPreHead + kyPostPatch;
-            int kfPre = kfPostPatch;
-            int kPre  = kIndex(kxPre, kyPre, kfPre, nxPre, nyPre, nfPre);
-
-            // if {kPre, kzPre} out of bounds, set post weight to zero
-            if (kxPre < 0 || kyPre < 0 || kxPre >= nxPre || kyPre >= nyPre) {
-               pvAssert(kxPre < 0 || kyPre < 0 || kxPre >= nxPre || kyPre >= nyPre);
-               postData[kp] = &z;
-            }
-            else {
-               // {kzPostHead} store the restricted indices of the postsynaptic patch head
-               int kxPostHead, kyPostHead, kfPostHead;
-               int nxp_post, nyp_post; // shrunken patch dimensions
-               int dx_nxp, dy_nyp; // shrinkage
-
-               postSynapticPatchHead(
-                     kPre,
-                     &kxPostHead,
-                     &kyPostHead,
-                     &kfPostHead,
-                     &dx_nxp,
-                     &dy_nyp,
-                     &nxp_post,
-                     &nyp_post);
-
-               int kxPrePatch, kyPrePatch; // relative index in shrunken patch
-               kxPrePatch     = kxPost - kxPostHead;
-               kyPrePatch     = kyPost - kyPostHead;
-               int kPrePatch  = kfPost * sfp + kxPrePatch * sxp + kyPrePatch * syp;
-               float *preData = get_wDataStart(arborID) + patchStartIndex(kPre)
-                                + getWeights(kPre, arborID)->offset;
-               postData[kp] = &(preData[kPrePatch]);
-            }
-         }
-      }
-   }
-   return wPostPatchesp;
 }
 
 /**
