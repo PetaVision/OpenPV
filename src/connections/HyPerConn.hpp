@@ -311,7 +311,6 @@ class HyPerConn : public BaseConnection {
     * Sets the flag indicating that the postsynaptic perspective is needed.
     */
    void setNeedPost() { needPost = true; }
-   void setNeedAllocPostWeights(bool inBool) { needAllocPostWeights = inBool; }
 
   protected:
    int fileparams[NUM_WGT_PARAMS]; // The header of the file named by the filename member variable
@@ -320,7 +319,6 @@ class HyPerConn : public BaseConnection {
    int mNumDataPatchesX; // Number of data patches in the x-dimension
    int mNumDataPatchesY; // Number of data patches in the y-dimension
    int mNumDataPatchesF; // Number of data patches in the feature dimension
-   bool needAllocPostWeights;
 
    std::vector<PlasticCloneConn *>
          clones; // A vector of plastic clones that are cloning from this connection

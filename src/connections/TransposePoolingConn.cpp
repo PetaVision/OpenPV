@@ -344,7 +344,6 @@ int TransposePoolingConn::communicateInitInfo(
    if (!updateGSynFromPostPerspective) {
       mOriginalConn->setNeedPost();
    }
-   mOriginalConn->setNeedAllocPostWeights(false);
 
    // Synchronize margines of this post and orig pre, and vice versa
    mOriginalConn->preSynapticLayer()->synchronizeMarginWidth(post);

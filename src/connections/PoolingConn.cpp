@@ -295,7 +295,6 @@ int PoolingConn::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
 
    if (getUpdateGSynFromPostPerspective()) {
       setNeedPost();
-      needAllocPostWeights = false;
    }
 
    return status;

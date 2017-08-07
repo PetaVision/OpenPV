@@ -173,7 +173,6 @@ int HyPerConn::initialize_base() {
 
    postToPreActivity    = NULL;
    needFinalize         = true;
-   needAllocPostWeights = true;
 
    lastUpdateTime        = 0.0;
    lastTimeUpdateCalled  = 0.0;
