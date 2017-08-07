@@ -165,11 +165,9 @@ int AbstractNormProbe::outputState(double timevalue) {
       for (int b = 0; b < nBatch; b++) {
          output(b).printf(
                "%6.3f, %d, %8d, %f",
-               getMessage(),
                timevalue,
                b,
                nk,
-               getNormDescription(),
                valuesBuffer[b]);
          output(b) << std::endl;
       }
