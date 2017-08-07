@@ -66,8 +66,8 @@ int CloneConn::constructWeights() {
    wPatches       = this->originalConn->get_wPatches();
    wDataStart     = this->originalConn->get_wDataStart();
    gSynPatchStart = this->originalConn->getGSynPatchStart();
-   aPostOffset    = this->originalConn->getAPostOffset();
-   dwDataStart    = this->originalConn->get_dwDataStart();
+   aPostOffset    = nullptr; // Not used by CloneConn
+   dwDataStart    = nullptr; // Not used by CloneConn
 
    // Don't call initPlasticityPatches since plasticityFlag is always false.
    return status;
@@ -321,11 +321,11 @@ int CloneConn::deleteWeights() {
    // Have to make sure not to free memory belonging to originalConn.
    // Set pointers that point into originalConn to NULL so that free() has no effect
    // when HyPerConn::deleteWeights or HyPerConn::deleteWeights is called
-   wPatches       = NULL;
-   wDataStart     = NULL;
-   gSynPatchStart = NULL;
-   aPostOffset    = NULL;
-   dwDataStart    = NULL;
+   wPatches       = nullptr;
+   wDataStart     = nullptr;
+   gSynPatchStart = nullptr;
+   pvAssert(aPostOffset == nullptr);
+   pvAssert(dwDataStart == nullptr);
    return 0;
 }
 

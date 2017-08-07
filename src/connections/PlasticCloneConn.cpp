@@ -140,12 +140,12 @@ int PlasticCloneConn::constructWeights() {
 }
 
 int PlasticCloneConn::deleteWeights() {
-   wPatches             = NULL;
-   wDataStart           = NULL;
-   gSynPatchStart       = NULL;
-   aPostOffset          = NULL;
-   dwDataStart          = NULL;
-   numKernelActivations = NULL;
+   wPatches       = nullptr;
+   wDataStart     = nullptr;
+   gSynPatchStart = nullptr;
+   pvAssert(aPostOffset == nullptr);
+   pvAssert(dwDataStart == nullptr);
+   numKernelActivations = nullptr;
    return 0;
 }
 
